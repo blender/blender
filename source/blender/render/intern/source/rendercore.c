@@ -2141,9 +2141,20 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			shi->orn[2]= -shi->vn[2];
 		}
 		if(mode & MA_RADIO) {
-			shi->rad[0]= (l*v3->rad[0] - u*v1->rad[0] - v*v2->rad[0]);
-			shi->rad[1]= (l*v3->rad[1] - u*v1->rad[1] - v*v2->rad[1]);
-			shi->rad[2]= (l*v3->rad[2] - u*v1->rad[2] - v*v2->rad[2]);
+			float *r1, *r2, *r3;
+			
+			r1= RE_vertren_get_rad(v1, 0);
+			r2= RE_vertren_get_rad(v2, 0);
+			r3= RE_vertren_get_rad(v3, 0);
+			
+			if(r1 && r2 && r3) {
+				shi->rad[0]= (l*r3[0] - u*r1[0] - v*r2[0]);
+				shi->rad[1]= (l*r3[1] - u*r1[1] - v*r2[1]);
+				shi->rad[2]= (l*r3[2] - u*r1[2] - v*r2[2]);
+			}
+			else {
+				shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0;
+			}
 		}
 		else {
 			shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0;
@@ -2152,7 +2163,19 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			/* mirror reflection colour textures (and envmap) */
 			calc_R_ref(shi);
 		}
-		
+		if(texco & TEXCO_STRESS) {
+			float *s1, *s2, *s3;
+			
+			s1= RE_vertren_get_stress(v1, 0);
+			s2= RE_vertren_get_stress(v2, 0);
+			s3= RE_vertren_get_stress(v3, 0);
+			if(s1 && s2 && s3) {
+				shi->stress= l*s3[0] - u*s1[0] - v*s2[0];
+				if(shi->stress<1.0f) shi->stress-= 1.0f;
+				else shi->stress= (shi->stress-1.0f)/shi->stress;
+			}
+			else shi->stress= 0.0f;
+		}
 	}
 	else {
 		shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0;
@@ -2225,7 +2248,7 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 		VECCOPY(rco, col);
 	}
 	else if( (facenr & 0x7FFFFF) <= R.totvlak) {
-		VertRen *v1, *v2, *v3;
+		VertRen *v1;
 		Material *mat;
 		MaterialLayer *ml;
 		float alpha, fac, zcor;
@@ -2349,16 +2372,23 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 		}
 		/* after this the u and v AND shi.dxuv and shi.dyuv are incorrect */
 		if(shi.mat->texco & TEXCO_STICKY) {
-			if(v1->sticky) {
+			VertRen *v2, *v3;
+			float *s1, *s2, *s3;
+			
+			if(facenr & 0x800000) {
+				v2= vlr->v3; v3= vlr->v4;
+			} else {
+				v2= vlr->v2; v3= vlr->v3;
+			}
+			
+			s1= RE_vertren_get_sticky(v1, 0);
+			s2= RE_vertren_get_sticky(v2, 0);
+			s3= RE_vertren_get_sticky(v3, 0);
+			
+			if(s1 && s2 && s3) {
 				extern float Zmulx, Zmuly;
-				float *o1, *o2, *o3, hox, hoy, l, dl, u, v;
+				float hox, hoy, l, dl, u, v;
 				float s00, s01, s10, s11, detsh;
-				
-				if(facenr & 0x800000) {
-					v2= vlr->v3; v3= vlr->v4;
-				} else {
-					v2= vlr->v2; v3= vlr->v3;
-				}
 				
 				s00= v3->ho[0]/v3->ho[3] - v1->ho[0]/v1->ho[3];
 				s01= v3->ho[1]/v3->ho[3] - v1->ho[1]/v1->ho[3];
@@ -2376,12 +2406,8 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 				v= (hoy - v3->ho[1]/v3->ho[3])*s00 - (hox - v3->ho[0]/v3->ho[3])*s01;
 				l= 1.0+u+v;
 				
-				o1= v1->sticky;
-				o2= v2->sticky;
-				o3= v3->sticky;
-				
-				shi.sticky[0]= l*o3[0]-u*o1[0]-v*o2[0];
-				shi.sticky[1]= l*o3[1]-u*o1[1]-v*o2[1];
+				shi.sticky[0]= l*s3[0]-u*s1[0]-v*s2[0];
+				shi.sticky[1]= l*s3[1]-u*s1[1]-v*s2[1];
 				shi.sticky[2]= 0.0;
 				
 				if(shi.osatex) {
@@ -2391,11 +2417,11 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 					shi.dyuv[1]=  s00/Zmuly;
 					
 					dl= shi.dxuv[0]+shi.dxuv[1];
-					shi.dxsticky[0]= dl*o3[0]-shi.dxuv[0]*o1[0]-shi.dxuv[1]*o2[0];
-					shi.dxsticky[1]= dl*o3[1]-shi.dxuv[0]*o1[1]-shi.dxuv[1]*o2[1];
+					shi.dxsticky[0]= dl*s3[0]-shi.dxuv[0]*s1[0]-shi.dxuv[1]*s2[0];
+					shi.dxsticky[1]= dl*s3[1]-shi.dxuv[0]*s1[1]-shi.dxuv[1]*s2[1];
 					dl= shi.dyuv[0]+shi.dyuv[1];
-					shi.dysticky[0]= dl*o3[0]-shi.dyuv[0]*o1[0]-shi.dyuv[1]*o2[0];
-					shi.dysticky[1]= dl*o3[1]-shi.dyuv[0]*o1[1]-shi.dyuv[1]*o2[1];
+					shi.dysticky[0]= dl*s3[0]-shi.dyuv[0]*s1[0]-shi.dyuv[1]*s2[0];
+					shi.dysticky[1]= dl*s3[1]-shi.dyuv[0]*s1[1]-shi.dyuv[1]*s2[1];
 				}
 			}
 		}

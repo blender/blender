@@ -149,7 +149,7 @@ void setzbufvlaggen( void (*projectfunc)(float *, float *) )
 
    /* calculate view coordinates (and zbuffer value) */
 	for(a=0; a< R.totvert;a++) {
-		if((a & 255)==0) ver= R.blove[a>>8];
+		if((a & 255)==0) ver= RE_findOrAddVert(a);
 		else ver++;
 
 		if(R.r.mode & R_PANORAMA) {

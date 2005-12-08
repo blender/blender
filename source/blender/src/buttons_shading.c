@@ -2857,11 +2857,12 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	/* TEXCO */
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "UV",			630,166,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Object",		670,166,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "",745,166,163,18, &(mtex->object), "");
+	uiDefButS(block, ROW, B_MATPRV, "Glob",			670,166,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Object",		715,166,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "",790,166,118,18, &(mtex->object), "");
 	
-	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Orco",			675,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original coordinates of the mesh");
+	uiDefButS(block, ROW, B_MATPRV, "Orco",			630,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
+	uiDefButS(block, ROW, B_MATPRV, "Stress",		675,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
 	if( give_parteff(ob) )
 		uiDefButS(block, ROW, B_MATPRV, "Strand",	725,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
 	else

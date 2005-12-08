@@ -44,7 +44,7 @@
  * offset in a 256-entry block.
  *
  * - If the 256-entry block entry has an entry in the
- * blove/bloha/blovl array of the current block, the i-th entry in
+ * vertnodes/bloha/blovl array of the current block, the i-th entry in
  * that block is allocated to this entry.
  *
  * - If the entry has no block allocated for it yet, memory is
@@ -74,11 +74,24 @@
 
 /* ------------------------------------------------------------------------- */
 
-#if 0
-/* proposal for more dynamic allocation of options for render vertices, so we dont
-   have to reserve this space inside vertices */
+
+/* More dynamic allocation of options for render vertices, so we dont
+   have to reserve this space inside vertices.
+   Important; vertices should have been created already (to get tables checked) 
+   that's a reason why the calls demand VertRen * as arg, not the index */
+
+/* NOTE! the hardcoded table size 256 is used still in code for going quickly over vertices/faces */
+
+#define RE_STICKY_ELEMS		2
+#define RE_STRESS_ELEMS		1
+#define RE_RAD_ELEMS		4
+#define RE_STRAND_ELEMS		1
+#define RE_TANGENT_ELEMS	3
+#define RE_STRESS_ELEMS		1
+
+/* render allocates totvert/256 of these nodes, for lookup and quick alloc */
 typedef struct VertTableNode {
-	VertRen *vert;
+	struct VertRen *vert;
 	float *rad;
 	float *sticky;
 	float *strand;
@@ -86,53 +99,160 @@ typedef struct VertTableNode {
 	float *stress;
 } VertTableNode;
 
-#define RE_STICKY_ELEMS	3
 float *RE_vertren_get_sticky(VertRen *ver, int verify)
 {
 	float *sticky;
-	int a= ver->index>>8;
+	int nr= ver->index>>8;
 	
-	sticky= R.blove[a].sticky;
+	sticky= R.vertnodes[nr].sticky;
 	if(sticky==NULL) {
 		if(verify) 
-			sticky= R.blove[a].sticky= MEM_mallocN(RE_STICKY_ELEMS*sizeof(float), "sticky table");
+			sticky= R.vertnodes[nr].sticky= MEM_mallocN(256*RE_STICKY_ELEMS*sizeof(float), "sticky table");
 		else
 			return NULL;
 	}
-	sticky+= (nr & 255)*RE_STICKY_ELEMS;
+	return sticky + (ver->index & 255)*RE_STICKY_ELEMS;
 }
-#endif
+
+float *RE_vertren_get_stress(VertRen *ver, int verify)
+{
+	float *stress;
+	int nr= ver->index>>8;
+	
+	stress= R.vertnodes[nr].stress;
+	if(stress==NULL) {
+		if(verify) 
+			stress= R.vertnodes[nr].stress= MEM_mallocN(256*RE_STRESS_ELEMS*sizeof(float), "stress table");
+		else
+			return NULL;
+	}
+	return stress + (ver->index & 255)*RE_STRESS_ELEMS;
+}
+
+/* this one callocs! */
+float *RE_vertren_get_rad(VertRen *ver, int verify)
+{
+	float *rad;
+	int nr= ver->index>>8;
+	
+	rad= R.vertnodes[nr].rad;
+	if(rad==NULL) {
+		if(verify) 
+			rad= R.vertnodes[nr].rad= MEM_callocN(256*RE_RAD_ELEMS*sizeof(float), "rad table");
+		else
+			return NULL;
+	}
+	return rad + (ver->index & 255)*RE_RAD_ELEMS;
+}
+
+float *RE_vertren_get_strand(VertRen *ver, int verify)
+{
+	float *strand;
+	int nr= ver->index>>8;
+	
+	strand= R.vertnodes[nr].strand;
+	if(strand==NULL) {
+		if(verify) 
+			strand= R.vertnodes[nr].strand= MEM_mallocN(256*RE_STRAND_ELEMS*sizeof(float), "strand table");
+		else
+			return NULL;
+	}
+	return strand + (ver->index & 255)*RE_STRAND_ELEMS;
+}
+
+float *RE_vertren_get_tangent(VertRen *ver, int verify)
+{
+	float *tangent;
+	int nr= ver->index>>8;
+	
+	tangent= R.vertnodes[nr].tangent;
+	if(tangent==NULL) {
+		if(verify) 
+			tangent= R.vertnodes[nr].tangent= MEM_mallocN(256*RE_TANGENT_ELEMS*sizeof(float), "tangent table");
+		else
+			return NULL;
+	}
+	return tangent + (ver->index & 255)*RE_TANGENT_ELEMS;
+}
+
 
 VertRen *RE_findOrAddVert(int nr)
 {
-	VertRen *v, **temp;
-	static int rblovelen=TABLEINITSIZE;
+	VertTableNode *temp;
+	VertRen *v;
+	static int rvertnodeslen=TABLEINITSIZE;
 	int a;
 
 	if(nr<0) {
 		printf("error in findOrAddVert: %d\n",nr);
-		return R.blove[0];
+		return R.vertnodes[0].vert;
 	}
 	a= nr>>8;
 	
-	if (a>=rblovelen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
-		//printf("Allocating %i more vert groups.  %i total.\n", 
-		//	TABLEINITSIZE, rblovelen+TABLEINITSIZE );
-		temp=R.blove;
-		R.blove=(VertRen**)MEM_callocN(sizeof(void*)*(rblovelen+TABLEINITSIZE) , "Blove");
-		memcpy(R.blove, temp, rblovelen*sizeof(void*));
-		memset(&(R.blove[rblovelen]), 0, TABLEINITSIZE*sizeof(void*));
-		rblovelen+=TABLEINITSIZE; 
+	if (a>=rvertnodeslen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
+		temp= R.vertnodes;
+		
+		R.vertnodes= MEM_mallocN(sizeof(VertTableNode)*(rvertnodeslen+TABLEINITSIZE) , "vertnodes");
+		memcpy(R.vertnodes, temp, rvertnodeslen*sizeof(VertTableNode));
+		memset(R.vertnodes+rvertnodeslen, 0, TABLEINITSIZE*sizeof(VertTableNode));
+		
+		rvertnodeslen+=TABLEINITSIZE; 
 		MEM_freeN(temp);	
 	}
 	
-	v= R.blove[a];
-	if(v==0) {
+	v= R.vertnodes[a].vert;
+	if(v==NULL) {
+		int i;
+		
 		v= (VertRen *)MEM_callocN(256*sizeof(VertRen),"findOrAddVert");
-		R.blove[a]= v;
+		R.vertnodes[a].vert= v;
+		
+		for(i= (nr & 0xFFFFFF00), a=0; a<256; a++, i++) {
+			v[a].index= i;
+		}
 	}
 	v+= (nr & 255);
 	return v;
+}
+
+void RE_free_vertex_tables(void)
+{
+	int a=0;
+	
+	while(R.vertnodes[a].vert) {
+		if(R.vertnodes[a].vert) {
+			MEM_freeN(R.vertnodes[a].vert);
+			R.vertnodes[a].vert= NULL;
+
+			if(R.vertnodes[a].rad) {
+				MEM_freeN(R.vertnodes[a].rad);
+				R.vertnodes[a].rad= NULL;
+			}
+			if(R.vertnodes[a].sticky) {
+				MEM_freeN(R.vertnodes[a].sticky);
+				R.vertnodes[a].sticky= NULL;
+			}
+			if(R.vertnodes[a].strand) {
+				MEM_freeN(R.vertnodes[a].strand);
+				R.vertnodes[a].strand= NULL;
+			}
+			if(R.vertnodes[a].tangent) {
+				MEM_freeN(R.vertnodes[a].tangent);
+				R.vertnodes[a].tangent= NULL;
+			}
+			if(R.vertnodes[a].stress) {
+				MEM_freeN(R.vertnodes[a].stress);
+				R.vertnodes[a].stress= NULL;
+			}
+		}
+		a++;
+	}
+}
+
+/* only once, on startup */
+void RE_init_vertex_tables(void)
+{
+	R.vertnodes= MEM_callocN(sizeof(VertTableNode)*TABLEINITSIZE , "vertnodes");
 }
 
 /* ------------------------------------------------------------------------ */

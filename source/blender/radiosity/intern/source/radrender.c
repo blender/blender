@@ -399,100 +399,16 @@ static void vecaddfac(float *vec, float *v1, float *v2, float fac)
 
 }
 
-#if 0
-/* unused now, doesnt work... */
-static void filter_rad_values(void)
-{
-	VlakRen *vlr=NULL;
-	VertRen *v1=NULL;
-	RadFace *rf;
-	float n1[3], n2[3], n3[4], n4[3], co[4];
-	int a;
-	
-	/* one filter pass */
-	for(a=0; a<R.totvert; a++) {
-		if((a & 255)==0) v1= R.blove[a>>8]; else v1++;
-		if(v1->accum>0.0) {
-			v1->rad[0]= v1->rad[0]/v1->accum;
-			v1->rad[1]= v1->rad[1]/v1->accum;
-			v1->rad[2]= v1->rad[2]/v1->accum;
-			v1->accum= 0.0;
-		}
-	}
-	/* cosines in verts accumulate in faces */
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
-		
-		if(vlr->radface) {
-			rf= vlr->radface;
-			
-			/* calculate cosines of angles, for weighted add (irregular faces) */
-			VecSubf(n1, vlr->v2->co, vlr->v1->co);
-			VecSubf(n2, vlr->v3->co, vlr->v2->co);
-			Normalise(n1);
-			Normalise(n2);
-	
-			if(vlr->v4==NULL) {
-				VecSubf(n3, vlr->v1->co, vlr->v3->co);
-				Normalise(n3);
-				
-				co[0]= saacos(-n3[0]*n1[0]-n3[1]*n1[1]-n3[2]*n1[2])/M_PI;
-				co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2])/M_PI;
-				co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2])/M_PI;
-				co[0]= co[1]= co[2]= 1.0/3.0;
-			}
-			else {
-				VecSubf(n3, vlr->v4->co, vlr->v3->co);
-				VecSubf(n4, vlr->v1->co, vlr->v4->co);
-				Normalise(n3);
-				Normalise(n4);
-				
-				co[0]= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2])/M_PI;
-				co[1]= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2])/M_PI;
-				co[2]= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2])/M_PI;
-				co[3]= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2])/M_PI;
-				co[0]= co[1]= co[2]= co[3]= 1.0/4.0;
-			}
-			
-			rf->totrad[0]= rf->totrad[1]= rf->totrad[2]= 0.0;
+/* unused now, doesnt work..., find it in cvs of nov 2005 or older */
+/* static void filter_rad_values(void) */
 
-			vecaddfac(rf->totrad, rf->totrad, vlr->v1->rad, co[0]); 
-			vecaddfac(rf->totrad, rf->totrad, vlr->v2->rad, co[1]); 
-			vecaddfac(rf->totrad, rf->totrad, vlr->v3->rad, co[2]); 
-			if(vlr->v4) {
-				vecaddfac(rf->totrad, rf->totrad, vlr->v4->rad, co[3]); 
-			}
-		}
-	}
-
-	/* accumulate vertexcolors again */
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
-		
-		if(vlr->radface) {
-			rf= vlr->radface;
-
-			vecaddfac(vlr->v1->rad, vlr->v1->rad, rf->totrad, rf->area); 
-			vlr->v1->accum+= rf->area;
-			vecaddfac(vlr->v2->rad, vlr->v2->rad, rf->totrad, rf->area); 
-			vlr->v2->accum+= rf->area;
-			vecaddfac(vlr->v3->rad, vlr->v3->rad, rf->totrad, rf->area); 
-			vlr->v3->accum+= rf->area;
-			if(vlr->v4) {
-				vecaddfac(vlr->v4->rad, vlr->v4->rad, rf->totrad, rf->area); 
-				vlr->v4->accum+= rf->area;
-			}
-		}
-	}
-
-}
-#endif
 
 static void make_vertex_rad_values()
 {
 	VertRen *v1=NULL;
 	VlakRen *vlr=NULL;
 	RadFace *rf;
+	float *col;
 	int a;
 
 	RG.igamma= 1.0/RG.gamma;
@@ -515,26 +431,34 @@ static void make_vertex_rad_values()
 			if(vlr->mat->g > 0.0) rf->totrad[1]/= vlr->mat->g;
 			if(vlr->mat->b > 0.0) rf->totrad[2]/= vlr->mat->b;
 			
-			vecaddfac(vlr->v1->rad, vlr->v1->rad, rf->totrad, rf->area); 
-			vlr->v1->accum+= rf->area;
-			vecaddfac(vlr->v2->rad, vlr->v2->rad, rf->totrad, rf->area); 
-			vlr->v2->accum+= rf->area;
-			vecaddfac(vlr->v3->rad, vlr->v3->rad, rf->totrad, rf->area); 
-			vlr->v3->accum+= rf->area;
+			col= RE_vertren_get_rad(vlr->v1, 1);
+			vecaddfac(col, col, rf->totrad, rf->area); 
+			col[3]+= rf->area;
+			
+			col= RE_vertren_get_rad(vlr->v2, 1);
+			vecaddfac(col, col, rf->totrad, rf->area); 
+			col[3]+= rf->area;
+			
+			col= RE_vertren_get_rad(vlr->v3, 1);
+			vecaddfac(col, col, rf->totrad, rf->area); 
+			col[3]+= rf->area;
+
 			if(vlr->v4) {
-				vecaddfac(vlr->v4->rad, vlr->v4->rad, rf->totrad, rf->area); 
-				vlr->v4->accum+= rf->area;
+				col= RE_vertren_get_rad(vlr->v4, 1);
+				vecaddfac(col, col, rf->totrad, rf->area); 
+				col[3]+= rf->area;
 			}
 		}
 	}
 	
 	/* make vertex colors */
 	for(a=0; a<R.totvert; a++) {
-		if((a & 255)==0) v1= R.blove[a>>8]; else v1++;
-		if(v1->accum>0.0) {
-			v1->rad[0]/= v1->accum;
-			v1->rad[1]/= v1->accum;
-			v1->rad[2]/= v1->accum;			
+		if((a & 255)==0) v1= RE_findOrAddVert(a); else v1++;
+		col= RE_vertren_get_rad(v1, 0);
+		if(col[3]>0.0) {
+			col[0]/= col[3];
+			col[1]/= col[3];
+			col[2]/= col[3];
 		}
 	}
 

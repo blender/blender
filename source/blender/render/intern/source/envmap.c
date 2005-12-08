@@ -289,7 +289,7 @@ static void env_rotate_scene(float mat[][4], int mode)
 	}
 	
 	for(a=0; a<R.totvert; a++) {
-		if((a & 255)==0) ver= R.blove[a>>8];
+		if((a & 255)==0) ver= RE_findOrAddVert(a);
 		else ver++;
 		
 		MTC_Mat4MulVecfl(tmat, ver->co);

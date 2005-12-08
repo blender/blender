@@ -2559,9 +2559,7 @@ static void set_faces_raycountflag(void)
 	maxy= (float)(2*Amaxy-R.recty+2)/(float)R.recty;
 	
 	for(v=0; v<R.totvert; v++) {
-		if((v & 255)==0) {
-			ver= R.blove[v>>8];
-		}
+		if((v & 255)==0) ver= RE_findOrAddVert(v);
 		else ver++;
 		
 		wco= ver->ho[3];

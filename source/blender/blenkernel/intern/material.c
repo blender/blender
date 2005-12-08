@@ -596,7 +596,7 @@ void init_render_material(Material *ma)
 				if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
 			}
 			
-			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND)) needuv= 1;
+			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
 			else if(ma->texco & (TEXCO_GLOB|TEXCO_UV|TEXCO_OBJECT)) needuv= 1;
 			else if(ma->texco & (TEXCO_LAVECTOR|TEXCO_VIEW|TEXCO_STICKY)) needuv= 1;
 			

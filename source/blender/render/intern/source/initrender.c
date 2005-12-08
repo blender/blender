@@ -479,11 +479,12 @@ static void init_def_material(void)
 	init_render_material(ma);
 }
 
+/* this is called in creator.c, on startup */
 void RE_init_render_data(void)
 {
 	memset(&R, 0, sizeof(RE_Render));
 	
-	R.blove= (VertRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blove");
+	RE_init_vertex_tables();
 	R.blovl= (VlakRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blovl");
 	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Bloha");
 	
@@ -491,10 +492,11 @@ void RE_init_render_data(void)
 	init_filt_mask();
 }
 
+/* called in usiblender.c on exit, also for blender -b render */
 void RE_free_render_data()
 {
-	MEM_freeN(R.blove);
-	R.blove= NULL;
+	MEM_freeN(R.vertnodes);
+	R.vertnodes= NULL;
 	MEM_freeN(R.blovl);
 	R.blovl= NULL;
 	MEM_freeN(R.bloha);

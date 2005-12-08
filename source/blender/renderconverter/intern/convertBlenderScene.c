@@ -314,6 +314,14 @@ void RE_make_stars(void (*initfunc)(void),
 
 /* ------------------------------------------------------------------------- */
 
+static VertRen *RE_duplicate_vertren(VertRen *ver)
+{
+	VertRen *v1= RE_findOrAddVert(R.totvert++);
+	int index= v1->index;
+	*v1= *ver;
+	v1->index= index;
+}
+
 static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
@@ -322,10 +330,9 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 
 	for (v=0; v<vLen; v++) {
 		VlakRen *vlr = RE_findOrAddVlak(startvlak + vLen*uIndex + v);
-		VertRen *vert = RE_findOrAddVert(R.totvert++);
+		VertRen *vert = RE_duplicate_vertren(vlr->v2);
 
 		if (cyclv) {
-			*vert = *vlr->v2;
 			vlr->v2 = vert;
 
 			if (v==vLen-1) {
@@ -336,7 +343,6 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 				vlr->v1 = vert;
 			}
 		} else {
-			*vert = *vlr->v2;
 			vlr->v2 = vert;
 
 			if (v<vLen-1) {
@@ -345,59 +351,11 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 			}
 
 			if (v==0) {
-				vert = RE_findOrAddVert(R.totvert++);
-				*vert = *vlr->v1;
-				vlr->v1 = vert;
+				vlr->v1 = RE_duplicate_vertren(vlr->v1);
 			} 
 		}
 	}
 }
-
-#if 0
-static void DBG_show_shared_render_faces(int firstvert, int firstface)
-{
-	int i;
-
-	for (i=firstvert; i<R.totvert; i++) {
-		VertRen *ver = RE_findOrAddVert(i);
-
-		ver->n[0] = ver->n[1] = ver->n[2] = 0.0;
-		ver->sticky = 0;
-	}
-
-	for (i=firstface; i<R.totvlak; i++) {
-		VlakRen *vlr = RE_findOrAddVlak(i);
-		float cent[3];
-
-		if (vlr->v4) {
-			CalcCent4f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
-			VecAddf(vlr->v4->n, vlr->v4->n, cent);
-			vlr->v4->sticky = (float*) (((int) vlr->v4->sticky) + 1);
-		} else {
-			CalcCent3f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co);
-		}
-
-		VecAddf(vlr->v1->n, vlr->v1->n, cent);
-		VecAddf(vlr->v2->n, vlr->v2->n, cent);
-		VecAddf(vlr->v3->n, vlr->v3->n, cent);
-
-		vlr->v1->sticky = (float*) (((int) vlr->v1->sticky) + 1);
-		vlr->v2->sticky = (float*) (((int) vlr->v2->sticky) + 1);
-		vlr->v3->sticky = (float*) (((int) vlr->v3->sticky) + 1);
-	}
-
-	for (i=firstvert; i<R.totvert; i++) {
-		VertRen *ver = RE_findOrAddVert(i);
-
-		VecMulf(ver->n, 1.f/(int) ver->sticky);
-
-		VecLerpf(ver->co, ver->co, ver->n, 0.3);
-		ver->sticky = 0;
-	}
-
-	calc_vertexnormals(firstvert, firstface);
-}
-#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -411,6 +369,78 @@ static int contrpuntnormr(float *n, float *puno)
 }
 
 /* ------------------------------------------------------------------------- */
+
+static void calc_edge_stress_add(float *accum, VertRen *v1, VertRen *v2)
+{
+	float len= VecLenf(v1->co, v2->co)/VecLenf(v1->orco, v2->orco);
+	float *acc;
+	
+	acc= accum + 2*v1->index;
+	acc[0]+= len;
+	acc[1]+= 1.0f;
+	
+	acc= accum + 2*v2->index;
+	acc[0]+= len;
+	acc[1]+= 1.0f;
+}
+
+static void calc_edge_stress(Mesh *me, int startvert, int startvlak)
+{
+	float loc[3], size[3], *accum, *acc, *accumoffs, *stress;
+	int a;
+	
+	if(startvert==R.totvert) return;
+	
+	mesh_get_texspace(me, loc, NULL, size);
+	
+	accum= MEM_callocN(2*sizeof(float)*(R.totvert-startvert), "temp accum for stress");
+	
+	/* de-normalize orco */
+	for(a=startvert; a<R.totvert; a++, acc+=2) {
+		VertRen *ver= RE_findOrAddVert(a);
+		if(ver->orco) {
+			ver->orco[0]= ver->orco[0]*size[0] +loc[0];
+			ver->orco[1]= ver->orco[1]*size[1] +loc[1];
+			ver->orco[2]= ver->orco[2]*size[2] +loc[2];
+		}
+	}
+	
+	/* add stress values */
+	accumoffs= accum - 2*startvert;	/* so we can use vertex index */
+	for(a=startvlak; a<R.totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(a);
+
+		if(vlr->v1->orco && vlr->v4) {
+			calc_edge_stress_add(accumoffs, vlr->v1, vlr->v2);
+			calc_edge_stress_add(accumoffs, vlr->v2, vlr->v3);
+			calc_edge_stress_add(accumoffs, vlr->v3, vlr->v1);
+			if(vlr->v4) {
+				calc_edge_stress_add(accumoffs, vlr->v3, vlr->v4);
+				calc_edge_stress_add(accumoffs, vlr->v4, vlr->v1);
+				calc_edge_stress_add(accumoffs, vlr->v2, vlr->v4);
+			}
+		}
+	}
+	
+	for(a=startvert; a<R.totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(a);
+		if(ver->orco) {
+			/* find stress value */
+			acc= accumoffs + 2*ver->index;
+			if(acc[1]!=0.0f)
+				acc[0]/= acc[1];
+			stress= RE_vertren_get_stress(ver, 1);
+			*stress= *acc;
+			
+			/* restore orcos */
+			ver->orco[0] = (ver->orco[0]-loc[0])/size[0];
+			ver->orco[1] = (ver->orco[1]-loc[1])/size[1];
+			ver->orco[2] = (ver->orco[2]-loc[2])/size[2];
+		}
+	}
+	
+	MEM_freeN(accum);
+}
 
 static void calc_vertexnormals(int startvert, int startvlak)
 {
@@ -543,30 +573,21 @@ typedef struct ASface {
 	VertRen *nver[4];
 } ASface;
 
-/* prototypes: */
-static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh);
-static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh);
-
-
-static void as_addvert(VertRen *v1, VlakRen *vlr)
+static void as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
 {
-	ASvert *asv;
 	ASface *asf;
 	int a;
 	
 	if(v1 == NULL) return;
 	
-	if(v1->svert==0) {
-		v1->svert= MEM_callocN(sizeof(ASvert), "asvert");
-		asv= v1->svert;
+	if(asv->faces.first==NULL) {
 		asf= MEM_callocN(sizeof(ASface), "asface");
 		BLI_addtail(&asv->faces, asf);
 	}
 	
-	asv= v1->svert;
 	asf= asv->faces.last;
 	for(a=0; a<4; a++) {
-		if(asf->vlr[a]==0) {
+		if(asf->vlr[a]==NULL) {
 			asf->vlr[a]= vlr;
 			asv->totface++;
 			break;
@@ -580,16 +601,6 @@ static void as_addvert(VertRen *v1, VlakRen *vlr)
 		asf->vlr[0]= vlr;
 		asv->totface++;
 	}
-}
-
-static void as_freevert(VertRen *ver)
-{
-	ASvert *asv;
-
-	asv= ver->svert;
-	BLI_freelistN(&asv->faces);
-	MEM_freeN(asv);
-	ver->svert= NULL;
 }
 
 static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh) 
@@ -643,37 +654,35 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thr
 
 static void autosmooth(int startvert, int startvlak, int degr)
 {
-	ASvert *asv;
+	ASvert *asv, *asverts, *asvertoffs;
 	ASface *asf;
 	VertRen *ver, *v1;
 	VlakRen *vlr;
 	float thresh;
 	int a, b, totvert;
 	
-	thresh= cos( M_PI*((float)degr)/180.0 );
+	if(startvert==R.totvert) return;
+	asverts= MEM_callocN(sizeof(ASvert)*(R.totvert-startvert), "all smooth verts");
+	asvertoffs= asverts-startvert;	 /* se we can use indices */
 	
-	/* initialize */
-	for(a=startvert; a<R.totvert; a++) {
-		ver= RE_findOrAddVert(a);
-		ver->svert= 0;
-	}
+	thresh= cos( M_PI*((float)degr)/180.0 );
 	
 	/* step one: construct listbase of all vertices and pointers to faces */
 	for(a=startvlak; a<R.totvlak; a++) {
 		vlr= RE_findOrAddVlak(a);
 		
-		as_addvert(vlr->v1, vlr);
-		as_addvert(vlr->v2, vlr);
-		as_addvert(vlr->v3, vlr);
-		as_addvert(vlr->v4, vlr);
+		as_addvert(asvertoffs+vlr->v1->index, vlr->v1, vlr);
+		as_addvert(asvertoffs+vlr->v2->index, vlr->v2, vlr);
+		as_addvert(asvertoffs+vlr->v3->index, vlr->v3, vlr);
+		if(vlr->v4) 
+			as_addvert(asvertoffs+vlr->v4->index, vlr->v4, vlr);
 	}
 	
 	/* we now test all vertices, when faces have a normal too much different: they get a new vertex */
 	totvert= R.totvert;
-	for(a=startvert; a<totvert; a++) {
-		ver= RE_findOrAddVert(a);
-		asv= ver->svert;
+	for(a=startvert, asv=asverts; a<totvert; a++, asv++) {
 		if(asv && asv->totface>1) {
+			ver= RE_findOrAddVert(a);
 			
 			asf= asv->faces.first;
 			while(asf) {
@@ -685,11 +694,9 @@ static void autosmooth(int startvert, int startvlak, int degr)
 						
 						/* already made a new vertex within threshold? */
 						v1= as_findvertex(vlr, ver, asv, thresh);
-						if(v1==0) {
+						if(v1==NULL) {
 							/* make a new vertex */
-							v1= RE_findOrAddVert(R.totvert++);
-							*v1= *ver;
-							v1->svert= 0;
+							v1= RE_duplicate_vertren(ver);
 						}
 						asf->nver[b]= v1;
 						if(vlr->v1==ver) vlr->v1= v1;
@@ -704,11 +711,10 @@ static void autosmooth(int startvert, int startvlak, int degr)
 	}
 	
 	/* free */
-	for(a=startvert; a<R.totvert; a++) {
-		ver= RE_findOrAddVert(a);
-		if(ver->svert) as_freevert(ver);
+	for(a=0; a<totvert-startvert; a++) {
+		BLI_freelistN(&asverts[a].faces);
 	}
-	
+	MEM_freeN(asverts);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1387,7 +1393,7 @@ static void init_render_mesh(Object *ob)
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
-	int a, a1, ok, need_orco=0, totvlako, totverto, vertofs;
+	int a, a1, ok, need_orco=0, need_stress=0, totvlako, totverto, vertofs;
 	int end, do_autosmooth=0, totvert = 0, dm_needsfree;
 	
 	me= ob->data;
@@ -1415,10 +1421,10 @@ static void init_render_mesh(Object *ob)
 	for(a=1; a<=ob->totcol; a++) {
 		ma= give_render_material(ob, a);
 		if(ma) {
-			if(ma->texco & TEXCO_ORCO) {
+			if(ma->texco & (TEXCO_ORCO|TEXCO_STRESS))
 				need_orco= 1;
-				break;
-			}
+			if(ma->texco & TEXCO_STRESS)
+				need_stress= 1;
 		}
 	}
 	
@@ -1460,7 +1466,9 @@ static void init_render_mesh(Object *ob)
 				orco+=3;
 			}
 			if(ms) {
-				ver->sticky= (float *)ms;
+				float *sticky= RE_vertren_get_sticky(ver, 1);
+				sticky[0]= ms->co[0];
+				sticky[1]= ms->co[1];
 				ms++;
 			}
 		}
@@ -1634,6 +1642,9 @@ static void init_render_mesh(Object *ob)
 
 	calc_vertexnormals(totverto, totvlako);
 
+	if(need_stress)
+		calc_edge_stress(me, totverto, totvlako);
+	
 	if(dlm) displistmesh_free(dlm);
 	if(dm_needsfree) dm->release(dm);
 }
@@ -2132,11 +2143,11 @@ static void init_render_curve(Object *ob)
 
 				if(ver->co[2] < 0.0) {
 					VECCOPY(ver->n, n);
-					ver->sticky = (float*) 1;
+					ver->flag = 1;
 				}
 				else {
 					ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
-					ver->sticky = (float*) 0;
+					ver->flag = 0;
 				}
 
 				if (orco) {
@@ -2156,7 +2167,7 @@ static void init_render_curve(Object *ob)
 				vlr->v3= RE_findOrAddVert(startvert+index[2]);
 				vlr->v4= NULL;
 				
-				if(vlr->v1->sticky) {
+				if(vlr->v1->flag) {
 					VECCOPY(vlr->n, n);
 				}
 				else {
@@ -2255,15 +2266,15 @@ static void init_render_curve(Object *ob)
 			for(a=startvert; a<R.totvert; a++) {
 				ver= RE_findOrAddVert(a);
 				len= Normalise(ver->n);
-				if(len==0.0) ver->sticky= (float *)1;
-				else ver->sticky= 0;
+				if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
+				else ver->flag= 1;
 			}
 			for(a= startvlak; a<R.totvlak; a++) {
 				vlr= RE_findOrAddVlak(a);
-				if(vlr->v1->sticky) VECCOPY(vlr->v1->n, vlr->n);
-				if(vlr->v2->sticky) VECCOPY(vlr->v2->n, vlr->n);
-				if(vlr->v3->sticky) VECCOPY(vlr->v3->n, vlr->n);
-				if(vlr->v4->sticky) VECCOPY(vlr->v4->n, vlr->n);
+				if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
+				if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
+				if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
+				if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
 			}
 		}
 
@@ -2396,13 +2407,8 @@ void RE_freeRotateBlenderScene(void)
 	BLI_freelistN(&R.lights);
 
 	/* note; these pointer arrays were allocated, with last element NULL to stop loop */
-	a=0;
-	while(R.blove[a]) {
-		MEM_freeN(R.blove[a]);
-		R.blove[a]= NULL;
-		a++;
-	}
-
+	RE_free_vertex_tables();
+	
 	a=0;
 	while(R.blovl[a]) {
 		MEM_freeN(R.blovl[a]);
@@ -2615,6 +2621,7 @@ void RE_rotateBlenderScene(void)
 
 	R.memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
+	R.lights.first= R.lights.last= NULL;
 	
 	slurph_opt= 0;
 
@@ -2914,8 +2921,13 @@ static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	if ((texco & TEXCO_ORCO) && (vr->orco)) {
 		VECCOPY(shi->lo, vr->orco);
 	}
-	if ((texco & TEXCO_STICKY) && (vr->sticky)) {
-		VECCOPY(shi->sticky, vr->sticky);
+	if (texco & TEXCO_STICKY) {
+		float *sticky= RE_vertren_get_sticky(vr, 0);
+		if(sticky) {
+			shi->sticky[0]= sticky[0];
+			shi->sticky[1]= sticky[1];
+			shi->sticky[2]= 0.0f;
+		}
 	}
 	if (texco & TEXCO_GLOB) {
 		VECCOPY(shi->gl, shi->co);

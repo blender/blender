@@ -199,13 +199,22 @@ void init_ao_sphere(float *sphere, int tot, int iter);
 
 
 /* --------------------------------------------------------------------- */
-/* renderdatabase (3)                                                    */
+/* renderdatabase ()                                                    */
 /* --------------------------------------------------------------------- */
 struct VlakRen *RE_findOrAddVlak(int nr);
 struct VertRen *RE_findOrAddVert(int nr);
 struct HaloRen *RE_findOrAddHalo(int nr);
 HaloRen *RE_inithalo(struct Material *ma, float *vec, float *vec1, float *orco, float hasize, 
 					float vectsize, int seed);
+
+float *RE_vertren_get_sticky(struct VertRen *ver, int verify);
+float *RE_vertren_get_stress(struct VertRen *ver, int verify);
+float *RE_vertren_get_rad(struct VertRen *ver, int verify);
+float *RE_vertren_get_strand(struct VertRen *ver, int verify);
+float *RE_vertren_get_tangent(struct VertRen *ver, int verify);
+
+void RE_free_vertex_tables(void);
+void RE_init_vertex_tables(void);
 
 /**
 	* callbacks (11):

@@ -89,7 +89,7 @@ typedef struct ShadeInput
 	
 	/* texture coordinates */
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
-	float vn[3], vno[3], facenor[3], view[3], refcol[4], displace[3], strand, tang[3];
+	float vn[3], vno[3], facenor[3], view[3], refcol[4], displace[3], strand, tang[3], stress;
 	
 	/* dx/dy OSA coordinates */
 	float dxco[3], dyco[3];
@@ -110,6 +110,7 @@ typedef struct ShadeInput
 } ShadeInput;
 
 struct MemArena;
+struct VertTableNode;
 
 /* here only stuff to initalize the render itself */
 typedef struct RE_Render
@@ -149,7 +150,7 @@ typedef struct RE_Render
 	ListBase lights;
 	struct LampRen **la;
 	struct VlakRen **blovl;
-	struct VertRen **blove;
+	struct VertTableNode *vertnodes;
 	struct HaloRen **bloha;
 
 	/* arena for allocating data for use during render, for
@@ -198,13 +199,11 @@ typedef struct VertRen
 	float co[3];
 	float n[3];
 	float ho[4];
-	float rad[3];			/* result radio rendering */
 	float *orco;
-	float *sticky;
-	void *svert;			/* smooth vert, only used during initrender */
 	short clip;	
-	short flag;				/* in use for clipping ztra parts */
+	short flag;				/* in use for clipping ztra parts, temp setting stuff in convertBlenderscene.c */
 	float accum;			/* accum for radio weighting, and for strand texco static particles */
+	int index;			/* index allows extending vertren with any property */
 } VertRen;
 
 /* ------------------------------------------------------------------------- */

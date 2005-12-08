@@ -221,6 +221,7 @@ typedef struct Material {
 #define TEXCO_OPTIM		4096
 	/* stored in vertex->accum, 1 D */
 #define TEXCO_STRAND	8192
+#define TEXCO_STRESS	16384
 
 /* mapto */
 #define MAP_COL			1
