@@ -1027,12 +1027,14 @@ static void modifiers_setOnCage(void *ob_v, void *md_v)
 	Object *ob = ob_v;
 	ModifierData *md;
 	
-	for (md=ob->modifiers.first; md; md=md->next)
-		if (md!=md_v)
-			md->mode &= ~eModifierMode_OnCage;
+	int i, cageIndex = modifiers_getCageIndex(ob, NULL );
 
-	md = md_v;
-	md->mode ^= eModifierMode_OnCage;
+	for( i = 0, md=ob->modifiers.first; md; ++i, md=md->next )
+		if( md == md_v ) {
+			if( i >= cageIndex )
+				md->mode ^= eModifierMode_OnCage;
+			break;
+		}
 }
 
 static void modifiers_clearHookOffset(void *ob_v, void *md_v)
