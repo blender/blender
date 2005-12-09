@@ -734,7 +734,7 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_la
 	extern float fresnel_fac(float *view, float *vn, float ior, float fac);
 	Material *mat= shi->mat;
 	float inp, is, inprspec=0;
-	float lv[3], *la;
+	float lv[3], *la, *vn, vnor[3];
 	int a;
 	
 	// copy all relevant material vars, note, keep this synced with render_types.h
@@ -779,47 +779,57 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_la
 			lv[2]= shi->co[2]-la[2];
 			Normalise(lv);
 			
-			is= shi->vn[0]*lv[0]+shi->vn[1]*lv[1]+shi->vn[2]*lv[2];
-			if(is<0.0f) is= 0.0f;
-			
 			if(shi->spec>0.0f)  {
+				/* specular shaders */
+				float specfac;
 				
-				if(is>0.0f) {
-					/* specular shaders */
-					float specfac;
-					
-					if(mat->spec_shader==MA_SPEC_PHONG) 
-						specfac= Phong_Spec(shi->vn, lv, shi->view, shi->har, 0);
-					else if(mat->spec_shader==MA_SPEC_COOKTORR) 
-						specfac= CookTorr_Spec(shi->vn, lv, shi->view, shi->har, 0);
-					else if(mat->spec_shader==MA_SPEC_BLINN) 
-						specfac= Blinn_Spec(shi->vn, lv, shi->view, mat->refrac, (float)shi->har, 0);
-					else if(mat->spec_shader==MA_SPEC_WARDISO)
-						specfac= WardIso_Spec(shi->vn, lv, shi->view, mat->rms, 0);
-					else 
-						specfac= Toon_Spec(shi->vn, lv, shi->view, mat->param[2], mat->param[3], 0);
-					
-					inprspec= specfac*shi->spec;
-					
-					if(mat->mode & MA_RAMP_SPEC) {
-						float spec[3];
-						do_specular_ramp(shi, specfac, inprspec, spec);
-						shr->spec[0]+= inprspec*spec[0];
-						shr->spec[1]+= inprspec*spec[1];
-						shr->spec[2]+= inprspec*spec[2];
-					}
-					else {	
-						shr->spec[0]+= inprspec*shi->specr;
-						shr->spec[1]+= inprspec*shi->specg;
-						shr->spec[2]+= inprspec*shi->specb;
-					}
+				if(mat->mode & MA_TANGENT_V) vn= shi->tang;
+				else vn= shi->vn;
+				
+				if(mat->spec_shader==MA_SPEC_PHONG) 
+					specfac= Phong_Spec(vn, lv, shi->view, shi->har, mat->mode & MA_TANGENT_V);
+				else if(mat->spec_shader==MA_SPEC_COOKTORR) 
+					specfac= CookTorr_Spec(vn, lv, shi->view, shi->har, mat->mode & MA_TANGENT_V);
+				else if(mat->spec_shader==MA_SPEC_BLINN) 
+					specfac= Blinn_Spec(vn, lv, shi->view, mat->refrac, (float)shi->har, mat->mode & MA_TANGENT_V);
+				else if(mat->spec_shader==MA_SPEC_WARDISO)
+					specfac= WardIso_Spec(vn, lv, shi->view, mat->rms, mat->mode & MA_TANGENT_V);
+				else 
+					specfac= Toon_Spec(vn, lv, shi->view, mat->param[2], mat->param[3], mat->mode & MA_TANGENT_V);
+				
+				inprspec= specfac*shi->spec;
+				
+				if(mat->mode & MA_RAMP_SPEC) {
+					float spec[3];
+					do_specular_ramp(shi, specfac, inprspec, spec);
+					shr->spec[0]+= inprspec*spec[0];
+					shr->spec[1]+= inprspec*spec[1];
+					shr->spec[2]+= inprspec*spec[2];
+				}
+				else {	
+					shr->spec[0]+= inprspec*shi->specr;
+					shr->spec[1]+= inprspec*shi->specg;
+					shr->spec[2]+= inprspec*shi->specb;
 				}
 			}
+			
+			if(mat->mode & MA_TANGENT_V) {
+				float cross[3];
+				Crossf(cross, lv, shi->tang);
+				Crossf(vnor, cross, shi->tang);
+				vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
+				vn= vnor;
+			}
+			else vn= shi->vn;
+			
+			is= vn[0]*lv[0]+vn[1]*lv[1]+vn[2]*lv[2];
+			if(is<0.0f) is= 0.0f;
+			
 			/* diffuse shaders */
-			if(mat->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(shi->vn, lv, shi->view, mat->roughness);
-			else if(mat->diff_shader==MA_DIFF_TOON) is= Toon_Diff(shi->vn, lv, shi->view, mat->param[0], mat->param[1]);
-			else if(mat->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(is, shi->vn, shi->view, mat->darkness);
-			else if(mat->diff_shader==MA_DIFF_FRESNEL) is= Fresnel_Diff(shi->vn, lv, shi->view, mat->param[0], mat->param[1]);
+			if(mat->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(vn, lv, shi->view, mat->roughness);
+			else if(mat->diff_shader==MA_DIFF_TOON) is= Toon_Diff(vn, lv, shi->view, mat->param[0], mat->param[1]);
+			else if(mat->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(is, vn, shi->view, mat->darkness);
+			else if(mat->diff_shader==MA_DIFF_FRESNEL) is= Fresnel_Diff(vn, lv, shi->view, mat->param[0], mat->param[1]);
 			// else Lambert
 			
 			inp= (shi->refl*is + shi->emit);
@@ -1286,6 +1296,14 @@ void BIF_previewrender(SpaceButs *sbuts)
 							vec[0]= shi.vn[0];
 							vec[1]= shi.vn[2];
 							vec[2]= -shi.vn[1];
+							
+							if(mat->mode & MA_TANGENT_V) {
+								float tmp[3];
+								tmp[0]=tmp[2]= 0.0f;
+								tmp[1]= 1.0f;
+								Crossf(shi.tang, tmp, shi.vn);
+								Normalise(shi.tang);
+							}
 							
 							shade_preview_pixel(&shi, vec, x, y, (char *)rect, 1);
 						}

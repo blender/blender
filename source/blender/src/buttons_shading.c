@@ -2856,27 +2856,29 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	
 	/* TEXCO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "UV",			630,166,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Glob",			670,166,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Object",		715,166,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "",790,166,118,18, &(mtex->object), "");
+	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "",750,180,158,18, &(mtex->object), "");
 	
-	uiDefButS(block, ROW, B_MATPRV, "Orco",			630,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
-	uiDefButS(block, ROW, B_MATPRV, "Stress",		675,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
+	uiDefButS(block, ROW, B_MATPRV, "UV",			630,160,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Orco",			670,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
 	if( give_parteff(ob) )
-		uiDefButS(block, ROW, B_MATPRV, "Strand",	725,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
+		uiDefButS(block, ROW, B_MATPRV, "Strand",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
 	else
-		uiDefButS(block, ROW, B_MATPRV, "Stick",		725,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Win",			775,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_WINDOW, 0, 0, "Uses screen coordinates as texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Nor",			820,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_NORM, 0, 0, "Uses normal vector as texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Refl",			864,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Uses reflection vector as texture coordinates");
+		uiDefButS(block, ROW, B_MATPRV, "Stick",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Win",			775,160,45,18, &(mtex->texco), 4.0, (float)TEXCO_WINDOW, 0, 0, "Uses screen coordinates as texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Nor",			820,160,44,18, &(mtex->texco), 4.0, (float)TEXCO_NORM, 0, 0, "Uses normal vector as texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Refl",			864,160,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Uses reflection vector as texture coordinates");
+	
+	uiDefButS(block, ROW, B_MATPRV, "Stress",		630,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
+	uiDefButS(block, ROW, B_MATPRV, "Tangent",		700,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_TANGENT, 0, 0, "Uses te optional tangent vector as texture coordinates");
 
 	/* COORDS */
 	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW, B_MATPRV, "Flat",			630,114,48,18, &(mtex->mapping), 5.0, (float)MTEX_FLAT, 0, 0, "Maps X and Y coordinates directly");
-	uiDefButC(block, ROW, B_MATPRV, "Cube",			681,114,50,18, &(mtex->mapping), 5.0, (float)MTEX_CUBE, 0, 0, "Maps using the normal vector");
-	uiDefButC(block, ROW, B_MATPRV, "Tube",			630,94,48,18, &(mtex->mapping), 5.0, (float)MTEX_TUBE, 0, 0, "Maps with Z as central axis (tube-like)");
-	uiDefButC(block, ROW, B_MATPRV, "Sphe",			681,94,50,18, &(mtex->mapping), 5.0, (float)MTEX_SPHERE, 0, 0, "Maps with Z as central axis (sphere-like)");
+	uiDefButC(block, ROW, B_MATPRV, "Flat",			630,115,48,19, &(mtex->mapping), 5.0, (float)MTEX_FLAT, 0, 0, "Maps X and Y coordinates directly");
+	uiDefButC(block, ROW, B_MATPRV, "Cube",			681,115,50,19, &(mtex->mapping), 5.0, (float)MTEX_CUBE, 0, 0, "Maps using the normal vector");
+	uiDefButC(block, ROW, B_MATPRV, "Tube",			630,95,48,19, &(mtex->mapping), 5.0, (float)MTEX_TUBE, 0, 0, "Maps with Z as central axis (tube-like)");
+	uiDefButC(block, ROW, B_MATPRV, "Sphe",			681,95,50,19, &(mtex->mapping), 5.0, (float)MTEX_SPHERE, 0, 0, "Maps with Z as central axis (sphere-like)");
 
 	uiBlockBeginAlign(block);
 	for(b=0; b<3; b++) {
@@ -2892,13 +2894,13 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	}
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "ofsX",		778,114,130,18, mtex->ofs, -10.0, 10.0, 10, 0, "Fine tunes texture mapping X coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "ofsY",		778,94,130,18, mtex->ofs+1, -10.0, 10.0, 10, 0, "Fine tunes texture mapping Y coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "ofsZ",		778,74,130,18, mtex->ofs+2, -10.0, 10.0, 10, 0, "Fine tunes texture mapping Z coordinate");
+	uiDefButF(block, NUM, B_MATPRV, "ofsX",		778,115,130,19, mtex->ofs, -10.0, 10.0, 10, 0, "Fine tunes texture mapping X coordinate");
+	uiDefButF(block, NUM, B_MATPRV, "ofsY",		778,95,130,19, mtex->ofs+1, -10.0, 10.0, 10, 0, "Fine tunes texture mapping Y coordinate");
+	uiDefButF(block, NUM, B_MATPRV, "ofsZ",		778,75,130,19, mtex->ofs+2, -10.0, 10.0, 10, 0, "Fine tunes texture mapping Z coordinate");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "sizeX",	778,50,130,18, mtex->size, -100.0, 100.0, 10, 0, "Sets scaling for the texture's X size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeY",	778,30,130,18, mtex->size+1, -100.0, 100.0, 10, 0, "Sets scaling for the texture's Y size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	778,10,130,18, mtex->size+2, -100.0, 100.0, 10, 0, "Sets scaling for the texture's Z size");
+	uiDefButF(block, NUM, B_MATPRV, "sizeX",	778,50,130,19, mtex->size, -100.0, 100.0, 10, 0, "Sets scaling for the texture's X size");
+	uiDefButF(block, NUM, B_MATPRV, "sizeY",	778,30,130,19, mtex->size+1, -100.0, 100.0, 10, 0, "Sets scaling for the texture's Y size");
+	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	778,10,130,19, mtex->size+2, -100.0, 100.0, 10, 0, "Sets scaling for the texture's Z size");
 	uiBlockEndAlign(block);
 
 }
@@ -3173,18 +3175,19 @@ static void material_panel_shading(Material *ma)
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_TRACEBLE, 0,"Traceable",		245,160,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to being detected by ray tracing");
-		uiDefButBitI(block, TOG, MA_SHADBUF, 0,	"Shadbuf",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
+		uiDefButBitI(block, TOG, MA_TRACEBLE, B_NOP,"Traceable",		245,160,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to being detected by ray tracing");
+		uiDefButBitI(block, TOG, MA_SHADBUF, B_NOP,	"Shadbuf",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
 
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_SHADOW, 0,	"Shadow",			245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
-		uiDefButBitI(block, TOG, MA_SHADOW_TRA, 0, "TraShadow",		245,100,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
-		uiDefButBitI(block, TOG, MA_RAYBIAS, 0, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
+		uiDefButBitI(block, TOG, MA_SHADOW, B_NOP,	"Shadow",			245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
+		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_NOP, "TraShadow",		245,100,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiDefButBitI(block, TOG, MA_RAYBIAS, B_NOP, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 		uiBlockEndAlign(block);
 
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_NOP, "GR:", 9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
-
-		uiDefButBitI(block, TOG, MA_RADIO, 0,	"Radio",			245,55,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
+		
+		uiDefButBitI(block, TOG, MA_TANGENT_V, B_MATPRV, "Tangent V",		170,55,65,19, &(ma->mode), 0, 0, 0, 0, "Use the tangent vector in V direction for shading");
+		uiDefButBitI(block, TOG, MA_RADIO, B_NOP,	"Radio",			245,55,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
 
 	}
 }

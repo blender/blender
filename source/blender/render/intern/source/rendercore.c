@@ -1636,7 +1636,14 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if(vlr->flag & R_TANGENT) {
 			float cross[3];
 			Crossf(cross, lv, vn);
-			Crossf(vnor, cross, shi->vn);
+			Crossf(vnor, cross, vn);
+			vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
+			vn= vnor;
+		}
+		else if(ma->mode & MA_TANGENT_V) {
+			float cross[3];
+			Crossf(cross, lv, shi->tang);
+			Crossf(vnor, cross, shi->tang);
 			vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
 			vn= vnor;
 		}
@@ -1685,7 +1692,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		}
 		
 		vn= shi->vn;	// bring back original vector, we use special specular shaders for tangent
-		
+		if(ma->mode & MA_TANGENT_V)
+			vn= shi->tang;
+			
 		/* shadow and spec, (lampdist==0 outside spot) */
 		if(lampdist> 0.0) {
 			
@@ -1762,15 +1771,15 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					float specfac;
 
 					if(ma->spec_shader==MA_SPEC_PHONG) 
-						specfac= Phong_Spec(vn, lv, view, shi->har, vlr->flag & R_TANGENT);
+						specfac= Phong_Spec(vn, lv, view, shi->har, (vlr->flag & R_TANGENT) || (ma->mode & MA_TANGENT_V));
 					else if(ma->spec_shader==MA_SPEC_COOKTORR) 
-						specfac= CookTorr_Spec(vn, lv, view, shi->har, vlr->flag & R_TANGENT);
+						specfac= CookTorr_Spec(vn, lv, view, shi->har, (vlr->flag & R_TANGENT) || (ma->mode & MA_TANGENT_V));
 					else if(ma->spec_shader==MA_SPEC_BLINN) 
-						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)shi->har, vlr->flag & R_TANGENT);
+						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)shi->har, (vlr->flag & R_TANGENT) || (ma->mode & MA_TANGENT_V));
 					else if(ma->spec_shader==MA_SPEC_WARDISO)
-						specfac= WardIso_Spec( vn, lv, view, ma->rms, vlr->flag & R_TANGENT);
+						specfac= WardIso_Spec( vn, lv, view, ma->rms, (vlr->flag & R_TANGENT) || (ma->mode & MA_TANGENT_V));
 					else 
-						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3], vlr->flag & R_TANGENT);
+						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3], (vlr->flag & R_TANGENT) || (ma->mode & MA_TANGENT_V));
 				
 					/* area lamp correction */
 					if(lar->type==LA_AREA) specfac*= inp;
@@ -1979,9 +1988,25 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			shi->dyno[2]= dl*n3[2]-shi->dyuv[0]*n1[2]-shi->dyuv[1]*n2[2];
 
 		}
+		
+		if(mode & MA_TANGENT_V) {
+			float *s1, *s2, *s3;
+			
+			s1= RE_vertren_get_tangent(v1, 0);
+			s2= RE_vertren_get_tangent(v2, 0);
+			s3= RE_vertren_get_tangent(v3, 0);
+			if(s1 && s2 && s3) {
+				shi->tang[0]= (l*s3[0] - u*s1[0] - v*s2[0]);
+				shi->tang[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
+				shi->tang[2]= (l*s3[2] - u*s1[2] - v*s2[2]);
+			}
+			else shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+		}		
 	}
 	else {
 		VECCOPY(shi->vn, shi->facenor);
+		if(mode & MA_TANGENT_V) 
+			shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
 	}
 
 	/* texture coordinates. shi->dxuv shi->dyuv have been set */
@@ -2100,20 +2125,6 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 					shi->dyuv[0]= 2.0*(dl*uv3[0]-duv[0]*uv1[0]-duv[1]*uv2[0]);
 					shi->dyuv[1]= 2.0*(dl*uv3[1]-duv[0]*uv1[1]-duv[1]*uv2[1]);
 				}
-#if 0
-				{	/* tangent derived from UV, comes back later! (ton) */
-					//float s1= uv2[0] - uv1[0];
-					//float s2= uv3[0] - uv1[0];
-					float t1= uv2[1] - uv1[1];
-					float t2= uv3[1] - uv1[1];
-					
-					shi->vn[0]= (t2 * (v2->co[0]-v1->co[0]) - t1 * (v3->co[0]-v1->co[0])); 
-					shi->vn[1]= (t2 * (v2->co[1]-v1->co[1]) - t1 * (v3->co[1]-v1->co[1]));
-					shi->vn[2]= (t2 * (v2->co[2]-v1->co[2]) - t1 * (v3->co[2]-v1->co[2]));
-					Normalise(shi->vn);
-					vlr->flag |= R_TANGENT;
-				}					
-#endif
 				if(mode & MA_FACETEXTURE) {
 					if((mode & (MA_VERTEXCOL|MA_VERTEXCOLP))==0) {
 						shi->vcol[0]= 1.0;
@@ -2175,6 +2186,12 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				else shi->stress= (shi->stress-1.0f)/shi->stress;
 			}
 			else shi->stress= 0.0f;
+		}
+		if(texco & TEXCO_TANGENT) {
+			if((mode & MA_TANGENT_V)==0) {
+				/* just prevent surprises */
+				shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+			}
 		}
 	}
 	else {

@@ -1444,6 +1444,9 @@ void do_material_tex(ShadeInput *shi)
 			else if(mtex->texco==TEXCO_NORM) {
 				co= shi->orn; dx= shi->dxno; dy= shi->dyno;
 			}
+			else if(mtex->texco==TEXCO_TANGENT) {
+				co= shi->tang; dx= shi->dxno; dy= shi->dyno;
+			}
 			else if(mtex->texco==TEXCO_GLOB) {
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 			}
@@ -1690,14 +1693,28 @@ void do_material_tex(ShadeInput *shi)
 						fact= Tnor*tex->norfac;
 						if(fact>1.0) fact= 1.0; else if(fact<-1.0) fact= -1.0;
 						facm= 1.0- fact;
-						shi->vn[0]= facm*shi->vn[0] + fact*texres.nor[0];
-						shi->vn[1]= facm*shi->vn[1] + fact*texres.nor[1];
-						shi->vn[2]= facm*shi->vn[2] + fact*texres.nor[2];
+						if(shi->mat->mode & MA_TANGENT_V) {
+							shi->tang[0]= facm*shi->tang[0] + fact*texres.nor[0];
+							shi->tang[1]= facm*shi->tang[1] + fact*texres.nor[1];
+							shi->tang[2]= facm*shi->tang[2] + fact*texres.nor[2];
+						}
+						else {
+							shi->vn[0]= facm*shi->vn[0] + fact*texres.nor[0];
+							shi->vn[1]= facm*shi->vn[1] + fact*texres.nor[1];
+							shi->vn[2]= facm*shi->vn[2] + fact*texres.nor[2];
+						}
 					}
 					else {
-						shi->vn[0]+= Tnor*tex->norfac*texres.nor[0];
-						shi->vn[1]+= Tnor*tex->norfac*texres.nor[1];
-						shi->vn[2]+= Tnor*tex->norfac*texres.nor[2];
+						if(shi->mat->mode & MA_TANGENT_V) {
+							shi->tang[0]+= Tnor*tex->norfac*texres.nor[0];
+							shi->tang[1]+= Tnor*tex->norfac*texres.nor[1];
+							shi->tang[2]+= Tnor*tex->norfac*texres.nor[2];
+						}
+						else {
+							shi->vn[0]+= Tnor*tex->norfac*texres.nor[0];
+							shi->vn[1]+= Tnor*tex->norfac*texres.nor[1];
+							shi->vn[2]+= Tnor*tex->norfac*texres.nor[2];
+						}
 					}					
 					Normalise(shi->vn);
 					

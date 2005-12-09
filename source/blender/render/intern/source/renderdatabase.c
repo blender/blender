@@ -160,6 +160,7 @@ float *RE_vertren_get_strand(VertRen *ver, int verify)
 	return strand + (ver->index & 255)*RE_STRAND_ELEMS;
 }
 
+/* needs calloc */
 float *RE_vertren_get_tangent(VertRen *ver, int verify)
 {
 	float *tangent;
@@ -168,7 +169,7 @@ float *RE_vertren_get_tangent(VertRen *ver, int verify)
 	tangent= R.vertnodes[nr].tangent;
 	if(tangent==NULL) {
 		if(verify) 
-			tangent= R.vertnodes[nr].tangent= MEM_mallocN(256*RE_TANGENT_ELEMS*sizeof(float), "tangent table");
+			tangent= R.vertnodes[nr].tangent= MEM_callocN(256*RE_TANGENT_ELEMS*sizeof(float), "tangent table");
 		else
 			return NULL;
 	}

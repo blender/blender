@@ -169,6 +169,8 @@ typedef struct Material {
 #define MA_FULL_OSA		0x800000
 #define MA_TANGENT_STR	0x1000000
 #define MA_SHADBUF		0x2000000
+		/* note; we drop MA_TANGENT_STR later to become tangent_u */
+#define MA_TANGENT_V	0x4000000
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
@@ -217,9 +219,8 @@ typedef struct Material {
 #define TEXCO_OSA		512
 #define TEXCO_WINDOW	1024
 #define NEED_UV			2048
-	/* optim = use simpler AA */
-#define TEXCO_OPTIM		4096
-	/* stored in vertex->accum, 1 D */
+#define TEXCO_TANGENT	4096
+	/* still stored in vertex->accum, 1 D */
 #define TEXCO_STRAND	8192
 #define TEXCO_STRESS	16384
 

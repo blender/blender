@@ -320,6 +320,7 @@ static VertRen *RE_duplicate_vertren(VertRen *ver)
 	int index= v1->index;
 	*v1= *ver;
 	v1->index= index;
+	return v1;
 }
 
 static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
@@ -442,7 +443,67 @@ static void calc_edge_stress(Mesh *me, int startvert, int startvlak)
 	MEM_freeN(accum);
 }
 
-static void calc_vertexnormals(int startvert, int startvlak)
+static void calc_tangent_vector(VlakRen *vlr, float fac1, float fac2, float fac3, float fac4)
+{
+	TFace *tface= vlr->tface;
+	
+	if(tface) {
+		VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
+		float *uv1= tface->uv[0], *uv2= tface->uv[1], *uv3= tface->uv[2], *uv4= tface->uv[3];
+		float tang[3], *tav;
+		float s1, s2, t1, t2, det;
+		
+		/* we calculate quads as two triangles, so weight for diagonal gets halved */
+		if(v4) {
+			fac1*= 0.5f;
+			fac3*= 0.5f;
+		}
+		
+		/* first tria, we use the V now */
+		s1= uv2[0] - uv1[0];
+		s2= uv3[0] - uv1[0];
+		t1= uv2[1] - uv1[1];
+		t2= uv3[1] - uv1[1];
+		det= 1.0f / (s1 * t2 - s2 * t1);
+		
+		/* normals in render are inversed... */
+		tang[0]= (t2 * (v1->co[0]-v2->co[0]) - t1 * (v1->co[0]-v3->co[0])); 
+		tang[1]= (t2 * (v1->co[1]-v2->co[1]) - t1 * (v1->co[1]-v3->co[1]));
+		tang[2]= (t2 * (v1->co[2]-v2->co[2]) - t1 * (v1->co[2]-v3->co[2]));
+		
+		tav= RE_vertren_get_tangent(v1, 1);
+		VECADDFAC(tav, tav, tang, fac1);
+		tav= RE_vertren_get_tangent(v2, 1);
+		VECADDFAC(tav, tav, tang, fac2);
+		tav= RE_vertren_get_tangent(v3, 1);
+		VECADDFAC(tav, tav, tang, fac3);
+		
+		if(v4) {
+			/* 2nd tria, we use the V now */
+			s1= uv3[0] - uv1[0];
+			s2= uv4[0] - uv1[0];
+			t1= uv3[1] - uv1[1];
+			t2= uv4[1] - uv1[1];
+			det= 1.0f / (s1 * t2 - s2 * t1);
+			
+			/* normals in render are inversed... */
+			tang[0]= (t2 * (v1->co[0]-v3->co[0]) - t1 * (v1->co[0]-v4->co[0])); 
+			tang[1]= (t2 * (v1->co[1]-v3->co[1]) - t1 * (v1->co[1]-v4->co[1]));
+			tang[2]= (t2 * (v1->co[2]-v3->co[2]) - t1 * (v1->co[2]-v4->co[2]));
+			
+			Normalise(tang);
+			
+			tav= RE_vertren_get_tangent(v1, 1);
+			VECADDFAC(tav, tav, tang, fac1);
+			tav= RE_vertren_get_tangent(v3, 1);
+			VECADDFAC(tav, tav, tang, fac3);
+			tav= RE_vertren_get_tangent(v4, 1);
+			VECADDFAC(tav, tav, tang, fac4);
+		}
+	}	
+}
+
+static void calc_vertexnormals(int startvert, int startvlak, int do_tangent)
 {
 	int a;
 
@@ -452,7 +513,8 @@ static void calc_vertexnormals(int startvert, int startvlak)
 		ver->n[0]=ver->n[1]=ver->n[2]= 0.0;
 	}
 
-		/* calculate cos of angles and point-masses */
+		/* calculate cos of angles and point-masses, use as weight factor to
+		   add face normal to vertex */
 	for(a=startvlak; a<R.totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(a);
 		if(vlr->flag & ME_SMOOTH) {
@@ -461,13 +523,13 @@ static void calc_vertexnormals(int startvert, int startvlak)
 			VertRen *adrve3= vlr->v3;
 			VertRen *adrve4= vlr->v4;
 			float n1[3], n2[3], n3[3], n4[3];
-			float fac1, fac2, fac3, fac4;
+			float fac1, fac2, fac3, fac4=0.0f;
 
 			VecSubf(n1, adrve2->co, adrve1->co);
 			Normalise(n1);
 			VecSubf(n2, adrve3->co, adrve2->co);
 			Normalise(n2);
-			if(adrve4==0) {
+			if(adrve4==NULL) {
 				VecSubf(n3, adrve1->co, adrve3->co);
 				Normalise(n3);
 
@@ -512,6 +574,9 @@ static void calc_vertexnormals(int startvert, int startvlak)
 			adrve3->n[0] +=fac3*vlr->n[0];
 			adrve3->n[1] +=fac3*vlr->n[1];
 			adrve3->n[2] +=fac3*vlr->n[2];
+			
+			if(do_tangent)
+				calc_tangent_vector(vlr, fac1, fac2, fac3, fac4);
 		}
 	}
 
@@ -536,6 +601,10 @@ static void calc_vertexnormals(int startvert, int startvlak)
 	for(a=startvert; a<R.totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(a);
 		Normalise(ver->n);
+		if(do_tangent) {
+			float *tav= RE_vertren_get_tangent(ver, 0);
+			if(tav) Normalise(tav);
+		}
 	}
 
 		/* vertex normal (puno) switch flags for during render */
@@ -1192,7 +1261,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	}
 
 	if((ma->mode & MA_TANGENT_STR)==0)
-		calc_vertexnormals(totverto, totvlako);
+		calc_vertexnormals(totverto, totvlako, 0);
 }
 
 
@@ -1393,7 +1462,7 @@ static void init_render_mesh(Object *ob)
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
-	int a, a1, ok, need_orco=0, need_stress=0, totvlako, totverto, vertofs;
+	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, totvlako, totverto, vertofs;
 	int end, do_autosmooth=0, totvert = 0, dm_needsfree;
 	
 	me= ob->data;
@@ -1425,6 +1494,8 @@ static void init_render_mesh(Object *ob)
 				need_orco= 1;
 			if(ma->texco & TEXCO_STRESS)
 				need_stress= 1;
+			if(ma->mode & MA_TANGENT_V)
+				need_tangent= 1;
 		}
 	}
 	
@@ -1632,7 +1703,7 @@ static void init_render_mesh(Object *ob)
 	}
 	
 	if (test_for_displace( ob ) ) {
-		calc_vertexnormals(totverto, totvlako);
+		calc_vertexnormals(totverto, totvlako, 0);
 		do_displacement(ob, totvlako, R.totvlak-totvlako, totverto, R.totvert-totverto);
 	}
 
@@ -1640,7 +1711,7 @@ static void init_render_mesh(Object *ob)
 		autosmooth(totverto, totvlako, me->smoothresh);
 	}
 
-	calc_vertexnormals(totverto, totvlako);
+	calc_vertexnormals(totverto, totvlako, need_tangent);
 
 	if(need_stress)
 		calc_edge_stress(me, totverto, totvlako);
@@ -2267,7 +2338,7 @@ static void init_render_curve(Object *ob)
 				ver= RE_findOrAddVert(a);
 				len= Normalise(ver->n);
 				if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
-				else ver->flag= 1;
+				else ver->flag= 0;
 			}
 			for(a= startvlak; a<R.totvlak; a++) {
 				vlr= RE_findOrAddVlak(a);
@@ -3066,6 +3137,6 @@ static void do_displacement(Object *ob, int startface, int numface, int startver
 	}
 	
 	/* Recalc vertex normals */
-	calc_vertexnormals(startvert, startface);
+	calc_vertexnormals(startvert, startface, 0);
 }
 
