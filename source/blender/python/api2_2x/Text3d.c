@@ -39,6 +39,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BIF_editfont.h"	/* do_textedit() */
 #include "Curve.h"
 #include "constant.h"
 #include "Types.h"
@@ -48,7 +49,6 @@
 //no prototypes declared in header files - external linkage outside of python
 extern VFont *get_builtin_font(void);  
 extern void freedisplist(struct ListBase *lb);
-extern VFont *get_builtin_font(void);
 extern VFont *give_vfontpointer(int);
 extern VFont *exist_vfont(char *str);
 extern VFont *load_vfont(char *name);
@@ -486,29 +486,46 @@ static PyObject *Text3d_setName( BPy_Text3d * self, PyObject * args )
 static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args )
 {
 	char *text;
-	if( !PyArg_ParseTuple( args, "s", &text  ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string argument" ) );
-	if( self ) {
+
+	if( !PyArg_ParseTuple( args, "s", &text ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"expected string argument" );
+
+	/*
+	 * If the text is currently being edited, then we have to put the
+	 * text into the edit buffer.
+	 */
+
+	if( G.obedit && G.obedit->data == self->curve ) {
+		short qual = G.qual;
+		G.qual = 0;		/* save key qualifier, then clear it */
+		self->curve->pos = self->curve->len = 0;
+		while ( *text )
+			do_textedit( 0, 0, *text++ );
+		G.qual = qual;
+	} else {
+		short len = (short)strlen(text);
 		MEM_freeN( self->curve->str );
-		if(self->curve->strinfo != NULL)
-			MEM_freeN(self->curve->strinfo);
-		self->curve->strinfo = MEM_callocN((strlen(text)+1)*sizeof(CharInfo), "strinfo");
-		self->curve->str = MEM_mallocN( strlen (text)+1, "str" );
+		self->curve->str = MEM_callocN( len+sizeof(wchar_t), "str" );
 		strcpy( self->curve->str, text );
-		self->curve->pos = (short)strlen ( text );
-		self->curve->len = (short)strlen ( text );
+		self->curve->pos = len;
+		self->curve->len = len;
+
+		if( self->curve->strinfo )
+			MEM_freeN( self->curve->strinfo );
+		/* don't know why this is +4, just duplicating load_editText() */
+		self->curve->strinfo = MEM_callocN( (len+4) *sizeof(CharInfo),
+				"strinfo");
 	}
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text3d_getText( BPy_Text3d * self )
 {
-	if ( strlen(self->curve->str) )
-		return PyString_FromString (self->curve->str);
-	else 
-		return Py_None;
+	if( self->curve->str )
+		return PyString_FromString( self->curve->str );
+
+	Py_RETURN_NONE;
 }
 
 static PyObject* Text3d_getDrawMode(BPy_Text3d* self)

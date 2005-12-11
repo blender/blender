@@ -437,11 +437,14 @@ void BLI_makestringcode(const char *relfile, char *file)
 	char * q;
 	char * lslash;
 	int len=0;
-
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
+	
+	/* if file is already relative, bail out */
+	if(file[0]=='/' && file[1]=='/') return;
+	
 	strcpy(temp, relfile);
-
+	
 #ifdef WIN32
 	if (strlen(file) > 2) {
 		if ( temp[1] == ':' && file[1] == ':' && temp[0] != file[0] )

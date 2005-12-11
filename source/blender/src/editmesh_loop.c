@@ -384,9 +384,9 @@ void CutEdgeloop(int numcuts)
 	
 	/* now cut the loops */
 	if(smooth){
-			fac= 1.0f;
-			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-				fac= 0.292f*fac;			
+		fac= 1.0f;
+		if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
+		fac= 0.292f*fac;			
 		esubdivideflag(SELECT,fac,B_SMOOTH,numcuts,SUBDIV_SELECT_INNER_SEL);
 	} else {
 		esubdivideflag(SELECT,0,0,numcuts,SUBDIV_SELECT_INNER_SEL);

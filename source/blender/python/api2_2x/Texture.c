@@ -1341,12 +1341,12 @@ static PyObject *Texture_getExtend( BPy_Texture * self )
 static PyObject *Texture_getImage( BPy_Texture * self )
 {
 	/* we need this to be an IMAGE texture, and we must have an image */
-	if( ( self->texture->type != TEX_IMAGE ) || !self->texture->ima ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( ( self->texture->type == TEX_IMAGE ||
+				self->texture->type == TEX_ENVMAP )
+			&& self->texture->ima )
+		return Image_CreatePyObject( self->texture->ima );
 
-	return Image_CreatePyObject( self->texture->ima );
+	Py_RETURN_NONE;
 }
 
 

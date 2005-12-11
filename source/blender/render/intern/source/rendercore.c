@@ -2314,18 +2314,27 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 				shi.co[1]= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
 				
 				/* using a*x + b*y + c*z = d equation, (a b c) is normal */
-				shi.co[2]= (dface - shi.facenor[0]*shi.co[0] - shi.facenor[1]*shi.co[1])/shi.facenor[2];
+				if(shi.facenor[2]!=0.0f)
+					shi.co[2]= (dface - shi.facenor[0]*shi.co[0] - shi.facenor[1]*shi.co[1])/shi.facenor[2];
+				else
+					shi.co[2]= 0.0f;
 				
 				zcor= 1.0; // only to prevent not-initialize
 				
 				if(shi.osatex || (R.r.mode & R_SHADOW) ) {
 					shi.dxco[0]= fx;
 					shi.dxco[1]= 0.0;
-					shi.dxco[2]= (shi.facenor[0]*fx)/shi.facenor[2];
+					if(shi.facenor[2]!=0.0f)
+						shi.dxco[2]= (shi.facenor[0]*fx)/shi.facenor[2];
+					else 
+						shi.dxco[2]= 0.0f;
 					
 					shi.dyco[0]= 0.0;
 					shi.dyco[1]= fy;
-					shi.dyco[2]= (shi.facenor[1]*fy)/shi.facenor[2];
+					if(shi.facenor[2]!=0.0f)
+						shi.dyco[2]= (shi.facenor[1]*fy)/shi.facenor[2];
+					else 
+						shi.dyco[2]= 0.0f;
 				}
 			}
 			else {

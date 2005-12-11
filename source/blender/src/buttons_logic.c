@@ -34,10 +34,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -714,7 +710,7 @@ static char *actuator_name(int type)
 	case ACT_GAME:
 		return "Game";
 	case ACT_VISIBILITY:
-		return "Game";
+		return "Visibility";
 	}
 	return "unknown";
 }
@@ -1444,14 +1440,14 @@ static int get_col_actuator(int type)
 	case ACT_SOUND:			return TH_BUT_SETTING2;
 	case ACT_CD:			return TH_BUT_NUM;
 	case ACT_CAMERA: 		return TH_BUT_TEXTFIELD;
-	case ACT_EDIT_OBJECT: 	return TH_BUT_POPUP;
+	case ACT_EDIT_OBJECT: 		return TH_BUT_POPUP;
 	case ACT_GROUP:			return TH_BUT_ACTION;
 	case ACT_RANDOM:		return TH_BUT_NEUTRAL;
 	case ACT_SCENE:			return TH_BUT_SETTING;
 	case ACT_MESSAGE:		return TH_BUT_SETTING1;
 	case ACT_GAME:			return TH_BUT_SETTING2;
-	case ACT_VISIBILITY:	return TH_BUT_NUM;
-	case ACT_CONSTRAINT:	return TH_BUT_ACTION;
+	case ACT_VISIBILITY:		return TH_BUT_NUM;
+	case ACT_CONSTRAINT:		return TH_BUT_ACTION;
 	default:				return TH_BUT_NEUTRAL;
 	}
 }

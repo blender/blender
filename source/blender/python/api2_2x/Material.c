@@ -2938,6 +2938,34 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 		NULL, NULL, NULL, NULL, NULL, NULL
 	};
+	static int bitmask = MA_TRACEBLE
+				| MA_SHADOW
+				| MA_SHLESS
+				| MA_WIRE
+				| MA_VERTEXCOL
+				| MA_VERTEXCOLP
+				| MA_HALO
+				| MA_ZTRA
+				| MA_ZINV
+				| MA_HALO_RINGS
+				| MA_HALO_LINES
+				| MA_ONLYSHADOW
+				| MA_HALO_XALPHA
+				| MA_STAR
+				| MA_FACETEXTURE
+				| MA_HALOTEX
+				| MA_HALOPUNO
+				| MA_NOMIST
+				| MA_HALO_SHADE
+				| MA_HALO_FLARE
+				| MA_RADIO
+				| MA_RAYMIRROR
+				| MA_ZTRA
+				| MA_RAYTRANSP
+				| MA_ONLYSHADOW
+				| MA_NOMIST
+				| MA_ENV;
+
 
 	/* 
 	 * check for a single integer argument; do a quick check for now
@@ -2947,7 +2975,7 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 	if ( (PySequence_Size( args ) == 1)
 		    && PyInt_Check ( PyTuple_GET_ITEM ( args , 0 ) )
 		    && PyArg_ParseTuple( args, "i", &flag ) 
-		    && flag < (MA_RAYMIRROR >> 1) ) {
+			&& (flag & bitmask) == flag ) {
 			ok = 1;
 
 	/*

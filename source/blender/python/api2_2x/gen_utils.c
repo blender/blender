@@ -486,10 +486,10 @@ PyObject *EXPP_clearScriptLinks( ScriptLink * slink, PyObject * args )
 			char *str;
 			str = PyString_AsString ( PySequence_GetItem( seq, i ) );
 			for ( j = 0 ; j < slink->totscript ; ++j ) {
-				if ( slink->scripts[j] && !strcmp ( slink->scripts[j]->name+2, str ) ) {
+				if ( slink->scripts[j] && !strcmp( slink->scripts[j]->name+2, str ) )
 					slink->scripts[j] = NULL;
+				if( !slink->scripts[j] )
 					++deleted; 
-				}
 			}
 		}
 	}

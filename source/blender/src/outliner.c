@@ -2584,8 +2584,12 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 
 			// signal for button to open
 			addqueue(curarea->win, BUT_ACTIVATE, OL_NAMEBUTTON);
+			
+			/* otherwise keeps open on ESC */
+			tselem->flag &= ~TSE_TEXTBUT;
 		}
-		if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
+		else 
+			if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
 	}
 }
 

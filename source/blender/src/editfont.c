@@ -1157,6 +1157,7 @@ void free_editText(void)
 {
 	if(oldstr) MEM_freeN(oldstr);
 	if(oldstrinfo) MEM_freeN(oldstrinfo);
+	if(textbuf) MEM_freeN(textbuf);
 	textbuf = oldstr = NULL;
 	textbufinfo = oldstrinfo = NULL;
 	textediting= 0;

@@ -1182,8 +1182,11 @@ void makebevelcurve(Object *ob, ListBase *disp)
 	int nr, a;
 
 	cu= ob->data;
-
 	disp->first = disp->last = NULL;
+
+	/* if a font object is being edited, then do nothing */
+	if( ob == G.obedit && ob->type == OB_FONT ) return;
+
 	if(cu->bevobj && cu->bevobj!=ob) {
 		if(cu->bevobj->type==OB_CURVE) {
 			bevcu= cu->bevobj->data;
