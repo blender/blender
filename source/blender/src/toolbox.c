@@ -2364,6 +2364,7 @@ static void do_group_addmenu(void *arg, int event)
 	if(ob->dup_group) {
 		id_us_plus((ID *)ob->dup_group);
 		ob->transflag |= OB_DUPLIGROUP;
+		DAG_scene_sort(G.scene);
 	}
 }
 							 
