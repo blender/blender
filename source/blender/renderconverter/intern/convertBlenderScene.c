@@ -889,7 +889,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	Particle *pa=0;
 	HaloRen *har=0;
 	Material *ma=0;
-	float xn, yn, zn, imat[3][3], mat[4][4], hasize, stime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
+	float xn, yn, zn, imat[3][3], tmat[4][4], mat[4][4], hasize, stime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
 	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
@@ -900,12 +900,16 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	}
 
 	ma= give_render_material(ob, paf->omat);
-
+	
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
 
-	MTC_Mat4Invert(mat, R.viewmat);	/* particles do not have a ob transform anymore */
-	MTC_Mat3CpyMat4(imat, mat);
+	/* enable duplicators to work */
+	Mat4MulMat4(tmat, paf->imat, ob->obmat);
+	MTC_Mat4MulMat4(mat, tmat, R.viewmat);
+	
+	MTC_Mat4Invert(tmat, mat);
+	MTC_Mat3CpyMat4(imat, tmat);
 
 	R.flag |= R_HALO;
 
@@ -935,13 +939,13 @@ static void render_particle_system(Object *ob, PartEff *paf)
 		/* watch it: also calculate the normal of a particle */
 		if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
 			where_is_particle(paf, pa, stime, vec);
-			MTC_Mat4MulVecfl(R.viewmat, vec);
+			MTC_Mat4MulVecfl(mat, vec);
 			where_is_particle(paf, pa, ptime, vec1);
-			MTC_Mat4MulVecfl(R.viewmat, vec1);
+			MTC_Mat4MulVecfl(mat, vec1);
 		}
 		else {
 			where_is_particle(paf, pa, ctime, vec);
-			MTC_Mat4MulVecfl(R.viewmat, vec);
+			MTC_Mat4MulVecfl(mat, vec);
 		}
 
 		if(pa->mat_nr != mat_nr) {
@@ -1492,7 +1496,6 @@ static void init_render_mesh(Object *ob)
 	
 	if(need_orco) orco = get_object_orco(ob);
 	
-	/* duplicators don't call modifier stack */
 	dm = mesh_create_derived_render(ob);
 	dm_needsfree= 1;
 	

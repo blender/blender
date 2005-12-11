@@ -2470,17 +2470,19 @@ static int drawDispList(Base *base, int dt)
 static void draw_particle_system(Object *ob, PartEff *paf)
 {
 	Particle *pa;
-	float ptime, ctime, vec[3], vec1[3];
+	float ptime, ctime, vec[3], vec1[3], mat[4][4];
 	int a, totpart;
 	
 	pa= paf->keys;
-	if(pa==0) {
+	if(pa==NULL) {
 		build_particle_system(ob);
 		pa= paf->keys;
-		if(pa==0) return;
+		if(pa==NULL) return;
 	}
 	
 	myloadmatrix(G.vd->viewmat);
+	Mat4MulMat4(mat, paf->imat, ob->obmat);
+	mymultmatrix(mat);
 	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
@@ -2517,6 +2519,7 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 	}
 	if(paf->stype!=PAF_VECT) glEnd();
 	
+	myloadmatrix(G.vd->viewmat);
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
 }
 

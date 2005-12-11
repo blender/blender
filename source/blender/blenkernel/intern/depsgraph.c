@@ -1582,17 +1582,22 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
 				}
-					else if(ob->effect.first) {
-						Effect *eff= ob->effect.first;
-						if(eff->type==EFF_WAVE) ob->recalc |= OB_RECALC_DATA;
+				else if(ob->effect.first) {
+					Effect *eff= ob->effect.first;
+					PartEff *paf= give_parteff(ob);
+					
+					if(eff->type==EFF_WAVE) 
+						ob->recalc |= OB_RECALC_DATA;
+					if(paf && paf->keys==NULL)
+						ob->recalc |= OB_RECALC_DATA;
+				}
+				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
+					// fluidsimSettings might not be initialized during load...
+					if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
+						ob->recalc |= OB_RECALC_DATA; // NT
 					}
-					if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
-						// fluidsimSettings might not be initialized during load...
-						if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
-							ob->recalc |= OB_RECALC_DATA; // NT
-						}
-					}
-					break;
+				}
+				break;
 			case OB_CURVE:
 			case OB_SURF:
 				cu= ob->data;

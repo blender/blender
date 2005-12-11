@@ -1652,6 +1652,7 @@ void build_particle_system(Object *ob)
 	
 	/* matrix invert for static too */
 	Mat4Invert(ob->imat, ob->obmat);
+	Mat4CpyMat4(paf->imat, ob->imat);	/* used for duplicators */
 	
 	/* new random generator */
 	rng = rng_new(paf->seed);
