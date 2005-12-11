@@ -1254,6 +1254,7 @@ static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 	bActionStrip *strip;
 
 	for (strip=striplist->first; strip; strip=strip->next){
+		strip->object = newlibadr(fd, id->lib, strip->object);
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
 		strip->ipo = newlibadr(fd, id->lib, strip->ipo);
 	}
@@ -3155,24 +3156,28 @@ static void lib_link_group(FileData *fd, Main *main)
 {
 	Group *group= main->group.first;
 	GroupObject *go;
-
+	int add_us;
+	
 	while(group) {
 		if(group->id.flag & LIB_NEEDLINK) {
 			group->id.flag -= LIB_NEEDLINK;
-
+			
+			add_us= 0;
+			
 			go= group->gobject.first;
 			while(go) {
 				go->ob= newlibadr(fd, group->id.lib, go->ob);
 				if(go->ob) {
-					/* groups have inverse users... */
-					if(group->id.us==0)
-						group->id.us= 1;
+					/* if group has an object, it increments user... */
+					add_us= 1;
 					if(go->ob->id.us==0) 
 						go->ob->id.us= 1;
 				}
 				go= go->next;
 			}
+			if(add_us) group->id.us++;
 			rem_from_group(group, NULL);	/* removes NULL entries */
+			
 		}
 		group= group->id.next;
 	}
@@ -5580,6 +5585,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	expand_constraint_channels(fd, mainvar, &ob->constraintChannels);
 
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
+		expand_doit(fd, mainvar, strip->object);
 		expand_doit(fd, mainvar, strip->act);
 		expand_doit(fd, mainvar, strip->ipo);
 	}

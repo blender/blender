@@ -1546,14 +1546,15 @@ static int exists_channel(Object *ob, char *name)
 	return 0;
 }
 
-static void object_time_update_flags(Object *ob)
+static void dag_object_time_update_flags(Object *ob)
 {
 	
 	if(ob->ipo) ob->recalc |= OB_RECALC_OB;
 	else if(ob->constraints.first) ob->recalc |= OB_RECALC_OB;
 	else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
 	else if(ob->parent) {
-		if(ob->parent->type==OB_CURVE) ob->recalc |= OB_RECALC_OB;
+		/* motion path or bone child */
+		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;
 	}
 	
 	if(ob->action || ob->nlastrips.first) {
@@ -1632,7 +1633,7 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		
 		/* now if DagNode were part of base, the node->lay could be checked... */
 		/* we do all now, since the scene_flush checks layers and clears recalc flags even */
-		object_time_update_flags(ob);
+		dag_object_time_update_flags(ob);
 		
 		/* handled in next loop */
 		if(ob->dup_group) 
@@ -1640,16 +1641,28 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		
 	}
 	
+	/* we do groups each once */
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
-				object_time_update_flags(go->ob);
+				dag_object_time_update_flags(go->ob);
+			}
+		}
+	}
+	
+	DAG_scene_flush_update(sce, lay);
+	
+	/* and store the info in groubobject */
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(group->id.flag & LIB_DOIT) {
+			for(go= group->gobject.first; go; go= go->next) {
+				go->recalc= go->ob->recalc;
+//				printf("ob %s recalc %d\n", go->ob->id.name, go->recalc);
 			}
 			group->id.flag &= ~LIB_DOIT;
 		}
 	}
 	
-	DAG_scene_flush_update(sce, lay);
 }
 
 /* for depgraph updating, all layers visible in a screen */

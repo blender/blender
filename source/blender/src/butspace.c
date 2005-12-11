@@ -117,6 +117,7 @@ void test_actionpoin_but(char *name, ID **idpp)
 	id= G.main->action.first;
 	while(id) {
 		if( strcmp(name, id->name+2)==0 ) {
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
 			*idpp= id;
 			return;
 		}
@@ -140,6 +141,7 @@ void test_obpoin_but(char *name, ID **idpp)
 	while(id) {
 		if( strcmp(name, id->name+2)==0 ) {
 			*idpp= id;
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
 			return;
 		}
 		id= id->next;

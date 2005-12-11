@@ -41,6 +41,13 @@ struct Object;
 struct Curve;
 struct objfnt;
 
+struct chartrans {
+	float xof, yof;
+	float rot;
+	short linenr,charnr;
+	char dobreak;
+};
+
 typedef struct SelBox {
 	float x, y, w, h;
 } SelBox;
@@ -55,7 +62,7 @@ struct VFont *load_vfont(char *name);
 struct chartrans *text_to_curve(struct Object *ob, int mode);
 int style_to_sel(int style, int toggle);
 int mat_to_sel(void);
-void font_duplilist(struct Object *par);
+
 int getselection(int *start, int *end);
 
 void chtoutf8(unsigned long c, char *o);

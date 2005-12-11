@@ -32,19 +32,24 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
+#include "DNA_action_types.h"
+#include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_object_types.h"
+#include "DNA_ID.h"
 #include "DNA_ipo_types.h"
+#include "DNA_material_types.h"
+#include "DNA_object_types.h"
+#include "DNA_nla_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 
-#include "BKE_library.h"
+#include "BKE_global.h"
 #include "BKE_group.h"
-#include "BKE_object.h"
 #include "BKE_ipo.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_object.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -65,6 +70,34 @@ void free_group(Group *group)
 		go= group->gobject.first;
 		BLI_remlink(&group->gobject, go);
 		free_group_object(go);
+	}
+}
+
+void unlink_group(Group *group)
+{
+	Material *ma;
+	Object *ob;
+	
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if(ma->group==group)
+			ma->group= NULL;
+	}
+	for(ob= G.main->object.first; ob; ob= ob->id.next) {
+		bActionStrip *strip;
+		PartEff *paf;
+		
+		if(ob->dup_group==group)
+			ob->dup_group= NULL;
+		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+			if(strip->object==ob)
+				strip->object= NULL;
+		}
+		for(paf= ob->effect.first; paf; paf= paf->next) {
+			if(paf->type==EFF_PARTICLE) {
+				if(paf->group)
+					paf->group= NULL;
+			}
+		}
 	}
 }
 
@@ -150,3 +183,109 @@ void group_tag_recalc(Group *group)
 	}
 }
 
+/* only replaces object strips or action when parent nla instructs it */
+/* keep checking nla.c though, in case internal structure of strip changes */
+static void group_replaces_nla(Object *parent, Object *target, char mode)
+{
+	static ListBase nlastrips={NULL, NULL};
+	static bAction *action= NULL;
+	static int done= 0;
+	bActionStrip *strip, *nstrip;
+	
+	if(mode=='s') {
+		
+		for(strip= parent->nlastrips.first; strip; strip= strip->next) {
+			if(strip->object==target) {
+				if(done==0) {
+					/* clear nla & action from object */
+					nlastrips= target->nlastrips;
+					target->nlastrips.first= target->nlastrips.last= NULL;
+					action= target->action;
+					target->action= NULL;
+					target->nlaflag |= OB_NLA_OVERRIDE;
+					done= 1;
+				}
+				nstrip= MEM_dupallocN(strip);
+				BLI_addtail(&target->nlastrips, nstrip);
+			}
+		}
+	}
+	else if(mode=='e') {
+		if(done) {
+			BLI_freelistN(&target->nlastrips);
+			target->nlastrips= nlastrips;
+			target->action= action;
+			
+			nlastrips.first= nlastrips.last= NULL;	/* not needed, but yah... :) */
+			action= NULL;
+			done= 0;
+		}
+	}
+}
+
+
+/* puts all group members in local timing system, after this call
+you can draw everything, leaves tags in objects to signal it needs further updating */
+void group_handle_recalc_and_update(Object *parent, Group *group)
+{
+	GroupObject *go;
+	
+	/* if animated group... */
+	if(parent->sf != 0.0f || parent->nlastrips.first) {
+		int cfrao;
+		
+		/* switch to local time */
+		cfrao= G.scene->r.cfra;
+		G.scene->r.cfra -= (int)parent->sf;
+		
+		/* we need a DAG per group... */
+		for(go= group->gobject.first; go; go= go->next) {
+			if(go->ob && go->recalc) {
+				go->ob->recalc= go->recalc;
+				
+				group_replaces_nla(parent, go->ob, 's');
+				object_handle_update(go->ob);
+				group_replaces_nla(parent, go->ob, 'e');
+				
+				/* leave recalc tags in case group members are in normal scene */
+				go->ob->recalc= go->recalc;
+			}
+		}
+		
+		/* restore */
+		G.scene->r.cfra= cfrao;
+	}
+	else {
+		/* only do existing tags, as set by regular depsgraph */
+		for(go= group->gobject.first; go; go= go->next) {
+			if(go->ob) {
+				if(go->ob->recalc) {
+					object_handle_update(go->ob);
+				}
+			}
+		}
+	}
+}
+
+Object *group_get_member_with_action(Group *group, bAction *act)
+{
+	GroupObject *go;
+	
+	if(group==NULL || act==NULL) return NULL;
+	
+	for(go= group->gobject.first; go; go= go->next) {
+		if(go->ob) {
+			if(go->ob->action==act)
+				return go->ob;
+			if(go->ob->nlastrips.first) {
+				bActionStrip *strip;
+				
+				for(strip= go->ob->nlastrips.first; strip; strip= strip->next) {
+					if(strip->act==act)
+						return go->ob;
+				}
+			}
+		}
+	}
+	return NULL;
+}

@@ -208,6 +208,7 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->ipo) ob->ipo->id.us--;
 	if(ob->action) ob->action->id.us--;
+	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose) {
@@ -255,6 +256,7 @@ void unlink_object(Object *ob)
 	Ipo *ipo;
 	Group *group;
 	bConstraint *con;
+	bActionStrip *strip;
 	int a;
 	char *str;
 	
@@ -315,12 +317,19 @@ void unlink_object(Object *ob)
 					obt->recalc |= OB_RECALC_OB;
 				}
 			}
+			
 			/* object is deflector or field */
 			if(ob->pd) {
 				if(give_parteff(obt))
 					obt->recalc |= OB_RECALC_DATA;
 				else if(obt->soft)
 					obt->recalc |= OB_RECALC_DATA;
+			}
+			
+			/* strips */
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				if(strip->object==ob)
+					strip->object= NULL;
 			}
 		}
 		obt= obt->id.next;
@@ -999,15 +1008,10 @@ float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
 	}
 
+	cfra+= bluroffs;
 
-	if(ob && (ob->flag & OB_FROMDUPLI));
-	else {
-			/* motion blur */
-		cfra+= bluroffs;
-	
-		/* global time */
-		cfra*= G.scene->r.framelen;	
-	}
+	/* global time */
+	cfra*= G.scene->r.framelen;	
 	
 	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
 	
@@ -1521,9 +1525,6 @@ void solve_tracking (Object *ob, float targetmat[][4])
 
 void where_is_object(Object *ob)
 {
-	
-	/* these have been mem copied */
-	if(ob->flag & OB_FROMDUPLI) return;
 	
 	where_is_object_time(ob, (float)G.scene->r.cfra);
 }

@@ -112,6 +112,11 @@ void group_operation_with_menu(void)
 		}
 	}
 	
+	if(group && group->id.lib) {
+		error("Cannot edit library data");
+		return;
+	}
+	
 	if(base)
 		mode= pupmenu("Groups %t|Add to current Group %x3|Add to New Group %x1|Remove from all Groups %x2");
 	else

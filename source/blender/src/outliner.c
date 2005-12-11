@@ -61,6 +61,7 @@
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -110,7 +111,7 @@
 
 #define TS_CHUNK	128
 
-#define TREESTORE(a) soops->treestore->data+(a)->store_index
+#define TREESTORE(a) ((a)?soops->treestore->data+(a)->store_index:NULL)
 
 /* ******************** PERSISTANT DATA ***************** */
 
@@ -511,13 +512,13 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						te->name= md->name;
 
 						if (md->type==eModifierType_Lattice) {
-							outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						} else if (md->type==eModifierType_Curve) {
-							outliner_add_element(soops, &te->subtree, ((CurveModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((CurveModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						} else if (md->type==eModifierType_Armature) {
-							outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						} else if (md->type==eModifierType_Hook) {
-							outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						}
 					}
 				}
@@ -543,6 +544,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						outliner_add_element(soops, &tenla->subtree, ob->scriptlink.scripts[a], te, 0, 0);
 					}
 				}
+				
+				if(ob->dup_group)
+					outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);
+				
 				if(ob->nlastrips.first) {
 					bActionStrip *strip;
 					TreeElement *ten;
@@ -775,16 +780,18 @@ static void outliner_build_tree(SpaceOops *soops)
 		GroupObject *go;
 		
 		for(group= G.main->group.first; group; group= group->id.next) {
-			te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
-			tselem= TREESTORE(te);
-			
-			for(go= group->gobject.first; go; go= go->next) {
-				ten= outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
-				ten->directdata= NULL;
+			if(group->id.us) {
+				te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
+				tselem= TREESTORE(te);
+				
+				for(go= group->gobject.first; go; go= go->next) {
+					ten= outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
+					ten->directdata= NULL;
+				}
+				outliner_make_hierarchy(soops, &te->subtree);
+				/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
+				for(go= group->gobject.first; go; go= go->next) go->ob->id.newid= NULL;
 			}
-			outliner_make_hierarchy(soops, &te->subtree);
-			/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
-			for(go= group->gobject.first; go; go= go->next) go->ob->id.newid= NULL;
 		}
 	}
 	else if(soops->outlinevis == SO_SAME_TYPE) {
@@ -1425,7 +1432,7 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_ebone(te, tselem, set);
 		case TSE_MODIFIER:
 			return tree_element_active_modifier(te, tselem, set);
-		case TSE_MODIFIER_OB:
+		case TSE_LINKED_OB:
 			if(set) tree_element_active_object(soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
 			break;
@@ -1710,12 +1717,9 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb)
 						
 					case ID_ME: case ID_CU: case ID_MB: case ID_LT:
 					case ID_LA: case ID_AR: case ID_CA:
-						idlevel= -2;
-						break;
-						
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
-					case ID_NLA: case ID_TXT:
+					case ID_NLA: case ID_TXT: case ID_GR:
 						if(idlevel==0) idlevel= idcode;
 						else if(idlevel!=idcode) idlevel= -1;
 							break;
@@ -1726,7 +1730,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb)
 	}
 }
 
-static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep)
+static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Material **matar=NULL;
 	int a, totcol=0;
@@ -1760,7 +1764,7 @@ static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep)
 	}
 }
 
-static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep)
+static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	MTex **mtex= NULL;
 	int a;
@@ -1789,8 +1793,25 @@ static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep)
 	}
 }
 
+static void unlink_group_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Group *group= (Group *)tselem->id;
+	
+	if(tsep) {
+		if( GS(tsep->id->name)==ID_OB) {
+			Object *ob= (Object *)tsep->id;
+			ob->dup_group= NULL;
+			group->id.us--;
+		}
+	}
+	else {
+		unlink_group(group);
+		group->id.us= 0;
+	}
+}
+
 static void outliner_do_libdata_operation(SpaceOops *soops, ListBase *lb, 
-										 void (*operation_cb)(TreeElement *, TreeStoreElem *))
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1800,7 +1821,7 @@ static void outliner_do_libdata_operation(SpaceOops *soops, ListBase *lb,
 		if(tselem->flag & TSE_SELECTED) {
 			if(tselem->type==0) {
 				TreeStoreElem *tsep= TREESTORE(te->parent);
-				operation_cb(te, tsep);
+				operation_cb(te, tsep, tselem);
 			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
@@ -1811,7 +1832,7 @@ static void outliner_do_libdata_operation(SpaceOops *soops, ListBase *lb,
 
 /* */
 
-static void object_select_cb(TreeElement *te, TreeStoreElem *tselem)
+static void object_select_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
@@ -1822,7 +1843,7 @@ static void object_select_cb(TreeElement *te, TreeStoreElem *tselem)
 	}
 }
 
-static void object_deselect_cb(TreeElement *te, TreeStoreElem *tselem)
+static void object_deselect_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
@@ -1833,7 +1854,7 @@ static void object_deselect_cb(TreeElement *te, TreeStoreElem *tselem)
 	}
 }
 
-static void object_delete_cb(TreeElement *te, TreeStoreElem *tselem)
+static void object_delete_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
@@ -1853,9 +1874,17 @@ static void object_delete_cb(TreeElement *te, TreeStoreElem *tselem)
 	}
 }
 
+static void id_local_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	if(tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
+		tselem->id->lib= NULL;
+		tselem->id->flag= LIB_LOCAL;
+		new_id(0, tselem->id, 0);
+	}
+}
 
 static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb, 
-										 void (*operation_cb)(TreeElement *, TreeStoreElem *))
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1868,7 +1897,7 @@ static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb,
 				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 				if(sce && G.scene != sce) set_scene(sce);
 				
-				operation_cb(te, tselem);
+				operation_cb(te, NULL, tselem);
 			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
@@ -1959,7 +1988,7 @@ void outliner_operation_menu(ScrArea *sa)
 		//else pupmenu("Scene Operations%t|Delete");
 	}
 	else if(objectlevel) {
-		short event= pupmenu("Object Operations%t|Select%x1|Deselect%x2|Delete%x4");
+		short event= pupmenu("Object Operations%t|Select%x1|Deselect%x2|Delete%x4|Make Local%x5");
 		if(event>0) {
 			char *str="";
 			
@@ -1979,18 +2008,21 @@ void outliner_operation_menu(ScrArea *sa)
 				DAG_scene_sort(G.scene);
 				str= "Delete Objects";
 			}
+			else if(event==5) {
+				outliner_do_object_operation(soops, &soops->tree, id_local_cb);
+				str= "Localized Objects";
+			}
 			
 			countall();
 			
 			BIF_undo_push(str);
-			allqueue(REDRAWALL, 0); // yah... to be sure :)
+			allqueue(REDRAWALL, 0);
 		}
 	}
 	else if(idlevel) {
 		if(idlevel==-1 || datalevel) error("Mixed selection");
-		else if(idlevel==-2) error("No operations available");
 		else {
-			short event= pupmenu("Data Operations%t|Unlink");
+			short event= pupmenu("Data Operations%t|Unlink %x1|Make Local %x2");
 			
 			if(event==1) {
 				switch(idlevel) {
@@ -2004,12 +2036,19 @@ void outliner_operation_menu(ScrArea *sa)
 						allqueue(REDRAWBUTSSHADING, 1);
 						BIF_undo_push("Unlink texture");
 						break;
+					case ID_GR:
+						outliner_do_libdata_operation(soops, &soops->tree, unlink_group_cb);
+						BIF_undo_push("Unlink group");
+						break;
 					default:
 						error("Not yet...");
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWBUTSALL, 0);
-				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWALL, 0);
+			}
+			else if(event==2) {
+				outliner_do_libdata_operation(soops, &soops->tree, id_local_cb);
+				BIF_undo_push("Localized Data");
+				allqueue(REDRAWALL, 0); 
 			}
 		}
 	}
@@ -2065,7 +2104,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_draw_icon(x, y, ICON_CONSTRAINT); break;
 			case TSE_MODIFIER_BASE:
 				BIF_draw_icon(x, y, ICON_MODIFIER); break;
-			case TSE_MODIFIER_OB:
+			case TSE_LINKED_OB:
 				BIF_draw_icon(x, y, ICON_OBJECT); break;
 			case TSE_MODIFIER:
 			{
@@ -2279,17 +2318,21 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 			// icons a bit higher
 		tselem_draw_icon(startx+offsx, *starty+2, tselem, te);
 		offsx+= OL_X;
+		
+		if(tselem->id->lib && tselem->type==0) {
+			glPixelTransferf(GL_ALPHA_SCALE, 0.5);
+			if(tselem->id->flag & LIB_INDIRECT)
+				BIF_draw_icon(startx+offsx, *starty+2, ICON_DATALIB);
+			else
+				BIF_draw_icon(startx+offsx, *starty+2, ICON_PARLIB);
+			glPixelTransferf(GL_ALPHA_SCALE, 1.0);
+			offsx+= OL_X;
+		}		
 		glDisable(GL_BLEND);
 
 		/* name */
-		if(tselem->id->lib) {
-			if(active==1) glColor3ub(0xBB, 0xFF, 0xFF);
-			else glColor3ub(0, 0x30, 0x30);
-		}
-		else {
-			if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
-			else BIF_ThemeColor(TH_TEXT);
-		}		
+		if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
+		else BIF_ThemeColor(TH_TEXT);
 		glRasterPos2i(startx+offsx, *starty+5);
 		BIF_RasterPos(startx+offsx, *starty+5);
 		BIF_DrawString(G.font, te->name, 0);

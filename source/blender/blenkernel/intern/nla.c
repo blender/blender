@@ -46,6 +46,9 @@
 #include <config.h>
 #endif
 
+/* NOTE: in group.c the strips get copied for group-nla override, this assumes
+   that strips are one single block, without additional data to be copied */
+
 void copy_actionstrip (bActionStrip **dst, bActionStrip **src){
 	bActionStrip *dstrip;
 	bActionStrip *sstrip = *src;

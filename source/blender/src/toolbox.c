@@ -55,10 +55,11 @@
 #include "BIF_language.h"
 #include "BIF_resources.h"
 
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
-#include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -67,13 +68,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "BKE_displist.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
+#include "BKE_main.h"
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
-#include "BKE_mesh.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 
 #include "BIF_editnla.h"
 #include "BIF_editarmature.h"
@@ -2241,6 +2243,10 @@ static TBitem addmenu_armature[]= {
 {	0, "Bone", 	8, NULL},
 {  -1, "", 			0, do_info_addmenu}};
 
+/* dynamic items */
+#define TB_ADD_GROUP	6
+#define TB_ADD_LAMP		9
+
 static TBitem tb_add[]= {
 {	0, "Mesh", 		0, addmenu_mesh},
 {	0, "Curve", 	1, addmenu_curve},
@@ -2248,24 +2254,10 @@ static TBitem tb_add[]= {
 {	0, "Meta", 	3, addmenu_meta},
 {	0, "Text", 		4, NULL},
 {	0, "Empty", 	5, NULL},
+{	0, "Group", 	10, NULL},
 {	0, "SEPR", 		0, NULL},
 {	0, "Camera", 	6, NULL},
 {	0, "Lamp", 		7, addmenu_lamp},
-{	0, "SEPR", 		0, NULL},
-{	0, "Armature", 	8, NULL},
-{	0, "Lattice", 	9, NULL},
-{  -1, "", 			0, do_info_addmenu}};
-
-static TBitem tb_add_YF[]= {
-{	0, "Mesh", 		0, addmenu_mesh},
-{	0, "Curve", 	1, addmenu_curve},
-{	0, "Surface", 	2, addmenu_surf},
-{	0, "Meta", 	3, addmenu_meta},
-{	0, "Text", 		4, NULL},
-{	0, "Empty", 	5, NULL},
-{	0, "SEPR", 		0, NULL},
-{	0, "Camera", 	6, NULL},
-{	0, "Lamp", 		7, addmenu_YF_lamp},
 {	0, "SEPR", 		0, NULL},
 {	0, "Armature", 	8, NULL},
 {	0, "Lattice", 	9, NULL},
@@ -2361,13 +2353,57 @@ static void store_main(void *arg1, void *arg2)
 	tb_mainy= (int)arg2;
 }
 
+static void do_group_addmenu(void *arg, int event)
+{
+	Object *ob;
+	
+	add_object_draw(OB_EMPTY);
+	ob= OBACT;
+	
+	ob->dup_group= BLI_findlink(&G.main->group, event);
+	if(ob->dup_group) {
+		id_us_plus((ID *)ob->dup_group);
+		ob->transflag |= OB_DUPLIGROUP;
+	}
+}
+							 
+/* example of dynamic toolbox sublevel */
+static TBitem *create_group_sublevel(void)
+{
+	static TBitem addmenu[]= { {	0, "No Groups", 	0, NULL}, {  -1, "", 			0, NULL}};
+	TBitem *groupmenu;
+	Group *group;
+	int a;
+	
+	int tot= BLI_countlist(&G.main->group);
+	
+	if(tot==0) {
+		tb_add[TB_ADD_GROUP].poin= addmenu;
+		return NULL;
+	}
+	
+	groupmenu= MEM_callocN(sizeof(TBitem)*(tot+1), "group menu");
+	for(a=0, group= G.main->group.first; group; group= group->id.next, a++) {
+		groupmenu[a].name= group->id.name+2;
+		groupmenu[a].retval= a;
+	}
+	groupmenu[a].icon= -1;	/* end signal */
+	groupmenu[a].name= "";
+	groupmenu[a].retval= a;
+	groupmenu[a].poin= do_group_addmenu;
+	
+	tb_add[TB_ADD_GROUP].poin= groupmenu;
+	
+	return groupmenu;
+}
+
 void toolbox_n(void)
 {
 	uiBlock *block;
 	uiBut *but;
 	TBitem *menu1=NULL, *menu2=NULL, *menu3=NULL; 
 	TBitem *menu4=NULL, *menu5=NULL, *menu6=NULL;
-	TBitem *menu7=NULL;
+	TBitem *menu7=NULL, *groupmenu;
 	int dx=0;
 	short event, mval[2], tot=0;
 	char *str1=NULL, *str2=NULL, *str3=NULL, *str4=NULL, *str5=NULL, *str6=NULL, *str7=NULL;
@@ -2389,16 +2425,19 @@ void toolbox_n(void)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	uiBlockSetCol(block, TH_MENU_ITEM);
 	
+	/* dynamic menu entries */
+	groupmenu= create_group_sublevel();
+	
+	if (G.scene->r.renderer==R_YAFRAY)
+		tb_add[TB_ADD_LAMP].poin= addmenu_YF_lamp;
+	else
+		tb_add[TB_ADD_LAMP].poin= addmenu_lamp;
+	
 	/* select context for main items */
 	if(curarea->spacetype==SPACE_VIEW3D) {
 
 		if(U.uiflag & USER_PLAINMENUS) {
-			/* column layout menu */
-			if (G.scene->r.renderer==R_YAFRAY) {
-				menu1= tb_add_YF; str1= "Add";
-			} else {
-				 menu1= tb_add; str1= "Add";
-			}
+			menu1= tb_add; str1= "Add";
 			menu2= tb_object_edit; str2= "Edit";
 			menu3= tb_object_select; str3= "Select";
 			menu4= tb_transform; str4= "Transform";
@@ -2411,11 +2450,7 @@ void toolbox_n(void)
 		} else {
 			/* 3x2 layout menu */
 			menu1= tb_object; str1= "Object";
-			if (G.scene->r.renderer==R_YAFRAY) {
-				menu2= tb_add_YF; str2= "Add";
-			} else {
-				menu2= tb_add; str2= "Add";
-			}
+			menu2= tb_add; str2= "Add";
 			menu3= tb_object_select; str3= "Select";
 			menu4= tb_object_edit; str4= "Edit";
 			menu5= tb_transform; str5= "Transform";
@@ -2598,6 +2633,8 @@ void toolbox_n(void)
 	
 	uiBoundsBlock(block, 2);
 	event= uiDoBlocks(&tb_listb, 0);
+	
+	if(groupmenu) MEM_freeN(groupmenu);
 	
 	mywinset(curarea->win);
 }

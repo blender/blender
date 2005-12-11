@@ -2518,6 +2518,7 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 		
 		VECADD(col, shr.diff, shr.spec);
 		
+		/* NOTE: this is not correct here, sky from raytrace gets corrected... */
 		/* exposure correction */
 		if(R.wrld.exp!=0.0 || R.wrld.range!=1.0) {
 			if((shi.mat->mode & MA_SHLESS)==0) {

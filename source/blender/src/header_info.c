@@ -1216,6 +1216,9 @@ void do_info_addmenu(void *arg, int event)
 			/* Lattice */
 			add_object_draw(OB_LATTICE);
 			break;
+		case 10:
+			/* group instance not yet */
+			break;
 		default:
 			break;
 	}

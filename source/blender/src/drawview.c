@@ -122,7 +122,6 @@
 #include "BSE_view.h"
 
 #include "RE_renderconverter.h"
-
 #include "BPY_extern.h"
 
 #include "blendef.h"
@@ -2046,6 +2045,14 @@ static void view3d_blockhandlers(ScrArea *sa)
 
 }
 
+/* ****************** View3d afterdraw *************** */
+
+typedef struct View3DAfter {
+	struct View3DAfter *next, *prev;
+	struct Base *base;
+	int type;
+} View3DAfter;
+
 /* temp storage of Objects that need to be drawn as last */
 void add_view3d_after(View3D *v3d, Base *base, int type)
 {
@@ -2101,6 +2108,41 @@ static void view3d_draw_transp(View3D *v3d, int flag)
 
 	glDepthMask(1);
 
+}
+
+/* *********************** */
+
+static void draw_dupli_objects(View3D *v3d, Base *base)
+{
+	ListBase *lb;
+	DupliObject *dob;
+	Base tbase;
+	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
+	char dt, dtx;
+	
+	tbase.flag= OB_FROMDUPLI|base->flag;
+	lb= object_duplilist(G.scene, base->object);
+
+	for(dob= lb->first; dob; dob= dob->next) {
+		tbase.object= dob->ob;
+		
+		Mat4CpyMat4(dob->ob->obmat, dob->mat);
+		/* extra service: draw the duplicator in drawtype of parent */
+		dt= tbase.object->dt; tbase.object->dt= base->object->dt;
+		dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+		
+		BIF_ThemeColorBlend(color, TH_BACK, 0.5);
+		draw_object(&tbase, DRAW_CONSTCOLOR);
+		
+		/* restore */
+		Mat4CpyMat4(dob->ob->obmat, dob->omat);
+		tbase.object->dt= dt;
+		tbase.object->dtx= dtx;
+	}
+	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
+
+	BLI_freelistN(lb);
+				
 }
 
 void drawview3dspace(ScrArea *sa, void *spacedata)
@@ -2203,26 +2245,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				draw_object(base, DRAW_CONSTCOLOR);
 
 				if(base->object->transflag & OB_DUPLI) {
-					extern ListBase duplilist;
-					Base tbase;
-					
-					tbase= *base;
-					
-					tbase.flag= OB_FROMDUPLI;
-					make_duplilist(G.scene->set, base->object);
-					ob= duplilist.first;
-					while(ob) {
-						tbase.object= ob;
-						BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.4f);
-						draw_object(&tbase, DRAW_CONSTCOLOR);
-						ob= ob->id.next;
-					}
-					
-					/* Transp afterdraw */
-					view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
-					
-					free_duplilist();
-					
+					draw_dupli_objects(v3d, base);
 				}
 			}
 			base= base->next;
@@ -2244,23 +2267,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			
 			/* dupli drawing */
 			if(base->object->transflag & OB_DUPLI) {
-				extern ListBase duplilist;
-				Base tbase;
-
-				tbase.flag= OB_FROMDUPLI;
-				make_duplilist(G.scene, base->object);
-
-				ob= duplilist.first;
-				while(ob) {
-					tbase.object= ob;
-					BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5);
-					draw_object(&tbase, DRAW_CONSTCOLOR);
-					ob= ob->id.next;
-				}
-				/* Transp afterdraw stuff */
-				view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
-				
-				free_duplilist();
+				draw_dupli_objects(v3d, base);
 			}
 			if((base->flag & SELECT)==0) {
 				if(base->object!=G.obedit) draw_object(base, 0);
@@ -2348,7 +2355,6 @@ void drawview3d_render(struct View3D *v3d)
 {
 	extern short v3d_windowmode;
 	Base *base;
-	Object *ob;
 
 	update_for_newframe_muted();	/* first, since camera can be animated */
 
@@ -2405,21 +2411,7 @@ void drawview3d_render(struct View3D *v3d)
 					draw_object(base, DRAW_CONSTCOLOR);
 	
 					if(base->object->transflag & OB_DUPLI) {
-						extern ListBase duplilist;
-						Base tbase;
-						
-						tbase.flag= OB_FROMDUPLI;
-						make_duplilist(G.scene->set, base->object);
-						ob= duplilist.first;
-						while(ob) {
-							tbase.object= ob;
-							draw_object(&tbase, DRAW_CONSTCOLOR);
-							ob= ob->id.next;
-						}
-						/* Transp afterdraw stuff */
-						view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
-						
-						free_duplilist();
+						draw_dupli_objects(v3d, base);
 					}
 				}
 			}
@@ -2440,26 +2432,7 @@ void drawview3d_render(struct View3D *v3d)
 			else {
 	
 				if(base->object->transflag & OB_DUPLI) {
-					extern ListBase duplilist;
-					Base tbase;
-					
-					draw_object(base, 0);
-					
-					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5f);
-					
-					tbase.flag= OB_FROMDUPLI;
-					make_duplilist(G.scene, base->object);
-					ob= duplilist.first;
-					while(ob) {
-						tbase.object= ob;
-						draw_object(&tbase, DRAW_CONSTCOLOR);
-						ob= ob->id.next;
-					}
-					
-					/* Transp afterdraw stuff */
-					view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
-					
-					free_duplilist();
+					draw_dupli_objects(v3d, base);
 				}
 				else if((base->flag & SELECT)==0) {
 					draw_object(base, 0);

@@ -816,7 +816,7 @@ static void do_nla(Object *ob, int blocktype)
 			actlength = strip->actend-strip->actstart;
 			striptime = (G.scene->r.cfra-(strip->start)) / length;
 			stripframe = (G.scene->r.cfra-(strip->start)) ;
-
+			
 			if (striptime>=0.0){
 				
 				if(blocktype==ID_AR) 
@@ -979,6 +979,7 @@ void do_all_pose_actions(Object *ob)
 void do_all_object_actions(Object *ob)
 {
 	if(ob==NULL) return;
+	if(ob->dup_group) return;	/* prevent conflicts, might add smarter check later */
 	
 	/* Do local action */
 	if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {

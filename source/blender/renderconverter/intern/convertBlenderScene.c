@@ -2683,7 +2683,7 @@ extern ListBase duplilist;
 void RE_rotateBlenderScene(void)
 {
 	Base *base;
-	Object *ob, *obd;
+	Object *ob;
 	Scene *sce;
 	unsigned int lay;
 	float mat[4][4];
@@ -2776,6 +2776,7 @@ void RE_rotateBlenderScene(void)
 			if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & G.scene->lay)) ) {
 
 				if(ob->transflag & OB_DUPLI) {
+					
 					/* exception: mballs! */
 					/* yafray: Include at least one copy of a dupliframe object for yafray in the renderlist.
 					   mballs comment above true as well for yafray, they are not included, only all other object types */
@@ -2793,28 +2794,17 @@ void RE_rotateBlenderScene(void)
 						}
 					}
 					
-					make_duplilist(sce, ob);
 					if(ob->type==OB_MBALL) {
 						init_render_object(ob);
 					}
 					else {
-						obd= duplilist.first;
-						if(obd) {
-							/* exception, in background render it doesnt make the displist */
-							if ELEM(obd->type, OB_CURVE, OB_SURF) {
-								Curve *cu;
-
-								cu= obd->data;
-								if(cu->disp.first==NULL) {
-									obd->flag &= ~OB_FROMDUPLI;
-									makeDispListCurveTypes(obd, 0);
-									obd->flag |= OB_FROMDUPLI;
-								}
-							}
-						}
-
-						obd= duplilist.first;
-						while(obd) {
+						DupliObject *dob;
+						ListBase *lb= object_duplilist(sce, ob);
+						
+						for(dob= lb->first; dob; dob= dob->next) {
+							Object *obd= dob->ob;
+							Mat4CpyMat4(obd->obmat, dob->mat);
+							
 							if(obd->type!=OB_MBALL) {
 								/* yafray: special handling of duplivert objects for yafray:
 								   only the matrix is stored, together with the source object name.
@@ -2829,10 +2819,10 @@ void RE_rotateBlenderScene(void)
 								}
 								else init_render_object(obd);
 							}
-							obd= obd->id.next;
+							Mat4CpyMat4(obd->obmat, dob->omat);
 						}
+						BLI_freelistN(lb);
 					}
-					free_duplilist();
 				}
 				else {
 					/* yafray: if there are linked data objects (except lamps, empties or armatures),

@@ -63,18 +63,6 @@ typedef struct BGpic {
 	unsigned int *rect;
 } BGpic;
 
-#
-#
-typedef struct View3DAfter {
-	struct View3DAfter *next, *prev;
-	struct Base *base;
-	int type;
-} View3DAfter;
-
-/* View3DAfter->type */
-#define V3D_XRAY	1
-#define V3D_TRANSP	2
-
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
 	int spacetype;

@@ -2617,7 +2617,12 @@ void main_to_filelist(SpaceFile *sfile)
 		
 				if (hide==0 || id->name[2] != '.') {
 					memset( files, 0 , sizeof(struct direntry));
-					files->relname= BLI_strdup(id->name+2);
+					if(id->lib==NULL)
+						files->relname= BLI_strdup(id->name+2);
+					else {
+						files->relname= MEM_mallocN(FILE_MAXDIR+FILE_MAXFILE+32, "filename for lib");
+						sprintf(files->relname, "%s | %s", id->lib->name, id->name+2);
+					}
 					
 					if(sfile->returnfunc==0) { /* F4 DATA BROWSE */
 						if(idcode==ID_OB) {

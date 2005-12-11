@@ -1823,8 +1823,6 @@ static void mesh_build_data(Object *ob)
 	Mesh *me = ob->data;
 	float min[3], max[3];
 
-	if(ob->flag&OB_FROMDUPLI) return;
-
 	clear_mesh_caches(ob);
 
 	if(ob!=G.obedit) {

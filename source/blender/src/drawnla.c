@@ -79,6 +79,7 @@
 #include "BDR_editcurve.h"
 
 #include "blendef.h"
+#include "butspace.h"
 #include "mydevice.h"
 
 #define TESTBASE_SAFE(base)	((base)->flag & SELECT)
@@ -460,8 +461,8 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	
 	/* first labels, for simpler align code :) */
 	uiDefBut(block, LABEL, 0, "Timeline Range:",	10,180,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Blending:",			10,120,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Options:",			10,80,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Blending:",			10,120,150,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Options:",			160,120,150,19, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, LABEL, 0, "Stride Support:",	10,40,300,19, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
@@ -482,13 +483,18 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	}
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,150,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 160,100,150,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,156,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 10,80,145,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	10,60,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
-	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,60,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
-	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								230,60,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	160,100,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
+	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,80,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
+	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								235,80,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	uiBlockEndAlign(block);
+	
+	if(ob->dup_group) {
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_PANEL, "Target:", 160, 50, 150, 19, &strip->object, "Target Object in this group"); 
+	}
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10,20,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");

@@ -49,17 +49,20 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_vfont_types.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_anim.h"
-#include "BKE_ipo.h"
-#include "BKE_object.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
-#include "BKE_key.h"
-#include "BKE_font.h"
 #include "BKE_effect.h"
+#include "BKE_font.h"
+#include "BKE_group.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BKE_key.h"
+#include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BKE_bad_level_calls.h"
 
@@ -272,53 +275,40 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	return 1;
 }
 
-static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par, int clearpar)
+/* ****************** DUPLICATOR ************** */
+
+static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4])
 {
-	Object *newob;
-	
-	newob= MEM_mallocN(sizeof(Object), "newobj dupli");
-
-	memcpy(newob, ob, sizeof(Object));
-	newob->flag |= OB_FROMDUPLI;
-	newob->id.newid= (ID *)par;	/* store duplicator */
-	
-	/* only basis-ball gets displist */
-	if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= NULL;
-
-	if(clearpar) {	// dupliverts, particle
-		newob->parent= NULL;
-		newob->track= NULL;
-	}	
-	BLI_addtail(lb, newob);
-	
-	return newob;
+	DupliObject *dob= MEM_mallocN(sizeof(DupliObject), "dupliobject");
+	BLI_addtail(lb, dob);
+	dob->ob= ob;
+	Mat4CpyMat4(dob->mat, mat);
+	Mat4CpyMat4(dob->omat, ob->obmat);
 }
 
-static void group_duplilist(Object *ob)
+static void group_duplilist(ListBase *lb, Object *ob)
 {
-	Object *newob;
 	GroupObject *go;
 	float mat[4][4];
 	
 	if(ob->dup_group==NULL) return;
 	
+	/* handles animated groups, and */
+	/* we need to check update for objects that are not in scene... */
+	group_handle_recalc_and_update(ob, ob->dup_group);
+	
 	for(go= ob->dup_group->gobject.first; go; go= go->next) {
 		if(go->ob!=ob) {
-			/* we need to check update for objects that are not in scene... */
-			if(go->ob->recalc)
-				object_handle_update(go->ob);   // bke_object.h
-			
-			newob= new_dupli_object(&duplilist, go->ob, ob, 0);
-			Mat4CpyMat4(mat, newob->obmat);
-			Mat4MulMat4(newob->obmat, mat, ob->obmat);
+			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
+			new_dupli_object(lb, go->ob, mat);
 		}
 	}
 }
 
-static void frames_duplilist(Object *ob)
+static void frames_duplilist(ListBase *lb, Object *ob)
 {
 	extern int enable_cu_speed;	/* object.c */
-	Object *newob, copyob;
+	Object copyob;
 	int cfrao, ok;
 	
 	cfrao= G.scene->r.cfra;
@@ -337,10 +327,9 @@ static void frames_duplilist(Object *ob)
 			else ok= 0;
 		}
 		if(ok) {
-			newob= new_dupli_object(&duplilist, ob, ob, 0);
-
-			do_ob_ipo(newob);
-			where_is_object_time(newob, (float)G.scene->r.cfra);
+			do_ob_ipo(ob);
+			where_is_object_time(ob, (float)G.scene->r.cfra);
+			new_dupli_object(lb, ob, ob->obmat);
 		}
 	}
 
@@ -350,6 +339,7 @@ static void frames_duplilist(Object *ob)
 }
 
 struct vertexDupliData {
+	ListBase *lb;
 	float pmat[4][4];
 	Object *ob, *par;
 };
@@ -357,16 +347,15 @@ struct vertexDupliData {
 static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
 	struct vertexDupliData *vdd= userData;
-	Object *newob;
-	float vec[3], *q2, mat[3][3], tmat[4][4];
+	float vec[3], *q2, mat[3][3], tmat[4][4], obmat[4][4];
 	
 	VECCOPY(vec, co);
 	Mat4MulVecfl(vdd->pmat, vec);
 	VecSubf(vec, vec, vdd->pmat[3]);
 	VecAddf(vec, vec, vdd->ob->obmat[3]);
 	
-	newob= new_dupli_object(&duplilist, vdd->ob, vdd->par, 1);
-	VECCOPY(newob->obmat[3], vec);
+	Mat4CpyMat4(obmat, vdd->ob->obmat);
+	VECCOPY(obmat[3], vec);
 	
 	if(vdd->par->transflag & OB_DUPLIROT) {
 		
@@ -375,13 +364,13 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 		q2= vectoquat(vec, vdd->ob->trackflag, vdd->ob->upflag);
 		
 		QuatToMat3(q2, mat);
-		Mat4CpyMat4(tmat, newob->obmat);
-		Mat4MulMat43(newob->obmat, tmat, mat);
+		Mat4CpyMat4(tmat, obmat);
+		Mat4MulMat43(obmat, tmat, mat);
 	}
-	
+	new_dupli_object(vdd->lb, vdd->ob, obmat);
 }
 
-static void vertex_duplilist(Scene *sce, Object *par)
+static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 {
 	Object *ob;
 	Base *base;
@@ -411,6 +400,7 @@ static void vertex_duplilist(Scene *sce, Object *par)
 					struct vertexDupliData vdd;
 					
 					ob= base->object;
+					vdd.lb= lb;
 					vdd.ob= ob;
 					vdd.par= par;
 					Mat4CpyMat4(vdd.pmat, pmat);
@@ -442,9 +432,9 @@ static void vertex_duplilist(Scene *sce, Object *par)
 		dm->release(dm);
 }
 
-static void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
+static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *paf)
 {
-	Object *ob, *newob;
+	Object *ob, copyob;
 	Base *base;
 	Particle *pa;
 	float ctime, vec1[3];
@@ -460,21 +450,20 @@ static void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 	}
 	
 	ctime= bsystem_time(par, 0, (float)G.scene->r.cfra, 0.0);
-
+	
 	lay= G.scene->lay;
 
-	base= sce->base.first;
-	while(base) {
-		
+	for(base= sce->base.first; base; base= base->next) {
 		if(base->object->type>0 && (base->lay & lay) && G.obedit!=base->object) {
 			ob= base->object->parent;
 			while(ob) {
 				if(ob==par) {
 				
 					ob= base->object;
+					/* temp copy, to have ipos etc to work OK */
+					copyob= *ob;
 					
-					pa= paf->keys;
-					for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
+					for(a=0, pa= paf->keys; a<paf->totpart; a++, pa+=paf->totkey) {
 						
 						if(paf->flag & PAF_STATIC) {
 							float mtime;
@@ -483,13 +472,12 @@ static void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 							mtime= pa->time+pa->lifetime;
 							
 							for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
-								newob= new_dupli_object(&duplilist, ob, par, 1);
 								
 								/* make sure hair grows until the end.. */ 
 								if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
 								
 								/* to give ipos in object correct offset */
-								where_is_object_time(newob, ctime-pa->time);
+								where_is_object_time(ob, ctime-pa->time);
 
 								where_is_particle(paf, pa, ctime, vec);	// makes sure there's always a vec
 								Mat4MulVecfl(par->obmat, vec);
@@ -502,11 +490,12 @@ static void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 									q2= vectoquat(vec1, ob->trackflag, ob->upflag);
 									
 									QuatToMat3(q2, mat);
-									Mat4CpyMat4(tmat, newob->obmat);
-									Mat4MulMat43(newob->obmat, tmat, mat);
+									Mat4CpyMat4(tmat, ob->obmat);
+									Mat4MulMat43(ob->obmat, tmat, mat);
 								}
 								
-								VECCOPY(newob->obmat[3], vec);
+								VECCOPY(ob->obmat[3], vec);
+								new_dupli_object(lb, ob, ob->obmat);
 							}
 						}
 						else { // non static particles
@@ -515,10 +504,9 @@ static void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 							if((paf->flag & PAF_DIED)==0 && ctime > pa->time+pa->lifetime) continue;
 
 							//if(ctime < pa->time+pa->lifetime) {
-							newob= new_dupli_object(&duplilist, ob, par, 1);
 
 							/* to give ipos in object correct offset */
-							where_is_object_time(newob, ctime-pa->time);
+							where_is_object_time(ob, ctime-pa->time);
 							
 							where_is_particle(paf, pa, ctime, vec);
 							if(paf->stype==PAF_VECT) {
@@ -528,55 +516,128 @@ static void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 								q2= vectoquat(vec1, ob->trackflag, ob->upflag);
 					
 								QuatToMat3(q2, mat);
-								Mat4CpyMat4(tmat, newob->obmat);
-								Mat4MulMat43(newob->obmat, tmat, mat);
+								Mat4CpyMat4(tmat, ob->obmat);
+								Mat4MulMat43(ob->obmat, tmat, mat);
 							}
 
-							VECCOPY(newob->obmat[3], vec);
+							VECCOPY(ob->obmat[3], vec);
+							new_dupli_object(lb, ob, ob->obmat);
 						}					
 					}
+					/* temp copy, to have ipos etc to work OK */
+					*ob= copyob;
+					
 					break;
 				}
 				ob= ob->parent;
 			}
 		}
-		base= base->next;
 	}
 }
 
-void free_duplilist()
+static Object *find_family_object(Object **obar, char *family, char ch)
 {
 	Object *ob;
+	int flen;
 	
-	while( (ob= duplilist.first) ) {
-		BLI_remlink(&duplilist, ob);
-		MEM_freeN(ob);
+	if( obar[ch] ) return obar[ch];
+	
+	flen= strlen(family);
+	
+	ob= G.main->object.first;
+	while(ob) {
+		if( ob->id.name[flen+2]==ch ) {
+			if( strncmp(ob->id.name+2, family, flen)==0 ) break;
+		}
+		ob= ob->id.next;
 	}
 	
+	obar[ch]= ob;
+	
+	return ob;
 }
 
-void make_duplilist(Scene *sce, Object *ob)
-{
-	PartEff *paf;
 
+static void font_duplilist(ListBase *lb, Object *par)
+{
+	Object *ob, *obar[256];
+	Curve *cu;
+	struct chartrans *ct, *chartransdata;
+	float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
+	int slen, a;
+	
+	Mat4CpyMat4(pmat, par->obmat);
+	
+	/* in par the family name is stored, use this to find the other objects */
+	
+	chartransdata= text_to_curve(par, FO_DUPLI);
+	if(chartransdata==0) return;
+	
+	memset(obar, 0, 256*sizeof(void *));
+	
+	cu= par->data;
+	slen= strlen(cu->str);
+	fsize= cu->fsize;
+	xof= cu->xof;
+	yof= cu->yof;
+	
+	ct= chartransdata;
+	
+	for(a=0; a<slen; a++, ct++) {
+		
+		ob= find_family_object(obar, cu->family, cu->str[a]);
+		if(ob) {
+			vec[0]= fsize*(ct->xof - xof);
+			vec[1]= fsize*(ct->yof - yof);
+			vec[2]= 0.0;
+			
+			Mat4MulVecfl(pmat, vec);
+			
+			Mat4CpyMat4(obmat, par->obmat);
+			VECCOPY(obmat[3], vec);
+			
+			new_dupli_object(lb, ob, obmat);
+		}
+		
+	}
+	
+	MEM_freeN(chartransdata);
+}
+
+/* ***************************** */
+
+ListBase *object_duplilist(Scene *sce, Object *ob)
+{
+	static ListBase duplilist={NULL, NULL};
+	
+	if(duplilist.first) {
+		printf("wrong call to object_duplilist\n");
+		return &duplilist;
+	}
+	duplilist.first= duplilist.last= NULL;
+	
 	if(ob->transflag & OB_DUPLI) {
 		if(ob->transflag & OB_DUPLIVERTS) {
 			if(ob->type==OB_MESH) {
 				if(ob->transflag & OB_DUPLIVERTS) {
-					if( (paf=give_parteff(ob)) ) particle_duplilist(sce, ob, paf);
-					else vertex_duplilist(sce, ob);
+					PartEff *paf;
+					if( (paf=give_parteff(ob)) ) particle_duplilist(&duplilist, sce, ob, paf);
+					else vertex_duplilist(&duplilist, sce, ob);
 				}
 			}
 			else if(ob->type==OB_FONT) {
-				font_duplilist(ob);
+				font_duplilist(&duplilist, ob);
 			}
 		}
 		else if(ob->transflag & OB_DUPLIFRAMES) 
-			frames_duplilist(ob);
+			frames_duplilist(&duplilist, ob);
 		else if(ob->transflag & OB_DUPLIGROUP)
-			group_duplilist(ob);
+			group_duplilist(&duplilist, ob);
 	}
+	
+	return &duplilist;
 }
+
 
 int count_duplilist(Object *ob)
 {

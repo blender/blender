@@ -76,7 +76,7 @@
 #include "BKE_utildefines.h"
 
 #include "BPY_extern.h"
-
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "nla.h"
@@ -277,13 +277,10 @@ void set_scene_bg(Scene *sce)
 		
 		ob->flag= base->flag;
 		
-		ob->recalc= OB_RECALC;
-		if(ob->dup_group) group_tag_recalc(ob->dup_group);	/* for lib-linked stuff */
-		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 		base= base->next;
 	}
-	// full update
+	// full animation update
 	scene_update_for_newframe(sce, sce->lay);
 	
 	/* do we need FRAMECHANGED in set_scene? */
@@ -309,23 +306,21 @@ void set_scene_name(char *name)
  */
 int next_object(int val, Base **base, Object **ob)
 {
-	extern ListBase duplilist;
-	static Object *dupob;
+	static ListBase *duplilist= NULL;
+	static DupliObject *dupob;
 	static int fase;
 	int run_again=1;
 	
 	/* init */
 	if(val==0) {
 		fase= F_START;
-		dupob= 0;
+		dupob= NULL;
 	}
 	else {
 
 		/* run_again is set when a duplilist has been ended */
 		while(run_again) {
 			run_again= 0;
-			
-				
 
 			/* the first base */
 			if(fase==F_START) {
@@ -360,30 +355,40 @@ int next_object(int val, Base **base, Object **ob)
 				}
 			}
 			
-			if(*base == 0) fase= F_START;
+			if(*base == NULL) fase= F_START;
 			else {
 				if(fase!=F_DUPLI) {
 					if( (*base)->object->transflag & OB_DUPLI) {
 						
-						make_duplilist(G.scene, (*base)->object);
-						dupob= duplilist.first;
+						duplilist= object_duplilist(G.scene, (*base)->object);
+						
+						dupob= duplilist->first;
 						
 					}
 				}
 				/* handle dupli's */
 				if(dupob) {
 					
-					*ob= dupob;
+					Mat4CpyMat4(dupob->ob->obmat, dupob->mat);
+					
+					(*base)->flag |= OB_FROMDUPLI;
+					*ob= dupob->ob;
 					fase= F_DUPLI;
 					
-					dupob= dupob->id.next;
+					dupob= dupob->next;
 				}
 				else if(fase==F_DUPLI) {
 					fase= F_SCENE;
-					free_duplilist();
+					(*base)->flag &= ~OB_FROMDUPLI;
+					
+					for(dupob= duplilist->first; dupob; dupob= dupob->next) {
+						Mat4CpyMat4(dupob->ob->obmat, dupob->omat);
+					}
+					
+					BLI_freelistN(duplilist);
+					duplilist= NULL;
 					run_again= 1;
 				}
-				
 			}
 		}
 	}

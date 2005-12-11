@@ -61,10 +61,11 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_object.h"
+#include "BKE_anim.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_space.h"
@@ -1012,6 +1013,27 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 				base->selcol= code;
 				glLoadName(code);
 				draw_object(base, DRAW_PICKING|DRAW_CONSTCOLOR);
+				
+				/* we draw group-duplicators for selection too */
+				if((base->object->transflag & OB_DUPLI) && base->object->dup_group) {
+					ListBase *lb;
+					DupliObject *dob;
+					Base tbase;
+					
+					tbase.flag= OB_FROMDUPLI;
+					lb= object_duplilist(G.scene, base->object);
+					
+					for(dob= lb->first; dob; dob= dob->next) {
+						tbase.object= dob->ob;
+						Mat4CpyMat4(dob->ob->obmat, dob->mat);
+						
+						draw_object(&tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
+						
+						Mat4CpyMat4(dob->ob->obmat, dob->omat);
+					}
+					BLI_freelistN(lb);
+				}
+				
 				code++;
 			}
 		}

@@ -840,8 +840,10 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 
 }
 
-void shadeDispList(Object *ob)
+/* has base pointer, to check for layer */
+void shadeDispList(Base *base)
 {
+	Object *ob= base->object;
 	DispList *dl, *dlob;
 	Material *ma = NULL;
 	Curve *cu;
@@ -849,8 +851,6 @@ void shadeDispList(Object *ob)
 	float *fp, *nor, n1[3];
 	unsigned int *col1;
 	int a;
-
-	if(ob->flag & OB_FROMDUPLI) return;
 
 	dl = find_displist(&ob->disp, DL_VERTCOL);
 	if (dl) {
@@ -986,16 +986,13 @@ void reshadeall_displist(void)
 	
 	freefastshade();
 	
-	base= G.scene->base.first;
-	while(base) {
+	for(base= G.scene->base.first; base; base= base->next) {
+		ob= base->object;
+		freedisplist(&ob->disp);
 		if(base->lay & G.scene->lay) {
-			ob= base->object;
-			
 			/* Metaballs have standard displist at the Object */
-			if(ob->type==OB_MBALL) shadeDispList(ob);
-			else freedisplist(&ob->disp);
+			if(ob->type==OB_MBALL) shadeDispList(base);
 		}
-		base= base->next;
 	}
 }
 
@@ -1388,7 +1385,7 @@ static float calc_taper(Object *taperobj, int cur, int tot)
 
 void makeDispListMBall(Object *ob)
 {
-	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MBALL) return;
+	if(!ob || ob->type!=OB_MBALL) return;
 
 	freedisplist(&(ob->disp));
 	

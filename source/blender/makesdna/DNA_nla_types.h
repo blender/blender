@@ -35,6 +35,7 @@
 
 struct bAction;
 struct Ipo;
+struct Object;
 
 typedef struct bActionStrip {
 	struct bActionStrip *next, *prev;
@@ -43,7 +44,7 @@ typedef struct bActionStrip {
 
 	struct	Ipo *ipo;			/* Blending ipo */
 	struct	bAction *act;		/* The action referenced by this strip */
-
+	struct  Object *object;		/* For groups, the actual object being nla'ed */
 	float	start, end;			/* The range of frames covered by this strip */
 	float	actstart, actend;	/* The range of frames taken from the action */
 	float	stridelen;			/* The stridelength (considered when flag & ACT_USESTRIDE) */

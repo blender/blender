@@ -1437,11 +1437,12 @@ float init_meta(Object *ob)	/* return totsize */
 	Object *bob;
 	MetaBall *mb;
 	MetaElem *ml;
-	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], vec[3];
+	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], obmat[4][4], vec[3];
 	float temp1[4][4], temp2[4][4], temp3[4][4]; //max=0.0;
 	int a, obnr, zero_size=0;
 	char obname[32];
 	
+	Mat4CpyMat4(obmat, ob->obmat);	/* to cope with duplicators from next_object */
 	Mat4Invert(obinv, ob->obmat);
 	a= 0;
 	
@@ -1456,7 +1457,7 @@ float init_meta(Object *ob)	/* return totsize */
 			zero_size= 0;
 			ml= NULL;
 
-			if(bob==ob) {
+			if(bob==ob && (base->flag & OB_FROMDUPLI)==0) {
 				mat= imat= 0;
 				mb= ob->data;
 	
@@ -1471,7 +1472,6 @@ float init_meta(Object *ob)	/* return totsize */
 				splitIDname(bob->id.name+2, name, &nr);
 				if( strcmp(obname, name)==0 ) {
 					mb= bob->data;
-					
 					if(G.obedit && G.obedit->type==OB_MBALL && G.obedit->data==mb) 
 						ml= editelems.first;
 					else ml= mb->elems.first;
@@ -1535,7 +1535,7 @@ float init_meta(Object *ob)	/* return totsize */
 					imat= new_pgn_element(4*4*sizeof(float));
 					
 					/* mat is the matrix to transform from mball into the basis-mball */
-					Mat4Invert(obinv, ob->obmat);
+					Mat4Invert(obinv, obmat);
 					Mat4MulMat4(temp2, bob->obmat, obinv);
 					/* MetaBall transformation */
 					Mat4MulMat4(mat, temp1, temp2);

@@ -3133,7 +3133,7 @@ void make_duplilist_real()
 {
 	Base *base, *basen;
 	Object *ob;
-	extern ListBase duplilist;
+//	extern ListBase duplilist;
 	
 	if(okee("Make dupli objects real")==0) return;
 	
@@ -3142,11 +3142,11 @@ void make_duplilist_real()
 		if TESTBASELIB(base) {
 
 			if(base->object->transflag & OB_DUPLI) {
-				
-				make_duplilist(G.scene, base->object);
-				ob= duplilist.first;
-				while(ob) {
-					
+				ListBase *lb= object_duplilist(G.scene, base->object);
+				DupliObject *dob;
+
+				for(dob= lb->first; dob; dob= dob->next) {
+					ob= copy_object(dob->ob);
 					/* font duplis can have a totcol without material, we get them from parent
 					 * should be implemented better...
 					 */
@@ -3155,19 +3155,17 @@ void make_duplilist_real()
 					basen= MEM_dupallocN(base);
 					basen->flag &= ~OB_FROMDUPLI;
 					BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
+					basen->object= ob;
 					ob->ipo= NULL;		/* make sure apply works */
 					ob->parent= ob->track= NULL;
 					ob->disp.first= ob->disp.last= NULL;
-					ob->transflag &= ~OB_DUPLI;
-					basen->object= copy_object(ob);
-					basen->object->flag &= ~OB_FROMDUPLI;
+					ob->transflag &= ~OB_DUPLI;	
 					
-					apply_obmat(basen->object);
-					
-					ob= ob->id.next;
+					Mat4CpyMat4(ob->obmat, dob->mat);
+					apply_obmat(ob);
 				}
 				
-				free_duplilist();
+				BLI_freelistN(lb);
 				
 				base->object->transflag &= ~OB_DUPLI;	
 			}

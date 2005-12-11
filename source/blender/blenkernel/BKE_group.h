@@ -37,15 +37,20 @@
 struct Group;
 struct GroupObject;
 struct Object;
+struct bAction;
 
-void free_group_object(struct GroupObject *go);
-void free_group(struct Group *group);
+void		free_group_object(struct GroupObject *go);
+void		free_group(struct Group *group);
+void		unlink_group(struct Group *group);
 struct Group *add_group(void);
-void add_to_group(struct Group *group, struct Object *ob);
-void rem_from_group(struct Group *group, struct Object *ob);
+void		add_to_group(struct Group *group, struct Object *ob);
+void		rem_from_group(struct Group *group, struct Object *ob);
 struct Group *find_group(struct Object *ob);
-int object_in_group(struct Object *ob, struct Group *group);
-void group_tag_recalc(struct Group *group);
+int			object_in_group(struct Object *ob, struct Group *group);
+
+void		group_tag_recalc(struct Group *group);
+void		group_handle_recalc_and_update(struct Object *parent, struct Group *group);
+struct Object *group_get_member_with_action(struct Group *group, struct bAction *act);
 
 #endif
 

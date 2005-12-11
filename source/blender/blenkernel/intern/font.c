@@ -73,13 +73,6 @@
  
 struct SelBox *selboxes= NULL;
 
-struct chartrans {
-	float xof, yof;
-	float rot;
-	short linenr,charnr;
-	char dobreak;
-};
-
 /* UTF-8 <-> wchar transformations */
 void
 chtoutf8(unsigned long c, char *o)
@@ -1190,86 +1183,4 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	return 0;
 }
 
-/* ***************** DUPLI  ***************** */
 
-static Object *find_family_object(Object **obar, char *family, char ch)
-{
-	Object *ob;
-	int flen;
-	
-	if( obar[ch] ) return obar[ch];
-	
-	flen= strlen(family);
-	
-	ob= G.main->object.first;
-	while(ob) {
-		if( ob->id.name[flen+2]==ch ) {
-			if( strncmp(ob->id.name+2, family, flen)==0 ) break;
-		}
-		ob= ob->id.next;
-	}
-	
-	obar[ch]= ob;
-	
-	return ob;
-}
-
-
-void font_duplilist(Object *par)
-{
-	extern ListBase duplilist;
-	Object *ob, *newob, *obar[256];
-	Curve *cu;
-	struct chartrans *ct, *chartransdata;
-	float vec[3], pmat[4][4], fsize, xof, yof;
-	int slen, a;
-	
-	Mat4CpyMat4(pmat, par->obmat);
-
-	/* in par the family name is stored, use this to find the other objects */
-
-	chartransdata= text_to_curve(par, FO_DUPLI);
-	if(chartransdata==0) return;
-	
-	memset(obar, 0, 256*4);
-	
-	cu= par->data;
-	slen= strlen(cu->str);
-	fsize= cu->fsize;
-	xof= cu->xof;
-	yof= cu->yof;
-	
-	ct= chartransdata;
-
-	for(a=0; a<slen; a++, ct++) {
-	
-		ob= find_family_object(obar, cu->family, cu->str[a]);
-		if(ob) {
-				/* not clear if this free line here is still needed */
-			freedisplist(&ob->disp);
-			
-			vec[0]= fsize*(ct->xof - xof);
-			vec[1]= fsize*(ct->yof - yof);
-			vec[2]= 0.0;
-	
-			Mat4MulVecfl(pmat, vec);
-			
-			newob= MEM_mallocN(sizeof(Object), "newobj dupli");
-			memcpy(newob, ob, sizeof(Object));
-			newob->flag |= OB_FROMDUPLI;
-			newob->id.newid= (ID *)par;		/* keep duplicator */
-			newob->totcol= par->totcol;	/* for give_current_material */
-			
-			Mat4CpyMat4(newob->obmat, par->obmat);
-			VECCOPY(newob->obmat[3], vec);
-			
-			newob->parent= 0;
-			newob->track= 0;
-			
-			BLI_addtail(&duplilist, newob);
-		}
-		
-	}
-
-	MEM_freeN(chartransdata);
-}
