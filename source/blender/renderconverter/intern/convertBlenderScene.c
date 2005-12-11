@@ -1003,11 +1003,9 @@ static void render_particle_system(Object *ob, PartEff *paf)
 
 /* ------------------------------------------------------------------------- */
 
-/* when objects are duplicated, they are freed immediate, but still might be
-in use for render... */
+/* old call... for when duplicators were using temporal objects */
 static Object *vlr_set_ob(Object *ob)
 {
-	if(ob->flag & OB_FROMDUPLI) return (Object *)ob->id.newid;
 	return ob;
 }
 
@@ -1331,13 +1329,6 @@ static Material *give_render_material(Object *ob, int nr)
 	Object *temp;
 	Material *ma;
 
-	if(ob->flag & OB_FROMDUPLI) {
-		temp= (Object *)ob->id.newid;
-		if(temp && temp->type==OB_FONT) {
-			ob= temp;
-		}
-	}
-
 	ma= give_current_material(ob, nr);
 	if(ma==NULL) ma= &defmaterial;
 
@@ -1502,14 +1493,8 @@ static void init_render_mesh(Object *ob)
 	if(need_orco) orco = get_object_orco(ob);
 	
 	/* duplicators don't call modifier stack */
-	if(ob->flag&OB_FROMDUPLI) {
-		dm= ob->derivedFinal;
-		dm_needsfree= 0;
-	}
-	else {
-		dm = mesh_create_derived_render(ob);
-		dm_needsfree= 1;
-	}
+	dm = mesh_create_derived_render(ob);
+	dm_needsfree= 1;
 	
 	if(dm==NULL) return;	/* in case duplicated object fails? */
 	
