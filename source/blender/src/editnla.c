@@ -468,6 +468,50 @@ static void add_nlablock(void)
 	}
 }
 
+/* Adds strip to to active Object */
+static void relink_active_strip(void)
+{
+	Object *ob= OBACT;
+	bActionStrip *strip;
+	bAction *act;
+	short event;
+	short cur;
+	char *str;
+	
+	if(ob==NULL) return;
+	
+	for (strip = ob->nlastrips.first; strip; strip=strip->next)
+		if(strip->flag & ACTSTRIP_ACTIVE)
+			break;
+	
+	if(strip==NULL) return;
+	
+	/* Popup action menu */
+	IDnames_to_pupstring(&str, "Relink Action strip", NULL, &G.main->action, (ID *)G.scene, NULL);
+	if(str) {
+		event = pupmenu(str);
+		MEM_freeN(str);
+		
+		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
+			if (cur==event){
+				break;
+			}
+		}
+		
+		if(act) {
+			if(strip->act) strip->act->id.us--;
+			strip->act = act;
+			id_us_plus(&act->id);
+			
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+		}
+	}
+}
+
+
+
 /* Left hand side of channels display, selects objects */
 static void mouse_nlachannels(short mval[2])
 {
@@ -1628,6 +1672,9 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					toggle_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 					scrarea_queue_winredraw(curarea);
 				}
+				break;
+			case LKEY:
+				relink_active_strip();
 				break;
 				
 			case SKEY:

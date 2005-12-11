@@ -890,6 +890,19 @@ FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 	gzFile gzfile;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
 	
+	/* relative path rescue... */
+	if(G.rt==111) {
+		int len= strlen(name);
+		printf("old %s\n", name);
+		while(len-- > 1) {
+			if(name[len]=='/' && name[len-1]=='/') {
+				strcpy(name, name+len-1);
+				printf("new %s\n", name);
+				break;
+			}
+		}
+	}
+	
 	/* library files can have stringcodes */
 	strcpy(name1, name);
 	if(name[0]=='/' && name[1]=='/')
@@ -5958,6 +5971,10 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	
 	/* make copy of the 'last loaded filename', we need to restore it */
 	BLI_strncpy(filename, G.sce, sizeof(filename));
+	printf("G.sce %s\n", filename);
+	printf("fd->filename %s\n", fd->filename);
+	printf("dir %s\n", dir);
+	
 	BLI_strncpy(G.sce, fd->filename, sizeof(filename));		// already opened file, to reconstruct relative paths
 	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
@@ -5990,8 +6007,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	read_libraries(fd, &fd->mainlist);
 
 	if(sfile->flag & FILE_STRINGCODE) {
+		printf("mainl->curlib->name %s\n", mainl->curlib->name);
+
 		/* uses old .blend file (*filename) as reference */
 		BLI_makestringcode(filename, mainl->curlib->name);
+		printf("after mainl->curlib->name %s\n", mainl->curlib->name);
 		/* the caller checks for appended library, so we make sure names match */
 		BLI_strncpy(dir, mainl->curlib->name, sizeof(mainl->curlib->name));
 	}
