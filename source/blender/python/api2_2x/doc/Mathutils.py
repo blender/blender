@@ -49,7 +49,7 @@ def Intersect(vec1, vec2, vec3, ray, orig, clip=1):
   @type vec3: Vector object.
   @param vec3: A 3d vector, one corner of the triangle.
   @type ray: Vector object.
-  @param ray: A 3d vector, the orientation of the ray.
+  @param ray: A 3d vector, the orientation of the ray. the length of the ray is not used, only the direction.
   @type orig: Vector object.
   @param orig: A 3d vector, the origin of the ray.
   @type clip: integer
@@ -117,6 +117,7 @@ def LineIntersect(vec1, vec2, vec3, vec4):
 def CopyVec(vector):
   """
   Create a copy of the Vector object.
+  @attention: B{DEPRECATED} use Vector(vector) instead.
   @type vector: Vector object.
   @param vector: A 2d,3d or 4d vector to be copied.
   @rtype: Vector object.
@@ -148,7 +149,7 @@ def DotVecs(vec1, vec2):
 
 def AngleBetweenVecs(vec1, vec2):
   """
-  Return the angle between two vectors.
+  Return the angle between two vectors. Zero length vectors raise an error.
   @type vec1: Vector object.
   @param vec1: A 2d or 3d vector.
   @type vec2: Vector object.
@@ -437,7 +438,9 @@ class Vector:
 
   def __init__(list = None):
     """
-    Create a new 2d, 3d, or 4d Vector object from a list of numbers.
+    Create a new 2d, 3d, or 4d Vector object from a list of floating point numbers.
+    @note: that python uses higher precission floating point numbers, so values assigned to a vector may have some rounding error.
+    
 
     Example::
       v = Vector(1,0,0)
@@ -460,7 +463,9 @@ class Vector:
 
   def normalize():
     """
-    Normalize the vector.
+    Normalize the vector, making the length of the vector always 1.0
+    @note: Normalize works for vectors of all sizes, however 4D Vectors w axis is left untouched.
+    @note: Normalizing a vector where all values are zero results in all axis having a nan value (not a number).
     @return: a copy of itself
     """
 
@@ -481,13 +486,13 @@ class Vector:
 
   def resize3D():
     """
-    Resize the vector to 3d.
+    Resize the vector to 3d. New axis will be 0.0.
     @return: a copy of itself
     """
 
   def resize4D():
     """
-    Resize the vector to 4d.
+    Resize the vector to 4d. New axis will be 0.0.
     @return: a copy of itself
     """
 
@@ -630,8 +635,8 @@ class Quaternion:
     Example::
       quat = Quaternion(1,2,3,4)
       quat = Quaternion(axis, angle)
-	quat = Quaternion()
-	quat = Quaternion(180, list)
+    quat = Quaternion()
+    quat = Quaternion(180, list)
 
     @type list: PyList of int/float
     @param list: A 3d or 4d list to initialize quaternion.
@@ -757,6 +762,7 @@ class Matrix:
   def identity():
     """
     Set the matrix to the identity matrix.
+    An object with zero location and rotation, a scale of 1, will have an identity matrix.
     @return: a copy of itself
     """
 
