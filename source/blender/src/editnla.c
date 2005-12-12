@@ -42,16 +42,16 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_action_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_object_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_action_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_constraint_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"

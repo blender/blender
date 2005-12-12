@@ -5971,9 +5971,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	
 	/* make copy of the 'last loaded filename', we need to restore it */
 	BLI_strncpy(filename, G.sce, sizeof(filename));
-	printf("G.sce %s\n", filename);
-	printf("fd->filename %s\n", fd->filename);
-	printf("dir %s\n", dir);
 	
 	BLI_strncpy(G.sce, fd->filename, sizeof(filename));		// already opened file, to reconstruct relative paths
 	
@@ -6007,11 +6004,9 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	read_libraries(fd, &fd->mainlist);
 
 	if(sfile->flag & FILE_STRINGCODE) {
-		printf("mainl->curlib->name %s\n", mainl->curlib->name);
 
 		/* uses old .blend file (*filename) as reference */
 		BLI_makestringcode(filename, mainl->curlib->name);
-		printf("after mainl->curlib->name %s\n", mainl->curlib->name);
 		/* the caller checks for appended library, so we make sure names match */
 		BLI_strncpy(dir, mainl->curlib->name, sizeof(mainl->curlib->name));
 	}

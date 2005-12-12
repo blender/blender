@@ -2120,6 +2120,10 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
 	char dt, dtx;
 	
+	/* debug */
+	if(base->object->dup_group && base->object->dup_group->id.us<1)
+		color= TH_REDALERT;
+	
 	tbase.flag= OB_FROMDUPLI|base->flag;
 	lb= object_duplilist(G.scene, base->object);
 
