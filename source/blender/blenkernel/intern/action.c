@@ -894,9 +894,8 @@ static void do_nla(Object *ob, int blocktype)
 				/* Handle extend */
 				else{
 					if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
-						striptime = 1.0;
-						
-						frametime = (striptime * actlength) + strip->actstart;
+						/* we want the strip to hold on the exact fraction of the repeat value */
+						frametime = actlength * (strip->repeat-(int)strip->repeat);
 						frametime= bsystem_time(ob, 0, frametime, 0.0);
 						
 						if(blocktype==ID_AR)
