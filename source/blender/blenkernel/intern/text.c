@@ -1337,6 +1337,14 @@ void txt_print_undo(Text *text)
 			ops= "Delete text block";
 		} else if (op==UNDO_IBLOCK) {
 			ops= "Insert text block";
+		} else if (op==UNDO_INDENT) {
+			ops= "Indent ";
+		} else if (op==UNDO_UNINDENT) {
+			ops= "Unindent ";
+		} else if (op==UNDO_COMMENT) {
+			ops= "Comment ";
+		} else if (op==UNDO_UNCOMMENT) {
+			ops= "Uncomment ";
 		} else {
 			ops= "Unknown";
 		}
@@ -1388,6 +1396,28 @@ void txt_print_undo(Text *text)
 			linep= linep+(text->undo_buf[i]<<16); i++;
 			linep= linep+(text->undo_buf[i]<<24); i++;
 			printf ("> (%d)", linep);
+		} else if (op==UNDO_INDENT || op==UNDO_UNINDENT) {
+			i++;
+
+			charp= text->undo_buf[i]; i++;
+			charp= charp+(text->undo_buf[i]<<8); i++;
+
+			linep= text->undo_buf[i]; i++;
+			linep= linep+(text->undo_buf[i]<<8); i++;
+			linep= linep+(text->undo_buf[i]<<16); i++;
+			linep= linep+(text->undo_buf[i]<<24); i++;
+			
+			printf ("to <%d, %d> ", linep, charp);
+
+			charp= text->undo_buf[i]; i++;
+			charp= charp+(text->undo_buf[i]<<8); i++;
+
+			linep= text->undo_buf[i]; i++;
+			linep= linep+(text->undo_buf[i]<<8); i++;
+			linep= linep+(text->undo_buf[i]<<16); i++;
+			linep= linep+(text->undo_buf[i]<<24); i++;
+			
+			printf ("from <%d, %d>", linep, charp);
 		}
 		
 		printf (" %d\n",  i);
@@ -1660,7 +1690,54 @@ void txt_do_undo(Text *text)
 			text->undo_pos--;
 
 			break;
+		case UNDO_INDENT:
+		case UNDO_UNINDENT:
+		case UNDO_COMMENT:
+		case UNDO_UNCOMMENT:
+			linep= text->undo_buf[text->undo_pos]; text->undo_pos--;
+			linep = (linep<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			linep = (linep<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			linep = (linep<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			//linep is now the end line of the selection
 			
+			charp = text->undo_buf[text->undo_pos]; text->undo_pos--;
+			charp = (charp<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			//charp is the last char selected or text->line->len
+			//set the selcetion for this now
+			text->selc = charp;
+			text->sell = text->lines.first;
+			for (i= 0; i < linep; i++) {
+				text->sell = text->sell->next;
+			}
+
+			linep= text->undo_buf[text->undo_pos]; text->undo_pos--;
+			linep = (linep<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			linep = (linep<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			linep = (linep<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			//first line to be selected
+			
+			charp = text->undo_buf[text->undo_pos]; text->undo_pos--;
+			charp = (charp<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
+			//first postion to be selected
+			text->curc = charp;
+			text->curl = text->lines.first;
+			for (i = 0; i < linep; i++) {
+				text->curl = text->curl->next;
+			}
+
+			
+			if (op==UNDO_INDENT) {
+				unindent(text);
+			} else if (op== UNDO_UNINDENT) {
+				indent(text);
+			} else if (op == UNDO_COMMENT) {
+				uncomment(text);
+			} else if (op == UNDO_UNCOMMENT) {
+				comment(text);
+			}
+
+			text->undo_pos--;
+			break;
 		default:
 			error("Undo buffer error - resetting");
 			text->undo_pos= -1;
@@ -1677,6 +1754,7 @@ void txt_do_redo(Text *text)
 	unsigned int linep;
 	unsigned short charp;
 	char *buf;
+	int i;
 	
 	text->undo_pos++;	
 	op= text->undo_buf[text->undo_pos];
@@ -1687,7 +1765,7 @@ void txt_do_redo(Text *text)
 	}
 	
 	undoing= 1;
-	
+
 	switch(op) {
 		case UNDO_CLEFT:
 			txt_move_left(text, 0);
@@ -1815,7 +1893,52 @@ void txt_do_redo(Text *text)
 			linep= linep+(text->undo_buf[text->undo_pos]<<24); text->undo_pos++;
 
 			break;
+		case UNDO_INDENT:
+		case UNDO_UNINDENT:
+		case UNDO_COMMENT:
+		case UNDO_UNCOMMENT:
+			text->undo_pos++;
+			charp = text->undo_buf[text->undo_pos]; text->undo_pos++;
+			charp = charp+(text->undo_buf[text->undo_pos]<<8); text->undo_pos++;
+			//charp is the first char selected or 0
+			
+			linep= text->undo_buf[text->undo_pos]; text->undo_pos++;
+			linep = linep+(text->undo_buf[text->undo_pos]<<8); text->undo_pos++;
+			linep = linep+(text->undo_buf[text->undo_pos]<<16); text->undo_pos++;
+			linep = linep+(text->undo_buf[text->undo_pos]<<24); text->undo_pos++;
+			//linep is now the first line of the selection			
+			//set the selcetion for this now
+			text->curc = charp;
+			text->curl = text->lines.first;
+			for (i= 0; i < linep; i++) {
+				text->curl = text->curl->next;
+			}
+			
+			charp = text->undo_buf[text->undo_pos]; text->undo_pos++;
+			charp = charp+(text->undo_buf[text->undo_pos]<<8); text->undo_pos++;
+			//last postion to be selected
+			linep= text->undo_buf[text->undo_pos]; text->undo_pos++;
+			linep = linep+(text->undo_buf[text->undo_pos]<<8); text->undo_pos++;
+			linep = linep+(text->undo_buf[text->undo_pos]<<16); text->undo_pos++;
+			linep = linep+(text->undo_buf[text->undo_pos]<<24); text->undo_pos++;
+			//Last line to be selected
+			
+			text->selc = charp;
+			text->sell = text->lines.first;
+			for (i = 0; i < linep; i++) {
+				text->sell = text->sell->next;
+			}
 
+			if (op==UNDO_INDENT) {
+				indent(text);
+			} else if (op== UNDO_UNINDENT) {
+				unindent(text);
+			} else if (op == UNDO_COMMENT) {
+				comment(text);
+			} else if (op == UNDO_UNCOMMENT) {
+				uncomment(text);
+			}
+			break;
 		default:
 			error("Undo buffer error - resetting");
 			text->undo_pos= -1;
@@ -2033,6 +2156,7 @@ void indent(Text *text)
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
+
 	num = 0;
 	while (TRUE)
 	{
@@ -2069,21 +2193,27 @@ void indent(Text *text)
 		text->curl = text->curl->prev;
 		num--;
 	}
+	
+	if(!undoing) 
+	{
+		txt_undo_add_toop(text, UNDO_INDENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
+	}
 }
 
 void unindent(Text *text)
 {
 	int num = 0;
+	char remove = '\t';
 	
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
-	
+
 	while(TRUE)
 	{
 		int i = 0;
 		
-		if (text->curl->line[i] == '\t')
+		if (text->curl->line[i] == remove)
 		{
 			while(i< text->curl->len) {
 				text->curl->line[i]= text->curl->line[i+1];
@@ -2106,11 +2236,16 @@ void unindent(Text *text)
 		}
 		
 	}
-	
+	text->curc = 0;
 	while( num > 0 )
 	{
 		text->curl = text->curl->prev;
 		num--;
+	}
+	
+	if(!undoing) 
+	{
+		txt_undo_add_toop(text, UNDO_UNINDENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
 
@@ -2122,7 +2257,8 @@ void comment(Text *text)
 	
 	if (!text) return;
 	if (!text->curl) return;
-	if (!text->sell) return;
+	if (!text->sell) return;// Need to change this need to check if only one line is selected ot more then one
+
 	num = 0;
 	while (TRUE)
 	{
@@ -2153,27 +2289,33 @@ void comment(Text *text)
 			num++;
 		}
 	}
-	
+	text->curc = 0;
 	while( num > 0 )
 	{
 		text->curl = text->curl->prev;
 		num--;
+	}
+	
+	if(!undoing) 
+	{
+		txt_undo_add_toop(text, UNDO_COMMENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
 
 void uncomment(Text *text)
 {
 	int num = 0;
+	char remove = '#';
 	
 	if (!text) return;
 	if (!text->curl) return;
 	if (!text->sell) return;
-	
+
 	while(TRUE)
 	{
 		int i = 0;
 		
-		if (text->curl->line[i] == '#')
+		if (text->curl->line[i] == remove)
 		{
 			while(i< text->curl->len) {
 				text->curl->line[i]= text->curl->line[i+1];
@@ -2196,11 +2338,16 @@ void uncomment(Text *text)
 		}
 		
 	}
-	
+	text->curc = 0;
 	while( num > 0 )
 	{
 		text->curl = text->curl->prev;
 		num--;
+	}
+	
+	if(!undoing) 
+	{
+		txt_undo_add_toop(text, UNDO_UNCOMMENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
 
