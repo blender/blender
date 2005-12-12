@@ -1405,9 +1405,9 @@ void activate_databrowse(ID *id, int idcode, int fromcode, int retval, short *me
 	SpaceFile *sfile;
 	char str[32];
 	
-	if(id==0) {
+	if(id==NULL) {
 		lb= wich_libbase(G.main, idcode);
-		id= lb->last;
+		id= lb->first;
 	}
 	
 	if(id) strcpy(str, id->name);

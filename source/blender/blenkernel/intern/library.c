@@ -1,11 +1,6 @@
-
-/*  library.c 
- * 
- *  Contains management of ID's and libraries
- *  allocate and free of all library data
- * 
+/** 
  * $Id$
- *
+ * 
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +29,14 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+/*
+ *  Contains management of ID's and libraries
+ *  allocate and free of all library data
+ * 
+ */
+
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -101,7 +104,7 @@
 #include "BKE_action.h"
 #include "BPI_script.h"
 
-#define MAX_IDPUP		30	/* was 24 */
+#define MAX_IDPUP		60	/* was 24 */
 #define MAX_LIBARRAY	100 /* was 30, warning: used it readfile.c too */
 
 /* ************* general ************************ */
@@ -551,6 +554,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 	
 	if (nr && nids>MAX_IDPUP) {
 		BLI_dynstr_append(pupds, "DataBrowse %x-2");
+		*nr= -2;
 	} else {
 		ID *id;
 		

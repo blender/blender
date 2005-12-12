@@ -441,8 +441,8 @@ static void add_nlablock(void)
 {
 	Object *ob= OBACT;
 	short event;
-	short nr;
-	char *str, title[64];
+	short nr=0;
+	char *str;
 	
 	if(ob==NULL) {
 		error("Need active Object to add NLA strips");
@@ -450,10 +450,9 @@ static void add_nlablock(void)
 	}
 	
 	/* Popup action menu */
-	sprintf(title, "Add Action strip to %s", ob->id.name+2);
-	IDnames_to_pupstring(&str, title, NULL, &G.main->action, (ID *)G.scene, &nr);
+	IDnames_to_pupstring(&str, "Add Action strip", NULL, &G.main->action, (ID *)G.scene, &nr);
 	
-	if(strncmp(str+13, "DataBrow", 8)==0) {
+	if(nr==-2) {
 		MEM_freeN(str);
 
 		activate_databrowse((ID *)NULL, ID_AC, 0, 0, &G.snla->menunr, 
@@ -462,7 +461,7 @@ static void add_nlablock(void)
 		return;			
 	}
 	else {
-		event = pupmenu(str);
+		event = pupmenu_col(str, 20);
 		MEM_freeN(str);
 		add_nla_block(event);
 	}
