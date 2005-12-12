@@ -48,7 +48,7 @@
 //These are evil 'extern' declarations for functions with no anywhere
 extern void free_editArmature(void);
 extern void make_boneList(ListBase* list, ListBase *bones, EditBone *parent);
-extern void editbones_to_armature (ListBase *list, Object *ob, bArmature *armature);
+extern void editbones_to_armature (ListBase *list, Object *ob);
 
 //------------------------ERROR CODES---------------------------------
 //This is here just to make me happy and to have more consistant error strings :)
@@ -71,9 +71,9 @@ static const char sModuleBadArgs[] = "Blender.Armature - Bad Arguments: ";
 PyObject* BonesDict_items(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
-		return PyDict_Items(self->editBoneDict); 
+		return PyDict_Items(self->editbonesMap); 
 	}else{
-		return PyDict_Items(self->dict); 
+		return PyDict_Items(self->bonesMap); 
 	}
 }
 //------------------------Armature.bones.keys()
@@ -81,9 +81,9 @@ PyObject* BonesDict_items(BPy_BonesDict *self)
 PyObject* BonesDict_keys(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
-		return PyDict_Keys(self->editBoneDict);
+		return PyDict_Keys(self->editbonesMap);
 	}else{
-		return PyDict_Keys(self->dict);
+		return PyDict_Keys(self->bonesMap);
 	}
 }
 //------------------------Armature.bones.values()
@@ -91,13 +91,13 @@ PyObject* BonesDict_keys(BPy_BonesDict *self)
 PyObject* BonesDict_values(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
-		return PyDict_Values(self->editBoneDict);
+		return PyDict_Values(self->editbonesMap);
 	}else{
-		return PyDict_Values(self->dict);
+		return PyDict_Values(self->bonesMap);
 	}
 }
 //------------------ATTRIBUTE IMPLEMENTATION---------------------------
-//------------------TYPE_OBECT IMPLEMENTATION--------------------------
+//------------------TYPE_OBECT IMPLEMENTATION-----------------------
 //------------------------tp_doc
 //The __doc__ string for this object
 static char BPy_BonesDict_doc[] = "This is an internal subobject of armature\
@@ -114,32 +114,59 @@ static PyMethodDef BPy_BonesDict_methods[] = {
 		"() - Returns the values from the dictionary"},
 	{NULL}
 };
+//-----------------(internal)
+static int BoneMapping_Init(PyObject *dictionary, ListBase *bones){
+	Bone *bone = NULL;
+	PyObject *py_bone = NULL;
 
-//------------------------tp_new
-//This methods creates a new object (note it does not initialize it - only the building)
-static PyObject *BonesDict_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+	for (bone = bones->first; bone; bone = bone->next){
+		py_bone = PyBone_FromBone(bone);
+		if (!py_bone)
+			return -1;
+
+		if(PyDict_SetItem(dictionary, 
+			PyString_FromString(bone->name), py_bone) == -1){
+			return -1;
+		}
+		Py_DECREF(py_bone);
+		if (bone->childbase.first) 
+			BoneMapping_Init(dictionary, &bone->childbase);
+	}
+	return 0;
+}
+//-----------------(internal)
+static int EditBoneMapping_Init(PyObject *dictionary, ListBase *editbones){
+	EditBone *editbone = NULL;
+	PyObject *py_editbone = NULL;
+
+	for (editbone = editbones->first; editbone; editbone = editbone->next){
+		py_editbone = PyEditBone_FromEditBone(editbone);
+		if (!py_editbone)
+			return -1;
+
+		if(PyDict_SetItem(dictionary, 
+			PyString_FromString(editbone->name), py_editbone) == -1){
+			return -1;
+		}
+		Py_DECREF(py_editbone);
+	}
+	return 0;
+}
+//----------------- BonesDict_InitBones
+static int BonesDict_InitBones(BPy_BonesDict *self)
 {
-	BPy_BonesDict *py_BonesDict = NULL;
-
-	py_BonesDict = (BPy_BonesDict*)type->tp_alloc(type, 0); 
-	if (!py_BonesDict)
-		goto RuntimeError;
-
-	py_BonesDict->dict = PyDict_New();
-	if(!py_BonesDict->dict)
-		goto RuntimeError;
-
-	py_BonesDict->editBoneDict = PyDict_New();
-	if (py_BonesDict->editBoneDict == NULL)
-		goto RuntimeError;
-
-	py_BonesDict->editmode_flag = 0;
-
-	return (PyObject*)py_BonesDict;
-
-RuntimeError:
-	return EXPP_objError(PyExc_RuntimeError, "%s%s", 
-		sBoneDictError, "Failed to create dictionary!");
+	PyDict_Clear(self->bonesMap);
+	if (BoneMapping_Init(self->bonesMap, self->bones) == -1)
+		return 0;
+	return 1;
+} 
+//----------------- BonesDict_InitEditBones
+static int BonesDict_InitEditBones(BPy_BonesDict *self)
+{
+	PyDict_Clear(self->editbonesMap);
+	if (EditBoneMapping_Init(self->editbonesMap, &self->editbones) == -1)
+		return 0;
+	return 1;
 }
 //------------------------tp_repr
 //This is the string representation of the object
@@ -153,13 +180,13 @@ static PyObject *BonesDict_repr(BPy_BonesDict *self)
 	sprintf(buffer, "[Bone Dict: {");
 	strcat(str,buffer);
 	if (self->editmode_flag){
-		while (PyDict_Next(self->editBoneDict, &pos, &key, &value)) {
+		while (PyDict_Next(self->editbonesMap, &pos, &key, &value)) {
 			sprintf(buffer, "%s : %s, ", PyString_AsString(key), 
 				PyString_AsString(value->ob_type->tp_repr(value)));
 			strcat(str,buffer);
 		}
 	}else{
-		while (PyDict_Next(self->dict, &pos, &key, &value)) {
+		while (PyDict_Next(self->bonesMap, &pos, &key, &value)) {
 			sprintf(buffer, "%s : %s, ", PyString_AsString(key), 
 				PyString_AsString(value->ob_type->tp_repr(value)));
 			strcat(str,buffer);
@@ -174,9 +201,10 @@ static PyObject *BonesDict_repr(BPy_BonesDict *self)
 //This tells how to 'tear-down' our object when ref count hits 0
 static void BonesDict_dealloc(BPy_BonesDict * self)
 {
-	Py_DECREF(self->dict);
-	Py_DECREF(self->editBoneDict);
-	((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+	Py_DECREF(self->bonesMap);
+	Py_DECREF(self->editbonesMap);
+	BLI_freelistN(&self->editbones); 
+	BonesDict_Type.tp_free(self);
 	return;
 }
 //------------------------mp_length
@@ -184,9 +212,9 @@ static void BonesDict_dealloc(BPy_BonesDict * self)
 int BonesDict_len(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
-		return PyDict_Size(self->editBoneDict);
+		return BLI_countlist(&self->editbones);
 	}else{
-		return PyDict_Size(self->dict);
+		return BLI_countlist(self->bones);
 	}
 }
 //-----------------------mp_subscript
@@ -196,9 +224,9 @@ PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 	PyObject *value = NULL;
 
 	if (self->editmode_flag){
-		value = PyDict_GetItem(self->editBoneDict, key);
+		value = PyDict_GetItem(self->editbonesMap, key);
 	}else{
-		value = PyDict_GetItem(self->dict, key);
+		value = PyDict_GetItem(self->bonesMap, key);
 	}
 	if(value == NULL){
         return EXPP_incr_ret(Py_None);
@@ -209,29 +237,106 @@ PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 //This does dict assignment - Bones['key'] = value
 int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value)
 {
-	char *key_str = "", *name = "", *misc = "";
-	static char *kwlist[] = {"name", "misc", NULL};
+	BPy_EditBone *editbone_for_deletion;
+	struct EditBone *editbone = NULL;
+	char *key_str = "";
 
-	//Get the key name
-	if(key && PyString_Check(key)){
-		key_str = PyString_AsString(key);
-	}else{
-		goto AttributeError;
-	}
-
-	//Parse the value for assignment
-	if(value && PyDict_Check(value)){
-		if(!PyArg_ParseTupleAndKeywords(Py_BuildValue("()"), value, "|ss", kwlist, &name, &misc)){
+	if (self->editmode_flag){
+		//Get the key name
+		if(key && PyString_Check(key)){
+			key_str = PyString_AsString(key);
+		}else{
 			goto AttributeError;
 		}
-	}else{
-		goto AttributeError;
-	}
-	return 0;
+		//parse value for assignment
+		if (value && EditBoneObject_Check(value)){
+			//create a new editbone
+			editbone = MEM_callocN(sizeof(EditBone), "eBone");
+			BLI_strncpy(editbone->name, key_str, 32);
+			unique_editbone_name(editbone->name);
+			editbone->dist = ((BPy_EditBone*)value)->dist;
+			editbone->ease1 = ((BPy_EditBone*)value)->ease1;
+			editbone->ease2 = ((BPy_EditBone*)value)->ease2;
+			editbone->flag = ((BPy_EditBone*)value)->flag;
+			editbone->parent = ((BPy_EditBone*)value)->parent;
+			editbone->rad_head = ((BPy_EditBone*)value)->rad_head;
+			editbone->rad_tail = ((BPy_EditBone*)value)->rad_tail;
+			editbone->roll = ((BPy_EditBone*)value)->roll;
+			editbone->segments = ((BPy_EditBone*)value)->segments;
+			editbone->weight = ((BPy_EditBone*)value)->weight;
+			editbone->xwidth = ((BPy_EditBone*)value)->xwidth;
+			editbone->zwidth = ((BPy_EditBone*)value)->zwidth;
+			VECCOPY(editbone->head, ((BPy_EditBone*)value)->head);
+			VECCOPY(editbone->tail, ((BPy_EditBone*)value)->tail);
 
+			//set object pointer
+			((BPy_EditBone*)value)->editbone = editbone;
+
+			//fix the bone's head position if flags indicate that it is 'connected'
+			if (editbone->flag & BONE_CONNECTED){
+				if(!editbone->parent){
+					((BPy_EditBone*)value)->editbone = NULL;
+					MEM_freeN(editbone);
+					goto AttributeError3;
+				}else{
+					VECCOPY(editbone->head, editbone->parent->tail);
+				}
+			}
+
+			//set in editbonelist
+			BLI_addtail(&self->editbones, editbone);
+
+			//set the new editbone in the mapping
+			if(PyDict_SetItemString(self->editbonesMap, key_str, value) == -1){
+				((BPy_EditBone*)value)->editbone = NULL;
+				BLI_freelinkN(&self->editbones, editbone);
+				goto RuntimeError;
+			}
+		}else if(!value){
+			//they are trying to delete the bone using 'del'
+			if(PyDict_GetItem(self->editbonesMap, key) != NULL){
+				/*first kill the datastruct then remove the item from the dict
+				and wait for GC to pick it up.
+				We have to delete the datastruct here because the tp_dealloc
+				doesn't handle it*/
+				editbone_for_deletion = (BPy_EditBone*)PyDict_GetItem(self->editbonesMap, key);
+				/*this is ugly but you have to set the parent to NULL for else 
+				editbones_to_armature will crash looking for this bone*/
+				for (editbone = self->editbones.first; editbone; editbone = editbone->next){
+					if (editbone->parent == editbone_for_deletion->editbone)
+						editbone->parent = NULL;
+					    /*any parent's were connected to this we must remove the flag
+					    or else the 'root' ball doesn't get draw*/
+					    if (editbone->flag & BONE_CONNECTED)
+							editbone->flag &= ~BONE_CONNECTED;
+				}
+				BLI_freelinkN(&self->editbones, editbone_for_deletion->editbone);
+				if(PyDict_DelItem(self->editbonesMap, key) == -1)
+					goto RuntimeError;
+			}else{
+				goto KeyError;
+			}
+		}
+		return 0;
+	}else{
+		goto AttributeError2;
+	}
+
+KeyError:
+return EXPP_intError(PyExc_KeyError, "%s%s%s%s", 
+	    sBoneDictError,  "The key: ", key_str, " is not present in this dictionary!");
+RuntimeError:
+	return EXPP_intError(PyExc_RuntimeError, "%s%s", 
+		sBoneDictError,  "Unable to access dictionary!");
 AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
-		sBoneDictBadArgs,  "Expects (optional) name='string', misc='string'");
+		sBoneDictBadArgs,  "Expects EditboneType Object");
+AttributeError2:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sBoneDictBadArgs,  "You must call makeEditable() first");
+AttributeError3:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sBoneDictBadArgs,  "The 'connected' flag is set but the bone has no parent!");
 }
 //------------------TYPE_OBECT DEFINITION--------------------------
 //Mapping Protocol
@@ -242,35 +347,35 @@ static PyMappingMethods BonesDict_MapMethods = {
 };
 //BonesDict TypeObject
 PyTypeObject BonesDict_Type = {
-	PyObject_HEAD_INIT(NULL)		//tp_head
+	PyObject_HEAD_INIT(NULL)			//tp_head
 	0,												//tp_internal
 	"BonesDict",								//tp_name
-	sizeof(BPy_BonesDict),				//tp_basicsize
+	sizeof(BPy_BonesDict),					//tp_basicsize
 	0,												//tp_itemsize
-	(destructor)BonesDict_dealloc,	//tp_dealloc
+	(destructor)BonesDict_dealloc,		//tp_dealloc
 	0,												//tp_print
 	0,												//tp_getattr
 	0,												//tp_setattr
 	0,												//tp_compare
-	(reprfunc) BonesDict_repr,			//tp_repr
+	(reprfunc) BonesDict_repr,				//tp_repr
 	0,												//tp_as_number
 	0,												//tp_as_sequence
-	&BonesDict_MapMethods,			//tp_as_mapping
+	&BonesDict_MapMethods,				//tp_as_mapping
 	0,												//tp_hash
 	0,												//tp_call
 	0,												//tp_str
 	0,												//tp_getattro
 	0,												//tp_setattro
 	0,												//tp_as_buffer
-	Py_TPFLAGS_DEFAULT,			//tp_flags
-	BPy_BonesDict_doc,					//tp_doc
+	Py_TPFLAGS_DEFAULT,					//tp_flags
+	BPy_BonesDict_doc,						//tp_doc
 	0,												//tp_traverse
 	0,												//tp_clear
 	0,												//tp_richcompare
 	0,												//tp_weaklistoffset
 	0,												//tp_iter
 	0,												//tp_iternext
-	BPy_BonesDict_methods,			//tp_methods
+	BPy_BonesDict_methods,				//tp_methods
 	0,												//tp_members
 	0,												//tp_getset
 	0,												//tp_base
@@ -278,9 +383,9 @@ PyTypeObject BonesDict_Type = {
 	0,												//tp_descr_get
 	0,												//tp_descr_set
 	0,												//tp_dictoffset
-	0,												//tp_init
+	0, 				                                //tp_init
 	0,												//tp_alloc
-	(newfunc)BonesDict_new,			//tp_new
+	0,												//tp_new
 	0,												//tp_free
 	0,												//tp_is_gc
 	0,												//tp_bases
@@ -290,233 +395,87 @@ PyTypeObject BonesDict_Type = {
 	0,												//tp_weaklist
 	0												//tp_del
 };
-//-----------------(internal)
-static int BonesDict_Init(PyObject *dictionary, ListBase *bones){
-	Bone *bone = NULL;
-	PyObject *py_bone = NULL;
+//-----------------------PyBonesDict_FromPyArmature
+static PyObject *PyBonesDict_FromPyArmature(BPy_Armature *py_armature)
+{
+	BPy_BonesDict *py_BonesDict = NULL;
 
-	for (bone = bones->first; bone; bone = bone->next){
-		py_bone = PyBone_FromBone(bone);
-		if (py_bone == NULL)
-			return -1;
+	//create py object
+	py_BonesDict = (BPy_BonesDict *)BonesDict_Type.tp_alloc(&BonesDict_Type, 0); 
+	if (!py_BonesDict)
+		goto RuntimeError;
 
-		if(PyDict_SetItem(dictionary, PyString_FromString(bone->name), py_bone) == -1){
-			goto RuntimeError;
-		}
-		if (bone->childbase.first) 
-			BonesDict_Init(dictionary, &bone->childbase);
-	}
-	return 0;
+	//create internal dictionaries
+	py_BonesDict->bonesMap = PyDict_New();
+	py_BonesDict->editbonesMap = PyDict_New();
+	if (!py_BonesDict->bonesMap || !py_BonesDict->editbonesMap)
+		goto RuntimeError;
+
+	//set listbase pointer
+	py_BonesDict->bones = &py_armature->armature->bonebase;
+
+	//now that everything is setup - init the mappings
+	if (!BonesDict_InitBones(py_BonesDict))
+		goto RuntimeError;
+	if (!BonesDict_InitEditBones(py_BonesDict))
+		goto RuntimeError;
+
+	//set editmode flag
+	py_BonesDict->editmode_flag = 0; 
+
+	return (PyObject*)py_BonesDict;
 
 RuntimeError:
-	return EXPP_intError(PyExc_RuntimeError, "%s%s", 
-		sBoneDictError, "Internal error trying to wrap blender bones!");
+	return EXPP_objError(PyExc_RuntimeError, "%s%s", 
+		sBoneDictError, "Failed to create class");
 }
 
 //######################### Armature_Type #############################
 /*This type represents a thin wrapper around bArmature data types
 * internal to blender. It contains the psuedo-dictionary BonesDict
 * as an assistant in manipulating it's own bone collection*/
-//#####################################################################
+//#################################################################
 
 //------------------METHOD IMPLEMENTATION------------------------------
-//This is a help function for Armature_makeEditable
-static int PyArmature_InitEditBoneDict(PyObject *dictionary, ListBase *branch)
-{
-	struct Bone *bone = NULL;
-	PyObject *args, *py_editBone = NULL, *py_bone = NULL;
-
-	for (bone = branch->first; bone; bone = bone->next){
-
-		//create a new editbone based on the bone data
-		py_bone = PyBone_FromBone(bone); //new
-		if (py_bone == NULL)
-			goto RuntimeError;
-
-		args = Py_BuildValue("(O)",py_bone); //new
-
-		py_editBone = EditBone_Type.tp_new(&EditBone_Type, args, NULL); //new
-		if (py_editBone == NULL) 
-			goto RuntimeError;
-
-		//add the new editbone to the dictionary
-		if (PyDict_SetItemString(dictionary, bone->name, py_editBone) == -1) 
-			goto RuntimeError;
-
-		if(bone->childbase.first){
-			PyArmature_InitEditBoneDict(dictionary, &bone->childbase);
-		}
-	}
-	return 0;
-
-RuntimeError:
-	return EXPP_intError(PyExc_RuntimeError, "%s%s", 
-		sArmatureError, "Internal error trying to construct an edit armature!");
-
-}
 //------------------------Armature.makeEditable()
 static PyObject *Armature_makeEditable(BPy_Armature *self)
 {
-	if (PyArmature_InitEditBoneDict(((BPy_BonesDict*)self->Bones)->editBoneDict, 
-		&self->armature->bonebase) == -1){
-		return NULL;	//error already set
-	}
-	((BPy_BonesDict*)self->Bones)->editmode_flag = 1;
+	if (self->armature->flag & ARM_EDITMODE)
+		goto AttributeError;
+
+	make_boneList(&self->Bones->editbones, self->Bones->bones, NULL);
+	if (!BonesDict_InitEditBones(self->Bones))
+		return NULL;
+	self->Bones->editmode_flag = 1;
 	return EXPP_incr_ret(Py_None);
+
+AttributeError:
+	return EXPP_objError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "The armature cannot be placed manually in editmode before you call makeEditable()!");
 }
-
-static void PyArmature_FixRolls(ListBase *branch, PyObject *dictionary)
+//------------------------Armature.update()
+//This is a bit ugly because you need an object link to do this
+static PyObject *Armature_update(BPy_Armature *self)
 {
-	float premat[3][3],postmat[3][3];
-	float difmat[3][3],imat[3][3], delta[3];
-	BPy_EditBone *py_editBone = NULL;
-	struct Bone *bone = NULL;
-	int keyCheck = -1;
+	Object *obj = NULL;
 
-	for (bone = branch->first; bone; bone = bone->next){
-
-		where_is_armature_bone(bone, bone->parent);	//set bone_mat, arm_mat, length, etc.
-
-		keyCheck = PySequence_Contains(dictionary, PyString_FromString(bone->name));
-		if (keyCheck == 1){
-
-			py_editBone = (BPy_EditBone*)PyDict_GetItem(dictionary, 
-				PyString_FromString(bone->name)); //borrowed
-			VecSubf (delta, py_editBone->tail, py_editBone->head);
-			vec_roll_to_mat3(delta, py_editBone->roll, premat); //pre-matrix
-			Mat3CpyMat4(postmat, bone->arm_mat); //post-matrix
-			Mat3Inv(imat, premat);
-			Mat3MulMat3(difmat, imat, postmat);
-
-			bone->roll = (float)-atan(difmat[2][0]/difmat[2][2]); //YEA!!
-			if (difmat[0][0]<0.0){
-				bone->roll += (float)M_PI;
-			}
-
-			where_is_armature_bone(bone, bone->parent); //gotta do it again...
-		}else if (keyCheck == 0){
-			//oops we couldn't find it
-		}else{
-			//error
-		}
-		PyArmature_FixRolls (&bone->childbase, dictionary);
+	for (obj = G.main->object.first; obj; obj = obj->id.next){
+		if (obj->data == self->armature)
+			break;
 	}
-}
-//------------------------(internal)EditBoneDict_CheckForKey
-static BPy_EditBone *EditBoneDict_CheckForKey(BPy_BonesDict *dictionary, char *name)
-{
-	BPy_EditBone *editbone; 
-	PyObject *value, *key;
-	int pos = 0;
-
-	while (PyDict_Next(dictionary->editBoneDict, &pos, &key, &value)) {
-		editbone = (BPy_EditBone *)value;
-		if (STREQ(editbone->name, name)){
-			Py_INCREF(editbone);
-			return editbone;
-		}
+	if (obj){
+		editbones_to_armature (&self->Bones->editbones, obj);
+		if (!BonesDict_InitBones(self->Bones))
+			return NULL;
+		self->Bones->editmode_flag = 0;
+	}else{
+		goto AttributeError;
 	}
-	return NULL;
-}
-//------------------------Armature.saveChanges()
-static PyObject *Armature_saveChanges(BPy_Armature *self)
-{
-	float M_boneRest[3][3], M_parentRest[3][3];
-	float iM_parentRest[3][3], delta[3];
-	BPy_EditBone *parent = NULL, *editbone = NULL;
-	struct Bone *bone = NULL;
-	struct Object *obj = NULL;
-	PyObject *key, *value;
-	int pos = 0;
-
-	//empty armature of old bones
-	free_bones(self->armature);
-
-	//create a new set based on the editbones
-	while (PyDict_Next(((BPy_BonesDict*)self->Bones)->editBoneDict, &pos, &key, &value)) {
-
-		editbone = (BPy_EditBone*)value;
-		bone = MEM_callocN (sizeof(Bone), "bone");	
-		editbone->temp = bone;	//save temp pointer
-
-		strcpy (bone->name, editbone->name);
-		memcpy (bone->head, editbone->head, sizeof(float)*3);
-		memcpy (bone->tail, editbone->tail, sizeof(float)*3);
-		bone->flag= editbone->flag;
-		bone->roll = 0.0f; //is fixed later
-		bone->weight = editbone->weight;
-		bone->dist = editbone->dist;
-		bone->xwidth = editbone->xwidth;
-		bone->zwidth = editbone->zwidth;
-		bone->ease1= editbone->ease1;
-		bone->ease2= editbone->ease2;
-		bone->rad_head= editbone->rad_head;
-		bone->rad_tail= editbone->rad_tail;
-		bone->segments= editbone->segments;
-		bone->boneclass = 0;
-	}
-
-	pos = 0;
-	//place bones in their correct heirarchy
-	while (PyDict_Next(((BPy_BonesDict*)self->Bones)->editBoneDict, 
-		&pos, &key, &value)) {
-
-		editbone = (BPy_EditBone*)value;
-		bone = editbone->temp; //get bone pointer
-
-		if (!STREQ(editbone->parent, "")){
-			parent = EditBoneDict_CheckForKey((BPy_BonesDict*)self->Bones, editbone->parent);
-			if(parent != NULL){
-
-				//parent found in dictionary
-				bone->parent = parent->temp;
-				BLI_addtail (&parent->temp->childbase, bone);
-				//Parenting calculations 
-				VecSubf (delta, parent->tail, parent->head);
-				vec_roll_to_mat3(delta, parent->roll, M_parentRest); //M_parentRest = parent matrix
-				VecSubf (delta, editbone->tail, editbone->head);
-				vec_roll_to_mat3(delta, editbone->roll, M_boneRest);  //M_boneRest = bone matrix
-				Mat3Inv(iM_parentRest, M_parentRest); //iM_parentRest = 1/parent matrix
-				//get head/tail
-				VecSubf (bone->head, editbone->head, parent->tail);
-				VecSubf (bone->tail, editbone->tail, parent->tail);
-				//put them in parentspace
-				Mat3MulVecfl(iM_parentRest, bone->head);
-				Mat3MulVecfl(iM_parentRest, bone->tail);
-
-				Py_DECREF(parent);
-			}else{
-				//was not found - most likely parent was deleted
-				parent = NULL;
-				BLI_addtail (&self->armature->bonebase, bone);
-			}
-		}else{
-			BLI_addtail (&self->armature->bonebase, bone);
-		}
-	}
-	//fix rolls and generate matrices
-	PyArmature_FixRolls(&self->armature->bonebase, 
-		((BPy_BonesDict*)self->Bones)->editBoneDict);
-
-	//update linked objects
-	for(obj = G.main->object.first; obj; obj = obj->id.next) {
-		if(obj->data == self->armature){
-			armature_rebuild_pose(obj, self->armature);
-		}
-	}
-	DAG_object_flush_update(G.scene, obj, OB_RECALC_DATA);
-
-	//clear the editbone dictionary and set edit flag
-	PyDict_Clear(((BPy_BonesDict*)self->Bones)->editBoneDict);
-	((BPy_BonesDict*)self->Bones)->editmode_flag = 0;
-
-	//rebuild py_bones
-	PyDict_Clear(((BPy_BonesDict*)self->Bones)->dict);
-	if (BonesDict_Init(((BPy_BonesDict*)self->Bones)->dict, 
-		&self->armature->bonebase) == -1)
-		return NULL; //error string already set
-
 	return EXPP_incr_ret(Py_None);
+
+AttributeError:
+	return EXPP_objError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "The armature must be linked to an object before you can save changes!");
 }
 //------------------ATTRIBUTE IMPLEMENTATION---------------------------
 //------------------------Armature.autoIK (getter)
@@ -881,7 +840,7 @@ AttributeError:
 //Gets the name of the armature
 static PyObject *Armature_getBoneDict(BPy_Armature *self, void *closure)
 {
-    return EXPP_incr_ret(self->Bones);
+    return EXPP_incr_ret((PyObject*)self->Bones);
 }
 //------------------------Armature.bones (setter)
 //Sets the name of the armature
@@ -899,17 +858,15 @@ AttributeError:
 //------------------------tp_doc
 //The __doc__ string for this object
 static char BPy_Armature_doc[] = "This object wraps a Blender Armature object.";
-
 //------------------------tp_methods
 //This contains a list of all methods the object contains
 static PyMethodDef BPy_Armature_methods[] = {
 	{"makeEditable", (PyCFunction) Armature_makeEditable, METH_NOARGS, 
 		"() - Unlocks the ability to modify armature bones"},
-	{"saveChanges", (PyCFunction) Armature_saveChanges, METH_NOARGS, 
+	{"update", (PyCFunction) Armature_update, METH_NOARGS, 
 		"() - Rebuilds the armature based on changes to bones since the last call to makeEditable"},
 	{NULL}
 };
-
 //------------------------tp_getset
 //This contains methods for attributes that require checking
 static PyGetSetDef BPy_Armature_getset[] = {
@@ -948,7 +905,6 @@ static PyObject *Armature_new(PyTypeObject *type, PyObject *args, PyObject *kwds
 {
 	BPy_Armature *py_armature = NULL;
 	bArmature *bl_armature;
-	int success;
 
 	bl_armature = add_armature();
 	if(bl_armature) {
@@ -960,13 +916,11 @@ static PyObject *Armature_new(PyTypeObject *type, PyObject *args, PyObject *kwds
 
 		py_armature->armature = bl_armature;
 
-		py_armature->Bones = BonesDict_new(&BonesDict_Type, NULL, NULL);
-		if (py_armature->Bones == NULL)
+		//create armature.bones
+		py_armature->Bones = (BPy_BonesDict*)PyBonesDict_FromPyArmature(py_armature);
+		if (!py_armature->Bones)
 			goto RuntimeError;
 
-		success = BonesDict_Init(((BPy_BonesDict*)py_armature->Bones)->dict, &bl_armature->bonebase);
-		if (success == -1)
-			return NULL; //error string already set
 	} else {
 		goto RuntimeError;
 	}
@@ -995,7 +949,6 @@ static int Armature_init(BPy_Armature *self, PyObject *args, PyObject *kwds)
 		PyOS_snprintf(buf, sizeof(buf), "%s", name);
 		rename_id(&self->armature->id, buf);
 	}
-
 	return 0;
 
 AttributeError:
@@ -1009,21 +962,19 @@ static PyObject *Armature_richcmpr(BPy_Armature *self, PyObject *v, int op)
 {
 	return EXPP_incr_ret(Py_None);
 }
-
 //------------------------tp_repr
 //This is the string representation of the object
 static PyObject *Armature_repr(BPy_Armature *self)
 {
 	return PyString_FromFormat( "[Armature: \"%s\"]", self->armature->id.name + 2 ); //*new*
 }
-
 //------------------------tp_dealloc
 //This tells how to 'tear-down' our object when ref count hits 0
 ///tp_dealloc
 static void Armature_dealloc(BPy_Armature * self)
 {
 	Py_DECREF(self->Bones);
-	((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+	Armature_Type.tp_free(self);
 	return;
 }
 //------------------TYPE_OBECT DEFINITION--------------------------
@@ -1093,7 +1044,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 	size = PySequence_Length(args);
 	if (size == 1) {
 		seq = PySequence_GetItem(args, 0); //*new*
-		if (seq == NULL)
+		if (!seq)
 			goto RuntimeError;
 		if(!PyString_Check(seq)){
 			if (PySequence_Check(seq)) {
@@ -1110,7 +1061,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 	if(!PyString_Check(seq)){
 		for(i = 0; i < size; i++){
 			item = PySequence_GetItem(seq, i); //*new*
-			if (item == NULL) {
+			if (!item) {
 				Py_DECREF(seq);
 				goto RuntimeError;
 			}
@@ -1125,7 +1076,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 	//GET ARMATURES
 	if(size != 1){
 		dict = PyDict_New(); //*new*
-		if(dict == NULL){
+		if(!dict){
 			Py_DECREF(seq);
 			goto RuntimeError;
 		}
@@ -1138,6 +1089,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 					EXPP_decr3(seq, dict, py_armature);
 					goto RuntimeError;
 				}
+				Py_DECREF(py_armature);
 				data = ((ID*)data)->next;
 			}
 			Py_DECREF(seq);
@@ -1153,16 +1105,18 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 						EXPP_decr3(seq, dict, py_armature);
 						goto RuntimeError;
 					}
+					Py_DECREF(py_armature);
 				}else{
 					if(PyDict_SetItemString(dict, name, Py_None) == -1){ //add to dictionary
 						EXPP_decr2(seq, dict);
 						goto RuntimeError;
 					}
+					Py_DECREF(Py_None);
 				}
 			}
 			Py_DECREF(seq);
 		}
-		return dict; //transfering ownership to caller
+		return dict;
 	}else{	//GET SINGLE ARMATURE
 		if(!PyString_Check(seq)){ //This handles the bizarre case where (['s']) is passed
 			item = PySequence_GetItem(seq, 0); //*new*
@@ -1206,21 +1160,17 @@ struct PyMethodDef M_Armature_methods[] = {
 PyObject *PyArmature_FromArmature(struct bArmature *armature)
 {
 	BPy_Armature *py_armature = NULL;
-	int success;
 
+	//create armature type
 	py_armature = (BPy_Armature*)Armature_Type.tp_alloc(&Armature_Type, 0); //*new*
-	if (py_armature == NULL)
+	if (!py_armature)
 		goto RuntimeError;
-
 	py_armature->armature = armature;
 
-	py_armature->Bones = BonesDict_new(&BonesDict_Type, NULL, NULL); //*new*
-	if (py_armature->Bones == NULL)
+	//create armature.bones
+	py_armature->Bones = (BPy_BonesDict*)PyBonesDict_FromPyArmature(py_armature);
+	if (!py_armature->Bones)
 		goto RuntimeError;
-
-	success = BonesDict_Init(((BPy_BonesDict*)py_armature->Bones)->dict, &armature->bonebase);
-	if (success == -1)
-		return NULL; //error string already set
 
 	return (PyObject *) py_armature; 
 
@@ -1241,7 +1191,7 @@ PyObject *Armature_Init(void)
 
 	//Initializes TypeObject.ob_type
 	if (PyType_Ready(&Armature_Type) < 0 ||	PyType_Ready(&BonesDict_Type) < 0 || 
-		PyType_Ready(&EditBone_Type) < 0 ||	PyType_Ready(&Bone_Type) < 0){
+		PyType_Ready(&EditBone_Type) < 0 ||	PyType_Ready(&Bone_Type) < 0) {
 		return EXPP_incr_ret(Py_None);
 	}
 
@@ -1250,10 +1200,12 @@ PyObject *Armature_Init(void)
 		"The Blender Armature module"); 
 
 	//Add TYPEOBJECTS to the module
-	PyModule_AddObject(module, "ArmatureType", 
+	PyModule_AddObject(module, "Armature", 
 		EXPP_incr_ret((PyObject *)&Armature_Type)); //*steals*
-	PyModule_AddObject(module, "BoneType", 
+	PyModule_AddObject(module, "Bone", 
 		EXPP_incr_ret((PyObject *)&Bone_Type)); //*steals*
+	PyModule_AddObject(module, "Editbone", 
+		EXPP_incr_ret((PyObject *)&EditBone_Type)); //*steals*
 
 	//Add CONSTANTS to the module
 	PyModule_AddObject(module, "CONNECTED", 
@@ -1266,13 +1218,12 @@ PyObject *Armature_Init(void)
 		EXPP_incr_ret(PyConstant_NewInt("MULTIPLY", BONE_MULT_VG_ENV)));
 	PyModule_AddObject(module, "HIDDEN_EDIT", 
 		EXPP_incr_ret(PyConstant_NewInt("HIDDEN_EDIT", BONE_HIDDEN_A)));
-
-	PyModule_AddObject(module, "BONESPACE", 
-		EXPP_incr_ret(PyConstant_NewString("BONESPACE", "bone_space")));
-	PyModule_AddObject(module, "ARMATURESPACE", 
-		EXPP_incr_ret(PyConstant_NewString("ARMATURESPACE", "armature_space")));
-	PyModule_AddObject(module, "WORLDSPACE", 
-		EXPP_incr_ret(PyConstant_NewString("WORLDSPACE", "world_space")));
+	PyModule_AddObject(module, "ROOT_SELECTED", 
+		EXPP_incr_ret(PyConstant_NewInt("ROOT_SELECTED", BONE_ROOTSEL)));
+	PyModule_AddObject(module, "BONE_SELECTED", 
+		EXPP_incr_ret(PyConstant_NewInt("BONE_SELECTED", BONE_SELECTED)));
+	PyModule_AddObject(module, "TIP_SELECTED", 
+		EXPP_incr_ret(PyConstant_NewInt("TIP_SELECTED", BONE_TIPSEL)));
 
 	PyModule_AddObject(module, "OCTAHEDRON", 
 		EXPP_incr_ret(PyConstant_NewInt("OCTAHEDRON", ARM_OCTA)));
