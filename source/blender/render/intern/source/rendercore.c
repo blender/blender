@@ -2337,9 +2337,14 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 
 		if(shr.alpha!=1.0 || alpha!=1.0) {
 			if(shi.mat->mode & MA_RAYTRANSP) {
-				// sky was applied allready for ray transp, only do mist
-				col[3]= shr.alpha;
 				fac= alpha;	
+				if(R.r.mode & R_UNIFIED)
+					/* unified alpha overs everything... */
+					col[3]= 1.0f;
+				else {
+					/* sky was applied allready for ray transp, only do mist */
+					col[3]= shr.alpha;
+				}
 			}
 			else {
 				fac= alpha*(shr.alpha);
