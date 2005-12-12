@@ -949,7 +949,6 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 	
 	/* turn cross in pixelsize */
 	w= vec[2]*R.winmat[2][3] + R.winmat[3][3];
-	
 	dx= R.rectx*cross[0]*R.winmat[0][0]/w;
 	dy= R.recty*cross[1]*R.winmat[1][1]/w;
 	w= sqrt(dx*dx + dy*dy);
@@ -1075,6 +1074,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			orco[1] = (vec1[1]-loc_tex[1])/size_tex[1];
 			orco[2] = (vec1[2]-loc_tex[2])/size_tex[2];
 		}
+		MTC_Mat4MulVecfl(mat, vec1);
 		mtime= pa->time+pa->lifetime+paf->staticstep-1;
 		
 		first= 1;
