@@ -2083,9 +2083,9 @@ void special_editmenu(void)
 			break;
 		case 3:
 			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
+			waitcursor(1);			
 			fac= -( (float)randfac )/100;
 			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag, numcuts, 0);
 			BIF_undo_push("Subdivide Fractal");
