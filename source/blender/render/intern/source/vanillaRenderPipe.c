@@ -1065,9 +1065,6 @@ static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2
 				j[2]= collector[2]; j[3]= collector[3];
 			}
 			
-			sampleFloatColV2FloatColVFilter(sampcol, colbuf1, colbuf2, colbuf3, osaNr);
-			
-			
 			/* Spothalos are part of the normal pixelshader, so for covered  */
 			/* pixels they are handled ok. They are 'normally' alpha blended */
 			/* onto the existing colour in the collector.                    */
@@ -1078,8 +1075,15 @@ static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2
 					collector[1]= gammaCorrect(collector[1]);
 					collector[2]= gammaCorrect(collector[2]);
 				}
-				addAlphaOverFloat(colbuf2+4, collector);
+				
+				j = sampcol;
+				for(i = 0; i < osaNr; i++, j+=4) { 
+					addAlphaOverFloat(j, collector);
+				}
 			}
+			
+			sampleFloatColV2FloatColVFilter(sampcol, colbuf1, colbuf2, colbuf3, osaNr);
+			
 		}
     } 
 } 
