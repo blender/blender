@@ -198,7 +198,9 @@ static PyObject *M_Image_Get( PyObject * self, PyObject * args )
 static PyObject *M_Image_GetCurrent( PyObject * self )
 {
 	PyObject *current_img;
-	if (!G.sima || !G.sima->image) Py_RETURN_NONE;
+	if (!G.sima || !G.sima->image) {
+		Py_RETURN_NONE;
+	}
 	current_img = Image_CreatePyObject( G.sima->image );
 	return current_img;
 }
