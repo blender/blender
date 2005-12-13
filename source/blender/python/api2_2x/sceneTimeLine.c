@@ -191,35 +191,41 @@ static PyObject *TimeLine_getFramesMarked (BPy_TimeLine *self, PyObject *args) {
 					      "expected nothing, string or int as arguments.");
 		if (frm>0) {
 			marker_dict= PyDict_New ();
-			for (marker_it= self->marker_list->first; marker_it; marker_it= marker_it->next)
+			for (marker_it= self->marker_list->first; marker_it; marker_it= marker_it->next){
 				if (marker_it->frame==frm) {
-					if ((pyo= PyDict_GetItem ((PyObject*)marker_dict, PyInt_FromLong ((long int)marker_it->frame))) ) {
+					pyo= PyDict_GetItem ((PyObject*)marker_dict, PyInt_FromLong ((long int)marker_it->frame));
+					if (pyo) {
 						PyList_Append (pyo, PyString_FromString (marker_it->name));
 						Py_INCREF (pyo);
-					}
-					else {
-						if (!pyo) pyo= PyList_New (0);
+					}else{
+						pyo = PyList_New (0);
 						PyList_Append (pyo, PyString_FromString (marker_it->name));
 					}
 					PyDict_SetItem (marker_dict, PyInt_FromLong ((long int)marker_it->frame), pyo); 
-					if (pyo) { Py_DECREF (pyo); pyo= NULL; }
+					if (pyo) { 
+						Py_DECREF (pyo); 
+						pyo= NULL; 
+					}
 				}
+			}
 		}
 
-	}
-	else {
+	}else {
 		marker_dict= PyDict_New ();
 		for (marker_it= self->marker_list->first; marker_it; marker_it= marker_it->next) {
-			if ((pyo=PyDict_GetItem ((PyObject*)marker_dict, PyInt_FromLong ((long int)marker_it->frame))) ) {
+			pyo=PyDict_GetItem ((PyObject*)marker_dict, PyInt_FromLong ((long int)marker_it->frame));
+			if (pyo) {
 				PyList_Append (pyo, PyString_FromString (marker_it->name));
 				Py_INCREF (pyo);
-			}
-			else {
-				if (!pyo) pyo= PyList_New (0);
+			}else{ 
+				pyo= PyList_New (0);
 				PyList_Append (pyo, PyString_FromString (marker_it->name));
 			}
 			PyDict_SetItem (marker_dict, PyInt_FromLong ((long int)marker_it->frame), pyo); 
-			if (pyo) { Py_DECREF (pyo); pyo= NULL; }
+			if (pyo) { 
+				Py_DECREF (pyo); 
+				pyo= NULL; 
+			}
 		}
 	}
 

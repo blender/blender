@@ -101,10 +101,10 @@ returns None if not found.\n";
 struct PyMethodDef M_Image_methods[] = {
 	/*{"New", ( PyCFunction ) M_Image_New, METH_VARARGS | METH_KEYWORDS,
 	   M_Image_New_doc}, */
-	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"GetCurrent", M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},
-	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
+	{"Get", (PyCFunction) M_Image_Get, METH_VARARGS, M_Image_Get_doc},
+	{"GetCurrent", (PyCFunction) M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},
+	{"get", (PyCFunction) M_Image_Get, METH_VARARGS, M_Image_Get_doc},
+	{"Load", (PyCFunction) M_Image_Load, METH_VARARGS, M_Image_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
 
