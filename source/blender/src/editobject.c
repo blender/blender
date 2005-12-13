@@ -3686,6 +3686,7 @@ void single_obdata_users(int flag)
 			id= ob->data;
 			
 			if(id && id->us>1 && id->lib==0) {
+				ob->recalc= OB_RECALC_DATA;
 				
 				switch(ob->type) {
 				case OB_LAMP:
@@ -4159,8 +4160,8 @@ static void adduplicate__forwardModifierLinks(void *userData, Object *ob, Object
 {
 	ID_NEW(*obpoin);
 }
+
 void adduplicate(int noTrans)
-/* dtrans is 3 x 3xfloat dloc, drot en dsize */
 {
 	Base *base, *basen;
 	Object *ob, *obn;
