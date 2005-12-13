@@ -186,6 +186,12 @@ EditIpo *get_active_editipo(void)
 	if(G.sipo==NULL)
 		return NULL;
 	
+	/* prevent confusing situations, like for sequencer */
+	if(G.sipo->totipo==1) {
+		ei= G.sipo->editipo;
+		ei->flag |= IPO_ACTIVE;
+		return ei;
+	}
 	for(a=0, ei=G.sipo->editipo; a<G.sipo->totipo; a++, ei++)
 		if(ei->flag & IPO_ACTIVE)
 			return ei;
@@ -976,7 +982,7 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 	else if(blocktype==ID_SEQ) {
 		extern Sequence *last_seq;
 		
-		if(last_seq && (last_seq->type & SEQ_EFFECT)) {
+		if(last_seq && ((last_seq->type & SEQ_EFFECT)||(last_seq->type == SEQ_SOUND))) {
 			*from= (ID *)last_seq;
 			*ipo= last_seq->ipo;
 		}

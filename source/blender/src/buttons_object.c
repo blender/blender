@@ -2220,14 +2220,14 @@ static void object_panel_fluidsim(Object *ob)
 			&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
 
 	if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
-		FluidsimSettings *fss= ob->fluidsimSettings;
-		
-		if(fss==NULL) {
-			fss = ob->fluidsimSettings = fluidsimSettingsNew(ob);
-		}
 
 		if(ob->type==OB_MESH) {
-
+			FluidsimSettings *fss= ob->fluidsimSettings;
+			
+			if(fss==NULL) {
+				fss = ob->fluidsimSettings = fluidsimSettingsNew(ob);
+			}
+			
 			uiBlockBeginAlign(block);
 			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
 			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation.");

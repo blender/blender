@@ -170,13 +170,18 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	return NULL;
 }
 
+/* only for real IK, not for auto-IK */
 int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 {
 	bConstraint *con;
 	Bone *bone;
 	
 	for(con= pchan->constraints.first; con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) return 1;
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data= con->data;
+			if((data->flag & CONSTRAINT_IK_AUTO)==0)
+				return 1;
+		}
 	}
 	for(bone= pchan->bone->childbase.first; bone; bone= bone->next) {
 		pchan= get_pose_channel(ob->pose, bone->name);

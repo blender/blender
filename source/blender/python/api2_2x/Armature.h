@@ -43,18 +43,19 @@ PyObject *Armature_Init( void );
 PyTypeObject Armature_Type;
 PyTypeObject BonesDict_Type;
 //-------------------STRUCT DEFINITION---------------------------
-
 typedef struct {
 	PyObject_HEAD 
-	PyObject *dict;
-	PyObject *editBoneDict;
-	short editmode_flag; //1 = in , 0 = not in
+	PyObject *bonesMap;      //wrapper for bones
+	PyObject *editbonesMap; //wrapper for editbones
+	ListBase *bones;            //pointer to armature->bonebase
+	ListBase editbones;         //allocated list of EditBones 
+	short editmode_flag;       //1 = in , 0 = not in
 } BPy_BonesDict;
 
 typedef struct {
 	PyObject_HEAD 
 	struct bArmature * armature;
-	PyObject *Bones;
+	BPy_BonesDict *Bones;          //BPy_BonesDict
 } BPy_Armature;
 
 //-------------------VISIBLE PROTOTYPES-------------------------

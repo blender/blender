@@ -1696,6 +1696,18 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		}
 	}
 
+	/*
+	 * if there are vertex groups, also have to fix them
+	 */
+
+	if( mesh->dvert ) {
+		MDeformVert *newdvert;
+		newdvert = MEM_callocN( sizeof(MDeformVert)*newlen , "mesh defVert" );
+		memcpy( newdvert, mesh->dvert, sizeof(MDeformVert)*mesh->totvert );
+		MEM_freeN( mesh->dvert );
+		mesh->dvert = newdvert;
+	}
+
 	/* set final vertex list size */
 	mesh->totvert = newlen;
 
@@ -4842,13 +4854,18 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	/* save a copy of our ID, dup the temporary mesh, restore the ID */
 	tmpid = self->mesh->id;
 	memcpy( self->mesh, tmpmesh, sizeof( Mesh ) );
-	self->mesh->id= tmpid;
+	self->mesh->id = tmpid;
+
+	/* if mesh has keys, make sure they point back to this mesh */
+	if( self->mesh->key )
+		self->mesh->key->from = (ID *)self->mesh;
+
 	/* remove the temporary mesh */
 	BLI_remlink( &G.main->mesh, tmpmesh );
 	MEM_freeN( tmpmesh );
 
 	/* make sure materials get updated in objects */
-    	test_object_materials( ( ID * ) self->mesh );
+	test_object_materials( ( ID * ) self->mesh );
 
 	mesh_update( self->mesh );
 	return EXPP_incr_ret( Py_None );

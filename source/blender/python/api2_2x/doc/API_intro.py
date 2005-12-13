@@ -13,7 +13,7 @@ The Blender Python API Reference
 
  Submodules:
  -----------
-  - L{Armature} (work in progress)
+  - L{Armature}
      - L{NLA}
   - L{BGL}
   - L{Camera}

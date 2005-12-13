@@ -1893,60 +1893,81 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 
 	/* calculate U and V, for scanline (normal u and v are -1 to 0) */
 	if(u==1.0) {
-		/* exception case for wire render of edge */
-		if(vlr->v2==vlr->v3);
-		else if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV) ) {
-			float detsh, t00, t10, t01, t11;
-			
-			if(vlr->snproj==0) {
-				t00= v3->co[0]-v1->co[0]; t01= v3->co[1]-v1->co[1];
-				t10= v3->co[0]-v2->co[0]; t11= v3->co[1]-v2->co[1];
-			}
-			else if(vlr->snproj==1) {
-				t00= v3->co[0]-v1->co[0]; t01= v3->co[2]-v1->co[2];
-				t10= v3->co[0]-v2->co[0]; t11= v3->co[2]-v2->co[2];
-			}
-			else {
-				t00= v3->co[1]-v1->co[1]; t01= v3->co[2]-v1->co[2];
-				t10= v3->co[1]-v2->co[1]; t11= v3->co[2]-v2->co[2];
-			}
-			
-			detsh= 1.0/(t00*t11-t10*t01);
-			t00*= detsh; t01*=detsh; 
-			t10*=detsh; t11*=detsh;
-		
-			if(vlr->snproj==0) {
-				u= (shi->co[0]-v3->co[0])*t11-(shi->co[1]-v3->co[1])*t10;
-				v= (shi->co[1]-v3->co[1])*t00-(shi->co[0]-v3->co[0])*t01;
-				if(shi->osatex) {
-					shi->dxuv[0]=  shi->dxco[0]*t11- shi->dxco[1]*t10;
-					shi->dxuv[1]=  shi->dxco[1]*t00- shi->dxco[0]*t01;
-					shi->dyuv[0]=  shi->dyco[0]*t11- shi->dyco[1]*t10;
-					shi->dyuv[1]=  shi->dyco[1]*t00- shi->dyco[0]*t01;
+		if( (vlr->flag & R_SMOOTH) || (texco & NEED_UV) ) {
+			/* exception case for wire render of edge */
+			if(vlr->v2==vlr->v3) {
+				float lend, lenc;
+				
+				lend= VecLenf(v2->co, v1->co);
+				lenc= VecLenf(shi->co, v1->co);
+				
+				if(lend==0.0f) {
+					u=v= 0.0f;
 				}
-			}
-			else if(vlr->snproj==1) {
-				u= (shi->co[0]-v3->co[0])*t11-(shi->co[2]-v3->co[2])*t10;
-				v= (shi->co[2]-v3->co[2])*t00-(shi->co[0]-v3->co[0])*t01;
+				else {
+					u= - (1.0f - lenc/lend);
+					v= 0.0f;
+				}
+				
 				if(shi->osatex) {
-					shi->dxuv[0]=  shi->dxco[0]*t11- shi->dxco[2]*t10;
-					shi->dxuv[1]=  shi->dxco[2]*t00- shi->dxco[0]*t01;
-					shi->dyuv[0]=  shi->dyco[0]*t11- shi->dyco[2]*t10;
-					shi->dyuv[1]=  shi->dyco[2]*t00- shi->dyco[0]*t01;
+					shi->dxuv[0]=  0.0f;
+					shi->dxuv[1]=  0.0f;
+					shi->dyuv[0]=  0.0f;
+					shi->dyuv[1]=  0.0f;
 				}
 			}
 			else {
-				u= (shi->co[1]-v3->co[1])*t11-(shi->co[2]-v3->co[2])*t10;
-				v= (shi->co[2]-v3->co[2])*t00-(shi->co[1]-v3->co[1])*t01;
-				if(shi->osatex) {
-					shi->dxuv[0]=  shi->dxco[1]*t11- shi->dxco[2]*t10;
-					shi->dxuv[1]=  shi->dxco[2]*t00- shi->dxco[1]*t01;
-					shi->dyuv[0]=  shi->dyco[1]*t11- shi->dyco[2]*t10;
-					shi->dyuv[1]=  shi->dyco[2]*t00- shi->dyco[1]*t01;
+				float detsh, t00, t10, t01, t11;
+				
+				if(vlr->snproj==0) {
+					t00= v3->co[0]-v1->co[0]; t01= v3->co[1]-v1->co[1];
+					t10= v3->co[0]-v2->co[0]; t11= v3->co[1]-v2->co[1];
+				}
+				else if(vlr->snproj==1) {
+					t00= v3->co[0]-v1->co[0]; t01= v3->co[2]-v1->co[2];
+					t10= v3->co[0]-v2->co[0]; t11= v3->co[2]-v2->co[2];
+				}
+				else {
+					t00= v3->co[1]-v1->co[1]; t01= v3->co[2]-v1->co[2];
+					t10= v3->co[1]-v2->co[1]; t11= v3->co[2]-v2->co[2];
+				}
+				
+				detsh= 1.0/(t00*t11-t10*t01);
+				t00*= detsh; t01*=detsh; 
+				t10*=detsh; t11*=detsh;
+			
+				if(vlr->snproj==0) {
+					u= (shi->co[0]-v3->co[0])*t11-(shi->co[1]-v3->co[1])*t10;
+					v= (shi->co[1]-v3->co[1])*t00-(shi->co[0]-v3->co[0])*t01;
+					if(shi->osatex) {
+						shi->dxuv[0]=  shi->dxco[0]*t11- shi->dxco[1]*t10;
+						shi->dxuv[1]=  shi->dxco[1]*t00- shi->dxco[0]*t01;
+						shi->dyuv[0]=  shi->dyco[0]*t11- shi->dyco[1]*t10;
+						shi->dyuv[1]=  shi->dyco[1]*t00- shi->dyco[0]*t01;
+					}
+				}
+				else if(vlr->snproj==1) {
+					u= (shi->co[0]-v3->co[0])*t11-(shi->co[2]-v3->co[2])*t10;
+					v= (shi->co[2]-v3->co[2])*t00-(shi->co[0]-v3->co[0])*t01;
+					if(shi->osatex) {
+						shi->dxuv[0]=  shi->dxco[0]*t11- shi->dxco[2]*t10;
+						shi->dxuv[1]=  shi->dxco[2]*t00- shi->dxco[0]*t01;
+						shi->dyuv[0]=  shi->dyco[0]*t11- shi->dyco[2]*t10;
+						shi->dyuv[1]=  shi->dyco[2]*t00- shi->dyco[0]*t01;
+					}
+				}
+				else {
+					u= (shi->co[1]-v3->co[1])*t11-(shi->co[2]-v3->co[2])*t10;
+					v= (shi->co[2]-v3->co[2])*t00-(shi->co[1]-v3->co[1])*t01;
+					if(shi->osatex) {
+						shi->dxuv[0]=  shi->dxco[1]*t11- shi->dxco[2]*t10;
+						shi->dxuv[1]=  shi->dxco[2]*t00- shi->dxco[1]*t01;
+						shi->dyuv[0]=  shi->dyco[1]*t11- shi->dyco[2]*t10;
+						shi->dyuv[1]=  shi->dyco[2]*t00- shi->dyco[1]*t01;
+					}
 				}
 			}
-		}
-	
+		}	
 	}
 	l= 1.0+u+v;
 	
@@ -2086,10 +2107,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 					cp2= (char *)(vlr->vcol+j2);
 					cp3= (char *)(vlr->vcol+j3);
 
-					shi->vcol[0]= (l*cp3[3]-u*cp1[3]-v*cp2[3])/255.0;
-					shi->vcol[1]= (l*cp3[2]-u*cp1[2]-v*cp2[2])/255.0;
-					shi->vcol[2]= (l*cp3[1]-u*cp1[1]-v*cp2[1])/255.0;
-					
+					shi->vcol[0]= (l*((float)cp3[3]) - u*((float)cp1[3]) - v*((float)cp2[3]))/255.0;
+					shi->vcol[1]= (l*((float)cp3[2]) - u*((float)cp1[2]) - v*((float)cp2[2]))/255.0;
+					shi->vcol[2]= (l*((float)cp3[1]) - u*((float)cp1[1]) - v*((float)cp2[1]))/255.0;
 				}
 				else {
 					shi->vcol[0]= 0.0;
@@ -2548,9 +2568,14 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 
 		if(shr.alpha!=1.0 || alpha!=1.0) {
 			if(shi.mat->mode & MA_RAYTRANSP) {
-				// sky was applied allready for ray transp, only do mist
-				col[3]= shr.alpha;
 				fac= alpha;	
+				if(R.r.mode & R_UNIFIED)
+					/* unified alpha overs everything... */
+					col[3]= 1.0f;
+				else {
+					/* sky was applied allready for ray transp, only do mist */
+					col[3]= shr.alpha;
+				}
 			}
 			else {
 				fac= alpha*(shr.alpha);

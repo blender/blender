@@ -69,6 +69,7 @@ short IMB_saveiff( struct ImBuf *ibuf, char *naam, int flags );
 /*static PyObject *M_Image_New( PyObject * self, PyObject * args,
 			      PyObject * keywords );*/
 static PyObject *M_Image_Get( PyObject * self, PyObject * args );
+static PyObject *M_Image_GetCurrent( PyObject * self );
 static PyObject *M_Image_Load( PyObject * self, PyObject * args );
 
 /*****************************************************************************/
@@ -86,6 +87,10 @@ static char M_Image_Get_doc[] =
 returns None if not found.\n If 'name' is not specified, \
 it returns a list of all images in the\ncurrent scene.";
 
+static char M_Image_GetCurrent_doc[] =
+	"() - return the current image, from last active the uv/image view, \
+returns None no image is in the view.\n";
+
 static char M_Image_Load_doc[] =
 	"(filename) - return image from file filename as Image Object, \
 returns None if not found.\n";
@@ -96,9 +101,10 @@ returns None if not found.\n";
 struct PyMethodDef M_Image_methods[] = {
 	/*{"New", ( PyCFunction ) M_Image_New, METH_VARARGS | METH_KEYWORDS,
 	   M_Image_New_doc}, */
-	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
+	{"Get", (PyCFunction) M_Image_Get, METH_VARARGS, M_Image_Get_doc},
+	{"GetCurrent", (PyCFunction) M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},
+	{"get", (PyCFunction) M_Image_Get, METH_VARARGS, M_Image_Get_doc},
+	{"Load", (PyCFunction) M_Image_Load, METH_VARARGS, M_Image_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -170,11 +176,6 @@ static PyObject *M_Image_Get( PyObject * self, PyObject * args )
 		while( img_iter ) {
 			pyobj = Image_CreatePyObject( img_iter );
 
-			if( !pyobj )
-				return ( EXPP_ReturnPyObjError
-					 ( PyExc_MemoryError,
-					   "couldn't create PyObject" ) );
-
 			PyList_SET_ITEM( img_list, index, pyobj );
 
 			img_iter = img_iter->id.next;
@@ -184,6 +185,28 @@ static PyObject *M_Image_Get( PyObject * self, PyObject * args )
 		return ( img_list );
 	}
 }
+
+
+
+/*****************************************************************************/
+/* Function:		M_Image_GetCurrent	 */
+/* Python equivalent:	Blender.Image.GetCurrent   */
+/* Description:		Returns the active current (G.sima)	 */
+/*			This will be the image last under the mouse cursor */
+/*			None if there is no Image.			 */
+/*****************************************************************************/
+static PyObject *M_Image_GetCurrent( PyObject * self )
+{
+	PyObject *current_img;
+	if (!G.sima || !G.sima->image) {
+		Py_RETURN_NONE;
+	}
+	current_img = Image_CreatePyObject( G.sima->image );
+	return current_img;
+}
+
+
+
 
 /*****************************************************************************/
 /* Function:	M_Image_Load		 */
@@ -674,15 +697,13 @@ static void Image_dealloc( BPy_Image * self )
 PyObject *Image_CreatePyObject( Image * image )
 {
 	BPy_Image *py_img;
-
 	py_img = ( BPy_Image * ) PyObject_NEW( BPy_Image, &Image_Type );
-
+	
 	if( !py_img )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create BPy_Image object" );
-
+	
 	py_img->image = image;
-
 	return ( PyObject * ) py_img;
 }
 

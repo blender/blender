@@ -41,6 +41,7 @@
 PyTypeObject EditBone_Type;
 PyTypeObject Bone_Type;
 //-------------------STRUCT DEFINITION----------------------------
+
 typedef struct {
 	PyObject_HEAD
 	Bone * bone;
@@ -48,14 +49,13 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD
-	struct Bone *temp; //temp tracking
-	char parent[32];
+	struct EditBone *editbone;
+	struct EditBone *parent;
 	char name[32];
 	float roll;
 	float head[3];
 	float tail[3];
 	int flag;
-	float length;
 	float dist;
 	float weight;
 	float xwidth;
@@ -69,75 +69,7 @@ typedef struct {
 //-------------------VISIBLE PROTOTYPES-------------------------
 PyObject *PyBone_FromBone(struct Bone *bone);
 struct Bone *PyBone_AsBone(BPy_Bone *py_Bone);
+PyObject *PyEditBone_FromBone(Bone *bone);
+PyObject *PyEditBone_FromEditBone(struct EditBone *editbone);
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-#ifndef EXPP_BONE_H
-#define EXPP_BONE_H
-
-#include <Python.h>
-#include "DNA_armature_types.h"
-#include "Mathutils.h"
-
-//--------------------------Python BPy_Bone structure definition.-------
-typedef struct {
-	PyObject_HEAD
-		//reference to data if bone is linked to an armature
-	Bone * bone;
-	//list of vars that define the bone
-	char *name;
-	char *parent;
-	float roll;
-	int flag;
-	float dist;
-	float weight;
-	VectorObject *head;
-	VectorObject *tail;
-	VectorObject *loc;
-	VectorObject *dloc;
-	VectorObject *size;
-	VectorObject *dsize;
-	QuaternionObject *quat;
-	QuaternionObject *dquat;
-	MatrixObject *obmat;
-	MatrixObject *parmat;
-	MatrixObject *defmat;
-	MatrixObject *irestmat;
-	MatrixObject *posemat;
-} BPy_Bone;
-
-//------------------------------visible prototypes----------------------
-PyObject *Bone_CreatePyObject( struct Bone *obj );
-int Bone_CheckPyObject( PyObject * py_obj );
-Bone *Bone_FromPyObject( PyObject * py_obj );
-PyObject *Bone_Init( void );
-int updateBoneData( BPy_Bone * self, Bone * parent );
-
-#endif
-
-*/

@@ -111,7 +111,7 @@ extern	float centre[3], centroid[3];	/* Originally defined in editobject.c */
 /* **************** tools on Editmode Armature **************** */
 
 /* converts Bones to EditBone list, used for tools as well */
-static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
+void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 {
 	EditBone	*eBone;
 	Bone		*curBone;
@@ -228,7 +228,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 }
 
 /* converts the editbones back to the armature */
-static void editbones_to_armature (ListBase *list, Object *ob)
+void editbones_to_armature (ListBase *list, Object *ob)
 {
 	bArmature *arm;
 	EditBone *eBone;

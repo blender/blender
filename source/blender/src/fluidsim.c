@@ -143,6 +143,10 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 {
 	//char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
 	FluidsimSettings *fss;
+	
+	/* this call uses derivedMesh methods... */
+	if(srcob->type!=OB_MESH) return NULL;
+	
 	fss= MEM_callocN( sizeof(FluidsimSettings), "fluidsimsettings memory");
 	
 	fss->type = 0;

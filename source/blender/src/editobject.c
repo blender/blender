@@ -2086,9 +2086,9 @@ void special_editmenu(void)
 			break;
 		case 3:
 			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
+			waitcursor(1);			
 			fac= -( (float)randfac )/100;
 			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag, numcuts, 0);
 			BIF_undo_push("Subdivide Fractal");
@@ -3687,6 +3687,7 @@ void single_obdata_users(int flag)
 			id= ob->data;
 			
 			if(id && id->us>1 && id->lib==0) {
+				ob->recalc= OB_RECALC_DATA;
 				
 				switch(ob->type) {
 				case OB_LAMP:
@@ -4186,7 +4187,6 @@ static void adduplicate__forwardModifierLinks(void *userData, Object *ob, Object
 }
 
 void adduplicate(int noTrans)
-/* dtrans is 3 x 3xfloat dloc, drot en dsize */
 {
 	Base *base, *basen;
 	Object *ob, *obn;

@@ -131,6 +131,11 @@ int	setcurr_tab		(struct Text *text);
 /* Misc */
 #define UNDO_SWAP		031	/* Swap cursors */
 
+#define UNDO_INDENT		032
+#define UNDO_UNINDENT		033
+#define UNDO_COMMENT		034
+#define UNDO_UNCOMMENT		035
+
 #ifdef __cplusplus
 }
 #endif

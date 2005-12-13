@@ -1028,7 +1028,6 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 	
 	/* turn cross in pixelsize */
 	w= vec[2]*R.winmat[2][3] + R.winmat[3][3];
-	
 	dx= R.rectx*cross[0]*R.winmat[0][0]/w;
 	dy= R.recty*cross[1]*R.winmat[1][1]/w;
 	w= sqrt(dx*dx + dy*dy);
@@ -1154,6 +1153,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			orco[1] = (vec1[1]-loc_tex[1])/size_tex[1];
 			orco[2] = (vec1[2]-loc_tex[2])/size_tex[2];
 		}
+		MTC_Mat4MulVecfl(mat, vec1);
 		mtime= pa->time+pa->lifetime+paf->staticstep-1;
 		
 		first= 1;
@@ -1441,6 +1441,161 @@ static void init_render_mball(Object *ob)
 /* ------------------------------------------------------------------------- */
 /* convert */
 
+struct edgesort {
+	int v1, v2;
+	int has_mcol;
+	TFace *tface;
+	float uv1[2], uv2[2];
+	unsigned int mcol1, mcol2;
+};
+
+/* edges have to be added with lowest index first for sorting */
+static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, unsigned int *mcol, TFace *tface)
+{
+	if(v1<v2) {
+		ed->v1= v1; ed->v2= v2;
+	}
+	else {
+		ed->v1= v2; ed->v2= v1;
+		SWAP(int, i1, i2);
+	}
+	/* copy color and tface, edges use different ordering */
+	ed->tface= tface;
+	if(tface) {
+		ed->uv1[0]= tface->uv[i1][0];
+		ed->uv1[1]= tface->uv[i1][1];
+		ed->uv2[0]= tface->uv[i2][0];
+		ed->uv2[1]= tface->uv[i2][1];
+		
+		ed->mcol1= tface->col[i1];
+		ed->mcol2= tface->col[i2];
+	}	
+	ed->has_mcol= mcol!=NULL;
+	if(mcol) {
+		ed->mcol1= mcol[i1];
+		ed->mcol2= mcol[i2];
+	}
+}
+
+static int vergedgesort(const void *v1, const void *v2)
+{
+	const struct edgesort *x1=v1, *x2=v2;
+	
+	if( x1->v1 > x2->v1) return 1;
+	else if( x1->v1 < x2->v1) return -1;
+	else if( x1->v2 > x2->v2) return 1;
+	else if( x1->v2 < x2->v2) return -1;
+	
+	return 0;
+}
+
+static struct edgesort *make_mesh_edge_lookup(Mesh *me, DispListMesh *dlm, int *totedgesort)
+{
+	MFace *mf, *mface;
+	TFace *tface=NULL;
+	struct edgesort *edsort, *ed;
+	unsigned int *mcol=NULL;
+	int a, totedge=0, totface;
+	
+	if (dlm) {
+		mface= dlm->mface;
+		totface= dlm->totface;
+		if (dlm->tface) 
+			tface= dlm->tface;
+		else if (dlm->mcol)
+			mcol= (unsigned int *)dlm->mcol;
+	} else {
+		mface= me->mface;
+		totface= me->totface;
+		if (me->tface) 
+			tface= me->tface;
+		else if (me->mcol)
+			mcol= (unsigned int *)me->mcol;
+	}
+	
+	if(mcol==NULL && tface==NULL) return NULL;
+	
+	/* make sorted table with edges and and tface/mcol pointers in it */
+	for(a= totface, mf= mface; a>0; a--, mf++) {
+		if(mf->v4) totedge+=4;
+		else if(mf->v3) totedge+=3;
+	}
+	if(totedge==0) return NULL;
+	
+	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
+	
+	for(a= me->totface, mf= mface; a>0; a--, mf++) {
+		if(mface->v4 || mface->v3) {
+			to_edgesort(ed++, 0, 1, mf->v1, mf->v2, mcol, tface);
+			to_edgesort(ed++, 1, 2, mf->v2, mf->v3, mcol, tface);
+			if(mf->v4) {
+				to_edgesort(ed++, 2, 3, mf->v3, mf->v4, mcol, tface);
+				to_edgesort(ed++, 3, 0, mf->v4, mf->v1, mcol, tface);
+			}
+			else if(mf->v3) {
+				to_edgesort(ed++, 2, 3, mf->v3, mf->v1, mcol, tface);
+			}
+		}
+		if(mcol) mcol+=4;
+		if(tface) tface++;
+	}
+	
+	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
+	
+	*totedgesort= totedge;
+	return edsort;
+}
+
+static void use_mesh_edge_lookup(Mesh *me, DispListMesh *dlm, MEdge *medge, VlakRen *vlr, struct edgesort *edgetable, int totedge)
+{
+	struct edgesort ed, *edp;
+	
+	if(medge->v1 < medge->v2) {
+		ed.v1= medge->v1; ed.v2= medge->v2;
+	}
+	else {
+		ed.v1= medge->v2; ed.v2= medge->v1;
+	}
+	
+	edp= bsearch(&ed, edgetable, totedge, sizeof(struct edgesort), vergedgesort);
+	if(edp) {
+		/* since edges have different index ordering, we have to duplicate mcol and tface */
+		if(edp->tface) {
+			vlr->tface= BLI_memarena_alloc(R.memArena, sizeof(TFace));
+			vlr->vcol= vlr->tface->col;
+			memcpy(vlr->tface, edp->tface, sizeof(TFace));
+			
+			if(edp->v1==medge->v1) {
+				vlr->vcol[0]= edp->mcol1;
+				vlr->vcol[1]= edp->mcol2;
+			}
+			else {
+				vlr->vcol[0]= edp->mcol2;
+				vlr->vcol[1]= edp->mcol1;
+			}
+			vlr->vcol[2]= vlr->vcol[1];
+			vlr->vcol[3]= vlr->vcol[1];
+			
+			if(edp->v1==medge->v1) {
+				memcpy(vlr->tface->uv[0], edp->uv1, 2*sizeof(float));
+				memcpy(vlr->tface->uv[1], edp->uv2, 2*sizeof(float));
+			}
+			else {
+				memcpy(vlr->tface->uv[0], edp->uv2, 2*sizeof(float));
+				memcpy(vlr->tface->uv[1], edp->uv1, 2*sizeof(float));
+			}
+			memcpy(vlr->tface->uv[2], vlr->tface->uv[1], 2*sizeof(float));
+			memcpy(vlr->tface->uv[3], vlr->tface->uv[1], 2*sizeof(float));
+		} 
+		else if(edp->has_mcol) {
+			vlr->vcol= BLI_memarena_alloc(R.memArena, sizeof(MCol)*4);
+			vlr->vcol[0]= edp->mcol1;
+			vlr->vcol[1]= edp->mcol2;
+			vlr->vcol[2]= vlr->vcol[1];
+			vlr->vcol[3]= vlr->vcol[1];
+		}
+	}
+}
 
 static void init_render_mesh(Object *ob)
 {
@@ -1626,13 +1781,13 @@ static void init_render_mesh(Object *ob)
 						else {
 							if(dlm) {
 								if(tface) {
-									vlr->tface= BLI_memarena_alloc(R.memArena, sizeof(*vlr->tface));
+									vlr->tface= BLI_memarena_alloc(R.memArena, sizeof(TFace));
 									vlr->vcol= vlr->tface->col;
-									memcpy(vlr->tface, tface, sizeof(*tface));
+									memcpy(vlr->tface, tface, sizeof(TFace));
 								} 
 								else if (vertcol) {
-									vlr->vcol= BLI_memarena_alloc(R.memArena, sizeof(int)*16);
-									memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*16);
+									vlr->vcol= BLI_memarena_alloc(R.memArena, sizeof(int)*4);
+									memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*4);
 								}
 							} else {
 								if(tface) {
@@ -1658,7 +1813,13 @@ static void init_render_mesh(Object *ob)
 		ma= give_render_material(ob, 1);
 		if(end && (ma->mode & MA_WIRE)) {
 			MEdge *medge;
+			struct edgesort *edgetable;
+			int totedge;
+			
 			medge= dlm?dlm->medge:me->medge;
+			
+			/* we want edges to have UV and vcol too... */
+			edgetable= make_mesh_edge_lookup(me, dlm, &totedge);
 			
 			for(a1=0; a1<end; a1++, medge++) {
 				if (medge->flag&ME_EDGERENDER) {
@@ -1671,6 +1832,10 @@ static void init_render_mesh(Object *ob)
 					vlr->v2= RE_findOrAddVert(vertofs+medge->v2);
 					vlr->v3= vlr->v2;
 					vlr->v4= NULL;
+					
+					if(edgetable) {
+						use_mesh_edge_lookup(me, dlm, medge, vlr, edgetable, totedge);
+					}
 					
 					xn= (v0->no[0]+v1->no[0]);
 					yn= (v0->no[1]+v1->no[1]);
@@ -1687,6 +1852,8 @@ static void init_render_mesh(Object *ob)
 					vlr->lay= ob->lay;
 				}
 			}
+			if(edgetable)
+				MEM_freeN(edgetable);
 		}
 	}
 	

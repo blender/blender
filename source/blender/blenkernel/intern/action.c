@@ -355,6 +355,23 @@ bActionChannel *verify_action_channel(bAction *act, const char *name)
 
 /* ************************ Blending with NLA *************** */
 
+static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mode)
+{
+	float dstweight;
+	
+	switch (mode){
+		case POSE_BLEND:
+			dstweight = 1.0F - srcweight;
+			break;
+		case POSE_ADD:
+			dstweight = 1.0F;
+			break;
+		default :
+			dstweight = 1.0F;
+	}
+	
+	VecLerpf(dst->stride_offset, dst->stride_offset, src->stride_offset, srcweight);
+}
 
 /* Only allowed for Poses with identical channels */
 void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
@@ -407,8 +424,6 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
 	}
-	
-	VecLerpf(dst->stride_offset, dst->stride_offset, src->stride_offset, srcweight);
 }
 
 
@@ -796,7 +811,7 @@ static void do_nla(Object *ob, int blocktype)
 	bActionStrip *strip;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	int	doit;
+	int	doit, dostride;
 	
 	if(blocktype==ID_AR) {
 		copy_pose(&tpose, ob->pose, 1);
@@ -807,7 +822,7 @@ static void do_nla(Object *ob, int blocktype)
 	}
 	
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
-		doit=0;
+		doit=dostride= 0;
 		
 		if (strip->act){	/* so theres an action */
 			
@@ -865,7 +880,7 @@ static void do_nla(Object *ob, int blocktype)
 									if(key)
 										extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 								}
-								doit=1;
+								doit=dostride= 1;
 							}
 						}
 					}
@@ -894,9 +909,8 @@ static void do_nla(Object *ob, int blocktype)
 				/* Handle extend */
 				else{
 					if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
-						striptime = 1.0;
-						
-						frametime = (striptime * actlength) + strip->actstart;
+						/* we want the strip to hold on the exact fraction of the repeat value */
+						frametime = actlength * (strip->repeat-(int)strip->repeat);
 						frametime= bsystem_time(ob, 0, frametime, 0.0);
 						
 						if(blocktype==ID_AR)
@@ -923,8 +937,11 @@ static void do_nla(Object *ob, int blocktype)
 					else
 						blendfac = 1;
 					
-					if(blocktype==ID_AR) /* Blend this pose with the accumulated pose */
+					if(blocktype==ID_AR) {/* Blend this pose with the accumulated pose */
 						blend_poses (ob->pose, tpose, blendfac, strip->mode);
+						if(dostride)
+							blend_pose_strides (ob->pose, tpose, blendfac, strip->mode);
+					}
 					else {
 						blend_ipochannels(&chanbase, &tchanbase, blendfac, strip->mode);
 						BLI_freelistN(&tchanbase);
