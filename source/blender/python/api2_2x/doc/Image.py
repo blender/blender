@@ -52,6 +52,13 @@ def Get (name = None):
       - (): A list with all Image objects in the current scene.
   """
 
+def GetCurrent ():
+  """
+  Get the currently displayed Image from Blenders UV/Image window.
+  When multiple images are displayed, the last active UV/Image windows image is used.
+  @rtype: Blender Image
+  @return: The Current Blender Image, If there is no current image it returns None.
+  """
 
 class Image:
   """
