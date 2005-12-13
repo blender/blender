@@ -2974,7 +2974,7 @@ void make_links(short event)
 	ID *id;
 	Material ***matarar, ***obmatarar, **matar1, **matar2;
 	int a;
-	short *totcolp, nr;
+	short *totcolp, nr=0;
 	char *strp;
 
 	if(!(ob=OBACT)) return;
@@ -2982,7 +2982,7 @@ void make_links(short event)
 	if(event==1) {
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), 0, &nr);
 		
-		if(strncmp(strp, "DataBrow", 8)==0) {
+		if(nr == -2) {
 			MEM_freeN(strp);
 
 			activate_databrowse((ID *)G.scene, ID_SCE, 0, B_INFOSCE, &(G.curscreen->scenenr), link_to_scene );

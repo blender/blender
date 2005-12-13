@@ -488,7 +488,7 @@ static void relink_active_strip(void)
 	/* Popup action menu */
 	IDnames_to_pupstring(&str, "Relink Action strip", NULL, &G.main->action, (ID *)G.scene, NULL);
 	if(str) {
-		event = pupmenu(str);
+		event = pupmenu_col(str, 20);
 		MEM_freeN(str);
 		
 		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
