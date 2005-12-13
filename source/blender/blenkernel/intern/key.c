@@ -943,6 +943,9 @@ static int do_mesh_key(Object *ob, Mesh *me)
 	if(me->key==NULL) return 0;
 	if(me->key->block.first==NULL) return 0;
 	
+	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
+	me->key->from= (ID *)me;
+	
 	if(me->key->slurph && me->key->type!=KEY_RELATIVE ) {
 		delta= me->key->slurph;
 		delta/= me->totvert;
