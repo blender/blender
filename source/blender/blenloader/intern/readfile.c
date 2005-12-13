@@ -237,7 +237,8 @@ typedef struct OldNewMap {
 extern          short freeN(void *vmemh); /* defined in util.h */  
 
 
-static OldNewMap *oldnewmap_new(void) {
+static OldNewMap *oldnewmap_new(void) 
+{
 	OldNewMap *onm= MEM_mallocN(sizeof(*onm), "OldNewMap");
 	onm->lasthit= 0;
 	onm->nentries= 0;
@@ -247,7 +248,8 @@ static OldNewMap *oldnewmap_new(void) {
 	return onm;
 }
 
-static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int nr) {
+static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int nr) 
+{
 	OldNew *entry;
 
 	if (onm->nentries==onm->entriessize) {
@@ -267,7 +269,8 @@ static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int n
 	entry->nr= nr;
 }
 
-static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr) {
+static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr) 
+{
 	int i;
 
 	if (onm->lasthit<onm->nentries-1) {
@@ -293,9 +296,10 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr) {
 	return NULL;
 }
 
-static void *oldnewmap_liblookup_and_inc(OldNewMap *onm, void *addr, void *lib) {
+static void *oldnewmap_liblookup_and_inc(OldNewMap *onm, void *addr, void *lib) 
+{
 	int i;
-
+	
 	if (onm->lasthit<onm->nentries-1) {
 		OldNew *entry= &onm->entries[++onm->lasthit];
 
@@ -310,7 +314,11 @@ static void *oldnewmap_liblookup_and_inc(OldNewMap *onm, void *addr, void *lib) 
 		}
 	}
 
-	for (i=0; i<onm->nentries; i++) {
+	/* note; we go backwards over this list, to prevent a case that still needs fix;
+	   if 1 library has blocks used both direct and indirect, it has two entries in this
+		table, and only the first entry gets remapped in change_lib_adr. */
+	
+	for (i=onm->nentries-1; i>=0; i--) {
 		OldNew *entry= &onm->entries[i];
 
 		if (entry->old==addr) {
@@ -319,6 +327,7 @@ static void *oldnewmap_liblookup_and_inc(OldNewMap *onm, void *addr, void *lib) 
 			if (id && (!lib || id->lib)) {
 				entry->nr++;
 
+				//if(retval) printf("ack double hit for %s and %s\n", id->name, ((ID *)retval)->name);
 				return entry->newp;
 			}
 		}
@@ -327,7 +336,8 @@ static void *oldnewmap_liblookup_and_inc(OldNewMap *onm, void *addr, void *lib) 
 	return NULL;
 }
 
-static void *oldnewmap_typelookup_and_inc(OldNewMap *onm, void *addr, short type) {
+static void *oldnewmap_typelookup_and_inc(OldNewMap *onm, void *addr, void *lib, short type) 
+{
 	int i;
 
 	if (onm->lasthit<onm->nentries-1) {
@@ -336,7 +346,7 @@ static void *oldnewmap_typelookup_and_inc(OldNewMap *onm, void *addr, short type
 		if (entry->old==addr) {
 			ID *id= entry->newp;
 
-			if (id && (GS(id->name) == type)) {
+			if (id && (GS(id->name) == type) && (!lib || id->lib)) {
 				entry->nr++;
 
 				return entry->newp;
@@ -350,7 +360,7 @@ static void *oldnewmap_typelookup_and_inc(OldNewMap *onm, void *addr, short type
 		if (entry->old==addr) {
 			ID *id= entry->newp;
 
-			if (id && (GS(id->name) == type)) {
+			if (id && (GS(id->name) == type) && (!lib || id->lib)) {
 				entry->nr++;
 
 				return entry->newp;
@@ -361,7 +371,8 @@ static void *oldnewmap_typelookup_and_inc(OldNewMap *onm, void *addr, short type
 	return NULL;
 }
 
-static void oldnewmap_free_unused(OldNewMap *onm) {
+static void oldnewmap_free_unused(OldNewMap *onm) 
+{
 	int i;
 
 	for (i=0; i<onm->nentries; i++) {
@@ -373,12 +384,14 @@ static void oldnewmap_free_unused(OldNewMap *onm) {
 	}
 }
 
-static void oldnewmap_clear(OldNewMap *onm) {
+static void oldnewmap_clear(OldNewMap *onm) 
+{
 	onm->nentries= 0;
 	onm->lasthit= 0;
 }
 
-static void oldnewmap_free(OldNewMap *onm) {
+static void oldnewmap_free(OldNewMap *onm) 
+{
 	MEM_freeN(onm->entries);
 	MEM_freeN(onm);
 }
@@ -1021,9 +1034,9 @@ static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
 	return oldnewmap_liblookup_and_inc(fd->libmap, adr, lib);
 }
 
-static void *newlibadr_us_type(FileData *fd, short type, void *adr)	/* only Lib data */
+static void *newlibadr_us_type(FileData *fd, void *lib, short type, void *adr)	/* only Lib data */
 {
-	ID *id= oldnewmap_typelookup_and_inc(fd->libmap, adr, type);
+	ID *id= oldnewmap_typelookup_and_inc(fd->libmap, adr, lib, type);
 
 	if (id) {
 		id->us++;
@@ -2164,7 +2177,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
-
+			
 			if(ob->data==NULL && poin!=NULL) {
 				ob->type= OB_EMPTY;
 				warn= 1;
@@ -2525,7 +2538,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				next= base->next;
 
 				/* base->object= newlibadr_us(fd, sce->id.lib, base->object); */
-				base->object= newlibadr_us_type(fd, ID_OB, base->object);
+				base->object= newlibadr_us_type(fd, sce->id.lib, ID_OB, base->object);
 				
 				/* when save during radiotool, needs cleared */
 				base->flag &= ~OB_RADIO;
