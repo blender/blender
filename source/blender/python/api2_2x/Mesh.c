@@ -1696,6 +1696,18 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		}
 	}
 
+	/*
+	 * if there are vertex groups, also have to fix them
+	 */
+
+	if( mesh->dvert ) {
+		MDeformVert *newdvert;
+		newdvert = MEM_callocN( sizeof(MDeformVert)*newlen , "mesh defVert" );
+		memcpy( newdvert, mesh->dvert, sizeof(MDeformVert)*mesh->totvert );
+		MEM_freeN( mesh->dvert );
+		mesh->dvert = newdvert;
+	}
+
 	/* set final vertex list size */
 	mesh->totvert = newlen;
 
