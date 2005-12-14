@@ -248,6 +248,7 @@ static OldNewMap *oldnewmap_new(void)
 	return onm;
 }
 
+/* nr is zero for data, and ID code for libdata */
 static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int nr) 
 {
 	OldNew *entry;
@@ -314,20 +315,16 @@ static void *oldnewmap_liblookup_and_inc(OldNewMap *onm, void *addr, void *lib)
 		}
 	}
 
-	/* note; we go backwards over this list, to prevent a case that still needs fix;
-	   if 1 library has blocks used both direct and indirect, it has two entries in this
-		table, and only the first entry gets remapped in change_lib_adr. */
-	
-	for (i=onm->nentries-1; i>=0; i--) {
+	for (i=0; i<onm->nentries; i++) {
 		OldNew *entry= &onm->entries[i];
 
 		if (entry->old==addr) {
 			ID *id= entry->newp;
 
+//			if(setval) printf("ack double hit for %s and %s\n", id->name, ((ID *)setval)->name);
+			
 			if (id && (!lib || id->lib)) {
 				entry->nr++;
-
-				//if(retval) printf("ack double hit for %s and %s\n", id->name, ((ID *)retval)->name);
 				return entry->newp;
 			}
 		}
@@ -1111,7 +1108,8 @@ static void change_libadr(FileData *fd, void *old, void *new)
 	for (i=0; i<fd->libmap->nentries; i++) {
 		OldNew *entry= &fd->libmap->entries[i];
 
-		if (old==entry->newp) {
+		/* narrowing down the amount of possibilities with a check for ID_ID */
+		if (old==entry->newp && entry->nr==ID_ID) {
 			entry->newp= new;
 			break;
 		}
@@ -2087,8 +2085,9 @@ static void lib_link_mesh(FileData *fd, Main *main)
 
 			/* this check added for python created meshes */
 			if(me->mat) {
-				for(i=0; i<me->totcol; i++)
+				for(i=0; i<me->totcol; i++) {
 					me->mat[i]= newlibadr_us(fd, me->id.lib, me->mat[i]);
+				}
 			}
 			else me->totcol= 0;
 
@@ -3275,8 +3274,8 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		*id_r= id;
 	if (!id)
 		return blo_nextbhead(fd, bhead);
-
-	oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+	
+	oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);	/* for ID_ID check */
 	BLI_addtail(lb, id);
 
 	/* clear first 8 bits */
@@ -3318,7 +3317,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	case ID_SO: str= "ID_SO"; break;
 	case ID_SAMPLE: str= "ID_SAMPLE"; break;
 	case ID_GR: str= "ID_GR"; break;
-	case ID_ID: str= "ID_ID"; break;
 	case ID_SEQ: str= "ID_SEQ"; break;
 	case ID_AR: str= "ID_AR"; break;
 	case ID_AC: str= "ID_AC"; break;
@@ -5360,7 +5358,9 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				read_libblock(fd, mainvar, bhead, LIB_TESTIND, NULL);
 			}
 			else {
-				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+				/* removed line below... I *really* dont know whatfor (Id is read, so...) 
+				   it caused a whole lot of extra and unneeded oldmap entries */
+				/* oldnewmap_insert(fd->libmap, bhead->old, id, 1); */
 				/* printf("expand: already read %s\n", id->name); */
 			}
 		}

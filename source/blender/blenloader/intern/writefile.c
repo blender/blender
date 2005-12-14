@@ -1333,6 +1333,7 @@ static void write_libraries(WriteData *wd, Main *main)
 			while(a--) {
 				id= lbarray[a]->first;
 				while(id) {
+					if(G.rt==127 && GS(id->name)!=ID_GR) break;
 					if(id->us>0 && (id->flag & LIB_EXTERN)) {
 
 						writestruct(wd, ID_ID, "ID", 1, id);
