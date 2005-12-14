@@ -145,7 +145,7 @@ int NMesh_CheckPyObject( PyObject * pyobj );
 
 void mesh_update( Mesh * mesh , Object * ob );
 PyObject *new_NMesh( Mesh * oldmesh );
-Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges );
+Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh );
 PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob );
 Material **nmesh_updateMaterials( BPy_NMesh * nmesh );
 Material **newMaterialList_fromPyList( PyObject * list );

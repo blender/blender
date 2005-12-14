@@ -90,7 +90,7 @@ extern void countall(void);
 static PyObject *g_nmeshmodule = NULL;
 
 static int unlink_existingMeshData( Mesh * mesh );
-static int convert_NMeshToMesh( Mesh *mesh, BPy_NMesh *nmesh, int store_edges );
+static int convert_NMeshToMesh( Mesh *mesh, BPy_NMesh *nmesh );
 static void check_dverts(Mesh *me, int old_totverts);
 static PyObject *NMesh_printDebug( PyObject * self );
 static PyObject *NMesh_addEdge( PyObject * self, PyObject * args );
@@ -1330,11 +1330,11 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 	if( mesh ) {
 		old_totvert = mesh->totvert;
 		unlink_existingMeshData( mesh );
-		if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
+		if( !convert_NMeshToMesh( mesh, nmesh ) )
 			return NULL;
 		if (mesh->dvert) check_dverts(mesh, old_totvert);
 	} else {
-		mesh = Mesh_fromNMesh( nmesh, store_edges );
+		mesh = Mesh_fromNMesh( nmesh );
 		/* if mesh is NULL, there was an error */
 		if( !mesh )
 			return NULL;
@@ -1461,7 +1461,7 @@ static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 	return influence_list;
 }
 
-Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges )
+Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh )
 {
 	Mesh *mesh = NULL;
 	
@@ -1476,7 +1476,7 @@ Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges )
 	mesh->id.us = 0;	/* no user yet */
 	G.totmesh++;
 	
-	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
+	if( !convert_NMeshToMesh( mesh, nmesh ) )
 		return NULL;
 	
 	return mesh;
@@ -2890,6 +2890,14 @@ static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
     }
   }
 
+  /* tot_valid_faces_edges < 0 causes a sigsegv crash, so we
+   * clamp to prevent it
+   * (this is related to faces (correctly) requiring at least 3 verts now,
+   * which can break old scripts -- maybe we should also warn about the
+   * 'broken' mesh the user created, but for now, until we investigate
+   * better, this should do) */
+  if (tot_valid_faces_edges < 0) tot_valid_faces_edges = 0;
+
   /* Now we have the total count of valid edges */
   mesh->totedge=tot_valid_nmedges+tot_valid_faces_edges;
   mesh->medge=MEM_callocN(mesh->totedge*sizeof(MEdge), "make mesh edges");
@@ -2955,7 +2963,7 @@ static void check_dverts(Mesh *me, int old_totvert)
 	return;
 }
 
-static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh, int store_edges)
+static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 {
 	MFace *newmf;
 	TFace *newtf;
@@ -3183,7 +3191,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	old_totvert = mesh->totvert;
 
 	unlink_existingMeshData( mesh );
-	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
+	if( !convert_NMeshToMesh( mesh, nmesh ) )
 		return NULL;
 	nmesh->mesh = mesh;
 
@@ -3414,7 +3422,7 @@ Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob )
 		if( nmesh->mesh ) {
 			mesh = nmesh->mesh;
 		} else {
-			mesh = Mesh_fromNMesh( nmesh, 1 );
+			mesh = Mesh_fromNMesh( nmesh );
 			if( !mesh )	/* NULL means an PyError */
 				return NULL;
 

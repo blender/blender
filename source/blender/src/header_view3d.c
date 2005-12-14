@@ -157,6 +157,9 @@ void do_layer_buttons(short event)
 		
 		if(G.vd->scenelock) handle_view3d_lock();
 		scrarea_queue_winredraw(curarea);
+		
+		/* new layers might need unflushed events events */
+		DAG_scene_update_flags(G.scene, G.vd->lay);	// tags all that moves and flushes
 	}
 	else {
 		if(G.qual & LR_ALTKEY) {

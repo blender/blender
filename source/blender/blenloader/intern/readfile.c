@@ -1416,6 +1416,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 {
 	bPoseChannel *pchan;
 	bArmature *arm= ob->data;
+	int rebuild= 0;
 	if (!pose)
 		return;
 
@@ -1424,6 +1425,12 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		// hurms... loop in a loop, but yah... later... (ton)
 		pchan->bone= get_named_bone(arm, pchan->name);
 		pchan->custom= newlibadr(fd, arm->id.lib, pchan->custom);
+		if(pchan->bone==NULL)
+			rebuild= 1;
+	}
+	if(rebuild) {
+		ob->recalc= OB_RECALC;
+		pose->flag |= POSE_RECALC;
 	}
 }
 

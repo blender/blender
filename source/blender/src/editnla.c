@@ -983,7 +983,7 @@ void delete_nlachannel_keys(void)
 	bConstraintChannel *conchan;
 	bActionStrip *strip, *nextstrip;
 	
-	if (!okee("Erase selected keys"))
+	if (!okee("Erase selected strips and/or keys"))
 		return;
 	
 	for (base = G.scene->base.first; base; base=base->next){
