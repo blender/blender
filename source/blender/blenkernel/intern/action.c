@@ -204,7 +204,7 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	/* If not, create it and add it */
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	
-	strcpy (chan->name, name);
+	strncpy (chan->name, name, 31);
 	/* init vars to prevent mat errors */
 	chan->quat[0] = 1.0F;
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0F;
@@ -346,7 +346,7 @@ bActionChannel *verify_action_channel(bAction *act, const char *name)
 	if(chan==NULL) {
 		if (!chan) {
 			chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-			strcpy (chan->name, name);
+			strncpy (chan->name, name, 31);
 			BLI_addtail (&act->chanbase, chan);
 		}
 	}
