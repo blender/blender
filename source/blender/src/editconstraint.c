@@ -676,6 +676,7 @@ void add_constraint(int only_IK)
 		
 		con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 		BLI_addtail(&pchanact->constraints, con);
+		unique_constraint_name(con, &pchanact->constraints);
 		pchanact->constflag |= PCHAN_HAS_IK;	// for draw, but also for detecting while pose solving
 		if(nr==11) pchanact->constflag |= PCHAN_HAS_TARGET;
 	}
@@ -693,10 +694,12 @@ void add_constraint(int only_IK)
 		
 		if(pchanact) {
 			BLI_addtail(&pchanact->constraints, con);
+			unique_constraint_name(con, &pchanact->constraints);
 			pchanact->constflag |= PCHAN_HAS_CONST;	/* for draw */
 		}
 		else {
 			BLI_addtail(&ob->constraints, con);
+			unique_constraint_name(con, &ob->constraints);
 		}
 	}
 	
