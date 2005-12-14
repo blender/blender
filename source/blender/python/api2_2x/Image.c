@@ -66,8 +66,7 @@ short IMB_saveiff( struct ImBuf *ibuf, char *naam, int flags );
 /*****************************************************************************/
 /* Python API function prototypes for the Image module.	 */
 /*****************************************************************************/
-/*static PyObject *M_Image_New( PyObject * self, PyObject * args,
-			      PyObject * keywords );*/
+static PyObject *M_Image_New( PyObject * self, PyObject * args );
 static PyObject *M_Image_Get( PyObject * self, PyObject * args );
 static PyObject *M_Image_GetCurrent( PyObject * self );
 static PyObject *M_Image_Load( PyObject * self, PyObject * args );
@@ -79,8 +78,8 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args );
 /*****************************************************************************/
 static char M_Image_doc[] = "The Blender Image module\n\n";
 
-/*static char M_Image_New_doc[] =
-	"() - return a new Image object -- unimplemented";*/
+static char M_Image_New_doc[] =
+	"() - return a new Image object";
 
 static char M_Image_Get_doc[] =
 	"(name) - return the image with the name 'name', \
@@ -99,26 +98,40 @@ returns None if not found.\n";
 /* Python method structure definition for Blender.Image module:		 */
 /*****************************************************************************/
 struct PyMethodDef M_Image_methods[] = {
-	/*{"New", ( PyCFunction ) M_Image_New, METH_VARARGS | METH_KEYWORDS,
-	   M_Image_New_doc}, */
-	{"Get", (PyCFunction) M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"GetCurrent", (PyCFunction) M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},
-	{"get", (PyCFunction) M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"Load", (PyCFunction) M_Image_Load, METH_VARARGS, M_Image_Load_doc},
+	{"New", M_Image_New, METH_VARARGS, M_Image_New_doc},
+	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
+	{"GetCurrent", M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},
+	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
+	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
 
+
 /*****************************************************************************/
-/* Function:	M_Image_New	 (unimplemented) */
-/* Python equivalent:		Blender.Image.New    */
+/* Function:    M_Image_New     */
+/* Python equivalent:        Blender.Image.New    */
 /*****************************************************************************/
-/*static PyObject *M_Image_New( PyObject * self, PyObject * args,
-	PyObject * keywords )
+static PyObject *M_Image_New( PyObject * self, PyObject * args)
 {
-	Py_INCREF( Py_None );
-	return Py_None;
+	int width, height, depth;
+	char *name;
+	Image *img;
+	if( !PyArg_ParseTuple( args, "siii", &name, &width, &height, &depth ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected 1 string and 3 ints" ) );
+	if (width > 5000 || height > 5000 || width < 1 || height < 1)
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+					"Image width and height must be between 1 and 5000" ) );
+	img = new_image(width, height, name, 0);
+	if( !img )
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"couldn't create PyObject Image_Type" ) );
+	image_changed(img, 0);
+	return Image_CreatePyObject( img );
 }
-*/
+
+
+
 /*****************************************************************************/
 /* Function:		M_Image_Get	 */
 /* Python equivalent:	Blender.Image.Get   */
@@ -189,7 +202,7 @@ static PyObject *M_Image_Get( PyObject * self, PyObject * args )
 
 
 /*****************************************************************************/
-/* Function:		M_Image_GetCurrent	 */
+/* Function:		M_Image_GetCurrent*/
 /* Python equivalent:	Blender.Image.GetCurrent   */
 /* Description:		Returns the active current (G.sima)	 */
 /*			This will be the image last under the mouse cursor */
@@ -197,14 +210,11 @@ static PyObject *M_Image_Get( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Image_GetCurrent( PyObject * self )
 {
-	PyObject *current_img;
 	if (!G.sima || !G.sima->image) {
 		Py_RETURN_NONE;
 	}
-	current_img = Image_CreatePyObject( G.sima->image );
-	return current_img;
+	return Image_CreatePyObject( G.sima->image );
 }
-
 
 
 
@@ -574,10 +584,16 @@ static PyObject *Image_getDepth( BPy_Image * self );
 static PyObject *Image_getXRep( BPy_Image * self );
 static PyObject *Image_getYRep( BPy_Image * self );
 static PyObject *Image_getBindCode( BPy_Image * self );
+static PyObject *Image_getStart( BPy_Image * self );
+static PyObject *Image_getEnd( BPy_Image * self );
+static PyObject *Image_getSpeed( BPy_Image * self );
 static PyObject *Image_setName( BPy_Image * self, PyObject * args );
 static PyObject *Image_setFilename( BPy_Image * self, PyObject * args );
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
+static PyObject *Image_setStart( BPy_Image * self, PyObject * args );
+static PyObject *Image_setEnd( BPy_Image * self, PyObject * args );
+static PyObject *Image_setSpeed( BPy_Image * self, PyObject * args );
 static PyObject *Image_reload( BPy_Image * self );
 static PyObject *Image_glLoad( BPy_Image * self );
 static PyObject *Image_glFree( BPy_Image * self );
@@ -619,6 +635,12 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "() - Return Image object x repetition value"},
 	{"getYRep", ( PyCFunction ) Image_getYRep, METH_NOARGS,
 	 "() - Return Image object y repetition value"},
+	{"getStart", ( PyCFunction ) Image_getStart, METH_NOARGS,
+	 "() - Return Image object start frame."},
+	{"getEnd", ( PyCFunction ) Image_getEnd, METH_NOARGS,
+	 "() - Return Image object end frame."},
+	{"getSpeed", ( PyCFunction ) Image_getSpeed, METH_NOARGS,
+	 "() - Return Image object speed (fps)."},
 	{"getBindCode", ( PyCFunction ) Image_getBindCode, METH_NOARGS,
 	 "() - Return Image object's bind code value"},
 	{"reload", ( PyCFunction ) Image_reload, METH_NOARGS,
@@ -637,6 +659,12 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(int) - Change Image object x repetition value"},
 	{"setYRep", ( PyCFunction ) Image_setYRep, METH_VARARGS,
 	 "(int) - Change Image object y repetition value"},
+	{"setStart", ( PyCFunction ) Image_setStart, METH_VARARGS,
+	 "(int) - Change Image object animation start value"},
+	{"setEnd", ( PyCFunction ) Image_setEnd, METH_VARARGS,
+	 "(int) - Change Image object animation end value"},
+	{"setSpeed", ( PyCFunction ) Image_setEnd, METH_VARARGS,
+	 "(int) - Change Image object animation speed (fps)"},
 	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
 	 "() - Write image buffer to file"},
 	{NULL, NULL, 0, NULL}
@@ -816,6 +844,39 @@ static PyObject *Image_getYRep( BPy_Image * self )
 				      "couldn't get Image.yrep attribute" );
 }
 
+static PyObject *Image_getStart( BPy_Image * self )
+{
+	PyObject *attr = PyInt_FromLong( self->image->twsta );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Image.start attribute" );
+}
+
+static PyObject *Image_getEnd( BPy_Image * self )
+{
+	PyObject *attr = PyInt_FromLong( self->image->twend );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Image.end attribute" );
+}
+
+static PyObject *Image_getSpeed( BPy_Image * self )
+{
+	PyObject *attr = PyInt_FromLong( self->image->animspeed );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Image.speed attribute" );
+}
+
 static PyObject *Image_getBindCode( BPy_Image * self )
 {
 	PyObject *attr = PyLong_FromUnsignedLong( self->image->bindcode );
@@ -960,6 +1021,59 @@ static PyObject *Image_setYRep( BPy_Image * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+
+static PyObject *Image_setStart( BPy_Image * self, PyObject * args )
+{
+	short value;
+
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected int argument in [0,128]" ) );
+
+	if( value >= 0 && value <= 128 )
+		self->image->twsta = value;
+	else
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"expected int argument in [0,128]" ) );
+
+	Py_RETURN_NONE;
+}
+
+
+static PyObject *Image_setEnd( BPy_Image * self, PyObject * args )
+{
+	short value;
+
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected int argument in [0,128]" ) );
+
+	if( value >= 0 && value <= 128 )
+		self->image->twend = value;
+	else
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"expected int argument in [0,128]" ) );
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Image_setSpeed( BPy_Image * self, PyObject * args )
+{
+	short value;
+
+	if( !PyArg_ParseTuple( args, "h", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected int argument in [0,128]" ) );
+
+	if( value >= 1 && value <= 100 )
+		self->image->animspeed = value;
+	else
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"expected int argument in [0,128]" ) );
+
+	Py_RETURN_NONE;
+}
+
 /*****************************************************************************/
 /* Function:		Image_getAttr		 */
 /* Description: This is a callback function for the BPy_Image type. It is */
@@ -982,14 +1096,31 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 		attr = PyInt_FromLong( self->image->xrep );
 	else if( strcmp( name, "yrep" ) == 0 )
 		attr = PyInt_FromLong( self->image->yrep );
-	else if( strcmp( name, "bindcode" ) == 0 )
+	else if( strcmp( name, "start" ) == 0 )
+		attr = PyInt_FromLong( self->image->twsta );
+	else if( strcmp( name, "end" ) == 0 )
+		attr = PyInt_FromLong( self->image->twend );
+	else if( strcmp( name, "speed" ) == 0 )
+		attr = PyInt_FromLong( self->image->animspeed );
+	else if( strcmp( name, "packed" ) == 0 ) {
+		if (self->image->packedfile)  {
+			//Py_INCREF(Py_True);
+			attr = Py_True;
+		} else {
+			//Py_INCREF(Py_False);
+			attr = Py_False;
+		}
+		
+	} else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );
 	else if( strcmp( name, "users" ) == 0 )
 		attr = PyInt_FromLong( self->image->id.us );
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s]",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
 				      "name", "filename", "size", "depth",
-				      "xrep", "yrep", "bindcode", "users" );
+				      "xrep", "yrep", "start", "end",
+				      "speed", "packed",
+				      "bindcode", "users" );
 
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -1032,6 +1163,12 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 		error = Image_setXRep( self, valtuple );
 	else if( strcmp( name, "yrep" ) == 0 )
 		error = Image_setYRep( self, valtuple );
+	else if( strcmp( name, "start" ) == 0 )
+		error = Image_setStart( self, valtuple );
+	else if( strcmp( name, "end" ) == 0 )
+		error = Image_setEnd( self, valtuple );
+	else if( strcmp( name, "speed" ) == 0 )
+		error = Image_setSpeed( self, valtuple );
 	else {			/* Error: no such member in the Image object structure */
 		/*Py_DECREF( value ); borrowed ref, no need to decref */
 		Py_DECREF( valtuple );
