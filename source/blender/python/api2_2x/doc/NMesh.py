@@ -188,7 +188,7 @@ def PutRaw(nmesh, name = None, recalc_normals = 1, store_edges = 0):
      this nmesh data.  It can be an existing mesh data object or a new one.
   @param recalc_normals: If non-zero, the vertex normals for the mesh will
      be recalculated.
-  @param store_edges: if non-zero, the edges data are stored
+  @param store_edges: deprecated, edges are always stored now.
   @rtype: None or Object
   @return: It depends on the 'name' parameter:
       - I{name} refers to an existing mesh data obj already linked to an
@@ -587,7 +587,7 @@ class NMesh:
     @type recalc_normals: int (bool)
     @param recalc_normals: if nonzero the vertex normals are recalculated.
     @type store_edges: int (bool)
-    @param store_edges: if nonzero, then edge data is stored.
+    @param store_edges: deprecated, edges are always stored now.
     @type vertex_shade: int (bool)
     @param vertex_shade: if nonzero vertices are colored based on the
         current lighting setup, like when there are no vertex colors and no
