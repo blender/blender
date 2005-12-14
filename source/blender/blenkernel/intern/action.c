@@ -910,8 +910,10 @@ static void do_nla(Object *ob, int blocktype)
 				else{
 					if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
 						/* we want the strip to hold on the exact fraction of the repeat value */
+						
 						frametime = actlength * (strip->repeat-(int)strip->repeat);
-						frametime= bsystem_time(ob, 0, frametime, 0.0);
+						if(frametime<=0.000001f) frametime= actlength;	/* rounding errors... */
+						frametime= bsystem_time(ob, 0, frametime+strip->actstart, 0.0);
 						
 						if(blocktype==ID_AR)
 							extract_pose_from_action (tpose, strip->act, frametime);
