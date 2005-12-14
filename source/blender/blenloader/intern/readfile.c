@@ -461,7 +461,6 @@ void blo_split_main(ListBase *mainlist)
 	for (lib= mainl->library.first; lib; lib= lib->id.next) {
 		Main *libmain= MEM_callocN(sizeof(Main), "libmain");
 		libmain->curlib= lib;
-
 		BLI_addtail(mainlist, libmain);
 	}
 
@@ -476,16 +475,23 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 	Library *lib;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
 	char libname1[FILE_MAXDIR+FILE_MAXFILE];
+	
+//	printf("G.sce %s\n", G.sce);
 
-	/* name can be stringcode too */
+	/* name in stringcode too */
 	strcpy(name1, name);
-	BLI_convertstringcode(name1, G.sce, 0);
+	BLI_makestringcode(G.sce, name1);
+//	printf("original %s\n", name);
+//	printf("converted %s\n", name1);
+
 
 	for (m= mainlist->first; m; m= m->next) {
 		char *libname= (m->curlib)?m->curlib->name:m->name;
 		
+//		printf("libname %s\n", libname);
 		strcpy(libname1, libname);
-		BLI_convertstringcode(libname1, G.sce, 0);
+		BLI_makestringcode(G.sce, libname1);
+//		printf("libname1 %s\n", libname1, name1);
 		
 		if (BLI_streq(name1, libname1))
 			return m;
@@ -497,7 +503,8 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
 	strcpy(lib->name, name);
 	m->curlib= lib;
-
+	
+//	printf("added new lib %s\n", name);
 	return m;
 }
 
@@ -3125,10 +3132,25 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 /* ********** READ LIBRARY *************** */
 
 
-static void direct_link_library(FileData *fd, Library *lib)
+static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
 	Main *newmain;
-
+	Library *libr;
+	
+	for(newmain= fd->mainlist.first; newmain; newmain= newmain->next) {
+		if(newmain->curlib) {
+			if(strcmp(newmain->curlib->name, lib->name)==0) {
+				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->name);
+				
+				change_libadr(fd, lib, newmain->curlib);
+				
+				BLI_remlink(&main->library, lib);
+				MEM_freeN(lib);
+				return;
+			}
+		}
+	}
+	
 	/* new main */
 	newmain= MEM_callocN(sizeof(Main), "directlink");
 	BLI_addtail(&fd->mainlist, newmain);
@@ -3346,7 +3368,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			direct_link_world(fd, (World *)id);
 			break;
 		case ID_LI:
-			direct_link_library(fd, (Library *)id);
+			direct_link_library(fd, (Library *)id, main);
 			break;
 		case ID_CA:
 			direct_link_camera(fd, (Camera *)id);
@@ -5985,7 +6007,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	/* make copy of the 'last loaded filename', we need to restore it */
 	BLI_strncpy(filename, G.sce, sizeof(filename));
 	
-	BLI_strncpy(G.sce, fd->filename, sizeof(filename));		// already opened file, to reconstruct relative paths
+	BLI_strncpy(G.sce, G.main->name, sizeof(G.main->name));		// original file, to reconstruct relative paths for current append
 	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
