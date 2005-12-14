@@ -1564,7 +1564,14 @@ static void dag_object_time_update_flags(Object *ob)
 			ob->recalc |= OB_RECALC_DATA;
 		else if(exists_channel(ob, "Shape"))
 			ob->recalc |= OB_RECALC_DATA;
-		
+		else if(ob->dup_group) {
+			bActionStrip *strip;
+			/* this case is for groups with nla, whilst nla target has no action or nla */
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				if(strip->object)
+					strip->object->recalc |= OB_RECALC;
+			}
+		}
 	}
 	else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
 	else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
