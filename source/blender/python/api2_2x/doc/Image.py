@@ -31,14 +31,19 @@ def Load (filename):
   @return: A Blender Image object with the data from I{filename}.
   """
 
-def New (name):
+def New (name, width, height, depth):
   """
-  Create a new Image object (not implemented yet!).
+  Create a new Image object.
   @type name: string
   @param name: The name of the new Image object.
+  @type width: int
+  @param width: The width of the new Image object, between 1 and 5000.
+  @type height: int
+  @param height: The height of the new Image object, between 1 and 5000.
+  @type depth: int
+  @param depth: The colour depth of the new Image object. (8:Grey, 24:RGB, 32:RGBA). (Not implimented yet, all new images will be 24bit)
   @rtype: Blender Image
   @return: A new Blender Image object.
-  @warn: This function wasn't implemented yet.  It simply returns None.
   """
 
 def Get (name = None):
@@ -74,6 +79,10 @@ class Image:
      axis.
   @ivar yrep: Texture tiling: the number of repetitions in the y (vertical)
      axis.
+  @ivar start: Texture's animation start frame [0, 128].
+  @ivar end: Texture's animation end frame [0, 128].
+  @ivar speed: Texture's animation speed [1, 100].
+  @ivar packed: Boolean, True whe the Texture is packed (readonly).
   @ivar bindcode: Texture's bind code (readonly).
   """
 
@@ -161,6 +170,24 @@ class Image:
     @rtype: int
     """
 
+  def getStart():
+    """
+    Get the Image's start frame. Used for animated textures.
+    @rtype: int
+    """
+
+  def getEnd():
+    """
+    Get the Image's end frame. Used for animated textures.
+    @rtype: int
+    """
+
+  def getSpeed():
+    """
+    Get the Image's speed (fps). Used for animated textures.
+    @rtype: int
+    """
+
   def reload():
     """
     Reloads this image from the filesystem.  If used within a loop you need to
@@ -222,6 +249,27 @@ class Image:
     Texture tiling: set the number of y repetitions for this Image.
     @type yrep: int
     @param yrep: The new value in [1, 16].
+    """
+
+  def setStart(start):
+    """
+    Get the Image's start frame. Used for animated textures.
+    @type start: int
+    @param start: The new value in [0, 128].
+    """
+
+  def setEnd(end):
+    """
+    Set the Image's end frame. Used for animated textures.
+    @type end: int
+    @param end: The new value in [0, 128].
+    """
+
+  def setSpeed(speed):
+    """
+    Set the Image's speed (fps). Used for animated textures.
+    @type speed: int
+    @param speed: The new value in [1, 100].
     """
 
   def setPixelF(x, y, (r, g, b,a )):
