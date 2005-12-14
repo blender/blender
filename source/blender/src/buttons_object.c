@@ -1340,6 +1340,10 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
+	case B_GROUP_RELINK:
+		group_relink_nla_objects(OBACT);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 		
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
@@ -1510,7 +1514,7 @@ static void object_panel_anim(Object *ob)
 	uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",		234,130,82,20, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
 	
 	uiDefButBitS(block, TOG, OB_DUPLIGROUP, REDRAWVIEW3D, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
-	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, REDRAWVIEW3D, "GR:",	174,110,142,20, &ob->dup_group, "Duplicate this entire Group"); 
+	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Duplicate this entire Group"); 
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,85,141,19, &ob->dupsta, 1.0, (MAXFRAMEF - 1.0f), 0, 0, "Specify startframe for Dupliframes");

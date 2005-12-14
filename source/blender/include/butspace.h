@@ -248,6 +248,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_FLUIDSIM_SELDIR	    1451
 #define B_FLUIDSIM_FORCEREDRAW	1452
 
+#define B_GROUP_RELINK			1460
+
 /* *********************** */
 #define B_WORLDBUTS		1600
 

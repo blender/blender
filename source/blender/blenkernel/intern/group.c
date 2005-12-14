@@ -289,3 +289,32 @@ Object *group_get_member_with_action(Group *group, bAction *act)
 	}
 	return NULL;
 }
+
+/* if group has NLA, we try to map the used objects in NLA to group members */
+/* this assuming that object has received a new group link */
+void group_relink_nla_objects(Object *ob)
+{
+	Group *group;
+	GroupObject *go;
+	bActionStrip *strip;
+	
+	if(ob==NULL || ob->dup_group==NULL) return;
+	group= ob->dup_group;
+	
+	for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+		if(strip->object) {
+			for(go= group->gobject.first; go; go= go->next) {
+				if(go->ob) {
+					if(strcmp(go->ob->id.name, strip->object->id.name)==0)
+						break;
+				}
+			}
+			if(go)
+				strip->object= go->ob;
+			else
+				strip->object= NULL;
+		}
+			
+	}
+}
+

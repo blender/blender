@@ -51,6 +51,7 @@ int			object_in_group(struct Object *ob, struct Group *group);
 void		group_tag_recalc(struct Group *group);
 void		group_handle_recalc_and_update(struct Object *parent, struct Group *group);
 struct Object *group_get_member_with_action(struct Group *group, struct bAction *act);
+void		group_relink_nla_objects(struct Object *ob);
 
 #endif
 
