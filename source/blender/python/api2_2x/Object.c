@@ -197,6 +197,7 @@ static PyObject *Object_setEuler( BPy_Object * self, PyObject * args );
 static PyObject *Object_setMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_setIpo( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args );
+static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args );
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_setName( BPy_Object * self, PyObject * args );
@@ -517,6 +518,8 @@ works only if self and the object specified are of the same type."},
 	 "() - Unlink ipo from this object"},
 	 {"insertIpoKey", ( PyCFunction ) Object_insertIpoKey, METH_VARARGS,
 	 "( Object IPO type ) - Inserts a key into IPO"},
+	 {"insertPoseKey", ( PyCFunction ) Object_insertPoseKey, METH_VARARGS,
+	 "( Object Pose type ) - Inserts a key into Action"},
 	{"getAllProperties", ( PyCFunction ) Object_getAllProperties,
 	 METH_NOARGS,
 	 "() - Get all the properties from this object"},
@@ -2000,7 +2003,7 @@ static PyObject *Object_setIpo( BPy_Object * self, PyObject * args )
 static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 {
 	Object *ob= self->object;
-    int key = 0;
+	int key = 0;
 	char *actname= NULL;
     
 	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
@@ -2051,6 +2054,59 @@ static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 	EXPP_allqueue(REDRAWVIEW3D, 0);
 	EXPP_allqueue(REDRAWACTION, 0);
 	EXPP_allqueue(REDRAWNLA, 0);
+
+	return EXPP_incr_ret( Py_None );
+}
+
+/*
+ * Object_insertPoseKey()
+ *  inserts Action Pose key (for LOC, ROT, SIZE, LOCROT, or LOCROTSIZE)
+ */
+
+static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
+{
+	Object *ob= self->object;
+	char *chanName;
+
+	/* for doing the time trick, similar to editaction bake_action_with_client() */
+	int oldframe;
+	int curframe;
+
+	if( !PyArg_ParseTuple( args, "si", &chanName, &curframe ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,										"expected a string and an int argument" ) );
+
+	oldframe = G.scene->r.cfra;
+	G.scene->r.cfra = curframe;
+
+	/* Apply the object ipo */
+	/* uses the current action of the object */
+	extract_pose_from_action(ob->pose, ob->action, curframe);
+	where_is_pose(ob);
+
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z);
+	
+	allspace(REMAKEIPO, 0);
+	EXPP_allqueue(REDRAWIPO, 0);
+	EXPP_allqueue(REDRAWVIEW3D, 0);
+	EXPP_allqueue(REDRAWACTION, 0);
+	EXPP_allqueue(REDRAWNLA, 0);
+
+	G.scene->r.cfra = oldframe;
+
+	/* restore */
+	extract_pose_from_action(ob->pose, ob->action, G.scene->r.cfra);
+	where_is_pose(ob);
+	
+	allqueue(REDRAWACTION, 1);
 
 	return EXPP_incr_ret( Py_None );
 }
