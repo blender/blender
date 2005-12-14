@@ -456,93 +456,6 @@ void filesel_statistics(SpaceFile *sfile, int *totfile, int *selfile, float *tot
 
 /* *************** HELP FUNCTIONS ******************* */
 
-/* This is a really ugly function... its purpose is to
- * take the space file name and clean it up, replacing
- * excess file entry stuff (like /tmp/../tmp/../)
- */
-
-void checkdir(char *dir)
-{
-	short a;
-	char *start, *eind;
-	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-
-	BLI_make_file_string(G.sce, tmp, dir, "");
-	strcpy(dir, tmp);
-	
-#ifdef WIN32
-	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
-		dir[0]= '\\';
-		dir[1]= 0;
-		return;
-	}	
-
-	while ( (start = strstr(dir, "\\..\\")) ) {
-		eind = start + strlen("\\..\\") - 1;
-		a = start-dir-1;
-		while (a>0) {
-			if (dir[a] == '\\') break;
-			a--;
-		}
-		strcpy(dir+a,eind);
-	}
-
-	while ( (start = strstr(dir,"\\.\\")) ){
-		eind = start + strlen("\\.\\") - 1;
-		strcpy(start,eind);
-	}
-
-	while ( (start = strstr(dir,"\\\\" )) ){
-		eind = start + strlen("\\\\") - 1;
-		strcpy(start,eind);
-	}
-
-	if((a = strlen(dir))){				/* remove the '\\' at the end */
-		while(a>0 && dir[a-1] == '\\'){
-			a--;
-			dir[a] = 0;
-		}
-	}
-
-	strcat(dir, "\\");
-#else	
-	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
-		dir[0]= '/';
-		dir[1]= 0;
-		return;
-	}	
-	
-	while ( (start = strstr(dir, "/../")) ) {
-		eind = start + strlen("/../") - 1;
-		a = start-dir-1;
-		while (a>0) {
-			if (dir[a] == '/') break;
-			a--;
-		}
-		strcpy(dir+a,eind);
-	}
-
-	while ( (start = strstr(dir,"/./")) ){
-		eind = start + strlen("/./") - 1;
-		strcpy(start,eind);
-	}
-
-	while ( (start = strstr(dir,"//" )) ){
-		eind = start + strlen("//") - 1;
-		strcpy(start,eind);
-	}
-
-	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
-		while(dir[a-1] == '/'){
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
-
-	strcat(dir, "/");
-#endif
-}
 
 /* not called when browsing .blend itself */
 void test_flags_file(SpaceFile *sfile)
@@ -1353,7 +1266,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	}
 	else {	/* FILE_BLENDER */
 		split_sfile(sfile, name);	/* test filelist too */
-		checkdir(sfile->dir);
+		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		/* free: filelist and libfiledata became incorrect */
 		if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
@@ -1387,7 +1300,7 @@ void activate_imageselect(int type, char *title, char *file, void (*func)(char *
 	else simasel->mode &= ~IMS_STRINGCODE;
 	
 	BLI_split_dirfile(name, dir, simasel->file);
-	checkdir(simasel->dir);
+	BLI_cleanup_dir(G.sce, simasel->dir);
 	if(strcmp(dir, simasel->dir)!=0) simasel->fase= 0;
 	strcpy(simasel->dir, dir);
 	
@@ -1616,7 +1529,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 	}
 	else if(event== 2) {
 		/* reuse the butname variable */
-		checkdir(sfile->dir);
+		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		BLI_make_file_string(G.sce, butname, sfile->dir, "");
 		/* strip the trailing slash if its a real dir */
@@ -1642,7 +1555,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		if (selected) {
 			strcpy(sfile->dir, selected);
 			BLI_make_exist(sfile->dir);
-			checkdir(sfile->dir);
+			BLI_cleanup_dir(G.sce, sfile->dir);
 			freefilelist(sfile);
 			sfile->ofs= 0;
 			scrarea_queue_winredraw(curarea);
@@ -1921,7 +1834,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(S_ISDIR(sfile->filelist[act].type)) {
 						strcat(sfile->dir, sfile->filelist[act].relname);
 						strcat(sfile->dir,"/");
-						checkdir(sfile->dir);
+						BLI_cleanup_dir(G.sce, sfile->dir);
 						freefilelist(sfile);
 						sfile->ofs= 0;
 						do_draw= 1;

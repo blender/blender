@@ -179,7 +179,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			queredraw = 1;
 			
 		case 1: /* dir entry */
-			checkdir(simasel->dir);
+			BLI_cleanup_dir(G.sce, simasel->dir);
 			clear_ima_dir(simasel);
 			queredraw = 1;
 			break;
@@ -188,7 +188,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			selname= fsmenu_get_entry(simasel->fileselmenuitem-1);
 			if (selname) {
 				strcpy(simasel->dir, selname);
-				checkdir(simasel->dir);
+				BLI_cleanup_dir(G.sce, simasel->dir);
 				clear_ima_dir(simasel);
 			    queredraw = 1;
 			}
@@ -349,7 +349,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 		if (G.qual == 0){
 			imadir_parent(simasel);
-			checkdir(simasel->dir);
+			BLI_cleanup_dir(G.sce, simasel->dir);
 			clear_ima_dir(simasel);
 			queredraw = 1;
 		}

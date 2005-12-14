@@ -431,6 +431,96 @@ int BLI_strcaseeq(char *a, char *b) {
 	return (BLI_strcasecmp(a, b)==0);
 }
 
+/* ******************** string encoding ***************** */
+
+/* This is quite an ugly function... its purpose is to
+ * take the dir name, make it absolute, and clean it up, replacing
+ * excess file entry stuff (like /tmp/../tmp/../)
+ * note that dir isn't protected for max string names... 
+ */
+
+void BLI_cleanup_dir(const char *relabase, char *dir)
+{
+	short a;
+	char *start, *eind;
+	
+	BLI_convertstringcode(dir, relabase, 0);
+	
+#ifdef WIN32
+	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
+	   dir[0]= '\\';
+	   dir[1]= 0;
+	   return;
+	}	
+
+	while ( (start = strstr(dir, "\\..\\")) ) {
+		eind = start + strlen("\\..\\") - 1;
+		a = start-dir-1;
+		while (a>0) {
+			if (dir[a] == '\\') break;
+			a--;
+		}
+		strcpy(dir+a,eind);
+	}
+
+	while ( (start = strstr(dir,"\\.\\")) ){
+		eind = start + strlen("\\.\\") - 1;
+		strcpy(start,eind);
+	}
+
+	while ( (start = strstr(dir,"\\\\" )) ){
+		eind = start + strlen("\\\\") - 1;
+		strcpy(start,eind);
+	}
+
+	if((a = strlen(dir))){				/* remove the '\\' at the end */
+		while(a>0 && dir[a-1] == '\\'){
+			a--;
+			dir[a] = 0;
+		}
+	}
+
+	strcat(dir, "\\");
+#else	
+	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
+	   dir[0]= '/';
+	   dir[1]= 0;
+	   return;
+	}	
+
+	while ( (start = strstr(dir, "/../")) ) {
+		eind = start + strlen("/../") - 1;
+		a = start-dir-1;
+		while (a>0) {
+			if (dir[a] == '/') break;
+			a--;
+		}
+		strcpy(dir+a,eind);
+	}
+
+	while ( (start = strstr(dir,"/./")) ){
+		eind = start + strlen("/./") - 1;
+		strcpy(start,eind);
+	}
+
+	while ( (start = strstr(dir,"//" )) ){
+		eind = start + strlen("//") - 1;
+		strcpy(start,eind);
+	}
+
+	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
+		while(dir[a-1] == '/'){
+			a--;
+			dir[a] = 0;
+			if (a<=0) break;
+		}
+	}
+
+	strcat(dir, "/");
+#endif
+}
+
+
 void BLI_makestringcode(const char *relfile, char *file)
 {
 	char * p;
@@ -491,7 +581,7 @@ void BLI_makestringcode(const char *relfile, char *file)
 		}
 
 		strcat(res, q+1); /* don't copy the slash at the beginning */
-
+		
 #ifdef	WIN32
 		BLI_char_switch(res+2, '/', '\\');
 #endif
@@ -499,7 +589,7 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
-int BLI_convertstringcode(char *path, char *basepath, int framenum)
+int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 {
 	int len, wasrelative;
 	char tmp[FILE_MAXDIR+FILE_MAXFILE];

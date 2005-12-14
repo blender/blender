@@ -112,6 +112,13 @@ void BLI_freelinkN(ListBase *listbase, void *vlink);
 void BLI_splitdirstring(char *di,char *fi);
 
 	/**
+	 * dir can be any input, like from buttons, and this function
+	 * converts it to a regular full path.
+	 * Also removes garbage from directory paths, like /../ or double slashes etc 
+	 */
+void BLI_cleanup_dir(const char *relabase, char *dir);
+
+	/**
 	 * Blender's path code replacement function.
 	 * Bases @a path strings leading with "//" by the
 	 * directory @a basepath, and replaces instances of
@@ -123,7 +130,7 @@ void BLI_splitdirstring(char *di,char *fi);
 	 * @a framenum The framenumber to replace the frame code with.
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
-int BLI_convertstringcode(char *path, char *basepath, int framenum);
+int BLI_convertstringcode(char *path, const char *basepath, int framenum);
 
 void BLI_makestringcode(const char *relfile, char *file);
 

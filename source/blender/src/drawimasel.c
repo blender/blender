@@ -865,7 +865,7 @@ void drawimaselspace(ScrArea *sa, void *spacedata)
 	myortho2(-0.375, (float)(curarea->winx)-0.375, -0.375, (float)(curarea->winy)-0.375);
 	
 	if (simasel->fase == 0){
-		checkdir(simasel->dir);
+		BLI_cleanup_dir(G.sce, simasel->dir);
 		clear_ima_dir(simasel);
 	}
 

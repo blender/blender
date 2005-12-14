@@ -469,6 +469,15 @@ void blo_split_main(ListBase *mainlist)
 		split_libdata(lbarray[i], mainl->next);
 }
 
+static void cleanup_path(const char *relabase, char *name)
+{
+	char filename[FILE_MAXFILE];
+	
+	BLI_splitdirstring(name, filename);
+	BLI_cleanup_dir(relabase, name);
+	strcat(name, filename);
+}
+
 static Main *blo_find_main(ListBase *mainlist, char *name)
 {
 	Main *m;
@@ -477,24 +486,25 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 	char libname1[FILE_MAXDIR+FILE_MAXFILE];
 	
 //	printf("G.sce %s\n", G.sce);
-
-	/* name in stringcode too */
+	/* everything in absolute paths now */
+	
 	strcpy(name1, name);
-	BLI_makestringcode(G.sce, name1);
-//	printf("original %s\n", name);
-//	printf("converted %s\n", name1);
-
+	cleanup_path(G.sce, name1);
+//	printf("original in  %s\n", name);
+//	printf("converted in %s\n", name1);
 
 	for (m= mainlist->first; m; m= m->next) {
 		char *libname= (m->curlib)?m->curlib->name:m->name;
 		
 //		printf("libname %s\n", libname);
 		strcpy(libname1, libname);
-		BLI_makestringcode(G.sce, libname1);
+		cleanup_path(G.sce, libname1);
 //		printf("libname1 %s\n", libname1, name1);
 		
-		if (BLI_streq(name1, libname1))
+		if (BLI_streq(name1, libname1)) {
+			printf("found library %s\n", libname);
 			return m;
+		}
 	}
 
 	m= MEM_callocN(sizeof(Main), "find_main");
@@ -504,7 +514,7 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 	strcpy(lib->name, name);
 	m->curlib= lib;
 	
-//	printf("added new lib %s\n", name);
+	printf("added new lib %s\n", name);
 	return m;
 }
 
@@ -5320,6 +5330,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 			if(bheadlib) {
 				// BHEAD+DATA dependancy
 				Library *lib= (Library *)(bheadlib+1);
+				/* we read the lib->name directly from the bhead, potential danger (64 bits?) */
 				mainvar= blo_find_main(&fd->mainlist, lib->name);
 
 				id= is_yet_read(mainvar, bhead);
