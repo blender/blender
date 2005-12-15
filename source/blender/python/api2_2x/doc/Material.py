@@ -25,8 +25,18 @@ Example::
 
 @type Modes: readonly dictionary
 @var Modes: The available Material Modes.
+
+  B{Note}: Some Modes are only available when the 'Halo' mode is I{off} and
+  others only when it is I{on}.  But these two subsets of modes share the same
+  numerical values in their Blender C #defines. So, for example, if 'Halo' is
+  on, then 'NoMist' is actually interpreted as 'HaloShaded'.  We marked all
+  such possibilities in the Modes dict below: each halo-related mode that
+  uses an already taken value is preceded by "+" and appear below the normal
+  mode which also uses that value.
+
     - TRACEABLE    - Make Material visible for shadow lamps.
     - SHADOW       - Enable Material for shadows.
+    - SHADOWBUF    - Enable Material to cast shadows with shadow buffers.
     - SHADELESS    - Make Material insensitive to light or shadow.
     - WIRE         - Render only the edges of faces.
     - VCOL_LIGHT   - Add vertex colors as extra light.
@@ -34,28 +44,26 @@ Example::
     - HALO         - Render as a halo.
     - ZTRANSP      - Z-buffer transparent faces.
     - ZINVERT      - Render with inverted Z-buffer.
-    - - HALORINGS  - Render rings over the basic halo.
+    - + HALORINGS  - Render rings over the basic halo.
     - ENV          - Do not render Material.
-    - - HALOLINES  - Render star shaped lines over the basic halo.
+    - + HALOLINES  - Render star shaped lines over the basic halo.
     - ONLYSHADOW   - Let alpha be determined on the degree of shadow.
-    - - HALOXALPHA - Use extreme alpha.
-    - TEXFACE      - UV-Editor assigned texture gives color and texture info
-        for faces.
-    - - HALOSTAR   - Render halo as a star.
+    - + HALOXALPHA - Use extreme alpha.
+    - TEXFACE      - UV-Editor assigned texture gives color and texture info for faces.
+    - + HALOSTAR   - Render halo as a star.
     - NOMIST       - Set the Material insensitive to mist.
-    - - HALOSHADED - Let halo receive light.
+    - + HALOSHADED - Let halo receive light.
     - HALOTEX      - Give halo a texture.
     - HALOPUNO     - Use the vertex normal to specify the dimension of the halo.
     - HALOFLARE    - Render halo as a lens flare.
     - RAYMIRROR    - Enables raytracing for mirror reflection rendering.
     - RAYTRANSP    - Enables raytracing for transparency rendering.
-@warn: Some Modes are only available when the 'Halo' mode is I{off} and
-    others only when it is I{on}.  But these two subsets of modes share the same
-    numerical values in their Blender C #defines. So, for example, if 'Halo' is
-    on, then 'NoMist' is actually interpreted as 'HaloShaded'.  We marked all
-    such possibilities in the Modes dict below: each halo-related mode that
-    uses an already taken value is preceded by "-" and appear below the normal
-    mode which also uses that value.
+    - RAYBIAS      - Prevent ray traced shadow errors with Phong interpolated normals.
+    - RAMPCOL      - Status of colorband ramp for Material's diffuse color.  This is a read-only bit.
+    - RAMPSPEC     - Status of colorband ramp for Material's specular color.  This is a read-only bit.
+    - TANGENTSTR   - Uses direction of strands as normal for tangent-shading.
+    - TRANSPSHADOW - Lets Material receive transparent shadows based on material color and alpha.
+    - FULLOSA      - Force rendering of all OSA samples.
 
 @type Shaders: readonly dictionary
 @var Shaders: The available Material Shaders.

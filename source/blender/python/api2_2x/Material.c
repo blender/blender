@@ -324,6 +324,13 @@ static PyObject *Material_ModesDict( void )
 
 		PyConstant_Insert(c, "TRACEABLE", PyInt_FromLong(MA_TRACEBLE));
 		PyConstant_Insert(c, "SHADOW", PyInt_FromLong(MA_SHADOW));
+		PyConstant_Insert(c, "SHADOWBUF", PyInt_FromLong(MA_SHADBUF));
+		PyConstant_Insert(c, "TANGENTSTR", PyInt_FromLong(MA_TANGENT_STR));
+		PyConstant_Insert(c, "FULLOSA", PyInt_FromLong(MA_FULL_OSA));
+		PyConstant_Insert(c, "RAYBIAS", PyInt_FromLong(MA_RAYBIAS));
+		PyConstant_Insert(c, "TRANSPSHADOW", PyInt_FromLong(MA_SHADOW_TRA));
+		PyConstant_Insert(c, "RAMPCOL", PyInt_FromLong(MA_RAMP_COL));
+		PyConstant_Insert(c, "RAMPSPEC", PyInt_FromLong(MA_RAMP_SPEC));
 		PyConstant_Insert(c, "SHADELESS", PyInt_FromLong(MA_SHLESS));
 		PyConstant_Insert(c, "WIRE", PyInt_FromLong(MA_WIRE));
 		PyConstant_Insert(c, "VCOL_LIGHT", PyInt_FromLong(MA_VERTEXCOL));
@@ -1912,46 +1919,20 @@ static int Material_setName( BPy_Material * self, PyObject * value )
 static int Material_setMode( BPy_Material * self, PyObject * value )
 {
 	int param;
-	int bitmask = MA_TRACEBLE
-				| MA_SHADOW
-				| MA_SHLESS
-				| MA_WIRE
-				| MA_VERTEXCOL
-				| MA_VERTEXCOLP
-				| MA_HALO
-				| MA_ZTRA
-				| MA_ZINV
-				| MA_HALO_RINGS
-				| MA_HALO_LINES
-				| MA_ONLYSHADOW
-				| MA_HALO_XALPHA
-				| MA_STAR
-				| MA_FACETEXTURE
-				| MA_HALOTEX
-				| MA_HALOPUNO
-				| MA_NOMIST
-				| MA_HALO_SHADE
-				| MA_HALO_FLARE
-				| MA_RADIO
-				| MA_RAYMIRROR
-				| MA_ZTRA
-				| MA_RAYTRANSP
-				| MA_ONLYSHADOW
-				| MA_NOMIST
-				| MA_ENV;
 
 	if( !PyInt_CheckExact ( value ) ) {
 		char errstr[128];
-		sprintf ( errstr , "expected int bitmask of 0x%08x", bitmask );
+		sprintf ( errstr , "expected int bitmask of 0x%08x", MA_MODE_MASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 	param = PyInt_AS_LONG ( value );
 
-	if ( ( param & bitmask ) != param )
+	if ( ( param & MA_MODE_MASK ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 						"invalid bit(s) set in mask" );
 
-	self->material->mode = param;
+	self->material->mode &= ( MA_RAMP_COL | MA_RAMP_SPEC );
+	self->material->mode |= param & ~( MA_RAMP_COL | MA_RAMP_SPEC );
 
 	return 0;
 }
@@ -2938,34 +2919,6 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 		NULL, NULL, NULL, NULL, NULL, NULL
 	};
-	static int bitmask = MA_TRACEBLE
-				| MA_SHADOW
-				| MA_SHLESS
-				| MA_WIRE
-				| MA_VERTEXCOL
-				| MA_VERTEXCOLP
-				| MA_HALO
-				| MA_ZTRA
-				| MA_ZINV
-				| MA_HALO_RINGS
-				| MA_HALO_LINES
-				| MA_ONLYSHADOW
-				| MA_HALO_XALPHA
-				| MA_STAR
-				| MA_FACETEXTURE
-				| MA_HALOTEX
-				| MA_HALOPUNO
-				| MA_NOMIST
-				| MA_HALO_SHADE
-				| MA_HALO_FLARE
-				| MA_RADIO
-				| MA_RAYMIRROR
-				| MA_ZTRA
-				| MA_RAYTRANSP
-				| MA_ONLYSHADOW
-				| MA_NOMIST
-				| MA_ENV;
-
 
 	/* 
 	 * check for a single integer argument; do a quick check for now
@@ -2975,7 +2928,7 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 	if ( (PySequence_Size( args ) == 1)
 		    && PyInt_Check ( PyTuple_GET_ITEM ( args , 0 ) )
 		    && PyArg_ParseTuple( args, "i", &flag ) 
-			&& (flag & bitmask) == flag ) {
+			&& (flag & MA_MODE_MASK ) == flag ) {
 			ok = 1;
 
 	/*
