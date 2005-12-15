@@ -3071,7 +3071,7 @@ static void material_panel_shading(Material *ma)
 
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, MA_SHADOW, 0,	"Shadow",			245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
-		uiDefButBitI(block, TOG, MA_SHADOW_TRA, 0, "TraShadow",		245,100,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiDefButBitI(block, TOG, MA_SHADOW_TRA, 0, "TraShadow",		245,100,65,19, &(ma->mode), 0, 0, 0, 0, "Receives transparent shadows based at material color and alpha");
 		uiDefButBitI(block, TOG, MA_RAYBIAS, 0, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 		uiBlockEndAlign(block);
 
