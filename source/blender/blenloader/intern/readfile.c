@@ -228,7 +228,7 @@ typedef struct OldNew {
 typedef struct OldNewMap {
 	OldNew *entries;
 	int nentries, entriessize;
-
+	int sorted;
 	int lasthit;
 } OldNewMap;
 
@@ -242,10 +242,27 @@ static OldNewMap *oldnewmap_new(void)
 	OldNewMap *onm= MEM_mallocN(sizeof(*onm), "OldNewMap");
 	onm->lasthit= 0;
 	onm->nentries= 0;
+	onm->sorted= 0;
 	onm->entriessize= 1024;
 	onm->entries= MEM_mallocN(sizeof(*onm->entries)*onm->entriessize, "OldNewMap.entries");
 
 	return onm;
+}
+
+static int verg_oldnewmap(const void *v1, const void *v2)
+{
+	const struct OldNew *x1=v1, *x2=v2;
+	
+	if( x1->old > x2->old) return 1;
+	else if( x1->old < x2->old) return -1;
+	return 0;
+}
+
+
+static void oldnewmap_sort(FileData *fd) 
+{
+	qsort(fd->libmap->entries, fd->libmap->nentries, sizeof(OldNew), verg_oldnewmap);
+	fd->libmap->sorted= 1;
 }
 
 /* nr is zero for data, and ID code for libdata */
@@ -297,34 +314,36 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr)
 	return NULL;
 }
 
-static void *oldnewmap_liblookup_and_inc(OldNewMap *onm, void *addr, void *lib) 
+/* for libdate, nr has ID code, no increment */
+static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib) 
 {
 	int i;
 	
-	if (onm->lasthit<onm->nentries-1) {
-		OldNew *entry= &onm->entries[++onm->lasthit];
-
-		if (entry->old==addr) {
+	if(addr==NULL) return NULL;
+	
+	/* lasthit works fine for non-libdata, linking there is done in same sequence as writing */
+	if(onm->sorted) {
+		OldNew entry_s, *entry;
+		
+		entry_s.old= addr;
+		
+		entry= bsearch(&entry_s, onm->entries, onm->nentries, sizeof(OldNew), verg_oldnewmap);
+		if(entry) {
 			ID *id= entry->newp;
-
+			
 			if (id && (!lib || id->lib)) {
-				entry->nr++;
-
 				return entry->newp;
 			}
 		}
 	}
-
+	
 	for (i=0; i<onm->nentries; i++) {
 		OldNew *entry= &onm->entries[i];
 
 		if (entry->old==addr) {
 			ID *id= entry->newp;
 
-//			if(setval) printf("ack double hit for %s and %s\n", id->name, ((ID *)setval)->name);
-			
 			if (id && (!lib || id->lib)) {
-				entry->nr++;
 				return entry->newp;
 			}
 		}
@@ -1045,7 +1064,7 @@ static void *newglobadr(FileData *fd, void *adr)		/* direct datablocks with glob
 
 static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
 {
-	return oldnewmap_liblookup_and_inc(fd->libmap, adr, lib);
+	return oldnewmap_liblookup(fd->libmap, adr, lib);
 }
 
 static void *newlibadr_us_type(FileData *fd, void *lib, short type, void *adr)	/* only Lib data */
@@ -5170,6 +5189,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 static void lib_link_all(FileData *fd, Main *main)
 {
+	oldnewmap_sort(fd);
+	
 	lib_link_screen(fd, main);
 	lib_link_scene(fd, main);
 	lib_link_object(fd, main);
