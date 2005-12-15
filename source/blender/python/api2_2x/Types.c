@@ -68,7 +68,6 @@ void types_InitAll( void )
 	NMFace_Type.ob_type = &PyType_Type;
 	NMVert_Type.ob_type = &PyType_Type;
 	NMesh_Type.ob_type = &PyType_Type;
-	Mesh_Type.ob_type = &PyType_Type;
 	MFace_Type.ob_type = &PyType_Type;
    	MVert_Type.ob_type = &PyType_Type;
    	PVert_Type.ob_type = &PyType_Type;
