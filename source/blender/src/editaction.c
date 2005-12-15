@@ -2148,6 +2148,46 @@ static void numbuts_action(void)
     }
 }
 
+static void insert_test(void)
+{
+	Object *ob= OBACT;
+	bActionChannel *achan;
+	int oldframe;
+	
+	if(ob==NULL || ob->pose==NULL || ob->action==NULL) return;
+	printf("In the call\n");
+	
+	/* uses the current action of the object */
+	extract_pose_from_action(ob->pose, ob->action, G.scene->r.cfra);
+	
+	oldframe = G.scene->r.cfra;
+	G.scene->r.cfra = G.rt;
+	
+	for (achan = ob->action->chanbase.first; achan; achan=achan->next) {
+		if(achan->ipo) {
+			printf("inserted %s\n", achan->name);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_LOC_X);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_LOC_Y);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_LOC_Z);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_X);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_Y);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_Z);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_W);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_SIZE_X);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_SIZE_Y);
+			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_SIZE_Z);
+		}
+	}
+	
+	G.scene->r.cfra = oldframe;
+	
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWACTION, 1);
+}
+
 void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	extern void do_actionbuts(unsigned short event); // drawaction.c
@@ -2322,7 +2362,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			break;
-		
+		case JKEY:
+			insert_test();
+			break;
+			
 		case NKEY:
 			if(G.qual==0) {
 				numbuts_action();
