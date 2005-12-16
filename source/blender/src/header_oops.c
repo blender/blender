@@ -71,6 +71,9 @@
 
 #include "BKE_depsgraph.h"
 
+#include "BPY_extern.h"
+#include "BPY_menus.h"
+
 static int viewmovetemp = 0;
 
 void do_oops_buttons(short event)
@@ -82,7 +85,7 @@ void do_oops_buttons(short event)
 	switch(event) {
 	case B_OOPSHOME:
 		init_v2d_oops(curarea, curarea->spacedata.first);	// forces min/max to be reset
-		boundbox_oops();
+		boundbox_oops(0);
 		G.v2d->cur= G.v2d->tot;
 		dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);
 		dy= 0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin);
@@ -93,7 +96,21 @@ void do_oops_buttons(short event)
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
 		scrarea_queue_winredraw(curarea);
 		break;
-
+	
+	case B_OOPSVIEWSEL:
+		init_v2d_oops(curarea, curarea->spacedata.first);	// forces min/max to be reset
+		boundbox_oops(1);
+		G.v2d->cur= G.v2d->tot;
+		dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);
+		dy= 0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin);
+		G.v2d->cur.xmin-= dx;
+		G.v2d->cur.xmax+= dx;
+		G.v2d->cur.ymin-= dy;
+		G.v2d->cur.ymax+= dy;		
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
+		break;
+	
 	case B_NEWOOPS:
 		scrarea_queue_winredraw(curarea);
 		scrarea_queue_headredraw(curarea);
@@ -115,10 +132,13 @@ static void do_oops_viewmenu(void *arg, int event)
     case 2: /* View All */
 		do_oops_buttons(B_OOPSHOME);
 		break;
-	case 3: /* Maximize Window */
+    case 3: /* View All */
+		do_oops_buttons(B_OOPSVIEWSEL);
+		break;
+	case 4: /* Maximize Window */
 		/* using event B_FULL */
 		break;
-	case 4: /* show outliner */
+	case 5: /* show outliner */
 		{
 			SpaceOops *soops= curarea->spacedata.first;
 			if(soops->type==SO_OOPS || soops->type==SO_DEPSGRAPH) soops->type= SO_OUTLINER;
@@ -128,23 +148,23 @@ static void do_oops_viewmenu(void *arg, int event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
-	case 5:
+	case 6:
 		outliner_toggle_visible(curarea);
 		break;
-	case 6:
+	case 7:
 		outliner_show_hierarchy(curarea);
 		break;
-	case 7:
+	case 8:
 		outliner_show_active(curarea);
 		break;
-	case 8:
+	case 9:
 		outliner_one_level(curarea, 1);
 		break;
-	case 9:
+	case 10:
 		outliner_one_level(curarea, -1);
 		break;
 #ifdef SHOWDEPGRAPH
-	case 10:
+	case 11:
 		// show deps
 		{
 			SpaceOops *soops= curarea->spacedata.first;
@@ -172,9 +192,9 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_oops_viewmenu, NULL);
 	
 	if(soops->type==SO_OOPS) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 #ifdef SHOWDEPGRAPH
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Dependancies", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Dependancies", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 #endif
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
@@ -184,31 +204,32 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	}
 #ifdef SHOWDEPGRAPH
 	else if(soops->type==SO_DEPSGRAPH) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	}
 #endif
 	else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Expand One Level|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse One Level|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Expand One Level|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse One Level|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hierarchy|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Active|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hierarchy|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Active|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	}
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
-	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -314,6 +335,7 @@ static uiBlock *oops_blockmenu(void *arg_unused)
 }
 
 
+
 void oops_buttons(void)
 {	
 	SpaceOops *soops;
@@ -367,6 +389,7 @@ void oops_buttons(void)
 			xmax= GetButStringLength("Block");
 			uiDefPulldownBut(block, oops_blockmenu, NULL, "Block", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
+			
 		}
 	}
 

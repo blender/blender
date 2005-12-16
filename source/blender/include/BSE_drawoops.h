@@ -36,7 +36,7 @@
 struct ScrArea;
 struct Oops;
 
-void boundbox_oops(void);
+void boundbox_oops(short sel);
 void give_oopslink_line(struct Oops *oops, struct OopsLink *ol, float *v1, float *v2);
 void draw_oopslink(struct Oops *oops);
 void draw_icon_oops(float *co, short type);

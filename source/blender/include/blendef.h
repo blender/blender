@@ -248,6 +248,7 @@
 #define B_OOPSHOME		251
 #define B_OOPSBORDER		252
 #define B_NEWOOPS		253
+#define B_OOPSVIEWSEL		254
 
 /* INFO: 300 */
 /* watch: also in filesel.c and editobject.c */

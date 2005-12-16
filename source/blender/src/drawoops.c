@@ -71,7 +71,7 @@
 float oopscalex;
 struct BMF_Font *font; /* for using different sized fonts */
 
-void boundbox_oops()
+void boundbox_oops(short sel)
 {
 	Oops *oops;
 	float min[2], max[2];
@@ -80,13 +80,13 @@ void boundbox_oops()
 	if(G.soops==0) return;
 	
 	min[0]= 1000.0;
-	max[0]= -10000.0;
+	max[0]= -1000.0;
 	min[1]= 1000.0;
 	max[1]= -1000.0;
 	
 	oops= G.soops->oops.first;
 	while(oops) {
-		if(oops->hide==0) {
+		if (oops->hide==0 && !sel || (sel && oops->flag & SELECT )) {
 			ok= 1;
 			
 			min[0]= MIN2(min[0], oops->x);
@@ -430,7 +430,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	else {
 		build_oops();	/* changed to become first call... */
 		
-		boundbox_oops();
+		boundbox_oops(0);
 		calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 
 		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
