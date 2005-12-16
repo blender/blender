@@ -239,13 +239,11 @@ extern          short freeN(void *vmemh); /* defined in util.h */
 
 static OldNewMap *oldnewmap_new(void) 
 {
-	OldNewMap *onm= MEM_mallocN(sizeof(*onm), "OldNewMap");
-	onm->lasthit= 0;
-	onm->nentries= 0;
-	onm->sorted= 0;
+	OldNewMap *onm= MEM_callocN(sizeof(*onm), "OldNewMap");
+	
 	onm->entriessize= 1024;
 	onm->entries= MEM_mallocN(sizeof(*onm->entries)*onm->entriessize, "OldNewMap.entries");
-
+	
 	return onm;
 }
 
@@ -270,6 +268,8 @@ static void oldnewmap_insert(OldNewMap *onm, void *oldaddr, void *newaddr, int n
 {
 	OldNew *entry;
 
+	if(oldaddr==NULL || newaddr==NULL) return;
+	
 	if (onm->nentries==onm->entriessize) {
 		int osize= onm->entriessize;
 		OldNew *oentries= onm->entries;
@@ -344,41 +344,6 @@ static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib)
 			ID *id= entry->newp;
 
 			if (id && (!lib || id->lib)) {
-				return entry->newp;
-			}
-		}
-	}
-
-	return NULL;
-}
-
-static void *oldnewmap_typelookup_and_inc(OldNewMap *onm, void *addr, void *lib, short type) 
-{
-	int i;
-
-	if (onm->lasthit<onm->nentries-1) {
-		OldNew *entry= &onm->entries[++onm->lasthit];
-
-		if (entry->old==addr) {
-			ID *id= entry->newp;
-
-			if (id && (GS(id->name) == type) && (!lib || id->lib)) {
-				entry->nr++;
-
-				return entry->newp;
-			}
-		}
-	}
-
-	for (i=0; i<onm->nentries; i++) {
-		OldNew *entry= &onm->entries[i];
-
-		if (entry->old==addr) {
-			ID *id= entry->newp;
-
-			if (id && (GS(id->name) == type) && (!lib || id->lib)) {
-				entry->nr++;
-
 				return entry->newp;
 			}
 		}
@@ -1067,17 +1032,6 @@ static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
 	return oldnewmap_liblookup(fd->libmap, adr, lib);
 }
 
-static void *newlibadr_us_type(FileData *fd, void *lib, short type, void *adr)	/* only Lib data */
-{
-	ID *id= oldnewmap_typelookup_and_inc(fd->libmap, adr, lib, type);
-
-	if (id) {
-		id->us++;
-	}
-
-	return id;
-}
-
 static void *newlibadr_us(FileData *fd, void *lib, void *adr)	/* increases user number */
 {
 	ID *id= newlibadr(fd, lib, adr);
@@ -1089,52 +1043,36 @@ static void *newlibadr_us(FileData *fd, void *lib, void *adr)	/* increases user 
 	return id;
 }
 
-static void change_libadr(FileData *fd, void *old, void *new)
+static void change_idid_adr_fd(FileData *fd, void *old, void *new)
 {
 	int i;
-
-		/* changed one thing here, the old change_libadr
-		 * only remapped addresses that had an id->lib,
-		 * but that doesn't make sense to me... its an
-		 * old pointer, period, it needs to be remapped. - zr
-		 */
-
-		/*
-		 * Ton seemed to think it was necessary to look
-		 * through all entries, and not return after finding
-		 * a match, leaving this cryptic comment,
-		 * // no return, maybe there can be more?
-		 *
-		 * That doesn't make sense to me either but I am
-		 * too scared to remove it... it only would make
-		 * sense if two distinct old address map to the
-		 * same new address - obviously that shouldn't happen
-		 * because memory addresses are unique.
-		 *
-		 * The only case it might happen is when two distinct
-		 * libraries are mapped using the same table... this
-		 * won't work to start with... At some point this
-		 * all needs to be made sense of and made understandable,
-		 * but I'm afraid I don't have time now. -zr
-		 *
-		 */
-    /* the code is nasty, and needs a lot of energy to get into full understanding
-       again... i now translate dutch comments, maybe that gives me more insight!
-       But i guess it has to do with the assumption that 2 addresses can be allocated
-       in different sessions, and therefore be the same... like the remark in the top
-       of this c file (ton) */
-
+	
 	for (i=0; i<fd->libmap->nentries; i++) {
 		OldNew *entry= &fd->libmap->entries[i];
-
-		/* narrowing down the amount of possibilities with a check for ID_ID */
+		
 		if (old==entry->newp && entry->nr==ID_ID) {
 			entry->newp= new;
+			if(new) entry->nr= GS( ((ID *)new)->name );
 			break;
 		}
 	}
 }
 
+static void change_idid_adr(ListBase *mainlist, FileData *basefd, void *old, void *new)
+{
+	Main *main;
+	
+	for(main= mainlist->first; main; main= main->next) {
+		FileData *fd;
+		
+		if(main->curlib) fd= main->curlib->filedata;
+		else fd= basefd;
+		
+		if(fd) {
+			change_idid_adr_fd(fd, old, new);
+		}
+	}
+}
 
 /* ********** END OLD POINTERS ****************** */
 /* ********** READ FILE ****************** */
@@ -2219,7 +2157,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
-			
+			   
 			if(ob->data==NULL && poin!=NULL) {
 				ob->type= OB_EMPTY;
 				warn= 1;
@@ -2580,12 +2518,12 @@ static void lib_link_scene(FileData *fd, Main *main)
 				next= base->next;
 
 				/* base->object= newlibadr_us(fd, sce->id.lib, base->object); */
-				base->object= newlibadr_us_type(fd, sce->id.lib, ID_OB, base->object);
+				base->object= newlibadr_us(fd, sce->id.lib, base->object);
 				
 				/* when save during radiotool, needs cleared */
 				base->flag &= ~OB_RADIO;
 				
-				if(base->object==0) {
+				if(base->object==NULL) {
 					printf("LIB ERROR: base removed\n");
 					BLI_remlink(&sce->base, base);
 					if(base==sce->basact) sce->basact= 0;
@@ -3177,7 +3115,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 			if(strcmp(newmain->curlib->name, lib->name)==0) {
 				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->name);
 				
-				change_libadr(fd, lib, newmain->curlib);
+				change_idid_adr_fd(fd, lib, newmain->curlib);
 				
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
@@ -5290,6 +5228,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
+	
 	link_global(fd, bfd, fg);	/* as last */
 
 	/* removed here: check for existance of curscreen/scene, moved to kernel setup_app */
@@ -5366,7 +5305,9 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					printf("expand: other lib %s\n", lib->name);
 				}
 				else {
-					oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+					//oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+					
+					change_idid_adr_fd(fd, bhead->old, id);
 					printf("expand: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 			}
@@ -6182,8 +6123,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						if (fd->libmap)
 							oldnewmap_free(fd->libmap);
 
-						fd->libmap= basefd->libmap;
-						fd->flags|= FD_FLAGS_NOT_MY_LIBMAP;
+						fd->libmap = oldnewmap_new();
 						
 						mainptr->curlib->filedata= fd;
 						mainptr->versionfile= fd->fileversion;
@@ -6208,7 +6148,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid)
 									printf("LIB ERROR: can't find %s\n", id->name);
-								change_libadr(fd, id, realid);
+								
+								change_idid_adr(mainlist, basefd, id, realid);
 
 								MEM_freeN(id);
 							}
@@ -6230,9 +6171,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 			mainptr= mainptr->next;
 		}
 	}
-	mainptr= mainl->next;
-	while(mainptr) {
-		/* test if there are unread libblocks */
+	
+	/* test if there are unread libblocks */
+	for(mainptr= mainl->next; mainptr; mainptr= mainptr->next) {
 		a= set_listbasepointers(mainptr, lbarray);
 		while(a--) {
 			ID *id= lbarray[a]->first;
@@ -6242,14 +6183,17 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					BLI_remlink(lbarray[a], id);
 
 					printf("LIB ERROR: can't find %s\n", id->name);
-					change_libadr(basefd, id, 0);
+					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);
 				}
 				id= idn;
 			}
 		}
-
+	}
+	
+	/* do versions, link, and free */
+	for(mainptr= mainl->next; mainptr; mainptr= mainptr->next) {
 		/* some mains still have to be read, then
 		 * versionfile is still zero! */
 		if(mainptr->versionfile) {
@@ -6259,10 +6203,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				do_versions(basefd, NULL, mainptr);
 		}
 		
+		if(mainptr->curlib->filedata)
+			lib_link_all(mainptr->curlib->filedata, mainptr);
+		
 		if(mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
 		mainptr->curlib->filedata= NULL;
 
-		mainptr= mainptr->next;
 	}
 }
 
