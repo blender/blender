@@ -981,7 +981,8 @@ int blenderqread(unsigned short event, short val)
 						screen_swapbuffers();
 					}
 					else if(event==3) {
-						BKE_write_undo("10 timer");
+						BIF_undo();
+						BIF_redo();
 					}
 				}
 			
@@ -989,8 +990,7 @@ int blenderqread(unsigned short event, short val)
 				
 				if(event==1) sprintf(tmpstr, "draw %%t|%d ms", time);
 				if(event==2) sprintf(tmpstr, "d+sw %%t|%d ms", time);
-				if(event==3) sprintf(tmpstr, "displist %%t|%d ms", time);
-				if(event==4) sprintf(tmpstr, "undo %%t|%d ms", time);
+				if(event==3) sprintf(tmpstr, "undo %%t|%d ms", time);
 			
 				waitcursor(0);
 				pupmenu(tmpstr);

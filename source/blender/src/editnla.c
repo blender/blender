@@ -351,7 +351,7 @@ static void convert_nla(short mval[2])
 			
 			/* Link the action to the nstrip */
 			nstrip->act = base->object->action;
-			nstrip->act->id.us++;
+			id_us_plus(&nstrip->act->id);
 			calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend);
 			nstrip->start = nstrip->actstart;
 			nstrip->end = nstrip->actend;
