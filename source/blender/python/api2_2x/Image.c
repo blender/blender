@@ -663,7 +663,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(int) - Change Image object animation start value"},
 	{"setEnd", ( PyCFunction ) Image_setEnd, METH_VARARGS,
 	 "(int) - Change Image object animation end value"},
-	{"setSpeed", ( PyCFunction ) Image_setEnd, METH_VARARGS,
+	{"setSpeed", ( PyCFunction ) Image_setSpeed, METH_VARARGS,
 	 "(int) - Change Image object animation speed (fps)"},
 	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
 	 "() - Write image buffer to file"},
