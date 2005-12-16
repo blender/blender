@@ -387,7 +387,7 @@ elif sys.platform == 'win32':
 	platform_libs = [ 'qtmlClient', 'soundsystem',
 					 'ws2_32', 'dxguid', 'vfw32', 'winmm',
 					 'iconv', 'kernel32', 'user32', 'gdi32',
-					 'winspool', 'comdlg32', 'advapi32', 'shell32',
+					 'comdlg32', 'advapi32', 'shell32',
 					 'ole32', 'oleaut32', 'uuid', 
 					 'libcmt', 'libc']
 	platform_libpath = ['#../lib/windows/iconv/lib',
