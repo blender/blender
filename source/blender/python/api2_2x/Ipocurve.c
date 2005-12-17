@@ -405,9 +405,11 @@ static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args )
 	bzt->vec[0][1] = y - 1;
 	bzt->vec[1][1] = y;
 	bzt->vec[2][1] = y + 1;
+	bzt->vec[0][2] = bzt->vec[1][2] = bzt->vec[2][2] = 0.0;
 	/* set handle type to Auto */
-	bzt->h1 = HD_AUTO;
-	bzt->h2 = HD_AUTO;
+	bzt->h1 = bzt->h2 = HD_AUTO;
+	bzt->f1 = bzt->f2 = bzt->f3= 0;
+	bzt->hide = IPO_BEZ;
 
 	Py_INCREF( Py_None );
 	return Py_None;
