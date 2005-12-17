@@ -1658,6 +1658,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			else
 				phongcorr= 0.0;
 		}
+		else if(ma->sbias!=0.0f) {
+			if(inp>ma->sbias)
+				phongcorr= (inp-ma->sbias)/(inp*(1.0-ma->sbias));
+			else
+				phongcorr= 0.0;
+		}
 		else phongcorr= 1.0;
 		
 		/* diffuse shaders */

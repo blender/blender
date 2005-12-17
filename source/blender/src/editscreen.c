@@ -401,6 +401,7 @@ void scrarea_do_headdraw(ScrArea *area)
 		case SPACE_NLA:		nla_buttons();		break;
 		case SPACE_TIME:	time_buttons(area);	break;
 		}
+		uiClearButLock();
 
 		//glScissor(area->winrct.xmin, area->winrct.xmax, area->winx, area->winy);
 		area->head_swap= WIN_BACK_OK;

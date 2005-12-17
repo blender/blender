@@ -1026,8 +1026,6 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 }
 #endif
 
-#define SELECTSIZE	51
-
 void set_active_base(Base *base)
 {
 	Base *tbase;
@@ -1035,6 +1033,7 @@ void set_active_base(Base *base)
 	BASACT= base;
 	
 	if(base) {
+		
 		/* signals to buttons */
 		redraw_test_buttons(base->object);
 		
@@ -1060,13 +1059,11 @@ void set_active_object(Object *ob)
 {
 	Base *base;
 	
-	base= FIRSTBASE;
-	while(base) {
+	for(base= FIRSTBASE; base; base= base->next) {
 		if(base->object==ob) {
 			set_active_base(base);
 			return;
 		}
-		base= base->next;
 	}
 }
 

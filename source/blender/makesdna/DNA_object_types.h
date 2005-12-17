@@ -326,7 +326,6 @@ extern Object workob;
 #define BA_HAS_RECALC_DATA	8
 
 #define BA_DO_IPO			32
-#define OB_GONNA_MOVE		32
 
 #define BA_FROMSET			128
 #define OB_DO_IMAT			256

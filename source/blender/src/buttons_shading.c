@@ -3168,9 +3168,10 @@ static void material_panel_shading(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "rms:",     90, 100,150,19, &(ma->rms), 0.0, 0.4, 0, 0, "Sets the standard deviation of surface slope");		
 		/* default shading variables */
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_DIFF, "Translucency ",	9,30,301,19, &(ma->translucency), 0.0, 1.0, 100, 2, "Amount of diffuse shading of the back side");
+		uiDefButF(block, NUMSLI, B_DIFF, "Tralu ",	9,30,150,19, &(ma->translucency), 0.0, 1.0, 100, 2, "Translucency, amount of diffuse shading of the back side");
+		uiDefButF(block, NUMSLI, B_DIFF, "SBias ",	159,30,151,19, &(ma->sbias), 0.0, 0.25, 10, 2, "Shadow bias, to prevent terminator problems on shadow boundary");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,10,150,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		160,10,150,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		159,10,151,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
 		uiBlockEndAlign(block);
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);

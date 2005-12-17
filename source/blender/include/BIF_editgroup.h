@@ -31,6 +31,7 @@
  */
 
 struct Group;
+struct Base;
 
 void add_selected_to_group(struct Group *group);
 void rem_selected_from_group(void);

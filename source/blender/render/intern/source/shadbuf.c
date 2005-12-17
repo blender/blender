@@ -443,7 +443,7 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, f
 	int xs,ys, zs, bias;
 	short a,num;
 	
-	/* if(inp <= 0.0) return 1.0; */
+	if(inp <= 0.0) return 0.0;
 
 	/* rotate renderco en osaco */
 	siz= 0.5*(float)shb->size;
