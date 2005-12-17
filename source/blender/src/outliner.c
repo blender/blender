@@ -2393,93 +2393,84 @@ static void outliner_back(SpaceOops *soops)
 	}
 }
 
-static void namebutton_cb(void *soopsp, void *oldnamep)
+static void namebutton_cb(void *tep, void *oldnamep)
 {
-	SpaceOops *soops= soopsp;
+	SpaceOops *soops= curarea->spacedata.first;
 	TreeStore *ts= soops->treestore;
-	TreeStoreElem *tselem;
-	int a;
+	TreeElement *te= tep;
 	
-	if(ts) {
-		/* only one namebutton can exist */
-		for(a=0, tselem= ts->data; a<ts->usedelem; a++, tselem++) {
-			if(tselem->flag & TSE_TEXTBUT) {
-				if(tselem->type==0) {
-					test_idbutton(tselem->id->name+2);	// library.c, unique name and alpha sort
-				}
-				else {
-					TreeElement *te= outliner_find_tree_element(&soops->tree, a);
-					
-					if(te) {
-						switch(tselem->type) {
-						case TSE_DEFGROUP:
-							unique_vertexgroup_name(te->directdata, (Object *)tselem->id); //	id = object
-							break;
-						case TSE_NLA_ACTION:
-							test_idbutton(tselem->id->name+2);
-							break;
-						case TSE_EBONE:
-							if(G.obedit && G.obedit->data==(ID *)tselem->id) {
-								EditBone *ebone= te->directdata;
-								char newname[32];
-								
-								/* restore bone name */
-								BLI_strncpy(newname, ebone->name, 32);
-								BLI_strncpy(ebone->name, oldnamep, 32);
-								armature_bone_rename(G.obedit->data, oldnamep, newname);
-							}
-							allqueue(REDRAWOOPS, 0);
-							allqueue(REDRAWVIEW3D, 1);
-							allqueue(REDRAWBUTSEDIT, 0);
-							break;
+	if(ts && te) {
+		TreeStoreElem *tselem= TREESTORE(te);
 
-						case TSE_BONE:
-							{
-								Bone *bone= te->directdata;
-								Object *ob;
-								char newname[32];
-								
-								// always make current object active
-								tree_element_active_object(soops, te);
-								ob= OBACT;
-								
-								/* restore bone name */
-								BLI_strncpy(newname, bone->name, 32);
-								BLI_strncpy(bone->name, oldnamep, 32);
-								armature_bone_rename(ob->data, oldnamep, newname);
-							}
-							allqueue(REDRAWOOPS, 0);
-							allqueue(REDRAWVIEW3D, 1);
-							allqueue(REDRAWBUTSEDIT, 0);
-							break;
-						case TSE_POSE_CHANNEL:
-							{
-								bPoseChannel *pchan= te->directdata;
-								Object *ob;
-								char newname[32];
-								
-								// always make current object active
-								tree_element_active_object(soops, te);
-								ob= OBACT;
-								
-								/* restore bone name */
-								BLI_strncpy(newname, pchan->name, 32);
-								BLI_strncpy(pchan->name, oldnamep, 32);
-								armature_bone_rename(ob->data, oldnamep, newname);
-							}
-							allqueue(REDRAWOOPS, 0);
-							allqueue(REDRAWVIEW3D, 1);
-							allqueue(REDRAWBUTSEDIT, 0);
-							break;
-							
-						}
-					}
+		if(tselem->type==0) {
+			test_idbutton(tselem->id->name+2);	// library.c, unique name and alpha sort
+		}
+		else {
+			switch(tselem->type) {
+			case TSE_DEFGROUP:
+				unique_vertexgroup_name(te->directdata, (Object *)tselem->id); //	id = object
+				break;
+			case TSE_NLA_ACTION:
+				test_idbutton(tselem->id->name+2);
+				break;
+			case TSE_EBONE:
+				if(G.obedit && G.obedit->data==(ID *)tselem->id) {
+					EditBone *ebone= te->directdata;
+					char newname[32];
+					
+					/* restore bone name */
+					BLI_strncpy(newname, ebone->name, 32);
+					BLI_strncpy(ebone->name, oldnamep, 32);
+					armature_bone_rename(G.obedit->data, oldnamep, newname);
 				}
-				tselem->flag &= ~TSE_TEXTBUT;
+				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWVIEW3D, 1);
+				allqueue(REDRAWBUTSEDIT, 0);
+				break;
+
+			case TSE_BONE:
+				{
+					Bone *bone= te->directdata;
+					Object *ob;
+					char newname[32];
+					
+					// always make current object active
+					tree_element_active_object(soops, te);
+					ob= OBACT;
+					
+					/* restore bone name */
+					BLI_strncpy(newname, bone->name, 32);
+					BLI_strncpy(bone->name, oldnamep, 32);
+					armature_bone_rename(ob->data, oldnamep, newname);
+				}
+				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWVIEW3D, 1);
+				allqueue(REDRAWBUTSEDIT, 0);
+				break;
+			case TSE_POSE_CHANNEL:
+				{
+					bPoseChannel *pchan= te->directdata;
+					Object *ob;
+					char newname[32];
+					
+					// always make current object active
+					tree_element_active_object(soops, te);
+					ob= OBACT;
+					
+					/* restore bone name */
+					BLI_strncpy(newname, pchan->name, 32);
+					BLI_strncpy(pchan->name, oldnamep, 32);
+					armature_bone_rename(ob->data, oldnamep, newname);
+				}
+				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWVIEW3D, 1);
+				allqueue(REDRAWBUTSEDIT, 0);
+				break;
+				
 			}
 		}
-		scrarea_queue_redraw(curarea);
 	}
+	scrarea_queue_redraw(curarea);
 }
 
 static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
@@ -2501,7 +2492,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 			if(dx<50) dx= 50;
 			
 			bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  te->xs+2*OL_X-4, te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
-			uiButSetFunc(bt, namebutton_cb, soops, NULL);
+			uiButSetFunc(bt, namebutton_cb, te, NULL);
 
 			// signal for button to open
 			addqueue(curarea->win, BUT_ACTIVATE, OL_NAMEBUTTON);
