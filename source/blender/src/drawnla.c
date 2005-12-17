@@ -463,7 +463,6 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefBut(block, LABEL, 0, "Timeline Range:",	10,180,300,19, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, LABEL, 0, "Blending:",			10,120,150,19, 0, 0, 0, 0, 0, "");
 	uiDefBut(block, LABEL, 0, "Options:",			160,120,150,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Stride Support:",	10,40,300,19, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_NLA_PANEL, "Strip Start:",	10,160,150,19, &strip->start, -1000.0, strip->end-1, 100, 0, "First frame in the timeline");
@@ -483,7 +482,7 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	}
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,156,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,145,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
 	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 10,80,145,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
 
 	uiBlockBeginAlign(block);
@@ -492,14 +491,15 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								235,80,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
 	uiBlockEndAlign(block);
 	
-	if(ob->dup_group) {
-		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_PANEL, "Target:", 160, 50, 150, 19, &strip->object, "Target Object in this group"); 
-	}
+	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10, 50,140,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	if(ob->dup_group)
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_PANEL, "Target:",	160,50, 150, 19, &strip->object, "Target Object in this group"); 
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10,20,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
-	uiDefButBitS(block, TOG, OB_DISABLE_PATH, B_NLA_PANEL, "Disable Path",		110,20,100,19, &ob->ipoflag, 0, 0, 0, 0, "Plays action based on path position & stride");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Stride:",		210,20,100,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
+	uiDefButBitS(block, TOG, OB_DISABLE_PATH, B_NLA_PANEL, "Disable",			10,20,60,19, &ob->ipoflag, 0, 0, 0, 0, "Disable path temporally, for editing cycles");
+	
+	uiDefButF(block, NUM, B_NLA_PANEL, "Offs:",			70,20,120,19, &strip->actoffs, -500, 500.0, 100, 0, "Action offset in frames to tweak cycle of the action within the stride");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Stri:",			190,20,120,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
 	
 	uiDefButS(block, ROW, B_NLA_PANEL, "X",				10, 0, 33, 19, &strip->stride_axis, 1, 0, 0, 0, "Dominant axis for Stride Bone");
 	uiDefButS(block, ROW, B_NLA_PANEL, "Y",				43, 0, 33, 19, &strip->stride_axis, 1, 1, 0, 0, "Dominant axis for Stride Bone");

@@ -769,11 +769,14 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 		
 		if(foundvert && miny!=maxy) {
 			float stridelen= fabs(maxy-miny), striptime;
-			float actiondist, pdist, pdistNewNormalized;
+			float actiondist, pdist, pdistNewNormalized, offs;
 			float vec1[4], vec2[4], dir[3];
 			
+			/* internal cycling, actoffs is in frames */
+			offs= stridelen*strip->actoffs/(maxx-minx);
+			
 			/* amount path moves object */
-			pdist = (float)fmod (pathdist, stridelen);
+			pdist = (float)fmod (pathdist+offs, stridelen);
 			striptime= pdist/stridelen;
 			
 			/* amount stride bone moves */
@@ -837,74 +840,78 @@ static void do_nla(Object *ob, int blocktype)
 				if(blocktype==ID_AR) 
 					rest_pose(tpose);
 				
-				/* Handle path */
-				if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
-					if (ob->parent && ob->parent->type==OB_CURVE){
-						Curve *cu = ob->parent->data;
-						float ctime, pdist;
-						
-						if (cu->flag & CU_PATH){
-							/* Ensure we have a valid path */
-							if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(ob->parent, 0);
-							if(cu->path) {
-								
-								/* Find the position on the path */
-								ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
-								
-								if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
-									ctime /= cu->pathlen;
-									CLAMP(ctime, 0.0, 1.0);
-								}
-								pdist = ctime*cu->path->totdist;
-								
-								if(tpose && strip->stridechannel[0]) {
-									striptime= stridechannel_frame(ob->parent, strip, cu->path, pdist, tpose->stride_offset);
-								}									
-								else {
-									if (strip->stridelen) {
-										striptime = pdist / strip->stridelen;
-										striptime = (float)fmod (striptime, 1.0);
+				/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
+				if (striptime < 1.0f + 0.1f/length) {
+					
+					/* Handle path */
+					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
+						if (ob->parent && ob->parent->type==OB_CURVE){
+							Curve *cu = ob->parent->data;
+							float ctime, pdist;
+							
+							if (cu->flag & CU_PATH){
+								/* Ensure we have a valid path */
+								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(ob->parent, 0);
+								if(cu->path) {
+									
+									/* Find the position on the path */
+									ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
+									
+									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
+										ctime /= cu->pathlen;
+										CLAMP(ctime, 0.0, 1.0);
 									}
-									else
-										striptime = 0;
+									pdist = ctime*cu->path->totdist;
+									
+									if(tpose && strip->stridechannel[0]) {
+										striptime= stridechannel_frame(ob->parent, strip, cu->path, pdist, tpose->stride_offset);
+									}									
+									else {
+										if (strip->stridelen) {
+											striptime = pdist / strip->stridelen;
+											striptime = (float)fmod (striptime+strip->actoffs, 1.0);
+										}
+										else
+											striptime = 0;
+									}
+									
+									frametime = (striptime * actlength) + strip->actstart;
+									frametime= bsystem_time(ob, 0, frametime, 0.0);
+									
+									if(blocktype==ID_AR) {
+										extract_pose_from_action (tpose, strip->act, frametime);
+									}
+									else if(blocktype==ID_OB) {
+										extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
+										if(key)
+											extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
+									}
+									doit=dostride= 1;
 								}
-								
-								frametime = (striptime * actlength) + strip->actstart;
-								frametime= bsystem_time(ob, 0, frametime, 0.0);
-								
-								if(blocktype==ID_AR) {
-									extract_pose_from_action (tpose, strip->act, frametime);
-								}
-								else if(blocktype==ID_OB) {
-									extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-									if(key)
-										extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-								}
-								doit=dostride= 1;
 							}
 						}
 					}
-				}
-				/* Handle repeat, we add 0.1 frame extra to make sure the last frame is included */
-				else if (striptime < 1.0f + 0.1f/length) {
-					
-					/* Mod to repeat */
-					if(strip->repeat!=1.0f) {
-						striptime*= strip->repeat;
-						striptime = (float)fmod (striptime, 1.0f + 0.1f/length);
-					}
-
-					frametime = (striptime * actlength) + strip->actstart;
-					frametime= nla_time(frametime, (float)strip->repeat);
+					/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
+					else  {
 						
-					if(blocktype==ID_AR)
-						extract_pose_from_action (tpose, strip->act, frametime);
-					else if(blocktype==ID_OB) {
-						extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-						if(key)
-							extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-					}						
-					doit=1;
+						/* Mod to repeat */
+						if(strip->repeat!=1.0f) {
+							striptime*= strip->repeat;
+							striptime = (float)fmod (striptime, 1.0f + 0.1f/length);
+						}
+
+						frametime = (striptime * actlength) + strip->actstart;
+						frametime= nla_time(frametime, (float)strip->repeat);
+							
+						if(blocktype==ID_AR)
+							extract_pose_from_action (tpose, strip->act, frametime);
+						else if(blocktype==ID_OB) {
+							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
+							if(key)
+								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
+						}						
+						doit=1;
+					}
 				}
 				/* Handle extend */
 				else{

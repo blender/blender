@@ -47,6 +47,7 @@ typedef struct bActionStrip {
 	struct  Object *object;		/* For groups, the actual object being nla'ed */
 	float	start, end;			/* The range of frames covered by this strip */
 	float	actstart, actend;	/* The range of frames taken from the action */
+	float	actoffs, padf;		/* Offset within action, for cycles and striding */
 	float	stridelen;			/* The stridelength (considered when flag & ACT_USESTRIDE) */
 	float	repeat;				/* The number of times to repeat the action range */
 
