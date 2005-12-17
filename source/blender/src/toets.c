@@ -425,6 +425,8 @@ void persptoetsen(unsigned short event)
 				if(((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) || (G.qual & LR_SHIFTKEY)) {
 					void setcameratoview3d(void);	// view.c
 					setcameratoview3d();
+					DAG_object_flush_update(G.scene, G.scene->camera, OB_RECALC_OB);
+					allqueue(REDRAWVIEW3D, 0);
 				}				
 			}
 		}

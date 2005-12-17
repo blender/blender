@@ -31,6 +31,7 @@
  */
 
 #include "BezTriple.h" /*This must come first */
+#include "DNA_ipo_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "gen_utils.h"
@@ -303,6 +304,8 @@ static PyObject *BezTripleGetAttr( BPy_BezTriple * self, char *name )
 		return BezTriple_getTriple( self );
 	else if( strcmp( name, "tilt" ) == 0 )
 		return PyFloat_FromDouble(self->beztriple->alfa);
+	else if( strcmp( name, "hide" ) == 0 )
+		return PyFloat_FromDouble(self->beztriple->hide);
 	else if( strcmp( name, "__members__" ) == 0 )
 		return Py_BuildValue( "[s,s,s]", "pt", "vec", "tilt" );
 
@@ -329,7 +332,17 @@ static int BezTripleSetAttr( BPy_BezTriple * self, char *name, PyObject * value 
 
 	return 0;		/* normal exit */
 #endif
-	if( strcmp( name, "tilt" ) == 0 ) {
+	if( !strcmp( name, "hide" ) ) {
+		int param;
+		if( !PyInt_CheckExact( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected int argument" );
+
+		param = (int)PyInt_AS_LONG( value );
+		self->beztriple->hide = (param == 0) ? 0 : IPO_BEZ;
+		return 0;
+	}
+	if( !strcmp( name, "tilt" ) ) {
 		if (!PyFloat_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, "expected a float" );
 
@@ -337,8 +350,8 @@ static int BezTripleSetAttr( BPy_BezTriple * self, char *name, PyObject * value 
 		return 0;
 	}
 
-	return ( EXPP_ReturnIntError( PyExc_AttributeError,
-				      "cannot set a read-only attribute" ) );
+	return EXPP_ReturnIntError( PyExc_AttributeError,
+				      "cannot set a read-only attribute" );
 }
 
 /*****************************************************************************/
@@ -356,12 +369,11 @@ static PyObject *BezTripleRepr( BPy_BezTriple * self )
 	 */
 	char str[1000];
 	sprintf( str,
-		 "BezTriple %f %f %f %f %f %f %f %f %f %f\n %d %d %d %d %d %d\n",
+		 "BezTriple (%f %f) (%f %f) (%f %f) %f\n (%d %d %d) (%d %d) %d\n",
 		 self->beztriple->vec[0][0], self->beztriple->vec[0][1],
-		 self->beztriple->vec[0][2], self->beztriple->vec[1][0],
-		 self->beztriple->vec[1][1], self->beztriple->vec[1][2],
+		 self->beztriple->vec[1][0], self->beztriple->vec[1][1], 
 		 self->beztriple->vec[2][0], self->beztriple->vec[2][1],
-		 self->beztriple->vec[2][2], self->beztriple->alfa,
+		 self->beztriple->alfa,
 		 self->beztriple->h1, self->beztriple->h2, self->beztriple->f1,
 		 self->beztriple->f2, self->beztriple->f3,
 		 self->beztriple->hide );

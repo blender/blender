@@ -667,8 +667,12 @@ void do_texbuts(unsigned short event)
 			}
 
 			IMB_freeImBuf(tex->ima->ibuf);
-			tex->ima->ibuf= 0;
+			tex->ima->ibuf= NULL;
 			tex->ima->ok= 1;
+			
+			if(tex->env)
+				RE_free_envmapdata(tex->env);
+			
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);
 			BIF_all_preview_changed();

@@ -55,6 +55,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_image_types.h"
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -424,6 +425,16 @@ static void do_activate_oops(Oops *oops)
 		}
 		break;
 		
+	case ID_IM:
+		if(oops->id && G.sima) {
+			/* only set if the new image isnt alredy active */
+			if (G.sima->image != (Image *)oops->id) {
+				G.sima->image = (Image *)oops->id;
+				allqueue(REDRAWIMAGE, 0);
+				scrarea_queue_winredraw(curarea);
+			}
+		}
+		break;
 	}
 }
 

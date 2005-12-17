@@ -402,8 +402,12 @@ class BezTriple:
   The BezTriple object
   ====================
   This object gives access to generic data from all beztriple objects in Blender.  If an attribute is listed as being 'read-only' that means you cannot write to it.  Use the set*() methods instead.
-  @ivar pt : a list of the [x,y] coordinates for knot point of this BezTriple.  read-only.
-  @ivar vec : a list of the 3 points [ handle, knot, handle ] that comprise a BezTriple.  See the getTriple() method for an example of the format.  read-only.
+  @ivar pt : the [x,y] coordinates for knot point of this BezTriple.  Read-only.
+  @type pt: list of floats
+  @ivar vec : a list of the 3 points [ handle, knot, handle ] that comprise a BezTriple.  See the getTriple() method for an example of the format.  Read-only.
+  @type vec: list of points
+  @ivar hide: the visibility status of the control point.
+  @type hide: int
   """
 
   def getPoints():

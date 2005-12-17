@@ -100,7 +100,7 @@ returns None if not found.\n";
 struct PyMethodDef M_Image_methods[] = {
 	{"New", M_Image_New, METH_VARARGS, M_Image_New_doc},
 	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"GetCurrent", M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},
+	{"GetCurrent", ( PyCFunction ) M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},	
 	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
 	{NULL, NULL, 0, NULL}
@@ -126,7 +126,7 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args)
 	if( !img )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );
-	image_changed(img, 0);
+	// image_changed(img, 0);
 	return Image_CreatePyObject( img );
 }
 
@@ -663,7 +663,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(int) - Change Image object animation start value"},
 	{"setEnd", ( PyCFunction ) Image_setEnd, METH_VARARGS,
 	 "(int) - Change Image object animation end value"},
-	{"setSpeed", ( PyCFunction ) Image_setEnd, METH_VARARGS,
+	{"setSpeed", ( PyCFunction ) Image_setSpeed, METH_VARARGS,
 	 "(int) - Change Image object animation speed (fps)"},
 	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
 	 "() - Write image buffer to file"},
@@ -1104,12 +1104,11 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 		attr = PyInt_FromLong( self->image->animspeed );
 	else if( strcmp( name, "packed" ) == 0 ) {
 		if (self->image->packedfile)  {
-			//Py_INCREF(Py_True);
 			attr = Py_True;
 		} else {
-			//Py_INCREF(Py_False);
 			attr = Py_False;
 		}
+		Py_INCREF(attr);
 		
 	} else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );

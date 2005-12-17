@@ -4146,6 +4146,11 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if((G.qual==0))
 				do_oops_buttons(B_OOPSHOME);
 			break;
+		
+		case PADPERIOD:
+			if((G.qual==0))
+				do_oops_buttons(B_OOPSVIEWSEL);
+			break;
 			
 		case AKEY:
 			if((G.qual==0)) {

@@ -172,6 +172,8 @@ typedef struct Material {
 		/* note; we drop MA_TANGENT_STR later to become tangent_u */
 #define MA_TANGENT_V	0x4000000
 
+#define	MA_MODE_MASK	0x3ffffff	/* all valid mode bits */
+
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
 #define MA_DIFF_ORENNAYAR	1
