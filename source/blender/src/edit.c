@@ -684,10 +684,13 @@ void countall()
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		if(ob->pose) {
+			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				G.totbone++;
-				if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) G.totbonesel++;
+				if(pchan->bone && (pchan->bone->flag & BONE_SELECTED))
+					if(pchan->bone->layer & arm->layer)
+						G.totbonesel++;
 			}
 		}
 		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
@@ -1159,6 +1162,7 @@ void snap_sel_to_curs()
 			ob= base->object;
 			if(ob->flag & OB_POSEMODE) {
 				bPoseChannel *pchan;
+				bArmature *arm= ob->data;
 				float cursp[3];
 				
 				Mat4Invert(ob->imat, ob->obmat);
@@ -1167,10 +1171,13 @@ void snap_sel_to_curs()
 				
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
-						if(pchan->parent==NULL) {
-							VECCOPY(pchan->loc, cursp);
+						if(pchan->bone->layer & arm->layer) {
+							if(pchan->parent==NULL) {
+								/* this is wrong... lazy! */
+								VECCOPY(pchan->loc, cursp);
+							}
+							/* else todo... */
 						}
-						/* else todo... */
 					}
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
@@ -1268,14 +1275,17 @@ void snap_curs_to_sel()
 		Object *ob= OBACT;
 		
 		if(ob && (ob->flag & OB_POSEMODE)) {
+			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
 			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-				if(pchan->bone->flag & BONE_SELECTED) {
-					VECCOPY(vec, pchan->pose_head);
-					Mat4MulVecfl(ob->obmat, vec);
-					VecAddf(centroid, centroid, vec);
-					DO_MINMAX(vec, min, max);
-					count++;
+				if(arm->layer & pchan->bone->layer) {
+					if(pchan->bone->flag & BONE_SELECTED) {
+						VECCOPY(vec, pchan->pose_head);
+						Mat4MulVecfl(ob->obmat, vec);
+						VecAddf(centroid, centroid, vec);
+						DO_MINMAX(vec, min, max);
+						count++;
+					}
 				}
 			}
 		}
