@@ -1362,7 +1362,7 @@ static void draw_pose_channels(Base *base, int dt)
 	glEnable(GL_CULL_FACE);
 	
 	/* if solid we draw that first, with selection codes, but without names, axes etc */
-	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
+	if(dt>OB_WIRE) {
 		if(arm->flag & ARM_POSEMODE) index= base->selcol;
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -1379,6 +1379,8 @@ static void draw_pose_channels(Base *base, int dt)
 					
 					if(pchan->custom)
 						draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+					else if(arm->drawtype==ARM_LINE)
+						;	/* nothing in solid */
 					else if(arm->drawtype==ARM_ENVELOPE)
 						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
 					else if(arm->drawtype==ARM_B_BONE)
