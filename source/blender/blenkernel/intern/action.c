@@ -811,9 +811,10 @@ static void do_nla(Object *ob, int blocktype)
 	bPose *tpose= NULL;
 	Key *key= NULL;
 	ListBase tchanbase={NULL, NULL}, chanbase={NULL, NULL};
-	bActionStrip *strip;
+	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
+	float scene_cfra= G.scene->r.cfra;
 	int	doit, dostride;
 	
 	if(blocktype==ID_AR) {
@@ -824,6 +825,32 @@ static void do_nla(Object *ob, int blocktype)
 		key= ob_get_key(ob);
 	}
 	
+	/* check on extend to left or right, when no strip is hit by 'cfra' */
+	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+		/* escape loop on a hit */
+		if( scene_cfra >= strip->start && scene_cfra <= strip->end + 0.1f)	/* note 0.1 comes back below */
+			break;
+		if(scene_cfra < strip->start) {
+			if(stripfirst==NULL)
+				stripfirst= strip;
+			else if(stripfirst->start > strip->start)
+				stripfirst= strip;
+		}
+		else if(scene_cfra > strip->end) {
+			if(striplast==NULL)
+				striplast= strip;
+			else if(striplast->end < strip->end)
+				striplast= strip;
+		}
+	}
+	if(strip==NULL) {	/* extend */
+		if(stripfirst)
+			scene_cfra= stripfirst->start;
+		else if(striplast)
+			scene_cfra= striplast->end;
+	}
+	
+	/* and now go over all strips */
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
 		doit=dostride= 0;
 		
@@ -832,8 +859,8 @@ static void do_nla(Object *ob, int blocktype)
 			/* Determine if the current frame is within the strip's range */
 			length = strip->end-strip->start;
 			actlength = strip->actend-strip->actstart;
-			striptime = (G.scene->r.cfra-(strip->start)) / length;
-			stripframe = (G.scene->r.cfra-(strip->start)) ;
+			striptime = (scene_cfra-(strip->start)) / length;
+			stripframe = (scene_cfra-(strip->start)) ;
 			
 			if (striptime>=0.0){
 				
@@ -855,7 +882,7 @@ static void do_nla(Object *ob, int blocktype)
 								if(cu->path) {
 									
 									/* Find the position on the path */
-									ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
+									ctime= bsystem_time(ob, ob->parent, scene_cfra, 0.0);
 									
 									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 										ctime /= cu->pathlen;
@@ -937,10 +964,10 @@ static void do_nla(Object *ob, int blocktype)
 				if (doit){
 					/* Handle blendin */
 					
-					if (strip->blendin>0.0 && stripframe<=strip->blendin && G.scene->r.cfra>=strip->start){
+					if (strip->blendin>0.0 && stripframe<=strip->blendin && scene_cfra>=strip->start){
 						blendfac = stripframe/strip->blendin;
 					}
-					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && G.scene->r.cfra<=strip->end){
+					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && scene_cfra<=strip->end){
 						blendfac = (length-stripframe)/(strip->blendout);
 					}
 					else
