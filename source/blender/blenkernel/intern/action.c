@@ -804,6 +804,26 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 	return 0.0f;
 }
 
+/* simple case for now; only the curve path with constraint value > 0.5 */
+/* blending we might do later... */
+static Object *get_parent_path(Object *ob)
+{
+	bConstraint *con;
+	
+	if(ob->parent && ob->parent->type==OB_CURVE)
+		return ob->parent;
+	
+	for (con = ob->constraints.first; con; con=con->next) {
+		if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
+			if(con->enforce>0.5f) {
+				bFollowPathConstraint *data= con->data;
+				return data->tar;
+			}
+		}
+	}
+	return NULL;
+}
+
 /* ************** do the action ************ */
 
 static void do_nla(Object *ob, int blocktype)
@@ -872,17 +892,19 @@ static void do_nla(Object *ob, int blocktype)
 					
 					/* Handle path */
 					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
-						if (ob->parent && ob->parent->type==OB_CURVE){
-							Curve *cu = ob->parent->data;
+						Object *parent= get_parent_path(ob);
+						
+						if (parent) {
+							Curve *cu = parent->data;
 							float ctime, pdist;
 							
 							if (cu->flag & CU_PATH){
 								/* Ensure we have a valid path */
-								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(ob->parent, 0);
+								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(parent, 0);
 								if(cu->path) {
 									
 									/* Find the position on the path */
-									ctime= bsystem_time(ob, ob->parent, scene_cfra, 0.0);
+									ctime= bsystem_time(ob, parent, scene_cfra, 0.0);
 									
 									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 										ctime /= cu->pathlen;
@@ -891,7 +913,7 @@ static void do_nla(Object *ob, int blocktype)
 									pdist = ctime*cu->path->totdist;
 									
 									if(tpose && strip->stridechannel[0]) {
-										striptime= stridechannel_frame(ob->parent, strip, cu->path, pdist, tpose->stride_offset);
+										striptime= stridechannel_frame(parent, strip, cu->path, pdist, tpose->stride_offset);
 									}									
 									else {
 										if (strip->stridelen) {
