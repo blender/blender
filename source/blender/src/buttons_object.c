@@ -2078,12 +2078,11 @@ static void object_panel_fluidsim(Object *ob)
 	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
 
-	uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
-			&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
+	if(ob->type==OB_MESH) {
+		uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
+				&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
 
-	if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
-
-		if(ob->type==OB_MESH) {
+		if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
 			FluidsimSettings *fss= ob->fluidsimSettings;
 			
 			if(fss==NULL) {
@@ -2216,12 +2215,12 @@ static void object_panel_fluidsim(Object *ob)
 
 		} else {
 			yline -= lineHeight + 5;
-			uiDefBut(block, LABEL, 0, "Sorry - only meshes supported", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Object not enabled for fluid simulation...", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
 			yline -= lineHeight;
 		}
 	} else {
 		yline -= lineHeight + 5;
-		uiDefBut(block, LABEL, 0, "Object not enabled for fluid simulation...", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Only Mesh Objects can participate", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
 		yline -= lineHeight;
 	}
 }
