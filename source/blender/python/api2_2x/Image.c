@@ -126,7 +126,7 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args)
 	if( !img )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );
-	// image_changed(img, 0);
+	
 	return Image_CreatePyObject( img );
 }
 
@@ -894,9 +894,6 @@ static PyObject *Image_reload( BPy_Image * self )
 
 	free_image_buffers( img );	/* force read again */
 	img->ok = 1;
-	if( G.sima )
-		image_changed( G.sima, 0 );
-
 	Py_RETURN_NONE;
 }
 
@@ -1104,12 +1101,10 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 		attr = PyInt_FromLong( self->image->animspeed );
 	else if( strcmp( name, "packed" ) == 0 ) {
 		if (self->image->packedfile)  {
-			attr = Py_True;
+			attr = EXPP_incr_ret_True();
 		} else {
-			attr = Py_False;
+			attr = EXPP_incr_ret_False();
 		}
-		Py_INCREF(attr);
-		
 	} else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );
 	else if( strcmp( name, "users" ) == 0 )
