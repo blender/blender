@@ -2027,6 +2027,7 @@ void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
 	Base *base;
+	IpoCurve *icu;
 	int redrawipo=0;
 	int cancelled= (t->state == TRANS_CANCEL);
 		
@@ -2073,19 +2074,36 @@ void special_aftertrans_update(TransInfo *t)
 			
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 				if (pchan->bone->flag & BONE_TRANSFORM){
-					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+
+					if(U.uiflag & USER_KEYINSERTAVAI) {
+						bActionChannel *achan; 
+
+						for (achan = act->chanbase.first; achan; achan=achan->next){
+
+							if (achan->ipo && !strcmp (achan->name, pchan->name)){
+								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+								}
+
+								break;
+							}
+						}
+					}
+					else{
+
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					}
 				}
 			}
 			
@@ -2122,22 +2140,36 @@ void special_aftertrans_update(TransInfo *t)
 			/* Set autokey if necessary */
 			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){
 				char *actname="";
-				
+
 				if(ob->ipoflag & OB_ACTION_OB)
 					actname= "Object";
-				
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
-			
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
-			
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
-				
+
+				if(U.uiflag & USER_KEYINSERTAVAI) {
+					if(base->object->ipo) {
+						ID* id= (ID *)(base->object);
+						icu= base->object->ipo->curve.first;
+						while(icu) {
+							icu->flag &= ~IPO_SELECT;
+							insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+							icu= icu->next;
+						}
+					}
+				}
+				else {
+
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
+
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
+
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
+				}
+
 				remake_object_ipos (ob);
 				allqueue(REDRAWIPO, 0);
 				allspace(REMAKEIPO, 0);

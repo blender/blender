@@ -48,6 +48,7 @@ struct PyMethodDef Null_methods[] = { {NULL, NULL, 0, NULL} };
 void types_InitAll( void )
 {
 	Action_Type.ob_type = &PyType_Type;
+	Pose_Type.ob_type = &PyType_Type;
 	Armature_Type.ob_type = &PyType_Type;
 	BezTriple_Type.ob_type = &PyType_Type;
 	Bone_Type.ob_type = &PyType_Type;
@@ -183,6 +184,8 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &BezTriple_Type );
 	PyDict_SetItemString( dict, "ActionType",
 			      ( PyObject * ) &Action_Type );
+	PyDict_SetItemString( dict, "PoseType",
+			      ( PyObject * ) &Pose_Type );
 	PyDict_SetItemString( dict, "propertyType",
 			      ( PyObject * ) &property_Type );
 	PyDict_SetItemString( dict, "pointType",

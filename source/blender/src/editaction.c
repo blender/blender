@@ -2148,46 +2148,6 @@ static void numbuts_action(void)
     }
 }
 
-static void insert_test(void)
-{
-	Object *ob= OBACT;
-	bActionChannel *achan;
-	int oldframe;
-	
-	if(ob==NULL || ob->pose==NULL || ob->action==NULL) return;
-	printf("In the call\n");
-	
-	/* uses the current action of the object */
-	extract_pose_from_action(ob->pose, ob->action, G.scene->r.cfra);
-	
-	oldframe = G.scene->r.cfra;
-	G.scene->r.cfra = G.rt;
-	
-	for (achan = ob->action->chanbase.first; achan; achan=achan->next) {
-		if(achan->ipo) {
-			printf("inserted %s\n", achan->name);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_LOC_X);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_LOC_Y);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_LOC_Z);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_X);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_Y);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_Z);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_QUAT_W);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_SIZE_X);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_SIZE_Y);
-			insertkey(&ob->id, ID_PO, achan->name, NULL, AC_SIZE_Z);
-		}
-	}
-	
-	G.scene->r.cfra = oldframe;
-	
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWACTION, 1);
-}
-
 void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	extern void do_actionbuts(unsigned short event); // drawaction.c
@@ -2774,4 +2734,170 @@ void bottom_sel_action()
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
+}
+
+void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restPos[][4], float armPos[][4])
+{
+	float imatarm[4][4], imatbone[4][4], tmat[4][4], t2mat[4][4];
+	
+	Mat4Invert(imatarm, armPos);
+	Mat4Invert(imatbone, restPos);
+	Mat4MulMat4(tmat, imatarm, worldSpace);
+	Mat4MulMat4(t2mat, tmat, imatbone);
+	Mat4MulMat4(boneSpaceMat, restPos, t2mat);
+}
+
+
+bAction* bake_obIPO_to_action (Object *ob)
+{
+	bArmature		*arm;
+	bAction			*result=NULL;
+	bActionChannel  *achan;
+	bAction			*temp;
+	bPoseChannel	*pchan;
+	Bone			*bone;
+	ID				*id;
+	ListBase		elems;
+	float			actstart, actend;
+	int		        oldframe,testframe;
+	int			curframe;
+	char			newname[64];
+	float			quat[4],tmat[4][4],startpos[4][4],imat[4][4],mat3[3][3];
+	CfraElem		*firstcfra, *lastcfra;
+	
+	arm = get_armature(ob);
+	
+	if (arm) {	
+	
+		oldframe = CFRA;
+		result = add_empty_action(ID_PO);
+		id = (ID *)ob;
+		
+		sprintf (newname, "TESTOBBAKE");
+		rename_id(&result->id, newname);
+		
+		if(ob!=G.obedit) { // make sure object is not in edit mode
+			if(ob->ipo) {
+				/* convert the ipo to a list of 'current frame elements' */
+				
+				temp = ob->action;
+				ob->action = result;
+				
+				elems.first= elems.last= NULL;
+				make_cfra_list(ob->ipo, &elems);
+				/* set the beginning armature location */
+				firstcfra=elems.first;
+				lastcfra=elems.last;
+				CFRA=firstcfra->cfra;
+				
+				where_is_object(ob);
+				Mat4CpyMat4(startpos,ob->obmat);
+				
+				/* loop from first key to last, sampling every 10 */
+				for (testframe = firstcfra->cfra; testframe<=lastcfra->cfra; testframe=testframe+10) { 
+					CFRA=testframe;
+					where_is_object(ob);
+
+					for (bone = arm->bonebase.first; bone; bone=bone->next) {
+						if (!bone->parent) { /* this is a root bone, so give it a key! */
+							world2bonespace(tmat,ob->obmat,bone->arm_mat,startpos);
+							Mat4ToQuat(tmat,quat);
+							printf("Frame: %i %f, %f, %f, %f\n",CFRA,quat[0],quat[1],quat[2],quat[3]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_LOC_X,tmat[3][0]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_LOC_Y,tmat[3][1]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_LOC_Z,tmat[3][2]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_X,quat[1]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_Y,quat[2]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_Z,quat[3]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_W,quat[0]);
+							//insertmatrixkey(id, ID_PO, bone->name, NULL, AC_SIZE_X,size[0]);
+							//insertmatrixkey(id, ID_PO, bone->name, NULL, AC_SIZE_Y,size[1]);
+							//insertmatrixkey(id, ID_PO, bone->name, NULL, AC_SIZE_Z,size[2]);
+						}
+					}
+				}
+				BLI_freelistN(&elems);  
+			}
+		}
+		CFRA = oldframe;
+	}
+	return result;	
+}
+
+bAction* bake_everything_to_action (Object *ob)
+{
+	bArmature		*arm;
+	bAction			*result=NULL;
+	bActionChannel  *achan;
+	bAction			*temp;
+	bPoseChannel	*pchan;
+	Bone			*bone;
+	ID				*id;
+	ListBase		elems;
+	float			actstart, actend;
+	int		        oldframe,testframe;
+	int			curframe;
+	char			newname[64];
+	float			quat[4],tmat[4][4],startpos[4][4],imat[4][4],mat3[3][3];
+	CfraElem		*firstcfra, *lastcfra;
+	
+	arm = get_armature(ob);
+	
+	if (arm) {	
+	
+		oldframe = CFRA;
+		result = add_empty_action(ID_PO);
+		id = (ID *)ob;
+		
+		sprintf (newname, "TESTOBBAKE");
+		rename_id(&result->id, newname);
+		
+		if(ob!=G.obedit) { // make sure object is not in edit mode
+			if(ob->ipo) {
+				/* convert the ipo to a list of 'current frame elements' */
+				
+				temp = ob->action;
+				ob->action = result;
+				
+				elems.first= elems.last= NULL;
+				make_cfra_list(ob->ipo, &elems);
+				/* set the beginning armature location */
+				firstcfra=elems.first;
+				lastcfra=elems.last;
+				CFRA=firstcfra->cfra;
+				
+				where_is_object(ob);
+				Mat4CpyMat4(startpos,ob->obmat);
+				
+				/* loop from first key to last, sampling every 10 */
+				for (testframe = firstcfra->cfra; testframe<=lastcfra->cfra; testframe=testframe+10) { 
+					CFRA=testframe;
+					
+					do_all_pose_actions(ob);
+					where_is_object(ob);
+					for (bone = arm->bonebase.first; bone; bone=bone->next) {
+						if (!bone->parent) { /* this is a root bone, so give it a key! */
+							world2bonespace(tmat,ob->obmat,bone->arm_mat,startpos);
+							
+							Mat4ToQuat(tmat,quat);
+							printf("Frame: %i %f, %f, %f, %f\n",CFRA,quat[0],quat[1],quat[2],quat[3]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_LOC_X,tmat[3][0]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_LOC_Y,tmat[3][1]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_LOC_Z,tmat[3][2]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_X,quat[1]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_Y,quat[2]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_Z,quat[3]);
+							insertmatrixkey(id, ID_PO, bone->name, NULL, AC_QUAT_W,quat[0]);
+							//insertmatrixkey(id, ID_PO, bone->name, NULL, AC_SIZE_X,size[0]);
+							//insertmatrixkey(id, ID_PO, bone->name, NULL, AC_SIZE_Y,size[1]);
+							//insertmatrixkey(id, ID_PO, bone->name, NULL, AC_SIZE_Z,size[2]);
+						}
+					}
+				}
+				BLI_freelistN(&elems);  
+			}
+		}
+		CFRA = oldframe;
+	}
+	return result;	
 }

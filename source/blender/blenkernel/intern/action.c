@@ -1078,3 +1078,4 @@ void do_all_object_actions(Object *ob)
 	}
 }
 
+

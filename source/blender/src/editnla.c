@@ -1577,6 +1577,23 @@ void deselect_nlachannels(int test)
 	}	
 }
 
+static Object *get_object_from_active_strip(void) {
+
+	Base *base;
+	bActionStrip *strip;
+	
+	for (base=G.scene->base.first; base; base=base->next) {
+		for (strip = base->object->nlastrips.first; 
+			 strip; strip=strip->next){
+			if (strip->flag & ACTSTRIP_SELECT) {
+				return base->object;
+			}
+		}
+	}
+	return NULL;
+}
+
+
 void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -1587,6 +1604,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	float dx,dy;
 	int	cfra;
 	short mousebut = L_MOUSE;
+	Object		*ob; //in shift-B / bake
 	
 	if (curarea->win==0) return;
 	if (!snla) return;
@@ -1646,8 +1664,17 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case BKEY:
-				borderselect_nla();
-				break;
+			  if (G.qual & LR_SHIFTKEY){
+			    bake_all_to_action();
+			    allqueue (REDRAWNLA, 0);
+			    allqueue (REDRAWVIEW3D, 0);
+			    BIF_undo_push("Bake All To Action");
+			    ob = get_object_from_active_strip();
+			    //build_match_caches(ob);
+			  }
+			  else
+			    borderselect_nla();
+			  break;
 				
 			case CKEY:
 				convert_nla(mval);
@@ -1763,3 +1790,91 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(doredraw) scrarea_queue_winredraw(curarea);
 }
 
+static void add_nla_block_by_name(char name[32], Object *ob, short hold, short add, float repeat)
+{
+	bAction *act=NULL;
+	bActionStrip *strip;
+	int		cur;
+
+	if (name){
+		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
+			if (strcmp(name,act->id.name)==0) {
+				break;
+			}
+		}
+	}
+	
+	/* Bail out if no action was chosen */
+	if (!act){
+		return;
+	}
+	
+	/* Initialize the new action block */
+	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
+	
+	deselect_nlachannel_keys(0);
+	
+	/* Link the action to the strip */
+	strip->act = act;
+	calc_action_range(strip->act, &strip->actstart, &strip->actend);
+	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
+	strip->end = strip->start + (strip->actend-strip->actstart);
+		/* simple prevention of zero strips */
+	if(strip->start>strip->end-2) 
+		strip->end= strip->start+100;
+	
+	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION; //|ACTSTRIP_USEMATCH;
+	
+	if (hold==1)
+		strip->flag = strip->flag|ACTSTRIP_HOLDLASTFRAME;
+		
+	if (add==1)
+		strip->mode = ACTSTRIPMODE_ADD;
+	
+	find_stridechannel(ob, strip);
+	
+	set_active_strip(ob, strip);
+	
+	strip->repeat = repeat;
+	
+	act->id.us++;
+	
+	BLI_addtail(&ob->nlastrips, strip);
+
+	BIF_undo_push("Add NLA strip");
+}
+
+void bake_all_to_action(void)
+{
+	Object		*ob;
+	bAction		*newAction=NULL;
+	Ipo		*ipo=NULL;
+	ID		*id;
+	short		hold, add;
+	float		repeat;
+
+	/* burn object-level motion into a new action */
+	ob = get_object_from_active_strip();
+	if (ob) {
+		if (ob->flag&OB_ARMATURE) {
+			newAction = bake_obIPO_to_action(ob);
+			if (newAction) {
+				/* unlink the object's IPO */
+				ipo=ob->ipo;
+				if (ipo) {
+					id = &ipo->id;
+					if (id->us > 0)
+						id->us--;
+					ob->ipo = NULL;
+				}
+				
+				/* add the new Action to NLA as a strip */
+				hold=1;
+				add=1;
+				repeat=1.0;
+				printf("about to add nla block...\n");
+				add_nla_block_by_name(newAction->id.name, ob, hold, add, repeat);
+			}
+		}
+	}
+}

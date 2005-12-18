@@ -79,6 +79,7 @@ static PyObject *Action_getName( BPy_Action * self );
 static PyObject *Action_setName( BPy_Action * self, PyObject * args );
 static PyObject *Action_setActive( BPy_Action * self, PyObject * args );
 static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args );
+static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args );
 static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args );
 static PyObject *Action_getAllChannelIpos( BPy_Action * self );
 
@@ -95,6 +96,8 @@ static PyMethodDef BPy_Action_methods[] = {
 	 "(str) -set this action as the active action for an object"},
 	{"getChannelIpo", ( PyCFunction ) Action_getChannelIpo, METH_VARARGS,
 	 "(str) -get the Ipo from a named action channel in this action"},
+	{"verifyChannel", ( PyCFunction ) Action_verifyChannel, METH_VARARGS,
+	 "(str) -verify the channel in this action"},
 	{"removeChannel", ( PyCFunction ) Action_removeChannel, METH_VARARGS,
 	 "(str) -remove the channel from the action"},
 	{"getAllChannelIpos", ( PyCFunction ) Action_getAllChannelIpos,
@@ -316,6 +319,27 @@ static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args )
 	//return IPO
 	return Ipo_CreatePyObject( chan->ipo );
 }
+
+//----------------------------------------------------------------------
+static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args )
+{
+	char *chanName;
+	bActionChannel *chan;
+
+	if( !self->action )
+		( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					 "couldn't create channel for a NULL action" ) );
+
+	if( !PyArg_ParseTuple( args, "s", &chanName ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected string argument" ) );
+
+	chan = verify_action_channel(self->action, chanName);
+
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
 
 static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args )
 {

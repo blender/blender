@@ -36,6 +36,7 @@
 #include <Python.h>
 
 extern PyTypeObject Action_Type, Armature_Type;
+extern PyTypeObject Pose_Type;
 extern PyTypeObject BezTriple_Type, Bone_Type, Button_Type;
 extern PyTypeObject Camera_Type;
 extern PyTypeObject CurNurb_Type;
