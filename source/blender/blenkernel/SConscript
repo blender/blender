@@ -43,6 +43,7 @@ source_files = ['intern/constraint.c',
                 'intern/library.c',
                 'intern/property.c',
                 'intern/softbody.c',
+		'intern/node.c',
                 'intern/texture.c']
 
 blenkernel_env.Append (CPPPATH = ['.',
