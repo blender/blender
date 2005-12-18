@@ -2316,7 +2316,7 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts, float 
 		for(j=1;j<(numcuts+1)-i;j++) {
 			float percent= (float)j/(float)((numcuts+1)-i);
 
-			innerverts[i][((numcuts+1)-i)-j]= subdivide_edge_addvert(&temp, rad, beauty, percent);
+			innerverts[i][((numcuts+1)-i)-j]= subdivide_edge_addvert(&temp, rad, beauty, 1-percent);
 		}
 	}
 
