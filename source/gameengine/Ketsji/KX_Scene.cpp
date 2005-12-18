@@ -112,7 +112,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_active_camera(NULL),
 	m_ueberExecutionPriority(0)
 {
-		
+	m_suspendedtime = 0.0;
+	m_suspendeddelta = 0.0;
 
 	m_activity_culling = false;
 	m_suspend = false;
@@ -1134,6 +1135,23 @@ void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)
 	KX_TouchEventManager* touchmgr = new KX_TouchEventManager(m_logicmgr, physEnv);
 	m_logicmgr->RegisterEventManager(touchmgr);
 	return;
+}
+ 
+void KX_Scene::setSuspendedTime(double suspendedtime)
+{
+	m_suspendedtime = suspendedtime;
+}
+double KX_Scene::getSuspendedTime()
+{
+	return m_suspendedtime;
+}
+void KX_Scene::setSuspendedDelta(double suspendeddelta)
+{
+	m_suspendeddelta = suspendeddelta;
+}
+double KX_Scene::getSuspendedDelta()
+{
+	return m_suspendeddelta;
 }
 
 //----------------------------------------------------------------------------

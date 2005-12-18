@@ -251,6 +251,9 @@ protected:
 	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty);
 	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible);
 	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj);
+
+	double				m_suspendedtime;
+	double				m_suspendeddelta;
 	
 	/**
 	 * This stores anything from python
@@ -515,6 +518,25 @@ public:
 	virtual PyObject* _getattr(const STR_String& attr); /* name, active_camera, gravity, suspended, viewport, framing, activity_culling, activity_culling_radius */
 	virtual int _setattr(const STR_String &attr, PyObject *pyvalue);
 	virtual int _delattr(const STR_String &attr);
+
+	/**
+	 * Sets the time the scene was suspended
+	 */ 
+	void setSuspendedTime(double suspendedtime);
+	/**
+	 * Returns the "curtime" the scene was suspended
+	 */ 
+	double getSuspendedTime();
+	/**
+	 * Sets the difference between the local time of the scene (when it
+	 * was running and not suspended) and the "curtime"
+	 */ 
+	void setSuspendedDelta(double suspendeddelta);
+	/**
+	 * Returns the difference between the local time of the scene (when it
+	 * was running and not suspended) and the "curtime"
+	 */
+	double getSuspendedDelta();
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

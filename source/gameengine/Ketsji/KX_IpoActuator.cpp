@@ -163,7 +163,8 @@ bool KX_IpoActuator::ClampLocalTime()
 void KX_IpoActuator::SetStartTime(float curtime)
 {
 	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
-	
+
+	curtime = curtime - KX_KetsjiEngine::GetSuspendedDelta();	
 	if (m_direction > 0)
 		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
 	else
@@ -172,7 +173,14 @@ void KX_IpoActuator::SetStartTime(float curtime)
 
 void KX_IpoActuator::SetLocalTime(float curtime)
 {
-	float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+	float delta_time = ((curtime - m_starttime) - KX_KetsjiEngine::GetSuspendedDelta())*KX_FIXED_FRAME_PER_SEC;
+	
+	// negative delta_time is caused by floating point inaccuracy
+	// perhaps the inaccuracy could be reduced a bit
+	if ((m_localtime==m_startframe || m_localtime==m_endframe) && delta_time<0.0)
+	{
+		delta_time = 0.0;
+	}
 	
 	if (m_endframe < m_startframe)
 		delta_time = -delta_time;
@@ -211,7 +219,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 
 	bool result=true;
 	if (m_starttime < -2.0*start_smaller_then_end*(m_endframe - m_startframe))
-		m_starttime = curtime;
+		m_starttime = curtime - KX_KetsjiEngine::GetSuspendedDelta();
 	
 	switch (m_type)
 	{
@@ -241,7 +249,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		} else
 		{
 			m_localtime=m_startframe;
-			m_starttime=curtime;
+			SetStartTime(curtime);
 			m_direction=1;
 		}
 		break;

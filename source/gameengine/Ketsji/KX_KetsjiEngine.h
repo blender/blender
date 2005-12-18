@@ -103,6 +103,9 @@ private:
 	double				m_deltatime;
 	static double			m_ticrate;
 
+	static double			m_suspendedtime;
+	static double			m_suspendeddelta;
+
 	int					m_exitcode;
 	STR_String			m_exitstring;
 		/**
@@ -237,7 +240,13 @@ public:
 	 * @return Current setting for display all frames.
 	 */ 
 	bool GetUseFixedTime(void) const;
-	
+
+	/**
+	 * Returns the difference between the local time of the scene (when it
+	 * was running and not suspended) and the "curtime"
+	 */
+	static double GetSuspendedDelta();
+
 	/**
 	 * Gets the number of logic updates per second.
 	 */
