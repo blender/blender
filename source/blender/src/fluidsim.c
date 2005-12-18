@@ -400,7 +400,7 @@ void fluidsimBake(struct Object *ob)
 	}
 	
 	// dump data for frame 0
-  G.scene->r.cfra = 1;
+  G.scene->r.cfra = G.scene->r.sfra;
   scene_update_for_newframe(G.scene, G.scene->lay);
 
 	// start writing
