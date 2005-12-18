@@ -80,6 +80,7 @@
 #include "BSE_headerbuttons.h"
 
 #include "mydevice.h"
+#include "render.h" // for RE_make_existing_file
 
 #include "SDL.h"
 #include "SDL_thread.h"
