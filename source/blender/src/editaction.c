@@ -2322,9 +2322,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			break;
-		case JKEY:
-			insert_test();
-			break;
 			
 		case NKEY:
 			if(G.qual==0) {
