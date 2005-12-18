@@ -1327,6 +1327,7 @@ static void draw_pose_channels(Base *base, int dt)
 	/* hacky... prevent outline select from drawing dashed helplines */
 	glGetFloatv(GL_LINE_WIDTH, &tmp);
 	if(tmp > 1.1) do_dashed= 0;
+	if(arm->flag & ARM_NO_PARLINES) do_dashed= 0;
 	
 	/* precalc inverse matrix for drawing screen aligned */
 	if(arm->drawtype==ARM_ENVELOPE) {
@@ -1416,7 +1417,7 @@ static void draw_pose_channels(Base *base, int dt)
 			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
 				if(bone->layer & arm->layer) {
 					if (do_dashed && bone->parent) {
-						//	Draw a line from our root to the parent's tip
+						/*	Draw a line from our root to the parent's tip */
 						if(!(bone->flag & BONE_CONNECTED) ){
 							if (arm->flag & ARM_POSEMODE) {
 								glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
