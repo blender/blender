@@ -5649,12 +5649,12 @@ short pupmenu(char *instr)
 	md= decompose_menu_string(instr);
 
 	/* size and location, title slightly bigger for bold */
-	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts && USER_TR_BUTTONS));
+	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & USER_TR_BUTTONS));
 	else width= 0;
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		
-		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts && USER_TR_BUTTONS));
+		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts & USER_TR_BUTTONS));
 		if(xmax>width) width= xmax;
 
 		if( strcmp(name, "%l")==0) height+= PUP_LABELH;

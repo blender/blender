@@ -50,7 +50,7 @@ typedef enum {
 	ICON_NLA,
 	ICON_SCRIPTWIN,
 	ICON_TIME,
-	ICON_SPACE1,
+	ICON_NODE,
 	ICON_SPACE2,
 	ICON_SPACE3,
 	ICON_SPACE4,
@@ -91,7 +91,7 @@ typedef enum {
 	ICON_MAYBE_ITS_A_LASSO,
 	ICON_BLANK1,	/* ATTENTION, someone decided to use this throughout blender
 	                   and didn't care to neither rename it nor update the PNG */
-	ICON_BLANK2,
+	ICON_VERSE,
 	ICON_MOD_BOOLEAN,
 	ICON_ARMATURE,
 	ICON_PAUSE,
