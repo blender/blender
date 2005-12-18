@@ -208,6 +208,7 @@ char *windowtype_pup(void)
 	strcat(string, "|User Preferences %x7"); //213
 	strcat(string, "|Outliner %x3"); //232
 	strcat(string, "|Buttons Window %x4"); //251
+	strcat(string, "|Node Editor %x16");
 
 	strcat(string, "|%l"); //254
 
@@ -1979,7 +1980,8 @@ void do_headerbuttons(short event)
 	else if(event<700) do_sound_buttons(event);
 	else if(event<750) do_action_buttons(event);
 	else if(event<800) do_time_buttons(curarea, event);
-	else if(event<900) do_nla_buttons(event);
+	else if(event<850) do_nla_buttons(event);
+	else if(event<900) do_node_buttons(curarea, event);
 	else if(event>=REDRAWVIEW3D) allqueue(event, 0);
 }
 

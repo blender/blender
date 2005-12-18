@@ -118,6 +118,18 @@ class Lamp:
   @ivar samples:  Lamp shadow map samples.
   Value is clamped to the range [1,16].
   @type samples:  int
+  @ivar raySamplesX:  Lamp raytracing X samples (X is used for the Y axis with square area lamps).
+  Value is clamped to the range [1,16].
+  @type raySamplesX:  int
+  @ivar raySamplesY:  Lamp raytracing Y samples (Y is only used for rectangle area lamps).
+  Value is clamped to the range [1,16].
+  @type raySamplesY:  int
+  @ivar areaSizeX:  Lamp X size (X is used for the Y axis with square area lamps)
+  Value is clamped to the range [0.01,100.0].
+  @type areaSizeX:  float
+  @ivar areaSizeY:  Lamp Y size (Y is only used for rectangle area lamps).
+  Value is clamped to the range [0.01,100.0].
+  @type areaSizeY:  float
   @ivar softness:  Lamp shadow sample area size.
   Value is clamped to the range [1.0,100.0].
   @type softness:  float
@@ -199,6 +211,62 @@ class Lamp:
     Set the samples value.
     @type samples: int
     @param samples: The new samples value.
+    """
+
+  def getRaySamplesX():
+    """
+    Get this lamp's raytracing sample value on the X axis.
+    This value is only used for area lamps.
+    @rtype: int
+    """
+
+  def setRaySamplesX():
+    """
+    Set the lamp's raytracing sample value on the X axis, between 1 and 16.
+    This value is only used for area lamps.
+    @rtype: int
+    """
+
+  def getRaySamplesY():
+    """
+    Get this lamp's raytracing sample value on the Y axis.
+    This value is only used for rectangle area lamps.
+    @rtype: int
+    """
+
+  def setRaySamplesY():
+    """
+    Set the lamp's raytracing sample value on the Y axis, between 1 and 16.
+    This value is only used for rectangle area lamps.
+    @rtype: int
+    """
+
+  def getAreaSizeX():
+    """
+    Get this lamp's size on the X axis.
+    This value is only used for area lamps.
+    @rtype: int
+    """
+
+  def setAreaSizeX():
+    """
+    Set this lamp's size on the X axis.
+    This value is only used for area lamps.
+    @rtype: int
+    """
+
+  def getAreaSizeY():
+    """
+    Get this lamp's size on the Y axis.
+    This value is only used for rectangle area lamps.
+    @rtype: int
+    """
+
+  def setAreaSizeY():
+    """
+    Set this lamp's size on the Y axis.
+    This value is only used for rectangle area lamps.
+    @rtype: int
     """
 
   def getBufferSize():

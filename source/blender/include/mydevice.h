@@ -251,6 +251,7 @@
 #define ONLOAD_SCRIPT		0x4035
 #define SCREEN_HANDLER		0x4036
 #define REDRAWANIM			0x4037
+#define REDRAWNODE			0x4038
 
 #endif	/* !__MYDEVICE_H__ */
 

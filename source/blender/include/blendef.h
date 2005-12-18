@@ -370,10 +370,13 @@
 #define B_TL_NEXTKEY	755
 #define B_TL_STOP		756
 
-/* NLA: 801-900 */
+/* NLA: 801-850 */
 #define B_NLAHOME		801
 
-/* FREE 900 - 999 */
+/* NODE: 851-900 */
+#define B_NODEHOME		851
+
+/* FREE 901 - 999 */
 
 
 #define B_NOTHING		-1

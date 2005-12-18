@@ -3084,6 +3084,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
 				}
 			}
+			else if(sl->spacetype==SPACE_NODE) {
+				SpaceNode *snode= (SpaceNode *)sl;
+				snode->nodetree= NULL;
+			}
 		}
 
 		sa->v1= newdataadr(fd, sa->v1);
@@ -4800,12 +4804,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if(v3d->twtype==0) v3d->twtype= V3D_MANIP_TRANSLATE;
 					}
 #ifndef SHOWDEPGRAPH
-					if(sl->spacetype==SPACE_OOPS) {
+					else if(sl->spacetype==SPACE_OOPS) {
 						if ( ((SpaceOops *)sl)->type==SO_DEPSGRAPH)
 							 ((SpaceOops *)sl)->type=SO_OOPS;
 					}
 #endif				
-					if(sl->spacetype==SPACE_TIME) {
+					else if(sl->spacetype==SPACE_TIME) {
 						SpaceTime *stime= (SpaceTime *)sl;
 						if(stime->redraws==0)
 							stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;

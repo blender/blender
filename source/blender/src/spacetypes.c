@@ -96,6 +96,7 @@ static SpaceType *spacetype_from_area(ScrArea *area)
 	case SPACE_SCRIPT:	return spacescript_get_type();
 	case SPACE_VIEW3D:	return spaceview3d_get_type();
 	case SPACE_TIME:	return spacetime_get_type();
+	case SPACE_NODE:	return spacenode_get_type();
 	default:
 		newspace(area, SPACE_VIEW3D);
 		return spaceview3d_get_type();

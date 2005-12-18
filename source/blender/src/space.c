@@ -76,6 +76,7 @@
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
@@ -4423,6 +4424,47 @@ static void init_timespace(ScrArea *sa)
 	
 }
 
+/* ******************** SPACE: Time ********************** */
+
+extern void drawnodespace(ScrArea *sa, void *spacedata);
+extern void winqreadnodespace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
+
+static void init_nodespace(ScrArea *sa)
+{
+	SpaceNode *snode;
+	
+	snode= MEM_callocN(sizeof(SpaceNode), "init nodespace");
+	BLI_addhead(&sa->spacedata, snode);
+	
+	snode->spacetype= SPACE_NODE;
+	snode->blockscale= 0.7;
+	
+	snode->v2d.tot.xmin=  -10.0;
+	snode->v2d.tot.ymin=  -10.0;
+	snode->v2d.tot.xmax= (float)sa->winx + 10.0f;
+	snode->v2d.tot.ymax= (float)sa->winy + 10.0f;
+	
+	snode->v2d.cur.xmin=  0.0;
+	snode->v2d.cur.ymin=  0.0;
+	snode->v2d.cur.xmax= (float)sa->winx;
+	snode->v2d.cur.ymax= (float)sa->winy;
+	
+	snode->v2d.min[0]= 1.0;
+	snode->v2d.min[1]= 1.0;
+	
+	snode->v2d.max[0]= 32000.0f;
+	snode->v2d.max[1]= 32000.0f;
+	
+	snode->v2d.minzoom= 0.5f;
+	snode->v2d.maxzoom= 1.21f;
+	
+	snode->v2d.scroll= 0;
+	snode->v2d.keepaspect= 1;
+	snode->v2d.keepzoom= 1;
+	snode->v2d.keeptot= 0;
+}
+
+
 
 /* ******************** SPACE: GENERAL ********************** */
 
@@ -4490,6 +4532,8 @@ void newspace(ScrArea *sa, int type)
 					init_nlaspace(sa);
 				else if(type==SPACE_TIME)
 					init_timespace(sa);
+				else if(type==SPACE_NODE)
+					init_nodespace(sa);
 
 				sl= sa->spacedata.first;
 				sl->area= sa;
@@ -4584,6 +4628,11 @@ void freespacelist(ListBase *lb)
 		else if(sl->spacetype==SPACE_SOUND) {
 			free_soundspace((SpaceSound *)sl);
 		}
+		else if(sl->spacetype==SPACE_NODE) {
+			SpaceNode *snode= (SpaceNode *)sl;
+			if(snode->nodetree)
+				nodeFreeTree(snode->nodetree);
+		}
 	}
 
 	BLI_freelistN(lb);
@@ -4614,6 +4663,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			check_imasel_copy((SpaceImaSel *) sl);
 		}
 		else if(sl->spacetype==SPACE_TEXT) {
+		}
+		else if(sl->spacetype==SPACE_NODE) {
+			SpaceNode *snode= (SpaceNode *)sl;
+			snode->nodetree= NULL;
 		}
 		/* __PINFAKE */
 /*		else if(sfile->spacetype==SPACE_ACTION) {
@@ -4866,6 +4919,12 @@ void allqueue(unsigned short event, short val)
 				break;
 			case REDRAWTIME:
 				if(sa->spacetype==SPACE_TIME) {
+					scrarea_queue_headredraw(sa);
+					scrarea_queue_winredraw(sa);
+				}
+				break;
+			case REDRAWNODE:
+				if(sa->spacetype==SPACE_NODE) {
 					scrarea_queue_headredraw(sa);
 					scrarea_queue_winredraw(sa);
 				}
@@ -5173,6 +5232,18 @@ SpaceType *spacetime_get_type(void)
 	if (!st) {
 		st= spacetype_new("Time");
 		spacetype_set_winfuncs(st, drawtimespace, NULL, winqreadtimespace);
+	}
+	
+	return st;
+}
+
+SpaceType *spacenode_get_type(void)
+{
+	static SpaceType *st= NULL;
+	
+	if (!st) {
+		st= spacetype_new("Node");
+		spacetype_set_winfuncs(st, drawnodespace, NULL, winqreadnodespace);
 	}
 	
 	return st;

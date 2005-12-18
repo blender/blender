@@ -327,10 +327,16 @@ void areawinset(short win)
 			G.v2d= &G.snla->v2d;
 			break;
 		case SPACE_TIME:
-			{
+		{
 			SpaceTime *stime= curarea->spacedata.first;
 			G.v2d= &stime->v2d;
-			}
+		}
+			break;
+		case SPACE_NODE:
+		{
+			SpaceNode *snode= curarea->spacedata.first;
+			G.v2d= &snode->v2d;
+		}
 			break;
 		default:
 			break;
@@ -400,6 +406,7 @@ void scrarea_do_headdraw(ScrArea *area)
 		case SPACE_ACTION:	action_buttons();	break;
 		case SPACE_NLA:		nla_buttons();		break;
 		case SPACE_TIME:	time_buttons(area);	break;
+		case SPACE_NODE:	node_buttons(area);	break;
 		}
 		uiClearButLock();
 
@@ -647,7 +654,6 @@ int is_allowed_to_change_screen(bScreen *new)
 
 void splash(void *data, int datasize, char *string)
 {
-	extern void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 	ImBuf *bbuf;
 	int oldwin;
 	short val;

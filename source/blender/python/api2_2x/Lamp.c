@@ -117,6 +117,12 @@
 #define EXPP_LAMP_COL_MIN 0.0
 #define EXPP_LAMP_COL_MAX 1.0
 
+/* Raytracing settings */
+#define EXPP_LAMP_RAYSAMPLES_MIN 1
+#define EXPP_LAMP_RAYSAMPLES_MAX 16
+#define EXPP_LAMP_AREASIZE_MIN 0.01
+#define EXPP_LAMP_AREASIZE_MAX 100.0
+
 /* Lamp_setComponent() keys for which color to get/set */
 #define	EXPP_LAMP_COMP_R			0x00
 #define	EXPP_LAMP_COMP_G			0x01
@@ -177,6 +183,10 @@ static PyObject *Lamp_getTypesConst( void );
 static PyObject *Lamp_getMode( BPy_Lamp * self );
 static PyObject *Lamp_getModesConst( void );
 static PyObject *Lamp_getSamples( BPy_Lamp * self );
+static PyObject *Lamp_getRaySamplesX( BPy_Lamp * self );
+static PyObject *Lamp_getRaySamplesY( BPy_Lamp * self );
+static PyObject *Lamp_getAreaSizeX( BPy_Lamp * self );
+static PyObject *Lamp_getAreaSizeY( BPy_Lamp * self );
 static PyObject *Lamp_getBufferSize( BPy_Lamp * self );
 static PyObject *Lamp_getHaloStep( BPy_Lamp * self );
 static PyObject *Lamp_getEnergy( BPy_Lamp * self );
@@ -201,6 +211,10 @@ static PyObject *Lamp_oldsetName( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetSamples( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetRaySamplesX( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetRaySamplesY( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetAreaSizeX( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetAreaSizeY( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetBufferSize( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetHaloStep( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetEnergy( BPy_Lamp * self, PyObject * args );
@@ -220,6 +234,10 @@ static int Lamp_setName( BPy_Lamp * self, PyObject * args );
 static int Lamp_setType( BPy_Lamp * self, PyObject * args );
 static int Lamp_setMode( BPy_Lamp * self, PyObject * args );
 static int Lamp_setSamples( BPy_Lamp * self, PyObject * args );
+static int Lamp_setRaySamplesX( BPy_Lamp * self, PyObject * args );
+static int Lamp_setRaySamplesY( BPy_Lamp * self, PyObject * args );
+static int Lamp_setAreaSizeX( BPy_Lamp * self, PyObject * args );
+static int Lamp_setAreaSizeY( BPy_Lamp * self, PyObject * args );
 static int Lamp_setBufferSize( BPy_Lamp * self, PyObject * args );
 static int Lamp_setHaloStep( BPy_Lamp * self, PyObject * args );
 static int Lamp_setEnergy( BPy_Lamp * self, PyObject * args );
@@ -252,6 +270,14 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "() - return Lamp mode flags (or'ed value)"},
 	{"getSamples", ( PyCFunction ) Lamp_getSamples, METH_NOARGS,
 	 "() - return Lamp samples value"},
+	{"getRaySamplesX", ( PyCFunction ) Lamp_getRaySamplesX, METH_NOARGS,
+	 "() - return Lamp raytracing samples on the X axis"},
+	{"getRaySamplesY", ( PyCFunction ) Lamp_getRaySamplesY, METH_NOARGS,
+	 "() - return Lamp raytracing samples on the Y axis"},
+	{"getAreaSizeX", ( PyCFunction ) Lamp_getAreaSizeX, METH_NOARGS,
+	 "() - return Lamp area size on the X axis"},
+	{"getAreaSizeY", ( PyCFunction ) Lamp_getAreaSizeY, METH_NOARGS,
+	 "() - return Lamp area size on the Y axis"},
 	{"getBufferSize", ( PyCFunction ) Lamp_getBufferSize, METH_NOARGS,
 	 "() - return Lamp buffer size value"},
 	{"getHaloStep", ( PyCFunction ) Lamp_getHaloStep, METH_NOARGS,
@@ -288,6 +314,14 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "([up to eight str's]) - Set Lamp mode flag(s)"},
 	{"setSamples", ( PyCFunction ) Lamp_oldsetSamples, METH_VARARGS,
 	 "(int) - change Lamp samples value"},
+	{"setRaySamplesX", ( PyCFunction ) Lamp_oldsetRaySamplesX, METH_VARARGS,
+	 "(int) - change Lamp ray X samples value in [1,16]"},
+	{"setRaySamplesY", ( PyCFunction ) Lamp_oldsetRaySamplesY, METH_VARARGS,
+	 "(int) - change Lamp ray Y samples value in [1,16]"},
+	{"setAreaSizeX", ( PyCFunction ) Lamp_oldsetAreaSizeX, METH_VARARGS,
+	 "(float) - change Lamp ray X size for area lamps, value in [0.01, 100.0]"},
+	{"setAreaSizeY", ( PyCFunction ) Lamp_oldsetAreaSizeY, METH_VARARGS,
+	 "(float) - change Lamp ray Y size for area lamps, value in [0.01, 100.0]"},
 	{"setBufferSize", ( PyCFunction ) Lamp_oldsetBufferSize, METH_VARARGS,
 	 "(int) - change Lamp buffer size value"},
 	{"setHaloStep", ( PyCFunction ) Lamp_oldsetHaloStep, METH_VARARGS,
@@ -403,6 +437,22 @@ static PyGetSetDef BPy_Lamp_getseters[] = {
 	{"samples",
 	 (getter)Lamp_getSamples, (setter)Lamp_setSamples,
 	 "Lamp shadow map samples",
+	 NULL},
+	{"raySamplesX",
+	 (getter)Lamp_getRaySamplesX, (setter)Lamp_setRaySamplesX,
+	 "Lamp raytracing samples on the X axis",
+	 NULL},
+	{"raySamplesY",
+	 (getter)Lamp_getRaySamplesY, (setter)Lamp_setRaySamplesY,
+	 "Lamp raytracing samples on the Y axis",
+	 NULL},
+	{"areaSizeX",
+	 (getter)Lamp_getAreaSizeX, (setter)Lamp_setAreaSizeX,
+	 "Lamp X size for an arealamp",
+	 NULL},
+	{"areaSizeY",
+	 (getter)Lamp_getAreaSizeY, (setter)Lamp_setAreaSizeY,
+	 "Lamp Y size for an arealamp",
 	 NULL},
 	{"softness",
 	 (getter)Lamp_getSoftness, (setter)Lamp_setSoftness,
@@ -889,6 +939,49 @@ static PyObject *Lamp_getSamples( BPy_Lamp * self )
 					"couldn't get Lamp.samples attribute" ) );
 }
 
+static PyObject *Lamp_getRaySamplesX( BPy_Lamp * self )
+{
+	PyObject *attr = PyInt_FromLong( self->lamp->ray_samp );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Lamp.raySamplesX attribute" ) );
+}
+
+static PyObject *Lamp_getRaySamplesY( BPy_Lamp * self )
+{
+	PyObject *attr = PyInt_FromLong( self->lamp->ray_sampy );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Lamp.raySamplesY attribute" ) );
+}
+
+static PyObject *Lamp_getAreaSizeX( BPy_Lamp * self )
+{
+	PyObject *attr = PyFloat_FromDouble( self->lamp->area_size );
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Lamp.areaSizeX attribute" ) );
+}
+
+static PyObject *Lamp_getAreaSizeY( BPy_Lamp * self )
+{
+	PyObject *attr = PyFloat_FromDouble( self->lamp->area_sizey );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Lamp.areaSizeY attribute" ) );
+}
+
 static PyObject *Lamp_getBufferSize( BPy_Lamp * self )
 {
 	PyObject *attr = PyInt_FromLong( self->lamp->bufsize );
@@ -1095,6 +1188,35 @@ static int Lamp_setSamples( BPy_Lamp * self, PyObject * value )
 	return EXPP_setIValueClamped ( value, &self->lamp->samp,
 								EXPP_LAMP_SAMPLES_MIN,
 								EXPP_LAMP_SAMPLES_MAX, 'h' );
+}
+
+
+static int Lamp_setRaySamplesX( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setIValueClamped ( value, &self->lamp->ray_samp, 
+								EXPP_LAMP_RAYSAMPLES_MIN,
+								EXPP_LAMP_RAYSAMPLES_MAX, 'h' );
+}
+
+static int Lamp_setRaySamplesY( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setIValueClamped ( value, &self->lamp->ray_sampy,
+								EXPP_LAMP_RAYSAMPLES_MIN,
+								EXPP_LAMP_RAYSAMPLES_MAX, 'h' );
+}
+
+static int Lamp_setAreaSizeX( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->area_size, 
+								EXPP_LAMP_AREASIZE_MIN,
+								EXPP_LAMP_AREASIZE_MAX );
+}
+
+static int Lamp_setAreaSizeY( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->area_sizey, 
+								EXPP_LAMP_AREASIZE_MIN,
+								EXPP_LAMP_AREASIZE_MAX );
 }
 
 static int Lamp_setBufferSize( BPy_Lamp * self, PyObject * value )
@@ -1478,6 +1600,26 @@ static PyObject *Lamp_oldsetName( BPy_Lamp * self, PyObject * args )
 static PyObject *Lamp_oldsetSamples( BPy_Lamp * self, PyObject * args )
 {
 	return EXPP_setterWrapper ( (void *)self, args, (setter)Lamp_setSamples );
+}
+
+static PyObject *Lamp_oldsetRaySamplesX( BPy_Lamp * self, PyObject * args )
+{
+	return EXPP_setterWrapper ( (void *)self, args, (setter)Lamp_setRaySamplesX );
+}
+
+static PyObject *Lamp_oldsetRaySamplesY( BPy_Lamp * self, PyObject * args )
+{
+	return EXPP_setterWrapper ( (void *)self, args, (setter)Lamp_setRaySamplesY );
+}
+
+static PyObject *Lamp_oldsetAreaSizeX( BPy_Lamp * self, PyObject * args )
+{
+	return EXPP_setterWrapper ( (void *)self, args, (setter)Lamp_setAreaSizeX );
+}
+
+static PyObject *Lamp_oldsetAreaSizeY( BPy_Lamp * self, PyObject * args )
+{
+	return EXPP_setterWrapper ( (void *)self, args, (setter)Lamp_setAreaSizeY );
 }
 
 static PyObject *Lamp_oldsetBufferSize( BPy_Lamp * self, PyObject * args )

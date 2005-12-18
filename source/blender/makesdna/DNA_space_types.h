@@ -48,7 +48,7 @@ struct Image;
 struct SpaceIpo;
 struct BlendHandle;
 struct TreeStore;
-
+struct bNodeTree;
 
 	/**
 	 * The base structure all the other spaces
@@ -291,6 +291,23 @@ typedef struct SpaceTime {
 	int flag, redraws;
 	
 } SpaceTime;
+
+typedef struct SpaceNode {
+	SpaceLink *next, *prev;
+	int spacetype;
+	float blockscale;
+	struct ScrArea *area;
+	
+	View2D v2d;
+	
+	struct ID *from;
+	int flag;
+	float aspect;
+	void *curfont;
+	
+	struct bNodeTree *nodetree;
+	
+} SpaceNode;
 
 
 

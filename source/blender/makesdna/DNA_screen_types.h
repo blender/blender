@@ -172,11 +172,12 @@ enum {
 	SPACE_ACTION,
 	SPACE_NLA,
 	SPACE_SCRIPT,
-	SPACE_TIME
+	SPACE_TIME,
+	SPACE_NODE
 /*	SPACE_LOGIC	*/
 };
 
-/* Adding a new space type?  Change SPACEICONMAX in headerbuttons.c */
+/* Adding a new space type?  Change SPACEICONMAX in BSE_headerbuttons.h */
 /* -- should rather handle this with the above enum... */
 
 #endif

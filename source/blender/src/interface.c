@@ -117,7 +117,6 @@ uiBut *UIbuttip;
 /* ************* PROTOTYPES ***************** */
 
 static void ui_set_but_val(uiBut *but, double value);
-static void ui_set_ftf_font(uiBlock *block);
 static void ui_do_but_tip(uiBut *buttip);
 
 /* ****************************** */
@@ -3552,14 +3551,14 @@ static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
 }
 
 
-static void ui_set_ftf_font(uiBlock *block)
+static void ui_set_ftf_font(float aspect)
 {
 
 #ifdef INTERNATIONAL
-	if(block->aspect<1.15) {
+	if(aspect<1.15) {
 		FTF_SetFontSize('l');
 	}
-	else if(block->aspect<1.59) {
+	else if(aspect<1.59) {
 		FTF_SetFontSize('m');
 	}
 	else {
@@ -3646,7 +3645,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		}
 	}		
 
-	ui_set_ftf_font(block);	// sets just a pointer in ftf lib... the button dont have ftf handles
+	ui_set_ftf_font(block->aspect);	// sets just a pointer in ftf lib... the button dont have ftf handles
 	
 	// added this for panels in windows with buttons... 
 	// maybe speed optimize should require test
@@ -4509,7 +4508,7 @@ static void ui_set_but_val(uiBut *but, double value)
 void uiSetCurFont(uiBlock *block, int index)
 {
 	
-	ui_set_ftf_font(block);
+	ui_set_ftf_font(block->aspect);
 	
 	if(block->aspect<0.60) {
 		block->curfont= UIfont[index].xl;
@@ -4528,6 +4527,32 @@ void uiSetCurFont(uiBlock *block, int index)
 	if(block->curfont==NULL) block->curfont= UIfont[index].medium;	
 	if(block->curfont==NULL) printf("error block no font %s\n", block->name);
 	
+}
+
+/* called by node editor */
+void *uiSetCurFont_ext(float aspect)
+{
+	void *curfont;
+	
+	ui_set_ftf_font(aspect);
+	
+	if(aspect<0.60) {
+		curfont= UIfont[0].xl;
+	}
+	else if(aspect<1.15) {
+		curfont= UIfont[0].large;
+	}
+	else if(aspect<1.59) {
+		curfont= UIfont[0].medium;		
+	}
+	else {
+		curfont= UIfont[0].small;		
+	}
+	
+	if(curfont==NULL) curfont= UIfont[0].large;	
+	if(curfont==NULL) curfont= UIfont[0].medium;	
+	
+	return curfont;
 }
 
 void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small)
@@ -5649,12 +5674,12 @@ short pupmenu(char *instr)
 	md= decompose_menu_string(instr);
 
 	/* size and location, title slightly bigger for bold */
-	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts && USER_TR_BUTTONS));
+	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & USER_TR_BUTTONS));
 	else width= 0;
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		
-		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts && USER_TR_BUTTONS));
+		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts & USER_TR_BUTTONS));
 		if(xmax>width) width= xmax;
 
 		if( strcmp(name, "%l")==0) height+= PUP_LABELH;

@@ -300,6 +300,9 @@ extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
 
+extern void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+extern void *uiSetCurFont_ext(float aspect);
+
 void shade_buttons_change_3d(void);
 
 #endif /*  BIF_INTERFACE_H */

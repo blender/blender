@@ -95,9 +95,6 @@
 // globals
 extern float UIwinmat[4][4];
 
-// local prototypes 
-void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
-
 
 /* ************** safe rasterpos for pixmap alignment with pixels ************* */
 
