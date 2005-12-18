@@ -1903,6 +1903,35 @@ static uiBlock *view3d_edit_object_trackmenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_edit_object_constraintsmenu(void *arg, int event)
+{
+	switch(event) {
+	case 1: /* add constraint */
+		add_constraint(0);
+		break;
+	case 2: /* clear constraint */
+		ob_clear_constraints();
+		break;
+		}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_edit_object_constraintsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_constraintsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_object_constraintsmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Constraint...|Ctrl Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Constraints",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_view3d_edit_object_scriptsmenu(void *arg, int event)
 {
 	BPY_menu_do_python(PYMENU_OBJECT, event);
@@ -2020,6 +2049,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	
 	uiDefIconTextBlockBut(block, view3d_edit_object_parentmenu, NULL, ICON_RIGHTARROW_THIN, "Parent", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_trackmenu, NULL, ICON_RIGHTARROW_THIN, "Track", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_edit_object_constraintsmenu, NULL, ICON_RIGHTARROW_THIN, "Constraints", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3118,6 +3148,35 @@ static uiBlock *view3d_edit_latticemenu(void *arg_unused)
 	return block;
 }
 
+void do_view3d_edit_armature_parentmenu(void *arg, int event)
+{
+	switch(event) {
+	case 1:
+		make_bone_parent();
+		break;
+	case 2:
+		clear_bone_parent();
+		break;
+		}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_edit_armature_parentmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_armature_parentmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_armature_parentmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Parent...|Ctrl P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Parent...|Alt P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_view3d_edit_armaturemenu(void *arg, int event)
 {
 	switch(event) {
@@ -3144,14 +3203,11 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 7: /* Warp */
 		initTransform(TFM_WARP, CTX_NONE);
 		Transform();
-	case 8:
-		make_bone_parent();
-		break;
-	case 9:
-		clear_bone_parent();
-		break;
 	case 10: /* forked! */
 		extrude_armature(1);
+		break;
+	case 11: /* clear roll */
+		auto_align_armature();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -3174,6 +3230,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Bone Roll Angle|Ctrl N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -3183,9 +3240,11 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 		
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Parent...|Ctrl P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Parent...|Alt P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBlockBut(block, view3d_edit_armature_parentmenu, NULL, ICON_RIGHTARROW_THIN, "Parent", 0, yco-=20, 120, 19, "");
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -3417,7 +3476,7 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_pose_armature_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Clear Transform", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale Envelope Falloff|Alt S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale Envelope Distance|Alt S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -4289,18 +4348,18 @@ void view3d_buttons(void)
 
 	/* Transform widget / manipulators */
 	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (CTRL+Space)");	
+	uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
 	xco+= XIC;
 	
 	if(G.vd->twflag & V3D_USE_MANIPULATOR) {
-		uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (CTRL+Space)");
+		uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
 		xco+= XIC;
-		uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (CTRL+Space)");
+		uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (Ctrl Alt R)");
 		xco+= XIC;
-		uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (CTRL+Space)");
+		uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
 		xco+= XIC;
 	}
-	uiDefButS(block, MENU, B_NOP, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+	uiDefButS(block, MENU, B_NOP, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (Alt Space)");
 	xco+= 70;
 	uiBlockEndAlign(block);
 	xco+= 8;

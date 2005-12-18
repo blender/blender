@@ -102,11 +102,6 @@ extern int count_action_levels (bAction *act);
 /* Local Function prototypes, are forward needed */
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 
-static void up_sel_action(void);
-static void down_sel_action(void);
-static void top_sel_action(void);
-static void bottom_sel_action(void);
-
 /* Implementation */
 
 short showsliders = 0;

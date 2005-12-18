@@ -1223,7 +1223,7 @@ void separatemenu(void)
 
 	if(G.editMesh->verts.first==NULL) return;
 	   
-	event = pupmenu("Separate (No undo!) %t|Selected%x1|All Loose Parts%x2");
+	event = pupmenu("Separate %t|Selected%x1|All Loose Parts%x2");
 	
 	if (event==0) return;
 	waitcursor(1);
