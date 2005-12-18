@@ -1113,8 +1113,10 @@ static PyObject *Object_getPose( BPy_Object * self )
 {
 	/*BPy_Action *py_action = NULL; */
 
-	if( !self->object->pose )
-		Py_RETURN_NONE;
+  if( !self->object->pose ) {
+    Py_INCREF( Py_None );
+    return ( Py_None );
+  }
 	else 
 		return Pose_CreatePyObject( self->object->pose );
 }
