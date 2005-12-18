@@ -85,14 +85,13 @@ typedef struct {
 	void *xl, *large, *medium, *small;
 } uiFont;
 
-typedef struct uiLinkLine uiLinkLine;
-struct uiLinkLine {				/* only for draw/edit */
-	uiLinkLine *next, *prev;
+typedef struct uiLinkLine {				/* only for draw/edit */
+	struct uiLinkLine *next, *prev;
 
 	short flag, pad;
 	
 	uiBut *from, *to;	
-};
+} uiLinkLine;
 
 typedef struct {
 	void **poin;		/* pointer to original pointer */

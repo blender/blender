@@ -35,11 +35,18 @@
 
 struct bNodeTree;
 struct bNode;
+struct bNodeLink;
+struct bNodeSocket;
 struct ListBase;
 
-void nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
-void nodeFreeTree(struct bNodeTree *ntree);
-struct bNode *nodeAddNode(struct bNodeTree *ntree, char *name);
+void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
+void			nodeFreeTree(struct bNodeTree *ntree);
+struct bNode	*nodeAddNode(struct bNodeTree *ntree, char *name);
+struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
+struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
+
+struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
+
 
 #endif
 

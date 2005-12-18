@@ -84,6 +84,73 @@ static void get_nodetree(SpaceNode *snode)
 	
 }
 
+static void node_draw_link(SpaceNode *snode, bNodeLink *link)
+{
+	float vec[4][3];
+	float dist, spline_step, mx=0.0f, my=0.0f;
+	int curve_res;
+	
+	if(link->fromnode==NULL && link->tonode==NULL)
+		return;
+	
+	/* this is dragging link */
+	if(link->fromnode==NULL || link->tonode==NULL) {
+		short mval[2];
+		getmouseco_areawin(mval);
+		areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
+	}
+	
+	BIF_ThemeColor(TH_WIRE);
+	
+	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
+	
+	/* in v0 and v3 we put begin/end points */
+	if(link->fromnode) {
+		vec[0][0]= link->fromsock->locx;
+		vec[0][1]= link->fromsock->locy;
+	}
+	else {
+		vec[0][0]= mx;
+		vec[0][1]= my;
+	}
+	if(link->tonode) {
+		vec[3][0]= link->tosock->locx;
+		vec[3][1]= link->tosock->locy;
+	}
+	else {
+		vec[3][0]= mx;
+		vec[3][1]= my;
+	}
+	
+	dist= 0.5*VecLenf(vec[0], vec[3]);
+	
+	/* check direction later, for top sockets */
+	vec[1][0]= vec[0][0]+dist;
+	vec[1][1]= vec[0][1];
+	
+	vec[2][0]= vec[3][0]-dist;
+	vec[2][1]= vec[3][1];
+	
+	if( MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > G.v2d->cur.xmax); /* clipped */	
+	else if ( MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < G.v2d->cur.xmin); /* clipped */
+	else {
+		curve_res = 24;
+		
+		/* we can reuse the dist variable here to increment the GL curve eval amount*/
+		dist = 1.0f/curve_res;
+		spline_step = 0.0f;
+		
+		glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
+		glBegin(GL_LINE_STRIP);
+		while (spline_step < 1.000001f) {
+			glEvalCoord1f(spline_step);
+			spline_step += dist;
+		}
+		glEnd();
+	}
+}
+
+
 void drawnodespace(ScrArea *sa, void *spacedata)
 {
 	SpaceNode *snode= sa->spacedata.first;
@@ -101,6 +168,7 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	
 	/* only set once */
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */
 	snode->aspect= (snode->v2d.cur.xmax - snode->v2d.cur.xmin)/((float)sa->winx);
@@ -113,9 +181,25 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	get_nodetree(snode);
 	if(snode->nodetree) {
 		bNode *node;
-		for(node= snode->nodetree->nodes.first; node; node= node->next) {
-			node->drawfunc(snode, node);
-		}
+		bNodeLink *link;
+		
+		/* node lines */
+		glEnable(GL_BLEND);
+		glEnable( GL_LINE_SMOOTH );
+		for(link= snode->nodetree->links.first; link; link= link->next)
+			node_draw_link(snode, link);
+		glDisable(GL_BLEND);
+		glDisable( GL_LINE_SMOOTH );
+		
+		/* not selected */
+		for(node= snode->nodetree->nodes.first; node; node= node->next)
+			if(!(node->flag & SELECT)) 
+				node->drawfunc(snode, node);
+		/* selected */
+		for(node= snode->nodetree->nodes.first; node; node= node->next)
+			if(node->flag & SELECT) 
+				node->drawfunc(snode, node);
+		
 	}
 	
 	/* restore viewport */

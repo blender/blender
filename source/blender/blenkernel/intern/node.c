@@ -44,11 +44,40 @@
 bNode *nodeAddNode(struct bNodeTree *ntree, char *name)
 {
 	bNode *node= MEM_callocN(sizeof(bNode), "new node");
+	
 	BLI_addtail(&ntree->nodes, node);
 	BLI_strncpy(node->name, name, NODE_MAXSTR);
 	return node;
 }
 
+bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
+{
+	bNode *nnode= MEM_callocN(sizeof(bNode), "dupli node");
+	
+	*nnode= *node;
+	BLI_addtail(&ntree->nodes, nnode);
+	
+	duplicatelist(&nnode->inputs, &node->inputs);
+	duplicatelist(&nnode->outputs, &node->outputs);
+	if(nnode->id)
+		nnode->id->us++;
+
+	return nnode;
+	
+}
+
+bNodeLink *nodeAddLink(bNodeTree *ntree, bNode *fromnode, bNodeSocket *fromsock, bNode *tonode, bNodeSocket *tosock)
+{
+	bNodeLink *link= MEM_callocN(sizeof(bNodeLink), "link");
+	
+	BLI_addtail(&ntree->links, link);
+	link->fromnode= fromnode;
+	link->fromsock= fromsock;
+	link->tonode= tonode;
+	link->tosock= tosock;
+	
+	return link;
+}
 
 
 /* ************** Free stuff ********** */
@@ -63,6 +92,9 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
 	if(ntree)
 		node_unlink_node(ntree, node);
+	
+	if(node->id)
+		node->id->us--;
 	
 	BLI_freelistN(&node->inputs);
 	BLI_freelistN(&node->outputs);
@@ -83,5 +115,20 @@ void nodeFreeTree(bNodeTree *ntree)
 	BLI_freelistN(&ntree->outputs);
 	
 	MEM_freeN(ntree);
+}
+
+/* ************ find stuff *************** */
+
+bNodeLink *nodeFindLink(bNodeTree *ntree, bNodeSocket *from, bNodeSocket *to)
+{
+	bNodeLink *link;
+	
+	for(link= ntree->links.first; link; link= link->next) {
+		if(link->fromsock==from && link->tosock==to)
+			return link;
+		if(link->fromsock==to && link->tosock==from)	/* hrms? */
+			return link;
+	}
+	return NULL;
 }
 

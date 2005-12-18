@@ -69,7 +69,8 @@ typedef struct bNode {
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
 	
-	bNode *from, *to;
+	bNode *fromnode, *tonode;
+	bNodeSocket *fromsock, *tosock;
 	
 } bNodeLink;
 

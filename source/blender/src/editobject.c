@@ -3537,9 +3537,14 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	short timer=0;
 	short mousebut;
 	
-	/* check for left mouse select/right mouse select user pref */
-	if (U.flag & USER_LMOUSESELECT) mousebut = L_MOUSE;
-		else mousebut = R_MOUSE;
+	/* check for left mouse select/right mouse select */
+	
+	if(curarea->spacetype==SPACE_NODE)
+		mousebut = L_MOUSE|R_MOUSE;
+	else if (U.flag & USER_LMOUSESELECT) 
+		mousebut = L_MOUSE;
+	else 
+		mousebut = R_MOUSE;
 	
 	getmouseco_areawin(mval);
 	xo= mval[0]; 

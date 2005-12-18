@@ -5248,7 +5248,7 @@ SpaceType *spacenode_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Node");
-		spacetype_set_winfuncs(st, drawnodespace, NULL, winqreadnodespace);
+		spacetype_set_winfuncs(st, drawnodespace, changeview2dspace, winqreadnodespace);
 	}
 	
 	return st;

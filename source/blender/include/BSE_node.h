@@ -30,7 +30,10 @@
 #ifndef BSE_NODE_H
 #define BSE_NODE_H
 
+struct SpaceNode;
 
+void node_deselectall(struct SpaceNode *snode, int swap);
+void node_transform_ext(int mode, int unused);
 
 #endif
 
