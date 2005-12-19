@@ -86,7 +86,7 @@ void boundbox_oops(short sel)
 	
 	oops= G.soops->oops.first;
 	while(oops) {
-		if (oops->hide==0 && !sel || (sel && oops->flag & SELECT )) {
+		if ((oops->hide==0 && !sel) || (sel && oops->flag & SELECT )) {
 			ok= 1;
 			
 			min[0]= MIN2(min[0], oops->x);
@@ -131,7 +131,9 @@ void draw_oopslink(Oops *oops)
 	
 	if(oops->type==ID_SCE) {
 		if(oops->flag & SELECT) {
-			if(oops->id->lib) cpack(0x4080A0);
+			/* when using python Mesh to make meshes a file was saved
+			that had an oops with no ID, stops a segfault when looking for lib */
+			if(oops->id && oops->id->lib) cpack(0x4080A0);
 			else cpack(0x808080);
 		}
 		else cpack(0x606060);
@@ -345,7 +347,10 @@ void draw_oops(Oops *oops)
 
 		glRectf(x1,  y1,  x2,  y2);
 	}
-	if(oops->id->lib) {
+	
+	/* it has never happened that an oops was missing an ID at
+	this point but has occured elseware so lets be safe */
+	if(oops->id && oops->id->lib) { 
 		if(oops->id->flag & LIB_INDIRECT) cpack(0x1144FF);
 		else cpack(0x11AAFF);
 
