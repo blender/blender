@@ -554,7 +554,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	if(texres->talpha==0) texres->ta= 1.0;
 	
 	if(alphaclip!=1.0) {
-		/* this is for laetr investigation, premul or not? */
+		/* this is for later investigation, premul or not? */
 		/* texres->tr*= alphaclip; */
 		/* texres->tg*= alphaclip; */
 		/* texres->tb*= alphaclip; */
@@ -591,13 +591,15 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 	ImBuf *ibuf, *previbuf;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy;
 	float maxd, pixsize, val1, val2, val3;
-	int curmap;
+	int curmap, retval;
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
-
+	
+	/* we need to set retval OK, otherwise texture code generates normals itself... */
+	retval= texres->nor?3:1;
+	
 	if(ima==NULL || ima->ok== 0) {
-		if(texres->nor) return 3;
-		else return 1;
+		return retval;
 	}
 	
 	if(ima->ibuf==NULL) {
@@ -700,10 +702,10 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 				if(boundary==0) {
 					if( (tex->flag & TEX_CHECKER_ODD)==0) {
 						if((xs+ys) & 1); 
-						else return 0;
+						else return retval;
 					}
 					if( (tex->flag & TEX_CHECKER_EVEN)==0) {
-						if((xs+ys) & 1) return 0;
+						if((xs+ys) & 1) return retval;
 					}
 					fx-= xs;
 					fy-= ys;
@@ -737,12 +739,12 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 
 		if(tex->extend == TEX_CLIPCUBE) {
 			if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0 || texvec[2]<-1.0 || texvec[2]>1.0) {
-				return 0;
+				return retval;
 			}
 		}
 		else if(tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
 			if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0) {
-				return 0;
+				return retval;
 			}
 		}
 		else {
@@ -808,9 +810,13 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 				boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr);
 				val3= texr.tr + texr.tg + texr.tb;
 	
+				/* don't switch x or y! */
+				texres->nor[0]= (val1-val2);
+				texres->nor[1]= (val1-val3);
+				
 				if(previbuf!=ibuf) {  /* interpolate */
 					
-					boxsample(previbuf, fx-2.0f*minx, fy-2.0f*miny, fx+minx, fy+miny, &texr);
+					boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr);
 					
 					/* calc rgb */
 					dx= 2.0f*(pixsize-maxd)/pixsize;
@@ -831,11 +837,22 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 					val2= dy*val2+ dx*(texr.tr + texr.tg + texr.tb);
 					boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr);
 					val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
+					
+					if(dx>=1.0f) {
+						texres->nor[0]= (val1-val2);
+						texres->nor[1]= (val1-val3);
+					}
+					else {
+						dy= 1.0f-dx;
+						texres->tb= dy*texres->tb+ dx*texr.tb;
+						texres->tg= dy*texres->tg+ dx*texr.tg;
+						texres->tr= dy*texres->tr+ dx*texr.tr;
+						texres->ta= dy*texres->ta+ dx*texr.ta;
+						
+						texres->nor[0]= dy*texres->nor[0] + dx*(val1-val2);
+						texres->nor[1]= dy*texres->nor[1] + dx*(val1-val3);
+					}
 				}
-
-				/* don't switch x or y! */
-				texres->nor[0]= (val1-val2);
-				texres->nor[1]= (val1-val3);
 			}
 			else {
 				maxx= fx+minx;
@@ -912,9 +929,7 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 	}
 	else {
 		texres->tin= 0.0f;
-		return 0;
 	}
 	
-	if(texres->nor) return 3;
-	else return 1;
+	return retval;
 }

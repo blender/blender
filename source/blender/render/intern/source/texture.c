@@ -1510,22 +1510,8 @@ void do_material_tex(ShadeInput *shi)
 				else texvec[2]= 0.0;
 
 				if(shi->osatex) {
-
-					if(mtex->projx) {
-						dxt[0]= dx[mtex->projx-1];
-						dyt[0]= dy[mtex->projx-1];
-					}
-					else dxt[0]= 0.0;
-					if(mtex->projy) {
-						dxt[1]= dx[mtex->projy-1];
-						dyt[1]= dy[mtex->projy-1];
-					}
-					else dxt[1]= 0.0;
-					if(mtex->projx) {
-						dxt[2]= dx[mtex->projz-1];
-						dyt[2]= dy[mtex->projz-1];
-					}
-					else dxt[2]= 0.0;
+					VECCOPY(dxt, dx);
+					VECCOPY(dyt, dy);
 				}
 
 				do_2d_mapping(mtex, texvec, shi->vlr, dxt, dyt);
@@ -1553,21 +1539,8 @@ void do_material_tex(ShadeInput *shi)
 				else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
 
 				if(shi->osatex) {
-					if(mtex->projx) {
-						dxt[0]= mtex->size[0]*dx[mtex->projx-1];
-						dyt[0]= mtex->size[0]*dy[mtex->projx-1];
-					}
-					else dxt[0]= 0.0;
-					if(mtex->projy) {
-						dxt[1]= mtex->size[1]*dx[mtex->projy-1];
-						dyt[1]= mtex->size[1]*dy[mtex->projy-1];
-					}
-					else dxt[1]= 0.0;
-					if(mtex->projx) {
-						dxt[2]= mtex->size[2]*dx[mtex->projz-1];
-						dyt[2]= mtex->size[2]*dy[mtex->projz-1];
-					}
-					else dxt[2]= 0.0;
+					VECCOPY(dxt, dx);
+					VECCOPY(dyt, dy);
 				}
 			}
 
