@@ -629,37 +629,6 @@ void vertexgroup_select_by_name(Object *ob, char *name)
 
 void object_apply_deform(Object *ob)
 {
-	char *err= NULL;
-	
-	if(ob==NULL) return;
-	
-	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		if(me->id.us>1) {
-			err= "Can't apply deformation to Mesh with other users";
-		} else {
-			int i, dmNeedsFree;
-			DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
-
-			for (i=0; i<me->totvert; i++) {
-				dm->getVertCo(dm, i, me->mvert[i].co);
-			}
-
-			if (dmNeedsFree)
-				dm->release(dm);
-
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		}
-	}
-	else if (ob->type==OB_CURVE || ob->type==OB_SURF) {
-		Curve *cu= ob->data;
-		if(cu->id.us>1) {
-			err= "Can't apply deformation to Curve with other users";
-		} else {
-			freedisplist(&ob->disp);
-		}
-	}
-
-	if(err) error(err);
+	notice("Apply Deformation now only availble in Modifier buttons");
 }
 
