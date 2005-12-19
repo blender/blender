@@ -3119,10 +3119,13 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 			if(strcmp(newmain->curlib->name, lib->name)==0) {
 				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->name);
 				
-				change_idid_adr_fd(fd, lib, newmain->curlib);
+				change_idid_adr(&fd->mainlist, fd, lib, newmain->curlib);
+//				change_idid_adr_fd(fd, lib, newmain->curlib);
 				
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
+				
+				error("Library had multiple instances, save and reload!");
 				return;
 			}
 		}
