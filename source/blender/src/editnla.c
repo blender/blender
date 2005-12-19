@@ -1847,8 +1847,8 @@ static void add_nla_block_by_name(char name[32], Object *ob, short hold, short a
 void bake_all_to_action(void)
 {
 	Object		*ob;
-	bAction		*newAction=NULL;
-	Ipo		*ipo=NULL;
+	bAction		*newAction;
+	Ipo		*ipo;
 	ID		*id;
 	short		hold, add;
 	float		repeat;

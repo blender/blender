@@ -132,6 +132,9 @@ struct bActionChannel *get_action_channel(struct bAction *act,  const char *name
  */
 struct bActionChannel *verify_action_channel(struct bAction *act, const char *name);
 
+  /* baking */
+struct bAction *bake_obIPO_to_action(struct Object *ob);
+
 /* exported for game engine */
 void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);

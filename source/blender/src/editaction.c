@@ -69,6 +69,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+#include "BKE_object.h" /* for where_is_object in obanim -> action baking */
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
