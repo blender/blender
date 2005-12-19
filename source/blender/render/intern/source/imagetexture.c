@@ -496,6 +496,8 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	rf->ymin= miny*(ibuf->y);
 	rf->ymax= maxy*(ibuf->y);
 
+	texr.talpha= texres->talpha;	/* is read by boxsample_clip */
+	
 	if(imapextend) {
 		CLAMP(rf->xmin, 0.0f, ibuf->x-1);
 		CLAMP(rf->xmax, 0.0f, ibuf->x-1);
