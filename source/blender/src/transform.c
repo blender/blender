@@ -495,13 +495,14 @@ static void transformEvent(unsigned short event, short val) {
 						stopConstraint(&Trans);
 					}
 					else {
-						/* bit hackish... but it prevents mmb select to print the orientation from menu */
-						strcpy(Trans.spacename, "global");
-						
-						if (G.qual & LR_CTRLKEY)
+						if (G.qual & LR_CTRLKEY) {
 							initSelectConstraint(&Trans, Trans.spacemtx);
-						else
+						}
+						else {
+							/* bit hackish... but it prevents mmb select to print the orientation from menu */
+							strcpy(Trans.spacename, "global");
 							initSelectConstraint(&Trans, mati);
+						}
 						postSelectConstraint(&Trans);
 					}
 				}
