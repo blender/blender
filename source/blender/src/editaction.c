@@ -103,11 +103,6 @@ extern int count_action_levels (bAction *act);
 /* Local Function prototypes, are forward needed */
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 
-static void up_sel_action(void);
-static void down_sel_action(void);
-static void top_sel_action(void);
-static void bottom_sel_action(void);
-
 /* Implementation */
 
 short showsliders = 0;
@@ -2750,17 +2745,13 @@ bAction* bake_obIPO_to_action (Object *ob)
 {
 	bArmature		*arm;
 	bAction			*result=NULL;
-	bActionChannel  *achan;
 	bAction			*temp;
-	bPoseChannel	*pchan;
 	Bone			*bone;
 	ID				*id;
 	ListBase		elems;
-	float			actstart, actend;
 	int		        oldframe,testframe;
-	int			curframe;
 	char			newname[64];
-	float			quat[4],tmat[4][4],startpos[4][4],imat[4][4],mat3[3][3];
+	float			quat[4],tmat[4][4],startpos[4][4];
 	CfraElem		*firstcfra, *lastcfra;
 	
 	arm = get_armature(ob);
@@ -2826,17 +2817,13 @@ bAction* bake_everything_to_action (Object *ob)
 {
 	bArmature		*arm;
 	bAction			*result=NULL;
-	bActionChannel  *achan;
 	bAction			*temp;
-	bPoseChannel	*pchan;
 	Bone			*bone;
 	ID				*id;
 	ListBase		elems;
-	float			actstart, actend;
 	int		        oldframe,testframe;
-	int			curframe;
 	char			newname[64];
-	float			quat[4],tmat[4][4],startpos[4][4],imat[4][4],mat3[3][3];
+	float			quat[4],tmat[4][4],startpos[4][4];
 	CfraElem		*firstcfra, *lastcfra;
 	
 	arm = get_armature(ob);

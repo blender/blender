@@ -295,17 +295,24 @@ int calc_manipulator_stats(ScrArea *sa)
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
-						if(bezt->f1) {
-							calc_tw_center(bezt->vec[0]);
-							totsel++;
-						}
-						if(bezt->f2) {
+						/* exception */
+						if( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT ) {
 							calc_tw_center(bezt->vec[1]);
 							totsel++;
 						}
-						if(bezt->f3) {
-							calc_tw_center(bezt->vec[2]);
-							totsel++;
+						else {
+							if(bezt->f1) {
+								calc_tw_center(bezt->vec[0]);
+								totsel++;
+							}
+							if(bezt->f2) {
+								calc_tw_center(bezt->vec[1]);
+								totsel++;
+							}
+							if(bezt->f3) {
+								calc_tw_center(bezt->vec[2]);
+								totsel++;
+							}
 						}
 						bezt++;
 					}

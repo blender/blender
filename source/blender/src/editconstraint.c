@@ -620,28 +620,28 @@ void add_constraint(int only_IK)
 		}
 		
 		if(pchansel)
-			nr= pupmenu("Add IK Constraint%t|To Selected Bone%x10");
+			nr= pupmenu("Add IK Constraint%t|To Active Bone%x10");
 		else if(obsel)
-			nr= pupmenu("Add IK Constraint%t|To Selected Object%x10");
+			nr= pupmenu("Add IK Constraint%t|To Active Object%x10");
 		else 
 			nr= pupmenu("Add IK Constraint%t|To New Empty Object%x10|Without Target%x11");
 	}
 	else {
 		if(pchanact) {
 			if(pchansel)
-				nr= pupmenu("Add Constraint to selected Bone%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7");
+				nr= pupmenu("Add Constraint to Active Bone%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7");
 			else if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to selected Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Stretch To%x7");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Stretch To%x7");
 			else if(obsel)
-				nr= pupmenu("Add Constraint to selected Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7");
 			else
 				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7");
 		}
 		else {
 			if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to selected Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6");
 			else if(obsel)
-				nr= pupmenu("Add Constraint to selected Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5");
 			else
 				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Track To%x3|Floor%x4|Locked Track%x5");
 		}
@@ -763,4 +763,24 @@ void add_constraint(int only_IK)
 
 }
 
-
+void ob_clear_constraints(void)
+{
+	Object *ob= OBACT;
+	
+	/* paranoia checks */
+	if(!ob) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)) return;
+	
+	if(okee("Clear Constraints")==0) return;
+	
+	free_constraints(&ob->constraints);
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
+	
+	BIF_undo_push("Clear Constraint(s)");
+	
+}

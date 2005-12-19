@@ -495,9 +495,9 @@ static void scanlinehaloPS(int *rectz, long *rectdelta, float *rowbuf, short ys)
 							float *buf= rowbuf;
 							int xt;
 							for(xt=0; xt<R.rectx; xt++, buf+=4) {
-								buf[0]= sqrt(buf[0]);	// invers gamma 2.0
-								buf[1]= sqrt(buf[1]);
-								buf[2]= sqrt(buf[2]);
+								buf[0]= sasqrt(buf[0]);	// invers gamma 2.0
+								buf[1]= sasqrt(buf[1]);
+								buf[2]= sasqrt(buf[2]);
 							}
 							didgamma= 1;
 						}

@@ -44,6 +44,9 @@ struct rctf;
 #include "DNA_view3d_types.h"
 #include "DNA_object_force.h"
 #include "DNA_userdef_types.h"
+#include "DNA_oops_types.h" 
+
+#include "BKE_action.h"
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
@@ -59,15 +62,20 @@ struct rctf;
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BIF_editview.h"
+
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
+
 #include "BIF_space.h"
-#include "DNA_oops_types.h" 
+#include "BIF_editview.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+
 #include "BDR_editobject.h"
+
 #include "MEM_guardedalloc.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 #include "Scene.h"
@@ -2219,7 +2227,6 @@ static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args )
 	int curframe;
 
 	/* for copying the current object/bone matrices to the new action */
-	bPoseChannel *pchan;
 	float localQuat[4];
 	float tmat[4][4], startpos[4][4];
 
@@ -2273,7 +2280,6 @@ static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_bake_to_action( BPy_Object * self, PyObject * args )
 {
-	Object *ob= self->object;
 
 	/* for doing the time trick, similar to editaction bake_action_with_client() */
 	//int oldframe;

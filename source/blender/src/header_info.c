@@ -1204,10 +1204,6 @@ void do_info_addmenu(void *arg, int event)
 			/* Camera */
 			add_object_draw(OB_CAMERA);
 			break;
-		case 7:
-			/* Lamp */
-		//	add_object_draw(OB_LAMP);
-			break;
 		case 8:
 			/* Armature */
 			add_primitiveArmature(OB_ARMATURE);
@@ -1245,13 +1241,11 @@ static uiBlock *info_addmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 6, "");
-//	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lamp",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBlockBut(block, info_add_lampmenu, NULL, ICON_RIGHTARROW_THIN, "Lamp", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	/* armature needs 3d window to draw */
-	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
 
 	uiBlockSetDirection(block, UI_DOWN);

@@ -78,6 +78,10 @@ void transform_meshchannel_keys(char mode, struct Key *key);
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
 void set_snap_actionchannels(void);
+void up_sel_action(void);
+void down_sel_action(void);
+void top_sel_action(void);
+void bottom_sel_action(void);
 
 /* Handles */
 void sethandles_meshchannel_keys(int code, struct Key *key);

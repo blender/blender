@@ -276,6 +276,7 @@ void fluidsimBake(struct Object *ob)
 	char targetFile[FILE_MAXDIR+FILE_MAXFILE]; // temp. store filename from targetDir for access
 	int  outStringsChanged = 0;             // modified? copy back before baking
 	int  haveSomeFluid = 0;                 // check if any fluid objects are set
+	int noFrames = G.scene->r.efra - G.scene->r.sfra;
 
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
 
@@ -284,6 +285,11 @@ void fluidsimBake(struct Object *ob)
 		elbeemSetDebugLevel(dlevel);
 		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to  envvar '%s'\n",strEnvName); 
 		elbeemDebugOut(debugStrBuffer);
+	}
+
+	if(noFrames<=0) {
+		pupmenu("Fluidsim Bake Error%t|No frames to export - check your animation range settings. Aborted%x0");
+		return;
 	}
 
 	/* check if there's another domain... */
@@ -394,7 +400,7 @@ void fluidsimBake(struct Object *ob)
 	}
 	
 	// dump data for frame 0
-  G.scene->r.cfra = 1;
+  G.scene->r.cfra = G.scene->r.sfra;
   scene_update_for_newframe(G.scene, G.scene->lay);
 
 	// start writing
@@ -420,7 +426,6 @@ void fluidsimBake(struct Object *ob)
 
 	/* output simulation  settings */
 	{
-		int noFrames = G.scene->r.efra - G.scene->r.sfra;
 		double calcViscosity = 0.0;
 		double aniFrameTime = (fssDomain->animEnd - fssDomain->animStart)/(double)noFrames;
 		char *simString = "\n"
@@ -550,7 +555,6 @@ void fluidsimBake(struct Object *ob)
 			"    castShadows= 1; \n"  
 			"  } \n\n" ;
 
-		int noFrames = (G.scene->r.efra - G.scene->r.sfra) +1; // FIXME - check no. of frames...
 		struct Object *cam = G.scene->camera;
 		float  eyex=2.0, eyey=2.0, eyez=2.0;
 		int    resx = 200, resy=200;
@@ -575,7 +579,7 @@ void fluidsimBake(struct Object *ob)
 		}
 
 		fprintf(fileCfg, rayString,
-				noFrames, targetFile, resx,resy,
+				(noFrames+1), targetFile, resx,resy,
 				eyex, eyey, eyez ,
 				lookatx, lookaty, lookatz,
 				fov
@@ -706,7 +710,7 @@ void fluidsimBake(struct Object *ob)
 			int done = 0;
 			unsigned short event=0;
 			short val;
-			float noFramesf = G.scene->r.efra - G.scene->r.sfra +1;
+			float noFramesf = (float)noFrames;
 			float percentdone = 0.0;
 			int lastRedraw = -1;
 			

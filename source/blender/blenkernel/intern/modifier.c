@@ -1205,9 +1205,14 @@ static void *booleanModifier_applyModifier(ModifierData *md, Object *ob, void *d
 {	
 		// XXX doesn't handle derived data
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
-	DispListMesh *dlm = NewBooleanMeshDLM(bmd->object, ob, 1+bmd->operation);
-
-	return derivedmesh_from_displistmesh(dlm, NULL);
+	
+	/* we do a quick sanity check */
+	if( ((Mesh *)ob->data)->totface>3 && bmd->object && ((Mesh *)bmd->object->data)->totface>3) {
+		DispListMesh *dlm= NewBooleanMeshDLM(bmd->object, ob, 1+bmd->operation);
+		
+		return derivedmesh_from_displistmesh(dlm, NULL);
+	}
+	else return derivedData;
 }
 
 /***/

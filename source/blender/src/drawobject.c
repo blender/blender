@@ -1666,7 +1666,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		}
 	}
 	
-	if( (G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
+	if((G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
 		char col1[4], col2[4];
 			
 		BIF_GetThemeColor4ubv(TH_FACE, col1);
@@ -1766,7 +1766,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (G.f&G_FACESELECT) draw_wire = 0;
+	if (ob==OBACT && (G.f&G_FACESELECT)) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
@@ -1797,7 +1797,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
-		
+
 		dm->drawFacesSolid(dm, set_gl_material);
 
 		glFrontFace(GL_CCW);
@@ -1811,30 +1811,36 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 		dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
-		if( (G.f & G_WEIGHTPAINT)) {
-			set_gl_material(0);		/* enforce defmaterial settings */
-			
-			/* but set default spec */
-			glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-			glEnable(GL_COLOR_MATERIAL);	/* according manpages needed */
-			glColor3ub(120, 120, 120);
-			glDisable(GL_COLOR_MATERIAL);
-			/* diffuse */
-			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-			glEnable(GL_LIGHTING);
-			glEnable(GL_COLOR_MATERIAL);
+		int do_draw= 1;	/* to resolve all G.f settings below... */
+		
+		if(ob==OBACT) {
+			do_draw= 0;
+			if( (G.f & G_WEIGHTPAINT)) {
+				set_gl_material(0);		/* enforce defmaterial settings */
+				
+				/* but set default spec */
+				glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+				glEnable(GL_COLOR_MATERIAL);	/* according manpages needed */
+				glColor3ub(120, 120, 120);
+				glDisable(GL_COLOR_MATERIAL);
+				/* diffuse */
+				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+				glEnable(GL_LIGHTING);
+				glEnable(GL_COLOR_MATERIAL);
 
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
-			glDisable(GL_COLOR_MATERIAL);
-			glDisable(GL_LIGHTING);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
+				glDisable(GL_COLOR_MATERIAL);
+				glDisable(GL_LIGHTING);
+			}
+			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
+				dm->drawMappedFaces(dm, NULL, NULL, 1);
+			}
+			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->tface) {
+				dm->drawMappedFaces(dm, NULL, NULL, 1);
+			}
+			else do_draw= 1;
 		}
-		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
-			dm->drawMappedFaces(dm, NULL, NULL, 1);
-		}
-		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->tface) {
-			dm->drawMappedFaces(dm, NULL, NULL, 1);
-		}
-		else {
+		if(do_draw) {
 			dl = ob->disp.first;
 			if (!dl || !dl->col1) {
 				shadeDispList(base);
@@ -3641,7 +3647,7 @@ void draw_object(Base *base, int flag)
 	dtx= 0;
 	
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==((G.scene->basact) ? (G.scene->basact->object) : 0) && (G.f & (G_FACESELECT+G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
+	if(ob==OBACT && (G.f & (G_FACESELECT+G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
 		if(ob->type==OB_MESH) {
 			
 			if(ob==G.obedit);
@@ -3650,7 +3656,7 @@ void draw_object(Base *base, int flag)
 		
 				glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 				glEnable(GL_DEPTH_TEST);
-				zbufoff= 1;
+				if(dt<OB_SOLID) zbufoff= 1;
 			}
 		}
 		else {
@@ -3884,7 +3890,7 @@ void draw_object(Base *base, int flag)
 	if(G.f & G_SIMULATION) return;
 	
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
+	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
 		/* we don't draw centers for duplicators and sets */
 		if((flag & DRAW_CONSTCOLOR)==0) {
 			if((G.scene->basact)==base) 

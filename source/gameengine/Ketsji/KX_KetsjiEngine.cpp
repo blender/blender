@@ -99,6 +99,9 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
 
+double KX_KetsjiEngine::m_suspendedtime = 0.0;
+double KX_KetsjiEngine::m_suspendeddelta = 0.0;
+
 
 /**
  *	Constructor of the Ketsji Engine
@@ -355,6 +358,12 @@ void KX_KetsjiEngine::NextFrame()
 	
 			if (!scene->IsSuspended())
 			{
+				// if the scene was suspended recalcutlate the delta tu "curtime"
+				m_suspendedtime = scene->getSuspendedTime();
+				if (scene->getSuspendedTime()!=0.0)
+					scene->setSuspendedDelta(scene->getSuspendedDelta()+curtime-scene->getSuspendedTime());
+				m_suspendeddelta = scene->getSuspendedDelta();
+
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				m_logger->StartLog(tc_network, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetNetworkScene()->proceed(localtime);
@@ -403,7 +412,11 @@ void KX_KetsjiEngine::NextFrame()
 					m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame++);
 				}
 
+				scene->setSuspendedTime(0.0);
 			} // suspended
+			else
+				if(scene->getSuspendedTime()==0.0)
+					scene->setSuspendedTime(curtime);
 	
 			DoSound(scene);
 	
@@ -439,6 +452,12 @@ void KX_KetsjiEngine::NextFrame()
 
 		if (!scene->IsSuspended())
 		{
+			// if the scene was suspended recalcutlate the delta tu "curtime"
+			m_suspendedtime = scene->getSuspendedTime();
+			if (scene->getSuspendedTime()!=0.0)
+				scene->setSuspendedDelta(scene->getSuspendedDelta()+curtime-scene->getSuspendedTime());
+			m_suspendeddelta = scene->getSuspendedDelta();
+			
 			// set Python hooks for each scene
 			PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 			PHY_SetActiveScene(scene);
@@ -459,7 +478,12 @@ void KX_KetsjiEngine::NextFrame()
 			// Actuators can affect the scenegraph
 			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 			scene->UpdateParents(curtime);
+			 
+ 			scene->setSuspendedTime(0.0);
 		} // suspended
+ 		else
+ 			if(scene->getSuspendedTime()==0.0)
+ 				scene->setSuspendedTime(curtime);
 
 		DoSound(scene);
 
@@ -1222,6 +1246,11 @@ void	KX_KetsjiEngine::SetGame2IpoMode(bool game2ipo,int startFrame)
 bool KX_KetsjiEngine::GetUseFixedTime(void) const
 {
 	return m_bFixedTime;
+}
+
+double KX_KetsjiEngine::GetSuspendedDelta()
+{
+	return m_suspendeddelta;
 }
 
 double KX_KetsjiEngine::GetTicRate()

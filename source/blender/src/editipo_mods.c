@@ -301,7 +301,9 @@ static int ipo_keys_bezier_loop(Ipo *ipo,
      */
 
     IpoCurve *icu;
-
+	
+	if(ipo==NULL) return 0;
+	
     /* Loop through each curve in the Ipo
      */
     for (icu=ipo->curve.first; icu; icu=icu->next){

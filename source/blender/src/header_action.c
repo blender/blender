@@ -93,6 +93,11 @@
 #define ACTMENU_KEY_BAKE          2
 #define ACTMENU_KEY_SNAP          3
 
+#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP		0
+#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN	1
+#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP	2
+#define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM	3
+
 #define ACTMENU_KEY_TRANSFORM_MOVE	0
 #define ACTMENU_KEY_TRANSFORM_SCALE	1
 #define ACTMENU_KEY_TRANSFORM_SLIDE	2
@@ -669,6 +674,62 @@ static uiBlock *action_keymenu_extendmenu(void *arg_unused)
 	return block;
 }
 
+static void do_action_keymenu_chanposmenu(void *arg, int event)
+{
+	switch(event)
+	{
+		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN:
+			down_sel_action();
+			break;
+		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP:
+			up_sel_action();
+			break;
+		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP:
+			top_sel_action();
+			break;
+		case ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM:
+			bottom_sel_action();
+			break;
+	}
+
+	scrarea_queue_winredraw(curarea);
+}
+
+static uiBlock *action_keymenu_chanposmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_keymenu_chanposmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_keymenu_chanposmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move Up|Page Up", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move Down|Page Down", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move to Top|Shift Page Up", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_TOP, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Move to Bottom|Shift Page Down", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_BOTTOM, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
 
 static void do_action_keymenu(void *arg, int event)
 {	
@@ -752,15 +813,23 @@ static uiBlock *action_keymenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
+	uiDefIconTextBlockBut(block, action_keymenu_handlemenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Handle Type", 0, yco-=20, 120, 20, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	uiDefIconTextBlockBut(block, action_keymenu_extendmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, 
 						  "Extend Mode", 0, yco-=20, 120, 20, "");
 	uiDefIconTextBlockBut(block, action_keymenu_intpolmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, 
 						  "Interpolation Mode", 0, yco-=20, 120, 20, "");
-	uiDefIconTextBlockBut(block, action_keymenu_handlemenu, 
+	uiDefIconTextBlockBut(block, action_keymenu_chanposmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, 
-						  "Handle Type", 0, yco-=20, 120, 20, "");
+						  "Channel Ordering", 0, yco-=20, 120, 20, "");
+
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
