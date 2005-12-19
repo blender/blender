@@ -2164,7 +2164,7 @@ static uiBlock *view3d_edit_mesh_verticesmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Smooth|W, 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Doubles|W, 5",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Doubles|W, 6",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -2248,15 +2248,15 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel|W, Alt 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel|W, Alt 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Loop Subdivide...|Ctrl R",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Knife Subdivide...|Shift K",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Fractal|W, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Smooth|W, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Fractal|W, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Smooth|W, 4",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -2335,8 +2335,8 @@ static uiBlock *view3d_edit_mesh_facesmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Smooth|W, Alt 4",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Solid|W, Alt 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Smooth|W, Alt 3",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Solid|W, Alt 4", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -2372,7 +2372,7 @@ static uiBlock *view3d_edit_mesh_normalsmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip|W, 9",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip|W, 0",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
