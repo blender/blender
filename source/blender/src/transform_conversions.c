@@ -2312,6 +2312,7 @@ void createTransData(TransInfo *t)
 			createTransMBallVerts(t);
 		}
 		else if (G.obedit->type==OB_ARMATURE) {
+			t->flag &= ~T_PROP_EDIT;
 			createTransArmatureVerts(t);
   		}					  		
 		else {
