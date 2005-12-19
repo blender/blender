@@ -48,6 +48,9 @@ typedef struct bNodeSocket {
 	
 } bNodeSocket;
 
+/* sock->flag, first bit is select */
+
+
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
 	struct bNode *next, *prev;
@@ -65,6 +68,9 @@ typedef struct bNode {
 	int (*drawfunc)(struct SpaceNode *, struct bNode *);
 	
 } bNode;
+
+/* node->flag, first bit is select */
+
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;

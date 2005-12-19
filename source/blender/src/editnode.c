@@ -111,7 +111,7 @@ static void nodeshadow(rctf *rct, int select)
 }
 
 /* nice AA filled circle */
-static void socket_circle_draw(float x, float y, float size)
+static void socket_circle_draw(float x, float y, float size, int colid, int select)
 {
 	/* 16 values of sin function */
 	static float si[16] = {
@@ -129,7 +129,11 @@ static void socket_circle_draw(float x, float y, float size)
 	};
 	int a;
 	
-	glColor3ub(200, 200, 40);
+	if(select==0)
+		glColor3ub(200, 200, 40);
+	else
+		glColor3ub(240, 240, 100);
+	
 	glBegin(GL_POLYGON);
 	for(a=0; a<16; a++)
 		glVertex2f(x+size*si[a], y+size*co[a]);
@@ -155,11 +159,11 @@ static int node_basis_draw(SpaceNode *snode, bNode *node)
 	
 	nodeshadow(rct, node->flag & SELECT);
 	
-	BIF_ThemeColorShade(TH_HEADER, +30);
+	BIF_ThemeColorShade(TH_HEADER, 0);
 	uiSetRoundBox(3);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, 8);
 	
-	BIF_ThemeColorShade(TH_HEADER, +10);
+	BIF_ThemeColorShade(TH_HEADER, 20);
 	uiSetRoundBox(12);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax-NODE_DY, 8);
 	
@@ -173,7 +177,7 @@ static int node_basis_draw(SpaceNode *snode, bNode *node)
 	BIF_DrawString(snode->curfont, node->name, trans);
 	
 	for(sock= node->inputs.first; sock; sock= sock->next) {
-		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK);
+		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, 0, sock->flag & SELECT);
 		
 		BIF_ThemeColor(TH_TEXT);
 		ui_rasterpos_safe(sock->locx+8.0f, sock->locy-5.0f, snode->aspect);
@@ -181,7 +185,7 @@ static int node_basis_draw(SpaceNode *snode, bNode *node)
 	}
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
-		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK);
+		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, 0, sock->flag & SELECT);
 		
 		BIF_ThemeColor(TH_TEXT);
 		slen= snode->aspect*BIF_GetStringWidth(snode->curfont, sock->name, trans);
@@ -234,6 +238,47 @@ void node_update(bNodeTree *ntree, bNode *node)
 	node->tot.xmax= node->locx + width;
 	node->tot.ymin= node->locy;
 	node->tot.ymax= node->locy + dy;
+}
+
+/* checks mouse position, and returns found node/socket */
+/* type is SOCK_IN and/or SOCK_OUT */
+static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int type)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	rctf rect;
+	short mval[2];
+	
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
+	
+	rect.xmin -= NODE_SOCK+3;
+	rect.ymin -= NODE_SOCK+3;
+	rect.xmax = rect.xmin + 2*NODE_SOCK+6;
+	rect.ymax = rect.ymin + 2*NODE_SOCK+6;
+	
+	/* check if we click in a socket */
+	for(node= snode->nodetree->nodes.first; node; node= node->next) {
+		if(type & SOCK_IN) {
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+					*nodep= node;
+					*sockp= sock;
+					return 1;
+				}
+			}
+		}
+		if(type & SOCK_OUT) {
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+					*nodep= node;
+					*sockp= sock;
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
 }
 
 /* ********************* transform ****************** */
@@ -400,6 +445,43 @@ static void node_mouse_select(SpaceNode *snode)
 	std_rmouse_transform(node_transform_ext);	/* does undo push for select */
 }
 
+static int node_socket_hilights(SpaceNode *snode)
+{
+	bNode *node;
+	bNodeSocket *sock, *tsock, *socksel= NULL;
+	float mx, my;
+	short mval[2], redraw= 0;
+	
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
+	
+	/* deselect socks */
+	for(node= snode->nodetree->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if(sock->flag & SELECT) {
+				sock->flag &= ~SELECT;
+				redraw++;
+				socksel= sock;
+			}
+		}
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			if(sock->flag & SELECT) {
+				sock->flag &= ~SELECT;
+				redraw++;
+				socksel= sock;
+			}
+		}
+	}
+	
+	if(find_indicated_socket(snode, &node, &tsock, SOCK_IN|SOCK_OUT)) {
+		tsock->flag |= SELECT;
+		if(redraw==1 && tsock==socksel) redraw= 0;
+		else redraw= 1;
+	}
+	
+	return redraw;
+}
+
 /* ****************** Add *********************** */
 
 /* editor context */
@@ -465,47 +547,6 @@ void node_adduplicate(SpaceNode *snode)
 	transform_nodes(snode, "Duplicate");
 }
 
-/* checks mouse position, and returns found node/socket */
-/* type is SOCK_IN and/or SOCK_OUT */
-static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int type)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	rctf rect;
-	short mval[2];
-	
-	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
-	
-	rect.xmin -= NODE_SOCK+3;
-	rect.ymin -= NODE_SOCK+3;
-	rect.xmax = rect.xmin + 2*NODE_SOCK+6;
-	rect.ymax = rect.ymin + 2*NODE_SOCK+6;
-	
-	/* check if we click in a socket */
-	for(node= snode->nodetree->nodes.first; node; node= node->next) {
-		if(type & SOCK_IN) {
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-					*nodep= node;
-					*sockp= sock;
-					return 1;
-				}
-			}
-		}
-		if(type & SOCK_OUT) {
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-					*nodep= node;
-					*sockp= sock;
-					return 1;
-				}
-			}
-		}
-	}
-	return 0;
-}
-
 /* loop that adds a link node, called by function below though */
 static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, int type)
 {
@@ -557,6 +598,7 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 					link->fromsock= NULL;
 				}
 			}
+			node_socket_hilights(snode);
 			
 			force_draw(0);
 		}
@@ -636,6 +678,11 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */
 			break;
+			
+		case MOUSEY:
+			doredraw= node_socket_hilights(snode);
+			break;
+			
 		case PADPLUSKEY:
 			dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			G.v2d->cur.xmin+= dx;
