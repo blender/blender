@@ -5,11 +5,27 @@
 # | http://www.redrival.com/scorpius                        |
 # | scorpius@netzero.com                                    |
 # | September 28, 2002                                      |
-# | Released under the Blender Artistic Licence (BAL)       |
-# | Import Export Suite v0.5                                |
 # +---------------------------------------------------------+
 # | Common Functions & Global Variables For All IO Modules  |
 # +---------------------------------------------------------+
+
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
 
 import Blender
 import sys
@@ -35,7 +51,16 @@ def append_faces(mesh, faces, facesuv, uvcoords):
 	for i in range(len(faces)):
 		if not i%100 and show_progress: Blender.Window.DrawProgressBar(float(i)/len(faces), "Generating Faces")
 		numfaceverts=len(faces[i])
-		if numfaceverts <= 4:				# This face is a triangle or quad
+		if numfaceverts == 2: #This is not a face is an edge
+			if mesh.edges == None:  #first run
+				mesh.addEdgeData()
+			#rev_face = revert(cur_face)
+			i1 = faces[i][0]
+			i2 = faces[i][1]
+			ee = mesh.addEdge(mesh.verts[i1],mesh.verts[i2])
+			ee.flag |= Blender.NMesh.EdgeFlags.EDGEDRAW
+			ee.flag |= Blender.NMesh.EdgeFlags.EDGERENDER
+		elif numfaceverts in [3,4]:				# This face is a triangle or quad
 			face = Blender.NMesh.Face()
 			for j in range(numfaceverts):
 				index = faces[i][j]

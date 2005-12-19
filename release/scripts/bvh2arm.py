@@ -5,9 +5,11 @@ Blender: 239
 Group: 'Animation'
 Tooltip: 'Create Armature from a parented-empties chain'
 """
-__author__ = " Jean-Baptiste PERIN (jb_perin(at)yahoo.fr)"
+__author__ = "Jean-Baptiste PERIN (jb_perin(at)yahoo.fr)"
 __url__ = ("blender", "elysiun",
-"BVH 2 ARMATURE, http://perso.wanadoo.fr/jb.perin/",
+"Author's homepage, http://perso.wanadoo.fr/jb.perin/",
+"Documentation, http://perso.wanadoo.fr/jb.perin/BVH2ARM/doc/bvh2arm.html",
+"Mocap tutorial, http://perso.wanadoo.fr/jb.perin/Mocap/MocapAnimation.html",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender") 
 
 __version__ = "2.4"
