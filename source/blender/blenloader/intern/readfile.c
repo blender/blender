@@ -5218,9 +5218,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 				 */
 			bhead = read_libblock(fd, fd->mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
 			break;
-		case ID_GR:
-			bhead = blo_nextbhead(fd, bhead);
-			break;
+//		case ID_GR:
+//			bhead = blo_nextbhead(fd, bhead);
+//			break;
 			
 		default:
 			bhead = read_libblock(fd, bfd->main, bhead, LIB_LOCAL, NULL);
