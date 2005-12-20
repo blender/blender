@@ -1516,7 +1516,15 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		ob= base->object;
 		
 		if(ob->ipo) ob->recalc |= OB_RECALC_OB;
-		else if(ob->constraints.first) ob->recalc |= OB_RECALC_OB;
+		else if(ob->constraints.first) {
+			bConstraint *con;
+			for (con = ob->constraints.first; con; con=con->next){
+				if (constraint_has_target(con)) {
+					ob->recalc |= OB_RECALC_OB;
+					break;
+				}
+			}
+		}
 		else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
 		else if(ob->parent) {
 			if(ob->parent->type==OB_CURVE) ob->recalc |= OB_RECALC_OB;
