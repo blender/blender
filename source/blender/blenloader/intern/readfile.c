@@ -5068,12 +5068,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				cam->flag |= CAM_SHOWPASSEPARTOUT;
 			
 			/* make sure old cameras have title safe on */
-			
-			/* *** to be uncommented before 2.40 release! *** */
-			/* 
 			if (!(cam->flag & CAM_SHOWTITLESAFE))
 			 cam->flag |= CAM_SHOWTITLESAFE;
-			 */
 			
 			/* set an appropriate camera passepartout alpha */
 			if (!(cam->passepartalpha)) cam->passepartalpha = 0.2f;
