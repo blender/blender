@@ -98,9 +98,16 @@ static void node_draw_link(SpaceNode *snode, bNodeLink *link)
 		short mval[2];
 		getmouseco_areawin(mval);
 		areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
+		
+		BIF_ThemeColor(TH_WIRE);
 	}
-	
-	BIF_ThemeColor(TH_WIRE);
+	else {
+		/* check cyclic */
+		if(link->fromnode->level >= link->tonode->level)
+			BIF_ThemeColor(TH_WIRE);
+		else
+			BIF_ThemeColor(TH_REDALERT);
+	}
 	
 	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
 	
@@ -192,17 +199,25 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 		glDisable( GL_LINE_SMOOTH );
 		
 		/* not selected */
+		snode->block= uiNewBlock(&sa->uiblocks, "node buttons1", UI_EMBOSS, UI_HELV, sa->win);
+		
 		for(node= snode->nodetree->nodes.first; node; node= node->next)
 			if(!(node->flag & SELECT)) 
 				node->drawfunc(snode, node);
+		
+		uiDrawBlock(snode->block);
+		
 		/* selected */
+		snode->block= uiNewBlock(&sa->uiblocks, "node buttons2", UI_EMBOSS, UI_HELV, sa->win);
+		
 		for(node= snode->nodetree->nodes.first; node; node= node->next)
 			if(node->flag & SELECT) 
 				node->drawfunc(snode, node);
 		
+		uiDrawBlock(snode->block);
 	}
 	
-	/* restore viewport */
+	/* restore viewport (not needed yet) */
 	mywinset(sa->win);
 
 	/* ortho at pixel level curarea */

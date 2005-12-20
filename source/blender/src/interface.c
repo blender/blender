@@ -2746,7 +2746,7 @@ static void update_picker_hex(uiBlock *block, float *rgb)
 	}
 }
 
-static void update_picker_buts_hsv(uiBlock *block, float *hsv)
+static void update_picker_buts_hsv(uiBlock *block, float *hsv, char *poin)
 {
 	uiBut *bt;
 	float r, g, b;
@@ -2759,34 +2759,36 @@ static void update_picker_buts_hsv(uiBlock *block, float *hsv)
 	update_picker_hex(block, rgb);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->type==HSVCUBE) {
-			VECCOPY(bt->hsv, hsv);
-			ui_set_but_hsv(bt);
-		}
-		else if(bt->str[1]==' ') {
-			if(bt->str[0]=='R') {
-				ui_set_but_val(bt, r);
-				ui_check_but(bt);
+		if(bt->poin == poin) {
+			if(bt->type==HSVCUBE) {
+				VECCOPY(bt->hsv, hsv);
+				ui_set_but_hsv(bt);
 			}
-			else if(bt->str[0]=='G') {
-				ui_set_but_val(bt, g);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='B') {
-				ui_set_but_val(bt, b);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='H') {
-				ui_set_but_val(bt, hsv[0]);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='S') {
-				ui_set_but_val(bt, hsv[1]);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='V') {
-				ui_set_but_val(bt, hsv[2]);
-				ui_check_but(bt);
+			else if(bt->str[1]==' ') {
+				if(bt->str[0]=='R') {
+					ui_set_but_val(bt, r);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='G') {
+					ui_set_but_val(bt, g);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='B') {
+					ui_set_but_val(bt, b);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='H') {
+					ui_set_but_val(bt, hsv[0]);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='S') {
+					ui_set_but_val(bt, hsv[1]);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='V') {
+					ui_set_but_val(bt, hsv[2]);
+					ui_check_but(bt);
+				}
 			}
 		}
 	}
@@ -2860,7 +2862,7 @@ static void do_palette_cb(void *bt1, void *col1)
 	}
 	
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-	update_picker_buts_hsv(but1->block, hsv);
+	update_picker_buts_hsv(but1->block, hsv, but1->poin);
 	update_picker_hex(but1->block, col);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
@@ -2887,7 +2889,7 @@ static void do_palette1_cb(void *bt1, void *hsv1)
 		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
 	}
 
-	update_picker_buts_hsv(but1->block, hsv);	
+	update_picker_buts_hsv(but1->block, hsv, but1->poin);
 	if (fp) update_picker_hex(but1->block, fp);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
@@ -3077,7 +3079,7 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			ui_set_but_hsv(but);	// converts to rgb
 			
 			// update button values and strings
-			update_picker_buts_hsv(but->block, but->hsv);
+			update_picker_buts_hsv(but->block, but->hsv, but->poin);
 //			update_picker_buts_hex(but->block, but->hsv);			
 
 			/* we redraw the entire block */

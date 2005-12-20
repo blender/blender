@@ -39,13 +39,23 @@ struct bNodeLink;
 struct bNodeSocket;
 struct ListBase;
 
+#define SOCK_IN		1
+#define SOCK_OUT	2
+
+
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
 void			nodeFreeTree(struct bNodeTree *ntree);
+
 struct bNode	*nodeAddNode(struct bNodeTree *ntree, char *name);
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
+struct bNodeSocket *nodeAddSocket(struct bNode *node, int type, int where, int limit, char *name);
+
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
+int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
+
+void nodeSolveOrder(struct bNodeTree *ntree);
 
 
 #endif

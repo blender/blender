@@ -62,6 +62,7 @@
 #include "BIF_toolbox.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_edit.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 
@@ -75,14 +76,11 @@
 #include "PIL_time.h"
 #include "mydevice.h"
 
-
-/* **************** NODE draw callbacks ************* */
-
 #define NODE_DY		20
+#define NODE_DYS	10
 #define NODE_SOCK	5
 
-#define SOCK_IN		1
-#define SOCK_OUT	2
+/* **************** NODE draw callbacks ************* */
 
 static void nodeshadow(rctf *rct, int select)
 {
@@ -111,7 +109,7 @@ static void nodeshadow(rctf *rct, int select)
 }
 
 /* nice AA filled circle */
-static void socket_circle_draw(float x, float y, float size, int colid, int select)
+static void socket_circle_draw(float x, float y, float size, int type, int select)
 {
 	/* 16 values of sin function */
 	static float si[16] = {
@@ -129,10 +127,26 @@ static void socket_circle_draw(float x, float y, float size, int colid, int sele
 	};
 	int a;
 	
-	if(select==0)
-		glColor3ub(200, 200, 40);
-	else
-		glColor3ub(240, 240, 100);
+	if(select==0) {
+		if(type==SOCK_VALUE)
+			glColor3ub(160, 160, 160);
+		else if(type==SOCK_VECTOR)
+			glColor3ub(100, 100, 200);
+		else if(type==SOCK_RGBA)
+			glColor3ub(200, 200, 40);
+		else 
+			glColor3ub(100, 200, 100);
+	}
+	else {
+		if(type==SOCK_VALUE)
+			glColor3ub(200, 200, 200);
+		else if(type==SOCK_VECTOR)
+			glColor3ub(140, 140, 240);
+		else if(type==SOCK_RGBA)
+			glColor3ub(240, 240, 100);
+		else 
+			glColor3ub(140, 240, 140);
+	}
 	
 	glBegin(GL_POLYGON);
 	for(a=0; a<16; a++)
@@ -177,7 +191,7 @@ static int node_basis_draw(SpaceNode *snode, bNode *node)
 	BIF_DrawString(snode->curfont, node->name, trans);
 	
 	for(sock= node->inputs.first; sock; sock= sock->next) {
-		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, 0, sock->flag & SELECT);
+		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, sock->type, sock->flag & SELECT);
 		
 		BIF_ThemeColor(TH_TEXT);
 		ui_rasterpos_safe(sock->locx+8.0f, sock->locy-5.0f, snode->aspect);
@@ -185,7 +199,7 @@ static int node_basis_draw(SpaceNode *snode, bNode *node)
 	}
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
-		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, 0, sock->flag & SELECT);
+		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, sock->type, sock->flag & SELECT);
 		
 		BIF_ThemeColor(TH_TEXT);
 		slen= snode->aspect*BIF_GetStringWidth(snode->curfont, sock->name, trans);
@@ -204,30 +218,31 @@ static int node_basis_draw(SpaceNode *snode, bNode *node)
 void node_update(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *nsock;
-	float dy= 0.0f;
-	float width= 80.0f;	/* width custom? */
-	
-	node->drawfunc= node_basis_draw;
+	float dy= node->locy;
 	
 	/* input connectors */
 	for(nsock= node->inputs.last; nsock; nsock= nsock->prev) {
 		nsock->locx= node->locx;
-		nsock->locy= node->locy + dy + NODE_DY/2;
+		nsock->locy= dy + NODE_DYS;
 		dy+= NODE_DY;
 	}
 	
 	/* spacer */
-	dy+= NODE_DY/2;
+	dy+= NODE_DYS;
 	
 	/* preview rect? */
+	node->prv.xmin= node->locx + NODE_DYS;
+	node->prv.xmax= node->locx + node->width- NODE_DYS;
+	node->prv.ymin= dy;
+	node->prv.ymax= dy+=node->prv_h;
 	
 	/* spacer */
-	dy+= NODE_DY/2;
+	dy+= NODE_DYS;
 	
 	/* output connectors */
 	for(nsock= node->outputs.last; nsock; nsock= nsock->prev) {
-		nsock->locx= node->locx + width;
-		nsock->locy= node->locy + dy + NODE_DY/2;
+		nsock->locx= node->locx + node->width;
+		nsock->locy= dy + NODE_DYS;
 		dy+= NODE_DY;
 	}
 	
@@ -235,14 +250,14 @@ void node_update(bNodeTree *ntree, bNode *node)
 	dy+= NODE_DY;
 
 	node->tot.xmin= node->locx;
-	node->tot.xmax= node->locx + width;
+	node->tot.xmax= node->locx + node->width;
 	node->tot.ymin= node->locy;
-	node->tot.ymax= node->locy + dy;
+	node->tot.ymax= dy;
 }
 
 /* checks mouse position, and returns found node/socket */
 /* type is SOCK_IN and/or SOCK_OUT */
-static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int type)
+static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int type, int in_out)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -259,21 +274,25 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	
 	/* check if we click in a socket */
 	for(node= snode->nodetree->nodes.first; node; node= node->next) {
-		if(type & SOCK_IN) {
+		if(in_out & SOCK_IN) {
 			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-					*nodep= node;
-					*sockp= sock;
-					return 1;
+				if(type==-1 || type==sock->type) {
+					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+						*nodep= node;
+						*sockp= sock;
+						return 1;
+					}
 				}
 			}
 		}
-		if(type & SOCK_OUT) {
+		if(in_out & SOCK_OUT) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-					*nodep= node;
-					*sockp= sock;
-					return 1;
+				if(type==-1 || type==sock->type) {
+					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
+						*nodep= node;
+						*sockp= sock;
+						return 1;
+					}
 				}
 			}
 		}
@@ -445,7 +464,7 @@ static void node_mouse_select(SpaceNode *snode)
 	std_rmouse_transform(node_transform_ext);	/* does undo push for select */
 }
 
-static int node_socket_hilights(SpaceNode *snode)
+static int node_socket_hilights(SpaceNode *snode, int type, int in_out)
 {
 	bNode *node;
 	bNodeSocket *sock, *tsock, *socksel= NULL;
@@ -473,7 +492,7 @@ static int node_socket_hilights(SpaceNode *snode)
 		}
 	}
 	
-	if(find_indicated_socket(snode, &node, &tsock, SOCK_IN|SOCK_OUT)) {
+	if(find_indicated_socket(snode, &node, &tsock, type, in_out)) {
 		tsock->flag |= SELECT;
 		if(redraw==1 && tsock==socksel) redraw= 0;
 		else redraw= 1;
@@ -482,73 +501,214 @@ static int node_socket_hilights(SpaceNode *snode)
 	return redraw;
 }
 
+void node_border_select(SpaceNode *snode)
+{
+	bNode *node;
+	rcti rect;
+	rctf rectf;
+	short val, mval[2];
+	
+	if ( (val = get_border(&rect, 3)) ) {
+		
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+		mval[0]= rect.xmax;
+		mval[1]= rect.ymax;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+		
+		for(node= snode->nodetree->nodes.first; node; node= node->next) {
+			if(BLI_isect_rctf(&rectf, &node->tot, NULL)) {
+				if(val==LEFTMOUSE)
+					node->flag |= SELECT;
+				else
+					node->flag &= ~SELECT;
+			}
+		}
+		allqueue(REDRAWNODE, 1);
+		BIF_undo_push("Border select nodes");
+	}		
+}
+
 /* ****************** Add *********************** */
+
+/* keep adding nodes outside of space context? to kernel maybe? */
+
+bNode *add_test_node(bNodeTree *ntree, float locx, float locy)
+{
+	bNode *node= nodeAddNode(ntree, "TestNode");
+	static int tot= 0;
+	
+	sprintf(node->name, "Testnode%d", tot++);
+	
+	node->locx= locx;
+	node->locy= locy;
+	node->width= 80.0f;
+	node->drawfunc= node_basis_draw;
+	
+	/* add fake sockets */
+	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Col");
+	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Spec");
+	nodeAddSocket(node, SOCK_RGBA, SOCK_OUT, 0xFFF, "Diffuse");
+	
+	/* always end with calculating size etc */
+	node_update(ntree, node);
+	
+	return node;
+}
+
+static int value_drawfunc(SpaceNode *snode, bNode *node)
+{
+	
+	node_basis_draw(snode, node);
+	
+	if(snode->block) {
+		uiBut *bt;
+		
+		bt= uiDefButF(snode->block, NUM, B_NOP, "", 
+					  node->prv.xmin, node->prv.ymin, node->prv.xmax-node->prv.xmin, node->prv.ymax-node->prv.ymin, 
+					  node->vec, 0.0f, 1.0f, 100, 2, "");
+
+	}
+	
+	return 1;
+}
+
+static int hsv_drawfunc(SpaceNode *snode, bNode *node)
+{
+	
+	node_basis_draw(snode, node);
+	
+	if(snode->block) {
+		uiBut *bt;
+		uiBlockSetEmboss(snode->block, UI_EMBOSSP);
+		
+		bt= uiDefButF(snode->block, HSVCUBE, B_NOP, "", 
+					node->prv.xmin, node->prv.ymin, node->prv.xmax-node->prv.xmin, 10.0f, 
+					node->vec, 0.0f, 1.0f, 3, 0, "");
+		bt= uiDefButF(snode->block, HSVCUBE, B_NOP, "", 
+					node->prv.xmin, node->prv.ymin+14.0f, node->prv.xmax-node->prv.xmin, node->prv.ymax-node->prv.ymin-14.0f, 
+					node->vec, 0.0f, 1.0f, 2, 0, "");
+		
+		uiDefButF(snode->block, COL, B_NOP, "",		
+					node->prv.xmin, node->prv.ymax+10.0f, node->prv.xmax-node->prv.xmin, 15.0f, 
+					node->vec, 0.0, 0.0, -1, 0, "");
+
+	}
+	
+	return 1;
+}
+
+
+bNode *add_value_node(bNodeTree *ntree, float locx, float locy)
+{
+	bNode *node= nodeAddNode(ntree, "Value");
+	
+	node->locx= locx;
+	node->locy= locy;
+	node->width= 80.0f;
+	node->prv_h= 20.0f;
+	node->drawfunc= value_drawfunc;
+	
+	/* add sockets */
+	nodeAddSocket(node, SOCK_VALUE, SOCK_OUT, 0xFFF, "");
+	
+	/* always end with calculating size etc */
+	node_update(ntree, node);
+	
+	return node;
+}
+
+bNode *add_hsv_node(bNodeTree *ntree, float locx, float locy)
+{
+	bNode *node= nodeAddNode(ntree, "RGB");
+	
+	node->locx= locx;
+	node->locy= locy;
+	node->width= 100.0f;
+	node->prv_h= 100.0f;
+	node->vec[3]= 1.0f;		/* alpha init */
+	node->drawfunc= hsv_drawfunc;	
+	
+	/* add sockets */
+	nodeAddSocket(node, SOCK_RGBA, SOCK_OUT, 0xFFF, "");
+	
+	/* always end with calculating size etc */
+	node_update(ntree, node);
+	
+	return node;
+}
+
 
 /* editor context */
 static void node_add_menu(SpaceNode *snode)
 {
+	float locx, locy;
 	short event, mval[2];
 	
-	getmouseco_areawin(mval);
-	
-	event= pupmenu("Add Node%t|Testnode%x1");
+	event= pupmenu("Add Node%t|Testnode%x1|Value %x2|Color %x3");
 	if(event<1) return;
+	
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
 	
 	node_deselectall(snode, 0);
 	
-	if(event==1) {
-		bNodeSocket *sock;
-		bNode *node= nodeAddNode(snode->nodetree, "TestNode");
-		
-		areamouseco_to_ipoco(G.v2d, mval, &node->locx, &node->locy);
-		node->flag= SELECT;
-		
-		/* add fake sockets */
-		sock= MEM_callocN(sizeof(bNodeSocket), "sock");
-		strcpy(sock->name, "Col");
-		BLI_addtail(&node->inputs, sock);
-		sock= MEM_callocN(sizeof(bNodeSocket), "sock");
-		strcpy(sock->name, "Spec");
-		BLI_addtail(&node->inputs, sock);
-		
-		sock= MEM_callocN(sizeof(bNodeSocket), "sock");
-		strcpy(sock->name, "Diffuse");
-		BLI_addtail(&node->outputs, sock);
-		
-		node_update(snode->nodetree, node);
-		
-		/* fake links */
-//		if(snode->nodetree->nodes.first!=snode->nodetree->nodes.last) {
-//			bNode *first= snode->nodetree->nodes.first;
-//			
-//			nodeAddLink(snode->nodetree, first, first->outputs.first, node, node->inputs.first);
-//		}
-		
-		allqueue(REDRAWNODE, 0);
-	}
-	
-	BIF_undo_push("Add Node");
+	if(event==1)
+		add_test_node(snode->nodetree, locx, locy);
+	else if(event==2)
+		add_value_node(snode->nodetree, locx, locy);
+	else if(event==3)
+		add_hsv_node(snode->nodetree, locx, locy);
 
+	
+	allqueue(REDRAWNODE, 0);
+	BIF_undo_push("Add Node");
 }
 
 void node_adduplicate(SpaceNode *snode)
 {
 	bNode *node, *nnode;
+	bNodeLink *link, *nlink;
+	bNodeSocket *sock;
+	int a;
 	
 	/* backwards, we add to list end */
 	for(node= snode->nodetree->nodes.last; node; node= node->prev) {
+		node->new= NULL;
 		if(node->flag & SELECT) {
 			nnode= nodeCopyNode(snode->nodetree, node);
 			node->flag &= ~SELECT;
 			nnode->flag |= SELECT;
+			node->new= nnode;
+		}
+	}
+	
+	/* check for copying links */
+	for(link= snode->nodetree->links.first; link; link= link->next) {
+		if(link->fromnode->new && link->tonode->new) {
+			nlink= nodeAddLink(snode->nodetree, link->fromnode->new, NULL, link->tonode->new, NULL);
+			/* sockets were copied in order */
+			for(a=0, sock= link->fromnode->outputs.first; sock; sock= sock->next, a++) {
+				if(sock==link->fromsock)
+					break;
+			}
+			nlink->fromsock= BLI_findlink(&link->fromnode->new->outputs, a);
+			
+			for(a=0, sock= link->tonode->inputs.first; sock; sock= sock->next, a++) {
+				if(sock==link->tosock)
+					break;
+			}
+			nlink->tosock= BLI_findlink(&link->tonode->new->inputs, a);
 		}
 	}
 	
 	transform_nodes(snode, "Duplicate");
 }
 
-/* loop that adds a link node, called by function below though */
-static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, int type)
+/* loop that adds a nodelink, called by function below  */
+/* type = starting socket */
+static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, int in_out)
 {
 	bNode *tnode;
 	bNodeSocket *tsock;
@@ -556,7 +716,7 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 	short mval[2], mvalo[2];
 	
 	/* we make a temporal link */
-	if(type==SOCK_OUT)
+	if(in_out==SOCK_OUT)
 		link= nodeAddLink(snode->nodetree, node, sock, NULL, NULL);
 	else
 		link= nodeAddLink(snode->nodetree, NULL, NULL, node, sock);
@@ -570,12 +730,14 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
 			
-			if(type==SOCK_OUT) {
-				if(find_indicated_socket(snode, &tnode, &tsock, SOCK_IN)) {
+			if(in_out==SOCK_OUT) {
+				if(find_indicated_socket(snode, &tnode, &tsock, sock->type, SOCK_IN)) {
 					if(nodeFindLink(snode->nodetree, sock, tsock)==NULL) {
-						if(tnode!=node) {
-							link->tonode= tnode;
-							link->tosock= tsock;
+						if(nodeCountSocketLinks(snode->nodetree, tsock) < tsock->limit) {
+							if(tnode!=node) {
+								link->tonode= tnode;
+								link->tosock= tsock;
+							}
 						}
 					}
 				}
@@ -585,11 +747,13 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 				}
 			}
 			else {
-				if(find_indicated_socket(snode, &tnode, &tsock, SOCK_OUT)) {
+				if(find_indicated_socket(snode, &tnode, &tsock, sock->type, SOCK_OUT)) {
 					if(nodeFindLink(snode->nodetree, sock, tsock)==NULL) {
-						if(tnode!=node) {
-							link->fromnode= tnode;
-							link->fromsock= tsock;
+						if(nodeCountSocketLinks(snode->nodetree, tsock) < tsock->limit) {
+							if(tnode!=node) {
+								link->fromnode= tnode;
+								link->fromsock= tsock;
+							}
 						}
 					}
 				}
@@ -598,7 +762,8 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 					link->fromsock= NULL;
 				}
 			}
-			node_socket_hilights(snode);
+			/* hilight target sockets only */
+			node_socket_hilights(snode, sock->type, in_out==SOCK_OUT?SOCK_IN:SOCK_OUT);
 			
 			force_draw(0);
 		}
@@ -610,6 +775,8 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 		MEM_freeN(link);
 	}
 	
+	nodeSolveOrder(snode->nodetree);
+	
 	allqueue(REDRAWNODE, 0);
 	
 	return 1;
@@ -618,34 +785,63 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 static int node_draw_link(SpaceNode *snode)
 {
 	bNode *node;
+	bNodeLink *link;
 	bNodeSocket *sock;
 	
-	/* we're going to draw an output */
-	if(find_indicated_socket(snode, &node, &sock, SOCK_OUT)) {
-		return node_draw_link_drag(snode, node, sock, SOCK_OUT);
-	}
-	if(find_indicated_socket(snode, &node, &sock, SOCK_IN)) {
-		bNodeLink *link;
-		
-		/* find if we break a link */
-		for(link= snode->nodetree->links.first; link; link= link->next) {
-			if(link->tosock==sock)
-				break;
-		}
-		if(link) {
-			node= link->fromnode;
-			sock= link->fromsock;
-			BLI_remlink(&snode->nodetree->links, link);
-			MEM_freeN(link);
+	/* output indicated? */
+	if(find_indicated_socket(snode, &node, &sock, -1, SOCK_OUT)) {
+		if(nodeCountSocketLinks(snode->nodetree, sock)<sock->limit)
 			return node_draw_link_drag(snode, node, sock, SOCK_OUT);
-		}
 		else {
-			/* link from input to output */
+			/* find if we break a link */
+			for(link= snode->nodetree->links.first; link; link= link->next) {
+				if(link->fromsock==sock)
+					break;
+			}
+			if(link) {
+				node= link->tonode;
+				sock= link->tosock;
+				BLI_remlink(&snode->nodetree->links, link);
+				MEM_freeN(link);
+				return node_draw_link_drag(snode, node, sock, SOCK_IN);
+			}
+		}
+	}
+	/* or an input? */
+	else if(find_indicated_socket(snode, &node, &sock, -1, SOCK_IN)) {
+		if(nodeCountSocketLinks(snode->nodetree, sock)<sock->limit)
 			return node_draw_link_drag(snode, node, sock, SOCK_IN);
+		else {
+			/* find if we break a link */
+			for(link= snode->nodetree->links.first; link; link= link->next) {
+				if(link->tosock==sock)
+					break;
+			}
+			if(link) {
+				node= link->fromnode;
+				sock= link->fromsock;
+				BLI_remlink(&snode->nodetree->links, link);
+				MEM_freeN(link);
+				return node_draw_link_drag(snode, node, sock, SOCK_OUT);
+			}
 		}
 	}
 	
 	return 0;
+}
+
+static void node_delete(SpaceNode *snode)
+{
+	bNode *node, *next;
+	
+	for(node= snode->nodetree->nodes.first; node; node= next) {
+		next= node->next;
+		if(node->flag & SELECT)
+			nodeFreeNode(snode->nodetree, node);
+	}
+	
+	BIF_undo_push("Delete nodes");
+	allqueue(REDRAWNODE, 0);
 }
 
 /* ******************** main event loop ****************** */
@@ -680,7 +876,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case MOUSEY:
-			doredraw= node_socket_hilights(snode);
+			doredraw= node_socket_hilights(snode, -1, SOCK_IN|SOCK_OUT);
 			break;
 			
 		case PADPLUSKEY:
@@ -709,11 +905,17 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				BIF_undo_push("Deselect all nodes");
 			}
 			break;
+		case BKEY:
+			if(G.qual==0)
+				node_border_select(snode);
+			break;
 		case DKEY:
 			if(G.qual==LR_SHIFTKEY)
 				node_adduplicate(snode);
 			break;
-		case CKEY:
+		case CKEY:	/* sort again, showing cyclics */
+			nodeSolveOrder(snode->nodetree);
+			doredraw= 1;
 			break;
 		case GKEY:
 			transform_nodes(snode, "Translate Node");
@@ -721,6 +923,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case DELKEY:
 		case XKEY:
 			if( okee("Erase selected")==0 ) break;
+			node_delete(snode);
 			break;
 		}
 	}

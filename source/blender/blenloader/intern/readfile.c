@@ -3087,6 +3087,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
 				snode->nodetree= NULL;
+				snode->block= NULL;
 			}
 		}
 

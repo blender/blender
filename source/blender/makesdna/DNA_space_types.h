@@ -49,6 +49,7 @@ struct SpaceIpo;
 struct BlendHandle;
 struct TreeStore;
 struct bNodeTree;
+struct uiBlock;
 
 	/**
 	 * The base structure all the other spaces
@@ -304,6 +305,7 @@ typedef struct SpaceNode {
 	int flag;
 	float aspect;
 	void *curfont;
+	struct uiBlock *block;
 	
 	struct bNodeTree *nodetree;
 	

@@ -42,35 +42,46 @@ typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev;
 	
 	char name[32];
-	int type, flag;
-	
+	short type, flag, limit, pad;
 	float locx, locy;
 	
+	ListBase links;		/* now only used temporal for sorting */
+	
 } bNodeSocket;
+
+/* sock->type */
+#define SOCK_VALUE		0
+#define SOCK_VECTOR		1
+#define SOCK_RGBA		2
+#define SOCK_IMAGE		3
 
 /* sock->flag, first bit is select */
 
 
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
-	struct bNode *next, *prev;
+	struct bNode *next, *prev, *new;
 	
 	char name[32];
-	int type, flag;
+	short type, flag, done, level;
 	
 	ListBase inputs, outputs;
 	struct ID *id;		/* optional link to libdata */
+	void *data;			/* custom data */
+	float vec[4];		/* builtin custom data */
 	
 	float locx, locy;	/* root offset for drawing */
+	float width, prv_h;	
 	rctf tot;			/* entire boundbox */
 	rctf prv;			/* optional preview area */
 	
 	int (*drawfunc)(struct SpaceNode *, struct bNode *);
+	int (*execfunc)(struct bNode *);
 	
 } bNode;
 
-/* node->flag, first bit is select */
-
+/* node->flag */
+#define NODE_SELECT		1
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
