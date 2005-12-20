@@ -77,6 +77,12 @@ PyTypeObject PyObjectPlus::Type = {
 	0,				/*tp_call */
 };
 
+PyObjectPlus::~PyObjectPlus()
+{
+	_Py_ForgetReference(this);
+//	assert(ob_refcnt==0);
+}
+
 PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
 {
 	MT_assert(T != NULL);
