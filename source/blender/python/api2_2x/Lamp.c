@@ -84,6 +84,7 @@
 #define EXPP_LAMP_MODE_DEEPSHADOW 1024
 #define EXPP_LAMP_MODE_NODIFFUSE  2048
 #define EXPP_LAMP_MODE_NOSPECULAR 4096
+#define EXPP_LAMP_MODE_SHAD_RAY	  8192
 /* Lamp MIN, MAX values */
 
 #define EXPP_LAMP_SAMPLES_MIN 1
@@ -781,8 +782,8 @@ static PyObject *Lamp_ModesDict( void )
 				 PyInt_FromLong( EXPP_LAMP_MODE_ONLYSHADOW ) );
 		PyConstant_Insert( c, "NoDiffuse",
 				 PyInt_FromLong( EXPP_LAMP_MODE_NODIFFUSE ) );
-		PyConstant_Insert( c, "NoSpecular",
-				 PyInt_FromLong( EXPP_LAMP_MODE_NOSPECULAR ) );
+		PyConstant_Insert( c, "RayShadow",
+				 PyInt_FromLong( EXPP_LAMP_MODE_SHAD_RAY ) );
 	}
 
 	return Modes;
@@ -1165,7 +1166,8 @@ static int Lamp_setMode( BPy_Lamp * self, PyObject * value )
 				| EXPP_LAMP_MODE_SPHERE
 				| EXPP_LAMP_MODE_SQUARE
 				| EXPP_LAMP_MODE_NODIFFUSE
-				| EXPP_LAMP_MODE_NOSPECULAR;
+				| EXPP_LAMP_MODE_NOSPECULAR
+				| EXPP_LAMP_MODE_SHAD_RAY;
 
 	if( !PyInt_CheckExact ( value ) ) {
 		char errstr[128];
@@ -1550,7 +1552,7 @@ static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args )
 static PyObject *Lamp_getModesConst( void )
 {
 	PyObject * attr = Py_BuildValue
-			( "{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
+			( "{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
 			  "Shadows", EXPP_LAMP_MODE_SHADOWS, "Halo",
 			  EXPP_LAMP_MODE_HALO, "Layer", EXPP_LAMP_MODE_LAYER,
 			  "Quad", EXPP_LAMP_MODE_QUAD, "Negative",
@@ -1559,7 +1561,8 @@ static PyObject *Lamp_getModesConst( void )
 			  EXPP_LAMP_MODE_SPHERE, "Square",
 			  EXPP_LAMP_MODE_SQUARE, "NoDiffuse",
 			  EXPP_LAMP_MODE_NODIFFUSE, "NoSpecular",
-			  EXPP_LAMP_MODE_NOSPECULAR );
+			  EXPP_LAMP_MODE_NOSPECULAR, "RayShadow",
+			  EXPP_LAMP_MODE_SHAD_RAY);
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1804,6 +1807,8 @@ static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args )
 			flag |= ( short ) EXPP_LAMP_MODE_NODIFFUSE;
 		else if( !strcmp( name, "NoSpecular" ) )
 			flag |= ( short ) EXPP_LAMP_MODE_NOSPECULAR;
+		else if( !strcmp( name, "RayShadow" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_SHAD_RAY;
 		else
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
 							"unknown lamp flag argument" );

@@ -14,7 +14,7 @@ Example::
 
   from Blender import Lamp
   l = Lamp.New('Spot')            # create new 'Spot' lamp data
-  l.setMode('square', 'shadow')   # set these two lamp mode flags
+  l.setMode('Square', 'Shadow')   # set these two lamp mode flags
   ob = Object.New('Lamp')         # create new lamp object
   ob.link(l)                      # link lamp obj with lamp data
 
@@ -36,6 +36,8 @@ Example::
   - 'OnlyShadow'
   - 'Sphere'
   - 'Square'
+  - 'NoDiffuse'
+  - 'RayShadow'
 """
 
 def New (type = 'Lamp', name = 'LampData'):
