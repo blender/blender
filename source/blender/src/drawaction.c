@@ -349,8 +349,10 @@ int count_action_levels(bAction *act)
 		return 0;
 
 	for (achan=act->chanbase.first; achan; achan=achan->next){
-		y+=1;
-		y+=BLI_countlist(&achan->constraintChannels);
+		if((achan->flag & ACHAN_HIDDEN)==0) {
+			y+=1;
+			y+=BLI_countlist(&achan->constraintChannels);
+		}
 	}
 
 	return y;
