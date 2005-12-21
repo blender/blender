@@ -676,7 +676,7 @@ void free_lamp(Lamp *la)
 	}
 	la->ipo= 0;
 
-	BKE_icon_delete(la);
+	BKE_icon_delete(&la->id);
 	la->id.icon_id = 0;
 }
 

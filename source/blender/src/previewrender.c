@@ -68,6 +68,7 @@
 
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_icons.h"
 #include "BKE_texture.h"
 #include "BKE_material.h"
 #include "BKE_world.h"
@@ -409,7 +410,6 @@ void BIF_previewdraw(void)
 
 	if (sbuts->ri->rect==0) BIF_preview_changed(sbuts);
 	else {
-		int y;
 		BIF_set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX, sbuts->ri->pr_rectx, sbuts->ri->pr_recty);
 		BIF_previewdraw_render(sbuts->ri, sbuts->area);
 		BIF_end_previewrect();
@@ -1283,7 +1283,6 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 	float lens = 0.0, vec[3];
 	int x, y, starty, startx, endy, endx, radsq, xsq, ysq, last = 0;
 	unsigned int *rect;
-	Link* li;
 
 	if(ri->cury>=ri->pr_rectx) return;
 	

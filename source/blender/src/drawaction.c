@@ -68,6 +68,7 @@
 #include "BIF_editaction.h"
 #include "BIF_editkey.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_resources.h"

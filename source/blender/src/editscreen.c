@@ -78,6 +78,7 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"
 #include "BIF_renderwin.h"

@@ -188,7 +188,6 @@ void BKE_icon_set(int icon_id, struct Icon* icon)
 
 void BKE_icon_delete(struct ID* id)
 {
-	Icon* new_icon = 0;
 
 	if (!id->icon_id) return; /* no icon defined for library object */
 

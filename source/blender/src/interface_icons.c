@@ -612,7 +612,6 @@ int BIF_icon_get_height(int icon_id)
 
 void BIF_icons_init(int first_dyn_id)
 {
-	DrawInfo* di;
 
 	BKE_icons_init(first_dyn_id);
 	init_internal_icons();
@@ -622,9 +621,7 @@ void BIF_icons_init(int first_dyn_id)
 /* only call with valid pointer from BIF_icon_draw */
 static void icon_set_image(ID* id, DrawInfo* di)
 {
-	ImBuf* ima = 0;
 	RenderInfo ri;	
-	int it;
 
 	if (!di) return;			
 
@@ -664,7 +661,6 @@ void BIF_icon_draw( int x, int y, int icon_id)
 {
 	Icon* icon = 0;
 	DrawInfo* di = 0;
-	int pr_size = 0;
 
 	ImBuf *ima;
 
@@ -717,7 +713,6 @@ void BIF_icon_draw( int x, int y, int icon_id)
 
 void BIF_icon_draw_blended(int x, int y, int icon_id, int colorid, int shade)
 {
-	int done;
 	
 	if(shade < 0) {
 		float r= (128+shade)/128.0;

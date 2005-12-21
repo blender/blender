@@ -104,7 +104,7 @@ void free_image(Image *ima)
 		freePackedFile(ima->packedfile);
 		ima->packedfile = NULL;
 	}
-	BKE_icon_delete(ima);
+	BKE_icon_delete(&ima->id);
 	ima->id.icon_id = 0;
 }
 

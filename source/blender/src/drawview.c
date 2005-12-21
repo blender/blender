@@ -102,6 +102,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_resources.h"

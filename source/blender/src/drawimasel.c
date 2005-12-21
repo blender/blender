@@ -59,6 +59,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_imasel.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
