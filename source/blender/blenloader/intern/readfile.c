@@ -620,6 +620,9 @@ static BHeadN *get_bhead(FileData *fd)
 				}
 			}
 
+			/* make sure people are not trying to pass bad blend files */
+			if (bhead.len < 0) fd->eof = 1;
+
 			// bhead now contains the (converted) bhead structure. Now read
 			// the associated data and put everything in a BHeadN (creative naming !)
 
@@ -634,6 +637,7 @@ static BHeadN *get_bhead(FileData *fd)
 					if (readsize != bhead.len) {
 						fd->eof = 1;
 						MEM_freeN(new_bhead);
+						new_bhead = 0;
 					}
 				} else {
 					fd->eof = 1;
