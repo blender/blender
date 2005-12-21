@@ -644,7 +644,7 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 	rendersize_r[1]= CLAMPIS(rendersize_r[1], 0, scr_h-44-RW_HEADERY);	 
 	renderpos_r[1]= -44-RW_HEADERY+(scr_h-rendersize_r[1])*(ndc_y*0.5 + 0.5);
 #else
-	renderpos_r[1]= (scr_h-rendersize_r[1])*(ndc_y*0.5 + 0.5);
+	renderpos_r[1]= -RW_HEADERY+(scr_h-rendersize_r[1])*(ndc_y*0.5 + 0.5);
 #endif
 }
 	
