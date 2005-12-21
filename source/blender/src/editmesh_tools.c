@@ -54,6 +54,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_key_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -5347,4 +5348,84 @@ void mesh_rip(void)
 	initTransform(TFM_TRANSLATION, 0);
 	Transform();
 }
+
+
+void shape_copy_from(KeyBlock* fromKey)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *ev = NULL;
+	
+	for(ev = em->verts.first; ev ; ev = ev->next){
+		if(ev->f & SELECT){
+			float *data;
+			//Check that index is valid in fromKey
+			
+			//Copy 	co from fromKey->data			
+			data = fromKey->data;
+			
+			VECCOPY(ev->co, data+(ev->keyindex*3));
+		}		
+	}
+	BIF_undo_push("Copy Blendshape Verts");
+	return;
+}
+
+void shape_copy_select_from()
+{
+	Mesh* me = (Mesh*)G.obedit->data;
+	EditMesh *em = G.editMesh;
+	EditVert *ev = NULL;
+	int totverts = 0;
+	
+	Key*  ky = NULL;
+	KeyBlock* kb = NULL;
+	int maxlen=32, nr=0, a=0;
+	char *menu;
+	
+	if(me->key){
+		ky = me->key;
+	} else {
+		error("Object Has No Key");	
+		return;
+	}
+	
+	if(ky->block.first){
+		for(kb=ky->block.first;kb;kb = kb->next){
+			maxlen += 40; // Size of a block name
+		}
+		menu = MEM_callocN(maxlen, "Copy Shape Menu Text");
+		strcpy(menu, "Copy Vert Positions from Shape %t|");
+		for(kb=ky->block.first;kb;kb = kb->next){
+			sprintf(menu,"%s %s %cx%d|",menu,kb->name,'%',a);
+			a++;
+		}
+		nr = pupmenu(menu);
+		MEM_freeN(menu);		
+	} else {
+		error("Object Has No Blendshapes");	
+		return;			
+	}
+	
+	a = 0;
+	
+	for(kb=ky->block.first;kb;kb = kb->next){
+		if(a == nr){
+			
+			for(ev = em->verts.first;ev;ev = ev->next){
+				totverts++;
+			}
+			
+			if(me->totvert != totverts){
+				error("Shape Has had Verts Added/Removed, please cycle editmode before copying");
+				return;	
+			}
+			
+			shape_copy_from(kb);		
+			return;
+		}
+		a++;
+	}		
+	return;
+}
+
 
