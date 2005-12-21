@@ -43,6 +43,8 @@ struct ListBase;
 #define SOCK_OUT	2
 
 
+/* ************** GENERIC API *************** */
+
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
 void			nodeFreeTree(struct bNodeTree *ntree);
 
@@ -55,8 +57,20 @@ struct bNodeSocket *nodeAddSocket(struct bNode *node, int type, int where, int l
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
 int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 
-void nodeSolveOrder(struct bNodeTree *ntree);
+void			nodeSolveOrder(struct bNodeTree *ntree);
+void			nodeExecTree(struct bNodeTree *ntree);
 
+/* ************** SHADER NODES *************** */
+
+/* types are needed to restore callbacks */
+#define SH_NODE_TEST		0
+#define SH_NODE_RGB			1
+#define SH_NODE_VALUE		2
+#define SH_NODE_MIX_RGB		3
+#define SH_NODE_SHOW_RGB	4
+
+struct bNode	*node_shader_add(struct bNodeTree *ntree, int type);
+void			node_shader_set_execfunc(struct bNode *node);
 
 #endif
 

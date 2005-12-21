@@ -35,6 +35,7 @@
 
 struct ID;
 struct SpaceNode;
+struct bNodeLink;
 
 #define NODE_MAXSTR 32
 
@@ -42,10 +43,10 @@ typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev;
 	
 	char name[32];
-	short type, flag, limit, pad;
+	short type, flag, limit, stack_index;
 	float locx, locy;
 	
-	ListBase links;		/* now only used temporal for sorting */
+	struct bNodeLink *link;		/* input link to parent, max one! */
 	
 } bNodeSocket;
 
@@ -57,6 +58,10 @@ typedef struct bNodeSocket {
 
 /* sock->flag, first bit is select */
 
+typedef struct bNodeStack {
+	float vec[4];
+	void *data;
+} bNodeStack;
 
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
@@ -67,16 +72,15 @@ typedef struct bNode {
 	
 	ListBase inputs, outputs;
 	struct ID *id;		/* optional link to libdata */
-	void *data;			/* custom data */
-	float vec[4];		/* builtin custom data */
+	bNodeStack	ns;		/* builtin data, for UI to write into */
 	
 	float locx, locy;	/* root offset for drawing */
 	float width, prv_h;	
 	rctf tot;			/* entire boundbox */
 	rctf prv;			/* optional preview area */
 	
-	int (*drawfunc)(struct SpaceNode *, struct bNode *);
-	int (*execfunc)(struct bNode *);
+	void (*drawfunc)(struct SpaceNode *, struct bNode *);
+	void (*execfunc)(struct bNode *, struct bNodeStack **);
 	
 } bNode;
 
@@ -96,8 +100,19 @@ typedef struct bNodeTree {
 	ListBase nodes, links;
 	
 	ListBase inputs, outputs;	/* default inputs and outputs, for solving tree */
+	bNodeStack *stack;
+	
+	int type, init;
 	
 } bNodeTree;
+
+/* ntree->type, index */
+#define NTREE_SHADER	0
+#define NTREE_COMPOSIT	1
+
+/* ntree->init, flag */
+#define NTREE_EXEC_SET	1
+#define NTREE_DRAW_SET	2
 
 
 #endif

@@ -35,11 +35,15 @@
 #include "BKE_blender.h"
 #include "BKE_node.h"
 
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "MEM_guardedalloc.h"
 
 /* ************** Add stuff ********** */
+
+/* not very important, but the stack solver likes to know a maximum */
+#define MAX_SOCKET	64
 
 bNode *nodeAddNode(struct bNodeTree *ntree, char *name)
 {
@@ -185,23 +189,24 @@ int nodeCountSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 	return tot;
 }
 
-/* ************** solve stuff *********** */
+/* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */
 static int node_recurs_check(bNode *node, bNode ***nsort, int level)
 {
+	bNode *fromnode;
 	bNodeSocket *sock;
-	bNodeLink *link;
 	int has_inputlinks= 0;
 	
 	node->done= 1;
 	level++;
 	
 	for(sock= node->inputs.first; sock; sock= sock->next) {
-		for(link= sock->links.first; link; link= link->next) {
+		if(sock->link) {
 			has_inputlinks= 1;
-			if(link->fromnode->done==0) {
-				link->fromnode->level= node_recurs_check(link->fromnode, nsort, level);
+			fromnode= sock->link->fromnode;
+			if(fromnode->done==0) {
+				fromnode->level= node_recurs_check(fromnode, nsort, level);
 			}
 		}
 	}
@@ -222,20 +227,19 @@ void nodeSolveOrder(bNodeTree *ntree)
 	bNodeLink *link;
 	int a, totnode=0;
 	
-	/* move all links into the input sockets, to find dependencies */
+	/* set links pointers the input sockets, to find dependencies */
 	/* first clear data */
 	for(node= ntree->nodes.first; node; node= node->next) {
 		node->done= 0;
 		totnode++;
 		for(sock= node->inputs.first; sock; sock= sock->next)
-			sock->links.first= sock->links.last= NULL;
+			sock->link= NULL;
 	}
 	if(totnode==0)
 		return;
 	
-	while((link= ntree->links.first)) {
-		BLI_remlink(&ntree->links, link);
-		BLI_addtail(&link->tosock->links, link);
+	for(link= ntree->links.first; link; link= link->next) {
+		link->tosock->link= link;
 	}
 	
 	nsort= nodesort= MEM_callocN(totnode*sizeof(void *), "sorted node array");
@@ -262,13 +266,78 @@ void nodeSolveOrder(bNodeTree *ntree)
 	
 	MEM_freeN(nodesort);
 	
-	/* move links back */
+}
+
+/* ******************* executing ************* */
+
+
+void nodeBeginExecTree(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	int index= 0;
+	
+	if((ntree->init & NTREE_EXEC_SET)==0) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(ntree->type==NTREE_SHADER)
+				node_shader_set_execfunc(node);
+		}
+		ntree->init |= NTREE_EXEC_SET;
+	}
+	
+	/* create indices for stack */
 	for(node= ntree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			while((link= sock->links.first)) {
-				BLI_remlink(&sock->links, link);
-				BLI_addtail(&ntree->links, link);
-			}
+		
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			sock->stack_index= index++;
 		}
 	}
+	if(index) {
+		ntree->stack= MEM_callocN(index*sizeof(bNodeStack), "node stack");
+	}
 }
+
+void nodeEndExecTree(bNodeTree *ntree)
+{
+	if(ntree->stack) {
+		MEM_freeN(ntree->stack);
+		ntree->stack= NULL;
+	}
+}
+
+static void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **spp)
+{
+	static bNodeStack empty= {{1.0f, 1.0f, 1.0f, 1.0f}, NULL};
+	bNodeSocket *sock;
+	
+	/* build pointer stack */
+	for(sock= node->inputs.first; sock; sock= sock->next) {
+		if(sock->link)
+			*(spp++)= stack + sock->link->fromsock->stack_index;
+		else
+			*(spp++)= &empty;	/* input is not written into */
+	}
+	
+	for(sock= node->outputs.first; sock; sock= sock->next) {
+		*(spp++)= stack + sock->stack_index;
+	}
+}
+
+/* nodes are presorted, so exec is in order of list */
+void nodeExecTree(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeStack *ns[MAX_SOCKET];	/* arbitrary... watch this */
+	
+	nodeBeginExecTree(ntree);
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->execfunc) {
+			node_get_stack(node, ntree->stack, ns);
+			node->execfunc(node, ns);
+		}
+	}
+
+	nodeEndExecTree(ntree);
+}
+

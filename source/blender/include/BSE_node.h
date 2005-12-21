@@ -30,10 +30,27 @@
 #ifndef BSE_NODE_H
 #define BSE_NODE_H
 
+#define NODE_DY		20
+#define NODE_DYS	10
+#define NODE_SOCK	5
+
 struct SpaceNode;
+struct bNode;
+
+/* ************* button events *********** */
+
+#define B_NODE_EXEC		1
+
+
+/* ************* API for editnode.c *********** */
 
 void node_deselectall(struct SpaceNode *snode, int swap);
 void node_transform_ext(int mode, int unused);
+
+/* ************* Shader nodes ***************** */
+
+void node_shader_set_drawfunc(struct bNode *node);
+
 
 #endif
 

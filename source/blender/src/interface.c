@@ -5198,6 +5198,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		but->flag |= UI_NO_HILITE;
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
+	if(block->flag & UI_BLOCK_NO_HILITE)
+		but->flag |= UI_NO_HILITE;
 	
 	return but;
 }

@@ -77,6 +77,7 @@ struct ScrArea;
 #define UI_BLOCK_ENTER_OK	32
 #define UI_BLOCK_NOSHADOW	64
 #define UI_BLOCK_FRONTBUFFER	128
+#define UI_BLOCK_NO_HILITE	256
 
 	/* block->flag bits 12-15 are identical to but->flag bits */
 

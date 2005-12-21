@@ -42,6 +42,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -51,16 +52,116 @@
 
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_language.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_node.h"
 #include "BSE_view.h"
+
 #include "BMF_Api.h"
 
 #include "blendef.h"
+#include "interface.h"	/* urm...  for rasterpos_safe, roundbox */
+
 #include "MEM_guardedalloc.h"
+
+/* **************  Draw callbacks *********** */
+
+
+
+static void node_shader_draw_value(SpaceNode *snode, bNode *node)
+{
+	
+	if(snode->block) {
+		uiBut *bt;
+		
+		bt= uiDefButF(snode->block, NUM, B_NODE_EXEC, "", 
+					  node->prv.xmin, node->prv.ymin, node->prv.xmax-node->prv.xmin, node->prv.ymax-node->prv.ymin, 
+					  node->ns.vec, 0.0f, 1.0f, 100, 2, "");
+		
+	}
+}
+
+static void node_shader_draw_rgb(SpaceNode *snode, bNode *node)
+{
+	
+	if(snode->block) {
+		
+		/* enforce square box drawing */
+		uiBlockSetEmboss(snode->block, UI_EMBOSSP);
+		
+		uiDefButF(snode->block, HSVCUBE, B_NODE_EXEC, "", 
+					  node->prv.xmin, node->prv.ymin, node->prv.xmax-node->prv.xmin, 10.0f, 
+					  node->ns.vec, 0.0f, 1.0f, 3, 0, "");
+		uiDefButF(snode->block, HSVCUBE, B_NODE_EXEC, "", 
+					  node->prv.xmin, node->prv.ymin+14.0f, node->prv.xmax-node->prv.xmin, node->prv.ymax-node->prv.ymin-14.0f, 
+					  node->ns.vec, 0.0f, 1.0f, 2, 0, "");
+		
+		uiDefButF(snode->block, COL, B_NOP, "",		
+				  node->prv.xmin, node->prv.ymax+10.0f, node->prv.xmax-node->prv.xmin, 15.0f, 
+				  node->ns.vec, 0.0, 0.0, -1, 0, "");
+					/* the -1 above prevents col button to popup a color picker */
+		
+		uiBlockSetEmboss(snode->block, UI_EMBOSS);
+	}
+}
+
+static void node_shader_draw_show_rgb(SpaceNode *snode, bNode *node)
+{
+	
+	if(snode->block) {
+		
+		/* enforce square box drawing */
+		uiBlockSetEmboss(snode->block, UI_EMBOSSP);
+		
+		uiDefButF(snode->block, COL, B_NOP, "", 
+					  node->prv.xmin, node->prv.ymin-NODE_DY, node->prv.xmax-node->prv.xmin, NODE_DY, 
+					  node->ns.vec, 0.0f, 0.0f, -1, 0, "");
+					/* the -1 above prevents col button to popup a color picker */
+		uiBlockSetEmboss(snode->block, UI_EMBOSS);
+	}
+}
+
+
+/* exported to editnode.c */
+void node_shader_set_drawfunc(bNode *node)
+{
+	switch(node->type) {
+		case SH_NODE_TEST:
+			node->drawfunc= NULL;
+			break;
+		case SH_NODE_VALUE:
+			node->drawfunc= node_shader_draw_value;
+			break;
+		case SH_NODE_RGB:
+			node->drawfunc= node_shader_draw_rgb;
+			break;
+		case SH_NODE_SHOW_RGB:
+			node->drawfunc= node_shader_draw_show_rgb;
+			break;
+		case SH_NODE_MIX_RGB:
+			node->drawfunc= NULL;
+			break;
+	}
+}
+
+/* ******* init draw callbacks for all tree types ************* */
+
+static void ntree_init_callbacks(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(ntree->type==NTREE_SHADER)
+			node_shader_set_drawfunc(node);
+	}
+	ntree->init |= NTREE_DRAW_SET;
+}	
+
+/* ************** Generic drawing ************** */
 
 static void draw_nodespace_grid(SpaceNode *snode)
 {
@@ -80,9 +181,137 @@ static void get_nodetree(SpaceNode *snode)
 	/* note: once proper coded, remove free from freespacelist() */
 	if(snode->nodetree==NULL) {
 		snode->nodetree= MEM_callocN(sizeof(bNodeTree), "new node tree");
+	}	
+}
+
+static void nodeshadow(rctf *rct, int select)
+{
+	int a;
+	char alpha= 2;
+	
+	uiSetRoundBox(15);
+	glEnable(GL_BLEND);
+	
+	if(select) a= 10; else a=7;
+	for(; a>0; a-=1) {
+		/* alpha ranges from 2 to 20 or so */
+		glColor4ub(0, 0, 0, alpha);
+		alpha+= 2;
+		
+		gl_round_box(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax-10.0f + a, 8.0f+a);
 	}
 	
+	/* outline emphasis */
+	glEnable( GL_LINE_SMOOTH );
+	glColor4ub(0, 0, 0, 100);
+	gl_round_box(GL_LINE_LOOP, rct->xmin-0.5f, rct->ymin-0.5f, rct->xmax+0.5f, rct->ymax+0.5f, 8.0f);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glDisable(GL_BLEND);
 }
+
+/* nice AA filled circle */
+static void socket_circle_draw(float x, float y, float size, int type, int select)
+{
+	/* 16 values of sin function */
+	static float si[16] = {
+		0.00000000, 0.39435585,0.72479278,0.93775213,
+		0.99871650,0.89780453,0.65137248,0.29936312,
+		-0.10116832,-0.48530196,-0.79077573,-0.96807711,
+		-0.98846832,-0.84864425,-0.57126821,-0.20129852
+	};
+	/* 16 values of cos function */
+	static float co[16] ={
+		1.00000000,0.91895781,0.68896691,0.34730525,
+		-0.05064916,-0.44039415,-0.75875812,-0.95413925,
+		-0.99486932,-0.87434661,-0.61210598,-0.25065253,
+		0.15142777,0.52896401,0.82076344,0.97952994,
+	};
+	int a;
+	
+	if(select==0) {
+		if(type==SOCK_VALUE)
+			glColor3ub(160, 160, 160);
+		else if(type==SOCK_VECTOR)
+			glColor3ub(100, 100, 200);
+		else if(type==SOCK_RGBA)
+			glColor3ub(200, 200, 40);
+		else 
+			glColor3ub(100, 200, 100);
+	}
+	else {
+		if(type==SOCK_VALUE)
+			glColor3ub(200, 200, 200);
+		else if(type==SOCK_VECTOR)
+			glColor3ub(140, 140, 240);
+		else if(type==SOCK_RGBA)
+			glColor3ub(240, 240, 100);
+		else 
+			glColor3ub(140, 240, 140);
+	}
+	
+	glBegin(GL_POLYGON);
+	for(a=0; a<16; a++)
+		glVertex2f(x+size*si[a], y+size*co[a]);
+	glEnd();
+	
+	glColor4ub(0, 0, 0, 150);
+	glEnable(GL_BLEND);
+	glEnable( GL_LINE_SMOOTH );
+	glBegin(GL_LINE_LOOP);
+	for(a=0; a<16; a++)
+		glVertex2f(x+size*si[a], y+size*co[a]);
+	glEnd();
+	glDisable( GL_LINE_SMOOTH );
+	glDisable(GL_BLEND);
+}
+
+static int node_basis_draw(SpaceNode *snode, bNode *node)
+{
+	bNodeSocket *sock;
+	rctf *rct= &node->tot;
+	float slen;
+	int trans= (U.transopts & USER_TR_BUTTONS);
+	
+	nodeshadow(rct, node->flag & SELECT);
+	
+	BIF_ThemeColorShade(TH_HEADER, 0);
+	uiSetRoundBox(3);
+	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, 8);
+	
+	BIF_ThemeColorShade(TH_HEADER, 20);
+	uiSetRoundBox(12);
+	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax-NODE_DY, 8);
+	
+	ui_rasterpos_safe(rct->xmin+4.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
+	
+	if(node->flag & SELECT) 
+		BIF_ThemeColor(TH_TEXT_HI);
+	else
+		BIF_ThemeColor(TH_TEXT);
+	
+	BIF_DrawString(snode->curfont, node->name, trans);
+	
+	for(sock= node->inputs.first; sock; sock= sock->next) {
+		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, sock->type, sock->flag & SELECT);
+		
+		BIF_ThemeColor(TH_TEXT);
+		ui_rasterpos_safe(sock->locx+8.0f, sock->locy-5.0f, snode->aspect);
+		BIF_DrawString(snode->curfont, sock->name, trans);
+	}
+	
+	for(sock= node->outputs.first; sock; sock= sock->next) {
+		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, sock->type, sock->flag & SELECT);
+		
+		BIF_ThemeColor(TH_TEXT);
+		slen= snode->aspect*BIF_GetStringWidth(snode->curfont, sock->name, trans);
+		ui_rasterpos_safe(sock->locx-8.0f-slen, sock->locy-5.0f, snode->aspect);
+		BIF_DrawString(snode->curfont, sock->name, trans);
+	}
+	
+	return 0;
+}
+
 
 static void node_draw_link(SpaceNode *snode, bNodeLink *link)
 {
@@ -103,7 +332,7 @@ static void node_draw_link(SpaceNode *snode, bNodeLink *link)
 	}
 	else {
 		/* check cyclic */
-		if(link->fromnode->level >= link->tonode->level)
+		if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF)
 			BIF_ThemeColor(TH_WIRE);
 		else
 			BIF_ThemeColor(TH_REDALERT);
@@ -185,10 +414,14 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	draw_nodespace_grid(snode);
 	
 	/* nodes */
-	get_nodetree(snode);
+	get_nodetree(snode);	/* editor context */
+	
 	if(snode->nodetree) {
 		bNode *node;
 		bNodeLink *link;
+		
+		if((snode->nodetree->init & NTREE_DRAW_SET)==0)
+			ntree_init_callbacks(snode->nodetree);
 		
 		/* node lines */
 		glEnable(GL_BLEND);
@@ -200,20 +433,27 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 		
 		/* not selected */
 		snode->block= uiNewBlock(&sa->uiblocks, "node buttons1", UI_EMBOSS, UI_HELV, sa->win);
+		uiBlockSetFlag(snode->block, UI_BLOCK_NO_HILITE);
 		
-		for(node= snode->nodetree->nodes.first; node; node= node->next)
-			if(!(node->flag & SELECT)) 
-				node->drawfunc(snode, node);
-		
+		for(node= snode->nodetree->nodes.first; node; node= node->next) {
+			if(!(node->flag & SELECT)) {
+				node_basis_draw(snode, node);
+				if(node->drawfunc) node->drawfunc(snode, node);
+			}
+		}
 		uiDrawBlock(snode->block);
 		
 		/* selected */
 		snode->block= uiNewBlock(&sa->uiblocks, "node buttons2", UI_EMBOSS, UI_HELV, sa->win);
+		uiBlockSetFlag(snode->block, UI_BLOCK_NO_HILITE);
 		
-		for(node= snode->nodetree->nodes.first; node; node= node->next)
-			if(node->flag & SELECT) 
-				node->drawfunc(snode, node);
-		
+		for(node= snode->nodetree->nodes.first; node; node= node->next) {
+			if(node->flag & SELECT) {
+				node_basis_draw(snode, node);
+				if(node->drawfunc) node->drawfunc(snode, node);
+			}
+		}
+
 		uiDrawBlock(snode->block);
 	}
 	

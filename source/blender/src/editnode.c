@@ -42,7 +42,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
+
 
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -54,7 +54,7 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
-#include "BIF_language.h"
+
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_space.h"
@@ -72,143 +72,9 @@
 #include "BDR_editobject.h"
 
 #include "blendef.h"
-#include "interface.h"	/* urm...  for rasterpos_safe, roundbox */
 #include "PIL_time.h"
 #include "mydevice.h"
 
-#define NODE_DY		20
-#define NODE_DYS	10
-#define NODE_SOCK	5
-
-/* **************** NODE draw callbacks ************* */
-
-static void nodeshadow(rctf *rct, int select)
-{
-	int a;
-	char alpha= 2;
-	
-	uiSetRoundBox(15);
-	glEnable(GL_BLEND);
-	
-	if(select) a= 10; else a=7;
-	for(; a>0; a-=1) {
-		/* alpha ranges from 2 to 20 or so */
-		glColor4ub(0, 0, 0, alpha);
-		alpha+= 2;
-		
-		gl_round_box(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax-10.0f + a, 8.0f+a);
-	}
-	
-	/* outline emphasis */
-	glEnable( GL_LINE_SMOOTH );
-	glColor4ub(0, 0, 0, 100);
-	gl_round_box(GL_LINE_LOOP, rct->xmin-0.5f, rct->ymin-0.5f, rct->xmax+0.5f, rct->ymax+0.5f, 8.0f);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glDisable(GL_BLEND);
-}
-
-/* nice AA filled circle */
-static void socket_circle_draw(float x, float y, float size, int type, int select)
-{
-	/* 16 values of sin function */
-	static float si[16] = {
-		0.00000000, 0.39435585,0.72479278,0.93775213,
-		0.99871650,0.89780453,0.65137248,0.29936312,
-		-0.10116832,-0.48530196,-0.79077573,-0.96807711,
-		-0.98846832,-0.84864425,-0.57126821,-0.20129852
-	};
-	/* 16 values of cos function */
-	static float co[16] ={
-		1.00000000,0.91895781,0.68896691,0.34730525,
-		-0.05064916,-0.44039415,-0.75875812,-0.95413925,
-		-0.99486932,-0.87434661,-0.61210598,-0.25065253,
-		0.15142777,0.52896401,0.82076344,0.97952994,
-	};
-	int a;
-	
-	if(select==0) {
-		if(type==SOCK_VALUE)
-			glColor3ub(160, 160, 160);
-		else if(type==SOCK_VECTOR)
-			glColor3ub(100, 100, 200);
-		else if(type==SOCK_RGBA)
-			glColor3ub(200, 200, 40);
-		else 
-			glColor3ub(100, 200, 100);
-	}
-	else {
-		if(type==SOCK_VALUE)
-			glColor3ub(200, 200, 200);
-		else if(type==SOCK_VECTOR)
-			glColor3ub(140, 140, 240);
-		else if(type==SOCK_RGBA)
-			glColor3ub(240, 240, 100);
-		else 
-			glColor3ub(140, 240, 140);
-	}
-	
-	glBegin(GL_POLYGON);
-	for(a=0; a<16; a++)
-		glVertex2f(x+size*si[a], y+size*co[a]);
-	glEnd();
-	
-	glColor4ub(0, 0, 0, 150);
-	glEnable(GL_BLEND);
-	glEnable( GL_LINE_SMOOTH );
-	glBegin(GL_LINE_LOOP);
-	for(a=0; a<16; a++)
-		glVertex2f(x+size*si[a], y+size*co[a]);
-	glEnd();
-	glDisable( GL_LINE_SMOOTH );
-	glDisable(GL_BLEND);
-}
-
-static int node_basis_draw(SpaceNode *snode, bNode *node)
-{
-	bNodeSocket *sock;
-	rctf *rct= &node->tot;
-	float slen;
-	int trans= (U.transopts & USER_TR_BUTTONS);
-	
-	nodeshadow(rct, node->flag & SELECT);
-	
-	BIF_ThemeColorShade(TH_HEADER, 0);
-	uiSetRoundBox(3);
-	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, 8);
-	
-	BIF_ThemeColorShade(TH_HEADER, 20);
-	uiSetRoundBox(12);
-	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax-NODE_DY, 8);
-	
-	ui_rasterpos_safe(rct->xmin+4.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
-	
-	if(node->flag & SELECT) 
-		BIF_ThemeColor(TH_TEXT_HI);
-	else
-		BIF_ThemeColor(TH_TEXT);
-		
-	BIF_DrawString(snode->curfont, node->name, trans);
-	
-	for(sock= node->inputs.first; sock; sock= sock->next) {
-		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, sock->type, sock->flag & SELECT);
-		
-		BIF_ThemeColor(TH_TEXT);
-		ui_rasterpos_safe(sock->locx+8.0f, sock->locy-5.0f, snode->aspect);
-		BIF_DrawString(snode->curfont, sock->name, trans);
-	}
-	
-	for(sock= node->outputs.first; sock; sock= sock->next) {
-		socket_circle_draw(sock->locx, sock->locy, NODE_SOCK, sock->type, sock->flag & SELECT);
-		
-		BIF_ThemeColor(TH_TEXT);
-		slen= snode->aspect*BIF_GetStringWidth(snode->curfont, sock->name, trans);
-		ui_rasterpos_safe(sock->locx-8.0f-slen, sock->locy-5.0f, snode->aspect);
-		BIF_DrawString(snode->curfont, sock->name, trans);
-	}
-	
-	return 0;
-}
 
 /* ************************** Node generic ************** */
 
@@ -532,135 +398,42 @@ void node_border_select(SpaceNode *snode)
 
 /* ****************** Add *********************** */
 
-/* keep adding nodes outside of space context? to kernel maybe? */
-
-bNode *add_test_node(bNodeTree *ntree, float locx, float locy)
+/* can be called from menus too */
+void node_add_shader_node(SpaceNode *snode, int type, float locx, float locy)
 {
-	bNode *node= nodeAddNode(ntree, "TestNode");
-	static int tot= 0;
+	bNode *node= NULL;
 	
-	sprintf(node->name, "Testnode%d", tot++);
+	node_deselectall(snode, 0);
 	
-	node->locx= locx;
-	node->locy= locy;
-	node->width= 80.0f;
-	node->drawfunc= node_basis_draw;
+	node= node_shader_add(snode->nodetree, type);
 	
-	/* add fake sockets */
-	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Col");
-	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Spec");
-	nodeAddSocket(node, SOCK_RGBA, SOCK_OUT, 0xFFF, "Diffuse");
-	
-	/* always end with calculating size etc */
-	node_update(ntree, node);
-	
-	return node;
-}
-
-static int value_drawfunc(SpaceNode *snode, bNode *node)
-{
-	
-	node_basis_draw(snode, node);
-	
-	if(snode->block) {
-		uiBut *bt;
+	/* generics */
+	if(node) {
+		node->locx= locx;
+		node->locy= locy;
+		node->flag |= SELECT;
 		
-		bt= uiDefButF(snode->block, NUM, B_NOP, "", 
-					  node->prv.xmin, node->prv.ymin, node->prv.xmax-node->prv.xmin, node->prv.ymax-node->prv.ymin, 
-					  node->vec, 0.0f, 1.0f, 100, 2, "");
-
+		node_shader_set_execfunc(node);
+		node_shader_set_drawfunc(node);
+		/* update calculates all coords for usage */
+		node_update(snode->nodetree, node);
 	}
 	
-	return 1;
 }
 
-static int hsv_drawfunc(SpaceNode *snode, bNode *node)
-{
-	
-	node_basis_draw(snode, node);
-	
-	if(snode->block) {
-		uiBut *bt;
-		uiBlockSetEmboss(snode->block, UI_EMBOSSP);
-		
-		bt= uiDefButF(snode->block, HSVCUBE, B_NOP, "", 
-					node->prv.xmin, node->prv.ymin, node->prv.xmax-node->prv.xmin, 10.0f, 
-					node->vec, 0.0f, 1.0f, 3, 0, "");
-		bt= uiDefButF(snode->block, HSVCUBE, B_NOP, "", 
-					node->prv.xmin, node->prv.ymin+14.0f, node->prv.xmax-node->prv.xmin, node->prv.ymax-node->prv.ymin-14.0f, 
-					node->vec, 0.0f, 1.0f, 2, 0, "");
-		
-		uiDefButF(snode->block, COL, B_NOP, "",		
-					node->prv.xmin, node->prv.ymax+10.0f, node->prv.xmax-node->prv.xmin, 15.0f, 
-					node->vec, 0.0, 0.0, -1, 0, "");
-
-	}
-	
-	return 1;
-}
-
-
-bNode *add_value_node(bNodeTree *ntree, float locx, float locy)
-{
-	bNode *node= nodeAddNode(ntree, "Value");
-	
-	node->locx= locx;
-	node->locy= locy;
-	node->width= 80.0f;
-	node->prv_h= 20.0f;
-	node->drawfunc= value_drawfunc;
-	
-	/* add sockets */
-	nodeAddSocket(node, SOCK_VALUE, SOCK_OUT, 0xFFF, "");
-	
-	/* always end with calculating size etc */
-	node_update(ntree, node);
-	
-	return node;
-}
-
-bNode *add_hsv_node(bNodeTree *ntree, float locx, float locy)
-{
-	bNode *node= nodeAddNode(ntree, "RGB");
-	
-	node->locx= locx;
-	node->locy= locy;
-	node->width= 100.0f;
-	node->prv_h= 100.0f;
-	node->vec[3]= 1.0f;		/* alpha init */
-	node->drawfunc= hsv_drawfunc;	
-	
-	/* add sockets */
-	nodeAddSocket(node, SOCK_RGBA, SOCK_OUT, 0xFFF, "");
-	
-	/* always end with calculating size etc */
-	node_update(ntree, node);
-	
-	return node;
-}
-
-
-/* editor context */
+/* hotkey context */
 static void node_add_menu(SpaceNode *snode)
 {
 	float locx, locy;
 	short event, mval[2];
 	
-	event= pupmenu("Add Node%t|Testnode%x1|Value %x2|Color %x3");
-	if(event<1) return;
+	/* shader menu */
+	event= pupmenu("Add Node%t|Testnode%x0|Value %x2|Color %x1|Mix Color %x3|Show Color %x4");
+	if(event<0) return;
 	
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	
-	node_deselectall(snode, 0);
-	
-	if(event==1)
-		add_test_node(snode->nodetree, locx, locy);
-	else if(event==2)
-		add_value_node(snode->nodetree, locx, locy);
-	else if(event==3)
-		add_hsv_node(snode->nodetree, locx, locy);
-
+	node_add_shader_node(snode, event, locx, locy);
 	
 	allqueue(REDRAWNODE, 0);
 	BIF_undo_push("Add Node");
@@ -734,9 +507,10 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 				if(find_indicated_socket(snode, &tnode, &tsock, sock->type, SOCK_IN)) {
 					if(nodeFindLink(snode->nodetree, sock, tsock)==NULL) {
 						if(nodeCountSocketLinks(snode->nodetree, tsock) < tsock->limit) {
-							if(tnode!=node) {
+							if(tnode!=node  && link->tonode!=tnode && link->tosock!= tsock) {
 								link->tonode= tnode;
 								link->tosock= tsock;
+								nodeSolveOrder(snode->nodetree);	/* for interactive red line warning */
 							}
 						}
 					}
@@ -750,9 +524,10 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 				if(find_indicated_socket(snode, &tnode, &tsock, sock->type, SOCK_OUT)) {
 					if(nodeFindLink(snode->nodetree, sock, tsock)==NULL) {
 						if(nodeCountSocketLinks(snode->nodetree, tsock) < tsock->limit) {
-							if(tnode!=node) {
+							if(tnode!=node && link->fromnode!=tnode && link->fromsock!= tsock) {
 								link->fromnode= tnode;
 								link->fromsock= tsock;
+								nodeSolveOrder(snode->nodetree);	/* for interactive red line warning */
 							}
 						}
 					}
@@ -776,7 +551,7 @@ static int node_draw_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock,
 	}
 	
 	nodeSolveOrder(snode->nodetree);
-	
+	nodeExecTree(snode->nodetree);
 	allqueue(REDRAWNODE, 0);
 	
 	return 1;
@@ -878,6 +653,13 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case MOUSEY:
 			doredraw= node_socket_hilights(snode, -1, SOCK_IN|SOCK_OUT);
 			break;
+		
+		case UI_BUT_EVENT:
+			if(val==B_NODE_EXEC) {
+				nodeExecTree(snode->nodetree);
+				doredraw= 1;
+			}
+			break;
 			
 		case PADPLUSKEY:
 			dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
@@ -909,13 +691,16 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(G.qual==0)
 				node_border_select(snode);
 			break;
+		case CKEY:	/* sort again, showing cyclics */
+			nodeSolveOrder(snode->nodetree);
+			doredraw= 1;
+			break;
 		case DKEY:
 			if(G.qual==LR_SHIFTKEY)
 				node_adduplicate(snode);
 			break;
-		case CKEY:	/* sort again, showing cyclics */
-			nodeSolveOrder(snode->nodetree);
-			doredraw= 1;
+		case EKEY:
+			nodeExecTree(snode->nodetree);
 			break;
 		case GKEY:
 			transform_nodes(snode, "Translate Node");
