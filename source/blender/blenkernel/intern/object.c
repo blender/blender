@@ -1093,7 +1093,7 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	Mat4One(mat);
 	
 	cu= par->data;
-	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file */
+	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 		makeDispListCurveTypes(par, 0);
 	if(cu->path==NULL) return;
 	

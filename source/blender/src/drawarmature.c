@@ -1394,8 +1394,11 @@ static void draw_pose_channels(Base *base, int dt)
 			}
 			if (index!= -1) index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
-		glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
-		index= -1;
+		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet, stick bones are dawn in next loop */
+		if(arm->drawtype!=ARM_LINE) {
+			glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
+			index= -1;
+		}
 	}
 	
 	/* wire draw over solid only in posemode */
