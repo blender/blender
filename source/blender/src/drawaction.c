@@ -787,8 +787,8 @@ static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, floa
 			gla2DDrawTranslatePt(di, blist[v]->vec[1][0], ypos, &sc_x, &sc_y);
 			// draw_key_but(sc_x-5, sc_y-6, 13, 13, (blist[v]->f2 & 1));
 			
-			if(blist[v]->f2 & 1) BIF_draw_icon_blended(sc_x-7, sc_y-6, ICON_SPACE2, TH_HEADER, 0);
-			else BIF_draw_icon_blended(sc_x-7, sc_y-6, ICON_SPACE3, TH_HEADER, 0);
+			if(blist[v]->f2 & 1) BIF_icon_draw_blended(sc_x-7, sc_y-6, ICON_SPACE2, TH_HEADER, 0);
+			else BIF_icon_draw_blended(sc_x-7, sc_y-6, ICON_SPACE3, TH_HEADER, 0);
 
 		}
 	}			

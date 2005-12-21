@@ -3517,10 +3517,10 @@ void draw_area_emboss(ScrArea *sa)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 		
-		BIF_draw_icon(8.0, 10.0, ICON_MATERIAL_HLT);
-		BIF_draw_icon(8.0, 30.0, ICON_IPO_HLT);
-		BIF_draw_icon(8.0, 50.0, ICON_HOME);
-		BIF_draw_icon(8.0, 70.0, ICON_BORDERMOVE);
+		BIF_icon_draw(8.0, 10.0, ICON_MATERIAL_HLT);
+		BIF_icon_draw(8.0, 30.0, ICON_IPO_HLT);
+		BIF_icon_draw(8.0, 50.0, ICON_HOME);
+		BIF_icon_draw(8.0, 70.0, ICON_BORDERMOVE);
 		
 		glBlendFunc(GL_ONE,  GL_ZERO); 
 		glDisable(GL_BLEND);

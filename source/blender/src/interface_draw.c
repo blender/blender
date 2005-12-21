@@ -79,6 +79,7 @@
 #include "BIF_space.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_butspace.h"
 #include "BIF_language.h"
 
@@ -169,15 +170,15 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		else {
 			xs= but->x1+6.0;
 		}
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+		ys= (but->y1+but->y2- BIF_icon_get_height(icon))/2.0;
 	}
 	if(but->flag & UI_ICON_RIGHT) {
 		xs= but->x2-17.0;
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+		ys= (but->y1+but->y2- BIF_icon_get_height(icon))/2.0;
 	}
 	if (!((but->flag & UI_ICON_RIGHT) || (but->flag & UI_ICON_LEFT))) {
-		xs= (but->x1+but->x2- BIF_get_icon_width(icon))/2.0;
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+		xs= (but->x1+but->x2- BIF_icon_get_width(icon))/2.0;
+		ys= (but->y1+but->y2- BIF_icon_get_height(icon))/2.0;
 	}
 
 	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
@@ -192,7 +193,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;
 	}
-	BIF_draw_icon_blended(xs, ys, icon, but->themecol, blend);
+	BIF_icon_draw_blended(xs, ys, icon, but->themecol, blend);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -1520,7 +1521,7 @@ static void ui_draw_text_icon(uiBut *but)
 			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
 				ui_draw_icon(but, but->icon);
 
-				if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
+				if(but->flag & UI_TEXT_LEFT) x= but->x1 + BIF_icon_get_width(but->icon)+4.0;
 				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
 			else {

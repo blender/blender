@@ -48,6 +48,7 @@ struct Image;
 struct SpaceIpo;
 struct BlendHandle;
 struct TreeStore;
+struct RenderInfo;
 struct bNodeTree;
 struct uiBlock;
 
@@ -107,6 +108,7 @@ typedef struct SpaceButs {
 	int spacetype;
 	float blockscale;
 	struct ScrArea *area;
+	struct RenderInfo *ri;
 
 	short blockhandler[8];
 
@@ -121,13 +123,10 @@ typedef struct SpaceButs {
 	short texnr;
 	char texfrom, showgroup;
 	
-	short rectx, recty;		/* preview render */
-	unsigned int *rect;
-	short cury, modeltype;
-
+	short modeltype;
 	short scriptblock;
 	short scaflag;
-	short re_align, pad1;
+	short re_align;
 	
 	int oldkeypress;		/* for keeping track of the sub tab key cycling */
 	

@@ -31,9 +31,36 @@
  */
 
 struct SpaceButs;
+struct RenderInfo;
+struct Image;
+struct ScrArea;
+
+typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
+
+/* stores rendered preview  - is also used for icons */
+typedef struct RenderInfo {
+	int pr_rectx;
+	int pr_recty;		
+	unsigned int* rect; 
+	short cury;
+} RenderInfo;
+
+/* Set the previewrect for drawing */
+void BIF_set_previewrect(int win, int xmin, int ymin, int xmax, int ymax, short pr_rectx, short pr_recty);
+void BIF_end_previewrect(void);
 
 void 	BIF_all_preview_changed(void);
-void    BIF_preview_changed	(struct SpaceButs *area);
-void	BIF_previewrender	(struct SpaceButs *area);
-void	BIF_previewdraw		(void);
+void    BIF_preview_changed		(struct SpaceButs *sbuts);
+void	BIF_previewrender_buts	(struct SpaceButs *sbuts);
+/* Render the preview
+ * a) into the ri->rect
+ * b) draw it in the area using the block UIMat 
 
+ if doDraw is false, the preview is not drawn and the function is not dynamic,
+ so no events are processed. Hopefully fast enough for 64x64 rendering or 
+ at least 32x32 */
+void	BIF_previewrender		(struct ID* id, struct RenderInfo *ri, struct ScrArea *area, int doDraw);
+void	BIF_previewdraw		(void);
+void	BIF_previewdraw_render(struct RenderInfo* ri, struct ScrArea* area);
+
+void	BIF_calcpreview_image(struct Image* img, struct RenderInfo* ri, unsigned int w, unsigned int h);	

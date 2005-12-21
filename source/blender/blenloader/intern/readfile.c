@@ -126,7 +126,7 @@
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 
 #include "BIF_butspace.h" // for do_versions, patching event codes
-
+#include "BIF_previewrender.h" // for struct RenderInfo
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
@@ -2766,8 +2766,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
-						sbuts->rect= NULL;
 						sbuts->lockpoin= NULL;
+						sbuts->ri= NULL;
 						if(main->versionfile<132) set_rects_butspace(sbuts);
 					}
 					else if(sl->spacetype==SPACE_FILE) {
@@ -2935,7 +2935,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
 					sbuts->lockpoin= NULL;
-					sbuts->cury= 0;	// we leave rect, for nicer redraws
+					if (sbuts->ri) sbuts->ri->cury = 0;
 				}
 				else if(sl->spacetype==SPACE_FILE) {
 					SpaceFile *sfile= (SpaceFile *)sl;
@@ -3247,6 +3247,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	id->lib= main->curlib;
 	if(id->flag & LIB_FAKEUSER) id->us= 1;
 	else id->us= 0;
+	id->icon_id = 0;
 
 	/* this case cannot be direct_linked: it's just the ID part */
 	if(bhead->code==ID_ID) {

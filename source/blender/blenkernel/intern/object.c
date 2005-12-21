@@ -91,6 +91,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_group.h"
+#include "BKE_icons.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -674,6 +675,9 @@ void free_lamp(Lamp *la)
 		if(mtex) MEM_freeN(mtex);
 	}
 	la->ipo= 0;
+
+	BKE_icon_delete(la);
+	la->id.icon_id = 0;
 }
 
 void *add_wave()

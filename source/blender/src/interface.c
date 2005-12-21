@@ -88,7 +88,9 @@
 #include "BIF_glutil.h"
 #include "BIF_editfont.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_butspace.h"
+
 
 #include "BSE_view.h"
 
@@ -1138,6 +1140,7 @@ static int ui_do_but_MENU(uiBut *but)
 
 	for(a=0; a<md->nitems; a++) {
 		xmax= but->aspect*BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & USER_TR_MENUS));
+		if ( md->items[a].icon) xmax += 20*but->aspect;
 		if(xmax>width) width= xmax;
 	}
 
@@ -1194,6 +1197,7 @@ static int ui_do_but_MENU(uiBut *but)
 		else if(md->items[md->nitems-a-1].icon) {
 			uiBut *bt= uiDefIconTextBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].icon ,md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
 			if(active==a) bt->flag |= UI_ACTIVE;
+			BIF_icon_set_aspect(bt->icon, bt->aspect); /* aspect for the icon has to be stored */
 		}
 		else {
 			uiBut *bt= uiDefBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
@@ -5120,6 +5124,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->pointype= type & BUTPOIN;
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
+	but->icon = 0;
 
 	BLI_addtail(&block->buttons, but);
 
@@ -5913,12 +5918,18 @@ short pupmenu_col(char *instr, int maxrow)
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		
+		int icon = md->items[a].icon;
+
 		x1= startx + width*((int)a/rows);
 		y1= starty - boxh*(a%rows) + (rows-1)*boxh; 
 		
 		if( strcmp(name, "%l")==0){
 			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, PUP_LABELH, NULL, 0, 0.0, 0, 0, "");
 			y1 -= PUP_LABELH;
+		}
+		else if (icon) {
+			uiDefIconButI(block, BUTM, B_NOP, icon, x1, y1, width+16, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");
+			y1 -= boxh;
 		}
 		else {
 			uiDefButI(block, BUTM, B_NOP, name, x1, y1, width, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");

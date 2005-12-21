@@ -48,6 +48,7 @@ GHash*	BLI_ghash_new		(GHashHashFP hashfp, GHashCmpFP cmpfp);
 void	BLI_ghash_free		(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 
 void	BLI_ghash_insert	(GHash *gh, void *key, void *val);
+int		BLI_ghash_remove	(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void*	BLI_ghash_lookup	(GHash *gh, void *key);
 int		BLI_ghash_haskey	(GHash *gh, void *key);
 
@@ -109,6 +110,9 @@ int				BLI_ghashutil_ptrcmp	(void *a, void *b);
 
 unsigned int	BLI_ghashutil_strhash	(void *key);
 int				BLI_ghashutil_strcmp	(void *a, void *b);
+
+unsigned int	BLI_ghashutil_inthash	(void *ptr);
+int				BLI_ghashutil_intcmp(void *a, void *b);
 
 #endif
 

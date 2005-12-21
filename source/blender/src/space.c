@@ -3215,7 +3215,7 @@ static void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			scrarea_queue_winredraw(curarea);
 			break;
 		case RENDERPREVIEW:
-			BIF_previewrender(sbuts);
+			BIF_previewrender_buts(sbuts);
 			break;
 		
 		case HOMEKEY:
@@ -3300,6 +3300,8 @@ static void init_butspace(ScrArea *sa)
 	/* set_rects only does defaults, so after reading a file the cur has not changed */
 	set_rects_butspace(buts);
 	buts->v2d.cur= buts->v2d.tot;
+
+	buts->ri = NULL;
 }
 
 void extern_set_butspace(int fkey)
@@ -4592,7 +4594,10 @@ void freespacelist(ListBase *lb)
 		}
 		else if(sl->spacetype==SPACE_BUTS) {
 			SpaceButs *buts= (SpaceButs*) sl;
-			if(buts->rect) MEM_freeN(buts->rect);
+			if(buts->ri) { 
+				if (buts->ri->rect) MEM_freeN(buts->ri->rect);
+				MEM_freeN(buts->ri);
+			}
 			if(G.buts==buts) G.buts= NULL;
 		}
 		else if(sl->spacetype==SPACE_IPO) {
@@ -4692,7 +4697,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 
 		if(sl->spacetype==SPACE_BUTS) {
 			SpaceButs *buts= (SpaceButs *)sl;
-			buts->rect= NULL;
+			buts->ri= NULL;
 		}
 		else if(sl->spacetype==SPACE_IPO) {
 			SpaceIpo *si= (SpaceIpo *)sl;

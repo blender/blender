@@ -50,6 +50,7 @@
 #include "BKE_blender.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_icons.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -76,6 +77,9 @@ void free_material(Material *ma)
 	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 	
+	BKE_icon_delete((struct ID*)ma);
+	ma->id.icon_id = 0;
+
 	for(ml= ma->layers.first; ml; ml= ml->next)
 		if(ml->mat) ml->mat->id.us--;
 	

@@ -55,6 +55,7 @@
 #include "BKE_world.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_icons.h"
 
 #include "BPY_extern.h"
 
@@ -75,6 +76,8 @@ void free_world(World *wrld)
 		if(mtex) MEM_freeN(mtex);
 	}
 	wrld->ipo= 0;
+	BKE_icon_delete((struct ID*)wrld);
+	wrld->id.icon_id = 0;
 }
 
 

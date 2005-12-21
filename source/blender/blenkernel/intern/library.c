@@ -93,6 +93,7 @@
 #include "BKE_text.h"
 #include "BKE_texture.h"
 #include "BKE_scene.h"
+#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
@@ -334,6 +335,7 @@ void *alloc_libblock(ListBase *lb, short type, char *name)
 	if(id) {
 		BLI_addtail(lb, id);
 		id->us= 1;
+		id->icon_id = 0;
 		*( (short *)id->name )= type;
 		new_id(lb, id, name);
 		/* alphabetic insterion: is in new_id */
@@ -572,6 +574,20 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			BLI_dynstr_append(pupds, id->name+2);
 			sprintf(buf, "%%x%d", i+1);
 			BLI_dynstr_append(pupds, buf);
+			
+			switch(GS(id->name))
+			{
+			case ID_MA: /* fall through */
+			case ID_TE: /* fall through */
+			case ID_IM: /* fall through */
+			case ID_WO: /* fall through */
+			case ID_LA: /* fall through */
+				sprintf(buf, "%%i%d", BKE_icon_getid(id) );
+				BLI_dynstr_append(pupds, buf);
+				break;
+			default:
+				break;
+			}
 			
 			if(id->next)
 				BLI_dynstr_append(pupds, "|");

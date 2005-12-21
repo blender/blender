@@ -601,6 +601,7 @@ void do_texbuts(unsigned short event)
 		}
 		break;
 	case B_TEXPRV:
+		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_all_preview_changed();
 		break;
 	case B_TEXREDR_PRV:
@@ -2646,6 +2647,7 @@ void do_matbuts(unsigned short event)
 	case B_MATPRV:
 		/* this event also used by lamp, tex and sky */
 		BIF_preview_changed(G.buts);
+		allqueue(REDRAWBUTSSHADING, 0);
 		shade_buttons_change_3d();
 		break;
 	case B_MATPRV_DRAW:

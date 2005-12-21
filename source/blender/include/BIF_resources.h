@@ -33,6 +33,8 @@
 #ifndef BIF_RESOURCES_H
 #define BIF_RESOURCES_H
 
+/* elubie: TODO: move the typedef for icons to BIF_interface_icons.h */
+/* and add/replace include of BIF_resources.h by BIF_interface_icons.h */
 typedef enum {
 #define BIFICONID_FIRST		(ICON_VIEW3D)
 	ICON_VIEW3D,
@@ -507,13 +509,6 @@ void	BIF_resources_init		(void);
 void	BIF_resources_free		(void);
 void	BIF_colors_init			(void);
 void	BIF_load_ui_colors		(void);
-
-
-// icon API
-int		BIF_get_icon_width		(BIFIconID icon);
-int		BIF_get_icon_height		(BIFIconID icon);
-void	BIF_draw_icon			(float x, float y, BIFIconID icon);
-void	BIF_draw_icon_blended	(float x, float y, BIFIconID icon, int colorid, int shade);
 
 /* only for buttons in theme editor! */
 char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);

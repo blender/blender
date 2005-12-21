@@ -82,6 +82,7 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_outliner.h"
 #include "BIF_language.h"
@@ -2092,104 +2093,104 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 	if(tselem->type) {
 		switch( tselem->type) {
 			case TSE_NLA:
-				BIF_draw_icon(x, y, ICON_NLA); break;
+				BIF_icon_draw(x, y, ICON_NLA); break;
 			case TSE_NLA_ACTION:
-				BIF_draw_icon(x, y, ICON_ACTION); break;
+				BIF_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:
-				BIF_draw_icon(x, y, ICON_VERTEXSEL); break;
+				BIF_icon_draw(x, y, ICON_VERTEXSEL); break;
 			case TSE_BONE:
 			case TSE_EBONE:
-				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
-				BIF_draw_icon(x, y, ICON_CONSTRAINT); break;
+				BIF_icon_draw(x, y, ICON_CONSTRAINT); break;
 			case TSE_MODIFIER_BASE:
-				BIF_draw_icon(x, y, ICON_MODIFIER); break;
+				BIF_icon_draw(x, y, ICON_MODIFIER); break;
 			case TSE_LINKED_OB:
-				BIF_draw_icon(x, y, ICON_OBJECT); break;
+				BIF_icon_draw(x, y, ICON_OBJECT); break;
 			case TSE_MODIFIER:
 			{
 				Object *ob= (Object *)tselem->id;
 				ModifierData *md= BLI_findlink(&ob->modifiers, tselem->nr);
 				switch(md->type) {
 					case eModifierType_Subsurf: 
-						BIF_draw_icon(x, y, ICON_MOD_SUBSURF); break;
+						BIF_icon_draw(x, y, ICON_MOD_SUBSURF); break;
 					case eModifierType_Armature: 
-						BIF_draw_icon(x, y, ICON_ARMATURE); break;
+						BIF_icon_draw(x, y, ICON_ARMATURE); break;
 					case eModifierType_Lattice: 
-						BIF_draw_icon(x, y, ICON_LATTICE); break;
+						BIF_icon_draw(x, y, ICON_LATTICE); break;
 					case eModifierType_Curve: 
-						BIF_draw_icon(x, y, ICON_CURVE); break;
+						BIF_icon_draw(x, y, ICON_CURVE); break;
 					case eModifierType_Build: 
-						BIF_draw_icon(x, y, ICON_MOD_BUILD); break;
+						BIF_icon_draw(x, y, ICON_MOD_BUILD); break;
 					case eModifierType_Mirror: 
-						BIF_draw_icon(x, y, ICON_MOD_MIRROR); break;
+						BIF_icon_draw(x, y, ICON_MOD_MIRROR); break;
 					case eModifierType_Decimate: 
-						BIF_draw_icon(x, y, ICON_MOD_DECIM); break;
+						BIF_icon_draw(x, y, ICON_MOD_DECIM); break;
 					case eModifierType_Wave: 
-						BIF_draw_icon(x, y, ICON_MOD_WAVE); break;
+						BIF_icon_draw(x, y, ICON_MOD_WAVE); break;
 					case eModifierType_Hook: 
-						BIF_draw_icon(x, y, ICON_HOOK); break;
+						BIF_icon_draw(x, y, ICON_HOOK); break;
 					case eModifierType_Softbody: 
-						BIF_draw_icon(x, y, ICON_MOD_SOFT); break;
+						BIF_icon_draw(x, y, ICON_MOD_SOFT); break;
 					case eModifierType_Boolean: 
-						BIF_draw_icon(x, y, ICON_MOD_BOOLEAN); break;
+						BIF_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
 					default:
-						BIF_draw_icon(x, y, ICON_DOT); break;
+						BIF_icon_draw(x, y, ICON_DOT); break;
 				}
 				break;
 			}
 			case TSE_SCRIPT_BASE:
-				BIF_draw_icon(x, y, ICON_TEXT); break;
+				BIF_icon_draw(x, y, ICON_TEXT); break;
 			case TSE_POSE_BASE:
-				BIF_draw_icon(x, y, ICON_ARMATURE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_ARMATURE_DEHLT); break;
 			case TSE_POSE_CHANNEL:
-				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
 			default:
-				BIF_draw_icon(x, y, ICON_DOT); break;
+				BIF_icon_draw(x, y, ICON_DOT); break;
 		}
 	}
 	else {
 		switch( GS(tselem->id->name)) {
 			case ID_SCE:
-				BIF_draw_icon(x, y, ICON_SCENE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_SCENE_DEHLT); break;
 			case ID_OB:
-				BIF_draw_icon(x, y, ICON_OBJECT); break;
+				BIF_icon_draw(x, y, ICON_OBJECT); break;
 			case ID_ME:
-				BIF_draw_icon(x, y, ICON_MESH); break;
+				BIF_icon_draw(x, y, ICON_MESH); break;
 			case ID_CU:
-				BIF_draw_icon(x, y, ICON_CURVE); break;
+				BIF_icon_draw(x, y, ICON_CURVE); break;
 			case ID_MB:
-				BIF_draw_icon(x, y, ICON_MBALL); break;
+				BIF_icon_draw(x, y, ICON_MBALL); break;
 			case ID_LT:
-				BIF_draw_icon(x, y, ICON_LATTICE); break;
+				BIF_icon_draw(x, y, ICON_LATTICE); break;
 			case ID_LA:
-				BIF_draw_icon(x, y, ICON_LAMP_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_LAMP_DEHLT); break;
 			case ID_MA:
-				BIF_draw_icon(x, y, ICON_MATERIAL_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
 			case ID_TE:
-				BIF_draw_icon(x, y, ICON_TEXTURE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_TEXTURE_DEHLT); break;
 			case ID_IP:
-				BIF_draw_icon(x, y, ICON_IPO_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_IPO_DEHLT); break;
 			case ID_IM:
-				BIF_draw_icon(x, y, ICON_IMAGE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
 			case ID_SO:
-				BIF_draw_icon(x, y, ICON_SPEAKER); break;
+				BIF_icon_draw(x, y, ICON_SPEAKER); break;
 			case ID_AR:
-				BIF_draw_icon(x, y, ICON_ARMATURE); break;
+				BIF_icon_draw(x, y, ICON_ARMATURE); break;
 			case ID_CA:
-				BIF_draw_icon(x, y, ICON_CAMERA_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_CAMERA_DEHLT); break;
 			case ID_KE:
-				BIF_draw_icon(x, y, ICON_EDIT_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_EDIT_DEHLT); break;
 			case ID_WO:
-				BIF_draw_icon(x, y, ICON_WORLD_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_WORLD_DEHLT); break;
 			case ID_AC:
-				BIF_draw_icon(x, y, ICON_ACTION); break;
+				BIF_icon_draw(x, y, ICON_ACTION); break;
 			case ID_NLA:
-				BIF_draw_icon(x, y, ICON_NLA); break;
+				BIF_icon_draw(x, y, ICON_NLA); break;
 			case ID_TXT:
-				BIF_draw_icon(x, y, ICON_SCRIPT); break;
+				BIF_icon_draw(x, y, ICON_SCRIPT); break;
 			case ID_GR:
-				BIF_draw_icon(x, y, ICON_CIRCLE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_CIRCLE_DEHLT); break;
 		}
 	}
 }
@@ -2307,9 +2308,9 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 
 				// icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
-				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_RIGHT);
+				BIF_icon_draw(icon_x, *starty+2, ICON_TRIA_RIGHT);
 			else
-				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_DOWN);
+				BIF_icon_draw(icon_x, *starty+2, ICON_TRIA_DOWN);
 		}
 		offsx+= OL_X;
 		
@@ -2322,9 +2323,9 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		if(tselem->id->lib && tselem->type==0) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5);
 			if(tselem->id->flag & LIB_INDIRECT)
-				BIF_draw_icon(startx+offsx, *starty+2, ICON_DATALIB);
+				BIF_icon_draw(startx+offsx, *starty+2, ICON_DATALIB);
 			else
-				BIF_draw_icon(startx+offsx, *starty+2, ICON_PARLIB);
+				BIF_icon_draw(startx+offsx, *starty+2, ICON_PARLIB);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 			offsx+= OL_X;
 		}		

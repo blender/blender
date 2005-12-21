@@ -61,6 +61,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
@@ -103,6 +104,8 @@ void free_image(Image *ima)
 		freePackedFile(ima->packedfile);
 		ima->packedfile = NULL;
 	}
+	BKE_icon_delete(ima);
+	ima->id.icon_id = 0;
 }
 
 

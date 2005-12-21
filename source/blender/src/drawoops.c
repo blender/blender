@@ -220,7 +220,7 @@ void draw_icon_oops(float *co, short type)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 
-	BIF_draw_icon(co[0], co[1]-0.2, icon);
+	BIF_icon_draw(co[0], co[1]-0.2, icon);
 
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);

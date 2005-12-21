@@ -62,7 +62,7 @@ typedef struct ID {
 	 * to.
 	 */
 	short flag;
-	int pad;
+	int icon_id;
 } ID;
 
 /**

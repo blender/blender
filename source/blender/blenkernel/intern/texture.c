@@ -74,6 +74,7 @@
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_key.h"
+#include "BKE_icons.h"
 #include "BKE_ipo.h"
 
 
@@ -336,6 +337,8 @@ void free_texture(Tex *tex)
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) RE_free_envmap(tex->env);
+	BKE_icon_delete((struct ID*)tex);
+	tex->id.icon_id = 0;
 }
 
 /* ------------------------------------------------------------------------- */
