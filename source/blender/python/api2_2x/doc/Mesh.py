@@ -530,9 +530,9 @@ class MFaceSeq:
       me = Mesh.Get("Plane")          # get the mesh data called "Plane"
       v = me.verts                    # get vertices
       if len(v) >= 6:                 # if there are enough vertices...
-        me.face.extend(v[1],v[2],v[3]) #   add a single edge
+        me.faces.extend(v[1],v[2],v[3]) #   add a single edge
         l=[(v[0],v[1]),(v[0],v[2],v[4],v[5])]
-        me.face.extend(l)            #   add another face
+        me.faces.extend(l)            #   add another face
 
     @type vertseq: tuple(s) of MVerts
     @param vertseq: either two to four MVerts, or sequence (list or tuple) 
