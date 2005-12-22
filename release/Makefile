@@ -89,6 +89,7 @@ install: package
 	@#echo "****> Install text"
 	@cp text/blender.html $(DISTDIR)
 	@cp text/*.txt $(DISTDIR)
+	@cp text/*.pdf $(DISTDIR)
 	@echo "----> Make Config dir .blender"
 	@mkdir -p $(CONFDIR)
 	@# possible overruling .txt text documents
