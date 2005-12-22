@@ -2069,7 +2069,7 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Copy Shape Verts%x16");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Copy Shape Verts%x16|Copy Shape Verts Blend%x17|Propagate Shape Verts%x18");
 		
 		switch(nr) {
 		case 1:
@@ -2138,7 +2138,13 @@ void special_editmenu(void)
 			mesh_set_smooth_faces(0);
 			break;
 		case 16: 
-			shape_copy_select_from();
+			shape_copy_select_from(0);
+			break;
+		case 17: 
+			shape_copy_select_from(1);
+			break;
+		case 18: 
+			shape_propagate();
 			break;
 		}
 		

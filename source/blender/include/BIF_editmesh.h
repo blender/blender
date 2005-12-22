@@ -197,7 +197,8 @@ int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
 int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
 int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 
-void shape_copy_select_from(void);
+void shape_copy_select_from(int i);
+void shape_propagate(void);
 
 #endif
 

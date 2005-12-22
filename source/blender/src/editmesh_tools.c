@@ -5349,6 +5349,40 @@ void mesh_rip(void)
 	Transform();
 }
 
+void shape_propagate(){
+	EditMesh *em = G.editMesh;
+	EditVert *ev = NULL;
+	Mesh* me = (Mesh*)G.obedit->data;
+	Key*  ky = NULL;
+	KeyBlock* kb = NULL;
+	
+	if(me->key){
+		ky = me->key;
+	} else {
+		error("Object Has No Key");	
+		return;
+	}	
+
+	if(ky->block.first){
+		for(ev = em->verts.first; ev ; ev = ev->next){
+			if(ev->f & SELECT){
+				for(kb=ky->block.first;kb;kb = kb->next){
+					float *data;		
+					data = kb->data;			
+					VECCOPY(data+(ev->keyindex*3),ev->co);				
+				}
+			}		
+		}						
+	} else {
+		error("Object Has No Blendshapes");	
+		return;			
+	}
+	okee("TAB-TAB to see changes");
+	BIF_undo_push("Propagate Blendshape Verts");
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	return;	
+}
 
 void shape_copy_from(KeyBlock* fromKey)
 {
@@ -5370,15 +5404,84 @@ void shape_copy_from(KeyBlock* fromKey)
 	return;
 }
 
-void shape_copy_select_from()
+void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *ev = NULL;
+	short mval[2], curval[2], event = 0, finished = 0, canceled = 0 ;
+	float perc = 0;
+	char str[64];
+	float *data, *odata;
+				
+	data  = fromBlock->data;
+	odata = thisBlock->data;
+	
+	getmouseco_areawin(mval);
+	curval[0] = mval[0] + 1; curval[1] = mval[1] + 1;
+
+	while (finished == 0)
+	{
+		getmouseco_areawin(mval);
+		if (mval[0] != curval[0] || mval[1] != curval[1])
+		{
+			
+			if(mval[0] > curval[0])
+				perc += 0.1;
+			else if(mval[0] < curval[0])
+				perc -= 0.1;
+				
+			if(perc < 0) perc = 0;
+			if(perc > 1) perc = 1;
+			
+			curval[0] = mval[0];
+			curval[1] = mval[1];
+
+			for(ev = em->verts.first; ev ; ev = ev->next){
+				if(ev->f & SELECT){
+					VecLerpf(ev->co,odata+(ev->keyindex*3),data+(ev->keyindex*3),perc);
+				}		
+			}	
+			sprintf(str,"Blending at %f%c",perc,'%');
+			headerprint(str);
+			force_draw(0);
+			screen_swapbuffers();	
+
+		} else {
+			PIL_sleep_ms(10);	
+		}
+
+		while(qtest()) {
+			unsigned short val=0;			
+			event= extern_qread(&val);	
+			if(val){
+				if(ELEM3(event, PADENTER, LEFTMOUSE, RETKEY)){
+					finished = 1;
+				}
+				else if (ELEM3(event,ESCKEY,RIGHTMOUSE,RIGHTMOUSE)){
+					canceled = 1;
+					finished = 1;
+				}
+			} 
+		}
+	}
+	if(!canceled)						
+		BIF_undo_push("Copy Blendshape Verts");
+	else
+		BIF_undo();
+	return;
+}
+
+
+
+void shape_copy_select_from(int mode)
 {
 	Mesh* me = (Mesh*)G.obedit->data;
 	EditMesh *em = G.editMesh;
 	EditVert *ev = NULL;
-	int totverts = 0;
+	int totverts = 0,curshape = G.obedit->shapenr;
 	
 	Key*  ky = NULL;
-	KeyBlock* kb = NULL;
+	KeyBlock *kb = NULL,*thisBlock = NULL;
 	int maxlen=32, nr=0, a=0;
 	char *menu;
 	
@@ -5392,11 +5495,19 @@ void shape_copy_select_from()
 	if(ky->block.first){
 		for(kb=ky->block.first;kb;kb = kb->next){
 			maxlen += 40; // Size of a block name
+			if(a == curshape-1){
+					thisBlock = kb;		
+			}
+			
+			a++;
 		}
+		a=0;
 		menu = MEM_callocN(maxlen, "Copy Shape Menu Text");
 		strcpy(menu, "Copy Vert Positions from Shape %t|");
 		for(kb=ky->block.first;kb;kb = kb->next){
-			sprintf(menu,"%s %s %cx%d|",menu,kb->name,'%',a);
+			if(a != curshape-1){ 
+				sprintf(menu,"%s %s %cx%d|",menu,kb->name,'%',a);
+			}
 			a++;
 		}
 		nr = pupmenu(menu);
@@ -5419,8 +5530,12 @@ void shape_copy_select_from()
 				error("Shape Has had Verts Added/Removed, please cycle editmode before copying");
 				return;	
 			}
+			if(mode == 0){
+				shape_copy_from(kb);		
+			} else if(mode == 1){
+				shape_copy_from_lerp(thisBlock,kb);		
+			}
 			
-			shape_copy_from(kb);		
 			return;
 		}
 		a++;
