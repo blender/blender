@@ -5384,31 +5384,11 @@ void shape_propagate(){
 	return;	
 }
 
-void shape_copy_from(KeyBlock* fromKey)
-{
-	EditMesh *em = G.editMesh;
-	EditVert *ev = NULL;
-	
-	for(ev = em->verts.first; ev ; ev = ev->next){
-		if(ev->f & SELECT){
-			float *data;
-			//Check that index is valid in fromKey
-			
-			//Copy 	co from fromKey->data			
-			data = fromKey->data;
-			
-			VECCOPY(ev->co, data+(ev->keyindex*3));
-		}		
-	}
-	BIF_undo_push("Copy Blendshape Verts");
-	return;
-}
-
 void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *ev = NULL;
-	short mval[2], curval[2], event = 0, finished = 0, canceled = 0 ;
+	short mval[2], curval[2], event = 0, finished = 0, canceled = 0, fullcopy=0 ;
 	float perc = 0;
 	char str[64];
 	float *data, *odata;
@@ -5436,6 +5416,10 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 			curval[0] = mval[0];
 			curval[1] = mval[1];
 
+			if(fullcopy == 1){
+				perc = 1;	
+			}
+
 			for(ev = em->verts.first; ev ; ev = ev->next){
 				if(ev->f & SELECT){
 					VecLerpf(ev->co,odata+(ev->keyindex*3),data+(ev->keyindex*3),perc);
@@ -5443,8 +5427,13 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 			}	
 			sprintf(str,"Blending at %f%c",perc,'%');
 			headerprint(str);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			force_draw(0);
 			screen_swapbuffers();	
+
+			if(fullcopy == 1){
+				break;	
+			}
 
 		} else {
 			PIL_sleep_ms(10);	
@@ -5457,6 +5446,9 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 				if(ELEM3(event, PADENTER, LEFTMOUSE, RETKEY)){
 					finished = 1;
 				}
+				else if (event == MIDDLEMOUSE){
+					fullcopy = 1;	
+				}
 				else if (ELEM3(event,ESCKEY,RIGHTMOUSE,RIGHTMOUSE)){
 					canceled = 1;
 					finished = 1;
@@ -5467,13 +5459,17 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 	if(!canceled)						
 		BIF_undo_push("Copy Blendshape Verts");
 	else
-		BIF_undo();
+		for(ev = em->verts.first; ev ; ev = ev->next){
+			if(ev->f & SELECT){
+				VECCOPY(ev->co, odata+(ev->keyindex*3));
+			}		
+		}
 	return;
 }
 
 
 
-void shape_copy_select_from(int mode)
+void shape_copy_select_from()
 {
 	Mesh* me = (Mesh*)G.obedit->data;
 	EditMesh *em = G.editMesh;
@@ -5530,12 +5526,8 @@ void shape_copy_select_from(int mode)
 				error("Shape Has had Verts Added/Removed, please cycle editmode before copying");
 				return;	
 			}
-			if(mode == 0){
-				shape_copy_from(kb);		
-			} else if(mode == 1){
-				shape_copy_from_lerp(thisBlock,kb);		
-			}
-			
+			shape_copy_from_lerp(thisBlock,kb);		
+					
 			return;
 		}
 		a++;
