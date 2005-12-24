@@ -5355,7 +5355,6 @@ void shape_propagate(){
 	Mesh* me = (Mesh*)G.obedit->data;
 	Key*  ky = NULL;
 	KeyBlock* kb = NULL;
-	Object* tempob=NULL;
 	Base* base=NULL;
 	
 	
