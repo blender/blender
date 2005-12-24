@@ -5355,6 +5355,9 @@ void shape_propagate(){
 	Mesh* me = (Mesh*)G.obedit->data;
 	Key*  ky = NULL;
 	KeyBlock* kb = NULL;
+	Object* tempob=NULL;
+	Base* base=NULL;
+	
 	
 	if(me->key){
 		ky = me->key;
@@ -5377,7 +5380,14 @@ void shape_propagate(){
 		error("Object Has No Blendshapes");	
 		return;			
 	}
-	okee("TAB-TAB to see changes");
+	
+	//TAG Mesh Objects that share this data
+	for(base = G.scene->base.first; base; base = base->next){
+		if(base->object && base->object->data == me){
+			base->object->recalc = OB_RECALC_DATA;
+		}
+	}		
+
 	BIF_undo_push("Propagate Blendshape Verts");
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
@@ -5425,11 +5435,10 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 					VecLerpf(ev->co,odata+(ev->keyindex*3),data+(ev->keyindex*3),perc);
 				}		
 			}	
-			sprintf(str,"Blending at %f%c",perc,'%');
-			headerprint(str);
+			sprintf(str,"Blending at %d%c  MMB to Copy at 100%c",(int)(perc*100),'%','%');
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-			force_draw(0);
-			screen_swapbuffers();	
+			headerprint(str);
+			force_draw(0);			
 
 			if(fullcopy == 1){
 				break;	
