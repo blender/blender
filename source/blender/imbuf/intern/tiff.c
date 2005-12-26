@@ -303,7 +303,7 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 {
 	TIFF *image = NULL;
 	struct ImBuf *ibuf = NULL;
-	struct ImbTIFFMemFile memFile = { mem, 0, size };
+	struct ImbTIFFMemFile memFile;
 	uint32 width, height;
 	int bytesperpixel;
 	int success;
@@ -311,6 +311,10 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	uint32 *raster = NULL;
 	uint32 pixel;
 	unsigned char *to = NULL;
+
+	memFile.mem = mem;
+	memFile.offset = 0;
+	memFile.size = size;
 
 	/* check whether or not we have a TIFF file */
 	assert(size >= IMB_TIFF_NCB);
