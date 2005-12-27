@@ -39,10 +39,14 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef WIN32
+#if defined (WIN32)
 #include <malloc.h>
 #else
+#if defined (__FreeBSD__)
+#include <stdlib.h>
+#else
 #include <alloca.h>
+#endif
 #endif
 
 #include "Dynamics/BU_Joint.h"
