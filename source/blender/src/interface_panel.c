@@ -746,15 +746,13 @@ uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name)
 
 static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
 {
-
 	// we draw twice, anti polygons not widely supported...
-
 	glBegin(GL_POLYGON);
 	glVertex2f(x1, y1);
 	glVertex2f(x2, y2);
 	glVertex2f(x3, y3);
 	glEnd();
-
+	
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
@@ -767,17 +765,16 @@ static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, 
 	
 	glDisable( GL_LINE_SMOOTH );
 	glDisable( GL_BLEND );
-	
 }
 
 /* triangle 'icon' for panel header */
 void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
 	if(dir=='h') {
-		ui_draw_anti_tria( x, y+1, x, y+10.0, x+7, y+6.25);
+		ui_draw_anti_tria( x, y+1, x, y+10.0, x+8, y+6.25);
 	}
 	else {
-		ui_draw_anti_tria( x-2, y+8,  x+9-2, y+8, x+4.75-2, y+1);	
+		ui_draw_anti_tria( x-2, y+9,  x+8-2, y+9, x+4.25-2, y+1);	
 	}
 }
 

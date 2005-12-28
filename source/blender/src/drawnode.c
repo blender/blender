@@ -615,12 +615,17 @@ static void node_basis_draw(SpaceNode *snode, bNode *node)
 	if(node->flag & SELECT) 
 		BIF_ThemeColor(TH_TEXT_HI);
 	else
-		BIF_ThemeColor(TH_TEXT);
+		BIF_ThemeColorBlendShade(TH_TEXT, color_id, 0.4, 10);
 	
 	/* open/close entirely? */
-	ui_draw_tria_icon(rct->xmin+6.0f, rct->ymax-NODE_DY+5.0f, snode->aspect, 'v');
+	ui_draw_tria_icon(rct->xmin+8.0f, rct->ymax-NODE_DY+4.0f, snode->aspect, 'v');
+
+	if(node->flag & SELECT) 
+		BIF_ThemeColor(TH_TEXT_HI);
+	else
+		BIF_ThemeColor(TH_TEXT);
 	
-	ui_rasterpos_safe(rct->xmin+18.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
+	ui_rasterpos_safe(rct->xmin+19.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
 	snode_drawstring(snode, node->name, (int)(iconofs - rct->xmin-18.0f));
 					 
 	/* body */
@@ -717,12 +722,17 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 	if(node->flag & SELECT) 
 		BIF_ThemeColor(TH_TEXT_HI);
 	else
-		BIF_ThemeColor(TH_TEXT);
+		BIF_ThemeColorBlendShade(TH_TEXT, color_id, 0.4, 10);
 	
 	/* open/close entirely? */
 	ui_draw_tria_icon(rct->xmin+9.0f, centy-6.0f, snode->aspect, 'h');	
 	
-	ui_rasterpos_safe(rct->xmin+18.0f, centy-4.0f, snode->aspect);
+	if(node->flag & SELECT) 
+		BIF_ThemeColor(TH_TEXT_HI);
+	else
+		BIF_ThemeColor(TH_TEXT);
+	
+	ui_rasterpos_safe(rct->xmin+21.0f, centy-4.0f, snode->aspect);
 	snode_drawstring(snode, node->name, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
 	
 	/* scale widget thing */
