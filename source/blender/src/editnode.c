@@ -365,8 +365,11 @@ static void scale_node(SpaceNode *snode, bNode *node)
 	short mval[2], mvalo[2];
 	
 	/* store old */
-	oldwidth= node->width;
-	
+	if(node->flag & NODE_HIDDEN)
+		oldwidth= node->miniwidth;
+	else
+		oldwidth= node->width;
+		
 	getmouseco_areawin(mvalo);
 	areamouseco_to_ipoco(G.v2d, mvalo, &mxstart, &mystart);
 	
@@ -379,8 +382,14 @@ static void scale_node(SpaceNode *snode, bNode *node)
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
 			
-			node->width= oldwidth + mx-mxstart;
-			CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
+			if(node->flag & NODE_HIDDEN) {
+				node->miniwidth= oldwidth + mx-mxstart;
+				CLAMP(node->miniwidth, 0.0f, 100.0f);
+			}
+			else {
+				node->width= oldwidth + mx-mxstart;
+				CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
+			}
 			
 			force_draw(0);
 		}
@@ -475,6 +484,67 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 	}
 }
 
+static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
+{
+	rctf totr= node->totr;
+	
+	totr.ymin= totr.ymax-20.0f;
+	
+	totr.xmax= totr.xmin+15.0f;
+	if(BLI_in_rctf(&totr, mx, my)) {
+		node->flag |= NODE_HIDDEN;
+		allqueue(REDRAWNODE, 0);
+		return 1;
+	}	
+	
+	totr.xmax= node->totr.xmax;
+	totr.xmin= totr.xmax-18.0f;
+	if(node->typeinfo->flag & NODE_PREVIEW) {
+		if(BLI_in_rctf(&totr, mx, my)) {
+			node->flag ^= NODE_PREVIEW;
+			allqueue(REDRAWNODE, 0);
+			return 1;
+		}
+		totr.xmin-=18.0f;
+	}
+	if(node->typeinfo->flag & NODE_OPTIONS) {
+		if(BLI_in_rctf(&totr, mx, my)) {
+			node->flag ^= NODE_OPTIONS;
+			allqueue(REDRAWNODE, 0);
+			return 1;
+		}
+	}
+	
+	totr= node->totr;
+	totr.xmin= totr.xmax-10.0f;
+	totr.ymax= totr.ymin+10.0f;
+	if(BLI_in_rctf(&totr, mx, my)) {
+		scale_node(snode, node);
+		return 1;
+	}
+	return 0;
+}
+
+static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float my)
+{
+	rctf totr= node->totr;
+	
+	totr.xmax= totr.xmin+15.0f;
+	if(BLI_in_rctf(&totr, mx, my)) {
+		node->flag &= ~NODE_HIDDEN;
+		allqueue(REDRAWNODE, 0);
+		return 1;
+	}	
+	
+	totr.xmax= node->totr.xmax;
+	totr.xmin= node->totr.xmax-15.0f;
+	if(BLI_in_rctf(&totr, mx, my)) {
+		scale_node(snode, node);
+		return 1;
+	}
+	return 0;
+}
+
 /* return 0: nothing done */
 static int node_mouse_select(SpaceNode *snode, unsigned short event)
 {
@@ -487,34 +557,13 @@ static int node_mouse_select(SpaceNode *snode, unsigned short event)
 	
 	/* first check for the headers or scaling widget */
 	for(node= snode->nodetree->nodes.first; node; node= node->next) {
-		if((node->flag & NODE_HIDDEN)==0) {
-			rctf totr= node->totr;
-			totr.ymin= totr.ymax-20.0f;
-			totr.xmin= totr.xmax-18.0f;
-			
-			if(node->typeinfo->flag & NODE_PREVIEW) {
-				if(BLI_in_rctf(&totr, mx, my)) {
-					node->flag ^= NODE_PREVIEW;
-					allqueue(REDRAWNODE, 0);
-					return 1;
-				}
-				totr.xmin-=18.0f;
-			}
-			if(node->typeinfo->flag & NODE_OPTIONS) {
-				if(BLI_in_rctf(&totr, mx, my)) {
-					node->flag ^= NODE_OPTIONS;
-					allqueue(REDRAWNODE, 0);
-					return 1;
-				}
-			}
-			
-			totr= node->totr;
-			totr.xmin= totr.xmax-10.0f;
-			totr.ymax= totr.ymin+10.0f;
-			if(BLI_in_rctf(&totr, mx, my)) {
-				scale_node(snode, node);
+		if(node->flag & NODE_HIDDEN) {
+			if(do_header_hidden_node(snode, node, mx, my))
 				return 1;
-			}
+		}
+		else {
+			if(do_header_node(snode, node, mx, my))
+				return 1;
 		}
 	}
 	

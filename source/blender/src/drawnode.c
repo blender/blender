@@ -78,7 +78,7 @@ static void snode_drawstring(SpaceNode *snode, char *str, int okwidth)
 	char drawstr[NODE_MAXSTR];
 	int width;
 	
-	if(str[0]==0) return;
+	if(str[0]==0 || okwidth<4) return;
 	
 	BLI_strncpy(drawstr, str, NODE_MAXSTR);
 	width= snode->aspect*BIF_GetStringWidth(snode->curfont, drawstr, 0);
@@ -467,15 +467,14 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 static void node_update(bNode *node)
 {
 	bNodeSocket *nsock;
-	float dy= node->locy;
 	
 	if(node->flag & NODE_HIDDEN) {
 		float rad, drad;
 		
 		node->totr.xmin= node->locx;
-		node->totr.xmax= node->locx + 3*HIDDEN_RAD;
-		node->totr.ymax= node->locy;
-		node->totr.ymin= node->locy - 2*HIDDEN_RAD;
+		node->totr.xmax= node->locx + 3*HIDDEN_RAD + node->miniwidth;
+		node->totr.ymax= node->locy + (HIDDEN_RAD - 0.5f*NODE_DY);
+		node->totr.ymin= node->totr.ymax - 2*HIDDEN_RAD;
 		
 		/* output connectors */
 		rad=drad= M_PI/(1.0f + (float)BLI_countlist(&node->outputs));
@@ -494,6 +493,8 @@ static void node_update(bNode *node)
 		}
 	}
 	else {
+		float dy= node->locy;
+		
 		/* header */
 		dy-= NODE_DY;
 		
@@ -586,9 +587,6 @@ static void node_basis_draw(SpaceNode *snode, bNode *node)
 	uiSetRoundBox(3);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
-	/* open/close entirely? */
-//	ui_draw_tria_icon(rct->xmin+6.0f, rct->ymax-NODE_DY+5.0f, snode->aspect, 'h');
-	
 	/* show/hide icons */
 	iconofs= rct->xmax;
 	
@@ -619,8 +617,11 @@ static void node_basis_draw(SpaceNode *snode, bNode *node)
 	else
 		BIF_ThemeColor(TH_TEXT);
 	
-	ui_rasterpos_safe(rct->xmin+6.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
-	snode_drawstring(snode, node->name, (int)(iconofs - rct->xmin-6.0f));
+	/* open/close entirely? */
+	ui_draw_tria_icon(rct->xmin+6.0f, rct->ymax-NODE_DY+5.0f, snode->aspect, 'v');
+	
+	ui_rasterpos_safe(rct->xmin+18.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
+	snode_drawstring(snode, node->name, (int)(iconofs - rct->xmin-18.0f));
 					 
 	/* body */
 	BIF_ThemeColorShade(color_id, 20);	
@@ -693,6 +694,7 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
+	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
 	int color_id= node_get_colorid(node);
 	
 	/* shadow */
@@ -711,13 +713,37 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 		glDisable(GL_BLEND);
 	}
 	
+	/* title */
+	if(node->flag & SELECT) 
+		BIF_ThemeColor(TH_TEXT_HI);
+	else
+		BIF_ThemeColor(TH_TEXT);
+	
+	/* open/close entirely? */
+	ui_draw_tria_icon(rct->xmin+9.0f, centy-6.0f, snode->aspect, 'h');	
+	
+	ui_rasterpos_safe(rct->xmin+18.0f, centy-4.0f, snode->aspect);
+	snode_drawstring(snode, node->name, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
+	
+	/* scale widget thing */
+	BIF_ThemeColorShade(color_id, -10);	
+	dx= 10.0f;
+	fdrawline(rct->xmax-dx, centy-4.0f, rct->xmax-dx, centy+4.0f);
+	fdrawline(rct->xmax-dx-3.0f*snode->aspect, centy-4.0f, rct->xmax-dx-3.0f*snode->aspect, centy+4.0f);
+	
+	BIF_ThemeColorShade(color_id, +30);
+	dx-= snode->aspect;
+	fdrawline(rct->xmax-dx, centy-4.0f, rct->xmax-dx, centy+4.0f);
+	fdrawline(rct->xmax-dx-3.0f*snode->aspect, centy-4.0f, rct->xmax-dx-3.0f*snode->aspect, centy+4.0f);
+	
 	/* icon */
-	if(node->id) {
-		glEnable(GL_BLEND);
-		BIF_icon_set_aspect(node->id->icon_id, snode->aspect);
-		BIF_icon_draw(rct->xmin+HIDDEN_RAD, -1.0f+rct->ymin+HIDDEN_RAD/2, node->id->icon_id);
-		glDisable(GL_BLEND);
-	}
+	//	if(node->id) {
+	//		glEnable(GL_BLEND);
+	//		BIF_icon_set_aspect(node->id->icon_id, snode->aspect);
+	//		BIF_icon_draw(rct->xmin+HIDDEN_RAD, -1.0f+rct->ymin+HIDDEN_RAD/2, node->id->icon_id);
+	//		glDisable(GL_BLEND);
+	//	}
+	
 	
 	/* sockets */
 	for(sock= node->inputs.first; sock; sock= sock->next) {

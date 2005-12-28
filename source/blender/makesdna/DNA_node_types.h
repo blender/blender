@@ -89,8 +89,10 @@ typedef struct bNode {
 	void *storage;			/* custom data, must be struct, for storage in file */
 	
 	float locx, locy;		/* root offset for drawing */
-	float width;			
+	float width, miniwidth;			
 	short custom1, custom2;	/* to be abused for buttons */
+	int pad3;
+	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */

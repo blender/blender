@@ -773,8 +773,6 @@ static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, 
 /* triangle 'icon' for panel header */
 void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
-	BIF_ThemeColor(TH_TEXT_HI);
-	
 	if(dir=='h') {
 		ui_draw_anti_tria( x, y+1, x, y+10.0, x+7, y+6.25);
 	}
@@ -1113,6 +1111,8 @@ void ui_draw_panel(uiBlock *block)
 	}
 
 	/* draw collapse icon */
+	
+	BIF_ThemeColor(TH_TEXT_HI);
 	
 	if(panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'h');
