@@ -47,6 +47,7 @@ struct Ipo;
 struct Material;
 struct ColorBand;
 struct Group;
+struct bNodeTree;
 
 typedef struct MaterialLayer {
 	struct MaterialLayer *next, *prev;
@@ -88,7 +89,7 @@ typedef struct Material {
 	float sbias;			/* shadow bias */
 	
 	/* for buttons and render*/
-	char rgbsel, texact, pr_type, pad;
+	char rgbsel, texact, pr_type, use_nodes;
 	short pr_back, pr_lamp, septex, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
@@ -109,8 +110,9 @@ typedef struct Material {
 
 	struct MTex *mtex[10];
 	ListBase layers;
+	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
-	struct Group *group;
+	struct Group *group;	/* light group */
 	
 	/* dynamic properties */
 	float friction, fh, reflect;

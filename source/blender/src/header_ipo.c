@@ -886,7 +886,7 @@ void do_ipo_buttons(short event)
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_IPOBORDER:
-		val= get_border(&rect, 2);
+		val= get_border(&rect, 3);
 		if(val) {
 			mval[0]= rect.xmin;
 			mval[1]= rect.ymin;

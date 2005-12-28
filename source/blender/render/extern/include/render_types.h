@@ -102,7 +102,8 @@ typedef struct ShadeInput
 	float dxrefract[3], dyrefract[3];
 	float dxstrand, dystrand;
 	
-	float xs, ys;	/* pixel to be rendered */
+	int xs, ys;		/* pixel to be rendered */
+	short do_preview, pr_type;	/* for nodes, in previewrender */
 	short osatex, puno;
 	int mask;
 	int depth;

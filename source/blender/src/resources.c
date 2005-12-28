@@ -185,6 +185,9 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_TIME:
 				ts= &btheme->ttime;
 				break;
+			case SPACE_NODE:
+				ts= &btheme->tnode;
+				break;
 			default:
 				ts= &btheme->tv3d;
 				break;
@@ -272,6 +275,17 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_SYNTAX_N:
 				cp= ts->syntaxn; break;
 
+			case TH_NODE:
+				cp= ts->syntaxl; break;
+			case TH_NODE_IN_OUT:
+				cp= ts->syntaxn; break;
+			case TH_NODE_OPERATOR:
+				cp= ts->syntaxb; break;
+			case TH_NODE_GENERATOR:
+				cp= ts->syntaxv; break;
+			case TH_NODE_FREE:
+				cp= ts->syntaxc; break;
+				
 			}
 
 		}
@@ -463,6 +477,15 @@ void BIF_InitTheme(void)
 	
 	/* space time */
 	btheme->ttime= btheme->tsnd;	// same as sound space
+	
+	/* space node, re-uses syntax color storage */
+	btheme->tnode= btheme->tv3d;
+	SETCOL(btheme->tnode.syntaxl, 120, 120, 120, 255);	/* TH_NODE */
+	SETCOL(btheme->tnode.syntaxn, 110, 110, 120, 255);	/* in-out */
+	SETCOL(btheme->tnode.syntaxb, 140, 140, 140, 255);	/* operator */
+	SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
+	SETCOL(btheme->tnode.syntaxc, 120, 120, 120, 255);	/* free */
+
 }
 
 char *BIF_ThemeColorsPup(int spacetype)
@@ -589,6 +612,14 @@ char *BIF_ThemeColorsPup(int spacetype)
 		}
 		else if(spacetype==SPACE_TIME) {
 			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
+		}
+		else if(spacetype==SPACE_NODE) {
+			strcat(cp,"%l|");
+			sprintf(str, "Default Node %%x%d|", TH_NODE); strcat(cp, str);
+			sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT); strcat(cp, str);
+			sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR); strcat(cp, str);
+			sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR); strcat(cp, str);
+//			sprintf(str, " %%x%d|", TH_NODE_FREE); strcat(cp, str);
 		}
 	}
 	return cp;

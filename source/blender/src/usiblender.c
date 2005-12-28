@@ -96,10 +96,11 @@
 #include "BIF_cursors.h"
 
 #include "BSE_drawview.h"
-#include "BSE_headerbuttons.h"
+#include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"
-#include "BSE_edit.h"
+#include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
@@ -265,10 +266,23 @@ static void init_userdef_file(void)
 					255);
 			}
 		}
-		
 		if(U.obcenter_dia==0) U.obcenter_dia= 6;
 	}
-	
+	if (G.main->versionfile <= 240) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* Node editor theme, check for alpha==0 is safe, then color was never set */
+			if(btheme->tnode.syntaxn[3]==0) {
+				/* re-uses syntax color storage */
+				btheme->tnode= btheme->tv3d;
+				SETCOL(btheme->tnode.syntaxl, 120, 120, 120, 255);	/* TH_NODE */
+				SETCOL(btheme->tnode.syntaxn, 110, 110, 120, 255);	/* in-out */
+				SETCOL(btheme->tnode.syntaxb, 140, 140, 140, 255);	/* operator */
+				SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
+				SETCOL(btheme->tnode.syntaxc, 120, 120, 120, 255);	/* free */
+			}
+		}
+	}
 	
 	if (U.undosteps==0) U.undosteps=32;
 	
@@ -660,6 +674,7 @@ void BIF_init(void)
 	initbuttons();
 	InitCursorData();
 	sound_init_listener();
+	init_node_butfuncs();
 	
 	BIF_read_homefile();
 	init_gl_stuff();	/* drawview.c, after homefile */

@@ -69,11 +69,13 @@
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_object_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -907,6 +909,9 @@ void uiDrawBlock(uiBlock *block)
 {
 	uiBut *but;
 	short testmouse=0, mouse[2];
+	
+	/* we set this only once */
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	/* handle pending stuff */
 	if(block->autofill) ui_autofill(block);
@@ -2453,7 +2458,7 @@ static int ui_do_but_NUMSLI(uiBut *but)
 }
 
 /* event denotes if we make first item active or not */
-static int ui_do_but_BLOCK(uiBut *but, int event)
+static uiBlock *ui_do_but_BLOCK(uiBut *but, int event)
 {
 	uiBlock *block;
 	uiBut *bt;
@@ -2494,7 +2499,7 @@ static int ui_do_but_BLOCK(uiBut *but, int event)
 	but->flag &= ~UI_SELECT;
 	uibut_do_func(but);
 	
-	return 0;
+	return block;
 }
 
 static int ui_do_but_BUTM(uiBut *but)
@@ -2510,9 +2515,25 @@ static int ui_do_but_BUTM(uiBut *but)
 
 static int ui_do_but_LABEL(uiBut *but)
 {
-
-	uibut_do_func(but);
-	return but->retval;
+	/* new label type, for nodes, ctrl+clock on text gives options */
+	if(but->block_func) {
+		if(G.qual & LR_CTRLKEY) {
+			ListBase listb={NULL, NULL};
+			uiBlock *block= ui_do_but_BLOCK(but, 0);
+			
+			BLI_addtail(&listb, block);
+			block->parent= NULL;	/* we abused ui_do_but_BLOCK */
+			uiDoBlocks(&listb, 0);
+			
+			uibut_do_func(but);
+			return but->retval;
+		}
+		return 0;
+	}
+	else {
+		uibut_do_func(but);
+		return but->retval;
+	}
 }
 
 static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
@@ -3147,6 +3168,104 @@ static int ui_do_but_CHARTAB(uiBut *but)
 
 #endif
 
+static int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+	
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+
+static void do_colorband_evt(ColorBand *coba)
+{
+	int a;
+	
+	if(coba==NULL) return;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+		qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+
+static int ui_do_but_COLORBAND(uiBut *but)
+{	
+	ColorBand *coba= (ColorBand *)but->poin;
+	CBData *cbd;
+	float dx, width= but->x2-but->x1;
+	int a;
+	int mindist= 12, xco;
+	short mval[2], mvalo[2];
+	
+	uiGetMouse(mywinget(), mvalo);
+	
+	if(G.qual & LR_CTRLKEY) {
+		/* insert new key on mouse location */
+		if(coba->tot < MAXCOLORBAND-1) {
+			float pos= ((float)(mvalo[0] - but->x1))/width;
+			float col[4];
+			
+			do_colorband(coba, pos, col);	/* executes it */
+			
+			coba->tot++;
+			coba->cur= coba->tot-1;
+			
+			coba->data[coba->cur].r= col[0];
+			coba->data[coba->cur].g= col[1];
+			coba->data[coba->cur].b= col[2];
+			coba->data[coba->cur].a= col[3];
+			coba->data[coba->cur].pos= pos;
+			
+			do_colorband_evt(coba);
+		}
+	}
+	else {
+		
+		/* first, activate new key when mouse is close */
+		for(a=0, cbd= coba->data; a<coba->tot; a++, cbd++) {
+			xco= but->x1 + (cbd->pos*width);
+			xco= ABS(xco-mvalo[0]);
+			if(a==coba->cur) xco+= 5; // selected one disadvantage
+			if(xco<mindist) {
+				coba->cur= a;
+				mindist= xco;
+			}
+		}
+		
+		cbd= coba->data + coba->cur;
+		
+		while(get_mbut() & L_MOUSE) {
+			uiGetMouse(mywinget(), mval);
+			if(mval[0]!=mvalo[0]) {
+				dx= mval[0]-mvalo[0];
+				dx/= width;
+				cbd->pos+= dx;
+				CLAMP(cbd->pos, 0.0, 1.0);
+				
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
+				
+				do_colorband_evt(coba);
+				cbd= coba->data + coba->cur;	/* because qsort */
+				
+				mvalo[0]= mval[0];
+			}
+			BIF_wait_for_statechange();
+		}
+	}
+	
+	return but->retval;
+}
 
 /* ************************************************ */
 
@@ -3320,7 +3439,8 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 	case BLOCK:
 	case PULLDOWN:
 		if(uevent->val) {
-			retval= ui_do_but_BLOCK(but, uevent->event);
+			ui_do_but_BLOCK(but, uevent->event);
+			retval= 0;
 			if(block->auto_open==0) block->auto_open= 1;
 		}
 		break;
@@ -3340,6 +3460,9 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		
 	case HSVCUBE:
 		retval= ui_do_but_HSVCUBE(but);
+		break;
+	case BUT_COLORBAND:
+		retval= ui_do_but_COLORBAND(but);
 		break;
 		
 #ifdef INTERNATIONAL
@@ -4869,36 +4992,31 @@ void ui_check_but(uiBut *but)
 		/* calc but->ofs, to draw the string shorter if too long */
 		but->ofs= 0;
 		while(but->strwidth > (int)okwidth ) {
-			but->ofs++;
 	
-			if(but->drawstr[but->ofs]) 
+			if ELEM(but->type, NUM, TEX) {	// only these cut off left
+				but->ofs++;
 				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, transopts);
-			else but->strwidth= 0;
-	
-			/* textbut exception */
-			if(but->pos != -1) {
-				pos= but->pos+strlen(but->str);
-				if(pos-1 < but->ofs) {
-					pos= but->ofs-pos+1;
-					but->ofs -= pos;
-					if(but->ofs<0) {
-						but->ofs= 0;
-						pos--;
+				
+				/* textbut exception */
+				if(but->pos != -1) {
+					pos= but->pos+strlen(but->str);
+					if(pos-1 < but->ofs) {
+						pos= but->ofs-pos+1;
+						but->ofs -= pos;
+						if(but->ofs<0) {
+							but->ofs= 0;
+							pos--;
+						}
+						but->drawstr[ strlen(but->drawstr)-pos ]= 0;
 					}
-					but->drawstr[ strlen(but->drawstr)-pos ]= 0;
 				}
+			}
+			else {
+				but->drawstr[ strlen(but->drawstr)-1 ]= 0;
+				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, transopts);
 			}
 			
 			if(but->strwidth < 10) break;
-		}
-		
-		/* fix for buttons that better not have text cut off to the right */
-		if(but->ofs) {
-			if ELEM(but->type, NUM, TEX);	// only these cut off left
-			else {
-				but->drawstr[ strlen(but->drawstr)-but->ofs ]= 0;
-				but->ofs= 0;
-			}
 		}
 	}
 }

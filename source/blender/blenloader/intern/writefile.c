@@ -124,6 +124,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_oops_types.h"
@@ -153,6 +154,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_global.h" // for G
 #include "BKE_library.h" // for  set_listbasepointers
 #include "BKE_main.h" // G.main
+#include "BKE_node.h"
 #include "BKE_packedFile.h" // for packAll
 #include "BKE_screen.h" // for waitcursor
 #include "BKE_scene.h" // for do_seq
@@ -317,7 +319,7 @@ static void writestruct(WriteData *wd, int filecode, char *structname, int nr, v
 	BHead bh;
 	short *sp;
 
-	if(adr==0 || nr==0) return;
+	if(adr==NULL || nr==0) return;
 
 	/* init BHead */
 	bh.code= filecode;
@@ -326,7 +328,7 @@ static void writestruct(WriteData *wd, int filecode, char *structname, int nr, v
 
 	bh.SDNAnr= dna_findstruct_nr(wd->sdna, structname);
 	if(bh.SDNAnr== -1) {
-		printf("error: can't find SDNA code %s\n", structname);
+		printf("error: can't find SDNA code <%s>\n", structname);
 		return;
 	}
 	sp= wd->sdna->structs[bh.SDNAnr];
@@ -358,6 +360,33 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 
 	mywrite(wd, &bh, sizeof(BHead));
 	if(len) mywrite(wd, adr, len);
+}
+
+/* this is only direct data */
+static void write_nodetree(WriteData *wd, bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	writestruct(wd, DATA, "bNodeTree", 1, ntree);
+	
+	/* for link_list() speed, we write per list */
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		writestruct(wd, DATA, "bNode", 1, node);
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->storage) 
+			writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	}
+	
+	for(link= ntree->links.first; link; link= link->next)
+		writestruct(wd, DATA, "bNodeLink", 1, link);
 }
 
 static void write_scriptlink(WriteData *wd, ScriptLink *slink)
@@ -1014,7 +1043,9 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			
 			for (ml=ma->layers.first; ml; ml=ml->next)
 				writestruct(wd, DATA, "MaterialLayer", 1, ml);
-
+			
+			if(ma->nodetree) 
+				write_nodetree(wd, ma->nodetree);
 		}
 		ma= ma->id.next;
 	}

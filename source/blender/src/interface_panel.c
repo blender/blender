@@ -344,7 +344,6 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad,
 		color[3]= 0.5;
 		glColor4fv(color);
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 	
 	/* solid part */
@@ -357,7 +356,6 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad,
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	/* top shade */
 	gl_round_box_topshade(minx+1, miny+1, maxx-1, maxy-1, rad);
@@ -387,13 +385,11 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 		color[3]= 0.5;
 		glColor4fv(color);
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 	
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
@@ -413,7 +409,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 		color[3]= 0.5;
 		glColor4fv(color);
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 	
 	/* solid part */
@@ -422,7 +417,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
@@ -764,7 +758,6 @@ static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, 
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	glBegin(GL_LINE_LOOP);
 	glVertex2f(x1, y1);
@@ -778,7 +771,7 @@ static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, 
 }
 
 /* triangle 'icon' for panel header */
-static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
+void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
 	BIF_ThemeColor(TH_TEXT_HI);
 	
@@ -790,13 +783,12 @@ static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 	}
 }
 
-static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
+void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 {
 
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	glLineWidth(2.0);
 	
@@ -1039,7 +1031,6 @@ void ui_draw_panel(uiBlock *block)
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
 
 			// blend now for panels in 3d window, test...
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
 			
@@ -1070,7 +1061,6 @@ void ui_draw_panel(uiBlock *block)
 			uiSetRoundBox(3);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
 			
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
@@ -1100,7 +1090,6 @@ void ui_draw_panel(uiBlock *block)
 		/* and a soft shadow-line for now */
 		/*
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glColor4ub(0, 0, 0, 50);
 		fdrawline(block->maxx, block->miny, block->maxx, block->maxy+PNL_HEADER/2);
 		fdrawline(block->minx, block->miny, block->maxx, block->miny);

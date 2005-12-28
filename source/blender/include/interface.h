@@ -223,6 +223,8 @@ extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, flo
 extern void ui_set_embossfunc(uiBut *but, int drawtype);
 extern void ui_draw_but(uiBut *but);
 extern void ui_rasterpos_safe(float x, float y, float aspect);
+extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
+extern void ui_draw_anti_x(float x1, float y1, float x2, float y2);
 
 
 #endif

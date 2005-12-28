@@ -2198,7 +2198,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		}
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection colour textures (and envmap) */
-			calc_R_ref(shi);
+			calc_R_ref(shi);	/* wrong location for normal maps! XXXXXXXXXXXXXX */
 		}
 		if(texco & TEXCO_STRESS) {
 			float *s1, *s2, *s3;
@@ -2279,9 +2279,10 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 		return NULL;
 	}
 	/* currently in use for dithering (soft shadow) and detecting thread */
-	shi.xs= x;
-	shi.ys= y;
-	
+	shi.xs= (int)(x+0.5f);
+	shi.ys= (int)(y+0.5f);
+	shi.do_preview= 0;
+
 	/* mask is used to indicate amount of samples (ray shad/mir and AO) */
 	shi.mask= mask;
 	shi.depth= 0;	// means first hit, not raytracing

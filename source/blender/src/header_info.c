@@ -471,7 +471,7 @@ void do_info_buttons(unsigned short event)
 
 			set_scene(sce);
 		}
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_TE);
 
 		break;
 	case B_INFODELSCE:

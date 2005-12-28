@@ -30,27 +30,36 @@
 #ifndef BSE_NODE_H
 #define BSE_NODE_H
 
+/* ********** drawing sizes *********** */
 #define NODE_DY		20
 #define NODE_DYS	10
-#define NODE_SOCK	5
+#define NODE_SOCKSIZE	5
+#define BASIS_RAD	8.0f
+#define HIDDEN_RAD	15.0f
+
 
 struct SpaceNode;
 struct bNode;
-
-/* ************* button events *********** */
-
-#define B_NODE_EXEC		1
+struct Material;
 
 
 /* ************* API for editnode.c *********** */
+void snode_tag_dirty(struct SpaceNode *snode);
+
+void snode_set_context(struct SpaceNode *snode);
 
 void node_deselectall(struct SpaceNode *snode, int swap);
 void node_transform_ext(int mode, int unused);
+void node_shader_default(struct Material *ma);
+
+/* ************* drawnode.c *************** */
+void node_draw_link(struct SpaceNode *snode, struct bNodeLink *link);
+
+void init_node_butfuncs(void);
 
 /* ************* Shader nodes ***************** */
 
-void node_shader_set_drawfunc(struct bNode *node);
-
+struct bNode *node_add_shadernode(struct SpaceNode *snode, int type, float locx, float locy);
 
 #endif
 

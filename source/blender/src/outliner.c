@@ -1033,8 +1033,9 @@ static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int s
 	}
 	if(set) {
 		extern_set_butspace(F5KEY);	// force shading buttons
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 1);
+		allqueue(REDRAWNODE, 0);
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWIPO, 0);
 	}
@@ -1128,7 +1129,7 @@ static int tree_element_active_lamp(SpaceOops *soops, TreeElement *te, int set)
 	
 	if(set) {
 		extern_set_butspace(F5KEY);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 1);
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWIPO, 0);

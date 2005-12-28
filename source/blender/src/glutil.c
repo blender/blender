@@ -220,9 +220,9 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 
 		glBindTexture(GL_TEXTURE_2D, texid);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 		tbuf= MEM_callocN(tex_w*tex_h*4, "tbuf");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tbuf);
@@ -236,9 +236,10 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 	return texid;
 }
 
-void glaDrawPixelsTex(float x, float y, int img_w, int img_h, void *rect)
+void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)
 {
 	unsigned char *uc_rect= (unsigned char*) rect;
+	float *f_rect= (float *)rect;
 	float xzoom= glaGetOneFloat(GL_ZOOM_X), yzoom= glaGetOneFloat(GL_ZOOM_Y);
 	int ltexid= glaGetOneInteger(GL_TEXTURE_2D);
 	int lrowlength= glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
@@ -256,9 +257,12 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, void *rect)
 			int subpart_h= (subpart_y==nsubparts_y-1)?(img_h-subpart_y*tex_h):tex_h;
 			float rast_x= x+subpart_x*tex_w*xzoom;
 			float rast_y= y+subpart_y*tex_h*yzoom;
-
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*tex_w)*img_w*4 + (subpart_x*tex_w)*4]);
-
+			
+			if(format==GL_FLOAT)
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_FLOAT, &f_rect[(subpart_y*tex_w)*img_w*4 + (subpart_x*tex_w)*4]);
+			else
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*tex_w)*img_w*4 + (subpart_x*tex_w)*4]);
+				
 			glColor3ub(255, 255, 255);
 			glEnable(GL_TEXTURE_2D);
 			glBegin(GL_QUADS);
@@ -282,10 +286,8 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, void *rect)
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, lrowlength);
 }
 
-void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, void *rect)
+void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int format, void *rect)
 {
-	unsigned char *uc_rect= (unsigned char*) rect;
-
 	float xzoom= glaGetOneFloat(GL_ZOOM_X);
 	float yzoom= glaGetOneFloat(GL_ZOOM_Y);
 		
@@ -337,7 +339,15 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, void *rect)
 		}
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
-		glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, uc_rect + (off_y*img_w + off_x)*4);
+		if(format==GL_FLOAT) {
+			float *f_rect= (float *)rect;
+			glDrawPixels(draw_w, draw_h, GL_RGBA, GL_FLOAT, f_rect + (off_y*img_w + off_x)*4);
+		}
+		else {
+			unsigned char *uc_rect= (unsigned char *) rect;
+			glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, uc_rect + (off_y*img_w + off_x)*4);
+		}
+		
 		glPixelStorei(GL_UNPACK_ROW_LENGTH,  old_row_length);
 	}
 }

@@ -199,24 +199,38 @@ void free_plugin_tex(PluginTex *pit)
 
 /* ****************** COLORBAND ******************* */
 
-ColorBand *add_colorband()
+ColorBand *add_colorband(int rangetype)
 {
 	ColorBand *coba;
 	int a;
 	
 	coba= MEM_callocN( sizeof(ColorBand), "colorband");
 	
-	coba->data[0].r= 0.0;
-	coba->data[0].g= 0.0;
-	coba->data[0].b= 0.0;
-	coba->data[0].a= 0.0;
 	coba->data[0].pos= 0.0;
-
-	coba->data[1].r= 0.0;
-	coba->data[1].g= 1.0;
-	coba->data[1].b= 1.0;
-	coba->data[1].a= 1.0;
 	coba->data[1].pos= 1.0;
+	
+	if(rangetype==0) {
+		coba->data[0].r= 0.0;
+		coba->data[0].g= 0.0;
+		coba->data[0].b= 0.0;
+		coba->data[0].a= 0.0;
+		
+		coba->data[1].r= 0.0;
+		coba->data[1].g= 1.0;
+		coba->data[1].b= 1.0;
+		coba->data[1].a= 1.0;
+	}
+	else {
+		coba->data[0].r= 0.0;
+		coba->data[0].g= 0.0;
+		coba->data[0].b= 0.0;
+		coba->data[0].a= 1.0;
+		
+		coba->data[1].r= 1.0;
+		coba->data[1].g= 1.0;
+		coba->data[1].b= 1.0;
+		coba->data[1].a= 1.0;
+	}
 	
 	for(a=2; a<MAXCOLORBAND; a++) {
 		coba->data[a].r= 0.5;

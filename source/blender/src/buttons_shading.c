@@ -49,6 +49,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
@@ -64,6 +65,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_material.h"
 #include "BKE_utildefines.h"
 #include "BKE_texture.h"
@@ -77,6 +79,7 @@
 
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -107,9 +110,8 @@
 /* ---------function prototypes ------------- */
 void load_tex_image(char *);	
 void load_plugin_tex(char *);
-int vergcband(const void *, const void *);
+
 void save_env(char *);
-void drawcolorband(ColorBand *, float , float , float , float );
 
 static MTex emptytex;
 static int packdummy = 0;
@@ -213,7 +215,7 @@ void load_tex_image(char *str)	/* called from fileselect */
 		BIF_undo_push("Load image");
 		allqueue(REDRAWBUTSSHADING, 0);
 
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_TE);
 	}
 }
 
@@ -230,19 +232,8 @@ void load_plugin_tex(char *str)	/* called from fileselect */
 	tex->plugin= add_plugin_tex(str);
 
 	allqueue(REDRAWBUTSSHADING, 0);
-	BIF_all_preview_changed();
+	BIF_preview_changed(ID_TE);
 }
-
-int vergcband(const void *a1, const void *a2)
-{
-	const CBData *x1=a1, *x2=a2;
-
-	if( x1->pos > x2->pos ) return 1;
-	else if( x1->pos < x2->pos) return -1;
-	return 0;
-}
-
-
 
 void save_env(char *name)
 {
@@ -264,276 +255,18 @@ void save_env(char *name)
 	
 }
 
-void drawcolorband(ColorBand *coba, float x1, float y1, float sizex, float sizey)
+static int vergcband(const void *a1, const void *a2)
 {
-	CBData *cbd;
-	float dx, v3[2], v1[2], v2[2];
-	int a;
+	const CBData *x1=a1, *x2=a2;
 	
-	if(coba==NULL) return;
-	
-	/* first background, to show tranparency */
-	dx= sizex/12.0;
-	v1[0]= x1;
-	for(a=0; a<12; a++) {
-		if(a & 1) glColor3f(0.3, 0.3, 0.3); else glColor3f(0.8, 0.8, 0.8);
-		glRectf(v1[0], y1, v1[0]+dx, y1+0.5*sizey);
-		if(a & 1) glColor3f(0.8, 0.8, 0.8); else glColor3f(0.3, 0.3, 0.3);
-		glRectf(v1[0], y1+0.5*sizey, v1[0]+dx, y1+sizey);
-		v1[0]+= dx;
-	}
-	
-	glShadeModel(GL_SMOOTH);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	cbd= coba->data;
-	
-	v1[0]= v2[0]= x1;
-	v1[1]= y1;
-	v2[1]= y1+sizey;
-	
-	glBegin(GL_QUAD_STRIP);
-	
-	glColor4fv( &cbd->r );
-	glVertex2fv(v1); glVertex2fv(v2);
-	
-	for(a=0; a<coba->tot; a++, cbd++) {
-		
-		v1[0]=v2[0]= x1+ cbd->pos*sizex;
-
-		glColor4fv( &cbd->r );
-		glVertex2fv(v1); glVertex2fv(v2);
-	}
-	
-	v1[0]=v2[0]= x1+ sizex;
-	glVertex2fv(v1); glVertex2fv(v2);
-	
-	glEnd();
-	glShadeModel(GL_FLAT);
-	glDisable(GL_BLEND);
-
-	/* outline */
-	v1[0]= x1; v1[1]= y1;
-
-	cpack(0x0);
-	glBegin(GL_LINE_LOOP);
-		glVertex2fv(v1);
-		v1[0]+= sizex;
-		glVertex2fv(v1);
-		v1[1]+= sizey;
-		glVertex2fv(v1);
-		v1[0]-= sizex;
-		glVertex2fv(v1);
-	glEnd();
-
-
-	/* help lines */
-	
-	v1[0]= v2[0]=v3[0]= x1;
-	v1[1]= y1;
-	v2[1]= y1+0.5*sizey;
-	v3[1]= y1+sizey;
-	
-	cbd= coba->data;
-	glBegin(GL_LINES);
-	for(a=0; a<coba->tot; a++, cbd++) {
-		v1[0]=v2[0]=v3[0]= x1+ cbd->pos*sizex;
-		
-		glColor3ub(0, 0, 0);
-		glVertex2fv(v1);
-		glVertex2fv(v2);
-
-		if(a==coba->cur) {
-			glVertex2f(v1[0]-1, v1[1]);
-			glVertex2f(v2[0]-1, v2[1]);
-			glVertex2f(v1[0]+1, v1[1]);
-			glVertex2f(v2[0]+1, v2[1]);
-		}
-			
-		glColor3ub(255, 255, 255);
-		glVertex2fv(v2);
-		glVertex2fv(v3);
-		
-		if(a==coba->cur) {
-			if(cbd->pos>0.01) {
-				glVertex2f(v2[0]-1, v2[1]);
-				glVertex2f(v3[0]-1, v3[1]);
-			}
-			if(cbd->pos<0.99) {
-				glVertex2f(v2[0]+1, v2[1]);
-				glVertex2f(v3[0]+1, v3[1]);
-			}
-		}
-	}
-	glEnd();
-	
-
-	glFlush();
-}
-
-static void drawcolorband_cb(void)
-{
-	ID *id, *idfrom;
-	
-	buttons_active_id(&id, &idfrom);	/* base material, not the matlayer! */
-	if( GS(id->name)==ID_TE) {
-		Tex *tex= (Tex *)id;
-		drawcolorband(tex->coba, 10,145,300,30);
-	}
-	else if( GS(id->name)==ID_MA) {
-		Material *ma= (Material *)id;
-		ma= get_active_matlayer(ma);
-		if(ma) {
-			if(ma->ramp_show==0)
-				drawcolorband(ma->ramp_col, 10,110,300,30);
-			else
-				drawcolorband(ma->ramp_spec, 10,110,300,30);
-		}
-	}
-}
-
-static void do_colorbandbuts(ColorBand *coba, unsigned short event)
-{
-	int a;
-	
-	if(coba==NULL) return;
-	
-	switch(event) {
-	case B_ADDCOLORBAND:
-		
-		if(coba->tot < MAXCOLORBAND-1) coba->tot++;
-		coba->cur= coba->tot-1;
-		
-		do_colorbandbuts(coba, B_CALCCBAND);
-		BIF_undo_push("Add colorband");
-
-		break;
-
-	case B_DELCOLORBAND:
-		if(coba->tot<2) return;
-		
-		for(a=coba->cur; a<coba->tot; a++) {
-			coba->data[a]= coba->data[a+1];
-		}
-		if(coba->cur) coba->cur--;
-		coba->tot--;
-
-		BIF_undo_push("Delete colorband");
-		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
-		break;
-
-	case B_CALCCBAND:
-	case B_CALCCBAND2:
-		if(coba->tot<2) return;
-		
-		for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
-		qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
-		for(a=0; a<coba->tot; a++) {
-			if(coba->data[a].cur==coba->cur) {
-				if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
-				coba->cur= a;
-				break;
-			}
-		}
-		if(event==B_CALCCBAND2) return;
-		
-		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
-		
-		break;
-		
-	case B_DOCOLORBAND:
-		
-		break;
-	}
-}
-
-/* callback for label button... the size of the button (300) still hardcoded! */
-static void do_colorband_cb(void *namev, void *arg2_unused)
-{	
-	ColorBand *coba= namev;
-	CBData *cbd;
-	uiBlock *block;
-	float dx;
-	int a;
-	short mval[2], mvalo[2];
-	
-	/* weak; find panel where colorband is */
-	block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Colors");
-	if(block==NULL) block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Ramps");
-	
-	if(coba && block) {
-		int mindist= 12, xco;
-		uiGetMouse(mywinget(), mvalo);
-		
-		if(G.qual & LR_CTRLKEY) {
-			/* insert new key on mouse location */
-			if(coba->tot < MAXCOLORBAND-1) {
-				float pos= ((float)(mvalo[0] - 12))/300.0f;
-				float col[4];
-				
-				do_colorband(coba, pos, col);
-				
-				coba->tot++;
-				coba->cur= coba->tot-1;
-				
-				coba->data[coba->cur].r= col[0];
-				coba->data[coba->cur].g= col[1];
-				coba->data[coba->cur].b= col[2];
-				coba->data[coba->cur].a= col[3];
-				coba->data[coba->cur].pos= pos;
-				
-				do_colorbandbuts(coba, B_CALCCBAND);
-				BIF_undo_push("Add colorband");
-			}
-		}
-		else {
-			
-			/* first, activate new key when mouse is close */
-			for(a=0, cbd= coba->data; a<coba->tot; a++, cbd++) {
-				xco= 12 + (cbd->pos*300.0);
-				xco= ABS(xco-mvalo[0]);
-				if(a==coba->cur) xco+= 5; // selected one disadvantage
-				if(xco<mindist) {
-					coba->cur= a;
-					mindist= xco;
-				}
-			}
-			
-			cbd= coba->data + coba->cur;
-			
-			while(get_mbut() & L_MOUSE) {
-				uiGetMouse(mywinget(), mval);
-				if(mval[0]!=mvalo[0]) {
-					dx= mval[0]-mvalo[0];
-					dx/= 300.0;
-					cbd->pos+= dx;
-					CLAMP(cbd->pos, 0.0, 1.0);
-					
-					glDrawBuffer(GL_FRONT);
-					drawcolorband_cb();
-					glDrawBuffer(GL_BACK);
-					
-					do_colorbandbuts(coba, B_CALCCBAND2);
-					cbd= coba->data + coba->cur;	/* because qsort */
-					
-					mvalo[0]= mval[0];
-				}
-				BIF_wait_for_statechange();
-			}
-		}
-		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
-		shade_buttons_change_3d();
-	}
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
 }
 
 void do_texbuts(unsigned short event)
 {
 	Tex *tex;
-	Material *ma;
 	ImBuf *ibuf;
 	ScrArea *sa;
 	ID *id;	
@@ -545,21 +278,21 @@ void do_texbuts(unsigned short event)
 	switch(event) {
 	case B_TEXCHANNEL:
 		scrarea_queue_headredraw(curarea);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_TE);
 		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case B_TEXTYPE:
 		if(tex==0) return;
 		tex->stype= 0;
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_TE);
 		break;
 	case B_DEFTEXVAR:
 		if(tex==0) return;
 		default_tex(tex);
 		BIF_undo_push("Default texture vars");
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_TE);
 		break;
 	case B_LOADTEXIMA:
 		if(tex==0) return;
@@ -600,13 +333,9 @@ void do_texbuts(unsigned short event)
 			load_tex_image(str);
 		}
 		break;
-	case B_TEXPRV:
-		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
-		break;
 	case B_TEXREDR_PRV:
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_TE);
 		shade_buttons_change_3d();
 		break;
 	case B_TEXIMABROWSE:
@@ -625,7 +354,7 @@ void do_texbuts(unsigned short event)
 				
 					BIF_undo_push("Browse image");
 					allqueue(REDRAWBUTSSHADING, 0);
-					BIF_all_preview_changed();
+					BIF_preview_changed(ID_TE);
 				}
 			}
 		}
@@ -647,7 +376,7 @@ void do_texbuts(unsigned short event)
 					IMB_freeImBuf(ibuf);
 					tex->ima->ibuf= 0;
 					tex->ima->ok= 1;
-					BIF_all_preview_changed();
+					BIF_preview_changed(ID_TE);
 				}
 			}
 		}
@@ -676,7 +405,7 @@ void do_texbuts(unsigned short event)
 			
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);
-			BIF_all_preview_changed();
+			BIF_preview_changed(ID_TE);
 		}
 		allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
 		
@@ -686,7 +415,7 @@ void do_texbuts(unsigned short event)
 			tex->ima->id.us--;
 			tex->ima= NULL;
 			allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
-			BIF_all_preview_changed(); 
+			BIF_preview_changed(ID_TE); 
 		}
 		break;
 	case B_TEXSETFRAMES:
@@ -741,49 +470,29 @@ void do_texbuts(unsigned short event)
 		tex->stype= 0;
 		tex->plugin= add_plugin_tex(str);
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_TE);
 		break;
 	
 	case B_COLORBAND:
 		if(tex==0) return;
-		if(tex->coba==0) tex->coba= add_colorband();
+		if(tex->coba==0) tex->coba= add_colorband(0);
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed(); // also ramps, so we do this
+		BIF_preview_changed(ID_TE); // also ramps, so we do this
 		break;
 	
-	case B_ADDCOLORBAND:
-	case B_DELCOLORBAND:
-	case B_CALCCBAND:
-	case B_CALCCBAND2:
-	case B_DOCOLORBAND:
-		/* these events can be called from material subcontext too */
-		id= G.buts->lockpoin;
-		if(id) {
-			if( GS(id->name)==ID_TE) {
-				tex= (Tex *)id;
-				do_colorbandbuts(tex->coba, event);
-			}
-			else {
-				ma= get_active_matlayer((Material *)id);
-				if(ma->ramp_show==0) do_colorbandbuts(ma->ramp_col, event);
-				else do_colorbandbuts(ma->ramp_spec, event);
-			}
-		}
-		break;
-		
 	case B_ENV_DELETE:
 		if(tex->env) {
 			RE_free_envmap(tex->env);
 			tex->env= 0;
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_all_preview_changed();
+			BIF_preview_changed(ID_TE);
 		}
 		break;
 	case B_ENV_FREE:
 		if(tex->env) {
 			RE_free_envmapdata(tex->env);
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_all_preview_changed();
+			BIF_preview_changed(ID_TE);
 		}
 		break;
 	case B_ENV_FREE_ALL:
@@ -797,7 +506,7 @@ void do_texbuts(unsigned short event)
 			tex= tex->id.next;
 		}
 		allqueue(REDRAWBUTSSHADING, 0);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_TE);
 		break;
 	case B_ENV_SAVE:
 		if(tex->env && tex->env->ok) {
@@ -809,7 +518,7 @@ void do_texbuts(unsigned short event)
 		break;	
 	case B_ENV_OB:
 		if(tex->env && tex->env->object) {
-			BIF_all_preview_changed();
+			BIF_preview_changed(ID_TE);
 			if ELEM(tex->env->object->type, OB_CAMERA, OB_LAMP) {
 				error("Camera or Lamp not allowed");
 				tex->env->object= NULL;
@@ -822,7 +531,7 @@ void do_texbuts(unsigned short event)
 			PluginTex *pit= tex->plugin;
 			if(pit && pit->callback) {
 				pit->callback(event - B_PLUGBUT);
-				BIF_all_preview_changed();
+				BIF_preview_changed(ID_TE);
 				allqueue(REDRAWBUTSSHADING, 0);
 			}
 		}
@@ -1353,37 +1062,111 @@ static void texture_panel_image(Tex *tex)
 
 }
 
-static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int offs, int redraw)
+static void colorband_pos_cb(void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+static void colorband_add_cb(void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	
+	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
+	coba->cur= coba->tot-1;
+	
+	colorband_pos_cb(coba, NULL);
+	BIF_undo_push("Add colorband");
+	
+}
+
+static void colorband_del_cb(void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=coba->cur; a<coba->tot; a++) {
+		coba->data[a]= coba->data[a+1];
+	}
+	if(coba->cur) coba->cur--;
+	coba->tot--;
+	
+	BIF_undo_push("Delete colorband");
+	BIF_preview_changed(ID_TE);
+}
+
+
+/* offset aligns from bottom, standard width 300, height 115 */
+static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int xoffs, int yoffs, int redraw)
 {
 	CBData *cbd;
 	uiBut *bt;
-
+	
 	if(coba==NULL) return;
 	
-	uiDefBut(block, BUT, B_ADDCOLORBAND, "Add",		90,180+offs,37,20, 0, 0, 0, 0, 0, "Adds a new colour position to the colorband");
-	uiDefButS(block, NUM, B_REDR,		"Cur:",		127,180+offs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active colour from the colorband");
-	uiDefBut(block, BUT, B_DELCOLORBAND, "Del",		209,180+offs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
-	uiDefButS(block, ROW, redraw,		 "E",		246,180+offs,16,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "C",		262,180+offs,16,20, &coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		278,180+offs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		294,180+offs,16,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
+	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new colour position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active colour from the colorband");
+	bt= uiDefBut(block, BUT, redraw,		"Del",		199+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	uiDefButS(block, ROW, redraw,		 "E",		236+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
+	uiDefButS(block, ROW, redraw,		"C",		252+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
+	uiDefButS(block, ROW, redraw,		"L",		268+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
+	uiDefButS(block, ROW, redraw,		"S",		284+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
 
-	bt=uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150+offs,300,30, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
-	uiButSetFunc(bt, do_colorband_cb, coba, NULL);
-
-	uiBlockSetDrawExtraFunc(block, drawcolorband_cb);
+	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	
 	cbd= coba->data + coba->cur;
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_CALCCBAND, "Pos",		10,125+offs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active colour");
-	uiDefButF(block, COL, B_TEXREDR_PRV, "",			10,105+offs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
-	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "A ",	10,85+offs,110,20, &cbd->a, 0.0, 1.0, 0, 0, "Sets the alpha value for this position");
+	bt= uiDefButF(block, NUM, redraw, "Pos",		xoffs,40+yoffs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active colour");
+	uiButSetFunc(bt, colorband_pos_cb, coba, NULL);
+	uiDefButF(block, COL, redraw,		"",		xoffs,20+yoffs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUMSLI, redraw,	"A ",	xoffs,yoffs,110,20, &cbd->a, 0.0, 1.0, 10, 0, "Sets the alpha value for this position");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "R ",	125,125+offs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active colour");
-	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "G ",	125,105+offs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active colour");
-	uiDefButF(block, NUMSLI, B_TEXREDR_PRV, "B ",	125,85+offs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active colour");
+	uiDefButF(block, NUMSLI, redraw,	"R ",	115+xoffs,40+yoffs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active colour");
+	uiDefButF(block, NUMSLI, redraw,	"G ",	115+xoffs,20+yoffs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active colour");
+	uiDefButF(block, NUMSLI, redraw,	"B ",	115+xoffs,yoffs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active colour");
 	uiBlockEndAlign(block);
+}
+
+void draw_colorband_buts_small(uiBlock *block, ColorBand *coba, rctf *butr, int event)
+{
+	CBData *cbd;
+	uiBut *bt;
+	float unit= (butr->xmax-butr->xmin)/12.0f;
+	float xs= butr->xmin;
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
+	bt= uiDefBut(block, BUT, event,	"Del",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	uiDefButS(block, ROW, event,		"E",		xs+8.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
+	uiDefButS(block, ROW, event,		"C",		xs+9.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
+	uiDefButS(block, ROW, event,		"L",		xs+10.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
+	uiDefButS(block, ROW, event,		"S",		xs+11.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
+	
+	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
+	
 }
 
 static void texture_panel_colors(Tex *tex)
@@ -1400,7 +1183,7 @@ static void texture_panel_colors(Tex *tex)
 	uiDefButBitS(block, TOG, TEX_COLORBAND, B_COLORBAND, "Colorband",10,180,80,20, &tex->flag, 0, 0, 0, 0, "Toggles colorband operations");
 
 	if(tex->flag & TEX_COLORBAND) {
-		draw_colorband_buts(block, tex->coba, 0, B_TEXREDR_PRV);
+		draw_colorband_buts(block, tex->coba, 10, 85, B_TEXREDR_PRV);
 	}
 	
 	/* RGB-BRICON */
@@ -1752,7 +1535,7 @@ void do_worldbuts(unsigned short event)
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Unlink world texture");
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_WO);
 		}
 		break;
 	case B_WMTEXCOPY:
@@ -1780,7 +1563,7 @@ void do_worldbuts(unsigned short event)
 			
 			id_us_plus((ID *)mtexcopybuf.tex);
 			BIF_undo_push("Paste mapping settings");
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_WO);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
@@ -1807,35 +1590,35 @@ static void world_panel_mapto(World *wrld)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
-	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
-	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_WORLDPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_WORLDPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
+	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_WORLDPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
-	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			10,80,135,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, COL, B_WORLDPRV, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "R ",			10,80,135,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, WOMAP_BLEND, B_MATPRV, "Blend",	10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
-	uiDefButBitS(block, TOG, WOMAP_HORIZ, B_MATPRV, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
-	uiDefButBitS(block, TOG, WOMAP_ZENUP, B_MATPRV, "ZenUp",	160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
-	uiDefButBitS(block, TOG, WOMAP_ZENDOWN, B_MATPRV, "ZenDo",	235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
+	uiDefButBitS(block, TOG, WOMAP_BLEND, B_WORLDPRV, "Blend",	10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
+	uiDefButBitS(block, TOG, WOMAP_HORIZ, B_WORLDPRV, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
+	uiDefButBitS(block, TOG, WOMAP_ZENUP, B_WORLDPRV, "ZenUp",	160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
+	uiDefButBitS(block, TOG, WOMAP_ZENDOWN, B_WORLDPRV, "ZenDo",	235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+	uiDefButS(block, MENU, B_WORLDPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col  ",		155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Nor  ",		155,80,155,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Var  ",		155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "Col  ",		155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "Nor  ",		155,80,155,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "Var  ",		155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
 	
 }
 
@@ -1902,24 +1685,24 @@ static void world_panel_texture(World *wrld)
 		
 	/* TEXCO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "View",		100,110,100,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses view vector for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Global",	200,110,100,20, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates (interior mist)");
+	uiDefButS(block, ROW, B_WORLDPRV, "View",		100,110,100,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses view vector for the texture coordinates");
+	uiDefButS(block, ROW, B_WORLDPRV, "Global",	200,110,100,20, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates (interior mist)");
 	
-	uiDefButS(block, ROW, B_MATPRV, "AngMap",	100,90,70,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses 360 degree angular coordinates, e.g. for spherical light probes");
-	uiDefButS(block, ROW, B_MATPRV, "Sphere",	170,90,65,20, &(mtex->texco), 4.0, (float)TEXCO_H_SPHEREMAP, 0, 0, "For 360 degree panorama sky, spherical mapped, only top half");
-	uiDefButS(block, ROW, B_MATPRV, "Tube",		235,90,65,20, &(mtex->texco), 4.0, (float)TEXCO_H_TUBEMAP, 0, 0, "For 360 degree panorama sky, cylindrical mapped, only top half");
+	uiDefButS(block, ROW, B_WORLDPRV, "AngMap",	100,90,70,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses 360 degree angular coordinates, e.g. for spherical light probes");
+	uiDefButS(block, ROW, B_WORLDPRV, "Sphere",	170,90,65,20, &(mtex->texco), 4.0, (float)TEXCO_H_SPHEREMAP, 0, 0, "For 360 degree panorama sky, spherical mapped, only top half");
+	uiDefButS(block, ROW, B_WORLDPRV, "Tube",		235,90,65,20, &(mtex->texco), 4.0, (float)TEXCO_H_TUBEMAP, 0, 0, "For 360 degree panorama sky, cylindrical mapped, only top half");
 	
-	uiDefButS(block, ROW, B_MATPRV, "Object",	100,70,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "", 170,70,130,20, &(mtex->object), "");
+	uiDefButS(block, ROW, B_WORLDPRV, "Object",	100,70,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_WORLDPRV, "", 170,70,130,20, &(mtex->object), "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "dX",		100,40,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "dY",		100,20,100,19, mtex->ofs+1, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Y coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "dZ",		100, 0,100,19, mtex->ofs+2, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Z coordinate");
+	uiDefButF(block, NUM, B_WORLDPRV, "dX",		100,40,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
+	uiDefButF(block, NUM, B_WORLDPRV, "dY",		100,20,100,19, mtex->ofs+1, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Y coordinate");
+	uiDefButF(block, NUM, B_WORLDPRV, "dZ",		100, 0,100,19, mtex->ofs+2, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Z coordinate");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "sizeX",	200,40,100,19, mtex->size, -10.0, 10.0, 10, 0, "Sets scaling for the texture's X size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeY",	200,20,100,19, mtex->size+1, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Y size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	200, 0,100,19, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");
+	uiDefButF(block, NUM, B_WORLDPRV, "sizeX",	200,40,100,19, mtex->size, -10.0, 10.0, 10, 0, "Sets scaling for the texture's X size");
+	uiDefButF(block, NUM, B_WORLDPRV, "sizeY",	200,20,100,19, mtex->size+1, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Y size");
+	uiDefButF(block, NUM, B_WORLDPRV, "sizeZ",	200, 0,100,19, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");
 	
 }
 
@@ -2037,28 +1820,28 @@ static void world_panel_world(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
 	uiBlockSetCol(block, TH_AUTO);
 
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
+	uiDefButF(block, COL, B_WORLDPRV, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
+	uiDefButF(block, COL, B_WORLDPRV, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_MATPRV,"HoR ",	10,130,145,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "Sets the amount of red colour at the horizon");
-	uiDefButF(block, NUMSLI,B_MATPRV,"HoG ",	10,110,145,19,	&(wrld->horg), 0.0, 1.0, B_COLHOR,0, "Sets the amount of green colour at the horizon");
-	uiDefButF(block, NUMSLI,B_MATPRV,"HoB ",	10,90,145,19,	&(wrld->horb), 0.0, 1.0, B_COLHOR,0, "Sets the amount of blue colour at the horizon");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoR ",	10,130,145,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "Sets the amount of red colour at the horizon");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoG ",	10,110,145,19,	&(wrld->horg), 0.0, 1.0, B_COLHOR,0, "Sets the amount of green colour at the horizon");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoB ",	10,90,145,19,	&(wrld->horb), 0.0, 1.0, B_COLHOR,0, "Sets the amount of blue colour at the horizon");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_MATPRV,"ZeR ",	160,130,145,19,	&(wrld->zenr), 0.0, 1.0, B_COLZEN,0, "Sets the amount of red colour at the zenith");
-	uiDefButF(block, NUMSLI,B_MATPRV,"ZeG ",	160,110,145,19,	&(wrld->zeng), 0.0, 1.0, B_COLZEN,0, "Sets the amount of green colour at the zenith");
-	uiDefButF(block, NUMSLI,B_MATPRV,"ZeB ",	160,90,145,19,	&(wrld->zenb), 0.0, 1.0, B_COLZEN,0, "Sets the amount of blue colour at the zenith");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeR ",	160,130,145,19,	&(wrld->zenr), 0.0, 1.0, B_COLZEN,0, "Sets the amount of red colour at the zenith");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeG ",	160,110,145,19,	&(wrld->zeng), 0.0, 1.0, B_COLZEN,0, "Sets the amount of green colour at the zenith");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeB ",	160,90,145,19,	&(wrld->zenb), 0.0, 1.0, B_COLZEN,0, "Sets the amount of blue colour at the zenith");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_MATPRV,"AmbR ",	10,50,145,19,	&(wrld->ambr), 0.0, 1.0 ,0,0, "Sets the amount of red ambient colour");
-	uiDefButF(block, NUMSLI,B_MATPRV,"AmbG ",	10,30,145,19,	&(wrld->ambg), 0.0, 1.0 ,0,0, "Sets the amount of green ambient colour");
-	uiDefButF(block, NUMSLI,B_MATPRV,"AmbB ",	10,10,145,19,	&(wrld->ambb), 0.0, 1.0 ,0,0, "Sets the amount of blue ambient colour");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbR ",	10,50,145,19,	&(wrld->ambr), 0.0, 1.0 ,0,0, "Sets the amount of red ambient colour");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbG ",	10,30,145,19,	&(wrld->ambg), 0.0, 1.0 ,0,0, "Sets the amount of green ambient colour");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbB ",	10,10,145,19,	&(wrld->ambb), 0.0, 1.0 ,0,0, "Sets the amount of blue ambient colour");
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButF(block, NUMSLI,B_MATPRV, "Exp ",			160,30,145,19,	&(wrld->exp), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
-	uiDefButF(block, NUMSLI,B_MATPRV, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
+	uiDefButF(block, NUMSLI,B_WORLDPRV, "Exp ",			160,30,145,19,	&(wrld->exp), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
+	uiDefButF(block, NUMSLI,B_WORLDPRV, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
 
 
 }
@@ -2081,9 +1864,9 @@ static void world_panel_preview(World *wrld)
 	uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, WO_SKYREAL, B_MATPRV,"Real",	200,175,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
-	uiDefButBitS(block, TOG, WO_SKYBLEND, B_MATPRV,"Blend",200,150,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with natural progression from horizon to zenith");
-	uiDefButBitS(block, TOG,WO_SKYPAPER, B_MATPRV,"Paper",200,125,80,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
+	uiDefButBitS(block, TOG, WO_SKYREAL, B_WORLDPRV,"Real",	200,175,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with a real horizon");
+	uiDefButBitS(block, TOG, WO_SKYBLEND, B_WORLDPRV,"Blend",200,150,80,25, &wrld->skytype, 0, 0, 0, 0, "Renders background with natural progression from horizon to zenith");
+	uiDefButBitS(block, TOG,WO_SKYPAPER, B_WORLDPRV,"Paper",200,125,80,25, &wrld->skytype, 0, 0, 0, 0, "Flattens blend or texture coordinates");
 	uiBlockEndAlign(block);
 
 }
@@ -2099,7 +1882,7 @@ void do_lampbuts(unsigned short event)
 
 	switch(event) {
 	case B_LAMPREDRAW:
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSSHADING, 0);
 		break;
@@ -2113,7 +1896,7 @@ void do_lampbuts(unsigned short event)
 			BIF_undo_push("Unlink world texture");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_LA);
 		}
 		break;
 	case B_SBUFF:
@@ -2162,7 +1945,7 @@ void do_lampbuts(unsigned short event)
 			
 			id_us_plus((ID *)mtexcopybuf.tex);
 			BIF_undo_push("Paste mapping settings");
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_LA);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
@@ -2193,27 +1976,27 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
-	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
-	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_LAMPPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_LAMPPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
+	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_LAMPPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
-	uiDefButF(block, NUMSLI, B_MATPRV, "R ",			10,80,135,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
-	uiDefButF(block, NUMSLI, B_MATPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, COL, B_LAMPPRV, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "R ",			10,80,135,19, &(mtex->r), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
 	
 	/* MAP TO */
-	uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic colour of the lamp");
+	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic colour of the lamp");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+	uiDefButS(block, MENU, B_LAMPPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col  ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "Col  ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
 
 }
 
@@ -2282,19 +2065,19 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	/* TEXCO */
 	uiBlockSetCol(block, TH_AUTO);
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "Glob",			100,110,60,20, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "View",			160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses view coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Object",		230,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "", 100,90,200,20, &(mtex->object), "");
+	uiDefButS(block, ROW, B_LAMPPRV, "Glob",			100,110,60,20, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_LAMPPRV, "View",			160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses view coordinates for the texture coordinates");
+	uiDefButS(block, ROW, B_LAMPPRV, "Object",		230,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_LAMPPRV, "", 100,90,200,20, &(mtex->object), "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,18, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "dY",		100,30,100,18, mtex->ofs+1, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Y coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "dZ",		100,10,100,18, mtex->ofs+2, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Z coordinate");
+	uiDefButF(block, NUM, B_LAMPPRV, "dX",		100,50,100,18, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
+	uiDefButF(block, NUM, B_LAMPPRV, "dY",		100,30,100,18, mtex->ofs+1, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Y coordinate");
+	uiDefButF(block, NUM, B_LAMPPRV, "dZ",		100,10,100,18, mtex->ofs+2, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Z coordinate");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "sizeX",	200,50,100,18, mtex->size, -10.0, 10.0, 10, 0, "Sets scaling for the texture's X size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeY",	200,30,100,18, mtex->size+1, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Y size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	200,10,100,18, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");
+	uiDefButF(block, NUM, B_LAMPPRV, "sizeX",	200,50,100,18, mtex->size, -10.0, 10.0, 10, 0, "Sets scaling for the texture's X size");
+	uiDefButF(block, NUM, B_LAMPPRV, "sizeY",	200,30,100,18, mtex->size+1, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Y size");
+	uiDefButF(block, NUM, B_LAMPPRV, "sizeZ",	200,10,100,18, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");
 	uiBlockEndAlign(block);
 }
 
@@ -2497,33 +2280,33 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	}
 	else if ELEM(la->type, LA_LOCAL, LA_SPOT) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButBitS(block, TOG, LA_QUAD, B_MATPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Uses inverse quadratic proportion for light attenuation");
+		uiDefButBitS(block, TOG, LA_QUAD, B_LAMPPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Uses inverse quadratic proportion for light attenuation");
 		uiDefButBitS(block, TOG, LA_SPHERE, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
 	}
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButBitS(block, TOG, LA_LAYER, 0,"Layer",				10,70,100,19,&la->mode, 0, 0, 0, 0, "Illuminates objects in the same layer as the lamp only");
-	uiDefButBitS(block, TOG, LA_NEG, B_MATPRV,"Negative",	10,50,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
+	uiDefButBitS(block, TOG, LA_NEG, B_LAMPPRV,"Negative",	10,50,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
 	uiDefButBitS(block, TOG, LA_NO_DIFF, 0,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
 	uiDefButBitS(block, TOG, LA_NO_SPEC, 0,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButF(block, NUMSLI,B_MATPRV,"Energy ",	120,150,180,20, &(la->energy), 0.0, 10.0, 0, 0, "Sets the intensity of the light");
+	uiDefButF(block, NUMSLI,B_LAMPPRV,"Energy ",	120,150,180,20, &(la->energy), 0.0, 10.0, 0, 0, "Sets the intensity of the light");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_MATPRV,"R ",		120,120,180,20,&la->r, 0.0, 1.0, B_COLLAMP, 0, "Sets the red component of the light");
-	uiDefButF(block, NUMSLI,B_MATPRV,"G ",		120,100,180,20,&la->g, 0.0, 1.0, B_COLLAMP, 0, "Sets the green component of the light");
-	uiDefButF(block, NUMSLI,B_MATPRV,"B ",		120,80,180,20,&la->b, 0.0, 1.0, B_COLLAMP, 0, "Sets the blue component of the light");
+	uiDefButF(block, NUMSLI,B_LAMPPRV,"R ",		120,120,180,20,&la->r, 0.0, 1.0, B_COLLAMP, 0, "Sets the red component of the light");
+	uiDefButF(block, NUMSLI,B_LAMPPRV,"G ",		120,100,180,20,&la->g, 0.0, 1.0, B_COLLAMP, 0, "Sets the green component of the light");
+	uiDefButF(block, NUMSLI,B_LAMPPRV,"B ",		120,80,180,20,&la->b, 0.0, 1.0, B_COLLAMP, 0, "Sets the blue component of the light");
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
+	uiDefButF(block, COL, B_LAMPPRV, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
 	
 	uiBlockBeginAlign(block);
 	if ELEM(la->type, LA_LOCAL, LA_SPOT) {
-		uiDefButF(block, NUMSLI,B_MATPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
-		uiDefButF(block, NUMSLI,B_MATPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
@@ -2626,7 +2409,7 @@ void do_matbuts(unsigned short event)
 				break;
 			}
 		}
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 0);
 		shade_buttons_change_3d();
 		break;
@@ -2636,7 +2419,7 @@ void do_matbuts(unsigned short event)
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWOOPS, 0);
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_MA);
 		break;
 	case B_MATFROM:
 		scrarea_queue_headredraw(curarea);
@@ -2645,15 +2428,21 @@ void do_matbuts(unsigned short event)
 		// BIF_previewdraw();  push/pop!
 		break;
 	case B_MATPRV:
-		/* this event also used by lamp, tex and sky */
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 0);
 		shade_buttons_change_3d();
 		break;
-	case B_MATPRV_DRAW:
-		BIF_preview_changed(G.buts);
+	case B_TEXPRV:
+		BIF_preview_changed(ID_TE);
 		allqueue(REDRAWBUTSSHADING, 0);
-		shade_buttons_change_3d();
+		break;
+	case B_LAMPPRV:
+		BIF_preview_changed(ID_LA);
+		allqueue(REDRAWBUTSSHADING, 0);
+		break;
+	case B_WORLDPRV:
+		BIF_preview_changed(ID_WO);
+		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case B_MATHALO:
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
@@ -2661,7 +2450,7 @@ void do_matbuts(unsigned short event)
 		if((ma->mode & MA_HALO)==0) {
 			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV);
 		}
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 0);
 		shade_buttons_change_3d();
 		break;
@@ -2674,7 +2463,7 @@ void do_matbuts(unsigned short event)
 			BIF_undo_push("Unlink material texture");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_MA);
 		}
 		break;
 	case B_MTEXCOPY:
@@ -2700,7 +2489,7 @@ void do_matbuts(unsigned short event)
 			
 			id_us_plus((ID *)mtexcopybuf.tex);
 			BIF_undo_push("Paste mapping settings");
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_MA);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
@@ -2714,25 +2503,25 @@ void do_matbuts(unsigned short event)
 		if(ma) {
 			ma->mode &= ~MA_RAYTRANSP;
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_MA);
 		}
 		break;
 	case B_MATRAYTRANSP:
 		if(ma) {
 			ma->mode &= ~MA_ZTRA;
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_MA);
 		}
 		break;
 	case B_MATCOLORBAND:
 		if(ma) {
 			if(ma->mode & MA_RAMP_COL)
-				if(ma->ramp_col==NULL) ma->ramp_col= add_colorband();
+				if(ma->ramp_col==NULL) ma->ramp_col= add_colorband(0);
 			if(ma->mode & MA_RAMP_SPEC)
-				if(ma->ramp_spec==NULL) ma->ramp_spec= add_colorband();
+				if(ma->ramp_spec==NULL) ma->ramp_spec= add_colorband(0);
 
 			allqueue(REDRAWBUTSSHADING, 0);
-			BIF_all_preview_changed();
+			BIF_preview_changed(ID_MA);
 			shade_buttons_change_3d();
 		}
 		break;
@@ -2756,12 +2545,28 @@ void do_matbuts(unsigned short event)
 						ml->mat->id.us++;
 					}
 					allqueue(REDRAWBUTSSHADING, 0);
-					BIF_all_preview_changed();
+					BIF_preview_changed(ID_MA);
 					
 					break;
 				}
 			}
 		}
+		break;
+	case B_MAT_USENODES:
+		ma= G.buts->lockpoin;	/* use base material instead */
+		if(ma) {
+			if(ma->use_nodes && ma->nodetree==NULL) {
+				node_shader_default(ma);
+			}
+			BIF_preview_changed(ID_MA);
+			allqueue(REDRAWNODE, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
+		}		
+		break;
+	case B_NODE_EXEC:
+		BIF_preview_changed(ID_MA);
+		allqueue(REDRAWNODE, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	}
 }
@@ -2791,7 +2596,7 @@ static void material_panel_map_to(Material *ma)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, B_MATPRV_DRAW, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
+	uiDefButF(block, COL, B_MATPRV, "",			10,100,135,19, &(mtex->r), 0, 0, 0, B_MTEXCOL, "");
 	
 	if(ma->colormodel==MA_HSV) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -2877,7 +2682,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiDefButS(block, ROW, B_MATPRV, "Refl",			864,160,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Uses reflection vector as texture coordinates");
 	
 	uiDefButS(block, ROW, B_MATPRV, "Stress",		630,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
-	uiDefButS(block, ROW, B_MATPRV, "Tangent",		700,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_TANGENT, 0, 0, "Uses te optional tangent vector as texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Tangent",		700,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_TANGENT, 0, 0, "Uses the optional tangent vector as texture coordinates");
 
 	/* COORDS */
 	uiBlockBeginAlign(block);
@@ -2933,7 +2738,7 @@ static void material_panel_texture(Material *ma)
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
 		str[10]= 0;
-		uiDefButC(block, ROW, B_MATPRV_DRAW, str,	10, 180-18*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
+		uiDefButC(block, ROW, B_MATPRV, str,	10, 180-18*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 	
@@ -2944,8 +2749,8 @@ static void material_panel_texture(Material *ma)
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
 			if(ma->septex & (1<<a)) 
-				uiDefButBitS(block, TOG, 1<<a, B_MATPRV_DRAW, " ",	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
-			else uiDefIconButBitS(block, TOG, 1<<a, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+				uiDefButBitS(block, TOG, 1<<a, B_MATPRV, " ",	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+			else uiDefIconButBitS(block, TOG, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
 		}
 	}
 	
@@ -3077,7 +2882,7 @@ static void material_panel_tramir_yafray(Material *ma)
 
 		/* absorption color */
 		uiDefBut(block, LABEL, 0, "Absorption Color", 10, 98, 150, 18, 0, 0.0, 0.0, 0, 0, "");
-		uiDefButF(block, COL, B_MATPRV_DRAW, "", 10, 38, 30, 58, &ma->YF_ar, 0, 0, 0, B_MATCOL, "transmit absorption color, white is no absorption");
+		uiDefButF(block, COL, B_MATPRV, "", 10, 38, 30, 58, &ma->YF_ar, 0, 0, 0, B_MATCOL, "transmit absorption color, white is no absorption");
 		uiDefButF(block, NUMSLI, B_MATPRV, "aR ", 40, 78, 120, 18, &ma->YF_ar, 1e-7f, 1.0, B_MATCOL, 0, "");
 		uiDefButF(block, NUMSLI, B_MATPRV, "aG ", 40, 58, 120, 18, &ma->YF_ag, 1e-7f, 1.0, B_MATCOL, 0, "");
 		uiDefButF(block, NUMSLI, B_MATPRV, "aB ", 40, 38, 120, 18, &ma->YF_ab, 1e-7f, 1.0, B_MATCOL, 0, "");
@@ -3123,7 +2928,7 @@ static void material_panel_shading(Material *ma)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_HALO_FLARE, B_MATPRV_DRAW, "Flare",245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
+		uiDefButBitI(block, TOG, MA_HALO_FLARE, B_MATPRV, "Flare",245,142,65,28, &(ma->mode), 0, 0, 0, 0, "Renders halo as a lensflare");
 		uiDefButBitI(block, TOG, MA_HALO_RINGS, B_MATPRV, "Rings",		245,123,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders rings over halo");
 		uiDefButBitI(block, TOG, MA_HALO_LINES, B_MATPRV, "Lines",		245,104,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders star shaped lines over halo");
 		uiDefButBitI(block, TOG, MA_STAR, B_MATPRV, "Star",		245,85,65, 18, &(ma->mode), 0, 0, 0, 0, "Renders halo as a star");
@@ -3138,7 +2943,7 @@ static void material_panel_shading(Material *ma)
 		char *str2= "Specular Shader%t|CookTorr %x0|Phong %x1|Blinn %x2|Toon %x3|WardIso %x4";
 		
 		/* diff shader buttons */
-		uiDefButS(block, MENU, B_MATPRV_DRAW, str1,		9, 180,78,19, &(ma->diff_shader), 0.0, 0.0, 0, 0, "Creates a diffuse shader");
+		uiDefButS(block, MENU, B_MATPRV, str1,		9, 180,78,19, &(ma->diff_shader), 0.0, 0.0, 0, 0, "Creates a diffuse shader");
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_MATPRV, "Ref   ",	90,180,150,19, &(ma->ref), 0.0, 1.0, 0, 0, "Sets the amount of reflection");
@@ -3157,7 +2962,7 @@ static void material_panel_shading(Material *ma)
 		uiBlockEndAlign(block);
 		
 		/* spec shader buttons */
-		uiDefButS(block, MENU, B_MATPRV_DRAW, str2,		9,120,77,19, &(ma->spec_shader), 0.0, 0.0, 0, 0, "Creates a specular shader");
+		uiDefButS(block, MENU, B_MATPRV, str2,		9,120,77,19, &(ma->spec_shader), 0.0, 0.0, 0, 0, "Creates a specular shader");
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_MATPRV, "Spec ",		90,120,150,19, &(ma->spec), 0.0, 2.0, 0, 0, "Sets the degree of specularity");
@@ -3302,13 +3107,13 @@ static void material_panel_layers(Material *ma)
 		if(ml->flag & ML_ACTIVE) break;
 	
 	if(ml==NULL)
-		but=uiDefIconBut(block, BUT, B_MATPRV_DRAW, ICON_MATERIAL,	10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
-	else but=uiDefBut(block, BUT, B_MATPRV_DRAW, " ",		10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
+		but=uiDefIconBut(block, BUT, B_MATPRV, ICON_MATERIAL,	10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
+	else but=uiDefBut(block, BUT, B_MATPRV, " ",		10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
 	uiButSetFunc(but, matlayer_active, ma, NULL);
 	
 	/* Enable/disable for current material */
 	if(ma->ml_flag & ML_RENDER)
-		uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	30, 180, 20, 20, &ma->ml_flag, 0.0, 0.0, 0, 0, "Enable or disable base Material");
+		uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV, ICON_CHECKBOX_HLT,	30, 180, 20, 20, &ma->ml_flag, 0.0, 0.0, 0, 0, "Enable or disable base Material");
 	else uiDefButBitS(block, TOG, ML_RENDER, B_MATPRV, " ",	30, 180, 20, 20, &ma->ml_flag, 0.0, 0.0, 0, 0, "Enable or disable base Material");
 	
 	uiBlockEndAlign(block);
@@ -3328,13 +3133,13 @@ static void material_panel_layers(Material *ma)
 		/* Active button */
 		uiBlockBeginAlign(block);
 		if(ml->flag & ML_ACTIVE)
-			but=uiDefIconBut(block, BUT, B_MATPRV_DRAW, ICON_MATERIAL,	10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
-		else but=uiDefBut(block, BUT, B_MATPRV_DRAW, " ",		10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
+			but=uiDefIconBut(block, BUT, B_MATPRV, ICON_MATERIAL,	10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
+		else but=uiDefBut(block, BUT, B_MATPRV, " ",		10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
 		uiButSetFunc(but, matlayer_active, ma, ml);
 		
 		/* enable/disable button */
 		if(ml->flag & ML_RENDER)
-			uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	30, yco, 20, 20, &ml->flag, 0.0, 0.0, 0, 0, "Enable or disable this layer");
+			uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV, ICON_CHECKBOX_HLT,	30, yco, 20, 20, &ml->flag, 0.0, 0.0, 0, 0, "Enable or disable this layer");
 		else uiDefButBitS(block, TOG, ML_RENDER, B_MATPRV, " ",	30, yco, 20, 20, &ml->flag, 0.0, 0.0, 0, 0, "Enable or disable this layer");
 		
 		uiBlockBeginAlign(block);
@@ -3369,13 +3174,13 @@ static void material_panel_layers(Material *ma)
 		uiButSetFunc(but, matlayer_add, ma, ml);
 		
 		/* move up/down/delete */
-		but = uiDefIconBut(block, BUT, B_MATPRV_DRAW, VICON_MOVE_UP, 250, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer up");
+		but = uiDefIconBut(block, BUT, B_MATPRV, VICON_MOVE_UP, 250, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer up");
 		uiButSetFunc(but, matlayer_moveUp, ma, ml);
 		
-		but = uiDefIconBut(block, BUT, B_MATPRV_DRAW, VICON_MOVE_DOWN, 270, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer down");
+		but = uiDefIconBut(block, BUT, B_MATPRV, VICON_MOVE_DOWN, 270, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer down");
 		uiButSetFunc(but, matlayer_moveDown, ma, ml);
 		
-		but = uiDefIconBut(block, BUT, B_MATPRV_DRAW, VICON_X, 290, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete material layer");
+		but = uiDefIconBut(block, BUT, B_MATPRV, VICON_X, 290, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete material layer");
 		uiButSetFunc(but, matlayer_del, ma, ml);
 		
 		/* blend slider and operation */
@@ -3399,6 +3204,36 @@ static void material_panel_layers(Material *ma)
 	
 	if(yco < 0) uiNewPanelHeight(block, 204-yco);
 
+}
+
+static void material_panel_nodes(Material *ma)
+{
+	Material *nodema;
+	bNode *node;
+	uiBlock *block;
+	char str[64];
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_nodes", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Preview", "Material");
+	if(uiNewPanel(curarea, block, "Nodes", "Material", 0, 0, 318, 204)==0) return;
+	
+	uiDefButC(block, TOG, B_MAT_USENODES, "Use Nodes", 10,180,150,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
+	nodema= get_active_matlayer(ma);
+	if(nodema) {
+		sprintf(str, "Active: %s", nodema->id.name+2);
+		uiDefBut(block, LABEL, B_NOP, str, 160,180,150,20, NULL, 0.0f, 0.0f, 0, 0, "");
+	}
+	node= nodeGetActive(ma->nodetree);
+	if(node==NULL) return;
+	
+	if(node->typeinfo->butfunc) {
+		rctf rct;
+		rct.xmin= 10.0f;
+		rct.xmax= rct.xmin+node->typeinfo->width;
+		rct.ymax= 155.0;
+		rct.ymin= rct.ymax - (float)node->typeinfo->butfunc(NULL, node, NULL);
+		node->typeinfo->butfunc(block, node, &rct);
+	}
 }
 
 
@@ -3436,7 +3271,7 @@ static void material_panel_ramps(Material *ma)
 			methodc= &ma->rampblend_spec;
 			facp= &ma->rampfac_spec;
 		}
-		draw_colorband_buts(block, coba, -35, B_MATPRV);	// aligns with previous button
+		draw_colorband_buts(block, coba, 10, 50, B_MATPRV);	// aligns with previous button
 		
 		uiDefBut(block, LABEL, 0, "Input",10,30,90,20, NULL, 0, 0, 0, 0, "");
 		uiDefBut(block, LABEL, 0, "Method",100,30,90,20, NULL, 0, 0, 0, 0, "");
@@ -3554,9 +3389,9 @@ static void material_panel_material(Object *ob, Material *ma)
 		}
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
-		uiDefButF(block, COL, B_MATPRV_DRAW, "",		8,97,72,20, &(ma->r), 0, 0, 0, B_MATCOL, "");
-		uiDefButF(block, COL, B_MATPRV_DRAW, "",	8,77,72,20, &(ma->specr), 0, 0, 0, B_SPECCOL, "");
-		uiDefButF(block, COL, B_MATPRV_DRAW, "",		8,57,72,20, &(ma->mirr), 0, 0, 0, B_MIRCOL, "");
+		uiDefButF(block, COL, B_MATPRV, "",		8,97,72,20, &(ma->r), 0, 0, 0, B_MATCOL, "");
+		uiDefButF(block, COL, B_MATPRV, "",	8,77,72,20, &(ma->specr), 0, 0, 0, B_SPECCOL, "");
+		uiDefButF(block, COL, B_MATPRV, "",		8,57,72,20, &(ma->mirr), 0, 0, 0, B_MIRCOL, "");
 	
 		uiBlockBeginAlign(block);
 		if(ma->mode & MA_HALO) {
@@ -3609,6 +3444,8 @@ static void material_panel_preview(Material *ma)
 	if(uiNewPanel(curarea, block, "Preview", "Material", 0, 0, 318, 204)==0) return;
 	
 	if(ma) {
+		G.buts->lockpoin= ma;	/* BIF_previewdraw callback will read it */
+		
 		uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
 	
 		// label to force a boundbox for buttons not to be centered
@@ -3646,6 +3483,7 @@ void material_panels()
 		
 		if(ma) {
 			material_panel_layers(ma);
+			material_panel_nodes(ma);
 			
 			ma= get_active_matlayer(ma);
 			if(ma) {
@@ -3827,7 +3665,7 @@ void clever_numbuts_buts()
 			la->r = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
 			la->g = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
 			la->b = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_MA);
 		}
 		break;
 	case TAB_SHADING_WORLD:
@@ -3847,7 +3685,7 @@ void clever_numbuts_buts()
 			wo->zenr = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
 			wo->zeng = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
 			wo->zenb = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_WO);
 
 		}
 		break;
@@ -3880,7 +3718,7 @@ void clever_numbuts_buts()
 			ma->mirg = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
 			ma->mirb = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
 			
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_MA);
 		}
 		break;
 	}

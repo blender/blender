@@ -2352,7 +2352,7 @@ void render_realtime_texture(ShadeInput *shi)
 		tex2.type= TEX_IMAGE;
 	}
 	
-	if(((int)(shi->ys+0.5)) & 1) tex= &tex1; else tex= &tex2;	// threadsafe
+	if(shi->ys & 1) tex= &tex1; else tex= &tex2;	// threadsafe
 	
 	ima = shi->vlr->tface->tpage;
 	if(ima) {

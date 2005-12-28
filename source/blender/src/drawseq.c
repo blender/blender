@@ -503,7 +503,7 @@ static void draw_image_seq(ScrArea *sa)
 	glaDefine2DArea(&curarea->winrct);
 	glPixelZoom(zoom, zoom);
 	
-	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
 	
 	glPixelZoom(1.0, 1.0);
 

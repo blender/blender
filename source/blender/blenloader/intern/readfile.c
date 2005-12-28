@@ -76,6 +76,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // NT
@@ -1205,6 +1206,61 @@ static void test_pointer_array(FileData *fd, void **mat)
 	}
 }
 
+/* ************ READ NODE TREE *************** */
+
+/* ntree is not NULL */
+static void lib_link_nodetree(FileData *fd, ID *id, bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		node->id= newlibadr_us(fd, id->lib, node->id);
+}
+
+static bNodeTree *direct_link_nodetree(FileData *fd, bNodeTree *ntree)
+{
+	/* note: writing and reading goes in sync, for speed */
+	if(ntree) {
+		ntree= newdataadr(fd, ntree);
+		
+		if(ntree) {
+			bNode *node;
+			bNodeSocket *sock;
+			bNodeLink *link;
+			
+			ntree->init= 0;		/* to set callbacks */
+			ntree->data= NULL;	/* safety only */
+			
+			link_list(fd, &ntree->nodes);
+			for(node= ntree->nodes.first; node; node= node->next) {
+				node->storage= newdataadr(fd, node->storage);
+				link_list(fd, &node->inputs);
+				link_list(fd, &node->outputs);
+			}
+			link_list(fd, &ntree->links);
+			
+			/* and we connect the rest */
+			for(node= ntree->nodes.first; node; node= node->next) {
+				node->preview= NULL;
+				node->lasty= 0;
+				for(sock= node->inputs.first; sock; sock= sock->next)
+					sock->link= newdataadr(fd, sock->link);
+			}
+			for(link= ntree->links.first; link; link= link->next) {
+				link->fromnode= newdataadr(fd, link->fromnode);
+				link->tonode= newdataadr(fd, link->tonode);
+				link->fromsock= newdataadr(fd, link->fromsock);
+				link->tosock= newdataadr(fd, link->tosock);
+			}
+			/* right after read file, the save-undo will need it */
+			/* verify also does a full type checking. This is relative slow... so we
+				 might move this later to the do_versions, and put ntreeInitTypes() only here */
+			ntreeVerifyTypes(ntree);
+		}
+	}
+	return ntree;
+}
+
 /* ************ READ PACKEDFILE *************** */
 
 static PackedFile *direct_link_packedfile(FileData *fd, PackedFile *oldpf)
@@ -1993,7 +2049,7 @@ static void lib_link_material(FileData *fd, Main *main)
 
 			ma->ipo= newlibadr_us(fd, ma->id.lib, ma->ipo);
 			ma->group= newlibadr_us(fd, ma->id.lib, ma->group);
-
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= ma->mtex[a];
 				if(mtex) {
@@ -2005,7 +2061,10 @@ static void lib_link_material(FileData *fd, Main *main)
 			
 			for (ml=ma->layers.first; ml; ml=ml->next)
 				ml->mat= newlibadr_us(fd, ma->id.lib, ml->mat);
-				
+			
+			if(ma->nodetree)
+				lib_link_nodetree(fd, &ma->id, ma->nodetree);
+			
 			ma->id.flag -= LIB_NEEDLINK;
 		}
 		ma= ma->id.next;
@@ -2026,7 +2085,8 @@ static void direct_link_material(FileData *fd, Material *ma)
 	direct_link_scriptlink(fd, &ma->scriptlink);
 	
 	link_list(fd, &ma->layers);
-
+	
+	ma->nodetree= direct_link_nodetree(fd, ma->nodetree);
 }
 
 /* ************ READ MESH ***************** */
@@ -2994,6 +3054,13 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 
 					ssound->sound= restore_pointer_by_name(newmain, (ID *)ssound->sound, 1);
 				}
+				else if(sl->spacetype==SPACE_NODE) {
+					SpaceNode *snode= (SpaceNode *)sl;
+					
+					snode->nodetree= NULL;
+					snode->block= NULL;
+					snode->flag |= SNODE_DO_PREVIEW;
+				}
 			}
 			sa= sa->next;
 		}
@@ -3088,6 +3155,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				SpaceNode *snode= (SpaceNode *)sl;
 				snode->nodetree= NULL;
 				snode->block= NULL;
+				snode->flag |= SNODE_DO_PREVIEW;
 			}
 		}
 
@@ -5115,11 +5183,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->strand_sta= ma->strand_end= 1.0f;
 				ma->mode |= MA_TANGENT_STR;
 			}
-			/* remove this test before 2.40 too! pad is set to denote check was done */
-			if(ma->pad==0) {
-				if(ma->mode & MA_TRACEBLE) ma->mode |= MA_SHADBUF;
-				ma->pad= 1;
-			}
+			if(ma->mode & MA_TRACEBLE) ma->mode |= MA_SHADBUF;
+
 			/* orange stuff, so should be done for 2.40 too */
 			if(ma->layers.first==NULL) {
 				ma->ml_flag= ML_RENDER;
@@ -5378,6 +5443,13 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 	for (ml=ma->layers.first; ml; ml=ml->next) {
 		if(ml->mat)
 			expand_doit(fd, mainvar, ml->mat);
+	}
+	
+	if(ma->nodetree) {
+		bNode *node;
+		for(node= ma->nodetree->nodes.first; node; node= node->next)
+			if(node->id)
+				expand_doit(fd, mainvar, node->id);
 	}
 }
 

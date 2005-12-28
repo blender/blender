@@ -37,40 +37,113 @@ struct bNodeTree;
 struct bNode;
 struct bNodeLink;
 struct bNodeSocket;
+struct bNodeStack;
+struct uiBlock;
+struct rctf;
 struct ListBase;
 
 #define SOCK_IN		1
 #define SOCK_OUT	2
 
+/* ************** NODE TYPE DEFINITIONS ***** */
 
-/* ************** GENERIC API *************** */
+typedef struct bNodeSocketType {
+	int type, limit;
+	char *name;
+	float val1, val2, val3, val4;	/* default alloc value for inputs */
+	float min, max;					/* default range for inputs */
+	
+	/* after this line is used internal only */
+	struct bNodeSocket *sock;		/* to verify */
+	
+} bNodeSocketType;
 
+typedef struct bNodeType {
+	int type;
+	char *name;
+	float width, minwidth, maxwidth;
+	short nclass, flag;
+	
+	bNodeSocketType *inputs, *outputs;
+	
+	char storagename[64];			/* struct name for DNA */
+	
+	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
+	
+	/* after this line is set on startup of blender */
+	int (*butfunc)(struct uiBlock *, struct bNode *, rctf *);
+
+} bNodeType;
+
+/* nodetype->nclass, also for themes */
+#define NODE_CLASS_INPUT		0
+#define NODE_CLASS_OUTPUT		1
+#define NODE_CLASS_GENERATOR	2
+#define NODE_CLASS_OPERATOR		3
+
+/* ************** GENERIC API, TREES *************** */
+
+struct bNodeTree *ntreeAddTree(int type);
+void			ntreeInitTypes(struct bNodeTree *ntree);
+void			ntreeFreeTree(struct bNodeTree *ntree);
+struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
+
+void			ntreeSolveOrder(struct bNodeTree *ntree);
+
+void			ntreeBeginExecTree(struct bNodeTree *ntree, int xsize, int ysize);
+void			ntreeExecTree(struct bNodeTree *ntree);
+void			ntreeEndExecTree(struct bNodeTree *ntree);
+void			ntreeClearPixelTree(struct bNodeTree *, int, int);
+
+/* ************** GENERIC API, NODES *************** */
+
+void			nodeAddToPreview(struct bNode *, float *, int, int);
+
+struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type);
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
-void			nodeFreeTree(struct bNodeTree *ntree);
-
-struct bNode	*nodeAddNode(struct bNodeTree *ntree, char *name);
-struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
-struct bNodeSocket *nodeAddSocket(struct bNode *node, int type, int where, int limit, char *name);
+struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
+void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
 int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
-
-void			nodeSolveOrder(struct bNodeTree *ntree);
-void			nodeExecTree(struct bNodeTree *ntree);
+struct bNode	*nodeGetActive(struct bNodeTree *ntree);
+struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 
 /* ************** SHADER NODES *************** */
 
-/* types are needed to restore callbacks */
-#define SH_NODE_TEST		0
-#define SH_NODE_RGB			1
-#define SH_NODE_VALUE		2
-#define SH_NODE_MIX_RGB		3
-#define SH_NODE_SHOW_RGB	4
+struct ShadeInput;
+struct ShadeResult;
 
-struct bNode	*node_shader_add(struct bNodeTree *ntree, int type);
-void			node_shader_set_execfunc(struct bNode *node);
+/* note: types are needed to restore callbacks, don't change values */
+#define SH_NODE_INPUT		0
+#define SH_NODE_OUTPUT		1
+
+#define SH_NODE_MATERIAL	100
+#define SH_NODE_RGB			101
+#define SH_NODE_VALUE		102
+#define SH_NODE_MIX_RGB		103
+#define SH_NODE_VALTORGB	104
+#define SH_NODE_RGBTOBW		105
+#define SH_NODE_TEXTURE		106
+
+/* custom defines: options for Material node */
+#define SH_NODE_MAT_DIFF	1
+#define SH_NODE_MAT_SPEC	2
+#define SH_NODE_MAT_NEG		4
+
+/* the type definitions array */
+extern bNodeType *node_all_shaders[];
+
+/* API */
+struct bNode	*nodeShaderAdd(struct bNodeTree *ntree, int type);
+void			nodeShaderSetExecfunc(struct bNode *node);
+
+void			ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
+
+				/* switch material render loop */
+void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
 
 #endif
 

@@ -329,16 +329,16 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 			char *rect= (char *)R.rectot;
 			
 			glColorMask(1, 0, 0, 0);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, rect+3);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, rect+3);
 			glColorMask(0, 1, 0, 0);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, rect+2);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, rect+2);
 			glColorMask(0, 0, 1, 0);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, rect+1);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, rect+1);
 			glColorMask(1, 1, 1, 1);
 			
 		}
 		else {
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, R.rectot);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, R.rectot);
 		}
 		glPixelZoom(1.0, 1.0);
 	}
@@ -743,7 +743,7 @@ static void renderwin_progress(RenderWin *rw, int start_y, int nlines, int rect_
 
 	glDrawBuffer(GL_FRONT);
 	glPixelZoom(rw->zoom, rw->zoom);
-	glaDrawPixelsSafe(disprect[0][0], disprect[0][1] + start_y*rw->zoom, rect_w, nlines, &rect[start_y*rect_w*4]);
+	glaDrawPixelsSafe(disprect[0][0], disprect[0][1] + start_y*rw->zoom, rect_w, nlines, GL_UNSIGNED_BYTE, &rect[start_y*rect_w*4]);
 	glPixelZoom(1.0, 1.0);
 	glFlush();
 	glDrawBuffer(GL_BACK);
@@ -830,7 +830,7 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 		sy= vb.ymin + facy*y1;
 
 		glPixelZoom(facx, facy);
-		glaDrawPixelsSafe(sx, sy, w, nlines, rect+w*y1);
+		glaDrawPixelsSafe(sx, sy, w, nlines, GL_UNSIGNED_BYTE, rect+w*y1);
 		glPixelZoom(1.0, 1.0);
 
 		glFlush();
@@ -1090,7 +1090,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	
 		/* after an envmap creation...  */
 		if(R.flag & R_REDRAW_PRV) {
-			BIF_all_preview_changed();
+			BIF_preview_changed(ID_TE);
 		}
 		allqueue(REDRAWBUTSSCENE, 0);	// visualize fbuf for example
 	}

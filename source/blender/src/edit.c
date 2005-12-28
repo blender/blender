@@ -129,12 +129,12 @@ void circle_selectCB(select_CBfunc func);
 /* local protos ---------------*/
 void snap_curs_to_firstsel(void);
 
-
-int get_border(rcti *rect, short col)
+/* flag==2 only border, flag==3 cross+border */
+int get_border(rcti *rect, short flag)
 {
 	float dvec[4], fac1, fac2;
 	int retval=1;
-	unsigned short event;
+	unsigned short event= 0;
 	short mval[2], mvalo[4], val, x1, y1;
 	char str[64];
 
@@ -153,56 +153,59 @@ int get_border(rcti *rect, short col)
 	persp(PERSP_WIN);
 	initgrabz(0.0, 0.0, 0.0);
 	
-	getmouseco_areawin(mvalo);
+	if(flag & 1) {
+		getmouseco_areawin(mvalo);
 
-	/* draws the selection initial cross */
-	sdrawXORline4(0, 0,  mvalo[1],  curarea->winx,  mvalo[1]);
-	sdrawXORline4(1, mvalo[0],  0,  mvalo[0],  curarea->winy); 
-	glFlush();
-	
-	while(TRUE) {
-	
-		/* selection loop while mouse pressed */
-		getmouseco_areawin(mval);
-
-		if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
-
-			/* aiming cross */
-  			sdrawXORline4(0, 0,  mval[1],  curarea->winx,  mval[1]);
-  			sdrawXORline4(1, mval[0],  0,  mval[0],  curarea->winy);
-			glFlush();
-
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-		}
-		event= extern_qread(&val);
-
-		if(event && val) {
-
-			/* for when a renderwindow is open, and a mouse cursor activates it */
-			persp(PERSP_VIEW);
-			mywinset(curarea->win);
-			persp(PERSP_WIN);
-			
-			if(event==ESCKEY) {
-				retval= 0;
-				break;
-			}
-			else if(event==BKEY) {
-				/* b has been pressed twice: proceed with circle select */
-				retval= 0;
-				break;
-			}
-			else if(event==LEFTMOUSE) break;
-			else if(event==MIDDLEMOUSE) break;
-			else if(event==RIGHTMOUSE) break;
-		}
-		else PIL_sleep_ms(10);
+		/* draws the selection initial cross */
+		sdrawXORline4(0, 0,  mvalo[1],  curarea->winx,  mvalo[1]);
+		sdrawXORline4(1, mvalo[0],  0,  mvalo[0],  curarea->winy); 
+		glFlush();
 		
-	} /* end while (TRUE) */
+		while(TRUE) {
+		
+			/* selection loop while mouse pressed */
+			getmouseco_areawin(mval);
+			
+			if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
 
-	/* erase XORed lines */
-	sdrawXORline4(-1, 0, 0, 0, 0);
+				/* aiming cross */
+				sdrawXORline4(0, 0,  mval[1],  curarea->winx,  mval[1]);
+				sdrawXORline4(1, mval[0],  0,  mval[0],  curarea->winy);
+				glFlush();
+
+				mvalo[0]= mval[0];
+				mvalo[1]= mval[1];
+			}
+			event= extern_qread(&val);
+
+			if(event && val) {
+
+				/* for when a renderwindow is open, and a mouse cursor activates it */
+				persp(PERSP_VIEW);
+				mywinset(curarea->win);
+				persp(PERSP_WIN);
+				
+				if(event==ESCKEY) {
+					retval= 0;
+					break;
+				}
+				else if(event==BKEY) {
+					/* b has been pressed twice: proceed with circle select */
+					retval= 0;
+					break;
+				}
+				else if(event==LEFTMOUSE) break;
+				else if(event==MIDDLEMOUSE) break;
+				else if(event==RIGHTMOUSE) break;
+			}
+			else PIL_sleep_ms(10);
+			
+		} /* end while (TRUE) */
+
+		/* erase XORed lines */
+		sdrawXORline4(-1, 0, 0, 0, 0);
+	}
+	else getmouseco_areawin(mval);
 	
 	if(retval) {
 		/* box select */

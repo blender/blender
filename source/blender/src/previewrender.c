@@ -47,7 +47,6 @@
 #endif   
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
-#include "BKE_utildefines.h"
 
 #include "MTC_matrixops.h"
 
@@ -60,6 +59,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_space_types.h"
@@ -71,13 +71,16 @@
 #include "BKE_icons.h"
 #include "BKE_texture.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_world.h"
 #include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_screen.h"
@@ -101,8 +104,6 @@
 #define PR_XMAX		200
 #define PR_YMAX		195
 
-#define PREVIEW_RENDERSIZE 141;
-
 #define PR_FACY		(PR_YMAX-PR_YMIN-4)/(PR_RECTY)
 
 static rctf prerect;
@@ -111,7 +112,7 @@ static float pr_facx, pr_facy;
 
 /* implementation */
 
-static short snijpunt(float *v1,   float *v2,  float *v3,  float *rtlabda, float *ray1, float *ray2)
+static short intersect(float *v1,   float *v2,  float *v3,  float *rtlabda, float *ray1, float *ray2)
 {
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22;
 	float m0,m1,m2,deeldet,det1,det2,det3;
@@ -192,13 +193,13 @@ static int ray_previewrender(int x,  int y,  float *vec, float *vn, short pr_rec
 	
 	minlabda= 1.0f;
 	for(a=0; a<totface; a++) {
-		if(snijpunt( rcubev[rcubi[a][0]], rcubev[rcubi[a][1]], rcubev[rcubi[a][2]], &labda, ray1, ray2)) {
+		if(intersect( rcubev[rcubi[a][0]], rcubev[rcubi[a][1]], rcubev[rcubi[a][2]], &labda, ray1, ray2)) {
 			if( labda < minlabda) {
 				minlabda= labda;
 				hitface= a;
 			}
 		}
-		if(snijpunt( rcubev[rcubi[a][0]], rcubev[rcubi[a][2]], rcubev[rcubi[a][3]], &labda, ray1, ray2)) {
+		if(intersect( rcubev[rcubi[a][0]], rcubev[rcubi[a][2]], rcubev[rcubi[a][3]], &labda, ray1, ray2)) {
 			if( labda < minlabda) {
 				minlabda= labda;
 				hitface= a;
@@ -219,14 +220,13 @@ static int ray_previewrender(int x,  int y,  float *vec, float *vn, short pr_rec
 	return 0;
 }
 
-
 static unsigned int previewback(int type, int x, int y)
 {
 	unsigned int col;
 	char* pcol;
 	
 	/* checkerboard, for later
-	x+= PR_RECTX/2;
+		x+= PR_RECTX/2;
 	y+= PR_RECTX/2;
 	if( ((x/24) + (y/24)) & 1) return 0x40404040;
 	else return 0xa0a0a0a0;
@@ -246,7 +246,22 @@ static unsigned int previewback(int type, int x, int y)
 	return col;
 }
 
-void BIF_set_previewrect(int win, int xmin, int ymin, int xmax, int ymax, short pr_rectx, short pr_recty)
+static float previewbackf(int type, int x, int y)
+{
+	float col;
+	
+	if(type & MA_DARK) {
+		if(abs(x)>abs(y)) col= 0.0f;
+		else col= 0.25f;
+	}
+	else {
+		if(abs(x)>abs(y)) col= 0.25f;
+		else col= 0.625f;
+	}
+	return col;
+}
+
+void set_previewrect(int win, int xmin, int ymin, int xmax, int ymax, short pr_rectx, short pr_recty)
 {
 	float pr_sizex, pr_sizey;
 	
@@ -279,7 +294,7 @@ void BIF_set_previewrect(int win, int xmin, int ymin, int xmax, int ymax, short 
 	
 }
 
-void BIF_end_previewrect(void)
+static void end_previewrect(void)
 {
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -301,11 +316,11 @@ static void display_pr_scanline(unsigned int *rect, int recty, short pr_rectx)
 	if( (recty & 3)==3) {
 		
 		if(recty == 3) {
-			glaDrawPixelsSafe(prerect.xmin, prerect.ymin, pr_rectx, 4, rect);
+			glaDrawPixelsSafe(prerect.xmin, prerect.ymin, pr_rectx, 4, GL_UNSIGNED_BYTE, rect);
 		}
 		else {
 			rect+= (recty-4)*pr_rectx;
-			glaDrawPixelsSafe(prerect.xmin, prerect.ymin + (((float)recty-4.0)*pr_facy), pr_rectx, 5, rect);
+			glaDrawPixelsSafe(prerect.xmin, prerect.ymin + (((float)recty-4.0)*pr_facy), pr_rectx, 5, GL_UNSIGNED_BYTE, rect);
 		}
 	}
 }
@@ -342,47 +357,43 @@ static void draw_tex_crop(Tex *tex)
 	
 }
 
-void BIF_all_preview_changed(void)
+void BIF_preview_changed(short id_code)
 {
 	ScrArea *sa;
-	SpaceButs *sbuts;
 	
-	sa= G.curscreen->areabase.first;
-	while(sa) {
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		if(sa->spacetype==SPACE_BUTS) {
-			sbuts= sa->spacedata.first;
-			if (sbuts->ri) sbuts->ri->cury= 0;
-			addafterqueue(sa->win, RENDERPREVIEW, 1);
-		}
-		sa= sa->next;
-	}
-}
-
-/* signal all previews in current screen of current type */
-void BIF_preview_changed(SpaceButs *sbuts)
-{
-
-	/* can be called when no buttonswindow visible */
-	if(sbuts) {
-		ScrArea *sa;
-		short mainb= sbuts->mainb;
-		short tab= sbuts->tab[mainb];
-		
-		sa= G.curscreen->areabase.first;
-		while(sa) {
-			if(sa->spacetype==SPACE_BUTS) {
-				sbuts= sa->spacedata.first;
-				if(sbuts->mainb==mainb && sbuts->tab[mainb]==tab) {
+			SpaceButs *sbuts= sa->spacedata.first;
+			if(sbuts->mainb==CONTEXT_SHADING) {
+				int tab= sbuts->tab[CONTEXT_SHADING];
+				if(tab==TAB_SHADING_MAT && (id_code==ID_MA || id_code==ID_TE)) {
 					if (sbuts->ri) sbuts->ri->cury= 0;
-					addafterqueue(sbuts->area->win, RENDERPREVIEW, 1);
+					addafterqueue(sa->win, RENDERPREVIEW, 1);
+				}
+				else if(tab==TAB_SHADING_TEX && (id_code==ID_TE)) {
+					if (sbuts->ri) sbuts->ri->cury= 0;
+					addafterqueue(sa->win, RENDERPREVIEW, 1);
+				}
+				else if(tab==TAB_SHADING_LAMP && (id_code==ID_LA || id_code==ID_TE)) {
+					if (sbuts->ri) sbuts->ri->cury= 0;
+					addafterqueue(sa->win, RENDERPREVIEW, 1);
+				}
+				else if(tab==TAB_SHADING_WORLD && (id_code==ID_WO || id_code==ID_TE)) {
+					if (sbuts->ri) sbuts->ri->cury= 0;
+					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}
 			}
-			sa= sa->next;
+		}
+		else if(sa->spacetype==SPACE_NODE) {
+			SpaceNode *snode= sa->spacedata.first;
+			if(snode->treetype==NTREE_SHADER && (id_code==ID_MA || id_code==ID_TE)) {
+				snode_tag_dirty(snode);
+			}
 		}
 	}
 }
 
-void BIF_previewdraw_render(struct RenderInfo* ri, ScrArea* area)
+static void previewdraw_render(struct RenderInfo* ri, ScrArea* area)
 {
 	int y;
 
@@ -395,28 +406,6 @@ void BIF_previewdraw_render(struct RenderInfo* ri, ScrArea* area)
 	}	
 }
 
-/* is panel callback, supposed to be called with correct panel offset matrix */
-void BIF_previewdraw(void)
-{
-	SpaceButs *sbuts= curarea->spacedata.first;
-	
-	if (!sbuts->ri) {
-		sbuts->ri= MEM_callocN(sizeof(RenderInfo), "butsrenderinfo");
-		sbuts->ri->cury = 0;
-		sbuts->ri->rect = 0;
-		sbuts->ri->pr_rectx = PREVIEW_RENDERSIZE;
-		sbuts->ri->pr_recty = PREVIEW_RENDERSIZE;
-	}
-
-	if (sbuts->ri->rect==0) BIF_preview_changed(sbuts);
-	else {
-		BIF_set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX, sbuts->ri->pr_rectx, sbuts->ri->pr_recty);
-		BIF_previewdraw_render(sbuts->ri, sbuts->area);
-		BIF_end_previewrect();
-	}
-	if(sbuts->ri->cury==0) BIF_preview_changed(sbuts);
-	
-}
 
 static void sky_preview_pixel(float lens, int x, int y, char *rect, short pr_rectx, short pr_recty)
 {
@@ -479,16 +468,16 @@ static void sky_preview_pixel(float lens, int x, int y, char *rect, short pr_rec
     the preview, because this only works for the 
     current selected lamp.
  */
- static LampRen* create_preview_render_lamp(Lamp* la)
- {
+static LampRen* create_preview_render_lamp(Lamp* la)
+{
  	LampRen *lar;
  	int c;
- 
+	
  	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
- 
+	
  	MTC_Mat3One(lar->mat);
  	MTC_Mat3One(lar->imat);
- 
+	
  	lar->type= la->type;
  	lar->mode= la->mode;
  	lar->energy= la->energy;
@@ -500,25 +489,25 @@ static void sky_preview_pixel(float lens, int x, int y, char *rect, short pr_rec
  	lar->dist= la->dist;
  	lar->ld1= la->att1;
  	lar->ld2= la->att2;
- 
+	
  	/* exceptions: */
  	lar->spottexfac= 1.0;
  	lar->spotsi= cos( M_PI/3.0 );
  	lar->spotbl= (1.0-lar->spotsi)*la->spotblend;
  	
  	MTC_Mat3One(lar->imat);
- 
+	
  	if(lar->type==LA_SPOT) {
  		if(lar->mode & LA_ONLYSHADOW) {
  			if((lar->mode & (LA_SHAD|LA_SHAD_RAY))==0) lar->mode -= LA_ONLYSHADOW;
  		}
  	}
  	memcpy(lar->mtex, la->mtex, MAX_MTEX*sizeof(void *));
- 
+	
  	for(c=0; c<MAX_MTEX; c++) {
  		if(la->mtex[c] && la->mtex[c]->tex) {
  			lar->mode |= LA_TEXTURE;
- 
+			
  			if(R.flag & R_RENDERING) {
  				if(R.osa) {
  					if(la->mtex[c]->tex->type==TEX_IMAGE) lar->mode |= LA_OSATEX;
@@ -526,7 +515,7 @@ static void sky_preview_pixel(float lens, int x, int y, char *rect, short pr_rec
  			}
  		}
 	}
-  
+	
  	return lar;
 }
 
@@ -670,13 +659,13 @@ static void halo_preview_pixel(HaloRen *har, int startx, int endx, int y, char *
 		if(dist<har->radsq) {
 			RE_shadehalo(har, front, colf, 0, dist, xn, yn, har->flarec);
 			RE_addalphaAddfac(rect, front, har->add);
-			rect[3] = 0xFF;
+			rect[3] = 0xFF;		/* makes icon display all pixels */
 		}
 		rect+= 4;
 	}
 }
 
-static void previewflare(RenderInfo *ri, HaloRen *har, short pr_rectx, short pr_recty, int doDraw)
+static void previewflare(RenderInfo *ri, HaloRen *har, short pr_rectx, short pr_recty, int pr_method)
 {
 	float ycor;
 	unsigned int *rectot;
@@ -707,8 +696,8 @@ static void previewflare(RenderInfo *ri, HaloRen *har, short pr_rectx, short pr_
 	// not sure why, either waitcursor or renderflare screws up (disabled then)
 	//areawinset(curarea->win);
 	
-	/* draw can just be this way, all settings are OK */
-	if (doDraw) {
+	/* draw can just be called this way, all settings are OK */
+	if (pr_method==PR_DRAW_RENDER) {
 		for (y=0; y<pr_recty; y++) {
 			display_pr_scanline(ri->rect, y, pr_rectx);
 		}
@@ -851,7 +840,7 @@ static void refraction_prv(int *x, int *y, float *n, float index)
 	*y= (int)(len*(index*view[1] + fac*n[1]));
 }
 
-static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_lamp)
+static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr)
 {
 	extern float fresnel_fac(float *view, float *vn, float ior, float fac);
 	Material *mat= shi->mat;
@@ -889,9 +878,19 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_la
 	}
 	else {
 		
+		if(mat->texco & TEXCO_REFL) {
+			inp= -2.0*(shi->vn[0]*shi->view[0]+shi->vn[1]*shi->view[1]+shi->vn[2]*shi->view[2]);
+			shi->ref[0]= (shi->view[0]+inp*shi->vn[0]);
+			shi->ref[1]= (shi->view[1]+inp*shi->vn[1]);
+			shi->ref[2]= (shi->view[2]+inp*shi->vn[2]);
+			/* normals in render are pointing different... rhm */
+			if(shi->pr_type==MA_SPHERE)
+				shi->ref[1]= -shi->ref[1];
+		}
+		
 		for(a=0; a<2; a++) {
 			
-			if((pr_lamp & (1<<a))==0) continue;
+			if((mat->pr_lamp & (1<<a))==0) continue;
 			
 			if(a==0) la= pr1_lamp;
 			else la= pr2_lamp;
@@ -1000,6 +999,8 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_la
 				shi->refcol[3]= shi->refcol[0]*0.8f*div;
 			}
 		}
+		else 
+			shi->refcol[0]= 0.0f;
 		
 		shr->diff[0]+= shi->ambr;
 		shr->diff[1]+= shi->ambg;
@@ -1025,14 +1026,13 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_la
 	}	
 }
 
-static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char *rect, int smooth, short pr_rectx, short pr_recty)
+static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char *rect, short pr_rectx, short pr_recty)
 {
 	Material *mat;
 	MaterialLayer *ml;
 	ShadeResult shr;
-	float v1, inp;
-	float eul[3], tmat[3][3], imat[3][3], col[3];
-	char tracol;
+	float v1;
+	float eul[3], tmat[3][3], imat[3][3], col[4];
 		
 	mat= shi->mat;
 
@@ -1042,8 +1042,8 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 	shi->view[2]= 1.0f;
 	Normalise(shi->view);
 	
-	shi->xs= (float)x;
-	shi->ys= (float)y;
+	shi->xs= x + pr_rectx/2;
+	shi->ys= y + pr_recty/2;
 	
 	shi->refcol[0]= shi->refcol[1]= shi->refcol[2]= shi->refcol[3]= 0.0f;
 	VECCOPY(shi->co, vec);
@@ -1092,22 +1092,10 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 			shi->orn[1]= shi->vn[1];
 			shi->orn[2]= shi->vn[2];
 		}
-		if(mat->texco & TEXCO_REFL) {
-			
-			inp= -2.0*(shi->vn[0]*shi->view[0]+shi->vn[1]*shi->view[1]+shi->vn[2]*shi->view[2]);
-			shi->ref[0]= (shi->view[0]+inp*shi->vn[0]);
-			shi->ref[1]= (shi->view[1]+inp*shi->vn[1]);
-			shi->ref[2]= (shi->view[2]+inp*shi->vn[2]);
-		}
 
 		/* Clear displase vec for preview */
 		shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
 			
-		if(mat->texco & TEXCO_REFL) {
-			/* normals in render are pointing different... rhm */
-			if(smooth) shi->ref[1]= -shi->ref[1];
-		}
-
 		if(mat->pr_type==MA_CUBE) {
 			/* rotate normal back for normals texture */
 			SWAP(float, shi->vn[0], shi->vn[1]);
@@ -1127,24 +1115,29 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 	/* ------  main shading loop with material layers */
 	VECCOPY(shi->vno, shi->vn);
 	if(mat->ml_flag & ML_RENDER) 
-		shade_lamp_loop_preview(shi, &shr, mat->pr_lamp);
+		shade_lamp_loop_preview(shi, &shr);
 	else {
 		memset(&shr, 0, sizeof(ShadeResult));
 		shr.alpha= 1.0f;
 	}
 
-	for(ml= mat->layers.first; ml; ml= ml->next) {
-		if(ml->mat && (ml->flag & ML_RENDER)) {
-			ShadeResult shrlay;
-			
-			shi->mat= ml->mat;
-			shi->layerfac= ml->blendfac;
-			VECCOPY(shi->vn, shi->vno);
-			if(ml->flag & ML_NEG_NORMAL)
-				VecMulf(shi->vn, -1.0);
+	if(mat->nodetree && mat->use_nodes) {
+		ntreeShaderExecTree(mat->nodetree, shi, &shr);
+	}
+	else {
+		for(ml= mat->layers.first; ml; ml= ml->next) {
+			if(ml->mat && (ml->flag & ML_RENDER)) {
+				ShadeResult shrlay;
+				
+				shi->mat= ml->mat;
+				shi->layerfac= ml->blendfac;
+				VECCOPY(shi->vn, shi->vno);
+				if(ml->flag & ML_NEG_NORMAL)
+					VecMulf(shi->vn, -1.0);
 
-			shade_lamp_loop_preview(shi, &shrlay, mat->pr_lamp);
-			matlayer_blend(ml, shi->layerfac, &shr, &shrlay);
+				shade_lamp_loop_preview(shi, &shrlay);
+				matlayer_blend(ml, shi->layerfac, &shr, &shrlay);
+			}
 		}
 	}
 
@@ -1160,34 +1153,40 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 	if(shr.diff[2]<0.0f) shr.diff[2]= 0.0f;
 
 	VECADD(col, shr.diff, shr.spec);
-	if(col[0]<=0.0f) rect[0]= 0; else if(col[0]>=1.0f) rect[0]= 255; else rect[0]= (char)(255.0*col[0]);
-	if(col[1]<=0.0f) rect[1]= 0; else if(col[1]>=1.0f) rect[1]= 255; else rect[1]= (char)(255.0*col[1]);
-	if(col[2]<=0.0f) rect[2]= 0; else if(col[2]>=1.0f) rect[2]= 255; else rect[2]= (char)(255.0*col[2]);
+	col[3]= shr.alpha;
 
-	if(shr.alpha!=1.0f) {
+	/* handle backdrop now */
+
+	if(col[3]!=1.0f) {
+		float back, backm;
+		
+		/* distorts x and y */
 		if(mat->mode & MA_RAYTRANSP) {
 			refraction_prv(&x, &y, shi->vn, shi->ang);
 		}
 		
-		tracol=  previewback(mat->pr_back, x, y) & 255;
-		
-		tracol= (1.0f-shr.alpha)*tracol;
+		back= previewbackf(mat->pr_back, x, y);
+		backm= (1.0f-shr.alpha)*back;
 		
 		if((mat->mode & MA_RAYTRANSP) && mat->filter!=0.0) {
 			float fr= 1.0f+ mat->filter*(shr.diff[0]-1.0f);
-			rect[0]= fr*tracol+ (rect[0]*shr.alpha) ;
-			fr= 1.0f+ mat->filter*(shr.diff[0]-1.0f);
-			rect[1]= fr*tracol+ (rect[1]*shr.alpha) ;
-			fr= 1.0f+ mat->filter*(shr.diff[0]-1.0f);
-			rect[2]= fr*tracol+ (rect[2]*shr.alpha) ;
+			col[0]= fr*backm+ (col[3]*col[0]);
+			fr= 1.0f+ mat->filter*(shr.diff[1]-1.0f);
+			col[1]= fr*backm+ (col[3]*col[1]);
+			fr= 1.0f+ mat->filter*(shr.diff[2]-1.0f);
+			col[2]= fr*backm+ (col[3]*col[2]);
 		}
 		else {
-			rect[0]= tracol+ (rect[0]*shr.alpha) ;
-			rect[1]= tracol+ (rect[1]*shr.alpha) ;
-			rect[2]= tracol+ (rect[2]*shr.alpha) ;
+			col[0]= backm + (col[3]*col[0]);
+			col[1]= backm + (col[3]*col[1]);
+			col[2]= backm + (col[3]*col[2]);
 		}
 	}
-	rect[3] = 0xFF;
+
+	if(col[0]<=0.0f) rect[0]= 0; else if(col[0]>=1.0f) rect[0]= 255; else rect[0]= (char)(255.0f*col[0]);
+	if(col[1]<=0.0f) rect[1]= 0; else if(col[1]>=1.0f) rect[1]= 255; else rect[1]= (char)(255.0f*col[1]);
+	if(col[2]<=0.0f) rect[2]= 0; else if(col[2]>=1.0f) rect[2]= 255; else rect[2]= (char)(255.0f*col[2]);
+	if(col[3]<=0.0f) rect[3]= 0; else if(col[3]>=1.0f) rect[3]= 255; else rect[3]= (char)(255.0f*col[3]);
 }
 
 static void preview_init_render_textures(MTex **mtex)
@@ -1210,65 +1209,8 @@ static void preview_init_render_textures(MTex **mtex)
 	
 }
 
-void BIF_previewrender_buts(SpaceButs *sbuts)
-{
-	uiBlock *block;
-	struct ID* id = 0;
-	struct ID* idfrom = 0;
-	struct ID* idshow = 0;
-	Object *ob;
-
-	if (!sbuts->ri) return;
-	
-	/* we safely assume curarea has panel "preview" */
-	/* quick hack for now, later on preview should become uiBlock itself */
-	
-	block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Preview");
-	if(block==NULL) return;
-
-	ob= ((G.scene->basact)? (G.scene->basact)->object: 0);
-	
-	/* we cant trust this global lockpoin.. for example with headerless window */
-	buttons_active_id(&id, &idfrom);
-	G.buts->lockpoin= id;
-
-	if(sbuts->mainb==CONTEXT_SHADING) {
-		int tab= sbuts->tab[CONTEXT_SHADING];
-		
-		if(tab==TAB_SHADING_MAT) 
-			idshow = sbuts->lockpoin;
-		else if(tab==TAB_SHADING_TEX) 
-			idshow = sbuts->lockpoin;
-		else if(tab==TAB_SHADING_LAMP) {
-			if(ob && ob->type==OB_LAMP) idshow= ob->data;
-		}
-		else if(tab==TAB_SHADING_WORLD)
-			idshow = sbuts->lockpoin;
-	}
-	else if(sbuts->mainb==CONTEXT_OBJECT) {
-		if(ob && ob->type==OB_LAMP) idshow = ob->data;
-	}
-	
-	if (idshow) {
-		BKE_icon_changed(BKE_icon_getid(idshow));
-		uiPanelPush(block);
-		BIF_set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX, sbuts->ri->pr_rectx, sbuts->ri->pr_recty); // uses UImat
-		BIF_previewrender(idshow, sbuts->ri, sbuts->area, 1);
-		uiPanelPop(block);
-		BIF_end_previewrect();
-	}
-	else {
-		/* no active block to draw. But we do draw black if possible */
-		if(sbuts->ri->rect) {
-			memset(sbuts->ri->rect, 0, sizeof(int)*sbuts->ri->pr_rectx*sbuts->ri->pr_recty);
-			sbuts->ri->cury= sbuts->ri->pr_recty;
-			addqueue(curarea->win, REDRAW, 1);
-		}
-		return;
-	}
-}
-
-void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *area, int doDraw)
+/* main previewrender loop */
+void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *area, int pr_method)
 {
 	static double lasttime= 0;
 	Material *mat= NULL;
@@ -1303,9 +1245,9 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 	}	
 	
 	har.flarec= 0;	/* below is a test for postrender flare */
-	
 
-	if(doDraw && qtest()) {
+	/* no event escape for icon render */
+	if(pr_method!=PR_ICON_RENDER && qtest()) {
 		addafterqueue(curarea->win, RENDERPREVIEW, 1);
 		return;
 	}
@@ -1331,11 +1273,33 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 				mat->texco |= ml->mat->texco;
 			}
 		}
-		
+		if(mat->nodetree && mat->use_nodes) {
+			bNode *node;
+			for(node=mat->nodetree->nodes.first; node; node= node->next) {
+				if(node->id && GS(node->id->name)==ID_MA) {
+					Material *ma= (Material *)node->id;
+					init_render_material(ma);
+					preview_init_render_textures(ma->mtex);
+					mat->texco |= ma->texco;
+				}
+			}
+			/* signal to node editor to store previews or not */
+			if(pr_method==PR_ICON_RENDER) {
+				ntreeBeginExecTree(mat->nodetree, 0, 0);
+				shi.do_preview= 0;
+			}
+			else {
+				ntreeBeginExecTree(mat->nodetree, ri->pr_rectx, ri->pr_recty);
+				shi.do_preview= 1;
+			}
+		}
 		shi.vlr= NULL;		
 		shi.mat= mat;
-		
+		shi.pr_type= mat->pr_type;
+
 		if(mat->mode & MA_HALO) init_previewhalo(&har, mat, ri->pr_rectx, ri->pr_recty);
+		
+		set_node_shader_lamp_loop(shade_lamp_loop_preview);
 	}
 	else if(tex) {
 
@@ -1384,39 +1348,18 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 		preview_init_render_textures(wrld->mtex);	
 	}
 
-	if (doDraw) {
-		/* BIF_set_previewrect(area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX, ri->pr_rectx, ri->pr_recty); // uses UImat */
-	}
-
 	if(ri->rect==NULL) {
 		ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "butsrect");
-		
-		/* built in emboss */
-		if (doDraw) {
-			rect= ri->rect;
-			for(y=0; y<ri->pr_recty; y++, rect++) *rect= 0xFFFFFFFF;
-			
-			rect= ri->rect + ri->pr_rectx-1;
-			for(y=0; y<ri->pr_recty; y++, rect+=ri->pr_rectx) *rect= 0xFFFFFFFF;
-		}
 	}
 	
 	starty= -ri->pr_recty/2;
 	endy= starty+ri->pr_recty;
 	starty+= ri->cury;
 	
-	if (doDraw) {
-	/* offset +1 for emboss */
-		startx= -ri->pr_rectx/2 +1;
-		endx= startx+ri->pr_rectx -2;
-	}
-	else {
-		/* offset +1 for emboss */
-		startx= -ri->pr_rectx/2;
-		endx= startx+ri->pr_rectx-1;
-	}
+	startx= -ri->pr_rectx/2;
+	endx= startx+ri->pr_rectx;
 
-	radsq= (ri->pr_rectx/2-1)*(ri->pr_recty/2-1); /* -1 to make sure sphere fits into preview rect completely */
+	radsq= (ri->pr_rectx/2)*(ri->pr_recty/2); 
 	
 	if(mat) {
 		if(mat->pr_type==MA_SPHERE) {
@@ -1429,24 +1372,23 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 		}
 	}
 
-	/* here it starts! */
-	if (doDraw) glDrawBuffer(GL_FRONT);
+	if (pr_method==PR_DRAW_RENDER) 
+		glDrawBuffer(GL_FRONT);
 
+	/* here it starts! */
 	for(y=starty; y<endy; y++) {
 		
-		rect= ri->rect + 1 + ri->pr_rectx*ri->cury;
+		rect= ri->rect + ri->pr_rectx*ri->cury;
 		
-		if(y== -ri->pr_recty/2 || y==endy-1);		/* emboss */
-		else if(mat) {
+		if(mat) {
 			
 			if(mat->mode & MA_HALO) {
 				for(x=startx; x<endx; x++, rect++) {
 					rect[0]= previewback(mat->pr_back, x, y);
-					rect[0] |= 0xFF000000;
 				}
 
 				if(har.flarec) {
-					if(y==endy-2) previewflare(ri, &har, ri->pr_rectx, ri->pr_recty, doDraw);
+					if(y==endy-2) previewflare(ri, &har, ri->pr_rectx, ri->pr_recty, pr_method);
 				}
 				else {
 					halo_preview_pixel(&har, startx, endx, y, (char *) (rect-ri->pr_rectx), ri->pr_rectx);
@@ -1476,19 +1418,25 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 								Normalise(shi.tang);
 							}
 							
-							shade_preview_pixel(&shi, vec, x, y, (char *)rect, 1, ri->pr_rectx, ri->pr_recty);
+							shade_preview_pixel(&shi, vec, x, y, (char *)rect, ri->pr_rectx, ri->pr_recty);
 						}
 						else {
 							rect[0]= previewback(mat->pr_back, x, y);
+							
+							if(pr_method!=PR_ICON_RENDER && mat->nodetree && mat->use_nodes) 
+								ntreeClearPixelTree(mat->nodetree, x+ri->pr_rectx/2, y+ri->pr_recty/2);
 						}
 					}
 					else if(mat->pr_type==MA_CUBE) {
 						if( ray_previewrender(x, y, vec, shi.vn, ri->pr_rectx, ri->pr_recty) ) {
 							
-							shade_preview_pixel(&shi, vec, x, y, (char *)rect, 0, ri->pr_rectx, ri->pr_recty);
+							shade_preview_pixel(&shi, vec, x, y, (char *)rect, ri->pr_rectx, ri->pr_recty);
 						}
 						else {
 							rect[0]= previewback(mat->pr_back, x, y);
+							
+							if(pr_method!=PR_ICON_RENDER && mat->nodetree && mat->use_nodes) 
+								ntreeClearPixelTree(mat->nodetree, x+ri->pr_rectx/2, y+ri->pr_recty/2);
 						}
 					}
 					else {
@@ -1499,7 +1447,7 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 						shi.vn[0]= shi.vn[1]= 0.0f;
 						shi.vn[2]= 1.0f;
 						
-						shade_preview_pixel(&shi, vec, x, y, (char *)rect, 0, ri->pr_rectx, ri->pr_recty);
+						shade_preview_pixel(&shi, vec, x, y, (char *)rect, ri->pr_rectx, ri->pr_recty);
 					}
 				}
 			}
@@ -1520,7 +1468,7 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 			}
 		}
 		
-		if (doDraw) {
+		if (pr_method!=PR_ICON_RENDER) {
 			if(y<endy-2) {
 				if(qtest()) {
 					addafterqueue(curarea->win, RENDERPREVIEW, 1);
@@ -1538,15 +1486,13 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 		ri->cury++;
 	}
 
-	if (doDraw) {
-		/* BIF_end_previewrect();  */
-	
+	if (pr_method==PR_DRAW_RENDER) {
 		if(ri->cury>=ri->pr_recty && tex) 
-				draw_tex_crop((Tex*)id);
+			draw_tex_crop((Tex*)id);
 	
 		glDrawBuffer(GL_BACK);
 		/* draw again for clean swapbufers */
-		BIF_previewdraw_render(ri, area);
+		previewdraw_render(ri, area);
 	}
 	
 	if(lar) {
@@ -1556,59 +1502,99 @@ void BIF_previewrender(struct ID* id, struct RenderInfo *ri, struct ScrArea *are
 		R.lights.first= R.lights.last= NULL;
 		*/
 	}
+	
+	if(mat && mat->nodetree && mat->use_nodes) {
+		ntreeEndExecTree(mat->nodetree);
+		if(ri->cury>=ri->pr_recty)
+			allqueue(REDRAWNODE, 0);
+	}
 }
 
-/* create single icon from jpg, png etc. */
-void BIF_calcpreview_image(Image* img, RenderInfo* ri, unsigned int w, unsigned int h)
+void BIF_previewrender_buts(SpaceButs *sbuts)
 {
-	struct ImBuf *ima;
-	struct ImBuf *imb;
-	short ex, ey, dx, dy;
-	float scaledx, scaledy;
-	int pr_size = w*h*sizeof(unsigned int);
-
-	if (!img)
-		return;
-
-	if (!ri->rect) {
-		ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "butsrect");
-		memset(ri->rect, 0xFF, w*h*sizeof(unsigned int));
-	}
-
-	if(img->ibuf==0) {
-		load_image(img, IB_rect, G.sce, G.scene->r.cfra);
-	}
-	ima = IMB_dupImBuf(img->ibuf);
-
-	if (!ima) 
-		return;
-
-	if (ima->x > ima->y) {
-		scaledx = (float)w;
-		scaledy =  ( (float)ima->y/(float)ima->x )*(float)w;
-	}
-	else {			
-		scaledx =  ( (float)ima->x/(float)ima->y )*(float)h;
-		scaledy = (float)h;
-	}
-
-	ex = (short)scaledx;
-	ey = (short)scaledy;
+	uiBlock *block;
+	struct ID* id = 0;
+	struct ID* idfrom = 0;
+	struct ID* idshow = 0;
+	Object *ob;
 	
-	dx = (w - ex) / 2;
-	dy = (h - ey) / 2;
+	if (!sbuts->ri) return;
 	
-	IMB_scaleImBuf(ima, ex, ey);
-
-	imb = IMB_allocImBuf(w, h, 32, IB_rect, 0);
-
-	IMB_rectop(imb, 0, 0, 0, 0, 0, w, h, IMB_rectfill, 0x00000000); 
-
-	IMB_rectop(imb, ima, dx, dy, 0, 0, ex, ey, IMB_rectcpy, 0);	
-
-	IMB_freeImBuf(ima);
-
-	memcpy(ri->rect, imb->rect,pr_size);
-
-	IMB_freeImBuf(imb);
+	/* we safely assume curarea has panel "preview" */
+	/* quick hack for now, later on preview should become uiBlock itself */
+	
+	block= uiFindOpenPanelBlockName(&curarea->uiblocks, "Preview");
+	if(block==NULL) return;
+	
+	ob= ((G.scene->basact)? (G.scene->basact)->object: 0);
+	
+	/* we cant trust this global lockpoin.. for example with headerless window */
+	buttons_active_id(&id, &idfrom);
+	G.buts->lockpoin= id;
+	
+	if(sbuts->mainb==CONTEXT_SHADING) {
+		int tab= sbuts->tab[CONTEXT_SHADING];
+		
+		if(tab==TAB_SHADING_MAT) 
+			idshow = sbuts->lockpoin;
+		else if(tab==TAB_SHADING_TEX) 
+			idshow = sbuts->lockpoin;
+		else if(tab==TAB_SHADING_LAMP) {
+			if(ob && ob->type==OB_LAMP) idshow= ob->data;
+		}
+		else if(tab==TAB_SHADING_WORLD)
+			idshow = sbuts->lockpoin;
+	}
+	else if(sbuts->mainb==CONTEXT_OBJECT) {
+		if(ob && ob->type==OB_LAMP) idshow = ob->data;
+	}
+	
+	if (idshow) {
+		BKE_icon_changed(BKE_icon_getid(idshow));
+		uiPanelPush(block);
+		set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX, sbuts->ri->pr_rectx, sbuts->ri->pr_recty); // uses UImat
+		BIF_previewrender(idshow, sbuts->ri, sbuts->area, PR_DRAW_RENDER);
+		uiPanelPop(block);
+		end_previewrect();
+	}
+	else {
+		/* no active block to draw. But we do draw black if possible */
+		if(sbuts->ri->rect) {
+			memset(sbuts->ri->rect, 0, sizeof(int)*sbuts->ri->pr_rectx*sbuts->ri->pr_recty);
+			sbuts->ri->cury= sbuts->ri->pr_recty;
+			addqueue(curarea->win, REDRAW, 1);
+		}
+		return;
+	}
 }
+
+/* is panel callback, supposed to be called with correct panel offset matrix */
+void BIF_previewdraw(void)
+{
+	SpaceButs *sbuts= curarea->spacedata.first;
+	short id_code= 0;
+	
+	if(sbuts->lockpoin) {
+		ID *id= sbuts->lockpoin;
+		id_code= GS(id->name);
+	}
+	
+	if (!sbuts->ri) {
+		sbuts->ri= MEM_callocN(sizeof(RenderInfo), "butsrenderinfo");
+		sbuts->ri->cury = 0;
+		sbuts->ri->rect = NULL;
+		sbuts->ri->pr_rectx = PREVIEW_RENDERSIZE;
+		sbuts->ri->pr_recty = PREVIEW_RENDERSIZE;
+	}
+	
+	if (sbuts->ri->rect==NULL) BIF_preview_changed(id_code);
+	else {
+		set_previewrect(sbuts->area->win, PR_XMIN, PR_YMIN, PR_XMAX, PR_YMAX, sbuts->ri->pr_rectx, sbuts->ri->pr_recty);
+		previewdraw_render(sbuts->ri, sbuts->area);
+		end_previewrect();
+	}
+	if(sbuts->ri->cury==0) BIF_preview_changed(id_code);
+	
+}
+
+

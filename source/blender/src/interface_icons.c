@@ -470,13 +470,18 @@ static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w,
 static void prepare_internal_icons(ImBuf* bbuf)
 {
 	int x, y;
-
+	int rowstride= bbuf->x*4;
+	char *back= (char *)bbuf->rect;
+	unsigned char transp[4];
+	
+	/* this sets blueish outside of icon to zero alpha */
+	QUATCOPY(transp, back);
+	clear_transp_rect(transp, back, bbuf->x, bbuf->y, rowstride);
+	
 	/* hack! */
 	for (y=0; y<12; y++) {
 		for (x=0; x<21; x++) {
-			int rowstride= bbuf->x*4;
 			unsigned char *start= ((unsigned char*) bbuf->rect) + (y*21 + 3)*rowstride + (x*20 + 3)*4;
-			unsigned char transp[4];
 			/* this sets backdrop of icon to zero alpha */
 			transp[0]= start[0];
 			transp[1]= start[1];
@@ -485,10 +490,6 @@ static void prepare_internal_icons(ImBuf* bbuf)
 			clear_transp_rect(transp, start, 20, 21, rowstride);
 			clear_transp_rect_soft(transp, start, 20, 21, rowstride);
 				
-			/* this sets outside of icon to zero alpha */
-			start= ((unsigned char*) bbuf->rect) + (y*21)*rowstride + (x*20)*4;
-			QUATCOPY(transp, start);
-			clear_transp_rect(transp, start, 20, 21, rowstride);			
 		}
 	} 
 }
@@ -503,13 +504,7 @@ static void init_internal_icons()
 
 	for (y=0; y<12; y++) {
 		for (x=0; x<21; x++) {
-			if (x==11 && y==6) {
-				def_internal_icon(bbuf, ICON_BEVELBUT_HLT,	(x*20 + 3 + 4), (y*21 + 3 + 2), 7, 13);
-			} else if (x==12 && y==6) {
-				def_internal_icon(bbuf, ICON_BEVELBUT_DEHLT,	(x*20 + 3 + 4), (y*21 + 3 + 2), 7, 13);
-			} else {
-				def_internal_icon(bbuf, BIFICONID_FIRST + y*21 + x, x*20+3, y*21+3, 15, 16);
-			}
+			def_internal_icon(bbuf, BIFICONID_FIRST + y*21 + x, x*20+3, y*21+3, 16, 16);
 		}
 	}
 
@@ -617,6 +612,51 @@ void BIF_icons_init(int first_dyn_id)
 	init_internal_icons();
 }
 
+/* create single icon from jpg, png etc. */
+static void icon_from_image(Image* img, RenderInfo* ri, unsigned int w, unsigned int h)
+{
+	struct ImBuf *ima;
+	float scaledx, scaledy;
+	int pr_size = w*h*sizeof(unsigned int);
+	short ex, ey, dx, dy;
+	
+	if (!img)
+		return;
+	
+	if (!ri->rect) {
+		ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "butsrect");
+		memset(ri->rect, 0xFF, w*h*sizeof(unsigned int));
+	}
+	
+	if(img->ibuf==NULL) {
+		load_image(img, IB_rect, G.sce, G.scene->r.cfra);
+	}
+	ima = IMB_dupImBuf(img->ibuf);
+	
+	if (!ima) 
+		return;
+	
+	if (ima->x > ima->y) {
+		scaledx = (float)w;
+		scaledy =  ( (float)ima->y/(float)ima->x )*(float)w;
+	}
+	else {			
+		scaledx =  ( (float)ima->x/(float)ima->y )*(float)h;
+		scaledy = (float)h;
+	}
+	
+	ex = (short)scaledx;
+	ey = (short)scaledy;
+	
+	dx = (w - ex) / 2;
+	dy = (h - ey) / 2;
+	
+	IMB_scaleImBuf(ima, ex, ey);
+	memcpy(ri->rect, ima->rect, pr_size);
+	IMB_freeImBuf(ima);
+}
+
+
 /* only called when icon has changed */
 /* only call with valid pointer from BIF_icon_draw */
 static void icon_set_image(ID* id, DrawInfo* di)
@@ -636,16 +676,9 @@ static void icon_set_image(ID* id, DrawInfo* di)
 	/* no drawing (see last parameter doDraw, just calculate preview image 
 		- hopefully small enough to be fast */
 	if (GS(id->name) == ID_IM)
-		BIF_calcpreview_image((struct Image*)id, &ri, ri.pr_rectx, ri.pr_recty);
+		icon_from_image((struct Image*)id, &ri, ri.pr_rectx, ri.pr_recty);
 	else {
-		BIF_previewrender(id, &ri, NULL, 0);
-
-		/* need to correct alpha */
-		/*
-		for( it = 0; it < ri.pr_rectx*ri.pr_recty; ++it) {
-			ri.rect[it] |= 0xFF000000;
-		}
-		*/
+		BIF_previewrender(id, &ri, NULL, PR_ICON_RENDER);
 	}
 
 	/* and copy the image into the icon */
@@ -657,12 +690,10 @@ static void icon_set_image(ID* id, DrawInfo* di)
 
 }
 
-void BIF_icon_draw( int x, int y, int icon_id)
+void BIF_icon_draw(float x, float y, int icon_id)
 {
 	Icon* icon = 0;
 	DrawInfo* di = 0;
-
-	ImBuf *ima;
 
 	icon = BKE_icon_get(icon_id);
 	
@@ -694,24 +725,28 @@ void BIF_icon_draw( int x, int y, int icon_id)
 
 		if (!di->rect) return; /* something has gone wrong! */
 		
-		/* di->rect contains image in 'rendersize' */
-
-		/* first allocate imbuf for scaling and copy preview into it */
-		ima = IMB_allocImBuf(di->rw, di->rh, 32, IB_rect, 0);
-		memcpy(ima->rect, di->rect,di->rw*di->rh*sizeof(unsigned int));	
-
-		/* scale it */
-		IMB_scaleImBuf(ima, di->w, di->h);
-
 		glRasterPos2f(x, y);
-		glDrawPixels(di->w, di->h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
+		
+		/* di->rect contains image in 'rendersize', we only scale if needed */
+		if(di->rw!=di->w && di->rh!=di->h) {
+			ImBuf *ima;
+			/* first allocate imbuf for scaling and copy preview into it */
+			ima = IMB_allocImBuf(di->rw, di->rh, 32, IB_rect, 0);
+			memcpy(ima->rect, di->rect, di->rw*di->rh*sizeof(unsigned int));	
 
-		IMB_freeImBuf(ima);
+			/* scale it */
+			IMB_scaleImBuf(ima, di->w, di->h);
+			glDrawPixels(di->w, di->h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
+
+			IMB_freeImBuf(ima);
+		}
+		else
+			glDrawPixels(di->w, di->h, GL_RGBA, GL_UNSIGNED_BYTE, di->rect);
 	}
 }
 
 
-void BIF_icon_draw_blended(int x, int y, int icon_id, int colorid, int shade)
+void BIF_icon_draw_blended(float x, float y, int icon_id, int colorid, int shade)
 {
 	
 	if(shade < 0) {
@@ -724,7 +759,8 @@ void BIF_icon_draw_blended(int x, int y, int icon_id, int colorid, int shade)
 	glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 }
 
-void BIF_icon_set_aspect(int icon_id, float aspect) {
+void BIF_icon_set_aspect(int icon_id, float aspect) 
+{
 	Icon* icon = 0;
 	DrawInfo* di =  0;
 
@@ -746,8 +782,8 @@ void BIF_icon_set_aspect(int icon_id, float aspect) {
 	} 
 	di->aspect = aspect;
 	/* scale width and height according to aspect */
-	di->w = 16.0 / di->aspect;
-	di->h = 16.0 / di->aspect;
+	di->w = (int)(16.0f/di->aspect + 0.5f);
+	di->h = (int)(16.0f/di->aspect + 0.5f);
 	
 }
 

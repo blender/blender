@@ -33,6 +33,9 @@
 #include <stdio.h>
 
 #include "DNA_ID.h"
+#include "DNA_material_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -41,6 +44,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -49,8 +53,10 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 
 #include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 
 #include "blendef.h"
 #include "butspace.h"
@@ -58,17 +64,29 @@
 
 void do_node_buttons(ScrArea *sa, unsigned short event)
 {
-//	SpaceNode *snode= sa->spacedata.first;
+	SpaceNode *snode= sa->spacedata.first;
+	Material *ma;
 	
 	switch(event) {
-		;
+		case B_NODE_USEMAT:
+			ma= (Material *)snode->id;
+			if(ma) {
+				if(ma->use_nodes && ma->nodetree==NULL) {
+					node_shader_default(ma);
+					snode_set_context(snode);
+				}
+				BIF_preview_changed(ID_MA);
+				allqueue(REDRAWNODE, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+			}		
+			break;
 	}
 }
 
 
 void node_buttons(ScrArea *sa)
 {
-//	SpaceNode *snode= sa->spacedata.first;
+	SpaceNode *snode= sa->spacedata.first;
 	uiBlock *block;
 	short xco;
 	char name[256];
@@ -106,7 +124,6 @@ void node_buttons(ScrArea *sa)
 					  &(sa->flag), 0, 0, 0, 0, 
 					  "Hide pulldown menus");
 	}
-	uiBlockSetEmboss(block, UI_EMBOSS);
 	xco+=XIC;
 
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
@@ -117,6 +134,25 @@ void node_buttons(ScrArea *sa)
 //		uiDefPulldownBut(block, time_viewmenu, NULL, 
 //					  "View", xco, -2, xmax-3, 24, "");
 //		xco+= xmax;
+	}
+	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	/* find and set the context */
+	snode_set_context(snode);
+	
+	if(snode->treetype==NTREE_SHADER) {
+		if(snode->from) {
+										/* 0, NULL -> pin */
+			xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, snode->id, snode->from, &(snode->menunr), 
+					   B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+			
+			if(snode->id) {
+				Material *ma= (Material *)snode->id;
+				uiDefButC(block, TOG, B_NODE_USEMAT, "Use Nodes", xco+5,0,70,19, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
+				xco+=80;
+			}
+		}
 	}
 	
 	/* always as last  */

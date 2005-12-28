@@ -3362,11 +3362,12 @@ void extern_set_butspace(int fkey)
 			sbuts->mainb= CONTEXT_SHADING;
 			sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 		}
-		
+		BIF_preview_changed(ID_TE);
 	}
 	else if(fkey==F6KEY) {
 		sbuts->mainb= CONTEXT_SHADING;
 		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+		BIF_preview_changed(ID_TE);
 	}
 	else if(fkey==F7KEY) {
 		/* if it's already in object context, cycle between tabs with the same key */
@@ -3403,7 +3404,6 @@ void extern_set_butspace(int fkey)
 
 	scrarea_queue_headredraw(sa);
 	scrarea_queue_winredraw(sa);
-	BIF_preview_changed(sbuts);
 }
 
 /* ******************** SPACE: SEQUENCE ********************** */
@@ -4639,9 +4639,7 @@ void freespacelist(ListBase *lb)
 			free_soundspace((SpaceSound *)sl);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
-			SpaceNode *snode= (SpaceNode *)sl;
-			if(snode->nodetree)
-				nodeFreeTree(snode->nodetree);
+/*			SpaceNode *snode= (SpaceNode *)sl; */
 		}
 	}
 

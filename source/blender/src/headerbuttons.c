@@ -782,7 +782,8 @@ void do_global_buttons(unsigned short event)
 				BIF_undo_push("Browse Material");
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
-				BIF_preview_changed(G.buts);
+				allqueue(REDRAWNODE, 0);
+				BIF_preview_changed(ID_MA);
 			}
 			
 		}
@@ -799,7 +800,7 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
-				BIF_preview_changed(G.buts);
+				BIF_preview_changed(ID_MA);
 			}
 		}
 		break;
@@ -819,7 +820,7 @@ void do_global_buttons(unsigned short event)
 						ma->mtex[ ma->texact ]= NULL;
 						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
-						BIF_preview_changed(G.buts);
+						BIF_preview_changed(ID_MA);
 					}
 				}
 			}
@@ -833,7 +834,7 @@ void do_global_buttons(unsigned short event)
 						wrld->mtex[ wrld->texact ]= NULL;
 						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
-						BIF_preview_changed(G.buts);
+						BIF_preview_changed(ID_WO);
 					}
 				}
 			}
@@ -847,7 +848,7 @@ void do_global_buttons(unsigned short event)
 						la->mtex[ la->texact ]= NULL;
 						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
-						BIF_preview_changed(G.buts);
+						BIF_preview_changed(ID_LA);
 					}
 				}
 			}
@@ -913,7 +914,7 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
-				BIF_preview_changed(G.buts);
+				BIF_preview_changed(ID_MA);
 			}
 		}
 		break;
@@ -1101,7 +1102,7 @@ void do_global_buttons(unsigned short event)
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWOOPS, 0);
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_WO);
 		}
 		break;
 	case B_WORLDDELETE:
@@ -1169,7 +1170,7 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
-				BIF_preview_changed(G.buts);
+				BIF_preview_changed(ID_WO);
 			}
 		}
 		break;
@@ -1209,7 +1210,7 @@ void do_global_buttons(unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWOOPS, 0);
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_LA);
 		}
 		break;
 	
@@ -1266,7 +1267,7 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
-				BIF_preview_changed(G.buts);
+				BIF_preview_changed(ID_LA);
 			}
 		}
 		break;

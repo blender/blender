@@ -30,10 +30,13 @@
 #include <stdlib.h>
 
 #include "DNA_ID.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_texture_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_node.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -41,186 +44,443 @@
 
 #include "MEM_guardedalloc.h"
 
-/* **************** testnode ************ */
+#include "render.h"		/* <- shadeinput/output */
 
-static void blendcolor(float *col1, float *col2, float *output, float fac)
+/* ********* exec data struct, remains internal *********** */
+
+typedef struct ShaderCallData {
+	ShadeInput *shi;
+	ShadeResult *shr;
+} ShaderCallData;
+
+
+/* **************** call to switch lamploop for material node ************ */
+
+static void (*node_shader_lamp_loop)(ShadeInput *, ShadeResult *);
+									 
+void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult *))
 {
-	output[0]= (1.0f-fac)*col1[0] + (fac)*col2[0];
-	output[1]= (1.0f-fac)*col1[1] + (fac)*col2[1];
-	output[2]= (1.0f-fac)*col1[2] + (fac)*col2[2];
+	node_shader_lamp_loop= lamp_loop_func;
 }
 
-static void node_shader_exec_test(bNode *node, bNodeStack **ns)
-{
-	
-	blendcolor(ns[0]->vec, ns[1]->vec, ns[2]->vec, 0.5);
+/* **************** input node ************ */
 
-//	printvecf(node->name, ns[2]->vec);
+static void node_shader_exec_input(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data) {
+		ShadeResult *shr= ((ShaderCallData *)data)->shr;
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		float col[4];
+		
+		/* stack order output sockets: color, alpha, normal */
+		VecAddf(col, shr->diff, shr->spec);
+		col[3]= shr->alpha;
+		
+		VECCOPY(out[0]->vec, col);
+		out[1]->vec[0]= shr->alpha;
+		VECCOPY(out[2]->vec, shi->vn);
+		
+		if(shi->do_preview)
+			nodeAddToPreview(node, col, shi->xs, shi->ys);
+
+	}
 }
 
-static bNode *node_shader_add_test(bNodeTree *ntree)
+
+/* **************** output node ************ */
+
+static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	bNode *node= nodeAddNode(ntree, "TestNode");
-	static int tot= 0;
+	if(data) {
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		float col[4];
+		
+		/* stack order input sockets: col, alpha, normal */
+		VECCOPY(col, in[0]->vec);
+		col[3]= in[1]->vec[0];
+		
+		if(shi->do_preview) {
+			nodeAddToPreview(node, col, shi->xs, shi->ys);
+			node->lasty= shi->ys;
+		}
+		
+		if(node->flag & NODE_DO_OUTPUT) {
+			ShadeResult *shr= ((ShaderCallData *)data)->shr;
+
+			VECCOPY(shr->diff, col);
+			col[0]= col[1]= col[2]= 0.0f;
+			VECCOPY(shr->spec, col);
+			shr->alpha= col[3];
+			
+			//	VECCOPY(shr->nor, in[3]->vec);
+		}
+	}	
+}
+
+/* **************** material node ************ */
+
+static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data && node->id) {
+		ShadeResult shrnode;
+		ShadeInput *shi;
+		float col[4], *nor;
 	
-	sprintf(node->name, "Testnode%d", tot++);
-	node->type= SH_NODE_TEST;
-	node->width= 80.0f;
-	
-	/* add sockets */
-	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Col");
-	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Spec");
-	nodeAddSocket(node, SOCK_RGBA, SOCK_OUT, 0xFFF, "Diffuse");
-	
-	return node;
+		shi= ((ShaderCallData *)data)->shi;
+		
+		shi->mat= (Material *)node->id;
+		
+		/* retrieve normal */
+		if(in[0]->hasinput)
+			nor= in[0]->vec;
+		else
+			nor= shi->vno;
+		
+		if(node->custom1 & SH_NODE_MAT_NEG) {
+			shi->vn[0]= -nor[0];
+			shi->vn[1]= -nor[1];
+			shi->vn[2]= -nor[2];
+		}
+		else {
+			VECCOPY(shi->vn, nor);
+		}
+		
+		node_shader_lamp_loop(shi, &shrnode);
+		
+		if(node->custom1 & SH_NODE_MAT_DIFF) {
+			VECCOPY(col, shrnode.diff);
+			if(node->custom1 & SH_NODE_MAT_SPEC) {
+				VecAddf(col, col, shrnode.spec);
+			}
+		}
+		else if(node->custom1 & SH_NODE_MAT_SPEC) {
+			VECCOPY(col, shrnode.spec);
+		}
+		else
+			col[0]= col[1]= col[2]= 0.0f;
+			
+		col[3]= shrnode.alpha;
+		
+		if(shi->do_preview)
+			nodeAddToPreview(node, col, shi->xs, shi->ys);
+		
+		/* stack order output: color, alpha, normal */
+		VECCOPY(out[0]->vec, col);
+		out[1]->vec[0]= shrnode.alpha;
+		
+		if(node->custom1 & SH_NODE_MAT_NEG) {
+			shi->vn[0]= -shi->vn[0];
+			shi->vn[1]= -shi->vn[1];
+			shi->vn[2]= -shi->vn[2];
+		}
+		VECCOPY(out[2]->vec, shi->vn);
+	}
+}
+
+/* **************** texture node ************ */
+
+static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data && node->id) {
+		ShadeInput *shi;
+		
+		shi= ((ShaderCallData *)data)->shi;
+		
+		multitex_ext((Tex *)node->id, shi->co, out[0]->vec, out[1]->vec, out[1]->vec+1, out[1]->vec+2, out[1]->vec+3);
+		
+		if(shi->do_preview)
+			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys);
+
+	}
 }
 
 /* **************** value node ************ */
 
-static void node_shader_exec_value(bNode *node, bNodeStack **ns)
+static void node_shader_exec_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* no input node! */
-	ns[0]->vec[0]= node->ns.vec[0];
-//	printf("%s %f\n", node->name, ns[0]->vec[0]);
-}
-
-static bNode *node_shader_add_value(bNodeTree *ntree)
-{
-	bNode *node= nodeAddNode(ntree, "Value");
+	bNodeSocket *sock= node->outputs.first;
 	
-	node->type= SH_NODE_VALUE;
-	node->width= 80.0f;
-	node->prv_h= 20.0f;
-	
-	/* add sockets */
-	nodeAddSocket(node, SOCK_VALUE, SOCK_OUT, 0xFFF, "");
-	
-	return node;
+	out[0]->vec[0]= sock->ns.vec[0];
 }
 
 /* **************** rgba node ************ */
 
-static void node_shader_exec_rgb(bNode *node, bNodeStack **ns)
+static void node_shader_exec_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* no input node! */
-	QUATCOPY(ns[0]->vec, node->ns.vec);
+	bNodeSocket *sock= node->outputs.first;
 	
-//	printvecf(node->name, ns[0]->vec);
+	VECCOPY(out[0]->vec, sock->ns.vec);
+}
+									 
+
+/* **************** mix rgb node ************ */
+
+static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order in: fac, col1, col2 */
+	/* stack order out: col */
+	float col[3];
+	
+	VECCOPY(col, in[1]->vec);
+	ramp_blend(node->custom1, col, col+1, col+2, in[0]->vec[0], in[2]->vec);
+	VECCOPY(out[0]->vec, col);
 }
 
-static bNode *node_shader_add_rgb(bNodeTree *ntree)
+/* **************** val to rgb node ************ */
+
+static void node_shader_exec_valtorgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	bNode *node= nodeAddNode(ntree, "RGB");
+	/* stack order in: fac */
+	/* stack order out: col, alpha */
 	
-	node->type= SH_NODE_RGB;
-	node->width= 100.0f;
-	node->prv_h= 100.0f;
-	node->ns.vec[3]= 1.0f;		/* alpha init */
-	
-	/* add sockets */
-	nodeAddSocket(node, SOCK_RGBA, SOCK_OUT, 0xFFF, "");
-	
-	return node;
-}
-
-/* **************** mix rgba node ************ */
-
-static void node_shader_exec_mix_rgb(bNode *node, bNodeStack **ns)
-{
-	/* stack order is fac, col1, col2, out */
-	blendcolor(ns[1]->vec, ns[2]->vec, ns[3]->vec, ns[0]->vec[0]);
-}
-
-static bNode *node_shader_add_mix_rgb(bNodeTree *ntree)
-{
-	bNode *node= nodeAddNode(ntree, "Mix RGB");
-	
-	node->type= SH_NODE_MIX_RGB;
-	node->width= 80.0f;
-	node->prv_h= 0.0f;
-	
-	/* add sockets */
-	nodeAddSocket(node, SOCK_VALUE, SOCK_IN, 1, "Fac");
-	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Color1");
-	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "Color2");
-	nodeAddSocket(node, SOCK_RGBA, SOCK_OUT, 0xFFF, "Color");
-	
-	return node;
-}
-
-
-/* **************** show rgba node ************ */
-
-static void node_shader_exec_show_rgb(bNode *node, bNodeStack **ns)
-{
-	/* only input node! */
-	QUATCOPY(node->ns.vec, ns[0]->vec);
-	
-//	printvecf(node->name, ns[0]->vec);
-}
-
-static bNode *node_shader_add_show_rgb(bNodeTree *ntree)
-{
-	bNode *node= nodeAddNode(ntree, "Show RGB");
-	
-	node->type= SH_NODE_SHOW_RGB;
-	node->width= 80.0f;
-	node->prv_h= 0.0f;
-	node->ns.vec[3]= 1.0f;		/* alpha init */
-	
-	/* add sockets */
-	nodeAddSocket(node, SOCK_RGBA, SOCK_IN, 1, "");
-	
-	return node;
-}
-
-
-/* **************** API for add ************** */
-
-bNode *node_shader_add(bNodeTree *ntree, int type)
-{
-	bNode *node= NULL;
-	
-	switch(type) {
-	case SH_NODE_TEST:
-		node= node_shader_add_test(ntree);
-		break;
-	case SH_NODE_VALUE:
-		node= node_shader_add_value(ntree);
-		break;
-	case SH_NODE_RGB:
-		node= node_shader_add_rgb(ntree);
-		break;
-	case SH_NODE_SHOW_RGB:
-		node= node_shader_add_show_rgb(ntree);
-		break;
-	case SH_NODE_MIX_RGB:
-		node= node_shader_add_mix_rgb(ntree);
-		break;
-	}
-	return node;
-}
-
-/* ******************* set the callbacks, called from UI, loader ***** */
-
-void node_shader_set_execfunc(bNode *node)
-{
-	switch(node->type) {
-	case SH_NODE_TEST:
-		node->execfunc= node_shader_exec_test;
-		break;
-	case SH_NODE_VALUE:
-		node->execfunc= node_shader_exec_value;
-		break;
-	case SH_NODE_RGB:
-		node->execfunc= node_shader_exec_rgb;
-		break;
-	case SH_NODE_SHOW_RGB:
-		node->execfunc= node_shader_exec_show_rgb;
-		break;
-	case SH_NODE_MIX_RGB:
-		node->execfunc= node_shader_exec_mix_rgb;
-		break;
+	if(node->storage) {
+		do_colorband(node->storage, in[0]->vec[0], out[0]->vec);
+		out[1]->vec[0]= out[0]->vec[3];
 	}
 }
+
+/* **************** rgb to bw node ************ */
+
+static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: bw */
+	/* stack order in: col */
+	
+	out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
+}
+
+
+/* ******************* execute ************ */
+
+void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
+{
+	ShaderCallData scd;
+	
+	/* convert caller data to struct */
+	scd.shi= shi;
+	scd.shr= shr;
+	ntree->data= &scd;
+	
+	ntreeExecTree(ntree);
+	
+}
+
+
+/* ******************************************************** */
+/* ********* Shader Node type definitions ***************** */
+/* ******************************************************** */
+
+/* SocketType syntax: 
+   socket type, max connections (0 is no limit), name, 4 values for default, 2 values for range */
+
+/* Verification rule: If name changes, a saved socket and its links will be removed! Type changes are OK */
+
+/* *************** INPUT ********************* */
+static bNodeSocketType sh_node_input_out[]= {
+	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_input= {
+	/* type code   */	SH_NODE_INPUT,
+	/* name        */	"Input",
+	/* width+range */	80, 60, 200,
+	/* class+opts   */	NODE_CLASS_INPUT, NODE_PREVIEW,
+	/* input sock  */	NULL,
+	/* output sock */	sh_node_input_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_input,
+	
+};
+
+/* **************** OUTPUT ******************** */
+static bNodeSocketType sh_node_output_in[]= {
+	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_output= {
+	/* type code   */	SH_NODE_OUTPUT,
+	/* name        */	"Output",
+	/* width+range */	80, 60, 200,
+	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
+	/* input sock  */	sh_node_output_in,
+	/* output sock */	NULL,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_output,
+	
+};
+
+/* **************** MATERIAL ******************** */
+static bNodeSocketType sh_node_material_in[]= {
+	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeSocketType sh_node_material_out[]= {
+	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_material= {
+	/* type code   */	SH_NODE_MATERIAL,
+	/* name        */	"Material",
+	/* width+range */	120, 60, 200,
+	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_OPTIONS|NODE_PREVIEW,
+	/* input sock  */	sh_node_material_in,
+	/* output sock */	sh_node_material_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_material,
+	
+};
+
+/* **************** TEXTURE ******************** */
+static bNodeSocketType sh_node_texture_out[]= {
+	{	SOCK_VALUE, 0, "Value",		1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA , 0, "Color",		1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_texture= {
+	/* type code   */	SH_NODE_TEXTURE,
+	/* name        */	"Texture",
+	/* width+range */	120, 60, 200,
+	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_OPTIONS|NODE_PREVIEW,
+	/* input sock  */	NULL,
+	/* output sock */	sh_node_texture_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_texture,
+	
+};
+
+/* **************** VALUE ******************** */
+static bNodeSocketType sh_node_value_out[]= {
+	{	SOCK_VALUE, 0, "Value",		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_value= {
+	/* type code   */	SH_NODE_VALUE,
+	/* name        */	"Value",
+	/* width+range */	80, 40, 120,
+	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_OPTIONS,
+	/* input sock  */	NULL,
+	/* output sock */	sh_node_value_out,
+	/* storage     */	"", 
+	/* execfunc    */	node_shader_exec_value,
+	
+};
+
+/* **************** RGB ******************** */
+static bNodeSocketType sh_node_rgb_out[]= {
+	{	SOCK_RGBA, 0, "Color",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_rgb= {
+	/* type code   */	SH_NODE_RGB,
+	/* name        */	"RGB",
+	/* width+range */	100, 60, 140,
+	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_OPTIONS,
+	/* input sock  */	NULL,
+	/* output sock */	sh_node_rgb_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_rgb,
+	
+};
+
+/* **************** MIX RGB ******************** */
+static bNodeSocketType sh_node_mix_rgb_in[]= {
+	{	SOCK_VALUE, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Color1",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Color2",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType sh_node_mix_rgb_out[]= {
+	{	SOCK_RGBA, 0, "Color",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_mix_rgb= {
+	/* type code   */	SH_NODE_MIX_RGB,
+	/* name        */	"Mix",
+	/* width+range */	80, 40, 120,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	sh_node_mix_rgb_in,
+	/* output sock */	sh_node_mix_rgb_out,
+	/* storage     */	"", 
+	/* execfunc    */	node_shader_exec_mix_rgb,
+	
+};
+
+
+/* **************** VALTORGB ******************** */
+static bNodeSocketType sh_node_valtorgb_in[]= {
+	{	SOCK_VALUE, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType sh_node_valtorgb_out[]= {
+	{	SOCK_RGBA, 0, "Color",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Alpha",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_valtorgb= {
+	/* type code   */	SH_NODE_VALTORGB,
+	/* name        */	"ColorRamp",
+	/* width+range */	240, 200, 300,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	sh_node_valtorgb_in,
+	/* output sock */	sh_node_valtorgb_out,
+	/* storage     */	"ColorBand",
+	/* execfunc    */	node_shader_exec_valtorgb,
+	
+};
+
+
+/* **************** RGBTOBW ******************** */
+static bNodeSocketType sh_node_rgbtobw_in[]= {
+	{	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType sh_node_rgbtobw_out[]= {
+	{	SOCK_VALUE, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_rgbtobw= {
+	/* type code   */	SH_NODE_RGBTOBW,
+	/* name        */	"RGB to BW",
+	/* width+range */	80, 40, 120,
+	/* class+opts  */	NODE_CLASS_OPERATOR, 0,
+	/* input sock  */	sh_node_rgbtobw_in,
+	/* output sock */	sh_node_rgbtobw_out,
+	/* storage     */	"ColorBand",
+	/* execfunc    */	node_shader_exec_rgbtobw,
+	
+};
+
+
+/* ****************** types array for all shaders ****************** */
+
+bNodeType *node_all_shaders[]= {
+	&sh_node_input, 
+	&sh_node_output,
+	&sh_node_material,
+	&sh_node_value,
+	&sh_node_rgb,
+	&sh_node_mix_rgb,
+	&sh_node_valtorgb,
+	&sh_node_rgbtobw,
+	&sh_node_texture,
+	NULL
+};
+
 

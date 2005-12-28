@@ -137,7 +137,7 @@ void do_buts_buttons(short event)
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_BUTSPREVIEW:
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_TE);
 		G.buts->oldkeypress = 0;
 		scrarea_queue_headredraw(curarea);
 		scrarea_queue_winredraw(curarea);
@@ -203,7 +203,7 @@ void do_buts_buttons(short event)
 			for(ml= ma->layers.first; ml; ml= ml->next)
 				if(ml->mat) ml->mat->id.us++;
 			
-			BIF_preview_changed(G.buts);
+			BIF_preview_changed(ID_MA);
 			BIF_undo_push("Paste material settings");
 			scrarea_queue_winredraw(curarea);
 		}

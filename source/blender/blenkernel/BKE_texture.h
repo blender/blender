@@ -50,7 +50,7 @@ int test_dlerr(const char *name,  const char *symbol);
 void open_plugin_tex(struct PluginTex *pit);
 struct PluginTex *add_plugin_tex(char *str);
 void free_plugin_tex(struct PluginTex *pit);
-struct ColorBand *add_colorband(void);
+struct ColorBand *add_colorband(int rangetype);
 int do_colorband(struct ColorBand *coba, float in, float out[4]);
 void default_tex(struct Tex *tex);
 struct Tex *add_texture(char *name);

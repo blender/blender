@@ -153,6 +153,7 @@ struct ScrArea;
 #define PULLDOWN (27<<9)
 #define ROUNDBOX (28<<9)
 #define CHARTAB (29<<9)
+#define BUT_COLORBAND (30<<9)
 
 #define BUTTYPE	(31<<9)
 

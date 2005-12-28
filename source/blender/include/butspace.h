@@ -37,7 +37,9 @@
 struct Base;
 struct Object;
 struct ID;
-
+struct ColorBand;
+struct uiBlock;
+struct rctf;
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -87,6 +89,7 @@ extern void do_armbuts(unsigned short event);
 extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
 /* shading */
+extern void draw_colorband_buts_small(struct uiBlock *block, struct ColorBand *coba, rctf *rct, int event);
 extern void material_panels(void);
 extern void do_matbuts(unsigned short event);
 extern void lamp_panels(void);
@@ -122,6 +125,7 @@ void test_matpoin_but(char *name, struct ID **idpp);
 void test_scriptpoin_but(char *name, struct ID **idpp);
 void test_actionpoin_but(char *name, ID **idpp);
 void test_grouppoin_but(char *name, ID **idpp);
+void test_texpoin_but(char *name, ID **idpp);
 
 void test_idbutton_cb(void *namev, void *arg2_unused);
 
@@ -169,20 +173,25 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_ACTCOL		1204
 #define B_MATFROM		1205
 #define B_MATPRV		1206
-#define B_MTEXCOL		1207
-#define B_TEXCLEAR		1208
-#define B_MATPRV_DRAW	1209
-#define B_MTEXPASTE		1210
-#define B_MTEXCOPY		1211
-#define B_MATLAY		1212
-#define B_MATHALO		1213
-#define B_MATZTRANSP	1214
-#define B_MATRAYTRANSP	1215
-#define B_MATCOLORBAND	1216
-/* yafray: material preset menu event */
-#define B_MAT_YF_PRESET	1217
+#define B_LAMPPRV		1207
+#define B_WORLDPRV		1208
+#define B_TEXPRV		1209
+#define B_MTEXCOL		1210
+#define B_TEXCLEAR		1211
+#define B_MTEXPASTE		1212
+#define B_MTEXCOPY		1213
+#define B_MATLAY		1214
+#define B_MATHALO		1215
+#define B_MATZTRANSP	1216
+#define B_MATRAYTRANSP	1217
+#define B_MATCOLORBAND	1218
+		/* yafray: material preset menu event */
+#define B_MAT_YF_PRESET	1219
 
-#define B_MAT_LAYERBROWSE	1218
+#define B_MAT_LAYERBROWSE	1220
+#define B_MAT_USENODES	1221
+		/* also handled in editnode.c */
+#define B_NODE_EXEC		1222
 
 /* *********************** */
 #define B_TEXBUTS		1400
@@ -207,7 +216,6 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_REDRAWCBAND	1318
 #define B_BANDCOL		1319
 #define B_LOADTEXIMA1	1320
-#define B_TEXPRV		1321
 
 #define B_PLUGBUT		1325
 /* B_PLUGBUT reserves 24 buttons at least! */

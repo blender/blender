@@ -35,6 +35,8 @@ struct RenderInfo;
 struct Image;
 struct ScrArea;
 
+#define PREVIEW_RENDERSIZE 140
+
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
 /* stores rendered preview  - is also used for icons */
@@ -45,22 +47,23 @@ typedef struct RenderInfo {
 	short cury;
 } RenderInfo;
 
-/* Set the previewrect for drawing */
-void BIF_set_previewrect(int win, int xmin, int ymin, int xmax, int ymax, short pr_rectx, short pr_recty);
-void BIF_end_previewrect(void);
-
-void 	BIF_all_preview_changed(void);
-void    BIF_preview_changed		(struct SpaceButs *sbuts);
-void	BIF_previewrender_buts	(struct SpaceButs *sbuts);
 /* Render the preview
- * a) into the ri->rect
- * b) draw it in the area using the block UIMat 
 
- if doDraw is false, the preview is not drawn and the function is not dynamic,
- so no events are processed. Hopefully fast enough for 64x64 rendering or 
- at least 32x32 */
-void	BIF_previewrender		(struct ID* id, struct RenderInfo *ri, struct ScrArea *area, int doDraw);
+pr_method:
+- PR_DRAW_RENDER: preview is rendered and drawn, as indicated by called context (buttons panel)
+- PR_ICON_RENDER: the preview is not drawn and the function is not dynamic,
+  so no events are processed. Hopefully fast enough for at least 32x32 
+- PR_DO_RENDER: preview is rendered, not drawn, but events are processed for afterqueue,
+  in use for node editor now.
+*/
+
+#define PR_DRAW_RENDER	0
+#define PR_ICON_RENDER	1
+#define PR_DO_RENDER	2
+
+void	BIF_previewrender	(struct ID *id, struct RenderInfo *ri, struct ScrArea *area, int pr_method);
+void	BIF_previewrender_buts	(struct SpaceButs *sbuts);
 void	BIF_previewdraw		(void);
-void	BIF_previewdraw_render(struct RenderInfo* ri, struct ScrArea* area);
+void    BIF_preview_changed(short id_code);
 
-void	BIF_calcpreview_image(struct Image* img, struct RenderInfo* ri, unsigned int w, unsigned int h);	
+

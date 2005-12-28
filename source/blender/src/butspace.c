@@ -221,6 +221,23 @@ void test_grouppoin_but(char *name, ID **idpp)
 	*idpp= NULL;
 }
 
+void test_texpoin_but(char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= G.main->tex.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
 
 /* --------------------------------- */
 
@@ -372,11 +389,12 @@ void redraw_test_buttons(Object *new)
 				addqueue(sa->win, REDRAW, 1);
 				buts->re_align= 1;
 			
-				if(new) {
-					BIF_preview_changed(buts);
+				if(new && buts->mainb==CONTEXT_SHADING) {
+					/* does node previews too... */
+					BIF_preview_changed(ID_TE);
 				}
 			}
-			// always to context switch
+			// always do context switch
 			if(new) butspace_context_switch(buts, new);
 
 		}

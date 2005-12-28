@@ -300,17 +300,19 @@ typedef struct SpaceNode {
 	
 	View2D v2d;
 	
-	struct ID *from;
-	int flag;
+	struct ID *id, *from;		/* context, no need to save in file? well... pinning... */
+	short flag, menunr;			/* menunr: browse id block in header */
 	float aspect;
 	void *curfont;
 	struct uiBlock *block;
 	
 	struct bNodeTree *nodetree;
+	int treetype, pad;			/* treetype: same nodetree->type */
 	
 } SpaceNode;
 
-
+/* snode->flag */
+#define SNODE_DO_PREVIEW	1
 
 #
 #

@@ -40,6 +40,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -55,6 +56,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_utildefines.h"
 
 #include "BPY_extern.h"
@@ -84,6 +86,10 @@ void free_material(Material *ma)
 		if(ml->mat) ml->mat->id.us--;
 	
 	BLI_freelistN(&ma->layers);
+	
+	if(ma->nodetree)
+		ntreeFreeTree(ma->nodetree);
+
 }
 
 void init_material(Material *ma)
@@ -169,6 +175,10 @@ Material *copy_material(Material *ma)
 	for(ml= man->layers.first; ml; ml= ml->next)
 		id_us_plus((ID *)ml->mat);
 
+	if(ma->nodetree) {
+		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
+	}
+	
 	return man;
 }
 
@@ -567,16 +577,25 @@ void new_material_to_objectdata(Object *ob)
 	ob->actcol= ob->totcol;
 }
 
+/* will be renamed... now easy to re-use for nodes! */
 Material *get_active_matlayer(Material *ma)
 {
-	MaterialLayer *ml;
 	
 	if(ma==NULL) return NULL;
 	
-	for(ml= ma->layers.first; ml; ml= ml->next)
-		if(ml->flag & ML_ACTIVE) break;
-	if(ml)
-		return ml->mat;
+	if(ma->use_nodes) {
+		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
+		if(node && node->id) {
+			return (Material *)node->id;
+		}
+	}
+	else {
+		MaterialLayer *ml;
+		for(ml= ma->layers.first; ml; ml= ml->next)
+			if(ml->flag & ML_ACTIVE) break;
+		if(ml)
+			return ml->mat;
+	}
 	return ma;
 }
 

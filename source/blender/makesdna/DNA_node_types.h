@@ -36,17 +36,28 @@
 struct ID;
 struct SpaceNode;
 struct bNodeLink;
+struct bNodeType;
 
 #define NODE_MAXSTR 32
+
+
+typedef struct bNodeStack {
+	float vec[4];
+	float min, max;			/* min/max for values (UI writes it, execute might use it) */
+	void *data;
+	short hasinput, pad;	/* hasinput tagged for executing */
+	int pad1;
+} bNodeStack;
 
 typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev;
 	
 	char name[32];
+	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
 	short type, flag, limit, stack_index;
 	float locx, locy;
 	
-	struct bNodeLink *link;		/* input link to parent, max one! */
+	struct bNodeLink *link;		/* input link to parent, max one! set in nodeSolveOrder() */
 	
 } bNodeSocket;
 
@@ -57,11 +68,13 @@ typedef struct bNodeSocket {
 #define SOCK_IMAGE		3
 
 /* sock->flag, first bit is select */
+#
+#
+typedef struct bNodePreview {
+	float *rect;
+	char xsize, ysize;
+} bNodePreview;
 
-typedef struct bNodeStack {
-	float vec[4];
-	void *data;
-} bNodeStack;
 
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
@@ -69,23 +82,32 @@ typedef struct bNode {
 	
 	char name[32];
 	short type, flag, done, level;
+	short lasty, pad, pad1, pad2;
 	
 	ListBase inputs, outputs;
-	struct ID *id;		/* optional link to libdata */
-	bNodeStack	ns;		/* builtin data, for UI to write into */
+	struct ID *id;			/* optional link to libdata */
+	void *storage;			/* custom data, must be struct, for storage in file */
 	
-	float locx, locy;	/* root offset for drawing */
-	float width, prv_h;	
-	rctf tot;			/* entire boundbox */
-	rctf prv;			/* optional preview area */
+	float locx, locy;		/* root offset for drawing */
+	float width;			
+	short custom1, custom2;	/* to be abused for buttons */
+	rctf totr;				/* entire boundbox */
+	rctf butr;				/* optional buttons area */
+	rctf prvr;				/* optional preview area */
+	bNodePreview *preview;	/* optional preview image */
 	
-	void (*drawfunc)(struct SpaceNode *, struct bNode *);
-	void (*execfunc)(struct bNode *, struct bNodeStack **);
+	struct bNodeType *typeinfo;	/* lookup of callbacks and defaults */
 	
 } bNode;
 
 /* node->flag */
-#define NODE_SELECT		1
+#define NODE_SELECT			1
+#define NODE_OPTIONS		2
+#define NODE_PREVIEW		4
+#define NODE_HIDDEN			8
+#define NODE_ACTIVE			16
+#define NODE_ACTIVE_ID		32
+#define NODE_DO_OUTPUT		64
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
@@ -99,10 +121,11 @@ typedef struct bNodeLink {
 typedef struct bNodeTree {
 	ListBase nodes, links;
 	
-	ListBase inputs, outputs;	/* default inputs and outputs, for solving tree */
-	bNodeStack *stack;
+	void *data;					/* custom data, set by execute caller, no read/write handling */
+	bNodeStack *stack;			/* stack is only while executing */
 	
-	int type, init;
+	int type, init;				/* set init on fileread */
+	struct bNodeType **alltypes;		/* type definitions, set on fileread */
 	
 } bNodeTree;
 
@@ -111,9 +134,8 @@ typedef struct bNodeTree {
 #define NTREE_COMPOSIT	1
 
 /* ntree->init, flag */
-#define NTREE_EXEC_SET	1
-#define NTREE_DRAW_SET	2
-
+#define NTREE_TYPE_INIT	1
+#define NTREE_EXEC_INIT	2
 
 #endif
 

@@ -1039,8 +1039,10 @@ void set_active_base(Base *base)
 		
 		/* signal to ipo */
 		allqueue(REDRAWIPO, base->object->ipowin);
+		
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWNODE, 0);
 		
 		/* signal to action */
 		select_actionchannel_by_name(base->object->action, "Object", 1);
@@ -1957,7 +1959,7 @@ void set_render_border(void)
 
 	if(G.vd->persp!=2) return;
 	
-	val= get_border(&rect, 2);
+	val= get_border(&rect, 3);
 	if(val) {
 		rcti vb;
 

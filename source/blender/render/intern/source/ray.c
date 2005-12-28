@@ -2071,7 +2071,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 		nrm= shi->facenor;
 	}
 	
-	vec= sphere_sampler(wrld->aomode, wrld->aosamp, floor(shi->xs+0.5), floor(shi->ys+0.5) );
+	vec= sphere_sampler(wrld->aomode, wrld->aosamp, shi->xs, shi->ys);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
 	tot= 2*wrld->aosamp*wrld->aosamp;
@@ -2202,7 +2202,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		else shadfac[3]= 1.0;							// 1.0=full light
 		
 		fac= 0.0;
-		jitlamp= give_jitter_plane(lar, floor(shi->xs+0.5), floor(shi->ys+0.5));
+		jitlamp= give_jitter_plane(lar, shi->xs, shi->ys);
 
 		a= lar->ray_totsamp;
 		

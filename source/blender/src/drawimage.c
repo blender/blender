@@ -1034,7 +1034,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		glPixelZoom((float)sima->zoom, (float)sima->zoom);
 				
 		if(sima->flag & SI_EDITTILE) {
-			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
 			
 			glPixelZoom(1.0, 1.0);
 			
@@ -1079,14 +1079,14 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				/* rect= ibuf->rect; */
 				for(sy= 0; sy+dy<=ibuf->y; sy+= dy) {
 					for(sx= 0; sx+dx<=ibuf->x; sx+= dx) {
-						glaDrawPixelsSafe(x1+sx*sima->zoom, y1+sy*sima->zoom, dx, dy, rect);
+						glaDrawPixelsSafe(x1+sx*sima->zoom, y1+sy*sima->zoom, dx, dy, GL_UNSIGNED_BYTE, rect);
 					}
 				}
 				
 				MEM_freeN(rect);
 			}
 			else 
-				glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+				glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
 			
 			if(Gip.current == IMAGEPAINT_CLONE) {
 				int w, h;
@@ -1103,7 +1103,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glaDrawPixelsSafe(x1 + offx, y1 + offy, w, h, clonerect);
+					glaDrawPixelsSafe(x1 + offx, y1 + offy, w, h, GL_UNSIGNED_BYTE, clonerect);
 					glDisable(GL_BLEND);
 
 					MEM_freeN(clonerect);
