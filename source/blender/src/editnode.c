@@ -106,7 +106,7 @@ static void shader_node_previewrender(ScrArea *sa, SpaceNode *snode)
 			if(node->flag & NODE_DO_OUTPUT) {
 				if(node->lasty<PREVIEW_RENDERSIZE-2) {
 					RenderInfo ri;	
-					int test= node->lasty;
+//					int test= node->lasty;
 					
 					ri.cury = node->lasty;
 					ri.rect = NULL;

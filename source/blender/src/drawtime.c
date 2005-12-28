@@ -166,6 +166,9 @@ static void draw_markers_time( void )
 {
 	TimeMarker *marker;
 
+	BIF_icon_set_aspect(ICON_MARKER, 1.0f);
+	BIF_icon_set_aspect(ICON_MARKER_HLT, 1.0f);
+	
 	/* unselected markers are drawn at the first time */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
 		if(!(marker->flag & SELECT)) draw_marker(marker);
