@@ -101,7 +101,7 @@ typedef struct DrawInfo {
 	unsigned int* rect; 
 } DrawInfo;
 
-static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int w, int h)
+static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 {
 	Icon* new_icon = 0;
 	DrawInfo* di;
@@ -116,16 +116,16 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->drawFunc = 0;
-	di->w = w;
-	di->h = h;
-	di->rw = w;
-	di->rh = h;
+	di->w = ICON_DEFAULT_HEIGHT;
+	di->h = ICON_DEFAULT_HEIGHT;
+	di->rw = ICON_DEFAULT_HEIGHT;
+	di->rh = ICON_DEFAULT_HEIGHT;
 	di->aspect = 1.0f;
-	di->rect = MEM_mallocN(w*h*sizeof(unsigned int), "icon_rect");
+	di->rect = MEM_mallocN(ICON_DEFAULT_HEIGHT*ICON_DEFAULT_HEIGHT*sizeof(unsigned int), "icon_rect");
 	
 	/* Here we store the rect in the icon - same as before */
-	for (y=0; y<h; y++) {
-		memcpy(&di->rect[y*w], &bbuf->rect[(y+yofs)*512+xofs], w*sizeof(int));
+	for (y=0; y<ICON_DEFAULT_HEIGHT; y++) {
+		memcpy(&di->rect[y*ICON_DEFAULT_HEIGHT], &bbuf->rect[(y+yofs)*512+xofs], ICON_DEFAULT_HEIGHT*sizeof(int));
 	}
 
 	new_icon->drawinfo_free = BIF_icons_free_drawinfo;
@@ -134,7 +134,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 	BKE_icon_set(icon_id, new_icon);
 }
 
-static void def_internal_vicon( int icon_id, int w, int h, VectorDrawFunc drawFunc)
+static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 {
 	Icon* new_icon = 0;
 	DrawInfo* di;
@@ -147,10 +147,10 @@ static void def_internal_vicon( int icon_id, int w, int h, VectorDrawFunc drawFu
 	
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->drawFunc =drawFunc;
-	di->w = w;
-	di->h = h;
-	di->rw = w;
-	di->rh = h;
+	di->w = ICON_DEFAULT_HEIGHT;
+	di->h = ICON_DEFAULT_HEIGHT;
+	di->rw = ICON_DEFAULT_HEIGHT;
+	di->rh = ICON_DEFAULT_HEIGHT;
 	di->aspect = 1.0f;
 	di->rect = 0;
 	
@@ -504,19 +504,19 @@ static void init_internal_icons()
 
 	for (y=0; y<12; y++) {
 		for (x=0; x<21; x++) {
-			def_internal_icon(bbuf, BIFICONID_FIRST + y*21 + x, x*20+3, y*21+3, 16, 16);
+			def_internal_icon(bbuf, BIFICONID_FIRST + y*21 + x, x*20+3, y*21+3);
 		}
 	}
 
-	def_internal_vicon(VICON_VIEW3D, 16, 16, vicon_view3d_draw);
-	def_internal_vicon(VICON_EDIT, 16, 16, vicon_edit_draw);
-	def_internal_vicon(VICON_EDITMODE_DEHLT, 16, 16, vicon_editmode_dehlt_draw);
-	def_internal_vicon(VICON_EDITMODE_HLT, 16, 16, vicon_editmode_hlt_draw);
-	def_internal_vicon(VICON_DISCLOSURE_TRI_RIGHT, 16, 16, vicon_disclosure_tri_right_draw);
-	def_internal_vicon(VICON_DISCLOSURE_TRI_DOWN, 16, 16, vicon_disclosure_tri_down_draw);
-	def_internal_vicon(VICON_MOVE_UP, 16, 16, vicon_move_up_draw);
-	def_internal_vicon(VICON_MOVE_DOWN, 16, 16, vicon_move_down_draw);
-	def_internal_vicon(VICON_X, 16, 16, vicon_x_draw);
+	def_internal_vicon(VICON_VIEW3D, vicon_view3d_draw);
+	def_internal_vicon(VICON_EDIT, vicon_edit_draw);
+	def_internal_vicon(VICON_EDITMODE_DEHLT, vicon_editmode_dehlt_draw);
+	def_internal_vicon(VICON_EDITMODE_HLT, vicon_editmode_hlt_draw);
+	def_internal_vicon(VICON_DISCLOSURE_TRI_RIGHT, vicon_disclosure_tri_right_draw);
+	def_internal_vicon(VICON_DISCLOSURE_TRI_DOWN, vicon_disclosure_tri_down_draw);
+	def_internal_vicon(VICON_MOVE_UP, vicon_move_up_draw);
+	def_internal_vicon(VICON_MOVE_DOWN, vicon_move_down_draw);
+	def_internal_vicon(VICON_X, vicon_x_draw);
 
 	IMB_freeImBuf(bbuf);
 }
@@ -714,7 +714,9 @@ void BIF_icon_draw(float x, float y, int icon_id)
 	}
 
 	if (di->drawFunc) {
-		di->drawFunc(x, y, di->w, di->h, 1.0f);
+		/* vector icons use the uiBlock transformation, they are not drawn
+		   with untransformed coordinates like the other icons */
+		di->drawFunc(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	}
 	else {
 		if (icon->changed) /* changed only ever set by dynamic icons */
@@ -782,8 +784,8 @@ void BIF_icon_set_aspect(int icon_id, float aspect)
 	} 
 	di->aspect = aspect;
 	/* scale width and height according to aspect */
-	di->w = (int)(16.0f/di->aspect + 0.5f);
-	di->h = (int)(16.0f/di->aspect + 0.5f);
+	di->w = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
+	di->h = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
 	
 }
 

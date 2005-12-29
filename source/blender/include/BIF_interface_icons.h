@@ -40,6 +40,8 @@ struct Tex;
 struct Lamp;
 struct Material;
 
+#define ICON_DEFAULT_HEIGHT 16
+
 /*
  Resizable Icons for Blender
 */
