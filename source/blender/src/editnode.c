@@ -163,15 +163,16 @@ void node_shader_default(Material *ma)
 	
 	ma->nodetree= ntreeAddTree(NTREE_SHADER);
 	
+	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT);
+	out->locx= 300.0f; out->locy= 300.0f;
+	
 	/* we add default the own material as shader */
 	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL);
 	in->locx= 10.0f; in->locy= 300.0f;
-	in->id= (ID *)ma;
-	id_us_plus(in->id);
-	in->flag |= NODE_ACTIVE_ID;
-	
-	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT);
-	out->locx= 300.0f; out->locy= 300.0f;
+//	in->id= (ID *)ma;
+//	id_us_plus(in->id);
+//	in->flag |= NODE_ACTIVE_ID;
+	nodeSetActive(ma->nodetree, in);
 	
 	/* only a link from color to color */
 	fromsock= in->outputs.first;

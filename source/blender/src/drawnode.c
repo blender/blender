@@ -159,7 +159,9 @@ static void node_browse_mat_cb(void *ntree_v, void *node_v)
 	bNodeTree *ntree= ntree_v;
 	bNode *node= node_v;
 	
-	if(node->menunr==32767 || node->menunr==0) {	/* code for Add New */
+	if(node->menunr<1) return;
+	
+	if(node->menunr==32767) {	/* code for Add New */
 		if(node->id) {
 			/* make copy, but make sure it doesnt have the node tag nor nodes */
 			Material *ma= (Material *)node->id;
@@ -188,6 +190,22 @@ static void node_browse_mat_cb(void *ntree_v, void *node_v)
 	node->menunr= 0;
 }
 
+static void node_new_mat_cb(void *ntree_v, void *node_v)
+{
+	bNodeTree *ntree= ntree_v;
+	bNode *node= node_v;
+	
+	node->id= (ID *)add_material("MatNode");
+	BLI_strncpy(node->name, node->id->name+2, 21);
+
+	nodeSetActive(ntree, node);
+
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWNODE, 0);
+	BIF_preview_changed(ID_MA);
+
+}
+
 static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -213,7 +231,7 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 			bt= uiDefBut(block, BUT, B_NOP, "Add New",
 						 butr->xmin+19, butr->ymin+19, (short)(butr->xmax-butr->xmin-19.0f), 19, 
 						 NULL, 0.0, 0.0, 0, 0, "Add new Material");
-			uiButSetFunc(bt, node_browse_mat_cb, ntree, node);
+			uiButSetFunc(bt, node_new_mat_cb, ntree, node);
 		}
 		else {
 			/* name button */

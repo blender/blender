@@ -3447,8 +3447,11 @@ static void material_panel_links(Object *ob, Material *ma)
 		uiDefBut(block, LABEL, B_DIFF, "Active Material Node",	10, 95, 300, 20, 0, 0, 0, 0, 0, "");
 		
 		if(ma) node= nodeGetActiveID(ma->nodetree, ID_MA);
-		if(node==NULL) return;
-		
+		if(node==NULL) {
+			node= nodeGetActive(ma->nodetree);
+			if(node==NULL || node->type!=SH_NODE_MATERIAL)
+				return;
+		}
 		if(node->typeinfo->butfunc) {
 			rctf rct;
 			rct.xmin= 10.0f;
