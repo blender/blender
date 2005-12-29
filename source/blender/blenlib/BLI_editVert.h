@@ -66,6 +66,7 @@ typedef struct HashEdge {
 typedef struct EditEdge
 {
 	struct EditEdge *next, *prev;
+	/* Note: vn is for general purpose temporary storage */
 	struct EditVert *v1, *v2, *vn;
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
 	unsigned char f, h, dir, seam;

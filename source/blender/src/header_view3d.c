@@ -859,6 +859,12 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 13: /* select non-triangles/quads */
 			select_faces_by_numverts(5);
 			break;
+		case 14: /* select less */
+			select_sharp_edges();
+			break;
+		case 15: /* select less */
+			select_linked_flat_faces();
+			break;
 
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -887,6 +893,12 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Non-Manifold|Ctrl Alt Shift M", 
 					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Sharp Edges|Ctrl Alt Shift S", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Linked flat faces|Ctrl Alt Shift F", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

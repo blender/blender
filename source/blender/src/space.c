@@ -1245,6 +1245,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							edge_flip();
 						else if (G.qual==0)
 							addedgeface_mesh();
+						else if ( G.qual == 
+							 (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+							select_linked_flat_faces();
+						}
+
 					}
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) addsegment_nurb();
 				}
@@ -1632,7 +1637,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						initTransform(TFM_TOSPHERE, CTX_NONE);
 						Transform();
 					}
-					
+					if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+						if(G.obedit->type==OB_MESH) select_sharp_edges();
+					}
 				}
 				else if(G.qual==LR_ALTKEY) {
 					if(G.f & G_WEIGHTPAINT)

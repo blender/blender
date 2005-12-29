@@ -1700,6 +1700,8 @@ static TBitem tb_mesh_select[]= {
 {	0, "SEPR",                          0, NULL},
 {	0, "Random...",			            5, NULL},
 {	0, "Non-Manifold|Shift Ctrl Alt M", 9, NULL},
+{	0, "Sharp Edges|Shift Ctrl Alt S", 14, NULL},
+{	0, "Linked Flat Faces|Shift Ctrl Alt F", 15, NULL},
 {	0, "Triangles|Shift Ctrl Alt 3",    11, NULL},
 {	0, "Quads|Shift Ctrl Alt 4",        12, NULL},
 {	0, "Non-Triangles/Quads|Shift Ctrl Alt 5", 13, NULL},

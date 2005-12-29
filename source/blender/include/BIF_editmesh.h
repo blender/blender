@@ -134,6 +134,8 @@ extern void editmesh_align_view_to_selected(struct View3D *v3d, int axis);
 
 	/* Selection */
 extern void select_non_manifold(void);
+extern void select_sharp_edges(void);
+extern void select_linked_flat_faces(void);
 extern void select_faces_by_numverts(int numverts);
 extern void select_more(void);
 extern void select_less(void);

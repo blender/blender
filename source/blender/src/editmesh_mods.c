@@ -1506,6 +1506,264 @@ void select_faces_by_numverts(int numverts)
 		BIF_undo_push("Select non-Triangles/Quads");
 }
 
+void select_sharp_edges(void)
+{
+	/* Find edges that have exactly two neighboring faces,
+	 * check the angle between those faces, and if angle is
+	 * small enough, select the edge
+	 */
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	EditFace **efa1;
+	EditFace **efa2;
+	long edgecount = 0, i, *vnptr;
+	static short sharpness = 135;
+	float fsharpness;
+
+	if(G.scene->selectmode==SCE_SELECT_FACE) {
+		error("Doesn't work in face selection mode");
+		return;
+	}
+
+	if(button(&sharpness,0, 180,"Max Angle:")==0) return;
+	/* if faces are at angle 'sharpness', then the face normals
+	 * are at angle 180.0 - 'sharpness' (convert to radians too)
+	 */
+	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
+
+	i=0;
+	/* count edges, (ab)use vn to be a long */
+	eed= em->edges.first;
+	while(eed) {
+		edgecount++;
+		vnptr = (long *) &eed->vn;
+		*vnptr = i;
+		eed= eed->next;
+		++i;
+	}
+
+	/* for each edge, we want a pointer to two adjacent faces */
+	efa1 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+	efa2 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+
+#define face_table_edge { \
+		i = *vnptr; \
+		if (i != -1) { \
+			if (efa1[i]) { \
+				if (efa2[i]) { \
+					*vnptr = -1; /* bad, edge has more than two neighbors */ \
+				} \
+				else { \
+					efa2[i] = efa; \
+				} \
+			} \
+			else { \
+				efa1[i] = efa; \
+			} \
+		} \
+	}
+
+	/* find the adjacent faces of each edge, we want only two */
+	efa= em->faces.first;
+	while(efa) {
+		vnptr = (long *) &efa->e1->vn;
+		face_table_edge;
+		vnptr = (long *) &efa->e2->vn;
+		face_table_edge;
+		vnptr = (long *) &efa->e3->vn;
+		face_table_edge;
+		if (efa->e4) {
+			vnptr = (long *) &efa->e4->vn;
+			face_table_edge;
+		}
+		efa= efa->next;
+	}
+
+#undef face_table_edge
+
+	eed= em->edges.first;
+	while(eed) {
+	vnptr = (long *) &eed->vn;
+		i = *vnptr;
+		if (i != -1) { 
+			/* edge has two or less neighboring faces */
+			if ( (efa1[i]) && (efa2[i]) ) { 
+				/* edge has exactly two neighboring faces, check angle */
+				float angle;
+				angle = saacos(efa1[i]->n[0]*efa2[i]->n[0] +
+							   efa1[i]->n[1]*efa2[i]->n[1] +
+							   efa1[i]->n[2]*efa2[i]->n[2]);
+				if (fabs(angle) >= fsharpness)
+					EM_select_edge(eed, 1);
+			}
+		}
+
+		eed= eed->next;
+	}
+
+	MEM_freeN(efa1);
+	MEM_freeN(efa2);
+
+	countall();
+	addqueue(curarea->win,  REDRAW, 0);
+	BIF_undo_push("Select Sharp Edges");
+}
+
+void select_linked_flat_faces(void)
+{
+	/* Find faces that are linked to selected faces that are 
+	 * relatively flat (angle between faces is higher than
+	 * specified angle)
+	 */
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	EditFace **efa1;
+	EditFace **efa2;
+	long edgecount = 0, i, *vnptr, faceselcount=0, faceselcountold=0;
+	static short sharpness = 135;
+	float fsharpness;
+
+	if(G.scene->selectmode!=SCE_SELECT_FACE) {
+		error("Only works in face selection mode");
+		return;
+	}
+
+	if(button(&sharpness,0, 180,"Min Angle:")==0) return;
+	/* if faces are at angle 'sharpness', then the face normals
+	 * are at angle 180.0 - 'sharpness' (convert to radians too)
+	 */
+	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
+
+	i=0;
+	/* count edges, (ab)use vn to be a long */
+	eed= em->edges.first;
+	while(eed) {
+		edgecount++;
+		vnptr = (long *) &eed->vn;
+		*vnptr = i;
+		eed= eed->next;
+		++i;
+	}
+
+	/* for each edge, we want a pointer to two adjacent faces */
+	efa1 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+	efa2 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+
+#define face_table_edge { \
+		i = *vnptr; \
+		if (i != -1) { \
+			if (efa1[i]) { \
+				if (efa2[i]) { \
+					*vnptr = -1; /* bad, edge has more than two neighbors */ \
+				} \
+				else { \
+					efa2[i] = efa; \
+				} \
+			} \
+			else { \
+				efa1[i] = efa; \
+			} \
+		} \
+	}
+
+	/* find the adjacent faces of each edge, we want only two */
+	efa= em->faces.first;
+	while(efa) {
+		vnptr = (long *) &efa->e1->vn;
+		face_table_edge;
+		vnptr = (long *) &efa->e2->vn;
+		face_table_edge;
+		vnptr = (long *) &efa->e3->vn;
+		face_table_edge;
+		if (efa->e4) {
+			vnptr = (long *) &efa->e4->vn;
+			face_table_edge;
+		}
+
+		/* while were at it, count the selected faces */
+		if (efa->f & SELECT) ++faceselcount;
+
+		efa= efa->next;
+	}
+
+#undef face_table_edge
+
+	eed= em->edges.first;
+	while(eed) {
+		vnptr = (long *) &eed->vn;
+		i = *vnptr;
+		if (i != -1) { 
+			/* edge has two or less neighboring faces */
+			if ( (efa1[i]) && (efa2[i]) ) { 
+				/* edge has exactly two neighboring faces, check angle */
+				float angle;
+				angle = saacos(efa1[i]->n[0]*efa2[i]->n[0] +
+							   efa1[i]->n[1]*efa2[i]->n[1] +
+							   efa1[i]->n[2]*efa2[i]->n[2]);
+				/* flag sharp edges */
+				if (fabs(angle) >= fsharpness)
+					*vnptr = -1;
+			}
+			else {
+				/* less than two neighbors */
+				*vnptr = -1;
+			}
+		}
+
+		eed= eed->next;
+	}
+
+#define select_flat_neighbor { \
+				i = *vnptr; \
+				if (i!=-1) { \
+					if (! (efa1[i]->f & SELECT) ) { \
+						EM_select_face(efa1[i], 1); \
+						++faceselcount; \
+					} \
+					if (! (efa2[i]->f & SELECT) ) { \
+						EM_select_face(efa2[i], 1); \
+						++faceselcount; \
+					} \
+				} \
+	}
+
+	while (faceselcount != faceselcountold) {
+		faceselcountold = faceselcount;
+
+		efa= em->faces.first;
+		while(efa) {
+			if (efa->f & SELECT) {
+				vnptr = (long *) &efa->e1->vn;
+				select_flat_neighbor;
+				vnptr = (long *) &efa->e2->vn;
+				select_flat_neighbor;
+				vnptr = (long *) &efa->e3->vn;
+				select_flat_neighbor;
+				if (efa->e4) {
+					vnptr = (long *) &efa->e4->vn;
+					select_flat_neighbor;
+				}
+			}
+			efa= efa->next;
+		}
+	}
+
+#undef select_flat_neighbor
+
+	MEM_freeN(efa1);
+	MEM_freeN(efa2);
+
+	countall();
+	addqueue(curarea->win,  REDRAW, 0);
+	BIF_undo_push("Select Linked Flat Faces");
+}
+
 void select_non_manifold(void)
 {
 	EditMesh *em = G.editMesh;
