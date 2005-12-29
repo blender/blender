@@ -734,6 +734,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 {
 	Scene *scene = self->scene;
 	BPy_Object *bpy_obj;
+	Object *object = NULL;
 
 	if( !scene )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -744,10 +745,10 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 					      "expected Object argument" );
 	
 	
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					          "Could not create data on demand for this object type!" );
+		//return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		//			          "Could not create data on demand for this object type!" );
 	
-	Object *object = bpy_obj->object;
+	object = bpy_obj->object;
 	
 	/* Object.c's EXPP_add_obdata does not support these objects */
 	if (!object->data && (object->type == OB_SURF || object->type == OB_FONT || object->type == OB_WAVE )) {
