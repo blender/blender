@@ -583,6 +583,8 @@ class Mesh:
     B{Note}: L{Object.colbits<Object.Object.colbits>} needs to be set correctly
     for each object in order for these materials to be used instead of
     the object's materials.
+    B{Note}: Making the material list shorter does not change the faces material indicies,
+    take care when using the faces material indices to reference a material in the materials list.
   @type materials: list of Materials
   @ivar degr: The max angle for auto smoothing in [1,80].  
   @type degr: int
@@ -630,6 +632,8 @@ class Mesh:
     @note: The mesh coordinates are in I{local space}, not the world space of
     its object.  For world space vertex coordinates, each vertex location must
     be multiplied by the object's 4x4 transform matrix (see L{transform}).
+    @note: The objects materials will not be copied into the existing mesh,
+    however the face material indices will match the material list of the original data.
     @type name: string
     @param name: name of the Blender object which contains the geometry data.
     @type cage: int
