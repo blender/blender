@@ -946,7 +946,8 @@ int EXPP_add_obdata( struct Object *object )
 		object->data = add_mball(  );
 		break;
 
-		/* TODO the following types will be supported later
+		/* TODO the following types will be supported later,
+		   be sure to update Scene_link when new types are supported
 		   case OB_SURF:
 		   object->data = add_curve(OB_SURF);
 		   G.totcurve++;

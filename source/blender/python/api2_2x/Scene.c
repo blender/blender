@@ -742,9 +742,19 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Object argument" );
-
-	else {			/* Ok, all is fine, let's try to link it */
-		Object *object = bpy_obj->object;
+	
+	
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					          "Could not create data on demand for this object type!" );
+	
+	Object *object = bpy_obj->object;
+	
+	/* Object.c's EXPP_add_obdata does not support these objects */
+	if (!object->data && (object->type == OB_SURF || object->type == OB_FONT || object->type == OB_WAVE )) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Object has no data and new data cant be automaticaly created for Surf, Text or Wave type objects!" );
+	} else {
+		/* Ok, all is fine, let's try to link it */
 		Base *base;
 
 		/* We need to link the object to a 'Base', then link this base
@@ -766,8 +776,9 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 						      "couldn't allocate new Base for object" );
 
 		/* check if this object has obdata, case not, try to create it */
+		
 		if( !object->data && ( object->type != OB_EMPTY ) )
-			EXPP_add_obdata( object );	/* returns -1 on error, defined in Object.c */
+			EXPP_add_obdata( object ); /* returns -1 on error, defined in Object.c */
 
 		base->object = object;	/* link object to the new base */
 		base->lay = object->lay;
