@@ -48,7 +48,6 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
-#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_editview.h"
@@ -138,6 +137,17 @@ static void snode_handle_recalc(SpaceNode *snode)
 		allqueue(REDRAWNODE, 1);
 }
 
+static void shader_node_event(SpaceNode *snode, short event)
+{
+//	bNode *node;
+	
+	switch(event) {
+	case B_NODE_EXEC:
+		snode_handle_recalc(snode);
+		break;
+	}
+}
+
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
 void node_shader_default(Material *ma)
@@ -153,10 +163,15 @@ void node_shader_default(Material *ma)
 	
 	ma->nodetree= ntreeAddTree(NTREE_SHADER);
 	
-	in= nodeAddNodeType(ma->nodetree, SH_NODE_INPUT);
-	in->locx= 10.0f; in->locy= 200.0f;
+	/* we add default the own material as shader */
+	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL);
+	in->locx= 10.0f; in->locy= 300.0f;
+	in->id= (ID *)ma;
+	id_us_plus(in->id);
+	in->flag |= NODE_ACTIVE_ID;
+	
 	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT);
-	out->locx= 200.0f; out->locy= 200.0f;
+	out->locx= 300.0f; out->locy= 300.0f;
 	
 	/* only a link from color to color */
 	fromsock= in->outputs.first;
@@ -188,6 +203,72 @@ void snode_set_context(SpaceNode *snode)
 }
 
 /* ************************** Node generic ************** */
+
+/* allows to walk the list in order of visibility */
+static bNode *next_node(bNodeTree *ntree)
+{
+	static bNode *current=NULL, *last= NULL;
+	
+	if(ntree) {
+		/* set current to the first selected node */
+		for(current= ntree->nodes.last; current; current= current->prev)
+			if(current->flag & NODE_SELECT)
+				break;
+		
+		/* set last to the first unselected node */
+		for(last= ntree->nodes.last; last; last= last->prev)
+			if((last->flag & NODE_SELECT)==0)
+				break;
+		
+		if(current==NULL)
+			current= last;
+		
+		return NULL;
+	}
+	/* no nodes, or we are ready */
+	if(current==NULL)
+		return NULL;
+	
+	/* now we walk the list backwards, but we always return current */
+	if(current->flag & NODE_SELECT) {
+		bNode *node= current;
+		
+		/* find previous selected */
+		current= current->prev;
+		while(current && (current->flag & NODE_SELECT)==0)
+			current= current->prev;
+		
+		/* find first unselected */
+		if(current==NULL)
+			current= last;
+		
+		return node;
+	}
+	else {
+		bNode *node= current;
+		
+		/* find previous unselected */
+		current= current->prev;
+		while(current && (current->flag & NODE_SELECT))
+			current= current->prev;
+		
+		return node;
+	}
+	
+	return NULL;
+}
+
+/* is rct in visible part of node? */
+static bNode *visible_node(SpaceNode *snode, rctf *rct)
+{
+	bNode *tnode;
+	
+	for(next_node(snode->nodetree); (tnode=next_node(NULL));) {
+		if(BLI_isect_rctf(&tnode->totr, rct, NULL))
+			break;
+	}
+	return tnode;
+}
 
 static void snode_home(ScrArea *sa, SpaceNode *snode)
 {
@@ -234,18 +315,22 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 		if(in_out & SOCK_IN) {
 			for(sock= node->inputs.first; sock; sock= sock->next) {
 				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-					*nodep= node;
-					*sockp= sock;
-					return 1;
+					if(node == visible_node(snode, &rect)) {
+						*nodep= node;
+						*sockp= sock;
+						return 1;
+					}
 				}
 			}
 		}
 		if(in_out & SOCK_OUT) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
 				if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
-					*nodep= node;
-					*sockp= sock;
-					return 1;
+					if(node == visible_node(snode, &rect)) {
+						*nodep= node;
+						*sockp= sock;
+						return 1;
+					}
 				}
 			}
 		}
@@ -455,28 +540,10 @@ void node_deselectall(SpaceNode *snode, int swap)
 	allqueue(REDRAWNODE, 0);
 }
 
-/* two active flags, ID nodes have special flag for buttons display */
-static void node_set_active(SpaceNode *snode, bNode *node)
+void node_set_active(SpaceNode *snode, bNode *node)
 {
-	bNode *tnode;
 	
-	/* make sure only one node is active, and only one per ID type */
-	for(tnode= snode->nodetree->nodes.first; tnode; tnode= tnode->next) {
-		tnode->flag &= ~NODE_ACTIVE;
-		
-		/* activate input/output will de-active all node-id types */
-		if(node->typeinfo->nclass==NODE_CLASS_INPUT || node->typeinfo->nclass==NODE_CLASS_OUTPUT)
-			tnode->flag &= ~NODE_ACTIVE_ID;
-		
-		if(node->id && tnode->id) {
-			if(GS(node->id->name) == GS(tnode->id->name))
-				tnode->flag &= ~NODE_ACTIVE_ID;
-		}
-	}
-	
-	node->flag |= NODE_ACTIVE;
-	if(node->id)
-		node->flag |= NODE_ACTIVE_ID;
+	nodeSetActive(snode->nodetree, node);
 	
 	/* tree specific activate calls */
 	if(snode->treetype==NTREE_SHADER) {
@@ -545,6 +612,7 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 	return 0;
 }
 
+
 /* return 0: nothing done */
 static int node_mouse_select(SpaceNode *snode, unsigned short event)
 {
@@ -555,8 +623,9 @@ static int node_mouse_select(SpaceNode *snode, unsigned short event)
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
 	
-	/* first check for the headers or scaling widget */
-	for(node= snode->nodetree->nodes.first; node; node= node->next) {
+	for(next_node(snode->nodetree); (node=next_node(NULL));) {
+		
+		/* first check for the headers or scaling widget */
 		if(node->flag & NODE_HIDDEN) {
 			if(do_header_hidden_node(snode, node, mx, my))
 				return 1;
@@ -565,9 +634,8 @@ static int node_mouse_select(SpaceNode *snode, unsigned short event)
 			if(do_header_node(snode, node, mx, my))
 				return 1;
 		}
-	}
-	
-	for(node= snode->nodetree->nodes.first; node; node= node->next) {
+		
+		/* node body */
 		if(BLI_in_rctf(&node->totr, mx, my))
 			break;
 	}
@@ -680,12 +748,6 @@ bNode *node_add_shadernode(SpaceNode *snode, int type, float locx, float locy)
 		node->locx= locx;
 		node->locy= locy;
 		node->flag |= SELECT;
-		
-		/* custom storage, will become handlerized.. */
-		if(node->type==SH_NODE_VALTORGB)
-			node->storage= add_colorband(1);
-		else if(node->type==SH_NODE_MATERIAL)
-			node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
 		
 		node_set_active(snode, node);
 	}
@@ -1056,6 +1118,35 @@ static void convert_nodes(SpaceNode *snode)
 
 /* ******************** main event loop ****************** */
 
+/* special version to prevent overlapping buttons */
+int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
+{
+	bNode *node;
+	rctf rect;
+	
+	short mval[2];
+	
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
+	
+	rect.xmin -= 2.0f;
+	rect.ymin -= 2.0f;
+	rect.xmax = rect.xmin + 4.0f;
+	rect.ymax = rect.ymin + 4.0f;
+	
+	for(node= snode->nodetree->nodes.first; node; node= node->next) {
+		if(node->block) {
+			if(node == visible_node(snode, &rect)) {
+				ListBase lb;
+				
+				lb.first= lb.last= node->block;
+				return uiDoBlocks(&lb, event);
+			}
+		}
+	}
+	return UI_NOTHING;
+}
+
 void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	SpaceNode *snode= spacedata;
@@ -1067,8 +1158,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(snode->nodetree==NULL) return;
 	
 	if(val) {
-		
-		if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+
+		if( node_uiDoBlocks(snode, &sa->uiblocks, event)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		case LEFTMOUSE:
@@ -1092,9 +1183,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case UI_BUT_EVENT:
-			if(val==B_NODE_EXEC) {
-				snode_handle_recalc(snode);	/* sets redraw events too */
-			}
+			/* future: handlerize this! */
+			if(snode->treetype==NTREE_SHADER)
+				shader_node_event(snode, val);
 			break;
 			
 		case RENDERPREVIEW:
@@ -1151,7 +1242,6 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case DELKEY:
 		case XKEY:
-			if( okee("Erase selected")==0 ) break;
 			node_delete(snode);
 			break;
 		}

@@ -347,7 +347,7 @@ static void sound_panel_sound(bSound *sound)
 	
 	// warning: abuse of texnr here! (ton didnt code!)
 	buttons_active_id(&id, &idfrom);
-	std_libbuttons(block, 10, 160, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
+	std_libbuttons(block, 10, 160, 0, NULL, B_SOUNDBROWSE2, ID_SO, 0, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
 
 	if (sound) {
 	

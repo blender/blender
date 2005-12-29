@@ -530,9 +530,10 @@ ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 	return 0;
 }
 
-static void get_flags_for_id(ID *id, char *buf) {
+static void get_flags_for_id(ID *id, char *buf) 
+{
 	int isfake= id->flag & LIB_FAKEUSER;
-
+	int isnode=0;
 		/* Writeout the flags for the entry, note there
 		 * is a small hack that writes 5 spaces instead
 		 * of 4 if no flags are displayed... this makes
@@ -540,10 +541,15 @@ static void get_flags_for_id(ID *id, char *buf) {
 		 * to have that explicit, oh well - zr
 		 */
 
+	if(GS(id->name)==ID_MA)
+		isnode= ((Material *)id)->use_nodes;
+	
 	if (id->us<0)
 		sprintf(buf, "-1W ");
-	else if (!id->lib && !isfake && id->us)
+	else if (!id->lib && !isfake && id->us && !isnode)
 		sprintf(buf, "     ");
+	else if(isnode)
+		sprintf(buf, "%c%cN%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
 	else
 		sprintf(buf, "%c%c%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
 }
@@ -575,6 +581,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			sprintf(buf, "%%x%d", i+1);
 			BLI_dynstr_append(pupds, buf);
 			
+			/* icon */
 			switch(GS(id->name))
 			{
 			case ID_MA: /* fall through */

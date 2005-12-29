@@ -281,7 +281,7 @@ void sound_buttons(void)
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
-	xco= std_libbuttons(block, xco+8, 0, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
+	xco= std_libbuttons(block, xco+8, 0, 0, NULL, B_SOUNDBROWSE, ID_SO, 0, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
 
 	if(G.ssound->sound) {
 		bSound *sound= G.ssound->sound;

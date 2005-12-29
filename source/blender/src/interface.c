@@ -603,6 +603,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	/* position block relative to but */
 	uiBut *bt;
 	rctf butrct;
+	float aspect;
 	int xsize, ysize, xof=0, yof=0, centre;
 	short dir1= 0, dir2=0;
 	
@@ -637,7 +638,8 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		block->minx= block->miny= 0;
 		block->maxx= block->maxy= 20;
 	}
-
+	
+	aspect= (float)(block->maxx - block->minx + 4);
 	ui_graphics_to_window(block->win, &block->minx, &block->miny);
 	ui_graphics_to_window(block->win, &block->maxx, &block->maxy);
 
@@ -646,7 +648,14 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	
 	xsize= block->maxx - block->minx+4; // 4 for shadow
 	ysize= block->maxy - block->miny+4;
-
+	aspect/= (float)xsize;
+	
+	/* ok, let's avoid scaling up popups */
+	if(aspect<1.0f) {
+		block->maxx= aspect*(block->maxx-block->minx) + block->minx;
+		block->maxy= aspect*(block->maxy-block->miny) + block->miny;
+	}
+	
 	if(but) {
 		short left=0, right=0, top=0, down=0;
 
@@ -741,12 +750,17 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	}
 	
 	/* apply */
-	bt= block->buttons.first;
-	while(bt) {
+	
+	for(bt= block->buttons.first; bt; bt= bt->next) {
 		
 		ui_graphics_to_window(block->win, &bt->x1, &bt->y1);
 		ui_graphics_to_window(block->win, &bt->x2, &bt->y2);
-
+		if(aspect<1.0f) {
+			bt->x1= aspect*(bt->x1 - block->minx) + block->minx;
+			bt->x2= aspect*(bt->x2 - block->minx) + block->minx;
+			bt->y1= aspect*(bt->y1 - block->miny) + block->miny;
+			bt->y2= aspect*(bt->y2 - block->miny) + block->miny;
+		}
 		bt->x1 += xof;
 		bt->x2 += xof;
 		bt->y1 += yof;
@@ -755,8 +769,6 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		bt->aspect= 1.0;
 		// ui_check_but recalculates drawstring size in pixels
 		ui_check_but(bt);
-		
-		bt= bt->next;
 	}
 	
 	block->minx += xof;
@@ -4981,7 +4993,7 @@ void ui_check_but(uiBut *but)
 		but->strwidth= 0;
 
 		/* automatic width */
-	if(but->x2==0.0) {
+	if(but->x2==0.0f && but->x1 > 0.0f) {
 		but->x2= (but->x1+but->strwidth+6); 
 	}
 

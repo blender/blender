@@ -265,7 +265,7 @@ void script_buttons(void)
 
 	/* STD SCRIPT BUTTONS */
 	xco += 2*XIC;
-	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SCRIPTBROWSE, (ID*)sc->script, 0, &(sc->menunr), 0, 0, 0, 0, 0);
+	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SCRIPTBROWSE, ID_SCRIPT, 0, (ID*)sc->script, 0, &(sc->menunr), 0, 0, 0, 0, 0);
 
 	/* always as last  */
 	curarea->headbutlen= xco+2*XIC;

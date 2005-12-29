@@ -150,7 +150,6 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
-#include "BSE_buttons.h"
 #include "BSE_seqaudio.h"
 
 #include "RE_renderconverter.h"		// make_sticky
@@ -3423,7 +3422,7 @@ static void editing_panel_links(Object *ob)
 			local= B_LATTLOCAL;
 		}
 		uiBlockSetCol(block, TH_BUT_SETTING2);
-		xco= std_libbuttons(block, 143, 180, 0, NULL, browse, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
+		xco= std_libbuttons(block, 143, 180, 0, NULL, browse, GS(id->name), 0, id, idfrom, &(G.buts->menunr), alone, local, 0, 0, B_KEEPDATA);
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	if(ob) {

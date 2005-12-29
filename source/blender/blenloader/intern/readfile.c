@@ -1242,6 +1242,7 @@ static bNodeTree *direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 			/* and we connect the rest */
 			for(node= ntree->nodes.first; node; node= node->next) {
 				node->preview= NULL;
+				node->block= NULL;
 				node->lasty= 0;
 				for(sock= node->inputs.first; sock; sock= sock->next)
 					sock->link= newdataadr(fd, sock->link);
@@ -3058,7 +3059,6 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					SpaceNode *snode= (SpaceNode *)sl;
 					
 					snode->nodetree= NULL;
-					snode->block= NULL;
 					snode->flag |= SNODE_DO_PREVIEW;
 				}
 			}
@@ -3154,7 +3154,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
 				snode->nodetree= NULL;
-				snode->block= NULL;
 				snode->flag |= SNODE_DO_PREVIEW;
 			}
 		}

@@ -105,7 +105,6 @@
 #include "BDR_editmball.h"
 
 #include "BSE_editipo.h"
-#include "BSE_buttons.h"
 #include "BSE_filesel.h"
 #include "BSE_edit.h"
 #include "BSE_headerbuttons.h"
@@ -1493,9 +1492,6 @@ void clever_numbuts(void)
 	}
 	else if(curarea->spacetype==SPACE_IMASEL) {
 		clever_numbuts_imasel();
-	}
-	else if(curarea->spacetype==SPACE_BUTS){
-		clever_numbuts_buts();
 	}
 	else if(curarea->spacetype==SPACE_OOPS) {
 		clever_numbuts_oops();

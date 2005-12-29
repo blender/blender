@@ -47,6 +47,8 @@
 
 #include "BKE_global.h"
 #include "BKE_object.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
@@ -57,8 +59,10 @@
 #include "BIF_interface_icons.h"
 #include "BIF_language.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
+#include "BIF_space.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_node.h"
@@ -101,35 +105,12 @@ static void snode_drawstring(SpaceNode *snode, char *str, int okwidth)
 /* **************  Socket callbacks *********** */
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
-static uiBlock *socket_value_menu(void *sock_v)
-{
-	bNodeSocket *sock= sock_v;
-	uiBlock *block;
-	char name[NODE_MAXSTR];
-	
-	/* don't add new block to a listbase if caller is LABEL button */
-	block= uiNewBlock(NULL, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
-	
-	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 28, NULL, 0, 0, 0, 0, "");
-	
-	BLI_strncpy(name, sock->name, NODE_MAXSTR-1);
-	strcat(name, " ");
-	uiDefButF(block, NUMSLI, 0, name,	 0,0,180,20, sock->ns.vec, 0.0, 1.0, 10, 0, "");
-	
-	uiBlockSetDirection(block, UI_TOP);
-	
-	return block;
-}
-
-/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *socket_vector_menu(void *sock_v)
 {
 	bNodeSocket *sock= sock_v;
 	uiBlock *block;
 	
-	/* don't add new block to a listbase if caller is LABEL button */
-	block= uiNewBlock(NULL, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
 	
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
@@ -144,71 +125,138 @@ static uiBlock *socket_vector_menu(void *sock_v)
 	return block;
 }
 
-static uiBlock *socket_color_menu(void *sock_v)
-{
-	bNodeSocket *sock= sock_v;
-	uiBlock *block;
-	
-	/* don't add new block to a listbase if caller is LABEL button */
-	block= uiNewBlock(NULL, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
-	
-	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
-	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "R ",	 0,40,180,20, sock->ns.vec, 0.0, 1.0, 10, 0, "");
-	uiDefButF(block, NUMSLI, 0, "G ",	 0,20,180,20, sock->ns.vec+1, 0.0, 1.0, 10, 0, "");
-	uiDefButF(block, NUMSLI, 0, "B ",	 0,0,180,20, sock->ns.vec+2, 0.0, 1.0, 10, 0, "");
-	
-	uiBlockSetDirection(block, UI_TOP);
-	
-	return block;
-}
+/* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
+
 
 static void node_ID_title_cb(void *node_v, void *unused_v)
 {
 	bNode *node= node_v;
 
-	if(node->id)
+	if(node->id) {
+		test_idbutton(node->id->name+2);	/* library.c, verifies unique name */
 		BLI_strncpy(node->name, node->id->name+2, 21);
+		
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWNODE, 0);
+		allqueue(REDRAWOOPS, 0);
+	}
 }
 
-/* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
+static void node_mat_alone_cb(void *node_v, void *unused)
+{
+	bNode *node= node_v;
+	
+	node->id= (ID *)copy_material((Material *)node->id);
+	
+	BIF_undo_push("Single user material");
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWNODE, 0);
+	allqueue(REDRAWOOPS, 0);
+}
 
-static int node_shader_buts_material(uiBlock *block, bNode *node, rctf *butr)
+static void node_browse_mat_cb(void *ntree_v, void *node_v)
+{
+	bNodeTree *ntree= ntree_v;
+	bNode *node= node_v;
+	
+	if(node->menunr==32767 || node->menunr==0) {	/* code for Add New */
+		if(node->id) {
+			/* make copy, but make sure it doesnt have the node tag nor nodes */
+			Material *ma= (Material *)node->id;
+			ma->id.us--;
+			ma= copy_material(ma);
+			ma->use_nodes= 0;
+			if(ma->nodetree) ntreeFreeTree(ma->nodetree);
+			ma->nodetree= NULL;
+			node->id= (ID *)ma;
+		}
+		else node->id= (ID *)add_material("MatNode");
+	}
+	else {
+		if(node->id) node->id->us--;
+		node->id= BLI_findlink(&G.main->mat, node->menunr-1);
+		id_us_plus(node->id);
+	}
+	BLI_strncpy(node->name, node->id->name+2, 21);
+	
+	nodeSetActive(ntree, node);
+
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWNODE, 0);
+	BIF_preview_changed(ID_MA);
+
+	node->menunr= 0;
+}
+
+static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		uiBut *bt;
-		float dx= (butr->xmax-butr->xmin)/3.0f;
+		short dx= (short)((butr->xmax-butr->xmin)/3.0f), has_us= (node->id && node->id->us>1);
+		char *strp;
 		
 		uiBlockBeginAlign(block);
-		bt= uiDefIDPoinBut(block, test_matpoin_but, ID_MA, B_NODE_EXEC, "",
-					   butr->xmin, butr->ymin+19.0f, butr->xmax-butr->xmin, 19.0f, 
-					   &node->id,  ""); 
-		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
+		if(has_us) uiBlockSetCol(block, TH_BUT_SETTING1);
+		else uiBlockSetCol(block, TH_BUT_SETTING2);
 		
-		uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC, "Diff",
-					 butr->xmin, butr->ymin, dx, 19.0f, 
-					 &node->custom1, 0, 0, 0, 0, "Material Node outputs Diffuse");
-		uiDefButBitS(block, TOG, SH_NODE_MAT_SPEC, B_NODE_EXEC, "Spec",
-					 butr->xmin+dx, butr->ymin, dx, 19.0f, 
-					 &node->custom1, 0, 0, 0, 0, "Material Node outputs Specular");
-		uiDefButBitS(block, TOG, SH_NODE_MAT_NEG, B_NODE_EXEC, "Neg Normal",
-					 butr->xmin+2.0f*dx, butr->ymin, dx, 19.0f,
-					 &node->custom1, 0, 0, 0, 0, "Material Node uses inverted Normal");
+		/* browse button */
+		IDnames_to_pupstring(&strp, NULL, "ADD NEW %x32767", &(G.main->mat), NULL, NULL);
+		node->menunr= 0;
+		bt= uiDefButS(block, MENU, B_NOP, strp, 
+				  butr->xmin, butr->ymin+19, 19, 19, 
+				  &node->menunr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
+		uiButSetFunc(bt, node_browse_mat_cb, ntree, node);
+		if(strp) MEM_freeN(strp);
+		
+		/* Add New button */
+		if(node->id==NULL) {
+			bt= uiDefBut(block, BUT, B_NOP, "Add New",
+						 butr->xmin+19, butr->ymin+19, (short)(butr->xmax-butr->xmin-19.0f), 19, 
+						 NULL, 0.0, 0.0, 0, 0, "Add new Material");
+			uiButSetFunc(bt, node_browse_mat_cb, ntree, node);
+		}
+		else {
+			/* name button */
+			short width= (short)(butr->xmax-butr->xmin-19.0f - (has_us?19.0f:0.0f));
+			bt= uiDefBut(block, TEX, B_NOP, "MA:",
+						  butr->xmin+19, butr->ymin+19, width, 19, 
+						  node->id->name+2, 0.0, 19.0, 0, 0, "Material name");
+			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
+			
+			/* user amount */
+			if(has_us) {
+				char str1[32];
+				sprintf(str1, "%d", node->id->us);
+				bt= uiDefBut(block, BUT, B_NOP, str1, 
+							  butr->xmax-19, butr->ymin+19, 19, 19, 
+							  NULL, 0, 0, 0, 0, "Displays number of users. Click to make a single-user copy.");
+				uiButSetFunc(bt, node_mat_alone_cb, node, NULL);
+			}
+			
+			/* node options */
+			uiBlockSetCol(block, TH_AUTO);
+			uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC, "Diff",
+						 butr->xmin, butr->ymin, dx, 19, 
+						 &node->custom1, 0, 0, 0, 0, "Material Node outputs Diffuse");
+			uiDefButBitS(block, TOG, SH_NODE_MAT_SPEC, B_NODE_EXEC, "Spec",
+						 butr->xmin+dx, butr->ymin, dx, 19, 
+						 &node->custom1, 0, 0, 0, 0, "Material Node outputs Specular");
+			uiDefButBitS(block, TOG, SH_NODE_MAT_NEG, B_NODE_EXEC, "Neg Normal",
+						 butr->xmax-dx, butr->ymin, dx, 19,
+						 &node->custom1, 0, 0, 0, 0, "Material Node uses inverted Normal");
+		}
 		uiBlockEndAlign(block);
-		
 	}	
 	return 38;
 }
 
-static int node_shader_buts_texture(uiBlock *block, bNode *node, rctf *butr)
+static int node_shader_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		uiBut *bt;
 		
 		bt= uiDefIDPoinBut(block, test_texpoin_but, ID_TE, B_NODE_EXEC, "",
-						   butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19.0f, 
+						   butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
 						   &node->id,  ""); 
 		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
 		
@@ -216,20 +264,20 @@ static int node_shader_buts_texture(uiBlock *block, bNode *node, rctf *butr)
 	return 19;
 }
 
-static int node_shader_buts_value(uiBlock *block, bNode *node, rctf *butr)
+static int node_shader_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
 		
 		uiDefButF(block, NUM, B_NODE_EXEC, "", 
-					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20.0f, 
+					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
 					  sock->ns.vec, 0.0f, 1.0f, 10, 2, "");
 		
 	}
 	return 20;
 }
 
-static int node_shader_buts_rgb(uiBlock *block, bNode *node, rctf *butr)
+static int node_shader_buts_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
@@ -238,13 +286,13 @@ static int node_shader_buts_rgb(uiBlock *block, bNode *node, rctf *butr)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 12.0f, 
+					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 12, 
 					  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
 		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-					  butr->xmin, butr->ymin+15.0f, butr->xmax-butr->xmin, butr->ymax-butr->ymin -15.0f -15.0f, 
+					  butr->xmin, butr->ymin+15, butr->xmax-butr->xmin, butr->ymax-butr->ymin -15 -15, 
 					  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
 		uiDefButF(block, COL, B_NOP, "",		
-					  butr->xmin, butr->ymax-12.0f, butr->xmax-butr->xmin, 12.0f, 
+					  butr->xmin, butr->ymax-12, butr->xmax-butr->xmin, 12, 
 				      sock->ns.vec, 0.0, 0.0, -1, 0, "");
 					  /* the -1 above prevents col button to popup a color picker */
 		
@@ -258,30 +306,25 @@ static void node_but_title_cb(void *node_v, void *but_v)
 	bNode *node= node_v;
 	uiBut *bt= but_v;
 	BLI_strncpy(node->name, bt->drawstr, NODE_MAXSTR);
+	
+	allqueue(REDRAWNODE, 0);
 }
 
-static int node_shader_buts_mix_rgb(uiBlock *block, bNode *node, rctf *butr)
+static int node_shader_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		uiBut *bt;
-		bNodeSocket *sock= node->inputs.first;		/* first socket stores "fac" */
 		
-		uiBlockBeginAlign(block);
 		/* blend type */
 		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
-						butr->xmin, butr->ymin+20.0f, butr->xmax-butr->xmin, 20.0f, 
+						butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
 						&node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
-		/* value */
-		uiDefButF(block, NUM, B_NODE_EXEC, "", 
-					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20.0f, 
-					  sock->ns.vec, 0.0f, 1.0f, 10, 2, "");
-		uiBlockEndAlign(block);
 	}
-	return 40;
+	return 20;
 }
 
-static int node_shader_buts_valtorgb(uiBlock *block, bNode *node, rctf *butr)
+static int node_shader_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block && (node->flag & NODE_OPTIONS)) {
 		if(node->storage) {
@@ -338,8 +381,6 @@ static void draw_nodespace_grid(SpaceNode *snode)
 {
 	float start, step= 25.0f;
 
-	/* window is 'pixel size', like buttons */
-	
 	BIF_ThemeColorShade(TH_BACK, -10);
 	
 	start= snode->v2d.cur.xmin -fmod(snode->v2d.cur.xmin, step);
@@ -355,6 +396,14 @@ static void draw_nodespace_grid(SpaceNode *snode)
 		glVertex2f(snode->v2d.cur.xmin, start);
 		glVertex2f(snode->v2d.cur.xmax, start);
 	}
+	
+	/* X and Y axis */
+	BIF_ThemeColorShade(TH_BACK, -18);
+	glVertex2f(0.0f, snode->v2d.cur.ymin);
+	glVertex2f(0.0f, snode->v2d.cur.ymax);
+	glVertex2f(snode->v2d.cur.xmin, 0.0f);
+	glVertex2f(snode->v2d.cur.xmax, 0.0f);
+	
 	glEnd();
 }
 
@@ -520,7 +569,7 @@ static void node_update(bNode *node)
 		if((node->flag & NODE_OPTIONS) && node->typeinfo->butfunc) {
 			dy-= NODE_DYS/2;
 			node->butr.ymax= dy;
-			node->butr.ymin= dy - (float)node->typeinfo->butfunc(NULL, node, NULL);
+			node->butr.ymin= dy - (float)node->typeinfo->butfunc(NULL, NULL, node, NULL);
 			dy= node->butr.ymin - NODE_DYS/2;
 		}
 		
@@ -572,7 +621,7 @@ static int node_get_colorid(bNode *node)
 	return TH_NODE;
 }
 
-static void node_basis_draw(SpaceNode *snode, bNode *node)
+static void node_basis_draw(ScrArea *sa, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
@@ -645,21 +694,36 @@ static void node_basis_draw(SpaceNode *snode, bNode *node)
 		glDisable(GL_BLEND);
 	}
 	
+	/* we make buttons for input sockets, if... */
+	if(node->flag & NODE_OPTIONS) {
+		if(node->inputs.first || node->typeinfo->butfunc) {
+			uiBlock *block= uiNewBlock(NULL, "node buttons", UI_EMBOSS, UI_HELV, sa->win);
+			BLI_addtail(&sa->uiblocks, block);
+			uiBlockSetFlag(block, UI_BLOCK_NO_HILITE);
+			node->block= block;
+		}
+	}
+	
 	/* socket inputs, label buttons */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 		
-		if(sock->type==SOCK_VALUE) {
-			uiBut *bt= uiDefBut(snode->block, LABEL, B_NODE_EXEC, sock->name, sock->locx+5.0f, sock->locy-10.0f, node->width-NODE_DY, NODE_DY, sock, 0, 0, 0, 0, "");
-			bt->block_func= socket_value_menu;
-		}
-		else if(sock->type==SOCK_VECTOR) {
-			uiBut *bt= uiDefBut(snode->block, LABEL, B_NODE_EXEC, sock->name, sock->locx+5.0f, sock->locy-10.0f, node->width-NODE_DY, NODE_DY, sock, 0, 0, 0, 0, "");
-			bt->block_func= socket_vector_menu;
-		}
-		else if(sock->type==SOCK_RGBA) {
-			uiBut *bt= uiDefBut(snode->block, LABEL, B_NODE_EXEC, sock->name, sock->locx+5.0f, sock->locy-10.0f, node->width-NODE_DY, NODE_DY, sock, 0, 0, 0, 0, "");
-			bt->block_func= socket_color_menu;
+		if(node->block && sock->link==NULL) {
+			if(sock->type==SOCK_VALUE) {
+				uiDefButF(node->block, NUM, B_NODE_EXEC, sock->name, 
+					  (short)node->locx+NODE_DYS, (short)(sock->locy)-7, (short)node->width-NODE_DY, 17, 
+					  sock->ns.vec, 0.0f, 1.0f, 10, 2, "");
+			}
+			else if(sock->type==SOCK_VECTOR) {
+				uiDefBlockBut(node->block, socket_vector_menu, sock, sock->name, 
+					  (short)node->locx+NODE_DYS, (short)sock->locy-7, (short)node->width-NODE_DY, 17, 
+					  "");
+			}
+			else if(node->block && sock->type==SOCK_RGBA) {
+				uiDefButF(node->block, COL, B_NODE_EXEC, "", 
+					(short)(node->locx+NODE_DYS), (short)sock->locy-6, (short)(node->width-NODE_DY), 15, 
+					  sock->ns.vec, 0, 0, 0, 0, "");
+			}
 		}
 		else {
 			BIF_ThemeColor(TH_TEXT);
@@ -689,9 +753,12 @@ static void node_basis_draw(SpaceNode *snode, bNode *node)
 			node_draw_preview(node->preview, &node->prvr);
 		
 	/* buttons */
-	if(node->flag & NODE_OPTIONS)
-		if(node->typeinfo->butfunc) 
-			node->typeinfo->butfunc(snode->block, node, &node->butr);
+	if(node->flag & NODE_OPTIONS) {
+		if(node->typeinfo->butfunc) {
+			node->typeinfo->butfunc(node->block, snode->nodetree, node, &node->butr);
+		}
+		uiDrawBlock(node->block);
+	}
 
 }
 
@@ -724,17 +791,14 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 	else
 		BIF_ThemeColorBlendShade(TH_TEXT, color_id, 0.4, 10);
 	
-	/* open/close entirely? */
+	/* open entirely? */
 	ui_draw_tria_icon(rct->xmin+9.0f, centy-6.0f, snode->aspect, 'h');	
 	
-	if(node->flag & SELECT) 
-		BIF_ThemeColor(TH_TEXT_HI);
-	else
-		BIF_ThemeColor(TH_TEXT);
-	
-	ui_rasterpos_safe(rct->xmin+21.0f, centy-4.0f, snode->aspect);
-	snode_drawstring(snode, node->name, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
-	
+	if(node->miniwidth>0.0f) {
+		ui_rasterpos_safe(rct->xmin+21.0f, centy-4.0f, snode->aspect);
+		snode_drawstring(snode, node->name, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
+	}	
+
 	/* scale widget thing */
 	BIF_ThemeColorShade(color_id, -10);	
 	dx= 10.0f;
@@ -854,6 +918,9 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	bwin_clear_viewmat(sa->win);	/* clear buttons view */
 	glLoadIdentity();
 	
+	/* always free, blocks here have no unique identifier (1 block per node) */
+	uiFreeBlocks(&sa->uiblocks);
+
 	/* only set once */
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glEnable(GL_MAP1_VERTEX_3);
@@ -866,7 +933,6 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	draw_nodespace_grid(snode);
 	
 	/* nodes */
-	
 	snode_set_context(snode);
 	
 	if(snode->nodetree) {
@@ -885,34 +951,26 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 		glDisable(GL_BLEND);
 		glDisable( GL_LINE_SMOOTH );
 		
-		/* not selected */
-		snode->block= uiNewBlock(&sa->uiblocks, "node buttons1", UI_EMBOSS, UI_HELV, sa->win);
-		uiBlockSetFlag(snode->block, UI_BLOCK_NO_HILITE);
-		
+		/* not selected first */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
+			node->block= NULL;	/* were freed */
 			if(!(node->flag & SELECT)) {
 				if(node->flag & NODE_HIDDEN)
 					node_hidden_draw(snode, node);
 				else
-					node_basis_draw(snode, node);
+					node_basis_draw(sa, snode, node);
 			}
 		}
-		uiDrawBlock(snode->block);
 		
 		/* selected */
-		snode->block= uiNewBlock(&sa->uiblocks, "node buttons2", UI_EMBOSS, UI_HELV, sa->win);
-		uiBlockSetFlag(snode->block, UI_BLOCK_NO_HILITE);
-		
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
 			if(node->flag & SELECT) {
 				if(node->flag & NODE_HIDDEN)
 					node_hidden_draw(snode, node);
 				else
-					node_basis_draw(snode, node);
+					node_basis_draw(sa, snode, node);
 			}
 		}
-
-		uiDrawBlock(snode->block);
 	}
 	
 	/* restore viewport (not needed yet) */

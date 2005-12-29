@@ -1029,7 +1029,6 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr)
 static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char *rect, short pr_rectx, short pr_recty)
 {
 	Material *mat;
-	MaterialLayer *ml;
 	ShadeResult shr;
 	float v1;
 	float eul[3], tmat[3][3], imat[3][3], col[4];
@@ -1112,33 +1111,12 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 //		Normalise(shi->vn);
 	}
 
-	/* ------  main shading loop with material layers */
 	VECCOPY(shi->vno, shi->vn);
-	if(mat->ml_flag & ML_RENDER) 
-		shade_lamp_loop_preview(shi, &shr);
-	else {
-		memset(&shr, 0, sizeof(ShadeResult));
-		shr.alpha= 1.0f;
-	}
-
 	if(mat->nodetree && mat->use_nodes) {
 		ntreeShaderExecTree(mat->nodetree, shi, &shr);
 	}
 	else {
-		for(ml= mat->layers.first; ml; ml= ml->next) {
-			if(ml->mat && (ml->flag & ML_RENDER)) {
-				ShadeResult shrlay;
-				
-				shi->mat= ml->mat;
-				shi->layerfac= ml->blendfac;
-				VECCOPY(shi->vn, shi->vno);
-				if(ml->flag & ML_NEG_NORMAL)
-					VecMulf(shi->vn, -1.0);
-
-				shade_lamp_loop_preview(shi, &shrlay);
-				matlayer_blend(ml, shi->layerfac, &shr, &shrlay);
-			}
-		}
+		shade_lamp_loop_preview(shi, &shr);
 	}
 
 	shi->mat= mat;	/* restore, shade input is re-used! */

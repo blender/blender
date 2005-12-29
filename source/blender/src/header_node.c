@@ -144,7 +144,7 @@ void node_buttons(ScrArea *sa)
 	if(snode->treetype==NTREE_SHADER) {
 		if(snode->from) {
 										/* 0, NULL -> pin */
-			xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, snode->id, snode->from, &(snode->menunr), 
+			xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, ID_MA, 1, snode->id, snode->from, &(snode->menunr), 
 					   B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 			
 			if(snode->id) {

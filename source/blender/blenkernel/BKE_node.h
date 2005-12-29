@@ -71,7 +71,7 @@ typedef struct bNodeType {
 	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
 	
 	/* after this line is set on startup of blender */
-	int (*butfunc)(struct uiBlock *, struct bNode *, rctf *);
+	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, rctf *);
 
 } bNodeType;
 
@@ -110,6 +110,7 @@ struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from
 int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
+void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 
 /* ************** SHADER NODES *************** */
 
@@ -117,7 +118,6 @@ struct ShadeInput;
 struct ShadeResult;
 
 /* note: types are needed to restore callbacks, don't change values */
-#define SH_NODE_INPUT		0
 #define SH_NODE_OUTPUT		1
 
 #define SH_NODE_MATERIAL	100

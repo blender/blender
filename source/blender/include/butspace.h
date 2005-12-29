@@ -189,9 +189,10 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_MAT_YF_PRESET	1219
 
 #define B_MAT_LAYERBROWSE	1220
-#define B_MAT_USENODES	1221
+#define B_MAT_USENODES		1221
 		/* also handled in editnode.c */
-#define B_NODE_EXEC		1222
+#define B_NODE_EXEC			1222
+
 
 /* *********************** */
 #define B_TEXBUTS		1400

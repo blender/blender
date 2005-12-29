@@ -1823,12 +1823,12 @@ void info_buttons(void)
 		uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), 8,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 		
 		/* STD SCREEN BUTTONS */
-		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCR, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
+		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCR, ID_SCR, 0, (ID *)G.curscreen, 0, &G.curscreen->screennr, 1, 1, B_INFODELSCR, 0, 0);
 		
 		xco +=8;
 	
 		/* STD SCENE BUTTONS */
-		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCE, (ID *)G.scene, 0, &G.curscreen->scenenr, 1, 1, B_INFODELSCE, 0, 0);
+		xco= std_libbuttons(block, xco, 0, 0, NULL, B_INFOSCE, ID_SCE, 0, (ID *)G.scene, 0, &G.curscreen->scenenr, 1, 1, B_INFODELSCE, 0, 0);
 	}
 	else xco= 430;
 	

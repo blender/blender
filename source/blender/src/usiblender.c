@@ -656,6 +656,8 @@ static void initbuttons(void)
 	G.fontss= BMF_GetFont(BMF_kHelveticaBold8);
 
 	clear_matcopybuf();
+	
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 }
 
 

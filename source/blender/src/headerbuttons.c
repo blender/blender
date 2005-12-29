@@ -233,15 +233,13 @@ int GetButStringLength(char *str) {
 /* ********************** GLOBAL ****************************** */
 
 int std_libbuttons(uiBlock *block, short xco, short yco,
-							int pin, short *pinpoin, int browse, ID *id,
+							int pin, short *pinpoin, int browse, short id_code, short special, ID *id,
 							ID *parid, short *menupoin, int users, int lib,
 							int del, int autobut, int keepbut)
 {
 	ListBase *lb;
-	Object *ob;
-	Ipo *ipo;
 	uiBut *but;
-	int len, idwasnul=0, idtype, oldcol, add_addbutton=0;
+	int len, oldcol, add_addbutton=0;
 	char *str=NULL, str1[10];
 
 	uiBlockBeginAlign(block);
@@ -251,140 +249,46 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		uiDefIconButS(block, ICONTOG, pin, ICON_PIN_DEHLT, xco,yco,XIC,YIC, pinpoin, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what object is selected");
 		xco+= XIC;
 	}
+	/* browse menu */
 	if(browse) {
-		if(id==0) {
-			idwasnul= 1;
-			/* only the browse button */
-			ob= OBACT;
-			if(curarea->spacetype==SPACE_IMAGE) {
-				id= G.main->image.first;
-			}
-			else if(curarea->spacetype==SPACE_SOUND) {
-				id= G.main->sound.first;
-			}
-			else if(curarea->spacetype==SPACE_ACTION) {
-				if(ob) id= G.main->action.first;
-			}
-			else if(curarea->spacetype==SPACE_NLA) {
-				id= NULL;
-			}
-			else if(curarea->spacetype==SPACE_IPO) {
-				id= G.main->ipo.first;
-				
-				/* test for ipotype */
-				while(id) {
-					ipo= (Ipo *)id;
-					if(G.sipo->blocktype==ipo->blocktype) break;
-					id= id->next;
-				}
-				if(ob==NULL) {
-					if(G.sipo->blocktype!=ID_SEQ && G.sipo->blocktype!=ID_WO) {
-						id= NULL; 
-						idwasnul= 0;
-					}
-				}
-			}
-			else if(curarea->spacetype==SPACE_BUTS) {
-				if(browse==B_WORLDBROWSE) {
-					id= G.main->world.first;
-				}
-				else if(ob && ob->type && (ob->type<=OB_LAMP)) {
-					if(G.buts->mainb==CONTEXT_SHADING) {
-						int tab= G.buts->tab[CONTEXT_SHADING];
-						
-						if(tab==TAB_SHADING_MAT) id= G.main->mat.first;
-						else if(tab==TAB_SHADING_TEX) id= G.main->tex.first;
-						
-						add_addbutton= 1;
-					}
-				}
-			}
-			else if(curarea->spacetype==SPACE_TEXT) {
-				id= G.main->text.first;
-			}
-			else if(curarea->spacetype==SPACE_SCRIPT) {
-				id= G.main->script.first;
-			}
-		}
-		if(id) {
-			char *extrastr= NULL;
-			
-			idtype= GS(id->name);
-			lb= wich_libbase(G.main, GS(id->name));
-			
-			if(idwasnul) id= NULL;
-			else if(id->us>1) uiBlockSetCol(block, TH_BUT_SETTING1);
-
-			if (pin && *pinpoin) {
-				uiBlockSetCol(block, TH_BUT_SETTING2);
-			}
-			
-			if ELEM7( idtype, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC) extrastr= "ADD NEW %x 32767";
-			else if (idtype==ID_TXT) extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
-			else if (idtype==ID_SO) extrastr= "OPEN NEW %x 32766";
-			
-			uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
-			if( idtype==ID_SCE || idtype==ID_SCR ) uiClearButLock();
-			
-			if(curarea->spacetype==SPACE_BUTS)
-				uiSetButLock(idtype!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, NULL);
-			
-			if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
-
-			if (lb) {
-				if( idtype==ID_IP)
-					IPOnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin, G.sipo->blocktype);
-				else
-					IDnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin);
-			}
-			
-			uiDefButS(block, MENU, browse, str, xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses existing choices or adds NEW");
-			
-			uiClearButLock();
+		char *extrastr= NULL;
 		
-			MEM_freeN(str);
-		}
-		else if(curarea->spacetype==SPACE_BUTS) {
-			if(G.buts->mainb==CONTEXT_SHADING) {
-				uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
-				if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
-				uiDefButS(block, MENU, browse, "ADD NEW %x 32767",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-				uiClearButLock();
-			} else if (G.buts->mainb == CONTEXT_SCENE) {
-				if(G.buts->tab[CONTEXT_SCENE]== TAB_SCENE_SOUND) {
-					uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-				}
-			}
-		}
-		else if(curarea->spacetype==SPACE_TEXT) {
-			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766 | ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-		}
-		else if(curarea->spacetype==SPACE_SCRIPT) {
-			uiDefButS(block, MENU, browse, "No running scripts", xco, yco, XIC, YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-		}
-		else if(curarea->spacetype==SPACE_SOUND) {
-			uiDefButS(block, MENU, browse, "OPEN NEW %x 32766",xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-		}
-		else if(curarea->spacetype==SPACE_ACTION) {
-			uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
-			if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
+		if(ELEM(id_code, ID_MA, ID_TE)) add_addbutton= 1;
+			
+		lb= wich_libbase(G.main, id_code);
+		
+		if(id && id->us>1) uiBlockSetCol(block, TH_BUT_SETTING1);
 
-			uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-			uiClearButLock();
-		}
-		else if(curarea->spacetype==SPACE_IPO) {
-			if(idwasnul) {
-				uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
-				if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
-	
-				uiDefButS(block, MENU, browse, "ADD NEW %x 32767", xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses Datablock");
-				uiClearButLock();
-			}
+		if (pin && *pinpoin) {
+			uiBlockSetCol(block, TH_BUT_SETTING2);
 		}
 		
+		if ELEM7( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC) extrastr= "ADD NEW %x 32767";
+		else if (id_code==ID_TXT) extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
+		else if (id_code==ID_SO) extrastr= "OPEN NEW %x 32766";
+		
+		uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
+		if( id_code==ID_SCE || id_code==ID_SCR ) uiClearButLock();
+		
+		if(curarea->spacetype==SPACE_BUTS)
+			uiSetButLock(id_code!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, NULL);
+		
+		if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
+
+		if (lb) {
+			if( id_code==ID_IP)
+				IPOnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin, G.sipo->blocktype);
+			else
+				IDnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin);
+		}
+		
+		uiDefButS(block, MENU, browse, str, xco,yco,XIC,YIC, menupoin, 0, 0, 0, 0, "Browses existing choices or adds NEW");
 		xco+= XIC;
+		
+		uiClearButLock();
+	
+		MEM_freeN(str);
 	}
-
 
 	uiBlockSetCol(block, oldcol);
 
@@ -401,12 +305,20 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 
 		uiSetButLock(id->lib!=0, "Can't edit library data");
 		
-		str1[0]= id->name[0];
-		str1[1]= id->name[1];
-		str1[2]= ':';
-		str1[3]= 0;
-		if(strcmp(str1, "SC:")==0) strcpy(str1, "SCE:");
-		else if(strcmp(str1, "SR:")==0) strcpy(str1, "SCR:");
+		if(GS(id->name)==ID_SCE) strcpy(str1, "SCE:");
+		else if(GS(id->name)==ID_SCE) strcpy(str1, "SCR:");
+		else if(GS(id->name)==ID_MA) {
+			if( ((Material *)id)->use_nodes )
+				strcpy(str1, "NT:");
+			else
+				strcpy(str1, "MA:");
+		}
+		else {
+			str1[0]= id->name[0];
+			str1[1]= id->name[1];
+			str1[2]= ':';
+			str1[3]= 0;
+		}
 		
 		if( GS(id->name)==ID_IP) len= 110;
 		else if(yco) len= 140;	// comes from button panel

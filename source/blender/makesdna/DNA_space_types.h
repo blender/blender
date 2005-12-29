@@ -128,7 +128,8 @@ typedef struct SpaceButs {
 	short scaflag;
 	short re_align;
 	
-	int oldkeypress;		/* for keeping track of the sub tab key cycling */
+	short oldkeypress;		/* for keeping track of the sub tab key cycling */
+	char use_nodes, pad;
 	
 	char texact, tab[7];	/* storing tabs for each context */
 		
@@ -304,7 +305,6 @@ typedef struct SpaceNode {
 	short flag, menunr;			/* menunr: browse id block in header */
 	float aspect;
 	void *curfont;
-	struct uiBlock *block;
 	
 	struct bNodeTree *nodetree;
 	int treetype, pad;			/* treetype: same nodetree->type */

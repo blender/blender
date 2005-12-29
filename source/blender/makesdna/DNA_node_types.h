@@ -37,6 +37,7 @@ struct ID;
 struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
+struct uiBlock;
 
 #define NODE_MAXSTR 32
 
@@ -72,7 +73,7 @@ typedef struct bNodeSocket {
 #
 typedef struct bNodePreview {
 	float *rect;
-	char xsize, ysize;
+	short xsize, ysize;
 } bNodePreview;
 
 
@@ -81,12 +82,15 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new;
 	
 	char name[32];
-	short type, flag, done, level;
-	short lasty, pad, pad1, pad2;
+	short type, flag;
+	short done, level;		/* both for dependency and sorting */
+	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
+	short pad1, pad2;
 	
 	ListBase inputs, outputs;
 	struct ID *id;			/* optional link to libdata */
 	void *storage;			/* custom data, must be struct, for storage in file */
+	struct uiBlock *block;	/* each node has own block */
 	
 	float locx, locy;		/* root offset for drawing */
 	float width, miniwidth;			

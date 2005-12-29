@@ -46,7 +46,7 @@ struct Ipo;
 
 int std_libbuttons(struct uiBlock *block, 
        short xco, short yco, int pin, short *pinpoin, 
-       int browse, struct ID *id, struct ID *parid, 
+       int browse, short id_code, short special, struct ID *id, struct ID *parid, 
        short *menupoin, int users, 
        int lib, int del, int autobut, int keepbut);
 

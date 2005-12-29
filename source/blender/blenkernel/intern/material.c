@@ -588,6 +588,7 @@ Material *get_active_matlayer(Material *ma)
 		if(node && node->id) {
 			return (Material *)node->id;
 		}
+		return NULL;
 	}
 	else {
 		MaterialLayer *ml;

@@ -1449,7 +1449,7 @@ static void object_panel_object(Object *ob)
 	
 	/* object name */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	xco= std_libbuttons(block, 10, 180, 0, NULL, 0, &ob->id, NULL, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, B_KEEPDATA);
+	xco= std_libbuttons(block, 10, 180, 0, NULL, 0, ID_OB, 0, &ob->id, NULL, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, B_KEEPDATA);
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* parent */

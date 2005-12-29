@@ -891,7 +891,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 
 	uiBlockBeginAlign(block);	
 	id= (ID*)Gip.clone.image;
-	std_libbuttons(block, 979, 40, 0, NULL, B_SIMACLONEBROWSE, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
+	std_libbuttons(block, 979, 40, 0, NULL, B_SIMACLONEBROWSE, ID_IM, 0, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
 	uiDefButF(block, NUMSLI, B_SIMABRUSHCHANGE, "B ",979,20,230,19, &Gip.clone.alpha , 0.0, 1.0, 0, 0, "Blend clone image");
 	uiBlockEndAlign(block);
 

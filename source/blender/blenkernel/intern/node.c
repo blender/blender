@@ -35,6 +35,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_node.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -56,7 +57,7 @@ static bNodeType *nodeGetType(bNodeTree *ntree, int type)
 
 void ntreeInitTypes(bNodeTree *ntree)
 {
-	bNode *node;
+	bNode *node, *next;
 	
 	if(ntree->type==NTREE_SHADER)
 		ntree->alltypes= node_all_shaders;
@@ -65,10 +66,13 @@ void ntreeInitTypes(bNodeTree *ntree)
 		printf("Error: no type definitions for nodes\n");
 	}
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for(node= ntree->nodes.first; node; node= next) {
+		next= node->next;
 		node->typeinfo= nodeGetType(ntree, node->type);
-		if(node->typeinfo==NULL)
-			printf("Error: no typeinfo for node %s\n", node->name);
+		if(node->typeinfo==NULL) {
+			printf("Error: Node type %s doesn't exist anymore, removed\n", node->name);
+			nodeFreeNode(ntree, node);
+		}
 	}
 			
 	ntree->init |= NTREE_TYPE_INIT;
@@ -199,7 +203,8 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type)
 	node->type= ntype->type;
 	node->flag= NODE_SELECT|ntype->flag;
 	node->width= ntype->width;
-
+	node->miniwidth= 15.0f;		/* small value only, allows print of first chars */
+	
 	if(ntype->inputs) {
 		stype= ntype->inputs;
 		while(stype->type != -1) {
@@ -214,6 +219,15 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type)
 			stype++;
 		}
 	}
+	
+	/* need init handler later? */
+	if(ntree->type==NTREE_SHADER) {
+		if(type==SH_NODE_MATERIAL)
+			node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
+		else if(node->type==SH_NODE_VALTORGB)
+			node->storage= add_colorband(1);
+	}
+	
 	return node;
 }
 
@@ -443,6 +457,26 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 			if(node->flag & NODE_ACTIVE_ID)
 				break;
 	return node;
+}
+
+/* two active flags, ID nodes have special flag for buttons display */
+void nodeSetActive(bNodeTree *ntree, bNode *node)
+{
+	bNode *tnode;
+	
+	/* make sure only one node is active, and only one per ID type */
+	for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
+		tnode->flag &= ~NODE_ACTIVE;
+		
+		if(node->id && tnode->id) {
+			if(GS(node->id->name) == GS(tnode->id->name))
+				tnode->flag &= ~NODE_ACTIVE_ID;
+		}
+	}
+	
+	node->flag |= NODE_ACTIVE;
+	if(node->id)
+		node->flag |= NODE_ACTIVE_ID;
 }
 
 /* ************** dependency stuff *********** */

@@ -467,7 +467,7 @@ void uiSetPanelHandler(int handler)
 /* return 1 if visible (create buttons!) */
 int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey)
 {
-	Panel *pa, *palign;
+	Panel *pa;
 	
 	/* check if Panel exists, then use that one */
 	pa= sa->panels.first;
@@ -500,18 +500,6 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		pa->sizex= sizex;
 		pa->sizey= sizey;
 		
-		/* pre align, for good sorting later on */
-		if(sa->spacetype==SPACE_BUTS && pa->prev) {
-			SpaceButs *sbuts= sa->spacedata.first;
-			
-			palign= pa->prev;
-			if(sbuts->align==BUT_VERTICAL) {
-				pa->ofsy= palign->ofsy - pa->sizey - PNL_HEADER;
-			}
-			else if(sbuts->align==BUT_HORIZONTAL) {
-				pa->ofsx= palign->ofsx + palign->sizex;
-			}
-		}
 		/* make new Panel tabbed? */
 		if(panel_tabbed && group_tabbed) {
 			Panel *papar;
@@ -1249,7 +1237,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 	
 	for(a=0 ; a<tot-1; a++, ps++) {
 		psnext= ps+1;
-		
+	
 		if(sbuts->align==BUT_VERTICAL) {
 			psnext->pa->ofsx = ps->pa->ofsx;
 			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-PNL_DIST;

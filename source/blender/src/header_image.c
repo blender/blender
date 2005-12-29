@@ -1159,7 +1159,7 @@ void image_buttons(void)
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	if (G.sima->image) {
 		xco+= 8;

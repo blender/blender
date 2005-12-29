@@ -1222,13 +1222,13 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	if(ma) {
-		std_libbuttons(block, 10, 180, 0, NULL, B_TEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+		std_libbuttons(block, 10, 180, 0, NULL, B_TEXBROWSE, ID_TE, 0, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
 	else if(wrld) {
-		std_libbuttons(block, 10, 180, 0, NULL, B_WTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+		std_libbuttons(block, 10, 180, 0, NULL, B_WTEXBROWSE, ID_TE, 0, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
 	else if(la) {
-		std_libbuttons(block, 10, 180, 0, NULL, B_LTEXBROWSE, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+		std_libbuttons(block, 10, 180, 0, NULL, B_LTEXBROWSE, ID_TE, 0, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 
@@ -1813,7 +1813,7 @@ static void world_panel_world(World *wrld)
 	if(uiNewPanel(curarea, block, "World", "World", 320, 0, 318, 204)==0) return;
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	std_libbuttons(block, 10, 180, 0, NULL, B_WORLDBROWSE, (ID *)wrld, (ID *)G.scene, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
+	std_libbuttons(block, 10, 180, 0, NULL, B_WORLDBROWSE, ID_WO, 0, (ID *)wrld, (ID *)G.scene, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 
 	if(wrld==NULL) return;
 	
@@ -2259,7 +2259,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiSetButLock(la->id.lib!=0, "Can't edit library data");
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, (ID *)la, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
+	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, ID_LA, 0, (ID *)la, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
 
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 5000.0*grid, 100, 0, "Sets the distance value at which light intensity is half");
@@ -2568,6 +2568,7 @@ void do_matbuts(unsigned short event)
 		allqueue(REDRAWNODE, 0);
 		allqueue(REDRAWBUTSSHADING, 0);
 		break;
+		
 	}
 }
 
@@ -3004,6 +3005,7 @@ static void material_panel_shading(Material *ma)
 	}
 }
 
+#if 0
 static void matlayer_add(void *ma_v, void *ml_v)
 {
 	Material *ma= ma_v;
@@ -3085,7 +3087,6 @@ static void matlayer_alone(void *ml_v, void *unused)
 	allqueue(REDRAWBUTSSHADING, 0);
 	allqueue(REDRAWOOPS, 0);
 }
-
 
 static void material_panel_layers(Material *ma)
 {
@@ -3203,39 +3204,8 @@ static void material_panel_layers(Material *ma)
 	}
 	
 	if(yco < 0) uiNewPanelHeight(block, 204-yco);
-
 }
-
-static void material_panel_nodes(Material *ma)
-{
-	Material *nodema;
-	bNode *node;
-	uiBlock *block;
-	char str[64];
-	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_nodes", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Preview", "Material");
-	if(uiNewPanel(curarea, block, "Nodes", "Material", 0, 0, 318, 204)==0) return;
-	
-	uiDefButC(block, TOG, B_MAT_USENODES, "Use Nodes", 10,180,150,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
-	nodema= get_active_matlayer(ma);
-	if(nodema) {
-		sprintf(str, "Active: %s", nodema->id.name+2);
-		uiDefBut(block, LABEL, B_NOP, str, 160,180,150,20, NULL, 0.0f, 0.0f, 0, 0, "");
-	}
-	node= nodeGetActive(ma->nodetree);
-	if(node==NULL) return;
-	
-	if(node->typeinfo->butfunc) {
-		rctf rct;
-		rct.xmin= 10.0f;
-		rct.xmax= rct.xmin+node->typeinfo->width;
-		rct.ymax= 155.0;
-		rct.ymin= rct.ymax - (float)node->typeinfo->butfunc(NULL, node, NULL);
-		node->typeinfo->butfunc(block, node, &rct);
-	}
-}
-
+#endif
 
 static void material_panel_ramps(Material *ma)
 {
@@ -3306,62 +3276,19 @@ static uiBlock *strand_menu(void *mat_v)
 }
 
 
-static void material_panel_material(Object *ob, Material *ma)
+static void material_panel_material(Material *ma)
 {
 	uiBlock *block;
-	ID *id, *idn, *idfrom;
-	uiBut *but;
-	float *colpoin = NULL, min;
+	float *colpoin = NULL;
 	int rgbsel = 0;
-	char str[30];
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_material", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Material", "Material", 320, 0, 318, 204)==0) return;
-
-	/* first do the browse but */
-	buttons_active_id(&id, &idfrom);	/* base material, not the matlayer! */
-
-	uiBlockSetCol(block, TH_BUT_SETTING2);
-	std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+	
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
 	
 	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	262,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
-	uiSetButLock(id && id->lib, "Can't edit library data");
 	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	283,200,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-	
-	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
-	
-	uiBlockBeginAlign(block);
-
-	/* id is the block from which the material is used */
-	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
-	else id= ob->data;
-
-	/* indicate which one is linking a material */
-	if(id) {
-		strncpy(str, id->name, 2);
-		str[2]= ':'; str[3]= 0;
-		but= uiDefBut(block, TEX, B_IDNAME, str,		8,174,115,20, id->name+2, 0.0, 18.0, 0, 0, "Shows the block the material is linked to");
-		uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
-	}
-	uiBlockSetCol(block, TH_BUT_ACTION);
-	uiDefButBitS(block, TOG, 1<<(ob->actcol-1), B_MATFROM, "OB",	125,174,32,20, &ob->colbits, 0, 0, 0, 0, "Links material to object");
-	idn= ob->data;
-	strncpy(str, idn->name, 2);
-	str[2]= 0;
-	uiBlockSetCol(block, TH_BUT_SETTING);
-	uiDefButBitS(block, TOGN, 1<<(ob->actcol-1), B_MATFROM, str,	158,174,32,20, &ob->colbits, 0, 0, 0, 0, "Shows the block the material is linked to");
-	uiBlockSetCol(block, TH_AUTO);
-	
-	sprintf(str, "%d Mat", ob->totcol);
-	if(ob->totcol) min= 1.0; else min= 0.0;
-	uiDefButC(block, NUM, B_ACTCOL, str,			191,174,112,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Shows the number of materials on object and the active material");
-	uiBlockEndAlign(block);
-	
-	if(ob->totcol==0) return;
-	uiSetButLock(id->lib!=0, "Can't edit library data");
-
-	ma= get_active_matlayer(ma);
-	if(ma==NULL) return;	
 	
 	if(ma->dynamode & MA_DRAW_DYNABUTS) {
 		uiBlockBeginAlign(block);
@@ -3377,14 +3304,14 @@ static void material_panel_material(Object *ob, Material *ma)
 		if(!(ma->mode & MA_HALO)) {
 			uiBlockBeginAlign(block);
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_REDR,	"VCol Light",	8,146,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
-			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,146,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
-			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,146,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
-			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,146,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-			uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		8,127,74,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
-			uiDefBlockBut(block, strand_menu, ma, "Strands",			82,127,74, 20, "Display strand settings for static particles");
-			uiDefButBitI(block, TOG, MA_WIRE, 0,	"Wire",				156,127,74,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
-			uiDefButBitI(block, TOG, MA_ZINV, 0,	"ZInvert",			230,127,73,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
+			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_REDR,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
+			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
+			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
+			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
+			uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		8,147,74,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
+			uiDefBlockBut(block, strand_menu, ma, "Strands",			82,147,74, 20, "Display strand settings for static particles");
+			uiDefButBitI(block, TOG, MA_WIRE, 0,	"Wire",				156,147,74,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
+			uiDefButBitI(block, TOG, MA_ZINV, 0,	"ZInvert",			230,147,73,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
 
 		}
 		uiBlockSetCol(block, TH_AUTO);
@@ -3435,6 +3362,104 @@ static void material_panel_material(Object *ob, Material *ma)
 
 }
 
+static void material_panel_nodes(Material *ma)
+{
+	bNode *node;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_nodes", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Links", "Material");
+	if(uiNewPanel(curarea, block, "Nodes", "Material", 640, 0, 318, 204)==0) return;
+	
+	node= nodeGetActive(ma->nodetree);
+	if(node==NULL) return;
+	/* we dont display the buttons here for the active material, is in links panel */
+	if(node==nodeGetActiveID(ma->nodetree, ID_MA)) return;
+	
+	if(node->typeinfo->butfunc) {
+		rctf rct;
+		rct.xmin= 10.0f;
+		rct.xmax= rct.xmin+node->typeinfo->width;
+		rct.ymax= 155.0;
+		rct.ymin= rct.ymax - (float)node->typeinfo->butfunc(NULL, NULL, node, NULL);
+		node->typeinfo->butfunc(block, ma->nodetree, node, &rct);
+	}
+}
+
+static void material_panel_links(Object *ob, Material *ma)
+{
+	uiBlock *block;
+	uiBut *but;
+	ID *id, *idn, *idfrom;
+	bNode *node=NULL;
+	float min;
+	short xco;
+	char str[30], *cp;
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Links", "Material", 310, 0, 318, 204)==0) return;	/* 310 makes sorting code to put it right after preview panel */
+	
+	/* Links from object to material/nodes */
+	uiDefBut(block, ROUNDBOX, 0, "",				5, 125, 310, 75, NULL, 7.0, 0.0, 15 , 20, ""); 
+	uiDefBut(block, LABEL, B_DIFF, "Link to Object",	10, 180, 300, 20, 0, 0, 0, 0, 0, "");
+
+	/* the main material browse but */
+	buttons_active_id(&id, &idfrom);	/* base material! */
+	
+	uiBlockSetCol(block, TH_BUT_SETTING2);
+	xco= std_libbuttons(block, 10, 160, 0, NULL, B_MATBROWSE, ID_MA, 0, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+	if(ma) cp= &ma->use_nodes; else cp= &G.buts->use_nodes;
+	uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, cp, 0.0f, 0.0f, 0, 0, "");
+	G.buts->use_nodes= *cp;
+	
+	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
+	
+	uiBlockBeginAlign(block);
+	
+	/* id is the block from which the material is used */
+	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
+	else id= ob->data;
+	
+	/* indicate which one is linking a material */
+	if(id) {
+		strncpy(str, id->name, 2);
+		str[2]= ':'; str[3]= 0;
+		but= uiDefBut(block, TEX, B_IDNAME, str,		10,135,115,20, id->name+2, 0.0, 18.0, 0, 0, "Shows the block the material is linked to");
+		uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
+	}
+	uiBlockSetCol(block, TH_BUT_ACTION);
+	uiDefButBitS(block, TOG, 1<<(ob->actcol-1), B_MATFROM, "OB",	125,135,32,20, &ob->colbits, 0, 0, 0, 0, "Links material to object");
+	idn= ob->data;
+	strncpy(str, idn->name, 2);
+	str[2]= 0;
+	uiBlockSetCol(block, TH_BUT_SETTING);
+	uiDefButBitS(block, TOGN, 1<<(ob->actcol-1), B_MATFROM, str,	158,135,32,20, &ob->colbits, 0, 0, 0, 0, "Shows the block the material is linked to");
+	uiBlockSetCol(block, TH_AUTO);
+	
+	sprintf(str, "%d Mat", ob->totcol);
+	if(ob->totcol) min= 1.0; else min= 0.0;
+	uiDefButC(block, NUM, B_ACTCOL, str,			190,135,110,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Shows the number of materials on object and the active material");
+	uiBlockEndAlign(block);
+	
+	/* Active material node */
+	if(ma && ma->use_nodes) {
+		uiDefBut(block, ROUNDBOX, 0, "",					5, 40, 310, 75, NULL, 7.0, 0.0, 15 , 20, ""); 
+		uiDefBut(block, LABEL, B_DIFF, "Active Material Node",	10, 95, 300, 20, 0, 0, 0, 0, 0, "");
+		
+		if(ma) node= nodeGetActiveID(ma->nodetree, ID_MA);
+		if(node==NULL) return;
+		
+		if(node->typeinfo->butfunc) {
+			rctf rct;
+			rct.xmin= 10.0f;
+			rct.xmax= 300.0f;
+			rct.ymax= 95.0f;
+			rct.ymin= rct.ymax - (float)node->typeinfo->butfunc(NULL, NULL, node, NULL);
+			node->typeinfo->butfunc(block, ma->nodetree, node, &rct);
+		}
+	}	
+}
+
 static void material_panel_preview(Material *ma)
 {
 	uiBlock *block;
@@ -3479,34 +3504,35 @@ void material_panels()
 
 		// always draw first 2 panels
 		material_panel_preview(ma);
-		material_panel_material(ob, ma);
+		material_panel_links(ob, ma);
 		
-		if(ma) {
-			material_panel_layers(ma);
+		if(ma && ma->use_nodes) {
 			material_panel_nodes(ma);
+		}
+		//material_panel_layers(ma);
+		
+		ma= get_active_matlayer(ma);	// checks nodes too
+		if(ma) {
+			material_panel_material(ma);
+			material_panel_ramps(ma);
+			material_panel_shading(ma);
 			
-			ma= get_active_matlayer(ma);
-			if(ma) {
-				material_panel_ramps(ma);
-				material_panel_shading(ma);
-				
-				if (G.scene->r.renderer==R_INTERN)
-					material_panel_tramir(ma);
-				else {
-					if(ma->YF_ar==0.f) {
-						ma->YF_ar = ma->YF_ag = ma->YF_ab = 1;
-						ma->YF_dscale = 1;
-					}
-					material_panel_tramir_yafray(ma);
+			if (G.scene->r.renderer==R_INTERN)
+				material_panel_tramir(ma);
+			else {
+				if(ma->YF_ar==0.f) {
+					ma->YF_ar = ma->YF_ag = ma->YF_ab = 1;
+					ma->YF_dscale = 1;
 				}
-				
-				material_panel_texture(ma);
-				
-				mtex= ma->mtex[ ma->texact ];
-				if(mtex && mtex->tex) {
-					material_panel_map_input(ob, ma);
-					material_panel_map_to(ma);
-				}
+				material_panel_tramir_yafray(ma);
+			}
+			
+			material_panel_texture(ma);
+			
+			mtex= ma->mtex[ ma->texact ];
+			if(mtex && mtex->tex) {
+				material_panel_map_input(ob, ma);
+				material_panel_map_to(ma);
 			}
 		}
 	}
@@ -3638,93 +3664,6 @@ void texture_panels()
 		}
 	}
 }
-
-/* old popup.. too hackish, should be fixed once (ton) */ 
-void clever_numbuts_buts()
-{
-	Material *ma;
-	Lamp *la;
-	World *wo;
-	static char	hexrgb[8]; /* Uh... */
-	static char	hexspec[8]; /* Uh... */
-	static char	hexmir[8]; /* Uh... */
-	static char hexho[8];
-	static char hexze[8];
-	int		rgb[3];
-	
-	if(G.buts->mainb!= CONTEXT_SHADING) return;
-	
-	switch (G.buts->tab[CONTEXT_SHADING]) {
-	case TAB_SHADING_LAMP:
-		la= G.buts->lockpoin;
-		if (la){
-			sprintf(hexrgb, "%02X%02X%02X", (int)(la->r*255), (int)(la->g*255), (int)(la->b*255));
-			add_numbut(0, TEX, "RGB:", 0, 6, hexrgb, "HTML Hex value for the lamp color");
-			do_clever_numbuts("Lamp RGB Hex Values", 1, REDRAW); 
-			sscanf(hexrgb, "%02X%02X%02X", &rgb[0], &rgb[1], &rgb[2]);
-			la->r = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
-			la->g = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
-			la->b = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			BIF_preview_changed(ID_MA);
-		}
-		break;
-	case TAB_SHADING_WORLD:
-		wo= G.buts->lockpoin;
-		if (wo){
-			sprintf(hexho, "%02X%02X%02X", (int)(wo->horr*255), (int)(wo->horg*255), (int)(wo->horb*255));
-			sprintf(hexze, "%02X%02X%02X", (int)(wo->zenr*255), (int)(wo->zeng*255), (int)(wo->zenb*255));
-			add_numbut(0, TEX, "Zen:", 0, 6, hexze, "HTML Hex value for the Zenith color");
-			add_numbut(1, TEX, "Hor:", 0, 6, hexho, "HTML Hex value for the Horizon color");
-			do_clever_numbuts("World RGB Hex Values", 2, REDRAW); 
-
-			sscanf(hexho, "%02X%02X%02X", &rgb[0], &rgb[1], &rgb[2]);
-			wo->horr = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
-			wo->horg = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
-			wo->horb = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			sscanf(hexze, "%02X%02X%02X", &rgb[0], &rgb[1], &rgb[2]);
-			wo->zenr = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
-			wo->zeng = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
-			wo->zenb = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			BIF_preview_changed(ID_WO);
-
-		}
-		break;
-	case TAB_SHADING_MAT:
-
-		ma= get_active_matlayer(G.buts->lockpoin);
-		
-		/* Build a hex value */
-		if (ma){
-			sprintf(hexrgb, "%02X%02X%02X", (int)(ma->r*255), (int)(ma->g*255), (int)(ma->b*255));
-			sprintf(hexspec, "%02X%02X%02X", (int)(ma->specr*255), (int)(ma->specg*255), (int)(ma->specb*255));
-			sprintf(hexmir, "%02X%02X%02X", (int)(ma->mirr*255), (int)(ma->mirg*255), (int)(ma->mirb*255));
-
-			add_numbut(0, TEX, "Col:", 0, 6, hexrgb, "HTML Hex value for the RGB color");
-			add_numbut(1, TEX, "Spec:", 0, 6, hexspec, "HTML Hex value for the Spec color");
-			add_numbut(2, TEX, "Mir:", 0, 6, hexmir, "HTML Hex value for the Mir color");
-			do_clever_numbuts("Material RGB Hex Values", 3, REDRAW); 
-			
-			/* Assign the new hex value */
-			sscanf(hexrgb, "%02X%02X%02X", &rgb[0], &rgb[1], &rgb[2]);
-			ma->r = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
-			ma->g = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
-			ma->b = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			sscanf(hexspec, "%02X%02X%02X", &rgb[0], &rgb[1], &rgb[2]);
-			ma->specr = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
-			ma->specg = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
-			ma->specb = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			sscanf(hexmir, "%02X%02X%02X", &rgb[0], &rgb[1], &rgb[2]);
-			ma->mirr = (rgb[0]/255.0 >= 0.0 && rgb[0]/255.0 <= 1.0 ? rgb[0]/255.0 : 0.0) ;
-			ma->mirg = (rgb[1]/255.0 >= 0.0 && rgb[1]/255.0 <= 1.0 ? rgb[1]/255.0 : 0.0) ;
-			ma->mirb = (rgb[2]/255.0 >= 0.0 && rgb[2]/255.0 <= 1.0 ? rgb[2]/255.0 : 0.0) ;
-			
-			BIF_preview_changed(ID_MA);
-		}
-		break;
-	}
-}
-
-
 
 void radio_panels()
 {
