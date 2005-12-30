@@ -4762,10 +4762,11 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	ID tmpid;
 	Mesh *tmpmesh;
 	Curve *tmpcu;
+	MetaBall *tmpmb;
 	DispListMesh *dlm;
 	DerivedMesh *dm;
 	Object *tmpobj = NULL;
-	int cage = 0;
+	int cage = 0, i;
 
 	if( !PyArg_ParseTuple( args, "s|i", &name, &cage ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -4839,7 +4840,8 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			displistmesh_to_mesh( dlm, tmpmesh );
 			dm->release( dm );
 		}
-
+		
+		
 		/* take control of mesh before object is freed */
 		tmpobj->data = NULL;
 		free_libblock_us( &G.main->object, tmpobj );
@@ -4855,11 +4857,60 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	tmpid = self->mesh->id;
 	memcpy( self->mesh, tmpmesh, sizeof( Mesh ) );
 	self->mesh->id = tmpid;
-
+	
 	/* if mesh has keys, make sure they point back to this mesh */
 	if( self->mesh->key )
 		self->mesh->key->from = (ID *)self->mesh;
+	
+	
+	
+	/* Copy materials to new object */
+	switch (ob->type) {
+	case OB_SURF:
+		self->mesh->totcol = tmpcu->totcol;		
+		
+		/* free old material list (if it exists) and adjust user counts */
+		if( tmpcu->mat ) {
+			for( i = tmpcu->totcol; i-- > 0; ) {
+				self->mesh->mat[i] = tmpcu->mat[i];
+				if (self->mesh->mat[i]) {
+					tmpmesh->mat[i]->id.us++;
+				}
+			}
+		}
+		break;
 
+#if 0
+	/* Crashes when assigning the new material, not sure why */
+	case OB_MBALL:
+		tmpmb = (MetaBall *)ob->data;
+		self->mesh->totcol = tmpmb->totcol;
+		
+		/* free old material list (if it exists) and adjust user counts */
+		if( tmpmb->mat ) {
+			for( i = tmpmb->totcol; i-- > 0; ) {
+				self->mesh->mat[i] = tmpmb->mat[i]; /* CRASH HERE ??? */
+				if (self->mesh->mat[i]) {
+					tmpmb->mat[i]->id.us++;
+				}
+			}
+		}
+		break;
+#endif
+
+	case OB_MESH:
+		self->mesh->totcol = tmpmesh->totcol;		
+		if( tmpmesh->mat ) {
+			for( i = tmpmesh->totcol; i-- > 0; ) {
+				self->mesh->mat[i] = tmpmesh->mat[i];
+				/* user count dosent need to change */
+			}
+		}
+		break;
+	} /* end copy materials */
+	
+	
+	
 	/* remove the temporary mesh */
 	BLI_remlink( &G.main->mesh, tmpmesh );
 	MEM_freeN( tmpmesh );
