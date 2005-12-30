@@ -106,6 +106,40 @@ def GetSelected ():
     print objects
   """
 
+
+def Duplicate (linked=1):
+  """
+  Duplicate selected objects on visible layers from Blenders current scene.
+  Object.GetSelected() will return the list of objects resulting from duplication.
+  
+  @type linked: int
+  @param linked: When zero this will duplicate the object data allong with the object.
+  @return: None
+
+  I{B{Example:}}
+
+  The example below creates duplicates the active object 10 times
+  and moves each object 1.0 on the X axis::
+    import Blender
+
+    scn = Scene.GetCurrent()
+    activeObject = scn.getActiveObject()
+    
+    # Unselect all
+    for ob in Blender.Object.GetSelected():
+        ob.sel = 0
+    activeObject.sel = 1
+    
+    for x in xrange(10):
+        Blender.Object.Duplicate(1)
+        activeObject = scn.getActiveObject()
+        activeObject.LocX += 1
+    Blender.Redraw()
+  @note: When duplicating, spesific duplicate settings in the "Edit Methods, Duplicate with Object"
+    section of the preferences window will change how duplicate deals with linked data.
+  """
+
+
 class Object:
   """
   The Object object

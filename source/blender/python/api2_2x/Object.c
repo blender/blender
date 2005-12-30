@@ -114,6 +114,7 @@ struct rctf;
 static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self );
+static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args );
 
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3);
@@ -139,6 +140,9 @@ char M_Object_GetSelected_doc[] =
 	"() - Returns a list of selected Objects in the active layer(s)\n\
 The active object is the first in the list, if visible";
 
+char M_Object_Duplicate_doc[] =
+	"(linked) - Duplicate all selected, visible objects in the current scene";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
 /*****************************************************************************/
@@ -149,6 +153,8 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_Get_doc},
 	{"GetSelected", ( PyCFunction ) M_Object_GetSelected, METH_NOARGS,
 	 M_Object_GetSelected_doc},
+	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS,
+	 M_Object_Duplicate_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -793,6 +799,30 @@ static PyObject *M_Object_GetSelected( PyObject * self )
 	}
 	return list;
 }
+
+
+/*****************************************************************************/
+/* Function:			  M_Object_Duplicate				 */
+/* Python equivalent:	  Blender.Object.Duplicate				 */
+/*****************************************************************************/
+static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args )
+{
+	int *linked=1;
+
+	if( !PyArg_ParseTuple( args, "|i", &linked ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"2 ints expected as arguments" );
+
+	if (linked) {
+		G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked dupli */
+		adduplicate(1);
+		G.qual &= ~LR_ALTKEY;
+	} else {
+		adduplicate(1);
+	}
+	Py_RETURN_NONE;
+}
+
 
 /*****************************************************************************/
 /* Function:	 initObject						*/
