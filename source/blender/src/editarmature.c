@@ -787,14 +787,14 @@ void delete_armature(void)
 	TEST_EDITARMATURE;
 	if(okee("Erase selected bone(s)")==0) return;
 	
-	/*  First rase any associated pose channel */
+	/*  First erase any associated pose channel */
 	if (G.obedit->pose){
 		bPoseChannel *chan, *next;
 		for (chan=G.obedit->pose->chanbase.first; chan; chan=next) {
 			next= chan->next;
 			curBone = editbone_name_exists (chan->name);
 			
-			if (curBone && (curBone->flag&BONE_SELECTED)) {
+			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
 				free_constraints(&chan->constraints);
 				BLI_freelinkN (&G.obedit->pose->chanbase, chan);
 			}
@@ -803,7 +803,7 @@ void delete_armature(void)
 					char *subtarget = get_con_subtarget_name(con, G.obedit);
 					if (subtarget) {
 						curBone = editbone_name_exists (subtarget);
-						if (curBone && (curBone->flag&BONE_SELECTED)) {
+						if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
 							con->flag |= CONSTRAINT_DISABLE;
 							subtarget[0]= 0;
 						}

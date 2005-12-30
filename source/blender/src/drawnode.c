@@ -965,7 +965,7 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	glLoadIdentity();
 	
 	/* always free, blocks here have no unique identifier (1 block per node) */
-	uiFreeBlocks(&sa->uiblocks);
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	/* only set once */
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
