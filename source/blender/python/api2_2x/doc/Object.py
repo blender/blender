@@ -113,7 +113,7 @@ def Duplicate (linked=1):
   Object.GetSelected() will return the list of objects resulting from duplication.
   
   @type linked: int
-  @param linked: When zero this will duplicate the object data allong with the object.
+  @param linked: When zero this will duplicate the object data along with the object.
   @return: None
 
   I{B{Example:}}
@@ -135,7 +135,7 @@ def Duplicate (linked=1):
         activeObject = scn.getActiveObject()
         activeObject.LocX += 1
     Blender.Redraw()
-  @note: When duplicating, spesific duplicate settings in the "Edit Methods, Duplicate with Object"
+  @note: When duplicating, specific duplicate settings in the "Edit Methods, Duplicate with Object"
     section of the preferences window will change how duplicate deals with linked data.
   """
 
