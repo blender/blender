@@ -3209,7 +3209,6 @@ static void do_colorband_evt(ColorBand *coba)
 	}
 }
 
-
 static int ui_do_but_COLORBAND(uiBut *but)
 {	
 	ColorBand *coba= (ColorBand *)but->poin;
@@ -3276,6 +3275,66 @@ static int ui_do_but_COLORBAND(uiBut *but)
 		}
 	}
 	
+	return but->retval;
+}
+
+/* button is presumed square */
+/* if mouse moves outside of sphere, it does negative normal */
+static int ui_do_but_NORMAL(uiBut *but)
+{
+	float dx, dy, rad, radsq, mrad, *fp= (float *)but->poin;
+	int firsttime=1;
+	short mval[2], mvalo[2];
+	
+	rad= 0.5f*(but->x2 - but->x1);
+	radsq= rad*rad;
+	
+	uiGetMouse(mywinget(), mvalo);
+	
+	while(get_mbut() & L_MOUSE) {
+		
+		uiGetMouse(mywinget(), mval);
+		
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || firsttime) {
+			firsttime= 0;
+			
+			dx= -but->x1-rad + (float)mval[0];
+			dy= -but->y1-rad + (float)mval[1];
+
+			mrad= dx*dx+dy*dy;
+			if(mrad < radsq) {	/* inner circle */
+				fp[0]= dx;
+				fp[1]= dy;
+				fp[2]= sqrt( radsq-dx*dx-dy*dy );
+			}
+			else {	/* outer circle */
+				float norx, nory;
+				
+				mrad= sqrt(mrad);	// veclen
+				norx= dx/mrad;
+				nory= dy/mrad;
+				
+				dx= norx*(2.0f*rad - mrad);
+				dy= nory*(2.0f*rad - mrad);
+				
+				mrad= dx*dx+dy*dy;
+				if(mrad < radsq) {
+					fp[0]= dx;
+					fp[1]= dy;
+					fp[2]= -sqrt( radsq-dx*dx-dy*dy );
+				}
+			}
+			Normalise(fp);
+				
+			ui_draw_but(but);
+			ui_block_flush_back(but->block);
+
+			mvalo[0]= mval[0];
+			mvalo[1]= mval[1];
+		}
+		BIF_wait_for_statechange();
+	}
+			
 	return but->retval;
 }
 
@@ -3475,6 +3534,9 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		break;
 	case BUT_COLORBAND:
 		retval= ui_do_but_COLORBAND(but);
+		break;
+	case BUT_NORMAL:
+		retval= ui_do_but_NORMAL(but);
 		break;
 		
 #ifdef INTERNATIONAL
@@ -4432,9 +4494,9 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 			
 			block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
-			retval= ui_do_block(block, &uevent);
+			retval |= ui_do_block(block, &uevent); /* we 'or' because 2nd loop can return to here, and we we want 'out' to return */
 			block->in_use= 0;
-			if(retval==UI_EXIT_LOOP) break;
+			if(retval & UI_EXIT_LOOP) break;
 			
 			/* now a new block could be created for menus, this is 
 			   inserted in the beginning of a list */

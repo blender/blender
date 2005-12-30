@@ -446,6 +446,7 @@ bNode *nodeGetActive(bNodeTree *ntree)
 	return node;
 }
 
+/* two active flags, ID nodes have special flag for buttons display */
 bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 {
 	bNode *node;
@@ -457,6 +458,18 @@ bNode *nodeGetActiveID(bNodeTree *ntree, short idtype)
 			if(node->flag & NODE_ACTIVE_ID)
 				break;
 	return node;
+}
+
+/* two active flags, ID nodes have special flag for buttons display */
+void nodeClearActiveID(bNodeTree *ntree, short idtype)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->id && GS(node->id->name)==idtype)
+			node->flag &= ~NODE_ACTIVE_ID;
 }
 
 /* two active flags, ID nodes have special flag for buttons display */

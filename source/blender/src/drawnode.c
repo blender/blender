@@ -122,6 +122,8 @@ static uiBlock *socket_vector_menu(void *sock_v)
 	
 	uiBlockSetDirection(block, UI_TOP);
 	
+	allqueue(REDRAWNODE, 0);
+	
 	return block;
 }
 
@@ -282,6 +284,19 @@ static int node_shader_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *nod
 	return 19;
 }
 
+static int node_shader_buts_normal(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		bNodeSocket *sock= node->outputs.first;		/* first socket stores normal */
+		
+		uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "", 
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, butr->ymax-butr->ymin, 
+				  sock->ns.vec, 0.0f, 1.0f, 0, 0, "");
+		
+	}	
+	return (int)(node->width-NODE_DY);
+}
+
 static int node_shader_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -361,6 +376,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_TEXTURE:
 			ntype->butfunc= node_shader_buts_texture;
+			break;
+		case SH_NODE_NORMAL:
+			ntype->butfunc= node_shader_buts_normal;
 			break;
 		case SH_NODE_VALUE:
 			ntype->butfunc= node_shader_buts_value;
@@ -536,27 +554,36 @@ static void node_update(bNode *node)
 	bNodeSocket *nsock;
 	
 	if(node->flag & NODE_HIDDEN) {
-		float rad, drad;
+		float rad, drad, hiddenrad= HIDDEN_RAD;
+		int totin, totout, tot;
+		
+		/* calculate minimal radius */
+		totin= BLI_countlist(&node->inputs);
+		totout= BLI_countlist(&node->outputs);
+		tot= MAX2(totin, totout);
+		if(tot>4) {
+			hiddenrad += 5.0*(float)(tot-4);
+		}
 		
 		node->totr.xmin= node->locx;
-		node->totr.xmax= node->locx + 3*HIDDEN_RAD + node->miniwidth;
-		node->totr.ymax= node->locy + (HIDDEN_RAD - 0.5f*NODE_DY);
-		node->totr.ymin= node->totr.ymax - 2*HIDDEN_RAD;
+		node->totr.xmax= node->locx + 3*hiddenrad + node->miniwidth;
+		node->totr.ymax= node->locy + (hiddenrad - 0.5f*NODE_DY);
+		node->totr.ymin= node->totr.ymax - 2*hiddenrad;
 		
 		/* output connectors */
-		rad=drad= M_PI/(1.0f + (float)BLI_countlist(&node->outputs));
+		rad=drad= M_PI/(1.0f + (float)totout);
 		
 		for(nsock= node->outputs.first; nsock; nsock= nsock->next, rad+= drad) {
-			nsock->locx= node->totr.xmax - HIDDEN_RAD + sin(rad)*HIDDEN_RAD;
-			nsock->locy= node->totr.ymin + HIDDEN_RAD + cos(rad)*HIDDEN_RAD;
+			nsock->locx= node->totr.xmax - hiddenrad + sin(rad)*hiddenrad;
+			nsock->locy= node->totr.ymin + hiddenrad + cos(rad)*hiddenrad;
 		}
 		
 		/* input connectors */
-		rad=drad= - M_PI/(1.0f + (float)BLI_countlist(&node->inputs));
+		rad=drad= - M_PI/(1.0f + (float)totin);
 		
 		for(nsock= node->inputs.first; nsock; nsock= nsock->next, rad+= drad) {
-			nsock->locx= node->totr.xmin + HIDDEN_RAD + sin(rad)*HIDDEN_RAD;
-			nsock->locy= node->totr.ymin + HIDDEN_RAD + cos(rad)*HIDDEN_RAD;
+			nsock->locx= node->totr.xmin + hiddenrad + sin(rad)*hiddenrad;
+			nsock->locy= node->totr.ymin + hiddenrad + cos(rad)*hiddenrad;
 		}
 	}
 	else {
@@ -785,21 +812,22 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
 	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
+	float hiddenrad= 0.5f*(rct->ymax-rct->ymin);
 	int color_id= node_get_colorid(node);
 	
 	/* shadow */
 	uiSetRoundBox(15);
-	nodeshadow(rct, HIDDEN_RAD, node->flag & SELECT);
+	nodeshadow(rct, hiddenrad, node->flag & SELECT);
 
 	/* body */
 	BIF_ThemeColorShade(color_id, 20);	
-	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, HIDDEN_RAD);
+	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active emphasis */
 	if(node->flag & NODE_ACTIVE) {
 		glEnable(GL_BLEND);
 		glColor4ub(200, 200, 200, 140);
-		gl_round_box(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, HIDDEN_RAD);
+		gl_round_box(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 		glDisable(GL_BLEND);
 	}
 	
@@ -832,7 +860,7 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 	//	if(node->id) {
 	//		glEnable(GL_BLEND);
 	//		BIF_icon_set_aspect(node->id->icon_id, snode->aspect);
-	//		BIF_icon_draw(rct->xmin+HIDDEN_RAD, -1.0f+rct->ymin+HIDDEN_RAD/2, node->id->icon_id);
+	//		BIF_icon_draw(rct->xmin+hiddenrad, -1.0f+rct->ymin+hiddenrad/2, node->id->icon_id);
 	//		glDisable(GL_BLEND);
 	//	}
 	

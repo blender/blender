@@ -166,12 +166,8 @@ void node_shader_default(Material *ma)
 	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	/* we add default the own material as shader */
 	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL);
 	in->locx= 10.0f; in->locy= 300.0f;
-//	in->id= (ID *)ma;
-//	id_us_plus(in->id);
-//	in->flag |= NODE_ACTIVE_ID;
 	nodeSetActive(ma->nodetree, in);
 	
 	/* only a link from color to color */
@@ -548,6 +544,13 @@ void node_set_active(SpaceNode *snode, bNode *node)
 	
 	/* tree specific activate calls */
 	if(snode->treetype==NTREE_SHADER) {
+		
+		/* when we select a material, active texture is cleared, for buttons */
+		if(node->id && GS(node->id->name)==ID_MA)
+			nodeClearActiveID(snode->nodetree, ID_TE);
+		if(node->id)
+			BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
+		
 		allqueue(REDRAWBUTSSHADING, 1);
 	}
 }
@@ -762,7 +765,7 @@ static void node_add_menu(SpaceNode *snode)
 	short event, mval[2];
 	
 	/* shader menu, still hardcoded defines... solve */
-	event= pupmenu("Add Node%t|Input%x0|Output%x1|Material%x100|Texture%x106|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
+	event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Normal%x107|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
 	if(event<1) return;
 	
 	getmouseco_areawin(mval);
@@ -1124,7 +1127,8 @@ int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 {
 	bNode *node;
 	rctf rect;
-	
+	ListBase listb= *lb;
+	int retval= UI_NOTHING;
 	short mval[2];
 	
 	getmouseco_areawin(mval);
@@ -1138,14 +1142,16 @@ int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 	for(node= snode->nodetree->nodes.first; node; node= node->next) {
 		if(node->block) {
 			if(node == visible_node(snode, &rect)) {
-				ListBase lb;
 				
-				lb.first= lb.last= node->block;
-				return uiDoBlocks(&lb, event);
+				lb->first= lb->last= node->block;
+				retval= uiDoBlocks(lb, event);
+				break;
 			}
 		}
 	}
-	return UI_NOTHING;
+	*lb= listb;
+	
+	return retval;
 }
 
 void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)

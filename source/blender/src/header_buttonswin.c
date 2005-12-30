@@ -46,6 +46,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -67,6 +68,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BSE_drawipo.h"
@@ -280,12 +282,22 @@ void buttons_active_id(ID **id, ID **idfrom)
 
 			if(G.buts->texfrom==0) {
 				if(ob && ob->type<OB_LAMP && ob->type) {
+					bNode *node= NULL;
+					
 					ma= give_current_material(ob, ob->actcol);
-					ma= get_active_matlayer(ma);
-					*idfrom= (ID *)ma;
-					if(ma) {
-						mtex= ma->mtex[ ma->texact ];
-						if(mtex) *id= (ID *)mtex->tex;
+					if(ma && ma->use_nodes)
+						node= nodeGetActiveID(ma->nodetree, ID_TE);
+					if(node) {
+						*idfrom= NULL;
+						*id= node->id;
+					}
+					else {
+						ma= get_active_matlayer(ma);
+						*idfrom= (ID *)ma;
+						if(ma) {
+							mtex= ma->mtex[ ma->texact ];
+							if(mtex) *id= (ID *)mtex->tex;
+						}
 					}
 				}
 			}

@@ -108,9 +108,11 @@ void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
 int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
+
+void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
-void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
+void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 
 /* ************** SHADER NODES *************** */
 
@@ -127,6 +129,8 @@ struct ShadeResult;
 #define SH_NODE_VALTORGB	104
 #define SH_NODE_RGBTOBW		105
 #define SH_NODE_TEXTURE		106
+#define SH_NODE_NORMAL		107
+#define SH_NODE_GEOMETRY	108
 
 /* custom defines: options for Material node */
 #define SH_NODE_MAT_DIFF	1

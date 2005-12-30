@@ -357,6 +357,7 @@ static void draw_tex_crop(Tex *tex)
 	
 }
 
+/* temporal abuse; if id_code is -1 it only does texture.... solve! */
 void BIF_preview_changed(short id_code)
 {
 	ScrArea *sa;
@@ -370,7 +371,7 @@ void BIF_preview_changed(short id_code)
 					if (sbuts->ri) sbuts->ri->cury= 0;
 					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}
-				else if(tab==TAB_SHADING_TEX && (id_code==ID_TE)) {
+				else if(tab==TAB_SHADING_TEX && (id_code==ID_TE || id_code==-1)) {
 					if (sbuts->ri) sbuts->ri->cury= 0;
 					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}

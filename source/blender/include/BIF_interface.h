@@ -114,7 +114,13 @@ struct ScrArea;
 #define UI_BUT_ALIGN_DOWN	(1<<15)
 
 
-/* Button types */
+/* Button types, bits stored in 1 value... and a short even!
+- bits 0-4:  bitnr (0-31)
+- bits 5-7:  pointer type
+- bit  8:    for 'bit'
+- bit  9-15: button type (now 6 bits, 64 types)
+*/
+
 #define CHA	32
 #define SHO	64
 #define INT	96
@@ -154,8 +160,9 @@ struct ScrArea;
 #define ROUNDBOX (28<<9)
 #define CHARTAB (29<<9)
 #define BUT_COLORBAND (30<<9)
+#define BUT_NORMAL (31<<9)
 
-#define BUTTYPE	(31<<9)
+#define BUTTYPE	(63<<9)
 
 
 

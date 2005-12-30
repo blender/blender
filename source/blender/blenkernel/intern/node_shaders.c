@@ -159,16 +159,57 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(data && node->id) {
-		ShadeInput *shi;
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		float *vec;
+		int retval;
 		
-		shi= ((ShaderCallData *)data)->shi;
+		/* out: value, color, normal */
+		if(in[0]->hasinput)
+			vec= in[0]->vec;
+		else
+			vec= shi->co;
 		
-		multitex_ext((Tex *)node->id, shi->co, out[0]->vec, out[1]->vec, out[1]->vec+1, out[1]->vec+2, out[1]->vec+3);
-		
+		retval= multitex_ext((Tex *)node->id, vec, out[0]->vec, out[1]->vec, out[1]->vec+1, out[1]->vec+2, out[1]->vec+3);
+		if((retval & TEX_RGB)==0) {
+			out[1]->vec[0]= out[0]->vec[0];
+			out[1]->vec[1]= out[0]->vec[0];
+			out[1]->vec[2]= out[0]->vec[0];
+			out[1]->vec[3]= 1.0f;
+		}
 		if(shi->do_preview)
 			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys);
-
+		
 	}
+}
+
+/* **************** geometry node ************ */
+
+static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data) {
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		
+		/* out: global, local, view, orco, uv, normal */
+		VECCOPY(out[0]->vec, shi->gl);
+		VECCOPY(out[1]->vec, shi->co);
+		VECCOPY(out[2]->vec, shi->view);
+		VECCOPY(out[3]->vec, shi->lo);
+		VECCOPY(out[4]->vec, shi->uv);
+		VECCOPY(out[5]->vec, shi->vno);
+	}
+}
+
+/* **************** normal node ************ */
+
+/* generates normal, does dot product */
+static void node_shader_exec_normal(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	bNodeSocket *sock= node->outputs.first;
+	/* stack order input:  normal */
+	/* stack order output: normal, value */
+	
+	VECCOPY(out[0]->vec, sock->ns.vec);
+	out[1]->vec[0]= INPR(out[0]->vec, in[0]->vec);
 }
 
 /* **************** value node ************ */
@@ -197,9 +238,12 @@ static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, b
 	/* stack order in: fac, col1, col2 */
 	/* stack order out: col */
 	float col[3];
+	float fac= in[0]->vec[0];
+	
+	CLAMP(fac, 0.0f, 1.0f);
 	
 	VECCOPY(col, in[1]->vec);
-	ramp_blend(node->custom1, col, col+1, col+2, in[0]->vec[0], in[2]->vec);
+	ramp_blend(node->custom1, col, col+1, col+2, fac, in[2]->vec);
 	VECCOPY(out[0]->vec, col);
 }
 
@@ -272,6 +316,29 @@ static bNodeType sh_node_output= {
 	
 };
 
+/* **************** GEOMETRY INFO ******************** */
+static bNodeSocketType sh_node_geom_out[]= {
+	{	SOCK_VECTOR, 0, "Global",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},	/* btw; uses no limit */
+	{	SOCK_VECTOR, 0, "Local",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "View",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Orco",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "UV",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_geom= {
+	/* type code   */	SH_NODE_GEOMETRY,
+	/* name        */	"Geometry",
+	/* width+range */	60, 40, 100,
+	/* class+opts  */	NODE_CLASS_GENERATOR, 0,
+	/* input sock  */	NULL,
+	/* output sock */	sh_node_geom_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_geom,
+	
+};
+
 /* **************** MATERIAL ******************** */
 static bNodeSocketType sh_node_material_in[]= {
 	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
@@ -298,6 +365,10 @@ static bNodeType sh_node_material= {
 };
 
 /* **************** TEXTURE ******************** */
+static bNodeSocketType sh_node_texture_in[]= {
+	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},	/* no limit */
+	{	-1, 0, ""	}
+};
 static bNodeSocketType sh_node_texture_out[]= {
 	{	SOCK_VALUE, 0, "Value",		1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA , 0, "Color",		1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
@@ -310,10 +381,34 @@ static bNodeType sh_node_texture= {
 	/* name        */	"Texture",
 	/* width+range */	120, 80, 240,
 	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_OPTIONS|NODE_PREVIEW,
-	/* input sock  */	NULL,
+	/* input sock  */	sh_node_texture_in,
 	/* output sock */	sh_node_texture_out,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_texture,
+	
+};
+
+/* **************** NORMAL  ******************** */
+static bNodeSocketType sh_node_normal_in[]= {
+	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeSocketType sh_node_normal_out[]= {
+	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Dot",		1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_normal= {
+	/* type code   */	SH_NODE_NORMAL,
+	/* name        */	"Normal",
+	/* width+range */	100, 60, 200,
+	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_OPTIONS,
+	/* input sock  */	sh_node_normal_in,
+	/* output sock */	sh_node_normal_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_normal,
 	
 };
 
@@ -436,6 +531,8 @@ bNodeType *node_all_shaders[]= {
 	&sh_node_valtorgb,
 	&sh_node_rgbtobw,
 	&sh_node_texture,
+	&sh_node_normal,
+	&sh_node_geom,
 	NULL
 };
 

@@ -1200,7 +1200,7 @@ static void texture_panel_colors(Tex *tex)
 }
 
 
-static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la)
+static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la, bNode *node)
 {
 	MTex *mt=NULL;
 	uiBlock *block;
@@ -1215,11 +1215,14 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	/* first do the browse but */
 	if(mtex)
 		id= (ID *)mtex->tex;
+	else if(node)
+		id= node->id;
 	
 	if(ma) idfrom= &ma->id;
 	else if(wrld) idfrom= &wrld->id;
-	else idfrom= &la->id;
-
+	else if(la) idfrom= &la->id;
+	else idfrom= NULL;
+	
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	if(ma) {
 		std_libbuttons(block, 10, 180, 0, NULL, B_TEXBROWSE, ID_TE, 0, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
@@ -1230,44 +1233,48 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	else if(la) {
 		std_libbuttons(block, 10, 180, 0, NULL, B_LTEXBROWSE, ID_TE, 0, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
+	else if(node) {
+		
+	}
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 
 	/* From button: removed */
 
 	/* CHANNELS */
-	uiBlockBeginAlign(block);
-	yco= 150;
-	for(a= 0; a<MAX_MTEX; a++) {
-		
-		if(ma) mt= ma->mtex[a];
-		else if(wrld)  mt= wrld->mtex[a];
-		else if(la)  mt= la->mtex[a];
-		
-		if(mt && mt->tex) splitIDname(mt->tex->id.name+2, str, &loos);
-		else strcpy(str, "");
-		str[14]= 0;
+	if(node==NULL) {
+		uiBlockBeginAlign(block);
+		yco= 150;
+		for(a= 0; a<MAX_MTEX; a++) {
+			
+			if(ma) mt= ma->mtex[a];
+			else if(wrld)  mt= wrld->mtex[a];
+			else if(la)  mt= la->mtex[a];
+			
+			if(mt && mt->tex) splitIDname(mt->tex->id.name+2, str, &loos);
+			else strcpy(str, "");
+			str[14]= 0;
 
-		if(ma) {
-			uiDefButC(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(ma->texact), 0.0, (float)a, 0, 0, "Click to select texture channel");
-			yco-= 20;
+			if(ma) {
+				uiDefButC(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(ma->texact), 0.0, (float)a, 0, 0, "Click to select texture channel");
+				yco-= 20;
+			}
+			else if(wrld) {
+				uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(wrld->texact), 0.0, (float)a, 0, 0, "");
+				yco-= 20;
+			}
+			else if(la) {
+				uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(la->texact), 0.0, (float)a, 0, 0, "");
+				yco-= 20;
+			}
 		}
-		else if(wrld) {
-			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(wrld->texact), 0.0, (float)a, 0, 0, "");
-			yco-= 20;
-		}
-		else if(la) {
-			uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(la->texact), 0.0, (float)a, 0, 0, "");
-			yco-= 20;
-		}
-	}
-	uiBlockEndAlign(block);
-	
+		uiBlockEndAlign(block);
+	}	
 	uiBlockSetCol(block, TH_AUTO);
 
 	/* TYPES */
-	if(mtex && mtex->tex) {
+	if(id) {
 		char textypes[512];
-		Tex *tex= mtex->tex;
+		Tex *tex= (Tex *)id;
 
 		uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 		
@@ -3590,14 +3597,22 @@ void texture_panels()
 	Material *ma=NULL;
 	Lamp *la=NULL;
 	World *wrld=NULL;
+	bNode *node=NULL;
 	Object *ob= OBACT;
 	MTex *mtex= NULL;
 	
 	if(G.buts->texfrom==0) {
 		if(ob) {
 			ma= give_current_material(ob, ob->actcol);
-			ma= get_active_matlayer(ma);
-			if(ma) mtex= ma->mtex[ ma->texact ];
+			if(ma && ma->use_nodes)
+				node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+			if(node)
+				ma= NULL;
+			else {
+				ma= get_active_matlayer(ma);
+				if(ma) mtex= ma->mtex[ ma->texact ];
+			}
 		}
 	}
 	else if(G.buts->texfrom==1) {
@@ -3611,57 +3626,61 @@ void texture_panels()
 		}
 	}
 	
-	texture_panel_preview(ma || wrld || la);	// for 'from' buttons
+	texture_panel_preview(ma || wrld || la || node);	// for 'from' buttons
 	
-	if(ma || wrld || la) {
-	
-		texture_panel_texture(mtex, ma, wrld, la);
+	if(ma || wrld || la || node) {
+		Tex *tex= NULL;
 		
-		if(mtex && mtex->tex) {
-			texture_panel_colors(mtex->tex);
+		texture_panel_texture(mtex, ma, wrld, la, node);
+		
+		if(mtex) tex= mtex->tex;
+		else if(node) tex= (Tex *)node->id;
+		
+		if(tex) {
+			texture_panel_colors(tex);
 			
-			switch(mtex->tex->type) {
+			switch(tex->type) {
 			case TEX_IMAGE:
-				texture_panel_image(mtex->tex);
-				texture_panel_image1(mtex->tex);
+				texture_panel_image(tex);
+				texture_panel_image1(tex);
 				break;
 			case TEX_ENVMAP:
-				texture_panel_envmap(mtex->tex);
+				texture_panel_envmap(tex);
 				break;
 			case TEX_CLOUDS:
-				texture_panel_clouds(mtex->tex);
+				texture_panel_clouds(tex);
 				break;
 			case TEX_MARBLE:
-				texture_panel_marble(mtex->tex);
+				texture_panel_marble(tex);
 				break;
 			case TEX_STUCCI:
-				texture_panel_stucci(mtex->tex);
+				texture_panel_stucci(tex);
 				break;
 			case TEX_WOOD:
-				texture_panel_wood(mtex->tex);
+				texture_panel_wood(tex);
 				break;
 			case TEX_BLEND:
-				texture_panel_blend(mtex->tex);
+				texture_panel_blend(tex);
 				break;
 			case TEX_MAGIC:
-				texture_panel_magic(mtex->tex);
+				texture_panel_magic(tex);
 				break;
 			case TEX_PLUGIN:
-				texture_panel_plugin(mtex->tex);
+				texture_panel_plugin(tex);
 				break;
 			case TEX_NOISE:
 				// no panel! (e: not really true, is affected by noisedepth param)
 				break;
-			/* newnoise: musgrave panels */
+				/* newnoise: musgrave panels */
 			case TEX_MUSGRAVE:
-				texture_panel_musgrave(mtex->tex);
+				texture_panel_musgrave(tex);
 				break;
 			case TEX_DISTNOISE:
-				texture_panel_distnoise(mtex->tex);
+				texture_panel_distnoise(tex);
 				break;
-			/* newnoise: voronoi */
+				/* newnoise: voronoi */
 			case TEX_VORONOI:
-				texture_panel_voronoi(mtex->tex);
+				texture_panel_voronoi(tex);
 				break;
 			}
 		}

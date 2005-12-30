@@ -1968,7 +1968,78 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	glEnd();
 }
 
-
+static void ui_draw_but_NORMAL(uiBut *but)
+{
+	static GLuint displist=0;
+	int a, old[8];
+	float vec0[3]={0.0f, 0.0f, 0.0f};
+	float vec1[3]={1.0f, 1.0f, 1.0f};
+	float dir[4], size;
+	
+	/* backdrop */
+	BIF_ThemeColor(TH_BUT_NEUTRAL);
+	uiSetRoundBox(15);
+	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, 5.0f);
+	
+	/* sphere color */
+	glEnable(GL_COLOR_MATERIAL);
+	glColor3ub(200, 200, 200);
+	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
+	
+	/* disable blender light */
+	for(a=0; a<8; a++) {
+		old[a]= glIsEnabled(GL_LIGHT0+a);
+		glDisable(GL_LIGHT0+a);
+	}
+	
+	/* own light */
+	glEnable(GL_LIGHT7);
+	glEnable(GL_LIGHTING);
+	
+	VECCOPY(dir, (float *)but->poin);
+	dir[3]= 0.0f;	/* glLight needs 4 args, 0.0 is sun */
+	glLightfv(GL_LIGHT7, GL_POSITION, dir); 
+	glLightfv(GL_LIGHT7, GL_DIFFUSE, vec1); 
+	glLightfv(GL_LIGHT7, GL_SPECULAR, vec0); 
+	glLightf(GL_LIGHT7, GL_CONSTANT_ATTENUATION, 1.0f);
+	glLightf(GL_LIGHT7, GL_LINEAR_ATTENUATION, 0.0f);
+	
+	/* transform to button */
+	glPushMatrix();
+	glTranslatef(but->x1 + 0.5f*(but->x2-but->x1), but->y1+ 0.5f*(but->y2-but->y1), 0.0f);
+	size= (but->x2-but->x1)/200.f;
+	glScalef(size, size, size);
+			 
+	if(displist==0) {
+		GLUquadricObj	*qobj;
+		
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		
+		qobj	= gluNewQuadric();
+		gluQuadricDrawStyle(qobj, GLU_FILL); 
+		glShadeModel(GL_SMOOTH);
+		gluSphere( qobj, 100.0, 32, 24);
+		glShadeModel(GL_FLAT);
+		gluDeleteQuadric(qobj);  
+		
+		glEndList();
+	}
+	else glCallList(displist);
+	
+	glPopMatrix();
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_CULL_FACE);
+	
+	/* enable blender light */
+	for(a=0; a<8; a++) {
+		if(old[a])
+			glEnable(GL_LIGHT0+a);
+	}
+	
+	
+}
 
 static void ui_draw_roundbox(uiBut *but)
 {
@@ -2088,6 +2159,9 @@ void ui_draw_but(uiBut *but)
 		
 	case BUT_COLORBAND:
 		ui_draw_but_COLORBAND(but);
+		break;
+	case BUT_NORMAL:
+		ui_draw_but_NORMAL(but);
 		break;
 		
 	default:
