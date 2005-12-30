@@ -115,6 +115,7 @@ static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self );
 static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args );
+static PyObject *M_Object_Join( PyObject * self );
 
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3);
@@ -143,6 +144,9 @@ The active object is the first in the list, if visible";
 char M_Object_Duplicate_doc[] =
 	"(linked) - Duplicate all selected, visible objects in the current scene";
 
+char M_Object_Join_doc[] =
+	"() - Join all selected objects matching the active objects type.";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
 /*****************************************************************************/
@@ -155,6 +159,8 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_GetSelected_doc},
 	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS,
 	 M_Object_Duplicate_doc},
+	{"Join", ( PyCFunction ) M_Object_Join, METH_VARARGS,
+	 M_Object_Join_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -820,6 +826,73 @@ static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args )
 	} else {
 		adduplicate(1);
 	}
+	Py_RETURN_NONE;
+}
+
+
+/*****************************************************************************/
+/* Function:			  M_Object_Join				 */
+/* Python equivalent:	  Blender.Object.Join				 */
+/*****************************************************************************/
+static PyObject *M_Object_Join( PyObject * self )
+{
+	Base *base;
+	Object *ob= OBACT;
+	Mesh *me;
+	int totvert=0, haskey=0;
+	
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"can't join objects while in edit mode" );
+	
+	/* Replicate some of the mesh joining code, should realy spare a baselist loop and communicate
+	with join_mesh(), will fix later, this will do for now */
+	if (ob->type==OB_MESH) {
+		/* count */
+		base= FIRSTBASE;
+		while(base) {
+			if TESTBASELIB(base) {
+				if(base->object->type==OB_MESH) {
+					me= base->object->data;
+					totvert+= me->totvert;
+					
+					if(me->key) {
+						haskey= 1;
+						break;
+					}
+				}
+			}
+			base= base->next;
+		}
+		
+		if(haskey) {
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"Can't join meshes with vertex keys" );
+			
+		}
+		
+		if(totvert==0)
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"Can't join meshes, there are no verts to join" );
+		if (totvert>MESH_MAX_VERTS)
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"Can't join meshes, there are too many verts for 1 mesh." );
+	}
+	
+	
+	/* Do the actial joining now we know everythings OK. */
+	if (ob) {
+		if(ob->type == OB_MESH) {
+			join_mesh();
+		} else if(ob->type == OB_CURVE) {
+			join_curve(OB_CURVE);
+		} else if(ob->type == OB_SURF) {
+			join_curve(OB_SURF);
+		} else if(ob->type == OB_ARMATURE) {
+			join_armature ();
+		}
+	}
+	
 	Py_RETURN_NONE;
 }
 

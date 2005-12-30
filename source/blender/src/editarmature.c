@@ -358,13 +358,10 @@ void join_armature(void)
 	float	mat[4][4], imat[4][4];
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
-	if(G.obedit) return;
+	/* if(G.obedit) return; */ /* Alredy checked in join_menu() */
 	
 	ob= OBACT;
 	if(ob->type!=OB_ARMATURE) return;
-	
-	/*	Make sure the user wants to continue*/
-	if(okee("Join selected armatures")==0) return;
 	
 	/*	Put the active armature into editmode and join the bones from the other one*/
 

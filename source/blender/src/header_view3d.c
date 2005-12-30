@@ -1991,12 +1991,7 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 		special_editmenu();
 		break;
 	case 8: /* join objects */
-		if( (ob= OBACT) ) {
-			if(ob->type == OB_MESH) join_mesh();
-			else if(ob->type == OB_CURVE) join_curve(OB_CURVE);
-			else if(ob->type == OB_SURF) join_curve(OB_SURF);
-			else if(ob->type == OB_ARMATURE) join_armature();
-		}
+		join_menu();
 		break;
 	case 9: /* convert object type */
 		convertmenu();

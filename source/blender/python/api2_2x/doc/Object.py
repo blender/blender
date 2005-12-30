@@ -140,6 +140,19 @@ def Duplicate (linked=1):
   """
 
 
+def Join ():
+  """
+  Joins selected objects on visible layers from Blenders current scene.
+  The active object is used as a base for all other objects of the same type to join into - just like pressing Ctrl+J
+  
+  @return: None
+  @note: Being in edit mode, mesh objects with keys and a large number of verts in the
+    resulting mesh will all raise a RuntimeError.
+  @note: The join may be unsucsessfull because of the selection or object types and no error raised.
+    Checking if the number of selected objects has changed is a way to know the join worked.
+  """
+
+
 class Object:
   """
   The Object object

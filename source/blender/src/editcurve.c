@@ -3289,17 +3289,12 @@ void join_curve(int type)
 	float imat[4][4], cmat[4][4];
 	int a;
 	
-	if(G.obedit) return;
+	/* if(G.obedit) return; */ /* Alredy checked in join_menu() */
 	
 	ob= OBACT;
 	if(ob->type!=type) return;
 	if(ob->lay & G.vd->lay); else return;
 	tempbase.first= tempbase.last= 0;
-	
-	if(type==OB_SURF) {
-		if(okee("Join selected NURBS")==0) return;
-	}
-	else if(okee("Join selected curves")==0) return;
 	
 	/* trasnform all selected curves inverse in obact */
 	Mat4Invert(imat, ob->obmat);

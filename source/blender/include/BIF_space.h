@@ -115,6 +115,7 @@ extern       void set_rects_butspace(struct SpaceButs *buts);
 extern       void test_butspace(void);
 extern       void start_game(void);
 extern		 void select_group_menu(void);
+extern		 void join_menu(void);
 extern		 void select_group(short nr);
 
 extern 		void BIF_undo_push(char *str);

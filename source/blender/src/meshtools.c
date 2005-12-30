@@ -166,7 +166,6 @@ void join_mesh(void)
 	
 	if(totvert==0 || totvert>MESH_MAX_VERTS) return;
 	
-	if(okee("Join selected meshes")==0) return;
 
 
 	/* if needed add edges to other meshes */
