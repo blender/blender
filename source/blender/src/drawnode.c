@@ -444,7 +444,7 @@ static void draw_nodespace_grid(SpaceNode *snode)
 }
 
 
-static void nodeshadow(rctf *rct, float radius, int select)
+static void nodeshadow(rctf *rct, float radius, float aspect, int select)
 {
 	float rad;
 	float a;
@@ -457,8 +457,8 @@ static void nodeshadow(rctf *rct, float radius, int select)
 	else
 		rad= radius;
 	
-	if(select) a= 10.0f; else a= 7.0f;
-	for(; a>0.0f; a-=1.0f) {
+	if(select) a= 10.0f*aspect; else a= 7.0f*aspect;
+	for(; a>0.0f; a-=aspect) {
 		/* alpha ranges from 2 to 20 or so */
 		glColor4ub(0, 0, 0, alpha);
 		alpha+= 2;
@@ -674,10 +674,14 @@ static void node_basis_draw(ScrArea *sa, SpaceNode *snode, bNode *node)
 	int ofs, color_id= node_get_colorid(node);
 	
 	uiSetRoundBox(15-4);
-	nodeshadow(rct, BASIS_RAD, node->flag & SELECT);
+	nodeshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
 	
 	/* header */
-	BIF_ThemeColorShade(color_id, 0);
+	if(color_id==TH_NODE)
+		BIF_ThemeColorShade(color_id, -20);
+	else
+		BIF_ThemeColor(color_id);
+		
 	uiSetRoundBox(3);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
@@ -723,12 +727,12 @@ static void node_basis_draw(ScrArea *sa, SpaceNode *snode, bNode *node)
 	snode_drawstring(snode, node->name, (int)(iconofs - rct->xmin-18.0f));
 					 
 	/* body */
-	BIF_ThemeColorShade(color_id, 20);	
+	BIF_ThemeColor(TH_NODE);	
 	uiSetRoundBox(8);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax-NODE_DY, BASIS_RAD);
 	
 	/* scaling indicator */
-	node_scaling_widget(color_id, snode->aspect, rct->xmax-BASIS_RAD*snode->aspect, rct->ymin, rct->xmax, rct->ymin+BASIS_RAD*snode->aspect);
+	node_scaling_widget(TH_NODE, snode->aspect, rct->xmax-BASIS_RAD*snode->aspect, rct->ymin, rct->xmax, rct->ymin+BASIS_RAD*snode->aspect);
 
 	/* outline active emphasis */
 	if(node->flag & NODE_ACTIVE) {
@@ -817,10 +821,10 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 	
 	/* shadow */
 	uiSetRoundBox(15);
-	nodeshadow(rct, hiddenrad, node->flag & SELECT);
+	nodeshadow(rct, hiddenrad, snode->aspect, node->flag & SELECT);
 
 	/* body */
-	BIF_ThemeColorShade(color_id, 20);	
+	BIF_ThemeColor(color_id);	
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, hiddenrad);
 	
 	/* outline active emphasis */
@@ -837,8 +841,13 @@ void node_hidden_draw(SpaceNode *snode, bNode *node)
 	else
 		BIF_ThemeColorBlendShade(TH_TEXT, color_id, 0.4, 10);
 	
-	/* open entirely? */
+	/* open entirely icon */
 	ui_draw_tria_icon(rct->xmin+9.0f, centy-6.0f, snode->aspect, 'h');	
+	
+	if(node->flag & SELECT) 
+		BIF_ThemeColor(TH_TEXT_HI);
+	else
+		BIF_ThemeColor(TH_TEXT);
 	
 	if(node->miniwidth>0.0f) {
 		ui_rasterpos_safe(rct->xmin+21.0f, centy-4.0f, snode->aspect);

@@ -480,9 +480,9 @@ void BIF_InitTheme(void)
 	
 	/* space node, re-uses syntax color storage */
 	btheme->tnode= btheme->tv3d;
-	SETCOL(btheme->tnode.syntaxl, 120, 120, 120, 255);	/* TH_NODE */
-	SETCOL(btheme->tnode.syntaxn, 110, 110, 120, 255);	/* in-out */
-	SETCOL(btheme->tnode.syntaxb, 140, 140, 140, 255);	/* operator */
+	SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
+	SETCOL(btheme->tnode.syntaxn, 95, 110, 145, 255);	/* in/output */
+	SETCOL(btheme->tnode.syntaxb, 135, 125, 120, 255);	/* operator */
 	SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
 	SETCOL(btheme->tnode.syntaxc, 120, 120, 120, 255);	/* free */
 
@@ -615,10 +615,10 @@ char *BIF_ThemeColorsPup(int spacetype)
 		}
 		else if(spacetype==SPACE_NODE) {
 			strcat(cp,"%l|");
-			sprintf(str, "Default Node %%x%d|", TH_NODE); strcat(cp, str);
+			sprintf(str, "Node backdrop %%x%d|", TH_NODE); strcat(cp, str);
 			sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT); strcat(cp, str);
-			sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR); strcat(cp, str);
 			sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR); strcat(cp, str);
+			sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR); strcat(cp, str);
 //			sprintf(str, " %%x%d|", TH_NODE_FREE); strcat(cp, str);
 		}
 	}

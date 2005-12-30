@@ -275,9 +275,9 @@ static void init_userdef_file(void)
 			if(btheme->tnode.syntaxn[3]==0) {
 				/* re-uses syntax color storage */
 				btheme->tnode= btheme->tv3d;
-				SETCOL(btheme->tnode.syntaxl, 120, 120, 120, 255);	/* TH_NODE */
-				SETCOL(btheme->tnode.syntaxn, 110, 110, 120, 255);	/* in-out */
-				SETCOL(btheme->tnode.syntaxb, 140, 140, 140, 255);	/* operator */
+				SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
+				SETCOL(btheme->tnode.syntaxn, 95, 110, 145, 255);	/* in/output */
+				SETCOL(btheme->tnode.syntaxb, 135, 125, 120, 255);	/* operator */
 				SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
 				SETCOL(btheme->tnode.syntaxc, 120, 120, 120, 255);	/* free */
 			}
