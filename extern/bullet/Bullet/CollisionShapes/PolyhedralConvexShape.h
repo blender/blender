@@ -27,6 +27,9 @@ public:
 	//brute force implementations
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 
+		virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
+
+
 
 	virtual int	GetNumVertices() const = 0 ;
 	virtual int GetNumEdges() const = 0;

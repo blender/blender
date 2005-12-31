@@ -13,7 +13,8 @@
 #ifndef GJK_CONVEX_CAST_H
 #define GJK_CONVEX_CAST_H
 
-#include "CollisionMargin.h"
+#include <CollisionShapes/CollisionMargin.h>
+
 #include "SimdVector3.h"
 #include "ConvexCast.h"
 class ConvexShape;

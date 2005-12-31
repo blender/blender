@@ -38,7 +38,7 @@
 ///It improves the penetration depth handling dramatically
 //#define USE_EPA
 #ifdef USE_EPA
-#include "NarrowPhaseCollision/Solid3EpaPenetrationDepth.h"
+#include "../Extras/ExtraSolid35/Solid3EpaPenetrationDepth.h"
 bool gUseEpa = true;
 #else
 bool gUseEpa = false;
@@ -68,11 +68,10 @@ ConvexConvexAlgorithm::ConvexConvexAlgorithm(PersistentManifold* mf,const Collis
 m_gjkPairDetector(0,0,&m_simplexSolver,0),
 m_box0(*proxy0),
 m_box1(*proxy1),
-m_collisionImpulse(0.f),
 m_ownManifold (false),
 m_manifoldPtr(mf),
 m_lowLevelOfDetail(false),
-m_useEpa(gUseEpa)
+m_useEpa(!gUseEpa)
 {
 	CheckPenetrationDepthSolver();
 
@@ -137,30 +136,34 @@ public:
 
 };
 
+static MinkowskiPenetrationDepthSolver	gPenetrationDepthSolver;
+
+#ifdef USE_EPA
+Solid3EpaPenetrationDepth	gSolidEpaPenetrationSolver;
+#endif //USE_EPA
+
 void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 {
-//	if (m_useEpa != gUseEpa)
+	if (m_useEpa != gUseEpa)
 	{
 		m_useEpa  = gUseEpa;
 		if (m_useEpa)
 		{
 			//not distributed, see top of this file
 			#ifdef USE_EPA
-			m_gjkPairDetector.SetPenetrationDepthSolver(new Solid3EpaPenetrationDepth);
+			m_gjkPairDetector.SetPenetrationDepthSolver(&gSolidEpaPenetrationSolver);
 			#else
-			m_gjkPairDetector.SetPenetrationDepthSolver(new MinkowskiPenetrationDepthSolver);
+			m_gjkPairDetector.SetPenetrationDepthSolver(&gPenetrationDepthSolver);
 			#endif
 			
 		} else
 		{
-			m_gjkPairDetector.SetPenetrationDepthSolver(new MinkowskiPenetrationDepthSolver);
+			m_gjkPairDetector.SetPenetrationDepthSolver(&gPenetrationDepthSolver);
 		}
 	}
 	
 }
-bool extra = false;
 
-float gFriction = 0.5f;
 //
 // box-box collision algorithm, for simplicity also applies resolution-impulse
 //
@@ -169,7 +172,7 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	CheckPenetrationDepthSolver();
 
 //	printf("ConvexConvexAlgorithm::ProcessCollision\n");
-m_collisionImpulse = 0.f;
+
 	
 	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
 	RigidBody* body1 = (RigidBody*)m_box1.m_clientObject;
@@ -227,7 +230,7 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 
 	CheckPenetrationDepthSolver();
 
-	m_collisionImpulse = 0.f;
+
 	
 	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
 	RigidBody* body1 = (RigidBody*)m_box1.m_clientObject;

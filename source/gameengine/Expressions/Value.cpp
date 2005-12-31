@@ -558,6 +558,10 @@ void CValue::DisableRefCount()
 void CValue::AddDataToReplica(CValue *replica)
 {
 	replica->m_refcount = 1;
+
+	//register with Python
+	_Py_NewReference(replica);
+
 #ifdef _DEBUG
 	//gRefCountValue++;
 #endif

@@ -732,7 +732,7 @@ void KX_Scene::ReplaceMesh(class CValue* gameobj,void* meshobj)
 		Object* blendobj = (struct Object*)m_logicmgr->FindBlendObjByGameObj(newobj);
 		Object* oldblendobj = (struct Object*)m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName());
 		if (blendobj->parent && blendobj->parent->type == OB_ARMATURE && blendobj->partype==PARSKEL && ((Mesh*)blendobj->data)->dvert) {
-			BL_SkinDeformer* skindeformer = new BL_SkinDeformer(oldblendobj, blendobj, (BL_SkinMeshObject*)mesh);
+			BL_SkinDeformer* skindeformer = new BL_SkinDeformer(oldblendobj, blendobj, (BL_SkinMeshObject*)mesh,blendobj->parent);
 			skindeformer->SetArmature((BL_ArmatureObject*) newobj->GetParent());
 			
 			// FIXME: should the old m_pDeformer be deleted?
@@ -741,7 +741,7 @@ void KX_Scene::ReplaceMesh(class CValue* gameobj,void* meshobj)
 			((BL_DeformableGameObject*)newobj)->m_pDeformer = skindeformer;
 		}
 		else if (((Mesh*)blendobj->data)->dvert) {
-			BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(oldblendobj, (BL_SkinMeshObject*)mesh);
+			BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(oldblendobj, (BL_SkinMeshObject*)mesh,oldblendobj->parent);
 			
 			// FIXME: should the old m_pDeformer be deleted?
 			// delete ((BL_DeformableGameObject*)newobj)->m_pDeformer

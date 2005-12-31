@@ -13,7 +13,7 @@
 #include "SimdQuaternion.h"
 #include "StridingMeshInterface.h"
 #include "AabbUtil2.h"
-#include "NarrowPhaseCollision/CollisionMargin.h"
+#include "CollisionShapes/CollisionMargin.h"
 
 #include "stdio.h"
 
@@ -21,7 +21,9 @@ TriangleMeshShape::TriangleMeshShape(StridingMeshInterface* meshInterface)
 : m_meshInterface(meshInterface),
 m_collisionMargin(CONVEX_DISTANCE_MARGIN)
 {
+	RecalcLocalAabb();
 }
+
 
 TriangleMeshShape::~TriangleMeshShape()
 {
@@ -34,23 +36,39 @@ TriangleMeshShape::~TriangleMeshShape()
 void TriangleMeshShape::GetAabb(const SimdTransform& trans,SimdVector3& aabbMin,SimdVector3& aabbMax) const
 {
 
+	SimdVector3 localHalfExtents = 0.5f*(m_localAabbMax-m_localAabbMin);
+	SimdVector3 localCenter = 0.5f*(m_localAabbMax+m_localAabbMin);
+	
+	SimdMatrix3x3 abs_b = trans.getBasis().absolute();  
+
+	SimdPoint3 center = trans(localCenter);
+
+	SimdVector3 extent = SimdVector3(abs_b[0].dot(localHalfExtents),
+		   abs_b[1].dot(localHalfExtents),
+		  abs_b[2].dot(localHalfExtents));
+	extent += SimdVector3(GetMargin(),GetMargin(),GetMargin());
+
+	aabbMin = center - extent;
+	aabbMax = center + extent;
+
+	
+}
+
+void	TriangleMeshShape::RecalcLocalAabb()
+{
 	for (int i=0;i<3;i++)
 	{
 		SimdVector3 vec(0.f,0.f,0.f);
 		vec[i] = 1.f;
-		SimdVector3 tmp = trans(LocalGetSupportingVertex(vec*trans.getBasis()));
-		aabbMax[i] = tmp[i]+m_collisionMargin;
+		SimdVector3 tmp = LocalGetSupportingVertex(vec);
+		m_localAabbMax[i] = tmp[i]+m_collisionMargin;
 		vec[i] = -1.f;
-		tmp = trans(LocalGetSupportingVertex(vec*trans.getBasis()));
-		aabbMin[i] = tmp[i]-m_collisionMargin;
+		tmp = LocalGetSupportingVertex(vec);
+		m_localAabbMin[i] = tmp[i]-m_collisionMargin;
 	}
 }
 
 
-TriangleCallback::~TriangleCallback()
-{
-
-}
 
 class SupportVertexCallback : public TriangleCallback
 {
@@ -98,6 +116,7 @@ public:
 void TriangleMeshShape::setLocalScaling(const SimdVector3& scaling)
 {
 	m_meshInterface->setScaling(scaling);
+	RecalcLocalAabb();
 }
 
 const SimdVector3& TriangleMeshShape::getLocalScaling() const
@@ -107,57 +126,43 @@ const SimdVector3& TriangleMeshShape::getLocalScaling() const
 
 
 
+
+
+
+//#define DEBUG_TRIANGLE_MESH
+
+
 void	TriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
 {
 
-	SimdVector3 meshScaling = m_meshInterface->getScaling();
-	int numtotalphysicsverts = 0;
-	int part,graphicssubparts = m_meshInterface->getNumSubParts();
-	for (part=0;part<graphicssubparts ;part++)
+	struct FilteredCallback : public InternalTriangleIndexCallback
 	{
-		unsigned char * vertexbase;
-		unsigned char * indexbase;
-		int indexstride;
-		PHY_ScalarType type;
-		PHY_ScalarType gfxindextype;
-		int stride,numverts,numtriangles;
-		m_meshInterface->getLockedVertexIndexBase(&vertexbase,numverts,type,stride,&indexbase,indexstride,numtriangles,gfxindextype,part);
-		numtotalphysicsverts+=numtriangles*3; //upper bound
+		TriangleCallback* m_callback;
+		SimdVector3 m_aabbMin;
+		SimdVector3 m_aabbMax;
 
-	
-		int gfxindex;
-		SimdVector3 triangle[3];
-
-		for (gfxindex=0;gfxindex<numtriangles;gfxindex++)
+		FilteredCallback(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax)
+			:m_callback(callback),
+			m_aabbMin(aabbMin),
+			m_aabbMax(aabbMax)
 		{
-		
-			int	graphicsindex=0;
+		}
 
-			for (int j=2;j>=0;j--)
-			{
-				ASSERT(gfxindextype == PHY_INTEGER);
-				int* gfxbase = (int*)(indexbase+gfxindex*indexstride);
-				graphicsindex = gfxbase[j];
-				float* graphicsbase = (float*)(vertexbase+graphicsindex*stride);
-
-				triangle[j] = SimdVector3(
-					graphicsbase[0]*meshScaling.getX(),
-					graphicsbase[1]*meshScaling.getY(),
-					graphicsbase[2]*meshScaling.getZ());
-			}
-
-			if (TestTriangleAgainstAabb2(&triangle[0],aabbMin,aabbMax))
+		virtual void InternalProcessTriangleIndex(SimdVector3* triangle,int partId,int triangleIndex)
+		{
+			if (TestTriangleAgainstAabb2(&triangle[0],m_aabbMin,m_aabbMax))
 			{
 				//check aabb in triangle-space, before doing this
-				callback->ProcessTriangle(triangle);
-	
+				m_callback->ProcessTriangle(triangle);
 			}
 			
 		}
-		
-		m_meshInterface->unLockVertexBase(part);
-	}
 
+	};
+
+	FilteredCallback filterCallback(callback,aabbMin,aabbMax);
+
+	m_meshInterface->InternalProcessAllTriangles(&filterCallback,aabbMin,aabbMax);
 
 }
 

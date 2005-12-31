@@ -145,6 +145,10 @@ void BL_SkinDeformer::ProcessReplica()
 {
 }
 
+//void where_is_pose (Object *ob);
+//void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag); 
+extern "C" void armature_deform_verts(struct Object *armOb, struct Object *target, float (*vertexCos)[3], int numVerts, int deformflag);
+
 void BL_SkinDeformer::Update(void)
 {
 
@@ -156,7 +160,8 @@ void BL_SkinDeformer::Update(void)
 		
 		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
 		/* but it requires the blender object pointer... */
-//		void where_is_pose (Object *ob);
+		//void where_is_pose (Object *ob);
+		where_is_pose (m_blenderArmatureObj);
 		
 		/* store verts locally */
 		for (int v =0; v<m_bmesh->totvert; v++){
@@ -165,6 +170,11 @@ void BL_SkinDeformer::Update(void)
 			m_transverts[v]=MT_Point3(m_bmesh->mvert[v].co);
 		}
 		
+		float	test[1000][3];
+
+		armature_deform_verts(m_blenderArmatureObj,m_blenderMeshObject,test,m_bmesh->totvert,ARM_DEF_VGROUP);
+
+
 		/* XXX note: now use this call instead */
 //		void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag) 
 		//		- armOb = armature object

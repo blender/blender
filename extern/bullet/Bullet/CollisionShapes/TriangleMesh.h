@@ -46,13 +46,17 @@ class TriangleMesh : public StridingMeshInterface
 
 		virtual void	getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0);
 
+		virtual void	getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,const unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0) const;
+
 		/// unLockVertexBase finishes the access to a subpart of the triangle mesh
 		/// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
 		virtual void	unLockVertexBase(int subpart) {}
 
+		virtual void	unLockReadOnlyVertexBase(int subpart) const {}
+
 		/// getNumSubParts returns the number of seperate subparts
 		/// each subpart has a continuous array of vertices and indices
-		virtual int		getNumSubParts();
+		virtual int		getNumSubParts() const;
 		
 		virtual void	preallocateVertices(int numverts){}
 		virtual void	preallocateIndices(int numindices){}

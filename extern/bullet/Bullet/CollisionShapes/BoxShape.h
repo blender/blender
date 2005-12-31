@@ -13,7 +13,7 @@
 #define OBB_BOX_MINKOWSKI_H
 
 #include "PolyhedralConvexShape.h"
-#include "NarrowPhaseCollision/CollisionMargin.h"
+#include "CollisionShapes/CollisionMargin.h"
 #include "BroadphaseCollision/BroadphaseProxy.h"
 #include "SimdPoint3.h"
 #include "SimdMinMax.h"

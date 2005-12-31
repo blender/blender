@@ -58,11 +58,6 @@ void	RigidBody::getAabb(SimdVector3& aabbMin,SimdVector3& aabbMax) const
 void	RigidBody::SetCollisionShape(CollisionShape* mink)
 {
 	m_collisionShape = mink;
-	SimdTransform ident;
-	ident.setIdentity();
-	SimdVector3 aabbMin,aabbMax;
-	m_collisionShape ->GetAabb(ident,aabbMin,aabbMax);
-	SimdVector3 diag = (aabbMax-aabbMin)*0.5f;
 }
 
 

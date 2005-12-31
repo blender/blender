@@ -63,9 +63,10 @@ public:
 			m_armobj=NULL;
 	}
 	void SetArmature (class BL_ArmatureObject *armobj);
-	BL_SkinDeformer(	struct Object *bmeshobj,
-						class BL_SkinMeshObject *mesh)
-						:BL_MeshDeformer(bmeshobj, mesh),
+
+	BL_SkinDeformer(	struct Object *bmeshobj, 
+						class BL_SkinMeshObject *mesh,struct Object* blenderArmatureObj)
+						:BL_MeshDeformer(bmeshobj, mesh,blenderArmatureObj),
 						m_armobj(NULL),
 						m_lastUpdate(-1),
 						m_defbase(&bmeshobj->defbase)
@@ -85,8 +86,8 @@ public:
 
 	BL_SkinDeformer(	struct Object *bmeshobj_old,
 						struct Object *bmeshobj_new,
-						class BL_SkinMeshObject *mesh)
-						:BL_MeshDeformer(bmeshobj_old, mesh),
+						class BL_SkinMeshObject *mesh,struct Object *bArmatureObj)
+						:BL_MeshDeformer(bmeshobj_old, mesh,bArmatureObj),
 						m_armobj(NULL),
 						m_lastUpdate(-1),
 						m_defbase(&bmeshobj_old->defbase)

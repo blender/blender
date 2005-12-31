@@ -35,3 +35,7 @@
 #include <config.h>
 #endif
 
+KX_EmptyObject::~KX_EmptyObject()
+{
+
+}

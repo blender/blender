@@ -226,11 +226,13 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 		
 		if (removeFromBroadphase)
 		{
+
 		}
 		//
 		// only clear the cached algorithms
 		//
 		scene->CleanProxyFromPairs(bp);
+		scene->DestroyProxy(bp);//??
 	}
 	{
 		std::vector<CcdPhysicsController*>::iterator i =

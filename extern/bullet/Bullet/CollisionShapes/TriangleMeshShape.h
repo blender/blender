@@ -22,8 +22,10 @@
 ///Concave triangle mesh. Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
 class TriangleMeshShape : public CollisionShape
 {
-
+protected:
 	StridingMeshInterface* m_meshInterface;
+	SimdVector3	m_localAabbMin;
+	SimdVector3	m_localAabbMax;
 	float m_collisionMargin;
 
 public:
@@ -41,6 +43,8 @@ public:
 		return LocalGetSupportingVertex(vec);
 	}
 
+	void	RecalcLocalAabb();
+
 	virtual int	GetShapeType() const
 	{
 		return TRIANGLE_MESH_SHAPE_PROXYTYPE;
@@ -48,7 +52,7 @@ public:
 
 	virtual void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
 
-	void	ProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const;
+	virtual void	ProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const;
 
 	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
 

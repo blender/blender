@@ -10,7 +10,7 @@
  */
 
 #include "SphereShape.h"
-#include "NarrowPhaseCollision/CollisionMargin.h"
+#include "CollisionShapes/CollisionMargin.h"
 
 #include "SimdQuaternion.h"
 

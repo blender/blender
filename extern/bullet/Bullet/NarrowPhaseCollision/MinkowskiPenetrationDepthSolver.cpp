@@ -131,7 +131,7 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 
 	if (res.m_hasResult)
 	{
-		pa = res.m_pointInWorld - res.m_normalOnBInWorld*res.m_depth;
+		pa = res.m_pointInWorld - res.m_normalOnBInWorld*0.1f*res.m_depth;
 		pb = res.m_pointInWorld;
 	}
 	return res.m_hasResult;

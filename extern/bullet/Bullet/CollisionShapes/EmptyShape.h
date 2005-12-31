@@ -9,8 +9,8 @@
  * It is provided "as is" without express or implied warranty.
  */
 
-#ifndef CONVEX_SHAPE_INTERFACE1
-#define CONVEX_SHAPE_INTERFACE1
+#ifndef EMPTY_SHAPE_H
+#define EMPTY_SHAPE_H
 
 #include "CollisionShape.h"
 
@@ -20,42 +20,34 @@
 #include <vector>
 #include "CollisionShapes/CollisionMargin.h"
 
-//todo: get rid of this ConvexCastResult thing!
-struct ConvexCastResult;
 
 
-/// ConvexShape is an abstract shape interface.
-/// The explicit part provides plane-equations, the implicit part provides GetClosestPoint interface.
-/// used in combination with GJK or ConvexCast
-class ConvexShape : public CollisionShape
+
+/// EmptyShape is a collision shape without actual collision detection. It can be replaced by another shape during runtime
+class EmptyShape	: public CollisionShape
 {
 public:
-	ConvexShape();
+	EmptyShape();
 
-	virtual ~ConvexShape();
+	virtual ~EmptyShape();
 
-	virtual SimdVector3	LocalGetSupportingVertex(const SimdVector3& vec)const;
-	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec) const= 0;
-
-	// testing for hullnode code
 
 	///GetAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
-	void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const
+	void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
+
+
+	virtual void	setLocalScaling(const SimdVector3& scaling)
 	{
-		GetAabbSlow(t,aabbMin,aabbMax);
+		m_localScaling = scaling;
 	}
-
-
-	
-	virtual void GetAabbSlow(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
-
-
-	virtual void	setLocalScaling(const SimdVector3& scaling);
 	virtual const SimdVector3& getLocalScaling() const 
 	{
 		return m_localScaling;
 	}
 
+	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
+	
+	virtual int	GetShapeType() const { return EMPTY_SHAPE_PROXYTYPE;}
 
 	virtual void	SetMargin(float margin)
 	{
@@ -65,9 +57,14 @@ public:
 	{
 		return m_collisionMargin;
 	}
+	virtual char*	GetName()const
+	{
+		return "Empty";
+	}
+
+
 private:
 	SimdScalar	m_collisionMargin;
-	//local scaling. collisionMargin is not scaled !
 protected:
 	SimdVector3	m_localScaling;
 
@@ -75,4 +72,4 @@ protected:
 
 
 
-#endif //CONVEX_SHAPE_INTERFACE1
+#endif //EMPTY_SHAPE_H

@@ -961,11 +961,11 @@ static KX_GameObject *gameobject_from_blenderobject(
 	
 		//	If this is a skin object, make Skin Controller
 		if (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && ((Mesh*)ob->data)->dvert){
-			BL_SkinDeformer *dcont = new BL_SkinDeformer(ob, (BL_SkinMeshObject*)meshobj);				
+			BL_SkinDeformer *dcont = new BL_SkinDeformer(ob, (BL_SkinMeshObject*)meshobj,ob->parent);				
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
 		}
 		else if (((Mesh*)ob->data)->dvert){
-			BL_MeshDeformer *dcont = new BL_MeshDeformer(ob, (BL_SkinMeshObject*)meshobj);
+			BL_MeshDeformer *dcont = new BL_MeshDeformer(ob, (BL_SkinMeshObject*)meshobj,ob->parent);
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
 		}
 		

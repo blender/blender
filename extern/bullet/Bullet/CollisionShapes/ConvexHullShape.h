@@ -35,7 +35,6 @@ public:
 	virtual SimdVector3	LocalGetSupportingVertex(const SimdVector3& vec)const;
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 
-	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
 
 	virtual int	GetShapeType()const { return CONVEX_HULL_SHAPE_PROXYTYPE; }
 

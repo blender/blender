@@ -4,6 +4,8 @@
 #include "PHY_IMotionState.h"
 #include "BroadphaseCollision/BroadphaseProxy.h"
 #include "CollisionShapes/ConvexShape.h"
+#include "CcdPhysicsEnvironment.h"
+
 
 class BP_Proxy;
 
@@ -20,6 +22,7 @@ float gAngularSleepingTreshold = 1.0f;
 
 SimdVector3 startVel(0,0,0);//-10000);
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
+:m_cci(ci)
 {
 	m_collisionDelay = 0;
 	m_newClientInfo = 0;
@@ -27,6 +30,22 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_MotionState = ci.m_MotionState;
 
 
+	m_broadphaseHandle = ci.m_broadphaseHandle;
+
+	m_collisionShape = ci.m_collisionShape;
+
+	CreateRigidbody();
+
+	
+	#ifdef WIN32
+	if (m_body->getInvMass())
+		m_body->setLinearVelocity(startVel);
+	#endif
+
+}
+
+void CcdPhysicsController::CreateRigidbody()
+{
 	SimdTransform trans;
 	float tmp[3];
 	m_MotionState->getWorldPosition(tmp[0],tmp[1],tmp[2]);
@@ -36,31 +55,19 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
 	trans.setRotation(orn);
 
-	MassProps mp(ci.m_mass, ci.m_localInertiaTensor);
+	MassProps mp(m_cci.m_mass, m_cci.m_localInertiaTensor);
 
-	m_body = new RigidBody(mp,0,0,ci.m_friction,ci.m_restitution);
+	m_body = new RigidBody(mp,0,0,m_cci.m_friction,m_cci.m_restitution);
 	
-	m_broadphaseHandle = ci.m_broadphaseHandle;
-
-	m_collisionShape = ci.m_collisionShape;
-
 	//
 	// init the rigidbody properly
 	//
 	
-	m_body->setMassProps(ci.m_mass, ci.m_localInertiaTensor);
-	m_body->setGravity( ci.m_gravity);
-
-	
-	m_body->setDamping(ci.m_linearDamping, ci.m_angularDamping);
-
-
+	m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor);
+	m_body->setGravity( m_cci.m_gravity);
+	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
 	m_body->setCenterOfMassTransform( trans );
 
-	#ifdef WIN32
-	if (m_body->getInvMass())
-		m_body->setLinearVelocity(startVel);
-	#endif
 
 }
 
@@ -68,6 +75,7 @@ CcdPhysicsController::~CcdPhysicsController()
 {
 	//will be reference counted, due to sharing
 	//delete m_collisionShape;
+	m_cci.m_physicsEnv->removeCcdPhysicsController(this);
 	delete m_MotionState;
 	delete m_body;
 }
@@ -109,6 +117,45 @@ void		CcdPhysicsController::WriteDynamicsToMotionState()
 		// controller replication
 void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)
 {
+
+	m_MotionState = motionstate;
+	m_broadphaseHandle = 0;
+	m_body = 0;
+	CreateRigidbody();
+			
+	m_cci.m_physicsEnv->addCcdPhysicsController(this);
+
+
+/*	SM_Object* dynaparent=0;
+	SumoPhysicsController* sumoparentctrl = (SumoPhysicsController* )parentctrl;
+	
+	if (sumoparentctrl)
+	{
+		dynaparent = sumoparentctrl->GetSumoObject();
+	}
+	
+	SM_Object* orgsumoobject = m_sumoObj;
+	
+	
+	m_sumoObj	=	new SM_Object(
+		orgsumoobject->getShapeHandle(), 
+		orgsumoobject->getMaterialProps(),			
+		orgsumoobject->getShapeProps(),
+		dynaparent);
+	
+	m_sumoObj->setRigidBody(orgsumoobject->isRigidBody());
+	
+	m_sumoObj->setMargin(orgsumoobject->getMargin());
+	m_sumoObj->setPosition(orgsumoobject->getPosition());
+	m_sumoObj->setOrientation(orgsumoobject->getOrientation());
+	//if it is a dyna, register for a callback
+	m_sumoObj->registerCallback(*this);
+	
+	m_sumoScene->add(* (m_sumoObj));
+	*/
+
+
+
 }
 
 		// kinematic methods
@@ -269,6 +316,15 @@ void		CcdPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& l
 	linvZ = linvel.z();
 
 }
+
+void		CcdPhysicsController::GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ)
+{
+	const SimdVector3& angvel= m_body->getAngularVelocity();
+	angVelX = angvel.x();
+	angVelY = angvel.y();
+	angVelZ = angvel.z();
+}
+
 void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ)
 {
 	SimdVector3 pos(posX,posY,posZ);

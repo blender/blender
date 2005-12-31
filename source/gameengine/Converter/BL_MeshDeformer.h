@@ -48,12 +48,14 @@ public:
 	void VerifyStorage();
 	void RecalcNormals();
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map){};
-	BL_MeshDeformer(struct Object* obj, class BL_SkinMeshObject *meshobj):
+	BL_MeshDeformer(struct Object* obj, class BL_SkinMeshObject *meshobj,struct Object* armatureObj):
 		m_pMeshObject(meshobj),
 		m_bmesh((struct Mesh*)(obj->data)),
 		m_transnors(NULL),
 		m_transverts(NULL),
-		m_tvtot(0)
+		m_tvtot(0),
+		m_blenderMeshObject(obj),
+		m_blenderArmatureObj(armatureObj)
 	{};
 	virtual ~BL_MeshDeformer();
 	virtual void SetSimulatedTime(double time){};
@@ -67,6 +69,8 @@ protected:
 	MT_Point3 *m_transnors;
 	MT_Point3				*m_transverts;
 	int						m_tvtot;
+	Object*	m_blenderMeshObject;
+	Object*	m_blenderArmatureObj;
 
 };
 

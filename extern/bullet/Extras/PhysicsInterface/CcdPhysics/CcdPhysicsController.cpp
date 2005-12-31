@@ -39,10 +39,12 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	MassProps mp(ci.m_mass, ci.m_localInertiaTensor);
 
 	m_body = new RigidBody(mp,0,0,ci.m_friction,ci.m_restitution);
+
+	m_body->SetCollisionShape( ci.m_collisionShape);
+
 	
 	m_broadphaseHandle = ci.m_broadphaseHandle;
 
-	m_collisionShape = ci.m_collisionShape;
 
 	//
 	// init the rigidbody properly
@@ -67,7 +69,6 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 CcdPhysicsController::~CcdPhysicsController()
 {
 	//will be reference counted, due to sharing
-	//delete m_collisionShape;
 	delete m_MotionState;
 	delete m_body;
 }
@@ -89,11 +90,17 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 	m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
 	
 	SimdVector3 scaling(scale[0],scale[1],scale[2]);
-	m_collisionShape->setLocalScaling(scaling);
-
+	m_body->GetCollisionShape()->setLocalScaling(scaling);
 
 	return true;
 }
+
+CollisionShape*	CcdPhysicsController::GetCollisionShape() 
+{ 
+	return m_body->GetCollisionShape();
+}
+
+
 
 		/**
 			WriteMotionStateToDynamics synchronizes dynas, kinematic and deformable entities (and do 'late binding')
