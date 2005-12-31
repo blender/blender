@@ -1014,14 +1014,14 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	ci.m_collisionShape = bm;
 	ci.m_broadphaseHandle = 0;
-	ci.m_friction = smmaterial->m_friction;
+	ci.m_friction = 5.f* smmaterial->m_friction;//tweak the friction a bit, so the default 0.5 works nice
 	ci.m_restitution = smmaterial->m_restitution;
 	ci.m_physicsEnv = env;
 	// drag / damping is inverted
 	ci.m_linearDamping = 1.f - shapeprops->m_lin_drag;
 	ci.m_angularDamping = 1.f - shapeprops->m_ang_drag;
 	//need a bit of damping, else system doesn't behave well
-	
+	ci.m_inertiaFactor = shapeprops->m_inertia/0.4f;//defaults to 0.4, don't want to change behaviour
 
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
 

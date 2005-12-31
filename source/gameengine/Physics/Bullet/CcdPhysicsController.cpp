@@ -63,7 +63,7 @@ void CcdPhysicsController::CreateRigidbody()
 	// init the rigidbody properly
 	//
 	
-	m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor);
+	m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 	m_body->setGravity( m_cci.m_gravity);
 	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
 	m_body->setCenterOfMassTransform( trans );
@@ -237,15 +237,26 @@ void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvel
 
 void 		CcdPhysicsController::getPosition(PHY__Vector3&	pos) const
 {
-	assert(0);
+	const SimdTransform& xform = m_body->getCenterOfMassTransform();
+	pos[0] = xform.getOrigin().x();
+	pos[1] = xform.getOrigin().y();
+	pos[2] = xform.getOrigin().z();
 }
 
 void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 {
-	if (m_body && m_body->GetCollisionShape())
+	if (!SimdFuzzyZero(m_cci.m_scaling.x()-scaleX) ||
+		!SimdFuzzyZero(m_cci.m_scaling.y()-scaleY) ||
+		!SimdFuzzyZero(m_cci.m_scaling.z()-scaleZ))
 	{
-		SimdVector3 scaling(scaleX,scaleY,scaleZ);
-		m_body->GetCollisionShape()->setLocalScaling(scaling);
+		m_cci.m_scaling = SimdVector3(scaleX,scaleY,scaleZ);
+
+		if (m_body && m_body->GetCollisionShape())
+		{
+			m_body->GetCollisionShape()->setLocalScaling(m_cci.m_scaling);
+			m_body->GetCollisionShape()->CalculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
+			m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+		}
 	}
 }
 		

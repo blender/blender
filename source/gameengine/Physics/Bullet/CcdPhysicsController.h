@@ -29,12 +29,15 @@ struct CcdConstructionInfo
 		m_angularDamping(0.1f),
 		m_MotionState(0),
 		m_collisionShape(0),
-		m_physicsEnv(0)
-
+		m_physicsEnv(0),
+		m_inertiaFactor(1.f),
+		m_scaling(1.f,1.f,1.f)
 	{
 	}
+
 	SimdVector3	m_localInertiaTensor;
 	SimdVector3	m_gravity;
+	SimdVector3	m_scaling;
 	SimdScalar	m_mass;
 	SimdScalar	m_restitution;
 	SimdScalar	m_friction;
@@ -45,6 +48,7 @@ struct CcdConstructionInfo
 
 	CollisionShape*			m_collisionShape;
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
+	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
 };
 
 

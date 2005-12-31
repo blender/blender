@@ -364,10 +364,14 @@ void KX_KetsjiEngine::NextFrame()
 					scene->setSuspendedDelta(scene->getSuspendedDelta()+curtime-scene->getSuspendedTime());
 				m_suspendeddelta = scene->getSuspendedDelta();
 
-				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
+				
 				m_logger->StartLog(tc_network, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetNetworkScene()->proceed(localtime);
 	
+				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+				scene->UpdateParents(localtime);
+				
+				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				// set Python hooks for each scene
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 				PHY_SetActiveScene(scene);
@@ -399,11 +403,11 @@ void KX_KetsjiEngine::NextFrame()
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				scene->UpdateParents(localtime);
 				
+				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetPhysicsEnvironment()->beginFrame();
 		
 				// Perform physics calculations on the scene. This can involve 
 				// many iterations of the physics solver.
-				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetPhysicsEnvironment()->proceedDeltaTime(localtime,realDeltaTime);
 				m_previoustime = curtime;
 
@@ -462,6 +466,9 @@ void KX_KetsjiEngine::NextFrame()
 			PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
 			PHY_SetActiveScene(scene);
 			
+			m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
+			scene->UpdateParents(curtime);
+
 			// Perform physics calculations on the scene. This can involve 
 			// many iterations of the physics solver.
 			m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);

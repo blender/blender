@@ -165,7 +165,7 @@ void ContactJoint::GetInfo2(Info2 *info)
 	c2[2] = ccc2[2];
 	
 	
-	float friction = 10.1f;//FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
+	float friction = FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
 	
 	// first friction direction
 	if (m_numRows >= 2) 
