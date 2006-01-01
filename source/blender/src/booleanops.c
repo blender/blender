@@ -498,37 +498,48 @@ DispListMesh *NewBooleanMeshDLM(Object *ob, Object *ob_select, int int_op_type)
 				InterpFaceVertexData	
 			);
 		}
-		
-		if (success) {
-			// descriptions of the output;
-			CSG_VertexIteratorDescriptor vd_o;
-			CSG_FaceIteratorDescriptor fd_o;
-			
-			dlm = MEM_callocN(sizeof(*dlm),"dlm");
 
-			CSG_OutputFaceDescriptor(bool_op,&fd_o);
-			CSG_OutputVertexDescriptor(bool_op,&vd_o);
+		switch( success ) {
+		case 1:
+			{
+				// descriptions of the output;
+				CSG_VertexIteratorDescriptor vd_o;
+				CSG_FaceIteratorDescriptor fd_o;
+				
+				dlm = MEM_callocN(sizeof(*dlm),"dlm");
 
-			// iterate through results of operation and insert into new object
+				CSG_OutputFaceDescriptor(bool_op,&fd_o);
+				CSG_OutputVertexDescriptor(bool_op,&vd_o);
 
-			ConvertCSGDescriptorsToDLM(
-				dlm,
-				NULL,
-				&output_mpd,
-				&fd_o,
-				&vd_o,
-				inv_mat
-			);
+				// iterate through results of operation and insert into new object
 
-			// free up the memory
+				ConvertCSGDescriptorsToDLM(
+					dlm,
+					NULL,
+					&output_mpd,
+					&fd_o,
+					&vd_o,
+					inv_mat
+				);
 
-			CSG_FreeVertexDescriptor(&vd_o);
-			CSG_FreeFaceDescriptor(&fd_o);
+				// free up the memory
+
+				CSG_FreeVertexDescriptor(&vd_o);
+				CSG_FreeFaceDescriptor(&fd_o);
+			}
+			break;
+		case -1:
+			 error("Selected meshes must have faces to perform boolean operations");
+			 break;
+		case -2:
+			 error("Both meshes must be closed");
+			 break;
+		default:
+			 error("unknown internal error");
+			 break;
 		}
 
 		CSG_FreeBooleanOperation(bool_op);
-		bool_op = NULL;
-
 	}
 
 	// We may need to map back the tfaces to mcols here.
