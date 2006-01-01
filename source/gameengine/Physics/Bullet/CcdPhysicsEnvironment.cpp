@@ -296,7 +296,10 @@ void	CcdPhysicsEnvironment::UpdateActivationState()
 	
 }
 
+void	CcdPhysicsEnvironment::beginFrame()
+{
 
+}
 
 /// Perform an integration step of duration 'timeStep'.
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
@@ -322,8 +325,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	//this is needed because scaling is not known in advance, and scaling has to propagate to the shape
 	if (!m_scalingPropagated)
 	{
-		//SyncMotionStates(timeStep);
-		//m_scalingPropagated = true;
+		SyncMotionStates(timeStep);
+		m_scalingPropagated = true;
 	}
 
 

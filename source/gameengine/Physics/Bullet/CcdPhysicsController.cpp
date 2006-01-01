@@ -95,10 +95,8 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 
 	float scale[3];
 	m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
-	
 	SimdVector3 scaling(scale[0],scale[1],scale[2]);
 	m_collisionShape->setLocalScaling(scaling);
-
 
 	return true;
 }

@@ -59,7 +59,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual void		setLinearAirDamping(float damping);
 		virtual void		setUseEpa(bool epa) ;
 
-		virtual	void		beginFrame() {};
+		virtual	void		beginFrame();
 		virtual void		endFrame() {};
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
