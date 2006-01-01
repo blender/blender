@@ -522,6 +522,8 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 static PyObject *Material_getOopsLoc( BPy_Material * self );
 static PyObject *Material_getOopsSel( BPy_Material * self );
 static PyObject *Material_getUsers( BPy_Material * self );
+static int Material_setSeptex( BPy_Material * self, PyObject * value );
+static PyObject *Material_getSeptex( BPy_Material * self );
 
 /*****************************************************************************/
 /* Python BPy_Material methods declarations: */
@@ -2891,17 +2893,20 @@ static PyObject *Matr_oldsetZOffset( BPy_Material * self, PyObject * args )
 
 static PyObject *Matr_oldsetRGBCol( BPy_Material * self, PyObject * args )
 {
-	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setRGBCol );
+	return EXPP_setterWrapperTuple( (void *)self, args,
+			(setter)Material_setRGBCol );
 }
 
 static PyObject *Matr_oldsetSpecCol( BPy_Material * self, PyObject * args )
 {
-	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSpecCol );
+	return EXPP_setterWrapperTuple( (void *)self, args,
+			(setter)Material_setSpecCol );
 }
 
 static PyObject *Matr_oldsetMirCol( BPy_Material * self, PyObject * args )
 {
-	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setMirCol );
+	return EXPP_setterWrapperTuple( (void *)self, args,
+			(setter)Material_setMirCol );
 }
 
 
