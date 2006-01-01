@@ -4084,7 +4084,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 
 	/* eliminate new faces already in the mesh */
 		tmppair = newpair;
-		for( i = len; i-- ; ) {
+		for( i = good_faces; i-- ; ) {
 			if( tmppair->v[1] ) {
 				if( bsearch( tmppair, oldpair, mesh->totface, 
 						sizeof(SrchFaces), mface_comp ) ) {
@@ -4100,6 +4100,16 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	/* if any new faces are left, add to list */
 	if( good_faces ) {
 		int totface = mesh->totface+good_faces;	/* new face count */
+
+	/* if mesh has tfaces, reallocate them first */
+		if( mesh->tface ) {
+			TFace *tmptface;
+
+			tmptface = MEM_callocN(totface*sizeof(TFace), "Mesh_addFaces");
+			memcpy( tmptface, mesh->tface, mesh->totface*sizeof(TFace));
+			MEM_freeN( mesh->tface );
+			mesh->tface = tmptface;
+		}
 
 	/* allocate new face list */
 		tmpface = MEM_callocN(totface*sizeof(MFace), "Mesh_addFaces");
