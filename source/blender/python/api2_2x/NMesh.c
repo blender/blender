@@ -317,6 +317,77 @@ void mesh_update( Mesh * mesh, Object * ob )
 	}
 }
 
+/*
+ * before trying to convert NMesh data back to mesh, verify that the
+ * lists contain the right type of data
+ */
+
+static int check_NMeshLists( BPy_NMesh *nmesh )
+{
+	int i;
+
+	if( !PySequence_Check( nmesh->verts ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh verts are not a sequence" );
+	if( !PySequence_Check( nmesh->edges ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh edges are not a sequence" );
+	if( !PySequence_Check( nmesh->faces ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh faces are not a sequence" );
+	if( !PySequence_Check( nmesh->materials ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh materials are not a sequence" );
+
+	if( EXPP_check_sequence_consistency( nmesh->verts, &NMVert_Type ) != 1 )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh vertices must be NMVerts" );
+	if( EXPP_check_sequence_consistency( nmesh->edges, &NMEdge_Type ) != 1 )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh edges must be NMEdges" );
+	if( EXPP_check_sequence_consistency( nmesh->faces, &NMFace_Type ) != 1 )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh faces must be NMFaces" );
+	for( i = 0 ; i < PySequence_Length(nmesh->faces); ++i ) {
+		int j, err=0;
+		PyObject *col, *v, *uv;
+    	BPy_NMFace *face=(BPy_NMFace *)PySequence_GetItem(nmesh->faces, i);
+
+		col = face->col;
+		uv = face->uv;
+		v = face->v;
+		Py_DECREF( face );
+		if( EXPP_check_sequence_consistency( face->col, &NMCol_Type ) != 1 ) {
+			return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh face col must be NMCols" );
+		}
+		if( EXPP_check_sequence_consistency( face->v, &NMVert_Type ) != 1 )
+			return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh face v must be NMVerts" );
+
+		for( j = 0 ; !err && j < PySequence_Length( face->uv ); ++j ) {
+			PyObject *uv = PySequence_GetItem( face->uv, j);
+			if( PySequence_Check(uv) && PySequence_Length(uv) == 2 ) {
+    			PyObject *p1 = PySequence_GetItem(uv, 0);
+    			PyObject *p2 = PySequence_GetItem(uv, 1);
+				if( !PyNumber_Check(p1) || !PyNumber_Check(p2) )
+					err = 1;
+				Py_DECREF( p1 );
+				Py_DECREF( p2 );
+			}
+			else {
+				err = 1;
+			}
+
+			Py_DECREF( uv );
+		}
+		if( err )
+			return EXPP_ReturnIntError( PyExc_AttributeError,
+					      "nmesh face uv must contain sequence of 2 floats" );
+	}
+	return 0;
+}
+
 
 /*****************************/
 /*			Mesh Color Object		 */
@@ -602,7 +673,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 
 	if( strcmp( name, "v" ) == 0 ) {
 
-		if( PyList_Check( v ) ) {
+		if( PySequence_Check( v ) ) {
 			Py_DECREF( mf->v );
 			mf->v = EXPP_incr_ret( v );
 
@@ -610,7 +681,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 		}
 	} else if( strcmp( name, "col" ) == 0 ) {
 
-		if( PyList_Check( v ) ) {
+		if( PySequence_Check( v ) ) {
 			Py_DECREF( mf->col );
 			mf->col = EXPP_incr_ret( v );
 
@@ -642,7 +713,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 
 	} else if( strcmp( name, "uv" ) == 0 ) {
 
-		if( PyList_Check( v ) ) {
+		if( PySequence_Check( v ) ) {
 			Py_DECREF( mf->uv );
 			mf->uv = EXPP_incr_ret( v );
 
@@ -1327,6 +1398,9 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				"expected nothing or one to three bool(s) (0 or 1) as argument" );
 
+	if( check_NMeshLists( nmesh ) )
+		return NULL;
+
 	if( mesh ) {
 		old_totvert = mesh->totvert;
 		unlink_existingMeshData( mesh );
@@ -1767,7 +1841,7 @@ static int NMesh_setattr( PyObject * self, char *name, PyObject * v )
 	else if( !strcmp( name, "verts" ) || !strcmp( name, "faces" ) ||
 		 !strcmp( name, "materials" ) ) {
 
-		if( PyList_Check( v ) ) {
+		if( PySequence_Check( v ) ) {
 
 			if( strcmp( name, "materials" ) == 0 ) {
 				Py_DECREF( me->materials );
@@ -2988,6 +3062,10 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 	mesh->subdiv = nmesh->subdiv[0];
 	mesh->subdivr = nmesh->subdiv[1];
 
+
+
+
+
 	/*@ material assignment moved to PutRaw */
 	mesh->totvert = PySequence_Length( nmesh->verts );
 	if( mesh->totvert ) {
@@ -3144,24 +3222,8 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected an NMesh object and optionally also a string and two ints" );
 
-	if( !PySequence_Check( nmesh->verts ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "nmesh vertices are not a sequence" );
-	if( !PySequence_Check( nmesh->faces ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "nmesh faces are not a sequence" );
-	if( !PySequence_Check( nmesh->materials ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "nmesh materials are not a sequence" );
-
-	if( EXPP_check_sequence_consistency( nmesh->verts, &NMVert_Type ) !=
-	    1 )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "nmesh vertices must be NMVerts" );
-	if( EXPP_check_sequence_consistency( nmesh->faces, &NMFace_Type ) !=
-	    1 )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "nmesh faces must be NMFaces" );
+	if( check_NMeshLists( nmesh ) )
+		return NULL;
 
 	if( name )
 		mesh = ( Mesh * ) GetIdFromList( &( G.main->mesh ), name );
