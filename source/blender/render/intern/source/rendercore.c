@@ -2482,7 +2482,7 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 		/* ------  main shading loop -------- */
 		VECCOPY(shi.vno, shi.vn);
 		
-		if(shi.mat->ml_flag & ML_RENDER) {
+		if(1) { //shi.mat->ml_flag & ML_RENDER) {
 
 			shade_lamp_loop(&shi, &shr);	/* clears shr */
 
