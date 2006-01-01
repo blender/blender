@@ -410,6 +410,17 @@ class BezTriple:
   @type hide: int
   """
 
+  def __init__(coords):
+    """
+    Create a new BezTriple object.  
+
+    @type coords: sequence of three or nine floats
+    @param coords: the coordinate values for the new control point.  If three
+    floats are given, then the handle values are automatically generated.
+    @rtype: BezTriple
+    @return: a new BezTriple object
+    """
+
   def getPoints():
     """
     Returns the xy coordinates of the Bezier knot point.
