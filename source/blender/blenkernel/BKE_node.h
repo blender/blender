@@ -94,6 +94,8 @@ void			ntreeMakeOwnType(struct bNodeTree *ntree);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
 
+void			ntreeSocketUseFlags(struct bNodeTree *ntree);
+
 void			ntreeSolveOrder(struct bNodeTree *ntree);
 
 void			ntreeBeginExecTree(struct bNodeTree *ntree);
@@ -170,6 +172,7 @@ struct bNode	*nodeShaderAdd(struct bNodeTree *ntree, int type);
 void			nodeShaderSetExecfunc(struct bNode *node);
 
 void			ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
+int				ntreeShaderGetTexco(struct bNodeTree *ntree);
 
 				/* switch material render loop */
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));

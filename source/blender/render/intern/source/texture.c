@@ -1121,7 +1121,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 
 /* ************************************** */
 
-static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
 
@@ -1215,6 +1215,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	return retval;
 }
 
+/* preview render */
 int multitex_ext(Tex *tex, float *texvec, float *tin, float *tr, float *tg, float *tb, float *ta)
 {
 	TexResult texr;

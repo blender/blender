@@ -525,8 +525,8 @@ void nodeVerifyGroup(bNodeTree *ngroup)
 	}
 }
 
-/* also to check all users... */
-/* should become callbackable... */
+/* also to check all users of groups. Now only used in editor for hide/unhide */
+/* should become callbackable? */
 void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 {
 	bNode *node;
@@ -986,6 +986,29 @@ void nodeSetActive(bNodeTree *ntree, bNode *node)
 	node->flag |= NODE_ACTIVE;
 	if(node->id)
 		node->flag |= NODE_ACTIVE_ID;
+}
+
+/* use flags are not persistant yet, groups might need different tagging, so we do it each time
+   when we need to get this info */
+void ntreeSocketUseFlags(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	/* clear flags */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			sock->flag &= ~SOCK_IN_USE;
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			sock->flag &= ~SOCK_IN_USE;
+	}
+	
+	/* tag all thats in use */
+	for(link= ntree->links.first; link; link= link->next) {
+		link->fromsock->flag |= SOCK_IN_USE;
+		link->tosock->flag |= SOCK_IN_USE;
+	}
 }
 
 #pragma mark /* ************** dependency stuff *********** */

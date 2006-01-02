@@ -160,22 +160,65 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 {
 	if(data && node->id) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
-		float *vec;
+		TexResult texres;
+		float *vec, nor[3]={0.0f, 0.0f, 0.0f};
 		int retval;
 		
 		/* out: value, color, normal */
-		if(in[0]->hasinput)
-			vec= in[0]->vec;
-		else
-			vec= shi->co;
 		
-		retval= multitex_ext((Tex *)node->id, vec, out[0]->vec, out[1]->vec, out[1]->vec+1, out[1]->vec+2, out[1]->vec+3);
+		/* we should find out if a normal as output is needed, for now we do all */
+		texres.nor= nor;
+		
+		if(in[0]->hasinput) {
+			vec= in[0]->vec;
+			
+			if(in[0]->datatype==NS_OSA_VECTORS) {
+				float *fp= in[0]->data;
+				retval= multitex((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres);
+			}
+			else if(in[0]->datatype==NS_OSA_VALUES) {
+				float *fp= in[0]->data;
+				float dxt[3], dyt[3];
+				
+				dxt[0]= fp[0]; dxt[1]= dxt[2]= 0.0f;
+				dyt[0]= fp[1]; dyt[1]= dyt[2]= 0.0f;
+				retval= multitex((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres);
+			}
+			else
+				retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+		}
+		else {	/* only for previewrender, so we see stuff */
+			vec= shi->lo;
+			retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+		}
+		
+		/* stupid exception */
+		if( ((Tex *)node->id)->type==TEX_STUCCI) {
+			texres.tin= 0.5f + 0.7f*texres.nor[0];
+			CLAMP(texres.tin, 0.0f, 1.0f);
+		}
+		
+		/* intensity and color need some handling */
+		if(texres.talpha)
+			out[0]->vec[0]= texres.ta;
+		else
+			out[0]->vec[0]= texres.tin;
+		
 		if((retval & TEX_RGB)==0) {
 			out[1]->vec[0]= out[0]->vec[0];
 			out[1]->vec[1]= out[0]->vec[0];
 			out[1]->vec[2]= out[0]->vec[0];
 			out[1]->vec[3]= 1.0f;
 		}
+		else {
+			out[1]->vec[0]= texres.tr;
+			out[1]->vec[1]= texres.tg;
+			out[1]->vec[2]= texres.tb;
+			out[1]->vec[3]= 1.0f;
+		}
+		
+		VECCOPY(out[2]->vec, nor);
+		
 		if(shi->do_preview)
 			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys);
 		
@@ -183,21 +226,6 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 }
 
 /* **************** geometry node ************ */
-
-static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	if(data) {
-		ShadeInput *shi= ((ShaderCallData *)data)->shi;
-		
-		/* out: global, local, view, orco, uv, normal */
-		VECCOPY(out[0]->vec, shi->gl);
-		VECCOPY(out[1]->vec, shi->co);
-		VECCOPY(out[2]->vec, shi->view);
-		VECCOPY(out[3]->vec, shi->lo);
-		VECCOPY(out[4]->vec, shi->uv);
-		VECCOPY(out[5]->vec, shi->vno);
-	}
-}
 
 /* **************** normal node ************ */
 
@@ -272,21 +300,6 @@ static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, b
 }
 
 
-/* ******************* execute ************ */
-
-void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
-{
-	ShaderCallData scd;
-	
-	/* convert caller data to struct */
-	scd.shi= shi;
-	scd.shr= shr;
-	ntree->data= &scd;
-	
-	ntreeExecTree(ntree);
-	
-}
-
 
 /* ******************************************************** */
 /* ********* Shader Node type definitions ***************** */
@@ -318,6 +331,16 @@ static bNodeType sh_node_output= {
 };
 
 /* **************** GEOMETRY INFO ******************** */
+
+/* output socket defines */
+#define SN_GEOM_GLOB	0
+#define SN_GEOM_LOCAL	1
+#define SN_GEOM_VIEW	2
+#define SN_GEOM_ORCO	3
+#define SN_GEOM_UV		4
+#define SN_GEOM_NORMAL	5
+
+/* output socket type definition */
 static bNodeSocketType sh_node_geom_out[]= {
 	{	SOCK_VECTOR, 0, "Global",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},	/* btw; uses no limit */
 	{	SOCK_VECTOR, 0, "Local",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
@@ -328,6 +351,38 @@ static bNodeSocketType sh_node_geom_out[]= {
 	{	-1, 0, ""	}
 };
 
+/* node execute callback */
+static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data) {
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		
+		/* out: global, local, view, orco, uv, normal */
+		VECCOPY(out[SN_GEOM_GLOB]->vec, shi->gl);
+		VECCOPY(out[SN_GEOM_LOCAL]->vec, shi->co);
+		VECCOPY(out[SN_GEOM_VIEW]->vec, shi->view);
+		VECCOPY(out[SN_GEOM_ORCO]->vec, shi->lo);
+		VECCOPY(out[SN_GEOM_UV]->vec, shi->uv);
+		VECCOPY(out[SN_GEOM_NORMAL]->vec, shi->vno);
+		
+		if(shi->osatex) {
+			out[SN_GEOM_GLOB]->data= shi->dxgl;
+			out[SN_GEOM_GLOB]->datatype= NS_OSA_VECTORS;
+			out[SN_GEOM_LOCAL]->data= shi->dxco;
+			out[SN_GEOM_LOCAL]->datatype= NS_OSA_VECTORS;
+			out[SN_GEOM_VIEW]->data= &shi->dxview;
+			out[SN_GEOM_VIEW]->datatype= NS_OSA_VALUES;
+			out[SN_GEOM_ORCO]->data= shi->dxlo;
+			out[SN_GEOM_ORCO]->datatype= NS_OSA_VECTORS;
+			out[SN_GEOM_UV]->data= shi->dxuv;
+			out[SN_GEOM_UV]->datatype= NS_OSA_VECTORS;
+			out[SN_GEOM_NORMAL]->data= shi->dxno;
+			out[SN_GEOM_NORMAL]->datatype= NS_OSA_VECTORS;
+		}
+	}
+}
+
+/* node type definition */
 static bNodeType sh_node_geom= {
 	/* type code   */	SH_NODE_GEOMETRY,
 	/* name        */	"Geometry",
@@ -538,4 +593,58 @@ bNodeType *node_all_shaders[]= {
 	NULL
 };
 
+/* ******************* execute and parse ************ */
+
+void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
+{
+	ShaderCallData scd;
+	
+	/* convert caller data to struct */
+	scd.shi= shi;
+	scd.shr= shr;
+	ntree->data= &scd;
+	
+	ntreeExecTree(ntree);
+}
+
+/* go over all used Geometry and Texture nodes, and return a texco flag */
+int ntreeShaderGetTexco(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	int texco= 0, a;
+	
+	ntreeSocketUseFlags(ntree);
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==SH_NODE_TEXTURE) {
+			/* this r.osa is sorta weak... */
+			if(R.osa && node->id) {
+				Tex *tex= (Tex *)node->id;
+				if ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) texco |= TEXCO_OSA;
+			}
+		}
+		else if(node->type==SH_NODE_GEOMETRY) {
+			/* note; sockets always exist for the given type! */
+			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if(sock->flag & SOCK_IN_USE) {
+					switch(a) {
+						case SN_GEOM_GLOB: 
+							texco |= TEXCO_GLOB; break;
+						case SN_GEOM_VIEW: 
+							texco |= TEXCO_VIEW; break;
+						case SN_GEOM_ORCO: 
+							texco |= TEXCO_ORCO; break;
+						case SN_GEOM_UV: 
+							texco |= TEXCO_UV; break;
+						case SN_GEOM_NORMAL: 
+							texco |= TEXCO_NORM; break;
+					}
+				}
+			}
+		}
+	}
+	
+	return texco;
+}
 

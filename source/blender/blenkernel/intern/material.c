@@ -674,6 +674,8 @@ void init_render_material(Material *mat)
 				}
 			}
 		}
+		/* parses the geom nodes */
+		mat->texco |= ntreeShaderGetTexco(mat->nodetree);
 		ntreeBeginExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
 	}
 }

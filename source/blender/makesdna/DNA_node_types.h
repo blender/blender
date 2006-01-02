@@ -47,9 +47,14 @@ typedef struct bNodeStack {
 	float vec[4];
 	float min, max;			/* min/max for values (UI writes it, execute might use it) */
 	void *data;
-	short hasinput, pad;	/* hasinput tagged for executing */
+	short hasinput;			/* hasinput is tagged before executing */
+	short datatype;			/* type of data pointer */
 	int pad1;
 } bNodeStack;
+
+/* ns->datatype, shadetree only */
+#define NS_OSA_VECTORS		1
+#define NS_OSA_VALUES		2
 
 typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev;

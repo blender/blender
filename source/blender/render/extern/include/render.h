@@ -146,6 +146,7 @@ void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_t
 /* ------------------------------------------------------------------------- */
 struct MTex;
 struct Tex;
+struct TexResult;
 
 void init_render_textures(void);
 void init_render_texture(struct Tex *tex);
@@ -153,6 +154,7 @@ void init_render_texture(struct Tex *tex);
 void do_material_tex(ShadeInput *shi);
 void do_lamp_tex(struct LampRen *la, float *lavec, ShadeInput *shi, float *fcol);
 
+int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
 int multitex_ext(struct Tex *tex, float *texvec, float *tin, float *tr, float *tg, float *tb, float *ta);
 void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta);
 
