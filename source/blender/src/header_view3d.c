@@ -1980,9 +1980,7 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 		duplicate_context_selected();
 		break;
 	case 3: /* duplicate linked */
-		G.qual |= LR_ALTKEY;
-		adduplicate(0);
-		G.qual &= ~LR_ALTKEY;
+		adduplicate(0, 0);
 		break;
 	case 5: /* make single user */
 		single_user();

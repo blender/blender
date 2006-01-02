@@ -1889,7 +1889,7 @@ void split_font()
 	int i;
 
 	for (i = 0; i<=slen; p++, i++) {
-		adduplicate(1);
+		adduplicate(1, U.dupflag);
 		cu= OBACT->data;
 		cu->sepchar = i+1;
 		text_to_curve(OBACT, 0);	// pass 1: only one letter, adapt position
@@ -4161,7 +4161,7 @@ static void adduplicate__forwardModifierLinks(void *userData, Object *ob, Object
 	ID_NEW(*obpoin);
 }
 
-void adduplicate(int noTrans)
+void adduplicate(int noTrans, int dupflag)
 {
 	Base *base, *basen;
 	Object *ob, *obn;
@@ -4169,14 +4169,11 @@ void adduplicate(int noTrans)
 	ID *id;
 	Ipo *ipo;
 	bConstraintChannel *chan;
-	int a, didit, dupflag;
+	int a, didit;
 	
 	if(G.scene->id.lib) return;
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
-	
-	if( G.qual & LR_ALTKEY ) dupflag= 0;
-	else dupflag= U.dupflag;
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -4218,7 +4215,7 @@ void adduplicate(int noTrans)
 						}
 					}
 				}
-				if(dupflag & USER_DUP_ACT){
+				if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
 					id= (ID *)obn->action;
 					if (id){
 						ID_NEW_US(obn->action)

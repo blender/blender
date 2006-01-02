@@ -107,13 +107,33 @@ def GetSelected ():
   """
 
 
-def Duplicate (linked=1):
+def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=0, material=0, texture=0, ipo=0):
   """
-  Duplicate selected objects on visible layers from Blenders current scene.
+  Duplicate selected objects on visible layers from Blenders current scene,
+  de-selecting the currently visible, selected objects and making a copy where all new objects are selected.
+  By default no data linked to the object is duplicated, use the kayword arguments to change this.
   Object.GetSelected() will return the list of objects resulting from duplication.
   
-  @type linked: int
-  @param linked: When zero this will duplicate the object data along with the object.
+  @type mesh: bool
+  @param mesh: When non zero, mesh object data will be duplicated with the objects.
+  @type surface: bool
+  @param surface: When non zero, surface object data will be duplicated with the objects.
+  @type curve: bool
+  @param curve: When non zero, curve object data will be duplicated with the objects.
+  @type text: bool
+  @param text: When non zero, text object data will be duplicated with the objects.
+  @type metaball: bool
+  @param metaball: When non zero, metaball object data will be duplicated with the objects.
+  @type armature: bool
+  @param armature: When non zero, armature object data will be duplicated with the objects.
+  @type lamp: bool
+  @param lamp: When non zero, lamp object data will be duplicated with the objects.
+  @type material: bool
+  @param material: When non zero, materials used my the object or its object data will be duplicated with the objects.
+  @type texture: bool
+  @param texture: When non zero, texture data used by the objects materials will be duplicated with the objects.
+  @type ipo: bool
+  @param ipo: When non zero, ipo data linked to the object will be duplicated with the objects.
   @return: None
 
   I{B{Example:}}
@@ -131,14 +151,11 @@ def Duplicate (linked=1):
     activeObject.sel = 1
     
     for x in xrange(10):
-        Blender.Object.Duplicate(1)
+        Blender.Object.Duplicate() # Duplicate linked
         activeObject = scn.getActiveObject()
         activeObject.LocX += 1
     Blender.Redraw()
-  @note: When duplicating, specific duplicate settings in the "Edit Methods, Duplicate with Object"
-    section of the preferences window will change how duplicate deals with linked data.
   """
-
 
 def Join ():
   """

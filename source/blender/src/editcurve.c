@@ -375,9 +375,7 @@ void separate_nurb()
 	oldob= G.obedit;
 	oldbase= BASACT;
 
-	G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked dupli */
-	adduplicate(1);
-	G.qual &= ~LR_ALTKEY;
+	adduplicate(1, 0); /* no transform and zero so do get a linked dupli */
 	
 	G.obedit= BASACT->object;	/* basact is set in adduplicate() */
 	

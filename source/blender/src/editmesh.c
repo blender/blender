@@ -1324,9 +1324,7 @@ void separate_mesh(void)
 	oldob= G.obedit;
 	oldbase= BASACT;
 	
-	G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
-	adduplicate(1);
-	G.qual &= ~LR_ALTKEY;
+	adduplicate(1, 0); /* notrans and a linked duplicate*/
 	
 	G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
 
@@ -1491,9 +1489,7 @@ void separate_mesh_loose(void)
 			oldob= G.obedit;
 			oldbase= BASACT;
 			
-			G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
-			adduplicate(1);
-			G.qual &= ~LR_ALTKEY;
+			adduplicate(1, 0); /* notrans and 0 for linked duplicate */
 			
 			G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
 		

@@ -114,7 +114,7 @@ struct rctf;
 static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self );
-static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args );
+static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd);
 static PyObject *M_Object_Join( PyObject * self );
 
 /* HELPER FUNCTION FOR PARENTING */
@@ -157,12 +157,13 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_Get_doc},
 	{"GetSelected", ( PyCFunction ) M_Object_GetSelected, METH_NOARGS,
 	 M_Object_GetSelected_doc},
-	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS,
+	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS | METH_KEYWORDS,
 	 M_Object_Duplicate_doc},
 	{"Join", ( PyCFunction ) M_Object_Join, METH_VARARGS,
 	 M_Object_Join_doc},
 	{NULL, NULL, 0, NULL}
 };
+
 
 /*****************************************************************************/
 /* Python BPy_Object methods declarations:				   */
@@ -811,21 +812,43 @@ static PyObject *M_Object_GetSelected( PyObject * self )
 /* Function:			  M_Object_Duplicate				 */
 /* Python equivalent:	  Blender.Object.Duplicate				 */
 /*****************************************************************************/
-static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args )
+static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd )
 {
-	int *linked=1;
+	int dupflag= 0; /* this a flag, passed to adduplicate() and used instead of U.dupflag sp python can set what is duplicated */	
 
-	if( !PyArg_ParseTuple( args, "|i", &linked ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"2 ints expected as arguments" );
-
-	if (linked) {
-		G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked dupli */
-		adduplicate(1);
-		G.qual &= ~LR_ALTKEY;
-	} else {
-		adduplicate(1);
-	}
+	/* the following variables are bools, if set true they will modify the dupflag to pass to adduplicate() */
+	int mesh_dupe = 0;
+	int surface_dupe = 0;
+	int curve_dupe = 0;
+	int text_dupe = 0;
+	int metaball_dupe = 0;
+	int armature_dupe = 0;
+	int lamp_dupe = 0;
+	int material_dupe = 0;
+	int texture_dupe = 0;
+	int ipo_dupe = 0;
+	
+	static char *kwlist[] = {"mesh", "surface", "curve",
+			"text", "metaball", "armature", "lamp", "material", "texture", "ipo", NULL};
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|iiiiiiiiii", kwlist,
+		&mesh_dupe, &surface_dupe, &curve_dupe, &text_dupe, &metaball_dupe,
+		&armature_dupe, &lamp_dupe, &material_dupe, &texture_dupe, &ipo_dupe))
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"expected nothing or bool keywords 'mesh', 'surface', 'curve', 'text', 'metaball', 'armature', 'lamp' 'material', 'texture' and 'ipo' as arguments" );
+	
+	/* USER_DUP_ACT for actions is not supported in the UI so dont support it here */
+	if (mesh_dupe)		dupflag |= USER_DUP_MESH;
+	if (surface_dupe)	dupflag |= USER_DUP_SURF;
+	if (curve_dupe)		dupflag |= USER_DUP_CURVE;
+	if (text_dupe)		dupflag |= USER_DUP_FONT;
+	if (metaball_dupe)	dupflag |= USER_DUP_MBALL;
+	if (armature_dupe)	dupflag |= USER_DUP_ARM;
+	if (lamp_dupe)		dupflag |= USER_DUP_LAMP;
+	if (material_dupe)	dupflag |= USER_DUP_MAT;
+	if (texture_dupe)	dupflag |= USER_DUP_TEX;
+	if (ipo_dupe)		dupflag |= USER_DUP_IPO;
+	adduplicate(1, dupflag); /* Duplicate the current selection, context sensitive */
 	Py_RETURN_NONE;
 }
 

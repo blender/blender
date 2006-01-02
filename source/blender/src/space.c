@@ -1216,7 +1216,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(ob && (ob->flag & OB_POSEMODE))
 						error ("Duplicate not possible in posemode.");
 					else if((G.obedit==NULL))
-						adduplicate(0);
+						adduplicate(0, 0);
 				}
 				else if(G.qual==LR_CTRLKEY) {
 					imagestodisplist();
