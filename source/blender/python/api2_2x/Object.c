@@ -848,7 +848,7 @@ static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject 
 	if (material_dupe)	dupflag |= USER_DUP_MAT;
 	if (texture_dupe)	dupflag |= USER_DUP_TEX;
 	if (ipo_dupe)		dupflag |= USER_DUP_IPO;
-	adduplicate(1, dupflag); /* Duplicate the current selection, context sensitive */
+	adduplicate(2, dupflag); /* 2 is a mode with no transform and no redraw, Duplicate the current selection, context sensitive */
 	Py_RETURN_NONE;
 }
 
