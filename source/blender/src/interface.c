@@ -2527,25 +2527,8 @@ static int ui_do_but_BUTM(uiBut *but)
 
 static int ui_do_but_LABEL(uiBut *but)
 {
-	/* new label type, for nodes, ctrl+clock on text gives options */
-	if(but->block_func) {
-		if(G.qual & LR_CTRLKEY) {
-			ListBase listb={NULL, NULL};
-			uiBlock *block= ui_do_but_BLOCK(but, 0);
-			
-			BLI_addtail(&listb, block);
-			block->parent= NULL;	/* we abused ui_do_but_BLOCK */
-			uiDoBlocks(&listb, 0);
-			
-			uibut_do_func(but);
-			return but->retval;
-		}
-		return 0;
-	}
-	else {
-		uibut_do_func(but);
-		return but->retval;
-	}
+	uibut_do_func(but);
+	return but->retval;
 }
 
 static uiBut *ui_get_valid_link_button(uiBlock *block, uiBut *but, short *mval)
@@ -3065,6 +3048,7 @@ static int ui_do_but_COL(uiBut *but)
 	
 	if(but->pointype==CHA) ui_set_but_vectorf(but, colstore);
 	
+	uibut_do_func(but);
 	return but->retval;
 
 }

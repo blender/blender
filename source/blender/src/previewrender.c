@@ -849,11 +849,6 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr)
 	float lv[3], *la, *vn, vnor[3];
 	int a;
 	
-	// copy all relevant material vars, note, keep this synced with render_types.h
-	memcpy(&shi->r, &mat->r, 23*sizeof(float));
-	// set special cases:
-	shi->har= mat->har;
-	
 	if((mat->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0f;
 	memset(shr, 0, sizeof(ShadeResult));
 	
@@ -1111,6 +1106,10 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 		ntreeShaderExecTree(mat->nodetree, shi, &shr);
 	}
 	else {
+		/* copy all relevant material vars, note, keep this synced with render_types.h */
+		memcpy(&shi->r, &mat->r, 23*sizeof(float));
+		shi->har= mat->har;
+		
 		shade_lamp_loop_preview(shi, &shr);
 	}
 

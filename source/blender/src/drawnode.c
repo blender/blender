@@ -127,6 +127,16 @@ static uiBlock *socket_vector_menu(void *butpoin_v)
 	return block;
 }
 
+static void node_sync_cb(void *snode_v, void *node_v)
+{
+	SpaceNode *snode= snode_v;
+	
+	if(snode->treetype==NTREE_SHADER) {
+		nodeShaderSynchronizeID(node_v, 1);
+		allqueue(REDRAWBUTSSHADING, 0);
+	}
+}
+
 /* ****************** GENERAL CALLBACKS FOR NODES ***************** */
 
 static void node_ID_title_cb(void *node_v, void *unused_v)
@@ -786,6 +796,7 @@ static int node_get_colorid(bNode *node)
 static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
+	uiBut *bt;
 	rctf *rct= &node->totr;
 	float slen, iconofs;
 	int ofs, color_id= node_get_colorid(node);
@@ -890,7 +901,11 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		}
 	}
 	
-	/* socket inputs, label buttons */
+	/* hurmf... another candidate for callback, have to see how this works first */
+	if(node->id && node->block && snode->treetype==NTREE_SHADER)
+		nodeShaderSynchronizeID(node, 0);
+	
+	/* socket inputs, buttons */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & SOCK_HIDDEN)) {
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
@@ -902,9 +917,10 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 					butpoin= sock->tosock->ns.vec;
 				
 				if(sock->type==SOCK_VALUE) {
-					uiDefButF(node->block, NUM, B_NODE_EXEC, sock->name, 
+					bt= uiDefButF(node->block, NUM, B_NODE_EXEC, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
 						  butpoin, 0.0f, 1.0f, 10, 2, "");
+					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 				else if(sock->type==SOCK_VECTOR) {
 					uiDefBlockBut(node->block, socket_vector_menu, butpoin, sock->name, 
@@ -912,9 +928,10 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 						  "");
 				}
 				else if(node->block && sock->type==SOCK_RGBA) {
-					uiDefButF(node->block, COL, B_NODE_EXEC, "", 
+					bt= uiDefButF(node->block, COL, B_NODE_EXEC, "", 
 						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, (short)(node->width-NODE_DY), 15, 
 						   butpoin, 0, 0, 0, 0, "");
+					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 			}
 			else {

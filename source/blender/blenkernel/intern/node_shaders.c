@@ -28,6 +28,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "DNA_ID.h"
 #include "DNA_material_types.h"
@@ -45,6 +46,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "render.h"		/* <- shadeinput/output */
+
 
 /* ********* exec data struct, remains internal *********** */
 
@@ -94,65 +96,6 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 	}	
 }
 
-/* **************** material node ************ */
-
-static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	if(data && node->id) {
-		ShadeResult shrnode;
-		ShadeInput *shi;
-		float col[4], *nor;
-	
-		shi= ((ShaderCallData *)data)->shi;
-		
-		shi->mat= (Material *)node->id;
-		
-		/* retrieve normal */
-		if(in[0]->hasinput)
-			nor= in[0]->vec;
-		else
-			nor= shi->vno;
-		
-		if(node->custom1 & SH_NODE_MAT_NEG) {
-			shi->vn[0]= -nor[0];
-			shi->vn[1]= -nor[1];
-			shi->vn[2]= -nor[2];
-		}
-		else {
-			VECCOPY(shi->vn, nor);
-		}
-		
-		node_shader_lamp_loop(shi, &shrnode);
-		
-		if(node->custom1 & SH_NODE_MAT_DIFF) {
-			VECCOPY(col, shrnode.diff);
-			if(node->custom1 & SH_NODE_MAT_SPEC) {
-				VecAddf(col, col, shrnode.spec);
-			}
-		}
-		else if(node->custom1 & SH_NODE_MAT_SPEC) {
-			VECCOPY(col, shrnode.spec);
-		}
-		else
-			col[0]= col[1]= col[2]= 0.0f;
-			
-		col[3]= shrnode.alpha;
-		
-		if(shi->do_preview)
-			nodeAddToPreview(node, col, shi->xs, shi->ys);
-		
-		/* stack order output: color, alpha, normal */
-		VECCOPY(out[0]->vec, col);
-		out[1]->vec[0]= shrnode.alpha;
-		
-		if(node->custom1 & SH_NODE_MAT_NEG) {
-			shi->vn[0]= -shi->vn[0];
-			shi->vn[1]= -shi->vn[1];
-			shi->vn[2]= -shi->vn[2];
-		}
-		VECCOPY(out[2]->vec, shi->vn);
-	}
-}
 
 /* **************** texture node ************ */
 
@@ -225,80 +168,6 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 	}
 }
 
-/* **************** geometry node ************ */
-
-/* **************** normal node ************ */
-
-/* generates normal, does dot product */
-static void node_shader_exec_normal(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	/* stack order input:  normal */
-	/* stack order output: normal, value */
-	
-	VECCOPY(out[0]->vec, sock->ns.vec);
-	/* render normals point inside... the widget points outside */
-	out[1]->vec[0]= -INPR(out[0]->vec, in[0]->vec);
-}
-
-/* **************** value node ************ */
-
-static void node_shader_exec_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	
-	out[0]->vec[0]= sock->ns.vec[0];
-}
-
-/* **************** rgba node ************ */
-
-static void node_shader_exec_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	
-	VECCOPY(out[0]->vec, sock->ns.vec);
-}
-									 
-
-/* **************** mix rgb node ************ */
-
-static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order in: fac, col1, col2 */
-	/* stack order out: col */
-	float col[3];
-	float fac= in[0]->vec[0];
-	
-	CLAMP(fac, 0.0f, 1.0f);
-	
-	VECCOPY(col, in[1]->vec);
-	ramp_blend(node->custom1, col, col+1, col+2, fac, in[2]->vec);
-	VECCOPY(out[0]->vec, col);
-}
-
-/* **************** val to rgb node ************ */
-
-static void node_shader_exec_valtorgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order in: fac */
-	/* stack order out: col, alpha */
-	
-	if(node->storage) {
-		do_colorband(node->storage, in[0]->vec[0], out[0]->vec);
-		out[1]->vec[0]= out[0]->vec[3];
-	}
-}
-
-/* **************** rgb to bw node ************ */
-
-static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order out: bw */
-	/* stack order in: col */
-	
-	out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
-}
-
 
 
 /* ******************************************************** */
@@ -314,7 +183,6 @@ static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, b
 static bNodeSocketType sh_node_output_in[]= {
 	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -330,15 +198,15 @@ static bNodeType sh_node_output= {
 	
 };
 
-/* **************** GEOMETRY INFO ******************** */
+/* **************** GEOMETRY  ******************** */
 
 /* output socket defines */
-#define SN_GEOM_GLOB	0
-#define SN_GEOM_LOCAL	1
-#define SN_GEOM_VIEW	2
-#define SN_GEOM_ORCO	3
-#define SN_GEOM_UV		4
-#define SN_GEOM_NORMAL	5
+#define GEOM_OUT_GLOB	0
+#define GEOM_OUT_LOCAL	1
+#define GEOM_OUT_VIEW	2
+#define GEOM_OUT_ORCO	3
+#define GEOM_OUT_UV		4
+#define GEOM_OUT_NORMAL	5
 
 /* output socket type definition */
 static bNodeSocketType sh_node_geom_out[]= {
@@ -358,26 +226,26 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		
 		/* out: global, local, view, orco, uv, normal */
-		VECCOPY(out[SN_GEOM_GLOB]->vec, shi->gl);
-		VECCOPY(out[SN_GEOM_LOCAL]->vec, shi->co);
-		VECCOPY(out[SN_GEOM_VIEW]->vec, shi->view);
-		VECCOPY(out[SN_GEOM_ORCO]->vec, shi->lo);
-		VECCOPY(out[SN_GEOM_UV]->vec, shi->uv);
-		VECCOPY(out[SN_GEOM_NORMAL]->vec, shi->vno);
+		VECCOPY(out[GEOM_OUT_GLOB]->vec, shi->gl);
+		VECCOPY(out[GEOM_OUT_LOCAL]->vec, shi->co);
+		VECCOPY(out[GEOM_OUT_VIEW]->vec, shi->view);
+		VECCOPY(out[GEOM_OUT_ORCO]->vec, shi->lo);
+		VECCOPY(out[GEOM_OUT_UV]->vec, shi->uv);
+		VECCOPY(out[GEOM_OUT_NORMAL]->vec, shi->vno);
 		
 		if(shi->osatex) {
-			out[SN_GEOM_GLOB]->data= shi->dxgl;
-			out[SN_GEOM_GLOB]->datatype= NS_OSA_VECTORS;
-			out[SN_GEOM_LOCAL]->data= shi->dxco;
-			out[SN_GEOM_LOCAL]->datatype= NS_OSA_VECTORS;
-			out[SN_GEOM_VIEW]->data= &shi->dxview;
-			out[SN_GEOM_VIEW]->datatype= NS_OSA_VALUES;
-			out[SN_GEOM_ORCO]->data= shi->dxlo;
-			out[SN_GEOM_ORCO]->datatype= NS_OSA_VECTORS;
-			out[SN_GEOM_UV]->data= shi->dxuv;
-			out[SN_GEOM_UV]->datatype= NS_OSA_VECTORS;
-			out[SN_GEOM_NORMAL]->data= shi->dxno;
-			out[SN_GEOM_NORMAL]->datatype= NS_OSA_VECTORS;
+			out[GEOM_OUT_GLOB]->data= shi->dxgl;
+			out[GEOM_OUT_GLOB]->datatype= NS_OSA_VECTORS;
+			out[GEOM_OUT_LOCAL]->data= shi->dxco;
+			out[GEOM_OUT_LOCAL]->datatype= NS_OSA_VECTORS;
+			out[GEOM_OUT_VIEW]->data= &shi->dxview;
+			out[GEOM_OUT_VIEW]->datatype= NS_OSA_VALUES;
+			out[GEOM_OUT_ORCO]->data= shi->dxlo;
+			out[GEOM_OUT_ORCO]->datatype= NS_OSA_VECTORS;
+			out[GEOM_OUT_UV]->data= shi->dxuv;
+			out[GEOM_OUT_UV]->datatype= NS_OSA_VECTORS;
+			out[GEOM_OUT_NORMAL]->data= shi->dxno;
+			out[GEOM_OUT_NORMAL]->datatype= NS_OSA_VECTORS;
 		}
 	}
 }
@@ -396,10 +264,25 @@ static bNodeType sh_node_geom= {
 };
 
 /* **************** MATERIAL ******************** */
+
+/* input socket defines */
+#define MAT_IN_COLOR	0
+#define MAT_IN_SPEC		1
+#define MAT_IN_REFL		2
+#define MAT_IN_NORMAL	3
+
 static bNodeSocketType sh_node_material_in[]= {
+	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Spec",		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Refl",		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
+
+/* output socket defines */
+#define MAT_OUT_COLOR	0
+#define MAT_OUT_ALPHA	1
+#define MAT_OUT_NORMAL	2
 
 static bNodeSocketType sh_node_material_out[]= {
 	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
@@ -407,6 +290,79 @@ static bNodeSocketType sh_node_material_out[]= {
 	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
+
+static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data && node->id) {
+		ShadeResult shrnode;
+		ShadeInput *shi;
+		float col[4], *nor;
+		
+		shi= ((ShaderCallData *)data)->shi;
+		shi->mat= (Material *)node->id;
+		
+		/* copy all relevant material vars, note, keep this synced with render_types.h */
+		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
+		shi->har= shi->mat->har;
+		
+		/* write values */
+		if(in[MAT_IN_COLOR]->hasinput)
+			VECCOPY(&shi->r,  in[MAT_IN_COLOR]->vec);
+		
+		if(in[MAT_IN_SPEC]->hasinput)
+			VECCOPY(&shi->specr,  in[MAT_IN_SPEC]->vec);
+		
+		if(in[MAT_IN_REFL]->hasinput)
+			shi->mat->ref= in[MAT_IN_REFL]->vec[0]; 
+		
+		/* retrieve normal */
+		if(in[MAT_IN_NORMAL]->hasinput)
+			nor= in[0]->vec;
+		else
+			nor= shi->vno;
+		
+		/* custom option to flip normal */
+		if(node->custom1 & SH_NODE_MAT_NEG) {
+			shi->vn[0]= -nor[0];
+			shi->vn[1]= -nor[1];
+			shi->vn[2]= -nor[2];
+		}
+		else {
+			VECCOPY(shi->vn, nor);
+		}
+		
+		node_shader_lamp_loop(shi, &shrnode);
+		
+		/* write to outputs */
+		if(node->custom1 & SH_NODE_MAT_DIFF) {
+			VECCOPY(col, shrnode.diff);
+			if(node->custom1 & SH_NODE_MAT_SPEC) {
+				VecAddf(col, col, shrnode.spec);
+			}
+		}
+		else if(node->custom1 & SH_NODE_MAT_SPEC) {
+			VECCOPY(col, shrnode.spec);
+		}
+		else
+			col[0]= col[1]= col[2]= 0.0f;
+		
+		col[3]= shrnode.alpha;
+		
+		if(shi->do_preview)
+			nodeAddToPreview(node, col, shi->xs, shi->ys);
+		
+		VECCOPY(out[MAT_OUT_COLOR]->vec, col);
+		out[MAT_OUT_ALPHA]->vec[0]= shrnode.alpha;
+		
+		if(node->custom1 & SH_NODE_MAT_NEG) {
+			shi->vn[0]= -shi->vn[0];
+			shi->vn[1]= -shi->vn[1];
+			shi->vn[2]= -shi->vn[2];
+		}
+		VECCOPY(out[MAT_OUT_NORMAL]->vec, shi->vn);
+		
+	}
+}
 
 static bNodeType sh_node_material= {
 	/* type code   */	SH_NODE_MATERIAL,
@@ -456,6 +412,18 @@ static bNodeSocketType sh_node_normal_out[]= {
 	{	-1, 0, ""	}
 };
 
+/* generates normal, does dot product */
+static void node_shader_exec_normal(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	bNodeSocket *sock= node->outputs.first;
+	/* stack order input:  normal */
+	/* stack order output: normal, value */
+	
+	VECCOPY(out[0]->vec, sock->ns.vec);
+	/* render normals point inside... the widget points outside */
+	out[1]->vec[0]= -INPR(out[0]->vec, in[0]->vec);
+}
+
 static bNodeType sh_node_normal= {
 	/* type code   */	SH_NODE_NORMAL,
 	/* name        */	"Normal",
@@ -474,6 +442,13 @@ static bNodeSocketType sh_node_value_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_exec_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	bNodeSocket *sock= node->outputs.first;
+	
+	out[0]->vec[0]= sock->ns.vec[0];
+}
+
 static bNodeType sh_node_value= {
 	/* type code   */	SH_NODE_VALUE,
 	/* name        */	"Value",
@@ -491,6 +466,13 @@ static bNodeSocketType sh_node_rgb_out[]= {
 	{	SOCK_RGBA, 0, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
+
+static void node_shader_exec_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	bNodeSocket *sock= node->outputs.first;
+	
+	VECCOPY(out[0]->vec, sock->ns.vec);
+}
 
 static bNodeType sh_node_rgb= {
 	/* type code   */	SH_NODE_RGB,
@@ -516,6 +498,20 @@ static bNodeSocketType sh_node_mix_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order in: fac, col1, col2 */
+	/* stack order out: col */
+	float col[3];
+	float fac= in[0]->vec[0];
+	
+	CLAMP(fac, 0.0f, 1.0f);
+	
+	VECCOPY(col, in[1]->vec);
+	ramp_blend(node->custom1, col, col+1, col+2, fac, in[2]->vec);
+	VECCOPY(out[0]->vec, col);
+}
+
 static bNodeType sh_node_mix_rgb= {
 	/* type code   */	SH_NODE_MIX_RGB,
 	/* name        */	"Mix",
@@ -540,6 +536,17 @@ static bNodeSocketType sh_node_valtorgb_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_exec_valtorgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order in: fac */
+	/* stack order out: col, alpha */
+	
+	if(node->storage) {
+		do_colorband(node->storage, in[0]->vec[0], out[0]->vec);
+		out[1]->vec[0]= out[0]->vec[3];
+	}
+}
+
 static bNodeType sh_node_valtorgb= {
 	/* type code   */	SH_NODE_VALTORGB,
 	/* name        */	"ColorRamp",
@@ -562,6 +569,15 @@ static bNodeSocketType sh_node_rgbtobw_out[]= {
 	{	SOCK_VALUE, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
+
+
+static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: bw */
+	/* stack order in: col */
+	
+	out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
+}
 
 static bNodeType sh_node_rgbtobw= {
 	/* type code   */	SH_NODE_RGBTOBW,
@@ -629,15 +645,15 @@ int ntreeShaderGetTexco(bNodeTree *ntree)
 			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
 				if(sock->flag & SOCK_IN_USE) {
 					switch(a) {
-						case SN_GEOM_GLOB: 
+						case GEOM_OUT_GLOB: 
 							texco |= TEXCO_GLOB; break;
-						case SN_GEOM_VIEW: 
+						case GEOM_OUT_VIEW: 
 							texco |= TEXCO_VIEW; break;
-						case SN_GEOM_ORCO: 
+						case GEOM_OUT_ORCO: 
 							texco |= TEXCO_ORCO; break;
-						case SN_GEOM_UV: 
+						case GEOM_OUT_UV: 
 							texco |= TEXCO_UV; break;
-						case SN_GEOM_NORMAL: 
+						case GEOM_OUT_NORMAL: 
 							texco |= TEXCO_NORM; break;
 					}
 				}
@@ -648,3 +664,41 @@ int ntreeShaderGetTexco(bNodeTree *ntree)
 	return texco;
 }
 
+/* nodes that use ID data get synced with local data */
+void nodeShaderSynchronizeID(bNode *node, int copyto)
+{
+	if(node->id==NULL) return;
+	
+	if(node->type==SH_NODE_MATERIAL) {
+		bNodeSocket *sock;
+		Material *ma= (Material *)node->id;
+		int a;
+		
+		/* hrmf, case in loop isnt super fast, but we dont edit 100s of material at same time either! */
+		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+			if(!(sock->flag & SOCK_HIDDEN)) {
+				if(copyto) {
+					switch(a) {
+						case MAT_IN_COLOR:
+							VECCOPY(&ma->r, sock->ns.vec); break;
+						case MAT_IN_SPEC:
+							VECCOPY(&ma->specr, sock->ns.vec); break;
+						case MAT_IN_REFL:
+							ma->ref= sock->ns.vec[0]; break;
+					}
+				}
+				else {
+					switch(a) {
+						case MAT_IN_COLOR:
+							VECCOPY(sock->ns.vec, &ma->r); break;
+						case MAT_IN_SPEC:
+							VECCOPY(sock->ns.vec, &ma->specr); break;
+						case MAT_IN_REFL:
+							sock->ns.vec[0]= ma->ref; break;
+					}
+				}
+			}
+		}
+	}
+	
+}

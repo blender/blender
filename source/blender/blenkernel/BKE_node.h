@@ -173,6 +173,7 @@ void			nodeShaderSetExecfunc(struct bNode *node);
 
 void			ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
 int				ntreeShaderGetTexco(struct bNodeTree *ntree);
+void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 
 				/* switch material render loop */
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));

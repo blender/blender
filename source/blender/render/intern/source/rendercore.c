@@ -1369,10 +1369,6 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	memset(shr, 0, sizeof(ShadeResult));
 	
-	/* copy all relevant material vars, note, keep this synced with render_types.h */
-	memcpy(&shi->r, &ma->r, 23*sizeof(float));
-	/* set special cases */
-	shi->har= ma->har;
 	if((ma->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0;
 	
 	/* lights */
@@ -2517,6 +2513,10 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 			ntreeShaderExecTree(shi.mat->nodetree, &shi, &shr);
 		}
 		else {
+			/* copy all relevant material vars, note, keep this synced with render_types.h */
+			memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));
+			shi.har= shi.mat->har;
+			
 			shade_material_loop(&shi, &shr);
 		}
 		
