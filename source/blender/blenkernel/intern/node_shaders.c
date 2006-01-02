@@ -317,7 +317,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		
 		/* retrieve normal */
 		if(in[MAT_IN_NORMAL]->hasinput)
-			nor= in[0]->vec;
+			nor= in[MAT_IN_NORMAL]->vec;
 		else
 			nor= shi->vno;
 		
@@ -359,6 +359,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			shi->vn[1]= -shi->vn[1];
 			shi->vn[2]= -shi->vn[2];
 		}
+		
 		VECCOPY(out[MAT_OUT_NORMAL]->vec, shi->vn);
 		
 	}
