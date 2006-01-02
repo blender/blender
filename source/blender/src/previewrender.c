@@ -1328,6 +1328,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	if(mat) {
 		pr1_lamp[0]= -2.3; pr1_lamp[1]= 2.4; pr1_lamp[2]= 4.6;
 		pr2_lamp[0]= 8.8; pr2_lamp[1]= 5.6; pr2_lamp[2]= 1.5;
+		
 	}
 
 	if (pr_method==PR_DRAW_RENDER) 
