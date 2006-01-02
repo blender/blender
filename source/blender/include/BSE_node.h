@@ -52,6 +52,8 @@ void node_deselectall(struct SpaceNode *snode, int swap);
 void node_transform_ext(int mode, int unused);
 void node_shader_default(struct Material *ma);
 
+int node_has_hidden_sockets(struct bNode *node);
+
 /* ************* drawnode.c *************** */
 void node_draw_link(struct SpaceNode *snode, struct bNodeLink *link);
 

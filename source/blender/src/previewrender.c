@@ -209,7 +209,7 @@ static int ray_previewrender(int x,  int y,  float *vec, float *vn, short pr_rec
 	
 	if(hitface > -1) {
 		
-		CalcNormFloat(rcubev[rcubi[hitface][0]], rcubev[rcubi[hitface][1]], rcubev[rcubi[hitface][2]], vn);
+		CalcNormFloat(rcubev[rcubi[hitface][2]], rcubev[rcubi[hitface][1]], rcubev[rcubi[hitface][0]], vn);
 		
 		vec[0]= (minlabda*(ray1[0]-ray2[0])+ray2[0])/4.1;
 		vec[1]= (minlabda*(ray1[1]-ray2[1])+ray2[1])/4.1;
@@ -807,7 +807,7 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect, short pr_r
 	}
 }
 
-static float pr1_lamp[3]= {2.3, -2.4, -4.6};
+static float pr1_lamp[3]= {2.3, -2.4, -4.6};	/* note; is not used! */
 static float pr2_lamp[3]= {-8.8, -5.6, -1.5};
 static float pr1_col[3]= {0.8, 0.8, 0.8};
 static float pr2_col[3]= {0.5, 0.6, 0.7};
@@ -857,13 +857,7 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr)
 	if((mat->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0f;
 	memset(shr, 0, sizeof(ShadeResult));
 	
-	/* normals flipped in render for smooth... */
-	if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0f);
-	
 	do_material_tex(shi);
-	
-	/* normals flipped in render... */
-	if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0f);	
 	
 	shr->alpha= shi->alpha;
 	
@@ -885,8 +879,8 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr)
 			shi->ref[1]= (shi->view[1]+inp*shi->vn[1]);
 			shi->ref[2]= (shi->view[2]+inp*shi->vn[2]);
 			/* normals in render are pointing different... rhm */
-			if(shi->pr_type==MA_SPHERE)
-				shi->ref[1]= -shi->ref[1];
+//			if(shi->pr_type==MA_SPHERE)
+//				shi->ref[1]= -shi->ref[1];
 		}
 		
 		for(a=0; a<2; a++) {
@@ -1036,10 +1030,10 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 		
 	mat= shi->mat;
 
-	v1= 1.0/pr_rectx;
+	v1= 0.5/pr_rectx;
 	shi->view[0]= v1*x;
 	shi->view[1]= v1*y;
-	shi->view[2]= 1.0f;
+	shi->view[2]= -1.0f;
 	Normalise(shi->view);
 	
 	shi->xs= x + pr_rectx/2;
@@ -1088,9 +1082,9 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char 
 			/* nothing */
 		}
 		if(mat->texco & (TEXCO_NORM)) {
-			shi->orn[0]= shi->vn[0];
-			shi->orn[1]= shi->vn[1];
-			shi->orn[2]= shi->vn[2];
+			//shi->orn[0]= shi->vn[0];
+			//shi->orn[1]= shi->vn[1];
+			//shi->orn[2]= shi->vn[2];
 		}
 
 		/* Clear displase vec for preview */
@@ -1237,38 +1231,29 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	shi.osatex= 0;
 	
 	if(mat) {
-		MaterialLayer *ml;
 		
 		/* rendervars */
 		init_render_world();
-		init_render_material(mat);
+		init_render_material(mat);	/* does nodes too */
+		
 		/* also clears imats */
 		preview_init_render_textures(mat->mtex);
 		
-		for(ml= mat->layers.first; ml; ml= ml->next) {
-			if(ml->mat && (ml->flag & ML_RENDER)) {
-				init_render_material(ml->mat);
-				preview_init_render_textures(ml->mat->mtex);
-				mat->texco |= ml->mat->texco;
-			}
-		}
+		/* do the textures for nodes */
 		if(mat->nodetree && mat->use_nodes) {
 			bNode *node;
 			for(node=mat->nodetree->nodes.first; node; node= node->next) {
 				if(node->id && GS(node->id->name)==ID_MA) {
 					Material *ma= (Material *)node->id;
-					init_render_material(ma);
 					preview_init_render_textures(ma->mtex);
-					mat->texco |= ma->texco;
 				}
 			}
 			/* signal to node editor to store previews or not */
 			if(pr_method==PR_ICON_RENDER) {
-				ntreeBeginExecTree(mat->nodetree, 0, 0);
 				shi.do_preview= 0;
 			}
 			else {
-				ntreeBeginExecTree(mat->nodetree, ri->pr_rectx, ri->pr_recty);
+				ntreeInitPreview(mat->nodetree, ri->pr_rectx, ri->pr_recty);
 				shi.do_preview= 1;
 			}
 		}
@@ -1341,14 +1326,8 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	radsq= (ri->pr_rectx/2)*(ri->pr_recty/2); 
 	
 	if(mat) {
-		if(mat->pr_type==MA_SPHERE) {
-			pr1_lamp[0]= 2.3; pr1_lamp[1]= -2.4; pr1_lamp[2]= -4.6;
-			pr2_lamp[0]= -8.8; pr2_lamp[1]= -5.6; pr2_lamp[2]= -1.5;
-		}
-		else {
-			pr1_lamp[0]= 1.9; pr1_lamp[1]= 3.1; pr1_lamp[2]= -8.5;
-			pr2_lamp[0]= 1.2; pr2_lamp[1]= -18; pr2_lamp[2]= 3.2;
-		}
+		pr1_lamp[0]= -2.3; pr1_lamp[1]= 2.4; pr1_lamp[2]= 4.6;
+		pr2_lamp[0]= 8.8; pr2_lamp[1]= 5.6; pr2_lamp[2]= 1.5;
 	}
 
 	if (pr_method==PR_DRAW_RENDER) 
@@ -1380,14 +1359,14 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 					if(mat->pr_type==MA_SPHERE) {
 					
 						if(xsq+ysq <= radsq) {
-							shi.vn[0]= x;
-							shi.vn[1]= y;
-							shi.vn[2]= sqrt( (float)(radsq-xsq-ysq) );
+							shi.vn[0]= -x;
+							shi.vn[1]= -y;
+							shi.vn[2]= -sqrt( (float)(radsq-xsq-ysq) );
 							Normalise(shi.vn);
 							
 							vec[0]= shi.vn[0];
-							vec[1]= shi.vn[2];
-							vec[2]= -shi.vn[1];
+							vec[1]= shi.vn[1];
+							vec[2]= -shi.vn[2];
 							
 							if(mat->mode & MA_TANGENT_V) {
 								float tmp[3];
@@ -1424,7 +1403,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 						vec[2]= 0.0;
 						
 						shi.vn[0]= shi.vn[1]= 0.0f;
-						shi.vn[2]= 1.0f;
+						shi.vn[2]= -1.0f;
 						
 						shade_preview_pixel(&shi, vec, x, y, (char *)rect, ri->pr_rectx, ri->pr_recty);
 					}
@@ -1482,10 +1461,12 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 		*/
 	}
 	
-	if(mat && mat->nodetree && mat->use_nodes) {
-		ntreeEndExecTree(mat->nodetree);
-		if(ri->cury>=ri->pr_recty)
-			allqueue(REDRAWNODE, 0);
+	if(mat) {
+		end_render_material(mat);
+		
+		if(mat->nodetree && mat->use_nodes)
+			if(ri->cury>=ri->pr_recty)
+				allqueue(REDRAWNODE, 0);
 	}
 }
 

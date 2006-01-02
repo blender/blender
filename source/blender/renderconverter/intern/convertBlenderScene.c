@@ -2665,6 +2665,8 @@ void RE_freeRotateBlenderScene(void)
 	free_mesh_orco_hash();
 
 	end_radio_render();
+	end_render_materials();
+	
 	if(R.wrld.aosphere) {
 		MEM_freeN(R.wrld.aosphere);
 		R.wrld.aosphere= NULL;
@@ -2882,6 +2884,7 @@ void RE_rotateBlenderScene(void)
 	}
 	init_render_textures();
 	init_render_materials();
+	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* imat objects, OB_DO_IMAT can be set in init_render_materials
 	   has to be done here, since displace can have texture using Object map-input */

@@ -95,6 +95,7 @@ static IDType idtypes[]= {
 	{ ID_MA,		"Material", IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_MB,		"Metaball", IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_ME,		"Mesh",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_NT,		"NodeTree",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_OB,		"Object",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_SAMPLE,	"Sample",	0}, 
 	{ ID_SCE,		"Scene",	IDTYPE_FLAGS_ISLINKABLE}, 

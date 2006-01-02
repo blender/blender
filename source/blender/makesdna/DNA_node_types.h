@@ -37,6 +37,7 @@ struct ID;
 struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
+struct bNodeGroup;
 struct uiBlock;
 
 #define NODE_MAXSTR 32
@@ -55,10 +56,21 @@ typedef struct bNodeSocket {
 	
 	char name[32];
 	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
-	short type, flag, limit, stack_index;
+	
+	short type, flag;			/* type is copy from socket type struct */
+	short limit, stack_index;	/* limit for dependency sort, stack_index for exec */
+	short intern;				/* intern = tag for group nodes */
+	short stack_index_ext;		/* for groups, to find the caller stack index */
+	int pad1;
+	
 	float locx, locy;
 	
-	struct bNodeLink *link;		/* input link to parent, max one! set in nodeSolveOrder() */
+	/* internal data to retrieve relations and groups */
+	
+	int own_index, to_index;	/* group socket identifiers, to find matching pairs after reading files */
+	
+	struct bNodeSocket *tosock;	/* group-node sockets point to the internal group counterpart sockets, set after read file  */
+	struct bNodeLink *link;		/* a link pointer, set in nodeSolveOrder() */
 	
 } bNodeSocket;
 
@@ -69,6 +81,10 @@ typedef struct bNodeSocket {
 #define SOCK_IMAGE		3
 
 /* sock->flag, first bit is select */
+#define SOCK_HIDDEN				2
+		/* only used now for groups... */
+#define SOCK_IN_USE				4
+
 #
 #
 typedef struct bNodePreview {
@@ -114,6 +130,7 @@ typedef struct bNode {
 #define NODE_ACTIVE			16
 #define NODE_ACTIVE_ID		32
 #define NODE_DO_OUTPUT		64
+#define NODE_GROUP_EDIT		128
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
@@ -124,14 +141,19 @@ typedef struct bNodeLink {
 } bNodeLink;
 
 /* the basis for a Node tree, all links and nodes reside internal here */
+/* only re-usable node trees are in the library though, materials allocate own tree struct */
 typedef struct bNodeTree {
+	ID id;
+	
 	ListBase nodes, links;
 	
-	void *data;					/* custom data, set by execute caller, no read/write handling */
-	bNodeStack *stack;			/* stack is only while executing */
+	void *data;						/* custom data, set by execute caller, no read/write handling */
+	bNodeStack *stack;				/* stack is only while executing, no read/write */
 	
-	int type, init;				/* set init on fileread */
-	struct bNodeType **alltypes;		/* type definitions, set on fileread */
+	int type, init;					/* set init on fileread */
+	int cur_index, pad;				/* sockets in groups have unique identifiers, adding new sockets always will increase this counter */
+	struct bNodeType **alltypes;	/* type definitions, set on fileread, no read/write */
+	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
 	
 } bNodeTree;
 

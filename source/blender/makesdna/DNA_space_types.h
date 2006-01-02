@@ -306,8 +306,8 @@ typedef struct SpaceNode {
 	float aspect;
 	void *curfont;
 	
-	struct bNodeTree *nodetree;
-	int treetype, pad;			/* treetype: same nodetree->type */
+	struct bNodeTree *nodetree, *edittree;
+	int treetype, pad;			/* treetype: as same nodetree->type */
 	
 } SpaceNode;
 

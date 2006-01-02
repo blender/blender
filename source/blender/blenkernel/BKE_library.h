@@ -41,13 +41,13 @@ struct ID;
 struct Main;
 struct Library;
 
-void *alloc_libblock(struct ListBase *lb, short type, char *name);
+void *alloc_libblock(struct ListBase *lb, short type, const char *name);
 void *copy_libblock(void *rt);
 
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);
 
-int new_id(struct ListBase *lb, struct ID *id, char *name);
+int new_id(struct ListBase *lb, struct ID *id, const char *name);
 
 struct ListBase *wich_libbase(struct Main *mainlib, short type);
 int set_listbasepointers(struct Main *main, struct ListBase **lb);

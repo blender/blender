@@ -56,11 +56,13 @@ ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
 void new_material_to_objectdata(struct Object *ob);
 
-struct Material *get_active_matlayer(struct Material *ma);
-void init_render_material(struct Material *ma);
+struct Material *get_active_matlayer(struct Material *);
+void init_render_material(struct Material *);
 void init_render_materials(void);
+void end_render_material(struct Material *);
+void end_render_materials(void);
 
-void automatname(struct Material *ma);
+void automatname(struct Material *);
 void delete_material_index(void);            
 
 #ifdef __cplusplus

@@ -192,6 +192,8 @@ void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 void matlayer_blend(struct MaterialLayer *ml, float blendfac, struct ShadeResult *target, struct ShadeResult *src);
 void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
 
+void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
+
 /* --------------------------------------------------------------------- */
 /* ray.c (2)                                                        */
 /* --------------------------------------------------------------------- */

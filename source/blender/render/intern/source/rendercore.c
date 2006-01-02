@@ -52,6 +52,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_global.h"
+#include "BKE_node.h"
 #include "BKE_texture.h"
 
 #include "BLI_rand.h"
@@ -2266,6 +2267,38 @@ void matlayer_blend(MaterialLayer *ml, float blendfac, ShadeResult *target, Shad
 		ramp_blend(ml->blendmethod, &target->alpha, NULL, NULL, blendfac, &src->alpha);
 }
 
+/* also used as callback for nodes */
+void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
+{
+	
+	shade_lamp_loop(shi, shr);	/* clears shr */
+	
+	if(shi->translucency!=0.0) {
+		ShadeResult shr_t;
+		
+		VECCOPY(shi->vn, shi->vno);
+		VecMulf(shi->vn, -1.0);
+		VecMulf(shi->facenor, -1.0);
+		shade_lamp_loop(shi, &shr_t);
+		
+		shr->diff[0]+= shi->translucency*shr_t.diff[0];
+		shr->diff[1]+= shi->translucency*shr_t.diff[1];
+		shr->diff[2]+= shi->translucency*shr_t.diff[2];
+		VecMulf(shi->vn, -1.0);
+		VecMulf(shi->facenor, -1.0);
+	}
+	
+	if(R.r.mode & R_RAYTRACE) {
+		if(shi->ray_mirror!=0.0 || ((shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0)) {
+			ray_trace(shi, shr);
+		}
+	}
+	else {
+		/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
+		if(shi->mat->mode & MA_RAYTRANSP) shr->alpha= 1.0;
+	}
+	
+}
 
 /* x,y: window coordinate from 0 to rectx,y */
 /* return pointer to rendered face */
@@ -2293,14 +2326,12 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 	}
 	else if( (facenr & 0x7FFFFF) <= R.totvlak) {
 		VertRen *v1;
-		Material *mat;
-		MaterialLayer *ml;
 		float alpha, fac, zcor;
 		
 		vlr= RE_findOrAddVlak( (facenr-1) & 0x7FFFFF);
 		
 		shi.vlr= vlr;
-		mat= shi.mat= vlr->mat;
+		shi.mat= vlr->mat;
 		
 		shi.osatex= (shi.mat->texco & TEXCO_OSA);
 		
@@ -2482,66 +2513,12 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 		/* ------  main shading loop -------- */
 		VECCOPY(shi.vno, shi.vn);
 		
-		if(1) { //shi.mat->ml_flag & ML_RENDER) {
-
-			shade_lamp_loop(&shi, &shr);	/* clears shr */
-
-			if(shi.translucency!=0.0) {
-				ShadeResult shr_t;
-				
-				VECCOPY(shi.vn, shi.vno);
-				VecMulf(shi.vn, -1.0);
-				VecMulf(shi.facenor, -1.0);
-				shade_lamp_loop(&shi, &shr_t);
-				
-				shr.diff[0]+= shi.translucency*shr_t.diff[0];
-				shr.diff[1]+= shi.translucency*shr_t.diff[1];
-				shr.diff[2]+= shi.translucency*shr_t.diff[2];
-				VecMulf(shi.vn, -1.0);
-				VecMulf(shi.facenor, -1.0);
-			}
-			
-			if(R.r.mode & R_RAYTRACE) {
-				if(shi.ray_mirror!=0.0 || ((shi.mat->mode & MA_RAYTRANSP) && shr.alpha!=1.0)) {
-					ray_trace(&shi, &shr);
-				}
-			}
-			else {
-				/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
-				if(shi.mat->mode & MA_RAYTRANSP) shr.alpha= 1.0;
-			}
+		if(shi.mat->nodetree && shi.mat->use_nodes) {
+			ntreeShaderExecTree(shi.mat->nodetree, &shi, &shr);
 		}
 		else {
-			memset(&shr, 0, sizeof(ShadeResult));
-			shr.alpha= 1.0f;
+			shade_material_loop(&shi, &shr);
 		}
-		
-		for(ml= shi.mat->layers.first; ml; ml= ml->next) {
-			if(ml->mat && (ml->flag & ML_RENDER)) {
-				ShadeResult shrlay;
-				
-				shi.mat= ml->mat;
-				shi.layerfac= ml->blendfac;
-				VECCOPY(shi.vn, shi.vno);
-				if(ml->flag & ML_NEG_NORMAL)
-					VecMulf(shi.vn, -1.0);
-				
-				shade_lamp_loop(&shi, &shrlay);	/* clears shrlay */
-				
-				if(R.r.mode & R_RAYTRACE) {
-					if(shi.ray_mirror!=0.0 || ((shi.mat->mode & MA_RAYTRANSP) && shr.alpha!=1.0)) {
-						ray_trace(&shi, &shr);
-					}
-				}
-				else {
-					/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
-					if(shi.mat->mode & MA_RAYTRANSP) shr.alpha= 1.0;
-				}
-				
-				matlayer_blend(ml, shi.layerfac, &shr, &shrlay);
-			}
-		}
-		shi.mat= mat;
 		
 		/* after shading and composit layers */
 		if(shr.spec[0]<0.0f) shr.spec[0]= 0.0f;

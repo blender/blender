@@ -283,7 +283,7 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->syntaxb; break;
 			case TH_NODE_GENERATOR:
 				cp= ts->syntaxv; break;
-			case TH_NODE_FREE:
+			case TH_NODE_GROUP:
 				cp= ts->syntaxc; break;
 				
 			}
@@ -484,7 +484,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tnode.syntaxn, 95, 110, 145, 255);	/* in/output */
 	SETCOL(btheme->tnode.syntaxb, 135, 125, 120, 255);	/* operator */
 	SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
-	SETCOL(btheme->tnode.syntaxc, 120, 120, 120, 255);	/* free */
+	SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 
 }
 
@@ -619,7 +619,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT); strcat(cp, str);
 			sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR); strcat(cp, str);
 			sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR); strcat(cp, str);
-//			sprintf(str, " %%x%d|", TH_NODE_FREE); strcat(cp, str);
+			sprintf(str, "Group Node %%x%d|", TH_NODE_GROUP); strcat(cp, str);
 		}
 	}
 	return cp;

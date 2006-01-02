@@ -1208,8 +1208,8 @@ static void test_pointer_array(FileData *fd, void **mat)
 
 /* ************ READ NODE TREE *************** */
 
-/* ntree is not NULL */
-static void lib_link_nodetree(FileData *fd, ID *id, bNodeTree *ntree)
+/* singe node tree, ntree is not NULL */
+static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 {
 	bNode *node;
 	
@@ -1217,49 +1217,74 @@ static void lib_link_nodetree(FileData *fd, ID *id, bNodeTree *ntree)
 		node->id= newlibadr_us(fd, id->lib, node->id);
 }
 
-static bNodeTree *direct_link_nodetree(FileData *fd, bNodeTree *ntree)
+/* library linking after fileread */
+static void lib_link_nodetree(FileData *fd, Main *main)
 {
-	/* note: writing and reading goes in sync, for speed */
-	if(ntree) {
-		ntree= newdataadr(fd, ntree);
-		
-		if(ntree) {
-			bNode *node;
-			bNodeSocket *sock;
-			bNodeLink *link;
-			
-			ntree->init= 0;		/* to set callbacks */
-			ntree->data= NULL;	/* safety only */
-			
-			link_list(fd, &ntree->nodes);
-			for(node= ntree->nodes.first; node; node= node->next) {
-				node->storage= newdataadr(fd, node->storage);
-				link_list(fd, &node->inputs);
-				link_list(fd, &node->outputs);
-			}
-			link_list(fd, &ntree->links);
-			
-			/* and we connect the rest */
-			for(node= ntree->nodes.first; node; node= node->next) {
-				node->preview= NULL;
-				node->block= NULL;
-				node->lasty= 0;
-				for(sock= node->inputs.first; sock; sock= sock->next)
-					sock->link= newdataadr(fd, sock->link);
-			}
-			for(link= ntree->links.first; link; link= link->next) {
-				link->fromnode= newdataadr(fd, link->fromnode);
-				link->tonode= newdataadr(fd, link->tonode);
-				link->fromsock= newdataadr(fd, link->fromsock);
-				link->tosock= newdataadr(fd, link->tosock);
-			}
-			/* right after read file, the save-undo will need it */
-			/* verify also does a full type checking. This is relative slow... so we
-				 might move this later to the do_versions, and put ntreeInitTypes() only here */
-			ntreeVerifyTypes(ntree);
+	Material *ma;
+	bNodeTree *ntree;
+	bNode *node;
+	
+	/* in multiple steps, first link ID pointers */
+	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
+		if(ntree->id.flag & LIB_NEEDLINK) {
+			lib_link_ntree(fd, &ntree->id, ntree);
 		}
 	}
-	return ntree;
+	
+	/* now create the own typeinfo structs an verify nodes */
+	/* here we still assume no groups in groups */
+	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
+		if(ntree->id.flag & LIB_NEEDLINK) {
+			ntree->id.flag -= LIB_NEEDLINK;
+			
+			ntreeVerifyTypes(ntree);	/* internal nodes, no groups! */
+			ntreeMakeOwnType(ntree);	/* for group usage */
+		}
+	}
+	
+	/* now verify all types in material trees, groups are set OK now */
+	for(ma= main->mat.first; ma; ma= ma->id.next) {
+		if(ma->nodetree)
+			ntreeVerifyTypes(ma->nodetree);
+	}
+}
+
+/* ntree itself has been read! */
+static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
+{
+	/* note: writing and reading goes in sync, for speed */
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	ntree->init= 0;		/* to set callbacks */
+	ntree->data= NULL;	/* safety only */
+	ntree->owntype= NULL;
+	
+	link_list(fd, &ntree->nodes);
+	for(node= ntree->nodes.first; node; node= node->next) {
+		node->storage= newdataadr(fd, node->storage);
+		link_list(fd, &node->inputs);
+		link_list(fd, &node->outputs);
+	}
+	link_list(fd, &ntree->links);
+	
+	/* and we connect the rest */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		node->preview= NULL;
+		node->block= NULL;
+		node->lasty= 0;
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			sock->link= newdataadr(fd, sock->link);
+	}
+	for(link= ntree->links.first; link; link= link->next) {
+		link->fromnode= newdataadr(fd, link->fromnode);
+		link->tonode= newdataadr(fd, link->tonode);
+		link->fromsock= newdataadr(fd, link->fromsock);
+		link->tosock= newdataadr(fd, link->tosock);
+	}
+	
+	/* type verification is in lib-link */
 }
 
 /* ************ READ PACKEDFILE *************** */
@@ -2064,7 +2089,7 @@ static void lib_link_material(FileData *fd, Main *main)
 				ml->mat= newlibadr_us(fd, ma->id.lib, ml->mat);
 			
 			if(ma->nodetree)
-				lib_link_nodetree(fd, &ma->id, ma->nodetree);
+				lib_link_ntree(fd, &ma->id, ma->nodetree);
 			
 			ma->id.flag -= LIB_NEEDLINK;
 		}
@@ -2087,7 +2112,9 @@ static void direct_link_material(FileData *fd, Material *ma)
 	
 	link_list(fd, &ma->layers);
 	
-	ma->nodetree= direct_link_nodetree(fd, ma->nodetree);
+	ma->nodetree= newdataadr(fd, ma->nodetree);
+	if(ma->nodetree)
+		direct_link_nodetree(fd, ma->nodetree);
 }
 
 /* ************ READ MESH ***************** */
@@ -3058,7 +3085,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				else if(sl->spacetype==SPACE_NODE) {
 					SpaceNode *snode= (SpaceNode *)sl;
 					
-					snode->nodetree= NULL;
+					snode->nodetree= snode->edittree= NULL;
 					snode->flag |= SNODE_DO_PREVIEW;
 				}
 			}
@@ -3153,7 +3180,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
-				snode->nodetree= NULL;
+				snode->nodetree= snode->edittree= NULL;
 				snode->flag |= SNODE_DO_PREVIEW;
 			}
 		}
@@ -3280,6 +3307,43 @@ static void lib_link_group(FileData *fd, Main *main)
 
 /* ************** GENERAL & MAIN ******************** */
 
+static char *libname(short id_code)
+{
+	
+}
+
+static char *dataname(short id_code)
+{
+	
+	switch( id_code ) {
+		case ID_OB: return "Data from OB";
+		case ID_ME: return "Data from ME";
+		case ID_IP: return "Data from IP";
+		case ID_SCE: return "Data from SCE";
+		case ID_MA: return "Data from MA";
+		case ID_TE: return "Data from TE";
+		case ID_CU: return "Data from CU";
+		case ID_GR: return "Data from GR";
+		case ID_AR: return "Data from AR";
+		case ID_AC: return "Data from AC";
+		case ID_LI: return "Data from LI";
+		case ID_MB: return "Data from MB";
+		case ID_IM: return "Data from IM";
+		case ID_LT: return "Data from LT";
+		case ID_LA: return "Data from LA";
+		case ID_CA: return "Data from CA";
+		case ID_KE: return "Data from KE";
+		case ID_WO: return "Data from WO";
+		case ID_SCR: return "Data from SCR";
+		case ID_VF: return "Data from VF";
+		case ID_TXT	: return "Data from TXT";
+		case ID_SO: return "Data from SO";
+		case ID_SAMPLE: return "Data from SAMPLE";
+	}
+	return "Data from Lib Block";
+	
+}
+
 static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID **id_r)
 {
 	/* this routine reads a libblock and its direct data. Use link functions
@@ -3288,8 +3352,8 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 
 	ID *id;
 	ListBase *lb;
-	char *str = NULL;
-
+	char *allocname;
+	
 	if(bhead->code==ID_ID) {
 		ID *linkedid= (ID *)(bhead + 1); /*  BHEAD+DATA dependancy */
 
@@ -3323,39 +3387,12 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 
 	bhead = blo_nextbhead(fd, bhead);
 
-	switch( GS(id->name) ) {
-	case ID_OB: str= "ID_OB"; break;
-	case ID_SCE: str= "ID_SCE"; break;
-	case ID_LI: str= "ID_LI"; break;
-	case ID_ME: str= "ID_ME"; break;
-	case ID_CU: str= "ID_CU"; break;
-	case ID_MB: str= "ID_MB"; break;
-	case ID_MA: str= "ID_MA"; break;
-	case ID_TE: str= "ID_TE"; break;
-	case ID_IM: str= "ID_IM"; break;
-	case ID_IK: str= "ID_IK"; break;
-	case ID_WV: str= "ID_WV"; break;
-	case ID_LT: str= "ID_LT"; break;
-	case ID_SE: str= "ID_SE"; break;
-	case ID_LF: str= "ID_LF"; break;
-	case ID_LA: str= "ID_LA"; break;
-	case ID_CA: str= "ID_CA"; break;
-	case ID_IP: str= "ID_IP"; break;
-	case ID_KE: str= "ID_KE"; break;
-	case ID_WO: str= "ID_WO"; break;
-	case ID_SCR: str= "ID_SCR"; break;
-	case ID_VF: str= "ID_VF"; break;
-	case ID_TXT	: str= "ID_TXT"; break;
-	case ID_SO: str= "ID_SO"; break;
-	case ID_SAMPLE: str= "ID_SAMPLE"; break;
-	case ID_GR: str= "ID_GR"; break;
-	case ID_SEQ: str= "ID_SEQ"; break;
-	case ID_AR: str= "ID_AR"; break;
-	case ID_AC: str= "ID_AC"; break;
-	}
+	/* need a name for the mallocN, just for debugging and sane prints on leaks */
+	allocname= dataname(GS(id->name));
+	
 		/* read all data */
 	while(bhead && bhead->code==DATA) {
-		void *data= read_struct(fd, bhead, str);
+		void *data= read_struct(fd, bhead, allocname);
 
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
@@ -3431,6 +3468,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_AC:
 			direct_link_action(fd, (bAction*)id);
+			break;
+		case ID_NT:
+			direct_link_nodetree(fd, (bNodeTree*)id);
 			break;
 	}
 
@@ -5221,10 +5261,11 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_armature(fd, main);
 	lib_link_action(fd, main);
 	lib_link_vfont(fd, main);
+	lib_link_nodetree(fd, main);	/* has to be done after materials, it will verify group nodes */
 
-	lib_link_mesh(fd, main);	/* as last: tpage images with users at zero */
+	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 
-	lib_link_library(fd, main);	/* only init users */
+	lib_link_library(fd, main);		/* only init users */
 }
 
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
@@ -5425,6 +5466,16 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 	expand_doit(fd, mainvar, tex->ipo);
 }
 
+static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->id)
+			expand_doit(fd, mainvar, node->id);
+
+}
+
 static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 {
 	MaterialLayer *ml;
@@ -5444,12 +5495,8 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 			expand_doit(fd, mainvar, ml->mat);
 	}
 	
-	if(ma->nodetree) {
-		bNode *node;
-		for(node= ma->nodetree->nodes.first; node; node= node->next)
-			if(node->id)
-				expand_doit(fd, mainvar, node->id);
-	}
+	if(ma->nodetree)
+		expand_nodetree(fd, mainvar, ma->nodetree);
 }
 
 static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
@@ -5861,6 +5908,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_GR:
 						expand_group(fd, mainvar, (Group *)id);
+						break;
+					case ID_NT:
+						expand_nodetree(fd, mainvar, (bNodeTree *)id);
 						break;
 					}
 

@@ -209,7 +209,8 @@ static void node_shader_exec_normal(void *data, bNode *node, bNodeStack **in, bN
 	/* stack order output: normal, value */
 	
 	VECCOPY(out[0]->vec, sock->ns.vec);
-	out[1]->vec[0]= INPR(out[0]->vec, in[0]->vec);
+	/* render normals point inside... the widget points outside */
+	out[1]->vec[0]= -INPR(out[0]->vec, in[0]->vec);
 }
 
 /* **************** value node ************ */
@@ -523,6 +524,7 @@ static bNodeType sh_node_rgbtobw= {
 /* ****************** types array for all shaders ****************** */
 
 bNodeType *node_all_shaders[]= {
+	&node_group_typeinfo,
 	&sh_node_output,
 	&sh_node_material,
 	&sh_node_value,

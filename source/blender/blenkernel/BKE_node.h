@@ -54,7 +54,9 @@ typedef struct bNodeSocketType {
 	float min, max;					/* default range for inputs */
 	
 	/* after this line is used internal only */
-	struct bNodeSocket *sock;		/* to verify */
+	struct bNodeSocket *sock;		/* used during verify_types */
+	struct bNodeSocket *internsock;	/* group nodes, the internal socket counterpart */
+	int own_index;					/* verify group nodes */
 	
 } bNodeSocketType;
 
@@ -71,7 +73,7 @@ typedef struct bNodeType {
 	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
 	
 	/* after this line is set on startup of blender */
-	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, rctf *);
+	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, struct rctf *);
 
 } bNodeType;
 
@@ -80,26 +82,34 @@ typedef struct bNodeType {
 #define NODE_CLASS_OUTPUT		1
 #define NODE_CLASS_GENERATOR	2
 #define NODE_CLASS_OPERATOR		3
+#define NODE_CLASS_GROUP		4
 
 /* ************** GENERIC API, TREES *************** */
 
+void			ntreeVerifyTypes(struct bNodeTree *ntree);
+
 struct bNodeTree *ntreeAddTree(int type);
 void			ntreeInitTypes(struct bNodeTree *ntree);
+void			ntreeMakeOwnType(struct bNodeTree *ntree);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
 
 void			ntreeSolveOrder(struct bNodeTree *ntree);
 
-void			ntreeBeginExecTree(struct bNodeTree *ntree, int xsize, int ysize);
+void			ntreeBeginExecTree(struct bNodeTree *ntree);
 void			ntreeExecTree(struct bNodeTree *ntree);
 void			ntreeEndExecTree(struct bNodeTree *ntree);
+
+void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);
 void			ntreeClearPixelTree(struct bNodeTree *, int, int);
 
 /* ************** GENERIC API, NODES *************** */
 
+void			nodeVerifyType(struct bNodeTree *ntree, struct bNode *node);
+
 void			nodeAddToPreview(struct bNode *, float *, int, int);
 
-struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type);
+struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type, struct bNodeTree *ngroup);
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
@@ -113,6 +123,21 @@ void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
+
+/* ************** Groups ****************** */
+
+struct bNode	*nodeMakeGroupFromSelected(struct bNodeTree *ntree);
+int				nodeGroupUnGroup(struct bNodeTree *ntree, struct bNode *gnode);
+
+void			nodeVerifyGroup(struct bNodeTree *ngroup);
+void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
+
+/* ************** COMMON NODES *************** */
+
+#define NODE_GROUP		2
+
+extern bNodeType node_group_typeinfo;
+
 
 /* ************** SHADER NODES *************** */
 

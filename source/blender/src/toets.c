@@ -799,6 +799,8 @@ int blenderqread(unsigned short event, short val)
 					set_editflag_editipo();
 				else if(curarea->spacetype==SPACE_SEQ)
 					enter_meta();
+				else if(curarea->spacetype==SPACE_NODE)
+					return 1;
 				else if(G.vd) {
 					/* also when Alt-E */
 					if(G.obedit==NULL) {

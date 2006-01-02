@@ -87,9 +87,11 @@ void free_material(Material *ma)
 	
 	BLI_freelistN(&ma->layers);
 	
-	if(ma->nodetree)
+	/* is no lib link block, but material extension */
+	if(ma->nodetree) {
 		ntreeFreeTree(ma->nodetree);
-
+		MEM_freeN(ma->nodetree);
+	}
 }
 
 void init_material(Material *ma)
@@ -600,7 +602,7 @@ Material *get_active_matlayer(Material *ma)
 	return ma;
 }
 
-void init_render_material(Material *ma)
+static void do_init_render_material(Material *ma)
 {
 	MTex *mtex;
 	int a, needuv=0;
@@ -655,24 +657,50 @@ void init_render_material(Material *ma)
 	ma->mode_l= ma->mode;
 }
 
+void init_render_material(Material *mat)
+{
+	do_init_render_material(mat);
+	
+	if(mat->nodetree && mat->use_nodes) {
+		bNode *node;
+		
+		for(node=mat->nodetree->nodes.first; node; node= node->next) {
+			if(node->id && GS(node->id->name)==ID_MA) {
+				Material *ma= (Material *)node->id;
+				if(ma!=mat) {
+					do_init_render_material(ma);
+					mat->texco |= ma->texco;
+					mat->mode_l |= ma->mode_l;
+				}
+			}
+		}
+		ntreeBeginExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
+	}
+}
+
 void init_render_materials()
 {
 	Material *ma;
-	MaterialLayer *ml;
 	
 	/* two steps, first initialize, then or the flags for layers */
-	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
-		if(ma->id.us) init_render_material(ma);
-	}
-	
-	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
-		for(ml= ma->layers.first; ml; ml= ml->next) {
-			if(ml->mat) {
-				ma->texco |= ml->mat->texco;
-				ma->mode_l |= ml->mat->mode;
-			}
-		}
-	}	
+	for(ma= G.main->mat.first; ma; ma= ma->id.next)
+		if(ma->id.us) 
+			init_render_material(ma);
+}
+
+/* only needed for nodes now */
+void end_render_material(Material *mat)
+{
+	if(mat && mat->nodetree && mat->use_nodes)
+		ntreeEndExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
+}
+
+void end_render_materials(void)
+{
+	Material *ma;
+	for(ma= G.main->mat.first; ma; ma= ma->id.next)
+		if(ma->id.us) 
+			end_render_material(ma);
 }
 
 /* ****************** */

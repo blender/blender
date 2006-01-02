@@ -272,7 +272,7 @@ typedef enum {
 	ICON_SYNTAX_OFF,
 	ICON_BLANK52,
 	ICON_BLANK53,
-	ICON_BLANK54,
+	ICON_PLUS,
 	ICON_VIEWMOVE,
 	ICON_HOME,
 	ICON_CLIPUV_DEHLT,
@@ -462,7 +462,7 @@ enum {
 	TH_NODE_IN_OUT,
 	TH_NODE_OPERATOR,
 	TH_NODE_GENERATOR,
-	TH_NODE_FREE,
+	TH_NODE_GROUP,
 	
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */

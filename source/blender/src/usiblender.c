@@ -279,7 +279,7 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tnode.syntaxn, 95, 110, 145, 255);	/* in/output */
 				SETCOL(btheme->tnode.syntaxb, 135, 125, 120, 255);	/* operator */
 				SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
-				SETCOL(btheme->tnode.syntaxc, 120, 120, 120, 255);	/* free */
+				SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 			}
 		}
 	}

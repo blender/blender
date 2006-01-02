@@ -362,14 +362,12 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 	if(len) mywrite(wd, adr, len);
 }
 
-/* this is only direct data */
+/* this is only direct data, tree itself should have been written */
 static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 {
 	bNode *node;
 	bNodeSocket *sock;
 	bNodeLink *link;
-	
-	writestruct(wd, DATA, "bNodeTree", 1, ntree);
 	
 	/* for link_list() speed, we write per list */
 	
@@ -1044,8 +1042,11 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			for (ml=ma->layers.first; ml; ml=ml->next)
 				writestruct(wd, DATA, "MaterialLayer", 1, ml);
 			
-			if(ma->nodetree) 
+			/* nodetree is integral part of material, no libdata */
+			if(ma->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, ma->nodetree);
 				write_nodetree(wd, ma->nodetree);
+			}
 		}
 		ma= ma->id.next;
 	}
@@ -1428,8 +1429,8 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
-	act=idbase->first;
-	while (act) {
+	
+	for(act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
 
@@ -1438,7 +1439,6 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 				write_constraint_channels(wd, &chan->constraintChannels);
 			}
 		}
-		act=act->id.next;
 	}
 }
 
@@ -1530,8 +1530,7 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 	Group *group;
 	GroupObject *go;
 
-	group= idbase->first;
-	while(group) {
+	for(group= idbase->first; group; group= group->id.next) {
 		if(group->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_GR, "Group", 1, group);
@@ -1542,7 +1541,18 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 				go= go->next;
 			}
 		}
-		group= group->id.next;
+	}
+}
+
+static void write_nodetrees(WriteData *wd, ListBase *idbase)
+{
+	bNodeTree *ntree;
+	
+	for(ntree=idbase->first; ntree; ntree= ntree->id.next) {
+		if (ntree->id.us>0 || wd->current) {
+			writestruct(wd, ID_NT, "bNodeTree", 1, ntree);
+			write_nodetree(wd, ntree);
+		}
 	}
 }
 
@@ -1603,6 +1613,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_materials(wd, &G.main->mat);
 	write_textures (wd, &G.main->tex);
 	write_meshs    (wd, &G.main->mesh);
+	write_nodetrees(wd, &G.main->nodetree);
 	write_libraries(wd,  G.main->next);
 
 	write_global(wd);

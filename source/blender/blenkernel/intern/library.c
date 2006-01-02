@@ -74,6 +74,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_node_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -103,6 +104,8 @@
 #include "BKE_lattice.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_node.h"
+
 #include "BPI_script.h"
 
 #define MAX_IDPUP		60	/* was 24 */
@@ -185,6 +188,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->armature);
 		case ID_AC:
 			return &(mainlib->action);
+		case ID_NT:
+			return &(mainlib->nodetree);
 	}
 	return 0;
 }
@@ -224,12 +229,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[20]= &(main->text);
 	lb[21]= &(main->sound);
 	lb[22]= &(main->group);
+	lb[23]= &(main->nodetree);
 
-	lb[23]= samples;
-	lb[24]= &(main->script);
-	lb[25]= NULL;
+	lb[24]= samples;
+	lb[25]= &(main->script);
+	lb[26]= NULL;
 
-	return 25;
+	return 26;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -244,7 +250,7 @@ void *alloc_libblock(ListBase *lb, type, name)
 
 static ID *alloc_libblock_notest(short type)
 {
-	ID *id= 0;
+	ID *id= NULL;
 	
 	switch( type ) {
 		case ID_SCE:
@@ -322,14 +328,17 @@ static ID *alloc_libblock_notest(short type)
 		case ID_AC:
 			id = MEM_callocN(sizeof(bAction), "action");
 			break;
+		case ID_NT:
+			id = MEM_callocN(sizeof(bNodeTree), "action");
+			break;
 	}
 	return id;
 }
 
 // used everywhere in blenkernel and text.c
-void *alloc_libblock(ListBase *lb, short type, char *name)
+void *alloc_libblock(ListBase *lb, short type, const char *name)
 {
-	ID *id= 0;
+	ID *id= NULL;
 	
 	id= alloc_libblock_notest(type);
 	if(id) {
@@ -343,18 +352,12 @@ void *alloc_libblock(ListBase *lb, short type, char *name)
 	return id;
 }
 
-/* GS reads the memory pointed at in a specific ordering. There are,
- * however two definitions for it. I have jotted them down here, both,
- * but I think the first one is actually used. The thing is that
- * big-endian systems might read this the wrong way round. OTOH, we
- * constructed the IDs that are read out with this macro explicitly as
- * well. I expect we'll sort it out soon... */
+/* GS reads the memory pointed at in a specific ordering. 
+   only use this definition, makes little and big endian systems
+   work fine, in conjunction with MAKE_ID */
 
 /* from blendef: */
 #define GS(a)	(*((short *)(a)))
-
-/* from misc_util: flip the bytes from x  */
-/*#define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
 
 // used everywhere in blenkernel and text.c
 void *copy_libblock(void *rt)
@@ -467,6 +470,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_AC:
 			free_action((bAction *)id);
+			break;
+		case ID_NT:
+			ntreeFreeTree((bNodeTree *)id);
 			break;
 	}
 
@@ -742,7 +748,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 	
 }
 
-int new_id(ListBase *lb, ID *id, char *tname)
+int new_id(ListBase *lb, ID *id, const char *tname)
 /* only for local blocks: external en indirect blocks already have a unique ID */
 /* return 1: created a new name */
 {
