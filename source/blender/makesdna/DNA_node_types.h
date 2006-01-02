@@ -106,7 +106,8 @@ typedef struct bNode {
 	short type, flag;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
-	short pad1, pad2;
+	short stack_index;		/* for groupnode, offset in global caller stack */
+	short pad;
 	
 	ListBase inputs, outputs;
 	struct ID *id;			/* optional link to libdata */
@@ -116,7 +117,7 @@ typedef struct bNode {
 	float locx, locy;		/* root offset for drawing */
 	float width, miniwidth;			
 	short custom1, custom2;	/* to be abused for buttons */
-	int pad3;
+	int pad1;
 	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */
@@ -152,8 +153,8 @@ typedef struct bNodeTree {
 	
 	ListBase nodes, links;
 	
-	void *data;						/* custom data, set by execute caller, no read/write handling */
-	bNodeStack *stack;				/* stack is only while executing, no read/write */
+	bNodeStack *stack;				/* stack is only while executing, no read/write in file */
+	bNodeStack *stack1;				/* for other thread, easy to expand though... */
 	
 	int type, init;					/* set init on fileread */
 	int cur_index, pad;				/* sockets in groups have unique identifiers, adding new sockets always will increase this counter */

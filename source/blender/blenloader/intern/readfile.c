@@ -1258,7 +1258,6 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	bNodeLink *link;
 	
 	ntree->init= 0;		/* to set callbacks */
-	ntree->data= NULL;	/* safety only */
 	ntree->owntype= NULL;
 	
 	link_list(fd, &ntree->nodes);

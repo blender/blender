@@ -99,7 +99,7 @@ void			ntreeSocketUseFlags(struct bNodeTree *ntree);
 void			ntreeSolveOrder(struct bNodeTree *ntree);
 
 void			ntreeBeginExecTree(struct bNodeTree *ntree);
-void			ntreeExecTree(struct bNodeTree *ntree);
+void			ntreeExecTree(struct bNodeTree *ntree, void *callerdata, int thread);
 void			ntreeEndExecTree(struct bNodeTree *ntree);
 
 void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);

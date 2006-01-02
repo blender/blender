@@ -618,9 +618,8 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	/* convert caller data to struct */
 	scd.shi= shi;
 	scd.shr= shr;
-	ntree->data= &scd;
 	
-	ntreeExecTree(ntree);
+	ntreeExecTree(ntree, &scd, shi->ys & 1);	/* threads */
 }
 
 /* go over all used Geometry and Texture nodes, and return a texco flag */

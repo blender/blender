@@ -212,9 +212,6 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 
 #pragma mark /* ************** Group stuff ********** */
 
-/* prototype */
-static void node_group_exec_func(void *data, bNode *node, bNodeStack **in, bNodeStack **out);
-
 bNodeType node_group_typeinfo= {
 	/* type code   */	NODE_GROUP,
 	/* name        */	"Group",
@@ -223,7 +220,7 @@ bNodeType node_group_typeinfo= {
 	/* input sock  */	NULL,
 	/* output sock */	NULL,
 	/* storage     */	"",
-	/* execfunc    */	node_group_exec_func,
+	/* execfunc    */	NULL,
 	
 };
 
@@ -1195,7 +1192,7 @@ static void group_node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in
 	}
 }
 
-static void node_group_exec_func(void *data, bNode *gnode, bNodeStack **in, bNodeStack **out)
+static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNodeStack **in, bNodeStack **out)
 {
 	bNode *node;
 	bNodeTree *ntree= (bNodeTree *)gnode->id;
@@ -1204,21 +1201,20 @@ static void node_group_exec_func(void *data, bNode *gnode, bNodeStack **in, bNod
 	
 	if(ntree==NULL) return;
 	
-	if(ntree->init & NTREE_EXEC_INIT) {
-		for(node= ntree->nodes.first; node; node= node->next) {
-			if(node->typeinfo->execfunc) {
-				group_node_get_stack(node, ntree->stack, nsin, nsout, in, out);
-				node->typeinfo->execfunc(data, node, nsin, nsout);
-			}
+	stack+= gnode->stack_index;
+		
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->execfunc) {
+			group_node_get_stack(node, stack, nsin, nsout, in, out);
+			node->typeinfo->execfunc(data, node, nsin, nsout);
 		}
 	}
 }
 
-/* stack indices make sure all nodes only write in allocated data, for making it thread safe */
-/* per tree (and per group) unique indices are created */
-/* the index_ext we need to be able to map from groups to the group-node own stack */
-
-void ntreeBeginExecTree(bNodeTree *ntree)
+/* recursively called for groups */
+/* we set all trees on own local indices, but put a total counter
+   in the groups, so each instance of a group has own stack */
+static int ntree_begin_exec_tree(bNodeTree *ntree, int totindex)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -1226,8 +1222,6 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 	
 	if((ntree->init & NTREE_TYPE_INIT)==0)
 		ntreeInitTypes(ntree);
-	if(ntree->init & NTREE_EXEC_INIT)
-		return;
 	
 	/* create indices for stack, check preview */
 	for(node= ntree->nodes.first; node; node= node->next) {
@@ -1246,7 +1240,8 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		if(node->type==NODE_GROUP) {
 			if(node->id) {
 				
-				ntreeBeginExecTree((bNodeTree *)node->id);
+				node->stack_index= totindex;
+				totindex+= ntree_begin_exec_tree((bNodeTree *)node->id, totindex);
 				
 				/* copy internal data from internal nodes to own input sockets */
 				for(sock= node->inputs.first; sock; sock= sock->next) {
@@ -1257,12 +1252,31 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 			}
 		}
 	}
+	
+	return totindex + index;
+}
+
+/* stack indices make sure all nodes only write in allocated data, for making it thread safe */
+/* only root tree gets the stack, to enable instances to have own stack entries */
+/* only two threads now! */
+/* per tree (and per group) unique indices are created */
+/* the index_ext we need to be able to map from groups to the group-node own stack */
+
+void ntreeBeginExecTree(bNodeTree *ntree)
+{
+	int index;
+	
+	/* goes recursive over all groups */
+	index= ntree_begin_exec_tree(ntree, 0);
+	
 	if(index) {
 		bNodeStack *ns;
 		int a;
 		
 		ns=ntree->stack= MEM_callocN(index*sizeof(bNodeStack), "node stack");
 		for(a=0; a<index; a++, ns++) ns->hasinput= 1;
+		
+		ntree->stack1= MEM_dupallocN(ntree->stack);
 	}
 	
 	ntree->init |= NTREE_EXEC_INIT;
@@ -1270,23 +1284,16 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 
 void ntreeEndExecTree(bNodeTree *ntree)
 {
-	bNode *node;
 	
 	if(ntree->init & NTREE_EXEC_INIT) {
 		if(ntree->stack) {
 			MEM_freeN(ntree->stack);
 			ntree->stack= NULL;
+			MEM_freeN(ntree->stack1);
+			ntree->stack1= NULL;
 		}
 
 		ntree->init &= ~NTREE_EXEC_INIT;
-		
-		for(node= ntree->nodes.first; node; node= node->next) {
-			if(node->type==NODE_GROUP) {
-				if(node->id) {
-					ntreeEndExecTree((bNodeTree *)node->id);
-				}
-			}
-		}
 	}
 }
 
@@ -1308,18 +1315,29 @@ static void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNod
 }
 
 /* nodes are presorted, so exec is in order of list */
-void ntreeExecTree(bNodeTree *ntree)
+void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 {
 	bNode *node;
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *stack;
 	
 	/* only when initialized */
 	if(ntree->init & NTREE_EXEC_INIT) {
+		
+		if(thread)
+			stack= ntree->stack1;
+		else
+			stack= ntree->stack;
+		
 		for(node= ntree->nodes.first; node; node= node->next) {
 			if(node->typeinfo->execfunc) {
-				node_get_stack(node, ntree->stack, nsin, nsout);
-				node->typeinfo->execfunc(ntree->data, node, nsin, nsout);
+				node_get_stack(node, stack, nsin, nsout);
+				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
+			}
+			else if(node->type==NODE_GROUP && node->id) {
+				node_get_stack(node, stack, nsin, nsout);
+				node_group_execute(stack, callerdata, node, nsin, nsout); 
 			}
 		}
 	}
