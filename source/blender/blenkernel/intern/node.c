@@ -1214,7 +1214,7 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 /* recursively called for groups */
 /* we set all trees on own local indices, but put a total counter
    in the groups, so each instance of a group has own stack */
-static int ntree_begin_exec_tree(bNodeTree *ntree, int totindex)
+static int ntree_begin_exec_tree(bNodeTree *ntree)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -1240,9 +1240,9 @@ static int ntree_begin_exec_tree(bNodeTree *ntree, int totindex)
 		if(node->type==NODE_GROUP) {
 			if(node->id) {
 				
-				node->stack_index= totindex;
-				totindex+= ntree_begin_exec_tree((bNodeTree *)node->id, totindex);
-				
+				node->stack_index= index;
+				index+= ntree_begin_exec_tree((bNodeTree *)node->id);
+
 				/* copy internal data from internal nodes to own input sockets */
 				for(sock= node->inputs.first; sock; sock= sock->next) {
 					if(sock->tosock) {
@@ -1253,7 +1253,7 @@ static int ntree_begin_exec_tree(bNodeTree *ntree, int totindex)
 		}
 	}
 	
-	return totindex + index;
+	return index;
 }
 
 /* stack indices make sure all nodes only write in allocated data, for making it thread safe */
@@ -1267,7 +1267,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 	int index;
 	
 	/* goes recursive over all groups */
-	index= ntree_begin_exec_tree(ntree, 0);
+	index= ntree_begin_exec_tree(ntree);
 	
 	if(index) {
 		bNodeStack *ns;
