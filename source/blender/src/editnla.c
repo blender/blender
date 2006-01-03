@@ -184,7 +184,7 @@ void synchronize_action_strips(void)
 			if (strip->flag & ACTSTRIP_LOCK_ACTION) {
 				float actstart, actend;
 				
-				calc_action_range(strip->act, &actstart, &actend);
+				calc_action_range(strip->act, &actstart, &actend, 1);
 				
 				if(strip->actstart!=actstart || strip->actend!=actend) {
 					float mapping= (strip->end - strip->start)/(strip->actend - strip->actstart);
@@ -210,7 +210,7 @@ void reset_action_strips(int val)
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if(val==2) {
-					calc_action_range(strip->act, &strip->actstart, &strip->actend);
+					calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
 				}
 				else if(val==1) {
 					float mapping= (strip->actend - strip->actstart)/(strip->end - strip->start);
@@ -352,7 +352,7 @@ static void convert_nla(short mval[2])
 			/* Link the action to the nstrip */
 			nstrip->act = base->object->action;
 			id_us_plus(&nstrip->act->id);
-			calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend);
+			calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend, 1);
 			nstrip->start = nstrip->actstart;
 			nstrip->end = nstrip->actend;
 			nstrip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
@@ -403,7 +403,7 @@ static void add_nla_block(short event)
 	/* Link the action to the strip */
 	strip->act = act;
 	id_us_plus(&act->id);
-	calc_action_range(strip->act, &strip->actstart, &strip->actend);
+	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
 	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
 	strip->end = strip->start + (strip->actend-strip->actstart);
 		/* simple prevention of zero strips */
@@ -1818,7 +1818,7 @@ static void add_nla_block_by_name(char name[32], Object *ob, short hold, short a
 	
 	/* Link the action to the strip */
 	strip->act = act;
-	calc_action_range(strip->act, &strip->actstart, &strip->actend);
+	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
 	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
 	strip->end = strip->start + (strip->actend-strip->actstart);
 		/* simple prevention of zero strips */

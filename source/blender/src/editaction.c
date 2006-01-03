@@ -170,7 +170,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	sprintf (newname, "%s.BAKED", act->id.name+2);
 	rename_id(&result->id, newname);
 
-	calc_action_range(act, &actstart, &actend);
+	calc_action_range(act, &actstart, &actend, 1);
 
 	oldframe = G.scene->r.cfra;
 

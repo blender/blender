@@ -1783,7 +1783,7 @@ static void draw_ghost_poses(Base *base)
 	if(ob->action==NULL)
 		return;
 
-	calc_action_range(ob->action, &start, &end);
+	calc_action_range(ob->action, &start, &end, 0);
 	if(start==end)
 		return;
 

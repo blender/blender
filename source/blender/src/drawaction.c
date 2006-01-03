@@ -412,7 +412,7 @@ static void draw_channel_strips(SpaceAction *saction)
 		map_active_strip(di, OBACT, 0);
 	
 	/* start and end of action itself */
-	calc_action_range(act, &sta, &end);
+	calc_action_range(act, &sta, &end, 0);
 	gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
 	gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
 	

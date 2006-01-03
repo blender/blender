@@ -427,7 +427,7 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 }
 
 
-void calc_action_range(const bAction *act, float *start, float *end)
+void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
 {
 	const bActionChannel *chan;
 	const bConstraintChannel *conchan;
@@ -437,7 +437,7 @@ void calc_action_range(const bAction *act, float *start, float *end)
 
 	if(act) {
 		for (chan=act->chanbase.first; chan; chan=chan->next) {
-			if((chan->flag & ACHAN_HIDDEN)==0) {
+			if(incl_hidden || (chan->flag & ACHAN_HIDDEN)==0) {
 				if(chan->ipo) {
 					for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
 						if(icu->totvert) {
