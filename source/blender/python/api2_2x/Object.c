@@ -65,7 +65,7 @@ struct rctf;
 #include "BSE_edit.h"
 #include "BIF_space.h"
 #include "BIF_drawscene.h"
-#include "BIF_MeshTools.h"
+#include "BIF_meshtools.h"
 #include "BIF_editarmature.h"
 #include "DNA_oops_types.h" 
 #include "BLI_arithb.h"
