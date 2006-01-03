@@ -766,12 +766,13 @@ static PyObject *M_Object_GetSelected( PyObject * self )
 	PyObject *list;
 	Base *base_iter;
 
-	if( G.vd == NULL ) {
-		// No 3d view has been initialized yet, simply return None
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
 	list = PyList_New( 0 );
+
+	if( G.vd == NULL ) {
+		/* No 3d view has been initialized yet, simply return an empty list */
+		return list;
+	}
+	
 	if( ( G.scene->basact ) &&
 	    ( ( G.scene->basact->flag & SELECT ) &&
 	      ( G.scene->basact->lay & G.vd->lay ) ) ) {
@@ -789,16 +790,14 @@ static PyObject *M_Object_GetSelected( PyObject * self )
 	base_iter = G.scene->base.first;
 	while( base_iter ) {
 		if( ( ( base_iter->flag & SELECT ) &&
-					( base_iter->lay & G.vd->lay ) ) &&
+				( base_iter->lay & G.vd->lay ) ) &&
 				( base_iter != G.scene->basact ) ) {
 
 			blen_object = Object_CreatePyObject( base_iter->object );
-			if( !blen_object ) {
-				Py_DECREF( list );
-				Py_RETURN_NONE;
+			if( blen_object ) {
+				PyList_Append( list, blen_object );
+				Py_DECREF( blen_object );
 			}
-			PyList_Append( list, blen_object );
-			Py_DECREF( blen_object );
 		}
 		base_iter = base_iter->next;
 	}
