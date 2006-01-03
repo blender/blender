@@ -86,11 +86,14 @@ void unlink_group(Group *group)
 		bActionStrip *strip;
 		PartEff *paf;
 		
-		if(ob->dup_group==group)
+		if(ob->dup_group==group) {
 			ob->dup_group= NULL;
-		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-			if(strip->object==ob)
-				strip->object= NULL;
+		
+			/* duplicator strips use a group object, we remove it */
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				if(strip->object)
+					strip->object= NULL;
+			}
 		}
 		for(paf= ob->effect.first; paf; paf= paf->next) {
 			if(paf->type==EFF_PARTICLE) {
