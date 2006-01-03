@@ -62,12 +62,16 @@ struct rctf;
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
 
 #include "BIF_space.h"
 #include "BIF_editview.h"
+#include "BIF_drawscene.h"
+#include "BIF_meshtools.h"
+#include "BIF_editarmature.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -123,6 +127,7 @@ struct rctf;
 static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self );
+static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd);
 
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3);
@@ -148,6 +153,10 @@ char M_Object_GetSelected_doc[] =
 	"() - Returns a list of selected Objects in the active layer(s)\n\
 The active object is the first in the list, if visible";
 
+char M_Object_Duplicate_doc[] =
+	"(linked) - Duplicate all selected, visible objects in the current scene";
+
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
 /*****************************************************************************/
@@ -158,8 +167,11 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_Get_doc},
 	{"GetSelected", ( PyCFunction ) M_Object_GetSelected, METH_NOARGS,
 	 M_Object_GetSelected_doc},
+	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS | METH_KEYWORDS,
+	 M_Object_Duplicate_doc},
 	{NULL, NULL, 0, NULL}
 };
+
 
 /*****************************************************************************/
 /* Python BPy_Object methods declarations:				   */
@@ -195,6 +207,7 @@ static PyObject *Object_isSelected( BPy_Object * self );
 static PyObject *Object_makeDisplayList( BPy_Object * self );
 static PyObject *Object_link( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParent( BPy_Object * self, PyObject * args );
+static PyObject *Object_join( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args );
 static PyObject *Object_materialUsage( void );
@@ -466,6 +479,8 @@ mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
 fast:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
 explicitely update the Scene hierarchy."},
+	{"join", ( PyCFunction ) Object_join, METH_VARARGS,
+	 "(object_list) - Joins the objects in object list of the same type, into this object."},
 	{"makeParentDeform", ( PyCFunction ) Object_makeParentDeform, METH_VARARGS,
 	 "Makes the object the deformation parent of the objects provided in the \n\
 argument which must be a list of valid Objects. Optional extra arguments:\n\
@@ -779,12 +794,13 @@ static PyObject *M_Object_GetSelected( PyObject * self )
 	PyObject *list;
 	Base *base_iter;
 
-	if( G.vd == NULL ) {
-		// No 3d view has been initialized yet, simply return None
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
 	list = PyList_New( 0 );
+
+	if( G.vd == NULL ) {
+		/* No 3d view has been initialized yet, simply return an empty list */
+		return list;
+	}
+	
 	if( ( G.scene->basact ) &&
 	    ( ( G.scene->basact->flag & SELECT ) &&
 	      ( G.scene->basact->lay & G.vd->lay ) ) ) {
@@ -802,21 +818,65 @@ static PyObject *M_Object_GetSelected( PyObject * self )
 	base_iter = G.scene->base.first;
 	while( base_iter ) {
 		if( ( ( base_iter->flag & SELECT ) &&
-					( base_iter->lay & G.vd->lay ) ) &&
+				( base_iter->lay & G.vd->lay ) ) &&
 				( base_iter != G.scene->basact ) ) {
 
 			blen_object = Object_CreatePyObject( base_iter->object );
-			if( !blen_object ) {
-				Py_DECREF( list );
-				Py_RETURN_NONE;
+			if( blen_object ) {
+				PyList_Append( list, blen_object );
+				Py_DECREF( blen_object );
 			}
-			PyList_Append( list, blen_object );
-			Py_DECREF( blen_object );
 		}
 		base_iter = base_iter->next;
 	}
 	return list;
 }
+
+
+/*****************************************************************************/
+/* Function:			  M_Object_Duplicate				 */
+/* Python equivalent:	  Blender.Object.Duplicate				 */
+/*****************************************************************************/
+static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd )
+{
+	int dupflag= 0; /* this a flag, passed to adduplicate() and used instead of U.dupflag sp python can set what is duplicated */	
+
+	/* the following variables are bools, if set true they will modify the dupflag to pass to adduplicate() */
+	int mesh_dupe = 0;
+	int surface_dupe = 0;
+	int curve_dupe = 0;
+	int text_dupe = 0;
+	int metaball_dupe = 0;
+	int armature_dupe = 0;
+	int lamp_dupe = 0;
+	int material_dupe = 0;
+	int texture_dupe = 0;
+	int ipo_dupe = 0;
+	
+	static char *kwlist[] = {"mesh", "surface", "curve",
+			"text", "metaball", "armature", "lamp", "material", "texture", "ipo", NULL};
+	
+	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|iiiiiiiiii", kwlist,
+		&mesh_dupe, &surface_dupe, &curve_dupe, &text_dupe, &metaball_dupe,
+		&armature_dupe, &lamp_dupe, &material_dupe, &texture_dupe, &ipo_dupe))
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"expected nothing or bool keywords 'mesh', 'surface', 'curve', 'text', 'metaball', 'armature', 'lamp' 'material', 'texture' and 'ipo' as arguments" );
+	
+	/* USER_DUP_ACT for actions is not supported in the UI so dont support it here */
+	if (mesh_dupe)		dupflag |= USER_DUP_MESH;
+	if (surface_dupe)	dupflag |= USER_DUP_SURF;
+	if (curve_dupe)		dupflag |= USER_DUP_CURVE;
+	if (text_dupe)		dupflag |= USER_DUP_FONT;
+	if (metaball_dupe)	dupflag |= USER_DUP_MBALL;
+	if (armature_dupe)	dupflag |= USER_DUP_ARM;
+	if (lamp_dupe)		dupflag |= USER_DUP_LAMP;
+	if (material_dupe)	dupflag |= USER_DUP_MAT;
+	if (texture_dupe)	dupflag |= USER_DUP_TEX;
+	if (ipo_dupe)		dupflag |= USER_DUP_IPO;
+	adduplicate(2, dupflag); /* 2 is a mode with no transform and no redraw, Duplicate the current selection, context sensitive */
+	Py_RETURN_NONE;
+}
+
 
 /*****************************************************************************/
 /* Function:	 initObject						*/
@@ -970,7 +1030,8 @@ int EXPP_add_obdata( struct Object *object )
 		object->data = add_mball(  );
 		break;
 
-		/* TODO the following types will be supported later
+		/* TODO the following types will be supported later,
+		   be sure to update Scene_link when new types are supported
 		   case OB_SURF:
 		   object->data = add_curve(OB_SURF);
 		   G.totcurve++;
@@ -1781,6 +1842,125 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 		DAG_scene_sort( G.scene );
 
 	return EXPP_incr_ret( Py_None );
+}
+
+
+static PyObject *Object_join( BPy_Object * self, PyObject * args )
+{
+	PyObject *list;
+	PyObject *py_child;
+	Object *parent;
+	Object *child;
+	Scene *temp_scene;
+	Scene *orig_scene;
+	Base *temp_base;
+	short type;
+	int i, ok=0, ret_value=0, list_length=0;
+
+	/* cant join in editmode */
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"can't join objects while in edit mode" );
+		
+	/* Check if the arguments passed to makeParent are valid. */
+	if( !PyArg_ParseTuple( args, "O", &list ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a list of objects and one or two integers as arguments" ) );
+	
+	if( !PySequence_Check( list ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a list of objects" ) );
+	
+	list_length = PySequence_Length( list ); /* if there are no objects to join then exit silently */
+	
+	if( !list_length )
+		return EXPP_incr_ret( Py_None );
+
+	
+	parent = ( Object * ) self->object;
+	type = parent->type;
+	
+	if (type==OB_MESH || type==OB_MESH || type==OB_CURVE || type==OB_SURF || type==OB_ARMATURE);
+	else
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"Base object is not a type blender can join" ) );
+	
+	temp_scene = add_scene( "Scene" ); /* make the new scene */
+	temp_scene->lay= 2097151; /* all layers on */
+	
+	/* Check if the PyObject passed in list is a Blender object. */
+	for( i = 0; i < list_length; i++ ) {
+		child = NULL;
+		py_child = PySequence_GetItem( list, i );
+		if( !Object_CheckPyObject( py_child ) ) {
+			/* Cleanup */
+			free_libblock( &G.main->scene, temp_scene );
+			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected a list of objects, one or more of the list items is not a Blender Object." ) );
+		} else {
+			/* List item is an object, is it the same type? */
+			child = ( Object * ) Object_FromPyObject( py_child );
+			if (parent->type == child->type) {
+				ok =1;
+				/* Add a new base, then link the base to the temp_scene */
+				temp_base = MEM_callocN( sizeof( Base ), "pynewbase" );
+				/*we know these types are the same, link to the temp scene for joining*/
+				temp_base->object = child;	/* link object to the new base */
+				temp_base->flag |= SELECT;
+				temp_base->lay = 1; /*1 layer on */
+				
+				BLI_addhead( &temp_scene->base, temp_base );	/* finally, link new base to scene */
+				/*child->id.us += 1;*/ /*Would useually increase user count but in this case its ok not to */
+			} else {
+				child->id.us -= 1; /* python object user oddness */
+			}
+				
+		}
+	}
+	
+	orig_scene = G.scene; /* backup our scene */
+	
+	/* Add the main object into the temp_scene */
+	temp_base = MEM_callocN( sizeof( Base ), "pynewbase" );
+	temp_base->object = parent;	/* link object to the new base */
+	temp_base->flag |= SELECT;
+	temp_base->lay = 1; /*1 layer on */
+	BLI_addhead( &temp_scene->base, temp_base );	/* finally, link new base to scene */
+	parent->id.us += 1;
+	
+	/* all objects in the scene, set it active and the active object */
+	set_scene( temp_scene );
+	set_active_base( temp_base );
+	
+	/* Do the joining now we know everythings OK. */
+	if(type == OB_MESH)
+		ret_value = join_mesh();
+	else if(type == OB_CURVE)
+		ret_value = join_curve(OB_CURVE);
+	else if(type == OB_SURF)
+		ret_value = join_curve(OB_SURF);
+	else if(type == OB_ARMATURE)
+		ret_value = join_armature ();
+	/* May use for correcting object user counts */
+	/*
+	if (!ret_value) {
+		temp_base = temp_scene->base.first;
+		while( base ) {
+			object = base->object;
+			object->id.us +=1
+			base = base->next;
+		}
+	}*/
+	
+	
+	/* remove old scene */
+	set_scene( orig_scene );
+	free_libblock( &G.main->scene, temp_scene );
+	
+	if (!ok) /* no objects were of the correct type, return 0 */
+		return ( PyInt_FromLong(0) );
+	
+	return ( PyInt_FromLong(ret_value) );
 }
 
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child,

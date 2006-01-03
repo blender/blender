@@ -838,19 +838,15 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 					boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr);
 					val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
 					
-					if(dx>=1.0f) {
-						texres->nor[0]= (val1-val2);
-						texres->nor[1]= (val1-val3);
-					}
-					else {
+					texres->nor[0]= (val1-val2);	/* vals have been interpolated above! */
+					texres->nor[1]= (val1-val3);
+					
+					if(dx<1.0f) {
 						dy= 1.0f-dx;
 						texres->tb= dy*texres->tb+ dx*texr.tb;
 						texres->tg= dy*texres->tg+ dx*texr.tg;
 						texres->tr= dy*texres->tr+ dx*texr.tr;
 						texres->ta= dy*texres->ta+ dx*texr.ta;
-						
-						texres->nor[0]= dy*texres->nor[0] + dx*(val1-val2);
-						texres->nor[1]= dy*texres->nor[1] + dx*(val1-val3);
 					}
 				}
 			}

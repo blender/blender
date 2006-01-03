@@ -87,7 +87,7 @@ void	subdivide_armature(void);
 
 void	free_editArmature(void);
 
-void	join_armature(void);
+int		join_armature(void);
 void	load_editArmature(void);
 
 void	make_bone_parent(void);

@@ -734,6 +734,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 {
 	Scene *scene = self->scene;
 	BPy_Object *bpy_obj;
+	Object *object = NULL;
 
 	if( !scene )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -742,9 +743,19 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Object argument" );
-
-	else {			/* Ok, all is fine, let's try to link it */
-		Object *object = bpy_obj->object;
+	
+	
+		//return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		//			          "Could not create data on demand for this object type!" );
+	
+	object = bpy_obj->object;
+	
+	/* Object.c's EXPP_add_obdata does not support these objects */
+	if (!object->data && (object->type == OB_SURF || object->type == OB_FONT || object->type == OB_WAVE )) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Object has no data and new data cant be automaticaly created for Surf, Text or Wave type objects!" );
+	} else {
+		/* Ok, all is fine, let's try to link it */
 		Base *base;
 
 		/* We need to link the object to a 'Base', then link this base
@@ -766,8 +777,9 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 						      "couldn't allocate new Base for object" );
 
 		/* check if this object has obdata, case not, try to create it */
+		
 		if( !object->data && ( object->type != OB_EMPTY ) )
-			EXPP_add_obdata( object );	/* returns -1 on error, defined in Object.c */
+			EXPP_add_obdata( object ); /* returns -1 on error, defined in Object.c */
 
 		base->object = object;	/* link object to the new base */
 		base->lay = object->lay;
@@ -823,7 +835,6 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	PyObject *bpy_obj;
 	Object *object;
 	Base *base;
-	PyObject *name;
 
 	if( !scene )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -833,22 +844,16 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 
 	while( base ) {
 		object = base->object;
-
-		name = Py_BuildValue( "(s)", object->id.name + 2 );
-		if( !name )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Py_BuildValue() failed" );
-
-		bpy_obj = M_Object_Get( Py_None, name );
-		Py_DECREF ( name );
-
+		
+		bpy_obj = Object_CreatePyObject( object );
+		
 		if( !bpy_obj )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						      "couldn't create new object wrapper" );
 
 		PyList_Append( pylist, bpy_obj );
 		Py_XDECREF( bpy_obj );	/* PyList_Append incref'ed it */
-
+		
 		base = base->next;
 	}
 
@@ -869,11 +874,7 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 	ob = ((scene->basact) ? (scene->basact->object) : 0);
 
 	if (ob) {
-		PyObject *arg = Py_BuildValue("(s)", ob->id.name+2);
-
-		pyob = M_Object_Get(Py_None, arg);
-
-		Py_DECREF(arg);
+		pyob = Object_CreatePyObject( ob );
 
 		if (!pyob)
 			return EXPP_ReturnPyObjError(PyExc_MemoryError,
@@ -889,8 +890,9 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 {
 	Object *cam_obj;
+	PyObject *pyob;
 	Scene *scene = self->scene;
-
+	
 	if( !scene )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "Blender Scene was deleted!" );
@@ -898,16 +900,11 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 	cam_obj = scene->camera;
 
 	if( cam_obj ) {		/* if found, return a wrapper for it */
-		PyObject *camera = NULL;
-		PyObject *name = Py_BuildValue( "(s)", cam_obj->id.name + 2 );
-
-		if( !name )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Py_BuildValue() failed" );
-
-		camera = M_Object_Get( Py_None, name );
-		Py_DECREF ( name );
-		return camera;
+		pyob = Object_CreatePyObject( cam_obj );
+		if (!pyob)
+			return EXPP_ReturnPyObjError(PyExc_MemoryError,
+					"couldn't create new object wrapper!");
+		return pyob;
 	}
 
 	Py_INCREF( Py_None );	/* none found */

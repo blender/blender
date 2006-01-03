@@ -1892,7 +1892,7 @@ void split_font()
 	int i;
 
 	for (i = 0; i<=slen; p++, i++) {
-		adduplicate(1);
+		adduplicate(1, U.dupflag);
 		cu= OBACT->data;
 		cu->sepchar = i+1;
 		text_to_curve(OBACT, 0);	// pass 1: only one letter, adapt position
@@ -4197,7 +4197,19 @@ static void adduplicate__forwardModifierLinks(void *userData, Object *ob, Object
 	ID_NEW(*obpoin);
 }
 
-void adduplicate(int noTrans)
+/* This function duplicated the current visible selection, its used by Duplicate and Linked Duplicate
+Alt+D/Shift+D as well as Pythons Object.Duplicate(), it takes
+mode: 
+	0: Duplicate with transform, Redraw.
+	1: Duplicate, no transform, Redraw
+	2: Duplicate, no transform, no redraw (Only used by python)
+if true the user will not be dropped into grab mode directly after and..
+dupflag: a flag made from constants declared in DNA_userdef_types.h
+	The flag tells adduplicate() weather to copy data linked to the object, or to reference the existing data.
+	U.dupflag for default operations or you can construct a flag as python does
+	if the dupflag is 0 then no data will be copied (linked duplicate) */
+
+void adduplicate(int mode, int dupflag)
 {
 	Base *base, *basen;
 	Object *ob, *obn;
@@ -4205,14 +4217,11 @@ void adduplicate(int noTrans)
 	ID *id;
 	Ipo *ipo;
 	bConstraintChannel *chan;
-	int a, didit, dupflag;
+	int a, didit;
 	
 	if(G.scene->id.lib) return;
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
-	
-	if( G.qual & LR_ALTKEY ) dupflag= 0;
-	else dupflag= U.dupflag;
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -4261,7 +4270,7 @@ void adduplicate(int noTrans)
 						}
 					}
 				}
-				if(dupflag & USER_DUP_ACT){
+				if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
 					id= (ID *)obn->action;
 					if (id){
 						ID_NEW_US(obn->action)
@@ -4467,16 +4476,17 @@ void adduplicate(int noTrans)
 	clear_id_newpoins();
 	
 	countall();
-	if(!noTrans) {
+	if(mode==0) {
 		BIF_TransformSetUndo("Add Duplicate");
 		initTransform(TFM_TRANSLATION, CTX_NONE);
 		Transform();
 	}
 	set_active_base(BASACT);
-	
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWACTION, 0);	/* also oops */
-	allqueue(REDRAWIPO, 0);	/* also oops */
+	if(mode!=2) { /* mode of 2 is used by python to avoid unrequested redraws */
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWACTION, 0);	/* also oops */
+		allqueue(REDRAWIPO, 0);	/* also oops */
+	}
 }
 
 void selectlinks_menu(void)

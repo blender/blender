@@ -625,6 +625,9 @@ static BHeadN *get_bhead(FileData *fd)
 				}
 			}
 
+			/* make sure people are not trying to pass bad blend files */
+			if (bhead.len < 0) fd->eof = 1;
+
 			// bhead now contains the (converted) bhead structure. Now read
 			// the associated data and put everything in a BHeadN (creative naming !)
 
@@ -639,6 +642,7 @@ static BHeadN *get_bhead(FileData *fd)
 					if (readsize != bhead.len) {
 						fd->eof = 1;
 						MEM_freeN(new_bhead);
+						new_bhead = 0;
 					}
 				} else {
 					fd->eof = 1;
@@ -5205,12 +5209,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				cam->flag |= CAM_SHOWPASSEPARTOUT;
 			
 			/* make sure old cameras have title safe on */
-			
-			/* *** to be uncommented before 2.40 release! *** */
-			/* 
 			if (!(cam->flag & CAM_SHOWTITLESAFE))
 			 cam->flag |= CAM_SHOWTITLESAFE;
-			 */
 			
 			/* set an appropriate camera passepartout alpha */
 			if (!(cam->passepartalpha)) cam->passepartalpha = 0.2f;
@@ -5222,11 +5222,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->mode |= MA_TANGENT_STR;
 			}
 			if(ma->mode & MA_TRACEBLE) ma->mode |= MA_SHADBUF;
-
-			/* orange stuff, so should be done for 2.40 too */
-			if(ma->layers.first==NULL) {
-				ma->ml_flag= ML_RENDER;
-			}
 		}
 	}
 	

@@ -16,6 +16,7 @@ extern float gDeactivationTime;
 extern float gLinearSleepingTreshold;
 extern float gAngularSleepingTreshold;
 extern bool gDisableDeactivation;
+class CcdPhysicsEnvironment;
 
 
 struct CcdConstructionInfo
@@ -27,12 +28,16 @@ struct CcdConstructionInfo
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
 		m_MotionState(0),
-		m_collisionShape(0)
-
+		m_collisionShape(0),
+		m_physicsEnv(0),
+		m_inertiaFactor(1.f),
+		m_scaling(1.f,1.f,1.f)
 	{
 	}
+
 	SimdVector3	m_localInertiaTensor;
 	SimdVector3	m_gravity;
+	SimdVector3	m_scaling;
 	SimdScalar	m_mass;
 	SimdScalar	m_restitution;
 	SimdScalar	m_friction;
@@ -42,7 +47,8 @@ struct CcdConstructionInfo
 	class	PHY_IMotionState*			m_MotionState;
 
 	CollisionShape*			m_collisionShape;
-	
+	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
+	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
 };
 
 
@@ -56,7 +62,10 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	CollisionShape*			m_collisionShape;
 	void*		m_newClientInfo;
 
+	CcdConstructionInfo	m_cci;//needed for replication
 	void GetWorldOrientation(SimdMatrix3x3& mat);
+
+	void CreateRigidbody();
 
 	public:
 	
@@ -110,6 +119,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		// reading out information from physics
 		virtual void		GetLinearVelocity(float& linvX,float& linvY,float& linvZ);
+		virtual void		GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ);
 		virtual void		GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ); 
 		virtual	void		getReactionForce(float& forceX,float& forceY,float& forceZ);
 

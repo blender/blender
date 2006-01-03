@@ -62,7 +62,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-
+#include "DNA_userdef_types.h"	/* for U.dupflag */
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
@@ -1592,7 +1592,7 @@ void duplicate_context_selected(void)
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
 	}
 	else {
-		adduplicate(0);
+		adduplicate(0, U.dupflag);
 	}
 }
 

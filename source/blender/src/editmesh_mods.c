@@ -1462,7 +1462,8 @@ void reveal_mesh(void)
 
 	EM_fgon_flags();	// redo flags and indices for fgons
 	EM_selectmode_flush();
-	
+	countall();
+
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Reveal");

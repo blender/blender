@@ -1550,7 +1550,15 @@ static void dag_object_time_update_flags(Object *ob)
 {
 	
 	if(ob->ipo) ob->recalc |= OB_RECALC_OB;
-	else if(ob->constraints.first) ob->recalc |= OB_RECALC_OB;
+	else if(ob->constraints.first) {
+		bConstraint *con;
+		for (con = ob->constraints.first; con; con=con->next){
+			if (constraint_has_target(con)) {
+				ob->recalc |= OB_RECALC_OB;
+				break;
+			}
+		}
+	}
 	else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
 	else if(ob->parent) {
 		/* motion path or bone child */

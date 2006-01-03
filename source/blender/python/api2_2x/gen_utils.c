@@ -176,27 +176,29 @@ int EXPP_ReturnIntError( PyObject * type, char *error_msg )
 
 int EXPP_intError(PyObject *type, const char *format, ...)
 {
-	char *error = "";
+	PyObject *error;
 	va_list vlist;
 
 	va_start(vlist, format);
-	vsprintf(error, format, vlist);
+	error = PyString_FromFormatV(format, vlist);
 	va_end(vlist);
 
-	PyErr_SetString(type, error);
+	PyErr_SetObject(type, error);
+	Py_DECREF(error);
 	return -1;
 }
 //Like EXPP_ReturnPyObjError but takes a printf format string and multiple arguments
 PyObject *EXPP_objError(PyObject *type, const char *format, ...)
 {
-	char *error = "";
+	PyObject *error;
 	va_list vlist;
 
 	va_start(vlist, format);
-	vsprintf(error, format, vlist);
+	error = PyString_FromFormatV(format, vlist);
 	va_end(vlist);
 
-	PyErr_SetString(type, error);
+	PyErr_SetObject(type, error);
+	Py_DECREF(error);
 	return NULL;
 }
 

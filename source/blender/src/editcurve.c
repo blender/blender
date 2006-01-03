@@ -375,9 +375,7 @@ void separate_nurb()
 	oldob= G.obedit;
 	oldbase= BASACT;
 
-	G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked dupli */
-	adduplicate(1);
-	G.qual &= ~LR_ALTKEY;
+	adduplicate(1, 0); /* no transform and zero so do get a linked dupli */
 	
 	G.obedit= BASACT->object;	/* basact is set in adduplicate() */
 	
@@ -3277,7 +3275,7 @@ void nurb_set_smooth(short event)
 	else if(event==0) BIF_undo_push("Set Solid");
 }
 
-void join_curve(int type)
+int join_curve(int type)
 {
 	Base *base, *nextb;
 	Object *ob;
@@ -3289,17 +3287,10 @@ void join_curve(int type)
 	float imat[4][4], cmat[4][4];
 	int a;
 	
-	if(G.obedit) return;
-	
 	ob= OBACT;
-	if(ob->type!=type) return;
-	if(ob->lay & G.vd->lay); else return;
+	if(ob->type!=type) return 0;
+	if(ob->lay & G.vd->lay); else return 0;
 	tempbase.first= tempbase.last= 0;
-	
-	if(type==OB_SURF) {
-		if(okee("Join selected NURBS")==0) return;
-	}
-	else if(okee("Join selected curves")==0) return;
 	
 	/* trasnform all selected curves inverse in obact */
 	Mat4Invert(imat, ob->obmat);
@@ -3360,7 +3351,7 @@ void join_curve(int type)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	BIF_undo_push("Join");
-	
+	return 1;
 }
 
 

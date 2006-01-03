@@ -136,18 +136,18 @@ class PyObjectPlus : public PyObject
 public:
 	PyObjectPlus(PyTypeObject *T);
 	
-	virtual ~PyObjectPlus() {};					// destructor
+	virtual ~PyObjectPlus();					// destructor
 	static void PyDestructor(PyObject *P)				// python wrapper
 	{  
 		delete ((PyObjectPlus *) P);  
 	};
 	
-	//void INCREF(void) {
-	//	  Py_INCREF(this);
-	//  };				// incref method
-	//void DECREF(void) {
-	//	  Py_DECREF(this);
-	//  };				// decref method
+//	void INCREF(void) {
+//		  Py_INCREF(this);
+//	  };				// incref method
+//	void DECREF(void) {
+//		  Py_DECREF(this);
+//	  };				// decref method
 	
 	virtual PyObject *_getattr(const STR_String& attr);			// _getattr method
 	static  PyObject *__getattr(PyObject * PyObj, char *attr) 	// This should be the entry in Type. 

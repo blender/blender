@@ -351,7 +351,7 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	}
 }
 
-void join_armature(void)
+int join_armature(void)
 {
 	Object	*ob;
 	Base	*base, *nextbase;
@@ -360,13 +360,10 @@ void join_armature(void)
 	float	mat[4][4], imat[4][4];
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
-	if(G.obedit) return;
+	/* if(G.obedit) return; */ /* Alredy checked in join_menu() */
 	
 	ob= OBACT;
-	if(ob->type!=OB_ARMATURE) return;
-	
-	/*	Make sure the user wants to continue*/
-	if(okee("Join selected armatures")==0) return;
+	if(ob->type!=OB_ARMATURE) return 0;
 	
 	/*	Put the active armature into editmode and join the bones from the other one*/
 
@@ -436,7 +433,7 @@ void join_armature(void)
 	exit_editmode(1);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
-
+	return 1;
 }
 
 /* **************** END tools on Editmode Armature **************** */

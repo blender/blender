@@ -36,7 +36,7 @@
 struct Object;
 struct EditVert;
 
-extern void join_mesh(void);
+extern int join_mesh(void);
 
 extern void fasterdraw(void);
 extern void slowerdraw(void);

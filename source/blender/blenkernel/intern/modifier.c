@@ -1210,9 +1210,15 @@ static void *booleanModifier_applyModifier(ModifierData *md, Object *ob, void *d
 	if( ((Mesh *)ob->data)->totface>3 && bmd->object && ((Mesh *)bmd->object->data)->totface>3) {
 		DispListMesh *dlm= NewBooleanMeshDLM(bmd->object, ob, 1+bmd->operation);
 		
-		return derivedmesh_from_displistmesh(dlm, NULL);
+		/* if new mesh returned, get derived mesh; otherwise there was
+		 * an error, so delete the modifier object */
+
+		if( dlm )
+			return derivedmesh_from_displistmesh(dlm, NULL);
+		else
+			bmd->object = NULL;
 	}
-	else return derivedData;
+	return derivedData;
 }
 
 /***/

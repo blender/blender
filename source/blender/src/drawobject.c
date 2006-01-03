@@ -553,9 +553,9 @@ static void drawlamp(Object *ob)
 	/* Inner Circle */
 	VECCOPY(vec, ob->obmat[3]);
 	glEnable(GL_BLEND);
-	drawcircball(GL_LINE_LOOP, vec, lampsize/2, imat);
+	drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
 	glDisable(GL_BLEND);
-	drawcircball(GL_POLYGON, vec, lampsize/2, imat);
+	drawcircball(GL_POLYGON, vec, lampsize, imat);
 	
 	/* restore */
 	if(ob->id.us>1)

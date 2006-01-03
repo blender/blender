@@ -624,6 +624,26 @@ static void select_grouped_menu(void)
 	select_grouped(nr);
 }
 
+void join_menu(void)
+{
+	Object *ob= OBACT;
+	if (ob && !G.obedit) {
+		if(ob->type == OB_MESH) {
+			if(okee("Join selected meshes")==0) return;
+			join_mesh();
+		} else if(ob->type == OB_CURVE) {
+			if(okee("Join selected curves")==0) return;
+			join_curve(OB_CURVE);
+		} else if(ob->type == OB_SURF) {
+			if(okee("Join selected NURBS")==0) return;
+			join_curve(OB_SURF);
+		} else if(ob->type == OB_ARMATURE) {
+			/*	Make sure the user wants to continue*/
+			if(okee("Join selected armatures")==0) return;
+			join_armature ();
+		}
+	}
+}
 
 static unsigned short convert_for_nonumpad(unsigned short event)
 {
@@ -1198,7 +1218,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(ob && (ob->flag & OB_POSEMODE))
 						error ("Duplicate not possible in posemode.");
 					else if((G.obedit==NULL))
-						adduplicate(0);
+						adduplicate(0, 0);
 				}
 				else if(G.qual==LR_CTRLKEY) {
 					imagestodisplist();
@@ -1378,14 +1398,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case JKEY:
 				if(G.qual==LR_CTRLKEY) {
 					if( ob ) {
-						if(ob->type == OB_MESH)
-							join_mesh();
-						else if(ob->type == OB_CURVE)
-							join_curve(OB_CURVE);
-						else if(ob->type == OB_SURF)
-							join_curve(OB_SURF);
-						else if(ob->type == OB_ARMATURE)
-							join_armature ();
+						join_menu();
 					}
 					else if ((G.obedit) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
 						addsegment_nurb();

@@ -56,6 +56,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_image_types.h"
+#include "DNA_ipo_types.h"
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -428,13 +429,25 @@ static void do_activate_oops(Oops *oops)
 	case ID_IM:
 		if(oops->id && G.sima) {
 			/* only set if the new image isnt alredy active */
-			if (G.sima->image != (Image *)oops->id) {
+			if ((ID *)G.sima->image != oops->id) {
 				G.sima->image = (Image *)oops->id;
 				allqueue(REDRAWIMAGE, 0);
 				scrarea_queue_winredraw(curarea);
 			}
 		}
 		break;
+	/*
+	case ID_IP:
+		if(oops->id && G.sipo) {
+			*//* only set if the new ipo isnt alredy active *//*
+			if ((ID *)G.sipo->ipo != oops->id) {
+				G.sipo->ipo = (Ipo *)oops->id;
+				allqueue(REDRAWIPO, 0);
+				scrarea_queue_winredraw(curarea);
+			}
+		}
+		break;
+	*/
 	}
 }
 

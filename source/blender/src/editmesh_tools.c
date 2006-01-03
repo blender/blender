@@ -377,7 +377,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	efa= em->faces.first;
 	while(efa) {
 		efa->f1= 0;
-		if(faceselectedAND(efa, 1)) {
+		if(faceselectedOR(efa, 1)) {
 			efa->f1= 1;
 			amount++;
 		}

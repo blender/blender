@@ -39,7 +39,7 @@ public:
 	KX_EmptyObject(void* sgReplicationInfo,SG_Callbacks callbacks) :
 	KX_GameObject(sgReplicationInfo,callbacks) 
 	{};
-	virtual ~KX_EmptyObject() {};
+	virtual ~KX_EmptyObject();
 	
 };
 

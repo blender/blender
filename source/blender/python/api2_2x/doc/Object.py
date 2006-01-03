@@ -37,11 +37,12 @@ def New (type, name='type'):
   """
   Creates a new Object.
   @type type: string
-  @param type: The Object type: 'Armature', 'Camera', 'Curve', 'Lamp', 'Mesh'
-      or 'Empty'.
+  @param type: The Object type: 'Armature', 'Camera', 'Curve', 'Lamp', 'Lattice',
+      'Mball', 'Mesh', 'Surf' or 'Empty'.
   @type name: string
   @param name: The name of the object. By default, the name will be the same
       as the object type.
+      If the name is alredy in use, this new object will have a number at the end of the name.
   @return: The created Object.
 
   I{B{Example:}}
@@ -50,11 +51,11 @@ def New (type, name='type'):
   location (0, 0, 0) in the current scene::
     import Blender
 
-    object = Blender.Object.New ('Lamp')
-    lamp = Blender.Lamp.New ('Spot')
-    object.link (lamp)
-    scene = Blender.Scene.getCurrent ()
-    scene.link (object)
+    object = Blender.Object.New('Lamp')
+    lamp = Blender.Lamp.New('Spot')
+    object.link(lamp)
+    scene = Blender.Scene.GetCurrent()
+    scene.link(object)
 
     Blender.Redraw()
   """
@@ -70,8 +71,7 @@ def Get (name = None):
 
   I{B{Example 1:}}
 
-  The example below works on the default scene. The script returns the plane
-  object and prints the location of the plane::
+  The example below works on the default scene. The script returns the plane object and prints the location of the plane::
     import Blender
 
     object = Blender.Object.Get ('plane')
@@ -85,12 +85,15 @@ def Get (name = None):
 
     objects = Blender.Object.Get ()
     print objects
+  @note: Get will return objects from all scenes.
+      Most user tools should only operate on objects from the current scene - Blender.Scene.GetCurrent().getChildren()
   """
 
 def GetSelected ():
   """
-  Get the selected objects from Blender. If no objects are selected, an empty
+  Get the selected objects on visible layers from Blenders current scene. If no objects are selected, an empty
   list will be returned.
+  The active object of the current scene will always be the first object in the list (if selected).
   @return: A list of all selected Objects in the current scene.
 
   I{B{Example:}}
@@ -99,9 +102,73 @@ def GetSelected ():
   the script will print the selected objects::
     import Blender
 
-    objects = Blender.Object.GetSelected ()
+    objects = Blender.Object.GetSelected()
     print objects
   """
+
+
+def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=0, material=0, texture=0, ipo=0):
+  """
+  Duplicate selected objects on visible layers from Blenders current scene,
+  de-selecting the currently visible, selected objects and making a copy where all new objects are selected.
+  By default no data linked to the object is duplicated, use the kayword arguments to change this.
+  Object.GetSelected() will return the list of objects resulting from duplication.
+  
+  @type mesh: bool
+  @param mesh: When non zero, mesh object data will be duplicated with the objects.
+  @type surface: bool
+  @param surface: When non zero, surface object data will be duplicated with the objects.
+  @type curve: bool
+  @param curve: When non zero, curve object data will be duplicated with the objects.
+  @type text: bool
+  @param text: When non zero, text object data will be duplicated with the objects.
+  @type metaball: bool
+  @param metaball: When non zero, metaball object data will be duplicated with the objects.
+  @type armature: bool
+  @param armature: When non zero, armature object data will be duplicated with the objects.
+  @type lamp: bool
+  @param lamp: When non zero, lamp object data will be duplicated with the objects.
+  @type material: bool
+  @param material: When non zero, materials used my the object or its object data will be duplicated with the objects.
+  @type texture: bool
+  @param texture: When non zero, texture data used by the objects materials will be duplicated with the objects.
+  @type ipo: bool
+  @param ipo: When non zero, ipo data linked to the object will be duplicated with the objects.
+  @return: None
+
+  I{B{Example:}}
+
+  The example below creates duplicates the active object 10 times
+  and moves each object 1.0 on the X axis::
+    import Blender
+
+    scn = Scene.GetCurrent()
+    activeObject = scn.getActiveObject()
+    
+    # Unselect all
+    for ob in Blender.Object.GetSelected():
+        ob.sel = 0
+    activeObject.sel = 1
+    
+    for x in xrange(10):
+        Blender.Object.Duplicate() # Duplicate linked
+        activeObject = scn.getActiveObject()
+        activeObject.LocX += 1
+    Blender.Redraw()
+  """
+'''
+def Join ():
+  """
+  Joins selected objects on visible layers from Blenders current scene.
+  The active object is used as a base for all other objects of the same type to join into - just like pressing Ctrl+J
+  
+  @return: None
+  @note: Being in edit mode, mesh objects with keys and a large number of verts in the
+    resulting mesh will all raise a RuntimeError.
+  @note: The join may be unsucsessfull because of the selection or object types and no error raised.
+    Checking if the number of selected objects has changed is a way to know the join worked.
+  """
+'''
 
 class Object:
   """
@@ -187,22 +254,22 @@ class Object:
         of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
         32 - drawwire.
     @ivar name: The name of the object.
-    @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected.  
+    @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected. (Selecting makes the object active)
     @ivar effects: The list of particle effects associated with the object.  (Read-only)
     @ivar parentbonename: The string name of the parent bone.
     @ivar users: The number of users of the object.  Read-only.
     @type users: int
     @ivar protectFlags: The "transform locking" bitfield flags for the object.  
     Setting bits lock the following attributes:
-	   - bit 0: X location
-	   - bit 1: Y location
-	   - bit 2: Z location
-	   - bit 3: X rotation
-	   - bit 4: Y rotation
-	   - bit 5: Z rotation
-	   - bit 6: X size
-	   - bit 7: Y size
-	   - bit 8: Z size
+       - bit 0: X location
+       - bit 1: Y location
+       - bit 2: Z location
+       - bit 3: X rotation
+       - bit 4: Y rotation
+       - bit 5: Z rotation
+       - bit 6: X size
+       - bit 7: Y size
+       - bit 8: Z size
     @type protectFlags: int
   """
 
@@ -399,7 +466,7 @@ class Object:
     For objects parented to bones, this is the name of the bone.
     @rtype: String
     @return: The parent object sub-name of the object.
-		If not available, None will be returned.
+      If not available, None will be returned.
     """
 
   def getTimeOffset():
@@ -418,7 +485,8 @@ class Object:
 
   def getType():
     """
-    Returns the type of the object.
+    Returns the type of the object in 'Armature', 'Camera', 'Curve', 'Lamp', 'Lattice',
+    'Mball', 'Mesh', 'Surf', 'Empty', 'Wave' (deprecated) or 'unknown' in exceptional cases.
     @return: The type of object.
 
     I{B{Example:}}
@@ -491,7 +559,21 @@ class Object:
         parents of other objects.  Calling this makeParent method for an
         unlinked object will result in an error.
     """
-	
+
+  def join(objects):
+    """
+    Uses the object as a base for all of the objects in the provided list to join into.
+    
+    @type objects: Sequence of Blender Object
+    @param objects: A list of objects matching the objects type.
+    @note: Objects in the list will not be removed, to avoid duplicate data you may want to remove them manualy after joining.
+    @note: Join modifies the object in place so that other objects are joined into it. no new object or data is created.
+    @note: Join will only work for object types Mesh, Armature, Curve and Surface, an error will be raised if the object is not of this type.
+    @note: objects in the list will be ignored if they to not match the base object.
+    @rtype: int
+    @return: 0 is returned if the join is not successfull, otherwise 1 will be returned.
+    """
+
   def makeParentDeform(objects, noninverse = 0, fast = 0):
     """
     Makes the object the deformation parent of the objects provided in the argument
@@ -514,7 +596,7 @@ class Object:
     @warn: child objects must be of mesh type to deform correctly. Other object
         types will fall back to normal parenting silently.
     """
-	
+
   def makeParentVertex(objects, indices, noninverse = 0, fast = 0):
     """
     Makes the object the vertex parent of the objects provided in the argument
@@ -620,7 +702,7 @@ class Object:
 
   def setSize(x, y, z):
     """
-    Sets the object's size, relative to the parent object (if any)
+    Sets the object's size, relative to the parent object (if any), clamped 
     @type x: float
     @param x: The X size multiplier.
     @type y: float
@@ -647,6 +729,7 @@ class Object:
   def select(boolean):
     """
     Sets the object's selection state in the current scene.
+    setting the selection will make this object the active object of this scene.
     @type boolean: Integer
     @param boolean:
         - 0  - unselected

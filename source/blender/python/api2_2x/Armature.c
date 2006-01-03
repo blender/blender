@@ -172,28 +172,25 @@ static int BonesDict_InitEditBones(BPy_BonesDict *self)
 //This is the string representation of the object
 static PyObject *BonesDict_repr(BPy_BonesDict *self)
 {
-	char buffer[128], str[4096];
+	char str[4096];
 	PyObject *key, *value;
 	int pos = 0;
+	char *p = str;
 
-	BLI_strncpy(str,"",4096);
-	sprintf(buffer, "[Bone Dict: {");
-	strcat(str,buffer);
+	p += sprintf(str, "[Bone Dict: {");
+
 	if (self->editmode_flag){
 		while (PyDict_Next(self->editbonesMap, &pos, &key, &value)) {
-			sprintf(buffer, "%s : %s, ", PyString_AsString(key), 
+			p += sprintf(p, "%s : %s, ", PyString_AsString(key), 
 				PyString_AsString(value->ob_type->tp_repr(value)));
-			strcat(str,buffer);
 		}
 	}else{
 		while (PyDict_Next(self->bonesMap, &pos, &key, &value)) {
-			sprintf(buffer, "%s : %s, ", PyString_AsString(key), 
+			p += sprintf(p, "%s : %s, ", PyString_AsString(key), 
 				PyString_AsString(value->ob_type->tp_repr(value)));
-			strcat(str,buffer);
 		}
 	}
-	sprintf(buffer, "}]\n");
-	strcat(str,buffer);
+	p += sprintf(p, "}]\n");
 	return PyString_FromString(str);
 }
 

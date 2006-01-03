@@ -136,43 +136,55 @@ PyTypeObject BezTriple_Type = {
 static PyObject *M_BezTriple_New( PyObject* self, PyObject * args )
 {
 	float numbuf[9];
-	int status, length;
 	PyObject* in_args = NULL;
+	int length;
 
-	if( !PyArg_ParseTuple( args, "|O", &in_args) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected sequence of 3 or 9 floats or nothing" );
+	/* accept list, tuple, or 3 or 9 args (which better be floats) */
+
+	length = PyTuple_Size( args );
+	if( length == 3 || length == 9 )
+		in_args = args;
+	else if( !PyArg_ParseTuple( args, "|O", &in_args) )
+		goto TypeError;
 
 	if( !in_args ) {
 		numbuf[0] = 0.0f; numbuf[1] = 0.0f; numbuf[2] = 0.0f;
 		numbuf[3] = 0.0f; numbuf[4] = 0.0f; numbuf[5] = 0.0f;
 		numbuf[6] = 0.0f; numbuf[7] = 0.0f; numbuf[8] = 0.0f;
 	} else {
+		int i, length;
 		if( !PySequence_Check( in_args ) )
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected sequence of 3 or 9 floats or nothing" );
-		
+			goto TypeError;
+
 		length = PySequence_Length( in_args );
-		if( length == 9 )
-			status = PyArg_ParseTuple( in_args, "fffffffff",
-					&numbuf[0], &numbuf[1], &numbuf[2], 
-					&numbuf[3], &numbuf[4], &numbuf[5],
-					&numbuf[6], &numbuf[7], &numbuf[8]);
-		else if( length == 3 ) {
-			status = PyArg_ParseTuple( in_args, "fff",
-					&numbuf[0], &numbuf[1], &numbuf[2]);     
+		if( length != 9 && length != 3 )
+			goto TypeError;
+		
+		for(i=0; i<length; i++) {
+			PyObject *item, *pyfloat;
+			item=PySequence_ITEM(in_args, i);
+			if( !item )
+				goto TypeError;
+			pyfloat=PyNumber_Float(item);
+			Py_DECREF(item);
+			if( !pyfloat )
+				goto TypeError;
+			numbuf[i]=(float)PyFloat_AS_DOUBLE(pyfloat);
+			Py_DECREF(pyfloat);
+		}
+
+		if( length == 3 ) {
 			numbuf[3] = numbuf[0]; numbuf[6] = numbuf[0];
 			numbuf[4] = numbuf[1]; numbuf[7] = numbuf[1];
 			numbuf[5] = numbuf[2]; numbuf[8] = numbuf[2];
-		} else
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"wrong number of points" );
-		if( !status )
-			return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					"sequence item not number");
+		}
 	}
 
 	return newBezTriple( numbuf );
+
+TypeError:
+	return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected sequence of 3 or 9 floats or nothing" );
 }
 
 /****************************************************************************
