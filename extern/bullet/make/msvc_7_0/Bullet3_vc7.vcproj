@@ -717,9 +717,6 @@ ECHO Done
 					RelativePath="..\..\Bullet\NarrowPhaseCollision\BU_VertexPoly.h">
 				</File>
 				<File
-					RelativePath="..\..\Bullet\NarrowPhaseCollision\CollisionMargin.h">
-				</File>
-				<File
 					RelativePath="..\..\Bullet\NarrowPhaseCollision\ContinuousConvexCollision.h">
 				</File>
 				<File
@@ -795,6 +792,9 @@ ECHO Done
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\BvhTriangleMeshShape.cpp">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\CollisionShape.cpp">
@@ -905,6 +905,9 @@ ECHO Done
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionShapes\ConvexTriangleCallback.cpp">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionShapes\CylinderShape.cpp">
 					<FileConfiguration
 						Name="Blender Debug|Win32">
@@ -930,6 +933,9 @@ ECHO Done
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\EmptyShape.cpp">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\MinkowskiSumShape.cpp">
@@ -984,6 +990,9 @@ ECHO Done
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\OptimizedBvh.cpp">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\PolyhedralConvexShape.cpp">
@@ -1094,6 +1103,12 @@ ECHO Done
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionShapes\TriangleCallback.cpp">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\TriangleIndexVertexArray.cpp">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionShapes\TriangleMesh.cpp">
 					<FileConfiguration
 						Name="Blender Debug|Win32">
@@ -1155,6 +1170,12 @@ ECHO Done
 					RelativePath="..\..\Bullet\CollisionShapes\BoxShape.h">
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionShapes\BvhTriangleMeshShape.h">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\CollisionMargin.h">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionShapes\CollisionShape.h">
 				</File>
 				<File
@@ -1167,13 +1188,22 @@ ECHO Done
 					RelativePath="..\..\Bullet\CollisionShapes\ConvexShape.h">
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionShapes\ConvexTriangleCallback.h">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionShapes\CylinderShape.h">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\EmptyShape.h">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\MinkowskiSumShape.h">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\MultiSphereShape.h">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\OptimizedBvh.h">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\PolyhedralConvexShape.h">
@@ -1189,6 +1219,9 @@ ECHO Done
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\TriangleCallback.h">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\TriangleIndexVertexArray.h">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\TriangleMesh.h">
