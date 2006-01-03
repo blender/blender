@@ -373,8 +373,8 @@ void draw_oops(Oops *oops)
 	} else { /* NO ICON, UNINDENT*/
 		v1[0] -= 1.3 / oopscalex;
  	}
-	if(oops->flag & SELECT) cpack(0xFFFFFF); 
-	else cpack(0x0);
+	if(oops->flag & SELECT) BIF_ThemeColor(TH_TEXT_HI);
+	else BIF_ThemeColor(TH_TEXT);
 	glRasterPos3f(v1[0],  v1[1], 0.0);
 	BMF_DrawString(font, str);
 
@@ -427,6 +427,12 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	float col[3];
 	
 	BIF_GetThemeColor3fv(TH_BACK, col);
+	
+	/* darker background for oops */
+	if(soops->type!=SO_OUTLINER) {
+		col[0] = col[0] * 0.75; col[1] = col[1] * 0.75; col[2] = col[2] * 0.75;
+	}
+	
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	if(soops==0) return;	
@@ -442,7 +448,20 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 
 		oopscalex= .14*((float)curarea->winx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 		calc_ipogrid();	/* for scrollvariables */
-
+		
+		
+		/* Draw a page about the oops */
+		BIF_GetThemeColor3fv(TH_BACK, col);
+		glColor3fv(col);
+		glRectf(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2, G.v2d->tot.ymax+2); /* light square in the centre */
+		BIF_ThemeColorShade(TH_BACK, -96); /* drop shadow color */
+		glRectf(G.v2d->tot.xmin-1, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+3, G.v2d->tot.ymin-3); /* bottom dropshadow */
+		glRectf(G.v2d->tot.xmax+2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+3, G.v2d->tot.ymax+1); /* right hand dropshadow */
+		/* box around the oops. */
+		cpack(0x0);
+		mysbox(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2, G.v2d->tot.ymax+2);
+		
+		
 		/* Set the font size for the oops based on the zoom level */
 		if (oopscalex > 6.0) font = BMF_GetFont(BMF_kScreen15);
 		else if (oopscalex > 3.5) font = G.font;
