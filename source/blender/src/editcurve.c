@@ -3275,7 +3275,7 @@ void nurb_set_smooth(short event)
 	else if(event==0) BIF_undo_push("Set Solid");
 }
 
-void join_curve(int type)
+int join_curve(int type)
 {
 	Base *base, *nextb;
 	Object *ob;
@@ -3287,11 +3287,9 @@ void join_curve(int type)
 	float imat[4][4], cmat[4][4];
 	int a;
 	
-	/* if(G.obedit) return; */ /* Alredy checked in join_menu() */
-	
 	ob= OBACT;
-	if(ob->type!=type) return;
-	if(ob->lay & G.vd->lay); else return;
+	if(ob->type!=type) return 0;
+	if(ob->lay & G.vd->lay); else return 0;
 	tempbase.first= tempbase.last= 0;
 	
 	/* trasnform all selected curves inverse in obact */
@@ -3353,7 +3351,7 @@ void join_curve(int type)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	BIF_undo_push("Join");
-	
+	return 1;
 }
 
 

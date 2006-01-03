@@ -34,7 +34,7 @@
 
 meshtools.c: no editmode, tools operating on meshes
 
-void join_mesh(void);
+int join_mesh(void);
 
 void fasterdraw(void);
 void slowerdraw(void);
@@ -115,7 +115,9 @@ static int testSelected_TfaceMesh(void)
 	return 0;
 }	
 
-void join_mesh(void)
+/* join selected meshes into the active mesh, context sensitive
+return 0 if no join is made (error) and 1 of the join is done */
+int join_mesh(void)
 {
 	Base *base, *nextb;
 	Object *ob;
@@ -132,10 +134,10 @@ void join_mesh(void)
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert, *dvertmain;
 	
-	if(G.obedit) return;
+	if(G.obedit) return 0;
 	
 	ob= OBACT;
-	if(!ob || ob->type!=OB_MESH) return;
+	if(!ob || ob->type!=OB_MESH) return 0;
 	
 	/* count */
 	base= FIRSTBASE;
@@ -159,12 +161,12 @@ void join_mesh(void)
 	
 	if(haskey) {
 		error("Can't join meshes with vertex keys");
-		return;
+		return 0;
 	}
 	/* that way the active object is always selected */ 
-	if(ok==0) return;
+	if(ok==0) return 0;
 	
-	if(totvert==0 || totvert>MESH_MAX_VERTS) return;
+	if(totvert==0 || totvert>MESH_MAX_VERTS) return 0;
 	
 
 
@@ -438,6 +440,7 @@ void join_mesh(void)
 	allqueue(REDRAWBUTSSHADING, 0);
 
 	BIF_undo_push("Join Mesh");
+	return 1;
 }
 
 

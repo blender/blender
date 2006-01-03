@@ -156,7 +156,7 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
         activeObject.LocX += 1
     Blender.Redraw()
   """
-
+'''
 def Join ():
   """
   Joins selected objects on visible layers from Blenders current scene.
@@ -168,7 +168,7 @@ def Join ():
   @note: The join may be unsucsessfull because of the selection or object types and no error raised.
     Checking if the number of selected objects has changed is a way to know the join worked.
   """
-
+'''
 
 class Object:
   """
@@ -558,6 +558,20 @@ class Object:
     @warn: objects must first be linked to a scene before they can become
         parents of other objects.  Calling this makeParent method for an
         unlinked object will result in an error.
+    """
+
+  def join(objects):
+    """
+    Uses the object as a base for all of the objects in the provided list to join into.
+    
+    @type objects: Sequence of Blender Object
+    @param objects: A list of objects matching the objects type.
+    @note: Objects in the list will not be removed, to avoid duplicate data you may want to remove them manualy after joining.
+    @note: Join modifies the object in place so that other objects are joined into it. no new object or data is created.
+    @note: Join will only work for object types Mesh, Armature, Curve and Surface, an error will be raised if the object is not of this type.
+    @note: objects in the list will be ignored if they to not match the base object.
+    @rtype: int
+    @return: 0 is returned if the join is not successfull, otherwise 1 will be returned.
     """
 
   def makeParentDeform(objects, noninverse = 0, fast = 0):
