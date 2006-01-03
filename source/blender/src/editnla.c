@@ -442,15 +442,17 @@ static void add_nlablock(void)
 	Object *ob= OBACT;
 	short event;
 	short nr=0;
-	char *str;
+	char *str, title[64];
 	
 	if(ob==NULL) {
 		error("Need active Object to add NLA strips");
 		return;
 	}
 	
+	sprintf(title, "Add Action strip to: %s", ob->id.name+2);
+	
 	/* Popup action menu */
-	IDnames_to_pupstring(&str, "Add Action strip", NULL, &G.main->action, (ID *)G.scene, &nr);
+	IDnames_to_pupstring(&str, title, NULL, &G.main->action, (ID *)G.scene, &nr);
 	
 	if(nr==-2) {
 		MEM_freeN(str);

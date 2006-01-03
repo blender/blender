@@ -681,7 +681,10 @@ void BIF_undo(void)
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL));
 		else {
 			/* now also in faceselect mode */
-			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_step(1);
+			if(U.uiflag & USER_GLOBALUNDO) {
+				BKE_undo_step(1);
+				sound_initialize_sounds();
+			}
 		}
 	}
 }
@@ -699,7 +702,10 @@ void BIF_redo(void)
 			vpaint_undo();
 		else {
 			/* includes faceselect now */
-			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_step(-1);
+			if(U.uiflag & USER_GLOBALUNDO) {
+				BKE_undo_step(-1);
+				sound_initialize_sounds();
+			}
 		}
 	}
 }

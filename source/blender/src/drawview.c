@@ -1781,6 +1781,7 @@ void do_viewbuts(unsigned short event)
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:
 		{
+			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 		}

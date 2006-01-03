@@ -6010,8 +6010,12 @@ short pupmenu_col(char *instr, int maxrow)
 	while (rows*columns<(md->nitems+columns) ) rows++;
 		
 	/* size and location */
-	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & USER_TR_BUTTONS));
+	if(md->title) {
+		width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & USER_TR_BUTTONS));
+		width /= columns;
+	}
 	else width= 0;
+	
 	for(a=0; a<md->nitems; a++) {
 		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts & USER_TR_BUTTONS));
 		if(xmax>width) width= xmax;
@@ -6086,7 +6090,7 @@ short pupmenu_col(char *instr, int maxrow)
 	if(md->title) {
 		uiBut *bt;
 		uiSetCurFont(block, UI_HELVB);
-		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
+		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), columns*(short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
 		uiSetCurFont(block, UI_HELV);
 		bt->flag= UI_TEXT_LEFT;
 	}
