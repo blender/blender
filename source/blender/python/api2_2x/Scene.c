@@ -835,7 +835,6 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	PyObject *bpy_obj;
 	Object *object;
 	Base *base;
-	PyObject *name;
 
 	if( !scene )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,

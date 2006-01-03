@@ -121,8 +121,8 @@
 /* Raytracing settings */
 #define EXPP_LAMP_RAYSAMPLES_MIN 1
 #define EXPP_LAMP_RAYSAMPLES_MAX 16
-#define EXPP_LAMP_AREASIZE_MIN 0.01
-#define EXPP_LAMP_AREASIZE_MAX 100.0
+#define EXPP_LAMP_AREASIZE_MIN 0.01f
+#define EXPP_LAMP_AREASIZE_MAX 100.0f
 
 /* Lamp_setComponent() keys for which color to get/set */
 #define	EXPP_LAMP_COMP_R			0x00

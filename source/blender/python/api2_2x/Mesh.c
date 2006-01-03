@@ -4771,8 +4771,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	char *name;
 	ID tmpid;
 	Mesh *tmpmesh;
-	Curve *tmpcu;
-	MetaBall *tmpmb;
+	Curve *tmpcu = NULL;
 	DispListMesh *dlm;
 	DerivedMesh *dm;
 	Object *tmpobj = NULL;

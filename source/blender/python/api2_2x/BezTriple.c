@@ -169,7 +169,7 @@ static PyObject *M_BezTriple_New( PyObject* self, PyObject * args )
 			Py_DECREF(item);
 			if( !pyfloat )
 				goto TypeError;
-			numbuf[i]=PyFloat_AS_DOUBLE(pyfloat);
+			numbuf[i]=(float)PyFloat_AS_DOUBLE(pyfloat);
 			Py_DECREF(pyfloat);
 		}
 
