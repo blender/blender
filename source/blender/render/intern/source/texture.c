@@ -1035,8 +1035,10 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 			fy= (t[1] + 1.0) / 2.0;
 			dxt[0]/= 2.0; 
 			dxt[1]/= 2.0;
+			dxt[2]/= 2.0;
 			dyt[0]/= 2.0; 
 			dyt[1]/= 2.0;
+			dyt[2]/= 2.0;
 		}
 		else if ELEM(wrap, MTEX_TUBE, MTEX_SPHERE) {
 			/* exception: the seam behind (y<0.0) */
@@ -1077,19 +1079,25 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 			else proj = cubemap(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
 
 			if(proj==1) {
-				dxt[1]= dxt[2];
-				dyt[1]= dyt[2];
+				SWAP(float, dxt[1], dxt[2]);
+				SWAP(float, dyt[1], dyt[2]);
 			}
 			else if(proj==2) {
+				float f1= dxt[0], f2= dyt[0];
 				dxt[0]= dxt[1];
 				dyt[0]= dyt[1];
 				dxt[1]= dxt[2];
 				dyt[1]= dyt[2];
+				dxt[2]= f1;
+				dyt[2]= f2;
 			}
 			dxt[0]/= 2.0; 
 			dxt[1]/= 2.0;
+			dxt[2]/= 2.0;
+			
 			dyt[0]/= 2.0; 
 			dyt[1]/= 2.0;
+			dyt[2]/= 2.0;
 		}
 		
 		/* if area, then reacalculate dxt[] and dyt[] */
@@ -1104,7 +1112,9 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		
 		/* repeat */
 		if(tex->extend==TEX_REPEAT) {
+			float max= 1.0f;
 			if(tex->xrepeat>1) {
+				max= tex->xrepeat;
 				fx *= tex->xrepeat;
 				dxt[0]*= tex->xrepeat;
 				dyt[0]*= tex->xrepeat;
@@ -1112,12 +1122,19 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 				else if(fx<0.0) fx+= 1-(int)(fx);
 			}
 			if(tex->yrepeat>1) {
+				if(max<tex->yrepeat)
+					max= tex->yrepeat;
 				fy *= tex->yrepeat;
 				dxt[1]*= tex->yrepeat;
 				dyt[1]*= tex->yrepeat;
 				if(fy>1.0) fy -= (int)(fy);
 				else if(fy<0.0) fy+= 1-(int)(fy);
 			}
+			if(max!=1.0f) {
+				dxt[1]*= max;
+				dyt[2]*= max;
+			}
+			
 		}
 		/* crop */
 		if(tex->cropxmin!=0.0 || tex->cropxmax!=1.0) {
@@ -1510,10 +1527,25 @@ void do_material_tex(ShadeInput *shi)
 				else texvec[2]= 0.0;
 
 				if(shi->osatex) {
-					VECCOPY(dxt, dx);
-					VECCOPY(dyt, dy);
+					
+					if(mtex->projx) {
+						dxt[0]= dx[mtex->projx-1];
+						dyt[0]= dy[mtex->projx-1];
+					}
+					else dxt[0]= dyt[0]= 0.0f;
+					
+					if(mtex->projy) {
+						dxt[1]= dx[mtex->projy-1];
+						dyt[1]= dy[mtex->projy-1];
+					}
+					else dxt[1]= dyt[1]= 0.0f;
+					if(mtex->projz) {
+						dxt[2]= dx[mtex->projz-1];
+						dyt[2]= dy[mtex->projz-1];
+					}
+					else dxt[2]= dyt[2]= 0.0;
 				}
-
+				
 				do_2d_mapping(mtex, texvec, shi->vlr, dxt, dyt);
 
 				/* translate and scale */
@@ -1539,8 +1571,21 @@ void do_material_tex(ShadeInput *shi)
 				else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
 
 				if(shi->osatex) {
-					VECCOPY(dxt, dx);
-					VECCOPY(dyt, dy);
+					if(mtex->projx) {
+						dxt[0]= mtex->size[0]*dx[mtex->projx-1];
+						dyt[0]= mtex->size[0]*dy[mtex->projx-1];
+					}
+					else dxt[0]= 0.0;
+					if(mtex->projy) {
+						dxt[1]= mtex->size[1]*dx[mtex->projy-1];
+						dyt[1]= mtex->size[1]*dy[mtex->projy-1];
+					}
+					else dxt[1]= 0.0;
+					if(mtex->projz) {
+						dxt[2]= mtex->size[2]*dx[mtex->projz-1];
+						dyt[2]= mtex->size[2]*dy[mtex->projz-1];
+					}
+					else dxt[2]= 0.0;
 				}
 			}
 
@@ -1680,9 +1725,18 @@ void do_material_tex(ShadeInput *shi)
 						shi->vn[2]= facm*shi->vn[2] + fact*texres.nor[2];
 					}
 					else {
-						shi->vn[0]+= Tnor*tex->norfac*texres.nor[0];
-						shi->vn[1]+= Tnor*tex->norfac*texres.nor[1];
-						shi->vn[2]+= Tnor*tex->norfac*texres.nor[2];
+						float nor[3], dot;
+						
+						/* prevent bump to become negative normal */
+						nor[0]= Tnor*tex->norfac*texres.nor[0];
+						nor[1]= Tnor*tex->norfac*texres.nor[1];
+						nor[2]= Tnor*tex->norfac*texres.nor[2];
+						
+						dot= 0.5f + 0.5f*INPR(nor, shi->vn);
+						
+						shi->vn[0]+= dot*nor[0];
+						shi->vn[1]+= dot*nor[1];
+						shi->vn[2]+= dot*nor[2];
 					}					
 					Normalise(shi->vn);
 					
