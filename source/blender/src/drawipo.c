@@ -2292,6 +2292,8 @@ int view2dmove(unsigned short event)
 					else left= 0.0;
 					leftret= 0;
 				}
+				if((event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE))
+					facy= -facy;
 			}
 			else if(IN_2D_HORIZ_SCROLL((int)mvalo)) {
 				facx= -(G.v2d->tot.xmax-G.v2d->tot.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
