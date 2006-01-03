@@ -43,7 +43,18 @@ struct DerivedMesh;
 /* note; changing this also might affect the undo copy in editmesh.c */
 typedef struct EditVert
 {
-	struct EditVert *next, *prev, *vn;
+	struct EditVert *next, *prev;
+	union {
+		/* some lean storage for temporary usage 
+		 * in editmesh routines
+		 */
+		struct EditVert *v;
+		struct EditEdge *e;
+		struct EditFace *f;
+		float           *fp;
+		void            *p;
+		long             l;
+	} tmp;
 	float no[3];
 	float co[3];
 	short xs, ys;
@@ -66,8 +77,17 @@ typedef struct HashEdge {
 typedef struct EditEdge
 {
 	struct EditEdge *next, *prev;
-	/* Note: vn is for general purpose temporary storage */
-	struct EditVert *v1, *v2, *vn;
+	struct EditVert *v1, *v2;
+	union {
+		/* some lean storage for temporary usage 
+		 * in editmesh routines
+		 */
+		struct EditVert *v;
+		struct EditEdge *e;
+		struct EditFace *f;
+		void            *p;
+		long             l;
+	} tmp;
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
 	unsigned char f, h, dir, seam;
 	float crease;
@@ -82,6 +102,16 @@ typedef struct EditFace
 	struct EditFace *next, *prev;
 	struct EditVert *v1, *v2, *v3, *v4;
 	struct EditEdge *e1, *e2, *e3, *e4;
+	union {
+		/* some lean storage for temporary usage 
+		 * in editmesh routines
+		 */
+		struct EditVert *v;
+		struct EditEdge *e;
+		struct EditFace *f;
+		void            *p;
+		long             l;
+	} tmp;
 	float n[3], cent[3];
 	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;

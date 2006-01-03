@@ -567,7 +567,7 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	float cent1[3], cent2[3];
 	float inp;
 	
-	efa2= (EditFace *)eed->vn;
+	efa2 = eed->tmp.f;
 	if(efa1==efa2) return;
 	
 	inp= efa1->n[0]*efa2->n[0] + efa1->n[1]*efa2->n[1] + efa1->n[2]*efa2->n[2];
@@ -611,7 +611,7 @@ static void edge_drawflags(void)
 	EditFace *efa;
 	
 	/* - count number of times edges are used in faces: 0 en 1 time means draw edge
-	 * - edges more than 1 time used: in *vn is pointer to first face
+	 * - edges more than 1 time used: in *tmp.f is pointer to first face
 	 * - check all faces, when normal differs to much: draw (flag becomes 1)
 	 */
 
@@ -630,7 +630,7 @@ static void edge_drawflags(void)
 	eed= em->edges.first;
 	while(eed) {
 		eed->f2= eed->f1= 0;
-		eed->vn= 0;
+		eed->tmp.f = 0;
 		eed= eed->next;
 	}
 
@@ -645,10 +645,10 @@ static void edge_drawflags(void)
 		if(e3->f2<4) e3->f2+= 1;
 		if(e4 && e4->f2<4) e4->f2+= 1;
 		
-		if(e1->vn==0) e1->vn= (EditVert *)efa;
-		if(e2->vn==0) e2->vn= (EditVert *)efa;
-		if(e3->vn==0) e3->vn= (EditVert *)efa;
-		if(e4 && e4->vn==0) e4->vn= (EditVert *)efa;
+		if(e1->tmp.f == 0) e1->tmp.f = (void *) efa;
+		if(e2->tmp.f == 0) e2->tmp.f = (void *) efa;
+		if(e3->tmp.f ==0) e3->tmp.f = (void *) efa;
+		if(e4 && (e4->tmp.f == 0)) e4->tmp.f = (void *) efa;
 		
 		efa= efa->next;
 	}
@@ -920,7 +920,7 @@ void load_editMesh(void)
 	me->mface= mface;
 	me->totface= G.totface;
 		
-	/* the vertices, abuse ->vn as counter */
+	/* the vertices, use ->tmp.l as counter */
 	eve= em->verts.first;
 	a= 0;
 
@@ -944,7 +944,7 @@ void load_editMesh(void)
 			}
 		}
 
-		eve->vn= (EditVert *)(long)(a++);  /* counter */
+		eve->tmp.l = a++;  /* counter */
 			
 		mvert->flag= 0;
 		if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
@@ -959,8 +959,8 @@ void load_editMesh(void)
 	/* the edges */
 	eed= em->edges.first;
 	while(eed) {
-		medge->v1= (unsigned int) eed->v1->vn;
-		medge->v2= (unsigned int) eed->v2->vn;
+		medge->v1= (unsigned int) eed->v1->tmp.l;
+		medge->v2= (unsigned int) eed->v2->tmp.l;
 		
 		medge->flag= (eed->f & SELECT) | ME_EDGERENDER;
 		if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
@@ -981,10 +981,10 @@ void load_editMesh(void)
 	while(efa) {
 		mface= &((MFace *) me->mface)[i];
 		
-		mface->v1= (unsigned int) efa->v1->vn;
-		mface->v2= (unsigned int) efa->v2->vn;
-		mface->v3= (unsigned int) efa->v3->vn;
-		if(efa->v4) mface->v4= (unsigned int) efa->v4->vn;
+		mface->v1= (unsigned int) efa->v1->tmp.l;
+		mface->v2= (unsigned int) efa->v2->tmp.l;
+		mface->v3= (unsigned int) efa->v3->tmp.l;
+		if (efa->v4) mface->v4 = (unsigned int) efa->v4->tmp.l;
 			
 		mface->mat_nr= efa->mat_nr;
 		
@@ -1107,7 +1107,7 @@ void load_editMesh(void)
 								eve = vertMap[hmd->indexar[i]];
 								
 								if (eve) {
-									hmd->indexar[j++] = (long) eve->vn;
+									hmd->indexar[j++] = eve->tmp.l;
 								}
 							}
 							else j++;
@@ -1175,10 +1175,10 @@ void load_editMesh(void)
 
 	if(oldverts) MEM_freeN(oldverts);
 	
-	/* to be sure: clear ->vn pointers */
+	/* to be sure: clear ->tmp.l pointers */
 	eve= em->verts.first;
 	while(eve) {
-		eve->vn= 0;
+		eve->tmp.l = 0;
 		eve= eve->next;
 	}
 	
@@ -1643,13 +1643,13 @@ static void *editMesh_to_undoMesh(void)
 		evec->totweight= eve->totweight;
 		evec->dw= MEM_dupallocN(eve->dw);
 		
-		eve->vn= (EditVert *)a;
+		eve->tmp.l = a;
 	}
 	
 	/* copy edges */
 	for(eed=em->edges.first; eed; eed= eed->next, eedc++)  {
-		eedc->v1= (int)eed->v1->vn;
-		eedc->v2= (int)eed->v2->vn;
+		eedc->v1= (int)eed->v1->tmp.l;
+		eedc->v2= (int)eed->v2->tmp.l;
 		eedc->f= eed->f;
 		eedc->h= eed->h;
 		eedc->seam= eed->seam;
@@ -1659,10 +1659,10 @@ static void *editMesh_to_undoMesh(void)
 	
 	/* copy faces */
 	for(efa=em->faces.first; efa; efa= efa->next, efac++) {
-		efac->v1= (int)efa->v1->vn;
-		efac->v2= (int)efa->v2->vn;
-		efac->v3= (int)efa->v3->vn;
-		if(efa->v4) efac->v4= (int)efa->v4->vn;
+		efac->v1= (int)efa->v1->tmp.l;
+		efac->v2= (int)efa->v2->tmp.l;
+		efac->v3= (int)efa->v3->tmp.l;
+		if(efa->v4) efac->v4= (int)efa->v4->tmp.l;
 		else efac->v4= -1;
 		
 		efac->mat_nr= efa->mat_nr;

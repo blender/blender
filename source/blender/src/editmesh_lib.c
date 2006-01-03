@@ -604,9 +604,9 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 	EditEdge *eed;
 	EditFace *efa;
 	
-	for(eve= em->verts.first; eve; eve= eve->next) eve->vn= NULL;
+	for(eve= em->verts.first; eve; eve= eve->next) eve->tmp.v = NULL;
 	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->vn= NULL;
+		eed->tmp.f = NULL;
 		eed->f2= ((eed->f & flag)!=0);
 	}
 	
@@ -614,24 +614,32 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 
 	/* sample for next loop */
 	for(efa= em->faces.first; efa; efa= efa->next) {
-		efa->e1->vn= (EditVert *)efa;
-		efa->e2->vn= (EditVert *)efa;
-		efa->e3->vn= (EditVert *)efa;
-		if(efa->e4) efa->e4->vn= (EditVert *)efa;
+		efa->e1->tmp.f = efa;
+		efa->e2->tmp.f = efa;
+		efa->e3->tmp.f = efa;
+		if(efa->e4) efa->e4->tmp.f = efa;
 	}
 	/* make the faces */
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->f & flag) {
-			if(eed->v1->vn==NULL) eed->v1->vn= addvertlist(eed->v1->co);
-			if(eed->v2->vn==NULL) eed->v2->vn= addvertlist(eed->v2->co);
+			if(eed->v1->tmp.v == NULL) 
+				eed->v1->tmp.v = addvertlist(eed->v1->co);
+			if(eed->v2->tmp.v == NULL) 
+				eed->v2->tmp.v = addvertlist(eed->v2->co);
 			
-			if(eed->dir==1) addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, (EditFace *)eed->vn, NULL);
-			else addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, (EditFace *)eed->vn, NULL);
+			if(eed->dir==1) 
+				addfacelist(eed->v1, eed->v2, 
+							eed->v2->tmp.v, eed->v1->tmp.v, 
+							eed->tmp.f, NULL);
+			else 
+				addfacelist(eed->v2, eed->v1, 
+							eed->v1->tmp.v, eed->v2->tmp.v, 
+							eed->tmp.f, NULL);
 
 			/* for transform */
-			if(eed->vn) {
-				efa= (EditFace *)eed->vn;
-				if(efa->f & SELECT) add_normal_aligned(nor, efa->n);
+			if(eed->tmp.f) {
+				efa = eed->tmp.f;
+				if (efa->f & SELECT) add_normal_aligned(nor, efa->n);
 			}
 		}
 	}
@@ -640,8 +648,8 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 	/* set correct selection */
 	EM_clear_flag_all(SELECT);
 	for(eve= em->verts.last; eve; eve= eve->prev) {
-		if(eve->vn) {
-			eve->vn->f |= flag;
+		if(eve->tmp.v) {
+			eve->tmp.v->f |= flag;
 		}
 	}
 
@@ -662,16 +670,18 @@ short extrudeflag_verts_indiv(short flag, float *nor)
 	/* make the edges */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f & flag) {
-			eve->vn= addvertlist(eve->co);
-			addedgelist(eve, eve->vn, NULL);
+			eve->tmp.v = addvertlist(eve->co);
+			addedgelist(eve, eve->tmp.v, NULL);
 		}
-		else eve->vn= NULL;
+		else eve->tmp.v = NULL;
 	}
 	
 	/* set correct selection */
 	EM_clear_flag_all(SELECT);
 
-	for(eve= em->verts.last; eve; eve= eve->prev) if(eve->vn) eve->vn->f |= flag;
+	for(eve= em->verts.last; eve; eve= eve->prev) 
+		if (eve->tmp.v) 
+			eve->tmp.v->f |= flag;
 
 	return 'g';	// g is grab
 }
@@ -706,7 +716,7 @@ static short extrudeflag_edge(short flag, float *nor)
 	recalc_editnormals();
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
-		eve->vn= NULL;
+		eve->tmp.v = NULL;
 		eve->f1= 0;
 	}
 
@@ -717,7 +727,7 @@ static short extrudeflag_edge(short flag, float *nor)
 			eed->v1->f1= 1; // we call this 'selected vertex' now
 			eed->v2->f1= 1;
 		}
-		eed->vn= NULL;		// here we tuck face pointer, as sample
+		eed->tmp.f = NULL;		// here we tuck face pointer, as sample
 	}
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->f & SELECT) {
@@ -727,10 +737,10 @@ static short extrudeflag_edge(short flag, float *nor)
 			if(efa->e4) efa->e4->f2++;
 			
 			// sample for next loop
-			efa->e1->vn= (EditVert *)efa;
-			efa->e2->vn= (EditVert *)efa;
-			efa->e3->vn= (EditVert *)efa;
-			if(efa->e4) efa->e4->vn= (EditVert *)efa;
+			efa->e1->tmp.f = efa;
+			efa->e2->tmp.f = efa;
+			efa->e3->tmp.f = efa;
+			if(efa->e4) efa->e4->tmp.f = efa;
 		}
 		else {
 			efa->e1->f1++;
@@ -756,14 +766,22 @@ static short extrudeflag_edge(short flag, float *nor)
 	for(eed= em->edges.last; eed; eed= eed->prev) {
 		if(eed->f & SELECT) {
 			if(eed->f2<2) {
-				if(eed->v1->vn==NULL)
-					eed->v1->vn= addvertlist(eed->v1->co);
-				if(eed->v2->vn==NULL)
-					eed->v2->vn= addvertlist(eed->v2->co);
+				if(eed->v1->tmp.v == NULL)
+					eed->v1->tmp.v = addvertlist(eed->v1->co);
+				if(eed->v2->tmp.v == NULL)
+					eed->v2->tmp.v = addvertlist(eed->v2->co);
 				
-				/* if del_old, the preferred normal direction is exact opposite as for keep old faces */
-				if(eed->dir!=del_old) addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, (EditFace *)eed->vn, NULL);
-				else addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, (EditFace *)eed->vn, NULL);
+				/* if del_old, the preferred normal direction is exact 
+				 * opposite as for keep old faces
+				 */
+				if(eed->dir!=del_old) 
+					addfacelist(eed->v1, eed->v2, 
+								eed->v2->tmp.v, eed->v1->tmp.v, 
+								eed->tmp.f, NULL);
+				else 
+					addfacelist(eed->v2, eed->v1, 
+								eed->v1->tmp.v, eed->v2->tmp.v,
+								eed->tmp.f, NULL);
 			}
 		}
 	}
@@ -771,22 +789,30 @@ static short extrudeflag_edge(short flag, float *nor)
 	/* step 3: make new faces from faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
-			if(efa->v1->vn==NULL) efa->v1->vn= addvertlist(efa->v1->co);
-			if(efa->v2->vn==NULL) efa->v2->vn= addvertlist(efa->v2->co);
-			if(efa->v3->vn==NULL) efa->v3->vn= addvertlist(efa->v3->co);
-			if(efa->v4 && efa->v4->vn==NULL) efa->v4->vn= addvertlist(efa->v4->co);
+			if (efa->v1->tmp.v == NULL) 
+				efa->v1->tmp.v = addvertlist(efa->v1->co);
+			if (efa->v2->tmp.v ==NULL)
+				efa->v2->tmp.v = addvertlist(efa->v2->co);
+			if (efa->v3->tmp.v ==NULL) 
+				efa->v3->tmp.v = addvertlist(efa->v3->co);
+			if (efa->v4 && (efa->v4->tmp.v == NULL)) 
+				efa->v4->tmp.v = addvertlist(efa->v4->co);
 			
 			if(del_old==0) {	// keep old faces means flipping normal
 				if(efa->v4)
-					addfacelist(efa->v4->vn, efa->v3->vn, efa->v2->vn, efa->v1->vn, efa, efa);
+					addfacelist(efa->v4->tmp.v, efa->v3->tmp.v, 
+								efa->v2->tmp.v, efa->v1->tmp.v, efa, efa);
 				else
-					addfacelist(efa->v3->vn, efa->v2->vn, efa->v1->vn, NULL, efa, efa);
+					addfacelist(efa->v3->tmp.v, efa->v2->tmp.v, 
+								efa->v1->tmp.v, NULL, efa, efa);
 			}
 			else {
 				if(efa->v4)
-					addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, efa->v4->vn, efa, efa);
+					addfacelist(efa->v1->tmp.v, efa->v2->tmp.v, 
+								efa->v3->tmp.v, efa->v4->tmp.v, efa, efa);
 				else
-					addfacelist(efa->v1->vn, efa->v2->vn, efa->v3->vn, NULL, efa, efa);
+					addfacelist(efa->v1->tmp.v, efa->v2->tmp.v, 
+								efa->v3->tmp.v, NULL, efa, efa);
 			}
 	
 			/* for transform */
@@ -837,7 +863,7 @@ static short extrudeflag_edge(short flag, float *nor)
 			nextve= eve->next;
 			if(eve->f1) {
 				// hack... but we need it for step 7, redoing selection
-				if(eve->vn) eve->vn->vn= eve->vn;
+				if(eve->tmp.v) eve->tmp.v->tmp.v= eve->tmp.v;
 				
 				BLI_remlink(&em->verts, eve);
 				free_editvert(eve);
@@ -852,8 +878,8 @@ static short extrudeflag_edge(short flag, float *nor)
 	EM_clear_flag_all(SELECT);
 
 	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->vn) {
-			eve->vn->f |= SELECT;
+		if(eve->tmp.v) {
+			eve->tmp.v->f |= SELECT;
 		}
 	}
 
@@ -893,7 +919,7 @@ short extrudeflag_vert(short flag, float *nor)
 		else eed->f2= 0;
 		
 		eed->f1= 1;		/* this indicates it is an 'old' edge (in this routine we make new ones) */
-		eed->vn= NULL;	/* abused as sample */
+		eed->tmp.f = NULL;	/* used as sample */
 		
 		eed= eed->next;
 	}
@@ -931,10 +957,10 @@ short extrudeflag_vert(short flag, float *nor)
 		}
 		
 		// sample for next loop
-		efa->e1->vn= (EditVert *)efa;
-		efa->e2->vn= (EditVert *)efa;
-		efa->e3->vn= (EditVert *)efa;
-		if(efa->e4) efa->e4->vn= (EditVert *)efa;
+		efa->e1->tmp.f = efa;
+		efa->e2->tmp.f = efa;
+		efa->e3->tmp.f = efa;
+		if(efa->e4) efa->e4->tmp.f = efa;
 
 		efa= efa->next;
 	}
@@ -957,7 +983,7 @@ short extrudeflag_vert(short flag, float *nor)
 	*/
 
 	/* copy all selected vertices, */
-	/* write pointer to new vert in old struct at eve->vn */
+	/* write pointer to new vert in old struct at eve->tmp.v */
 	eve= em->verts.last;
 	while(eve) {
 		eve->f &= ~128;  /* clear, for later test for loose verts */
@@ -968,9 +994,9 @@ short extrudeflag_vert(short flag, float *nor)
 			VECCOPY(v1->co, eve->co);
 			v1->f= eve->f;
 			eve->f-= flag;
-			eve->vn= v1;
+			eve->tmp.v = v1;
 		}
-		else eve->vn= 0;
+		else eve->tmp.v = 0;
 		eve= eve->prev;
 	}
 
@@ -1007,11 +1033,17 @@ short extrudeflag_vert(short flag, float *nor)
 		if( (eed->f2==1 || eed->f2==2) ) {
 	
 			/* if del_old, the preferred normal direction is exact opposite as for keep old faces */
-			if(eed->dir!=del_old) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
-			else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL, NULL);
+			if(eed->dir != del_old) 
+				efa2 = addfacelist(eed->v1, eed->v2, 
+								  eed->v2->tmp.v, eed->v1->tmp.v, 
+								  NULL, NULL);
+			else 
+				efa2 = addfacelist(eed->v2, eed->v1, 
+								   eed->v1->tmp.v, eed->v2->tmp.v, 
+								   NULL, NULL);
 			
-			if(eed->vn) {
-				efa= (EditFace *)eed->vn;
+			if(eed->tmp.f) {
+				efa = eed->tmp.f;
 				efa2->mat_nr= efa->mat_nr;
 				efa2->tf= efa->tf;
 				efa2->flag= efa->flag;
@@ -1046,15 +1078,19 @@ short extrudeflag_vert(short flag, float *nor)
 		nextvl= efa->next;
 		if(efa->f1 & 1) {
 		
-			v1= efa->v1->vn;
-			v2= efa->v2->vn;
-			v3= efa->v3->vn;
-			if(efa->v4) v4= efa->v4->vn; else v4= 0;
-			
-			if(del_old==0)	// if we keep old, we flip normal
-				efa2= addfacelist(v3, v2, v1, v4, efa, efa); /* hmm .. not sure about edges here */
+			v1 = efa->v1->tmp.v;
+			v2 = efa->v2->tmp.v;
+			v3 = efa->v3->tmp.v;
+			if(efa->v4) 
+				v4 = efa->v4->tmp.v; 
 			else
-				efa2= addfacelist(v1, v2, v3, v4, efa, efa); /* hmm .. not sure about edges here */
+				v4= 0;
+
+			/* hmm .. not sure about edges here */
+			if(del_old==0)	// if we keep old, we flip normal
+				efa2= addfacelist(v3, v2, v1, v4, efa, efa); 
+			else
+				efa2= addfacelist(v1, v2, v3, v4, efa, efa);
 			
 			/* for transform */
 			add_normal_aligned(nor, efa->n);
@@ -1069,15 +1105,15 @@ short extrudeflag_vert(short flag, float *nor)
 	
 	Normalise(nor);	// for grab
 	
-	/* for all vertices with eve->vn!=0 
+	/* for all vertices with eve->tmp.v!=0 
 		if eve->f1==1: make edge
 		if flag!=128 : if del_old==1: remove
 	*/
 	eve= em->verts.last;
 	while(eve) {
 		nextve= eve->prev;
-		if(eve->vn) {
-			if(eve->f1==1) addedgelist(eve, eve->vn, NULL);
+		if(eve->tmp.v) {
+			if(eve->f1==1) addedgelist(eve, eve->tmp.v, NULL);
 			else if( (eve->f & 128)==0) {
 				if(del_old) {
 					BLI_remlink(&em->verts,eve);
@@ -1168,7 +1204,7 @@ void adduplicateflag(int flag)
 			eve->f-= flag;
 			eve->f|= 128;
 			
-			eve->vn= v1;
+			eve->tmp.v = v1;
 
 			/* >>>>> FIXME: Copy deformation weight ? */
 			v1->totweight = eve->totweight;
@@ -1184,8 +1220,8 @@ void adduplicateflag(int flag)
 	/* copy edges */
 	for(eed= em->edges.last; eed; eed= eed->prev) {
 		if( eed->f & flag ) {
-			v1= eed->v1->vn;
-			v2= eed->v2->vn;
+			v1 = eed->v1->tmp.v;
+			v2 = eed->v2->tmp.v;
 			newed= addedgelist(v1, v2, eed);
 			
 			newed->f= eed->f;
@@ -1197,10 +1233,10 @@ void adduplicateflag(int flag)
 	/* then dupicate faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & flag) {
-			v1= efa->v1->vn;
-			v2= efa->v2->vn;
-			v3= efa->v3->vn;
-			if(efa->v4) v4= efa->v4->vn; else v4= NULL;
+			v1 = efa->v1->tmp.v;
+			v2 = efa->v2->tmp.v;
+			v3 = efa->v3->tmp.v;
+			if(efa->v4) v4 = efa->v4->tmp.v; else v4= NULL;
 			newfa= addfacelist(v1, v2, v3, v4, efa, efa); 
 			
 			newfa->f= efa->f;

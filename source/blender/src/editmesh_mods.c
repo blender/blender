@@ -1517,7 +1517,7 @@ void select_sharp_edges(void)
 	EditFace *efa;
 	EditFace **efa1;
 	EditFace **efa2;
-	long edgecount = 0, i, *vnptr;
+	long edgecount = 0, i;
 	static short sharpness = 135;
 	float fsharpness;
 
@@ -1533,12 +1533,11 @@ void select_sharp_edges(void)
 	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
 
 	i=0;
-	/* count edges, (ab)use vn to be a long */
+	/* count edges, use tmp.l  */
 	eed= em->edges.first;
 	while(eed) {
 		edgecount++;
-		vnptr = (long *) &eed->vn;
-		*vnptr = i;
+		eed->tmp.l = i;
 		eed= eed->next;
 		++i;
 	}
@@ -1549,12 +1548,13 @@ void select_sharp_edges(void)
 	efa2 = MEM_callocN(edgecount*sizeof(EditFace *), 
 					   "pairs of edit face pointers");
 
-#define face_table_edge { \
-		i = *vnptr; \
+#define face_table_edge(eed) { \
+		i = eed->tmp.l; \
 		if (i != -1) { \
 			if (efa1[i]) { \
 				if (efa2[i]) { \
-					*vnptr = -1; /* bad, edge has more than two neighbors */ \
+					/* invalidate, edge has more than two neighbors */ \
+					eed->tmp.l = -1; \
 				} \
 				else { \
 					efa2[i] = efa; \
@@ -1569,25 +1569,20 @@ void select_sharp_edges(void)
 	/* find the adjacent faces of each edge, we want only two */
 	efa= em->faces.first;
 	while(efa) {
-		vnptr = (long *) &efa->e1->vn;
-		face_table_edge;
-		vnptr = (long *) &efa->e2->vn;
-		face_table_edge;
-		vnptr = (long *) &efa->e3->vn;
-		face_table_edge;
+		face_table_edge(efa->e1);
+		face_table_edge(efa->e2);
+		face_table_edge(efa->e3);
 		if (efa->e4) {
-			vnptr = (long *) &efa->e4->vn;
-			face_table_edge;
+			face_table_edge(efa->e4);
 		}
 		efa= efa->next;
 	}
 
 #undef face_table_edge
 
-	eed= em->edges.first;
+	eed = em->edges.first;
 	while(eed) {
-	vnptr = (long *) &eed->vn;
-		i = *vnptr;
+		i = eed->tmp.l;
 		if (i != -1) { 
 			/* edge has two or less neighboring faces */
 			if ( (efa1[i]) && (efa2[i]) ) { 
@@ -1623,7 +1618,7 @@ void select_linked_flat_faces(void)
 	EditFace *efa;
 	EditFace **efa1;
 	EditFace **efa2;
-	long edgecount = 0, i, *vnptr, faceselcount=0, faceselcountold=0;
+	long edgecount = 0, i, faceselcount=0, faceselcountold=0;
 	static short sharpness = 135;
 	float fsharpness;
 
@@ -1639,12 +1634,11 @@ void select_linked_flat_faces(void)
 	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
 
 	i=0;
-	/* count edges, (ab)use vn to be a long */
+	/* count edges, use tmp.l */
 	eed= em->edges.first;
 	while(eed) {
 		edgecount++;
-		vnptr = (long *) &eed->vn;
-		*vnptr = i;
+		eed->tmp.l = i;
 		eed= eed->next;
 		++i;
 	}
@@ -1655,12 +1649,13 @@ void select_linked_flat_faces(void)
 	efa2 = MEM_callocN(edgecount*sizeof(EditFace *), 
 					   "pairs of edit face pointers");
 
-#define face_table_edge { \
-		i = *vnptr; \
+#define face_table_edge(eed) { \
+		i = eed->tmp.l; \
 		if (i != -1) { \
 			if (efa1[i]) { \
 				if (efa2[i]) { \
-					*vnptr = -1; /* bad, edge has more than two neighbors */ \
+					/* invalidate, edge has more than two neighbors */ \
+					eed->tmp.l = -1; \
 				} \
 				else { \
 					efa2[i] = efa; \
@@ -1675,15 +1670,11 @@ void select_linked_flat_faces(void)
 	/* find the adjacent faces of each edge, we want only two */
 	efa= em->faces.first;
 	while(efa) {
-		vnptr = (long *) &efa->e1->vn;
-		face_table_edge;
-		vnptr = (long *) &efa->e2->vn;
-		face_table_edge;
-		vnptr = (long *) &efa->e3->vn;
-		face_table_edge;
+		face_table_edge(efa->e1);
+		face_table_edge(efa->e2);
+		face_table_edge(efa->e3);
 		if (efa->e4) {
-			vnptr = (long *) &efa->e4->vn;
-			face_table_edge;
+			face_table_edge(efa->e4);
 		}
 
 		/* while were at it, count the selected faces */
@@ -1696,8 +1687,7 @@ void select_linked_flat_faces(void)
 
 	eed= em->edges.first;
 	while(eed) {
-		vnptr = (long *) &eed->vn;
-		i = *vnptr;
+		i = eed->tmp.l;
 		if (i != -1) { 
 			/* edge has two or less neighboring faces */
 			if ( (efa1[i]) && (efa2[i]) ) { 
@@ -1706,21 +1696,21 @@ void select_linked_flat_faces(void)
 				angle = saacos(efa1[i]->n[0]*efa2[i]->n[0] +
 							   efa1[i]->n[1]*efa2[i]->n[1] +
 							   efa1[i]->n[2]*efa2[i]->n[2]);
-				/* flag sharp edges */
+				/* invalidate: edge too sharp */
 				if (fabs(angle) >= fsharpness)
-					*vnptr = -1;
+					eed->tmp.l = -1;
 			}
 			else {
-				/* less than two neighbors */
-				*vnptr = -1;
+				/* invalidate: less than two neighbors */
+				eed->tmp.l = -1;
 			}
 		}
 
 		eed= eed->next;
 	}
 
-#define select_flat_neighbor { \
-				i = *vnptr; \
+#define select_flat_neighbor(eed) { \
+				i = eed->tmp.l; \
 				if (i!=-1) { \
 					if (! (efa1[i]->f & SELECT) ) { \
 						EM_select_face(efa1[i], 1); \
@@ -1739,15 +1729,11 @@ void select_linked_flat_faces(void)
 		efa= em->faces.first;
 		while(efa) {
 			if (efa->f & SELECT) {
-				vnptr = (long *) &efa->e1->vn;
-				select_flat_neighbor;
-				vnptr = (long *) &efa->e2->vn;
-				select_flat_neighbor;
-				vnptr = (long *) &efa->e3->vn;
-				select_flat_neighbor;
+				select_flat_neighbor(efa->e1);
+				select_flat_neighbor(efa->e2);
+				select_flat_neighbor(efa->e3);
 				if (efa->e4) {
-					vnptr = (long *) &efa->e4->vn;
-					select_flat_neighbor;
+					select_flat_neighbor(efa->e4);
 				}
 			}
 			efa= efa->next;
@@ -2547,7 +2533,7 @@ void vertexsmooth(void)
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & SELECT) {
-			eve->vn= (EditVert *)adr;
+			eve->tmp.fp = adr;
 			eve->f1= 0;
 			eve->f2= 0;
 			adr+= 3;
@@ -2595,11 +2581,11 @@ void vertexsmooth(void)
 			
 			if((eed->v1->f & SELECT) && eed->v1->f1<255) {
 				eed->v1->f1++;
-				VecAddf((float *)eed->v1->vn, (float *)eed->v1->vn, fvec);
+				VecAddf(eed->v1->tmp.fp, eed->v1->tmp.fp, fvec);
 			}
 			if((eed->v2->f & SELECT) && eed->v2->f1<255) {
 				eed->v2->f1++;
-				VecAddf((float *)eed->v2->vn, (float *)eed->v2->vn, fvec);
+				VecAddf(eed->v2->tmp.fp, eed->v2->tmp.fp, fvec);
 			}
 		}
 		eed= eed->next;
@@ -2609,7 +2595,7 @@ void vertexsmooth(void)
 	while(eve) {
 		if(eve->f & SELECT) {
 			if(eve->f1) {
-				adr= (float *)eve->vn;
+				adr = eve->tmp.fp;
 				fac= 0.5/(float)eve->f1;
 				
 				eve->co[0]= 0.5*eve->co[0]+fac*adr[0];
@@ -2629,7 +2615,7 @@ void vertexsmooth(void)
 					}
 				}
 			}
-			eve->vn= 0;
+			eve->tmp.fp= 0;
 		}
 		eve= eve->next;
 	}

@@ -1225,7 +1225,7 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 					f1+= 3;
 	
 					/* index number */
-					eve->vn= (EditVert *)totvert;
+					eve->tmp.l = totvert;
 					totvert++;
 					
 					eve= eve->next;
@@ -1235,9 +1235,9 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 				efa= fillfacebase.first;
 				index= dlnew->index;
 				while(efa) {
-					index[0]= (long)efa->v1->vn;
-					index[1]= (long)efa->v2->vn;
-					index[2]= (long)efa->v3->vn;
+					index[0]= (long)efa->v1->tmp.l;
+					index[1]= (long)efa->v2->tmp.l;
+					index[2]= (long)efa->v3->tmp.l;
 					
 					index+= 3;
 					efa= efa->next;

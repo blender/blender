@@ -1268,8 +1268,8 @@ static void createTransLatticeVerts(TransInfo *t)
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
-#define E_VEC(a)	(vectors + (3 * (int)(a)->vn))
-#define E_NEAR(a)	(nears[((int)(a)->vn)])
+#define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
+#define E_NEAR(a)	(nears[((a)->tmp.l)])
 static void editmesh_set_connectivity_distance(int total, float *vectors, EditVert **nears)
 {
 	EditMesh *em = G.editMesh;
@@ -1278,10 +1278,10 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 	int i= 0, done= 1;
 
 	/* f2 flag is used for 'selection' */
-	/* vn is offset on scratch array   */
+	/* tmp.l is offset on scratch array   */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->h==0) {
-			eve->vn = (EditVert *)(i++);
+			eve->tmp.l = i++;
 
 			if(eve->f & SELECT) {
 				eve->f2= 2;
@@ -1423,13 +1423,13 @@ static float *get_mapped_editverts(void)
 /* helper for below, interpolates or assigns and increments */
 static float *crazy_quat_blend(EditVert *eve, float *quat)
 {
-	if(eve->vn==NULL) {
-		eve->vn= (EditVert *)quat;
+	if(eve->tmp.fp == NULL) {
+		eve->tmp.fp = quat;
 		QUATCOPY(quat+4, quat);
 		return quat+4;
 	}
 	else {
-		float *q1= (float *)eve->vn;
+		float *q1= eve->tmp.fp;
 		QuatInterpol(q1, q1, quat, 0.5f);
 		return quat;
 	}
@@ -1446,7 +1446,7 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 	
 	/* 2 abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
-		eve->vn= NULL;
+		eve->tmp.fp = NULL;
 		eve->prev= (EditVert *)index;
 	}
 	
@@ -1454,8 +1454,10 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		/* vertex f1 flags were set for transform */
 		
-		if( (efa->v1->f1 && efa->v1->vn==NULL) || (efa->v2->f1 && efa->v2->vn==NULL)
-			|| (efa->v3->f1 && efa->v3->vn==NULL) || (efa->v4 && efa->v4->f1 && efa->v4->vn==NULL) ) {
+		if( (efa->v1->f1 && efa->v1->tmp.fp==NULL) || 
+			(efa->v2->f1 && efa->v2->tmp.fp==NULL) ||
+			(efa->v3->f1 && efa->v3->tmp.fp==NULL) || 
+			 (efa->v4 && efa->v4->f1 && efa->v4->tmp.fp==NULL) ) {
 		
 			triatoquat(efa->v1->co, efa->v2->co, efa->v3->co, q1);
 			
@@ -1589,10 +1591,10 @@ static void createTransEditVerts(TransInfo *t)
 				}
 				
 				/* CrazySpace */
-				if(quats && eve->vn) {
+				if(quats && eve->tmp.fp) {
 					float mat[3][3], imat[3][3], qmat[3][3];
 					
-					QuatToMat3((float *)eve->vn, qmat);
+					QuatToMat3(eve->tmp.fp, qmat);
 					Mat3MulMat3(mat, mtx, qmat);
 					Mat3Inv(imat, mat);
 					
