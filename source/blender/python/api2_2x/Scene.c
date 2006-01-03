@@ -845,22 +845,16 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 
 	while( base ) {
 		object = base->object;
-
-		name = Py_BuildValue( "(s)", object->id.name + 2 );
-		if( !name )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Py_BuildValue() failed" );
-
-		bpy_obj = M_Object_Get( Py_None, name );
-		Py_DECREF ( name );
-
+		
+		bpy_obj = Object_CreatePyObject( object );
+		
 		if( !bpy_obj )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						      "couldn't create new object wrapper" );
 
 		PyList_Append( pylist, bpy_obj );
 		Py_XDECREF( bpy_obj );	/* PyList_Append incref'ed it */
-
+		
 		base = base->next;
 	}
 
