@@ -657,8 +657,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			// Now thread safe
 			if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
 			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
-			if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
 			if(env->ima->ok && env->ok==0) envmap_split_ima(env);
+			if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
 		}
 	}
 
