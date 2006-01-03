@@ -71,7 +71,9 @@
 #include "BKE_node.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+
 #include "BSE_drawipo.h"
+#include "BSE_node.h"
 #include "BSE_headerbuttons.h"
 
 #include "MEM_guardedalloc.h"
@@ -286,13 +288,14 @@ void buttons_active_id(ID **id, ID **idfrom)
 					
 					ma= give_current_material(ob, ob->actcol);
 					if(ma && ma->use_nodes)
-						node= nodeGetActiveID(ma->nodetree, ID_TE);
+						node= editnode_get_active_idnode(ma->nodetree, ID_TE);
+						
 					if(node) {
 						*idfrom= NULL;
 						*id= node->id;
 					}
 					else {
-						ma= get_active_matlayer(ma);
+						ma= editnode_get_active_material(ma);
 						*idfrom= (ID *)ma;
 						if(ma) {
 							mtex= ma->mtex[ ma->texact ];

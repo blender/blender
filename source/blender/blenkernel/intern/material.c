@@ -579,29 +579,6 @@ void new_material_to_objectdata(Object *ob)
 	ob->actcol= ob->totcol;
 }
 
-/* will be renamed... now easy to re-use for nodes! */
-Material *get_active_matlayer(Material *ma)
-{
-	
-	if(ma==NULL) return NULL;
-	
-	if(ma->use_nodes) {
-		bNode *node= nodeGetActiveID(ma->nodetree, ID_MA);
-		if(node && node->id) {
-			return (Material *)node->id;
-		}
-		return NULL;
-	}
-	else {
-		MaterialLayer *ml;
-		for(ml= ma->layers.first; ml; ml= ml->next)
-			if(ml->flag & ML_ACTIVE) break;
-		if(ml)
-			return ml->mat;
-	}
-	return ma;
-}
-
 static void do_init_render_material(Material *ma)
 {
 	MTex *mtex;

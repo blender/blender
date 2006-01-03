@@ -40,10 +40,17 @@
 
 struct SpaceNode;
 struct bNode;
+struct bNodeTree;
 struct Material;
-
+struct ID;
 
 /* ************* API for editnode.c *********** */
+
+			/* helper calls to retreive active context for buttons, does groups */
+struct Material *editnode_get_active_material(struct Material *ma);
+struct bNode *editnode_get_active_idnode(struct bNodeTree *ntree, short id_code);
+struct bNode *editnode_get_active(struct bNodeTree *ntree);
+
 void snode_tag_dirty(struct SpaceNode *snode);
 
 void snode_set_context(struct SpaceNode *snode);

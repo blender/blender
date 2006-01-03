@@ -928,10 +928,18 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 						  "");
 				}
 				else if(node->block && sock->type==SOCK_RGBA) {
+					short labelw= node->width-NODE_DY-40, width;
+					
+					if(labelw>0) width= 40; else width= node->width-NODE_DY;
+					
 					bt= uiDefButF(node->block, COL, B_NODE_EXEC, "", 
-						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, (short)(node->width-NODE_DY), 15, 
+						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, width, 15, 
 						   butpoin, 0, 0, 0, 0, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
+					
+					if(labelw>0) uiDefBut(node->block, LABEL, 0, sock->name, 
+										   (short)(sock->locx+NODE_DYS) + 40, (short)sock->locy-8, labelw, 15, 
+										   NULL, 0, 0, 0, 0, "");
 				}
 			}
 			else {

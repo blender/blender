@@ -1141,9 +1141,14 @@ void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
 {
 	bNode *node;
 	
+	if(ntree==NULL)
+		return;
+	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->flag & NODE_PREVIEW)	/* hrms, check for closed nodes? */
 			nodeInitPreview(node, xsize, ysize);
+		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+			ntreeInitPreview((bNodeTree *)node->id, xsize, ysize);
 	}		
 }
 

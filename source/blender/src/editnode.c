@@ -76,6 +76,7 @@
 #include "PIL_time.h"
 #include "mydevice.h"
 
+
 /* currently called from BIF_preview_changed */
 void snode_tag_dirty(SpaceNode *snode)
 {
@@ -211,6 +212,27 @@ void snode_set_context(SpaceNode *snode)
 		snode->edittree= snode->nodetree;
 }
 
+static void node_set_active(SpaceNode *snode, bNode *node)
+{
+	
+	nodeSetActive(snode->edittree, node);
+	
+	if(node->type!=NODE_GROUP) {
+		
+		/* tree specific activate calls */
+		if(snode->treetype==NTREE_SHADER) {
+			
+			/* when we select a material, active texture is cleared, for buttons */
+			if(node->id && GS(node->id->name)==ID_MA)
+				nodeClearActiveID(snode->edittree, ID_TE);
+			if(node->id)
+				BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
+			
+			allqueue(REDRAWBUTSSHADING, 1);
+		}
+	}
+}
+
 static bNode *snode_get_editgroup(SpaceNode *snode)
 {
 	bNode *gnode;
@@ -222,7 +244,7 @@ static bNode *snode_get_editgroup(SpaceNode *snode)
 	return gnode;
 }
 
-static void node_make_group_editable(SpaceNode *snode, bNode *gnode)
+static void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 {
 	bNode *node;
 	
@@ -248,6 +270,13 @@ static void node_make_group_editable(SpaceNode *snode, bNode *gnode)
 	}
 	else 
 		snode->edittree= snode->nodetree;
+	
+	/* finally send out events for new active node */
+	if(snode->treetype==NTREE_SHADER) {
+		allqueue(REDRAWBUTSSHADING, 0);
+		
+		BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
+	}
 	
 	allqueue(REDRAWNODE, 0);
 }
@@ -605,6 +634,50 @@ static void scale_node(SpaceNode *snode, bNode *node)
 
 /* ********************** select ******************** */
 
+/* used in buttons to check context, also checks for edited groups */
+bNode *editnode_get_active_idnode(bNodeTree *ntree, short id_code)
+{
+	bNode *node;
+	
+	/* check for edited group */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+	if(node)
+		return nodeGetActiveID((bNodeTree *)node->id, id_code);
+	else
+		return nodeGetActiveID(ntree, id_code);
+}
+
+/* used in buttons to check context, also checks for edited groups */
+Material *editnode_get_active_material(Material *ma)
+{
+	if(ma && ma->use_nodes && ma->nodetree) {
+		bNode *node= editnode_get_active_idnode(ma->nodetree, ID_MA);
+		if(node)
+			return (Material *)node->id;
+		else
+			return NULL;
+	}
+	return ma;
+}
+
+/* used in buttons to check context, also checks for edited groups */
+bNode *editnode_get_active(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	/* check for edited group */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_GROUP_EDIT)
+			break;
+	if(node)
+		return nodeGetActive((bNodeTree *)node->id);
+	else
+		return nodeGetActive(ntree);
+}
+
+
 /* no undo here! */
 void node_deselectall(SpaceNode *snode, int swap)
 {
@@ -627,27 +700,6 @@ void node_deselectall(SpaceNode *snode, int swap)
 		node->flag &= ~SELECT;
 	
 	allqueue(REDRAWNODE, 0);
-}
-
-void node_set_active(SpaceNode *snode, bNode *node)
-{
-	
-	nodeSetActive(snode->edittree, node);
-	
-	if(node->type!=NODE_GROUP) {
-		
-		/* tree specific activate calls */
-		if(snode->treetype==NTREE_SHADER) {
-			
-			/* when we select a material, active texture is cleared, for buttons */
-			if(node->id && GS(node->id->name)==ID_MA)
-				nodeClearActiveID(snode->edittree, ID_TE);
-			if(node->id)
-				BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
-			
-			allqueue(REDRAWBUTSSHADING, 1);
-		}
-	}
 }
 
 int node_has_hidden_sockets(bNode *node)
@@ -734,7 +786,7 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 	}
 	if(node->type == NODE_GROUP) {
 		if(BLI_in_rctf(&totr, mx, my)) {
-			node_make_group_editable(snode, node);
+			snode_make_group_editable(snode, node);
 			return 1;
 		}
 		totr.xmin-=18.0f;
@@ -855,7 +907,7 @@ static int node_mouse_groupheader(SpaceNode *snode)
 		
 		rect.ymax += NODE_DY;
 		if(BLI_in_rctf(&rect, mx, my)==0)
-			node_make_group_editable(snode, NULL);	/* toggles, so exits editmode */
+			snode_make_group_editable(snode, NULL);	/* toggles, so exits editmode */
 		else
 			transform_nodes(snode->nodetree, 'g', "Move group");
 		
@@ -1461,7 +1513,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case TABKEY:
-			node_make_group_editable(snode, NULL);
+			snode_make_group_editable(snode, NULL);
 			break;
 			
 		case AKEY:

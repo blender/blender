@@ -1390,7 +1390,7 @@ void do_radiobuts(unsigned short event)
 	case B_RAD_FAC:
 		set_radglobal();
 		if(phase & RAD_PHASE_FACES) make_face_tab();
-		else make_node_display();
+		else make_node_display();	/* radio solver also uses nodes, different ones :) */
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_RAD_NODELIM:
@@ -2362,7 +2362,7 @@ void do_matbuts(unsigned short event)
 	/* but this also gets called for lamp and world... */
 	ma= G.buts->lockpoin;
 	if(ma && GS(ma->id.name)==ID_MA)
-		ma = get_active_matlayer(ma);
+		ma = editnode_get_active_material(ma);
 	else
 		ma= NULL;
 	
@@ -3378,10 +3378,10 @@ static void material_panel_nodes(Material *ma)
 	uiNewPanelTabbed("Links", "Material");
 	if(uiNewPanel(curarea, block, "Nodes", "Material", 640, 0, 318, 204)==0) return;
 	
-	node= nodeGetActive(ma->nodetree);
+	node= editnode_get_active(ma->nodetree);
 	if(node==NULL) return;
 	/* we dont display the buttons here for the active material, is in links panel */
-	if(node==nodeGetActiveID(ma->nodetree, ID_MA)) return;
+	if(node==editnode_get_active_idnode(ma->nodetree, ID_MA)) return;
 	
 	if(node->typeinfo->butfunc) {
 		rctf rct;
@@ -3453,9 +3453,9 @@ static void material_panel_links(Object *ob, Material *ma)
 		uiDefBut(block, ROUNDBOX, 0, "",					5, 40, 310, 75, NULL, 7.0, 0.0, 15 , 20, ""); 
 		uiDefBut(block, LABEL, B_DIFF, "Active Material Node",	10, 95, 300, 20, 0, 0, 0, 0, 0, "");
 		
-		if(ma) node= nodeGetActiveID(ma->nodetree, ID_MA);
+		if(ma) node= editnode_get_active_idnode(ma->nodetree, ID_MA);
 		if(node==NULL) {
-			node= nodeGetActive(ma->nodetree);
+			node= editnode_get_active(ma->nodetree);	
 			if(node==NULL || node->type!=SH_NODE_MATERIAL)
 				return;
 		}
@@ -3519,9 +3519,8 @@ void material_panels()
 		if(ma && ma->use_nodes) {
 			material_panel_nodes(ma);
 		}
-		//material_panel_layers(ma);
 		
-		ma= get_active_matlayer(ma);	// checks nodes too
+		ma= editnode_get_active_material(ma);
 		if(ma) {
 			material_panel_material(ma);
 			material_panel_ramps(ma);
@@ -3604,14 +3603,16 @@ void texture_panels()
 	if(G.buts->texfrom==0) {
 		if(ob) {
 			ma= give_current_material(ob, ob->actcol);
-			if(ma && ma->use_nodes)
-				node= nodeGetActiveID(ma->nodetree, ID_TE);
+			
+			if(ma && ma->use_nodes) {
+				node= editnode_get_active_idnode(ma->nodetree, ID_TE);
 
-			if(node)
-				ma= NULL;
-			else {
-				ma= get_active_matlayer(ma);
-				if(ma) mtex= ma->mtex[ ma->texact ];
+				if(node)
+					ma= NULL;
+				else {
+					ma= editnode_get_active_material(ma);
+					if(ma) mtex= ma->mtex[ ma->texact ];
+				}
 			}
 		}
 	}
