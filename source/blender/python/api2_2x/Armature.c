@@ -465,6 +465,7 @@ static PyObject *Armature_update(BPy_Armature *self)
 		if (!BonesDict_InitBones(self->Bones))
 			return NULL;
 		self->Bones->editmode_flag = 0;
+		BLI_freelistN(&self->Bones->editbones);
 	}else{
 		goto AttributeError;
 

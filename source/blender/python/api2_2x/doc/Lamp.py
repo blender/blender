@@ -38,6 +38,16 @@ Example::
   - 'Square'
   - 'NoDiffuse'
   - 'RayShadow'
+
+Example::
+  from Blender import Lamp, Object
+  # Change the mode of selected lamp objects.
+  for ob in Object.GetSelected():   # Loop through the current selection
+    if ob.getType() == "Lamp":      # if this is a lamp.
+      lamp = ob.getData()           # get the lamp data.
+      if lamp.type == Lamp.Types["Spot"]:  # Lamp type is not a flag
+        lamp.mode &= ~Lamp.Modes["RayShadow"] # Disable RayShadow.
+        lamp.mode |= Lamp.Modes["Shadows"]    # Enable Shadowbuffer shadows
 """
 
 def New (type = 'Lamp', name = 'LampData'):

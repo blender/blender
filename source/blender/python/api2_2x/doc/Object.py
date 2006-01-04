@@ -91,9 +91,8 @@ def Get (name = None):
 
 def GetSelected ():
   """
-  Get the selected objects on visible layers from Blenders current scene. If no objects are selected, an empty
-  list will be returned.
-  The active object of the current scene will always be the first object in the list (if selected).
+  Get the user selection. If no objects are selected, an empty list will be returned.
+  
   @return: A list of all selected Objects in the current scene.
 
   I{B{Example:}}
@@ -104,6 +103,10 @@ def GetSelected ():
 
     objects = Blender.Object.GetSelected()
     print objects
+  @note: The active object will always be the first object in the list (if selected).
+  @note: The user selection is made up of selected objects from Blenders current scene.
+  @note: The user selection is limited to objects on visible layers,
+      if the users last active 3d view is in localview then the selection will be limited to the objects in that localview.
   """
 
 
@@ -156,19 +159,6 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
         activeObject.LocX += 1
     Blender.Redraw()
   """
-'''
-def Join ():
-  """
-  Joins selected objects on visible layers from Blenders current scene.
-  The active object is used as a base for all other objects of the same type to join into - just like pressing Ctrl+J
-  
-  @return: None
-  @note: Being in edit mode, mesh objects with keys and a large number of verts in the
-    resulting mesh will all raise a RuntimeError.
-  @note: The join may be unsucsessfull because of the selection or object types and no error raised.
-    Checking if the number of selected objects has changed is a way to know the join worked.
-  """
-'''
 
 class Object:
   """
