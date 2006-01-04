@@ -866,7 +866,8 @@ static void view3d_get_viewborder_size(View3D *v3d, float size_r[2])
 void calc_viewborder(struct View3D *v3d, rcti *viewborder_r)
 {
 	float zoomfac, size[2];
-
+	float dx= 0.0f, dy= 0.0f;
+	
 	view3d_get_viewborder_size(v3d, size);
 
 		/* magic zoom calculation, no idea what
@@ -888,6 +889,15 @@ void calc_viewborder(struct View3D *v3d, rcti *viewborder_r)
 	viewborder_r->ymin= 0.5*v3d->area->winy - 0.5*size[1];
 	viewborder_r->xmax= viewborder_r->xmin + size[0];
 	viewborder_r->ymax= viewborder_r->ymin + size[1];
+	
+	dx= v3d->area->winx*G.vd->camdx;
+	dy= v3d->area->winy*G.vd->camdy;
+	
+	/* apply offset */
+	viewborder_r->xmin-= dx;
+	viewborder_r->ymin-= dy;
+	viewborder_r->xmax-= dx;
+	viewborder_r->ymax-= dy;
 }
 
 void view3d_set_1_to_1_viewborder(View3D *v3d)

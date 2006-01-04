@@ -102,6 +102,7 @@ typedef struct View3D {
 	short scenelock, around, camzoom, flag;
 	
 	float lens, grid, gridview, pixsize, near, far;
+	float camdx, camdy;		/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float ofs[3], cursor[3];
 
 	short gridlines, viewbut;

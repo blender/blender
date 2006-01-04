@@ -585,7 +585,7 @@ void viewmove(int mode)
 					G.vd->view= 0;
 				}
 						
-				if(G.vd->persp==2 || (G.vd->persp==3 && mode!=1)) {
+				if(G.vd->persp==2 && mode!=1) {
 					G.vd->persp= 1;
 					scrarea_do_windraw(curarea);
 					scrarea_queue_headredraw(curarea);
@@ -694,16 +694,11 @@ void viewmove(int mode)
 				}
 			}
 			else if(mode==1) {	/* translate */
-				if(G.vd->persp==3) {
-					/* zoom= 0.5+0.5*(float)(2<<G.vd->rt1); */
-					/* dx-= (mval[0]-mvalo[0])/zoom; */
-					/* dy-= (mval[1]-mvalo[1])/zoom; */
-					/* G.vd->rt2= dx; */
-					/* G.vd->rt3= dy; */
-					/* if(G.vd->rt2<-320) G.vd->rt2= -320; */
-					/* if(G.vd->rt2> 320) G.vd->rt2=  320; */
-					/* if(G.vd->rt3<-250) G.vd->rt3= -250; */
-					/* if(G.vd->rt3> 250) G.vd->rt3=  250; */
+				if(G.vd->persp==2) {
+					float max= (float)MAX2(curarea->winx, curarea->winy);
+
+					G.vd->camdx += (mvalo[0]-mval[0])/(max);
+					G.vd->camdy += (mvalo[1]-mval[1])/(max);
 				}
 				else {
 					window_to_3d(dvec, mval[0]-mvalo[0], mval[1]-mvalo[1]);
@@ -859,6 +854,15 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 			y1= - near*winy*dfac;
 			y2= -y1;
 			orth= 0;
+		}
+		/* cam view offset */
+		if(cam) {
+			float dx= G.vd->camdx*(x2-x1);
+			float dy= G.vd->camdy*(y2-y1);
+			x1+= dx;
+			x2+= dx;
+			y1+= dy;
+			y2+= dy;
 		}
 	}
 
