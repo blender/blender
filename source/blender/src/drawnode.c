@@ -647,6 +647,27 @@ static void socket_circle_draw(float x, float y, float size, int type, int selec
 static void node_draw_preview(bNodePreview *preview, rctf *prv)
 {
 	float scale= (prv->xmax-prv->xmin)/((float)preview->xsize);
+	float centx= prv->xmin + 0.5*(prv->xmax-prv->xmin);
+	float centy= prv->ymin + 0.5*(prv->ymax-prv->ymin);
+	
+	/* draw standard bacdrop to show alpha */
+	glBegin(GL_TRIANGLES);
+	glColor3f(0.625f, 0.625f, 0.625f);
+	glVertex2f(prv->xmin, prv->ymin);
+	glVertex2f(prv->xmax, prv->ymin);
+	glVertex2f(centx, centy);
+	glVertex2f(prv->xmin, prv->ymax);
+	glVertex2f(prv->xmax, prv->ymax);
+	glVertex2f(centx, centy);
+	
+	glColor3f(0.25f, 0.25f, 0.25f);
+	glVertex2f(prv->xmin, prv->ymin);
+	glVertex2f(prv->xmin, prv->ymax);
+	glVertex2f(centx, centy);
+	glVertex2f(prv->xmax, prv->ymin);
+	glVertex2f(prv->xmax, prv->ymax);
+	glVertex2f(centx, centy);
+	glEnd();
 	
 	glPixelZoom(scale, scale);
 	glEnable(GL_BLEND);

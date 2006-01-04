@@ -1013,7 +1013,7 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr)
 			if(inp>1.0f) inp= 1.0f;
 			shr->alpha= (1.0f-inp)*shr->alpha+inp;
 		}
-	}	
+	}
 }
 
 static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char *rect, short pr_rectx, short pr_recty)
