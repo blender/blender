@@ -5207,6 +5207,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if(main->versionfile <= 240) {
+		bArmature *arm;
+		
+		/* updating layers still */
+		for(arm= main->armature.first; arm; arm= arm->id.next) {
+			bone_version_239(&arm->bonebase);
+			if(arm->layer==0) arm->layer= 1;
+		}
+	}
+	
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
