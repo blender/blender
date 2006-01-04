@@ -937,14 +937,15 @@ static void drawviewborder(void)
 		glEnable(GL_BLEND);
 		glColor4f(0, 0, 0, ca->passepartalpha);
 		
-		if (x1 > 0.0) {
+		if (x1 > 0.0)
 			glRectf(0.0, (float)curarea->winy, x1, 0.0);
+		if (x2 < (float)curarea->winx)
 			glRectf(x2, (float)curarea->winy, (float)curarea->winx, 0.0);
-		}
-		if (y1 > 0.0)	{
+		if (y2 < (float)curarea->winy)
 			glRectf(x1, (float)curarea->winy, x2, y2);
+		if (y2 > 0.0) 
 			glRectf(x1, y1, x2, 0.0);
-		}
+
 		glDisable(GL_BLEND);
 	}
 	

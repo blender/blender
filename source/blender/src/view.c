@@ -699,6 +699,8 @@ void viewmove(int mode)
 
 					G.vd->camdx += (mvalo[0]-mval[0])/(max);
 					G.vd->camdy += (mvalo[1]-mval[1])/(max);
+					CLAMP(G.vd->camdx, -1.0f, 1.0f);
+					CLAMP(G.vd->camdy, -1.0f, 1.0f);
 				}
 				else {
 					window_to_3d(dvec, mval[0]-mvalo[0], mval[1]-mvalo[1]);
