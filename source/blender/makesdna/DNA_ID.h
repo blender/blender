@@ -72,7 +72,8 @@ typedef struct Library {
 	ID id;
 	ID *idblock;
 	struct FileData *filedata;
-	char name[160];
+	char name[240];		/* reveiled in the UI, can store relative path */
+	char filename[240];	/* expanded name, not relative, used while reading */
 	int tot, pad;		/* tot, idblock and filedata are only fo read and write */
 } Library;
 

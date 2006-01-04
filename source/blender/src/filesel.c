@@ -2251,7 +2251,7 @@ static void do_library_append(SpaceFile *sfile)
 		Object *ob;
 		int idcode = groupname_to_code(group);
 		
-		BLO_library_append(sfile, dir, idcode);	/* warning; if relative, it changes the *dir to relative path */
+		BLO_library_append(sfile, dir, idcode);
 
 		/* DISPLISTS? */
 		ob= G.main->object.first;
@@ -2265,7 +2265,7 @@ static void do_library_append(SpaceFile *sfile)
 		/* and now find the latest append lib file */
 		lib= G.main->library.first;
 		while(lib) {
-			if (BLI_streq(dir, lib->name)) break;
+			if (BLI_streq(dir, lib->filename)) break;
 			lib= lib->id.next;
 		}
 		

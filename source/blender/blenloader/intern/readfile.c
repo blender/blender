@@ -451,6 +451,7 @@ void blo_split_main(ListBase *mainlist)
 		split_libdata(lbarray[i], mainl->next);
 }
 
+/* removes things like /blah/blah/../../blah/ etc, then writes in *name the full path */
 static void cleanup_path(const char *relabase, char *name)
 {
 	char filename[FILE_MAXFILE];
@@ -460,31 +461,23 @@ static void cleanup_path(const char *relabase, char *name)
 	strcat(name, filename);
 }
 
-static Main *blo_find_main(ListBase *mainlist, char *name)
+static Main *blo_find_main(ListBase *mainlist, const char *name, const char *relabase)
 {
 	Main *m;
 	Library *lib;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
 	char libname1[FILE_MAXDIR+FILE_MAXFILE];
 	
-//	printf("G.sce %s\n", G.sce);
-	/* everything in absolute paths now */
-	
 	strcpy(name1, name);
-	cleanup_path(G.sce, name1);
-//	printf("original in  %s\n", name);
-//	printf("converted in %s\n", name1);
+	cleanup_path(relabase, name1);
+//	printf("blo_find_main: original in  %s\n", name);
+//	printf("blo_find_main: converted to %s\n", name1);
 
 	for (m= mainlist->first; m; m= m->next) {
-		char *libname= (m->curlib)?m->curlib->name:m->name;
+		char *libname= (m->curlib)?m->curlib->filename:m->name;
 		
-//		printf("libname %s\n", libname);
-		strcpy(libname1, libname);
-		cleanup_path(G.sce, libname1);
-//		printf("libname1 %s\n", libname1, name1);
-		
-		if (BLI_streq(name1, libname1)) {
-			printf("found library %s\n", libname);
+		if (BLI_streq(name1, libname)) {
+			printf("blo_find_main: found library %s\n", libname);
 			return m;
 		}
 	}
@@ -494,9 +487,11 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
 	strcpy(lib->name, name);
+	strcpy(lib->filename, name1);
+	
 	m->curlib= lib;
 	
-	printf("added new lib %s\n", name);
+	printf("blo_find_main: added new lib %s\n", name);
 	return m;
 }
 
@@ -901,32 +896,13 @@ static FileData *blo_decode_and_check(FileData *fd, BlendReadError *error_r)
 	return fd;
 }
 
+/* cannot be called with relative paths anymore! */
+/* on each new library added, it now checks for the current FileData and expands relativeness */
 FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 {
 	gzFile gzfile;
-	char name1[FILE_MAXDIR+FILE_MAXFILE];
 	
-	/* relative path rescue... */
-	if(G.rt==111) {
-		int len= strlen(name);
-		printf("old %s\n", name);
-		while(len-- > 1) {
-			if(name[len]=='/' && name[len-1]=='/') {
-				strcpy(name, name+len-1);
-				printf("new %s\n", name);
-				break;
-			}
-		}
-	}
-	
-	/* library files can have stringcodes */
-	strcpy(name1, name);
-	if(name[0]=='/' && name[1]=='/')
-		BLI_convertstringcode(name1, G.sce, 0);
-	else
-		strcpy(G.sce, name);	// global... is set in blender.c setup_app_data too. should be part of Main immediate?
-	
-	gzfile= gzopen(name1, "rb");
+	gzfile= gzopen(name, "rb");
 
 	if (NULL == gzfile) {
 		*error_r = BRE_UNABLE_TO_OPEN;
@@ -3214,8 +3190,8 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	
 	for(newmain= fd->mainlist.first; newmain; newmain= newmain->next) {
 		if(newmain->curlib) {
-			if(strcmp(newmain->curlib->name, lib->name)==0) {
-				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->name);
+			if(strcmp(newmain->curlib->filename, lib->filename)==0) {
+				printf("Fixed error in file; multiple instances of lib:\n %s\n", lib->filename);
 				
 				change_idid_adr(&fd->mainlist, fd, lib, newmain->curlib);
 //				change_idid_adr_fd(fd, lib, newmain->curlib);
@@ -3228,6 +3204,12 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	/* make sure we have full path in lib->filename */
+	BLI_strncpy(lib->filename, lib->name, sizeof(lib->name));
+	cleanup_path(fd->filename, lib->filename);
+	
+//	printf("direct_link_library: name %s\n", lib->name);
+//	printf("direct_link_library: filename %s\n", lib->filename);
 	
 	/* new main */
 	newmain= MEM_callocN(sizeof(Main), "directlink");
@@ -5406,19 +5388,19 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				// BHEAD+DATA dependancy
 				Library *lib= (Library *)(bheadlib+1);
 				/* we read the lib->name directly from the bhead, potential danger (64 bits?) */
-				mainvar= blo_find_main(&fd->mainlist, lib->name);
+				mainvar= blo_find_main(&fd->mainlist, lib->name, fd->filename);
 
 				id= is_yet_read(mainvar, bhead);
 
 				if(id==0) {
 					read_libblock(fd, mainvar, bhead, LIB_READ+LIB_INDIRECT, NULL);
-					printf("expand: other lib %s\n", lib->name);
+					printf("expand_doit: other lib %s\n", lib->name);
 				}
 				else {
 					//oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					
 					change_idid_adr_fd(fd, bhead->old, id);
-					printf("expand: already linked: %s lib: %s\n", id->name, lib->name);
+					printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 			}
 		}
@@ -6038,21 +6020,15 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	ListBase mainlist;
 	Main *mainl;
 	FileData *fd = (FileData *)bh;
-	char filename[FILE_MAXDIR+FILE_MAXFILE];
 
 	mainlist.first= mainlist.last= G.main;
 	G.main->next= NULL;
 
-	/* make copy of the 'last loaded filename', we need to restore it */
-	BLI_strncpy(filename, G.sce, sizeof(filename));
-	/* already opened file, to reconstruct relative paths */
-	BLI_strncpy(G.sce, fd->filename, sizeof(filename));	
-	
 	/* make mains */
 	blo_split_main(&mainlist);
 
 	/* which one do we need? */
-	mainl = blo_find_main(&mainlist, dir);
+	mainl = blo_find_main(&mainlist, dir, G.sce);
 
 	append_named_part(fd, mainl, G.scene, name, idcode, 0);
 
@@ -6066,13 +6042,12 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	G.main= mainlist.first;
 
 	lib_link_all(fd, G.main);
-	
-	/* restore the 'last loaded filename' */
-	BLI_strncpy(G.sce, filename, sizeof(filename));
+
 	DAG_scene_sort(G.scene);
 }
 
-	/* append to G.scene */
+/* append to G.scene */
+/* dir is a full path */	
 void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	FileData *fd= (FileData*) sfile->libfiledata;
@@ -6081,7 +6056,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	Object *ob;
 	float *curs,centerloc[3],vec[3],min[3],max[3];
 	int a, totsel=0,count=0;
-	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	
 	INIT_MINMAX(min, max);
 
@@ -6110,11 +6084,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	}
 	/* now we have or selected, or an indicated file */
 	
-	/* make copy of the 'last loaded filename', we need to restore it */
-	BLI_strncpy(filename, G.sce, sizeof(filename));
-	
-	BLI_strncpy(G.sce, G.main->name, sizeof(G.main->name));		// original file, to reconstruct relative paths for current append
-	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
 	fd->mainlist.first= fd->mainlist.last= G.main;
@@ -6124,7 +6093,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	blo_split_main(&fd->mainlist);
 
 	/* which one do we need? */
-	mainl = blo_find_main(&fd->mainlist, dir);
+	mainl = blo_find_main(&fd->mainlist, dir, G.sce);
 	mainl->versionfile= fd->fileversion;	// needed for do_version
 	
 	if(totsel==0) {
@@ -6146,10 +6115,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 
 	if(sfile->flag & FILE_STRINGCODE) {
 
-		/* uses old .blend file (*filename) as reference */
-		BLI_makestringcode(filename, mainl->curlib->name);
-		/* the caller checks for appended library, so we make sure names match */
-		BLI_strncpy(dir, mainl->curlib->name, sizeof(mainl->curlib->name));
+		/* use the full path, this could have been read by other library even */
+		BLI_strncpy(mainl->curlib->name, mainl->curlib->filename, sizeof(mainl->curlib->name));
+		
+		/* uses current .blend file as reference */
+		BLI_makestringcode(G.sce, mainl->curlib->name);
 	}
 
 	blo_join_main(&fd->mainlist);
@@ -6198,9 +6168,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 			}
 		}
 	}
-	
-	/* restore the 'last loaded filename' */
-	BLI_strncpy(G.sce, filename, sizeof(filename));
 	DAG_scene_sort(G.scene);
 }
 
@@ -6243,8 +6210,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 				if(fd==NULL) {
 					BlendReadError err;
-					printf("read lib %s\n", mainptr->curlib->name);
-					fd= blo_openblenderfile(mainptr->curlib->name, &err);
+					printf("read_libraries: lib %s\n", mainptr->curlib->name);
+					fd= blo_openblenderfile(mainptr->curlib->filename, &err);
 					if (fd) {
 						if (fd->libmap)
 							oldnewmap_free(fd->libmap);
@@ -6257,7 +6224,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata= NULL;
 
 					if (fd==NULL)
-						printf("ERROR: can't find lib %s \n", mainptr->curlib->name);
+						printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
 				}
 				if(fd) {
 					doit= 1;
