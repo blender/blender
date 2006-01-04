@@ -40,6 +40,7 @@ struct PluginTex;
 struct LampRen;
 struct ColorBand;
 struct HaloRen;
+struct TexMapping;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 16
@@ -60,6 +61,9 @@ struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
 struct Tex *give_current_texture(struct Object *ob, int act);
+
+struct TexMapping *add_mapping(void);
+void init_mapping(struct TexMapping *texmap);
 
 #endif
 

@@ -66,7 +66,21 @@ void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult 
 }
 
 
-/* **************** output node ************ */
+/* ******************************************************** */
+/* ********* Shader Node type definitions ***************** */
+/* ******************************************************** */
+
+/* SocketType syntax: 
+   socket type, max connections (0 is no limit), name, 4 values for default, 2 values for range */
+
+/* Verification rule: If name changes, a saved socket and its links will be removed! Type changes are OK */
+
+/* **************** OUTPUT ******************** */
+static bNodeSocketType sh_node_output_in[]= {
+	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
 
 static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -85,7 +99,7 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 		
 		if(node->flag & NODE_DO_OUTPUT) {
 			ShadeResult *shr= ((ShaderCallData *)data)->shr;
-
+			
 			VECCOPY(shr->diff, col);
 			col[0]= col[1]= col[2]= 0.0f;
 			VECCOPY(shr->spec, col);
@@ -96,96 +110,6 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 	}	
 }
 
-
-/* **************** texture node ************ */
-
-static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	if(data && node->id) {
-		ShadeInput *shi= ((ShaderCallData *)data)->shi;
-		TexResult texres;
-		float *vec, nor[3]={0.0f, 0.0f, 0.0f};
-		int retval;
-		
-		/* out: value, color, normal */
-		
-		/* we should find out if a normal as output is needed, for now we do all */
-		texres.nor= nor;
-		
-		if(in[0]->hasinput) {
-			vec= in[0]->vec;
-			
-			if(in[0]->datatype==NS_OSA_VECTORS) {
-				float *fp= in[0]->data;
-				retval= multitex((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres);
-			}
-			else if(in[0]->datatype==NS_OSA_VALUES) {
-				float *fp= in[0]->data;
-				float dxt[3], dyt[3];
-				
-				dxt[0]= fp[0]; dxt[1]= dxt[2]= 0.0f;
-				dyt[0]= fp[1]; dyt[1]= dyt[2]= 0.0f;
-				retval= multitex((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres);
-			}
-			else
-				retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
-		}
-		else {	/* only for previewrender, so we see stuff */
-			vec= shi->lo;
-			retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
-		}
-		
-		/* stupid exception */
-		if( ((Tex *)node->id)->type==TEX_STUCCI) {
-			texres.tin= 0.5f + 0.7f*texres.nor[0];
-			CLAMP(texres.tin, 0.0f, 1.0f);
-		}
-		
-		/* intensity and color need some handling */
-		if(texres.talpha)
-			out[0]->vec[0]= texres.ta;
-		else
-			out[0]->vec[0]= texres.tin;
-		
-		if((retval & TEX_RGB)==0) {
-			out[1]->vec[0]= out[0]->vec[0];
-			out[1]->vec[1]= out[0]->vec[0];
-			out[1]->vec[2]= out[0]->vec[0];
-			out[1]->vec[3]= 1.0f;
-		}
-		else {
-			out[1]->vec[0]= texres.tr;
-			out[1]->vec[1]= texres.tg;
-			out[1]->vec[2]= texres.tb;
-			out[1]->vec[3]= 1.0f;
-		}
-		
-		VECCOPY(out[2]->vec, nor);
-		
-		if(shi->do_preview)
-			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys);
-		
-	}
-}
-
-
-
-/* ******************************************************** */
-/* ********* Shader Node type definitions ***************** */
-/* ******************************************************** */
-
-/* SocketType syntax: 
-   socket type, max connections (0 is no limit), name, 4 values for default, 2 values for range */
-
-/* Verification rule: If name changes, a saved socket and its links will be removed! Type changes are OK */
-
-/* **************** OUTPUT ******************** */
-static bNodeSocketType sh_node_output_in[]= {
-	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
-};
-
 static bNodeType sh_node_output= {
 	/* type code   */	SH_NODE_OUTPUT,
 	/* name        */	"Output",
@@ -194,7 +118,7 @@ static bNodeType sh_node_output= {
 	/* input sock  */	sh_node_output_in,
 	/* output sock */	NULL,
 	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_output,
+	/* execfunc    */	node_shader_exec_output
 	
 };
 
@@ -259,7 +183,7 @@ static bNodeType sh_node_geom= {
 	/* input sock  */	NULL,
 	/* output sock */	sh_node_geom_out,
 	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_geom,
+	/* execfunc    */	node_shader_exec_geom
 	
 };
 
@@ -373,7 +297,7 @@ static bNodeType sh_node_material= {
 	/* input sock  */	sh_node_material_in,
 	/* output sock */	sh_node_material_out,
 	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_material,
+	/* execfunc    */	node_shader_exec_material
 	
 };
 
@@ -389,6 +313,75 @@ static bNodeSocketType sh_node_texture_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data && node->id) {
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		TexResult texres;
+		float *vec, nor[3]={0.0f, 0.0f, 0.0f};
+		int retval;
+		
+		/* out: value, color, normal */
+		
+		/* we should find out if a normal as output is needed, for now we do all */
+		texres.nor= nor;
+		
+		if(in[0]->hasinput) {
+			vec= in[0]->vec;
+			
+			if(in[0]->datatype==NS_OSA_VECTORS) {
+				float *fp= in[0]->data;
+				retval= multitex((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres);
+			}
+			else if(in[0]->datatype==NS_OSA_VALUES) {
+				float *fp= in[0]->data;
+				float dxt[3], dyt[3];
+				
+				dxt[0]= fp[0]; dxt[1]= dxt[2]= 0.0f;
+				dyt[0]= fp[1]; dyt[1]= dyt[2]= 0.0f;
+				retval= multitex((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres);
+			}
+			else
+				retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+		}
+		else {	/* only for previewrender, so we see stuff */
+			vec= shi->lo;
+			retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+		}
+		
+		/* stupid exception */
+		if( ((Tex *)node->id)->type==TEX_STUCCI) {
+			texres.tin= 0.5f + 0.7f*texres.nor[0];
+			CLAMP(texres.tin, 0.0f, 1.0f);
+		}
+		
+		/* intensity and color need some handling */
+		if(texres.talpha)
+			out[0]->vec[0]= texres.ta;
+		else
+			out[0]->vec[0]= texres.tin;
+		
+		if((retval & TEX_RGB)==0) {
+			out[1]->vec[0]= out[0]->vec[0];
+			out[1]->vec[1]= out[0]->vec[0];
+			out[1]->vec[2]= out[0]->vec[0];
+			out[1]->vec[3]= 1.0f;
+		}
+		else {
+			out[1]->vec[0]= texres.tr;
+			out[1]->vec[1]= texres.tg;
+			out[1]->vec[2]= texres.tb;
+			out[1]->vec[3]= 1.0f;
+		}
+		
+		VECCOPY(out[2]->vec, nor);
+		
+		if(shi->do_preview)
+			nodeAddToPreview(node, out[1]->vec, shi->xs, shi->ys);
+		
+	}
+}
+
 static bNodeType sh_node_texture= {
 	/* type code   */	SH_NODE_TEXTURE,
 	/* name        */	"Texture",
@@ -397,7 +390,53 @@ static bNodeType sh_node_texture= {
 	/* input sock  */	sh_node_texture_in,
 	/* output sock */	sh_node_texture_out,
 	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_texture,
+	/* execfunc    */	node_shader_exec_texture
+	
+};
+
+/* **************** MAPPING  ******************** */
+static bNodeSocketType sh_node_mapping_in[]= {
+	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeSocketType sh_node_mapping_out[]= {
+	{	SOCK_VECTOR, 0, "Vector",	0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* do the regular mapping options for blender textures */
+static void node_shader_exec_mapping(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	TexMapping *texmap= node->storage;
+	float *vec= out[0]->vec;
+	
+	/* stack order input:  vector */
+	/* stack order output: vector */
+	VECCOPY(vec, in[0]->vec);
+	Mat4MulVecfl(texmap->mat, vec);
+	
+	if(texmap->flag & TEXMAP_CLIP_MIN) {
+		if(vec[0]<texmap->min[0]) vec[0]= texmap->min[0];
+		if(vec[1]<texmap->min[1]) vec[1]= texmap->min[1];
+		if(vec[2]<texmap->min[2]) vec[2]= texmap->min[2];
+	}
+	if(texmap->flag & TEXMAP_CLIP_MAX) {
+		if(vec[0]>texmap->max[0]) vec[0]= texmap->max[0];
+		if(vec[1]>texmap->max[1]) vec[1]= texmap->max[1];
+		if(vec[2]>texmap->max[2]) vec[2]= texmap->max[2];
+	}
+}
+
+static bNodeType sh_node_mapping= {
+	/* type code   */	SH_NODE_MAPPING,
+	/* name        */	"Mapping",
+	/* width+range */	240, 160, 320,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	sh_node_mapping_in,
+	/* output sock */	sh_node_mapping_out,
+	/* storage     */	"TexMapping",
+	/* execfunc    */	node_shader_exec_mapping
 	
 };
 
@@ -433,7 +472,7 @@ static bNodeType sh_node_normal= {
 	/* input sock  */	sh_node_normal_in,
 	/* output sock */	sh_node_normal_out,
 	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_normal,
+	/* execfunc    */	node_shader_exec_normal
 	
 };
 
@@ -458,7 +497,7 @@ static bNodeType sh_node_value= {
 	/* input sock  */	NULL,
 	/* output sock */	sh_node_value_out,
 	/* storage     */	"", 
-	/* execfunc    */	node_shader_exec_value,
+	/* execfunc    */	node_shader_exec_value
 	
 };
 
@@ -483,7 +522,7 @@ static bNodeType sh_node_rgb= {
 	/* input sock  */	NULL,
 	/* output sock */	sh_node_rgb_out,
 	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_rgb,
+	/* execfunc    */	node_shader_exec_rgb
 	
 };
 
@@ -521,7 +560,7 @@ static bNodeType sh_node_mix_rgb= {
 	/* input sock  */	sh_node_mix_rgb_in,
 	/* output sock */	sh_node_mix_rgb_out,
 	/* storage     */	"", 
-	/* execfunc    */	node_shader_exec_mix_rgb,
+	/* execfunc    */	node_shader_exec_mix_rgb
 	
 };
 
@@ -556,7 +595,7 @@ static bNodeType sh_node_valtorgb= {
 	/* input sock  */	sh_node_valtorgb_in,
 	/* output sock */	sh_node_valtorgb_out,
 	/* storage     */	"ColorBand",
-	/* execfunc    */	node_shader_exec_valtorgb,
+	/* execfunc    */	node_shader_exec_valtorgb
 	
 };
 
@@ -588,7 +627,7 @@ static bNodeType sh_node_rgbtobw= {
 	/* input sock  */	sh_node_rgbtobw_in,
 	/* output sock */	sh_node_rgbtobw_out,
 	/* storage     */	"",
-	/* execfunc    */	node_shader_exec_rgbtobw,
+	/* execfunc    */	node_shader_exec_rgbtobw
 	
 };
 
@@ -607,6 +646,7 @@ bNodeType *node_all_shaders[]= {
 	&sh_node_texture,
 	&sh_node_normal,
 	&sh_node_geom,
+	&sh_node_mapping,
 	NULL
 };
 

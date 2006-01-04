@@ -3268,12 +3268,26 @@ static int ui_do_but_NORMAL(uiBut *but)
 {
 	float dx, dy, rad, radsq, mrad, *fp= (float *)but->poin;
 	int firsttime=1;
-	short mval[2], mvalo[2];
+	short mval[2], mvalo[2], mvals[2], mvaldx, mvaldy;
 	
-	rad= 0.5f*(but->x2 - but->x1);
+	rad= (but->x2 - but->x1);
 	radsq= rad*rad;
 	
+	if(fp[2]>0.0f) {
+		mvaldx= (rad*fp[0]);
+		mvaldy= (rad*fp[1]);
+	}
+	else if(fp[2]> -1.0f) {
+		mrad= rad/sqrt(fp[0]*fp[0] + fp[1]*fp[1]);
+		
+		mvaldx= 2.0f*mrad*fp[0] - (rad*fp[0]);
+		mvaldy= 2.0f*mrad*fp[1] - (rad*fp[1]);
+	}
+	else mvaldx= mvaldy= 0;
+	
 	uiGetMouse(mywinget(), mvalo);
+	mvals[0]= mvalo[0];
+	mvals[1]= mvalo[1];
 	
 	while(get_mbut() & L_MOUSE) {
 		
@@ -3282,8 +3296,8 @@ static int ui_do_but_NORMAL(uiBut *but)
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || firsttime) {
 			firsttime= 0;
 			
-			dx= -but->x1-rad + (float)mval[0];
-			dy= -but->y1-rad + (float)mval[1];
+			dx= (float)(mval[0]+mvaldx-mvals[0]);
+			dy= (float)(mval[1]+mvaldy-mvals[1]);
 
 			mrad= dx*dx+dy*dy;
 			if(mrad < radsq) {	/* inner circle */
@@ -3292,14 +3306,11 @@ static int ui_do_but_NORMAL(uiBut *but)
 				fp[2]= sqrt( radsq-dx*dx-dy*dy );
 			}
 			else {	/* outer circle */
-				float norx, nory;
 				
-				mrad= sqrt(mrad);	// veclen
-				norx= dx/mrad;
-				nory= dy/mrad;
+				mrad= rad/sqrt(mrad);	// veclen
 				
-				dx= norx*(2.0f*rad - mrad);
-				dy= nory*(2.0f*rad - mrad);
+				dx*= (2.0f*mrad - 1.0f);
+				dy*= (2.0f*mrad - 1.0f);
 				
 				mrad= dx*dx+dy*dy;
 				if(mrad < radsq) {

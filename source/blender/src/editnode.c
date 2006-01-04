@@ -1020,7 +1020,7 @@ static void node_add_menu(SpaceNode *snode)
 	short event, mval[2];
 	
 	/* shader menu, still hardcoded defines... solve */
-	event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Normal%x107|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
+	event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Mapping%x109|Normal%x107|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
 	if(event<1) return;
 	
 	getmouseco_areawin(mval);

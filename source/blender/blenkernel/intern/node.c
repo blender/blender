@@ -692,8 +692,10 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 	if(ntree->type==NTREE_SHADER) {
 		if(type==SH_NODE_MATERIAL)
 			node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
-		else if(node->type==SH_NODE_VALTORGB)
+		else if(type==SH_NODE_VALTORGB)
 			node->storage= add_colorband(1);
+		else if(type==SH_NODE_MAPPING)
+			node->storage= add_mapping();
 	}
 	
 	return node;

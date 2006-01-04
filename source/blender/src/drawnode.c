@@ -51,6 +51,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -255,6 +256,13 @@ static void node_new_mat_cb(void *ntree_v, void *node_v)
 
 }
 
+static void node_texmap_cb(void *texmap_v, void *unused_v)
+{
+	init_mapping(texmap_v);
+}
+
+
+
 static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -344,6 +352,55 @@ static int node_shader_buts_normal(uiBlock *block, bNodeTree *ntree, bNode *node
 	return (int)(node->width-NODE_DY);
 }
 
+static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block && (node->flag & NODE_OPTIONS)) {
+		TexMapping *texmap= node->storage;
+		short dx= (short)((butr->xmax-butr->xmin)/7.0f);
+		short dy= (short)(butr->ymax-19);
+		
+		uiBlockSetFunc(block, node_texmap_cb, texmap, NULL);	/* all buttons get this */
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->loc+1, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->loc+2, -1000.0f, 1000.0f, 10, 2, "");
+		dy-= 19;
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->rot, -1000.0f, 1000.0f, 1000, 1, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->rot+1, -1000.0f, 1000.0f, 1000, 1, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->rot+2, -1000.0f, 1000.0f, 1000, 1, "");
+		dy-= 19;
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->size+1, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->size+2, -1000.0f, 1000.0f, 10, 2, "");
+		dy-= 25;
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->min, -10.0f, 10.0f, 100, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->min+1, -10.0f, 10.0f, 100, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->min+2, -10.0f, 10.0f, 100, 2, "");
+		dy-= 19;
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->max, -10.0f, 10.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->max+1, -10.0f, 10.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->max+2, -10.0f, 10.0f, 10, 2, "");
+		uiBlockEndAlign(block);
+		
+		/* labels/options */
+		
+		dy= (short)(butr->ymax-19);
+		uiDefBut(block, LABEL, B_NOP, "Loc", butr->xmin, dy, dx, 19, NULL, 0.0f, 0.0f, 0, 0, "");
+		dy-= 19;
+		uiDefBut(block, LABEL, B_NOP, "Rot", butr->xmin, dy, dx, 19, NULL, 0.0f, 0.0f, 0, 0, "");
+		dy-= 19;
+		uiDefBut(block, LABEL, B_NOP, "Size", butr->xmin, dy, dx, 19, NULL, 0.0f, 0.0f, 0, 0, "");
+		dy-= 25;
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC, "Min", butr->xmin, dy, dx-4, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		dy-= 19;
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MAX, B_NODE_EXEC, "Max", butr->xmin, dy, dx-4, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		
+	}	
+	return 5*19 + 6;
+}
+
 static int node_shader_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -429,6 +486,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_NORMAL:
 			ntype->butfunc= node_shader_buts_normal;
+			break;
+		case SH_NODE_MAPPING:
+			ntype->butfunc= node_shader_buts_mapping;
 			break;
 		case SH_NODE_VALUE:
 			ntype->butfunc= node_shader_buts_value;
@@ -1053,7 +1113,7 @@ void node_draw_link(SpaceNode *snode, bNodeLink *link)
 {
 	float vec[4][3];
 	float dist, spline_step, mx=0.0f, my=0.0f;
-	int curve_res;
+	int curve_res, do_shaded= 1, th_col1= TH_WIRE, th_col2= TH_WIRE;
 	
 	if(link->fromnode==NULL && link->tonode==NULL)
 		return;
@@ -1063,19 +1123,27 @@ void node_draw_link(SpaceNode *snode, bNodeLink *link)
 		short mval[2];
 		getmouseco_areawin(mval);
 		areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
-		
 		BIF_ThemeColor(TH_WIRE);
+		do_shaded= 0;
 	}
 	else {
 		/* a bit ugly... but thats how we detect the internal group links */
-		if(link->fromnode==link->tonode)
+		if(link->fromnode==link->tonode) {
 			BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.25f);
+			do_shaded= 0;
+		}
 		else {
 			/* check cyclic */
-			if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF)
-				BIF_ThemeColor(TH_WIRE);
-			else
+			if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
+				if(link->fromnode->flag & SELECT)
+					th_col1= TH_EDGE_SELECT;
+				if(link->tonode->flag & SELECT)
+					th_col2= TH_EDGE_SELECT;
+			}				
+			else {
 				BIF_ThemeColor(TH_REDALERT);
+				do_shaded= 0;
+			}
 		}
 	}
 	
@@ -1120,6 +1188,8 @@ void node_draw_link(SpaceNode *snode, bNodeLink *link)
 		glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
 		glBegin(GL_LINE_STRIP);
 		while (spline_step < 1.000001f) {
+			if(do_shaded)
+				BIF_ThemeColorBlend(th_col1, th_col2, spline_step);
 			glEvalCoord1f(spline_step);
 			spline_step += dist;
 		}

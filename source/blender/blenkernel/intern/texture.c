@@ -197,6 +197,37 @@ void free_plugin_tex(PluginTex *pit)
 	MEM_freeN(pit);	
 }
 
+/* ****************** Mapping ******************* */
+
+TexMapping *add_mapping(void)
+{
+	TexMapping *texmap= MEM_callocN(sizeof(TexMapping), "Tex map");
+	
+	texmap->size[0]= texmap->size[1]= texmap->size[2]= 1.0f;
+	texmap->max[0]= texmap->max[1]= texmap->max[2]= 1.0f;
+	Mat4One(texmap->mat);
+	
+	return texmap;
+}
+
+void init_mapping(TexMapping *texmap)
+{
+	float eul[3], smat[3][3], rmat[3][3], mat[3][3];
+	
+	SizeToMat3(texmap->size, smat);
+	
+	eul[0]= (M_PI/180.0f)*texmap->rot[0];
+	eul[1]= (M_PI/180.0f)*texmap->rot[1];
+	eul[2]= (M_PI/180.0f)*texmap->rot[2];
+	EulToMat3(eul, rmat);
+	
+	Mat3MulMat3(mat, rmat, smat);
+	
+	Mat4CpyMat3(texmap->mat, mat);
+	VECCOPY(texmap->mat[3], texmap->loc);
+
+}
+
 /* ****************** COLORBAND ******************* */
 
 ColorBand *add_colorband(int rangetype)

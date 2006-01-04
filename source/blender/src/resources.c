@@ -480,6 +480,7 @@ void BIF_InitTheme(void)
 	
 	/* space node, re-uses syntax color storage */
 	btheme->tnode= btheme->tv3d;
+	SETCOL(btheme->tnode.edge_select, 255, 255, 255, 255);
 	SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
 	SETCOL(btheme->tnode.syntaxn, 95, 110, 145, 255);	/* in/output */
 	SETCOL(btheme->tnode.syntaxb, 135, 125, 120, 255);	/* operator */
@@ -614,8 +615,10 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_NODE) {
+			sprintf(str, "Wires %%x%d|", TH_WIRE); strcat(cp, str);
+			sprintf(str, "Wires Select %%x%d|", TH_EDGE_SELECT); strcat(cp, str);
 			strcat(cp,"%l|");
-			sprintf(str, "Node backdrop %%x%d|", TH_NODE); strcat(cp, str);
+			sprintf(str, "Node Backdrop %%x%d|", TH_NODE); strcat(cp, str);
 			sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT); strcat(cp, str);
 			sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR); strcat(cp, str);
 			sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR); strcat(cp, str);
