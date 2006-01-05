@@ -83,6 +83,38 @@
 
 /* ***************** Library data level operations on action ************** */
 
+static void make_local_action_channels(bAction *act)
+{
+	bActionChannel *chan;
+	bConstraintChannel *conchan;
+	
+	for (chan=act->chanbase.first; chan; chan=chan->next) {
+		if(chan->ipo) {
+			if(chan->ipo->id.us==1) {
+				chan->ipo->id.lib= NULL;
+				chan->ipo->id.flag= LIB_LOCAL;
+				new_id(0, (ID *)chan->ipo, 0);
+			}
+			else {
+				chan->ipo= copy_ipo(chan->ipo);
+			}
+		}
+		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+			if(conchan->ipo) {
+				if(conchan->ipo->id.us==1) {
+					conchan->ipo->id.lib= NULL;
+					conchan->ipo->id.flag= LIB_LOCAL;
+					new_id(0, (ID *)conchan->ipo, 0);
+				}
+				else {
+					conchan->ipo= copy_ipo(conchan->ipo);
+				}
+			}
+		}
+	}
+					
+}
+
 void make_local_action(bAction *act)
 {
 	Object *ob;
@@ -93,6 +125,7 @@ void make_local_action(bAction *act)
 	if(act->id.us==1) {
 		act->id.lib= 0;
 		act->id.flag= LIB_LOCAL;
+		make_local_action_channels(act);
 		new_id(0, (ID *)act, 0);
 		return;
 	}
@@ -109,6 +142,7 @@ void make_local_action(bAction *act)
 	if(local && lib==0) {
 		act->id.lib= 0;
 		act->id.flag= LIB_LOCAL;
+		make_local_action_channels(act);
 		new_id(0, (ID *)act, 0);
 	}
 	else if(local && lib) {
