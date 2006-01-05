@@ -3411,9 +3411,9 @@ void texture_panels()
 					ma= NULL;
 				else {
 					ma= editnode_get_active_material(ma);
-					if(ma) mtex= ma->mtex[ ma->texact ];
 				}
 			}
+			if(ma) mtex= ma->mtex[ ma->texact ];
 		}
 	}
 	else if(G.buts->texfrom==1) {
