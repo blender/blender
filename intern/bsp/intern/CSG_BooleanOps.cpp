@@ -33,10 +33,6 @@
  * Implementation of external api for CSG part of BSP lib interface.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "../extern/CSG_BooleanOps.h"
 #include "BSP_CSGMesh_CFIterator.h"
 #include "BSP_CSGMeshBuilder.h"
@@ -47,7 +43,7 @@
 #include "../../boolop/extern/BOP_Interface.h"
 #include <iostream>
 using namespace std;
-#include "BSP_MeshPrimitives.h";
+#include "BSP_MeshPrimitives.h"
 
 struct BSP_MeshInfo {
 	BSP_CSGMesh *output_mesh;
@@ -116,8 +112,6 @@ CSG_PerformBooleanOperation(
 	if (operation == NULL) return 0;
 	BSP_MeshInfo * mesh_info = static_cast<BSP_MeshInfo *>(operation->CSG_info);
 	if (mesh_info == NULL) return 0;
-
-	bool success = 1;
 
 	obAFaces.Reset(obAFaces.it);
 	obBFaces.Reset(obBFaces.it);

@@ -165,7 +165,6 @@ void BL_SkinDeformer::Update(void)
 		
 		/* store verts locally */
 		for (int v =0; v<m_bmesh->totvert; v++){
-			float co[3];
 			/* XXX note, dunno about this line */
 			m_transverts[v]=MT_Point3(m_bmesh->mvert[v].co);
 		}

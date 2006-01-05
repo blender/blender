@@ -77,3 +77,4 @@ void	StridingMeshInterface::InternalProcessAllTriangles(InternalTriangleIndexCal
 		unLockReadOnlyVertexBase(part);
 	}
 }
+

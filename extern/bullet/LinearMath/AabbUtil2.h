@@ -65,3 +65,4 @@ SIMD_FORCE_INLINE bool TestTriangleAgainstAabb2(const SimdVector3 *vertices,
 }
 
 #endif
+

@@ -42,3 +42,4 @@ int dRandInt2 (int n);
 #endif //SOR_LCP_H
 
 #endif //USE_SOR_SOLVER
+

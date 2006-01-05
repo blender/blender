@@ -34,3 +34,4 @@ struct PointCollector : public DiscreteCollisionDetectorInterface::Result
 };
 
 #endif //POINT_COLLECTOR_H
+
