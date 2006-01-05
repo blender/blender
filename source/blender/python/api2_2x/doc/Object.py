@@ -560,8 +560,8 @@ class Object:
     @note: Join modifies the object in place so that other objects are joined into it. no new object or data is created.
     @note: Join will only work for object types Mesh, Armature, Curve and Surface, an error will be raised if the object is not of this type.
     @note: objects in the list will be ignored if they to not match the base object.
-    @rtype: int
-    @return: 0 is returned if the join is not successfull, otherwise 1 will be returned.
+    @note: An error in the join function input will raise a TypeError, otherwise an error in the data input is raised is a RuntimeError,
+      for situations where you do not have tight control on the data that is being joined, you should handel the RuntimeError error.
     """
 
   def makeParentDeform(objects, noninverse = 0, fast = 0):

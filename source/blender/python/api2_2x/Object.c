@@ -1822,16 +1822,11 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 	Base *temp_base;
 	short type;
 	int i, ok=0, ret_value=0, list_length=0;
-
-	/* cant join in editmode */
-	if( G.obedit )
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-				"can't join objects while in edit mode" );
 		
 	/* Check if the arguments passed to makeParent are valid. */
 	if( !PyArg_ParseTuple( args, "O", &list ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected a list of objects and one or two integers as arguments" ) );
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a list of objects" ) );
 	
 	if( !PySequence_Check( list ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1846,10 +1841,15 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 	parent = ( Object * ) self->object;
 	type = parent->type;
 	
+	/* Only these object types are sypported */
 	if (type==OB_MESH || type==OB_MESH || type==OB_CURVE || type==OB_SURF || type==OB_ARMATURE);
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"Base object is not a type blender can join" ) );
+	
+	/* exit editmode so join can be done */
+	if( G.obedit )
+		exit_editmode( 1 );
 	
 	temp_scene = add_scene( "Scene" ); /* make the new scene */
 	temp_scene->lay= 2097151; /* all layers on */
@@ -1906,8 +1906,9 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 	else if(type == OB_SURF)
 		ret_value = join_curve(OB_SURF);
 	else if(type == OB_ARMATURE)
-		ret_value = join_armature ();
-	/* May use for correcting object user counts */
+		ret_value = join_armature();
+	
+	/* May use this for correcting object user counts later on */
 	/*
 	if (!ret_value) {
 		temp_base = temp_scene->base.first;
@@ -1918,15 +1919,23 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 		}
 	}*/
 	
-	
 	/* remove old scene */
 	set_scene( orig_scene );
 	free_libblock( &G.main->scene, temp_scene );
 	
-	if (!ok) /* no objects were of the correct type, return 0 */
-		return ( PyInt_FromLong(0) );
 	
-	return ( PyInt_FromLong(ret_value) );
+	/* no objects were of the correct type, return None */
+	if (!ok)
+		return EXPP_incr_ret( Py_None );
+	
+	/* If the join failed then raise an error */
+	if (!ret_value)
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+"Blender failed to join the objects, this is not a script error\n\
+Please add exception handeling to your script with a RuntimeError exception\n\
+letting the user know that their data could not be joined." ) );
+	
+	return EXPP_incr_ret( Py_None );
 }
 
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
