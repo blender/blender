@@ -2823,12 +2823,8 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,140,140,20, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 
 	uiBlockBeginAlign(block);
-	if(ma->mode & MA_RAYTRANSP)
-		uiDefButF(block, NUM, B_MATPRV, "Filt:",				10,110,100,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
-	else
-		uiDefButF(block, NUM, B_DIFF, "Zoffs:",				10,110,100,20, &(ma->zoffs), 0.0, 10.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
-	uiDefButBitI(block, TOG, MA_ZTRA, B_MATZTRANSP,"ZTransp",	110,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
-	uiDefButBitI(block, TOG, MA_RAYTRANSP, B_MATRAYTRANSP,"Ray Transp",210,110,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
+	uiDefButF(block, NUM, B_MATPRV, "Filt:",		10,110,150,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
+	uiDefButBitI(block, TOG, MA_RAYTRANSP, B_MATRAYTRANSP,"Ray Transp",160,110,150,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",	10,90,200,20, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
@@ -2842,9 +2838,8 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,40,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, MA_ONLYSHADOW, 0,	"OnlyShadow",	10,10,100,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows falling on material only");
-	uiDefButBitI(block, TOG, MA_NOMIST, 0,	"No Mist",		110,10,100,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
-	uiDefButBitI(block, TOG, MA_ENV, 0,	"Env",			210,10,100,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through");
+	uiDefButBitI(block, TOG, MA_NOMIST, 0,	"No Mist",	10,10,150,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
+	uiDefButBitI(block, TOG, MA_ENV, 0,	"Env",			160,10,150,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through");
 	uiBlockEndAlign(block);
 
 
@@ -2910,10 +2905,6 @@ static void material_panel_shading(Material *ma)
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
-
-	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitI(block, TOG, MA_HALO, B_MATHALO, "Halo",	245,180,65,18, &(ma->mode), 0, 0, 0, 0, "Renders material as a halo");
-	uiBlockSetCol(block, TH_AUTO);
 
 	if(ma->mode & MA_HALO) {
 		uiDefButF(block, NUM, B_MATPRV, "HaloSize: ",		10,155,190,18, &(ma->hasize), 0.0, 100.0, 10, 3, "Sets the dimension of the halo");
@@ -2992,225 +2983,19 @@ static void material_panel_shading(Material *ma)
 		uiBlockEndAlign(block);
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_TRACEBLE, B_NOP,"Traceable",		245,160,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to being detected by ray tracing");
-		uiDefButBitI(block, TOG, MA_SHADBUF, B_NOP,	"Shadbuf",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
+		uiDefButBitI(block, TOG, MA_TANGENT_V, B_MATPRV, "Tangent V",	245,180,65,19, &(ma->mode), 0, 0, 0, 0, "Use the tangent vector in V direction for shading");
 
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_SHADOW, B_NOP,	"Shadow",			245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
-		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_NOP, "TraShadow",		245,100,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiDefButBitI(block, TOG, MA_SHADOW, B_NOP,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
+		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_NOP, "TraShadow",		245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiDefButBitI(block, TOG, MA_ONLYSHADOW, 0,	"OnlyShad",			245,100,65,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows on material as Alpha value");
 		uiDefButBitI(block, TOG, MA_RAYBIAS, B_NOP, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 		uiBlockEndAlign(block);
 
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_NOP, "GR:", 9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
-		
-		uiDefButBitI(block, TOG, MA_TANGENT_V, B_MATPRV, "Tangent V",		170,55,65,19, &(ma->mode), 0, 0, 0, 0, "Use the tangent vector in V direction for shading");
-		uiDefButBitI(block, TOG, MA_RADIO, B_NOP,	"Radio",			245,55,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
 
 	}
 }
-
-#if 0
-static void matlayer_add(void *ma_v, void *ml_v)
-{
-	Material *ma= ma_v;
-	MaterialLayer *ml= ml_v, *mlnew;
-	
-	mlnew= MEM_callocN(sizeof(MaterialLayer), "mat layer");
-	
-	if(ml==NULL) 
-		BLI_addhead(&ma->layers, mlnew);
-	else
-		BLI_insertlink(&ma->layers, ml, mlnew);
-	
-	mlnew->blendfac= 0.5f;
-	mlnew->flag= ML_RENDER|ML_DIFFUSE|ML_SPECULAR;
-	
-	BIF_undo_push("Add Material Layer");
-	allqueue(REDRAWBUTSSHADING, 0);
-}
-
-static void matlayer_moveUp(void *ma_v, void *ml_v)
-{
-	Material *ma= ma_v;
-	MaterialLayer *ml= ml_v;
-
-	if (ml->prev) {
-		BLI_remlink(&ma->layers, ml);
-		BLI_insertlink(&ma->layers, ml->prev->prev, ml);
-	}
-	
-	BIF_undo_push("Move Material Layer");
-}
-
-static void matlayer_moveDown(void *ma_v, void *ml_v)
-{
-	Material *ma= ma_v;
-	MaterialLayer *ml= ml_v;
-	
-	if (ml->next) {
-		BLI_remlink(&ma->layers, ml);
-		BLI_insertlink(&ma->layers, ml->next, ml);
-	}
-	
-	BIF_undo_push("Move Material Layer");
-}
-
-static void matlayer_del(void *ma_v, void *ml_v)
-{
-	Material *ma= ma_v;
-	MaterialLayer *ml= ml_v;
-	
-	BLI_remlink(&ma->layers, ml);
-	if(ml->mat) ml->mat->id.us--;
-	MEM_freeN(ml);
-
-	BIF_undo_push("Delete Material Layer");
-}
-
-static void matlayer_active(void *ma_v, void *ml_v)
-{
-	Material *ma= ma_v;
-	MaterialLayer *ml;
-	
-	for(ml= ma->layers.first; ml; ml= ml->next) {
-		if(ml==ml_v)
-			ml->flag |= ML_ACTIVE;
-		else
-			ml->flag &= ~ML_ACTIVE;
-	}
-	BIF_undo_push("Activate Material Layer");
-}
-
-static void matlayer_alone(void *ml_v, void *unused)
-{
-	MaterialLayer *ml= ml_v;
-	
-	ml->mat= copy_material(ml->mat);
-
-	BIF_undo_push("Single user material");
-	allqueue(REDRAWBUTSSHADING, 0);
-	allqueue(REDRAWOOPS, 0);
-}
-
-static void material_panel_layers(Material *ma)
-{
-	uiBlock *block;
-	uiBut *but;
-	MaterialLayer *ml;
-	int yco= 155, rb_col;
-	char *strp;
-	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_layers", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Preview", "Material");
-	if(uiNewPanel(curarea, block, "Layers", "Material", 0, 0, 318, 204)==0) return;
-	
-	uiNewPanelHeight(block, 204);
-	
-	/* Active button for current material */
-	uiBlockBeginAlign(block);
-	for(ml= ma->layers.first; ml; ml= ml->next)
-		if(ml->flag & ML_ACTIVE) break;
-	
-	if(ml==NULL)
-		but=uiDefIconBut(block, BUT, B_MATPRV, ICON_MATERIAL,	10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
-	else but=uiDefBut(block, BUT, B_MATPRV, " ",		10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
-	uiButSetFunc(but, matlayer_active, ma, NULL);
-	
-	/* Enable/disable for current material */
-	if(ma->ml_flag & ML_RENDER)
-		uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV, ICON_CHECKBOX_HLT,	30, 180, 20, 20, &ma->ml_flag, 0.0, 0.0, 0, 0, "Enable or disable base Material");
-	else uiDefButBitS(block, TOG, ML_RENDER, B_MATPRV, " ",	30, 180, 20, 20, &ma->ml_flag, 0.0, 0.0, 0, 0, "Enable or disable base Material");
-	
-	uiBlockEndAlign(block);
-	/* label */
-	uiDefBut(block, LABEL, B_NOP, ma->id.name+2,			60, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
-	/* add layer */
-	but= uiDefBut(block, BUT, B_NOP, "Add Layer", 200, 180,110,20, NULL, 0, 0, 0, 0, "Add a new Material Layer");
-	uiButSetFunc(but, matlayer_add, ma, NULL);
-
-	
-	for(ml= ma->layers.first; ml; ml= ml->next) {
-		
-		/* rounded header */
-		rb_col= (ml->flag & ML_ACTIVE)?40:20;
-		uiDefBut(block, ROUNDBOX, B_DIFF, "", 8, yco-48, 304, 71, NULL, 5.0, 0.0, 3 , rb_col-20, ""); 
-		
-		/* Active button */
-		uiBlockBeginAlign(block);
-		if(ml->flag & ML_ACTIVE)
-			but=uiDefIconBut(block, BUT, B_MATPRV, ICON_MATERIAL,	10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
-		else but=uiDefBut(block, BUT, B_MATPRV, " ",		10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
-		uiButSetFunc(but, matlayer_active, ma, ml);
-		
-		/* enable/disable button */
-		if(ml->flag & ML_RENDER)
-			uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV, ICON_CHECKBOX_HLT,	30, yco, 20, 20, &ml->flag, 0.0, 0.0, 0, 0, "Enable or disable this layer");
-		else uiDefButBitS(block, TOG, ML_RENDER, B_MATPRV, " ",	30, yco, 20, 20, &ml->flag, 0.0, 0.0, 0, 0, "Enable or disable this layer");
-		
-		uiBlockBeginAlign(block);
-		
-		/* browse button */
-		IDnames_to_pupstring(&strp, NULL, "ADD NEW %x32767", &(G.main->mat), (ID *)ma, NULL);
-		ml->menunr= 0;
-		uiDefButS(block, MENU, B_MAT_LAYERBROWSE, strp, 60,yco,20,20, &ml->menunr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
-		if(strp) MEM_freeN(strp);
-			
-		/* name and users */
-		if(ml->mat) {
-			int width;
-			
-			if(ml->mat->id.us>1) width= 120;
-			else width= 140;
-			but= uiDefBut(block, TEX, B_IDNAME, "MA:",80, yco, width, 20, ml->mat->id.name+2, 0.0, 19.0, 0, 0, "Rename Material");
-			uiButSetFunc(but, test_idbutton_cb, ml->mat->id.name, NULL);
-			
-			if(ml->mat->id.us>1) {
-				char str1[32];
-				sprintf(str1, "%d", ml->mat->id.us);
-				but= uiDefBut(block, BUT, B_NOP, str1, 200,yco,20,20, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
-				uiButSetFunc(but, matlayer_alone, ml, NULL);
-			}
-		}
-		else
-			uiDefBut(block, LABEL, B_NOP, "No Material",80, yco, 140, 20, NULL, 0.0, 0.0, 0, 0, "");
-			
-		/* add new */
-		but= uiDefBut(block, BUT, B_NOP, "Add", 220, yco,30,20, NULL, 0, 0, 0, 0, "Add a new Material Layer");
-		uiButSetFunc(but, matlayer_add, ma, ml);
-		
-		/* move up/down/delete */
-		but = uiDefIconBut(block, BUT, B_MATPRV, VICON_MOVE_UP, 250, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer up");
-		uiButSetFunc(but, matlayer_moveUp, ma, ml);
-		
-		but = uiDefIconBut(block, BUT, B_MATPRV, VICON_MOVE_DOWN, 270, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer down");
-		uiButSetFunc(but, matlayer_moveDown, ma, ml);
-		
-		but = uiDefIconBut(block, BUT, B_MATPRV, VICON_X, 290, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete material layer");
-		uiButSetFunc(but, matlayer_del, ma, ml);
-		
-		/* blend slider and operation */
-		uiBlockBeginAlign(block);
-		yco-= 25;
-		uiDefButS(block, MENU, B_MATPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
-													35,yco,100,20, &ml->blendmethod, 0, 0, 0, 0, "Blending method for Ramp (uses alpha in Colorband)");
-		uiDefButF(block, NUMSLI, B_MATPRV, "Blend:",135,yco,175,20, &ml->blendfac, 0.0, 1.0, 100, 0, "Blending factor");
-		
-		/* output */
-		yco-=20;
-		uiDefButBitS(block, TOG, ML_DIFFUSE, B_MATPRV,	"Diff",		35,yco,50,20, &ml->flag, 0, 0, 0, 0, "This Layer affects Diffuse");
-		uiDefButBitS(block, TOG, ML_SPECULAR, B_MATPRV, "Spec",	85,yco,50,20, &ml->flag, 0, 0, 0, 0, "This Layer affects Specular");
-		uiDefButBitS(block, TOG, ML_ALPHA, B_MATPRV, "Alpha",		135,yco,50,20, &ml->flag, 0, 0, 0, 0, "This Layer affects Alpha");
-		uiDefButBitS(block, TOG, ML_NEG_NORMAL, B_MATPRV, "Negate Normal",	185,yco,125,20, &ml->flag, 0, 0, 0, 0, "Negate normal for this layer");
-		
-		yco-= 30;
-		
-		uiBlockEndAlign(block);
-	}
-	
-	if(yco < 0) uiNewPanelHeight(block, 204-yco);
-}
-#endif
 
 static void material_panel_ramps(Material *ma)
 {
@@ -3313,10 +3098,6 @@ static void material_panel_material(Material *ma)
 			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
 			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-			uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		8,147,74,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
-			uiDefBlockBut(block, strand_menu, ma, "Strands",			82,147,74, 20, "Display strand settings for static particles");
-			uiDefButBitI(block, TOG, MA_WIRE, 0,	"Wire",				156,147,74,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
-			uiDefButBitI(block, TOG, MA_ZINV, 0,	"ZInvert",			230,147,73,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
 
 		}
 		uiBlockSetCol(block, TH_AUTO);
@@ -3373,7 +3154,7 @@ static void material_panel_nodes(Material *ma)
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_nodes", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Links", "Material");
+	uiNewPanelTabbed("Links and Pipeline", "Material");
 	if(uiNewPanel(curarea, block, "Nodes", "Material", 640, 0, 318, 204)==0) return;
 	
 	node= editnode_get_active(ma->nodetree);
@@ -3402,21 +3183,22 @@ static void material_panel_links(Object *ob, Material *ma)
 	char str[30], *cp;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Links", "Material", 310, 0, 318, 204)==0) return;	/* 310 makes sorting code to put it right after preview panel */
-	
+	/* 310 makes sorting code to put it right after preview panel */
+	if(uiNewPanel(curarea, block, "Links and Pipeline", "Material", 310, 0, 318, 204)==0) return;
+
 	/* Links from object to material/nodes */
-	uiDefBut(block, ROUNDBOX, 0, "",				5, 125, 310, 75, NULL, 7.0, 0.0, 15 , 20, ""); 
+	uiDefBut(block, ROUNDBOX, 0, "",					5, 90, 310, 110, NULL, 7.0, 0.0, 15 , 20, ""); 
 	uiDefBut(block, LABEL, B_DIFF, "Link to Object",	10, 180, 300, 20, 0, 0, 0, 0, 0, "");
 
 	/* the main material browse but */
 	buttons_active_id(&id, &idfrom);	/* base material! */
-	
+				  
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 10, 160, 0, NULL, B_MATBROWSE, ID_MA, 0, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 	if(ma) cp= &ma->use_nodes; else cp= &G.buts->use_nodes;
 	uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, cp, 0.0f, 0.0f, 0, 0, "");
 	G.buts->use_nodes= *cp;
-	
+				  
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
 	uiBlockBeginAlign(block);
@@ -3424,7 +3206,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	/* id is the block from which the material is used */
 	if( BTST(ob->colbits, ob->actcol-1) ) id= (ID *)ob;
 	else id= ob->data;
-	
+				  
 	/* indicate which one is linking a material */
 	if(id) {
 		strncpy(str, id->name, 2);
@@ -3446,26 +3228,46 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiDefButC(block, NUM, B_ACTCOL, str,			190,135,110,20, &(ob->actcol), min, (float)ob->totcol, 0, 0, "Shows the number of materials on object and the active material");
 	uiBlockEndAlign(block);
 	
+	if(ma==NULL) return;
+
 	/* Active material node */
-	if(ma && ma->use_nodes) {
-		uiDefBut(block, ROUNDBOX, 0, "",					5, 40, 310, 75, NULL, 7.0, 0.0, 15 , 20, ""); 
-		uiDefBut(block, LABEL, B_DIFF, "Active Material Node",	10, 95, 300, 20, 0, 0, 0, 0, 0, "");
+	if(ma->use_nodes) {
+		uiDefBut(block, LABEL, B_DIFF, "Active Material Node",	10, 115, 300, 20, 0, 0, 0, 0, 0, "");
 		
 		if(ma) node= editnode_get_active_idnode(ma->nodetree, ID_MA);
 		if(node==NULL) {
 			node= editnode_get_active(ma->nodetree);	
-			if(node==NULL || node->type!=SH_NODE_MATERIAL)
-				return;
+			if(node && node->type!=SH_NODE_MATERIAL)
+				node= NULL;
 		}
-		if(node->typeinfo->butfunc) {
+		if(node) {
 			rctf rct;
 			rct.xmin= 10.0f;
 			rct.xmax= 300.0f;
-			rct.ymax= 95.0f;
-			rct.ymin= rct.ymax - (float)node->typeinfo->butfunc(NULL, NULL, node, NULL);
+			rct.ymax= 114.0f;
+			rct.ymin= 95.0f;
 			node->typeinfo->butfunc(block, ma->nodetree, node, &rct);
 		}
-	}	
+	}
+	
+	/* main render pipeline settings */
+	uiDefBut(block, LABEL, B_DIFF, "Render Pipeline",			10, 70, 300, 20, 0, 0, 0, 0, 0, "");
+				  
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, MA_HALO, B_MATHALO, "Halo",		10,50,100,19, &(ma->mode), 0, 0, 0, 0, "Renders material as a halo");
+	uiDefButBitI(block, TOG, MA_ZTRA, B_MATZTRANSP,"ZTransp",	110,50,100,19, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
+	uiDefButF(block, NUM, B_DIFF, "Zoffs:",						210,50,100,19, &(ma->zoffs), 0.0, 10.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
+				  
+	uiDefButBitI(block, TOG, MA_WIRE, 0,	"Wire",				10,30,100,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
+	uiDefBlockBut(block, strand_menu, ma, "Strands",			110,30,100, 19, "Display strand settings for static particles");
+	uiDefButBitI(block, TOG, MA_ZINV, 0,	"ZInvert",			210,30,100,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
+				  
+	uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		10,10,75,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
+	uiDefButBitI(block, TOG, MA_RADIO, B_NOP,	"Radio",		85,10,75,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
+	uiDefButBitI(block, TOG, MA_TRACEBLE, B_NOP,"Traceable",	160,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material to being detected by ray tracing");
+	uiDefButBitI(block, TOG, MA_SHADBUF, B_NOP,	"Shadbuf",		235,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
+				  
+	
 }
 
 static void material_panel_preview(Material *ma)

@@ -193,7 +193,7 @@ void snode_set_context(SpaceNode *snode)
 		if(ob) {
 			Material *ma= give_current_material(ob, ob->actcol);
 			if(ma) {
-				snode->from= &ob->id;
+				snode->from= material_from(ob, ob->actcol);
 				snode->id= &ma->id;
 				snode->nodetree= ma->nodetree;
 			}
@@ -1453,21 +1453,29 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	SpaceNode *snode= spacedata;
 	float dx;
 	unsigned short event= evt->event;
-	short val= evt->val, doredraw=0;
+	short val= evt->val, doredraw=0, fromlib= 0;
 	
 	if(sa->win==0) return;
 	if(snode->nodetree==NULL) return;
 	
 	if(val) {
 
-		if( node_uiDoBlocks(snode, &sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( node_uiDoBlocks(snode, &sa->uiblocks, event)!=UI_NOTHING ) event= 0;	
 
+		fromlib= (snode->id && snode->id->lib);
+		
 		switch(event) {
 		case LEFTMOUSE:
-			if(node_add_link(snode)==0)
+			if(fromlib) {
 				if(node_mouse_groupheader(snode)==0)
-					if(node_mouse_select(snode, event)==0)
-						node_border_link_delete(snode);
+					node_mouse_select(snode, event);
+			}
+			else {
+				if(node_add_link(snode)==0)
+					if(node_mouse_groupheader(snode)==0)
+						if(node_mouse_select(snode, event)==0)
+							node_border_link_delete(snode);
+			}
 			break;
 			
 		case RIGHTMOUSE: 
@@ -1513,12 +1521,15 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case TABKEY:
-			snode_make_group_editable(snode, NULL);
+			if(fromlib) fromlib= -1;
+			else snode_make_group_editable(snode, NULL);
 			break;
 			
 		case AKEY:
-			if(G.qual==LR_SHIFTKEY)
-				node_add_menu(snode);
+			if(G.qual==LR_SHIFTKEY) {
+				if(fromlib) fromlib= -1;
+				else node_add_menu(snode);
+			}
 			else if(G.qual==0) {
 				node_deselectall(snode, 1);
 				BIF_undo_push("Deselect all nodes");
@@ -1535,20 +1546,25 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case DKEY:
-			if(G.qual==LR_SHIFTKEY)
-				node_adduplicate(snode);
+			if(G.qual==LR_SHIFTKEY) {
+				if(fromlib) fromlib= -1;
+				else node_adduplicate(snode);
+			}
 			break;
 		case GKEY:
-			if(G.qual==LR_CTRLKEY) {
-				if(okee("Make Group"))
-					node_make_group(snode);
+			if(fromlib) fromlib= -1;
+			else {
+				if(G.qual==LR_CTRLKEY) {
+					if(okee("Make Group"))
+						node_make_group(snode);
+				}
+				else if(G.qual==LR_ALTKEY) {
+					if(okee("Ungroup"))
+						node_ungroup(snode);
+				}
+				else
+					transform_nodes(snode->edittree, 'g', "Translate Node");
 			}
-			else if(G.qual==LR_ALTKEY) {
-				if(okee("Ungroup"))
-					node_ungroup(snode);
-			}
-			else
-				transform_nodes(snode->edittree, 'g', "Translate Node");
 			break;
 		case HKEY:
 			node_hide(snode);
@@ -1556,11 +1572,14 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case DELKEY:
 		case XKEY:
-			node_delete(snode);
+			if(fromlib) fromlib= -1;
+			else node_delete(snode);
 			break;
 		}
 	}
 
+	if(fromlib==-1)
+		error("Cannot edit Library Data");
 	if(doredraw)
 		scrarea_queue_winredraw(sa);
 	if(doredraw==2)

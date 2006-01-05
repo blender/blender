@@ -268,17 +268,22 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 	if(block) {
 		uiBut *bt;
 		short dx= (short)((butr->xmax-butr->xmin)/3.0f), has_us= (node->id && node->id->us>1);
+		short dy= (short)butr->ymin;
 		char *strp;
 		
+		/* WATCH IT: we use this callback in material buttons, but then only want first row */
+		if(butr->ymax-butr->ymin > 21.0f) dy+= 19;
+		
 		uiBlockBeginAlign(block);
-		if(has_us) uiBlockSetCol(block, TH_BUT_SETTING1);
+		if(node->id==NULL) uiBlockSetCol(block, TH_REDALERT);
+		else if(has_us) uiBlockSetCol(block, TH_BUT_SETTING1);
 		else uiBlockSetCol(block, TH_BUT_SETTING2);
 		
 		/* browse button */
 		IDnames_to_pupstring(&strp, NULL, "ADD NEW %x32767", &(G.main->mat), NULL, NULL);
 		node->menunr= 0;
 		bt= uiDefButS(block, MENU, B_NOP, strp, 
-				  butr->xmin, butr->ymin+19, 19, 19, 
+				  butr->xmin, dy, 19, 19, 
 				  &node->menunr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
 		uiButSetFunc(bt, node_browse_mat_cb, ntree, node);
 		if(strp) MEM_freeN(strp);
@@ -286,15 +291,16 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 		/* Add New button */
 		if(node->id==NULL) {
 			bt= uiDefBut(block, BUT, B_NOP, "Add New",
-						 butr->xmin+19, butr->ymin+19, (short)(butr->xmax-butr->xmin-19.0f), 19, 
+						 butr->xmin+19, dy, (short)(butr->xmax-butr->xmin-19.0f), 19, 
 						 NULL, 0.0, 0.0, 0, 0, "Add new Material");
 			uiButSetFunc(bt, node_new_mat_cb, ntree, node);
+			uiBlockSetCol(block, TH_AUTO);
 		}
 		else {
 			/* name button */
 			short width= (short)(butr->xmax-butr->xmin-19.0f - (has_us?19.0f:0.0f));
 			bt= uiDefBut(block, TEX, B_NOP, "MA:",
-						  butr->xmin+19, butr->ymin+19, width, 19, 
+						  butr->xmin+19, dy, width, 19, 
 						  node->id->name+2, 0.0, 19.0, 0, 0, "Material name");
 			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
 			
@@ -303,22 +309,25 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 				char str1[32];
 				sprintf(str1, "%d", node->id->us);
 				bt= uiDefBut(block, BUT, B_NOP, str1, 
-							  butr->xmax-19, butr->ymin+19, 19, 19, 
+							  butr->xmax-19, dy, 19, 19, 
 							  NULL, 0, 0, 0, 0, "Displays number of users. Click to make a single-user copy.");
 				uiButSetFunc(bt, node_mat_alone_cb, node, NULL);
 			}
 			
-			/* node options */
-			uiBlockSetCol(block, TH_AUTO);
-			uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC, "Diff",
-						 butr->xmin, butr->ymin, dx, 19, 
-						 &node->custom1, 0, 0, 0, 0, "Material Node outputs Diffuse");
-			uiDefButBitS(block, TOG, SH_NODE_MAT_SPEC, B_NODE_EXEC, "Spec",
-						 butr->xmin+dx, butr->ymin, dx, 19, 
-						 &node->custom1, 0, 0, 0, 0, "Material Node outputs Specular");
-			uiDefButBitS(block, TOG, SH_NODE_MAT_NEG, B_NODE_EXEC, "Neg Normal",
-						 butr->xmax-dx, butr->ymin, dx, 19,
-						 &node->custom1, 0, 0, 0, 0, "Material Node uses inverted Normal");
+			/* WATCH IT: we use this callback in material buttons, but then only want first row */
+			if(butr->ymax-butr->ymin > 21.0f) {
+				/* node options */
+				uiBlockSetCol(block, TH_AUTO);
+				uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC, "Diff",
+							 butr->xmin, butr->ymin, dx, 19, 
+							 &node->custom1, 0, 0, 0, 0, "Material Node outputs Diffuse");
+				uiDefButBitS(block, TOG, SH_NODE_MAT_SPEC, B_NODE_EXEC, "Spec",
+							 butr->xmin+dx, butr->ymin, dx, 19, 
+							 &node->custom1, 0, 0, 0, 0, "Material Node outputs Specular");
+				uiDefButBitS(block, TOG, SH_NODE_MAT_NEG, B_NODE_EXEC, "Neg Normal",
+							 butr->xmax-dx, butr->ymin, dx, 19,
+							 &node->custom1, 0, 0, 0, 0, "Material Node uses inverted Normal");
+			}
 		}
 		uiBlockEndAlign(block);
 	}	
@@ -978,6 +987,8 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 			uiBlock *block= uiNewBlock(NULL, "node buttons", UI_EMBOSS, UI_HELV, sa->win);
 			BLI_addtail(&sa->uiblocks, block);
 			uiBlockSetFlag(block, UI_BLOCK_NO_HILITE);
+			if(snode->id)
+				uiSetButLock(snode->id->lib!=NULL, "Can't edit library data");
 			node->block= block;
 		}
 	}

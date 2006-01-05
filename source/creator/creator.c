@@ -467,7 +467,7 @@ int main(int argc, char **argv)
 
 	/* dynamically load libtiff, if available */
 	libtiff_init();
-	if (!G.have_libtiff) {
+	if (!G.have_libtiff && (G.f & G_DEBUG)) {
 		printf("Unable to load: libtiff.\n");
 		printf("Try setting the BF_TIFF_LIB environment variable if you want this support.\n");
 		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");

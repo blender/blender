@@ -1440,6 +1440,8 @@ void do_global_buttons(unsigned short event)
 			id= (ID *)G.buts->lockpoin;
 		} else if(curarea->spacetype==SPACE_IPO) {
 			id = (ID *)G.sipo->ipo;
+		} else if(curarea->spacetype==SPACE_NODE) {
+			id = ((SpaceNode *)curarea->spacedata.first)->id;
 		} /* similar for other spacetypes ? */
 		if (id) {
 			if( id->flag & LIB_FAKEUSER) {
