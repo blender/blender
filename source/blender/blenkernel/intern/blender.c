@@ -469,7 +469,7 @@ int BKE_read_file_from_memfile(MemFile *memfile)
 	if (!G.background)
 		waitcursor(1);
 		
-	bfd= BLO_read_from_memfile(memfile, &bre);
+	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
 	if (bfd) {
 		setup_app_data(bfd, "<memory>");
 	} else {
