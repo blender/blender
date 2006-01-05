@@ -1082,6 +1082,7 @@ void transform_actionchannel_keys(int mode, int dummy)
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
 	allqueue (REDRAWIPO, 0);
+	allqueue(REDRAWTIME, 0);
 	MEM_freeN (tv);
 }
 
@@ -1246,6 +1247,7 @@ void transform_meshchannel_keys(char mode, Key *key)
                 allqueue (REDRAWACTION, 0);
                 allqueue (REDRAWIPO, 0);
                 allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWTIME, 0);
                 force_draw_all(0);
             }
             else {
