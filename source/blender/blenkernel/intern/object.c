@@ -885,6 +885,8 @@ Object *copy_object(Object *ob)
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->ipo);
 	id_us_plus((ID *)obn->action);
+	id_us_plus((ID *)obn->dup_group);
+
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
 	obn->disp.first= obn->disp.last= NULL;
