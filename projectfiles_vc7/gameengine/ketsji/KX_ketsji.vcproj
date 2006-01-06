@@ -366,9 +366,6 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MotionState.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_OdePhysicsController.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.cpp">
 			</File>
 			<File
