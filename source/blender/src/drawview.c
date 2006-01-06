@@ -2104,6 +2104,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	View3D *v3d= spacedata;
 	Base *base;
 	Object *ob;
+	Scene *setscene;
 	
 	setwinmatrixview3d(0);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
@@ -2186,9 +2187,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		view3d_set_clipping(v3d);
 	
 	/* draw set first */
-	if(G.scene->set) {
+	setscene= G.scene->set;
+	if(setscene) { /* if(G.scene->set) { */
 	
-		base= G.scene->set->base.first;
+		base= setscene->base.first; /* base= G.scene->set->base.first; */
 		while(base) {
 			
 			if(v3d->lay & base->lay) {
@@ -2205,7 +2207,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 					tbase= *base;
 					
 					tbase.flag= OB_FROMDUPLI;
-					make_duplilist(G.scene->set, base->object);
+					make_duplilist(setscene, base->object); /* make_duplilist(G.scene->set, base->object); */
 					ob= duplilist.first;
 					while(ob) {
 						tbase.object= ob;
@@ -2216,7 +2218,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 					
 				}
 			}
+			
 			base= base->next;
+			if(base==0 && setscene && setscene->set) {
+				setscene= setscene->set;
+				base= setscene->base.first;
+			}
 		}
 
 		/* Transp and X-ray afterdraw stuff */
@@ -2338,6 +2345,7 @@ void drawview3d_render(struct View3D *v3d)
 	extern short v3d_windowmode;
 	Base *base;
 	Object *ob;
+	Scene *setscene;
 
 	update_for_newframe_muted();	/* first, since camera can be animated */
 
@@ -2381,9 +2389,10 @@ void drawview3d_render(struct View3D *v3d)
 	G.f |= G_SIMULATION;
 
 	/* first draw set */
-	if(G.scene->set) {
+	setscene= G.scene->set;
+	if(setscene) { /* if(G.scene->set) { */
 	
-		base= G.scene->set->base.first;
+		base= setscene->base.first; /* base= G.scene->set->base.first; */
 		while(base) {
 			if(v3d->lay & base->lay) {
 				if ELEM3(base->object->type, OB_LAMP, OB_CAMERA, OB_LATTICE);
@@ -2398,7 +2407,7 @@ void drawview3d_render(struct View3D *v3d)
 						Base tbase;
 						
 						tbase.flag= OB_FROMDUPLI;
-						make_duplilist(G.scene->set, base->object);
+						make_duplilist(setscene, base->object); /* make_duplilist(G.scene->set, base->object); */
 						ob= duplilist.first;
 						while(ob) {
 							tbase.object= ob;
@@ -2410,6 +2419,10 @@ void drawview3d_render(struct View3D *v3d)
 				}
 			}
 			base= base->next;
+			if(base==0 && setscene && setscene->set) {
+				setscene= setscene->set;
+				base= setscene->base.first;
+			}
 		}
 		
 		/* Transp and X-ray afterdraw stuff */

@@ -2761,7 +2761,7 @@ void RE_rotateBlenderScene(void)
 {
 	Base *base;
 	Object *ob, *obd;
-	Scene *sce;
+	Scene *sce, *setscene;
 	unsigned int lay;
 	float mat[4][4];
 
@@ -2827,7 +2827,7 @@ void RE_rotateBlenderScene(void)
 	}
 	
 	sce= G.scene;
-
+	setscene= G.scene->set;
 	base= G.scene->base.first;
 	while(base) {
 
@@ -2943,11 +2943,17 @@ void RE_rotateBlenderScene(void)
 		}
 		if(blender_test_break()) break;
 
-		if(base->next==0 && G.scene->set && base==G.scene->base.last) {
+		base= base->next;
+		if(base==0 && setscene) {
+			sce= setscene;
+			base= setscene->base.first;
+			setscene= setscene->set;
+		}
+		/*if(base->next==0 && G.scene->set && base==G.scene->base.last) {
 			base= G.scene->set->base.first;
 			sce= G.scene->set;
 		}
-		else base= base->next;
+		else base= base->next;*/
 
 	}
 
