@@ -1261,6 +1261,7 @@ static void do_info_gamemenu(void *arg, int event)
 	case G_FILE_SHOW_DEBUG_PROPS:
 	case G_FILE_AUTOPLAY:
 	case G_FILE_GAME_TO_IPO:
+	case G_FILE_GAME_MAT:
 		G.fileflags ^= event;
 		break;
 	default:
@@ -1295,7 +1296,12 @@ static uiBlock *info_gamemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Record Game Physics to IPO",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_TO_IPO, "");
 	}
 	
-	
+	if(G.fileflags & G_FILE_GAME_MAT) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Use Blender Materials",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_MAT, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Use Blender Materials",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_MAT, "");
+	}	
+
 
 
 	if(G.fileflags & G_FILE_SHOW_FRAMERATE) {
@@ -1319,7 +1325,7 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	}
 
 	uiBlockSetDirection(block, UI_DOWN);
-	uiTextBoundsBlock(block, 50);
+	uiTextBoundsBlock(block, 70);
 	
 	return block;
 }

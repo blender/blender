@@ -42,6 +42,7 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_IPhysicsController.h"
+#include "BL_Material.h"
 
 #include "DummyPhysicsEnvironment.h"
 
@@ -98,7 +99,8 @@ KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							: m_maggie(maggie),
 							m_sipo(sipo),
 							m_ketsjiEngine(engine),
-							m_alwaysUseExpandFraming(false)
+							m_alwaysUseExpandFraming(false),
+							m_usemat(false)
 {
 	m_newfilename = "";
 }
@@ -129,7 +131,15 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itp);
 		itp++;
 	}
-	
+
+	// delete after RAS_IPolyMaterial
+	vector<BL_Material *>::iterator itmat = m_materials.begin();
+	while (itmat != m_materials.end()) {
+		delete (*itmat);
+		itmat++;
+	}	
+
+
 	vector<RAS_MeshObject*>::iterator itm = m_meshobjects.begin();
 	while (itm != m_meshobjects.end()) {
 		delete (*itm);
@@ -342,6 +352,24 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 
 	//don't clear it yet, it is needed for the baking physics into ipo animation
 	//m_map_gameobject_to_blender.clear();
+}
+
+
+// use blender materials
+void KX_BlenderSceneConverter::SetMaterials(bool val)
+{
+	m_usemat = val;
+}
+
+bool KX_BlenderSceneConverter::GetMaterials()
+{
+	return m_usemat;
+}
+
+
+void KX_BlenderSceneConverter::RegisterBlenderMaterial(BL_Material *mat)
+{
+	m_materials.push_back(mat);
 }
 
 

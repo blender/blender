@@ -45,9 +45,11 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 {
 	xyz.getValue(m_localxyz);
 	uv.getValue(m_uv1);
+	uv.getValue(m_uv2); // ..py access
 	SetRGBA(rgba);
 	SetNormal(normal);
 	m_flag = flag;
+	m_unit = 2;
 }
 
 const MT_Point3& RAS_TexVert::xyz()
@@ -78,6 +80,10 @@ void RAS_TexVert::SetUV(const MT_Point2& uv)
 	uv.getValue(m_uv1);
 }
 
+void RAS_TexVert::SetUV2(const MT_Point2& uv)
+{
+	uv.getValue(m_uv2);
+}
 
 
 void RAS_TexVert::SetRGBA(const unsigned int rgba)
@@ -90,6 +96,12 @@ void RAS_TexVert::SetFlag(const short flag)
 {
 	m_flag = flag;
 }
+
+void RAS_TexVert::SetUnit(const unsigned int u)
+{
+	m_unit = u<=TV_MAX?u:TV_MAX;
+}
+
 void RAS_TexVert::SetNormal(const MT_Vector3& normal)
 {
 	normal.getValue(m_normal);
@@ -102,6 +114,12 @@ const float* RAS_TexVert::getUV1 () const
 {
 	return m_uv1;
 }
+
+const float* RAS_TexVert::getUV2 () const
+{
+	return m_uv2;
+}
+
 
 
 const float* RAS_TexVert::getNormal() const
@@ -136,6 +154,13 @@ short RAS_TexVert::getFlag() const
 {
 	return m_flag;
 }
+
+
+unsigned int RAS_TexVert::getUnit() const
+{
+	return m_unit;
+}
+
 
 void RAS_TexVert::getOffsets(void* &xyz, void* &uv1, void* &rgba, void* &normal) const
 {

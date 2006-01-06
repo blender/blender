@@ -48,6 +48,7 @@
 #include "KX_BlenderMouseDevice.h"
 #include "KX_BlenderRenderTools.h"
 #include "KX_BlenderSystem.h"
+#include "BL_Material.h"
 
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderSceneConverter.h"
@@ -103,7 +104,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	strcpy (pathname, maggie->name);
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
-	
+
 	bgl::InitExtensions(1);
 	
 	do
@@ -117,6 +118,21 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
+		
+		bool usemat = false;
+
+		#ifdef GL_ARB_multitexture
+		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
+			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+			int unitmax=0;
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
+			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
+			//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
+		} else {
+			bgl::max_texture_units = 0;
+		}
+		#endif
+
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -273,7 +289,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
 			
-			
+			if(usemat)
+				sceneconverter->SetMaterials(true);
+					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
@@ -400,7 +418,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			delete canvas;
 			canvas = NULL;
 		}
-		
 		SND_DeviceManager::Unsubscribe();
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);

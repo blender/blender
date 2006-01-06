@@ -555,20 +555,47 @@ void KX_KetsjiEngine::Render()
 	// for each scene, call the proceed functions
 	{
 		KX_Scene* scene = *sceneit;
-
+		KX_Camera* cam = scene->GetActiveCamera();
 		// pass the scene's worldsettings to the rasterizer
 		SetWorldSettings(scene->GetWorldInfo());
+
+		// Avoid drawing the scene with the active camera twice when it's viewport is enabled
+		if(!cam->GetViewport())
+		{
+			if (scene->IsClearingZBuffer())
+				m_rasterizer->ClearDepthBuffer();
+	
+			m_rendertools->SetAuxilaryClientInfo(scene);
+	
+			//Initialize scene viewport.
+			SetupRenderFrame(scene, cam);
+	
+			// do the rendering
+			RenderFrame(scene, cam);
+		}
 		
-		if (scene->IsClearingZBuffer())
-			m_rasterizer->ClearDepthBuffer();
-
-		m_rendertools->SetAuxilaryClientInfo(scene);
-
-		//Initialize scene viewport.
-		SetupRenderFrame(scene);
-
-		// do the rendering
-		RenderFrame(scene);
+		set<class KX_Camera*>* cameras = scene->GetCameras();
+		
+		// Draw the scene once for each camera with an enabled viewport
+		set<KX_Camera*>::iterator it = cameras->begin();
+		while(it != cameras->end())
+		{
+			if((*it)->GetViewport())
+			{
+				if (scene->IsClearingZBuffer())
+					m_rasterizer->ClearDepthBuffer();
+		
+				m_rendertools->SetAuxilaryClientInfo(scene);
+		
+				//Initialize scene viewport.
+				SetupRenderFrame(scene, (*it));
+		
+				// do the rendering
+				RenderFrame(scene, (*it));
+			}
+			
+			it++;
+		}
 	}
 
 	// only one place that checks for stereo
@@ -584,6 +611,7 @@ void KX_KetsjiEngine::Render()
 		// for each scene, call the proceed functions
 		{
 			KX_Scene* scene = *sceneit;
+			KX_Camera* cam = scene->GetActiveCamera();
 
 			// pass the scene's worldsettings to the rasterizer
 			SetWorldSettings(scene->GetWorldInfo());
@@ -595,10 +623,12 @@ void KX_KetsjiEngine::Render()
 			m_rendertools->SetAuxilaryClientInfo(scene);
 
 			//Initialize scene viewport.
-			SetupRenderFrame(scene);
+			//SetupRenderFrame(scene);
+			SetupRenderFrame(scene, cam);
 
 			// do the rendering
-			RenderFrame(scene);
+			//RenderFrame(scene);
+			RenderFrame(scene, cam);
 		}
 	} // if(m_rasterizer->Stereo())
 
@@ -686,6 +716,13 @@ void KX_KetsjiEngine::SetWorldSettings(KX_WorldInfo* wi)
 {
 	if (wi->hasWorld())
 	{
+		// ...
+		m_rasterizer->SetAmbientColor(
+			wi->getAmbientColorRed(),
+			wi->getAmbientColorGreen(),
+			wi->getAmbientColorBlue()
+		);
+
 		if (m_drawingmode == RAS_IRasterizer::KX_TEXTURED)
 		{	
 			if (wi->hasMist())
@@ -749,7 +786,7 @@ void KX_KetsjiEngine::SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat)
 }
 
 	
-void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene)
+void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 {
 	// In this function we make sure the rasterizer settings are upto
 	// date. We compute the viewport so that logic
@@ -760,11 +797,13 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene)
 
 	RAS_Rect viewport;
 
-	if (
-		m_overrideCam || 
-		(scene->GetName() != m_overrideSceneName) || 
-		m_overrideCamUseOrtho
-	) {
+	if (cam->GetViewport()) {
+		viewport.SetLeft(cam->GetViewportLeft()); 
+		viewport.SetBottom(cam->GetViewportBottom());
+		viewport.SetRight(cam->GetViewportRight());
+		viewport.SetTop(cam->GetViewportTop());
+	}
+	else if ( m_overrideCam || (scene->GetName() != m_overrideSceneName) ||  m_overrideCamUseOrtho ) {
 		RAS_FramingManager::ComputeViewport(
 			scene->GetFramingType(),
 			m_canvas->GetDisplayArea(),
@@ -792,21 +831,23 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene)
 
 	
 // update graphics
-void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
+void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 {
 	float left, right, bottom, top, nearfrust, farfrust;
 	const float ortho = 100.0;
-	KX_Camera* cam = scene->GetActiveCamera();
+//	KX_Camera* cam = scene->GetActiveCamera();
 	
 	if (!cam)
 		return;
-
+	
+	// see KX_BlenderMaterial::Activate
+	//m_rasterizer->SetAmbient();
 	m_rasterizer->DisplayFog();
 
 	if (m_overrideCam && (scene->GetName() == m_overrideSceneName) && m_overrideCamUseOrtho) {
 		MT_CmMatrix4x4 projmat = m_overrideCamProjMat;
 		m_rasterizer->SetProjectionMatrix(projmat);
-	} else if (cam->hasValidProjectionMatrix())
+	} else if (cam->hasValidProjectionMatrix() && !cam->GetViewport() )
 	{
 		m_rasterizer->SetProjectionMatrix(cam->GetProjectionMatrix());
 	} else
@@ -865,7 +906,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene)
 	// redrawn. There is a cache between the actual rescheduling
 	// and this call though. Visibility is imparted when this call
 	// runs through the individual objects.
-	scene->CalculateVisibleMeshes(m_rasterizer);
+	scene->CalculateVisibleMeshes(m_rasterizer,cam);
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
 }
@@ -958,6 +999,10 @@ void KX_KetsjiEngine::RenderDebugProperties()
 	if (tottime < 1e-6f) {
 		tottime = 1e-6f;
 	}
+
+	// Set viewport to entire canvas
+	RAS_Rect viewport;
+	m_canvas->SetViewPort(0, 0, int(m_canvas->GetWidth()), int(m_canvas->GetHeight()));
 	
 	/* Framerate display */
 	if (m_show_framerate) {

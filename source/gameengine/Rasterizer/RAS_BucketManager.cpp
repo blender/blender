@@ -141,10 +141,17 @@ void RAS_BucketManager::Renderbuckets(
 	}
 	
 	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); ++bucket)
+	{
+		if((*bucket)->GetPolyMaterial()->IsZSort())
+			rasty->SetAlphaTest(true);
+		else
+			rasty->SetAlphaTest(false);
+
 		(*bucket)->Render(cameratrans,rasty,rendertools);
-	
+	}
+	rasty->SetAlphaTest(false);
+
 	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
-	
 	RAS_MaterialBucket::EndFrame();
 }
 

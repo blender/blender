@@ -45,6 +45,7 @@ CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_SUMO) -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_SOLID)/include
 CPPFLAGS += -I$(NAN_BULLET)/include
+CPPFLAGS += -I../Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../Rasterizer -I../GameLogic -I../SceneGraph
 CPPFLAGS += -I../BlenderRoutines -I../Expressions
 CPPFLAGS += -I../../kernel/gen_system

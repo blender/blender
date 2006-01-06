@@ -71,6 +71,10 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_greenback;
 	float			m_blueback;
 	float			m_alphaback;
+	
+	float			m_ambr;
+	float			m_ambg;
+	float			m_ambb;
 
 	double			m_time;
 	MT_CmMatrix4x4	m_viewmatrix;
@@ -130,6 +134,8 @@ public:
 	virtual void	SetFocalLength(const float focallength);
 	virtual float	GetFocalLength();
 
+	virtual void	SetAlphaTest(bool enable);
+
 	virtual void	SwapBuffers();
 	virtual void	IndexPrimitives(
 						const vecVertexArray& vertexarrays,
@@ -160,6 +166,25 @@ public:
 						bool useObjectColor,
 						const MT_Vector4& rgbacolor
 					);
+
+	virtual void IndexPrimitivesMulti( 
+						const vecVertexArray& vertexarrays,
+						const vecIndexArrays & indexarrays,
+						int mode,
+						class RAS_IPolyMaterial* polymat,
+						class RAS_IRenderTools* rendertools,
+						bool useObjectColor,
+						const MT_Vector4& rgbacolor);
+
+	virtual void IndexPrimitivesMulti_Ex( 
+						const vecVertexArray& vertexarrays,
+						const vecIndexArrays & indexarrays,
+						int mode,
+						class RAS_IPolyMaterial* polymat,
+						class RAS_IRenderTools* rendertools,
+						bool useObjectColor,
+						const MT_Vector4& rgbacolor);
+
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat);
 	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);
@@ -231,6 +256,15 @@ public:
 						float difZ,
 						float diffuse
 					);
+	virtual void	SetEmissive(float eX,
+								float eY,
+								float eZ,
+								float e
+							   );
+
+	virtual void	SetAmbientColor(float red, float green, float blue);
+	virtual void	SetAmbient(float factor);
+
 	virtual void	SetPolygonOffset(float mult, float add);
 
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)

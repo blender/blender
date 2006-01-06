@@ -54,6 +54,8 @@
 #include "SCA_JoystickManager.h"
 
 #include "RAS_MeshObject.h"
+#include "BL_SkinMeshObject.h"
+
 #include "RAS_IRasterizer.h"
 #include "RAS_BucketManager.h"
 
@@ -257,6 +259,13 @@ SCA_TimeEventManager* KX_Scene::GetTimeEventManager()
 	return m_timemgr;
 }
 
+
+
+ 
+set<class KX_Camera*>* KX_Scene::GetCameras()
+{
+	return &m_cameras;
+}
 
 
 
@@ -714,6 +723,7 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 		
 	if (newobj == m_active_camera)
 	{
+		m_active_camera->Release();
 		m_active_camera = NULL;
 	}
 }
@@ -731,21 +741,30 @@ void KX_Scene::ReplaceMesh(class CValue* gameobj,void* meshobj)
 	if (newobj->m_isDeformable && mesh->m_class == 1) {
 		Object* blendobj = (struct Object*)m_logicmgr->FindBlendObjByGameObj(newobj);
 		Object* oldblendobj = (struct Object*)m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName());
-		if (blendobj->parent && blendobj->parent->type == OB_ARMATURE && blendobj->partype==PARSKEL && ((Mesh*)blendobj->data)->dvert) {
-			BL_SkinDeformer* skindeformer = new BL_SkinDeformer(oldblendobj, blendobj, (BL_SkinMeshObject*)mesh,blendobj->parent);
-			skindeformer->SetArmature((BL_ArmatureObject*) newobj->GetParent());
-			
+		
+		if (blendobj->parent && blendobj->parent->type == OB_ARMATURE && 
+			blendobj->partype==PARSKEL && 
+			((Mesh*)blendobj->data)->dvert) 
+		{
 			// FIXME: should the old m_pDeformer be deleted?
-			// delete ((BL_DeformableGameObject*)newobj)->m_pDeformer
+			// it shouldn't be a problem to delete it now.
+			// if we are constructing this on the fly like here,
+			// make sure to release newobj->GetParent(), and things will run shipshape
+			delete static_cast<BL_DeformableGameObject*>( newobj )->m_pDeformer;
 			
-			((BL_DeformableGameObject*)newobj)->m_pDeformer = skindeformer;
+			BL_SkinDeformer* skindeformer = new BL_SkinDeformer(
+				oldblendobj, blendobj,
+				static_cast<BL_SkinMeshObject*>(mesh),
+				true, // release ref count to BL_ArmatureObject, leak otherwise
+				static_cast<BL_ArmatureObject*>(newobj->GetParent())
+			);
+			static_cast<BL_DeformableGameObject*>( newobj )->m_pDeformer = skindeformer;
 		}
 		else if (((Mesh*)blendobj->data)->dvert) {
-			BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(oldblendobj, (BL_SkinMeshObject*)mesh,oldblendobj->parent);
-			
+			BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(oldblendobj, (BL_SkinMeshObject*)mesh );
+
 			// FIXME: should the old m_pDeformer be deleted?
 			// delete ((BL_DeformableGameObject*)newobj)->m_pDeformer
-			
 			((BL_DeformableGameObject*)newobj)->m_pDeformer = meshdeformer;
 		}
 	}
@@ -832,48 +851,48 @@ void KX_Scene::UpdateMeshTransformations()
 	}
 }
 
-void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty)
+void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam)
 {
 	int intersect = KX_Camera::INTERSECT;
 	KX_GameObject *gameobj = node->Client()?(KX_GameObject*) node->Client()->GetSGClientObject():NULL;
 	bool dotest = (gameobj && gameobj->GetVisible()) || node->Left() || node->Right();
 	
 	/* If the camera is inside the box, assume intersect. */
-	if (dotest && !node->inside(GetActiveCamera()->NodeGetWorldPosition()))
+	if (dotest && !node->inside( cam->NodeGetWorldPosition()))
 	{
 		MT_Scalar radius = node->Radius();
 		MT_Point3 centre = node->Centre();
 		
-		intersect = GetActiveCamera()->SphereInsideFrustum(centre, radius); 
+		intersect =  cam->SphereInsideFrustum(centre, radius); 
 		
 		if (intersect == KX_Camera::INTERSECT)
 		{
 			MT_Point3 box[8];
 			node->get(box);
-			intersect = GetActiveCamera()->BoxInsideFrustum(box);
+			intersect = cam->BoxInsideFrustum(box);
 		}
 	}
 
 	switch (intersect)
 	{
 		case KX_Camera::OUTSIDE:
-			MarkSubTreeVisible(node, rasty, false);
+			MarkSubTreeVisible(node, rasty, false, cam);
 			break;
 		case KX_Camera::INTERSECT:
 			if (gameobj)
-				MarkVisible(rasty, gameobj);
+				MarkVisible(rasty, gameobj,cam);
 			if (node->Left())
-				MarkVisible(node->Left(), rasty);
+				MarkVisible(node->Left(), rasty,cam);
 			if (node->Right())
-				MarkVisible(node->Right(), rasty);
+				MarkVisible(node->Right(), rasty,cam);
 			break;
 		case KX_Camera::INSIDE:
-			MarkSubTreeVisible(node, rasty, true);
+			MarkSubTreeVisible(node, rasty, true,cam);
 			break;
 	}
 }
 
-void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible)
+void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible,KX_Camera* cam)
 {
 	if (node->Client())
 	{
@@ -883,7 +902,7 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 			if (visible)
 			{
 				int nummeshes = gameobj->GetMeshCount();
-				MT_Transform t( GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
+				MT_Transform t( cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
 	
 				
 				for (int m=0;m<nummeshes;m++)
@@ -896,18 +915,18 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 		}
 	}
 	if (node->Left())
-		MarkSubTreeVisible(node->Left(), rasty, visible);
+		MarkSubTreeVisible(node->Left(), rasty, visible,cam);
 	if (node->Right())
-		MarkSubTreeVisible(node->Right(), rasty, visible);
+		MarkSubTreeVisible(node->Right(), rasty, visible,cam);
 }
 
-void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj)
+void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Camera*  cam)
 {
 	// User (Python/Actuator) has forced object invisible...
 	if (!gameobj->GetVisible())
 		return;
 	// If Frustum culling is off, the object is always visible.
-	bool vis = !GetActiveCamera()->GetFrustumCulling();
+	bool vis = !cam->GetFrustumCulling();
 	
 	// If the camera is inside this node, then the object is visible.
 	if (!vis)
@@ -920,7 +939,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj)
 	{
 		MT_Vector3 scale = gameobj->GetSGNode()->GetWorldScaling();
 		MT_Scalar radius = fabs(scale[scale.closestAxis()] * gameobj->GetSGNode()->Radius());
-		switch (GetActiveCamera()->SphereInsideFrustum(gameobj->NodeGetWorldPosition(), radius))
+		switch (cam->SphereInsideFrustum(gameobj->NodeGetWorldPosition(), radius))
 		{
 			case KX_Camera::INSIDE:
 				vis = true;
@@ -932,7 +951,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj)
 				// Test the object's bound box against the view frustum.
 				MT_Point3 box[8];
 				gameobj->GetSGNode()->getBBox(box); 
-				vis = GetActiveCamera()->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
+				vis = cam->BoxInsideFrustum(box) != KX_Camera::OUTSIDE;
 				break;
 		}
 	}
@@ -940,7 +959,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj)
 	if (vis)
 	{
 		int nummeshes = gameobj->GetMeshCount();
-		MT_Transform t(GetActiveCamera()->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
+		MT_Transform t(cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
 		
 		for (int m=0;m<nummeshes;m++)
 		{
@@ -955,20 +974,20 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj)
 	}
 }
 
-void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty)
+void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam)
 {
 // FIXME: When tree is operational
 #if 1
 	// do this incrementally in the future
 	for (int i = 0; i < m_objectlist->GetCount(); i++)
 	{
-		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)));
+		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam);
 	}
 #else
-	if (GetActiveCamera()->GetFrustumCulling())
-		MarkVisible(m_objecttree, rasty);
+	if (cam->GetFrustumCulling())
+		MarkVisible(m_objecttree, rasty, cam);
 	else
-		MarkSubTreeVisible(m_objecttree, rasty, true);
+		MarkSubTreeVisible(m_objecttree, rasty, true, cam);
 #endif
 }
 

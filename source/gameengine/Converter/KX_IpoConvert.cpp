@@ -59,6 +59,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_material_types.h"
 /* end of blender include block */
 
 #include "KX_IPO_SGController.h"
@@ -66,6 +67,7 @@
 #include "KX_CameraIpoSGController.h"
 #include "KX_WorldIpoController.h"
 #include "KX_ObColorIpoSGController.h"
+#include "KX_MaterialIpoController.h"
 
 #include "SG_Node.h"
 
@@ -559,5 +561,197 @@ void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *co
 			ipocontr->SetModifyMistStart(true);
 		}
 	}
+}
+
+
+void BL_ConvertMaterialIpos(
+	Material* blendermaterial, 
+	KX_GameObject* gameobj,  
+	KX_BlenderSceneConverter *converter
+	)
+{
+	if (blendermaterial->ipo) {
+	
+		KX_MaterialIpoController* ipocontr = new KX_MaterialIpoController();
+		gameobj->GetSGNode()->AddSGController(ipocontr);
+		ipocontr->SetObject(gameobj->GetSGNode());
+		
+		BL_InterpolatorList *ipoList= GetIpoList(blendermaterial->ipo, converter);
+
+
+		ipocontr->m_rgba[0]	= blendermaterial->r;
+		ipocontr->m_rgba[1]	= blendermaterial->g;
+		ipocontr->m_rgba[2]	= blendermaterial->b;
+		ipocontr->m_rgba[3]	= blendermaterial->alpha;
+
+		ipocontr->m_specrgb[0]	= blendermaterial->specr;
+		ipocontr->m_specrgb[1]	= blendermaterial->specg;
+		ipocontr->m_specrgb[2]	= blendermaterial->specb;
+		
+		ipocontr->m_hard		= blendermaterial->har;
+		ipocontr->m_spec		= blendermaterial->spec;
+		ipocontr->m_ref			= blendermaterial->ref;
+		ipocontr->m_emit		= blendermaterial->emit;
+		ipocontr->m_alpha		= blendermaterial->alpha;
+		KX_IScalarInterpolator *ipo;
+		
+		// --
+		ipo = ipoList->GetScalarInterpolator(MA_COL_R);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_rgba[0],
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+		
+		ipo = ipoList->GetScalarInterpolator(MA_COL_G);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_rgba[1],
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+		
+		ipo = ipoList->GetScalarInterpolator(MA_COL_B);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_rgba[2],
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+		
+		ipo = ipoList->GetScalarInterpolator(MA_ALPHA);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_rgba[3],
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+		// --
+
+		ipo = ipoList->GetScalarInterpolator(MA_SPEC_R );
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_specrgb[0],
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+		
+		ipo = ipoList->GetScalarInterpolator(MA_SPEC_G);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_specrgb[1],
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+		
+		ipo = ipoList->GetScalarInterpolator(MA_SPEC_B);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_specrgb[2],
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+			
+		// --
+		ipo = ipoList->GetScalarInterpolator(MA_HARD);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_hard,
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+
+		ipo = ipoList->GetScalarInterpolator(MA_SPEC);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_spec,
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+		
+		
+		ipo = ipoList->GetScalarInterpolator(MA_REF);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_ref,
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}	
+		
+		ipo = ipoList->GetScalarInterpolator(MA_EMIT);
+		if (ipo) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController();
+				gameobj->GetSGNode()->AddSGController(ipocontr);
+				ipocontr->SetObject(gameobj->GetSGNode());
+			}
+			KX_IInterpolator *interpolator =
+			new KX_ScalarInterpolator(
+				&ipocontr->m_emit,
+				ipo);
+			ipocontr->AddInterpolator(interpolator);
+		}
+	}		
 }
 

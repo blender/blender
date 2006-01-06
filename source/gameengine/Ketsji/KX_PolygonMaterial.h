@@ -111,7 +111,7 @@ public:
 	
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, setCustomMaterial);
 	KX_PYMETHOD_DOC(KX_PolygonMaterial, loadProgram);
-	
+
 	virtual PyObject* _getattr(const STR_String& attr);
 	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
 };

@@ -219,6 +219,25 @@ public:
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor)=0;
 
+	virtual void IndexPrimitivesMulti( 
+						const vecVertexArray& vertexarrays,
+						const vecIndexArrays & indexarrays,
+						int mode,
+						class RAS_IPolyMaterial* polymat,
+						class RAS_IRenderTools* rendertools,
+						bool useObjectColor,
+						const MT_Vector4& rgbacolor)=0;
+
+	virtual void IndexPrimitivesMulti_Ex( 
+						const vecVertexArray& vertexarrays,
+						const vecIndexArrays & indexarrays,
+						int mode,
+						class RAS_IPolyMaterial* polymat,
+						class RAS_IRenderTools* rendertools,
+						bool useObjectColor,
+						const MT_Vector4& rgbacolor)=0;
+
+
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat)=0;
 	/* This one should become our final version, methinks. */
 	/**
@@ -328,6 +347,22 @@ public:
 							   float difY,
 							   float difZ,
 							   float diffuse)=0;
+	/**
+	 * Sets the emissive colour component of the lighting equation.
+	 */ 
+	virtual void	SetEmissive(float eX,
+								float eY,
+								float eZ,
+								float e
+							   )=0;
+	
+	virtual void	SetAmbientColor(float red, float green, float blue)=0;
+	virtual void	SetAmbient(float factor)=0;
+	/**
+	 * Sets alpha testing
+	 */
+	virtual void	SetAlphaTest(bool enable)=0;
+
 	/**
 	 * Sets a polygon offset.  z depth will be: z1 = mult*z0 + add
 	 */

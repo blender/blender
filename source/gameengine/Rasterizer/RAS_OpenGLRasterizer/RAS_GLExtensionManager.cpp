@@ -317,7 +317,99 @@ PFNGLPNTRIANGLESIATIPROC glPNTrianglesiATI;
 PFNGLPNTRIANGLESFATIPROC glPNTrianglesfATI;
 #endif
 
+BL_EXTInfo RAS_EXT_support;
 
+
+#if defined(GL_ARB_multitexture)
+int max_texture_units = 2;
+
+PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
+PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB;
+PFNGLMULTITEXCOORD1DARBPROC glMultiTexCoord1dARB;
+PFNGLMULTITEXCOORD1DVARBPROC glMultiTexCoord1dvARB;
+PFNGLMULTITEXCOORD1FARBPROC glMultiTexCoord1fARB;
+PFNGLMULTITEXCOORD1FVARBPROC glMultiTexCoord1fvARB;
+PFNGLMULTITEXCOORD1IARBPROC glMultiTexCoord1iARB;
+PFNGLMULTITEXCOORD1IVARBPROC glMultiTexCoord1ivARB;
+PFNGLMULTITEXCOORD1SARBPROC glMultiTexCoord1sARB;
+PFNGLMULTITEXCOORD1SVARBPROC glMultiTexCoord1svARB;
+PFNGLMULTITEXCOORD2DARBPROC glMultiTexCoord2dARB;
+PFNGLMULTITEXCOORD2DVARBPROC glMultiTexCoord2dvARB;
+PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB;
+PFNGLMULTITEXCOORD2FVARBPROC glMultiTexCoord2fvARB;
+PFNGLMULTITEXCOORD2IARBPROC glMultiTexCoord2iARB;
+PFNGLMULTITEXCOORD2IVARBPROC glMultiTexCoord2ivARB;
+PFNGLMULTITEXCOORD2SARBPROC glMultiTexCoord2sARB;
+PFNGLMULTITEXCOORD2SVARBPROC glMultiTexCoord2svARB;
+PFNGLMULTITEXCOORD3DARBPROC glMultiTexCoord3dARB;
+PFNGLMULTITEXCOORD3DVARBPROC glMultiTexCoord3dvARB;
+PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3fARB;
+PFNGLMULTITEXCOORD3FVARBPROC glMultiTexCoord3fvARB;
+PFNGLMULTITEXCOORD3IARBPROC glMultiTexCoord3iARB;
+PFNGLMULTITEXCOORD3IVARBPROC glMultiTexCoord3ivARB;
+PFNGLMULTITEXCOORD3SARBPROC glMultiTexCoord3sARB;
+PFNGLMULTITEXCOORD3SVARBPROC glMultiTexCoord3svARB;
+PFNGLMULTITEXCOORD4DARBPROC glMultiTexCoord4dARB;
+PFNGLMULTITEXCOORD4DVARBPROC glMultiTexCoord4dvARB;
+PFNGLMULTITEXCOORD4FARBPROC glMultiTexCoord4fARB;
+PFNGLMULTITEXCOORD4FVARBPROC glMultiTexCoord4fvARB;
+PFNGLMULTITEXCOORD4IARBPROC glMultiTexCoord4iARB;
+PFNGLMULTITEXCOORD4IVARBPROC glMultiTexCoord4ivARB;
+PFNGLMULTITEXCOORD4SARBPROC glMultiTexCoord4sARB;
+PFNGLMULTITEXCOORD4SVARBPROC glMultiTexCoord4svARB;
+#endif
+
+#if defined(GL_ARB_shader_objects)
+PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
+PFNGLGETHANDLEARBPROC glGetHandleARB;
+PFNGLDETACHOBJECTARBPROC glDetachObjectARB;
+PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
+PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
+PFNGLCOMPILESHADERARBPROC glCompileShaderARB;
+PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB;
+PFNGLATTACHOBJECTARBPROC glAttachObjectARB;
+PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
+PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
+PFNGLVALIDATEPROGRAMARBPROC glValidateProgramARB;
+PFNGLUNIFORM1FARBPROC glUniform1fARB;
+PFNGLUNIFORM2FARBPROC glUniform2fARB;
+PFNGLUNIFORM3FARBPROC glUniform3fARB;
+PFNGLUNIFORM4FARBPROC glUniform4fARB;
+PFNGLUNIFORM1IARBPROC glUniform1iARB;
+PFNGLUNIFORM2IARBPROC glUniform2iARB;
+PFNGLUNIFORM3IARBPROC glUniform3iARB;
+PFNGLUNIFORM4IARBPROC glUniform4iARB;
+PFNGLUNIFORM1FVARBPROC glUniform1fvARB;
+PFNGLUNIFORM2FVARBPROC glUniform2fvARB;
+PFNGLUNIFORM3FVARBPROC glUniform3fvARB;
+PFNGLUNIFORM4FVARBPROC glUniform4fvARB;
+PFNGLUNIFORM1IVARBPROC glUniform1ivARB;
+PFNGLUNIFORM2IVARBPROC glUniform2ivARB;
+PFNGLUNIFORM3IVARBPROC glUniform3ivARB;
+PFNGLUNIFORM4IVARBPROC glUniform4ivARB;
+PFNGLUNIFORMMATRIX2FVARBPROC glUniformMatrix2fvARB;
+PFNGLUNIFORMMATRIX3FVARBPROC glUniformMatrix3fvARB;
+PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fvARB;
+PFNGLGETOBJECTPARAMETERFVARBPROC glGetObjectParameterfvARB;
+PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB;
+PFNGLGETINFOLOGARBPROC glGetInfoLogARB;
+PFNGLGETATTACHEDOBJECTSARBPROC glGetAttachedObjectsARB;
+PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
+PFNGLGETACTIVEUNIFORMARBPROC glGetActiveUniformARB;
+PFNGLGETUNIFORMFVARBPROC glGetUniformfvARB;
+PFNGLGETUNIFORMIVARBPROC glGetUniformivARB;
+PFNGLGETSHADERSOURCEARBPROC glGetShaderSourceARB;
+#endif
+
+#if defined(GL_ARB_vertex_shader)
+PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocationARB;
+PFNGLGETACTIVEATTRIBARBPROC glGetActiveAttribARB;
+PFNGLGETATTRIBLOCATIONARBPROC glGetAttribLocationARB;
+#endif
+
+#if defined(GL_EXT_blend_color)
+PFNGLBLENDCOLOREXTPROC glBlendColorEXT;
+#endif
 
 } // namespace bgl
 
@@ -335,6 +427,7 @@ static void LinkExtensions()
 {
 	static bool doDebugMessages = m_debug;
 	extensions = STR_String((const char *) glGetString(GL_EXTENSIONS)).Explode(' ');
+	RAS_EXT_support = BL_EXTInfo();
 
 #if defined(PFNGLPNTRIANGLESIATIPROC)
 	if (QueryExtension("GL_ATI_pn_triangles"))
@@ -351,12 +444,191 @@ static void LinkExtensions()
 	}
 #endif
 
-        if (QueryExtension("GL_EXT_separate_specular_color"))
-        {
-                EnableExtension(_GL_EXT_separate_specular_color);
-                if (doDebugMessages)
-                        std::cout << "Detected GL_EXT_separate_specular_color" << std::endl;
-        }
+#ifdef GL_ARB_texture_env_combine
+	if (QueryExtension("GL_ARB_texture_env_combine"))
+	{
+		EnableExtension(_GL_ARB_texture_env_combine);
+		RAS_EXT_support._ARB_texture_env_combine = 1;
+		if (doDebugMessages)
+		{
+			std::cout << "Detected GL_ARB_texture_env_combine" << std::endl;
+		}
+	}
+#endif
+
+#ifdef GL_ARB_texture_cube_map
+	if (QueryExtension("GL_ARB_texture_cube_map"))
+	{
+		EnableExtension(_GL_ARB_texture_cube_map);
+		RAS_EXT_support._ARB_texture_cube_map = 1;
+		if (doDebugMessages)
+			std::cout << "Detected GL_ARB_texture_cube_map" << std::endl;
+	}
+#endif
+
+#ifdef GL_ARB_multitexture
+	if (QueryExtension("GL_ARB_multitexture"))
+	{
+		glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glActiveTextureARB"));
+		glClientActiveTextureARB = reinterpret_cast<PFNGLCLIENTACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glClientActiveTextureARB"));
+		glMultiTexCoord1dARB = reinterpret_cast<PFNGLMULTITEXCOORD1DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dARB"));
+		glMultiTexCoord1dvARB = reinterpret_cast<PFNGLMULTITEXCOORD1DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dvARB"));
+		glMultiTexCoord1fARB = reinterpret_cast<PFNGLMULTITEXCOORD1FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1fARB"));
+		glMultiTexCoord1fvARB = reinterpret_cast<PFNGLMULTITEXCOORD1FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1fvARB"));
+		glMultiTexCoord1iARB = reinterpret_cast<PFNGLMULTITEXCOORD1IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1iARB"));
+		glMultiTexCoord1ivARB = reinterpret_cast<PFNGLMULTITEXCOORD1IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1ivARB"));
+		glMultiTexCoord1sARB = reinterpret_cast<PFNGLMULTITEXCOORD1SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1sARB"));
+		glMultiTexCoord1svARB = reinterpret_cast<PFNGLMULTITEXCOORD1SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1svARB"));
+		glMultiTexCoord2dARB = reinterpret_cast<PFNGLMULTITEXCOORD2DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2dARB"));
+		glMultiTexCoord2dvARB = reinterpret_cast<PFNGLMULTITEXCOORD2DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2dvARB"));
+		glMultiTexCoord2fARB = reinterpret_cast<PFNGLMULTITEXCOORD2FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2fARB"));
+		glMultiTexCoord2fvARB = reinterpret_cast<PFNGLMULTITEXCOORD2FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2fvARB"));
+		glMultiTexCoord2iARB = reinterpret_cast<PFNGLMULTITEXCOORD2IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2iARB"));
+		glMultiTexCoord2ivARB = reinterpret_cast<PFNGLMULTITEXCOORD2IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2ivARB"));
+		glMultiTexCoord2sARB = reinterpret_cast<PFNGLMULTITEXCOORD2SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2sARB"));
+		glMultiTexCoord2svARB = reinterpret_cast<PFNGLMULTITEXCOORD2SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2svARB"));
+		glMultiTexCoord3dARB = reinterpret_cast<PFNGLMULTITEXCOORD3DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3dARB"));
+		glMultiTexCoord3dvARB = reinterpret_cast<PFNGLMULTITEXCOORD3DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3dvARB"));
+		glMultiTexCoord3fARB = reinterpret_cast<PFNGLMULTITEXCOORD3FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3fARB"));
+		glMultiTexCoord3fvARB = reinterpret_cast<PFNGLMULTITEXCOORD3FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3fvARB"));
+		glMultiTexCoord3iARB = reinterpret_cast<PFNGLMULTITEXCOORD3IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3iARB"));
+		glMultiTexCoord3ivARB = reinterpret_cast<PFNGLMULTITEXCOORD3IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3ivARB"));
+		glMultiTexCoord3sARB = reinterpret_cast<PFNGLMULTITEXCOORD3SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3sARB"));
+		glMultiTexCoord3svARB = reinterpret_cast<PFNGLMULTITEXCOORD3SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3svARB"));
+		glMultiTexCoord4dARB = reinterpret_cast<PFNGLMULTITEXCOORD4DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4dARB"));
+		glMultiTexCoord4dvARB = reinterpret_cast<PFNGLMULTITEXCOORD4DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4dvARB"));
+		glMultiTexCoord4fARB = reinterpret_cast<PFNGLMULTITEXCOORD4FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4fARB"));
+		glMultiTexCoord4fvARB = reinterpret_cast<PFNGLMULTITEXCOORD4FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4fvARB"));
+		glMultiTexCoord4iARB = reinterpret_cast<PFNGLMULTITEXCOORD4IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4iARB"));
+		glMultiTexCoord4ivARB = reinterpret_cast<PFNGLMULTITEXCOORD4IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4ivARB"));
+		glMultiTexCoord4sARB = reinterpret_cast<PFNGLMULTITEXCOORD4SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4sARB"));
+		glMultiTexCoord4svARB = reinterpret_cast<PFNGLMULTITEXCOORD4SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4svARB"));
+		if (glActiveTextureARB && glClientActiveTextureARB && glMultiTexCoord1dARB && glMultiTexCoord1dvARB && glMultiTexCoord1fARB && glMultiTexCoord1fvARB && glMultiTexCoord1iARB && glMultiTexCoord1ivARB && glMultiTexCoord1sARB && glMultiTexCoord1svARB && glMultiTexCoord2dARB && glMultiTexCoord2dvARB && glMultiTexCoord2fARB && glMultiTexCoord2fvARB && glMultiTexCoord2iARB && glMultiTexCoord2ivARB && glMultiTexCoord2sARB && glMultiTexCoord2svARB && glMultiTexCoord3dARB && glMultiTexCoord3dvARB && glMultiTexCoord3fARB && glMultiTexCoord3fvARB && glMultiTexCoord3iARB && glMultiTexCoord3ivARB && glMultiTexCoord3sARB && glMultiTexCoord3svARB && glMultiTexCoord4dARB && glMultiTexCoord4dvARB && glMultiTexCoord4fARB && glMultiTexCoord4fvARB && glMultiTexCoord4iARB && glMultiTexCoord4ivARB && glMultiTexCoord4sARB && glMultiTexCoord4svARB) {
+			EnableExtension(_GL_ARB_multitexture);
+			RAS_EXT_support._ARB_multitexture = 1;
+			if (doDebugMessages)
+				std::cout << "Enabled GL_ARB_multitexture" << std::endl;
+		} else {
+			std::cout << "ERROR: GL_ARB_multitexture implementation is broken!" << std::endl;
+		}
+	}
+#endif
+
+
+
+#ifdef GL_EXT_blend_color
+	if (QueryExtension("GL_EXT_blend_color"))
+	{
+		glBlendColorEXT = reinterpret_cast<PFNGLBLENDCOLOREXTPROC>(bglGetProcAddress((const GLubyte *) "glBlendColorEXT"));
+		if (glBlendColorEXT) {
+			EnableExtension(_GL_EXT_blend_color);
+			RAS_EXT_support._EXT_blend_color = 1;
+			if (doDebugMessages)
+				std::cout << "Enabled GL_EXT_blend_color" << std::endl;
+		} else {
+			std::cout << "ERROR: GL_EXT_blend_color implementation is broken!" << std::endl;
+		}
+	}
+#endif
+
+#ifdef GL_ARB_shader_objects
+	if (QueryExtension("GL_ARB_shader_objects"))
+	{
+		glDeleteObjectARB = reinterpret_cast<PFNGLDELETEOBJECTARBPROC>(bglGetProcAddress((const GLubyte *) "glDeleteObjectARB"));
+		glGetHandleARB = reinterpret_cast<PFNGLGETHANDLEARBPROC>(bglGetProcAddress((const GLubyte *) "glGetHandleARB"));
+		glDetachObjectARB = reinterpret_cast<PFNGLDETACHOBJECTARBPROC>(bglGetProcAddress((const GLubyte *) "glDetachObjectARB"));
+		glCreateShaderObjectARB = reinterpret_cast<PFNGLCREATESHADEROBJECTARBPROC>(bglGetProcAddress((const GLubyte *) "glCreateShaderObjectARB"));
+		glShaderSourceARB = reinterpret_cast<PFNGLSHADERSOURCEARBPROC>(bglGetProcAddress((const GLubyte *) "glShaderSourceARB"));
+		glCompileShaderARB = reinterpret_cast<PFNGLCOMPILESHADERARBPROC>(bglGetProcAddress((const GLubyte *) "glCompileShaderARB"));
+		glCreateProgramObjectARB = reinterpret_cast<PFNGLCREATEPROGRAMOBJECTARBPROC>(bglGetProcAddress((const GLubyte *) "glCreateProgramObjectARB"));
+		glAttachObjectARB = reinterpret_cast<PFNGLATTACHOBJECTARBPROC>(bglGetProcAddress((const GLubyte *) "glAttachObjectARB"));
+		glLinkProgramARB = reinterpret_cast<PFNGLLINKPROGRAMARBPROC>(bglGetProcAddress((const GLubyte *) "glLinkProgramARB"));
+		glUseProgramObjectARB = reinterpret_cast<PFNGLUSEPROGRAMOBJECTARBPROC>(bglGetProcAddress((const GLubyte *) "glUseProgramObjectARB"));
+		glValidateProgramARB = reinterpret_cast<PFNGLVALIDATEPROGRAMARBPROC>(bglGetProcAddress((const GLubyte *) "glValidateProgramARB"));
+		glUniform1fARB = reinterpret_cast<PFNGLUNIFORM1FARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform1fARB"));
+		glUniform2fARB = reinterpret_cast<PFNGLUNIFORM2FARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform2fARB"));
+		glUniform3fARB = reinterpret_cast<PFNGLUNIFORM3FARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform3fARB"));
+		glUniform4fARB = reinterpret_cast<PFNGLUNIFORM4FARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform4fARB"));
+		glUniform1iARB = reinterpret_cast<PFNGLUNIFORM1IARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform1iARB"));
+		glUniform2iARB = reinterpret_cast<PFNGLUNIFORM2IARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform2iARB"));
+		glUniform3iARB = reinterpret_cast<PFNGLUNIFORM3IARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform3iARB"));
+		glUniform4iARB = reinterpret_cast<PFNGLUNIFORM4IARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform4iARB"));
+		glUniform1fvARB = reinterpret_cast<PFNGLUNIFORM1FVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform1fvARB"));
+		glUniform2fvARB = reinterpret_cast<PFNGLUNIFORM2FVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform2fvARB"));
+		glUniform3fvARB = reinterpret_cast<PFNGLUNIFORM3FVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform3fvARB"));
+		glUniform4fvARB = reinterpret_cast<PFNGLUNIFORM4FVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform4fvARB"));
+		glUniform1ivARB = reinterpret_cast<PFNGLUNIFORM1IVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform1ivARB"));
+		glUniform2ivARB = reinterpret_cast<PFNGLUNIFORM2IVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform2ivARB"));
+		glUniform3ivARB = reinterpret_cast<PFNGLUNIFORM3IVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform3ivARB"));
+		glUniform4ivARB = reinterpret_cast<PFNGLUNIFORM4IVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniform4ivARB"));
+		glUniformMatrix2fvARB = reinterpret_cast<PFNGLUNIFORMMATRIX2FVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniformMatrix2fvARB"));
+		glUniformMatrix3fvARB = reinterpret_cast<PFNGLUNIFORMMATRIX3FVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniformMatrix3fvARB"));
+		glUniformMatrix4fvARB = reinterpret_cast<PFNGLUNIFORMMATRIX4FVARBPROC>(bglGetProcAddress((const GLubyte *) "glUniformMatrix4fvARB"));
+		glGetObjectParameterfvARB = reinterpret_cast<PFNGLGETOBJECTPARAMETERFVARBPROC>(bglGetProcAddress((const GLubyte *) "glGetObjectParameterfvARB"));
+		glGetObjectParameterivARB = reinterpret_cast<PFNGLGETOBJECTPARAMETERIVARBPROC>(bglGetProcAddress((const GLubyte *) "glGetObjectParameterivARB"));
+		glGetInfoLogARB = reinterpret_cast<PFNGLGETINFOLOGARBPROC>(bglGetProcAddress((const GLubyte *) "glGetInfoLogARB"));
+		glGetAttachedObjectsARB = reinterpret_cast<PFNGLGETATTACHEDOBJECTSARBPROC>(bglGetProcAddress((const GLubyte *) "glGetAttachedObjectsARB"));
+		glGetUniformLocationARB = reinterpret_cast<PFNGLGETUNIFORMLOCATIONARBPROC>(bglGetProcAddress((const GLubyte *) "glGetUniformLocationARB"));
+		glGetActiveUniformARB = reinterpret_cast<PFNGLGETACTIVEUNIFORMARBPROC>(bglGetProcAddress((const GLubyte *) "glGetActiveUniformARB"));
+		glGetUniformfvARB = reinterpret_cast<PFNGLGETUNIFORMFVARBPROC>(bglGetProcAddress((const GLubyte *) "glGetUniformfvARB"));
+		glGetUniformivARB = reinterpret_cast<PFNGLGETUNIFORMIVARBPROC>(bglGetProcAddress((const GLubyte *) "glGetUniformivARB"));
+		glGetShaderSourceARB = reinterpret_cast<PFNGLGETSHADERSOURCEARBPROC>(bglGetProcAddress((const GLubyte *) "glGetShaderSourceARB"));
+		if (glDeleteObjectARB && glGetHandleARB && glDetachObjectARB && glCreateShaderObjectARB && glShaderSourceARB && glCompileShaderARB && glCreateProgramObjectARB && glAttachObjectARB && glLinkProgramARB && glUseProgramObjectARB && glValidateProgramARB && glUniform1fARB && glUniform2fARB && glUniform3fARB && glUniform4fARB && glUniform1iARB && glUniform2iARB && glUniform3iARB && glUniform4iARB && glUniform1fvARB && glUniform2fvARB && glUniform3fvARB && glUniform4fvARB && glUniform1ivARB && glUniform2ivARB && glUniform3ivARB && glUniform4ivARB && glUniformMatrix2fvARB && glUniformMatrix3fvARB && glUniformMatrix4fvARB && glGetObjectParameterfvARB && glGetObjectParameterivARB && glGetInfoLogARB && glGetAttachedObjectsARB && glGetUniformLocationARB && glGetActiveUniformARB && glGetUniformfvARB && glGetUniformivARB && glGetShaderSourceARB) {
+			EnableExtension(_GL_ARB_shader_objects);
+			RAS_EXT_support._ARB_shader_objects =1;
+			if (doDebugMessages)
+				std::cout << "Enabled GL_ARB_shader_objects" << std::endl;
+		} else {
+			std::cout << "ERROR: GL_ARB_shader_objects implementation is broken!" << std::endl;
+		}
+	}
+#endif
+
+#ifdef GL_ARB_vertex_shader
+	if (QueryExtension("GL_ARB_vertex_shader"))
+	{
+		glBindAttribLocationARB = reinterpret_cast<PFNGLBINDATTRIBLOCATIONARBPROC>(bglGetProcAddress((const GLubyte *) "glBindAttribLocationARB"));
+		glGetActiveAttribARB = reinterpret_cast<PFNGLGETACTIVEATTRIBARBPROC>(bglGetProcAddress((const GLubyte *) "glGetActiveAttribARB"));
+		glGetAttribLocationARB = reinterpret_cast<PFNGLGETATTRIBLOCATIONARBPROC>(bglGetProcAddress((const GLubyte *) "glGetAttribLocationARB"));
+		if (glBindAttribLocationARB && glGetActiveAttribARB && glGetAttribLocationARB) {
+			EnableExtension(_GL_ARB_vertex_shader);
+			RAS_EXT_support._ARB_vertex_shader = 1;
+			if (doDebugMessages)
+				std::cout << "Enabled GL_ARB_vertex_shader" << std::endl;
+		} else {
+			std::cout << "ERROR: GL_ARB_vertex_shader implementation is broken!" << std::endl;
+		}
+	}
+#endif
+
+#ifdef GL_ARB_fragment_shader
+	if (QueryExtension("GL_ARB_fragment_shader"))
+	{
+		EnableExtension(_GL_ARB_fragment_shader);
+		RAS_EXT_support._ARB_fragment_shader = 1;
+		if (doDebugMessages)
+			std::cout << "Detected GL_ARB_fragment_shader" << std::endl;
+	}
+#endif
+
+
+#ifdef GL_EXT_texture3D
+	if (QueryExtension("GL_EXT_texture3D"))
+	{
+		/* not using 3d textures... but, using GL_TEXTURE_WRAP_R_EXT*/
+		EnableExtension(_GL_EXT_texture3D);
+		RAS_EXT_support._EXT_texture3D = 1;
+		if (doDebugMessages)
+			std::cout << "Enabled GL_EXT_texture3D" << std::endl;
+	}
+#endif
+
+	if (QueryExtension("GL_EXT_separate_specular_color"))
+	{
+			EnableExtension(_GL_EXT_separate_specular_color);
+			if (doDebugMessages)
+					std::cout << "Detected GL_EXT_separate_specular_color" << std::endl;
+	}
 
 	doDebugMessages = false;
 }

@@ -184,6 +184,7 @@ public:
 
 
 
+
 #ifndef NO_EXP_PYTHON_EMBEDDING
 #include "PyObjectPlus.h"
 #include "object.h"
@@ -339,7 +340,7 @@ protected:
 	virtual void		DisableRefCount();										// Disable reference counting for this value
 	virtual void		AddDataToReplica(CValue* replica);						
 	virtual				~CValue();
-private:																		
+private:
 	// Member variables															
 	std::map<STR_String,CValue*>*		m_pNamedPropertyArray;									// Properties for user/game etc
 	ValueFlags			m_ValFlags;												// Frequently used flags in a bitfield (low memoryusage)

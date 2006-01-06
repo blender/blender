@@ -53,6 +53,10 @@ public:
 	virtual float	getMistColorGreen()=0;
 	virtual float	getMistColorBlue()=0;
 
+	virtual float	getAmbientColorRed()=0;
+	virtual float	getAmbientColorGreen()=0;
+	virtual float	getAmbientColorBlue()=0;
+
 	virtual void	setMistStart(float)=0;
 	virtual void	setMistDistance(float)=0;
 	virtual void	setMistColorRed(float)=0;

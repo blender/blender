@@ -96,8 +96,6 @@ public:
 
 };
 
-
-
 class SCA_LogicManager
 {
 	vector<class SCA_EventManager*>		m_eventmanagers;
@@ -117,7 +115,6 @@ class SCA_LogicManager
 	GEN_Map<CHashedPtr,void*>			m_map_gameobj_to_blendobj;
 
 	vector<SmartActuatorPtr>			m_removedActuators;
-
 public:
 	SCA_LogicManager();
 	virtual ~SCA_LogicManager();

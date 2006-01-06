@@ -362,6 +362,9 @@ void space_set_commmandline_options(void) {
 		a= (G.fileflags & G_FILE_GAME_TO_IPO);
 		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
 
+		a=(G.fileflags & G_FILE_GAME_MAT);
+		SYS_WriteCommandLineInt(syshandle, "blender_material", a);
+
 
 	}
 }

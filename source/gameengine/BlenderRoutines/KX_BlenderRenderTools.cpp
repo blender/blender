@@ -53,6 +53,8 @@
 
 #include "KX_BlenderPolyMaterial.h"
 #include "KX_PolygonMaterial.h"
+#include "KX_BlenderMaterial.h"
+
 #include "Value.h"
 
 #include "KX_BlenderGL.h" // for text printing
@@ -256,8 +258,16 @@ void	KX_BlenderRenderTools::RenderText(int mode,RAS_IPolyMaterial* polymat,float
 		
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
-	KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
-	struct TFace* tface = blenderpoly->GetTFace();
+	const unsigned int flag = polymat->GetFlag();
+	struct TFace* tface = 0;
+
+	if(flag & RAS_BLENDERMAT) {
+		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
+		tface = bl_mat->GetTFace();
+	} else {
+		KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
+		tface = blenderpoly->GetTFace();
+	}
 	
 	BL_RenderText( mode,mytext,mytext.Length(),tface,v1,v2,v3,v4);
 	
@@ -288,8 +298,8 @@ void KX_BlenderRenderTools::EnableOpenGLLights()
 	glEnable(GL_LIGHTING);
 	
 	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, false);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
 	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 

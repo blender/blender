@@ -14,7 +14,6 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
-
 #include "Value.h"
 #include "FloatValue.h"
 #include "IntValue.h"
@@ -497,9 +496,6 @@ double*		CValue::GetVector3(bool bGetTransformedVec)
 /*---------------------------------------------------------------------------------------------------------------------
 	Reference Counting
 ---------------------------------------------------------------------------------------------------------------------*/
-
-
-
 //
 // Add a reference to this value
 //

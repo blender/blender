@@ -18,7 +18,10 @@ source_files = ['KX_IpoConvert.cpp',
                 'BL_DeformableGameObject.cpp',
                 'BL_BlenderDataConversion.cpp',
                 'BL_ArmatureObject.cpp',
-                'BL_ActionActuator.cpp'
+                'BL_ActionActuator.cpp',
+                'BL_Material.cpp',
+                'BL_Texture.cpp',
+                'BL_Shader.cpp'
                 ]
 
 kx_converter_env.Append (CPPPATH = ['.',

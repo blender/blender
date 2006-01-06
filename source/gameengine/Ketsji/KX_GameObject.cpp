@@ -50,6 +50,7 @@ typedef unsigned long uint_ptr;
 
 #define KX_INERTIA_INFINITE 10000
 #include "RAS_IPolygonMaterial.h"
+#include "KX_BlenderMaterial.h"
 #include "KX_GameObject.h"
 #include "RAS_MeshObject.h"
 #include "KX_MeshProxy.h"
@@ -367,6 +368,34 @@ void KX_GameObject::UpdateIPO(float curframetime,
 	UpdateTransform();
 }
 
+// IPO update
+void 
+KX_GameObject::UpdateMaterialData(
+		MT_Vector4 rgba,
+		MT_Vector3 specrgb,
+		MT_Scalar hard,
+		MT_Scalar spec,
+		MT_Scalar ref,
+		MT_Scalar emit,
+		MT_Scalar alpha
+
+	)
+{
+	int mesh = 0;
+	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0) {
+		RAS_MaterialBucket::Set::iterator mit = m_meshes[mesh]->GetFirstMaterial();
+		for(; mit != m_meshes[mesh]->GetLastMaterial(); ++mit)
+		{
+			RAS_IPolyMaterial* poly = (*mit)->GetPolyMaterial();
+			if(poly->GetFlag() & RAS_BLENDERMAT )
+			{
+				SetObjectColor(rgba);
+				KX_BlenderMaterial *m =  static_cast<KX_BlenderMaterial*>(poly);
+				m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
+			}
+		}
+	}
+}
 bool
 KX_GameObject::GetVisible(
 	void
@@ -605,7 +634,6 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
-	
 	{NULL,NULL} //Sentinel
 };
 
@@ -937,7 +965,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 								   PyObject* kwds)
 {
 	int mesh = 0;
-	
+
 	if (PyArg_ParseTuple(args, "|i", &mesh))
 	{
 		if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
@@ -948,7 +976,6 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 	}
 	Py_Return;
 }
-
 
 
 PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, 

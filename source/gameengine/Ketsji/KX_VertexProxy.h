@@ -63,6 +63,10 @@ public:
 	KX_PYMETHOD(KX_VertexProxy,SetXYZ);
 	KX_PYMETHOD(KX_VertexProxy,GetUV);
 	KX_PYMETHOD(KX_VertexProxy,SetUV);
+	
+	KX_PYMETHOD(KX_VertexProxy,GetUV2);
+	KX_PYMETHOD(KX_VertexProxy,SetUV2);
+
 	KX_PYMETHOD(KX_VertexProxy,GetRGBA);
 	KX_PYMETHOD(KX_VertexProxy,SetRGBA);
 	KX_PYMETHOD(KX_VertexProxy,GetNormal);

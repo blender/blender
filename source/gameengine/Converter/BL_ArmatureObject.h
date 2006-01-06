@@ -39,9 +39,9 @@
 
 struct bArmature;
 struct Bone;
-
 class BL_ActionActuator;
 class MT_Matrix4x4;
+struct Object;
 
 class BL_ArmatureObject : public KX_GameObject  
 {
@@ -50,30 +50,26 @@ public:
 	short GetActivePriority();
 	virtual void ProcessReplica(BL_ArmatureObject *replica);
 	class BL_ActionActuator * GetActiveAction();
-	BL_ArmatureObject(void* sgReplicationInfo, SG_Callbacks callbacks,
-		bArmature *armature,
-		struct bPose *pose) :
-	KX_GameObject(sgReplicationInfo,callbacks),
-		m_armature(armature),
-		m_pose(pose),
-		m_mrdPose(NULL),
-		m_lastframe(0.),
-		m_activeAct(NULL),
-		m_activePriority(999)
-	{}
+	
+	BL_ArmatureObject(
+		void* sgReplicationInfo,
+		SG_Callbacks callbacks,
+		Object *armature
+	);
+	virtual ~BL_ArmatureObject();
 
-	virtual CValue*		GetReplica();
-	virtual				~BL_ArmatureObject();
-	void GetMRDPose(bPose **pose);
-	void	GetPose(struct bPose **pose);
+	virtual CValue*	GetReplica();
+	void GetMRDPose(struct bPose **pose);
+	void GetPose(struct bPose **pose);
 	void SetPose (struct bPose *pose);
 	void ApplyPose();
 	bool SetActiveAction(class BL_ActionActuator *act, short priority, double curtime);
 	
 	struct bArmature * GetArmature() { return m_armature; }
-	
 	const struct bArmature * GetArmature() const { return m_armature; }
 	
+	Object* GetArmatureObject() {return m_objArma;}
+
 	/// Retrieve the pose matrix for the specified bone.
 	/// Returns true on success.
 	bool GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const;
@@ -82,6 +78,7 @@ public:
 	float GetBoneLength(Bone* bone) const;
 
 protected:
+	Object				*m_objArma;
 	struct bArmature	*m_armature;
 	struct bPose		*m_pose;
 	struct bPose		*m_mrdPose;

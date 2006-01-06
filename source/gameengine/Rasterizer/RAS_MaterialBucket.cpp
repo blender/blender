@@ -177,7 +177,13 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 	if (!rasty->SetMaterial(*m_material))
 		return false;
 	
-	bool dolights = m_material->GetDrawingMode()&16;
+	bool dolights = false;
+	const unsigned int flag = m_material->GetFlag();
+
+	if( flag & RAS_BLENDERMAT)
+		dolights = flag &RAS_MULTILIGHT;
+	else
+		dolights = m_material->GetDrawingMode()&16;
 
 	if ((rasty->GetDrawingMode() <= RAS_IRasterizer::KX_SOLID) || !dolights)
 	{
@@ -229,6 +235,35 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				ms.m_RGBAcolor);
 
 	}
+
+	// for using glMultiTexCoord
+	else if(m_material->GetFlag() & RAS_MULTITEX )
+	{
+		rasty->IndexPrimitivesMulti(
+				ms.m_mesh->GetVertexCache(m_material), 
+				ms.m_mesh->GetIndexCache(m_material), 
+				drawmode,
+				m_material,
+				rendertools,
+				ms.m_bObjectColor,
+				ms.m_RGBAcolor
+				);
+	}
+
+	// for using glMultiTexCoord on deformer
+	else if(m_material->GetFlag() & RAS_DEFMULTI )
+	{
+		rasty->IndexPrimitivesMulti(
+				ms.m_mesh->GetVertexCache(m_material), 
+				ms.m_mesh->GetIndexCache(m_material), 
+				drawmode,
+				m_material,
+				rendertools,
+				ms.m_bObjectColor,
+				ms.m_RGBAcolor
+				);
+	}
+
 	// Use the (slower) IndexPrimitives_Ex which can recalc face normals & such
 	//	for deformed objects - eventually should be extended to recalc ALL normals
 	else if (ms.m_pDeformer){

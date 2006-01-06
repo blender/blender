@@ -44,6 +44,7 @@ class SCA_IController;
 class RAS_MeshObject;
 class RAS_IPolyMaterial;
 class BL_InterpolatorList;
+class BL_Material;
 struct IpoCurve;
 struct Main;
 struct SpaceIpo;
@@ -53,6 +54,7 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	vector<KX_WorldInfo*>	m_worldinfos;
 	vector<RAS_IPolyMaterial*> m_polymaterials;
 	vector<RAS_MeshObject*> m_meshobjects;
+	vector<BL_Material *>	m_materials;
 
 	GEN_Map<CHashedPtr,struct Object*> m_map_gameobject_to_blender;
 	GEN_Map<CHashedPtr,KX_GameObject*> m_map_blender_to_gameobject;
@@ -71,7 +73,8 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	STR_String				m_newfilename;
 	class KX_KetsjiEngine*	m_ketsjiEngine;
 	bool					m_alwaysUseExpandFraming;
-	
+	bool					m_usemat;
+
 	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
 	struct Ipo* findIpoForName(char* objName);
 
@@ -113,6 +116,8 @@ public:
 //	DT_ShapeHandle FindSumoShape(RAS_MeshObject *for_gamemesh);
 
 	void RegisterPolyMaterial(RAS_IPolyMaterial *polymat);
+
+	void RegisterBlenderMaterial(BL_Material *mat);
 	
 	void RegisterInterpolatorList(BL_InterpolatorList *ipoList, struct Ipo *for_ipo);
 	BL_InterpolatorList *FindInterpolatorList(struct Ipo *for_ipo);
@@ -131,7 +136,9 @@ public:
 	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber);
 	virtual void	TestHandlesPhysicsObjectToAnimationIpo();
 
-
+	// use blender materials
+	virtual void SetMaterials(bool val);
+	virtual bool GetMaterials();
 
 };
 

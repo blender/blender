@@ -48,6 +48,24 @@
 #include <config.h>
 #endif
 
+
+BL_ArmatureObject::BL_ArmatureObject(
+				void* sgReplicationInfo, 
+				SG_Callbacks callbacks, 
+				Object *armature )
+
+:	KX_GameObject(sgReplicationInfo,callbacks),
+	m_objArma(armature),
+	m_mrdPose(NULL),
+	m_lastframe(0.),
+	m_activeAct(NULL),
+	m_activePriority(999)
+{
+	m_armature = get_armature(m_objArma);
+	m_pose = m_objArma->pose;
+}
+
+
 CValue* BL_ArmatureObject::GetReplica()
 {
 	BL_ArmatureObject* replica = new BL_ArmatureObject(*this);
@@ -78,10 +96,14 @@ BL_ArmatureObject::~BL_ArmatureObject()
 void BL_ArmatureObject::ApplyPose()
 {
 	if (m_pose){
-		if (!m_mrdPose)
-			copy_pose (&m_mrdPose, m_pose, 0);
-		else
-			extract_pose_from_pose(m_mrdPose, m_pose);
+		// copy to armature object
+		extract_pose_from_pose(m_objArma->pose, m_pose);
+		
+		// is this needed anymore?
+		//if (!m_mrdPose)
+		//	copy_pose (&m_mrdPose, m_pose, 0);
+		//else
+		//	extract_pose_from_pose(m_mrdPose, m_pose);
 	}
 }
 
@@ -136,14 +158,15 @@ void BL_ArmatureObject::GetMRDPose(bPose **pose)
 	/* If the caller supplies a null pose, create a new one. */
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
 
-	if (!m_mrdPose){
-		copy_pose (&m_mrdPose, m_pose, 0);
-	}
+	// is this needed anymore?
+	//if (!m_mrdPose){
+	//	copy_pose (&m_mrdPose, m_pose, 0);
+	//}
 
 	if (!*pose)
-		copy_pose(pose, m_mrdPose, 0);
+		copy_pose(pose, m_objArma->pose, 0);
 	else
-		extract_pose_from_pose(*pose, m_mrdPose);
+		extract_pose_from_pose(*pose, m_objArma->pose);
 
 }
 
@@ -171,7 +194,5 @@ bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const
 
 float BL_ArmatureObject::GetBoneLength(Bone* bone) const
 {
-	return (MT_Point3(bone->head) - MT_Point3(bone->tail)).length();
+	return (float)(MT_Point3(bone->head) - MT_Point3(bone->tail)).length();
 }
-
-

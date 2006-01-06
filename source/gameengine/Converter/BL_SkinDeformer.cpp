@@ -49,6 +49,11 @@
 #include "BKE_action.h"
 #include "MT_Point3.h"
 
+extern "C"{
+	#include "BKE_lattice.h"
+}
+ #include "BKE_utildefines.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
@@ -57,6 +62,8 @@
 
 BL_SkinDeformer::~BL_SkinDeformer()
 {
+	if(m_releaseobject && m_armobj)
+		m_armobj->Release();
 };
 
 /* XXX note, this __NLA_OLDDEFORM define seems to be obsolete */
@@ -147,11 +154,8 @@ void BL_SkinDeformer::ProcessReplica()
 
 //void where_is_pose (Object *ob);
 //void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag); 
-extern "C" void armature_deform_verts(struct Object *armOb, struct Object *target, float (*vertexCos)[3], int numVerts, int deformflag);
-
 void BL_SkinDeformer::Update(void)
 {
-
 	/* See if the armature has been updated for this frame */
 	if (m_lastUpdate!=m_armobj->GetLastFrame()){	
 		
@@ -161,32 +165,28 @@ void BL_SkinDeformer::Update(void)
 		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
 		/* but it requires the blender object pointer... */
 		//void where_is_pose (Object *ob);
-		where_is_pose (m_blenderArmatureObj);
+//		where_is_pose (m_blenderArmatureObj);
 		
 		/* store verts locally */
-		for (int v =0; v<m_bmesh->totvert; v++){
+//		for (int v =0; v<m_bmesh->totvert; v++){
 			/* XXX note, dunno about this line */
-			m_transverts[v]=MT_Point3(m_bmesh->mvert[v].co);
-		}
+//			m_transverts[v]=MT_Point3(m_bmesh->mvert[v].co);
+//		}
 		
-		float	test[1000][3];
+//		float	test[1000][3];
 
-		armature_deform_verts(m_blenderArmatureObj,m_blenderMeshObject,test,m_bmesh->totvert,ARM_DEF_VGROUP);
+//		armature_deform_verts(m_blenderArmatureObj,m_blenderMeshObject,test,m_bmesh->totvert,ARM_DEF_VGROUP);
 
 
-		/* XXX note: now use this call instead */
-//		void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag) 
-		//		- armOb = armature object
-		//		- target = Mesh
-		//		- vertexCos[3] = array of numVerts float vectors (3 floats)
-		//		- set deformflag to ARM_DEF_VGROUP
-		//		example (after having filled the m_transverts array):
-		//		armature_deform_verts(m_armobj, m_meshobj, m_transverts, m_bmesh->totvert, ARM_DEF_VGROUP);
-		
+		Object* par_arma = m_armobj->GetArmatureObject();
+		where_is_pose( par_arma ); 
+		/* store verts locally */
 		VerifyStorage();
-			
+		for (int v =0; v<m_bmesh->totvert; v++)
+			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
+
+		armature_deform_verts( par_arma, m_objMesh,m_transverts, m_bmesh->totvert, ARM_DEF_VGROUP );
 		RecalcNormals();
-		
 
 		/* Update the current frame */
 		m_lastUpdate=m_armobj->GetLastFrame();
@@ -194,16 +194,9 @@ void BL_SkinDeformer::Update(void)
 }
 
 /* XXX note: I propose to drop this function */
-
 void BL_SkinDeformer::SetArmature(BL_ArmatureObject *armobj)
 {
-//	m_armobj = armobj;
-
-//	for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next) {
-
-/*		dg->data no longer exists needs update
-			dg->data = (void*)get_named_bone(m_armobj->GetArmature(), dg->name); */
-//	}
-		
-//		GB_validate_defgroups(m_bmesh, m_defbase);
+	// --
+	// only used to set the object now
+	m_armobj = armobj;
 }

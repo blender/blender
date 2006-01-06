@@ -36,6 +36,17 @@
 #endif
 
 #ifdef WIN32
+#include <windows.h>
+#endif // WIN32
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
+#ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32
 
@@ -59,6 +70,8 @@
 #include "ListValue.h"
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
+
+#include "RAS_GLExtensionManager.h"
 
 #include "KX_PyMath.h"
 
@@ -258,7 +271,51 @@ static PyObject* gPyGetCurrentScene(PyObject* self,
 	Py_INCREF(gp_KetsjiScene);
 	return (PyObject*) gp_KetsjiScene;
 }
-					   
+
+static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
+{
+#define pprint(x) std::cout << x << std::endl;
+	bgl::BL_EXTInfo ext = bgl::RAS_EXT_support;
+	bool count=0;
+	pprint("Supported Extensions...");
+	#ifdef GL_ARB_shader_objects
+	pprint(" GL_ARB_shader_objects supported?       "<< (ext._ARB_shader_objects?		"yes.":"no."));
+	count = 1;
+	#endif
+	#ifdef GL_ARB_vertex_shader
+	pprint(" GL_ARB_vertex_shader supported?        "<< (ext._ARB_vertex_shader?		"yes.":"no."));
+	count = 1;
+	#endif
+	#ifdef GL_ARB_fragment_shader
+	pprint(" GL_ARB_fragment_shader supported?      "<< (ext._ARB_fragment_shader?		"yes.":"no."));
+	count = 1;
+	#endif
+	#ifdef GL_ARB_texture_cube_map
+	pprint(" GL_ARB_texture_cube_map supported?     "<< (ext._ARB_texture_cube_map?		"yes.":"no."));
+	count = 1;
+	#endif
+	#ifdef GL_EXT_texture3D
+	pprint(" GL_EXT_texture3D supported?            "<< (ext._EXT_texture3D?			"yes.":"no."));
+	count = 1;
+	#endif
+	#ifdef GL_EXT_blend_color
+	pprint(" GL_EXT_blend_color supported?          "<< (ext._EXT_blend_color?			"yes.":"no."));
+	count = 1;
+	#endif
+	#ifdef GL_ARB_multitexture
+	pprint(" GL_ARB_multitexture supported?         "<< (ext._ARB_multitexture?			"yes.":"no."));
+	count = 1;
+	#endif
+	#ifdef GL_ARB_texture_env_combine
+	pprint(" GL_ARB_texture_env_combine supported?  "<< (ext._ARB_texture_env_combine?	"yes.":"no."));
+	count = 1;
+	#endif
+	if(!count)
+		pprint("No extenstions are used in this build");
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 
 
 static struct PyMethodDef game_methods[] = {
@@ -278,6 +335,7 @@ static struct PyMethodDef game_methods[] = {
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, "Sets the logic tic rate"},
 	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_VARARGS, "Gets the physics tic rate"},
 	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, "Sets the physics tic rate"},
+	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, "Prints GL Extension Info"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -487,6 +545,26 @@ static PyObject* gPySetMistEnd(PyObject*,
 }
 
 
+static PyObject* gPySetAmbientColor(PyObject*, 
+										 PyObject* args, 
+										 PyObject*)
+{
+	
+	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
+	if (PyVecArgTo(args, vec))
+	{
+		if (gp_Rasterizer)
+		{
+			gp_Rasterizer->SetAmbientColor(vec[0], vec[1], vec[2]);
+		}
+		Py_Return;
+	}
+	
+	return NULL;
+}
+
+
+
 
 static PyObject* gPyMakeScreenshot(PyObject*,
 									PyObject* args,
@@ -526,7 +604,8 @@ static struct PyMethodDef rasterizer_methods[] = {
    {"setMousePosition",(PyCFunction) gPySetMousePosition,
    METH_VARARGS, gPySetMousePosition__doc__.Ptr()},
   {"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_VARARGS,"set Background Color (rgb)"},
-  {"setMistColor",(PyCFunction)gPySetMistColor,METH_VARARGS,"set Mist Color (rgb)"},
+	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_VARARGS,"set Ambient Color (rgb)"},
+ {"setMistColor",(PyCFunction)gPySetMistColor,METH_VARARGS,"set Mist Color (rgb)"},
   {"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
   {"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
   

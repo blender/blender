@@ -40,7 +40,10 @@
 static MT_Point3 g_pt3;
 static MT_Point2 g_pt2;
 
-#define TV_CALCFACENORMAL 0x0001
+#define TV_CALCFACENORMAL	0x0001
+#define TV_2NDUV			0x0002
+
+#define TV_MAX				3//match Def in BL_Material.h
 
 #define RAS_TexVert_INLINE 1
 
@@ -48,19 +51,21 @@ class RAS_TexVert
 {
 	
 	float			m_localxyz[3];	// 3*4 = 12
-	float			m_uv1[2];	// 2*4 =  8
+	float			m_uv1[2];		// 2*4 =  8
+	float			m_uv2[2];		// 2*4 =  8	... python access to this set
 	unsigned int	m_rgba;			//        4
 	float			m_tangent[4];   // 4*2 =  8
 	float			m_normal[3];	// 3*2 =  6 
-	short			m_flag;		//        2
-	                                        //---------
-						//       40
+	short			m_flag;			//        2
+	unsigned int	m_unit;			//		  4
+									//---------
+									//       52
 	//32 bytes total size, fits nice = 52 = not fit nice.
 	// We'll go for 64 bytes total size - 24 bytes left.
 
-
 public:
 	short getFlag() const;
+	unsigned int getUnit() const;
 	
 	RAS_TexVert()// :m_xyz(0,0,0),m_uv(0,0),m_rgba(0)
 	{}
@@ -76,7 +81,11 @@ public:
 	const float* getUV1 () const { 
 		return m_uv1;
 	};
-	
+
+	const float* getUV2 () const { 
+		return m_uv2;
+	};
+
 	const float* getLocalXYZ() const { 
 		return m_localxyz;
 	};
@@ -90,15 +99,19 @@ public:
 	}
 #else
 	const float* getUV1 () const;
+	const float* getUV2 () const;
 	const float*		getNormal() const;
 	const float*		getLocalXYZ() const;
 	const unsigned char*	getRGBA() const;
 #endif
 	void				SetXYZ(const MT_Point3& xyz);
 	void				SetUV(const MT_Point2& uv);
+	void				SetUV2(const MT_Point2& uv);
+
 	void				SetRGBA(const unsigned int rgba);
 	void				SetNormal(const MT_Vector3& normal);
 	void				SetFlag(const short flag);
+	void				SetUnit(const unsigned u);
 	
 	void				SetRGBA(const MT_Vector4& rgba);
 	const MT_Point3&	xyz();

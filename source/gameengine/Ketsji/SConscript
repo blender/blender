@@ -58,7 +58,9 @@ source_files = ['KX_WorldIpoController.cpp',
                 'KX_CameraIpoSGController.cpp',
                 'KX_CameraActuator.cpp',
                 'KX_Camera.cpp',
-                'KX_BulletPhysicsController.cpp'
+                'KX_BulletPhysicsController.cpp',
+                'KX_BlenderMaterial.cpp',
+                'KX_MaterialIpoController.cpp',
                 ]
 
 if user_options_dict['USE_PHYSICS'] == 'solid':
