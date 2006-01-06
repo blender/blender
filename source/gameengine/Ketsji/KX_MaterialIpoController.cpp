@@ -75,10 +75,10 @@ SG_Controller*	KX_MaterialIpoController::GetReplica(class SG_Node* destnode)
 		iporeplica->AddInterpolator(copyipo);
 
 		MT_Scalar* scaal = ((KX_ScalarInterpolator*)*i)->GetTarget();
-		int orgbase = (int)this;
-		int orgloc = (int)scaal;
-		int offset = orgloc-orgbase;
-		int newaddrbase = (int)iporeplica + offset;
+		long orgbase = (long)this;
+		long orgloc = (long)scaal;
+		long offset = orgloc-orgbase;
+		long newaddrbase = (long)iporeplica + offset;
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}
@@ -95,3 +95,4 @@ KX_MaterialIpoController::~KX_MaterialIpoController()
 	}
 	
 }
+
