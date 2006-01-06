@@ -333,6 +333,9 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BlenderMaterial.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BulletPhysicsController.cpp">
 			</File>
 			<File
@@ -358,6 +361,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Light.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MaterialIpoController.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MeshProxy.cpp">
@@ -515,6 +521,9 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BlenderMaterial.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BulletPhysicsController.h">
 			</File>
 			<File
@@ -549,6 +558,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Light.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MaterialIpoController.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MeshProxy.h">
