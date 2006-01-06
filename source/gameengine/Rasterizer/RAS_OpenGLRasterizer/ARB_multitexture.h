@@ -12,7 +12,6 @@
 ---------------------------------------------------------------------------- */
 #ifndef GL_ARB_multitexture
 #ifdef WIN32	
-dsadsa
 #define GL_ARB_multitexture 1
 #endif //WIN32
 #endif
