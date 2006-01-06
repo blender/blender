@@ -132,7 +132,10 @@ bool BL_Shader::LinkProgram()
 void BL_Shader::printInfo(unsigned int pr)
 {
 #ifdef GL_ARB_shader_objects
-	int length=0;
+#ifndef GLcharARB
+typedef char GLcharARB;
+#endif	
+int length=0;
 	glGetObjectParameterivARB(pr, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
 
 	if(length > 1)

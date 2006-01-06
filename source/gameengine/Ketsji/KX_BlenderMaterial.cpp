@@ -1,6 +1,7 @@
 // ------------------------------------
 // ...
 // ------------------------------------
+#ifdef WIN32
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -138,8 +139,7 @@ void KX_BlenderMaterial::OnConstruction()
 
 	int i;
 	for(i=0; i<mMaterial->num_enabled; i++) {
-		glActiveTextureARB(GL_TEXTURE0_ARB+i);
-		
+	glActiveTextureARB(GL_TEXTURE0_ARB+i);
 		#ifdef GL_ARB_texture_cube_map
 		if( mMaterial->mapping[i].mapping & USEENV ) {
 			if(!RAS_EXT_support._ARB_texture_cube_map) {
@@ -973,3 +973,4 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setTexture , "setTexture( index, tex)")
 	return NULL;
 }
 
+#endif //WIN32
