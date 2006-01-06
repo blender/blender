@@ -171,8 +171,8 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define TE_TOTIPO	21
-#define TE_TOTNAM	21
+#define TE_TOTIPO	26
+#define TE_TOTNAM	26
 
 #define TE_NSIZE	1
 #define TE_NDEPTH	2
@@ -199,6 +199,12 @@ typedef short IPO_Channel;
 
 #define TE_N_BAS1	20
 #define TE_N_BAS2	21
+
+#define TE_COL_R    22
+#define TE_COL_G    23
+#define TE_COL_B    24
+#define TE_BRIGHT	25
+#define TE_CONTRA	26
 
 /* ******************** */
 

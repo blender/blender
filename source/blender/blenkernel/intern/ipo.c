@@ -126,7 +126,9 @@ int te_ar[TE_TOTIPO] ={
 	
 	TE_MG_TYP, TE_MGH, TE_MG_LAC, TE_MG_OCT, TE_MG_OFF, TE_MG_GAIN,
 	
-	TE_N_BAS1, TE_N_BAS2
+	TE_N_BAS1, TE_N_BAS2,
+	
+	TE_COL_R, TE_COL_G, TE_COL_B, TE_BRIGHT, TE_CONTRA
 };
 
 int seq_ar[SEQ_TOTIPO]= {
@@ -1068,6 +1070,17 @@ static void *give_tex_poin(Tex *tex, int adrcode, int *type )
 		poin= &(tex->noisebasis); *type= IPO_SHORT; break;
 	case TE_N_BAS2:
 		poin= &(tex->noisebasis2); *type= IPO_SHORT; break;
+	case TE_COL_R:
+		poin= &(tex->rfac); break;
+	case TE_COL_G:
+		poin= &(tex->gfac); break;
+	case TE_COL_B:
+		poin= &(tex->bfac); break;
+	case TE_BRIGHT:
+		poin= &(tex->bright); break;
+	case TE_CONTRA:
+		poin= &(tex->contrast); break;
+
 	}
 	
 	return poin;
@@ -1576,7 +1589,7 @@ void set_icu_vars(IpoCurve *icu)
 			case TE_MG_TYP:
 				icu->vartype= IPO_SHORT;
 				icu->ipo= IPO_CONST;
-				icu->ymax= 4.0; break;
+				icu->ymax= 6.0; break;
 			case TE_MGH:
 				icu->ymin= 0.0001;
 				icu->ymax= 2.0; break;
@@ -1591,6 +1604,17 @@ void set_icu_vars(IpoCurve *icu)
 				icu->vartype= IPO_SHORT;
 				icu->ipo= IPO_CONST;
 				icu->ymax= 8.0; break;
+			case TE_COL_R:
+				icu->ymax= 0.0; break;
+			case TE_COL_G:
+				icu->ymax= 2.0; break;
+			case TE_COL_B:
+				icu->ymax= 2.0; break;
+			case TE_BRIGHT:
+				icu->ymax= 2.0; break;
+			case TE_CONTRA:
+				icu->ymax= 5.0; break;				
+
 		}
 	}
 	else if(icu->blocktype==ID_SEQ) {
