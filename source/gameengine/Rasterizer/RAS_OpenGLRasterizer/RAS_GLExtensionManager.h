@@ -43,7 +43,7 @@
 #endif
 
 #include "EXT_separate_specular_color.h"
-#include "ARB_Multitexture.h"
+#include "ARB_multitexture.h"
 
 namespace bgl
 {
