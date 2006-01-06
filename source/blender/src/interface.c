@@ -649,13 +649,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	xsize= block->maxx - block->minx+4; // 4 for shadow
 	ysize= block->maxy - block->miny+4;
 	aspect/= (float)xsize;
-	
-	/* ok, let's avoid scaling up popups */
-	if(aspect<1.0f) {
-		block->maxx= aspect*(block->maxx-block->minx) + block->minx;
-		block->maxy= aspect*(block->maxy-block->miny) + block->miny;
-	}
-	
+
 	if(but) {
 		short left=0, right=0, top=0, down=0;
 
@@ -755,12 +749,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		
 		ui_graphics_to_window(block->win, &bt->x1, &bt->y1);
 		ui_graphics_to_window(block->win, &bt->x2, &bt->y2);
-		if(aspect<1.0f) {
-			bt->x1= aspect*(bt->x1 - block->minx) + block->minx;
-			bt->x2= aspect*(bt->x2 - block->minx) + block->minx;
-			bt->y1= aspect*(bt->y1 - block->miny) + block->miny;
-			bt->y2= aspect*(bt->y2 - block->miny) + block->miny;
-		}
+
 		bt->x1 += xof;
 		bt->x2 += xof;
 		bt->y1 += yof;
@@ -1149,6 +1138,9 @@ static int ui_do_but_MENU(uiBut *but)
 	
 	while (rows*columns<md->nitems) rows++;
 		
+	/* prevent scaling up of pupmenu */
+	if (but->aspect < 1.0f) but->aspect = 1.0f;
+
 	/* size and location */
 	if(md->title)
 		width= 1.5*but->aspect*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & USER_TR_MENUS));
@@ -1213,8 +1205,7 @@ static int ui_do_but_MENU(uiBut *but)
 		}
 		else if(md->items[md->nitems-a-1].icon) {
 			uiBut *bt= uiDefIconTextBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].icon ,md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
-			if(active==a) bt->flag |= UI_ACTIVE;
-			BIF_icon_set_aspect(bt->icon, bt->aspect); /* aspect for the icon has to be stored */
+			if(active==a) bt->flag |= UI_ACTIVE;			
 		}
 		else {
 			uiBut *bt= uiDefBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");

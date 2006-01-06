@@ -166,8 +166,16 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	
 	/* we need aspect from block, for menus... these buttons are scaled in uiPositionBlock() */
 	aspect= but->block->aspect;
-	if(aspect != but->aspect)
-		height= ICON_HEIGHT/aspect;
+	if(aspect != but->aspect) {
+		/* prevent scaling up icon in pupmenu */
+		if (aspect < 1.0f) {			
+			height= ICON_HEIGHT;
+			aspect = 1.0f;
+			
+		}
+		else 
+			height= ICON_HEIGHT/aspect;
+	}
 	else
 		height= ICON_HEIGHT;
 	
