@@ -29,8 +29,8 @@
 
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
-#include "RAS_GLExtensionManager.h"
-#include "ARB_multitexture.h"
+#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
+#include "RAS_OpenGLRasterizer/ARB_multitexture.h"
 
 extern "C" {
 #include "BDR_drawmesh.h"
