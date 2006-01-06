@@ -272,7 +272,7 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 
 void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bool local)
 {
-	SimdVector3 force(forceX,forceX,forceX);
+	SimdVector3 force(forceX,forceY,forceZ);
 	SimdTransform xform = m_body->getCenterOfMassTransform();
 	if (local)
 	{
