@@ -63,3 +63,4 @@ CPPFLAGS += -I../Network -I../Ketsji/KXNetwork
 CPPFLAGS += -I../Physics/common -I../Physics/Dummy
 CPPFLAGS += -I../Physics/BlOde
 CPPFLAGS += -I../Physics/Bullet
+CPPFLAGS += -I.
