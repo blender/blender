@@ -469,8 +469,7 @@ static void LinkExtensions()
 #ifdef GL_ARB_multitexture
 	if (QueryExtension("GL_ARB_multitexture"))
 	{
-		void* ptr=0;
-		glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(ptr);//bglGetProcAddress((const GLubyte *) "glActiveTextureARB"));
+		glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glActiveTextureARB"));
 		glClientActiveTextureARB = reinterpret_cast<PFNGLCLIENTACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glClientActiveTextureARB"));
 		glMultiTexCoord1dARB = reinterpret_cast<PFNGLMULTITEXCOORD1DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dARB"));
 		glMultiTexCoord1dvARB = reinterpret_cast<PFNGLMULTITEXCOORD1DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dvARB"));
