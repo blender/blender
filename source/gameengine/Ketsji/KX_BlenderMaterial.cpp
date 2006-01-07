@@ -1,7 +1,7 @@
+
 // ------------------------------------
 // ...
 // ------------------------------------
-#ifdef WIN32
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -973,4 +973,3 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setTexture , "setTexture( index, tex)")
 	return NULL;
 }
 
-#endif //WIN32

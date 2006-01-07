@@ -322,7 +322,6 @@ BL_EXTInfo RAS_EXT_support;
 
 #if defined(GL_ARB_multitexture)
 int max_texture_units = 2;
-
 PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
 PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB;
 PFNGLMULTITEXCOORD1DARBPROC glMultiTexCoord1dARB;
@@ -466,10 +465,12 @@ static void LinkExtensions()
 	}
 #endif
 
+#ifdef WIN32
 #ifdef GL_ARB_multitexture
 	if (QueryExtension("GL_ARB_multitexture"))
 	{
-		glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glActiveTextureARB"));
+		void* ptr=0;
+		glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(ptr);//bglGetProcAddress((const GLubyte *) "glActiveTextureARB"));
 		glClientActiveTextureARB = reinterpret_cast<PFNGLCLIENTACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glClientActiveTextureARB"));
 		glMultiTexCoord1dARB = reinterpret_cast<PFNGLMULTITEXCOORD1DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dARB"));
 		glMultiTexCoord1dvARB = reinterpret_cast<PFNGLMULTITEXCOORD1DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dvARB"));
@@ -513,9 +514,9 @@ static void LinkExtensions()
 		}
 	}
 #endif
+#endif// WIN32
 
-
-
+#ifdef WIN32
 #ifdef GL_EXT_blend_color
 	if (QueryExtension("GL_EXT_blend_color"))
 	{
@@ -530,7 +531,7 @@ static void LinkExtensions()
 		}
 	}
 #endif
-
+#endif
 #ifdef GL_ARB_shader_objects
 	if (QueryExtension("GL_ARB_shader_objects"))
 	{

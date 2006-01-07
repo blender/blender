@@ -11,9 +11,7 @@
 	GL_ARB_multitexture
 ---------------------------------------------------------------------------- */
 #ifndef GL_ARB_multitexture
-#ifdef WIN32	
 #define GL_ARB_multitexture 1
-#endif //WIN32
 #endif
 
 #ifdef GL_ARB_multitexture

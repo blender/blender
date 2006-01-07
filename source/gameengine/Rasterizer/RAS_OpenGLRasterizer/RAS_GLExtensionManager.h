@@ -44,7 +44,6 @@
 
 #include "EXT_separate_specular_color.h"
 #include "ARB_multitexture.h"
-
 namespace bgl
 {
 	/**
@@ -409,6 +408,7 @@ extern PFNGLBLENDCOLOREXTPROC glBlendColorEXT;
 #endif
 
 #ifdef GL_ARB_multitexture
+
 extern int max_texture_units;
 typedef void (APIENTRY * PFNGLACTIVETEXTUREARBPROC) (GLenum texture);
 typedef void (APIENTRY * PFNGLCLIENTACTIVETEXTUREARBPROC) (GLenum texture);

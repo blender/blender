@@ -47,6 +47,8 @@ all debug::
   # First generic defaults for all platforms which should be constant.
   # Note: ?= lets these defaults be overruled by environment variables,
     export NAN_NO_KETSJI=true
+    export NAN_JUST_BLENDERDYNAMIC=true
+    export NAN_NO_OPENAL=true
     export SRCHOME ?= $(NANBLENDERHOME)/source
     export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
     export OS := $(shell echo ${CONFIG_GUESS} | sed -e 's/-.*//')
