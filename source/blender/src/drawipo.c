@@ -2076,14 +2076,13 @@ int view2dzoom(unsigned short event)
 	ScrArea *sa;
 	float fac, dx, dy, wtemp;
 	short mval[2], mvalo[2];
+	short is_wheel= (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE);
 	
-	areawinset(curarea->win);	/* from buttons */
-	curarea->head_swap= 0;
 	getmouseco_areawin(mvalo);
 	mval[0]= mvalo[0];
 	mval[1]= mvalo[1];
 	
-	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
+	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || is_wheel ) {
 	
 		/* regular mousewheel:   zoom regular
 		* alt-shift mousewheel: zoom y only
@@ -2205,7 +2204,7 @@ int view2dzoom(unsigned short event)
 		else BIF_wait_for_statechange();
 		/* return if we were using the mousewheel
 		*/
-		if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
+		if ( is_wheel ) return 1;
 	}
 	return 1;
 }
@@ -2233,11 +2232,10 @@ int view2dmove(unsigned short event)
 	/* return 1 when something was done */
 	float facx=0.0, facy=0.0, dx, dy, left=1.0, right=1.0;
 	short mval[2], mvalo[2], leftret=1, mousebut;
+	short is_wheel= (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE);
 	
-	/* init */
-	scrarea_do_windraw(curarea);
-	curarea->head_swap= 0;
-
+	/* when wheel is used, we only draw it once */
+	
 	/* try to do some zooming if the
 	 * middlemouse and ctrl are pressed
 	 * or if the mousewheel is being used.
@@ -2248,19 +2246,17 @@ int view2dmove(unsigned short event)
 	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
 		else mousebut = L_MOUSE;
 	
-	if ( (G.qual & LR_CTRLKEY) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
+	if ( (G.qual & LR_CTRLKEY) || is_wheel ) {
 		/* patch for oops & buttonswin, standard scroll no zoom */
 		if(curarea->spacetype==SPACE_OOPS) {
 			SpaceOops *soops= curarea->spacedata.first;
 			if(soops->type==SO_OUTLINER);
 			else if (view2dzoom(event)) {
-				curarea->head_swap= 0;
 				return 0;
 			}
 		}
 		else if(curarea->spacetype==SPACE_BUTS && (G.qual & LR_CTRLKEY)==0);
 		else if (view2dzoom(event)) {
-			curarea->head_swap= 0;
 			return 0;
 		}
 	}
@@ -2268,67 +2264,64 @@ int view2dmove(unsigned short event)
 	/* test where mouse is */
 	getmouseco_areawin(mvalo);
 	
-	if ELEM7(curarea->spacetype, SPACE_IPO, SPACE_SEQ, SPACE_OOPS, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME) 
-		{
+	if ELEM7(curarea->spacetype, SPACE_IPO, SPACE_SEQ, SPACE_OOPS, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME) {
 
-			if( BLI_in_rcti(&G.v2d->mask, (int)mvalo[0], (int)mvalo[1]) ) {
-				facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
-				facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+		if( BLI_in_rcti(&G.v2d->mask, (int)mvalo[0], (int)mvalo[1]) ) {
+			facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
+			facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+		}
+		/* stoopid exception to allow scroll in lefthand side */
+		else if(curarea->spacetype==SPACE_ACTION && BLI_in_rcti(&G.v2d->mask, ACTWIDTH+(int)mvalo[0], (int)mvalo[1]) ) {
+			facx= 0.0f;
+			facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+		}
+		else if(curarea->spacetype==SPACE_NLA && BLI_in_rcti(&G.v2d->mask, NLAWIDTH+(int)mvalo[0], (int)mvalo[1]) ) {
+			facx= 0.0f;
+			facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+		}
+		else if(IN_2D_VERT_SCROLL((int)mvalo)) {
+			facy= -(G.v2d->tot.ymax-G.v2d->tot.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+			if(get_mbut() & mousebut) {
+				/* which part of scrollbar should move? */
+				if(mvalo[1]< (vertymin+vertymax)/2 ) right= 0.0;
+				else left= 0.0;
+				leftret= 0;
 			}
-			/* stoopid exception to allow scroll in lefthand side */
-			else if(curarea->spacetype==SPACE_ACTION && BLI_in_rcti(&G.v2d->mask, ACTWIDTH+(int)mvalo[0], (int)mvalo[1]) ) {
-				facx= 0.0f;
-				facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-			}
-			else if(curarea->spacetype==SPACE_NLA && BLI_in_rcti(&G.v2d->mask, NLAWIDTH+(int)mvalo[0], (int)mvalo[1]) ) {
-				facx= 0.0f;
-				facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-			}
-			else if(IN_2D_VERT_SCROLL((int)mvalo)) {
-				facy= -(G.v2d->tot.ymax-G.v2d->tot.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-				if(get_mbut() & mousebut) {
-					/* which part of scrollbar should move? */
-					if(mvalo[1]< (vertymin+vertymax)/2 ) right= 0.0;
-					else left= 0.0;
-					leftret= 0;
-				}
-				if((event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE))
-					facy= -facy;
-			}
-			else if(IN_2D_HORIZ_SCROLL((int)mvalo)) {
-				facx= -(G.v2d->tot.xmax-G.v2d->tot.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
-				if(get_mbut() & mousebut) {
-					/* which part of scrollbar should move? */
-					if(mvalo[0]< (horxmin+horxmax)/2 ) right= 0.0;
-					else left= 0.0;
-					leftret= 0;
-				}
+			if(is_wheel)
+				facy= -facy;
+		}
+		else if(IN_2D_HORIZ_SCROLL((int)mvalo)) {
+			facx= -(G.v2d->tot.xmax-G.v2d->tot.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
+			if(get_mbut() & mousebut) {
+				/* which part of scrollbar should move? */
+				if(mvalo[0]< (horxmin+horxmax)/2 ) right= 0.0;
+				else left= 0.0;
+				leftret= 0;
 			}
 		}
-		else {
-			facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(curarea->winx);
-			facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(curarea->winy);		
-		}
+	}
+	else {
+		facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(curarea->winx);
+		facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(curarea->winy);		
+	}
 		
-		/* no x move in outliner */
-		if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) facx= 0.0;
-		
-		/* no y move in audio & time */
-		if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) facy= 0.0;
-		
-		if(get_mbut() & mousebut && leftret) return 0;
-		if(facx==0.0 && facy==0.0) return 1;
-		
-    while( (get_mbut()&(L_MOUSE|M_MOUSE)) || 
-           (event==WHEELUPMOUSE) ||
-           (event==WHEELDOWNMOUSE) ) {
+	/* no x move in outliner */
+	if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) facx= 0.0;
+	
+	/* no y move in audio & time */
+	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) facy= 0.0;
+	
+	if(get_mbut() & mousebut && leftret) return 0;
+	if(facx==0.0 && facy==0.0) return 1;
+	
+	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || is_wheel) {
 
       /* If the mousewheel is used with shift key
        * the scroll up and down. If the mousewheel
        * is used with the ctrl key then scroll left
        * and right.
        */
-		if (event==WHEELUPMOUSE || event==WHEELDOWNMOUSE) {
+		if (is_wheel) {
 			if(event==WHEELDOWNMOUSE) {	
 				facx= -facx; facy= -facy;
 			}
@@ -2356,8 +2349,6 @@ int view2dmove(unsigned short event)
 				else return 0;
 				break;
 			}
-			mval[0]= mvalo[0]+1; // force redraw below
-			mval[1]= mvalo[1]+1;
 		}
 		else {
 			getmouseco_areawin(mval);
@@ -2365,7 +2356,7 @@ int view2dmove(unsigned short event)
 			dy= facy*(mvalo[1]-mval[1]);
 		}
 
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || is_wheel) {
 			ScrArea *sa;
 			
 			G.v2d->cur.xmin+= left*dx;
@@ -2374,6 +2365,7 @@ int view2dmove(unsigned short event)
 			G.v2d->cur.ymax+= right*dy;
 			
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			
 			sa= curarea;	/* bad global */
 			view2d_do_locks(curarea, V2D_LOCK_COPY|V2D_LOCK_REDRAW);
 			areawinset(sa->win);
@@ -2383,15 +2375,13 @@ int view2dmove(unsigned short event)
 				
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
-				
 		}
 		else BIF_wait_for_statechange();
 			/* return if we were using the mousewheel
 			*/
-		if ( (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) return 1;
+		if ( is_wheel ) return 1;
 	}
 
-    curarea->head_swap= 0;
     return 1;
 }
 
