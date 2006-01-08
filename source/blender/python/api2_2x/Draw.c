@@ -107,6 +107,8 @@ static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupStrInput( PyObject * self, PyObject * args );
 /* next by Jonathan Merritt (lancelet): */
 static PyObject *Method_Image( PyObject * self, PyObject * args);
+/* CLEVER NUMBUT */
+static PyObject *Method_PupBlock( PyObject * self, PyObject * args );
 
 static uiBlock *Get_uiBlock( void );
 static void py_slider_update( void *butv, void *data2_unused );
@@ -277,6 +279,22 @@ static char Method_PupStrInput_doc[] =
 (max = 20) - The maximum number of chars the user can input;\n\
 Return the user input value or None on user exit";
 
+static char Method_PupBlock_doc[] =
+	"(title, sequence) - Display a pop-up block.\n\
+(title) - The title of the block.\n\
+(sequence) - A sequence defining what the block contains. \
+The order of the list is the order of appearance, from top down.\n\
+Possible format for sequence items:\n\
+[value is an object created with Create]\n\
+\ttext: Defines a label in the block\n\
+\t(text, value, tooltip = ''): Defines a toggle button \n\
+\t(text, value, min, max, tooltip = ''): Defines a num or string button \n\
+\t\t\tdepending on the value.\n\
+\t\tFor string, max is the maximum length of the text and min is unused.\n\
+Return 1 if the pop-up is confirmed, 0 otherwise. \n\
+Warning: On cancel, the value objects are brought back to there previous values, \
+\texcept for string values which will still contain the modified values.\n";
+
 static char Method_Exit_doc[] = "() - Exit the windowing interface";
 
 /*
@@ -307,6 +325,7 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( PupIntInput ),
 	MethodDef( PupFloatInput ),
 	MethodDef( PupStrInput ),
+	MethodDef( PupBlock ),
 	MethodDef( Image ),
 	MethodDef( Exit ),
 	MethodDef( Redraw ),
@@ -335,7 +354,7 @@ static void Button_dealloc( PyObject * self )
 {
 	Button *but = ( Button * ) self;
 
-	if( but->type == 3 ) {
+	if( but->type == BSTRING_TYPE ) {
 		if( but->val.asstr )
 			MEM_freeN( but->val.asstr );
 	}
@@ -348,11 +367,11 @@ static PyObject *Button_getattr( PyObject * self, char *name )
 	Button *but = ( Button * ) self;
 
 	if( strcmp( name, "val" ) == 0 ) {
-		if( but->type == 1 )
+		if( but->type == BINT_TYPE )
 			return Py_BuildValue( "i", but->val.asint );
-		else if( but->type == 2 )
+		else if( but->type == BFLOAT_TYPE )
 			return Py_BuildValue( "f", but->val.asfloat );
-		else if( but->type == 3 )
+		else if( but->type == BSTRING_TYPE )
 			return Py_BuildValue( "s", but->val.asstr );
 	}
 
@@ -365,11 +384,11 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 	Button *but = ( Button * ) self;
 
 	if( strcmp( name, "val" ) == 0 ) {
-		if( but->type == 1 )
+		if( but->type == BINT_TYPE )
 			PyArg_Parse( v, "i", &but->val.asint );
-		else if( but->type == 2 )
+		else if( but->type == BFLOAT_TYPE )
 			PyArg_Parse( v, "f", &but->val.asfloat );
-		else if( but->type == 3 ) {
+		else if( but->type == BSTRING_TYPE ) {
 			char *newstr;
 			PyArg_Parse( v, "s", &newstr );
 
@@ -705,15 +724,15 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 
 	but = newbutton(  );
 	if( PyFloat_Check( in ) ) {
-		but->type = 2;
+		but->type = BFLOAT_TYPE;
 		but->val.asfloat = (float)PyFloat_AsDouble( in );
 	} else if( PyInt_Check( in ) ) {
-		but->type = 1;
+		but->type = BINT_TYPE;
 		but->val.asint = PyInt_AsLong( in );
 	} else if( PyString_Check( in ) ) {
 		char *newstr = PyString_AsString( in );
 
-		but->type = 3;
+		but->type = BSTRING_TYPE;
 		but->slen = strlen( newstr );
 		but->val.asstr = MEM_mallocN( but->slen + 1, "button string" );
 
@@ -790,7 +809,7 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args )
 			"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
-	but->type = 1;
+	but->type = BINT_TYPE;
 	but->val.asint = def;
 
 	block = Get_uiBlock(  );
@@ -819,7 +838,7 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 			"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
-	but->type = 1;
+	but->type = BINT_TYPE;
 	but->val.asint = def;
 
 	block = Get_uiBlock(  );
@@ -895,7 +914,7 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 		min = (float)PyFloat_AsDouble( mino );
 		max = (float)PyFloat_AsDouble( maxo );
 
-		but->type = 2;
+		but->type = BFLOAT_TYPE;
 		but->val.asfloat = ini;
 
 		block = Get_uiBlock(  );
@@ -915,7 +934,7 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 		min = PyInt_AsLong( mino );
 		max = PyInt_AsLong( maxo );
 
-		but->type = 1;
+		but->type = BINT_TYPE;
 		but->val.asint = ini;
 
 		block = Get_uiBlock(  );
@@ -960,15 +979,15 @@ another int and string as arguments" );
 	but = newbutton(  );
 
 	if( PyFloat_Check( inio ) )
-		but->type = 2;
+		but->type = BFLOAT_TYPE;
 	else
-		but->type = 1;
+		but->type = BINT_TYPE;
 
 	ini = (float)PyFloat_AsDouble( inio );
 	min = (float)PyFloat_AsDouble( mino );
 	max = (float)PyFloat_AsDouble( maxo );
 
-	if( but->type == 2 ) {
+	if( but->type == BFLOAT_TYPE ) {
 		but->val.asfloat = ini;
 		block = Get_uiBlock(  );
 		if( block ) {
@@ -1025,7 +1044,7 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		min = (float)PyFloat_AsDouble( mino );
 		max = (float)PyFloat_AsDouble( maxo );
 
-		but->type = 2;
+		but->type = BFLOAT_TYPE;
 		but->val.asfloat = ini;
 
 		block = Get_uiBlock(  );
@@ -1039,7 +1058,7 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		min = PyInt_AsLong( mino );
 		max = PyInt_AsLong( maxo );
 
-		but->type = 1;
+		but->type = BINT_TYPE;
 		but->val.asint = ini;
 
 		block = Get_uiBlock(  );
@@ -1079,7 +1098,7 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 	if (real_len > len) real_len = len;
 
 	but = newbutton(  );
-	but->type = 3;
+	but->type = BSTRING_TYPE;
 	but->slen = len;
 	but->val.asstr = MEM_mallocN( len + 1, "pybutton str" );
 
@@ -1259,6 +1278,125 @@ static PyObject *Method_PupStrInput( PyObject * self, PyObject * args )
 	return EXPP_ReturnPyObjError( PyExc_MemoryError,
 				      "couldn't create a PyString" );
 }
+
+static PyObject *Method_PupBlock( PyObject * self, PyObject * args )
+{
+	PyObject *pyList, *pyItem;
+	float min, max;
+	int len, i;
+	char *title;
+
+	if (!PyArg_ParseTuple( args, "sO", &title, &pyList ) || !PySequence_Check( pyList ))
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a string and a sequence" );
+
+
+	len = PySequence_Length(pyList);
+
+	if (len == 0)
+		return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string and a non-empty sequence." );
+
+	if (len > 24) /* LIMIT DEFINED IN toolbox.c	*/
+		return EXPP_ReturnPyObjError( PyExc_ValueError, "sequence cannot have more than 24 elements" );
+
+	for ( i=0 ; i<len ; i++ ) {
+		PyObject *pyMin = NULL, *pyMax = NULL;
+		PyObject *f1, *f2;
+		Button *but = NULL;
+		int tlen;
+		char *text, *tip = NULL;
+
+		pyItem = PySequence_GetItem( pyList, i );
+		if (!pyItem)
+			return NULL;
+
+		if (PyString_Check( pyItem )) {
+			tlen = -2;	/* single string for label, giving it a special len for later */
+		}
+		else if (PyTuple_Check( pyItem )) {
+			/* tuple for other button, get the length for later */
+			tlen = PyTuple_Size( pyItem );
+		}
+		else {
+			/* Neither a string or a tuple, error */
+			Py_DECREF( pyItem );
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string or a tuple containing 2 to 5 values." );
+		}
+
+		switch (tlen) {
+		case -2:		/*	LABEL	*/
+			text = PyString_AsString( pyItem );
+			add_numbut(i, LABEL, text, 0, 0, NULL, NULL);
+			break;
+		case 2:		/*	TOGGLE	(no tooltip)	*/
+		case 3:		/*	TOGGLE	*/
+			if (!PyArg_ParseTuple( pyItem, "sO!|s", &text, &Button_Type, &but, &tip )) {
+				Py_DECREF( pyItem );
+				return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a tuple containing a string, a Button object and optionally a string for toggles" );
+			}
+
+			if (but->type != BINT_TYPE) {
+				Py_DECREF( pyItem );
+				return EXPP_ReturnPyObjError( PyExc_ValueError, "Button object for toggles should hold an integer" );
+			}
+
+			add_numbut(i, TOG|INT, text, 0, 0, &but->val.asint, tip);
+			break;
+		case 4:		/*	TEX and NUM (no tooltip)	*/
+		case 5:		/*	TEX and NUM	*/
+			if (!PyArg_ParseTuple( pyItem, "sO!OO|s", &text, &Button_Type, &but, &pyMin, &pyMax, &tip )) {
+				Py_DECREF( pyItem );
+				return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a tuple containing a string, a Button object, two numerical values and optionally a string for Text and Num buttons" );
+			}
+
+			f1 = PyNumber_Float(pyMin);
+			f2 = PyNumber_Float(pyMax);
+
+			if (!f1 || !f2) {
+				Py_DECREF( pyItem );
+				return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a tuple containing a string, a Button object, two numerical values and optionally a string for Text and Num buttons" );
+			}
+
+			min = (float)PyFloat_AS_DOUBLE(f1);
+			max = (float)PyFloat_AS_DOUBLE(f2);
+			Py_DECREF( f1 );
+			Py_DECREF( f2 );
+
+			switch ( but->type ) {
+			case BINT_TYPE:
+				add_numbut(i, NUM|INT, text, min, max, &but->val.asint, tip);
+				break;
+			case BFLOAT_TYPE:
+				add_numbut(i, NUM|FLO, text, min, max, &but->val.asfloat, tip);
+				break;
+			case BSTRING_TYPE:
+				max = (float)floor(max);
+
+				if (max > but->slen) {
+					int old_len = but->slen;
+					char *old_str = but->val.asstr;
+					but->slen = (int)max;
+					but->val.asstr = MEM_callocN( but->slen + 1, "button pupblock");
+					BLI_strncpy( but->val.asstr, old_str, old_len + 1 );
+					MEM_freeN(old_str);
+				}
+
+				add_numbut(i, TEX, text, 0.0f, max, but->val.asstr, tip);
+			}
+
+			break;
+		default:
+			Py_DECREF( pyItem );
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string or a tuple containing 2 to 5 values." );
+		}
+		Py_DECREF( pyItem );
+	}
+
+	if (do_clever_numbuts(title, len, REDRAW))
+		return EXPP_incr_ret_True();
+	else
+		return EXPP_incr_ret_False();
+}
+
 
 /*****************************************************************************
  * Function:            Method_Image                                         *
