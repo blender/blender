@@ -320,7 +320,7 @@ PFNGLPNTRIANGLESFATIPROC glPNTrianglesfATI;
 BL_EXTInfo RAS_EXT_support;
 
 
-#if defined(GL_ARB_multitexture)
+#ifdef GL_ARB_multitexture
 int max_texture_units = 2;
 PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
 PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB;
@@ -358,7 +358,7 @@ PFNGLMULTITEXCOORD4SARBPROC glMultiTexCoord4sARB;
 PFNGLMULTITEXCOORD4SVARBPROC glMultiTexCoord4svARB;
 #endif
 
-#if defined(GL_ARB_shader_objects)
+#ifdef GL_ARB_shader_objects
 PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
 PFNGLGETHANDLEARBPROC glGetHandleARB;
 PFNGLDETACHOBJECTARBPROC glDetachObjectARB;
@@ -400,14 +400,10 @@ PFNGLGETUNIFORMIVARBPROC glGetUniformivARB;
 PFNGLGETSHADERSOURCEARBPROC glGetShaderSourceARB;
 #endif
 
-#if defined(GL_ARB_vertex_shader)
+#ifdef GL_ARB_vertex_shader
 PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocationARB;
 PFNGLGETACTIVEATTRIBARBPROC glGetActiveAttribARB;
 PFNGLGETATTRIBLOCATIONARBPROC glGetAttribLocationARB;
-#endif
-
-#if defined(GL_EXT_blend_color)
-PFNGLBLENDCOLOREXTPROC glBlendColorEXT;
 #endif
 
 } // namespace bgl
@@ -465,45 +461,44 @@ static void LinkExtensions()
 	}
 #endif
 
-#ifdef WIN32
 #ifdef GL_ARB_multitexture
 	if (QueryExtension("GL_ARB_multitexture"))
 	{
-		glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glActiveTextureARB"));
-		glClientActiveTextureARB = reinterpret_cast<PFNGLCLIENTACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glClientActiveTextureARB"));
-		glMultiTexCoord1dARB = reinterpret_cast<PFNGLMULTITEXCOORD1DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dARB"));
-		glMultiTexCoord1dvARB = reinterpret_cast<PFNGLMULTITEXCOORD1DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dvARB"));
-		glMultiTexCoord1fARB = reinterpret_cast<PFNGLMULTITEXCOORD1FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1fARB"));
-		glMultiTexCoord1fvARB = reinterpret_cast<PFNGLMULTITEXCOORD1FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1fvARB"));
-		glMultiTexCoord1iARB = reinterpret_cast<PFNGLMULTITEXCOORD1IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1iARB"));
-		glMultiTexCoord1ivARB = reinterpret_cast<PFNGLMULTITEXCOORD1IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1ivARB"));
-		glMultiTexCoord1sARB = reinterpret_cast<PFNGLMULTITEXCOORD1SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1sARB"));
-		glMultiTexCoord1svARB = reinterpret_cast<PFNGLMULTITEXCOORD1SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1svARB"));
-		glMultiTexCoord2dARB = reinterpret_cast<PFNGLMULTITEXCOORD2DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2dARB"));
-		glMultiTexCoord2dvARB = reinterpret_cast<PFNGLMULTITEXCOORD2DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2dvARB"));
-		glMultiTexCoord2fARB = reinterpret_cast<PFNGLMULTITEXCOORD2FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2fARB"));
-		glMultiTexCoord2fvARB = reinterpret_cast<PFNGLMULTITEXCOORD2FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2fvARB"));
-		glMultiTexCoord2iARB = reinterpret_cast<PFNGLMULTITEXCOORD2IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2iARB"));
-		glMultiTexCoord2ivARB = reinterpret_cast<PFNGLMULTITEXCOORD2IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2ivARB"));
-		glMultiTexCoord2sARB = reinterpret_cast<PFNGLMULTITEXCOORD2SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2sARB"));
-		glMultiTexCoord2svARB = reinterpret_cast<PFNGLMULTITEXCOORD2SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2svARB"));
-		glMultiTexCoord3dARB = reinterpret_cast<PFNGLMULTITEXCOORD3DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3dARB"));
-		glMultiTexCoord3dvARB = reinterpret_cast<PFNGLMULTITEXCOORD3DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3dvARB"));
-		glMultiTexCoord3fARB = reinterpret_cast<PFNGLMULTITEXCOORD3FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3fARB"));
-		glMultiTexCoord3fvARB = reinterpret_cast<PFNGLMULTITEXCOORD3FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3fvARB"));
-		glMultiTexCoord3iARB = reinterpret_cast<PFNGLMULTITEXCOORD3IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3iARB"));
-		glMultiTexCoord3ivARB = reinterpret_cast<PFNGLMULTITEXCOORD3IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3ivARB"));
-		glMultiTexCoord3sARB = reinterpret_cast<PFNGLMULTITEXCOORD3SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3sARB"));
-		glMultiTexCoord3svARB = reinterpret_cast<PFNGLMULTITEXCOORD3SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3svARB"));
-		glMultiTexCoord4dARB = reinterpret_cast<PFNGLMULTITEXCOORD4DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4dARB"));
-		glMultiTexCoord4dvARB = reinterpret_cast<PFNGLMULTITEXCOORD4DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4dvARB"));
-		glMultiTexCoord4fARB = reinterpret_cast<PFNGLMULTITEXCOORD4FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4fARB"));
-		glMultiTexCoord4fvARB = reinterpret_cast<PFNGLMULTITEXCOORD4FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4fvARB"));
-		glMultiTexCoord4iARB = reinterpret_cast<PFNGLMULTITEXCOORD4IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4iARB"));
-		glMultiTexCoord4ivARB = reinterpret_cast<PFNGLMULTITEXCOORD4IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4ivARB"));
-		glMultiTexCoord4sARB = reinterpret_cast<PFNGLMULTITEXCOORD4SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4sARB"));
-		glMultiTexCoord4svARB = reinterpret_cast<PFNGLMULTITEXCOORD4SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4svARB"));
-		if (glActiveTextureARB && glClientActiveTextureARB && glMultiTexCoord1dARB && glMultiTexCoord1dvARB && glMultiTexCoord1fARB && glMultiTexCoord1fvARB && glMultiTexCoord1iARB && glMultiTexCoord1ivARB && glMultiTexCoord1sARB && glMultiTexCoord1svARB && glMultiTexCoord2dARB && glMultiTexCoord2dvARB && glMultiTexCoord2fARB && glMultiTexCoord2fvARB && glMultiTexCoord2iARB && glMultiTexCoord2ivARB && glMultiTexCoord2sARB && glMultiTexCoord2svARB && glMultiTexCoord3dARB && glMultiTexCoord3dvARB && glMultiTexCoord3fARB && glMultiTexCoord3fvARB && glMultiTexCoord3iARB && glMultiTexCoord3ivARB && glMultiTexCoord3sARB && glMultiTexCoord3svARB && glMultiTexCoord4dARB && glMultiTexCoord4dvARB && glMultiTexCoord4fARB && glMultiTexCoord4fvARB && glMultiTexCoord4iARB && glMultiTexCoord4ivARB && glMultiTexCoord4sARB && glMultiTexCoord4svARB) {
+		bgl::glActiveTextureARB = reinterpret_cast<PFNGLACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glActiveTextureARB"));
+		bgl::glClientActiveTextureARB = reinterpret_cast<PFNGLCLIENTACTIVETEXTUREARBPROC>(bglGetProcAddress((const GLubyte *) "glClientActiveTextureARB"));
+		bgl::glMultiTexCoord1dARB = reinterpret_cast<PFNGLMULTITEXCOORD1DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dARB"));
+		bgl::glMultiTexCoord1dvARB = reinterpret_cast<PFNGLMULTITEXCOORD1DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1dvARB"));
+		bgl::glMultiTexCoord1fARB = reinterpret_cast<PFNGLMULTITEXCOORD1FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1fARB"));
+		bgl::glMultiTexCoord1fvARB = reinterpret_cast<PFNGLMULTITEXCOORD1FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1fvARB"));
+		bgl::glMultiTexCoord1iARB = reinterpret_cast<PFNGLMULTITEXCOORD1IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1iARB"));
+		bgl::glMultiTexCoord1ivARB = reinterpret_cast<PFNGLMULTITEXCOORD1IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1ivARB"));
+		bgl::glMultiTexCoord1sARB = reinterpret_cast<PFNGLMULTITEXCOORD1SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1sARB"));
+		bgl::glMultiTexCoord1svARB = reinterpret_cast<PFNGLMULTITEXCOORD1SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord1svARB"));
+		bgl::glMultiTexCoord2dARB = reinterpret_cast<PFNGLMULTITEXCOORD2DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2dARB"));
+		bgl::glMultiTexCoord2dvARB = reinterpret_cast<PFNGLMULTITEXCOORD2DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2dvARB"));
+		bgl::glMultiTexCoord2fARB = reinterpret_cast<PFNGLMULTITEXCOORD2FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2fARB"));
+		bgl::glMultiTexCoord2fvARB = reinterpret_cast<PFNGLMULTITEXCOORD2FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2fvARB"));
+		bgl::glMultiTexCoord2iARB = reinterpret_cast<PFNGLMULTITEXCOORD2IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2iARB"));
+		bgl::glMultiTexCoord2ivARB = reinterpret_cast<PFNGLMULTITEXCOORD2IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2ivARB"));
+		bgl::glMultiTexCoord2sARB = reinterpret_cast<PFNGLMULTITEXCOORD2SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2sARB"));
+		bgl::glMultiTexCoord2svARB = reinterpret_cast<PFNGLMULTITEXCOORD2SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord2svARB"));
+		bgl::glMultiTexCoord3dARB = reinterpret_cast<PFNGLMULTITEXCOORD3DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3dARB"));
+		bgl::glMultiTexCoord3dvARB = reinterpret_cast<PFNGLMULTITEXCOORD3DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3dvARB"));
+		bgl::glMultiTexCoord3fARB = reinterpret_cast<PFNGLMULTITEXCOORD3FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3fARB"));
+		bgl::glMultiTexCoord3fvARB = reinterpret_cast<PFNGLMULTITEXCOORD3FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3fvARB"));
+		bgl::glMultiTexCoord3iARB = reinterpret_cast<PFNGLMULTITEXCOORD3IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3iARB"));
+		bgl::glMultiTexCoord3ivARB = reinterpret_cast<PFNGLMULTITEXCOORD3IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3ivARB"));
+		bgl::glMultiTexCoord3sARB = reinterpret_cast<PFNGLMULTITEXCOORD3SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3sARB"));
+		bgl::glMultiTexCoord3svARB = reinterpret_cast<PFNGLMULTITEXCOORD3SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord3svARB"));
+		bgl::glMultiTexCoord4dARB = reinterpret_cast<PFNGLMULTITEXCOORD4DARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4dARB"));
+		bgl::glMultiTexCoord4dvARB = reinterpret_cast<PFNGLMULTITEXCOORD4DVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4dvARB"));
+		bgl::glMultiTexCoord4fARB = reinterpret_cast<PFNGLMULTITEXCOORD4FARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4fARB"));
+		bgl::glMultiTexCoord4fvARB = reinterpret_cast<PFNGLMULTITEXCOORD4FVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4fvARB"));
+		bgl::glMultiTexCoord4iARB = reinterpret_cast<PFNGLMULTITEXCOORD4IARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4iARB"));
+		bgl::glMultiTexCoord4ivARB = reinterpret_cast<PFNGLMULTITEXCOORD4IVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4ivARB"));
+		bgl::glMultiTexCoord4sARB = reinterpret_cast<PFNGLMULTITEXCOORD4SARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4sARB"));
+		bgl::glMultiTexCoord4svARB = reinterpret_cast<PFNGLMULTITEXCOORD4SVARBPROC>(bglGetProcAddress((const GLubyte *) "glMultiTexCoord4svARB"));
+		if (bgl::glActiveTextureARB && bgl::glClientActiveTextureARB && bgl::glMultiTexCoord1dARB && bgl::glMultiTexCoord1dvARB && bgl::glMultiTexCoord1fARB && bgl::glMultiTexCoord1fvARB && bgl::glMultiTexCoord1iARB && bgl::glMultiTexCoord1ivARB && bgl::glMultiTexCoord1sARB && bgl::glMultiTexCoord1svARB && bgl::glMultiTexCoord2dARB && bgl::glMultiTexCoord2dvARB && bgl::glMultiTexCoord2fARB && bgl::glMultiTexCoord2fvARB && bgl::glMultiTexCoord2iARB && bgl::glMultiTexCoord2ivARB && bgl::glMultiTexCoord2sARB && bgl::glMultiTexCoord2svARB && bgl::glMultiTexCoord3dARB && bgl::glMultiTexCoord3dvARB && bgl::glMultiTexCoord3fARB && bgl::glMultiTexCoord3fvARB && bgl::glMultiTexCoord3iARB && bgl::glMultiTexCoord3ivARB && bgl::glMultiTexCoord3sARB && bgl::glMultiTexCoord3svARB && bgl::glMultiTexCoord4dARB && bgl::glMultiTexCoord4dvARB && bgl::glMultiTexCoord4fARB && bgl::glMultiTexCoord4fvARB && bgl::glMultiTexCoord4iARB && bgl::glMultiTexCoord4ivARB && bgl::glMultiTexCoord4sARB && bgl::glMultiTexCoord4svARB) {
 			EnableExtension(_GL_ARB_multitexture);
 			RAS_EXT_support._ARB_multitexture = 1;
 			if (doDebugMessages)
@@ -513,24 +508,7 @@ static void LinkExtensions()
 		}
 	}
 #endif
-#endif// WIN32
 
-#ifdef WIN32
-#ifdef GL_EXT_blend_color
-	if (QueryExtension("GL_EXT_blend_color"))
-	{
-		glBlendColorEXT = reinterpret_cast<PFNGLBLENDCOLOREXTPROC>(bglGetProcAddress((const GLubyte *) "glBlendColorEXT"));
-		if (glBlendColorEXT) {
-			EnableExtension(_GL_EXT_blend_color);
-			RAS_EXT_support._EXT_blend_color = 1;
-			if (doDebugMessages)
-				std::cout << "Enabled GL_EXT_blend_color" << std::endl;
-		} else {
-			std::cout << "ERROR: GL_EXT_blend_color implementation is broken!" << std::endl;
-		}
-	}
-#endif
-#endif
 #ifdef GL_ARB_shader_objects
 	if (QueryExtension("GL_ARB_shader_objects"))
 	{
@@ -608,18 +586,6 @@ static void LinkExtensions()
 		RAS_EXT_support._ARB_fragment_shader = 1;
 		if (doDebugMessages)
 			std::cout << "Detected GL_ARB_fragment_shader" << std::endl;
-	}
-#endif
-
-
-#ifdef GL_EXT_texture3D
-	if (QueryExtension("GL_EXT_texture3D"))
-	{
-		/* not using 3d textures... but, using GL_TEXTURE_WRAP_R_EXT*/
-		EnableExtension(_GL_EXT_texture3D);
-		RAS_EXT_support._EXT_texture3D = 1;
-		if (doDebugMessages)
-			std::cout << "Enabled GL_EXT_texture3D" << std::endl;
 	}
 #endif
 

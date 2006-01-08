@@ -1,18 +1,35 @@
 #ifndef __ARB_MULTITEXTURE_H__
 #define __ARB_MULTITEXTURE_H__
 
-/**
-	Comment out defines GL_... 1, to disable compilation of each extension.
-	GL_ARB_multitexture is the minimum for using blender material settings.
-	For best functionality (GL_ARB_multitexture & GL_ARB_texture_env_combine) are needed.
+/* 
+	make sure glext is included before this, when setting up extensions
+
+should we try for this?
+...
+#include ("glext.h" or "SDL_opengl.h"(will need SDL-1.2.9))
+...
+#define BGL_MultiTexture
+#ifdef GL_VERSION_1_3 // in core 
+	#define BGL_TEXTURE0 // GL_TEXTURE0
+	#define bglActiveTexture(unit) bgl::glActiveTexture(unit)
+	// ...
+#elif GL_ARB_multitexture //  GL < 1_3 use extension
+	#define BGL_TEXTURE0 // GL_TEXTURE0_ARB
+	#define bglActiveTexture(unit) bgl::glActiveTextureARB(unit)
+	// ...
+#else // cant do it, skip
+	#undef BGL_MultiTexture
+#endif
 */
 
 /* ----------------------------------------------------------------------------
 	GL_ARB_multitexture
 ---------------------------------------------------------------------------- */
+/* defined in glext.h
 #ifndef GL_ARB_multitexture
 #define GL_ARB_multitexture 1
 #endif
+*/
 
 #ifdef GL_ARB_multitexture
 	#define GL_TEXTURE0_ARB                   0x84C0
@@ -35,9 +52,11 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_texture_env_combine
 ---------------------------------------------------------------------------- */
+/*
 #ifndef GL_ARB_texture_env_combine
 	#define GL_ARB_texture_env_combine 1
 #endif
+*/
 
 #ifdef GL_ARB_texture_env_combine
 	#define GL_COMBINE_ARB                    0x8570
@@ -67,9 +86,11 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_texture_cube_map
 ---------------------------------------------------------------------------- */
+/*
 #ifndef GL_ARB_texture_cube_map
 	#define GL_ARB_texture_cube_map 1
 #endif
+*/
 
 #ifdef GL_ARB_texture_cube_map
 	#define GL_NORMAL_MAP_ARB                 0x8511
@@ -89,10 +110,11 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_shader_objects
 ---------------------------------------------------------------------------- */
+/*
 #ifndef GL_ARB_shader_objects
 	#define GL_ARB_shader_objects 1
 #endif
-
+*/
 #ifdef GL_ARB_shader_objects
 	#define GL_PROGRAM_OBJECT_ARB             0x8B40
 	#define GL_SHADER_OBJECT_ARB              0x8B48
@@ -133,9 +155,11 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_vertex_shader
 ---------------------------------------------------------------------------- */
+/*
 #ifndef GL_ARB_vertex_shader
 	#define GL_ARB_vertex_shader 1
 #endif
+*/
 
 #ifdef GL_ARB_vertex_shader
 	#define GL_VERTEX_SHADER_ARB              0x8B31
@@ -151,14 +175,17 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_fragment_shader
 ---------------------------------------------------------------------------- */
+/*
 #ifndef GL_ARB_fragment_shader
 	#define GL_ARB_fragment_shader 1
 #endif
+*/
 
 #ifdef GL_ARB_fragment_shader
 	#define GL_FRAGMENT_SHADER_ARB            0x8B30
 	#define GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB 0x8B49
 	#define GL_FRAGMENT_SHADER_DERIVATIVE_HINT_ARB 0x8B8B
 #endif
+
 
 #endif//__ARB_MULTITEXTURE_H__

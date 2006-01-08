@@ -30,6 +30,8 @@ using namespace bgl;
 
 #include "MEM_guardedalloc.h"
 
+
+
 extern "C" {
 	// envmaps
 	#include "IMB_imbuf.h"

@@ -10,6 +10,7 @@
 #include <GL/glu.h>
 #endif
 
+
 #include <iostream>
 #include "BL_Shader.h"
 #include "BL_Material.h"
@@ -21,9 +22,14 @@
 
 #include "RAS_GLExtensionManager.h"
 
-using namespace bgl;
+//using namespace bgl;
 #define spit(x) std::cout << x << std::endl;
 
+
+const bool BL_Shader::Ok()const
+{
+        return (mShader !=0 && mOk && mUse);
+}
 
 BL_Shader::BL_Shader(int n, PyTypeObject *T)
 :	PyObjectPlus(T),
@@ -54,6 +60,8 @@ BL_Shader::BL_Shader(int n, PyTypeObject *T)
 		mSampler[i].glTexture =0;
 	}
 }
+
+using namespace bgl;
 
 BL_Shader::~BL_Shader()
 {
@@ -199,10 +207,6 @@ const uBlending *BL_Shader::getBlending( int pass )
 	return &mBlending;
 }
 
-const bool BL_Shader::Ok()const
-{
-	return (mShader !=0 && mOk && mUse);
-}
 
 
 void BL_Shader::InitializeSampler(
