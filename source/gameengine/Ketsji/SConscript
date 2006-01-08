@@ -6,7 +6,10 @@ Import ('library_env')
 
 ketsji_env = library_env.Copy ()
 
-source_files = ['KX_WorldIpoController.cpp',
+source_files = ['BL_Shader.cpp',
+		'BL_Material.cpp',
+		'BL_Texture.cpp',
+		'KX_WorldIpoController.cpp',
                 'KX_WorldInfo.cpp',
                 'KX_VisibilityActuator.cpp',
                 'KX_VertexProxy.cpp',

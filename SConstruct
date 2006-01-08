@@ -63,7 +63,7 @@ env = Environment (ENV = os.environ)
 
 if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	use_international = 'true'
-	use_gameengine = 'false'
+	use_gameengine = 'true'
 	use_openal = 'false'
 	use_fmod = 'false'
 	use_quicktime = 'false'

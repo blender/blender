@@ -71,7 +71,7 @@
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
-#include "RAS_OpenGLRasterizer\RAS_GLExtensionManager.h"
+#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
 
 #include "KX_PyMath.h"
 
