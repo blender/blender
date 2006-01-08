@@ -36,6 +36,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -240,8 +241,10 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			shi->mat->ref= in[MAT_IN_REFL]->vec[0]; 
 		
 		/* retrieve normal */
-		if(in[MAT_IN_NORMAL]->hasinput)
+		if(in[MAT_IN_NORMAL]->hasinput) {
 			nor= in[MAT_IN_NORMAL]->vec;
+			Normalise(nor);
+		}
 		else
 			nor= shi->vno;
 		
@@ -476,6 +479,61 @@ static bNodeType sh_node_normal= {
 	
 };
 
+/* **************** CURVE VEC  ******************** */
+static bNodeSocketType sh_node_curve_vec_in[]= {
+	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeSocketType sh_node_curve_vec_out[]= {
+	{	SOCK_VECTOR, 0, "Vector",	0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* generates normal, does dot product */
+static void node_shader_exec_curve(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order input:  vec */
+	/* stack order output: vec */
+	
+	curvemapping_evaluate3F(node->storage, out[0]->vec, in[0]->vec);
+}
+
+static bNodeType sh_node_curve_vec= {
+	/* type code   */	SH_NODE_CURVE_VEC,
+	/* name        */	"Vector Curves",
+	/* width+range */	200, 140, 320,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	sh_node_curve_vec_in,
+	/* output sock */	sh_node_curve_vec_out,
+	/* storage     */	"CurveMapping",
+	/* execfunc    */	node_shader_exec_curve
+	
+};
+
+/* **************** CURVE RGB  ******************** */
+static bNodeSocketType sh_node_curve_rgb_in[]= {
+	{	SOCK_RGBA, 1, "Color",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeSocketType sh_node_curve_rgb_out[]= {
+	{	SOCK_RGBA, 0, "Color",	0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeType sh_node_curve_rgb= {
+	/* type code   */	SH_NODE_CURVE_RGB,
+	/* name        */	"RGB Curves",
+	/* width+range */	200, 140, 320,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	sh_node_curve_rgb_in,
+	/* output sock */	sh_node_curve_rgb_out,
+	/* storage     */	"CurveMapping",
+	/* execfunc    */	node_shader_exec_curve
+	
+};
+
 /* **************** VALUE ******************** */
 static bNodeSocketType sh_node_value_out[]= {
 	{	SOCK_VALUE, 0, "Value",		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -647,6 +705,8 @@ bNodeType *node_all_shaders[]= {
 	&sh_node_normal,
 	&sh_node_geom,
 	&sh_node_mapping,
+	&sh_node_curve_vec,
+	&sh_node_curve_rgb,
 	NULL
 };
 

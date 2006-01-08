@@ -90,7 +90,7 @@ typedef struct uiLinkLine {				/* only for draw/edit */
 
 	short flag, pad;
 	
-	uiBut *from, *to;	
+	struct uiBut *from, *to;	
 } uiLinkLine;
 
 typedef struct {
@@ -105,7 +105,7 @@ typedef struct {
 } uiLink;
 
 struct uiBut {
-	uiBut *next, *prev;
+	struct uiBut *next, *prev;
 	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend;
 	int flag;
 	

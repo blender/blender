@@ -361,9 +361,20 @@ static int node_shader_buts_normal(uiBlock *block, bNodeTree *ntree, bNode *node
 	return (int)(node->width-NODE_DY);
 }
 
+static int node_shader_buts_curve(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		if(node->type==SH_NODE_CURVE_VEC)
+			curvemap_buttons(block, node->storage, 'v', B_NODE_EXEC, B_REDR, butr);
+		else
+			curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC, B_REDR, butr);
+	}	
+	return (int)(node->width-NODE_DY);
+}
+
 static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
-	if(block && (node->flag & NODE_OPTIONS)) {
+	if(block) {
 		TexMapping *texmap= node->storage;
 		short dx= (short)((butr->xmax-butr->xmin)/7.0f);
 		short dy= (short)(butr->ymax-19);
@@ -472,7 +483,7 @@ static int node_shader_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *nod
 
 static int node_shader_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
-	if(block && (node->flag & NODE_OPTIONS)) {
+	if(block) {
 		if(node->storage) {
 			draw_colorband_buts_small(block, node->storage, butr, B_NODE_EXEC);
 		}
@@ -495,6 +506,10 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_NORMAL:
 			ntype->butfunc= node_shader_buts_normal;
+			break;
+		case SH_NODE_CURVE_VEC:
+		case SH_NODE_CURVE_RGB:
+			ntype->butfunc= node_shader_buts_curve;
 			break;
 		case SH_NODE_MAPPING:
 			ntype->butfunc= node_shader_buts_mapping;

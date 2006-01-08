@@ -35,6 +35,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -696,6 +697,10 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= add_colorband(1);
 		else if(type==SH_NODE_MAPPING)
 			node->storage= add_mapping();
+		else if(type==SH_NODE_CURVE_VEC)
+			node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
+		else if(type==SH_NODE_CURVE_RGB)
+			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 	}
 	
 	return node;
@@ -722,8 +727,17 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	if(nnode->id)
 		nnode->id->us++;
 	
-	if(nnode->storage)
-		nnode->storage= MEM_dupallocN(nnode->storage);
+	if(nnode->storage) {
+		/* another candidate for handlerizing! */
+		if(ntree->type==NTREE_SHADER) {
+			if(node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB)
+				nnode->storage= curvemapping_copy(node->storage);
+			else 
+				nnode->storage= MEM_dupallocN(nnode->storage);
+		}
+		else 
+			nnode->storage= MEM_dupallocN(nnode->storage);
+	}
 	
 	node->new= nnode;
 	nnode->new= NULL;
@@ -796,10 +810,9 @@ static void node_unlink_node(bNodeTree *ntree, bNode *node)
 
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
-	if(ntree) {
-		node_unlink_node(ntree, node);
-		BLI_remlink(&ntree->nodes, node);
-	}
+	node_unlink_node(ntree, node);
+	BLI_remlink(&ntree->nodes, node);
+
 	if(node->id)
 		node->id->us--;
 	
@@ -811,9 +824,17 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 			MEM_freeN(node->preview->rect);
 		MEM_freeN(node->preview);
 	}
-	if(node->storage)
-		MEM_freeN(node->storage);
-	
+	if(node->storage) {
+		/* could be handlerized at some point, now only 1 exception still */
+		if(ntree->type==NTREE_SHADER) {
+			if(node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB)
+				curvemapping_free(node->storage);
+			else 
+				MEM_freeN(node->storage);
+		}
+		else 
+			MEM_freeN(node->storage);
+	}
 	MEM_freeN(node);
 }
 
@@ -822,11 +843,12 @@ void ntreeFreeTree(bNodeTree *ntree)
 {
 	bNode *node, *next;
 	
+	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
+	
 	for(node= ntree->nodes.first; node; node= next) {
 		next= node->next;
-		nodeFreeNode(NULL, node);		/* NULL -> no unlinking needed */
+		nodeFreeNode(ntree, node);
 	}
-	BLI_freelistN(&ntree->links);
 	
 	if(ntree->owntype) {
 		if(ntree->owntype->inputs)

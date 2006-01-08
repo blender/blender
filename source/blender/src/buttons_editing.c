@@ -49,11 +49,11 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
@@ -76,6 +76,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -1479,7 +1480,7 @@ static void editing_panel_shapes(Object *ob)
 	}
 	if(key->type && ob->shapenr!=1)
 		uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",	10, 90, 150,19, &kb->vgroup, 0.0, 31.0, 0, 0, "Vertex Weight Group name, to blend with Basis Shape");
-	
+
 }
 
 /* *************************** FONT ******************************** */

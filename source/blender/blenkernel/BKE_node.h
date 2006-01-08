@@ -159,6 +159,8 @@ struct ShadeResult;
 #define SH_NODE_NORMAL		107
 #define SH_NODE_GEOMETRY	108
 #define SH_NODE_MAPPING		109
+#define SH_NODE_CURVE_VEC	110
+#define SH_NODE_CURVE_RGB	111
 
 /* custom defines: options for Material node */
 #define SH_NODE_MAT_DIFF	1

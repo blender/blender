@@ -161,6 +161,7 @@ struct ScrArea;
 #define CHARTAB (29<<9)
 #define BUT_COLORBAND (30<<9)
 #define BUT_NORMAL (31<<9)
+#define BUT_CURVE (32<<9)
 
 #define BUTTYPE	(63<<9)
 
@@ -251,6 +252,7 @@ uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 

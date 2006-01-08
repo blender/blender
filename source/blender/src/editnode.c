@@ -143,9 +143,12 @@ static void shader_node_event(SpaceNode *snode, short event)
 //	bNode *node;
 	
 	switch(event) {
-	case B_NODE_EXEC:
-		snode_handle_recalc(snode);
-		break;
+		case B_NODE_EXEC:
+			snode_handle_recalc(snode);
+			break;
+		case B_REDR:
+			allqueue(REDRAWNODE, 1);
+			break;
 	}
 }
 
@@ -1020,7 +1023,7 @@ static void node_add_menu(SpaceNode *snode)
 	short event, mval[2];
 	
 	/* shader menu, still hardcoded defines... solve */
-	event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Mapping%x109|Normal%x107|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
+	event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Mapping%x109|Normal%x107|RGB Curves%x111|Vector Curves%x110|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
 	if(event<1) return;
 	
 	getmouseco_areawin(mval);
@@ -1416,12 +1419,13 @@ void node_make_group(SpaceNode *snode)
 
 /* ******************** main event loop ****************** */
 
-/* special version to prevent overlapping buttons */
+/* special version to prevent overlapping buttons, has a bit of hack... */
 int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 {
 	bNode *node;
 	rctf rect;
 	ListBase listb= *lb;
+	void *prev;
 	int retval= UI_NOTHING;
 	short mval[2];
 	
@@ -1437,12 +1441,19 @@ int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 		if(node->block) {
 			if(node == visible_node(snode, &rect)) {
 				
+				/* when there's menus, the prev pointer becomes zero! */
+				prev= ((struct Link *)node->block)->prev;
+				
 				lb->first= lb->last= node->block;
 				retval= uiDoBlocks(lb, event);
+				
+				((struct Link *)node->block)->prev= prev;
+
 				break;
 			}
 		}
 	}
+	
 	*lb= listb;
 	
 	return retval;
@@ -1506,6 +1517,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			G.v2d->cur.xmin+= dx;
 			G.v2d->cur.xmax-= dx;
+			dx= (float)(0.1154*(G.v2d->cur.ymax-G.v2d->cur.ymin));
+			G.v2d->cur.ymin+= dx;
+			G.v2d->cur.ymax-= dx;
 			test_view2d(G.v2d, sa->winx, sa->winy);
 			doredraw= 1;
 			break;
@@ -1513,6 +1527,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			dx= (float)(0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			G.v2d->cur.xmin-= dx;
 			G.v2d->cur.xmax+= dx;
+			dx= (float)(0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin));
+			G.v2d->cur.ymin-= dx;
+			G.v2d->cur.ymax+= dx;
 			test_view2d(G.v2d, sa->winx, sa->winy);
 			doredraw= 1;
 			break;

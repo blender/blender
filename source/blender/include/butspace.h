@@ -40,6 +40,7 @@ struct ID;
 struct ColorBand;
 struct uiBlock;
 struct rctf;
+struct CurveMap;
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -128,6 +129,8 @@ void test_grouppoin_but(char *name, ID **idpp);
 void test_texpoin_but(char *name, ID **idpp);
 
 void test_idbutton_cb(void *namev, void *arg2_unused);
+
+void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
 
 /* -------------- internal event defines ------------ */
 

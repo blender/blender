@@ -57,6 +57,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_global.h"
@@ -73,9 +74,12 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_interface.h"
 #include "BIF_interface_icons.h"
 #include "BIF_previewrender.h"
 #include "BIF_resources.h" /* elubie: should be removed once the enum for the ICONS is in BIF_preview_icons.h */
+
+#include "interface.h"
 
 #include "PIL_time.h"
 
@@ -727,7 +731,7 @@ void BIF_icon_draw(float x, float y, int icon_id)
 
 		if (!di->rect) return; /* something has gone wrong! */
 		
-		glRasterPos2f(x, y);
+		ui_rasterpos_safe(x, y, di->aspect);
 		
 		/* di->rect contains image in 'rendersize', we only scale if needed */
 		if(di->rw!=di->w && di->rh!=di->h) {

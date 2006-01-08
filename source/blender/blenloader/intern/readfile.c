@@ -59,6 +59,7 @@
 #include "DNA_ID.h"
 #include "DNA_actuator_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_color_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
@@ -119,6 +120,7 @@
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
+#include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
@@ -1186,6 +1188,19 @@ static void test_pointer_array(FileData *fd, void **mat)
 	}
 }
 
+/* ************ READ CurveMapping *************** */
+
+/* cuma itself has been read! */
+static void direct_link_curvemapping(FileData *fd, CurveMapping *cumap)
+{
+	int a;
+	
+	for(a=0; a<CM_TOT; a++) {
+		cumap->cm[a].curve= newdataadr(fd, cumap->cm[a].curve);
+		cumap->cm[a].table= NULL;
+	}
+}
+
 /* ************ READ NODE TREE *************** */
 
 /* singe node tree, ntree is not NULL */
@@ -1243,6 +1258,11 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	link_list(fd, &ntree->nodes);
 	for(node= ntree->nodes.first; node; node= node->next) {
 		node->storage= newdataadr(fd, node->storage);
+		if(node->storage) {
+			/* could be handlerized at some point, now only 1 exception still */
+			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+				direct_link_curvemapping(fd, node->storage);
+		}
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
 	}

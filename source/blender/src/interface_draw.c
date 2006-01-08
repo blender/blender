@@ -55,6 +55,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_color_types.h"
+#include "DNA_key_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -64,8 +66,10 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_utildefines.h"
 
 #include "datatoc.h"            /* std font */
@@ -211,7 +215,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;
 	}
-	BIF_icon_draw_blended((int)(xs+0.5f), (int)(ys+0.5f), icon, but->themecol, blend);
+	BIF_icon_draw_blended(xs, ys, icon, but->themecol, blend);
 	
 	glDisable(GL_BLEND);
 
@@ -2050,6 +2054,126 @@ static void ui_draw_but_NORMAL(uiBut *but)
 		if(old[a])
 			glEnable(GL_LIGHT0+a);
 	}
+}
+
+static void ui_draw_but_curve_grid(uiBut *but, float zoomx, float zoomy, float offsx, float offsy, float step)
+{
+	float dx, dy, fx, fy;
+	
+	glBegin(GL_LINES);
+	dx= step*zoomx;
+	fx= but->x1 + zoomx*(-offsx);
+	if(fx > but->x1) fx -= dx*( floor(fx-but->x1));
+	while(fx < but->x2) {
+		glVertex2f(fx, but->y1); 
+		glVertex2f(fx, but->y2);
+		fx+= dx;
+	}
+	
+	dy= step*zoomy;
+	fy= but->y1 + zoomy*(-offsy);
+	if(fy > but->y1) fy -= dy*( floor(fy-but->y1));
+	while(fy < but->y2) {
+		glVertex2f(but->x1, fy); 
+		glVertex2f(but->x2, fy);
+		fy+= dy;
+	}
+	glEnd();
+	
+}
+
+static void ui_draw_but_CURVE(uiBut *but)
+{
+	CurveMapping *cumap= (CurveMapping *)but->poin;
+	CurveMap *cuma= cumap->cm+cumap->cur;
+	CurveMapPoint *cmp;
+	float fx, fy, dx, dy, fac[2], zoomx, zoomy, offsx, offsy;
+	GLint scissor[4];
+	int a;
+	
+	/* need scissor test, curve can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	fx= but->x1; fy= but->y1;
+	ui_graphics_to_window(but->win, &fx, &fy);
+	dx= but->x2; dy= but->y2;
+	ui_graphics_to_window(but->win, &dx, &dy);
+	glScissor((int)floor(fx), (int)floor(fy), (int)ceil(dx-fx), (int)ceil(dy-fy));
+	
+	/* calculate offset and zoom */
+	zoomx= (but->x2-but->x1-2.0*but->aspect)/(cumap->curr.xmax - cumap->curr.xmin);
+	zoomy= (but->y2-but->y1-2.0*but->aspect)/(cumap->curr.ymax - cumap->curr.ymin);
+	offsx= cumap->curr.xmin-but->aspect/zoomx;
+	offsy= cumap->curr.ymin-but->aspect/zoomy;
+	
+	/* backdrop */
+	if(cumap->flag & CUMA_DO_CLIP) {
+		BIF_ThemeColorShade(TH_BUT_NEUTRAL, -20);
+		glRectf(but->x1, but->y1, but->x2, but->y2);
+		BIF_ThemeColor(TH_BUT_NEUTRAL);
+		glRectf(but->x1 + zoomx*(cumap->clipr.xmin-offsx),
+				but->y1 + zoomy*(cumap->clipr.ymin-offsy),
+				but->x1 + zoomx*(cumap->clipr.xmax-offsx),
+				but->y1 + zoomy*(cumap->clipr.ymax-offsy));
+	}
+	else {
+		BIF_ThemeColor(TH_BUT_NEUTRAL);
+		glRectf(but->x1, but->y1, but->x2, but->y2);
+	}
+	
+	/* grid, every .25 step */
+	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.06f);
+	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 0.25f);
+	/* grid, every 1.0 step */
+	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.12f);
+	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 1.0f);
+	/* axes */
+	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.25f);
+	glBegin(GL_LINES);
+	glVertex2f(but->x1, but->y1 + zoomy*(-offsy));
+	glVertex2f(but->x2, but->y1 + zoomy*(-offsy));
+	glVertex2f(but->x1 + zoomx*(-offsx), but->y1);
+	glVertex2f(but->x1 + zoomx*(-offsx), but->y2);
+	glEnd();
+	
+	/* the curve */
+	BIF_ThemeColor(TH_TEXT);
+	glBegin(GL_LINE_STRIP);
+	
+	if(cuma->table==NULL)
+		curvemapping_changed(cumap, 0);	/* 0 = no remove doubles */
+	cmp= cuma->table;
+	
+	glVertex2f(but->x1, but->y1 + zoomy*(cmp[0].y-offsy));	/* first point */
+	for(a=0; a<=CM_TABLE; a++) {
+		fx= but->x1 + zoomx*(cmp[a].x-offsx);
+		fy= but->y1 + zoomy*(cmp[a].y-offsy);
+		glVertex2f(fx, fy);
+	}
+	glVertex2f(but->x2, but->y1 + zoomy*(cmp[a-1].y-offsy));	/* last point */
+	glEnd();
+
+	/* the points, use aspect to make them visible on edges */
+	cmp= cuma->curve;
+	glPointSize(3.0f);
+	bglBegin(GL_POINTS);
+	for(a=0; a<cuma->totpoint; a++) {
+		if(cmp[a].flag & SELECT)
+			BIF_ThemeColor(TH_TEXT_HI);
+		else
+			BIF_ThemeColor(TH_TEXT);
+		fac[0]= but->x1 + zoomx*(cmp[a].x-offsx);
+		fac[1]= but->y1 + zoomy*(cmp[a].y-offsy);
+		bglVertex2fv(fac);
+	}
+	bglEnd();
+	glPointSize(1.0f);
+	
+	/* restore scissortest */
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+
+	/* outline */
+	BIF_ThemeColor(TH_BUT_OUTLINE);
+	fdrawbox(but->x1, but->y1, but->x2, but->y2);
 
 }
 
@@ -2174,6 +2298,9 @@ void ui_draw_but(uiBut *but)
 		break;
 	case BUT_NORMAL:
 		ui_draw_but_NORMAL(but);
+		break;
+	case BUT_CURVE:
+		ui_draw_but_CURVE(but);
 		break;
 		
 	default:

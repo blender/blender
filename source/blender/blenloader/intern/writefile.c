@@ -109,6 +109,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_color_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
@@ -362,6 +363,17 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 	if(len) mywrite(wd, adr, len);
 }
 
+/* *************** writing some direct data structs used in more code parts **************** */
+
+static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
+{
+	int a;
+	
+	writestruct(wd, DATA, "CurveMapping", 1, cumap);
+	for(a=0; a<CM_TOT; a++)
+		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
+}
+
 /* this is only direct data, tree itself should have been written */
 static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 {
@@ -375,8 +387,13 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		writestruct(wd, DATA, "bNode", 1, node);
 
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->storage) 
-			writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+		if(node->storage) {
+			/* could be handlerized at some point, now only 1 exception still */
+			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+				write_curvemapping(wd, node->storage);
+			else
+				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+		}
 		for(sock= node->inputs.first; sock; sock= sock->next)
 			writestruct(wd, DATA, "bNodeSocket", 1, sock);
 		for(sock= node->outputs.first; sock; sock= sock->next)
