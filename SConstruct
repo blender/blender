@@ -210,8 +210,8 @@ elif sys.platform == 'darwin':
 	if use_openexr == 'true':
 		defines += ['WITH_OPENEXR']
 	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
-	openexr_libpath = ['/usr/lib']
-	openexr_include = ['/usr/include/OpenEXR']
+	openexr_libpath = ['/usr/local/lib']
+	openexr_include = ['/usr/local/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['libjpeg']
 	jpeg_libpath = [darwin_precomp + 'jpeg/lib']
