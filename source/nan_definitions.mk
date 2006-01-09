@@ -46,7 +46,6 @@ all debug::
 
   # First generic defaults for all platforms which should be constant.
   # Note: ?= lets these defaults be overruled by environment variables,
-
     export SRCHOME ?= $(NANBLENDERHOME)/source
     export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
     export OS := $(shell echo ${CONFIG_GUESS} | sed -e 's/-.*//')
@@ -93,6 +92,11 @@ endif
     else
       export NAN_FTGL ?= $(LCGDIR)/ftgl
     endif
+
+    export WITH_OPENEXR ?= true
+    export NAN_OPENEXR ?= /usr/local
+    export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
 
   # Platform Dependent settings go below:
 
@@ -415,7 +419,7 @@ endif
     export ID = $(LOGNAME)
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 2.4
     ifeq ($(FREE_WINDOWS), true)
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype

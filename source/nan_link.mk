@@ -157,3 +157,7 @@ endif
 ifneq ($(OS), irix)
    LLIBS += $(NAN_SDLLIBS)
 endif
+
+ifeq ($(WITH_OPENEXR), true)
+    LLIBS += $(NAN_OPENEXR_LIBS)
+endif

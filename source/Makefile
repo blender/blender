@@ -110,6 +110,8 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
     COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
+    COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
+    COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(NAN_SOLID)/lib/libsolid.a
     COMLIB += $(NAN_SOLID)/lib/libsolid_broad.a 
     COMLIB += $(NAN_SOLID)/lib/libsolid_complex.a
@@ -156,6 +158,9 @@ endif
     COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
   ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
+  endif
+  ifeq ($(WITH_OPENEXR), true)
+    COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
   endif
   ifeq ($(WITH_FREETYPE2), true)
     ifeq ($(OS), windows)

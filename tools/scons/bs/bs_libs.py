@@ -33,6 +33,9 @@ def common_libs(env):
 		'soundsystem'])
 	if bs_globals.user_options_dict['USE_QUICKTIME'] == 1:
 		env.Append (LIBS=['blender_quicktime'])
+	if bs_globals.user_options_dict['USE_OPENEXR'] == 1:
+		env.Append (LIBS=['blender_openexr'])
+		env.Append (LIBS=['Half', 'Iex', 'IlmImf', 'Imath'])
 
 def international_libs(env):
 	"""
