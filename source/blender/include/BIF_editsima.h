@@ -67,5 +67,7 @@ void weld_align_tface_uv(char tool);
 void be_square_tface_uv(struct Mesh *me);
 void select_pinned_tface_uv(void);
 
+void sima_sample_color(void);
+
 #define UV_SELECT_ALL		1
 #define UV_SELECT_PINNED	2

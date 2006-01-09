@@ -70,6 +70,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -3895,8 +3896,16 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		/* Draw tool is inactive */
 		switch(event) {
 			case LEFTMOUSE:
-				if(G.qual & LR_SHIFTKEY) mouseco_to_curtile();
-				else gesture();
+				if(G.qual & LR_SHIFTKEY) {
+					if(G.sima->image && G.sima->image->tpageflag & IMA_TILES)
+						mouseco_to_curtile();
+					else
+						sima_sample_color();
+				}
+				else if(G.f & G_FACESELECT)
+					gesture();
+				else 
+					sima_sample_color();
 				break;
 			case RIGHTMOUSE:
 				if(G.f & G_FACESELECT)
@@ -4665,6 +4674,11 @@ void freespacelist(ListBase *lb)
 		else if(sl->spacetype==SPACE_SOUND) {
 			free_soundspace((SpaceSound *)sl);
 		}
+		else if(sl->spacetype==SPACE_IMAGE) {
+			SpaceImage *sima= (SpaceImage *)sl;
+			if(sima->cumap)
+				curvemapping_free(sima->cumap);
+		}
 		else if(sl->spacetype==SPACE_NODE) {
 /*			SpaceNode *snode= (SpaceNode *)sl; */
 		}
@@ -4696,8 +4710,6 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		}
 		else if(sl->spacetype==SPACE_IMASEL) {
 			check_imasel_copy((SpaceImaSel *) sl);
-		}
-		else if(sl->spacetype==SPACE_TEXT) {
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 			SpaceNode *snode= (SpaceNode *)sl;
@@ -4737,6 +4749,11 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 				if(vd->bgpic->ima) vd->bgpic->ima->id.us++;
 			}
 			vd->clipbb= MEM_dupallocN(vd->clipbb);
+		}
+		else if(sl->spacetype==SPACE_IMAGE) {
+			SpaceImage *sima= (SpaceImage *)sl;
+			if(sima->cumap)
+				sima->cumap= curvemapping_copy(sima->cumap);
 		}
 		sl= sl->next;
 	}

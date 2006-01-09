@@ -3177,6 +3177,13 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
 				}
 			}
+			else if(sl->spacetype==SPACE_IMAGE) {
+				SpaceImage *sima= (SpaceImage *)sl;
+				
+				sima->cumap= newdataadr(fd, sima->cumap);
+				if(sima->cumap)
+					direct_link_curvemapping(fd, sima->cumap);
+			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
 				snode->nodetree= snode->edittree= NULL;

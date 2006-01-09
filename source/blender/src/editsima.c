@@ -59,6 +59,7 @@
 #include "DNA_image_types.h"
 #include "DNA_object_types.h" // only for uvedit_selectionCB() (struct Object)
 
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -1448,4 +1449,51 @@ int minmax_tface_uv(float *min, float *max)
 
 	return sel;
 }
+
+void sima_sample_color(void)
+{
+	ImBuf *ibuf;
+	float fx, fy;
+	short mval[2];
+	
+	if(G.sima->image==NULL) return;
+	if(G.sima->image->ibuf==NULL) return;
+	ibuf= G.sima->image->ibuf;
+	
+	calc_image_view(G.sima, 'f');
+	
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &fx, &fy);
+	
+	if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
+		int x= (int) (fx*ibuf->x);
+		int y= (int) (fy*ibuf->y);
+		
+		if(x>=ibuf->x) x= ibuf->x-1;
+		if(y>=ibuf->y) y= ibuf->y-1;
+		
+		if(ibuf->rect) {
+			char *cp= (char *)(ibuf->rect + y*ibuf->x + x);
+			printf("rgba %d %d %d %d\n", cp[0], cp[1], cp[2], cp[3]);
+		}
+		if(ibuf->rect_float) {
+			float *fp= (ibuf->rect_float + 4*(y*ibuf->x + x));
+			printf("rgba %f %f %f %f\n", fp[0], fp[1], fp[2], fp[3]);
+			
+			if(G.sima->cumap) {
+				if(G.qual & LR_CTRLKEY) {
+					curvemapping_set_black_white(G.sima->cumap, NULL, fp);
+					curvemapping_do_image(G.sima->cumap, G.sima->image);
+					allqueue(REDRAWIMAGE, 0);
+				}
+				else if(G.qual & LR_SHIFTKEY) {
+					curvemapping_set_black_white(G.sima->cumap, fp, NULL);
+					curvemapping_do_image(G.sima->cumap, G.sima->image);
+					allqueue(REDRAWIMAGE, 0);
+				}
+			}
+		}
+	}		
+}
+
 

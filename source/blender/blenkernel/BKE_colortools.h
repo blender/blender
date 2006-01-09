@@ -31,11 +31,13 @@
 
 struct CurveMapping;
 struct CurveMap;
+struct Image;
 struct rctf;
  
 struct CurveMapping	*curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
 void				curvemapping_free(struct CurveMapping *cumap);
 struct CurveMapping	*curvemapping_copy(struct CurveMapping *cumap);
+void				curvemapping_set_black_white(struct CurveMapping *cumap, float *black, float *white);
 
 void				curvemap_remove(struct CurveMap *cuma, int flag);
 void				curvemap_insert(struct CurveMap *cuma, float x, float y);
@@ -45,6 +47,7 @@ void				curvemap_sethandle(struct CurveMap *cuma, int type);
 void				curvemapping_changed(struct CurveMapping *cumap, int rem_doubles);
 float				curvemapping_evaluateF(struct CurveMapping *cumap, int cur, float value);
 void				curvemapping_evaluate3F(struct CurveMapping *cumap, float *vecout, const float *vecin);
+void				curvemapping_do_image(struct CurveMapping *cumap, struct Image *ima);
 
 #endif
 

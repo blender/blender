@@ -219,6 +219,7 @@ typedef struct SpaceImage {
 	View2D v2d;
 	
 	struct Image *image;
+	struct CurveMapping *cumap;
 	float zoom;
 	short mode, menunr;
 	short imanr, curtile;

@@ -64,6 +64,8 @@ typedef struct CurveMapping {
 	rctf curr, clipr;				/* current rect, clip rect (is default rect too) */
 	
 	CurveMap cm[4];					/* max 4 builtin curves per mapping struct now */
+	float black[3], white[3];		/* black/white point */
+	float bwmul[3], padf;			/* black/white point multiply value, for speed */
 } CurveMapping;
 
 /* cuma->flag */

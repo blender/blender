@@ -445,6 +445,9 @@ static void do_image_viewmenu(void *arg, int event)
 		G.sima->flag ^= SI_COORDFLOATS;
 		allqueue(REDRAWIMAGE, 0);
 		break;
+	case 11: /* Curves Panel... */
+		add_blockhandler(curarea, IMAGE_HANDLER_CURVES, UI_PNL_UNSTOW);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -458,8 +461,9 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Show Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Show Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Show Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 
 	if(G.sima->flag & SI_COORDFLOATS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");

@@ -49,6 +49,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -58,6 +59,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -816,6 +818,17 @@ void do_imagebuts(unsigned short event)
 	case B_SIMABRUSHCHANGE:
 		allqueue(REDRAWIMAGE, 0);
 		break;
+		
+	case B_SIMACURVES:
+		curvemapping_do_image(G.sima->cumap, G.sima->image);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_SIMARANGE:
+		curvemapping_set_black_white(G.sima->cumap, NULL, NULL);
+		curvemapping_do_image(G.sima->cumap, G.sima->image);
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 }
 
@@ -826,13 +839,18 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 230, 318, 204)==0)
+	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 
 	if (G.sima->image && G.sima->image->ibuf) {
-		char str[32];
+		char str[64];
 
 		sprintf(str, "Image: size %d x %d", G.sima->image->ibuf->x, G.sima->image->ibuf->y);
+		if(G.sima->image->ibuf->rect_float)
+			strcat(str, " 4x32 bits");
+		else 
+			strcat(str, " 4x8 bits");
+		
 		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
 
 		uiBlockBeginAlign(block);
@@ -902,6 +920,40 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	uiDefButBitS(block, TOG|BIT, IMAGEPAINT_TORUS, B_SIMABRUSHCHANGE, "Wrap", 890,1,50,19, &Gip.flag, 0, 0, 0, 0, "Enables torus wrapping");
 }
 
+static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "image_panel_curves", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_CURVES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Curves", "Image", 10, 450, 318, 204)==0)
+		return;
+	
+	if (G.sima->image && G.sima->image->ibuf) {
+		rctf rect;
+		
+		if(G.sima->cumap==NULL)
+			G.sima->cumap= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+		
+		rect.xmin= 110; rect.xmax= 310;
+		rect.ymin= 10; rect.ymax= 200;
+		curvemap_buttons(block, G.sima->cumap, 'c', B_SIMACURVES, B_SIMAGEDRAW, &rect);
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_SIMARANGE, "Min R:",	10, 120, 90, 19, G.sima->cumap->black, -1000.0f, 1000.0f, 10, 2, "Black level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Min G:",	10, 100, 90, 19, G.sima->cumap->black+1, -1000.0f, 1000.0f, 10, 2, "Black level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Min B:",	10, 80, 90, 19, G.sima->cumap->black+2, -1000.0f, 1000.0f, 10, 2, "Black level");
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_SIMARANGE, "Max R:",	10, 50, 90, 19, G.sima->cumap->white, -1000.0f, 1000.0f, 10, 2, "White level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Max G:",	10, 30, 90, 19, G.sima->cumap->white+1, -1000.0f, 1000.0f, 10, 2, "White level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Max B:",	10, 10, 90, 19, G.sima->cumap->white+2, -1000.0f, 1000.0f, 10, 2, "White level");
+	}
+}
+
+
+
 static void image_blockhandlers(ScrArea *sa)
 {
 	SpaceImage *sima= sa->spacedata.first;
@@ -918,6 +970,9 @@ static void image_blockhandlers(ScrArea *sa)
 			break;
 		case IMAGE_HANDLER_PAINT:
 			image_panel_paint(sima->blockhandler[a+1]);
+			break;		
+		case IMAGE_HANDLER_CURVES:
+			image_panel_curves(sima->blockhandler[a+1]);
 			break;		
 		}
 		/* clear action value for event */
@@ -1120,6 +1175,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 	draw_image_transform(ibuf);
 
+	mywinset(sa->win);	/* restore scissor after gla call... */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
 	draw_image_view_tool();

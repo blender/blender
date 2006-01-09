@@ -1319,7 +1319,11 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					}
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
+					SpaceImage *sima= (SpaceImage *)sl;
+					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
+					if(sima->cumap)
+						write_curvemapping(wd, sima->cumap);
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);

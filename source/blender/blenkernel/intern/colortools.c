@@ -36,6 +36,7 @@
 
 #include "DNA_color_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_colortools.h"
@@ -48,6 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "IMB_imbuf_types.h"
 
 /* ********************************* color curve ********************* */
 
@@ -60,9 +62,13 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 	
 	cumap= MEM_callocN(sizeof(CurveMapping), "new curvemap");
 	cumap->flag= CUMA_DO_CLIP;
+	if(tot==4) cumap->cur= 3;		/* rhms, hack for 'col' curve? */
 	
 	BLI_init_rctf(&cumap->curr, minx, maxx, miny, maxy);
 	cumap->clipr= cumap->curr;
+	
+	cumap->white[0]= cumap->white[1]= cumap->white[2]= 1.0f;
+	cumap->bwmul[0]= cumap->bwmul[1]= cumap->bwmul[2]= 1.0f;
 	
 	for(a=0; a<tot; a++) {
 		cumap->cm[a].totpoint= 2;
@@ -104,6 +110,23 @@ CurveMapping *curvemapping_copy(CurveMapping *cumap)
 		return cumapn;
 	}
 	return NULL;
+}
+
+void curvemapping_set_black_white(CurveMapping *cumap, float *black, float *white)
+{
+	int a;
+	
+	if(white)
+		VECCOPY(cumap->white, white);
+	if(black)
+		VECCOPY(cumap->black, black);
+	
+	for(a=0; a<3; a++) {
+		if(cumap->white[a]==cumap->black[a])
+			cumap->bwmul[a]= 0.0f;
+		else
+			cumap->bwmul[a]= 1.0f/(cumap->white[a] - cumap->black[a]);
+	}	
 }
 
 /* ***************** operations on single curve ************* */
@@ -461,9 +484,43 @@ float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
 
 void curvemapping_evaluate3F(CurveMapping *cumap, float *vecout, const float *vecin)
 {
-	vecout[0]= curvemapping_evaluateF(cumap, 0, vecin[0]);
-	vecout[1]= curvemapping_evaluateF(cumap, 1, vecin[1]);
-	vecout[2]= curvemapping_evaluateF(cumap, 2, vecin[2]);
+	if(cumap->cm[3].curve) {
+		float fac;
+		
+		fac= (vecin[0] - cumap->black[0])*cumap->bwmul[0];
+		vecout[0]= curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, fac));
+		fac= (vecin[1] - cumap->black[0])*cumap->bwmul[1];
+		vecout[1]= curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, fac));
+		fac= (vecin[2] - cumap->black[0])*cumap->bwmul[2];
+		vecout[2]= curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, fac));
+	}
+	else {
+		vecout[0]= curvemapping_evaluateF(cumap, 0, vecin[0]);
+		vecout[1]= curvemapping_evaluateF(cumap, 1, vecin[1]);
+		vecout[2]= curvemapping_evaluateF(cumap, 2, vecin[2]);
+	}
 }
 
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
+void curvemapping_do_image(CurveMapping *cumap, Image *ima)
+{
+	int pixel;
+	
+	if(ima->ibuf==NULL)
+		return;
+	
+	if(ima->ibuf->rect_float && ima->ibuf->rect) {
+		float *pixf= ima->ibuf->rect_float;
+		float col[3];
+		char *pixc= (char *)ima->ibuf->rect;
+		
+		for(pixel= ima->ibuf->x*ima->ibuf->y; pixel>0; pixel--, pixf+=4, pixc+=4) {
+			curvemapping_evaluate3F(cumap, col, pixf);
+			pixc[0]= FTOCHAR(col[0]);
+			pixc[1]= FTOCHAR(col[1]);
+			pixc[2]= FTOCHAR(col[2]);
+			/* assume alpha was set */
+		}
+	}
+}

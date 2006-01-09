@@ -248,8 +248,8 @@ static void curvemap_buttons_zoom_in(void *cumap_v, void *unused)
 	CurveMapping *cumap = cumap_v;
 	float d;
 	
-	/* we allow 5 times zoom */
-	if( (cumap->curr.xmax - cumap->curr.xmin) > 0.2f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
+	/* we allow 20 times zoom */
+	if( (cumap->curr.xmax - cumap->curr.xmin) > 0.04f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
 		d= 0.1154f*(cumap->curr.xmax - cumap->curr.xmin);
 		cumap->curr.xmin+= d;
 		cumap->curr.xmax-= d;
@@ -264,8 +264,8 @@ static void curvemap_buttons_zoom_out(void *cumap_v, void *unused)
 	CurveMapping *cumap = cumap_v;
 	float d;
 	
-	/* we allow 5 times zoom */
-	if( (cumap->curr.xmax - cumap->curr.xmin) < 5.0f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
+	/* we allow 20 times zoom */
+	if( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
 		d= 0.15f*(cumap->curr.xmax - cumap->curr.xmin);
 		cumap->curr.xmin-= d;
 		cumap->curr.xmax+= d;
@@ -307,10 +307,10 @@ static uiBlock *curvemap_clipping_func(void *cumap_v)
 	uiButSetFunc(bt, curvemap_buttons_setclip, cumap, NULL);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, 0, "Min X ",	 0,74,120,18, &cumap->clipr.xmin, -10.0, cumap->clipr.xmax, 10, 0, "");
-	uiDefButF(block, NUM, 0, "Min Y ",	 0,56,120,18, &cumap->clipr.ymin, -10.0, cumap->clipr.ymax, 10, 0, "");
-	uiDefButF(block, NUM, 0, "Max X ",	 0,38,120,18, &cumap->clipr.xmax, cumap->clipr.xmin, 10.0, 10, 0, "");
-	uiDefButF(block, NUM, 0, "Max Y ",	 0,20,120,18, &cumap->clipr.ymax, cumap->clipr.ymin, 10.0, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Min X ",	 0,74,120,18, &cumap->clipr.xmin, -100.0, cumap->clipr.xmax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Min Y ",	 0,56,120,18, &cumap->clipr.ymin, -100.0, cumap->clipr.ymax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max X ",	 0,38,120,18, &cumap->clipr.xmax, cumap->clipr.xmin, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max Y ",	 0,20,120,18, &cumap->clipr.ymax, cumap->clipr.ymin, 100.0, 10, 0, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	
@@ -371,8 +371,8 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 	
 	yco= (short)(rect->ymax-18.0f);
 	
-	/* curve choice options + tools/settings, 8 icons */
-	dx= (rect->xmax-rect->xmin)/(8.0f);
+	/* curve choice options + tools/settings, 8 icons + spacer */
+	dx= (rect->xmax-rect->xmin)/(9.0f);
 	
 	uiBlockBeginAlign(block);
 	if(labeltype=='v') {	/* vector */
@@ -388,35 +388,38 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 	}
 	else if(labeltype=='c') { /* color */
 		xco= (short)rect->xmin;
-		if(cumap->cm[0].curve)
-		uiDefButI(block, ROW, redraw, "R", xco, yco+2, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+		if(cumap->cm[3].curve)
+			uiDefButI(block, ROW, redraw, "C", xco, yco+2, dx, 16, &cumap->cur, 0.0, 3.0, 0.0, 0.0, "");
 		xco= (short)(rect->xmin+1.0f*dx);
-		if(cumap->cm[1].curve)
-		uiDefButI(block, ROW, redraw, "G", xco, yco+2, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		if(cumap->cm[0].curve)
+			uiDefButI(block, ROW, redraw, "R", xco, yco+2, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
 		xco= (short)(rect->xmin+2.0f*dx);
+		if(cumap->cm[1].curve)
+			uiDefButI(block, ROW, redraw, "G", xco, yco+2, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+3.0f*dx);
 		if(cumap->cm[2].curve)
-		uiDefButI(block, ROW, redraw, "B", xco, yco+2, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+			uiDefButI(block, ROW, redraw, "B", xco, yco+2, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
 	}
 	/* else no channels ! */
 	uiBlockEndAlign(block);
 
-	xco= (short)(rect->xmin+3.5f*dx);
+	xco= (short)(rect->xmin+4.5f*dx);
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMIN, xco, yco, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom in");
 	uiButSetFunc(bt, curvemap_buttons_zoom_in, cumap, NULL);
 	
-	xco= (short)(rect->xmin+4.25f*dx);
+	xco= (short)(rect->xmin+5.25f*dx);
 	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMOUT, xco, yco, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
 	uiButSetFunc(bt, curvemap_buttons_zoom_out, cumap, NULL);
 	
-	xco= (short)(rect->xmin+5.0f*dx);
+	xco= (short)(rect->xmin+6.0f*dx);
 	bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, event, ICON_MODIFIER, xco, yco, dx, 18, "Tools");
 	
-	xco= (short)(rect->xmin+6.0f*dx);
+	xco= (short)(rect->xmin+7.0f*dx);
 	if(cumap->flag & CUMA_DO_CLIP) icon= ICON_CLIPUV_HLT; else icon= ICON_CLIPUV_DEHLT;
 	bt= uiDefIconBlockBut(block, curvemap_clipping_func, cumap, event, icon, xco, yco, dx, 18, "Clipping Options");
 	
-	xco= (short)(rect->xmin+7.0f*dx);
+	xco= (short)(rect->xmin+8.0f*dx);
 	bt= uiDefIconBut(block, BUT, redraw, ICON_X, xco, yco, dx, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
 	uiButSetFunc(bt, curvemap_buttons_delete, cumap, NULL);
 	
