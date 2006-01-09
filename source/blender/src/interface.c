@@ -1658,7 +1658,8 @@ static int ui_do_but_TEX(uiBut *but)
 		else if(dev==MOUSEY) val= 0;
 
 		if(ascii) {
-			if(len <= but->max) {
+			
+			if(len-SELWIDTH+1 <= but->max) {
 
 				/* type over the current selection */
 				if (SELWIDTH > 0) {	
