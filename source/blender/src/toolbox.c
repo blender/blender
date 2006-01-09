@@ -1333,16 +1333,16 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
 	
 	/* WATCH IT: TEX BUTTON EXCEPTION */
-	/* WARNING: ONLY A SINGLE BIT-BUTTON POSSIBLE: WE WORK AT COPIED DATA! 
-*/
-
+	/* WARNING: ONLY A SINGLE BIT-BUTTON POSSIBLE: WE WORK AT COPIED DATA! */
 	uiDefBut(block, LABEL, 0, name,	(short)(x1+15), (short)(y2-35), (short)(sizex-60), 19, 0, 1.0, 0.0, 0, 0, ""); 
-
+	
+	/*
 	if(name[0]=='A' && name[7]=='O') {
 		y2 -= 20;
 		uiDefBut(block, LABEL, 0, "Rotations in degrees!",	(short)(x1+15), (short)(y2-35), (short)(sizex-60), 19, 0, 0.0, 0.0, 0, 0, "");
-	}
+	}*/
 	
+	uiBlockBeginAlign(block);
 	varstr= &numbuts[0];
 	for(a=0; a<tot; a++, varstr++) {
 		if(varstr->type==TEX) {
@@ -1352,9 +1352,10 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 			uiDefBut(block, varstr->type, 0, varstr->name,(short)(x1+15),(short)(y2-55-20*a), (short)(sizex-60), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
 		}
 	}
+	uiBlockEndAlign(block);
 
 	uiDefBut(block, BUT, 4000, "OK", (short)(x1+sizex-40),(short)(y2-35-20*a), 25, (short)(sizey-50), 0, 0, 0, 0, 0, "OK: Assign Values");
-
+	
 	uiBoundsBlock(block, 5);
 
 	event= uiDoBlocks(&listb, 0);
@@ -1369,12 +1370,13 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 			else if ELEM( (varstr->type & BUTPOIN), FLO, INT ) memcpy(numbpoin[a], numbdata+a, 4);
 			else if((varstr->type & BUTPOIN)==SHO ) *((short *)(numbpoin[a]))= *( (short *)(numbdata+a));
 			
+			/*
 			if( strncmp(varstr->name, "Rot", 3)==0 ) {
 				float *fp;
 				
 				fp= numbpoin[a];
 				fp[0]= M_PI*fp[0]/180.0;
-			}
+			}*/
 		}
 		
 		if(winevent) {
@@ -1413,12 +1415,12 @@ void add_numbut(int nr, int type, char *str, float min, float max, void *poin, c
 	if ELEM( (type & BUTPOIN), FLO, INT ) memcpy(numbdata+nr, poin, 4);
 	if((type & BUTPOIN)==SHO ) *((short *)(numbdata+nr))= *( (short *)poin);
 	
-	if( strncmp(numbuts[nr].name, "Rot", 3)==0 ) {
+	/* if( strncmp(numbuts[nr].name, "Rot", 3)==0 ) {
 		float *fp;
 		
 		fp= (float *)(numbdata+nr);
 		fp[0]= 180.0*fp[0]/M_PI;
-	}
+	} */
 
 }
 
