@@ -615,7 +615,7 @@ static int sample_backbuf_area(int x, int y, float size)
 #ifdef __APPLE__
 	glReadBuffer(GL_AUX0);
 #endif
-	ibuf = IMB_allocImBuf(size,size,32,IB_rect,0);
+	ibuf = IMB_allocImBuf(2*size + 1, 2*size + 1, 32, IB_rect, 0);
 	glReadPixels(x1+curarea->winrct.xmin, y1+curarea->winrct.ymin, x2-x1+1, y2-y1+1, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	glReadBuffer(GL_BACK);	
 
