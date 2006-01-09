@@ -4424,20 +4424,6 @@ void adduplicate(int mode, int dupflag)
 		base= base->next;
 	}
 	
-	/* ipos */
-	ipo= G.main->ipo.first;
-	while(ipo) {
-		if(ipo->id.lib==NULL && ipo->id.newid) {
-			IpoCurve *icu;
-			for(icu= ipo->curve.first; icu; icu= icu->next) {
-				if(icu->driver) {
-					ID_NEW(icu->driver->ob);
-				}
-			}
-		}
-		ipo= ipo->id.next;
-	}
-	
 	/* materials */
 	if( dupflag & USER_DUP_MAT) {
 		mao= G.main->mat.first;
@@ -4468,6 +4454,23 @@ void adduplicate(int mode, int dupflag)
 			mao= mao->id.next;
 		}
 	}
+
+	/* ipos */
+	ipo= G.main->ipo.first;
+	while(ipo) {
+		if(ipo->id.lib==NULL && ipo->id.newid) {
+			Ipo *ipon= (Ipo *)ipo->id.newid;
+			IpoCurve *icu;
+			for(icu= ipon->curve.first; icu; icu= icu->next) {
+				if(icu->driver) {
+					ID_NEW(icu->driver->ob);
+				}
+			}
+		}
+		ipo= ipo->id.next;
+	}
+
+
 
 	DAG_scene_sort(G.scene);
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());
