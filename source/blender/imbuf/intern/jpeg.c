@@ -553,15 +553,12 @@ static int save_jstjpeg(char * name, struct ImBuf * ibuf)
 	ibuf->x *= 2;
 	ibuf->y /= 2;
 
-	/* extra argument assumed to be 0 (nzc) */
-	IMB_rectop(tbuf, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
+	IMB_rectcpy(tbuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
 	sprintf(fieldname, "%s.jf0", name);
 
 	returnval = save_vidjpeg(fieldname, tbuf) ;
         if (returnval == 1) {
-		/* extra argument assumed to be 0 (nzc) */
-		IMB_rectop(tbuf, ibuf, 0, 0, tbuf->x, 0, 32767, 32767, 
-			IMB_rectcpy, 0);
+		IMB_rectcpy(tbuf, ibuf, 0, 0, tbuf->x, 0, ibuf->x, ibuf->y);
 		sprintf(fieldname, "%s.jf1", name);
 		returnval = save_vidjpeg(fieldname, tbuf);
 	}

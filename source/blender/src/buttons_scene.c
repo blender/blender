@@ -979,14 +979,19 @@ static char *imagetype_pup(void)
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
 			"Iris + Zbuffer", R_IRIZ,
-			"Radiance HDR",   R_RADHDR,
+			"Radiance HDR",   R_RADHDR
 #ifdef __sgi
-			"Movie",          R_MOVIE,
+			,"Movie",          R_MOVIE
 #endif
-			"Ftype",          R_FTYPE
 		);
 	}
 
+#ifdef WITH_OPENEXR
+	strcpy(formatstring, "|%s %%x%d");
+	sprintf(appendstring, formatstring, "OpenEXR", R_OPENEXR);
+	strcat(string, appendstring);
+#endif
+	
 	if (G.have_libtiff) {
 		strcpy(formatstring, "|%s %%x%d");
 		sprintf(appendstring, formatstring, "TIFF", R_TIFF);
@@ -1252,7 +1257,14 @@ static void render_panel_format(void)
 #endif
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
+#ifdef WITH_OPENEXR
+	} else if (G.scene->r.imtype == R_OPENEXR ) {
+		if (G.scene->r.quality > 5) G.scene->r.quality = 0;
+		uiDefButS(block, MENU,B_SET_OPENEXR, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  892,yofs,112,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
+#endif
 	} else {
+		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	// temp
+		
 		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
 	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");

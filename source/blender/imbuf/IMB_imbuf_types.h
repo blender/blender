@@ -93,6 +93,7 @@ typedef struct ImBuf{
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
+	float *rect_float;		/**< floating point Rect equivilant */
 } ImBuf;
 
 /* Moved from BKE_bmfont_types.h because it is a userflag bit mask. */
@@ -131,6 +132,8 @@ typedef enum {
 #define IB_zbuf			(1 << 13)
 
 #define IB_mem			(1 << 14)
+#define IB_rectfloat	(1 << 15)
+
 /**@}*/
 
 /** \name imbuf_formats Image file formats
@@ -141,17 +144,20 @@ typedef enum {
  *
  * The bit flag is stored in the ImBuf.ftype variable.
  */
-#define AMI	        (1 << 31)
-#define PNG	        (1 << 30)
+#define AMI				(1 << 31)
+#define PNG				(1 << 30)
 #define Anim	        (1 << 29)
-#define TGA	        (1 << 28)
-#define JPG		(1 << 27)
-#define BMP		(1 << 26)
+#define TGA				(1 << 28)
+#define JPG				(1 << 27)
+#define BMP				(1 << 26)
+
 #ifdef WITH_QUICKTIME
-#define QUICKTIME	(1 << 25)
+#define QUICKTIME		(1 << 25)
 #endif
-#define RADHDR		(1<<24)
-#define TIF		(1<<23)
+
+#define RADHDR			(1 << 24)
+#define TIF				(1 << 23)
+#define OPENEXR			(1 << 22)
 
 #define RAWTGA	        (TGA | 1)
 
@@ -188,6 +194,7 @@ typedef enum {
 #define IS_hamx(x)		(x->ftype == AN_hamx)
 #define IS_tga(x)		(x->ftype & TGA)
 #define IS_png(x)		(x->ftype & PNG)
+#define IS_openexr(x)	(x->ftype & OPENEXR)
 #define IS_bmp(x)		(x->ftype & BMP)
 #define IS_tiff(x)		(x->ftype & TIF)
 #define IS_radhdr(x)	(x->ftype & RADHDR)

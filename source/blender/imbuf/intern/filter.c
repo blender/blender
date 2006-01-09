@@ -65,6 +65,26 @@ static void filtrow(unsigned char *point, int x)
 	}
 }
 
+static void filtrowf(float *point, int x)
+{
+        float c1,c2,c3,error;
+
+        if (x>1){
+                c1 = c2 = *point;
+                error = 2;
+                for(x--;x>0;x--){
+                        c3 = point[4];
+                        c1 += (c2 * 2) + c3 + error;
+                        *point = c1 / 4.0;
+                        point += 4;
+                        c1=c2;
+                        c2=c3;
+                }
+                *point = (c1 + (c2 * 2) + c2 + error) / 4.0;
+        }
+}
+
+
 
 static void filtcolum(unsigned char *point, int y, int skip)
 {
@@ -89,13 +109,38 @@ static void filtcolum(unsigned char *point, int y, int skip)
 	}
 }
 
+static void filtcolumf(float *point, int y, int skip)
+{
+        float c1,c2,c3,error, *point2;
+
+        if (y>1){
+                c1 = c2 = *point;
+                point2 = point;
+                error = 2;
+                for(y--;y>0;y--){
+                        point2 += skip;
+                        c3 = *point2;
+                        c1 += (c2 * 2) + c3 +error;
+                        *point = c1 / 4;
+                        point=point2;
+                        c1=c2;
+                        c2=c3;
+                }
+                *point = (c1 + (c2 * 2) + c2 + error) / 4;
+        }
+}
 
 void IMB_filtery(struct ImBuf *ibuf)
 {
 	unsigned char *point;
-	int x, y, skip;
+	float *pointf;
+	int x, y, skip, do_float = 0;
 
 	point = (unsigned char *)ibuf->rect;
+	pointf = ibuf->rect_float;
+
+	if (ibuf->rect_float != NULL) do_float = 1;
+
 	x = ibuf->x;
 	y = ibuf->y;
 	skip = x<<2;
@@ -109,6 +154,16 @@ void IMB_filtery(struct ImBuf *ibuf)
 		point++;
 		filtcolum(point,y,skip);
 		point++;
+		if (do_float) {
+			if (ibuf->depth > 24) filtcolumf(pointf,y,skip);
+			pointf++;
+			filtcolumf(pointf,y,skip);
+			pointf++;
+			filtcolumf(pointf,y,skip);
+			pointf++;
+			filtcolumf(pointf,y,skip);
+			point++;
+		}
 	}
 }
 
@@ -116,9 +171,14 @@ void IMB_filtery(struct ImBuf *ibuf)
 void imb_filterx(struct ImBuf *ibuf)
 {
 	unsigned char *point;
-	int x, y, skip;
+	float *pointf;
+	int x, y, skip, do_float =0;
 
 	point = (unsigned char *)ibuf->rect;
+	pointf = ibuf->rect_float;
+
+	if (ibuf->rect_float != NULL) do_float = 1;
+
 	x = ibuf->x;
 	y = ibuf->y;
 	skip = (x<<2) - 3;
@@ -132,6 +192,16 @@ void imb_filterx(struct ImBuf *ibuf)
 		point++;
 		filtrow(point,x);
 		point+=skip;
+		if (do_float) {
+			if (ibuf->depth > 24) filtrowf(pointf,x);
+			pointf++;
+			filtrowf(pointf,x);
+			pointf++;
+			filtrowf(pointf,x);
+			pointf++;
+			filtrowf(pointf,x);
+			pointf+=skip;
+		}
 	}
 }
 

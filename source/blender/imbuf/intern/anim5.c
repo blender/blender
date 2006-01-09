@@ -161,7 +161,7 @@ static void planes_to_rect(struct ImBuf * ibuf, int flags) {
 		if (ibuf->cmap){
 			if ((flags & IB_cmap) == 0) {
 				IMB_applycmap(ibuf);
-				IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
+				IMB_convert_rgba_to_abgr(ibuf);
 			}
 		} else if (ibuf->depth == 18){
 			int i,col;

@@ -37,10 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 /* external modules: */
 #include "MEM_guardedalloc.h"
 #include "BLI_arithb.h"
@@ -168,18 +164,18 @@ static void envmap_split_ima(EnvMap *env)
 			ima->ok= 1;
 			env->cube[part]= ima;
 		}
-		IMB_rectop(env->cube[0]->ibuf, env->ima->ibuf, 
-			0, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[1]->ibuf, env->ima->ibuf, 
-			0, 0, dx, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[2]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[3]->ibuf, env->ima->ibuf, 
-			0, 0, 0, dx, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[4]->ibuf, env->ima->ibuf, 
-			0, 0, dx, dx, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[5]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, dx, dx, dx, IMB_rectcpy, 0);
+		IMB_rectcpy(env->cube[0]->ibuf, env->ima->ibuf, 
+			0, 0, 0, 0, dx, dx);
+		IMB_rectcpy(env->cube[1]->ibuf, env->ima->ibuf, 
+			0, 0, dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[2]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[3]->ibuf, env->ima->ibuf, 
+			0, 0, 0, dx, dx, dx);
+		IMB_rectcpy(env->cube[4]->ibuf, env->ima->ibuf, 
+			0, 0, dx, dx, dx, dx);
+		IMB_rectcpy(env->cube[5]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, dx, dx, dx);
 		env->ok= 2;
 	}
 }
@@ -414,9 +410,12 @@ static void render_envmap(EnvMap *env)
 	MTC_Mat4Invert(oldviewinv, R.viewmat);
 
 	/* do first, envmap_renderdata copies entire R struct */
-	if(R.rectz) MEM_freeN(R.rectz); R.rectz= NULL;
-	if(R.rectot) MEM_freeN(R.rectot); R.rectot= NULL;
-	if(R.rectftot) MEM_freeN(R.rectftot); R.rectftot= NULL;
+	if(R.rectz) MEM_freeN(R.rectz);
+	if(R.rectot) MEM_freeN(R.rectot);
+	if(R.rectftot) MEM_freeN(R.rectftot);
+	R.rectftot= NULL;
+	R.rectz= NULL;
+	R.rectot= NULL;
 	
 	/* setup necessary globals */
 	envmap_renderdata(env);
@@ -478,9 +477,12 @@ static void render_envmap(EnvMap *env)
 
 	}
 	
-	if(R.rectz) MEM_freeN(R.rectz); R.rectz= NULL;
-	if(R.rectot) MEM_freeN(R.rectot); R.rectot= NULL;
-	if(R.rectftot) MEM_freeN(R.rectftot); R.rectftot= NULL;
+	if(R.rectz) MEM_freeN(R.rectz);
+	if(R.rectot) MEM_freeN(R.rectot);
+	if(R.rectftot) MEM_freeN(R.rectftot);
+	R.rectz= NULL;
+	R.rectot= NULL;
+	R.rectftot= NULL;
 	
 	if(RE_local_test_break()) RE_free_envmapdata(env);
 	else {

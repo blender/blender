@@ -35,10 +35,6 @@
 
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 
@@ -122,7 +118,8 @@ void start_avi(void)
 
 void append_avi(int frame)
 {
-	unsigned int *rt1, *rt2, *temp;
+	unsigned int *rt1, *rt2;
+	struct ImBuf *temp;
 	int y;
 
 	if (avi == NULL) {
@@ -130,20 +127,20 @@ void append_avi(int frame)
 		return;
 	}
 
-		/* note that libavi free's the buffer... stupid interface - zr */
-	temp = MEM_mallocN(R.rectx*R.recty*4, "append_avi buf");
+	/* note that libavi free's the buffer... stupid interface - zr */
+	temp = IMB_allocImBuf(R.rectx,R.recty*4,32, IB_rect, 0);
 
-	rt1= temp;
+	rt1= temp->rect;
 	rt2= R.rectot + (R.recty-1)*R.rectx;
 	for (y=0; y < R.recty; y++, rt1+= R.rectx, rt2-= R.rectx) {
 		memcpy (rt1, rt2, R.rectx*4);
 	}
 
-	IMB_convert_rgba_to_abgr(R.rectx*R.recty, temp);
+	IMB_convert_rgba_to_abgr(temp);
 	
-	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, 
-										temp, R.rectx*R.recty*4);
+	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, temp->rect, R.rectx*R.recty*4);
 	printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
+	IMB_freeImBuf(temp);
 }
 
 void end_avi(void)

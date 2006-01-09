@@ -139,6 +139,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 			else if (BLI_strncasecmp(string + len - 4, ".rgb", 4) == 0) len -= 4;
 			else if (BLI_strncasecmp(string + len - 4, ".psx", 4) == 0) len -= 4;
 			else if (BLI_strncasecmp(string + len - 4, ".ble", 4) == 0) len -= 4;
+			else if (BLI_strncasecmp(string + len - 4, ".exr", 4) == 0) len -= 4;
 		}
 	}
 	

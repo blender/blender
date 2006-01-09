@@ -141,26 +141,26 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_VIEWBUTS		1100
 
 #define B_LOADBGPIC		1001
-#define B_BLENDBGPIC	1002
-#define B_BGPICBROWSE	1003
+#define B_BLENDBGPIC		1002
+#define B_BGPICBROWSE		1003
 #define B_BGPICTEX		1004
-#define B_BGPICCLEAR	1005
-#define B_BGPICTEXCLEAR	1006
+#define B_BGPICCLEAR		1005
+#define B_BGPICTEXCLEAR		1006
 
 #define B_OBJECTPANELROT 	1007
-#define B_OBJECTPANELMEDIAN 1008
+#define B_OBJECTPANELMEDIAN 	1008
 #define B_ARMATUREPANEL1 	1009
 #define B_ARMATUREPANEL2 	1010
-#define B_OBJECTPANELPARENT 1011
+#define B_OBJECTPANELPARENT 	1011
 #define B_OBJECTPANEL		1012
 #define B_ARMATUREPANEL3 	1013
 
 /* *********************** */
 #define B_LAMPBUTS		1200
 
-#define B_LAMPREDRAW	1101
+#define B_LAMPREDRAW		1101
 #define B_COLLAMP		1102
-#define B_TEXCLEARLAMP	1103
+#define B_TEXCLEARLAMP		1103
 #define B_SBUFF			1104
 #define B_SHADBUF		1105
 #define B_SHADRAY		1106
@@ -289,7 +289,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PR_PAL169		1612
 #define B_PR_D2MAC		1613
 #define B_PR_MPEG		1614
-#define B_REDRAWDISP	1615
+#define B_REDRAWDISP		1615
 #define B_SETBROWSE		1616
 #define B_CLEARSET		1617
 #define B_PR_PRESET		1618
@@ -297,32 +297,33 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PR_NTSC		1620
 
 #define B_IS_FTYPE		1622
-#define B_IS_BACKBUF	1623
+#define B_IS_BACKBUF		1623
 #define B_PR_PC			1624
 
-#define B_PR_PANO360    1627
-#define B_PR_HALFFIELDS	1628
-#define B_NEWRENDERPIPE 1629
-#define B_R_SCALE       1630
-#define B_G_SCALE       1631
-#define B_B_SCALE       1632
-#define B_USE_R_SCALE   1633
-#define B_USE_G_SCALE   1634
-#define B_USE_B_SCALE   1635
-#define B_EDGECOLSLI    1636
-#define B_GAMMASLI      1637
+#define B_PR_PANO360    	1627
+#define B_PR_HALFFIELDS		1628
+#define B_NEWRENDERPIPE 	1629
+#define B_R_SCALE       	1630
+#define B_G_SCALE       	1631
+#define B_B_SCALE       	1632
+#define B_USE_R_SCALE   	1633
+#define B_USE_G_SCALE   	1634
+#define B_USE_B_SCALE   	1635
+#define B_EDGECOLSLI    	1636
+#define B_GAMMASLI      	1637
 
-#define B_FILETYPEMENU  1638
-#define B_SELECTCODEC   1639
+#define B_FILETYPEMENU  	1638
+#define B_SELECTCODEC   	1639
 #define B_RTCHANGED		1640
-#define B_SWITCHRENDER	1641
+#define B_SWITCHRENDER		1641
 #define B_FBUF_REDO		1642
 
 #define B_SET_EDGE		1643
 #define B_SET_ZBLUR		1644
+#define	B_SET_OPENEXR		1645
 
 /* *********************** */
-#define B_ARMATUREBUTS	1800
+#define B_ARMATUREBUTS		1800
 #define	B_POSE			1701
 
 /* *********************** */
@@ -342,7 +343,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETSOLID		2013
 #define B_AUTOTEX		2014
 #define B_DOCENTRE		2015
-#define B_DOCENTRENEW	2016
+#define B_DOCENTRENEW		2016
 #define B_DOCENTRECURSOR	2017
 
 	/* 20 values! */
@@ -367,43 +368,43 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SPLIT			2056
 #define B_REMDOUB		2057
 #define B_SUBDIV		2058
-#define B_FRACSUBDIV	2059
+#define B_FRACSUBDIV		2059
 #define B_XSORT			2060
 #define B_HASH			2061
 #define B_DELSTICKY		2062
-#define B_DELVERTCOL	2063
-#define B_MAKE_TFACES	2064
+#define B_DELVERTCOL		2063
+#define B_MAKE_TFACES		2064
 #define B_TOSPHERE		2065
-#define B_DEL_TFACES	2066
+#define B_DEL_TFACES		2066
 #define B_NEWVGROUP		2067
 #define B_DELVGROUP		2068
-#define B_ASSIGNVGROUP	2069
-#define B_REMOVEVGROUP	2070
+#define B_ASSIGNVGROUP		2069
+#define B_REMOVEVGROUP		2070
 #define B_SELVGROUP		2071	
-#define B_DESELVGROUP	2072
-#define B_DECIM_FACES	2073
-#define B_DECIM_CANCEL	2074
-#define B_DECIM_APPLY	2075
-#define B_AUTOVGROUP	2076
-#define B_SLOWERDRAW	2077
-#define B_FASTERDRAW	2078
-#define B_VERTEXNOISE	2079
-#define B_VERTEXSMOOTH	2080
-#define B_MAKESTICKY	2082
-#define B_MAKEVERTCOL	2083
-#define B_CHROMADEPTH	2084
+#define B_DESELVGROUP		2072
+#define B_DECIM_FACES		2073
+#define B_DECIM_CANCEL		2074
+#define B_DECIM_APPLY		2075
+#define B_AUTOVGROUP		2076
+#define B_SLOWERDRAW		2077
+#define B_FASTERDRAW		2078
+#define B_VERTEXNOISE		2079
+#define B_VERTEXSMOOTH		2080
+#define B_MAKESTICKY		2082
+#define B_MAKEVERTCOL		2083
+#define B_CHROMADEPTH		2084
 #define B_DRAWEDGES		2087
-#define B_DRAWCREASES	2088
-#define B_LINKEDVGROUP	2089
+#define B_DRAWCREASES		2088
+#define B_LINKEDVGROUP		2089
 
 /* *********************** */
 #define B_CURVEBUTS		2200
 
-#define B_CONVERTPOLY	2101
-#define B_CONVERTBEZ	2102
-#define B_CONVERTBSPL	2103
-#define B_CONVERTCARD	2104
-#define B_CONVERTNURB	2105
+#define B_CONVERTPOLY		2101
+#define B_CONVERTBEZ		2102
+#define B_CONVERTBSPL		2103
+#define B_CONVERTCARD		2104
+#define B_CONVERTNURB		2105
 #define B_UNIFU			2106
 #define B_ENDPU			2107
 #define B_BEZU			2108
@@ -416,12 +417,12 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETW3			2115
 #define B_SETORDER		2116
 #define B_MAKEDISP		2117
-#define B_SUBDIVCURVE	2118
+#define B_SUBDIVCURVE		2118
 #define B_SPINNURB		2119
 #define B_CU3D			2120
 #define B_SETRESOLU		2121
 #define B_SETW4			2122
-#define B_SUBSURFTYPE	2123
+#define B_SUBSURFTYPE		2123
 
 /* *********************** */
 #define B_FONTBUTS		2300
@@ -430,16 +431,16 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_TOUPPER		2202
 #define B_SETFONT		2203
 #define B_LOADFONT		2204
-#define B_TEXTONCURVE	2205
+#define B_TEXTONCURVE		2205
 #define B_PACKFONT		2206
-#define B_LOAD3DTEXT	2207
+#define B_LOAD3DTEXT		2207
 #define B_LOREM			2208
 #define B_FASTFONT		2209
 #define B_INSTB			2210
 #define B_DELTB			2211
-#define B_STYLETOSELB	2212
-#define B_STYLETOSELU	2213
-#define B_STYLETOSELI	2214
+#define B_STYLETOSELB		2212
+#define B_STYLETOSELU		2213
+#define B_STYLETOSELI		2214
 
 #define B_SETCHAR		2215
 #define B_SETUPCHAR		2216
@@ -459,106 +460,106 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 /* *********************** */
 #define B_MBALLBUTS		2600
 
-#define B_RECALCMBALL	2501
+#define B_RECALCMBALL		2501
 
 /* *********************** */
 #define B_LATTBUTS		2700
 
 #define B_RESIZELAT		2601
 #define B_DRAWLAT		2602
-#define B_LATTCHANGED	2603
-#define B_REGULARLAT	2604
+#define B_LATTCHANGED		2603
+#define B_REGULARLAT		2604
 
 /* *********************** */
 #define B_GAMEBUTS		2800
 
 #define B_ADD_PROP		2701
-#define B_CHANGE_PROP	2702
+#define B_CHANGE_PROP		2702
 
 #define B_ADD_SENS		2703
-#define B_CHANGE_SENS	2704
+#define B_CHANGE_SENS		2704
 #define B_DEL_SENS		2705
 
 #define B_ADD_CONT		2706
-#define B_CHANGE_CONT	2707
+#define B_CHANGE_CONT		2707
 #define B_DEL_CONT		2708
 
 #define B_ADD_ACT		2709
-#define B_CHANGE_ACT	2710
+#define B_CHANGE_ACT		2710
 #define B_DEL_ACT		2711
 
 #define B_SOUNDACT_BROWSE	2712
 
-#define B_SETSECTOR			2713
-#define B_SETPROP			2714
-#define B_SETACTOR			2715
+#define B_SETSECTOR		2713
+#define B_SETPROP		2714
+#define B_SETACTOR		2715
 #define B_SETMAINACTOR		2716
-#define B_SETDYNA			2717
+#define B_SETDYNA		2717
 
 /* *********************** */
-#define B_FPAINTBUTS	2900
+#define B_FPAINTBUTS		2900
 
 #define B_VPCOLSLI		2801
 #define B_VPGAMMA		2802
 
-#define B_COPY_TF_MODE	2804
-#define B_COPY_TF_UV	2805
-#define B_COPY_TF_COL	2806
-#define B_REDR_3D_IMA	2807
+#define B_COPY_TF_MODE		2804
+#define B_COPY_TF_UV		2805
+#define B_COPY_TF_COL		2806
+#define B_REDR_3D_IMA		2807
 #define B_SET_VCOL		2808
 
-#define B_COPY_TF_TEX	2814
-#define B_TFACE_HALO	2815
-#define B_TFACE_BILLB	2816
+#define B_COPY_TF_TEX		2814
+#define B_TFACE_HALO		2815
+#define B_TFACE_BILLB		2816
 
 #define B_SHOWTEX		2832
-#define B_ASSIGNMESH	2833
+#define B_ASSIGNMESH		2833
 
-#define B_WEIGHT0_0	    2840
-#define B_WEIGHT1_4	    2841
-#define B_WEIGHT1_2	    2842
-#define B_WEIGHT3_4	    2843
-#define B_WEIGHT1_0	    2844
+#define B_WEIGHT0_0		2840
+#define B_WEIGHT1_4		2841
+#define B_WEIGHT1_2		2842
+#define B_WEIGHT3_4		2843
+#define B_WEIGHT1_0		2844
 
-#define B_OPA1_8	    2845
-#define B_OPA1_4	    2846
-#define B_OPA1_2	    2847
-#define B_OPA3_4	    2848
-#define B_OPA1_0	    2849
+#define B_OPA1_8		2845
+#define B_OPA1_4		2846
+#define B_OPA1_2		2847
+#define B_OPA3_4		2848
+#define B_OPA1_0		2849
 
-#define B_CLR_WPAINT	2850
+#define B_CLR_WPAINT		2850
 
 /* *********************** */
 #define B_RADIOBUTS		3000
 
 #define B_RAD_GO		2901
 #define B_RAD_INIT		2902
-#define B_RAD_LIMITS	2903
+#define B_RAD_LIMITS		2903
 #define B_RAD_FAC		2904
-#define B_RAD_NODELIM	2905
-#define B_RAD_NODEFILT	2906
-#define B_RAD_FACEFILT	2907
+#define B_RAD_NODELIM		2905
+#define B_RAD_NODEFILT		2906
+#define B_RAD_FACEFILT		2907
 #define B_RAD_ADD		2908
-#define B_RAD_DELETE	2909
-#define B_RAD_COLLECT	2910
-#define B_RAD_SHOOTP	2911
-#define B_RAD_SHOOTE	2912
-#define B_RAD_REPLACE	2913
+#define B_RAD_DELETE		2909
+#define B_RAD_COLLECT		2910
+#define B_RAD_SHOOTP		2911
+#define B_RAD_SHOOTE		2912
+#define B_RAD_REPLACE		2913
 #define B_RAD_DRAW		2914
 #define B_RAD_FREE		2915
-#define B_RAD_ADDMESH	2916
+#define B_RAD_ADDMESH		2916
 
 /* *********************** */
-#define B_SCRIPTBUTS	3100
+#define B_SCRIPTBUTS		3100
 
-#define B_SCRIPT_ADD	3001
-#define B_SCRIPT_DEL	3002
-#define B_SCRIPT_TYPE	3003
+#define B_SCRIPT_ADD		3001
+#define B_SCRIPT_DEL		3002
+#define B_SCRIPT_TYPE		3003
 
 /* Scene script buttons */
-#define B_SSCRIPT_ADD	3004
-#define B_SSCRIPT_DEL	3005
-#define B_SSCRIPT_TYPE	3006
+#define B_SSCRIPT_ADD		3004
+#define B_SSCRIPT_DEL		3005
+#define B_SSCRIPT_TYPE		3006
 
 /* *********************** */
 #define B_SOUNDBUTS		3200
@@ -629,37 +630,32 @@ enum {
 	B_UVAUTO_LSCM
 };
 
-#define B_EFFECTSBUTS	3500
+#define B_EFFECTSBUTS		3500
 
-#define B_AUTOTIMEOFS	3403
+#define B_AUTOTIMEOFS		3403
 #define B_FRAMEMAP		3404
 #define B_NEWEFFECT		3405
-#define B_PREVEFFECT	3406
-#define B_NEXTEFFECT	3407
-#define B_CHANGEEFFECT	3408
-#define B_CALCEFFECT	3409
+#define B_PREVEFFECT		3406
+#define B_NEXTEFFECT		3407
+#define B_CHANGEEFFECT		3408
+#define B_CALCEFFECT		3409
 #define B_DELEFFECT		3410
 #define B_RECALCAL		3411
-#define B_RECALC_DEFL	3412
-#define B_EFFECT_DEP	3413
+#define B_RECALC_DEFL		3412
+#define B_EFFECT_DEP		3413
 #define B_FIELD_DEP		3414
-#define B_FIELD_CHANGE	3415
-#define B_PAF_SET_VG	3416
-#define B_PAF_SET_VG1	3417
+#define B_FIELD_CHANGE		3415
+#define B_PAF_SET_VG		3416
+#define B_PAF_SET_VG1		3417
 
 #define B_MODIFIER_BUTS		3600
 
 #define B_MODIFIER_RECALC	3501
 #define B_MODIFIER_REDRAW	3502
 
-
-/* *********************** */
-
 /* *********************** */
 /*  BUTTON BUT: > 4000	   */
 /*  BUTTON 4001-4032: layers */
-
-
 
 #endif
 

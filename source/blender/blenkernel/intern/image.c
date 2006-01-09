@@ -341,8 +341,15 @@ void addImageExtension(char *string)
 			extension= ".bmp";
 	}
 	else if(G.have_libtiff && (G.scene->r.imtype==R_TIFF)) {
-		extension= ".tif";
+		if(!BLI_testextensie(string, ".tif"))
+			extension= ".tif";
 	}
+#ifdef WITH_OPENEXR
+	else if(G.scene->r.imtype==R_OPENEXR) {
+		if(!BLI_testextensie(string, ".exr"))
+			extension= ".exr";
+	}
+#endif
 	
 	strcat(string, extension);
 }
@@ -449,13 +456,13 @@ static void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect, (unsigned char)0);
 		
 		ibuf->x *= 2;
-		/* These rectop calls are broken!!! I added a trailing 0 arg... */
-		IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(tbuf2, ibuf, 0, 0, tbuf2->x, 0, 32767, 32767, IMB_rectcpy, 0);
+		
+		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
 		
 		ibuf->x /= 2;
-		IMB_rectop(ibuf, tbuf1, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(ibuf, tbuf2, 0, tbuf2->y, 0, 0, 32767, 32767, IMB_rectcpy, 0);
+		IMB_rectcpy(ibuf, tbuf1, 0, 0, 0, 0, tbuf1->x, tbuf1->y);
+		IMB_rectcpy(ibuf, tbuf2, 0, tbuf2->y, 0, 0, tbuf2->x, tbuf2->y);
 		
 		IMB_freeImBuf(tbuf1);
 		IMB_freeImBuf(tbuf2);
@@ -477,13 +484,13 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect, 0);
 		
 		ibuf->x *= 2;
-		/* These are brolenm as well... */
-		IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(tbuf2, ibuf, 0, 0, tbuf2->x, 0, 32767, 32767, IMB_rectcpy, 0);
+		
+		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
 		
 		ibuf->x /= 2;
-		IMB_rectop(ibuf, tbuf2, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(ibuf, tbuf1, 0, tbuf2->y, 0, 0, 32767, 32767, IMB_rectcpy, 0);
+		IMB_rectcpy(ibuf, tbuf2, 0, 0, 0, 0, tbuf2->x, tbuf2->y);
+		IMB_rectcpy(ibuf, tbuf1, 0, tbuf2->y, 0, 0, tbuf1->x, tbuf1->y);
 		
 		IMB_freeImBuf(tbuf1);
 		IMB_freeImBuf(tbuf2);
@@ -559,7 +566,7 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 				}
 				
 				IMB_applycmap(ima->ibuf);
-				IMB_convert_rgba_to_abgr(ima->ibuf->x*ima->ibuf->y, ima->ibuf->rect);
+				IMB_convert_rgba_to_abgr(ima->ibuf);
 				
 			}
 			

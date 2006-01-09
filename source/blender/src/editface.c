@@ -34,10 +34,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -1023,7 +1019,8 @@ void face_borderselect()
 	Mesh *me;
 	TFace *tface;
 	rcti rect;
-	unsigned int *rectm, *rt;
+	struct ImBuf *ibuf;
+	unsigned int *rt;
 	int a, sx, sy, index, val;
 	char *selar;
 	
@@ -1046,9 +1043,10 @@ void face_borderselect()
 		sy= (rect.ymax-rect.ymin+1);
 		if(sx*sy<=0) return;
 
-		rt=rectm= MEM_mallocN(sizeof(int)*sx*sy, "selrect");
-		glReadPixels(rect.xmin+curarea->winrct.xmin,  rect.ymin+curarea->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  rectm);
-		if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr(sx*sy, rectm);
+		ibuf = IMB_allocImBuf(sx,sy,32,0,0);
+		rt = ibuf->rect;
+		glReadPixels(rect.xmin+curarea->winrct.xmin,  rect.ymin+curarea->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+		if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 		a= sx*sy;
 		while(a--) {
@@ -1070,7 +1068,7 @@ void face_borderselect()
 			}
 		}
 		
-		MEM_freeN(rectm);
+		IMB_freeImBuf(ibuf);
 		MEM_freeN(selar);
 
 		BIF_undo_push("Border Select UV face");

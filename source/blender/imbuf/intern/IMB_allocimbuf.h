@@ -43,12 +43,14 @@
 struct ImBuf;
 
 short imb_addrectImBuf(struct ImBuf * ibuf);
+short imb_addrectfloatImBuf(struct ImBuf * ibuf);
 short imb_addplanesImBuf(struct ImBuf *ibuf);
 
 short imb_addencodedbufferImBuf(struct ImBuf *ibuf);
 short imb_enlargeencodedbufferImBuf(struct ImBuf *ibuf);
 
 void imb_freerectImBuf(struct ImBuf *ibuf);
+void imb_freerectfloatImBuf(struct ImBuf *ibuf);
 void imb_freeplanesImBuf(struct ImBuf *ibuf);
 
 short imb_addcmapImBuf(struct ImBuf *ibuf);

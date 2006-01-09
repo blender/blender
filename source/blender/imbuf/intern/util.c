@@ -50,6 +50,10 @@
 
 #include "IMB_anim.h"
 
+#ifdef WITH_OPENEXR
+#include "openexr/openexr_api.h"
+#endif
+
 #ifdef WITH_QUICKTIME
 #include "quicktime_import.h"
 #endif
@@ -97,7 +101,9 @@ static int IMB_ispic_name(char *name)
 				}
 				if (imb_is_a_png(buf)) return(PNG);
 				if (imb_is_a_targa(buf)) return(TGA);
-
+#ifdef WITH_OPENEXR
+				if (imb_is_a_openexr((uchar *)buf)) return(OPENEXR);
+#endif
 				if (imb_is_a_tiff(buf)) return(TIF);
 
 				/* radhdr: check if hdr format */

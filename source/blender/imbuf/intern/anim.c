@@ -572,7 +572,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 		ibuf = movie_fetchibuf(anim, position);
 		if (ibuf) {
 			anim->curposition = position;
-			IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
+			IMB_convert_rgba_to_abgr(ibuf);
 		}
 		break;
 	case ANIM_AVI:

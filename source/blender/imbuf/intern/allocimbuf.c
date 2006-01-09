@@ -53,30 +53,48 @@ static unsigned int dfltcmap[16] = {
 
 void imb_freeplanesImBuf(struct ImBuf * ibuf)
 {
-	if (ibuf==0) return;
+	if (ibuf==NULL) return;
 	if (ibuf->planes){
-		if (ibuf->mall & IB_planes) free(ibuf->planes);
+		if (ibuf->mall & IB_planes) MEM_freeN(ibuf->planes);
 	}
 	ibuf->planes = 0;
 	ibuf->mall &= ~IB_planes;
 }
 
+void imb_freerectfloatImBuf(struct ImBuf * ibuf)
+{
+	if (ibuf==NULL) return;
+	
+	if (ibuf->rect_float) {
+		if (ibuf->mall & IB_rectfloat) {
+			MEM_freeN(ibuf->rect_float);
+			ibuf->rect_float=NULL;
+		}
+	}
+
+	ibuf->rect_float= NULL;
+	ibuf->mall &= ~IB_rectfloat;
+}
 
 void imb_freerectImBuf(struct ImBuf * ibuf)
 {
-	if (ibuf==0) return;
-	if (ibuf->rect){
-		if (ibuf->mall & IB_rect) free(ibuf->rect);
+	if (ibuf==NULL) return;
+	
+	if (ibuf->rect) {
+		if (ibuf->mall & IB_rect) {
+			MEM_freeN(ibuf->rect);
+		}
 	}
-	ibuf->rect=0;
+	
+	ibuf->rect= NULL;
 	ibuf->mall &= ~IB_rect;
 }
 
 static void freeencodedbufferImBuf(struct ImBuf * ibuf)
 {
-	if (ibuf==0) return;
+	if (ibuf==NULL) return;
 	if (ibuf->encodedbuffer){
-		if (ibuf->mall & IB_mem) free(ibuf->encodedbuffer);
+		if (ibuf->mall & IB_mem) MEM_freeN(ibuf->encodedbuffer);
 	}
 	ibuf->encodedbuffer = 0;
 	ibuf->encodedbuffersize = 0;
@@ -86,34 +104,34 @@ static void freeencodedbufferImBuf(struct ImBuf * ibuf)
 
 void IMB_freezbufImBuf(struct ImBuf * ibuf)
 {
-	if (ibuf==0) return;
+	if (ibuf==NULL) return;
 	if (ibuf->zbuf){
-		if (ibuf->mall & IB_zbuf) free(ibuf->zbuf);
+		if (ibuf->mall & IB_zbuf) MEM_freeN(ibuf->zbuf);
 	}
-	ibuf->zbuf=0;
+	ibuf->zbuf= NULL;
 	ibuf->mall &= ~IB_zbuf;
 }
 
 void IMB_freecmapImBuf(struct ImBuf * ibuf)
 {
-	if (ibuf == 0) return;
+	if (ibuf==NULL) return;
 	if (ibuf->cmap){
-		if (ibuf->mall & IB_cmap) free(ibuf->cmap);
+		if (ibuf->mall & IB_cmap) MEM_freeN(ibuf->cmap);
 	}
 	ibuf->cmap = 0;
 	ibuf->mall &= ~IB_cmap;
 }
-
 
 void IMB_freeImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf){
 		imb_freeplanesImBuf(ibuf);
 		imb_freerectImBuf(ibuf);
+		imb_freerectfloatImBuf(ibuf);
 		IMB_freezbufImBuf(ibuf);
 		IMB_freecmapImBuf(ibuf);
 		freeencodedbufferImBuf(ibuf);
-		free(ibuf);
+		MEM_freeN(ibuf);
 	}
 }
 
@@ -121,7 +139,8 @@ short addzbufImBuf(struct ImBuf * ibuf)
 {
 	int size;
 
-	if (ibuf==0) return(FALSE);
+	if (ibuf==NULL) return(FALSE);
+	
 	IMB_freezbufImBuf(ibuf);
 
 	size = ibuf->x * ibuf->y * sizeof(unsigned int);
@@ -136,7 +155,7 @@ short addzbufImBuf(struct ImBuf * ibuf)
 
 short imb_addencodedbufferImBuf(struct ImBuf * ibuf)
 {
-	if (ibuf==0) return(FALSE);
+	if (ibuf==NULL) return(FALSE);
 
 	freeencodedbufferImBuf(ibuf);
 
@@ -159,7 +178,7 @@ short imb_enlargeencodedbufferImBuf(struct ImBuf * ibuf)
 	unsigned int newsize, encodedsize;
 	void *newbuffer;
 
-	if (ibuf==0) return(FALSE);
+	if (ibuf==NULL) return(FALSE);
 
 	if (ibuf->encodedbuffersize < ibuf->encodedsize) {
 		printf("imb_enlargeencodedbufferImBuf: error in parameters\n");
@@ -190,15 +209,36 @@ short imb_enlargeencodedbufferImBuf(struct ImBuf * ibuf)
 	return (TRUE);
 }
 
+short imb_addrectfloatImBuf(struct ImBuf * ibuf)
+{
+	int size;
+	
+	if (ibuf==NULL) return(FALSE);
+	
+	imb_freerectfloatImBuf(ibuf);
+	
+	size = ibuf->x * ibuf->y;
+	size = size * 4 * sizeof(float);
+	
+	if ( (ibuf->rect_float = MEM_mallocN(size, "imb_addrectImBuf")) ){
+		ibuf->mall |= IB_rectfloat;
+		return (TRUE);
+	}
+	
+	return (FALSE);
+}
 
+/* question; why also add zbuf? */
 short imb_addrectImBuf(struct ImBuf * ibuf)
 {
 	int size;
 
-	if (ibuf==0) return(FALSE);
+	if (ibuf==NULL) return(FALSE);
 	imb_freerectImBuf(ibuf);
 
-	size = ibuf->x * ibuf->y * sizeof(unsigned int);
+	size = ibuf->x * ibuf->y;
+ 	size = size * sizeof(unsigned int);
+
 	if ( (ibuf->rect = MEM_mallocN(size, "imb_addrectImBuf")) ){
 		ibuf->mall |= IB_rect;
 		if (ibuf->depth > 32) return (addzbufImBuf(ibuf));
@@ -213,7 +253,7 @@ short imb_addcmapImBuf(struct ImBuf *ibuf)
 {
 	int min;
 	
-	if (ibuf==0) return(FALSE);
+	if (ibuf==NULL) return(FALSE);
 	IMB_freecmapImBuf(ibuf);
 
 	imb_checkncols(ibuf);
@@ -238,7 +278,7 @@ short imb_addplanesImBuf(struct ImBuf *ibuf)
 	unsigned int **planes;
 	unsigned int *point2;
 
-	if (ibuf==0) return(FALSE);
+	if (ibuf==NULL) return(FALSE);
 	imb_freeplanesImBuf(ibuf);
 
 	skipx = ((ibuf->x+31) >> 5);
@@ -264,7 +304,7 @@ short imb_addplanesImBuf(struct ImBuf *ibuf)
 }
 
 
-struct ImBuf *IMB_allocImBuf(short x,short y,uchar d,unsigned int flags,uchar bitmap)
+struct ImBuf *IMB_allocImBuf(short x, short y, uchar d, unsigned int flags, uchar bitmap)
 {
 	struct ImBuf *ibuf;
 
@@ -272,29 +312,36 @@ struct ImBuf *IMB_allocImBuf(short x,short y,uchar d,unsigned int flags,uchar bi
 	if (bitmap) flags |= IB_planes;
 
 	if (ibuf){
-		ibuf->x=x;
-		ibuf->y=y;
-		ibuf->depth=d;
-		ibuf->ftype=TGA;
+		ibuf->x= x;
+		ibuf->y= y;
+		ibuf->depth= d;
+		ibuf->ftype= TGA;
 
 		if (flags & IB_rect){
 			if (imb_addrectImBuf(ibuf)==FALSE){
 				IMB_freeImBuf(ibuf);
-				return (0);
+				return NULL;
+			}
+		}
+		
+		if (flags & IB_rectfloat){
+			if (imb_addrectfloatImBuf(ibuf)==FALSE){
+				IMB_freeImBuf(ibuf);
+				return NULL;
 			}
 		}
 		
 		if (flags & IB_zbuf){
 			if (addzbufImBuf(ibuf)==FALSE){
 				IMB_freeImBuf(ibuf);
-				return (0);
+				return NULL;
 			}
 		}
 		
 		if (flags & IB_planes){
 			if (imb_addplanesImBuf(ibuf)==FALSE){
 				IMB_freeImBuf(ibuf);
-				return (0);
+				return NULL;
 			}
 		}
 	}
@@ -307,9 +354,10 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	int flags = 0;
 	int x, y;
 	
-	if (ibuf1 == 0) return (0);
+	if (ibuf1 == NULL) return NULL;
 
 	if (ibuf1->rect) flags |= IB_rect;
+	if (ibuf1->rect_float) flags |= IB_rectfloat;
 	if (ibuf1->planes) flags |= IB_planes;
 
 	x = ibuf1->x;
@@ -317,31 +365,38 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	if (ibuf1->flags & IB_fields) y *= 2;
 	
 	ibuf2 = IMB_allocImBuf(x, y, ibuf1->depth, flags, 0);
-	if (ibuf2 == 0) return (0);
+	if (ibuf2 == NULL) return NULL;
 
-	if (flags & IB_rect) memcpy(ibuf2->rect,ibuf1->rect,x * y * sizeof(int));
-	if (flags & IB_planes) memcpy(*(ibuf2->planes),*(ibuf1->planes),ibuf1->depth * ibuf1->skipx * y * sizeof(int));
+	if (flags & IB_rect)
+		memcpy(ibuf2->rect, ibuf1->rect, x * y * sizeof(int));
+	
+	if (flags & IB_rectfloat)
+		memcpy(ibuf2->rect_float, ibuf1->rect_float, x * y * sizeof(float));
+
+	if (flags & IB_planes) 
+		memcpy(*(ibuf2->planes),*(ibuf1->planes),ibuf1->depth * ibuf1->skipx * y * sizeof(int));
 
 	if (ibuf1->encodedbuffer) {
 		ibuf2->encodedbuffersize = ibuf1->encodedbuffersize;
 		if (imb_addencodedbufferImBuf(ibuf2) == FALSE) {
 			IMB_freeImBuf(ibuf2);
-			return(0);
+			return NULL;
 		}
 
 		memcpy(ibuf2->encodedbuffer, ibuf1->encodedbuffer, ibuf1->encodedsize);
 	}
 
-
+	/* silly trick to copy the entire contents of ibuf1 struct over to ibuf */
 	tbuf = *ibuf1;
 	
-	// pointers goedzetten
+	// fix pointers 
 	tbuf.rect		= ibuf2->rect;
+	tbuf.rect_float = ibuf2->rect_float;
 	tbuf.planes		= ibuf2->planes;
 	tbuf.cmap		= ibuf2->cmap;
 	tbuf.encodedbuffer = ibuf2->encodedbuffer;
 	
-	// malloc flag goed zetten
+	// set malloc flag
 	tbuf.mall		= ibuf2->mall;
 	
 	*ibuf2 = tbuf;

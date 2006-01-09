@@ -147,13 +147,6 @@ void schrijfplaatje(char *name)
 	unsigned int *temprect=0;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
-	/* radhdr: temporary call for direct float buffer save for HDR format */
-	if ((R.r.imtype==R_RADHDR) && (R.rectftot))
-	{
-		imb_savehdr_fromfloat(R.rectftot, name, R.rectx, R.recty);
-		return;
-	}
-
 	/* has RGBA been set? If so: use alpha channel for color zero */
 	IMB_alpha_to_col0(FALSE);
 
@@ -188,7 +181,7 @@ void schrijfplaatje(char *name)
 
 	if(ibuf) {
 		ibuf->rect= (unsigned int *) R.rectot;
-//		ibuf->rect_float = R.rectftot;
+		ibuf->rect_float = R.rectftot;
 
 		if(R.r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
 
@@ -205,8 +198,6 @@ void schrijfplaatje(char *name)
 			}
 		}
 		else if(R.r.imtype==R_RADHDR) {
-			/* radhdr: save hdr from rgba buffer, not really recommended, probably mistake, so warn user */
-			error("Will save, but you might want to enable the floatbuffer to save a real HDRI...");
 			ibuf->ftype= RADHDR;
 		}
 		else if(R.r.imtype==R_PNG) {
@@ -218,6 +209,11 @@ void schrijfplaatje(char *name)
 		else if((G.have_libtiff) && (R.r.imtype==R_TIFF)) {
 			ibuf->ftype= TIF;
 		}
+#ifdef WITH_OPENEXR
+		else if(R.r.imtype==R_OPENEXR) {
+			ibuf->ftype= OPENEXR;
+		}
+#endif
 		else if((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {
 			ibuf->ftype= TGA;
 		}
@@ -500,6 +496,10 @@ int save_image_filesel_str(char *str)
 		if (G.have_libtiff) {
 			strcpy(str, "Save TIFF"); return 1;
 		}
+#ifdef WITH_OPENEXR
+	case R_OPENEXR:
+		strcpy(str, "Save OpenEXR"); return 1;
+#endif
 	case R_TARGA:
 		strcpy(str, "Save Targa"); return 1;
 	case R_RAWTGA:

@@ -34,10 +34,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 #include "PIL_dynlib.h"
 
@@ -1655,19 +1651,19 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 			if(cp) strncpy(cp, seq->name+2, 22);
 
 			if (seq->plugin->version<=2) {
-				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf->x*se1->ibuf->y, se1->ibuf->rect);
-				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf->x*se2->ibuf->y, se2->ibuf->rect);
-				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf->x*se3->ibuf->y, se3->ibuf->rect);
+				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf);
+				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf);
+				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf);
 			}
 
 			((SeqDoit)seq->plugin->doit)(seq->plugin->data, fac, facf, x, y,
 						se1->ibuf, se2->ibuf, se->ibuf, se3->ibuf);
 
 			if (seq->plugin->version<=2) {
-				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf->x*se1->ibuf->y, se1->ibuf->rect);
-				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf->x*se2->ibuf->y, se2->ibuf->rect);
-				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf->x*se3->ibuf->y, se3->ibuf->rect);
-				IMB_convert_rgba_to_abgr(se->ibuf->x*se->ibuf->y, se->ibuf->rect);
+				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf);
+				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf);
+				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf);
+				IMB_convert_rgba_to_abgr(se->ibuf);
 			}
 
 			if((G.f & G_PLAYANIM)==0) waitcursor(0);

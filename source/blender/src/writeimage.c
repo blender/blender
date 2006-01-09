@@ -63,6 +63,11 @@ int BIF_write_ibuf(ImBuf *ibuf, char *name)
 	else if ((G.have_libtiff) && (G.scene->r.imtype==R_TIFF)) {
 		ibuf->ftype= TIF;
 	}
+#ifdef WITH_OPENEXR
+	else if (G.scene->r.imtype==R_OPENEXR) {
+		ibuf->ftype= OPENEXR;
+	}
+#endif
 	else if ((G.scene->r.imtype==R_TARGA) || (G.scene->r.imtype==R_PNG)) {
 		// fall back to Targa if PNG writing is not supported
 		ibuf->ftype= TGA;
@@ -105,18 +110,12 @@ void BIF_save_envmap(EnvMap *env, char *str)
 	dx= env->cube[0]->ibuf->x;
 	ibuf= IMB_allocImBuf(3*dx, 2*dx, 24, IB_rect, 0);
 	
-	IMB_rectop(ibuf, env->cube[0]->ibuf, 
-			0, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[1]->ibuf, 
-			dx, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[2]->ibuf, 
-			2*dx, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[3]->ibuf, 
-			0, dx, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[4]->ibuf, 
-			dx, dx, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[5]->ibuf, 
-			2*dx, dx, 0, 0, dx, dx, IMB_rectcpy, 0);
+	IMB_rectcpy(ibuf, env->cube[0]->ibuf, 0, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[1]->ibuf, dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[2]->ibuf, 2*dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[3]->ibuf, 0, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[4]->ibuf, dx, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[5]->ibuf, 2*dx, dx, 0, 0, dx, dx);
 	
 	BIF_write_ibuf(ibuf, str);
 	IMB_freeImBuf(ibuf);

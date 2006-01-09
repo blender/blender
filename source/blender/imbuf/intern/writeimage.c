@@ -57,12 +57,15 @@
 #include "IMB_bmp.h"
 #include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
+#ifdef WITH_OPENEXR
+#include "openexr/openexr_api.h"
+#endif
 
 #include "IMB_iff.h"
 #include "IMB_bitplanes.h"
 #include "IMB_divers.h"
 
-short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
+short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 {
 	short ok=TRUE,delpl=FALSE;
 	int file = -1;
@@ -72,28 +75,33 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 
 	/* Put formats that take a filename here */
 	if (IS_jpg(ibuf)) {
-		return imb_savejpeg(ibuf, naam, flags);
+		return imb_savejpeg(ibuf, name, flags);
 	}
 	if (IS_radhdr(ibuf)) {
-		return imb_savehdr(ibuf, naam, flags);
+		return imb_savehdr(ibuf, name, flags);
 	}
 	if (IS_png(ibuf)) {
-		return imb_savepng(ibuf,naam,flags);
+		return imb_savepng(ibuf, name, flags);
 	}
 	if (IS_bmp(ibuf)) {
-		return imb_savebmp(ibuf,naam,flags);
+		return imb_savebmp(ibuf, name, flags);
 	}
 	if (IS_tga(ibuf)) {
-		return imb_savetarga(ibuf,naam,flags);
+		return imb_savetarga(ibuf, name, flags);
 	}
 	if (IS_iris(ibuf)) {
-		return imb_saveiris(ibuf,naam,flags);
+		return imb_saveiris(ibuf, name, flags);
 	}
 	if (G.have_libtiff && IS_tiff(ibuf)) {
-		return imb_savetiff(ibuf,naam,flags);
+		return imb_savetiff(ibuf, name, flags);
 	}
+#ifdef WITH_OPENEXR
+	if (IS_openexr(ibuf)) {
+		return imb_save_openexr_half(ibuf, name, flags);
+	}
+#endif
 
-	file = open(naam, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
+	file = open(name, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (file < 0) return (FALSE);
 
 	if (flags & IB_rect){
@@ -103,7 +111,6 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 	}
 
 	/* Put formats that take a filehandle here */
-	
 	ok = imb_start_iff(ibuf,file);
 	if (IS_amiga(ibuf)){
 		IMB_flipy(ibuf);

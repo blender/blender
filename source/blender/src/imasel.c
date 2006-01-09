@@ -34,10 +34,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -538,7 +534,7 @@ void get_next_image(SpaceImaSel *simasel)
 			/* the whole cmap system is wacko */
 			
 			if (G.order==B_ENDIAN)
-				IMB_convert_rgba_to_abgr(ima->dw*ima->dh, ibuf->rect);
+				IMB_convert_rgba_to_abgr(ibuf);
 			
 			ibuf->mincol =   0;
 			ibuf->maxcol = 256;
@@ -555,7 +551,7 @@ void get_next_image(SpaceImaSel *simasel)
 			longtochar(ima->pict_rect, ibuf->rect, size); 
 
 			IMB_applycmap(ibuf);
-			IMB_convert_rgba_to_abgr(size, ibuf->rect);
+			IMB_convert_rgba_to_abgr(ibuf);
 			
 			if (ima->pict) IMB_freeImBuf(ima->pict);
 			ima->pict = ibuf;
@@ -797,7 +793,7 @@ void get_pib_file(SpaceImaSel *simasel)
 						ima->pict->cmap = simasel->cmap->cmap;
 						ima->pict->maxcol = 256;
 						IMB_applycmap(ima->pict);
-						IMB_convert_rgba_to_abgr(size, ima->pict->rect);
+						IMB_convert_rgba_to_abgr(ima->pict);
 					}
 					ima->selected   = 0;
 					ima->selectable = 0;

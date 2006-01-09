@@ -38,10 +38,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "blendef.h"
 #include "MEM_guardedalloc.h"
 
@@ -897,6 +893,7 @@ static void yafrayRender(void)
 	/* float rgba buf */
 	if (R.rectftot) MEM_freeN(R.rectftot);
 	if (R.r.mode & R_FBUF) R.rectftot= MEM_callocN(4*sizeof(float)*R.rectx*R.recty, "rectftot");
+	else R.rectftot = NULL;
 
 	// switch must be done before prepareScene()
 	if (!R.r.YFexportxml)
@@ -1054,6 +1051,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 				
 				if(R.rectftot) MEM_freeN(R.rectftot);
 				if(R.r.mode & R_FBUF) R.rectftot= MEM_callocN(4*sizeof(float)*R.rectx*R.recty, "rectftot");
+				else R.rectftot = NULL;
 				
 				if(R.r.mode & R_MBLUR) {
 					RE_local_printrenderinfo(0.0, R.osa - blur);

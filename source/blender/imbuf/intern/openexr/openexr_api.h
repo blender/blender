@@ -1,4 +1,5 @@
 /**
+ * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -24,65 +25,39 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Austin Benesh.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * rotate.c
- *
- * $Id$
  */
 
-#include "BLI_blenlib.h"
+#ifndef _OPENEXR_API_H
+#define _OPENEXR_API_H
 
-#include "imbuf.h"
-#include "imbuf_patch.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "IMB_allocimbuf.h"
-
-void IMB_flipy(struct ImBuf * ibuf)
-{
-	short x, y;
-	unsigned int *top, *bottom, do_float=0, *line;
-	float *topf=NULL, *bottomf=NULL, *linef=NULL;
-
-	if (ibuf == NULL) return;
-	if (ibuf->rect == NULL) return;
+#define OPENEXR_FLOATRGB 0x1
+#define OPENEXR_ZBUF 0x2
+  
+#include <stdio.h>
+  
+  /**
+ * Test presence of OpenEXR file.
+ * @param mem pointer to loaded OpenEXR bitstream
+ */
+  
+int imb_is_a_openexr(unsigned char *mem);
 	
-	if (ibuf->rect_float) do_float =1;
+short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags);
+short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags);
 
-	x = ibuf->x;
-	y = ibuf->y;
+struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags);
 
-	top = ibuf->rect;
-	bottom = top + ((y-1) * x);
-	line= MEM_mallocN(x*sizeof(int), "linebuf");
-	
-	if (do_float) {
-		topf= ibuf->rect_float;
-		bottomf = topf + 4*((y-1) * x);
-		linef= MEM_mallocN(4*x*sizeof(float), "linebuff");
-	}
-	y >>= 1;
-
-	for(;y>0;y--) {
-		
-		memcpy(line, top, x*sizeof(int));
-		memcpy(top, bottom, x*sizeof(int));
-		memcpy(bottom, line, x*sizeof(int));
-		bottom -= x;
-		top+= x;
-		
-		if(do_float) {
-			memcpy(linef, topf, 4*x*sizeof(float));
-			memcpy(topf, bottomf, 4*x*sizeof(float));
-			memcpy(bottomf, linef, 4*x*sizeof(float));
-			bottomf -= 4*x;
-			topf+= 4*x;
-		}
-	}
-	
-	MEM_freeN(line);
-	if(linef) MEM_freeN(linef);
+#ifdef __cplusplus
 }
+#endif
+
+
+
+#endif /* __OPENEXR_API_H */

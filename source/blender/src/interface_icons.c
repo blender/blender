@@ -733,8 +733,11 @@ void BIF_icon_draw(float x, float y, int icon_id)
 		
 		ui_rasterpos_safe(x, y, di->aspect);
 		
+		if(di->w<1 || di->h<1) {
+			printf("what the heck!\n");
+		}
 		/* di->rect contains image in 'rendersize', we only scale if needed */
-		if(di->rw!=di->w && di->rh!=di->h) {
+		else if(di->rw!=di->w && di->rh!=di->h) {
 			ImBuf *ima;
 			/* first allocate imbuf for scaling and copy preview into it */
 			ima = IMB_allocImBuf(di->rw, di->rh, 32, IB_rect, 0);

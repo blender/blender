@@ -405,6 +405,7 @@ typedef struct Scene {
 #define R_BMP		20
 #define R_RADHDR	21
 #define R_TIFF		22
+#define R_OPENEXR	23
 
 /* **************** SCENE ********************* */
 #define RAD_PHASE_PATCHES	1

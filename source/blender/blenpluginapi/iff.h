@@ -44,10 +44,16 @@
 #define IB_zbuf			(1 << 13)
 #define IB_rgba			(1 << 14)
 
-#define AMI	    (1 << 31)
-#define Anim	(1 << 29)
-#define TGA	    (1 << 28)
-#define JPG		(1 << 27)
+#define AMI             (1 << 31)
+#define PNG             (1 << 30)
+#define Anim            (1 << 29)
+#define TGA             (1 << 28)
+#define JPG             (1 << 27)
+#define BMP             (1 << 26)
+#ifdef WITH_QUICKTIME
+#define QUICKTIME       (1 << 25)
+#endif
+#define RADHDR  (1<<24)
 
 #define RAWTGA	(TGA | 1)
 
@@ -90,6 +96,7 @@
 #define IS_amiga(x)		(x->ftype & AMI)
 #define IS_ham(x)		((x->ftype & AM_ham) == AM_ham)
 #define IS_hbrite(x)	((x->ftype & AM_hbrite) == AM_hbrite)
+
 #define IS_lace(x)		((x->ftype & AM_lace) == AM_lace)
 #define IS_hires(x)		((x->ftype & AM_hires) == AM_hires)
 #define IS_hblace(x)	((x->ftype & AM_hblace) == AM_hblace)
@@ -98,9 +105,14 @@
 
 #define IS_anim(x)		(x->ftype & Anim)
 #define IS_hamx(x)		(x->ftype == AN_hamx)
-
 #define IS_tga(x)		(x->ftype & TGA)
+#define IS_png(x)               (x->ftype & PNG)
+#define IS_bmp(x)               (x->ftype & BMP)
+#define IS_radhdr(x)    	(x->ftype & RADHDR)
 #define IS_tim(x)		(x->ftype & TIM)
+#define IS_tiff(x)		(x->ftype & TIFF)
+#define IS_openexr(x)           (x->ftype & OPENEXR)
+
 
 #define IMAGIC 	0732
 #define IS_iris(x)		(x->ftype == IMAGIC)
@@ -136,6 +148,7 @@ typedef struct ImBuf{
 	unsigned char *encodedbuffer;
 	unsigned int   encodedsize;
 	unsigned int   encodedbuffersize;
+	float *rect_float;
 } ImBuf;
 
 extern struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);

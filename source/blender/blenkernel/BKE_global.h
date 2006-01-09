@@ -124,7 +124,7 @@ typedef struct Global {
 	struct VFont *selfont;
 	struct ListBase ttfdata;
 
-	/* libtiff flag */
+	/* libtiff flag used to determine if shared library loaded for libtiff*/
 	int have_libtiff;
 
 	/* this variable is written to / read from FileGlobal->fileflags */

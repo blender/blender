@@ -518,8 +518,8 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
 	
 	if (checktarga(&tga,mem) == 0) return(0);
 
-	if (flags & IB_test) ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,tga.pixsize,0,0);
-	else ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,(tga.pixsize + 0x7) & ~0x7,1,0);
+	if (flags & IB_test) ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,tga.pixsize, 0, 0);
+	else ibuf = IMB_allocImBuf(tga.xsize,tga.ysize,(tga.pixsize + 0x7) & ~0x7, IB_rect, 0);
 
 	if (ibuf == 0) return(0);
 	ibuf->ftype = TGA;
@@ -629,7 +629,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
 
 	if (ibuf) {
 		if (ibuf->rect && (flags & IB_cmap)==0) 
-			IMB_convert_rgba_to_abgr((ibuf->x+ibuf->skipx)*ibuf->y, ibuf->rect);
+			IMB_convert_rgba_to_abgr(ibuf);
 	}
 	
 	return(ibuf);

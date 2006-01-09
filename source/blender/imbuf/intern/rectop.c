@@ -41,33 +41,17 @@
 
 #include "IMB_allocimbuf.h"
 
-void IMB_rectcpy(unsigned int *drect, unsigned int *srect, int x, int dummy)
+void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
+	int desty, int srcx, int srcy, int width, int height)
 {
-	memcpy(drect,srect, x * sizeof(int));
-}
+	unsigned int *drect, *srect;
+	float *drectf = NULL;
+	float *srectf = NULL;
+	int tmp, do_float = 0;
 
-
-void IMB_rectfill(unsigned int *drect, unsigned int *srect, int x, int value)
-{
-	for (;x > 0; x--) *drect++ = value;
-}
-
-void IMB_rectop(struct ImBuf *dbuf,
-			struct ImBuf *sbuf,
-			int destx,
-			int desty,
-			int srcx,
-			int srcy,
-			int width,
-			int height,
-			void (*operation)(unsigned int *, unsigned int*, int, int),
-			int value)
-{
-	unsigned int *drect,*srect;
-	int tmp;
-
-	if (dbuf == 0) return;
-	if (operation == 0) return;
+	if (dbuf == NULL) return;
+	
+	if (sbuf->rect_float) do_float = 1;
 
 	if (destx < 0){
 		srcx -= destx ;
@@ -96,6 +80,7 @@ void IMB_rectop(struct ImBuf *dbuf,
 	if (height > tmp) height = tmp;
 
 	drect = dbuf->rect + desty * dbuf->x + destx;
+	if (do_float) drectf = dbuf->rect_float + desty * dbuf->x + destx;
 	destx = dbuf->x;
 
 	if (sbuf){
@@ -110,25 +95,53 @@ void IMB_rectop(struct ImBuf *dbuf,
 		srect = sbuf->rect;
 		srect += srcy * sbuf->x;
 		srect += srcx;
+		if (do_float) {
+			srectf = sbuf->rect_float;
+			srectf += srcy * sbuf->x;
+			srectf += srcx;
+		}
 		srcx = sbuf->x;
 	} else{
 		if (width <= 0) return;
 		if (height <= 0) return;
 
 		srect = drect;
+		srectf = drectf;
 		srcx = destx;
 	}
 
 	for (;height > 0; height--){
-		operation(drect,srect,width, value);
-		drect += destx;
-		srect += srcx;
+
+		memcpy(drect,srect, width * sizeof(int));
+		if (do_float) memcpy(drectf,srectf, width * sizeof(float) * 4);
 	}
 }
 
-
-void IMB_rectoptot(struct ImBuf *dbuf, struct ImBuf *sbuf,
-	void (*operation)(unsigned int *, unsigned int*, int, int), int value)
+void IMB_rectfill(struct ImBuf *drect, float col[4])
 {
-	IMB_rectop(dbuf,sbuf,0,0,0,0,32767,32767,operation, value);
+	int num;
+	unsigned int *rrect = drect->rect;
+	unsigned char *spot;
+
+	num = drect->x * drect->y;
+	for (;num > 0; num--) {
+		spot = (unsigned char *)rrect;
+		spot[0] = (int)(col[0]*255);
+		spot[1] = (int)(col[1]*255);
+		spot[2] = (int)(col[2]*255);
+		spot[3] = (int)(col[3]*255);
+		*rrect++;
+	}
+	if(drect->rect_float) {
+		float *rrectf = drect->rect_float;
+		
+		num = drect->x * drect->y;
+		for (;num > 0; num--) {
+			*rrectf++ = col[0];
+			*rrectf++ = col[1];
+			*rrectf++ = col[2];
+			*rrectf++ = col[3];
+		}
+	}	
 }
+

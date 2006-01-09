@@ -40,10 +40,6 @@ editmesh_mods.c, UI level access, no geometry changes
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "MTC_matrixops.h"
@@ -92,6 +88,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BSE_edit.h"
 #include "BSE_view.h"
 
+#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "mydevice.h"
@@ -155,11 +152,12 @@ static unsigned int sample_backbuf(int x, int y)
 }
 
 /* reads full rect, converts indices */
-static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax)
+struct ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 {
-	unsigned int *dr, *buf;
+	unsigned int *dr, *rd;
+	struct ImBuf *ibuf, *ibuf1;
 	int a;
-	short xminc, yminc, xmaxc, ymaxc;
+	short xminc, yminc, xmaxc, ymaxc, xs, ys;
 	
 	/* clip */
 	if(xmin<0) xminc= 0; else xminc= xmin;
@@ -170,55 +168,49 @@ static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax
 	if(ymax>=curarea->winy) ymaxc= curarea->winy-1; else ymaxc= ymax;
 	if(yminc > ymaxc) return NULL;
 	
-	buf= MEM_mallocN( (xmaxc-xminc+1)*(ymaxc-yminc+1)*sizeof(int), "sample rect");
+	ibuf= IMB_allocImBuf((xmaxc-xminc+1),(ymaxc-yminc+1),32,IB_rect,0);
 
 	check_backbuf(); // actually not needed for apple
 	
 #ifdef __APPLE__
 	glReadBuffer(GL_AUX0);
 #endif
-	glReadPixels(curarea->winrct.xmin+xminc, curarea->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, buf);
+	glReadPixels(curarea->winrct.xmin+xminc, curarea->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	glReadBuffer(GL_BACK);	
 
-	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr((xmaxc-xminc+1)*(ymaxc-yminc+1), buf);
+	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a= (xmaxc-xminc+1)*(ymaxc-yminc+1);
-	dr= buf;
+	dr= ibuf->rect;
 	while(a--) {
 		if(*dr) *dr= framebuffer_to_index(*dr);
 		dr++;
 	}
 	
 	/* put clipped result back, if needed */
-	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) return buf;
-	else {
-		unsigned int *buf1= MEM_callocN( (xmax-xmin+1)*(ymax-ymin+1)*sizeof(int), "sample rect2");
-		unsigned int *rd;
-		short xs, ys;
-
-		rd= buf;
-		dr= buf1;
+	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) return ibuf;
+	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect,0);
+	rd= ibuf->rect;
+	dr= ibuf1->rect;
 		
-		for(ys= ymin; ys<=ymax; ys++) {
-			for(xs= xmin; xs<=xmax; xs++, dr++) {
-				if( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
-					*dr= *rd;
-					rd++;
-				}
+	for(ys= ymin; ys<=ymax; ys++) {
+		for(xs= xmin; xs<=xmax; xs++, dr++) {
+			if( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
+				*dr= *rd;
+				rd++;
 			}
 		}
-		MEM_freeN(buf);
-		return buf1;
 	}
-	
-	return buf;
+	IMB_freeImBuf(ibuf);
+	return ibuf1;
 }
 
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, short *dist)
 {
-	unsigned int *buf, *bufmin, *bufmax;
+	struct ImBuf *buf;
+	unsigned int *bufmin, *bufmax, *tbuf;
 	int minx, miny;
 	int a, b, rc, nr, amount, dirvec[4][2];
 	short distance=0;
@@ -229,8 +221,7 @@ static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int mi
 	minx = mval[0]-(amount+1);
 	miny = mval[1]-(amount+1);
 	buf = read_backbuf(minx, miny, minx+size-1, miny+size-1);
-	if (!buf)
-		return 0;
+	if (!buf) return 0;
 
 	rc= 0;
 	
@@ -239,23 +230,24 @@ static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int mi
 	dirvec[2][0]= -1; dirvec[2][1]= 0;
 	dirvec[3][0]= 0; dirvec[3][1]= size;
 	
-	bufmin= buf;
-	bufmax= buf+ size*size;
-	buf+= amount*size+ amount;
+	bufmin = buf->rect;
+	tbuf = buf->rect;
+	bufmax = buf->rect + size*size;
+	tbuf+= amount*size+ amount;
 	
 	for(nr=1; nr<=size; nr++) {
 		
 		for(a=0; a<2; a++) {
 			for(b=0; b<nr; b++, distance++) {
-				if (*buf && *buf>=min && *buf<max) {
+				if (*tbuf && *tbuf>=min && *tbuf<max) {
 					*dist= (short) sqrt( (float)distance ); // XXX, this distance is wrong - zr
-					index = *buf - min+1; // messy yah, but indices start at 1
+					index = *tbuf - min+1; // messy yah, but indices start at 1
 					goto exit;
 				}
 				
-				buf+= (dirvec[rc][0]+dirvec[rc][1]);
+				tbuf+= (dirvec[rc][0]+dirvec[rc][1]);
 				
-				if(buf<bufmin || buf>=bufmax) {
+				if(tbuf<bufmin || tbuf>=bufmax) {
 					goto exit;
 				}
 			}
@@ -265,7 +257,7 @@ static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int mi
 	}
 
 exit:
-	MEM_freeN(bufmin);
+	IMB_freeImBuf(buf);
 	return index;
 }
 
@@ -322,14 +314,17 @@ static void draw_triangulated(short mcords[][2], short tot)
 /* returns if all is OK */
 int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 {
-	unsigned int *buf, *dr;
+	struct ImBuf *buf;
+	unsigned int *dr;
 	int a;
 	
 	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
 	if(em_vertoffs==0) return 0;
 	
-	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= read_backbuf(xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+
+	dr = buf->rect;
 	
 	/* build selection lookup */
 	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
@@ -340,7 +335,7 @@ int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 			selbuf[*dr]= 1;
 		dr++;
 	}
-	MEM_freeN(buf);
+	IMB_freeImBuf(buf);
 	return 1;
 }
 
@@ -366,7 +361,8 @@ void EM_free_backbuf(void)
 */
 int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
-	unsigned int *buf, *bufmask, *dr, *drm;
+	unsigned int *dr, *drm;
+	struct ImBuf *buf, *bufmask;
 	int a;
 	
 	/* method in use for face selecting too */
@@ -378,8 +374,10 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 
 	if(em_vertoffs==0) return 0;
 	
-	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= read_backbuf(xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+
+	dr = buf->rect;
 
 	/* draw the mask */
 #ifdef __APPLE__
@@ -403,7 +401,8 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	glDrawBuffer(GL_BACK);
 	
 	/* grab mask */
-	drm= bufmask= read_backbuf(xmin, ymin, xmax, ymax);
+	bufmask= read_backbuf(xmin, ymin, xmax, ymax);
+	drm = bufmask->rect;
 	if(bufmask==NULL) return 0; // only when mem alloc fails, go crash somewhere else!
 	
 	/* build selection lookup */
@@ -414,8 +413,8 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 		if(*dr>0 && *dr<=em_vertoffs && *drm==0) selbuf[*dr]= 1;
 		dr++; drm++;
 	}
-	MEM_freeN(buf);
-	MEM_freeN(bufmask);
+	IMB_freeImBuf(buf);
+	IMB_freeImBuf(bufmask);
 	return 1;
 	
 }
@@ -423,7 +422,8 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 /* circle shaped sample area */
 int EM_init_backbuf_circle(short xs, short ys, short rads)
 {
-	unsigned int *buf, *dr;
+	struct ImBuf *buf;
+	unsigned int *dr;
 	short xmin, ymin, xmax, ymax, xc, yc;
 	int radsq;
 	
@@ -437,8 +437,10 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 	
 	xmin= xs-rads; xmax= xs+rads;
 	ymin= ys-rads; ymax= ys+rads;
-	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= read_backbuf(xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+
+	dr = buf->rect;
 	
 	/* build selection lookup */
 	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
@@ -451,7 +453,7 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 		}
 	}
 
-	MEM_freeN(buf);
+	IMB_freeImBuf(buf);
 	return 1;
 	
 }
