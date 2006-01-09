@@ -146,6 +146,7 @@ short addzbufImBuf(struct ImBuf * ibuf)
 	size = ibuf->x * ibuf->y * sizeof(unsigned int);
 	if ( (ibuf->zbuf = MEM_mallocN(size, "addzbufImBuf")) ){
 		ibuf->mall |= IB_zbuf;
+		ibuf->flags |= IB_zbuf;
 		return (TRUE);
 	}
 
@@ -166,6 +167,7 @@ short imb_addencodedbufferImBuf(struct ImBuf * ibuf)
 
 	if ( (ibuf->encodedbuffer = MEM_mallocN(ibuf->encodedbuffersize, "addencodedbufferImBuf") )){
 		ibuf->mall |= IB_mem;
+		ibuf->flags |= IB_mem;
 		return (TRUE);
 	}
 
@@ -205,6 +207,7 @@ short imb_enlargeencodedbufferImBuf(struct ImBuf * ibuf)
 	ibuf->encodedsize = encodedsize;
 	ibuf->encodedbuffer = newbuffer;
 	ibuf->mall |= IB_mem;
+	ibuf->flags |= IB_mem;
 
 	return (TRUE);
 }
@@ -220,8 +223,9 @@ short imb_addrectfloatImBuf(struct ImBuf * ibuf)
 	size = ibuf->x * ibuf->y;
 	size = size * 4 * sizeof(float);
 	
-	if ( (ibuf->rect_float = MEM_mallocN(size, "imb_addrectImBuf")) ){
+	if ( (ibuf->rect_float = MEM_mallocN(size, "imb_addrectfloatImBuf")) ){
 		ibuf->mall |= IB_rectfloat;
+		ibuf->flags |= IB_rectfloat;
 		return (TRUE);
 	}
 	
@@ -241,6 +245,7 @@ short imb_addrectImBuf(struct ImBuf * ibuf)
 
 	if ( (ibuf->rect = MEM_mallocN(size, "imb_addrectImBuf")) ){
 		ibuf->mall |= IB_rect;
+		ibuf->flags |= IB_rect;
 		if (ibuf->depth > 32) return (addzbufImBuf(ibuf));
 		else return (TRUE);
 	}
@@ -264,6 +269,7 @@ short imb_addcmapImBuf(struct ImBuf *ibuf)
 		if (min > sizeof(dfltcmap)) min = sizeof(dfltcmap);
 		memcpy(ibuf->cmap, dfltcmap, min);
 		ibuf->mall |= IB_cmap;
+		ibuf->flags |= IB_cmap;
 		return (TRUE);
 	}
 
@@ -299,6 +305,7 @@ short imb_addplanesImBuf(struct ImBuf *ibuf)
 		point2 += size;
 	}
 	ibuf->mall |= IB_planes;
+	ibuf->flags |= IB_planes;
 
 	return (TRUE);
 }

@@ -43,9 +43,6 @@
 #include "BKE_bad_level_calls.h"
 #include "BKE_global.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-
 /* RPW 11-21-2002 */
 #include "DNA_scene_types.h"
 /* RPW - End */

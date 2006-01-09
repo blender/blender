@@ -38,6 +38,7 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_allocimbuf.h"
 #include "IMB_divers.h"
 
 void imb_checkncols(struct ImBuf *ibuf)
@@ -163,4 +164,29 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 			rectf[2] = pow(rectf[2] / 255.0, gamma);
 		}
 	}
+}
+
+void IMB_rect_from_float(struct ImBuf *ibuf)
+{
+	/* quick method to convert floatbuf to byte */
+	float *tof = ibuf->rect_float;
+	int i;
+	unsigned char *to = (unsigned char *) ibuf->rect;
+	
+	if(tof==NULL) return;
+	if(to==NULL) {
+		imb_addrectImBuf(ibuf);
+		to = (unsigned char *) ibuf->rect;
+	}
+	
+	for (i = ibuf->x * ibuf->y; i > 0; i--) 
+	{
+		to[0] = tof[0] > 1.0 ? 255 : (unsigned char)(tof[0] * 255.0f);
+		to[1] = tof[1] > 1.0 ? 255 : (unsigned char)(tof[1] * 255.0f);
+		to[2] = tof[2] > 1.0 ? 255 : (unsigned char)(tof[2] * 255.0f);
+		to[3] = tof[3] > 1.0 ? 255 : (unsigned char)(tof[3] * 255.0f);
+		to += 4; 
+		tof += 4;
+	}
+				
 }

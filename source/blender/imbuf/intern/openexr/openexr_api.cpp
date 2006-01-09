@@ -311,17 +311,36 @@ short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
 	}
 }
 
+
+typedef struct RGBA
+{
+	float r;
+	float g;
+	float b;
+	float a;
+} RGBA;
+
+
+static void exr_print_filecontents(InputFile *file)
+{
+	const ChannelList &channels = file->header().channels();
+	
+	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
+	{
+		const Channel &channel = i.channel();
+		printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
+	}
+	
+}
 struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 {
-	struct ImBuf *ibuf = 0;
+	struct ImBuf *ibuf = NULL;
 	InputFile *file = NULL;
 	
-//	printf("OpenEXR-load: testing input, size is %d\n", size);
 	if (imb_is_a_openexr(mem) == 0) return(NULL);
 	
 	try
 	{
-//		printf("OpenEXR-load: Creating InputFile from mem source\n");
 		Mem_IStream membuf(mem, size); 
 		file = new InputFile(membuf);
 		
@@ -331,99 +350,40 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 		
 //		printf("OpenEXR-load: image data window %d %d %d %d\n", 
 //			   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
+
+//		exr_print_filecontents(file);
 		
-		const ChannelList &channels = file->header().channels();
-		
-		for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
-		{
-			const Channel &channel = i.channel();
-//			printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
-			if (channel.type != 1)
-			{
-				printf("OpenEXR-load: Can only process HALF input !!\n");
-				return(NULL);
-			}
-		}
-		
-		RGBAZ *pixels = new RGBAZ[height * width];
-		
-		FrameBuffer frameBuffer;
-		
-		frameBuffer.insert ("R",
-							Slice (HALF,
-								   (char *) &pixels[0].r,
-								   sizeof (pixels[0]) * 1,
-								   sizeof (pixels[0]) * width));
-		
-		frameBuffer.insert ("G",
-							Slice (HALF,
-								   (char *) &pixels[0].g,
-								   sizeof (pixels[0]) * 1,
-								   sizeof (pixels[0]) * width));
-		
-		frameBuffer.insert ("B",
-							Slice (HALF,
-								   (char *) &pixels[0].b,
-								   sizeof (pixels[0]) * 1,
-								   sizeof (pixels[0]) * width));
-		
-		frameBuffer.insert ("A",
-							Slice (HALF,
-								   (char *) &pixels[0].a,
-								   sizeof (pixels[0]) * 1,
-								   sizeof (pixels[0]) * width));
-		
-		// FIXME ? Would be able to read Z data or other channels here ! 
-		
-//		printf("OpenEXR-load: Reading pixel data\n");
-		file->setFrameBuffer (frameBuffer);
-		file->readPixels (dw.min.y, dw.max.y);
-		
-//		printf("OpenEXR-load: Converting to Blender float ibuf\n");
-		
-		int bytesperpixel = 4; // since OpenEXR fills in unknown channels
-		ibuf = IMB_allocImBuf(width, height, 8 * bytesperpixel, 0, 0);
+		ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
 		
 		if (ibuf) 
 		{
 			ibuf->ftype = OPENEXR;
 			
-			imb_addrectImBuf(ibuf);
-			imb_addrectfloatImBuf(ibuf);
-			
 			if (!(flags & IB_test))
 			{
-				unsigned char *to = (unsigned char *) ibuf->rect;
-				float *tof = ibuf->rect_float;
-				RGBAZ *from = pixels;
-				RGBAZ prescale;
+				FrameBuffer frameBuffer;
 				
-				for (int i = ibuf->x * ibuf->y; i > 0; i--) 
-				{
-					to[0] = (unsigned char)(from->r > 1.0 ? 1.0 : (float)from->r)  * 255;
-					to[1] = (unsigned char)(from->g > 1.0 ? 1.0 : (float)from->g)  * 255;
-					to[2] = (unsigned char)(from->b > 1.0 ? 1.0 : (float)from->b)  * 255;
-					to[3] = (unsigned char)(from->a > 1.0 ? 1.0 : (float)from->a)  * 255;
-					to += 4; 
-					
-					tof[0] = from->r;
-					tof[1] = from->g;
-					tof[2] = from->b;
-					tof[3] = from->a;
-					
-					from++;
-				}
+				imb_addrectfloatImBuf(ibuf);
+				
+				float *first= ibuf->rect_float + 4*(height-1)*width;
+				int xstride = sizeof(float) * 4;
+				int ystride = - xstride*width;
+				
+				frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
+				frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
+				frameBuffer.insert ("B", Slice (FLOAT,  (char *) (first+2), xstride, ystride));
+				frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride));
+				
+				// FIXME ? Would be able to read Z data or other channels here ! 
+				
+				file->setFrameBuffer (frameBuffer);
+				file->readPixels (dw.min.y, dw.max.y);
+				
+				IMB_rect_from_float(ibuf);
 			}
-			
-			IMB_flipy(ibuf);
-			
-		} 
-		else 
-			printf("Couldn't allocate memory for OpenEXR image\n");
-		
-//		printf("OpenEXR-load: Done\n");
-		
+		}
 		return(ibuf);
+				
 	}
 	catch (const std::exception &exc)
 	{
