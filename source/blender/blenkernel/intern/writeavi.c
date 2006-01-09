@@ -118,29 +118,37 @@ void start_avi(void)
 
 void append_avi(int frame)
 {
-	unsigned int *rt1, *rt2;
-	struct ImBuf *temp;
-	int y;
-
+	unsigned int *rt1, *rt2, *rectot;
+	int x, y;
+	char *cp, rt;
+	
 	if (avi == NULL) {
 		G.afbreek = 1;
 		return;
 	}
 
 	/* note that libavi free's the buffer... stupid interface - zr */
-	temp = IMB_allocImBuf(R.rectx,R.recty*4,32, IB_rect, 0);
-
-	rt1= temp->rect;
+	rectot= MEM_mallocN(R.rectx*R.recty*sizeof(int), "rectot");
+	rt1= rectot;
 	rt2= R.rectot + (R.recty-1)*R.rectx;
+	/* flip y and convert to abgr */
 	for (y=0; y < R.recty; y++, rt1+= R.rectx, rt2-= R.rectx) {
-		memcpy (rt1, rt2, R.rectx*4);
+		memcpy (rt1, rt2, R.rectx*sizeof(int));
+		
+		cp= (char *)rt1;
+		for(x= R.rectx; x>0; x--) {
+			rt= cp[0];
+			cp[0]= cp[3];
+			cp[3]= rt;
+			rt= cp[1];
+			cp[1]= cp[2];
+			cp[2]= rt;
+			cp+= 4;
+		}
 	}
-
-	IMB_convert_rgba_to_abgr(temp);
 	
-	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, temp->rect, R.rectx*R.recty*4);
+	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, rectot, R.rectx*R.recty*4);
 	printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
-	IMB_freeImBuf(temp);
 }
 
 void end_avi(void)
