@@ -921,7 +921,7 @@ static char *imagetype_pup(void)
 	char formatstring[1024];
 	char appendstring[1024];
 
-	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
 
 #ifdef __sgi
 	strcat(formatstring, "|%s %%x%d");	// add space for Movie
@@ -958,11 +958,10 @@ static char *imagetype_pup(void)
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
 			"Iris + Zbuffer", R_IRIZ,
-			"Radiance HDR",   R_RADHDR,
+			"Radiance HDR",   R_RADHDR
 #ifdef __sgi
-			"Movie",          R_MOVIE,
+			,"Movie",          R_MOVIE
 #endif
-			"Ftype",          R_FTYPE
 		);
 	} else {
 		sprintf(string, formatstring,
