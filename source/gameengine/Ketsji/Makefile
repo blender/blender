@@ -58,6 +58,7 @@ CPPFLAGS += -I../Physics/Bullet
 CPPFLAGS += -I.
 CPPFLAGS += -I../Converter
 CPPFLAGS += -I../../blender/blenkernel
+CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/include
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/imbuf
