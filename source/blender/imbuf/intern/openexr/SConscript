@@ -9,11 +9,11 @@ source_files = ['openexr_api.cpp'
                 ]
 
 include_paths = ['.',
-		'../blenkernel',
-		'../imbuf',
-		'../imbuf/intern',
-		'../blenlib',
-		'../makesdna']
+		'../../../blenkernel',
+		'../../',
+		'..',
+		'../../../blenlib',
+		'../../../makesdna']
                  
 openexr_env.Append(CPPPATH = extra_includes)
 openexr_env.Append(CPPPATH = include_paths)
