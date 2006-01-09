@@ -42,7 +42,7 @@ selected faces, or all faces.
 # -------------------------------------------------------------------------- 
 
 
-from Blender import *
+from Blender import Object, Scene, Draw, Window, sys, Mesh
 from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs, TriangleArea
 
 from math import cos
@@ -56,15 +56,11 @@ global USER_FILL_HOLES_QUALITY
 USER_FILL_HOLES = None
 USER_FILL_HOLES_QUALITY = None
 
-# Box Packer is included for distrobution.
 import boxpack2d
-# reload(boxpack2d)
+# reload(boxpack2d) # for developing.
 
 
-
-
-# Do 2 lines intersect, if so where, DOSENT HANDLE HOZ/VERT LINES!!!
-
+# Do 2 lines intersect?
 def lineIntersection2D(x1,y1, x2,y2, _x1,_y1, _x2,_y2):
 	
 	# Bounding box intersection first.
@@ -244,6 +240,7 @@ def island2Edge(island):
 # pt is and x/y
 # edges are a non ordered loop of edges.
 # #offsets are the edge x and y offset.
+"""
 def pointInEdges(pt, edges):
 	#
 	x1 = pt[0] 
@@ -259,7 +256,7 @@ def pointInEdges(pt, edges):
 			intersectCount+=1
 	
 	return intersectCount % 2
-	
+"""
 
 def uniqueEdgePairPoints(edges):
 	points = {}
@@ -296,8 +293,6 @@ def islandIntersectUvIsland(source, target, xSourceOffset, ySourceOffset):
 	# Is 1 point in the box, inside the vertLoops
 	edgeLoopsSource = source[6] # Pretend this is offset
 	edgeLoopsTarget = target[6]
-	
-
 	
 	# Edge intersect test	
 	for ed in edgeLoopsSource:
@@ -413,7 +408,7 @@ def optiRotateUvIsland(faces):
 		
 	
 	# Serialized UV coords to Vectors
-	uvVecs = [Vector(uv[:2]) for f in faces  for uv in f.uv]
+	uvVecs = [Vector(uv) for f in faces  for uv in f.uv]
 	
 	# Theres a small enough number of these to hard code it
 	# rather then a loop.
@@ -817,12 +812,14 @@ def packLinkedUvs(faceGroups, faceGroupsArea, me):
 	islandIdx = len(islandList)
 	# Having these here avoids devide by 0
 	if islandIdx:
-		# Maximize to uv area?? Will write a normalize function.
-		#xfactor = 1.0 / packWidth
-		#yfactor = 1.0 / packHeight	
 		
-		# Keep proportions.
-		xfactor = yfactor = 1.0 / max(packWidth, packHeight)
+		if USER_STRETCH_ASPECT:
+			# Maximize to uv area?? Will write a normalize function.
+			xfactor = 1.0 / packWidth
+			yfactor = 1.0 / packHeight	
+		else:
+			# Keep proportions.
+			xfactor = yfactor = 1.0 / max(packWidth, packHeight)
 	
 	while islandIdx:
 		islandIdx -=1
@@ -831,8 +828,16 @@ def packLinkedUvs(faceGroups, faceGroupsArea, me):
 		
 		xoffset = packedLs[islandIdx][1] - islandOffsetList[islandIdx][0]
 		yoffset = packedLs[islandIdx][2] - islandOffsetList[islandIdx][1]
-		for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box
-			f.uv = tuple([Vector(((uv[0]+xoffset)*xfactor), ((uv[1]+yoffset)*yfactor)) for uv in f.uv])
+		
+		if USER_MARGIN:
+			USER_MARGIN_SCALE = 1-(USER_MARGIN*2)
+			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box, margin
+				f.uv = tuple([Vector((((uv[0]+xoffset)*xfactor)*USER_MARGIN_SCALE)+USER_MARGIN, (((uv[1]+yoffset)*yfactor)*USER_MARGIN_SCALE)+USER_MARGIN) for uv in f.uv])
+		else:
+			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box
+				f.uv = tuple([Vector(((uv[0]+xoffset)*xfactor), ((uv[1]+yoffset)*yfactor)) for uv in f.uv])
+			
+			
 
 def VectoMat(vec):
 	
@@ -848,44 +853,87 @@ def VectoMat(vec):
 	a1.normalize()
 	a2 = CrossVecs(a3, a1)
 	return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
-	
-	
+
+
 global ob
 ob = None
 def main():
 	global USER_FILL_HOLES
 	global USER_FILL_HOLES_QUALITY
-	try:
-		obList =  Object.GetSelected()
-		
-	except:
-		Draw.PupMenu('error, no selected objects or mesh')
+	global USER_STRETCH_ASPECT
+	global USER_MARGIN
+	
+	# Use datanames as kesy so as not to unwrap a mesh more then once.
+	obList =  dict([(ob.getData(name_only=1), ob) for ob in Object.GetSelected() if ob.getType() == 'Mesh'])
+	
+	
+	# Face select object may not be selected.
+	scn = Scene.GetCurrent()
+	ob = scn.getActiveObject()
+	if ob and ob.sel == 0 and ob.getType() == 'Mesh':
+		# Add to the list
+		obList[ob.getData(name_only=1)] = ob
+	del scn # Sone use the scene again.
+	
+	obList = obList.values() # turn from a dict to a list.
+	
+	if not obList:
+		Draw.PupMenu('error, no selected mesh objects')
 		return
 	
-	USER_FILL_HOLES = Draw.PupMenu('ArchiMap UV Unwrapper%t|Fill in holes (space efficient, slow)%x1|No Filling (waste space, fast)%x0')
-	if USER_FILL_HOLES == -1:
-		return
-
-	USER_ONLY_SELECTED_FACES = Draw.PupMenu('Faces to Unwrap%t|Only Selected%x1|Unwrap All%x0')
-	if USER_ONLY_SELECTED_FACES == -1:
-		return
+	# Create the variables.
+	USER_PROJECTION_LIMIT = Draw.Create(66)
+	USER_ONLY_SELECTED_FACES = Draw.Create(1)
+	USER_STRETCH_ASPECT = Draw.Create(1) # Only for hole filling.
+	USER_MARGIN = Draw.Create(0.0) # Only for hole filling.
+	USER_FILL_HOLES = Draw.Create(0)
+	USER_FILL_HOLES_QUALITY = Draw.Create(50) # Only for hole filling.
 	
-	if USER_FILL_HOLES:
-		USER_FILL_HOLES_QUALITY = Draw.PupIntInput('compression: ', 50, 1, 100)
-		if USER_FILL_HOLES_QUALITY == None:
-			return
-			
-	USER_PROJECTION_LIMIT = Draw.PupIntInput('angle limit:', 66, 1, 89)
-	if USER_PROJECTION_LIMIT == None:
+	
+	pup_block = [\
+	'Projection',\
+	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, 'lower for more projection groups, higher for less distortion.'),\
+	('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
+	'UV Layout',\
+	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
+	('Bleed Margin:', USER_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from texture tiling.'),\
+	'Fill in empty areas',\
+	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
+	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
+	]
+	
+	# Reuse variable
+	if len(obList) == 1:
+		ob = "Unwrap %i Selected Mesh"
+	else:
+		ob = "Unwrap %i Selected Meshes"
+	
+	if not Draw.PupBlock(ob % len(obList), pup_block):
 		return
+	del ob
+	
+	# Convert from being button types
+	USER_PROJECTION_LIMIT = USER_PROJECTION_LIMIT.val
+	USER_ONLY_SELECTED_FACES = USER_ONLY_SELECTED_FACES.val
+	USER_STRETCH_ASPECT = USER_STRETCH_ASPECT.val
+	USER_MARGIN = USER_MARGIN.val
+	USER_FILL_HOLES = USER_FILL_HOLES.val
+	USER_FILL_HOLES_QUALITY = USER_FILL_HOLES_QUALITY.val
+	
+	
+	USER_PROJECTION_LIMIT_CONVERTED = cos(USER_PROJECTION_LIMIT * DEG_TO_RAD)
+	USER_PROJECTION_LIMIT_HALF_CONVERTED = cos((USER_PROJECTION_LIMIT/2) * DEG_TO_RAD)
 	
 	
 	# Toggle Edit mode
-	if Window.EditMode():
+	is_editmode = Window.EditMode()
+	if is_editmode:
 		Window.EditMode(0)
+	# Assume face select mode! an annoying hack to toggle face select mode because Mesh dosent like faceSelectMode.
 	
+		
 	Window.WaitCursor(1)
-	
+	SELECT_FLAG = Mesh.FaceFlags['SELECT']
 	time1 = sys.time()
 	for ob in obList:
 		
@@ -894,10 +942,14 @@ def main():
 			continue
 		
 		me = ob.getData(mesh=1)
+		
+		if not me.faceUV: # Mesh has no UV Coords, dont bother.
+			continue
+		
 		if USER_ONLY_SELECTED_FACES:
-			meshFaces = [f for f in me.faces if f.sel if len(f.v) > 2]
+			meshFaces = [f for f in me.faces if f.flag & SELECT_FLAG]
 		else:
-			meshFaces = [f for f in me.faces if len(f.v) > 2]
+			meshFaces = [f for f in me.faces]
 		
 		if not meshFaces:
 			continue
@@ -918,7 +970,7 @@ def main():
 		for f in meshFaces:
 			area = faceArea(f)
 			if area <= SMALL_NUM:
-				f.uv = [(0.0, 0.0)] * len(f.v)
+				f.uv = tuple([Vector(0.0, 0.0)] * len(f.v)) # Assign dummy UV
 				print 'found zero area face, removing.'
 				
 			else:
@@ -935,9 +987,6 @@ def main():
 		# 0d is   1.0
 		# 180 IS -0.59846
 		
-		USER_PROJECTION_LIMIT_CONVERTED = cos(USER_PROJECTION_LIMIT * DEG_TO_RAD)
-		#print  USER_PROJECTION_LIMIT_CONVERTED
-		USER_PROJECTION_LIMIT_HALF_CONVERTED = cos((USER_PROJECTION_LIMIT/2) * DEG_TO_RAD)
 		
 		# Initialize projectVecs
 		newProjectVec = faceListProps[0][2] 
@@ -1072,11 +1121,12 @@ def main():
 	Window.WaitCursor(0)
 	Window.RedrawAll()
 
-try:
-	main()
-	
-except KeyboardInterrupt:
-	print '\nUser Canceled.'
-	Draw.PupMenu('user canceled execution, unwrap aborted.')
-	Window.DrawProgressBar(1.0, "")
-	Window.WaitCursor(0)
+if __name__ == '__main__':
+	try:
+		main()
+		
+	except KeyboardInterrupt:
+		print '\nUser Canceled.'
+		Draw.PupMenu('user canceled execution, unwrap aborted.')
+		Window.DrawProgressBar(1.0, "")
+		Window.WaitCursor(0)
