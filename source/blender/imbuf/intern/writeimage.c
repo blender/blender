@@ -97,7 +97,7 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 	}
 #ifdef WITH_OPENEXR
 	if (IS_openexr(ibuf)) {
-		return imb_save_openexr_half(ibuf, name, flags);
+		return imb_save_openexr(ibuf, name, flags);
 	}
 #endif
 

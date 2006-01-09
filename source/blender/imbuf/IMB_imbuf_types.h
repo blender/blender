@@ -134,15 +134,9 @@ typedef enum {
 #define IB_mem			(1 << 14)
 #define IB_rectfloat	(1 << 15)
 
-/**@}*/
-
-/** \name imbuf_formats Image file formats
- * \brief These defines are bit flags for the various image file formats.
- */
-/**@{*/
-/** \brief Identifier for an image file format.
- *
+/*
  * The bit flag is stored in the ImBuf.ftype variable.
+ * Note that the lower 10 bits is used for storing custom flags 
  */
 #define AMI				(1 << 31)
 #define PNG				(1 << 30)
@@ -157,7 +151,10 @@ typedef enum {
 
 #define RADHDR			(1 << 24)
 #define TIF				(1 << 23)
+
 #define OPENEXR			(1 << 22)
+#define OPENEXR_HALF	(1 << 8 )
+#define OPENEXR_COMPRESS (7)	
 
 #define RAWTGA	        (TGA | 1)
 

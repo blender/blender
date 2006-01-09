@@ -1,9 +1,4 @@
 /**
- * blenlib/DNA_scene_types.h (mar-2001 nzc)
- *
- * Renderrecipe and scene decription. The fact that there is a
- * hierarchy here is a bit strange, and not desirable.
- *
  * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -117,7 +112,7 @@ typedef struct RenderData {
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
  	
- 	short filtertype, pad;		/* filter is box, tent, gauss, mitch, etc */
+ 	short filtertype;			/* filter is box, tent, gauss, mitch, etc */
 
 
 	short size, maximsize;	/* size in %, max in Kb */
@@ -146,14 +141,14 @@ typedef struct RenderData {
 	 * The number of part to use in the y direction
 	 */
 	short yparts;
-	/* should rewrite this I think... */
-	rctf safety, border;
         
-	short winpos, planes, imtype;
+	short winpos, planes, imtype, subimtype;
+	
 	/** Mode bits:                                                           */
 	/* 0: Enable backbuffering for images                                    */
 	short bufflag;
  	short quality;
+	
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
 	 * 0: enable sequence output rendering                                   
@@ -209,6 +204,9 @@ typedef struct RenderData {
 	/** For unified renderer: reduce intensity on boundaries with
 	 * identical materials with this number.*/
 	short same_mat_redux;
+	
+	/* safety and border rect */
+	rctf safety, border;
 	
 	/**
 	 * The gamma for the normal rendering. Used when doing
@@ -406,6 +404,11 @@ typedef struct Scene {
 #define R_RADHDR	21
 #define R_TIFF		22
 #define R_OPENEXR	23
+
+/* subimtype, flag options for imtype */
+#define R_OPENEXR_HALF	1
+#define R_OPENEXR_ZBUF	2
+
 
 /* **************** SCENE ********************* */
 #define RAD_PHASE_PATCHES	1

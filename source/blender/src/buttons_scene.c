@@ -1218,12 +1218,13 @@ static void render_panel_format(void)
 
 #ifdef __sgi
 	yofs = 76;
-	uiDefButS(block, NUM,B_DIFF,"MaxSize:", 892,32,165,20, &G.scene->r.maximsize, 0.0, 500.0, 0, 0, "Maximum size per frame to save in an SGI movie");
-	uiDefButBitI(block, TOG, R_COSMO, 0,"Cosmo", 1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
+	uiDefButS(block, NUM,B_DIFF,"MaxSize:",			892,32,165,20, &G.scene->r.maximsize, 0.0, 500.0, 0, 0, "Maximum size per frame to save in an SGI movie");
+	uiDefButBitI(block, TOG, R_COSMO, 0,"Cosmo",	1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
 #endif
 
+	
 	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,174,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
-	uiDefButBitI(block, TOG, R_MOVIECROP, B_DIFF, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
+	uiDefButBitI(block, TOG, R_MOVIECROP, B_DIFF, "Crop",   1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
 
 	yofs -= 22;
 
@@ -1258,12 +1259,21 @@ static void render_panel_format(void)
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
 #ifdef WITH_OPENEXR
-	} else if (G.scene->r.imtype == R_OPENEXR ) {
+	} 
+	else if (G.scene->r.imtype == R_OPENEXR ) {
 		if (G.scene->r.quality > 5) G.scene->r.quality = 0;
-		uiDefButS(block, MENU,B_SET_OPENEXR, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  892,yofs,112,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP,"Half",	892,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Use 16 bits float 'Half' type");
+		uiDefButBitS(block, TOG, R_OPENEXR_ZBUF, B_NOP,"Zbuf",	952,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save the zbuffer as 32 bits unsigned int");
+		uiBlockEndAlign(block);
+		
+		uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
+															892,yofs,112,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
+		
 #endif
 	} else {
-		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	// temp
+		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	/* restore from openexr */
 		
 		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}

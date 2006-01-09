@@ -39,8 +39,6 @@ extern "C"
 #include "IMB_imbuf.h"
 	
 #include "IMB_allocimbuf.h"
-#include "BKE_global.h"
-#include "DNA_scene_types.h"
 }
 
 #include <iostream>
@@ -150,27 +148,18 @@ static void openexr_header_compression(Header *header, int compression)
 	}
 }
 
-short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
+static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 {
 	
 	int width = ibuf->x;
 	int height = ibuf->y;
-	
-	if (flags & IB_mem) 
-	{
-		printf("OpenEXR-save: Create EXR in memory CURRENTLY NOT SUPPORTED !\n");
-		imb_addencodedbufferImBuf(ibuf);
-		ibuf->encodedsize = 0;	  
-		return(0);
-	} 
-	
 	int write_zbuf = (flags & IB_zbuf) && ibuf->zbuf != NULL;   // summarize
 	
 	try
 	{
 		Header header (width, height);
 		
-		openexr_header_compression(&header, G.scene->r.quality);
+		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
 		
 		header.channels().insert ("R", Channel (HALF));
 		header.channels().insert ("G", Channel (HALF));
@@ -249,30 +238,18 @@ short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 	return (1);
 }
 
-short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
+static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 {
 	
 	int width = ibuf->x;
 	int height = ibuf->y;
-	
-	if (flags & IB_mem) 
-	{
-		printf("OpenEXR-save: Create EXR in memory CURRENTLY NOT SUPPORTED !\n");
-		imb_addencodedbufferImBuf(ibuf);
-		ibuf->encodedsize = 0;	  
-		return(0);
-	} 
-	
-	if (ibuf->rect_float==NULL)
-		return(0);
-	
 	int write_zbuf = (flags & IB_zbuf) && ibuf->zbuf != NULL;   // summarize
 	
 	try
 	{
 		Header header (width, height);
 		
-		openexr_header_compression(&header, G.scene->r.quality);
+		openexr_header_compression(&header, ibuf->ftype & OPENEXR_COMPRESS);
 		
 		header.channels().insert ("R", Channel (FLOAT));
 		header.channels().insert ("G", Channel (FLOAT));
@@ -313,6 +290,26 @@ short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 }
 
 
+short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
+{
+	if (flags & IB_mem) 
+	{
+		printf("OpenEXR-save: Create EXR in memory CURRENTLY NOT SUPPORTED !\n");
+		imb_addencodedbufferImBuf(ibuf);
+		ibuf->encodedsize = 0;	  
+		return(0);
+	} 
+	
+	if (ibuf->ftype & OPENEXR_HALF) 
+		return imb_save_openexr_half(ibuf, name, flags);
+	else {
+		/* when no float rect, we save as half (16 bits is sufficient) */
+		if (ibuf->rect_float==NULL)
+			return imb_save_openexr_half(ibuf, name, flags);
+		else
+			return imb_save_openexr_float(ibuf, name, flags);
+	}
+}
 
 struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 {
@@ -437,5 +434,6 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 	}
 	
 }
-	
+
+
 } // export "C"

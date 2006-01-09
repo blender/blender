@@ -191,9 +191,8 @@ void schrijfplaatje(char *name)
 		else if(R.r.imtype==R_IRIZ) {
 			ibuf->ftype= IMAGIC;
 			if (ibuf->zbuf == 0) {
-				if (R.rectz) {
+				if (R.rectz)
 					ibuf->zbuf = (int *)R.rectz;
-				}
 				else printf("no zbuf\n");
 			}
 		}
@@ -211,7 +210,15 @@ void schrijfplaatje(char *name)
 		}
 #ifdef WITH_OPENEXR
 		else if(R.r.imtype==R_OPENEXR) {
+			/* ibuf stores bitmasks for types */
 			ibuf->ftype= OPENEXR;
+			if(R.r.subimtype & R_OPENEXR_HALF)
+				ibuf->ftype |= OPENEXR_HALF;
+			
+			ibuf->ftype |= (R.r.quality & OPENEXR_COMPRESS);
+			
+			if(R.rectz && (R.r.subimtype & R_OPENEXR_ZBUF))
+				ibuf->zbuf = (int *)R.rectz;
 		}
 #endif
 		else if((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {
@@ -533,6 +540,7 @@ void BIF_save_rendered_image(void)
 		}
 		
 		R.r.imtype= G.scene->r.imtype;
+		R.r.subimtype= G.scene->r.subimtype;
 		R.r.quality= G.scene->r.quality;
 		R.r.planes= G.scene->r.planes;
 	

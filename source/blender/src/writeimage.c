@@ -66,6 +66,9 @@ int BIF_write_ibuf(ImBuf *ibuf, char *name)
 #ifdef WITH_OPENEXR
 	else if (G.scene->r.imtype==R_OPENEXR) {
 		ibuf->ftype= OPENEXR;
+		if(G.scene->r.subimtype & R_OPENEXR_HALF)
+			ibuf->ftype |= OPENEXR_HALF;
+		ibuf->ftype |= (G.scene->r.quality & OPENEXR_COMPRESS);
 	}
 #endif
 	else if ((G.scene->r.imtype==R_TARGA) || (G.scene->r.imtype==R_PNG)) {

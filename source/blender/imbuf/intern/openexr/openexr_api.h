@@ -49,8 +49,7 @@ extern "C" {
   
 int imb_is_a_openexr(unsigned char *mem);
 	
-short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags);
-short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags);
+short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags);
 
 struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags);
 
