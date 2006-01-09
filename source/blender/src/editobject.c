@@ -4455,7 +4455,24 @@ void adduplicate(int mode, int dupflag)
 		}
 	}
 
-	/* ipos */
+	/* lamps */
+	if( dupflag & USER_DUP_IPO) {
+		Lamp *la= G.main->lamp.first;
+		while(la) {
+			if(la->id.newid) {
+				Lamp *lan= (Lamp *)la->id.newid;
+				id= (ID *)lan->ipo;
+				if(id) {
+					ID_NEW_US(lan->ipo)
+					else lan->ipo= copy_ipo(lan->ipo);
+					id->us--;
+				}
+			}
+			la= la->id.next;
+		}
+	}
+
+/* ipos */
 	ipo= G.main->ipo.first;
 	while(ipo) {
 		if(ipo->id.lib==NULL && ipo->id.newid) {
