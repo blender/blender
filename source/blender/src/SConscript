@@ -2,9 +2,11 @@
 Import ('extra_includes')
 Import ('user_options_dict')
 Import ('library_env')
+Import ('defines')
 
 src_env = library_env.Copy ()
 src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
+src_env.Append(CPPDEFINES = defines)
 
 source_files = ['B.blend.c',
                 'Bfont.c',
