@@ -1410,7 +1410,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 							if(lar->shb) i = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
 							else {
 								float shad[4];
-								ray_shadow(shi, lar, shad);
+								//ray_shadow(shi, lar, shad);
 								i= shad[3];
 							}
 							
@@ -1435,7 +1435,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					
 					/* single sided? */
 					if( shi->facenor[0]*lv[0] + shi->facenor[1]*lv[1] + shi->facenor[2]*lv[2] > -0.01) {
-						ray_shadow(shi, lar, shad);
+						//ray_shadow(shi, lar, shad);
 						shadfac[3]+= shad[3];
 						ir+= 1.0;
 					}
@@ -1709,7 +1709,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 							shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
 						}
 						else if(lar->mode & LA_SHAD_RAY) {
-							ray_shadow(shi, lar, shadfac);
+							//ray_shadow(shi, lar, shadfac);
 						}
 	
 						/* warning, here it skips the loop */
@@ -1729,7 +1729,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					}
 				}
 			}
-			
+#if 0			
 			if(R.r.mode & R_RAYTRACE) {
 				extern void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co);
 				float co[3], distfac;
@@ -1744,7 +1744,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					shr->diff[2]+= distfac;
 				}
 			}
-			
+#endif			
 		
 			/* specularity */
 			if(shadfac[3]>0.0 && shi->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
