@@ -67,19 +67,19 @@ public:
 	 * Returns the timer callback.
 	 * @return The timer callback.
 	 */
-	inline virtual GHOST_TimerProcPtr getTimerProc() const = 0;
+	virtual GHOST_TimerProcPtr getTimerProc() const = 0;
 
 	/**
 	 * Changes the timer callback.
 	 * @param timerProc The timer callback.
 	 */
-	inline virtual void setTimerProc(const GHOST_TimerProcPtr timerProc) = 0;
+	virtual void setTimerProc(const GHOST_TimerProcPtr timerProc) = 0;
 
 	/**
 	 * Returns the timer user data.
 	 * @return The timer user data.
 	 */
-	inline virtual GHOST_TUserDataPtr getUserData() const = 0;
+	virtual GHOST_TUserDataPtr getUserData() const = 0;
 	
 	/**
 	 * Changes the time user data.

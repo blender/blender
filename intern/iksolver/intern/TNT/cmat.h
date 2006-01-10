@@ -39,7 +39,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
-#include <strstream>
 #ifdef TNT_USE_REGIONS
 #include "region2d.h"
 #endif
@@ -204,19 +203,7 @@ class Matrix
         copy(v);
     }
 
-    Matrix(Subscript M, Subscript N, const char *s)
-    {
-        initialize(M,N);
-        std::istrstream ins(s);
 
-        Subscript i, j;
-
-        for (i=0; i<M; i++)
-            for (j=0; j<N; j++)
-                ins >> row_[i][j];
-    }
-
-		
     // destructor
     //
     ~Matrix()
