@@ -223,6 +223,7 @@ static int _edge_isBoundary(CCGEdge *e);
 enum {
 	Vert_eEffected=		(1<<0),
 	Vert_eChanged=		(1<<1),
+	Vert_eSeam=			(1<<2),
 } VertFlags;
 enum {
 	Edge_eEffected=		(1<<0),
@@ -398,6 +399,10 @@ static void _vert_free(CCGVert *v, CCGSubSurf *ss) {
 	CCGSUBSURF_free(ss, v->edges);
 	CCGSUBSURF_free(ss, v->faces);
 	CCGSUBSURF_free(ss, v);
+}
+
+static int VERT_seam(CCGVert *v, CCGSubSurf *ss) {
+	return ((v->flags & Vert_eSeam) != 0);
 }
 
 /***/
@@ -871,9 +876,10 @@ CCGError ccgSubSurf_syncFaceDel(CCGSubSurf *ss, CCGFaceHDL fHDL) {
 	return eCCGError_None;
 }
 
-CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, CCGVert **v_r) {
+CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, int seam, CCGVert **v_r) {
 	void **prevp;
 	CCGVert *v = NULL;
+	short seamflag = (seam)? Vert_eSeam: 0;
 	
 	if (ss->syncState==eSyncState_Partial) {
 		v = _ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
@@ -881,12 +887,12 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, CC
 			v = _vert_new(vHDL, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
 			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			_ehash_insert(ss->vMap, (EHEntry*) v);
-			v->flags = Vert_eEffected;
-		} else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize))) {
+			v->flags = Vert_eEffected|seamflag;
+		} else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize)) || ((v->flags & Vert_eSeam) != seamflag)) {
 			int i, j;
 
 			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
-			v->flags = Vert_eEffected;
+			v->flags = Vert_eEffected|seamflag;
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
@@ -910,12 +916,12 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, CC
 			v = _vert_new(vHDL, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
 			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			_ehash_insert(ss->vMap, (EHEntry*) v);
-			v->flags = Vert_eEffected;
-		} else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize))) {
+			v->flags = Vert_eEffected|seamflag;
+		} else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize)) || ((v->flags & Vert_eSeam) != seamflag)) {
 			*prevp = v->next;
 			_ehash_insert(ss->vMap, (EHEntry*) v);
 			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
-			v->flags = Vert_eEffected|Vert_eChanged;
+			v->flags = Vert_eEffected|Vert_eChanged|seamflag;
 		} else {
 			*prevp = v->next;
 			_ehash_insert(ss->vMap, (EHEntry*) v);
@@ -1222,10 +1228,14 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		void *nCo = VERT_getCo(v, nextLvl);
 		int sharpCount = 0, allSharp = 1;
 		float avgSharpness = 0.0;
+		int seam = VERT_seam(v, ss), seamEdges = 0;
 
 		for (i=0; i<v->numEdges; i++) {
 			CCGEdge *e = v->edges[i];
 			float sharpness = EDGE_getSharpness(e, curLvl, ss);
+
+			if (seam && _edge_isBoundary(e))
+				seamEdges++;
 
 			if (sharpness!=0.0f) {
 				sharpCount++;
@@ -1239,6 +1249,9 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		if (avgSharpness>1.0) {
 			avgSharpness = 1.0;
 		}
+
+		if (seam && seamEdges < 2)
+			seam = 0;
 
 		if (!v->numEdges) {
 			VertDataCopy(nCo, co);
@@ -1282,14 +1295,25 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			VertDataMulN(nCo, 1.0f/numEdges);
 		}
 
-		if (sharpCount>1 && v->numFaces) {
+		if ((sharpCount>1 && v->numFaces) || seam) {
 			VertDataZero(q);
+
+			if (seam) {
+				avgSharpness = 1.0f;
+				sharpCount = seamEdges;
+				allSharp = 1;
+			}
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
 				float sharpness = EDGE_getSharpness(e, curLvl, ss);
 
-				if (sharpness != 0.0) {
+				if (seam) {
+					if (_edge_isBoundary(e)) {
+						CCGVert *oV = _edge_getOtherVert(e, v);
+						VertDataAdd(q, VERT_getCo(oV, curLvl));
+					}
+				} else if (sharpness != 0.0) {
 					CCGVert *oV = _edge_getOtherVert(e, v);
 					VertDataAdd(q, VERT_getCo(oV, curLvl));
 				}
@@ -1502,10 +1526,14 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			void *nCo = VERT_getCo(v, nextLvl);
 			int sharpCount = 0, allSharp = 1;
 			float avgSharpness = 0.0;
+			int seam = VERT_seam(v, ss), seamEdges = 0;
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
 				float sharpness = EDGE_getSharpness(e, curLvl, ss);
+
+				if (seam && _edge_isBoundary(e))
+					seamEdges++;
 
 				if (sharpness!=0.0f) {
 					sharpCount++;
@@ -1519,6 +1547,9 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			if (avgSharpness>1.0) {
 				avgSharpness = 1.0;
 			}
+
+			if (seam && seamEdges < 2)
+				seam = 0;
 
 			if (!v->numEdges) {
 				VertDataCopy(nCo, co);
@@ -1564,14 +1595,23 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				VertDataMulN(nCo, 1.0f/numEdges);
 			}
 
-			if (sharpCount>1 && v->numFaces) {
+			if ((sharpCount>1 && v->numFaces) || seam) {
 				VertDataZero(q);
+
+				if (seam) {
+					avgSharpness = 1.0f;
+					sharpCount = seamEdges;
+					allSharp = 1;
+				}
 
 				for (i=0; i<v->numEdges; i++) {
 					CCGEdge *e = v->edges[i];
 					float sharpness = EDGE_getSharpness(e, curLvl, ss);
 
-					if (sharpness != 0.0) {
+					if (seam) {
+						if (_edge_isBoundary(e))
+							VertDataAdd(q, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
+					} else if (sharpness != 0.0) {
 						VertDataAdd(q, _edge_getCoVert(e, v, curLvl, 1, vertDataSize));
 					}
 				}
@@ -2120,6 +2160,9 @@ void *ccgSubSurf_getEdgeLevelData(CCGSubSurf *ss, CCGEdge *e, int x, int level) 
 	} else {
 		return _edge_getCo(e, level, x, ss->meshIFC.vertDataSize);
 	}
+}
+float ccgSubSurf_getEdgeCrease(CCGSubSurf *ss, CCGEdge *e) {
+	return e->crease;
 }
 
 /* Face accessors */

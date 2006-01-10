@@ -92,6 +92,22 @@ void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces,
 	 * (_numVerts_r_ may be NULL) */
 float (*mesh_getVertexCos(struct Mesh *me, int *numVerts_r))[3];
 
+/* map from uv vertex to face (for select linked, stitch, uv suburf) */
+
+struct UvVertMap;
+typedef struct UvVertMap UvVertMap;
+
+typedef struct UvMapVert {
+	struct UvMapVert *next;
+	unsigned int f;
+	unsigned char tfindex, separate;
+} UvMapVert;
+
+UvVertMap *make_uv_vert_map(struct MFace *mface, struct TFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);
+UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
+UvMapVert *get_first_uv_map_vert(UvVertMap *vmap);
+void free_uv_vert_map(UvVertMap *vmap);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1212,7 +1212,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		int lx = x + width - 60 - 15;
 
 		if (md->type==eModifierType_Subsurf) {
-			height = 86;
+			height = 106;
 		} else if (md->type==eModifierType_Lattice) {
 			height = 46;
 		} else if (md->type==eModifierType_Curve) {
@@ -1274,6 +1274,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			*/
 
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_ControlEdges, B_MODIFIER_RECALC, "Optimal Draw", lx, (cy-=19), buttonWidth,19,&smd->flags, 0, 0, 0, 0, "Skip drawing/rendering of interior subdivided edges");
+			uiDefButBitS(block, TOG, eSubsurfModifierFlag_SubsurfUv, B_MODIFIER_RECALC, "Subsurf UV", lx, (cy-=19),buttonWidth,19,&smd->flags, 0, 0, 0, 0, "Use subsurf to subdivide UVs");
 		} else if (md->type==eModifierType_Lattice) {
 			LatticeModifierData *lmd = (LatticeModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testLatticeObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &lmd->object, "Lattice object to deform with");

@@ -49,7 +49,7 @@ CCGError	ccgSubSurf_sync	(CCGSubSurf *ss);
 CCGError	ccgSubSurf_initFullSync		(CCGSubSurf *ss);
 CCGError	ccgSubSurf_initPartialSync	(CCGSubSurf *ss);
 
-CCGError	ccgSubSurf_syncVert		(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, CCGVert **v_r);
+CCGError	ccgSubSurf_syncVert		(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, int seam, CCGVert **v_r);
 CCGError	ccgSubSurf_syncEdge		(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0, CCGVertHDL e_vHDL1, float crease, CCGEdge **e_r);
 CCGError	ccgSubSurf_syncFace		(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGVertHDL *vHDLs, CCGFace **f_r);
 
@@ -99,6 +99,7 @@ int			ccgSubSurf_getEdgeNumFaces			(CCGSubSurf *ss, CCGEdge *e);
 CCGFace*	ccgSubSurf_getEdgeFace				(CCGSubSurf *ss, CCGEdge *e, int index);
 CCGVert*	ccgSubSurf_getEdgeVert0				(CCGSubSurf *ss, CCGEdge *e);
 CCGVert*	ccgSubSurf_getEdgeVert1				(CCGSubSurf *ss, CCGEdge *e);
+float		ccgSubSurf_getEdgeCrease			(CCGSubSurf *ss, CCGEdge *e);
 
 int			ccgSubSurf_getEdgeAge				(CCGSubSurf *ss, CCGEdge *e);
 void*		ccgSubSurf_getEdgeUserData			(CCGSubSurf *ss, CCGEdge *e);

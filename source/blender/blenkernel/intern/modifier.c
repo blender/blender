@@ -147,6 +147,7 @@ static void subsurfModifier_initData(ModifierData *md)
 	
 	smd->levels = 1;
 	smd->renderLevels = 2;
+	smd->flags |= eSubsurfModifierFlag_SubsurfUv;
 }
 
 static void subsurfModifier_copyData(ModifierData *md, ModifierData *target)
@@ -505,6 +506,7 @@ static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListM
 
 		if (isShared) {
 			mv->co[axis] = 0;
+			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = &dlm->mvert[dlm->totvert++];
 
