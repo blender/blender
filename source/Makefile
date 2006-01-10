@@ -218,6 +218,10 @@ ifeq ($(OS), windows)
     endif
 endif
 
+ifeq ($(WITH_OPENEXR), true)
+    COMLIB += $(NAN_OPENEXR_LIBS)
+endif
+
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
     PULIB += $(NAN_MOTO)/lib/libmoto.a
     PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a

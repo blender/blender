@@ -94,10 +94,21 @@ endif
     endif
 
     export WITH_OPENEXR ?= true
-    export NAN_OPENEXR ?= /usr/local
-    export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
-
+    ifeq ($(OS),windows)
+      ifeq ($(FREE_WINDOWS), true)
+        export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
+        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+        export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+      else
+        export NAN_OPENEXR ?= $(LCGDIR)/openexr
+        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/IlmImf.lib $(NAN_OPENEXR)/lib/Half.lib $(NAN_OPENEXR)/lib/Iex.lib
+        export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/IlmImf -I$(NAN_OPENEXR)/include/Imath -I$(NAN_OPENEXR)/include/Iex
+      endif
+    else
+      export NAN_OPENEXR ?= /usr/local
+      export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+    endif
   # Platform Dependent settings go below:
 
   ifeq ($(OS),beos)

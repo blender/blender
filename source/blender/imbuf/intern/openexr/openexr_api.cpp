@@ -43,6 +43,19 @@ extern "C"
 
 #include <iostream>
 
+#if defined (_WIN32) && !defined(FREE_WINDOWS)
+#include <half.h>
+#include <IlmImf/ImfVersion.h>
+#include <IlmImf/ImfArray.h>
+#include <IlmImf/ImfIO.h>
+#include <IlmImf/ImfChannelList.h>
+#include <IlmImf/ImfPixelType.h>
+#include <IlmImf/ImfInputFile.h>
+#include <IlmImf/ImfOutputFile.h>
+#include <IlmImf/ImfCompression.h>
+#include <IlmImf/ImfCompressionAttribute.h>
+#include <Imath/ImathBox.h>
+#else
 #include <OpenEXR/half.h>
 #include <OpenEXR/ImfVersion.h>
 #include <OpenEXR/ImathBox.h>
@@ -54,6 +67,7 @@ extern "C"
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfCompression.h>
 #include <OpenEXR/ImfCompressionAttribute.h>
+#endif
 
 using namespace Imf;
 using namespace Imath;
