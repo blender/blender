@@ -48,14 +48,13 @@ public:
 	void VerifyStorage();
 	void RecalcNormals();
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map){};
-	BL_MeshDeformer(struct Object* obj, class BL_SkinMeshObject *meshobj,struct Object* armatureObj):
+	BL_MeshDeformer(struct Object* obj, class BL_SkinMeshObject *meshobj ):
 		m_pMeshObject(meshobj),
 		m_bmesh((struct Mesh*)(obj->data)),
+		m_objMesh(obj),
 		m_transnors(NULL),
 		m_transverts(NULL),
-		m_tvtot(0),
-		m_blenderMeshObject(obj),
-		m_blenderArmatureObj(armatureObj)
+		m_tvtot(0)
 	{};
 	virtual ~BL_MeshDeformer();
 	virtual void SetSimulatedTime(double time){};
@@ -64,14 +63,17 @@ public:
 	virtual	RAS_Deformer*	GetReplica(){return NULL;};
 	//	virtual void InitDeform(double time){};
 protected:
-	class BL_SkinMeshObject	*m_pMeshObject;
-	struct Mesh *m_bmesh;
-	MT_Point3 *m_transnors;
-	MT_Point3				*m_transverts;
-	int						m_tvtot;
-	Object*	m_blenderMeshObject;
-	Object*	m_blenderArmatureObj;
-
+	class BL_SkinMeshObject*	m_pMeshObject;
+	struct Mesh*				m_bmesh;
+	MT_Point3*					m_transnors;
+	
+	//MT_Point3*				m_transverts;
+	// this is so m_transverts doesn't need to be converted
+	// before deformation
+	float						(*m_transverts)[3];
+	struct Object*				m_objMesh; 
+	// --
+	int							m_tvtot;
 };
 
 #endif

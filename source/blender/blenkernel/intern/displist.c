@@ -291,6 +291,7 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 static void initfastshade(void)
 {
 	Base *base;
+	Scene *setscene;
 	Object *ob;
 	Lamp *la;
 	FastLamp *fl;
@@ -309,7 +310,7 @@ static void initfastshade(void)
 	Mat4Invert(fviewmat, R.viewinv);
 
 	/* initrendertexture(); */
-
+	setscene = G.scene->set;
 	base= G.scene->base.first;
 	while(base) {
 		ob= base->object;
@@ -349,8 +350,12 @@ static void initfastshade(void)
 			fl->b= la->energy*la->b;
 		}
 		
-		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
-		else base= base->next;
+		if(base->next==0 && setscene && setscene->set) {/*if(base->next==0 && G.scene->set && base==G.scene->base.last) {*/
+			setscene = setscene->set;
+			base= setscene->base.first; /* base= G.scene->set->base.first;*/
+		} else {
+			base= base->next;
+		}
 	}
 }
 

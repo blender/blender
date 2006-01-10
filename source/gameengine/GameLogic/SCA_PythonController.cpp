@@ -144,8 +144,7 @@ PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self,
 #if 0
 static char* sPyAddActiveActuator__doc__;
 #endif
-	
-  
+
 PyObject* SCA_PythonController::sPyAddActiveActuator(
 	  
 		PyObject* self, 
@@ -156,18 +155,27 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(
 	PyObject* ob1;
 	int activate;
 	if (!PyArg_ParseTuple(args, "Oi", &ob1,&activate))
-	{
 		return NULL;
-		
-	}
+
 	// for safety, todo: only allow for registered actuators (pointertable)
 	// we don't want to crash gameengine/blender by python scripts
+	std::vector<SCA_IActuator*> lacts =  m_sCurrentController->GetLinkedActuators();
 	
-	CValue* ac = (CValue*)ob1;
-	CValue* boolval = new CBoolValue(activate!=0);
-	m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)ac,boolval);
-	boolval->Release();
-	
+	std::vector<SCA_IActuator*>::iterator it;
+	bool found = false;
+	CValue* act = (CValue*)ob1;
+
+	for(it = lacts.begin(); it!= lacts.end(); it++) {
+		if( static_cast<SCA_IActuator*>(act) == (*it) ) {
+			found=true;
+			break;
+		}
+	}
+	if(found){
+		CValue* boolval = new CBoolValue(activate!=0);
+		m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)act,boolval);
+		boolval->Release();
+	}
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -268,12 +276,24 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		);
 	PyDict_Clear(excdict);
 	Py_DECREF(excdict);*/
-	
+
+// FIXME:: still happining, will try to fix. snailrose...
+	PyObject *excdict= PyDict_Copy(m_pythondictionary);
+	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
+		excdict, 
+		excdict
+		);
+	PyDict_Clear(excdict);
+	Py_DECREF(excdict);
+
+
+#if 0
 	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
 		m_pythondictionary, 
 		m_pythondictionary
 		);
-	
+#endif
+
 	if (resultobj)
 	{
 		Py_DECREF(resultobj);

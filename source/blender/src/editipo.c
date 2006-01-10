@@ -587,7 +587,7 @@ static void make_mat_editipo(SpaceIpo *si)
 static void make_texture_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
-	int a;
+	int a, len;
 	char *name;
 	
 	if(si->from==0) return;    
@@ -602,7 +602,13 @@ static void make_texture_editipo(SpaceIpo *si)
 			ei->adrcode= te_ar[a];
 
 		ei->col= ipo_rainbow(a, TE_TOTIPO);
-		
+	
+		len= strlen(ei->name);
+		if(len) {
+			if( ei->name[ len-1 ]=='R') ei->col= 0x5050FF;
+			else if( ei->name[ len-1 ]=='G') ei->col= 0x50FF50;
+			else if( ei->name[ len-1 ]=='B') ei->col= 0xFF7050;
+		}	
 		ei->icu= find_ipocurve(si->ipo, ei->adrcode);
 		if(ei->icu) {
 			ei->flag= ei->icu->flag;
@@ -2133,25 +2139,26 @@ void common_insertkey(void)
 	IpoCurve *icu;
 	World *wo;
 	Lamp *la;
+	Tex *te;
 	int tlay, map, event;
 	char menustr[256];
-	
+
 	if(curarea->spacetype==SPACE_IPO) {
 		insertkey_editipo();
 	}
 	else if(curarea->spacetype==SPACE_BUTS) {
 		if(G.buts->mainb==CONTEXT_SHADING) {
 			int tab= G.buts->tab[CONTEXT_SHADING];
-			
+
 			if(tab==TAB_SHADING_MAT) {
 				id= G.buts->lockpoin;
 				ma= G.buts->lockpoin;
 				if(id) {
 					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|All Mirror%x14|Ofs%x12|Size%x13|All Mapping%x11");
 					if(event== -1) return;
-					
+
 					map= texchannel_to_adrcode(ma->texact);
-					
+
 					if(event==0 || event==10) {
 						insertkey(id, ID_MA, NULL, NULL, MA_COL_R);
 						insertkey(id, ID_MA, NULL, NULL, MA_COL_G);
@@ -2214,9 +2221,9 @@ void common_insertkey(void)
 				if(id) {
 					event= pupmenu("Insert Key %t|Zenith RGB%x0|Horizon RGB%x1|Mist%x2|Stars %x3|Offset%x12|Size%x13");
 					if(event== -1) return;
-					
+
 					map= texchannel_to_adrcode(wo->texact);
-					
+
 					if(event==0) {
 						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_R);
 						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_G);
@@ -2258,9 +2265,9 @@ void common_insertkey(void)
 				if(id) {
 					event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spot Size%x2|Offset%x12|Size%x13");
 					if(event== -1) return;
-					
+
 					map= texchannel_to_adrcode(la->texact);
-					
+
 					if(event==0) {
 						insertkey(id, ID_LA, NULL, NULL, LA_COL_R);
 						insertkey(id, ID_LA, NULL, NULL, LA_COL_G);
@@ -2283,6 +2290,85 @@ void common_insertkey(void)
 						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Z);
 					}
 
+				}
+			}
+			else if(tab==TAB_SHADING_TEX) {
+				id= G.buts->lockpoin;
+				te= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|Cloud%x0|Mable%x1|Stucci%x2|Wood%x3|Magic%x4|Blend%x5|Musgrave%x6|Voronoi%x7|Distnoise%x8|ColourFilter%x9");
+					if(event== -1) return;
+
+					if(event==0) {
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
+						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
+					}
+					if(event==1) {
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
+						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2);
+					}
+					if(event==2) {
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
+					}
+					if(event==3) {
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2);
+					}
+					if(event==4) {
+						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
+					}
+					if(event==5) {
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
+					} 
+					if(event==6) {
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
+						insertkey(id, ID_TE, NULL, NULL, TE_MGH);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_LAC);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN);
+					}
+					if(event==7) {
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW1);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW2);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW3);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW4);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNMEXP);
+						insertkey(id, ID_TE, NULL, NULL, TE_VN_DISTM);
+						insertkey(id, ID_TE, NULL, NULL, TE_VN_COLT);
+						insertkey(id, ID_TE, NULL, NULL, TE_ISCA);
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
+					}
+					if(event==8) {
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN);
+						insertkey(id, ID_TE, NULL, NULL, TE_DISTA);
+					}
+					if(event==9) {
+						insertkey(id, ID_TE, NULL, NULL, TE_COL_R);
+						insertkey(id, ID_TE, NULL, NULL, TE_COL_G);
+						insertkey(id, ID_TE, NULL, NULL, TE_COL_B);
+						insertkey(id, ID_TE, NULL, NULL, TE_BRIGHT);
+						insertkey(id, ID_TE, NULL, NULL, TE_CONTRA);
+					}
 				}
 			}
 		}
@@ -2363,7 +2449,7 @@ void common_insertkey(void)
 				}
 			}
 		}
-		
+
 		BIF_undo_push("Insert Key Buttons");
 
 		allqueue(REDRAWACTION, 0);
@@ -2385,25 +2471,24 @@ void common_insertkey(void)
 				base= base->next;
 			}
 			if(base==NULL) return;
-		
 			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
-		
+
 		if(ob) {
 			if(ob->type==OB_MESH) strcat(menustr, "| %x6|Mesh%x7");
 			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
 			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
 			else if(ob->type==OB_SURF) strcat(menustr, "| %x6|Surface%x7");
 		}
-		
+
 		event= pupmenu(menustr);
 		if(event== -1) return;
-		
+
 		if(event==7) { // ob != NULL
 			insert_shapekey(ob);
 			return;
 		}
-		
+
 		if (ob && (ob->flag & OB_POSEMODE)){
 			bPoseChannel *pchan;
 
@@ -2411,7 +2496,7 @@ void common_insertkey(void)
 				error ("Can't key libactions");
 				return;
 			}
-			
+
 			set_pose_keys(ob);  // sets pchan->flag to POSE_KEY if bone selected
 			id= &ob->id;
 			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
@@ -2434,7 +2519,7 @@ void common_insertkey(void)
 					}
 					if (event==9 && ob->action) {
 						bActionChannel *achan;
-						
+
 						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
 							if (achan->ipo && !strcmp (achan->name, pchan->name)){
 								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
@@ -2477,12 +2562,12 @@ void common_insertkey(void)
 			while(base) {
 				if TESTBASELIB(base) {
 					char *actname= NULL;
-					
+
 					id= (ID *)(base->object);
-					
+
 					if(ob->ipoflag & OB_ACTION_OB)
 						actname= "Object";
-					
+
 					/* all curves in ipo deselect */
 					if(base->object->ipo) {
 						icu= base->object->ipo->curve.first;
@@ -2492,7 +2577,7 @@ void common_insertkey(void)
 							icu= icu->next;
 						}
 					}
-					
+
 					if(event==0 || event==3 ||event==4) {
 						insertkey(id, ID_OB, actname, NULL, OB_LOC_X);
 						insertkey(id, ID_OB, actname, NULL, OB_LOC_Y);
@@ -2550,7 +2635,7 @@ void common_insertkey(void)
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
 	}
-	
+
 }
 
 /* ****************************************************************************** */
@@ -4531,3 +4616,4 @@ void bone2objectspace(float obSpaceBoneMat[][4], float obSpace[][4], float restP
  	Mat4Invert(imat, restPos);
  	Mat4MulMat4(obSpaceBoneMat, obSpace, imat);
 }
+

@@ -59,6 +59,10 @@ typedef struct _Button {
 	char *tooltip;
 } Button;
 
+#define BINT_TYPE		1
+#define BFLOAT_TYPE		2
+#define BSTRING_TYPE	3
+
 
 /* 
  * these are declared in ../BPY_extern.h 

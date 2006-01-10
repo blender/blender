@@ -43,6 +43,20 @@
 
 class RAS_IRasterizer;
 
+enum MaterialProps
+{
+	RAS_ZSORT		=1,
+	RAS_TRANSPARENT =2,
+	RAS_TRIANGLE	=4,
+	RAS_MULTITEX	=8,
+	RAS_MULTILIGHT	=16,
+	RAS_BLENDERMAT	=32,
+	RAS_GLSHADER	=64,
+	RAS_AUTOGEN		=128,
+	RAS_NORMAL		=256,
+	RAS_DEFMULTI	=512
+};
+
 /**
  * Material properties.
  */
@@ -52,18 +66,21 @@ class RAS_IPolyMaterial
 protected:
 	STR_HashedString		m_texturename;
 	STR_HashedString		m_materialname; //also needed for touchsensor  
-	int				m_tile;
-	int				m_tilexrep,m_tileyrep;
-	int				m_drawingmode;	// tface->mode
-	bool				m_transparant;
-	bool				m_zsort;
-	int				m_lightlayer;
-	bool				m_bIsTriangle;
+	int						m_tile;
+	int						m_tilexrep,m_tileyrep;
+	int						m_drawingmode;	// tface->mode
+	bool					m_transparant;
+	bool					m_zsort;
+	int						m_lightlayer;
+	bool					m_bIsTriangle;
 	
 	unsigned int			m_polymatid;
-	
 	static unsigned int		m_newpolymatid;
-	
+
+	// will move...
+	unsigned int			m_flag;//MaterialProps
+	unsigned int			m_enabled;// enabled for this mat 
+	int						m_multimode; // sum of values
 public:
 
 	MT_Vector3			m_diffuse;
@@ -124,6 +141,14 @@ public:
 	int					GetDrawingMode() const;
 	const STR_String&	GetMaterialName() const;
 	const STR_String&	GetTextureName() const;
+	const unsigned int	GetFlag() const;
+	const unsigned int	GetEnabled() const;
+	
+	/*
+	 * PreCalculate texture gen
+	 */
+	virtual void OnConstruction(){}
+
 };
 
 inline  bool operator ==( const RAS_IPolyMaterial & rhs,const RAS_IPolyMaterial & lhs)

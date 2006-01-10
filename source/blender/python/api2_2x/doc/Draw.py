@@ -9,6 +9,7 @@ Draw
 B{New}:
  - access to ASCII values in L{events<Register>} callbacks;
  - 'large' fonts for L{Text} and L{GetStringWidth}.
+ - Pop-up blocks with L{PupBlock}
 
 This module provides access to a B{windowing interface} in Blender.  Its widgets
 include many kinds of buttons: push, toggle, menu, number, string, slider,
@@ -405,6 +406,50 @@ def PupStrInput(text, default, max = 20):
   @rtype: string
   @return: The text entered by the user or None if none was chosen.
   """
+
+def PupBlock(title, sequence):
+	"""
+	Display a pop-up block.
+	
+	Possible formats for the items in the sequence parameter.
+	(Value are objects created with L{Create})
+		- string:	Defines a label
+		- (string, Value, string): Defines a toggle button. The first string is the text on the button, the optional second string is the tooltip.
+		- (string, Value, min, max, string): Defines a numeric or string button, depending on the content of Value.  The first string is the text on the button, the optional second string is the tooltip. I{For string, max is the maximum length of the string and min is unused.}
+		
+	Example::
+		import Blender
+		
+		text = Blender.Draw.Create("short text")
+		f = Blender.Draw.Create(1.0)
+		i = Blender.Draw.Create(2)
+		tog = Blender.Draw.Create(0)
+		
+		block = []
+		
+		block.append(("Name: ", text, 0, 30, "this is some tool tip"))
+		block.append("Some Label")
+		block.append(("Value: ", f, 0.0, 100.0))
+		block.append(("Value: ", i, 0, 100))
+		block.append(("Option", tog, "another tooltip"))
+		
+		retval = Blender.Draw.PupBlock("PupBlock test", block)
+		
+		print "PupBlock returned", retval
+		
+		print "text\\t", text
+		print "float\\t", f
+		print "int\\t", i
+		print "toggle\\t", tog
+
+	@warning: On cancel, the Value objects are brought back to there initial values except for string values which will still contain the modified values.
+	@type title: string
+	@param title: The title of the block.
+	@param sequence: A sequence defining what the block contains.
+		The order of the list is the order of appearance, from top down.
+	@rtype: int
+	@return: 1 if the pop-up is confirmed, 0 otherwise
+	"""
 
 def Menu(name, event, x, y, width, height, default, tooltip = None):
   """

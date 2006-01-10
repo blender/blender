@@ -48,7 +48,11 @@ class BlenderWorldInfo : public KX_WorldInfo
 	float			m_mistred;
 	float			m_mistgreen;
 	float			m_mistblue;
-	
+
+	float			m_ambientred;
+	float			m_ambientgreen;
+	float			m_ambientblue;
+
 public:
 	BlenderWorldInfo(struct World* blenderworld);
 	~BlenderWorldInfo();
@@ -58,6 +62,10 @@ public:
     float	getBackColorRed();
     float	getBackColorGreen();
     float	getBackColorBlue();
+	
+	float	getAmbientColorRed();
+	float	getAmbientColorGreen();
+	float	getAmbientColorBlue();
 
     float	getMistStart();
     float	getMistDistance();

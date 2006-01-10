@@ -6,7 +6,10 @@ Import ('library_env')
 
 ketsji_env = library_env.Copy ()
 
-source_files = ['KX_WorldIpoController.cpp',
+source_files = ['BL_Shader.cpp',
+		'BL_Material.cpp',
+		'BL_Texture.cpp',
+		'KX_WorldIpoController.cpp',
                 'KX_WorldInfo.cpp',
                 'KX_VisibilityActuator.cpp',
                 'KX_VertexProxy.cpp',
@@ -58,7 +61,9 @@ source_files = ['KX_WorldIpoController.cpp',
                 'KX_CameraIpoSGController.cpp',
                 'KX_CameraActuator.cpp',
                 'KX_Camera.cpp',
-                'KX_BulletPhysicsController.cpp'
+                'KX_BulletPhysicsController.cpp',
+                'KX_BlenderMaterial.cpp',
+                'KX_MaterialIpoController.cpp',
                 ]
 
 if user_options_dict['USE_PHYSICS'] == 'solid':

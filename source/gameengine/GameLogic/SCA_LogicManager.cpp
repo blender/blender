@@ -60,7 +60,6 @@ SCA_LogicManager::~SCA_LogicManager()
 			(*gameobjptr)->Release();
 
 	}
-
 	/*for (int i=0;i<m_sensorcontrollermap.size();i++)
 	{
 		vector<SCA_IController*>* controllerarray = *(m_sensorcontrollermap[i]);
@@ -175,7 +174,6 @@ void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 
 void SCA_LogicManager::RemoveDestroyedActuator(SCA_IActuator* actuator)
 {
-
 	m_removedActuators.push_back(SmartActuatorPtr(actuator,0));
 	// take care that no controller can use this actuator again !
 

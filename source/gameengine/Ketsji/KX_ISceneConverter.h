@@ -67,6 +67,9 @@ public:
 	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber) = 0;
 	virtual void	TestHandlesPhysicsObjectToAnimationIpo() = 0;
 
+	// use blender materials
+	virtual void SetMaterials(bool val) =0;
+	virtual bool GetMaterials()=0;
 
 };
 

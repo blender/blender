@@ -1082,3 +1082,124 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 
 	return cos;
 }
+
+/* UvVertMap */
+
+struct UvVertMap {
+	struct UvMapVert **vert;
+	struct UvMapVert *buf;
+};
+
+UvVertMap *make_uv_vert_map(struct MFace *mface, struct TFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit)
+{
+	UvVertMap *vmap;
+	UvMapVert *buf;
+	MFace *mf;
+	TFace *tf;
+	int a, i, totuv, nverts;
+
+	totuv = 0;
+
+	/* generate UvMapVert array */
+	mf= mface;
+	tf= tface;
+	for(a=0; a<totface; a++, mf++, tf++)
+		if(!selected || (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT)))
+			totuv += (mf->v4)? 4: 3;
+		
+	if(totuv==0)
+		return NULL;
+	
+	vmap= (UvVertMap*)MEM_mallocN(sizeof(*vmap), "UvVertMap");
+	if (!vmap)
+		return NULL;
+
+	vmap->vert= (UvMapVert**)MEM_callocN(sizeof(*vmap->vert)*totvert, "UvMapVert*");
+	buf= vmap->buf= (UvMapVert*)MEM_mallocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+
+	if (!vmap->vert || !vmap->buf) {
+		free_uv_vert_map(vmap);
+		return NULL;
+	}
+
+	mf= mface;
+	tf= tface;
+	for(a=0; a<totface; a++, mf++, tf++) {
+		if(!selected || (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT))) {
+			nverts= (mf->v4)? 4: 3;
+
+			for(i=0; i<nverts; i++) {
+				buf->tfindex= i;
+				buf->f= a;
+				buf->separate = 0;
+				buf->next= vmap->vert[*(&mf->v1 + i)];
+				vmap->vert[*(&mf->v1 + i)]= buf;
+				buf++;
+			}
+		}
+	}
+	
+	/* sort individual uvs for each vert */
+	tf= tface;
+	for(a=0; a<totvert; a++) {
+		UvMapVert *newvlist= NULL, *vlist=vmap->vert[a];
+		UvMapVert *iterv, *v, *lastv, *next;
+		float *uv, *uv2, uvdiff[2];
+
+		while(vlist) {
+			v= vlist;
+			vlist= vlist->next;
+			v->next= newvlist;
+			newvlist= v;
+
+			uv= (tf+v->f)->uv[v->tfindex];
+			lastv= NULL;
+			iterv= vlist;
+
+			while(iterv) {
+				next= iterv->next;
+
+				uv2= (tf+iterv->f)->uv[iterv->tfindex];
+				Vec2Subf(uvdiff, uv2, uv);
+
+
+				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
+					if(lastv) lastv->next= next;
+					else vlist= next;
+					iterv->next= newvlist;
+					newvlist= iterv;
+				}
+				else
+					lastv=iterv;
+
+				iterv= next;
+			}
+
+			newvlist->separate = 1;
+		}
+
+		vmap->vert[a]= newvlist;
+	}
+	
+	return vmap;
+}
+
+UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v)
+{
+	return vmap->vert[v];
+}
+
+UvMapVert *get_first_uv_map_vert(UvVertMap *vmap)
+{
+	return ((vmap->buf != NULL)? vmap->buf: NULL);
+}
+
+void free_uv_vert_map(UvVertMap *vmap)
+{
+	if (vmap) {
+		if (vmap->vert) MEM_freeN(vmap->vert);
+		if (vmap->buf) MEM_freeN(vmap->buf);
+		MEM_freeN(vmap);
+	}
+}
+

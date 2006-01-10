@@ -177,7 +177,6 @@ static void save_paint(char *name)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	Image *ima = G.sima->image;
-	ImBuf *ibuf;
 
 	if (ima  && ima->ibuf) {
 		BLI_strncpy(str, name, sizeof(str));
@@ -185,7 +184,7 @@ static void save_paint(char *name)
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 
 		if (saveover(str)) {
-			if (BIF_write_ibuf(ibuf, str)) {
+			if (BIF_write_ibuf(ima->ibuf, str)) {
 				BLI_strncpy(ima->name, name, sizeof(ima->name));
 				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
 				allqueue(REDRAWHEADERS, 0);

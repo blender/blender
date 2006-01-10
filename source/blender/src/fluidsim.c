@@ -276,7 +276,7 @@ void fluidsimBake(struct Object *ob)
 	char targetFile[FILE_MAXDIR+FILE_MAXFILE]; // temp. store filename from targetDir for access
 	int  outStringsChanged = 0;             // modified? copy back before baking
 	int  haveSomeFluid = 0;                 // check if any fluid objects are set
-	int noFrames = G.scene->r.efra - G.scene->r.sfra;
+	int noFrames = G.scene->r.efra - 1 /*G.scene->r.sfra*/;
 
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
 
@@ -400,7 +400,7 @@ void fluidsimBake(struct Object *ob)
 	}
 	
 	// dump data for frame 0
-  G.scene->r.cfra = G.scene->r.sfra;
+  G.scene->r.cfra = 1 /*G.scene->r.sfra*/;
   scene_update_for_newframe(G.scene, G.scene->lay);
 
 	// start writing
@@ -468,15 +468,15 @@ void fluidsimBake(struct Object *ob)
 			int i;
 			float tsum=0.0, shouldbe=0.0;
 			fprintf(fileCfg, "  CHANNEL p_aniframetime = ");
-			for(i=G.scene->r.sfra; i<G.scene->r.efra; i++) {
+			for(i=1 /*G.scene->r.sfra*/; i<G.scene->r.efra; i++) {
 				float anit = (calc_ipo_time(fsDomain->ipo, i+1) -
 					calc_ipo_time(fsDomain->ipo, i)) * aniFrameTime;
 				if(anit<0.0) anit = 0.0;
 				tsum += anit;
 			}
 			// make sure inaccurate integration doesnt modify end time
-			shouldbe = ((float)(G.scene->r.efra - G.scene->r.sfra)) *aniFrameTime;
-			for(i=G.scene->r.sfra; i<G.scene->r.efra; i++) {
+			shouldbe = ((float)(G.scene->r.efra - 1 /*G.scene->r.sfra*/)) *aniFrameTime;
+			for(i=1 /*G.scene->r.sfra*/; i<G.scene->r.efra; i++) {
 				float anit = (calc_ipo_time(fsDomain->ipo, i+1) -
 					calc_ipo_time(fsDomain->ipo, i)) * aniFrameTime;
 				if(anit<0.0) anit = 0.0;
@@ -771,7 +771,7 @@ void fluidsimBake(struct Object *ob)
 	}
 	for(i=0; i<numCreatedFiles; i++) {
 		if(doDeleteCreatedFiles>0) {
-			fprintf(stderr," CREATED '%s' deleting... \n", createdFiles[i]);
+			//fprintf(stderr," CREATED '%s' deleting... \n", createdFiles[i]); // debug
 			BLI_delete(createdFiles[i], 0,0);
 		}
 		free(createdFiles[i]);

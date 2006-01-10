@@ -33,10 +33,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
@@ -97,6 +93,10 @@
 #include "nla.h"
 
 extern int count_action_levels (bAction *act);
+void top_sel_action();
+void up_sel_action();
+void bottom_sel_action();
+void down_sel_action();
 
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 

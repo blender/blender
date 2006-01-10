@@ -128,9 +128,7 @@ void BL_MeshDeformer::RecalcNormals()
 			m_transnors[mf->v3]+=MT_Point3(fnor);
 			if (mf->v4)
 				m_transnors[mf->v4]+=MT_Point3(fnor);
-
 		}
-		
 	}
 	
 	for (v =0; v<m_bmesh->totvert; v++){
@@ -154,7 +152,7 @@ void BL_MeshDeformer::VerifyStorage()
 			delete []m_transnors;
 		
 		m_transnors =new MT_Point3[m_bmesh->totvert+m_bmesh->totface];
-		m_transverts=new MT_Point3[m_bmesh->totvert];
+		m_transverts=new float[(sizeof(*m_transverts)*m_bmesh->totvert)][3];
 		m_tvtot = m_bmesh->totvert;
 	}
 }

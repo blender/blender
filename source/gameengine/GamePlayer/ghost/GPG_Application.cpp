@@ -62,6 +62,8 @@ extern "C"
 #endif  // __cplusplus
 #include "BLI_blenlib.h"
 #include "BLO_readfile.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #ifdef __cplusplus
 }
 #endif // __cplusplus
@@ -82,6 +84,7 @@ extern "C"
 #include "RAS_GLExtensionManager.h"
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
+#include "BL_Material.h" // MAXTEX
 
 #include "KX_BlenderSceneConverter.h"
 #include "NG_LoopBackNetworkDeviceInterface.h"
@@ -126,7 +129,8 @@ GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR
 	  m_rasterizer(0), 
 	  m_sceneconverter(0),
 	  m_networkdevice(0), 
-	  m_audiodevice(0)
+	  m_audiodevice(0),
+	  m_blendermat(0)
 {
 	fSystem = system;
 }
@@ -147,6 +151,7 @@ bool GPG_Application::SetGameEngineData(struct Main* maggie, STR_String startSce
 
 	if (maggie != NULL && startSceneName != "")
 	{
+		G.scene = (Scene*)maggie->scene.first;
 		m_maggie = maggie;
 		m_startSceneName = startSceneName;
 		result = true;
@@ -488,6 +493,23 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
+		
+#ifdef GL_ARB_multitexture
+		// ----------------------------------
+		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
+			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+			int unitmax=0;
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
+			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
+			//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
+		} else {
+			bgl::max_texture_units = 0;
+		}
+#else
+		m_blendermat=0;
+#endif//GL_ARB_multitexture
+		// ----------------------------------
+	
 		// create the canvas, rasterizer and rendertools
 		m_canvas = new GPG_Canvas(window);
 		if (!m_canvas)
@@ -606,7 +628,8 @@ bool GPG_Application::startEngine(void)
 		
 		//	if (always_use_expand_framing)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
-		
+		if(m_blendermat)
+			m_sceneconverter->SetMaterials(true);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,
 			m_mouse,

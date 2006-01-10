@@ -100,7 +100,7 @@ PyObject *Matrix_toEuler(MatrixObject * self)
 //---------------------------Matrix.resize4x4() ------------------
 PyObject *Matrix_Resize4x4(MatrixObject * self)
 {
-	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows;
+	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows, index;
 
 	if(self->data.blend_data){
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
@@ -125,7 +125,12 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 	//move data to new spot in array + clean
 	for(blank_rows = (4 - self->rowSize); blank_rows > 0; blank_rows--){
 		for(x = 0; x < 4; x++){
-			self->contigPtr[(4 * (self->rowSize + (blank_rows - 1))) + x] = 0.0f;
+			index = (4 * (self->rowSize + (blank_rows - 1))) + x;
+			if (index == 10 || index == 15){
+				self->contigPtr[index] = 1.0f;
+			}else{
+				self->contigPtr[index] = 0.0f;
+			}
 		}
 	}
 	for(x = 1; x <= self->rowSize; x++){

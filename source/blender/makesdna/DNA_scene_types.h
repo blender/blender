@@ -318,7 +318,7 @@ typedef struct Scene {
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
-	int pad1;
+	int dirty;
 } Scene;
 
 
@@ -423,6 +423,10 @@ typedef struct Scene {
 #define SCE_SELECT_VERTEX	1
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
+
+/* sce->dirty */
+#define SCE_CLEAN           0
+#define SCE_DIRTY           1
 
 /* sce->prop_mode (proportional falloff) */
 #define PROP_SMOOTH            0

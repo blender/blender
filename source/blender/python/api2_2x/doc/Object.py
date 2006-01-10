@@ -556,12 +556,17 @@ class Object:
     
     @type objects: Sequence of Blender Object
     @param objects: A list of objects matching the objects type.
-    @note: Objects in the list will not be removed, to avoid duplicate data you may want to remove them manualy after joining.
-    @note: Join modifies the object in place so that other objects are joined into it. no new object or data is created.
-    @note: Join will only work for object types Mesh, Armature, Curve and Surface, an error will be raised if the object is not of this type.
+    @note: Objects in the list will not be removed from the scene,
+        to avoid overlapping data you may want to remove them manualy after joining.
+    @note: Join modifies the base objects data in place so that
+        other objects are joined into it. no new object or data is created.
+    @note: Join will only work for object types Mesh, Armature, Curve and Surface,
+        an error will be raised if the object is not of this type.
     @note: objects in the list will be ignored if they to not match the base object.
-    @rtype: int
-    @return: 0 is returned if the join is not successfull, otherwise 1 will be returned.
+    @note: An error in the join function input will raise a TypeError,
+        otherwise an error in the data input will raise a RuntimeError,
+        for situations where you don't have tight control on the data that is being joined,
+        you should handel the RuntimeError error, litting the user know the data cant be joined.
     """
 
   def makeParentDeform(objects, noninverse = 0, fast = 0):

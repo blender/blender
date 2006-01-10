@@ -955,8 +955,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 
 				halfExtents /= 2.f;
-				SimdVector3&	he  = halfExtents;
-				SimdTransform& tr = trans;
 
 				bm = new ConeShape(objprop->m_boundobject.c.m_radius,objprop->m_boundobject.c.m_height);
 				bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
@@ -1069,5 +1067,5 @@ void	KX_ClearBulletSharedShapes()
 	
 }
 
-
 #endif
+

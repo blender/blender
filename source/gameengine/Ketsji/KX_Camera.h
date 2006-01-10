@@ -203,6 +203,42 @@ public:
 	 * Gets this camera's culling status.
 	 */
 	bool GetFrustumCulling() const;
+	
+	/**
+	 * Sets this camera's viewport status.
+	 */
+	void EnableViewport(bool viewport);
+	
+	/**
+	 * Sets this camera's viewport.
+	 */
+	void SetViewport(int left, int bottom, int right, int top);
+	
+	/**
+	 * Gets this camera's viewport status.
+	 */
+	bool GetViewport() const;
+	
+	/**
+	 * Gets this camera's viewport left.
+	 */
+	int GetViewportLeft() const;
+	
+	/**
+	 * Gets this camera's viewport bottom.
+	 */
+	int GetViewportBottom() const;
+	
+	/**
+	 * Gets this camera's viewport right.
+	 */
+	int GetViewportRight() const;
+	
+	/**
+	 * Gets this camera's viewport top.
+	 */
+	int GetViewportTop() const;
+
 
 	KX_PYMETHOD_DOC(KX_Camera, sphereInsideFrustum);
 	KX_PYMETHOD_DOC(KX_Camera, boxInsideFrustum);
@@ -213,6 +249,9 @@ public:
 	KX_PYMETHOD_DOC(KX_Camera, getProjectionMatrix);
 	KX_PYMETHOD_DOC(KX_Camera, setProjectionMatrix);
 	
+	KX_PYMETHOD_DOC(KX_Camera, enableViewport);
+	KX_PYMETHOD_DOC(KX_Camera, setViewport);	
+
 	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
 	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
 

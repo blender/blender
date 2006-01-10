@@ -57,7 +57,10 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_zsort(zsort),
 		m_lightlayer(lightlayer),
 		m_bIsTriangle(bIsTriangle),
-		m_polymatid(m_newpolymatid++)
+		m_polymatid(m_newpolymatid++),
+		m_flag(0),
+		m_enabled(0),
+		m_multimode(0)
 {
 	m_shininess = 35.0;
 	m_specular = MT_Vector3(0.5,0.5,0.5);
@@ -68,18 +71,32 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 
 bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 {
-	return (
-			this->m_tile		==		lhs.m_tile &&
-			this->m_tilexrep	==		lhs.m_tilexrep &&
-			this->m_tileyrep	==		lhs.m_tileyrep &&
-			this->m_transparant	==		lhs.m_transparant &&
-			this->m_zsort		==		lhs.m_zsort &&
-			this->m_drawingmode	==		lhs.m_drawingmode &&
-			this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
-			this->m_lightlayer	==		lhs.m_lightlayer &&
+	if(m_flag &RAS_BLENDERMAT)
+	{
+		return (
+			this->m_multimode			==		lhs.m_multimode &&
+			this->m_flag				==		lhs.m_flag		&&
+			this->m_drawingmode			==		lhs.m_drawingmode &&
+			this->m_lightlayer			==		lhs.m_lightlayer &&
 			this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 			this->m_materialname.hash() ==		lhs.m_materialname.hash()
-	);
+		);
+	}
+	else
+	{
+		return (
+				this->m_tile		==		lhs.m_tile &&
+				this->m_tilexrep	==		lhs.m_tilexrep &&
+				this->m_tileyrep	==		lhs.m_tileyrep &&
+				this->m_transparant	==		lhs.m_transparant &&
+				this->m_zsort		==		lhs.m_zsort &&
+				this->m_drawingmode	==		lhs.m_drawingmode &&
+				this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
+				this->m_lightlayer	==		lhs.m_lightlayer &&
+				this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
+				this->m_materialname.hash() ==		lhs.m_materialname.hash()
+		);
+	}
 }
 
 bool RAS_IPolyMaterial::Less(const RAS_IPolyMaterial& rhs) const
@@ -129,5 +146,15 @@ const STR_String& RAS_IPolyMaterial::GetTextureName() const
 {
 	return m_texturename;
 }
+
+const unsigned int	RAS_IPolyMaterial::GetFlag() const
+{
+	return m_flag;
+}
+const unsigned int	RAS_IPolyMaterial::GetEnabled() const
+{
+	return m_enabled;
+}
+
 
 unsigned int RAS_IPolyMaterial::m_newpolymatid = 0;

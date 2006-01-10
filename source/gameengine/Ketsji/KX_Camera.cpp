@@ -338,6 +338,44 @@ bool KX_Camera::GetFrustumCulling() const
 {
 	return m_frustum_culling;
 }
+ 
+void KX_Camera::EnableViewport(bool viewport)
+{
+	m_camdata.m_viewport = viewport;
+}
+
+void KX_Camera::SetViewport(int left, int bottom, int right, int top)
+{
+	m_camdata.m_viewportleft = left;
+	m_camdata.m_viewportbottom = bottom;
+	m_camdata.m_viewportright = right;
+	m_camdata.m_viewporttop = top;
+}
+
+bool KX_Camera::GetViewport() const
+{
+	return m_camdata.m_viewport;
+}
+
+int KX_Camera::GetViewportLeft() const
+{
+	return m_camdata.m_viewportleft;
+}
+
+int KX_Camera::GetViewportBottom() const
+{
+	return m_camdata.m_viewportbottom;
+}
+
+int KX_Camera::GetViewportRight() const
+{
+	return m_camdata.m_viewportright;
+}
+
+int KX_Camera::GetViewportTop() const
+{
+	return m_camdata.m_viewporttop;
+}
 
 //----------------------------------------------------------------------------
 //Python
@@ -351,6 +389,8 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE(KX_Camera, getWorldToCamera),
 	KX_PYMETHODTABLE(KX_Camera, getProjectionMatrix),
 	KX_PYMETHODTABLE(KX_Camera, setProjectionMatrix),
+	KX_PYMETHODTABLE(KX_Camera, enableViewport),
+	KX_PYMETHODTABLE(KX_Camera, setViewport),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -690,4 +730,32 @@ KX_PYMETHODDEF_DOC(KX_Camera, setProjectionMatrix,
 
 	PyErr_SetString(PyExc_TypeError, "setProjectionMatrix: Expected 4x4 list as matrix argument.");
 	return NULL;
+}
+
+KX_PYMETHODDEF_DOC(KX_Camera, enableViewport,
+"enableViewport(viewport)\n"
+"Sets this camera's viewport status\n"
+)
+{
+	int viewport;
+	if (PyArg_ParseTuple(args,"i",&viewport))
+	{
+		if(viewport)
+			EnableViewport(true);
+		else
+			EnableViewport(false);
+	}
+	Py_Return;
+}
+
+KX_PYMETHODDEF_DOC(KX_Camera, setViewport,
+"setViewport(left, bottom, right, top)\n"
+"Sets this camera's viewport\n")
+{
+	int left, bottom, right, top;
+	if (PyArg_ParseTuple(args,"iiii",&left, &bottom, &right, &top))
+	{
+		SetViewport(left, bottom, right, top);
+	}
+	Py_Return;
 }

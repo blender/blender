@@ -460,11 +460,12 @@ static int EditBone_setOptions(BPy_EditBone *self, PyObject *value, void *closur
 		//set the options
 		if(self->editbone){
 			//make sure the 'connected' property is set up correctly
-			if (new_flag & BONE_CONNECTED)
+			if (new_flag & BONE_CONNECTED) {
 				if(!self->editbone->parent)
 					goto AttributeError3;
 				else
 					VECCOPY(self->editbone->head, self->editbone->parent->tail);
+			}
 			self->editbone->flag = new_flag;
 		}else{
 			self->flag = new_flag;
@@ -479,11 +480,12 @@ static int EditBone_setOptions(BPy_EditBone *self, PyObject *value, void *closur
 
 			if(self->editbone){
 				//make sure the 'connected' property is set up correctly
-				if (numeric_value & BONE_CONNECTED)
+				if (numeric_value & BONE_CONNECTED) {
 					if(!self->editbone->parent)
 						goto AttributeError3;
 					else
 						VECCOPY(self->editbone->head, self->editbone->parent->tail);
+				}
 				self->editbone->flag = numeric_value;
 			}else{
 				self->flag = numeric_value;

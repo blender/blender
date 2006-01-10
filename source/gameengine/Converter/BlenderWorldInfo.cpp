@@ -95,6 +95,10 @@ BlenderWorldInfo::BlenderWorldInfo(struct World* blenderworld)
 		m_backgroundred = blenderworld->horr;
 		m_backgroundgreen = blenderworld->horg;
 		m_backgroundblue = blenderworld->horb;
+		
+		m_ambientred = blenderworld->ambr;
+		m_ambientgreen = blenderworld->ambg;
+		m_ambientblue = blenderworld->ambb;
 	}
 	else
 	{
@@ -144,6 +148,20 @@ float BlenderWorldInfo::getBackColorBlue()
 }  
 
 
+float BlenderWorldInfo::getAmbientColorRed()
+{
+	return m_ambientred;
+}
+
+float BlenderWorldInfo::getAmbientColorGreen()
+{
+	return m_ambientgreen;
+}
+
+float BlenderWorldInfo::getAmbientColorBlue()
+{
+	return m_ambientblue;
+}
 
 float BlenderWorldInfo::getMistStart()
 {

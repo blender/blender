@@ -64,37 +64,31 @@ public:
 	}
 	void SetArmature (class BL_ArmatureObject *armobj);
 
-	BL_SkinDeformer(	struct Object *bmeshobj, 
-						class BL_SkinMeshObject *mesh,struct Object* blenderArmatureObj)
-						:BL_MeshDeformer(bmeshobj, mesh,blenderArmatureObj),
-						m_armobj(NULL),
+	BL_SkinDeformer(struct Object *bmeshobj, 
+					class BL_SkinMeshObject *mesh,
+					BL_ArmatureObject* arma = NULL)
+					:	//
+						BL_MeshDeformer(bmeshobj, mesh),
+						m_armobj(arma),
 						m_lastUpdate(-1),
-						m_defbase(&bmeshobj->defbase)
+						m_defbase(&bmeshobj->defbase),
+						m_releaseobject(false)
 	{
-		/* Build all precalculatable matrices for bones */
-/* XXX note: obsolete */
-//		GB_build_mats(bmeshobj->parent->obmat, bmeshobj->obmat, m_premat, m_postmat);
-//		GB_validate_defgroups((Mesh*)bmeshobj->data, m_defbase);
-		// Validate bone data in bDeformGroups
-/*
-		for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next)
-			dg->data = (void*)get_named_bone(barm, dg->name);
-*/
 	};
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
-
-	BL_SkinDeformer(	struct Object *bmeshobj_old,
-						struct Object *bmeshobj_new,
-						class BL_SkinMeshObject *mesh,struct Object *bArmatureObj)
-						:BL_MeshDeformer(bmeshobj_old, mesh,bArmatureObj),
-						m_armobj(NULL),
+	BL_SkinDeformer(struct Object *bmeshobj_old,
+					struct Object *bmeshobj_new,
+					class BL_SkinMeshObject *mesh,
+					bool release_object,
+					BL_ArmatureObject* arma = NULL)
+					:	//
+						BL_MeshDeformer(bmeshobj_old, mesh),
+						m_armobj(arma),
 						m_lastUpdate(-1),
-						m_defbase(&bmeshobj_old->defbase)
+						m_defbase(&bmeshobj_old->defbase),
+						m_releaseobject(release_object)
 	{
-/* XXX note: obsolete */
-//		GB_build_mats(bmeshobj_new->parent->obmat, bmeshobj_new->obmat, m_premat, m_postmat);
-//		GB_validate_defgroups((Mesh*)bmeshobj_old->data, m_defbase);
 	};
 
 	virtual void ProcessReplica();
@@ -104,13 +98,12 @@ public:
 	bool Apply (class RAS_IPolyMaterial *polymat);
 
 protected:
-	BL_ArmatureObject		*m_armobj;			//	Our parent object
-/* XXX note obsolete */
-//	float					m_premat[4][4];
-//	float					m_postmat[4][4];
+	BL_ArmatureObject*		m_armobj;	//	Our parent object
 	float					m_time;
 	double					m_lastUpdate;
-	ListBase				*m_defbase;
+	ListBase*				m_defbase;
+	bool					m_releaseobject;
+
 };
 
 #endif

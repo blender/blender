@@ -2266,7 +2266,7 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 	float *bbStart = NULL, *bbSize = NULL;
 	float lastBB[3];
 	int displaymode = 0;
-	int curFrame = G.scene->r.cfra - G.scene->r.sfra; /* start with 0 at start frame */
+	int curFrame = G.scene->r.cfra - 1 /*G.scene->r.sfra*/; /* start with 0 at start frame */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	char debugStrBuffer[256];
 	//snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug

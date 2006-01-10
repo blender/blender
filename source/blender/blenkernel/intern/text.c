@@ -320,7 +320,8 @@ Text *add_text(char *file)
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	if (G.scene) /* can be NULL (bg mode) */
+		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 	BLI_split_dirfile(str, sdir, sfile);
 	
 	fp= fopen(str, "r");

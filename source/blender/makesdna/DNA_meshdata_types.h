@@ -75,6 +75,7 @@ typedef struct MSticky {
 #define ME_SPHERETEST	2
 #define ME_SPHERETEMP	4
 #define ME_HIDE			16
+#define ME_VERT_MERGED		(1<<6)
 #define ME_VERT_STEPINDEX	(1<<7)
 
 /* medge->flag (1=SELECT)*/

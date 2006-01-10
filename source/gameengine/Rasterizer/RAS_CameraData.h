@@ -38,12 +38,23 @@ struct RAS_CameraData
 	float m_clipstart;
 	float m_clipend;
 	bool m_perspective;
-	
-	RAS_CameraData(float lens = 35., float clipstart = 0.1, float clipend = 100., bool perspective = true) :
+	bool m_viewport;
+	int m_viewportleft;
+	int m_viewportbottom;
+	int m_viewportright;
+	int m_viewporttop;
+
+	RAS_CameraData(float lens = 35., float clipstart = 0.1, float clipend = 100., bool perspective = true,
+	bool viewport = false, int viewportleft = 0, int viewportbottom = 0, int viewportright = 0, int viewporttop = 0) :
 		m_lens(lens),
 		m_clipstart(clipstart),
 		m_clipend(clipend),
-		m_perspective(perspective)
+		m_perspective(perspective),
+		m_viewport(viewport),
+		m_viewportleft(viewportleft),
+		m_viewportbottom(viewportbottom),
+		m_viewportright(viewportright),
+		m_viewporttop(viewporttop)
 	{
 	}
 };

@@ -173,8 +173,8 @@ private:
 	/** Blue component of framing bar color. */
 	float					m_overrideFrameColorB;
 
-	void					SetupRenderFrame(KX_Scene *scene);
-	void					RenderFrame(KX_Scene* scene);
+	void					SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);
+	void					RenderFrame(KX_Scene* scene, KX_Camera* cam);
 	void					RenderDebugProperties();
 	void					SetBackGround(KX_WorldInfo* worldinfo);
 	void					SetWorldSettings(KX_WorldInfo* worldinfo);

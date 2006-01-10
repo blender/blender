@@ -2221,7 +2221,7 @@ void special_editmenu(void)
 void convertmenu(void)
 {
 	Base *base, *basen, *basact, *basedel=NULL;
-	Object *ob, *ob1;
+	Object *obact, *ob, *ob1;
 	Curve *cu;
 	MetaBall *mb;
 	Mesh *me;
@@ -2230,31 +2230,31 @@ void convertmenu(void)
 	
 	if(G.scene->id.lib) return;
 
-	ob= OBACT;
-	if(ob==0) return;
+	obact= OBACT;
+	if(obact==0) return;
+	if(!obact->flag & SELECT) return;
 	if(G.obedit) return;
 	
 	basact= BASACT;	/* will be restored */
 		
-	if(ob->type==OB_FONT) {
+	if(obact->type==OB_FONT) {
 		nr= pupmenu("Convert Font to%t|Curve");
 		if(nr>0) ok= 1;
 	}
-	else if(ob->type==OB_MBALL) {
+	else if(obact->type==OB_MBALL) {
 		nr= pupmenu("Convert Metaball to%t|Mesh (keep original)%x1|Mesh (Delete Original)%x2");
 		if(nr>0) ok= 1;
 	}
-	else if(ob->type==OB_CURVE) {
+	else if(obact->type==OB_CURVE) {
 		nr= pupmenu("Convert Curve to%t|Mesh");
 		if(nr>0) ok= 1;
 	}
-	else if(ob->type==OB_SURF) {
+	else if(obact->type==OB_SURF) {
 		nr= pupmenu("Convert Nurbs Surface to%t|Mesh");
 		if(nr>0) ok= 1;
 	}
-	else if(ob->type==OB_MESH) {
-		if(ob->modifiers.first) 
-			nr= pupmenu("Convert Modifiers to%t|Mesh (Keep Original)%x1|Mesh (Delete Original)%x2");
+	else if(obact->type==OB_MESH) {
+		nr= pupmenu("Convert Modifiers to%t|Mesh (Keep Original)%x1|Mesh (Delete Original)%x2");
 		if(nr>0) ok= 1;
 	}
 	if(ok==0) return;
@@ -2277,7 +2277,7 @@ void convertmenu(void)
 			ob= base->object;
 			
 			if(ob->flag & OB_DONE);
-			else if(ob->type==OB_MESH) {
+			else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 				DispListMesh *dlm;
 				DerivedMesh *dm;
 
@@ -2293,7 +2293,9 @@ void convertmenu(void)
 				*basen= *base;
 				BLI_addhead(&G.scene->base, basen);	/* addhead: otherwise eternal loop */
 				basen->object= ob1;
-				basen->flag &= ~SELECT;
+				basen->flag |= SELECT;
+				base->flag &= ~SELECT;
+				ob->flag &= ~SELECT;
 
 				/* decrement original mesh's usage count  */
 				me= ob1->data;
@@ -2308,6 +2310,12 @@ void convertmenu(void)
 				dlm= dm->convertToDispListMesh(dm, 0);
 				displistmesh_to_mesh(dlm, ob1->data);
 				dm->release(dm);
+				
+				/* If the original object is active then make this object active */
+				if (ob == obact) {
+					set_active_base( basen );
+					basact = basen;
+				}
 			}
 			else if(ob->type==OB_FONT) {
 				if(nr==1) {
@@ -2381,7 +2389,9 @@ void convertmenu(void)
 						*basen= *base;
 						BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
 						basen->object= ob1;
-						basen->flag &= ~SELECT;
+						basen->flag |= SELECT;
+						basedel->flag &= ~SELECT;
+						ob->flag &= ~SELECT;
 						
 						mb= ob1->data;
 						mb->id.us--;
@@ -2398,6 +2408,19 @@ void convertmenu(void)
 						}
 						
 						mball_to_mesh(&ob->disp, ob1->data);
+						
+						/* So we can see the wireframe */
+						BASACT= basen;
+						enter_editmode();
+						exit_editmode(1); // freedata, but no undo
+						BASACT= basact;
+						
+						/* If the original object is active then make this object active */
+						if (ob == obact) {
+							set_active_base( basen );
+							basact = basen;
+						}
+						
 					}
 				}
 			}

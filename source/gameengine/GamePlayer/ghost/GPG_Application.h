@@ -142,5 +142,8 @@ protected:
 	NG_LoopBackNetworkDeviceInterface* m_networkdevice;
 	/** Sound device. */
 	SND_IAudioDevice* m_audiodevice;
+
+	bool m_blendermat;
+
 };
 

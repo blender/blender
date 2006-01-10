@@ -93,7 +93,11 @@ CValue* KX_RadarSensor::GetReplica()
 	
 	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::RADAR);
 	
-	replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+	if (replica->m_physCtrl)
+	{
+		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+	}
+
 	//todo: make sure replication works fine!
 	//>m_sumoObj = new SM_Object(DT_NewCone(m_coneradius, m_coneheight),NULL,NULL,NULL);
 	//replica->m_sumoObj->setMargin(m_Margin);
@@ -151,9 +155,12 @@ void KX_RadarSensor::SynchronizeTransform()
 	m_cone_target = trans(MT_Point3(0, -m_coneheight/2.0 ,0));
 
 
-	m_physCtrl->setPosition(trans.getOrigin().x(),trans.getOrigin().y(),trans.getOrigin().z());
-	m_physCtrl->setOrientation(trans.getRotation().x(),trans.getRotation().y(),trans.getRotation().z(),trans.getRotation().w());
-	m_physCtrl->calcXform();
+	if (m_physCtrl)
+	{
+		m_physCtrl->setPosition(trans.getOrigin().x(),trans.getOrigin().y(),trans.getOrigin().z());
+		m_physCtrl->setOrientation(trans.getRotation().x(),trans.getRotation().y(),trans.getRotation().z(),trans.getRotation().w());
+		m_physCtrl->calcXform();
+	}
 
 }
 

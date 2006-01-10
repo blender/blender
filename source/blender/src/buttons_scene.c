@@ -457,10 +457,46 @@ static void ftype_pic(char *name)
 	allqueue(REDRAWBUTSSCENE, 0);
 }
 
+static void scene_chain_cleanup(Scene *sc) {
+	while(sc) {
+		sc->dirty = SCE_CLEAN;
+		sc = sc->set;
+    }
+}
 
 static void scene_change_set(Scene *sc, Scene *set) {
+	Scene *scene = G.main->scene.first;
+	int clean = SCE_CLEAN;
+	int breakout = 0;
 	if (sc->set!=set) {
 		sc->set= set;
+		while(breakout==0 && scene) {
+			Scene *setchain = scene;
+			while(breakout==0 && setchain) {
+				clean = setchain->dirty;
+				if(clean == SCE_DIRTY) {
+					/* we have not reached yet end of chain, and we
+					* encountered dirty node - we have a cycle.
+					* sc->set = 0, clean the chain and break out.
+					*/
+					error("Can't change set. It would create a loop!");
+					sc->set = 0;
+					breakout = 1;
+					scene_chain_cleanup(scene);
+					
+				}
+				
+				if(breakout == 0) {
+					setchain->dirty = SCE_DIRTY;
+					setchain = setchain->set;
+				}
+			}
+			
+			if(breakout == 0) {
+				scene_chain_cleanup(scene);
+				scene = scene->id.next;
+			}
+		}
 		
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWVIEW3D, 0);

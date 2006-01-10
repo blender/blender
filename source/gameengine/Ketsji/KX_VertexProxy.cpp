@@ -70,6 +70,10 @@ PyMethodDef KX_VertexProxy::Methods[] = {
 {"setXYZ", (PyCFunction)KX_VertexProxy::sPySetXYZ,METH_VARARGS},
 {"getUV", (PyCFunction)KX_VertexProxy::sPyGetUV,METH_VARARGS},
 {"setUV", (PyCFunction)KX_VertexProxy::sPySetUV,METH_VARARGS},
+
+{"getUV2", (PyCFunction)KX_VertexProxy::sPyGetUV2,METH_VARARGS},
+{"setUV2", (PyCFunction)KX_VertexProxy::sPySetUV2,METH_VARARGS},
+
 {"getRGBA", (PyCFunction)KX_VertexProxy::sPyGetRGBA,METH_VARARGS},
 {"setRGBA", (PyCFunction)KX_VertexProxy::sPySetRGBA,METH_VARARGS},
 {"getNormal", (PyCFunction)KX_VertexProxy::sPyGetNormal,METH_VARARGS},
@@ -214,6 +218,22 @@ int    KX_VertexProxy::_setattr(const STR_String& attr, PyObject *pyvalue)
 	{
 		uv[1] = val;
 		m_vertex->SetUV(uv);
+		return 0;
+	}
+
+	// uv
+	MT_Point2 uv2 = m_vertex->getUV2();
+	if (attr == "u2")
+	{
+		uv[0] = val;
+		m_vertex->SetUV2(uv);
+		return 0;
+	}
+
+	if (attr == "v2")
+	{
+		uv[1] = val;
+		m_vertex->SetUV2(uv);
 		return 0;
 	}
 	
@@ -373,5 +393,31 @@ PyObject* KX_VertexProxy::PySetUV(PyObject*,
 	return NULL;
 }
 
+PyObject* KX_VertexProxy::PyGetUV2(PyObject*, 
+			       PyObject*, 
+			       PyObject*)
+{
+	return PyObjectFrom(MT_Vector2(m_vertex->getUV2()));
+}
+
+PyObject* KX_VertexProxy::PySetUV2(PyObject*, 
+			       PyObject* args, 
+			       PyObject*)
+{
+	MT_Point2 vec;
+	unsigned int unit=0;
+	PyObject* list=0;
+	if(PyArg_ParseTuple(args, "Oi", &list, &unit))
+	{
+		if (PyVecTo(list, vec))
+		{
+			m_vertex->SetFlag((m_vertex->getFlag()|TV_2NDUV));
+			m_vertex->SetUnit(unit);
+			m_vertex->SetUV2(vec);
+			Py_Return;
+		}
+	}
+	return NULL;
+}
 
 

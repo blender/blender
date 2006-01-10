@@ -61,7 +61,7 @@ char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "S
 char *tex_ic_names[TE_TOTNAM] = { "NSize", "NDepth", "NType", "Turb", "Vnw1", "Vnw2",
 	"Vnw3", "Vnw4", "MinkMExp", "DistM", "ColT", "iScale",
 	"DistA", "MgType", "MgH", "Lacu", "Oct", "MgOff",
-	"MgGain", "NBase1", "NBase2" };
+	"MgGain", "NBase1", "NBase2", "ColR", "ColG", "ColB", "Bright", "Contras"};
 char *ma_ic_names[MA_TOTNAM] = { "R", "G", "B", "SpecR", "SpecG", "SpecB", "MirR",
 	"MirG", "MirB", "Ref", "Alpha", "Emit", "Amb", "Spec",
 	"Hard", "SpTra", "Ior", "Mode", "HaSize", "Translu",
@@ -133,7 +133,7 @@ char *getname_ob_ei(int nr, int colipo)
 
 char *getname_tex_ei(int nr)
 {
-	if(nr>=TE_NSIZE && nr<=TE_N_BAS2) return tex_ic_names[nr-1];
+	if(nr>=TE_NSIZE && nr<=TE_CONTRA) return tex_ic_names[nr-1];
 	
 	return ic_name_empty[0];
 }

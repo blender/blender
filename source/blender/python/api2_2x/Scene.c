@@ -934,7 +934,7 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 	scene->camera = object;	/* set the current Camera */
 
 	/* if this is the current scene, update its window now */
-	if( scene == G.scene )
+	if( !G.background && scene == G.scene ) /* Traced a crash to redrawing while in background mode -Campbell */
 		copy_view3d_lock( REDRAW );
 
 /* XXX copy_view3d_lock(REDRAW) prints "bad call to addqueue: 0 (18, 1)".
