@@ -262,16 +262,29 @@ static void curvemap_buttons_zoom_in(void *cumap_v, void *unused)
 static void curvemap_buttons_zoom_out(void *cumap_v, void *unused)
 {
 	CurveMapping *cumap = cumap_v;
-	float d;
+	float d, d1;
 	
-	/* we allow 20 times zoom */
+	/* we allow 20 times zoom, but dont view outside clip */
 	if( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
-		d= 0.15f*(cumap->curr.xmax - cumap->curr.xmin);
-		cumap->curr.xmin-= d;
-		cumap->curr.xmax+= d;
-		d= 0.15f*(cumap->curr.ymax - cumap->curr.ymin);
-		cumap->curr.ymin-= d;
-		cumap->curr.ymax+= d;
+		d= d1= 0.15f*(cumap->curr.xmax - cumap->curr.xmin);
+		
+		if(cumap->curr.xmin-d < cumap->clipr.xmin)
+			d1= cumap->curr.xmin - cumap->clipr.xmin;
+		cumap->curr.xmin-= d1;
+		
+		if(cumap->curr.xmax+d > cumap->clipr.xmax)
+			d1= -cumap->curr.xmax + cumap->clipr.xmax;
+		cumap->curr.xmax+= d1;
+		
+		d= d1= 0.15f*(cumap->curr.ymax - cumap->curr.ymin);
+		
+		if(cumap->curr.ymin-d < cumap->clipr.ymin)
+			d1= cumap->curr.ymin - cumap->clipr.ymin;
+		cumap->curr.ymin-= d1;
+		
+		if(cumap->curr.ymax+d > cumap->clipr.ymax)
+			d1= -cumap->curr.ymax + cumap->clipr.ymax;
+		cumap->curr.ymax+= d1;
 	}
 }
 

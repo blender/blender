@@ -286,7 +286,6 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		if (write_zbuf)
 			frameBuffer.insert ("Z", Slice (UINT, (char *) ibuf->zbuf + 4*(height-1)*width,
 											sizeof(int), sizeof(int) * -width));
-		
 		file->setFrameBuffer (frameBuffer);				  
 		file->writePixels (height);					  
 		delete file;
@@ -344,8 +343,22 @@ static void exr_print_filecontents(InputFile *file)
 		const Channel &channel = i.channel();
 		printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
 	}
-	
 }
+
+static int exr_has_zbuffer(InputFile *file)
+{
+	const ChannelList &channels = file->header().channels();
+	
+	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
+	{
+		const Channel &channel = i.channel();
+		if(strcmp("Z", i.name())==0)
+			return 1;
+	}
+	return 0;
+}
+
+
 struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 {
 	struct ImBuf *ibuf = NULL;
@@ -386,9 +399,16 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 				frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
 				frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
 				frameBuffer.insert ("B", Slice (FLOAT,  (char *) (first+2), xstride, ystride));
-				frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride));
-				
-				// FIXME ? Would be able to read Z data or other channels here ! 
+																		/* 1.0 is fill value */
+				frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f));
+
+				if(exr_has_zbuffer(file)) {
+					int *firstz;
+					
+					addzbufImBuf(ibuf);
+					firstz= ibuf->zbuf + (height-1)*width;
+					frameBuffer.insert ("Z", Slice (UINT,  (char *)firstz , sizeof(int), -width*sizeof(int)));
+				}
 				
 				file->setFrameBuffer (frameBuffer);
 				file->readPixels (dw.min.y, dw.max.y);

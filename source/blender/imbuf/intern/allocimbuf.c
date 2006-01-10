@@ -378,7 +378,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 		memcpy(ibuf2->rect, ibuf1->rect, x * y * sizeof(int));
 	
 	if (flags & IB_rectfloat)
-		memcpy(ibuf2->rect_float, ibuf1->rect_float, x * y * sizeof(float));
+		memcpy(ibuf2->rect_float, ibuf1->rect_float, 4 * x * y * sizeof(float));
 
 	if (flags & IB_planes) 
 		memcpy(*(ibuf2->planes),*(ibuf1->planes),ibuf1->depth * ibuf1->skipx * y * sizeof(int));

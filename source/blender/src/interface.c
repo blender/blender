@@ -3335,6 +3335,8 @@ static int ui_do_but_CURVE(uiBut *but)
 	CurveMap *cuma= cumap->cm+cumap->cur;
 	CurveMapPoint *cmp= cuma->curve;
 	float fx, fy, zoomx, zoomy, offsx, offsy;
+	float dist, mindist= 200.0f;	// 14 pixels radius
+	int a, sel= -1, retval= but->retval;
 	short mval[2], mvalo[2];
 	
 	uiGetMouse(mywinget(), mval);
@@ -3356,113 +3358,123 @@ static int ui_do_but_CURVE(uiBut *but)
 		ui_draw_but(but);
 		ui_block_flush_back(but->block);
 	}
-	else {
-		float dist, mindist= 200.0f;	// 14 pixels radius
-		int a, sel= -1;
-		
-		
-		/* check for selecting of a point */
-		for(a=0; a<cuma->totpoint; a++) {
-			fx= but->x1 + zoomx*(cmp[a].x-offsx);
-			fy= but->y1 + zoomy*(cmp[a].y-offsy);
-			dist= (fx-mval[0])*(fx-mval[0]) + (fy-mval[1])*(fy-mval[1]);
-			if(dist < mindist) {
-				sel= a;
-				mindist= dist;
-			}
+	
+	
+	/* check for selecting of a point */
+	cmp= cuma->curve;	/* ctrl adds point, new malloc */
+	for(a=0; a<cuma->totpoint; a++) {
+		fx= but->x1 + zoomx*(cmp[a].x-offsx);
+		fy= but->y1 + zoomy*(cmp[a].y-offsy);
+		dist= (fx-mval[0])*(fx-mval[0]) + (fy-mval[1])*(fy-mval[1]);
+		if(dist < mindist) {
+			sel= a;
+			mindist= dist;
 		}
-		/* ok, we move a point */
-		if(sel!= -1) {
-			int moved_point;
-			int moved_mouse= 0;
+	}
+	/* ok, we move a point */
+	if(sel!= -1) {
+		int moved_point;
+		int moved_mouse= 0;
 
-			/* deselect all if this one is deselect. except if we hold shift */
-			if((G.qual & LR_SHIFTKEY)==0 && (cmp[sel].flag & SELECT)==0)
-				for(a=0; a<cuma->totpoint; a++)
-					cmp[a].flag &= ~SELECT;
-			cmp[sel].flag |= SELECT;
+		/* deselect all if this one is deselect. except if we hold shift */
+		if((G.qual & LR_SHIFTKEY)==0 && (cmp[sel].flag & SELECT)==0)
+			for(a=0; a<cuma->totpoint; a++)
+				cmp[a].flag &= ~SELECT;
+		cmp[sel].flag |= SELECT;
+		
+		/* draw to show select updates */
+		ui_draw_but(but);
+		ui_block_flush_back(but->block);
+		
+		/* while move mouse, do move points around */
+		while(get_mbut() & L_MOUSE) {
 			
-			/* draw to show select updates */
-			ui_draw_but(but);
-			ui_block_flush_back(but->block);
+			uiGetMouse(mywinget(), mvalo);
 			
-			/* while move mouse, do move points around */
-			while(get_mbut() & L_MOUSE) {
+			if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+				moved_mouse= 1;		/* for selection */
+				moved_point= 0;		/* for ctrl grid, can't use orig coords because of sorting */
 				
-				uiGetMouse(mywinget(), mvalo);
-				
-				if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-					moved_mouse= 1;		/* for selection */
-					moved_point= 0;		/* for ctrl grid, can't use orig coords because of sorting */
-					
-					fx= (mvalo[0]-mval[0])/zoomx;
-					fy= (mvalo[1]-mval[1])/zoomy;
-					for(a=0; a<cuma->totpoint; a++) {
-						if(cmp[a].flag & SELECT) {
-							float origx= cmp[a].x, origy= cmp[a].y;
-							cmp[a].x+= fx;
-							cmp[a].y+= fy;
-							if( (get_qual() & LR_SHIFTKEY) ) {
-								cmp[a].x= 0.125f*floor(0.5f + 8.0f*cmp[a].x);
-								cmp[a].y= 0.125f*floor(0.5f + 8.0f*cmp[a].y);
-							}
-							if(cmp[a].x!=origx || cmp[a].y!=origy)
-								moved_point= 1;
+				fx= (mvalo[0]-mval[0])/zoomx;
+				fy= (mvalo[1]-mval[1])/zoomy;
+				for(a=0; a<cuma->totpoint; a++) {
+					if(cmp[a].flag & SELECT) {
+						float origx= cmp[a].x, origy= cmp[a].y;
+						cmp[a].x+= fx;
+						cmp[a].y+= fy;
+						if( (get_qual() & LR_SHIFTKEY) ) {
+							cmp[a].x= 0.125f*floor(0.5f + 8.0f*cmp[a].x);
+							cmp[a].y= 0.125f*floor(0.5f + 8.0f*cmp[a].y);
 						}
-					}
-					curvemapping_changed(cumap, 0);	/* no remove doubles */
-					
-					ui_draw_but(but);
-					ui_block_flush_back(but->block);
-					
-					if(moved_point) {
-						mval[0]= mvalo[0];
-						mval[1]= mvalo[1];
+						if(cmp[a].x!=origx || cmp[a].y!=origy)
+							moved_point= 1;
 					}
 				}
-				BIF_wait_for_statechange();
-			}
-			
-			if(moved_mouse==0) {
-				/* deselect all, select one */
-				if((G.qual & LR_SHIFTKEY)==0) {
-					for(a=0; a<cuma->totpoint; a++)
-						cmp[a].flag &= ~SELECT;
-					cmp[sel].flag |= SELECT;
-				}
-			}
-			else 
-				curvemapping_changed(cumap, 1);	/* remove doubles */
-			
-			ui_draw_but(but);
-			ui_block_flush_back(but->block);
-		}
-		else {
-			/* we move the view */
-			while(get_mbut() & L_MOUSE) {
+				curvemapping_changed(cumap, 0);	/* no remove doubles */
 				
-				uiGetMouse(mywinget(), mvalo);
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
 				
-				if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-					fx= (mvalo[0]-mval[0])/zoomx;
-					fy= (mvalo[1]-mval[1])/zoomy;
-					cumap->curr.xmin-=fx;
-					cumap->curr.ymin-=fy;
-					cumap->curr.xmax-=fx;
-					cumap->curr.ymax-=fy;
-					
-					ui_draw_but(but);
-					ui_block_flush_back(but->block);
-					
+				if(moved_point) {
 					mval[0]= mvalo[0];
 					mval[1]= mvalo[1];
 				}
 			}
 			BIF_wait_for_statechange();
 		}
+		
+		if(moved_mouse==0) {
+			/* deselect all, select one */
+			if((G.qual & LR_SHIFTKEY)==0) {
+				for(a=0; a<cuma->totpoint; a++)
+					cmp[a].flag &= ~SELECT;
+				cmp[sel].flag |= SELECT;
+			}
+		}
+		else 
+			curvemapping_changed(cumap, 1);	/* remove doubles */
+		
+		ui_draw_but(but);
+		ui_block_flush_back(but->block);
+	}
+	else {
+		/* we move the view */
+		retval= B_NOP;
+		
+		while(get_mbut() & L_MOUSE) {
+			
+			uiGetMouse(mywinget(), mvalo);
+			
+			if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+				fx= (mvalo[0]-mval[0])/zoomx;
+				fy= (mvalo[1]-mval[1])/zoomy;
+				
+				/* clamp for clip */
+				if(cumap->curr.xmin-fx < cumap->clipr.xmin)
+					fx= cumap->curr.xmin - cumap->clipr.xmin;
+				else if(cumap->curr.xmax-fx > cumap->clipr.xmax)
+					fx= cumap->curr.xmax - cumap->clipr.xmax;
+				if(cumap->curr.ymin-fy < cumap->clipr.ymin)
+					fy= cumap->curr.ymin - cumap->clipr.ymin;
+				else if(cumap->curr.ymax-fy > cumap->clipr.ymax)
+					fy= cumap->curr.ymax - cumap->clipr.ymax;
+				
+				cumap->curr.xmin-=fx;
+				cumap->curr.ymin-=fy;
+				cumap->curr.xmax-=fx;
+				cumap->curr.ymax-=fy;
+				
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
+				
+				mval[0]= mvalo[0];
+				mval[1]= mvalo[1];
+			}
+		}
+		BIF_wait_for_statechange();
 	}
 	
-	return but->retval;
+	return retval;
 }
 
 /* ************************************************ */
@@ -4031,7 +4043,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						else sl->blockscale-= 0.1;
 						CLAMP(sl->blockscale, 0.6, 1.0);
 						addqueue(block->winq, REDRAW, 1);
-						retval= UI_CONT;
+						retval= UI_RETURN_OK;
 					}
 				}
 			}

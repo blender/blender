@@ -185,19 +185,13 @@ static void save_paint(char *name)
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 
 		if (saveover(str)) {
-			ibuf = IMB_dupImBuf(ima->ibuf);
-
-			if (ibuf) {
-				if (BIF_write_ibuf(ibuf, str)) {
-					BLI_strncpy(ima->name, name, sizeof(ima->name));
-					ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
-					allqueue(REDRAWHEADERS, 0);
-					allqueue(REDRAWBUTSSHADING, 0);
-				} else {
-					error("Couldn't write image: %s", str);
-				}
-
-				IMB_freeImBuf(ibuf);
+			if (BIF_write_ibuf(ibuf, str)) {
+				BLI_strncpy(ima->name, name, sizeof(ima->name));
+				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
+				allqueue(REDRAWHEADERS, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+			} else {
+				error("Couldn't write image: %s", str);
 			}
 		}
 	}
@@ -335,9 +329,7 @@ void do_image_buttons(unsigned short event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				char str[32];	// sufficient for message
-				save_image_filesel_str(str);
-				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
+				activate_fileselect(FILE_SPECIAL, "Save in own image type", name, save_paint);
 			}
 		}
 		break;
@@ -706,9 +698,7 @@ static void do_image_imagemenu(void *arg, int event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				char str[32];	// sufficient for message
-				save_image_filesel_str(str);
-				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
+				activate_fileselect(FILE_SPECIAL, "Save in own image type", name, save_paint);
 			}
 		}
 		break;

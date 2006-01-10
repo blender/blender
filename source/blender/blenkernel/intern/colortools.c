@@ -489,9 +489,9 @@ void curvemapping_evaluate3F(CurveMapping *cumap, float *vecout, const float *ve
 		
 		fac= (vecin[0] - cumap->black[0])*cumap->bwmul[0];
 		vecout[0]= curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, fac));
-		fac= (vecin[1] - cumap->black[0])*cumap->bwmul[1];
+		fac= (vecin[1] - cumap->black[1])*cumap->bwmul[1];
 		vecout[1]= curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, fac));
-		fac= (vecin[2] - cumap->black[0])*cumap->bwmul[2];
+		fac= (vecin[2] - cumap->black[2])*cumap->bwmul[2];
 		vecout[2]= curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, fac));
 	}
 	else {
@@ -507,7 +507,7 @@ void curvemapping_do_image(CurveMapping *cumap, Image *ima)
 {
 	int pixel;
 	
-	if(ima->ibuf==NULL)
+	if(ima==NULL || ima->ibuf==NULL)
 		return;
 	
 	if(ima->ibuf->rect_float && ima->ibuf->rect) {

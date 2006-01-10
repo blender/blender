@@ -920,9 +920,29 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	uiDefButBitS(block, TOG|BIT, IMAGEPAINT_TORUS, B_SIMABRUSHCHANGE, "Wrap", 890,1,50,19, &Gip.flag, 0, 0, 0, 0, "Enables torus wrapping");
 }
 
+static void image_panel_curves_reset(void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	int a;
+	
+	for(a=0; a<CM_TOT; a++)
+		curvemap_reset(cumap->cm+a, &cumap->clipr);
+	
+	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
+	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;
+	curvemapping_set_black_white(cumap, NULL, NULL);
+	
+	curvemapping_changed(cumap, 0);
+	curvemapping_do_image(cumap, G.sima->image);
+	
+	allqueue(REDRAWIMAGE, 0);
+}
+
+
 static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 {
 	uiBlock *block;
+	uiBut *bt;
 	
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_curves", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
@@ -940,6 +960,9 @@ static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 		rect.ymin= 10; rect.ymax= 200;
 		curvemap_buttons(block, G.sima->cumap, 'c', B_SIMACURVES, B_SIMAGEDRAW, &rect);
 		
+		bt=uiDefBut(block, BUT, B_SIMARANGE, "Reset",	10, 160, 90, 19, NULL, 0.0f, 0.0f, 0, 0, "Reset Black/White point and curves");
+		uiButSetFunc(bt, image_panel_curves_reset, G.sima->cumap, NULL);
+		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_SIMARANGE, "Min R:",	10, 120, 90, 19, G.sima->cumap->black, -1000.0f, 1000.0f, 10, 2, "Black level");
 		uiDefButF(block, NUM, B_SIMARANGE, "Min G:",	10, 100, 90, 19, G.sima->cumap->black+1, -1000.0f, 1000.0f, 10, 2, "Black level");
@@ -949,6 +972,7 @@ static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 		uiDefButF(block, NUM, B_SIMARANGE, "Max R:",	10, 50, 90, 19, G.sima->cumap->white, -1000.0f, 1000.0f, 10, 2, "White level");
 		uiDefButF(block, NUM, B_SIMARANGE, "Max G:",	10, 30, 90, 19, G.sima->cumap->white+1, -1000.0f, 1000.0f, 10, 2, "White level");
 		uiDefButF(block, NUM, B_SIMARANGE, "Max B:",	10, 10, 90, 19, G.sima->cumap->white+2, -1000.0f, 1000.0f, 10, 2, "White level");
+		
 	}
 }
 
