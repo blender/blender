@@ -342,7 +342,13 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\ARB_multitexture.h">
+			</File>
+			<File
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\EXT_separate_specular_color.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\glext.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_GLExtensionManager.h">

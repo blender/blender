@@ -344,22 +344,13 @@
 				RelativePath="..\..\..\source\gameengine\Converter\BL_DeformableGameObject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_Material.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_MeshDeformer.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_Shader.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinDeformer.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinMeshObject.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_Texture.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BlenderWorldInfo.cpp">
@@ -402,22 +393,13 @@
 				RelativePath="..\..\..\source\gameengine\Converter\BL_DeformableGameObject.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_Material.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_MeshDeformer.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_Shader.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinDeformer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BL_SkinMeshObject.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Converter\BL_Texture.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Converter\BlenderWorldInfo.h">
