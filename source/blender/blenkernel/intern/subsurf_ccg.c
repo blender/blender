@@ -224,8 +224,7 @@ static float *getFaceUV(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 	}
 	else if (y==gridSize-1) {
 		CCGVert *v = ccgSubSurf_getFaceVert(ss, f, S);
-		S = (S+numVerts-1)%numVerts;
-		CCGEdge *e = ccgSubSurf_getFaceEdge(ss, f, S);
+		CCGEdge *e = ccgSubSurf_getFaceEdge(ss, f, (S+numVerts-1)%numVerts);
 
 		if (v==ccgSubSurf_getEdgeVert0(ss, e))
 			return ccgSubSurf_getEdgeData(ss, e, gridSize-1-x);
@@ -272,7 +271,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, Mesh *me, DispLis
 	CCGVertHDL fverts[4];
 	EdgeHash *ehash;
 
-	limit[0]= limit[1]= 0.0001;
+	limit[0]= limit[1]= 0.0001f;
 	vmap= make_uv_vert_map(mface, tface, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;
