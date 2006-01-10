@@ -432,7 +432,7 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 void RAS_OpenGLRasterizer::EndFrame()
 {
 	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE);
+	glDisable(GL_TEXTURE_2D);
 
 	//DrawDebugLines
 	glBegin(GL_LINES);

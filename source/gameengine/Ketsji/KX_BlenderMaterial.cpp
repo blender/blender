@@ -48,7 +48,7 @@ extern "C" {
 using namespace bgl;
 #define spit(x) std::cout << x << std::endl;
 
-static PyObject *gTextureDict = 0;
+//static PyObject *gTextureDict = 0;
 
 KX_BlenderMaterial::KX_BlenderMaterial(
     KX_Scene *scene,
@@ -73,9 +73,8 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 		clientobject
 	),
 	mMaterial(data),
-	mScene(scene),
 	mShader(0),
-	mUseShader(0),
+	mScene(scene),
 	mPass(0)
 {
 	///RAS_EXT_support._ARB_multitexture == true if were here
@@ -129,9 +128,10 @@ void KX_BlenderMaterial::OnConstruction()
 {
 	// for each unique material...
 	#ifdef GL_ARB_multitexture
+/*	will be used to switch textures
 	if(!gTextureDict)
 		gTextureDict = PyDict_New();
-
+*/
 	#ifdef GL_ARB_shader_objects
 	if( RAS_EXT_support._ARB_shader_objects )
 		mShader = new BL_Shader( mMaterial->num_enabled );
@@ -167,7 +167,7 @@ void KX_BlenderMaterial::OnConstruction()
 		#ifdef GL_ARB_texture_cube_map
 		}
 		#endif//GL_ARB_texture_cube_map
-		PyDict_SetItemString(gTextureDict, mTextures[i].GetName().Ptr(), PyInt_FromLong(mTextures[i]));
+		/*PyDict_SetItemString(gTextureDict, mTextures[i].GetName().Ptr(), PyInt_FromLong(mTextures[i]));*/
 	}
 	#endif//GL_ARB_multitexture
 }
@@ -207,11 +207,11 @@ void KX_BlenderMaterial::OnExit()
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 	}
 	
-	if (gTextureDict) {
+	/*if (gTextureDict) {
 		PyDict_Clear(gTextureDict);
 		Py_DECREF(gTextureDict);
 		gTextureDict = 0;
-	}
+	}*/
 
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 
@@ -357,9 +357,6 @@ void KX_BlenderMaterial::setTexData( bool enable )
 		#ifdef GL_ARB_texture_cube_map
 		// use environment maps
 		if( mMaterial->mapping[i].mapping &USEENV && RAS_EXT_support._ARB_texture_cube_map ) {
-			// should not happen
-			// if(mTextures[i].GetTextureType() & BL_TEX2D) continue;
-
 			glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTextures[i] );	
 			glEnable(GL_TEXTURE_CUBE_MAP_ARB);
 			setTextureEnvironment( i );
@@ -374,12 +371,6 @@ void KX_BlenderMaterial::setTexData( bool enable )
 		// 2d textures
 		else { 
 		#endif//GL_ARB_texture_cube_map
-			
-			// should not happen
-			//if(mTextures[i].GetTextureType() & BL_TEXCUBE) continue;
-			//
-			MT_assert(!(mTextures[i].GetTextureType() & BL_TEXCUBE));
-
 			glBindTexture( GL_TEXTURE_2D, mTextures[i] );	
 			glEnable( GL_TEXTURE_2D );
 			setTextureEnvironment( i );
@@ -436,7 +427,7 @@ KX_BlenderMaterial::ActivatShaders(
 		else
 			rasty->SetCullFace(true);
 
-		if (mMaterial->mode & RAS_IRasterizer::KX_LINES)
+		if (((mMaterial->ras_mode &WIRE)!=0) || mMaterial->mode & RAS_IRasterizer::KX_LINES)
 			rasty->SetLines(true);
 		else
 			rasty->SetLines(false);
@@ -504,7 +495,7 @@ KX_BlenderMaterial::ActivateMat(
 		else
 			rasty->SetCullFace(true);
 
-		if (mMaterial->mode & RAS_IRasterizer::KX_LINES)
+		if (((mMaterial->ras_mode &WIRE)!=0) || mMaterial->mode & RAS_IRasterizer::KX_LINES)
 			rasty->SetLines(true);
 		else
 			rasty->SetLines(false);
@@ -881,10 +872,9 @@ void KX_BlenderMaterial::UpdateIPO(
 PyMethodDef KX_BlenderMaterial::Methods[] = 
 {
 	KX_PYMETHODTABLE( KX_BlenderMaterial, getShader ),
-	KX_PYMETHODTABLE( KX_BlenderMaterial, useShader ),
 	KX_PYMETHODTABLE( KX_BlenderMaterial, getMaterialIndex ),
-	KX_PYMETHODTABLE( KX_BlenderMaterial, getTexture ),
-	KX_PYMETHODTABLE( KX_BlenderMaterial, setTexture ),
+//	KX_PYMETHODTABLE( KX_BlenderMaterial, getTexture ),
+//	KX_PYMETHODTABLE( KX_BlenderMaterial, setTexture ),
 
 	{NULL,NULL} //Sentinel
 };
@@ -940,24 +930,6 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 	#endif//GL_ARB_shader_objects
 }
 
-KX_PYMETHODDEF_DOC( KX_BlenderMaterial, useShader, "useShader(1:0)" )
-{
-	#ifdef GL_ARB_shader_objects
-	if(!RAS_EXT_support._ARB_shader_objects) {
-		PyErr_Format(PyExc_SystemError, "GLSL not supported");
-		return NULL;
-	}
-	int use =0;
-	if(PyArg_ParseTuple(args, "i", &use)) {
-		mUseShader = (use!= 0);
-		Py_Return;
-	}
-	return NULL;
-	#else
-	Py_Return;
-	#endif//GL_ARB_shader_objects
-}
-
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 {
 	return PyInt_FromLong( mMaterial->material_index );
@@ -965,11 +937,13 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )
 {
+	// TODO: enable python switching
 	return NULL;
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setTexture , "setTexture( index, tex)")
 {
+	// TODO: enable python switching
 	return NULL;
 }
 

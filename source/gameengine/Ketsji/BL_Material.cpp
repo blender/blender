@@ -1,21 +1,5 @@
 // ------------------------------------
-#ifdef WIN32
-#include <windows.h>
-#endif // WIN32
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
-
-#include <iostream>
-
 #include "BL_Material.h"
-#include "MT_assert.h"
-
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_image_types.h"

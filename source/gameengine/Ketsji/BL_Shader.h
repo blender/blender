@@ -45,7 +45,7 @@ private:
 	char*			vertProg;
 	char*			fragProg;
 	bool			LinkProgram();
-	void			printInfo(unsigned int pr);
+	bool			PrintInfo(int len, unsigned int handle, const char *type);
 
 public:
 	BL_Shader(int n, PyTypeObject *T=&Type);

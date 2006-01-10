@@ -68,7 +68,6 @@ public:
 	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
 
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getShader );
-	KX_PYMETHOD_DOC( KX_BlenderMaterial, useShader );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getMaterialIndex );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getTexture );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, setTexture );
@@ -80,7 +79,6 @@ public:
 private:
 	BL_Material*	mMaterial;
 	BL_Shader*		mShader;
-	bool			mUseShader;
 	KX_Scene*		mScene;
 	BL_Texture		mTextures[MAXTEX];		// texture array
 	

@@ -19,16 +19,16 @@
 #include "MT_Matrix4x4.h"
 #include "MT_Matrix3x3.h"
 #include "KX_PyMath.h"
+#include "MEM_guardedalloc.h"
 
 #include "RAS_GLExtensionManager.h"
 
 //using namespace bgl;
 #define spit(x) std::cout << x << std::endl;
 
-
 const bool BL_Shader::Ok()const
 {
-        return (mShader !=0 && mOk && mUse);
+	return (mShader !=0 && mOk && mUse);
 }
 
 BL_Shader::BL_Shader(int n, PyTypeObject *T)
@@ -37,10 +37,10 @@ BL_Shader::BL_Shader(int n, PyTypeObject *T)
 	mVert(0),
 	mFrag(0),
 	mPass(1),
-	vertProg(""),
-	fragProg(""),
 	mOk(0),
-	mUse(0)
+	mUse(0),
+	vertProg(""),
+	fragProg("")
 {
 	// if !RAS_EXT_support._ARB_shader_objects this class will not be used
 
@@ -91,45 +91,74 @@ BL_Shader::~BL_Shader()
 bool BL_Shader::LinkProgram()
 {
 #ifdef GL_ARB_shader_objects
-	if(!vertProg || !fragProg ) return false;
+	int numchars=0;
+	char* log=0;
+	int vertlen = 0, fraglen=0, proglen=0;
 
-	int vertstat,fragstat,progstat;
-	
-	// vertex prog
-	unsigned int vert = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-	glShaderSourceARB(vert, 1, (const char**) &vertProg, 0);
-	glCompileShaderARB(vert);
-	glGetObjectParameterivARB(vert, GL_OBJECT_INFO_LOG_LENGTH_ARB, &vertstat);
-	// errors if any
-	printInfo(vert);
-	
-	// fragment prog
-	unsigned int frag = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-	glShaderSourceARB(frag, 1,(const char**) &fragProg, 0);
-	glCompileShaderARB(frag);
-	glGetObjectParameterivARB(frag, GL_OBJECT_INFO_LOG_LENGTH_ARB, &fragstat);
-	// errors if any
-	printInfo(frag);
-	
-	if(!vertstat || !fragstat) return false;
-
-	// main prog
-	unsigned int prog = glCreateProgramObjectARB();
-	glAttachObjectARB(prog,vert);
-	glAttachObjectARB(prog,frag);
-
-	glLinkProgramARB(prog);
-	glGetObjectParameterivARB(prog, GL_OBJECT_INFO_LOG_LENGTH_ARB, &progstat);
-	// info on how it compiled &| linked
-	printInfo(prog);
-
-	if(!progstat)
+	if(!vertProg || !fragProg){
+		spit("Invalid GLSL sources");
 		return false;
+	}
+	
+	// create our objects
+	unsigned int tmpVert = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+	unsigned int tmpFrag = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+	unsigned int tmpProg = glCreateProgramObjectARB();
 
-	// assign
-	mShader = prog;
-	mVert	= vert;
-	mFrag	= frag;
+	if(!tmpVert || !tmpFrag || !tmpProg){
+		glDeleteObjectARB(tmpVert);
+		glDeleteObjectARB(tmpFrag);
+		glDeleteObjectARB(tmpProg);
+		return false;
+	}
+	// set/compile vertex shader
+	glShaderSourceARB(tmpVert, 1, (const char**)&vertProg, 0);
+	glCompileShaderARB(tmpVert);
+	glGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB, &vertlen);
+
+	if( vertlen > 0 && !PrintInfo(vertlen,tmpVert, "Vertex Shader") ){
+		spit("Vertex shader failed");
+		glDeleteObjectARB(tmpVert);
+		glDeleteObjectARB(tmpFrag);
+		glDeleteObjectARB(tmpProg);
+		mOk	= 0;
+		return false;
+	}
+	// set/compile fragment shader
+	glShaderSourceARB(tmpFrag, 1,(const char**)&fragProg, 0);
+	glCompileShaderARB(tmpFrag);
+	glGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, &fraglen);
+	if(fraglen >0 && !PrintInfo(fraglen,tmpFrag, "Fragment Shader") ){
+		spit("Fragment shader failed");
+		glDeleteObjectARB(tmpVert);
+		glDeleteObjectARB(tmpFrag);
+		glDeleteObjectARB(tmpProg);
+		mOk	= 0;
+		return false;
+	}
+
+	// set compiled vert/frag shader & link
+	glAttachObjectARB(tmpProg, tmpVert);
+	glAttachObjectARB(tmpProg, tmpFrag);
+	glLinkProgramARB(tmpProg);
+
+	glGetObjectParameterivARB(tmpProg, GL_OBJECT_INFO_LOG_LENGTH_ARB, &proglen);
+	if(proglen > 0){
+		PrintInfo(proglen,tmpProg, "GLSL Shader");
+	}
+	else{
+		spit("Program failed");
+		glDeleteObjectARB(tmpVert);
+		glDeleteObjectARB(tmpFrag);
+		glDeleteObjectARB(tmpProg);
+		mOk	= 0;
+		return false;
+	}
+
+	// set
+	mShader = tmpProg;
+	mVert	= tmpVert;
+	mFrag	= tmpFrag;
 	mOk		= 1;
 	return true;
 #else
@@ -137,29 +166,32 @@ bool BL_Shader::LinkProgram()
 #endif//GL_ARB_shader_objects
 }
 
-void BL_Shader::printInfo(unsigned int pr)
+bool BL_Shader::PrintInfo(int len, unsigned int handle, const char *type)
 {
 #ifdef GL_ARB_shader_objects
-#ifndef GLcharARB
-typedef char GLcharARB;
-#endif	
-int length=0;
-	glGetObjectParameterivARB(pr, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-
-	if(length > 1)
-	{
-		GLcharARB*logger = (GLcharARB*)malloc(sizeof(GLcharARB)*length);
-		int chars=0;
-		
-		glGetInfoLogARB(pr, length, &chars, logger);
-		if(chars>0)
-			std::cout << (logger) << std::endl;
-
-		if(logger)
-			free(logger);
+	int numchars=0;
+	char *log = (char*)MEM_mallocN(sizeof(char)*len, "print_log");
+	if(!log) {
+		spit("BL_Shader::PrintInfo() MEM_mallocN failed");
+		return false;
 	}
+	glGetInfoLogARB(handle, len, &numchars, log);
+	
+	if(numchars >0){
+		spit(type);
+		spit(log);
+		MEM_freeN(log);
+		log=0;
+		return false;
+	}
+	MEM_freeN(log);
+	log=0;
+	return true;
+#else
+	return false
 #endif//GL_ARB_shader_objects
 }
+
 
 char *BL_Shader::GetVertPtr()
 {
@@ -299,19 +331,16 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProg
 	{
 		vertProg = v;
 		fragProg = f;
-		if( LinkProgram() )
-		{
+		if( LinkProgram() ) {
 			glUseProgramObjectARB( mShader );
 			mUse = apply!=0;
 			Py_Return;
 		}
-		else
-		{
-			vertProg = 0;
-			fragProg = 0;
-			mUse = 0;
-			glUseProgramObjectARB( 0 );
-		}
+		vertProg = 0;
+		fragProg = 0;
+		mUse = 0;
+		glUseProgramObjectARB( 0 );
+		PyErr_Format(PyExc_ValueError, "GLSL Error");
 	}
 	return NULL;
 #else
@@ -368,7 +397,6 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 	int stat = 0;
 	glValidateProgramARB(mShader);
 	glGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB, &stat);
-	printInfo(mShader);
 
 	return PyInt_FromLong((stat!=0));
 #else

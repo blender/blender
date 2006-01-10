@@ -33,11 +33,22 @@
 #define __RAS_GLEXTENSIONMANAGER_H__
 
 
+#ifdef WIN32
+#  include <windows.h>
+#  include <GL/gl.h>
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
+#elif defined(__APPLE__)
+#  define __glext_h_
+#  include <OpenGL/gl.h>
+#  include <OpenGL/glu.h>
+#  undef __glext_h_
+
+#else /* UNIX */
+#  define __glext_h_
+#  include <GL/gl.h>
+#  include <GL/glx.h>
+#  undef GL_ARB_multitexture // (ubuntu)
+#  undef __glext_h_
 #endif
 
 #include "glext.h"

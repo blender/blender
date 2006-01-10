@@ -123,7 +123,8 @@ enum BL_ras_mode
 	ZSORT=4,
 	TRANSP=8,
 	TRIANGLE=16,
-	USE_LIGHT=32
+	USE_LIGHT=32,
+	WIRE=64
 };
 
 // -------------------------------------

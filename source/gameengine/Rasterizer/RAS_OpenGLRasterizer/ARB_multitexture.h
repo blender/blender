@@ -2,24 +2,6 @@
 #define __ARB_MULTITEXTURE_H__
 
 /* 
-	make sure glext is included before this, when setting up extensions
-
-should we try for this?
-...
-#include ("glext.h" or "SDL_opengl.h"(will need SDL-1.2.9))
-...
-#define BGL_MultiTexture
-#ifdef GL_VERSION_1_3 // in core 
-	#define BGL_TEXTURE0 // GL_TEXTURE0
-	#define bglActiveTexture(unit) bgl::glActiveTexture(unit)
-	// ...
-#elif GL_ARB_multitexture //  GL < 1_3 use extension
-	#define BGL_TEXTURE0 // GL_TEXTURE0_ARB
-	#define bglActiveTexture(unit) bgl::glActiveTextureARB(unit)
-	// ...
-#else // cant do it, skip
-	#undef BGL_MultiTexture
-#endif
 */
 
 /* ----------------------------------------------------------------------------

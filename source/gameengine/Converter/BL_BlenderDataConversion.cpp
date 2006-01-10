@@ -479,6 +479,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 		material->ref			= mat->ref;
 		material->amb			= mat->amb;
 		material->ras_mode |= ((mat->mode & MA_ZTRA) != 0)?ZSORT:0;
+		material->ras_mode |= ((mat->mode & MA_WIRE) != 0)?WIRE:0;
 	}
 	else {
 		int valid = 0;
