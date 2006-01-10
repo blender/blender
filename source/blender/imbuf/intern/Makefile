@@ -41,15 +41,12 @@ include nan_definitions.mk
 
 ifeq ($(WITH_OPENEXR), true)
     DIRS = openexr
+    CFLAGS += -DWITH_OPENEXR
 endif
 
 
 ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
     CFLAGS += -funsigned-char
-endif
-
-ifeq ($(WITH_OPENEXR), true)
-    CFLAGS += -DWITH_OPENEXR
 endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
