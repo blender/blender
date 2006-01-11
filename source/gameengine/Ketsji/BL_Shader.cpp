@@ -67,15 +67,15 @@ BL_Shader::~BL_Shader()
 {
 #ifdef GL_ARB_shader_objects
 	if( mShader ) {
-		glDeleteObjectARB(mShader);
+		bgl::blDeleteObjectARB(mShader);
 		mShader = 0;
 	}
 	if( mFrag ) {
-		glDeleteObjectARB(mFrag);
+		bgl::blDeleteObjectARB(mFrag);
 		mFrag = 0;
 	}
 	if( mVert ) {
-		glDeleteObjectARB(mVert);
+		bgl::blDeleteObjectARB(mVert);
 		mVert		= 0;
 	}
 
@@ -83,7 +83,7 @@ BL_Shader::~BL_Shader()
 	fragProg	= 0;
 	mOk			= 0;
 
-	glUseProgramObjectARB(0);
+	bgl::blUseProgramObjectARB(0);
 #endif//GL_ARB_shader_objects
 }
 
@@ -101,56 +101,56 @@ bool BL_Shader::LinkProgram()
 	}
 	
 	// create our objects
-	unsigned int tmpVert = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
-	unsigned int tmpFrag = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
-	unsigned int tmpProg = glCreateProgramObjectARB();
+	unsigned int tmpVert = bgl::blCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+	unsigned int tmpFrag = bgl::blCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+	unsigned int tmpProg = bgl::blCreateProgramObjectARB();
 
 	if(!tmpVert || !tmpFrag || !tmpProg){
-		glDeleteObjectARB(tmpVert);
-		glDeleteObjectARB(tmpFrag);
-		glDeleteObjectARB(tmpProg);
+		bgl::blDeleteObjectARB(tmpVert);
+		bgl::blDeleteObjectARB(tmpFrag);
+		bgl::blDeleteObjectARB(tmpProg);
 		return false;
 	}
 	// set/compile vertex shader
-	glShaderSourceARB(tmpVert, 1, (const char**)&vertProg, 0);
-	glCompileShaderARB(tmpVert);
-	glGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB, &vertlen);
+	bgl::blShaderSourceARB(tmpVert, 1, (const char**)&vertProg, 0);
+	bgl::blCompileShaderARB(tmpVert);
+	bgl::blGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB, &vertlen);
 
 	if( vertlen > 0 && !PrintInfo(vertlen,tmpVert, "Vertex Shader") ){
 		spit("Vertex shader failed");
-		glDeleteObjectARB(tmpVert);
-		glDeleteObjectARB(tmpFrag);
-		glDeleteObjectARB(tmpProg);
+		bgl::blDeleteObjectARB(tmpVert);
+		bgl::blDeleteObjectARB(tmpFrag);
+		bgl::blDeleteObjectARB(tmpProg);
 		mOk	= 0;
 		return false;
 	}
 	// set/compile fragment shader
-	glShaderSourceARB(tmpFrag, 1,(const char**)&fragProg, 0);
-	glCompileShaderARB(tmpFrag);
-	glGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, &fraglen);
+	bgl::blShaderSourceARB(tmpFrag, 1,(const char**)&fragProg, 0);
+	bgl::blCompileShaderARB(tmpFrag);
+	bgl::blGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, &fraglen);
 	if(fraglen >0 && !PrintInfo(fraglen,tmpFrag, "Fragment Shader") ){
 		spit("Fragment shader failed");
-		glDeleteObjectARB(tmpVert);
-		glDeleteObjectARB(tmpFrag);
-		glDeleteObjectARB(tmpProg);
+		bgl::blDeleteObjectARB(tmpVert);
+		bgl::blDeleteObjectARB(tmpFrag);
+		bgl::blDeleteObjectARB(tmpProg);
 		mOk	= 0;
 		return false;
 	}
 
 	// set compiled vert/frag shader & link
-	glAttachObjectARB(tmpProg, tmpVert);
-	glAttachObjectARB(tmpProg, tmpFrag);
-	glLinkProgramARB(tmpProg);
+	bgl::blAttachObjectARB(tmpProg, tmpVert);
+	bgl::blAttachObjectARB(tmpProg, tmpFrag);
+	bgl::blLinkProgramARB(tmpProg);
 
-	glGetObjectParameterivARB(tmpProg, GL_OBJECT_INFO_LOG_LENGTH_ARB, &proglen);
+	bgl::blGetObjectParameterivARB(tmpProg, GL_OBJECT_INFO_LOG_LENGTH_ARB, &proglen);
 	if(proglen > 0){
 		PrintInfo(proglen,tmpProg, "GLSL Shader");
 	}
 	else{
 		spit("Program failed");
-		glDeleteObjectARB(tmpVert);
-		glDeleteObjectARB(tmpFrag);
-		glDeleteObjectARB(tmpProg);
+		bgl::blDeleteObjectARB(tmpVert);
+		bgl::blDeleteObjectARB(tmpFrag);
+		bgl::blDeleteObjectARB(tmpProg);
 		mOk	= 0;
 		return false;
 	}
@@ -175,7 +175,7 @@ bool BL_Shader::PrintInfo(int len, unsigned int handle, const char *type)
 		spit("BL_Shader::PrintInfo() MEM_mallocN failed");
 		return false;
 	}
-	glGetInfoLogARB(handle, len, &numchars, log);
+	bgl::blGetInfoLogARB(handle, len, &numchars, log);
 	
 	if(numchars >0){
 		spit(type);
@@ -332,14 +332,14 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProg
 		vertProg = v;
 		fragProg = f;
 		if( LinkProgram() ) {
-			glUseProgramObjectARB( mShader );
+			bgl::blUseProgramObjectARB( mShader );
 			mUse = apply!=0;
 			Py_Return;
 		}
 		vertProg = 0;
 		fragProg = 0;
 		mUse = 0;
-		glUseProgramObjectARB( 0 );
+		bgl::blUseProgramObjectARB( 0 );
 		PyErr_Format(PyExc_ValueError, "GLSL Error");
 	}
 	return NULL;
@@ -352,9 +352,9 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSource," setSource(vertexProgram, fragmentProg
 KX_PYMETHODDEF_DOC( BL_Shader, delSource, "delSource( )" )
 {
 #ifdef GL_ARB_shader_objects
-	glDeleteObjectARB(mShader);
-	glDeleteObjectARB(mFrag);
-	glDeleteObjectARB(mVert);
+	bgl::blDeleteObjectARB(mShader);
+	bgl::blDeleteObjectARB(mFrag);
+	bgl::blDeleteObjectARB(mVert);
 	mShader		= 0;
 	mFrag		= 0;
 	mVert		= 0;
@@ -362,7 +362,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, delSource, "delSource( )" )
 	fragProg	= 0;
 	mOk			= 0;
 	mUse		= 0;
-	glUseProgramObjectARB(0);
+	bgl::blUseProgramObjectARB(0);
 #endif
 	Py_Return;
 
@@ -395,8 +395,8 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 	}
 
 	int stat = 0;
-	glValidateProgramARB(mShader);
-	glGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB, &stat);
+	bgl::blValidateProgramARB(mShader);
+	bgl::blGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB, &stat);
 
 	return PyInt_FromLong((stat!=0));
 #else
@@ -417,7 +417,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSampler, "setSampler(name, index)" )
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader, uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader, uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
@@ -463,15 +463,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1f, "setUniform1f(name, fx)" )
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader, uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader, uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB( mShader );
-			glUniform1fARB( loc, value );
+			bgl::blUseProgramObjectARB( mShader );
+			bgl::blUniform1fARB( loc, value );
 			Py_Return;
 		}
 
@@ -495,15 +495,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f , "setUniform2f(name, fx, fy)")
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB( mShader );
-			glUniform2fARB(loc, array[0],array[1] );
+			bgl::blUseProgramObjectARB( mShader );
+			bgl::blUniform2fARB(loc, array[0],array[1] );
 			Py_Return;
 		}
 
@@ -527,15 +527,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3f, "setUniform3f(name, fx,fy,fz) ")
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB(mShader);
-			glUniform3fARB(loc, array[0],array[1],array[2]);
+			bgl::blUseProgramObjectARB(mShader);
+			bgl::blUniform3fARB(loc, array[0],array[1],array[2]);
 			Py_Return;
 		}
 
@@ -559,15 +559,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4f, "setUniform4f(name, fx,fy,fz, fw) "
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB(mShader);
-			glUniform4fARB(loc, array[0],array[1],array[2], array[3]);
+			bgl::blUseProgramObjectARB(mShader);
+			bgl::blUniform4fARB(loc, array[0],array[1],array[2], array[3]);
 			Py_Return;
 		}
 	}
@@ -590,15 +590,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1i, "setUniform1i(name, ix)" )
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader, uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader, uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB( mShader );
-			glUniform1iARB( loc, value );
+			bgl::blUseProgramObjectARB( mShader );
+			bgl::blUniform1iARB( loc, value );
 			Py_Return;
 		}
 	}
@@ -621,15 +621,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i , "setUniform2i(name, ix, iy)")
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB( mShader );
-			glUniform2iARB(loc, array[0],array[1] );
+			bgl::blUseProgramObjectARB( mShader );
+			bgl::blUniform2iARB(loc, array[0],array[1] );
 			Py_Return;
 		}
 	}
@@ -652,15 +652,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3i, "setUniform3i(name, ix,iy,iz) ")
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB(mShader);
-			glUniform3iARB(loc, array[0],array[1],array[2]);
+			bgl::blUseProgramObjectARB(mShader);
+			bgl::blUniform3iARB(loc, array[0],array[1],array[2]);
 			Py_Return;
 		}
 	}
@@ -682,15 +682,15 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4i, "setUniform4i(name, ix,iy,iz, iw) "
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
 			Py_Return;
 		}else
 		{
-			glUseProgramObjectARB(mShader);
-			glUniform4iARB(loc, array[0],array[1],array[2], array[3]);
+			bgl::blUseProgramObjectARB(mShader);
+			bgl::blUniform4iARB(loc, array[0],array[1],array[2], array[3]);
 			Py_Return;
 		}
 	}
@@ -714,7 +714,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
@@ -735,20 +735,20 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 				{
 				case 2:
 					{
-						glUseProgramObjectARB(mShader);
-						glUniform2fARB(loc, array_data[0],array_data[1]);
+						bgl::blUseProgramObjectARB(mShader);
+						bgl::blUniform2fARB(loc, array_data[0],array_data[1]);
 						Py_Return;
 					} break;
 				case 3:
 					{
-						glUseProgramObjectARB(mShader);
-						glUniform3fARB(loc, array_data[0],array_data[1], array_data[2]);
+						bgl::blUseProgramObjectARB(mShader);
+						bgl::blUniform3fARB(loc, array_data[0],array_data[1], array_data[2]);
 						Py_Return;
 					}break;
 				case 4:
 					{
-						glUseProgramObjectARB(mShader);
-						glUniform4fARB(loc, array_data[0],array_data[1], array_data[2], array_data[3]);
+						bgl::blUseProgramObjectARB(mShader);
+						bgl::blUniform4fARB(loc, array_data[0],array_data[1], array_data[2], array_data[3]);
 						Py_Return;
 					}break;
 				default:
@@ -781,7 +781,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
@@ -802,20 +802,20 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 
 				{
 				case 2:
 					{
-						glUseProgramObjectARB(mShader);
-						glUniform2iARB(loc, array_data[0],array_data[1]);
+						bgl::blUseProgramObjectARB(mShader);
+						bgl::blUniform2iARB(loc, array_data[0],array_data[1]);
 						Py_Return;
 					} break;
 				case 3:
 					{
-						glUseProgramObjectARB(mShader);
-						glUniform3iARB(loc, array_data[0],array_data[1], array_data[2]);
+						bgl::blUseProgramObjectARB(mShader);
+						bgl::blUniform3iARB(loc, array_data[0],array_data[1], array_data[2]);
 						Py_Return;
 					}break;
 				case 4:
 					{
-						glUseProgramObjectARB(mShader);
-						glUniform4iARB(loc, array_data[0],array_data[1], array_data[2], array_data[3]);
+						bgl::blUseProgramObjectARB(mShader);
+						bgl::blUniform4iARB(loc, array_data[0],array_data[1], array_data[2], array_data[3]);
 						Py_Return;
 					}break;
 				default:
@@ -855,7 +855,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
@@ -868,8 +868,8 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 				if (PyMatTo(matrix, mat))
 				{
 					mat.getValue(matr);
-					glUseProgramObjectARB(mShader);
-					glUniformMatrix4fvARB(loc, 1, (transp!=0)?GL_TRUE:GL_FALSE, matr);
+					bgl::blUseProgramObjectARB(mShader);
+					bgl::blUniformMatrix4fvARB(loc, 1, (transp!=0)?GL_TRUE:GL_FALSE, matr);
 					Py_Return;
 				}
 			}
@@ -902,7 +902,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 			PyErr_Format(PyExc_ValueError, "invalid shader object");
 			return NULL;
 		}
-		int loc= glGetUniformLocationARB(mShader , uniform);
+		int loc= bgl::blGetUniformLocationARB(mShader , uniform);
 		if( loc==-1 )
 		{
 			spit("Invalid uniform value: " << uniform << ".");
@@ -915,8 +915,8 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 				if (PyMatTo(matrix, mat))
 				{
 					mat.getValue(matr);
-					glUseProgramObjectARB(mShader);
-					glUniformMatrix3fvARB(loc, 1, (transp!=0)?GL_TRUE:GL_FALSE, matr);
+					bgl::blUseProgramObjectARB(mShader);
+					bgl::blUniformMatrix3fvARB(loc, 1, (transp!=0)?GL_TRUE:GL_FALSE, matr);
 					Py_Return;
 				}
 			}

@@ -139,7 +139,7 @@ void KX_BlenderMaterial::OnConstruction()
 
 	int i;
 	for(i=0; i<mMaterial->num_enabled; i++) {
-	glActiveTextureARB(GL_TEXTURE0_ARB+i);
+	bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
 		#ifdef GL_ARB_texture_cube_map
 		if( mMaterial->mapping[i].mapping & USEENV ) {
 			if(!RAS_EXT_support._ARB_texture_cube_map) {
@@ -180,14 +180,14 @@ void KX_BlenderMaterial::OnExit()
 	if( RAS_EXT_support._ARB_shader_objects && mShader ) {
 		 //note, the shader here is allocated, per unique material
 		 //and this function is called per face
-		glUseProgramObjectARB(0);
+		bgl::blUseProgramObjectARB(0);
 		delete mShader;
 		mShader = 0;
 	}
 	#endif //GL_ARB_shader_objects
 
 	for(int i=0; i<mMaterial->num_enabled; i++) {
-		glActiveTextureARB(GL_TEXTURE0_ARB+i);
+		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
 
 		mTextures[i].DeleteTex();
 
@@ -213,7 +213,7 @@ void KX_BlenderMaterial::OnExit()
 		gTextureDict = 0;
 	}*/
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
+	bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
 
 	#ifdef GL_ARB_texture_cube_map
 	if(RAS_EXT_support._ARB_texture_cube_map)
@@ -238,7 +238,7 @@ void KX_BlenderMaterial::DisableTexData()
 	#ifdef GL_ARB_multitexture
 	int i=(MAXTEX>=bgl::max_texture_units?bgl::max_texture_units:MAXTEX)-1;
 	for(; i>=0; i--) {
-		glActiveTextureARB(GL_TEXTURE0_ARB+i);
+		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
@@ -268,13 +268,13 @@ void KX_BlenderMaterial::setShaderData( bool enable )
 	int i;
 	if( !enable || !mShader->Ok() ) {
 		// frame cleanup.
-		glUseProgramObjectARB( 0 );
+		bgl::blUseProgramObjectARB( 0 );
 		DisableTexData();
 		return;
 	}
 
 	DisableTexData();
-	glUseProgramObjectARB( mShader->GetProg() );
+	bgl::blUseProgramObjectARB( mShader->GetProg() );
 	
 	// for each enabled unit
 	for(i=0; i<mMaterial->num_enabled; i++) {
@@ -282,7 +282,7 @@ void KX_BlenderMaterial::setShaderData( bool enable )
 		const uSampler *samp = mShader->getSampler(i);
 		if( samp->loc == -1 || samp->glTexture == 0 ) continue;
 
-		glActiveTextureARB(GL_TEXTURE0_ARB+i);
+		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
 
 		#ifdef GL_ARB_texture_cube_map
 		if( mMaterial->mapping[i].mapping &USEENV ) {
@@ -297,7 +297,7 @@ void KX_BlenderMaterial::setShaderData( bool enable )
 		}
 		#endif//GL_ARB_texture_cube_map
 		// use a sampler
-		glUniform1iARB(samp->loc, i );
+		bgl::blUniform1iARB(samp->loc, i );
 	}
 	glDisable(GL_BLEND);
 
@@ -314,7 +314,7 @@ void KX_BlenderMaterial::setTexData( bool enable )
 	#ifdef GL_ARB_shader_objects
 	if(RAS_EXT_support._ARB_shader_objects) {
 		// switch back to fixed func
-		glUseProgramObjectARB( 0 );
+		bgl::blUseProgramObjectARB( 0 );
 	}
 	#endif//GL_ARB_shader_objects
 
@@ -336,7 +336,7 @@ void KX_BlenderMaterial::setTexData( bool enable )
 		// no material connected to the object
 		if( mTextures[0] ) {
 			if( !mTextures[0].Ok() ) return;
-			glActiveTextureARB(GL_TEXTURE0_ARB);
+			bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
 			glBindTexture( GL_TEXTURE_2D, mTextures[0] );	
 			glEnable(GL_TEXTURE_2D);
 			setTextureEnvironment( -1 ); // modulate
@@ -352,7 +352,7 @@ void KX_BlenderMaterial::setTexData( bool enable )
 	for(i=0; (i<mMaterial->num_enabled); i++) {
 		if( !mTextures[i].Ok() ) continue;
 
-		glActiveTextureARB(GL_TEXTURE0_ARB+i);
+		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
 
 		#ifdef GL_ARB_texture_cube_map
 		// use environment maps
@@ -548,7 +548,7 @@ KX_BlenderMaterial::Activate(
 			return dopass;
 		}
 		else {
-			glUseProgramObjectARB( 0 );
+			bgl::blUseProgramObjectARB( 0 );
 			mPass = 0;
 			dopass = false;
 			return dopass;

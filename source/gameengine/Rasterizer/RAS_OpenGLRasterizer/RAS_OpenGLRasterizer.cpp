@@ -1265,10 +1265,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 
@@ -1281,10 +1281,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1296,10 +1296,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1311,10 +1311,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1336,10 +1336,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1352,10 +1352,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1368,10 +1368,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 
@@ -1385,10 +1385,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 
@@ -1416,10 +1416,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 
@@ -1432,10 +1432,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 
@@ -1448,10 +1448,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 
@@ -1471,10 +1471,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 
@@ -1488,10 +1488,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1504,10 +1504,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1620,10 +1620,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						
@@ -1638,10 +1638,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						
@@ -1656,10 +1656,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						
@@ -1674,10 +1674,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						
@@ -1721,10 +1721,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						
@@ -1740,10 +1740,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						
@@ -1759,10 +1759,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						
@@ -1777,10 +1777,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1824,10 +1824,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1840,10 +1840,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1856,10 +1856,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1896,10 +1896,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1913,10 +1913,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
@@ -1930,10 +1930,10 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti_Ex(const vecVertexArray & vertex
 							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
 								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
 							{
-								bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
+								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
 								continue;
 							}
-							bgl::glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
+							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
 						}
 						// ------------------------------
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
