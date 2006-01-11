@@ -21,7 +21,7 @@ Run this script from "File->Export" menu to export all meshes.
 
 
 # --------------------------------------------------------------------------
-# OBJ Export v0.9b by Campbell Barton (AKA Ideasman)
+# OBJ Export v1.0 by Campbell Barton (AKA Ideasman)
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -197,6 +197,7 @@ def copy_file(source, dest):
 	file.write(data)
 	file.close()
 
+
 def copy_images(dest_dir):
 	if dest_dir[-1] != sys.sep:
 		dest_dir += sys.sep
@@ -204,12 +205,14 @@ def copy_images(dest_dir):
 	# Get unique image names
 	uniqueImages = {}
 	for matname, imagename in MTL_DICT.iterkeys(): # Only use image name
-		uniqueImages[imagename] = None # Should use sets here. wait until Python 2.4 is default.
+		if imagename != None:
+			uniqueImages[imagename] = None # Should use sets here. wait until Python 2.4 is default.
 	
 	# Now copy images
 	copyCount = 0
 	
 	for imageName in uniqueImages.iterkeys():
+		print imageName
 		bImage = Image.Get(imageName)
 		image_path = sys.expandpath(bImage.filename)
 		if sys.exists(image_path):
@@ -543,13 +546,13 @@ def save_obj_ui(filename):
 		orig_frame = Blender.Get('curframe')
 		
 		if EXPORT_ALL_SCENES: # Add scene name into the context_name
-			context_name[1] = '_%s' % saneFilechars(scn.name)
+			context_name[1] = '_%s' % saneFilechars(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
 		
 		# Export an animation?
 		if EXPORT_ANIMATION:
 			scene_frames = range(context.startFrame(), context.endFrame()+1) # up to and including the end frame.
 		else:
-			scene_frames = [orig_frame]
+			scene_frames = [orig_frame] # Dont export an animation.
 		
 		# Loop through all frames in the scene and export.
 		for frame in scene_frames:
