@@ -1057,6 +1057,49 @@ static void imagespace_grid(SpaceImage *sima)
 	
 }
 
+static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float xsize, float ysize)
+{
+	float tile= sima->zoom*15.0f;
+	float x, y, maxx, maxy;
+	
+	glColor3ub(100, 100, 100);
+	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
+	glColor3ub(160, 160, 160);
+	
+	maxx= x1+sima->zoom*xsize;
+	maxy= y1+sima->zoom*ysize;
+	
+	for(x=0; x<xsize; x+=30) {
+		for(y=0; y<ysize; y+=30) {
+			float fx= x1 + sima->zoom*x;
+			float fy= y1 + sima->zoom*y;
+			float tilex= tile, tiley= tile;
+			
+			if(fx+tile > maxx)
+				tilex= maxx-fx;
+			if(fy+tile > maxy)
+				tiley= maxy-fy;
+			
+			glRectf(fx, fy, fx + tilex, fy + tiley);
+		}
+	}
+	for(x=15; x<xsize; x+=30) {
+		for(y=15; y<ysize; y+=30) {
+			float fx= x1 + sima->zoom*x;
+			float fy= y1 + sima->zoom*y;
+			float tilex= tile, tiley= tile;
+			
+			if(fx+tile > maxx)
+				tilex= maxx-fx;
+			if(fy+tile > maxy)
+				tiley= maxy-fy;
+			
+			glRectf(fx, fy, fx + tilex, fy + tiley);
+		}
+	}
+}
+
+
 void drawimagespace(ScrArea *sa, void *spacedata)
 {
 	SpaceImage *sima= spacedata;
@@ -1164,8 +1207,16 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				
 				MEM_freeN(rect);
 			}
-			else 
+			else {
+				if(sima->flag & SI_USE_ALPHA) {
+					sima_draw_alpha_backdrop(sima, x1, y1, (float)ibuf->x, (float)ibuf->y);
+					glEnable(GL_BLEND);
+				}
 				glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+				
+				if(sima->flag & SI_USE_ALPHA)
+					glDisable(GL_BLEND);
+			}
 			
 			if(Gip.current == IMAGEPAINT_CLONE) {
 				int w, h;

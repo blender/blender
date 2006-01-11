@@ -268,22 +268,26 @@ static void curvemap_buttons_zoom_out(void *cumap_v, void *unused)
 	if( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
 		d= d1= 0.15f*(cumap->curr.xmax - cumap->curr.xmin);
 		
-		if(cumap->curr.xmin-d < cumap->clipr.xmin)
-			d1= cumap->curr.xmin - cumap->clipr.xmin;
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.xmin-d < cumap->clipr.xmin)
+				d1= cumap->curr.xmin - cumap->clipr.xmin;
 		cumap->curr.xmin-= d1;
 		
-		if(cumap->curr.xmax+d > cumap->clipr.xmax)
-			d1= -cumap->curr.xmax + cumap->clipr.xmax;
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.xmax+d > cumap->clipr.xmax)
+				d1= -cumap->curr.xmax + cumap->clipr.xmax;
 		cumap->curr.xmax+= d1;
 		
 		d= d1= 0.15f*(cumap->curr.ymax - cumap->curr.ymin);
 		
-		if(cumap->curr.ymin-d < cumap->clipr.ymin)
-			d1= cumap->curr.ymin - cumap->clipr.ymin;
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.ymin-d < cumap->clipr.ymin)
+				d1= cumap->curr.ymin - cumap->clipr.ymin;
 		cumap->curr.ymin-= d1;
 		
-		if(cumap->curr.ymax+d > cumap->clipr.ymax)
-			d1= -cumap->curr.ymax + cumap->clipr.ymax;
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.ymax+d > cumap->clipr.ymax)
+				d1= -cumap->curr.ymax + cumap->clipr.ymax;
 		cumap->curr.ymax+= d1;
 	}
 }

@@ -1161,14 +1161,12 @@ void image_buttons(void)
 			headerbuttons_packdummy = 1;
 		}
 		uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-		
-		xco+= XIC;
-	}
+		xco+= XIC+8;
 
-	xco+= 8;
-
-	if (G.sima->image) {
 		uiDefIconButBitS(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
+		xco+= XIC+8;
+
+		uiDefIconButBitS(block, TOG, SI_USE_ALPHA, B_REDR, ICON_TRANSP_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws image with alpha");
 		xco+= XIC+8;
 	}
 

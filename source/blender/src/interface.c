@@ -3451,15 +3451,16 @@ static int ui_do_but_CURVE(uiBut *but)
 				fy= (mvalo[1]-mval[1])/zoomy;
 				
 				/* clamp for clip */
-				if(cumap->curr.xmin-fx < cumap->clipr.xmin)
-					fx= cumap->curr.xmin - cumap->clipr.xmin;
-				else if(cumap->curr.xmax-fx > cumap->clipr.xmax)
-					fx= cumap->curr.xmax - cumap->clipr.xmax;
-				if(cumap->curr.ymin-fy < cumap->clipr.ymin)
-					fy= cumap->curr.ymin - cumap->clipr.ymin;
-				else if(cumap->curr.ymax-fy > cumap->clipr.ymax)
-					fy= cumap->curr.ymax - cumap->clipr.ymax;
-				
+				if(cumap->flag & CUMA_DO_CLIP) {
+					if(cumap->curr.xmin-fx < cumap->clipr.xmin)
+						fx= cumap->curr.xmin - cumap->clipr.xmin;
+					else if(cumap->curr.xmax-fx > cumap->clipr.xmax)
+						fx= cumap->curr.xmax - cumap->clipr.xmax;
+					if(cumap->curr.ymin-fy < cumap->clipr.ymin)
+						fy= cumap->curr.ymin - cumap->clipr.ymin;
+					else if(cumap->curr.ymax-fy > cumap->clipr.ymax)
+						fy= cumap->curr.ymax - cumap->clipr.ymax;
+				}				
 				cumap->curr.xmin-=fx;
 				cumap->curr.ymin-=fy;
 				cumap->curr.xmax-=fx;
