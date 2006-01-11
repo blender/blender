@@ -431,7 +431,6 @@ endif
   ifeq ($(OS),windows)
 
     export ID = $(LOGNAME)
-    export NAN_NO_KETSJI=false
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
     export NAN_PYTHON_VERSION ?= 2.4
