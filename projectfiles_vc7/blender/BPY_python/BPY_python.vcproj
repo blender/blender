@@ -191,6 +191,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Object.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Pose.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Registry.c">
 			</File>
 			<File
@@ -356,6 +359,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Object.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Pose.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Registry.h">
