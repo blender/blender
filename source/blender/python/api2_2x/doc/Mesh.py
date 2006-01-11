@@ -273,9 +273,9 @@ class MVertSeq:
       l=[(.1,.1,.1),Vector([2,2,.5])]
       me.verts.extend(l)              # add multiple vertices
 
-    @type coords: tuple(s) of floats or vectors
+    @type coords: sequences(s) of floats or vectors
     @param coords: coords can be
-       - a tuple of three floats,
+       - a sequence of three floats,
        - a 3D vector, or
        - a sequence (list or tuple) of either of the above.
     """
@@ -348,12 +348,12 @@ class MEdgeSeq:
       v = me.verts                    # get vertices
       if len(v) >= 6:                 # if there are enough vertices...
         me.edges.extend(v[0],v[1])    #   add a single edge
-        l=[(v[1],v[2],v[3]),(v[0],v[2],v[4],v[5])]
+        l=[(v[1],v[2],v[3]),[v[0],v[2],v[4],v[5]]]
         me.edges.extend(l)            #   add multiple edges
 
-    @type vertseq: tuple(s) of MVerts
+    @type vertseq: sequence(s) of MVerts
     @param vertseq: either two to four MVerts, or sequence (list or tuple) 
-    of tuples each containing two to four MVerts.
+    of sequences each containing two to four MVerts.
     """
 
   def delete(edges):
@@ -520,7 +520,7 @@ class MFaceSeq:
   def extend(vertseq):
     """
     Add one or more faces to the mesh.  Faces which already exist in the 
-    mesh are ignored.  Tuples of two vertices are accepted, but no face
+    mesh are ignored.  Sequences of two vertices are accepted, but no face
     will be created.
 
     Example::
@@ -531,12 +531,12 @@ class MFaceSeq:
       v = me.verts                    # get vertices
       if len(v) >= 6:                 # if there are enough vertices...
         me.faces.extend(v[1],v[2],v[3]) #   add a single edge
-        l=[(v[0],v[1]),(v[0],v[2],v[4],v[5])]
+        l=[(v[0],v[1]),[v[0],v[2],v[4],v[5]]]
         me.faces.extend(l)            #   add another face
 
-    @type vertseq: tuple(s) of MVerts
+    @type vertseq: sequence(s) of MVerts
     @param vertseq: either two to four MVerts, or sequence (list or tuple) 
-    of tuples each containing two to four MVerts.
+    of sequences each containing two to four MVerts.
     """
 
   def delete(deledges, faces):
@@ -706,11 +706,11 @@ class Mesh:
 
   def findEdges(edges):
     """
-    Quickly search for the location of an edge.  
-    @type edges: tuple(s) of ints or MVerts
+    Quickly search for the location of an edges.  
+    @type edges: sequence(s) of ints or MVerts
     @param edges: can be tuples of MVerts or integer indexes (B{note:} will
        not work with PVerts) or a sequence (list or tuple) containing two or
-       more tuples.
+       more sequences.
     @rtype: int, None or list
     @return: if an edge is found, its index is returned; otherwise None is
     returned.  If a sequence of edges is passed, a list is returned.

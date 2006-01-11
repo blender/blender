@@ -126,6 +126,7 @@ typedef struct SrchEdges {
 
 typedef struct SrchFaces {
 	unsigned int v[4];		/* indices for verts */
+	unsigned int index;		/* index in original param list of this edge */
 	unsigned char order;	/* order of original verts, bitpacked */
 } SrchFaces;
 
@@ -154,6 +155,22 @@ int medge_comp( const void *va, const void *vb )
 	else if (a[1] < b[1]) return -1;
 	else return (a[1] > b[1]);
 }
+
+/*
+ * compare edges by insert list indices
+ */
+
+int medge_index_comp( const void *va, const void *vb )
+{
+	const SrchEdges *a = (SrchEdges *)va;
+	const SrchEdges *b = (SrchEdges *)vb;
+
+	/* compare list indices for differences */
+
+	if (a->index < b->index) return -1;
+	else return (a->index > b->index);
+}
+
 
 /*
  * compare faces by vertex indices
@@ -187,6 +204,23 @@ int mface_comp( const void *va, const void *vb )
 		return 1;	
 #endif
 
+	return 0;
+}
+
+/*
+ * compare faces by insert list indices
+ */
+
+int mface_index_comp( const void *va, const void *vb )
+{
+	const SrchFaces *a = va;
+	const SrchFaces *b = vb;
+
+	/* compare indices, first to last, for differences */
+	if( a->index < b->index )
+		return -1;	
+	if( a->index > b->index )
+		return 1;
 	return 0;
 }
 
@@ -1572,14 +1606,14 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		if( !VectorObject_Check ( tmp ) ) {
 			if( !PySequence_Check ( tmp ) )
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected a sequence of tuple triplets" );
+						"expected a sequence of sequence triplets" );
 			args = tmp;
 		}
 		Py_INCREF( args );		/* so we can safely DECREF later */
 		break;
 	case 3:		/* take any three args and put into a tuple */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PyTuple_Check( tmp ) ) {
+		if( PySequence_Check( tmp ) ) {
 			Py_INCREF( args );
 			break;
 		}
@@ -1591,14 +1625,14 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		break;
 	default:	/* anything else is definitely wrong */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected a sequence of tuple triplets" );
+				"expected a sequence of sequence triplets" );
 	}
 
 	len = PySequence_Size( args );
 	if( len == 0 ) {
 		Py_DECREF ( args );
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected at least one tuple" );
+				"expected at least one sequence" );
 	}
 
 	newlen = mesh->totvert + len;
@@ -1620,18 +1654,19 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 			}
 			for( j = 0; j < 3; ++j )
 				co[j] = ((VectorObject *)tmp)->vec[j];
-		} else if( PyTuple_Check( tmp ) ) {
+		} else if( PySequence_Check( tmp ) ) {
 			int ok=1;
 			PyObject *flt;
-			if( PyTuple_Size( tmp ) != 3 )
+			if( PySequence_Size( tmp ) != 3 )
 				ok = 0;
 			else	
 				for( j = 0; ok && j < 3; ++j ) {
-					flt = PyTuple_GET_ITEM( tmp, j );
+					flt = PySequence_ITEM( tmp, j );
 					if( !PyNumber_Check ( flt ) )
 						ok = 0;
 					else
 						co[j] = (float)PyFloat_AsDouble( flt );
+					Py_DECREF( flt );
 				}
 
 			if( !ok ) {
@@ -1639,9 +1674,16 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 				Py_DECREF ( args );
 				Py_DECREF ( tmp );
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
-					"expected tuple triplet of floats" );
+					"expected sequence triplet of floats" );
 			}
+		} else {
+			MEM_freeN( newvert );
+			Py_DECREF ( args );
+			Py_DECREF ( tmp );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"expected sequence triplet of floats" );
 		}
+
 		Py_DECREF ( tmp );
 
 	/* add the coordinate to the new list */
@@ -2420,14 +2462,14 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		args = PyTuple_GET_ITEM( args, 0 );
 		if( !PySequence_Check ( args ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of tuple pairs" );
+					"expected a sequence of sequence pairs" );
 		Py_INCREF( args );		/* so we can safely DECREF later */
 		break;
 	case 2:	
 	case 3:
 	case 4:		/* two to four args may be individual verts */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PyTuple_Check( tmp ) ) {/* maybe just tuples, so use args as-is */
+		if( PySequence_Check( tmp ) ) {/* maybe just sequences, so use args as-is */
 			Py_INCREF( args );		/* so we can safely DECREF later */
 			break;
 		}
@@ -2438,7 +2480,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		break;
 	default:	/* anything else is definitely wrong */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected a sequence of tuple pairs" );
+				"expected a sequence of sequence pairs" );
 	}
 
 	/* make sure there is something to add */
@@ -2446,7 +2488,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	if( len == 0 ) {
 		Py_DECREF( args );
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected at least one tuple" );
+				"expected at least one sequence" );
 	}
 
 	/* verify the param list and get a total count of number of edges */
@@ -2455,21 +2497,21 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		tmp = PySequence_GetItem( args, i );
 
 		/* not a tuple of MVerts... error */
-		if( !PyTuple_Check( tmp ) ||
+		if( !PySequence_Check( tmp ) ||
 				EXPP_check_sequence_consistency( tmp, &MVert_Type ) != 1 ) {
 			Py_DECREF( tmp );
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected sequence of MVert tuples" );
+				"expected sequence of MVert sequences" );
 		}
 
 		/* not the right number of MVerts... error */
-		nverts = PyTuple_Size( tmp );
+		nverts = PySequence_Size( tmp );
 		if( nverts < 2 || nverts > 4 ) {
 			Py_DECREF( tmp );
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected 2 to 4 MVerts per tuple" );
+				"expected 2 to 4 MVerts per sequence" );
 		}
 		Py_DECREF( tmp );
 
@@ -2486,14 +2528,15 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	/* scan the input list and build the new edge pair list */
 	len = PySequence_Size( args );
 	tmppair = newpair;
+	new_edge_count = 0;
 	for( i = 0; i < len; ++i ) {
 		int edge_count;
 		tmp = PySequence_GetItem( args, i );
-		nverts = PyTuple_Size( tmp );
+		nverts = PySequence_Size( tmp );
 
-		/* get copies of vertices */
+		/* get new references for the vertices */
 		for(j = 0; j < nverts; ++j )
-			e[j] = (BPy_MVert *)PyTuple_GET_ITEM( tmp, j );
+			e[j] = (BPy_MVert *)PySequence_GetItem( tmp, j );
 		Py_DECREF( tmp );
 
 		if( nverts == 2 )
@@ -2518,12 +2561,20 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 				tmppair->swap = 1;
 			} else {
 				MEM_freeN( newpair );
+				for(j = 0; j < nverts; ++j )
+					Py_DECREF( e[j] );
 				Py_DECREF( args );
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 						"tuple contains duplicate vertices" );
 			}
+			tmppair->index = new_edge_count;
+			++new_edge_count;
 			tmppair++;
 		}
+
+		/* free the new references */
+		for( j = 0; j < nverts; ++j )
+			Py_DECREF( e[j] );
 	}
 
 	/* sort the new edge pairs */
@@ -2604,6 +2655,17 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			MEM_freeN( mesh->medge );
 		}
 		mesh->medge = tmpedge;		/* point to the new edge list */
+
+	/* resort edges into original order */
+		{int i;
+			for (i=0; i< new_edge_count; ++i)
+				printf ("oed %d is %d\n",i,newpair[i].index);
+		}
+		qsort( newpair, new_edge_count, sizeof(SrchEdges), medge_index_comp );
+		{int i;
+			for (i=0; i< new_edge_count; ++i)
+				printf ("ned %d is %d\n",i,newpair[i].index);
+		}
 
 	/* point to the first edge we're going to add */
 		tmpedge = &mesh->medge[mesh->totedge];
@@ -3388,21 +3450,22 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
-	if( !PyTuple_Check( value ) ||
+	if( !PySequence_Check( value ) ||
 			EXPP_check_sequence_consistency( value, &vector_Type ) != 1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					    "expected tuple of vectors" );
+					    "expected sequence of vectors" );
 
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
-	if( length != PyTuple_Size( value ) )
+	if( length != PySequence_Size( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					    "size of vertex and UV lists differ" );
+					    "size of vertex and UV sequences differ" );
 
 	face = &self->mesh->tface[self->index];
 	for( i=0; i<length; ++i ) {
-		VectorObject *vector = (VectorObject *)PyTuple_GET_ITEM( value, i );
+		VectorObject *vector = (VectorObject *)PySequence_ITEM( value, i );
 		face->uv[i][0] = vector->vec[0];
 		face->uv[i][1] = vector->vec[1];
+		Py_DECREF( vector );
 	}
 	return 0;
 }
@@ -3898,14 +3961,14 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		args = PyTuple_GET_ITEM( args, 0 );
 		if( !PySequence_Check ( args ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of tuple pairs" );
+					"expected a sequence of sequence pairs" );
 		Py_INCREF( args );		/* so we can safely DECREF later */
 		break;
 	case 2:	
 	case 3:
 	case 4:		/* two to four args may be individual verts */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PyTuple_Check( tmp ) ) {/* maybe just tuples, so use args as-is */
+		if( PySequence_Check( tmp ) ) {/* maybe just sequences, so use args as-is */
 			Py_INCREF( args );		/* so we can safely DECREF later */
 			break;
 		}
@@ -3916,7 +3979,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		break;
 	default:	/* anything else is definitely wrong */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected a sequence of tuple pairs" );
+				"expected a sequence of sequence pairs" );
 	}
 
 	/* make sure there is something to add */
@@ -3924,7 +3987,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	if( len == 0 ) {
 		Py_DECREF( args );
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected at least one tuple" );
+				"expected at least one sequence" );
 	}
 
 	/* verify the param list and get a total count of number of edges */
@@ -3933,19 +3996,19 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		tmp = PySequence_GetItem( args, i );
 
 		/* not a tuple of MVerts... error */
-		if( !PyTuple_Check( tmp ) ||
+		if( !PySequence_Check( tmp ) ||
 				EXPP_check_sequence_consistency( tmp, &MVert_Type ) != 1 ) {
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected sequence of MVert tuples" );
+				"expected sequence of MVert sequences" );
 		}
 
 		/* not the right number of MVerts... error */
-		nverts = PyTuple_Size( tmp );
+		nverts = PySequence_Size( tmp );
 		if( nverts < 2 || nverts > 4 ) {
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected 2 to 4 MVerts per tuple" );
+				"expected 2 to 4 MVerts per sequence" );
 		}
 
 		if( nverts != 2 )		/* new faces cannot have only 2 verts */
@@ -3965,7 +4028,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		unsigned int vert[4]={0,0,0,0};
 		unsigned char order[4]={0,1,2,3};
 		tmp = PySequence_GetItem( args, i );
-		nverts = PyTuple_Size( tmp );
+		nverts = PySequence_Size( tmp );
 
 		if( nverts == 2 )	/* again, ignore 2-vert tuples */
 			break;
@@ -3975,15 +4038,19 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		 * vertices are not index 0
 		 */
 
-		e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 0 );
+		e = (BPy_MVert *)PySequence_ITEM( tmp, 0 );
 		tmpface.v1 = e->index;
-		e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 1 );
+		Py_DECREF( e );
+		e = (BPy_MVert *)PySequence_ITEM( tmp, 1 );
 		tmpface.v2 = e->index;
-		e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 2 );
+		Py_DECREF( e );
+		e = (BPy_MVert *)PySequence_ITEM( tmp, 2 );
 		tmpface.v3 = e->index;
+		Py_DECREF( e );
 		if( nverts == 4 ) {
-			e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 3 );
+			e = (BPy_MVert *)PySequence_ITEM( tmp, 3 );
 			tmpface.v4 = e->index;
+			Py_DECREF( e );
 		}
 		Py_DECREF( tmp );
 
@@ -4016,6 +4083,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			}
 			tmppair->v[j] = vert[j];
 		}
+		tmppair->index = i;
 
 		/* pack order into a byte */
 		tmppair->order = order[0]|(order[1]<<2)|(order[2]<<4)|(order[3]<<6);
@@ -4110,6 +4178,9 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			MEM_freeN( mesh->tface );
 			mesh->tface = tmptface;
 		}
+
+	/* sort the faces back into their original input list order */
+		qsort( newpair, new_face_count, sizeof(SrchFaces), mface_index_comp );
 
 	/* allocate new face list */
 		tmpface = MEM_callocN(totface*sizeof(MFace), "Mesh_addFaces");
@@ -6123,11 +6194,6 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
-
-/*****************************************************************************/
-/* Python Mesh_Type callback function prototypes:                           */
-/*****************************************************************************/
-static void Mesh_dealloc( BPy_Mesh * object );
 
 /*****************************************************************************/
 /* Python Mesh_Type structure definition:                                   */
