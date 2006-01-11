@@ -49,7 +49,6 @@
 #include "BLI_arithb.h"
 #include "Mathutils.h"
 #include "Object.h"
-#include "Constraint.h"
 #include "NLA.h"
 #include "gen_utils.h"
 
