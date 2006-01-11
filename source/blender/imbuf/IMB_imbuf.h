@@ -185,6 +185,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);
  * @attention Defined in allocimbuf.c
  */
 short addzbufImBuf(struct ImBuf * ibuf);
+short addzbuffloatImBuf(struct ImBuf * ibuf);
 
 /**
  *
@@ -468,6 +469,7 @@ void IMB_cspace(struct ImBuf *ibuf, float mat[][4]);
  * @attention Defined in allocimbuf.c
  */
 void IMB_freezbufImBuf(struct ImBuf * ibuf);
+void IMB_freezbuffloatImBuf(struct ImBuf * ibuf);
 
 /**
  *

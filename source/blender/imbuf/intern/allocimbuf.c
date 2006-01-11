@@ -112,6 +112,16 @@ void IMB_freezbufImBuf(struct ImBuf * ibuf)
 	ibuf->mall &= ~IB_zbuf;
 }
 
+void IMB_freezbuffloatImBuf(struct ImBuf * ibuf)
+{
+	if (ibuf==NULL) return;
+	if (ibuf->zbuf_float){
+		if (ibuf->mall & IB_zbuffloat) MEM_freeN(ibuf->zbuf_float);
+	}
+	ibuf->zbuf_float= NULL;
+	ibuf->mall &= ~IB_zbuffloat;
+}
+
 void IMB_freecmapImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==NULL) return;
@@ -129,6 +139,7 @@ void IMB_freeImBuf(struct ImBuf * ibuf)
 		imb_freerectImBuf(ibuf);
 		imb_freerectfloatImBuf(ibuf);
 		IMB_freezbufImBuf(ibuf);
+		IMB_freezbuffloatImBuf(ibuf);
 		IMB_freecmapImBuf(ibuf);
 		freeencodedbufferImBuf(ibuf);
 		MEM_freeN(ibuf);
@@ -138,18 +149,36 @@ void IMB_freeImBuf(struct ImBuf * ibuf)
 short addzbufImBuf(struct ImBuf * ibuf)
 {
 	int size;
-
+	
 	if (ibuf==NULL) return(FALSE);
 	
 	IMB_freezbufImBuf(ibuf);
-
+	
 	size = ibuf->x * ibuf->y * sizeof(unsigned int);
 	if ( (ibuf->zbuf = MEM_mallocN(size, "addzbufImBuf")) ){
 		ibuf->mall |= IB_zbuf;
 		ibuf->flags |= IB_zbuf;
 		return (TRUE);
 	}
+	
+	return (FALSE);
+}
 
+short addzbuffloatImBuf(struct ImBuf * ibuf)
+{
+	int size;
+	
+	if (ibuf==NULL) return(FALSE);
+	
+	IMB_freezbuffloatImBuf(ibuf);
+	
+	size = ibuf->x * ibuf->y * sizeof(float);
+	if ( (ibuf->zbuf_float = MEM_mallocN(size, "addzbuffloatImBuf")) ){
+		ibuf->mall |= IB_zbuffloat;
+		ibuf->flags |= IB_zbuffloat;
+		return (TRUE);
+	}
+	
 	return (FALSE);
 }
 
@@ -345,6 +374,13 @@ struct ImBuf *IMB_allocImBuf(short x, short y, uchar d, unsigned int flags, ucha
 			}
 		}
 		
+		if (flags & IB_zbuffloat){
+			if (addzbuffloatImBuf(ibuf)==FALSE){
+				IMB_freeImBuf(ibuf);
+				return NULL;
+			}
+		}
+		
 		if (flags & IB_planes){
 			if (imb_addplanesImBuf(ibuf)==FALSE){
 				IMB_freeImBuf(ibuf);
@@ -355,6 +391,7 @@ struct ImBuf *IMB_allocImBuf(short x, short y, uchar d, unsigned int flags, ucha
 	return (ibuf);
 }
 
+/* does no zbuffers? */
 struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 {
 	struct ImBuf *ibuf2, tbuf;
@@ -402,6 +439,8 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	tbuf.planes		= ibuf2->planes;
 	tbuf.cmap		= ibuf2->cmap;
 	tbuf.encodedbuffer = ibuf2->encodedbuffer;
+	tbuf.zbuf= NULL;
+	tbuf.zbuf_float= NULL;
 	
 	// set malloc flag
 	tbuf.mall		= ibuf2->mall;

@@ -190,6 +190,5 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		to += 4; 
 		tof += 4;
 	}
-				
 }
 

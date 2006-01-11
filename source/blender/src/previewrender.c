@@ -316,11 +316,11 @@ static void display_pr_scanline(unsigned int *rect, int recty, short pr_rectx)
 	if( (recty & 3)==3) {
 		
 		if(recty == 3) {
-			glaDrawPixelsSafe(prerect.xmin, prerect.ymin, pr_rectx, 4, GL_UNSIGNED_BYTE, rect);
+			glaDrawPixelsSafe(prerect.xmin, prerect.ymin, pr_rectx, 4, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		}
 		else {
 			rect+= (recty-4)*pr_rectx;
-			glaDrawPixelsSafe(prerect.xmin, prerect.ymin + (((float)recty-4.0)*pr_facy), pr_rectx, 5, GL_UNSIGNED_BYTE, rect);
+			glaDrawPixelsSafe(prerect.xmin, prerect.ymin + (((float)recty-4.0)*pr_facy), pr_rectx, 5, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		}
 	}
 }

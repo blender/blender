@@ -217,8 +217,8 @@ void schrijfplaatje(char *name)
 			
 			ibuf->ftype |= (R.r.quality & OPENEXR_COMPRESS);
 			
-			if(R.rectz && (R.r.subimtype & R_OPENEXR_ZBUF))
-				ibuf->zbuf = (int *)R.rectz;
+			if(R.rectzf && (R.r.subimtype & R_OPENEXR_ZBUF))
+				ibuf->zbuf_float = R.rectzf;
 		}
 #endif
 		else if((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {
@@ -241,7 +241,7 @@ void schrijfplaatje(char *name)
 	
 		RE_make_existing_file(name);
 
-		if(IMB_saveiff(ibuf, name, IB_rect | IB_zbuf)==0) {
+		if(IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)==0) {
 			perror(name);
 			G.afbreek= 1;
 		}

@@ -88,7 +88,8 @@ typedef struct ImBuf{
 	char	name[1023];		/**< The file name assocated with this image */
 	char	namenull;		/**< Unused don't want to remove it thought messes things up */
 	int	userflags;		/**< Used to set imbuf to Dirty and other stuff */
-	int	*zbuf;			/**< z buffer data */
+	int	*zbuf;			/**< z buffer data, original zbuffer */
+	float *zbuf_float;	/**< z buffer data, camera coordinates */
 	void *userdata;	
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
@@ -133,6 +134,7 @@ typedef enum {
 
 #define IB_mem			(1 << 14)
 #define IB_rectfloat	(1 << 15)
+#define IB_zbuffloat	(1 << 16)
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.

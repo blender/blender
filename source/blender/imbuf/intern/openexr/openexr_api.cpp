@@ -167,7 +167,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 	
 	int width = ibuf->x;
 	int height = ibuf->y;
-	int write_zbuf = (flags & IB_zbuf) && ibuf->zbuf != NULL;   // summarize
+	int write_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL;   // summarize
 	
 	try
 	{
@@ -179,8 +179,8 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 		header.channels().insert ("G", Channel (HALF));
 		header.channels().insert ("B", Channel (HALF));
 		header.channels().insert ("A", Channel (HALF));
-		if (write_zbuf)		// z we do as uint always
-			header.channels().insert ("Z", Channel (UINT));
+		if (write_zbuf)		// z we do as float always
+			header.channels().insert ("Z", Channel (FLOAT));
 		
 		FrameBuffer frameBuffer;			
 		OutputFile *file = new OutputFile(name, header);			
@@ -198,8 +198,8 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 		frameBuffer.insert ("A", Slice (HALF, (char *) &pixels[0].a, xstride, ystride));
 	
 		if (write_zbuf)
-			frameBuffer.insert ("Z", Slice (UINT, (char *) ibuf->zbuf + 4*(height-1)*width,
-											sizeof(int), sizeof(int) * -width));
+			frameBuffer.insert ("Z", Slice (FLOAT, (char *) ibuf->zbuf_float + 4*(height-1)*width,
+											sizeof(float), sizeof(float) * -width));
 		if(ibuf->rect_float) {
 			float *from;
 			
@@ -257,8 +257,8 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 	
 	int width = ibuf->x;
 	int height = ibuf->y;
-	int write_zbuf = (flags & IB_zbuf) && ibuf->zbuf != NULL;   // summarize
-	
+	int write_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL;   // summarize
+
 	try
 	{
 		Header header (width, height);
@@ -270,7 +270,7 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		header.channels().insert ("B", Channel (FLOAT));
 		header.channels().insert ("A", Channel (FLOAT));
 		if (write_zbuf)
-			header.channels().insert ("Z", Channel (UINT));
+			header.channels().insert ("Z", Channel (FLOAT));
 		
 		FrameBuffer frameBuffer;			
 		OutputFile *file = new OutputFile(name, header);			
@@ -284,8 +284,8 @@ static short imb_save_openexr_float(struct ImBuf *ibuf, char *name, int flags)
 		frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride));
 
 		if (write_zbuf)
-			frameBuffer.insert ("Z", Slice (UINT, (char *) ibuf->zbuf + 4*(height-1)*width,
-											sizeof(int), sizeof(int) * -width));
+			frameBuffer.insert ("Z", Slice (FLOAT, (char *) ibuf->zbuf_float + 4*(height-1)*width,
+											sizeof(float), sizeof(float) * -width));
 		file->setFrameBuffer (frameBuffer);				  
 		file->writePixels (height);					  
 		delete file;
@@ -407,12 +407,12 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 				frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f));
 
 				if(exr_has_zbuffer(file)) {
-					int *firstz;
+					float *firstz;
 					
-					addzbufImBuf(ibuf);
-					firstz= ibuf->zbuf - (dw.min.x - dw.min.y*width);
+					addzbuffloatImBuf(ibuf);
+					firstz= ibuf->zbuf_float - (dw.min.x - dw.min.y*width);
 					firstz+= (height-1)*width;
-					frameBuffer.insert ("Z", Slice (UINT,  (char *)firstz , sizeof(int), -width*sizeof(int)));
+					frameBuffer.insert ("Z", Slice (FLOAT,  (char *)firstz , sizeof(float), -width*sizeof(float)));
 				}
 				
 				file->setFrameBuffer (frameBuffer);

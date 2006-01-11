@@ -1186,12 +1186,13 @@ void image_buttons(void)
 		xco+= XIC;
 		uiDefIconButBitS(block, TOG, SI_SHOW_ALPHA, B_SIMA_SHOW_ALPHA, ICON_DOT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws only alpha");
 		xco+= XIC;
-		if(G.sima->image->ibuf &&  G.sima->image->ibuf->zbuf) {
-			uiDefIconButBitS(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
-			xco+= XIC;
-		}
-		else G.sima->flag &= ~SI_SHOW_ZBUF;	/* no confusing display for non-zbuf images */
-		
+		if(G.sima->image->ibuf) {
+			if(G.sima->image->ibuf->zbuf || G.sima->image->ibuf->zbuf_float) {
+				uiDefIconButBitS(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
+				xco+= XIC;
+			}
+			else G.sima->flag &= ~SI_SHOW_ZBUF;	/* no confusing display for non-zbuf images */
+		}		
 		uiBlockEndAlign(block);
 		xco+= 8;
 	}

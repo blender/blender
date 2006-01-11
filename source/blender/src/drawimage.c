@@ -49,10 +49,12 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "DNA_camera_types.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -1104,7 +1106,7 @@ static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, uns
 	
 	/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 	glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-	glaDrawPixelsSafe(x1, y1, rectx, recty, GL_UNSIGNED_INT, recti);
+	glaDrawPixelsSafe(x1, y1, rectx, recty, GL_LUMINANCE, GL_UNSIGNED_INT, recti);
 	glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 }
 
@@ -1112,7 +1114,7 @@ static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int 
 {
 	if(recti==NULL)
 		return;
-
+	
 	/* zbuffer values are signed, so we need to shift color range */
 	glPixelTransferf(GL_RED_SCALE, 0.5f);
 	glPixelTransferf(GL_GREEN_SCALE, 0.5f);
@@ -1121,14 +1123,40 @@ static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int 
 	glPixelTransferf(GL_GREEN_BIAS, 0.5f);
 	glPixelTransferf(GL_BLUE_BIAS, 0.5f);
 	
-	glaDrawPixelsSafe(x1, y1, rectx, recty, GL_INT, recti);
-
+	glaDrawPixelsSafe(x1, y1, rectx, recty, GL_LUMINANCE, GL_INT, recti);
+	
 	glPixelTransferf(GL_RED_SCALE, 1.0f);
 	glPixelTransferf(GL_GREEN_SCALE, 1.0f);
 	glPixelTransferf(GL_BLUE_SCALE, 1.0f);
 	glPixelTransferf(GL_RED_BIAS, 0.0f);
 	glPixelTransferf(GL_GREEN_BIAS, 0.0f);
 	glPixelTransferf(GL_BLUE_BIAS, 0.0f);
+}
+
+static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty, float *rect_float)
+{
+	float bias, scale, *rectf;
+	int a;
+	
+	if(rect_float==NULL)
+		return;
+	
+	if(G.scene->camera && G.scene->camera->type==OB_CAMERA) {
+		bias= ((Camera *)G.scene->camera->data)->clipsta;
+		scale= 1.0f/((Camera *)G.scene->camera->data)->clipend;
+	}
+	else {
+		bias= 0.1f;
+		scale= 0.01f;
+	}
+	
+	rectf= MEM_mallocN(rectx*recty*4, "temp");
+	for(a= rectx*recty -1; a>=0; a--)
+		rectf[a]= (rect_float[a]-bias)*scale;
+
+	glaDrawPixelsSafe(x1, y1, rectx, recty, GL_LUMINANCE, GL_FLOAT, rectf);
+	
+	MEM_freeN(rectf);
 }
 
 void drawimagespace(ScrArea *sa, void *spacedata)
@@ -1188,7 +1216,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		glPixelZoom((float)sima->zoom, (float)sima->zoom);
 				
 		if(sima->flag & SI_EDITTILE) {
-			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 			
 			glPixelZoom(1.0, 1.0);
 			
@@ -1233,7 +1261,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				/* rect= ibuf->rect; */
 				for(sy= 0; sy+dy<=ibuf->y; sy+= dy) {
 					for(sx= 0; sx+dx<=ibuf->x; sx+= dx) {
-						glaDrawPixelsSafe(x1+sx*sima->zoom, y1+sy*sima->zoom, dx, dy, GL_UNSIGNED_BYTE, rect);
+						glaDrawPixelsSafe(x1+sx*sima->zoom, y1+sy*sima->zoom, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 					}
 				}
 				
@@ -1244,14 +1272,17 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 					sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
 				}
 				else if(sima->flag & SI_SHOW_ZBUF) {
-					sima_draw_zbuf_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf);
+					if(ibuf->zbuf)
+						sima_draw_zbuf_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf);
+					else
+						sima_draw_zbuffloat_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf_float);
 				}
 				else {
 					if(sima->flag & SI_USE_ALPHA) {
 						sima_draw_alpha_backdrop(sima, x1, y1, (float)ibuf->x, (float)ibuf->y);
 						glEnable(GL_BLEND);
 					}
-					glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+					glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 					
 					if(sima->flag & SI_USE_ALPHA)
 						glDisable(GL_BLEND);
@@ -1273,7 +1304,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glaDrawPixelsSafe(x1 + offx, y1 + offy, w, h, GL_UNSIGNED_BYTE, clonerect);
+					glaDrawPixelsSafe(x1 + offx, y1 + offy, w, h, GL_RGBA, GL_UNSIGNED_BYTE, clonerect);
 					glDisable(GL_BLEND);
 
 					MEM_freeN(clonerect);

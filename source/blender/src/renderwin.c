@@ -328,11 +328,11 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		if(rw->flags & RW_FLAGS_ALPHA) {
 			/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 			glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_INT, R.rectot);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_LUMINANCE, GL_UNSIGNED_INT, R.rectot);
 			glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 		}
 		else {
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, R.rectot);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_RGBA, GL_UNSIGNED_BYTE, R.rectot);
 		}
 		glPixelZoom(1.0, 1.0);
 	}
@@ -363,7 +363,6 @@ static void renderwin_mouse_moved(RenderWin *rw)
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2], ofs;
 		char buf[128];
-		int *pxlz;	// zbuffer is signed 
 		char *pxl;
 
 		if (R.rectot && renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
@@ -375,9 +374,9 @@ static void renderwin_mouse_moved(RenderWin *rw)
 				float *pxlf= R.rectftot + 4*(R.rectx*imgco[1] + imgco[0]);
 				ofs+= sprintf(buf+ofs, " | R: %.3f G: %.3f B: %.3f A: %.3f ", pxlf[0], pxlf[1], pxlf[2], pxlf[3]);
 			}
-			if (R.rectz) {
-				pxlz= &R.rectz[R.rectx*imgco[1] + imgco[0]];			
-				sprintf(buf+ofs, "| Z: %f", 0.5+0.5*( ((float)*pxlz)/(float)INT_MAX) );
+			if (R.rectzf) {
+				float *pxlz= &R.rectzf[R.rectx*imgco[1] + imgco[0]];			
+				sprintf(buf+ofs, "| Z: %.3f", *pxlz );
 			}
 
 			renderwin_set_infotext(rw, buf);
@@ -740,7 +739,7 @@ static void renderwin_progress(RenderWin *rw, int start_y, int nlines, int rect_
 
 	glDrawBuffer(GL_FRONT);
 	glPixelZoom(rw->zoom, rw->zoom);
-	glaDrawPixelsSafe(disprect[0][0], disprect[0][1] + start_y*rw->zoom, rect_w, nlines, GL_UNSIGNED_BYTE, &rect[start_y*rect_w*4]);
+	glaDrawPixelsSafe(disprect[0][0], disprect[0][1] + start_y*rw->zoom, rect_w, nlines, GL_RGBA, GL_UNSIGNED_BYTE, &rect[start_y*rect_w*4]);
 	glPixelZoom(1.0, 1.0);
 	glFlush();
 	glDrawBuffer(GL_BACK);
@@ -827,7 +826,7 @@ static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigne
 		sy= vb.ymin + facy*y1;
 
 		glPixelZoom(facx, facy);
-		glaDrawPixelsSafe(sx, sy, w, nlines, GL_UNSIGNED_BYTE, rect+w*y1);
+		glaDrawPixelsSafe(sx, sy, w, nlines, GL_RGBA, GL_UNSIGNED_BYTE, rect+w*y1);
 		glPixelZoom(1.0, 1.0);
 
 		glFlush();

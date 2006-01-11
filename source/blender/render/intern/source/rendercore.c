@@ -2345,7 +2345,7 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 			float zco;
 			/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */
 			
-			zco= ((float)z)/(float)0x7FFFFFFF;
+			zco= ((float)z)/2147483647.0f;
 			shi.co[2]= R.winmat[3][2]/( R.winmat[2][3]*zco - R.winmat[2][2] );
 			
 			fac= zcor= shi.co[2]/shi.view[2];

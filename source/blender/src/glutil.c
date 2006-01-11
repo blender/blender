@@ -286,7 +286,7 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, lrowlength);
 }
 
-void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int format, void *rect)
+void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int format, int type, void *rect)
 {
 	float xzoom= glaGetOneFloat(GL_ZOOM_X);
 	float yzoom= glaGetOneFloat(GL_ZOOM_Y);
@@ -339,17 +339,25 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int format, void 
 		}
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
-		if(format==GL_FLOAT) {
-			float *f_rect= (float *)rect;
-			glDrawPixels(draw_w, draw_h, GL_RGBA, GL_FLOAT, f_rect + (off_y*img_w + off_x)*4);
+		if(format==GL_LUMINANCE || format==GL_RED) {
+			if(type==GL_FLOAT) {
+				float *f_rect= (float *)rect;
+				glDrawPixels(draw_w, draw_h, format, type, f_rect + (off_y*img_w + off_x));
+			}
+			else if(type==GL_INT || type==GL_UNSIGNED_INT) {
+				int *i_rect= (int *)rect;
+				glDrawPixels(draw_w, draw_h, format, type, i_rect + (off_y*img_w + off_x));
+			}
 		}
-		else if(format==GL_INT || format==GL_UNSIGNED_INT) {
-			int *i_rect= (int *)rect;
-			glDrawPixels(draw_w, draw_h, GL_LUMINANCE, format, i_rect + (off_y*img_w + off_x));
-		}
-		else {
-			unsigned char *uc_rect= (unsigned char *) rect;
-			glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, uc_rect + (off_y*img_w + off_x)*4);
+		else { /* RGBA */
+			if(type==GL_FLOAT) {
+				float *f_rect= (float *)rect;
+				glDrawPixels(draw_w, draw_h, format, type, f_rect + (off_y*img_w + off_x)*4);
+			}
+			else if(type==GL_UNSIGNED_BYTE) {
+				unsigned char *uc_rect= (unsigned char *) rect;
+				glDrawPixels(draw_w, draw_h, format, type, uc_rect + (off_y*img_w + off_x)*4);
+			}
 		}
 		
 		glPixelStorei(GL_UNPACK_ROW_LENGTH,  old_row_length);

@@ -435,7 +435,7 @@ static void draw_bgpic(void)
 	
 	glaDefine2DArea(&curarea->winrct);
 	glPixelZoom(zoomx, zoomy);
-	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, GL_UNSIGNED_BYTE, bgpic->rect);
+	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, bgpic->rect);
 	glPixelZoom(1.0, 1.0);
 
 	glMatrixMode(GL_PROJECTION);

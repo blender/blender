@@ -161,7 +161,8 @@ typedef struct RE_Render
 	struct MemArena *memArena;
 
 	int *rectaccu;
-	int *rectz; /* z buffer: distance buffer */
+	int *rectz;		/* z buffer: distance buffer */
+	float *rectzf;	/* z distances, camera space */
 	unsigned int *rectf1, *rectf2;
 	unsigned int *rectot; /* z buffer: face index buffer, recycled as colour buffer! */
 	unsigned int *rectspare; /*  */

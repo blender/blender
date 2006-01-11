@@ -1398,7 +1398,7 @@ int minmax_tface_uv(float *min, float *max)
 	return sel;
 }
 
-static void sima_show_info(int x, int y, char *cp, float *fp, int *zp)
+static void sima_show_info(int x, int y, char *cp, float *fp, int *zp, float *zpf)
 {
 	short ofs;
 	char str[256];
@@ -1410,6 +1410,8 @@ static void sima_show_info(int x, int y, char *cp, float *fp, int *zp)
 		ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
 	if(zp)
 		ofs+= sprintf(str+ofs, "| Z: %.4f ", 0.5+0.5*( ((float)*zp)/(float)0x7fffffff));
+	if(zpf)
+		ofs+= sprintf(str+ofs, "| Z: %.3f ", *zpf);
 	
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -1446,7 +1448,7 @@ void sima_sample_color(void)
 			areamouseco_to_ipoco(G.v2d, mval, &fx, &fy);
 			
 			if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
-				float *fp= NULL;
+				float *fp= NULL, *zpf= NULL;
 				int *zp= NULL;
 				char *cp= NULL;
 				
@@ -1456,12 +1458,13 @@ void sima_sample_color(void)
 				if(x>=ibuf->x) x= ibuf->x-1;
 				if(y>=ibuf->y) y= ibuf->y-1;
 				
-				if(ibuf->rect) {
+				if(ibuf->rect)
 					cp= (char *)(ibuf->rect + y*ibuf->x + x);
-				}
-				if(ibuf->zbuf) {
+				if(ibuf->zbuf)
 					zp= ibuf->zbuf + y*ibuf->x + x;
-				}
+				if(ibuf->zbuf_float)
+					zpf= ibuf->zbuf_float + y*ibuf->x + x;
+				
 				if(ibuf->rect_float) {
 					fp= (ibuf->rect_float + 4*(y*ibuf->x + x));
 					
@@ -1480,7 +1483,7 @@ void sima_sample_color(void)
 				scrarea_do_windraw(curarea);
 				myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 				glLoadIdentity();
-				sima_show_info(x, y, cp, fp, zp);
+				sima_show_info(x, y, cp, fp, zp, zpf);
 				screen_swapbuffers();
 			}
 			

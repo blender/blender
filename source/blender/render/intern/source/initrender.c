@@ -501,10 +501,12 @@ void RE_free_render_data()
 	if(R.rectot) MEM_freeN(R.rectot);
 	if(R.rectftot) MEM_freeN(R.rectftot);
 	if(R.rectz) MEM_freeN(R.rectz);
+	if(R.rectzf) MEM_freeN(R.rectzf);
 	if(R.rectspare) MEM_freeN(R.rectspare);
 	R.rectot= NULL;
 	R.rectftot= NULL;
 	R.rectz= NULL;
+	R.rectzf= NULL;
 	R.rectspare= NULL;
 	
 	free_filt_mask();
@@ -805,6 +807,43 @@ static void addparttorect(Part *pa)
 	}
 }
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+static void convert_zbuf_to_distbuf(void)
+{
+	float *rectzf, zco;
+	int a, *rectz;
+	
+	if(R.rectz==NULL) return;
+	if(R.rectzf) {
+		printf("called convert zbuf wrong...\n");
+		MEM_freeN(R.rectzf);
+	}
+	
+	/* need to make sure winmat is OK */
+	R.xstart= -R.afmx;
+	R.ystart= -R.afmy;
+	R.xend= R.xstart+R.rectx-1;
+	R.yend= R.ystart+R.recty-1;
+	
+	RE_setwindowclip(0, -1);
+	
+	rectzf= R.rectzf= MEM_mallocN(R.rectx*R.recty*sizeof(float), "rectzf");
+	rectz= R.rectz;
+	
+	for(a=R.rectx*R.recty; a>0; a--, rectz++, rectzf++) {
+		if(*rectz==0x7FFFFFFF)
+			*rectzf= 10e10;
+		else {
+			zco= ((float)*rectz)/2147483647.0f;
+			*rectzf= R.winmat[3][2]/(R.winmat[2][2] - R.winmat[2][3]*zco);
+		}
+	}
+	
+	MEM_freeN(R.rectz);
+	R.rectz= NULL;
+}
+
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -872,6 +911,9 @@ static void add_to_blurbuf(int blur)
 }
 
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
 /* yafray: main yafray render/export call */
 static void yafrayRender(void)
 {
@@ -889,6 +931,8 @@ static void yafrayRender(void)
 	R.rectot = MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 	/* zbuf */
 	if (R.rectz) MEM_freeN(R.rectz);
+	if (R.rectzf) MEM_freeN(R.rectzf);
+	R.rectzf= NULL;
 	R.rectz = (unsigned int *)MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
 	/* float rgba buf */
 	if (R.rectftot) MEM_freeN(R.rectftot);
@@ -970,6 +1014,8 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 	
 	if(R.rectz) MEM_freeN(R.rectz);
 	R.rectz = NULL;
+	if(R.rectzf) MEM_freeN(R.rectzf);
+	R.rectzf = NULL;
 	if(R.rectftot) MEM_freeN(R.rectftot);
 	R.rectftot = NULL;
 	
@@ -1447,6 +1493,9 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	
 	/* grms... this is a nasty global */
 	do_gamma= 0;
+	
+	/* for now, we do always */
+	convert_zbuf_to_distbuf();
 	
 	/* these flags remain on, until reset in caller to render (renderwin.c) */
 	R.flag &= (R_RENDERING|R_ANIMRENDER|R_REDRAW_PRV);
