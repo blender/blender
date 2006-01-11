@@ -159,10 +159,6 @@ SOURCE=.\NarrowPhaseCollision\BU_VertexPoly.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\NarrowPhaseCollision\CollisionMargin.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\NarrowPhaseCollision\ContinuousConvexCollision.cpp
 # End Source File
 # Begin Source File
@@ -200,6 +196,14 @@ SOURCE=.\NarrowPhaseCollision\GjkPairDetector.cpp
 # Begin Source File
 
 SOURCE=.\NarrowPhaseCollision\GjkPairDetector.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\NarrowPhaseCollision\ManifoldContactAddResult.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\NarrowPhaseCollision\ManifoldContactAddResult.h
 # End Source File
 # Begin Source File
 
@@ -307,6 +311,18 @@ SOURCE=.\CollisionShapes\BoxShape.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CollisionShapes\BvhTriangleMeshShape.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\BvhTriangleMeshShape.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\CollisionMargin.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionShapes\CollisionShape.cpp
 # End Source File
 # Begin Source File
@@ -339,11 +355,27 @@ SOURCE=.\CollisionShapes\ConvexShape.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CollisionShapes\ConvexTriangleCallback.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\ConvexTriangleCallback.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionShapes\CylinderShape.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\CollisionShapes\CylinderShape.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\EmptyShape.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\EmptyShape.h
 # End Source File
 # Begin Source File
 
@@ -360,6 +392,14 @@ SOURCE=.\CollisionShapes\MultiSphereShape.cpp
 # Begin Source File
 
 SOURCE=.\CollisionShapes\MultiSphereShape.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\OptimizedBvh.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\OptimizedBvh.h
 # End Source File
 # Begin Source File
 
@@ -395,7 +435,19 @@ SOURCE=.\CollisionShapes\StridingMeshInterface.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CollisionShapes\TriangleCallback.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionShapes\TriangleCallback.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\TriangleIndexVertexArray.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\TriangleIndexVertexArray.h
 # End Source File
 # Begin Source File
 
