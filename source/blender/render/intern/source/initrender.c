@@ -812,7 +812,7 @@ static void addparttorect(Part *pa)
 static void convert_zbuf_to_distbuf(void)
 {
 	float *rectzf, zco;
-	int a, *rectz;
+	int a, *rectz, ortho= R.r.mode & R_ORTHO;
 	
 	if(R.rectz==NULL) return;
 	if(R.rectzf) {
@@ -827,7 +827,7 @@ static void convert_zbuf_to_distbuf(void)
 	R.yend= R.ystart+R.recty-1;
 	
 	RE_setwindowclip(0, -1);
-	
+
 	rectzf= R.rectzf= MEM_mallocN(R.rectx*R.recty*sizeof(float), "rectzf");
 	rectz= R.rectz;
 	
@@ -835,8 +835,15 @@ static void convert_zbuf_to_distbuf(void)
 		if(*rectz==0x7FFFFFFF)
 			*rectzf= 10e10;
 		else {
+			/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */
+			/* or: (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2] - R.winmat[2][3]*zco); */
+			/* if ortho [2][3] is zero, else [3][3] is zero */
+
 			zco= ((float)*rectz)/2147483647.0f;
-			*rectzf= R.winmat[3][2]/(R.winmat[2][2] - R.winmat[2][3]*zco);
+			if(ortho)
+				*rectzf= (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2]);
+			else
+				*rectzf= (R.winmat[3][2])/(R.winmat[2][2] - R.winmat[2][3]*zco);
 		}
 	}
 	
