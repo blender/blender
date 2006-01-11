@@ -166,6 +166,8 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 	}
 }
 
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+
 void IMB_rect_from_float(struct ImBuf *ibuf)
 {
 	/* quick method to convert floatbuf to byte */
@@ -181,12 +183,13 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 	
 	for (i = ibuf->x * ibuf->y; i > 0; i--) 
 	{
-		to[0] = tof[0] > 1.0 ? 255 : (unsigned char)(tof[0] * 255.0f);
-		to[1] = tof[1] > 1.0 ? 255 : (unsigned char)(tof[1] * 255.0f);
-		to[2] = tof[2] > 1.0 ? 255 : (unsigned char)(tof[2] * 255.0f);
-		to[3] = tof[3] > 1.0 ? 255 : (unsigned char)(tof[3] * 255.0f);
+		to[0] = FTOCHAR(tof[0]);
+		to[1] = FTOCHAR(tof[1]);
+		to[2] = FTOCHAR(tof[2]);
+		to[3] = FTOCHAR(tof[3]);
 		to += 4; 
 		tof += 4;
 	}
 				
 }
+

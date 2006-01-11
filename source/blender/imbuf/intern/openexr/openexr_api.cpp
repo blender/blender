@@ -375,10 +375,10 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 		int width  = dw.max.x - dw.min.x + 1;
 		int height = dw.max.y - dw.min.y + 1;
 		
-//		printf("OpenEXR-load: image data window %d %d %d %d\n", 
-//			   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
+		//printf("OpenEXR-load: image data window %d %d %d %d\n", 
+		//	   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
-//		exr_print_filecontents(file);
+		//exr_print_filecontents(file);
 		
 		ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
 		
@@ -389,12 +389,16 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 			if (!(flags & IB_test))
 			{
 				FrameBuffer frameBuffer;
+				float *first;
+				int xstride = sizeof(float) * 4;
+				int ystride = - xstride*width;
 				
 				imb_addrectfloatImBuf(ibuf);
 				
-				float *first= ibuf->rect_float + 4*(height-1)*width;
-				int xstride = sizeof(float) * 4;
-				int ystride = - xstride*width;
+				/* inverse correct first pixel for datawindow coordinates (- dw.min.y because of y flip) */
+				first= ibuf->rect_float - 4*(dw.min.x - dw.min.y*width);
+				/* but, since we read y-flipped (negative y stride) we move to last scanline */
+				first+= 4*(height-1)*width;
 				
 				frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
 				frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
@@ -406,7 +410,8 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 					int *firstz;
 					
 					addzbufImBuf(ibuf);
-					firstz= ibuf->zbuf + (height-1)*width;
+					firstz= ibuf->zbuf - (dw.min.x - dw.min.y*width);
+					firstz+= (height-1)*width;
 					frameBuffer.insert ("Z", Slice (UINT,  (char *)firstz , sizeof(int), -width*sizeof(int)));
 				}
 				
