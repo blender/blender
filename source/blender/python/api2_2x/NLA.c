@@ -447,11 +447,15 @@ PyObject *Action_CreatePyObject( struct bAction * act )
 {
 	BPy_Action *blen_action;
 
+	if(!act)
+		return EXPP_incr_ret(Py_None);
+
 	blen_action =
 		( BPy_Action * ) PyObject_NEW( BPy_Action, &Action_Type );
 
-	if( blen_action == NULL ) {
-		return ( NULL );
+	if( !blen_action) {
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_RuntimeError, "failure to create object!" ) );
 	}
 	blen_action->action = act;
 	return ( ( PyObject * ) blen_action );

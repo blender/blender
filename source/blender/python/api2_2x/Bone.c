@@ -42,14 +42,15 @@
 #include "DNA_object_types.h" //1
 #include "BIF_editarmature.h"   //2
 
+//------------------UNDECLARED EXTERNAL PROTOTYPES--------------------
+extern void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
+
 //------------------------ERROR CODES---------------------------------
 //This is here just to make me happy and to have more consistant error strings :)
-static const char sEditBoneError[] = "EditBone (internal) - Error: ";
-static const char sEditBoneBadArgs[] = "EditBone (internal) - Bad Arguments: ";
+static const char sEditBoneError[] = "EditBone - Error: ";
+static const char sEditBoneBadArgs[] = "EditBone - Bad Arguments: ";
 static const char sBoneError[] = "Bone - Error: ";
 static const char sBoneBadArgs[] = "Bone - Bad Arguments: ";
-static const char sConstListError[] = "ConstantList - Error: ";
-static const char sConstListBadArgs[] = "ConstantList - Bad Arguments: ";
 
 //----------------------(internal)
 //gets the bone->roll (which is a localspace roll) and puts it in parentspace
@@ -541,7 +542,6 @@ static int EditBone_setParent(BPy_EditBone *self, PyObject *value, void *closure
 AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
 		sEditBoneError, ".parent: ", "expects a EditBone Object");
-
 AttributeError2:
 	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
 		sEditBoneError, ".parent: ", "This object is not in the armature's bone list!");
@@ -565,8 +565,53 @@ static PyObject *EditBone_getMatrix(BPy_EditBone *self, void *closure)
 //------------------------EditBone.matrix (set)
 static int EditBone_setMatrix(BPy_EditBone *self, PyObject *value, void *closure)
 {  
-	printf("Sorry this isn't implemented yet.... :/");
-	return 1;
+	PyObject *matrix;
+	float roll, length, vec[3], axis[3], mat3[3][3];
+
+	if (!PyArg_Parse(value, "O!", &matrix_Type, &matrix))
+		goto AttributeError;
+
+	//make sure we have the right sizes
+	if (((MatrixObject*)matrix)->rowSize != 3 && ((MatrixObject*)matrix)->colSize != 3){
+		if(((MatrixObject*)matrix)->rowSize != 4 && ((MatrixObject*)matrix)->colSize != 4){
+			goto AttributeError;
+		}
+	}
+		
+	/*vec will be a normalized directional vector
+	* together with the length of the old bone vec*length = the new vector*/
+	/*The default rotation is 0,1,0 on the Y axis (see mat3_to_vec_roll)*/
+	if (((MatrixObject*)matrix)->rowSize == 4){
+		Mat3CpyMat4(mat3, ((float (*)[4])*((MatrixObject*)matrix)->matrix));
+	}else{
+		Mat3CpyMat3(mat3, ((float (*)[3])*((MatrixObject*)matrix)->matrix));
+	}
+	mat3_to_vec_roll(mat3, vec, &roll);
+
+	//if a 4x4 matrix was passed we'll translate the vector otherwise not
+	if (self->editbone){
+		self->editbone->roll = roll;
+		VecSubf(axis, self->editbone->tail, self->editbone->head);
+		length =  VecLength(axis);
+		VecMulf(vec, length);
+		if (((MatrixObject*)matrix)->rowSize == 4)
+			VecCopyf(self->editbone->head, ((MatrixObject*)matrix)->matrix[3]);
+		VecAddf(self->editbone->tail, self->editbone->head, vec);
+		return 0;
+	}else{
+		self->roll = roll;
+		VecSubf(axis, self->tail, self->head);
+		length =  VecLength(axis);
+		VecMulf(vec, length);
+		if (((MatrixObject*)matrix)->rowSize == 4)
+			VecCopyf(self->head, ((MatrixObject*)matrix)->matrix[3]);
+		VecAddf(self->tail, self->head, vec);
+		return 0;
+	}
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".matrix: ", "expects a 3x3 or 4x4 Matrix Object");
 }
 //------------------------Bone.length (get)
 static PyObject *EditBone_getLength(BPy_EditBone *self, void *closure)

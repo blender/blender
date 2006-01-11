@@ -92,6 +92,7 @@ struct rctf;
 #include "NLA.h"
 #include "logic.h"
 #include "Effect.h"
+#include "Pose.h"
 #include "gen_utils.h"
 
 /* Defines for insertIpoKey */
@@ -171,6 +172,7 @@ struct PyMethodDef M_Object_methods[] = {
 int setupSB(Object* ob); /*Make sure Softbody Pointer is initialized */
 int setupPI(Object* ob);
 
+static PyObject *Object_getPose( BPy_Object *self);
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
@@ -562,7 +564,8 @@ works only if self and the object specified are of the same type."},
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
 	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
-	
+	{"getPose", (PyCFunction)Object_getPose, METH_NOARGS,
+	"() - returns the pose from an object if it exists, else None"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -860,7 +863,7 @@ static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject 
 /*****************************************************************************/
 PyObject *Object_Init( void )
 {
-	PyObject *module;
+	PyObject *module, *dict;
 
 	Object_Type.ob_type = &PyType_Type;
 
@@ -884,6 +887,11 @@ PyObject *Object_Init( void )
 	PyModule_AddIntConstant( module, "VORTEX",PFIELD_VORTEX );
 	PyModule_AddIntConstant( module, "MAGNET",PFIELD_MAGNET );
 	PyModule_AddIntConstant( module, "WIND",PFIELD_WIND );
+
+		//Add SUBMODULES to the module
+	dict = PyModule_GetDict( module ); //borrowed
+	PyDict_SetItemString(dict, "Pose", Pose_Init()); //creates a *new* module
+	//PyDict_SetItemString(dict, "Constraint", Constraint_Init()); //creates a *new* module
 
 	return ( module );
 }
@@ -2769,6 +2777,12 @@ static PyObject *Object_getEffects( BPy_Object * self )
 		eff = eff->next;
 	}
 	return effect_list;
+}
+
+static PyObject * Object_getPose(BPy_Object *self)
+{
+	//if there is no pose will return PyNone
+	return PyPose_FromPose(self->object->pose, self->object->id.name+2);
 }
 
 /*****************************************************************************/
