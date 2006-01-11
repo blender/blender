@@ -260,7 +260,7 @@ class Editbone:
   @type head: Vector Object
   @ivar tail: This Bone's "tail" ending position when in rest state (armaturespace).
   @type tail: Vector Object
-  @ivar matrix: This Bone's matrix. (armaturespace) This cannot be set.
+  @ivar matrix: This Bone's matrix. (armaturespace)
   @type matrix: Matrix Object
   @ivar parent: The parent Bone.
   @type parent: Editbone Object

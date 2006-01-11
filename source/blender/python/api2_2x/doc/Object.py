@@ -269,6 +269,13 @@ class Object:
     the type Effect.
     """
 
+  def getPose():
+    """
+    Gets the current Pose of the object.
+    @rtype: Pose object
+    @return: the current pose object
+    """
+
   def clearIpo():
     """
     Unlinks the ipo from this object.
