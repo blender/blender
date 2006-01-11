@@ -1101,7 +1101,6 @@ static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float
 
 static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
 {
-	char *rect= (char *)recti;
 	
 	/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
 	glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);

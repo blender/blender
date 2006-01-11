@@ -73,7 +73,6 @@ void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy, float *rco);
 void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview);
 
 void renderSpotHaloPixel(float x, float y, float *target);
-void fillBackgroundImage(RE_COLBUFTYPE *collector, float x, float y);
 void fillBackgroundImageChar(char *col, float x, float y);
 
 /* ------------------------------------------------------------------------- */

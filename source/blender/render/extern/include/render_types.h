@@ -49,6 +49,7 @@
 /* ------------------------------------------------------------------------- */
 
 /* localized texture result data */
+/* note; tr tg tb ta has to remain in this order */
 typedef struct TexResult {
 	float tin, tr, tg, tb, ta;
 	int talpha;

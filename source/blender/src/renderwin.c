@@ -361,20 +361,23 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 static void renderwin_mouse_moved(RenderWin *rw)
 {
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
-		int imgco[2];
-		char buf[64];
+		int imgco[2], ofs;
+		char buf[128];
 		int *pxlz;	// zbuffer is signed 
 		char *pxl;
 
 		if (R.rectot && renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
 			pxl= (char*) &R.rectot[R.rectx*imgco[1] + imgco[0]];
 			
+			ofs= sprintf(buf, "R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
+			
+			if (R.rectftot) {
+				float *pxlf= R.rectftot + 4*(R.rectx*imgco[1] + imgco[0]);
+				ofs+= sprintf(buf+ofs, " | R: %.3f G: %.3f B: %.3f A: %.3f ", pxlf[0], pxlf[1], pxlf[2], pxlf[3]);
+			}
 			if (R.rectz) {
 				pxlz= &R.rectz[R.rectx*imgco[1] + imgco[0]];			
-				sprintf(buf, "R: %d, G: %d, B: %d, A: %d, Z: %f", pxl[0], pxl[1], pxl[2], pxl[3], 0.5+0.5*( ((float)*pxlz)/(float)INT_MAX) );
-			}
-			else {
-				sprintf(buf, "R: %d, G: %d, B: %d, A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);			
+				sprintf(buf+ofs, "| Z: %f", 0.5+0.5*( ((float)*pxlz)/(float)INT_MAX) );
 			}
 
 			renderwin_set_infotext(rw, buf);

@@ -580,6 +580,117 @@ void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y, float *rco)
 
 
 /*
+ Render pixel (x,y) from the backbuffer into the collector
+ 
+ backbuf is type Image, backbuf->ibuf is an ImBuf.  ibuf->rect is the
+ rgba data (32 bit total), in ibuf->x by ibuf->y pixels. Copying
+ should be really easy. I hope I understand the way ImBuf works
+ correctly. (nzc)
+ */
+void fillBackgroundImageChar(char *col, float x, float y)
+{
+	struct ImBuf *ibuf;
+	int iy, ix;
+	unsigned int* imBufPtr;
+	
+	/* check to be sure... */
+	if (R.backbuf==NULL || R.backbuf->ok==0) {
+		/* bail out */
+		col[0] = 0;
+		col[1] = 0;
+		col[2] = 0;
+		col[3] = 255;
+		return;
+	}
+	/* load image if not already done?*/
+	if(R.backbuf->ibuf==0) {
+		R.backbuf->ok= 0;
+		return;
+	}
+	
+	ibuf= R.backbuf->ibuf;
+	
+	/* Now for the real extraction: */
+	/* Get the y-coordinate of the scanline? */
+	ix= (int) (0.5f + ( ((x+R.afmx+R.xstart)/(float)R.r.xsch))*(float)ibuf->x);
+	iy= (int) (0.5f + ( ((y+R.afmy+R.ystart)/(float)R.r.ysch))*(float)ibuf->y);
+	
+	/* correct in case of fields rendering: */
+	if(R.flag & R_SEC_FIELD) {
+		if((R.r.mode & R_ODDFIELD)==0) {
+			if( iy<ibuf->y) iy++;
+		}
+		else {
+			if( iy>0) iy--;
+		}
+	}
+	
+	/* Offset into the buffer: start of scanline y: */
+  	imBufPtr = ibuf->rect
+		+ (iy * ibuf->x)
+		+ ix;
+	
+	*( (int *)col) = *imBufPtr;
+	
+}
+
+static void fillBackgroundImage(float *col, float x, float y)
+{
+	struct ImBuf *ibuf;
+	int iy, ix;
+	
+	/* check to be sure... */
+	if (R.backbuf==NULL || R.backbuf->ok==0) {
+		/* bail out */
+		col[0] = 0;
+		col[1] = 0;
+		col[2] = 0;
+		col[3] = 255;
+		return;
+	}
+	/* load image if not already done?*/
+	if(R.backbuf->ibuf==NULL) {
+		R.backbuf->ok= 0;
+		return;
+	}
+	
+	ibuf= R.backbuf->ibuf;
+	
+	/* Now for the real extraction: */
+	/* Get the y-coordinate of the scanline? */
+	ix= (int) (( ((x+R.afmx+R.xstart)/(float)R.r.xsch))*(float)ibuf->x);
+	iy= (int) (( ((y+R.afmy+R.ystart)/(float)R.r.ysch))*(float)ibuf->y);
+	
+	/* correct in case of fields rendering: */
+	if(R.flag & R_SEC_FIELD) {
+		if((R.r.mode & R_ODDFIELD)==0) {
+			if( iy<ibuf->y) iy++;
+		}
+		else {
+			if( iy>0) iy--;
+		}
+	}
+	
+	CLAMP(ix, 0, ibuf->x-1);
+	CLAMP(iy, 0, ibuf->y-1);
+	
+	/* Offset into the buffer: start of scanline y: */
+	if(ibuf->rect_float) {
+		float *fp = ibuf->rect_float + 4*(iy * ibuf->x + ix);
+		QUATCOPY(col, fp);
+	}
+	else {
+		char *cp = (char *)(ibuf->rect + (iy * ibuf->x) + ix);
+		
+		col[0]= (1.0f/255.0f) * (float)cp[0];
+		col[1]= (1.0f/255.0f) * (float)cp[1];
+		col[2]= (1.0f/255.0f) * (float)cp[2];
+		col[3]= (1.0f/255.0f) * (float)cp[3];
+	}
+	
+}
+
+/*
   Stuff the sky colour into the collector.
  */
 void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy, float *rco) 
@@ -720,69 +831,5 @@ void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview)
 	}
 }
 
-
-/*
-  Render pixel (x,y) from the backbuffer into the collector
-	  
-  backbuf is type Image, backbuf->ibuf is an ImBuf.  ibuf->rect is the
-  rgba data (32 bit total), in ibuf->x by ibuf->y pixels. Copying
-  should be really easy. I hope I understand the way ImBuf works
-  correctly. (nzc)
-*/
-void fillBackgroundImageChar(char *col, float x, float y)
-{
-
-	int iy, ix;
-	unsigned int* imBufPtr;
-	
-	/* check to be sure... */
-	if (R.backbuf==NULL || R.backbuf->ok==0) {
-		/* bail out */
-		col[0] = 0;
-		col[1] = 0;
-		col[2] = 0;
-		col[3] = 255;
-		return;
-	}
-	/* load image if not already done?*/
-	if(R.backbuf->ibuf==0) {
-		R.backbuf->ok= 0;
-		return;
-	}
-
-	tag_image_time(R.backbuf);
-
-	/* Now for the real extraction: */
-	/* Get the y-coordinate of the scanline? */
-	iy= (int) ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(2*R.afmy);
-	ix= (int) ((x+R.afmx+R.xstart)*R.backbuf->ibuf->x)/(2*R.afmx);
-	
-	/* correct in case of fields rendering: */
-	if(R.flag & R_SEC_FIELD) {
-		if((R.r.mode & R_ODDFIELD)==0) {
-			if( iy<R.backbuf->ibuf->y) iy++;
-		}
-		else {
-			if( iy>0) iy--;
-		}
-	}
-
-	/* Offset into the buffer: start of scanline y: */
-  	imBufPtr = R.backbuf->ibuf->rect
-		+ (iy * R.backbuf->ibuf->x)
-		+ ix;
-
-	*( (int *)col) = *imBufPtr;
-	
-}
-
-void fillBackgroundImage(RE_COLBUFTYPE *collector, float x, float y)
-{
-	char col[4];
-	
-	fillBackgroundImageChar(col, x, y);
-	cpCharColV2FloatColV(col, collector);
-	
-}
 
 /* eof */

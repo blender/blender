@@ -67,20 +67,19 @@ static void filtrow(unsigned char *point, int x)
 
 static void filtrowf(float *point, int x)
 {
-	float c1,c2,c3,error;
+	float c1,c2,c3;
 	
 	if (x>1){
 		c1 = c2 = *point;
-		error = 2;
 		for(x--;x>0;x--){
 			c3 = point[4];
-			c1 += (c2 * 2) + c3 + error;
-			*point = c1 / 4.0;
+			c1 += (c2 * 2) + c3;
+			*point = 0.25f*c1;
 			point += 4;
 			c1=c2;
 			c2=c3;
 		}
-		*point = (c1 + (c2 * 2) + c2 + error) / 4.0;
+		*point = 0.25f*(c1 + (c2 * 2) + c2);
 	}
 }
 
@@ -111,22 +110,21 @@ static void filtcolum(unsigned char *point, int y, int skip)
 
 static void filtcolumf(float *point, int y, int skip)
 {
-	float c1,c2,c3,error, *point2;
+	float c1,c2,c3, *point2;
 	
 	if (y>1){
 		c1 = c2 = *point;
 		point2 = point;
-		error = 2;
 		for(y--;y>0;y--){
 			point2 += skip;
 			c3 = *point2;
-			c1 += (c2 * 2) + c3 +error;
-			*point = c1 / 4;
+			c1 += (c2 * 2) + c3;
+			*point = 0.25f*c1;
 			point=point2;
 			c1=c2;
 			c2=c3;
 		}
-		*point = (c1 + (c2 * 2) + c2 + error) / 4;
+		*point = 0.25f*(c1 + (c2 * 2) + c2);
 	}
 }
 
