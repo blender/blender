@@ -377,9 +377,7 @@ def load_mtl(dir, mtl_file, meshDict, materialDict):
 			l = fileLines[lIdx].split()
 			
 			# Detect a line that will be ignored
-			if len(l) == 0:
-				pass
-			elif l[0] == '#' or len(l) == 0:
+			if len(l) == 0 or l[0].startswith('#'):
 				pass
 			elif l[0] == 'newmtl':
 				currentMat = getMat('_'.join(l[1:]), materialDict) # Material should alredy exist.
@@ -683,6 +681,18 @@ def load_obj(file):
 							
 							badObjUvs +=1 # ERROR, Cont
 			# Quads only, we could import quads using the method below but it polite to import a quad as a quad.
+			if len(vIdxLs) == 2:
+				# Edge
+				for i in (0,1):
+					if currentUsedVertListSmoothGroup[vIdxLs[i]] == 0:
+						faceQuadVList[i] = vertList[vIdxLs[i]]
+						currentMesh.verts.append(faceQuadVList[i])
+						currentUsedVertListSmoothGroup[vIdxLs[i]] = len(currentMesh.verts)-1
+					else:
+						faceQuadVList[i] = currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[i]]]
+						
+				currentMesh.addEdge(faceQuadVList[0], faceQuadVList[1]) 
+				
 			if len(vIdxLs) == 4:
 				
 				# Have found some files where wach face references the same vert
