@@ -12,6 +12,7 @@
 #define STRIDING_MESHINTERFACE_H
 
 #include "SimdVector3.h"
+#include "TriangleCallback.h"
 
 /// PHY_ScalarType enumerates possible scalar types.
 /// See the StridingMeshInterface for its use
@@ -38,26 +39,36 @@ class  StridingMeshInterface
 		}
 
 		virtual ~StridingMeshInterface();
+
+
+
+		void	InternalProcessAllTriangles(InternalTriangleIndexCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const;
+
+
 		/// get read and write access to a subpart of a triangle mesh
 		/// this subpart has a continuous array of vertices and indices
 		/// in this way the mesh can be handled as chunks of memory with striding
 		/// very similar to OpenGL vertexarray support
 		/// make a call to unLockVertexBase when the read and write access is finished	
-	virtual void	getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0)=0;
+		virtual void	getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0)=0;
 		
-
+		virtual void	getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,const unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0) const=0;
+	
 		/// unLockVertexBase finishes the access to a subpart of the triangle mesh
 		/// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
 		virtual void	unLockVertexBase(int subpart)=0;
 
+		virtual void	unLockReadOnlyVertexBase(int subpart) const=0;
+
+
 		/// getNumSubParts returns the number of seperate subparts
 		/// each subpart has a continuous array of vertices and indices
-		virtual int		getNumSubParts()=0;
+		virtual int		getNumSubParts() const=0;
 
 		virtual void	preallocateVertices(int numverts)=0;
 		virtual void	preallocateIndices(int numindices)=0;
 
-		const SimdVector3&	getScaling() {
+		const SimdVector3&	getScaling() const {
 			return m_scaling;
 		}
 		void	setScaling(const SimdVector3& scaling)

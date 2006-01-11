@@ -29,7 +29,7 @@ class ConvexConvexAlgorithm : public CollisionAlgorithm
 public:
 	BroadphaseProxy	m_box0;
 	BroadphaseProxy	m_box1;
-	float			m_collisionImpulse;
+
 	bool	m_ownManifold;
 	PersistentManifold*	m_manifoldPtr;
 	bool			m_lowLevelOfDetail;

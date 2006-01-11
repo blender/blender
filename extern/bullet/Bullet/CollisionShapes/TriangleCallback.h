@@ -22,4 +22,14 @@ public:
 	virtual void ProcessTriangle(SimdVector3* triangle) = 0;
 };
 
+class InternalTriangleIndexCallback
+{
+public:
+
+	virtual ~InternalTriangleIndexCallback();
+	virtual void InternalProcessTriangleIndex(SimdVector3* triangle,int partId,int  triangleIndex) = 0;
+};
+
+
+
 #endif //TRIANGLE_CALLBACK_H

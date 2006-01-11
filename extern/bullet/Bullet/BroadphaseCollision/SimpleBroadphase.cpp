@@ -16,7 +16,7 @@
 #include "SimdTransform.h"
 #include "SimdMatrix3x3.h"
 #include <vector>
-#include "NarrowPhaseCollision/CollisionMargin.h"
+#include "CollisionShapes/CollisionMargin.h"
 
 SimpleBroadphase::SimpleBroadphase()
 :  m_firstFreeProxy(0),
@@ -63,12 +63,34 @@ BroadphaseProxy*	SimpleBroadphase::CreateProxy( void *object, int type, const Si
 }
 void	SimpleBroadphase::DestroyProxy(BroadphaseProxy* proxy)
 {
-		m_numProxies--;
+		
+		int i;
+		
 		BroadphaseProxy* proxy1 = &m_proxies[0];
 	
 		int index = proxy - proxy1;
 		m_freeProxies[--m_firstFreeProxy] = index;
 
+		for ( i=m_NumOverlapBroadphasePair-1;i>=0;i--)
+		{
+			BroadphasePair& pair = m_OverlappingPairs[i];
+			if (pair.m_pProxy0 == proxy ||
+					pair.m_pProxy1 == proxy)
+			{
+				RemoveOverlappingPair(pair);
+			}
+		}
+		
+		for (i=0;i<m_numProxies;i++)
+		{
+			if (m_pProxies[i] == proxy)
+			{
+				m_proxies[i] = m_proxies[m_numProxies-1];
+				break;
+			}
+		}
+		m_numProxies--;
+		
 }
 
 SimpleBroadphaseProxy*	SimpleBroadphase::GetSimpleProxyFromProxy(BroadphaseProxy* proxy)
@@ -76,7 +98,7 @@ SimpleBroadphaseProxy*	SimpleBroadphase::GetSimpleProxyFromProxy(BroadphaseProxy
 	SimpleBroadphaseProxy* proxy0 = static_cast<SimpleBroadphaseProxy*>(proxy);
 
 	int index = proxy0 - &m_proxies[0];
-	assert(index < m_numProxies);
+	//assert(index < m_numProxies);
 
 	SimpleBroadphaseProxy* sbp = &m_proxies[index];
 	return sbp;
@@ -118,6 +140,8 @@ void	SimpleBroadphase::CleanProxyFromPairs(BroadphaseProxy* proxy)
 
 void	SimpleBroadphase::AddOverlappingPair(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
 {
+	
+
 	BroadphasePair pair(*proxy0,*proxy1);
 	m_OverlappingPairs[m_NumOverlapBroadphasePair] = pair;
 

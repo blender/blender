@@ -92,3 +92,4 @@ public:
 };
 
 #endif //SIMD_TRANSFORM_UTIL_H
+

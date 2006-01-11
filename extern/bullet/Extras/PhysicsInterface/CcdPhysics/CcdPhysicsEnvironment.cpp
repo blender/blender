@@ -118,6 +118,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	
 	BroadphaseInterface* scene =  m_broadphase;
 	
+
 	CollisionShape* shapeinterface = ctrl->GetCollisionShape();
 	
 	assert(shapeinterface);
@@ -171,7 +172,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 			maxAabb);
 	}
 	
-	body->SetCollisionShape( shapeinterface );
+	
 	
 	
 	

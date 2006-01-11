@@ -232,3 +232,4 @@ void Solve2LinearConstraint::resolveAngularConstraint(	const SimdMatrix3x3& invI
 {
 
 }
+

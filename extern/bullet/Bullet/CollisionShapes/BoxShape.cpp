@@ -51,3 +51,4 @@ void	BoxShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
 
 
 }
+

@@ -38,10 +38,6 @@ public:
 		m_numVertices = 0;
 	}
 	
-	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
-	{
-		inertia = SimdVector3(1.f,1.f,1.f);
-	}
 
 	virtual int	GetShapeType() const{ return TETRAHEDRAL_SHAPE_PROXYTYPE; }
 

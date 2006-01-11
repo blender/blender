@@ -38,3 +38,4 @@ public:
 };
 
 #endif //RAYCAST_TRI_CALLBACK_H
+

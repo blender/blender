@@ -33,7 +33,24 @@ void	TriangleMesh::getLockedVertexIndexBase(unsigned char **vertexbase, int& num
 
 }
 
-int		TriangleMesh::getNumSubParts()
+void	TriangleMesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,const unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart) const
+{
+	numverts = 3;
+	*vertexbase = (unsigned char*)&m_triangles[subpart];
+	type = PHY_FLOAT;
+	stride = sizeof(SimdVector3);
+
+
+	numfaces = 1;
+	*indexbase = (unsigned char*) &myindices[0];
+	indicestype = PHY_INTEGER;
+	indexstride = sizeof(int);
+
+}
+
+
+
+int		TriangleMesh::getNumSubParts() const
 {
 	return m_triangles.size();
 }

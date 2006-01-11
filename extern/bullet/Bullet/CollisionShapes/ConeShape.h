@@ -71,3 +71,4 @@ public:
 
 
 #endif //CONE_MINKOWSKI_H
+

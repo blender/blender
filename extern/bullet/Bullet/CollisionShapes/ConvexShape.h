@@ -18,7 +18,7 @@
 #include "SimdTransform.h"
 #include "SimdMatrix3x3.h"
 #include <vector>
-#include "NarrowPhaseCollision/CollisionMargin.h"
+#include "CollisionShapes/CollisionMargin.h"
 
 //todo: get rid of this ConvexCastResult thing!
 struct ConvexCastResult;

@@ -9,7 +9,7 @@
  * It is provided "as is" without express or implied warranty.
 */
 #include "MultiSphereShape.h"
-#include "NarrowPhaseCollision/CollisionMargin.h"
+#include "CollisionShapes/CollisionMargin.h"
 #include "SimdQuaternion.h"
 
 MultiSphereShape::MultiSphereShape (const SimdVector3& inertiaHalfExtents,const SimdVector3* positions,const SimdScalar* radi,int numSpheres)

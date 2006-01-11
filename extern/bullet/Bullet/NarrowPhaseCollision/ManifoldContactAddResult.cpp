@@ -31,3 +31,4 @@ void ManifoldContactAddResult::AddContactPoint(const SimdVector3& normalOnBInWor
 		m_manifoldPtr->AddManifoldPoint(newPt);
 	}
 }
+

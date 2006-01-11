@@ -144,3 +144,4 @@ public:
 };
 
 #endif //OBB_TRIANGLE_MINKOWSKI_H
+

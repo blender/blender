@@ -53,7 +53,6 @@ class CcdPhysicsController : public PHY_IPhysicsController
 {
 	RigidBody* m_body;
 	class	PHY_IMotionState*			m_MotionState;
-	CollisionShape*			m_collisionShape;
 	void*		m_newClientInfo;
 
 	void GetWorldOrientation(SimdMatrix3x3& mat);
@@ -71,7 +70,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		RigidBody* GetRigidBody() { return m_body;}
 
-		CollisionShape*	GetCollisionShape() { return m_collisionShape;}
+		CollisionShape*	GetCollisionShape();
 		////////////////////////////////////
 		// PHY_IPhysicsController interface
 		////////////////////////////////////

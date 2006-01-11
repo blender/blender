@@ -50,3 +50,28 @@ SimdVector3	PolyhedralConvexShape::LocalGetSupportingVertexWithoutMargin(const S
 	return supVec;
 
 }
+
+void	PolyhedralConvexShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
+{
+	//not yet, return box inertia
+
+	float margin = GetMargin();
+
+	SimdTransform ident;
+	ident.setIdentity();
+	SimdVector3 aabbMin,aabbMax;
+	GetAabb(ident,aabbMin,aabbMax);
+	SimdVector3 halfExtents = (aabbMax-aabbMin)*0.5f;
+
+	SimdScalar lx=2.f*(halfExtents.x()+margin);
+	SimdScalar ly=2.f*(halfExtents.y()+margin);
+	SimdScalar lz=2.f*(halfExtents.z()+margin);
+	const SimdScalar x2 = lx*lx;
+	const SimdScalar y2 = ly*ly;
+	const SimdScalar z2 = lz*lz;
+	const SimdScalar scaledmass = mass * 0.08333333f;
+
+	inertia = scaledmass * (SimdVector3(y2+z2,x2+z2,x2+y2));
+
+}
+

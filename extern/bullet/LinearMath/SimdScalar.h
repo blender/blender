@@ -39,7 +39,8 @@ DEALINGS IN THE SOFTWARE.
 #include <float.h>
 
 #ifdef WIN32
-
+#pragma warning(disable:4530)
+#pragma warning(disable:4996)
 #ifdef __MINGW32__
 #define SIMD_FORCE_INLINE inline
 #else
@@ -57,8 +58,6 @@ DEALINGS IN THE SOFTWARE.
 #ifndef assert
 #include <assert.h>
 #endif
-
-
 
 
 #define ASSERT assert
@@ -119,6 +118,16 @@ SIMD_FORCE_INLINE bool	SimdEqual(SimdScalar a, SimdScalar eps) {
 SIMD_FORCE_INLINE bool	SimdGreaterEqual (SimdScalar a, SimdScalar eps) {
 	return (!((a) <= eps));
 }
+
+/*SIMD_FORCE_INLINE SimdScalar SimdCos(SimdScalar x) { return cosf(x); }
+SIMD_FORCE_INLINE SimdScalar SimdSin(SimdScalar x) { return sinf(x); }
+SIMD_FORCE_INLINE SimdScalar SimdTan(SimdScalar x) { return tanf(x); }
+SIMD_FORCE_INLINE SimdScalar SimdAcos(SimdScalar x) { return acosf(x); }
+SIMD_FORCE_INLINE SimdScalar SimdAsin(SimdScalar x) { return asinf(x); }
+SIMD_FORCE_INLINE SimdScalar SimdAtan(SimdScalar x) { return atanf(x); }
+SIMD_FORCE_INLINE SimdScalar SimdAtan2(SimdScalar x, SimdScalar y) { return atan2f(x, y); }
+*/
+
 SIMD_FORCE_INLINE int       SimdSign(SimdScalar x) {
     return x < 0.0f ? -1 : x > 0.0f ? 1 : 0;
 }

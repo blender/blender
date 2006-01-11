@@ -27,8 +27,8 @@ SimdScalar contactTau = .02f;//0.02f;//*0.02f;
 
 SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
 {
-	return 0.f;
-//	return restitution * GEN_min(1.0f, rel_vel / ContactThreshold);
+//	return 0.f;
+	return restitution * GEN_min(1.0f, rel_vel / ContactThreshold);
 }
 
 
@@ -139,28 +139,31 @@ SimdScalar rel_vel;
 */	
 	rel_vel = normal.dot(vel);
 	
-//	if (rel_vel< 0.f)//-SIMD_EPSILON) 
-//	{
 	float combinedRestitution = body1.getRestitution() * body2.getRestitution();
 
-	SimdScalar rest = restitutionCurve(rel_vel, combinedRestitution);
-//	SimdScalar massTerm = 1.f / (body1.getInvMass() + body2.getInvMass());
+	SimdScalar restitution = restitutionCurve(rel_vel, combinedRestitution);
 
-	SimdScalar timeCorrection = 0.5f / solverInfo.m_timeStep ;
+	SimdScalar Kfps = 1.f / solverInfo.m_timeStep ;
 
 	float damping = solverInfo.m_damping ;
-	float tau = solverInfo.m_tau;
-
+	float Kerp = solverInfo.m_tau;
+	
 	if (useGlobalSettingContacts)
 	{
 		damping = contactDamping;
-		tau = contactTau;
+		Kerp = contactTau;
 	} 
-	SimdScalar penetrationImpulse = (-distance* tau *timeCorrection)  * jacDiagABInv;
-		
+
+	float Kcor = Kerp *Kfps;
 
 
-	SimdScalar velocityImpulse = -(1.0f + rest) * damping * rel_vel * jacDiagABInv;
+	SimdScalar positionalError = Kcor *-distance;
+	//jacDiagABInv;
+	SimdScalar velocityError = -(1.0f + restitution) * damping * rel_vel;
+
+	SimdScalar penetrationImpulse = positionalError * jacDiagABInv;
+
+	SimdScalar	velocityImpulse = velocityError * jacDiagABInv;
 
 	SimdScalar friction_impulse = 0.f;
 
@@ -177,11 +180,11 @@ SimdScalar rel_vel;
 
 		{
 		
-				SimdVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
-	SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
-	SimdVector3 vel = vel1 - vel2;
-	
-	rel_vel = normal.dot(vel);
+		SimdVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
+		SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
+		SimdVector3 vel = vel1 - vel2;
+		
+		rel_vel = normal.dot(vel);
 
 #define PER_CONTACT_FRICTION
 #ifdef PER_CONTACT_FRICTION

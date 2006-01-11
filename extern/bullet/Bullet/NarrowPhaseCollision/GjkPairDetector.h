@@ -17,7 +17,7 @@
 #include "DiscreteCollisionDetectorInterface.h"
 #include "SimdPoint3.h"
 
-#include "CollisionMargin.h"
+#include <CollisionShapes/CollisionMargin.h>
 
 class ConvexShape;
 #include "SimplexSolverInterface.h"

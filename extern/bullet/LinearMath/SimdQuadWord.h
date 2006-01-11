@@ -109,6 +109,38 @@ class	SimdQuadWord
 		}
 
 
+		SIMD_FORCE_INLINE void	setMax(const SimdQuadWord& other)
+		{
+			if (other.m_x > m_x)
+				m_x = other.m_x;
+
+			if (other.m_y > m_y)
+				m_y = other.m_y;
+
+			if (other.m_z > m_z)
+				m_z = other.m_z;
+
+			if (other.m_unusedW > m_unusedW)
+				m_unusedW = other.m_unusedW;
+		}
+
+		SIMD_FORCE_INLINE void	setMin(const SimdQuadWord& other)
+		{
+			if (other.m_x < m_x)
+				m_x = other.m_x;
+
+			if (other.m_y < m_y)
+				m_y = other.m_y;
+
+			if (other.m_z < m_z)
+				m_z = other.m_z;
+
+			if (other.m_unusedW < m_unusedW)
+				m_unusedW = other.m_unusedW;
+		}
+
+
+
 };
 
 #endif //SIMD_QUADWORD_H

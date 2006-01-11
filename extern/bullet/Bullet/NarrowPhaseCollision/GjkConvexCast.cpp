@@ -155,3 +155,4 @@ bool	GjkConvexCast::calcTimeOfImpact(
 
 	return false;
 }
+

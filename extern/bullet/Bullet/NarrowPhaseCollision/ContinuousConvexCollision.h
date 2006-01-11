@@ -44,3 +44,4 @@ public:
 };
 
 #endif //CONTINUOUS_COLLISION_CONVEX_CAST_H
+
