@@ -1327,7 +1327,7 @@ static void draw_pose_channels(Base *base, int dt)
 	/* hacky... prevent outline select from drawing dashed helplines */
 	glGetFloatv(GL_LINE_WIDTH, &tmp);
 	if(tmp > 1.1) do_dashed= 0;
-	if(arm->flag & ARM_NO_PARLINES) do_dashed= 0;
+	if (G.vd->flag & V3D_HIDE_HELPLINES) do_dashed= 0;
 	
 	/* precalc inverse matrix for drawing screen aligned */
 	if(arm->drawtype==ARM_ENVELOPE) {

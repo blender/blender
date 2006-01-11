@@ -3903,7 +3903,7 @@ void draw_object(Base *base, int flag)
 	}
 
 	/* not for sets, duplicators or picking */
-	if(flag==0) {
+	if(flag==0 && (!(G.vd->flag & V3D_HIDE_HELPLINES))) {
 		ListBase *list;
 
 		/* draw hook center and offset line */

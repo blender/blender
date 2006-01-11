@@ -2791,9 +2791,8 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 100,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 100,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
 
-	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 80,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,80,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
-	uiDefButBitI(block, TOGN, ARM_NO_PARLINES, REDRAWVIEW3D, "Draw Offset", 210,80,100,20, &arm->flag, 0, 0, 0, 0, "Draw offsets to parent bones with dashed line");
+	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 160,80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	
 	uiDefButS(block, NUM, REDRAWVIEW3D, "Ghost: ", 10,60,150,20, &arm->ghostep, 0.0f, 30.0f, 0, 0, "Draw Ghosts around current frame, for current Action");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "Step: ", 160,60,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
