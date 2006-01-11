@@ -202,6 +202,8 @@ endif
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_NO_KETSJI=false
+    export NAN_NO_OPENAL=false
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
