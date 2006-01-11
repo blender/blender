@@ -1099,6 +1099,38 @@ static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float
 	}
 }
 
+static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
+{
+	char *rect= (char *)recti;
+	
+	/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+	glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+	glaDrawPixelsSafe(x1, y1, rectx, recty, GL_UNSIGNED_INT, recti);
+	glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+}
+
+static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int *recti)
+{
+	if(recti==NULL)
+		return;
+
+	/* zbuffer values are signed, so we need to shift color range */
+	glPixelTransferf(GL_RED_SCALE, 0.5f);
+	glPixelTransferf(GL_GREEN_SCALE, 0.5f);
+	glPixelTransferf(GL_BLUE_SCALE, 0.5f);
+	glPixelTransferf(GL_RED_BIAS, 0.5f);
+	glPixelTransferf(GL_GREEN_BIAS, 0.5f);
+	glPixelTransferf(GL_BLUE_BIAS, 0.5f);
+	
+	glaDrawPixelsSafe(x1, y1, rectx, recty, GL_INT, recti);
+
+	glPixelTransferf(GL_RED_SCALE, 1.0f);
+	glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+	glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+	glPixelTransferf(GL_RED_BIAS, 0.0f);
+	glPixelTransferf(GL_GREEN_BIAS, 0.0f);
+	glPixelTransferf(GL_BLUE_BIAS, 0.0f);
+}
 
 void drawimagespace(ScrArea *sa, void *spacedata)
 {
@@ -1128,8 +1160,9 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	what_image(sima);
 	
 	if(sima->image) {
-		if(sima->image->ibuf==0) {
+		if(sima->image->ibuf==NULL) {
 			load_image(sima->image, IB_rect, G.sce, G.scene->r.cfra);
+			scrarea_queue_headredraw(sa);	/* update header for image options */
 		}	
 		tag_image_time(sima->image);
 		ibuf= sima->image->ibuf;
@@ -1208,14 +1241,22 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				MEM_freeN(rect);
 			}
 			else {
-				if(sima->flag & SI_USE_ALPHA) {
-					sima_draw_alpha_backdrop(sima, x1, y1, (float)ibuf->x, (float)ibuf->y);
-					glEnable(GL_BLEND);
+				if(sima->flag & SI_SHOW_ALPHA) {
+					sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
 				}
-				glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
-				
-				if(sima->flag & SI_USE_ALPHA)
-					glDisable(GL_BLEND);
+				else if(sima->flag & SI_SHOW_ZBUF) {
+					sima_draw_zbuf_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf);
+				}
+				else {
+					if(sima->flag & SI_USE_ALPHA) {
+						sima_draw_alpha_backdrop(sima, x1, y1, (float)ibuf->x, (float)ibuf->y);
+						glEnable(GL_BLEND);
+					}
+					glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+					
+					if(sima->flag & SI_USE_ALPHA)
+						glDisable(GL_BLEND);
+				}
 			}
 			
 			if(Gip.current == IMAGEPAINT_CLONE) {

@@ -343,6 +343,10 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int format, void 
 			float *f_rect= (float *)rect;
 			glDrawPixels(draw_w, draw_h, GL_RGBA, GL_FLOAT, f_rect + (off_y*img_w + off_x)*4);
 		}
+		else if(format==GL_INT || format==GL_UNSIGNED_INT) {
+			int *i_rect= (int *)rect;
+			glDrawPixels(draw_w, draw_h, GL_LUMINANCE, format, i_rect + (off_y*img_w + off_x));
+		}
 		else {
 			unsigned char *uc_rect= (unsigned char *) rect;
 			glDrawPixels(draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, uc_rect + (off_y*img_w + off_x)*4);

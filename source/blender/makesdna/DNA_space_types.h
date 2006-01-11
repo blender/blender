@@ -467,6 +467,9 @@ typedef struct SpaceImaSel {
 #define SI_PIXELSNAP	1024
 #define SI_LSCM_LIVE	2048
 #define SI_USE_ALPHA	4096
+#define SI_SHOW_ALPHA	8192
+#define SI_SHOW_ZBUF	16384
+
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

@@ -1398,7 +1398,7 @@ int minmax_tface_uv(float *min, float *max)
 	return sel;
 }
 
-static void sima_show_info(int x, int y, char *cp, float *fp, unsigned int *zp)
+static void sima_show_info(int x, int y, char *cp, float *fp, int *zp)
 {
 	short ofs;
 	char str[256];
@@ -1409,7 +1409,7 @@ static void sima_show_info(int x, int y, char *cp, float *fp, unsigned int *zp)
 	if(fp)
 		ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
 	if(zp)
-		ofs+= sprintf(str+ofs, "| Z: %x ", *zp);
+		ofs+= sprintf(str+ofs, "| Z: %.4f ", 0.5+0.5*( ((float)*zp)/(float)0x7fffffff));
 	
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -1447,7 +1447,7 @@ void sima_sample_color(void)
 			
 			if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
 				float *fp= NULL;
-				unsigned int *zp= NULL;
+				int *zp= NULL;
 				char *cp= NULL;
 				
 				int x= (int) (fx*ibuf->x);

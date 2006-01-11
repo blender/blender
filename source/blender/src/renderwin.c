@@ -326,16 +326,10 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 	} else {
 		glPixelZoom(rw->zoom, rw->zoom);
 		if(rw->flags & RW_FLAGS_ALPHA) {
-			char *rect= (char *)R.rectot;
-			
-			glColorMask(1, 0, 0, 0);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, rect+3);
-			glColorMask(0, 1, 0, 0);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, rect+2);
-			glColorMask(0, 0, 1, 0);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, rect+1);
-			glColorMask(1, 1, 1, 1);
-			
+			/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+			glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_INT, R.rectot);
+			glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 		}
 		else {
 			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_UNSIGNED_BYTE, R.rectot);

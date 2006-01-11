@@ -312,6 +312,9 @@
 #define B_SIMANOTHING		368
 #define B_SIMACURVES		369
 #define B_SIMARANGE			370
+#define B_SIMA_USE_ALPHA	371
+#define B_SIMA_SHOW_ALPHA	372
+#define B_SIMA_SHOW_ZBUF	373
 
 /* BUTS: 400 */
 #define B_BUTSHOME		401

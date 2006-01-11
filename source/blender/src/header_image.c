@@ -332,6 +332,21 @@ void do_image_buttons(unsigned short event)
 			}
 		}
 		break;
+	case B_SIMA_USE_ALPHA:
+		G.sima->flag &= ~(SI_SHOW_ALPHA|SI_SHOW_ZBUF);
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+		break;
+	case B_SIMA_SHOW_ALPHA:
+		G.sima->flag &= ~(SI_USE_ALPHA|SI_SHOW_ZBUF);
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+		break;
+	case B_SIMA_SHOW_ZBUF:
+		G.sima->flag &= ~(SI_SHOW_ALPHA|SI_USE_ALPHA);
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+		break;
 	}
 }
 
@@ -1166,8 +1181,19 @@ void image_buttons(void)
 		uiDefIconButBitS(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
 		xco+= XIC+8;
 
-		uiDefIconButBitS(block, TOG, SI_USE_ALPHA, B_REDR, ICON_TRANSP_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws image with alpha");
-		xco+= XIC+8;
+		uiBlockBeginAlign(block);
+		uiDefIconButBitS(block, TOG, SI_USE_ALPHA, B_SIMA_USE_ALPHA, ICON_TRANSP_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws image with alpha");
+		xco+= XIC;
+		uiDefIconButBitS(block, TOG, SI_SHOW_ALPHA, B_SIMA_SHOW_ALPHA, ICON_DOT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws only alpha");
+		xco+= XIC;
+		if(G.sima->image->ibuf &&  G.sima->image->ibuf->zbuf) {
+			uiDefIconButBitS(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
+			xco+= XIC;
+		}
+		else G.sima->flag &= ~SI_SHOW_ZBUF;	/* no confusing display for non-zbuf images */
+		
+		uiBlockEndAlign(block);
+		xco+= 8;
 	}
 
 	/* draw LOCK */
