@@ -64,7 +64,7 @@ env = Environment (ENV = os.environ)
 if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	use_international = 'true'
 	use_gameengine = 'true'
-	use_openal = 'false'
+	use_openal = 'true'
 	use_fmod = 'false'
 	use_quicktime = 'false'
 	use_sumo = 'true'
@@ -152,10 +152,10 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 
 elif sys.platform == 'darwin':
 	use_international = 'true'
-	use_gameengine = 'false'
+	use_gameengine = 'true'
 	use_openal = 'true'
 	use_fmod = 'false'
-	use_openal = 'false'
+	use_openal = 'true'
 	use_quicktime = 'true'
 	use_precomp = 'true'
 	use_sumo = 'true'
@@ -275,8 +275,8 @@ elif sys.platform == 'darwin':
 
 elif sys.platform == 'cygwin':
 	use_international = 'false'
-	use_gameengine = 'false'
-	use_openal = 'false'
+	use_gameengine = 'true'
+	use_openal = 'true'
 	use_fmod = 'false'
 	use_quicktime = 'false'
 	use_sumo = 'false'

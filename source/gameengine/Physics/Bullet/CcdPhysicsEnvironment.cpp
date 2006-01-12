@@ -308,7 +308,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	
 //	printf("CcdPhysicsEnvironment::proceedDeltaTime\n");
 	
-	if (timeStep == 0.f)
+	if (SimdFuzzyZero(timeStep))
 		return true;
 
 	if (m_debugDrawer)
