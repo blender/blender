@@ -443,7 +443,7 @@ def optiRotateUvIsland(faces):
 	# Now write the vectors back to the face UV's
 	i = 0 # count the serialized uv/vectors
 	for f in faces:
-		f.uv = tuple([uv for uv in uvVecs[i:len(f.v)+i] ])
+		f.uv = [uv for uv in uvVecs[i:len(f.v)+i] ]
 		i += len(f.v)
 
 
@@ -472,7 +472,7 @@ def mergeUvIslands(islandList, islandListArea):
 		while fIdx:
 			fIdx-=1
 			f = islandList[islandIdx][fIdx]
-			f.uv = tuple([Vector(uv[0]-minx, uv[1]-miny) for uv in f.uv])
+			f.uv = [Vector(uv[0]-minx, uv[1]-miny) for uv in f.uv]
 			totFaceArea += islandListArea[islandIdx][fIdx] # Use Cached area. dont recalculate.
 		islandBoundsArea = w*h
 		efficiency = abs(islandBoundsArea - totFaceArea)
@@ -600,7 +600,7 @@ def mergeUvIslands(islandList, islandListArea):
 							targetIsland[0].extend(sourceIsland[0])
 							while sourceIsland[0]:
 								f = sourceIsland[0].pop()
-								f.uv = tuple([Vector(uv[0]+boxLeft, uv[1]+boxBottom) for uv in f.uv])
+								f.uv = [Vector(uv[0]+boxLeft, uv[1]+boxBottom) for uv in f.uv]
 
 							# Move edge loop into new and offset.
 							# targetIsland[6].extend(sourceIsland[6])
@@ -832,10 +832,10 @@ def packLinkedUvs(faceGroups, faceGroupsArea, me):
 		if USER_MARGIN:
 			USER_MARGIN_SCALE = 1-(USER_MARGIN*2)
 			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box, margin
-				f.uv = tuple([Vector((((uv[0]+xoffset)*xfactor)*USER_MARGIN_SCALE)+USER_MARGIN, (((uv[1]+yoffset)*yfactor)*USER_MARGIN_SCALE)+USER_MARGIN) for uv in f.uv])
+				f.uv = [Vector((((uv[0]+xoffset)*xfactor)*USER_MARGIN_SCALE)+USER_MARGIN, (((uv[1]+yoffset)*yfactor)*USER_MARGIN_SCALE)+USER_MARGIN) for uv in f.uv]
 		else:
 			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box
-				f.uv = tuple([Vector(((uv[0]+xoffset)*xfactor), ((uv[1]+yoffset)*yfactor)) for uv in f.uv])
+				f.uv = [Vector(((uv[0]+xoffset)*xfactor), ((uv[1]+yoffset)*yfactor)) for uv in f.uv]
 			
 			
 
@@ -908,6 +908,12 @@ def main():
 	else:
 		ob = "Unwrap %i Selected Meshes"
 	
+	# HACK, loop until mouse is lifted.
+	'''
+	while Window.GetMouseButtons() != 0:
+		sys.sleep(10)
+	'''
+	
 	if not Draw.PupBlock(ob % len(obList), pup_block):
 		return
 	del ob
@@ -970,7 +976,7 @@ def main():
 		for f in meshFaces:
 			area = faceArea(f)
 			if area <= SMALL_NUM:
-				f.uv = tuple([Vector(0.0, 0.0)] * len(f.v)) # Assign dummy UV
+				f.uv = [Vector(0.0, 0.0)] * len(f.v) # Assign dummy UV
 				print 'found zero area face, removing.'
 				
 			else:
@@ -1107,7 +1113,7 @@ def main():
 			
 			# Get the faces UV's from the projected vertex.
 			for f in faceProjectionGroupList[i]:
-				f.uv = tuple([MatProj * v.co for v in f.v])
+				f.uv = [MatProj * v.co for v in f.v]
 		
 		packLinkedUvs(faceProjectionGroupList, faceProjectionGroupListArea, me)
 		

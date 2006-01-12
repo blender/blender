@@ -46,7 +46,7 @@ class vt:
 		# A hack to remember the box() that last intersectec this vert
 		self.intersectCache = ([], [], [], [])
 		
-class vertList:
+class vertList:	
 	def __init__(self, verts=[]):
 		self.verts = verts
 	
@@ -59,9 +59,7 @@ class vertList:
 		
 
 class box:
-	global packedVerts
 	def __init__(self, width, height, id=None):
-		global packedVerts
 		
 		self.id= id
 		
@@ -202,7 +200,7 @@ class box:
 				for vIdx in range(4): # (BL,TR,TL,BR): # (BL,TR,TL,BR) / 0,1,2,3
 					self_v = self.v[vIdx] # shortcut
 					if not (self_v.x == baseVert.x and self_v.y == baseVert.y):
-						packedVerts.verts.append(self_v)
+						boxList.packedVerts.verts.append(self_v)
 					else:
 						baseVert.free &= self.v[vIdx].free # make sure the 
 						
@@ -264,7 +262,9 @@ class box:
 
 
 class boxList:
-	global packedVerts
+	# Global vert pool, stores used lists
+	packedVerts = vertList() # will be vertList()
+	
 	def __init__(self, boxes):
 		self.boxes = boxes
 		
@@ -386,9 +386,6 @@ class boxList:
 		Window.Redraw(1)
 	
 	def pack(self):
-		global packedVerts
-		packedVerts = vertList()
-		
 		self.sortArea()
 		
 		if len(self.boxes) == 0:
@@ -401,7 +398,7 @@ class boxList:
 		unpackedboxes = boxList(self.boxes[1:])
 		
 		# STart with this box
-		packedVerts.verts.extend(packedboxes.boxes[0].v)
+		boxList.packedVerts.verts.extend(packedboxes.boxes[0].v)
 		
 		while unpackedboxes.boxes != []:
 			
@@ -409,12 +406,12 @@ class boxList:
 			while freeBoxIdx < len(unpackedboxes.boxes):
 				
 				# Sort the verts with this boxes dimensions as a bias, so less poky out bits are made.
-				packedVerts.sortCorner(unpackedboxes.boxes[freeBoxIdx].width, unpackedboxes.boxes[freeBoxIdx].height)
+				boxList.packedVerts.sortCorner(unpackedboxes.boxes[freeBoxIdx].width, unpackedboxes.boxes[freeBoxIdx].height)
 				
 				vertIdx = 0
 				
-				while vertIdx < len(packedVerts.verts):
-					baseVert = packedVerts.verts[vertIdx]
+				while vertIdx < len(boxList.packedVerts.verts):
+					baseVert = boxList.packedVerts.verts[vertIdx]
 					
 					if baseVert.free != 0:
 						# This will lock the box if its possibel
@@ -426,6 +423,9 @@ class boxList:
 						
 					vertIdx +=1
 				freeBoxIdx +=1
+				
+		boxList.packedVerts.verts = [] # Free the list, so it dosent use ram between runs.
+		
 		self.width = packedboxes.width
 		self.height = packedboxes.height
 	# All boxes as a list - X/Y/WIDTH/HEIGHT
@@ -441,10 +441,6 @@ BL = 0; TR = 1; TL = 2; BR = 3
 # Flags for vert idx used quads
 BLF = 1; TRF = 2; TLF = 4; BRF = 8
 quadFlagLs = (BLF,BRF,TLF,TRF)
-
-
-# Global vert pool, stores used lists
-packedVerts = vertList()
 
 
 # Packs a list w/h's into box types and places then #Iter times
@@ -478,4 +474,5 @@ def boxPackIter(boxLs, iter=1, draw=0):
 		bestBoxLs.draw()
 	
 	#print 'best area: %.4f, %.2f%% efficient' % (bestArea, (float(bestBoxLs.boxArea) / (bestArea+0.000001))*100)
+
 	return bestBoxLs.width, bestBoxLs.height, bestBoxLs.list()
