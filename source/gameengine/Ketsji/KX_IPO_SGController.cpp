@@ -35,6 +35,12 @@
 #include <config.h>
 #endif
 
+#if defined(_WIN64)
+typedef unsigned __int64 uint_ptr;
+#else
+typedef unsigned long uint_ptr;
+#endif
+
 #ifdef WIN32
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
@@ -168,10 +174,10 @@ SG_Controller*	KX_IpoSGController::GetReplica(class SG_Node* destnode)
 		iporeplica->AddInterpolator(copyipo);
 
 		MT_Scalar* scaal = ((KX_ScalarInterpolator*)*i)->GetTarget();
-		int orgbase = (int)&m_ipo_xform;
-		int orgloc = (int)scaal;
-		int offset = orgloc-orgbase;
-		int newaddrbase = (int)&iporeplica->m_ipo_xform;
+		uint_ptr orgbase = (uint_ptr)&m_ipo_xform;
+		uint_ptr orgloc = (uint_ptr)scaal;
+		uint_ptr offset = orgloc-orgbase;
+		uint_ptr newaddrbase = (uint_ptr)&iporeplica->m_ipo_xform;
 		newaddrbase += offset;
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);

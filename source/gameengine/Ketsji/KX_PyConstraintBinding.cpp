@@ -352,13 +352,17 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 										 PyObject* args, 
 										 PyObject* kwds)
 {
-	int constraintid;
-	
-	if (PyArg_ParseTuple(args,"i",&constraintid))
+#if defined(_WIN64)
+	__int64 constraintid;
+	if (PyArg_ParseTuple(args,"L",&constraintid))
+#else
+	long constraintid;
+	if (PyArg_ParseTuple(args,"l",&constraintid))
+#endif
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->removeConstraint(constraintid);
+			PHY_GetActiveEnvironment()->removeConstraint((void *)constraintid);
 		}
 	}
 	Py_INCREF(Py_None); return Py_None;

@@ -192,7 +192,7 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				removeConstraint(int(p2p));
+				 removeConstraint(p2p);
 				//only 1 constraint per constroller
 				break;
 			}
@@ -209,7 +209,7 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				removeConstraint(int(p2p));
+				removeConstraint(p2p);
 				//only 1 constraint per constroller
 				break;
 			}
@@ -773,13 +773,11 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	
 }
 
-void		CcdPhysicsEnvironment::removeConstraint(int constraintid)
+void		CcdPhysicsEnvironment::removeConstraint(void* p2p)
 {
-	
-	Point2PointConstraint* p2p = (Point2PointConstraint*) constraintid;
-	
 	std::vector<Point2PointConstraint*>::iterator i =
-		std::find(m_p2pConstraints.begin(), m_p2pConstraints.end(), p2p);
+		std::find(m_p2pConstraints.begin(), m_p2pConstraints.end(), 
+				(Point2PointConstraint *)p2p);
 	
 	if (!(i == m_p2pConstraints.end()) )
 	{

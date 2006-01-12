@@ -35,6 +35,12 @@
 #include <config.h>
 #endif
 
+#if defined(_WIN64)
+typedef unsigned __int64 uint_ptr;
+#else
+typedef unsigned long uint_ptr;
+#endif
+
 #ifdef WIN32
 // This warning tells us about truncation of __long__ stl-generated names.
 // It can occasionally cause DevStudio to have internal compiler warnings.
@@ -1095,12 +1101,12 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self,
 											   PyObject* kwds)
 {
 	KX_IPhysicsController* ctrl = GetPhysicsController();
-	int physid=0;
+	uint_ptr physid=0;
 	if (ctrl)
 	{
-		physid= (int)ctrl->GetUserData();
+		physid= (uint_ptr)ctrl->GetUserData();
 	}
-	return PyInt_FromLong(physid);
+	return PyInt_FromLong((long)physid);
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
