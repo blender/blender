@@ -192,3 +192,27 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 	}
 }
 
+void IMB_float_from_rect(struct ImBuf *ibuf)
+{
+	/* quick method to convert byte to floatbuf */
+	float *tof = ibuf->rect_float;
+	int i;
+	unsigned char *to = (unsigned char *) ibuf->rect;
+	
+	if(to==NULL) return;
+	if(tof==NULL) {
+		imb_addrectfloatImBuf(ibuf);
+		tof = ibuf->rect_float;
+	}
+	
+	for (i = ibuf->x * ibuf->y; i > 0; i--) 
+	{
+		tof[0] = ((float)to[0])*(1.0f/255.0f);
+		tof[1] = ((float)to[1])*(1.0f/255.0f);
+		tof[2] = ((float)to[2])*(1.0f/255.0f);
+		tof[3] = ((float)to[3])*(1.0f/255.0f);
+		to += 4; 
+		tof += 4;
+	}
+}
+

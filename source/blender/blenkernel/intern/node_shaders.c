@@ -490,8 +490,7 @@ static bNodeSocketType sh_node_curve_vec_out[]= {
 	{	-1, 0, ""	}
 };
 
-/* generates normal, does dot product */
-static void node_shader_exec_curve(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_curve_vec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order input:  vec */
 	/* stack order output: vec */
@@ -507,7 +506,7 @@ static bNodeType sh_node_curve_vec= {
 	/* input sock  */	sh_node_curve_vec_in,
 	/* output sock */	sh_node_curve_vec_out,
 	/* storage     */	"CurveMapping",
-	/* execfunc    */	node_shader_exec_curve
+	/* execfunc    */	node_shader_exec_curve_vec
 	
 };
 
@@ -522,6 +521,14 @@ static bNodeSocketType sh_node_curve_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void node_shader_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order input:  vec */
+	/* stack order output: vec */
+	
+	curvemapping_evaluateRGBF(node->storage, out[0]->vec, in[0]->vec);
+}
+
 static bNodeType sh_node_curve_rgb= {
 	/* type code   */	SH_NODE_CURVE_RGB,
 	/* name        */	"RGB Curves",
@@ -530,7 +537,7 @@ static bNodeType sh_node_curve_rgb= {
 	/* input sock  */	sh_node_curve_rgb_in,
 	/* output sock */	sh_node_curve_rgb_out,
 	/* storage     */	"CurveMapping",
-	/* execfunc    */	node_shader_exec_curve
+	/* execfunc    */	node_shader_exec_curve_rgb
 	
 };
 

@@ -1464,19 +1464,25 @@ void sima_sample_color(void)
 					zp= ibuf->zbuf + y*ibuf->x + x;
 				if(ibuf->zbuf_float)
 					zpf= ibuf->zbuf_float + y*ibuf->x + x;
-				
-				if(ibuf->rect_float) {
+				if(ibuf->rect_float)
 					fp= (ibuf->rect_float + 4*(y*ibuf->x + x));
 					
-					if(G.sima->cumap) {
-						if(G.qual & LR_CTRLKEY) {
-							curvemapping_set_black_white(G.sima->cumap, NULL, fp);
-							curvemapping_do_image(G.sima->cumap, G.sima->image);
-						}
-						else if(G.qual & LR_SHIFTKEY) {
-							curvemapping_set_black_white(G.sima->cumap, fp, NULL);
-							curvemapping_do_image(G.sima->cumap, G.sima->image);
-						}
+				if(G.sima->cumap) {
+					float vec[3];
+					if(fp==NULL) {
+						fp= vec;
+						vec[0]= (float)cp[0]/255.0f;
+						vec[1]= (float)cp[1]/255.0f;
+						vec[2]= (float)cp[2]/255.0f;
+					}
+					
+					if(G.qual & LR_CTRLKEY) {
+						curvemapping_set_black_white(G.sima->cumap, NULL, fp);
+						curvemapping_do_image(G.sima->cumap, G.sima->image);
+					}
+					else if(G.qual & LR_SHIFTKEY) {
+						curvemapping_set_black_white(G.sima->cumap, fp, NULL);
+						curvemapping_do_image(G.sima->cumap, G.sima->image);
 					}
 				}
 				

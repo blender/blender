@@ -49,6 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 /* ********************************* color curve ********************* */
@@ -181,6 +182,11 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr)
 	cuma->curve[1].x= clipr->xmax;
 	cuma->curve[1].y= clipr->ymax;
 	cuma->curve[1].flag= 0;
+	
+	if(cuma->table) {
+		MEM_freeN(cuma->table);
+		cuma->table= NULL;
+	}
 }
 
 /* if type==1: vector, else auto */
@@ -271,7 +277,7 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 	}
 }
 
-
+/* only creates a table for a single channel in CurveMapping */
 static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 {
 	CurveMapPoint *cmp= cuma->curve;
@@ -395,6 +401,39 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	cuma->table= cmp;
 }
 
+/* call when you do images etc, needs restore too. also verifies tables */
+static void curvemapping_premultiply(CurveMapping *cumap, int restore)
+{
+	static CurveMapPoint *table[3]= {NULL, NULL, NULL};
+	int a;
+	
+	if(restore) {
+		for(a=0; a<3; a++) {
+			MEM_freeN(cumap->cm[a].table);
+			cumap->cm[a].table= table[a];
+		}
+	}
+	else {
+		/* verify and copy */
+		for(a=0; a<3; a++) {
+			if(cumap->cm[a].table==NULL)
+				curvemap_make_table(cumap->cm+a, &cumap->clipr);
+			table[a]= cumap->cm[a].table;
+			cumap->cm[a].table= MEM_dupallocN(cumap->cm[a].table);
+		}
+		
+		if(cumap->cm[3].table==NULL)
+			curvemap_make_table(cumap->cm+3, &cumap->clipr);
+	
+		/* premul */
+		for(a=0; a<3; a++) {
+			int b;
+			for(b=0; b<=CM_TABLE; b++) {
+				cumap->cm[a].table[b].y= curvemap_evaluateF(cumap->cm+3, cumap->cm[a].table[b].y);
+			}
+		}
+	}
+}
 
 static int sort_curvepoints(const void *a1, const void *a2)
 {
@@ -458,20 +497,12 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	curvemap_make_table(cuma, clipr);
 }
 
-/* works with curve 'cur' */
-float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
+/* table should be verified */
+float curvemap_evaluateF(CurveMap *cuma, float value)
 {
-	CurveMap *cuma= cumap->cm+cur;
 	float fi;
 	int i;
-	
-	/* allocate or bail out */
-	if(cuma->table==NULL) {
-		curvemap_make_table(cuma, &cumap->clipr);
-		if(cuma->table==NULL)
-			return value;
-	}
-	
+
 	/* index in table */
 	fi= (value-cuma->mintable)*cuma->range;
 	i= (int)fi;
@@ -482,23 +513,50 @@ float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
 	return (1.0f-fi)*cuma->table[i].y + (fi)*cuma->table[i+1].y; 
 }
 
+/* works with curve 'cur' */
+float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
+{
+	CurveMap *cuma= cumap->cm+cur;
+	
+	/* allocate or bail out */
+	if(cuma->table==NULL) {
+		curvemap_make_table(cuma, &cumap->clipr);
+		if(cuma->table==NULL)
+			return value;
+	}
+	return curvemap_evaluateF(cuma, value);
+}
+
+/* vector case */
 void curvemapping_evaluate3F(CurveMapping *cumap, float *vecout, const float *vecin)
 {
-	if(cumap->cm[3].curve) {
-		float fac;
-		
-		fac= (vecin[0] - cumap->black[0])*cumap->bwmul[0];
-		vecout[0]= curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, fac));
-		fac= (vecin[1] - cumap->black[1])*cumap->bwmul[1];
-		vecout[1]= curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, fac));
-		fac= (vecin[2] - cumap->black[2])*cumap->bwmul[2];
-		vecout[2]= curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, fac));
-	}
-	else {
-		vecout[0]= curvemapping_evaluateF(cumap, 0, vecin[0]);
-		vecout[1]= curvemapping_evaluateF(cumap, 1, vecin[1]);
-		vecout[2]= curvemapping_evaluateF(cumap, 2, vecin[2]);
-	}
+	vecout[0]= curvemapping_evaluateF(cumap, 0, vecin[0]);
+	vecout[1]= curvemapping_evaluateF(cumap, 1, vecin[1]);
+	vecout[2]= curvemapping_evaluateF(cumap, 2, vecin[2]);
+}
+
+/* RGB case, no black/white points, no premult */
+void curvemapping_evaluateRGBF(CurveMapping *cumap, float *vecout, const float *vecin)
+{
+	vecout[0]= curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, vecin[0]));
+	vecout[1]= curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, vecin[1]));
+	vecout[2]= curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, vecin[2]));
+}
+
+
+/* RGB with black/white points and premult. tables are checked */
+static void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const float *vecin)
+{
+	float fac;
+	
+	fac= (vecin[0] - cumap->black[0])*cumap->bwmul[0];
+	vecout[0]= curvemap_evaluateF(cumap->cm, fac);
+	
+	fac= (vecin[1] - cumap->black[1])*cumap->bwmul[1];
+	vecout[1]= curvemap_evaluateF(cumap->cm+1, fac);
+	
+	fac= (vecin[2] - cumap->black[2])*cumap->bwmul[2];
+	vecout[2]= curvemap_evaluateF(cumap->cm+2, fac);
 }
 
 #define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
@@ -509,6 +567,10 @@ void curvemapping_do_image(CurveMapping *cumap, Image *ima)
 	
 	if(ima==NULL || ima->ibuf==NULL)
 		return;
+	if(ima->ibuf->rect_float==NULL)
+		IMB_float_from_rect(ima->ibuf);
+	
+	curvemapping_premultiply(cumap, 0);
 	
 	if(ima->ibuf->rect_float && ima->ibuf->rect) {
 		float *pixf= ima->ibuf->rect_float;
@@ -516,11 +578,13 @@ void curvemapping_do_image(CurveMapping *cumap, Image *ima)
 		char *pixc= (char *)ima->ibuf->rect;
 		
 		for(pixel= ima->ibuf->x*ima->ibuf->y; pixel>0; pixel--, pixf+=4, pixc+=4) {
-			curvemapping_evaluate3F(cumap, col, pixf);
+			curvemapping_evaluate_premulRGBF(cumap, col, pixf);
 			pixc[0]= FTOCHAR(col[0]);
 			pixc[1]= FTOCHAR(col[1]);
 			pixc[2]= FTOCHAR(col[2]);
 			/* assume alpha was set */
 		}
 	}
+	
+	curvemapping_premultiply(cumap, 1);
 }

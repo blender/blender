@@ -45,8 +45,13 @@ void				curvemap_reset(struct CurveMap *cuma, struct rctf *clipr);
 void				curvemap_sethandle(struct CurveMap *cuma, int type);
 
 void				curvemapping_changed(struct CurveMapping *cumap, int rem_doubles);
+					
+					/* single curve, no table check */
+float				curvemap_evaluateF(struct CurveMap *cuma, float value);
+					/* single curve, with table check */
 float				curvemapping_evaluateF(struct CurveMapping *cumap, int cur, float value);
 void				curvemapping_evaluate3F(struct CurveMapping *cumap, float *vecout, const float *vecin);
+void				curvemapping_evaluateRGBF(struct CurveMapping *cumap, float *vecout, const float *vecin);
 void				curvemapping_do_image(struct CurveMapping *cumap, struct Image *ima);
 
 #endif

@@ -49,7 +49,7 @@ typedef struct CurveMapPoint {
 #define CUMA_VECTOR		2
 
 typedef struct CurveMap {
-	short totpoint, pad;
+	short totpoint, flag;
 	
 	float range;					/* quick multiply value for reading table */
 	float mintable, maxtable;		/* the x-axis range for the table */
@@ -68,9 +68,8 @@ typedef struct CurveMapping {
 	float bwmul[3], padf;			/* black/white point multiply value, for speed */
 } CurveMapping;
 
-/* cuma->flag */
-#define CUMA_DO_CLIP	1
-
+/* cumap->flag */
+#define CUMA_DO_CLIP			1
 
 #endif
 
