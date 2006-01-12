@@ -20,7 +20,6 @@
 #include "DNA_image_types.h"
 #include "IMB_imbuf_types.h"
 #include "BKE_image.h"
-#include "IMB_imbuf.h"
 #include "BLI_blenlib.h"
 
 #include "RAS_GLExtensionManager.h"
@@ -35,6 +34,7 @@ using namespace bgl;
 extern "C" {
 	// envmaps
 	#include "IMB_imbuf.h"
+	
 	void my_envmap_split_ima(EnvMap *env);
 	void my_free_envmapdata(EnvMap *env);
 }
