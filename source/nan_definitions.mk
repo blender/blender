@@ -46,9 +46,6 @@ all debug::
 
   # First generic defaults for all platforms which should be constant.
   # Note: ?= lets these defaults be overruled by environment variables,
-    export NAN_NO_KETSJI=true
-    export NAN_JUST_BLENDERDYNAMIC=true
-    export NAN_NO_OPENAL=true
     export SRCHOME ?= $(NANBLENDERHOME)/source
     export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
     export OS := $(shell echo ${CONFIG_GUESS} | sed -e 's/-.*//')
@@ -202,8 +199,6 @@ endif
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_NO_KETSJI=false
-    export NAN_NO_OPENAL=false
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
@@ -417,7 +412,6 @@ endif
   ifeq ($(OS),windows)
 
     export ID = $(LOGNAME)
-    export NAN_NO_KETSJI=false
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
     export NAN_PYTHON_VERSION ?= 2.4
