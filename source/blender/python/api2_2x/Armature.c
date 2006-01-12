@@ -112,7 +112,7 @@ static PyMethodDef BPy_BonesDict_methods[] = {
 		"() - Returns the keys the dictionary"},
 	{"values", (PyCFunction) BonesDict_values, METH_NOARGS, 
 		"() - Returns the values from the dictionary"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //-----------------(internal)
 static int BoneMapping_Init(PyObject *dictionary, ListBase *bones){
@@ -225,8 +225,18 @@ PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 	}else{
 		value = PyDict_GetItem(self->bonesMap, key);
 	}
-	if(value == NULL){
-        return EXPP_incr_ret(Py_None);
+	if(value == NULL){  /* item not found in dict. throw exception */
+		char buffer[128];
+		char* key_str;
+		key_str = PyString_AsString( key );
+		if( !key_str ){  /* key not a py string */
+			key_str = "";  /* use empty string for printing */
+		}
+  
+		PyOS_snprintf( buffer, sizeof(buffer),
+					   "KeyError: bone %s not found", key_str);
+			
+        return EXPP_ReturnPyObjError(PyExc_KeyError, buffer );
 	}
 	return EXPP_incr_ret(value);
 }
@@ -335,7 +345,7 @@ AttributeError3:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
 		sBoneDictBadArgs,  "The 'connected' flag is set but the bone has no parent!");
 }
-//------------------TYPE_OBECT DEFINITION--------------------------
+//------------------TYPE_OBJECT DEFINITION--------------------------
 //Mapping Protocol
 static PyMappingMethods BonesDict_MapMethods = {
 	(inquiry) BonesDict_len,					//mp_length
@@ -863,7 +873,7 @@ static PyMethodDef BPy_Armature_methods[] = {
 		"() - Unlocks the ability to modify armature bones"},
 	{"update", (PyCFunction) Armature_update, METH_NOARGS, 
 		"() - Rebuilds the armature based on changes to bones since the last call to makeEditable"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------------tp_getset
 //This contains methods for attributes that require checking
@@ -894,7 +904,7 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Enable/Disable X-axis mirrored editing", NULL},
 	{"autoIK", (getter)Armature_getAutoIK, (setter)Armature_setAutoIK, 
 		"Adds temporal IK chains while grabbing bones", NULL},
-	{NULL}
+	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_new
 //This methods creates a new object (note it does not initialize it - only the building)
@@ -1150,7 +1160,7 @@ static char M_Armature_Get_doc[] = "(name) - return the armature with the name '
 
 struct PyMethodDef M_Armature_methods[] = {
 	{"Get", M_Armature_Get, METH_VARARGS, M_Armature_Get_doc},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------VISIBLE PROTOTYPE IMPLEMENTATION-----------------------
 //-----------------(internal)
