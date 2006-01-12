@@ -2298,7 +2298,10 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 
 /* x,y: window coordinate from 0 to rectx,y */
 /* return pointer to rendered face */
-void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, float *rco)
+/* note, facenr declared volatile due to over-eager -O2 optimizations
+ * on cygwin (particularly -frerun-cse-after-loop)
+ */
+void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *col, float *rco)
 {
 	ShadeResult shr;
 	ShadeInput shi;
