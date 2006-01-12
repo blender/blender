@@ -20,7 +20,7 @@
 #include "DNA_image_types.h"
 #include "IMB_imbuf_types.h"
 #include "BKE_image.h"
-//#include "IMB_imbuf.h"
+#include "IMB_imbuf.h"
 #include "BLI_blenlib.h"
 
 #include "RAS_GLExtensionManager.h"
