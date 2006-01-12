@@ -64,8 +64,7 @@ void drawsoundspace(ScrArea *sa, void *spacedata);
 static void draw_wave(int startsamp, int endsamp, short sampdx, short offset, short *sp, float sampfac, float y)
 {
 	float min, max, v1[2], v2[3];
-	int i, j;
-	short value, deltasp;
+	int i, j, deltasp, value; /*deltasp, value: were both shorts but for music files 5min, zooming out cased a crash */
 	
 	sp+= offset*startsamp;
 
