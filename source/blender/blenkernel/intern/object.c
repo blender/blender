@@ -759,6 +759,8 @@ Object *add_object(int type)
 	Mat4One(ob->obmat);
 	ob->dt= OB_SHADED;
 	if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
+	ob->empty_drawtype= OB_ARROWS;
+	ob->empty_drawsize= 1.0;
 	
 	if(type==OB_CAMERA || type==OB_LAMP) {
 		ob->trackflag= OB_NEGZ;

@@ -5244,6 +5244,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if(main->versionfile <= 241) {
+		Object *ob;
+		
+		/* for empty drawsize and drawtype */
+		for(ob=main->object.first; ob; ob= ob->id.next) {
+			ob->empty_drawtype = OB_ARROWS;
+			ob->empty_drawsize = 1.0;
+		}
+	}
+	
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

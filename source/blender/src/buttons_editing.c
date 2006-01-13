@@ -3434,9 +3434,21 @@ static void editing_panel_links(Object *ob)
 
 
 	/* to be sure */
-	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
+	if ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_EMPTY);
 	else return;
 
+	if (ob->type==OB_EMPTY) {
+		uiDefBut(block, LABEL,0,"Empty Display:",
+				xco, 154, 130,20, 0, 0, 0, 0, 0, "");
+		
+		uiBlockBeginAlign(block);
+		uiDefButC(block, MENU, REDRAWVIEW3D, "Empty Drawtype%t|Arrows%x1|Plain Axes%x2",
+				xco, 128, 140, 20, &ob->empty_drawtype, 0, 0, 0, 0, "Selects the Empty display type");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",
+				xco, 108, 140, 21, &ob->empty_drawsize, 0.01, 10.0, 1, 0, "The size to display the Empty");
+		uiBlockEndAlign(block);
+		return;
+	}
 
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );

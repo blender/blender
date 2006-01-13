@@ -2751,6 +2751,8 @@ void copy_attr(short event)
 				else if(event==4) {  /* drawtype */
 					base->object->dt= ob->dt;
 					base->object->dtx= ob->dtx;
+					base->object->empty_drawtype= ob->empty_drawtype;
+					base->object->empty_drawsize= ob->empty_drawsize;
 				}
 				else if(event==5) {  /* time offs */
 					base->object->sf= ob->sf;

@@ -148,6 +148,8 @@ typedef struct Object {
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;
+	char empty_drawtype, pad1[3];
+	float empty_drawsize;
 	
 	ScriptLink scriptlink;
 	ListBase prop;
@@ -310,6 +312,11 @@ extern Object workob;
 #define OB_DRAWXRAY		64
 	/* enable transparent draw */
 #define OB_DRAWTRANSP	128
+
+/* empty_drawtype: no flags */
+#define OB_ARROWS		1
+#define OB_PLAINAXES	2
+#define OB_CIRCLE		3
 
 /* boundtype */
 #define OB_BOUND_BOX		0

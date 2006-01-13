@@ -239,44 +239,67 @@ static float cube[8][3] = {
 };
 
 /* flag is same as for draw_object */
-void drawaxes(float size, int flag)
+void drawaxes(float size, int flag, char drawtype)
 {
+	View3D *v3d= G.vd;
 	int axis;
-
-	for (axis=0; axis<3; axis++) {
-		float v1[3]= {0.0, 0.0, 0.0};
-		float v2[3]= {0.0, 0.0, 0.0};
-		int arrow_axis= (axis==0)?1:0;
-		
-		glBegin(GL_LINES);
-
-		v2[axis]= size;
-		glVertex3fv(v1);
-		glVertex3fv(v2);
+	float vec[3]= {0.0, 0.0, 0.0};
+	
+	switch(drawtype) {
+	
+	case OB_PLAINAXES:
+		for (axis=0; axis<3; axis++) {
+			float v1[3]= {0.0, 0.0, 0.0};
+			float v2[3]= {0.0, 0.0, 0.0};
 			
-		v1[axis]= size*0.8;
-		v1[arrow_axis]= -size*0.125;
-		glVertex3fv(v1);
-		glVertex3fv(v2);
-			
-		v1[arrow_axis]= size*0.125;
-		glVertex3fv(v1);
-		glVertex3fv(v2);
+			glBegin(GL_LINES);
 
-		glEnd();
+			v1[axis]= size;
+			v2[axis]= -size;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
 			
-		v2[axis]+= size*0.125;
-		glRasterPos3fv(v2);
-		
-		// patch for 3d cards crashing on glSelect for text drawing (IBM)
-		if((flag & DRAW_PICKING) == 0) {
-			if (axis==0)
-				BMF_DrawString(G.font, "x");
-			else if (axis==1)
-				BMF_DrawString(G.font, "y");
-			else
-				BMF_DrawString(G.font, "z");
+			glEnd();
 		}
+		break;
+	case OB_ARROWS:
+	default:
+		for (axis=0; axis<3; axis++) {
+			float v1[3]= {0.0, 0.0, 0.0};
+			float v2[3]= {0.0, 0.0, 0.0};
+			int arrow_axis= (axis==0)?1:0;
+			
+			glBegin(GL_LINES);
+
+			v2[axis]= size;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+				
+			v1[axis]= size*0.8;
+			v1[arrow_axis]= -size*0.125;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+				
+			v1[arrow_axis]= size*0.125;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+
+			glEnd();
+				
+			v2[axis]+= size*0.125;
+			glRasterPos3fv(v2);
+			
+			// patch for 3d cards crashing on glSelect for text drawing (IBM)
+			if((flag & DRAW_PICKING) == 0) {
+				if (axis==0)
+					BMF_DrawString(G.font, "x");
+				else if (axis==1)
+					BMF_DrawString(G.font, "y");
+				else
+					BMF_DrawString(G.font, "z");
+			}
+		}
+		break;
 	}
 }
 
@@ -3823,7 +3846,7 @@ void draw_object(Base *base, int flag)
 			empty_object= drawmball(base, dt);
 		break;
 	case OB_EMPTY:
-		drawaxes(1.0, flag);
+		drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
 		break;
 	case OB_LAMP:
 		drawlamp(ob);
@@ -3840,7 +3863,7 @@ void draw_object(Base *base, int flag)
 		empty_object= draw_armature(base, dt);
 		break;
 	default:
-		drawaxes(1.0, flag);
+		drawaxes(1.0, flag, OB_ARROWS);
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
@@ -3849,7 +3872,7 @@ void draw_object(Base *base, int flag)
 	if(dtx) {
 		if(G.f & G_SIMULATION);
 		else if(dtx & OB_AXIS) {
-			drawaxes(1.0f, flag);
+			drawaxes(1.0f, flag, OB_ARROWS);
 		}
 		if(dtx & OB_BOUNDBOX) draw_bounding_volume(ob);
 		if(dtx & OB_TEXSPACE) drawtexspace(ob);
