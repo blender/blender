@@ -442,7 +442,7 @@ class MFace:
      colors; use L{Mesh.faceUV} and L{Mesh.vertexColors} to test.  B{Note}:
      if a mesh has i{both} UV faces and vertex colors, the colors stored in
      the UV faces will be used here. 
-  @type col: list of MCols
+  @type col: sequence of MCols
   @ivar mat: The face's index into the mesh's materials
       list.  It is in the range [0,15].
   @type mat: int

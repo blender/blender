@@ -3598,6 +3598,54 @@ static PyObject *MFace_getCol( BPy_MFace * self )
 	return attr;
 }
 
+/*
+ * set a face's vertex colors
+ */
+
+static int MFace_setCol( BPy_MFace * self, PyObject *value )
+{
+	int length, i;
+	MCol * mcol;
+
+	/* if there's no mesh color vectors or texture faces, nothing to do */
+
+	if( !self->mesh->mcol && !self->mesh->tface )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"face has no vertex colors" );
+
+	if( !MFace_get_pointer( self ) )
+		return -1;
+
+	if( self->mesh->tface )
+		mcol = (MCol *) self->mesh->tface[self->index].col;
+	else
+		mcol = &self->mesh->mcol[self->index*4];
+
+	length = self->mesh->mface[self->index].v4 ? 4 : 3;
+
+	if( !PyList_Check( value ) && !PyTuple_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a sequence of MCols" );
+
+	if( EXPP_check_sequence_consistency( value, &MCol_Type ) != 1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a sequence of MCols" );
+
+	if( PySequence_Size( value ) != length )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"incorrect number of colors for this face" );
+
+	for( i=0; i<length; ++i ) {
+		BPy_MCol *obj = (BPy_MCol *)PySequence_ITEM( value, i );
+		mcol[i].r = obj->color->r;
+		mcol[i].g = obj->color->g;
+		mcol[i].b = obj->color->b;
+		mcol[i].a = obj->color->a;
+		Py_DECREF( obj );
+	}
+	return 0;
+}
+
 /************************************************************************
  *
  * Python MFace_Type attributes get/set structure
@@ -3642,7 +3690,7 @@ static PyGetSetDef BPy_MFace_getseters[] = {
 	/* attributes for texture faces (mostly, I think) */
 
     {"col",
-     (getter)MFace_getCol, (setter)NULL,
+     (getter)MFace_getCol, (setter)MFace_setCol,
      "face's vertex colors",
      NULL},
     {"flag",
