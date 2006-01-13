@@ -212,7 +212,7 @@ class Bone:
   @type matrix: Matrix Object
   @ivar parent: The parent Bone.
   @type parent: Bone Object
-  @ivar children: The children bones.
+  @ivar children: The children directly attached to this bone.
   @type children: List of Bone Objects
   @ivar weight: The bone's weight.
   @type weight: Float
@@ -244,6 +244,13 @@ class Bone:
     """
     Whether or not this bone has children
     @rtype: Bool
+    """
+
+  def getAllChildren():
+    """
+    Gets all the children under this bone including the children's children.
+    @rtype: List of Bone object
+    @return: all bones under this one
     """
 
 class Editbone:
