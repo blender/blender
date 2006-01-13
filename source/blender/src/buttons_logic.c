@@ -2439,7 +2439,7 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 				&ob->gameflag, 0, 0,0, 0,
 				"Specify a bounds object for physics");
 		if (ob->gameflag & OB_BOUNDS) {
-			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Concave Mesh %x4|Convex Polytope%x5",
+			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4|",
 				85, 125, 140, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
 		}
 	}
