@@ -275,7 +275,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, Mesh *me, DispLis
 	vmap= make_uv_vert_map(mface, tface, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;
-
+	
 	ccgSubSurf_initFullSync(ss);
 
 	/* use this to get consistent vert handles with different heap addresses */
@@ -283,6 +283,9 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, Mesh *me, DispLis
 
 	/* create vertices */
 	for (i=0; i<totvert; i++) {
+		if (!get_uv_map_vert(vmap, i))
+			continue;
+
 		for (v=get_uv_map_vert(vmap, i)->next; v; v=v->next)
 			if (v->separate)
 				break;
