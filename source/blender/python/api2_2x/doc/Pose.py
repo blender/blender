@@ -77,6 +77,10 @@ class PoseBone:
   @type size: Vector object
   @ivar quat: The change in rotation for this PoseBone.
   @type quat: Quaternion object
+  @ivar head: The final head location for this PoseBone. (not settable)
+  @type head: Vector object
+  @ivar tail: The final tail location for this PoseBone. (not settable)
+  @type tail: Vector object
   @ivar localMatrix: The matrix combination of rot/quat/loc.
   @type localMatrix: Matrix object
   @ivar poseMatrix: The total transformation of this PoseBone including constraints. (not settable)

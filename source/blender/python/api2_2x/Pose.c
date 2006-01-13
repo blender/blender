@@ -736,6 +736,32 @@ static int PoseBone_setPoseMatrix(BPy_PoseBone *self, PyObject *value, void *clo
 //	printf("This is not implemented yet...");
 //	return 1;
 //}
+//------------------------PoseBone.head (getter)
+//Gets the pose head position
+static PyObject *PoseBone_getHead(BPy_PoseBone *self, void *closure)
+{
+    return newVectorObject(self->posechannel->pose_head, 3, Py_NEW);
+}
+//------------------------PoseBone.head (setter)
+//Sets the pose head position
+static int PoseBone_setHead(BPy_PoseBone *self, PyObject *value, void *closure)
+{
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sPoseBoneError, ".head: ", "not able to set this property");
+}
+//------------------------PoseBone.tail (getter)
+//Gets the pose tail position
+static PyObject *PoseBone_getTail(BPy_PoseBone *self, void *closure)
+{
+    return newVectorObject(self->posechannel->pose_tail, 3, Py_NEW);
+}
+//------------------------PoseBone.tail (setter)
+//Sets the pose tail position
+static int PoseBone_setTail(BPy_PoseBone *self, PyObject *value, void *closure)
+{
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sPoseBoneError, ".tail: ", "not able to set this property");
+}
 //------------------TYPE_OBECT IMPLEMENTATION---------------------------
 //------------------------tp_getset
 //This contains methods for attributes that require checking
@@ -752,6 +778,10 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"The pose bone's change matrix built from the quat, loc, and size", NULL},
 	{"poseMatrix", (getter)PoseBone_getPoseMatrix, (setter)PoseBone_setPoseMatrix, 
 		"The pose bone's matrix", NULL},
+	{"head", (getter)PoseBone_getHead, (setter)PoseBone_setHead, 
+		"The pose bone's head positon", NULL},
+	{"tail", (getter)PoseBone_getTail, (setter)PoseBone_setTail, 
+		"The pose bone's tail positon", NULL},
 	//{"constraints", (getter)PoseBone_getConstraints, (setter)PoseBone_setConstraints, 
 	//	"The list of contraints that pertain to this pose bone", NULL},
 	{NULL}
