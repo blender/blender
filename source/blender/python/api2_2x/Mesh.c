@@ -2454,7 +2454,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	MEdge *tmpedge;
 	Mesh *mesh = self->mesh;
 
-	/* make sure we get a sequence of tuples of something */
+	/* make sure we get a tuple of sequences of something */
 	switch( PySequence_Size( args ) ) {
 	case 1:
 		/* if a sequence... */
@@ -2464,9 +2464,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
 				args = tmp;
-			/* otherwise use original sequence */
-			else
-				Py_INCREF( args );
+			Py_INCREF( args );
 			Py_DECREF( tmp2 );
 		} else
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -3960,7 +3958,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 
 	Py_DECREF( tmp );
 
-	/* make sure we get a sequence of tuples of something */
+	/* make sure we get a tuple of sequences of something */
 
 	switch( PySequence_Size( args ) ) {
 	case 1:		/* better be a sequence or a tuple */
@@ -3971,9 +3969,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
 				args = tmp;
-			/* otherwise use original sequence */
-			else
-				Py_INCREF( args );
+			Py_INCREF( args );
 			Py_DECREF( tmp2 );
 		} else
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
