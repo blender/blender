@@ -911,7 +911,7 @@ PyObject *PyPose_FromPose(bPose *pose, char *name)
 
 		return (PyObject*)py_pose;
 	}else{
-		EXPP_incr_ret(Py_None);
+		return EXPP_incr_ret(Py_None);
 	}
 
 RuntimeError:
@@ -931,7 +931,7 @@ PyObject *PyPoseBone_FromPosechannel(bPoseChannel *pchan)
 		py_posechannel->posechannel = pchan;
 		return (PyObject*)py_posechannel;
 	}else{
-		EXPP_incr_ret(Py_None);
+		return EXPP_incr_ret(Py_None);
 	}
 
 RuntimeError:
