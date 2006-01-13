@@ -559,6 +559,10 @@ def load_obj(file):
 	fileLines = nonVertFileLines
 	del nonVertFileLines	
 	
+	# With negative values this is used a lot. make faster access.
+	len_uvMapList = len(uvMapList)
+	len_vertList = len(vertList)
+	
 	#  Only want unique keys anyway
 	smoothingGroups['(null)'] = None # Make sure we have at least 1.
 	smoothingGroups = smoothingGroups.keys()
@@ -570,7 +574,7 @@ def load_obj(file):
 	
 	
 	# Make a list of all unused vert indicies that we can copy from
-	VERT_USED_LIST = [0]*len(vertList)
+	VERT_USED_LIST = [0]*len_vertList
 	
 	# Here we store a boolean list of which verts are used or not
 	# no we know weather to add them to the current mesh
@@ -609,7 +613,7 @@ def load_obj(file):
 	
 	
 	#currentMesh.verts.append(vertList[0]) # So we can sync with OBJ indicies where 1 is the first item.
-	if len(uvMapList) > 1:
+	if len_uvMapList > 1:
 		currentMesh.hasFaceUV(1) # Turn UV's on if we have ANY texture coords in this obj file.
 	
 	
@@ -644,15 +648,19 @@ def load_obj(file):
 			vtIdxLs = []
 			
 			
-			fHasUV = len(uvMapList) # Assume the face has a UV until it sho it dosent, if there are no UV coords then this will start as 0.
+			fHasUV = len_uvMapList # Assume the face has a UV until it sho it dosent, if there are no UV coords then this will start as 0.
 			for v in l[1:]:
 				# OBJ files can have // or / to seperate vert/texVert/normal
 				# this is a bit of a pain but we must deal with it.
 				objVert = v.split('/')
 				
 				# Vert Index - OBJ supports negative index assignment (like python)
+				index = int(objVert[0])+1
+				# Account for negative indicies.
+				if index < 1:
+					index = len_vertList+index-1
 				
-				vIdxLs.append(int(objVert[0])-1)
+				vIdxLs.append(index)
 				if fHasUV:
 					# UV
 					index = 0 # Dummy var
@@ -660,15 +668,17 @@ def load_obj(file):
 						index = vIdxLs[-1]
 					elif objVert[1]: # != '' # Its possible that theres no texture vert just he vert and normal eg 1//2
 						index = int(objVert[1])-1
-					
-					if len(uvMapList) > index:
+						if index < 1:
+							index = len_uvMapList+index+1
+						
+					if len_uvMapList > index:
 						vtIdxLs.append(index) # Seperate UV coords
 					else:
 						# BAD FILE, I have found this so I account for it.
 						# INVALID UV COORD
 						# Could ignore this- only happens with 1 in 1000 files.
 						badObjFaceTexCo +=1
-						vtIdxLs.append(0)
+						vtIdxLs.append(1)
 						
 						fHasUV = 0
 	
@@ -676,7 +686,7 @@ def load_obj(file):
 					# The OBJ file would have to be corrupt or badly written for thi to happen
 					# but account for it anyway.
 					if len(vtIdxLs) > 0:
-						if vtIdxLs[-1] > len(uvMapList):
+						if vtIdxLs[-1] > len_uvMapList:
 							fHasUV = 0
 							
 							badObjUvs +=1 # ERROR, Cont
@@ -692,8 +702,7 @@ def load_obj(file):
 						faceQuadVList[i] = currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[i]]]
 						
 				currentMesh.addEdge(faceQuadVList[0], faceQuadVList[1]) 
-				
-			if len(vIdxLs) == 4:
+			elif len(vIdxLs) == 4:
 				
 				# Have found some files where wach face references the same vert
 				# - This causes a bug and stopts the import so lets check here
@@ -934,7 +943,7 @@ def load_obj_dir(obj_dir):
 def main():
 	TEXT_IMPORT = 'Import a Wavefront OBJ'
 	TEXT_BATCH_IMPORT = 'Import *.obj to Scenes'
-	
+	# load_obj("/metavr/file_examples/obj/zombie.obj")
 	if Window.GetKeyQualifiers() & Window.Qual.SHIFT:
 		if not os:
 			Draw.PupMenu('Module "os" not found, needed for batch load, using normal selector.')
@@ -943,6 +952,6 @@ def main():
 			Window.FileSelector(load_obj_dir, TEXT_BATCH_IMPORT)
 	else:
 		Window.FileSelector(load_obj, TEXT_IMPORT)
-
+	
 if __name__ == '__main__':
 	main()
