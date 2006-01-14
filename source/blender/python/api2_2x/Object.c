@@ -730,9 +730,13 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 		object = GetObjectByName( name );
 
 			/* No object exists with the name specified in the argument name. */
-		if( !object )
-			return EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"Unknown object specified." );
+		if( !object ){
+			char buffer[128];
+			PyOS_snprintf( buffer, sizeof(buffer),
+						   "object \"%s\" not found", name);
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+										  buffer );
+		}
 
 		return Object_CreatePyObject( object );
 	} else {
