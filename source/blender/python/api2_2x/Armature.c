@@ -234,7 +234,7 @@ PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 		}
   
 		PyOS_snprintf( buffer, sizeof(buffer),
-					   "KeyError: bone %s not found", key_str);
+					   "bone %s not found", key_str);
 			
         return EXPP_ReturnPyObjError(PyExc_KeyError, buffer );
 	}
