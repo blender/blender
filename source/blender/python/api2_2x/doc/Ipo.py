@@ -297,6 +297,16 @@ class IpoCurve:
         Can be Constant, Extrapolation, Cyclic or Cyclic_extrapolation.
     @rtype: None
     @return: None
+    @note: Cyclic Ipo curves never reach the end value.  If the first and
+    last bezier points do not have the same y coordinate, the value of the
+    curve when it "cycles" is that of the first point.  If a user wants to
+    get the value of the final curve point, read the final point from the
+    curve's L{bezierPoints} attribute::
+
+		ipo = Blender.Object.Get('Cube').ipo
+		icu = ipo.getCurves('LocX')
+		endtime,endvalue = icu.bezierPoints[-1].pt
+
     """
 
   def getExtrapolation():
