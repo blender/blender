@@ -432,13 +432,13 @@ def getUniqueName(name):
 		try:
 			ob = Object.Get(newName)
 			# Okay, this is working, so lets make a new name
-			newName = '%s.%d' % (name, uniqueInt)
+			newName = '%s.%.3d' % (name, uniqueInt)
 			uniqueInt +=1
-		except AttributeError:
+		except ValueError:
 			if newName not in NMesh.GetNames():
 				return newName
 			else:
-				newName = '%s.%d' % (name, uniqueInt)
+				newName = '%s.%3d' % (name, uniqueInt)
 				uniqueInt +=1
 
 #==================================================================================#
@@ -655,10 +655,10 @@ def load_obj(file):
 				objVert = v.split('/')
 				
 				# Vert Index - OBJ supports negative index assignment (like python)
-				index = int(objVert[0])+1
+				index = int(objVert[0])-1
 				# Account for negative indicies.
-				if index < 1:
-					index = len_vertList+index-1
+				if index < 0:
+					index = len_vertList+index+1
 				
 				vIdxLs.append(index)
 				if fHasUV:
@@ -668,7 +668,7 @@ def load_obj(file):
 						index = vIdxLs[-1]
 					elif objVert[1]: # != '' # Its possible that theres no texture vert just he vert and normal eg 1//2
 						index = int(objVert[1])-1
-						if index < 1:
+						if index < 0:
 							index = len_uvMapList+index+1
 						
 					if len_uvMapList > index:
@@ -691,6 +691,8 @@ def load_obj(file):
 							
 							badObjUvs +=1 # ERROR, Cont
 			# Quads only, we could import quads using the method below but it polite to import a quad as a quad.
+			#print lIdx, len(vIdxLs), len(currentUsedVertListSmoothGroup)
+			#print fileLines[lIdx]
 			if len(vIdxLs) == 2:
 				# Edge
 				for i in (0,1):
@@ -770,22 +772,19 @@ def load_obj(file):
 			if len(l) == 1:
 				currentSmooth = True
 				currentSmoothGroup = '(null)'
-				try:
-					currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
-				except KeyError:
-					currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
-					currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup
-					
 			else:
-				if l[1] == 'off':
+				if l[1] == 'off': # We all have a null group so dont need to try, will try anyway to avoid code duplication.
 					currentSmooth = False
 					currentSmoothGroup = '(null)'
-					# We all have a null group so dont need to try
-					currentUsedVertListSmoothGroup = currentUsedVertList['(null)']
 				else: 
 					currentSmooth = True
 					currentSmoothGroup = '_'.join(l[1:])
-	
+			try:
+				currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
+			except KeyError:
+				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
+		
+		
 		# OBJECT / GROUP
 		elif l[0] == 'o' or l[0] == 'g':
 			
@@ -820,7 +819,7 @@ def load_obj(file):
 				currentUsedVertList = {}
 				
 				# Sg is a string
-				currentSmoothGroup = '(null)'
+				########currentSmoothGroup = '(null)' # From examplesm changing the g/o shouldent change the smooth group.
 				currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
 				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup
 				currentMaterialMeshMapping = {}
@@ -841,7 +840,7 @@ def load_obj(file):
 					contextMeshMatIdx -1
 				
 				# For new meshes switch smoothing groups to null
-				currentSmoothGroup = '(null)'
+				########currentSmoothGroup = '(null)'  # From examplesm changing the g/o shouldent change the smooth group.
 				currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
 		
 		# MATERIAL
