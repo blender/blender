@@ -72,6 +72,7 @@ public:
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, getTexture );
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, setTexture );
 
+	KX_PYMETHOD_DOC( KX_BlenderMaterial, setBlending );
 	// --------------------------------
 	// pre calculate to avoid pops/lag at startup
 	virtual void OnConstruction( );
@@ -82,6 +83,9 @@ private:
 	KX_Scene*		mScene;
 	BL_Texture		mTextures[MAXTEX];		// texture array
 	
+	bool			mUserDefBlend;
+	unsigned int	mBlendFunc[2];
+
 	// message centers
 	void	setTexData( bool enable );
 	void	setShaderData( bool enable );
@@ -90,7 +94,6 @@ private:
 	void	setEnvMap( bool val, bool cube=false);
 	void	setTexMatrixData(int i);
 	bool	setDefaultBlending();
-	bool	setBlending( int ind, bool enable=false );
 	void	setObjectMatrixData(int i);
 
 	// cleanup stuff

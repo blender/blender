@@ -192,7 +192,7 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				 removeConstraint(p2p);
+				 removeConstraint(p2p->GetConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -209,7 +209,7 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				removeConstraint(p2p);
+				removeConstraint(p2p->GetConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -301,8 +301,22 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 }
 
-/// Perform an integration step of duration 'timeStep'.
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
+{
+
+	if (!SimdFuzzyZero(timeStep))
+	{
+		//Blender runs 30hertz, so subdivide so we get 60 hertz
+		proceedDeltaTimeOneStep(0.5f*timeStep);
+		proceedDeltaTimeOneStep(0.5f*timeStep);
+	} else
+	{
+		//todo: interpolate
+	}
+	return true;
+}
+/// Perform an integration step of duration 'timeStep'.
+bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 {
 	
 	
@@ -318,9 +332,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 
 
-	//clamp hardcoded for now
-	if (timeStep > 0.02)
-		timeStep = 0.02;
 	
 	//this is needed because scaling is not known in advance, and scaling has to propagate to the shape
 	if (!m_scalingPropagated)
@@ -758,7 +769,9 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			}
 			
 			m_p2pConstraints.push_back(p2p);
-			return 0;
+			
+			//64 bit systems can't cast pointer to int. could use size_t instead.
+			return p2p->GetConstraintId();
 			
 			break;
 		}
@@ -773,17 +786,24 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	
 }
 
-void		CcdPhysicsEnvironment::removeConstraint(void* p2p)
+void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 {
-	std::vector<Point2PointConstraint*>::iterator i =
-		std::find(m_p2pConstraints.begin(), m_p2pConstraints.end(), 
-				(Point2PointConstraint *)p2p);
+	std::vector<Point2PointConstraint*>::iterator i;
+		
+		//std::find(m_p2pConstraints.begin(), m_p2pConstraints.end(), 
+		//		(Point2PointConstraint *)p2p);
 	
-	if (!(i == m_p2pConstraints.end()) )
-	{
-		std::swap(*i, m_p2pConstraints.back());
-		m_p2pConstraints.pop_back();
-	}
+		for (i=m_p2pConstraints.begin();
+		!(i==m_p2pConstraints.end()); i++)
+		{
+			Point2PointConstraint* p2p = (*i);
+			if (p2p->GetConstraintId() == constraintId)
+			{
+				std::swap(*i, m_p2pConstraints.back());
+				m_p2pConstraints.pop_back();
+				break;
+			}
+		}
 	
 }
 PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 

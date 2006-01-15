@@ -20,7 +20,7 @@ class SphereShape : public ConvexShape
 
 {
 	SimdScalar m_radius;
-
+	
 public:
 	SphereShape (SimdScalar radius);
 	
@@ -31,7 +31,7 @@ public:
 
 	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
 
-	//virtual void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
+	virtual void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
 
 	virtual int	GetShapeType() const { return SPHERE_SHAPE_PROXYTYPE; }
 
@@ -39,6 +39,18 @@ public:
 
 	//debugging
 	virtual char*	GetName()const {return "SPHERE";}
+
+	virtual void	SetMargin(float margin)
+	{
+		ConvexShape::SetMargin(margin);
+	}
+	virtual float	GetMargin() const
+	{
+		//to improve gjk behaviour, use radius+margin as the full margin, so never get into the penetration case
+		//this means, non-uniform scaling is not supported anymore
+		return m_localScaling[0] * m_radius + ConvexShape::GetMargin();
+	}
+
 
 };
 

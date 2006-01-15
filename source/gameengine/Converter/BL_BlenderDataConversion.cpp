@@ -352,7 +352,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 					material->flag[i] |= ( tface->transp  &TF_ADD	)?CALCALPHA:0;
 					material->ras_mode|= ( tface->transp  &(TF_ADD | TF_ALPHA))?TRANSP:0;
 					material->mapping[i].mapping |= ( (material->img[i]->flag & IMA_REFLECT)!=0 )?USEREFL:0;
-					material->blend_mode[i] = BLEND_MUL;
+					//material->blend_mode[i] = BLEND_MUL;
 					i++;// skip to the next image
 					valid_index++;
 				}
@@ -371,12 +371,13 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 							// -----------------------
 							if( mttmp->tex->imaflag &TEX_USEALPHA ) {
 								material->flag[i]	|= USEALPHA;
-								material->ras_mode	|= TRANSP;
 							}
 							// -----------------------
 							else if( mttmp->tex->imaflag &TEX_CALCALPHA ) {
 								material->flag[i]	|= CALCALPHA;
-								material->ras_mode	|= TRANSP;
+							}
+							else if(mttmp->tex->flag &TEX_NEGALPHA) {
+								material->flag[i]	|= USENEGALPHA;
 							}
 
 							material->color_blend[i] = mttmp->colfac;
@@ -845,8 +846,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 	// -----------------------------------
 	// pre calculate texture generation
-	for(int matid=0; matid<meshobj->NumMaterials(); matid++)
-		meshobj->GetMaterialBucket(matid)->GetPolyMaterial()->OnConstruction();
+	for(RAS_MaterialBucket::Set::iterator mit = meshobj->GetFirstMaterial();
+		mit != meshobj->GetLastMaterial(); ++ mit) {
+		(*mit)->GetPolyMaterial()->OnConstruction();
+	}
 	// -----------------------------------
 
 

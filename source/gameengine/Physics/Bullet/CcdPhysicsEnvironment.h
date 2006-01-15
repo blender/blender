@@ -63,6 +63,8 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual void		endFrame() {};
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
+		bool				proceedDeltaTimeOneStep(float timeStep);
+
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
 		//returns 0.f if no fixed timestep is used
 
@@ -75,7 +77,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
-	    virtual void		removeConstraint(void* constraintid);
+	    virtual void		removeConstraint(int	constraintid);
 
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 

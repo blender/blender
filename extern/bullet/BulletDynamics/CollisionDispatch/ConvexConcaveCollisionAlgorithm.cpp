@@ -153,7 +153,7 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 		
 		if (m_convex.IsConvexShape())
 		{
-			float collisionMarginTriangle = 0.02f;//triangleMesh->GetMargin();
+			float collisionMarginTriangle = triangleMesh->GetMargin();
 					
 			m_boxTriangleCallback.SetTimeStepAndCounters(timeStep,stepCount, collisionMarginTriangle,useContinuous);
 #ifdef USE_BOX_TRIANGLE

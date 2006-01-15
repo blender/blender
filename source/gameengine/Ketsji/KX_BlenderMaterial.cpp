@@ -22,6 +22,7 @@
 #include "KX_Scene.h"
 #include "KX_Light.h"
 #include "KX_GameObject.h"
+#include "KX_MeshProxy.h"
 
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
@@ -75,7 +76,9 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 	mMaterial(data),
 	mShader(0),
 	mScene(scene),
+	mUserDefBlend(0),
 	mPass(0)
+
 {
 	///RAS_EXT_support._ARB_multitexture == true if were here
 
@@ -101,8 +104,8 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 	// prevent material bleeding
 	for(int i=0; i<mMaterial->num_enabled; i++) {
 		m_multimode	+=
-			(mMaterial->flag[i]	+
-			 mMaterial->blend_mode[i]
+			( mMaterial->flag[i]	+
+			  mMaterial->blend_mode[i]
 			 );
 	}
 	m_multimode += mMaterial->IdMode+mMaterial->ras_mode;
@@ -132,11 +135,6 @@ void KX_BlenderMaterial::OnConstruction()
 	if(!gTextureDict)
 		gTextureDict = PyDict_New();
 */
-	#ifdef GL_ARB_shader_objects
-	if( RAS_EXT_support._ARB_shader_objects )
-		mShader = new BL_Shader( mMaterial->num_enabled );
-	#endif
-
 	int i;
 	for(i=0; i<mMaterial->num_enabled; i++) {
 	bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
@@ -149,9 +147,6 @@ void KX_BlenderMaterial::OnConstruction()
 			if(!mTextures[i].InitCubeMap( mMaterial->cubemap[i] ) )
 				spit("unable to initialize image("<<i<<") in "<< 
 						mMaterial->matname<< ", image will not be available");
-
-			if( RAS_EXT_support._ARB_shader_objects )
-				mShader->InitializeSampler(SAMP_CUBE, i, 0, mTextures[i]);
 		} 
 	
 		else {
@@ -160,9 +155,6 @@ void KX_BlenderMaterial::OnConstruction()
 				if( ! mTextures[i].InitFromImage(mMaterial->img[i], (mMaterial->flag[i] &MIPMAP)!=0 ))
 					spit("unable to initialize image("<<i<<") in "<< 
 						 mMaterial->matname<< ", image will not be available");
-			
-				if( RAS_EXT_support._ARB_shader_objects )
-					mShader->InitializeSampler(SAMP_2D, i, 0, mTextures[i]);
 			}
 		#ifdef GL_ARB_texture_cube_map
 		}
@@ -170,6 +162,9 @@ void KX_BlenderMaterial::OnConstruction()
 		/*PyDict_SetItemString(gTextureDict, mTextures[i].GetName().Ptr(), PyInt_FromLong(mTextures[i]));*/
 	}
 	#endif//GL_ARB_multitexture
+
+	mBlendFunc[0] =0;
+	mBlendFunc[1] =0;
 }
 
 void KX_BlenderMaterial::OnExit()
@@ -299,7 +294,15 @@ void KX_BlenderMaterial::setShaderData( bool enable )
 		// use a sampler
 		bgl::blUniform1iARB(samp->loc, i );
 	}
-	glDisable(GL_BLEND);
+
+	if(!mUserDefBlend) {
+		setDefaultBlending();
+	}else
+	{
+		glEnable(GL_BLEND);
+		// tested to be valid enums
+		glBlendFunc(mBlendFunc[0], mBlendFunc[1]);
+	}
 
 	#endif//GL_ARB_shader_objects
 	#endif//GL_ARB_multitexture
@@ -388,15 +391,16 @@ void KX_BlenderMaterial::setTexData( bool enable )
 		#ifdef GL_ARB_texture_cube_map
 		}
 		#endif//GL_ARB_texture_cube_map
-
-		// if either unit has set blending
-		// and its the last pass
-		lastblend += setBlending( i ); // dry run
-		if(lastblend >0 && i==mMaterial->num_enabled-1)
-			setBlending( i, true );
-		else if(lastblend == 0 && i==mMaterial->num_enabled-1)
-			glDisable(GL_BLEND);
 	}
+	if(!mUserDefBlend) {
+		setDefaultBlending();
+	}else
+	{
+		glEnable(GL_BLEND);
+		// tested to be valid enums
+		glBlendFunc(mBlendFunc[0], mBlendFunc[1]);
+	}
+
 	#endif//GL_ARB_multitexture
 }
 
@@ -587,9 +591,8 @@ void KX_BlenderMaterial::setTextureEnvironment( int textureIndex )
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB );
 
 	GLfloat blend_operand		= GL_SRC_COLOR;
-	GLfloat blend_operand_prev	= GL_SRC_COLOR;
+	GLfloat blend_operand_prev  = GL_SRC_COLOR;
 
-	// all sources here are RGB by default
 	GLenum combiner = GL_COMBINE_RGB_ARB;
 	GLenum source0 = GL_SOURCE0_RGB_ARB;
 	GLenum source1 = GL_SOURCE1_RGB_ARB;
@@ -597,6 +600,7 @@ void KX_BlenderMaterial::setTextureEnvironment( int textureIndex )
 	GLenum op0 = GL_OPERAND0_RGB_ARB;
 	GLenum op1 = GL_OPERAND1_RGB_ARB;
 	GLenum op2 = GL_OPERAND2_RGB_ARB;
+	GLfloat alphaOp = GL_SRC_ALPHA;
 
 	// switch to alpha combiners
 	if( (mMaterial->flag[textureIndex] &TEXALPHA) ) {
@@ -608,7 +612,6 @@ void KX_BlenderMaterial::setTextureEnvironment( int textureIndex )
 		op1 = GL_OPERAND1_ALPHA_ARB;
 		op2 = GL_OPERAND2_ALPHA_ARB;
 		blend_operand = GL_SRC_ALPHA;
-		blend_operand_prev = GL_SRC_ALPHA;
 		
 		// invert
 		if(mMaterial->flag[textureIndex] &TEXNEG) {
@@ -618,27 +621,42 @@ void KX_BlenderMaterial::setTextureEnvironment( int textureIndex )
 	}
 	else {
 		if(mMaterial->flag[textureIndex] &TEXNEG) {
-			blend_operand_prev = GL_ONE_MINUS_SRC_COLOR;
+			blend_operand_prev=GL_ONE_MINUS_SRC_COLOR;
 			blend_operand = GL_ONE_MINUS_SRC_COLOR;
 		}
 	}
-	// on Texture0 GL_PREVIOUS_ARB is the primary color
-	// on Texture1 GL_PREVIOUS_ARB is Texture0 env
+	bool using_alpha = false;
+
+	if(mMaterial->flag[textureIndex] &USEALPHA){
+		alphaOp = GL_ONE_MINUS_SRC_ALPHA;
+		using_alpha=true;
+	}
+	else if(mMaterial->flag[textureIndex] &USENEGALPHA){
+		alphaOp = GL_SRC_ALPHA;
+		using_alpha = true;
+	}
+
 	switch( mMaterial->blend_mode[textureIndex] ) {
 		case BLEND_MIX:
 			{
 				// ------------------------------
-				GLfloat base_col[4];
-				base_col[0]	 = base_col[1]  = base_col[2]  = 0.f;
-				base_col[3]	 = 1.f-mMaterial->color_blend[textureIndex];
-				glTexEnvfv( GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR,base_col );
+				if(!using_alpha) {
+					GLfloat base_col[4];
+					base_col[0]	 = base_col[1]  = base_col[2]  = 0.f;
+					base_col[3]	 = 1.f-mMaterial->color_blend[textureIndex];
+					glTexEnvfv( GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR,base_col );
+				}
 				glTexEnvf(	GL_TEXTURE_ENV, combiner,	GL_INTERPOLATE_ARB);
 				glTexEnvf(	GL_TEXTURE_ENV, source0,	GL_PREVIOUS_ARB);
 				glTexEnvf(	GL_TEXTURE_ENV, op0,		blend_operand_prev );
 				glTexEnvf(	GL_TEXTURE_ENV, source1,	GL_TEXTURE );
 				glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand);
-				glTexEnvf(	GL_TEXTURE_ENV, source2,	GL_CONSTANT_ARB );
-				glTexEnvf(	GL_TEXTURE_ENV, op2,		GL_SRC_ALPHA);
+				if(!using_alpha)
+					glTexEnvf(	GL_TEXTURE_ENV, source2,	GL_CONSTANT_ARB );
+				else
+					glTexEnvf(	GL_TEXTURE_ENV, source2,	GL_TEXTURE );
+
+				glTexEnvf(	GL_TEXTURE_ENV, op2,		alphaOp);
 			}break;
 		case BLEND_MUL: 
 			{
@@ -647,7 +665,10 @@ void KX_BlenderMaterial::setTextureEnvironment( int textureIndex )
 				glTexEnvf(	GL_TEXTURE_ENV, source0,	GL_PREVIOUS_ARB);
 				glTexEnvf(	GL_TEXTURE_ENV, op0,		blend_operand_prev);
 				glTexEnvf(	GL_TEXTURE_ENV, source1,	GL_TEXTURE );
-				glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand);
+				if(using_alpha)
+					glTexEnvf(	GL_TEXTURE_ENV, op1,		alphaOp);
+				else
+					glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand);
 			}break;
 		case BLEND_ADD: 
 			{
@@ -656,7 +677,10 @@ void KX_BlenderMaterial::setTextureEnvironment( int textureIndex )
 				glTexEnvf(	GL_TEXTURE_ENV, source0,	GL_PREVIOUS_ARB );
 				glTexEnvf(	GL_TEXTURE_ENV, op0,		blend_operand_prev );
 				glTexEnvf(	GL_TEXTURE_ENV, source1,	GL_TEXTURE );
-				glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand );
+				if(using_alpha)
+					glTexEnvf(	GL_TEXTURE_ENV, op1,		alphaOp);
+				else
+					glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand);
 			}break;
 		case BLEND_SUB: 
 			{
@@ -674,35 +698,14 @@ void KX_BlenderMaterial::setTextureEnvironment( int textureIndex )
 				glTexEnvf(	GL_TEXTURE_ENV, source0,	GL_PREVIOUS_ARB );
 				glTexEnvf(	GL_TEXTURE_ENV, op0,		blend_operand_prev );
 				glTexEnvf(	GL_TEXTURE_ENV, source1,	GL_TEXTURE );
-				glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand);
+				if(using_alpha)
+					glTexEnvf(	GL_TEXTURE_ENV, op1,		alphaOp);
+				else
+					glTexEnvf(	GL_TEXTURE_ENV, op1,		blend_operand);
 			} break;
 	}
+	glTexEnvf(	GL_TEXTURE_ENV, GL_RGB_SCALE_ARB,	1.0);
 #endif //!GL_ARB_texture_env_combine
-}
-
-bool KX_BlenderMaterial::setBlending( int ind, bool enable) 
-{
-	if(!enable) {
-		if(mMaterial->flag[ind] &CALCALPHA )	return true;
-		else if(mMaterial->flag[ind] &USEALPHA )	return true;
-		return false;
-	}
-	else {
-		// additive
-		if(mMaterial->flag[ind] &CALCALPHA ) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_ONE, GL_ONE);
-			return true;
-		}
-
-		// use alpha channel
-		else if(mMaterial->flag[ind] &USEALPHA ) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			return true;
-		}
-	}
-	return false;
 }
 
 bool KX_BlenderMaterial::setDefaultBlending()
@@ -873,6 +876,7 @@ PyMethodDef KX_BlenderMaterial::Methods[] =
 {
 	KX_PYMETHODTABLE( KX_BlenderMaterial, getShader ),
 	KX_PYMETHODTABLE( KX_BlenderMaterial, getMaterialIndex ),
+	KX_PYMETHODTABLE( KX_BlenderMaterial, setBlending ),
 //	KX_PYMETHODTABLE( KX_BlenderMaterial, getTexture ),
 //	KX_PYMETHODTABLE( KX_BlenderMaterial, setTexture ),
 
@@ -922,6 +926,15 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 		return NULL;
 	}
 	else {
+		if(!mShader) {
+			mShader = new BL_Shader();
+			for(int i= 0; i<mMaterial->num_enabled; i++) {
+				if(mMaterial->mapping[i].mapping & USEENV )
+					mShader->InitializeSampler(SAMP_CUBE, i, 0, mTextures[i]);
+				else
+					mShader->InitializeSampler(SAMP_2D, i, 0, mTextures[i]);
+			}
+		}
 		Py_INCREF(mShader);
 		return mShader;
 	}
@@ -944,6 +957,48 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getTexture, "getTexture( index )" )
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setTexture , "setTexture( index, tex)")
 {
 	// TODO: enable python switching
+	return NULL;
+}
+
+static unsigned int GL_array[11] = {
+	GL_ZERO,
+	GL_ONE,
+	GL_SRC_COLOR,
+	GL_ONE_MINUS_SRC_COLOR,
+	GL_DST_COLOR,
+	GL_ONE_MINUS_DST_COLOR,
+	GL_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA,
+	GL_DST_ALPHA,
+	GL_ONE_MINUS_DST_ALPHA,
+	GL_SRC_ALPHA_SATURATE
+};
+
+KX_PYMETHODDEF_DOC( KX_BlenderMaterial, setBlending , "setBlending( GameLogic.src, GameLogic.dest)")
+{
+	unsigned int b[2];
+	if(PyArg_ParseTuple(args, "ii", &b[0], &b[1]))
+	{
+		bool value_found[2] = {false, false};
+		for(int i=0; i<11; i++)
+		{
+			if(b[0] == GL_array[i]) {
+				value_found[0] = true;
+				mBlendFunc[0] = b[0];
+			}
+			if(b[1] == GL_array[i]) {
+				value_found[1] = true;
+				mBlendFunc[1] = b[1];
+			}
+			if(value_found[0] && value_found[1]) break;
+		}
+		if(!value_found[0] || !value_found[1]) {
+			PyErr_Format(PyExc_ValueError, "invalid enum.");
+			return NULL;
+		}
+		mUserDefBlend = true;
+		Py_Return;
+	}
 	return NULL;
 }
 

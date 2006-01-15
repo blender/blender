@@ -509,7 +509,7 @@ static void LinkExtensions()
 	}
 #endif
 
-#ifdef GL_ARB_shader_objects
+#if GL_ARB_shader_objects
 	if (QueryExtension("GL_ARB_shader_objects"))
 	{
 		bgl::blDeleteObjectARB = reinterpret_cast<PFNGLDELETEOBJECTARBPROC>(bglGetProcAddress((const GLubyte *) "glDeleteObjectARB"));
@@ -562,7 +562,7 @@ static void LinkExtensions()
 	}
 #endif
 
-#ifdef GL_ARB_vertex_shader
+#if GL_ARB_vertex_shader
 	if (QueryExtension("GL_ARB_vertex_shader"))
 	{
 		bgl::blBindAttribLocationARB = reinterpret_cast<PFNGLBINDATTRIBLOCATIONARBPROC>(bglGetProcAddress((const GLubyte *) "glBindAttribLocationARB"));

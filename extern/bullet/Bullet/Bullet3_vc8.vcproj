@@ -42,6 +42,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..\LinearMath"
 				PreprocessorDefinitions="_DEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
+				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -273,6 +274,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\NarrowPhaseCollision\ManifoldContactAddResult.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\ManifoldContactAddResult.h"
+				>
+			</File>
+			<File
 				RelativePath=".\NarrowPhaseCollision\ManifoldPoint.h"
 				>
 			</File>
@@ -369,11 +378,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CollisionShapes\ConvexTriangleCallback.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\ConvexTriangleCallback.h"
+				>
+			</File>
+			<File
 				RelativePath=".\CollisionShapes\CylinderShape.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\CollisionShapes\CylinderShape.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\EmptyShape.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\EmptyShape.h"
 				>
 			</File>
 			<File
@@ -422,6 +447,10 @@
 			</File>
 			<File
 				RelativePath=".\CollisionShapes\StridingMeshInterface.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\TriangleCallback.cpp"
 				>
 			</File>
 			<File
@@ -549,6 +578,30 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\CollisionShapes\BvhTriangleMeshShape.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\CollisionShapes\BvhTriangleMeshShape.h"
+			>
+		</File>
+		<File
+			RelativePath=".\CollisionShapes\OptimizedBvh.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\CollisionShapes\OptimizedBvh.h"
+			>
+		</File>
+		<File
+			RelativePath=".\CollisionShapes\TriangleIndexVertexArray.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\CollisionShapes\TriangleIndexVertexArray.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

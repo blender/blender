@@ -183,7 +183,7 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate)
 	if (!m_frames)
 	{
 		if (ticrate > 0.)
-			m_frames = (unsigned int)(curtime*ticrate + 1.0);
+			m_frames = (unsigned int)(curtime*ticrate) + 1.0;
 		else
 			m_frames = (unsigned int)(curtime*65536.0);
 	}
@@ -275,7 +275,11 @@ bool SM_Scene::proceed(MT_Scalar curtime, MT_Scalar ticrate)
 		for (i = m_objectList.begin(); i != m_objectList.end(); ++i) 
 			(*i)->interpolate(curtime);
 	
-		m_frames = (unsigned int)(curtime*ticrate + 1.0);
+	//only update the m_frames after an actual physics timestep
+		if (num_samples)
+		{
+			m_frames = (unsigned int)(curtime*ticrate) + 1.0;
+		}
 	}
 	else
 	{

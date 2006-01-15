@@ -31,7 +31,7 @@ const bool BL_Shader::Ok()const
 	return (mShader !=0 && mOk && mUse);
 }
 
-BL_Shader::BL_Shader(int n, PyTypeObject *T)
+BL_Shader::BL_Shader(PyTypeObject *T)
 :	PyObjectPlus(T),
 	mShader(0),
 	mVert(0),
@@ -44,15 +44,7 @@ BL_Shader::BL_Shader(int n, PyTypeObject *T)
 {
 	// if !RAS_EXT_support._ARB_shader_objects this class will not be used
 
-	mBlending.src	= -1;
-	mBlending.dest	= -1;
-	mBlending.const_color[0] = 0.0;
-	mBlending.const_color[1] = 0.0;
-	mBlending.const_color[2] = 0.0;
-	mBlending.const_color[3] = 1.0;
-
-	for (int i=0; i<MAXTEX; i++)
-	{
+	for (int i=0; i<MAXTEX; i++) {
 		mSampler[i].type = 0;
 		mSampler[i].pass = 0;
 		mSampler[i].unit = -1;
@@ -234,13 +226,6 @@ const uSampler* BL_Shader::getSampler(int i)
 	return &mSampler[i];
 }
 
-const uBlending *BL_Shader::getBlending( int pass )
-{
-	return &mBlending;
-}
-
-
-
 void BL_Shader::InitializeSampler(
 	int type,
 	int unit,
@@ -287,7 +272,6 @@ PyMethodDef BL_Shader::Methods[] =
 	KX_PYMETHODTABLE( BL_Shader, setSampler  ),
 	KX_PYMETHODTABLE( BL_Shader, setUniformMatrix4 ),
 	KX_PYMETHODTABLE( BL_Shader, setUniformMatrix3 ),
-	// KX_PYMETHODTABLE( BL_Shader, setBlending ),
 
 	{NULL,NULL} //Sentinel
 };
@@ -368,7 +352,6 @@ KX_PYMETHODDEF_DOC( BL_Shader, delSource, "delSource( )" )
 
 }
 
-
 KX_PYMETHODDEF_DOC( BL_Shader, isValid, "isValid()" )
 {
 	return PyInt_FromLong( ( mShader !=0 &&  mOk ) );
@@ -384,21 +367,17 @@ KX_PYMETHODDEF_DOC( BL_Shader, getFragmentProg ,"getFragmentProg( )" )
 	return PyString_FromString(fragProg?fragProg:"");
 }
 
-
 KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 {
 #ifdef GL_ARB_shader_objects
-	if(mShader==0)
-	{
+	if(mShader==0) {
 		PyErr_Format(PyExc_TypeError, "invalid shader object");
 		return NULL;
 	}
-
 	int stat = 0;
 	bgl::blValidateProgramARB(mShader);
 	bgl::blGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB, &stat);
-
-	return PyInt_FromLong((stat!=0));
+	return PyInt_FromLong(!PrintInfo(stat, mShader, "Validation"));
 #else
 	Py_Return;
 #endif//GL_ARB_shader_objects
@@ -446,7 +425,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setNumberOfPasses, "setNumberOfPasses( max-pass )
 	if(!PyArg_ParseTuple(args, "i", &pass))
 		return NULL;
 
-	mPass = pass;
+	mPass = 1;
 	Py_Return;
 }
 
@@ -926,17 +905,4 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 #else
 	Py_Return;
 #endif//GL_ARB_shader_objects
-}
-
-
-KX_PYMETHODDEF_DOC( BL_Shader, setBlending, "setBlending(src, dest)" )
-{
-	int src, dest;
-	if(PyArg_ParseTuple(args, "ii", &src, &dest))
-	{
-		mBlending.src = src;
-		mBlending.dest = dest;
-		Py_Return;
-	}
-	return NULL;
 }

@@ -61,7 +61,7 @@ public:
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
 
-	virtual void		removeConstraint(void * constraintid);
+	virtual void		removeConstraint(int	constraintid);
 	virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
 

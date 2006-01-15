@@ -277,39 +277,74 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 #define pprint(x) std::cout << x << std::endl;
 	bgl::BL_EXTInfo ext = bgl::RAS_EXT_support;
 	bool count=0;
+	bool support=0;
 	pprint("Supported Extensions...");
-	#ifdef GL_ARB_shader_objects
-	pprint(" GL_ARB_shader_objects supported?       "<< (ext._ARB_shader_objects?		"yes.":"no."));
+#ifdef GL_ARB_shader_objects
+	pprint(" GL_ARB_shader_objects supported?       "<< (ext._ARB_shader_objects?"yes.":"no."));
 	count = 1;
-	#endif
-	#ifdef GL_ARB_vertex_shader
-	pprint(" GL_ARB_vertex_shader supported?        "<< (ext._ARB_vertex_shader?		"yes.":"no."));
+#endif
+
+#ifdef GL_ARB_vertex_shader
+	support= ext._ARB_vertex_shader;
+	pprint(" GL_ARB_vertex_shader supported?        "<< (support?"yes.":"no."));
 	count = 1;
-	#endif
-	#ifdef GL_ARB_fragment_shader
-	pprint(" GL_ARB_fragment_shader supported?      "<< (ext._ARB_fragment_shader?		"yes.":"no."));
+	if(support){
+		pprint(" ----------Details----------");
+		int max=0;
+		glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
+		pprint("  Max uniform components." << max);
+
+		glGetIntegerv(GL_MAX_VARYING_FLOATS_ARB, (GLint*)&max);
+		pprint("  Max varying floats." << max);
+
+		glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS_ARB, (GLint*)&max);
+		pprint("  Max vertex texture units." << max);
+	
+		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS_ARB, (GLint*)&max);
+		pprint("  Max combined texture units." << max);
+		pprint("");
+	}
+#endif
+#ifdef GL_ARB_fragment_shader
+	support=ext._ARB_fragment_shader;
+	pprint(" GL_ARB_fragment_shader supported?      "<< (support?"yes.":"no."));
 	count = 1;
-	#endif
-	#ifdef GL_ARB_texture_cube_map
-	pprint(" GL_ARB_texture_cube_map supported?     "<< (ext._ARB_texture_cube_map?		"yes.":"no."));
+	if(support){
+		pprint(" ----------Details----------");
+		int max=0;
+		glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB, (GLint*)&max);
+		pprint("  Max uniform components." << max);
+		pprint("");
+	}
+#endif
+#ifdef GL_ARB_texture_cube_map
+	support = ext._ARB_texture_cube_map;
+	pprint(" GL_ARB_texture_cube_map supported?     "<< (support?"yes.":"no."));
 	count = 1;
-	#endif
-	#ifdef GL_EXT_texture3D
-	pprint(" GL_EXT_texture3D supported?            "<< (ext._EXT_texture3D?			"yes.":"no."));
+	if(support){
+		pprint(" ----------Details----------");
+		int size=0;
+		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB, (GLint*)&size);
+		pprint("  Max cubemap size." << size);
+		pprint("");
+	}
+#endif
+#ifdef GL_ARB_multitexture
+	support = ext._ARB_multitexture;
 	count = 1;
-	#endif
-	#ifdef GL_EXT_blend_color
-	pprint(" GL_EXT_blend_color supported?          "<< (ext._EXT_blend_color?			"yes.":"no."));
+	pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
+	if(support){
+		pprint(" ----------Details----------");
+		int units=0;
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
+		pprint("  Max texture units available.  " << units);
+		pprint("");
+	}
+#endif
+#ifdef GL_ARB_texture_env_combine
+	pprint(" GL_ARB_texture_env_combine supported?  "<< (ext._ARB_texture_env_combine?"yes.":"no."));
 	count = 1;
-	#endif
-	#ifdef GL_ARB_multitexture
-	pprint(" GL_ARB_multitexture supported?         "<< (ext._ARB_multitexture?			"yes.":"no."));
-	count = 1;
-	#endif
-	#ifdef GL_ARB_texture_env_combine
-	pprint(" GL_ARB_texture_env_combine supported?  "<< (ext._ARB_texture_env_combine?	"yes.":"no."));
-	count = 1;
-	#endif
+#endif
 	if(!count)
 		pprint("No extenstions are used in this build");
 
@@ -707,6 +742,19 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_LOOPEND,     BL_ActionActuator::KX_ACT_ACTION_LOOPEND);
 	KX_MACRO_addTypesToDict(d, KX_ACTIONACT_PROPERTY,     BL_ActionActuator::KX_ACT_ACTION_PROPERTY);
 	
+	/*8. GL_BlendFunc */
+	KX_MACRO_addTypesToDict(d, BL_ZERO, GL_ZERO);
+	KX_MACRO_addTypesToDict(d, BL_ONE, GL_ONE);
+	KX_MACRO_addTypesToDict(d, BL_SRC_COLOR, GL_SRC_COLOR);
+	KX_MACRO_addTypesToDict(d, BL_ONE_MINUS_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+	KX_MACRO_addTypesToDict(d, BL_DST_COLOR, GL_DST_COLOR);
+	KX_MACRO_addTypesToDict(d, BL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_DST_COLOR);
+	KX_MACRO_addTypesToDict(d, BL_SRC_ALPHA, GL_SRC_ALPHA);
+	KX_MACRO_addTypesToDict(d, BL_ONE_MINUS_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	KX_MACRO_addTypesToDict(d, BL_DST_ALPHA, GL_DST_ALPHA);
+	KX_MACRO_addTypesToDict(d, BL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+	KX_MACRO_addTypesToDict(d, BL_SRC_ALPHA_SATURATE, GL_SRC_ALPHA_SATURATE);
+
 	// Check for errors
 	if (PyErr_Occurred())
     {

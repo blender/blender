@@ -101,7 +101,7 @@ int			DummyPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ct
 
 }
 
-void		DummyPhysicsEnvironment::removeConstraint(void * constraintid)
+void		DummyPhysicsEnvironment::removeConstraint(int	constraintid)
 {
 	if (constraintid)
 	{
