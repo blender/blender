@@ -8,7 +8,7 @@ Tip: 'Import a Stanford PLY file'
 """
 
 __author__ = "Bruce Merry"
-__version__ = "0.9"
+__version__ = "0.91"
 __bpydoc__ = """\
 This script imports Stanford PLY files into Blender. It supports per-vertex
 normals, and per-face colours and texture coordinates.
@@ -249,7 +249,7 @@ def filesel_callback(filename):
                                 mesh.verts[-1].no[1] = ny
                                 mesh.verts[-1].no[2] = nz
                         vmap[vkey] = mesh.verts[-1]
-                        varr.append(mesh.verts[-1])
+                varr.append(vmap[vkey])
         for f in obj["face"]:
                 ind = f[findex]
                 nind = len(ind)
@@ -277,3 +277,4 @@ def filesel_callback(filename):
         meshtools.print_boxed(message)
 
 Blender.Window.FileSelector(filesel_callback, "Import PLY")
+
