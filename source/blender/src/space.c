@@ -2989,6 +2989,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	} else if(U.userpref == 5) { /* file paths */
 
 		/* yafray: (temporary) path button for yafray xml export, now with fileselect */
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "YFexport: ",
 			(xpos+edgsp), y2+buth+rspace, lpref-smfileselbut, buth,
 			U.yfexportdir, 1.0, 63.0, 0, 0,
@@ -2996,7 +2997,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefIconBut(block, BUT, B_YAFRAYDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+lpref-smfileselbut), y2+buth+rspace, smfileselbut, buth,
 			0, 0, 0, 0, 0, "Select the default yafray export directory");
-
+		uiBlockEndAlign(block);
+		
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Fonts: ",
 			(xpos+edgsp),y2,(lpref-smfileselbut),buth,
 			U.fontdir, 1.0, 63.0, 0, 0,
@@ -3004,37 +3007,47 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefIconBut(block, BUT, B_FONTDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+lpref-smfileselbut),y2,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default font directory");
-
+		uiBlockEndAlign(block);
+		
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Textures: ",
 			(xpos+edgsp+lpref+midsp),y2,(lpref-smfileselbut),buth,
 			U.textudir, 1.0, 63.0, 0, 0, "The default directory to search for textures");
 		uiDefIconBut(block, BUT, B_TEXTUDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(2*lpref)+midsp-smfileselbut),y2,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default texture location");
+		uiBlockEndAlign(block);
 
-
+		
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Tex Plugins: ",
 			(xpos+edgsp+(2*lpref)+(2*midsp)),y2,(lpref-smfileselbut),buth,
 			U.plugtexdir, 1.0, 63.0, 0, 0, "The default directory to search for texture plugins");
 		uiDefIconBut(block, BUT, B_PLUGTEXDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(3*lpref)+(2*midsp)-smfileselbut),y2,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default texture plugin location");
-
+		uiBlockEndAlign(block);
+		
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Seq Plugins: ",
 			(xpos+edgsp+(3*lpref)+(3*midsp)),y2,(lpref-smfileselbut),buth,
 			U.plugseqdir, 1.0, 63.0, 0, 0, "The default directory to search for sequence plugins");
 		uiDefIconBut(block, BUT, B_PLUGSEQDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(4*lpref)+(3*midsp)-smfileselbut),y2,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default sequence plugin location");
+		uiBlockEndAlign(block);
 
-
+		
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Render: ",
 			(xpos+edgsp),y1,(lpref-smfileselbut),buth,
 			U.renderdir, 1.0, 63.0, 0, 0, "The default directory for rendering output");
 		uiDefIconBut(block, BUT, B_RENDERDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+lpref-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default render output location");
+		uiBlockEndAlign(block);
 
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Python: ",
 			(xpos+edgsp+lpref+midsp),y1,(lpref-2*smfileselbut),buth,
 			U.pythondir, 1.0, 63.0, 0, 0, "The default directory to search for Python scripts");
@@ -3044,21 +3057,26 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefIconBut(block, BUT, B_PYTHONDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(2*lpref)+midsp-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default Python script location");
+		uiBlockEndAlign(block);
 
 
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Sounds: ",
 			(xpos+edgsp+(2*lpref)+(2*midsp)),y1,(lpref-smfileselbut),buth,
 			U.sounddir, 1.0, 63.0, 0, 0, "The default directory to search for sounds");
 		uiDefIconBut(block, BUT, B_SOUNDDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(3*lpref)+(2*midsp)-smfileselbut),y1,smfileselbut,buth,
-			0, 0, 0, 0, 0, "Select the default sound location");
+			0, 0, 0, 0, 0, "Selet the default sound location");
+		uiBlockEndAlign(block);
 
+		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Temp: ",
 			 (xpos+edgsp+(3*lpref)+(3*midsp)),y1,(lpref-smfileselbut),buth,
 			 U.tempdir, 1.0, 63.0, 0, 0, "The directory for storing temporary save files");
 		uiDefIconBut(block, BUT, B_TEMPDIRFILESEL, ICON_FILESEL,
 			(xpos+edgsp+(4*lpref)+(3*midsp)-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default temporary save file location");
+		uiBlockEndAlign(block);
 
 	}
 
