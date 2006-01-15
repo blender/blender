@@ -251,7 +251,8 @@ void script_buttons(void)
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
-
+	
+	uiBlockBeginAlign(block);
 	uiDefIconBut(block, BUT, B_SCRIPT2PREV, ICON_GO_LEFT, xco+=XIC, 0, XIC, YIC,
 		0, 0, 0, 0, 0, "Returns to previous window");
 
@@ -262,7 +263,8 @@ void script_buttons(void)
 	else
 		uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco+=XIC,0,XIC,YIC, 0, 0,
 				0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
-
+	uiBlockEndAlign(block);
+	
 	/* STD SCRIPT BUTTONS */
 	xco += 2*XIC;
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SCRIPTBROWSE, (ID*)sc->script, 0, &(sc->menunr), 0, 0, 0, 0, 0);

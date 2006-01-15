@@ -1183,6 +1183,7 @@ void ipo_buttons(void)
 
 	/* COPY PASTE */
 	xco-= XIC/2;
+	uiBlockBeginAlign(block);
 	if(curarea->headertype==HEADERTOP) {
 		uiDefIconBut(block, BUT, B_IPOCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected curves to the buffer");
 		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, "Can't edit library data");
@@ -1193,14 +1194,18 @@ void ipo_buttons(void)
 		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, "Can't edit library data");
 		uiDefIconBut(block, BUT, B_IPOPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the curves from the buffer");
 	}
+	uiBlockEndAlign(block);
 	xco+=XIC/2;
 	
 	uiClearButLock();
+
 	/* ZOOMBORDER */
+	uiBlockBeginAlign(block);
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
 	
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.sipo->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
+	uiBlockEndAlign(block);
 
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;

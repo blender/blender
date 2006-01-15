@@ -1983,10 +1983,13 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 
 	uiDefBut(block, LABEL, 1, "3D Display:",					160, 180, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefButBitS(block, TOG, V3D_SHOW_FLOOR, REDRAWVIEW3D, "Grid Floor",160, 160, 150, 19, &vd->gridflag, 0, 0, 0, 0, "Show the grid floor in free camera mode");
+	
+	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, V3D_SHOW_X, REDRAWVIEW3D, "X Axis",		160, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the X Axis line");
 	uiDefButBitS(block, TOG, V3D_SHOW_Y, REDRAWVIEW3D, "Y Axis",		212, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
 	uiDefButBitS(block, TOG, V3D_SHOW_Z, REDRAWVIEW3D, "Z Axis",		262, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
-
+	uiBlockEndAlign(block);
+	
 	uiDefBut(block, LABEL, 1, "View Camera:",			10, 110, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",		10, 90, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");

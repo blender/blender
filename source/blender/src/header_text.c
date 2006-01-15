@@ -613,13 +613,15 @@ void text_buttons(void)
 	xco += 10;
 	
 	/* FULL WINDOW */
+	uiBlockBeginAlign(block);
 	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 		
 	uiDefIconButI(block, ICONTOG, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, &st->showlinenrs, 0, 0, 0, 0, "Displays line numbers");
 
 	uiDefIconButI(block, ICONTOG, B_SYNTAX, ICON_SYNTAX, xco+=XIC,0,XIC,YIC, &st->showsyntax, 0, 0, 0, 0, "Enables Syntax Highlighting");
-
+	uiBlockEndAlign(block);
+	
 	/* STD TEXT BUTTONS */
 	xco+= 2*XIC;
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXTBROWSE, (ID*)st->text, 0, &(st->menunr), 0, 0, B_TEXTDELETE, 0, 0);
