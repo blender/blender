@@ -170,6 +170,10 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		ELSEIF_TSP_RGBA( face_select )
 		ELSEIF_TSP_RGBA( face_dot )
 		ELSEIF_TSP_RGBA( normal )
+		ELSEIF_TSP_RGBA( bone_solid )
+		ELSEIF_TSP_RGBA( bone_pose )
+		ELSEIF_TSP_RGBA( strip )
+		ELSEIF_TSP_RGBA( strip_select )
 		ELSEIF_TSP_RGBA( syntaxl )
 		ELSEIF_TSP_RGBA( syntaxn )
 		ELSEIF_TSP_RGBA( syntaxb )
@@ -180,14 +184,15 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		else if( !strcmp( name, "facedot_size" ) )
 		attrib = Py_BuildValue( "i", tsp->facedot_size );
 	else if( !strcmp( name, "__members__" ) )
-		attrib = Py_BuildValue( "[sssssssssssssssssssssssssssssss]", "theme",
+		attrib = Py_BuildValue("[sssssssssssssssssssssssssssssssssss]", "theme",
 					"back", "text", "text_hi", "header",
 					"panel", "shade1", "shade2", "hilite",
 					"grid", "wire", "lamp", "select", "active",
 					"transform", "vertex", "vertex_select",
 					"edge", "edge_select", "edge_seam",
 					"edge_facesel", "face", "face_select",
-					"face_dot", "normal",
+					"face_dot", "normal", "bone_solid", "bone_pose",
+					"strip", "strip_select",
 					"syntaxl", "syntaxn", "syntaxb", "syntaxv", "syntaxc",
 					"vertex_size", "facedot_size" );
 
@@ -230,6 +235,10 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( face_select )
 		ELSEIF_TSP_RGBA( face_dot )
 		ELSEIF_TSP_RGBA( normal )
+		ELSEIF_TSP_RGBA( bone_solid )
+		ELSEIF_TSP_RGBA( bone_pose )
+		ELSEIF_TSP_RGBA( strip )
+		ELSEIF_TSP_RGBA( strip_select )
 		ELSEIF_TSP_RGBA( syntaxl )
 		ELSEIF_TSP_RGBA( syntaxn )
 		ELSEIF_TSP_RGBA( syntaxb )

@@ -184,6 +184,10 @@ class ThemeSpace:
   @ivar face_select: theme rgba var.
   @ivar face_dot: theme rgba var.
   @ivar normal: theme rgba var.
+  @ivar bone_solid: theme rgba var.
+  @ivar bon_pose: theme rgba var.
+  @ivar strip: theme rgba var.
+  @ivar strip_select: theme rgba var.
   @ivar syntaxl: theme rgba var.
   @ivar syntaxn: theme rgba var.
   @ivar syntaxb: theme rgba var.
