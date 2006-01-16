@@ -489,6 +489,9 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_mesh_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_meshdata_types.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_meta_types.h">
 			</File>
 			<File
