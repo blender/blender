@@ -39,9 +39,9 @@
 #define PoseBoneObject_Check(v) ((v)->ob_type == &PoseBone_Type)
 #define PoseBonesDictObject_Check(v) ((v)->ob_type == &PoseBonesDict_Type)
 //-------------------TYPEOBJECT----------------------------------
-PyTypeObject Pose_Type;
-PyTypeObject PoseBone_Type;
-PyTypeObject PoseBonesDict_Type;
+extern PyTypeObject Pose_Type;
+extern PyTypeObject PoseBone_Type;
+extern PyTypeObject PoseBonesDict_Type;
 //-------------------STRUCT DEFINITION----------------------------
 typedef struct {
 	PyObject_HEAD 

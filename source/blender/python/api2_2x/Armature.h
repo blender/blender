@@ -40,8 +40,8 @@
 //-------------------MODULE INIT---------------------------------
 PyObject *Armature_Init( void );
 //-------------------TYPEOBJECT----------------------------------
-PyTypeObject Armature_Type;
-PyTypeObject BonesDict_Type;
+extern PyTypeObject Armature_Type;
+extern PyTypeObject BonesDict_Type;
 //-------------------STRUCT DEFINITION---------------------------
 typedef struct {
 	PyObject_HEAD 

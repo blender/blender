@@ -38,8 +38,8 @@
 #define BoneObject_Check(v) ((v)->ob_type == &Bone_Type)
 #define EditBoneObject_Check(v) ((v)->ob_type == &EditBone_Type)
 //-------------------TYPEOBJECT----------------------------------
-PyTypeObject EditBone_Type;
-PyTypeObject Bone_Type;
+extern PyTypeObject EditBone_Type;
+extern PyTypeObject Bone_Type;
 //-------------------STRUCT DEFINITION----------------------------
 
 typedef struct {

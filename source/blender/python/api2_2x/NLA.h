@@ -39,7 +39,7 @@
 /** NLA module initialization function. */
 PyObject *NLA_Init( void );
 
-PyTypeObject Action_Type;
+extern PyTypeObject Action_Type;
 
 /** Python BPy_NLA structure definition. */
 typedef struct {

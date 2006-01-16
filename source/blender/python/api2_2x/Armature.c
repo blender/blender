@@ -44,8 +44,7 @@
 #include "DNA_object_types.h" //This must come before BIF_editarmature.h...
 #include "BIF_editarmature.h"
 
-//------------------UNDECLARED EXTERNAL PROTOTYPES--------------------
-//These are evil 'extern' declarations for functions with no anywhere
+//------------------EXTERNAL PROTOTYPES--------------------
 extern void free_editArmature(void);
 extern void make_boneList(ListBase* list, ListBase *bones, EditBone *parent);
 extern void editbones_to_armature (ListBase *list, Object *ob);
