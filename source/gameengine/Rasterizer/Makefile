@@ -42,7 +42,9 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../kernel/gen_system
-
+ifeq ($(OS),darwin)
+	CPPFLAGS += -fpascal-strings
+endif
 ###############
 
 SOURCEDIR = source/gameengine/Rasterizer

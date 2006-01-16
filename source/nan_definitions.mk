@@ -170,6 +170,9 @@ endif
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa -framework IOKit
 
+    export NAN_NO_KETSJI=false
+
+
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...

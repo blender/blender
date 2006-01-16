@@ -47,7 +47,7 @@
 
 #elif defined(__APPLE__)
 #  include <Carbon/Carbon.h>
-
+#  define GL_GLEXT_LEGACY 1
 #  include <OpenGL/gl.h>
 
 #else /* UNIX */

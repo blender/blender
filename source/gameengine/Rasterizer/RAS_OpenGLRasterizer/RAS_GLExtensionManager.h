@@ -39,6 +39,7 @@
 
 #elif defined(__APPLE__)
 #  define __glext_h_
+#  define GL_GLEXT_LEGACY 1
 #  include <OpenGL/gl.h>
 #  include <OpenGL/glu.h>
 #  undef __glext_h_
@@ -52,6 +53,7 @@
 #endif
 
 #include "glext.h"
+
 #include "EXT_separate_specular_color.h"
 #include "ARB_multitexture.h"
 namespace bgl

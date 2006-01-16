@@ -42,6 +42,10 @@
 #pragma warning (disable:4786)
 #endif
 
+#ifdef __APPLE__
+#define GL_GLEXT_LEGACY 1
+#endif 
+
 #include "KX_BlenderGL.h"
 #include "KX_BlenderCanvas.h"
 #include "KX_BlenderKeyboardDevice.h"

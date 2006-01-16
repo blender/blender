@@ -176,7 +176,7 @@ elif sys.platform == 'darwin':
 	fink_path = '/sw/'
 	# TODO : try -mpowerpc -mpowerpc-gopt -mpowerpc-gfxopt optims
 	#           doing actual profiling
-	extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc', '-mtune=G4']
+	extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-mpowerpc', '-mtune=G5']
 	
 	# , '-malign-natural'] malign is causing problems with jpeg lib but worth a 1-2% speedup
 	#'-force_cpusubtype_ALL', '-mpowerpc-gpopt', 
