@@ -1200,13 +1200,13 @@ void ipo_buttons(void)
 	uiClearButLock();
 
 	/* ZOOMBORDER */
-	uiBlockBeginAlign(block);
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
+	
+	xco+=XIC/2;
 	
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco+=XIC,0,XIC,YIC, &(G.sipo->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");
-	uiBlockEndAlign(block);
-
+	
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 
