@@ -465,9 +465,9 @@ def load_obj(file):
 	DIR = stripFile(file)
 	
 	tempFile = open(file, 'r')
-	fileLines = tempFile.readlines()
+	fileLines = tempFile.readlines()	
 	tempFile.close()
-	
+	del tempFile
 	uvMapList = [] # store tuple uv pairs here
 	
 	# This dummy vert makes life a whole lot easier-
@@ -501,63 +501,32 @@ def load_obj(file):
 	#==================================================================================#
 	# Load all verts first (texture verts too)                                         #
 	#==================================================================================#
-	nonVertFileLines = []
-	smoothingGroups = {}
-	materialDict = {} # Store all imported materials as unique dict, names are key
-	lIdx = 0
+
 	print '\tfile length: %d' % len(fileLines)
 	
-	while lIdx < len(fileLines):
-		# Ignore vert normals
-		if fileLines[lIdx].startswith('vn'):
-			lIdx+=1
-			continue
-		
-		# Dont Bother splitting empty or comment lines.
-		if len(fileLines[lIdx]) == 0 or\
-		fileLines[lIdx][0] == '\n' or\
-		fileLines[lIdx][0] == '#':
-			pass
-		
-		else:
-			fileLines[lIdx] = fileLines[lIdx].split()		
-			l = fileLines[lIdx]
-			
-			# Splitting may 
-			if len(l) == 0:
-				pass
-			# Verts
-			elif l[0] == 'v':
-				vertList.append( NMesh.Vert(float(l[1]), float(l[2]), float(l[3]) ) )
-			
-			# UV COORDINATE
-			elif l[0] == 'vt':
-				uvMapList.append( (float(l[1]), float(l[2])) )
-			
-			# Smoothing groups, make a list of unique.
-			elif l[0] == 's':
-				if len(l) > 1:
-					smoothingGroups['_'.join(l[1:])] = None # Can we assign something more usefull? cant use sets yet
-						
-				# Keep Smoothing group line
-				nonVertFileLines.append(l)
-			
-			# Smoothing groups, make a list of unique.
-			elif l[0] == 'usemtl':
-				if len(l) > 1:
-					materialDict['_'.join(l[1:])] = None # Can we assign something more usefull? cant use sets yet
-						
-				# Keep Smoothing group line
-				nonVertFileLines.append(l)
-			
-			else:
-				nonVertFileLines.append(l)
-		lIdx+=1
+	# Ignore normals and comments.
+	fileLines = [lsplit for l in fileLines if not l.startswith('vn') if not l.startswith('#') for lsplit in (l.split(),) if lsplit]
+	Vert = NMesh.Vert
+	vertList = [Vert(float(l[1]), float(l[2]), float(l[3]) ) for l in fileLines if l[0] == 'v']
+	uvMapList = [(float(l[1]), float(l[2])) for l in fileLines if l[0] == 'vt']
+	smoothingGroups =  dict([('_'.join(l[1:]), None) for l in fileLines if l[0] == 's' ])
+	materialDict =     dict([('_'.join(l[1:]), None) for l in fileLines if l[0] == 'usemtl']) # Store all imported materials as unique dict, names are key
+	print '\tvert:%i  texverts:%i  smoothgroups:%i  materials:%s' % (len(vertList), len(uvMapList), len(smoothingGroups), len(materialDict))
 	
+	# Replace filelines, Excluding v excludes "v ", "vn " and "vt "
 	
-	del fileLines
-	fileLines = nonVertFileLines
-	del nonVertFileLines	
+	# Remove any variables we may have created.
+	try: del _dummy
+	except: pass
+	try: del _x
+	except: pass
+	try: del _y
+	except: pass
+	try: del _z
+	except: pass
+	try: del lsplit
+	except: pass
+	del Vert
 	
 	# With negative values this is used a lot. make faster access.
 	len_uvMapList = len(uvMapList)
@@ -597,10 +566,8 @@ def load_obj(file):
 	
 	# For direct accsess to the Current Meshes, Current Smooth Groups- Used verts.
 	# This is of course context based and changes on the fly.
-	currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
-	
 	# Set the initial '(null)' Smooth group, every mesh has one.
-	currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup
+	currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
 	
 	
 	# 0:NMesh, 1:SmoothGroups[UsedVerts[0,0,0,0]], 2:materialMapping['matname':matIndexForThisNMesh]
@@ -620,13 +587,16 @@ def load_obj(file):
 	#==================================================================================#
 	# Load all faces into objects, main loop                                           #
 	#==================================================================================#
-	lIdx = 0
+	#lIdx = 0
 	# Face and Object loading LOOP
-	while lIdx < len(fileLines):
-		l = fileLines[lIdx]
-		
+	#while lIdx < len(fileLines):
+	#	l = fileLines[lIdx]
+	#for lIdx
+	for l in fileLines:
+		if len(l) == 0:
+			continue
 		# FACE
-		if l[0] == 'f': 
+		elif l[0] == 'f': 
 			# Make a face with the correct material.
 			
 			# Add material to mesh
@@ -801,10 +771,10 @@ def load_obj(file):
 			else: # No name given
 				# Make a new empty name
 				if l[0] == 'g': # Make a blank group name
-					currentObjectName = 'unnamed_grp_%d' % currentUnnamedGroupIdx
+					currentObjectName = 'unnamed_grp_%.4d' % currentUnnamedGroupIdx
 					currentUnnamedGroupIdx +=1
 				else: # is an object.
-					currentObjectName = 'unnamed_ob_%d' % currentUnnamedObjectIdx
+					currentObjectName = 'unnamed_ob_%.4d' % currentUnnamedObjectIdx
 					currentUnnamedObjectIdx +=1
 			
 			
@@ -820,8 +790,8 @@ def load_obj(file):
 				
 				# Sg is a string
 				########currentSmoothGroup = '(null)' # From examplesm changing the g/o shouldent change the smooth group.
-				currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
-				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup
+				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
+				
 				currentMaterialMeshMapping = {}
 				
 				meshDict[currentObjectName] = (currentMesh, currentUsedVertList, currentMaterialMeshMapping)
@@ -841,7 +811,12 @@ def load_obj(file):
 				
 				# For new meshes switch smoothing groups to null
 				########currentSmoothGroup = '(null)'  # From examplesm changing the g/o shouldent change the smooth group.
-				currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
+				try:
+					currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
+				except:
+					currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
+					
+				
 		
 		# MATERIAL
 		elif l[0] == 'usemtl':
@@ -877,7 +852,7 @@ def load_obj(file):
 		# MATERIAL FILE
 		elif l[0] == 'mtllib':
 			mtl_fileName.append(' '.join(l[1:]) ) # SHOULD SUPPORT MULTIPLE MTL?
-		lIdx+=1
+		#lIdx+=1
 	
 	# Applies material properties to materials alredy on the mesh as well as Textures.
 	for mtl in mtl_fileName:
