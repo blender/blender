@@ -5248,10 +5248,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		
 		/* for empty drawsize and drawtype */
+		/* uncomment before release!  --broken
 		for(ob=main->object.first; ob; ob= ob->id.next) {
 			ob->empty_drawtype = OB_ARROWS;
 			ob->empty_drawsize = 1.0;
 		}
+		*/
 	}
 	
 	
