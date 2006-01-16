@@ -269,27 +269,9 @@ def comprehansiveImageLoad(imagePath, filePath):
 					break
 			return img
 	
-	
-	
 	# No go.
 	print '\t\tImage Not Found "%s"' % imagePath
 	return None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -444,7 +426,7 @@ def getUniqueName(name):
 #==================================================================================#
 # This loads data from .obj file                                                   #
 #==================================================================================#
-def load_obj(file):
+def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	
 	print '\nImporting OBJ file: "%s"' % file
 	
@@ -487,7 +469,10 @@ def load_obj(file):
 	
 	currentMat = nullMat # Use this mat.
 	currentImg = None # Null image is a string, otherwise this should be set to an image object.\
-	currentSmooth = False
+	if IMPORT_SMOOTH_ALL:
+		currentSmooth = True
+	else:
+		currentSmooth = False
 	
 	# Store a list of unnamed names
 	currentUnnamedGroupIdx = 1
@@ -555,9 +540,9 @@ def load_obj(file):
 	# We ignore it when naming the object.
 	currentObjectName = 'unnamed_obj_0' # If we cant get one, use this
 	
-	meshDict = {} # The 3 variables below are stored in a tuple within this dict for each mesh
+	#meshDict = {} # The 3 variables below are stored in a tuple within this dict for each mesh
 	currentMesh = NMesh.GetRaw() # The NMesh representation of the OBJ group/Object
-	currentUsedVertList = {} # A Dict of smooth groups, each smooth group has a list of used verts and they are generated on demand so as to save memory.
+	#currentUsedVertList = {} # A Dict of smooth groups, each smooth group has a list of used verts and they are generated on demand so as to save memory.
 	currentMaterialMeshMapping = {} # Used to store material indicies so we dont have to search the mesh for materials every time.
 	
 	# Every mesh has a null smooth group, this is used if there are no smooth groups in the OBJ file.
@@ -567,11 +552,12 @@ def load_obj(file):
 	# For direct accsess to the Current Meshes, Current Smooth Groups- Used verts.
 	# This is of course context based and changes on the fly.
 	# Set the initial '(null)' Smooth group, every mesh has one.
-	currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
+	currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
+	currentUsedVertList= {currentSmoothGroup: currentUsedVertListSmoothGroup }
 	
 	
 	# 0:NMesh, 1:SmoothGroups[UsedVerts[0,0,0,0]], 2:materialMapping['matname':matIndexForThisNMesh]
-	meshDict[currentObjectName] = (currentMesh, currentUsedVertList, currentMaterialMeshMapping) 
+	meshDict = {currentObjectName: (currentMesh, currentUsedVertList, currentMaterialMeshMapping) }
 	
 	# Only show the bad uv error once 
 	badObjUvs = 0
@@ -664,16 +650,17 @@ def load_obj(file):
 			#print lIdx, len(vIdxLs), len(currentUsedVertListSmoothGroup)
 			#print fileLines[lIdx]
 			if len(vIdxLs) == 2:
-				# Edge
-				for i in (0,1):
-					if currentUsedVertListSmoothGroup[vIdxLs[i]] == 0:
-						faceQuadVList[i] = vertList[vIdxLs[i]]
-						currentMesh.verts.append(faceQuadVList[i])
-						currentUsedVertListSmoothGroup[vIdxLs[i]] = len(currentMesh.verts)-1
-					else:
-						faceQuadVList[i] = currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[i]]]
-						
-				currentMesh.addEdge(faceQuadVList[0], faceQuadVList[1]) 
+				if IMPORT_EDGES:
+					# Edge
+					for i in (0,1):
+						if currentUsedVertListSmoothGroup[vIdxLs[i]] == 0:
+							faceQuadVList[i] = vertList[vIdxLs[i]]
+							currentMesh.verts.append(faceQuadVList[i])
+							currentUsedVertListSmoothGroup[vIdxLs[i]] = len(currentMesh.verts)-1
+						else:
+							faceQuadVList[i] = currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[i]]]
+							
+					currentMesh.addEdge(faceQuadVList[0], faceQuadVList[1]) 
 			elif len(vIdxLs) == 4:
 				
 				# Have found some files where wach face references the same vert
@@ -744,7 +731,8 @@ def load_obj(file):
 				currentSmoothGroup = '(null)'
 			else:
 				if l[1] == 'off': # We all have a null group so dont need to try, will try anyway to avoid code duplication.
-					currentSmooth = False
+					if not IMPORT_SMOOTH_ALL:
+						currentSmooth = False
 					currentSmoothGroup = '(null)'
 				else: 
 					currentSmooth = True
@@ -793,7 +781,6 @@ def load_obj(file):
 				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
 				
 				currentMaterialMeshMapping = {}
-				
 				meshDict[currentObjectName] = (currentMesh, currentUsedVertList, currentMaterialMeshMapping)
 				currentMesh.hasFaceUV(1)
 				contextMeshMatIdx = -1
@@ -855,8 +842,9 @@ def load_obj(file):
 		#lIdx+=1
 	
 	# Applies material properties to materials alredy on the mesh as well as Textures.
-	for mtl in mtl_fileName:
-		load_mtl(DIR, mtl, meshDict, materialDict)	
+	if IMPORT_MTL:
+		for mtl in mtl_fileName:
+			load_mtl(DIR, mtl, meshDict, materialDict)	
 	
 	
 	importedObjects = []
@@ -887,45 +875,78 @@ def load_obj(file):
 	
 	
 	print "obj import time: ", sys.time() - time1
+
+def load_obj_ui(file):
 	
-# Batch directory loading.
-def load_obj_dir(obj_dir):
+	IMPORT_MTL = Draw.Create(1)
+	IMPORT_DIR = Draw.Create(0)
+	IMPORT_NEW_SCENE = Draw.Create(0)
+	IMPORT_EDGES = Draw.Create(1)
+	IMPORT_SMOOTH_ALL = Draw.Create(0)
 	
-	# Strip file
-	obj_dir = stripFile(obj_dir)	
+	
+	# Get USER Options
+	pup_block = [\
+	('Material (*.mtl)', IMPORT_MTL, 'Imports material settings and images from the obj\'s .mtl file'),\
+	('All *.obj\'s in dir', IMPORT_DIR, 'Import all obj files in this dir (avoid overlapping data with "Create scene")'),\
+	('Create scene', IMPORT_NEW_SCENE, 'Imports each obj into its own scene, named from the file'),\
+	'Geometry...',\
+	('Edges', IMPORT_EDGES, 'Import faces with 2 verts as in edge'),\
+	('Smooths all faces', IMPORT_SMOOTH_ALL, 'Smooth all faces even if they are not in a smoothing group'),\
+	]
+	
+	if not os:
+		pup_block.pop(1) # Make sure this is the IMPORT_DIR option that requires OS
+	
+	if not Draw.PupBlock('Import...', pup_block):
+		return
+	
+	Window.WaitCursor(1)
+	Window.DrawProgressBar(0, '')
 	time = sys.time()
 	
-	objFiles = [f for f in os.listdir(obj_dir) if f.lower().endswith('obj')]
+	IMPORT_MTL = IMPORT_MTL.val
+	IMPORT_DIR = IMPORT_DIR.val
+	IMPORT_NEW_SCENE = IMPORT_NEW_SCENE.val
+	IMPORT_EDGES = IMPORT_EDGES.val
+	IMPORT_SMOOTH_ALL = IMPORT_SMOOTH_ALL.val
 	
-	Window.DrawProgressBar(0, '')
+	#orig_scene = Scene.GetCurrent()
+	
+	obj_dir = stripFile(file)
+	if IMPORT_DIR:
+		obj_files = [(obj_dir,f) for f in os.listdir(obj_dir) if f.lower().endswith('obj')]
+	else:
+		obj_files = [(obj_dir,stripPath(file))]
+	
+	obj_len = len(obj_files)
 	count = 0
-	obj_len = len(objFiles)
-	for obj in objFiles:
-		count+=1
-		
-		newScn = Scene.New(obj)
-		newScn.makeCurrent()
-		
-		Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (obj, count, obj_len))
-		
-		load_obj(obj_dir  + obj)
-		
+	for d, f in obj_files:
+		count+= 1
+		if not sys.exists(d+f):
+			print 'Error: "%s%s" does not exist' % (d,f)
+		else:
+			if IMPORT_NEW_SCENE:
+				scn = Scene.New('.'.join(f.split('.')[0:-1]))
+				scn.makeCurrent()
+			
+			
+			Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (f, count, obj_len))
+			load_obj(d+f, IMPORT_MTL, IMPORT_EDGES, IMPORT_SMOOTH_ALL)
+			
+	
+	#orig_scene.makeCurrent() # We can leave them in there new scene.
 	Window.DrawProgressBar(1, '')
-	print 'Total obj import "%s" dir: %.2f' % (obj_dir, sys.time() - time)
-
+	Window.WaitCursor(0)
+	
+	if count > 1:
+		print 'Total obj import "%s" dir: %.2f' % (obj_dir, sys.time() - time)
+	
 
 def main():
-	TEXT_IMPORT = 'Import a Wavefront OBJ'
-	TEXT_BATCH_IMPORT = 'Import *.obj to Scenes'
-	# load_obj("/metavr/file_examples/obj/zombie.obj")
-	if Window.GetKeyQualifiers() & Window.Qual.SHIFT:
-		if not os:
-			Draw.PupMenu('Module "os" not found, needed for batch load, using normal selector.')
-			Window.FileSelector(load_obj, TEXT_IMPORT)
-		else:
-			Window.FileSelector(load_obj_dir, TEXT_BATCH_IMPORT)
-	else:
-		Window.FileSelector(load_obj, TEXT_IMPORT)
-	
+	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ')
+		
+
+
 if __name__ == '__main__':
 	main()
