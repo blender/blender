@@ -1420,7 +1420,7 @@ static PyObject *MVertSeq_item( BPy_MVertSeq * self, int i )
 					      "array index out of range" );
 
 	return MVert_CreatePyObject( self->mesh, i );
-};
+}
 
 /*
  * retrieve a slice of the vertex list (as a Python list)
@@ -1487,7 +1487,7 @@ static int MVertSeq_assign_item( BPy_MVertSeq * self, int i,
 	memcpy( dst, src, sizeof(MVert) );
 	// mesh_update( self->mesh );
 	return 0;
-};
+}
 
 static int MVertSeq_assign_slice( BPy_MVertSeq *self, int low, int high,
 		   PyObject *args )

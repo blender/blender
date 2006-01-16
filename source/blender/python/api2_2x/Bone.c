@@ -648,7 +648,7 @@ static PyMethodDef BPy_EditBone_methods[] = {
 		"() - True/False - Bone has a parent"},
 	{"clearParent", (PyCFunction) EditBone_clearParent, METH_NOARGS, 
 		"() - sets the parent to None"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 ///------------------------tp_getset
 //This contains methods for attributes that require checking
@@ -675,7 +675,7 @@ static PyGetSetDef BPy_EditBone_getset[] = {
 		"The parent bone of this bone", NULL},
 	{"length", (getter)EditBone_getLength, (setter)EditBone_setLength, 
 		"The length of this bone", NULL},
-	{NULL}
+	{NULL, NULL, NULL, NULL,NULL}
 };
 
 //------------------------tp_repr
@@ -1067,7 +1067,7 @@ static PyMethodDef BPy_Bone_methods[] = {
 		"() - True/False - Bone has 1 or more children"},
 	{"getAllChildren", (PyCFunction) Bone_getAllChildren, METH_NOARGS, 
 		"() - All the children for this bone - including children's children"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------------tp_getset
 //This contains methods for attributes that require checking
@@ -1096,7 +1096,7 @@ static PyGetSetDef BPy_Bone_getset[] = {
 		"The child bones of this bone", NULL},
 	{"length", (getter)Bone_getLength, (setter)Bone_setLength, 
 		"The length of this bone", NULL},
-	{NULL}
+	{NULL, NULL, NULL, NULL,NULL}
 };
 //------------------------tp_repr
 //This is the string representation of the object

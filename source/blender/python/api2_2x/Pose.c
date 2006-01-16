@@ -104,7 +104,7 @@ static PyMethodDef BPy_PoseBonesDict_methods[] = {
 		"() - Returns the keys the dictionary"},
 	{"values", (PyCFunction) PoseBonesDict_values, METH_NOARGS, 
 		"() - Returns the values from the dictionary"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //-----------------(internal)
 static int PoseBoneMapping_Init(PyObject *dictionary, ListBase *posechannels){
@@ -293,7 +293,7 @@ static PyObject *Pose_update(BPy_Pose *self)
 static PyMethodDef BPy_Pose_methods[] = {
 	{"update", (PyCFunction) Pose_update, METH_NOARGS, 
 		"() - Rebuilds the pose with new values"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------ATTRIBUTE IMPLEMENTATIONS---------------------------
 //------------------------Pose.bones (getter)
@@ -318,7 +318,7 @@ AttributeError:
 static PyGetSetDef BPy_Pose_getset[] = {
 	{"bones", (getter)Pose_getBoneDict, (setter)Pose_setBoneDict, 
 		"The pose's Bone dictionary", NULL},
-	{NULL}
+	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc
 //This tells how to 'tear-down' our object when ref count hits 0
@@ -527,7 +527,7 @@ AttributeError5:
 static PyMethodDef BPy_PoseBone_methods[] = {
 	{"insertKey", (PyCFunction) PoseBone_insertKey, METH_VARARGS, 
 		"() - insert a key for this pose into an action"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------ATTRIBUTE IMPLEMENTATIONS---------------------------
 //------------------------PoseBone.name (getter)
@@ -784,7 +784,7 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"The pose bone's tail positon", NULL},
 	//{"constraints", (getter)PoseBone_getConstraints, (setter)PoseBone_setConstraints, 
 	//	"The list of contraints that pertain to this pose bone", NULL},
-	{NULL}
+	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc
 //This tells how to 'tear-down' our object when ref count hits 0
@@ -856,7 +856,7 @@ PyTypeObject PoseBone_Type = {
 //-------------------MODULE METHODS IMPLEMENTATION------------------------
 //-------------------MODULE METHODS DEFINITION-----------------------------
 struct PyMethodDef M_Pose_methods[] = {
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //-------------------MODULE INITIALIZATION--------------------------------
 PyObject *Pose_Init(void)
