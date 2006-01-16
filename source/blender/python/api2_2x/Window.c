@@ -889,20 +889,23 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 	short status = -1;
 	char *undo_str = "From script";
 	int undo_str_len = 11;
+	int do_undo = 1;
 
-	if( !PyArg_ParseTuple
-	    ( args, "|hs#", &status, &undo_str, &undo_str_len ) )
+	if( !PyArg_ParseTuple( args,
+				"|hs#i", &status, &undo_str, &undo_str_len, &do_undo ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected nothing or an int (bool) and a string as arguments" );
+				"expected optional int (bool), string and int (bool) as arguments" );
 
 	if( status >= 0 ) {
 		if( status ) {
 			if( !G.obedit )
 				enter_editmode(  );
 		} else if( G.obedit ) {
-			if( undo_str_len > 63 )
-				undo_str[63] = '\0';	/* 64 is max */
-			undo_push_mesh( undo_str );	/* use better solution after 2.34 */
+			if( do_undo && U.undosteps != 0 ) {
+				if( undo_str_len > 63 )
+					undo_str[63] = '\0';	/* 64 is max */
+				undo_push_mesh( undo_str );	/* use better solution after 2.34 */
+			}
 			exit_editmode( 1 );
 		}
 	}

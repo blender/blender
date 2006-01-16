@@ -232,7 +232,7 @@ def GetPerspMatrix ():
   @return: the current matrix.
   """
 
-def EditMode(enable = -1, undo_msg = 'From script'):
+def EditMode(enable = -1, undo_msg = 'From script', undo = 1):
   """
   Get and optionally set the current edit mode status: in or out.
 
@@ -258,6 +258,9 @@ def EditMode(enable = -1, undo_msg = 'From script'):
       string is used as the undo message in the Mesh->Undo History submenu in
       the 3d view header.  Max length is 63, strings longer than that get
       clamped.
+  @param undo: don't save Undo information (only needed when exiting edit
+  mode).
+  @type undo: int
   @rtype: int (bool)
   @return: 0 if Blender is not in edit mode right now, 1 otherwise. 
   @warn: this is an important function. NMesh operates on normal Blender
