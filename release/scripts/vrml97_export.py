@@ -428,7 +428,7 @@ class VRML2Export:
             if mesh.hasFaceUV():
                 for face in mesh.faces:
                     if (hasImageTexture == 0) and (face.image):
-                        self.writeImageTexture(face.image.name)
+                        self.writeImageTexture(face.image.name, face.image.filename)
                         hasImageTexture=1  # keep track of face texture
             if self.tilenode == 1:
                 self.writeIndented("textureTransform TextureTransform	{ scale %s %s }\n" % (face.image.xrep, face.image.yrep))
@@ -641,14 +641,14 @@ class VRML2Export:
         self.writeIndented("transparency %s\n" % (round(transp,self.cp)))
         self.writeIndented("}\n",-1)
 
-    def writeImageTexture(self, name):
+    def writeImageTexture(self, name, filename):
         if self.texNames.has_key(name):
             self.writeIndented("texture USE %s\n" % self.cleanStr(name))
             self.texNames[name] += 1
             return
         else:
             self.writeIndented("texture DEF %s ImageTexture {\n" % self.cleanStr(name), 1)
-            self.writeIndented("url \"%s\"\n" % name)
+            self.writeIndented("url \"%s\"\n" % filename.split("\\")[-1].split("/")[-1])
             self.writeIndented("}\n",-1)
             self.texNames[name] = 1
 
@@ -936,11 +936,8 @@ class VRML2Export:
     def writeIndented(self, s, inc=0):
         if inc < 1:
             self.indentLevel = self.indentLevel + inc
-
-        spaces=""
-        for x in xrange(self.indentLevel):
-            spaces = spaces + "\t"
-        self.file.write(spaces + s)
+        
+        self.file.write( self.indentLevel*"\t" + s)
 
         if inc > 0:
             self.indentLevel = self.indentLevel + inc
@@ -998,7 +995,7 @@ def select_file(filename):
 
   if not filename.endswith(extension):
     filename += extension
-		
+
   wrlexport=VRML2Export(filename)
   wrlexport.export(scene, world, worldmat)
 
