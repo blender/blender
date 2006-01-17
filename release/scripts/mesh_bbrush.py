@@ -295,6 +295,10 @@ def event_main():
 			return
 	"""
 	
+	ob = Scene.GetCurrent().getActiveObject()
+	if not ob or ob.getType() != 'Mesh':
+		return
+	
 	# Mouse button down with no modifiers.	
 	if Blender.event == Draw.LEFTMOUSE and not [True for m in mod if m & qual]:
 		# Do not exit (draw)
@@ -306,6 +310,7 @@ def event_main():
 		return 
 		
 	del qual
+	
 	
 	try:
 		Blender.bbrush
@@ -380,9 +385,6 @@ def event_main():
 			me.faces.extend(newFaces)
 	"""
 	
-	ob = Scene.GetCurrent().getActiveObject()
-	if not ob or ob.getType() != 'Mesh':
-		return
 	
 	me = ob.getData(mesh=1)
 	
@@ -534,6 +536,11 @@ def event_main():
 			# ================================================================#
 			if BRUSH_MODE == 1: # NORMAL PAINT
 				for v,l in brush_verts:
+					if XPLANE_CLIP:
+						origx = False
+						if abs(v.co.x) < 0.001: origx = True
+							
+					
 					v.sel = 1 # MARK THE VERT AS DIRTY.
 					falloff = (BRUSH_RADIUS-l) / BRUSH_RADIUS # falloff between 0 and 1
 					
@@ -552,9 +559,18 @@ def event_main():
 						v.co += (iFaceNormal * BRUSH_PRESSURE) * falloff
 					elif DISPLACE_NORMAL_MODE == 4: # VIEW NORMAL
 						v.co += (Direction * BRUSH_PRESSURE) * falloff
+					
+					# Clamp back to original x if needs be.
+					if XPLANE_CLIP and origx:
+						v.co.x = 0
 			
 			elif BRUSH_MODE == 2: # SCALE
 				for v,l in brush_verts:
+					
+					if XPLANE_CLIP:
+						origx = False
+						if abs(v.co.x) < 0.001: origx = True
+					
 					v.sel = 1 # MARK THE VERT AS DIRTY.
 					falloff = (BRUSH_RADIUS-l) / BRUSH_RADIUS # falloff between 0 and 1
 					
@@ -563,9 +579,13 @@ def event_main():
 					# falloff needs to be scaled for this tool
 					falloff = falloff / 10
 					v.co += (vert_scale_vec * BRUSH_PRESSURE) * falloff # FLAT BRUSH
-			
+					
+					# Clamp back to original x if needs be.
+					if XPLANE_CLIP and origx:
+						v.co.x = 0
 			
 			if BRUSH_MODE == 3: # ROTATE.
+				
 				if DISPLACE_NORMAL_MODE == 1: # VERTEX NORMAL
 					ROTATE_MATRIX = Mathutils.RotationMatrix(BRUSH_PRESSURE*10, 4, 'r', iFaceNormal)  # Cant use vertex normal, use face normal
 				elif DISPLACE_NORMAL_MODE == 2: # MEDIAN NORMAL
@@ -577,6 +597,11 @@ def event_main():
 				# Brush code
 				
 				for v,l in brush_verts:
+					
+					if XPLANE_CLIP:
+						origx = False
+						if abs(v.co.x) < 0.001: origx = True
+					
 					# MARK THE VERT AS DIRTY.
 					v.sel = 1
 					falloff = (BRUSH_RADIUS-l) / BRUSH_RADIUS # falloff between 0 and 1
@@ -584,7 +609,10 @@ def event_main():
 					# Vectors handeled with rotation matrix creation.
 					rot_vert_loc = (ROTATE_MATRIX * (v.co-best_isect)) + best_isect
 					v.co = (v.co*(1-falloff)) + (rot_vert_loc*(falloff))
-				
+					
+					# Clamp back to original x if needs be.
+					if XPLANE_CLIP and origx:
+						v.co.x = 0
 				
 			elif BRUSH_MODE == 4: # RELAX
 				vert_orig_loc = [Vector(v.co) for v in me.verts ] # save orig vert location.
@@ -592,6 +620,11 @@ def event_main():
 				
 				# Brush code
 				for v,l in brush_verts:
+					
+					if XPLANE_CLIP:
+						origx = False
+						if abs(v.co.x) < 0.001: origx = True
+					
 					v.sel = 1 # Mark the vert as dirty.
 					falloff = (BRUSH_RADIUS-l) / BRUSH_RADIUS # falloff between 0 and 1
 					connected_verts = verts_connected_by_edge[v.index]
@@ -616,7 +649,11 @@ def event_main():
 					except:
 						pass
 					'''
-			
+					
+					# Clamp back to original x if needs be.
+					if XPLANE_CLIP and origx:
+						v.co.x = 0
+					
 			elif BRUSH_MODE == 5: # GOO
 				#print last_best_isect, best_isect, 'AA'
 				if not last_best_isect:
@@ -670,6 +707,11 @@ def event_main():
 					
 					# Brush code
 					for v,l in brush_verts:
+						
+						if XPLANE_CLIP:
+							origx = False
+							if abs(v.co.x) < 0.001: origx = True
+						
 						# MARK THE VERT AS DIRTY.
 						v.sel = 1
 						
@@ -693,6 +735,10 @@ def event_main():
 							v.co = (v.co*(1-falloff)) + (rotatedVertLocation*(falloff))
 							# USe for goo only.					
 						'''
+						
+						# Clamp back to original x if needs be.
+						if XPLANE_CLIP and origx:
+							v.co.x = 0
 			
 				
 			# Remember for the next sample
