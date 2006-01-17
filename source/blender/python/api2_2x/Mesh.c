@@ -6488,7 +6488,7 @@ static struct PyMethodDef M_Mesh_methods[] = {
 	{"MVert", (PyCFunction)M_Mesh_MVert, METH_VARARGS,
 		"Create a new MVert"},
 	{"Mode", (PyCFunction)M_Mesh_Modes, METH_VARARGS,
-		"Get/set edit mode"},
+		"Get/set edit selection mode(s)"},
 	{NULL, NULL, 0, NULL},
 };
 
