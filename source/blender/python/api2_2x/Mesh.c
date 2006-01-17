@@ -6234,8 +6234,6 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 (getter)Mesh_getMode, (setter)Mesh_setMode,
 	 "The mesh's mode bitfield",
 	 NULL},
-
-
 	{"faceUV",
 	 (getter)Mesh_getFlag, (setter)Mesh_setFlag,
 	 "UV-mapped textured faces enabled",
@@ -6460,6 +6458,28 @@ static PyObject *M_Mesh_MVert( PyObject * self, PyObject * args )
 	return PVert_CreatePyObject( &vert );
 }
 
+static PyObject *M_Mesh_Modes( PyObject * self, PyObject * args )
+{
+	int modes = 0;
+
+	if( !G.scene ) {
+		Py_RETURN_NONE;
+	}
+
+	if( !PyArg_ParseTuple( args, "|i", &modes ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected optional int as argument" );
+
+	if( modes > ( SCE_SELECT_VERTEX | SCE_SELECT_EDGE | SCE_SELECT_FACE ) )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+					      "value out of range" );
+
+	if( modes > 0 )
+		G.scene->selectmode = modes;
+	
+	return PyInt_FromLong( G.scene->selectmode );
+}
+
 static struct PyMethodDef M_Mesh_methods[] = {
 	{"New", (PyCFunction)M_Mesh_New, METH_VARARGS,
 		"Create a new mesh"},
@@ -6467,10 +6487,12 @@ static struct PyMethodDef M_Mesh_methods[] = {
 		"Get a mesh by name"},
 	{"MVert", (PyCFunction)M_Mesh_MVert, METH_VARARGS,
 		"Create a new MVert"},
+	{"Mode", (PyCFunction)M_Mesh_Modes, METH_VARARGS,
+		"Get/set edit mode"},
 	{NULL, NULL, 0, NULL},
 };
 
-static PyObject *M_Mesh_Modes( void )
+static PyObject *M_Mesh_ModesDict( void )
 {
 	PyObject *Modes = PyConstant_New(  );
 
@@ -6575,18 +6597,32 @@ static PyObject *M_Mesh_VertAssignDict( void )
 	return Vert;
 }
 
+
+static PyObject *M_Mesh_SelectModeDict( void )
+{
+	PyObject *Mode = PyConstant_New(  );
+	if( Mode ) {
+		BPy_constant *d = ( BPy_constant * ) Mode;
+		PyConstant_Insert(d, "VERTEX", PyInt_FromLong(SCE_SELECT_VERTEX));
+		PyConstant_Insert(d, "EDGE", PyInt_FromLong(SCE_SELECT_EDGE));
+		PyConstant_Insert(d, "FACE", PyInt_FromLong(SCE_SELECT_FACE));
+	}
+	return Mode;
+}
+
 static char M_Mesh_doc[] = "The Blender.Mesh submodule";
 
 PyObject *Mesh_Init( void )
 {
 	PyObject *submodule;
 
-	PyObject *Modes = M_Mesh_Modes(  );
-	PyObject *FaceFlags = M_Mesh_FaceFlagsDict(  );
-	PyObject *FaceModes = M_Mesh_FaceModesDict(  );
-	PyObject *FaceTranspModes = M_Mesh_FaceTranspModesDict(  );
+	PyObject *Modes = M_Mesh_ModesDict( );
+	PyObject *FaceFlags = M_Mesh_FaceFlagsDict( );
+	PyObject *FaceModes = M_Mesh_FaceModesDict( );
+	PyObject *FaceTranspModes = M_Mesh_FaceTranspModesDict( );
 	PyObject *EdgeFlags = M_Mesh_EdgeFlagsDict(  );
-	PyObject *AssignModes = M_Mesh_VertAssignDict(  );
+	PyObject *AssignModes = M_Mesh_VertAssignDict( );
+	PyObject *SelectModes = M_Mesh_SelectModeDict( );
 
 	if( PyType_Ready( &MCol_Type ) < 0 )
 		return NULL;
@@ -6622,6 +6658,8 @@ PyObject *Mesh_Init( void )
 		PyModule_AddObject( submodule, "EdgeFlags", EdgeFlags );
 	if( AssignModes )
 		PyModule_AddObject( submodule, "AssignModes", AssignModes );
+	if( SelectModes )
+		PyModule_AddObject( submodule, "SelectModes", SelectModes );
 
 
 	return submodule;

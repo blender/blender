@@ -112,6 +112,11 @@ Example::
 	already associated with a group, else it does nothing.\n
 	- REPLACE: attempts to replace a weight with the new weight value
 	for an already associated vertex/group, else it does nothing. 
+@type SelectModes: readonly dictionary.
+@var SelectModes: The available edit select modes.
+	- VERTEX: vertex select mode.
+	- EDGE: edge select mode.
+	- FACE: face select mode.
 """
 
 AssignModes = {'REPLACE':1}
@@ -133,6 +138,19 @@ def New(name='Mesh'):
   @param name: The name of the mesh data object.
   @rtype: Mesh
   @return: a new Blender mesh.
+  """
+
+def Mode(mode=0):
+  """
+  Get and/or set the selection modes for mesh editing.  These are the modes
+  visible in the 3D window when a mesh is in Edit Mode.
+  @type mode: int
+  @param mode: The name of the mesh data object.  See L{SelectModes} for values.
+  Modes can be combined.  If omitted, the selection mode is not changed.
+  @rtype: int
+  @return: the current selection mode.
+  @note: The selection mode is an attribute of the current scene.  If the
+  scene is changed, the selection mode may not be the same.
   """
 
 class MCol:
