@@ -2,7 +2,7 @@
 # Dont run, event handelers are accessed in the from the 3d View menu.
 
 import Blender
-from Blender import Mathutils, Window, Scene, Draw, Mesh
+from Blender import Mathutils, Window, Scene, Draw, Mesh, NMesh
 from Blender.Mathutils import CrossVecs, Matrix, Vector, Intersect, LineIntersect
 
 
@@ -144,7 +144,7 @@ def ui_set_preferences(user_interface=1):
 	STATIC_NORMAL_but = Draw.Create(1)
 	XPLANE_CLIP_but = Draw.Create(0)
 	STATIC_MESH_but = Draw.Create(1)
-	FIX_TOPOLOGY_but = Draw.Create(1)
+	FIX_TOPOLOGY_but = Draw.Create(0)
 	
 	# Remember old variables if alredy set.
 	try:
@@ -168,7 +168,7 @@ def ui_set_preferences(user_interface=1):
 		('Brush Type: ', BRUSH_MODE_but, 1, 5, 'Push/Pull:1, Grow/Shrink:2, Spin:3, Relax:4, Goo:5'),\
 		('Pressure: ', BRUSH_PRESSURE_but, 0.0, 1.0, 'Pressure of the brush.'),\
 		('Size: ', BRUSH_RADIUS_but, 0.0, 2.0, 'Size of the brush.'),\
-		('Geometry Res: ', RESOLUTION_MIN_but, 0.1, 0.5, 'Size of the brush & Adaptive Subdivision.'),\
+		('Geometry Res: ', RESOLUTION_MIN_but, 0.01, 0.5, 'Size of the brush & Adaptive Subdivision.'),\
 		('Displace Vector: ', DISPLACE_NORMAL_MODE_but, 1, 4, 'Vertex Normal:1, Median Normal:2, Face Normal:3, View Normal:4'),\
 		('Static Normal', STATIC_NORMAL_but, 'Use the initial normal only.'),\
 		('No X Crossing', XPLANE_CLIP_but, 'Dont allow verts to have a negative X axis (use for x-mirror).'),\
@@ -179,7 +179,6 @@ def ui_set_preferences(user_interface=1):
 		Draw.PupBlock('BlenBrush Prefs (RMB)', pup_block)
 	
 	Blender.bbrush['ADAPTIVE_GEOMETRY'] = ADAPTIVE_GEOMETRY_but.val
-	print 'ADAPTIVE_GEOMETRY', ADAPTIVE_GEOMETRY_but.val
 	Blender.bbrush['BRUSH_MODE'] = BRUSH_MODE_but.val
 	Blender.bbrush['BRUSH_PRESSURE'] = BRUSH_PRESSURE_but.val
 	Blender.bbrush['BRUSH_RADIUS'] = BRUSH_RADIUS_but.val
@@ -192,79 +191,89 @@ def ui_set_preferences(user_interface=1):
 
 
 def triangulateNMesh(nm):
-        '''
-        Converts the meshes faces to tris, modifies the mesh in place.
-        '''
-        NMesh = Blender.NMesh
-        
-        #============================================================================#
-        # Returns a new face that has the same properties as the origional face      #
-        # but with no verts                                                          #
-        #============================================================================#
-        def copyFace(face):
-                newFace = NMesh.Face()
-                # Copy some generic properties
-                newFace.mode = face.mode
-                if face.image != None:
-                        newFace.image = face.image
-                newFace.flag = face.flag
-                newFace.mat = face.mat
-                newFace.smooth = face.smooth
-                return newFace
-        
-        # 2 List comprehensions are a lot faster then 1 for loop.
-        tris = [f for f in nm.faces if len(f) == 3]
-        quads = [f for f in nm.faces if len(f) == 4]
-        
-        
-        if quads: # Mesh may have no quads.
-                has_uv = quads[0].uv 
-                has_vcol = quads[0].col
-                for quadFace in quads:
-                        
-                        # Triangulate along the shortest edge
-                        if (quadFace.v[0].co - quadFace.v[2].co).length < (quadFace.v[1].co - quadFace.v[3].co).length:
-                                # Method 1
-                                triA = 0,1,2
-                                triB = 0,2,3
-                        else:
-                                # Method 2
-                                triA = 0,1,3
-                                triB = 1,2,3
-                                
-                        for tri1, tri2, tri3 in (triA, triB):
-                                newFace = copyFace(quadFace)
-                                newFace.v = [quadFace.v[tri1], quadFace.v[tri2], quadFace.v[tri3]]
-                                if has_uv: newFace.uv = [quadFace.uv[tri1], quadFace.uv[tri2], quadFace.uv[tri3]]
-                                if has_vcol: newFace.col = [quadFace.col[tri1], quadFace.col[tri2], quadFace.col[tri3]]
-                                
-                                nm.addEdge(quadFace.v[tri1], quadFace.v[tri3]) # Add an edge where the 2 tris are devided.
-                                tris.append(newFace)
-                
-                nm.faces = tris
+	'''
+	Converts the meshes faces to tris, modifies the mesh in place.
+	'''
+	
+	#============================================================================#
+	# Returns a new face that has the same properties as the origional face      #
+	# but with no verts							  #
+	#============================================================================#
+	def copyFace(face):
+		newFace = NMesh.Face()
+		# Copy some generic properties
+		newFace.mode = face.mode
+		if face.image != None:
+			newFace.image = face.image
+		newFace.flag = face.flag
+		newFace.mat = face.mat
+		newFace.smooth = face.smooth
+		return newFace
+	
+	# 2 List comprehensions are a lot faster then 1 for loop.
+	tris = [f for f in nm.faces if len(f) == 3]
+	quads = [f for f in nm.faces if len(f) == 4]
+	
+	
+	if quads: # Mesh may have no quads.
+		has_uv = quads[0].uv 
+		has_vcol = quads[0].col
+		for quadFace in quads:
+			# Triangulate along the shortest edge
+			#if (quadFace.v[0].co - quadFace.v[2].co).length < (quadFace.v[1].co - quadFace.v[3].co).length:
+			a1 = Mathutils.TriangleArea(quadFace.v[0].co, quadFace.v[1].co, quadFace.v[2].co)
+			a2 = Mathutils.TriangleArea(quadFace.v[0].co, quadFace.v[2].co, quadFace.v[3].co)
+			b1 = Mathutils.TriangleArea(quadFace.v[1].co, quadFace.v[2].co, quadFace.v[3].co)
+			b2 = Mathutils.TriangleArea(quadFace.v[1].co, quadFace.v[3].co, quadFace.v[0].co)
+			a1,a2 = min(a1, a2), max(a1, a2)
+			b1,b2 = min(b1, b2), max(b1, b2)
+			if a1/a2 < b1/b2:
+				
+				# Method 1
+				triA = 0,1,2
+				triB = 0,2,3
+			else:
+				# Method 2
+				triA = 0,1,3
+				triB = 1,2,3
+				
+			for tri1, tri2, tri3 in (triA, triB):
+				newFace = copyFace(quadFace)
+				newFace.v = [quadFace.v[tri1], quadFace.v[tri2], quadFace.v[tri3]]
+				if has_uv: newFace.uv = [quadFace.uv[tri1], quadFace.uv[tri2], quadFace.uv[tri3]]
+				if has_vcol: newFace.col = [quadFace.col[tri1], quadFace.col[tri2], quadFace.col[tri3]]
+				
+				nm.addEdge(quadFace.v[tri1], quadFace.v[tri3]) # Add an edge where the 2 tris are devided.
+				tris.append(newFace)
+		
+		nm.faces = tris
 
 import mesh_tri2quad
 def fix_topolagy(mesh):
-	return
 	ob = Scene.GetCurrent().getActiveObject()
+	
+	for f in mesh.faces:
+		f.sel = 1
+	mesh.quadToTriangle(0) 
 	nmesh = ob.getData()
-	#nmesh = Blender.NMesh.GetRaw(mesh.name)
-	triangulateNMesh(nmesh)
+
 	mesh_tri2quad.tri2quad(nmesh, 100, 0)
 	triangulateNMesh(nmesh)
 	nmesh.update()
-	'''
-	mesh = Mesh.Get(mesh.name)
 	
+	mesh = Mesh.Get(mesh.name)
 	for f in mesh.faces:
 		f.sel=1	
 	mesh.quadToTriangle()
-	'''
+	Mesh.Mode(Mesh.SelectModes['EDGE'])
+	
+	
+	
 	
 
 
 def event_main():
-	print Blender.event
+	#print Blender.event
 	#mod =[Window.Qual.CTRL,  Window.Qual.ALT, Window.Qual.SHIFT]
 	mod =[Window.Qual.CTRL,  Window.Qual.ALT]
 	
@@ -390,6 +399,8 @@ def event_main():
 	
 	is_editmode = Window.EditMode() # Exit Editmode.
 	if is_editmode: Window.EditMode(0)
+	
+	Mesh.Mode(Mesh.SelectModes['EDGE'])
 	
 	# At the moment ADAPTIVE_GEOMETRY is the only thing that uses selection.
 	if ADAPTIVE_GEOMETRY:
@@ -801,7 +812,7 @@ def event_main():
 						if ee.flag & SEL_FLAG:
 							#ee.flag &= ~SEL_FLAG
 							ee.flag = 32
-						
+				
 						'''
 						elif l < RESOLUTION_MIN:
 							print 'removing edge'
@@ -809,12 +820,43 @@ def event_main():
 							me.remDoubles(0.001)
 							break
 						'''
+				# Done subdividing
+				# Now remove doubles
+				#print Mesh.SelectModes['VERT']
+				Mesh.Mode(Mesh.SelectModes['VERTEX'])
 				
+				filter(lambda v: setattr(v, 'sel', 1), me.verts)
+				filter(lambda v: setattr(v[0], 'sel', 0), brush_verts)
+				
+				
+				remdoubles = False
+				for ed in me.edges:
+					
+					if (not ed.v1.sel) and (not ed.v1.sel):
+						l = (ed.v1.co - ed.v2.co).length
+						if l < RESOLUTION_MIN:
+							ed.v1.sel = ed.v2.sel = 1
+							newco = (ed.v1.co + ed.v2.co)*0.5
+							ed.v1.co.x = ed.v2.co.x = newco.x
+							ed.v1.co.y = ed.v2.co.y = newco.y
+							ed.v1.co.z = ed.v2.co.z = newco.z
+							remdoubles = True
+				
+				if remdoubles:
+					me.remDoubles(0.001)
+					me = ob.getData(mesh=1) # Get new vert data
+				filter(lambda v: setattr(v, 'sel', 0), me.verts)
+				Mesh.Mode(Mesh.SelectModes['EDGE'])
 				# WHILE OVER
 				# Clean up selection.
 				#for v in me.verts:
 				#	v.sel = 0
-				filter(lambda v: setattr(v, 'sel', 0), me.verts)
+				for ee in me.edges:
+					if ee.flag & SEL_FLAG:
+						#ee.flag &= ~SEL_FLAG
+						ee.flag = 32
+				
+				
 				
 			if XPLANE_CLIP:
 				filter(lambda v: setattr(v.co, 'x', max(0, v.co.x)), me.verts)
