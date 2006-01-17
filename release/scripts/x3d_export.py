@@ -4,16 +4,15 @@ Name: 'X3D Extensible 3D (.x3d)...'
 Blender: 235
 Group: 'Export'
 Submenu: 'All Objects...' all
+Submenu: 'All Objects compressed...' comp
 Submenu: 'Selected Objects...' selected
 Tooltip: 'Export to Extensible 3D file (.x3d)'
 """
 
 __author__ = ("Bart")
+__email__ = ["Bart, bart:neeneenee*de"]
 __url__ = ["Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
-__version__ = "2005/06/06"
-
-
-
+__version__ = "2006/01/17"
 __bpydoc__ = """\
 This script exports to X3D format.
 
@@ -37,8 +36,6 @@ for each texture);<br>
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2003,2004: Bart bart@neeneenee.de
-#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -61,7 +58,7 @@ for each texture);<br>
 ####################################
 
 import Blender
-from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text
+from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text, sys, Mathutils
 from Blender.Scene import Render
 try:
     from os.path import exists, join
@@ -80,14 +77,8 @@ world = Blender.World.Get()
 worldmat = Blender.Texture.Get()
 filename = Blender.Get('filename')
 _safeOverwrite = True
-radD=math.pi/180.0
 ARG=''
-
-def rad2deg(v):
-    return round(v*180.0/math.pi,4)
-
-def deg2rad(v):
-    return (v*math.pi)/180.0;
+extension = ''
 
 class DrawTypes:
     """Object DrawTypes enum values
@@ -177,13 +168,14 @@ class VRML2Export:
 ##########################################################
 
     def writeHeader(self):
+        bfile = sys.expandpath(Blender.Get('filename'))
         self.file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
         self.file.write("<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n")
         self.file.write("<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n")
         self.file.write("<head>\n")
-        self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % filename)
+        self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % sys.basename(bfile))
         self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % Blender.Get('version'))
-        self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.50 (2005/06/06)\" />\n")
+        self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.55 (2006/01/17)\" />\n")
         self.file.write("</head>\n")
         self.file.write("<Scene>\n")
 
@@ -224,9 +216,8 @@ class VRML2Export:
     def writeViewpoint(self, thisObj):
         context = scene.getRenderingContext()
         ratio = float(context.imageSizeY())/float(context.imageSizeX())
-        lens = (360* (math.atan(ratio *16 / thisObj.data.getLens()) / 3.141593))*(3.141593/180)
-        if lens > 3.14:
-            lens = 3.14
+        lens = (360* (math.atan(ratio *16 / thisObj.data.getLens()) / math.pi))*(math.pi/180)
+        lens = min(lens, math.pi) 
         # get the camera location, subtract 90 degress from X to orient like X3D does
         loc = self.rotatePointForVRML(thisObj.loc)
         rot = [thisObj.RotX - 1.57, thisObj.RotY, thisObj.RotZ]
@@ -283,8 +274,8 @@ class VRML2Export:
             ambientIntensity = 0
 
         # compute cutoff and beamwidth
-        intensity=min(lamp.energy/1.5,1.0)
-        beamWidth=deg2rad(lamp.spotSize)*.37;
+        intensity=min(lamp.energy/1.75,1.0)
+        beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
         cutOffAngle=beamWidth*1.3
 
         (dx,dy,dz)=self.computeDirection(object)
@@ -314,7 +305,7 @@ class VRML2Export:
             ambi = 0
             ambientIntensity = 0
 
-        intensity=min(lamp.energy/1.5, 1.0) 
+        intensity=min(lamp.energy/1.75,1.0) 
         (dx,dy,dz)=self.computeDirection(object)
         self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
@@ -332,7 +323,7 @@ class VRML2Export:
             ambientIntensity = 0
         om = object.getMatrix()
         location=self.rotVertex(om, (0,0,0));
-        intensity=min(lamp.energy/1.5,1.0)
+        intensity=min(lamp.energy/1.75,1.0) 
         radius = lamp.dist
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
@@ -354,24 +345,6 @@ class VRML2Export:
             self.writeIndented("# location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
             self.writeIndented("/>\n",-1)
             self.writeIndented("\n")
-    def createDef(self, name):
-        name = name + str(self.nodeID)
-        self.nodeID=self.nodeID+1
-        if len(name) <= 3:
-            newname = "_" + str(self.nodeID)
-            return "%s" % (newname)
-        else:
-            for bad in [' ','"','#',"'",',','.','[','\\',']','{','}']:
-                name=name.replace(bad,'_')
-            if name in self.namesReserved:
-                newname = name[0:3] + "_" + str(self.nodeID)
-                return "%s" % (newname)
-            elif name[0].isdigit():
-                newname = "_" + name + str(self.nodeID)
-                return "%s" % (newname)
-            else:
-                newname = name
-                return "%s" % (newname)
 
     def secureName(self, name):
         name = name + str(self.nodeID)
@@ -393,13 +366,14 @@ class VRML2Export:
                 return "%s" % (newname)
 
     def writeIndexedFaceSet(self, object, normals = 0):
-
         imageMap={}   # set of used images
         sided={}      # 'one':cnt , 'two':cnt
         vColors={}    # 'multi':1
         meshName = self.cleanStr(object.name)
         mesh=object.getData()
         meshME = self.cleanStr(mesh.name)
+        if len(mesh.faces) == 0:
+					return
         for face in mesh.faces:
             if face.mode & Blender.NMesh.FaceModes['HALO'] and self.halonode == 0:
                 self.writeIndented("<Billboard axisOfRotation=\"0 0 0\">\n",1)
@@ -436,17 +410,16 @@ class VRML2Export:
         issmooth=0
 
         if len(maters) > 0 or mesh.hasFaceUV():
-            self.writeIndented("<Appearance>\n", 1)
-            
-            # right now this script can only handle a single material per mesh.
-            if len(maters) >= 1:
-                mat=Blender.Material.Get(maters[0].name)
-                self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
-                if len(maters) > 1:
-                    print "Warning: mesh named %s has multiple materials" % meshName
-                    print "Warning: only one material per object handled"
-            else:
-                self.writeIndented("<material NULL />\n")
+          self.writeIndented("<Appearance>\n", 1)
+          # right now this script can only handle a single material per mesh.
+          if len(maters) >= 1:
+            mat=Blender.Material.Get(maters[0].name)
+            matFlags = mat.getMode()
+            if not matFlags & Blender.Material.Modes['TEXFACE']:
+              self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
+              if len(maters) > 1:
+                print "Warning: mesh named %s has multiple materials" % meshName
+                print "Warning: only one material per object handled"
         
             #-- textures
             if mesh.hasFaceUV():
@@ -489,7 +462,7 @@ class VRML2Export:
                 if face.smooth:
                      issmooth=1
             if issmooth==1 and self.wire == 0:
-                creaseAngle=(mesh.getMaxSmoothAngle())*radD
+                creaseAngle=(mesh.getMaxSmoothAngle())*(math.pi/180.0)
                 self.file.write("creaseAngle=\"%s\" " % (round(creaseAngle,self.cp)))
 
             #--- output vertexColors
@@ -640,22 +613,27 @@ class VRML2Export:
 
         self.matNames[matName]=1
 
-        ambient = mat.amb/2
+        ambient = mat.amb/3
         diffuseR, diffuseG, diffuseB = mat.rgbCol[0], mat.rgbCol[1],mat.rgbCol[2]
         if len(world) > 0:
             ambi = world[0].getAmb()
-            ambi0, ambi1, ambi2 = ambi[0], ambi[1], ambi[2]
+            ambi0, ambi1, ambi2 = (ambi[0]*mat.amb)*2, (ambi[1]*mat.amb)*2, (ambi[2]*mat.amb)*2
         else:
-            ambi = 0
             ambi0, ambi1, ambi2 = 0, 0, 0
-        emisR, emisG, emisB = (diffuseR*mat.emit+ambi0)/4, (diffuseG*mat.emit+ambi1)/4, (diffuseB*mat.emit+ambi2)/4
+        emisR, emisG, emisB = (diffuseR*mat.emit+ambi0)/2, (diffuseG*mat.emit+ambi1)/2, (diffuseB*mat.emit+ambi2)/2
 
-        shininess = mat.hard/255.0
-        specR = (mat.specCol[0]+0.001)/(1.05/(mat.getSpec()+0.001))
-        specG = (mat.specCol[1]+0.001)/(1.05/(mat.getSpec()+0.001))
-        specB = (mat.specCol[2]+0.001)/(1.05/(mat.getSpec()+0.001))
+        shininess = mat.hard/512.0
+        specR = (mat.specCol[0]+0.001)/(1.25/(mat.getSpec()+0.001))
+        specG = (mat.specCol[1]+0.001)/(1.25/(mat.getSpec()+0.001))
+        specB = (mat.specCol[2]+0.001)/(1.25/(mat.getSpec()+0.001))
         transp = 1-mat.alpha
-
+        matFlags = mat.getMode()
+        if matFlags & Blender.Material.Modes['SHADELESS']:
+          ambient = 1
+          shine = 1
+          specR = emitR = diffuseR
+          specG = emitG = diffuseG
+          specB = emitB = diffuseB
         self.writeIndented("<Material DEF=\"MA_%s\" " % matName, 1)
         self.file.write("diffuseColor=\"%s %s %s\" " % (round(diffuseR,self.cp), round(diffuseG,self.cp), round(diffuseB,self.cp)))
         self.file.write("specularColor=\"%s %s %s\" " % (round(specR,self.cp), round(specG,self.cp), round(specB,self.cp)))
@@ -690,7 +668,7 @@ class VRML2Export:
         mix0, mix1, mix2 = mix0/2, mix1/2, mix2/2
         self.file.write("<Background ")
         if worldname not in self.namesStandard:
-            self.file.write("DEF=\"%s\" " % self.createDef(worldname))
+            self.file.write("DEF=\"%s\" " % self.secureName(worldname))
         # No Skytype - just Hor color
         if blending == 0:
             self.file.write("groundColor=\"%s %s %s\" " % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
@@ -1016,7 +994,9 @@ def select_file(filename):
       if(result != 1):
         return
 
-  if filename.find('.x3d', -4) < 0: filename += '.x3d'
+  if not filename.endswith(extension):
+    filename += extension
+		
   wrlexport=VRML2Export(filename)
   wrlexport.export(scene, world, worldmat)
 
@@ -1026,7 +1006,7 @@ def createWRLPath():
   
   if filename.find('.') != -1:
     filename = filename.split('.')[0]
-    filename += ".x3d"
+    filename += extension
     print filename
 
   return filename
@@ -1041,8 +1021,14 @@ except:
     print "older version"
 
 if Blender.Get('version') < 235:
-    print "Warning: X3D export failed, wrong blender version!"
-    print " You aren't running blender version 2.35 or greater"
-    print " download a newer version from http://blender3d.org/"
+  print "Warning: X3D export failed, wrong blender version!"
+  print " You aren't running blender version 2.35 or greater"
+  print " download a newer version from http://blender3d.org/"
 else:
-    Blender.Window.FileSelector(select_file,"Export X3D",createWRLPath())
+  if ARG == 'comp':
+    from gzip import *
+    extension=".x3dz"
+  else:
+    extension=".x3d"
+  Blender.Window.FileSelector(select_file,"Export X3D",createWRLPath())
+
