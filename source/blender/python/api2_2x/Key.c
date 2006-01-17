@@ -25,7 +25,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Pontus Lidman, Johnny Matthews, Ken Hughes
+ * Contributor(s): Pontus Lidman, Johnny Matthews, Ken Hughes,
+ *   Michael Reimpell
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -36,6 +37,7 @@
 #include <BKE_global.h>
 #include <BKE_main.h>
 #include <BKE_curve.h>
+#include "BIF_space.h"
 
 #include "Ipocurve.h"
 #include "Key.h"
@@ -62,10 +64,12 @@ static void KeyBlock_dealloc( PyObject * self );
 static PyObject *Key_repr( BPy_Key * self );
 
 static PyObject *Key_getBlocks( PyObject * self );
-static PyObject *Key_getType( PyObject * self );
+static PyObject *Key_getType( BPy_Key * self );
+static PyObject *Key_getRelative( BPy_Key * self );
 static PyObject *Key_getIpo( PyObject * self );
 static int Key_setIpo( PyObject * self, PyObject * args );
 static PyObject *Key_getValue( PyObject * self );
+static int Key_setRelative( BPy_Key * self, PyObject * value );
 
 static struct PyMethodDef Key_methods[] = {
 	{ "getBlocks", (PyCFunction) Key_getBlocks, METH_NOARGS, "Get key blocks" },
@@ -74,21 +78,21 @@ static struct PyMethodDef Key_methods[] = {
 };
 
 static PyGetSetDef BPy_Key_getsetters[] = {
-		{"type",(getter)Key_getType, (setter)NULL,
-		 "Key Type",NULL},
-		{"value",(getter)Key_getValue, (setter)NULL,
-		 "Key value",NULL},
-		{"ipo",(getter)Key_getIpo, (setter)Key_setIpo,
-		 "ipo linked to key",NULL},
-		{"blocks",(getter)Key_getBlocks, (setter)NULL,
-		 "blocks linked to the key",NULL},
-		{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
-	};
-
-
+	{"type",(getter)Key_getType, (setter)NULL,
+	 "Key Type",NULL},
+	{"value",(getter)Key_getValue, (setter)NULL,
+	 "Key value",NULL},
+	{"ipo",(getter)Key_getIpo, (setter)Key_setIpo,
+	 "Ipo linked to key",NULL},
+	{"blocks",(getter)Key_getBlocks, (setter)NULL,
+	 "Blocks linked to the key",NULL},
+	{"relative",(getter)Key_getRelative, (setter)Key_setRelative,
+	 "Non-zero is key is relative",NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
 
 static PyObject *KeyBlock_getData( PyObject * self );
-
+static PyObject *KeyBlock_getCurval( BPy_KeyBlock * self );
 static PyObject *KeyBlock_getName( BPy_KeyBlock * self );
 static PyObject *KeyBlock_getPos( BPy_KeyBlock * self );
 static PyObject *KeyBlock_getSlidermin( BPy_KeyBlock * self );
@@ -107,6 +111,8 @@ static struct PyMethodDef KeyBlock_methods[] = {
 };
 
 static PyGetSetDef BPy_KeyBlock_getsetters[] = {
+		{"curval",(getter)KeyBlock_getCurval, (setter)NULL,
+		 "Current value of the corresponding IpoCurve",NULL},
 		{"name",(getter)KeyBlock_getName, (setter)KeyBlock_setName,
 		 "Keyblock Name",NULL},
 		{"pos",(getter)KeyBlock_getPos, (setter)NULL,
@@ -362,13 +368,32 @@ static int Key_setIpo( PyObject * self, PyObject * value )
 	return 0;
 }
 
-static PyObject *Key_getType( PyObject * self )
+static PyObject *Key_getRelative( BPy_Key * self )
 {
-	BPy_Key *k = ( BPy_Key * ) self;
+	if( self->key->type == KEY_RELATIVE )
+		return EXPP_incr_ret(Py_True);
+	else
+		return EXPP_incr_ret(Py_False);
+}
+
+static int Key_setRelative( BPy_Key * self, PyObject * value )
+{
+	if( PyObject_IsTrue( value ) )
+		self->key->type = KEY_RELATIVE;
+	else
+		self->key->type = KEY_NORMAL;
+	allqueue(REDRAWIPO, 0);
+	allspace(REMAKEIPO, 0);
+
+	return 0;
+}
+
+static PyObject *Key_getType( BPy_Key * self )
+{
 	int idcode;
 	int type = -1;
 
-	idcode = GS( k->key->from->name );
+	idcode = GS( self->key->from->name );
 
 	switch( idcode ) {
 	case ID_ME:
@@ -437,55 +462,51 @@ PyObject *KeyBlock_CreatePyObject( KeyBlock * kb, Key *parentKey )
 	return ( PyObject * ) keyBlock;
 }
 
+static PyObject *KeyBlock_getCurval( BPy_KeyBlock * self ) {
+	return PyFloat_FromDouble( self->keyblock->curval );
+}
+
 static PyObject *KeyBlock_getName( BPy_KeyBlock * self ) {
-	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
-	PyObject *name = Py_BuildValue( "s", kb->keyblock->name);
+	PyObject *name = Py_BuildValue( "s", self->keyblock->name);
 	return name;
 }
 
 static PyObject *KeyBlock_getPos( BPy_KeyBlock * self ){
-	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
-	return PyFloat_FromDouble( kb->keyblock->pos );			
+	return PyFloat_FromDouble( self->keyblock->pos );			
 }
 
 static PyObject *KeyBlock_getSlidermin( BPy_KeyBlock * self ){
-	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
-	return PyFloat_FromDouble( kb->keyblock->slidermin );	
+	return PyFloat_FromDouble( self->keyblock->slidermin );	
 }
 
 static PyObject *KeyBlock_getSlidermax( BPy_KeyBlock * self ){
-	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
-	return PyFloat_FromDouble( kb->keyblock->slidermax );
+	return PyFloat_FromDouble( self->keyblock->slidermax );
 }
 
 static PyObject *KeyBlock_getVgroup( BPy_KeyBlock * self ){
-	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
-	PyObject *name = Py_BuildValue( "s", kb->keyblock->vgroup);
-	return name;	
+	return Py_BuildValue( "s", self->keyblock->vgroup);
 }
 
 static int KeyBlock_setName( BPy_KeyBlock * self, PyObject * args ){
 	char* text = NULL;
-    BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;	
-    
+ 
 	text = PyString_AsString ( args );
 	if( !text )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected string argument" );							
-	strncpy( kb->keyblock->name, text , 32);
+	strncpy( self->keyblock->name, text , 32);
 
 	return 0;	
 }
 
 static int KeyBlock_setVgroup( BPy_KeyBlock * self, PyObject * args  ){
 	char* text = NULL;
-    BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;	
-    
+
 	text = PyString_AsString ( args );
 	if( !text )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected string argument" );							
-	strncpy( kb->keyblock->vgroup, text , 32);
+	strncpy( self->keyblock->vgroup, text , 32);
 
 	return 0;	
 }
@@ -635,7 +656,8 @@ static PyObject *M_Key_Get( PyObject * self, PyObject * args )
 			"expected string argument (or nothing)" ) );
 
 	if ( name ) {
-		for (key_iter = G.main->key.first; key_iter; key_iter=key_iter->id.next) {
+		for (key_iter = G.main->key.first; key_iter; 
+				key_iter=key_iter->id.next) {
 			if  (strcmp ( key_iter->id.name + 2, name ) == 0 ) {
 				return Key_CreatePyObject( key_iter );
 			}
@@ -643,17 +665,16 @@ static PyObject *M_Key_Get( PyObject * self, PyObject * args )
 
 		PyOS_snprintf( error_msg, sizeof( error_msg ),
 			"Key \"%s\" not found", name );
-		return ( EXPP_ReturnPyObjError ( PyExc_NameError, error_msg ) );
+		return EXPP_ReturnPyObjError ( PyExc_NameError, error_msg );
 		
-	}
-
-	else {
+	} else {
 
 		PyObject *keylist;
 
 		keylist = PyList_New( BLI_countlist( &( G.main->key ) ) );
 
-		for ( i=0, key_iter = G.main->key.first; key_iter; key_iter=key_iter->id.next, i++ ) {
+		for ( i=0, key_iter = G.main->key.first; key_iter;
+				key_iter=key_iter->id.next, i++ ) {
 			PyList_SetItem(keylist, i, Key_CreatePyObject(key_iter));
 		}
 		return keylist;
@@ -665,32 +686,36 @@ struct PyMethodDef M_Key_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+static PyObject *M_Key_TypesDict( void )
+{
+	PyObject *T = PyConstant_New(  );
+
+	if( T ) {
+		BPy_constant *d = ( BPy_constant * ) T;
+
+		PyConstant_Insert( d, "MESH", PyInt_FromLong( KEY_TYPE_MESH ) );
+		PyConstant_Insert( d, "CURVE", PyInt_FromLong( KEY_TYPE_CURVE ) );
+		PyConstant_Insert( d, "LATTICE", PyInt_FromLong( KEY_TYPE_LATTICE ) );
+	}
+
+	return T;
+}
+
 PyObject *Key_Init( void )
 {
-	PyObject *submodule, *KeyTypes;
+	PyObject *submodule;
+	PyObject *Types = NULL;
 
-	if( PyType_Ready( &Key_Type ) < 0)
+	if( PyType_Ready( &Key_Type ) < 0 || PyType_Ready( &KeyBlock_Type ) < 0 )
 		return NULL;
-
-	Key_Type.ob_type = &PyType_Type;
-	PyType_Ready( &KeyBlock_Type );
 
 	submodule =
 		Py_InitModule3( "Blender.Key", M_Key_methods, "Key module" );
 
-	KeyTypes = PyConstant_New( );
+	Types = M_Key_TypesDict(  );
+	if( Types )
+		PyModule_AddObject( submodule, "Types", Types );
 
-	PyConstant_Insert(( BPy_constant * ) KeyTypes, "MESH", PyInt_FromLong(KEY_TYPE_MESH));
-	PyConstant_Insert(( BPy_constant * ) KeyTypes, "CURVE", PyInt_FromLong(KEY_TYPE_CURVE));
-	PyConstant_Insert(( BPy_constant * ) KeyTypes, "LATTICE", PyInt_FromLong(KEY_TYPE_LATTICE));
-
-	PyModule_AddObject( submodule, "Types", KeyTypes);
-
-	/*
-	PyModule_AddIntConstant( submodule, "TYPE_MESH",    KEY_TYPE_MESH );
-	PyModule_AddIntConstant( submodule, "TYPE_CURVE",   KEY_TYPE_CURVE );
-	PyModule_AddIntConstant( submodule, "TYPE_LATTICE", KEY_TYPE_LATTICE );
-	*/
 	return submodule;
 }
 
