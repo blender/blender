@@ -94,6 +94,7 @@ struct rctf;
 #include "Effect.h"
 #include "Pose.h"
 #include "gen_utils.h"
+#include "BIF_editkey.h"
 
 /* Defines for insertIpoKey */
 
@@ -280,6 +281,7 @@ static PyObject *Object_getSBUseEdges( BPy_Object * self );
 static PyObject *Object_setSBUseEdges( BPy_Object * self, PyObject * args );
 static PyObject *Object_getSBStiffQuads( BPy_Object * self );
 static PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args );
+static PyObject *Object_insertShapeKey(BPy_Object * self);
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
 /*****************************************************************************/
@@ -564,6 +566,8 @@ works only if self and the object specified are of the same type."},
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
 	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
+	 {"insertShapeKey", ( PyCFunction ) Object_insertShapeKey,
+	 METH_NOARGS, "() - Insert a Shape Key in the current object"},
 	{"getPose", (PyCFunction)Object_getPose, METH_NOARGS,
 	"() - returns the pose from an object if it exists, else None"},
 	{NULL, NULL, 0, NULL}
@@ -2781,6 +2785,12 @@ static PyObject *Object_getEffects( BPy_Object * self )
 		eff = eff->next;
 	}
 	return effect_list;
+}
+
+static  PyObject *Object_insertShapeKey(BPy_Object * self)
+{
+	insert_shapekey(self->object);
+	return Py_None;
 }
 
 static PyObject * Object_getPose(BPy_Object *self)
