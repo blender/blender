@@ -406,9 +406,12 @@ def event_main():
 	if ADAPTIVE_GEOMETRY:
 		# Deslect all
 		SEL_FLAG = Mesh.EdgeFlags['SELECT']
+		'''
 		for ed in me.edges:
 			#ed.flag &= ~SEL_FLAG # deselect. 34
 			ed.flag = 32
+		'''
+		filter(lambda ed: setattr(ed, 'flag', 32), me.edges)
 		
 		'''for v in me.verts:
 			v.sel = 0'''
@@ -775,8 +778,8 @@ def event_main():
 							#if l > RESOLUTION_MAX:
 							if l > BRUSH_RADIUS:
 								#print 'adding edge'
-								#ed.flag |= SEL_FLAG
-								ed.flag = 35
+								ed.flag |= SEL_FLAG
+								#ed.flag = 35
 								SUBDIV_COUNT += 1
 								EDGE_COUNT +=1
 							"""
@@ -807,13 +810,11 @@ def event_main():
 					
 							
 					# Deselect all, we know theres only 2 selected
-					
+					'''
 					for ee in me.edges:
 						if ee.flag & SEL_FLAG:
 							#ee.flag &= ~SEL_FLAG
 							ee.flag = 32
-				
-						'''
 						elif l < RESOLUTION_MIN:
 							print 'removing edge'
 							e.v1.co = e.v2.co = (e.v1.co + e.v2.co) * 0.5
@@ -823,11 +824,12 @@ def event_main():
 				# Done subdividing
 				# Now remove doubles
 				#print Mesh.SelectModes['VERT']
-				Mesh.Mode(Mesh.SelectModes['VERTEX'])
+				#Mesh.Mode(Mesh.SelectModes['VERTEX'])
 				
 				filter(lambda v: setattr(v, 'sel', 1), me.verts)
 				filter(lambda v: setattr(v[0], 'sel', 0), brush_verts)
 				
+				# Cycling editmode is too slow.
 				
 				remdoubles = False
 				for ed in me.edges:
@@ -842,33 +844,31 @@ def event_main():
 							ed.v1.co.z = ed.v2.co.z = newco.z
 							remdoubles = True
 				
-				if remdoubles:
-					me.remDoubles(0.001)
-					me = ob.getData(mesh=1) # Get new vert data
+				#if remdoubles:
+
+				
 				filter(lambda v: setattr(v, 'sel', 0), me.verts)
-				Mesh.Mode(Mesh.SelectModes['EDGE'])
+				#Mesh.Mode(Mesh.SelectModes['EDGE'])
 				# WHILE OVER
 				# Clean up selection.
 				#for v in me.verts:
 				#	v.sel = 0
+				'''
 				for ee in me.edges:
 					if ee.flag & SEL_FLAG:
-						#ee.flag &= ~SEL_FLAG
-						ee.flag = 32
-				
+						ee.flag &= ~SEL_FLAG
+						#ee.flag = 32
+				'''
+				filter(lambda ed: setattr(ed, 'flag', 32), me.edges)
 				
 				
 			if XPLANE_CLIP:
 				filter(lambda v: setattr(v.co, 'x', max(0, v.co.x)), me.verts)
 			
+			
 			me.update()
 			#Window.SetCursorPos(best_isect.x, best_isect.y, best_isect.z)
 			Window.Redraw(Window.Types.VIEW3D)
-	if i:
-		Window.EditMode(1)
-		if not is_editmode: # User was in edit mode, so stay there.
-			Window.EditMode(0)
-		print '100 draws in %.6f' % (((Blender.sys.time()-time) / float(i))*100)
 	#Window.DrawProgressBar(1.0, '')
 	if STATIC_MESH:
 		#try:
@@ -880,7 +880,19 @@ def event_main():
 	if FIX_TOPOLOGY:
 		fix_topolagy(me)
 	
+	Mesh.Mode(Mesh.SelectModes['VERTEX'])
+	filter(lambda v: setattr(v, 'sel', 1), me.verts)
+	me.remDoubles(0.001)
+	print 'removing doubles'
+	me = ob.getData(mesh=1) # Get new vert data
+	
 	Blender.event = Draw.LEFTMOUSE
+	
+	if i:
+		Window.EditMode(1)
+		if not is_editmode: # User was in edit mode, so stay there.
+			Window.EditMode(0)
+		print '100 draws in %.6f' % (((Blender.sys.time()-time) / float(i))*100)
 
 if __name__ == '__main__':
 	event_main()
