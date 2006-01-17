@@ -620,6 +620,7 @@ void BIF_icons_init(int first_dyn_id)
 static void icon_from_image(Image* img, RenderInfo* ri, unsigned int w, unsigned int h)
 {
 	struct ImBuf *ima;
+	struct ImBuf *imb;
 	float scaledx, scaledy;
 	int pr_size = w*h*sizeof(unsigned int);
 	short ex, ey, dx, dy;
@@ -655,9 +656,18 @@ static void icon_from_image(Image* img, RenderInfo* ri, unsigned int w, unsigned
 	dx = (w - ex) / 2;
 	dy = (h - ey) / 2;
 	
-	IMB_scaleImBuf(ima, ex, ey);
-	memcpy(ri->rect, ima->rect, pr_size);
+	IMB_scalefastImBuf(ima, ex, ey);
+
+	/* sigh, need to copy the float buffer too */
+	imb = IMB_allocImBuf(w, h, 32, IB_rect | IB_rectfloat, 0);
+
+	IMB_rectcpy(imb, ima, dx, dy, 0, 0, ex, ey);	
+
 	IMB_freeImBuf(ima);
+
+	memcpy(ri->rect, imb->rect,pr_size);
+
+	IMB_freeImBuf(imb);
 }
 
 

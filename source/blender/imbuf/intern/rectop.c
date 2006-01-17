@@ -113,7 +113,14 @@ void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 	for (;height > 0; height--){
 
 		memcpy(drect,srect, width * sizeof(int));
-		if (do_float) memcpy(drectf,srectf, width * sizeof(float) * 4);
+		drect += destx;
+		srect += srcx;
+
+		if (do_float) {
+			memcpy(drectf,srectf, width * sizeof(float) * 4);
+			drectf += destx;
+			srectf += srcx;
+		}		
 	}
 }
 
