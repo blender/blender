@@ -187,6 +187,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Library.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Pose.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\logic.c
 # End Source File
 # Begin Source File

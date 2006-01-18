@@ -84,11 +84,13 @@ void OptimizedBvh::Build(StridingMeshInterface* triangles)
 
 OptimizedBvhNode*	OptimizedBvh::BuildTree	(NodeArray&	leafNodes,int startIndex,int endIndex)
 {
+	OptimizedBvhNode* internalNode;
 
+	int splitAxis, splitIndex, i;
 	int numIndices =endIndex-startIndex;
-	assert(numIndices>0);
-
 	int curIndex = m_curNodeIndex;
+
+	assert(numIndices>0);
 
 	if (numIndices==1)
 	{
@@ -96,16 +98,16 @@ OptimizedBvhNode*	OptimizedBvh::BuildTree	(NodeArray&	leafNodes,int startIndex,i
 	}
 	//calculate Best Splitting Axis and where to split it. Sort the incoming 'leafNodes' array within range 'startIndex/endIndex'.
 	
-	int splitAxis = CalcSplittingAxis(leafNodes,startIndex,endIndex);
+	splitAxis = CalcSplittingAxis(leafNodes,startIndex,endIndex);
 
-	int splitIndex = SortAndCalcSplittingIndex(leafNodes,startIndex,endIndex,splitAxis);
+	splitIndex = SortAndCalcSplittingIndex(leafNodes,startIndex,endIndex,splitAxis);
 
-	OptimizedBvhNode* internalNode = &m_contiguousNodes[m_curNodeIndex++];
+	internalNode = &m_contiguousNodes[m_curNodeIndex++];
 	
 	internalNode->m_aabbMax.setValue(-1e30f,-1e30f,-1e30f);
 	internalNode->m_aabbMin.setValue(1e30f,1e30f,1e30f);
 	
-	for (int i=startIndex;i<endIndex;i++)
+	for (i=startIndex;i<endIndex;i++)
 	{
 		internalNode->m_aabbMax.setMax(leafNodes[i].m_aabbMax);
 		internalNode->m_aabbMin.setMin(leafNodes[i].m_aabbMin);
@@ -123,21 +125,23 @@ OptimizedBvhNode*	OptimizedBvh::BuildTree	(NodeArray&	leafNodes,int startIndex,i
 
 int	OptimizedBvh::SortAndCalcSplittingIndex(NodeArray&	leafNodes,int startIndex,int endIndex,int splitAxis)
 {
+	int i;
 	int splitIndex =startIndex;
 	int numIndices = endIndex - startIndex;
+	float splitValue;
 
 	SimdVector3 means(0.f,0.f,0.f);
-	for (int i=startIndex;i<endIndex;i++)
+	for (i=startIndex;i<endIndex;i++)
 	{
 		SimdVector3 center = 0.5f*(leafNodes[i].m_aabbMax+leafNodes[i].m_aabbMin);
 		means+=center;
 	}
 	means *= (1.f/(float)numIndices);
 	
-	float splitValue = means[splitAxis];
+	splitValue = means[splitAxis];
 	
 	//sort leafNodes so all values larger then splitValue comes first, and smaller values start from 'splitIndex'.
-	for (int i=startIndex;i<endIndex;i++)
+	for (i=startIndex;i<endIndex;i++)
 	{
 		SimdVector3 center = 0.5f*(leafNodes[i].m_aabbMax+leafNodes[i].m_aabbMin);
 		if (center[splitAxis] > splitValue)
@@ -159,19 +163,20 @@ int	OptimizedBvh::SortAndCalcSplittingIndex(NodeArray&	leafNodes,int startIndex,
 
 int	OptimizedBvh::CalcSplittingAxis(NodeArray&	leafNodes,int startIndex,int endIndex)
 {
+	int i;
+
 	SimdVector3 means(0.f,0.f,0.f);
+	SimdVector3 variance(0.f,0.f,0.f);
 	int numIndices = endIndex-startIndex;
 
-	for (int i=startIndex;i<endIndex;i++)
+	for (i=startIndex;i<endIndex;i++)
 	{
 		SimdVector3 center = 0.5f*(leafNodes[i].m_aabbMax+leafNodes[i].m_aabbMin);
 		means+=center;
 	}
 	means *= (1.f/(float)numIndices);
 		
-	SimdVector3 variance(0.f,0.f,0.f);
-
-	for (int i=startIndex;i<endIndex;i++)
+	for (i=startIndex;i<endIndex;i++)
 	{
 		SimdVector3 center = 0.5f*(leafNodes[i].m_aabbMax+leafNodes[i].m_aabbMin);
 		SimdVector3 diff2 = center-means;
@@ -180,18 +185,18 @@ int	OptimizedBvh::CalcSplittingAxis(NodeArray&	leafNodes,int startIndex,int endI
 	}
 	variance *= (1.f/	((float)numIndices-1)	);
 	
-	int biggestAxis = variance.maxAxis();
-	return biggestAxis;
-
+	return variance.maxAxis();
 }
 
 
 	
 void	OptimizedBvh::ReportAabbOverlappingNodex(NodeOverlapCallback* nodeCallback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
 {
+	int i;
+
 	if (aabbMin.length() > 1000.f)
 	{
-		for (int i=0;i<m_leafNodes.size();i++)
+		for (i=0;i<m_leafNodes.size();i++)
 		{
 			const OptimizedBvhNode&	node = m_leafNodes[i];
 			nodeCallback->ProcessNode(&node);
@@ -205,10 +210,10 @@ void	OptimizedBvh::ReportAabbOverlappingNodex(NodeOverlapCallback* nodeCallback,
 
 void	OptimizedBvh::WalkTree(OptimizedBvhNode* rootNode,NodeOverlapCallback* nodeCallback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
 {
-	bool aabbOverlap = TestAabbAgainstAabb2(aabbMin,aabbMax,rootNode->m_aabbMin,rootNode->m_aabbMax);
+	bool isLeafNode, aabbOverlap = TestAabbAgainstAabb2(aabbMin,aabbMax,rootNode->m_aabbMin,rootNode->m_aabbMax);
 	if (aabbOverlap)
 	{
-		bool isLeafNode = (!rootNode->m_leftChild && !rootNode->m_rightChild);
+		isLeafNode = (!rootNode->m_leftChild && !rootNode->m_rightChild);
 		if (isLeafNode)
 		{
 			nodeCallback->ProcessNode(rootNode);
@@ -225,8 +230,9 @@ int maxIterations = 0;
 
 void	OptimizedBvh::WalkStacklessTree(OptimizedBvhNode* rootNode,NodeOverlapCallback* nodeCallback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
 {
-	int curIndex = 0;
+	int escapeIndex, curIndex = 0;
 	int walkIterations = 0;
+	bool aabbOverlap, isLeafNode;
 
 	while (curIndex < m_curNodeIndex)
 	{
@@ -234,8 +240,8 @@ void	OptimizedBvh::WalkStacklessTree(OptimizedBvhNode* rootNode,NodeOverlapCallb
 		assert (walkIterations < m_curNodeIndex);
 
 		walkIterations++;
-		bool aabbOverlap = TestAabbAgainstAabb2(aabbMin,aabbMax,rootNode->m_aabbMin,rootNode->m_aabbMax);
-		bool isLeafNode = (!rootNode->m_leftChild && !rootNode->m_rightChild);
+		aabbOverlap = TestAabbAgainstAabb2(aabbMin,aabbMax,rootNode->m_aabbMin,rootNode->m_aabbMax);
+		isLeafNode = (!rootNode->m_leftChild && !rootNode->m_rightChild);
 		
 		if (isLeafNode && aabbOverlap)
 		{
@@ -248,7 +254,7 @@ void	OptimizedBvh::WalkStacklessTree(OptimizedBvhNode* rootNode,NodeOverlapCallb
 			curIndex++;
 		} else
 		{
-			int escapeIndex = rootNode->m_escapeIndex;
+			escapeIndex = rootNode->m_escapeIndex;
 			rootNode += escapeIndex;
 			curIndex += escapeIndex;
 		}
