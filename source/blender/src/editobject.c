@@ -2662,6 +2662,7 @@ void copy_attr_menu()
 	if(!(ob=OBACT)) return;
 	
 	strcat (str, "|Object Constraints%x22");
+	strcat (str, "|NLA Strips%x26");
 	
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
 		strcat(str, "|Texture Space%x17");
@@ -2925,6 +2926,9 @@ void copy_attr(short event)
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
 					}
 				}
+				else if(event==26) {
+					copy_nlastrips(&base->object->nlastrips, &ob->nlastrips);
+				}
 			}
 		}
 		base= base->next;
@@ -2937,7 +2941,7 @@ void copy_attr(short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	
-	BIF_undo_push("Copy attributes");
+	BIF_undo_push("Copy Attributes");
 }
 
 void link_to_scene(unsigned short nr)
