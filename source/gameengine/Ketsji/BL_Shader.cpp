@@ -201,7 +201,7 @@ void BL_Shader::PrintInfo(int len, unsigned int handle, int* num)
 {
 #ifdef GL_ARB_shader_objects
 	mLog = (char*)MEM_mallocN(sizeof(char)*len, "print_log");
-	MT_assert(mLog, "Failed to create memory");
+	//MT_assert(mLog, "Failed to create memory");
 	bgl::blGetInfoLogARB(handle, len, num, mLog);
 #endif//GL_ARB_shader_objects
 }
