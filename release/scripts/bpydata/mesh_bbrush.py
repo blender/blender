@@ -837,6 +837,11 @@ def event_main():
 				for ed in me.edges:
 					
 					if (not ed.v1.sel) and (not ed.v1.sel):
+						if XPLANE_CLIP:
+							# If 1 vert is on the edge and abother is off dont collapse edge.
+							if (abs(ed.v1.co.x) < 0.001) !=\
+							(abs(ed.v2.co.x) < 0.001):
+								continue
 						l = (ed.v1.co - ed.v2.co).length
 						if l < RESOLUTION_MIN:
 							ed.v1.sel = ed.v2.sel = 1
