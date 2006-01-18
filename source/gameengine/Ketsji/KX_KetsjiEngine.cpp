@@ -457,9 +457,9 @@ void KX_KetsjiEngine::NextFrame()
 		frames--;
 	}
 
-	bool m_doFullFramerateBricks = true;
+	bool bUseAsyncLogicBricks= false;
 
-	if (m_doFullFramerateBricks)
+	if (bUseAsyncLogicBricks)
 	{	
 		// Logic update sub frame: this will let some logic bricks run at the
 		// full frame rate.

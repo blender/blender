@@ -32,9 +32,11 @@ private:
 	uSampler		mSampler[MAXTEX];
 	char*			vertProg;
 	char*			fragProg;
-	bool			LinkProgram();
-	bool			PrintInfo(int len, unsigned int handle, const char *type);
+	bool			mError;
+	char*			mLog;
 
+	bool			LinkProgram();
+	void			PrintInfo( int len, unsigned int handle,int *num);
 public:
 	BL_Shader(PyTypeObject *T=&Type);
 	virtual ~BL_Shader();
@@ -47,7 +49,7 @@ public:
 	// ---
 	int getNumPass()	{return mPass;}
 	bool use()			{return mUse;}
-
+	bool GetError()		{return mError;}
 	// ---
 	// access
 	const uSampler*		getSampler(int i);

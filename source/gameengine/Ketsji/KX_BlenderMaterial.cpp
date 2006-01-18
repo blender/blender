@@ -78,6 +78,7 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 	mShader(0),
 	mScene(scene),
 	mUserDefBlend(0),
+	mModified(0),
 	mPass(0)
 
 {
@@ -171,7 +172,7 @@ void KX_BlenderMaterial::OnConstruction()
 void KX_BlenderMaterial::OnExit()
 {
 	#ifdef GL_ARB_multitexture
-
+	
 	#ifdef GL_ARB_shader_objects
 	if( RAS_EXT_support._ARB_shader_objects && mShader ) {
 		 //note, the shader here is allocated, per unique material
@@ -919,15 +920,41 @@ int KX_BlenderMaterial::_setattr(const STR_String& attr, PyObject *pyvalue)
 	return PyObjectPlus::_setattr(attr, pyvalue);
 }
 
+
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 {
-	#ifdef GL_ARB_shader_objects
-	if(!RAS_EXT_support._ARB_shader_objects) {
-		PyErr_Format(PyExc_SystemError, "GLSL not supported");
-		return NULL;
+#ifdef GL_ARB_fragment_shader
+	if( !RAS_EXT_support._ARB_fragment_shader) {
+		if(!mModified)
+			spit("Fragment shaders not supported");
+	
+		mModified = true;
+		Py_Return;
+	}
+#endif
+
+#ifdef GL_ARB_vertex_shader
+	if( !RAS_EXT_support._ARB_vertex_shader) {
+		if(!mModified)
+			spit("Vertex shaders not supported");
+
+		mModified = true;
+		Py_Return;
+	}
+#endif
+
+#ifdef GL_ARB_shader_objects
+	if(!RAS_EXT_support._ARB_shader_objects)  {
+		if(!mModified)
+			spit("GLSL not supported");
+		mModified = true;
+		Py_Return;
 	}
 	else {
-		if(!mShader) {
+		// returns Py_None on error
+		// the calling script will need to check
+
+		if(!mShader && !mModified) {
 			mShader = new BL_Shader();
 			for(int i= 0; i<mMaterial->num_enabled; i++) {
 				if(mMaterial->mapping[i].mapping & USEENV )
@@ -935,13 +962,36 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 				else
 					mShader->InitializeSampler(SAMP_2D, i, 0, mTextures[i]);
 			}
+			mModified = true;
 		}
-		Py_INCREF(mShader);
-		return mShader;
+
+		if(mShader && !mShader->GetError()) {
+			Py_INCREF(mShader);
+			return mShader;
+		}else
+		{
+			// decref all references to the object
+			// then delete it!
+			// We will then go back to fixed functionality
+			// for this material
+			if(mShader) {
+				if(mShader->ob_refcnt > 1) {
+					Py_DECREF(mShader);
+				}
+				else {
+					delete mShader;
+					mShader=0;
+				}
+			}
+		}
+		Py_Return;
 	}
-	#else
+	PyErr_Format(PyExc_ValueError, "GLSL Error");
+	return NULL;
+
+#else
 	Py_Return;
-	#endif//GL_ARB_shader_objects
+#endif//GL_ARB_shader_objects
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")

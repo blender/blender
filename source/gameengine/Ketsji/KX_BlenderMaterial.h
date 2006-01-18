@@ -85,6 +85,7 @@ private:
 	
 	bool			mUserDefBlend;
 	unsigned int	mBlendFunc[2];
+	bool			mModified;
 
 	// message centers
 	void	setTexData( bool enable );
