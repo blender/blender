@@ -91,14 +91,14 @@ BL_Shader::~BL_Shader()
 bool BL_Shader::LinkProgram()
 {
 #ifdef GL_ARB_shader_objects
-	if(mError)
-		goto programError;
-
 
 	int vertlen = 0, fraglen=0, proglen=0;
 	int vertstatus=0, fragstatus=0, progstatus=0;
 	unsigned int tmpVert=0, tmpFrag=0, tmpProg=0;
 	int char_len=0;
+
+	if(mError)
+		goto programError;
 
 	if(!vertProg || !fragProg){
 		spit("Invalid GLSL sources");
