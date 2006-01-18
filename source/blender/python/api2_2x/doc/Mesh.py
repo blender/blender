@@ -626,6 +626,9 @@ class Mesh:
     be set.  Furthermore, if vertexColors is already set when faceUV is set,
     vertexColors is cleared.  This is because the vertex color information
     is stored with UV faces, so enabling faceUV implies enabling vertexColors.
+    In addition, faceUV cannot be set when the mesh has no faces defined
+    (this is the same behavior as the UI).  Attempting to do so will throw
+    a RuntimeError exception.
   @type faceUV: bool
   @ivar vertexColors: The mesh contains vertex colors.  See L{faceUV} for the
     use of vertex colors when UV-mapped texture faces are enabled.

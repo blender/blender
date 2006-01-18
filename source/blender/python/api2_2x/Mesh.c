@@ -6042,8 +6042,12 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 				MEM_freeN( mesh->tface );
 				mesh->tface = NULL;
 			}
-		} else if( !mesh->tface )
+		} else if( !mesh->tface ) {
+			if( !mesh->totface )
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"mesh has no faces" );
 			make_tfaces( mesh );
+		}
 		return 0;
 	case MESH_HASMCOL:
 		if( !param ) {
