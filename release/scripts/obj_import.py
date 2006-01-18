@@ -408,20 +408,14 @@ def load_mtl(dir, mtl_file, meshDict, materialDict):
 # Returns unique name of object/mesh (preserve overwriting existing meshes) #
 #===========================================================================#
 def getUniqueName(name):
-	newName = name
+	newName = name[:19] # 19 chars is the longest name.
 	uniqueInt = 0
-	while 1:
-		try:
-			ob = Object.Get(newName)
-			# Okay, this is working, so lets make a new name
-			newName = '%s.%.3d' % (name, uniqueInt)
-			uniqueInt +=1
-		except ValueError:
-			if newName not in NMesh.GetNames():
-				return newName
-			else:
-				newName = '%s.%3d' % (name, uniqueInt)
-				uniqueInt +=1
+	while newName in getUniqueName.uniqueNames:
+		newName = '%s.%.3i' % (name[:15], uniqueInt)
+		uniqueInt +=1
+	getUniqueName.uniqueNames.append(newName)
+	return newName
+getUniqueName.uniqueNames = []
 
 #==================================================================================#
 # This loads data from .obj file                                                   #
@@ -431,6 +425,9 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	print '\nImporting OBJ file: "%s"' % file
 	
 	time1 = sys.time()
+	
+	getUniqueName.uniqueNames.extend( [ob.name for ob in Object.Get()] )
+	getUniqueName.uniqueNames.extend( NMesh.GetNames() )
 	
 	# Deselect all objects in the scene.
 	# do this first so we dont have to bother, with objects we import
