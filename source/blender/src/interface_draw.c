@@ -1209,12 +1209,18 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 /* super minimal button as used in logic menu */
 static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
-	
+	/* too much space between buttons */
+	/* 
 	x1+= asp;
 	x2-= asp;
 	y1+= asp;
 	y2-= asp;
-
+	*/
+	
+	/* Less space between buttons looks nicer */
+	y2-= asp;
+	x2-= asp;
+	
 	/* paper */
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) BIF_ThemeColorShade(colorid, -40);
