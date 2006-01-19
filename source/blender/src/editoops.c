@@ -335,6 +335,7 @@ void transform_oops(int mode, int context)
 			if(val) {
 				switch(event) {
 				case ESCKEY:
+				case RIGHTMOUSE:
 				case LEFTMOUSE:
 				case SPACEKEY:
 				case RETKEY:
@@ -358,7 +359,7 @@ void transform_oops(int mode, int context)
 		}
 	}
 	
-	if(event==ESCKEY) {
+	if(event==ESCKEY || event==RIGHTMOUSE) {
 		tv= transmain;
 		for(a=0; a<tot; a++, tv++) {
 			tv->loc[0]= tv->oldloc[0];
