@@ -82,8 +82,6 @@
 #include "constant.h"
 #include "gen_utils.h"
 
-#define MESH_TOOLS			/* add access to mesh tools */
-
 /* EXPP Mesh defines */
 
 #define MESH_SMOOTHRESH               30
@@ -5509,7 +5507,53 @@ static PyObject *Mesh_getVertGroupNames( BPy_Mesh * self )
 	return list;
 }
 
-#ifdef MESH_TOOLS
+static PyObject *Mesh_getVertexInfluences( BPy_Mesh * self, PyObject * args )
+{
+	int index;
+	PyObject *influence_list = NULL;
+	Object *object = self->object;
+	Mesh *me = self->mesh;
+
+	/* Get a reference to the mesh object wrapped in here. */
+	if( !object )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This mesh must be linked to an object" ); 
+
+	/* Parse the parameters: only on integer (vertex index) */
+	if( !PyArg_ParseTuple( args, "i", &index ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected int argument (index of the vertex)" );
+
+	/* check for valid index */
+	if( index < 0 || index >= me->totvert )
+		return EXPP_ReturnPyObjError( PyExc_IndexError,
+				"vertex index out of range" );
+
+	influence_list = PyList_New( 0 );
+
+	/* Proceed only if we have vertex deformation information */
+	if( me->dvert ) {
+		int i;
+		MDeformWeight *sweight = NULL;
+
+		/* Number of bones influencing the vertex */
+		int totinfluences = me->dvert[index].totweight;
+
+		/* Get the reference of the first weight structure */
+		sweight = me->dvert[index].dw;
+
+		/* Build the list only with weights and names of the influent bones */
+		for( i = 0; i < totinfluences; i++, sweight++ ) {
+			bDeformGroup *defgroup = BLI_findlink( &object->defbase,
+					sweight->def_nr );
+			if( defgroup )
+				PyList_Append( influence_list, Py_BuildValue( "[sf]",
+						defgroup->name, sweight->weight ) ); 
+		}
+	}
+
+	return influence_list;
+}
 
 static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
@@ -5711,8 +5755,6 @@ static PyObject *Mesh_fill( BPy_Mesh * self )
 	return Mesh_Tools( self, MESH_TOOL_FILL, NULL );
 }
 
-#endif
-
 static struct PyMethodDef BPy_Mesh_methods[] = {
 	{"calcNormals", (PyCFunction)Mesh_calcNormals, METH_NOARGS,
 		"all recalculate vertex normals"},
@@ -5740,10 +5782,10 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Rename an existing vertex group"},
 	{"getVertGroupNames", (PyCFunction)Mesh_getVertGroupNames, METH_NOARGS,
 		"Get names of vertex groups"},
+	{"getVertexInfluences", (PyCFunction)Mesh_getVertexInfluences, METH_VARARGS,
+		"Get list of the influences of bones for a given mesh vertex"},
 
-
-
-#ifdef MESH_TOOLS
+	/* Mesh tools */
 	{"smooth", (PyCFunction)Mesh_smooth, METH_NOARGS,
 		"Flattens angle of selected faces (experimental)"},
 	{"flipNormals", (PyCFunction)Mesh_flipNormals, METH_NOARGS,
@@ -5762,7 +5804,6 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Removes duplicates from selected vertices (experimental)"},
 	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
 		"Recalculates inside or outside normals (experimental)"},
-#endif
 	{NULL, NULL, 0, NULL}
 };
 

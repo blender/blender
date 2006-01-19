@@ -846,6 +846,16 @@ class Mesh:
     associated with the mesh's object
     """
 
+  def getVertexInfluences(index):
+    """
+    Get the bone influences for a specific vertex.
+    @type index: int
+    @param index: The index of a vertex.
+    @rtype: list of lists
+    @return: List of pairs [name, weight], where name is the bone name (string)
+        and weight is a float value.
+    """
+
   def smooth():
     """
     Flattens angle of selected faces. Experimental mesh tool.
