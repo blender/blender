@@ -2115,6 +2115,8 @@ void do_curvebuts(unsigned short event)
 
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSALL, 0);
+		allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 
 		break;
 	}
@@ -2268,8 +2270,8 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		}
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_MAKEDISP, "DefResolU:",	760,160,120,19, &cu->resolu, 1.0, 1024.0, 0, 0, "Default resolution");
-		uiDefBut(block, BUT, B_SETRESOLU, "Set",		880,160,30,19, 0, 0, 0, 0, 0, "Set resolution for interpolation");
+		uiDefButS(block, NUM, B_SETRESOLU, "DefResolU:",	760,160,150,19, &cu->resolu, 1.0, 1024.0, 0, 0, "Default resolution");
+		//uiDefBut(block, BUT, B_SETRESOLU, "Set",		880,160,30,19, 0, 0, 0, 0, 0, "Set resolution for interpolation");
 
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		760,90,150,19, &cu->width, 0.0, 2.0, 1, 0, "Make interpolated result thinner or fatter");
