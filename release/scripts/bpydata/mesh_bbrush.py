@@ -887,13 +887,17 @@ def event_main():
 	if FIX_TOPOLOGY:
 		fix_topolagy(me)
 	
-	Mesh.Mode(Mesh.SelectModes['VERTEX'])
-	filter(lambda v: setattr(v, 'sel', 1), me.verts)
-	me.remDoubles(0.001)
-	print 'removing doubles'
-	me = ob.getData(mesh=1) # Get new vert data
-	Blender.event = Draw.LEFTMOUSE
+	# Remove short edges of we have edaptive geometry enabled.
+	if ADAPTIVE_GEOMETRY:
+		Mesh.Mode(Mesh.SelectModes['VERTEX'])
+		filter(lambda v: setattr(v, 'sel', 1), me.verts)
+		me.remDoubles(0.001)
+		print 'removing doubles'
+		me = ob.getData(mesh=1) # Get new vert data
+		Blender.event = Draw.LEFTMOUSE
+
 	Mesh.Mode(Mesh.SelectModes['EDGE'])
+	
 	if i:
 		Window.EditMode(1)
 		if not is_editmode: # User was in edit mode, so stay there.
