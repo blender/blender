@@ -2179,6 +2179,7 @@ void special_aftertrans_update(TransInfo *t)
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWTIME, 0);
 			
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
@@ -2242,6 +2243,7 @@ void special_aftertrans_update(TransInfo *t)
 				allspace(REMAKEIPO, 0);
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWTIME, 0);
 			}
 			
 			base= base->next;
