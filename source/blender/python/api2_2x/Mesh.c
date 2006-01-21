@@ -1609,17 +1609,21 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		}
 		Py_INCREF( args );		/* so we can safely DECREF later */
 		break;
-	case 3:		/* take any three args and put into a tuple */
+	case 3:
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( !PySequence_Check( tmp ) )
+		/* if first item is not a number, it's wrong */
+		if( !PyNumber_Check( tmp ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected a sequence of sequence triplets" );
+
+		/* otherwise, put into a new tuple */
 		args = Py_BuildValue( "((OOO))", tmp,
 				PyTuple_GET_ITEM( args, 1 ), PyTuple_GET_ITEM( args, 2 ) );
 		if( !args )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"Py_BuildValue() failed" );
 		break;
+
 	default:	/* anything else is definitely wrong */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a sequence of sequence triplets" );
