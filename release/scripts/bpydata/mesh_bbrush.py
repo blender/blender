@@ -133,9 +133,8 @@ getPickRay.ortho_d = Vector(0,0,0,0) # ortho only 4d
 
 
 def ui_set_preferences(user_interface=1):
-	
 	# Create data and set defaults.
-	ADAPTIVE_GEOMETRY_but = Draw.Create(1)
+	ADAPTIVE_GEOMETRY_but = Draw.Create(0)
 	BRUSH_MODE_but = Draw.Create(1)
 	BRUSH_PRESSURE_but = Draw.Create(0.05)
 	BRUSH_RADIUS_but = Draw.Create(0.25)
@@ -411,11 +410,22 @@ def event_main():
 			#ed.flag &= ~SEL_FLAG # deselect. 34
 			ed.flag = 32
 		'''
-		filter(lambda ed: setattr(ed, 'flag', 32), me.edges)
+		#filter(lambda ed: setattr(ed, 'flag', 32), me.edges)
 		
 		'''for v in me.verts:
 			v.sel = 0'''
-		filter(lambda v: setattr(v, 'sel', 0), me.verts)
+		#filter(lambda v: setattr(v, 'sel', 0), me.verts)
+		# DESELECT ABSOLUTLY ALL
+		Mesh.Mode(Mesh.SelectModes['FACE'])
+		filter(lambda f: setattr(f, 'sel', 0), me.faces)
+		
+		Mesh.Mode(Mesh.SelectModes['EDGE'])
+		filter(lambda ed: setattr(ed, 'flag', 32), me.edges)
+		
+		Mesh.Mode(Mesh.SelectModes['VERTEX'])
+		filter(lambda v: setattr(v, 'sel', 0), me.verts)		
+		
+		Mesh.Mode(Mesh.SelectModes['EDGE'])
 		
 	i = 0
 	time = Blender.sys.time()
@@ -809,7 +819,8 @@ def event_main():
 							
 					if EDGE_COUNT:
 						me.subdivide(1)
-					
+						me = ob.getData(mesh=1)
+						filter(lambda ed: setattr(ed, 'flag', 32), me.edges)
 							
 					# Deselect all, we know theres only 2 selected
 					'''
