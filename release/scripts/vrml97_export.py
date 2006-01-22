@@ -648,7 +648,7 @@ class VRML2Export:
             return
         else:
             self.writeIndented("texture DEF %s ImageTexture {\n" % self.cleanStr(name), 1)
-            self.writeIndented("url \"%s\"\n" % filename.split("\\")[-1].split("/")[-1])
+            self.writeIndented("url \"%s\"\n" % name.split("\\")[-1].split("/")[-1])
             self.writeIndented("}\n",-1)
             self.texNames[name] = 1
 
