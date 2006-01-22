@@ -46,12 +46,6 @@ Run this script from "File->Export" menu to export all meshes.
 import Blender
 from Blender import Mesh, Scene, Window, sys, Image, Draw
 
-#==================================================#
-# New name based on old with a different extension #
-#==================================================#
-def newFName(ext):
-	return Blender.Get('filename')[: -len(Blender.Get('filename').split('.', -1)[-1]) ] + ext
-
 # Returns a tuple - path,extension.
 # 'hello.obj' >  ('hello', '.obj')
 def splitExt(path):
@@ -69,7 +63,7 @@ def fixName(name):
 
 # Used to add the scene name into the filename without using odd chars
 def saneFilechars(name):
-	for ch in ' /\\~!@#$%^&*()+=[];\':",./<>?':
+	for ch in ' /\\~!@#$%^&*()+=[];\':",./<>?\t\r\n':
 		name = name.replace(ch, '_')
 	return name
 
@@ -78,7 +72,7 @@ def sortPair(a,b):
 
 def getMeshFromObject(object, name=None, mesh=None):
 	if mesh:
-		mesh.verts = None # Clear the meshg
+		mesh.verts = None # Clear the mesh
 	else:
 		if not name:
 			mesh = Mesh.New()
@@ -90,7 +84,7 @@ def getMeshFromObject(object, name=None, mesh=None):
 	dataname = object.getData(1)
 	
 	try:
-		mesh.getFromObject(object.name) 
+		mesh.getFromObject(object.name)
 	except:
 		return None
 	
@@ -121,7 +115,7 @@ global MTL_DICT
 # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
 MTL_DICT = {} 
 
-def save_mtl(filename):
+def write_mtl(filename):
 	global MTL_DICT
 	
 	world = Blender.World.GetCurrent()
@@ -224,12 +218,16 @@ def copy_images(dest_dir):
 				copyCount+=1
 	print '\tCopied %d images' % copyCount
 	
-def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT_MTL=True, EXPORT_COPY_IMAGES=False, EXPORT_APPLY_MODIFIERS=True):
+def write(filename, objects,\
+EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,\
+EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
+EXPORT_APPLY_MODIFIERS=True,  EXPORT_BLEN_OBS=True,\
+EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	'''
-	Basic save function. The context and options must be alredy set
+	Basic write function. The context and options must be alredy set
 	This can be accessed externaly
 	eg.
-	save_obj( 'c:\\test\\foobar.obj', Blender.Object.GetSelected() ) # Using default options.
+	write( 'c:\\test\\foobar.obj', Blender.Object.GetSelected() ) # Using default options.
 	'''
 	print 'OBJ Export path: "%s"' % filename
 	global MTL_DICT
@@ -240,8 +238,8 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 	file = open(filename, "w")
 	
 	# Write Header
-	file.write('# Blender OBJ File: %s\n' % (Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
-	file.write('# www.blender.org\n')
+	file.write('# Blender v%s OBJ File: %s\n' % (Blender.Get('version'), Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
+	file.write('# www.blender3d.org\n')
 
 	# Tell the obj file what material file to use.
 	mtlfilename = '%s.mtl' % '.'.join(filename.split('.')[:-1])
@@ -276,6 +274,27 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 			m = getMeshFromObject(ob, temp_mesh_name, containerMesh)
 			if not m:
 				continue
+			
+			# We have a valid mesh
+			if m and EXPORT_APPLY_MODIFIERS and EXPORT_TRI:
+				# Add a dummy object to it.
+				oldmode = Mesh.Mode()
+				Mesh.Mode(Mesh.SelectModes['FACE'])
+				quadcount = 0
+				for f in m.faces:
+					if len(f.v) == 4:
+						f.sel = 1
+						quadcount +=1
+				
+				if quadcount:
+					tempob = Blender.Object.New('Mesh')
+					tempob.link(m)
+					scn.link(tempob)
+					m.quadToTriangle(0) # more=0 shortest length
+					oldmode = Mesh.Mode(oldmode)
+					scn.unlink(tempob)
+				Mesh.Mode(oldmode)
+				
 		else: # We are a mesh. get the data.
 			m = ob.getData(mesh=1)
 		
@@ -307,7 +326,7 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 		
 		# Sort by Material, then images
 		# so we dont over context switch in the obj file.
-		if m.faceUV:
+		if m.faceUV and EXPORT_UV:
 			faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
 		else:
 			faces.sort(lambda a,b: cmp((a.mat, a.smooth), (b.mat, b.smooth)))
@@ -317,14 +336,20 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 		contextMat = (0, 0) # Can never be this, so we will label a new material teh first chance we get.
 		contextSmooth = None # Will either be true or false,  set bad to force initialization switch.
 		
-		file.write('o %s_%s\n' % (fixName(ob.name), fixName(m.name))) # Write Object name
+		if EXPORT_BLEN_OBS or EXPORT_GROUP_BY_OB:
+			obnamestring = '%s_%s' % (fixName(ob.name), fixName(ob.getData(1)))
+			if EXPORT_BLEN_OBS:
+				file.write('o %s\n' % obnamestring) # Write Object name
+			else: # if EXPORT_GROUP_BY_OB:
+				file.write('g %s\n' % obnamestring)
+			
 		
 		# Vert
 		for v in m.verts:
 			file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
 		
 		# UV
-		if m.faceUV:
+		if m.faceUV and EXPORT_UV:
 			for f in faces:
 				for uvKey in f.uv:
 					uvKey = tuple(uvKey)
@@ -356,7 +381,7 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 		for f in faces:
 			
 			# MAKE KEY
-			if m.faceUV and f.image: # Object is always true.
+			if EXPORT_UV and m.faceUV and f.image: # Object is always true.
 				key = materialNames[f.mat],  f.image.name
 			else:
 				key = materialNames[f.mat],  None # No image, use None instead.
@@ -364,31 +389,34 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 			# CHECK FOR CONTEXT SWITCH
 			if key == contextMat:
 				pass # Context alredy switched, dont do anythoing
-			elif key[0] == None and key[1] == None:
-				# Write a null material, since we know the context has changed.
-				file.write('usemtl (null)\n') # mat, image
-				
 			else:
-				try: # Faster to try then 2x dict lookups.
+				if key[0] == None and key[1] == None:
+					# Write a null material, since we know the context has changed.
+					matstring = '(null)'
+					file.write('usemtl (null)\n') # mat, image
 					
-					# We have the material, just need to write the context switch,
-					file.write('usemtl %s\n' % MTL_DICT[key]) # mat, image
-					
-				except KeyError:
-					# First add to global dict so we can export to mtl
-					# Then write mtl
-					
-					# Make a new names from the mat and image name,
-					# converting any spaces to underscores with fixName.
-					
-					# If none image dont bother adding it to the name
-					if key[1] == None:
-						tmp_matname = MTL_DICT[key] ='%s' % fixName(key[0])
-						file.write('usemtl %s\n' % tmp_matname) # mat, image
+				else:
+					try: # Faster to try then 2x dict lookups.
+						# We have the material, just need to write the context switch,
+						matstring = MTL_DICT[key]
 						
-					else:
-						tmp_matname = MTL_DICT[key] = '%s_%s' % (fixName(key[0]), fixName(key[1]))
-						file.write('usemtl %s\n' % tmp_matname) # mat, image
+						
+					except KeyError:
+						# First add to global dict so we can export to mtl
+						# Then write mtl
+						
+						# Make a new names from the mat and image name,
+						# converting any spaces to underscores with fixName.
+						
+						# If none image dont bother adding it to the name
+						if key[1] == None:
+							matstring = MTL_DICT[key] ='%s' % fixName(key[0])
+						else:
+							matstring = MTL_DICT[key] = '%s_%s' % (fixName(key[0]), fixName(key[1]))
+				
+				if EXPORT_GROUP_BY_MAT:
+					file.write('g %s_%s_%s\n' % (fixName(ob.name), fixName(ob.getData(1)), matstring) ) # can be mat_image or (null)
+				file.write('usemtl %s\n' % matstring) # can be mat_image or (null)
 				
 			contextMat = key
 			
@@ -400,7 +428,7 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 				contextSmooth = f.smooth
 			
 			file.write('f')
-			if m.faceUV:
+			if m.faceUV and EXPORT_UV:
 				if EXPORT_NORMALS:
 					if f.smooth: # Smoothed, use vertex normals
 						for vi, v in enumerate(f.v):
@@ -466,7 +494,7 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 	
 	# Now we have all our materials, save them
 	if EXPORT_MTL:
-		save_mtl(mtlfilename)
+		write_mtl(mtlfilename)
 	if EXPORT_COPY_IMAGES:
 		dest_dir = filename
 		# Remove chars until we are just the path.
@@ -480,36 +508,45 @@ def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT
 	print "OBJ Export time: %.2f" % (sys.time() - time1)
 	
 	
-	
-	
-	
-	
 
-def save_obj_ui(filename):
+def write_ui(filename):
 	
 	for s in Window.GetScreenInfo():
 		Window.QHandle(s['id'])
 	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
-	EXPORT_SEL_ONLY = Draw.Create(0)
+	EXPORT_TRI = Draw.Create(0)
 	EXPORT_EDGES = Draw.Create(0)
 	EXPORT_NORMALS = Draw.Create(0)
+	EXPORT_UV = Draw.Create(1)
 	EXPORT_MTL = Draw.Create(1)
+	EXPORT_SEL_ONLY = Draw.Create(1)
 	EXPORT_ALL_SCENES = Draw.Create(0)
 	EXPORT_ANIMATION = Draw.Create(0)
 	EXPORT_COPY_IMAGES = Draw.Create(0)
+	EXPORT_BLEN_OBS = Draw.Create(1)
+	EXPORT_GROUP_BY_OB = Draw.Create(0)
+	EXPORT_GROUP_BY_MAT = Draw.Create(0)
 	
 	
 	# Get USER Options
 	pup_block = [\
+	('Mesh Options...'),\
 	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object. May break vert order for morph targets.'),\
-	('Selection Only', EXPORT_SEL_ONLY, 'Only export objects in visible selection.'),\
+	('Triangulate', EXPORT_TRI, 'Triangulate quads (Depends on "Apply Modifiers").'),\
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
+	('UVs', EXPORT_UV, 'Export texface UV coords.'),\
 	('Materials', EXPORT_MTL, 'Write a seperate MTL file with the OBJ.'),\
+	('Context...'),\
+	('Selection Only', EXPORT_SEL_ONLY, 'Only export objects in visible selection. Else export whole scene.'),\
 	('All Scenes', EXPORT_ALL_SCENES, 'Each scene as a seperate OBJ file.'),\
-	('Animation', EXPORT_ANIMATION, 'Each frame as a seperate OBJ file.'),\
-	('Copy Images', EXPORT_COPY_IMAGES, 'Copy image files to the export directory, never everwrite.'),\
+	('Animation', EXPORT_ANIMATION, 'Each frame as a numbered OBJ file.'),\
+	('Copy Images', EXPORT_COPY_IMAGES, 'Copy image files to the export directory, never overwrite.'),\
+	('Grouping...'),\
+	('Objects', EXPORT_BLEN_OBS, 'Export blender objects as OBJ objects.'),\
+	('Object Groups', EXPORT_GROUP_BY_OB, 'Export blender objects as OBJ groups.'),\
+	('Material Groups', EXPORT_GROUP_BY_MAT, 'Group by materials.'),\
 	]
 	
 	if not Draw.PupBlock('Export...', pup_block):
@@ -518,21 +555,26 @@ def save_obj_ui(filename):
 	Window.WaitCursor(1)
 	
 	EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
-	EXPORT_SEL_ONLY = EXPORT_SEL_ONLY.val
+	EXPORT_TRI = EXPORT_TRI.val
 	EXPORT_EDGES = EXPORT_EDGES.val
 	EXPORT_NORMALS = EXPORT_NORMALS.val
+	EXPORT_UV = EXPORT_UV.val
 	EXPORT_MTL = EXPORT_MTL.val
+	EXPORT_SEL_ONLY = EXPORT_SEL_ONLY.val
 	EXPORT_ALL_SCENES = EXPORT_ALL_SCENES.val
 	EXPORT_ANIMATION = EXPORT_ANIMATION.val
 	EXPORT_COPY_IMAGES = EXPORT_COPY_IMAGES.val
+	EXPORT_BLEN_OBS = EXPORT_BLEN_OBS.val
+	EXPORT_GROUP_BY_OB = EXPORT_GROUP_BY_OB.val
+	EXPORT_GROUP_BY_MAT = EXPORT_GROUP_BY_MAT.val
 	
 	
 	
 	base_name, ext = splitExt(filename)
 	context_name = [base_name, '', '', ext] # basename, scene_name, framenumber, extension
 	
-	# Use the options to export the data using save_obj()
-	# def save_obj(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT_MTL=True, EXPORT_COPY_IMAGES=False, EXPORT_APPLY_MODIFIERS=True):
+	# Use the options to export the data using write()
+	# def write(filename, objects, EXPORT_EDGES=False, EXPORT_NORMALS=False, EXPORT_MTL=True, EXPORT_COPY_IMAGES=False, EXPORT_APPLY_MODIFIERS=True):
 	orig_scene = Scene.GetCurrent()
 	if EXPORT_ALL_SCENES:
 		export_scenes = Scene.Get()
@@ -561,19 +603,23 @@ def save_obj_ui(filename):
 			
 			Blender.Set('curframe', frame)
 			if EXPORT_SEL_ONLY:
-				export_objects = Object.GetSelected() # Export Context
-			else:
+				export_objects = Blender.Object.GetSelected() # Export Context
+			else:	
 				export_objects = scn.getChildren()
 			
-			# EXPORTTHE FILE.
-			save_obj(''.join(context_name), export_objects, EXPORT_EDGES, EXPORT_NORMALS, EXPORT_MTL, EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS)
+			# EXPORT THE FILE.
+			write(''.join(context_name), export_objects,\
+			EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
+			EXPORT_UV, EXPORT_MTL, EXPORT_COPY_IMAGES,\
+			EXPORT_APPLY_MODIFIERS,\
+			EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT)
 		
 		Blender.Set('curframe', orig_frame)
 	
 	# Restore old active scene.
 	orig_scene.makeCurrent()
 	Window.WaitCursor(0)
-	
-	
 
-Window.FileSelector(save_obj_ui, 'Export Wavefront OBJ', newFName('obj'))
+
+if __name__ == '__main__':
+	Window.FileSelector(write_ui, 'Export Wavefront OBJ', sys.makename(ext='.obj'))
