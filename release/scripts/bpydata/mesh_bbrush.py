@@ -165,8 +165,8 @@ def ui_set_preferences(user_interface=1):
 		'Brush Options',\
 		('Adaptive Geometry', ADAPTIVE_GEOMETRY_but, 'Add and remove detail as needed. Uses min/max resolution.'),\
 		('Brush Type: ', BRUSH_MODE_but, 1, 5, 'Push/Pull:1, Grow/Shrink:2, Spin:3, Relax:4, Goo:5'),\
-		('Pressure: ', BRUSH_PRESSURE_but, 0.0, 1.0, 'Pressure of the brush.'),\
-		('Size: ', BRUSH_RADIUS_but, 0.0, 2.0, 'Size of the brush.'),\
+		('Pressure: ', BRUSH_PRESSURE_but, 0.01, 1.0, 'Pressure of the brush.'),\
+		('Size: ', BRUSH_RADIUS_but, 0.02, 2.0, 'Size of the brush.'),\
 		('Geometry Res: ', RESOLUTION_MIN_but, 0.01, 0.5, 'Size of the brush & Adaptive Subdivision.'),\
 		('Displace Vector: ', DISPLACE_NORMAL_MODE_but, 1, 4, 'Vertex Normal:1, Median Normal:2, Face Normal:3, View Normal:4'),\
 		('Static Normal', STATIC_NORMAL_but, 'Use the initial normal only.'),\
