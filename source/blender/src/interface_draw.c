@@ -1755,10 +1755,15 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	unsigned char ustr[16];
 	PackedFile *pf;
 	int result = 0;
+	int charmax = G.charmax;
+
+	/* <builtin> font in use */
+	if(!strcmp(G.selfont->name, "<builtin>"))
+		charmax = 0xff;
 
 	/* Category list exited without selecting the area */
 	if(G.charmax == 0)
-		G.charmax = 0xffff;
+		charmax = G.charmax = 0xffff;
 
 	/* Calculate the size of the button */
 	width = abs(but->x2 - but->x1);
@@ -1792,7 +1797,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 			strcpy(tmpStr, G.selfont->name);
 			BLI_convertstringcode(tmpStr, G.sce, 0);
-			err = FTF_SetFont(tmpStr, 0, 14.0);
+			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
 		}
 	}
 
@@ -1806,12 +1811,12 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	for(y = 0; y < 6; y++)
 	{
 		// Do not draw more than the category allows
-		if(cs > G.charmax) break;
+		if(cs > charmax) break;
 
 		for(x = 0; x < 12; x++)
 		{
 			// Do not draw more than the category allows
-			if(cs > G.charmax) break;
+			if(cs > charmax) break;
 
 			// Draw one grid cell
 			glBegin(GL_LINE_LOOP);
@@ -1824,9 +1829,18 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			// Draw character inside the cell
 			memset(wstr, 0, sizeof(wchar_t)*2);
 			memset(ustr, 0, 16);
-			
+
+			// Set the font to be either unicode or <builtin>				
 			wstr[0] = cs;
-			wcs2utf8s(ustr, wstr);
+			if(strcmp(G.selfont->name, "<builtin>"))
+			{
+				wcs2utf8s((char *)ustr, (wchar_t *)wstr);
+			}
+			else
+			{
+				ustr[0] = cs;
+				ustr[1] = 0;
+			}
 
 			if(G.selfont && strcmp(G.selfont->name, "<builtin>"))
 			{
@@ -1836,8 +1850,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 				float px, py;
 	
 				// Calculate the position
-				wid = FTF_GetStringWidth(ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
-				FTF_GetBoundingBox(ustr, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				wid = FTF_GetStringWidth((char *) ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				FTF_GetBoundingBox((char *) ustr, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 				dx = urx-llx;
 				dy = ury-lly;
 
@@ -1847,12 +1861,12 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 				// Set the position and draw the character
 				ui_rasterpos_safe(px, py, but->aspect);
-				FTF_DrawString(ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				FTF_DrawString((char *) ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
 			}
 			else
 			{
 				ui_rasterpos_safe(sx + butw/2, sy + buth/2, but->aspect);
-				BIF_DrawString(but->font, ustr, 0);
+				BIF_DrawString(but->font, (char *) ustr, 0);
 			}
 	
 			// Calculate the next position and character
@@ -1870,16 +1884,16 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	/* Return Font Settings to original */
 	if(U.fontsize && U.fontname[0])
 	{
-		result = FTF_SetFont(U.fontname, 0, U.fontsize);
+		result = FTF_SetFont((unsigned char *)U.fontname, 0, U.fontsize);
 	}
 	else if (U.fontsize)
 	{
-		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
+		result = FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
 	}
 
 	if (result == 0)
 	{
-		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, 11);
+		result = FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, 11);
 	}
 }
 
