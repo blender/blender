@@ -4,27 +4,21 @@ Import ('library_env')
 
 render_env = library_env.Copy ()
 
-source_files = ['intern/source/RE_callbacks.c',
+source_files = ['intern/source/convertblender.c',
                 'intern/source/edgeRender.c',
                 'intern/source/envmap.c',
-                'intern/source/errorHandler.c',
                 'intern/source/gammaCorrectionTables.c',
                 'intern/source/imagetexture.c',
                 'intern/source/initrender.c',
-                'intern/source/jitter.c',
                 'intern/source/pixelblending.c',
                 'intern/source/pixelshading.c',
+		'intern/source/pipeline.c',
                 'intern/source/ray.c',
-                'intern/source/renderHelp.c',
-                'intern/source/renderPreAndPost.c',
                 'intern/source/rendercore.c',
                 'intern/source/renderdatabase.c',
                 'intern/source/shadbuf.c',
                 'intern/source/texture.c',
-                'intern/source/vanillaRenderPipe.c',
-		'intern/source/zblur.c',
-                'intern/source/zbuf.c',
-                'intern/source/zbufferdatastruct.c']
+                'intern/source/zbuf.c']
 
 
 render_env.Append (CPPPATH = ['intern/include',
