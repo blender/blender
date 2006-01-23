@@ -1756,6 +1756,10 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	PackedFile *pf;
 	int result = 0;
 
+	/* Category list exited without selecting the area */
+	if(G.charmax == 0)
+		G.charmax = 0xffff;
+
 	/* Calculate the size of the button */
 	width = abs(but->x2 - but->x1);
 	height = abs(but->y2 - but->y1);
