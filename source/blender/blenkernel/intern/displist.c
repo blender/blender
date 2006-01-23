@@ -310,7 +310,7 @@ static void initfastshade(void)
 	Mat4Invert(fviewmat, R.viewinv);
 
 	/* initrendertexture(); */
-	setscene = G.scene->set;
+	setscene = G.scene;
 	base= G.scene->base.first;
 	while(base) {
 		ob= base->object;
