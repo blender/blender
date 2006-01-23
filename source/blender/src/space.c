@@ -4768,6 +4768,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 				if(vd->bgpic->ima) vd->bgpic->ima->id.us++;
 			}
 			vd->clipbb= MEM_dupallocN(vd->clipbb);
+			vd->ri= NULL;
 		}
 		else if(sl->spacetype==SPACE_IMAGE) {
 			SpaceImage *sima= (SpaceImage *)sl;
