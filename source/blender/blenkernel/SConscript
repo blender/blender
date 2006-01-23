@@ -46,6 +46,7 @@ source_files = ['intern/constraint.c',
                 'intern/softbody.c',
 		'intern/node.c',
 		'intern/node_shaders.c',
+		'intern/node_composit.c',
 		'intern/colortools.c',
                 'intern/texture.c']
 
@@ -60,6 +61,7 @@ blenkernel_env.Append (CPPPATH = ['.',
                                   '../../../intern/decimation/extern',
                                   '../imbuf',
                                   '../avi',
+ 	                          '../quicktime',
                                   '#/intern/elbeem/extern',
                                   '#/intern/iksolver/extern',
                                   '../blenloader'])

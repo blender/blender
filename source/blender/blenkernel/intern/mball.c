@@ -30,8 +30,6 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
  * Contributor(s): Jiri Hnidek <jiri.hnidek@vslib.cz>.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
@@ -1106,7 +1104,6 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 	}
 	
 	if(FALSE) {
-	/* if(R.flag & R_RENDERING) { */
 		MB_POINT temp;
 		
 		delta*= 2.0;
@@ -2002,7 +1999,7 @@ void metaball_polygonize(Object *ob)
 	mb= ob->data;
 
 	if(totelem==0) return;
-	if(!(R.flag & R_RENDERING) && (mb->flag==MB_UPDATE_NEVER)) return;
+	if(!(G.rendering) && (mb->flag==MB_UPDATE_NEVER)) return;
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	freedisplist(&ob->disp);
@@ -2029,7 +2026,7 @@ void metaball_polygonize(Object *ob)
 	if(totelem > 1024) init_metaball_octal_tree(5);
 
 	/* width is size per polygonize cube */
-	if(R.flag & R_RENDERING) width= mb->rendersize;
+	if(G.rendering) width= mb->rendersize;
 	else {
 		width= mb->wiresize;
 		if(G.moving && mb->flag==MB_UPDATE_HALFRES) width*= 2;

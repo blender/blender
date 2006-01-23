@@ -381,6 +381,7 @@
 /* NODE: 851-900 */
 #define B_NODEHOME			851
 #define B_NODE_USEMAT		852
+#define B_NODE_USESCENE		853
 
 /* FREE 901 - 999 */
 

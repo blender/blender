@@ -108,7 +108,7 @@ void free_matcopybuf(void)
 	matcopybuf.ramp_col= NULL;
 	matcopybuf.ramp_spec= NULL;
 	
-	BLI_freelistN(&matcopybuf.layers);
+	ntreeFreeTree(matcopybuf.nodetree);
 	
 	default_mtex(&mtexcopybuf);
 }
@@ -118,7 +118,6 @@ void do_buts_buttons(short event)
 	static short matcopied=0;
 	MTex *mtex;
 	Material *ma;
-	MaterialLayer *ml;
 	ID id;
 	int a;
 	float dx, dy;
@@ -166,7 +165,7 @@ void do_buts_buttons(short event)
 					matcopybuf.mtex[a]= MEM_dupallocN(mtex);
 				}
 			}
-			duplicatelist(&matcopybuf.layers, &ma->layers);
+			matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
 			
 			matcopied= 1;
 		}
@@ -183,11 +182,7 @@ void do_buts_buttons(short event)
 				if(mtex && mtex->tex) mtex->tex->id.us--;
 				if(mtex) MEM_freeN(mtex);
 			}
-			for(ml= ma->layers.first; ml; ml= ml->next)
-				if(ml->mat) ml->mat->id.us--;
 
-			BLI_freelistN(&ma->layers);
-			
 			id= (ma->id);
 			memcpy(G.buts->lockpoin, &matcopybuf, sizeof(Material));
 			(ma->id)= id;
@@ -202,11 +197,9 @@ void do_buts_buttons(short event)
 					if(mtex->tex) id_us_plus((ID *)mtex->tex);
 				}
 			}
-			duplicatelist(&ma->layers, &matcopybuf.layers);
+			ntreeFreeTree(ma->nodetree);
+			ma->nodetree= ntreeCopyTree(matcopybuf.nodetree, 0);
 
-			for(ml= ma->layers.first; ml; ml= ml->next)
-				if(ml->mat) ml->mat->id.us++;
-			
 			BIF_preview_changed(ID_MA);
 			BIF_undo_push("Paste material settings");
 			scrarea_queue_winredraw(curarea);

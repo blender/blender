@@ -52,7 +52,9 @@ float				curvemap_evaluateF(struct CurveMap *cuma, float value);
 float				curvemapping_evaluateF(struct CurveMapping *cumap, int cur, float value);
 void				curvemapping_evaluate3F(struct CurveMapping *cumap, float *vecout, const float *vecin);
 void				curvemapping_evaluateRGBF(struct CurveMapping *cumap, float *vecout, const float *vecin);
+void				curvemapping_evaluate_premulRGBF(struct CurveMapping *cumap, float *vecout, const float *vecin);
 void				curvemapping_do_image(struct CurveMapping *cumap, struct Image *ima);
+void				curvemapping_premultiply(struct CurveMapping *cumap, int restore);
 
 #endif
 

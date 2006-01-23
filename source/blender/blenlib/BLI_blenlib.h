@@ -93,6 +93,7 @@ extern "C" {
 char *BLI_gethome(void);
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
+void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(char *string, char *dir, char *file);
 int BLI_testextensie(char *str, char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);
@@ -277,13 +278,15 @@ char *BLI_last_slash(char *string);
  *
  * @return True if @a rect is empty.
  */
-int BLI_rcti_is_empty(struct rcti * rect);
+int  BLI_rcti_is_empty(struct rcti * rect);
 void BLI_init_rctf(struct rctf *rect, float xmin, float xmax, float ymin, float ymax);
+void BLI_init_rcti(struct rcti *rect, int xmin, int xmax, int ymin, int ymax);
+void BLI_translate_rctf(struct rctf *rect, float x, float y);
+void BLI_translate_rcti(struct rcti *rect, int x, int y);
 int  BLI_in_rcti(struct rcti * rect, int x, int y);
 int  BLI_in_rctf(struct rctf *rect, float x, float y);
 int  BLI_isect_rctf(struct rctf *src1, struct rctf *src2, struct rctf *dest);
-/* why oh why doesn't this work? */
-//void BLI_union_rctf(struct rctf *rct1, struct rctf *rct2);
+int  BLI_isect_rcti(struct rcti *src1, struct rcti *src2, struct rcti *dest);
 void BLI_union_rctf(struct rctf *rcta, struct rctf *rctb);
 
 /* scanfill.c: used in displist only... */
@@ -336,6 +339,7 @@ void BLI_setInterruptCallBack(int (*f)(void));
 
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);
+void BLI_timestr(double time, char *str);
 
 #define PRNTSUB(type,arg)			printf(#arg ": %" #type " ", arg)
 

@@ -47,9 +47,10 @@ typedef struct bNodeStack {
 	float vec[4];
 	float min, max;			/* min/max for values (UI writes it, execute might use it) */
 	void *data;
-	short hasinput;			/* hasinput is tagged before executing */
+	short hasinput;			/* when input has link, tagged before executing */
+	short hasoutput;		/* when output is linked, tagged before executing */
 	short datatype;			/* type of data pointer */
-	int pad1;
+	short pad1;
 } bNodeStack;
 
 /* ns->datatype, shadetree only */
@@ -157,7 +158,8 @@ typedef struct bNodeTree {
 	bNodeStack *stack1;				/* for other thread, easy to expand though... */
 	
 	int type, init;					/* set init on fileread */
-	int cur_index, pad;				/* sockets in groups have unique identifiers, adding new sockets always will increase this counter */
+	int stacksize;					/* amount of elements in stack */
+	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always will increase this counter */
 	struct bNodeType **alltypes;	/* type definitions, set on fileread, no read/write */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
 	

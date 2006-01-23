@@ -1,17 +1,12 @@
-/* texture.c
- *
- *
+/*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,21 +20,15 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributor(s): 2004-2006, Blender Foundation, full recode
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include "MTC_matrixops.h"
 
@@ -70,10 +59,18 @@
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 
-#include "render.h"
+#include "renderpipeline.h"
+#include "render_types.h"
 #include "rendercore.h"
 #include "envmap.h"
 #include "texture.h"
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 
 /* prototypes */
 static int calcimanr(int cfra, Tex *tex);
@@ -174,12 +171,6 @@ void init_render_texture(Tex *tex)
 			}
 		}
 	}
-	if(tex->imaflag & (TEX_ANTIALI+TEX_ANTISCALE)) {
-		if(tex->ima && tex->ima->lastquality<R.osa) {
-			if(tex->ima->ibuf) IMB_freeImBuf(tex->ima->ibuf);
-			tex->ima->ibuf= 0;
-		}
-	}
 	
 	if(tex->type==TEX_PLUGIN) {
 		if(tex->plugin && tex->plugin->doit) {
@@ -194,8 +185,8 @@ void init_render_texture(Tex *tex)
 		tex->extend= TEX_CLIP;
 		
 		if(tex->env) {
-			if(R.flag & R_RENDERING) {
-				if(tex->env->stype==ENV_ANIM) RE_free_envmapdata(tex->env);
+			if(G.rendering) {
+				if(tex->env->stype==ENV_ANIM) BKE_free_envmapdata(tex->env);
 			}
 		}
 	}
@@ -1229,34 +1220,6 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRes
 			retval |= 1;
 		}
 	}
-	return retval;
-}
-
-/* preview render */
-int multitex_ext(Tex *tex, float *texvec, float *tin, float *tr, float *tg, float *tb, float *ta)
-{
-	TexResult texr;
-	float dummy[3];
-	int retval;
-	
-	/* does not return Tin, hackish... */
-	if(tex->type==TEX_STUCCI) {
-		texr.nor= dummy;
-		dummy[0]= 1.0;
-		dummy[1]= dummy[2]= 0.0;
-	}
-	else texr.nor= NULL;
-	
-	retval= multitex(tex, texvec, NULL, NULL, 0, &texr);
-	if(tex->type==TEX_STUCCI) {
-		*tin= 0.5 + 0.7*texr.nor[0];
-		CLAMP(*tin, 0.0, 1.0);
-	}
-	else *tin= texr.tin;
-	*tr= texr.tr;
-	*tg= texr.tg;
-	*tb= texr.tb;
-	*ta= texr.ta;
 	return retval;
 }
 

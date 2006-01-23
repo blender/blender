@@ -53,6 +53,7 @@ struct SpaceOops;
 #define VIEW3D_HANDLER_BACKGROUND	1
 #define VIEW3D_HANDLER_PROPERTIES	2
 #define VIEW3D_HANDLER_OBJECT		3
+#define VIEW3D_HANDLER_PREVIEW		4
 
 /* ipo handler codes */
 #define IPO_HANDLER_PROPERTIES	20
@@ -106,7 +107,7 @@ extern       void extern_set_butspace(int fkey);
 extern       void force_draw(int header);
 extern		 void force_draw_all(int header);
 extern		 void force_draw_plus(int type, int header);
-extern       void freespacelist(struct ListBase *lb);
+extern       void freespacelist(struct ScrArea *sa);
 extern       void handle_view3d_around(void);
 extern       void handle_view3d_lock(void);
 extern       void init_v2d_oops(struct ScrArea *, struct SpaceOops *);

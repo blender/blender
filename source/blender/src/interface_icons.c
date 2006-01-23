@@ -83,11 +83,8 @@
 
 #include "PIL_time.h"
 
-#include "RE_renderconverter.h"
-
 #include "blendef.h"	// CLAMP
 #include "datatoc.h"
-#include "render.h"
 #include "mydevice.h"
 
 /* OpenGL textures have to be size 2n+2 x 2m+2 for some n,m */
@@ -635,9 +632,12 @@ static void icon_from_image(Image* img, RenderInfo* ri, unsigned int w, unsigned
 		memset(ri->rect, 0xFF, w*h*sizeof(unsigned int));
 	}
 	
-	if(img->ibuf==NULL) {
-		load_image(img, IB_rect, G.sce, G.scene->r.cfra);
+	/* bail out now... loading and reducing images is too expensive */
+	if(img->ibuf==NULL || img->ibuf->rect==NULL) {
+		return;
+//		load_image(img, IB_rect, G.sce, G.scene->r.cfra);
 	}
+	
 	ima = IMB_dupImBuf(img->ibuf);
 	
 	if (!ima) 

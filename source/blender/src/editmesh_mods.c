@@ -91,9 +91,10 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "RE_render_ext.h"  // externtex
+
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"  // externtex
 
 #include "editmesh.h"
 

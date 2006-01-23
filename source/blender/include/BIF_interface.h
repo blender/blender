@@ -93,6 +93,7 @@ struct ScrArea;
 #define UI_PNL_STOW		64
 #define UI_PNL_TO_MOUSE	128
 #define UI_PNL_UNSTOW	256
+#define UI_PNL_SCALE	512
 
 /* warning the first 4 flags are internal */
 /* but->flag */
@@ -288,7 +289,7 @@ void	uiButSetFunc		(uiBut *but,		void (*func)(void *arg1, void *arg2), void *arg
 
 void	uiButSetCompleteFunc(uiBut *but,		void (*func)(char *str, void *arg), void *arg);
 
-void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)());
+void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct ScrArea *sa, uiBlock *block));
 
 
 extern void pupmenu_set_active(int val);

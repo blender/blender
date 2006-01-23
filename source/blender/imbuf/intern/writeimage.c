@@ -65,6 +65,8 @@
 #include "IMB_bitplanes.h"
 #include "IMB_divers.h"
 
+/* added facility to copy with saving non-float rects */
+
 short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 {
 	short ok=TRUE,delpl=FALSE;
@@ -75,24 +77,36 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 
 	/* Put formats that take a filename here */
 	if (IS_jpg(ibuf)) {
+		if(ibuf->rect==NULL && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 		return imb_savejpeg(ibuf, name, flags);
 	}
 	if (IS_radhdr(ibuf)) {
 		return imb_savehdr(ibuf, name, flags);
 	}
 	if (IS_png(ibuf)) {
+		if(ibuf->rect==NULL && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 		return imb_savepng(ibuf, name, flags);
 	}
 	if (IS_bmp(ibuf)) {
+		if(ibuf->rect==NULL && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 		return imb_savebmp(ibuf, name, flags);
 	}
 	if (IS_tga(ibuf)) {
+		if(ibuf->rect==NULL && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 		return imb_savetarga(ibuf, name, flags);
 	}
 	if (IS_iris(ibuf)) {
+		if(ibuf->rect==NULL && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 		return imb_saveiris(ibuf, name, flags);
 	}
 	if (G.have_libtiff && IS_tiff(ibuf)) {
+		if(ibuf->rect==NULL && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 		return imb_savetiff(ibuf, name, flags);
 	}
 #ifdef WITH_OPENEXR

@@ -43,6 +43,7 @@ struct bNode;
 struct bNodeTree;
 struct Material;
 struct ID;
+struct Scene;
 
 /* ************* API for editnode.c *********** */
 
@@ -58,8 +59,11 @@ void snode_set_context(struct SpaceNode *snode);
 void node_deselectall(struct SpaceNode *snode, int swap);
 void node_transform_ext(int mode, int unused);
 void node_shader_default(struct Material *ma);
+void node_composit_default(struct Scene *scene);
 
 int node_has_hidden_sockets(struct bNode *node);
+
+struct bNode *node_add_node(struct SpaceNode *snode, int type, float locx, float locy);
 
 /* ************* drawnode.c *************** */
 void node_draw_link(struct SpaceNode *snode, struct bNodeLink *link);
@@ -68,7 +72,6 @@ void init_node_butfuncs(void);
 
 /* ************* Shader nodes ***************** */
 
-struct bNode *node_add_shadernode(struct SpaceNode *snode, int type, float locx, float locy);
 
 #endif
 

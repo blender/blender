@@ -41,6 +41,7 @@ struct LampRen;
 struct ColorBand;
 struct HaloRen;
 struct TexMapping;
+struct EnvMap;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 16
@@ -64,6 +65,13 @@ struct Tex *give_current_texture(struct Object *ob, int act);
 
 struct TexMapping *add_mapping(void);
 void init_mapping(struct TexMapping *texmap);
+
+
+void    BKE_free_envmapdata(struct EnvMap *env);
+void    BKE_free_envmap(struct EnvMap *env);
+struct EnvMap *BKE_add_envmap(void);
+struct EnvMap *BKE_copy_envmap(struct EnvMap *env);
+
 
 #endif
 

@@ -197,8 +197,8 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			ptr = (unsigned char *)strchr((char*)&mem[x+1], '\n');
 			ptr++;
 
-			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 24, 0, 0);
-			else ibuf = IMB_allocImBuf(width, height, 24, IB_rect|IB_rectfloat, 0);
+			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
+			else ibuf = IMB_allocImBuf(width, height, 32, IB_rect|IB_rectfloat, 0);
 
 			if (ibuf==NULL) return NULL;
 			ibuf->ftype = RADHDR;
@@ -224,7 +224,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 					*rect_float++ = fcol[RED];
 					*rect_float++ = fcol[GRN];
 					*rect_float++ = fcol[BLU];
-					*rect_float++ = 255;
+					*rect_float++ = 1.0f;
 
 					/* Also old oldstyle for the rest of blender which is not using floats yet */
 /* very weird mapping! (ton) */
@@ -339,19 +339,28 @@ static void writeHeader(FILE *file, int width, int height)
 
 short imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
 {
-	int y, width=ibuf->x, height=ibuf->y;
 	FILE* file = fopen(name, "wb");
-
+	float *fp= NULL;
+	int y, width=ibuf->x, height=ibuf->y;
+	char *cp= NULL;
+	
 	if (file==NULL) return 0;
 
 	writeHeader(file, width, height);
 
+	if(ibuf->rect)
+		cp= (char *)(ibuf->rect + (height-1)*width);
+	if(ibuf->rect_float)
+		fp= ibuf->rect_float + 4*(height-1)*width;
+	
 	for (y=height-1;y>=0;y--) {
-		if (fwritecolrs(file, width,(unsigned char *)&ibuf->rect[y*width*4], &ibuf->rect_float[y*width*4]) < 0) {
+		if (fwritecolrs(file, width, cp, fp) < 0) {
 			fclose(file);
 			printf("HDR write error\n");
 			return 0;
 		}
+		if(cp) cp-= 4*width;
+		if(fp) fp-= 4*width;
 	}
 
 	fclose(file);

@@ -1,5 +1,6 @@
 /**
  * Functions for writing avi-format files.
+ * Added interface for generic movie support (ton)
  *
  * $Id$
  *
@@ -36,65 +37,103 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "DNA_scene_types.h"
+
 #include "BLI_blenlib.h"
+
+#include "BKE_global.h"
+#include "BKE_writeavi.h"
 
 #include "AVI_avi.h"
 
-#include "BKE_bad_level_calls.h"
-#include "BKE_global.h"
 
-/* RPW 11-21-2002 */
-#include "DNA_scene_types.h"
-/* RPW - End */
+/* ********************** general blender movie support ***************************** */
 
-#include "BKE_writeavi.h"
+#ifdef WITH_QUICKTIME
+#include "quicktime_export.h"
+#endif
+
+bMovieHandle *BKE_get_movie_handle(int imtype)
+{
+	static bMovieHandle mh;
+	
+	/* set the default handle, as builtin */
+	mh.start_movie= start_avi;
+	mh.append_movie= append_avi;
+	mh.end_movie= end_avi;
+	
+	/* do the platform specific handles */
+#ifdef __sgi
+	if (imtype == R_MOVIE) {
+		
+	}
+#endif
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
+	if (imtype == R_AVICODEC) {
+		
+	}
+#endif
+#ifdef WITH_QUICKTIME
+	if (imtype == R_QUICKTIME) {
+		mh.start_movie= start_qt;
+		mh.append_movie= append_qt;
+		mh.end_movie= end_qt;
+	}
+#endif
+	
+	return &mh;
+}
+
+/* ****************************************************************** */
+
 
 static AviMovie *avi=NULL;
 static int sframe;
 
-void makeavistring (char *string) 
+void makeavistring (RenderData *rd, char *string) 
 {
 	char txt[64];
 
 	if (string==0) return;
 
-	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	strcpy(string, rd->pic);
+	BLI_convertstringcode(string, G.sce, rd->cfra);
 
-	RE_make_existing_file(string);
+	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + strlen(string) - 4, ".avi")) {
-		sprintf(txt, "%04d_%04d.avi", (G.scene->r.sfra) , (G.scene->r.efra) );
+		sprintf(txt, "%04d_%04d.avi", (rd->sfra) , (rd->efra) );
 		strcat(string, txt);
 	}
 }
 
-void start_avi(void)
+void start_avi(RenderData *rd, int rectx, int recty)
 {
 	int x, y;
 	char name[256];
 	AviFormat format;
 	int quality, framerate;
 	
-	makeavistring(name);
+	makeavistring(rd, name);
 
-	sframe = (G.scene->r.sfra);
-	x = R.rectx;
-	y = R.recty;
+	sframe = (rd->sfra);
+	x = rectx;
+	y = recty;
 
-	quality= R.r.quality;
-	framerate= R.r.frs_sec;
+	quality= rd->quality;
+	framerate= rd->frs_sec;
 	
 	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
 
 	/* RPW 11-21-2002 
-	 if (R.r.imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
+	 if (rd->imtype != AVI_FORMAT_MJPEG) format = AVI_FORMAT_AVI_RGB;
 	*/
-	if (R.r.imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
+	if (rd->imtype != R_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
 	else format = AVI_FORMAT_MJPEG;
 
 	if (AVI_open_compress (name, avi, 1, format) != AVI_ERROR_NONE) {
-		error("open movie");
+		printf("cannot open or start AVI movie file");
 		MEM_freeN (avi);
 		avi = NULL;
 		return;
@@ -107,13 +146,13 @@ void start_avi(void)
 
 	avi->interlace= 0;
 	avi->odd_fields= 0;
-/* 	avi->interlace= R.r.mode & R_FIELDS; */
-/* 	avi->odd_fields= (R.r.mode & R_ODDFIELD)?1:0; */
+/* 	avi->interlace= rd->mode & R_FIELDS; */
+/* 	avi->odd_fields= (rd->mode & R_ODDFIELD)?1:0; */
 	
 	printf("Created avi: %s\n", name);
 }
 
-void append_avi(int frame)
+void append_avi(int frame, int *pixels, int rectx, int recty)
 {
 	unsigned int *rt1, *rt2, *rectot;
 	int x, y;
@@ -125,15 +164,15 @@ void append_avi(int frame)
 	}
 
 	/* note that libavi free's the buffer... stupid interface - zr */
-	rectot= MEM_mallocN(R.rectx*R.recty*sizeof(int), "rectot");
+	rectot= MEM_mallocN(rectx*recty*sizeof(int), "rectot");
 	rt1= rectot;
-	rt2= R.rectot + (R.recty-1)*R.rectx;
+	rt2= pixels + (recty-1)*rectx;
 	/* flip y and convert to abgr */
-	for (y=0; y < R.recty; y++, rt1+= R.rectx, rt2-= R.rectx) {
-		memcpy (rt1, rt2, R.rectx*sizeof(int));
+	for (y=0; y < recty; y++, rt1+= rectx, rt2-= rectx) {
+		memcpy (rt1, rt2, rectx*sizeof(int));
 		
 		cp= (char *)rt1;
-		for(x= R.rectx; x>0; x--) {
+		for(x= rectx; x>0; x--) {
 			rt= cp[0];
 			cp[0]= cp[3];
 			cp[3]= rt;
@@ -144,8 +183,8 @@ void append_avi(int frame)
 		}
 	}
 	
-	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, rectot, R.rectx*R.recty*4);
-	printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
+	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, rectot, rectx*recty*4);
+//	printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
 }
 
 void end_avi(void)

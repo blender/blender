@@ -87,12 +87,64 @@ void BLI_init_rctf(rctf *rect, float xmin, float xmax, float ymin, float ymax)
 	rect->ymin= ymin;
 	rect->ymax= ymax;
 }
+void BLI_init_rcti(rcti *rect, int xmin, int xmax, int ymin, int ymax)
+{
+	rect->xmin= xmin;
+	rect->xmax= xmax;
+	rect->ymin= ymin;
+	rect->ymax= ymax;
+}
+
+void BLI_translate_rcti(rcti *rect, int x, int y)
+{
+	rect->xmin += x;
+	rect->ymin += y;
+	rect->xmax += x;
+	rect->ymax += y;
+}
+void BLI_translate_rctf(rctf *rect, float x, float y)
+{
+	rect->xmin += x;
+	rect->ymin += y;
+	rect->xmax += x;
+	rect->ymax += y;
+}
 
 int BLI_isect_rctf(rctf *src1, rctf *src2, rctf *dest)
 {
 	float xmin, xmax;
 	float ymin, ymax;
 
+	xmin = (src1->xmin) > (src2->xmin) ? (src1->xmin) : (src2->xmin);
+	xmax = (src1->xmax) < (src2->xmax) ? (src1->xmax) : (src2->xmax);
+	ymin = (src1->ymin) > (src2->ymin) ? (src1->ymin) : (src2->ymin);
+	ymax = (src1->ymax) < (src2->ymax) ? (src1->ymax) : (src2->ymax);
+	
+	if(xmax>=xmin && ymax>=ymin) {
+		if(dest) {
+			dest->xmin = xmin;
+			dest->xmax = xmax;
+			dest->ymin = ymin;
+			dest->ymax = ymax;
+		}
+		return 1;
+	}
+	else {
+		if(dest) {
+			dest->xmin = 0;
+			dest->xmax = 0;
+			dest->ymin = 0;
+			dest->ymax = 0;
+		}
+		return 0;
+	}
+}
+
+int BLI_isect_rcti(rcti *src1, rcti *src2, rcti *dest)
+{
+	int xmin, xmax;
+	int ymin, ymax;
+	
 	xmin = (src1->xmin) > (src2->xmin) ? (src1->xmin) : (src2->xmin);
 	xmax = (src1->xmax) < (src2->xmax) ? (src1->xmax) : (src2->xmax);
 	ymin = (src1->ymin) > (src2->ymin) ? (src1->ymin) : (src2->ymin);

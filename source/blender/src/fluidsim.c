@@ -80,7 +80,6 @@
 #include "BSE_headerbuttons.h"
 
 #include "mydevice.h"
-#include "render.h" // for RE_make_existing_file
 
 #include "SDL.h"
 #include "SDL_thread.h"
@@ -357,7 +356,7 @@ void fluidsimBake(struct Object *ob)
 	// make sure all directories exist
 	// as the bobjs use the same dir, this only needs to be checked
 	// for the cfg output
-	RE_make_existing_file(targetFile);
+	BLI_make_existing_file(targetFile);
 
 	// check selected directory
 	// simply try to open cfg file for writing to test validity of settings
@@ -408,7 +407,7 @@ void fluidsimBake(struct Object *ob)
 	strcat(targetFile, suffixConfig);
 	// make sure these directories exist as well
 	if(outStringsChanged) {
-		RE_make_existing_file(targetFile);
+		BLI_make_existing_file(targetFile);
 	}
 	fileCfg = fopen(targetFile, "w");
 	if(!fileCfg) {

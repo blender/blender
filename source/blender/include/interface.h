@@ -41,6 +41,10 @@
 #define UI_MAX_NAME_STR	64
 #define UI_ARRAY	29
 
+/* panel limits */
+#define UI_PANEL_MINX	100
+#define UI_PANEL_MINY	70
+
 /* uiBut->flag */
 #define UI_SELECT		1
 #define UI_MOUSE_OVER	2
@@ -202,6 +206,7 @@ struct uiBlock {
 /* interface.c */
 
 extern void ui_graphics_to_window(int win, float *x, float *y);
+extern void ui_graphics_to_window_rct(int win, rctf *graph, rcti *winr);
 extern void ui_window_to_graphics(int win, float *x, float *y);
 
 extern void ui_block_flush_back(uiBlock *block);
@@ -216,6 +221,7 @@ extern void ui_autofill(uiBlock *block);
 /* interface_panel.c */
 extern void ui_draw_panel(uiBlock *block);
 extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
+extern void ui_scale_panel(uiBlock *block);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 

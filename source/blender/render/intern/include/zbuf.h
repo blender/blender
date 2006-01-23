@@ -1,18 +1,12 @@
 /*
- * zbuf_ext.h
- * external interface for zbuf.h
- *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Full recode: 2004-2006 Blender Foundation
  *
  * Contributor(s): none yet.
  *
@@ -36,158 +30,66 @@
 #ifndef ZBUF_H
 #define ZBUF_H
 
-#ifdef __cplusplus
-extern "C" { 
-#endif
-
+struct RenderPart;
 struct LampRen;
 struct VlakRen;
+struct ListBase;
 
-/*-----------------------------------------------------------*/ 
-/* Includes                                                  */
-/*-----------------------------------------------------------*/ 
-
-#include "zbuf_types.h"
-#include "render_types.h"
-#include "radio_types.h" /* for RadView */
-
-/*-----------------------------------------------------------*/ 
-/* Function                                                  */
-/* (11 so far )                                              */
-/*-----------------------------------------------------------*/ 
- 
-/**
- * Fill a 'rectangle' with a fixed value. The rectangle contains x by
- * y points. The rows are assumed to be contiguous in memory, and to
- * consist of uints. This function is used for initializing the z
- * buffer.
- * (why is x int and y uint? called in envmap, render, zbuf)
- * @param rect  Pointer to the data representing the rectangle.
- * @param x     The width of the rectangle
- * @param y     The height of the rectangle
- * @param val   The value used to fill the rectangle.
- */
 void fillrect(int *rect, int x, int y, int val);
 
 /**
  * Converts a world coordinate into a homogenous coordinate in view
- * coordinates. The transformation matrix is only allowed to have a
- * scaling and translation component.
- * Also called in: shadbuf.c render.c radfactors.c
- *                 initrender.c envmap.c editmesh.c
- * @param v1  [3 floats] the world coordinate
- * @param adr [4 floats] the homogenous view coordinate
+ * coordinates. 
  */
-void projectvert(float *v1,float *adr);
+void projectvert(float *v1, float winmat[][4], float *adr);
+void projectverto(float *v1, float winmat[][4], float *adr);
+int testclip(float *v); 
 
+void set_part_zbuf_clipflag(struct RenderPart *pa);
+void zbuffer_shadow(struct Render *re, struct LampRen *lar, int *rectz, int size);
+void zbuffer_solid(struct RenderPart *pa);
+void zbuffer_transp_shade(struct RenderPart *pa, float *pass);
 
-/** 
- * Do a z buffer calculation pass for shadow calculations.
- * Also called in: shadbuf.c
- * Note: Uses globals.
- * @param lar lamp definition data
- */
-void zbuffershad(struct LampRen *lar);
+typedef struct APixstr {
+    unsigned short mask[4]; /* jitter mask */
+    int z[4];       /* distance    */
+    int p[4];       /* index       */
+    struct APixstr *next;
+} APixstr;
 
-	/* to the external interface, temp, I hope... */
-/**
- * Tests whether the first three coordinates should be clipped
- * wrt. the fourth component. Bits 1 and 2 test on x, 3 and 4 test on
- * y, 5 and 6 test on z:
- * xyz >  test => set first bit   (01),
- * xyz < -test => set second bit  (10),
- * xyz == test => reset both bits (00).
- * Note: functionality is duplicated from an internal function
- * Also called in: initrender.c, radfactors.c
- * @param  v [4 floats] a coordinate 
- * @return a vector of bitfields
- */
-/*  int testclip(float *v); */
+typedef struct APixstrMain
+{
+	struct APixstrMain *next, *prev;
+	struct APixstr *ps;
+} APixstrMain;
 
-
-/* The following are only used in zbuf.c and render.c ---------------*/
-/**
- * Fills the entire in the alpha DA buffer. (All of it!)
- * Note: Uses globals.
- * Also called in: render.c
- * @param y the line number to set
- */
-void abufsetrow(float *acolrow, int y);
-
-
-/**
- * Calculate the z buffer for all faces (or edges when in wireframe
- * mode) presently visible. 
- * Note: Uses globals.
- * Also called in: render.c
- */
-void zbufferall(void);
-
-
-/**
- * Initialize accumulation buffers for alpha z buffering.
- * The buffers are global variables. Also resets Accu buffer 
- * y bounds.
- * <LI>
- * <IT> Acolrow : colour buffer for one line
- * <IT> Arectz  : distance buffer for one line, depth ABUFPART
- * <IT> APixbuf : pixel data buffer for one line, depth ABUFPART 
- * </LI>
- * Also called in: render.c (should migrate)
- * Note: Uses globals.
- */
-void bgnaccumbuf(void);
-
-/**
- * Discard accumulation buffers for alpha z buffering.
- * The buffers are global variables. The released buffers are Acolrow,
- * Arectz, APixBuf. 
- * Also called in: render.c  (should migrate)
- * Note: Uses globals.
- */
-void endaccumbuf(void);
-
-/**
- * Z face intersect?
- */
-int vergzvlak(const void *x1, const void *x2);
-
-/**
- * Clip and fill vertex into the z buffer. zbuffunc needs to be set
- * before entering, to assure that there is a buffer fill function
- * that can be called. Zvlnr must be set to the current valid face
- * index .
- * Note: uses globals
- * @param f1 [4 floats] vertex 1
- * @param f2 [4 floats] vertex 2
- * @param f3 [4 floats] vertex 3
- * @param c1 clip conditions?
- * @param c2 
- * @param c3
- */
-
-/* span fill in method */
+/* span fill in method, is also used to localize data for zbuffering */
 typedef struct ZSpan {
-	int yres, miny, maxy;					/* range for clipping */
+	int rectx, recty;						/* range for clipping */
+	
 	int miny1, maxy1, miny2, maxy2;			/* actual filled in range */
 	float *minp1, *maxp1, *minp2, *maxp2;	/* vertex pointers detect min/max range in */
 	float *span1, *span2;
+	
+	float zmulx, zmuly, zofsx, zofsy;		/* transform from hoco to zbuf co */
+	
+	int *rectz, *arectz;					/* zbuffers, arectz is for transparant */
+	int *rectp;								/* polygon index buffer */
+	APixstr *apixbuf, *curpstr;				/* apixbuf for transparent */
+	struct ListBase *apsmbase;
+	
+	int polygon_offset;						/* offset in Z */
+	int mask, apsmcounter;					/* in use by apixbuf */
+	
+	void (*zbuffunc)(struct ZSpan *, int, float *, float *, float *, float *);
+	void (*zbuflinefunc)(struct ZSpan *, int, float *, float *);
+	
 } ZSpan;
 
-void  zbufclip(struct ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
-
-/* These function pointers are used for z buffer filling.    */
-extern void (*zbuffunc)(struct ZSpan *zspan, int, float *, float *, float *);
-extern void (*zbuflinefunc)(int, float *, float *);
-
-/**
- * same, for edges
- */
-void         zbufclipwire(int zvlnr, struct VlakRen *vlr); 
-
-#ifdef __cplusplus
-}
-#endif
+/* exported for evil edge render... */
+void zbufclip(struct ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
+void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty);
+void zbufclipwire(ZSpan *zspan, int zvlnr, struct VlakRen *vlr); 
 
 #endif
 

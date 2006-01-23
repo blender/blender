@@ -63,11 +63,13 @@
 
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_writeavi.h"	/* movie handle */
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -75,10 +77,10 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
-#include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
 #include "BIF_toets.h"
+#include "BIF_writeimage.h"
 
 #include "BDR_editobject.h"
 #include "BPY_extern.h" /* for BPY_do_all_scripts */
@@ -88,10 +90,11 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 
+#include "RE_pipeline.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "winlay.h"
-#include "render.h"
 
 /* ------------ renderwin struct, to prevent too much global vars --------- */
 /* ------------ only used for display in a 2nd window  --------- */
@@ -123,6 +126,7 @@
 typedef struct {
 	Window *win;
 
+	int rectx, recty;	/* size of image */
 	float zoom, zoomofs[2];
 	int active;
 	
@@ -172,7 +176,7 @@ static void renderwin_reshape(RenderWin *rw)
 	;
 }
 
-static void renderwin_get_disprect(RenderWin *rw, float disprect_r[2][2])
+static void renderwin_get_fullrect(RenderWin *rw, float fullrect_r[2][2])
 {
 	float display_w, display_h;
 	float cent_x, cent_y;
@@ -181,15 +185,15 @@ static void renderwin_get_disprect(RenderWin *rw, float disprect_r[2][2])
 	window_get_size(rw->win, &w, &h);
 	h-= RW_HEADERY;
 
-	display_w= R.rectx*rw->zoom;
-	display_h= R.recty*rw->zoom;
-	cent_x= (rw->zoomofs[0] + R.rectx/2)*rw->zoom;
-	cent_y= (rw->zoomofs[1] + R.recty/2)*rw->zoom;
+	display_w= rw->rectx*rw->zoom;
+	display_h= rw->recty*rw->zoom;
+	cent_x= (rw->zoomofs[0] + rw->rectx/2)*rw->zoom;
+	cent_y= (rw->zoomofs[1] + rw->recty/2)*rw->zoom;
 	
-	disprect_r[0][0]= w/2 - cent_x;
-	disprect_r[0][1]= h/2 - cent_y;
-	disprect_r[1][0]= disprect_r[0][0] + display_w;
-	disprect_r[1][1]= disprect_r[0][1] + display_h;
+	fullrect_r[0][0]= w/2 - cent_x;
+	fullrect_r[0][1]= h/2 - cent_y;
+	fullrect_r[1][0]= fullrect_r[0][0] + display_w;
+	fullrect_r[1][1]= fullrect_r[0][1] + display_h;
 }
 
 	/** 
@@ -198,14 +202,14 @@ static void renderwin_get_disprect(RenderWin *rw, float disprect_r[2][2])
 	 */
 static int renderwin_win_to_image_co(RenderWin *rw, int winco[2], int imgco_r[2])
 {
-	float disprect[2][2];
+	float fullrect[2][2];
 	
-	renderwin_get_disprect(rw, disprect);
+	renderwin_get_fullrect(rw, fullrect);
 	
-	imgco_r[0]= (int) ((winco[0]-disprect[0][0])/rw->zoom);
-	imgco_r[1]= (int) ((winco[1]-disprect[0][1])/rw->zoom);
+	imgco_r[0]= (int) ((winco[0]-fullrect[0][0])/rw->zoom);
+	imgco_r[1]= (int) ((winco[1]-fullrect[0][1])/rw->zoom);
 	
-	return (imgco_r[0]>=0 && imgco_r[1]>=0 && imgco_r[0]<R.rectx && imgco_r[1]<R.recty);
+	return (imgco_r[0]>=0 && imgco_r[1]>=0 && imgco_r[0]<rw->rectx && imgco_r[1]<rw->recty);
 }
 
 	/**
@@ -233,29 +237,17 @@ static void renderwin_set_infotext(RenderWin *rw, char *info_text)
 
 static void renderwin_reset_view(RenderWin *rw)
 {
-	int w, h, rectx, recty;
+	int w, h;
 
 	if (rw->info_text) renderwin_set_infotext(rw, NULL);
 
 	/* now calculate a zoom for when image is larger than window */
 	window_get_size(rw->win, &w, &h);
 	h-= RW_HEADERY;
-	
-	/* at this point the r.rectx/y values are not correct yet */
-	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
-	recty= (G.scene->r.size*G.scene->r.ysch)/100;
-	
-	/* crop option makes image smaller */
-	if ((G.scene->r.mode & R_BORDER) && (G.scene->r.mode & R_MOVIECROP)) { 
-		if(!(G.scene->r.scemode & R_OGL)) {
-			rectx= (int) (rectx*(G.scene->r.border.xmax-G.scene->r.border.xmin));
-			recty= (int) (recty*(G.scene->r.border.ymax-G.scene->r.border.ymin));
-		}
-	}
-	
-	if(rectx>w || recty>h) {
-		if(rectx-w > recty-h) rw->zoom= ((float)w)/((float)rectx);
-		else rw->zoom= ((float)h)/((float)recty);
+
+	if(rw->rectx>w || rw->recty>h) {
+		if(rw->rectx-w > rw->recty-h) rw->zoom= ((float)w)/((float)rw->rectx);
+		else rw->zoom= ((float)h)/((float)rw->recty);
 	}
 	else rw->zoom= 1.0;
 
@@ -295,87 +287,98 @@ static void renderwin_draw_render_info(RenderWin *rw)
 
 static void renderwin_draw(RenderWin *rw, int just_clear)
 {
-	float disprect[2][2];
-	int set_back_mainwindow;
-	rcti rect;
-	
-	/* since renderwin uses callbacks (controlled by ghost) it can
-	   mess up active window output with redraw events after a render. 
-	   this is patchy, still WIP */
-	set_back_mainwindow = (winlay_get_active_window() != rw->win);
-	window_make_active(rw->win);
-	
-	rect.xmin= rect.ymin= 0;
-	window_get_size(rw->win, &rect.xmax, &rect.ymax);
-	rect.ymax-= RW_HEADERY;
-	
-	renderwin_get_disprect(rw, disprect);
-	
-	/* do this first, so window ends with correct scissor */
-	renderwin_draw_render_info(rw);
-	
-	glEnable(GL_SCISSOR_TEST);
-	glaDefine2DArea(&rect);
-	
-	glClearColor(.1875, .1875, .1875, 1.0); 
-	glClear(GL_COLOR_BUFFER_BIT);
+	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
 
-	if (just_clear || !R.rectot) {
-		glColor3ub(0, 0, 0);
-		glRectfv(disprect[0], disprect[1]);
-	} else {
-		glPixelZoom(rw->zoom, rw->zoom);
-		if(rw->flags & RW_FLAGS_ALPHA) {
-			/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-			glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_LUMINANCE, GL_UNSIGNED_INT, R.rectot);
-			glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+	if(rr) {
+		RenderLayer *rl= rr->layers.first;
+		float fullrect[2][2];
+		int set_back_mainwindow;
+		rcti rect;
+
+		/* since renderwin uses callbacks (controlled by ghost) it can
+			mess up active window output with redraw events after a render. 
+			this is patchy, still WIP */
+		set_back_mainwindow = (winlay_get_active_window() != rw->win);
+		window_make_active(rw->win);
+		
+		rect.xmin= rect.ymin= 0;
+		window_get_size(rw->win, &rect.xmax, &rect.ymax);
+		rect.ymax-= RW_HEADERY;
+		
+		renderwin_get_fullrect(rw, fullrect);
+		
+		/* do this first, so window ends with correct scissor */
+		renderwin_draw_render_info(rw);
+		
+		glEnable(GL_SCISSOR_TEST);
+		glaDefine2DArea(&rect);
+		
+		glClearColor(.1875, .1875, .1875, 1.0); 
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		if (just_clear) {
+			glColor3ub(0, 0, 0);
+			glRectfv(fullrect[0], fullrect[1]);
+		} else {
+			glPixelZoom(rw->zoom, rw->zoom);
+			if(rw->flags & RW_FLAGS_ALPHA) {
+				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+//				glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, GL_LUMINANCE, GL_UNSIGNED_INT, R.rectot);
+//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+			}
+			else {
+				if(rr->rect32)
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+				else if(rl->rectf)
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, rr->rectx, GL_RGBA, GL_FLOAT, rl->rectf);
+			}
+			glPixelZoom(1.0, 1.0);
 		}
-		else {
-			glaDrawPixelsSafe(disprect[0][0], disprect[0][1], R.rectx, R.recty, GL_RGBA, GL_UNSIGNED_BYTE, R.rectot);
+		
+		/* info text is overlayed on bottom */
+		if (rw->info_text) {
+			float w;
+			glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			w=186.0*strlen(rw->info_text)/30;
+			glColor4f(.5,.5,.5,.25);
+			glRectf(0.0,0.0,w,30.0);
+			glDisable(GL_BLEND);
+			glColor3ub(255, 255, 255);
+			glRasterPos2i(10, 10);
+			BMF_DrawString(G.font, rw->info_text);
 		}
-		glPixelZoom(1.0, 1.0);
+		
+		window_swap_buffers(rw->win);
+		
+		if (set_back_mainwindow) mainwindow_make_active();	
 	}
-	
-	/* info text is overlayed on bottom */
-	if (rw->info_text) {
-		float w;
-		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		w=186.0*strlen(rw->info_text)/30;
-		glColor4f(.5,.5,.5,.25);
-		glRectf(0.0,0.0,w,30.0);
-		glDisable(GL_BLEND);
-		glColor3ub(255, 255, 255);
-		glRasterPos2i(10, 10);
-		BMF_DrawString(G.font, rw->info_text);
-	}
-	
-	window_swap_buffers(rw->win);
-	
-	if (set_back_mainwindow) mainwindow_make_active();	
 }
 
 /* ------ interactivity calls for RenderWin ------------- */
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
-	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
-		int imgco[2], ofs;
-		char buf[128];
-		char *pxl;
+	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+	RenderLayer *rl= (rr?rr->layers.first:NULL);
 
-		if (R.rectot && renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
-			pxl= (char*) &R.rectot[R.rectx*imgco[1] + imgco[0]];
+	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
+		int imgco[2], ofs=0;
+		char buf[128];
+//		char *pxl;
+
+		if (rl && renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
+//			pxl= (char*) &R.rectot[R.rectx*imgco[1] + imgco[0]];
 			
-			ofs= sprintf(buf, "R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
+//			ofs= sprintf(buf, "R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
 			
-			if (R.rectftot) {
-				float *pxlf= R.rectftot + 4*(R.rectx*imgco[1] + imgco[0]);
+			if (rl->rectf) {
+				float *pxlf= rl->rectf + 4*(rr->rectx*imgco[1] + imgco[0]);
 				ofs+= sprintf(buf+ofs, " | R: %.3f G: %.3f B: %.3f A: %.3f ", pxlf[0], pxlf[1], pxlf[2], pxlf[3]);
 			}
-			if (R.rectzf) {
-				float *pxlz= &R.rectzf[R.rectx*imgco[1] + imgco[0]];			
+			if (rl->rectz) {
+				float *pxlz= &rl->rectz[rr->rectx*imgco[1] + imgco[0]];			
 				sprintf(buf+ofs, "| Z: %.3f", *pxlz );
 			}
 
@@ -392,8 +395,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 	
 		rw->zoomofs[0]= rw->pan_ofs_start[0] - delta_x/rw->zoom;
 		rw->zoomofs[1]= rw->pan_ofs_start[1] - delta_y/rw->zoom;
-		rw->zoomofs[0]= CLAMPIS(rw->zoomofs[0], -R.rectx/2, R.rectx/2);
-		rw->zoomofs[1]= CLAMPIS(rw->zoomofs[1], -R.recty/2, R.recty/2);
+		rw->zoomofs[0]= CLAMPIS(rw->zoomofs[0], -rr->rectx/2, rr->rectx/2);
+		rw->zoomofs[1]= CLAMPIS(rw->zoomofs[1], -rr->recty/2, rr->recty/2);
 
 		renderwin_queue_redraw(rw);
 	} 
@@ -405,8 +408,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 		h-= RW_HEADERY;
 		renderwin_win_to_ndc(rw, rw->lmouse, ndc);
 
-		rw->zoomofs[0]= -0.5*ndc[0]*(w-R.rectx*rw->zoom)/rw->zoom;
-		rw->zoomofs[1]= -0.5*ndc[1]*(h-R.recty*rw->zoom)/rw->zoom;
+		rw->zoomofs[0]= -0.5*ndc[0]*(w-rr->rectx*rw->zoom)/rw->zoom;
+		rw->zoomofs[1]= -0.5*ndc[1]*(h-rr->recty*rw->zoom)/rw->zoom;
 
 		renderwin_queue_redraw(rw);
 	}
@@ -444,7 +447,7 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 	RenderWin *rw= user_data;
 
 	// added this for safety, while render it's just creating bezerk results
-	if(R.flag & R_RENDERING) {
+	if(G.rendering) {
 		if(evt==ESCKEY && val) 
 			rw->flags|= RW_FLAGS_ESCAPE;
 		return;
@@ -494,7 +497,7 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 			renderwin_queue_redraw(render_win);
 		}
 		else if (evt==JKEY) {
-			if(R.flag==0) BIF_swap_render_rects();
+//			if(R.flag==0) BIF_swap_render_rects();
 		} 
 		else if (evt==ZKEY) {
 			if (rw->flags&RW_FLAGS_OLDZOOM) {
@@ -527,20 +530,20 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 			renderwin_reset_view(rw);
 		} 
 		else if (evt==F3KEY) {
-			if(R.flag==0) {
-				mainwindow_raise();
-				mainwindow_make_active();
-				rw->active= 0;
-				areawinset(find_biggest_area()->win);
-				BIF_save_rendered_image();
-			}
+//			if(R.flag==0) {
+//				mainwindow_raise();
+//				mainwindow_make_active();
+//				rw->active= 0;
+//				areawinset(find_biggest_area()->win);
+//				BIF_save_rendered_image_fs();
+//			}
 		} 
 		else if (evt==F11KEY) {
 			BIF_toggle_render_display();
 		} 
 		else if (evt==F12KEY) {
 			/* if it's rendering, this flag is set */
-			if(R.flag==0) BIF_do_render(0);
+//			if(R.flag==0) BIF_do_render(0);
 		}
 	}
 }
@@ -565,7 +568,7 @@ static char *renderwin_get_title(int doswap)
 }
 
 /* opens window and allocs struct */
-static void open_renderwin(int winpos[2], int winsize[2])
+static void open_renderwin(int winpos[2], int winsize[2], int imagesize[2])
 {
 	extern void mywindow_build_and_set_renderwin( int orx, int ory, int sizex, int sizey); // mywindow.c
 	Window *win;
@@ -575,7 +578,9 @@ static void open_renderwin(int winpos[2], int winsize[2])
 	win= window_open(title, winpos[0], winpos[1], winsize[0], winsize[1]+RW_HEADERY, 0);
 
 	render_win= renderwin_alloc(win);
-
+	render_win->rectx= imagesize[0];
+	render_win->recty= imagesize[1];
+	
 	/* Ghost calls handler */
 	window_set_handler(win, renderwin_handler, render_win);
 
@@ -595,26 +600,15 @@ static void open_renderwin(int winpos[2], int winsize[2])
 /* -------------- callbacks for render loop: Window (RenderWin) ----------------------- */
 
 /* calculations for window size and position */
-void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[2]) 
+void calc_renderwin_rectangle(int rectx, int recty, int posmask, int renderpos_r[2], int rendersize_r[2]) 
 {
 	int scr_w, scr_h, x, y, div= 0;
 	float ndc_x= 0.0, ndc_y= 0.0;
 
 	winlay_get_screensize(&scr_w, &scr_h);
 
-	rendersize_r[0]= (G.scene->r.size*G.scene->r.xsch)/100;
-	rendersize_r[1]= (G.scene->r.size*G.scene->r.ysch)/100;
-	
-	/* crop option makes image smaller */
-	if ((G.scene->r.mode & R_BORDER) && (G.scene->r.mode & R_MOVIECROP)) { 
-		rendersize_r[0]*= (G.scene->r.border.xmax-G.scene->r.border.xmin);
-		rendersize_r[1]*= (G.scene->r.border.ymax-G.scene->r.border.ymin);
-	}
-	
-	if(G.scene->r.mode & R_PANORAMA) {
-		rendersize_r[0]*= G.scene->r.xparts;
-		rendersize_r[1]*= G.scene->r.yparts;
-	}
+	rendersize_r[0]= rectx;
+	rendersize_r[1]= recty;
 
 	rendersize_r[0]= CLAMPIS(rendersize_r[0], 0, scr_w);	 
 	rendersize_r[1]= CLAMPIS(rendersize_r[1], 0, scr_h-RW_HEADERY);	 
@@ -645,15 +639,18 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 }
 	
 /* init renderwin, alloc/open/resize */
-static void renderwin_init_display_cb(void) 
+static void renderwin_init_display_cb(RenderResult *rr) 
 {
 	if (G.afbreek == 0) {
-		int rendersize[2], renderpos[2];
+		int rendersize[2], renderpos[2], imagesize[2];
 
-		calc_renderwin_rectangle(G.winpos, renderpos, rendersize);
+		calc_renderwin_rectangle(rr->rectx, rr->recty, G.winpos, renderpos, rendersize);
+		
+		imagesize[0]= rr->rectx;
+		imagesize[1]= rr->recty;
 
 		if (!render_win) {
-			open_renderwin(renderpos, rendersize);
+			open_renderwin(renderpos, rendersize, imagesize);
 			renderwin_reset_view(render_win); // incl. autozoom for large images
 		} else {
 			int win_x, win_y;
@@ -676,7 +673,7 @@ static void renderwin_init_display_cb(void)
 				 */
 			if(rendersize[0]!= win_w || rendersize[1]!= win_h) {
 				BIF_close_render_display();
-				open_renderwin(renderpos, rendersize);
+				open_renderwin(renderpos, rendersize, imagesize);
 			}
 			else {
 				window_raise(render_win->win);
@@ -698,14 +695,16 @@ static void renderwin_init_display_cb(void)
 		}
 		/* make sure we are in normal draw again */
 		render_win->flags &= ~RW_FLAGS_ALPHA;
+		
+		glFinish();
 	}
 }
 
 /* callback for redraw render win */
-static void renderwin_clear_display_cb(short ignore) 
+static void renderwin_clear_display_cb(RenderResult *rr) 
 {
 	if (render_win) {
-		window_make_active(render_win->win);	
+		window_make_active(render_win->win);
 		renderwin_draw(render_win, 1);
 	}
 }
@@ -719,27 +718,39 @@ static void renderwin_clear_display_cb(short ignore)
 * Note: blocked queue handling while rendering to prevent that (ton)
 */
 
-/* in render window; display a couple of scanlines of rendered image (see callback below) */
-static void renderwin_progress(RenderWin *rw, int start_y, int nlines, int rect_w, int rect_h, unsigned char *rect)
+/* can get as well the full picture, as the parts while rendering */
+static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *unused)
 {
-	float disprect[2][2];
+	RenderLayer *rl;
 	rcti win_rct;
-
+	float *rectf, fullrect[2][2];
+	
+	/* renderwindow cruft */
 	win_rct.xmin= win_rct.ymin= 0;
 	window_get_size(rw->win, &win_rct.xmax, &win_rct.ymax);
 	win_rct.ymax-= RW_HEADERY;
+	renderwin_get_fullrect(rw, fullrect);
 	
-	renderwin_get_disprect(rw, disprect);
+	/* find current float rect for display */
+	rl= rr->layers.first;
+	rectf= rl->rectf;
 	
-	/* for efficiency & speed; not drawing in Blender UI while rendering */
-	//window_make_active(rw->win);
+	/* when rendering more pixels than needed, we crop away cruft */
+	if(rr->crop)
+		rectf+= 4*(rr->crop*rr->rectx + rr->crop);
+	
+	/* tilerect defines drawing offset from (0,0) */
+	/* however, tilerect (xmin, ymin) is first pixel */
+	fullrect[0][0] += (rr->tilerect.xmin+rr->crop)*rw->zoom;
+	fullrect[0][1] += (rr->tilerect.ymin+rr->crop)*rw->zoom;
 
 	glEnable(GL_SCISSOR_TEST);
 	glaDefine2DArea(&win_rct);
 
 	glDrawBuffer(GL_FRONT);
 	glPixelZoom(rw->zoom, rw->zoom);
-	glaDrawPixelsSafe(disprect[0][0], disprect[0][1] + start_y*rw->zoom, rect_w, nlines, GL_RGBA, GL_UNSIGNED_BYTE, &rect[start_y*rect_w*4]);
+	glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, rr->recty-2*rr->crop, rr->rectx, 
+					  GL_RGBA, GL_FLOAT, rectf);
 	glPixelZoom(1.0, 1.0);
 	glFlush();
 	glDrawBuffer(GL_BACK);
@@ -747,177 +758,44 @@ static void renderwin_progress(RenderWin *rw, int start_y, int nlines, int rect_
 
 
 /* in render window; display a couple of scanlines of rendered image */
-static void renderwin_progress_display_cb(int y1, int y2, int w, int h, unsigned int *rect)
+static void renderwin_progress_display_cb(RenderResult *rr, rcti *rect)
 {
 	if (render_win) {
-		renderwin_progress(render_win, y1, y2-y1+1, w, h, (unsigned char*) rect);
+		renderwin_progress(render_win, rr, rect);
 	}
 }
-
-
-/* -------------- callbacks for render loop: in View3D ----------------------- */
-
-
-static View3D *render_view3d = NULL;
-
-/* init Render view callback */
-static void renderview_init_display_cb(void)
-{
-	ScrArea *sa;
-
-		/* Choose the first view with a persp camera,
-		 * if one doesn't exist we will get the first
-		 * View3D window.
-		 */ 
-	render_view3d= NULL;
-	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		if (sa->win && sa->spacetype==SPACE_VIEW3D) {
-			View3D *vd= sa->spacedata.first;
-			
-			if (vd->persp==2 && vd->camera==G.scene->camera) {
-				render_view3d= vd;
-				break;
-			} else if (!render_view3d) {
-				render_view3d= vd;
-			}
-		}
-	}
-}
-
-
-/* in 3d view; display a couple of scanlines of rendered image */
-static void renderview_progress_display_cb(int y1, int y2, int w, int h, unsigned int *rect)
-{
-	if (render_view3d) {
-		View3D *v3d= render_view3d;
-		int nlines= y2-y1+1;
-		float sx, sy, facx, facy;
-		rcti win_rct, vb;
-
-		calc_viewborder(v3d, &vb);
-		
-		/* if border render  */
-		if(G.scene->r.mode & R_BORDER) { 
-			
-			/* but, if image is full (at end of border render, without crop) we don't */
-			if(R.rectx != (G.scene->r.size*G.scene->r.xsch)/100 ||
-			   R.recty != (G.scene->r.size*G.scene->r.ysch)/100 ) {
-			
-				facx= (float) (vb.xmax-vb.xmin);
-				facy= (float) (vb.ymax-vb.ymin);
-				
-				vb.xmax= vb.xmin + facx*G.scene->r.border.xmax;
-				vb.ymax= vb.ymin + facy*G.scene->r.border.ymax;
-				vb.xmin+= facx*G.scene->r.border.xmin;
-				vb.ymin+= facy*G.scene->r.border.ymin;
-			}
-		}
-			
-		facx= (float) (vb.xmax-vb.xmin)/R.rectx;
-		facy= (float) (vb.ymax-vb.ymin)/R.recty;
-
-		bwin_get_rect(v3d->area->win, &win_rct);
-
-		glaDefine2DArea(&win_rct);
-	
-		glDrawBuffer(GL_FRONT);
-		
-		sx= vb.xmin;
-		sy= vb.ymin + facy*y1;
-
-		glPixelZoom(facx, facy);
-		glaDrawPixelsSafe(sx, sy, w, nlines, GL_RGBA, GL_UNSIGNED_BYTE, rect+w*y1);
-		glPixelZoom(1.0, 1.0);
-
-		glFlush();
-		glDrawBuffer(GL_BACK);
-		v3d->flag |= V3D_DISPIMAGE;
-		v3d->area->win_swap= WIN_FRONT_OK;
-		
-	}
-}
-
-/* in 3d view; display stats of rendered image */
-static void renderview_draw_render_info(char *str)
-{
-	if (render_view3d) {
-		View3D *v3d= render_view3d;
-		rcti vb, win_rct;
-		
-		calc_viewborder(v3d, &vb);
-		
-		bwin_get_rect(v3d->area->win, &win_rct);
-		glaDefine2DArea(&win_rct);
-		
-		glDrawBuffer(GL_FRONT);
-		
-		/* clear header rect */
-		BIF_ThemeColor(TH_HEADER);
-		glRecti(vb.xmin, vb.ymax, vb.xmax, vb.ymax+RW_HEADERY);
-		
-		if(str) {
-			BIF_ThemeColor(TH_TEXT);
-			glRasterPos2i(vb.xmin+12, vb.ymax+5);
-			BMF_DrawString(G.fonts, str);
-		}
-		
-		glFlush();
-		glDrawBuffer(GL_BACK);
-
-		v3d->area->win_swap= WIN_FRONT_OK;
-		
-	}
-}
-
 
 /* -------------- callbacks for render loop: interactivity ----------------------- */
 
 
 /* callback for print info in top header of renderwin */
-/* time is only not zero on last call, we then don't update the other stats */ 
-static void printrenderinfo_cb(double time, int sample)
+static void printrenderinfo_cb(RenderStats *rs)
 {
+	extern char info_time_str[32];	// header_info.c
 	extern int mem_in_use;
-	static int totvert=0, totvlak=0, tothalo=0, totlamp=0;
-	static float megs_used_memory=0.0;
+	static float megs_used_memory;
 	char str[300], *spos= str;
 		
-	if(time==0.0) {
-		megs_used_memory= mem_in_use/(1024.0*1024.0);
-		totvert= R.totvert;
-		totvlak= R.totvlak;
-		totlamp= R.totlamp;
-		tothalo= R.tothalo;
-	}
-	
-	if(tothalo)
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM", (G.scene->r.cfra), totvert, totvlak, tothalo, totlamp, megs_used_memory);
-	else 
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM", (G.scene->r.cfra), totvert, totvlak, totlamp, megs_used_memory);
-
-	if(time==0.0) {
-		if (R.r.mode & R_FIELDS) {
-			spos+= sprintf(spos, "Field %c ", (R.flag&R_SEC_FIELD)?'B':'A');
-		}
-		if (sample!=-1) {
-			spos+= sprintf(spos, "Sample: %d    ", sample);
-		}
-	}
-	else {
-		extern char info_time_str[32];	// header_info.c
-		timestr(time, info_time_str);
-		spos+= sprintf(spos, " Time:%s ", info_time_str);
-	}
-	
 	if(render_win) {
-		if(render_win->render_text) MEM_freeN(render_win->render_text);
-		render_win->render_text= BLI_strdup(str);
-		glDrawBuffer(GL_FRONT);
-		renderwin_draw_render_info(render_win);
-		glFlush();
-		glDrawBuffer(GL_BACK);
+		megs_used_memory= mem_in_use/(1024.0*1024.0);
+		
+		if(rs->tothalo)
+			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory);
+		else 
+			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory);
+
+		BLI_timestr(rs->lastframetime, info_time_str);
+		spos+= sprintf(spos, " Time:%s ", info_time_str);
+		
+		if(render_win) {
+			if(render_win->render_text) MEM_freeN(render_win->render_text);
+			render_win->render_text= BLI_strdup(str);
+			glDrawBuffer(GL_FRONT);
+			renderwin_draw_render_info(render_win);
+			glFlush();
+			glDrawBuffer(GL_BACK);
+		}
 	}
-	else renderview_draw_render_info(str);
 }
 
 /* -------------- callback system to allow ESC from rendering ----------------------- */
@@ -1021,98 +899,61 @@ static void end_test_break_callback()
 
 
 /* - initialize displays
-   - both opengl render as blender render
    - set callbacks
    - cleanup
 */
 
-static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
+static void do_render(int anim)
 {
+	Render *re= RE_NewRender("Render");
 	
 	/* we set this flag to prevent renderwindow queue to execute another render */
-	R.flag= R_RENDERING;
+	G.rendering= 1;
 	G.afbreek= 0;
 
-	if (G.displaymode == R_DISPLAYWIN || force_dispwin) {
-		RE_set_initrenderdisplay_callback(NULL);
-		RE_set_clearrenderdisplay_callback(renderwin_clear_display_cb);
-		RE_set_renderdisplay_callback(renderwin_progress_display_cb);
-
-		renderwin_init_display_cb();
-	} 
-	else {
-		BIF_close_render_display();
-		RE_set_initrenderdisplay_callback(renderview_init_display_cb);
-		RE_set_clearrenderdisplay_callback(NULL);
-		RE_set_renderdisplay_callback(renderview_progress_display_cb);
-	}
-
+	/* set callbacks */
+	RE_display_init_cb(re, renderwin_init_display_cb);
+	RE_display_draw_cb(re, renderwin_progress_display_cb);
+	RE_display_clear_cb(re, renderwin_clear_display_cb);
 	init_test_break_callback();
-	RE_set_test_break_callback(test_break);
+	RE_test_break_cb(re, test_break);
+	RE_timecursor_cb(re, set_timecursor);
+	RE_stats_draw_cb(re, printrenderinfo_cb);
 	
-	RE_set_timecursor_callback(set_timecursor);
-	RE_set_printrenderinfo_callback(printrenderinfo_cb);
-	
-	if (render_win) {
-		window_set_cursor(render_win->win, CURSOR_WAIT);
-		// when opening new window... not cross platform identical behaviour, so
-		// for now call it each time
-		// if(ogl_render_view3d) init_gl_stuff();
-	}
+	if(render_win) window_set_cursor(render_win->win, CURSOR_WAIT);
 	waitcursor(1);
 
-	if(G.obedit && !(G.scene->r.scemode & R_OGL)) {
+	if(G.obedit)
 		exit_editmode(0);	/* 0 = no free data */
-	}
 
-	if(anim) {
-		RE_animrender(ogl_render_view3d);
-	}
-	else {
-		RE_initrender(ogl_render_view3d);
-	}
+	if(anim)
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+	else
+		RE_BlenderFrame(re, G.scene, G.scene->r.cfra);
 
-	if (render_win) window_set_cursor(render_win->win, CURSOR_STD);
+	if(render_win) window_set_cursor(render_win->win, CURSOR_STD);
 
 	free_filesel_spec(G.scene->r.pic);
 
 	G.afbreek= 0;
 	end_test_break_callback();
 	
-	/* in dispiew it will destroy the image otherwise
-	   window_make_active() raises window at osx and sends redraws */
-	if(G.displaymode==R_DISPLAYWIN) {
-		mainwindow_make_active();
+	mainwindow_make_active();
 	
-		/* after an envmap creation...  */
-		if(R.flag & R_REDRAW_PRV) {
-			BIF_preview_changed(ID_TE);
-		}
-		allqueue(REDRAWBUTSSCENE, 0);	// visualize fbuf for example
-	}
+	/* after an envmap creation...  */
+//		if(R.flag & R_REDRAW_PRV) {
+//			BIF_preview_changed(ID_TE);
+//		}
+	allqueue(REDRAWBUTSSCENE, 0);	// visualize fbuf for example
 	
-	R.flag= 0;	// before scene update!
+	// before scene update!
+	G.rendering= 0;
 	
 	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
 	
 	waitcursor(0);	// waitcursor checks rendering R.flag...
 }
 
-/* finds area with a 'dispview' set */
-static ScrArea *find_dispimage_v3d(void)
-{
-	ScrArea *sa;
-	
-	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		if (sa->spacetype==SPACE_VIEW3D) {
-			View3D *vd= sa->spacedata.first;
-			if (vd->flag & V3D_DISPIMAGE)
-				return sa;
-		}
-	}
-	
-	return NULL;
-}
 
 /* used for swapping with spare buffer, when images are different size */
 static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, int oldy, int newx, int newy)
@@ -1171,42 +1012,84 @@ void BIF_do_render(int anim)
 			G.scene->lay |= G.vd->lay;
 		else G.scene->lay= G.vd->lay;
 		
-		do_render(NULL, anim, 0);
+		do_render(anim);
 		
 		G.scene->lay= lay;
 	}
-	else do_render(NULL, anim, 0);
+	else do_render(anim);
 
 	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }
 
 /* set up display, render the current area view in an image */
-void BIF_do_ogl_render(View3D *ogl_render_view3d, int anim)
+/* the RE_Render is only used to make sure we got the picture in the result */
+void BIF_do_ogl_render(View3D *v3d, int anim)
 {
-	G.scene->r.scemode |= R_OGL;
-	do_render(ogl_render_view3d, anim, 1);
-	G.scene->r.scemode &= ~R_OGL;
+	Render *re= RE_NewRender("Render");
+	RenderResult *rr;
+	int winx, winy;
+	
+	G.afbreek= 0;
+	init_test_break_callback();
+	
+	winx= (G.scene->r.size*G.scene->r.xsch)/100;
+	winy= (G.scene->r.size*G.scene->r.ysch)/100;
+	
+	RE_InitState(re, &G.scene->r, winx, winy, NULL);
+	
+	/* for now, result is defaulting to floats still... */
+	rr= RE_GetResult(re);
+	if(rr->rect32==NULL)
+		rr->rect32= MEM_mallocN(sizeof(int)*winx*winy, "32 bits rects");
+	
+	/* open window */
+	renderwin_init_display_cb(rr);
+	init_gl_stuff();
+	
+	waitcursor(1);
+
+	if(anim) {
+		bMovieHandle *mh= BKE_get_movie_handle(G.scene->r.imtype);
+		
+		mh->start_movie(&G.scene->r, winx, winy);
+		
+		for(CFRA= SFRA; CFRA<EFRA; CFRA++) {
+			drawview3d_render(v3d, winx, winy);
+			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+			window_swap_buffers(render_win->win);
+			
+			mh->append_movie(CFRA, rr->rect32, winx, winy);
+			if(test_break()) break;
+		}
+		mh->end_movie();
+	}
+	else {
+		drawview3d_render(v3d, winx, winy);
+		glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+		window_swap_buffers(render_win->win);
+	}
+	
+	mainwindow_make_active();
+	
+	if(anim)
+		scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
+	
+	end_test_break_callback();
+	waitcursor(0);
 }
 
 void BIF_redraw_render_rect(void)
 {
-	
 	/* redraw */
-	if (G.displaymode == R_DISPLAYWIN) {
-		// don't open render_win if rendering has been
-	    // canceled or the render_win has been actively closed
-		if (render_win) {
-			renderwin_queue_redraw(render_win);
-		}
-	} else {
-		renderview_init_display_cb();
-		renderview_progress_display_cb(0, R.recty-1, R.rectx, R.recty, R.rectot);
+	if (render_win) {
+		renderwin_queue_redraw(render_win);
 	}
 }	
 
 void BIF_swap_render_rects(void)
 {
+#if 0
 	unsigned int *temp;
 
 	if(R.rectspare==0) {
@@ -1229,26 +1112,24 @@ void BIF_swap_render_rects(void)
 	R.rectot= R.rectspare;
 	R.rectspare= temp;
 	
-	if (G.displaymode == R_DISPLAYWIN) {
-		if (render_win) {
-			char *tmp= render_win->render_text_spare;
-			render_win->render_text_spare= render_win->render_text;
-			render_win->render_text= tmp;
-			
-			window_set_title(render_win->win, renderwin_get_title(1));
-			
-		}
+	if (render_win) {
+		char *tmp= render_win->render_text_spare;
+		render_win->render_text_spare= render_win->render_text;
+		render_win->render_text= tmp;
+		
+		window_set_title(render_win->win, renderwin_get_title(1));
+		
 	}
 
 	/* redraw */
 	BIF_redraw_render_rect();
+#endif
 }				
 
 /* called from usiblender.c too, to free and close renderwin */
 void BIF_close_render_display(void)
 {
 	if (render_win) {
-
 		if (render_win->info_text) MEM_freeN(render_win->info_text);
 		if (render_win->render_text) MEM_freeN(render_win->render_text);
 		if (render_win->render_text_spare) MEM_freeN(render_win->render_text_spare);
@@ -1264,10 +1145,8 @@ void BIF_close_render_display(void)
 /* typical with F11 key, show image or hide/close */
 void BIF_toggle_render_display(void) 
 {
-	ScrArea *sa= find_dispimage_v3d();
 	
-	if(R.rectot==NULL);		// do nothing
-	else if (render_win && G.displaymode==R_DISPLAYWIN) {
+	if (render_win) {
 		if(render_win->active) {
 			mainwindow_raise();
 			mainwindow_make_active();
@@ -1279,21 +1158,9 @@ void BIF_toggle_render_display(void)
 			render_win->active= 1;
 		}
 	} 
-	else if (sa && G.displaymode==R_DISPLAYVIEW) {
-		View3D *vd= sa->spacedata.first;
-		vd->flag &= ~V3D_DISPIMAGE;
-		scrarea_queue_winredraw(sa);
-	} 
 	else {
-		if (G.displaymode == R_DISPLAYWIN) {
-			renderwin_init_display_cb();
-		} else {
-			if (render_win) {
-				BIF_close_render_display();
-			}
-			renderview_init_display_cb();
-			renderview_progress_display_cb(0, R.recty-1, R.rectx, R.recty, R.rectot);
-		}
+		RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+		if(rr) renderwin_init_display_cb(rr);
 	}
 }
 

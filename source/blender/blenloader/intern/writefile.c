@@ -143,6 +143,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
@@ -390,6 +391,8 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		if(node->storage) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+				write_curvemapping(wd, node->storage);
+			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
 			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
@@ -1038,7 +1041,6 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 static void write_materials(WriteData *wd, ListBase *idbase)
 {
 	Material *ma;
-	MaterialLayer *ml;
 	int a;
 
 	ma= idbase->first;
@@ -1055,9 +1057,6 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			if(ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
 			
 			write_scriptlink(wd, &ma->scriptlink);
-			
-			for (ml=ma->layers.first; ml; ml=ml->next)
-				writestruct(wd, DATA, "MaterialLayer", 1, ml);
 			
 			/* nodetree is integral part of material, no libdata */
 			if(ma->nodetree) {
@@ -1218,6 +1217,11 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		while(marker){
 			writestruct(wd, DATA, "TimeMarker", 1, marker);
 			marker= marker->next;
+		}
+		
+		if(sce->nodetree) {
+			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);
+			write_nodetree(wd, sce->nodetree);
 		}
 		
 		sce= sce->id.next;

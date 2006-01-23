@@ -40,6 +40,7 @@ struct Tex;
 struct SpaceLink;
 struct Base;
 struct BoundBox;
+struct RenderInfo;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -92,6 +93,7 @@ typedef struct View3D {
 	struct Object *camera;
 	struct BGpic *bgpic;
 	struct View3D *localvd;
+	struct RenderInfo *ri;
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,

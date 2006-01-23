@@ -55,6 +55,7 @@
 #include "BIF_screen.h"
 #include "BIF_toets.h"
 #include "BIF_interface.h"
+#include "BIF_writeimage.h"
 
 #include "BSE_filesel.h"
 

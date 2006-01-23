@@ -182,9 +182,9 @@ static void save_paint(char *name)
 		BLI_strncpy(str, name, sizeof(str));
 
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-
+		
 		if (saveover(str)) {
-			if (BIF_write_ibuf(ima->ibuf, str)) {
+			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
 				BLI_strncpy(ima->name, name, sizeof(ima->name));
 				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
 				allqueue(REDRAWHEADERS, 0);
@@ -328,7 +328,13 @@ void do_image_buttons(unsigned short event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				activate_fileselect(FILE_SPECIAL, "Save in own image type", name, save_paint);
+				char str[64];
+				save_image_filesel_str(str);
+				
+				if(G.scene->r.scemode & R_EXTENSION) 
+					BKE_add_image_extension(name, G.scene->r.imtype);
+				
+				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
 			}
 		}
 		break;
@@ -712,7 +718,13 @@ static void do_image_imagemenu(void *arg, int event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				activate_fileselect(FILE_SPECIAL, "Save in own image type", name, save_paint);
+				char str[64];
+				save_image_filesel_str(str);
+				
+				if(G.scene->r.scemode & R_EXTENSION) 
+					BKE_add_image_extension(name, G.scene->r.imtype);
+				
+				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
 			}
 		}
 		break;

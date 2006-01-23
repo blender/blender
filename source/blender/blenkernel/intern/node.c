@@ -47,6 +47,7 @@
 #include "BLI_blenlib.h"
 
 #include "MEM_guardedalloc.h"
+#include "IMB_imbuf.h"
 
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	64
@@ -77,6 +78,8 @@ void ntreeInitTypes(bNodeTree *ntree)
 	
 	if(ntree->type==NTREE_SHADER)
 		ntree->alltypes= node_all_shaders;
+	else if(ntree->type==NTREE_COMPOSIT)
+		ntree->alltypes= node_all_composit;
 	else {
 		ntree->alltypes= NULL;
 		printf("Error: no type definitions for nodes\n");
@@ -702,6 +705,14 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 		else if(type==SH_NODE_CURVE_RGB)
 			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 	}
+	else if(ntree->type==NTREE_COMPOSIT) {
+		if(type==CMP_NODE_VALTORGB)
+			node->storage= add_colorband(1);
+		else if(type==CMP_NODE_CURVE_VEC)
+			node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
+		else if(type==CMP_NODE_CURVE_RGB)
+			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+	}
 	
 	return node;
 }
@@ -731,6 +742,12 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		/* another candidate for handlerizing! */
 		if(ntree->type==NTREE_SHADER) {
 			if(node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB)
+				nnode->storage= curvemapping_copy(node->storage);
+			else 
+				nnode->storage= MEM_dupallocN(nnode->storage);
+		}
+		else if(ntree->type==NTREE_COMPOSIT) {
+			if(node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB)
 				nnode->storage= curvemapping_copy(node->storage);
 			else 
 				nnode->storage= MEM_dupallocN(nnode->storage);
@@ -832,6 +849,12 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 			else 
 				MEM_freeN(node->storage);
 		}
+		else if(ntree->type==NTREE_COMPOSIT) {
+			if(node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB)
+				curvemapping_free(node->storage);
+			else 
+				MEM_freeN(node->storage);
+		}
 		else 
 			MEM_freeN(node->storage);
 	}
@@ -842,6 +865,8 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 void ntreeFreeTree(bNodeTree *ntree)
 {
 	bNode *node, *next;
+	
+	if(ntree==NULL) return;
 	
 	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
 	
@@ -1070,6 +1095,9 @@ void ntreeSolveOrder(bNodeTree *ntree)
 	bNodeLink *link;
 	int a, totnode=0;
 	
+	/* the solve-order is called on each tree change, so we should be sure no exec can be running */
+	ntreeEndExecTree(ntree);
+
 	/* set links pointers the input sockets, to find dependencies */
 	/* first clear data */
 	for(node= ntree->nodes.first; node; node= node->next) {
@@ -1110,8 +1138,8 @@ void ntreeSolveOrder(bNodeTree *ntree)
 	MEM_freeN(nodesort);
 	
 	/* find the active outputs, tree type dependant, might become handler */
-	if(ntree->type==NTREE_SHADER) {
-		/* shader nodes only accepts one output */
+	if(ntree->type==NTREE_SHADER || ntree->type==NTREE_COMPOSIT) {
+		/* shader/composit nodes only accepts one output */
 		int output= 0;
 		
 		for(node= ntree->nodes.first; node; node= node->next) {
@@ -1127,9 +1155,6 @@ void ntreeSolveOrder(bNodeTree *ntree)
 	
 	/* here we could recursively set which nodes have to be done,
 		might be different for editor or for "real" use... */
-	
-	
-	
 }
 
 #pragma mark /* *************** preview *********** */
@@ -1138,12 +1163,9 @@ void ntreeSolveOrder(bNodeTree *ntree)
 
 static void nodeInitPreview(bNode *node, int xsize, int ysize)
 {
-	/* signal we don't do anything, preview writing is protected */
-	if(xsize==0 || ysize==0)
-		return;
 	
 	/* sanity checks & initialize */
-	if(node->preview) {
+	if(node->preview && node->preview->rect) {
 		if(node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
 			MEM_freeN(node->preview->rect);
 			node->preview->rect= NULL;
@@ -1154,6 +1176,11 @@ static void nodeInitPreview(bNode *node, int xsize, int ysize)
 		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
 		printf("added preview %s\n", node->name);
 	}
+	
+	/* node previews can get added with variable size this way */
+	if(xsize==0 || ysize==0)
+		return;
+
 	if(node->preview->rect==NULL) {
 		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(float)*4, "node preview rect");
 		node->preview->xsize= xsize;
@@ -1293,17 +1320,31 @@ static int ntree_begin_exec_tree(bNodeTree *ntree)
 
 void ntreeBeginExecTree(bNodeTree *ntree)
 {
-	int index;
 	
 	/* goes recursive over all groups */
-	index= ntree_begin_exec_tree(ntree);
+	ntree->stacksize= ntree_begin_exec_tree(ntree);
 	
-	if(index) {
+	if(ntree->stacksize) {
+		bNode *node;
 		bNodeStack *ns;
 		int a;
 		
-		ns=ntree->stack= MEM_callocN(index*sizeof(bNodeStack), "node stack");
-		for(a=0; a<index; a++, ns++) ns->hasinput= 1;
+		/* allocate stack */
+		ns=ntree->stack= MEM_callocN(ntree->stacksize*sizeof(bNodeStack), "node stack");
+		
+		/* tag inputs, the get_stack() gives own socket stackdata if not in use */
+		for(a=0; a<ntree->stacksize; a++, ns++) ns->hasinput= 1;
+		
+		/* tag outputs, so we know when we can skip operations */
+		for(node= ntree->nodes.first; node; node= node->next) {
+			bNodeSocket *sock;
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->link) {
+					ns= ntree->stack + sock->link->fromsock->stack_index;
+					ns->hasoutput= 1;
+				}
+			}
+		}
 		
 		ntree->stack1= MEM_dupallocN(ntree->stack);
 	}
@@ -1315,7 +1356,21 @@ void ntreeEndExecTree(bNodeTree *ntree)
 {
 	
 	if(ntree->init & NTREE_EXEC_INIT) {
+		
 		if(ntree->stack) {
+			
+			/* another callback candidate! */
+			if(ntree->type==NTREE_COMPOSIT) {
+				bNodeStack *ns;
+				int a;
+				
+				for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++)
+					if(ns->data)
+						free_compbuf(ns->data);
+				for(ns= ntree->stack1, a=0; a<ntree->stacksize; a++, ns++)
+					if(ns->data)
+						free_compbuf(ns->data);
+			}
 			MEM_freeN(ntree->stack);
 			ntree->stack= NULL;
 			MEM_freeN(ntree->stack1);
@@ -1352,37 +1407,23 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 	bNodeStack *stack;
 	
 	/* only when initialized */
-	if(ntree->init & NTREE_EXEC_INIT) {
+	if((ntree->init & NTREE_EXEC_INIT)==0)
+		ntreeBeginExecTree(ntree);
 		
-		if(thread)
-			stack= ntree->stack1;
-		else
-			stack= ntree->stack;
-		
-		for(node= ntree->nodes.first; node; node= node->next) {
-			if(node->typeinfo->execfunc) {
-				node_get_stack(node, stack, nsin, nsout);
-				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
-			}
-			else if(node->type==NODE_GROUP && node->id) {
-				node_get_stack(node, stack, nsin, nsout);
-				node_group_execute(stack, callerdata, node, nsin, nsout); 
-			}
+	if(thread)
+		stack= ntree->stack1;
+	else
+		stack= ntree->stack;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->execfunc) {
+			node_get_stack(node, stack, nsin, nsout);
+			node->typeinfo->execfunc(callerdata, node, nsin, nsout);
+		}
+		else if(node->type==NODE_GROUP && node->id) {
+			node_get_stack(node, stack, nsin, nsout);
+			node_group_execute(stack, callerdata, node, nsin, nsout); 
 		}
 	}
 }
 
-/* clear one pixel in all the preview images */
-void ntreeClearPixelTree(bNodeTree *ntree, int x, int y)
-{
-	bNode *node;
-	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
-	
-	/* only when initialized */
-	if(ntree->init & NTREE_EXEC_INIT) {
-		for(node= ntree->nodes.first; node; node= node->next) {
-			if(node->preview)
-				nodeAddToPreview(node, vec, x, y);
-		}
-	}
-}

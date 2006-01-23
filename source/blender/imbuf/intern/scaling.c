@@ -915,26 +915,33 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf * ibuf, short newx, short newy)
 	return(ibuf);
 }
 
+struct imbufRGBA {
+	float r, g, b, a;
+};
 
 struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy)
 {
 	unsigned int *rect,*_newrect,*newrect;
-	float *rectf,*_newrectf,*newrectf;
-	int x,y, do_float=0;
+	struct imbufRGBA *rectf, *_newrectf, *newrectf;
+	int x,y, do_float=0, do_rect=0;
 	int ofsx,ofsy,stepx,stepy;
 
+	rect = NULL; _newrect = NULL; newrect = NULL;
 	rectf = NULL; _newrectf = NULL; newrectf = NULL;
 
 	if (ibuf==NULL) return(0);
-	if (ibuf->rect==NULL) return(ibuf);
+	if (ibuf->rect) do_rect = 1;
 	if (ibuf->rect_float) do_float = 1;
-
+	if (do_rect==0 && do_float==0) return(ibuf);
+	
 	if (newx == ibuf->x && newy == ibuf->y) return(ibuf);
-
-	_newrect = MEM_mallocN(newx * newy * sizeof(int), "scalefastimbuf");
-	if (_newrect==NULL) return(ibuf);
-	newrect = _newrect;
-
+	
+	if(do_rect) {
+		_newrect = MEM_mallocN(newx * newy * sizeof(int), "scalefastimbuf");
+		if (_newrect==NULL) return(ibuf);
+		newrect = _newrect;
+	}
+	
 	if (do_float) {
 		_newrectf = MEM_mallocN(newx * newy * sizeof(float) * 4, "scalefastimbuf f");
 		if (_newrectf==NULL) return(ibuf);
@@ -946,30 +953,34 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy)
 	ofsy = 32768;
 
 	for (y = newy; y > 0 ; y--){
-		rect = ibuf->rect;
-		rect += (ofsy >> 16) * ibuf->x;
+		if(do_rect) {
+			rect = ibuf->rect;
+			rect += (ofsy >> 16) * ibuf->x;
+		}
 		if (do_float) {
-			rectf = ibuf->rect_float;
+			rectf = (struct imbufRGBA *)ibuf->rect_float;
 			rectf += (ofsy >> 16) * ibuf->x;
 		}
 		ofsy += stepy;
 		ofsx = 32768;
 		
 		for (x = newx ; x>0 ; x--){
-			*newrect++ = rect[ofsx >> 16];
+			if (do_rect)  *newrect++ = rect[ofsx >> 16];
 			if (do_float) *newrectf++ = rectf[ofsx >> 16];
 			ofsx += stepx;
 		}
 	}
 
-	imb_freerectImBuf(ibuf);
-	ibuf->mall |= IB_rect;
-	ibuf->rect = _newrect;
+	if (do_rect) {
+		imb_freerectImBuf(ibuf);
+		ibuf->mall |= IB_rect;
+		ibuf->rect = _newrect;
+	}
 	
 	if (do_float) {
 		imb_freerectfloatImBuf(ibuf);
 		ibuf->mall |= IB_rectfloat;
-		ibuf->rect_float = _newrectf;
+		ibuf->rect_float = (float *)_newrectf;
 	}
 	
 	scalefast_Z_ImBuf(ibuf, newx, newy);

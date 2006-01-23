@@ -102,36 +102,10 @@ void error(char *str, ...){}
 /* anim.c */
 ListBase editNurb;
 
-/* displist.c */
-#include "DNA_world_types.h"	/* for render_types */
-#include "render_types.h"
-struct RE_Render R;
-
-float Phong_Spec(float *n, float *l, float *v, int hard, int tangent){return 0;}
-float Blinn_Spec(float *n, float *l, float *v, float a, float b, int tangent){return 0;}
-float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent){return 0;}
-float Toon_Spec(float *n, float *l, float *v, float a, float b, int tangent){return 0;}
-float WardIso_Spec(float *n, float *l, float *v, float a, int tangent){return 0;}
-
-float Toon_Diff(float *n, float *l, float *v, float a, float b){return 0;}
-float OrenNayar_Diff(float *n, float *l, float *v, float rough){return 0;}
-float Minnaert_Diff(float nl, float *n, float *v, float a){return 0;}
-float Fresnel_Diff(float *vn, float *lv, float *view, float ior, float fac){return 0;}
-
-void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b){}
-void ramp_diffuse_result(float *diff, ShadeInput *shi){}
-void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec){}
-void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi){}
-
-
 void waitcursor(int val){}
 void allqueue(unsigned short event, short val){}
 #define REDRAWVIEW3D	0x4010
 Material defmaterial;
-
-/* effect.c */
-void    RE_jitterate1(float *jit1, float *jit2, int num, float rad1){}
-void    RE_jitterate2(float *jit1, float *jit2, int num, float rad2){}
 
 /* exotic.c */
 void load_editMesh(void){}
@@ -143,7 +117,6 @@ int saveover(char *str){ return 0;}
 /* image.c */
 #include "DNA_image_types.h"
 void free_realtime_image(Image *ima){} // has to become a callback, opengl stuff
-void RE_make_existing_file(char *name){} // from render, but these funcs should be moved anyway 
 
 /* ipo.c */
 void copy_view3d_lock(short val){}	// was a hack, to make scene layer ipo's possible
@@ -202,20 +175,7 @@ int BPY_call_importloader(char *name)
 /* texture.c */
 #define FLO 128
 #define INT	96
-	/* struct EnvMap; */
-	/* struct Tex; */
 
-void do_material_tex(ShadeInput *shi){}
-void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta){}
-
-void    RE_free_envmap(struct EnvMap *env){}      
-struct EnvMap *RE_copy_envmap(struct EnvMap *env){ return env;}
-void    RE_free_envmapdata(struct EnvMap *env){}
-void init_render_textures(void){}
-
-int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt){
-   return 0;
-}
 
 char texstr[20][12];	/* buttons.c */
 

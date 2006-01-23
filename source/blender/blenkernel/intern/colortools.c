@@ -402,7 +402,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 }
 
 /* call when you do images etc, needs restore too. also verifies tables */
-static void curvemapping_premultiply(CurveMapping *cumap, int restore)
+void curvemapping_premultiply(CurveMapping *cumap, int restore)
 {
 	static CurveMapPoint *table[3]= {NULL, NULL, NULL};
 	int a;
@@ -545,7 +545,7 @@ void curvemapping_evaluateRGBF(CurveMapping *cumap, float *vecout, const float *
 
 
 /* RGB with black/white points and premult. tables are checked */
-static void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const float *vecin)
+void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const float *vecin)
 {
 	float fac;
 	

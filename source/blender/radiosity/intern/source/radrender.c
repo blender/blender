@@ -69,7 +69,11 @@
 #include "BIF_screen.h"
 
 #include "radio.h"
-#include "render.h" 
+
+/* the radiosity module uses internal includes from render! */
+#include "renderpipeline.h" 
+#include "render_types.h" 
+#include "renderdatabase.h" 
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -80,7 +84,7 @@ static float maxenergy;
 
 /* find the face with maximum energy to become shooter */
 /* nb: _rr means rad-render version of existing radio call */
-static VlakRen *findshoot_rr(void)
+static VlakRen *findshoot_rr(Render *re)
 {
 	RadFace *rf;
 	VlakRen *vlr=NULL, *shoot;
@@ -90,8 +94,8 @@ static VlakRen *findshoot_rr(void)
 	shoot= NULL;
 	maxenergy= 0.0;
 	
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		if(vlr->radface) {
 			rf= vlr->radface;
 			rf->flag &= ~RAD_SHOOT;
@@ -116,7 +120,7 @@ static VlakRen *findshoot_rr(void)
 	return shoot;
 }
 
-static void backface_test_rr(VlakRen *shoot)
+static void backface_test_rr(Render *re, VlakRen *shoot)
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -124,8 +128,8 @@ static void backface_test_rr(VlakRen *shoot)
 	int a;
 	
 	/* backface testing */
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		if(vlr->radface) {
 			if(vlr!=shoot) {
 				rf= vlr->radface;
@@ -139,15 +143,15 @@ static void backface_test_rr(VlakRen *shoot)
 	}
 }
 
-static void clear_backface_test_rr()
+static void clear_backface_test_rr(Render *re)
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
 	int a;
 	
 	/* backface flag clear */
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
@@ -159,7 +163,7 @@ static void clear_backface_test_rr()
 extern RadView hemitop, hemiside; // radfactors.c
 
 /* hemi-zbuffering, delivers formfactors array */
-static void makeformfactors_rr(VlakRen *shoot)
+static void makeformfactors_rr(Render *re, VlakRen *shoot)
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -203,8 +207,8 @@ static void makeformfactors_rr(VlakRen *shoot)
 	/* convert factors to real radiosity */
 	fp= RG.formfactors;
 
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
@@ -218,7 +222,7 @@ static void makeformfactors_rr(VlakRen *shoot)
 }
 
 /* based at RG.formfactors array, distribute shoot energy over other faces */
-static void applyformfactors_rr(VlakRen *shoot)
+static void applyformfactors_rr(Render *re, VlakRen *shoot)
 {
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -231,8 +235,8 @@ static void applyformfactors_rr(VlakRen *shoot)
 
 	fp= RG.formfactors;
 	
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
@@ -263,52 +267,51 @@ static void applyformfactors_rr(VlakRen *shoot)
 
 
 /* main loop for itterations */
-static void progressiverad_rr()
+static void progressiverad_rr(Render *re)
 {
-	extern void RE_local_timecursor(int);	// RE_callbacks.c
 	VlakRen *shoot;
 	float unshot[3];
 	int it= 0;
 	
-	shoot= findshoot_rr();
+	shoot= findshoot_rr(re);
 	while( shoot ) {
 		
 		/* backfaces receive no energy, but are zbuffered... */
-		backface_test_rr(shoot);
+		backface_test_rr(re, shoot);
 		
 		/* ...unless it's two sided */
 		if(shoot->radface->flag & RAD_TWOSIDED) {
 			VECCOPY(unshot, shoot->radface->unshot);
 			VecMulf(shoot->radface->norm, -1.0);
-			makeformfactors_rr(shoot);
-			applyformfactors_rr(shoot);
+			makeformfactors_rr(re, shoot);
+			applyformfactors_rr(re, shoot);
 			VecMulf(shoot->radface->norm, -1.0);
 			VECCOPY(shoot->radface->unshot, unshot);
 		}
 
 		/* hemi-zbuffers */
-		makeformfactors_rr(shoot);
+		makeformfactors_rr(re, shoot);
 		/* based at RG.formfactors array, distribute shoot energy over other faces */
-		applyformfactors_rr(shoot);
+		applyformfactors_rr(re, shoot);
 		
 		it++;
-		RE_local_timecursor(it);
+		re->timecursor(it);
 		
-		clear_backface_test_rr();
+		clear_backface_test_rr(re);
 		
 		if(blender_test_break()) break;
 		if(RG.maxiter && RG.maxiter<=it) break;
 		
-		shoot= findshoot_rr();
+		shoot= findshoot_rr(re);
 	}
 	printf(" Unshot energy:%f\n", 1000.0*maxenergy);
 	
-	RE_local_timecursor((G.scene->r.cfra));
+	re->timecursor((G.scene->r.cfra));
 }
 
 static RadFace *radfaces=NULL;
 
-static void initradfaces(void)	
+static void initradfaces(Render *re)	
 {
 	VlakRen *vlr= NULL;
 	RadFace *rf;
@@ -323,8 +326,8 @@ static void initradfaces(void)
 	RG.max[0]= RG.max[1]= RG.max[2]= -1.0e20;
 	
 	/* count first for fast malloc */
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		
 		if(vlr->mat->mode & MA_RADIO) {
 			if(vlr->mat->emit > 0.0) {
@@ -339,8 +342,8 @@ printf(" Rad elems: %d emittors %d\n", RG.totelem, RG.totpatch);
 
 	/* make/init radfaces */
 	rf=radfaces= MEM_callocN(RG.totelem*sizeof(RadFace), "radfaces");
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		
 		if(vlr->mat->mode & MA_RADIO) {
 			
@@ -403,7 +406,7 @@ static void vecaddfac(float *vec, float *v1, float *v2, float fac)
 /* static void filter_rad_values(void) */
 
 
-static void make_vertex_rad_values()
+static void make_vertex_rad_values(Render *re)
 {
 	VertRen *v1=NULL;
 	VlakRen *vlr=NULL;
@@ -415,8 +418,8 @@ static void make_vertex_rad_values()
 	RG.radfactor= RG.radfac*pow(64*64, RG.igamma)/128.0; /* compatible with radio-tool */
 
 	/* accumulate vertexcolors */
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8]; else vlr++;
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
@@ -431,20 +434,20 @@ static void make_vertex_rad_values()
 			if(vlr->mat->g > 0.0) rf->totrad[1]/= vlr->mat->g;
 			if(vlr->mat->b > 0.0) rf->totrad[2]/= vlr->mat->b;
 			
-			col= RE_vertren_get_rad(vlr->v1, 1);
+			col= RE_vertren_get_rad(re, vlr->v1, 1);
 			vecaddfac(col, col, rf->totrad, rf->area); 
 			col[3]+= rf->area;
 			
-			col= RE_vertren_get_rad(vlr->v2, 1);
+			col= RE_vertren_get_rad(re, vlr->v2, 1);
 			vecaddfac(col, col, rf->totrad, rf->area); 
 			col[3]+= rf->area;
 			
-			col= RE_vertren_get_rad(vlr->v3, 1);
+			col= RE_vertren_get_rad(re, vlr->v3, 1);
 			vecaddfac(col, col, rf->totrad, rf->area); 
 			col[3]+= rf->area;
 
 			if(vlr->v4) {
-				col= RE_vertren_get_rad(vlr->v4, 1);
+				col= RE_vertren_get_rad(re, vlr->v4, 1);
 				vecaddfac(col, col, rf->totrad, rf->area); 
 				col[3]+= rf->area;
 			}
@@ -452,9 +455,9 @@ static void make_vertex_rad_values()
 	}
 	
 	/* make vertex colors */
-	for(a=0; a<R.totvert; a++) {
-		if((a & 255)==0) v1= RE_findOrAddVert(a); else v1++;
-		col= RE_vertren_get_rad(v1, 0);
+	for(a=0; a<re->totvert; a++) {
+		if((a & 255)==0) v1= RE_findOrAddVert(re, a); else v1++;
+		col= RE_vertren_get_rad(re, v1, 0);
 		if(col[3]>0.0) {
 			col[0]/= col[3];
 			col[1]/= col[3];
@@ -465,22 +468,23 @@ static void make_vertex_rad_values()
 }
 
 /* main call, extern */
-void do_radio_render(void)
+void do_radio_render(Render *re)
 {
 	if(G.scene->radio==NULL) add_radio();
 	freeAllRad();	/* just in case radio-tool is still used */
 	
 	set_radglobal(); /* init the RG struct */
-
-	initradfaces();	 /* add radface structs to render faces */
+	RG.re= re;		/* only used by hemizbuf(), prevents polluting radio code all over */
+	
+	initradfaces(re);	 /* add radface structs to render faces */
 	if(RG.totenergy>0.0) {
 
 		initradiosity();	/* LUT's */
 		inithemiwindows();	/* views, need RG.maxsize for clipping */
 	
-		progressiverad_rr(); /* main radio loop */
+		progressiverad_rr(re); /* main radio loop */
 		
-		make_vertex_rad_values(); /* convert face energy to vertex ones */
+		make_vertex_rad_values(re); /* convert face energy to vertex ones */
 
 	}
 	

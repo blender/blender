@@ -94,7 +94,7 @@
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
 #include "BIF_butspace.h"
-
+#include "BIF_previewrender.h"
 
 #include "BSE_view.h"
 
@@ -158,6 +158,24 @@ void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
 	*y= ((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
 }
 
+void ui_graphics_to_window_rct(int win, rctf *graph, rcti *winr)
+{
+	float gx, gy;
+	int sx, sy;
+	int getsizex, getsizey;
+	
+	bwin_getsize(win, &getsizex, &getsizey);
+	bwin_getsuborigin(win, &sx, &sy);
+	
+	gx= graph->xmin;
+	gy= graph->ymin;
+	winr->xmin= (int)((float)sx) + ((float)getsizex)*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
+	winr->ymin= (int)((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
+	gx= graph->xmax;
+	gy= graph->ymax;
+	winr->xmax= (int)((float)sx) + ((float)getsizex)*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
+	winr->ymax= (int)((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
+}
 
 
 void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
@@ -937,7 +955,7 @@ void uiDrawBlock(uiBlock *block)
 		if(block->panel) ui_draw_panel(block);
 	}		
 
-	if(block->drawextra) block->drawextra();
+	if(block->drawextra) block->drawextra(curarea, block);
 
 	for (but= block->buttons.first; but; but= but->next) {
 		
@@ -4022,13 +4040,19 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			}
 			else if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) )
 				inside= 2;
-				
+			else if( block->panel->control & UI_PNL_SCALE) {
+				if( (block->maxx-PNL_HEADER <= uevent->mval[0]))
+					if( (block->miny+PNL_HEADER >= uevent->mval[1]) && inside )
+						inside= 3;
+			}
+			
 			if(inside) {	// this stuff should move to do_panel
 				
 				if(uevent->event==LEFTMOUSE) {
-					if(inside==2) {
+					if(inside>=2) {
 						uiPanelPop(block); 	// pop matrix; no return without pop!
-						ui_do_panel(block, uevent);
+						if(inside==2) ui_do_panel(block, uevent);
+						else ui_scale_panel(block);
 						return UI_EXIT_LOOP;	// exit loops because of moving panels
 					}
 				}
@@ -4041,11 +4065,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				else if(uevent->event==PADPLUSKEY || uevent->event==PADMINUS) {
 					SpaceLink *sl= curarea->spacedata.first;
 					if(curarea->spacetype!=SPACE_BUTS) {
-						if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
-						else sl->blockscale-= 0.1;
-						CLAMP(sl->blockscale, 0.6, 1.0);
-						addqueue(block->winq, REDRAW, 1);
-						retval= UI_RETURN_OK;
+						if(!(block->panel->control & UI_PNL_SCALE)) {
+							if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
+							else sl->blockscale-= 0.1;
+							CLAMP(sl->blockscale, 0.6, 1.0);
+							addqueue(block->winq, REDRAW, 1);
+							retval= UI_RETURN_OK;
+						}						
 					}
 				}
 			}

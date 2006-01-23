@@ -74,7 +74,6 @@
 
 /* -----includes for this file specific----- */
 
-#include "render.h"
 #include "DNA_image_types.h"
 #include "BKE_writeavi.h"
 #include "BKE_image.h"
@@ -83,6 +82,7 @@
 #include "BIF_editsound.h"
 #include "BSE_seqaudio.h"
 #include "BSE_headerbuttons.h"
+
 #include "butspace.h" // own module
 
 #ifdef WITH_QUICKTIME
@@ -509,7 +509,8 @@ static void run_playanim(char *file) {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	int pos[2], size[2];
 
-	calc_renderwin_rectangle(G.winpos, pos, size);
+	/* image size not so relevant for now */
+	calc_renderwin_rectangle(640, 480, G.winpos, pos, size);
 
 	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
 	system(str);
@@ -524,12 +525,12 @@ void playback_anim(void)
 		makeqtstring(file);
 	else
 #endif
-		makeavistring(file);
+		makeavistring(&G.scene->r, file);
 	if(BLI_exist(file)) {
 		run_playanim(file);
 	}
 	else {
-		makepicstring(file, G.scene->r.sfra);
+		BKE_makepicstring(file, G.scene->r.sfra);
 		if(BLI_exist(file)) {
 			run_playanim(file);
 		}
@@ -598,7 +599,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set PAL");
@@ -641,7 +642,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set FULL");
@@ -655,7 +656,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 50;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -668,7 +669,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.15, 0.85, 0.15, 0.85);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -682,7 +683,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set PAL 16/9");
@@ -696,7 +697,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 50;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -709,7 +710,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 100;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -722,7 +723,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 100;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.0, 1.0, 0.0, 1.0);
 		BIF_undo_push("Set PC");
@@ -737,7 +738,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.mode= R_OSA+R_SHADOW+R_FIELDS;
 		G.scene->r.imtype= R_TARGA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set Default");
@@ -767,7 +768,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 30;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 2;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set NTSC");
@@ -793,19 +794,19 @@ void do_render_panels(unsigned short event)
 		scene_change_set(G.scene, NULL);
 		break;
 	case B_FBUF_REDO:
-		if(R.rectftot) {
+//		if(R.rectftot) {
 			/* copy is needed... not so nice, but how better? */
-			R.r.postgamma= G.scene->r.postgamma;
-			R.r.postigamma= 1.0/R.r.postgamma;
-			R.r.postadd= G.scene->r.postadd;
-			R.r.postmul= G.scene->r.postmul;
-			R.r.posthue= G.scene->r.posthue;
-			R.r.postsat= G.scene->r.postsat;
-			R.r.dither_intensity= G.scene->r.dither_intensity;
+//			R.r.postgamma= G.scene->r.postgamma;
+//			R.r.postigamma= 1.0/R.r.postgamma;
+//			R.r.postadd= G.scene->r.postadd;
+//			R.r.postmul= G.scene->r.postmul;
+//			R.r.posthue= G.scene->r.posthue;
+//			R.r.postsat= G.scene->r.postsat;
+//			R.r.dither_intensity= G.scene->r.dither_intensity;
 			
-			RE_floatbuffer_to_output();
-			BIF_redraw_render_rect();
-		}
+//			_floatbuffer_to_output();
+//			BIF_redraw_render_rect();
+//		}
 		break;
 	case B_SET_EDGE:
 		G.scene->r.mode &= ~R_ZBLUR;
@@ -1112,10 +1113,10 @@ static void render_panel_output(void)
 	
 	/* postprocess render buttons */
 	uiBlockBeginAlign(block);
-	if(R.rectftot)
-		uiDefIconTextButBitI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
-	else
-		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
+//	if(R.rectftot)
+//		uiDefIconTextButBitI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
+//	else
+//		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
 	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 170, 68, 140, 20, "Applies on RGBA floats while render or with Fbuf available");
 	uiBlockEndAlign(block);
 	
@@ -1155,8 +1156,8 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,1.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
-	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,1.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
+	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,2.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
+	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,2.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);

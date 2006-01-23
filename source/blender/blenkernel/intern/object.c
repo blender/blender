@@ -995,10 +995,10 @@ void make_local_object(Object *ob)
 float bluroffs= 0.0;
 int no_speed_curve= 0;
 
-void set_mblur_offs(int blur)
+/* ugly call from render */
+void set_mblur_offs(float blur)
 {
-	bluroffs= R.r.blurfac*((float)blur);
-	bluroffs/= (float)R.r.osa;
+	bluroffs= blur;
 }
 	
 void disable_speed_curve(int val)
@@ -1012,9 +1012,9 @@ float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 	/* returns float ( see frame_to_float in ipo.c) */
 
 	/* 2nd field */
-	if(R.flag & R_SEC_FIELD) {
-		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
-	}
+//	if(R.flag & R_SEC_FIELD) {
+//		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
+//	}
 
 	cfra+= bluroffs;
 

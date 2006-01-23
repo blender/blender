@@ -103,7 +103,6 @@ void			ntreeExecTree(struct bNodeTree *ntree, void *callerdata, int thread);
 void			ntreeEndExecTree(struct bNodeTree *ntree);
 
 void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);
-void			ntreeClearPixelTree(struct bNodeTree *, int, int);
 
 /* ************** GENERIC API, NODES *************** */
 
@@ -171,15 +170,53 @@ struct ShadeResult;
 extern bNodeType *node_all_shaders[];
 
 /* API */
-struct bNode	*nodeShaderAdd(struct bNodeTree *ntree, int type);
-void			nodeShaderSetExecfunc(struct bNode *node);
 
 void			ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
-int				ntreeShaderGetTexco(struct bNodeTree *ntree);
+int				ntreeShaderGetTexco(struct bNodeTree *ntree, int osa);
 void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 
 				/* switch material render loop */
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
+
+/* ************** COMPOSIT NODES *************** */
+
+/* note: types are needed to restore callbacks, don't change values */
+#define CMP_NODE_OUTPUT		201
+
+#define CMP_NODE_RGB		202
+#define CMP_NODE_VALUE		203
+#define CMP_NODE_MIX_RGB	204
+#define CMP_NODE_VALTORGB	205
+#define CMP_NODE_RGBTOBW	206
+#define CMP_NODE_NORMAL		207
+#define CMP_NODE_CURVE_VEC	208
+#define CMP_NODE_CURVE_RGB	209
+#define CMP_NODE_ALPHAOVER	210
+#define CMP_NODE_BLUR		211
+#define CMP_NODE_FILTER		212
+
+#define CMP_NODE_IMAGE		220
+#define CMP_NODE_R_RESULT	221
+
+
+/* filter types */
+#define CMP_FILT_SOFT		0
+#define CMP_FILT_SHARP		1
+#define CMP_FILT_LAPLACE	2
+#define CMP_FILT_SOBEL		3
+#define CMP_FILT_PREWITT	4
+#define CMP_FILT_KIRSCH		5
+#define CMP_FILT_SHADOW		6
+
+
+/* the type definitions array */
+extern bNodeType *node_all_composit[];
+
+/* API */
+struct CompBuf;
+void ntreeCompositExecTree(struct bNodeTree *ntree);
+void free_compbuf(struct CompBuf *cbuf); /* internal...*/
+
 
 #endif
 

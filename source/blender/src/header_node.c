@@ -80,6 +80,12 @@ void do_node_buttons(ScrArea *sa, unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 			}		
 			break;
+			
+		case B_NODE_USESCENE:
+			node_composit_default(G.scene);
+			snode_set_context(snode);
+			allqueue(REDRAWNODE, 0);
+			break;
 	}
 }
 
@@ -104,25 +110,20 @@ void node_buttons(ScrArea *sa)
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, 
 					  windowtype_pup(), xco, 0, XIC+10, YIC, 
 					  &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-					  "Displays Current Window Type. "
-					  "Click for menu of available types.");
+					  "Displays Current Window Type");
 
 	xco += XIC + 14;
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if (sa->flag & HEADER_NO_PULLDOWN) {
 		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, 
-					  ICON_DISCLOSURE_TRI_RIGHT,
-					  xco,2,XIC,YIC-2,
-					  &(sa->flag), 0, 0, 0, 0, 
-					  "Show pulldown menus");
+					  ICON_DISCLOSURE_TRI_RIGHT, xco,2,XIC,YIC-2,
+					  &(sa->flag), 0, 0, 0, 0,  "Show pulldown menus");
 	}
 	else {
 		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, 
-					  ICON_DISCLOSURE_TRI_DOWN,
-					  xco,2,XIC,YIC-2,
-					  &(sa->flag), 0, 0, 0, 0, 
-					  "Hide pulldown menus");
+					  ICON_DISCLOSURE_TRI_DOWN,  xco,2,XIC,YIC-2,
+					  &(sa->flag), 0, 0, 0, 0,  "Hide pulldown menus");
 	}
 	xco+=XIC;
 
@@ -137,6 +138,16 @@ void node_buttons(ScrArea *sa)
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	/* main type choosing */
+	uiBlockBeginAlign(block);
+	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DEHLT, xco,2,XIC,YIC-2,
+				  &(snode->treetype), 2, 0, 0, 0, "Material Nodes");
+	xco+= XIC;
+	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,2,XIC,YIC-2,
+				  &(snode->treetype), 2, 1, 0, 0, "Composit Nodes");
+	xco+= 2*XIC;
+	uiBlockEndAlign(block);
 	
 	/* find and set the context */
 	snode_set_context(snode);
@@ -153,6 +164,9 @@ void node_buttons(ScrArea *sa)
 				xco+=80;
 			}
 		}
+	}
+	else if(snode->treetype==NTREE_COMPOSIT) {
+		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,0,70,19, &G.scene->use_nodes, 0.0f, 0.0f, 0, 0, "");
 	}
 	
 	/* always as last  */

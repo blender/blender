@@ -412,6 +412,8 @@ static void do_update_for_newframe(int mute, int events)
 	scene_update_for_newframe(G.scene, screen_view3d_layers()); /* BKE_scene.h */
 
 	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) audiostream_scrub( CFRA );
+	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+
 }
 
 void update_for_newframe(void)
@@ -1637,13 +1639,7 @@ void do_global_buttons2(short event)
 			ma= give_current_material(ob, ob->actcol);
 			if(ma && ma->id.lib) {
 				if(okee("Make local")) {
-					MaterialLayer *ml;
-					
 					make_local_material(ma);
-					for(ml= ma->layers.first; ml; ml= ml->next) {
-						if(ml->mat)
-							make_local_material(ml->mat);
-					}
 				}
 			}
 		}

@@ -35,10 +35,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #include <sys/times.h>
@@ -67,10 +63,12 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -105,6 +103,7 @@
 #include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -122,7 +121,6 @@
 #include "BSE_time.h"
 #include "BSE_view.h"
 
-#include "RE_renderconverter.h"
 #include "BPY_extern.h"
 
 #include "blendef.h"
@@ -132,7 +130,6 @@
 #include "BIF_transform.h"
 
 /* Modules used */
-#include "render.h"		// for ogl render
 #include "radio.h"
 
 /* locals */
@@ -340,7 +337,7 @@ static void draw_bgpic(void)
 	if(bgpic==0) return;
 	
 	if(bgpic->tex) {
-		init_render_texture(bgpic->tex);
+//		init_render_texture(bgpic->tex);
 		free_unused_animimages();
 		ima= bgpic->tex->ima;
 	}
@@ -435,7 +432,7 @@ static void draw_bgpic(void)
 	
 	glaDefine2DArea(&curarea->winrct);
 	glPixelZoom(zoomx, zoomy);
-	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, bgpic->rect);
+	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, bgpic->rect);
 	glPixelZoom(1.0, 1.0);
 
 	glMatrixMode(GL_PROJECTION);
@@ -448,23 +445,6 @@ static void draw_bgpic(void)
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	
 	areawinset(curarea->win);	// restore viewport / scissor
-}
-
-void timestr(double time, char *str)
-{
-	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr= (int)      time/(60*60);
-	int min= (int) fmod(time/60, 60.0);
-	int sec= (int) fmod(time, 60.0);
-	int hun= (int) fmod(time*100.0, 100.0);
-
-	if (hr) {
-		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
-	} else {
-		sprintf(str, "%.2d:%.2d.%.2d",min,sec,hun);
-	}
-
-	str[11]=0;
 }
 
 static void drawgrid_draw(float wx, float wy, float x, float y, float dx)
@@ -2032,6 +2012,29 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 
 }
 
+static void view3d_panel_preview(ScrArea *sa, short cntrl)	// VIEW3D_HANDLER_PREVIEW
+{
+	uiBlock *block;
+	View3D *v3d= sa->spacedata.first;
+	int ofsx, ofsy;
+	
+	block= uiNewBlock(&sa->uiblocks, "view3d_panel_preview", UI_EMBOSS, UI_HELV, sa->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_SCALE | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_PREVIEW);  // for close and esc
+	
+	ofsx= -150+(sa->winx/2)/v3d->blockscale;
+	ofsy= -100+(sa->winy/2)/v3d->blockscale;
+	if(uiNewPanel(sa, block, "Preview", "View3d", ofsx, ofsy, 300, 200)==0) return;
+
+	uiBlockSetDrawExtraFunc(block, BIF_view3d_previewdraw);
+	
+	if(G.scene->recalc & SCE_PRV_CHANGED) {
+		G.scene->recalc &= ~SCE_PRV_CHANGED;
+		//printf("found recalc\n");
+		BIF_view3d_previewrender_free(sa);
+		BIF_preview_changed(0);
+	}
+}
 
 
 static void view3d_blockhandlers(ScrArea *sa)
@@ -2054,9 +2057,11 @@ static void view3d_blockhandlers(ScrArea *sa)
 			break;
 		case VIEW3D_HANDLER_OBJECT:
 			view3d_panel_object(v3d->blockhandler[a+1]);
-		
 			break;
-		
+		case VIEW3D_HANDLER_PREVIEW:
+			view3d_panel_preview(sa, v3d->blockhandler[a+1]);
+			break;
+			
 		}
 		/* clear action value for event */
 		v3d->blockhandler[a+1]= 0;
@@ -2176,10 +2181,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Object *ob;
 	Scene *setscene;
 	
-	setwinmatrixview3d(0);	/* 0= no pick rect */
+	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
 
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, curarea->winmat);
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, sa->winmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
@@ -2195,7 +2200,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		v3d->pixsize= 2.0f*(len1>len2?len1:len2);
 		
 		/* correct for window size */
-		if(curarea->winx > sa->winy) v3d->pixsize/= (float)sa->winx;
+		if(sa->winx > sa->winy) v3d->pixsize/= (float)sa->winx;
 		else v3d->pixsize/= (float)sa->winy;
 	}
 	
@@ -2238,8 +2243,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		if(v3d->persp==2) {
 			if(G.scene->world) {
 				if(G.scene->world->mode & WO_STARS) {
-					RE_make_stars(star_stuff_init_func, star_stuff_vertex_func,
-								  star_stuff_term_func);
+//					RE_make_stars(star_stuff_init_func, star_stuff_vertex_func,
+//								  star_stuff_term_func);
 				}
 			}
 			if(v3d->flag & V3D_DISPBGPIC) draw_bgpic();
@@ -2351,19 +2356,19 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	bwin_scalematrix(sa->win, v3d->blockscale, v3d->blockscale, v3d->blockscale);
 	view3d_blockhandlers(sa);
 
-	curarea->win_swap= WIN_BACK_OK;
+	sa->win_swap= WIN_BACK_OK;
 	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
-		addafterqueue(curarea->win, BACKBUFDRAW, 1);
+		addafterqueue(sa->win, BACKBUFDRAW, 1);
 	}
 	// test for backbuf select
 	if(G.obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
 		extern int afterqtest(short win, unsigned short evt);	//editscreen.c
 
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
-		if(afterqtest(curarea->win, BACKBUFDRAW)==0) {
-			addafterqueue(curarea->win, BACKBUFDRAW, 1);
+		if(afterqtest(sa->win, BACKBUFDRAW)==0) {
+			addafterqueue(sa->win, BACKBUFDRAW, 1);
 		}
 	}
 
@@ -2380,28 +2385,20 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 }
 
 
-	/* Called back by rendering system, icky
-	 */
-void drawview3d_render(struct View3D *v3d)
+void drawview3d_render(struct View3D *v3d, int winx, int winy)
 {
-	extern short v3d_windowmode;
 	Base *base;
 	Scene *setscene;
 
 	update_for_newframe_muted();	/* first, since camera can be animated */
 
-	v3d_windowmode= 1;
-	setwinmatrixview3d(0);
-	v3d_windowmode= 0;
-	glMatrixMode(GL_PROJECTION);
-	myloadmatrix(R.winmat);
-	glMatrixMode(GL_MODELVIEW);
+	setwinmatrixview3d(winx, winy, NULL);
 	
 	setviewmatrixview3d();
 	myloadmatrix(v3d->viewmat);
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, R.winmat);
-	Mat4Invert(v3d->persinv, v3d->persmat);
-	Mat4Invert(v3d->viewinv, v3d->viewmat);
+//	Mat4MulMat4(v3d->persmat, v3d->viewmat, winmat);
+//	Mat4Invert(v3d->persinv, v3d->persmat);
+//	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
 	free_all_realtime_images();
 	reshadeall_displist();
@@ -2422,10 +2419,7 @@ void drawview3d_render(struct View3D *v3d)
 		glClearColor(col[0], col[1], col[2], 0.0); 
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glLoadIdentity();
-	myloadmatrix(v3d->viewmat);
-	
+
 	/* abuse! to make sure it doesnt draw the helpstuff */
 	G.f |= G_SIMULATION;
 
@@ -2510,7 +2504,6 @@ void drawview3d_render(struct View3D *v3d)
 
 	glFlush();
 
-	glReadPixels(0, 0, R.rectx, R.recty, GL_RGBA, GL_UNSIGNED_BYTE, R.rectot);
 	glLoadIdentity();
 
 	free_all_realtime_images();

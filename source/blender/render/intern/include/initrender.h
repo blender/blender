@@ -32,19 +32,21 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef INITRENDER_EXT_H
-#define INITRENDER_EXT_H 
+#ifndef INITRENDER_H
+#define INITRENDER_H 
 
-/* type includes */
-
-#include "DNA_effect_types.h"        /* for PartEff type */
-#include "render_types.h"
+struct Object;
 
 /* Functions */
 
-void schrijfplaatje(char *name);
-void render(void);  /* Switch between the old and the unified renderer. */
-/*  void write_screendump(char *name); not here !*/
+void free_sample_tables(Render *re);
+void make_sample_tables(Render *re);
 
-#endif /* INITRENDER_EXT_H */
+void render_scene_set_window(Render *re, struct Object *camera, int blursample);
+
+void initparts(Render *re);
+void freeparts(Render *re);
+
+
+#endif /* INITRENDER_H */
 

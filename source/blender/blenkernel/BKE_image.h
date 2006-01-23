@@ -49,8 +49,10 @@ struct Image *add_image(char *name);
 void free_unused_animimages(void);
 struct Image *new_image(int width, int height, char *name, short uvtestgrid);
 
-void makepicstring(char *string, int frame);
-void addImageExtension(char *string);
+int BKE_write_ibuf(struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
+void BKE_makepicstring(char *string, int frame);
+void BKE_add_image_extension(char *string, int imtype);
+int BKE_imtype_is_movie(int imtype);
 
 struct anim *openanim(char * name, int flags);
 void ima_ibuf_is_nul(struct Tex *tex, struct Image *ima);

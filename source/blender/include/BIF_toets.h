@@ -33,9 +33,6 @@
 #ifndef BIF_TOETS_H
 #define BIF_TOETS_H
 
-void BIF_save_rendered_image(void);
-
-int save_image_filesel_str(char *str);
 int blenderqread(unsigned short event, short val);
 void persptoetsen(unsigned short event); /* dutch rules man */
 int untitled(char *name);

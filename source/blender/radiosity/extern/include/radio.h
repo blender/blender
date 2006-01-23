@@ -166,7 +166,8 @@ extern void drawpatch_ext(RPatch *patch, unsigned int col);
 extern void RAD_drawall(int depth_is_on);
 
 /* radrender.c */
-extern void do_radio_render(void);
+struct Render;
+extern void do_radio_render(struct Render *re);
 void end_radio_render(void);
 
 #endif /* RADIO_H */

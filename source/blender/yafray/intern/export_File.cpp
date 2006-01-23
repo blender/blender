@@ -291,7 +291,7 @@ void yafrayFileRender_t::displayImage()
 
 	// read data directly into buffer, picture is upside down
 	for (unsigned short y=0;y<height;y++) {
-		unsigned char* bpt = (unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
+		unsigned char* bpt = NULL; //(unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
 		for (unsigned short x=0;x<width;x++) {
 			bpt[2] = (unsigned char)fgetc(fp);
 			bpt[1] = (unsigned char)fgetc(fp);
@@ -1527,6 +1527,9 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4]
 
 void yafrayFileRender_t::writeLamps()
 {
+	GroupObject *go;
+	int i=0;
+	
 	// inverse viewmatrix needed for back2world transform
 	float iview[4][4];
 	// R.viewinv != inv.R.viewmat because of possible ortho mode (see convertBlenderScene.c)
@@ -1534,10 +1537,10 @@ void yafrayFileRender_t::writeLamps()
 	MTC_Mat4Invert(iview, R.viewmat);
 	
 	// all lamps
-	for (int i=0;i<R.totlamp;i++)
-	{
+	for(go=(GroupObject *)R.lights.first; go; go= go->next, i++) {
+		LampRen* lamp = (LampRen *)go->lampren;
+
 		ostr.str("");
-		LampRen* lamp = R.la[i];
 		
 		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i, iview);  continue; }
 		

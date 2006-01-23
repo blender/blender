@@ -1,4 +1,3 @@
-
 /*  blender.c   jan 94     MIXED MODEL
  * 
  * common help functions and data
@@ -34,10 +33,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32 
     #include <unistd.h> // for read close
     #include <sys/param.h> // for MAXPATHLEN
@@ -51,11 +46,13 @@
 #include <fcntl.h> // for open
 
 #include "MEM_guardedalloc.h"
+
 #include "DNA_listBase.h"
 #include "DNA_sdna_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -233,10 +230,6 @@ static void clear_global(void)
 	free_main(G.main); /* free all lib data */
 	freefastshade();	/* othwerwise old lamp settings stay active */
 
-
-	/* prevent hanging vars */	
-	R.backbuf= 0;
-	
 	/* force all queues to be left */
 	winqueue_break= 1;
 	
@@ -274,7 +267,6 @@ static void clean_paths(Main *main)
 	Editing *ed;
 	Sequence *seq;
 	Strip *strip;
-	
 	
 	while(image) {
 		BLI_clean(image->name);

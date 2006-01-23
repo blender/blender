@@ -113,7 +113,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"		// R.flag
 
 static int tbx1, tbx2, tby1, tby2, tbfontyofs, tbmain=0;
 static int tbmemx=TBOXX/2, tbmemy=(TBOXEL-0.5)*TBOXH, tboldwin, addmode= 0;
@@ -1102,7 +1101,7 @@ void error(char *fmt, ...)
 	sprintf(nfmt, "%s", fmt);
 	
 	va_start(ap, fmt);
-	if (G.background || !G.curscreen || (R.flag & R_RENDERING)) {
+	if (G.background || !G.curscreen || (G.rendering)) {
 		vprintf(nfmt, ap);
 		printf("\n");
 	} else {

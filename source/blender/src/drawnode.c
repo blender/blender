@@ -36,9 +36,10 @@
 
 #include "DNA_action_types.h"
 #include "DNA_ipo_types.h"
-#include "DNA_object_types.h"
+#include "DNA_ID.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
@@ -46,11 +47,12 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -154,6 +156,19 @@ static void node_ID_title_cb(void *node_v, void *unused_v)
 	}
 }
 
+
+static void node_but_title_cb(void *node_v, void *but_v)
+{
+	bNode *node= node_v;
+	uiBut *bt= but_v;
+	BLI_strncpy(node->name, bt->drawstr, NODE_MAXSTR);
+	
+	allqueue(REDRAWNODE, 0);
+}
+
+
+/* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
+
 static int node_buts_group(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block && node->id) {
@@ -178,10 +193,100 @@ static int node_buts_group(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *
 						 NULL, 0, 0, 0, 0, "Displays number of users. Click to make a single-user copy.");
 			//uiButSetFunc(bt, node_mat_alone_cb, node, NULL);
 		}
-			
+		
 		uiBlockEndAlign(block);
 	}	
 	return 19;
+}
+
+static int node_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
+		
+		uiDefButF(block, NUM, B_NODE_EXEC, "", 
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  sock->ns.vec, 0.0f, 1.0f, 10, 2, "");
+		
+	}
+	return 20;
+}
+
+static int node_buts_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
+		
+		/* enforce square box drawing */
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+		
+		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 12, 
+				  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
+		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
+				  butr->xmin, butr->ymin+15, butr->xmax-butr->xmin, butr->ymax-butr->ymin -15 -15, 
+				  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
+		uiDefButF(block, COL, B_NOP, "",		
+				  butr->xmin, butr->ymax-12, butr->xmax-butr->xmin, 12, 
+				  sock->ns.vec, 0.0, 0.0, -1, 0, "");
+		/* the -1 above prevents col button to popup a color picker */
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	return 30 + (int)(node->width-NODE_DY);
+}
+
+static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt;
+		
+		/* blend type */
+		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
+					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+					 &node->custom1, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, node_but_title_cb, node, bt);
+	}
+	return 20;
+}
+
+static int node_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		if(node->storage) {
+			draw_colorband_buts_small(block, node->storage, butr, B_NODE_EXEC);
+		}
+	}
+	return 40;
+}
+
+static int node_buts_curvevec(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		curvemap_buttons(block, node->storage, 'v', B_NODE_EXEC, B_REDR, butr);
+	}	
+	return (int)(node->width-NODE_DY);
+}
+
+static int node_buts_curvecol(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC, B_REDR, butr);
+	}	
+	return (int)(node->width-NODE_DY);
+}
+
+static int node_buts_normal(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		bNodeSocket *sock= node->outputs.first;		/* first socket stores normal */
+		
+		uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "", 
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, butr->ymax-butr->ymin, 
+				  sock->ns.vec, 0.0f, 1.0f, 0, 0, "");
+		
+	}	
+	return (int)(node->width-NODE_DY);
 }
 
 
@@ -260,8 +365,6 @@ static void node_texmap_cb(void *texmap_v, void *unused_v)
 {
 	init_mapping(texmap_v);
 }
-
-
 
 static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -348,29 +451,6 @@ static int node_shader_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *nod
 	return 19;
 }
 
-static int node_shader_buts_normal(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		bNodeSocket *sock= node->outputs.first;		/* first socket stores normal */
-		
-		uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "", 
-				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, butr->ymax-butr->ymin, 
-				  sock->ns.vec, 0.0f, 1.0f, 0, 0, "");
-		
-	}	
-	return (int)(node->width-NODE_DY);
-}
-
-static int node_shader_buts_curve(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		if(node->type==SH_NODE_CURVE_VEC)
-			curvemap_buttons(block, node->storage, 'v', B_NODE_EXEC, B_REDR, butr);
-		else
-			curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC, B_REDR, butr);
-	}	
-	return (int)(node->width-NODE_DY);
-}
 
 static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -421,75 +501,6 @@ static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *nod
 	return 5*19 + 6;
 }
 
-static int node_shader_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
-		
-		uiDefButF(block, NUM, B_NODE_EXEC, "", 
-					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-					  sock->ns.vec, 0.0f, 1.0f, 10, 2, "");
-		
-	}
-	return 20;
-}
-
-static int node_shader_buts_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
-
-		/* enforce square box drawing */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 12, 
-					  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-					  butr->xmin, butr->ymin+15, butr->xmax-butr->xmin, butr->ymax-butr->ymin -15 -15, 
-					  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
-		uiDefButF(block, COL, B_NOP, "",		
-					  butr->xmin, butr->ymax-12, butr->xmax-butr->xmin, 12, 
-				      sock->ns.vec, 0.0, 0.0, -1, 0, "");
-					  /* the -1 above prevents col button to popup a color picker */
-		
-		uiBlockSetEmboss(block, UI_EMBOSS);
-	}
-	return 30 + (int)(node->width-NODE_DY);
-}
-
-static void node_but_title_cb(void *node_v, void *but_v)
-{
-	bNode *node= node_v;
-	uiBut *bt= but_v;
-	BLI_strncpy(node->name, bt->drawstr, NODE_MAXSTR);
-	
-	allqueue(REDRAWNODE, 0);
-}
-
-static int node_shader_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		uiBut *bt;
-		
-		/* blend type */
-		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
-						butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-						&node->custom1, 0, 0, 0, 0, "");
-		uiButSetFunc(bt, node_but_title_cb, node, bt);
-	}
-	return 20;
-}
-
-static int node_shader_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		if(node->storage) {
-			draw_colorband_buts_small(block, node->storage, butr, B_NODE_EXEC);
-		}
-	}
-	return 40;
-}
 
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
@@ -505,31 +516,179 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			ntype->butfunc= node_shader_buts_texture;
 			break;
 		case SH_NODE_NORMAL:
-			ntype->butfunc= node_shader_buts_normal;
+			ntype->butfunc= node_buts_normal;
 			break;
 		case SH_NODE_CURVE_VEC:
+			ntype->butfunc= node_buts_curvevec;
+			break;
 		case SH_NODE_CURVE_RGB:
-			ntype->butfunc= node_shader_buts_curve;
+			ntype->butfunc= node_buts_curvecol;
 			break;
 		case SH_NODE_MAPPING:
 			ntype->butfunc= node_shader_buts_mapping;
 			break;
 		case SH_NODE_VALUE:
-			ntype->butfunc= node_shader_buts_value;
+			ntype->butfunc= node_buts_value;
 			break;
 		case SH_NODE_RGB:
-			ntype->butfunc= node_shader_buts_rgb;
+			ntype->butfunc= node_buts_rgb;
 			break;
 		case SH_NODE_MIX_RGB:
-			ntype->butfunc= node_shader_buts_mix_rgb;
+			ntype->butfunc= node_buts_mix_rgb;
 			break;
 		case SH_NODE_VALTORGB:
-			ntype->butfunc= node_shader_buts_valtorgb;
+			ntype->butfunc= node_buts_valtorgb;
 			break;
 		default:
 			ntype->butfunc= NULL;
 	}
 }
+
+/* ****************** BUTTON CALLBACKS FOR COMPOSIT NODES ***************** */
+
+
+
+static void node_browse_image_cb(void *ntree_v, void *node_v)
+{
+	bNodeTree *ntree= ntree_v;
+	bNode *node= node_v;
+	
+	nodeSetActive(ntree, node);
+	
+	if(node->menunr<1) return;
+	if(node->menunr==32767) {	/* code for Load New */
+		addqueue(curarea->win, UI_BUT_EVENT, B_NODE_LOADIMAGE);
+	}
+	else {
+		if(node->id) node->id->us--;
+		node->id= BLI_findlink(&G.main->image, node->menunr-1);
+		id_us_plus(node->id);
+
+		BLI_strncpy(node->name, node->id->name+2, 21);
+
+		addqueue(curarea->win, RENDERPREVIEW, 1);
+	}
+	node->menunr= 0;
+}
+
+static void node_active_cb(void *ntree_v, void *node_v)
+{
+	nodeSetActive(ntree_v, node_v);
+}
+
+static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt;
+		short dy= (short)butr->ymin;
+		char *strp;
+		
+		uiBlockBeginAlign(block);
+		uiBlockSetCol(block, TH_BUT_SETTING2);
+		
+		/* browse button */
+		IDnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
+		node->menunr= 0;
+		bt= uiDefButS(block, MENU, B_NOP, strp, 
+					  butr->xmin, dy, 19, 19, 
+					  &node->menunr, 0, 0, 0, 0, "Browses existing choices");
+		uiButSetFunc(bt, node_browse_image_cb, ntree, node);
+		if(strp) MEM_freeN(strp);
+		
+		/* Add New button */
+		if(node->id==NULL) {
+			bt= uiDefBut(block, BUT, B_NODE_LOADIMAGE, "Load New",
+						 butr->xmin+19, dy, (short)(butr->xmax-butr->xmin-19.0f), 19, 
+						 NULL, 0.0, 0.0, 0, 0, "Add new Image");
+			uiButSetFunc(bt, node_active_cb, ntree, node);
+			uiBlockSetCol(block, TH_AUTO);
+		}
+		else {
+			/* name button */
+			short width= (short)(butr->xmax-butr->xmin-19.0f);
+			bt= uiDefBut(block, TEX, B_NOP, "IMA:",
+						 butr->xmin+19, dy, width, 19, 
+						 node->id->name+2, 0.0, 19.0, 0, 0, "Image name");
+			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
+		}			
+		
+	}	
+	return 19;
+}
+
+static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt;
+		
+		uiBlockBeginAlign(block);
+		bt=uiDefButS(block, NUM, B_NODE_EXEC, "X:",
+					 butr->xmin, butr->ymin, (butr->xmax-butr->xmin)/2, 19, 
+					 &node->custom1, 0, 256, 0, 0, "");
+		bt=uiDefButS(block, NUM, B_NODE_EXEC, "Y:",
+					 butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin, (butr->xmax-butr->xmin)/2, 19, 
+					 &node->custom2, 0, 256, 0, 0, "");
+	}
+	return 19;
+}
+
+static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt;
+		
+		/* blend type */
+		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Soften %x0|Sharpen %x1|Laplace %x2|Sobel %x3|Prewitt %x4|Kirsch %x5|Shadow %x6",
+					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+					 &node->custom1, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, node_but_title_cb, node, bt);
+	}
+	return 20;
+}
+
+
+/* only once called */
+static void node_composit_set_butfunc(bNodeType *ntype)
+{
+	switch(ntype->type) {
+		case NODE_GROUP:	/* note, generic type, but put here because we call this function anyway */
+			ntype->butfunc= node_buts_group;
+			break;
+		case CMP_NODE_IMAGE:
+			ntype->butfunc= node_composit_buts_image;
+			break;
+		case CMP_NODE_NORMAL:
+			ntype->butfunc= node_buts_normal;
+			break;
+		case CMP_NODE_CURVE_VEC:
+			ntype->butfunc= node_buts_curvevec;
+			break;
+		case CMP_NODE_CURVE_RGB:
+			ntype->butfunc= node_buts_curvecol;
+			break;
+		case CMP_NODE_VALUE:
+			ntype->butfunc= node_buts_value;
+			break;
+		case CMP_NODE_RGB:
+			ntype->butfunc= node_buts_rgb;
+			break;
+		case CMP_NODE_MIX_RGB:
+			ntype->butfunc= node_buts_mix_rgb;
+			break;
+		case CMP_NODE_VALTORGB:
+			ntype->butfunc= node_buts_valtorgb;
+			break;
+		case CMP_NODE_BLUR:
+			ntype->butfunc= node_composit_buts_blur;
+			break;
+		case CMP_NODE_FILTER:
+			ntype->butfunc= node_composit_buts_filter;
+			break;
+		default:
+			ntype->butfunc= NULL;
+	}
+}
+
 
 /* ******* init draw callbacks for all tree types, only called in usiblender.c, once ************* */
 
@@ -541,6 +700,12 @@ void init_node_butfuncs(void)
 	typedefs= node_all_shaders;		/* BKE_node.h */
 	while( *typedefs) {
 		node_shader_set_butfunc(*typedefs);
+		typedefs++;
+	}
+	/* composit nodes */
+	typedefs= node_all_composit;		/* BKE_node.h */
+	while( *typedefs) {
+		node_composit_set_butfunc(*typedefs);
 		typedefs++;
 	}
 }
@@ -778,9 +943,14 @@ static void node_update(bNode *node)
 	
 	/* preview rect? */
 	if(node->flag & NODE_PREVIEW) {
+		float aspect= 1.0f;
+		
+		if(node->preview && node->preview->xsize && node->preview->ysize) 
+			aspect= (float)node->preview->ysize/(float)node->preview->xsize;
+		
 		dy-= NODE_DYS/2;
 		node->prvr.ymax= dy;
-		node->prvr.ymin= dy-(node->width-NODE_DY);
+		node->prvr.ymin= dy - aspect*(node->width-NODE_DY);
 		dy= node->prvr.ymin - NODE_DYS/2;
 	}
 	
@@ -1076,7 +1246,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	
 	/* preview */
 	if(node->flag & NODE_PREVIEW)
-		if(node->preview)
+		if(node->preview && node->preview->rect)
 			node_draw_preview(node->preview, &node->prvr);
 		
 	/* buttons */
@@ -1363,7 +1533,6 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	/* and finally the whole tree */
 	node_draw_nodetree(sa, snode, ngroup);
 }
-
 
 
 void drawnodespace(ScrArea *sa, void *spacedata)

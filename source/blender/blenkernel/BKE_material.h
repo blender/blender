@@ -42,6 +42,7 @@ struct Material;
 struct ID;
 struct Object;
 
+void init_def_material(void);
 void free_material(struct Material *sc); 
 void test_object_materials(struct ID *id);
 void init_material(struct Material *ma);
@@ -56,13 +57,16 @@ ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
 void new_material_to_objectdata(struct Object *ob);
 
-void init_render_material(struct Material *);
-void init_render_materials(void);
+void init_render_material(struct Material *, int, float *);
+void init_render_materials(int, float *);
 void end_render_material(struct Material *);
 void end_render_materials(void);
 
 void automatname(struct Material *);
 void delete_material_index(void);            
+
+void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
+
 
 #ifdef __cplusplus
 }

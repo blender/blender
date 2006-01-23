@@ -1385,6 +1385,8 @@ void DAG_scene_sort(struct Scene *sce)
 			printf(" %s\n", base->object->id.name);
 		}
 	}
+	/* temporal...? */
+	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
 
 /* node was checked to have lasttime != curtime and is if type ID_OB */

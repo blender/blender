@@ -125,7 +125,7 @@ void glaRasterPosSafe2f		(float x, float y, float known_good_x, float known_good
 	 * to use the glScissor functionality if images are to be drawn
 	 * with an inset view matrix.
 	 */
-void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int format, int type, void *rect);
+void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int row_w, int format, int type, void *rect);
 
 	/**
 	 * Functions like a limited glDrawPixels, but actually draws the

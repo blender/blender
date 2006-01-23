@@ -62,6 +62,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -88,6 +89,7 @@
 #include "BIF_editmode_undo.h"
 #include "BIF_editsound.h"
 #include "BIF_poseobject.h"
+#include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -114,8 +116,9 @@
 
 #include "blendef.h"
 
+#include "RE_pipeline.h"		/* RE_ free stuff */
+
 #include "radio.h"
-#include "render.h"		/* RE_ free stuff */
 #include "datatoc.h"
 
 #include "SYS_System.h"
@@ -679,7 +682,9 @@ void BIF_init(void)
 	sound_init_listener();
 	init_node_butfuncs();
 	
+	BIF_preview_init_dbase();
 	BIF_read_homefile();
+	
 	init_gl_stuff();	/* drawview.c, after homefile */
 	readBlog();
 	strcpy(G.lib, G.sce);
@@ -736,7 +741,7 @@ void exit_usiblender(void)
 	free_languagemenu();
 #endif	
 	
-	RE_free_render_data();
+	RE_FreeAllRender();
 	
 	free_txt_data();
 
@@ -772,7 +777,8 @@ void exit_usiblender(void)
 	BKE_reset_undo(); 
 	
 	BLI_freelistN(&U.themes);
-	
+	BIF_preview_free_dbase();
+		
 	if(totblock!=0) {
 		printf("Error Totblock: %d\n",totblock);
 		MEM_printmemlist();

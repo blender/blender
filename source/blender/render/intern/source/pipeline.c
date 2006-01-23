@@ -1,0 +1,954 @@
+/**  
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2006 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+#include <math.h>
+#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "DNA_group_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_scene.h"
+#include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
+
+#include "MEM_guardedalloc.h"
+
+#include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+
+#include "PIL_time.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
+#include "RE_pipeline.h"
+#include "radio.h"
+
+#include "BSE_sequence.h"  /* <----------------- bad!!! */
+
+/* internal */
+#include "render_types.h"
+#include "renderpipeline.h"
+#include "renderdatabase.h"
+#include "rendercore.h"
+#include "envmap.h"
+#include "initrender.h"
+#include "shadbuf.h"
+#include "zbuf.h"
+
+#include "SDL_thread.h"
+
+/* render flow
+
+1) Initialize state
+- state data, tables
+- movie/image file init
+- everything that doesn't change during animation
+
+2) Initialize data
+- camera, world, matrices
+- make render verts, faces, halos, strands
+- everything can change per frame/field
+
+3) Render Processor
+- multiple layers
+- tiles, rect, baking
+- layers/tiles optionally to disk or directly in Render Result
+
+4) Composit Render Result
+- also read external files etc
+
+5) Image Files
+- save file or append in movie
+
+*/
+
+
+/* ********* globals ******** */
+
+/* here we store all renders */
+static struct ListBase RenderList= {NULL, NULL};
+
+/* hardcopy of current render, used while rendering for speed */
+Render R;
+
+/* ********* alloc and free ******** */
+
+
+static SDL_mutex *malloc_lock= NULL;
+
+void *RE_mallocN(int len, char *name)
+{
+	void *mem;
+	if(malloc_lock) SDL_mutexP(malloc_lock);
+	mem= MEM_mallocN(len, name);
+	if(malloc_lock) SDL_mutexV(malloc_lock);
+	return mem;
+}
+void *RE_callocN(int len, char *name)
+{
+	void *mem;
+	if(malloc_lock) SDL_mutexP(malloc_lock);
+	mem= MEM_callocN(len, name);
+	if(malloc_lock) SDL_mutexV(malloc_lock);
+	return mem;
+}
+void RE_freeN(void *poin)
+{
+	if(malloc_lock) SDL_mutexP(malloc_lock);
+	MEM_freeN(poin);
+	if(malloc_lock) SDL_mutexV(malloc_lock);
+}
+
+/* ********************** */
+
+
+/* default callbacks, set in each new render */
+static void result_nothing(RenderResult *rr) {}
+static void result_rcti_nothing(RenderResult *rr, rcti *rect) {}
+static void stats_nothing(RenderStats *rs) {}
+static void int_nothing(int val) {}
+static int void_nothing(void) {return 0;}
+static void print_error(const char *str) {printf("ERROR: %s\n", str);}
+
+static void free_render_result(RenderResult *res)
+{
+	if(res==NULL) return;
+
+	while(res->layers.first) {
+		RenderLayer *rl= res->layers.first;
+		if(rl->rectf) RE_freeN(rl->rectf);
+		if(rl->rectz) RE_freeN(rl->rectz);
+		BLI_remlink(&res->layers, rl);
+		RE_freeN(rl);
+	}
+	
+	if(res->rect32)
+		MEM_freeN(res->rect32);
+	
+	RE_freeN(res);
+}
+
+/* called by main render as well for parts */
+/* will read info from Render *re to define layers */
+/* called in threads */
+/* winrct is coordinate rect of entire image, partrct the part within */
+static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
+{
+	RenderResult *rr;
+	RenderLayer *rl;
+	int rectx, recty;
+	
+	rectx= partrct->xmax - partrct->xmin;
+	recty= partrct->ymax - partrct->ymin;
+	
+	if(rectx<=0 || recty<=0)
+		return NULL;
+	
+	rr= RE_callocN(sizeof(RenderResult), "new render result");
+	rr->rectx= rectx;
+	rr->recty= recty;
+	/* crop is one or two extra pixels rendered for filtering, is used for merging and display too */
+	rr->crop= crop;
+	
+	/* tilerect is relative coordinates within render disprect. do not subtract crop yet */
+	rr->tilerect.xmin= partrct->xmin - re->disprect.xmin;
+	rr->tilerect.xmax= partrct->xmax - re->disprect.xmax;
+	rr->tilerect.ymin= partrct->ymin - re->disprect.ymin;
+	rr->tilerect.ymax= partrct->ymax - re->disprect.ymax;
+	
+	/* check renderdata for amount of layers */
+	/* for now just one */
+	rl= RE_callocN(sizeof(RenderLayer), "new render layer");
+	BLI_addtail(&rr->layers, rl);
+	
+	rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
+	rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+	
+	return rr;
+}
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+/* caller is responsible for allocating rect in correct size! */
+void RE_ResultGet32(Render *re, unsigned int *rect)
+{
+	if(re->result) {
+		RenderLayer *rl= re->result->layers.first;
+		float *fp= rl->rectf;
+		if(fp) {
+			int tot= re->rectx*re->recty;
+			char *cp= (char *)rect;
+			
+			for(;tot>0; tot--, cp+=4, fp+=4) {
+				cp[0] = FTOCHAR(fp[0]);
+				cp[1] = FTOCHAR(fp[1]);
+				cp[2] = FTOCHAR(fp[2]);
+				cp[3] = FTOCHAR(fp[3]);
+			}
+			return;
+		}
+	}
+	/* else fill with black */
+	memset(rect, sizeof(int)*re->rectx*re->recty, 0);
+}
+
+/* used when rendering to a full buffer, or when reading the exr part-layer-pass file */
+/* no test happens here if it fits... */
+/* is used within threads */
+static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
+{
+	RenderLayer *rl= rr->layers.first;
+	RenderLayer *rlp= rrpart->layers.first;
+	float *rf, *rfp;
+	int *rz=NULL, *rzp;
+	int y, height, len, copylen;
+	
+	if(rlp->rectf==NULL) return;
+	if(rl->rectf==NULL) return;
+	
+	rzp= NULL; //rlp->rectz;
+	rfp= rlp->rectf;
+	
+	copylen=len= rrpart->rectx;
+	height= rrpart->recty;
+	
+	if(rrpart->crop) {	/* filters add pixel extra */
+		
+		if(rzp) rzp+= rrpart->crop + rrpart->crop*len;
+		if(rfp) rfp+= 4*(rrpart->crop + rrpart->crop*len);
+		
+		copylen= len-2*rrpart->crop;
+		height -= 2*rrpart->crop;
+		
+		//		rz= re->rectz+ (pa->miny + rrpart->crop)*rr->rectx+ (pa->minx+rrpart->crop);
+		rf= rl->rectf+ ( (rrpart->tilerect.ymin + rrpart->crop)*rr->rectx + (rrpart->tilerect.xmin+rrpart->crop) )*4;
+	}
+	else {
+		//		rz= re->rectz +  (pa->disprect.ymin*rr->rectx + pa->disprect.xmin);
+		rf= rl->rectf+ (rrpart->tilerect.ymin*rr->rectx + rrpart->tilerect.xmin)*4;
+	}
+
+	for(y=0; y<height; y++) {
+		if(rzp) {
+			memcpy(rz, rzp, 4*copylen);
+			rz+= rr->rectx;
+			rzp+= len;
+		}
+		if(rfp) {
+			memcpy(rf, rfp, 16*copylen);
+			rf+= 4*rr->rectx;
+			rfp+= 4*len;
+		}
+	}
+}
+
+
+/* *************************************************** */
+
+Render *RE_GetRender(const char *name)
+{
+	Render *re;
+	
+	/* search for existing renders */
+	for(re= RenderList.first; re; re= re->next) {
+		if(strncmp(re->name, name, RE_MAXNAME)==0) {
+			break;
+		}
+	}
+	return re;
+}
+
+RenderResult *RE_GetResult(Render *re)
+{
+	if(re)
+		return re->result;
+	return NULL;
+}
+
+RenderStats *RE_GetStats(Render *re)
+{
+	return &re->i;
+}
+
+Render *RE_NewRender(const char *name)
+{
+	Render *re;
+	
+	/* only one render per name exists */
+	re= RE_GetRender(name);
+	if(re) {
+		BLI_remlink(&RenderList, re);
+		RE_FreeRender(re);
+	}
+	
+	/* new render data struct */
+	re= RE_callocN(sizeof(Render), "new render");
+	BLI_addtail(&RenderList, re);
+	strncpy(re->name, name, RE_MAXNAME);
+	
+	/* set default empty callbacks */
+	re->display_init= result_nothing;
+	re->display_clear= result_nothing;
+	re->display_draw= result_rcti_nothing;
+	re->timecursor= int_nothing;
+	re->test_break= void_nothing;
+	re->test_return= void_nothing;
+	re->error= print_error;	
+	re->stats_draw= stats_nothing;
+	
+	/* init some variables */
+	re->ycor= 1.0f;
+	
+	return re;
+}
+
+/* only call this while you know it will remove the link too */
+void RE_FreeRender(Render *re)
+{
+	
+	free_renderdata_tables(re);
+	free_sample_tables(re);
+	
+	free_render_result(re->result);
+	
+	BLI_remlink(&RenderList, re);
+	RE_freeN(re);
+}
+
+/* exit blender */
+void RE_FreeAllRender(void)
+{
+	while(RenderList.first) {
+		RE_FreeRender(RenderList.first);
+	}
+}
+
+/* ********* initialize state ******** */
+
+
+/* what doesn't change during entire render sequence */
+/* disprect is optional, if NULL it assumes full window render */
+void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect)
+{
+	re->ok= TRUE;	/* maybe flag */
+	
+	re->i.starttime= PIL_check_seconds_timer();
+	re->r= *rd;		/* hardcopy */
+	
+	re->winx= winx;
+	re->winy= winy;
+	if(disprect) {
+		re->disprect= *disprect;
+		re->rectx= disprect->xmax-disprect->xmin;
+		re->recty= disprect->ymax-disprect->ymin;
+	}
+	else {
+		re->disprect.xmin= re->disprect.xmax= 0;
+		re->disprect.xmax= winx;
+		re->disprect.ymax= winy;
+		re->rectx= winx;
+		re->recty= winy;
+	}
+	
+	if(re->rectx < 2 || re->recty < 2) {
+		re->error("Image too small");
+		re->ok= 0;
+	}
+	else {
+		/* check state variables, osa? */
+		if(re->r.mode & (R_OSA|R_MBLUR)) {
+			re->osa= re->r.osa;
+			if(re->osa>16) re->osa= 16;
+		}
+		else re->osa= 0;
+		
+		/* always call, checks for gamma, gamma tables and jitter too */
+		make_sample_tables(re);	
+		
+		/* initialize render result */
+		free_render_result(re->result);
+		re->result= new_render_result(re, &re->disprect, 0);
+
+	}
+}
+
+void RE_SetDispRect (struct Render *re, rcti *disprect)
+{
+	re->disprect= *disprect;
+	re->rectx= disprect->xmax-disprect->xmin;
+	re->recty= disprect->ymax-disprect->ymin;
+	
+	/* initialize render result */
+	free_render_result(re->result);
+	re->result= new_render_result(re, &re->disprect, 0);
+}
+
+void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
+{
+	/* re->ok flag? */
+	
+	re->viewplane= *viewplane;
+	re->clipsta= clipsta;
+	re->clipend= clipend;
+
+	i_window(re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend, re->winmat);
+}
+
+void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
+{
+	/* re->ok flag? */
+	
+	re->viewplane= *viewplane;
+	re->clipsta= clipsta;
+	re->clipend= clipend;
+	re->r.mode |= R_ORTHO;
+
+	i_ortho(re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend, re->winmat);
+}
+
+void RE_SetView(Render *re, float mat[][4])
+{
+	/* re->ok flag? */
+	Mat4CpyMat4(re->viewmat, mat);
+	Mat4Invert(re->viewinv, re->viewmat);
+}
+
+/* image and movie output has to move to either imbuf or kernel */
+
+void RE_display_init_cb(Render *re, void (*f)(RenderResult *rr))
+{
+	re->display_init= f;
+}
+void RE_display_clear_cb(Render *re, void (*f)(RenderResult *rr))
+{
+	re->display_clear= f;
+}
+void RE_display_draw_cb(Render *re, void (*f)(RenderResult *rr, rcti *rect))
+{
+	re->display_draw= f;
+}
+
+void RE_stats_draw_cb(Render *re, void (*f)(RenderStats *rs))
+{
+	re->stats_draw= f;
+}
+void RE_timecursor_cb(Render *re, void (*f)(int))
+{
+	re->timecursor= f;
+}
+
+void RE_test_break_cb(Render *re, int (*f)(void))
+{
+	re->test_break= f;
+}
+void RE_test_return_cb(Render *re, int (*f)(void))
+{
+	re->test_return= f;
+}
+void RE_error_cb(Render *re, void (*f)(const char *str))
+{
+	re->error= f;
+}
+
+
+/* ********* add object data (later) ******** */
+
+/* object is considered fully prepared on correct time etc */
+/* includes lights */
+void RE_AddObject(Render *re, Object *ob)
+{
+	
+}
+
+/* ********** basic thread control API ************ */
+
+#define RE_MAX_THREAD 4
+
+typedef struct ThreadSlot {
+	RenderPart *part;
+	int avail;
+} ThreadSlot;
+
+static ThreadSlot threadslots[RE_MAX_THREAD];
+
+static void init_threadslots(int tot)
+{
+	int a;
+	
+	if(tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
+	else if(tot<1) tot= 1;
+	
+	for(a=0; a< RE_MAX_THREAD; a++) {
+		threadslots[a].part= NULL;
+		if(a<tot)
+			threadslots[a].avail= 1;
+		else
+			threadslots[a].avail= 0;
+	}
+}
+
+static int available_threadslots(void)
+{
+	int a, counter=0;
+	for(a=0; a< RE_MAX_THREAD; a++)
+		if(threadslots[a].avail)
+			counter++;
+	return counter;
+}
+
+static void insert_threadslot(RenderPart *pa)
+{
+	int a;
+	for(a=0; a< RE_MAX_THREAD; a++) {
+		if(threadslots[a].avail) {
+			threadslots[a].avail= 0;
+			threadslots[a].part= pa;
+			pa->thread= a;
+			break;
+		}
+	}
+}
+
+static void remove_threadslot(RenderPart *pa)
+{
+	int a;
+	for(a=0; a< RE_MAX_THREAD; a++) {
+		if(threadslots[a].part==pa) {
+			threadslots[a].avail= 1;
+			threadslots[a].part= NULL;
+		}
+	}
+}
+
+/* ********** basic thread control API ************ */
+
+static int do_part_thread(void *pa_v)
+{
+	RenderPart *pa= pa_v;
+	
+	/* need to return nicely all parts on esc */
+	if(R.test_break()==0) {
+		
+		pa->result= new_render_result(&R, &pa->disprect, pa->crop);
+		
+		if(R.osa)
+			zbufshadeDA_tile(pa);
+		else
+			zbufshade_tile(pa);
+			
+		if(!R.test_break())
+			merge_render_result(R.result, pa->result);
+	}
+	
+	pa->ready= 1;
+	remove_threadslot(pa);
+	
+	return 0;
+}
+
+/* returns with render result filled, not threaded */
+static void render_tile_processor(Render *re)
+{
+	RenderPart *pa;
+	
+	if(re->test_break())
+		return;
+	
+	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	re->stats_draw(&re->i);
+	re->i.starttime= PIL_check_seconds_timer();
+ 
+	if(re->result==NULL)
+		return;
+	
+	initparts(re);
+	
+	/* assuming no new data gets added to dbase... */
+	R= *re;
+	
+	for(pa= re->parts.first; pa; pa= pa->next) {
+		do_part_thread(pa);
+		
+		if(pa->result) {
+			if(!re->test_break()) {
+				re->display_draw(pa->result, NULL);
+				re->i.partsdone++;
+			}
+			free_render_result(pa->result);
+			pa->result= NULL;
+		}		
+		if(re->test_break())
+			break;
+	}
+	
+	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	re->stats_draw(&re->i);
+
+	freeparts(re);
+}
+
+static RenderPart *find_nicest_part(Render *re)
+{
+	RenderPart *pa, *best= NULL;
+	int centx=re->winx/2, centy=re->winy/2, tot=1;
+	int mindist, distx, disty;
+	
+	/* find center of rendered parts, image center counts for 1 too */
+	for(pa= re->parts.first; pa; pa= pa->next) {
+		if(pa->ready) {
+			centx+= (pa->disprect.xmin+pa->disprect.xmax)/2;
+			centy+= (pa->disprect.ymin+pa->disprect.ymax)/2;
+			tot++;
+		}
+	}
+	centx/=tot;
+	centy/=tot;
+	
+	/* closest of the non-rendering parts */
+	mindist= re->winx*re->winy;
+	for(pa= re->parts.first; pa; pa= pa->next) {
+		if(pa->ready==0 && pa->nr==0) {
+			distx= centx - (pa->disprect.xmin+pa->disprect.xmax)/2;
+			disty= centy - (pa->disprect.ymin+pa->disprect.ymax)/2;
+			distx= (int)sqrt(distx*distx + disty*disty);
+			if(distx<mindist) {
+				best= pa;
+				mindist= distx;
+			}
+		}
+	}
+	return best;
+}
+
+static void threaded_tile_processor(Render *re)
+{
+	RenderPart *pa;
+	int maxthreads=2, rendering=1, counter= 1;
+	
+	if(re->result==NULL)
+		return;
+	if(re->test_break())
+		return;
+	
+	initparts(re);
+	init_threadslots(maxthreads);
+	
+	/* assuming no new data gets added to dbase... */
+	R= *re;
+	
+	malloc_lock = SDL_CreateMutex();
+	
+	while(rendering) {
+		
+		/* I noted that test_break() in a thread doesn't make ghost send ESC */
+		if(available_threadslots() && !re->test_break()) {
+			pa= find_nicest_part(re);
+			if(pa) {
+				insert_threadslot(pa);
+				pa->nr= counter++;	/* only for stats */
+				SDL_CreateThread(do_part_thread, pa);
+			}
+		}
+		else
+			PIL_sleep_ms(50);
+		
+		/* check for ready ones to display, and if we need to continue */
+		rendering= 0;
+		for(pa= re->parts.first; pa; pa= pa->next) {
+			if(pa->ready) {
+				if(pa->result) {
+					re->display_draw(pa->result, NULL);
+					free_render_result(pa->result);
+					pa->result= NULL;
+					re->i.partsdone++;
+				}
+			}
+			else rendering= 1;
+		}
+		
+		/* on break, wait for all slots to get freed */
+		if(re->test_break() && available_threadslots()==maxthreads)
+			rendering= 0;
+		
+	}
+	
+	if(malloc_lock) SDL_DestroyMutex(malloc_lock); malloc_lock= NULL;
+	
+	freeparts(re);
+}
+
+void RE_TileProcessor(Render *re)
+{
+	if(re->r.mode & R_THREADS) 
+		threaded_tile_processor(re);
+	else
+		render_tile_processor(re);	
+}
+
+
+/* ************  This part uses API, for rendering Blender scenes ********** */
+
+void render_one_frame(Render *re)
+{
+	
+//	re->cfra= cfra;	/* <- unused! */
+	
+	/* make render verts/faces/halos/lamps */
+	RE_Database_FromScene(re, re->scene, 1);
+
+	RE_TileProcessor(re);
+	
+	/* free all render verts etc */
+	RE_Database_Free(re);
+}
+
+/* accumulates osa frames */
+static void do_render_blurred(Render *re, float frame)
+{
+	
+}
+
+/* interleaves 2 frames */
+static void do_render_fields(Render *re)
+{
+	
+}
+
+static void do_render_final(Render *re, Scene *scene)
+{
+	if(re->r.scemode & R_DOSEQ) {
+		re->result->rect32= MEM_callocN(sizeof(int)*re->rectx*re->recty, "rectot");
+		if(!re->test_break()) 
+			do_render_seq(re->result);
+	}
+	else {
+		
+		re->scene= scene;
+		
+		/* now use renderdata and camera to set viewplane */
+		RE_SetCamera(re, re->scene->camera);
+		
+		if(re->r.mode & R_FIELDS)
+			do_render_fields(re);
+		else if(re->r.mode & R_MBLUR)
+			do_render_blurred(re, re->scene->r.cfra);
+		else
+			render_one_frame(re);
+	}
+	
+
+	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	re->stats_draw(&re->i);
+	
+	re->display_draw(re->result, NULL);
+	
+}
+
+
+static int is_rendering_allowed(Render *re)
+{
+	
+	/* forbidden combinations */
+	if(re->r.mode & R_PANORAMA) {
+		if(re->r.mode & R_BORDER) {
+			re->error("No border supported for Panorama");
+			return 0;
+		}
+		if(re->r.yparts>1) {
+			re->error("No Y-Parts supported for Panorama");
+			return 0;
+		}
+		if(re->r.mode & R_ORTHO) {
+			re->error("No Ortho render possible for Panorama");
+			return 0;
+		}
+	}
+	
+	if(re->r.mode & R_BORDER) {
+		if(re->r.border.xmax <= re->r.border.xmin || 
+		   re->r.border.ymax <= re->r.border.ymin) {
+			re->error("No border area selected.");
+			return 0;
+		}
+	}
+	
+	if(re->r.xparts*re->r.yparts>=2 && (re->r.mode & R_MOVIECROP) && (re->r.mode & R_BORDER)) {
+		re->error("Combination of border, crop and parts not allowed");
+		return 0;
+	}
+	
+	if(re->r.xparts*re->r.yparts>64) {
+		re->error("No more than 64 parts supported");
+		return 0;
+	}
+	
+	if(re->r.yparts>1 && (re->r.mode & R_PANORAMA)) {
+		re->error("No Y-Parts supported for Panorama");
+		return 0;
+	}
+	
+	/* check valid camera */
+	if(re->scene->camera==NULL)
+		re->scene->camera= scene_find_camera(re->scene);
+	if(re->scene->camera==NULL) {
+		re->error("No camera");
+		return 0;
+	}
+	
+	
+	return 1;
+}
+
+/* evaluating scene options for general Blender render */
+static int render_initialize_from_scene(Render *re, Scene *scene)
+{
+	int winx, winy;
+	rcti disprect;
+	
+	/* r.xsch and r.ysch has the actual view window size
+		r.border is the clipping rect */
+	
+	/* calculate actual render result and display size */
+	winx= (scene->r.size*scene->r.xsch)/100;
+	winy= (scene->r.size*scene->r.ysch)/100;
+	//	if(scene->r.mode & R_PANORAMA)
+	//		winx*= scene->r.xparts;
+	
+	/* only in movie case we render smaller part */
+	if(scene->r.mode & R_BORDER) {
+		disprect.xmin= scene->r.border.xmin*winx;
+		disprect.xmax= scene->r.border.xmax*winx;
+		
+		disprect.ymin= scene->r.border.ymin*winy;
+		disprect.ymax= scene->r.border.ymax*winy;
+	}
+	else {
+		disprect.xmin= disprect.ymin= 0;
+		disprect.xmax= winx;
+		disprect.ymax= winy;
+	}
+	
+	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	
+	re->scene= scene;
+	if(!is_rendering_allowed(re))
+		return 0;
+	
+	re->display_init(re->result);
+	re->display_clear(re->result);
+	
+	return 1;
+}
+
+/* general Blender frame render call */
+/* should return 1 when all is OK, otherwise it throws up errors */
+void RE_BlenderFrame(Render *re, Scene *scene, int frame)
+{
+	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
+	/* is also set by caller renderwin.c */
+	G.rendering= 1;
+	
+	if(render_initialize_from_scene(re, scene)) {
+		do_render_final(re, scene);
+	}
+}
+
+
+/* saves images to disk */
+void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
+{
+	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
+	int cfrao= scene->r.cfra;
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+	
+	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
+	/* is also set by caller renderwin.c */
+	G.rendering= 1;
+	
+	if(!render_initialize_from_scene(re, scene))
+	   return;
+	
+	if(BKE_imtype_is_movie(scene->r.imtype))
+		mh->start_movie(&G.scene->r, re->rectx, re->recty);
+	
+	for(scene->r.cfra= sfra; scene->r.cfra<=efra; G.scene->r.cfra++) {
+		
+		do_render_final(re, scene);
+		
+		/* write image or movie */
+		if(re->test_break()==0) {
+			RenderResult *rr= re->result;
+			RenderLayer *rl= rr->layers.first;
+
+			/* write movie or image */
+			if(BKE_imtype_is_movie(scene->r.imtype)) {
+				if(rr->rect32==NULL) {
+					rr->rect32= MEM_mallocN(sizeof(int)*rr->rectx*rr->recty, "temp 32 bits rect");
+				}
+				RE_ResultGet32(re, rr->rect32);
+				mh->append_movie(scene->r.cfra, rr->rect32, rr->rectx, rr->recty);
+				printf("Append frame %d", scene->r.cfra);
+			}
+			else {
+				ImBuf *ibuf= IMB_allocImBuf(rr->rectx, rr->recty, scene->r.planes, 0, 0);
+				int ok;
+				
+				BKE_makepicstring(name, (scene->r.cfra));
+				ibuf->rect= rr->rect32;		/* if not exists, BKE_write_ibuf makes one */
+				ibuf->rect_float= rl->rectf;
+				ibuf->zbuf_float= rl->rectz;
+				ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+				IMB_freeImBuf(ibuf);	/* imbuf knows which rects are not part of ibuf */
+
+				if(ok==0) {
+					printf("Render error: cannot save %s\n", name);
+					break;
+				}
+				else printf("Saved: %s", name);
+			}
+			
+			BLI_timestr(re->i.lastframetime, name);
+			printf(" Time: %s\n", name);
+			fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
+		}
+		
+		if(G.afbreek==1) break;
+	}
+	
+	/* end movie */
+	if(BKE_imtype_is_movie(scene->r.imtype))
+		mh->end_movie();
+
+	scene->r.cfra= cfrao;
+}
+
+
+

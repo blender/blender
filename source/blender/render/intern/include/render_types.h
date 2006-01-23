@@ -20,9 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): (c) 2006 Blender Foundation, full refactor
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -30,154 +28,150 @@
 #ifndef RENDER_TYPES_H
 #define RENDER_TYPES_H
 
+/* ------------------------------------------------------------------------- */
+/* exposed internal in render module only! */
+/* ------------------------------------------------------------------------- */
+
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
+#include "DNA_vec_types.h"
+
+#include "RE_pipeline.h"
+#include "RE_shader_ext.h"	/* TexResult, ShadeResult, ShadeInput */
+
+struct MemArena;
+struct VertTableNode;
+struct Octree;
+struct GHash;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
 
-/* This is needed to not let VC choke on near and far... old
- * proprietary MS extensions... */
-#ifdef WIN32
-#undef near
-#undef far
-#define near clipsta
-#define far clipend
-#endif
-
-/* ------------------------------------------------------------------------- */
-
-/* localized texture result data */
-/* note; tr tg tb ta has to remain in this order */
-typedef struct TexResult {
-	float tin, tr, tg, tb, ta;
-	int talpha;
-	float *nor;
-} TexResult;
-
-/* localized shade result data */
-typedef struct ShadeResult 
+typedef struct SampleTables
 {
-	float diff[3];
-	float spec[3];
-	float alpha;
+	float centLut[16];
+	float *fmask1[9], *fmask2[9];
+	char cmask[256], *centmask;
 	
-} ShadeResult;
+} SampleTables;
 
-/* localized renderloop data */
-typedef struct ShadeInput
+/* this is handed over to threaded hiding/passes/shading engine */
+typedef struct RenderPart
 {
-	struct Material *mat;
-	struct VlakRen *vlr;
-	float co[3];
+	struct RenderPart *next, *prev;
 	
-	/* copy from material, keep synced so we can do memcopy */
-	/* current size: 23*4 */
-	float r, g, b;
-	float specr, specg, specb;
-	float mirr, mirg, mirb;
-	float ambr, ambb, ambg;
+	/* result of part rendering */
+	RenderResult *result;
 	
-	float amb, emit, ang, spectra, ray_mirror;
-	float alpha, refl, spec, zoffs, add;
-	float translucency;
-	/* end direct copy from material */
+	unsigned int *rectp;			/* polygon index table */
+	int *rectz;						/* zbuffer */
+	long *rectdaps;					/* delta acum buffer for pixel structs */
 	
-	/* individual copies: */
-	int har;
-	float layerfac;
+	rcti disprect;					/* part coordinates within total picture */
+	int rectx, recty;				/* the size */
+	short crop, ready;				/* crop is amount of pixels we crop, for filter */
+	short sample, nr;				/* sample can be used by zbuffers, nr is partnr */
+	short thread;					/* thread id */
 	
-	/* texture coordinates */
-	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
-	float vn[3], vno[3], facenor[3], view[3], refcol[4], displace[3], strand, tang[3], stress;
-	
-	/* dx/dy OSA coordinates */
-	float dxco[3], dyco[3];
-	float dxlo[3], dylo[3], dxgl[3], dygl[3], dxuv[3], dyuv[3];
-	float dxref[3], dyref[3], dxorn[3], dyorn[3];
-	float dxno[3], dyno[3], dxview, dyview;
-	float dxlv[3], dylv[3];
-	float dxwin[3], dywin[3];
-	float dxsticky[3], dysticky[3];
-	float dxrefract[3], dyrefract[3];
-	float dxstrand, dystrand;
-	
-	int xs, ys;		/* pixel to be rendered */
-	short do_preview, pr_type;	/* for nodes, in previewrender */
-	short osatex, puno;
-	int mask;
-	int depth;
-	
-} ShadeInput;
+} RenderPart;
 
-struct MemArena;
-struct VertTableNode;
+typedef struct Octree {
+	struct Branch **adrbranch;
+	struct Node **adrnode;
+	float ocsize;	/* ocsize: mult factor,  max size octree */
+	float ocfacx,ocfacy,ocfacz;
+	float min[3], max[3];
+	int ocres;
+	int branchcount, nodecount;
+} Octree;
 
-/* here only stuff to initalize the render itself */
-typedef struct RE_Render
+
+/* controls state of render, everything that's read-only during render stage */
+struct Render
 {
-	float grvec[3];
-	float imat[3][3];
-
+	struct Render *next, *prev;
+	char name[RE_MAXNAME];
+	
+	/* state settings */
+	short flag, osa, ok, do_gamma;
+	
+	/* result of rendering */
+	RenderResult *result;
+	
+	/* window size, display rect, viewplane */
+	int winx, winy;
+	rcti disprect;			/* part within winx winy */
+	rctf viewplane;			/* mapped on winx winy */
+	float viewdx, viewdy;	/* size of 1 pixel */
+	
+	/* final picture width and height (within disprect) */
+	int rectx, recty;
+	
+	/* correction values for pixels or view */
+	float ycor, viewfac;
+	float bluroffsx, bluroffsy;
+	float panosi, panoco;
+	
+	/* Matrices */
+	float grvec[3];			/* for world */
+	float imat[3][3];		/* copy of viewinv */
 	float viewmat[4][4], viewinv[4][4];
-	float persmat[4][4], persinv[4][4];
 	float winmat[4][4];
 	
-	short flag, osa, rt, pad;
-	/**
-	 * Screen sizes and positions, in pixels
-	 */
-	short xstart, xend, ystart, yend, afmx, afmy;
-	short rectx;  /* Picture width - 1, normally xend - xstart. */  
-	short recty;  /* picture height - 1, normally yend - ystart. */
-
-	/**
-	 * Distances and sizes in world coordinates nearvar, farvar were
-	 * near and far, but VC in cpp mode chokes on it :( */
-	float near;    /* near clip distance */
-	float far;     /* far clip distance */
-	float ycor, pixsize, viewfac;
-
-
-	/* These three need to be 'handlerized'. Not an easy task... */
-/*  	RE_RenderDataHandle r; */
+	/* clippping */
+	float clipsta;
+	float clipend;
+	
+	/* samples */
+	SampleTables *samples;
+	float jit[32][2];
+	
+	/* scene, and its full copy of renderdata and world */
+	Scene *scene;
 	RenderData r;
 	World wrld;
+	
 	ListBase parts;
 	
+	/* octree tables and variables for raytrace */
+	Octree oc;
+	
+	/* use this instead of R.r.cfra */
+	float cfra;	
+	
+	/* render database */
 	int totvlak, totvert, tothalo, totlamp;
-
-	/* internal, fortunately */
 	ListBase lights;
-	struct LampRen **la;
-	struct VlakRen **blovl;
+	
+	int vertnodeslen;
 	struct VertTableNode *vertnodes;
+	int blohalen;
 	struct HaloRen **bloha;
+	int blovllen;
+	struct VlakRen **blovl;
+	
+	struct GHash *orco_hash;
 
 	/* arena for allocating data for use during render, for
-	 * example dynamic TFaces to go in the VlakRen structure.
-	 */
+		* example dynamic TFaces to go in the VlakRen structure.
+		*/
 	struct MemArena *memArena;
-
-	int *rectaccu;
-	int *rectz;		/* z buffer: distance buffer */
-	float *rectzf;	/* z distances, camera space */
-	unsigned int *rectf1, *rectf2;
-	unsigned int *rectot; /* z buffer: face index buffer, recycled as colour buffer! */
-	unsigned int *rectspare; /*  */
-	/* for 8 byte systems! */
-	long *rectdaps;
-	float *rectftot;	/* original full color buffer */
 	
-	short win, winpos, winx, winy, winxof, winyof;
-	short winpop, displaymode, sparex, sparey;
-
-	/* Not sure what these do... But they're pointers, so good for handlerization */
-	struct Image *backbuf, *frontbuf;
-	/* backbuf is an image that drawn as background */
+	/* callbacks */
+	void (*display_init)(RenderResult *rr);
+	void (*display_clear)(RenderResult *rr);
+	void (*display_draw)(RenderResult *rr, rcti *rect);
 	
-} RE_Render;
+	void (*stats_draw)(RenderStats *ri);
+	void (*timecursor)(int i);
+	
+	int (*test_break)(void);
+	int (*test_return)(void);
+	void (*error)(const char *str);
+	
+	RenderStats i;
+};
 
 /* ------------------------------------------------------------------------- */
 
@@ -188,7 +182,7 @@ typedef struct ShadBuf {
 	float viewmat[4][4];
 	float winmat[4][4];
 	float *jit;
-	float d,far,pixsize,soft;
+	float d,clipend,pixsize,soft;
 	int co[3];
 	int size,bias;
 	long *zbuf;
@@ -204,8 +198,8 @@ typedef struct VertRen
 	float ho[4];
 	float *orco;
 	short clip;	
-	short flag;				/* in use for clipping ztra parts, temp setting stuff in convertBlenderscene.c */
-	float accum;			/* accum for radio weighting, and for strand texco static particles */
+	unsigned short flag;		/* in use for clipping zbuffer parts, temp setting stuff in convertblender.c */
+	float accum;		/* accum for radio weighting, and for strand texco static particles */
 	int index;			/* index allows extending vertren with any property */
 } VertRen;
 
@@ -230,7 +224,6 @@ typedef struct VlakRen
 {
 	struct VertRen *v1, *v2, *v3, *v4;
 	unsigned int lay;
-	unsigned int raycount;
 	float n[3];
 	struct Material *mat;
 	struct TFace *tface;
@@ -240,8 +233,6 @@ typedef struct VlakRen
 	RadFace *radface;
 	Object *ob;
 } VlakRen;
-
-/* vlakren->flag is in DNA_scene_types.h */
 
 typedef struct HaloRen
 {	

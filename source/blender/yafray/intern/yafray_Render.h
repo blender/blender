@@ -9,6 +9,7 @@ extern "C" {
 #include "IMB_imbuf_types.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -22,8 +23,10 @@ extern "C" {
 
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "render.h"
 
+#include "render_types.h"
+extern struct Render R;		/* only to get it compile for now */
+	
 /* useful matrix & vector operations */
 #include "MTC_matrixops.h"
 #include "MTC_vectorops.h"

@@ -73,7 +73,7 @@ void base_init_from_view3d(struct Base *base, struct View3D *v3d);
 struct Object *copy_object(struct Object *ob);
 void expand_local_object(struct Object *ob);
 void make_local_object(struct Object *ob);
-void set_mblur_offs(int blur);
+void set_mblur_offs(float blur);
 void disable_speed_curve(int val);
 float bsystem_time(struct Object *ob, struct Object *par, float cfra, float ofs);
 void object_to_mat3(struct Object *ob, float mat[][3]);

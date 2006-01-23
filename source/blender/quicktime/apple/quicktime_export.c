@@ -34,15 +34,21 @@
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined(__APPLE__)
 
+#include "DNA_scene_types.h"
+
 #include "BKE_global.h"
 #include "BKE_scene.h"
+
 #include "BLI_blenlib.h"
 #include "BIF_toolbox.h"	/* error() */
+
 #include "BLO_sys_types.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
 #include "MEM_guardedalloc.h"
-#include "render.h"
+
 #include "quicktime_import.h"
 #include "quicktime_export.h"
 
@@ -69,10 +75,10 @@
 #define	kTrackStart		0
 #define	kMediaStart		0
 
-static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame);
-static void QT_DoAddVideoSamplesToMedia (int frame);
+static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty);
+static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int recty);
 static void QT_EndAddVideoSamplesToMedia (void);
-static void QT_CreateMyVideoTrack (void);
+static void QT_CreateMyVideoTrack (int rectx, int recty);
 static void QT_EndCreateMyVideoTrack (void);
 static void check_renderbutton_framerate(void);
 
@@ -249,7 +255,7 @@ static OSErr QT_AddUserDataTextToMovie (Movie theMovie, char *theText, OSType th
 }
 
 
-static void QT_CreateMyVideoTrack(void)
+static void QT_CreateMyVideoTrack(int rectx, int recty)
 {
 	OSErr err = noErr;
 	Rect trackFrame;
@@ -257,8 +263,8 @@ static void QT_CreateMyVideoTrack(void)
 
 	trackFrame.top = 0;
 	trackFrame.left = 0;
-	trackFrame.bottom = R.recty;
-	trackFrame.right = R.rectx;
+	trackFrame.bottom = recty;
+	trackFrame.right = rectx;
 	
 	qtexport->theTrack = NewMovieTrack (qtexport->theMovie, 
 							FixRatio(trackFrame.right,1),
@@ -281,7 +287,7 @@ static void QT_CreateMyVideoTrack(void)
 	err = BeginMediaEdits (qtexport->theMedia);
 	CheckError( err, "BeginMediaEdits error" );
 
-	QT_StartAddVideoSamplesToMedia (&trackFrame);
+	QT_StartAddVideoSamplesToMedia (&trackFrame, rectx, recty);
 } 
 
 
@@ -303,19 +309,19 @@ static void QT_EndCreateMyVideoTrack(void)
 } 
 
 
-static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame)
+static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty)
 {
 	OSErr err = noErr;
 
-	qtexport->ibuf = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
-	qtexport->ibuf2 = IMB_allocImBuf (R.rectx, R.recty, 32, IB_rect, 0);
+	qtexport->ibuf = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
+	qtexport->ibuf2 = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
 
 	err = NewGWorldFromPtr( &qtexport->theGWorld,
 							k32ARGBPixelFormat,
 							trackFrame,
 							NULL, NULL, 0,
 							(unsigned char *)qtexport->ibuf->rect,
-							R.rectx * 4 );
+							rectx * 4 );
 	CheckError (err, "NewGWorldFromPtr error");
 
 	qtexport->thePixMap = GetGWorldPixMap(qtexport->theGWorld);
@@ -332,7 +338,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame)
 }
 
 
-static void QT_DoAddVideoSamplesToMedia (int frame)
+static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int recty)
 {
 	OSErr	err = noErr;
 	Rect	imageRect;
@@ -348,7 +354,7 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 
 
 	//copy and flip renderdata
-	memcpy(qtexport->ibuf2->rect, R.rectot, 4*R.rectx*R.recty);
+	memcpy(qtexport->ibuf2->rect, pixels, 4*rectx*recty);
 	IMB_flipy(qtexport->ibuf2);
 
 	//get pointers to parse bitmapdata
@@ -359,7 +365,7 @@ static void QT_DoAddVideoSamplesToMedia (int frame)
 	to = (unsigned char *) myPtr;
 
 	//parse RGBA bitmap into Quicktime's ARGB GWorld
-	boxsize = R.rectx * R.recty;
+	boxsize = rectx * recty;
 	for( index = 0; index < boxsize; index++) {
 		to[0] = from[3];
 		to[1] = from[0];
@@ -415,7 +421,7 @@ void makeqtstring (char *string) {
 	strcpy(string, G.scene->r.pic);
 	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
 
-	RE_make_existing_file(string);
+	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + strlen(string) - 4, ".mov")) {
 		sprintf(txt, "%04d_%04d.mov", (G.scene->r.sfra) , (G.scene->r.efra) );
@@ -424,7 +430,7 @@ void makeqtstring (char *string) {
 }
 
 
-void start_qt(void) {
+void start_qt(struct RenderData *rd, int rectx, int recty) {
 	OSErr err = noErr;
 
 	char name[2048];
@@ -446,7 +452,7 @@ void start_qt(void) {
 
 	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeCodecDataExt");
 
-	if(G.scene->r.qtcodecdata == NULL && G.scene->r.qtcodecdata->cdParms == NULL) {
+	if(rd->qtcodecdata == NULL && rd->qtcodecdata->cdParms == NULL) {
 		get_qtcodec_settings();
 	} else {
 		qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
@@ -456,7 +462,7 @@ void start_qt(void) {
 	}
 	
 	if (G.afbreek != 1) {
-		sframe = (G.scene->r.sfra);
+		sframe = (rd->sfra);
 
 		makeqtstring(name);
 
@@ -499,14 +505,14 @@ void start_qt(void) {
 		} else {
 			printf("Created QuickTime movie: %s\n", name);
 
-			QT_CreateMyVideoTrack();
+			QT_CreateMyVideoTrack(rectx, recty);
 		}
 	}
 }
 
 
-void append_qt(int frame) {
-	QT_DoAddVideoSamplesToMedia(frame);
+void append_qt(int frame, int *pixels, int rectx, int recty) {
+	QT_DoAddVideoSamplesToMedia(frame, pixels, rectx, recty);
 }
 
 

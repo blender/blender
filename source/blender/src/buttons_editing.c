@@ -153,7 +153,7 @@
 #include "BSE_view.h"
 #include "BSE_seqaudio.h"
 
-#include "RE_renderconverter.h"		// make_sticky
+#include "RE_render_ext.h"		// make_sticky
 
 #include "butspace.h" // own module
 

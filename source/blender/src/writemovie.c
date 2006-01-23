@@ -102,7 +102,7 @@ static void make_movie_name(char *string)
 	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
 	len= strlen(string);
 
-	RE_make_existing_file(string);
+	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + len - 3, ".mv")) {
 		sprintf(txt, "%04d_%04d.mv", sfra, efra);

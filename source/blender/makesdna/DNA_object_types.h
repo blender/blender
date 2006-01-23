@@ -335,7 +335,7 @@ extern Object workob;
 #define BA_DO_IPO			32
 
 #define BA_FROMSET			128
-#define OB_DO_IMAT			256
+
 #define OB_FROMDUPLI		512
 #define OB_DONE				1024
 #define OB_RADIO			2048

@@ -87,3 +87,7 @@ ifeq ($(WITH_OPENEXR), true)
     CPPFLAGS += -DWITH_OPENEXR
 endif
 
+ifeq ($(WITH_QUICKTIME), true)
+	CPPFLAGS += -I../../quicktime
+	CPPFLAGS += -DWITH_QUICKTIME
+endif

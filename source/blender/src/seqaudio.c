@@ -82,7 +82,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"	// RE_make_existing_file()
 
 
 void audio_fill(void *mixdown, Uint8 *sstream, int len);
@@ -106,7 +105,7 @@ static void makewavstring (char *string)
 	strcpy(string, G.scene->r.pic);
 	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
 
-	RE_make_existing_file(string);
+	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + strlen(string) - 4, ".wav")) {
 		sprintf(txt, "%04d_%04d.wav", (G.scene->r.sfra) , (G.scene->r.efra) );

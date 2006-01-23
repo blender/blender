@@ -70,6 +70,7 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
@@ -153,6 +154,11 @@ void free_scene(Scene *sce)
 		free_forest(sce->theDag);
 		MEM_freeN(sce->theDag);
 	}
+	
+	if(sce->nodetree) {
+		ntreeFreeTree(sce->nodetree);
+		MEM_freeN(sce->nodetree);
+	}
 }
 
 Scene *add_scene(char *name)
@@ -172,8 +178,8 @@ Scene *add_scene(char *name)
 	sce->r.ysch= 256;
 	sce->r.xasp= 1;
 	sce->r.yasp= 1;
-	sce->r.xparts= 1;
-	sce->r.yparts= 1;
+	sce->r.xparts= 4;
+	sce->r.yparts= 4;
 	sce->r.size= 100;
 	sce->r.planes= 24;
 	sce->r.quality= 90;

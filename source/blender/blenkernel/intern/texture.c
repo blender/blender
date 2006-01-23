@@ -57,6 +57,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_image_types.h"
+#include "DNA_world_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -157,6 +158,10 @@ void open_plugin_tex(PluginTex *pit)
 }
 
 /* ------------------------------------------------------------------------- */
+
+/* very badlevel define to bypass linking with BIF_interface.h */
+#define INT	96
+#define FLO	128
 
 PluginTex *add_plugin_tex(char *str)
 {
@@ -381,7 +386,7 @@ void free_texture(Tex *tex)
 {
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
-	if(tex->env) RE_free_envmap(tex->env);
+	if(tex->env) BKE_free_envmap(tex->env);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
 }
@@ -527,7 +532,7 @@ Tex *copy_texture(Tex *tex)
 	}
 	
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
-	if(texn->env) texn->env= RE_copy_envmap(texn->env);
+	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
 	
 	return texn;
 }
@@ -714,3 +719,69 @@ Tex *give_current_texture(Object *ob, int act)
 	
 	return tex;
 }
+
+
+/* ------------------------------------------------------------------------- */
+
+EnvMap *BKE_add_envmap(void)
+{
+	EnvMap *env;
+	
+	env= MEM_callocN(sizeof(EnvMap), "envmap");
+	env->type= ENV_CUBE;
+	env->stype= ENV_STATIC;
+	env->clipsta= 0.1;
+	env->clipend= 100.0;
+	env->cuberes= 100;
+	
+	return env;
+} 
+
+/* ------------------------------------------------------------------------- */
+
+EnvMap *BKE_copy_envmap(EnvMap *env)
+{
+	EnvMap *envn;
+	int a;
+	
+	envn= MEM_dupallocN(env);
+	envn->ok= 0;
+	for(a=0; a<6; a++) envn->cube[a]= 0;
+	if(envn->ima) id_us_plus((ID *)envn->ima);
+	
+	return envn;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void BKE_free_envmapdata(EnvMap *env)
+{
+	Image *ima;
+	unsigned int a, part;
+	
+	for(part=0; part<6; part++) {
+		ima= env->cube[part];
+		if(ima) {
+			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
+			
+			for(a=0; a<BLI_ARRAY_NELEMS(ima->mipmap); a++) {
+				if(ima->mipmap[a]) IMB_freeImBuf(ima->mipmap[a]);
+			}
+			MEM_freeN(ima);
+			env->cube[part]= 0;
+		}
+	}
+	env->ok= 0;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void BKE_free_envmap(EnvMap *env)
+{
+	
+	BKE_free_envmapdata(env);
+	MEM_freeN(env);
+	
+}
+
+/* ------------------------------------------------------------------------- */

@@ -1488,7 +1488,7 @@ static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 	/* get rid of overlay button matrix */
 	persp(PERSP_VIEW);
 	
-	setwinmatrixview3d(&rect);
+	setwinmatrixview3d(sa->winx, sa->winy, &rect);
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, sa->winmat);
 	
 	glSelectBuffer( 64, buffer);
@@ -1510,7 +1510,7 @@ static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 	hits= glRenderMode(GL_RENDER);
 	
 	G.f &= ~G_PICKSEL;
-	setwinmatrixview3d(0);
+	setwinmatrixview3d(sa->winx, sa->winy, NULL);
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, sa->winmat);
 	
 	persp(PERSP_WIN);

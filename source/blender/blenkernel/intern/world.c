@@ -178,38 +178,3 @@ void make_local_world(World *wrld)
 		}
 	}
 }
-
-
-void init_render_world()
-{
-	int a;
-	char *cp;
-	
-	if(G.scene->world) {
-		R.wrld= *(G.scene->world);
-		
-		cp= (char *)&R.wrld.fastcol;
-		
-		cp[0]= 255.0*R.wrld.horr;
-		cp[1]= 255.0*R.wrld.horg;
-		cp[2]= 255.0*R.wrld.horb;
-		cp[3]= 1;
-		
-		VECCOPY(R.grvec, R.viewmat[2]);
-		Normalise(R.grvec);
-		Mat3CpyMat4(R.imat, R.viewinv);
-		
-		for(a=0; a<MAX_MTEX; a++) 
-			if(R.wrld.mtex[a] && R.wrld.mtex[a]->tex) R.wrld.skytype |= WO_SKYTEX;
-		
-		while(R.wrld.aosamp*R.wrld.aosamp < R.osa) R.wrld.aosamp++;
-	}
-	else {
-		memset(&R.wrld, 0, sizeof(World));
-		R.wrld.exp= 0.0;
-		R.wrld.range= 1.0;
-	}
-
-	R.wrld.linfac= 1.0 + pow((2.0*R.wrld.exp + 0.5), -10);
-	R.wrld.logfac= log( (R.wrld.linfac-1.0)/R.wrld.linfac )/R.wrld.range;
-}

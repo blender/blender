@@ -66,7 +66,6 @@
 #include "BLI_blenlib.h"
 
 #include "nla.h"
-#include "render.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 
@@ -755,9 +754,9 @@ static float nla_time(float cfra, float unit)
 	extern float bluroffs;	// bad construct, borrowed from object.c for now
 	
 	/* 2nd field */
-	if(R.flag & R_SEC_FIELD) {
-		if(R.r.mode & R_FIELDSTILL); else cfra+= 0.5f*unit;
-	}
+//	if(R.flag & R_SEC_FIELD) {
+//		if(R.r.mode & R_FIELDSTILL); else cfra+= 0.5f*unit;
+//	}
 	
 	/* motion blur */
 	cfra+= unit*bluroffs;

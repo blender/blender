@@ -781,6 +781,20 @@ void BLI_make_exist(char *dir) {
 #endif
 }
 
+void BLI_make_existing_file(char *name)
+{
+	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
+	
+	strcpy(di, name);
+	BLI_splitdirstring(di, fi);
+	
+	/* test exist */
+	if (BLI_exists(di) == 0) {
+		BLI_recurdir_fileops(di);
+	}
+}
+
+
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file)
 {
 
@@ -1119,3 +1133,22 @@ int BLI_strncasecmp(const char *s1, const char *s2, int n) {
 
 	return 0;
 }
+
+void BLI_timestr(double time, char *str)
+{
+	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
+	int  hr= (int)      time/(60*60);
+	int min= (int) fmod(time/60, 60.0);
+	int sec= (int) fmod(time, 60.0);
+	int hun= (int) fmod(time*100.0, 100.0);
+	
+	if (hr) {
+		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
+	} else {
+		sprintf(str, "%.2d:%.2d.%.2d",min,sec,hun);
+	}
+	
+	str[11]=0;
+}
+
+

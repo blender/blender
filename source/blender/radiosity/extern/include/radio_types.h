@@ -41,6 +41,8 @@
 #include "DNA_listBase.h" 
 #include "DNA_material_types.h" 
 
+struct Render;
+
 #define DTWIRE		0
 #define DTGOUR		2
 #define DTSOLID		1
@@ -162,6 +164,7 @@ typedef struct {
 	float elemmin, elemmax;
 	float radfactor, lostenergy, igamma;		/* radfac is in button, radfactor is calculated */
 	int phase;
+	struct Render *re;							/* for calling hemizbuf correctly */
 	/* to preserve materials as used before, max 16 */
 	Material *matar[MAXMAT];
 	int totmat;

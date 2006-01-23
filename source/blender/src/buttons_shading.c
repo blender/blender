@@ -101,7 +101,6 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "radio.h"
-#include "render.h"
 
 /* -----includes for this file specific----- */
 
@@ -401,7 +400,7 @@ void do_texbuts(unsigned short event)
 			tex->ima->ok= 1;
 			
 			if(tex->env)
-				RE_free_envmapdata(tex->env);
+				BKE_free_envmapdata(tex->env);
 			
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);
@@ -482,7 +481,7 @@ void do_texbuts(unsigned short event)
 	
 	case B_ENV_DELETE:
 		if(tex->env) {
-			RE_free_envmap(tex->env);
+			BKE_free_envmap(tex->env);
 			tex->env= 0;
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(ID_TE);
@@ -490,7 +489,7 @@ void do_texbuts(unsigned short event)
 		break;
 	case B_ENV_FREE:
 		if(tex->env) {
-			RE_free_envmapdata(tex->env);
+			BKE_free_envmapdata(tex->env);
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(ID_TE);
 		}
@@ -500,7 +499,7 @@ void do_texbuts(unsigned short event)
 		while(tex) {
 			if(tex->id.us && tex->type==TEX_ENVMAP) {
 				if(tex->env) {
-					if(tex->env->stype!=ENV_LOAD) RE_free_envmapdata(tex->env);
+					if(tex->env->stype!=ENV_LOAD) BKE_free_envmapdata(tex->env);
 				}
 			}
 			tex= tex->id.next;
@@ -857,7 +856,7 @@ static void texture_panel_envmap(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
 
 	if(tex->env==NULL) {
-		tex->env= RE_add_envmap();
+		tex->env= BKE_add_envmap();
 		tex->env->object= OBACT;
 	}
 	if(tex->env) {
@@ -2435,6 +2434,7 @@ void do_matbuts(unsigned short event)
 		// BIF_previewdraw();  push/pop!
 		break;
 	case B_MATPRV:
+		if(ma) end_render_material(ma);	/// temporal... 3d preview
 		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 0);
 		shade_buttons_change_3d();
@@ -2468,6 +2468,7 @@ void do_matbuts(unsigned short event)
 			MEM_freeN(mtex);
 			ma->mtex[ (int) ma->texact ]= 0;
 			BIF_undo_push("Unlink material texture");
+			if(ma) end_render_material(ma);	/// temporal... 3d preview
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
 			BIF_preview_changed(ID_MA);
@@ -2509,6 +2510,7 @@ void do_matbuts(unsigned short event)
 	case B_MATZTRANSP:
 		if(ma) {
 			ma->mode &= ~MA_RAYTRANSP;
+			BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);	/// temporal... 3d preview
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(ID_MA);
 		}
@@ -2516,6 +2518,7 @@ void do_matbuts(unsigned short event)
 	case B_MATRAYTRANSP:
 		if(ma) {
 			ma->mode &= ~MA_ZTRA;
+			if(ma) end_render_material(ma);	/// temporal... 3d preview
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(ID_MA);
 		}
@@ -2527,36 +2530,10 @@ void do_matbuts(unsigned short event)
 			if(ma->mode & MA_RAMP_SPEC)
 				if(ma->ramp_spec==NULL) ma->ramp_spec= add_colorband(0);
 
+			if(ma) end_render_material(ma);	/// temporal... 3d preview
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(ID_MA);
 			shade_buttons_change_3d();
-		}
-		break;
-	case B_MAT_LAYERBROWSE:
-		ma= G.buts->lockpoin;	/* use base material instead */
-		if(ma) {
-			MaterialLayer *ml;
-			
-			/* the one with a menu set is the browser */
-			for(ml= ma->layers.first; ml; ml= ml->next) {
-				if(ml->menunr) {
-					if(ml->menunr==32767) {
-						if(ml->mat) {
-							ml->mat->id.us--;
-							ml->mat= copy_material(ml->mat);
-						}
-						else ml->mat= add_material("Layer");
-					}
-					else {
-						ml->mat= BLI_findlink(&G.main->mat, ml->menunr-1);
-						ml->mat->id.us++;
-					}
-					allqueue(REDRAWBUTSSHADING, 0);
-					BIF_preview_changed(ID_MA);
-					
-					break;
-				}
-			}
 		}
 		break;
 	case B_MAT_USENODES:
@@ -2565,12 +2542,14 @@ void do_matbuts(unsigned short event)
 			if(ma->use_nodes && ma->nodetree==NULL) {
 				node_shader_default(ma);
 			}
+			if(ma) end_render_material(ma);	/// temporal... 3d preview
 			BIF_preview_changed(ID_MA);
 			allqueue(REDRAWNODE, 0);
 			allqueue(REDRAWBUTSSHADING, 0);
 		}		
 		break;
 	case B_NODE_EXEC:
+		if(ma) end_render_material(ma);	/// temporal... 3d preview
 		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWNODE, 0);
 		allqueue(REDRAWBUTSSHADING, 0);
@@ -2976,8 +2955,8 @@ static void material_panel_shading(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "rms:",     90, 100,150,19, &(ma->rms), 0.0, 0.4, 0, 0, "Sets the standard deviation of surface slope");		
 		/* default shading variables */
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_DIFF, "Tralu ",	9,30,150,19, &(ma->translucency), 0.0, 1.0, 100, 2, "Translucency, amount of diffuse shading of the back side");
-		uiDefButF(block, NUMSLI, B_DIFF, "SBias ",	159,30,151,19, &(ma->sbias), 0.0, 0.25, 10, 2, "Shadow bias, to prevent terminator problems on shadow boundary");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Tralu ",	9,30,150,19, &(ma->translucency), 0.0, 1.0, 100, 2, "Translucency, amount of diffuse shading of the back side");
+		uiDefButF(block, NUMSLI, B_MATPRV, "SBias ",	159,30,151,19, &(ma->sbias), 0.0, 0.25, 10, 2, "Shadow bias, to prevent terminator problems on shadow boundary");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Amb ",		9,10,150,19, &(ma->amb), 0.0, 1.0, 0, 0, "Sets the amount of global ambient color the material receives");
 		uiDefButF(block, NUMSLI, B_MATPRV, "Emit ",		159,10,151,19, &(ma->emit), 0.0, 1.0, 0, 0, "Sets the amount of light the material emits");
 		uiBlockEndAlign(block);
@@ -2986,13 +2965,13 @@ static void material_panel_shading(Material *ma)
 		uiDefButBitI(block, TOG, MA_TANGENT_V, B_MATPRV, "Tangent V",	245,180,65,19, &(ma->mode), 0, 0, 0, 0, "Use the tangent vector in V direction for shading");
 
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, MA_SHADOW, B_NOP,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
-		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_NOP, "TraShadow",		245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
-		uiDefButBitI(block, TOG, MA_ONLYSHADOW, 0,	"OnlyShad",			245,100,65,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows on material as Alpha value");
-		uiDefButBitI(block, TOG, MA_RAYBIAS, B_NOP, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
+		uiDefButBitI(block, TOG, MA_SHADOW, B_MATPRV,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
+		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_MATPRV, "TraShadow",		245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Recieves transparent shadows based at material color and alpha");
+		uiDefButBitI(block, TOG, MA_ONLYSHADOW, B_MATPRV,	"OnlyShad",			245,100,65,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows on material as Alpha value");
+		uiDefButBitI(block, TOG, MA_RAYBIAS, B_MATPRV, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 		uiBlockEndAlign(block);
 
-		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_NOP, "GR:", 9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
+		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_MATPRV, "GR:", 9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
 
 	}
 }
@@ -3287,12 +3266,12 @@ static void material_panel_preview(Material *ma)
 		uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 		uiBlockSetCol(block, TH_BUT_NEUTRAL);
 		uiBlockBeginAlign(block);
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, 0, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,158,25,22, &(ma->pr_type), 10, 1, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,136,25,22, &(ma->pr_type), 10, 2, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, 2, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,158,25,22, &(ma->pr_type), 10, 0, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,136,25,22, &(ma->pr_type), 10, 1, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, MA_DARK,			210,114,25,22, &(ma->pr_type), 10, 3, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210, 92,25,22, &(ma->pr_type), 10, 4, 0, 0, "");
 		uiBlockEndAlign(block);
-		
-		uiDefIconButBitS(block, ICONTOG, MA_DARK, B_MATPRV, ICON_TRANSP_HLT,	210,100,25,22, &(ma->pr_back), 0, 0, 0, 0, "");
 
 		uiBlockBeginAlign(block);
 		uiDefIconButBitS(block, TOG, 2, B_MATPRV, ICON_LAMP,	210,40,25,20, &(ma->pr_lamp), 0, 0, 0, 0, "");

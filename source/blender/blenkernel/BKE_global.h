@@ -96,7 +96,7 @@ typedef struct Global {
 	short afbreek, moving;
 	short qual, background;
 	short winpos, displaymode;	/* used to be in Render */
-	
+	short rendering;			/* to indicate render is busy, prevent renderwindow events etc */
 	/**
 	 * The current version of Blender.
 	 */

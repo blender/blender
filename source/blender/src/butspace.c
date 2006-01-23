@@ -241,6 +241,24 @@ void test_texpoin_but(char *name, ID **idpp)
 	*idpp= NULL;
 }
 
+void test_imapoin_but(char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= G.main->image.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
 /* ----------- custom button group ---------------------- */
 
 static void curvemap_buttons_zoom_in(void *cumap_v, void *unused)

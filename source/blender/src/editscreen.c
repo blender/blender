@@ -58,6 +58,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sound_types.h"
@@ -99,7 +100,6 @@
 #include "BPY_extern.h"
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"		/* R.flag */
 
 #include "winlay.h"
 
@@ -861,7 +861,7 @@ static void flush_extqd_events(void) {
 	ext_inputchange= ext_reshape= ext_redraw= ext_mousemove= 0;
 }
 
-unsigned short qtest(void)
+int qtest(void)
 {
 	if (!mainqtest()) {
 		winlay_process_events(0);
@@ -1773,7 +1773,7 @@ static void del_area(ScrArea *sa)
 	closeareawin(sa);
 	closeheadwin(sa);
 
-	freespacelist(&sa->spacedata);
+	freespacelist(sa);
 	
 	uiFreeBlocks(&sa->uiblocks);
 	uiFreePanels(&sa->panels);
@@ -1792,7 +1792,7 @@ static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
 	sa1->spacetype= sa2->spacetype;
 	Mat4CpyMat4(sa1->winmat, sa2->winmat);
 
-	freespacelist(&sa1->spacedata);
+	freespacelist(sa1);
 	duplicatespacelist(sa1, &sa1->spacedata, &sa2->spacedata);
 
 	BLI_freelistN(&sa1->panels);
@@ -3645,7 +3645,7 @@ int get_cursor(void) {
 }
 
 void set_cursor(int curs) {
-	if (!(R.flag & R_RENDERING) && G.background == 0) {
+	if (!(G.rendering) && G.background == 0) {
 		if (curs!=curcursor) {
 			curcursor= curs;
 			window_set_cursor(mainwin, curs);

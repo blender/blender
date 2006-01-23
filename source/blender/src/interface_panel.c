@@ -72,6 +72,7 @@
 #include "BIF_keyval.h"
 #include "BIF_mainqueue.h"
 
+#include "BIF_previewrender.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 #include "BIF_mywindow.h"
@@ -481,10 +482,14 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	}
 	
 	if(pa) {
-		if(pa->sizex != sizex) {
+		/* scale correction */
+		if(pa->control & UI_PNL_SCALE);
+		else {
 			pa->sizex= sizex;
-			pa->ofsy+= (pa->sizey - sizey);	// check uiNewPanelHeight()
-			pa->sizey= sizey; 
+			if(pa->sizey != sizey) {
+				pa->ofsy+= (pa->sizey - sizey);	// check uiNewPanelHeight()
+				pa->sizey= sizey; 
+			}
 		}
 	}
 	else {
@@ -928,6 +933,30 @@ static void ui_draw_panel_header(uiBlock *block)
 	
 }
 
+static void ui_draw_panel_scalewidget(uiBlock *block)
+{
+	float xmin, xmax, dx;
+	float ymin, ymax, dy;
+	
+	xmin= block->maxx-PNL_HEADER+2;
+	xmax= block->maxx-3;
+	ymin= block->miny+3;
+	ymax= block->miny+PNL_HEADER-2;
+		
+	dx= 0.5f*(xmax-xmin);
+	dy= 0.5f*(ymax-ymin);
+	
+	glEnable(GL_BLEND);
+	glColor4ub(255, 255, 255, 50);
+	fdrawline(xmin, ymin, xmax, ymax);
+	fdrawline(xmin+dx, ymin, xmax, ymax-dy);
+	
+	glColor4ub(0, 0, 0, 50);
+	fdrawline(xmin, ymin+block->aspect, xmax, ymax+block->aspect);
+	fdrawline(xmin+dx, ymin+block->aspect, xmax, ymax-dy+block->aspect);
+	glDisable(GL_BLEND);
+}
+
 void ui_draw_panel(uiBlock *block)
 {
 	Panel *panel= block->panel;
@@ -1069,6 +1098,9 @@ void ui_draw_panel(uiBlock *block)
 			BIF_ThemeColor(TH_TEXT_HI);
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
 		}
+		
+		if(panel->control & UI_PNL_SCALE)
+			ui_draw_panel_scalewidget(block);
 		
 		/* and a soft shadow-line for now */
 		/*
@@ -1496,11 +1528,12 @@ static void test_add_new_tabs(ScrArea *sa)
 /* ------------ panel drag ---------------- */
 
 
-static void ui_drag_panel(uiBlock *block)
+static void ui_drag_panel(uiBlock *block, int doscale)
 {
 	Panel *panel= block->panel;
-	short align=0, first=1, ofsx, ofsy, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];
-
+	short align=0, first=1, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];
+	short ofsx, ofsy, sizex, sizey;
+	
 	if(curarea->spacetype==SPACE_BUTS) {
 		SpaceButs *sbuts= curarea->spacedata.first;
 		align= sbuts->align;
@@ -1509,8 +1542,14 @@ static void ui_drag_panel(uiBlock *block)
 	uiGetMouse(block->win, mvalo);
 	ofsx= block->panel->ofsx;
 	ofsy= block->panel->ofsy;
+	sizex= block->panel->sizex;
+	sizey= block->panel->sizey;
 
 	panel->flag |= PNL_SELECT;
+	
+	/* exception handling, 3d window preview panel */
+	if(block->drawextra==BIF_view3d_previewdraw)
+		BIF_view3d_previewrender_clear(curarea);
 	
 	while(TRUE) {
 	
@@ -1528,13 +1567,25 @@ static void ui_drag_panel(uiBlock *block)
 			dxo= dx; dyo= dy;		
 			first= 0;
 			
-			panel->ofsx = ofsx+dx;
-			panel->ofsy = ofsy+dy;
-			
-			check_panel_overlap(curarea, panel);
-			
-			if(align) uiAlignPanelStep(curarea, 0.2);
+			if(doscale) {
+				panel->sizex = MAX2(sizex+dx, UI_PANEL_MINX);
+				
+				if(sizey-dy < UI_PANEL_MINY) {
+					dy= -UI_PANEL_MINY+sizey;
+				}
+				panel->sizey = sizey-dy;
+				
+				panel->ofsy= ofsy+dy;
 
+			}
+			else {
+				panel->ofsx = ofsx+dx;
+				panel->ofsy = ofsy+dy;
+				check_panel_overlap(curarea, panel);
+				
+				if(align) uiAlignPanelStep(curarea, 0.2);
+			}
+			
 			/* warn: this re-allocs blocks! */
 			scrarea_do_windraw(curarea);
 			ui_redraw_select_panel(curarea);
@@ -1568,6 +1619,11 @@ static void ui_drag_panel(uiBlock *block)
 	
 	if(align==0) addqueue(block->win, REDRAW, 1);
 	else ui_animate_panels(curarea);
+	
+	/* exception handling, 3d window preview panel */
+	if(block->drawextra==BIF_view3d_previewdraw)
+		BIF_view3d_previewrender_signal(curarea, PR_DISPRECT);
+	
 }
 
 
@@ -1608,7 +1664,7 @@ static void ui_panel_untab(uiBlock *block)
 				pa= pa->next;
 			}
 			
-			ui_drag_panel(block);
+			ui_drag_panel(block, 0);
 			break;
 		
 		}
@@ -1782,16 +1838,25 @@ void ui_do_panel(uiBlock *block, uiEvent *uevent)
 			
 		}
 		else if(block->panel->flag & PNL_CLOSED) {
-			ui_drag_panel(block);
+			ui_drag_panel(block, 0);
 		}
 		/* check if clicked in tabbed area */
 		else if(uevent->mval[0] < block->maxx-PNL_ICON-3 && panel_has_tabs(block->panel)) {
 			panel_clicked_tabs(block, uevent->mval[0]);
 		}
 		else {
-			ui_drag_panel(block);
+			ui_drag_panel(block, 0);
 		}
 	}
+}
+
+/* panel with scaling widget */
+void ui_scale_panel(uiBlock *block)
+{
+	if(block->panel->flag & PNL_CLOSED)
+		return;
+	
+	ui_drag_panel(block, 1);
 }
 
 

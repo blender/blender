@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,11 +20,10 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributors: Hos, Robert Wenzlaff.
+ * Contributors: 2004/2005/2006 Blender Foundation, full recode
  *
- * Contributor(s): Hos, Robert Wenzlaff.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* system includes */
@@ -36,83 +32,81 @@
 #include <stdlib.h>
 
 /* External modules: */
-#include "MEM_guardedalloc.h"
-#include "BLI_arithb.h"
 #include "MTC_matrixops.h"
+#include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_rand.h"
+#include "BLI_jitter.h"
 
 #include "BKE_utildefines.h"
 
-#include "DNA_camera_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_global.h"
+#include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
 
-#include "BLI_rand.h"
-
 /* local include */
-#include "RE_callbacks.h"
-#include "render.h"
-#include "zbuf.h"		/* stuff like bgnaccumbuf, fillrect, ...*/
+#include "renderpipeline.h"
+#include "render_types.h"
+#include "renderdatabase.h"
 #include "pixelblending.h"
 #include "pixelshading.h"
-#include "vanillaRenderPipe.h"	/* transfercolour... */
 #include "gammaCorrectionTables.h"
 #include "shadbuf.h"
-#include "renderHelp.h"
+#include "zbuf.h"
 
-#include "jitter.h"
 #include "texture.h"
 
 /* own include */
 #include "rendercore.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
-#include "SDL_thread.h"
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
-/* global for this file. struct render will be more dynamic later, to allow multiple renderers */
-RE_Render R;
-
-float bluroffsx=0.0, bluroffsy=0.0;	// set in initrender.c (bad, ton)
-
-/* x and y are current pixels to be rendered */
+/* x and y are current pixels in rect to be rendered */
+/* do not normalize! */
 void calc_view_vector(float *view, float x, float y)
 {
-	
+
 	if(R.r.mode & R_ORTHO) {
 		view[0]= view[1]= 0.0;
 	}
 	else {
-		view[0]= (x+(R.xstart)+bluroffsx +0.5);
+		/* move x and y to real viewplane coords */
+		x= (x/(float)R.winx);
+		view[0]= R.viewplane.xmin + x*(R.viewplane.xmax - R.viewplane.xmin);
 		
-		if(R.flag & R_SEC_FIELD) {
-			if(R.r.mode & R_ODDFIELD) view[1]= (y+R.ystart)*R.ycor;
-			else view[1]= (y+R.ystart+1.0)*R.ycor;
-		}
-		else view[1]= (y+R.ystart+bluroffsy+0.5)*R.ycor;
-	}	
-	view[2]= -R.viewfac;
+		y= (y/(float)R.winy);
+		view[1]= R.viewplane.ymin + y*(R.viewplane.ymax - R.viewplane.ymin);
+		
+//		if(R.flag & R_SEC_FIELD) {
+//			if(R.r.mode & R_ODDFIELD) view[1]= (y+R.ystart)*R.ycor;
+//			else view[1]= (y+R.ystart+1.0)*R.ycor;
+//		}
+//		else view[1]= (y+R.ystart+R.bluroffsy+0.5)*R.ycor;
+	}
+	
+	view[2]= -R.clipsta;
 	
 	if(R.r.mode & R_PANORAMA) {
-		float panoco, panosi, u, v;
-		panoco = getPanovCo();
-		panosi = getPanovSi();
-		
-		u= view[0]; v= view[2];
-		view[0]= panoco*u + panosi*v;
-		view[2]= -panosi*u + panoco*v;
+		float u= view[0]; float v= view[2];
+		view[0]= R.panoco*u + R.panosi*v;
+		view[2]= -R.panosi*u + R.panoco*v;
 	}
+
 }
 
 #if 0
@@ -193,32 +187,6 @@ float mistfactor(float zcor, float *co)	/* dist en height, return alpha */
 
 	return (1.0-fac)* (1.0-R.wrld.misi);	
 }
-
-/* external for preview only */
-void RE_sky_char(float *view, char *col)
-{
-	float f, colf[3];
-	float dither_value;
-
-	dither_value = ( (BLI_frand()-0.5)*R.r.dither_intensity)/256.0; 
-	
-	shadeSkyPixelFloat(colf, view, view, NULL);
-	
-	f= 255.0*(colf[0]+dither_value);
-	if(f<=0.0) col[0]= 0; else if(f>255.0) col[0]= 255;
-	else col[0]= (char)f;
-	f= 255.0*(colf[1]+dither_value);
-	if(f<=0.0) col[1]= 0; else if(f>255.0) col[1]= 255;
-	else col[1]= (char)f;
-	f= 255.0*(colf[2]+dither_value);
-	if(f<=0.0) col[2]= 0; else if(f>255.0) col[2]= 255;
-	else col[2]= (char)f;
-	col[3]= 1;	/* to prevent wrong optimalisation alphaover of flares */
-}
-
-
-/* ************************************** */
-
 
 static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 {
@@ -433,9 +401,18 @@ static void renderspothalo(ShadeInput *shi, float *col, float alpha)
 }
 
 
+
+/* also used in zbuf.c */
+int count_mask(unsigned short mask)
+{
+	if(R.samples)
+		return (R.samples->cmask[mask & 255]+R.samples->cmask[mask>>8]);
+	return 0;
+}
+
 static int calchalo_z(HaloRen *har, int zz)
 {
-
+	
 	if(har->type & HA_ONLYSKY) {
 		if(zz!=0x7FFFFFFF) zz= - 0x7FFFFF;
 	}
@@ -445,186 +422,119 @@ static int calchalo_z(HaloRen *har, int zz)
 	return zz;
 }
 
-static void scanlinehaloPS(int *rectz, long *rectdelta, float *rowbuf, short ys)
+static void halo_pixelstruct(HaloRen *har, float *rb, float dist, float xn, float yn, PixStr *ps)
+{
+	float col[4], accol[4];
+	int amount, amountm, zz, flarec;
+	
+	amount= 0;
+	accol[0]=accol[1]=accol[2]=accol[3]= 0.0;
+	flarec= har->flarec;
+	
+	while(ps) {
+		amountm= count_mask(ps->mask);
+		amount+= amountm;
+		
+		zz= calchalo_z(har, ps->z);
+		if(zz> har->zs) {
+			float fac;
+			
+			shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
+			fac= ((float)amountm)/(float)R.osa;
+			accol[0]+= fac*col[0];
+			accol[1]+= fac*col[1];
+			accol[2]+= fac*col[2];
+			accol[3]+= fac*col[3];
+			flarec= 0;
+		}
+		
+		ps= ps->next;
+	}
+	/* now do the sky sub-pixels */
+	amount= R.osa-amount;
+	if(amount) {
+		float fac;
+
+		shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec);
+		fac= ((float)amount)/(float)R.osa;
+		accol[0]+= fac*col[0];
+		accol[1]+= fac*col[1];
+		accol[2]+= fac*col[2];
+		accol[3]+= fac*col[3];
+	}
+	col[0]= accol[0];
+	col[1]= accol[1];
+	col[2]= accol[2];
+	col[3]= accol[3];
+	
+	addalphaAddfacFloat(rb, col, har->add);
+	
+}
+
+static void halo_tile(RenderPart *pa, float *pass)
 {
 	HaloRen *har = NULL;
-	PixStr *ps;
-	float dist, xsq, ysq, xn, yn;
-	float *rb;
-	float col[4], accol[4];
-	int a, *rz, zz, didgamma=0;
-	long *rd;
-	short minx, maxx, x, amount, amountm, flarec;
+	rcti disprect= pa->disprect;
+	float dist, xsq, ysq, xn, yn, *rb;
+	float col[4];
+	long *rd= NULL;
+	int a, *rz, zz, y;
+	short minx, maxx, miny, maxy, x;
 
 	for(a=0; a<R.tothalo; a++) {
 		if((a & 255)==0) {
+			if(R.test_break() ) break; 
 			har= R.bloha[a>>8];
-			if( RE_local_test_break() ) break;  
 		}
 		else har++;
 
-		if(ys>har->maxy);
-		else if(ys<har->miny);
+		/* clip halo with y */
+		if(disprect.ymin > har->maxy);
+		else if(disprect.ymax < har->miny);
 		else {
+			
 			minx= floor(har->xs-har->rad);
 			maxx= ceil(har->xs+har->rad);
 			
-			if(maxx<0);
-			else if(R.rectx<minx);
+			if(disprect.xmin > maxx);
+			else if(disprect.xmax < minx);
 			else {
-				if(minx<0) minx= 0;
-				if(maxx>=R.rectx) maxx= R.rectx-1;
-
-				rb= rowbuf + 4*minx;
-				rd= rectdelta + minx;
-				rz= rectz + minx;
-
-				yn= (ys-har->ys)*R.ycor;
-				ysq= yn*yn;
-				for(x=minx; x<=maxx; x++) {
-					
-					xn= x-har->xs;
-					xsq= xn*xn;
-					dist= xsq+ysq;
-					
-					if(dist<har->radsq) {
-						
-						/* well yah, halo adding shouldnt be done gamma corrected, have to bypass it this way */
-						/* alternative is moving it outside of thread renderlineDA */
-						/* on positive side; the invert correct cancels out correcting halo color */
-						if(do_gamma && didgamma==0) {
-							float *buf= rowbuf;
-							int xt;
-							for(xt=0; xt<R.rectx; xt++, buf+=4) {
-								buf[0]= sasqrt(buf[0]);	// invers gamma 2.0
-								buf[1]= sasqrt(buf[1]);
-								buf[2]= sasqrt(buf[2]);
-							}
-							didgamma= 1;
-						}
-						
-						flarec= har->flarec;	/* har->pixels is only allowed to count once */
-						
-						if(*rd) {				/* theres a pixel struct */
-							
-							ps= (PixStr *)(*rd);
-							amount= 0;
-							accol[0]=accol[1]=accol[2]=accol[3]= 0.0;
-							
-							while(ps) {
-								amountm= count_mask(ps->mask);
-								amount+= amountm;
-
-								zz= calchalo_z(har, ps->z);
-								if(zz> har->zs) {
-									float fac;
-									
-									shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-									fac= ((float)amountm)/(float)R.osa;
-									accol[0]+= fac*col[0];
-									accol[1]+= fac*col[1];
-									accol[2]+= fac*col[2];
-									accol[3]+= fac*col[3];
-									flarec= 0;
-								}
-
-								ps= ps->next;
-							}
-							/* now do the sky sub-pixels */
-							amount= R.osa-amount;
-							if(amount) {
-								float fac;
-
-								shadeHaloFloat(har, col, 0x7FFFFF, dist, xn, yn, flarec);
-								fac= ((float)amount)/(float)R.osa;
-								accol[0]+= fac*col[0];
-								accol[1]+= fac*col[1];
-								accol[2]+= fac*col[2];
-								accol[3]+= fac*col[3];
-							}
-							col[0]= accol[0];
-							col[1]= accol[1];
-							col[2]= accol[2];
-							col[3]= accol[3];
-
-							addalphaAddfacFloat(rb, col, har->add);
-						}
-						else {
-							zz= calchalo_z(har, *rz);
-							if(zz> har->zs) {
-
-								shadeHaloFloat(har, col, zz, dist, xn, yn, flarec);
-								addalphaAddfacFloat(rb, col, har->add);
-							}
-						}
-					}
-					rb+=4;
-					rz++;
-					rd++;
-				}
-			}
-		}
-	}
-
-	/* the entire scanline has to be put back in gammaspace */
-	if(didgamma) {
-		float *buf= rowbuf;
-		int xt;
-		for(xt=0; xt<R.rectx; xt++, buf+=4) {
-			buf[0]*= (buf[0]);	// gamma 2.0
-			buf[1]*= (buf[1]);
-			buf[2]*= (buf[2]);
-		}
-	}
-
-}
-
-static void scanlinehalo(int *rectz, float *rowbuf, short ys)
-{
-	HaloRen *har = NULL;
-	float dist, xsq, ysq, xn, yn, *rb;
-	float col[4];
-	int a, *rz, zz;
-	short minx, maxx, x;
-
-	for(a=0; a<R.tothalo; a++) {
-		if((a & 255)==0) har= R.bloha[a>>8];
-		else har++;
-
-		if(RE_local_test_break() ) break; 
-
-		if(ys>har->maxy);
-		else if(ys<har->miny);
-		else {
-			minx= floor(har->xs-har->rad);
-			maxx= ceil(har->xs+har->rad);
-			
-			if(maxx<0);
-			else if(R.rectx<minx);
-			else {
-				if(minx<0) minx= 0;
-				if(maxx>=R.rectx) maxx= R.rectx-1;
-
-				rb= rowbuf + 4*minx;
-				rz= rectz + minx;
-
-				yn= (ys-har->ys)*R.ycor;
-				ysq= yn*yn;
-				for(x=minx; x<=maxx; x++) {
 				
-					zz= calchalo_z(har, *rz);
-					if(zz> har->zs) {
+				minx= MAX2(minx, disprect.xmin);
+				maxx= MIN2(maxx, disprect.xmax);
+			
+				miny= MAX2(har->miny, disprect.ymin);
+				maxy= MIN2(har->maxy, disprect.ymax);
+			
+				for(y=miny; y<maxy; y++) {
+					int rectofs= (y-disprect.ymin)*pa->rectx + (minx - disprect.xmin);
+					rb= pass + 4*rectofs;
+					rz= pa->rectz + rectofs;
+					
+					if(pa->rectdaps)
+						rd= pa->rectdaps + rectofs;
+					
+					yn= (y-har->ys)*R.ycor;
+					ysq= yn*yn;
+					
+					for(x=minx; x<maxx; x++, rb+=4, rz++) {
 						xn= x- har->xs;
 						xsq= xn*xn;
 						dist= xsq+ysq;
 						if(dist<har->radsq) {
-							shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec);
-							addalphaAddfacFloat(rb, col, har->add);
+							if(rd && *rd) {
+								halo_pixelstruct(har, rb, dist, xn, yn, (PixStr *)*rd);
+							}
+							else {
+								zz= calchalo_z(har, *rz);
+								if(zz> har->zs) {
+									shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec);
+									addalphaAddfacFloat(rb, col, har->add);
+								}
+							}
 						}
+						if(rd) rd++;
 					}
-
-					rb+=4;
-					rz++;
 				}
 			}
 		}
@@ -727,7 +637,7 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	return pow(fac*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
 }
 
-float spec(float inp, int hard)	
+static float spec(float inp, int hard)	
 {
 	float b1;
 	
@@ -767,7 +677,7 @@ float spec(float inp, int hard)
 	return inp;
 }
 
-float Phong_Spec( float *n, float *l, float *v, int hard, int tangent )
+static float Phong_Spec( float *n, float *l, float *v, int hard, int tangent )
 {
 	float h[3];
 	float rslt;
@@ -788,7 +698,7 @@ float Phong_Spec( float *n, float *l, float *v, int hard, int tangent )
 
 
 /* reduced cook torrance spec (for off-specular peak) */
-float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
+static float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
 {
 	float i, nh, nv, h[3];
 
@@ -812,7 +722,7 @@ float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
 }
 
 /* Blinn spec */
-float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power, int tangent)
+static float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power, int tangent)
 {
 	float i, nh, nv, nl, vh, h[3];
 	float a, b, c, g=0.0, p, f, ang;
@@ -866,7 +776,7 @@ float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power, i
 }
 
 /* cartoon render spec */
-float Toon_Spec( float *n, float *l, float *v, float size, float smooth, int tangent)
+static float Toon_Spec( float *n, float *l, float *v, float size, float smooth, int tangent)
 {
 	float h[3];
 	float ang;
@@ -890,7 +800,7 @@ float Toon_Spec( float *n, float *l, float *v, float size, float smooth, int tan
 }
 
 /* Ward isotropic gaussian spec */
-float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
+static float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 {
 	float i, nh, nv, nl, h[3], angle, alpha;
 
@@ -916,13 +826,13 @@ float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 	angle = tan(saacos(nh));
 	alpha = MAX2(rms,0.001);
 
-	i= nl * (1.0/(4*PI*alpha*alpha)) * (exp( -(angle*angle)/(alpha*alpha))/(sqrt(nv*nl)));
+	i= nl * (1.0/(4*M_PI*alpha*alpha)) * (exp( -(angle*angle)/(alpha*alpha))/(sqrt(nv*nl)));
 
 	return i;
 }
 
 /* cartoon render diffuse */
-float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
+static float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 {
 	float rslt, ang;
 
@@ -941,7 +851,7 @@ float Toon_Diff( float *n, float *l, float *v, float size, float smooth )
 
 /* 'nl' is either dot product, or return value of area light */
 /* in latter case, only last multiplication uses 'nl' */
-static float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float rough )
+static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough )
 {
 	float i, nh, nv, vh, realnl, h[3];
 	float a, b, t, A, B;
@@ -1000,15 +910,8 @@ static float OrenNayar_Diff_i(float nl, float *n, float *l, float *v, float roug
 	return i;
 }
 
-/* Oren Nayar diffuse */
-float OrenNayar_Diff(float *n, float *l, float *v, float rough )
-{
-	float nl= n[0]*l[0] + n[1]*l[1] + n[2]*l[2];
-	return OrenNayar_Diff_i(nl, n, l, v, rough);
-}
-
 /* Minnaert diffuse */
-float Minnaert_Diff(float nl, float *n, float *v, float darkness)
+static float Minnaert_Diff(float nl, float *n, float *v, float darkness)
 {
 
 	float i, nv;
@@ -1030,7 +933,7 @@ float Minnaert_Diff(float nl, float *n, float *v, float darkness)
 	return i;
 }
 
-float Fresnel_Diff(float *vn, float *lv, float *view, float fac_i, float fac)
+static float Fresnel_Diff(float *vn, float *lv, float *view, float fac_i, float fac)
 {
 	return fresnel_fac(lv, vn, fac_i, fac);
 }
@@ -1084,6 +987,7 @@ void calc_R_ref(ShadeInput *shi)
 
 }
 
+/* called from ray.c */
 void shade_color(ShadeInput *shi, ShadeResult *shr)
 {
 	Material *ma= shi->mat;
@@ -1114,91 +1018,8 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	shr->alpha= shi->alpha;
 }
 
-/* r g b = current value, col = new value, fac==0 is no change */
-/* if g==NULL, it only does r channel */
-void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
-{
-	float tmp, facm= 1.0-fac;
-	
-	switch (type) {
-	case MA_RAMP_BLEND:
-		*r = facm*(*r) + fac*col[0];
-		if(g) {
-			*g = facm*(*g) + fac*col[1];
-			*b = facm*(*b) + fac*col[2];
-		}
-		break;
-	case MA_RAMP_ADD:
-		*r += fac*col[0];
-		if(g) {
-			*g += fac*col[1];
-			*b += fac*col[2];
-		}
-		break;
-	case MA_RAMP_MULT:
-		*r *= (facm + fac*col[0]);
-		if(g) {
-			*g *= (facm + fac*col[1]);
-			*b *= (facm + fac*col[2]);
-		}
-		break;
-	case MA_RAMP_SCREEN:
-		*r = 1.0 - (facm + fac*(1.0 - col[0])) * (1.0 - *r);
-		if(g) {
-			*g = 1.0 - (facm + fac*(1.0 - col[1])) * (1.0 - *g);
-			*b = 1.0 - (facm + fac*(1.0 - col[2])) * (1.0 - *b);
-		}
-		break;
-	case MA_RAMP_SUB:
-		*r -= fac*col[0];
-		if(g) {
-			*g -= fac*col[1];
-			*b -= fac*col[2];
-		}
-		break;
-	case MA_RAMP_DIV:
-		if(col[0]!=0.0)
-			*r = facm*(*r) + fac*(*r)/col[0];
-		if(g) {
-			if(col[1]!=0.0)
-				*g = facm*(*g) + fac*(*g)/col[1];
-			if(col[2]!=0.0)
-				*b = facm*(*b) + fac*(*b)/col[2];
-		}
-		break;
-	case MA_RAMP_DIFF:
-		*r = facm*(*r) + fac*fabs(*r-col[0]);
-		if(g) {
-			*g = facm*(*g) + fac*fabs(*g-col[1]);
-			*b = facm*(*b) + fac*fabs(*b-col[2]);
-		}
-		break;
-	case MA_RAMP_DARK:
-		tmp= fac*col[0];
-		if(tmp < *r) *r= tmp; 
-		if(g) {
-			tmp= fac*col[1];
-			if(tmp < *g) *g= tmp; 
-			tmp= fac*col[2];
-			if(tmp < *b) *b= tmp; 
-			}
-		break;
-	case MA_RAMP_LIGHT:
-		tmp= fac*col[0];
-		if(tmp > *r) *r= tmp; 
-		if(g) {
-			tmp= fac*col[1];
-			if(tmp > *g) *g= tmp; 
-			tmp= fac*col[2];
-			if(tmp > *b) *b= tmp; 
-		}
-		break;
-	}
-
-}
-
 /* ramp for at end of shade */
-void ramp_diffuse_result(float *diff, ShadeInput *shi)
+static void ramp_diffuse_result(float *diff, ShadeInput *shi)
 {
 	Material *ma= shi->mat;
 	float col[4], fac=0;
@@ -1218,7 +1039,7 @@ void ramp_diffuse_result(float *diff, ShadeInput *shi)
 }
 
 /* r,g,b denote energy, ramp is used with different values to make new material color */
-void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b)
+static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b)
 {
 	Material *ma= shi->mat;
 	float col[4], colt[3], fac=0;
@@ -1267,7 +1088,7 @@ void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, fl
 	}
 }
 
-void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
+static void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 {
 	Material *ma= shi->mat;
 	float col[4];
@@ -1286,7 +1107,7 @@ void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 }
 
 /* is = dot product shade, t = spec energy */
-void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
+static void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 {
 	Material *ma= shi->mat;
 	float col[4];
@@ -1323,32 +1144,32 @@ void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 
 
 
-static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
+static void ambient_occlusion(ShadeInput *shi, ShadeResult *shr)
 {
 	float f, shadfac[4];
 	
-	if((wrld->mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE) && shi->amb!=0.0) {
-		ray_ao(shi, wrld, shadfac);
+	if((R.wrld.mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE) && shi->amb!=0.0) {
+		ray_ao(shi, shadfac);
 
-		if(wrld->aocolor==WO_AOPLAIN) {
-			if (wrld->aomix==WO_AOADDSUB) shadfac[3] = 2.0*shadfac[3]-1.0;
-			else if (wrld->aomix==WO_AOSUB) shadfac[3] = shadfac[3]-1.0;
+		if(R.wrld.aocolor==WO_AOPLAIN) {
+			if (R.wrld.aomix==WO_AOADDSUB) shadfac[3] = 2.0*shadfac[3]-1.0;
+			else if (R.wrld.aomix==WO_AOSUB) shadfac[3] = shadfac[3]-1.0;
 
-			f= wrld->aoenergy*shadfac[3]*shi->amb;
+			f= R.wrld.aoenergy*shadfac[3]*shi->amb;
 			add_to_diffuse(shr->diff, shi, f, f, f, f);
 		}
 		else {
-			if (wrld->aomix==WO_AOADDSUB) {
+			if (R.wrld.aomix==WO_AOADDSUB) {
 				shadfac[0] = 2.0*shadfac[0]-1.0;
 				shadfac[1] = 2.0*shadfac[1]-1.0;
 				shadfac[2] = 2.0*shadfac[2]-1.0;
 			}
-			else if (wrld->aomix==WO_AOSUB) {
+			else if (R.wrld.aomix==WO_AOSUB) {
 				shadfac[0] = shadfac[0]-1.0;
 				shadfac[1] = shadfac[1]-1.0;
 				shadfac[2] = shadfac[2]-1.0;
 			}
-			f= wrld->aoenergy*shi->amb;
+			f= R.wrld.aoenergy*shi->amb;
 			add_to_diffuse(shr->diff, shi, f, f*shadfac[0], f*shadfac[1], f*shadfac[2]);
 		}
 	}
@@ -1410,7 +1231,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 							if(lar->shb) i = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
 							else {
 								float shad[4];
-								//ray_shadow(shi, lar, shad);
+								ray_shadow(shi, lar, shad);
 								i= shad[3];
 							}
 							
@@ -1435,7 +1256,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					
 					/* single sided? */
 					if( shi->facenor[0]*lv[0] + shi->facenor[1]*lv[1] + shi->facenor[2]*lv[2] > -0.01) {
-						//ray_shadow(shi, lar, shad);
+						ray_shadow(shi, lar, shad);
 						shadfac[3]+= shad[3];
 						ir+= 1.0;
 					}
@@ -1451,7 +1272,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if((R.wrld.mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE) && shi->amb!=0.0) {
 			float f;
 
-			ray_ao(shi, &R.wrld, shadfac);	// shadfac==0: full light
+			ray_ao(shi, shadfac);	// shadfac==0: full light
 			shadfac[3]= 1.0-shadfac[3];
 			
 			f= R.wrld.aoenergy*shadfac[3]*shi->amb;
@@ -1511,7 +1332,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->diff[2]= shi->b*shi->emit;
 	}
 	
-	ambient_occlusion(&R.wrld, shi, shr);
+	ambient_occlusion(shi, shr);
 
 	for(go=lights->first; go; go= go->next) {
 		lar= go->lampren;
@@ -1681,7 +1502,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			}
 			
 			/* diffuse shaders (oren nayer gets inp from area light) */
-			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff_i(inp, vn, lv, view, ma->roughness);
+			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(inp, vn, lv, view, ma->roughness);
 			else if(ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
 			else if(ma->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(inp, vn, view, ma->darkness);
 			else if(ma->diff_shader==MA_DIFF_FRESNEL) is= Fresnel_Diff(vn, lv, view, ma->param[0], ma->param[1]);
@@ -1709,7 +1530,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 							shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
 						}
 						else if(lar->mode & LA_SHAD_RAY) {
-							//ray_shadow(shi, lar, shadfac);
+							ray_shadow(shi, lar, shadfac);
 						}
 	
 						/* warning, here it skips the loop */
@@ -2016,9 +1837,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		if(mode & MA_TANGENT_V) {
 			float *s1, *s2, *s3;
 			
-			s1= RE_vertren_get_tangent(v1, 0);
-			s2= RE_vertren_get_tangent(v2, 0);
-			s3= RE_vertren_get_tangent(v3, 0);
+			s1= RE_vertren_get_tangent(&R, v1, 0);
+			s2= RE_vertren_get_tangent(&R, v2, 0);
+			s3= RE_vertren_get_tangent(&R, v3, 0);
 			if(s1 && s2 && s3) {
 				shi->tang[0]= (l*s3[0] - u*s1[0] - v*s2[0]);
 				shi->tang[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
@@ -2177,9 +1998,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		if(mode & MA_RADIO) {
 			float *r1, *r2, *r3;
 			
-			r1= RE_vertren_get_rad(v1, 0);
-			r2= RE_vertren_get_rad(v2, 0);
-			r3= RE_vertren_get_rad(v3, 0);
+			r1= RE_vertren_get_rad(&R, v1, 0);
+			r2= RE_vertren_get_rad(&R, v2, 0);
+			r3= RE_vertren_get_rad(&R, v3, 0);
 			
 			if(r1 && r2 && r3) {
 				shi->rad[0]= (l*r3[0] - u*r1[0] - v*r2[0]);
@@ -2200,9 +2021,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		if(texco & TEXCO_STRESS) {
 			float *s1, *s2, *s3;
 			
-			s1= RE_vertren_get_stress(v1, 0);
-			s2= RE_vertren_get_stress(v2, 0);
-			s3= RE_vertren_get_stress(v3, 0);
+			s1= RE_vertren_get_stress(&R, v1, 0);
+			s2= RE_vertren_get_stress(&R, v2, 0);
+			s3= RE_vertren_get_stress(&R, v3, 0);
 			if(s1 && s2 && s3) {
 				shi->stress= l*s3[0] - u*s1[0] - v*s2[0];
 				if(shi->stress<1.0f) shi->stress-= 1.0f;
@@ -2250,18 +2071,6 @@ static float isec_view_line(float *view, float *v3, float *v4)
 }
 #endif
 
-void matlayer_blend(MaterialLayer *ml, float blendfac, ShadeResult *target, ShadeResult *src)
-{
-	
-	if(ml->flag & ML_DIFFUSE)
-		ramp_blend(ml->blendmethod, target->diff, target->diff+1, target->diff+2, blendfac*src->alpha, src->diff);
-	
-	if(ml->flag & ML_SPECULAR)
-		ramp_blend(ml->blendmethod, target->spec, target->spec+1, target->spec+2, blendfac*src->alpha, src->spec);
-	
-	if(ml->flag & ML_ALPHA)
-		ramp_blend(ml->blendmethod, &target->alpha, NULL, NULL, blendfac, &src->alpha);
-}
 
 /* also used as callback for nodes */
 void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
@@ -2301,7 +2110,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 /* note, facenr declared volatile due to over-eager -O2 optimizations
  * on cygwin (particularly -frerun-cse-after-loop)
  */
-void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *col, float *rco)
+void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, int mask, float *col, float *rco)
 {
 	ShadeResult shr;
 	ShadeInput shi;
@@ -2310,10 +2119,11 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 	if(facenr< 0) {	/* error */
 		return NULL;
 	}
-	/* currently in use for dithering (soft shadow) and detecting thread */
+	/* currently in use for dithering (soft shadow) node preview */
 	shi.xs= (int)(x+0.5f);
 	shi.ys= (int)(y+0.5f);
-	shi.do_preview= 0;
+	shi.thread= pa->thread;
+	shi.do_preview= R.r.scemode & R_NODE_PREVIEW;
 
 	/* mask is used to indicate amount of samples (ray shad/mir and AO) */
 	shi.mask= mask;
@@ -2327,7 +2137,7 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 		VertRen *v1;
 		float alpha, fac, zcor;
 		
-		vlr= RE_findOrAddVlak( (facenr-1) & 0x7FFFFF);
+		vlr= RE_findOrAddVlak(&R, (facenr-1) & 0x7FFFFF);
 		
 		shi.vlr= vlr;
 		shi.mat= vlr->mat;
@@ -2341,7 +2151,7 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 		v1= vlr->v1;
 		
 		/* COXYZ AND VIEW VECTOR  */
-		calc_view_vector(shi.view, x, y);
+		calc_view_vector(shi.view, x, y);	/* returns not normalized, so is in viewplane coords */
 
 		/* wire cannot use normal for calculating shi.co */
 		if(shi.mat->mode & MA_WIRE) {
@@ -2364,11 +2174,11 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 			/* ortho viewplane cannot intersect using view vector originating in (0,0,0) */
 			if(R.r.mode & R_ORTHO) {
 				/* x and y 3d coordinate can be derived from pixel coord and winmat */
-				float fx= 2.0/(R.rectx*R.winmat[0][0]);
-				float fy= 2.0/(R.recty*R.winmat[1][1]);
+				float fx= 2.0/(R.winx*R.winmat[0][0]);
+				float fy= 2.0/(R.winy*R.winmat[1][1]);
 				
-				shi.co[0]= (0.5 + x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
-				shi.co[1]= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+				shi.co[0]= (0.5 + x - 0.5*R.winx)*fx - R.winmat[3][0]/R.winmat[0][0];
+				shi.co[1]= (0.5 + y - 0.5*R.winy)*fy - R.winmat[3][1]/R.winmat[1][1];
 				
 				/* using a*x + b*y + c*z = d equation, (a b c) is normal */
 				if(shi.facenor[2]!=0.0f)
@@ -2407,15 +2217,15 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 			
 				/* pixel dx/dy for render coord */
 				if(shi.osatex || (R.r.mode & R_SHADOW) ) {
-					float u= dface/(div-shi.facenor[0]);
-					float v= dface/(div- R.ycor*shi.facenor[1]);
+					float u= dface/(div - R.viewdx*shi.facenor[0]);
+					float v= dface/(div - R.viewdy*shi.facenor[1]);
 
-					shi.dxco[0]= shi.co[0]- (shi.view[0]-1.0)*u;
+					shi.dxco[0]= shi.co[0]- (shi.view[0]-R.viewdx)*u;
 					shi.dxco[1]= shi.co[1]- (shi.view[1])*u;
 					shi.dxco[2]= shi.co[2]- (shi.view[2])*u;
 
 					shi.dyco[0]= shi.co[0]- (shi.view[0])*v;
-					shi.dyco[1]= shi.co[1]- (shi.view[1]-1.0*R.ycor)*v;
+					shi.dyco[1]= shi.co[1]- (shi.view[1]-R.viewdy)*v;
 					shi.dyco[2]= shi.co[2]- (shi.view[2])*v;
 
 				}
@@ -2424,14 +2234,14 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 		/* rco might be used for sky texture */
 		VECCOPY(rco, shi.co);
 		
-		/* cannot normalise earlier, code above needs it at pixel level */
+		/* cannot normalise earlier, code above needs it at viewplane level */
 		fac= Normalise(shi.view);
 		zcor*= fac;	// for mist, distance of point from camera
 		
 		if(shi.osatex) {
 			if( (shi.mat->texco & TEXCO_REFL) ) {
-				shi.dxview= -1.0/fac;
-				shi.dyview= -R.ycor/fac;
+				shi.dxview= -R.viewdx/fac;
+				shi.dyview= -R.viewdy/fac;
 			}
 		}
 		
@@ -2443,12 +2253,12 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 
 		/* this only avalailable for scanline */
 		if(shi.mat->texco & TEXCO_WINDOW) {
-			shi.winco[0]= (x+(R.xstart))/(float)R.afmx;
-			shi.winco[1]= (y+(R.ystart))/(float)R.afmy;
+			shi.winco[0]= -1.0f + 2.0f*x/(float)R.winx;
+			shi.winco[1]= -1.0f + 2.0f*y/(float)R.winy;
 			shi.winco[2]= 0.0;
 			if(shi.osatex) {
-				shi.dxwin[0]= 0.5/(float)R.r.xsch;
-				shi.dywin[1]= 0.5/(float)R.r.ysch;
+				shi.dxwin[0]= 2.0/(float)R.winx;
+				shi.dywin[1]= 2.0/(float)R.winy;
 				shi.dxwin[1]= shi.dxwin[2]= 0.0;
 				shi.dywin[0]= shi.dywin[2]= 0.0;
 			}
@@ -2464,14 +2274,17 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 				v2= vlr->v2; v3= vlr->v3;
 			}
 			
-			s1= RE_vertren_get_sticky(v1, 0);
-			s2= RE_vertren_get_sticky(v2, 0);
-			s3= RE_vertren_get_sticky(v3, 0);
+			s1= RE_vertren_get_sticky(&R, v1, 0);
+			s2= RE_vertren_get_sticky(&R, v2, 0);
+			s3= RE_vertren_get_sticky(&R, v3, 0);
 			
 			if(s1 && s2 && s3) {
-				extern float Zmulx, Zmuly;
+				float Zmulx, Zmuly;
 				float hox, hoy, l, dl, u, v;
 				float s00, s01, s10, s11, detsh;
+				
+				/* XXXX */
+				Zmulx= R.winx; Zmuly= R.winy;
 				
 				s00= v3->ho[0]/v3->ho[3] - v1->ho[0]/v1->ho[3];
 				s01= v3->ho[1]/v3->ho[3] - v1->ho[1]/v1->ho[3];
@@ -2598,12 +2411,12 @@ void *shadepixel(float x, float y, int z, volatile int facenr, int mask, float *
 	return vlr;
 }
 
-static void shadepixel_sky(float x, float y, int z, int facenr, int mask, float *colf)
+static void shadepixel_sky(RenderPart *pa, float x, float y, int z, int facenr, int mask, float *colf)
 {
 	VlakRen *vlr;
 	float collector[4], rco[3];
 	
-	vlr= shadepixel(x, y, z, facenr, mask, colf, rco);
+	vlr= shadepixel(pa, x, y, z, facenr, mask, colf, rco);
 	if(colf[3] != 1.0) {
 		/* bail out when raytrace transparency (sky included already) */
 		if(vlr && (R.r.mode & R_RAYTRACE))
@@ -2615,120 +2428,30 @@ static void shadepixel_sky(float x, float y, int z, int facenr, int mask, float 
 	}
 }
 
-/* ************* pixel struct ******** */
-
-static PixStrMain psmfirst;
-static int psmteller;
-
-static PixStr *addpsmain(void)
-{
-	PixStrMain *psm;
-
-	psm= &psmfirst;
-
-	while(psm->next) {
-		psm= psm->next;
-	}
-
-	psm->next= (PixStrMain *)MEM_mallocN(sizeof(PixStrMain),"pixstrMain");
-
-	psm= psm->next;
-	psm->next=0;
-	psm->ps= (PixStr *)MEM_mallocN(4096*sizeof(PixStr),"pixstr");
-	psmteller= 0;
-
-	return psm->ps;
-}
-
-static void freeps(void)
-{
-	PixStrMain *psm,*next;
-
-	psm= &psmfirst;
-
-	while(psm) {
-		next= psm->next;
-		if(psm->ps) {
-			MEM_freeN(psm->ps);
-			psm->ps= 0;
-		}
-		if(psm!= &psmfirst) MEM_freeN(psm);
-		psm= next;
-	}
-
-	psmfirst.next= 0;
-	psmfirst.ps= 0;
-}
-
-static void addps(long *rd, int facenr, int z, unsigned short mask)
-{
-	static PixStr *cur;
-	PixStr *ps, *last = NULL;
-
-	if(*rd) {	
-		ps= (PixStr *)(*rd);
-		
-		while(ps) {
-			if( ps->facenr == facenr ) {
-				ps->mask |= mask;
-				return;
-			}
-			last= ps;
-			ps= ps->next;
-		}
-	}
-
-	/* make new PS (pixel struct) */
-	if((psmteller & 4095)==0) cur= addpsmain();
-	else cur++;
-	psmteller++;
-
-	if(last) last->next= cur;
-	else *rd= (long)cur;
-
-	cur->next= NULL;
-	cur->facenr= facenr;
-	cur->z= z;
-	cur->mask = mask;
-}
-
-
-int count_mask(unsigned short mask)
-{
-	extern char cmask[256];
-	return (cmask[mask & 255]+cmask[mask>>8]);
-}
-
-static void edge_enhance(void)
+/* adds only alpha values */
+static void edge_enhance_calc(RenderPart *pa, float *rectf)	
 {
 	/* use zbuffer to define edges, add it to the image */
-	int val, y, x, col, *rz, *rz1, *rz2, *rz3;
+	int y, x, col, *rz, *rz1, *rz2, *rz3;
 	int zval1, zval2, zval3;
-	char *cp;
+	float *rf;
 	
 	/* shift values in zbuffer 4 to the right, for filter we need multiplying with 12 max */
-	rz= (int *)R.rectz;
+	rz= pa->rectz;
 	if(rz==NULL) return;
 	
-	for(y=0; y<R.recty; y++) {
-		for(x=0; x<R.rectx; x++, rz++) (*rz)>>= 4;
+	for(y=0; y<pa->recty; y++) {
+		for(x=0; x<pa->rectx; x++, rz++) (*rz)>>= 4;
 	}
 	
-	rz1= (int *)R.rectz;
-	rz2= rz1+R.rectx;
-	rz3= rz2+R.rectx;
-
-	if(R.r.mode & R_OSA) {
-		cp= (char *)(R.rectaccu+R.rectx);
-	}
-	else {
-		cp= (char *)(R.rectot+R.rectx);
-	}
-	cp+= 4;
+	rz1= pa->rectz;
+	rz2= rz1+pa->rectx;
+	rz3= rz2+pa->rectx;
 	
-	for(y=0; y<R.recty-2; y++) {
-
-		for(x=0; x<R.rectx-2; x++, rz++, rz1++, rz2++, rz3++, cp+=4) {
+	rf= rectf+pa->rectx+1;
+	
+	for(y=0; y<pa->recty-2; y++) {
+		for(x=0; x<pa->rectx-2; x++, rz1++, rz2++, rz3++, rf++) {
 			
 			/* prevent overflow with sky z values */
 			zval1=   rz1[0] + 2*rz1[1] +   rz1[2];
@@ -2742,482 +2465,348 @@ static void edge_enhance(void)
 			else col= (R.r.edgeint*col)>>8;
 			
 			if(col>0) {
-				if(col>255) col= 255;
+				float fcol;
 				
-				if(R.r.mode & R_OSA) {
-					col/= R.osa;
-					
-					val= cp[3]+col;
-					if(val>255) cp[3]= 255; else cp[3]= val;
-				}
-				else {
-					val= cp[0]- col;
-					if(val<0) cp[0]= 0; else cp[0]= val;
-					val= cp[1]- col;
-					if(val<0) cp[1]= 0; else cp[1]= val;
-					val= cp[2]- col;
-					if(val<0) cp[2]= 0; else cp[2]= val;
-				}
+				if(col>255) fcol= 1.0f;
+				else fcol= (float)col/255.0f;
+				
+				if(R.osa)
+					*rf+= fcol/(float)R.osa;
+				else
+					*rf= fcol;
 			}
 		}
-		rz++;
 		rz1+= 2;
 		rz2+= 2;
 		rz3+= 2;
-		cp+= 8;
+		rf+= 2;
 	}
-
 }
+
+static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
+{
+	float addcol[4];
+	int pix;
+	
+	for(pix= pa->rectx*pa->recty; pix>0; pix--, arect++, rectf+=4) {
+		if(*arect != 0.0f) {
+			addcol[0]= *arect * R.r.edgeR;
+			addcol[1]= *arect * R.r.edgeG;
+			addcol[2]= *arect * R.r.edgeB;
+			addcol[3]= *arect;
+			addAlphaOverFloat(rectf, addcol);
+		}
+	}
+}
+
 
 /* ********************* MAINLOOPS ******************** */
-struct renderlineDA {
-	long *rd;
-	int *rz;
-	float *rb1, *rb2, *rb3;
-	float *acol;
-	int y;
-};
 
-static int do_renderlineDA(void *poin)
+static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
 {
-	struct renderlineDA *rl= poin;
 	PixStr *ps;
 	float xs, ys;
-	float fcol[4], *acol=NULL, *rb1, *rb2, *rb3;
-	long *rd= rl->rd;
+	float fcol[4], *rf, *grf, *acol= NULL;
+	long *rd, *rectdaps= pa->rectdaps;
 	int zbuf, samp, curmask, face, mask, fullmask;
-	int b, x, full_osa, seed;
+	int b, x, y, full_osa, seed, crop=0;
+	
+	if(R.test_break()) return; 
 	
 	/* we set per pixel a fixed seed, for random AO and shadow samples */
-	seed= (R.ystart + rl->y + R.afmy)*R.r.xsch + R.xstart + R.afmx;
-	
+	seed= pa->rectx*pa->disprect.ymin;
+
 	fullmask= (1<<R.osa)-1;
-	rb1= rl->rb1;
-	rb2= rl->rb2;
-	rb3= rl->rb3;
 	
-	if(R.flag & R_ZTRA) {		/* zbuf tra */
-		abufsetrow(rl->acol, rl->y); 
-		acol= rl->acol;
+	/* might need it for gamma, in end of this function */
+	grf= rectf;
+	
+	/* filtered render, for now we assume only 1 filter size */
+	if(pa->crop) {
+		crop= 1;
+		rectf+= 4*(pa->rectx + 1);
+		rectdaps+= pa->rectx + 1;
+		if(recta) recta+= 4*(pa->rectx + 1);
 	}
+	
+	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++) {
+		rf= rectf;
+		rd= rectdaps;
+		if(recta) acol= recta;
 
-	for(x=0; x<R.rectx; x++, rd++) {
+		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, rd++, rf+=4) {
+			BLI_thread_srandom(pa->thread, seed+x);
+			
+			ps= (PixStr *)(*rd);
+			mask= 0;
+
+			/* complex loop, because empty spots are sky, without mask */
+			while(TRUE) {
+				
+				if(ps==NULL) {
+					face= 0;
+					curmask= (~mask) & fullmask;
+					zbuf= 0x7FFFFFFF;
+				}
+				else {
+					face= ps->facenr;
+					curmask= ps->mask;
+					zbuf= ps->z;
+				}
+				
+				/* check osa level */
+				if(face==0) full_osa= 0;
+				else {
+					VlakRen *vlr= RE_findOrAddVlak(&R, (face-1) & 0x7FFFFF);
+					full_osa= (vlr->flag & R_FULL_OSA);
+				}
+				
+				if(full_osa) {
+					for(samp=0; samp<R.osa; samp++) {
+						if(curmask & (1<<samp)) {
+							xs= (float)x + R.jit[samp][0];
+							ys= (float)y + R.jit[samp][1];
+							shadepixel_sky(pa, xs, ys, zbuf, face, (1<<samp), fcol);
+							
+							if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
+							if(R.do_gamma) {
+								fcol[0]= gammaCorrect(fcol[0]);
+								fcol[1]= gammaCorrect(fcol[1]);
+								fcol[2]= gammaCorrect(fcol[2]);
+							}
+							add_filt_fmask(1<<samp, fcol, rf, pa->rectx);
+						}
+					}
+				}
+				else {
+					b= R.samples->centmask[curmask];
+					xs= (float)x+R.samples->centLut[b & 15];
+					ys= (float)y+R.samples->centLut[b>>4];
+					shadepixel_sky(pa, xs, ys, zbuf, face, curmask, fcol);
+					
+					if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
+					
+					if(R.do_gamma) {
+						fcol[0]= gammaCorrect(fcol[0]);
+						fcol[1]= gammaCorrect(fcol[1]);
+						fcol[2]= gammaCorrect(fcol[2]);
+					}
+					add_filt_fmask(curmask, fcol, rf, pa->rectx);
+				}
+				
+				mask |= curmask;
+				
+				if(ps==NULL) break;
+				else ps= ps->next;
+			}
+			if(acol) acol+=4;
+		}
 		
-		BLI_thread_srandom(rl->y & 1, seed+x);
+		rectf+= 4*pa->rectx;
+		rectdaps+= pa->rectx;
+		if(recta) recta+= 4*pa->rectx;
+		seed+= pa->rectx;
 		
+		if(y&1) if(R.test_break()) break; 
+	}
+	
+	if(R.do_gamma) {
+		for(y= pa->rectx*pa->recty; y>0; y--, grf+=4) {
+			grf[0] = invGammaCorrect(grf[0]);
+			grf[1] = invGammaCorrect(grf[1]);
+			grf[2] = invGammaCorrect(grf[2]);
+		}
+	}			
+	
+}
+
+/* ************* pixel struct ******** */
+
+
+static PixStrMain *addpsmain(ListBase *lb)
+{
+	PixStrMain *psm;
+	
+	psm= (PixStrMain *)RE_mallocN(sizeof(PixStrMain),"pixstrMain");
+	BLI_addtail(lb, psm);
+	
+	psm->ps= (PixStr *)RE_mallocN(4096*sizeof(PixStr),"pixstr");
+	psm->counter= 0;
+	
+	return psm;
+}
+
+static void freeps(ListBase *lb)
+{
+	PixStrMain *psm, *psmnext;
+	
+	for(psm= lb->first; psm; psm= psmnext) {
+		psmnext= psm->next;
+		if(psm->ps)
+			RE_freeN(psm->ps);
+		RE_freeN(psm);
+	}
+}
+
+static void addps(ListBase *lb, long *rd, int facenr, int z, unsigned short mask)
+{
+	PixStrMain *psm;
+	PixStr *ps, *last= NULL;
+	
+	if(*rd) {	
 		ps= (PixStr *)(*rd);
-		mask= 0;
 		
-		/* complex loop, because empty spots are sky, without mask */
-		while(TRUE) {
-			
-			if(ps==NULL) {
-				face= 0;
-				curmask= (~mask) & fullmask;
-				zbuf= *(rl->rz+x);
+		while(ps) {
+			if( ps->facenr == facenr ) {
+				ps->mask |= mask;
+				return;
 			}
-			else {
-				face= ps->facenr;
-				curmask= ps->mask;
-				zbuf= ps->z;
-			}
-			
-			/* check osa level */
-			if(face==0) full_osa= 0;
-			else {
-				VlakRen *vlr= RE_findOrAddVlak( (face-1) & 0x7FFFFF);
-				full_osa= (vlr->flag & R_FULL_OSA);
-			}
-			
-			if(full_osa) {
-				for(samp=0; samp<R.osa; samp++) {
-					if(curmask & (1<<samp)) {
-						xs= (float)x + jit[samp][0];
-						ys= (float)rl->y + jit[samp][1];
-						shadepixel_sky(xs, ys, zbuf, face, (1<<samp), fcol);
-						
-						if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
-						if(do_gamma) {
-							fcol[0]= gammaCorrect(fcol[0]);
-							fcol[1]= gammaCorrect(fcol[1]);
-							fcol[2]= gammaCorrect(fcol[2]);
-						}
-						add_filt_fmask(1<<samp, fcol, rb1, rb2, rb3);
-					}
-				}
-			}
-			else {
-				extern char *centmask;	// initrender.c
-				extern float centLut[16];
-				
-				b= centmask[curmask];
-				xs= (float)x+centLut[b & 15];
-				ys= (float)rl->y+centLut[b>>4];
-				shadepixel_sky(xs, ys, zbuf, face, curmask, fcol);
-				
-				if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
-				
-				if(do_gamma) {
-					fcol[0]= gammaCorrect(fcol[0]);
-					fcol[1]= gammaCorrect(fcol[1]);
-					fcol[2]= gammaCorrect(fcol[2]);
-				}
-				add_filt_fmask(curmask, fcol, rb1, rb2, rb3);
-			}
-			
-			mask |= curmask;
-			
-			if(ps==NULL) break;
-			else ps= ps->next;
+			last= ps;
+			ps= ps->next;
 		}
-		
-		rb1+=4; 
-		rb2+=4; 
-		rb3+=4;
-		if(acol) acol+=4;
 	}
-
-	return 1;
+	
+	/* make new PS (pixel struct) */
+	psm= lb->last;
+	
+	if(psm->counter==4095)
+		psm= addpsmain(lb);
+	
+	ps= psm->ps + psm->counter++;
+	
+	if(last) last->next= ps;
+	else *rd= (long)ps;
+	
+	ps->next= NULL;
+	ps->facenr= facenr;
+	ps->z= z;
+	ps->mask = mask;
 }
 
-void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
+static void make_pixelstructs(RenderPart *pa, ListBase *lb)
 {
-	extern float Zjitx,Zjity;
-	struct renderlineDA rl1, rl2;
-	float xd, yd, *rf;
-	long *rd;
-	int *rz, *rp, *rt;
-	float  *rowbuf1, *rowbuf2, *rowbuf3, *rowbuf0, *rowbuf1a, *rowbuf2a, *rb3;
-	int a;
-	short v, x, y;
-
-	R.rectdaps= MEM_callocN(sizeof(long)*R.rectx*R.recty+4,"zbufDArectd");
+	long *rd= pa->rectdaps;
+	int *rp= pa->rectp;
+	int *rz= pa->rectz;
+	int x, y;
+	int mask= 1<<pa->sample;
 	
-	if(R.flag & R_ZTRA) {
-		bgnaccumbuf();
-		rl1.acol= MEM_callocN((R.rectx+4)*4*sizeof(float), "Acol");
-		rl2.acol= MEM_callocN((R.rectx+4)*4*sizeof(float), "Acol");
-	}
-	
-	psmteller= 0;
-
-	if(R.r.mode & R_EDGE) {
-		R.rectaccu= (int *)MEM_callocN(sizeof(int)*R.rectx*R.recty,"zbufshadeDA");
-	}
-
-	for(v=0; v<R.osa; v++) {
-
-		xd= jit[v][0];
-		yd= jit[v][1];
-		Zjitx= -xd -0.5;
-		Zjity= -yd -0.5;
-
-		if((R.r.mode & R_MBLUR)==0) RE_local_printrenderinfo(0.0, v);
-
-		/* RECTDELTA  */
-		fillrect(R.rectot,R.rectx,R.recty,0);
-
-		zbufferall();
-
-		rd= R.rectdaps;
-		rp= R.rectot;
-		rz= R.rectz;
-		for(y=0; y<R.recty; y++) {
-			for(x=0; x<R.rectx; x++, rp++, rd++) {
-				if(*rp) {
-					addps(rd, *rp, *(rz+x), 1<<v);
-				}
+	for(y=0; y<pa->recty; y++) {
+		for(x=0; x<pa->rectx; x++, rd++, rp++) {
+			if(*rp) {
+				addps(lb, rd, *rp, *(rz+x), mask);
 			}
-			rz+= R.rectx;
 		}
+		rz+= pa->rectx;
+	}
+}
 
-		if(R.r.mode & R_EDGE) edge_enhance();
+/* supposed to be fully threadable! */
+void zbufshadeDA_tile(RenderPart *pa)
+{
+	RenderLayer *rl= pa->result->layers.first;
+	ListBase psmlist= {NULL, NULL};
+	float *acolrect= NULL, *edgerect= NULL;
+	
+	set_part_zbuf_clipflag(pa);
+	
+	/* allocate the necessary buffers */
+	pa->rectdaps= RE_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
+				/* zbuffer inits these rects */
+	pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
+	if(R.r.mode & R_EDGE) edgerect= RE_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
+	
+	/* initialize pixelstructs */
+	addpsmain(&psmlist);
+	
+	for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
+		zbuffer_solid(pa);
+		make_pixelstructs(pa, &psmlist);
 		
-		if(RE_local_test_break()) break; 
+		if(R.r.mode & R_EDGE) edge_enhance_calc(pa, edgerect);
+		if(R.test_break()) break; 
 	}
 	
-	rd= R.rectdaps;
-	rz= R.rectz;
-	rt= R.rectot;
-	rf= R.rectftot;
-
-	/* the rowbuf is 4 pixels larger than an image! */
-	rowbuf0= MEM_callocN((R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
-	rowbuf1= MEM_callocN((R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
-	rowbuf2= MEM_callocN((R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
-	rowbuf1a= MEM_callocN((R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
-	rowbuf2a= MEM_callocN((R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
-	rowbuf3= MEM_callocN((R.rectx+4)*4*sizeof(float), "ZbufshadeDA3");
-
-	for(y=0; y<=R.recty; y++, rd+=R.rectx, rt+=R.rectx, rz+= R.rectx) {
-
-		if(y<R.recty) {
-			rl1.rd= rd;
-			rl1.rz= rz;
-			rl1.y= y;
-			rl1.rb1= rowbuf1;
-			rl1.rb2= rowbuf2;
-			rl1.rb3= rowbuf3;
-			
-			if( (R.r.mode & R_THREADS) && y!=R.recty-1) {	// odd amount of total y pixels...
-				if((y & 1)==0) {
-					SDL_Thread *thread;
-
-					thread = SDL_CreateThread(do_renderlineDA, &rl1);
-					if ( thread == NULL ) {
-						fprintf(stderr, "Unable to create thread");
-						G.afbreek= 1;
-						break;
-					}
-					
-					rl2.rd= rd+R.rectx;
-					rl2.rz= rz+R.rectx;
-					rl2.y= y+1;
-					rl2.rb1= rowbuf0;
-					rl2.rb2= rowbuf1a;
-					rl2.rb3= rowbuf2a;
-					
-					do_renderlineDA(&rl2);
-					SDL_WaitThread(thread, NULL);
-					
-					if(R.r.filtertype) {
-						float *rb1= rowbuf1, *rb2= rowbuf2, *rb1a= rowbuf1a, *rb2a= rowbuf2a;
-						a= 4*(R.rectx + 4);
-						while(a--) {
-							*rb1 += *rb1a;
-							*rb2 += *rb2a;
-							*(rb1a++)= 0; rb1++;
-							*(rb2a++)= 0; rb2++;
-						}
-					}
-					else {
-						SWAP(float *, rowbuf1a, rowbuf1);
-					}
-				}
-			}
-			else do_renderlineDA(&rl1);
-			
-		}
-		if(y>0) {
-			/* halos are alpha-added, not in thread loop (yet) because of gauss mask */
-			if(R.flag & R_HALO) {
-				/* one scanline older... */
-				scanlinehaloPS(rz-R.rectx, rd-R.rectx, rowbuf3+4, y-1);
-			}
-			
-			/* convert 4x32 bits buffer to 4x8, this can't be threaded due to gauss */
-			transferColourBufferToOutput(rowbuf3+4, y-1);
-			if(R.rectftot) {
-				memcpy(rf, rowbuf3+4, 4*sizeof(float)*R.rectx);
-				rf+= 4*R.rectx;
-			}
-			
-		}
-		if(y<R.recty) {
-			memset(rowbuf3, 0, (R.rectx+4)*4*sizeof(int));
-			rb3= rowbuf3;
-			rowbuf3= rowbuf2;
-			rowbuf2= rowbuf1;
-			rowbuf1= rowbuf0;
-			rowbuf0= rb3;
-
-			if( y>0) {
-				if((y & 1)==0) {
-					RE_local_render_display(y-2, y-1,  R.rectx, R.recty, R.rectot);
-				}
-			}
-		}
-		if(RE_local_test_break()) break; 
-	}
-
-	if( (R.r.mode & R_EDGE) && RE_local_test_break()==0) {
-		if(R.rectftot) {
-			float *rtf= R.rectftot, colf[4];
-			rp= R.rectaccu;
-			for(a= R.rectx*R.recty; a>0; a--, rtf+=4, rp++) {
-				cpCharColV2FloatColV((char *)rp, colf);
-				addAlphaOverFloat(rtf, colf);
-			}
-			RE_floatbuffer_to_output();
-		}
-		else {
-			rt= R.rectot;
-			rp= R.rectaccu;
-			for(a= R.rectx*R.recty; a>0; a--, rt++, rp++) {
-				addalphaOver((char *)rt, (char *)rp);
-			}
-		}
-	}
-	
-	MEM_freeN(R.rectdaps); 
-	freeps();
-	MEM_freeN(rowbuf0); 
-	MEM_freeN(rowbuf1); 
-	MEM_freeN(rowbuf2); 
-	MEM_freeN(rowbuf1a); 
-	MEM_freeN(rowbuf2a); 
-	MEM_freeN(rowbuf3);
-	R.rectdaps= NULL;
-
-	if(R.r.mode & R_EDGE) if(R.rectaccu) MEM_freeN(R.rectaccu);
-	R.rectaccu= NULL;
+	/* we do transp layer first, so its get added with filter in main buffer... still incorrect though */
 	if(R.flag & R_ZTRA) {
-		endaccumbuf();
-		MEM_freeN(rl1.acol);
-		MEM_freeN(rl2.acol);
+		acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+		zbuffer_transp_shade(pa, acolrect);
 	}
 
-} /* end of void zbufshadeDA() */
+	/* shades solid and adds transparent layer */
+	shadeDA_tile(pa, rl->rectf, acolrect);
+	
+	/* extra layers */
+	if(R.r.mode & R_EDGE) 
+		edge_enhance_add(pa, rl->rectf, edgerect);
+	if(R.flag & R_HALO)
+		halo_tile(pa, rl->rectf);
+	
+	/* free all */
+	RE_freeN(pa->rectp); pa->rectp= NULL;
+	RE_freeN(pa->rectz); pa->rectz= NULL;
+	RE_freeN(pa->rectdaps); pa->rectdaps= NULL;
+	if(acolrect) RE_freeN(acolrect);
+	if(edgerect) RE_freeN(edgerect);
+	
+	freeps(&psmlist);
+
+}
+
 
 /* ------------------------------------------------------------------------ */
 
-struct renderline {
-	float *rowbuf, *acol;
-	int *rp;
-	int *rz;
-	short ys;
-	float y;
-};
-
-static int do_renderline(void *poin)
+/* supposed to be fully threadable! */
+void zbufshade_tile(RenderPart *pa)
 {
-	struct renderline *rl= poin;
-	float *fcol= rl->rowbuf;
-	float *acol=NULL;
-	int x, *rz, *rp, seed;
+	RenderLayer *rl= pa->result->layers.first;
+	float *fcol;
+	int x, y, *rp, *rz;
 	
-	/* we set per pixel a fixed seed, for random AO and shadow samples */
-	seed= (R.ystart + rl->y + R.afmy)*R.r.xsch + R.xstart + R.afmx;
+	set_part_zbuf_clipflag(pa);
 	
-	if(R.flag & R_ZTRA) {		/* zbuf tra */
-		abufsetrow(rl->acol, rl->ys); 
-		acol= rl->acol;
-	}
+	/* zbuffer code clears/inits rects */
+	rp= pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	rz= pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	
-	for(x=0, rz= rl->rz, rp= rl->rp; x<R.rectx; x++, rz++, rp++, fcol+=4) {
-		BLI_thread_srandom(rl->ys & 1, seed+x);
-		
-		shadepixel_sky((float)x, rl->y, *rz, *rp, 0, fcol);
-		if(acol) {
-			if(acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
-			acol+= 4;
-		}
-	}
-
-	if(R.flag & R_HALO) {
-		scanlinehalo(rl->rz, rl->rowbuf, rl->ys);
-	}
-
-	transferColourBufferToOutput(rl->rowbuf, rl->ys);
-
-	if(R.rectftot) {
-		memcpy(R.rectftot + 4*rl->ys*R.rectx, rl->rowbuf, 4*sizeof(float)*R.rectx);
-	}
-
-	return 1;
-}
-
-
-void zbufshade(void)
-{
-	struct renderline rl1, rl2;
-	extern float Zjitx,Zjity;
-	int *rz, *rp;
-	float fy;
-	int y;
-
-	rl1.rowbuf= MEM_callocN((R.rectx+4)*4*sizeof(float), "Zbufshade");
-	rl2.rowbuf= MEM_callocN((R.rectx+4)*4*sizeof(float), "Zbufshade");
+	zbuffer_solid(pa);
 	
-	Zjitx=Zjity= -0.5;
-
-	zbufferall();
-
-	/* SHADE */
-	rp= R.rectot;
-	rz= R.rectz;
-
-	if(R.flag & R_ZTRA) {
-		rl1.acol= MEM_callocN((R.rectx+4)*4*sizeof(float), "Acol");
-		rl2.acol= MEM_callocN((R.rectx+4)*4*sizeof(float), "Acol");
-		bgnaccumbuf();
-	}
-
-	for(y=0; y<R.recty; y++) {
-		fy= y;
-		
-		rl1.rp= rp;
-		rl1.rz= rz;
-		rl1.y= fy;
-		rl1.ys= y;
-		
-		if(R.r.mode & R_THREADS) {
-			SDL_Thread *thread;
-			
-			thread = SDL_CreateThread(do_renderline, &rl1);
-			if ( thread == NULL ) {
-				fprintf(stderr, "Unable to create thread");
-				G.afbreek= 1;
-				break;
+	if(!R.test_break()) {
+		fcol= rl->rectf;
+		for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
+			for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4) {
+				shadepixel_sky(pa, (float)x, (float)y, *rz, *rp, 0, fcol);
 			}
-			rp+= R.rectx;
-			rz+= R.rectx;
-			
-			if(y < R.recty-1) {
-				rl2.rp= rp;
-				rl2.rz= rz;
-				rl2.y= fy+1.0;
-				rl2.ys= y+1;
-				do_renderline(&rl2);
-				rp+= R.rectx;
-				rz+= R.rectx;
-				y++;
-			}			
-			SDL_WaitThread(thread, NULL);
+			if(y&1) if(R.test_break()) break; 
 		}
-		else {
-			do_renderline(&rl1);
-			rp+= R.rectx;
-			rz+= R.rectx;
-		}
-		
-		if(y & 1) {
-			RE_local_render_display(y-1, y, R.rectx, R.recty, R.rectot);
-		}
-		
-		if(RE_local_test_break()) break; 
 	}
 	
-	MEM_freeN(rl1.rowbuf);
-	MEM_freeN(rl2.rowbuf);
+	if(!R.test_break())
+		if(R.flag & R_ZTRA)
+			zbuffer_transp_shade(pa, rl->rectf);
 	
-	if(R.flag & R_ZTRA) {
-		endaccumbuf();
-		MEM_freeN(rl1.acol);
-		MEM_freeN(rl2.acol);
+	if(!R.test_break()) {
+		if(R.r.mode & R_EDGE) {
+			fillrect(pa->rectp, pa->rectx, pa->recty, 0);
+			edge_enhance_calc(pa, (float *)pa->rectp);
+			edge_enhance_add(pa, rl->rectf, (float *)pa->rectp);
+		}
 	}
 	
-	if(R.r.mode & R_EDGE) edge_enhance();
+	if(!R.test_break())
+		if(R.flag & R_HALO)
+			halo_tile(pa, rl->rectf);
 
-} /* end of void zbufshade() */
+	RE_freeN(pa->rectp); pa->rectp= NULL;
+	RE_freeN(pa->rectz); pa->rectz= NULL;
+}
 
 /* ------------------------------------------------------------------------ */
-
-void RE_shadehalo(HaloRen *har, char *col, float *colf, int zz, float dist, float xn, float yn, short flarec)
-{
-
-	shadeHaloFloat(har, colf, zz, dist, xn, yn, flarec);
-	
-	if(colf[0]<=0.0) col[0]= 0; else if(colf[0]>=1.0) col[0]= 255; else col[0]= 255.0*colf[0];
-	if(colf[1]<=0.0) col[1]= 0; else if(colf[1]>=1.0) col[1]= 255; else col[1]= 255.0*colf[1];
-	if(colf[2]<=0.0) col[2]= 0; else if(colf[2]>=1.0) col[2]= 255; else col[2]= 255.0*colf[2];
-	if(colf[3]<=0.0) col[3]= 0; else if(colf[3]>=1.0) col[3]= 255; else col[3]= 255.0*colf[3];
-	
-}
 
 static void renderhalo(HaloRen *har)	/* postprocess version */
 {
-	
+#if 0
 	float dist, xsq, ysq, xn, yn, colf[4], *rectft, *rtf;
 	int *rectt, *rt;
 	int minx, maxx, miny, maxy, x, y;
@@ -3262,7 +2851,7 @@ static void renderhalo(HaloRen *har)	/* postprocess version */
 						if(R.rectftot) addalphaAddfacFloat(rtf, colf, har->add);
 						else {
 							std_floatcol_to_charcol(colf, col);
-							RE_addalphaAddfac((char *)rt, col, har->add);
+							addalphaAddfac((char *)rt, col, har->add);
 						}
 					}
 					rt++;
@@ -3272,14 +2861,15 @@ static void renderhalo(HaloRen *har)	/* postprocess version */
 				rectt+= R.rectx;
 				rectft+= 4*R.rectx;
 				
-				if(RE_local_test_break()) break; 
+				if(R.test_break()) break; 
 			}
 		}
 	}
+#endif
 } 
 /* ------------------------------------------------------------------------ */
 
-void RE_renderflare(HaloRen *har)
+static void renderflare(HaloRen *har)
 {
 	extern float hashvectf[];
 	HaloRen fla;
@@ -3333,12 +2923,12 @@ void RE_renderflare(HaloRen *har)
 		
 		fla.radsq= fla.rad*fla.rad;
 		
-		vec[0]= 1.4*rc[5]*(har->xs-R.afmx);
-		vec[1]= 1.4*rc[5]*(har->ys-R.afmy);
+		vec[0]= 1.4*rc[5]*(har->xs-R.winx/2);
+		vec[1]= 1.4*rc[5]*(har->ys-R.winy/2);
 		vec[2]= 32.0*sqrt(vec[0]*vec[0] + vec[1]*vec[1] + 1.0);
 		
-		fla.xs= R.afmx + vec[0] + (1.2+rc[8])*R.rectx*vec[0]/vec[2];
-		fla.ys= R.afmy + vec[1] + (1.2+rc[8])*R.rectx*vec[1]/vec[2];
+		fla.xs= R.winx/2 + vec[0] + (1.2+rc[8])*R.rectx*vec[0]/vec[2];
+		fla.ys= R.winy/2 + vec[1] + (1.2+rc[8])*R.rectx*vec[1]/vec[2];
 
 		if(R.flag & R_SEC_FIELD) {
 			if(R.r.mode & R_ODDFIELD) fla.ys += 0.5;
@@ -3355,36 +2945,35 @@ void RE_renderflare(HaloRen *har)
 		
 		rc+= 7;
 	}
-} /* end of void renderflare(HaloRen *har) */
+}
 
+/* needs recode... integrate this! */
 void add_halo_flare(void)
 {
-/*  	extern void RE_projectverto(); */ /*  zbuf.c */
 	HaloRen *har = NULL;
 	int a, mode;
 	
 	mode= R.r.mode;
 	R.r.mode &= ~R_PANORAMA;
-	R.xstart= -R.afmx; 
-	R.ystart= -R.afmy;
-	R.xend= R.xstart+R.rectx-1;
-	R.yend= R.ystart+R.recty-1;
+//	R.xstart= -R.afmx; 
+//	R.ystart= -R.afmy;
+//	R.xend= R.xstart+R.rectx-1;
+//	R.yend= R.ystart+R.recty-1;
 
-	RE_setwindowclip(1,-1); /*  no jit:(-1) */
-	setzbufvlaggen(RE_projectverto);
+//	RE_setwindowclip(1,-1); /*  no jit:(-1) */
+	project_renderdata(&R, projectverto, 0, 0);
 	
 	for(a=0; a<R.tothalo; a++) {
 		if((a & 255)==0) har= R.bloha[a>>8];
 		else har++;
 		
 		if(har->flarec) {
-			RE_renderflare(har);
+			renderflare(har);
 		}
 	}
 
 	R.r.mode= mode;	
 
-	if(R.rectftot) RE_floatbuffer_to_output();
 }
 
 

@@ -215,6 +215,11 @@ void toggle_blockhandler(ScrArea *sa, short eventcode, short val)
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		if( sl->blockhandler[a]==eventcode ) {
 			sl->blockhandler[a]= 0;
+			
+			/* specific free calls */
+			if(eventcode==VIEW3D_HANDLER_PREVIEW)
+				BIF_view3d_previewrender_free(sa);
+			
 			addnew= 0;
 		}
 	}
@@ -512,7 +517,7 @@ void start_game(void)
 
 static void changeview3dspace(ScrArea *sa, void *spacedata)
 {
-	setwinmatrixview3d(0);	/* 0= no pick rect */
+	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 }
 
 	/* Callable from editmode and faceselect mode from the
@@ -921,10 +926,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			switch(event) {
 			
+			/* Afterqueue events */
 			case BACKBUFDRAW:
 				backdrawview3d(1);
 				break;
-						
+			case RENDERPREVIEW:
+				BIF_view3d_previewrender(sa);
+				break;
+				
 			/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
 			 * based on user preference USER_LMOUSESELECT
 			 */
@@ -1588,7 +1597,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_ALTKEY)
 					clear_parent();
 				else if((G.qual==0)) {
-                	start_game();
+					toggle_blockhandler(curarea, VIEW3D_HANDLER_PREVIEW, 0);
+					doredraw= 1;
+                	//start_game();
 				}
 				break;				
 			case RKEY:
@@ -4619,11 +4630,11 @@ void newspace(ScrArea *sa, int type)
 	}
 }
 
-void freespacelist(ListBase *lb)
+void freespacelist(ScrArea *sa)
 {
 	SpaceLink *sl;
 
-	for (sl= lb->first; sl; sl= sl->next) {
+	for (sl= sa->spacedata.first; sl; sl= sl->next) {
 		if(sl->spacetype==SPACE_FILE) {
 			SpaceFile *sfile= (SpaceFile*) sl;
 			if(sfile->libfiledata)	
@@ -4655,6 +4666,11 @@ void freespacelist(ListBase *lb)
 			if(vd->localvd) MEM_freeN(vd->localvd);
 			if(vd->clipbb) MEM_freeN(vd->clipbb);
 			if(G.vd==vd) G.vd= NULL;
+			if(vd->ri) { 
+				BIF_view3d_previewrender_free(sa);
+				if (vd->ri->rect) MEM_freeN(vd->ri->rect);
+				MEM_freeN(vd->ri);
+			}
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
 			free_oopspace((SpaceOops *)sl);
@@ -4687,7 +4703,7 @@ void freespacelist(ListBase *lb)
 		}
 	}
 
-	BLI_freelistN(lb);
+	BLI_freelistN(&sa->spacedata);
 }
 
 void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)

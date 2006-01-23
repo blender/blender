@@ -57,6 +57,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -178,9 +179,9 @@ float frame_to_float(int cfra)		/* see also bsystem_time in object.c */
 	float ctime;
 	
 	ctime= (float)cfra;
-	if(R.flag & R_SEC_FIELD) {
-		if((R.r.mode & R_FIELDSTILL)==0) ctime+= 0.5;
-	}
+//	if(R.flag & R_SEC_FIELD) {
+//		if((R.r.mode & R_FIELDSTILL)==0) ctime+= 0.5;
+//	}
 	ctime+= bluroffs;
 	ctime*= G.scene->r.framelen;
 	

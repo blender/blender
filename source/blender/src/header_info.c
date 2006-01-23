@@ -73,6 +73,7 @@
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
+#include "BIF_writeimage.h"
 #include "BIF_drawscene.h"
 
 #include "BKE_blender.h"
@@ -81,6 +82,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
@@ -312,6 +314,8 @@ Scene *copy_scene(Scene *sce, int level)
 	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 
 	duplicatelist(&(scen->markers), &(sce->markers));
+	
+	scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
 	
 	obase= sce->base.first;
 	base= scen->base.first;
@@ -762,7 +766,7 @@ static void do_info_filemenu(void *arg, int event)
 		}
 		break;
 	case 6: /* save image */
-		BIF_save_rendered_image();
+		BIF_save_rendered_image_fs();
 		break;
 	case 22: /* save runtime */
 		activate_fileselect(FILE_SPECIAL, "Save Runtime", "", write_runtime_check);

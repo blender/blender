@@ -53,6 +53,7 @@ struct QuicktimeCodecData;
 }
 
 
+#define SETLOOPER(s, b) sce= s, b= s->base.first; b; b= (b->next?b->next:s->set?(s=s->set)->base.first:NULL)
 
 
 void free_avicodecdata(struct AviCodecData *acd);

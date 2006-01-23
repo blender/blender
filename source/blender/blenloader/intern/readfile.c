@@ -1215,6 +1215,7 @@ static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 /* library linking after fileread */
 static void lib_link_nodetree(FileData *fd, Main *main)
 {
+	Scene *sce;
 	Material *ma;
 	bNodeTree *ntree;
 	bNode *node;
@@ -1242,6 +1243,11 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 		if(ma->nodetree)
 			ntreeVerifyTypes(ma->nodetree);
 	}
+	/* and scene trees */
+	for(sce= main->scene.first; sce; sce= sce->id.next) {
+		if(sce->nodetree)
+			ntreeVerifyTypes(sce->nodetree);
+	}
 }
 
 /* ntree itself has been read! */
@@ -1259,9 +1265,13 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		node->storage= newdataadr(fd, node->storage);
 		if(node->storage) {
+			
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				direct_link_curvemapping(fd, node->storage);
+			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
+				direct_link_curvemapping(fd, node->storage);
+			
 		}
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
@@ -2064,7 +2074,6 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 static void lib_link_material(FileData *fd, Main *main)
 {
 	Material *ma;
-	MaterialLayer *ml;
 	MTex *mtex;
 	int a;
 
@@ -2083,9 +2092,6 @@ static void lib_link_material(FileData *fd, Main *main)
 				}
 			}
 			lib_link_scriptlink(fd, &ma->id, &ma->scriptlink);
-			
-			for (ml=ma->layers.first; ml; ml=ml->next)
-				ml->mat= newlibadr_us(fd, ma->id.lib, ml->mat);
 			
 			if(ma->nodetree)
 				lib_link_ntree(fd, &ma->id, ma->nodetree);
@@ -2108,8 +2114,6 @@ static void direct_link_material(FileData *fd, Material *ma)
 	ma->ramp_spec= newdataadr(fd, ma->ramp_spec);
 	
 	direct_link_scriptlink(fd, &ma->scriptlink);
-	
-	link_list(fd, &ma->layers);
 	
 	ma->nodetree= newdataadr(fd, ma->nodetree);
 	if(ma->nodetree)
@@ -2638,6 +2642,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			lib_link_scriptlink(fd, &sce->id, &sce->scriptlink);
 			
+			if(sce->nodetree)
+				lib_link_ntree(fd, &sce->id, sce->nodetree);
+
 			sce->id.flag -= LIB_NEEDLINK;
 		}
 
@@ -2800,6 +2807,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 	
 	link_list(fd, &(sce->markers));
+	
+	sce->nodetree= newdataadr(fd, sce->nodetree);
+	if(sce->nodetree)
+		direct_link_nodetree(fd, sce->nodetree);
+	
 }
 
 /* ************ READ SCREEN ***************** */
@@ -2840,6 +2852,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
 						}
+						v3d->ri= NULL;
 					}
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
@@ -5235,12 +5248,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	if(main->versionfile <= 240) {
+		Scene *sce;
 		bArmature *arm;
 		
 		/* updating layers still */
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
 			bone_version_239(&arm->bonebase);
 			if(arm->layer==0) arm->layer= 1;
+		}
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			if(sce->r.xparts<2) sce->r.xparts= 4;
+			if(sce->r.yparts<2) sce->r.yparts= 4;
 		}
 	}
 	
@@ -5504,7 +5522,6 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 
 static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 {
-	MaterialLayer *ml;
 	int a;
 
 	for(a=0; a<MAX_MTEX; a++) {
@@ -5515,11 +5532,6 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 	}
 	
 	expand_doit(fd, mainvar, ma->ipo);
-	
-	for (ml=ma->layers.first; ml; ml=ml->next) {
-		if(ml->mat)
-			expand_doit(fd, mainvar, ml->mat);
-	}
 	
 	if(ma->nodetree)
 		expand_nodetree(fd, mainvar, ma->nodetree);

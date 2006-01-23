@@ -49,16 +49,6 @@ struct ColorBand;
 struct Group;
 struct bNodeTree;
 
-typedef struct MaterialLayer {
-	struct MaterialLayer *next, *prev;
-	
-	struct Material *mat;
-	float blendfac;
-	short flag, blendmethod, menunr, pad;
-	int pad2;
-	
-} MaterialLayer;
-
 /* WATCH IT: change type? also make changes in ipo.h  */
 
 typedef struct Material {
@@ -109,7 +99,6 @@ typedef struct Material {
 	float rampfac_col, rampfac_spec;
 
 	struct MTex *mtex[10];
-	ListBase layers;
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
 	struct Group *group;	/* light group */
@@ -247,20 +236,14 @@ typedef struct Material {
 #define MAP_LAYER		16384
 
 /* pr_type */
-#define MA_FLAT			0
-#define MA_SPHERE		1
-#define MA_CUBE			2
+#define MA_SPHERE		0
+#define MA_CUBE			1
+#define MA_FLAT			2
+#define MA_MONKEY		3
+#define MA_SPHERE_A		4
 
 /* pr_back */
 #define MA_DARK			1
-
-/* MaterialLayer flag */
-#define ML_ACTIVE		1
-#define ML_RENDER		2
-#define ML_NEG_NORMAL	4
-#define ML_DIFFUSE		8
-#define ML_SPECULAR		16
-#define ML_ALPHA		32
 
 #endif
 

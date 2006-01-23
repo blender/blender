@@ -279,7 +279,7 @@ void delete_obj(int ok)
 	allqueue(REDRAWNLA, 0);
 	
 	DAG_scene_sort(G.scene);
-	
+
 	BIF_undo_push("Delete object(s)");
 }
 
@@ -4039,7 +4039,6 @@ void single_user(void)
 /* helper for below, ma was checked to be not NULL */
 static void make_local_makelocalmaterial(Material *ma)
 {
-	MaterialLayer *ml;
 	ID *id;
 	int b;
 	
@@ -4054,21 +4053,7 @@ static void make_local_makelocalmaterial(Material *ma)
 	id= (ID *)ma->ipo;
 	if(id && id->lib) make_local_ipo(ma->ipo);	
 	
-	for(ml=ma->layers.first; ml; ml= ml->next) {
-		if(ml->mat) {
-			make_local_material(ml->mat);
-			
-			for(b=0; b<MAX_MTEX; b++) {
-				if(ml->mat->mtex[b] && ml->mat->mtex[b]->tex) {
-					make_local_texture(ml->mat->mtex[b]->tex);
-				}
-			}
-			
-			id= (ID *)ml->mat->ipo;
-			if(id && id->lib) make_local_ipo(ml->mat->ipo);	
-		}
-		
-	}
+	/* nodetree? XXX */
 }
 
 void make_local(void)

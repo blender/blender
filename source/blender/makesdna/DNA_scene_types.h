@@ -48,6 +48,7 @@ struct World;
 struct Scene;
 struct Image;
 struct Group;
+struct bNodeTree;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -294,9 +295,12 @@ typedef struct Scene {
 	unsigned int lay;
 	
 	/* editmode stuff */
-	short selectmode, pad;
-	short proportional, prop_mode;
 	float editbutsize;                      /* size of normals */
+	short selectmode;
+	short proportional, prop_mode;
+	
+	short use_nodes;
+	struct bNodeTree *nodetree;	
 	
 	void *ed;
 	struct Radio *radio;
@@ -318,7 +322,7 @@ typedef struct Scene {
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
-	int dirty;
+	short dirty, recalc;				/* recalc = counterpart of ob->recalc */
 } Scene;
 
 
@@ -374,7 +378,7 @@ typedef struct Scene {
 #define R_PASSEPARTOUT	0x0004
 
 #define R_EXTENSION		0x0010
-#define R_OGL			0x0020
+#define R_NODE_PREVIEW	0x0020
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -427,6 +431,9 @@ typedef struct Scene {
 /* sce->dirty */
 #define SCE_CLEAN           0
 #define SCE_DIRTY           1
+
+/* sce->recalc (now in use by previewrender) */
+#define SCE_PRV_CHANGED		1
 
 /* sce->prop_mode (proportional falloff) */
 #define PROP_SMOOTH            0

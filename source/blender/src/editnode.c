@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
@@ -42,8 +43,10 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -63,6 +66,7 @@
 
 #include "BSE_drawipo.h"
 #include "BSE_edit.h"
+#include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 
@@ -116,10 +120,10 @@ static void shader_node_previewrender(ScrArea *sa, SpaceNode *snode)
 					BIF_previewrender(snode->id, &ri, NULL, PR_DO_RENDER);	/* sends redraw event */
 					if(ri.rect) MEM_freeN(ri.rect);
 					
-					if(node->lasty<PREVIEW_RENDERSIZE-2)
+					if(ri.cury<PREVIEW_RENDERSIZE-2)
 						addafterqueue(sa->win, RENDERPREVIEW, 1);
 //					if(test!=node->lasty)
-//						printf("node rendered y %d to %d\n", test, node->lasty);
+//						printf("node rendered to %d\n", node->lasty);
 
 					break;
 				}
@@ -134,14 +138,15 @@ static void snode_handle_recalc(SpaceNode *snode)
 	if(snode->treetype==NTREE_SHADER) {
 		BIF_preview_changed(ID_MA);	 /* signals buttons windows and node editors */
 	}
-	else
+	else if(snode->treetype==NTREE_COMPOSIT) {
+		ntreeCompositExecTree(snode->nodetree);
 		allqueue(REDRAWNODE, 1);
+		allqueue(REDRAWIMAGE, 1);
+	}
 }
 
 static void shader_node_event(SpaceNode *snode, short event)
 {
-//	bNode *node;
-	
 	switch(event) {
 		case B_NODE_EXEC:
 			snode_handle_recalc(snode);
@@ -151,6 +156,57 @@ static void shader_node_event(SpaceNode *snode, short event)
 			break;
 	}
 }
+
+static void load_node_image(char *str)	/* called from fileselect */
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	bNode *node= nodeGetActive(snode->nodetree);
+	Image *ima= NULL;
+	
+	ima= add_image(str);
+	if(ima) {
+		if(node->id)
+			node->id->us--;
+		else {
+			node->id= &ima->id;
+			ima->id.us++;
+		}
+		free_image_buffers(ima);	/* force read again */
+		ima->ok= 1;
+		
+		addqueue(curarea->win, RENDERPREVIEW, 1);
+		allqueue(REDRAWNODE, 0);
+	}
+}
+
+static void composit_node_event(SpaceNode *snode, short event)
+{
+	
+	switch(event) {
+		case B_NODE_EXEC:
+			snode_handle_recalc(snode);
+			break;
+		case B_REDR:
+			allqueue(REDRAWNODE, 1);
+			break;
+		case B_NODE_LOADIMAGE:
+		{
+			bNode *node= nodeGetActive(snode->nodetree);
+			char name[FILE_MAXDIR+FILE_MAXFILE];
+			
+			if(node->id)
+				strcpy(name, ((Image *)node->id)->name);
+			else strcpy(name, U.textudir);
+			
+			/* we make store node->block pointers, and filesel frees it, so we need to clear them */
+			for(node= snode->edittree->nodes.first; node; node= node->next)
+				node->block= NULL;
+			
+			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+		}
+	}
+}
+
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
@@ -182,6 +238,45 @@ void node_shader_default(Material *ma)
 	ntreeSolveOrder(ma->nodetree);	/* needed for pointers */
 }
 
+/* assumes nothing being done in ntree yet, sets the default in/out node */
+/* called from shading buttons or header */
+void node_composit_default(Scene *sce)
+{
+	bNode *in, *out;
+	bNodeSocket *fromsock, *tosock;
+	
+	/* but lets check it anyway */
+	if(sce->nodetree) {
+		printf("error in composit initialize\n");
+		return;
+	}
+	
+	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
+	
+	out= nodeAddNodeType(sce->nodetree, CMP_NODE_OUTPUT, NULL);
+	out->locx= 300.0f; out->locy= 300.0f;
+	
+	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_RESULT, NULL);
+	in->locx= 10.0f; in->locy= 300.0f;
+	nodeSetActive(sce->nodetree, in);
+	
+	/* only a link from color to color */
+	fromsock= in->outputs.first;
+	tosock= out->inputs.first;
+	nodeAddLink(sce->nodetree, in, fromsock, out, tosock);
+	
+	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
+	
+	out->id= find_id("IM", "Compositor");
+	if(out->id==NULL) {
+		Image *ima= alloc_libblock(&G.main->image, ID_IM, "Compositor");
+		strcpy(ima->name, "Compositor");
+		ima->ok= 1;
+		ima->xrep= ima->yrep= 1;
+		out->id= &ima->id;
+	}
+}
+
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
 void snode_set_context(SpaceNode *snode)
 {
@@ -201,6 +296,11 @@ void snode_set_context(SpaceNode *snode)
 				snode->nodetree= ma->nodetree;
 			}
 		}
+	}
+	else if(snode->treetype==NTREE_COMPOSIT) {
+		snode->from= NULL;
+		snode->id= &G.scene->id;
+		snode->nodetree= G.scene->nodetree;
 	}
 	
 	/* find editable group */
@@ -990,7 +1090,7 @@ void node_border_select(SpaceNode *snode)
 /* ****************** Add *********************** */
 
 /* can be called from menus too, but they should do own undopush and redraws */
-bNode *node_add_shadernode(SpaceNode *snode, int type, float locx, float locy)
+bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 {
 	bNode *node= NULL, *gnode;
 	
@@ -1022,13 +1122,21 @@ static void node_add_menu(SpaceNode *snode)
 	float locx, locy;
 	short event, mval[2];
 	
-	/* shader menu, still hardcoded defines... solve */
-	event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Mapping%x109|Normal%x107|RGB Curves%x111|Vector Curves%x110|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
-	if(event<1) return;
+	if(snode->treetype==NTREE_SHADER) {
+		/* shader menu, still hardcoded defines... solve */
+		event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Mapping%x109|Normal%x107|RGB Curves%x111|Vector Curves%x110|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
+		if(event<1) return;
+	}
+	else if(snode->treetype==NTREE_COMPOSIT) {
+		/* compo menu, still hardcoded defines... solve */
+		event= pupmenu("Add Node%t|Output%x201|Render Result %x221|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Normal %x207");
+		if(event<1) return;
+	}
+	else return;
 	
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	node_add_shadernode(snode, event, locx, locy);
+	node_add_node(snode, event, locx, locy);
 	
 	snode_handle_recalc(snode);
 	
@@ -1051,24 +1159,32 @@ static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 {
 	bNode *newnode= NULL;
 	
-	if(snode->edittree->type==NTREE_SHADER) {
-		if(link->fromsock->type==SOCK_RGBA && link->tosock->type==SOCK_VALUE) {
-			newnode= node_add_shadernode(snode, SH_NODE_RGBTOBW, 0.0f, 0.0f);
-		}
-		else if(link->fromsock->type==SOCK_VALUE && link->tosock->type==SOCK_RGBA) {
-			newnode= node_add_shadernode(snode, SH_NODE_VALTORGB, 0.0f, 0.0f);
-		}
+	if(link->fromsock->type==SOCK_RGBA && link->tosock->type==SOCK_VALUE) {
+		if(snode->edittree->type==NTREE_SHADER)
+			newnode= node_add_node(snode, SH_NODE_RGBTOBW, 0.0f, 0.0f);
+		else if(snode->edittree->type==NTREE_COMPOSIT)
+			newnode= node_add_node(snode, CMP_NODE_RGBTOBW, 0.0f, 0.0f);
+		else
+			newnode= NULL;
+	}
+	else if(link->fromsock->type==SOCK_VALUE && link->tosock->type==SOCK_RGBA) {
+		if(snode->edittree->type==NTREE_SHADER)
+			newnode= node_add_node(snode, SH_NODE_VALTORGB, 0.0f, 0.0f);
+		else if(snode->edittree->type==NTREE_COMPOSIT)
+			newnode= node_add_node(snode, CMP_NODE_VALTORGB, 0.0f, 0.0f);
+		else
+			newnode= NULL;
+	}
+	
+	if(newnode) {
+		/* dangerous assumption to use first in/out socks, but thats fine for now */
+		newnode->flag |= NODE_HIDDEN;
+		newnode->locx= 0.5f*(link->fromsock->locx + link->tosock->locx);
+		newnode->locy= 0.5f*(link->fromsock->locy + link->tosock->locy) + HIDDEN_RAD;
 		
-		if(newnode) {
-			/* dangerous assumption to use first in/out socks, but thats fine for now */
-			newnode->flag |= NODE_HIDDEN;
-			newnode->locx= 0.5f*(link->fromsock->locx + link->tosock->locx);
-			newnode->locy= 0.5f*(link->fromsock->locy + link->tosock->locy) + HIDDEN_RAD;
-			
-			nodeAddLink(snode->edittree, newnode, newnode->outputs.first, link->tonode, link->tosock);
-			link->tonode= newnode;
-			link->tosock= newnode->inputs.first;
-		}
+		nodeAddLink(snode->edittree, newnode, newnode->outputs.first, link->tonode, link->tosock);
+		link->tonode= newnode;
+		link->tosock= newnode->inputs.first;
 	}
 }
 
@@ -1350,52 +1466,6 @@ static void node_border_link_delete(SpaceNode *snode)
 
 /* ********************** */
 
-static void convert_nodes(SpaceNode *snode)
-{
-	bNode *node, *bnode, *prevnode;
-	bNodeSocket *fromsock, *tosock;
-	Material *mat= (Material *)snode->id;
-	MaterialLayer *ml;
-	float locx= 200;
-	
-	if(GS(mat->id.name)!=ID_MA) return;
-	
-	prevnode= snode->nodetree->nodes.first;
-	
-	for(ml= mat->layers.first; ml; ml= ml->next) {
-		if(ml->mat) {
-			node= nodeAddNodeType(snode->nodetree, SH_NODE_MATERIAL, NULL);
-			node->id= (ID *)ml->mat;
-			node->locx= locx; locx+= 100;
-			node->locy= 300;
-			
-			bnode= nodeAddNodeType(snode->nodetree, SH_NODE_MIX_RGB, NULL);
-			bnode->custom1= ml->blendmethod;
-			bnode->locx= locx; locx+= 100;
-			bnode->locy= 200;
-			
-			fromsock= bnode->inputs.first;
-			fromsock->ns.vec[0]= ml->blendfac;
-			
-			if(prevnode) {
-				fromsock= prevnode->outputs.first;
-				tosock= bnode->inputs.last;
-				nodeAddLink(snode->nodetree, prevnode, fromsock, bnode, tosock);
-			}
-			
-			fromsock= node->outputs.first;
-			tosock= bnode->inputs.first; tosock= tosock->next;
-			nodeAddLink(snode->nodetree, node, fromsock, bnode, tosock);
-			
-			prevnode= bnode;
-			
-		}
-	}
-	
-	ntreeSolveOrder(snode->nodetree);
-	allqueue(REDRAWNODE, 0);
-}
-
 void node_make_group(SpaceNode *snode)
 {
 	bNode *gnode;
@@ -1420,6 +1490,7 @@ void node_make_group(SpaceNode *snode)
 /* ******************** main event loop ****************** */
 
 /* special version to prevent overlapping buttons, has a bit of hack... */
+/* yes, check for example composit_node_event(), file window use... */
 int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 {
 	bNode *node;
@@ -1507,10 +1578,15 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* future: handlerize this! */
 			if(snode->treetype==NTREE_SHADER)
 				shader_node_event(snode, val);
+			else if(snode->treetype==NTREE_COMPOSIT)
+				composit_node_event(snode, val);
 			break;
 			
 		case RENDERPREVIEW:
-			shader_node_previewrender(sa, snode);
+			if(snode->treetype==NTREE_SHADER)
+				shader_node_previewrender(sa, snode);
+			else if(snode->treetype==NTREE_COMPOSIT)
+				snode_handle_recalc(snode);
 			break;
 			
 		case PADPLUSKEY:
@@ -1557,8 +1633,6 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				node_border_select(snode);
 			break;
 		case CKEY:	/* sort again, showing cyclics */
-			if(G.qual==LR_ALTKEY)
-				convert_nodes(snode);			/* temporal for layers */
 			ntreeSolveOrder(snode->edittree);
 			doredraw= 1;
 			break;

@@ -470,13 +470,16 @@ static void draw_image_seq(ScrArea *sa)
 	SpaceSeq *sseq;
 	StripElem *se;
 	struct ImBuf *ibuf;
-	int x1, y1;
+	int x1, y1, rectx, recty;
 	float zoom;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	ibuf= (ImBuf *)give_ibuf_seq( (G.scene->r.cfra));
+	
+	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
+	recty= (G.scene->r.size*G.scene->r.ysch)/100;
+	
+	ibuf= (ImBuf *)give_ibuf_seq(rectx, recty, (G.scene->r.cfra));
 
 	if(special_seq_update) {
        se = special_seq_update->curelem;
@@ -503,7 +506,7 @@ static void draw_image_seq(ScrArea *sa)
 	glaDefine2DArea(&curarea->winrct);
 	glPixelZoom(zoom, zoom);
 	
-	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	
 	glPixelZoom(1.0, 1.0);
 

@@ -2478,5 +2478,8 @@ void createTransData(TransInfo *t)
 	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
 		t->flag |= T_CAMERA;
 	}
+	
+	/* temporal...? */
+	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
 

@@ -38,6 +38,7 @@
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_node.h"
+#include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -46,7 +47,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "render.h"		/* <- shadeinput/output */
+#include "RE_shader_ext.h"		/* <- ShadeInput Shaderesult TexResult */
 
 
 /* ********* exec data struct, remains internal *********** */
@@ -727,11 +728,11 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	scd.shi= shi;
 	scd.shr= shr;
 	
-	ntreeExecTree(ntree, &scd, shi->ys & 1);	/* threads */
+	ntreeExecTree(ntree, &scd, shi->thread);	/* threads */
 }
 
 /* go over all used Geometry and Texture nodes, and return a texco flag */
-int ntreeShaderGetTexco(bNodeTree *ntree)
+int ntreeShaderGetTexco(bNodeTree *ntree, int osa)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -741,8 +742,7 @@ int ntreeShaderGetTexco(bNodeTree *ntree)
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==SH_NODE_TEXTURE) {
-			/* this r.osa is sorta weak... */
-			if(R.osa && node->id) {
+			if(osa && node->id) {
 				Tex *tex= (Tex *)node->id;
 				if ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) texco |= TEXCO_OSA;
 			}

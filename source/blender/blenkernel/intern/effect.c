@@ -52,8 +52,9 @@
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_jitter.h"
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
@@ -77,8 +78,9 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "render.h"		// externtex, bad level call (ton)
 #include "PIL_time.h"
+
+#include "RE_render_ext.h"
 
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
 typedef struct VeNoCo {
@@ -1217,9 +1219,9 @@ static void init_mv_jit(float *jit, int num, int seed2)
 	jit2= MEM_mallocN(12 + 2*sizeof(float)*num, "initjit");
 
 	for (i=0 ; i<4 ; i++) {
-		RE_jitterate1(jit, jit2, num, rad1);
-		RE_jitterate1(jit, jit2, num, rad1);
-		RE_jitterate2(jit, jit2, num, rad2);
+		BLI_jitterate1(jit, jit2, num, rad1);
+		BLI_jitterate1(jit, jit2, num, rad1);
+		BLI_jitterate2(jit, jit2, num, rad2);
 	}
 	MEM_freeN(jit2);
 	rng_free(rng);
@@ -1609,8 +1611,7 @@ void build_particle_system(Object *ob)
 	if(me->totvert==0) return;
 	
 	if(ob==G.obedit) return;
-	
-	totpart= (R.flag & R_RENDERING)?paf->totpart:(paf->disp*paf->totpart)/100;
+	totpart= (G.rendering)?paf->totpart:(paf->disp*paf->totpart)/100;
 	if(totpart==0) return;
 	
 	/* No returns after this line! */

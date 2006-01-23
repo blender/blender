@@ -64,7 +64,6 @@ CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include $(NAN_SDLCFLAGS)
 
 # External interfaces of modules:
 CPPFLAGS += -I../render/extern/include
-CPPFLAGS += -I../renderconverter
 CPPFLAGS += -I../blenkernel
 CPPFLAGS += -I../blenlib
 CPPFLAGS += -I../python

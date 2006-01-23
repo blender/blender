@@ -127,6 +127,7 @@ void test_scriptpoin_but(char *name, struct ID **idpp);
 void test_actionpoin_but(char *name, ID **idpp);
 void test_grouppoin_but(char *name, ID **idpp);
 void test_texpoin_but(char *name, ID **idpp);
+void test_imapoin_but(char *name, ID **idpp);
 
 void test_idbutton_cb(void *namev, void *arg2_unused);
 
@@ -195,7 +196,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_MAT_USENODES		1221
 		/* also handled in editnode.c */
 #define B_NODE_EXEC			1222
-
+#define B_NODE_LOADIMAGE	1223
 
 /* *********************** */
 #define B_TEXBUTS		1400
