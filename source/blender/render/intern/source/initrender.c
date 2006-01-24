@@ -502,7 +502,7 @@ void RE_SetCamera(Render *re, Object *camera)
 	}
 
 	xd= yd= 0.0;
-	if(blursample!= -1) {
+	if(blursample != -1 && re->osa != 0 ) {
 		re->bluroffsx= xd= re->jit[blursample % re->osa][0];
 		re->bluroffsy= yd= re->ycor*re->jit[blursample % re->osa][1];
 	}
