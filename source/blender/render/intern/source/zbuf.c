@@ -1606,12 +1606,13 @@ void zbuffer_solid(RenderPart *pa)
 	/* needed for transform from hoco to zbuffer co */
 	zspan.zmulx=  ((float)R.winx)/2.0;
 	zspan.zmuly=  ((float)R.winy)/2.0;
-	zspan.zofsx= -pa->disprect.xmin -0.5f;
-	zspan.zofsy= -pa->disprect.ymin -0.5f;
-	
 	if(R.osa) {
-		zspan.zofsx-= R.jit[pa->sample][0];
-		zspan.zofsy-= R.jit[pa->sample][1];
+		zspan.zofsx= -pa->disprect.xmin - R.jit[pa->sample][0];
+		zspan.zofsy= -pa->disprect.ymin - R.jit[pa->sample][1];
+	}
+	else {
+		zspan.zofsx= -pa->disprect.xmin -0.5f;
+		zspan.zofsy= -pa->disprect.ymin -0.5f;
 	}
 	
 	/* the buffers */
