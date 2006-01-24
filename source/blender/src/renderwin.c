@@ -1054,7 +1054,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		
 		mh->start_movie(&G.scene->r, winx, winy);
 		
-		for(CFRA= SFRA; CFRA<EFRA; CFRA++) {
+		for(CFRA= SFRA; CFRA<=EFRA; CFRA++) {
 			drawview3d_render(v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
 			window_swap_buffers(render_win->win);
