@@ -478,6 +478,9 @@ void IMB_freezbuffloatImBuf(struct ImBuf * ibuf);
  */
 void IMB_rectfill(struct ImBuf *drect, float col[4]);
 
+/* exported for image tools in blender, to quickly allocate 32 bits rect */
+short imb_addrectImBuf(struct ImBuf * ibuf);
+void imb_freerectImBuf(struct ImBuf * ibuf);
 
 #ifdef WITH_QUICKTIME
 /**

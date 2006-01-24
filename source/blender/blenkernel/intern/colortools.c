@@ -569,6 +569,8 @@ void curvemapping_do_image(CurveMapping *cumap, Image *ima)
 		return;
 	if(ima->ibuf->rect_float==NULL)
 		IMB_float_from_rect(ima->ibuf);
+	else if(ima->ibuf->rect==NULL)
+		imb_addrectImBuf(ima->ibuf);
 	
 	curvemapping_premultiply(cumap, 0);
 	
@@ -588,3 +590,28 @@ void curvemapping_do_image(CurveMapping *cumap, Image *ima)
 	
 	curvemapping_premultiply(cumap, 1);
 }
+
+int curvemapping_RGBA_does_something(CurveMapping *cumap)
+{
+	int a;
+	
+	if(cumap->black[0]!=0.0f) return 1;
+	if(cumap->black[1]!=0.0f) return 1;
+	if(cumap->black[2]!=0.0f) return 1;
+	if(cumap->white[0]!=1.0f) return 1;
+	if(cumap->white[1]!=1.0f) return 1;
+	if(cumap->white[2]!=1.0f) return 1;
+	
+	for(a=0; a<CM_TOT; a++) {
+		if(cumap->cm[a].curve) {
+			if(cumap->cm[a].totpoint!=2)  return 1;
+			
+			if(cumap->cm[a].curve[0].x != 0.0f) return 1;
+			if(cumap->cm[a].curve[0].y != 0.0f) return 1;
+			if(cumap->cm[a].curve[1].x != 1.0f) return 1;
+			if(cumap->cm[a].curve[1].y != 1.0f) return 1;
+		}
+	}
+	return 0;
+}
+

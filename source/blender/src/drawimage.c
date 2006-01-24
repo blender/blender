@@ -978,7 +978,22 @@ static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	}
 }
 
+/* are there curves? curves visible? and curves do something? */
+static int image_curves_active(ScrArea *sa)
+{
+	SpaceImage *sima= sa->spacedata.first;
 
+	if(sima->cumap) {
+		if(curvemapping_RGBA_does_something(sima->cumap)) {
+			short a;
+			for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+				if(sima->blockhandler[a] == IMAGE_HANDLER_CURVES)
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
 
 static void image_blockhandlers(ScrArea *sa)
 {
@@ -1268,6 +1283,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				MEM_freeN(rect);
 			}
 			else {
+				/* this part is generic image display */
+				
 				if(sima->flag & SI_SHOW_ALPHA) {
 					if(ibuf->rect)
 						sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
@@ -1283,6 +1300,20 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 						sima_draw_alpha_backdrop(sima, x1, y1, (float)ibuf->x, (float)ibuf->y);
 						glEnable(GL_BLEND);
 					}
+					
+					/* detect if we need to redo the curve map. 
+					   ibuf->rect is zero for compositor and render results after change 
+					   also: if no curves are active, we only keep the float rect
+					*/
+					if(ibuf->rect_float) {
+						if(image_curves_active(sa)) {
+							if(ibuf->rect==NULL)
+								curvemapping_do_image(G.sima->cumap, G.sima->image);
+						}
+						else if(ibuf->rect)
+							imb_freerectImBuf(ibuf);
+					}
+
 					if(ibuf->rect)
 						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 					else
