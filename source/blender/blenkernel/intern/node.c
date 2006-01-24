@@ -33,6 +33,7 @@
 #include "DNA_ID.h"
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -498,12 +499,12 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 /* should become callbackable... */
 void nodeVerifyGroup(bNodeTree *ngroup)
 {
-	Material *ma;
 	
 	/* group changed, so we rebuild the type definition */
 	ntreeMakeOwnType(ngroup);
 	
 	if(ngroup->type==NTREE_SHADER) {
+		Material *ma;
 		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree) {
 				bNode *node;
@@ -524,6 +525,28 @@ void nodeVerifyGroup(bNodeTree *ngroup)
 			}
 		}
 	}
+	else if(ngroup->type==NTREE_COMPOSIT) {
+		Scene *sce;
+		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+			if(sce->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= sce->nodetree->nodes.first; node; node= node->next)
+					if(node->id == (ID *)ngroup)
+						break;
+				
+				if(node) {
+					/* set all type pointers OK */
+					ntreeInitTypes(sce->nodetree);
+					
+					for(node= sce->nodetree->nodes.first; node; node= node->next)
+						if(node->id == (ID *)ngroup)
+							nodeVerifyType(sce->nodetree, node);
+				}
+			}
+		}
+	}
 }
 
 /* also to check all users of groups. Now only used in editor for hide/unhide */
@@ -532,7 +555,6 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 {
 	bNode *node;
 	bNodeSocket *sock;
-	Material *ma;
 
 	/* clear flags */
 	for(node= ngroup->nodes.first; node; node= node->next) {
@@ -544,6 +566,7 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 	
 	/* tag all thats in use */
 	if(ngroup->type==NTREE_SHADER) {
+		Material *ma;
 		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree) {
 				for(node= ma->nodetree->nodes.first; node; node= node->next) {
@@ -554,6 +577,25 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 									sock->tosock->flag |= SOCK_IN_USE;
 						for(sock= node->outputs.first; sock; sock= sock->next)
 							if(nodeCountSocketLinks(ma->nodetree, sock))
+								if(sock->tosock) 
+									sock->tosock->flag |= SOCK_IN_USE;
+					}
+				}
+			}
+		}
+	}
+	else if(ngroup->type==NTREE_COMPOSIT) {
+		Scene *sce;
+		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+			if(sce->nodetree) {
+				for(node= sce->nodetree->nodes.first; node; node= node->next) {
+					if(node->id==(ID *)ngroup) {
+						for(sock= node->inputs.first; sock; sock= sock->next)
+							if(sock->link)
+								if(sock->tosock) 
+									sock->tosock->flag |= SOCK_IN_USE;
+						for(sock= node->outputs.first; sock; sock= sock->next)
+							if(nodeCountSocketLinks(sce->nodetree, sock))
 								if(sock->tosock) 
 									sock->tosock->flag |= SOCK_IN_USE;
 					}

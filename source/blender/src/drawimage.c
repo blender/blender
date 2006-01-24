@@ -47,6 +47,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "DNA_camera_types.h"
@@ -1125,6 +1126,26 @@ static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, uns
 	glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 }
 
+static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, float *rectf)
+{
+	float *trectf= MEM_mallocN(rectx*recty*4, "temp");
+	int a, b;
+	
+	for(a= rectx*recty -1, b= 4*a+3; a>=0; a--, b-=4)
+		trectf[a]= rectf[b];
+	
+	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_FLOAT, trectf);
+	MEM_freeN(trectf);
+	/* ogl trick below is slower... (on ATI 9600) */
+//	glColorMask(1, 0, 0, 0);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+3);
+//	glColorMask(0, 1, 0, 0);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+2);
+//	glColorMask(0, 0, 1, 0);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+1);
+//	glColorMask(1, 1, 1, 1);
+}
+
 static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int *recti)
 {
 	if(recti==NULL)
@@ -1288,6 +1309,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				if(sima->flag & SI_SHOW_ALPHA) {
 					if(ibuf->rect)
 						sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+					else if(ibuf->rect_float)
+						sima_draw_alpha_pixelsf(x1, y1, ibuf->x, ibuf->y, ibuf->rect_float);
 				}
 				else if(sima->flag & SI_SHOW_ZBUF) {
 					if(ibuf->zbuf)

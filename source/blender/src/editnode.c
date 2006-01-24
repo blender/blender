@@ -167,10 +167,10 @@ static void load_node_image(char *str)	/* called from fileselect */
 	if(ima) {
 		if(node->id)
 			node->id->us--;
-		else {
-			node->id= &ima->id;
-			ima->id.us++;
-		}
+		
+		node->id= &ima->id;
+		ima->id.us++;
+
 		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
 		
@@ -198,7 +198,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 				strcpy(name, ((Image *)node->id)->name);
 			else strcpy(name, U.textudir);
 			
-			/* we make store node->block pointers, and filesel frees it, so we need to clear them */
+			/* node->block pointers are stored, but filesel frees it, so we need to clear them */
 			for(node= snode->edittree->nodes.first; node; node= node->next)
 				node->block= NULL;
 			

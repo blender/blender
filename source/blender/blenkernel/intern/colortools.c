@@ -584,7 +584,7 @@ void curvemapping_do_image(CurveMapping *cumap, Image *ima)
 			pixc[0]= FTOCHAR(col[0]);
 			pixc[1]= FTOCHAR(col[1]);
 			pixc[2]= FTOCHAR(col[2]);
-			/* assume alpha was set */
+			pixc[3]= FTOCHAR(pixf[3]);
 		}
 	}
 	
