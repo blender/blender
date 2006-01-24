@@ -1987,7 +1987,7 @@ static int ui_do_but_NUM(uiBut *but)
 {
 	double value;
 	float deler, fstart, f, tempf;
-	int lvalue, temp; /*  , firsttime=1; */
+	int lvalue, temp, orig_x; /*  , firsttime=1; */
 	short retval=0, qual, sx, mval[2], pos=0;
 
 	but->flag |= UI_SELECT;
@@ -1998,6 +1998,7 @@ static int ui_do_but_NUM(uiBut *but)
 	value= ui_get_but_val(but);
 	
 	sx= mval[0];
+	orig_x = sx; /* Store so we can scale the rate of change by the dist the mouse is from its original xlocation */
 	fstart= (value - but->min)/(but->max-but->min);
 	f= fstart;
 	
@@ -2013,21 +2014,30 @@ static int ui_do_but_NUM(uiBut *but)
 		while (get_mbut() & L_MOUSE) {
 			qual= get_qual();
 			
+			uiGetMouse(mywinget(), mval);
+			
 			deler= 500;
 			if( but->pointype!=FLO ) {
 	
 				if( (but->max-but->min)<100 ) deler= 200.0;
 				if( (but->max-but->min)<25 ) deler= 50.0;
-	
 			}
+			
 			if(qual & LR_SHIFTKEY) deler*= 10.0;
 			if(qual & LR_ALTKEY) deler*= 20.0;
-	
-			uiGetMouse(mywinget(), mval);
 			
 			if(mval[0] != sx) {
-			
-				f+= ((float)(mval[0]-sx))/deler;
+				if( but->pointype==FLO && but->max-but->min > 11) {
+					/* non linear change in mouse input- good for high precicsion */
+					f+= (((float)(mval[0]-sx))/deler) * (fabs(orig_x-mval[0])*0.002);
+				} else if ( but->pointype!=FLO && but->max-but->min > 129) { /* only scale large int buttons */
+					/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
+					f+= (((float)(mval[0]-sx))/deler) * (fabs(orig_x-mval[0])*0.004);
+				} else {
+					/*no scaling */
+					f+= ((float)(mval[0]-sx))/deler ;
+				}
+				
 				if(f>1.0) f= 1.0;
 				if(f<0.0) f= 0.0;
 				sx= mval[0];
