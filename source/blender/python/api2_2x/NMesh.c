@@ -1508,7 +1508,7 @@ static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 
 		/* Build the list only with weights and names of the influent bones */
 		for( i = 0; i < totinfluences; i++, sweight++ ) {
-			bDeformGroup *defgroup = BLI_findlink( &object->defbase,
+			bDeformGroup *defgroup = (bDeformGroup *) BLI_findlink( &object->defbase,
 					sweight->def_nr );
 			if( defgroup )
 				PyList_Append( influence_list, Py_BuildValue( "[sf]",
