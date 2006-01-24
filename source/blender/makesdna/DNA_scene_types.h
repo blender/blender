@@ -379,6 +379,7 @@ typedef struct Scene {
 
 #define R_EXTENSION		0x0010
 #define R_NODE_PREVIEW	0x0020
+#define R_DOCOMP		0x0040
 
 /* alphamode */
 #define R_ADDSKY		0

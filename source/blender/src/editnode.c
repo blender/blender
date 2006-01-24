@@ -60,6 +60,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_previewrender.h"
 #include "BIF_resources.h"
+#include "BIF_renderwin.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
@@ -139,9 +140,13 @@ static void snode_handle_recalc(SpaceNode *snode)
 		BIF_preview_changed(ID_MA);	 /* signals buttons windows and node editors */
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		ntreeCompositExecTree(snode->nodetree);
+		ntreeCompositExecTree(snode->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
 		allqueue(REDRAWNODE, 1);
 		allqueue(REDRAWIMAGE, 1);
+		if(G.scene->r.scemode & R_DOCOMP) {
+			BIF_redraw_render_rect();	/* seems to screwup display? */
+			mywinset(curarea->win);
+		}
 	}
 }
 
@@ -253,7 +258,7 @@ void node_composit_default(Scene *sce)
 	
 	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
 	
-	out= nodeAddNodeType(sce->nodetree, CMP_NODE_OUTPUT, NULL);
+	out= nodeAddNodeType(sce->nodetree, CMP_NODE_VIEWER, NULL);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
 	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_RESULT, NULL);
@@ -1129,7 +1134,7 @@ static void node_add_menu(SpaceNode *snode)
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		/* compo menu, still hardcoded defines... solve */
-		event= pupmenu("Add Node%t|Output%x201|Render Output%x202|Render Result %x221|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Normal %x207");
+		event= pupmenu("Add Node%t|Render Result %x221|Composite %x222|Viewer%x201|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Normal %x207");
 		if(event<1) return;
 	}
 	else return;

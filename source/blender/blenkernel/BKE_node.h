@@ -182,10 +182,7 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 /* ************** COMPOSIT NODES *************** */
 
 /* note: types are needed to restore callbacks, don't change values */
-#define CMP_NODE_OUTPUT			201
-#define CMP_NODE_OUTPUT_RENDER	202
-#define CMP_NODE_OUTPUT_FILE	203
-
+#define CMP_NODE_VIEWER		201
 #define CMP_NODE_RGB		202
 #define CMP_NODE_VALUE		203
 #define CMP_NODE_MIX_RGB	204
@@ -198,8 +195,10 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_BLUR		211
 #define CMP_NODE_FILTER		212
 
-#define CMP_NODE_IMAGE		220
-#define CMP_NODE_R_RESULT	221
+#define CMP_NODE_IMAGE			220
+#define CMP_NODE_R_RESULT		221
+#define CMP_NODE_COMPOSITE		222
+#define CMP_NODE_OUTPUT_FILE	223
 
 
 /* filter types */
@@ -217,9 +216,10 @@ extern bNodeType *node_all_composit[];
 
 /* API */
 struct CompBuf;
-void ntreeCompositExecTree(struct bNodeTree *ntree);
+struct RenderData;
+void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int do_previews);
+int ntreeCompositNeedsRender(struct bNodeTree *ntree);
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
-
 
 #endif
 

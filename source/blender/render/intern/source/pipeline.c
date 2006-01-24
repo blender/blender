@@ -37,6 +37,7 @@
 
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
 
@@ -153,6 +154,8 @@ static void free_render_result(RenderResult *res)
 	
 	if(res->rect32)
 		MEM_freeN(res->rect32);
+	if(res->rectf)
+		MEM_freeN(res->rectf);
 	
 	RE_freeN(res);
 }
@@ -196,29 +199,6 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	return rr;
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
-/* caller is responsible for allocating rect in correct size! */
-void RE_ResultGet32(Render *re, unsigned int *rect)
-{
-	if(re->result) {
-		RenderLayer *rl= re->result->layers.first;
-		float *fp= rl->rectf;
-		if(fp) {
-			int tot= re->rectx*re->recty;
-			char *cp= (char *)rect;
-			
-			for(;tot>0; tot--, cp+=4, fp+=4) {
-				cp[0] = FTOCHAR(fp[0]);
-				cp[1] = FTOCHAR(fp[1]);
-				cp[2] = FTOCHAR(fp[2]);
-				cp[3] = FTOCHAR(fp[3]);
-			}
-			return;
-		}
-	}
-	/* else fill with black */
-	memset(rect, sizeof(int)*re->rectx*re->recty, 0);
-}
 
 /* used when rendering to a full buffer, or when reading the exr part-layer-pass file */
 /* no test happens here if it fits... */
@@ -286,12 +266,63 @@ Render *RE_GetRender(const char *name)
 	return re;
 }
 
+/* if you want to know exactly what has been done */
 RenderResult *RE_GetResult(Render *re)
 {
 	if(re)
 		return re->result;
 	return NULL;
 }
+
+/* fill provided result struct with what's currently active or done */
+void RE_GetResultImage(Render *re, RenderResult *rr)
+{
+	memset(rr, sizeof(RenderResult), 0);
+	
+	if(re && re->result) {
+		RenderLayer *rl;
+		
+		rr->rectx= re->result->rectx;
+		rr->recty= re->result->recty;
+		rr->rectf= re->result->rectf;
+		rr->rectz= re->result->rectz;
+		rr->rect32= re->result->rect32;
+		
+		/* will become 'active' call */
+		rl= re->result->layers.first;
+		if(rr->rectf==NULL)
+			rr->rectf= rl->rectf;
+		if(rr->rectz==NULL)
+			rr->rectz= rl->rectz;	
+	}
+}
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+/* caller is responsible for allocating rect in correct size! */
+void RE_ResultGet32(Render *re, unsigned int *rect)
+{
+	RenderResult rres;
+	
+	RE_GetResultImage(re, &rres);
+	if(rres.rect32) 
+		memcpy(rect, rres.rect32, sizeof(int)*rres.rectx*rres.recty);
+	else if(rres.rectf) {
+		float *fp= rres.rectf;
+		int tot= rres.rectx*rres.recty;
+		char *cp= (char *)rect;
+		
+		for(;tot>0; tot--, cp+=4, fp+=4) {
+			cp[0] = FTOCHAR(fp[0]);
+			cp[1] = FTOCHAR(fp[1]);
+			cp[2] = FTOCHAR(fp[2]);
+			cp[3] = FTOCHAR(fp[3]);
+		}
+	}
+	else
+		/* else fill with black */
+		memset(rect, sizeof(int)*re->rectx*re->recty, 0);
+}
+
 
 RenderStats *RE_GetStats(Render *re)
 {
@@ -750,18 +781,26 @@ static void do_render_final(Render *re, Scene *scene)
 			do_render_seq(re->result);
 	}
 	else {
+		/* first check if theres nodetree with render result */
+		int do_render= ntreeCompositNeedsRender(scene->nodetree);
+		/* but.. do we use nodes? */
+		if(scene->use_nodes==NULL) do_render= 1;
 		
 		re->scene= scene;
 		
-		/* now use renderdata and camera to set viewplane */
-		RE_SetCamera(re, re->scene->camera);
-		
-		if(re->r.mode & R_FIELDS)
-			do_render_fields(re);
-		else if(re->r.mode & R_MBLUR)
-			do_render_blurred(re, re->scene->r.cfra);
-		else
-			render_one_frame(re);
+		if(do_render) {
+			/* now use renderdata and camera to set viewplane */
+			RE_SetCamera(re, re->scene->camera);
+			
+			if(re->r.mode & R_FIELDS)
+				do_render_fields(re);
+			else if(re->r.mode & R_MBLUR)
+				do_render_blurred(re, re->scene->r.cfra);
+			else
+				render_one_frame(re);
+		}
+		if(re->r.scemode & R_DOCOMP)
+			ntreeCompositExecTree(scene->nodetree, &re->r, 0);
 	}
 	
 
@@ -905,26 +944,27 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		
 		/* write image or movie */
 		if(re->test_break()==0) {
-			RenderResult *rr= re->result;
-			RenderLayer *rl= rr->layers.first;
+			RenderResult rres;
+			
+			RE_GetResultImage(re, &rres);
 
 			/* write movie or image */
 			if(BKE_imtype_is_movie(scene->r.imtype)) {
-				if(rr->rect32==NULL) {
-					rr->rect32= MEM_mallocN(sizeof(int)*rr->rectx*rr->recty, "temp 32 bits rect");
+				if(rres.rect32==NULL) {
+					rres.rect32= MEM_mallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 				}
-				RE_ResultGet32(re, rr->rect32);
-				mh->append_movie(scene->r.cfra, rr->rect32, rr->rectx, rr->recty);
+				RE_ResultGet32(re, rres.rect32);
+				mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
 				printf("Append frame %d", scene->r.cfra);
 			}
 			else {
-				ImBuf *ibuf= IMB_allocImBuf(rr->rectx, rr->recty, scene->r.planes, 0, 0);
+				ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
 				int ok;
 				
 				BKE_makepicstring(name, (scene->r.cfra));
-				ibuf->rect= rr->rect32;		/* if not exists, BKE_write_ibuf makes one */
-				ibuf->rect_float= rl->rectf;
-				ibuf->zbuf_float= rl->rectz;
+				ibuf->rect= rres.rect32;		/* if not exists, BKE_write_ibuf makes one */
+				ibuf->rect_float= rres.rectf;
+				ibuf->zbuf_float= rres.rectz;
 				ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 				IMB_freeImBuf(ibuf);	/* imbuf knows which rects are not part of ibuf */
 

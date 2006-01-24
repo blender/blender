@@ -88,7 +88,7 @@ static void save_rendered_image_cb(char *name)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	
-	if(BLI_testextensie(str,".blend")) {
+	if(BLI_testextensie(name,".blend")) {
 		error("Wrong filename");
 		return;
 	}
@@ -102,16 +102,17 @@ static void save_rendered_image_cb(char *name)
 	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 	
 	if(saveover(str)) {
-		RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
-		RenderLayer *rl= rr->layers.first;
+		RenderResult rres;
 		ImBuf *ibuf;
 		
+		RE_GetResultImage(RE_GetRender("Render"), &rres);
+
 		waitcursor(1); /* from screen.c */
 
-		ibuf= IMB_allocImBuf(rr->rectx, rr->recty, G.scene->r.planes, 0, 0);
-		ibuf->rect= rr->rect32;
-		ibuf->rect_float= rl->rectf;
-		ibuf->zbuf_float= rl->rectz;
+		ibuf= IMB_allocImBuf(rres.rectx, rres.recty, G.scene->r.planes, 0, 0);
+		ibuf->rect= rres.rect32;
+		ibuf->rect_float= rres.rectf;
+		ibuf->zbuf_float= rres.rectz;
 		
 		BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 		IMB_freeImBuf(ibuf);	/* imbuf knows rects are not part of ibuf */

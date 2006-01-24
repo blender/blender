@@ -1212,8 +1212,8 @@ static void render_panel_anim(void)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_DOSEQ, 0, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
-	uiDefButBitS(block, TOG, R_BG_RENDER, 0, "Render Daemon",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
+	uiDefButBitS(block, TOG, R_DOSEQ, B_NOP, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
+	uiDefButBitS(block, TOG, R_DOCOMP, B_NOP, "Do Composit",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Uses compositing nodes for output rendering");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);

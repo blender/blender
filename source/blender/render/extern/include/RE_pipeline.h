@@ -76,8 +76,12 @@ typedef struct RenderResult {
 	int rectx, recty;
 	short crop, pad;
 	
-	/* optional, 32 bits version of (composited?) layers */
+	/* optional, 32 bits version of picture, used for ogl render and image curves */
 	int *rect32;
+	/* if this exists, a copy of one of layers, or result of composited layers */
+	float *rectf;
+	/* if this exists, a copy of one of layers, or result of composited layers */
+	float *rectz;
 	
 	/* coordinates within final image (after cropping) */
 	rcti tilerect;
@@ -112,6 +116,7 @@ void RE_FreeAllRender (void);
 
 /* get results and statistics */
 RenderResult *RE_GetResult(Render *re);
+void RE_GetResultImage(Render *re, RenderResult *rr);
 RenderStats *RE_GetStats(Render *re);
 void RE_ResultGet32(Render *re, unsigned int *rect);
 

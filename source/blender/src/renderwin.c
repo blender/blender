@@ -287,10 +287,11 @@ static void renderwin_draw_render_info(RenderWin *rw)
 
 static void renderwin_draw(RenderWin *rw, int just_clear)
 {
-	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+	RenderResult rres;
+	
+	RE_GetResultImage(RE_GetRender("Render"), &rres);
 
-	if(rr) {
-		RenderLayer *rl= rr->layers.first;
+	if(rres.rectf) {
 		float fullrect[2][2];
 		int set_back_mainwindow;
 		rcti rect;
@@ -328,10 +329,10 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 //				glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 			}
 			else {
-				if(rr->rect32)
-					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
-				else if(rl->rectf)
-					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, rr->rectx, GL_RGBA, GL_FLOAT, rl->rectf);
+				if(rres.rect32)
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_UNSIGNED_BYTE, rres.rect32);
+				else if(rres.rectf)
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
 			}
 			glPixelZoom(1.0, 1.0);
 		}
@@ -360,25 +361,26 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
-	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
-	RenderLayer *rl= (rr?rr->layers.first:NULL);
+	RenderResult rres;
+	
+	RE_GetResultImage(RE_GetRender("Render"), &rres);
 
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2], ofs=0;
 		char buf[128];
-//		char *pxl;
+		char *pxl;
 
-		if (rl && renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
-//			pxl= (char*) &R.rectot[R.rectx*imgco[1] + imgco[0]];
-			
-//			ofs= sprintf(buf, "R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
-			
-			if (rl->rectf) {
-				float *pxlf= rl->rectf + 4*(rr->rectx*imgco[1] + imgco[0]);
+		if (renderwin_win_to_image_co(rw, rw->lmouse, imgco)) {
+			if (rres.rect32) {
+				pxl= (char*) &rres.rect32[rres.rectx*imgco[1] + imgco[0]];
+				ofs= sprintf(buf, "R: %d G: %d B: %d A: %d", pxl[0], pxl[1], pxl[2], pxl[3]);	
+			}
+			if (rres.rectf) {
+				float *pxlf= rres.rectf + 4*(rres.rectx*imgco[1] + imgco[0]);
 				ofs+= sprintf(buf+ofs, " | R: %.3f G: %.3f B: %.3f A: %.3f ", pxlf[0], pxlf[1], pxlf[2], pxlf[3]);
 			}
-			if (rl->rectz) {
-				float *pxlz= &rl->rectz[rr->rectx*imgco[1] + imgco[0]];			
+			if (rres.rectz) {
+				float *pxlz= &rres.rectz[rres.rectx*imgco[1] + imgco[0]];			
 				sprintf(buf+ofs, "| Z: %.3f", *pxlz );
 			}
 
@@ -395,8 +397,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 	
 		rw->zoomofs[0]= rw->pan_ofs_start[0] - delta_x/rw->zoom;
 		rw->zoomofs[1]= rw->pan_ofs_start[1] - delta_y/rw->zoom;
-		rw->zoomofs[0]= CLAMPIS(rw->zoomofs[0], -rr->rectx/2, rr->rectx/2);
-		rw->zoomofs[1]= CLAMPIS(rw->zoomofs[1], -rr->recty/2, rr->recty/2);
+		rw->zoomofs[0]= CLAMPIS(rw->zoomofs[0], -rres.rectx/2, rres.rectx/2);
+		rw->zoomofs[1]= CLAMPIS(rw->zoomofs[1], -rres.recty/2, rres.recty/2);
 
 		renderwin_queue_redraw(rw);
 	} 
@@ -408,8 +410,8 @@ static void renderwin_mouse_moved(RenderWin *rw)
 		h-= RW_HEADERY;
 		renderwin_win_to_ndc(rw, rw->lmouse, ndc);
 
-		rw->zoomofs[0]= -0.5*ndc[0]*(w-rr->rectx*rw->zoom)/rw->zoom;
-		rw->zoomofs[1]= -0.5*ndc[1]*(h-rr->recty*rw->zoom)/rw->zoom;
+		rw->zoomofs[0]= -0.5*ndc[0]*(w-rres.rectx*rw->zoom)/rw->zoom;
+		rw->zoomofs[1]= -0.5*ndc[1]*(h-rres.recty*rw->zoom)/rw->zoom;
 
 		renderwin_queue_redraw(rw);
 	}
@@ -721,7 +723,6 @@ static void renderwin_clear_display_cb(RenderResult *rr)
 /* can get as well the full picture, as the parts while rendering */
 static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *unused)
 {
-	RenderLayer *rl;
 	rcti win_rct;
 	float *rectf, fullrect[2][2];
 	
@@ -731,10 +732,13 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *unused)
 	win_rct.ymax-= RW_HEADERY;
 	renderwin_get_fullrect(rw, fullrect);
 	
-	/* find current float rect for display */
-	rl= rr->layers.first;
-	rectf= rl->rectf;
-	
+	/* find current float rect for display, first case is after composit... still weak */
+	if(rr->rectf)
+		rectf= rr->rectf;
+	else {
+		RenderLayer *rl= rr->layers.first;
+		rectf= rl->rectf;
+	}	
 	/* when rendering more pixels than needed, we crop away cruft */
 	if(rr->crop)
 		rectf+= 4*(rr->crop*rr->rectx + rr->crop);
@@ -1018,6 +1022,8 @@ void BIF_do_render(int anim)
 	}
 	else do_render(anim);
 
+	if(G.scene->use_nodes)
+		allqueue(REDRAWNODE, 1);
 	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }

@@ -404,8 +404,8 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 
 /* Verification rule: If name changes, a saved socket and its links will be removed! Type changes are OK */
 
-/* **************** OUTPUT ******************** */
-static bNodeSocketType cmp_node_output_in[]= {
+/* **************** VIEWER ******************** */
+static bNodeSocketType cmp_node_viewer_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
@@ -421,7 +421,7 @@ static void do_copy_a_rgba(bNode *node, float *out, float *in, float *fac)
 	out[3]= *fac;
 }
 
-static void node_composit_exec_output(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha */
@@ -433,9 +433,11 @@ static void node_composit_exec_output(void *data, bNode *node, bNodeStack **in, 
 		
 		/* scene size? */
 		if(1) {
+			RenderData *rd= data;
+			
 			/* re-create output, derive size from scene */
-			rectx= (G.scene->r.size*G.scene->r.xsch)/100;
-			recty= (G.scene->r.size*G.scene->r.ysch)/100;
+			rectx= (rd->size*rd->xsch)/100;
+			recty= (rd->size*rd->ysch)/100;
 			
 			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
 			ima->ibuf= IMB_allocImBuf(rectx, recty, 32, IB_rectfloat, 0); // do alloc
@@ -468,60 +470,71 @@ static void node_composit_exec_output(void *data, bNode *node, bNodeStack **in, 
 		generate_preview(node, in[0]->data);
 }
 
-static bNodeType cmp_node_output= {
-	/* type code   */	CMP_NODE_OUTPUT,
-	/* name        */	"Output",
+static bNodeType cmp_node_viewer= {
+	/* type code   */	CMP_NODE_VIEWER,
+	/* name        */	"Viewer",
 	/* width+range */	80, 60, 200,
 	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
-	/* input sock  */	cmp_node_output_in,
+	/* input sock  */	cmp_node_viewer_in,
 	/* output sock */	NULL,
 	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_output
+	/* execfunc    */	node_composit_exec_viewer
 	
 };
 
-/* **************** OUTPUT RENDER ******************** */
-static bNodeSocketType cmp_node_output_render_in[]= {
+/* **************** COMPOSITE ******************** */
+static bNodeSocketType cmp_node_composite_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-
-static void node_composit_exec_output_render(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+/* applies to render pipeline */
+static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha */
 	
 	if(node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
-		RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
-		if(rr) {
-			RenderLayer *rl= rr->layers.first;
-			CompBuf *outbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);	/* no alloc */
-			
-			outbuf->rect= rl->rectf;
-			
-			if(in[1]->data==NULL)
-				composit1_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, do_copy_rgba);
-			else
-				composit2_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
-			
-			free_compbuf(outbuf);
+		RenderData *rd= data;
+		if(rd->scemode & R_DOCOMP) {
+			RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+			if(rr) {
+				CompBuf *outbuf;
+				
+				if(rr->rectf) 
+					MEM_freeN(rr->rectf);
+				outbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 1);
+				
+				if(in[1]->data==NULL)
+					composit1_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, do_copy_rgba);
+				else
+					composit2_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+				
+				generate_preview(node, outbuf);
+				
+				/* we give outbuf to rr... */
+				rr->rectf= outbuf->rect;
+				outbuf->malloc= 0;
+				free_compbuf(outbuf);
+				
+				return;
+			}
 		}
 	}
-	else if(in[0]->data)
+	if(in[0]->data)
 		generate_preview(node, in[0]->data);
 }
 
-static bNodeType cmp_node_output_render= {
-	/* type code   */	CMP_NODE_OUTPUT_RENDER,
-	/* name        */	"Render Output",
+static bNodeType cmp_node_composite= {
+	/* type code   */	CMP_NODE_COMPOSITE,
+	/* name        */	"Composite",
 	/* width+range */	80, 60, 200,
 	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
-	/* input sock  */	cmp_node_output_render_in,
+	/* input sock  */	cmp_node_composite_in,
 	/* output sock */	NULL,
 	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_output_render
+	/* execfunc    */	node_composit_exec_composite
 	
 };
 
@@ -575,7 +588,9 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 		/* test if image is OK */
 		if(ima->ok==0) return;
 		if(ima->ibuf==NULL) {
-			load_image(ima, IB_rect, G.sce, G.scene->r.cfra);
+			RenderData *rd= data;
+			
+			load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
 			if(ima->ibuf==NULL) {
 				ima->ok= 0;
 				return;
@@ -1417,8 +1432,8 @@ static bNodeType cmp_node_blur= {
 
 bNodeType *node_all_composit[]= {
 	&node_group_typeinfo,
-	&cmp_node_output,
-	&cmp_node_output_render,
+	&cmp_node_viewer,
+	&cmp_node_composite,
 	&cmp_node_output_file,
 	&cmp_node_value,
 	&cmp_node_rgb,
@@ -1438,15 +1453,34 @@ bNodeType *node_all_composit[]= {
 
 /* ******************* execute and parse ************ */
 
-void ntreeCompositExecTree(bNodeTree *ntree)
+/* helper call to detect if theres a render-result node */
+int ntreeCompositNeedsRender(bNodeTree *ntree)
 {
+	bNode *node;
 	
-	ntreeInitPreview(ntree, 0, 0);
+	if(ntree==NULL) return 1;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_RESULT)
+			return 1;
+	}
+	return 0;
+}
+
+/* note; if called without preview, and previews exist, they get updated */
+/* render calls it without previews, works nicer for bg render */
+void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
+{
+	if(ntree==NULL) return;
+	
+	if(do_preview)
+		ntreeInitPreview(ntree, 0, 0);
+	
 	ntreeBeginExecTree(ntree);
 
-	/* allocate composit data */
+	/* allocate composit data? */
 	
-	ntreeExecTree(ntree, NULL, 0);	/* threads */
+	ntreeExecTree(ntree, rd, 0);	/* threads */
 	
 	ntreeEndExecTree(ntree);
 }
