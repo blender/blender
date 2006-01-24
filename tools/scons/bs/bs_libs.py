@@ -60,7 +60,7 @@ def blender_libs(env):
 		'blender_blendersrc',
 		'blender_render',
 		'blender_yafray',
-		'blender_renderconverter',
+#		'blender_renderconverter',
 		'blender_radiosity',
 		'blender_BSP',
 		'blender_blenkernel',
