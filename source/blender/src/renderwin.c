@@ -1051,6 +1051,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 
 	if(anim) {
 		bMovieHandle *mh= BKE_get_movie_handle(G.scene->r.imtype);
+		int cfrao= CFRA;
 		
 		mh->start_movie(&G.scene->r, winx, winy);
 		
@@ -1063,6 +1064,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			if(test_break()) break;
 		}
 		mh->end_movie();
+		CFRA= cfrao;
 	}
 	else {
 		drawview3d_render(v3d, winx, winy);

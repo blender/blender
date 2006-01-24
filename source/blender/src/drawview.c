@@ -2389,16 +2389,20 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy)
 {
 	Base *base;
 	Scene *setscene;
-
+	float winmat[4][4];
+	
 	update_for_newframe_muted();	/* first, since camera can be animated */
 
 	setwinmatrixview3d(winx, winy, NULL);
 	
 	setviewmatrixview3d();
 	myloadmatrix(v3d->viewmat);
-//	Mat4MulMat4(v3d->persmat, v3d->viewmat, winmat);
-//	Mat4Invert(v3d->persinv, v3d->persmat);
-//	Mat4Invert(v3d->viewinv, v3d->viewmat);
+	glMatrixMode(GL_PROJECTION);
+	mygetmatrix(winmat);
+	glMatrixMode(GL_MODELVIEW);
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, winmat);
+	Mat4Invert(v3d->persinv, v3d->persmat);
+	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
 	free_all_realtime_images();
 	reshadeall_displist();

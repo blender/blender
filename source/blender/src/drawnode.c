@@ -216,22 +216,23 @@ static int node_buts_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *bu
 {
 	if(block) {
 		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
-		
-		/* enforce square box drawing */
-		uiBlockSetEmboss(block, UI_EMBOSSP);
-		
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 12, 
-				  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
-		uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
-				  butr->xmin, butr->ymin+15, butr->xmax-butr->xmin, butr->ymax-butr->ymin -15 -15, 
-				  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
-		uiDefButF(block, COL, B_NOP, "",		
-				  butr->xmin, butr->ymax-12, butr->xmax-butr->xmin, 12, 
-				  sock->ns.vec, 0.0, 0.0, -1, 0, "");
-		/* the -1 above prevents col button to popup a color picker */
-		
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		if(sock) {
+			/* enforce square box drawing */
+			uiBlockSetEmboss(block, UI_EMBOSSP);
+			
+			uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
+					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 12, 
+					  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
+			uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
+					  butr->xmin, butr->ymin+15, butr->xmax-butr->xmin, butr->ymax-butr->ymin -15 -15, 
+					  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
+			uiDefButF(block, COL, B_NOP, "",		
+					  butr->xmin, butr->ymax-12, butr->xmax-butr->xmin, 12, 
+					  sock->ns.vec, 0.0, 0.0, -1, 0, "");
+			/* the -1 above prevents col button to popup a color picker */
+			
+			uiBlockSetEmboss(block, UI_EMBOSS);
+		}
 	}
 	return 30 + (int)(node->width-NODE_DY);
 }
