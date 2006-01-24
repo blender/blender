@@ -442,7 +442,7 @@ static void node_composit_exec_output(void *data, bNode *node, bNodeStack **in, 
 			
 			cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	// no alloc
 			cbuf->rect= ima->ibuf->rect_float;
-		
+			
 			/* when no alpha, we can simply copy */
 			if(in[1]->data==NULL)
 				composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_copy_rgba);
@@ -462,7 +462,7 @@ static void node_composit_exec_output(void *data, bNode *node, bNodeStack **in, 
 			ima->ibuf->y= cbuf->y;
 			cbuf->rect= NULL;
 		}
-		
+
 	}
 	else if(in[0]->data)
 		generate_preview(node, in[0]->data);
@@ -477,6 +477,82 @@ static bNodeType cmp_node_output= {
 	/* output sock */	NULL,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_output
+	
+};
+
+/* **************** OUTPUT RENDER ******************** */
+static bNodeSocketType cmp_node_output_render_in[]= {
+	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+
+static void node_composit_exec_output_render(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* image assigned to output */
+	/* stack order input sockets: col, alpha */
+	
+	if(node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
+		RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+		if(rr) {
+			RenderLayer *rl= rr->layers.first;
+			CompBuf *outbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);	/* no alloc */
+			
+			outbuf->rect= rl->rectf;
+			
+			if(in[1]->data==NULL)
+				composit1_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, do_copy_rgba);
+			else
+				composit2_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+			
+			free_compbuf(outbuf);
+		}
+	}
+	else if(in[0]->data)
+		generate_preview(node, in[0]->data);
+}
+
+static bNodeType cmp_node_output_render= {
+	/* type code   */	CMP_NODE_OUTPUT_RENDER,
+	/* name        */	"Render Output",
+	/* width+range */	80, 60, 200,
+	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
+	/* input sock  */	cmp_node_output_render_in,
+	/* output sock */	NULL,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_output_render
+	
+};
+
+/* **************** OUTPUT FILE ******************** */
+static bNodeSocketType cmp_node_output_file_in[]= {
+	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+
+static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* image assigned to output */
+	/* stack order input sockets: col, alpha */
+	
+	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
+	}
+	else if(in[0]->data)
+		generate_preview(node, in[0]->data);
+}
+
+static bNodeType cmp_node_output_file= {
+	/* type code   */	CMP_NODE_OUTPUT_FILE,
+	/* name        */	"File Output",
+	/* width+range */	80, 60, 200,
+	/* class+opts  */	NODE_CLASS_FILE, NODE_PREVIEW,
+	/* input sock  */	cmp_node_output_file_in,
+	/* output sock */	NULL,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_output_file
 	
 };
 
@@ -862,7 +938,10 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 			row1= in->rect + 4*(y-2)*rowlen;
 			row2= row1 + 4*rowlen;
 			row3= row2 + 4*rowlen;
-			fp= out->rect + 4*(y-1)*rowlen + 4;
+			
+			fp= out->rect + 4*(y-1)*rowlen;
+			QUATCOPY(fp, row2);
+			fp+= 4;
 			
 			for(x=2; x<rowlen; x++) {
 				for(c=0; c<4; c++) {
@@ -1339,6 +1418,8 @@ static bNodeType cmp_node_blur= {
 bNodeType *node_all_composit[]= {
 	&node_group_typeinfo,
 	&cmp_node_output,
+	&cmp_node_output_render,
+	&cmp_node_output_file,
 	&cmp_node_value,
 	&cmp_node_rgb,
 	&cmp_node_mix_rgb,

@@ -83,6 +83,7 @@ typedef struct bNodeType {
 #define NODE_CLASS_GENERATOR	2
 #define NODE_CLASS_OPERATOR		3
 #define NODE_CLASS_GROUP		4
+#define NODE_CLASS_FILE			5
 
 /* ************** GENERIC API, TREES *************** */
 
@@ -181,7 +182,9 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 /* ************** COMPOSIT NODES *************** */
 
 /* note: types are needed to restore callbacks, don't change values */
-#define CMP_NODE_OUTPUT		201
+#define CMP_NODE_OUTPUT			201
+#define CMP_NODE_OUTPUT_RENDER	202
+#define CMP_NODE_OUTPUT_FILE	203
 
 #define CMP_NODE_RGB		202
 #define CMP_NODE_VALUE		203

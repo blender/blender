@@ -1179,18 +1179,22 @@ void ntreeSolveOrder(bNodeTree *ntree)
 	
 	MEM_freeN(nodesort);
 	
-	/* find the active outputs, tree type dependant, might become handler */
-	if(ntree->type==NTREE_SHADER || ntree->type==NTREE_COMPOSIT) {
-		/* shader/composit nodes only accepts one output */
-		int output= 0;
-		
-		for(node= ntree->nodes.first; node; node= node->next) {
-			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-				if(output==0)
-					node->flag |= NODE_DO_OUTPUT;
-				else
-					node->flag &= ~NODE_DO_OUTPUT;
-				output= 1;
+	/* find the active outputs, might become tree type dependant handler */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+			bNode *tnode;
+			int output= 0;
+			/* there is more types having output class, each one is checked */
+			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
+				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+					if(tnode->type==node->type) {
+						if(output==0)
+							tnode->flag |= NODE_DO_OUTPUT;
+						else
+							tnode->flag &= ~NODE_DO_OUTPUT;
+						output= 1;
+					}
+				}
 			}
 		}
 	}
