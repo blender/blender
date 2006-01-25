@@ -173,6 +173,12 @@ typedef struct bNodeTree {
 #define NTREE_TYPE_INIT	1
 #define NTREE_EXEC_INIT	2
 
+/* data structs, for node->storage */
+
+typedef struct NodeImageAnim {
+	short frames, sfra, nr;
+	char cyclic, movie;
+} NodeImageAnim;
 
 #endif
 

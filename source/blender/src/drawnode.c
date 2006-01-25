@@ -576,12 +576,27 @@ static void node_active_cb(void *ntree_v, void *node_v)
 {
 	nodeSetActive(ntree_v, node_v);
 }
+static void node_image_anim_cb(void *node_v, void *unused)
+{
+	bNode *node= node_v;
+	NodeImageAnim *nia;
+	
+	if(node->storage) {
+		MEM_freeN(node->storage);
+		node->storage= NULL;
+	}
+	else {
+		nia= node->storage= MEM_callocN(sizeof(NodeImageAnim), "node image anim");
+		nia->sfra= nia->nr= 1;
+	}
+	allqueue(REDRAWNODE, 1);
+}
 
 static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		uiBut *bt;
-		short dy= (short)butr->ymin;
+		short dy= (short)butr->ymax-19;
 		char *strp;
 		
 		uiBlockBeginAlign(block);
@@ -606,15 +621,42 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 		}
 		else {
 			/* name button */
-			short width= (short)(butr->xmax-butr->xmin-19.0f);
+			short width= (short)(butr->xmax-butr->xmin-38.0f);
 			bt= uiDefBut(block, TEX, B_NOP, "IMA:",
 						 butr->xmin+19, dy, width, 19, 
 						 node->id->name+2, 0.0, 19.0, 0, 0, "Image name");
 			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-		}			
+			bt= uiDefIconBut(block, BUT, B_NOP, ICON_SEQUENCE,
+						 butr->xmax-19, dy, 19, 19, 
+						 node->id->name+2, 0.0, 19.0, 0, 0, "Enable/Disable Image animation");
+			uiButSetFunc(bt, node_image_anim_cb, node, NULL);
+		}
+		if(node->storage) {
+			NodeImageAnim *nia= node->storage;
+			short width= (short)(butr->xmax-butr->xmin)/2;
+			
+			dy-= 19;
+			uiDefButS(block, NUM, B_NODE_EXEC, "Frs:",
+					  butr->xmin, dy, width, 19, 
+					  &nia->frames, 0.0, 10000.0, 0, 0, "Amount of images used in animation");
+			uiDefButS(block, NUM, B_NODE_EXEC, "SFra:",
+					  butr->xmin+width, dy, width, 19, 
+					  &nia->sfra, 1.0, 1000.0, 0, 0, "Start frame of animation");
+			dy-= 19;
+			uiDefButS(block, NUM, B_NODE_EXEC, "First:",
+					  butr->xmin, dy, width, 19, 
+					  &nia->nr, 0.0, 10000.0, 0, 0, "Number in image name, used as first in animation");
+			uiDefButC(block, TOG, B_NODE_EXEC, "Cycl",
+					  butr->xmin+width, dy, width, 19, 
+					  &nia->cyclic, 0.0, 0.0, 0, 0, "Make animation go cyclic");
+			
+		}
 		
 	}	
-	return 19;
+	if(node->storage) 
+		return 57;
+	else
+		return 19;
 }
 
 static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)

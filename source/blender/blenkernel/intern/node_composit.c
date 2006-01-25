@@ -577,18 +577,84 @@ static bNodeSocketType cmp_node_image_out[]= {
 	{	-1, 0, ""	}
 };
 
+static int calcimanr(int cfra, NodeImageAnim *nia)
+{
+	
+	if(nia->frames==0) return nia->nr;
+	
+	cfra= cfra - nia->sfra;
+	
+	/* cyclic */
+	if(nia->cyclic)
+		cfra= (cfra % nia->frames);
+	else if(cfra>=nia->frames)
+		cfra= nia->frames-1;
+	else if(cfra<0)
+		cfra= 0;
+	
+	cfra+= nia->nr;
+	
+	if(cfra<1) cfra= 1;
+	
+	return cfra;
+}
+
+
+static void animated_image(bNode *node, int cfra)
+{
+	Image *ima;
+	NodeImageAnim *nia;
+	int imanr;
+	unsigned short numlen;
+	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXDIR+FILE_MAXFILE];
+	
+	ima= (Image *)node->id;
+	nia= node->storage;
+	
+	if(nia && nia->frames && ima && ima->name) {	/* frames */
+		strcpy(name, ima->name);
+		
+		imanr= calcimanr(cfra, nia);
+		if(imanr!=ima->lastframe) {
+			ima->lastframe= imanr;
+			
+			BLI_stringdec(name, head, tail, &numlen);
+			BLI_stringenc(name, head, tail, numlen, imanr);
+			
+			ima= add_image(name);
+			
+			if(ima) {
+				ima->flag |= IMA_FROMANIM;
+				if(node->id) node->id->us--;
+				node->id= (ID *)ima;
+				
+				ima->ok= 1;
+			}
+		}
+	}
+}
+
+
 static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	RenderData *rd= data;
+	
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha */
 	if(node->id) {
-		Image *ima= (Image *)node->id;
+		Image *ima;
 		CompBuf *stackbuf;
+		
+		/* animated image? */
+		if(node->storage)
+			animated_image(node, rd->cfra);
+		
+		ima= (Image *)node->id;
 		
 		/* test if image is OK */
 		if(ima->ok==0) return;
+		
 		if(ima->ibuf==NULL) {
-			RenderData *rd= data;
 			
 			load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
 			if(ima->ibuf==NULL) {
@@ -613,6 +679,8 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 	}	
 }
 
+/* uses node->storage to indicate animated image */
+
 static bNodeType cmp_node_image= {
 	/* type code   */	CMP_NODE_IMAGE,
 	/* name        */	"Image",
@@ -620,7 +688,7 @@ static bNodeType cmp_node_image= {
 	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	cmp_node_image_out,
-	/* storage     */	"",
+	/* storage     */	"NodeImageAnim",
 	/* execfunc    */	node_composit_exec_image
 	
 };
@@ -1483,5 +1551,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	ntreeExecTree(ntree, rd, 0);	/* threads */
 	
 	ntreeEndExecTree(ntree);
+	
+	free_unused_animimages();
 }
 
