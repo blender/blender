@@ -822,13 +822,14 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	if(ed) {
 		seq= ed->seqbasep->first;
-		while(seq) {
+		while(seq) { /* bound box test, dont draw outside the view */
 			if (seq->flag & SELECT ||
 					seq->start > G.v2d->cur.xmax ||
 					seq->start+seq->len < G.v2d->cur.xmin ||
-					seq->machine+1.0 < G.v2d->cur.ymin || seq->machine > G.v2d->cur.ymax)
+					seq->machine+1.0 < G.v2d->cur.ymin ||
+					seq->machine > G.v2d->cur.ymax)
 			{
-				/* do nothing */
+				/* dont draw */
 			} else {
 				drawseq(seq);
 			}
@@ -838,14 +839,14 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	ed= G.scene->ed;
 	if(ed) {
 		seq= ed->seqbasep->first;
-		while(seq) {
+		while(seq) { /* bound box test, dont draw outside the view */
 			if (!(seq->flag & SELECT) ||
 					seq->start > G.v2d->cur.xmax ||
 					seq->start+seq->len < G.v2d->cur.xmin ||
 					seq->machine+1.0 < G.v2d->cur.ymin ||
 					seq->machine > G.v2d->cur.ymax)
 			{
-				/* do nothing */
+				/* dont draw */
 			} else {
 				drawseq(seq);
 			}
