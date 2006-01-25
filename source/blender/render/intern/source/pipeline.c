@@ -939,6 +939,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		mh->start_movie(&G.scene->r, re->rectx, re->recty);
 	
 	for(scene->r.cfra= sfra; scene->r.cfra<=efra; G.scene->r.cfra++) {
+		re->r.cfra= scene->r.cfra;	/* weak.... */
 		
 		do_render_final(re, scene);
 		
