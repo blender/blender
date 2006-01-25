@@ -775,6 +775,9 @@ static void do_render_fields(Render *re)
 
 static void do_render_final(Render *re, Scene *scene)
 {
+	/* we set start time here, for main Blender loops */
+	re->i.starttime= PIL_check_seconds_timer();
+
 	if(re->r.scemode & R_DOSEQ) {
 		re->result->rect32= MEM_callocN(sizeof(int)*re->rectx*re->recty, "rectot");
 		if(!re->test_break()) 
@@ -952,11 +955,15 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 
 			/* write movie or image */
 			if(BKE_imtype_is_movie(scene->r.imtype)) {
+				/* note; the way it gets 32 bits rects is weak... */
+				int dofree=0;
 				if(rres.rect32==NULL) {
 					rres.rect32= MEM_mallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+					dofree= 1;
 				}
 				RE_ResultGet32(re, rres.rect32);
 				mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
+				if(dofree) MEM_freeN(rres.rect32);
 				printf("Append frame %d", scene->r.cfra);
 			}
 			else {
