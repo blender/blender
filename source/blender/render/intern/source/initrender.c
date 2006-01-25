@@ -435,7 +435,13 @@ void RE_SetCamera(Render *re, Object *camera)
 		
 		if(cam->type==CAM_ORTHO) re->r.mode |= R_ORTHO;
 		
+		/* solve this too... all time depending stuff is in convertblender.c? */
+		if(cam->ipo) {
+			calc_ipo(cam->ipo, frame_to_float(re->r.cfra));
+			execute_ipo(&cam->id, cam->ipo);
+		}
 		lens= cam->lens;
+
 		clipsta= cam->clipsta;
 		clipend= cam->clipend;
 	}

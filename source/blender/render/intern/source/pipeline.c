@@ -935,10 +935,11 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	if(!render_initialize_from_scene(re, scene))
 	   return;
 	
+	/* confusing... scene->r or re->r? make a decision once! */
 	if(BKE_imtype_is_movie(scene->r.imtype))
-		mh->start_movie(&G.scene->r, re->rectx, re->recty);
+		mh->start_movie(&scene->r, re->rectx, re->recty);
 	
-	for(scene->r.cfra= sfra; scene->r.cfra<=efra; G.scene->r.cfra++) {
+	for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
 		re->r.cfra= scene->r.cfra;	/* weak.... */
 		
 		do_render_final(re, scene);
