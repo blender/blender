@@ -3400,6 +3400,39 @@ static int ui_do_but_CURVE(uiBut *but)
 			mindist= dist;
 		}
 	}
+	
+	if (sel == -1) {
+		/* if the click didn't select anything, check if it's clicked on the 
+		 * curve itself, and if so, add a point */
+		fx= ((float)mval[0] - but->x1)/zoomx + offsx;
+		fy= ((float)mval[1] - but->y1)/zoomy + offsy;
+		
+		cmp= cuma->table;
+
+		/* loop through the curve segment table and find what's near the mouse.
+		 * 0.05 is kinda arbitrary, but seems to be what works nicely. */
+		for(a=0; a<=CM_TABLE; a++) {			
+			if ( ( fabs(fx - cmp[a].x) < (0.05) ) && ( fabs(fy - cmp[a].y) < (0.05) ) ) {
+			
+				curvemap_insert(cuma, fx, fy);
+				curvemapping_changed(cumap, 0);
+				
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
+				
+				/* reset cmp back to the curve points again, rather than drawing segments */		
+				cmp= cuma->curve;
+				
+				/* find newly added point and make it 'sel' */
+				for(a=0; a<cuma->totpoint; a++) {
+					if (cmp[a].x == fx) sel = a;
+				}
+					
+				break;
+			}
+		}
+	}
+	
 	/* ok, we move a point */
 	if(sel!= -1) {
 		int moved_point;
