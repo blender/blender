@@ -2243,8 +2243,8 @@ static TBitem addmenu_armature[]= {
 {  -1, "", 			0, do_info_addmenu}};
 
 /* dynamic items */
-#define TB_ADD_GROUP	6
-#define TB_ADD_LAMP		9
+#define TB_ADD_GROUP	7
+#define TB_ADD_LAMP		10
 
 static TBitem tb_add[]= {
 {	0, "Mesh", 		0, addmenu_mesh},
@@ -2253,6 +2253,7 @@ static TBitem tb_add[]= {
 {	0, "Meta", 	3, addmenu_meta},
 {	0, "Text", 		4, NULL},
 {	0, "Empty", 	5, NULL},
+{	0, "SEPR", 		0, NULL},
 {	0, "Group", 	10, NULL},
 {	0, "SEPR", 		0, NULL},
 {	0, "Camera", 	6, NULL},

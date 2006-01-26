@@ -43,6 +43,7 @@
 #include <config.h>
 #endif
 
+#include "DNA_group_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
@@ -77,6 +78,7 @@
 #include "BIF_drawscene.h"
 
 #include "BKE_blender.h"
+#include "BKE_depsgraph.h"
 #include "BKE_exotic.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -1181,6 +1183,44 @@ static uiBlock *info_add_lampmenu(void *arg_unused)
 	return block;
 }
 
+static void do_info_add_groupmenu(void *arg, int event)
+{
+	Object *ob;
+	
+	add_object_draw(OB_EMPTY);
+	ob= OBACT;
+	
+	ob->dup_group= BLI_findlink(&G.main->group, event);
+	if(ob->dup_group) {
+		id_us_plus((ID *)ob->dup_group);
+		ob->transflag |= OB_DUPLIGROUP;
+		DAG_scene_sort(G.scene);
+	}
+}
+
+
+static uiBlock *info_add_groupmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0;
+	
+	Group *group;
+	int a;
+	int tot= BLI_countlist(&G.main->group);
+	
+	block= uiNewBlock(&curarea->uiblocks, "add_groupmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_add_groupmenu, NULL);
+	
+	for(a=0, group= G.main->group.first; group; group= group->id.next, a++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, group->id.name+2,				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, a, "");
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+		
+	return block;
+}
+
 void do_info_addmenu(void *arg, int event)
 {
 	switch(event) {		
@@ -1241,6 +1281,10 @@ static uiBlock *info_addmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, info_add_metamenu, NULL, ICON_RIGHTARROW_THIN, "Meta", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Text",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Empty",				0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBlockBut(block, info_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
