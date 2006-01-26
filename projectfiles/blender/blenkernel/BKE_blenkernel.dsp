@@ -42,6 +42,7 @@ RSC=rc.exe
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenkernel"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenkernel"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\decimation\include" /I "../../../../lib/windows/zlib/include" /I "..\..\..\intern\elbeem\extern" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\blenlib" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /I "../../../../lib/windows/bsp/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_FREETYPE2" /D "USE_CCGSUBSURFLIB" /YX /J /FD /c
@@ -66,6 +67,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenkernel\debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenkernel\debug"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\decimation\include" /I "../../../../lib/windows/zlib/include" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\blenlib" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /I "../../../../lib/windows/bsp/include" /I "..\..\..\intern\elbeem\extern" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_FREETYPE2" /YX /J /FD /GZ /c
@@ -90,6 +92,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenkernel\mtdll_debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenkernel\mtdll_debug"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\gameengine\soundsystem" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\gameengine\soundsystem\snd_blenderwavecache" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
 # SUBTRACT BASE CPP /WX
@@ -116,6 +119,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenkernel\mtdll"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenkernel\mtdll"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\gameengine\soundsystem" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\gameengine\soundsystem\snd_blenderwavecache" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD CPP /nologo /MD /GX /O2 /I "..\..\..\source\gameengine\soundsystem" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\gameengine\soundsystem\snd_blenderwavecache" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\blenlib" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /I "../../../../lib/windows/bsp/include" /I "..\..\..\intern\elbeem\extern" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
@@ -165,6 +169,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\CCGSubSurf.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\colortools.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\constraint.c
 # End Source File
 # Begin Source File
@@ -205,6 +213,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\group.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\icons.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\image.c
 # End Source File
 # Begin Source File
@@ -242,6 +254,18 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\modifier.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\intern\nla.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\intern\node.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\intern\node_composit.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\intern\node_shaders.c
 # End Source File
 # Begin Source File
 

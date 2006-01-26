@@ -40,9 +40,10 @@ RSC=rc.exe
 # PROP Output_Dir "..\..\..\obj\windows\blender\src"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\src"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\sdl\include\\" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\renderui" /I "..\..\..\..\lib\windows\soundsystem\include\\" /I "..\..\..\..\lib\windows\python\include\python2.0\\" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\..\source\blender\ftfont" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\verify" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\..\lib\windows\decimation\include" /I "..\..\..\source\blender\blenpluginapi\\" /I "..\..\..\..\lib\windows\blenkey\include" /I "..\..\..\..\lib\windows\ghost\include" /I "..\..\..\..\lib\windows\bsp\include" /I "..\..\..\..\lib\windows\opennl\include" /I "..\..\..\intern\elbeem\extern" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CONSOLE" /D "GAMEBLENDER" /D "WITH_QUICKTIME" /D "INTERNATIONAL" /FR /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\sdl\include\\" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\renderui" /I "..\..\..\..\lib\windows\soundsystem\include\\" /I "..\..\..\..\lib\windows\python\include\python2.0\\" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\..\source\blender\ftfont" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\verify" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\..\lib\windows\decimation\include" /I "..\..\..\source\blender\blenpluginapi\\" /I "..\..\..\..\lib\windows\blenkey\include" /I "..\..\..\..\lib\windows\ghost\include" /I "..\..\..\..\lib\windows\bsp\include" /I "..\..\..\..\lib\windows\opennl\include" /I "..\..\..\intern\elbeem\extern" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CONSOLE" /D "GAMEBLENDERx" /D "WITH_QUICKTIME" /D "INTERNATIONAL" /FR /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,9 +65,10 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\src\debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\src\debug"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\sdl\include\\" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\renderui" /I "..\..\..\..\lib\windows\soundsystem\include\\" /I "..\..\..\..\lib\windows\python\include\python2.0\\" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\..\source\blender\ftfont" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\verify" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\..\lib\windows\decimation\include" /I "..\..\..\source\blender\blenpluginapi\\" /I "..\..\..\..\lib\windows\blenkey\include" /I "..\..\..\..\lib\windows\ghost\include" /I "..\..\..\..\lib\windows\bsp\include" /I "..\..\..\..\lib\windows\opennl\include" /I "..\..\..\intern\elbeem\extern" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CONSOLE" /D "GAMEBLENDER" /D "WITH_QUICKTIME" /D "INTERNATIONAL" /U "_DEBUG" /J /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\sdl\include\\" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\renderui" /I "..\..\..\..\lib\windows\soundsystem\include\\" /I "..\..\..\..\lib\windows\python\include\python2.0\\" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\..\source\blender\ftfont" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\verify" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\..\lib\windows\decimation\include" /I "..\..\..\source\blender\blenpluginapi\\" /I "..\..\..\..\lib\windows\blenkey\include" /I "..\..\..\..\lib\windows\ghost\include" /I "..\..\..\..\lib\windows\bsp\include" /I "..\..\..\..\lib\windows\opennl\include" /I "..\..\..\intern\elbeem\extern" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CONSOLE" /D "GAMEBLENDERx" /D "WITH_QUICKTIME" /D "INTERNATIONAL" /U "_DEBUG" /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -184,6 +186,10 @@ SOURCE=..\..\..\source\blender\src\drawmesh.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\src\drawnla.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\drawnode.c
 # End Source File
 # Begin Source File
 
@@ -319,6 +325,10 @@ SOURCE=..\..\..\source\blender\src\editnla.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\editnode.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\editobject.c
 # End Source File
 # Begin Source File
@@ -403,6 +413,10 @@ SOURCE=..\..\..\source\blender\src\header_nla.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\header_node.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\header_oops.c
 # End Source File
 # Begin Source File
@@ -451,6 +465,10 @@ SOURCE=..\..\..\source\blender\src\interface_draw.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\interface_icons.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\interface_panel.c
 # End Source File
 # Begin Source File
@@ -487,6 +505,10 @@ SOURCE=..\..\..\source\blender\src\outliner.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\parametrizer.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\playanim.c
 # End Source File
 # Begin Source File
@@ -496,6 +518,10 @@ SOURCE=..\..\..\source\blender\blenpluginapi\intern\pluginapi.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\src\poseobject.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\preview.blend.c
 # End Source File
 # Begin Source File
 
@@ -952,6 +978,14 @@ SOURCE=..\..\..\source\blender\include\butspace.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\editmesh.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\parametrizer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\parametrizer_intern.h
 # End Source File
 # Begin Source File
 

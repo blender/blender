@@ -70,7 +70,7 @@ PostBuild_Cmds=ECHO copy to lib ...	xcopy /Y .\release\blender_elbeem.lib ..\..\
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/sdl/include" /I "../../../../../lib/windows/zlib/include" /I "../../../../../lib/windows/png/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "NOGUI" /D "ELBEEM_BLENDER" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/sdl/include" /I "../../../../../lib/windows/zlib/include" /I "../../../../../lib/windows/png/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "NOGUI" /D "ELBEEM_BLENDER" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x407 /d "_DEBUG"
 # ADD RSC /l 0x407 /d "_DEBUG"
 BSC32=bscmake.exe
