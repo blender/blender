@@ -754,6 +754,8 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 		else if(type==CMP_NODE_CURVE_RGB)
 			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+		else if(type==CMP_NODE_MAP_VALUE)
+			node->storage= add_mapping();
 	}
 	
 	return node;
@@ -1188,14 +1190,16 @@ void ntreeSolveOrder(bNodeTree *ntree)
 			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
 				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
 					if(tnode->type==node->type) {
-						if(output==0)
-							tnode->flag |= NODE_DO_OUTPUT;
-						else
-							tnode->flag &= ~NODE_DO_OUTPUT;
-						output= 1;
+						if(tnode->flag & NODE_DO_OUTPUT) {
+							if(output>1)
+								tnode->flag &= ~NODE_DO_OUTPUT;
+							output++;
+						}
 					}
 				}
 			}
+			if(output==0)
+				node->flag |= NODE_DO_OUTPUT;
 		}
 	}
 	
@@ -1210,14 +1214,6 @@ void ntreeSolveOrder(bNodeTree *ntree)
 static void nodeInitPreview(bNode *node, int xsize, int ysize)
 {
 	
-	/* sanity checks & initialize */
-	if(node->preview && node->preview->rect) {
-		if(node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
-			MEM_freeN(node->preview->rect);
-			node->preview->rect= NULL;
-		}
-	}
-	
 	if(node->preview==NULL) {
 		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
 		printf("added preview %s\n", node->name);
@@ -1226,7 +1222,15 @@ static void nodeInitPreview(bNode *node, int xsize, int ysize)
 	/* node previews can get added with variable size this way */
 	if(xsize==0 || ysize==0)
 		return;
-
+	
+	/* sanity checks & initialize */
+	if(node->preview && node->preview->rect) {
+		if(node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
+			MEM_freeN(node->preview->rect);
+			node->preview->rect= NULL;
+		}
+	}
+	
 	if(node->preview->rect==NULL) {
 		node->preview->rect= MEM_callocN(4*xsize + xsize*ysize*sizeof(float)*4, "node preview rect");
 		node->preview->xsize= xsize;

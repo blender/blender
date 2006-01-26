@@ -60,8 +60,10 @@ typedef struct Render Render;
 typedef struct RenderLayer {
 	struct RenderLayer *next, *prev;
 	
-	char name[RE_MAXNAME];
-	int flag, type;
+	/* copy of RenderData */
+	char name[RE_MAXNAME];		
+	unsigned int lay;			
+	int layflag, passflag;		
 	
 	float *rectf;	/* standard rgba buffer */
 	float *rectz;	/* standard camera coordinate zbuffer */
@@ -88,6 +90,7 @@ typedef struct RenderResult {
 	
 	/* the main buffers */
 	ListBase layers;
+	int actlay;				/* copy of renderdata..., so display callbacks can find out */
 	
 	/* optional saved endresult on disk */
 	char exrfile[FILE_MAXDIR];

@@ -154,6 +154,8 @@ static void free_render_result(RenderResult *res)
 	
 	if(res->rect32)
 		MEM_freeN(res->rect32);
+	if(res->rectz)
+		MEM_freeN(res->rectz);
 	if(res->rectf)
 		MEM_freeN(res->rectf);
 	
@@ -168,6 +170,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 {
 	RenderResult *rr;
 	RenderLayer *rl;
+	SceneRenderLayer *srl;
 	int rectx, recty;
 	
 	rectx= partrct->xmax - partrct->xmin;
@@ -188,64 +191,89 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	rr->tilerect.ymin= partrct->ymin - re->disprect.ymin;
 	rr->tilerect.ymax= partrct->ymax - re->disprect.ymax;
 	
-	/* check renderdata for amount of layers */
-	/* for now just one */
-	rl= RE_callocN(sizeof(RenderLayer), "new render layer");
-	BLI_addtail(&rr->layers, rl);
+	/* copy, so display callbacks can find out too */
+	rr->actlay= re->r.actlay;
 	
-	rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
-	rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+	/* check renderdata for amount of layers */
+	for(srl= re->r.layers.first; srl; srl= srl->next) {
+		rl= RE_callocN(sizeof(RenderLayer), "new render layer");
+		BLI_addtail(&rr->layers, rl);
+		
+		strcpy(rl->name, srl->name);
+		rl->lay= srl->lay;
+		rl->layflag= srl->layflag;
+		rl->passflag= srl->passflag;
+		
+		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
+		if(srl->passflag  & SCE_PASS_Z)
+			rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+		
+	}
+	/* previewrender and envmap don't do layers, so we make a default one */
+	if(rr->layers.first==NULL) {
+		rl= RE_callocN(sizeof(RenderLayer), "new render layer");
+		BLI_addtail(&rr->layers, rl);
+		
+		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
+		rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+	}
 	
 	return rr;
 }
 
 
 /* used when rendering to a full buffer, or when reading the exr part-layer-pass file */
-/* no test happens here if it fits... */
+/* no test happens here if it fits... we also assume layers are in sync */
 /* is used within threads */
 static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 {
-	RenderLayer *rl= rr->layers.first;
-	RenderLayer *rlp= rrpart->layers.first;
+	RenderLayer *rl, *rlp;
 	float *rf, *rfp;
-	int *rz=NULL, *rzp;
+	float *rz, *rzp;
 	int y, height, len, copylen;
 	
-	if(rlp->rectf==NULL) return;
-	if(rl->rectf==NULL) return;
-	
-	rzp= NULL; //rlp->rectz;
-	rfp= rlp->rectf;
-	
-	copylen=len= rrpart->rectx;
-	height= rrpart->recty;
-	
-	if(rrpart->crop) {	/* filters add pixel extra */
+	for(rl= rr->layers.first, rlp= rrpart->layers.first; rl && rlp; rl= rl->next, rlp= rlp->next) {
 		
-		if(rzp) rzp+= rrpart->crop + rrpart->crop*len;
-		if(rfp) rfp+= 4*(rrpart->crop + rrpart->crop*len);
-		
-		copylen= len-2*rrpart->crop;
-		height -= 2*rrpart->crop;
-		
-		//		rz= re->rectz+ (pa->miny + rrpart->crop)*rr->rectx+ (pa->minx+rrpart->crop);
-		rf= rl->rectf+ ( (rrpart->tilerect.ymin + rrpart->crop)*rr->rectx + (rrpart->tilerect.xmin+rrpart->crop) )*4;
-	}
-	else {
-		//		rz= re->rectz +  (pa->disprect.ymin*rr->rectx + pa->disprect.xmin);
-		rf= rl->rectf+ (rrpart->tilerect.ymin*rr->rectx + rrpart->tilerect.xmin)*4;
-	}
+		/* first combined and z pass */
+		if(rl->rectf && rlp->rectf) {
+			int ofs;
+			
+			rzp= rlp->rectz;
+			rfp= rlp->rectf;
+			
+			copylen=len= rrpart->rectx;
+			height= rrpart->recty;
+			
+			if(rrpart->crop) {	/* filters add pixel extra */
+				
+				if(rzp) rzp+= rrpart->crop + rrpart->crop*len;
+				if(rfp) rfp+= 4*(rrpart->crop + rrpart->crop*len);
+				
+				copylen= len-2*rrpart->crop;
+				height -= 2*rrpart->crop;
+				
+				ofs= (rrpart->tilerect.ymin + rrpart->crop)*rr->rectx + (rrpart->tilerect.xmin+rrpart->crop);
+				rz= rl->rectz+ ofs;
+				rf= rl->rectf+ 4*ofs;
+			}
+			else {
+				ofs= (rrpart->tilerect.ymin*rr->rectx + rrpart->tilerect.xmin);
+				rz= rl->rectz+ ofs;
+				rf= rl->rectf+ 4*ofs;
+			}
 
-	for(y=0; y<height; y++) {
-		if(rzp) {
-			memcpy(rz, rzp, 4*copylen);
-			rz+= rr->rectx;
-			rzp+= len;
-		}
-		if(rfp) {
-			memcpy(rf, rfp, 16*copylen);
-			rf+= 4*rr->rectx;
-			rfp+= 4*len;
+			for(y=0; y<height; y++) {
+				if(rzp) {
+					memcpy(rz, rzp, 4*copylen);
+					rz+= rr->rectx;
+					rzp+= len;
+				}
+				if(rfp) {
+					memcpy(rf, rfp, 16*copylen);
+					rf+= 4*rr->rectx;
+					rfp+= 4*len;
+				}
+			}
 		}
 	}
 }
@@ -278,22 +306,25 @@ RenderResult *RE_GetResult(Render *re)
 void RE_GetResultImage(Render *re, RenderResult *rr)
 {
 	memset(rr, sizeof(RenderResult), 0);
-	
+
 	if(re && re->result) {
 		RenderLayer *rl;
 		
 		rr->rectx= re->result->rectx;
 		rr->recty= re->result->recty;
+		
 		rr->rectf= re->result->rectf;
 		rr->rectz= re->result->rectz;
 		rr->rect32= re->result->rect32;
 		
-		/* will become 'active' call */
-		rl= re->result->layers.first;
-		if(rr->rectf==NULL)
-			rr->rectf= rl->rectf;
-		if(rr->rectz==NULL)
-			rr->rectz= rl->rectz;	
+		/* active layer */
+		rl= BLI_findlink(&re->result->layers, re->r.actlay);
+		if(rl) {
+			if(rr->rectf==NULL)
+				rr->rectf= rl->rectf;
+			if(rr->rectz==NULL)
+				rr->rectz= rl->rectz;	
+		}
 	}
 }
 

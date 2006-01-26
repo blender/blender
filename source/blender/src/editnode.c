@@ -203,10 +203,6 @@ static void composit_node_event(SpaceNode *snode, short event)
 				strcpy(name, ((Image *)node->id)->name);
 			else strcpy(name, U.textudir);
 			
-			/* node->block pointers are stored, but filesel frees it, so we need to clear them */
-			for(node= snode->edittree->nodes.first; node; node= node->next)
-				node->block= NULL;
-			
 			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
 		}
 	}
@@ -337,6 +333,34 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 				BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
 			
 			allqueue(REDRAWBUTSSHADING, 1);
+		}
+		else if(snode->treetype==NTREE_COMPOSIT) {
+			/* make active viewer, currently only 1 supported... */
+			if(node->type==CMP_NODE_VIEWER) {
+				bNode *tnode;
+				int was_output= node->flag & NODE_DO_OUTPUT;
+
+				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+					if(tnode->type==CMP_NODE_VIEWER)
+						tnode->flag &= ~NODE_DO_OUTPUT;
+				
+				node->flag |= NODE_DO_OUTPUT;
+				if(was_output==0) snode_handle_recalc(snode);
+				
+				/* add node doesnt link this yet... */
+				if(node->id==NULL) {
+					node->id= find_id("IM", "Compositor");
+					if(node->id==NULL) {
+						Image *ima= alloc_libblock(&G.main->image, ID_IM, "Compositor");
+						strcpy(ima->name, "Compositor");
+						ima->ok= 1;
+						ima->xrep= ima->yrep= 1;
+						node->id= &ima->id;
+					}
+					else 
+						node->id->us++;
+				}
+			}
 		}
 	}
 }
@@ -1134,7 +1158,7 @@ static void node_add_menu(SpaceNode *snode)
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		/* compo menu, still hardcoded defines... solve */
-		event= pupmenu("Add Node%t|Render Result %x221|Composite %x222|Viewer%x201|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Normal %x207");
+		event= pupmenu("Add Node%t|Render Result %x221|Composite %x222|Viewer%x201|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Map Value %x213|Normal %x207");
 		if(event<1) return;
 	}
 	else return;
@@ -1480,6 +1504,19 @@ void node_make_group(SpaceNode *snode)
 		return;
 	}
 	
+	/* for time being... is too complex to handle */
+	if(snode->treetype==NTREE_COMPOSIT) {
+		for(gnode=snode->nodetree->nodes.first; gnode; gnode= gnode->next) {
+			if(gnode->flag & SELECT)
+				if(gnode->type==CMP_NODE_R_RESULT)
+					break;
+		}
+		if(gnode) {
+			error("Can not add RenderResult in a Group");
+			return;
+		}
+	}
+	
 	gnode= nodeMakeGroupFromSelected(snode->nodetree);
 	if(gnode==NULL) {
 		error("Can not make Group");
@@ -1496,7 +1533,7 @@ void node_make_group(SpaceNode *snode)
 
 /* special version to prevent overlapping buttons, has a bit of hack... */
 /* yes, check for example composit_node_event(), file window use... */
-int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
+static int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 {
 	bNode *node;
 	rctf rect;
@@ -1507,6 +1544,11 @@ int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 	
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
+
+	/* this happens after filesel usage... */
+	if(lb->first==NULL) {
+		return UI_NOTHING;
+	}
 	
 	rect.xmin -= 2.0f;
 	rect.ymin -= 2.0f;

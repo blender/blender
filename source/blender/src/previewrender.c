@@ -650,6 +650,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		/* no osa, blur, seq, for preview render */
 		rdata= G.scene->r;
 		rdata.mode &= ~(R_OSA|R_MBLUR|R_DOSEQ);
+		rdata.layers.first= rdata.layers.last= NULL;
 	
 		RE_InitState(re, &rdata, sa->winx, sa->winy, &ri->disprect);
 	

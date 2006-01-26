@@ -75,5 +75,7 @@ void scene_select_base(struct Scene *sce, struct Base *selbase);
 
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 
+void scene_add_render_layer(struct Scene *sce);
+
 #endif
 

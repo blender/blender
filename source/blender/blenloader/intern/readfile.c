@@ -2807,6 +2807,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 	
 	link_list(fd, &(sce->markers));
+	link_list(fd, &(sce->r.layers));
 	
 	sce->nodetree= newdataadr(fd, sce->nodetree);
 	if(sce->nodetree)
@@ -5259,6 +5260,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->r.xparts<2) sce->r.xparts= 4;
 			if(sce->r.yparts<2) sce->r.yparts= 4;
+			/* adds default layer */
+			if(sce->r.layers.first==NULL)
+				scene_add_render_layer(sce);
 		}
 	}
 	

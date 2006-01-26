@@ -31,6 +31,7 @@
 #define ZBUF_H
 
 struct RenderPart;
+struct RenderLayer;
 struct LampRen;
 struct VlakRen;
 struct ListBase;
@@ -47,8 +48,9 @@ int testclip(float *v);
 
 void set_part_zbuf_clipflag(struct RenderPart *pa);
 void zbuffer_shadow(struct Render *re, struct LampRen *lar, int *rectz, int size);
-void zbuffer_solid(struct RenderPart *pa);
-void zbuffer_transp_shade(struct RenderPart *pa, float *pass);
+void zbuffer_solid(struct RenderPart *pa, unsigned int layer, short layflag);
+void zbuffer_transp_shade(struct RenderPart *pa, float *pass, unsigned int layer, short layflag);
+void convert_zbuf_to_distbuf(struct RenderPart *pa, struct RenderLayer *rl);
 
 typedef struct APixstr {
     unsigned short mask[4]; /* jitter mask */

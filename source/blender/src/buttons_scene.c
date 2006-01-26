@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -45,7 +46,9 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_library.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
@@ -816,6 +819,13 @@ void do_render_panels(unsigned short event)
 		G.scene->r.mode &= ~R_EDGE;
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
+	case B_ADD_RENDERLAYER:
+		if(G.scene->r.actlay==32767) {
+			scene_add_render_layer(G.scene);
+			G.scene->r.actlay= BLI_countlist(&G.scene->r.layers) - 1;
+		}
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWNODE, 0);
 	}
 }
 
@@ -1475,12 +1485,152 @@ static void render_panel_sfx(void)
 }
 #endif
 
+static void layer_copy_func(void *lay_v, void *lay_p)
+{
+	unsigned int *lay= lay_p;
+	int laybit= (int)lay_v;
+
+	if(G.qual & LR_SHIFTKEY) {
+		if(*lay==0) *lay= 1<<laybit;
+	}
+	else
+		*lay= 1<<laybit;
+	
+	copy_view3d_lock(REDRAW);
+	allqueue(REDRAWBUTSSCENE, 0);
+}
+
+static void delete_scene_layer_func(void *srl_v, void *unused1)
+{
+	if(BLI_countlist(&G.scene->r.layers)>1) {
+		BLI_remlink(&G.scene->r.layers, srl_v);
+		MEM_freeN(srl_v);
+		G.scene->r.actlay= 0;
+		
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWNODE, 0);
+	}
+}
+
+static void rename_scene_layer_func(void *srl_v, void *unused_v)
+{
+	if(G.scene->nodetree) {
+		SceneRenderLayer *srl= srl_v;
+		bNode *node;
+		for(node= G.scene->nodetree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_R_RESULT) {
+				if(node->custom1==G.scene->r.actlay)
+					BLI_strncpy(node->name, srl->name, NODE_MAXSTR);
+			}
+		}
+	}
+	allqueue(REDRAWNODE, 0);
+}
+
+static char *scene_layer_menu(void)
+{
+	SceneRenderLayer *srl;
+	int len= 32 + 32*BLI_countlist(&G.scene->r.layers);
+	short a, nr;
+	char *str= MEM_callocN(len, "menu layers");
+	
+	strcpy(str, "ADD NEW %x32767");
+	a= strlen(str);
+	for(nr=0, srl= G.scene->r.layers.first; srl; srl= srl->next, nr++) {
+		a+= sprintf(str+a, "|%s %%x%d", srl->name, nr);
+	}
+	
+	return str;
+}
+
+static void draw_3d_layer_buttons(uiBlock *block, unsigned int *poin, short xco, short yco, short dx, short dy, int event)
+{
+	uiBut *bt;
+	long a;
+	
+	uiBlockBeginAlign(block);
+	for(a=0; a<5; a++) {
+		bt= uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
+	}
+	for(a=0; a<5; a++) {
+		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
+	}
+	
+	xco+= 7;
+	uiBlockBeginAlign(block);
+	for(a=5; a<10; a++) {
+		bt=uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
+	}
+	for(a=5; a<10; a++) {
+		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
+	}
+	
+	uiBlockEndAlign(block);
+}
+
+static void render_panel_layers(void)
+{
+	uiBlock *block;
+	uiBut *bt;
+	SceneRenderLayer *srl= BLI_findlink(&G.scene->r.layers, G.scene->r.actlay);
+	char *strp;
+	
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_layers", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Output", "Render");
+	if(uiNewPanel(curarea, block, "Render Layers", "Render", 320, 0, 318, 204)==0) return;
+	
+	/* first, as reminder, the scene layers */
+	uiDefBut(block, LABEL, 0, "Scene:",				10,170,100,20, NULL, 0, 0, 0, 0, "");
+	
+	draw_3d_layer_buttons(block, &G.scene->lay, 130, 170, 35, 30, B_LAY);
+	
+	/* layer menu, name, delete button */
+	uiBlockBeginAlign(block);
+	strp= scene_layer_menu();
+	uiDefButS(block, MENU, B_ADD_RENDERLAYER, strp, 10,130,23,20, &(G.scene->r.actlay), 0, 0, 0, 0, "Choose Active Render Layer");
+	MEM_freeN(strp);
+	
+	bt= uiDefBut(block, TEX, REDRAWNODE, "",  33,130,252,20, srl->name, 0.0, 31.0, 0, 0, "");
+	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
+	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 130, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
+	uiButSetFunc(bt, delete_scene_layer_func, srl, NULL);
+	uiBlockEndAlign(block);
+
+	/* RenderLayer visible-layers */
+	uiDefBut(block, LABEL, 0, "Layer:",	10,95,100,20, NULL, 0, 0, 0, 0, "");
+	draw_3d_layer_buttons(block, &srl->lay,		130, 95, 35, 30, B_NOP);
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	10, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	85, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	160, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_STRAND, B_NOP,"Strand",	235, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Particle Strands in this Layer");	
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, 0, "Passes:",					10,30,150,20, NULL, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	130, 30, 155, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
+	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			285, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	
+	uiDefButBitS(block, TOG, SCE_PASS_DIFFUSE, B_NOP,"Diff",10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SPEC, B_NOP,"Spec",	55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SHADOW, B_NOP,"Shad",	100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_AO, B_NOP,"AO",		145, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_MIRROR, B_NOP,"Mirr",	185, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	230, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_NOP,"Vec",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+}	
 
 void render_panels()
 {
 
 	render_panel_output();
 //	render_panel_sfx();
+	render_panel_layers();
 	render_panel_render();
 	render_panel_anim();
 	render_panel_format();

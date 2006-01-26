@@ -30,10 +30,11 @@
 #ifndef DNA_NODE_TYPES_H
 #define DNA_NODE_TYPES_H
 
+#include "DNA_ID.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 
-struct ID;
+
 struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;

@@ -471,7 +471,7 @@ static void halo_pixelstruct(HaloRen *har, float *rb, float dist, float xn, floa
 	
 }
 
-static void halo_tile(RenderPart *pa, float *pass)
+static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 {
 	HaloRen *har = NULL;
 	rcti disprect= pa->disprect;
@@ -488,8 +488,9 @@ static void halo_tile(RenderPart *pa, float *pass)
 		}
 		else har++;
 
-		/* clip halo with y */
-		if(disprect.ymin > har->maxy);
+		/* layer test, clip halo with y */
+		if((har->lay & lay)==0);
+		else if(disprect.ymin > har->maxy);
 		else if(disprect.ymax < har->miny);
 		else {
 			
@@ -2646,6 +2647,7 @@ static void freeps(ListBase *lb)
 			RE_freeN(psm->ps);
 		RE_freeN(psm);
 	}
+	lb->first= lb->last= NULL;
 }
 
 static void addps(ListBase *lb, long *rd, int facenr, int z, unsigned short mask)
@@ -2704,53 +2706,77 @@ static void make_pixelstructs(RenderPart *pa, ListBase *lb)
 /* supposed to be fully threadable! */
 void zbufshadeDA_tile(RenderPart *pa)
 {
-	RenderLayer *rl= pa->result->layers.first;
+	RenderLayer *rl;
 	ListBase psmlist= {NULL, NULL};
 	float *acolrect= NULL, *edgerect= NULL;
 	
 	set_part_zbuf_clipflag(pa);
 	
 	/* allocate the necessary buffers */
-	pa->rectdaps= RE_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
 				/* zbuffer inits these rects */
 	pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
 	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	if(R.r.mode & R_EDGE) edgerect= RE_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 	
-	/* initialize pixelstructs */
-	addpsmain(&psmlist);
-	
-	for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
-		zbuffer_solid(pa);
-		make_pixelstructs(pa, &psmlist);
-		
-		if(R.r.mode & R_EDGE) edge_enhance_calc(pa, edgerect);
-		if(R.test_break()) break; 
-	}
-	
-	/* we do transp layer first, so its get added with filter in main buffer... still incorrect though */
-	if(R.flag & R_ZTRA) {
-		acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
-		zbuffer_transp_shade(pa, acolrect);
-	}
+	for(rl= pa->result->layers.first; rl; rl= rl->next) {
 
-	/* shades solid and adds transparent layer */
-	shadeDA_tile(pa, rl->rectf, acolrect);
-	
-	/* extra layers */
-	if(R.r.mode & R_EDGE) 
-		edge_enhance_add(pa, rl->rectf, edgerect);
-	if(R.flag & R_HALO)
-		halo_tile(pa, rl->rectf);
+		/* initialize pixelstructs */
+		addpsmain(&psmlist);
+		pa->rectdaps= RE_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
+		
+		if(rl->layflag & SCE_LAY_SOLID) {
+			for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
+				zbuffer_solid(pa, rl->lay, rl->layflag);
+				make_pixelstructs(pa, &psmlist);
+				
+				if(R.r.mode & R_EDGE) edge_enhance_calc(pa, edgerect);
+				if(R.test_break()) break; 
+			}
+		}
+		else	/* need to clear rectz for next passes */
+			fillrect(pa->rectz, pa->rectx, pa->recty, 0x7FFFFFFF);
+
+		
+		/* we do transp layer first, so its get added with filter in main buffer... still incorrect though */
+		if(R.flag & R_ZTRA) {
+			if(rl->layflag & SCE_LAY_ZTRA) {
+				acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+				zbuffer_transp_shade(pa, acolrect, rl->lay, rl->layflag);
+			}
+		}
+
+		/* shades solid and adds transparent layer */
+		if(rl->layflag & SCE_LAY_SOLID) 
+			shadeDA_tile(pa, rl->rectf, acolrect);
+		else if(acolrect) {
+			SWAP(float *, acolrect, rl->rectf);
+		}
+		
+		/* extra layers */
+		if(R.r.mode & R_EDGE) 
+			edge_enhance_add(pa, rl->rectf, edgerect);
+		if(R.flag & R_HALO)
+			if(rl->layflag & SCE_LAY_HALO)
+				halo_tile(pa, rl->rectf, rl->lay);
+		
+		if(rl->passflag & SCE_PASS_Z)
+			convert_zbuf_to_distbuf(pa, rl);
+		
+		/* free stuff within loop! */
+		if(acolrect) {
+			RE_freeN(acolrect);
+			acolrect= NULL;
+		}
+		RE_freeN(pa->rectdaps); pa->rectdaps= NULL;
+		freeps(&psmlist);
+	}
 	
 	/* free all */
 	RE_freeN(pa->rectp); pa->rectp= NULL;
 	RE_freeN(pa->rectz); pa->rectz= NULL;
-	RE_freeN(pa->rectdaps); pa->rectdaps= NULL;
-	if(acolrect) RE_freeN(acolrect);
+	
 	if(edgerect) RE_freeN(edgerect);
 	
-	freeps(&psmlist);
 
 }
 
@@ -2760,43 +2786,53 @@ void zbufshadeDA_tile(RenderPart *pa)
 /* supposed to be fully threadable! */
 void zbufshade_tile(RenderPart *pa)
 {
-	RenderLayer *rl= pa->result->layers.first;
-	float *fcol;
-	int x, y, *rp, *rz;
+	RenderLayer *rl;
 	
 	set_part_zbuf_clipflag(pa);
 	
 	/* zbuffer code clears/inits rects */
-	rp= pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
-	rz= pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
+	pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	
-	zbuffer_solid(pa);
-	
-	if(!R.test_break()) {
-		fcol= rl->rectf;
-		for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-			for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4) {
-				shadepixel_sky(pa, (float)x, (float)y, *rz, *rp, 0, fcol);
+	for(rl= pa->result->layers.first; rl; rl= rl->next) {
+		zbuffer_solid(pa, rl->lay, rl->layflag);
+		
+		if(!R.test_break()) {
+			if(rl->layflag & SCE_LAY_SOLID) {
+				float *fcol= rl->rectf;
+				int x, y, *rp= pa->rectp, *rz= pa->rectz;
+
+				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
+					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4) {
+						shadepixel_sky(pa, (float)x, (float)y, *rz, *rp, 0, fcol);
+					}
+					if(y&1) if(R.test_break()) break; 
+				}
 			}
-			if(y&1) if(R.test_break()) break; 
 		}
-	}
-	
-	if(!R.test_break())
-		if(R.flag & R_ZTRA)
-			zbuffer_transp_shade(pa, rl->rectf);
-	
-	if(!R.test_break()) {
-		if(R.r.mode & R_EDGE) {
-			fillrect(pa->rectp, pa->rectx, pa->recty, 0);
-			edge_enhance_calc(pa, (float *)pa->rectp);
-			edge_enhance_add(pa, rl->rectf, (float *)pa->rectp);
+		
+		if(!R.test_break())
+			if(R.flag & R_ZTRA)
+				if(rl->layflag & SCE_LAY_ZTRA)
+					zbuffer_transp_shade(pa, rl->rectf, rl->lay, rl->layflag);
+		
+		if(!R.test_break()) {
+			if(R.r.mode & R_EDGE) {
+				fillrect(pa->rectp, pa->rectx, pa->recty, 0);
+				edge_enhance_calc(pa, (float *)pa->rectp);
+				edge_enhance_add(pa, rl->rectf, (float *)pa->rectp);
+			}
 		}
+		
+		if(!R.test_break())
+			if(R.flag & R_HALO)
+				if(rl->layflag & SCE_LAY_HALO)
+					halo_tile(pa, rl->rectf, rl->lay);
+		
+		if(rl->passflag & SCE_PASS_Z)
+			convert_zbuf_to_distbuf(pa, rl);
+
 	}
-	
-	if(!R.test_break())
-		if(R.flag & R_HALO)
-			halo_tile(pa, rl->rectf);
 
 	RE_freeN(pa->rectp); pa->rectp= NULL;
 	RE_freeN(pa->rectz); pa->rectz= NULL;

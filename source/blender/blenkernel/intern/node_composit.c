@@ -216,7 +216,7 @@ static void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_bu
 		facx= fac_buf->x;
 		facy= fac_buf->y;
 		fac_stride= facx;
-		fac_pix= src_buf->type;
+		fac_pix= fac_buf->type;
 		fac_data= fac_buf->rect;
 	}
 	
@@ -408,12 +408,17 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 static bNodeSocketType cmp_node_viewer_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
 static void do_copy_rgba(bNode *node, float *out, float *in)
 {
 	QUATCOPY(out, in);
+}
+static void do_copy_value(bNode *node, float *out, float *in)
+{
+	out[0]= in[0];
 }
 static void do_copy_a_rgba(bNode *node, float *out, float *in, float *fac)
 {
@@ -424,7 +429,7 @@ static void do_copy_a_rgba(bNode *node, float *out, float *in, float *fac)
 static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* image assigned to output */
-	/* stack order input sockets: col, alpha */
+	/* stack order input sockets: col, alpha, z */
 	
 	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
 		Image *ima= (Image *)node->id;
@@ -434,7 +439,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		/* scene size? */
 		if(1) {
 			RenderData *rd= data;
-			
+
 			/* re-create output, derive size from scene */
 			rectx= (rd->size*rd->xsch)/100;
 			recty= (rd->size*rd->ysch)/100;
@@ -451,6 +456,14 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			else
 				composit2_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
 			
+			if(in[2]->data) {
+				CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 0);
+				addzbuffloatImBuf(ima->ibuf);
+				zbuf->rect= ima->ibuf->zbuf_float;
+				composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
+				free_compbuf(zbuf);
+			}
+
 			generate_preview(node, cbuf);
 			free_compbuf(cbuf);
 		}
@@ -465,8 +478,8 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			cbuf->rect= NULL;
 		}
 
-	}
-	else if(in[0]->data)
+	}	/* lets make only previews when not done yet, so activating doesnt update */
+	else if(in[0]->data && node->preview && node->preview->rect==NULL)
 		generate_preview(node, in[0]->data);
 }
 
@@ -486,6 +499,7 @@ static bNodeType cmp_node_viewer= {
 static bNodeSocketType cmp_node_composite_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -493,14 +507,14 @@ static bNodeSocketType cmp_node_composite_in[]= {
 static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* image assigned to output */
-	/* stack order input sockets: col, alpha */
+	/* stack order input sockets: col, alpha, z */
 	
 	if(node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
 		RenderData *rd= data;
 		if(rd->scemode & R_DOCOMP) {
 			RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
 			if(rr) {
-				CompBuf *outbuf;
+				CompBuf *outbuf, *zbuf=NULL;
 				
 				if(rr->rectf) 
 					MEM_freeN(rr->rectf);
@@ -511,6 +525,15 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				else
 					composit2_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
 				
+				if(in[2]->data) {
+					if(rr->rectz) 
+						MEM_freeN(rr->rectz);
+					zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 1);
+					composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
+					rr->rectz= zbuf->rect;
+					zbuf->malloc= 0;
+					free_compbuf(zbuf);
+				}
 				generate_preview(node, outbuf);
 				
 				/* we give outbuf to rr... */
@@ -675,6 +698,12 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 		if(out[1]->hasoutput)
 			out[1]->data= alphabuf_from_rgbabuf(stackbuf);
 		
+		if(out[2]->hasoutput && ima->ibuf->zbuf_float) {
+			CompBuf *zbuf= alloc_compbuf(ima->ibuf->x, ima->ibuf->y, CB_VAL, 0);
+			zbuf->rect= ima->ibuf->zbuf_float;
+			out[2]->data= zbuf;
+		}
+		
 		generate_preview(node, stackbuf);
 	}	
 }
@@ -705,28 +734,36 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 {
 	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
 	if(rr) {
-		RenderLayer *rl= rr->layers.first;
-		CompBuf *stackbuf;
-		
-		/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
-		stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
-		stackbuf->rect= rl->rectf;
-		
-		/* put on stack */	
-		out[0]->data= stackbuf;
-		
-		if(out[1]->hasoutput)
-			out[1]->data= alphabuf_from_rgbabuf(stackbuf);
-		
-		generate_preview(node, stackbuf);
+		RenderLayer *rl= BLI_findlink(&rr->layers, node->custom1);
+		if(rl) {
+			CompBuf *stackbuf;
+			
+			/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
+			stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
+			stackbuf->rect= rl->rectf;
+			
+			/* put on stack */	
+			out[0]->data= stackbuf;
+			
+			if(out[1]->hasoutput)
+				out[1]->data= alphabuf_from_rgbabuf(stackbuf);
+			if(out[2]->hasoutput && rl->rectz) {
+				CompBuf *zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 0);
+				zbuf->rect= rl->rectz;
+				out[2]->data= zbuf;
+			}
+			
+			generate_preview(node, stackbuf);
+		}
 	}	
 }
 
+/* custom1 = render layer in use */
 static bNodeType cmp_node_rresult= {
 	/* type code   */	CMP_NODE_R_RESULT,
 	/* name        */	"Render Result",
 	/* width+range */	120, 80, 300,
-	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_PREVIEW,
+	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	cmp_node_rresult_out,
 	/* storage     */	"",
@@ -951,6 +988,7 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 	}
 }
 
+/* custom1 = mix type */
 static bNodeType cmp_node_mix_rgb= {
 	/* type code   */	CMP_NODE_MIX_RGB,
 	/* name        */	"Mix",
@@ -1082,6 +1120,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 	}
 }
 
+/* custom1 = filter type */
 static bNodeType cmp_node_filter= {
 	/* type code   */	CMP_NODE_FILTER,
 	/* name        */	"Filter",
@@ -1255,9 +1294,65 @@ static bNodeType cmp_node_alphaover= {
 	
 };
 
+/* **************** MAP VALUE ******************** */
+static bNodeSocketType cmp_node_map_value_in[]= {
+	{	SOCK_VALUE, 1, "Value",			1.0f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_map_value_out[]= {
+	{	SOCK_VALUE, 0, "Value",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_map_value(bNode *node, float *out, float *src)
+{
+	TexMapping *texmap= node->storage;
+	
+	out[0]= (src[0] + texmap->loc[0])*texmap->size[0];
+	if(texmap->flag & TEXMAP_CLIP_MIN)
+		if(out[0]<texmap->min[0])
+			out[0]= texmap->min[0];
+	if(texmap->flag & TEXMAP_CLIP_MAX)
+		if(out[0]>texmap->max[0])
+			out[0]= texmap->max[0];
+}
+
+static void node_composit_exec_map_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order in: col col */
+	/* stack order out: col */
+	
+	/* input no image? then only value operation */
+	if(in[0]->data==NULL) {
+		do_map_value(node, out[0]->vec, in[0]->vec);
+	}
+	else {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
+		
+		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_map_value);
+		
+		out[0]->data= stackbuf;
+	}
+}
+
+static bNodeType cmp_node_map_value= {
+	/* type code   */	CMP_NODE_MAP_VALUE,
+	/* name        */	"Map Value",
+	/* width+range */	100, 60, 150,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_map_value_in,
+	/* output sock */	cmp_node_map_value_out,
+	/* storage     */	"TexMapping",
+	/* execfunc    */	node_composit_exec_map_value
+	
+};
+
 /* **************** GAUSS BLUR ******************** */
 static bNodeSocketType cmp_node_blur_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Size",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketType cmp_node_blur_out[]= {
@@ -1265,224 +1360,424 @@ static bNodeSocketType cmp_node_blur_out[]= {
 	{	-1, 0, ""	}
 };
 
-
-static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static float *make_gausstab(int rad)
 {
-	CompBuf *new, *work, *img= in[0]->data;
-	register float sum, val;
-	float rval, gval, bval, aval;
-	float *gausstab, *v;
-	int r, n, m;
-	int x, y;
-	int i;
-	int step, bigstep;
-	float *src, *dest;
-
+	float *gausstab, sum, val;
+	int i, n;
 	
-	if(img==NULL || out[0]->hasoutput==0)
-		return;
-	
-	/* make output size of input image */
-	new= alloc_compbuf(img->x, img->y, CB_RGBA, 1); // allocs
-	out[0]->data= new;
-	
-	/* prepare for gauss tab */
-	r = (1.5 * node->custom1 + 1.5);
-	n = 2 * r + 1;
-	
-	/* ugly : */
-	if ((img->x <= n) || (img->y <= n)) {
-		printf("gauss filter too large/n");
-		return;
-	}
+	n = 2 * rad + 1;
 	
 	gausstab = (float *) MEM_mallocN(n * sizeof(float), "gauss");
 	
 	sum = 0.0f;
-	v = gausstab;
-	for (x = -r; x <= r; x++) {
-		val = exp(-4*(float ) (x*x)/ (float) (r*r));
+	for (i = -rad; i <= rad; i++) {
+		val = exp(-4.0*((float)i*i) / (float) (rad*rad));
 		sum += val;
-		*v++ = val;
+		gausstab[i+rad] = val;
 	}
 	
-	i = n;
-	v = gausstab;
-	while (i--) {
-		*v++ /= sum;
+	sum= 1.0f/sum;
+	for(i=0; i<n; i++)
+		gausstab[i]*= sum;
+	
+	return gausstab;
+}
+
+static float *make_bloomtab(int rad)
+{
+	float *bloomtab, val;
+	int i, n;
+	
+	n = 2 * rad + 1;
+	
+	bloomtab = (float *) MEM_mallocN(n * sizeof(float), "bloom");
+	
+	for (i = -rad; i <= rad; i++) {
+		val = pow(1.0 - fabs((float)i)/((float)rad), 4.0);
+		bloomtab[i+rad] = val;
 	}
 	
+	return bloomtab;
+}
+
+static void blur_single_image(CompBuf *new, CompBuf *img, float blurx, float blury)
+{
+	CompBuf *work;
+	register float sum, val;
+	float rval, gval, bval, aval;
+	float *gausstab, *gausstabcent;
+	int rad, imgx= img->x, imgy= img->y;
+	int x, y, pix= img->type;
+	int i, bigstep;
+	float *src, *dest;
+
 	/* helper image */
-	work= alloc_compbuf(img->x, img->y, CB_RGBA, 1); // allocs
+	work= alloc_compbuf(imgx, imgy, img->type, 1); // allocs
 	
 	/* horizontal */
-	step = (n - 1);
+	rad = ceil(blurx);
+	if(rad>imgx/2)
+		rad= imgx/2;
+	else if(rad<1) 
+		rad= 1;
+
+	gausstab= make_gausstab(rad);
+	gausstabcent= gausstab+rad;
 	
-	for (y = 0; y < img->y; y++) {
-		src = img->rect + 4*(y * img->x);
-		dest = work->rect + 4*(y * img->x);
+	for (y = 0; y < imgy; y++) {
+		float *srcd= img->rect + pix*(y*img->x);
 		
-		for (x = r; x > 0 ; x--) {
-			m = n - x;
-			gval = rval= bval= aval= 0.0f;
-			sum = 0.0;
-			v = gausstab + x;
-			for (i = 0; i < m; i++) {
-				val = *v++;
-				sum += val;
-				rval += val * (*src++);
-				gval += val * (*src++);
-				bval += val * (*src++);
-				aval += val * (*src++);
-			}
-			*dest++ = rval / sum;
-			*dest++ = gval / sum;
-			*dest++ = bval / sum;
-			*dest++ = aval / sum;
+		dest = work->rect + pix*(y * img->x);
+		
+		for (x = 0; x < imgx ; x++) {
+			int minr= x-rad<0?-x:-rad;
+			int maxr= x+rad>imgx?imgx-x:rad;
 			
-			src -= 4*m;
-		}
-		
-		for (x = 0; x <= (img->x - n); x++) {
-			gval = rval= bval= aval= 0.0f;
-			v = gausstab;
+			src= srcd + pix*(x+minr);
 			
-			for (i = 0; i < n; i++) {
-				val = *v++;
+			sum= gval = rval= bval= aval= 0.0f;
+			for (i= minr; i < maxr; i++) {
+				val= gausstabcent[i];
+				sum+= val;
 				rval += val * (*src++);
-				gval += val * (*src++);
-				bval += val * (*src++);
-				aval += val * (*src++);
+				if(pix==4) {
+					gval += val * (*src++);
+					bval += val * (*src++);
+					aval += val * (*src++);
+				}
 			}
-			*dest++ = rval;
-			*dest++ = gval;
-			*dest++ = bval;
-			*dest++ = aval;
-			src -= 4*step;
-		}	
-		
-		for (x = 1; x <= r ; x++) {
-			m = n - x;
-			gval = rval= bval= aval= 0.0f;
-			sum = 0.0;
-			v = gausstab;
-			for (i = 0; i < m; i++) {
-				val = *v++;
-				sum += val;
-				rval += val * (*src++);
-				gval += val * (*src++);
-				bval += val * (*src++);
-				aval += val * (*src++);
+			sum= 1.0f/sum;
+			*dest++ = rval*sum;
+			if(pix==4) {
+				*dest++ = gval*sum;
+				*dest++ = bval*sum;
+				*dest++ = aval*sum;
 			}
-			*dest++ = rval / sum;
-			*dest++ = gval / sum;
-			*dest++ = bval / sum;
-			*dest++ = aval / sum;
-			src -= 4*(m - 1);
 		}
 	}
 	
 	/* vertical */
 	MEM_freeN(gausstab);
 	
-	/* prepare for gauss tab */
-	r = (1.5 * node->custom2 + 1.5);
-	n = 2 * r + 1;
-	
-	/* ugly : */
-	if ((img->x <= n) || (img->y <= n)) {
-		printf("gauss filter too large/n");
-		return;
-	}
-	
-	gausstab = (float *) MEM_mallocN(n * sizeof(float), "gauss");
-	
-	sum = 0.0f;
-	v = gausstab;
-	for (x = -r; x <= r; x++) {
-		val = exp(-4*(float ) (x*x)/ (float) (r*r));
-		sum += val;
-		*v++ = val;
-	}
-	
-	i = n;
-	v = gausstab;
-	while (i--) {
-		*v++ /= sum;
-	}
-	
-	step = img->x;
-	bigstep = (n - 1) * step;
-	for (x = 0; x < step  ; x++) {
-		dest = new->rect + 4*x;
-		src = work->rect + 4*x;
-		
-		for (y = r; y > 0; y--) {
-			m = n - y;
-			gval = rval= bval= aval= 0.0f;
-			sum = 0.0;
-			v = gausstab + y;
-			for (i = 0; i < m; i++) {
-				val = *v++;
-				sum += val;
-				rval += val * src[0];
-				gval += val * src[1];
-				bval += val * src[2];
-				aval += val * src[3];
-				src += 4 * step;
-			}
-			dest[0] = rval / sum;
-			dest[1] = gval / sum;
-			dest[2] = bval / sum;
-			dest[3] = aval / sum;
-			src -= 4 * m * step;
-			dest+= 4 * step;
-		}
-		for (y = 0; y <= (img->y - n); y++) {
-			gval = rval= bval= aval= 0.0f;
-			v = gausstab;
-			for (i = 0; i < n; i++) {
-				val = *v++;
-				rval += val * src[0];
-				gval += val * src[1];
-				bval += val * src[2];
-				aval += val * src[3];
-				src += 4 * step;
-			}
-			dest[0] = rval;
-			dest[1] = gval;
-			dest[2] = bval;
-			dest[3] = aval;
-			dest += 4 * step;
-			src -= 4 * bigstep;
-		}
-		for (y = 1; y <= r ; y++) {
-			m = n - y;
-			gval = rval= bval= aval= 0.0f;
-			sum = 0.0;
-			v = gausstab;
-			for (i = 0; i < m; i++) {
-				val = *v++;
-				sum += val;
-				rval += val * src[0];
-				gval += val * src[1];
-				bval += val * src[2];
-				aval += val * src[3];
-				src += 4 * step;
-			}
-			dest[0] = rval / sum;
-			dest[1] = gval / sum;
-			dest[2] = bval / sum;
-			dest[3] = aval / sum;
-			dest += 4* step;
-			src -= 4 * (m - 1) * step;
-		}
-	}
+	rad = ceil(blury);
+	if(rad>imgy/2)
+		rad= imgy/2;
+	else if(rad<1) 
+		rad= 1;
 
+	gausstab= make_gausstab(rad);
+	gausstabcent= gausstab+rad;
+	
+	bigstep = pix*imgx;
+	for (x = 0; x < imgx; x++) {
+		float *srcd= work->rect + pix*x;
+		
+		dest = new->rect + pix*x;
+		
+		for (y = 0; y < imgy ; y++) {
+			int minr= y-rad<0?-y:-rad;
+			int maxr= y+rad>imgy?imgy-y:rad;
+			
+			src= srcd + bigstep*(y+minr);
+			
+			sum= gval = rval= bval= aval= 0.0f;
+			for (i= minr; i < maxr; i++) {
+				val= gausstabcent[i];
+				sum+= val;
+				rval += val * src[0];
+				if(pix==4) {
+					gval += val * src[1];
+					bval += val * src[2];
+					aval += val * src[3];
+				}
+				src += bigstep;
+			}
+			sum= 1.0f/sum;
+			dest[0] = rval*sum;
+			if(pix==4) {
+				dest[1] = gval*sum;
+				dest[2] = bval*sum;
+				dest[3] = aval*sum;
+			}
+			dest+= bigstep;
+		}
+	}
+	
 	free_compbuf(work);
 	MEM_freeN(gausstab);
 }
 
+/* reference has to be mapped 0-1, and equal in size */
+static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float blurx, float blury)
+{
+	CompBuf *wbuf;
+	register float val;
+	float radxf, radyf;
+	float **maintabs;
+	float *gausstabx, *gausstabcenty;
+	float *gausstaby, *gausstabcentx;
+	int radx, rady, imgx= img->x, imgy= img->y;
+	int x, y;
+	int i, j;
+	float *src, *dest, *wb;
+	
+	wbuf= alloc_compbuf(imgx, imgy, CB_VAL, 1);
+	memset(wbuf->rect, sizeof(float)*imgx*imgy, 0);
+	
+	/* horizontal */
+	radx = ceil(blurx);
+	if(radx>imgx/2)
+		radx= imgx/2;
+	else if(radx<1) 
+		radx= 1;
+	
+	/* vertical */
+	rady = ceil(blury);
+	if(rady>imgy/2)
+		rady= imgy/2;
+	else if(rady<1) 
+		rady= 1;
+	
+	x= MAX2(radx, rady);
+	maintabs= MEM_mallocN(x*sizeof(void *), "gauss array");
+	for(i= 0; i<x; i++)
+		maintabs[i]= make_bloomtab(i+1);
+		
+	/* vars to store before we go */
+//	refd= ref->rect;
+	src= img->rect;
+	
+	memset(new->rect, 4*imgx*imgy, 0);
+	
+	radxf= (float)radx;
+	radyf= (float)rady;
+	
+	for (y = 0; y < imgy; y++) {
+		for (x = 0; x < imgx ; x++, src+=4) {//, refd++) {
+			
+//			int refradx= (int)(refd[0]*radxf);
+//			int refrady= (int)(refd[0]*radyf);
+			
+			int refradx= (int)(radxf*0.3f*src[3]*(src[0]+src[1]+src[2]));
+			int refrady= (int)(radyf*0.3f*src[3]*(src[0]+src[1]+src[2]));
+			
+			if(refradx>radx) refradx= radx;
+			else if(refradx<1) refradx= 1;
+			if(refrady>rady) refrady= rady;
+			else if(refrady<1) refrady= 1;
+			
+			if(refradx==1 && refrady==1) {
+				wb= wbuf->rect + ( y*imgx + x);
+				dest= new->rect + 4*( y*imgx + x);
+				wb[0]+= 1.0f;
+				dest[0] += src[0];
+				dest[1] += src[1];
+				dest[2] += src[2];
+				dest[3] += src[3];
+			}
+			else {
+				int minxr= x-refradx<0?-x:-refradx;
+				int maxxr= x+refradx>imgx?imgx-x:refradx;
+				int minyr= y-refrady<0?-y:-refrady;
+				int maxyr= y+refrady>imgy?imgy-y:refrady;
+				
+				float *destd= new->rect + 4*( (y + minyr)*imgx + x + minxr);
+				float *wbufd= wbuf->rect + ( (y + minyr)*imgx + x + minxr);
+				
+				gausstabx= maintabs[refradx-1];
+				gausstabcentx= gausstabx+refradx;
+				gausstaby= maintabs[refrady-1];
+				gausstabcenty= gausstaby+refrady;
+				
+				for (i= minyr; i < maxyr; i++, destd+= 4*imgx, wbufd+= imgx) {
+					dest= destd;
+					wb= wbufd;
+					for (j= minxr; j < maxxr; j++, dest+=4, wb++) {
+						
+						val= gausstabcenty[i]*gausstabcentx[j];
+						wb[0]+= val;
+						dest[0] += val * src[0];
+						dest[1] += val * src[1];
+						dest[2] += val * src[2];
+						dest[3] += val * src[3];
+					}
+				}
+			}
+		}
+	}
+	
+	x= imgx*imgy;
+	dest= new->rect;
+	wb= wbuf->rect;
+	while(x--) {
+		val= 1.0f/wb[0];
+		dest[0]*= val;
+		dest[1]*= val;
+		dest[2]*= val;
+		dest[3]*= val;
+		wb++;
+		dest+= 4;
+	}
+	
+	free_compbuf(wbuf);
+	
+	x= MAX2(radx, rady);
+	for(i= 0; i<x; i++)
+		MEM_freeN(maintabs[i]);
+	MEM_freeN(maintabs);
+	
+}
+
+/* reference has to be mapped 0-1, and equal in size */
+static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float blurx, float blury)
+{
+	CompBuf *blurbuf;
+	register float sum, val;
+	float rval, gval, bval, aval, radxf, radyf;
+	float **maintabs;
+	float *gausstabx, *gausstabcenty;
+	float *gausstaby, *gausstabcentx;
+	int radx, rady, imgx= img->x, imgy= img->y;
+	int x, y;
+	int i, j;
+	float *src, *dest, *refd, *blurd;
+
+	/* trick is; we blur the reference image... but only works with clipped values*/
+	blurbuf= alloc_compbuf(imgx, imgy, CB_VAL, 1);
+	blurd= blurbuf->rect;
+	refd= ref->rect;
+	for(x= imgx*imgy; x>0; x--, refd++, blurd++) {
+		if(refd[0]<0.0f) blurd[0]= 0.0f;
+		else if(refd[0]>1.0f) blurd[0]= 1.0f;
+		else blurd[0]= refd[0];
+	}
+	
+	blur_single_image(blurbuf, blurbuf, blurx, blury);
+	
+	/* horizontal */
+	radx = ceil(blurx);
+	if(radx>imgx/2)
+		radx= imgx/2;
+	else if(radx<1) 
+		radx= 1;
+	
+	/* vertical */
+	rady = ceil(blury);
+	if(rady>imgy/2)
+		rady= imgy/2;
+	else if(rady<1) 
+		rady= 1;
+	
+	x= MAX2(radx, rady);
+	maintabs= MEM_mallocN(x*sizeof(void *), "gauss array");
+	for(i= 0; i<x; i++)
+		maintabs[i]= make_gausstab(i+1);
+	
+	refd= blurbuf->rect;
+	dest= new->rect;
+	radxf= (float)radx;
+	radyf= (float)rady;
+	
+	for (y = 0; y < imgy; y++) {
+		for (x = 0; x < imgx ; x++, dest+=4, refd++) {
+			int refradx= (int)(refd[0]*radxf);
+			int refrady= (int)(refd[0]*radyf);
+			
+			if(refradx>radx) refradx= radx;
+			else if(refradx<1) refradx= 1;
+			if(refrady>rady) refrady= rady;
+			else if(refrady<1) refrady= 1;
+
+			if(refradx==1 && refrady==1) {
+				src= img->rect + 4*( y*imgx + x);
+				QUATCOPY(dest, src);
+			}
+			else {
+				int minxr= x-refradx<0?-x:-refradx;
+				int maxxr= x+refradx>imgx?imgx-x:refradx;
+				int minyr= y-refrady<0?-y:-refrady;
+				int maxyr= y+refrady>imgy?imgy-y:refrady;
+	
+				float *srcd= img->rect + 4*( (y + minyr)*imgx + x + minxr);
+				
+				gausstabx= maintabs[refradx-1];
+				gausstabcentx= gausstabx+refradx;
+				gausstaby= maintabs[refrady-1];
+				gausstabcenty= gausstaby+refrady;
+
+				sum= gval = rval= bval= aval= 0.0f;
+				
+				for (i= minyr; i < maxyr; i++, srcd+= 4*imgx) {
+					src= srcd;
+					for (j= minxr; j < maxxr; j++, src+=4) {
+					
+						val= gausstabcenty[i]*gausstabcentx[j];
+						sum+= val;
+						rval += val * src[0];
+						gval += val * src[1];
+						bval += val * src[2];
+						aval += val * src[3];
+					}
+				}
+				sum= 1.0f/sum;
+				dest[0] = rval*sum;
+				dest[1] = gval*sum;
+				dest[2] = bval*sum;
+				dest[3] = aval*sum;
+			}
+		}
+	}
+	
+	free_compbuf(blurbuf);
+	
+	x= MAX2(radx, rady);
+	for(i= 0; i<x; i++)
+		MEM_freeN(maintabs[i]);
+	MEM_freeN(maintabs);
+	
+}
+
+
+
+static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	CompBuf *new, *img= in[0]->data;
+	
+	if(img==NULL || out[0]->hasoutput==0)
+		return;
+	
+	/* if fac input, we do it different */
+	if(in[1]->data) {
+		
+		/* test fitness if reference */
+		
+		/* make output size of input image */
+		new= alloc_compbuf(img->x, img->y, CB_RGBA, 1); // allocs
+		
+		blur_with_reference(new, img, in[1]->data, (float)node->custom1, (float)node->custom2);
+		
+		out[0]->data= new;
+	}
+	else {
+		if(in[1]->vec[0]==0.0f) {
+			/* pass on image */
+			new= alloc_compbuf(img->x, img->y, img->type, 0);
+			new->rect= img->rect;
+		}
+		else {
+			/* make output size of input image */
+			new= alloc_compbuf(img->x, img->y, img->type, 1); // allocs
+			if(1)
+				blur_single_image(new, img, in[1]->vec[0]*(float)node->custom1, in[1]->vec[0]*(float)node->custom2);
+			else	/* bloom experimental... */
+				bloom_with_reference(new, img, NULL, in[1]->vec[0]*(float)node->custom1, in[1]->vec[0]*(float)node->custom2);
+		}
+		out[0]->data= new;
+	}
+}
+	
+
+/* custom1 custom2 = blur filter size */
 static bNodeType cmp_node_blur= {
 	/* type code   */	CMP_NODE_BLUR,
 	/* name        */	"Blur",
@@ -1516,6 +1811,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_rresult,
 	&cmp_node_alphaover,
 	&cmp_node_blur,
+	&cmp_node_map_value,
 	NULL
 };
 

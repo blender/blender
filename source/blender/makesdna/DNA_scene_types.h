@@ -94,6 +94,34 @@ typedef struct AudioData {
 	short pad[3];
 } AudioData;
 
+typedef struct SceneRenderLayer {
+	struct SceneRenderLayer *next, *prev;
+	
+	char name[32];
+	struct Scene *scene;	/* unused still */
+	unsigned int lay;		/* scene->lay itself has priority over this */
+	short layflag;
+	short passflag;
+} SceneRenderLayer;
+
+/* srl->layflag */
+#define SCE_LAY_SOLID	1
+#define SCE_LAY_ZTRA	2
+#define SCE_LAY_HALO	4
+#define SCE_LAY_STRAND	8
+
+/* srl->passflag */
+#define SCE_PASS_COMBINED	1
+#define SCE_PASS_Z			2
+#define SCE_PASS_RGBA		4
+#define SCE_PASS_DIFFUSE	8
+#define SCE_PASS_SPEC		16
+#define SCE_PASS_SHADOW		32
+#define SCE_PASS_AO			64
+#define SCE_PASS_MIRROR		128
+#define SCE_PASS_NORMAL		256
+#define SCE_PASS_VECTOR		512
+
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
@@ -208,6 +236,11 @@ typedef struct RenderData {
 	
 	/* safety and border rect */
 	rctf safety, border;
+	
+	/* information on different layers to be rendered */
+	ListBase layers;
+	short actlay, pad;
+	int pad2;
 	
 	/**
 	 * The gamma for the normal rendering. Used when doing

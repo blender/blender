@@ -287,46 +287,46 @@ static void renderwin_draw_render_info(RenderWin *rw)
 
 static void renderwin_draw(RenderWin *rw, int just_clear)
 {
-	RenderResult rres;
+	float fullrect[2][2];
+	int set_back_mainwindow;
+	rcti rect;
+
+	/* since renderwin uses callbacks (controlled by ghost) it can
+		mess up active window output with redraw events after a render. 
+		this is patchy, still WIP */
+	set_back_mainwindow = (winlay_get_active_window() != rw->win);
+	window_make_active(rw->win);
 	
-	RE_GetResultImage(RE_GetRender("Render"), &rres);
+	rect.xmin= rect.ymin= 0;
+	window_get_size(rw->win, &rect.xmax, &rect.ymax);
+	rect.ymax-= RW_HEADERY;
+	
+	renderwin_get_fullrect(rw, fullrect);
+	
+	/* do this first, so window ends with correct scissor */
+	renderwin_draw_render_info(rw);
+	
+	glEnable(GL_SCISSOR_TEST);
+	glaDefine2DArea(&rect);
+	
+	glClearColor(.1875, .1875, .1875, 1.0); 
+	glClear(GL_COLOR_BUFFER_BIT);
 
-	if(rres.rectf) {
-		float fullrect[2][2];
-		int set_back_mainwindow;
-		rcti rect;
-
-		/* since renderwin uses callbacks (controlled by ghost) it can
-			mess up active window output with redraw events after a render. 
-			this is patchy, still WIP */
-		set_back_mainwindow = (winlay_get_active_window() != rw->win);
-		window_make_active(rw->win);
+	if (just_clear) {
+		glColor3ub(0, 0, 0);
+		glRectfv(fullrect[0], fullrect[1]);
+	} else {
+		RenderResult rres;
 		
-		rect.xmin= rect.ymin= 0;
-		window_get_size(rw->win, &rect.xmax, &rect.ymax);
-		rect.ymax-= RW_HEADERY;
-		
-		renderwin_get_fullrect(rw, fullrect);
-		
-		/* do this first, so window ends with correct scissor */
-		renderwin_draw_render_info(rw);
-		
-		glEnable(GL_SCISSOR_TEST);
-		glaDefine2DArea(&rect);
-		
-		glClearColor(.1875, .1875, .1875, 1.0); 
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		if (just_clear) {
-			glColor3ub(0, 0, 0);
-			glRectfv(fullrect[0], fullrect[1]);
-		} else {
+		RE_GetResultImage(RE_GetRender("Render"), &rres);
+		if(rres.rectf) {
+			
 			glPixelZoom(rw->zoom, rw->zoom);
 			if(rw->flags & RW_FLAGS_ALPHA) {
 				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-//				glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, GL_LUMINANCE, GL_UNSIGNED_INT, R.rectot);
-//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+	//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+	//				glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, GL_LUMINANCE, GL_UNSIGNED_INT, R.rectot);
+	//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 			}
 			else {
 				if(rres.rect32)
@@ -336,25 +336,25 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 			}
 			glPixelZoom(1.0, 1.0);
 		}
-		
-		/* info text is overlayed on bottom */
-		if (rw->info_text) {
-			float w;
-			glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
-			w=186.0*strlen(rw->info_text)/30;
-			glColor4f(.5,.5,.5,.25);
-			glRectf(0.0,0.0,w,30.0);
-			glDisable(GL_BLEND);
-			glColor3ub(255, 255, 255);
-			glRasterPos2i(10, 10);
-			BMF_DrawString(G.font, rw->info_text);
-		}
-		
-		window_swap_buffers(rw->win);
-		
-		if (set_back_mainwindow) mainwindow_make_active();	
 	}
+	
+	/* info text is overlayed on bottom */
+	if (rw->info_text) {
+		float w;
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		w=186.0*strlen(rw->info_text)/30;
+		glColor4f(.5,.5,.5,.25);
+		glRectf(0.0,0.0,w,30.0);
+		glDisable(GL_BLEND);
+		glColor3ub(255, 255, 255);
+		glRasterPos2i(10, 10);
+		BMF_DrawString(G.font, rw->info_text);
+	}
+	
+	window_swap_buffers(rw->win);
+	
+	if (set_back_mainwindow) mainwindow_make_active();	
 }
 
 /* ------ interactivity calls for RenderWin ------------- */
@@ -736,7 +736,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *unused)
 	if(rr->rectf)
 		rectf= rr->rectf;
 	else {
-		RenderLayer *rl= rr->layers.first;
+		RenderLayer *rl= BLI_findlink(&rr->layers, rr->actlay);
 		rectf= rl->rectf;
 	}	
 	/* when rendering more pixels than needed, we crop away cruft */

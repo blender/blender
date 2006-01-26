@@ -1137,7 +1137,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	MetaStack *ms;
 	Strip *strip;
 	TimeMarker *marker;
-
+	SceneRenderLayer *srl;
+	
 	sce= scebase->first;
 	while(sce) {
 		/* write LibData */
@@ -1213,11 +1214,11 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 
 		/* writing dynamic list of TimeMarkers to the blend file */
-		marker= sce->markers.first;
-		while(marker){
+		for(marker= sce->markers.first; marker; marker= marker->next)
 			writestruct(wd, DATA, "TimeMarker", 1, marker);
-			marker= marker->next;
-		}
+		
+		for(srl= sce->r.layers.first; srl; srl= srl->next)
+			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
 		
 		if(sce->nodetree) {
 			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);

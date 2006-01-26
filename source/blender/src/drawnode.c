@@ -73,12 +73,16 @@
 
 #include "BMF_Api.h"
 
+#include "MEM_guardedalloc.h"
+
+#include "RE_pipeline.h"
+
 #include "blendef.h"
 #include "butspace.h"
 #include "interface.h"	/* urm...  for rasterpos_safe, roundbox */
 #include "mydevice.h"
 
-#include "MEM_guardedalloc.h"
+
 
 static void snode_drawstring(SpaceNode *snode, char *str, int okwidth)
 {
@@ -659,6 +663,39 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 		return 19;
 }
 
+static char *scene_layer_menu(void)
+{
+	SceneRenderLayer *srl;
+	int len= 32 + 32*BLI_countlist(&G.scene->r.layers);
+	short a, nr;
+	char *str= MEM_callocN(len, "menu layers");
+	
+	strcpy(str, "Active Layer %t");
+	a= strlen(str);
+	for(nr=0, srl= G.scene->r.layers.first; srl; srl= srl->next, nr++) {
+		a+= sprintf(str+a, "|%s %%x%d", srl->name, nr);
+	}
+	
+	return str;
+}
+
+
+static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt;
+		char *strp;
+		
+		strp= scene_layer_menu();
+		bt= uiDefButS(block, MENU, B_NODE_EXEC, strp, 
+				  butr->xmin, butr->ymin, (butr->xmax-butr->xmin), 19, 
+				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
+		uiButSetFunc(bt, node_but_title_cb, node, bt);
+		MEM_freeN(strp);
+	}
+	return 19;
+}
+
 static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -689,6 +726,29 @@ static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *no
 	return 20;
 }
 
+static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		TexMapping *texmap= node->storage;
+		short xstart= (short)butr->xmin;
+		short dy= (short)(butr->ymax-19.0f);
+		short dx= (short)(butr->xmax-butr->xmin)/2;
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_NODE_EXEC, "Offs:", xstart, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
+		dy-= 19;
+		uiDefButF(block, NUM, B_NODE_EXEC, "Size:", xstart, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 3, "");
+		dy-= 23;
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC, "Min", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
+		dy-= 19;
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC, "Max", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		uiDefButF(block, NUM, B_NODE_EXEC, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
+	}
+	return 80;
+}
+
 
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
@@ -699,6 +759,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_IMAGE:
 			ntype->butfunc= node_composit_buts_image;
+			break;
+		case CMP_NODE_R_RESULT:
+			ntype->butfunc= node_composit_buts_renderresult;
 			break;
 		case CMP_NODE_NORMAL:
 			ntype->butfunc= node_buts_normal;
@@ -726,6 +789,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_FILTER:
 			ntype->butfunc= node_composit_buts_filter;
+			break;
+		case CMP_NODE_MAP_VALUE:
+			ntype->butfunc= node_composit_buts_map_value;
 			break;
 		default:
 			ntype->butfunc= NULL;
@@ -986,15 +1052,27 @@ static void node_update(bNode *node)
 	
 	/* preview rect? */
 	if(node->flag & NODE_PREVIEW) {
-		float aspect= 1.0f;
-		
-		if(node->preview && node->preview->xsize && node->preview->ysize) 
-			aspect= (float)node->preview->ysize/(float)node->preview->xsize;
-		
-		dy-= NODE_DYS/2;
-		node->prvr.ymax= dy;
-		node->prvr.ymin= dy - aspect*(node->width-NODE_DY);
-		dy= node->prvr.ymin - NODE_DYS/2;
+		/* only recalculate size when there's a preview actually, otherwise we use stored result */
+		if(node->preview && node->preview->rect) {
+			float aspect= 1.0f;
+			
+			if(node->preview && node->preview->xsize && node->preview->ysize) 
+				aspect= (float)node->preview->ysize/(float)node->preview->xsize;
+			
+			dy-= NODE_DYS/2;
+			node->prvr.ymax= dy;
+			node->prvr.ymin= dy - aspect*(node->width-NODE_DY);
+			dy= node->prvr.ymin - NODE_DYS/2;
+		}
+		else {
+			float oldh= node->prvr.ymax - node->prvr.ymin;
+			if(oldh==0.0f)
+				oldh= node->width-NODE_DY;
+			dy-= NODE_DYS/2;
+			node->prvr.ymax= dy;
+			node->prvr.ymin= dy - oldh;
+			dy= node->prvr.ymin - NODE_DYS/2;
+		}
 	}
 	
 	/* buttons rect? */

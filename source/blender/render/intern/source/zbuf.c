@@ -1592,7 +1592,7 @@ void set_part_zbuf_clipflag(RenderPart *pa)
 	}
 }
 
-void zbuffer_solid(RenderPart *pa)
+void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 {
 	ZSpan zspan;
 	VlakRen *vlr= NULL;
@@ -1633,7 +1633,7 @@ void zbuffer_solid(RenderPart *pa)
 		if((v & 255)==0) vlr= R.blovl[v>>8];
 		else vlr++;
 		
-		if(vlr->flag & R_VISIBLE) {
+		if((vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
 			if(vlr->mat!=ma) {
 				ma= vlr->mat;
 				transp= ma->mode & MA_ZTRA;
@@ -1906,7 +1906,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
  * Do accumulation z buffering.
  */
 
-static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase)
+static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, short layflag)
 {
 	ZSpan zspan;
 	Material *ma=0;
@@ -1952,7 +1952,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase)
 			
 			ma= vlr->mat;
 			if(ma->mode & (MA_ZTRA)) {
-				if(vlr->flag & R_VISIBLE) {
+				if((vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
 					unsigned short partclip;
 					
 					/* partclipping doesn't need viewplane clipping */
@@ -2075,7 +2075,7 @@ static int addtosampcol(float *sampcol, float *fcol, int mask)
 #define MAX_ZROW	1000
 /* main render call to fill in pass the full transparent layer */
 
-void zbuffer_transp_shade(RenderPart *pa, float *pass)
+void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short layflag)
 {
 	APixstr *APixbuf;      /* Zbuffer: linked list of face samples */
 	APixstr *ap, *apn;
@@ -2106,7 +2106,7 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass)
 	}
 	
 	/* fill the Apixbuf */
-	zbuffer_abuf(pa, APixbuf, &apsmbase);
+	zbuffer_abuf(pa, APixbuf, &apsmbase, lay, layflag);
 	
 	/* render tile */
 	ap= APixbuf;
@@ -2227,6 +2227,39 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass)
 	RE_freeN(APixbuf);
 	freepsA(&apsmbase);	
 
+}
+
+/* *************** */
+
+/* uses part zbuffer values to convert into distances from camera in renderlayer */
+void convert_zbuf_to_distbuf(RenderPart *pa, RenderLayer *rl)
+{
+	float *rectzf, zco;
+	int a, *rectz, ortho= R.r.mode & R_ORTHO;
+	
+	if(pa->rectz==NULL) return;
+	if(rl->rectz==NULL) {
+		printf("called convert zbuf wrong...\n");
+		return;
+	}
+	rectzf= rl->rectz;
+	rectz= pa->rectz;
+	
+	for(a=pa->rectx*pa->recty; a>0; a--, rectz++, rectzf++) {
+		if(*rectz==0x7FFFFFFF)
+			*rectzf= 10e10;
+		else {
+			/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */
+			/* or: (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2] - R.winmat[2][3]*zco); */
+			/* if ortho [2][3] is zero, else [3][3] is zero */
+			
+			zco= ((float)*rectz)/2147483647.0f;
+			if(ortho)
+				*rectzf= (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2]);
+			else
+				*rectzf= (R.winmat[3][2])/(R.winmat[2][2] - R.winmat[2][3]*zco);
+		}
+	}
 }
 
 

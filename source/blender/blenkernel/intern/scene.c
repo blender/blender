@@ -114,6 +114,8 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
+/* copy_scene moved to src/header_info.c... should be back */
+
 /* do not free scene itself */
 void free_scene(Scene *sce)
 {
@@ -144,6 +146,7 @@ void free_scene(Scene *sce)
 	}
 	
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings){
 		MEM_freeN(sce->toolsettings);
@@ -223,6 +226,8 @@ Scene *add_scene(char *name)
 	
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
+	
+	scene_add_render_layer(sce);
 	
 	return sce;
 }
@@ -479,3 +484,19 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 		setcount++;
 	}
 }
+
+/* return default layer, also used to patch old files */
+void scene_add_render_layer(Scene *sce)
+{
+	SceneRenderLayer *srl;
+	int tot= 1 + BLI_countlist(&sce->r.layers);
+	
+	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
+	sprintf(srl->name, "%d RenderLayer", tot);
+	BLI_addtail(&sce->r.layers, srl);
+	
+	srl->lay= (1<<20) -1;
+	srl->layflag= 0x7FFF;	/* solid ztra halo strand */
+	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
+}
+
