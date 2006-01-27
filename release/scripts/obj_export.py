@@ -313,9 +313,15 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 		#materials = m.getMaterials(1) # 1 == will return None in the list.
 		materials = m.materials
 		
-		
+		materialNames = []
 		if materials:
-			materialNames = map(lambda mat: mat.name, materials) # Bug Blender, dosent account for null materials, still broken.	
+			for mat in materials:
+				if mat: # !=None
+					materialNames.append(mat.name)
+				else:
+					materialNames.append(None)
+			# Cant use LC because some materials are None.
+			# materialNames = map(lambda mat: mat.name, materials) # Bug Blender, dosent account for null materials, still broken.	
 		else:
 			materialNames = []
 		
