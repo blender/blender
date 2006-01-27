@@ -99,6 +99,8 @@ import struct, chunk, os, cStringIO, time, operator, copy
 # ===========================================================
 
 textname = "lwo_log"
+type_list = type(list())
+type_dict = type(dict())
 #uncomment the following line to disable logging facility
 #textname = None
 
@@ -170,7 +172,7 @@ class dotext:
 
     def pdict(self, pdict, where = _NO):
         self.pprint ("dict:{", where)
-        for pp in pdict.keys():
+        for pp in pdict.iterkeys():
             self.pprint ("[%s] -> %s" % (pp, pdict[pp]), where)
         self.pprint ("}")
     # end def pdict
@@ -178,9 +180,9 @@ class dotext:
     def pprint(self, parg, where = _NO):
         if parg == None:
             self.pstring("_None_", where)
-        elif type(parg) == type ([]):
+        elif type(parg) == type_list:
             self.plist(parg, where)
-        elif type(parg) == type ({}):
+        elif type(parg) == type_dict:
             self.pdict(parg, where)
         else:
             self.pstring(safestring(str(parg)), where)
@@ -196,7 +198,7 @@ tobj=dotext(textname)
 #tobj=dotext(textname,dotext.CON)
 
 def rlcopy(ll):
-    if type(ll) != type ([]):
+    if type(ll) != type_list:
         return ll
     if ll == []:
         return []
@@ -410,7 +412,7 @@ def read_lwo2(file, filename, typ="LWO2"):
         elif lwochunk.chunkname == "PTAG":                         # PTags
             tobj.pprint("---- PTAG")
             polytag_dict = read_ptags(lwochunk, tag_list)
-            for kk in polytag_dict.keys(): objspec_list[5][kk] = polytag_dict[kk]
+            for kk, ii in polytag_dict.iteritems(): objspec_list[5][kk] = ii
         else:                                                       # Misc Chunks
             tobj.pprint("---- %s: skipping (definitely!)" % lwochunk.chunkname)
             lwochunk.skip()
@@ -497,11 +499,16 @@ def read_faces_5(lwochunk):
     while i < lwochunk.chunksize:
         if not i%1000 and my_meshtools.show_progress:
            Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
+
+        '''
         facev = []
         numfaceverts, = struct.unpack(">H", data.read(2))
         for j in xrange(numfaceverts):
             index, = struct.unpack(">H", data.read(2))
             facev.append(index)
+        '''
+        numfaceverts, = struct.unpack(">H", data.read(2))
+        facev = [struct.unpack(">H", data.read(2))[0] for j in xrange(numfaceverts)]
         facev.reverse()
         faces.append(facev)
         surfaceindex, = struct.unpack(">H", data.read(2))
@@ -545,9 +552,9 @@ def read_vmap(uvcoords_dict, maxvertnum, lwochunk):
     tobj.pprint ("TXUV %d %s" % (dimension, name))
     #note if there is already a VMAD it will be lost
     #it is assumed that VMAD will follow the corresponding VMAP
-    if uvcoords_dict.has_key(name):
+    try: #if uvcoords_dict.has_key(name):
         my_uv_dict = uvcoords_dict[name]          #update existing
-    else:
+    except: #else:
         my_uv_dict = {}    #start a brand new: this could be made more smart
     while (i < lwochunk.chunksize - 6):      #4+2 header bytes already read
         vertnum, vnum_size = read_vx(data)
@@ -578,9 +585,9 @@ def read_vmad(uvcoords_dict, facesuv_dict, maxfacenum, maxvertnum, lwochunk):
     dimension, = struct.unpack(">H", data.read(2))
     name, i = read_name(data) #i initialized with string lenght + zeros
     tobj.pprint ("TXUV %d %s" % (dimension, name))
-    if uvcoords_dict.has_key(name):
+    try: #if uvcoords_dict.has_key(name):
         my_uv_dict = uvcoords_dict[name]          #update existing
-    else:
+    except: #else:
         my_uv_dict = {}    #start a brand new: this could be made more smart
     my_facesuv_list = []
     newindex = maxvertnum + 10 #why +10? Why not?
@@ -649,11 +656,12 @@ def read_ptags(lwochunk, tag_list):
             return {}
         i += 2
         tag_key = tag_list[tag_index]
-        if not(ptag_dict.has_key(tag_key)):
-            ptag_dict[tag_list[tag_index]] = [poln]
-        else:
+        try: #if ptag_dict.has_key(tag_key):
             ptag_dict[tag_list[tag_index]].append(poln)
-    for i in ptag_dict.keys():
+        except: #else:
+            ptag_dict[tag_list[tag_index]] = [poln]
+            
+    for i in ptag_dict.iterkeys():
         tobj.pprint ("read %d polygons belonging to TAG %s" % (len(ptag_dict[i]), i))
     return ptag_dict
 
@@ -982,10 +990,11 @@ def read_surfs(lwochunk, surf_list, tag_list):
             rr, uvname = read_surfblok(data.read(subchunklen))
             #paranoia setting: preventing adding an empty dict
             if rr != {}:
-                if not(my_dict.has_key('BLOK')):
-                    my_dict['BLOK'] = [rr]
-                else:
+                try:
                     my_dict['BLOK'].append(rr)
+                except:
+                    my_dict['BLOK'] = [rr]
+
             if uvname != "":
                 my_dict['UVNAME'] = uvname                            #theoretically there could be a number of them: only one used per surf
             if not(my_dict.has_key('g_IMAG')) and (rr.has_key('CHAN')) and (rr.has_key('OPAC')) and (rr.has_key('IMAG')):
@@ -997,8 +1006,10 @@ def read_surfs(lwochunk, surf_list, tag_list):
         if  subchunklen > 0:
             discard = data.read(subchunklen)
     #end loop on surf chunks
-    if my_dict.has_key('BLOK'):
+    try: #if my_dict.has_key('BLOK'):
        my_dict['BLOK'].reverse() #texture applied in reverse order with respect to reading from lwo
+    except:
+       pass
     #uncomment this if material pre-allocated by read_surf
     my_dict['g_MAT'] = Blender.Material.New(my_dict['NAME'])
     tobj.pprint("-> Material pre-allocated.")
@@ -1276,9 +1287,9 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
     tobj.pprint ("#===================================================================#")
 
     jj = 0
-    vertlen = len(vertex_map.keys())
+    vertlen = len(vertex_map)
     maxvert = len(complete_vertlist)
-    for i in vertex_map.keys():
+    for i in vertex_map.iterkeys():
         if not jj%1000 and my_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/vertlen, "Generating Verts")
         if i >= maxvert:
             tobj.logcon("Non existent vertex addressed: Giving up with this object")
@@ -1288,7 +1299,8 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
         vertex_map[i] = jj
         jj += 1
     #end sweep over vertexes
-
+    
+    ALPHA_FACE_MODE = (surf.has_key('TRAN') and mat.getAlpha()<1.0)
     #append faces
     jj = 0
     for i in cur_ptag_faces_indexes:
@@ -1333,9 +1345,9 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
                         uv_index = ni
                     else: #VMAP - uses the same criteria as face
                         uv_index = vi
-                    if uvcoords_dict[surf['UVNAME']].has_key(uv_index):
+                    try: #if uvcoords_dict[surf['UVNAME']].has_key(uv_index):
                         uv_tuple = uvcoords_dict[surf['UVNAME']][uv_index]
-                    else:
+                    except: #else:
                         uv_tuple = (0,0)
                     face.uv.append(uv_tuple)
 
@@ -1347,7 +1359,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
                 face.flag = Blender.NMesh.FaceTranspModes['SOLID']
                 #if surf.has_key('SIDE'):
                 #    msh.faces[f].mode |= Blender.NMesh.FaceModes.TWOSIDE             #set it anyway
-                if surf.has_key('TRAN') and mat.getAlpha()<1.0:
+                if ALPHA_FACE_MODE:
                     face.transp = Blender.NMesh.FaceTranspModes['ALPHA']
 
         elif numfaceverts > 3:
@@ -1379,9 +1391,9 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
                             uv_index = ni
                         else: #VMAP - uses the same criteria as face
                             uv_index = vi
-                        if uvcoords_dict[surf['UVNAME']].has_key(uv_index):
+                        try: #if uvcoords_dict[surf['UVNAME']].has_key(uv_index):
                             uv_tuple = uvcoords_dict[surf['UVNAME']][uv_index]
-                        else:
+                        except: #else:
                             uv_tuple = (0,0)
                         face.uv.append(uv_tuple)
 
@@ -1393,7 +1405,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
                     face.flag = Blender.NMesh.FaceTranspModes['SOLID']
                     #if surf.has_key('SIDE'):
                     #    msh.faces[f].mode |= Blender.NMesh.FaceModes.TWOSIDE             #set it anyway
-                    if surf.has_key('TRAN') and mat.getAlpha()<1.0:
+                    if ALPHA_FACE_MODE:
                         face.transp = Blender.NMesh.FaceTranspModes['ALPHA']
 
         jj += 1
@@ -1447,7 +1459,7 @@ def create_objects(clip_list, objspec_list, surf_list):
     endchar = ""
     if (objspec_list[6] == 1):
         middlechar = endchar = "#"
-    for cur_tag in ptag_dict.keys():
+    for cur_tag in ptag_dict.iterkeys():
         if ptag_dict[cur_tag] != []:
             cur_surf = get_surf(surf_list, cur_tag)
             cur_obj, not_used_faces=  my_create_mesh(clip_list, cur_surf, objspec_list, ptag_dict[cur_tag], objspec_list[0][:9]+middlechar+cur_tag[:9], not_used_faces)
@@ -1476,7 +1488,7 @@ def create_objects(clip_list, objspec_list, surf_list):
             obj_list.append(cur_obj)
     objspec_list[1] = obj_dict
     objspec_list[4] = obj_dim_dict
-    scene = Blender.Scene.getCurrent ()                   # get the current scene
+    scene = Blender.Scene.GetCurrent ()                   # get the current scene
     ob = Blender.Object.New ('Empty', objspec_list[0]+endchar)    # make empty object
     scene.link (ob)                                       # link the object into the scene
     ob.makeParent(obj_list, 1, 0)                         # set the root for created objects (no inverse, update scene hyerarchy (slow))
@@ -1691,7 +1703,7 @@ def update_material(clip_list, objspec, surf_list):
     uvcoords_dict = objspec[7]
     facesuv_dict = objspec[8]
     for surf in surf_list:
-        if (surf['NAME'] in ptag_dict.keys()):
+        if (surf['NAME'] in ptag_dict.iterkeys()):
             tobj.pprint ("#-------------------------------------------------------------------#")
             tobj.pprint ("Processing surface (material): %s" % surf['NAME'])
             tobj.pprint ("#-------------------------------------------------------------------#")
@@ -1799,5 +1811,4 @@ def fs_callback(filename):
     read(filename)
 
 Blender.Window.FileSelector(fs_callback, "Import LWO")
-
 
