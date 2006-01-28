@@ -216,6 +216,12 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		
 		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
 		rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+		
+		/* note, this has to be in sync with scene.c */
+		rl->lay= (1<<20) -1;
+		rl->layflag= 0x7FFF;	/* solid ztra halo strand */
+		rl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
+		
 	}
 	
 	return rr;
