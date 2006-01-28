@@ -22,14 +22,7 @@ SphereShape ::SphereShape (SimdScalar radius)
 
 SimdVector3	SphereShape::LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const
 {
-	float radius = m_radius - GetMargin();
-
-	SimdScalar len = vec.length2();
-	if (SimdFabs(len) < 0.0001f)
-	{
-		return SimdVector3(m_localScaling[0] * radius,m_localScaling[1]*radius,m_localScaling[2]*radius);
-	} 
-	return vec *  (m_localScaling*(radius / SimdSqrt(len)));
+	return SimdVector3(0.f,0.f,0.f);
 }
 
 SimdVector3	SphereShape::LocalGetSupportingVertex(const SimdVector3& vec)const
@@ -37,38 +30,31 @@ SimdVector3	SphereShape::LocalGetSupportingVertex(const SimdVector3& vec)const
 	SimdVector3 supVertex;
 	supVertex = LocalGetSupportingVertexWithoutMargin(vec);
 
-	if ( GetMargin()!=0.f )
+	SimdVector3 vecnorm = vec;
+	if (SimdFuzzyZero(vecnorm .length2()))
 	{
-		SimdVector3 vecnorm = vec;
-		if (vecnorm .length2() == 0.f)
-		{
-			vecnorm.setValue(-1.f,-1.f,-1.f);
-		} 
-		vecnorm.normalize();
-		supVertex+= GetMargin() * vecnorm;
-	}
+		vecnorm.setValue(-1.f,-1.f,-1.f);
+	} 
+	vecnorm.normalize();
+	supVertex+= GetMargin() * vecnorm;
 	return supVertex;
 }
 
-/*
+
 //broken due to scaling
 void SphereShape::GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const
 {
 	const SimdVector3& center = t.getOrigin();
-	SimdScalar radius = m_radius;
-	
-	SimdVector3 extent = m_localScaling*radius;
-	extent+= SimdVector3(GetMargin(),GetMargin(),GetMargin());
-
+	SimdVector3 extent(GetMargin(),GetMargin(),GetMargin());
 	aabbMin = center - extent;
 	aabbMax = center + extent;
 }
-*/
+
 
 
 void	SphereShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
 {
-	SimdScalar elem = 0.4f * mass * m_radius*m_radius;
+	SimdScalar elem = 0.4f * mass * GetMargin()*GetMargin();
 	inertia[0] = inertia[1] = inertia[2] = elem;
 
 }
