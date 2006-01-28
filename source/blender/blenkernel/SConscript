@@ -46,7 +46,7 @@ source_files = ['intern/constraint.c',
                 'intern/softbody.c',
 		'intern/node.c',
 		'intern/node_shaders.c',
-		'intern/node_composit.c',
+		'intern/node_composite.c',
 		'intern/colortools.c',
                 'intern/texture.c']
 
