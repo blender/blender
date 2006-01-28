@@ -40,6 +40,8 @@ void	RE_make_sticky(void);
 /* for radiosity module */	
 struct RadView;
 struct RNode;
+struct Render;
+struct MTex;
 void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_totelem, struct Render *re);
 
 /* effect.c and editmesh_modes. */
