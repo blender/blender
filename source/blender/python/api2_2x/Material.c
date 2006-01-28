@@ -522,8 +522,8 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 static PyObject *Material_getOopsLoc( BPy_Material * self );
 static PyObject *Material_getOopsSel( BPy_Material * self );
 static PyObject *Material_getUsers( BPy_Material * self );
-static int Material_setSeptex( BPy_Material * self, PyObject * value );
-static PyObject *Material_getSeptex( BPy_Material * self );
+//static int Material_setSeptex( BPy_Material * self, PyObject * value );
+//static PyObject *Material_getSeptex( BPy_Material * self );
 
 /*****************************************************************************/
 /* Python BPy_Material methods declarations: */

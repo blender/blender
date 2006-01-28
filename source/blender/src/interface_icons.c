@@ -419,7 +419,7 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 
 
 /* this only works for the hardcoded buttons image, turning the grey AA pixels to alpha, and slight off-grey to half alpha */
-
+#if 0
 static void clear_transp_rect_soft(unsigned char *transp, unsigned char *rect, int w, int h, int rowstride)
 {
 	int x, y, val;
@@ -453,6 +453,7 @@ static void clear_transp_rect_soft(unsigned char *transp, unsigned char *rect, i
 		}
 	}
 }
+#endif
 
 static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w, int h, int rowstride)
 {
@@ -470,7 +471,6 @@ static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w,
 
 static void prepare_internal_icons(ImBuf* bbuf)
 {
-	int x, y;
 	int rowstride= bbuf->x*4;
 	char *back= (char *)bbuf->rect;
 	unsigned char transp[4];

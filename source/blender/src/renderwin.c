@@ -958,7 +958,7 @@ static void do_render(int anim)
 	waitcursor(0);	// waitcursor checks rendering R.flag...
 }
 
-
+#if 0
 /* used for swapping with spare buffer, when images are different size */
 static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, int oldy, int newx, int newy)
 {
@@ -982,7 +982,7 @@ static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, in
 		}
 	}
 }
-
+#endif
 /* -------------- API: externally called --------------- */
 
 /* not used anywhere ??? */

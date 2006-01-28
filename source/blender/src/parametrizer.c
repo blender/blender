@@ -1127,7 +1127,7 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 
 	pheap_delete(heap);
 }
-
+#if 0
 static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
 {
 	PEdge *e, *enext, *be;
@@ -1151,7 +1151,7 @@ static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
 			p_chart_fill_boundary(chart, e, nedges);
     }
 }
-
+#endif
 static void p_flush_uvs(PChart *chart)
 {
 	PEdge *e;

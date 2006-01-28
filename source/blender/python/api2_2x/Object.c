@@ -72,11 +72,14 @@ struct rctf;
 #include "BIF_drawscene.h"
 #include "BIF_meshtools.h"
 #include "BIF_editarmature.h"
+#include "BIF_editaction.h"
+#include "BIF_editnla.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "BDR_editobject.h"
+#include "BDR_editcurve.h"
 
 #include "MEM_guardedalloc.h"
 

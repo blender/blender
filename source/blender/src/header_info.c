@@ -1202,12 +1202,10 @@ static void do_info_add_groupmenu(void *arg, int event)
 
 static uiBlock *info_add_groupmenu(void *arg_unused)
 {
+	Group *group;
 	uiBlock *block;
 	short yco= 0;
-	
-	Group *group;
 	int a;
-	int tot= BLI_countlist(&G.main->group);
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_groupmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_groupmenu, NULL);

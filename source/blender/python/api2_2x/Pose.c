@@ -57,11 +57,11 @@ extern void chan_calc_mat(bPoseChannel *chan);
 //------------------------ERROR CODES---------------------------------
 //This is here just to make me happy and to have more consistant error strings :)
 static const char sPoseError[] = "Pose - Error: ";
-static const char sPoseBadArgs[] = "Pose - Bad Arguments: ";
+//static const char sPoseBadArgs[] = "Pose - Bad Arguments: ";
 static const char sPoseBoneError[] = "PoseBone - Error: ";
-static const char sPoseBoneBadArgs[] = "PoseBone - Bad Arguments: ";
+//static const char sPoseBoneBadArgs[] = "PoseBone - Bad Arguments: ";
 static const char sPoseBonesDictError[] = "PoseBone - Error: ";
-static const char sPoseBonesDictBadArgs[] = "PoseBone - Bad Arguments: ";
+//static const char sPoseBonesDictBadArgs[] = "PoseBone - Bad Arguments: ";
 
 //################## PoseBonesDict_Type (internal) ########################
 /*This is an internal psuedo-dictionary type that allows for manipulation

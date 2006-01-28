@@ -55,6 +55,8 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_toolbox.h"
+
 #include <math.h>
 
 // TODO check to see how many of these includes are necessary

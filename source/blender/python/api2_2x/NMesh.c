@@ -65,6 +65,7 @@
 #include "BKE_depsgraph.h"
 
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
 
 #include "blendef.h"
 #include "mydevice.h"

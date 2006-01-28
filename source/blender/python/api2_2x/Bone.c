@@ -48,9 +48,9 @@ extern void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
 //------------------------ERROR CODES---------------------------------
 //This is here just to make me happy and to have more consistant error strings :)
 static const char sEditBoneError[] = "EditBone - Error: ";
-static const char sEditBoneBadArgs[] = "EditBone - Bad Arguments: ";
+// static const char sEditBoneBadArgs[] = "EditBone - Bad Arguments: ";
 static const char sBoneError[] = "Bone - Error: ";
-static const char sBoneBadArgs[] = "Bone - Bad Arguments: ";
+// static const char sBoneBadArgs[] = "Bone - Bad Arguments: ";
 
 //----------------------(internal)
 //gets the bone->roll (which is a localspace roll) and puts it in parentspace

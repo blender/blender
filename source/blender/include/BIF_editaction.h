@@ -113,6 +113,8 @@ struct bAction *ob_get_action(struct Object *ob);
 
 void remake_action_ipos(struct bAction *act);
 
+/* this needs review badly! (ton) */
+void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restPos[][4], float armPos[][4]);
 
 #endif
 

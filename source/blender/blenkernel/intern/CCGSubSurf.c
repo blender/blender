@@ -456,11 +456,12 @@ static void *_edge_getCo(CCGEdge *e, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	return &EDGE_getLevelData(e)[dataSize*(levelBase + x)];
 }
+#if 0
 static float *_edge_getNo(CCGEdge *e, int lvl, int x, int dataSize, int normalDataOffset) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	return (float*) &EDGE_getLevelData(e)[dataSize*(levelBase + x) + normalDataOffset];
 }
-
+#endif
 static void *_edge_getCoVert(CCGEdge *e, CCGVert *v, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	if (v==e->v0) {

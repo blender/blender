@@ -106,6 +106,8 @@
 #include "BKE_screen.h"
 #include "BKE_softbody.h"
 
+#include "LBM_fluidsim.h"
+
 #include "BPY_extern.h"
 
 /* Local function protos */

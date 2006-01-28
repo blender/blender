@@ -241,9 +241,7 @@ static float cube[8][3] = {
 /* flag is same as for draw_object */
 void drawaxes(float size, int flag, char drawtype)
 {
-	View3D *v3d= G.vd;
 	int axis;
-	float vec[3]= {0.0, 0.0, 0.0};
 	
 	switch(drawtype) {
 	
