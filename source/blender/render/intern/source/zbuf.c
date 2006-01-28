@@ -258,7 +258,7 @@ static APixstr *addpsmainA(ListBase *lb)
 
 	psm= RE_mallocN(sizeof(APixstrMain), "addpsmainA");
 	BLI_addtail(lb, psm);
-	psm->ps= RE_mallocN(4096*sizeof(APixstr),"pixstr");
+	psm->ps= RE_callocN(4096*sizeof(APixstr),"pixstr");
 
 	return psm->ps;
 }
