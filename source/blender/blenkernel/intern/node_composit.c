@@ -81,9 +81,9 @@ static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 	cbuf->type= type;
 	if(alloc) {
 		if(cbuf->type==CB_RGBA)
-			cbuf->rect= MEM_mallocN(4*sizeof(float)*sizex*sizey, "new rect");
+			cbuf->rect= MEM_mallocN(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
 		else
-			cbuf->rect= MEM_mallocN(sizeof(float)*sizex*sizey, "new rect");
+			cbuf->rect= MEM_mallocN(sizeof(float)*sizex*sizey, "compbuf Fac rect");
 		cbuf->malloc= 1;
 	}
 	cbuf->disprect.xmin= 0;
@@ -100,6 +100,14 @@ void free_compbuf(CompBuf *cbuf)
 		MEM_freeN(cbuf->rect);
 	MEM_freeN(cbuf);
 }
+
+void print_compbuf(char *str, CompBuf *cbuf)
+{
+	printf("Compbuf %s %d %d %p\n", str, cbuf->x, cbuf->y, cbuf->rect);
+	
+}
+
+
 
 #if 0
 /* on first call, disprect should be initialized to 'out', then you can call this on all 'src' images */
@@ -449,7 +457,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			
 			cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	// no alloc
 			cbuf->rect= ima->ibuf->rect_float;
-			
+
 			/* when no alpha, we can simply copy */
 			if(in[1]->data==NULL)
 				composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_copy_rgba);
@@ -733,6 +741,7 @@ static bNodeSocketType cmp_node_rresult_out[]= {
 static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+	
 	if(rr) {
 		RenderLayer *rl= BLI_findlink(&rr->layers, node->custom1);
 		if(rl) {
@@ -1815,7 +1824,7 @@ bNodeType *node_all_composit[]= {
 	NULL
 };
 
-/* ******************* execute and parse ************ */
+/* ******************* parse ************ */
 
 /* helper call to detect if theres a render-result node */
 int ntreeCompositNeedsRender(bNodeTree *ntree)
@@ -1831,23 +1840,15 @@ int ntreeCompositNeedsRender(bNodeTree *ntree)
 	return 0;
 }
 
-/* note; if called without preview, and previews exist, they get updated */
-/* render calls it without previews, works nicer for bg render */
-void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
+void ntreeCompositTagRender(bNodeTree *ntree)
 {
+	bNode *node;
+	
 	if(ntree==NULL) return;
 	
-	if(do_preview)
-		ntreeInitPreview(ntree, 0, 0);
-	
-	ntreeBeginExecTree(ntree);
-
-	/* allocate composit data? */
-	
-	ntreeExecTree(ntree, rd, 0);	/* threads */
-	
-	ntreeEndExecTree(ntree);
-	
-	free_unused_animimages();
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_RESULT)
+			NodeTagChanged(ntree, node);
+	}
 }
 

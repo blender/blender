@@ -51,7 +51,7 @@ typedef struct bNodeStack {
 	short hasinput;			/* when input has link, tagged before executing */
 	short hasoutput;		/* when output is linked, tagged before executing */
 	short datatype;			/* type of data pointer */
-	short pad1;
+	short pad;
 } bNodeStack;
 
 /* ns->datatype, shadetree only */
@@ -109,7 +109,7 @@ typedef struct bNode {
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
 	short stack_index;		/* for groupnode, offset in global caller stack */
-	short pad;
+	short nr;				/* number of this node in list, used for exec events */
 	
 	ListBase inputs, outputs;
 	struct ID *id;			/* optional link to libdata */
@@ -119,7 +119,8 @@ typedef struct bNode {
 	float locx, locy;		/* root offset for drawing */
 	float width, miniwidth;			
 	short custom1, custom2;	/* to be abused for buttons */
-	int pad1;
+	
+	short need_exec, pad1;	/* need_exec is set to optimize execution */
 	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */
@@ -163,6 +164,9 @@ typedef struct bNodeTree {
 	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always will increase this counter */
 	struct bNodeType **alltypes;	/* type definitions, set on fileread, no read/write */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
+	
+	/* callbacks */
+	void (*timecursor)(int nr);
 	
 } bNodeTree;
 

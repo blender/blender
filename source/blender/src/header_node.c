@@ -82,7 +82,11 @@ void do_node_buttons(ScrArea *sa, unsigned short event)
 			break;
 			
 		case B_NODE_USESCENE:
-			node_composit_default(G.scene);
+			if(G.scene->use_nodes) {
+				if(G.scene->nodetree==NULL)
+					node_composit_default(G.scene);
+				addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+			}
 			snode_set_context(snode);
 			allqueue(REDRAWNODE, 0);
 			break;

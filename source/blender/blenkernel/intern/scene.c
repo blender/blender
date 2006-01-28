@@ -494,7 +494,8 @@ void scene_add_render_layer(Scene *sce)
 	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
 	sprintf(srl->name, "%d RenderLayer", tot);
 	BLI_addtail(&sce->r.layers, srl);
-	
+
+	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;

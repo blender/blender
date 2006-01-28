@@ -208,7 +208,7 @@ static int node_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *
 	if(block) {
 		bNodeSocket *sock= node->outputs.first;		/* first socket stores value */
 		
-		uiDefButF(block, NUM, B_NODE_EXEC, "", 
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", 
 				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
 				  sock->ns.vec, 0.0f, 1.0f, 10, 2, "");
 		
@@ -224,10 +224,10 @@ static int node_buts_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *bu
 			/* enforce square box drawing */
 			uiBlockSetEmboss(block, UI_EMBOSSP);
 			
-			uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
+			uiDefButF(block, HSVCUBE, B_NODE_EXEC+node->nr, "", 
 					  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 12, 
 					  sock->ns.vec, 0.0f, 1.0f, 3, 0, "");
-			uiDefButF(block, HSVCUBE, B_NODE_EXEC, "", 
+			uiDefButF(block, HSVCUBE, B_NODE_EXEC+node->nr, "", 
 					  butr->xmin, butr->ymin+15, butr->xmax-butr->xmin, butr->ymax-butr->ymin -15 -15, 
 					  sock->ns.vec, 0.0f, 1.0f, 2, 0, "");
 			uiDefButF(block, COL, B_NOP, "",		
@@ -247,7 +247,7 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 		uiBut *bt;
 		
 		/* blend type */
-		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
+		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
 					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
 					 &node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
@@ -259,7 +259,7 @@ static int node_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 {
 	if(block) {
 		if(node->storage) {
-			draw_colorband_buts_small(block, node->storage, butr, B_NODE_EXEC);
+			draw_colorband_buts_small(block, node->storage, butr, B_NODE_EXEC+node->nr);
 		}
 	}
 	return 40;
@@ -268,7 +268,7 @@ static int node_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 static int node_buts_curvevec(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		curvemap_buttons(block, node->storage, 'v', B_NODE_EXEC, B_REDR, butr);
+		curvemap_buttons(block, node->storage, 'v', B_NODE_EXEC+node->nr, B_REDR, butr);
 	}	
 	return (int)(node->width-NODE_DY);
 }
@@ -276,7 +276,7 @@ static int node_buts_curvevec(uiBlock *block, bNodeTree *ntree, bNode *node, rct
 static int node_buts_curvecol(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC, B_REDR, butr);
+		curvemap_buttons(block, node->storage, 'c', B_NODE_EXEC+node->nr, B_REDR, butr);
 	}	
 	return (int)(node->width-NODE_DY);
 }
@@ -286,7 +286,7 @@ static int node_buts_normal(uiBlock *block, bNodeTree *ntree, bNode *node, rctf 
 	if(block) {
 		bNodeSocket *sock= node->outputs.first;		/* first socket stores normal */
 		
-		uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "", 
+		uiDefButF(block, BUT_NORMAL, B_NODE_EXEC+node->nr, "", 
 				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, butr->ymax-butr->ymin, 
 				  sock->ns.vec, 0.0f, 1.0f, 0, 0, "");
 		
@@ -426,13 +426,13 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 			if(butr->ymax-butr->ymin > 21.0f) {
 				/* node options */
 				uiBlockSetCol(block, TH_AUTO);
-				uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC, "Diff",
+				uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC+node->nr, "Diff",
 							 butr->xmin, butr->ymin, dx, 19, 
 							 &node->custom1, 0, 0, 0, 0, "Material Node outputs Diffuse");
-				uiDefButBitS(block, TOG, SH_NODE_MAT_SPEC, B_NODE_EXEC, "Spec",
+				uiDefButBitS(block, TOG, SH_NODE_MAT_SPEC, B_NODE_EXEC+node->nr, "Spec",
 							 butr->xmin+dx, butr->ymin, dx, 19, 
 							 &node->custom1, 0, 0, 0, 0, "Material Node outputs Specular");
-				uiDefButBitS(block, TOG, SH_NODE_MAT_NEG, B_NODE_EXEC, "Neg Normal",
+				uiDefButBitS(block, TOG, SH_NODE_MAT_NEG, B_NODE_EXEC+node->nr, "Neg Normal",
 							 butr->xmax-dx, butr->ymin, dx, 19,
 							 &node->custom1, 0, 0, 0, 0, "Material Node uses inverted Normal");
 			}
@@ -447,7 +447,7 @@ static int node_shader_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *nod
 	if(block) {
 		uiBut *bt;
 		
-		bt= uiDefIDPoinBut(block, test_texpoin_but, ID_TE, B_NODE_EXEC, "",
+		bt= uiDefIDPoinBut(block, test_texpoin_but, ID_TE, B_NODE_EXEC+node->nr, "",
 						   butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
 						   &node->id,  ""); 
 		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
@@ -467,26 +467,26 @@ static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *nod
 		uiBlockSetFunc(block, node_texmap_cb, texmap, NULL);	/* all buttons get this */
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->loc+1, -1000.0f, 1000.0f, 10, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->loc+2, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+dx, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->loc+1, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->loc+2, -1000.0f, 1000.0f, 10, 2, "");
 		dy-= 19;
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->rot, -1000.0f, 1000.0f, 1000, 1, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->rot+1, -1000.0f, 1000.0f, 1000, 1, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->rot+2, -1000.0f, 1000.0f, 1000, 1, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+dx, dy, 2*dx, 19, texmap->rot, -1000.0f, 1000.0f, 1000, 1, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->rot+1, -1000.0f, 1000.0f, 1000, 1, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->rot+2, -1000.0f, 1000.0f, 1000, 1, "");
 		dy-= 19;
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->size+1, -1000.0f, 1000.0f, 10, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->size+2, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+dx, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->size+1, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->size+2, -1000.0f, 1000.0f, 10, 2, "");
 		dy-= 25;
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->min, -10.0f, 10.0f, 100, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->min+1, -10.0f, 10.0f, 100, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->min+2, -10.0f, 10.0f, 100, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+dx, dy, 2*dx, 19, texmap->min, -10.0f, 10.0f, 100, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->min+1, -10.0f, 10.0f, 100, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->min+2, -10.0f, 10.0f, 100, 2, "");
 		dy-= 19;
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+dx, dy, 2*dx, 19, texmap->max, -10.0f, 10.0f, 10, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->max+1, -10.0f, 10.0f, 10, 2, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->max+2, -10.0f, 10.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+dx, dy, 2*dx, 19, texmap->max, -10.0f, 10.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+3*dx, dy, 2*dx, 19, texmap->max+1, -10.0f, 10.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", butr->xmin+5*dx, dy, 2*dx, 19, texmap->max+2, -10.0f, 10.0f, 10, 2, "");
 		uiBlockEndAlign(block);
 		
 		/* labels/options */
@@ -498,9 +498,9 @@ static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *nod
 		dy-= 19;
 		uiDefBut(block, LABEL, B_NOP, "Size", butr->xmin, dy, dx, 19, NULL, 0.0f, 0.0f, 0, 0, "");
 		dy-= 25;
-		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC, "Min", butr->xmin, dy, dx-4, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC+node->nr, "Min", butr->xmin, dy, dx-4, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
 		dy-= 19;
-		uiDefButBitI(block, TOG, TEXMAP_CLIP_MAX, B_NODE_EXEC, "Max", butr->xmin, dy, dx-4, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MAX, B_NODE_EXEC+node->nr, "Max", butr->xmin, dy, dx-4, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
 		
 	}	
 	return 5*19 + 6;
@@ -640,17 +640,17 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 			short width= (short)(butr->xmax-butr->xmin)/2;
 			
 			dy-= 19;
-			uiDefButS(block, NUM, B_NODE_EXEC, "Frs:",
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Frs:",
 					  butr->xmin, dy, width, 19, 
 					  &nia->frames, 0.0, 10000.0, 0, 0, "Amount of images used in animation");
-			uiDefButS(block, NUM, B_NODE_EXEC, "SFra:",
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "SFra:",
 					  butr->xmin+width, dy, width, 19, 
 					  &nia->sfra, 1.0, 1000.0, 0, 0, "Start frame of animation");
 			dy-= 19;
-			uiDefButS(block, NUM, B_NODE_EXEC, "First:",
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "First:",
 					  butr->xmin, dy, width, 19, 
 					  &nia->nr, 0.0, 10000.0, 0, 0, "Number in image name, used as first in animation");
-			uiDefButC(block, TOG, B_NODE_EXEC, "Cycl",
+			uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Cycl",
 					  butr->xmin+width, dy, width, 19, 
 					  &nia->cyclic, 0.0, 0.0, 0, 0, "Make animation go cyclic");
 			
@@ -687,7 +687,7 @@ static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNo
 		char *strp;
 		
 		strp= scene_layer_menu();
-		bt= uiDefButS(block, MENU, B_NODE_EXEC, strp, 
+		bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
 				  butr->xmin, butr->ymin, (butr->xmax-butr->xmin), 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
@@ -702,10 +702,10 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 		uiBut *bt;
 		
 		uiBlockBeginAlign(block);
-		bt=uiDefButS(block, NUM, B_NODE_EXEC, "X:",
+		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
 					 butr->xmin, butr->ymin, (butr->xmax-butr->xmin)/2, 19, 
 					 &node->custom1, 0, 256, 0, 0, "");
-		bt=uiDefButS(block, NUM, B_NODE_EXEC, "Y:",
+		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
 					 butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin, (butr->xmax-butr->xmin)/2, 19, 
 					 &node->custom2, 0, 256, 0, 0, "");
 	}
@@ -718,7 +718,7 @@ static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *no
 		uiBut *bt;
 		
 		/* blend type */
-		bt=uiDefButS(block, MENU, B_NODE_EXEC, "Soften %x0|Sharpen %x1|Laplace %x2|Sobel %x3|Prewitt %x4|Kirsch %x5|Shadow %x6",
+		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Soften %x0|Sharpen %x1|Laplace %x2|Sobel %x3|Prewitt %x4|Kirsch %x5|Shadow %x6",
 					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
 					 &node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
@@ -735,16 +735,16 @@ static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode 
 		short dx= (short)(butr->xmax-butr->xmin)/2;
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_NODE_EXEC, "Offs:", xstart, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Offs:", xstart, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
 		dy-= 19;
-		uiDefButF(block, NUM, B_NODE_EXEC, "Size:", xstart, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 3, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Size:", xstart, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 3, "");
 		dy-= 23;
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC, "Min", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC+node->nr, "Min", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
 		dy-= 19;
-		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC, "Max", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
-		uiDefButF(block, NUM, B_NODE_EXEC, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
+		uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC+node->nr, "Max", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
 	}
 	return 80;
 }
@@ -1315,7 +1315,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 					butpoin= sock->tosock->ns.vec;
 				
 				if(sock->type==SOCK_VALUE) {
-					bt= uiDefButF(node->block, NUM, B_NODE_EXEC, sock->name, 
+					bt= uiDefButF(node->block, NUM, B_NODE_EXEC+node->nr, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
 						  butpoin, 0.0f, 1.0f, 10, 2, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
@@ -1330,7 +1330,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 					
 					if(labelw>0) width= 40; else width= node->width-NODE_DY;
 					
-					bt= uiDefButF(node->block, COL, B_NODE_EXEC, "", 
+					bt= uiDefButF(node->block, COL, B_NODE_EXEC+node->nr, "", 
 						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, width, 15, 
 						   butpoin, 0, 0, 0, 0, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
@@ -1539,6 +1539,7 @@ static void node_draw_nodetree(ScrArea *sa, SpaceNode *snode, bNodeTree *ntree)
 {
 	bNode *node;
 	bNodeLink *link;
+	int a;
 	
 	if(ntree==NULL) return;		/* groups... */
 	
@@ -1551,8 +1552,9 @@ static void node_draw_nodetree(ScrArea *sa, SpaceNode *snode, bNodeTree *ntree)
 	glDisable( GL_LINE_SMOOTH );
 	
 	/* not selected first */
-	for(node= ntree->nodes.first; node; node= node->next) {
+	for(a=0, node= ntree->nodes.first; node; node= node->next, a++) {
 		node->block= NULL;	/* were freed */
+		node->nr= a;		/* index of node in list, used for exec event code */
 		if(!(node->flag & SELECT)) {
 			if(node->flag & NODE_GROUP_EDIT);
 			else if(node->flag & NODE_HIDDEN)

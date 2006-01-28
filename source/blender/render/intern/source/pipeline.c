@@ -832,7 +832,7 @@ static void do_render_final(Render *re, Scene *scene)
 		/* first check if theres nodetree with render result */
 		int do_render= ntreeCompositNeedsRender(scene->nodetree);
 		/* but.. do we use nodes? */
-		if(scene->use_nodes==NULL) do_render= 1;
+		if(scene->use_nodes==0) do_render= 1;
 		
 		re->scene= scene;
 		
@@ -847,6 +847,9 @@ static void do_render_final(Render *re, Scene *scene)
 			else
 				render_one_frame(re);
 		}
+		
+		ntreeCompositTagRender(scene->nodetree);
+		
 		if(re->r.scemode & R_DOCOMP)
 			ntreeCompositExecTree(scene->nodetree, &re->r, 0);
 	}

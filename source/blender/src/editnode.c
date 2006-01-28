@@ -140,12 +140,20 @@ static void snode_handle_recalc(SpaceNode *snode)
 		BIF_preview_changed(ID_MA);	 /* signals buttons windows and node editors */
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		ntreeCompositExecTree(snode->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
-		allqueue(REDRAWNODE, 1);
-		allqueue(REDRAWIMAGE, 1);
-		if(G.scene->r.scemode & R_DOCOMP) {
-			BIF_redraw_render_rect();	/* seems to screwup display? */
-			mywinset(curarea->win);
+		if(G.scene->use_nodes) {
+			snode->nodetree->timecursor= set_timecursor;
+			
+			ntreeCompositExecTree(snode->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
+			
+			waitcursor(0);
+			allqueue(REDRAWNODE, 1);
+			allqueue(REDRAWIMAGE, 1);
+			if(G.scene->r.scemode & R_DOCOMP) {
+				BIF_redraw_render_rect();	/* seems to screwup display? */
+				mywinset(curarea->win);
+			}
+			
+			snode->nodetree->timecursor= NULL;
 		}
 	}
 }
@@ -153,19 +161,21 @@ static void snode_handle_recalc(SpaceNode *snode)
 static void shader_node_event(SpaceNode *snode, short event)
 {
 	switch(event) {
-		case B_NODE_EXEC:
-			snode_handle_recalc(snode);
-			break;
 		case B_REDR:
 			allqueue(REDRAWNODE, 1);
 			break;
+		default:
+			/* B_NODE_EXEC */
+			snode_handle_recalc(snode);
+			break;
+			
 	}
 }
 
 static void load_node_image(char *str)	/* called from fileselect */
 {
 	SpaceNode *snode= curarea->spacedata.first;
-	bNode *node= nodeGetActive(snode->nodetree);
+	bNode *node= nodeGetActive(snode->edittree);
 	Image *ima= NULL;
 	
 	ima= add_image(str);
@@ -188,15 +198,12 @@ static void composit_node_event(SpaceNode *snode, short event)
 {
 	
 	switch(event) {
-		case B_NODE_EXEC:
-			snode_handle_recalc(snode);
-			break;
 		case B_REDR:
 			allqueue(REDRAWNODE, 1);
 			break;
 		case B_NODE_LOADIMAGE:
 		{
-			bNode *node= nodeGetActive(snode->nodetree);
+			bNode *node= nodeGetActive(snode->edittree);
 			char name[FILE_MAXDIR+FILE_MAXFILE];
 			
 			if(node->id)
@@ -205,6 +212,16 @@ static void composit_node_event(SpaceNode *snode, short event)
 			
 			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
 		}
+		case B_NODE_TREE_EXEC:
+			snode_handle_recalc(snode);
+			break;		
+		default:
+			/* B_NODE_EXEC */
+		{
+			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
+			if(node) NodeTagChanged(snode->edittree, node);
+			snode_handle_recalc(snode);
+		}			
 	}
 }
 
@@ -345,7 +362,10 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;
-				if(was_output==0) snode_handle_recalc(snode);
+				if(was_output==0) {
+					NodeTagChanged(snode->edittree, node);
+					snode_handle_recalc(snode);
+				}
 				
 				/* add node doesnt link this yet... */
 				if(node->id==NULL) {
@@ -1283,11 +1303,17 @@ static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, 
 		else BIF_wait_for_statechange();		
 	}
 	
+	/* remove link? */
 	if(link->tonode==NULL || link->fromnode==NULL) {
 		nodeRemLink(snode->edittree, link);
 	}
 	else {
 		bNodeLink *tlink;
+
+		/* send changed events for original tonode and new */
+		if(link->tonode) 
+			NodeTagChanged(snode->edittree, link->tonode);
+		
 		/* we might need to remove a link */
 		if(in_out==SOCK_OUT) {
 			if(nodeCountSocketLinks(snode->edittree, link->tosock) > tsock->limit) {
@@ -1365,6 +1391,10 @@ static int node_add_link(SpaceNode *snode)
 					break;
 			}
 			if(link) {
+				/* send changed event to original tonode */
+				if(link->tonode) 
+					NodeTagChanged(snode->edittree, link->tonode);
+				
 				node= link->fromnode;
 				sock= link->fromsock;
 				nodeRemLink(snode->edittree, link);
@@ -1472,11 +1502,12 @@ static void node_border_link_delete(SpaceNode *snode)
 				for(a=0; a<hits; a++) {
 					bNodeLink *link= BLI_findlink(&snode->edittree->links, buffer[ (4 * a) + 3]);
 					if(link)
-						link->tonode= NULL;	/* first tag for delete, otherwise indices are wrong */
+						link->fromnode= NULL;	/* first tag for delete, otherwise indices are wrong */
 				}
 				for(link= snode->edittree->links.first; link; link= next) {
 					next= link->next;
-					if(link->tonode==NULL) {
+					if(link->fromnode==NULL) {
+						NodeTagChanged(snode->edittree, link->tonode);
 						nodeRemLink(snode->edittree, link);
 					}
 				}

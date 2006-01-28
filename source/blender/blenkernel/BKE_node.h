@@ -41,6 +41,7 @@ struct bNodeStack;
 struct uiBlock;
 struct rctf;
 struct ListBase;
+struct RenderData;
 
 #define SOCK_IN		1
 #define SOCK_OUT	2
@@ -101,6 +102,7 @@ void			ntreeSolveOrder(struct bNodeTree *ntree);
 
 void			ntreeBeginExecTree(struct bNodeTree *ntree);
 void			ntreeExecTree(struct bNodeTree *ntree, void *callerdata, int thread);
+void			ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int do_previews);
 void			ntreeEndExecTree(struct bNodeTree *ntree);
 
 void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);
@@ -125,6 +127,8 @@ void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
+
+void			NodeTagChanged(struct bNodeTree *ntree, struct bNode *node);
 
 /* ************** Groups ****************** */
 
@@ -218,9 +222,9 @@ extern bNodeType *node_all_composit[];
 
 /* API */
 struct CompBuf;
-struct RenderData;
-void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int do_previews);
 int ntreeCompositNeedsRender(struct bNodeTree *ntree);
+void ntreeCompositTagRender(struct bNodeTree *ntree);
+
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
 #endif

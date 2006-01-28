@@ -1260,6 +1260,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	
 	ntree->init= 0;		/* to set callbacks */
 	ntree->owntype= NULL;
+	ntree->timecursor= NULL;
 	
 	link_list(fd, &ntree->nodes);
 	for(node= ntree->nodes.first; node; node= node->next) {
@@ -1285,6 +1286,8 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		node->lasty= 0;
 		for(sock= node->inputs.first; sock; sock= sock->next)
 			sock->link= newdataadr(fd, sock->link);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			sock->ns.data= NULL;
 	}
 	for(link= ntree->links.first; link; link= link->next) {
 		link->fromnode= newdataadr(fd, link->fromnode);

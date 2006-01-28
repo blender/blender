@@ -2548,13 +2548,6 @@ void do_matbuts(unsigned short event)
 			allqueue(REDRAWBUTSSHADING, 0);
 		}		
 		break;
-	case B_NODE_EXEC:
-		if(ma) end_render_material(ma);	/// temporal... 3d preview
-		BIF_preview_changed(ID_MA);
-		allqueue(REDRAWNODE, 0);
-		allqueue(REDRAWBUTSSHADING, 0);
-		break;
-		
 	}
 }
 

@@ -194,9 +194,6 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 
 #define B_MAT_LAYERBROWSE	1220
 #define B_MAT_USENODES		1221
-		/* also handled in editnode.c */
-#define B_NODE_EXEC			1222
-#define B_NODE_LOADIMAGE	1223
 
 /* *********************** */
 #define B_TEXBUTS		1400
@@ -655,8 +652,21 @@ enum {
 #define B_MODIFIER_REDRAW	3502
 
 /* *********************** */
-/*  BUTTON BUT: > 4000	   */
-/*  BUTTON 4001-4032: layers */
+#define B_NODE_BUTS			4000
+		/* 400 slots reserved, we want an exec event for each node */
+#define B_NODE_LOADIMAGE	3601
+#define B_NODE_TREE_EXEC	3602
+
+		/* exec should be last in this list */
+#define B_NODE_EXEC			3610
+
+
+/* *********************** */
+/*  BUTTON 4001-4032: layers? (sort this out!) */
+
+/* *********************** */
+/* event code 0x4000 (16384) and larger: general events (redraws, etc) */
+
 
 #endif
 

@@ -42,6 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_color_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -52,12 +53,14 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_library.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 
 #include "BSE_drawview.h"	// for do_viewbuttons.c .... hurms
+#include "BSE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -470,6 +473,26 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 
 /* --------------------------------- */
 
+/* nodes have button callbacks, that can draw in butspace too. need separate handling */
+static void do_node_buts(unsigned short event)
+{
+	Material *ma;
+
+	/* all operations default on active material layer here */
+	/* but this also gets called for lamp and world... */
+	ma= G.buts->lockpoin;
+	if(ma && GS(ma->id.name)==ID_MA)
+		ma = editnode_get_active_material(ma);
+	else
+		ma= NULL;
+	
+	if(event>=B_NODE_EXEC) {
+		if(ma) end_render_material(ma);	/// temporal... 3d preview
+		BIF_preview_changed(ID_MA);
+		allqueue(REDRAWNODE, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
+	}		
+}
 
 void do_butspace(unsigned short event)
 {
@@ -565,6 +588,9 @@ void do_butspace(unsigned short event)
 	else if(event<=B_MODIFIER_BUTS) {
 		extern void do_modifier_panels(unsigned short event);
 		do_modifier_panels(event);
+	}
+	else if(event<=B_NODE_BUTS) {
+		do_node_buts(event);
 	}
 	else if(event==REDRAWVIEW3D) allqueue(event, 1);	// 1=do header too
 	else if(event>REDRAWVIEW3D) allqueue(event, 0);

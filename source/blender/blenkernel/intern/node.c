@@ -38,6 +38,7 @@
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -282,7 +283,7 @@ static void group_verify_own_indices(bNodeTree *ngroup)
 			if(sock->own_index==0 && sock->intern==0)
 				sock->own_index= ++(ngroup->cur_index);
 	}
-	printf("internal index %d\n", ngroup->cur_index);
+//	printf("internal index %d\n", ngroup->cur_index);
 }
 
 
@@ -776,8 +777,10 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		sock->own_index= 0;
 	
 	duplicatelist(&nnode->outputs, &node->outputs);
-	for(sock= nnode->outputs.first; sock; sock= sock->next)
+	for(sock= nnode->outputs.first; sock; sock= sock->next) {
 		sock->own_index= 0;
+		sock->ns.data= NULL;
+	}
 	
 	if(nnode->id)
 		nnode->id->us++;
@@ -850,8 +853,10 @@ static void node_unlink_node(bNodeTree *ntree, bNode *node)
 	for(link= ntree->links.first; link; link= next) {
 		next= link->next;
 		
-		if(link->fromnode==node)
+		if(link->fromnode==node) {
 			lb= &node->outputs;
+			NodeTagChanged(ntree, link->tonode);
+		}
 		else if(link->tonode==node)
 			lb= &node->inputs;
 		else
@@ -869,6 +874,16 @@ static void node_unlink_node(bNodeTree *ntree, bNode *node)
 	}
 }
 
+static void composit_free_sockets(bNode *node)
+{
+	bNodeSocket *sock;
+	
+	for(sock= node->outputs.first; sock; sock= sock->next) {
+		if(sock->ns.data)
+			free_compbuf(sock->ns.data);
+	}
+}
+
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
 	node_unlink_node(ntree, node);
@@ -877,6 +892,8 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	if(node->id)
 		node->id->us--;
 	
+	if(ntree->type==NTREE_COMPOSIT)
+		composit_free_sockets(node);
 	BLI_freelistN(&node->inputs);
 	BLI_freelistN(&node->outputs);
 	
@@ -1207,6 +1224,22 @@ void ntreeSolveOrder(bNodeTree *ntree)
 		might be different for editor or for "real" use... */
 }
 
+/* should be callback! */
+void NodeTagChanged(bNodeTree *ntree, bNode *node)
+{
+	if(ntree->type==NTREE_COMPOSIT) {
+		bNodeSocket *sock;
+		
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			if(sock->ns.data) {
+				free_compbuf(sock->ns.data);
+				sock->ns.data= NULL;
+			}
+		}
+		node->need_exec= 1;
+	}
+}
+
 #pragma mark /* *************** preview *********** */
 
 /* if node->preview, then we assume the rect to exist */
@@ -1362,6 +1395,54 @@ static int ntree_begin_exec_tree(bNodeTree *ntree)
 	return index;
 }
 
+/* copy socket compbufs to stack */
+static void composit_begin_exec(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		bNodeSocket *sock;
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			if(sock->ns.data) {
+				bNodeStack *ns= ntree->stack + sock->stack_index;
+
+				ns->data= sock->ns.data;
+				sock->ns.data= NULL;
+			}
+		}
+	}
+}
+
+/* copy stack compbufs to sockets */
+static void composit_end_exec(bNodeTree *ntree)
+{
+	extern void print_compbuf(char *str, struct CompBuf *cbuf);
+	bNode *node;
+	bNodeStack *ns;
+	int a;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		bNodeSocket *sock;
+		
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			ns= ntree->stack + sock->stack_index;
+			if(ns->data) {
+				sock->ns.data= ns->data;
+				ns->data= NULL;
+			}
+		}
+		node->need_exec= 0;
+	}
+				
+	for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
+		if(ns->data) {
+			print_compbuf("error: buf hanging in stack", ns->data);
+			free_compbuf(ns->data);
+		}
+	}
+				
+}
+
 /* stack indices make sure all nodes only write in allocated data, for making it thread safe */
 /* only root tree gets the stack, to enable instances to have own stack entries */
 /* only two threads now! */
@@ -1385,7 +1466,8 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		/* tag inputs, the get_stack() gives own socket stackdata if not in use */
 		for(a=0; a<ntree->stacksize; a++, ns++) ns->hasinput= 1;
 		
-		/* tag outputs, so we know when we can skip operations */
+		/* tag used outputs, so we know when we can skip operations */
+		/* hrms... groups... */
 		for(node= ntree->nodes.first; node; node= node->next) {
 			bNodeSocket *sock;
 			for(sock= node->inputs.first; sock; sock= sock->next) {
@@ -1395,8 +1477,10 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 				}
 			}
 		}
-		
-		ntree->stack1= MEM_dupallocN(ntree->stack);
+		if(ntree->type==NTREE_COMPOSIT)
+			composit_begin_exec(ntree);
+		else
+			ntree->stack1= MEM_dupallocN(ntree->stack);
 	}
 	
 	ntree->init |= NTREE_EXEC_INIT;
@@ -1407,25 +1491,17 @@ void ntreeEndExecTree(bNodeTree *ntree)
 	
 	if(ntree->init & NTREE_EXEC_INIT) {
 		
-		if(ntree->stack) {
-			
-			/* another callback candidate! */
-			if(ntree->type==NTREE_COMPOSIT) {
-				bNodeStack *ns;
-				int a;
-				
-				for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++)
-					if(ns->data)
-						free_compbuf(ns->data);
-				for(ns= ntree->stack1, a=0; a<ntree->stacksize; a++, ns++)
-					if(ns->data)
-						free_compbuf(ns->data);
-			}
+		/* another callback candidate! */
+		if(ntree->type==NTREE_COMPOSIT)
+			composit_end_exec(ntree);
+		
+		if(ntree->stack)
 			MEM_freeN(ntree->stack);
-			ntree->stack= NULL;
+		ntree->stack= NULL;
+		
+		if(ntree->stack1)
 			MEM_freeN(ntree->stack1);
-			ntree->stack1= NULL;
-		}
+		ntree->stack1= NULL;
 
 		ntree->init &= ~NTREE_EXEC_INIT;
 	}
@@ -1475,5 +1551,80 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 			node_group_execute(stack, callerdata, node, nsin, nsout); 
 		}
 	}
+}
+
+/* optimized tree execute test for compositing */
+void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *stack;
+	int totnode;
+	
+	if(ntree==NULL) return;
+	
+	totnode= BLI_countlist(&ntree->nodes);
+	
+	if(do_preview)
+		ntreeInitPreview(ntree, 0, 0);
+	
+	ntreeBeginExecTree(ntree);
+	
+	stack= ntree->stack;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->execfunc) {
+			int a;
+			
+			node_get_stack(node, stack, nsin, nsout);
+			
+			/* test the inputs */
+			for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+				/* is sock in use? */
+				if(sock->link) {
+					if(nsin[a]->data==NULL || sock->link->fromnode->need_exec) {
+						node->need_exec= 1;
+						break;
+					}
+				}
+			}
+			
+			/* test the outputs */
+			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if(nsout[a]->data==NULL && nsout[a]->hasoutput) {
+					node->need_exec= 1;
+					break;
+				}
+			}
+			if(node->need_exec) {
+				
+				/* free output buffers */
+				for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+					if(nsout[a]->data) {
+						free_compbuf(nsout[a]->data);
+						nsout[a]->data= NULL;
+					}
+				}
+				if(ntree->timecursor)
+					ntree->timecursor(totnode);
+				
+				printf("exec node %s\n", node->name);
+				node->typeinfo->execfunc(rd, node, nsin, nsout);
+			}
+		}
+		else if(node->type==NODE_GROUP && node->id) {
+			node_get_stack(node, stack, nsin, nsout);
+			node_group_execute(stack, rd, node, nsin, nsout); 
+		}
+		totnode--;
+	}
+	
+	
+	ntreeEndExecTree(ntree);
+	
+	free_unused_animimages();
+	
 }
 
