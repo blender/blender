@@ -100,7 +100,9 @@ struct rctf;
 #include "NLA.h"
 #include "logic.h"
 #include "Effect.h"
+#include "Pose.h"
 #include "gen_utils.h"
+#include "BIF_editkey.h"
 
 /* Defines for insertIpoKey */
 
@@ -291,6 +293,7 @@ static PyObject *Object_getSBUseEdges( BPy_Object * self );
 static PyObject *Object_setSBUseEdges( BPy_Object * self, PyObject * args );
 static PyObject *Object_getSBStiffQuads( BPy_Object * self );
 static PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args );
+static PyObject *Object_insertShapeKey(BPy_Object * self);
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
 /*****************************************************************************/
@@ -322,7 +325,7 @@ If 'name_only' is nonzero or True, only the name of the datablock is returned"},
 	{"getAction", ( PyCFunction ) Object_getAction, METH_NOARGS,
 	 "Returns the active action for this object"},
 	{"getPose", ( PyCFunction ) Object_getPose, METH_NOARGS,
-	 "Returns the pose for this object"},
+	"() - returns the pose from an object if it exists, else None"},
 	{"isSelected", ( PyCFunction ) Object_isSelected, METH_NOARGS,
 	 "Return a 1 or 0 depending on whether the object is selected"},
 	{"getEuler", ( PyCFunction ) Object_getEuler, METH_NOARGS,
@@ -585,7 +588,8 @@ works only if self and the object specified are of the same type."},
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
 	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
-	
+	 {"insertShapeKey", ( PyCFunction ) Object_insertShapeKey,
+	 METH_NOARGS, "() - Insert a Shape Key in the current object"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -750,9 +754,13 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 		object = GetObjectByName( name );
 
 			/* No object exists with the name specified in the argument name. */
-		if( !object )
-			return EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"Unknown object specified." );
+		if( !object ){
+			char buffer[128];
+			PyOS_snprintf( buffer, sizeof(buffer),
+						   "object \"%s\" not found", name);
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+										  buffer );
+		}
 
 		return Object_CreatePyObject( object );
 	} else {
@@ -883,7 +891,7 @@ static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject 
 /*****************************************************************************/
 PyObject *Object_Init( void )
 {
-	PyObject *module;
+	PyObject *module, *dict;
 
 	Object_Type.ob_type = &PyType_Type;
 
@@ -907,6 +915,11 @@ PyObject *Object_Init( void )
 	PyModule_AddIntConstant( module, "VORTEX",PFIELD_VORTEX );
 	PyModule_AddIntConstant( module, "MAGNET",PFIELD_MAGNET );
 	PyModule_AddIntConstant( module, "WIND",PFIELD_WIND );
+
+		//Add SUBMODULES to the module
+	dict = PyModule_GetDict( module ); //borrowed
+	PyDict_SetItemString(dict, "Pose", Pose_Init()); //creates a *new* module
+	//PyDict_SetItemString(dict, "Constraint", Constraint_Init()); //creates a *new* module
 
 	return ( module );
 }
@@ -1178,6 +1191,7 @@ static PyObject *Object_getAction( BPy_Object * self )
 	}
 }
 
+#if 0
 static PyObject *Object_getPose( BPy_Object * self )
 {
 	/*BPy_Action *py_action = NULL; */
@@ -1188,6 +1202,14 @@ static PyObject *Object_getPose( BPy_Object * self )
   }
 	else 
 		return Pose_CreatePyObject( self->object->pose );
+}
+
+#endif
+
+static PyObject * Object_getPose(BPy_Object *self)
+{
+	//if there is no pose will return PyNone
+	return PyPose_FromPose(self->object->pose, self->object->id.name+2);
 }
 
 static PyObject *Object_isSelected( BPy_Object * self )
@@ -3009,6 +3031,12 @@ static PyObject *Object_getEffects( BPy_Object * self )
 		eff = eff->next;
 	}
 	return effect_list;
+}
+
+static  PyObject *Object_insertShapeKey(BPy_Object * self)
+{
+	insert_shapekey(self->object);
+	return Py_None;
 }
 
 /*****************************************************************************/

@@ -1111,15 +1111,22 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	}
 	else loadbutton= 0;
 
-	uiDefBut(block, TEX,1,"",	textrct.xmin, filebuty1, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-	uiDefBut(block, TEX,2,"",	textrct.xmin, filebuty2, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-
+	uiBlockBeginAlign(block);
+	uiDefBut(block, TEX,2,"",	textrct.xmin, filebuty2, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT,	    5, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	}
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefBut(block, TEX,1,"",	textrct.xmin, filebuty1, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "File, increment version number with (+/-)"); /* File input */
+	if(loadbutton) {
+		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT,	    6, "Cancel",	textrct.xmax-loadbutton, filebuty1, loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
-
+	uiBlockEndAlign(block);
+	
 	menu= fsmenu_build_menu();
 	if(menu[0])	// happens when no .Bfs is there, and first time browse
 		uiDefButS(block, MENU,	3, menu, scrollrct.xmin, filebuty1, scrollrct.xmax-scrollrct.xmin, 21, &sfile->menu, 0, 0, 0, 0, "");

@@ -536,7 +536,14 @@ void viewmove(int mode)
 	short use_sel = 0;
 	short preview3d_event= 1;
 	
+	/* 3D window may not be defined */
+	if( !G.vd ) {
+		fprintf( stderr, "G.vd == NULL in viewmove()\n" );
+		return;
+	}
+
 	/* sometimes this routine is called from headerbuttons */
+
 	areawinset(curarea->win);
 	
 	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);

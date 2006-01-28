@@ -809,7 +809,22 @@ void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[]
   pose_mat(b)= arm_mat(b) * chan_mat(b)
   
   *************************************************************************** */
+/*  Computes vector and roll based on a rotation. "mat" must
+     contain only a rotation, and no scaling. */ 
+void mat3_to_vec_roll(float mat[][3], float *vec, float *roll) {
+     if (vec)
+         VecCopyf(vec, mat[1]);
 
+     if (roll) {
+         float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
+
+         vec_roll_to_mat3(mat[1], 0.0f, vecmat);
+         Mat3Inv(vecmatinv, vecmat);
+         Mat3MulMat3(rollmat, vecmatinv, mat);
+
+         *roll= atan2(rollmat[2][0], rollmat[2][2]);
+     }
+}
 
 /*	Calculates the rest matrix of a bone based
 	On its vector and a roll around that vector */

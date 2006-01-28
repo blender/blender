@@ -269,6 +269,19 @@ class Object:
     the type Effect.
     """
 
+  def insertShapeKey():
+    """
+    Insert a Shape Key in the current object.  It applies to Objects of
+    the type Mesh, Lattice, or Curve.
+    """
+
+  def getPose():
+    """
+    Gets the current Pose of the object.
+    @rtype: Pose object
+    @return: the current pose object
+    """
+
   def clearIpo():
     """
     Unlinks the ipo from this object.

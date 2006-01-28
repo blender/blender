@@ -117,7 +117,7 @@ int SumoPhysicsEnvironment::createConstraint(
 	return constraintid;
 }
 
-void SumoPhysicsEnvironment::removeConstraint(void * constraintid)
+void SumoPhysicsEnvironment::removeConstraint(int	constraintid)
 {
 	if (constraintid)
 	{

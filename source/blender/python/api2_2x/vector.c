@@ -160,9 +160,9 @@ PyObject *Vector_Resize4D(VectorObject * self)
 	self->vec = self->data.py_data;  //force
 	if(self->size == 2){
 		self->data.py_data[2] = 0.0f;
-		self->data.py_data[3] = 0.0f;
+		self->data.py_data[3] = 1.0f;
 	}else if(self->size == 3){
-		self->data.py_data[3] = 0.0f;
+		self->data.py_data[3] = 1.0f;
 	}
 	self->size = 4;
 	return EXPP_incr_ret((PyObject*)self);

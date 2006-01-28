@@ -46,9 +46,6 @@ all debug::
 
   # First generic defaults for all platforms which should be constant.
   # Note: ?= lets these defaults be overruled by environment variables,
-    export NAN_NO_KETSJI=true
-    export NAN_JUST_BLENDERDYNAMIC=true
-    export NAN_NO_OPENAL=true
     export SRCHOME ?= $(NANBLENDERHOME)/source
     export CONFIG_GUESS := $(shell ${SRCHOME}/tools/guess/guessconfig)
     export OS := $(shell echo ${CONFIG_GUESS} | sed -e 's/-.*//')
@@ -188,6 +185,9 @@ endif
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa -framework IOKit
+
+    export NAN_NO_KETSJI=false
+
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET

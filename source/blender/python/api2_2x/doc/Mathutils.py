@@ -493,6 +493,7 @@ class Vector:
   def resize4D():
     """
     Resize the vector to 4d. New axis will be 0.0.
+    The last component will be 1.0, to make multiplying 3d vectors by 4x4 matrices easier.
     @return: a copy of itself
     """
 

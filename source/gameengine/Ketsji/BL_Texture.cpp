@@ -3,6 +3,7 @@
 #include <windows.h>
 #endif // WIN32
 #ifdef __APPLE__
+#define GL_GLEXT_LEGACY 1
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
@@ -20,7 +21,6 @@
 #include "DNA_image_types.h"
 #include "IMB_imbuf_types.h"
 #include "BKE_image.h"
-//#include "IMB_imbuf.h"
 #include "BLI_blenlib.h"
 
 #include "RAS_GLExtensionManager.h"
@@ -35,6 +35,7 @@ using namespace bgl;
 extern "C" {
 	// envmaps
 	#include "IMB_imbuf.h"
+	
 	void my_envmap_split_ima(EnvMap *env);
 	void my_free_envmapdata(EnvMap *env);
 }
@@ -345,18 +346,18 @@ void my_envmap_split_ima(EnvMap *env)
 			ima->ok= 1;
 			env->cube[part]= ima;
 		}
-		IMB_rectcpy(env->cube[0]->ibuf, env->ima->ibuf, 
-			0, 0, 0, 0, dx, dx);
-		IMB_rectcpy(env->cube[1]->ibuf, env->ima->ibuf, 
-			0, 0, dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[2]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[3]->ibuf, env->ima->ibuf, 
-			0, 0, 0, dx, dx, dx);
-		IMB_rectcpy(env->cube[4]->ibuf, env->ima->ibuf, 
-			0, 0, dx, dx, dx, dx);
-		IMB_rectcpy(env->cube[5]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, dx, dx, dx);
+		IMB_rectop(env->cube[0]->ibuf, env->ima->ibuf, 
+			0, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
+		IMB_rectop(env->cube[1]->ibuf, env->ima->ibuf, 
+			0, 0, dx, 0, dx, dx, IMB_rectcpy, 0);
+		IMB_rectop(env->cube[2]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, 0, dx, dx, IMB_rectcpy, 0);
+		IMB_rectop(env->cube[3]->ibuf, env->ima->ibuf, 
+			0, 0, 0, dx, dx, dx, IMB_rectcpy, 0);
+		IMB_rectop(env->cube[4]->ibuf, env->ima->ibuf, 
+			0, 0, dx, dx, dx, dx, IMB_rectcpy, 0);
+		IMB_rectop(env->cube[5]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, dx, dx, dx, IMB_rectcpy, 0);
 		env->ok= 2;
 	}
 }

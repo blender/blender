@@ -79,7 +79,7 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
     GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
     GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
-	GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
+    GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
     GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
     GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
     GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
@@ -89,7 +89,6 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
     GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
     GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
-
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -118,7 +117,7 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/fuzzics/$(DEBUG_DIR)libfuzzics.a
     COMLIB += $(NAN_QHULL)/lib/libqhull.a
-   COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
+    COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
 #    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
@@ -163,11 +162,11 @@ endif
   endif
   ifeq ($(WITH_FREETYPE2), true)
     ifeq ($(OS), windows)
-		ifeq ($(FREE_WINDOWS), true)
-			COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
-		else
-			COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
-		endif
+      ifeq ($(FREE_WINDOWS), true)
+        COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+      else
+        COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
+      endif
     else
       ifeq ($(OS), irix)
         COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
@@ -198,22 +197,22 @@ ifeq ($(INTERNATIONAL), true)
           COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
         endif
     endif
-	ifeq ($(OS), darwin)
-	    COMLIB += $(NAN_GETTEXT)/lib/libintl.a
-	endif
-	ifeq ($(OS), solaris)
-	    COMLIB += $(NAN_GETTEXT)/lib/libintl.a
-	endif
+    ifeq ($(OS), darwin)
+        COMLIB += $(NAN_GETTEXT)/lib/libintl.a
+    endif
+    ifeq ($(OS), solaris)
+        COMLIB += $(NAN_GETTEXT)/lib/libintl.a
+    endif
 endif
 
 ifeq ($(OS), irix)
-	COMLIB += $(NAN_SDL)/lib/libSDL.a
+    COMLIB += $(NAN_SDL)/lib/libSDL.a
 endif
 ifeq ($(OS), windows)
     ifeq ($(FREE_WINDOWS), true)
-	    COMLIB += $(NAN_SDL)/lib/libSDL.a
+        COMLIB += $(NAN_SDL)/lib/libSDL.a
     else
-	    COMLIB += $(NAN_SDL)/lib/SDL.lib
+        COMLIB += $(NAN_SDL)/lib/SDL.lib
     endif
 endif
 
@@ -279,7 +278,6 @@ ifeq ($(OS),$(findstring $(OS), "windows"))
 endif
     PLUGAPPLIB += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
 
-
 ifeq ($(OS),$(findstring $(OS), "linux"))
   ifeq ($(CPU),i386)
     PLUGAPPLIB_XPLINK = $(OCGDIR)/gameengine/GamePlayer/netscape/src/$(DEBUG_DIR)_Blender3DPlugin_implementation_.o 
@@ -300,7 +298,6 @@ endif
 ifeq ($(OS),darwin)
     BINTARGETS = blenderdynamic.app
     BINTARGETS += blenderplayer.app
-
     ifdef PY_FRAMEWORK
         PYLIB = -framework Python
     else 
@@ -340,7 +337,7 @@ ifeq ($(OS),linux)
     BINTARGETS += blenderplayer
     BINTARGETS += blenderstatic
     ifneq ($(NAN_NO_PLUGIN),true)
-	BINTARGETS += plugin xplink
+      BINTARGETS += plugin xplink
     endif
   endif
   ifeq ($(CPU),powerpc)
@@ -366,13 +363,11 @@ ifeq ($(OS),solaris)
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS)
     PYLIB += $(NAN_ZLIB)/lib/libz.a
-
     PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
 
 # OpenAL libs are already compiled as shared code! Check FMod if we switch to that. (nzc)
-
 
 # Some vars to keep the rest of this section mostly readable
 # in an 80 char term
@@ -434,12 +429,12 @@ else
 endif
 
 ifeq ($(OS),windows)
-	ifeq ($(FREE_WINDOWS),true)
-		PYLIB = $(NAN_PYTHON)/lib/freepy.a
+    ifeq ($(FREE_WINDOWS),true)
+        PYLIB = $(NAN_PYTHON)/lib/freepy.a
     else
-		PYLIB = $(NAN_PYTHON)/lib/python23.lib
+        PYLIB = $(NAN_PYTHON)/lib/python23.lib
     endif
-    
+
     PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
     PYPLAYERLIB = $(PYLIB)
 
@@ -692,3 +687,4 @@ $(DIR)/$(DEBUG_DIR)bin/npTestPlugin$(SOEXT): $(NSPLUGLIB)
 	/bin/rm $(BUILDINFO_O)
     endif
 endif
+

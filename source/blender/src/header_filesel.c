@@ -128,9 +128,11 @@ void file_buttons(void)
 	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & USER_TR_BUTTONS));
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & USER_TR_BUTTONS));
 	
+	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, ICONTOG, FILE_SHOWSHORT, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
 	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
-
+	uiBlockEndAlign(block);
+	
 	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
 
 	xco+=90;

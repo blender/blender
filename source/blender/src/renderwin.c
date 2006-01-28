@@ -1012,9 +1012,16 @@ void BIF_do_render(int anim)
 	/* if start render in 3d win, use layer from window (e.g also local view) */
 	if(curarea && curarea->spacetype==SPACE_VIEW3D) {
 		int lay= G.scene->lay;
-		if(G.vd->lay & 0xFF000000)	// localview
-			G.scene->lay |= G.vd->lay;
-		else G.scene->lay= G.vd->lay;
+		/*
+		 * if view is defined (might not be if called form script), check
+		 * and set layers
+		 */
+		if(G.vd) {
+			if(G.vd->lay & 0xFF000000)	// localview
+				G.scene->lay |= G.vd->lay;
+			else
+				G.scene->lay= G.vd->lay;
+		}
 		
 		do_render(anim);
 		

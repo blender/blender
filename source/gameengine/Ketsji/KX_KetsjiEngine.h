@@ -99,8 +99,10 @@ private:
 	bool				m_firstframe;
 	int					m_currentFrame;
 
-	double				m_previoustime;
-	double				m_deltatime;
+	double				m_frameTime;//discrete timestamp of the 'game logic frame'
+	double				m_clockTime;//current time
+	double				m_previousClockTime;//previous clock time
+
 	static double			m_ticrate;
 
 	static double			m_suspendedtime;

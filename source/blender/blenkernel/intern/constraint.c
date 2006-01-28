@@ -383,6 +383,9 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 			return (data->tar);
 		}
 		break;
+	default:
+		*subtarget= NULL;
+		break;
 	}
 	
 	return NULL;  

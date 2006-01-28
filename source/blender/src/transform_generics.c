@@ -761,7 +761,10 @@ void calculateCenter(TransInfo *t)
 			projectIntView(t, axis, t->center2d);
 			
 			/* rotate only needs correct 2d center, grab needs initgrabz() value */
-			if(t->mode==TFM_TRANSLATION) VECCOPY(t->center, axis);
+			if(t->mode==TFM_TRANSLATION) {
+				VECCOPY(t->center, axis);
+				VECCOPY(t->con.center, t->center);
+			}
 		}
 	}	
 

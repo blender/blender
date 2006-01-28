@@ -1359,6 +1359,19 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	int a, sizex, sizey, x1, y2;
 	short mval[2], event;
 	
+	/* Clear all events so tooltips work, this is not ideal and
+	only needed because calls from the menu still have some events
+	left over when do_clever_numbuts is called.
+	Calls from keyshortcuts do not have this problem.*/
+	ScrArea *sa;
+	BWinEvent temp_bevt;
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		while( bwin_qread( sa->win, &temp_bevt ) ) {}
+		while( bwin_qread( sa->headwin, &temp_bevt ) ) {}
+	}
+	/* Done clearing events */
+	
+	
 	if(tot<=0 || tot>MAXNUMBUTS) return 0;
 
 	getmouseco_sc(mval);
@@ -1383,6 +1396,9 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	
 	/* WATCH IT: TEX BUTTON EXCEPTION */
 	/* WARNING: ONLY A SINGLE BIT-BUTTON POSSIBLE: WE WORK AT COPIED DATA! */
+	
+	BIF_ThemeColor(TH_MENU_TEXT); /* makes text readable on dark theme */
+	
 	uiDefBut(block, LABEL, 0, name,	(short)(x1+15), (short)(y2-35), (short)(sizex-60), 19, 0, 1.0, 0.0, 0, 0, ""); 
 	
 	/*
@@ -1394,12 +1410,22 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	uiBlockBeginAlign(block);
 	varstr= &numbuts[0];
 	for(a=0; a<tot; a++, varstr++) {
+		
 		if(varstr->type==TEX) {
 			uiDefBut(block, TEX, 0,	varstr->name,(short)(x1+15),(short)(y2-55-20*a),(short)(sizex-60), 19, numbpoin[a], varstr->min, varstr->max, 0, 0, varstr->tip);
 		}
 		else  {
+			
+			if(varstr->type==LABEL) /* dont include the label when rounding the buttons */
+				uiBlockEndAlign(block);
+			
 			uiDefBut(block, varstr->type, 0, varstr->name,(short)(x1+15),(short)(y2-55-20*a), (short)(sizex-60), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+			
+			if(varstr->type==LABEL)
+				uiBlockBeginAlign(block);
 		}
+
+		
 	}
 	uiBlockEndAlign(block);
 

@@ -6,7 +6,7 @@ The Blender.Key submodule.
 This module provides access to B{Key} objects in Blender.
 
 @type Types: readonly dictionary
-@var Types: The type of a key, indicating the type of data in the
+@var Types: The type of a key owner, indicating the type of data in the
 data blocks.
     - MESH - the key is a Mesh key; data blocks contain
     L{NMVert<NMesh.NMVert>} vertices.
@@ -15,7 +15,6 @@ data blocks.
     3 floating point numbers).
     - LATTICE - the key is a Lattice key; data blocks contain
     BPoints, each point represented by a list of 3 floating point numbers.
-
 """
 
 def Get(name = None):
@@ -38,7 +37,7 @@ class Key:
     keyframe data.
     
     @ivar ipo:  Key Ipo.  Contains the Ipo if one is assigned to the
-    object, B{None} otherwise.  Setting to B{None} clears the current Ipo..
+    object, B{None} otherwise.  Setting to B{None} clears the current Ipo.
     @type ipo:  Blender Ipo
     @ivar value: The value of the key. Read-only.
     @type value: float
@@ -47,6 +46,8 @@ class Key:
     @type type: int
     @ivar blocks: A list of KeyBlocks for the key.  Read-only.
     @type blocks: Blender KeyBlock.
+    @ivar relative: Indicates whether the key is relative(=True) or normal.
+    @type relative: bool
     """
 
     def getIpo():
@@ -66,6 +67,8 @@ class KeyBlock:
   Each Key object has a list of KeyBlocks attached, each KeyBlock
   representing a keyframe.
 
+  @ivar curval: Current value of the corresponding IpoCurve.  Read-only.
+  @type curval: float
   @ivar name: The name of the Keyblock.  Truncated to 32 characters.
   @type name: string
   @ivar pos: The position of the keyframe.

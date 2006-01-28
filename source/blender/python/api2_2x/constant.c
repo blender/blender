@@ -90,7 +90,7 @@ static PyMethodDef BPy_constant_methods[] = {
 		"() - Returns the keys the dictionary"},
 	{"values", (PyCFunction) constant_values, METH_NOARGS, 
 		"() - Returns the values from the dictionary"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------------mp_length
 static int constantLength(BPy_constant *self)

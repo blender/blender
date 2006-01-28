@@ -212,7 +212,7 @@ class Bone:
   @type matrix: Matrix Object
   @ivar parent: The parent Bone.
   @type parent: Bone Object
-  @ivar children: The children bones.
+  @ivar children: The children directly attached to this bone.
   @type children: List of Bone Objects
   @ivar weight: The bone's weight.
   @type weight: Float
@@ -246,6 +246,13 @@ class Bone:
     @rtype: Bool
     """
 
+  def getAllChildren():
+    """
+    Gets all the children under this bone including the children's children.
+    @rtype: List of Bone object
+    @return: all bones under this one
+    """
+
 class Editbone:
   """
   The Editbone Object
@@ -260,7 +267,7 @@ class Editbone:
   @type head: Vector Object
   @ivar tail: This Bone's "tail" ending position when in rest state (armaturespace).
   @type tail: Vector Object
-  @ivar matrix: This Bone's matrix. (armaturespace) This cannot be set.
+  @ivar matrix: This Bone's matrix. (armaturespace)
   @type matrix: Matrix Object
   @ivar parent: The parent Bone.
   @type parent: Editbone Object

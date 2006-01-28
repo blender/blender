@@ -41,6 +41,7 @@
 #endif
 
 #ifdef __APPLE__
+#define GL_GLEXT_LEGACY 1
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else

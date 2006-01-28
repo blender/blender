@@ -4432,6 +4432,7 @@ void view3d_buttons(void)
 	
 	if (ob && (ob->flag & OB_POSEMODE)) {
 		xco+= XIC/2;
+		uiBlockBeginAlign(block);
 		if(curarea->headertype==HEADERTOP) {
 			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP, 
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
@@ -4456,6 +4457,7 @@ void view3d_buttons(void)
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 						 "Pastes the mirrored pose from the buffer");
 		}
+		uiBlockEndAlign(block);
 	}
 
 	/* Always do this last */

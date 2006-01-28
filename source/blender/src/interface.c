@@ -5364,7 +5364,7 @@ void uiBlockEndAlign(uiBlock *block)
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
 	
-	if ( !((BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 1) || (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 2))) {
+	if ( !((BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 0) || (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 1) || (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 2))) {
 		block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 		return;
 	}

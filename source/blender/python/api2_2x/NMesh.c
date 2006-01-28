@@ -1466,71 +1466,55 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
  * influences that this vertex receives.
  * @author Jordi Rovira i Bonet
  */
+
 static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 {
 	int index;
 	PyObject *influence_list = NULL;
-
-	/* Get a reference to the mesh object wrapped in here. */
+	Object *object = ( ( BPy_NMesh * ) self )->object;
 	Mesh *me = ( ( BPy_NMesh * ) self )->mesh;
 
+	/* Get a reference to the mesh object wrapped in here. */
 	if( !me )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "unlinked nmesh: call its .update() method first" );
+				"unlinked nmesh: call its .update() method first" );
+
+	if( !object )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This mesh must be linked to an object" ); 
 
 	/* Parse the parameters: only on integer (vertex index) */
 	if( !PyArg_ParseTuple( args, "i", &index ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int argument (index of the vertex)" );
+				"expected int argument (index of the vertex)" );
 
-	/* Proceed only if we have vertex deformation information and index is valid */
+	/* check for valid index */
+	if( index < 0 || index >= me->totvert )
+		return EXPP_ReturnPyObjError( PyExc_IndexError,
+				"vertex index out of range" );
+
+	influence_list = PyList_New( 0 );
+
+	/* Proceed only if we have vertex deformation information */
 	if( me->dvert ) {
-		if( ( index >= 0 ) && ( index < me->totvert ) ) {
+		int i;
+		MDeformWeight *sweight = NULL;
 
-			int i;
-			MDeformWeight *sweight = NULL;
+		/* Number of bones influencing the vertex */
+		int totinfluences = me->dvert[index].totweight;
 
-			/* Number of bones influencing the vertex */
-			int totinfluences = me->dvert[index].totweight;
+		/* Get the reference of the first weight structure */
+		sweight = me->dvert[index].dw;
 
-			/* Build the list only with weights and names of the influent bones */
-			/*influence_list = PyList_New(totinfluences); */
-			influence_list = PyList_New( 0 );
-
-			/* Get the reference of the first weight structure */
-			sweight = me->dvert[index].dw;
-
-			for( i = 0; i < totinfluences; i++ ) {
-				/*Add the weight and the name of the bone, which is used to identify it */
-
-					/* Disabled this code, it couldn't be correct!
-					 * sweight->data was being set to a posechannel not a bone
-					 * for one thing, and it is not always set for another.
-					 * The only thing safe here is to return the defgroup number. -zr
-					 */
-//				if( sweight->data )
-					/* valid bone: return its name */
-					/*  PyList_SetItem(influence_list, i,
-					   Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
-					   else // NULL bone: return Py_None instead
-					   PyList_SetItem(influence_list, i,
-					   Py_BuildValue("[Of]", Py_None, sweight->weight)); */
-//					PyList_Append( influence_list,
-//						       Py_BuildValue( "[sf]",
-//								      sweight->
-//								      data->
-//								      name,
-//								      sweight->
-//								      weight ) );
-
-				/* Next weight */
-				sweight++;
-			}
-		} else		//influence_list = PyList_New(0);
-			return EXPP_ReturnPyObjError( PyExc_IndexError,
-						      "vertex index out of range" );
-	} else
-		influence_list = PyList_New( 0 );
+		/* Build the list only with weights and names of the influent bones */
+		for( i = 0; i < totinfluences; i++, sweight++ ) {
+			bDeformGroup *defgroup = (bDeformGroup *) BLI_findlink( &object->defbase,
+					sweight->def_nr );
+			if( defgroup )
+				PyList_Append( influence_list, Py_BuildValue( "[sf]",
+						defgroup->name, sweight->weight ) ); 
+		}
+	}
 
 	return influence_list;
 }

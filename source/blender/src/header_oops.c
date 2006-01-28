@@ -72,42 +72,64 @@ void do_oops_buttons(short event)
 {
 	float dx, dy;
 	
+	/* used for maximize hack */
+	int win_width, win_height; 
+	float aspect_win, aspect_oops, oops_width, oops_height, oops_x_mid, oops_y_mid;
+	
+	
 	if(curarea->win==0) return;
-
-	switch(event) {
-	case B_OOPSHOME:
-		init_v2d_oops(curarea, curarea->spacedata.first);	// forces min/max to be reset
-		boundbox_oops(0);
-		G.v2d->cur= G.v2d->tot;
-		dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);
-		dy= 0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin);
-		G.v2d->cur.xmin-= dx;
-		G.v2d->cur.xmax+= dx;
-		G.v2d->cur.ymin-= dy;
-		G.v2d->cur.ymax+= dy;		
-		test_view2d(G.v2d, curarea->winx, curarea->winy);
-		scrarea_queue_winredraw(curarea);
-		break;
 	
-	case B_OOPSVIEWSEL:
-		init_v2d_oops(curarea, curarea->spacedata.first);	// forces min/max to be reset
-		boundbox_oops(1);
-		G.v2d->cur= G.v2d->tot;
-		dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);
-		dy= 0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin);
-		G.v2d->cur.xmin-= dx;
-		G.v2d->cur.xmax+= dx;
-		G.v2d->cur.ymin-= dy;
-		G.v2d->cur.ymax+= dy;		
-		test_view2d(G.v2d, curarea->winx, curarea->winy);
-		scrarea_queue_winredraw(curarea);
-		break;
-	
-	case B_NEWOOPS:
+	if (event == B_NEWOOPS) {
 		scrarea_queue_winredraw(curarea);
 		scrarea_queue_headredraw(curarea);
 		G.soops->lockpoin= 0;
-		break;
+	} else { /* must be either B_OOPSHOME or B_OOPSVIEWSEL */
+		init_v2d_oops(curarea, curarea->spacedata.first);	// forces min/max to be reset
+		if (event == B_OOPSHOME) {
+			boundbox_oops(0); /* Test all oops blocks */
+		} else {
+			boundbox_oops(1); /* Test only selected oops blocks */
+		}
+		
+		
+		/* Hack to work with test_view2d in drawipo.c
+		Modify the bounding box so it is maximized to the window aspect
+		so viewing all oops blocks isnt limited to hoz/vert only.
+		Cant modify drawipo.c because many other functions use this hos/vert operation - Campbell*/
+		
+		win_width= curarea->winrct.xmax - curarea->winrct.xmin;
+		win_height= curarea->winrct.ymax - curarea->winrct.ymin;
+		
+		oops_width = G.v2d->tot.xmax - G.v2d->tot.xmin;
+		oops_height = G.v2d->tot.ymax - G.v2d->tot.ymin;
+		
+		oops_x_mid = (G.v2d->tot.xmax + G.v2d->tot.xmin)*0.5;
+		oops_y_mid = (G.v2d->tot.ymax + G.v2d->tot.ymin)*0.5;
+		/* wide windows will be above 1, skinny below 1 */
+		aspect_win= (float)win_width / (float)win_height; 
+		aspect_oops = (float)oops_width / (float)oops_height; 
+		if (aspect_win>aspect_oops) {/* the window is wider then the oops bounds, increase the oops width */
+			G.v2d->tot.xmin = oops_x_mid - ((oops_x_mid-G.v2d->tot.xmin) * (aspect_win/aspect_oops) ); /* scale the min */
+			G.v2d->tot.xmax = oops_x_mid + ((G.v2d->tot.xmax-oops_x_mid) * (aspect_win/aspect_oops) );/* scale the max */
+		} else { /* the window is skinnier then the oops bounds, increase the oops height */
+			G.v2d->tot.ymin = oops_y_mid - ((oops_y_mid-G.v2d->tot.ymin) * (aspect_oops/aspect_win) ); /* scale the min */
+			G.v2d->tot.ymax = oops_y_mid + ((G.v2d->tot.ymax-oops_y_mid) * (aspect_oops/aspect_win) );/* scale the max */
+		}
+		
+		/* maybe we should restore the correct values? - do next of its needed */
+		/* end hack */
+		
+		
+		
+		G.v2d->cur= G.v2d->tot;
+		dx= 0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin);
+		dy= 0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin);
+		G.v2d->cur.xmin-= dx;
+		G.v2d->cur.xmax+= dx;
+		G.v2d->cur.ymin-= dy;
+		G.v2d->cur.ymax+= dy;		
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
 	}
 }
 

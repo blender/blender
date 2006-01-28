@@ -1706,8 +1706,9 @@ static PyObject *reimportText( PyObject *module )
 
 	/* if previously compiled, free the object */
 	/* (can't see how could be NULL, but check just in case) */ 
-	if( text->compiled )
+	if( text->compiled ){
 		Py_DECREF( (PyObject *)text->compiled );
+	}
 
 	/* compile the buffer */
 	buf = txt_to_buf( text );

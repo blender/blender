@@ -18,17 +18,6 @@ typedef struct uSampler
 #define SAMP_2D		1
 #define SAMP_CUBE	2
 
-
-// -----------------------------------
-typedef struct uBlending
-{
-	unsigned int pass;
-	int src;	// GL_ blend func values
-	int dest;
-	float const_color[4];
-}uBlending;
-// -----------------------------------
-
 // ----------------
 class BL_Shader : public PyObjectPlus
 {
@@ -41,14 +30,15 @@ private:
 	bool			mOk;
 	bool			mUse;
 	uSampler		mSampler[MAXTEX];
-	uBlending		mBlending;
 	char*			vertProg;
 	char*			fragProg;
-	bool			LinkProgram();
-	bool			PrintInfo(int len, unsigned int handle, const char *type);
+	bool			mError;
+	char*			mLog;
 
+	bool			LinkProgram();
+	void			PrintInfo( int len, unsigned int handle,int *num);
 public:
-	BL_Shader(int n, PyTypeObject *T=&Type);
+	BL_Shader(PyTypeObject *T=&Type);
 	virtual ~BL_Shader();
 
 	char*		GetVertPtr();
@@ -59,11 +49,10 @@ public:
 	// ---
 	int getNumPass()	{return mPass;}
 	bool use()			{return mUse;}
-
+	bool GetError()		{return mError;}
 	// ---
 	// access
 	const uSampler*		getSampler(int i);
-	const uBlending*	getBlending( int pass );
 	const bool			Ok()const;
 
 	unsigned int		GetProg();
@@ -108,8 +97,6 @@ public:
 	// these come from within the material buttons
 	// sampler2d/samplerCube work
 	KX_PYMETHOD_DOC( BL_Shader, setSampler);
-	// user blending funcs
-	KX_PYMETHOD_DOC( BL_Shader, setBlending );
 };
 
 

@@ -168,16 +168,16 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	// maybe there are events for us in the queue !
 	if (frame)
 	{
-		for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
+		for (vector<CValue*>::iterator i=m_events.begin(); !(i==m_events.end());i++)
 		{
-			i--;
 			if ((*i)->GetNumber() == 0.0f)
 				bNegativeEvent = true;
 			else
 				bPositiveEvent= true;
 			(*i)->Release();
-			m_events.pop_back();
+		
 		}
+		m_events.clear();
 		
 		if (bPositiveEvent)
 			m_flag |= ACT_FLAG_ACTIVE;

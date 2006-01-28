@@ -256,39 +256,20 @@ static PyObject *BezTriple_getTriple( BPy_BezTriple * self )
 
 static PyObject *BezTriple_setPoints( BPy_BezTriple * self, PyObject * args )
 {
-
 	int i;
 	struct BezTriple *bezt = self->beztriple;
 	PyObject *popo = 0;
 
-	if( !PyArg_ParseTuple( args, "O", &popo ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected sequence argument" ) );
-
-	if( PySequence_Check( popo ) == 0 ) {
-		puts( "error in BezTriple_setPoints - expected sequence" );
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
-
-	{
-		/*
-		   some debug stuff 
-		   this will become an overloaded args check
-		 */
-		int size = PySequence_Size( popo );
-		printf( "\n dbg: sequence size is %d\n", size );
-	}
+	if( !PyArg_ParseTuple( args, "O", &popo ) || !PySequence_Check( popo ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected sequence argument" );
 
 	for( i = 0; i < 2; i++ ) {
-		PyObject *o = PySequence_GetItem( popo, i );
-		if( !o )
-			printf( "\n bad o. o no!\n" );
-
-		/*   bezt->vec[1][i] = PyFloat_AsDouble (PyTuple_GetItem (popo, i)); */
+		PyObject *o = PySequence_ITEM( popo, i );
 		bezt->vec[1][i] = (float)PyFloat_AsDouble( o );
 		bezt->vec[0][i] = bezt->vec[1][i] - 1;
 		bezt->vec[2][i] = bezt->vec[1][i] + 1;
+		Py_DECREF( o );
 	}
 
 	/* experimental fussing with handles - ipo.c: calchandles_ipocurve */
@@ -298,8 +279,7 @@ static PyObject *BezTriple_setPoints( BPy_BezTriple * self, PyObject * args )
 	if( bezt->vec[2][0] < bezt->vec[1][0] )
 		bezt->vec[2][0] = bezt->vec[1][0];
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 

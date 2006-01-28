@@ -44,8 +44,7 @@
 #include "DNA_object_types.h" //This must come before BIF_editarmature.h...
 #include "BIF_editarmature.h"
 
-//------------------UNDECLARED EXTERNAL PROTOTYPES--------------------
-//These are evil 'extern' declarations for functions with no anywhere
+//------------------EXTERNAL PROTOTYPES--------------------
 extern void free_editArmature(void);
 extern void make_boneList(ListBase* list, ListBase *bones, EditBone *parent);
 extern void editbones_to_armature (ListBase *list, Object *ob);
@@ -112,7 +111,7 @@ static PyMethodDef BPy_BonesDict_methods[] = {
 		"() - Returns the keys the dictionary"},
 	{"values", (PyCFunction) BonesDict_values, METH_NOARGS, 
 		"() - Returns the values from the dictionary"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //-----------------(internal)
 static int BoneMapping_Init(PyObject *dictionary, ListBase *bones){
@@ -225,8 +224,18 @@ PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 	}else{
 		value = PyDict_GetItem(self->bonesMap, key);
 	}
-	if(value == NULL){
-        return EXPP_incr_ret(Py_None);
+	if(value == NULL){  /* item not found in dict. throw exception */
+		char buffer[128];
+		char* key_str;
+		key_str = PyString_AsString( key );
+		if( !key_str ){  /* key not a py string */
+			key_str = "";  /* use empty string for printing */
+		}
+  
+		PyOS_snprintf( buffer, sizeof(buffer),
+					   "bone %s not found", key_str);
+			
+        return EXPP_ReturnPyObjError(PyExc_KeyError, buffer );
 	}
 	return EXPP_incr_ret(value);
 }
@@ -335,7 +344,7 @@ AttributeError3:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
 		sBoneDictBadArgs,  "The 'connected' flag is set but the bone has no parent!");
 }
-//------------------TYPE_OBECT DEFINITION--------------------------
+//------------------TYPE_OBJECT DEFINITION--------------------------
 //Mapping Protocol
 static PyMappingMethods BonesDict_MapMethods = {
 	(inquiry) BonesDict_len,					//mp_length
@@ -929,7 +938,7 @@ static PyMethodDef BPy_Armature_methods[] = {
 		"() - Unlocks the ability to modify armature bones"},
 	{"update", (PyCFunction) Armature_update, METH_NOARGS, 
 		"() - Rebuilds the armature based on changes to bones since the last call to makeEditable"},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------------tp_getset
 //This contains methods for attributes that require checking
@@ -1218,7 +1227,7 @@ static char M_Armature_Get_doc[] = "(name) - return the armature with the name '
 
 struct PyMethodDef M_Armature_methods[] = {
 	{"Get", M_Armature_Get, METH_VARARGS, M_Armature_Get_doc},
-	{NULL}
+	{NULL, NULL, 0, NULL}
 };
 //------------------VISIBLE PROTOTYPE IMPLEMENTATION-----------------------
 //-----------------(internal)

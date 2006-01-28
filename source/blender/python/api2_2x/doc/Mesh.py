@@ -112,6 +112,11 @@ Example::
 	already associated with a group, else it does nothing.\n
 	- REPLACE: attempts to replace a weight with the new weight value
 	for an already associated vertex/group, else it does nothing. 
+@type SelectModes: readonly dictionary.
+@var SelectModes: The available edit select modes.
+	- VERTEX: vertex select mode.
+	- EDGE: edge select mode.
+	- FACE: face select mode.
 """
 
 AssignModes = {'REPLACE':1}
@@ -133,6 +138,19 @@ def New(name='Mesh'):
   @param name: The name of the mesh data object.
   @rtype: Mesh
   @return: a new Blender mesh.
+  """
+
+def Mode(mode=0):
+  """
+  Get and/or set the selection modes for mesh editing.  These are the modes
+  visible in the 3D window when a mesh is in Edit Mode.
+  @type mode: int
+  @param mode: The name of the mesh data object.  See L{SelectModes} for values.
+  Modes can be combined.  If omitted, the selection mode is not changed.
+  @rtype: int
+  @return: the current selection mode.
+  @note: The selection mode is an attribute of the current scene.  If the
+  scene is changed, the selection mode may not be the same.
   """
 
 class MCol:
@@ -273,9 +291,9 @@ class MVertSeq:
       l=[(.1,.1,.1),Vector([2,2,.5])]
       me.verts.extend(l)              # add multiple vertices
 
-    @type coords: tuple(s) of floats or vectors
+    @type coords: sequences(s) of floats or vectors
     @param coords: coords can be
-       - a tuple of three floats,
+       - a sequence of three floats,
        - a 3D vector, or
        - a sequence (list or tuple) of either of the above.
     """
@@ -348,12 +366,12 @@ class MEdgeSeq:
       v = me.verts                    # get vertices
       if len(v) >= 6:                 # if there are enough vertices...
         me.edges.extend(v[0],v[1])    #   add a single edge
-        l=[(v[1],v[2],v[3]),(v[0],v[2],v[4],v[5])]
+        l=[(v[1],v[2],v[3]),[v[0],v[2],v[4],v[5]]]
         me.edges.extend(l)            #   add multiple edges
 
-    @type vertseq: tuple(s) of MVerts
+    @type vertseq: sequence(s) of MVerts
     @param vertseq: either two to four MVerts, or sequence (list or tuple) 
-    of tuples each containing two to four MVerts.
+    of sequences each containing two to four MVerts.
     """
 
   def delete(edges):
@@ -442,7 +460,7 @@ class MFace:
      colors; use L{Mesh.faceUV} and L{Mesh.vertexColors} to test.  B{Note}:
      if a mesh has i{both} UV faces and vertex colors, the colors stored in
      the UV faces will be used here. 
-  @type col: list of MCols
+  @type col: sequence of MCols
   @ivar mat: The face's index into the mesh's materials
       list.  It is in the range [0,15].
   @type mat: int
@@ -520,7 +538,7 @@ class MFaceSeq:
   def extend(vertseq):
     """
     Add one or more faces to the mesh.  Faces which already exist in the 
-    mesh are ignored.  Tuples of two vertices are accepted, but no face
+    mesh are ignored.  Sequences of two vertices are accepted, but no face
     will be created.
 
     Example::
@@ -531,12 +549,12 @@ class MFaceSeq:
       v = me.verts                    # get vertices
       if len(v) >= 6:                 # if there are enough vertices...
         me.faces.extend(v[1],v[2],v[3]) #   add a single edge
-        l=[(v[0],v[1]),(v[0],v[2],v[4],v[5])]
+        l=[(v[0],v[1]),[v[0],v[2],v[4],v[5]]]
         me.faces.extend(l)            #   add another face
 
-    @type vertseq: tuple(s) of MVerts
+    @type vertseq: sequence(s) of MVerts
     @param vertseq: either two to four MVerts, or sequence (list or tuple) 
-    of tuples each containing two to four MVerts.
+    of sequences each containing two to four MVerts.
     """
 
   def delete(deledges, faces):
@@ -608,6 +626,9 @@ class Mesh:
     be set.  Furthermore, if vertexColors is already set when faceUV is set,
     vertexColors is cleared.  This is because the vertex color information
     is stored with UV faces, so enabling faceUV implies enabling vertexColors.
+    In addition, faceUV cannot be set when the mesh has no faces defined
+    (this is the same behavior as the UI).  Attempting to do so will throw
+    a RuntimeError exception.
   @type faceUV: bool
   @ivar vertexColors: The mesh contains vertex colors.  See L{faceUV} for the
     use of vertex colors when UV-mapped texture faces are enabled.
@@ -706,11 +727,11 @@ class Mesh:
 
   def findEdges(edges):
     """
-    Quickly search for the location of an edge.  
-    @type edges: tuple(s) of ints or MVerts
+    Quickly search for the location of an edges.  
+    @type edges: sequence(s) of ints or MVerts
     @param edges: can be tuples of MVerts or integer indexes (B{note:} will
        not work with PVerts) or a sequence (list or tuple) containing two or
-       more tuples.
+       more sequences.
     @rtype: int, None or list
     @return: if an edge is found, its index is returned; otherwise None is
     returned.  If a sequence of edges is passed, a list is returned.
@@ -823,6 +844,16 @@ class Mesh:
     @rtype: list of strings
     @return: returns a list of strings representing all vertex group
     associated with the mesh's object
+    """
+
+  def getVertexInfluences(index):
+    """
+    Get the bone influences for a specific vertex.
+    @type index: int
+    @param index: The index of a vertex.
+    @rtype: list of lists
+    @return: List of pairs [name, weight], where name is the bone name (string)
+        and weight is a float value.
     """
 
   def smooth():

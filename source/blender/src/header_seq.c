@@ -484,8 +484,10 @@ void seq_buttons()
 
 	/* ZOOM and BORDER */
 	xco+= 8;
+	uiBlockBeginAlign(block);
 	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
+	uiBlockEndAlign(block);
 
 	/* CLEAR MEM */
 	xco+= 8;

@@ -458,7 +458,7 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 	float vec[4];
 	PyObject *m, *f;
 
-	if(i > self->rowSize || i < 0){
+	if(i >= self->rowSize || i < 0){
 		return EXPP_ReturnIntError(PyExc_TypeError,
 			"matrix[attribute] = x: bad row\n");
 	}
