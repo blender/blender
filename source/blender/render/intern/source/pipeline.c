@@ -66,6 +66,7 @@
 #include "zbuf.h"
 
 #include "SDL_thread.h"
+#include "SDL_mutex.h"
 
 /* render flow
 
@@ -104,7 +105,7 @@ Render R;
 /* ********* alloc and free ******** */
 
 
-static SDL_mutex *malloc_lock= NULL;
+SDL_mutex *malloc_lock= NULL;
 
 void *RE_mallocN(int len, char *name)
 {
@@ -153,11 +154,11 @@ static void free_render_result(RenderResult *res)
 	}
 	
 	if(res->rect32)
-		MEM_freeN(res->rect32);
+		RE_freeN(res->rect32);
 	if(res->rectz)
-		MEM_freeN(res->rectz);
+		RE_freeN(res->rectz);
 	if(res->rectf)
-		MEM_freeN(res->rectf);
+		RE_freeN(res->rectf);
 	
 	RE_freeN(res);
 }
@@ -214,8 +215,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl= RE_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
-		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
-		rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "prev/env float rgba");
+		rl->rectz= RE_callocN(rectx*recty*sizeof(float), "prev/env float Z");
 		
 		/* note, this has to be in sync with scene.c */
 		rl->lay= (1<<20) -1;
@@ -562,6 +563,7 @@ void RE_AddObject(Render *re, Object *ob)
 
 typedef struct ThreadSlot {
 	RenderPart *part;
+	SDL_Thread *sdlthread;
 	int avail;
 } ThreadSlot;
 
@@ -576,6 +578,7 @@ static void init_threadslots(int tot)
 	
 	for(a=0; a< RE_MAX_THREAD; a++) {
 		threadslots[a].part= NULL;
+		threadslots[a].sdlthread= NULL;
 		if(a<tot)
 			threadslots[a].avail= 1;
 		else
@@ -592,14 +595,18 @@ static int available_threadslots(void)
 	return counter;
 }
 
+/* prototype for functional below */
+static int do_part_thread(void *pa_v);
+
 static void insert_threadslot(RenderPart *pa)
 {
 	int a;
 	for(a=0; a< RE_MAX_THREAD; a++) {
 		if(threadslots[a].avail) {
+			pa->thread= a;
 			threadslots[a].avail= 0;
 			threadslots[a].part= pa;
-			pa->thread= a;
+			threadslots[a].sdlthread= SDL_CreateThread(do_part_thread, pa);
 			break;
 		}
 	}
@@ -612,6 +619,8 @@ static void remove_threadslot(RenderPart *pa)
 		if(threadslots[a].part==pa) {
 			threadslots[a].avail= 1;
 			threadslots[a].part= NULL;
+			SDL_WaitThread(threadslots[a].sdlthread, NULL);
+			threadslots[a].sdlthread= NULL;
 		}
 	}
 }
@@ -637,7 +646,6 @@ static int do_part_thread(void *pa_v)
 	}
 	
 	pa->ready= 1;
-	remove_threadslot(pa);
 	
 	return 0;
 }
@@ -740,9 +748,8 @@ static void threaded_tile_processor(Render *re)
 		if(available_threadslots() && !re->test_break()) {
 			pa= find_nicest_part(re);
 			if(pa) {
-				insert_threadslot(pa);
 				pa->nr= counter++;	/* only for stats */
-				SDL_CreateThread(do_part_thread, pa);
+				insert_threadslot(pa);
 			}
 		}
 		else
@@ -753,6 +760,7 @@ static void threaded_tile_processor(Render *re)
 		for(pa= re->parts.first; pa; pa= pa->next) {
 			if(pa->ready) {
 				if(pa->result) {
+					remove_threadslot(pa);	/* do it here, not in thread */
 					re->display_draw(pa->result, NULL);
 					free_render_result(pa->result);
 					pa->result= NULL;
