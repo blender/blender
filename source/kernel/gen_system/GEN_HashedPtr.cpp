@@ -36,9 +36,19 @@
 #include <config.h>
 #endif
 
-unsigned int GEN_Hash(unsigned int inDWord)
+//
+// Build hash index from pointer.  Even though the final result
+// is a 32-bit integer, use all the bits of the pointer as long
+// as possible.
+//
+
+unsigned int GEN_Hash(void * inDWord)
 {
-	unsigned int key = inDWord;
+#if defined(_WIN64)
+	unsigned __int64 key = (unsigned __int64)inDWord;
+#else
+	unsigned long key = (unsigned long)inDWord;
+#endif
 
 	key += ~(key << 16);
 	key ^=  (key >>  5);
@@ -47,5 +57,5 @@ unsigned int GEN_Hash(unsigned int inDWord)
 	key += ~(key <<  9);
 	key ^=  (key >> 17);
 
-  	return key;
+  	return (unsigned int)(key & 0xffffffff);
 }
