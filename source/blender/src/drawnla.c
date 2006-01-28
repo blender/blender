@@ -70,6 +70,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -79,6 +80,7 @@
 #include "BDR_editcurve.h"
 
 #include "blendef.h"
+#include "butspace.h"
 #include "mydevice.h"
 
 #define TESTBASE_SAFE(base)	((base)->flag & SELECT)
@@ -130,9 +132,9 @@ static void draw_nla_channels(void)
 			if(ob->nlastrips.first && ob->action) {
 				glEnable(GL_BLEND);
 				if(ob->nlaflag & OB_NLA_OVERRIDE)
-					BIF_draw_icon_blended(x+5, y-8, ICON_NLA, TH_HEADER, 0);
+					BIF_icon_draw_blended(x+5, y-8, ICON_NLA, TH_HEADER, 0);
 				else
-					BIF_draw_icon_blended(x+5, y-8, ICON_ACTION, TH_HEADER, 0);
+					BIF_icon_draw_blended(x+5, y-8, ICON_ACTION, TH_HEADER, 0);
 				glDisable(GL_BLEND);
 			}			
 			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
@@ -154,7 +156,7 @@ static void draw_nla_channels(void)
 					if(strip->flag & ACTSTRIP_ACTIVE) break;
 				if(strip==NULL) {
 					glEnable(GL_BLEND);
-					BIF_draw_icon_blended(x, y-8, ICON_DOT, TH_BACK, 0);
+					BIF_icon_draw_blended(x, y-8, ICON_DOT, TH_BACK, 0);
 					glDisable(GL_BLEND);
 				}
 				
@@ -178,7 +180,7 @@ static void draw_nla_channels(void)
 					
 					if(strip->flag & ACTSTRIP_ACTIVE) {
 						glEnable(GL_BLEND);
-						BIF_draw_icon_blended(x+16, y-8, ICON_DOT, TH_BACK, 0);
+						BIF_icon_draw_blended(x+16, y-8, ICON_DOT, TH_BACK, 0);
 						glDisable(GL_BLEND);
 					}
 				}
@@ -460,9 +462,8 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	
 	/* first labels, for simpler align code :) */
 	uiDefBut(block, LABEL, 0, "Timeline Range:",	10,180,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Blending:",			10,120,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Options:",			10,80,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Stride Support:",	10,40,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Blending:",			10,120,150,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Options:",			160,120,150,19, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_NLA_PANEL, "Strip Start:",	10,160,150,19, &strip->start, -1000.0, strip->end-1, 100, 0, "First frame in the timeline");
@@ -482,18 +483,24 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	}
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,150,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 160,100,150,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,145,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 10,80,145,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	10,60,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
-	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,60,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
-	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								230,60,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	160,100,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
+	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,80,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
+	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								235,80,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10, 50,140,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	if(ob->dup_group)
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_PANEL, "Target:",	160,50, 150, 19, &strip->object, "Target Object in this group"); 
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10,20,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
-	uiDefButBitS(block, TOG, OB_DISABLE_PATH, B_NLA_PANEL, "Disable Path",		110,20,100,19, &ob->ipoflag, 0, 0, 0, 0, "Plays action based on path position & stride");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Stride:",		210,20,100,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
+	uiDefButBitS(block, TOG, OB_DISABLE_PATH, B_NLA_PANEL, "Disable",			10,20,60,19, &ob->ipoflag, 0, 0, 0, 0, "Disable path temporally, for editing cycles");
+	
+	uiDefButF(block, NUM, B_NLA_PANEL, "Offs:",			70,20,120,19, &strip->actoffs, -500, 500.0, 100, 0, "Action offset in frames to tweak cycle of the action within the stride");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Stri:",			190,20,120,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
 	
 	uiDefButS(block, ROW, B_NLA_PANEL, "X",				10, 0, 33, 19, &strip->stride_axis, 1, 0, 0, 0, "Dominant axis for Stride Bone");
 	uiDefButS(block, ROW, B_NLA_PANEL, "Y",				43, 0, 33, 19, &strip->stride_axis, 1, 1, 0, 0, "Dominant axis for Stride Bone");

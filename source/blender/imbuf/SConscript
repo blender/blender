@@ -5,6 +5,9 @@ Import ('library_env')
 
 imbuf_env = library_env.Copy ()
 
+#if user_options_dict['USE_OPENEXR'] == 1:
+#    SConscript (['intern/openexr/SConscript'])
+
 source_files = ['intern/allocimbuf.c',
                 'intern/amiga.c',
                 'intern/anim.c',

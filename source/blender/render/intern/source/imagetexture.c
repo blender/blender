@@ -2,15 +2,12 @@
  *
  * $Id:
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,9 +21,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributors: 2004/2005/2006 Blender Foundation, full recode
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -63,22 +58,45 @@
 
 #include "SDL_thread.h"
 
-#include "render.h"
+#include "renderpipeline.h"
+#include "render_types.h"
 #include "texture.h"
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 int imaprepeat, imapextend;
 
 
 /* *********** IMAGEWRAPPING ****************** */
 
+/* x and y have to be checked for image size */
+static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
+{
+	int ofs = y * ibuf->x + x;
+	
+	if(ibuf->rect_float) {
+		float *fp= ibuf->rect_float + 4*ofs;
+		QUATCOPY(col, fp);
+	}
+	else {
+		char *rect = (char *)( ibuf->rect+ ofs);
+
+		col[0] = ((float)rect[0])/255.0f;
+		col[1] = ((float)rect[1])/255.0f;
+		col[2] = ((float)rect[2])/255.0f;
+		col[3] = ((float)rect[3])/255.0f;
+	}	
+}
 
 int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 {
 	struct ImBuf *ibuf;
 	float fx, fy, val1, val2, val3;
-	int ofs, x, y;
-	char *rect;
+	int x, y;
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
 
@@ -164,9 +182,8 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 			ibuf->rect+= (ibuf->x*ibuf->y);
 		}
 
-		ofs = y * ibuf->x + x;
-		rect = (char *)( ibuf->rect+ ofs);
-
+		ibuf_get_color(&texres->tr, ibuf, x, y);
+		
 		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
 			ibuf->rect-= (ibuf->x*ibuf->y);
 		}
@@ -175,10 +192,6 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 			if(tex->imaflag & TEX_CALCALPHA);
 			else texres->talpha= 1;
 		}
-
-		texres->tr = ((float)rect[0])/255.0f;
-		texres->tg = ((float)rect[1])/255.0f;
-		texres->tb = ((float)rect[2])/255.0f;
 		
 		if(texres->nor) {
 			if(tex->imaflag & TEX_NORMALMAP) {
@@ -191,15 +204,16 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 				val1= texres->tr+texres->tg+texres->tb;
 
 				if(x<ibuf->x-1) {
-					rect+=4;
-					val2= ((float)(rect[0]+rect[1]+rect[2]))/255.0f;
-					rect-=4;
+					float col[4];
+					ibuf_get_color(col, ibuf, x+1, y);
+					val2= (col[0]+col[1]+col[2]);
 				}
 				else val2= val1;
 
 				if(y<ibuf->y-1) {
-					rect+= 4*ibuf->x;
-					val3= ((float)(rect[0]+rect[1]+rect[2]))/255.0f;
+					float col[4];
+					ibuf_get_color(col, ibuf, x, y+1);
+					val3= (col[0]+col[1]+col[2]);
 				}
 				else val3= val1;
 
@@ -211,7 +225,7 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 
 		BRICONTRGB;
 
-		if(texres->talpha) texres->ta= texres->tin= ((float)rect[3])/255.0f;
+		if(texres->talpha) texres->tin= texres->ta;
 		else if(tex->imaflag & TEX_CALCALPHA) {
 			texres->ta= texres->tin= MAX3(texres->tr, texres->tg, texres->tb);
 		}
@@ -390,10 +404,8 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 	/* sample box, is clipped already, and minx etc. have been set at ibuf size.
        Enlarge with antialiased edges of the pixels */
 
-	float muly,mulx,div;
-	int ofs;
+	float muly, mulx, div, col[4];
 	int x, y, startx, endx, starty, endy;
-	char *rect;
 
 	startx= (int)floor(rf->xmin);
 	endx= (int)floor(rf->xmax);
@@ -406,23 +418,12 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 	if(endy>=ibuf->y) endy= ibuf->y-1;
 
 	if(starty==endy && startx==endx) {
-
-		ofs = starty*ibuf->x + startx;
-		rect = (char *)(ibuf->rect +ofs);
-		texres->tr= ((float)rect[0])/255.0f;
-		texres->tg= ((float)rect[1])/255.0f;
-		texres->tb= ((float)rect[2])/255.0f;
-			/* alpha has been set in function imagewraposa() */
-		if(texres->talpha) {
-			texres->ta= ((float)rect[3])/255.0f;
-		}
+		ibuf_get_color(&texres->tr, ibuf, startx, starty);
 	}
 	else {
 		div= texres->tr= texres->tg= texres->tb= texres->ta= 0.0;
-		for(y=starty;y<=endy;y++) {
-			ofs = y*ibuf->x +startx;
-			rect = (char *)(ibuf->rect+ofs);
-
+		for(y=starty; y<=endy; y++) {
+			
 			muly= 1.0;
 
 			if(starty==endy);
@@ -430,49 +431,52 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 				if(y==starty) muly= 1.0f-(rf->ymin - y);
 				if(y==endy) muly= (rf->ymax - y);
 			}
+			
 			if(startx==endx) {
 				mulx= muly;
-				if(texres->talpha) texres->ta+= mulx*rect[3];
-				texres->tr+= mulx*rect[0];
-				texres->tg+= mulx*rect[1];
-				texres->tb+= mulx*rect[2];
+				
+				ibuf_get_color(col, ibuf, startx, y);
+
+				texres->ta+= mulx*col[3];
+				texres->tr+= mulx*col[0];
+				texres->tg+= mulx*col[1];
+				texres->tb+= mulx*col[2];
 				div+= mulx;
 			}
 			else {
-				for(x=startx;x<=endx;x++) {
+				for(x=startx; x<=endx; x++) {
 					mulx= muly;
 					if(x==startx) mulx*= 1.0f-(rf->xmin - x);
 					if(x==endx) mulx*= (rf->xmax - x);
 
+					ibuf_get_color(col, ibuf, x, y);
+					
 					if(mulx==1.0) {
-						if(texres->talpha) texres->ta+= rect[3];
-						texres->tr+= rect[0];
-						texres->tg+= rect[1];
-						texres->tb+= rect[2];
+						texres->ta+= col[3];
+						texres->tr+= col[0];
+						texres->tg+= col[1];
+						texres->tb+= col[2];
 						div+= 1.0;
 					}
 					else {
-						if(texres->talpha) texres->ta+= mulx*rect[3];
-						texres->tr+= mulx*rect[0];
-						texres->tg+= mulx*rect[1];
-						texres->tb+= mulx*rect[2];
+						texres->ta+= mulx*col[3];
+						texres->tr+= mulx*col[0];
+						texres->tg+= mulx*col[1];
+						texres->tb+= mulx*col[2];
 						div+= mulx;
 					}
-					rect+=4;
 				}
 			}
 		}
 		if(div!=0.0) {
-			div*= 255.0;
-	
-			texres->tb/= div;
-			texres->tg/= div;
-			texres->tr/= div;
-			
-			if(texres->talpha) texres->ta/= div;
+			div= 1.0f/div;
+			texres->tb*= div;
+			texres->tg*= div;
+			texres->tr*= div;
+			texres->ta*= div;
 		}
 		else {
-			texres->tr= texres->tg= texres->tb= texres->ta= 0.0;
+			texres->tr= texres->tg= texres->tb= texres->ta= 0.0f;
 		}
 	}
 }

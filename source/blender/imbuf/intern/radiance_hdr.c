@@ -29,13 +29,12 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
-
-/*
-  -------------------------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------
   Radiance High Dynamic Range image file IO
-  For description and code for reading/writing of radiance hdr files by Greg Ward, refer to:
+  For description and code for reading/writing of radiance hdr files 
+	by Greg Ward, refer to:
   http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
-  -------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------
 */
 
 #ifdef WIN32
@@ -68,9 +67,7 @@ typedef float fCOLOR[3];
 #define copy_rgbe(c1, c2) (c2[RED]=c1[RED], c2[GRN]=c1[GRN], c2[BLU]=c1[BLU], c2[EXP]=c1[EXP])
 #define copy_fcol(f1, f2) (f2[RED]=f1[RED], f2[GRN]=f1[GRN], f2[BLU]=f1[BLU])
 
-/*-------------------------------------------------------------------------------------------------*/
 /* read routines */
-
 static unsigned char* oldreadcolrs(RGBE *scan, unsigned char *mem, int xmax)
 {
 	int i, rshift = 0, len = xmax;
@@ -127,7 +124,6 @@ static unsigned char* freadcolrs(RGBE *scan, unsigned char* mem, int xmax)
 	return mem;
 }
 
-/*-------------------------------------------------------------------------------------------------*/
 /* helper functions */
 
 /* rgbe -> float color */
@@ -161,7 +157,6 @@ static void FLOAT2RGBE(fCOLOR fcol, RGBE rgbe)
 	}
 }
 
-/*-------------------------------------------------------------------------------------------------*/
 /* ImBuf read */
 
 int imb_is_a_hdr(void *buf)
@@ -174,16 +169,17 @@ int imb_is_a_hdr(void *buf)
 
 struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 {
-	int found=0;
-	char oriY[80], oriX[80];
-	int width=0, height=0;
-	RGBE* sline;
-	int x, y;
-	char* ptr;
-	fCOLOR fcol;
-	int ir, ig, ib;
-	unsigned char* rect;
 	struct ImBuf* ibuf;
+	RGBE* sline;
+	fCOLOR fcol;
+	float* rect_float;
+	int found=0;
+	int width=0, height=0;
+	int x, y;
+	int ir, ig, ib;
+	unsigned char* ptr;
+	unsigned char* rect;
+	char oriY[80], oriX[80];
 
 	if (imb_is_a_hdr((void*)mem))
 	{
@@ -198,11 +194,11 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			sscanf((char*)&mem[x+1], "%s %d %s %d", (char*)&oriY, &height, (char*)&oriX, &width);
 
 			/* find end of this line, data right behind it */
-			ptr = strchr((char*)&mem[x+1], '\n');
+			ptr = (unsigned char *)strchr((char*)&mem[x+1], '\n');
 			ptr++;
 
-			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 24, 0, 0);
-			else ibuf = IMB_allocImBuf(width, height, 24, 1, 0);
+			if (flags & IB_test) ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
+			else ibuf = IMB_allocImBuf(width, height, 32, IB_rect|IB_rectfloat, 0);
 
 			if (ibuf==NULL) return NULL;
 			ibuf->ftype = RADHDR;
@@ -213,6 +209,8 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			/* read in and decode the actual data */
 			sline = (RGBE*)MEM_mallocN(sizeof(RGBE)*width, "radhdr_read_tmpscan");
 			rect = (unsigned char*)ibuf->rect;
+			rect_float = (float *)ibuf->rect_float;
+			
 			for (y=0;y<height;y++) {
 				ptr = freadcolrs(sline, ptr, width);
 				if (ptr==NULL) {
@@ -223,10 +221,13 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 				for (x=0;x<width;x++) {
 					/* convert to ldr */
 					RGBE2FLOAT(sline[x], fcol);
-					/*--------------------------------------------------------------------------------------*/
-					/* THIS PART NEEDS TO BE ADAPTED TO WRITE TO IMBUF FLOATBUFFER ONCE THAT IS IMPLEMENTED
-					 * temporarily now loads as regular image using simple tone mapping
-					 * (of course this should NOT be done when loading to floatbuffer!) */
+					*rect_float++ = fcol[RED];
+					*rect_float++ = fcol[GRN];
+					*rect_float++ = fcol[BLU];
+					*rect_float++ = 1.0f;
+
+					/* Also old oldstyle for the rest of blender which is not using floats yet */
+/* very weird mapping! (ton) */
 					fcol[RED] = 1.f-exp(fcol[RED]*-1.414213562f);
 					fcol[GRN] = 1.f-exp(fcol[GRN]*-1.414213562f);
 					fcol[BLU] = 1.f-exp(fcol[BLU]*-1.414213562f);
@@ -237,7 +238,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 					*rect++ = (unsigned char)((ig<0) ? 0 : ((ig>255) ? 255 : ig));
 					*rect++ = (unsigned char)((ib<0) ? 0 : ((ib>255) ? 255 : ib));
 					*rect++ = 255;
-					/*--------------------------------------------------------------------------------------*/
 				}
 			}
 			MEM_freeN(sline);
@@ -251,36 +251,39 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 	return NULL;
 }
 
-/*-------------------------------------------------------------------------------------------------*/
 /* ImBuf write */
-
-
-static int fwritecolrs(FILE* file, int width, RGBE* rgbe_scan, unsigned char* ibufscan, float* fpscan)
+static int fwritecolrs(FILE* file, int width, unsigned char* ibufscan, float* fpscan)
 {
-	int i, j, beg, c2, cnt=0;
+	int x, i, j, beg, c2, cnt=0;
 	fCOLOR fcol;
-	RGBE rgbe;
+	RGBE rgbe, *rgbe_scan;
 
 	if ((ibufscan==NULL) && (fpscan==NULL)) return 0;
 
+	rgbe_scan = (RGBE*)MEM_mallocN(sizeof(RGBE)*width, "radhdr_write_tmpscan");
+
 	/* convert scanline */
-	for (i=0, j=0;i<width;i++, j+=4) {
-			if (ibufscan) {
-				fcol[RED] = (float)ibufscan[j] / 255.f;
-				fcol[GRN] = (float)ibufscan[j+1] / 255.f;
-				fcol[BLU] = (float)ibufscan[j+2] /255.f;
-			}
-			else {
-				fcol[RED] = fpscan[j];
-				fcol[GRN] = fpscan[j+1];
-				fcol[BLU] = fpscan[j+2];
-			}
-			FLOAT2RGBE(fcol, rgbe);
-			copy_rgbe(rgbe, rgbe_scan[i]);
+        j= 0;
+	for (i=0;i<width;i++) {
+		if (fpscan) {
+			fcol[RED] = fpscan[j];
+			fcol[GRN] = fpscan[j+1];
+			fcol[BLU] = fpscan[j+2];
+		} else {
+			fcol[RED] = (float)ibufscan[j] / 255.f;
+			fcol[GRN] = (float)ibufscan[j+1] / 255.f;
+			fcol[BLU] = (float)ibufscan[j+2] /255.f;
+		}
+		FLOAT2RGBE(fcol, rgbe);
+		copy_rgbe(rgbe, rgbe_scan[i]);
+		j+=4;
 	}
 
-	if ((width < MINELEN) | (width > MAXELEN))	/* OOBs, write out flat */
-		return (fwrite((char *)rgbe_scan, sizeof(RGBE), width, file) - width);
+	if ((width < MINELEN) | (width > MAXELEN)) {	/* OOBs, write out flat */
+		x=fwrite((char *)rgbe_scan, sizeof(RGBE), width, file) - width;
+		MEM_freeN(rgbe_scan);
+		return x;
+	}
 	/* put magic header */
 	putc(2, file);
 	putc(2, file);
@@ -315,6 +318,7 @@ static int fwritecolrs(FILE* file, int width, RGBE* rgbe_scan, unsigned char* ib
 			else cnt = 0;
 		}
 	}
+	MEM_freeN(rgbe_scan);
 	return(ferror(file) ? -1 : 0);
 }
 
@@ -335,58 +339,31 @@ static void writeHeader(FILE *file, int width, int height)
 
 short imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
 {
+	FILE* file = fopen(name, "wb");
+	float *fp= NULL;
 	int y, width=ibuf->x, height=ibuf->y;
-	RGBE* sline;
-
-	FILE* file = fopen(name, "wb");
+	char *cp= NULL;
+	
 	if (file==NULL) return 0;
 
 	writeHeader(file, width, height);
 
-	sline = (RGBE*)MEM_mallocN(sizeof(RGBE)*width, "radhdr_write_tmpscan");
-
+	if(ibuf->rect)
+		cp= (char *)(ibuf->rect + (height-1)*width);
+	if(ibuf->rect_float)
+		fp= ibuf->rect_float + 4*(height-1)*width;
+	
 	for (y=height-1;y>=0;y--) {
-		if (fwritecolrs(file, width, sline, (unsigned char*)&ibuf->rect[y*width], NULL) < 0)
-		{ // error
+		if (fwritecolrs(file, width, cp, fp) < 0) {
 			fclose(file);
-			MEM_freeN(sline);
 			printf("HDR write error\n");
 			return 0;
 		}
+		if(cp) cp-= 4*width;
+		if(fp) fp-= 4*width;
 	}
 
 	fclose(file);
-	MEM_freeN(sline);
 	return 1;
 }
 
-/* Temporary routine to save directly from render floatbuffer.
-   Called by schrijfplaatje() in toets.c */
-short imb_savehdr_fromfloat(float *fbuf, char *name, int width, int height)
-{
-	int y;
-	RGBE* sline;
-
-	FILE* file = fopen(name, "wb");
-	if (file==NULL) return 0;
-
-	writeHeader(file, width, height);
-
-	sline = (RGBE*)MEM_mallocN(sizeof(RGBE)*width, "radhdr_write_tmpscan");
-
-	for (y=height-1;y>=0;y--) {
-		if (fwritecolrs(file, width, sline, NULL, &fbuf[y*width*4]) < 0)
-		{ // error
-			fclose(file);
-			MEM_freeN(sline);
-			printf("HDR write error\n");
-			return 0;
-		}
-	}
-
-	fclose(file);
-	MEM_freeN(sline);
-	return 1;
-}
-
-/*-------------------------------------------------------------------------------------------------*/

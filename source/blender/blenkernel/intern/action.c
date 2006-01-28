@@ -66,7 +66,6 @@
 #include "BLI_blenlib.h"
 
 #include "nla.h"
-#include "render.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 
@@ -83,6 +82,38 @@
 
 /* ***************** Library data level operations on action ************** */
 
+static void make_local_action_channels(bAction *act)
+{
+	bActionChannel *chan;
+	bConstraintChannel *conchan;
+	
+	for (chan=act->chanbase.first; chan; chan=chan->next) {
+		if(chan->ipo) {
+			if(chan->ipo->id.us==1) {
+				chan->ipo->id.lib= NULL;
+				chan->ipo->id.flag= LIB_LOCAL;
+				new_id(0, (ID *)chan->ipo, 0);
+			}
+			else {
+				chan->ipo= copy_ipo(chan->ipo);
+			}
+		}
+		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+			if(conchan->ipo) {
+				if(conchan->ipo->id.us==1) {
+					conchan->ipo->id.lib= NULL;
+					conchan->ipo->id.flag= LIB_LOCAL;
+					new_id(0, (ID *)conchan->ipo, 0);
+				}
+				else {
+					conchan->ipo= copy_ipo(conchan->ipo);
+				}
+			}
+		}
+	}
+					
+}
+
 void make_local_action(bAction *act)
 {
 	Object *ob;
@@ -93,6 +124,7 @@ void make_local_action(bAction *act)
 	if(act->id.us==1) {
 		act->id.lib= 0;
 		act->id.flag= LIB_LOCAL;
+		make_local_action_channels(act);
 		new_id(0, (ID *)act, 0);
 		return;
 	}
@@ -109,6 +141,7 @@ void make_local_action(bAction *act)
 	if(local && lib==0) {
 		act->id.lib= 0;
 		act->id.flag= LIB_LOCAL;
+		make_local_action_channels(act);
 		new_id(0, (ID *)act, 0);
 	}
 	else if(local && lib) {
@@ -204,7 +237,7 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	/* If not, create it and add it */
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	
-	strcpy (chan->name, name);
+	strncpy (chan->name, name, 31);
 	/* init vars to prevent mat errors */
 	chan->quat[0] = 1.0F;
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0F;
@@ -346,7 +379,7 @@ bActionChannel *verify_action_channel(bAction *act, const char *name)
 	if(chan==NULL) {
 		if (!chan) {
 			chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-			strcpy (chan->name, name);
+			strncpy (chan->name, name, 31);
 			BLI_addtail (&act->chanbase, chan);
 		}
 	}
@@ -427,7 +460,7 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 }
 
 
-void calc_action_range(const bAction *act, float *start, float *end)
+void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
 {
 	const bActionChannel *chan;
 	const bConstraintChannel *conchan;
@@ -437,22 +470,24 @@ void calc_action_range(const bAction *act, float *start, float *end)
 
 	if(act) {
 		for (chan=act->chanbase.first; chan; chan=chan->next) {
-			if(chan->ipo) {
-				for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
-					if(icu->totvert) {
-						min= MIN2 (min, icu->bezt[0].vec[1][0]);
-						max= MAX2 (max, icu->bezt[icu->totvert-1].vec[1][0]);
-						foundvert=1;
-					}
-				}
-			}
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-				if(conchan->ipo) {
-					for (icu=conchan->ipo->curve.first; icu; icu=icu->next) {
+			if(incl_hidden || (chan->flag & ACHAN_HIDDEN)==0) {
+				if(chan->ipo) {
+					for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
 						if(icu->totvert) {
 							min= MIN2 (min, icu->bezt[0].vec[1][0]);
 							max= MAX2 (max, icu->bezt[icu->totvert-1].vec[1][0]);
 							foundvert=1;
+						}
+					}
+				}
+				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+					if(conchan->ipo) {
+						for (icu=conchan->ipo->curve.first; icu; icu=icu->next) {
+							if(icu->totvert) {
+								min= MIN2 (min, icu->bezt[0].vec[1][0]);
+								max= MAX2 (max, icu->bezt[icu->totvert-1].vec[1][0]);
+								foundvert=1;
+							}
 						}
 					}
 				}
@@ -719,9 +754,9 @@ static float nla_time(float cfra, float unit)
 	extern float bluroffs;	// bad construct, borrowed from object.c for now
 	
 	/* 2nd field */
-	if(R.flag & R_SEC_FIELD) {
-		if(R.r.mode & R_FIELDSTILL); else cfra+= 0.5f*unit;
-	}
+//	if(R.flag & R_SEC_FIELD) {
+//		if(R.r.mode & R_FIELDSTILL); else cfra+= 0.5f*unit;
+//	}
 	
 	/* motion blur */
 	cfra+= unit*bluroffs;
@@ -769,11 +804,14 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 		
 		if(foundvert && miny!=maxy) {
 			float stridelen= fabs(maxy-miny), striptime;
-			float actiondist, pdist, pdistNewNormalized;
+			float actiondist, pdist, pdistNewNormalized, offs;
 			float vec1[4], vec2[4], dir[3];
 			
+			/* internal cycling, actoffs is in frames */
+			offs= stridelen*strip->actoffs/(maxx-minx);
+			
 			/* amount path moves object */
-			pdist = (float)fmod (pathdist, stridelen);
+			pdist = (float)fmod (pathdist+offs, stridelen);
 			striptime= pdist/stridelen;
 			
 			/* amount stride bone moves */
@@ -801,6 +839,26 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 	return 0.0f;
 }
 
+/* simple case for now; only the curve path with constraint value > 0.5 */
+/* blending we might do later... */
+static Object *get_parent_path(Object *ob)
+{
+	bConstraint *con;
+	
+	if(ob->parent && ob->parent->type==OB_CURVE)
+		return ob->parent;
+	
+	for (con = ob->constraints.first; con; con=con->next) {
+		if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
+			if(con->enforce>0.5f) {
+				bFollowPathConstraint *data= con->data;
+				return data->tar;
+			}
+		}
+	}
+	return NULL;
+}
+
 /* ************** do the action ************ */
 
 static void do_nla(Object *ob, int blocktype)
@@ -808,9 +866,10 @@ static void do_nla(Object *ob, int blocktype)
 	bPose *tpose= NULL;
 	Key *key= NULL;
 	ListBase tchanbase={NULL, NULL}, chanbase={NULL, NULL};
-	bActionStrip *strip;
+	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
+	float scene_cfra= G.scene->r.cfra;
 	int	doit, dostride;
 	
 	if(blocktype==ID_AR) {
@@ -821,6 +880,32 @@ static void do_nla(Object *ob, int blocktype)
 		key= ob_get_key(ob);
 	}
 	
+	/* check on extend to left or right, when no strip is hit by 'cfra' */
+	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+		/* escape loop on a hit */
+		if( scene_cfra >= strip->start && scene_cfra <= strip->end + 0.1f)	/* note 0.1 comes back below */
+			break;
+		if(scene_cfra < strip->start) {
+			if(stripfirst==NULL)
+				stripfirst= strip;
+			else if(stripfirst->start > strip->start)
+				stripfirst= strip;
+		}
+		else if(scene_cfra > strip->end) {
+			if(striplast==NULL)
+				striplast= strip;
+			else if(striplast->end < strip->end)
+				striplast= strip;
+		}
+	}
+	if(strip==NULL) {	/* extend */
+		if(stripfirst)
+			scene_cfra= stripfirst->start;
+		else if(striplast)
+			scene_cfra= striplast->end;
+	}
+	
+	/* and now go over all strips */
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
 		doit=dostride= 0;
 		
@@ -829,82 +914,88 @@ static void do_nla(Object *ob, int blocktype)
 			/* Determine if the current frame is within the strip's range */
 			length = strip->end-strip->start;
 			actlength = strip->actend-strip->actstart;
-			striptime = (G.scene->r.cfra-(strip->start)) / length;
-			stripframe = (G.scene->r.cfra-(strip->start)) ;
-
+			striptime = (scene_cfra-(strip->start)) / length;
+			stripframe = (scene_cfra-(strip->start)) ;
+			
 			if (striptime>=0.0){
 				
 				if(blocktype==ID_AR) 
 					rest_pose(tpose);
 				
-				/* Handle path */
-				if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
-					if (ob->parent && ob->parent->type==OB_CURVE){
-						Curve *cu = ob->parent->data;
-						float ctime, pdist;
+				/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
+				if (striptime < 1.0f + 0.1f/length) {
+					
+					/* Handle path */
+					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
+						Object *parent= get_parent_path(ob);
 						
-						if (cu->flag & CU_PATH){
-							/* Ensure we have a valid path */
-							if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(ob->parent, 0);
-							if(cu->path) {
-								
-								/* Find the position on the path */
-								ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
-								
-								if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
-									ctime /= cu->pathlen;
-									CLAMP(ctime, 0.0, 1.0);
-								}
-								pdist = ctime*cu->path->totdist;
-								
-								if(tpose && strip->stridechannel[0]) {
-									striptime= stridechannel_frame(ob->parent, strip, cu->path, pdist, tpose->stride_offset);
-								}									
-								else {
-									if (strip->stridelen) {
-										striptime = pdist / strip->stridelen;
-										striptime = (float)fmod (striptime, 1.0);
+						if (parent) {
+							Curve *cu = parent->data;
+							float ctime, pdist;
+							
+							if (cu->flag & CU_PATH){
+								/* Ensure we have a valid path */
+								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(parent, 0);
+								if(cu->path) {
+									
+									/* Find the position on the path */
+									ctime= bsystem_time(ob, parent, scene_cfra, 0.0);
+									
+									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
+										ctime /= cu->pathlen;
+										CLAMP(ctime, 0.0, 1.0);
 									}
-									else
-										striptime = 0;
+									pdist = ctime*cu->path->totdist;
+									
+									if(tpose && strip->stridechannel[0]) {
+										striptime= stridechannel_frame(parent, strip, cu->path, pdist, tpose->stride_offset);
+									}									
+									else {
+										if (strip->stridelen) {
+											striptime = pdist / strip->stridelen;
+											striptime = (float)fmod (striptime+strip->actoffs, 1.0);
+										}
+										else
+											striptime = 0;
+									}
+									
+									frametime = (striptime * actlength) + strip->actstart;
+									frametime= bsystem_time(ob, 0, frametime, 0.0);
+									
+									if(blocktype==ID_AR) {
+										extract_pose_from_action (tpose, strip->act, frametime);
+									}
+									else if(blocktype==ID_OB) {
+										extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
+										if(key)
+											extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
+									}
+									doit=dostride= 1;
 								}
-								
-								frametime = (striptime * actlength) + strip->actstart;
-								frametime= bsystem_time(ob, 0, frametime, 0.0);
-								
-								if(blocktype==ID_AR) {
-									extract_pose_from_action (tpose, strip->act, frametime);
-								}
-								else if(blocktype==ID_OB) {
-									extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-									if(key)
-										extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-								}
-								doit=dostride= 1;
 							}
 						}
 					}
-				}
-				/* Handle repeat, we add 0.1 frame extra to make sure the last frame is included */
-				else if (striptime < 1.0f + 0.1f/length) {
-					
-					/* Mod to repeat */
-					if(strip->repeat!=1.0f) {
-						striptime*= strip->repeat;
-						striptime = (float)fmod (striptime, 1.0f + 0.1f/length);
-					}
-
-					frametime = (striptime * actlength) + strip->actstart;
-					frametime= nla_time(frametime, (float)strip->repeat);
+					/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
+					else  {
 						
-					if(blocktype==ID_AR)
-						extract_pose_from_action (tpose, strip->act, frametime);
-					else if(blocktype==ID_OB) {
-						extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-						if(key)
-							extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-					}						
-					doit=1;
+						/* Mod to repeat */
+						if(strip->repeat!=1.0f) {
+							striptime*= strip->repeat;
+							striptime = (float)fmod (striptime, 1.0f + 0.1f/length);
+						}
+
+						frametime = (striptime * actlength) + strip->actstart;
+						frametime= nla_time(frametime, (float)strip->repeat);
+							
+						if(blocktype==ID_AR)
+							extract_pose_from_action (tpose, strip->act, frametime);
+						else if(blocktype==ID_OB) {
+							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
+							if(key)
+								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
+						}						
+						doit=1;
+					}
 				}
 				/* Handle extend */
 				else{
@@ -930,10 +1021,10 @@ static void do_nla(Object *ob, int blocktype)
 				if (doit){
 					/* Handle blendin */
 					
-					if (strip->blendin>0.0 && stripframe<=strip->blendin && G.scene->r.cfra>=strip->start){
+					if (strip->blendin>0.0 && stripframe<=strip->blendin && scene_cfra>=strip->start){
 						blendfac = stripframe/strip->blendin;
 					}
-					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && G.scene->r.cfra<=strip->end){
+					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && scene_cfra<=strip->end){
 						blendfac = (length-stripframe)/(strip->blendout);
 					}
 					else
@@ -998,6 +1089,7 @@ void do_all_pose_actions(Object *ob)
 void do_all_object_actions(Object *ob)
 {
 	if(ob==NULL) return;
+	if(ob->dup_group) return;	/* prevent conflicts, might add smarter check later */
 	
 	/* Do local action */
 	if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
@@ -1020,4 +1112,5 @@ void do_all_object_actions(Object *ob)
 		do_nla(ob, ID_OB);
 	}
 }
+
 

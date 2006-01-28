@@ -42,7 +42,6 @@ struct BWinEvent;
 
 void clear_global_filesel_vars(void);
 void filesel_statistics(struct SpaceFile *sfile, int *totfile, int *selfile, float *totlen, float *sellen);
-void checkdir(char *dir);
 void test_flags_file(struct SpaceFile *sfile);
 void sort_filelist(struct SpaceFile *sfile);
 void read_dir(struct SpaceFile *sfile);

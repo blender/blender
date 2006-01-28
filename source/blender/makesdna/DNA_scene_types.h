@@ -1,9 +1,4 @@
 /**
- * blenlib/DNA_scene_types.h (mar-2001 nzc)
- *
- * Renderrecipe and scene decription. The fact that there is a
- * hierarchy here is a bit strange, and not desirable.
- *
  * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -53,6 +48,7 @@ struct World;
 struct Scene;
 struct Image;
 struct Group;
+struct bNodeTree;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -98,6 +94,34 @@ typedef struct AudioData {
 	short pad[3];
 } AudioData;
 
+typedef struct SceneRenderLayer {
+	struct SceneRenderLayer *next, *prev;
+	
+	char name[32];
+	struct Scene *scene;	/* unused still */
+	unsigned int lay;		/* scene->lay itself has priority over this */
+	short layflag;
+	short passflag;
+} SceneRenderLayer;
+
+/* srl->layflag */
+#define SCE_LAY_SOLID	1
+#define SCE_LAY_ZTRA	2
+#define SCE_LAY_HALO	4
+#define SCE_LAY_STRAND	8
+
+/* srl->passflag */
+#define SCE_PASS_COMBINED	1
+#define SCE_PASS_Z			2
+#define SCE_PASS_RGBA		4
+#define SCE_PASS_DIFFUSE	8
+#define SCE_PASS_SPEC		16
+#define SCE_PASS_SHADOW		32
+#define SCE_PASS_AO			64
+#define SCE_PASS_MIRROR		128
+#define SCE_PASS_NORMAL		256
+#define SCE_PASS_VECTOR		512
+
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
@@ -117,7 +141,7 @@ typedef struct RenderData {
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
  	
- 	short filtertype, pad;		/* filter is box, tent, gauss, mitch, etc */
+ 	short filtertype;			/* filter is box, tent, gauss, mitch, etc */
 
 
 	short size, maximsize;	/* size in %, max in Kb */
@@ -146,14 +170,14 @@ typedef struct RenderData {
 	 * The number of part to use in the y direction
 	 */
 	short yparts;
-	/* should rewrite this I think... */
-	rctf safety, border;
         
-	short winpos, planes, imtype;
+	short winpos, planes, imtype, subimtype;
+	
 	/** Mode bits:                                                           */
 	/* 0: Enable backbuffering for images                                    */
 	short bufflag;
  	short quality;
+	
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
 	 * 0: enable sequence output rendering                                   
@@ -209,6 +233,14 @@ typedef struct RenderData {
 	/** For unified renderer: reduce intensity on boundaries with
 	 * identical materials with this number.*/
 	short same_mat_redux;
+	
+	/* safety and border rect */
+	rctf safety, border;
+	
+	/* information on different layers to be rendered */
+	ListBase layers;
+	short actlay, pad;
+	int pad2;
 	
 	/**
 	 * The gamma for the normal rendering. Used when doing
@@ -289,7 +321,6 @@ typedef struct Scene {
 	
 	ListBase base;
 	struct Base *basact;
-	struct Group *group;
 	
 	float cursor[3];
 	float twcent[3];			/* center for transform widget */
@@ -297,9 +328,12 @@ typedef struct Scene {
 	unsigned int lay;
 	
 	/* editmode stuff */
-	short selectmode, pad;
-	short proportional, prop_mode;
 	float editbutsize;                      /* size of normals */
+	short selectmode;
+	short proportional, prop_mode;
+	
+	short use_nodes;
+	struct bNodeTree *nodetree;	
 	
 	void *ed;
 	struct Radio *radio;
@@ -321,7 +355,7 @@ typedef struct Scene {
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
-	int dirty;
+	short dirty, recalc;				/* recalc = counterpart of ob->recalc */
 } Scene;
 
 
@@ -377,7 +411,8 @@ typedef struct Scene {
 #define R_PASSEPARTOUT	0x0004
 
 #define R_EXTENSION		0x0010
-#define R_OGL			0x0020
+#define R_NODE_PREVIEW	0x0020
+#define R_DOCOMP		0x0040
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -406,33 +441,12 @@ typedef struct Scene {
 #define R_BMP		20
 #define R_RADHDR	21
 #define R_TIFF		22
+#define R_OPENEXR	23
 
-/* **************** RENDER ********************* */
-/* mode flag is same as for renderdata */
-/* flag */
-#define R_ZTRA			1
-#define R_HALO			2
-#define R_SEC_FIELD		4
-#define R_LAMPHALO		8
-#define R_RENDERING		16
-#define R_ANIMRENDER	32
-#define R_REDRAW_PRV	64
+/* subimtype, flag options for imtype */
+#define R_OPENEXR_HALF	1
+#define R_OPENEXR_ZBUF	2
 
-/* vlakren->flag (vlak = face in dutch) char!!! */
-#define R_SMOOTH		1
-#define R_VISIBLE		2
-	/* strand flag, means special handling */
-#define R_STRAND		4
-#define R_NOPUNOFLIP	8
-#define R_FULL_OSA		16
-#define R_FACE_SPLIT	32
-	/* Tells render to divide face other way. */
-#define R_DIVIDE_24		64	
-	/* vertex normals are tangent or view-corrected vector, for hair strands */
-#define R_TANGENT		128		
-
-/* vertren->texofs (texcoordinate offset relative to vertren->orco */
-#define R_UVOFS3	1
 
 /* **************** SCENE ********************* */
 #define RAD_PHASE_PATCHES	1
@@ -451,6 +465,9 @@ typedef struct Scene {
 /* sce->dirty */
 #define SCE_CLEAN           0
 #define SCE_DIRTY           1
+
+/* sce->recalc (now in use by previewrender) */
+#define SCE_PRV_CHANGED		1
 
 /* sce->prop_mode (proportional falloff) */
 #define PROP_SMOOTH            0

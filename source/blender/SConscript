@@ -13,9 +13,11 @@ SConscript(['avi/SConscript',
             'radiosity/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
-            'renderconverter/SConscript',
             'src/SConscript',
             'yafray/SConscript'])
+
+if user_options_dict['USE_OPENEXR'] == 1:
+    SConscript (['imbuf/intern/openexr/SConscript'])
 
 if user_options_dict['USE_INTERNATIONAL'] == 1:
     SConscript (['ftfont/SConscript'])

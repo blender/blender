@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,12 +20,12 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributors: 2004/2005/2006 Blender Foundation, full recode
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * Add enhanced edges on a rendered image (toon shading, edge shading).
+ * ***** END GPL LICENSE BLOCK *****
+ */
+ 
+/* Add enhanced edges on a rendered image (toon shading, edge shading).
  */
 
 /*
@@ -58,29 +55,25 @@
 #include <limits.h>       /* INT_MIN,MAX are used here                       */ 
 #include <stdio.h>
 
+#include "DNA_material_types.h"
+
 #include "MEM_guardedalloc.h"
 #include "MTC_vectorops.h"
 #include "BKE_utildefines.h"
+#include "BLI_jitter.h"
 
-#include "RE_callbacks.h"
+#include "render_types.h"
+#include "renderpipeline.h"
 #include "edgeRender.h"
-#include "render.h"
 #include "zbuf.h" /* for zbufclipwire and zbufclip */
-#include "jitter.h"
 
-#ifdef RE_EDGERENDERSAFE
-char edgeRender_h[] = EDGERENDER_H;
-char edgeRender_c[] = "$Id$";
-#include "errorHandler.h"
-#endif
 
-/* ------------------------------------------------------------------------- */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
- /* These function pointers are used for z buffer filling.    */
-extern float Zmulx, Zmuly;   /* Some kind of scale?                          */
-extern float Zjitx,Zjity;    /* The x,y values for jitter offset             */
-
-/* ------------------------------------------------------------------------- */
 
 /* exp: */
 static Material** matBuffer;  /* buffer with material indices                */
@@ -111,64 +104,59 @@ static char edgeB;
 /**
  * Initialise the edge render buffer memory.
  */
-void initEdgeRenderBuffer(void);
+static void initEdgeRenderBuffer(void);
 /**
  * Release buffer memory.
  */
-void freeEdgeRenderBuffer(void);
+static void freeEdgeRenderBuffer(void);
 
 /**
  * Set all distances in the distance buffer to the maximum distance.
  */
-void resetDistanceBuffer(void);
+static void resetDistanceBuffer(void);
 
 /**
  * Insert this distance at these pixel coordinates.
  */
-void insertInEdgeBuffer(int x, int y, int dist);
+static void insertInEdgeBuffer(int x, int y, int dist);
 
 /**
  * Renders enhanced edges. Distances from distRect are used to
  * determine a correction on colourRect
  */
-void renderEdges(char * colourRect);
+static void renderEdges(char * colourRect);
 
 /**
  * Buffer an edge between these two vertices in the e.r. distance buffer.
  */
-static void fillEdgeRenderEdge(int, float *vec1, float *vec2);
+static void fillEdgeRenderEdge(ZSpan *zspan, int, float *vec1, float *vec2);
 
 /**
  * Buffer a face between these two vertices in the e.r. distance buffer.
  */
-static void fillEdgeRenderFace(struct ZSpan *zspan, int, float *v1, float *v2, float *v3);
+static void fillEdgeRenderFace(struct ZSpan *zspan, int, float *v1, float *v2, float *v3, float *v4);
 
 /**
  * Compose the edge render colour buffer.
  */
-void calcEdgeRenderColBuf(char * tarbuf);
+static void calcEdgeRenderColBuf(char * tarbuf);
 
 /**
  * Loop over all objects that need to be edge rendered. This loop determines
  * which objects get to be elected for edge rendering.
  */
-int  zBufferEdgeRenderObjects(void);
+static int  zBufferEdgeRenderObjects(void);
 
 /**
  * Add edge pixels to the original image. It blends <bron> over <doel>.
  */
-void addEdgeOver(unsigned char *dst, unsigned char *src);
+static void addEdgeOver(unsigned char *dst, unsigned char *src);
 
 /* ------------------------------------------------------------------------- */
 
-void addEdges(
-	char * targetbuf,
-	int iw, int ih,
-	int osanr,
-	short int intens, short int intens_redux,
-	int compat, int mode,
-	float r, float g, float b
-	)
+/* this is main call! */
+void addEdges(char * targetbuf, int iw, int ih, int osanr,
+	short int intens, short int intens_redux, int compat, int mode, float r, float g, float b)
 {
 	float rf, gf ,bf;
 	/* render parameters */
@@ -178,6 +166,10 @@ void addEdges(
 	compatible_mode = compat;
 	osaCount   = osanr;
 	intensity  = intens;
+	
+	printf("Unsuported code!\n");
+	return;
+	
 	/* Reduction doesn't exceed intensity. */
 	same_mat_redux = ((intens_redux < intensity)? intens_redux : intensity);
 	
@@ -197,7 +189,7 @@ void addEdges(
 
 /* ------------------------------------------------------------------------- */
 
-void initEdgeRenderBuffer()
+static void initEdgeRenderBuffer()
 {
 	char *ptr;
 	int i;
@@ -230,16 +222,10 @@ void initEdgeRenderBuffer()
 		}
 	}
 	
-#ifdef RE_EDGERENDERSAFE
-	if (!edgeBuffer || !colBuffer) {
-		char *fname = "initEdgeRenderBuffer";
-		RE_error(RE_CANNOT_ALLOCATE_MEMORY, fname);
-	}
-#endif
 } /* end of void initEdgeRenderBuffer(void) */
 
 /* ------------------------------------------------------------------------- */
-void freeEdgeRenderBuffer(void)
+static void freeEdgeRenderBuffer(void)
 {
 	if(edgeBuffer) MEM_freeN(edgeBuffer);
 	edgeBuffer= NULL;
@@ -251,7 +237,7 @@ void freeEdgeRenderBuffer(void)
 
 /* ------------------------------------------------------------------------- */
 
-void resetDistanceBuffer(void)
+static void resetDistanceBuffer(void)
 {
 	int i;
 	for(i = 0; i < bufWidth * bufHeight; i++) edgeBuffer[i] = 0x7FFFFFFF;
@@ -259,17 +245,9 @@ void resetDistanceBuffer(void)
 
 /* ------------------------------------------------------------------------- */
 
-void insertInEdgeBuffer(int x, int y, int dist)
+static void insertInEdgeBuffer(int x, int y, int dist)
 {
 	int index;
-#ifdef RE_EDGERENDERSAFE
-	char *fname = "insertInEdgeBuffer";
-	if ((x < 0) || (x > imWidth ) ||
-		(y < 0) || (y > (imHeight-1) ) ) {
-		RE_error(RE_EDGERENDER_WRITE_OUTSIDE_BUFFER, fname);
-		return;
-	}
-#endif
 
 	/* +1? */
 	index = (y * bufWidth) + x + maskBorder;
@@ -286,7 +264,7 @@ void insertInEdgeBuffer(int x, int y, int dist)
 
 /* ------------------------------------------------------------------------- */
 /* Modelled after rendercore.c/edge_enhance()                                */
-void renderEdges(char *colourRect)
+static void renderEdges(char *colourRect)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int val, y, x, col, *rz, *rz1, *rz2, *rz3;
@@ -496,7 +474,7 @@ void renderEdges(char *colourRect)
 /* ------------------------------------------------------------------------- */
 
 /* adds src to dst */
-void addEdgeOver(unsigned char *dst, unsigned char *src)   
+static void addEdgeOver(unsigned char *dst, unsigned char *src)   
 {
    unsigned char inverse;
    unsigned char alpha;
@@ -534,20 +512,15 @@ void addEdgeOver(unsigned char *dst, unsigned char *src)
    dst[2] = c;
 }
 
-void calcEdgeRenderColBuf(char* colTargetBuffer)
+static void calcEdgeRenderColBuf(char* colTargetBuffer)
 {
-
     int keepLooping = 1;
 	int sample;
 	
 	/* zbuffer fix: here? */
-	Zmulx= ((float) imWidth)/2.0;
-  	Zmuly= ((float) imHeight)/2.0;
+//	Zmulx= ((float) imWidth)/2.0;
+//  	Zmuly= ((float) imHeight)/2.0;
 	
-	/* use these buffer fill functions */    
-	zbuffunc     = fillEdgeRenderFace;
-	zbuflinefunc = fillEdgeRenderEdge;
-
 	/* always buffer the max. extent */
 	Aminy = 0;
 	Amaxy = imHeight;
@@ -555,8 +528,8 @@ void calcEdgeRenderColBuf(char* colTargetBuffer)
 	sample = 0; /* Zsample is used internally !                         */
 	while ( (sample < osaCount) && keepLooping ) {
 		/* jitter */
-		Zjitx= -jit[sample][0];
-		Zjity= -jit[sample][1];
+//		Zjitx= -R.jit[sample][0];
+//		Zjity= -R.jit[sample][1];
 
 		/* should reset dis buffer here */
 		resetDistanceBuffer();
@@ -567,7 +540,7 @@ void calcEdgeRenderColBuf(char* colTargetBuffer)
 		/* do filtering */
 		renderEdges(colTargetBuffer);
 
-  		if(RE_local_test_break()) keepLooping = 0; 
+  		if(R.test_break()) keepLooping = 0; 
   		sample++; 
 	}
 
@@ -589,13 +562,28 @@ void calcEdgeRenderColBuf(char* colTargetBuffer)
 /* ------------------------------------------------------------------------- */
 /* Clip flags etc. should still be set. When called in the span of 'normal'  */
 /* rendering, this should be ok.                                             */
-int zBufferEdgeRenderObjects(void)
+static int zBufferEdgeRenderObjects(void)
 {
+	ZSpan zspan;
 	VlakRen *vlr= NULL;
+    Material *ma;
 	unsigned int zvlnr;
     int keepLooping; 
     int faceCounter; /* counter for face number */
-    Material *ma;
+	
+	zbuf_alloc_span(&zspan, imWidth, imHeight);
+	
+	/* needed for transform from hoco to zbuffer co */
+	zspan.zmulx=  ((float)imWidth)/2.0;
+	zspan.zmuly=  ((float)imHeight)/2.0;
+	zspan.zofsx= -0.5f;
+	zspan.zofsy= -0.5f;
+	
+	/* the buffers ??? */
+	
+	/* filling methods */
+	zspan.zbuffunc     = fillEdgeRenderFace;
+	zspan.zbuflinefunc = fillEdgeRenderEdge;
 	
     keepLooping = 1;
     ma          = NULL;
@@ -618,19 +606,19 @@ int zBufferEdgeRenderObjects(void)
 		    /* here we cull all transparent faces if mode == 0 */
 		    if (selectmode || !(ma->mode & MA_ZTRA)) {
 			    /* here we can add all kinds of extra selection criteria */
-			    if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
+			    if(ma->mode & (MA_WIRE)) zbufclipwire(&zspan, zvlnr, vlr);
 			    else {
-				    zbufclip(NULL, zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
+				    zbufclip(&zspan, zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
 					     vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 				    if(vlr->v4) {
 					    zvlnr+= 0x800000; /* in a sense, the 'adjoint' face */
-					    zbufclip(NULL, zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
+					    zbufclip(&zspan, zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
 						     vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 				    }
 			    }
 		    }
 	    };
-	    if(RE_local_test_break()) keepLooping = 0; 
+	    if(R.test_break()) keepLooping = 0; 
 	    faceCounter++;
     }
     return keepLooping;
@@ -638,7 +626,7 @@ int zBufferEdgeRenderObjects(void)
 
 /* ------------------------------------------------------------------------- */
 
-static void fillEdgeRenderFace(struct ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3)  
+static void fillEdgeRenderFace(struct ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4)  
 {
 	/* Coordinates of the vertices are specified in ZCS */
 	double z0; /* used as temp var*/
@@ -846,7 +834,7 @@ static void fillEdgeRenderFace(struct ZSpan *zspan, int zvlnr, float *v1, float 
 
 /* ------------------------------------------------------------------------- */
 
-static void fillEdgeRenderEdge(int zvlnr, float *vec1, float *vec2)
+static void fillEdgeRenderEdge(ZSpan *zspan, int zvlnr, float *vec1, float *vec2)
 {
 	int start, end, x, y, oldx, oldy, ofs;
 	int dz, vergz/*  , mask */;

@@ -43,6 +43,7 @@
 #include "GEN_messaging.h"
 
 #include "DNA_ID.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -51,6 +52,7 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 
@@ -72,13 +74,12 @@
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
-#include "RE_renderconverter.h"
-
 #include "BPY_extern.h"
+
+#include "RE_pipeline.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
-#include "render.h"
 #include "nla.h"
 #include "datatoc.h"
 
@@ -350,8 +351,8 @@ int main(int argc, char **argv)
 
 		/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
-		/* init struct R, Osa, defmaterial, filters */
-	RE_init_render_data();
+	
+	init_def_material();
 
 	if(G.background==0) {
 		for(a=1; a<argc; a++) {
@@ -467,7 +468,7 @@ int main(int argc, char **argv)
 
 	/* dynamically load libtiff, if available */
 	libtiff_init();
-	if (!G.have_libtiff) {
+	if (!G.have_libtiff && (G.f & G_DEBUG)) {
 		printf("Unable to load: libtiff.\n");
 		printf("Try setting the BF_TIFF_LIB environment variable if you want this support.\n");
 		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");
@@ -537,14 +538,14 @@ int main(int argc, char **argv)
 			case 'f':
 				a++;
 				if (G.scene && a < argc) {
-					(G.scene->r.sfra) = atoi(argv[a]);
-					(G.scene->r.efra) = (G.scene->r.sfra);
-					RE_animrender(NULL);
+					Render *re= RE_NewRender("Render");
+					RE_BlenderAnim(re, G.scene, atoi(argv[a]), atoi(argv[a]));
 				}
 				break;
 			case 'a':
 				if (G.scene) {
-					RE_animrender(NULL);
+					Render *re= RE_NewRender("Render");
+					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 				}
 				break;
 			case 'S':
@@ -577,8 +578,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if(G.background)
-	{
+	if(G.background) {
+		/* actually incorrect, but works for now (ton) */
 		exit_usiblender();
 	}
 
@@ -615,7 +616,4 @@ void setCallbacks(void)
 	BLI_setErrorCallBack(error_cb); /* */
 	BLI_setInterruptCallBack(blender_test_break);
 
-	/* render module: execution flow, timers, cursors and display. */
-	RE_set_getrenderdata_callback(RE_rotateBlenderScene);
-	RE_set_freerenderdata_callback(RE_freeRotateBlenderScene);
 }

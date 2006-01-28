@@ -35,7 +35,7 @@ include nan_definitions.mk
 
 DIRS = blenloader readblenfile
 DIRS += avi imbuf img render radiosity blenlib blenkernel blenpluginapi
-DIRS += makesdna src renderconverter yafray
+DIRS += makesdna src yafray
 DIRS += python
 
 ifeq ($(INTERNATIONAL), true)

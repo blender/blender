@@ -231,12 +231,8 @@ SND_OpenALDevice::SND_OpenALDevice()
 			m_context = alcCreateContext(dev, NULL);
 
 			if (m_context) {
-#ifdef AL_VERSION_1_1
-		alcMakeContextCurrent((ALCcontext*)m_context);
-#else
-			alcMakeContextCurrent(m_context);
-#endif
-			m_audio = true;
+				alcMakeContextCurrent((ALCcontext*)m_context);
+				m_audio = true;
 				m_device = dev;
 #ifdef __linux__
 				/*
@@ -343,11 +339,7 @@ SND_OpenALDevice::~SND_OpenALDevice()
 	
 	if (m_context) {
 		MakeCurrent();
-#ifdef AL_VERSION_1_1
 		alcDestroyContext((ALCcontext*)m_context);
-#else
-		alcDestroyContext(m_context);
-#endif
 		m_context = NULL;
 	}
 	
@@ -418,7 +410,7 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 					waveslot->SetFileSize(size);
 					
 					/* what was (our) buffer? */
-					int buffer = waveslot->GetBuffer();
+					buffer = waveslot->GetBuffer();
 					
 					/* get some info out of the sample */
 					SND_GetSampleInfo((signed char*)memlocation, waveslot);
@@ -427,14 +419,9 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 					
 					/* load the sample into openal */
 #if defined(OUDE_OPENAL) || defined (__APPLE__)
-					alutLoadWAVMemory((char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate);				//	openal_2.12
+					alutLoadWAVMemory((ALbyte *)memlocation, &sampleformat, &data, &numberofsamples, &samplerate);				//	openal_2.12
 #else
-#ifdef AL_VERSION_1_1					
-					alutLoadWAVMemory((ALbyte*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate, &loop);//	openal_2.14+
-#else
-					 alutLoadWAVMemory((signed char*)memlocation, &sampleformat, &data, &numberofsamples, &samplerate, &loop);//  openal_2.14+
-					 
-#endif 
+					alutLoadWAVMemory((ALbyte *)memlocation, &sampleformat, &data, &numberofsamples, &samplerate, &loop);//	openal_2.14+
 #endif
 					/* put it in the buffer */
 					alBufferData(m_buffers[buffer], sampleformat, data, numberofsamples, samplerate);

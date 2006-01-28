@@ -57,6 +57,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_image_types.h"
+#include "DNA_world_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -74,6 +75,7 @@
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_key.h"
+#include "BKE_icons.h"
 #include "BKE_ipo.h"
 
 
@@ -157,6 +159,10 @@ void open_plugin_tex(PluginTex *pit)
 
 /* ------------------------------------------------------------------------- */
 
+/* very badlevel define to bypass linking with BIF_interface.h */
+#define INT	96
+#define FLO	128
+
 PluginTex *add_plugin_tex(char *str)
 {
 	PluginTex *pit;
@@ -196,26 +202,71 @@ void free_plugin_tex(PluginTex *pit)
 	MEM_freeN(pit);	
 }
 
+/* ****************** Mapping ******************* */
+
+TexMapping *add_mapping(void)
+{
+	TexMapping *texmap= MEM_callocN(sizeof(TexMapping), "Tex map");
+	
+	texmap->size[0]= texmap->size[1]= texmap->size[2]= 1.0f;
+	texmap->max[0]= texmap->max[1]= texmap->max[2]= 1.0f;
+	Mat4One(texmap->mat);
+	
+	return texmap;
+}
+
+void init_mapping(TexMapping *texmap)
+{
+	float eul[3], smat[3][3], rmat[3][3], mat[3][3];
+	
+	SizeToMat3(texmap->size, smat);
+	
+	eul[0]= (M_PI/180.0f)*texmap->rot[0];
+	eul[1]= (M_PI/180.0f)*texmap->rot[1];
+	eul[2]= (M_PI/180.0f)*texmap->rot[2];
+	EulToMat3(eul, rmat);
+	
+	Mat3MulMat3(mat, rmat, smat);
+	
+	Mat4CpyMat3(texmap->mat, mat);
+	VECCOPY(texmap->mat[3], texmap->loc);
+
+}
+
 /* ****************** COLORBAND ******************* */
 
-ColorBand *add_colorband()
+ColorBand *add_colorband(int rangetype)
 {
 	ColorBand *coba;
 	int a;
 	
 	coba= MEM_callocN( sizeof(ColorBand), "colorband");
 	
-	coba->data[0].r= 0.0;
-	coba->data[0].g= 0.0;
-	coba->data[0].b= 0.0;
-	coba->data[0].a= 0.0;
 	coba->data[0].pos= 0.0;
-
-	coba->data[1].r= 0.0;
-	coba->data[1].g= 1.0;
-	coba->data[1].b= 1.0;
-	coba->data[1].a= 1.0;
 	coba->data[1].pos= 1.0;
+	
+	if(rangetype==0) {
+		coba->data[0].r= 0.0;
+		coba->data[0].g= 0.0;
+		coba->data[0].b= 0.0;
+		coba->data[0].a= 0.0;
+		
+		coba->data[1].r= 0.0;
+		coba->data[1].g= 1.0;
+		coba->data[1].b= 1.0;
+		coba->data[1].a= 1.0;
+	}
+	else {
+		coba->data[0].r= 0.0;
+		coba->data[0].g= 0.0;
+		coba->data[0].b= 0.0;
+		coba->data[0].a= 1.0;
+		
+		coba->data[1].r= 1.0;
+		coba->data[1].g= 1.0;
+		coba->data[1].b= 1.0;
+		coba->data[1].a= 1.0;
+	}
 	
 	for(a=2; a<MAXCOLORBAND; a++) {
 		coba->data[a].r= 0.5;
@@ -335,7 +386,9 @@ void free_texture(Tex *tex)
 {
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
-	if(tex->env) RE_free_envmap(tex->env);
+	if(tex->env) BKE_free_envmap(tex->env);
+	BKE_icon_delete((struct ID*)tex);
+	tex->id.icon_id = 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -479,7 +532,7 @@ Tex *copy_texture(Tex *tex)
 	}
 	
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
-	if(texn->env) texn->env= RE_copy_envmap(texn->env);
+	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
 	
 	return texn;
 }
@@ -666,3 +719,69 @@ Tex *give_current_texture(Object *ob, int act)
 	
 	return tex;
 }
+
+
+/* ------------------------------------------------------------------------- */
+
+EnvMap *BKE_add_envmap(void)
+{
+	EnvMap *env;
+	
+	env= MEM_callocN(sizeof(EnvMap), "envmap");
+	env->type= ENV_CUBE;
+	env->stype= ENV_STATIC;
+	env->clipsta= 0.1;
+	env->clipend= 100.0;
+	env->cuberes= 100;
+	
+	return env;
+} 
+
+/* ------------------------------------------------------------------------- */
+
+EnvMap *BKE_copy_envmap(EnvMap *env)
+{
+	EnvMap *envn;
+	int a;
+	
+	envn= MEM_dupallocN(env);
+	envn->ok= 0;
+	for(a=0; a<6; a++) envn->cube[a]= 0;
+	if(envn->ima) id_us_plus((ID *)envn->ima);
+	
+	return envn;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void BKE_free_envmapdata(EnvMap *env)
+{
+	Image *ima;
+	unsigned int a, part;
+	
+	for(part=0; part<6; part++) {
+		ima= env->cube[part];
+		if(ima) {
+			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
+			
+			for(a=0; a<BLI_ARRAY_NELEMS(ima->mipmap); a++) {
+				if(ima->mipmap[a]) IMB_freeImBuf(ima->mipmap[a]);
+			}
+			MEM_freeN(ima);
+			env->cube[part]= 0;
+		}
+	}
+	env->ok= 0;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void BKE_free_envmap(EnvMap *env)
+{
+	
+	BKE_free_envmapdata(env);
+	MEM_freeN(env);
+	
+}
+
+/* ------------------------------------------------------------------------- */

@@ -53,11 +53,7 @@
 #include "BIF_screen.h"
 
 #include "radio.h"
-#include "render.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "RE_render_ext.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
 
 /* locals */
 void rad_setmatrices(RadView *vw);
@@ -290,7 +286,7 @@ void hemizbuf(RadView *vw)
 	int a, b, inda, hres;
 
 	rad_setmatrices(vw);
-	RE_zbufferall_radio(vw, RG.elem, RG.totelem);
+	RE_zbufferall_radio(vw, RG.elem, RG.totelem, RG.re);	/* Render for when we got renderfaces */
 
 	/* count factors */
 	if(vw->recty==vw->rectx) factors= RG.topfactors;

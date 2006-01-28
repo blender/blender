@@ -73,4 +73,3 @@ PyObject *PyEditBone_FromBone(Bone *bone);
 PyObject *PyEditBone_FromEditBone(struct EditBone *editbone);
 
 #endif
-

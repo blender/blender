@@ -62,6 +62,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
@@ -71,6 +72,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -101,6 +103,7 @@
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -276,7 +279,7 @@ void delete_obj(int ok)
 	allqueue(REDRAWNLA, 0);
 	
 	DAG_scene_sort(G.scene);
-	
+
 	BIF_undo_push("Delete object(s)");
 }
 
@@ -2066,7 +2069,7 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Blend From Shape%x16|Propagate To All Shapes%x17");
 		
 		switch(nr) {
 		case 1:
@@ -2133,6 +2136,12 @@ void special_editmenu(void)
 			break;
 		case 15: 
 			mesh_set_smooth_faces(0);
+			break;
+		case 16: 
+			shape_copy_select_from();
+			break;
+		case 17: 
+			shape_propagate();
 			break;
 		}
 		
@@ -2653,6 +2662,7 @@ void copy_attr_menu()
 	if(!(ob=OBACT)) return;
 	
 	strcat (str, "|Object Constraints%x22");
+	strcat (str, "|NLA Strips%x26");
 	
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
 		strcat(str, "|Texture Space%x17");
@@ -2742,6 +2752,8 @@ void copy_attr(short event)
 				else if(event==4) {  /* drawtype */
 					base->object->dt= ob->dt;
 					base->object->dtx= ob->dtx;
+					base->object->empty_drawtype= ob->empty_drawtype;
+					base->object->empty_drawsize= ob->empty_drawsize;
 				}
 				else if(event==5) {  /* time offs */
 					base->object->sf= ob->sf;
@@ -2914,6 +2926,9 @@ void copy_attr(short event)
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
 					}
 				}
+				else if(event==26) {
+					copy_nlastrips(&base->object->nlastrips, &ob->nlastrips);
+				}
 			}
 		}
 		base= base->next;
@@ -2926,7 +2941,7 @@ void copy_attr(short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	
-	BIF_undo_push("Copy attributes");
+	BIF_undo_push("Copy Attributes");
 }
 
 void link_to_scene(unsigned short nr)
@@ -2994,7 +3009,7 @@ void make_links(short event)
 	ID *id;
 	Material ***matarar, ***obmatarar, **matar1, **matar2;
 	int a;
-	short *totcolp, nr;
+	short *totcolp, nr=0;
 	char *strp;
 
 	if(!(ob=OBACT)) return;
@@ -3002,7 +3017,7 @@ void make_links(short event)
 	if(event==1) {
 		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->scene), 0, &nr);
 		
-		if(strncmp(strp, "DataBrow", 8)==0) {
+		if(nr == -2) {
 			MEM_freeN(strp);
 
 			activate_databrowse((ID *)G.scene, ID_SCE, 0, B_INFOSCE, &(G.curscreen->scenenr), link_to_scene );
@@ -3153,7 +3168,7 @@ void make_duplilist_real()
 {
 	Base *base, *basen;
 	Object *ob;
-	extern ListBase duplilist;
+//	extern ListBase duplilist;
 	
 	if(okee("Make dupli objects real")==0) return;
 	
@@ -3162,11 +3177,11 @@ void make_duplilist_real()
 		if TESTBASELIB(base) {
 
 			if(base->object->transflag & OB_DUPLI) {
-				
-				make_duplilist(G.scene, base->object);
-				ob= duplilist.first;
-				while(ob) {
-					
+				ListBase *lb= object_duplilist(G.scene, base->object);
+				DupliObject *dob;
+
+				for(dob= lb->first; dob; dob= dob->next) {
+					ob= copy_object(dob->ob);
 					/* font duplis can have a totcol without material, we get them from parent
 					 * should be implemented better...
 					 */
@@ -3175,19 +3190,17 @@ void make_duplilist_real()
 					basen= MEM_dupallocN(base);
 					basen->flag &= ~OB_FROMDUPLI;
 					BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
+					basen->object= ob;
 					ob->ipo= NULL;		/* make sure apply works */
 					ob->parent= ob->track= NULL;
 					ob->disp.first= ob->disp.last= NULL;
-					ob->transflag &= ~OB_DUPLI;
-					basen->object= copy_object(ob);
-					basen->object->flag &= ~OB_FROMDUPLI;
+					ob->transflag &= ~OB_DUPLI;	
 					
-					apply_obmat(basen->object);
-					
-					ob= ob->id.next;
+					Mat4CpyMat4(ob->obmat, dob->mat);
+					apply_obmat(ob);
 				}
 				
-				free_duplilist();
+				BLI_freelistN(lb);
 				
 				base->object->transflag &= ~OB_DUPLI;	
 			}
@@ -3559,9 +3572,14 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	short timer=0;
 	short mousebut;
 	
-	/* check for left mouse select/right mouse select user pref */
-	if (U.flag & USER_LMOUSESELECT) mousebut = L_MOUSE;
-		else mousebut = R_MOUSE;
+	/* check for left mouse select/right mouse select */
+	
+	if(curarea->spacetype==SPACE_NODE)
+		mousebut = L_MOUSE|R_MOUSE;
+	else if (U.flag & USER_LMOUSESELECT) 
+		mousebut = L_MOUSE;
+	else 
+		mousebut = R_MOUSE;
 	
 	getmouseco_areawin(mval);
 	xo= mval[0]; 
@@ -4018,11 +4036,31 @@ void single_user(void)
 
 /* ************************************************************* */
 
+/* helper for below, ma was checked to be not NULL */
+static void make_local_makelocalmaterial(Material *ma)
+{
+	ID *id;
+	int b;
+	
+	make_local_material(ma);
+	
+	for(b=0; b<MAX_MTEX; b++) {
+		if(ma->mtex[b] && ma->mtex[b]->tex) {
+			make_local_texture(ma->mtex[b]->tex);
+		}
+	}
+	
+	id= (ID *)ma->ipo;
+	if(id && id->lib) make_local_ipo(ma->ipo);	
+	
+	/* nodetree? XXX */
+}
 
 void make_local(void)
 {
 	Base *base;
 	Object *ob;
+	bActionStrip *strip;
 	Material *ma, ***matarar;
 	Lamp *la;
 	Curve *cu;
@@ -4033,14 +4071,14 @@ void make_local(void)
 	
 	if(G.scene->id.lib) return;
 	
-	mode= pupmenu("Make Local%t|Selected %x1|All %x2");
+	mode= pupmenu("Make Local%t|Selected Objects %x1|Selected Objects and Data %x2|All %x3");
 	
-	if(mode==2) {
+	if(mode==3) {
 		all_local(NULL);	// NULL is all libs
 		allqueue(REDRAWALL, 0);
 		return;
 	}
-	else if(mode!=1) return;
+	else if(mode<1) return;
 
 	clear_id_newpoins();
 	
@@ -4075,7 +4113,7 @@ void make_local(void)
 	
 			id= ob->data;
 			
-			if(id) {
+			if(id && mode>1) {
 				
 				switch(ob->type) {
 				case OB_LAMP:
@@ -4119,61 +4157,50 @@ void make_local(void)
 
 			id= (ID *)ob->action;
 			if(id && id->lib) make_local_action(ob->action);
+			
+			for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+				if(strip->act && strip->act->id.lib)
+					make_local_action(strip->act);
+			}
+			
 		}
 		base= base->next;		
 	}
 
-	base= FIRSTBASE;
-	while(base) {
-		ob= base->object;
-		if(base->flag & SELECT ) {
-			
-			if(ob->type==OB_LAMP) {
-				la= ob->data;
-				for(b=0; b<MAX_MTEX; b++) {
-					if(la->mtex[b] && la->mtex[b]->tex) {
-						make_local_texture(la->mtex[b]->tex);
+	if(mode>1) {
+		base= FIRSTBASE;
+		while(base) {
+			ob= base->object;
+			if(base->flag & SELECT ) {
+				
+				if(ob->type==OB_LAMP) {
+					la= ob->data;
+					for(b=0; b<MAX_MTEX; b++) {
+						if(la->mtex[b] && la->mtex[b]->tex) {
+							make_local_texture(la->mtex[b]->tex);
+						}
+					}
+				}
+				else {
+					
+					for(a=0; a<ob->totcol; a++) {
+						ma= ob->mat[a];
+						if(ma)
+							make_local_makelocalmaterial(ma);
+					}
+					
+					matarar= (Material ***)give_matarar(ob);
+					
+					for(a=0; a<ob->totcol; a++) {
+						ma= (*matarar)[a];
+						if(ma)
+							make_local_makelocalmaterial(ma);
 					}
 				}
 			}
-			else {
-				
-				for(a=0; a<ob->totcol; a++) {
-					ma= ob->mat[a];
-					if(ma) {
-						make_local_material(ma);
-					
-						for(b=0; b<MAX_MTEX; b++) {
-							if(ma->mtex[b] && ma->mtex[b]->tex) {
-								make_local_texture(ma->mtex[b]->tex);
-							}
-						}
-						id= (ID *)ma->ipo;
-						if(id && id->lib) make_local_ipo(ma->ipo);	
-					}
-				}
-				
-				matarar= (Material ***)give_matarar(ob);
-				
-				for(a=0; a<ob->totcol; a++) {
-					ma= (*matarar)[a];
-					if(ma) {
-						make_local_material(ma);
-					
-						for(b=0; b<MAX_MTEX; b++) {
-							if(ma->mtex[b] && ma->mtex[b]->tex) {
-								make_local_texture(ma->mtex[b]->tex);
-							}
-						}
-						id= (ID *)ma->ipo;
-						if(id && id->lib) make_local_ipo(ma->ipo);	
-					}
-				}
-			}
+			base= base->next;
 		}
-		base= base->next;
 	}
-
 
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Make local");
@@ -4227,7 +4254,14 @@ void adduplicate(int mode, int dupflag)
 				BLI_addhead(&G.scene->base, basen);	/* addhead: prevent eternal loop */
 				basen->object= obn;
 				base->flag &= ~SELECT;
-				basen->flag &= ~OB_FROMGROUP;
+				
+				if(basen->flag & OB_FROMGROUP) {
+					Group *group;
+					for(group= G.main->group.first; group; group= group->id.next) {
+						if(object_in_group(ob, group))
+							add_to_group(group, obn);
+					}
+				}
 				
 				if(BASACT==base) BASACT= basen;
 
@@ -4404,20 +4438,6 @@ void adduplicate(int mode, int dupflag)
 		base= base->next;
 	}
 	
-	/* ipos */
-	ipo= G.main->ipo.first;
-	while(ipo) {
-		if(ipo->id.lib==NULL && ipo->id.newid) {
-			IpoCurve *icu;
-			for(icu= ipo->curve.first; icu; icu= icu->next) {
-				if(icu->driver) {
-					ID_NEW(icu->driver->ob);
-				}
-			}
-		}
-		ipo= ipo->id.next;
-	}
-	
 	/* materials */
 	if( dupflag & USER_DUP_MAT) {
 		mao= G.main->mat.first;
@@ -4448,6 +4468,40 @@ void adduplicate(int mode, int dupflag)
 			mao= mao->id.next;
 		}
 	}
+
+	/* lamps */
+	if( dupflag & USER_DUP_IPO) {
+		Lamp *la= G.main->lamp.first;
+		while(la) {
+			if(la->id.newid) {
+				Lamp *lan= (Lamp *)la->id.newid;
+				id= (ID *)lan->ipo;
+				if(id) {
+					ID_NEW_US(lan->ipo)
+					else lan->ipo= copy_ipo(lan->ipo);
+					id->us--;
+				}
+			}
+			la= la->id.next;
+		}
+	}
+
+/* ipos */
+	ipo= G.main->ipo.first;
+	while(ipo) {
+		if(ipo->id.lib==NULL && ipo->id.newid) {
+			Ipo *ipon= (Ipo *)ipo->id.newid;
+			IpoCurve *icu;
+			for(icu= ipon->curve.first; icu; icu= icu->next) {
+				if(icu->driver) {
+					ID_NEW(icu->driver->ob);
+				}
+			}
+		}
+		ipo= ipo->id.next;
+	}
+
+
 
 	DAG_scene_sort(G.scene);
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());

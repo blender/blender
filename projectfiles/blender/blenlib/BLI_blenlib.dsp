@@ -42,6 +42,7 @@ RSC=rc.exe
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenlib"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenlib"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\..\lib\windows\freetype\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\makesdna" /I "../../../../lib/windows/zlib/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_FREETYPE2" /J /FD /c
@@ -66,6 +67,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenlib\debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenlib\debug"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\..\lib\windows\freetype\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\makesdna" /I "../../../../lib/windows/zlib/include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_FREETYPE2" /J /FD /GZ /c
@@ -90,6 +92,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenlib\mtdll_debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenlib\mtdll_debug"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
 # ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
@@ -114,6 +117,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\blenlib\mtdll"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\blenlib\mtdll"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD CPP /nologo /MD /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
@@ -176,6 +180,10 @@ SOURCE=..\..\..\source\blender\blenlib\intern\freetypefont.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenlib\intern\gsqueue.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenlib\intern\jitter.c
 # End Source File
 # Begin Source File
 

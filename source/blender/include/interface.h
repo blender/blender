@@ -41,6 +41,10 @@
 #define UI_MAX_NAME_STR	64
 #define UI_ARRAY	29
 
+/* panel limits */
+#define UI_PANEL_MINX	100
+#define UI_PANEL_MINY	70
+
 /* uiBut->flag */
 #define UI_SELECT		1
 #define UI_MOUSE_OVER	2
@@ -85,14 +89,13 @@ typedef struct {
 	void *xl, *large, *medium, *small;
 } uiFont;
 
-typedef struct uiLinkLine uiLinkLine;
-struct uiLinkLine {				/* only for draw/edit */
-	uiLinkLine *next, *prev;
+typedef struct uiLinkLine {				/* only for draw/edit */
+	struct uiLinkLine *next, *prev;
 
 	short flag, pad;
 	
-	uiBut *from, *to;	
-};
+	struct uiBut *from, *to;	
+} uiLinkLine;
 
 typedef struct {
 	void **poin;		/* pointer to original pointer */
@@ -106,7 +109,7 @@ typedef struct {
 } uiLink;
 
 struct uiBut {
-	uiBut *next, *prev;
+	struct uiBut *next, *prev;
 	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend;
 	int flag;
 	
@@ -203,6 +206,7 @@ struct uiBlock {
 /* interface.c */
 
 extern void ui_graphics_to_window(int win, float *x, float *y);
+extern void ui_graphics_to_window_rct(int win, rctf *graph, rcti *winr);
 extern void ui_window_to_graphics(int win, float *x, float *y);
 
 extern void ui_block_flush_back(uiBlock *block);
@@ -217,6 +221,7 @@ extern void ui_autofill(uiBlock *block);
 /* interface_panel.c */
 extern void ui_draw_panel(uiBlock *block);
 extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
+extern void ui_scale_panel(uiBlock *block);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 
@@ -224,6 +229,8 @@ extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, flo
 extern void ui_set_embossfunc(uiBut *but, int drawtype);
 extern void ui_draw_but(uiBut *but);
 extern void ui_rasterpos_safe(float x, float y, float aspect);
+extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
+extern void ui_draw_anti_x(float x1, float y1, float x2, float y2);
 
 
 #endif

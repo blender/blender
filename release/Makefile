@@ -55,7 +55,14 @@ all:
       ifeq ($(CPU),alpha)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
 	    COMPRESS="gzip -f --best" EXT2=".gz"
-      else
+      endif
+      ifeq ($(CPU),i386)
+	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
+	    COMPRESS="gzip -f --best" EXT2=".gz"
+	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
+	    COMPRESS="gzip -f --best" EXT2=".gz"
+      endif
+      ifeq ($(CPU),powerpc)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
 	    COMPRESS="gzip -f --best" EXT2=".gz"
 	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
@@ -89,7 +96,6 @@ install: package
 	@#echo "****> Install text"
 	@cp text/blender.html $(DISTDIR)
 	@cp text/*.txt $(DISTDIR)
-	@cp text/*.pdf $(DISTDIR)
 	@echo "----> Make Config dir .blender"
 	@mkdir -p $(CONFDIR)
 	@# possible overruling .txt text documents

@@ -31,10 +31,9 @@
  */
 
 struct Group;
-void set_active_group(void);
-void add_selected_to_group(void);
+struct Base;
+
+void add_selected_to_group(struct Group *group);
 void rem_selected_from_group(void);
-void prev_group_key(struct Group *group);
-void next_group_key(struct Group *group);
-void select_group_menu(void);
-void select_group(short nr);
+void group_operation_with_menu(void);
+

@@ -456,93 +456,6 @@ void filesel_statistics(SpaceFile *sfile, int *totfile, int *selfile, float *tot
 
 /* *************** HELP FUNCTIONS ******************* */
 
-/* This is a really ugly function... its purpose is to
- * take the space file name and clean it up, replacing
- * excess file entry stuff (like /tmp/../tmp/../)
- */
-
-void checkdir(char *dir)
-{
-	short a;
-	char *start, *eind;
-	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-
-	BLI_make_file_string(G.sce, tmp, dir, "");
-	strcpy(dir, tmp);
-	
-#ifdef WIN32
-	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
-		dir[0]= '\\';
-		dir[1]= 0;
-		return;
-	}	
-
-	while ( (start = strstr(dir, "\\..\\")) ) {
-		eind = start + strlen("\\..\\") - 1;
-		a = start-dir-1;
-		while (a>0) {
-			if (dir[a] == '\\') break;
-			a--;
-		}
-		strcpy(dir+a,eind);
-	}
-
-	while ( (start = strstr(dir,"\\.\\")) ){
-		eind = start + strlen("\\.\\") - 1;
-		strcpy(start,eind);
-	}
-
-	while ( (start = strstr(dir,"\\\\" )) ){
-		eind = start + strlen("\\\\") - 1;
-		strcpy(start,eind);
-	}
-
-	if((a = strlen(dir))){				/* remove the '\\' at the end */
-		while(a>0 && dir[a-1] == '\\'){
-			a--;
-			dir[a] = 0;
-		}
-	}
-
-	strcat(dir, "\\");
-#else	
-	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
-		dir[0]= '/';
-		dir[1]= 0;
-		return;
-	}	
-	
-	while ( (start = strstr(dir, "/../")) ) {
-		eind = start + strlen("/../") - 1;
-		a = start-dir-1;
-		while (a>0) {
-			if (dir[a] == '/') break;
-			a--;
-		}
-		strcpy(dir+a,eind);
-	}
-
-	while ( (start = strstr(dir,"/./")) ){
-		eind = start + strlen("/./") - 1;
-		strcpy(start,eind);
-	}
-
-	while ( (start = strstr(dir,"//" )) ){
-		eind = start + strlen("//") - 1;
-		strcpy(start,eind);
-	}
-
-	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
-		while(dir[a-1] == '/'){
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
-
-	strcat(dir, "/");
-#endif
-}
 
 /* not called when browsing .blend itself */
 void test_flags_file(SpaceFile *sfile)
@@ -589,10 +502,13 @@ void test_flags_file(SpaceFile *sfile)
 					(BLI_testextensie(file->relname, ".tif")
 					||	BLI_testextensie(file->relname, ".tiff"))) {
 					file->flags |= IMAGEFILE;			
+			} else if (BLI_testextensie(file->relname, ".exr")) {
+					file->flags |= IMAGEFILE;			
 			} else if (G.have_quicktime){
 				if(		BLI_testextensie(file->relname, ".jpg")
 					||	BLI_testextensie(file->relname, ".jpeg")
 					||	BLI_testextensie(file->relname, ".hdr")
+					||	BLI_testextensie(file->relname, ".exr")
 					||	BLI_testextensie(file->relname, ".tga")
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")
@@ -619,7 +535,8 @@ void test_flags_file(SpaceFile *sfile)
 				}
 			} else { // no quicktime
 				if(BLI_testextensie(file->relname, ".jpg")
-					||	BLI_testextensie(file->relname, ".hdr")
+				   ||	BLI_testextensie(file->relname, ".hdr")
+				   ||	BLI_testextensie(file->relname, ".exr")
 					||	BLI_testextensie(file->relname, ".tga")
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")
@@ -1360,7 +1277,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	}
 	else {	/* FILE_BLENDER */
 		split_sfile(sfile, name);	/* test filelist too */
-		checkdir(sfile->dir);
+		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		/* free: filelist and libfiledata became incorrect */
 		if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
@@ -1394,7 +1311,7 @@ void activate_imageselect(int type, char *title, char *file, void (*func)(char *
 	else simasel->mode &= ~IMS_STRINGCODE;
 	
 	BLI_split_dirfile(name, dir, simasel->file);
-	checkdir(simasel->dir);
+	BLI_cleanup_dir(G.sce, simasel->dir);
 	if(strcmp(dir, simasel->dir)!=0) simasel->fase= 0;
 	strcpy(simasel->dir, dir);
 	
@@ -1412,9 +1329,9 @@ void activate_databrowse(ID *id, int idcode, int fromcode, int retval, short *me
 	SpaceFile *sfile;
 	char str[32];
 	
-	if(id==0) {
+	if(id==NULL) {
 		lb= wich_libbase(G.main, idcode);
-		id= lb->last;
+		id= lb->first;
 	}
 	
 	if(id) strcpy(str, id->name);
@@ -1623,7 +1540,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 	}
 	else if(event== 2) {
 		/* reuse the butname variable */
-		checkdir(sfile->dir);
+		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		BLI_make_file_string(G.sce, butname, sfile->dir, "");
 		/* strip the trailing slash if its a real dir */
@@ -1649,7 +1566,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		if (selected) {
 			strcpy(sfile->dir, selected);
 			BLI_make_exist(sfile->dir);
-			checkdir(sfile->dir);
+			BLI_cleanup_dir(G.sce, sfile->dir);
 			freefilelist(sfile);
 			sfile->ofs= 0;
 			scrarea_queue_winredraw(curarea);
@@ -1928,7 +1845,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(S_ISDIR(sfile->filelist[act].type)) {
 						strcat(sfile->dir, sfile->filelist[act].relname);
 						strcat(sfile->dir,"/");
-						checkdir(sfile->dir);
+						BLI_cleanup_dir(G.sce, sfile->dir);
 						freefilelist(sfile);
 						sfile->ofs= 0;
 						do_draw= 1;
@@ -2345,7 +2262,7 @@ static void do_library_append(SpaceFile *sfile)
 		Object *ob;
 		int idcode = groupname_to_code(group);
 		
-		BLO_library_append(sfile, dir, idcode);	/* warning; if relative, it changes the *dir to relative path */
+		BLO_library_append(sfile, dir, idcode);
 
 		/* DISPLISTS? */
 		ob= G.main->object.first;
@@ -2359,7 +2276,7 @@ static void do_library_append(SpaceFile *sfile)
 		/* and now find the latest append lib file */
 		lib= G.main->library.first;
 		while(lib) {
-			if (BLI_streq(dir, lib->name)) break;
+			if (BLI_streq(dir, lib->filename)) break;
 			lib= lib->id.next;
 		}
 		
@@ -2541,7 +2458,7 @@ void main_to_filelist(SpaceFile *sfile)
 	if( sfile->dir[0]==0) {
 		
 		/* make directories */
-		sfile->totfile= 21;
+		sfile->totfile= 23;
 		sfile->filelist= (struct direntry *)malloc(sfile->totfile * sizeof(struct direntry));
 		
 		for(a=0; a<sfile->totfile; a++) {
@@ -2552,24 +2469,27 @@ void main_to_filelist(SpaceFile *sfile)
 		sfile->filelist[0].relname= BLI_strdup("..");
 		sfile->filelist[1].relname= BLI_strdup(".");
 		sfile->filelist[2].relname= BLI_strdup("Scene");
-		sfile->filelist[3].relname= BLI_strdup("Object");
-		sfile->filelist[4].relname= BLI_strdup("Mesh");
-		sfile->filelist[5].relname= BLI_strdup("Curve");
-		sfile->filelist[6].relname= BLI_strdup("Metaball");
-		sfile->filelist[7].relname= BLI_strdup("Material");
-		sfile->filelist[8].relname= BLI_strdup("Texture");
-		sfile->filelist[9].relname= BLI_strdup("Image");
-		sfile->filelist[10].relname= BLI_strdup("Wave");
-		sfile->filelist[11].relname= BLI_strdup("Lattice");
-		sfile->filelist[12].relname= BLI_strdup("Lamp");
-		sfile->filelist[13].relname= BLI_strdup("Camera");
-		sfile->filelist[14].relname= BLI_strdup("Ipo");
-		sfile->filelist[15].relname= BLI_strdup("World");
-		sfile->filelist[16].relname= BLI_strdup("Screen");
-		sfile->filelist[17].relname= BLI_strdup("VFont");
-		sfile->filelist[18].relname= BLI_strdup("Text");
-		sfile->filelist[19].relname= BLI_strdup("Armature");
-		sfile->filelist[20].relname= BLI_strdup("Action");
+		sfile->filelist[3].relname= BLI_strdup("Group");
+		sfile->filelist[4].relname= BLI_strdup("Object");
+		sfile->filelist[5].relname= BLI_strdup("Mesh");
+		sfile->filelist[6].relname= BLI_strdup("Curve");
+		sfile->filelist[7].relname= BLI_strdup("Metaball");
+		sfile->filelist[8].relname= BLI_strdup("Material");
+		sfile->filelist[9].relname= BLI_strdup("Texture");
+		sfile->filelist[10].relname= BLI_strdup("Image");
+		sfile->filelist[11].relname= BLI_strdup("Wave");
+		sfile->filelist[12].relname= BLI_strdup("Lattice");
+		sfile->filelist[13].relname= BLI_strdup("Lamp");
+		sfile->filelist[14].relname= BLI_strdup("Camera");
+		sfile->filelist[15].relname= BLI_strdup("Ipo");
+		sfile->filelist[16].relname= BLI_strdup("World");
+		sfile->filelist[17].relname= BLI_strdup("Screen");
+		sfile->filelist[18].relname= BLI_strdup("VFont");
+		sfile->filelist[19].relname= BLI_strdup("Text");
+		sfile->filelist[20].relname= BLI_strdup("Armature");
+		sfile->filelist[21].relname= BLI_strdup("Action");
+		sfile->filelist[22].relname= BLI_strdup("NodeTree");
+		
 		qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_name);
 	}
 	else {
@@ -2623,7 +2543,12 @@ void main_to_filelist(SpaceFile *sfile)
 		
 				if (hide==0 || id->name[2] != '.') {
 					memset( files, 0 , sizeof(struct direntry));
-					files->relname= BLI_strdup(id->name+2);
+					if(id->lib==NULL)
+						files->relname= BLI_strdup(id->name+2);
+					else {
+						files->relname= MEM_mallocN(FILE_MAXDIR+FILE_MAXFILE+32, "filename for lib");
+						sprintf(files->relname, "%s | %s", id->lib->name, id->name+2);
+					}
 					
 					if(sfile->returnfunc==0) { /* F4 DATA BROWSE */
 						if(idcode==ID_OB) {

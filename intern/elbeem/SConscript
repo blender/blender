@@ -10,8 +10,6 @@ elbeem_env.Append(CPPDEFINES= [('ELBEEM_BLENDER',1)] );
 if use_fluidsim=='false':
 	# print "El'Beem Fluid Simulation Disabled..." # debug
 	elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
-	elbeem_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
-	elbeem_env.Append(CPPDEFINES= 'ELBEEM_DUMMIES');
 	# dummy interface build
 	Sources = [ 
 		"intern/utilities.cpp",

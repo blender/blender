@@ -604,7 +604,7 @@ void sort_faces(void)
 
 typedef struct MocNode {
 	struct MocNode *next;
-	int index[MOC_NODE_RES];
+	long index[MOC_NODE_RES];
 } MocNode;
 
 static int mesh_octree_get_base_offs(float *co, float *offs, float *div)
@@ -622,7 +622,7 @@ static int mesh_octree_get_base_offs(float *co, float *offs, float *div)
 	return (vx*MOC_RES*MOC_RES) + vy*MOC_RES + vz;
 }
 
-static void mesh_octree_add_node(MocNode **bt, int index)
+static void mesh_octree_add_node(MocNode **bt, long index)
 {
 	if(*bt==NULL) {
 		*bt= MEM_callocN(sizeof(MocNode), "MocNode");
@@ -654,7 +654,7 @@ static void mesh_octree_free_node(MocNode **bt)
 /* temporal define, just to make nicer code below */
 #define MOC_ADDNODE(vx, vy, vz)	mesh_octree_add_node(basetable + ((vx)*MOC_RES*MOC_RES) + (vy)*MOC_RES + (vz), index)
 
-static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, float *div, int index)
+static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, float *div, long index)
 {
 	float fx, fy, fz;
 	int vx, vy, vz;
@@ -695,7 +695,7 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	
 }
 
-static int mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
+static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 {
 	float *vec;
 	int a;
@@ -708,15 +708,13 @@ static int mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 			/* does mesh verts and editmode, code looks potential dangerous, octree should really be filled OK! */
 			if(mvert) {
 				vec= (mvert+(*bt)->index[a]-1)->co;
-				
 				if(FloatCompare(vec, co, MOC_THRESH))
 					return (*bt)->index[a]-1;
 			}
 			else {
-				EditVert *eve= (EditVert *)INT_TO_POINTER((*bt)->index[a]);
-				
+				EditVert *eve= (EditVert *)((*bt)->index[a]);
 				if(FloatCompare(eve->co, co, MOC_THRESH))
-					return (int)eve;
+					return (*bt)->index[a];
 			}
 		}
 		else return -1;
@@ -730,7 +728,7 @@ static int mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
-int mesh_octree_table(Object *ob, float *co, char mode)
+long mesh_octree_table(Object *ob, float *co, char mode)
 {
 	MocNode **bt;
 	static MocNode **basetable= NULL;
@@ -756,21 +754,23 @@ int mesh_octree_table(Object *ob, float *co, char mode)
 		
 		/* for quick unit coordinate calculus */
 		VECCOPY(offs, bb->vec[0]);
-		offs[0]+= MOC_THRESH;		/* we offset it 1 threshold unit extra */
-		offs[1]+= MOC_THRESH;
-		offs[2]+= MOC_THRESH;
+		offs[0]-= MOC_THRESH;		/* we offset it 1 threshold unit extra */
+		offs[1]-= MOC_THRESH;
+		offs[2]-= MOC_THRESH;
 			
-		VecSubf(div, bb->vec[6], offs);
-		div[0]+= MOC_THRESH;		/* and divide with 1 threshold unit more extra (try 8x8 unit grid on paint) */
-		div[1]+= MOC_THRESH;
-		div[2]+= MOC_THRESH;
+		VecSubf(div, bb->vec[6], bb->vec[0]);
+		div[0]+= 2*MOC_THRESH;		/* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
+		div[1]+= 2*MOC_THRESH;
+		div[2]+= 2*MOC_THRESH;
 		
 		VecMulf(div, 1.0f/MOC_RES);
 		if(div[0]==0.0f) div[0]= 1.0f;
 		if(div[1]==0.0f) div[1]= 1.0f;
 		if(div[2]==0.0f) div[2]= 1.0f;
-	
-		if(basetable) /* happens when entering wpaint without closing it */
+			printvecf("ofs", offs);
+			printvecf("div", div);
+			
+		if(basetable) /* happens when entering this call without ending it */
 			mesh_octree_table(ob, co, 'e');
 		
 		basetable= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
@@ -779,12 +779,12 @@ int mesh_octree_table(Object *ob, float *co, char mode)
 			EditVert *eve;
 			
 			for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
-				mesh_octree_add_nodes(basetable, eve->co, offs, div, POINTER_TO_INT(eve));
+				mesh_octree_add_nodes(basetable, eve->co, offs, div, (long)(eve));
 			}
 		}
 		else {		
 			MVert *mvert;
-			int a;
+			long a;
 			
 			for(a=1, mvert= me->mvert; a<=me->totvert; a++, mvert++) {
 				mesh_octree_add_nodes(basetable, mvert->co, offs, div, a);
@@ -816,4 +816,19 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 	vec[2]= mvert->co[2];
 	
 	return mesh_octree_table(ob, vec, 'u');
+}
+
+EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
+{
+	float vec[3];
+	long poinval;
+	
+	vec[0]= -co[0];
+	vec[1]= co[1];
+	vec[2]= co[2];
+	
+	poinval= mesh_octree_table(ob, vec, 'u');
+	if(poinval != -1)
+		return (EditVert *)(poinval);
+	return NULL;
 }

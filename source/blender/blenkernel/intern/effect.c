@@ -36,22 +36,25 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
-#include "DNA_listBase.h"
+
+#include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
+#include "DNA_group_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_ipo_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_jitter.h"
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
@@ -75,8 +78,9 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "render.h"		// externtex, bad level call (ton)
 #include "PIL_time.h"
+
+#include "RE_render_ext.h"
 
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
 typedef struct VeNoCo {
@@ -314,54 +318,57 @@ static void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 
 /* -------------------------- Effectors ------------------ */
 
-typedef struct pEffectorCache {
-	struct pEffectorCache *next, *prev;
-	struct Object *ob;
-	
-	/* precalculated variables */
-	float oldloc[3], oldspeed[3];
-	float scale, time_scale;
-	float guide_dist;
-	
-	Object obcopy;	/* for restoring transformation data */
-} pEffectorCache;
-
-
-/* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(Object *obsrc)
+static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
 {
-	static ListBase listb={NULL, NULL};
 	pEffectorCache *ec;
-	unsigned int layer= obsrc->lay;
-	Base *base;
-
-	for(base = G.scene->base.first; base; base= base->next) {
-		if( (base->lay & layer) && base->object->pd && base->object!=obsrc) {
-			Object *ob= base->object;
-			PartDeflect *pd= ob->pd;
+	PartDeflect *pd= ob->pd;
 			
-			if(pd->forcefield == PFIELD_GUIDE) {
-				if(ob->type==OB_CURVE && obsrc->type==OB_MESH) {	/* guides only do mesh particles */
-					Curve *cu= ob->data;
-					if(cu->flag & CU_PATH) {
-						if(cu->path==NULL || cu->path->data==NULL)
-							makeDispListCurveTypes(ob, 0);
-						if(cu->path && cu->path->data) {
-							ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
-							ec->ob= ob;
-							BLI_addtail(&listb, ec);
-						}
-					}
+	if(pd->forcefield == PFIELD_GUIDE) {
+		if(ob->type==OB_CURVE && obsrc->type==OB_MESH) {	/* guides only do mesh particles */
+			Curve *cu= ob->data;
+			if(cu->flag & CU_PATH) {
+				if(cu->path==NULL || cu->path->data==NULL)
+					makeDispListCurveTypes(ob, 0);
+				if(cu->path && cu->path->data) {
+					ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
+					ec->ob= ob;
+					BLI_addtail(lb, ec);
 				}
-			}
-			else if(pd->forcefield) {
-				ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
-				ec->ob= ob;
-				BLI_addtail(&listb, ec);
 			}
 		}
 	}
+	else if(pd->forcefield) {
+		ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
+		ec->ob= ob;
+		BLI_addtail(lb, ec);
+	}
+}
 
+/* returns ListBase handle with objects taking part in the effecting */
+ListBase *pdInitEffectors(Object *obsrc, Group *group)
+{
+	static ListBase listb={NULL, NULL};
+	pEffectorCache *ec;
+	Base *base;
+	unsigned int layer= obsrc->lay;
+	
+	if(group) {
+		GroupObject *go;
+		
+		for(go= group->gobject.first; go; go= go->next) {
+			if( (go->ob->lay & layer) && go->ob->pd && go->ob!=obsrc) {
+				add_to_effectorcache(&listb, go->ob, obsrc);
+			}
+		}
+	}
+	else {
+		for(base = G.scene->base.first; base; base= base->next) {
+			if( (base->lay & layer) && base->object->pd && base->object!=obsrc) {
+				add_to_effectorcache(&listb, base->object, obsrc);
+			}
+		}
+	}
+	
 	/* make a full copy */
 	for(ec= listb.first; ec; ec= ec->next) {
 		ec->obcopy= *(ec->ob);
@@ -1212,9 +1219,9 @@ static void init_mv_jit(float *jit, int num, int seed2)
 	jit2= MEM_mallocN(12 + 2*sizeof(float)*num, "initjit");
 
 	for (i=0 ; i<4 ; i++) {
-		RE_jitterate1(jit, jit2, num, rad1);
-		RE_jitterate1(jit, jit2, num, rad1);
-		RE_jitterate2(jit, jit2, num, rad2);
+		BLI_jitterate1(jit, jit2, num, rad1);
+		BLI_jitterate1(jit, jit2, num, rad1);
+		BLI_jitterate2(jit, jit2, num, rad2);
 	}
 	MEM_freeN(jit2);
 	rng_free(rng);
@@ -1604,8 +1611,7 @@ void build_particle_system(Object *ob)
 	if(me->totvert==0) return;
 	
 	if(ob==G.obedit) return;
-	
-	totpart= (R.flag & R_RENDERING)?paf->totpart:(paf->disp*paf->totpart)/100;
+	totpart= (G.rendering)?paf->totpart:(paf->disp*paf->totpart)/100;
 	if(totpart==0) return;
 	
 	/* No returns after this line! */
@@ -1647,6 +1653,7 @@ void build_particle_system(Object *ob)
 	
 	/* matrix invert for static too */
 	Mat4Invert(ob->imat, ob->obmat);
+	Mat4CpyMat4(paf->imat, ob->imat);	/* used for duplicators */
 	
 	/* new random generator */
 	rng = rng_new(paf->seed);
@@ -1663,7 +1670,7 @@ void build_particle_system(Object *ob)
 	}
 	
 	/* get the effectors */
-	effectorbase= pdInitEffectors(ob);
+	effectorbase= pdInitEffectors(ob, paf->group);
 	
 	/* init geometry, return is 6 x float * me->totvert in size */
 	vertexcosnos= (VeNoCo *)mesh_get_mapped_verts_nors(ob);

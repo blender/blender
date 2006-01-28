@@ -43,10 +43,9 @@
 /* WARNING; optimized, cannot be used to do gamma(invgamma()) and expect    */
 /* result remain identical (ton)                                            */   
 
-/* Default gamma. For most CRTs, gamma ranges from 2.2 to 2.5 (Foley), so    */
-/* 2.35 seems appropriate enough. Experience teaches a different number      */
-/* though. Old blender: 2.0. It  might be nice to make this a slider         */
+/* gamma is only used here for correcting adding colors or alpha */
 #define RE_DEFAULT_GAMMA 2.0
+
 /* This 400 is sort of based on the number of intensity levels needed for    */
 /* the typical dynamic range of a medium, in this case CRTs. (Foley)         */
 /* (Actually, it says the number should be between 400 and 535.)             */
@@ -63,8 +62,7 @@ static float colour_step;
 static float inv_colour_step;
 static float valid_gamma;
 static float valid_inv_gamma;
-static int   gamma_table_initialised = 0;
-int   do_gamma=0;
+
 /* ------------------------------------------------------------------------- */
 
 float gammaCorrect(float c)
@@ -141,15 +139,9 @@ void makeGammaTables(float gamma)
 			* (inv_gamma_range_table[i + 1] - inv_gamma_range_table[i]) ;
 	}
 
-	gamma_table_initialised = 1;
 } /* end of void makeGammaTables(float gamma) */
 
-/* ------------------------------------------------------------------------- */
 
-int gammaTableIsInitialised(void)
-{
-	return gamma_table_initialised;
-}
 
 /* ------------------------------------------------------------------------- */
 

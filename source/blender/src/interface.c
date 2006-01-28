@@ -64,16 +64,20 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_color_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_object_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -88,7 +92,9 @@
 #include "BIF_glutil.h"
 #include "BIF_editfont.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_butspace.h"
+#include "BIF_previewrender.h"
 
 #include "BSE_view.h"
 
@@ -117,7 +123,6 @@ uiBut *UIbuttip;
 /* ************* PROTOTYPES ***************** */
 
 static void ui_set_but_val(uiBut *but, double value);
-static void ui_set_ftf_font(uiBlock *block);
 static void ui_do_but_tip(uiBut *buttip);
 
 /* ****************************** */
@@ -153,6 +158,24 @@ void ui_graphics_to_window(int win, float *x, float *y)	/* for rectwrite  */
 	*y= ((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
 }
 
+void ui_graphics_to_window_rct(int win, rctf *graph, rcti *winr)
+{
+	float gx, gy;
+	int sx, sy;
+	int getsizex, getsizey;
+	
+	bwin_getsize(win, &getsizex, &getsizey);
+	bwin_getsuborigin(win, &sx, &sy);
+	
+	gx= graph->xmin;
+	gy= graph->ymin;
+	winr->xmin= (int)((float)sx) + ((float)getsizex)*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
+	winr->ymin= (int)((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
+	gx= graph->xmax;
+	gy= graph->ymax;
+	winr->xmax= (int)((float)sx) + ((float)getsizex)*(0.5+ 0.5*(gx*UIwinmat[0][0]+ gy*UIwinmat[1][0]+ UIwinmat[3][0]));
+	winr->ymax= (int)((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*UIwinmat[0][1]+ gy*UIwinmat[1][1]+ UIwinmat[3][1]));
+}
 
 
 void ui_window_to_graphics(int win, float *x, float *y)	/* for mouse cursor */
@@ -600,6 +623,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	/* position block relative to but */
 	uiBut *bt;
 	rctf butrct;
+	float aspect;
 	int xsize, ysize, xof=0, yof=0, centre;
 	short dir1= 0, dir2=0;
 	
@@ -634,7 +658,8 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		block->minx= block->miny= 0;
 		block->maxx= block->maxy= 20;
 	}
-
+	
+	aspect= (float)(block->maxx - block->minx + 4);
 	ui_graphics_to_window(block->win, &block->minx, &block->miny);
 	ui_graphics_to_window(block->win, &block->maxx, &block->maxy);
 
@@ -643,6 +668,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	
 	xsize= block->maxx - block->minx+4; // 4 for shadow
 	ysize= block->maxy - block->miny+4;
+	aspect/= (float)xsize;
 
 	if(but) {
 		short left=0, right=0, top=0, down=0;
@@ -738,8 +764,8 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	}
 	
 	/* apply */
-	bt= block->buttons.first;
-	while(bt) {
+	
+	for(bt= block->buttons.first; bt; bt= bt->next) {
 		
 		ui_graphics_to_window(block->win, &bt->x1, &bt->y1);
 		ui_graphics_to_window(block->win, &bt->x2, &bt->y2);
@@ -752,8 +778,6 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		bt->aspect= 1.0;
 		// ui_check_but recalculates drawstring size in pixels
 		ui_check_but(bt);
-		
-		bt= bt->next;
 	}
 	
 	block->minx += xof;
@@ -907,6 +931,9 @@ void uiDrawBlock(uiBlock *block)
 	uiBut *but;
 	short testmouse=0, mouse[2];
 	
+	/* we set this only once */
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
 	/* handle pending stuff */
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
@@ -928,7 +955,7 @@ void uiDrawBlock(uiBlock *block)
 		if(block->panel) ui_draw_panel(block);
 	}		
 
-	if(block->drawextra) block->drawextra();
+	if(block->drawextra) block->drawextra(curarea, block);
 
 	for (but= block->buttons.first; but; but= but->next) {
 		
@@ -1131,6 +1158,9 @@ static int ui_do_but_MENU(uiBut *but)
 	
 	while (rows*columns<md->nitems) rows++;
 		
+	/* prevent scaling up of pupmenu */
+	if (but->aspect < 1.0f) but->aspect = 1.0f;
+
 	/* size and location */
 	if(md->title)
 		width= 1.5*but->aspect*strlen(md->title)+BIF_GetStringWidth(block->curfont, md->title, (U.transopts & USER_TR_MENUS));
@@ -1139,6 +1169,7 @@ static int ui_do_but_MENU(uiBut *but)
 
 	for(a=0; a<md->nitems; a++) {
 		xmax= but->aspect*BIF_GetStringWidth(block->curfont, md->items[a].str, (U.transopts & USER_TR_MENUS));
+		if ( md->items[a].icon) xmax += 20*but->aspect;
 		if(xmax>width) width= xmax;
 	}
 
@@ -1194,7 +1225,7 @@ static int ui_do_but_MENU(uiBut *but)
 		}
 		else if(md->items[md->nitems-a-1].icon) {
 			uiBut *bt= uiDefIconTextBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].icon ,md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
-			if(active==a) bt->flag |= UI_ACTIVE;
+			if(active==a) bt->flag |= UI_ACTIVE;			
 		}
 		else {
 			uiBut *bt= uiDefBut(block, BUTM|but->pointype, but->retval, md->items[md->nitems-a-1].str, x1, y1,(short)(width-(rows>1)), (short)(boxh-1), but->poin, (float) md->items[md->nitems-a-1].retval, 0.0, 0, 0, "");
@@ -1956,7 +1987,7 @@ static int ui_do_but_NUM(uiBut *but)
 {
 	double value;
 	float deler, fstart, f, tempf;
-	int lvalue, temp; /*  , firsttime=1; */
+	int lvalue, temp, orig_x; /*  , firsttime=1; */
 	short retval=0, qual, sx, mval[2], pos=0;
 
 	but->flag |= UI_SELECT;
@@ -1967,6 +1998,7 @@ static int ui_do_but_NUM(uiBut *but)
 	value= ui_get_but_val(but);
 	
 	sx= mval[0];
+	orig_x = sx; /* Store so we can scale the rate of change by the dist the mouse is from its original xlocation */
 	fstart= (value - but->min)/(but->max-but->min);
 	f= fstart;
 	
@@ -1982,21 +2014,30 @@ static int ui_do_but_NUM(uiBut *but)
 		while (get_mbut() & L_MOUSE) {
 			qual= get_qual();
 			
+			uiGetMouse(mywinget(), mval);
+			
 			deler= 500;
 			if( but->pointype!=FLO ) {
 	
 				if( (but->max-but->min)<100 ) deler= 200.0;
 				if( (but->max-but->min)<25 ) deler= 50.0;
-	
 			}
+			
 			if(qual & LR_SHIFTKEY) deler*= 10.0;
 			if(qual & LR_ALTKEY) deler*= 20.0;
-	
-			uiGetMouse(mywinget(), mval);
 			
 			if(mval[0] != sx) {
-			
-				f+= ((float)(mval[0]-sx))/deler;
+				if( but->pointype==FLO && but->max-but->min > 11) {
+					/* non linear change in mouse input- good for high precicsion */
+					f+= (((float)(mval[0]-sx))/deler) * (fabs(orig_x-mval[0])*0.002);
+				} else if ( but->pointype!=FLO && but->max-but->min > 129) { /* only scale large int buttons */
+					/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
+					f+= (((float)(mval[0]-sx))/deler) * (fabs(orig_x-mval[0])*0.004);
+				} else {
+					/*no scaling */
+					f+= ((float)(mval[0]-sx))/deler ;
+				}
+				
 				if(f>1.0) f= 1.0;
 				if(f<0.0) f= 0.0;
 				sx= mval[0];
@@ -2451,7 +2492,7 @@ static int ui_do_but_NUMSLI(uiBut *but)
 }
 
 /* event denotes if we make first item active or not */
-static int ui_do_but_BLOCK(uiBut *but, int event)
+static uiBlock *ui_do_but_BLOCK(uiBut *but, int event)
 {
 	uiBlock *block;
 	uiBut *bt;
@@ -2492,7 +2533,10 @@ static int ui_do_but_BLOCK(uiBut *but, int event)
 	but->flag &= ~UI_SELECT;
 	uibut_do_func(but);
 	
-	return 0;
+	if(but->retval)
+		addqueue(curarea->win, UI_BUT_EVENT, (short)but->retval);
+	
+	return block;
 }
 
 static int ui_do_but_BUTM(uiBut *but)
@@ -2508,7 +2552,6 @@ static int ui_do_but_BUTM(uiBut *but)
 
 static int ui_do_but_LABEL(uiBut *but)
 {
-
 	uibut_do_func(but);
 	return but->retval;
 }
@@ -2748,7 +2791,7 @@ static void update_picker_hex(uiBlock *block, float *rgb)
 	}
 }
 
-static void update_picker_buts_hsv(uiBlock *block, float *hsv)
+static void update_picker_buts_hsv(uiBlock *block, float *hsv, char *poin)
 {
 	uiBut *bt;
 	float r, g, b;
@@ -2761,34 +2804,36 @@ static void update_picker_buts_hsv(uiBlock *block, float *hsv)
 	update_picker_hex(block, rgb);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->type==HSVCUBE) {
-			VECCOPY(bt->hsv, hsv);
-			ui_set_but_hsv(bt);
-		}
-		else if(bt->str[1]==' ') {
-			if(bt->str[0]=='R') {
-				ui_set_but_val(bt, r);
-				ui_check_but(bt);
+		if(bt->poin == poin) {
+			if(bt->type==HSVCUBE) {
+				VECCOPY(bt->hsv, hsv);
+				ui_set_but_hsv(bt);
 			}
-			else if(bt->str[0]=='G') {
-				ui_set_but_val(bt, g);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='B') {
-				ui_set_but_val(bt, b);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='H') {
-				ui_set_but_val(bt, hsv[0]);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='S') {
-				ui_set_but_val(bt, hsv[1]);
-				ui_check_but(bt);
-			}
-			else if(bt->str[0]=='V') {
-				ui_set_but_val(bt, hsv[2]);
-				ui_check_but(bt);
+			else if(bt->str[1]==' ') {
+				if(bt->str[0]=='R') {
+					ui_set_but_val(bt, r);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='G') {
+					ui_set_but_val(bt, g);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='B') {
+					ui_set_but_val(bt, b);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='H') {
+					ui_set_but_val(bt, hsv[0]);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='S') {
+					ui_set_but_val(bt, hsv[1]);
+					ui_check_but(bt);
+				}
+				else if(bt->str[0]=='V') {
+					ui_set_but_val(bt, hsv[2]);
+					ui_check_but(bt);
+				}
 			}
 		}
 	}
@@ -2862,7 +2907,7 @@ static void do_palette_cb(void *bt1, void *col1)
 	}
 	
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-	update_picker_buts_hsv(but1->block, hsv);
+	update_picker_buts_hsv(but1->block, hsv, but1->poin);
 	update_picker_hex(but1->block, col);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
@@ -2889,7 +2934,7 @@ static void do_palette1_cb(void *bt1, void *hsv1)
 		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
 	}
 
-	update_picker_buts_hsv(but1->block, hsv);	
+	update_picker_buts_hsv(but1->block, hsv, but1->poin);
 	if (fp) update_picker_hex(but1->block, fp);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
@@ -3028,6 +3073,7 @@ static int ui_do_but_COL(uiBut *but)
 	
 	if(but->pointype==CHA) ui_set_but_vectorf(but, colstore);
 	
+	uibut_do_func(but);
 	return but->retval;
 
 }
@@ -3079,7 +3125,7 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			ui_set_but_hsv(but);	// converts to rgb
 			
 			// update button values and strings
-			update_picker_buts_hsv(but->block, but->hsv);
+			update_picker_buts_hsv(but->block, but->hsv, but->poin);
 //			update_picker_buts_hex(but->block, but->hsv);			
 
 			/* we redraw the entire block */
@@ -3143,6 +3189,356 @@ static int ui_do_but_CHARTAB(uiBut *but)
 
 #endif
 
+static int vergcband(const void *a1, const void *a2)
+{
+	const CBData *x1=a1, *x2=a2;
+	
+	if( x1->pos > x2->pos ) return 1;
+	else if( x1->pos < x2->pos) return -1;
+	return 0;
+}
+
+
+static void do_colorband_evt(ColorBand *coba)
+{
+	int a;
+	
+	if(coba==NULL) return;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+		qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+static int ui_do_but_COLORBAND(uiBut *but)
+{	
+	ColorBand *coba= (ColorBand *)but->poin;
+	CBData *cbd;
+	float dx, width= but->x2-but->x1;
+	int a;
+	int mindist= 12, xco;
+	short mval[2], mvalo[2];
+	
+	uiGetMouse(mywinget(), mvalo);
+	
+	if(G.qual & LR_CTRLKEY) {
+		/* insert new key on mouse location */
+		if(coba->tot < MAXCOLORBAND-1) {
+			float pos= ((float)(mvalo[0] - but->x1))/width;
+			float col[4];
+			
+			do_colorband(coba, pos, col);	/* executes it */
+			
+			coba->tot++;
+			coba->cur= coba->tot-1;
+			
+			coba->data[coba->cur].r= col[0];
+			coba->data[coba->cur].g= col[1];
+			coba->data[coba->cur].b= col[2];
+			coba->data[coba->cur].a= col[3];
+			coba->data[coba->cur].pos= pos;
+			
+			do_colorband_evt(coba);
+		}
+	}
+	else {
+		
+		/* first, activate new key when mouse is close */
+		for(a=0, cbd= coba->data; a<coba->tot; a++, cbd++) {
+			xco= but->x1 + (cbd->pos*width);
+			xco= ABS(xco-mvalo[0]);
+			if(a==coba->cur) xco+= 5; // selected one disadvantage
+			if(xco<mindist) {
+				coba->cur= a;
+				mindist= xco;
+			}
+		}
+		
+		cbd= coba->data + coba->cur;
+		
+		while(get_mbut() & L_MOUSE) {
+			uiGetMouse(mywinget(), mval);
+			if(mval[0]!=mvalo[0]) {
+				dx= mval[0]-mvalo[0];
+				dx/= width;
+				cbd->pos+= dx;
+				CLAMP(cbd->pos, 0.0, 1.0);
+				
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
+				
+				do_colorband_evt(coba);
+				cbd= coba->data + coba->cur;	/* because qsort */
+				
+				mvalo[0]= mval[0];
+			}
+			BIF_wait_for_statechange();
+		}
+	}
+	
+	return but->retval;
+}
+
+/* button is presumed square */
+/* if mouse moves outside of sphere, it does negative normal */
+static int ui_do_but_NORMAL(uiBut *but)
+{
+	float dx, dy, rad, radsq, mrad, *fp= (float *)but->poin;
+	int firsttime=1;
+	short mval[2], mvalo[2], mvals[2], mvaldx, mvaldy;
+	
+	rad= (but->x2 - but->x1);
+	radsq= rad*rad;
+	
+	if(fp[2]>0.0f) {
+		mvaldx= (rad*fp[0]);
+		mvaldy= (rad*fp[1]);
+	}
+	else if(fp[2]> -1.0f) {
+		mrad= rad/sqrt(fp[0]*fp[0] + fp[1]*fp[1]);
+		
+		mvaldx= 2.0f*mrad*fp[0] - (rad*fp[0]);
+		mvaldy= 2.0f*mrad*fp[1] - (rad*fp[1]);
+	}
+	else mvaldx= mvaldy= 0;
+	
+	uiGetMouse(mywinget(), mvalo);
+	mvals[0]= mvalo[0];
+	mvals[1]= mvalo[1];
+	
+	while(get_mbut() & L_MOUSE) {
+		
+		uiGetMouse(mywinget(), mval);
+		
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || firsttime) {
+			firsttime= 0;
+			
+			dx= (float)(mval[0]+mvaldx-mvals[0]);
+			dy= (float)(mval[1]+mvaldy-mvals[1]);
+
+			mrad= dx*dx+dy*dy;
+			if(mrad < radsq) {	/* inner circle */
+				fp[0]= dx;
+				fp[1]= dy;
+				fp[2]= sqrt( radsq-dx*dx-dy*dy );
+			}
+			else {	/* outer circle */
+				
+				mrad= rad/sqrt(mrad);	// veclen
+				
+				dx*= (2.0f*mrad - 1.0f);
+				dy*= (2.0f*mrad - 1.0f);
+				
+				mrad= dx*dx+dy*dy;
+				if(mrad < radsq) {
+					fp[0]= dx;
+					fp[1]= dy;
+					fp[2]= -sqrt( radsq-dx*dx-dy*dy );
+				}
+			}
+			Normalise(fp);
+				
+			ui_draw_but(but);
+			ui_block_flush_back(but->block);
+
+			mvalo[0]= mval[0];
+			mvalo[1]= mval[1];
+		}
+		BIF_wait_for_statechange();
+	}
+			
+	return but->retval;
+}
+
+static int ui_do_but_CURVE(uiBut *but)
+{
+	CurveMapping *cumap= (CurveMapping *)but->poin;
+	CurveMap *cuma= cumap->cm+cumap->cur;
+	CurveMapPoint *cmp= cuma->curve;
+	float fx, fy, zoomx, zoomy, offsx, offsy;
+	float dist, mindist= 200.0f;	// 14 pixels radius
+	int a, sel= -1, retval= but->retval;
+	short mval[2], mvalo[2];
+	
+	uiGetMouse(mywinget(), mval);
+	
+	/* calculate offset and zoom */
+	zoomx= (but->x2-but->x1)/(cumap->curr.xmax-cumap->curr.xmin);
+	zoomy= (but->y2-but->y1)/(cumap->curr.ymax-cumap->curr.ymin);
+	offsx= cumap->curr.xmin;
+	offsy= cumap->curr.ymin;
+	
+	if(G.qual & LR_CTRLKEY) {
+		
+		fx= ((float)mval[0] - but->x1)/zoomx + offsx;
+		fy= ((float)mval[1] - but->y1)/zoomy + offsy;
+		
+		curvemap_insert(cuma, fx, fy);
+		curvemapping_changed(cumap, 0);
+
+		ui_draw_but(but);
+		ui_block_flush_back(but->block);
+	}
+	
+	
+	/* check for selecting of a point */
+	cmp= cuma->curve;	/* ctrl adds point, new malloc */
+	for(a=0; a<cuma->totpoint; a++) {
+		fx= but->x1 + zoomx*(cmp[a].x-offsx);
+		fy= but->y1 + zoomy*(cmp[a].y-offsy);
+		dist= (fx-mval[0])*(fx-mval[0]) + (fy-mval[1])*(fy-mval[1]);
+		if(dist < mindist) {
+			sel= a;
+			mindist= dist;
+		}
+	}
+	
+	if (sel == -1) {
+		/* if the click didn't select anything, check if it's clicked on the 
+		 * curve itself, and if so, add a point */
+		fx= ((float)mval[0] - but->x1)/zoomx + offsx;
+		fy= ((float)mval[1] - but->y1)/zoomy + offsy;
+		
+		cmp= cuma->table;
+
+		/* loop through the curve segment table and find what's near the mouse.
+		 * 0.05 is kinda arbitrary, but seems to be what works nicely. */
+		for(a=0; a<=CM_TABLE; a++) {			
+			if ( ( fabs(fx - cmp[a].x) < (0.05) ) && ( fabs(fy - cmp[a].y) < (0.05) ) ) {
+			
+				curvemap_insert(cuma, fx, fy);
+				curvemapping_changed(cumap, 0);
+				
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
+				
+				/* reset cmp back to the curve points again, rather than drawing segments */		
+				cmp= cuma->curve;
+				
+				/* find newly added point and make it 'sel' */
+				for(a=0; a<cuma->totpoint; a++) {
+					if (cmp[a].x == fx) sel = a;
+				}
+					
+				break;
+			}
+		}
+	}
+	
+	/* ok, we move a point */
+	if(sel!= -1) {
+		int moved_point;
+		int moved_mouse= 0;
+
+		/* deselect all if this one is deselect. except if we hold shift */
+		if((G.qual & LR_SHIFTKEY)==0 && (cmp[sel].flag & SELECT)==0)
+			for(a=0; a<cuma->totpoint; a++)
+				cmp[a].flag &= ~SELECT;
+		cmp[sel].flag |= SELECT;
+		
+		/* draw to show select updates */
+		ui_draw_but(but);
+		ui_block_flush_back(but->block);
+		
+		/* while move mouse, do move points around */
+		while(get_mbut() & L_MOUSE) {
+			
+			uiGetMouse(mywinget(), mvalo);
+			
+			if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+				moved_mouse= 1;		/* for selection */
+				moved_point= 0;		/* for ctrl grid, can't use orig coords because of sorting */
+				
+				fx= (mvalo[0]-mval[0])/zoomx;
+				fy= (mvalo[1]-mval[1])/zoomy;
+				for(a=0; a<cuma->totpoint; a++) {
+					if(cmp[a].flag & SELECT) {
+						float origx= cmp[a].x, origy= cmp[a].y;
+						cmp[a].x+= fx;
+						cmp[a].y+= fy;
+						if( (get_qual() & LR_SHIFTKEY) ) {
+							cmp[a].x= 0.125f*floor(0.5f + 8.0f*cmp[a].x);
+							cmp[a].y= 0.125f*floor(0.5f + 8.0f*cmp[a].y);
+						}
+						if(cmp[a].x!=origx || cmp[a].y!=origy)
+							moved_point= 1;
+					}
+				}
+				curvemapping_changed(cumap, 0);	/* no remove doubles */
+				
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
+				
+				if(moved_point) {
+					mval[0]= mvalo[0];
+					mval[1]= mvalo[1];
+				}
+			}
+			BIF_wait_for_statechange();
+		}
+		
+		if(moved_mouse==0) {
+			/* deselect all, select one */
+			if((G.qual & LR_SHIFTKEY)==0) {
+				for(a=0; a<cuma->totpoint; a++)
+					cmp[a].flag &= ~SELECT;
+				cmp[sel].flag |= SELECT;
+			}
+		}
+		else 
+			curvemapping_changed(cumap, 1);	/* remove doubles */
+		
+		ui_draw_but(but);
+		ui_block_flush_back(but->block);
+	}
+	else {
+		/* we move the view */
+		retval= B_NOP;
+		
+		while(get_mbut() & L_MOUSE) {
+			
+			uiGetMouse(mywinget(), mvalo);
+			
+			if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+				fx= (mvalo[0]-mval[0])/zoomx;
+				fy= (mvalo[1]-mval[1])/zoomy;
+				
+				/* clamp for clip */
+				if(cumap->flag & CUMA_DO_CLIP) {
+					if(cumap->curr.xmin-fx < cumap->clipr.xmin)
+						fx= cumap->curr.xmin - cumap->clipr.xmin;
+					else if(cumap->curr.xmax-fx > cumap->clipr.xmax)
+						fx= cumap->curr.xmax - cumap->clipr.xmax;
+					if(cumap->curr.ymin-fy < cumap->clipr.ymin)
+						fy= cumap->curr.ymin - cumap->clipr.ymin;
+					else if(cumap->curr.ymax-fy > cumap->clipr.ymax)
+						fy= cumap->curr.ymax - cumap->clipr.ymax;
+				}				
+				cumap->curr.xmin-=fx;
+				cumap->curr.ymin-=fy;
+				cumap->curr.xmax-=fx;
+				cumap->curr.ymax-=fy;
+				
+				ui_draw_but(but);
+				ui_block_flush_back(but->block);
+				
+				mval[0]= mvalo[0];
+				mval[1]= mvalo[1];
+			}
+		}
+		BIF_wait_for_statechange();
+	}
+	
+	return retval;
+}
 
 /* ************************************************ */
 
@@ -3316,7 +3712,8 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 	case BLOCK:
 	case PULLDOWN:
 		if(uevent->val) {
-			retval= ui_do_but_BLOCK(but, uevent->event);
+			ui_do_but_BLOCK(but, uevent->event);
+			retval= 0;
 			if(block->auto_open==0) block->auto_open= 1;
 		}
 		break;
@@ -3336,6 +3733,15 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		
 	case HSVCUBE:
 		retval= ui_do_but_HSVCUBE(but);
+		break;
+	case BUT_COLORBAND:
+		retval= ui_do_but_COLORBAND(but);
+		break;
+	case BUT_NORMAL:
+		retval= ui_do_but_NORMAL(but);
+		break;
+	case BUT_CURVE:
+		retval= ui_do_but_CURVE(but);
 		break;
 		
 #ifdef INTERNATIONAL
@@ -3553,14 +3959,14 @@ static int ui_mouse_motion_towards_block(uiBlock *block, uiEvent *uevent)
 }
 
 
-static void ui_set_ftf_font(uiBlock *block)
+static void ui_set_ftf_font(float aspect)
 {
 
 #ifdef INTERNATIONAL
-	if(block->aspect<1.15) {
+	if(aspect<1.15) {
 		FTF_SetFontSize('l');
 	}
-	else if(block->aspect<1.59) {
+	else if(aspect<1.59) {
 		FTF_SetFontSize('m');
 	}
 	else {
@@ -3647,7 +4053,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		}
 	}		
 
-	ui_set_ftf_font(block);	// sets just a pointer in ftf lib... the button dont have ftf handles
+	ui_set_ftf_font(block->aspect);	// sets just a pointer in ftf lib... the button dont have ftf handles
 	
 	// added this for panels in windows with buttons... 
 	// maybe speed optimize should require test
@@ -3677,13 +4083,19 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			}
 			else if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) )
 				inside= 2;
-				
+			else if( block->panel->control & UI_PNL_SCALE) {
+				if( (block->maxx-PNL_HEADER <= uevent->mval[0]))
+					if( (block->miny+PNL_HEADER >= uevent->mval[1]) && inside )
+						inside= 3;
+			}
+			
 			if(inside) {	// this stuff should move to do_panel
 				
 				if(uevent->event==LEFTMOUSE) {
-					if(inside==2) {
+					if(inside>=2) {
 						uiPanelPop(block); 	// pop matrix; no return without pop!
-						ui_do_panel(block, uevent);
+						if(inside==2) ui_do_panel(block, uevent);
+						else ui_scale_panel(block);
 						return UI_EXIT_LOOP;	// exit loops because of moving panels
 					}
 				}
@@ -3696,11 +4108,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 				else if(uevent->event==PADPLUSKEY || uevent->event==PADMINUS) {
 					SpaceLink *sl= curarea->spacedata.first;
 					if(curarea->spacetype!=SPACE_BUTS) {
-						if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
-						else sl->blockscale-= 0.1;
-						CLAMP(sl->blockscale, 0.6, 1.0);
-						addqueue(block->winq, REDRAW, 1);
-						retval= UI_CONT;
+						if(!(block->panel->control & UI_PNL_SCALE)) {
+							if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
+							else sl->blockscale-= 0.1;
+							CLAMP(sl->blockscale, 0.6, 1.0);
+							addqueue(block->winq, REDRAW, 1);
+							retval= UI_RETURN_OK;
+						}						
 					}
 				}
 			}
@@ -4293,9 +4707,9 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 			
 			block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
-			retval= ui_do_block(block, &uevent);
+			retval |= ui_do_block(block, &uevent); /* we 'or' because 2nd loop can return to here, and we we want 'out' to return */
 			block->in_use= 0;
-			if(retval==UI_EXIT_LOOP) break;
+			if(retval & UI_EXIT_LOOP) break;
 			
 			/* now a new block could be created for menus, this is 
 			   inserted in the beginning of a list */
@@ -4510,7 +4924,7 @@ static void ui_set_but_val(uiBut *but, double value)
 void uiSetCurFont(uiBlock *block, int index)
 {
 	
-	ui_set_ftf_font(block);
+	ui_set_ftf_font(block->aspect);
 	
 	if(block->aspect<0.60) {
 		block->curfont= UIfont[index].xl;
@@ -4529,6 +4943,32 @@ void uiSetCurFont(uiBlock *block, int index)
 	if(block->curfont==NULL) block->curfont= UIfont[index].medium;	
 	if(block->curfont==NULL) printf("error block no font %s\n", block->name);
 	
+}
+
+/* called by node editor */
+void *uiSetCurFont_ext(float aspect)
+{
+	void *curfont;
+	
+	ui_set_ftf_font(aspect);
+	
+	if(aspect<0.60) {
+		curfont= UIfont[0].xl;
+	}
+	else if(aspect<1.15) {
+		curfont= UIfont[0].large;
+	}
+	else if(aspect<1.59) {
+		curfont= UIfont[0].medium;		
+	}
+	else {
+		curfont= UIfont[0].small;		
+	}
+	
+	if(curfont==NULL) curfont= UIfont[0].large;	
+	if(curfont==NULL) curfont= UIfont[0].medium;	
+	
+	return curfont;
 }
 
 void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small)
@@ -4828,7 +5268,7 @@ void ui_check_but(uiBut *but)
 		but->strwidth= 0;
 
 		/* automatic width */
-	if(but->x2==0.0) {
+	if(but->x2==0.0f && but->x1 > 0.0f) {
 		but->x2= (but->x1+but->strwidth+6); 
 	}
 
@@ -4839,36 +5279,31 @@ void ui_check_but(uiBut *but)
 		/* calc but->ofs, to draw the string shorter if too long */
 		but->ofs= 0;
 		while(but->strwidth > (int)okwidth ) {
-			but->ofs++;
 	
-			if(but->drawstr[but->ofs]) 
+			if ELEM(but->type, NUM, TEX) {	// only these cut off left
+				but->ofs++;
 				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, transopts);
-			else but->strwidth= 0;
-	
-			/* textbut exception */
-			if(but->pos != -1) {
-				pos= but->pos+strlen(but->str);
-				if(pos-1 < but->ofs) {
-					pos= but->ofs-pos+1;
-					but->ofs -= pos;
-					if(but->ofs<0) {
-						but->ofs= 0;
-						pos--;
+				
+				/* textbut exception */
+				if(but->pos != -1) {
+					pos= but->pos+strlen(but->str);
+					if(pos-1 < but->ofs) {
+						pos= but->ofs-pos+1;
+						but->ofs -= pos;
+						if(but->ofs<0) {
+							but->ofs= 0;
+							pos--;
+						}
+						but->drawstr[ strlen(but->drawstr)-pos ]= 0;
 					}
-					but->drawstr[ strlen(but->drawstr)-pos ]= 0;
 				}
+			}
+			else {
+				but->drawstr[ strlen(but->drawstr)-1 ]= 0;
+				but->strwidth= but->aspect*BIF_GetStringWidth(but->font, but->drawstr, transopts);
 			}
 			
 			if(but->strwidth < 10) break;
-		}
-		
-		/* fix for buttons that better not have text cut off to the right */
-		if(but->ofs) {
-			if ELEM(but->type, NUM, TEX);	// only these cut off left
-			else {
-				but->drawstr[ strlen(but->drawstr)-but->ofs ]= 0;
-				but->ofs= 0;
-			}
 		}
 	}
 }
@@ -5094,6 +5529,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->pointype= type & BUTPOIN;
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
+	but->icon = 0;
 
 	BLI_addtail(&block->buttons, but);
 
@@ -5172,6 +5608,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		but->flag |= UI_NO_HILITE;
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
+	if(block->flag & UI_BLOCK_NO_HILITE)
+		but->flag |= UI_NO_HILITE;
 	
 	return but;
 }
@@ -5596,6 +6034,23 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int 
 	return but;
 }
 
+/* Block button containing icon */
+uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip)
+{
+	uiBut *but= ui_def_but(block, BLOCK, retval, "", x1, y1, x2, y2, arg, 0.0, 0.0, 0.0, 0.0, tip);
+	
+	but->icon= (BIFIconID) icon;
+	but->flag|= UI_HAS_ICON;
+	
+	but->flag|= UI_ICON_LEFT;
+	but->flag|= UI_ICON_RIGHT;
+	
+	but->block_func= func;
+	ui_check_but(but);
+	
+	return but;
+}
+
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip)
 {
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
@@ -5801,8 +6256,12 @@ short pupmenu_col(char *instr, int maxrow)
 	while (rows*columns<(md->nitems+columns) ) rows++;
 		
 	/* size and location */
-	if(md->title) width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & USER_TR_BUTTONS));
+	if(md->title) {
+		width= 2*strlen(md->title)+BIF_GetStringWidth(uiBlockGetCurFont(block), md->title, (U.transopts & USER_TR_BUTTONS));
+		width /= columns;
+	}
 	else width= 0;
+	
 	for(a=0; a<md->nitems; a++) {
 		xmax= BIF_GetStringWidth(uiBlockGetCurFont(block), md->items[a].str, (U.transopts & USER_TR_BUTTONS));
 		if(xmax>width) width= xmax;
@@ -5877,7 +6336,7 @@ short pupmenu_col(char *instr, int maxrow)
 	if(md->title) {
 		uiBut *bt;
 		uiSetCurFont(block, UI_HELVB);
-		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
+		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), columns*(short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
 		uiSetCurFont(block, UI_HELV);
 		bt->flag= UI_TEXT_LEFT;
 	}
@@ -5885,12 +6344,18 @@ short pupmenu_col(char *instr, int maxrow)
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;
 		
+		int icon = md->items[a].icon;
+
 		x1= startx + width*((int)a/rows);
 		y1= starty - boxh*(a%rows) + (rows-1)*boxh; 
 		
 		if( strcmp(name, "%l")==0){
 			uiDefBut(block, SEPR, B_NOP, "", x1, y1, width, PUP_LABELH, NULL, 0, 0.0, 0, 0, "");
 			y1 -= PUP_LABELH;
+		}
+		else if (icon) {
+			uiDefIconButI(block, BUTM, B_NOP, icon, x1, y1, width+16, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");
+			y1 -= boxh;
 		}
 		else {
 			uiDefButI(block, BUTM, B_NOP, name, x1, y1, width, boxh-1, &val, (float) md->items[a].retval, 0.0, 0, 0, "");

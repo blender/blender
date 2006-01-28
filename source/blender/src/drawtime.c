@@ -1,15 +1,12 @@
 /**
  * $Id:
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -56,6 +53,7 @@
 #include "BKE_global.h"
 
 #include "BIF_gl.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_resources.h"
@@ -138,9 +136,9 @@ static void draw_marker(TimeMarker *marker)
 	
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
 	if(marker->flag & SELECT)
-		BIF_draw_icon_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER_HLT, TH_BACK, 0);
+		BIF_icon_draw_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER_HLT, TH_BACK, 0);
 	else
-		BIF_draw_icon_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER, TH_BACK, 0);
+		BIF_icon_draw_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER, TH_BACK, 0);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);		

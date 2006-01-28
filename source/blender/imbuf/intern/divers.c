@@ -38,6 +38,7 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_allocimbuf.h"
 #include "IMB_divers.h"
 
 void imb_checkncols(struct ImBuf *ibuf)
@@ -95,12 +96,12 @@ void IMB_de_interlace(struct ImBuf *ibuf)
 		tbuf2 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
 		
 		ibuf->x *= 2;	
-		IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(tbuf2, ibuf, 0, 0, tbuf2->x, 0, 32767, 32767, IMB_rectcpy, 0);
+		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
 	
 		ibuf->x /= 2;
-		IMB_rectop(ibuf, tbuf1, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(ibuf, tbuf2, 0, tbuf2->y, 0, 0, 32767, 32767, IMB_rectcpy, 0);
+		IMB_rectcpy(ibuf, tbuf1, 0, 0, 0, 0, tbuf1->x, tbuf1->y);
+		IMB_rectcpy(ibuf, tbuf2, 0, tbuf2->y, 0, 0, tbuf2->x, tbuf2->y);
 		
 		IMB_freeImBuf(tbuf1);
 		IMB_freeImBuf(tbuf2);
@@ -122,16 +123,12 @@ void IMB_interlace(struct ImBuf *ibuf)
 		tbuf1 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
 		tbuf2 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect, 0);
 
-		IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 
-			0);
-		IMB_rectop(tbuf2, ibuf, 0, 0, 0, tbuf2->y, 32767, 32767,
-			IMB_rectcpy,0);
+		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+		IMB_rectcpy(tbuf2, ibuf, 0, 0, 0, tbuf2->y, ibuf->x, ibuf->y);
 
 		ibuf->x *= 2;
-		IMB_rectop(ibuf, tbuf1, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy,
-			0);
-		IMB_rectop(ibuf, tbuf2, tbuf2->x, 0, 0, 0, 32767, 32767,
-			IMB_rectcpy,0);
+		IMB_rectcpy(ibuf, tbuf1, 0, 0, 0, 0, tbuf1->x, tbuf1->y);
+		IMB_rectcpy(ibuf, tbuf2, tbuf2->x, 0, 0, 0, tbuf2->x, tbuf2->y);
 		ibuf->x /= 2;
 
 		IMB_freeImBuf(tbuf1);
@@ -143,11 +140,13 @@ void IMB_interlace(struct ImBuf *ibuf)
 void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 {
 	uchar gam[256];
-	int i;
-	uchar *rect;
+	int i, do_float=0;
+	uchar *rect = (uchar *) ibuf->rect;
+	float *rectf = ibuf->rect_float;
 
 	if (ibuf == 0) return;
 	if (ibuf->rect == 0) return;
+        if (ibuf->rect != NULL) do_float = 1;
 	if (gamma == 1.0) return;
 
 	gamma = 1.0 / gamma;
@@ -159,5 +158,61 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 		rect[0] = gam[rect[0]];
 		rect[1] = gam[rect[1]];
 		rect[2] = gam[rect[2]];
+		if (do_float) {
+			rectf[0] = pow(rectf[0] / 255.0, gamma);
+			rectf[1] = pow(rectf[1] / 255.0, gamma);
+			rectf[2] = pow(rectf[2] / 255.0, gamma);
+		}
 	}
 }
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+
+void IMB_rect_from_float(struct ImBuf *ibuf)
+{
+	/* quick method to convert floatbuf to byte */
+	float *tof = ibuf->rect_float;
+	int i;
+	unsigned char *to = (unsigned char *) ibuf->rect;
+	
+	if(tof==NULL) return;
+	if(to==NULL) {
+		imb_addrectImBuf(ibuf);
+		to = (unsigned char *) ibuf->rect;
+	}
+	
+	for (i = ibuf->x * ibuf->y; i > 0; i--) 
+	{
+		to[0] = FTOCHAR(tof[0]);
+		to[1] = FTOCHAR(tof[1]);
+		to[2] = FTOCHAR(tof[2]);
+		to[3] = FTOCHAR(tof[3]);
+		to += 4; 
+		tof += 4;
+	}
+}
+
+void IMB_float_from_rect(struct ImBuf *ibuf)
+{
+	/* quick method to convert byte to floatbuf */
+	float *tof = ibuf->rect_float;
+	int i;
+	unsigned char *to = (unsigned char *) ibuf->rect;
+	
+	if(to==NULL) return;
+	if(tof==NULL) {
+		imb_addrectfloatImBuf(ibuf);
+		tof = ibuf->rect_float;
+	}
+	
+	for (i = ibuf->x * ibuf->y; i > 0; i--) 
+	{
+		tof[0] = ((float)to[0])*(1.0f/255.0f);
+		tof[1] = ((float)to[1])*(1.0f/255.0f);
+		tof[2] = ((float)to[2])*(1.0f/255.0f);
+		tof[3] = ((float)to[3])*(1.0f/255.0f);
+		to += 4; 
+		tof += 4;
+	}
+}
+

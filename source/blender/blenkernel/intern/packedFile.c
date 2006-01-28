@@ -52,24 +52,19 @@
 #include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_packedFile_types.h"
-
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
-
 #include "BKE_global.h"
 #include "BKE_main.h"
-
 #include "BKE_screen.h"
-
 #include "BKE_sound.h"
-//#include "sound.h"
-
 #include "BKE_image.h"
 #include "BKE_font.h"
 #include "BKE_packedFile.h"
+#include "BKE_bad_level_calls.h" /* <- waitcursor */
 
 int seekPackedFile(PackedFile * pf, int offset, int whence)
 {
@@ -309,7 +304,7 @@ int writePackedFile(char * filename, PackedFile *pf)
 	}
 	
 	// make sure the path to the file exists...
-	RE_make_existing_file(name);
+	BLI_make_existing_file(name);
 	
 	file = open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file >= 0) {

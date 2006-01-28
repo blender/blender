@@ -1,11 +1,6 @@
-
-/*  library.c 
- * 
- *  Contains management of ID's and libraries
- *  allocate and free of all library data
- * 
+/** 
  * $Id$
- *
+ * 
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +29,14 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+/*
+ *  Contains management of ID's and libraries
+ *  allocate and free of all library data
+ * 
+ */
+
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -71,6 +74,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_node_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -90,6 +94,7 @@
 #include "BKE_text.h"
 #include "BKE_texture.h"
 #include "BKE_scene.h"
+#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
@@ -99,9 +104,11 @@
 #include "BKE_lattice.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_node.h"
+
 #include "BPI_script.h"
 
-#define MAX_IDPUP		30	/* was 24 */
+#define MAX_IDPUP		60	/* was 24 */
 #define MAX_LIBARRAY	100 /* was 30, warning: used it readfile.c too */
 
 /* ************* general ************************ */
@@ -181,6 +188,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->armature);
 		case ID_AC:
 			return &(mainlib->action);
+		case ID_NT:
+			return &(mainlib->nodetree);
 	}
 	return 0;
 }
@@ -220,12 +229,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[20]= &(main->text);
 	lb[21]= &(main->sound);
 	lb[22]= &(main->group);
+	lb[23]= &(main->nodetree);
 
-	lb[23]= samples;
-	lb[24]= &(main->script);
-	lb[25]= NULL;
+	lb[24]= samples;
+	lb[25]= &(main->script);
+	lb[26]= NULL;
 
-	return 25;
+	return 26;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -240,7 +250,7 @@ void *alloc_libblock(ListBase *lb, type, name)
 
 static ID *alloc_libblock_notest(short type)
 {
-	ID *id= 0;
+	ID *id= NULL;
 	
 	switch( type ) {
 		case ID_SCE:
@@ -318,19 +328,23 @@ static ID *alloc_libblock_notest(short type)
 		case ID_AC:
 			id = MEM_callocN(sizeof(bAction), "action");
 			break;
+		case ID_NT:
+			id = MEM_callocN(sizeof(bNodeTree), "action");
+			break;
 	}
 	return id;
 }
 
 // used everywhere in blenkernel and text.c
-void *alloc_libblock(ListBase *lb, short type, char *name)
+void *alloc_libblock(ListBase *lb, short type, const char *name)
 {
-	ID *id= 0;
+	ID *id= NULL;
 	
 	id= alloc_libblock_notest(type);
 	if(id) {
 		BLI_addtail(lb, id);
 		id->us= 1;
+		id->icon_id = 0;
 		*( (short *)id->name )= type;
 		new_id(lb, id, name);
 		/* alphabetic insterion: is in new_id */
@@ -338,18 +352,12 @@ void *alloc_libblock(ListBase *lb, short type, char *name)
 	return id;
 }
 
-/* GS reads the memory pointed at in a specific ordering. There are,
- * however two definitions for it. I have jotted them down here, both,
- * but I think the first one is actually used. The thing is that
- * big-endian systems might read this the wrong way round. OTOH, we
- * constructed the IDs that are read out with this macro explicitly as
- * well. I expect we'll sort it out soon... */
+/* GS reads the memory pointed at in a specific ordering. 
+   only use this definition, makes little and big endian systems
+   work fine, in conjunction with MAKE_ID */
 
 /* from blendef: */
 #define GS(a)	(*((short *)(a)))
-
-/* from misc_util: flip the bytes from x  */
-/*#define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
 
 // used everywhere in blenkernel and text.c
 void *copy_libblock(void *rt)
@@ -463,6 +471,9 @@ void free_libblock(ListBase *lb, void *idv)
 		case ID_AC:
 			free_action((bAction *)id);
 			break;
+		case ID_NT:
+			ntreeFreeTree((bNodeTree *)id);
+			break;
 	}
 
 	BLI_remlink(lb, id);
@@ -525,9 +536,10 @@ ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 	return 0;
 }
 
-static void get_flags_for_id(ID *id, char *buf) {
+static void get_flags_for_id(ID *id, char *buf) 
+{
 	int isfake= id->flag & LIB_FAKEUSER;
-
+	int isnode=0;
 		/* Writeout the flags for the entry, note there
 		 * is a small hack that writes 5 spaces instead
 		 * of 4 if no flags are displayed... this makes
@@ -535,10 +547,15 @@ static void get_flags_for_id(ID *id, char *buf) {
 		 * to have that explicit, oh well - zr
 		 */
 
+	if(GS(id->name)==ID_MA)
+		isnode= ((Material *)id)->use_nodes;
+	
 	if (id->us<0)
 		sprintf(buf, "-1W ");
-	else if (!id->lib && !isfake && id->us)
+	else if (!id->lib && !isfake && id->us && !isnode)
 		sprintf(buf, "     ");
+	else if(isnode)
+		sprintf(buf, "%c%cN%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
 	else
 		sprintf(buf, "%c%c%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
 }
@@ -551,6 +568,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 	
 	if (nr && nids>MAX_IDPUP) {
 		BLI_dynstr_append(pupds, "DataBrowse %x-2");
+		*nr= -2;
 	} else {
 		ID *id;
 		
@@ -568,6 +586,21 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			BLI_dynstr_append(pupds, id->name+2);
 			sprintf(buf, "%%x%d", i+1);
 			BLI_dynstr_append(pupds, buf);
+			
+			/* icon */
+			switch(GS(id->name))
+			{
+			case ID_MA: /* fall through */
+			case ID_TE: /* fall through */
+			case ID_IM: /* fall through */
+			case ID_WO: /* fall through */
+			case ID_LA: /* fall through */
+				sprintf(buf, "%%i%d", BKE_icon_getid(id) );
+				BLI_dynstr_append(pupds, buf);
+				break;
+			default:
+				break;
+			}
 			
 			if(id->next)
 				BLI_dynstr_append(pupds, "|");
@@ -715,7 +748,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 	
 }
 
-int new_id(ListBase *lb, ID *id, char *tname)
+int new_id(ListBase *lb, ID *id, const char *tname)
 /* only for local blocks: external en indirect blocks already have a unique ID */
 /* return 1: created a new name */
 {

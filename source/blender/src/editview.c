@@ -46,10 +46,11 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_group_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -63,7 +64,9 @@
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
@@ -1023,8 +1026,6 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 }
 #endif
 
-#define SELECTSIZE	51
-
 void set_active_base(Base *base)
 {
 	Base *tbase;
@@ -1032,15 +1033,16 @@ void set_active_base(Base *base)
 	BASACT= base;
 	
 	if(base) {
+		
 		/* signals to buttons */
 		redraw_test_buttons(base->object);
-
-		set_active_group();
 		
 		/* signal to ipo */
 		allqueue(REDRAWIPO, base->object->ipowin);
+		
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWNODE, 0);
 		
 		/* signal to action */
 		select_actionchannel_by_name(base->object->action, "Object", 1);
@@ -1059,13 +1061,34 @@ void set_active_object(Object *ob)
 {
 	Base *base;
 	
-	base= FIRSTBASE;
-	while(base) {
+	for(base= FIRSTBASE; base; base= base->next) {
 		if(base->object==ob) {
 			set_active_base(base);
 			return;
 		}
-		base= base->next;
+	}
+}
+
+static void select_all_from_groups(Base *basact)
+{
+	Group *group;
+	GroupObject *go;
+	int deselect= basact->flag & SELECT;
+	
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(object_in_group(basact->object, group)) {
+			for(go= group->gobject.first; go; go= go->next) {
+				if(deselect) go->ob->flag &= ~SELECT;
+				else go->ob->flag |= SELECT;
+			}
+		}
+	}
+	/* sync bases */
+	for(basact= G.scene->base.first; basact; basact= basact->next) {
+		if(basact->object->flag & SELECT)
+			basact->flag |= SELECT;
+		else
+			basact->flag &= ~SELECT;
 	}
 }
 
@@ -1341,6 +1364,9 @@ void mouse_select(void)
 			if((G.qual & LR_SHIFTKEY)==0) {
 				deselectall_except(basact);
 				basact->flag |= SELECT;
+			}
+			else if(G.qual==(LR_SHIFTKEY|LR_ALTKEY)) {
+				select_all_from_groups(basact);
 			}
 			else {
 				if(basact->flag & SELECT) {
@@ -1933,7 +1959,7 @@ void set_render_border(void)
 
 	if(G.vd->persp!=2) return;
 	
-	val= get_border(&rect, 2);
+	val= get_border(&rect, 3);
 	if(val) {
 		rcti vb;
 

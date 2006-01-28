@@ -40,13 +40,19 @@
  * $Id$
  */
 
+#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 /* Only this one is used liberally here, and in imbuf */
-void IMB_convert_rgba_to_abgr(int size, unsigned int *rect)
+void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 {
-	char *cp= (char *)rect, rt;
+	int size, do_float=0;
+	unsigned char rt, *cp = (unsigned char *)ibuf->rect;
+	float rtf, *cpf = ibuf->rect_float;
 	
+	if (ibuf->rect_float)  do_float = 1;
+	size = ibuf->x * ibuf->y;
+
 	while(size-- > 0) {
 		rt= cp[0];
 		cp[0]= cp[3];
@@ -55,5 +61,15 @@ void IMB_convert_rgba_to_abgr(int size, unsigned int *rect)
 		cp[1]= cp[2];
 		cp[2]= rt;
 		cp+= 4;
+		if (do_float) {
+			rtf= cpf[0];
+			cpf[0]= cpf[3];
+			cpf[3]= rtf;
+			rtf= cpf[1];
+			cpf[1]= cpf[2];
+			cpf[2]= rtf;
+			cpf+= 4;
+		}
 	}
 }
+

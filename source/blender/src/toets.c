@@ -53,6 +53,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
@@ -76,12 +77,14 @@
 #include "BIF_interface.h"
 #include "BKE_object.h"
 #include "BIF_poseobject.h"
+#include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
+#include "BIF_writeimage.h"
 
 #include "BDR_vpaint.h"
 #include "BDR_editobject.h"
@@ -96,7 +99,6 @@
 #include "BSE_seqaudio.h"
 
 #include "blendef.h"
-#include "render.h"		// darn schrijfplaatje() (ton)
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -104,158 +106,6 @@
 #include "mydevice.h"
 
 #include "BIF_poseobject.h"
-
-/* only used in toets.c and initrender.c */
-/* this function doesn't really belong here */
-/* ripped from render module */
-void schrijfplaatje(char *name);
-
-
-static void write_imag(char *name)
-{
-	/* from file select */
-	char str[256];
-
-	/* addImageExtension() checks for if extension was already set */
-	if(G.scene->r.scemode & R_EXTENSION) 
-		if(strlen(name)<FILE_MAXDIR+FILE_MAXFILE-5)
-			addImageExtension(name);
-	
-	strcpy(str, name);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-
-	if(saveover(str)) {
-		if(BLI_testextensie(str,".blend")) {
-			error("Wrong filename");
-			return;
-		}
-		waitcursor(1); /* from screen.c */
-		schrijfplaatje(str);
-		strcpy(G.ima, name);
-		waitcursor(0);
-	}
-}
-
-
-/* From matrix.h: it's really a [4][4]! */
-/* originally in initrender... maybe add fileControl thingy? */
-
-/* should be called write_image(char *name) :-) */
-void schrijfplaatje(char *name)
-{
-	struct ImBuf *ibuf=0;
-	unsigned int *temprect=0;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
-
-	/* radhdr: temporary call for direct float buffer save for HDR format */
-	if ((R.r.imtype==R_RADHDR) && (R.rectftot))
-	{
-		imb_savehdr_fromfloat(R.rectftot, name, R.rectx, R.recty);
-		return;
-	}
-
-	/* has RGBA been set? If so: use alpha channel for color zero */
-	IMB_alpha_to_col0(FALSE);
-
-	if(R.r.planes == 32) {
-		/* everything with less than 50 % alpha -> col 0 */
-		if(R.r.alphamode == R_ALPHAKEY) IMB_alpha_to_col0(2);
-		/* only when 0 alpha -> col 0 */
-		else IMB_alpha_to_col0(1);
-	}
-
-	/* Seems to me this is also superfluous.... */
-	if (R.r.imtype==R_FTYPE) {
-		strcpy(str, R.r.ftype);
-		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-
-		ibuf = IMB_loadiffname(str, IB_test);
-		if(ibuf) {
-			ibuf->x = R.rectx;
-			ibuf->y = R.recty;
-		}
-		else {
-			error("Can't find filetype");
-			G.afbreek= 1;
-			return;
-		}
-		/* setdither(2); */
-	}
-
-	if(ibuf == 0) {
-		ibuf= IMB_allocImBuf(R.rectx, R.recty, (char) R.r.planes, 0, 0);
-	}
-
-	if(ibuf) {
-		ibuf->rect= (unsigned int *) R.rectot;
-//		ibuf->rect_float = R.rectftot;
-
-		if(R.r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
-
-		if(R.r.imtype== R_IRIS) {
-			ibuf->ftype= IMAGIC;
-		}
-		else if(R.r.imtype==R_IRIZ) {
-			ibuf->ftype= IMAGIC;
-			if (ibuf->zbuf == 0) {
-				if (R.rectz) {
-					ibuf->zbuf = (int *)R.rectz;
-				}
-				else printf("no zbuf\n");
-			}
-		}
-		else if(R.r.imtype==R_RADHDR) {
-			/* radhdr: save hdr from rgba buffer, not really recommended, probably mistake, so warn user */
-			error("Will save, but you might want to enable the floatbuffer to save a real HDRI...");
-			ibuf->ftype= RADHDR;
-		}
-		else if(R.r.imtype==R_PNG) {
-			ibuf->ftype= PNG;
-		}
-		else if(R.r.imtype==R_BMP) {
-			ibuf->ftype= BMP;
-		}
-		else if((G.have_libtiff) && (R.r.imtype==R_TIFF)) {
-			ibuf->ftype= TIF;
-		}
-		else if((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {
-			ibuf->ftype= TGA;
-		}
-		else if(R.r.imtype==R_RAWTGA) {
-			ibuf->ftype= RAWTGA;
-		}
-		else if(R.r.imtype==R_HAMX) {
-			/* make copy */
-			temprect= MEM_dupallocN(R.rectot);
-			ibuf->ftype= AN_hamx;
-		}
-		else if(ELEM5(R.r.imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
-			if(R.r.quality < 10) R.r.quality= 90;
-
-			if(R.r.mode & R_FIELDS) ibuf->ftype= JPG_VID|R.r.quality;
-			else ibuf->ftype= JPG|R.r.quality;
-		}
-	
-		RE_make_existing_file(name);
-
-		if(IMB_saveiff(ibuf, name, IB_rect | IB_zbuf)==0) {
-			perror(name);
-			G.afbreek= 1;
-		}
-
-		IMB_freeImBuf(ibuf);
-
-		if (R.r.imtype==R_HAMX) {
-			MEM_freeN(R.rectot);
-			R.rectot= temprect;
-		}
-	}
-	else {
-		G.afbreek= 1;
-	}
-}
-
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -274,6 +124,7 @@ void persptoetsen(unsigned short event)
 	static Object *oldcamera=0;
 	float phi, si, q1[4], vec[3];
 	static int perspo=1;
+	int preview3d_event= 1;
 	
 	if(event==PADENTER) {
 		if (G.qual == LR_SHIFTKEY) {
@@ -320,15 +171,15 @@ void persptoetsen(unsigned short event)
 		else if(event==PADMINUS) {
 			/* this min and max is also in viewmove() */
 			if(G.vd->persp==2) {
-					G.vd->camzoom-= 10;
-					if(G.vd->camzoom<-30) G.vd->camzoom= -30;
-				}
+				G.vd->camzoom-= 10;
+				if(G.vd->camzoom<-30) G.vd->camzoom= -30;
+			}
 			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
 		}
 		else if(event==PADPLUSKEY) {
 			if(G.vd->persp==2) {
-					G.vd->camzoom+= 10;
-					if(G.vd->camzoom>300) G.vd->camzoom= 300;
+				G.vd->camzoom+= 10;
+				if(G.vd->camzoom>300) G.vd->camzoom= 300;
 			}
 			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
 		}
@@ -380,12 +231,14 @@ void persptoetsen(unsigned short event)
 				G.vd->camzoom= MAX2(-30, G.vd->camzoom-5);
 			}
 			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
+			if(G.vd->persp!=1) preview3d_event= 0;
 		}
 		else if(event==PADPLUSKEY) {
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MIN2(300, G.vd->camzoom+5);
 			}
 			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
+			if(G.vd->persp!=1) preview3d_event= 0;
 		}
 		else if(event==PAD5) {
 			if(G.vd->persp==1) G.vd->persp=0;
@@ -468,6 +321,12 @@ void persptoetsen(unsigned short event)
 
 		if(G.vd->persp<2) perspo= G.vd->persp;
 	}
+	
+	if(preview3d_event) 
+		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+	else
+		BIF_view3d_previewrender_signal(curarea, PR_PROJECTED);
+
 	scrarea_queue_redraw(curarea);
 }
 
@@ -487,62 +346,6 @@ int untitled(char * name)
 	return(FALSE);
 }
 
-int save_image_filesel_str(char *str)
-{
-	switch(G.scene->r.imtype) {
-	case R_RADHDR:
-		strcpy(str, "Save Radiance HDR"); return 1;
-	case R_PNG:
-		strcpy(str, "Save PNG"); return 1;
-	case R_BMP:
-		strcpy(str, "Save BMP"); return 1;
-	case R_TIFF:
-		if (G.have_libtiff) {
-			strcpy(str, "Save TIFF"); return 1;
-		}
-	case R_TARGA:
-		strcpy(str, "Save Targa"); return 1;
-	case R_RAWTGA:
-		strcpy(str, "Save Raw Targa"); return 1;
-	case R_IRIS:
-		strcpy(str, "Save IRIS"); return 1;
-	case R_IRIZ:
-		strcpy(str, "Save IRIS"); return 1;
-	case R_HAMX:
-		strcpy(str, "Save HAMX"); return 1;
-	case R_FTYPE:
-		strcpy(str, "Save Ftype"); return 1;
-	case R_JPEG90:
-		strcpy(str, "Save JPEG"); return 1;
-	default:
-		strcpy(str, "Save Image"); return 0;
-	}	
-}
-
-void BIF_save_rendered_image(void)
-{
-	if(!R.rectot) {
-		error("No image rendered");
-	} else {
-		char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
-
-		if(G.ima[0]==0) {
-			strcpy(dir, G.sce);
-			BLI_splitdirstring(dir, str);
-			strcpy(G.ima, dir);
-		}
-		
-		R.r.imtype= G.scene->r.imtype;
-		R.r.quality= G.scene->r.quality;
-		R.r.planes= G.scene->r.planes;
-	
-		if (!save_image_filesel_str(str)) {
-			error("Select an image type in DisplayButtons(F10)");
-		} else {
-			activate_fileselect(FILE_SPECIAL, str, G.ima, write_imag);
-		}
-	}
-}
 
 int blenderqread(unsigned short event, short val)
 {
@@ -600,7 +403,7 @@ int blenderqread(unsigned short event, short val)
 		break;
 	case F3KEY:
 		if(G.qual==0) {
-			BIF_save_rendered_image();
+			BIF_save_rendered_image_fs();
 			return 0;
 		}
 		else if(G.qual & LR_CTRLKEY) {
@@ -799,6 +602,8 @@ int blenderqread(unsigned short event, short val)
 					set_editflag_editipo();
 				else if(curarea->spacetype==SPACE_SEQ)
 					enter_meta();
+				else if(curarea->spacetype==SPACE_NODE)
+					return 1;
 				else if(G.vd) {
 					/* also when Alt-E */
 					if(G.obedit==NULL) {
@@ -879,10 +684,10 @@ int blenderqread(unsigned short event, short val)
 		break;
 	case JKEY:
 		if(textediting==0 && textspace==0) {
-			if(R.rectot && G.qual==0) {
+//			if(R.rectot && G.qual==0) {
 				BIF_swap_render_rects();
 				return 0;
-			}
+//			}
 		}
 		break;
 
@@ -983,7 +788,8 @@ int blenderqread(unsigned short event, short val)
 						screen_swapbuffers();
 					}
 					else if(event==3) {
-						BKE_write_undo("10 timer");
+						BIF_undo();
+						BIF_redo();
 					}
 				}
 			
@@ -991,8 +797,7 @@ int blenderqread(unsigned short event, short val)
 				
 				if(event==1) sprintf(tmpstr, "draw %%t|%d ms", time);
 				if(event==2) sprintf(tmpstr, "d+sw %%t|%d ms", time);
-				if(event==3) sprintf(tmpstr, "displist %%t|%d ms", time);
-				if(event==4) sprintf(tmpstr, "undo %%t|%d ms", time);
+				if(event==3) sprintf(tmpstr, "undo %%t|%d ms", time);
 			
 				waitcursor(0);
 				pupmenu(tmpstr);

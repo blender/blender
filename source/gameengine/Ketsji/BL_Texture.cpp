@@ -346,18 +346,18 @@ void my_envmap_split_ima(EnvMap *env)
 			ima->ok= 1;
 			env->cube[part]= ima;
 		}
-		IMB_rectop(env->cube[0]->ibuf, env->ima->ibuf, 
-			0, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[1]->ibuf, env->ima->ibuf, 
-			0, 0, dx, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[2]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[3]->ibuf, env->ima->ibuf, 
-			0, 0, 0, dx, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[4]->ibuf, env->ima->ibuf, 
-			0, 0, dx, dx, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[5]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, dx, dx, dx, IMB_rectcpy, 0);
+		IMB_rectcpy(env->cube[0]->ibuf, env->ima->ibuf, 
+			0, 0, 0, 0, dx, dx);
+		IMB_rectcpy(env->cube[1]->ibuf, env->ima->ibuf, 
+			0, 0, dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[2]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[3]->ibuf, env->ima->ibuf, 
+			0, 0, 0, dx, dx, dx);
+		IMB_rectcpy(env->cube[4]->ibuf, env->ima->ibuf, 
+			0, 0, dx, dx, dx, dx);
+		IMB_rectcpy(env->cube[5]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, dx, dx, dx);
 		env->ok= 2;
 	}
 }

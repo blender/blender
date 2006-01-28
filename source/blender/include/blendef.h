@@ -310,6 +310,11 @@
 #define B_SIMACLONEDELETE	366
 #define B_SIMABRUSHCHANGE	367
 #define B_SIMANOTHING		368
+#define B_SIMACURVES		369
+#define B_SIMARANGE			370
+#define B_SIMA_USE_ALPHA	371
+#define B_SIMA_SHOW_ALPHA	372
+#define B_SIMA_SHOW_ZBUF	373
 
 /* BUTS: 400 */
 #define B_BUTSHOME		401
@@ -370,10 +375,15 @@
 #define B_TL_NEXTKEY	755
 #define B_TL_STOP		756
 
-/* NLA: 801-900 */
+/* NLA: 801-850 */
 #define B_NLAHOME		801
 
-/* FREE 900 - 999 */
+/* NODE: 851-900 */
+#define B_NODEHOME			851
+#define B_NODE_USEMAT		852
+#define B_NODE_USESCENE		853
+
+/* FREE 901 - 999 */
 
 
 #define B_NOTHING		-1
@@ -389,7 +399,7 @@
 #define B_AUTOFGON		32
 #define B_KNIFE			0x80
 #define B_PERCENTSUBD	0x40
-
+#define B_MESH_X_MIRROR	0x100
 
 /* DISPLAYMODE */
 #define R_DISPLAYVIEW	0

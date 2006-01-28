@@ -96,7 +96,7 @@ typedef struct Global {
 	short afbreek, moving;
 	short qual, background;
 	short winpos, displaymode;	/* used to be in Render */
-	
+	short rendering;			/* to indicate render is busy, prevent renderwindow events etc */
 	/**
 	 * The current version of Blender.
 	 */
@@ -124,7 +124,7 @@ typedef struct Global {
 	struct VFont *selfont;
 	struct ListBase ttfdata;
 
-	/* libtiff flag */
+	/* libtiff flag used to determine if shared library loaded for libtiff*/
 	int have_libtiff;
 
 	/* this variable is written to / read from FileGlobal->fileflags */

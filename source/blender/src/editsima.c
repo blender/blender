@@ -59,6 +59,7 @@
 #include "DNA_image_types.h"
 #include "DNA_object_types.h" // only for uvedit_selectionCB() (struct Object)
 
+#include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -83,6 +84,8 @@
 
 #include "BDR_editobject.h"
 #include "BDR_unwrapper.h"
+
+#include "BMF_Api.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -1394,4 +1397,107 @@ int minmax_tface_uv(float *min, float *max)
 
 	return sel;
 }
+
+static void sima_show_info(int x, int y, char *cp, float *fp, int *zp, float *zpf)
+{
+	short ofs;
+	char str[256];
+	
+	ofs= sprintf(str, "X: %d Y: %d ", x, y);
+	if(cp)
+		ofs+= sprintf(str+ofs, "| R: %d G: %d B: %d A: %d ", cp[0], cp[1], cp[2], cp[3]);
+	if(fp)
+		ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+	if(zp)
+		ofs+= sprintf(str+ofs, "| Z: %.4f ", 0.5+0.5*( ((float)*zp)/(float)0x7fffffff));
+	if(zpf)
+		ofs+= sprintf(str+ofs, "| Z: %.3f ", *zpf);
+	
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
+	glColor4f(.0,.0,.0,.25);
+	glRectf(0.0, 0.0, curarea->winx, 30.0);
+	glDisable(GL_BLEND);
+	
+	glColor3ub(255, 255, 255);
+	glRasterPos2i(10, 10);
+	
+	BMF_DrawString(G.fonts, str);
+
+}
+
+void sima_sample_color(void)
+{
+	ImBuf *ibuf;
+	float fx, fy;
+	short mval[2], mvalo[2], firsttime=1;
+	
+	if(G.sima->image==NULL) return;
+	if(G.sima->image->ibuf==NULL) return;
+	ibuf= G.sima->image->ibuf;
+	
+	calc_image_view(G.sima, 'f');
+	getmouseco_areawin(mvalo);
+	
+	while(get_mbut() & L_MOUSE) {
+		
+		getmouseco_areawin(mval);
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || firsttime) {
+			firsttime= 0;
+			areamouseco_to_ipoco(G.v2d, mval, &fx, &fy);
+			
+			if(fx>=0.0 && fy>=0.0 && fx<1.0 && fy<1.0) {
+				float *fp= NULL, *zpf= NULL;
+				int *zp= NULL;
+				char *cp= NULL;
+				
+				int x= (int) (fx*ibuf->x);
+				int y= (int) (fy*ibuf->y);
+				
+				if(x>=ibuf->x) x= ibuf->x-1;
+				if(y>=ibuf->y) y= ibuf->y-1;
+				
+				if(ibuf->rect)
+					cp= (char *)(ibuf->rect + y*ibuf->x + x);
+				if(ibuf->zbuf)
+					zp= ibuf->zbuf + y*ibuf->x + x;
+				if(ibuf->zbuf_float)
+					zpf= ibuf->zbuf_float + y*ibuf->x + x;
+				if(ibuf->rect_float)
+					fp= (ibuf->rect_float + 4*(y*ibuf->x + x));
+					
+				if(G.sima->cumap) {
+					float vec[3];
+					if(fp==NULL) {
+						fp= vec;
+						vec[0]= (float)cp[0]/255.0f;
+						vec[1]= (float)cp[1]/255.0f;
+						vec[2]= (float)cp[2]/255.0f;
+					}
+					
+					if(G.qual & LR_CTRLKEY) {
+						curvemapping_set_black_white(G.sima->cumap, NULL, fp);
+						curvemapping_do_image(G.sima->cumap, G.sima->image);
+					}
+					else if(G.qual & LR_SHIFTKEY) {
+						curvemapping_set_black_white(G.sima->cumap, fp, NULL);
+						curvemapping_do_image(G.sima->cumap, G.sima->image);
+					}
+				}
+				
+				scrarea_do_windraw(curarea);
+				myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
+				glLoadIdentity();
+				sima_show_info(x, y, cp, fp, zp, zpf);
+				screen_swapbuffers();
+			}
+			
+		}
+		BIF_wait_for_statechange();
+	}
+	
+	scrarea_queue_winredraw(curarea);
+}
+
 

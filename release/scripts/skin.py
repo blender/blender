@@ -483,9 +483,7 @@ def main():
 	if choice == 1 and len(edgeOrderedList) > 2: # Loop
 		skin2EdgeLoops(edgeOrderedList[0], edgeOrderedList[-1], me, ob, 0)	
 	
-	print '\nArray done in %.4f sec.' % (sys.time()-time1)
 	me.update(1, 1, 0)
 	if is_editmode: Window.EditMode(1)
 
-if __name__ == '__main__':
-	main()
+main()

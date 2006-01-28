@@ -129,12 +129,12 @@ void circle_selectCB(select_CBfunc func);
 /* local protos ---------------*/
 void snap_curs_to_firstsel(void);
 
-
-int get_border(rcti *rect, short col)
+/* flag==2 only border, flag==3 cross+border */
+int get_border(rcti *rect, short flag)
 {
 	float dvec[4], fac1, fac2;
 	int retval=1;
-	unsigned short event;
+	unsigned short event= 0;
 	short mval[2], mvalo[4], val, x1, y1;
 	char str[64];
 
@@ -153,56 +153,59 @@ int get_border(rcti *rect, short col)
 	persp(PERSP_WIN);
 	initgrabz(0.0, 0.0, 0.0);
 	
-	getmouseco_areawin(mvalo);
+	if(flag & 1) {
+		getmouseco_areawin(mvalo);
 
-	/* draws the selection initial cross */
-	sdrawXORline4(0, 0,  mvalo[1],  curarea->winx,  mvalo[1]);
-	sdrawXORline4(1, mvalo[0],  0,  mvalo[0],  curarea->winy); 
-	glFlush();
-	
-	while(TRUE) {
-	
-		/* selection loop while mouse pressed */
-		getmouseco_areawin(mval);
-
-		if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
-
-			/* aiming cross */
-  			sdrawXORline4(0, 0,  mval[1],  curarea->winx,  mval[1]);
-  			sdrawXORline4(1, mval[0],  0,  mval[0],  curarea->winy);
-			glFlush();
-
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-		}
-		event= extern_qread(&val);
-
-		if(event && val) {
-
-			/* for when a renderwindow is open, and a mouse cursor activates it */
-			persp(PERSP_VIEW);
-			mywinset(curarea->win);
-			persp(PERSP_WIN);
-			
-			if(event==ESCKEY) {
-				retval= 0;
-				break;
-			}
-			else if(event==BKEY) {
-				/* b has been pressed twice: proceed with circle select */
-				retval= 0;
-				break;
-			}
-			else if(event==LEFTMOUSE) break;
-			else if(event==MIDDLEMOUSE) break;
-			else if(event==RIGHTMOUSE) break;
-		}
-		else PIL_sleep_ms(10);
+		/* draws the selection initial cross */
+		sdrawXORline4(0, 0,  mvalo[1],  curarea->winx,  mvalo[1]);
+		sdrawXORline4(1, mvalo[0],  0,  mvalo[0],  curarea->winy); 
+		glFlush();
 		
-	} /* end while (TRUE) */
+		while(TRUE) {
+		
+			/* selection loop while mouse pressed */
+			getmouseco_areawin(mval);
+			
+			if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
 
-	/* erase XORed lines */
-	sdrawXORline4(-1, 0, 0, 0, 0);
+				/* aiming cross */
+				sdrawXORline4(0, 0,  mval[1],  curarea->winx,  mval[1]);
+				sdrawXORline4(1, mval[0],  0,  mval[0],  curarea->winy);
+				glFlush();
+
+				mvalo[0]= mval[0];
+				mvalo[1]= mval[1];
+			}
+			event= extern_qread(&val);
+
+			if(event && val) {
+
+				/* for when a renderwindow is open, and a mouse cursor activates it */
+				persp(PERSP_VIEW);
+				mywinset(curarea->win);
+				persp(PERSP_WIN);
+				
+				if(event==ESCKEY) {
+					retval= 0;
+					break;
+				}
+				else if(event==BKEY) {
+					/* b has been pressed twice: proceed with circle select */
+					retval= 0;
+					break;
+				}
+				else if(event==LEFTMOUSE) break;
+				else if(event==MIDDLEMOUSE) break;
+				else if(event==RIGHTMOUSE) break;
+			}
+			else PIL_sleep_ms(10);
+			
+		} /* end while (TRUE) */
+
+		/* erase XORed lines */
+		sdrawXORline4(-1, 0, 0, 0, 0);
+	}
+	else getmouseco_areawin(mval);
 	
 	if(retval) {
 		/* box select */
@@ -684,10 +687,13 @@ void countall()
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		if(ob->pose) {
+			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				G.totbone++;
-				if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) G.totbonesel++;
+				if(pchan->bone && (pchan->bone->flag & BONE_SELECTED))
+					if(pchan->bone->layer & arm->layer)
+						G.totbonesel++;
 			}
 		}
 		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
@@ -886,28 +892,31 @@ static void make_trans_verts(float *min, float *max, int mode)
 		}
 	}
 	else if (G.obedit->type==OB_ARMATURE){
+		bArmature *arm= G.obedit->data;
+		
 		for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-			if (ebo->flag & BONE_TIPSEL){
-				VECCOPY (tv->oldloc, ebo->tail);
-				tv->loc= ebo->tail;
-				tv->nor= NULL;
-				tv->flag= 1;
-				tv++;
-				tottrans++;
-			}
-
-			/*  Only add the root if there is no connection */
-			if (ebo->flag & BONE_ROOTSEL){
-				if (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL)){
-					VECCOPY (tv->oldloc, ebo->head);
-					tv->loc= ebo->head;
+			if(ebo->layer & arm->layer) {
+				if (ebo->flag & BONE_TIPSEL){
+					VECCOPY (tv->oldloc, ebo->tail);
+					tv->loc= ebo->tail;
 					tv->nor= NULL;
 					tv->flag= 1;
 					tv++;
 					tottrans++;
-				}		
-			}
-			
+				}
+
+				/*  Only add the root if there is no connection */
+				if (ebo->flag & BONE_ROOTSEL){
+					if (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL)){
+						VECCOPY (tv->oldloc, ebo->head);
+						tv->loc= ebo->head;
+						tv->nor= NULL;
+						tv->flag= 1;
+						tv++;
+						tottrans++;
+					}		
+				}
+			}			
 		}
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
@@ -1156,6 +1165,7 @@ void snap_sel_to_curs()
 			ob= base->object;
 			if(ob->flag & OB_POSEMODE) {
 				bPoseChannel *pchan;
+				bArmature *arm= ob->data;
 				float cursp[3];
 				
 				Mat4Invert(ob->imat, ob->obmat);
@@ -1164,10 +1174,13 @@ void snap_sel_to_curs()
 				
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
-						if(pchan->parent==NULL) {
-							VECCOPY(pchan->loc, cursp);
+						if(pchan->bone->layer & arm->layer) {
+							if(pchan->parent==NULL) {
+								/* this is wrong... lazy! */
+								VECCOPY(pchan->loc, cursp);
+							}
+							/* else todo... */
 						}
-						/* else todo... */
 					}
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
@@ -1265,14 +1278,17 @@ void snap_curs_to_sel()
 		Object *ob= OBACT;
 		
 		if(ob && (ob->flag & OB_POSEMODE)) {
+			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
 			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-				if(pchan->bone->flag & BONE_SELECTED) {
-					VECCOPY(vec, pchan->pose_head);
-					Mat4MulVecfl(ob->obmat, vec);
-					VecAddf(centroid, centroid, vec);
-					DO_MINMAX(vec, min, max);
-					count++;
+				if(arm->layer & pchan->bone->layer) {
+					if(pchan->bone->flag & BONE_SELECTED) {
+						VECCOPY(vec, pchan->pose_head);
+						Mat4MulVecfl(ob->obmat, vec);
+						VecAddf(centroid, centroid, vec);
+						DO_MINMAX(vec, min, max);
+						count++;
+					}
 				}
 			}
 		}

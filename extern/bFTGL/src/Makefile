@@ -46,7 +46,6 @@ CCSRCS =  FTBitmapGlyph.cpp FTCharmap.cpp FTContour.cpp FTExtrdGlyph.cpp \
 
 include nan_compile.mk 
 CPPFLAGS += -I../include
-CPPFLAGS += -I/usr/X11R6/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include -I$(NAN_FREETYPE)/include/freetype2 
 
 install: all debug

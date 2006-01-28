@@ -1,15 +1,12 @@
 /**
-* $Id$
-*
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * $Id$
+ *
+ * ***** BEGIN GPL BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,11 +24,12 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
-* This file is a horrible mess: An attmept to cram some
-* final functionality into blender before it is too late.
-*
-* Hopefully it can be tidied up at a later date...
+ * ***** END GPL *****
+ *
+ * This file is a horrible mess: An attmept to cram some
+ * final functionality into blender before it is too late.
+ *
+ * Hopefully it can be tidied up at a later date...
 */
 
 #include <stdlib.h>
@@ -44,19 +42,20 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_action_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_object_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_action_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_constraint_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
+#include "BKE_group.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_library.h"
@@ -97,7 +96,6 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel);
 static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel);
 static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel);
 static void mouse_nlachannels(short mval[2]);
-static void add_nlablock(short mval[2]);
 static void convert_nla(short mval[2]);
 
 /* ******************** SPACE: NLA ********************** */
@@ -186,7 +184,7 @@ void synchronize_action_strips(void)
 			if (strip->flag & ACTSTRIP_LOCK_ACTION) {
 				float actstart, actend;
 				
-				calc_action_range(strip->act, &actstart, &actend);
+				calc_action_range(strip->act, &actstart, &actend, 1);
 				
 				if(strip->actstart!=actstart || strip->actend!=actend) {
 					float mapping= (strip->end - strip->start)/(strip->actend - strip->actstart);
@@ -212,7 +210,7 @@ void reset_action_strips(int val)
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if(val==2) {
-					calc_action_range(strip->act, &strip->actstart, &strip->actend);
+					calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
 				}
 				else if(val==1) {
 					float mapping= (strip->actend - strip->actstart)/(strip->end - strip->start);
@@ -249,189 +247,6 @@ void snap_action_strips(void)
 	allqueue (REDRAWNLA, 0);
 }
 
-void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
-{
-	unsigned short event= evt->event;
-	short val= evt->val;
-	SpaceNla *snla = curarea->spacedata.first;
-	int doredraw= 0;
-	short	mval[2];
-	float dx,dy;
-	int	cfra;
-	short mousebut = L_MOUSE;
-	
-	if (curarea->win==0) return;
-	if (!snla) return;
-	
-	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
-		
-		/* swap mouse buttons based on user preference */
-		if (U.flag & USER_LMOUSESELECT) {
-			if (event == LEFTMOUSE) {
-				event = RIGHTMOUSE;
-				mousebut = L_MOUSE;
-			} else if (event == RIGHTMOUSE) {
-				event = LEFTMOUSE;
-				mousebut = R_MOUSE;
-			}
-		}
-		
-		getmouseco_areawin(mval);
-		
-		switch(event) {
-		case UI_BUT_EVENT:
-			do_nlabuts(val); // in drawnla.c
-			break;
-		
-		case HOMEKEY:
-			do_nla_buttons(B_NLAHOME);
-			break;
-
-		case EQUALKEY:
-		case PAGEUPKEY:
-			shift_nlastrips_up();
-			break;
-
-		case MINUSKEY:
-		case PAGEDOWNKEY:
-			shift_nlastrips_down();
-			break;
-
-		case AKEY:
-			if (G.qual & LR_SHIFTKEY){
-				add_nlablock(mval);
-				allqueue (REDRAWNLA, 0);
-				allqueue (REDRAWVIEW3D, 0);
-			}
-			else{
-				if (mval[0]>=NLAWIDTH)
-					deselect_nlachannel_keys(1);
-				else{
-					deselect_nlachannels(1);
-					allqueue (REDRAWVIEW3D, 0);
-				}
-				allqueue (REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-				BIF_undo_push("(De)select all NLA");
-			}
-			break;
-
-		case BKEY:
-			borderselect_nla();
-			break;
-
-		case CKEY:
-			convert_nla(mval);
-			break;
-			
-		case DKEY:
-			if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
-				duplicate_nlachannel_keys();
-				update_for_newframe_muted();
-			}
-			break;
-
-		case GKEY:
-			if (mval[0]>=NLAWIDTH)
-				transform_nlachannel_keys ('g', 0);
-			update_for_newframe_muted();
-			break;
-
-		case NKEY:
-			if(G.qual==0) {
-				toggle_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
-				scrarea_queue_winredraw(curarea);
-			}
-			break;
-
-		case SKEY:
-			if(G.qual==LR_ALTKEY) {
-				val= pupmenu("Action Strip Scale%t|Clear Strip Size%x1|Remap Start/End%x2");
-				if(val==1)
-					reset_action_strips(1);
-				else if(val==2)
-					reset_action_strips(2);
-			}
-			else if(G.qual & LR_SHIFTKEY) {
-				if(okee("Snap Strips to Frame"))
-					snap_action_strips();
-			}
-			else {
-				if (mval[0]>=NLAWIDTH)
-					transform_nlachannel_keys ('s', 0);
-				update_for_newframe_muted();
-			}
-			break;
-
-		case DELKEY:
-		case XKEY:
-			if (mval[0]>=NLAWIDTH)
-				delete_nlachannel_keys ();
-
-			update_for_newframe_muted();
-			break;
-			
-		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
-		 * based on user preference USER_LMOUSESELECT
-		 */
-		case LEFTMOUSE:
-			if(view2dmove(LEFTMOUSE))
-				break; // only checks for sliders
-			else if (mval[0]>=snla->v2d.mask.xmin) {
-				do {
-					getmouseco_areawin(mval);
-					
-					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-					
-					cfra= (int)dx;
-					if(cfra< 1) cfra= 1;
-					
-					if( cfra!=CFRA ) {
-						CFRA= cfra;
-						update_for_newframe();
-						force_draw_all(0);
-					}
-					else PIL_sleep_ms(30);
-					
-				} while(get_mbut() & mousebut);
-				break;
-			}
-			/* else pass on! */
-		case RIGHTMOUSE:
-			if (mval[0]>=snla->v2d.mask.xmin) {
-				if(G.qual & LR_SHIFTKEY)
-					mouse_nla(SELECT_INVERT);
-				else
-					mouse_nla(SELECT_REPLACE);
-			}
-			else
-				mouse_nlachannels(mval);
-			break;
-
-		case PADPLUSKEY:
-			view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
-			test_view2d(G.v2d, sa->winx, sa->winy);
-			view2d_do_locks(curarea, V2D_LOCK_COPY);
-			doredraw= 1;
-			break;
-		case PADMINUS:
-			view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
-			test_view2d(G.v2d, sa->winx, sa->winy);
-			view2d_do_locks(curarea, V2D_LOCK_COPY);
-			doredraw= 1;
-			break;
-		case MIDDLEMOUSE:
-		case WHEELUPMOUSE:
-		case WHEELDOWNMOUSE:
-			view2dmove(event);	/* in drawipo.c */
-			break;
-		}
-	}
-	
-	if(doredraw) scrarea_queue_winredraw(curarea);
-}
-
 static void set_active_strip(Object *ob, bActionStrip *act)
 {
 	bActionStrip *strip;
@@ -444,9 +259,13 @@ static void set_active_strip(Object *ob, bActionStrip *act)
 	
 		if(ob->action!=act->act) {
 			if(ob->action) ob->action->id.us--;
-			ob->action= act->act;
-			ob->action->id.us++;
-			
+			if(act->act->id.lib) {
+				ob->action= NULL;
+			}
+			else {
+				ob->action= act->act;
+				id_us_plus(&ob->action->id);
+			}			
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWACTION, 0);
@@ -532,8 +351,8 @@ static void convert_nla(short mval[2])
 			
 			/* Link the action to the nstrip */
 			nstrip->act = base->object->action;
-			nstrip->act->id.us++;
-			calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend);
+			id_us_plus(&nstrip->act->id);
+			calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend, 1);
 			nstrip->start = nstrip->actstart;
 			nstrip->end = nstrip->actend;
 			nstrip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
@@ -556,11 +375,9 @@ static void convert_nla(short mval[2])
 	}
 }
 
-
-static Base *nla_base=NULL;	/* global, bad, bad! put it in nla space later, or recode the 2 functions below (ton) */
-
 static void add_nla_block(short event)
 {
+	Object *ob= OBACT;
 	bAction *act=NULL;
 	bActionStrip *strip;
 	int		cur;
@@ -585,23 +402,24 @@ static void add_nla_block(short event)
 	
 	/* Link the action to the strip */
 	strip->act = act;
-	calc_action_range(strip->act, &strip->actstart, &strip->actend);
+	id_us_plus(&act->id);
+	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
 	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
 	strip->end = strip->start + (strip->actend-strip->actstart);
 		/* simple prevention of zero strips */
 	if(strip->start>strip->end-2) 
 		strip->end= strip->start+100;
+	strip->repeat = 1.0;
 	
 	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
 	
-	find_stridechannel(nla_base->object, strip);
-	set_active_strip(nla_base->object, strip);
-	
-	strip->repeat = 1.0;
-	
-	act->id.us++;
-	
-	BLI_addtail(&nla_base->object->nlastrips, strip);
+	find_stridechannel(ob, strip);
+	set_active_strip(ob, strip);
+	strip->object= group_get_member_with_action(ob->dup_group, act);
+	if(strip->object)
+		id_lib_extern(&strip->object->id);	/* checks lib data, sets correct flag for saving then */
+
+	BLI_addtail(&ob->nlastrips, strip);
 
 	BIF_undo_push("Add NLA strip");
 }
@@ -611,72 +429,32 @@ static void add_nla_databrowse_callback(unsigned short val)
 	/* val is not used, databrowse needs it to optional pass an event */
 	short event;
 	
-	if(nla_base==NULL) return;
+	if(OBACT==NULL) return;
 	
 	event= G.snla->menunr;	/* set by databrowse or pupmenu */
 	
 	add_nla_block(event);
 }
 
-static void add_nlablock(short mval[2])
+/* Adds strip to to active Object */
+static void add_nlablock(void)
 {
-	/* Make sure we are over an object with action */
-	Base *base;
-	rctf	rectf;
-	float ymin, ymax;
-	float x, y;
+	Object *ob= OBACT;
 	short event;
-	short nr;
-	char *str;
-
-	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+	short nr=0;
+	char *str, title[64];
 	
-	mval[0]-=7;
-	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
-	
-	mval[0]+=14;
-	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-
-	ymax = count_nla_levels();	
-	ymax*= (NLACHANNELHEIGHT + NLACHANNELSKIP);
-	ymax+= NLACHANNELHEIGHT/2;
-
-	for (base=G.scene->base.first; base; base=base->next){
-		/* Handle object ipo selection */
-		if (nla_filter(base)) {
-			
-			/* Area that encloses object name (or ipo) */
-			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-
-			/* Area that encloses action */
-			if (base->object->action)
-				ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
-
-			/* Area that encloses nla strips */
-			ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*
-				(BLI_countlist(&base->object->nlastrips));
-
-			/* Test to see the mouse is in an action area */
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-				break;		
-			
-			ymax=ymin;
-		}
-	}	
-	
-	/* global... for the call above, because the NLA system seems not to have an 'active strip' stored */
-	nla_base= base;
-	
-	/* Make sure we have an action */
-	if (!base){
-		error ("Object has not an Action");
+	if(ob==NULL) {
+		error("Need active Object to add NLA strips");
 		return;
 	}
 	
-	/* Popup action menu */
-	IDnames_to_pupstring(&str, "Add Action", NULL, &G.main->action, (ID *)G.scene, &nr);
+	sprintf(title, "Add Action strip to: %s", ob->id.name+2);
 	
-	if(strncmp(str+13, "DataBrow", 8)==0) {
+	/* Popup action menu */
+	IDnames_to_pupstring(&str, title, NULL, &G.main->action, (ID *)G.scene, &nr);
+	
+	if(nr==-2) {
 		MEM_freeN(str);
 
 		activate_databrowse((ID *)NULL, ID_AC, 0, 0, &G.snla->menunr, 
@@ -685,16 +463,55 @@ static void add_nlablock(short mval[2])
 		return;			
 	}
 	else {
-		event = pupmenu(str);
+		event = pupmenu_col(str, 20);
 		MEM_freeN(str);
 		add_nla_block(event);
 	}
-	
-	/* Ton: this is a callback for databrowse too
-	   Hos: no, I don't think it is
-	   add_nla_block(0);
-	*/
 }
+
+/* Adds strip to to active Object */
+static void relink_active_strip(void)
+{
+	Object *ob= OBACT;
+	bActionStrip *strip;
+	bAction *act;
+	short event;
+	short cur;
+	char *str;
+	
+	if(ob==NULL) return;
+	
+	for (strip = ob->nlastrips.first; strip; strip=strip->next)
+		if(strip->flag & ACTSTRIP_ACTIVE)
+			break;
+	
+	if(strip==NULL) return;
+	
+	/* Popup action menu */
+	IDnames_to_pupstring(&str, "Relink Action strip", NULL, &G.main->action, (ID *)G.scene, NULL);
+	if(str) {
+		event = pupmenu_col(str, 20);
+		MEM_freeN(str);
+		
+		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
+			if (cur==event){
+				break;
+			}
+		}
+		
+		if(act) {
+			if(strip->act) strip->act->id.us--;
+			strip->act = act;
+			id_us_plus(&act->id);
+			
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+		}
+	}
+}
+
+
 
 /* Left hand side of channels display, selects objects */
 static void mouse_nlachannels(short mval[2])
@@ -1760,4 +1577,306 @@ void deselect_nlachannels(int test)
 		
 		base->object->flag= base->flag;
 	}	
+}
+
+static Object *get_object_from_active_strip(void) {
+
+	Base *base;
+	bActionStrip *strip;
+	
+	for (base=G.scene->base.first; base; base=base->next) {
+		for (strip = base->object->nlastrips.first; 
+			 strip; strip=strip->next){
+			if (strip->flag & ACTSTRIP_SELECT) {
+				return base->object;
+			}
+		}
+	}
+	return NULL;
+}
+
+
+void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
+{
+	unsigned short event= evt->event;
+	short val= evt->val;
+	SpaceNla *snla = curarea->spacedata.first;
+	int doredraw= 0;
+	short	mval[2];
+	float dx,dy;
+	int	cfra;
+	short mousebut = L_MOUSE;
+	Object		*ob; //in shift-B / bake
+	
+	if (curarea->win==0) return;
+	if (!snla) return;
+	
+	if(val) {
+		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		
+		/* swap mouse buttons based on user preference */
+		if (U.flag & USER_LMOUSESELECT) {
+			if (event == LEFTMOUSE) {
+				event = RIGHTMOUSE;
+				mousebut = L_MOUSE;
+			} else if (event == RIGHTMOUSE) {
+				event = LEFTMOUSE;
+				mousebut = R_MOUSE;
+			}
+		}
+		
+		getmouseco_areawin(mval);
+		
+		switch(event) {
+			case UI_BUT_EVENT:
+				do_nlabuts(val); // in drawnla.c
+				break;
+				
+			case HOMEKEY:
+				do_nla_buttons(B_NLAHOME);
+				break;
+				
+			case EQUALKEY:
+			case PAGEUPKEY:
+				shift_nlastrips_up();
+				break;
+				
+			case MINUSKEY:
+			case PAGEDOWNKEY:
+				shift_nlastrips_down();
+				break;
+				
+			case AKEY:
+				if (G.qual & LR_SHIFTKEY){
+					add_nlablock();
+					allqueue (REDRAWNLA, 0);
+					allqueue (REDRAWVIEW3D, 0);
+				}
+				else{
+					if (mval[0]>=NLAWIDTH)
+						deselect_nlachannel_keys(1);
+					else{
+						deselect_nlachannels(1);
+						allqueue (REDRAWVIEW3D, 0);
+					}
+					allqueue (REDRAWNLA, 0);
+					allqueue (REDRAWIPO, 0);
+					BIF_undo_push("(De)select all NLA");
+				}
+				break;
+				
+			case BKEY:
+			  if (G.qual & LR_SHIFTKEY){
+			    bake_all_to_action();
+			    allqueue (REDRAWNLA, 0);
+			    allqueue (REDRAWVIEW3D, 0);
+			    BIF_undo_push("Bake All To Action");
+			    ob = get_object_from_active_strip();
+			    //build_match_caches(ob);
+			  }
+			  else
+			    borderselect_nla();
+			  break;
+				
+			case CKEY:
+				convert_nla(mval);
+				break;
+				
+			case DKEY:
+				if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
+					duplicate_nlachannel_keys();
+					update_for_newframe_muted();
+				}
+				break;
+				
+			case GKEY:
+				if (mval[0]>=NLAWIDTH)
+					transform_nlachannel_keys ('g', 0);
+				update_for_newframe_muted();
+				break;
+				
+			case NKEY:
+				if(G.qual==0) {
+					toggle_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+					scrarea_queue_winredraw(curarea);
+				}
+				break;
+			case LKEY:
+				relink_active_strip();
+				break;
+				
+			case SKEY:
+				if(G.qual==LR_ALTKEY) {
+					val= pupmenu("Action Strip Scale%t|Clear Strip Size%x1|Remap Start/End%x2");
+					if(val==1)
+						reset_action_strips(1);
+					else if(val==2)
+						reset_action_strips(2);
+				}
+				else if(G.qual & LR_SHIFTKEY) {
+					if(okee("Snap Strips to Frame"))
+						snap_action_strips();
+				}
+				else {
+					if (mval[0]>=NLAWIDTH)
+						transform_nlachannel_keys ('s', 0);
+					update_for_newframe_muted();
+				}
+				break;
+				
+			case DELKEY:
+			case XKEY:
+				if (mval[0]>=NLAWIDTH)
+					delete_nlachannel_keys ();
+				
+				update_for_newframe_muted();
+				break;
+				
+				/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
+				* based on user preference USER_LMOUSESELECT
+				*/
+			case LEFTMOUSE:
+				if(view2dmove(LEFTMOUSE))
+					break; // only checks for sliders
+				else if (mval[0]>=snla->v2d.mask.xmin) {
+					do {
+						getmouseco_areawin(mval);
+						
+						areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+						
+						cfra= (int)dx;
+						if(cfra< 1) cfra= 1;
+						
+						if( cfra!=CFRA ) {
+							CFRA= cfra;
+							update_for_newframe();
+							force_draw_all(0);
+						}
+						else PIL_sleep_ms(30);
+						
+					} while(get_mbut() & mousebut);
+					break;
+				}
+					/* else pass on! */
+				case RIGHTMOUSE:
+					if (mval[0]>=snla->v2d.mask.xmin) {
+						if(G.qual & LR_SHIFTKEY)
+							mouse_nla(SELECT_INVERT);
+						else
+							mouse_nla(SELECT_REPLACE);
+					}
+					else
+						mouse_nlachannels(mval);
+					break;
+					
+				case PADPLUSKEY:
+					view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
+					test_view2d(G.v2d, sa->winx, sa->winy);
+					view2d_do_locks(curarea, V2D_LOCK_COPY);
+					doredraw= 1;
+					break;
+				case PADMINUS:
+					view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
+					test_view2d(G.v2d, sa->winx, sa->winy);
+					view2d_do_locks(curarea, V2D_LOCK_COPY);
+					doredraw= 1;
+					break;
+				case MIDDLEMOUSE:
+				case WHEELUPMOUSE:
+				case WHEELDOWNMOUSE:
+					view2dmove(event);	/* in drawipo.c */
+					break;
+		}
+	}
+	
+	if(doredraw) scrarea_queue_winredraw(curarea);
+}
+
+static void add_nla_block_by_name(char name[32], Object *ob, short hold, short add, float repeat)
+{
+	bAction *act=NULL;
+	bActionStrip *strip;
+	int		cur;
+
+	if (name){
+		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
+			if (strcmp(name,act->id.name)==0) {
+				break;
+			}
+		}
+	}
+	
+	/* Bail out if no action was chosen */
+	if (!act){
+		return;
+	}
+	
+	/* Initialize the new action block */
+	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
+	
+	deselect_nlachannel_keys(0);
+	
+	/* Link the action to the strip */
+	strip->act = act;
+	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
+	strip->end = strip->start + (strip->actend-strip->actstart);
+		/* simple prevention of zero strips */
+	if(strip->start>strip->end-2) 
+		strip->end= strip->start+100;
+	
+	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION; //|ACTSTRIP_USEMATCH;
+	
+	if (hold==1)
+		strip->flag = strip->flag|ACTSTRIP_HOLDLASTFRAME;
+		
+	if (add==1)
+		strip->mode = ACTSTRIPMODE_ADD;
+	
+	find_stridechannel(ob, strip);
+	
+	set_active_strip(ob, strip);
+	
+	strip->repeat = repeat;
+	
+	act->id.us++;
+	
+	BLI_addtail(&ob->nlastrips, strip);
+
+	BIF_undo_push("Add NLA strip");
+}
+
+void bake_all_to_action(void)
+{
+	Object		*ob;
+	bAction		*newAction;
+	Ipo		*ipo;
+	ID		*id;
+	short		hold, add;
+	float		repeat;
+
+	/* burn object-level motion into a new action */
+	ob = get_object_from_active_strip();
+	if (ob) {
+		if (ob->flag&OB_ARMATURE) {
+			newAction = bake_obIPO_to_action(ob);
+			if (newAction) {
+				/* unlink the object's IPO */
+				ipo=ob->ipo;
+				if (ipo) {
+					id = &ipo->id;
+					if (id->us > 0)
+						id->us--;
+					ob->ipo = NULL;
+				}
+				
+				/* add the new Action to NLA as a strip */
+				hold=1;
+				add=1;
+				repeat=1.0;
+				printf("about to add nla block...\n");
+				add_nla_block_by_name(newAction->id.name, ob, hold, add, repeat);
+			}
+		}
+	}
 }

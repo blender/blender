@@ -128,6 +128,34 @@ void* BLI_ghash_lookup(GHash *gh, void *key) {
 	return NULL;
 }
 
+int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
+	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+	Entry *e;
+	Entry *p = 0;
+
+	for (e= gh->buckets[hash]; e; e= e->next) {
+		if (gh->cmpfp(key, e->key)==0) {
+			Entry *n= e->next;
+
+			if (keyfreefp) keyfreefp(e->key);
+			if (valfreefp) valfreefp(e->val);
+			free(e);
+
+
+			e= n;
+			if (p)
+				p->next = n;
+			else
+				gh->buckets[hash] = n;
+			return 1;
+		}
+		p = e;
+	}
+ 
+	return 0;
+}
+
 int BLI_ghash_haskey(GHash *gh, void *key) {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e;
@@ -161,6 +189,9 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 	}
 	
 	free(gh->buckets);
+	gh->buckets = 0;
+	gh->nentries = 0;
+	gh->nbuckets = 0;
 	MEM_freeN(gh);
 }
 
@@ -217,6 +248,30 @@ unsigned int BLI_ghashutil_ptrhash(void *key) {
 	return (unsigned int) key;
 }
 int BLI_ghashutil_ptrcmp(void *a, void *b) {
+	if (a==b)
+		return 0;
+	else
+		return (a<b)?-1:1;
+}
+
+unsigned int BLI_ghashutil_inthash(void *ptr) {
+#if defined(_WIN64)
+	unsigned __int64 key = (unsigned __int64)ptr;
+#else
+	unsigned long key = (unsigned long)ptr;
+#endif
+
+	key += ~(key << 16);
+	key ^=  (key >>  5);
+	key +=  (key <<  3);
+	key ^=  (key >> 13);
+	key += ~(key <<  9);
+	key ^=  (key >> 17);
+
+  	return (unsigned int)(key & 0xffffffff);
+}
+
+int BLI_ghashutil_intcmp(void *a, void *b) {
 	if (a==b)
 		return 0;
 	else

@@ -274,9 +274,6 @@ ECHO Done
 				RelativePath="..\..\intern\ntl_scene.cpp">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_world.cpp">
-			</File>
-			<File
 				RelativePath="..\..\intern\parametrizer.cpp">
 			</File>
 			<File
@@ -284,18 +281,6 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\simulation_object.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_init.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_interface.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_main.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_util.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\utilities.cpp">
@@ -310,9 +295,6 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\cfgparser.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\elbeem.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\globals.h">
@@ -369,9 +351,6 @@ ECHO Done
 				RelativePath="..\..\intern\ntl_vector3dim.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_world.h">
-			</File>
-			<File
 				RelativePath="..\..\intern\parametrizer.h">
 			</File>
 			<File
@@ -379,18 +358,6 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\simulation_object.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_class.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_dimenions.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_interface.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\solver_relax.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\utilities.h">

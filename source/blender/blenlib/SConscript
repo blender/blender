@@ -25,6 +25,7 @@ source_files = ['intern/BLI_dynstr.c',
                 'intern/util.c',
                 'intern/vectorops.c',
                 'intern/freetypefont.c',
+		'intern/jitter.c',
                 'intern/winstuff.c']
 
 

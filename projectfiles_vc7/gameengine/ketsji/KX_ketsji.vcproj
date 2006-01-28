@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
 				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG;USE_SUMO_SOLID"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -126,7 +126,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
 				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG;USE_SUMO_SOLID"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -179,7 +179,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -232,7 +232,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
 				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG;USE_SUMO_SOLID"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -284,7 +284,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.4;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include;..\..\..\source\gameengine\physics\bullet"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;USE_SUMO_SOLID"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -333,18 +333,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\BL_Material.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\BL_Shader.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\BL_Texture.cpp">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BlenderMaterial.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BulletPhysicsController.cpp">
 			</File>
 			<File
@@ -372,13 +360,13 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Light.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MaterialIpoController.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MeshProxy.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MotionState.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_OdePhysicsController.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PhysicsObjectWrapper.cpp">
@@ -530,18 +518,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\BL_Material.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\BL_Shader.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\BL_Texture.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BlenderMaterial.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_BulletPhysicsController.h">
 			</File>
 			<File
@@ -576,9 +552,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_Light.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MaterialIpoController.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_MeshProxy.h">

@@ -81,7 +81,6 @@
 
 
 #include "BDR_editcurve.h"
-#include "BSE_buttons.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_filesel.h"
 

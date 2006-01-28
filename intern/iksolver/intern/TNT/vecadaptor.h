@@ -33,6 +33,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <strstream>
 #include <cassert>
 
 #include "subscript.h"
@@ -115,6 +116,15 @@ class Vector_Adaptor
         vm1_ = ( v_.size() > 0 ? &(v_[0]) -1 : NULL); 
 
     } 
+
+    Vector_Adaptor(Subscript N, /*const*/ char *s) : v_(N) 
+    {
+        istrstream ins(s);
+        for (Subscript i=0; i<N; i++)
+            ins >> v_[i] ;
+
+        vm1_ = ( v_.size() > 0 ? &(v_[0]) -1 : NULL); 
+    }; 
 
     Vector_Adaptor(Subscript N, const T& value = T()) : v_(N)
     {

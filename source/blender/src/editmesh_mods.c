@@ -40,10 +40,6 @@ editmesh_mods.c, UI level access, no geometry changes
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "MTC_matrixops.h"
@@ -92,26 +88,18 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BSE_edit.h"
 #include "BSE_view.h"
 
+#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+
+#include "RE_render_ext.h"  // externtex
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"  // externtex
 
 #include "editmesh.h"
 
 
 /* ****************************** MIRROR **************** */
-
-static EditVert *get_x_mirror_vert(EditVert *eve)
-{
-	int index;
-	
-	index= mesh_get_x_mirror_vert(G.obedit, POINTER_TO_INT(eve));
-	if(index != -1)
-		return INT_TO_POINTER(index);
-	return NULL;
-}
 
 void EM_select_mirrored(void)
 {
@@ -121,7 +109,7 @@ void EM_select_mirrored(void)
 		
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->f & SELECT) {
-				v1= get_x_mirror_vert(eve);
+				v1= editmesh_get_x_mirror_vert(G.obedit, eve->co);
 				if(v1) {
 					eve->f &= ~SELECT;
 					v1->f |= SELECT;
@@ -165,11 +153,12 @@ static unsigned int sample_backbuf(int x, int y)
 }
 
 /* reads full rect, converts indices */
-static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax)
+struct ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 {
-	unsigned int *dr, *buf;
+	unsigned int *dr, *rd;
+	struct ImBuf *ibuf, *ibuf1;
 	int a;
-	short xminc, yminc, xmaxc, ymaxc;
+	short xminc, yminc, xmaxc, ymaxc, xs, ys;
 	
 	/* clip */
 	if(xmin<0) xminc= 0; else xminc= xmin;
@@ -180,55 +169,49 @@ static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax
 	if(ymax>=curarea->winy) ymaxc= curarea->winy-1; else ymaxc= ymax;
 	if(yminc > ymaxc) return NULL;
 	
-	buf= MEM_mallocN( (xmaxc-xminc+1)*(ymaxc-yminc+1)*sizeof(int), "sample rect");
+	ibuf= IMB_allocImBuf((xmaxc-xminc+1),(ymaxc-yminc+1),32,IB_rect,0);
 
 	check_backbuf(); // actually not needed for apple
 	
 #ifdef __APPLE__
 	glReadBuffer(GL_AUX0);
 #endif
-	glReadPixels(curarea->winrct.xmin+xminc, curarea->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, buf);
+	glReadPixels(curarea->winrct.xmin+xminc, curarea->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	glReadBuffer(GL_BACK);	
 
-	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr((xmaxc-xminc+1)*(ymaxc-yminc+1), buf);
+	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
 	a= (xmaxc-xminc+1)*(ymaxc-yminc+1);
-	dr= buf;
+	dr= ibuf->rect;
 	while(a--) {
 		if(*dr) *dr= framebuffer_to_index(*dr);
 		dr++;
 	}
 	
 	/* put clipped result back, if needed */
-	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) return buf;
-	else {
-		unsigned int *buf1= MEM_callocN( (xmax-xmin+1)*(ymax-ymin+1)*sizeof(int), "sample rect2");
-		unsigned int *rd;
-		short xs, ys;
-
-		rd= buf;
-		dr= buf1;
+	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) return ibuf;
+	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect,0);
+	rd= ibuf->rect;
+	dr= ibuf1->rect;
 		
-		for(ys= ymin; ys<=ymax; ys++) {
-			for(xs= xmin; xs<=xmax; xs++, dr++) {
-				if( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
-					*dr= *rd;
-					rd++;
-				}
+	for(ys= ymin; ys<=ymax; ys++) {
+		for(xs= xmin; xs<=xmax; xs++, dr++) {
+			if( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
+				*dr= *rd;
+				rd++;
 			}
 		}
-		MEM_freeN(buf);
-		return buf1;
 	}
-	
-	return buf;
+	IMB_freeImBuf(ibuf);
+	return ibuf1;
 }
 
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, short *dist)
 {
-	unsigned int *buf, *bufmin, *bufmax;
+	struct ImBuf *buf;
+	unsigned int *bufmin, *bufmax, *tbuf;
 	int minx, miny;
 	int a, b, rc, nr, amount, dirvec[4][2];
 	short distance=0;
@@ -239,8 +222,7 @@ static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int mi
 	minx = mval[0]-(amount+1);
 	miny = mval[1]-(amount+1);
 	buf = read_backbuf(minx, miny, minx+size-1, miny+size-1);
-	if (!buf)
-		return 0;
+	if (!buf) return 0;
 
 	rc= 0;
 	
@@ -249,23 +231,24 @@ static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int mi
 	dirvec[2][0]= -1; dirvec[2][1]= 0;
 	dirvec[3][0]= 0; dirvec[3][1]= size;
 	
-	bufmin= buf;
-	bufmax= buf+ size*size;
-	buf+= amount*size+ amount;
+	bufmin = buf->rect;
+	tbuf = buf->rect;
+	bufmax = buf->rect + size*size;
+	tbuf+= amount*size+ amount;
 	
 	for(nr=1; nr<=size; nr++) {
 		
 		for(a=0; a<2; a++) {
 			for(b=0; b<nr; b++, distance++) {
-				if (*buf && *buf>=min && *buf<max) {
+				if (*tbuf && *tbuf>=min && *tbuf<max) {
 					*dist= (short) sqrt( (float)distance ); // XXX, this distance is wrong - zr
-					index = *buf - min+1; // messy yah, but indices start at 1
+					index = *tbuf - min+1; // messy yah, but indices start at 1
 					goto exit;
 				}
 				
-				buf+= (dirvec[rc][0]+dirvec[rc][1]);
+				tbuf+= (dirvec[rc][0]+dirvec[rc][1]);
 				
-				if(buf<bufmin || buf>=bufmax) {
+				if(tbuf<bufmin || tbuf>=bufmax) {
 					goto exit;
 				}
 			}
@@ -275,7 +258,7 @@ static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int mi
 	}
 
 exit:
-	MEM_freeN(bufmin);
+	IMB_freeImBuf(buf);
 	return index;
 }
 
@@ -332,14 +315,17 @@ static void draw_triangulated(short mcords[][2], short tot)
 /* returns if all is OK */
 int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 {
-	unsigned int *buf, *dr;
+	struct ImBuf *buf;
+	unsigned int *dr;
 	int a;
 	
 	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
 	if(em_vertoffs==0) return 0;
 	
-	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= read_backbuf(xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+
+	dr = buf->rect;
 	
 	/* build selection lookup */
 	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
@@ -350,7 +336,7 @@ int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 			selbuf[*dr]= 1;
 		dr++;
 	}
-	MEM_freeN(buf);
+	IMB_freeImBuf(buf);
 	return 1;
 }
 
@@ -376,7 +362,8 @@ void EM_free_backbuf(void)
 */
 int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
-	unsigned int *buf, *bufmask, *dr, *drm;
+	unsigned int *dr, *drm;
+	struct ImBuf *buf, *bufmask;
 	int a;
 	
 	/* method in use for face selecting too */
@@ -388,8 +375,10 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 
 	if(em_vertoffs==0) return 0;
 	
-	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= read_backbuf(xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+
+	dr = buf->rect;
 
 	/* draw the mask */
 #ifdef __APPLE__
@@ -413,7 +402,8 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	glDrawBuffer(GL_BACK);
 	
 	/* grab mask */
-	drm= bufmask= read_backbuf(xmin, ymin, xmax, ymax);
+	bufmask= read_backbuf(xmin, ymin, xmax, ymax);
+	drm = bufmask->rect;
 	if(bufmask==NULL) return 0; // only when mem alloc fails, go crash somewhere else!
 	
 	/* build selection lookup */
@@ -424,8 +414,8 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 		if(*dr>0 && *dr<=em_vertoffs && *drm==0) selbuf[*dr]= 1;
 		dr++; drm++;
 	}
-	MEM_freeN(buf);
-	MEM_freeN(bufmask);
+	IMB_freeImBuf(buf);
+	IMB_freeImBuf(bufmask);
 	return 1;
 	
 }
@@ -433,7 +423,8 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 /* circle shaped sample area */
 int EM_init_backbuf_circle(short xs, short ys, short rads)
 {
-	unsigned int *buf, *dr;
+	struct ImBuf *buf;
+	unsigned int *dr;
 	short xmin, ymin, xmax, ymax, xc, yc;
 	int radsq;
 	
@@ -447,8 +438,10 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 	
 	xmin= xs-rads; xmax= xs+rads;
 	ymin= ys-rads; ymax= ys+rads;
-	dr= buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= read_backbuf(xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+
+	dr = buf->rect;
 	
 	/* build selection lookup */
 	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
@@ -461,7 +454,7 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 		}
 	}
 
-	MEM_freeN(buf);
+	IMB_freeImBuf(buf);
 	return 1;
 	
 }
@@ -1517,6 +1510,250 @@ void select_faces_by_numverts(int numverts)
 		BIF_undo_push("Select non-Triangles/Quads");
 }
 
+void select_sharp_edges(void)
+{
+	/* Find edges that have exactly two neighboring faces,
+	 * check the angle between those faces, and if angle is
+	 * small enough, select the edge
+	 */
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	EditFace **efa1;
+	EditFace **efa2;
+	long edgecount = 0, i;
+	static short sharpness = 135;
+	float fsharpness;
+
+	if(G.scene->selectmode==SCE_SELECT_FACE) {
+		error("Doesn't work in face selection mode");
+		return;
+	}
+
+	if(button(&sharpness,0, 180,"Max Angle:")==0) return;
+	/* if faces are at angle 'sharpness', then the face normals
+	 * are at angle 180.0 - 'sharpness' (convert to radians too)
+	 */
+	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
+
+	i=0;
+	/* count edges, use tmp.l  */
+	eed= em->edges.first;
+	while(eed) {
+		edgecount++;
+		eed->tmp.l = i;
+		eed= eed->next;
+		++i;
+	}
+
+	/* for each edge, we want a pointer to two adjacent faces */
+	efa1 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+	efa2 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+
+#define face_table_edge(eed) { \
+		i = eed->tmp.l; \
+		if (i != -1) { \
+			if (efa1[i]) { \
+				if (efa2[i]) { \
+					/* invalidate, edge has more than two neighbors */ \
+					eed->tmp.l = -1; \
+				} \
+				else { \
+					efa2[i] = efa; \
+				} \
+			} \
+			else { \
+				efa1[i] = efa; \
+			} \
+		} \
+	}
+
+	/* find the adjacent faces of each edge, we want only two */
+	efa= em->faces.first;
+	while(efa) {
+		face_table_edge(efa->e1);
+		face_table_edge(efa->e2);
+		face_table_edge(efa->e3);
+		if (efa->e4) {
+			face_table_edge(efa->e4);
+		}
+		efa= efa->next;
+	}
+
+#undef face_table_edge
+
+	eed = em->edges.first;
+	while(eed) {
+		i = eed->tmp.l;
+		if (i != -1) { 
+			/* edge has two or less neighboring faces */
+			if ( (efa1[i]) && (efa2[i]) ) { 
+				/* edge has exactly two neighboring faces, check angle */
+				float angle;
+				angle = saacos(efa1[i]->n[0]*efa2[i]->n[0] +
+							   efa1[i]->n[1]*efa2[i]->n[1] +
+							   efa1[i]->n[2]*efa2[i]->n[2]);
+				if (fabs(angle) >= fsharpness)
+					EM_select_edge(eed, 1);
+			}
+		}
+
+		eed= eed->next;
+	}
+
+	MEM_freeN(efa1);
+	MEM_freeN(efa2);
+
+	countall();
+	addqueue(curarea->win,  REDRAW, 0);
+	BIF_undo_push("Select Sharp Edges");
+}
+
+void select_linked_flat_faces(void)
+{
+	/* Find faces that are linked to selected faces that are 
+	 * relatively flat (angle between faces is higher than
+	 * specified angle)
+	 */
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	EditFace **efa1;
+	EditFace **efa2;
+	long edgecount = 0, i, faceselcount=0, faceselcountold=0;
+	static short sharpness = 135;
+	float fsharpness;
+
+	if(G.scene->selectmode!=SCE_SELECT_FACE) {
+		error("Only works in face selection mode");
+		return;
+	}
+
+	if(button(&sharpness,0, 180,"Min Angle:")==0) return;
+	/* if faces are at angle 'sharpness', then the face normals
+	 * are at angle 180.0 - 'sharpness' (convert to radians too)
+	 */
+	fsharpness = ((180.0 - sharpness) * M_PI) / 180.0;
+
+	i=0;
+	/* count edges, use tmp.l */
+	eed= em->edges.first;
+	while(eed) {
+		edgecount++;
+		eed->tmp.l = i;
+		eed= eed->next;
+		++i;
+	}
+
+	/* for each edge, we want a pointer to two adjacent faces */
+	efa1 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+	efa2 = MEM_callocN(edgecount*sizeof(EditFace *), 
+					   "pairs of edit face pointers");
+
+#define face_table_edge(eed) { \
+		i = eed->tmp.l; \
+		if (i != -1) { \
+			if (efa1[i]) { \
+				if (efa2[i]) { \
+					/* invalidate, edge has more than two neighbors */ \
+					eed->tmp.l = -1; \
+				} \
+				else { \
+					efa2[i] = efa; \
+				} \
+			} \
+			else { \
+				efa1[i] = efa; \
+			} \
+		} \
+	}
+
+	/* find the adjacent faces of each edge, we want only two */
+	efa= em->faces.first;
+	while(efa) {
+		face_table_edge(efa->e1);
+		face_table_edge(efa->e2);
+		face_table_edge(efa->e3);
+		if (efa->e4) {
+			face_table_edge(efa->e4);
+		}
+
+		/* while were at it, count the selected faces */
+		if (efa->f & SELECT) ++faceselcount;
+
+		efa= efa->next;
+	}
+
+#undef face_table_edge
+
+	eed= em->edges.first;
+	while(eed) {
+		i = eed->tmp.l;
+		if (i != -1) { 
+			/* edge has two or less neighboring faces */
+			if ( (efa1[i]) && (efa2[i]) ) { 
+				/* edge has exactly two neighboring faces, check angle */
+				float angle;
+				angle = saacos(efa1[i]->n[0]*efa2[i]->n[0] +
+							   efa1[i]->n[1]*efa2[i]->n[1] +
+							   efa1[i]->n[2]*efa2[i]->n[2]);
+				/* invalidate: edge too sharp */
+				if (fabs(angle) >= fsharpness)
+					eed->tmp.l = -1;
+			}
+			else {
+				/* invalidate: less than two neighbors */
+				eed->tmp.l = -1;
+			}
+		}
+
+		eed= eed->next;
+	}
+
+#define select_flat_neighbor(eed) { \
+				i = eed->tmp.l; \
+				if (i!=-1) { \
+					if (! (efa1[i]->f & SELECT) ) { \
+						EM_select_face(efa1[i], 1); \
+						++faceselcount; \
+					} \
+					if (! (efa2[i]->f & SELECT) ) { \
+						EM_select_face(efa2[i], 1); \
+						++faceselcount; \
+					} \
+				} \
+	}
+
+	while (faceselcount != faceselcountold) {
+		faceselcountold = faceselcount;
+
+		efa= em->faces.first;
+		while(efa) {
+			if (efa->f & SELECT) {
+				select_flat_neighbor(efa->e1);
+				select_flat_neighbor(efa->e2);
+				select_flat_neighbor(efa->e3);
+				if (efa->e4) {
+					select_flat_neighbor(efa->e4);
+				}
+			}
+			efa= efa->next;
+		}
+	}
+
+#undef select_flat_neighbor
+
+	MEM_freeN(efa1);
+	MEM_freeN(efa2);
+
+	countall();
+	addqueue(curarea->win,  REDRAW, 0);
+	BIF_undo_push("Select Linked Flat Faces");
+}
+
 void select_non_manifold(void)
 {
 	EditMesh *em = G.editMesh;
@@ -2300,7 +2537,7 @@ void vertexsmooth(void)
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & SELECT) {
-			eve->vn= (EditVert *)adr;
+			eve->tmp.fp = adr;
 			eve->f1= 0;
 			eve->f2= 0;
 			adr+= 3;
@@ -2348,11 +2585,11 @@ void vertexsmooth(void)
 			
 			if((eed->v1->f & SELECT) && eed->v1->f1<255) {
 				eed->v1->f1++;
-				VecAddf((float *)eed->v1->vn, (float *)eed->v1->vn, fvec);
+				VecAddf(eed->v1->tmp.fp, eed->v1->tmp.fp, fvec);
 			}
 			if((eed->v2->f & SELECT) && eed->v2->f1<255) {
 				eed->v2->f1++;
-				VecAddf((float *)eed->v2->vn, (float *)eed->v2->vn, fvec);
+				VecAddf(eed->v2->tmp.fp, eed->v2->tmp.fp, fvec);
 			}
 		}
 		eed= eed->next;
@@ -2362,7 +2599,7 @@ void vertexsmooth(void)
 	while(eve) {
 		if(eve->f & SELECT) {
 			if(eve->f1) {
-				adr= (float *)eve->vn;
+				adr = eve->tmp.fp;
 				fac= 0.5/(float)eve->f1;
 				
 				eve->co[0]= 0.5*eve->co[0]+fac*adr[0];
@@ -2382,7 +2619,7 @@ void vertexsmooth(void)
 					}
 				}
 			}
-			eve->vn= 0;
+			eve->tmp.fp= 0;
 		}
 		eve= eve->next;
 	}

@@ -655,7 +655,6 @@ OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 			case kEventWindowActivated:
 				m_windowManager->setActiveWindow(window);
 				window->loadCursor(window->getCursorVisibility(), window->getCursorShape());
-				window->updateDrawingContext();
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowActivate, window) );
 				break;
 			case kEventWindowDeactivated:
@@ -664,7 +663,6 @@ OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 				break;
 			case kEventWindowUpdate:
 				//if (getFullScreen()) GHOST_PRINT("GHOST_SystemCarbon::handleWindowEvent(): full-screen update event\n");
-				window->updateDrawingContext();
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
 				break;
 			case kEventWindowBoundsChanged:

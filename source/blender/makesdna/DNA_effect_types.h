@@ -104,6 +104,7 @@ typedef struct Particle {
 	short mat_nr, rt;
 } Particle;
 
+struct Group;
 
 typedef struct PartEff {
 	struct PartEff *next, *prev;
@@ -125,7 +126,10 @@ typedef struct PartEff {
 	short disp, vertgroup_v;
 	
 	char vgroupname[32], vgroupname_v[32];
+	float imat[4][4];	/* inverse matrix of parent Object */
+	
 	Particle *keys;
+	struct Group *group;
 	
 } PartEff;
 

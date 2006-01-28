@@ -1,14 +1,10 @@
-/*  shadbuf.c        RENDER
- *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,20 +18,10 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributor(s): 2004-2006, Blender Foundation
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * 
- *  april 95
- * 
- * $Id$
- *
- * 27-Jun-2001 switched the shadow buffer for UR to the object-shadow
- * buffers, and removed all references and fixes for UR rendering from
- * this one.
- * */
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
 #include <math.h>
 #include <string.h>
@@ -45,16 +31,18 @@
 
 #include "DNA_lamp_types.h"
 #include "BKE_utildefines.h"
-#include "BLI_arithb.h"
 
-#include "render.h"
+#include "BLI_arithb.h"
+#include "BLI_jitter.h"
+
+#include "renderpipeline.h"
+#include "render_types.h"
+#include "renderdatabase.h"
 
 #include "shadbuf.h"
-#include "renderHelp.h"
-#include "jitter.h"
 #include "zbuf.h"
 
-/* XXX, could be better implemented...
+/* XXX, could be better implemented... this is for endian issues
 */
 #if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 #define RCOMP	3
@@ -70,80 +58,27 @@
 
 /* ------------------------------------------------------------------------- */
 
+/* initshadowbuf() in convertBlenderScene.c */
 
-void RE_initshadowbuf(LampRen *lar, float mat[][4])
-{
-	struct ShadBuf *shb;
-	float hoek, temp, viewinv[4][4];
-
-	/* if(la->spsi<16) return; */
-
-	/* memory reservation */
-	shb= (struct ShadBuf *)MEM_callocN( sizeof(struct ShadBuf),"initshadbuf");
-	lar->shb= shb;
-
-	if(shb==NULL) return;
-
-	VECCOPY(shb->co, lar->co);
-	
-	/* percentage render: keep track of min and max */
-	shb->size= (lar->bufsize*R.r.size)/100;
-	if(shb->size<512) shb->size= 512;
-	else if(shb->size > lar->bufsize) shb->size= lar->bufsize;
-
-	shb->size &= ~15;	/* make sure its multiples of 16 */
-
-	shb->samp= lar->samp;
-	shb->soft= lar->soft;
-	shb->shadhalostep= lar->shadhalostep;
-	
-	shb->zbuf= (unsigned long *)MEM_mallocN( sizeof(unsigned long)*(shb->size*shb->size)/256, "initshadbuf2");
-	shb->cbuf= (char *)MEM_callocN( (shb->size*shb->size)/256, "initshadbuf3");
-
-	if(shb->zbuf==0 || shb->cbuf==0) {
-		if(shb->zbuf) MEM_freeN(shb->zbuf);
-		MEM_freeN(lar->shb);
-		lar->shb= 0;		
-		return;
-	}
-
-	MTC_Mat4Ortho(mat);
-	MTC_Mat4Invert(shb->winmat, mat);	/* winmat is temp */
-
-	/* matrix: combination of inverse view and lampmat */
-	/* calculate again: the ortho-render has no correct viewinv */
-	MTC_Mat4Invert(viewinv, R.viewmat);
-	MTC_Mat4MulMat4(shb->viewmat, viewinv, shb->winmat);
-
-	/* projection */
-	hoek= saacos(lar->spotsi);
-	temp= 0.5*shb->size*cos(hoek)/sin(hoek);
-	shb->d= lar->clipsta;
-
-	shb->pixsize= (shb->d)/temp;
-
-	shb->far= lar->clipend;
-	/* bias is percentage, made 2x karger because of correction for angle of incidence */
-	/* when a ray is closer to parallel of a face, bias value is increased during render */
-	shb->bias= (0.02*lar->bias)*0x7FFFFFFF;
-	shb->bias= shb->bias*(100/R.r.size);
-	
-}
 /* ------------------------------------------------------------------------- */
 
-
-static void lrectreadRectz(int x1, int y1, int x2, int y2, char *r1) /* reads part from rectz in r1 */
+static void copy_to_ztile(int *rectz, int size, int x1, int y1, int tile, char *r1)
 {
-	unsigned int len4, *rz;	
+	int len4, *rz;	
+	int x2, y2;
+	
+	x2= x1+tile;
+	y2= y1+tile;
+	if(x2>=size) x2= size-1;
+	if(y2>=size) y2= size-1;
 
-	if(x1>=R.rectx || x2>=R.rectx || y1>=R.recty || y2>=R.recty) return;
-	if(x1>x2 || y1>y2) return;
+	if(x1>=x2 || y1>=y2) return;
 
-	len4= 4*(x2- x1+1);
-	rz= R.rectz+R.rectx*y1+x1;
-	for(;y1<=y2;y1++) {
-		memcpy(r1,rz,len4);
-		rz+= R.rectx;
+	len4= 4*(x2- x1);
+	rz= rectz + size*y1 + x1;
+	for(; y1<y2; y1++) {
+		memcpy(r1, rz, len4);
+		rz+= size;
 		r1+= len4;
 	}
 }
@@ -180,7 +115,7 @@ static float *give_jitter_tab(int samp)
 	for(a=0; a<samp-1; a++) offset+= tab[a];
 
 	if(ctab[samp]==0) {
-		initjit(jit[offset], samp*samp);
+		BLI_initjit(jit[offset], samp*samp);
 		ctab[samp]= 1;
 	}
 		
@@ -188,56 +123,35 @@ static float *give_jitter_tab(int samp)
 	
 }
 
-void makeshadowbuf(LampRen *lar)
+void makeshadowbuf(Render *re, LampRen *lar)
 {
 	struct ShadBuf *shb= lar->shb;
-	float panophi;
-	float temp, wsize, dist;
-	int *rz, *rz1, verg, verg1;
+	float wsize, dist;
+	int *rectz, *rz, *rz1, verg, verg1;
 	unsigned long *ztile;
-	int a, x, y, minx, miny, byt1, byt2, tempmode;
-	short temprx,tempry, square;
+	int a, x, y, minx, miny, byt1, byt2, square;
 	char *rc, *rcline, *ctile, *zt;
-
-	panophi = getPanoPhi();
-	
-	/* store viewvars */
-	temprx= R.rectx; tempry= R.recty; 
-	tempmode= R.r.mode;
-	R.r.mode &= ~R_ORTHO;
-	R.rectx= R.recty= shb->size;
 
 	shb->jit= give_jitter_tab(shb->samp);
 
-	/* matrices and window: in R.winmat the transformation is being put,
+	/* matrices and window: in winmat the transformation is being put,
 		transforming from observer view to lamp view, including lamp window matrix */
-	
 	wsize= shb->pixsize*(shb->size/2.0);
 
-	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->far, shb->winmat);
+	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->clipend, shb->winmat);
 
 	MTC_Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
 	
 	/* temp, will be restored */
-	MTC_Mat4SwapMat4(shb->persmat, R.winmat);
+	MTC_Mat4SwapMat4(shb->persmat, re->winmat);
 
 	/* zbuffering */
-	if(R.rectz) MEM_freeN(R.rectz);
- 	R.rectz= (unsigned int *)MEM_mallocN(sizeof(int)*shb->size*shb->size,"makeshadbuf");
-	rcline= MEM_mallocN(256*4+sizeof(int),"makeshadbuf2");
+ 	rectz= MEM_mallocN(sizeof(int)*shb->size*shb->size, "makeshadbuf");
+	rcline= MEM_mallocN(256*4+sizeof(int), "makeshadbuf2");
 
-	/* store: panorama rot */
-	temp= panophi;
-	panophi= 0.0;
-	pushTempPanoPhi(0.0);
-
-	/* pano interference here? */
-	setzbufvlaggen(projectvert);
-
-	popTempPanoPhi();
-	panophi= temp;
+	project_renderdata(re, projectvert, 0, 0);
 	
-	zbuffershad(lar);
+	zbuffer_shadow(re, lar, rectz, shb->size);
 	
 	square= lar->mode & LA_SQUARE;
 
@@ -263,7 +177,7 @@ void makeshadowbuf(LampRen *lar)
 				rz1= (&verg)+1;
 			} 
 			else {
-				lrectreadRectz(x, y, MIN2(shb->size-1,x+15), MIN2(shb->size-1,y+15), rcline);
+				copy_to_ztile(rectz, shb->size, x, y, 16, rcline);
 				rz1= (int *)rcline;
 				
 				verg= (*rz1 & 0xFFFFFF00);
@@ -334,12 +248,10 @@ void makeshadowbuf(LampRen *lar)
 	}
 
 	MEM_freeN(rcline);
-	MEM_freeN(R.rectz); R.rectz= NULL;
+	MEM_freeN(rectz);
 	
-	/* old globals back */
-	R.rectx= temprx; R.recty= tempry;
-	R.r.mode= tempmode;
-	MTC_Mat4SwapMat4(shb->persmat, R.winmat);
+	/* old matrix back */
+	MTC_Mat4SwapMat4(shb->persmat, re->winmat);
 
 	/* printf("lampbuf %d\n", sizeoflampbuf(shb)); */
 }
@@ -443,7 +355,7 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, f
 	int xs,ys, zs, bias;
 	short a,num;
 	
-	/* if(inp <= 0.0) return 1.0; */
+	if(inp <= 0.0) return 0.0;
 
 	/* rotate renderco en osaco */
 	siz= 0.5*(float)shb->size;
@@ -455,7 +367,7 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, f
 	xs1= siz*(1.0+co[0]/co[3]);
 	ys1= siz*(1.0+co[1]/co[3]);
 
-	/* Clip for z: near and far clip values of the shadow buffer. We
+	/* Clip for z: clipsta and clipend clip values of the shadow buffer. We
 		* can test for -1.0/1.0 because of the properties of the
 		* coordinate transformations. */
 	fac= (co[2]/co[3]);

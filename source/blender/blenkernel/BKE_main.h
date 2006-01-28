@@ -72,8 +72,9 @@ typedef struct Main {
 	ListBase text;
 	ListBase sound;
 	ListBase group;
-	ListBase armature;	/* NLA */
-	ListBase action;	/* NLA */
+	ListBase armature;
+	ListBase action;
+	ListBase nodetree;
 } Main;
 
 

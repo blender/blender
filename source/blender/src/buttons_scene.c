@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -45,7 +46,9 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_library.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
@@ -74,7 +77,6 @@
 
 /* -----includes for this file specific----- */
 
-#include "render.h"
 #include "DNA_image_types.h"
 #include "BKE_writeavi.h"
 #include "BKE_image.h"
@@ -83,6 +85,7 @@
 #include "BIF_editsound.h"
 #include "BSE_seqaudio.h"
 #include "BSE_headerbuttons.h"
+
 #include "butspace.h" // own module
 
 #ifdef WITH_QUICKTIME
@@ -347,7 +350,7 @@ static void sound_panel_sound(bSound *sound)
 	
 	// warning: abuse of texnr here! (ton didnt code!)
 	buttons_active_id(&id, &idfrom);
-	std_libbuttons(block, 10, 160, 0, NULL, B_SOUNDBROWSE2, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
+	std_libbuttons(block, 10, 160, 0, NULL, B_SOUNDBROWSE2, ID_SO, 0, id, idfrom, &(G.buts->texnr), 1, 0, 0, 0, 0);
 
 	if (sound) {
 	
@@ -509,7 +512,8 @@ static void run_playanim(char *file) {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	int pos[2], size[2];
 
-	calc_renderwin_rectangle(G.winpos, pos, size);
+	/* image size not so relevant for now */
+	calc_renderwin_rectangle(640, 480, G.winpos, pos, size);
 
 	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
 	system(str);
@@ -524,12 +528,12 @@ void playback_anim(void)
 		makeqtstring(file);
 	else
 #endif
-		makeavistring(file);
+		makeavistring(&G.scene->r, file);
 	if(BLI_exist(file)) {
 		run_playanim(file);
 	}
 	else {
-		makepicstring(file, G.scene->r.sfra);
+		BKE_makepicstring(file, G.scene->r.sfra);
 		if(BLI_exist(file)) {
 			run_playanim(file);
 		}
@@ -598,7 +602,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set PAL");
@@ -641,7 +645,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set FULL");
@@ -655,7 +659,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 50;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -668,7 +672,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.15, 0.85, 0.15, 0.85);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -682,7 +686,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set PAL 16/9");
@@ -696,7 +700,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 50;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -709,7 +713,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 100;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
@@ -722,7 +726,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 100;
 		G.scene->r.size= 100;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.0, 1.0, 0.0, 1.0);
 		BIF_undo_push("Set PC");
@@ -737,7 +741,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.mode= R_OSA+R_SHADOW+R_FIELDS;
 		G.scene->r.imtype= R_TARGA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set Default");
@@ -767,7 +771,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 30;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 1;
+		G.scene->r.xparts=  G.scene->r.yparts= 2;
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set NTSC");
@@ -793,19 +797,19 @@ void do_render_panels(unsigned short event)
 		scene_change_set(G.scene, NULL);
 		break;
 	case B_FBUF_REDO:
-		if(R.rectftot) {
+//		if(R.rectftot) {
 			/* copy is needed... not so nice, but how better? */
-			R.r.postgamma= G.scene->r.postgamma;
-			R.r.postigamma= 1.0/R.r.postgamma;
-			R.r.postadd= G.scene->r.postadd;
-			R.r.postmul= G.scene->r.postmul;
-			R.r.posthue= G.scene->r.posthue;
-			R.r.postsat= G.scene->r.postsat;
-			R.r.dither_intensity= G.scene->r.dither_intensity;
+//			R.r.postgamma= G.scene->r.postgamma;
+//			R.r.postigamma= 1.0/R.r.postgamma;
+//			R.r.postadd= G.scene->r.postadd;
+//			R.r.postmul= G.scene->r.postmul;
+//			R.r.posthue= G.scene->r.posthue;
+//			R.r.postsat= G.scene->r.postsat;
+//			R.r.dither_intensity= G.scene->r.dither_intensity;
 			
-			RE_floatbuffer_to_output();
-			BIF_redraw_render_rect();
-		}
+//			_floatbuffer_to_output();
+//			BIF_redraw_render_rect();
+//		}
 		break;
 	case B_SET_EDGE:
 		G.scene->r.mode &= ~R_ZBLUR;
@@ -815,6 +819,13 @@ void do_render_panels(unsigned short event)
 		G.scene->r.mode &= ~R_EDGE;
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
+	case B_ADD_RENDERLAYER:
+		if(G.scene->r.actlay==32767) {
+			scene_add_render_layer(G.scene);
+			G.scene->r.actlay= BLI_countlist(&G.scene->r.layers) - 1;
+		}
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWNODE, 0);
 	}
 }
 
@@ -957,7 +968,7 @@ static char *imagetype_pup(void)
 	char formatstring[1024];
 	char appendstring[1024];
 
-	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
 
 #ifdef __sgi
 	strcat(formatstring, "|%s %%x%d");	// add space for Movie
@@ -994,11 +1005,10 @@ static char *imagetype_pup(void)
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
 			"Iris + Zbuffer", R_IRIZ,
-			"Radiance HDR",   R_RADHDR,
+			"Radiance HDR",   R_RADHDR
 #ifdef __sgi
-			"Movie",          R_MOVIE,
+			,"Movie",          R_MOVIE
 #endif
-			"Ftype",          R_FTYPE
 		);
 	} else {
 		sprintf(string, formatstring,
@@ -1015,14 +1025,19 @@ static char *imagetype_pup(void)
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
 			"Iris + Zbuffer", R_IRIZ,
-			"Radiance HDR",   R_RADHDR,
+			"Radiance HDR",   R_RADHDR
 #ifdef __sgi
-			"Movie",          R_MOVIE,
+			,"Movie",          R_MOVIE
 #endif
-			"Ftype",          R_FTYPE
 		);
 	}
 
+#ifdef WITH_OPENEXR
+	strcpy(formatstring, "|%s %%x%d");
+	sprintf(appendstring, formatstring, "OpenEXR", R_OPENEXR);
+	strcat(string, appendstring);
+#endif
+	
 	if (G.have_libtiff) {
 		strcpy(formatstring, "|%s %%x%d");
 		sprintf(appendstring, formatstring, "TIFF", R_TIFF);
@@ -1108,10 +1123,10 @@ static void render_panel_output(void)
 	
 	/* postprocess render buttons */
 	uiBlockBeginAlign(block);
-	if(R.rectftot)
-		uiDefIconTextButBitI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
-	else
-		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
+//	if(R.rectftot)
+//		uiDefIconTextButBitI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
+//	else
+//		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
 	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 170, 68, 140, 20, "Applies on RGBA floats while render or with Fbuf available");
 	uiBlockEndAlign(block);
 	
@@ -1151,8 +1166,8 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,1.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
-	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,1.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
+	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,2.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
+	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,2.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -1207,8 +1222,8 @@ static void render_panel_anim(void)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_DOSEQ, 0, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
-	uiDefButBitS(block, TOG, R_BG_RENDER, 0, "Render Daemon",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
+	uiDefButBitS(block, TOG, R_DOSEQ, B_NOP, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
+	uiDefButBitS(block, TOG, R_DOCOMP, B_NOP, "Do Composit",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Uses compositing nodes for output rendering");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
@@ -1249,12 +1264,13 @@ static void render_panel_format(void)
 
 #ifdef __sgi
 	yofs = 76;
-	uiDefButS(block, NUM,B_DIFF,"MaxSize:", 892,32,165,20, &G.scene->r.maximsize, 0.0, 500.0, 0, 0, "Maximum size per frame to save in an SGI movie");
-	uiDefButBitI(block, TOG, R_COSMO, 0,"Cosmo", 1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
+	uiDefButS(block, NUM,B_DIFF,"MaxSize:",			892,32,165,20, &G.scene->r.maximsize, 0.0, 500.0, 0, 0, "Maximum size per frame to save in an SGI movie");
+	uiDefButBitI(block, TOG, R_COSMO, 0,"Cosmo",	1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
 #endif
 
+	
 	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,174,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
-	uiDefButBitI(block, TOG, R_MOVIECROP, B_DIFF, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
+	uiDefButBitI(block, TOG, R_MOVIECROP, B_DIFF, "Crop",   1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
 
 	yofs -= 22;
 
@@ -1288,7 +1304,23 @@ static void render_panel_format(void)
 #endif
 			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
+#ifdef WITH_OPENEXR
+	} 
+	else if (G.scene->r.imtype == R_OPENEXR ) {
+		if (G.scene->r.quality > 5) G.scene->r.quality = 0;
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP,"Half",	892,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Use 16 bits float 'Half' type");
+		uiDefButBitS(block, TOG, R_OPENEXR_ZBUF, B_NOP,"Zbuf",	952,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save the zbuffer as 32 bits unsigned int");
+		uiBlockEndAlign(block);
+		
+		uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
+															892,yofs,112,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
+		
+#endif
 	} else {
+		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	/* restore from openexr */
+		
 		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
 	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
@@ -1453,12 +1485,152 @@ static void render_panel_sfx(void)
 }
 #endif
 
+static void layer_copy_func(void *lay_v, void *lay_p)
+{
+	unsigned int *lay= lay_p;
+	int laybit= (int)lay_v;
+
+	if(G.qual & LR_SHIFTKEY) {
+		if(*lay==0) *lay= 1<<laybit;
+	}
+	else
+		*lay= 1<<laybit;
+	
+	copy_view3d_lock(REDRAW);
+	allqueue(REDRAWBUTSSCENE, 0);
+}
+
+static void delete_scene_layer_func(void *srl_v, void *unused1)
+{
+	if(BLI_countlist(&G.scene->r.layers)>1) {
+		BLI_remlink(&G.scene->r.layers, srl_v);
+		MEM_freeN(srl_v);
+		G.scene->r.actlay= 0;
+		
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWNODE, 0);
+	}
+}
+
+static void rename_scene_layer_func(void *srl_v, void *unused_v)
+{
+	if(G.scene->nodetree) {
+		SceneRenderLayer *srl= srl_v;
+		bNode *node;
+		for(node= G.scene->nodetree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_R_RESULT) {
+				if(node->custom1==G.scene->r.actlay)
+					BLI_strncpy(node->name, srl->name, NODE_MAXSTR);
+			}
+		}
+	}
+	allqueue(REDRAWNODE, 0);
+}
+
+static char *scene_layer_menu(void)
+{
+	SceneRenderLayer *srl;
+	int len= 32 + 32*BLI_countlist(&G.scene->r.layers);
+	short a, nr;
+	char *str= MEM_callocN(len, "menu layers");
+	
+	strcpy(str, "ADD NEW %x32767");
+	a= strlen(str);
+	for(nr=0, srl= G.scene->r.layers.first; srl; srl= srl->next, nr++) {
+		a+= sprintf(str+a, "|%s %%x%d", srl->name, nr);
+	}
+	
+	return str;
+}
+
+static void draw_3d_layer_buttons(uiBlock *block, unsigned int *poin, short xco, short yco, short dx, short dy, int event)
+{
+	uiBut *bt;
+	long a;
+	
+	uiBlockBeginAlign(block);
+	for(a=0; a<5; a++) {
+		bt= uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
+	}
+	for(a=0; a<5; a++) {
+		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
+	}
+	
+	xco+= 7;
+	uiBlockBeginAlign(block);
+	for(a=5; a<10; a++) {
+		bt=uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
+	}
+	for(a=5; a<10; a++) {
+		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
+	}
+	
+	uiBlockEndAlign(block);
+}
+
+static void render_panel_layers(void)
+{
+	uiBlock *block;
+	uiBut *bt;
+	SceneRenderLayer *srl= BLI_findlink(&G.scene->r.layers, G.scene->r.actlay);
+	char *strp;
+	
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_layers", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Output", "Render");
+	if(uiNewPanel(curarea, block, "Render Layers", "Render", 320, 0, 318, 204)==0) return;
+	
+	/* first, as reminder, the scene layers */
+	uiDefBut(block, LABEL, 0, "Scene:",				10,170,100,20, NULL, 0, 0, 0, 0, "");
+	
+	draw_3d_layer_buttons(block, &G.scene->lay, 130, 170, 35, 30, B_LAY);
+	
+	/* layer menu, name, delete button */
+	uiBlockBeginAlign(block);
+	strp= scene_layer_menu();
+	uiDefButS(block, MENU, B_ADD_RENDERLAYER, strp, 10,130,23,20, &(G.scene->r.actlay), 0, 0, 0, 0, "Choose Active Render Layer");
+	MEM_freeN(strp);
+	
+	bt= uiDefBut(block, TEX, REDRAWNODE, "",  33,130,252,20, srl->name, 0.0, 31.0, 0, 0, "");
+	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
+	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 130, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
+	uiButSetFunc(bt, delete_scene_layer_func, srl, NULL);
+	uiBlockEndAlign(block);
+
+	/* RenderLayer visible-layers */
+	uiDefBut(block, LABEL, 0, "Layer:",	10,95,100,20, NULL, 0, 0, 0, 0, "");
+	draw_3d_layer_buttons(block, &srl->lay,		130, 95, 35, 30, B_NOP);
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	10, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	85, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	160, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_STRAND, B_NOP,"Strand",	235, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Particle Strands in this Layer");	
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, 0, "Passes:",					10,30,150,20, NULL, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	130, 30, 155, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
+	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			285, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	
+	uiDefButBitS(block, TOG, SCE_PASS_DIFFUSE, B_NOP,"Diff",10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SPEC, B_NOP,"Spec",	55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SHADOW, B_NOP,"Shad",	100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_AO, B_NOP,"AO",		145, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_MIRROR, B_NOP,"Mirr",	185, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	230, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_NOP,"Vec",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+}	
 
 void render_panels()
 {
 
 	render_panel_output();
 //	render_panel_sfx();
+	render_panel_layers();
 	render_panel_render();
 	render_panel_anim();
 	render_panel_format();

@@ -53,6 +53,7 @@ struct QuicktimeCodecData;
 }
 
 
+#define SETLOOPER(s, b) sce= s, b= s->base.first; b; b= (b->next?b->next:s->set?(s=s->set)->base.first:NULL)
 
 
 void free_avicodecdata(struct AviCodecData *acd);
@@ -60,7 +61,7 @@ void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
 void free_scene(struct Scene *me);
 struct Scene *add_scene(char *name);
-int object_in_scene(struct Object *ob, struct Scene *sce);
+struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
 void set_scene_bg(struct Scene *sce);
 void set_scene_name(char *name);
@@ -73,6 +74,8 @@ void scene_deselect_all(struct Scene *sce);
 void scene_select_base(struct Scene *sce, struct Base *selbase);
 
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
+
+void scene_add_render_layer(struct Scene *sce);
 
 #endif
 

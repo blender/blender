@@ -398,7 +398,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	
 	if (ibuf) {
 		if (ibuf->rect) 
-			IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
+			IMB_convert_rgba_to_abgr(ibuf);
 	}
 
 	return(ibuf);
@@ -639,13 +639,13 @@ short imb_saveiris(struct ImBuf * ibuf, char *name, int flags)
 	zsize = (ibuf->depth + 7) >> 3;
 	if (flags & IB_zbuf &&  ibuf->zbuf != 0) zsize = 8;
 	
-	IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
+	IMB_convert_rgba_to_abgr(ibuf);
 	test_endian_zbuf(ibuf);
 
 	ret = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, name, ibuf->zbuf);
 
 	/* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
-	IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
+	IMB_convert_rgba_to_abgr(ibuf);
 	test_endian_zbuf(ibuf);
 
 	return(ret);

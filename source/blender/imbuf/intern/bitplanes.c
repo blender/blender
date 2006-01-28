@@ -178,6 +178,8 @@ void imb_bptolong(struct ImBuf *ibuf)
 {
 	int nobp,i,x;
 	unsigned int *rect,offset;
+	float black[4] = {0.0,0.0,0.0,1.0};
+	float clear[4] = {0.0,0.0,0.0,0.0};
 
 	/* first clear all ints */
 
@@ -187,8 +189,8 @@ void imb_bptolong(struct ImBuf *ibuf)
 
 	nobp=ibuf->depth;
 	if (nobp != 32){
-		if (nobp == 24) IMB_rectoptot(ibuf, 0, IMB_rectfill, 0xff000000); /* set alpha */
-		else IMB_rectoptot(ibuf, 0, IMB_rectfill, 0);
+		if (nobp == 24) IMB_rectfill(ibuf, black); /* set alpha */
+		else IMB_rectfill(ibuf, clear);
 	}
 
 	rect= ibuf->rect;

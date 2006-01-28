@@ -190,14 +190,14 @@ bool yafrayPluginRender_t::initExport()
 	}
 	
 	// all buffers allocated in initrender.c
-	unsigned int *bpt=R.rectot, count=R.rectx*R.recty;
-	while (--count) bpt[count] = 0xff800000;
-	cout << "Image initialized" << endl;
+//	unsigned int *bpt=R.rectot, count=R.rectx*R.recty;
+//	while (--count) bpt[count] = 0xff800000;
+//	cout << "Image initialized" << endl;
 
-	int *zbuf=R.rectz;
-	count = R.rectx*R.recty;
-	while (--count) zbuf[count] = 0x7fffffff;
-	cout << "Zbuffer initialized" << endl;
+//	int *zbuf=R.rectz;
+//	count = R.rectx*R.recty;
+//	while (--count) zbuf[count] = 0x7fffffff;
+//	cout << "Zbuffer initialized" << endl;
 
 	// no need to fill ftot
 	
@@ -275,7 +275,7 @@ void yafrayPluginRender_t::displayImage()
 	// maybe it is best to just do a read here, for now the yafray output is always a raw tga anyway
 
 	// rectot already freed in initrender
-	R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+//	R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 
 	FILE* fp = fopen(imgout.c_str(), "rb");
 	if (fp==NULL) {
@@ -294,7 +294,7 @@ void yafrayPluginRender_t::displayImage()
 
 	// read data directly into buffer, picture is upside down
 	for (unsigned short y=0;y<height;y++) {
-		unsigned char* bpt = (unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
+		unsigned char* bpt = NULL;//(unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
 		for (unsigned short x=0;x<width;x++) {
 			bpt[2] = (unsigned char)fgetc(fp);
 			bpt[1] = (unsigned char)fgetc(fp);
@@ -1496,6 +1496,9 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][
 
 void yafrayPluginRender_t::writeLamps()
 {
+	GroupObject *go;
+	int i=0;
+	
 	// inver viewmatrix needed for back2world transform
 	float iview[4][4];
 	// R.viewinv != inv.R.viewmat because of possible ortho mode (see convertBlenderScene.c)
@@ -1503,11 +1506,12 @@ void yafrayPluginRender_t::writeLamps()
 	MTC_Mat4Invert(iview, R.viewmat);
 
 	// all lamps
-	for (int i=0;i<R.totlamp;i++)
+	for(go=(GroupObject *)R.lights.first; go; go= go->next, i++)
 	{
+		LampRen* lamp = (LampRen *)go->lampren;
+		
 		yafray::paramMap_t params;
 		string type="";
-		LampRen* lamp = R.la[i];
 		
 		if (lamp->type==LA_AREA) { writeAreaLamp(lamp, i, iview);  continue; }
 		
@@ -1905,13 +1909,11 @@ bool yafrayPluginRender_t::writeWorld()
 	return true;
 }
 
-#include "RE_callbacks.h"
-
 bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c, 
 		yafray::CFLOAT alpha, yafray::PFLOAT depth)
 {
 	unsigned int px = ((R.recty-1)-y)*R.rectx;
-	unsigned char* bpt = (unsigned char*)R.rectot + (px<<2);
+	unsigned char* bpt = NULL; //(unsigned char*)R.rectot + (px<<2);
 	int x4 = x<<2;
 	int temp = (int)(c.R*255.f+0.5f);
 	if (temp>255) temp=255;
@@ -1927,29 +1929,29 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	bpt[x4+3] = temp;
 
 	// float buffer
-	if ((R.r.mode & R_FBUF) && R.rectftot) {
-		float* fpt = R.rectftot + (px<<2);
-		fpt[x4] = c.R;
-		fpt[x4+1] = c.G;
-		fpt[x4+2] = c.B;
-		fpt[x4+3] = alpha;
-	}
+//	if ((R.r.mode & R_FBUF) && R.rectftot) {
+//		float* fpt = R.rectftot + (px<<2);
+//		fpt[x4] = c.R;
+//		fpt[x4+1] = c.G;
+//		fpt[x4+2] = c.B;
+//		fpt[x4+3] = alpha;
+//	}
 
 	// depth values
-	int* zbuf = R.rectz + px;
-	depth -= R.near;
-	float mz = R.far - R.near;
-	if (depth<0) depth=0; else if (depth>mz) depth=mz;
-	if (mz!=0.f) mz = 2147483647.f/mz;
-	zbuf[x] = (int)(depth*mz);
+//	int* zbuf = R.rectz + px;
+//	depth -= R.clipsta;
+//	float mz = R.clipend - R.clipsta;
+//	if (depth<0) depth=0; else if (depth>mz) depth=mz;
+//	if (mz!=0.f) mz = 2147483647.f/mz;
+//	zbuf[x] = (int)(depth*mz);
 
 	out++;
 	if (out==4096)
 	{
-		RE_local_render_display(0, R.recty-1, R.rectx, R.recty, R.rectot);
+		R.display_draw(R.result, NULL);
 		out = 0;
 	}
 
-	if (RE_local_test_break()) return false;
+	if (R.test_break()) return false;
 	return true;
 }

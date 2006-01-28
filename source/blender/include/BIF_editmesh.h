@@ -134,6 +134,8 @@ extern void editmesh_align_view_to_selected(struct View3D *v3d, int axis);
 
 	/* Selection */
 extern void select_non_manifold(void);
+extern void select_sharp_edges(void);
+extern void select_linked_flat_faces(void);
 extern void select_faces_by_numverts(int numverts);
 extern void select_more(void);
 extern void select_less(void);
@@ -196,6 +198,9 @@ struct EditVert *editedge_getSharedVert(struct EditEdge *eed, struct EditEdge *e
 int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
 int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
 int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
+
+void shape_copy_select_from(void);
+void shape_propagate(void);
 
 #endif
 

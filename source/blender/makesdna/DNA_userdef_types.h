@@ -85,7 +85,7 @@ typedef struct ThemeSpace {
 	char edge[4], edge_select[4];
 	char edge_seam[4], edge_facesel[4];
 	char face[4], face_select[4];	// solid faces
-	char face_dot[4];	// selected color
+	char face_dot[4];				// selected color
 	char normal[4];
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
@@ -93,8 +93,8 @@ typedef struct ThemeSpace {
 	char vertex_size, facedot_size;
 	char bpad[2];
 
-	char syntaxl[4], syntaxn[4], syntaxb[4]; //syn-
-	char syntaxv[4], syntaxc[4];             //tax
+	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
+	char syntaxv[4], syntaxc[4];             
 	
 } ThemeSpace;
 
@@ -119,6 +119,7 @@ typedef struct bTheme {
 	ThemeSpace text;
 	ThemeSpace toops;
 	ThemeSpace ttime;
+	ThemeSpace tnode;
 	
 } bTheme;
 
@@ -207,6 +208,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_LOCKAROUND     	4096
 #define USER_GLOBALUNDO     	8192
 #define USER_ORBIT_SELECTION	16384
+#define USER_KEYINSERTAVAI		32768
 #define USER_HIDE_DOT			65536
 
 /* transopts */

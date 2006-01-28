@@ -6,15 +6,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,29 +25,29 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributor(s): Full recode, 2004-2006 Blender Foundation
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
 
 /* global includes */
-#include "render.h"
-
-/* local includes */
-#include "vanillaRenderPipe_types.h"
+#include "BLI_arithb.h"
+#include "BLI_rand.h"
 
 /* own includes */
+#include "render_types.h"
+#include "renderpipeline.h"
 #include "pixelblending.h"
 #include "gammaCorrectionTables.h"
 
-/* externals */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 
 /* ------------------------------------------------------------------------- */
 /* Debug/behaviour defines                                                   */
@@ -70,88 +67,6 @@
 /* considered completely transparent. This is the decimal value              */
 /* for 0x000F / 0xFFFF                                                       */
 #define RE_EMPTY_COLOUR_FLOAT 0.0002
-
-
-/* functions --------------------------------------------------------------- */
-
-/*
-  One things about key-alpha is that simply dividing by the alpha will
-  sometimes cause 'overflows' in that the pixel colours will be shot
-  way over full colour. This should be caught, and subsequently, the
-  operation will end up modifying the alpha as well.
-
-  Actually, when the starting colour is premul, it shouldn't overflow
-  ever. Strange thing is that colours keep overflowing...
-
-*/
-void applyKeyAlphaCharCol(char* target) {
-
-	if ((!(target[3] == 0))
-		|| (target[3] == 255)) {
-		/* else: nothing to do */
-		/* check whether div-ing is enough */
-		float cf[4];
-		cf[0] = target[0]/target[3];
-		cf[1] = target[1]/target[3];
-		cf[2] = target[2]/target[3];
-		if ((cf[0] <= 1.0) && (cf[1] <= 1.0) && (cf[2] <= 1.0)) {
-			/* all colours remain properly scaled? */
-			/* scale to alpha */
-			cf[0] = (float) target[0] * (255.0/ (float)target[3]);
-			cf[1] = (float) target[1] * (255.0/ (float)target[3]);
-			cf[2] = (float) target[2] * (255.0/ (float)target[3]);
-
-			/* Clipping is important. */
-			target[0] = (cf[0] > 255.0 ? 255 : (char) cf[0]);
-			target[1] = (cf[1] > 255.0 ? 255 : (char) cf[1]);
-			target[2] = (cf[2] > 255.0 ? 255 : (char) cf[2]);
-			
-		} else {
-			/* shouldn't happen! we were premul, remember? */
-/* should go to error handler: 			printf("Non-premul colour detected\n"); */
-		}
-	}
-
-}
-
-/* ------------------------------------------------------------------------- */
-
-void addAddSampColF(float *sampvec, float *source, int mask, int osaNr, 
-                    char addfac)
-{
-	int a;
-	
-	for(a=0; a < osaNr; a++) {
-		if(mask & (1<<a)) addalphaAddfacFloat(sampvec, source, addfac);
-		sampvec+= 4;
-	}
-}
-
-/* ------------------------------------------------------------------------- */
-
-void addOverSampColF(float *sampvec, float *source, int mask, int osaNr)
-{
-	int a;
-	
-	for(a=0; a < osaNr; a++) {
-		if(mask & (1<<a)) addAlphaOverFloat(sampvec, source);
-		sampvec+= 4;
-	}
-}
-
-/* ------------------------------------------------------------------------- */
-
-int addUnderSampColF(float *sampvec, float *source, int mask, int osaNr)
-{
-	int a, retval = osaNr;
-	
-	for(a=0; a < osaNr; a++) {
-		if(mask & (1<<a)) addAlphaUnderFloat(sampvec, source);
-		if(sampvec[3] > RE_FULL_COLOUR_FLOAT) retval--;
-		sampvec+= 4;
-	}
-	return retval;
-}
 
 
 /* ------------------------------------------------------------------------- */
@@ -211,106 +126,6 @@ void addAlphaUnderFloat(float *dest, float *source)
 
 } 
 
-/* ------------------------------------------------------------------------- */
-
-void cpShortColV2CharColV(unsigned short *source, char *dest)
-{
-    dest[0] = source[0]>>8;
-    dest[1] = source[1]>>8;
-    dest[2] = source[2]>>8;
-    dest[3] = source[3]>>8;
-} 
-/* ------------------------------------------------------------------------- */
-
-void cpCharColV2ShortColV(char *source, unsigned short *dest)
-{
-    dest[0] = source[0]<<8;
-    dest[1] = source[1]<<8;
-    dest[2] = source[2]<<8;
-    dest[3] = source[3]<<8;
-} 
-
-/* ------------------------------------------------------------------------- */
-
-void cpIntColV2CharColV(unsigned int *source, char *dest)
-{
-    dest[0] = source[0]>>24;
-    dest[1] = source[1]>>24;
-    dest[2] = source[2]>>24;
-    dest[3] = source[3]>>24;
-} 
-
-/* ------------------------------------------------------------------------- */
-
-void cpCharColV2FloatColV(char *source, float *dest)
-{
-	dest[0] = source[0]/255.0;  
-    dest[1] = source[1]/255.0;  
-    dest[2] = source[2]/255.0;
-    dest[3] = source[3]/255.0;
-} 
-
-/* ------------------------------------------------------------------------- */
-
-void cpShortColV2FloatColV(unsigned short *source, float *dest)
-{
-    dest[0] = source[0]/65535.0;  
-    dest[1] = source[1]/65535.0;  
-    dest[2] = source[2]/65535.0;
-    dest[3] = source[3]/65535.0;
-} 
-
-/* ------------------------------------------------------------------------- */
-
-void cpFloatColV2CharColV(float* source, char *dest)
-{
-  /* can't this be done more efficient? hope the conversions are correct... */
-  if (source[0] < 0.0)      dest[0] = 0;
-  else if (source[0] > 1.0) dest[0] = 255;
-  else dest[0] = (char) (source[0] * 255.0);
-
-  if (source[1] < 0.0)      dest[1] = 0;
-  else if (source[1] > 1.0) dest[1] = 255;
-  else dest[1] = (char) (source[1] * 255.0);
-
-  if (source[2] < 0.0)      dest[2] = 0;
-  else if (source[2] > 1.0) dest[2] = 255;
-  else dest[2] = (char) (source[2] * 255.0);
-
-  if (source[3] < 0.0)      dest[3] = 0;
-  else if (source[3] > 1.0) dest[3] = 255;
-  else dest[3] = (char) (source[3] * 255.0);
-
-} 
-
-/* ------------------------------------------------------------------------- */
-
-void cpShortColV(unsigned short *source, unsigned short *dest)
-{
-    dest[0] = source[0];
-    dest[1] = source[1];
-    dest[2] = source[2];
-    dest[3] = source[3];
-}
-
-/* ------------------------------------------------------------------------- */
-void cpFloatColV(float *source, float *dest)
-{
-    dest[0] = source[0];
-    dest[1] = source[1];
-    dest[2] = source[2];
-    dest[3] = source[3];
-}
-
-/* ------------------------------------------------------------------------- */
-
-void cpCharColV(char *source, char *dest)
-{
-    dest[0] = source[0];
-    dest[1] = source[1];
-    dest[2] = source[2];
-    dest[3] = source[3];
-}
 
 /* ------------------------------------------------------------------------- */
 void addalphaAddfacFloat(float *dest, float *source, char addfac)
@@ -353,43 +168,27 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 
 }
 
-/* ------------------------------------------------------------------------- */
-
-void sampleShortColV2ShortColV(unsigned short *sample, unsigned short *dest, int osaNr)
-{
-    unsigned int intcol[4] = {0};
-    unsigned short *scol = sample; 
-    int a = 0;
-    
-    for(a=0; a < osaNr; a++, scol+=4) {
-        intcol[0]+= scol[0]; intcol[1]+= scol[1];
-        intcol[2]+= scol[2]; intcol[3]+= scol[3];
-    }
-    
-    /* Now normalise the integrated colour. It is guaranteed */
-    /* to be correctly bounded.                              */
-    dest[0]= intcol[0]/osaNr;
-    dest[1]= intcol[1]/osaNr;
-    dest[2]= intcol[2]/osaNr;
-    dest[3]= intcol[3]/osaNr;
-    
-}
 
 /* ------------------------------------------------------------------------- */
 
 /* filtered adding to scanlines */
-void add_filt_fmask(unsigned int mask, float *col, float *rb1, float *rb2, float *rb3)
+void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 {
 	/* calc the value of mask */
-	extern float *fmask1[], *fmask2[];
+	float **fmask1= R.samples->fmask1, **fmask2=R.samples->fmask2;
+	float *rb1, *rb2, *rb3;
 	float val, r, g, b, al;
 	unsigned int a, maskand, maskshift;
 	int j;
 	
-	al= col[3];
 	r= col[0];
 	g= col[1];
 	b= col[2];
+	al= col[3];
+	
+	rb2= rowbuf-4;
+	rb1= rb2-4*row_w;
+	rb3= rb2+4*row_w;
 	
 	maskand= (mask & 255);
 	maskshift= (mask >>8);
@@ -400,214 +199,34 @@ void add_filt_fmask(unsigned int mask, float *col, float *rb1, float *rb2, float
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
 		if(val!=0.0) {
-			rb1[3]+= val*al;
 			rb1[0]+= val*r;
 			rb1[1]+= val*g;
 			rb1[2]+= val*b;
+			rb1[3]+= val*al;
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
 		if(val!=0.0) {
-			rb2[3]+= val*al;
 			rb2[0]+= val*r;
 			rb2[1]+= val*g;
 			rb2[2]+= val*b;
+			rb2[3]+= val*al;
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
 		if(val!=0.0) {
-			rb3[3]+= val*al;
 			rb3[0]+= val*r;
 			rb3[1]+= val*g;
 			rb3[2]+= val*b;
+			rb3[3]+= val*al;
 		}
 		
 		rb1+= 4;
 		rb2+= 4;
 		rb3+= 4;
 	}
-}
-
-
-void sampleFloatColV2FloatColVFilter(float *sample, float *dest1, float *dest2, float *dest3, int osaNr)
-{
-    float intcol[4] = {0};
-    float *scol = sample; 
-    int   a = 0;
-
-	if(osaNr==1) {
-		dest2[4]= sample[0];
-		dest2[5]= sample[1];
-		dest2[6]= sample[2];
-		dest2[7]= sample[3];
-	}
-	else {
-		if (do_gamma) {
-			/* use a LUT and interpolation to do the gamma correction */
-			for(a=0; a < osaNr; a++, scol+=4) {
-				intcol[0] = gammaCorrect( (scol[0]<1.0) ? scol[0]:1.0 ); 
-				intcol[1] = gammaCorrect( (scol[1]<1.0) ? scol[1]:1.0 ); 
-				intcol[2] = gammaCorrect( (scol[2]<1.0) ? scol[2]:1.0 ); 
-				intcol[3] = scol[3];
-				add_filt_fmask(1<<a, intcol, dest1, dest2, dest3);
-			}
-		} 
-		else {
-			for(a=0; a < osaNr; a++, scol+=4) {
-				add_filt_fmask(1<<a, scol, dest1, dest2, dest3);
-			}
-		}
-	}
-	
-} 
-
-/* ------------------------------------------------------------------------- */
-/* The following functions are 'old' blending functions:                     */
-
-/* ------------------------------------------------------------------------- */
-void keyalpha(char *doel)   /* makes premul 255 */
-{
-	int c;
-	short div;
-	div= doel[3];
-	if (!div)
-	{
-		doel[0] = (doel[0] ? 255 : 0);
-		doel[1] = (doel[1] ? 255 : 0);
-		doel[2] = (doel[2] ? 255 : 0);
-	} else
-	{
-		c= (doel[0]<<8)/div;
-		if(c>255) doel[0]=255; 
-		else doel[0]= c;
-		c= (doel[1]<<8)/div;
-		if(c>255) doel[1]=255; 
-		else doel[1]= c;
-		c= (doel[2]<<8)/div;
-		if(c>255) doel[2]=255; 
-		else doel[2]= c;
-	}
-}
-
-/* ------------------------------------------------------------------------- */
-/* fills in bron (source) under doel (target) with alpha of doel*/
-void addalphaUnder(char *doel, char *bron)   
-{
-	int c;
-	int mul;
-
-	if(doel[3]==255) return;
-	if( doel[3]==0) {	/* tested  */
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		return;
-	}
-
-	mul= 255-doel[3];
-
-	c= doel[0]+ ((mul*bron[0])/255);
-	if(c>255) doel[0]=255; 
-	else doel[0]= c;
-	c= doel[1]+ ((mul*bron[1])/255);
-	if(c>255) doel[1]=255; 
-	else doel[1]= c;
-	c= doel[2]+ ((mul*bron[2])/255);
-	if(c>255) doel[2]=255; 
-	else doel[2]= c;
-	
-	c= doel[3]+ ((mul*bron[3])/255);
-	if(c>255) doel[3]=255; 
-	else doel[3]= c;
-	
-	/* doel[0]= MAX2(doel[0], bron[0]); */
-}
-
-/* ------------------------------------------------------------------------- */
-/* gamma-corrected */
-void addalphaUnderGamma(char *doel, char *bron)
-{
-	unsigned int tot;
-	int c, doe, bro;
-	int mul;
-
-	/* if doel[3]==0 or doel==255 has been handled in sky loop */
-	mul= 256-doel[3];
-	
-	doe= igamtab1[(int)doel[0]];
-	bro= igamtab1[(int)bron[0]];
-	tot= (doe+ ((mul*bro)>>8));
-	if(tot>65535) tot=65535;
-	doel[0]= *((gamtab+tot)) >>8;
-	
-	doe= igamtab1[(int)doel[1]];
-	bro= igamtab1[(int)bron[1]];
-	tot= (doe+ ((mul*bro)>>8));
-	if(tot>65535) tot=65535;
-	doel[1]= *((gamtab+tot)) >>8;
-
-	doe= igamtab1[(int)doel[2]];
-	bro= igamtab1[(int)bron[2]];
-	tot= (doe+ ((mul*bro)>>8));
-	if(tot>65535) tot=65535;
-	doel[2]= *((gamtab+tot)) >>8;
-
-	c= doel[3]+ ((mul*bron[3])/255);
-	if(c>255) doel[3]=255; 
-	else doel[3]= c;
-	/* doel[0]= MAX2(doel[0], bron[0]); */
-}
-
-/* ------------------------------------------------------------------------- */
-/* doel= bron over doel  */
-void addalphaOver(char *doel, char *bron)   
-{
-	int c;
-	int mul;
-
-	if(bron[3]==0) return;
-	if( bron[3]==255) {	/* tested */
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		return;
-	}
-
-	mul= 255-bron[3];
-
-	c= ((mul*doel[0])/255)+bron[0];
-	if(c>255) doel[0]=255; 
-	else doel[0]= c;
-	c= ((mul*doel[1])/255)+bron[1];
-	if(c>255) doel[1]=255; 
-	else doel[1]= c;
-	c= ((mul*doel[2])/255)+bron[2];
-	if(c>255) doel[2]=255; 
-	else doel[2]= c;
-	c= ((mul*doel[3])/255)+bron[3];
-	if(c>255) doel[3]=255; 
-	else doel[3]= c;
-}
-
-/* ------------------------------------------------------------------------- */
-void addalphaAdd(char *doel, char *bron)   /* adds bron (source) to doel (target) */
-{
-	int c;
-
-	if( doel[3]==0 || bron[3]==255) {	/* tested */
-		*((unsigned int *)doel)= *((unsigned int *)bron);
-		return;
-	}
-	c= doel[0]+bron[0];
-	if(c>255) doel[0]=255; 
-	else doel[0]= c;
-	c= doel[1]+bron[1];
-	if(c>255) doel[1]=255; 
-	else doel[1]= c;
-	c= doel[2]+bron[2];
-	if(c>255) doel[2]=255; 
-	else doel[2]= c;
-	c= doel[3]+bron[3];
-	if(c>255) doel[3]=255; 
-	else doel[3]= c;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -631,44 +250,136 @@ void addalphaAddFloat(float *dest, float *source)
 
 }
 
-/* ALPHADDFAC: 
- * 
- *  Z= X alphaover Y:
- *  Zrgb= (1-Xa)*Yrgb + Xrgb
- * 
- *  (1-fac)*(1-Xa) + fac <=>
- *  1-Xa-fac+fac*Xa+fac <=> 
- *  Xa*(fac-1)+1
- */
-
 
 /* ------------------------------------------------------------------------- */
-/* doel= bron over doel  */
-void RE_addalphaAddfac(char *doel, char *bron, char addfac)
+
+/* ------------------------------------------------------------------------- */
+/* Colour buffer related:                                                    */
+/* This transforms the 4 inputvalues RE_COLBUFTYPE to a new value            */
+/* It expects the values R.r.postigamma, R.r.postmul and R.r.postadd.         */
+/* This is the standard transformation, more elaborate tools are for later.  */
+/* ------------------------------------------------------------------------- */
+void std_floatcol_to_charcol( float *buf, char *target)
 {
+	float col[3];
 	
-	int c, mul;
-
-	mul= 255 - (bron[3]*(255-addfac))/255;
-
-	c= ((mul*doel[0])/255)+bron[0];
-	if(c>255) doel[0]=255; 
-	else doel[0]= c;
-	c= ((mul*doel[1])/255)+bron[1];
-	if(c>255) doel[1]=255; 
-	else doel[1]= c;
-	c= ((mul*doel[2])/255)+bron[2];
-	if(c>255) doel[2]=255; 
-	else doel[2]= c;
+	float dither_value;
 	
-	/* c= ((mul*doel[3])/255)+bron[3]; */
-	c= doel[3]+bron[3];
-	if(c>255) doel[3]=255; 
-	else doel[3]= c;
+	dither_value = ((BLI_frand()-0.5)*R.r.dither_intensity)/256.0; 
+	
+	/* alpha */
+	if((buf[3]+dither_value)<=0.0) target[3]= 0;
+	else if((buf[3]+dither_value)>1.0) target[3]= 255;
+	else target[3]= 255.0*(buf[3]+dither_value);
+	
+	if(R.r.postgamma==1.0) {
+		/* r */
+		col[0]= R.r.postmul*buf[0] + R.r.postadd + dither_value;
+		/* g */
+		col[1]= R.r.postmul*buf[1] + R.r.postadd + dither_value;
+		/* b */
+		col[2]= R.r.postmul*buf[2] + R.r.postadd + dither_value;
+	}
+	else {
+		/* putting the postmul within the pow() gives an
+		* easier control for the user, values from 1.0-2.0
+		* are relevant then
+		*/
+		
+		/* r */
+		col[0]= pow(R.r.postmul*buf[0], R.r.postigamma) + R.r.postadd + dither_value;
+		/* g */
+		col[1]= pow( R.r.postmul*buf[1], R.r.postigamma) + R.r.postadd + dither_value;
+		/* b */
+		col[2]= pow(R.r.postmul*buf[2], R.r.postigamma) + R.r.postadd + dither_value;
+	}
+	
+	if(R.r.posthue!=0.0 || R.r.postsat!=1.0) {
+		float hsv[3];
+		
+		rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+		hsv[0]+= R.r.posthue;
+		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
+		hsv[1]*= R.r.postsat;
+		if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
+		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
+	}
+	
+	if(col[0]<=0.0) target[0]= 0;
+	else if(col[0]>1.0) target[0]= 255;
+	else target[0]= 255.0*col[0];
+	
+	if(col[1]<=0.0) target[1]= 0;
+	else if(col[1]>1.0) target[1]= 255;
+	else target[1]= 255.0*col[1];
+	
+	if(col[2]<=0.0) target[2]= 0;
+	else if(col[2]>1.0) target[2]= 255;
+	else target[2]= 255.0*col[2];
 }
 
+/* ----------------------------------------------------------------------------
 
-/* ------------------------------------------------------------------------- */
+Colour buffer related:
+
+The colour buffer is a buffer of a single screen line. It contains        
+four fields of type RE_COLBUFTYPE per pixel.
+
+We can do several post-process steps. I would prefer to move them outside
+the render module later on, but it's ok to leave it here for now. For the
+time being, we have:
+- post-process function
+    Does some operations with the colours.
+- Multiply with some factor
+- Add constant offset
+- Apply extra gamma correction (seems weird...)
+- key-alpha correction
+    Key alpha means 'un-applying' the alpha. For fully covered pixels, this
+	operation has no effect.
+
+- XXX WARNING! Added the inverse render gamma here, so this cannot be used external
+	without setting Osa or Gamma flags off (ton)
+
+---------------------------------------------------------------------------- */
+/* used external! */
+void transferColourBufferToOutput( float *buf, int y)
+{
+    /* Copy the contents of AColourBuffer3 to R.rectot + y * R.rectx */
+    int x = 0;
+//    char *target = (char*) (R.rectot + (y * R.rectx));
+	
+	/* Copy the first <R.rectx> pixels. We can do some more clipping on    */
+	/* the z buffer, I think.                                                 */
+	while (x < R.rectx) {
+		
+		
+		/* invert gamma corrected additions */
+		if(R.do_gamma) {
+			buf[0] = invGammaCorrect(buf[0]);
+			buf[1] = invGammaCorrect(buf[1]);
+			buf[2] = invGammaCorrect(buf[2]);
+		}			
+		
+//		std_floatcol_to_charcol(buf, target);
+		
+		/*
+		 Key-alpha mode:
+		 Need to un-apply alpha if alpha is non-full. For full alpha,
+		 the operation doesn't have effect. Do this after the post-
+		 processing, so we can still use the benefits of that.
+		 
+		 */
+		
+		if (R.r.alphamode == R_ALPHAKEY) {  
+//			applyKeyAlphaCharCol(target);
+		}				
+		
+//        target+=4;
+        buf+=4;
+        x++;
+    }
+}
+
 
 /* eof pixelblending.c */
 

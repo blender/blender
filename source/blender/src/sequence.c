@@ -34,10 +34,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 #include "PIL_dynlib.h"
 
@@ -48,6 +44,7 @@
 #include "IMB_imbuf.h"
 
 #include "DNA_ipo_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_view3d_types.h"
 
@@ -69,8 +66,9 @@
 
 #include "BSE_sequence.h"
 
+#include "RE_pipeline.h"		// talks to entire render API
+
 #include "blendef.h"
-#include "render.h"		// talks to entire render API, and igamtab
 
 Sequence *seq_arr[MAXSEQ+1];
 int seqrectx, seqrecty;
@@ -622,15 +620,47 @@ void do_cross_effect(float facf0, float facf1, int x, int y, unsigned int *rect1
 	}
 }
 
+/* copied code from initrender.c */
+static unsigned short *gamtab, *igamtab1;
+
+static void gamtabs(float gamma)
+{
+	float val, igamma= 1.0f/gamma;
+	int a;
+	
+	gamtab= MEM_mallocN(65536*sizeof(short), "initGaus2");
+	igamtab1= MEM_mallocN(256*sizeof(short), "initGaus2");
+
+	/* gamtab: in short, out short */
+	for(a=0; a<65536; a++) {
+		val= a;
+		val/= 65535.0;
+		
+		if(gamma==2.0) val= sqrt(val);
+		else if(gamma!=1.0) val= pow(val, igamma);
+		
+		gamtab[a]= (65535.99*val);
+	}
+	/* inverse gamtab1 : in byte, out short */
+	for(a=1; a<=256; a++) {
+		if(gamma==2.0) igamtab1[a-1]= a*a-1;
+		else if(gamma==1.0) igamtab1[a-1]= 256*a-1;
+		else {
+			val= a/256.0;
+			igamtab1[a-1]= (65535.0*pow(val, gamma)) -1 ;
+		}
+	}
+
+}
+
 void do_gammacross_effect(float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
 {
-	extern void init_filt_mask(void);	// initrender.c, bad level call...
 	int fac1, fac2, col;
 	int xo;
 	char *rt1, *rt2, *rt;
 
-	init_filt_mask();	// nasty call to render code... but it uses gamtabs here
-	
+	gamtabs(2.0f);
+		
 	xo= x;
 	rt1= (char *)rect1;
 	rt2= (char *)rect2;
@@ -673,8 +703,10 @@ void do_gammacross_effect(float facf0, float facf1, int x, int y, unsigned int *
 
 			rt1+= 4; rt2+= 4; rt+= 4;
 		}
-
 	}
+	
+	MEM_freeN(gamtab);
+	MEM_freeN(igamtab1);
 }
 
 void do_add_effect(float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
@@ -1655,19 +1687,19 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 			if(cp) strncpy(cp, seq->name+2, 22);
 
 			if (seq->plugin->version<=2) {
-				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf->x*se1->ibuf->y, se1->ibuf->rect);
-				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf->x*se2->ibuf->y, se2->ibuf->rect);
-				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf->x*se3->ibuf->y, se3->ibuf->rect);
+				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf);
+				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf);
+				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf);
 			}
 
 			((SeqDoit)seq->plugin->doit)(seq->plugin->data, fac, facf, x, y,
 						se1->ibuf, se2->ibuf, se->ibuf, se3->ibuf);
 
 			if (seq->plugin->version<=2) {
-				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf->x*se1->ibuf->y, se1->ibuf->rect);
-				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf->x*se2->ibuf->y, se2->ibuf->rect);
-				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf->x*se3->ibuf->y, se3->ibuf->rect);
-				IMB_convert_rgba_to_abgr(se->ibuf->x*se->ibuf->y, se->ibuf->rect);
+				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf);
+				if(se2->ibuf) IMB_convert_rgba_to_abgr(se2->ibuf);
+				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf);
+				IMB_convert_rgba_to_abgr(se->ibuf);
 			}
 
 			if((G.f & G_PLAYANIM)==0) waitcursor(0);
@@ -1814,9 +1846,6 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 {
 	Sequence *seq;
 	StripElem *se;
-	Scene *oldsce;
-	unsigned int *rectot;
-	int oldx, oldy, oldcfra, doseq;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if(seqar==NULL) return;
@@ -1955,8 +1984,13 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						}
 					}
 					else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
+						printf("Sorry, sequence scene is not yet back...\n");
+#if 0						
 						View3D *vd;
-						int redisplay= (!G.background && !(R.flag & R_RENDERING));
+						Scene *oldsce;
+						unsigned int *rectot;
+						int oldcfra, doseq;
+						int redisplay= (!G.background && !(G.rendering));
 						
 						oldsce= G.scene;
 						if(seq->scene!=G.scene) set_scene_bg(seq->scene);	/* set_scene does full dep updates */
@@ -1972,57 +2006,57 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 
 						waitcursor(1);
 
-						rectot= R.rectot; R.rectot= NULL;
-						oldx= R.rectx; oldy= R.recty;
+//						rectot= R.rectot; R.rectot= NULL;
+//						oldx= R.rectx; oldy= R.recty;
 						/* needed because current 3D window cannot define the layers, like in a background render */
 						vd= G.vd;
 						G.vd= NULL;
 
-						RE_initrender(NULL);
+//						RE_initrender(NULL);
 						if (redisplay) {
 							mainwindow_make_active();
-							if(R.r.mode & R_FIELDS) update_for_newframe_muted();
-							R.flag= 0;
+//							if(R.r.mode & R_FIELDS) update_for_newframe_muted();
+//							R.flag= 0;
 
 							free_filesel_spec(G.scene->r.pic);
 						}
 
-						se->ibuf= IMB_allocImBuf(R.rectx, R.recty, 32, IB_rect, 0);
-						if(R.rectot) memcpy(se->ibuf->rect, R.rectot, 4*R.rectx*R.recty);
-						if(R.rectz) {
-							se->ibuf->zbuf= (int *)R.rectz;
+//						se->ibuf= IMB_allocImBuf(R.rectx, R.recty, 32, IB_rect, 0);
+//						if(R.rectot) memcpy(se->ibuf->rect, R.rectot, 4*R.rectx*R.recty);
+//						if(R.rectz) {
+//							se->ibuf->zbuf= (int *)R.rectz;
 							/* make sure ibuf frees it */
-							se->ibuf->mall |= IB_zbuf;
-							R.rectz= NULL;
-						}
+//							se->ibuf->mall |= IB_zbuf;
+//							R.rectz= NULL;
+//						}
 
 						/* and restore */
 						G.vd= vd;
 
 						if((G.f & G_PLAYANIM)==0) waitcursor(0);
 						CFRA= oldcfra;
-						if(R.rectot) MEM_freeN(R.rectot);
-						R.rectot= rectot;
-						R.rectx=oldx; R.recty=oldy;
+//						if(R.rectot) MEM_freeN(R.rectot);
+//						R.rectot= rectot;
+//						R.rectx=oldx; R.recty=oldy;
 						G.scene->r.scemode |= doseq;
 						if(seq->scene!=oldsce) set_scene_bg(oldsce);	/* set_scene does full dep updates */
 
 						/* restore!! */
-						R.rectx= seqrectx;
-						R.recty= seqrecty;
+//						R.rectx= seqrectx;
+//						R.recty= seqrecty;
 
 						/* added because this flag is checked for
 						 * movie writing when rendering an anim.
 						 * very convoluted. fix. -zr
 						 */
-						R.r.imtype= G.scene->r.imtype;
+//						R.r.imtype= G.scene->r.imtype;
+#endif
 					}
-
 					/* size test */
 					if(se->ibuf) {
 						if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
 
-							if (G.scene->r.mode & R_FIELDS) {
+							if (0) { //G.scene->r.mode & R_FIELDS) {
 
 								if (seqrecty > 288) IMB_scalefieldImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
 								else {
@@ -2050,7 +2084,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 	}
 }
 
-ImBuf *give_ibuf_seq(int cfra)
+ImBuf *give_ibuf_seq(int rectx, int recty, int cfra)
 {
 	Sequence **tseqar, **seqar;
 	Sequence *seq, *seqfirst=0;/*  , *effirst=0; */
@@ -2070,12 +2104,10 @@ ImBuf *give_ibuf_seq(int cfra)
 
 	if(totseq==0) return 0;
 
-	seqrectx= (G.scene->r.size*G.scene->r.xsch)/100;
-	if(G.scene->r.mode & R_PANORAMA) seqrectx*= G.scene->r.xparts;
-	seqrecty= (G.scene->r.size*G.scene->r.ysch)/100;
+	seqrectx= rectx;	/* bad bad global! */
+	seqrecty= recty;
 
-
-	/* tseqar is neede because in do_build_... the pointer changes */
+	/* tseqar is needed because in do_build_... the pointer changes */
 	seqar= tseqar= MEM_callocN(sizeof(void *)*totseq, "seqar");
 
 	/* this call loads and makes the ibufs */
@@ -2236,19 +2268,17 @@ void free_imbuf_seq()
 	END_SEQ
 }
 
-void do_render_seq()
+/* bad levell call... renderer makes a 32 bits rect to put result in */
+void do_render_seq(RenderResult *rr)
 {
-/*  	static ImBuf *lastibuf=0; */
 	ImBuf *ibuf;
-
-	/* copy image into R.rectot */
 
 	G.f |= G_PLAYANIM;	/* waitcursor patch */
 
-	ibuf= give_ibuf_seq(CFRA);
-	if(ibuf) {
-
-		memcpy(R.rectot, ibuf->rect, 4*R.rectx*R.recty);
+	ibuf= give_ibuf_seq(rr->rectx, rr->recty, CFRA);
+	if(ibuf && rr->rect32) {
+		printf("copied\n");
+		memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
 
 		/* if (ibuf->zbuf) { */
 		/* 	if (R.rectz) freeN(R.rectz); */

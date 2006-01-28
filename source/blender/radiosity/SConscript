@@ -18,7 +18,8 @@ rad_env.Append (CPPPATH = ['extern/include',
                            '../makesdna',
                            '../include',
                            '#/intern/guardedalloc',
-                           '../render/extern/include'])
+                           '../render/extern/include',
+                           '../render/intern/include'])
 
 rad_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
 

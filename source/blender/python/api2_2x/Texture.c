@@ -37,13 +37,15 @@
 #include "BLI_blenlib.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
 #include "MTex.h"
 #include "Image.h"
 #include "Ipo.h"
 #include "constant.h"
 #include "blendef.h"
-#include "render.h"
 #include "gen_utils.h"
 
 /*****************************************************************************/
@@ -1863,7 +1865,7 @@ static int Texture_setType( BPy_Texture * self, PyObject * value )
 
 	if( !err && self->texture->type == TEX_ENVMAP 
 			&& !self->texture->env ) {
-		self->texture->env = RE_add_envmap();
+		self->texture->env = BKE_add_envmap();
 		self->texture->env->object= OBACT;
 	}
 	return err;
@@ -2541,7 +2543,7 @@ static PyObject *Texture_oldsetType( BPy_Texture * self, PyObject * args )
 
 	if( self->texture->type == TEX_ENVMAP 
 			&& !self->texture->env ) {
-		self->texture->env = RE_add_envmap();
+		self->texture->env = BKE_add_envmap();
 		self->texture->env->object= OBACT;
 	}
 

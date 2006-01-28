@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "12/18/2005"
+__version__ = "10/04/2005"
 
 __bpydoc__ = """\
 This script is a reference about all hotkeys and mouse actions in Blender.
@@ -26,9 +26,10 @@ Notes:<br>
     
 """
 
+# $Id$
 #------------------------
 #  Hotkeys script
-#         jm soler (2003-->12/2005)
+#         jm soler (2003-->10/2004)
 # -----------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm
@@ -74,17 +75,16 @@ hotkeys={
 ['Ctrl-,', 'Set Median Point rotation scaling pivot'],
 ['.', 'Set 3D cursor as rotation scaling pivot'],
 ['Ctrl-.', 'Set Individual Object Centers as rotation scaling pivot'],
-['~', 'Display all layers (German keys: ö,french keyboard: ù)'],
-['Shift-~', 'Display all/previous layers (German keys: Shift-ö, french keyboard: shift-ù)'],
+['~', 'Display all layers (German keys: ö)'],
+['Shift-~', 'Display all/previous layers (German keys: Shift-ö)'],
 ['Space', 'Popup menu'],
 ['Space', '3D View: camera selected + fly mode, accept'],
-['Ctrl-Space', 'Manipulator (transform widget) Menu'],
 ['TAB', 'Enter/exit Edit Mode'],
 ['TAB', 'Edit Mode and Numerical Edit (see N key) : move to next input value'],
 ['TAB', 'Sequencer: Edit meta strip'],
 ['TAB', 'IPO: Edit selected'],
-['Ctrl-TAB', 'ARMATURE : Enter/exit Pose Mode'],
-['Shift-TAB', 'EDIT MODE : Enter Object Mode'],
+['Ctrl-TAB', 'Enter/exit Pose Mode'],
+['Shift-TAB', 'Enter Object Mode'],
 ['Ctrl-Open menu /', ''],
 ['Ctrl-Load Image', 'Opens a thumbnail browser instead of file browser for images']
 ],
@@ -97,25 +97,20 @@ hotkeys={
 ['LMB hold down', 'Popup menu'],
 ['LMB hold down drag', 'Gesture'],
 ['Ctrl-LMB', 'IPO: Add key'],
-['Ctrl-LMB', '3D View: OBJECT or EDIT mode, select with the Lasso tool'],
-['Ctrl-LMB', '3D View: ARMATURE EDIT mode, add a new bone to the selected end '],
-['Shift-LMB','MANIPULATOR (transform widget): select the axe to remove in the current transformation ( if there is a problem with small step adjustment, first select the axe or axes with LBM alone)'],
 ['MMB', 'Rotate'],
 ['Ctrl-MMB', 'Zoom view'],
 ['Shift-MMB', 'Move view'],
 ['RMB', 'Select'],
 ['RMB drag', 'Border select circle: subtract from selection'],
 ['RMB hold down', 'Popup menu'],
-['Alt-RMB', 'Object Mode :Select but in a displayed list of objects located under the mouse cursor'],
-['Alt-RMB', 'Edit Mode: Select EDGES LOOP '],
-['Alt+Ctrl-RMB', 'Edit Mode: Select FACES LOOP'],	
+['Alt+Ctrl-RMB', 'Edit Mode: Select edge'],
 ['Alt+Ctrl-RMB', 'UV Image Editor: Select face'],
 ['Shift-RMB', 'Add/subtract to/from selection'],
 ['Wheel', 'Zoom view'],
 ['Transformations:', ''],
 ['Drag+Ctrl', 'Step adjustment'],
-['Drag+Ctrl+Shift', 'Small step adjustment (Transform Widget : first select the axe or axes with LBM alone)'],
-['Drag+Shift', 'Fine adjustment (Transform Widget : first select the axe or axes with LBM alone)'],
+['Drag+Ctrl+Shift', 'Small step adjustment'],
+['Drag+Shift', 'Fine adjustment'],
 ['LMB', 'Confirm transformation'],
 ['MMB', 'Toggle optional transform feature'],
 ['RMB', 'Abort transformation']
@@ -123,36 +118,33 @@ hotkeys={
 
 'F-Keys ':[
 ['F1', 'Open File'],
-['Shift-F1', 'Library Data Select'],
 ['F2', 'Save File'],
-['Shift-F2', 'Export DXF'],
-['Ctrl-F2', 'Save/export in vrml 1.0 format' ],
 ['F3', 'Save image'],
-['Ctrl-F3', 'Save image : dump 3d view'],
-['Ctrl-Shift-F3', 'Save image : dump screen'],
 ['F4', 'Logic Window (may change)'],
-['Shift-F4', 'Object manager Data Select '],
 ['F5', 'Material Window'],
-['Shift-F5', '3D Window'],
 ['F6', 'Texture Window'],
-['Shift-F6', 'IPO Window'],
 ['F7', 'Object Window'],
-['Shift-F7', 'Buttons Window'],
 ['F8', 'World Window'],
-['Shift-F8', 'Video Sequencer Window'],
 ['F9', 'Edit Mode Window'],
+['F10', 'Render Window'],
+['F11', 'Recall the last rendered image'],
+['F12', 'Render current Scene'],
+['Ctrl-Shift-F12', 'NLA Editor'],
+['Shift-F1', 'Library Data Select'],
+['Shift-F2', 'Export DXF'],
+['Shift-F4', 'Object manager Data Select '],
+['Shift-F5', '3D Window'],
+['Shift-F6', 'IPO Window'],
+['Shift-F7', 'Buttons Window'],
+['Shift-F8', 'Video Sequencer Window'],
 ['Shift-F9', 'OOP Window'],
 ['Alt-Shift-F9', 'OutLiner Window'],
-['F10', 'Render Window'],
 ['Shift-F10', 'UV Image Editor'],
-['F11', 'Recall the last rendered image'],
 ['Shift-F11', 'Text Editor'],
-['ctrl-F11', 'replay the last rendered animation'],
-['F12', 'Render current Scene'],
-['Ctrl-F12', 'Render animation'],
-['Ctrl-Shift-F12', 'NLA Editor'],
 ['Shift-F12', 'Action Editor'],
-['Shift-F12', 'Action Editor']
+['Ctrl-F2', 'Save/export in vrml 1.0 format' ],
+['Ctrl-F3', 'Save image : dump 3d view'],
+['Ctrl-Shift-F3', 'Save image : dump screen']
 ],
 
 'Numbers ':[
@@ -160,10 +152,7 @@ hotkeys={
 ['1..2..0-=', 'Edit Mode with Size, Grab, rotate tools : enter value'],
 ['Alt-1..2..0', 'Show layer 11..12..20'],
 ['Shift-1..2..0-=', 'Toggle layer 1..2..12'],
-['Shift-ALT-...', 'Toggle layer 11..12..20'],
-['Crtl-Shift-ALT-3', 'Edit Mode & Face Mode : Triangle faces'],
-['Crtl-Shift-ALT-4', 'Edit Mode & Face Mode : Quad faces'],
-['Crtl-Shift-ALT-5', 'Edit Mode & Face Mode : Non quad or triangle faces'],
+['Shift-ALT-...', 'Toggle layer 11..12..20']
 ],
 
 'Numpad ':[
@@ -178,10 +167,9 @@ hotkeys={
 ['Numpad +', 'In OutLiner window, Expand one level of the  hierarchy'],
 ['Alt-Numpad -', 'Proportional vertex Edit Mode: Decrease range of influence'],
 ['Ctrl-Numpad +', 'Edit Mode: Select Less vertices'],
-['Numpad 0', 'Set Camera view'],
-['Ctrl-Numpad 0', 'Set active object as camera'],
-['Alt-Numbad 0', 'Restore old camera'],
-['Ctrl-Alt-Numpad 0', 'Align active camera to view'],
+['Numpad INS', 'Set Camera view'],
+['Ctrl-Numpad INS', 'Set active object as camera'],
+['Alt-Numbad INS', 'Restore old camera'],
 ['Numpad 1', 'Front view'],
 ['Ctrl-Numpad 1', 'Back view'],
 ['Numpad 3', 'Right view'],
@@ -191,9 +179,7 @@ hotkeys={
 ['Numpad 5', 'Toggle orthogonal/perspective view'],
 ['Numpad 9', 'Redraw view'],
 ['Numpad 4', 'Rotate view left'],
-['ctrl-Shift-Numpad 4', 'Previous Screen'],
 ['Numpad 6', 'Rotate view right'],
-['ctrl-Shift-Numpad 6', 'Next Screen'],
 ['Numpad 8', 'Rotate view up'],
 ['Numpad 2', 'Rotate view down']
 ],
@@ -221,7 +207,6 @@ hotkeys={
 ['Alt-Up', 'Blender in Fullscreen mode'],
 ['Ctrl-Left', 'Previous screen'],
 ['Ctrl-Right', 'Next screen'],
-['Ctrl-Alt-C', 'Object Mode : Add  Constraint'],	
 ['Ctrl-Down', 'Maximize window toggle'],
 ['Ctrl-Up', 'Maximize window toggle'],
 ['Shift-Arrow', 'Toggle first frame/ last frame']
@@ -283,12 +268,6 @@ hotkeys={
 ['EZ', 'Edit Mode: Extrude along Z axis'],
 ['Alt-E', 'Edit Mode: exit Edit Mode'],
 ['Ctrl-E', 'Edit Mode: Edge Specials menu'],
-['Ctrl-E', 'Edit Mode: Edge Specials menu, Mark seams'],
-['Ctrl-E', 'Edit Mode: Edge Specials menu, Clear seams'],
-['Ctrl-E', 'Edit Mode: Edge Specials menu, Rotate Edge CW'],
-['Ctrl-E', 'Edit Mode: Edge Specials menu, Rotate Edge CCW'],
-['Ctrl-E', 'Edit Mode: Edge Specials menu, Loop Cut'],
-['Ctrl-E', 'Edit Mode: Edge Specials menu, Edge Slide'],
 ['Shift-E', 'Edit Mode: SubSurf Edge Sharpness']
 ],
 
@@ -308,7 +287,6 @@ hotkeys={
 ['Alt-G', 'Clear location'],
 ['Shift-ALT-G', 'Remove selected objects from group'],
 ['Ctrl-G', 'Add selected objects to group'],
-['Ctrl-Alt-G', 'MANIPULATOR (transform widget): set in Grab Mode'],
 ['Shift-G', 'Selected Group menu']
 ],
 
@@ -317,11 +295,11 @@ hotkeys={
 ['H', 'Curves: Set handle type'],
 ['H', 'Action editor: Handle type aligned'],
 ['H', 'Action editor: Handle type free'],		
-['Alt-H', 'Edit Mode : Show Hidden vertices/faces'],
+['Alt-H', 'Show Hidden vertices/faces'],
 ['Shift-H', 'Curves: Automatic handle calculation'],
 ['Shift-H', 'Action editor: Handle type auto'],	
-['Shift-H', 'Edit Mode : Hide deselected  vertices/faces'],
-['Ctrl-H', 'Edit Mode : Add a hook on selected points or show the hook menu .']
+['Shift-H', 'Edit Mode, Hide deselected  vertices/faces'],
+['Ctrl-H', 'Edit Mode, Add a hook on selected points or show the hook menu .']
 ],
 
 "I":[ 
@@ -351,7 +329,7 @@ hotkeys={
 
 "L":[ 
 ['L', 'Make local menu'],
-['L', 'Edit Mode: Select linked vertices (near mouse pointer)'],
+['L', 'Edit mode: Select linked vertices (near mouse pointer)'],
 ['L', 'OOPS window: Select linked objects'],
 ['L', 'UV Face Select: Select linked faces'],
 ['Ctrl-L', 'Make links menu (for instance : to scene...)'],
@@ -375,7 +353,7 @@ hotkeys={
 ['N', 'OOPS window: Rename object/linked objects'] ,
 ['Ctrl-N', 'Armature: Recalculate bone roll angles'] ,
 ['Ctrl-N', 'Edit Mode: Recalculate normals to outside'] ,
-['Ctrl-Shift-N', 'Edit Mode: Recalculate normals to inside'] ],
+['Ctrl-ALT-N', 'Edit Mode: Recalculate normals to inside'] ],
 
 "O":[ 
 ['O', 'Edit Mode/UV Image Editor: Toggle proportional vertex editing'],
@@ -387,7 +365,6 @@ hotkeys={
 "P":[ 
 ['P', 'Object Mode: Start realtime engine'],
 ['P', 'Edit mode: Seperate vertices to new object'],
-['shift-P', 'Edit mode: Push-Pull'],
 ['P', 'UV Image Editor: Pin UVs'],
 ['Alt-P', 'Clear parent relationship'],
 ['Alt-P', 'UV Image Editor: Unpin UVs'],
@@ -410,7 +387,6 @@ hotkeys={
 ['RZZ', "Rotate around object's local Z axis"],
 ['Alt-R', 'Clear object rotation'],
 ['Ctrl-R', 'Edit Mode: Knife, cut selected edges, accept left mouse/ cancel right mouse'],
-['Ctrl-Alt-R', 'MANIPULATOR (transform widget): set in Rotate Mode'],
 ['Shift-R', 'Edit Mode: select Face Loop'],
 ['Shift-R', 'Nurbs: Select row'] ],
 
@@ -424,11 +400,8 @@ hotkeys={
 ['SYY', 'Flip around Y axis and show axis'] ,
 ['SZZ', 'Flip around Z axis and show axis'] ,
 ['Alt-S', 'Edit mode: Shrink/fatten (Scale along vertex normals)'] ,
-['Ctrl-Shift-S', 'Edit mode: To Sphere'] ,
-['Ctrl-Alt-Shift-S', 'Edit mode: Shear'] ,
 ['Alt-S', 'Clear object size'] ,
 ['Ctrl-S', 'Edit mode: Shear'] ,
-['Ctrl-Alt-G', 'MANIPULATOR (transform widget): set in Size Mode'],
 ['Shift-S', 'Cursor/Grid snap menu'] ],
 
 "T":[ 
@@ -445,18 +418,18 @@ hotkeys={
 "U":[ 
 ['U', 'Make single user menu (for import completly linked object to another scene  for instance) '] ,
 ['U', '3D View: Make Single user Menu'] ,
+['U', 'Edit Mode: Reload object data from before entering Edit Mode'] ,
 ['U', 'UV Face Select: Automatic UV calculation menu'] ,
 ['U', 'Vertex-/Weightpaint mode: Undo'] ,
 ['Ctrl-U', 'Save current state as user default'],
 ['Shift-U', 'Edit Mode: Redo Menu'],
-['Alt-U', 'Edit Mode & Object Mode: Undo Menu']],
+['Alt-U', 'Edit Mode: Undo Menu'] ],
 
 "V":[ 
 ['V', 'Curves/Nurbs: Vector handle'],
-['V', 'Edit Mode : Rip selected vertices'],
 ['V', 'Vertexpaint mode'],
 ['V', 'UV Image Editor: Stitch UVs'],
-['V', 'Action editor: Vector'],
+['V', 'Action editor: Vector'],	
 ['Alt-V', "Scale object to match image texture's aspect ratio"],
 ['Shift-V', 'Edit mode: Align view to selected vertices'],
 ['Shift-V', 'UV Image Editor: Limited Stitch UVs popup'],
@@ -464,37 +437,13 @@ hotkeys={
 ],
 
 "W":[ 
-['W', 'Edit Mode: Specials menu'],
-['W', 'Edit Mode: Specials menu, ARMATURE 1 Subdivide'],
-['W', 'Edit Mode: Specials menu, ARMATURE 2 Flip Left-Right Name'],
-['W', 'Edit Mode: Specials menu, CURVE 1 Subdivide'],
-['W', 'Edit Mode: Specials menu, CURVE 2 Swich Direction'],
-['W', 'Edit Mode: Specials menu, MESH 1 Subdivide'],
-['W', 'Edit Mode: Specials menu, MESH 2 Subdivide Multi'],
-['W', 'Edit Mode: Specials menu, MESH 3 Subdivide Multi Fractal'],
-['W', 'Edit Mode: Specials menu, MESH 4 Subdivide Smooth'],
-['W', 'Edit Mode: Specials menu, MESH 5 Merge'],
-['W', 'Edit Mode: Specials menu, MESH 6 Remove Double'],
-['W', 'Edit Mode: Specials menu, MESH 7 Hide'],
-['W', 'Edit Mode: Specials menu, MESH 8 Reveal'],
-['W', 'Edit Mode: Specials menu, MESH 9 Select Swap'],
-['W', 'Edit Mode: Specials menu, MESH 10 Flip Normal'],
-['W', 'Edit Mode: Specials menu, MESH 11 Smooth'],
-['W', 'Edit Mode: Specials menu, MESH 12 Bevel'],
-['W', 'Edit Mode: Specials menu, MESH 13 Set Smooth'],
-['W', 'Edit Mode : Specials menu, MESH 14 Set Solid'],
-['W', 'Object Mode : on MESH objects, Boolean Tools menu'],
-['W', 'Object Mode : on MESH objects, Boolean Tools 1 Intersect'],
-['W', 'Object Mode : on MESH objects, Boolean Tools 2 union'],
-['W', 'Object Mode : on MESH objects, Boolean Tools 3 difference'],
-['W', 'Object Mode : on MESH objects, Boolean Tools 4 Add an intersect Modifier'],
-['W', 'Object Mode : on MESH objects, Boolean Tools 5 Add an union Modifier'],
-['W', 'Object Mode : on MESH objects, Boolean Tools 6 Add a difference Modifier'],
-['W', 'Object mode : on TEXT object, Split characters, a new TEXT object by character in the selected string '],
+['W', 'Object Mode: Boolean operations menu'],
+['W', 'Edit mode: Specials menu'],
 ['W', 'UV Image Editor: Weld/Align'],
 ['WX', 'UV Image Editor: Weld/Align X axis'],
 ['WY', 'UV Image Editor: Weld/Align Y axis'],
 ['Ctrl-W', 'Save current file'] ,
+['Ctrl-W', 'Nurbs: Switch direction'] ,
 ['Shift-W', 'Warp/bend selected vertices around cursor'],
 ['alt-W', 'Export in videoscape format']
  ],
@@ -507,15 +456,13 @@ hotkeys={
  ],
 
 "Y":[ 
-['Y', 'Edit Mode & Mesh : Split selected vertices/faces from the rest'],
-['Ctrl-Y', 'Object Mode : Redo'],
-],
+['Y', 'Mesh: Split selected vertices/faces from the rest'] ],
 
 "Z":[ 
 ['Z', 'Render Window: 200% zoom from mouse position'],
 ['Z', 'Switch 3d draw type : solide/ wireframe (see also D)'],
 ['Alt-Z', 'Switch 3d draw type : solid / textured (see also D)'],
-['Ctrl-Z', 'Object Mode : Undo'],
+['Ctrl-Z', 'Switch 3d draw type : shaded (see also D)'],
 ['Shift-Z', 'Switch 3d draw type : shaded / wireframe (see also D)'],
 
 ]}]}
@@ -551,15 +498,12 @@ def searchfor(SEARCHLINE):
 				#print 'k, l : ', k,  l, l[1] 
 				if  l[1].upper().find(SEARCHLINE.upper())!=-1:
 					FINDLIST.append(l)
-					
 		elif k == 'Letters ':
 			for l in hotL :
 				for l0 in hotkeys['Letters '][0][l][:-1]:
 					#print 'k, l : ',l,  k,  l0
 					if l0[1].upper().find(SEARCHLINE.upper())!=-1:
 						FINDLIST.append(l0)
-	#print 'FINDLIST',FINDLIST					
-	FINDLIST.append(['Find list','Entry'])
 	return FINDLIST			
 			
 	
@@ -625,7 +569,6 @@ def draw():
            listed=hot.index(k)
     l=0
     size[3]=size[3]-4
-    
     if hot[listed]!='Letters ' and hot[listed]!='Search ' :
        size[3]=size[3]-8
        SCROLL=size[3]/21
@@ -651,19 +594,17 @@ def draw():
           glRasterPos2f(4+8*15, size[3]-(58+21*l))
           Text('  : '+n[1]) 
           l+=1
-          
     elif hot[listed]=='Search ' :
        r=[0,size[3]-70,
           size[2], size[3]-44]
        trace_rectangle4(r,c2)
        SEARCHLINE=String(' ', LINE, 42, size[3]-68,200,18,SEARCHLINE.val, 256,'')
        if len(FINDED)>0:
-        LEN=len(FINDED)	   
-        size[3]=size[3]-8
-        SCROLL=size[3]/21
-        END=-1
-        
-        if SCROLL < len(FINDED):
+         LEN=len(FINDED)	   
+         size[3]=size[3]-8
+         SCROLL=size[3]/21
+         END=-1
+         if SCROLL < len(FINDED):
             Button('/\\',up,4,size[3]+8,20,14,'Scroll up') 
             Button('\\/',down,4,size[3]-8,20,14,'Scroll down')            
             if (SCROLL+UP)<len(FINDED):
@@ -671,9 +612,9 @@ def draw():
             else:
                END=-1
                #UP=len(FINDED)-SCROLL
-        else:
-            UP=0         
-        for n in FINDED[UP:END]:
+         else:
+	       UP=0         
+         for n in FINDED[UP:END]:
              if l%2==0:
                  r=[0,size[3]-(21*l+66+24),
                      size[2], size[3]-(21*l+43+24)]

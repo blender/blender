@@ -177,27 +177,20 @@ static void save_paint(char *name)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	Image *ima = G.sima->image;
-	ImBuf *ibuf;
 
 	if (ima  && ima->ibuf) {
 		BLI_strncpy(str, name, sizeof(str));
 
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-
+		
 		if (saveover(str)) {
-			ibuf = IMB_dupImBuf(ima->ibuf);
-
-			if (ibuf) {
-				if (BIF_write_ibuf(ibuf, str)) {
-					BLI_strncpy(ima->name, name, sizeof(ima->name));
-					ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
-					allqueue(REDRAWHEADERS, 0);
-					allqueue(REDRAWBUTSSHADING, 0);
-				} else {
-					error("Couldn't write image: %s", str);
-				}
-
-				IMB_freeImBuf(ibuf);
+			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
+				BLI_strncpy(ima->name, name, sizeof(ima->name));
+				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
+				allqueue(REDRAWHEADERS, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+			} else {
+				error("Couldn't write image: %s", str);
 			}
 		}
 	}
@@ -335,11 +328,30 @@ void do_image_buttons(unsigned short event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				char str[32];	// sufficient for message
+				char str[64];
 				save_image_filesel_str(str);
+				
+				if(G.scene->r.scemode & R_EXTENSION) 
+					BKE_add_image_extension(name, G.scene->r.imtype);
+				
 				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
 			}
 		}
+		break;
+	case B_SIMA_USE_ALPHA:
+		G.sima->flag &= ~(SI_SHOW_ALPHA|SI_SHOW_ZBUF);
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+		break;
+	case B_SIMA_SHOW_ALPHA:
+		G.sima->flag &= ~(SI_USE_ALPHA|SI_SHOW_ZBUF);
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+		break;
+	case B_SIMA_SHOW_ZBUF:
+		G.sima->flag &= ~(SI_SHOW_ALPHA|SI_USE_ALPHA);
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
 		break;
 	}
 }
@@ -445,6 +457,9 @@ static void do_image_viewmenu(void *arg, int event)
 		G.sima->flag ^= SI_COORDFLOATS;
 		allqueue(REDRAWIMAGE, 0);
 		break;
+	case 11: /* Curves Panel... */
+		add_blockhandler(curarea, IMAGE_HANDLER_CURVES, UI_PNL_UNSTOW);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -458,8 +473,9 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Show Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Show Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Show Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 
 	if(G.sima->flag & SI_COORDFLOATS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
@@ -702,8 +718,12 @@ static void do_image_imagemenu(void *arg, int event)
 		if (ima) {
 			strcpy(name, ima->name);
 			if (ima->ibuf) {
-				char str[32];	// sufficient for message
+				char str[64];
 				save_image_filesel_str(str);
+				
+				if(G.scene->r.scemode & R_EXTENSION) 
+					BKE_add_image_extension(name, G.scene->r.imtype);
+				
 				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
 			}
 		}
@@ -1013,6 +1033,9 @@ static void do_image_uvsmenu(void *arg, int event)
 		if(G.sima->flag & SI_LSCM_LIVE) G.sima->flag &= ~SI_LSCM_LIVE;
 		else G.sima->flag |= SI_LSCM_LIVE;
 		break;
+	case 12:
+		minimize_stretch_tface_uv();
+		break;
 	}
 }
 
@@ -1047,6 +1070,7 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Minimize Stretch|Ctrl V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Limit Stitch...|Shift V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Stitch|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBlockBut(block, image_uvs_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
@@ -1099,6 +1123,7 @@ void image_buttons(void)
 	char naam[256];
 	/* This should not be a static var */
 	static int headerbuttons_packdummy;
+	extern short CurrentUnwrapper;
 
 	headerbuttons_packdummy = 0;
 		
@@ -1154,7 +1179,7 @@ void image_buttons(void)
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	if (G.sima->image) {
 		xco+= 8;
@@ -1163,19 +1188,32 @@ void image_buttons(void)
 			headerbuttons_packdummy = 1;
 		}
 		uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-		
-		xco+= XIC;
-	}
+		xco+= XIC+8;
 
-	xco+= 8;
-
-	if (G.sima->image) {
 		uiDefIconButBitS(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
 		xco+= XIC+8;
+
+		uiBlockBeginAlign(block);
+		uiDefIconButBitS(block, TOG, SI_USE_ALPHA, B_SIMA_USE_ALPHA, ICON_TRANSP_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws image with alpha");
+		xco+= XIC;
+		uiDefIconButBitS(block, TOG, SI_SHOW_ALPHA, B_SIMA_SHOW_ALPHA, ICON_DOT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws only alpha");
+		xco+= XIC;
+		if(G.sima->image->ibuf) {
+			if(G.sima->image->ibuf->zbuf || G.sima->image->ibuf->zbuf_float) {
+				uiDefIconButBitS(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
+				xco+= XIC;
+			}
+			else G.sima->flag &= ~SI_SHOW_ZBUF;	/* no confusing display for non-zbuf images */
+		}		
+		uiBlockEndAlign(block);
+		xco+= 8;
 	}
 
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	xco,0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Updates other affected window spaces automatically to reflect changes in real time");
+
+	xco += 2*XIC;
+	uiDefButS(block, MENU, B_NOP, "Unwrapper%t|Old LSCM%x0|New LSCM%x1",xco,0,85,YIC, &CurrentUnwrapper, 0, 0, 0, 0, "Unwrapper");
 	
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;

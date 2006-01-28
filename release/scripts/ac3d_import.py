@@ -10,7 +10,7 @@ Tip: 'Import an AC3D (.ac) file.'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.36a 2005-12-04"
+__version__ = "2.36 2005-04-14"
 
 __bpydoc__ = """\
 This script imports AC3D models into Blender.
@@ -43,9 +43,9 @@ users can configure (see config options above).
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DImport version 2.36a Dec 04, 2005
+# AC3DImport version 2.36 Apr 14, 2005
 # Program versions: Blender 2.36+ and AC3Db files (means version 0xb)
-# changed: fixed a bug: error on 1 vertex "closed" polylines
+# changed: updated to use the Scripts Config Editor facilities
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -366,7 +366,7 @@ class AC3DImport:
 					faces.append(cut)
 					face = face[1:]
 
-				if flaglow == 1 and faces:
+				if flaglow == 1:
 					face = [faces[-1][-1], faces[0][0]]
 					faces.append(face)
 
@@ -498,9 +498,7 @@ class AC3DImport:
 				for vi in range(len(f)):
 					bface.v.append(mesh.verts[f[vi][0]])
 					bface.uv.append((f[vi][1][0], f[vi][1][1]))
-				#mesh.faces.append(bface)
-				# quick hack, will switch from NMesh to Mesh later:
-				if len(bface.v) > 1: mesh.addFace(bface)
+				mesh.faces.append(bface)
 
 			mesh.mode = 0
 			object = Blender.NMesh.PutRaw(mesh)

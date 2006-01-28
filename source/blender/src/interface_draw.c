@@ -55,17 +55,23 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_color_types.h"
+#include "DNA_key_types.h"
+#include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_packedFile_types.h"
 
 #include "BKE_blender.h"
-#include "BKE_utildefines.h"
+#include "BKE_colortools.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
+#include "BKE_utildefines.h"
+
 #include "datatoc.h"            /* std font */
 
 #include "BIF_gl.h"
@@ -79,6 +85,7 @@
 #include "BIF_space.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_butspace.h"
 #include "BIF_language.h"
 
@@ -94,9 +101,6 @@
 
 // globals
 extern float UIwinmat[4][4];
-
-// local prototypes 
-void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 
 
 /* ************** safe rasterpos for pixmap alignment with pixels ************* */
@@ -153,15 +157,32 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 
 /* ************** GENERIC ICON DRAW, NO THEME HERE ************* */
 
+/* icons have been standardized... and this call draws in untransformed coordinates */
+#define ICON_HEIGHT		16.0f
+
 static void ui_draw_icon(uiBut *but, BIFIconID icon)
 {
-	// void BIF_icon_pos(float xs, float ys);
+	float xs=0, ys=0, aspect, height;
 	int blend= 0;
-	float xs=0, ys=0;
 
-	// this icon doesn't need draw...
+	/* this icon doesn't need draw... */
 	if(icon==ICON_BLANK1) return;
-
+	
+	/* we need aspect from block, for menus... these buttons are scaled in uiPositionBlock() */
+	aspect= but->block->aspect;
+	if(aspect != but->aspect) {
+		/* prevent scaling up icon in pupmenu */
+		if (aspect < 1.0f) {			
+			height= ICON_HEIGHT;
+			aspect = 1.0f;
+			
+		}
+		else 
+			height= ICON_HEIGHT/aspect;
+	}
+	else
+		height= ICON_HEIGHT;
+	
 	if(but->flag & UI_ICON_LEFT) {
 		if (but->type==BUTM) {
 			xs= but->x1+1.0;
@@ -172,22 +193,21 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		else {
 			xs= but->x1+6.0;
 		}
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+		ys= (but->y1+but->y2- height)/2.0;
 	}
 	if(but->flag & UI_ICON_RIGHT) {
 		xs= but->x2-17.0;
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+		ys= (but->y1+but->y2- height)/2.0;
 	}
 	if (!((but->flag & UI_ICON_RIGHT) || (but->flag & UI_ICON_LEFT))) {
-		xs= (but->x1+but->x2- BIF_get_icon_width(icon))/2.0;
-		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
+		xs= (but->x1+but->x2- height)/2.0;
+		ys= (but->y1+but->y2- height)/2.0;
 	}
 
-	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
-	else if(but->aspect<0.9) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
+	/* aspect for the icon has to be stored */
+	BIF_icon_set_aspect(icon, aspect);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/* calculate blend color */
 	if ELEM4(but->type, ICONTOG, TOG, ROW, TOGN) {
@@ -195,12 +215,10 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;
 	}
-	BIF_draw_icon_blended(xs, ys, icon, but->themecol, blend);
+	BIF_icon_draw_blended(xs, ys, icon, but->themecol, blend);
 	
-	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
 
-	glPixelZoom(1.0, 1.0);
 }
 
 
@@ -408,7 +426,6 @@ static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
 {
 	glEnable( GL_POLYGON_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	glShadeModel(GL_FLAT);
 	glBegin(GL_TRIANGLES);
@@ -432,7 +449,6 @@ static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
 {
 	glEnable( GL_POLYGON_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
 	glShadeModel(GL_FLAT);
 	glBegin(GL_TRIANGLES);
@@ -458,7 +474,6 @@ static void ui_default_num_arrows(float x1, float y1, float x2, float y2)
 
 		glEnable( GL_POLYGON_SMOOTH );
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		
 		glShadeModel(GL_FLAT);
 		glBegin(GL_TRIANGLES);
@@ -488,7 +503,6 @@ static void ui_tog3_invert(float x1, float y1, float x2, float y2, int seltype)
 	short alpha = 30;
 	
 	if (seltype == 0) {
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
 		glColor4ub(0, 0, 0, alpha);
@@ -499,7 +513,6 @@ static void ui_tog3_invert(float x1, float y1, float x2, float y2, int seltype)
 		
 		glDisable(GL_BLEND);
 	} else {
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
 		glColor4ub(255, 255, 255, alpha);
@@ -523,7 +536,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		if (!((align == UI_BUT_ALIGN_DOWN) ||
 			(align == (UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT)) ||
 			(align == (UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT)))) {
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			MM_WHITE_OP;
 			fdrawline(x1, y1-1, x2, y1-1);	
@@ -549,7 +561,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		case UI_BUT_ALIGN_LEFT:
 			
 			/* RIGHT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -566,7 +577,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		case UI_BUT_ALIGN_RIGHT:
 		
 			/* LEFT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -592,7 +602,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
 		
 			/* LEFT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -609,7 +618,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
 		
 			/* RIGHT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -630,7 +638,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		}
 	} 
 	else {	
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glShadeModel(GL_SMOOTH);
 		
@@ -665,7 +672,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 	case ICONROW:
 	case ICONTEXTROW:
 		/* DARKENED AREA */
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
 		glColor4ub(0, 0, 0, 30);
@@ -681,7 +687,6 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		break;
 	case MENU:
 		/* DARKENED AREA */
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
 		glColor4ub(0, 0, 0, 30);
@@ -710,7 +715,6 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 		if (!((align == UI_BUT_ALIGN_DOWN) ||
 			(align == (UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT)) ||
 			(align == (UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT)))) {
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			MM_WHITE_OP;
 			fdrawline(x1, y1-1, x2, y1-1);	
@@ -736,7 +740,6 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 		case UI_BUT_ALIGN_LEFT:
 			
 			/* RIGHT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -753,7 +756,6 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 		case UI_BUT_ALIGN_RIGHT:
 		
 			/* LEFT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -779,7 +781,6 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
 		
 			/* LEFT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -796,7 +797,6 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 		case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
 		
 			/* RIGHT OUTER SUNKEN EFFECT */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_LINES);
@@ -818,7 +818,6 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 	} 
 	else {
 	
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glShadeModel(GL_SMOOTH);
 		
@@ -1081,7 +1080,6 @@ static void round_button(float x1, float y1, float x2, float y2, float asp,
 	/* fake AA */
 	uiSetRoundBox(round);
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	BIF_GetThemeColor3ubv(colorid, col);
 		
@@ -1326,7 +1324,6 @@ static void ui_draw_slider(int colorid, float fac, float aspect, float x1, float
 
 static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glShadeModel(GL_SMOOTH);
 	
@@ -1407,7 +1404,6 @@ static void ui_draw_pulldown_item(int type, int colorid, float asp, float x1, fl
 	BIF_GetThemeColor4ubv(TH_MENU_BACK, col);
 	if(col[3]!=255) {
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	
 	if((flag & UI_ACTIVE) && type!=LABEL) {
@@ -1435,7 +1431,6 @@ static void ui_draw_pulldown_round(int type, int colorid, float asp, float x1, f
 
 		glEnable( GL_LINE_SMOOTH );
 		glEnable( GL_BLEND );
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		gl_round_box(GL_LINE_LOOP, x1, y1+3, x2, y2-3, 7.0);
 		glDisable( GL_LINE_SMOOTH );
 		glDisable( GL_BLEND );
@@ -1529,7 +1524,7 @@ static void ui_draw_text_icon(uiBut *but)
 			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
 				ui_draw_icon(but, but->icon);
 
-				if(but->flag & UI_TEXT_LEFT) x= but->x1+24.0;
+				if(but->flag & UI_TEXT_LEFT) x= but->x1 + BIF_icon_get_width(but->icon)+4.0;
 				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
 			else {
@@ -1899,9 +1894,315 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 #endif // INTERNATIONAL
 
+static void ui_draw_but_COLORBAND(uiBut *but)
+{
+	ColorBand *coba= (ColorBand *)but->poin;
+	CBData *cbd;
+	float x1, y1, sizex, sizey;
+	float dx, v3[2], v1[2], v2[2];
+	int a;
+		
+	if(coba==NULL) return;
+	
+	x1= but->x1;
+	y1= but->y1;
+	sizex= but->x2-x1;
+	sizey= but->y2-y1;
+	
+	/* first background, to show tranparency */
+	dx= sizex/12.0;
+	v1[0]= x1;
+	for(a=0; a<12; a++) {
+		if(a & 1) glColor3f(0.3, 0.3, 0.3); else glColor3f(0.8, 0.8, 0.8);
+		glRectf(v1[0], y1, v1[0]+dx, y1+0.5*sizey);
+		if(a & 1) glColor3f(0.8, 0.8, 0.8); else glColor3f(0.3, 0.3, 0.3);
+		glRectf(v1[0], y1+0.5*sizey, v1[0]+dx, y1+sizey);
+		v1[0]+= dx;
+	}
+	
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_BLEND);
+	
+	cbd= coba->data;
+	
+	v1[0]= v2[0]= x1;
+	v1[1]= y1;
+	v2[1]= y1+sizey;
+	
+	glBegin(GL_QUAD_STRIP);
+	
+	glColor4fv( &cbd->r );
+	glVertex2fv(v1); glVertex2fv(v2);
+	
+	for(a=0; a<coba->tot; a++, cbd++) {
+		
+		v1[0]=v2[0]= x1+ cbd->pos*sizex;
+		
+		glColor4fv( &cbd->r );
+		glVertex2fv(v1); glVertex2fv(v2);
+	}
+	
+	v1[0]=v2[0]= x1+ sizex;
+	glVertex2fv(v1); glVertex2fv(v2);
+	
+	glEnd();
+	glShadeModel(GL_FLAT);
+	glDisable(GL_BLEND);
+	
+	/* outline */
+	v1[0]= x1; v1[1]= y1;
+	
+	cpack(0x0);
+	glBegin(GL_LINE_LOOP);
+	glVertex2fv(v1);
+	v1[0]+= sizex;
+	glVertex2fv(v1);
+	v1[1]+= sizey;
+	glVertex2fv(v1);
+	v1[0]-= sizex;
+	glVertex2fv(v1);
+	glEnd();
+	
+	
+	/* help lines */
+	v1[0]= v2[0]=v3[0]= x1;
+	v1[1]= y1;
+	v2[1]= y1+0.5*sizey;
+	v3[1]= y1+sizey;
+	
+	cbd= coba->data;
+	glBegin(GL_LINES);
+	for(a=0; a<coba->tot; a++, cbd++) {
+		v1[0]=v2[0]=v3[0]= x1+ cbd->pos*sizex;
+		
+		glColor3ub(0, 0, 0);
+		glVertex2fv(v1);
+		glVertex2fv(v2);
+		
+		if(a==coba->cur) {
+			glVertex2f(v1[0]-1, v1[1]);
+			glVertex2f(v2[0]-1, v2[1]);
+			glVertex2f(v1[0]+1, v1[1]);
+			glVertex2f(v2[0]+1, v2[1]);
+		}
+		
+		glColor3ub(255, 255, 255);
+		glVertex2fv(v2);
+		glVertex2fv(v3);
+		
+		if(a==coba->cur) {
+			if(cbd->pos>0.01) {
+				glVertex2f(v2[0]-1, v2[1]);
+				glVertex2f(v3[0]-1, v3[1]);
+			}
+			if(cbd->pos<0.99) {
+				glVertex2f(v2[0]+1, v2[1]);
+				glVertex2f(v3[0]+1, v3[1]);
+			}
+		}
+	}
+	glEnd();
+}
+
+static void ui_draw_but_NORMAL(uiBut *but)
+{
+	static GLuint displist=0;
+	int a, old[8];
+	GLfloat diff[4], diffn[4]={1.0f, 1.0f, 1.0f, 1.0f};
+	float vec0[4]={0.0f, 0.0f, 0.0f, 0.0f};
+	float dir[4], size;
+	
+	/* store stuff */
+	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
+		
+	/* backdrop */
+	BIF_ThemeColor(TH_BUT_NEUTRAL);
+	uiSetRoundBox(15);
+	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, 5.0f);
+	
+	/* sphere color */
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffn);
+	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
+	
+	/* disable blender light */
+	for(a=0; a<8; a++) {
+		old[a]= glIsEnabled(GL_LIGHT0+a);
+		glDisable(GL_LIGHT0+a);
+	}
+	
+	/* own light */
+	glEnable(GL_LIGHT7);
+	glEnable(GL_LIGHTING);
+	
+	VECCOPY(dir, (float *)but->poin);
+	dir[3]= 0.0f;	/* glLight needs 4 args, 0.0 is sun */
+	glLightfv(GL_LIGHT7, GL_POSITION, dir); 
+	glLightfv(GL_LIGHT7, GL_DIFFUSE, diffn); 
+	glLightfv(GL_LIGHT7, GL_SPECULAR, vec0); 
+	glLightf(GL_LIGHT7, GL_CONSTANT_ATTENUATION, 1.0f);
+	glLightf(GL_LIGHT7, GL_LINEAR_ATTENUATION, 0.0f);
+	
+	/* transform to button */
+	glPushMatrix();
+	glTranslatef(but->x1 + 0.5f*(but->x2-but->x1), but->y1+ 0.5f*(but->y2-but->y1), 0.0f);
+	size= (but->x2-but->x1)/200.f;
+	glScalef(size, size, size);
+			 
+	if(displist==0) {
+		GLUquadricObj	*qobj;
+		
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		
+		qobj= gluNewQuadric();
+		gluQuadricDrawStyle(qobj, GLU_FILL); 
+		glShadeModel(GL_SMOOTH);
+		gluSphere( qobj, 100.0, 32, 24);
+		glShadeModel(GL_FLAT);
+		gluDeleteQuadric(qobj);  
+		
+		glEndList();
+	}
+	else glCallList(displist);
+	
+	/* restore */
+	glPopMatrix();
+	glDisable(GL_LIGHTING);
+	glDisable(GL_CULL_FACE);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, diff); 
+	
+	glDisable(GL_LIGHT7);
+	
+	/* enable blender light */
+	for(a=0; a<8; a++) {
+		if(old[a])
+			glEnable(GL_LIGHT0+a);
+	}
+}
+
+static void ui_draw_but_curve_grid(uiBut *but, float zoomx, float zoomy, float offsx, float offsy, float step)
+{
+	float dx, dy, fx, fy;
+	
+	glBegin(GL_LINES);
+	dx= step*zoomx;
+	fx= but->x1 + zoomx*(-offsx);
+	if(fx > but->x1) fx -= dx*( floor(fx-but->x1));
+	while(fx < but->x2) {
+		glVertex2f(fx, but->y1); 
+		glVertex2f(fx, but->y2);
+		fx+= dx;
+	}
+	
+	dy= step*zoomy;
+	fy= but->y1 + zoomy*(-offsy);
+	if(fy > but->y1) fy -= dy*( floor(fy-but->y1));
+	while(fy < but->y2) {
+		glVertex2f(but->x1, fy); 
+		glVertex2f(but->x2, fy);
+		fy+= dy;
+	}
+	glEnd();
+	
+}
+
+static void ui_draw_but_CURVE(uiBut *but)
+{
+	CurveMapping *cumap= (CurveMapping *)but->poin;
+	CurveMap *cuma= cumap->cm+cumap->cur;
+	CurveMapPoint *cmp;
+	float fx, fy, dx, dy, fac[2], zoomx, zoomy, offsx, offsy;
+	GLint scissor[4];
+	int a;
+	
+	/* need scissor test, curve can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	fx= but->x1; fy= but->y1;
+	ui_graphics_to_window(but->win, &fx, &fy);
+	dx= but->x2; dy= but->y2;
+	ui_graphics_to_window(but->win, &dx, &dy);
+	glScissor((int)floor(fx), (int)floor(fy), (int)ceil(dx-fx), (int)ceil(dy-fy));
+	
+	/* calculate offset and zoom */
+	zoomx= (but->x2-but->x1-2.0*but->aspect)/(cumap->curr.xmax - cumap->curr.xmin);
+	zoomy= (but->y2-but->y1-2.0*but->aspect)/(cumap->curr.ymax - cumap->curr.ymin);
+	offsx= cumap->curr.xmin-but->aspect/zoomx;
+	offsy= cumap->curr.ymin-but->aspect/zoomy;
+	
+	/* backdrop */
+	if(cumap->flag & CUMA_DO_CLIP) {
+		BIF_ThemeColorShade(TH_BUT_NEUTRAL, -20);
+		glRectf(but->x1, but->y1, but->x2, but->y2);
+		BIF_ThemeColor(TH_BUT_NEUTRAL);
+		glRectf(but->x1 + zoomx*(cumap->clipr.xmin-offsx),
+				but->y1 + zoomy*(cumap->clipr.ymin-offsy),
+				but->x1 + zoomx*(cumap->clipr.xmax-offsx),
+				but->y1 + zoomy*(cumap->clipr.ymax-offsy));
+	}
+	else {
+		BIF_ThemeColor(TH_BUT_NEUTRAL);
+		glRectf(but->x1, but->y1, but->x2, but->y2);
+	}
+	
+	/* grid, every .25 step */
+	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.06f);
+	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 0.25f);
+	/* grid, every 1.0 step */
+	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.12f);
+	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 1.0f);
+	/* axes */
+	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.25f);
+	glBegin(GL_LINES);
+	glVertex2f(but->x1, but->y1 + zoomy*(-offsy));
+	glVertex2f(but->x2, but->y1 + zoomy*(-offsy));
+	glVertex2f(but->x1 + zoomx*(-offsx), but->y1);
+	glVertex2f(but->x1 + zoomx*(-offsx), but->y2);
+	glEnd();
+	
+	/* the curve */
+	BIF_ThemeColor(TH_TEXT);
+	glBegin(GL_LINE_STRIP);
+	
+	if(cuma->table==NULL)
+		curvemapping_changed(cumap, 0);	/* 0 = no remove doubles */
+	cmp= cuma->table;
+	
+	glVertex2f(but->x1, but->y1 + zoomy*(cmp[0].y-offsy));	/* first point */
+	for(a=0; a<=CM_TABLE; a++) {
+		fx= but->x1 + zoomx*(cmp[a].x-offsx);
+		fy= but->y1 + zoomy*(cmp[a].y-offsy);
+		glVertex2f(fx, fy);
+	}
+	glVertex2f(but->x2, but->y1 + zoomy*(cmp[a-1].y-offsy));	/* last point */
+	glEnd();
+
+	/* the points, use aspect to make them visible on edges */
+	cmp= cuma->curve;
+	glPointSize(3.0f);
+	bglBegin(GL_POINTS);
+	for(a=0; a<cuma->totpoint; a++) {
+		if(cmp[a].flag & SELECT)
+			BIF_ThemeColor(TH_TEXT_HI);
+		else
+			BIF_ThemeColor(TH_TEXT);
+		fac[0]= but->x1 + zoomx*(cmp[a].x-offsx);
+		fac[1]= but->y1 + zoomy*(cmp[a].y-offsy);
+		bglVertex2fv(fac);
+	}
+	bglEnd();
+	glPointSize(1.0f);
+	
+	/* restore scissortest */
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+
+	/* outline */
+	BIF_ThemeColor(TH_BUT_OUTLINE);
+	fdrawbox(but->x1, but->y1, but->x2, but->y2);
+
+}
+
 static void ui_draw_roundbox(uiBut *but)
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	
 	BIF_ThemeColorShadeAlpha(TH_PANEL, but->a2, but->a2);
@@ -2014,7 +2315,18 @@ void ui_draw_but(uiBut *but)
 		
 	case ROUNDBOX:
 		ui_draw_roundbox(but);
-
+		break;
+		
+	case BUT_COLORBAND:
+		ui_draw_but_COLORBAND(but);
+		break;
+	case BUT_NORMAL:
+		ui_draw_but_NORMAL(but);
+		break;
+	case BUT_CURVE:
+		ui_draw_but_CURVE(but);
+		break;
+		
 	default:
 		but->embossfunc(but->type, but->themecol, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);
 		ui_draw_text_icon(but);

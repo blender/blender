@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Axis Orientation Copy'
-Blender: 239
+Blender: 233
 Group: 'Object'
 Tip: 'Copy the axis orientation of the active object to all selected mesh objects'
 """
@@ -10,7 +10,7 @@ Tip: 'Copy the axis orientation of the active object to all selected mesh object
 __author__ = "A Vanpoucke (xand)"
 __url__ = ("blender", "elysiun",
 "French Blender support forum, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "2 17/12/05"
+__version__ = "1.1 11/05/04"
 
 __bpydoc__ = """\
 This script copies the axis orientation -- X, Y and Z rotations -- of the
@@ -75,7 +75,7 @@ from Blender.Mathutils import *
 
 def applyTransform(mesh,mat):
   for v in mesh.verts:
-      vec = v.co*mat
+      vec = VecMultMat(v.co,mat)
       v.co[0], v.co[1], v.co[2] = vec[0], vec[1], vec[2]
 
 
@@ -87,13 +87,13 @@ lenob=len(oblist)
 error = 0
 for o in oblist[1:]:
     if o.getType() != "Mesh":
-        Draw.PupMenu("Error: selected objects must be meshes")
+        Draw.PupMenu("ERROR%t|Selected objects must be meshes")
         error = 1
 
 if not error:
     if lenob<2:
-        Draw.PupMenu("Error: you must select at least 2 objects")
-    else :
+        Draw.PupMenu("ERROR%t|You must select at least 2 objects")
+    else :    
         source=oblist[0]
         nsource=source.name
         texte="Copy axis orientation from: " + nsource + " ?%t|OK"
@@ -102,9 +102,9 @@ if not error:
 
         for cible in oblist[1:]:
             if source.rot!=cible.rot:
-                rotcible=cible.mat.rotationPart().toEuler().toMatrix()
-                rotsource=source.mat.rotationPart().toEuler().toMatrix()
-                rotsourcet = Matrix(rotsource)
+                rotcible=cible.mat.toEuler().toMatrix()
+                rotsource=source.mat.toEuler().toMatrix()
+                rotsourcet = CopyMat(rotsource)
                 rotsourcet.invert()
                 mat=rotcible*rotsourcet
                 ncible=cible.name

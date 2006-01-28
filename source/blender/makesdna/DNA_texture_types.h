@@ -163,6 +163,23 @@ typedef struct Tex {
 	
 } Tex;
 
+/* used for mapping node. note: rot is in degrees */
+
+typedef struct TexMapping {
+	float loc[3], rot[3], size[3];
+	int flag;
+	
+	float mat[4][4];
+	float min[3], max[3];
+	struct Object *ob;
+
+} TexMapping;
+
+/* texmap->flag */
+#define TEXMAP_CLIP_MIN	1
+#define TEXMAP_CLIP_MAX	2
+
+
 /* **************** TEX ********************* */
 
 /* type */

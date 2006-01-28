@@ -1,5 +1,3 @@
-/* util defines  -- might go away ?*/
-
 /* 
 	$Id$
 
@@ -58,11 +56,6 @@
 #define ELEM7(a, b, c, d, e, f, g, h)   ( ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
 #define ELEM8(a, b, c, d, e, f, g, h, i)        ( ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
 
-/* pointer magic, only to be used for the max 16 Gig mem period */
-/* note that  int is signed! */
-#define POINTER_TO_INT(poin)	(int)( ((long)(poin))>>3 )
-#define INT_TO_POINTER(int)		(void *)( ((long)(int))<<3 )
-
 /* string compare */
 #define STREQ(str, a)           ( strcmp((str), (a))==0 )
 #define STREQ2(str, a, b)       ( STREQ(str, a) || STREQ(str, b) )
@@ -108,6 +101,7 @@
 
 #define VECADD(v1,v2,v3) 	{*(v1)= *(v2) + *(v3); *(v1+1)= *(v2+1) + *(v3+1); *(v1+2)= *(v2+2) + *(v3+2);}
 #define VECSUB(v1,v2,v3) 	{*(v1)= *(v2) - *(v3); *(v1+1)= *(v2+1) - *(v3+1); *(v1+2)= *(v2+2) - *(v3+2);}
+#define VECADDFAC(v1,v2,v3,fac) {*(v1)= *(v2) + *(v3)*(fac); *(v1+1)= *(v2+1) + *(v3+1)*(fac); *(v1+2)= *(v2+2) + *(v3+2)*(fac);}
 
 #define INPR(v1, v2)		( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
 

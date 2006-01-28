@@ -51,6 +51,7 @@
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
@@ -61,6 +62,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
@@ -103,6 +105,8 @@ void free_image(Image *ima)
 		freePackedFile(ima->packedfile);
 		ima->packedfile = NULL;
 	}
+	BKE_icon_delete(&ima->id);
+	ima->id.icon_id = 0;
 }
 
 
@@ -272,7 +276,127 @@ void free_unused_animimages()
 
 /* *********** READ AND WRITE ************** */
 
-void makepicstring(char *string, int frame)
+int BKE_imtype_is_movie(int imtype)
+{
+	switch(imtype) {
+		case R_MOVIE:
+		case R_AVIRAW:
+		case R_AVIJPEG:
+		case R_AVICODEC:
+		case R_QUICKTIME:
+			return 1;
+	}
+	return 0;
+}
+
+void BKE_add_image_extension(char *string, int imtype)
+{
+	char *extension="";
+	
+	if(G.scene->r.imtype== R_IRIS) {
+		if(!BLI_testextensie(string, ".rgb"))
+			extension= ".rgb";
+	}
+	else if(imtype==R_IRIZ) {
+		if(!BLI_testextensie(string, ".rgb"))
+			extension= ".rgb";
+	}
+	else if(imtype==R_RADHDR) {
+		if(!BLI_testextensie(string, ".hdr"))
+			extension= ".hdr";
+	}
+	else if(imtype==R_PNG) {
+		if(!BLI_testextensie(string, ".png"))
+			extension= ".png";
+	}
+	else if(imtype==R_RAWTGA) {
+		if(!BLI_testextensie(string, ".tga"))
+			extension= ".tga";
+	}
+	else if(ELEM5(imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
+		if(!BLI_testextensie(string, ".jpg"))
+			extension= ".jpg";
+	}
+	else if(imtype==R_BMP) {
+		if(!BLI_testextensie(string, ".bmp"))
+			extension= ".bmp";
+	}
+	else if(G.have_libtiff && (imtype==R_TIFF)) {
+		if(!BLI_testextensie(string, ".tif"))
+			extension= ".tif";
+	}
+#ifdef WITH_OPENEXR
+	else if(imtype==R_OPENEXR) {
+		if(!BLI_testextensie(string, ".exr"))
+			extension= ".exr";
+	}
+#endif
+	else {	/* targa default */
+		if(!BLI_testextensie(string, ".tga"))
+			extension= ".tga";
+	}
+
+	strcat(string, extension);
+}
+
+
+int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
+{
+	int ok;
+	
+	if(imtype==0);
+	else if(imtype== R_IRIS) ibuf->ftype= IMAGIC;
+	else if ((imtype==R_RADHDR)) {
+		ibuf->ftype= RADHDR;
+	}
+	else if ((imtype==R_PNG)) {
+		ibuf->ftype= PNG;
+	}
+	else if ((imtype==R_BMP)) {
+		ibuf->ftype= BMP;
+	}
+	else if ((G.have_libtiff) && (imtype==R_TIFF)) {
+		ibuf->ftype= TIF;
+	}
+#ifdef WITH_OPENEXR
+	else if (imtype==R_OPENEXR) {
+		ibuf->ftype= OPENEXR;
+		if(subimtype & R_OPENEXR_HALF)
+			ibuf->ftype |= OPENEXR_HALF;
+		ibuf->ftype |= (quality & OPENEXR_COMPRESS);
+		
+		if(!(subimtype & R_OPENEXR_ZBUF))
+			ibuf->zbuf_float = NULL;	/* signal for exr saving */
+		
+	}
+#endif
+	else if (imtype==R_TARGA) {
+		ibuf->ftype= TGA;
+	}
+	else if(imtype==R_RAWTGA) {
+		ibuf->ftype= RAWTGA;
+	}
+	else if(imtype==R_HAMX) {
+		ibuf->ftype= AN_hamx;
+	}
+	else if ELEM(imtype, R_JPEG90, R_MOVIE) {
+		if(quality < 10) quality= 90;
+		ibuf->ftype= JPG|quality;
+	}
+	else ibuf->ftype= TGA;
+	
+	BLI_make_existing_file(name);
+	
+	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
+	if (ok == 0) {
+		perror(name);
+	}
+	
+	return(ok);
+}
+
+
+void BKE_makepicstring(char *string, int frame)
 {
 	short i,len;
 	char num[10], *extension;
@@ -297,54 +421,9 @@ void makepicstring(char *string, int frame)
 	strcat(string,num);
 
 	if(G.scene->r.scemode & R_EXTENSION) 
-		addImageExtension(string);
+		BKE_add_image_extension(string, G.scene->r.imtype);
 		
 }
-
-void addImageExtension(char *string)
-{
-	char *extension="";
-
-	if(G.scene->r.imtype== R_IRIS) {
-		if(!BLI_testextensie(string, ".rgb"))
-			extension= ".rgb";
-	}
-	else if(G.scene->r.imtype==R_IRIZ) {
-		if(!BLI_testextensie(string, ".rgb"))
-			extension= ".rgb";
-	}
-	else if(G.scene->r.imtype==R_RADHDR) {
-		if(!BLI_testextensie(string, ".hdr"))
-			extension= ".hdr";
-	}
-	else if(G.scene->r.imtype==R_PNG) {
-		if(!BLI_testextensie(string, ".png"))
-			extension= ".png";
-	}
-	else if(G.scene->r.imtype==R_TARGA) {
-		if(!BLI_testextensie(string, ".tga"))
-			extension= ".tga";
-	}
-	else if(G.scene->r.imtype==R_RAWTGA) {
-		if(!BLI_testextensie(string, ".tga"))
-			extension= ".tga";
-	}
-	else if(G.scene->r.imtype==R_JPEG90) {
-		if(!BLI_testextensie(string, ".jpg"))
-			extension= ".jpg";
-	}
-	else if(G.scene->r.imtype==R_BMP) {
-		if(!BLI_testextensie(string, ".bmp"))
-			extension= ".bmp";
-	}
-	else if(G.have_libtiff && (G.scene->r.imtype==R_TIFF)) {
-		if(!BLI_testextensie(string, ".tif"))
-			extension= ".tif";
-	}
-	
-	strcat(string, extension);
-}
-
 
 /* ******** IMAGE WRAPPING INIT ************* */
 
@@ -447,13 +526,13 @@ static void de_interlace_ng(struct ImBuf *ibuf)	/* neogeo fields */
 		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect, (unsigned char)0);
 		
 		ibuf->x *= 2;
-		/* These rectop calls are broken!!! I added a trailing 0 arg... */
-		IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(tbuf2, ibuf, 0, 0, tbuf2->x, 0, 32767, 32767, IMB_rectcpy, 0);
+		
+		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
 		
 		ibuf->x /= 2;
-		IMB_rectop(ibuf, tbuf1, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(ibuf, tbuf2, 0, tbuf2->y, 0, 0, 32767, 32767, IMB_rectcpy, 0);
+		IMB_rectcpy(ibuf, tbuf1, 0, 0, 0, 0, tbuf1->x, tbuf1->y);
+		IMB_rectcpy(ibuf, tbuf2, 0, tbuf2->y, 0, 0, tbuf2->x, tbuf2->y);
 		
 		IMB_freeImBuf(tbuf1);
 		IMB_freeImBuf(tbuf2);
@@ -475,13 +554,13 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect, 0);
 		
 		ibuf->x *= 2;
-		/* These are brolenm as well... */
-		IMB_rectop(tbuf1, ibuf, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(tbuf2, ibuf, 0, 0, tbuf2->x, 0, 32767, 32767, IMB_rectcpy, 0);
+		
+		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
 		
 		ibuf->x /= 2;
-		IMB_rectop(ibuf, tbuf2, 0, 0, 0, 0, 32767, 32767, IMB_rectcpy, 0);
-		IMB_rectop(ibuf, tbuf1, 0, tbuf2->y, 0, 0, 32767, 32767, IMB_rectcpy, 0);
+		IMB_rectcpy(ibuf, tbuf2, 0, 0, 0, 0, tbuf2->x, tbuf2->y);
+		IMB_rectcpy(ibuf, tbuf1, 0, tbuf2->y, 0, 0, tbuf1->x, tbuf1->y);
 		
 		IMB_freeImBuf(tbuf1);
 		IMB_freeImBuf(tbuf2);
@@ -510,7 +589,6 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 		if (ima->anim) {
 			dur = IMB_anim_get_duration(ima->anim);
 			
-			ima->lastquality= R.osa;
 			fra= ima->lastframe-1;
 			
 			if(fra<0) fra = 0;
@@ -535,8 +613,6 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 		load_image(ima, IB_rect, G.sce, G.scene->r.cfra);
 		
 		if (tex->imaflag & TEX_FIELDS) de_interlacefunc(ima->ibuf);
-		
-		ima->lastquality= R.osa;
 	}
 	
 	if(ima->ibuf) {
@@ -557,21 +633,18 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 				}
 				
 				IMB_applycmap(ima->ibuf);
-				IMB_convert_rgba_to_abgr(ima->ibuf->x*ima->ibuf->y, ima->ibuf->rect);
+				IMB_convert_rgba_to_abgr(ima->ibuf);
 				
 			}
 			
 			converttopremul(ima->ibuf);
 		}
 		
-		if(R.osa) {
-			
-			if(tex->imaflag & TEX_ANTISCALE) {
-				IMB_clever_double(ima->ibuf);
-				IMB_antialias(ima->ibuf);
-			}
-			else if(tex->imaflag & TEX_ANTIALI) IMB_antialias(ima->ibuf);
+		if(tex->imaflag & TEX_ANTISCALE) {
+			IMB_clever_double(ima->ibuf);
+			IMB_antialias(ima->ibuf);
 		}
+		else if(tex->imaflag & TEX_ANTIALI) IMB_antialias(ima->ibuf);
 	}
 	
 	if(ima->ibuf)

@@ -185,6 +185,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);
  * @attention Defined in allocimbuf.c
  */
 short addzbufImBuf(struct ImBuf * ibuf);
+short addzbuffloatImBuf(struct ImBuf * ibuf);
 
 /**
  *
@@ -196,31 +197,8 @@ void IMB_freecmapImBuf(struct ImBuf * ibuf);
  *
  * @attention Defined in rectop.c
  */
-void IMB_rectop(struct ImBuf *dbuf,
-			struct ImBuf *sbuf,
-			int destx,
-			int desty,
-			int srcx,
-			int srcy,
-			int width,
-			int height,
-			void (*operation)(unsigned int *, unsigned int*, int, int),
-			int value);
-
-/**
- *
- * @attention Defined in rectop.c
- */
-void IMB_rectoptot(struct ImBuf *dbuf,
-			   struct ImBuf *sbuf,
-			   void (*operation)(unsigned int *, unsigned int*, int, int),
-			   int value);
-
-/**
- *
- * @attention Defined in rectop.c
- */
-void IMB_rectcpy(unsigned int *drect, unsigned int *srect, int x, int dummy);
+void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
+	int desty, int srcx, int srcy, int width, int height);
 
 /**
  * Return the length (in frames) of the given @a anim.
@@ -353,6 +331,8 @@ int imb_get_anim_type(char * name);
 void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
 void IMB_gamwarp(struct ImBuf *ibuf, double gamma);
+void IMB_rect_from_float(struct ImBuf *ibuf);
+void IMB_float_from_rect(struct ImBuf *ibuf);
 
 /**
  * Change the ordering of the colour bytes pointed to by rect from
@@ -360,7 +340,7 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma);
  *
  * @attention Defined in imageprocess.c
  */
-void IMB_convert_rgba_to_abgr(int size, unsigned int *rect);
+void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
 
 /**
  * Change the ordering of the colour bytes pointed to by rect from
@@ -490,13 +470,17 @@ void IMB_cspace(struct ImBuf *ibuf, float mat[][4]);
  * @attention Defined in allocimbuf.c
  */
 void IMB_freezbufImBuf(struct ImBuf * ibuf);
+void IMB_freezbuffloatImBuf(struct ImBuf * ibuf);
 
 /**
  *
  * @attention Defined in rectop.c
  */
-void IMB_rectfill(unsigned int *drect, unsigned int *srect, int x, int value);
+void IMB_rectfill(struct ImBuf *drect, float col[4]);
 
+/* exported for image tools in blender, to quickly allocate 32 bits rect */
+short imb_addrectImBuf(struct ImBuf * ibuf);
+void imb_freerectImBuf(struct ImBuf * ibuf);
 
 #ifdef WITH_QUICKTIME
 /**
@@ -512,12 +496,6 @@ void quicktime_init(void);
 void quicktime_exit(void);
 
 #endif //WITH_QUICKTIME
-
-/* radhdr: Temporary routine to save directly from render floatbuffer.
-   Defined in radiance_hdr.c
-   Called by schrijfplaatje() in toets.c */
-short imb_savehdr_fromfloat(float *fbuf, char *name, int width, int height);
-
 
 /* intern/dynlibtiff.c */
 void libtiff_exit(void);

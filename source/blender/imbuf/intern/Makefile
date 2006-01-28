@@ -33,8 +33,17 @@
 
 LIBNAME = imbuf
 DIR = $(OCGDIR)/blender/imbuf
+SOURCEDIR = source/blender/imbuf/intern
 
+include nan_subdirs.mk
 include nan_compile.mk
+include nan_definitions.mk
+
+ifeq ($(WITH_OPENEXR), true)
+    DIRS = openexr
+    CFLAGS += -DWITH_OPENEXR
+endif
+
 
 ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
     CFLAGS += -funsigned-char

@@ -73,7 +73,7 @@ void set_g_activearea(struct ScrArea *sa);
 void getmouseco_sc(short *mval);
 void getmouseco_areawin(short *mval);
 void getmouseco_headwin(short *mval);
-unsigned short qtest(void);
+int qtest(void);
 int anyqtest(void);
 void areawinset(short win);
 void headerbox(struct ScrArea *sa);

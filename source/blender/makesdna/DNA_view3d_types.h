@@ -40,6 +40,7 @@ struct Tex;
 struct SpaceLink;
 struct Base;
 struct BoundBox;
+struct RenderInfo;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -62,18 +63,6 @@ typedef struct BGpic {
     short xim, yim;
 	unsigned int *rect;
 } BGpic;
-
-#
-#
-typedef struct View3DAfter {
-	struct View3DAfter *next, *prev;
-	struct Base *base;
-	int type;
-} View3DAfter;
-
-/* View3DAfter->type */
-#define V3D_XRAY	1
-#define V3D_TRANSP	2
 
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
@@ -104,6 +93,7 @@ typedef struct View3D {
 	struct Object *camera;
 	struct BGpic *bgpic;
 	struct View3D *localvd;
+	struct RenderInfo *ri;
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
@@ -114,6 +104,7 @@ typedef struct View3D {
 	short scenelock, around, camzoom, flag;
 	
 	float lens, grid, gridview, pixsize, near, far;
+	float camdx, camdy;		/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float ofs[3], cursor[3];
 
 	short gridlines, viewbut;
@@ -138,7 +129,7 @@ typedef struct View3D {
 #define V3D_MODE			(16+32+64+128+256+512)
 #define V3D_DISPIMAGE		1
 #define V3D_DISPBGPIC		2
-#define V3D_SETUPBUTS		4
+#define V3D_HIDE_HELPLINES	4
 #define V3D_NEEDBACKBUFDRAW	8
 #define V3D_EDITMODE		16
 #define V3D_VERTEXPAINT		32

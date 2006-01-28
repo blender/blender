@@ -84,6 +84,7 @@ bArmature *add_armature()
 	
 	arm= alloc_libblock (&G.main->armature, ID_AR, "Armature");
 	arm->deformflag = ARM_DEF_VGROUP|ARM_DEF_ENVELOPE;
+	arm->layer= 1;
 	return arm;
 }
 

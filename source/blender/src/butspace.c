@@ -41,6 +41,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_color_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -48,14 +50,17 @@
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_library.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 
 #include "BSE_drawview.h"	// for do_viewbuttons.c .... hurms
+#include "BSE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -107,7 +112,7 @@ void test_scriptpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_actionpoin_but(char *name, ID **idpp)
@@ -117,12 +122,13 @@ void test_actionpoin_but(char *name, ID **idpp)
 	id= G.main->action.first;
 	while(id) {
 		if( strcmp(name, id->name+2)==0 ) {
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
 			*idpp= id;
 			return;
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 
@@ -140,11 +146,12 @@ void test_obpoin_but(char *name, ID **idpp)
 	while(id) {
 		if( strcmp(name, id->name+2)==0 ) {
 			*idpp= id;
+			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
 			return;
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_meshpoin_but(char *name, ID **idpp)
@@ -162,7 +169,7 @@ void test_meshpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_matpoin_but(char *name, ID **idpp)
@@ -180,7 +187,7 @@ void test_matpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_scenepoin_but(char *name, ID **idpp)
@@ -198,12 +205,294 @@ void test_scenepoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
+}
+
+void test_grouppoin_but(char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= G.main->group.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_texpoin_but(char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= G.main->tex.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+void test_imapoin_but(char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= G.main->image.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
+}
+
+/* ----------- custom button group ---------------------- */
+
+static void curvemap_buttons_zoom_in(void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	float d;
+	
+	/* we allow 20 times zoom */
+	if( (cumap->curr.xmax - cumap->curr.xmin) > 0.04f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
+		d= 0.1154f*(cumap->curr.xmax - cumap->curr.xmin);
+		cumap->curr.xmin+= d;
+		cumap->curr.xmax-= d;
+		d= 0.1154f*(cumap->curr.ymax - cumap->curr.ymin);
+		cumap->curr.ymin+= d;
+		cumap->curr.ymax-= d;
+	}
+}
+
+static void curvemap_buttons_zoom_out(void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	float d, d1;
+	
+	/* we allow 20 times zoom, but dont view outside clip */
+	if( (cumap->curr.xmax - cumap->curr.xmin) < 20.0f*(cumap->clipr.xmax - cumap->clipr.xmin) ) {
+		d= d1= 0.15f*(cumap->curr.xmax - cumap->curr.xmin);
+		
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.xmin-d < cumap->clipr.xmin)
+				d1= cumap->curr.xmin - cumap->clipr.xmin;
+		cumap->curr.xmin-= d1;
+		
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.xmax+d > cumap->clipr.xmax)
+				d1= -cumap->curr.xmax + cumap->clipr.xmax;
+		cumap->curr.xmax+= d1;
+		
+		d= d1= 0.15f*(cumap->curr.ymax - cumap->curr.ymin);
+		
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.ymin-d < cumap->clipr.ymin)
+				d1= cumap->curr.ymin - cumap->clipr.ymin;
+		cumap->curr.ymin-= d1;
+		
+		if(cumap->flag & CUMA_DO_CLIP) 
+			if(cumap->curr.ymax+d > cumap->clipr.ymax)
+				d1= -cumap->curr.ymax + cumap->clipr.ymax;
+		cumap->curr.ymax+= d1;
+	}
+}
+
+static void curvemap_buttons_setclip(void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	
+	curvemapping_changed(cumap, 0);
+}	
+
+static void curvemap_buttons_delete(void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	
+	curvemap_remove(cumap->cm+cumap->cur, SELECT);
+	curvemapping_changed(cumap, 0);
+}
+
+/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
+static uiBlock *curvemap_clipping_func(void *cumap_v)
+{
+	CurveMapping *cumap = cumap_v;
+	uiBlock *block;
+	uiBut *bt;
+	
+	block= uiNewBlock(&curarea->uiblocks, "curvemap_clipping_func", UI_EMBOSS, UI_HELV, curarea->win);
+	
+	/* use this for a fake extra empy space around the buttons */
+	uiDefBut(block, LABEL, 0, "",			-4, 16, 128, 106, NULL, 0, 0, 0, 0, "");
+	
+	bt= uiDefButBitI(block, TOG, CUMA_DO_CLIP, 1, "Use Clipping",	 
+										0,100,120,18, &cumap->flag, 0.0, 0.0, 10, 0, "");
+	uiButSetFunc(bt, curvemap_buttons_setclip, cumap, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, 0, "Min X ",	 0,74,120,18, &cumap->clipr.xmin, -100.0, cumap->clipr.xmax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Min Y ",	 0,56,120,18, &cumap->clipr.ymin, -100.0, cumap->clipr.ymax, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max X ",	 0,38,120,18, &cumap->clipr.xmax, cumap->clipr.xmin, 100.0, 10, 0, "");
+	uiDefButF(block, NUM, 0, "Max Y ",	 0,20,120,18, &cumap->clipr.ymax, cumap->clipr.ymin, 100.0, 10, 0, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	
+	return block;
+}
+
+
+static void curvemap_tools_dofunc(void *cumap_v, int event)
+{
+	CurveMapping *cumap = cumap_v;
+	CurveMap *cuma= cumap->cm+cumap->cur;
+	
+	switch(event) {
+		case 0:
+			curvemap_reset(cuma, &cumap->clipr);
+			curvemapping_changed(cumap, 0);
+			break;
+		case 1:
+			cumap->curr= cumap->clipr;
+			break;
+		case 2:	/* set vector */
+			curvemap_sethandle(cuma, 1);
+			curvemapping_changed(cumap, 0);
+			break;
+		case 3: /* set auto */
+			curvemap_sethandle(cuma, 0);
+			curvemapping_changed(cumap, 0);
+			break;
+	}
+	addqueue(curarea->win, REDRAW, 1);
+}
+
+static uiBlock *curvemap_tools_func(void *cumap_v)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "curvemap_tools_func", UI_EMBOSSP, UI_HELV, curarea->win);
+	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
+/* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
+void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short event, short redraw, rctf *rect)
+{
+	uiBut *bt;
+	float dx, fy= rect->ymax-18.0f;
+	int icon;
+	short xco, yco;
+	
+	yco= (short)(rect->ymax-18.0f);
+	
+	/* curve choice options + tools/settings, 8 icons + spacer */
+	dx= (rect->xmax-rect->xmin)/(9.0f);
+	
+	uiBlockBeginAlign(block);
+	if(labeltype=='v') {	/* vector */
+		xco= (short)rect->xmin;
+		if(cumap->cm[0].curve)
+			uiDefButI(block, ROW, redraw, "X", xco, yco+2, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+1.0f*dx);
+		if(cumap->cm[1].curve)
+			uiDefButI(block, ROW, redraw, "Y", xco, yco+2, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+2.0f*dx);
+		if(cumap->cm[2].curve)
+			uiDefButI(block, ROW, redraw, "Z", xco, yco+2, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+	}
+	else if(labeltype=='c') { /* color */
+		xco= (short)rect->xmin;
+		if(cumap->cm[3].curve)
+			uiDefButI(block, ROW, redraw, "C", xco, yco+2, dx, 16, &cumap->cur, 0.0, 3.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+1.0f*dx);
+		if(cumap->cm[0].curve)
+			uiDefButI(block, ROW, redraw, "R", xco, yco+2, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+2.0f*dx);
+		if(cumap->cm[1].curve)
+			uiDefButI(block, ROW, redraw, "G", xco, yco+2, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		xco= (short)(rect->xmin+3.0f*dx);
+		if(cumap->cm[2].curve)
+			uiDefButI(block, ROW, redraw, "B", xco, yco+2, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+	}
+	/* else no channels ! */
+	uiBlockEndAlign(block);
+
+	xco= (short)(rect->xmin+4.5f*dx);
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMIN, xco, yco, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom in");
+	uiButSetFunc(bt, curvemap_buttons_zoom_in, cumap, NULL);
+	
+	xco= (short)(rect->xmin+5.25f*dx);
+	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMOUT, xco, yco, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
+	uiButSetFunc(bt, curvemap_buttons_zoom_out, cumap, NULL);
+	
+	xco= (short)(rect->xmin+6.0f*dx);
+	bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, event, ICON_MODIFIER, xco, yco, dx, 18, "Tools");
+	
+	xco= (short)(rect->xmin+7.0f*dx);
+	if(cumap->flag & CUMA_DO_CLIP) icon= ICON_CLIPUV_HLT; else icon= ICON_CLIPUV_DEHLT;
+	bt= uiDefIconBlockBut(block, curvemap_clipping_func, cumap, event, icon, xco, yco, dx, 18, "Clipping Options");
+	
+	xco= (short)(rect->xmin+8.0f*dx);
+	bt= uiDefIconBut(block, BUT, redraw, ICON_X, xco, yco, dx, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
+	uiButSetFunc(bt, curvemap_buttons_delete, cumap, NULL);
+	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	uiDefBut(block, BUT_CURVE, event, "", 
+			  rect->xmin, rect->ymin, rect->xmax-rect->xmin, fy-rect->ymin, 
+			  cumap, 0.0f, 1.0f, 0, 0, "");
+	
+	
 }
 
 
 /* --------------------------------- */
 
+/* nodes have button callbacks, that can draw in butspace too. need separate handling */
+static void do_node_buts(unsigned short event)
+{
+	Material *ma;
+
+	/* all operations default on active material layer here */
+	/* but this also gets called for lamp and world... */
+	ma= G.buts->lockpoin;
+	if(ma && GS(ma->id.name)==ID_MA)
+		ma = editnode_get_active_material(ma);
+	else
+		ma= NULL;
+	
+	if(event>=B_NODE_EXEC) {
+		if(ma) end_render_material(ma);	/// temporal... 3d preview
+		BIF_preview_changed(ID_MA);
+		allqueue(REDRAWNODE, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
+	}		
+}
 
 void do_butspace(unsigned short event)
 {
@@ -300,6 +589,9 @@ void do_butspace(unsigned short event)
 		extern void do_modifier_panels(unsigned short event);
 		do_modifier_panels(event);
 	}
+	else if(event<=B_NODE_BUTS) {
+		do_node_buts(event);
+	}
 	else if(event==REDRAWVIEW3D) allqueue(event, 1);	// 1=do header too
 	else if(event>REDRAWVIEW3D) allqueue(event, 0);
 }
@@ -352,11 +644,12 @@ void redraw_test_buttons(Object *new)
 				addqueue(sa->win, REDRAW, 1);
 				buts->re_align= 1;
 			
-				if(new) {
-					BIF_preview_changed(buts);
+				if(new && buts->mainb==CONTEXT_SHADING) {
+					/* does node previews too... */
+					BIF_preview_changed(ID_TE);
 				}
 			}
-			// always to context switch
+			// always do context switch
 			if(new) butspace_context_switch(buts, new);
 
 		}

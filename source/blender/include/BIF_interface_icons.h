@@ -26,60 +26,32 @@
  * The Original Code is: all of this file.
  *
  * Contributor(s): none yet.
- *
+ * 
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * Callbacks to make the renderer interact with calling modules.
  */
 
-#ifndef RE_CALLBACKS_H
-#define RE_CALLBACKS_H
+#ifndef BIF_PREVIEW_ICONS_H
+#define BIF_PREVIEW_ICONS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct Image;
+struct ImBuf;
+struct World;
+struct Tex;
+struct Lamp;
+struct Material;
 
-	/**
-	 * Test whether operation should be prematurely terminated.
-	 *
-	 * @returns 0 to continue, any other value to break.
-	 */
-	int RE_local_test_break(void);
+#define ICON_DEFAULT_HEIGHT 16
 
-	/**
-	 * Set a red square with the argument as text as cursor.
-	 */
-	void RE_local_timecursor(int i);
+/*
+ Resizable Icons for Blender
+*/
+void BIF_icons_init(int first_dyn_id);
+int BIF_icon_get_width(int icon_id);
+int BIF_icon_get_height(int icon_id);
+void BIF_icon_set_aspect(int icon_id, float aspect);
+void BIF_icon_draw(float x, float y, int icon_id);
+void BIF_icon_draw_blended(float x, float y, int icon_id, int colorid, int shade);
+void BIF_icons_free();
+void BIF_icons_free_drawinfo(void *drawinfo);
 
-	/**
-	 * Render these lines from the renderbuffer on screen (needs better spec) 
-	 */
-	void RE_local_render_display(int i, int j, int k, int l, unsigned int *m);
-
-	/**
-	 * Initialise a render display (needs better spec)
-	 */
-	void RE_local_init_render_display(void);
-
-	/**
-	 * Clear/close a render display (needs better spec)
-	 */
-	void RE_local_clear_render_display(short);
-
-	/**
-	 * Print render statistics.
-	 */
-	void RE_local_printrenderinfo(double time, int i);
-
-	/** Get the data for the scene to render. */
-	void RE_local_get_renderdata(void);
-	
-	/** Release the data for the scene that was rendered. */
-	void RE_local_free_renderdata(void);
-
-	
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-
+#endif /*  BIF_ICONS_H */

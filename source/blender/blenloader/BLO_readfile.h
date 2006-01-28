@@ -116,6 +116,10 @@ BlendFileData*	BLO_read_from_file		(char *file, BlendReadError *error_r);
 	 */
 BlendFileData*	BLO_read_from_memory(void *mem, int memsize, BlendReadError *error_r);
 
+/**
+ * file name is current file, only for retrieving library data */
+
+BlendFileData *BLO_read_from_memfile(const char *filename, struct MemFile *memfile, BlendReadError *error_r);
 
 /**
  * Convert a BlendReadError to a human readable string.
@@ -125,8 +129,6 @@ BlendFileData*	BLO_read_from_memory(void *mem, int memsize, BlendReadError *erro
  * @return A static human readable string representation
  * of @a error.
  */
- 
-BlendFileData *BLO_read_from_memfile(struct MemFile *memfile, BlendReadError *error_r);
  
 	char*
 BLO_bre_as_string(

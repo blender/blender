@@ -587,18 +587,20 @@ void add_constraint(int only_IK)
 	
 	/* paranoia checks */
 	if(ob==NULL || ob==G.obedit) return;
-	
+
 	if(ob->pose && (ob->flag & OB_POSEMODE)) {
-	
+		bArmature *arm= ob->data;
+		
 		/* find active channel */
-		for(pchanact= ob->pose->chanbase.first; pchanact; pchanact= pchanact->next)
-			if(pchanact->bone->flag & BONE_ACTIVE) break;
+		pchanact= get_active_posechannel(ob);
 		if(pchanact==NULL) return;
 	
 		/* find selected bone */
 		for(pchansel= ob->pose->chanbase.first; pchansel; pchansel= pchansel->next) {
 			if(pchansel!=pchanact)
-				if(pchansel->bone->flag & BONE_SELECTED) break;
+				if(pchansel->bone->flag & BONE_SELECTED) 
+					if(pchansel->bone->layer & arm->layer)
+						break;
 		}
 	}
 	
@@ -674,6 +676,7 @@ void add_constraint(int only_IK)
 		
 		con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 		BLI_addtail(&pchanact->constraints, con);
+		unique_constraint_name(con, &pchanact->constraints);
 		pchanact->constflag |= PCHAN_HAS_IK;	// for draw, but also for detecting while pose solving
 		if(nr==11) pchanact->constflag |= PCHAN_HAS_TARGET;
 	}
@@ -691,10 +694,12 @@ void add_constraint(int only_IK)
 		
 		if(pchanact) {
 			BLI_addtail(&pchanact->constraints, con);
+			unique_constraint_name(con, &pchanact->constraints);
 			pchanact->constflag |= PCHAN_HAS_CONST;	/* for draw */
 		}
 		else {
 			BLI_addtail(&ob->constraints, con);
+			unique_constraint_name(con, &ob->constraints);
 		}
 	}
 	

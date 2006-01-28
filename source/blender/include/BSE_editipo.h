@@ -143,6 +143,8 @@ void duplicate_ipo_keys(struct Ipo *ipo);
 void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, int val);
 void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax, 
 						  int (*select_function)(struct BezTriple *));
+void bone2objectspace(float obSpaceBoneMat[][4], float obSpace[][4], float restPos[][4]);
+void insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float matrixvalue);
 
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
 void select_icu_key(struct IpoCurve *icu, float selx, int selectmode);

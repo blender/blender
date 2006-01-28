@@ -54,8 +54,8 @@ if os.path.isdir (bs_globals.root_build_dir) == 0:
 	os.makedirs (bs_globals.root_build_dir+os.sep+'source')
 
 # Blender version.
-version='2.41'
-shortversion = '241' # for wininst target -> nsis installer creation
+version='2.40-alpha1'
+shortversion = '240alpha1' # for wininst target -> nsis installer creation
 
 sdl_env = Environment (ENV = os.environ)
 freetype_env = Environment (ENV = os.environ)
@@ -64,9 +64,10 @@ env = Environment (ENV = os.environ)
 if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	use_international = 'true'
 	use_gameengine = 'true'
-	use_openal = 'true'
+	use_openal = 'false'
 	use_fmod = 'false'
 	use_quicktime = 'false'
+	use_openexr = 'true'
 	use_sumo = 'true'
 	use_ode = 'false'
 	use_bullet = 'true'
@@ -95,6 +96,12 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	png_lib = ['png']
 	png_libpath = ['/usr/lib']
 	png_include = ['/usr/include']
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/lib']
+	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = ['/usr/lib']
@@ -152,11 +159,12 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 
 elif sys.platform == 'darwin':
 	use_international = 'true'
-	use_gameengine = 'true'
+	use_gameengine = 'false'
 	use_openal = 'true'
 	use_fmod = 'false'
-	use_openal = 'true'
+	use_openal = 'false'
 	use_quicktime = 'true'
+	use_openexr = 'true'
 	use_precomp = 'true'
 	use_sumo = 'true'
 	use_ode = 'false'
@@ -176,7 +184,7 @@ elif sys.platform == 'darwin':
 	fink_path = '/sw/'
 	# TODO : try -mpowerpc -mpowerpc-gopt -mpowerpc-gfxopt optims
 	#           doing actual profiling
-	extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-mpowerpc', '-mtune=G5']
+	extra_flags = ['-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc', '-mtune=G4']
 	
 	# , '-malign-natural'] malign is causing problems with jpeg lib but worth a 1-2% speedup
 	#'-force_cpusubtype_ALL', '-mpowerpc-gpopt', 
@@ -198,6 +206,12 @@ elif sys.platform == 'darwin':
 	png_lib = ['libpng']
 	png_libpath = [darwin_precomp + 'png/lib']
 	png_include = [darwin_precomp + 'png/include']
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/local/lib']
+	openexr_include = ['/usr/local/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['libjpeg']
 	jpeg_libpath = [darwin_precomp + 'jpeg/lib']
@@ -275,10 +289,11 @@ elif sys.platform == 'darwin':
 
 elif sys.platform == 'cygwin':
 	use_international = 'false'
-	use_gameengine = 'true'
-	use_openal = 'true'
+	use_gameengine = 'false'
+	use_openal = 'false'
 	use_fmod = 'false'
 	use_quicktime = 'false'
+	use_openexr = 'true'
 	use_sumo = 'false'
 	use_ode = 'false'
 	use_bullet = 'false'
@@ -309,6 +324,12 @@ elif sys.platform == 'cygwin':
 	png_lib = ['png']
 	png_libpath = ['#../lib/windows/png/lib']
 	png_include = ['#../lib/windows/png/include']
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/lib']
+	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = ['#../lib/windows/jpeg/lib']
@@ -365,6 +386,7 @@ elif sys.platform == 'win32':
 	use_openal = 'true'
 	use_fmod = 'false'
 	use_quicktime = 'true'
+	use_openexr = 'true'
 	use_bullet = 'true'
 	use_sumo = 'true'
 	use_ode = 'false'
@@ -417,6 +439,12 @@ elif sys.platform == 'win32':
 	png_lib = ['libpng_st']
 	png_libpath = ['#../lib/windows/png/lib']
 	png_include = ['#../lib/windows/png/include']
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/lib']
+	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['libjpeg']
 	jpeg_libpath = ['#../lib/windows/jpeg/lib']
@@ -477,6 +505,7 @@ elif string.find (sys.platform, 'sunos') != -1:
 	use_openal = 'false'
 	use_fmod = 'false'
 	use_quicktime = 'false'
+	use_openexr = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
 	use_bullet = 'false'
@@ -505,6 +534,12 @@ elif string.find (sys.platform, 'sunos') != -1:
 	png_lib = ['png']
 	png_libpath = []
 	png_include = []
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/lib']
+	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = []
@@ -561,6 +596,7 @@ elif string.find (sys.platform, 'irix') != -1:
 	use_openal = 'false'
 	use_fmod = 'false'
 	use_quicktime = 'false'
+	use_openexr = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
 	use_bullet = 'false'
@@ -597,6 +633,12 @@ elif string.find (sys.platform, 'irix') != -1:
 	png_lib = ['png']
 	png_libpath = [irix_precomp + '/png/lib']
 	png_include = [irix_precomp + '/png/include']
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/lib']
+	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = [irix_precomp + '/jpeg/lib']
@@ -657,6 +699,7 @@ elif sys.platform=='openbsd3':
 	use_openal = 'false'
 	use_fmod = 'false'
 	use_quicktime = 'false'
+	use_openexr = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
 	use_bullet = 'false'
@@ -684,6 +727,12 @@ elif sys.platform=='openbsd3':
 	png_lib = ['png']
 	png_libpath = ['/usr/local/lib']
 	png_include = ['/usr/local/include/libpng']
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/lib']
+	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = ['/usr/local/lib']
@@ -742,6 +791,7 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	use_openal = 'false'
 	use_fmod = 'false'
 	use_quicktime = 'false'
+	use_openexr = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
 	use_bullet = 'false'
@@ -769,6 +819,12 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	png_lib = ['png']
 	png_libpath = ['/usr/local/lib']
 	png_include = ['/usr/local/include']
+	# OpenEXR library information
+	if use_openexr == 'true':
+		defines += ['WITH_OPENEXR']
+	openexr_lib = ['Iex', 'Half', 'IlmImf', 'Imath']
+	openexr_libpath = ['/usr/lib']
+	openexr_include = ['/usr/include/OpenEXR']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = ['/usr/local/lib']
@@ -870,6 +926,7 @@ else:
 	config.write ("USE_OPENAL = %r\n"%(use_openal))
 	config.write ("USE_FMOD = %r\n"%(use_fmod))
 	config.write ("USE_QUICKTIME = %r\n"%(use_quicktime))
+	config.write ("USE_OPENEXR = %r\n"%(use_openexr))
 	config.write ("USE_FLUIDSIM = %r\n"%(use_fluidsim))
 	config.write ("\n# Compiler information.\n")
 	config.write ("HOST_CC = %r\n"%(env_dict['CC']))
@@ -896,6 +953,9 @@ else:
 	config.write ("PNG_INCLUDE = %r\n"%(png_include))
 	config.write ("PNG_LIBPATH = %r\n"%(png_libpath))
 	config.write ("PNG_LIBRARY = %r\n"%(png_lib))
+        config.write ("OPENEXR_INCLUDE = %r\n"%(openexr_include))
+        config.write ("OPENEXR_LIBPATH = %r\n"%(openexr_libpath))
+        config.write ("OPENEXR_LIBRARY = %r\n"%(openexr_lib))
 	config.write ("JPEG_INCLUDE = %r\n"%(jpeg_include))
 	config.write ("JPEG_LIBPATH = %r\n"%(jpeg_libpath))
 	config.write ("JPEG_LIBRARY = %r\n"%(jpeg_lib))
@@ -982,6 +1042,9 @@ user_options.AddOptions (
 		(BoolOption ('USE_QUICKTIME',
 					'Set to 1 to add support for QuickTime.',
 					'false')),
+		(BoolOption ('USE_OPENEXR',
+                                        'Set to 1 to add support for OpenEXR.',
+                                        'false')),
 		(BoolOption ('USE_FLUIDSIM', # NT test new
 					'Set to 0 to disable compilation of fluid simulation library El\'Beem.',
 					'true')),
@@ -1008,6 +1071,9 @@ user_options.AddOptions (
 		('PNG_INCLUDE', 'Include directory for png header files.'),
 		('PNG_LIBPATH', 'Library path where the png library is located.'),
 		('PNG_LIBRARY', 'png library name.'),
+                ('OPENEXR_INCLUDE', 'Include directory for OpenEXR header files.'),
+                ('OPENEXR_LIBPATH', 'Library path where the OpenEXR libraries are located.'),
+                ('OPENEXR_LIBRARY', 'OpenEXR library names.'),
 		('JPEG_INCLUDE', 'Include directory for jpeg header files.'),
 		('JPEG_LIBPATH', 'Library path where the jpeg library is located.'),
 		('JPEG_LIBRARY', 'jpeg library name.'),

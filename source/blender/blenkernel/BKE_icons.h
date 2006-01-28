@@ -1,6 +1,4 @@
-/*
- * zbufferdatastruct_ext.h
- *
+/**
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -28,71 +26,50 @@
  * The Original Code is: all of this file.
  *
  * Contributor(s): none yet.
- *
+ * 
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef ZBUFFERDATASTRUCT_EXT_H
-#define ZBUFFERDATASTRUCT_EXT_H
+#ifndef BKE_ICONS_H
+#define BKE_ICONS_H
 
-#include "zbufferdatastruct_types.h"
+/*
+ Resizable Icons for Blender
+*/
 
-/**
- * Set memory and counters for a fresh z buffer
- */
-void initZbuffer(int linewidth);
+typedef void (*DrawInfoFreeFP) (void *drawinfo);
 
-/**
- * Release memory for the current z buffer
- */
-void freeZbuffer(void);
+struct Icon
+{
+	void *drawinfo;
+	void *obj;
+	short type;
+	short changed;
+	DrawInfoFreeFP drawinfo_free;
+};
 
-/**
- * Release previous buffer and initialise new buffer. 
- */
-void resetZbuffer(void);
+typedef struct Icon Icon;
 
-/**
- * Make a root for a memory block (internal)
- */
-RE_APixstrExt  *addpsemainA(void);
+void BKE_icons_init(int first_dyn_id);
 
-/**
- * Release a memory chunk
- */
-void            freepseA(void);
+/* return icon id for library object or create new icon if not found */
+int	BKE_icon_getid(struct ID* id);
 
-/**
- * Add a structure
- */
-RE_APixstrExt  *addpseA(void);
+/* retrieve icon for id */
+struct Icon* BKE_icon_get(int icon_id);
 
-/**
- * Add an object to a zbuffer entry.
- */
-void insertObject(int teller,
-				  int obindex,
-				  int obtype, 
-				  int dist, 
-				  int mask);
+/* set icon for id if not already defined */
+/* used for inserting the internal icons */
+void BKE_icon_set(int icon_id, struct Icon* icon);
 
-/**
- * Add a flat object to a zbuffer entry.
- */
-void insertFlatObject(RE_APixstrExt* ap, 
-					  int obindex,
-					  int obtype, 
-					  int dist, 
-					  int mask);
+/* remove icon and free date if library object becomes invalid */
+void BKE_icon_delete(struct ID* id);
 
-/**
- * Add a flat object to a zbuffer entry, but don't do OSA entry testing.
- */
-void insertFlatObjectNoOsa(RE_APixstrExt* ap, 
-						   int obindex,
-						   int obtype, 
-						   int dist, 
-						   int mask);
+/* report changes - icon needs to be recalculated */
+void BKE_icon_changed(int icon_id);
 
-#endif
+/* free all icons */
+void BKE_icons_free();
 
+
+#endif /*  BKE_ICONS_H */

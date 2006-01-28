@@ -58,6 +58,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sound_types.h"
@@ -78,6 +79,7 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"
 #include "BIF_renderwin.h"
@@ -98,7 +100,6 @@
 #include "BPY_extern.h"
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"		/* R.flag */
 
 #include "winlay.h"
 
@@ -109,6 +110,8 @@
  * - problem: flags here are not nicely implemented. After usage
 	 always reset to zero.
  */
+
+/* comment added to test orange branch */
 
 static void testareas(void);
 static void area_autoplayscreen(void);
@@ -325,10 +328,16 @@ void areawinset(short win)
 			G.v2d= &G.snla->v2d;
 			break;
 		case SPACE_TIME:
-			{
+		{
 			SpaceTime *stime= curarea->spacedata.first;
 			G.v2d= &stime->v2d;
-			}
+		}
+			break;
+		case SPACE_NODE:
+		{
+			SpaceNode *snode= curarea->spacedata.first;
+			G.v2d= &snode->v2d;
+		}
 			break;
 		default:
 			break;
@@ -398,7 +407,9 @@ void scrarea_do_headdraw(ScrArea *area)
 		case SPACE_ACTION:	action_buttons();	break;
 		case SPACE_NLA:		nla_buttons();		break;
 		case SPACE_TIME:	time_buttons(area);	break;
+		case SPACE_NODE:	node_buttons(area);	break;
 		}
+		uiClearButLock();
 
 		//glScissor(area->winrct.xmin, area->winrct.xmax, area->winx, area->winy);
 		area->head_swap= WIN_BACK_OK;
@@ -644,7 +655,6 @@ int is_allowed_to_change_screen(bScreen *new)
 
 void splash(void *data, int datasize, char *string)
 {
-	extern void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
 	ImBuf *bbuf;
 	int oldwin;
 	short val;
@@ -851,7 +861,7 @@ static void flush_extqd_events(void) {
 	ext_inputchange= ext_reshape= ext_redraw= ext_mousemove= 0;
 }
 
-unsigned short qtest(void)
+int qtest(void)
 {
 	if (!mainqtest()) {
 		winlay_process_events(0);
@@ -1763,7 +1773,7 @@ static void del_area(ScrArea *sa)
 	closeareawin(sa);
 	closeheadwin(sa);
 
-	freespacelist(&sa->spacedata);
+	freespacelist(sa);
 	
 	uiFreeBlocks(&sa->uiblocks);
 	uiFreePanels(&sa->panels);
@@ -1782,7 +1792,7 @@ static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
 	sa1->spacetype= sa2->spacetype;
 	Mat4CpyMat4(sa1->winmat, sa2->winmat);
 
-	freespacelist(&sa1->spacedata);
+	freespacelist(sa1);
 	duplicatespacelist(sa1, &sa1->spacedata, &sa2->spacedata);
 
 	BLI_freelistN(&sa1->panels);
@@ -3508,10 +3518,10 @@ void draw_area_emboss(ScrArea *sa)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 		
-		BIF_draw_icon(8.0, 10.0, ICON_MATERIAL_HLT);
-		BIF_draw_icon(8.0, 30.0, ICON_IPO_HLT);
-		BIF_draw_icon(8.0, 50.0, ICON_HOME);
-		BIF_draw_icon(8.0, 70.0, ICON_BORDERMOVE);
+		BIF_icon_draw(8.0, 10.0, ICON_MATERIAL_HLT);
+		BIF_icon_draw(8.0, 30.0, ICON_IPO_HLT);
+		BIF_icon_draw(8.0, 50.0, ICON_HOME);
+		BIF_icon_draw(8.0, 70.0, ICON_BORDERMOVE);
 		
 		glBlendFunc(GL_ONE,  GL_ZERO); 
 		glDisable(GL_BLEND);
@@ -3635,7 +3645,7 @@ int get_cursor(void) {
 }
 
 void set_cursor(int curs) {
-	if (!(R.flag & R_RENDERING) && G.background == 0) {
+	if (!(G.rendering) && G.background == 0) {
 		if (curs!=curcursor) {
 			curcursor= curs;
 			window_set_cursor(mainwin, curs);

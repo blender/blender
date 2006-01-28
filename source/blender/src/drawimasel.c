@@ -59,6 +59,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_imasel.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
@@ -509,23 +510,23 @@ void draw_sima_area(SpaceImaSel *simasel)
 		sy = simasel->deey+6;
 		
 		if (bitset(simasel->fase, IMS_FOUND_BIP)) {
-			BIF_draw_icon(sx+16*0, sy, ICON_BPIBFOLDER_HLT);
+			BIF_icon_draw(sx+16*0, sy, ICON_BPIBFOLDER_HLT);
 		} else if (bitset(simasel->fase, IMS_WRITE_NO_BIP)) {
-			BIF_draw_icon(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
+			BIF_icon_draw(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
 		} else {
-			BIF_draw_icon(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
+			BIF_icon_draw(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
 		}
 
 		if (bitset(simasel->fase, IMS_KNOW_INF)) {
-			BIF_draw_icon(sx+16*1, sy, ICON_FOLDER_HLT);
+			BIF_icon_draw(sx+16*1, sy, ICON_FOLDER_HLT);
 		} else {
-			BIF_draw_icon(sx+16*1, sy, ICON_FOLDER_DEHLT);
+			BIF_icon_draw(sx+16*1, sy, ICON_FOLDER_DEHLT);
 		}
 		
 		if (bitset(simasel->fase, IMS_KNOW_IMA)) {
-			BIF_draw_icon(sx+16*2, sy, ICON_BLUEIMAGE_HLT);
+			BIF_icon_draw(sx+16*2, sy, ICON_BLUEIMAGE_HLT);
 		} else {
-			BIF_draw_icon(sx+16*2, sy, ICON_BLUEIMAGE_DEHLT);
+			BIF_icon_draw(sx+16*2, sy, ICON_BLUEIMAGE_DEHLT);
 		}
 	}
 	
@@ -865,7 +866,7 @@ void drawimaselspace(ScrArea *sa, void *spacedata)
 	myortho2(-0.375, (float)(curarea->winx)-0.375, -0.375, (float)(curarea->winy)-0.375);
 	
 	if (simasel->fase == 0){
-		checkdir(simasel->dir);
+		BLI_cleanup_dir(G.sce, simasel->dir);
 		clear_ima_dir(simasel);
 	}
 

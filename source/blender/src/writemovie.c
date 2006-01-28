@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __sgi
 
 #include <unistd.h>
@@ -106,7 +102,7 @@ static void make_movie_name(char *string)
 	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
 	len= strlen(string);
 
-	RE_make_existing_file(string);
+	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + len - 3, ".mv")) {
 		sprintf(txt, "%04d_%04d.mv", sfra, efra);
@@ -364,6 +360,7 @@ void append_movie(int cfra)
 	char		name[FILE_MAXDIR+FILE_MAXFILE];
 	const char	*string;
 	int			fd;
+	float col[4] = {0.0,0.0,0.0,0.0};
 	
 	set_sfra_efra();
 	make_movie_name(name);
@@ -377,28 +374,28 @@ void append_movie(int cfra)
 	
 	if (ibuf->x != mv_outx || ibuf->y != mv_outy) {
 		tbuf = IMB_allocImBuf(mv_outx, mv_outy, 32, IB_rect, 0);
-		IMB_rectoptot(tbuf, 0, IMB_rectfill, 0x00);
+		IMB_rectfill(tbuf,col);
 		
 		ofsx = (tbuf->x - ibuf->x) / 2;
 		ofsy = (tbuf->y - ibuf->y) / 2;
 		if (numfields == 2) ofsy &= ~1;
 		
-		IMB_rectop(tbuf, ibuf, ofsx, ofsy, 0, 0, 32767, 32767, IMB_rectcpy, 0);
+		IMB_rectcpy(tbuf, ibuf, ofsx, ofsy, 0, 0, ibuf->x, ibuf->y);
 		IMB_freeImBuf(ibuf);
 		strcpy(tbuf->name, ibuf->name);
 		ibuf = tbuf;
 	}
-	IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
+	IMB_convert_rgba_to_abgr(ibuf);
 	
 	if (numfields == 2) {
 		if (ntsc) {
-			IMB_rectop(ibuf, ibuf, 0, 0, 0, 1, 32767, 32767, IMB_rectcpy, 0);
+			IMB_rectcpy(ibuf, ibuf, 0, 0, 0, 1, ibuf->x, ibuf->y);
 			IMB_flipy(ibuf);
 			IMB_de_interlace(ibuf);
-			if (ntsc) IMB_rectop(ibuf, ibuf, 0, 0, 0, 1, 32767, 32767, IMB_rectcpy, 0);
+			if (ntsc) IMB_rectcpy(ibuf, ibuf, 0, 0, 0, 1, ibuf->x, ibuf->y);
 		} else {
 			IMB_flipy(ibuf);
-			IMB_rectop(ibuf, ibuf, 0, 0, 0, 1, 32767, 32767, IMB_rectcpy, 0);
+			IMB_rectcpy(ibuf, ibuf, 0, 0, 0, 1, ibuf->x, ibuf->y);
 			IMB_de_interlace(ibuf);
 		}
 	}

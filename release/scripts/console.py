@@ -29,26 +29,6 @@ Usage:<br>
 __author__ = "Campbell Barton AKA Ideasman"
 __url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
 
-# -------------------------------------------------------------------------- 
-# ***** BEGIN GPL LICENSE BLOCK ***** 
-# 
-# This program is free software; you can redistribute it and/or 
-# modify it under the terms of the GNU General Public License 
-# as published by the Free Software Foundation; either version 2 
-# of the License, or (at your option) any later version. 
-# 
-# This program is distributed in the hope that it will be useful, 
-# but WITHOUT ANY WARRANTY; without even the implied warranty of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the 
-# GNU General Public License for more details. 
-# 
-# You should have received a copy of the GNU General Public License 
-# along with this program; if not, write to the Free Software Foundation, 
-# Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA. 
-# 
-# ***** END GPL LICENCE BLOCK ***** 
-# -------------------------------------------------------------------------- 
-
 import Blender
 from Blender import *
 import sys as python_sys
@@ -152,7 +132,7 @@ def unzip(list):
 				this function will fail
 	"""
 	
-	if not list: return ()
+	if len(list) == 0: return ()
 	l = []
 	for t in range(len(list[0])):
 		l.append(map( lambda x,t=t: x[t], list ))
@@ -233,7 +213,7 @@ def rdir(dirString, depth=0):
 			# Dont bother with this data.
 			continue
 		
-		if type(dirItem) != types.StringType:
+		if type(dirItem) != type('str'):
 			print dirItem, type(dirItem)
 		
 		if dirItem not in COLLECTED_VAR_NAMES.keys():
@@ -249,17 +229,17 @@ def rdir(dirString, depth=0):
 		#print type(dirItem)
 		#if type(dirData) == types.ClassType or \
 		#	 type(dirData) == types.ModuleType:
-		type_dirData = type(dirData)
-		if type_dirData != types.StringType and\
-		type_dirData != types.DictType and\
-		type_dirData != types.DictionaryType and\
-		type_dirData != types.FloatType and\
-		type_dirData != types.IntType and\
-		type_dirData != types.NoneType and\
-		type_dirData != types.StringTypes and\
-		type_dirData != types.TypeType and\
-		type_dirData != types.TupleType and\
-		type_dirData != types.BuiltinFunctionType:
+		
+		if type(dirData) != types.StringType and\
+		type(dirData) != types.DictType and\
+		type(dirData) != types.DictionaryType and\
+		type(dirData) != types.FloatType and\
+		type(dirData) != types.IntType and\
+		type(dirData) != types.NoneType and\
+		type(dirData) != types.StringTypes and\
+		type(dirData) != types.TypeType and\
+		type(dirData) != types.TupleType and\
+		type(dirData) != types.BuiltinFunctionType:
 			# print type(dirData), dirItem
 			# Dont loop up dirs for strings ints etc.
 			if dirItem not in dirStringSplit:
@@ -539,17 +519,16 @@ def handle_event(evt, val):
 				menuList.sort()
 				
 				choice = PupMenuLess( # Menu for the user to choose the autocompleate
-				'Choices (Shift for local name, Ctrl for Docs)%t|' + # Title Text
+				'Choices (Shift for Whole name, Ctrl for Docs)%t|' + # Title Text
 				'|'.join(['%s,  %s' % m for m in menuList])) # Use Absolute names m[0]
 				
 				if choice != -1:
 					if Window.GetKeyQualifiers() & Window.Qual.CTRL:  # Help
 						cmdBuffer[-1].cmd = ('help(%s%s) ' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1][0]))    
 					elif Window.GetKeyQualifiers() & Window.Qual.SHIFT:  # Put in the long name
-						cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1][1], cmdBuffer[-1].cmd[cursor:]))    
-					else: # Only paste in the Short name
 						cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1][0], cmdBuffer[-1].cmd[cursor:]))    
-						
+					else: # Only paste in the Short name
+						cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1][1], cmdBuffer[-1].cmd[cursor:]))    
 						
 		else:
 			# print 'NO EDITVAR'
@@ -560,8 +539,11 @@ def handle_event(evt, val):
 	# Quit from menu only
 	#if (evt == Draw.ESCKEY and not val):
 	#	Draw.Exit()
-	if evt == Draw.MOUSEX or evt == Draw.MOUSEY: # AVOID TOO MANY REDRAWS.
-		return	
+	if evt == Draw.MOUSEX: # AVOID TOO MANY REDRAWS.
+		return
+	elif evt == Draw.MOUSEY:
+		return
+	
 	
 	
 	global cursor

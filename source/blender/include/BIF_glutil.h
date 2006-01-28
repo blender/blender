@@ -125,7 +125,7 @@ void glaRasterPosSafe2f		(float x, float y, float known_good_x, float known_good
 	 * to use the glScissor functionality if images are to be drawn
 	 * with an inset view matrix.
 	 */
-void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, void *rect);
+void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int row_w, int format, int type, void *rect);
 
 	/**
 	 * Functions like a limited glDrawPixels, but actually draws the
@@ -135,11 +135,11 @@ void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, void *rect);
 	 * pixel unpacking parameters are _not_ respected.
 
 	 * @attention This routine makes many assumptions: the rect data
-	 * is expected to be in RGBA unsigned byte format, and the 
+	 * is expected to be in RGBA byte or float format, and the 
 	 * modelview and projection matrices are assumed to define a 
 	 * 1-to-1 mapping to screen space.
 	 */
-void glaDrawPixelsTex		(float x, float y, int img_w, int img_h, void *rect);
+void glaDrawPixelsTex		(float x, float y, int img_w, int img_h, int format, void *rect);
 
 	/* 2D Drawing Assistance */
 

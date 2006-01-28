@@ -43,26 +43,46 @@
 
 void IMB_flipy(struct ImBuf * ibuf)
 {
-	short x,y,backx;
-	unsigned int *top,*bottom,temp;
+	short x, y;
+	unsigned int *top, *bottom, do_float=0, *line;
+	float *topf=NULL, *bottomf=NULL, *linef=NULL;
 
-	if (ibuf == 0) return;
-	if (ibuf->rect == 0) return;
+	if (ibuf == NULL) return;
+	if (ibuf->rect == NULL) return;
+	
+	if (ibuf->rect_float) do_float =1;
 
 	x = ibuf->x;
 	y = ibuf->y;
-	backx = x<<1;
 
 	top = ibuf->rect;
 	bottom = top + ((y-1) * x);
+	line= MEM_mallocN(x*sizeof(int), "linebuf");
+	
+	if (do_float) {
+		topf= ibuf->rect_float;
+		bottomf = topf + 4*((y-1) * x);
+		linef= MEM_mallocN(4*x*sizeof(float), "linebuff");
+	}
 	y >>= 1;
 
-	for(;y>0;y--){
-		for(x = ibuf->x; x > 0; x--){
-			temp = *top;
-			*(top++) = *bottom;
-			*(bottom++) = temp;
+	for(;y>0;y--) {
+		
+		memcpy(line, top, x*sizeof(int));
+		memcpy(top, bottom, x*sizeof(int));
+		memcpy(bottom, line, x*sizeof(int));
+		bottom -= x;
+		top+= x;
+		
+		if(do_float) {
+			memcpy(linef, topf, 4*x*sizeof(float));
+			memcpy(topf, bottomf, 4*x*sizeof(float));
+			memcpy(bottomf, linef, 4*x*sizeof(float));
+			bottomf -= 4*x;
+			topf+= 4*x;
 		}
-		bottom -= backx;
 	}
+	
+	MEM_freeN(line);
+	if(linef) MEM_freeN(linef);
 }

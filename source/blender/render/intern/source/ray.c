@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,15 +20,16 @@
  * The Original Code is Copyright (C) 1990-1998 NeoGeo BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributors: 2004/2005 Blender Foundation, full recode
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <float.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -42,16 +40,15 @@
 #include "BKE_global.h"
 
 #include "BLI_arithb.h"
-#include <BLI_rand.h>
+#include "BLI_rand.h"
+#include "BLI_jitter.h"
 
-#include "render.h"
+#include "render_types.h"
+#include "renderpipeline.h"
 #include "rendercore.h"
 #include "pixelblending.h"
 #include "pixelshading.h"
-#include "jitter.h"
 #include "texture.h"
-
-#include "SDL_thread.h"
 
 #define DDA_SHADOW 0
 #define DDA_MIRROR 1
@@ -61,23 +58,17 @@
 #define RAY_TRAFLIP	2
 
 #define DEPTH_SHADOW_TRA  10
-/* from float.h */
-#define FLT_EPSILON 1.19209290e-07F
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* ********** structs *************** */
 
 #define BRANCH_ARRAY 1024
-
-typedef struct Octree {
-	struct Branch *adrbranch[BRANCH_ARRAY];
-	struct Node *adrnode[4096];
-	float ocsize;	/* ocsize: mult factor,  max size octree */
-	float ocfacx,ocfacy,ocfacz;
-	float min[3], max[3];
-	int ocres;
-
-} Octree;
+#define NODE_ARRAY 4096
 
 typedef struct Isect {
 	float start[3], vec[3], end[3];		/* start+vec = end, in d3dda */
@@ -112,16 +103,10 @@ typedef struct Node
 
 /* ******** globals ***************** */
 
-static Octree g_oc;	/* can be scene pointer or so later... */
-
 /* just for statistics */
-static int raycount, branchcount, nodecount;
+static int raycount;
 static int accepted, rejected, coherent_ray;
 
-/* prototypes ------------------------ */
-void freeoctree(void);
-void makeoctree(void);
-int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr);
 
 /* **************** ocval method ******************* */
 /* within one octree node, a set of 3x15 bits defines a 'boundbox' to OR with */
@@ -190,36 +175,42 @@ static void calc_ocval_ray(OcVal *ov, float xo, float yo, float zo, float *vec1,
 
 /* ************* octree ************** */
 
-static Branch *addbranch(Branch *br, short oc)
+static Branch *addbranch(Octree *oc, Branch *br, short ocb)
 {
+	int index;
 	
-	if(br->b[oc]) return br->b[oc];
+	if(br->b[ocb]) return br->b[ocb];
 	
-	branchcount++;
-	if(g_oc.adrbranch[branchcount>>12]==NULL)
-		g_oc.adrbranch[branchcount>>12]= MEM_callocN(4096*sizeof(Branch),"addbranch");
+	oc->branchcount++;
+	index= oc->branchcount>>12;
+	
+	if(oc->adrbranch[index]==NULL)
+		oc->adrbranch[index]= MEM_callocN(4096*sizeof(Branch), "new oc branch");
 
-	if(branchcount>= BRANCH_ARRAY*4096) {
+	if(oc->branchcount>= BRANCH_ARRAY*4096) {
 		printf("error; octree branches full\n");
-		branchcount=0;
+		oc->branchcount=0;
 	}
 	
-	return br->b[oc]=g_oc.adrbranch[branchcount>>12]+(branchcount & 4095);
+	return br->b[ocb]= oc->adrbranch[index]+(oc->branchcount & 4095);
 }
 
-static Node *addnode(void)
+static Node *addnode(Octree *oc)
 {
+	int index;
 	
-	nodecount++;
-	if(g_oc.adrnode[nodecount>>12]==NULL)
-		g_oc.adrnode[nodecount>>12]= MEM_callocN(4096*sizeof(Node),"addnode");
+	oc->nodecount++;
+	index= oc->nodecount>>12;
+	
+	if(oc->adrnode[index]==NULL)
+		oc->adrnode[index]= MEM_callocN(4096*sizeof(Node),"addnode");
 
-	if(nodecount> 4096*4096) {
+	if(oc->nodecount> NODE_ARRAY*NODE_ARRAY) {
 		printf("error; octree nodes full\n");
-		nodecount=0;
+		oc->nodecount=0;
 	}
 	
-	return g_oc.adrnode[nodecount>>12]+(nodecount & 4095);
+	return oc->adrnode[index]+(oc->nodecount & 4095);
 }
 
 static int face_in_node(VlakRen *vlr, short x, short y, short z, float rtf[][3])
@@ -262,7 +253,7 @@ static int face_in_node(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 	return 0;
 }
 
-static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
+static void ocwrite(Octree *oc, VlakRen *vlr, short x, short y, short z, float rtf[][3])
 {
 	Branch *br;
 	Node *no;
@@ -273,19 +264,19 @@ static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 	x<<=2;
 	y<<=1;
 
-	br= g_oc.adrbranch[0];
+	br= oc->adrbranch[0];
 
-	if(g_oc.ocres==512) {
+	if(oc->ocres==512) {
 		oc0= ((x & 1024)+(y & 512)+(z & 256))>>8;
-		br= addbranch(br, oc0);
+		br= addbranch(oc, br, oc0);
 	}
-	if(g_oc.ocres>=256) {
+	if(oc->ocres>=256) {
 		oc0= ((x & 512)+(y & 256)+(z & 128))>>7;
-		br= addbranch(br, oc0);
+		br= addbranch(oc, br, oc0);
 	}
-	if(g_oc.ocres>=128) {
+	if(oc->ocres>=128) {
 		oc0= ((x & 256)+(y & 128)+(z & 64))>>6;
-		br= addbranch(br, oc0);
+		br= addbranch(oc, br, oc0);
 	}
 
 	oc0= ((x & 128)+(y & 64)+(z & 32))>>5;
@@ -295,19 +286,19 @@ static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 	oc4= ((x & 8)+(y & 4)+(z & 2))>>1;
 	oc5= ((x & 4)+(y & 2)+(z & 1));
 
-	br= addbranch(br,oc0);
-	br= addbranch(br,oc1);
-	br= addbranch(br,oc2);
-	br= addbranch(br,oc3);
-	br= addbranch(br,oc4);
+	br= addbranch(oc, br,oc0);
+	br= addbranch(oc, br,oc1);
+	br= addbranch(oc, br,oc2);
+	br= addbranch(oc, br,oc3);
+	br= addbranch(oc, br,oc4);
 	no= (Node *)br->b[oc5];
-	if(no==NULL) br->b[oc5]= (Branch *)(no= addnode());
+	if(no==NULL) br->b[oc5]= (Branch *)(no= addnode(oc));
 
 	while(no->next) no= no->next;
 
 	a= 0;
 	if(no->v[7]) {		/* node full */
-		no->next= addnode();
+		no->next= addnode(oc);
 		no= no->next;
 	}
 	else {
@@ -320,7 +311,7 @@ static void ocwrite(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 
 }
 
-static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rts[][3], float rtf[][3])
+static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocface, short rts[][3], float rtf[][3])
 {
 	int ocx1,ocx2,ocy1,ocy2;
 	int x,y,dx=0,dy=0;
@@ -333,7 +324,7 @@ static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rt
 	ocy2= rts[b2][c2];
 
 	if(ocx1==ocx2 && ocy1==ocy2) {
-		ocvlak[g_oc.ocres*ocx1+ocy1]= 1;
+		ocface[oc->ocres*ocx1+ocy1]= 1;
 		return;
 	}
 
@@ -377,8 +368,8 @@ static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rt
 	
 	while(TRUE) {
 		
-		if(x<0 || y<0 || x>=g_oc.ocres || y>=g_oc.ocres);
-		else ocvlak[g_oc.ocres*x+y]= 1;
+		if(x<0 || y<0 || x>=oc->ocres || y>=oc->ocres);
+		else ocface[oc->ocres*x+y]= 1;
 		
 		labdao=labda;
 		if(labdax==labday) {
@@ -399,10 +390,10 @@ static void d2dda(short b1, short b2, short c1, short c2, char *ocvlak, short rt
 		if(labda==labdao) break;
 		if(labda>=1.0) break;
 	}
-	ocvlak[g_oc.ocres*ocx2+ocy2]=1;
+	ocface[oc->ocres*ocx2+ocy2]=1;
 }
 
-static void filltriangle(short c1, short c2, char *ocvlak, short *ocmin)
+static void filltriangle(Octree *oc, short c1, short c2, char *ocface, short *ocmin)
 {
 	short *ocmax;
 	int a, x, y, y1, y2;
@@ -410,14 +401,14 @@ static void filltriangle(short c1, short c2, char *ocvlak, short *ocmin)
 	ocmax=ocmin+3;
 
 	for(x=ocmin[c1];x<=ocmax[c1];x++) {
-		a= g_oc.ocres*x;
+		a= oc->ocres*x;
 		for(y=ocmin[c2];y<=ocmax[c2];y++) {
-			if(ocvlak[a+y]) {
+			if(ocface[a+y]) {
 				y++;
-				while(ocvlak[a+y] && y!=ocmax[c2]) y++;
+				while(ocface[a+y] && y!=ocmax[c2]) y++;
 				for(y1=ocmax[c2];y1>y;y1--) {
-					if(ocvlak[a+y1]) {
-						for(y2=y;y2<=y1;y2++) ocvlak[a+y2]=1;
+					if(ocface[a+y1]) {
+						for(y2=y;y2<=y1;y2++) ocface[a+y2]=1;
 						y1=0;
 					}
 				}
@@ -427,35 +418,45 @@ static void filltriangle(short c1, short c2, char *ocvlak, short *ocmin)
 	}
 }
 
-void freeoctree(void)
+void freeoctree(Render *re)
 {
-	int a= 0;
-	
- 	while(g_oc.adrbranch[a]) {
-		MEM_freeN(g_oc.adrbranch[a]);
-		g_oc.adrbranch[a]= NULL;
-		a++;
-	}
-	
-	a= 0;
-	while(g_oc.adrnode[a]) {
-		MEM_freeN(g_oc.adrnode[a]);
-		g_oc.adrnode[a]= NULL;
-		a++;
-	}
+	Octree *oc= &re->oc;
 	
 	if(G.f & G_DEBUG) {
-		printf("branches %d nodes %d\n", branchcount, nodecount);
+		printf("branches %d nodes %d\n", oc->branchcount, oc->nodecount);
 		printf("raycount %d \n", raycount);	
 		printf("ray coherent %d \n", coherent_ray);
 		printf("accepted %d rejected %d\n", accepted, rejected);
 	}
-	branchcount= 0;
-	nodecount= 0;
+	
+	if(oc->adrbranch) {
+		int a= 0;
+		while(oc->adrbranch[a]) {
+			MEM_freeN(oc->adrbranch[a]);
+			oc->adrbranch[a]= NULL;
+			a++;
+		}
+		MEM_freeN(oc->adrbranch);
+		oc->adrbranch= NULL;
+	}
+	oc->branchcount= 0;
+	
+	if(oc->adrnode) {
+		int a= 0;
+		while(oc->adrnode[a]) {
+			MEM_freeN(oc->adrnode[a]);
+			oc->adrnode[a]= NULL;
+			a++;
+		}
+		MEM_freeN(oc->adrnode);
+		oc->adrnode= NULL;
+	}
+	oc->nodecount= 0;
 }
 
-void makeoctree(void)
+void makeoctree(Render *re)
 {
+	Octree *oc;
 	VlakRen *vlr=NULL;
 	VertRen *v1, *v2, *v3, *v4;
 	float ocfac[3], t00, t01, t02;
@@ -463,68 +464,68 @@ void makeoctree(void)
 	int v;
 	int a, b, c, oc1, oc2, oc3, oc4, x, y, z, ocres2;
 	short rts[4][3], ocmin[6], *ocmax;
-	char *ocvlak;	// front, top, size view of face, to fill in
+	char *ocface;	// front, top, size view of face, to fill in
+
+	oc= &re->oc;
+	oc->adrbranch= MEM_callocN(sizeof(void *)*BRANCH_ARRAY, "octree branches");
+	oc->adrnode= MEM_callocN(sizeof(void *)*NODE_ARRAY, "octree nodes");
 
 	ocmax= ocmin+3;
-
-	memset(g_oc.adrnode, 0, sizeof(g_oc.adrnode));
-	memset(g_oc.adrbranch, 0, sizeof(g_oc.adrbranch));
 	
-	branchcount=0;
-	nodecount=0;
+	/* only for debug info */
 	raycount=0;
 	accepted= 0;
 	rejected= 0;
 	coherent_ray= 0;
 	
 	/* fill main octree struct */
-	g_oc.ocres= R.r.ocres;
-	ocres2= g_oc.ocres*g_oc.ocres;
-	INIT_MINMAX(g_oc.min, g_oc.max);
+	oc->ocres= re->r.ocres;
+	ocres2= oc->ocres*oc->ocres;
+	INIT_MINMAX(oc->min, oc->max);
 	
 	/* first min max octree space */
-	for(v=0;v<R.totvlak;v++) {
-		if((v & 255)==0) vlr= R.blovl[v>>8];	
+	for(v=0;v<re->totvlak;v++) {
+		if((v & 255)==0) vlr= re->blovl[v>>8];	
 		else vlr++;
 		if(vlr->mat->mode & MA_TRACEBLE) {	
 			if((vlr->mat->mode & MA_WIRE)==0) {	
 				
-				DO_MINMAX(vlr->v1->co, g_oc.min, g_oc.max);
-				DO_MINMAX(vlr->v2->co, g_oc.min, g_oc.max);
-				DO_MINMAX(vlr->v3->co, g_oc.min, g_oc.max);
+				DO_MINMAX(vlr->v1->co, oc->min, oc->max);
+				DO_MINMAX(vlr->v2->co, oc->min, oc->max);
+				DO_MINMAX(vlr->v3->co, oc->min, oc->max);
 				if(vlr->v4) {
-					DO_MINMAX(vlr->v4->co, g_oc.min, g_oc.max);
+					DO_MINMAX(vlr->v4->co, oc->min, oc->max);
 				}
 			}
 		}
 	}
 
-	if(g_oc.min[0] > g_oc.max[0]) return;	/* empty octree */
+	if(oc->min[0] > oc->max[0]) return;	/* empty octree */
 
-	g_oc.adrbranch[0]=(Branch *)MEM_callocN(4096*sizeof(Branch), "makeoctree");
+	oc->adrbranch[0]=(Branch *)MEM_callocN(4096*sizeof(Branch), "makeoctree");
 	
 	/* the lookup table, per face, for which nodes to fill in */
-	ocvlak= MEM_callocN( 3*ocres2 + 8, "ocvlak");
-	memset(ocvlak, 0, 3*ocres2);
+	ocface= MEM_callocN( 3*ocres2 + 8, "ocface");
+	memset(ocface, 0, 3*ocres2);
 
 	for(c=0;c<3;c++) {	/* octree enlarge, still needed? */
-		g_oc.min[c]-= 0.01;
-		g_oc.max[c]+= 0.01;
+		oc->min[c]-= 0.01;
+		oc->max[c]+= 0.01;
 	}
 
-	t00= g_oc.max[0]-g_oc.min[0];
-	t01= g_oc.max[1]-g_oc.min[1];
-	t02= g_oc.max[2]-g_oc.min[2];
+	t00= oc->max[0]-oc->min[0];
+	t01= oc->max[1]-oc->min[1];
+	t02= oc->max[2]-oc->min[2];
 	
 	/* this minus 0.1 is old safety... seems to be needed? */
-	g_oc.ocfacx=ocfac[0]= (g_oc.ocres-0.1)/t00;
-	g_oc.ocfacy=ocfac[1]= (g_oc.ocres-0.1)/t01;
-	g_oc.ocfacz=ocfac[2]= (g_oc.ocres-0.1)/t02;
+	oc->ocfacx=ocfac[0]= (oc->ocres-0.1)/t00;
+	oc->ocfacy=ocfac[1]= (oc->ocres-0.1)/t01;
+	oc->ocfacz=ocfac[2]= (oc->ocres-0.1)/t02;
 	
-	g_oc.ocsize= sqrt(t00*t00+t01*t01+t02*t02);	/* global, max size octree */
+	oc->ocsize= sqrt(t00*t00+t01*t01+t02*t02);	/* global, max size octree */
 
-	for(v=0; v<R.totvlak; v++) {
-		if((v & 255)==0) vlr= R.blovl[v>>8];	
+	for(v=0; v<re->totvlak; v++) {
+		if((v & 255)==0) vlr= re->blovl[v>>8];	
 		else vlr++;
 		
 		if(vlr->mat->mode & MA_TRACEBLE) {
@@ -536,14 +537,14 @@ void makeoctree(void)
 				v4= vlr->v4;
 				
 				for(c=0;c<3;c++) {
-					rtf[0][c]= (v1->co[c]-g_oc.min[c])*ocfac[c] ;
+					rtf[0][c]= (v1->co[c]-oc->min[c])*ocfac[c] ;
 					rts[0][c]= (short)rtf[0][c];
-					rtf[1][c]= (v2->co[c]-g_oc.min[c])*ocfac[c] ;
+					rtf[1][c]= (v2->co[c]-oc->min[c])*ocfac[c] ;
 					rts[1][c]= (short)rtf[1][c];
-					rtf[2][c]= (v3->co[c]-g_oc.min[c])*ocfac[c] ;
+					rtf[2][c]= (v3->co[c]-oc->min[c])*ocfac[c] ;
 					rts[2][c]= (short)rtf[2][c];
 					if(v4) {
-						rtf[3][c]= (v4->co[c]-g_oc.min[c])*ocfac[c] ;
+						rtf[3][c]= (v4->co[c]-oc->min[c])*ocfac[c] ;
 						rts[3][c]= (short)rtf[3][c];
 					}
 				}
@@ -563,44 +564,44 @@ void makeoctree(void)
 						ocmin[c]= MIN4(oc1,oc2,oc3,oc4);
 						ocmax[c]= MAX4(oc1,oc2,oc3,oc4);
 					}
-					if(ocmax[c]>g_oc.ocres-1) ocmax[c]=g_oc.ocres-1;
+					if(ocmax[c]>oc->ocres-1) ocmax[c]=oc->ocres-1;
 					if(ocmin[c]<0) ocmin[c]=0;
 				}
 
-				d2dda(0,1,0,1,ocvlak+ocres2,rts,rtf);
-				d2dda(0,1,0,2,ocvlak,rts,rtf);
-				d2dda(0,1,1,2,ocvlak+2*ocres2,rts,rtf);
-				d2dda(1,2,0,1,ocvlak+ocres2,rts,rtf);
-				d2dda(1,2,0,2,ocvlak,rts,rtf);
-				d2dda(1,2,1,2,ocvlak+2*ocres2,rts,rtf);
+				d2dda(oc, 0,1,0,1,ocface+ocres2,rts,rtf);
+				d2dda(oc, 0,1,0,2,ocface,rts,rtf);
+				d2dda(oc, 0,1,1,2,ocface+2*ocres2,rts,rtf);
+				d2dda(oc, 1,2,0,1,ocface+ocres2,rts,rtf);
+				d2dda(oc, 1,2,0,2,ocface,rts,rtf);
+				d2dda(oc, 1,2,1,2,ocface+2*ocres2,rts,rtf);
 				if(v4==NULL) {
-					d2dda(2,0,0,1,ocvlak+ocres2,rts,rtf);
-					d2dda(2,0,0,2,ocvlak,rts,rtf);
-					d2dda(2,0,1,2,ocvlak+2*ocres2,rts,rtf);
+					d2dda(oc, 2,0,0,1,ocface+ocres2,rts,rtf);
+					d2dda(oc, 2,0,0,2,ocface,rts,rtf);
+					d2dda(oc, 2,0,1,2,ocface+2*ocres2,rts,rtf);
 				}
 				else {
-					d2dda(2,3,0,1,ocvlak+ocres2,rts,rtf);
-					d2dda(2,3,0,2,ocvlak,rts,rtf);
-					d2dda(2,3,1,2,ocvlak+2*ocres2,rts,rtf);
-					d2dda(3,0,0,1,ocvlak+ocres2,rts,rtf);
-					d2dda(3,0,0,2,ocvlak,rts,rtf);
-					d2dda(3,0,1,2,ocvlak+2*ocres2,rts,rtf);
+					d2dda(oc, 2,3,0,1,ocface+ocres2,rts,rtf);
+					d2dda(oc, 2,3,0,2,ocface,rts,rtf);
+					d2dda(oc, 2,3,1,2,ocface+2*ocres2,rts,rtf);
+					d2dda(oc, 3,0,0,1,ocface+ocres2,rts,rtf);
+					d2dda(oc, 3,0,0,2,ocface,rts,rtf);
+					d2dda(oc, 3,0,1,2,ocface+2*ocres2,rts,rtf);
 				}
 				/* nothing todo with triangle..., just fills :) */
-				filltriangle(0,1,ocvlak+ocres2,ocmin);
-				filltriangle(0,2,ocvlak,ocmin);
-				filltriangle(1,2,ocvlak+2*ocres2,ocmin);
+				filltriangle(oc, 0,1,ocface+ocres2,ocmin);
+				filltriangle(oc, 0,2,ocface,ocmin);
+				filltriangle(oc, 1,2,ocface+2*ocres2,ocmin);
 				
 				/* init static vars here */
 				face_in_node(vlr, 0,0,0, rtf);
 				
 				for(x=ocmin[0];x<=ocmax[0];x++) {
-					a= g_oc.ocres*x;
+					a= oc->ocres*x;
 					for(y=ocmin[1];y<=ocmax[1];y++) {
-						if(ocvlak[a+y+ocres2]) {
-							b= g_oc.ocres*y+2*ocres2;
+						if(ocface[a+y+ocres2]) {
+							b= oc->ocres*y+2*ocres2;
 							for(z=ocmin[2];z<=ocmax[2];z++) {
-								if(ocvlak[b+z] && ocvlak[a+z]) ocwrite(vlr, x,y,z, rtf);
+								if(ocface[b+z] && ocface[a+z]) ocwrite(oc, vlr, x,y,z, rtf);
 							}
 						}
 					}
@@ -608,17 +609,17 @@ void makeoctree(void)
 				
 				/* same loops to clear octree, doubt it can be done smarter */
 				for(x=ocmin[0];x<=ocmax[0];x++) {
-					a= g_oc.ocres*x;
+					a= oc->ocres*x;
 					for(y=ocmin[1];y<=ocmax[1];y++) {
 						/* x-y */
-						ocvlak[a+y+ocres2]= 0;
+						ocface[a+y+ocres2]= 0;
 
-						b= g_oc.ocres*y + 2*ocres2;
+						b= oc->ocres*y + 2*ocres2;
 						for(z=ocmin[2];z<=ocmax[2];z++) {
 							/* y-z */
-							ocvlak[b+z]= 0;
+							ocface[b+z]= 0;
 							/* x-z */
-							ocvlak[a+z]= 0;
+							ocface[a+z]= 0;
 						}
 					}
 				}
@@ -626,7 +627,7 @@ void makeoctree(void)
 		}
 	}
 	
-	MEM_freeN(ocvlak);
+	MEM_freeN(ocface);
 }
 
 /* ************ raytracer **************** */
@@ -1007,23 +1008,23 @@ static Node *ocread(int x, int y, int z)
 	x<<=2;
 	y<<=1;
 	
-	br= g_oc.adrbranch[0];
+	br= R.oc.adrbranch[0];
 	
-	if(g_oc.ocres==512) {
+	if(R.oc.ocres==512) {
 		oc1= ((x & 1024)+(y & 512)+(z & 256))>>8;
 		br= br->b[oc1];
 		if(br==NULL) {
 			return NULL;
 		}
 	}
-	if(g_oc.ocres>=256) {
+	if(R.oc.ocres>=256) {
 		oc1= ((x & 512)+(y & 256)+(z & 128))>>7;
 		br= br->b[oc1];
 		if(br==NULL) {
 			return NULL;
 		}
 	}
-	if(g_oc.ocres>=128) {
+	if(R.oc.ocres>=128) {
 		oc1= ((x & 256)+(y & 128)+(z & 64))>>6;
 		br= br->b[oc1];
 		if(br==NULL) {
@@ -1127,7 +1128,7 @@ static int d3dda(Isect *is)
 	int ocx1,ocx2,ocy1, ocy2,ocz1,ocz2;
 	
 	/* clip with octree */
-	if(branchcount==0) return 0;
+	if(R.oc.branchcount==0) return 0;
 	
 	/* do this before intersect calls */
 	is->vlrcontr= NULL;	/*  to check shared edge */
@@ -1150,14 +1151,14 @@ static int d3dda(Isect *is)
 	u2= 1.0;
 
 	/* clip with octree cube */
-	if(cliptest(-ldx, is->start[0]-g_oc.min[0], &u1,&u2)) {
-		if(cliptest(ldx, g_oc.max[0]-is->start[0], &u1,&u2)) {
+	if(cliptest(-ldx, is->start[0]-R.oc.min[0], &u1,&u2)) {
+		if(cliptest(ldx, R.oc.max[0]-is->start[0], &u1,&u2)) {
 			ldy= is->end[1] - is->start[1];
-			if(cliptest(-ldy, is->start[1]-g_oc.min[1], &u1,&u2)) {
-				if(cliptest(ldy, g_oc.max[1]-is->start[1], &u1,&u2)) {
+			if(cliptest(-ldy, is->start[1]-R.oc.min[1], &u1,&u2)) {
+				if(cliptest(ldy, R.oc.max[1]-is->start[1], &u1,&u2)) {
 					ldz= is->end[2] - is->start[2];
-					if(cliptest(-ldz, is->start[2]-g_oc.min[2], &u1,&u2)) {
-						if(cliptest(ldz, g_oc.max[2]-is->start[2], &u1,&u2)) {
+					if(cliptest(-ldz, is->start[2]-R.oc.min[2], &u1,&u2)) {
+						if(cliptest(ldz, R.oc.max[2]-is->start[2], &u1,&u2)) {
 							c1=1;
 							if(u2<1.0) {
 								is->end[0]= is->start[0]+u2*ldx;
@@ -1179,15 +1180,15 @@ static int d3dda(Isect *is)
 	if(c1==0) return 0;
 
 	/* reset static variables in ocread */
-	//ocread(g_oc.ocres, 0, 0);
+	//ocread(R.oc.ocres, 0, 0);
 
 	/* setup 3dda to traverse octree */
-	ox1= (is->start[0]-g_oc.min[0])*g_oc.ocfacx;
-	oy1= (is->start[1]-g_oc.min[1])*g_oc.ocfacy;
-	oz1= (is->start[2]-g_oc.min[2])*g_oc.ocfacz;
-	ox2= (is->end[0]-g_oc.min[0])*g_oc.ocfacx;
-	oy2= (is->end[1]-g_oc.min[1])*g_oc.ocfacy;
-	oz2= (is->end[2]-g_oc.min[2])*g_oc.ocfacz;
+	ox1= (is->start[0]-R.oc.min[0])*R.oc.ocfacx;
+	oy1= (is->start[1]-R.oc.min[1])*R.oc.ocfacy;
+	oz1= (is->start[2]-R.oc.min[2])*R.oc.ocfacz;
+	ox2= (is->end[0]-R.oc.min[0])*R.oc.ocfacx;
+	oy2= (is->end[1]-R.oc.min[1])*R.oc.ocfacy;
+	oz2= (is->end[2]-R.oc.min[2])*R.oc.ocfacz;
 
 	ocx1= (int)ox1;
 	ocy1= (int)oy1;
@@ -1522,9 +1523,9 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 	float ref[3];
 	
 	VECCOPY(isec.start, start);
-	isec.end[0]= start[0]+g_oc.ocsize*vec[0];
-	isec.end[1]= start[1]+g_oc.ocsize*vec[1];
-	isec.end[2]= start[2]+g_oc.ocsize*vec[2];
+	isec.end[0]= start[0]+R.oc.ocsize*vec[0];
+	isec.end[1]= start[1]+R.oc.ocsize*vec[1];
+	isec.end[2]= start[2]+R.oc.ocsize*vec[2];
 	isec.mode= DDA_MIRROR;
 	isec.vlrorig= vlr;
 
@@ -1623,7 +1624,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		VECCOPY(shi.view, vec);
 		Normalise(shi.view);
 		
-		shadeSkyPixelFloat(col, shi.view, NULL);
+		shadeSkyPixelFloat(col, NULL, shi.view, isec.start);
 	}
 }
 
@@ -1712,7 +1713,7 @@ void init_jitter_plane(LampRen *lar)
 }
 
 /* table around origin, -0.5*size to 0.5*size */
-static float *give_jitter_plane(LampRen *lar, int xs, int ys)
+static float *give_jitter_plane(LampRen *lar, int thread, int xs, int ys)
 {
 	int tot;
 	
@@ -1720,7 +1721,7 @@ static float *give_jitter_plane(LampRen *lar, int xs, int ys)
 			
 	if(lar->ray_samp_type & LA_SAMP_JITTER) {
 		/* made it threadsafe */
-		if(ys & 1) {
+		if(thread & 1) {
 			if(lar->xold1!=xs || lar->yold1!=ys) {
 				jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_thread_frand(1), BLI_thread_frand(1));
 				lar->xold1= xs; lar->yold1= ys;
@@ -1886,9 +1887,9 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 			vec[2]-= vec[2];
 		}
 		VECCOPY(isec.start, ship->co);
-		isec.end[0]= isec.start[0] + g_oc.ocsize*vec[0];
-		isec.end[1]= isec.start[1] + g_oc.ocsize*vec[1];
-		isec.end[2]= isec.start[2] + g_oc.ocsize*vec[2];
+		isec.end[0]= isec.start[0] + R.oc.ocsize*vec[0];
+		isec.end[1]= isec.start[1] + R.oc.ocsize*vec[1];
+		isec.end[2]= isec.start[2] + R.oc.ocsize*vec[2];
 		
 		if( d3dda(&isec)) {
 			float fac;
@@ -1976,13 +1977,13 @@ void init_ao_sphere(float *sphere, int tot, int iter)
 }
 
 
-static float *threadsafe_table_sphere(int test, int xs, int ys)
+static float *threadsafe_table_sphere(int test, int thread, int xs, int ys)
 {
 	static float sphere1[2*3*256];
 	static float sphere2[2*3*256];
 	static int xs1=-1, xs2=-1, ys1=-1, ys2=-1;
 	
-	if(ys & 1) {
+	if(thread & 1) {
 		if(xs==xs1 && ys==ys1) return sphere1;
 		if(test) return NULL;
 		xs1= xs; ys1= ys;
@@ -1996,7 +1997,7 @@ static float *threadsafe_table_sphere(int test, int xs, int ys)
 	}
 }
 
-static float *sphere_sampler(int type, int resol, int xs, int ys)
+static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 {
 	int tot;
 	float *vec;
@@ -2023,14 +2024,14 @@ static float *sphere_sampler(int type, int resol, int xs, int ys)
 		float ang, *vec1;
 		int a;
 		
-		sphere= threadsafe_table_sphere(1, xs, ys);	// returns table if xs and ys were equal to last call
+		sphere= threadsafe_table_sphere(1, thread, xs, ys);	// returns table if xs and ys were equal to last call
 		if(sphere==NULL) {
-			sphere= threadsafe_table_sphere(0, xs, ys);
+			sphere= threadsafe_table_sphere(0, thread, xs, ys);
 			
 			// random rotation
-			ang= BLI_thread_frand(ys & 1);
+			ang= BLI_thread_frand(thread);
 			sinfi= sin(ang); cosfi= cos(ang);
-			ang= BLI_thread_frand(ys & 1);
+			ang= BLI_thread_frand(thread);
 			sint= sin(ang); cost= cos(ang);
 			
 			vec= R.wrld.aosphere;
@@ -2047,11 +2048,11 @@ static float *sphere_sampler(int type, int resol, int xs, int ys)
 
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
-void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
+void ray_ao(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0;
-	float maxdist = wrld->aodist;
+	float maxdist = R.wrld.aodist;
 	int j= -1, tot, actual=0, skyadded=0;
 
 	isec.vlrorig= shi->vlr;
@@ -2071,10 +2072,10 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 		nrm= shi->facenor;
 	}
 	
-	vec= sphere_sampler(wrld->aomode, wrld->aosamp, floor(shi->xs+0.5), floor(shi->ys+0.5) );
+	vec= sphere_sampler(R.wrld.aomode, R.wrld.aosamp, shi->thread, shi->xs, shi->ys);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
-	tot= 2*wrld->aosamp*wrld->aosamp;
+	tot= 2*R.wrld.aosamp*R.wrld.aosamp;
 
 	while(tot--) {
 		
@@ -2099,10 +2100,10 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 			
 			/* do the trace */
 			if (d3dda(&isec)) {
-				if (wrld->aomode & WO_AODIST) sh+= exp(-isec.labda*wrld->aodistfac); 
+				if (R.wrld.aomode & WO_AODIST) sh+= exp(-isec.labda*R.wrld.aodistfac); 
 				else sh+= 1.0;
 			}
-			else if(wrld->aocolor!=WO_AOPLAIN) {
+			else if(R.wrld.aocolor!=WO_AOPLAIN) {
 				float skycol[4];
 				float fac, view[3];
 				
@@ -2111,14 +2112,14 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 				view[2]= -vec[2];
 				Normalise(view);
 				
-				if(wrld->aocolor==WO_AOSKYCOL) {
+				if(R.wrld.aocolor==WO_AOSKYCOL) {
 					fac= 0.5*(1.0+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
 					shadfac[0]+= (1.0-fac)*R.wrld.horr + fac*R.wrld.zenr;
 					shadfac[1]+= (1.0-fac)*R.wrld.horg + fac*R.wrld.zeng;
 					shadfac[2]+= (1.0-fac)*R.wrld.horb + fac*R.wrld.zenb;
 				}
 				else {
-					shadeSkyPixelFloat(skycol, view, NULL);
+					shadeSkyPixelFloat(skycol, NULL, view, isec.start);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];
@@ -2133,7 +2134,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	if(actual==0) shadfac[3]= 1.0;
 	else shadfac[3] = 1.0 - sh/((float)actual);
 	
-	if(wrld->aocolor!=WO_AOPLAIN && skyadded) {
+	if(R.wrld.aocolor!=WO_AOPLAIN && skyadded) {
 		div= shadfac[3]/((float)skyadded);
 		
 		shadfac[0]*= div;	// average color times distances/hits formula
@@ -2162,9 +2163,9 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
-		lampco[0]= shi->co[0] - g_oc.ocsize*lar->vec[0];
-		lampco[1]= shi->co[1] - g_oc.ocsize*lar->vec[1];
-		lampco[2]= shi->co[2] - g_oc.ocsize*lar->vec[2];
+		lampco[0]= shi->co[0] - R.oc.ocsize*lar->vec[0];
+		lampco[1]= shi->co[1] - R.oc.ocsize*lar->vec[1];
+		lampco[2]= shi->co[2] - R.oc.ocsize*lar->vec[2];
 	}
 	else {
 		VECCOPY(lampco, lar->co);
@@ -2202,7 +2203,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		else shadfac[3]= 1.0;							// 1.0=full light
 		
 		fac= 0.0;
-		jitlamp= give_jitter_plane(lar, floor(shi->xs+0.5), floor(shi->ys+0.5));
+		jitlamp= give_jitter_plane(lar, shi->thread, shi->xs, shi->ys);
 
 		a= lar->ray_totsamp;
 		
@@ -2271,4 +2272,45 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(shi->depth==0) lar->vlr_last= isec.vlr_last;
 
 }
+
+/* only when face points away from lamp, in direction of lamp, trace ray and find first exit point */
+void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
+{
+	Isect isec;
+	float lampco[3];
+	
+	/* setup isec */
+	isec.mode= DDA_SHADOW_TRA;
+	
+	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
+	
+	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
+		lampco[0]= shi->co[0] - R.oc.ocsize*lar->vec[0];
+		lampco[1]= shi->co[1] - R.oc.ocsize*lar->vec[1];
+		lampco[2]= shi->co[2] - R.oc.ocsize*lar->vec[2];
+	}
+	else {
+		VECCOPY(lampco, lar->co);
+	}
+	
+	isec.vlrorig= shi->vlr;
+	
+	/* set up isec vec */
+	VECCOPY(isec.start, shi->co);
+	VECCOPY(isec.end, lampco);
+	
+	if( d3dda(&isec)) {
+		/* we got a face */
+		
+		/* render co */
+		co[0]= isec.start[0]+isec.labda*(isec.vec[0]);
+		co[1]= isec.start[1]+isec.labda*(isec.vec[1]);
+		co[2]= isec.start[2]+isec.labda*(isec.vec[2]);
+		
+		*distfac= VecLength(isec.vec);
+	}
+	else
+		*distfac= 0.0f;
+}
+
 

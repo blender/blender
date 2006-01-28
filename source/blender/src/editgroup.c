@@ -42,14 +42,15 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_space.h"
 #include "BIF_interface.h"
-#include "BIF_toolbox.h"
 #include "BIF_editgroup.h"
+#include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -58,115 +59,73 @@
 #include <config.h>
 #endif
 
-void set_active_group(void)
+void add_selected_to_group(Group *group)
 {
-	/* with active object, find active group */
-	Group *group;
-	GroupObject *go;
+	Base *base;
 	
-	G.scene->group= NULL;
-	
-	if(BASACT) {
-		group= G.main->group.first;
-		while(group) {
-			go= group->gobject.first;
-			while(go) {
-				if(go->ob == OBACT) {
-					G.scene->group= group;
-					return;
-				}
-				go= go->next;
-			}
-			group= group->id.next;
-		}
-	}
-}
-
-
-void add_selected_to_group(void)
-{
-	Base *base= FIRSTBASE;
-	Group *group;
-	
-	if(BASACT==NULL) {
-		error("No active object");
-		return;
-	}
-	
-	if(okee("Add selected to group")==0) return;
-	
-	if(G.scene->group==NULL) G.scene->group= add_group();
-	
-	while(base) {
+	for(base=FIRSTBASE; base; base= base->next) {
 		if TESTBASE(base) {
-			
-			/* each object only in one group */
-			group= find_group(base->object);
-			if(group==G.scene->group);
-			else {
-				if(group) {
-					rem_from_group(group, base->object);
-				}
-				add_to_group(G.scene->group, base->object);
-				base->object->flag |= OB_FROMGROUP;
-				base->flag |= OB_FROMGROUP;
-			}
+			add_to_group(group, base->object);
+			base->object->flag |= OB_FROMGROUP;
+			base->flag |= OB_FROMGROUP;
 		}
-		base= base->next;
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	DAG_scene_sort(G.scene);
+	BIF_undo_push("Add to Group");
 }
 
 void rem_selected_from_group(void)
 {
-	Base *base=FIRSTBASE;
+	Base *base;
 	Group *group;
 	
-	if(okee("Remove selected from group")==0) return;
-
-	while(base) {
+	for(base=FIRSTBASE; base; base= base->next) {
 		if TESTBASE(base) {
 
-			group= find_group(base->object);
-			if(group) {
+			while( (group = find_group(base->object)) ) {
 				rem_from_group(group, base->object);
-			
-				base->object->flag &= ~OB_FROMGROUP;
-				base->flag &= ~OB_FROMGROUP;
 			}
+			base->object->flag &= ~OB_FROMGROUP;
+			base->flag &= ~OB_FROMGROUP;
 		}
-		base= base->next;
 	}
 	
+	DAG_scene_sort(G.scene);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	BIF_undo_push("Remove from Group");
 }
 
-void prev_group_key(Group *group)
+void group_operation_with_menu(void)
 {
-	GroupKey *gk= group->active;
+	Base *base;
+	Group *group= NULL;
+	int mode;
 	
-	if(gk) gk= gk->prev;
+	for(base=FIRSTBASE; base; base= base->next) {
+		if TESTBASE(base) {
+			group= find_group(base->object);
+			if(group) break;
+		}
+	}
 	
-	if(gk==NULL) group->active= group->gkey.last;
-	else group->active= gk;
+	if(group && group->id.lib) {
+		error("Cannot edit library data");
+		return;
+	}
 	
-	set_group_key(group);
+	if(base)
+		mode= pupmenu("Groups %t|Add to current Group %x3|Add to New Group %x1|Remove from all Groups %x2");
+	else
+		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from all Groups %x2");
+	
+	if(mode>0) {
+		if(group==NULL || mode==1) group= add_group();
+		
+		if(mode==1 || mode==3) add_selected_to_group(group);
+		else if(mode==2) rem_selected_from_group();
+	}
 }
-
-void next_group_key(Group *group)
-{
-	GroupKey *gk= group->active;
-	
-	if(gk) gk= gk->next;
-	
-	if(gk==NULL) group->active= group->gkey.first;
-	else group->active= gk;
-	
-	set_group_key(group);
-	
-}
-
-

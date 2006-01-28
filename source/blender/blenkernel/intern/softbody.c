@@ -546,7 +546,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	
 	/* check! */
 	do_deflector= is_there_deflection(ob->lay);
-	do_effector= pdInitEffectors(ob);
+	do_effector= pdInitEffectors(ob, NULL);
 	
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */

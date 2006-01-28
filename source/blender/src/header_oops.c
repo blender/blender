@@ -1,20 +1,12 @@
 /**
- * header_oops.c oct-2003
- *
- * Functions to draw the "OOPS Schematic" window header
- * and handle user events sent to it.
- * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,11 +20,11 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * The Original Code is: not all of this file anymore.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -485,7 +477,7 @@ void oops_buttons(void)
 	} 
 #endif
 	else {
-		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Same Types %x5|Selected %x3|Active %x4",	 xco, 0, 100, 20,  &soops->outlinevis, 0, 0, 0, 0, "");
+		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4",	 xco, 0, 100, 20,  &soops->outlinevis, 0, 0, 0, 0, "");
 	}
 	
 	/* always do as last */

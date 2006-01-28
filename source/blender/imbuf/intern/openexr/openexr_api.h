@@ -1,7 +1,5 @@
-/*
- * renderhelp_ext.h
- *
- * $Id$
+/**
+ * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -27,38 +25,38 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Austin Benesh.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef RENDERHELP_EXT_H
-#define RENDERHELP_EXT_H 
+#ifndef _OPENEXR_API_H
+#define _OPENEXR_API_H
 
 #ifdef __cplusplus
-extern "C" { 
+extern "C" {
 #endif
 
-	/* Push-pop, because this sometimes is necessary... */
-	void pushTempPanoPhi(float p);
-	void popTempPanoPhi(void);
+#define OPENEXR_FLOATRGB 0x1
+#define OPENEXR_ZBUF 0x2
+  
+#include <stdio.h>
+  
+  /**
+ * Test presence of OpenEXR file.
+ * @param mem pointer to loaded OpenEXR bitstream
+ */
+  
+int imb_is_a_openexr(unsigned char *mem);
 	
-	float getPanoPhi(void);
-	float getPanovCo(void);
-	float getPanovSi(void);
-	void setPanoRot(int part);
+short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags);
 
-	/** Set clip flags on all data entries, using the given projection
-	 * function */
-	void setzbufvlaggen( void (*projectfunc)(float *, float *) );
-
-/* external for the time being, since the converter calls it. */
-/** Recalculate all normals on renderdata. */
-/*  	void set_normalflags(void); */
+struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
 
+
+#endif /* __OPENEXR_API_H */

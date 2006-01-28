@@ -39,14 +39,11 @@
 #include <list>
 using namespace std;
 
-class IK_QSolver {
-public:
-	IK_QSolver() {};
-
+typedef struct {
 	IK_QJacobianSolver solver;
 	IK_QSegment *root;
 	std::list<IK_QTask*> tasks;
-};
+} IK_QSolver;
 
 IK_QSegment *CreateSegment(int flag, bool translate)
 {

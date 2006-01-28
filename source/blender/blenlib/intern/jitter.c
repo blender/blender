@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -39,16 +36,10 @@
 
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
-#include "render.h"
-#include "jitter.h"
+#include "BLI_jitter.h"
 
 
-float jit[64][2];
-
-void init_render_jit(int nr);
-
-
-void RE_jitterate1(float *jit1, float *jit2, int num, float rad1)
+void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 {
 	int i , j , k;
 	float vecx, vecy, dvecx, dvecy, x, y, len;
@@ -106,7 +97,7 @@ void RE_jitterate1(float *jit1, float *jit2, int num, float rad1)
 	memcpy(jit1,jit2,2 * num * sizeof(float));
 }
 
-void RE_jitterate2(float *jit1, float *jit2, int num, float rad2)
+void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
 {
 	int i, j;
 	float vecx, vecy, dvecx, dvecy, x, y;
@@ -146,7 +137,7 @@ void RE_jitterate2(float *jit1, float *jit2, int num, float rad2)
 }
 
 
-void initjit(float *jitarr, int num)
+void BLI_initjit(float *jitarr, int num)
 {
 	float *jit2, x, rad1, rad2, rad3;
 	int i;
@@ -168,9 +159,9 @@ void initjit(float *jitarr, int num)
 	}
 
 	for (i=0 ; i<24 ; i++) {
-		RE_jitterate1(jitarr, jit2, num, rad1);
-		RE_jitterate1(jitarr, jit2, num, rad1);
-		RE_jitterate2(jitarr, jit2, num, rad2);
+		BLI_jitterate1(jitarr, jit2, num, rad1);
+		BLI_jitterate1(jitarr, jit2, num, rad1);
+		BLI_jitterate2(jitarr, jit2, num, rad2);
 	}
 
 	MEM_freeN(jit2);
@@ -183,16 +174,5 @@ void initjit(float *jitarr, int num)
 	
 }
 
-void init_render_jit(int nr)
-{
-	static int lastjit= 0;
-	
-	if(lastjit==nr) return;
-
-	memset(jit, 0, 64*2*4);
-	initjit(jit[0], nr);
-
-	lastjit= nr;
-}
 
 /* eof */

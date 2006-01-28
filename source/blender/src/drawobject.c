@@ -158,7 +158,7 @@ static int set_gl_material(int nr)
 }
 
 /* returns 1: when there's alpha needed to be drawn in a 2nd pass */
-static int init_gl_materials(Object *ob)
+static int init_gl_materials(Object *ob, int check_alpha)
 {
 	extern Material defmaterial;	// render module abuse...
 	Material *ma;
@@ -189,7 +189,7 @@ static int init_gl_materials(Object *ob)
 			matbuf[a][0][2]= (ma->ref+ma->emit)*ma->b;
 			
 			/* draw transparent, not in pick-select, nor editmode */
-			if(!(G.f & G_PICKSEL) && (ob->dtx & OB_DRAWTRANSP) && !(G.obedit && G.obedit->data==ob->data)) {
+			if(check_alpha && !(G.f & G_PICKSEL) && (ob->dtx & OB_DRAWTRANSP) && !(G.obedit && G.obedit->data==ob->data)) {
 				if(G.vd->transp) {	// drawing the transparent pass
 					if(ma->alpha==1.0) matbuf[a][0][3]= 0.0;	// means skip solid
 					else matbuf[a][0][3]= ma->alpha;
@@ -222,7 +222,7 @@ static unsigned int colortab[24]=
 	{0x0,		0xFF88FF, 0xFFBBFF, 
 	 0x403000,	0xFFFF88, 0xFFFFBB, 
 	 0x104040,	0x66CCCC, 0x77CCCC, 
-	 0x101040,	0x5588FF, 0x88BBFF, 
+	 0x104010,	0x55BB55, 0x66FF66, 
 	 0xFFFFFF
 };
 
@@ -239,44 +239,67 @@ static float cube[8][3] = {
 };
 
 /* flag is same as for draw_object */
-void drawaxes(float size, int flag)
+void drawaxes(float size, int flag, char drawtype)
 {
+	View3D *v3d= G.vd;
 	int axis;
-
-	for (axis=0; axis<3; axis++) {
-		float v1[3]= {0.0, 0.0, 0.0};
-		float v2[3]= {0.0, 0.0, 0.0};
-		int arrow_axis= (axis==0)?1:0;
-		
-		glBegin(GL_LINES);
-
-		v2[axis]= size;
-		glVertex3fv(v1);
-		glVertex3fv(v2);
+	float vec[3]= {0.0, 0.0, 0.0};
+	
+	switch(drawtype) {
+	
+	case OB_PLAINAXES:
+		for (axis=0; axis<3; axis++) {
+			float v1[3]= {0.0, 0.0, 0.0};
+			float v2[3]= {0.0, 0.0, 0.0};
 			
-		v1[axis]= size*0.8;
-		v1[arrow_axis]= -size*0.125;
-		glVertex3fv(v1);
-		glVertex3fv(v2);
-			
-		v1[arrow_axis]= size*0.125;
-		glVertex3fv(v1);
-		glVertex3fv(v2);
+			glBegin(GL_LINES);
 
-		glEnd();
+			v1[axis]= size;
+			v2[axis]= -size;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
 			
-		v2[axis]+= size*0.125;
-		glRasterPos3fv(v2);
-		
-		// patch for 3d cards crashing on glSelect for text drawing (IBM)
-		if((flag & DRAW_PICKING) == 0) {
-			if (axis==0)
-				BMF_DrawString(G.font, "x");
-			else if (axis==1)
-				BMF_DrawString(G.font, "y");
-			else
-				BMF_DrawString(G.font, "z");
+			glEnd();
 		}
+		break;
+	case OB_ARROWS:
+	default:
+		for (axis=0; axis<3; axis++) {
+			float v1[3]= {0.0, 0.0, 0.0};
+			float v2[3]= {0.0, 0.0, 0.0};
+			int arrow_axis= (axis==0)?1:0;
+			
+			glBegin(GL_LINES);
+
+			v2[axis]= size;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+				
+			v1[axis]= size*0.8;
+			v1[arrow_axis]= -size*0.125;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+				
+			v1[arrow_axis]= size*0.125;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+
+			glEnd();
+				
+			v2[axis]+= size*0.125;
+			glRasterPos3fv(v2);
+			
+			// patch for 3d cards crashing on glSelect for text drawing (IBM)
+			if((flag & DRAW_PICKING) == 0) {
+				if (axis==0)
+					BMF_DrawString(G.font, "x");
+				else if (axis==1)
+					BMF_DrawString(G.font, "y");
+				else
+					BMF_DrawString(G.font, "z");
+			}
+		}
+		break;
 	}
 }
 
@@ -1754,8 +1777,9 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	return 1;
 }
 
-static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, int dt)
+static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, int dt)
 {
+	Object *ob= base->object;
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
@@ -1780,7 +1804,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 	}
 	else if( (ob==OBACT && (G.f & G_FACESELECT)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
 		
-		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
+		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
 			draw_mesh_object_outline(ob, dm);
 		}
 
@@ -1788,7 +1812,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 	}
 	else if(dt==OB_SOLID ) {
 		
-		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
+		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire) {
 			draw_mesh_object_outline(ob, dm);
 		}
 
@@ -1802,7 +1826,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
 
-		if(ob->flag & SELECT) {
+		if(base->flag & SELECT) {
 			BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 		} else {
 			BIF_ThemeColor(TH_WIRE);
@@ -1842,11 +1866,11 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 		if(do_draw) {
 			dl = ob->disp.first;
 			if (!dl || !dl->col1) {
-				shadeDispList(ob);
+				shadeDispList(base);
 				dl = find_displist(&ob->disp, DL_VERTCOL);
 			}
 
-			if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
+			if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire) {
 				draw_mesh_object_outline(ob, dm);
 			}
 
@@ -1858,7 +1882,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 				dm->drawFacesColored(dm, me->flag&ME_TWOSIDED, (unsigned char*) obCol1, (unsigned char*) obCol2);
 			}
 
-			if(ob->flag & SELECT) {
+			if(base->flag & SELECT) {
 				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			} else {
 				BIF_ThemeColor(TH_WIRE);
@@ -1872,7 +1896,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 				* overlaying the wires.
 				*/
 		if (dt!=OB_WIRE) {
-			if(ob->flag & SELECT) {
+			if(base->flag & SELECT) {
 				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			} else {
 				BIF_ThemeColor(TH_WIRE);
@@ -1920,7 +1944,7 @@ static int draw_mesh_object(Base *base, int dt)
 			cageDM = editmesh_get_derived_cage_and_final(&finalDM, &cageNeedsFree, &finalNeedsFree);
 		}
 
-		if(dt>OB_WIRE) init_gl_materials(ob);	// no transp in editmode, the fancy draw over goes bad then
+		if(dt>OB_WIRE) init_gl_materials(ob, 0);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
 
 		if (cageNeedsFree) cageDM->release(cageDM);
@@ -1934,8 +1958,8 @@ static int draw_mesh_object(Base *base, int dt)
 			DerivedMesh *baseDM = mesh_get_derived_deform(ob, &baseDMneedsFree);
 			DerivedMesh *realDM = mesh_get_derived_final(ob, &realDMneedsFree);
 
-			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob);
-			if(baseDM && realDM) draw_mesh_fancy(ob, baseDM, realDM, dt);
+			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
+			if(baseDM && realDM) draw_mesh_fancy(base, baseDM, realDM, dt);
 			
 			if(me->totvert==0) retval= 1;
 			
@@ -2358,8 +2382,9 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 }
 
 /* returns 1 when nothing was drawn */
-static int drawDispList(Object *ob, int dt)
+static int drawDispList(Base *base, int dt)
 {
+	Object *ob= base->object;
 	ListBase *lb=0;
 	DispList *dl;
 	Curve *cu;
@@ -2388,11 +2413,11 @@ static int drawDispList(Object *ob, int dt)
 			}
 			else {
 				if(dt==OB_SHADED) {
-					if(ob->disp.first==0) shadeDispList(ob);
+					if(ob->disp.first==0) shadeDispList(base);
 					drawDispListshaded(lb, ob);
 				}
 				else {
-					init_gl_materials(ob);
+					init_gl_materials(ob, 0);
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob);
 				}
@@ -2422,11 +2447,11 @@ static int drawDispList(Object *ob, int dt)
 			if(dl->nors==NULL) addnormalsDispList(ob, lb);
 			
 			if(dt==OB_SHADED) {
-				if(ob->disp.first==NULL) shadeDispList(ob);
+				if(ob->disp.first==NULL) shadeDispList(base);
 				drawDispListshaded(lb, ob);
 			}
 			else {
-				init_gl_materials(ob);
+				init_gl_materials(ob, 0);
 				glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 			
 				drawDispListsolid(lb, ob);
@@ -2447,11 +2472,11 @@ static int drawDispList(Object *ob, int dt)
 				
 				if(dt==OB_SHADED) {
 					dl= lb->first;
-					if(dl && dl->col1==0) shadeDispList(ob);
+					if(dl && dl->col1==0) shadeDispList(base);
 					drawDispListshaded(lb, ob);
 				}
 				else {
-					init_gl_materials(ob);
+					init_gl_materials(ob, 0);
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 				
 					drawDispListsolid(lb, ob);	
@@ -2474,17 +2499,19 @@ static int drawDispList(Object *ob, int dt)
 static void draw_particle_system(Object *ob, PartEff *paf)
 {
 	Particle *pa;
-	float ptime, ctime, vec[3], vec1[3];
+	float ptime, ctime, vec[3], vec1[3], mat[4][4];
 	int a, totpart;
 	
 	pa= paf->keys;
-	if(pa==0) {
+	if(pa==NULL) {
 		build_particle_system(ob);
 		pa= paf->keys;
-		if(pa==0) return;
+		if(pa==NULL) return;
 	}
 	
 	myloadmatrix(G.vd->viewmat);
+	Mat4MulMat4(mat, paf->imat, ob->obmat);
+	mymultmatrix(mat);
 	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
@@ -2521,6 +2548,7 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 	}
 	if(paf->stype!=PAF_VECT) glEnd();
 	
+	myloadmatrix(G.vd->viewmat);
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
 }
 
@@ -2795,15 +2823,16 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 	}
 }
 
-static void drawnurb(Object *ob, Nurb *nurb, int dt)
+static void drawnurb(Base *base, Nurb *nurb, int dt)
 {
+	Object *ob= base->object;
 	Curve *cu = ob->data;
 	Nurb *nu;
 	BevList *bl;
 
 	/* DispList */
 	BIF_ThemeColor(TH_WIRE);
-	drawDispList(ob, dt);
+	drawDispList(base, dt);
 
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
@@ -3072,8 +3101,9 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 }
 
 /* return 1 if nothing was drawn */
-static int drawmball(Object *ob, int dt)
+static int drawmball(Base *base, int dt)
 {
+	Object *ob= base->object;
 	MetaBall *mb;
 	MetaElem *ml;
 	float imat[4][4], tmat[4][4];
@@ -3083,11 +3113,12 @@ static int drawmball(Object *ob, int dt)
 
 	if(ob==G.obedit) {
 		BIF_ThemeColor(TH_WIRE);
-		if((G.f & G_PICKSEL)==0 ) drawDispList(ob, dt);
+		if((G.f & G_PICKSEL)==0 ) drawDispList(base, dt);
 		ml= editelems.first;
 	}
 	else {
-		drawDispList(ob, dt);
+		if((base->flag & OB_FROMDUPLI)==0) 
+			drawDispList(base, dt);
 		ml= mb->elems.first;
 	}
 
@@ -3412,7 +3443,8 @@ static void drawSolidSelect(Base *base)
 			drawDispListwire(&cu->disp);
 		}
 	} else if (ob->type==OB_MBALL) {
-		drawDispListwire(&ob->disp);
+		if((base->flag & OB_FROMDUPLI)==0) 
+			drawDispListwire(&ob->disp);
 	}
 	else if(ob->type==OB_ARMATURE) {
 		if(!(ob->flag & OB_POSEMODE)) {
@@ -3501,7 +3533,7 @@ void draw_object(Base *base, int flag)
 	ob= base->object;
 
 	/* xray delay? */
-	if((flag & DRAW_PICKING)==0) {
+	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
 		/* xray and transp are set when it is drawing the 2nd/3rd pass */
 		if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
 			add_view3d_after(G.vd, base, V3D_XRAY);
@@ -3610,8 +3642,18 @@ void draw_object(Base *base, int flag)
 				else colindex = 3;
 			}
 			else if(warning_recursive==1) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) colindex = 7;
+				if(base->flag & (SELECT+BA_WAS_SEL)) {
+					if(G.scene->basact==base) colindex = 8;
+					else colindex= 7;
+				}
 				else colindex = 6;
+			}
+			else if(ob->flag & OB_FROMGROUP) {
+				if(base->flag & (SELECT+BA_WAS_SEL)) {
+					if(G.scene->basact==base) colindex = 11;
+					else colindex= 10;
+				}
+				else colindex = 9;
 			}
 
 		}	
@@ -3699,10 +3741,10 @@ void draw_object(Base *base, int flag)
 			if (cu->flag & CU_FAST) {
 				cpack(0xFFFFFF);
 				set_inverted_drawing(1);
-				drawDispList(ob, OB_WIRE);
+				drawDispList(base, OB_WIRE);
 				set_inverted_drawing(0);
 			} else {
-				drawDispList(ob, dt);
+				drawDispList(base, dt);
 			}
 
 			if (cu->linewidth != 0.0) {
@@ -3777,7 +3819,7 @@ void draw_object(Base *base, int flag)
 		else if(dt==OB_BOUNDBOX) 
 			draw_bounding_volume(ob);
 		else if(boundbox_clip(ob->obmat, cu->bb)) 
-			empty_object= drawDispList(ob, dt);
+			empty_object= drawDispList(base, dt);
 			
 		break;
 	case OB_CURVE:
@@ -3787,24 +3829,24 @@ void draw_object(Base *base, int flag)
 		if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
 		
 		if(ob==G.obedit) {
-			drawnurb(ob, editNurb.first, dt);
+			drawnurb(base, editNurb.first, dt);
 		}
 		else if(dt==OB_BOUNDBOX) 
 			draw_bounding_volume(ob);
 		else if(boundbox_clip(ob->obmat, cu->bb)) 
-			empty_object= drawDispList(ob, dt);
+			empty_object= drawDispList(base, dt);
 		
 		break;
 	case OB_MBALL:
 		if(ob==G.obedit) 
-			drawmball(ob, dt);
+			drawmball(base, dt);
 		else if(dt==OB_BOUNDBOX) 
 			draw_bounding_volume(ob);
 		else 
-			empty_object= drawmball(ob, dt);
+			empty_object= drawmball(base, dt);
 		break;
 	case OB_EMPTY:
-		drawaxes(1.0, flag);
+		drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
 		break;
 	case OB_LAMP:
 		drawlamp(ob);
@@ -3821,7 +3863,7 @@ void draw_object(Base *base, int flag)
 		empty_object= draw_armature(base, dt);
 		break;
 	default:
-		drawaxes(1.0, flag);
+		drawaxes(1.0, flag, OB_ARROWS);
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
@@ -3830,7 +3872,7 @@ void draw_object(Base *base, int flag)
 	if(dtx) {
 		if(G.f & G_SIMULATION);
 		else if(dtx & OB_AXIS) {
-			drawaxes(1.0f, flag);
+			drawaxes(1.0f, flag, OB_ARROWS);
 		}
 		if(dtx & OB_BOUNDBOX) draw_bounding_volume(ob);
 		if(dtx & OB_TEXSPACE) drawtexspace(ob);
@@ -3884,7 +3926,7 @@ void draw_object(Base *base, int flag)
 	}
 
 	/* not for sets, duplicators or picking */
-	if(flag==0) {
+	if(flag==0 && (!(G.vd->flag & V3D_HIDE_HELPLINES))) {
 		ListBase *list;
 
 		/* draw hook center and offset line */
@@ -4122,5 +4164,55 @@ void draw_object_backbufsel(Object *ob)
 	}
 
 	myloadmatrix(G.vd->viewmat);
-
 }
+
+
+/* ************* draw object instances for bones, for example ****************** */
+/*               assumes all matrices/etc set OK */
+
+void draw_object_instance(Object *ob, int dt, int outline)
+{
+	DerivedMesh *dm=NULL, *edm=NULL;
+	int needsfree= 1;
+	
+	if(ob==NULL || ob->type!=OB_MESH) return;
+	
+	if(G.obedit && ob->data==G.obedit->data)
+		edm= editmesh_get_derived_base();
+	else 
+		dm = mesh_get_derived_final(ob, &needsfree);
+
+	if(dt<=OB_WIRE) {
+		if(dm)
+			dm->drawEdges(dm, 1);
+		else if(edm)
+			edm->drawEdges(edm, 1);	
+	}
+	else {
+		if(outline)
+			draw_mesh_object_outline(ob, dm?dm:edm);
+
+		if(dm)
+			init_gl_materials(ob, 0);
+		else {
+			glEnable(GL_COLOR_MATERIAL);
+			BIF_ThemeColor(TH_BONE_SOLID);
+			glDisable(GL_COLOR_MATERIAL);
+		}
+		
+		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+		glEnable(GL_LIGHTING);
+		
+		if(dm)
+			dm->drawFacesSolid(dm, set_gl_material);
+		else if(edm)
+			edm->drawMappedFaces(edm, NULL, NULL, 0);
+		
+		glDisable(GL_LIGHTING);
+	}
+
+	if(edm) edm->release(edm);
+	if(dm && needsfree) dm->release(dm);
+}
+

@@ -48,7 +48,9 @@ struct Image;
 struct SpaceIpo;
 struct BlendHandle;
 struct TreeStore;
-
+struct RenderInfo;
+struct bNodeTree;
+struct uiBlock;
 
 	/**
 	 * The base structure all the other spaces
@@ -106,6 +108,7 @@ typedef struct SpaceButs {
 	int spacetype;
 	float blockscale;
 	struct ScrArea *area;
+	struct RenderInfo *ri;
 
 	short blockhandler[8];
 
@@ -120,15 +123,13 @@ typedef struct SpaceButs {
 	short texnr;
 	char texfrom, showgroup;
 	
-	short rectx, recty;		/* preview render */
-	unsigned int *rect;
-	short cury, modeltype;
-
+	short modeltype;
 	short scriptblock;
 	short scaflag;
-	short re_align, pad1;
+	short re_align;
 	
-	int oldkeypress;		/* for keeping track of the sub tab key cycling */
+	short oldkeypress;		/* for keeping track of the sub tab key cycling */
+	char use_nodes, pad;
 	
 	char texact, tab[7];	/* storing tabs for each context */
 		
@@ -218,6 +219,7 @@ typedef struct SpaceImage {
 	View2D v2d;
 	
 	struct Image *image;
+	struct CurveMapping *cumap;
 	float zoom;
 	short mode, menunr;
 	short imanr, curtile;
@@ -292,7 +294,26 @@ typedef struct SpaceTime {
 	
 } SpaceTime;
 
+typedef struct SpaceNode {
+	SpaceLink *next, *prev;
+	int spacetype;
+	float blockscale;
+	struct ScrArea *area;
+	
+	View2D v2d;
+	
+	struct ID *id, *from;		/* context, no need to save in file? well... pinning... */
+	short flag, menunr;			/* menunr: browse id block in header */
+	float aspect;
+	void *curfont;
+	
+	struct bNodeTree *nodetree, *edittree;
+	int treetype, pad;			/* treetype: as same nodetree->type */
+	
+} SpaceNode;
 
+/* snode->flag */
+#define SNODE_DO_PREVIEW	1
 
 #
 #
@@ -445,6 +466,10 @@ typedef struct SpaceImaSel {
 #define SI_COORDFLOATS  512
 #define SI_PIXELSNAP	1024
 #define SI_LSCM_LIVE	2048
+#define SI_USE_ALPHA	4096
+#define SI_SHOW_ALPHA	8192
+#define SI_SHOW_ZBUF	16384
+
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 
@@ -483,6 +508,7 @@ typedef struct SpaceImaSel {
 #define SO_SELECTED		3
 #define SO_ACTIVE		4
 #define SO_SAME_TYPE	5
+#define SO_GROUPS		6
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1

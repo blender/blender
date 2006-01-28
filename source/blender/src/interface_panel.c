@@ -72,6 +72,7 @@
 #include "BIF_keyval.h"
 #include "BIF_mainqueue.h"
 
+#include "BIF_previewrender.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 #include "BIF_mywindow.h"
@@ -344,7 +345,6 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad,
 		color[3]= 0.5;
 		glColor4fv(color);
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 	
 	/* solid part */
@@ -357,7 +357,6 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad,
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	/* top shade */
 	gl_round_box_topshade(minx+1, miny+1, maxx-1, maxy-1, rad);
@@ -387,13 +386,11 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 		color[3]= 0.5;
 		glColor4fv(color);
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 	
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
@@ -413,7 +410,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 		color[3]= 0.5;
 		glColor4fv(color);
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
 	
 	/* solid part */
@@ -422,7 +418,6 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
@@ -473,7 +468,7 @@ void uiSetPanelHandler(int handler)
 /* return 1 if visible (create buttons!) */
 int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey)
 {
-	Panel *pa, *palign;
+	Panel *pa;
 	
 	/* check if Panel exists, then use that one */
 	pa= sa->panels.first;
@@ -487,10 +482,14 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	}
 	
 	if(pa) {
-		if(pa->sizex != sizex) {
+		/* scale correction */
+		if(pa->control & UI_PNL_SCALE);
+		else {
 			pa->sizex= sizex;
-			pa->ofsy+= (pa->sizey - sizey);	// check uiNewPanelHeight()
-			pa->sizey= sizey; 
+			if(pa->sizey != sizey) {
+				pa->ofsy+= (pa->sizey - sizey);	// check uiNewPanelHeight()
+				pa->sizey= sizey; 
+			}
 		}
 	}
 	else {
@@ -506,18 +505,6 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		pa->sizex= sizex;
 		pa->sizey= sizey;
 		
-		/* pre align, for good sorting later on */
-		if(sa->spacetype==SPACE_BUTS && pa->prev) {
-			SpaceButs *sbuts= sa->spacedata.first;
-			
-			palign= pa->prev;
-			if(sbuts->align==BUT_VERTICAL) {
-				pa->ofsy= palign->ofsy - pa->sizey - PNL_HEADER;
-			}
-			else if(sbuts->align==BUT_HORIZONTAL) {
-				pa->ofsx= palign->ofsx + palign->sizex;
-			}
-		}
 		/* make new Panel tabbed? */
 		if(panel_tabbed && group_tabbed) {
 			Panel *papar;
@@ -652,7 +639,7 @@ void uiSetPanel_view2d(ScrArea *sa)
 	
 	pa= sa->panels.first;
 	while(pa) {
-		if(pa->active) {
+		if(pa->active && pa->paneltab==NULL) {
 			done= 1;
 			if(pa->ofsx < minx) minx= pa->ofsx;
 			if(pa->ofsx+pa->sizex > maxx) maxx= pa->ofsx+pa->sizex;
@@ -696,7 +683,7 @@ void uiMatchPanel_view2d(ScrArea *sa)
 	
 	pa= sa->panels.first;
 	while(pa) {
-		if(pa->active) {
+		if(pa->active && pa->paneltab==NULL) {
 			done= 1;
 			if(pa->ofsx < G.v2d->tot.xmin) G.v2d->tot.xmin= pa->ofsx;
 			if(pa->ofsx+pa->sizex > G.v2d->tot.xmax) 
@@ -752,19 +739,16 @@ uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name)
 
 static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
 {
-
 	// we draw twice, anti polygons not widely supported...
-
 	glBegin(GL_POLYGON);
 	glVertex2f(x1, y1);
 	glVertex2f(x2, y2);
 	glVertex2f(x3, y3);
 	glEnd();
-
+	
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	glBegin(GL_LINE_LOOP);
 	glVertex2f(x1, y1);
@@ -774,29 +758,25 @@ static void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, 
 	
 	glDisable( GL_LINE_SMOOTH );
 	glDisable( GL_BLEND );
-	
 }
 
 /* triangle 'icon' for panel header */
-static void ui_draw_tria_icon(float x, float y, float aspect, char dir)
+void ui_draw_tria_icon(float x, float y, float aspect, char dir)
 {
-	BIF_ThemeColor(TH_TEXT_HI);
-	
 	if(dir=='h') {
-		ui_draw_anti_tria( x, y+1, x, y+10.0, x+7, y+6.25);
+		ui_draw_anti_tria( x, y+1, x, y+10.0, x+8, y+6.25);
 	}
 	else {
-		ui_draw_anti_tria( x-2, y+8,  x+9-2, y+8, x+4.75-2, y+1);	
+		ui_draw_anti_tria( x-2, y+9,  x+8-2, y+9, x+4.25-2, y+1);	
 	}
 }
 
-static void ui_draw_anti_x(float x1, float y1, float x2, float y2)
+void ui_draw_anti_x(float x1, float y1, float x2, float y2)
 {
 
 	/* set antialias line */
 	glEnable( GL_LINE_SMOOTH );
 	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	glLineWidth(2.0);
 	
@@ -953,6 +933,30 @@ static void ui_draw_panel_header(uiBlock *block)
 	
 }
 
+static void ui_draw_panel_scalewidget(uiBlock *block)
+{
+	float xmin, xmax, dx;
+	float ymin, ymax, dy;
+	
+	xmin= block->maxx-PNL_HEADER+2;
+	xmax= block->maxx-3;
+	ymin= block->miny+3;
+	ymax= block->miny+PNL_HEADER-2;
+		
+	dx= 0.5f*(xmax-xmin);
+	dy= 0.5f*(ymax-ymin);
+	
+	glEnable(GL_BLEND);
+	glColor4ub(255, 255, 255, 50);
+	fdrawline(xmin, ymin, xmax, ymax);
+	fdrawline(xmin+dx, ymin, xmax, ymax-dy);
+	
+	glColor4ub(0, 0, 0, 50);
+	fdrawline(xmin, ymin+block->aspect, xmax, ymax+block->aspect);
+	fdrawline(xmin+dx, ymin+block->aspect, xmax, ymax-dy+block->aspect);
+	glDisable(GL_BLEND);
+}
+
 void ui_draw_panel(uiBlock *block)
 {
 	Panel *panel= block->panel;
@@ -1039,7 +1043,6 @@ void ui_draw_panel(uiBlock *block)
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
 
 			// blend now for panels in 3d window, test...
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
 			
@@ -1070,7 +1073,6 @@ void ui_draw_panel(uiBlock *block)
 			uiSetRoundBox(3);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
 			
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
 			glRectf(block->minx, block->miny, block->maxx, block->maxy);
@@ -1097,10 +1099,12 @@ void ui_draw_panel(uiBlock *block)
 			uiRoundRect(block->minx, block->miny, block->maxx, block->maxy+PNL_HEADER, 8);
 		}
 		
+		if(panel->control & UI_PNL_SCALE)
+			ui_draw_panel_scalewidget(block);
+		
 		/* and a soft shadow-line for now */
 		/*
 		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glColor4ub(0, 0, 0, 50);
 		fdrawline(block->maxx, block->miny, block->maxx, block->maxy+PNL_HEADER/2);
 		fdrawline(block->minx, block->miny, block->maxx, block->miny);
@@ -1117,13 +1121,15 @@ void ui_draw_panel(uiBlock *block)
 		ui_draw_x_icon(block->minx+2+ofsx, block->maxy+5);
 		/*
 		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
-		BIF_draw_icon(block->minx+4, block->maxy+3, ICON_PANEL_CLOSE);
+		BIF_icon_draw(block->minx+4, block->maxy+3, ICON_PANEL_CLOSE);
 		if(block->aspect>1.1) glPixelZoom(1.0, 1.0);
 		*/
 		ofsx= 22;
 	}
 
 	/* draw collapse icon */
+	
+	BIF_ThemeColor(TH_TEXT_HI);
 	
 	if(panel->flag & PNL_CLOSEDY)
 		ui_draw_tria_icon(block->minx+6+ofsx, block->maxy+5, block->aspect, 'h');
@@ -1263,7 +1269,7 @@ int uiAlignPanelStep(ScrArea *sa, float fac)
 	
 	for(a=0 ; a<tot-1; a++, ps++) {
 		psnext= ps+1;
-		
+	
 		if(sbuts->align==BUT_VERTICAL) {
 			psnext->pa->ofsx = ps->pa->ofsx;
 			psnext->pa->ofsy = get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-PNL_DIST;
@@ -1522,11 +1528,12 @@ static void test_add_new_tabs(ScrArea *sa)
 /* ------------ panel drag ---------------- */
 
 
-static void ui_drag_panel(uiBlock *block)
+static void ui_drag_panel(uiBlock *block, int doscale)
 {
 	Panel *panel= block->panel;
-	short align=0, first=1, ofsx, ofsy, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];
-
+	short align=0, first=1, dx=0, dy=0, dxo=0, dyo=0, mval[2], mvalo[2];
+	short ofsx, ofsy, sizex, sizey;
+	
 	if(curarea->spacetype==SPACE_BUTS) {
 		SpaceButs *sbuts= curarea->spacedata.first;
 		align= sbuts->align;
@@ -1535,8 +1542,14 @@ static void ui_drag_panel(uiBlock *block)
 	uiGetMouse(block->win, mvalo);
 	ofsx= block->panel->ofsx;
 	ofsy= block->panel->ofsy;
+	sizex= block->panel->sizex;
+	sizey= block->panel->sizey;
 
 	panel->flag |= PNL_SELECT;
+	
+	/* exception handling, 3d window preview panel */
+	if(block->drawextra==BIF_view3d_previewdraw)
+		BIF_view3d_previewrender_clear(curarea);
 	
 	while(TRUE) {
 	
@@ -1554,13 +1567,25 @@ static void ui_drag_panel(uiBlock *block)
 			dxo= dx; dyo= dy;		
 			first= 0;
 			
-			panel->ofsx = ofsx+dx;
-			panel->ofsy = ofsy+dy;
-			
-			check_panel_overlap(curarea, panel);
-			
-			if(align) uiAlignPanelStep(curarea, 0.2);
+			if(doscale) {
+				panel->sizex = MAX2(sizex+dx, UI_PANEL_MINX);
+				
+				if(sizey-dy < UI_PANEL_MINY) {
+					dy= -UI_PANEL_MINY+sizey;
+				}
+				panel->sizey = sizey-dy;
+				
+				panel->ofsy= ofsy+dy;
 
+			}
+			else {
+				panel->ofsx = ofsx+dx;
+				panel->ofsy = ofsy+dy;
+				check_panel_overlap(curarea, panel);
+				
+				if(align) uiAlignPanelStep(curarea, 0.2);
+			}
+			
 			/* warn: this re-allocs blocks! */
 			scrarea_do_windraw(curarea);
 			ui_redraw_select_panel(curarea);
@@ -1594,6 +1619,11 @@ static void ui_drag_panel(uiBlock *block)
 	
 	if(align==0) addqueue(block->win, REDRAW, 1);
 	else ui_animate_panels(curarea);
+	
+	/* exception handling, 3d window preview panel */
+	if(block->drawextra==BIF_view3d_previewdraw)
+		BIF_view3d_previewrender_signal(curarea, PR_DISPRECT);
+	
 }
 
 
@@ -1634,7 +1664,7 @@ static void ui_panel_untab(uiBlock *block)
 				pa= pa->next;
 			}
 			
-			ui_drag_panel(block);
+			ui_drag_panel(block, 0);
 			break;
 		
 		}
@@ -1808,16 +1838,25 @@ void ui_do_panel(uiBlock *block, uiEvent *uevent)
 			
 		}
 		else if(block->panel->flag & PNL_CLOSED) {
-			ui_drag_panel(block);
+			ui_drag_panel(block, 0);
 		}
 		/* check if clicked in tabbed area */
 		else if(uevent->mval[0] < block->maxx-PNL_ICON-3 && panel_has_tabs(block->panel)) {
 			panel_clicked_tabs(block, uevent->mval[0]);
 		}
 		else {
-			ui_drag_panel(block);
+			ui_drag_panel(block, 0);
 		}
 	}
+}
+
+/* panel with scaling widget */
+void ui_scale_panel(uiBlock *block)
+{
+	if(block->panel->flag & PNL_CLOSED)
+		return;
+	
+	ui_drag_panel(block, 1);
 }
 
 

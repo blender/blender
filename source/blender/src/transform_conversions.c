@@ -100,6 +100,7 @@
 #include "BIF_editsima.h"
 #include "BIF_gl.h"
 #include "BIF_poseobject.h"
+#include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -112,6 +113,7 @@
 #include "BSE_editipo_types.h"
 
 #include "BDR_editobject.h"		// reset_slowparents()
+#include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -371,31 +373,6 @@ static void createTransEdge(TransInfo *t) {
 
 /* ********************* pose mode ************* */
 
-/* recursive, make sure it's identical structured as next one */
-/* only counts the parent selection, and tags transform flag */
-/* exported for manipulator */
-void count_bone_select(TransInfo *t, ListBase *lb, int do_it) 
-{
-	Bone *bone;
-	int do_next;
-	
-	for(bone= lb->first; bone; bone= bone->next) {
-		bone->flag &= ~BONE_TRANSFORM;
-		do_next= do_it;
-		if(do_it) {
-			if (bone->flag & BONE_SELECTED) {
-				/* We don't let connected children get "grabbed" */
-				if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_CONNECTED)==0 ) {
-					bone->flag |= BONE_TRANSFORM;
-					t->total++;
-					do_next= 0;	// no transform on children if one parent bone is selected
-				}
-			}
-		}
-		count_bone_select(t, &bone->childbase, do_next);
-	}
-}
-
 static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 {
 	bConstraint *con= pchan->constraints.first;
@@ -615,6 +592,7 @@ static void bone_children_clear_transflag(ListBase *lb)
 /* sets transform flags in the bones, returns total */
 static void set_pose_transflags(TransInfo *t, Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
 	
@@ -622,10 +600,12 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
-		if(bone->flag & BONE_SELECTED)
-			bone->flag |= BONE_TRANSFORM;
-		else
-			bone->flag &= ~BONE_TRANSFORM;
+		if(bone->layer & arm->layer) {
+			if(bone->flag & BONE_SELECTED)
+				bone->flag |= BONE_TRANSFORM;
+			else
+				bone->flag &= ~BONE_TRANSFORM;
+		}
 	}
 	
 	/* make sure no bone can be transformed when a parent is transformed */
@@ -734,6 +714,7 @@ static void pose_grab_with_ik_children(bPose *pose, Bone *bone)
 /* main call which adds temporal IK chains */
 static void pose_grab_with_ik(Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan, *pchansel= NULL;
 	
 	if(ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
@@ -741,10 +722,12 @@ static void pose_grab_with_ik(Object *ob)
 	
 	/* rule: only one Bone */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & BONE_SELECTED) {
-			if(pchansel)
-				break;
-			pchansel= pchan;
+		if(pchan->bone->layer & arm->layer) {
+			if(pchan->bone->flag & BONE_SELECTED) {
+				if(pchansel)
+					break;
+				pchansel= pchan;
+			}
 		}
 	}
 	if(pchan || pchansel==NULL) return;
@@ -834,15 +817,17 @@ static void createTransArmatureVerts(TransInfo *t)
 
 	t->total = 0;
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next) {
-		if (t->mode==TFM_BONESIZE) {
-			if (ebo->flag & BONE_SELECTED)
-				t->total++;
-		}
-		else {
-			if (ebo->flag & BONE_TIPSEL)
-				t->total++;
-			if (ebo->flag & BONE_ROOTSEL)
-				t->total++;
+		if(ebo->layer & arm->layer) {
+			if (t->mode==TFM_BONESIZE) {
+				if (ebo->flag & BONE_SELECTED)
+					t->total++;
+			}
+			else {
+				if (ebo->flag & BONE_TIPSEL)
+					t->total++;
+				if (ebo->flag & BONE_ROOTSEL)
+					t->total++;
+			}
 		}
 	}
 
@@ -854,105 +839,106 @@ static void createTransArmatureVerts(TransInfo *t)
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-		
 		ebo->oldlength= ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
 		
-		if (t->mode==TFM_BONE_ENVELOPE) {
-			
-			if (ebo->flag & BONE_ROOTSEL){
-				td->val= &ebo->rad_head;
-				td->ival= *td->val;
+		if(ebo->layer & arm->layer) {
+			if (t->mode==TFM_BONE_ENVELOPE) {
 				
-				VECCOPY (td->center, ebo->head);
-				td->flag= TD_SELECTED;
-				
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
-				
-				td->loc = NULL;
-				td->ext = NULL;
-				td->tdi = NULL;
-				
-				td++;
-			}
-			if (ebo->flag & BONE_TIPSEL){
-				td->val= &ebo->rad_tail;
-				td->ival= *td->val;
-				VECCOPY (td->center, ebo->tail);
-				td->flag= TD_SELECTED;
-				
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
-				
-				td->loc = NULL;
-				td->ext = NULL;
-				td->tdi = NULL;
-				
-				td++;
-			}
-			
-		}
-		else if (t->mode==TFM_BONESIZE) {
-			if (ebo->flag & BONE_SELECTED) {
-				if(arm->drawtype==ARM_ENVELOPE) {
-					td->loc= NULL;
-					td->val= &ebo->dist;
-					td->ival= ebo->dist;
+				if (ebo->flag & BONE_ROOTSEL){
+					td->val= &ebo->rad_head;
+					td->ival= *td->val;
+					
+					VECCOPY (td->center, ebo->head);
+					td->flag= TD_SELECTED;
+					
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
+					
+					td->loc = NULL;
+					td->ext = NULL;
+					td->tdi = NULL;
+					
+					td++;
 				}
-				else {
-					// abusive storage of scale in the loc pointer :)
-					td->loc= &ebo->xwidth;
-					VECCOPY (td->iloc, td->loc);
-					td->val= NULL;
+				if (ebo->flag & BONE_TIPSEL){
+					td->val= &ebo->rad_tail;
+					td->ival= *td->val;
+					VECCOPY (td->center, ebo->tail);
+					td->flag= TD_SELECTED;
+					
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
+					
+					td->loc = NULL;
+					td->ext = NULL;
+					td->tdi = NULL;
+					
+					td++;
 				}
-				VECCOPY (td->center, ebo->head);
-				td->flag= TD_SELECTED;
 				
-				/* use local bone matrix */
-				VecSubf(delta, ebo->tail, ebo->head);	
-				vec_roll_to_mat3(delta, ebo->roll, bonemat);
-				Mat3MulMat3(td->mtx, mtx, bonemat);
-				Mat3Inv(td->smtx, td->mtx);
-				
-				Mat3CpyMat3(td->axismtx, td->mtx);
-				Mat3Ortho(td->axismtx);
-
-				td->ext = NULL;
-				td->tdi = NULL;
-				
-				td++;
 			}
-		}
-		else {
-			if (ebo->flag & BONE_TIPSEL){
-				VECCOPY (td->iloc, ebo->tail);
-				VECCOPY (td->center, td->iloc);
-				td->loc= ebo->tail;
-				td->flag= TD_SELECTED;
+			else if (t->mode==TFM_BONESIZE) {
+				if (ebo->flag & BONE_SELECTED) {
+					if(arm->drawtype==ARM_ENVELOPE) {
+						td->loc= NULL;
+						td->val= &ebo->dist;
+						td->ival= ebo->dist;
+					}
+					else {
+						// abusive storage of scale in the loc pointer :)
+						td->loc= &ebo->xwidth;
+						VECCOPY (td->iloc, td->loc);
+						td->val= NULL;
+					}
+					VECCOPY (td->center, ebo->head);
+					td->flag= TD_SELECTED;
+					
+					/* use local bone matrix */
+					VecSubf(delta, ebo->tail, ebo->head);	
+					vec_roll_to_mat3(delta, ebo->roll, bonemat);
+					Mat3MulMat3(td->mtx, mtx, bonemat);
+					Mat3Inv(td->smtx, td->mtx);
+					
+					Mat3CpyMat3(td->axismtx, td->mtx);
+					Mat3Ortho(td->axismtx);
 
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
-
-				td->ext = NULL;
-				td->tdi = NULL;
-				td->val = NULL;
-
-				td++;
+					td->ext = NULL;
+					td->tdi = NULL;
+					
+					td++;
+				}
 			}
-			if (ebo->flag & BONE_ROOTSEL){
-				VECCOPY (td->iloc, ebo->head);
-				VECCOPY (td->center, td->iloc);
-				td->loc= ebo->head;
-				td->flag= TD_SELECTED;
+			else {
+				if (ebo->flag & BONE_TIPSEL){
+					VECCOPY (td->iloc, ebo->tail);
+					VECCOPY (td->center, td->iloc);
+					td->loc= ebo->tail;
+					td->flag= TD_SELECTED;
 
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
 
-				td->ext = NULL;
-				td->tdi = NULL;
-				td->val = NULL;
+					td->ext = NULL;
+					td->tdi = NULL;
+					td->val = NULL;
 
-				td++;
+					td++;
+				}
+				if (ebo->flag & BONE_ROOTSEL){
+					VECCOPY (td->iloc, ebo->head);
+					VECCOPY (td->center, td->iloc);
+					td->loc= ebo->head;
+					td->flag= TD_SELECTED;
+
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
+
+					td->ext = NULL;
+					td->tdi = NULL;
+					td->val = NULL;
+
+					td++;
+				}
 			}
 		}
 	}
@@ -1282,8 +1268,8 @@ static void createTransLatticeVerts(TransInfo *t)
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
-#define E_VEC(a)	(vectors + (3 * (int)(a)->vn))
-#define E_NEAR(a)	(nears[((int)(a)->vn)])
+#define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
+#define E_NEAR(a)	(nears[((a)->tmp.l)])
 static void editmesh_set_connectivity_distance(int total, float *vectors, EditVert **nears)
 {
 	EditMesh *em = G.editMesh;
@@ -1292,10 +1278,10 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 	int i= 0, done= 1;
 
 	/* f2 flag is used for 'selection' */
-	/* vn is offset on scratch array   */
+	/* tmp.l is offset on scratch array   */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->h==0) {
-			eve->vn = (EditVert *)(i++);
+			eve->tmp.l = i++;
 
 			if(eve->f & SELECT) {
 				eve->f2= 2;
@@ -1409,6 +1395,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->ext = NULL;
 	td->tdi = NULL;
 	td->val = NULL;
+	td->tdmir= NULL;
 }
 
 /* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
@@ -1503,7 +1490,7 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 	
 	/* two abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
-		eve->vn= NULL;
+		eve->tmp.fp = NULL;
 		eve->prev= (EditVert *)index;
 	}
 	
@@ -1515,40 +1502,40 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 		v2= mappedcos + 3*( (int)(efa->v2->prev) );
 		v3= mappedcos + 3*( (int)(efa->v3->prev) );
 		
-		if(efa->v2->vn==NULL && efa->v2->f1) {
+		if(efa->v2->tmp.fp==NULL && efa->v2->f1) {
 			set_crazy_vertex_quat(quats, efa->v2->co, efa->v3->co, efa->v1->co, v2, v3, v1);
-			efa->v2->vn= (EditVert *)(quats);
+			efa->v2->tmp.fp= quats;
 			quats+= 4;
 		}
 		
 		if(efa->v4) {
 			v4= mappedcos + 3*( (int)(efa->v4->prev) );
 			
-			if(efa->v1->vn==NULL && efa->v1->f1) {
+			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, efa->v1->co, efa->v2->co, efa->v4->co, v1, v2, v4);
-				efa->v1->vn= (EditVert *)(quats);
+				efa->v1->tmp.fp= quats;
 				quats+= 4;
 			}
-			if(efa->v3->vn==NULL && efa->v3->f1) {
+			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
 				set_crazy_vertex_quat(quats, efa->v3->co, efa->v4->co, efa->v2->co, v3, v4, v2);
-				efa->v3->vn= (EditVert *)(quats);
+				efa->v3->tmp.fp= quats;
 				quats+= 4;
 			}
-			if(efa->v4->vn==NULL && efa->v4->f1) {
+			if(efa->v4->tmp.fp==NULL && efa->v4->f1) {
 				set_crazy_vertex_quat(quats, efa->v4->co, efa->v1->co, efa->v3->co, v4, v1, v3);
-				efa->v4->vn= (EditVert *)(quats);
+				efa->v4->tmp.fp= quats;
 				quats+= 4;
 			}
 		}
 		else {
-			if(efa->v1->vn==NULL && efa->v1->f1) {
+			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, efa->v1->co, efa->v2->co, efa->v3->co, v1, v2, v3);
-				efa->v1->vn= (EditVert *)(quats);
+				efa->v1->tmp.fp= quats;
 				quats+= 4;
 			}
-			if(efa->v3->vn==NULL && efa->v3->f1) {
+			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
 				set_crazy_vertex_quat(quats, efa->v3->co, efa->v1->co, efa->v2->co, v3, v1, v2);
-				efa->v3->vn= (EditVert *)(quats);
+				efa->v3->tmp.fp= quats;
 				quats+= 4;
 			}
 		}
@@ -1570,7 +1557,8 @@ static void createTransEditVerts(TransInfo *t)
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-		
+	int mirror= (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR);
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1637,6 +1625,17 @@ static void createTransEditVerts(TransInfo *t)
 		}
 	}
 	
+	/* find out which half we do */
+	if(mirror) {
+		for (eve=em->verts.first; eve; eve=eve->next) {
+			if(eve->h==0 && eve->f1 && eve->co[0]!=0.0f) {
+				if(eve->co[0]<0.0f)
+					mirror = -1;
+				break;
+			}
+		}
+	}
+	
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
@@ -1657,10 +1656,10 @@ static void createTransEditVerts(TransInfo *t)
 				}
 				
 				/* CrazySpace */
-				if(quats && eve->vn) {
+				if(quats && eve->tmp.fp) {
 					float mat[3][3], imat[3][3], qmat[3][3];
 					
-					QuatToMat3((float *)eve->vn, qmat);
+					QuatToMat3(eve->tmp.fp, qmat);
 					Mat3MulMat3(mat, mtx, qmat);
 					Mat3Inv(imat, mat);
 					
@@ -1670,6 +1669,12 @@ static void createTransEditVerts(TransInfo *t)
 				else {
 					Mat3CpyMat3(tob->smtx, smtx);
 					Mat3CpyMat3(tob->mtx, mtx);
+				}
+				
+				/* Mirror? */
+				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
+					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
+					if(vmir!=eve) tob->tdmir= vmir;
 				}
 				tob++;
 			}
@@ -1780,6 +1785,9 @@ static void createTransUVs(TransInfo *t)
 				UVsToTransData(td++, td2d++, tf->uv[3], (tf->flag & TF_SEL4));
 		}
 	}
+
+	if (G.sima->flag & SI_LSCM_LIVE)
+		unwrap_lscm_live_begin();
 }
 
 void flushTransUVs(TransInfo *t)
@@ -2086,12 +2094,16 @@ void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
 	Base *base;
+	IpoCurve *icu;
 	int redrawipo=0;
 	int cancelled= (t->state == TRANS_CANCEL);
 		
 	if(G.obedit) {
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
+		
+		/* table needs to be created for each edit command, since vertices can move etc */
+		mesh_octree_table(G.obedit, NULL, 'e');
 	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		bArmature *arm;
@@ -2129,19 +2141,36 @@ void special_aftertrans_update(TransInfo *t)
 			
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 				if (pchan->bone->flag & BONE_TRANSFORM){
-					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-					
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+
+					if(U.uiflag & USER_KEYINSERTAVAI) {
+						bActionChannel *achan; 
+
+						for (achan = act->chanbase.first; achan; achan=achan->next){
+
+							if (achan->ipo && !strcmp (achan->name, pchan->name)){
+								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+								}
+
+								break;
+							}
+						}
+					}
+					else{
+
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					}
 				}
 			}
 			
@@ -2150,6 +2179,7 @@ void special_aftertrans_update(TransInfo *t)
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWTIME, 0);
 			
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
@@ -2178,27 +2208,42 @@ void special_aftertrans_update(TransInfo *t)
 			/* Set autokey if necessary */
 			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){
 				char *actname="";
-				
+
 				if(ob->ipoflag & OB_ACTION_OB)
 					actname= "Object";
-				
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
-			
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
-			
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
-				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
-				
+
+				if(U.uiflag & USER_KEYINSERTAVAI) {
+					if(base->object->ipo) {
+						ID* id= (ID *)(base->object);
+						icu= base->object->ipo->curve.first;
+						while(icu) {
+							icu->flag &= ~IPO_SELECT;
+							insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+							icu= icu->next;
+						}
+					}
+				}
+				else {
+
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
+
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
+
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
+					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
+				}
+
 				remake_object_ipos (ob);
 				allqueue(REDRAWIPO, 0);
 				allspace(REMAKEIPO, 0);
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWTIME, 0);
 			}
 			
 			base= base->next;
@@ -2433,5 +2478,8 @@ void createTransData(TransInfo *t)
 	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) {
 		t->flag |= T_CAMERA;
 	}
+	
+	/* temporal...? */
+	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
 

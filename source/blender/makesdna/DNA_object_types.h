@@ -148,6 +148,8 @@ typedef struct Object {
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;
+	char empty_drawtype, pad1[3];
+	float empty_drawsize;
 	
 	ScriptLink scriptlink;
 	ListBase prop;
@@ -188,10 +190,7 @@ typedef struct Object {
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
-	struct Life *life;
-
-	LBuf lbuf;
-	LBuf port;
+	struct Group *dup_group;	/* object duplicator for group */
 	
 	short fluidsimFlag;			/* NT toggle fluidsim participation on/off */
 	char shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
@@ -262,13 +261,13 @@ extern Object workob;
 #define OB_OFFS_LOCAL	1
 #define OB_QUAT			2
 #define OB_NEG_SCALE	4
-#define OB_DUPLI		(8+16)
+#define OB_DUPLI		(8+16+256)
 #define OB_DUPLIFRAMES	8
 #define OB_DUPLIVERTS	16
 #define OB_DUPLIROT		32
 #define OB_DUPLINOSPEED	64
-
 #define OB_POWERTRACK	128
+#define OB_DUPLIGROUP	256
 
 /* (short) ipoflag */
 #define OB_DRAWKEY			1
@@ -314,6 +313,11 @@ extern Object workob;
 	/* enable transparent draw */
 #define OB_DRAWTRANSP	128
 
+/* empty_drawtype: no flags */
+#define OB_ARROWS		1
+#define OB_PLAINAXES	2
+#define OB_CIRCLE		3
+
 /* boundtype */
 #define OB_BOUND_BOX		0
 #define OB_BOUND_SPHERE		1
@@ -329,10 +333,9 @@ extern Object workob;
 #define BA_HAS_RECALC_DATA	8
 
 #define BA_DO_IPO			32
-#define OB_GONNA_MOVE		32
 
 #define BA_FROMSET			128
-#define OB_DO_IMAT			256
+
 #define OB_FROMDUPLI		512
 #define OB_DONE				1024
 #define OB_RADIO			2048

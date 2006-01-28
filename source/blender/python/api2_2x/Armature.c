@@ -477,6 +477,7 @@ static PyObject *Armature_update(BPy_Armature *self)
 		BLI_freelistN(&self->Bones->editbones);
 	}else{
 		goto AttributeError;
+
 	}
 	return EXPP_incr_ret(Py_None);
 
@@ -512,6 +513,71 @@ static int Armature_setAutoIK(BPy_Armature *self, PyObject *value, void *closure
 AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
 		sArmatureBadArgs, "Expects True or False");
+}
+//------------------------Armature.layers (getter)
+static PyObject *Armature_getLayers(BPy_Armature *self, void *closure)
+{
+	int layers, bit = 0, val = 0;
+	PyObject *item = NULL, *laylist = PyList_New( 0 );
+
+	if( !laylist )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+			"couldn't create pylist!" );
+
+	layers = self->armature->layer;
+
+	while( bit < 20 ) {
+		val = 1 << bit;
+		if( layers & val ) {
+			item = Py_BuildValue( "i", bit + 1 );
+			PyList_Append( laylist, item );
+			Py_DECREF( item );
+		}
+		bit++;
+	}
+	return laylist;
+}
+//------------------------Armature.layer (setter)
+static int Armature_setLayers(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyList_Check(value)){
+			int layers = 0, len_list = 0;
+			int val;
+			PyObject *item = NULL;
+
+			len_list = PyList_Size(value);
+
+			if( len_list == 0 )
+				return EXPP_ReturnIntError( PyExc_AttributeError,
+				  "list can't be empty, at least one layer must be set" );
+
+			while( len_list ) {
+				--len_list;
+				item = PyList_GetItem( value, len_list );
+				if( !PyInt_Check( item ) )
+					return EXPP_ReturnIntError( PyExc_AttributeError,
+							"list must contain only integer numbers" );
+
+				val = ( int ) PyInt_AsLong( item );
+				if( val < 1 || val > 20 )
+					return EXPP_ReturnIntError( PyExc_AttributeError,
+						  "layer values must be in the range [1, 20]" );
+
+				layers |= 1 << ( val - 1 );
+			}
+
+			/* update any bases pointing to our object */
+			self->armature->layer = layers;
+
+			return 0;
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a list of integers" );
 }
 //------------------------Armature.mirrorEdit (getter)
 static PyObject *Armature_getMirrorEdit(BPy_Armature *self, void *closure)
@@ -903,7 +969,9 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Enable/Disable X-axis mirrored editing", NULL},
 	{"autoIK", (getter)Armature_getAutoIK, (setter)Armature_setAutoIK, 
 		"Adds temporal IK chains while grabbing bones", NULL},
-	{NULL, NULL, NULL, NULL, NULL}
+	{"layers", (getter)Armature_getLayers, (setter)Armature_setLayers, 
+		"List of layers for the armature", NULL},
+	{NULL}
 };
 //------------------------tp_new
 //This methods creates a new object (note it does not initialize it - only the building)

@@ -36,6 +36,7 @@
 
 struct SpaceLink;
 struct ListBase;
+struct Object;
 
 /* PoseChannel stores the results of Actions (ipos) and transform information 
    with respect to the restposition of Armature bones */
@@ -73,6 +74,7 @@ typedef struct bPoseChannel {
 	float		ikstretch;
 	
 	float		*path;				/* totpath x 3 x float */
+	struct Object *custom;			/* draws custom object instead of this channel */
 	
 } bPoseChannel;
 
@@ -116,6 +118,7 @@ typedef struct SpaceAction {
 /* Action Channel flags */
 #define	ACHAN_SELECTED	0x00000001
 #define ACHAN_HILIGHTED	0x00000002
+#define ACHAN_HIDDEN	0x00000004
 #define ACHAN_MOVED     0x80000000
 
 /* SpaceAction flag */

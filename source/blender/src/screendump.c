@@ -55,6 +55,7 @@
 #include "BIF_screen.h"
 #include "BIF_toets.h"
 #include "BIF_interface.h"
+#include "BIF_writeimage.h"
 
 #include "BSE_filesel.h"
 
@@ -87,6 +88,14 @@ void write_screendump(char *name)
 			else if(G.scene->r.imtype==R_PNG) ibuf->ftype= PNG;
 			else if((G.have_libtiff) && 
 				(G.scene->r.imtype==R_TIFF)) ibuf->ftype= TIF;
+#ifdef WITH_OPENEXR
+			else if(G.scene->r.imtype==R_OPENEXR) {
+				ibuf->ftype= OPENEXR;
+				if(G.scene->r.subimtype & R_OPENEXR_HALF)
+					ibuf->ftype |= OPENEXR_HALF;
+				ibuf->ftype |= (G.scene->r.quality & OPENEXR_COMPRESS);
+			}
+#endif
 			else if(G.scene->r.imtype==R_HAMX) ibuf->ftype= AN_hamx;
 			else if(ELEM5(G.scene->r.imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
 				ibuf->ftype= JPG|G.scene->r.quality;

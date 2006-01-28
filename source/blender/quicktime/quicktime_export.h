@@ -37,9 +37,10 @@
 #define __AIFF__
 
 // quicktime movie output functions
+struct RenderData;
 
-void start_qt(void);					//for initrender.c
-void append_qt(int frame);
+void start_qt(struct RenderData *rd, int rectx, int recty);	//for movie handle (BKE writeavi.c now)
+void append_qt(int frame, int *pixels, int rectx, int recty);
 void end_qt(void);
 
 int  get_qtcodec_settings(void);		//for buttons.c

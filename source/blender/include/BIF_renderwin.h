@@ -32,7 +32,7 @@
 
 struct ScrArea;
 
-void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[2]);
+void calc_renderwin_rectangle(int rectx, int recty, int posmask, int renderpos_r[2], int rendersize_r[2]);
 
 void BIF_close_render_display(void);
 

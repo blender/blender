@@ -63,11 +63,12 @@ void get_local_bounds(struct Object *ob, float *centre, float *size);
 #define DRAW_PICKING	1
 #define DRAW_CONSTCOLOR	2
 void draw_object(struct Base *base, int flag);
-void drawaxes(float size, int flag);
+void drawaxes(float size, int flag, char drawtype);
 
 void draw_object_ext(struct Base *base);
 void drawsolidcube(float size);
 extern void draw_object_backbufsel(struct Object *ob);
+void draw_object_instance(struct Object *ob, int dt, int outline);
 
 #ifdef __cplusplus
 }

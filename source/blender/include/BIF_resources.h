@@ -33,6 +33,8 @@
 #ifndef BIF_RESOURCES_H
 #define BIF_RESOURCES_H
 
+/* elubie: TODO: move the typedef for icons to BIF_interface_icons.h */
+/* and add/replace include of BIF_resources.h by BIF_interface_icons.h */
 typedef enum {
 #define BIFICONID_FIRST		(ICON_VIEW3D)
 	ICON_VIEW3D,
@@ -117,8 +119,8 @@ typedef enum {
 	ICON_ENVMAP,
 	ICON_TRANSP_HLT,
 	ICON_TRANSP_DEHLT,
-	ICON_RADIO_DEHLT,
-	ICON_RADIO_HLT,
+	ICON_CIRCLE_DEHLT,
+	ICON_CIRCLE_HLT,
 	ICON_TPAINT_DEHLT,
 	ICON_TPAINT_HLT,
 	ICON_WPAINT_DEHLT,
@@ -180,8 +182,8 @@ typedef enum {
 	ICON_CHECKBOX_HLT,
 	ICON_LINK,
 	ICON_INLINK,
-	ICON_BEVELBUT_HLT,
-	ICON_BEVELBUT_DEHLT,
+	ICON_ZOOMIN,
+	ICON_ZOOMOUT,
 	ICON_PASTEDOWN,
 	ICON_COPYDOWN,
 	ICON_CONSTANT,
@@ -270,7 +272,7 @@ typedef enum {
 	ICON_SYNTAX_OFF,
 	ICON_BLANK52,
 	ICON_BLANK53,
-	ICON_BLANK54,
+	ICON_PLUS,
 	ICON_VIEWMOVE,
 	ICON_HOME,
 	ICON_CLIPUV_DEHLT,
@@ -454,7 +456,13 @@ enum {
 	TH_STRIP,
 	TH_STRIP_SELECT,
 	
-	TH_LAMP
+	TH_LAMP,
+	
+	TH_NODE,
+	TH_NODE_IN_OUT,
+	TH_NODE_OPERATOR,
+	TH_NODE_GENERATOR,
+	TH_NODE_GROUP,
 	
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
@@ -507,13 +515,6 @@ void	BIF_resources_init		(void);
 void	BIF_resources_free		(void);
 void	BIF_colors_init			(void);
 void	BIF_load_ui_colors		(void);
-
-
-// icon API
-int		BIF_get_icon_width		(BIFIconID icon);
-int		BIF_get_icon_height		(BIFIconID icon);
-void	BIF_draw_icon			(float x, float y, BIFIconID icon);
-void	BIF_draw_icon_blended	(float x, float y, BIFIconID icon, int colorid, int shade);
 
 /* only for buttons in theme editor! */
 char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);

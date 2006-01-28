@@ -33,15 +33,20 @@ struct View3D; /* keep me up here */
 
 #include "sceneRender.h" /*This must come first*/
 
-#include "BIF_renderwin.h"
 #include "DNA_image_types.h"
-#include "BIF_drawscene.h"
-#include "BLI_blenlib.h"
+
 #include "BKE_image.h"
 #include "BKE_global.h"
+
+#include "BIF_drawscene.h"
+#include "BIF_renderwin.h"
+
+#include "BLI_blenlib.h"
+
+#include "RE_pipeline.h"
+
 #include "mydevice.h"
 #include "butspace.h"
-#include "render.h" /* RE_animrender() */
 #include "blendef.h"
 #include "gen_utils.h"
 
@@ -55,8 +60,6 @@ struct View3D; /* keep me up here */
 #define PY_SKYDOME	1
 #define PY_FULL	 2
 
-extern RE_Render R;
-extern void schrijfplaatje(char *name);
 extern void waitcursor(int);
 
 //---------------------------------------Render prototypes-------------
@@ -872,6 +875,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 	}
 
 	else { /* background mode (blender -b file.blend -P script) */
+		Render *re= RE_NewRender("Render");
 
 		int end_frame = G.scene->r.efra; /* is of type short currently */
 
@@ -881,7 +885,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 		G.scene->r.efra = G.scene->r.sfra;
 
-		RE_animrender(NULL);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 
 		G.scene->r.efra = (short)end_frame;
 	}
@@ -907,7 +911,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
 	
-	if(!R.rectot) {
+	if(0) {//!R.rectot) {
 		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 			"No image rendered");
 	} else {
@@ -917,9 +921,9 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 			strcpy(G.ima, dir);
 		}
 		
-		R.r.imtype= G.scene->r.imtype;
-		R.r.quality= G.scene->r.quality;
-		R.r.planes= G.scene->r.planes;
+//		R.r.imtype= G.scene->r.imtype;
+//		R.r.quality= G.scene->r.quality;
+//		R.r.planes= G.scene->r.planes;
 	
 		strcpy(strn, filepath);
 		BLI_convertstringcode(strn, G.sce, G.scene->r.cfra);
@@ -929,7 +933,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 		}
 
 		waitcursor(1);
-		schrijfplaatje(strn);
+//		schrijfplaatje(strn);
 		strcpy(G.ima, filepath);
 		waitcursor(0);
 	}
@@ -948,6 +952,8 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 		set_scene( oldsce );
 	}
 	else { /* background mode (blender -b file.blend -P script) */
+		Render *re= RE_NewRender("Render");
+		
 		if (G.scene != self->scene)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"scene to render in bg mode must be the active scene");
@@ -955,7 +961,8 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 		if (G.scene->r.sfra > G.scene->r.efra)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"start frame must be less or equal to end frame");
-		RE_animrender(NULL);
+		
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 	}
 	return EXPP_incr_ret( Py_None );
 }
@@ -975,7 +982,7 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 		strcpy( file, self->renderContext->pic );
 		BLI_convertstringcode( file, (char *) self->scene,
 				       self->renderContext->cfra );
-		RE_make_existing_file( file );
+		BLI_make_existing_file( file );
 		if( BLI_strcasecmp( file + strlen( file ) - 4, ".mov" ) ) {
 			sprintf( txt, "%04d_%04d.mov",
 				 ( self->renderContext->sfra ),
@@ -989,7 +996,7 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 		strcpy( file, self->renderContext->pic );
 		BLI_convertstringcode( file, G.sce,
 				       self->renderContext->cfra );
-		RE_make_existing_file( file );
+		BLI_make_existing_file( file );
 		if( BLI_strcasecmp( file + strlen( file ) - 4, ".avi" ) ) {
 			sprintf( txt, "%04d_%04d.avi",
 				 ( self->renderContext->sfra ),
@@ -998,14 +1005,14 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 		}
 	}
 	if( BLI_exist( file ) ) {
-		calc_renderwin_rectangle( G.winpos, pos, size );
+		calc_renderwin_rectangle(640, 480, G.winpos, pos, size);
 		sprintf( str, "%s -a -p %d %d \"%s\"", bprogname, pos[0],
 			 pos[1], file );
 		system( str );
 	} else {
-		makepicstring( file, self->renderContext->sfra );
+		BKE_makepicstring( file, self->renderContext->sfra );
 		if( BLI_exist( file ) ) {
-			calc_renderwin_rectangle( G.winpos, pos, size );
+			calc_renderwin_rectangle(640, 480, G.winpos, pos, size);
 			sprintf( str, "%s -a -p %d %d \"%s\"", bprogname,
 				 pos[0], pos[1], file );
 			system( str );

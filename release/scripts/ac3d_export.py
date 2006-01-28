@@ -202,8 +202,7 @@ def transform_verts(verts, m):
 	vecs = []
 	for v in verts:
 		vec = Mathutils.Vector([v[0],v[1],v[2], 1])
-		#vecs.append(Mathutils.VecMultMat(vec, m))
-		vecs.append(vec*m)
+		vecs.append(Mathutils.VecMultMat(vec, m))
 	return vecs
 
 # ---

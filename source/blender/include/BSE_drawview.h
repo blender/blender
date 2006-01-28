@@ -46,16 +46,18 @@ void circ(float x, float y, float rad);
 
 void do_viewbuts(unsigned short event);
 
+/* View3DAfter->type */
+#define V3D_XRAY	1
+#define V3D_TRANSP	2
 void add_view3d_after(struct View3D *v3d, struct Base *base, int type);
 
 void backdrawview3d(int test);
 void drawview3dspace(struct ScrArea *sa, void *spacedata);
-void drawview3d_render(struct View3D *v3d);
+void drawview3d_render(struct View3D *v3d, int winx, int winy);
 
 int update_time(void);
 void calc_viewborder(struct View3D *v3d, struct rcti *viewborder_r);
 void view3d_set_1_to_1_viewborder(struct View3D *v3d);
-void timestr(double time, char *str);
 
 int view3d_test_clipping(struct View3D *v3d, float *vec);
 void view3d_set_clipping(struct View3D *v3d);

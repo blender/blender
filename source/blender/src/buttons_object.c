@@ -119,6 +119,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
+#include "BKE_group.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -1133,118 +1134,6 @@ void do_constraintbuts(unsigned short event)
 	allqueue (REDRAWBUTSOBJECT, 0);
 }
 
-void object_panel_constraint(char *context)
-{
-	uiBlock *block;
-	Object *ob= OBACT;
-	ListBase *conlist;
-	bConstraint *curcon;
-	short xco, yco;
-	char str[64];
-	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Constraints", context, 640, 0, 318, 204)==0) return;
-
-	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
-	/* so first we make it default height */
-	uiNewPanelHeight(block, 204);
-
-	if(G.obedit==OBACT) return;	// ??
-	
-	conlist = get_active_constraints(OBACT);
-	
-	if (conlist) {
-		 
-		uiDefBlockBut(block, add_constraintmenu, NULL, "Add Constraint", 0, 190, 130, 20, "Add a new constraint");
-		
-		/* print active object or bone */
-		str[0]= 0;
-		if (ob->flag & OB_POSEMODE){
-			bPoseChannel *pchan= get_active_posechannel(ob);
-			if(pchan) sprintf(str, "To Bone: %s", pchan->name);
-		}
-		else {
-			sprintf(str, "To Object: %s", ob->id.name+2);
-		}
-		uiDefBut(block, LABEL, 1, str,	150, 190, 150, 20, NULL, 0.0, 0.0, 0, 0, "Displays Active Object or Bone name");
-		
-		/* Go through the list of constraints and draw them */
-		xco = 10;
-		yco = 160;
-		
-		for (curcon = conlist->first; curcon; curcon=curcon->next) {
-			/* hrms, the temporal constraint should not draw! */
-			if(curcon->type==CONSTRAINT_TYPE_KINEMATIC) {
-				bKinematicConstraint *data= curcon->data;
-					if(data->flag & CONSTRAINT_IK_TEMP)
-						continue;
-			}
-			/* Draw default constraint header */
-			draw_constraint(block, conlist, curcon, &xco, &yco);	
-		}
-		
-		if(yco < 0) uiNewPanelHeight(block, 204-yco);
-		
-	}
-}
-
-static void object_panel_draw(Object *ob)
-{
-	uiBlock *block;
-	int xco, a, dx, dy;
-	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Draw", "Object", 320, 0, 318, 204)==0) return;
-
-	/* LAYERS */
-	xco= 120;
-	dx= 35;
-	dy= 30;
-
-	uiDefBut(block, LABEL, 0, "Layers",				10,170,100,20, NULL, 0, 0, 0, 0, "");
-	
-	uiBlockBeginAlign(block);
-	for(a=0; a<5; a++)
-		uiDefButBitI(block, TOG, 1<<a, B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
-	for(a=0; a<5; a++)
-		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
-		
-	xco+= 7;
-	uiBlockBeginAlign(block);
-	for(a=5; a<10; a++)
-		uiDefButBitI(block, TOG, 1<<a, B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
-	for(a=5; a<10; a++)
-		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
-
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, LABEL, 0, "Drawtype",						10,120,100,20, NULL, 0, 0, 0, 0, "");
-	
-	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW, REDRAWVIEW3D, "Shaded",	10,100,100, 20, &ob->dt, 0, OB_SHADED, 0, 0, "Draw active object shaded or textured");
-	uiDefButC(block, ROW, REDRAWVIEW3D, "Solid",	10,80,100, 20, &ob->dt, 0, OB_SOLID, 0, 0, "Draw active object in solid");
-	uiDefButC(block, ROW, REDRAWVIEW3D, "Wire",		10,60, 100, 20, &ob->dt, 0, OB_WIRE, 0, 0, "Draw active object in wireframe");
-	uiDefButC(block, ROW, REDRAWVIEW3D, "Bounds",	10,40, 100, 20, &ob->dt, 0, OB_BOUNDBOX, 0, 0, "Only draw object with bounding box");
-	uiBlockEndAlign(block);
-	
-	uiDefBut(block, LABEL, 0, "Draw Extra",							120,120,90,20, NULL, 0, 0, 0, 0, "");
-	
-	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, OB_BOUNDBOX, REDRAWVIEW3D, "Bounds",				120, 100, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
-	uiDefButBitC(block, TOG, OB_DRAWNAME, REDRAWVIEW3D, "Name",		210, 100, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's name");
-	
-	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder%x4",
-																	120, 80, 90, 20, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
-	uiDefButBitC(block, TOG, OB_AXIS, REDRAWVIEW3D, "Axis",			210, 80, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's centre and axis");
-	
-	uiDefButBitC(block, TOG, OB_TEXSPACE, REDRAWVIEW3D, "TexSpace",	120, 60, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's texture space");
-	uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",		210, 60, 90, 20, &ob->dtx, 0, 0, 0, 0, "Adds the active object's wireframe over solid drawing");
-	
-	uiDefButBitC(block, TOG, OB_DRAWTRANSP, REDRAWVIEW3D, "Transp",	120, 40, 90, 20, &ob->dtx, 0, 0, 0, 0, "Enables transparent materials for the active object (Mesh only)");
-	uiDefButBitC(block, TOG, OB_DRAWXRAY, REDRAWVIEW3D, "X-ray",	210, 40, 90, 20, &ob->dtx, 0, 0, 0, 0, "Makes the active object draw in front of others");
-
-}
-
 static void softbody_bake(Object *ob)
 {
 	SoftBody *sb= ob->soft;
@@ -1451,6 +1340,10 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
+	case B_GROUP_RELINK:
+		group_relink_nla_objects(OBACT);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 		
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
@@ -1473,54 +1366,291 @@ void do_object_panels(unsigned short event)
 
 }
 
+static void do_add_groupmenu(void *arg, int event)
+{
+	Object *ob= OBACT;
+	
+	if(ob) {
+		
+		if(event== -1) {
+			Group *group= add_group();
+			add_to_group(group, ob);
+		}
+		else
+			add_to_group(BLI_findlink(&G.main->group, event), ob);
+			
+		ob->flag |= OB_FROMGROUP;
+		BASACT->flag |= OB_FROMGROUP;
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}		
+}
+
+static uiBlock *add_groupmenu(void *arg_unused)
+{
+	uiBlock *block;
+	Group *group;
+	short yco= 0;
+	char str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
+	uiBlockSetButmFunc(block, do_add_groupmenu, NULL);
+
+	uiDefBut(block, BUTM, B_NOP, "ADD NEW",		0, 20, 160, 19, NULL, 0.0, 0.0, 1, -1, "");
+	for(group= G.main->group.first; group; group= group->id.next, yco++) {
+		if(group->id.lib) strcpy(str, "L  ");
+		else strcpy(str, "   ");
+		strcat(str, group->id.name+2);
+		uiDefBut(block, BUTM, B_NOP, str,	0, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, yco, "");
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	uiBlockSetDirection(block, UI_DOWN);	
+	
+	return block;
+}
+
+static void group_ob_rem(void *gr_v, void *ob_v)
+{
+	Object *ob= OBACT;
+	
+	rem_from_group(gr_v, ob);
+	if(find_group(ob)==NULL) {
+		ob->flag &= ~OB_FROMGROUP;
+		BASACT->flag &= ~OB_FROMGROUP;
+	}
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+
+}
+
+static void group_local(void *gr_v, void *unused)
+{
+	Group *group= gr_v;
+	
+	group->id.lib= NULL;
+	
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	
+}
+
+static void object_panel_object(Object *ob)
+{
+	uiBlock *block;
+	uiBut *but;
+	Group *group;
+	int a=0, xco;
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Object and Links", "Object", 0, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
+	/* object name */
+	uiBlockSetCol(block, TH_BUT_SETTING2);
+	xco= std_libbuttons(block, 10, 180, 0, NULL, 0, ID_OB, 0, &ob->id, NULL, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, B_KEEPDATA);
+	uiBlockSetCol(block, TH_AUTO);
+	
+	/* parent */
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", xco+5, 180, 305-xco, 20, &ob->parent, "Parent Object"); 
+
+	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
+
+	/* all groups */
+	uiBlockBeginAlign(block);
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(object_in_group(ob, group)) {
+			xco= 160;
+			
+			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-a, 150, 20, group->id.name+2, 0.0, 19.0, 0, 0, "Displays Group name. Click to change.");
+			uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
+			
+			if(group->id.lib) {
+				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 160, 120-a, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
+				uiButSetFunc(but, group_local, group, NULL);
+				xco= 180;
+			}
+			but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-a, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
+			uiButSetFunc(but, group_ob_rem, group, ob);
+			
+			a+= 20;
+		}
+	}
+}
+
 static void object_panel_anim(Object *ob)
 {
 	uiBlock *block;
 	char str[32];
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Anim settings", "Object", 0, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Anim settings", "Object", 320, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_TRACKBUTS,"TrackX",	24,190,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButS(block, ROW,B_TRACKBUTS,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButS(block, ROW,B_TRACKBUTS,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButS(block, ROW,B_TRACKBUTS,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButS(block, ROW,B_TRACKBUTS,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButS(block, ROW,B_TRACKBUTS,"-Z",		178,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"TrackX",	24,180,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"Y",		85,180,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"Z",		104,180,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"-X",		124,180,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"-Y",		150,180,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"-Z",		178,180,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
-	uiDefButS(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
-	uiDefButS(block, ROW,REDRAWVIEW3D,"Z",		298,190,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_DRAWKEY, REDRAWVIEW3D, "Draw Key",		24,160,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
-	uiDefButBitS(block, TOG, OB_DRAWKEYSEL, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
-	uiDefButBitS(block, TOG, OB_POWERTRACK, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
-	uiDefButBitS(block, TOG, PARSLOW, 0, "SlowPar",					260,160,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_DUPLIFRAMES, REDRAWVIEW3D, "DupliFrames",	24,128,89,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
-	uiDefButBitS(block, TOG, OB_DUPLIVERTS, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
-	uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, (MAXFRAMEF - 1.0f), 0, 0, "Specify startframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		170,105,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, MAXFRAMEF, 0, 0, "Specify endframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		171,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
-	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
-	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	uiDefButS(block, ROW,REDRAWVIEW3D,"UpX",	226,180,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
+	uiDefButS(block, ROW,REDRAWVIEW3D,"Y",		274,180,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
+	uiDefButS(block, ROW,REDRAWVIEW3D,"Z",		298,180,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,17,115,30, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify an offset in frames");
-	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,17,104,31, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
-	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			248,17,67,31, 0, 0, 0, 0, 0, "Print objectspeed");
+	uiDefButBitS(block, TOG, OB_DRAWKEY, REDRAWVIEW3D, "Draw Key",		24,155,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
+	uiDefButBitS(block, TOG, OB_DRAWKEYSEL, REDRAWVIEW3D, "Draw Key Sel",	97,155,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
+	uiDefButBitS(block, TOG, OB_POWERTRACK, REDRAWVIEW3D, "Powertrack",		180,155,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
+	uiDefButBitS(block, TOG, PARSLOW, 0, "SlowPar",					260,155,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
+	uiBlockBeginAlign(block);
+	
+	uiDefButBitS(block, TOG, OB_DUPLIFRAMES, REDRAWVIEW3D, "DupliFrames",	24,130,89,20, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
+	uiDefButBitS(block, TOG, OB_DUPLIVERTS, REDRAWVIEW3D, "DupliVerts",		114,130,82,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
+	uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",				200,130,31,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
+	uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",		234,130,82,20, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
+	
+	uiDefButBitS(block, TOG, OB_DUPLIGROUP, REDRAWVIEW3D, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
+	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Duplicate this entire Group"); 
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,85,141,19, &ob->dupsta, 1.0, (MAXFRAMEF - 1.0f), 0, 0, "Specify startframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		170,85,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,65,140,19, &ob->dupend, 1.0, MAXFRAMEF, 0, 0, "Specify endframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		171,65,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,35,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
+	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,35,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
+	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,35,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,10,115,20, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify an offset in frames");
+	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,10,104,20, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
+	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			248,10,67,20, 0, 0, 0, 0, 0, "Print objectspeed");
 	uiBlockEndAlign(block);
 	
 	sprintf(str, "%.4f", prspeed);
-	uiDefBut(block, LABEL, 0, str,							247,40,63,31, NULL, 1.0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, str,							247,35,63,31, NULL, 1.0, 0, 0, 0, "");
 	
+}
+
+static void object_panel_draw(Object *ob)
+{
+	uiBlock *block;
+	int xco, a, dx, dy;
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Draw", "Object", 640, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
+	/* LAYERS */
+	xco= 120;
+	dx= 35;
+	dy= 30;
+	
+	uiDefBut(block, LABEL, 0, "Layers",				10,170,100,20, NULL, 0, 0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+	for(a=0; a<5; a++)
+		uiDefButBitI(block, TOG, 1<<a, B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+	for(a=0; a<5; a++)
+		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+	
+	xco+= 7;
+	uiBlockBeginAlign(block);
+	for(a=5; a<10; a++)
+		uiDefButBitI(block, TOG, 1<<a, B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+	for(a=5; a<10; a++)
+		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+	
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Drawtype",						10,120,100,20, NULL, 0, 0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+	uiDefButC(block, ROW, REDRAWVIEW3D, "Shaded",	10,100,100, 20, &ob->dt, 0, OB_SHADED, 0, 0, "Draw active object shaded or textured");
+	uiDefButC(block, ROW, REDRAWVIEW3D, "Solid",	10,80,100, 20, &ob->dt, 0, OB_SOLID, 0, 0, "Draw active object in solid");
+	uiDefButC(block, ROW, REDRAWVIEW3D, "Wire",		10,60, 100, 20, &ob->dt, 0, OB_WIRE, 0, 0, "Draw active object in wireframe");
+	uiDefButC(block, ROW, REDRAWVIEW3D, "Bounds",	10,40, 100, 20, &ob->dt, 0, OB_BOUNDBOX, 0, 0, "Only draw object with bounding box");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Draw Extra",							120,120,90,20, NULL, 0, 0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitC(block, TOG, OB_BOUNDBOX, REDRAWVIEW3D, "Bounds",				120, 100, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
+	uiDefButBitC(block, TOG, OB_DRAWNAME, REDRAWVIEW3D, "Name",		210, 100, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's name");
+	
+	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder%x4",
+			  120, 80, 90, 20, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
+	uiDefButBitC(block, TOG, OB_AXIS, REDRAWVIEW3D, "Axis",			210, 80, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's centre and axis");
+	
+	uiDefButBitC(block, TOG, OB_TEXSPACE, REDRAWVIEW3D, "TexSpace",	120, 60, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's texture space");
+	uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",		210, 60, 90, 20, &ob->dtx, 0, 0, 0, 0, "Adds the active object's wireframe over solid drawing");
+	
+	uiDefButBitC(block, TOG, OB_DRAWTRANSP, REDRAWVIEW3D, "Transp",	120, 40, 90, 20, &ob->dtx, 0, 0, 0, 0, "Enables transparent materials for the active object (Mesh only)");
+	uiDefButBitC(block, TOG, OB_DRAWXRAY, REDRAWVIEW3D, "X-ray",	210, 40, 90, 20, &ob->dtx, 0, 0, 0, 0, "Makes the active object draw in front of others");
+	
+}
+
+void object_panel_constraint(char *context)
+{
+	uiBlock *block;
+	Object *ob= OBACT;
+	ListBase *conlist;
+	bConstraint *curcon;
+	short xco, yco;
+	char str[64];
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Constraints", context, 960, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
+	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
+	/* so first we make it default height */
+	uiNewPanelHeight(block, 204);
+	
+	if(G.obedit==OBACT) return;	// ??
+	
+	conlist = get_active_constraints(OBACT);
+	
+	if (conlist) {
+		
+		uiDefBlockBut(block, add_constraintmenu, NULL, "Add Constraint", 0, 190, 130, 20, "Add a new constraint");
+		
+		/* print active object or bone */
+		str[0]= 0;
+		if (ob->flag & OB_POSEMODE){
+			bPoseChannel *pchan= get_active_posechannel(ob);
+			if(pchan) sprintf(str, "To Bone: %s", pchan->name);
+		}
+		else {
+			sprintf(str, "To Object: %s", ob->id.name+2);
+		}
+		uiDefBut(block, LABEL, 1, str,	150, 190, 150, 20, NULL, 0.0, 0.0, 0, 0, "Displays Active Object or Bone name");
+		
+		/* Go through the list of constraints and draw them */
+		xco = 10;
+		yco = 160;
+		
+		for (curcon = conlist->first; curcon; curcon=curcon->next) {
+			/* hrms, the temporal constraint should not draw! */
+			if(curcon->type==CONSTRAINT_TYPE_KINEMATIC) {
+				bKinematicConstraint *data= curcon->data;
+				if(data->flag & CONSTRAINT_IK_TEMP)
+					continue;
+			}
+			/* Draw default constraint header */
+			draw_constraint(block, conlist, curcon, &xco, &yco);	
+		}
+		
+		if(yco < 0) uiNewPanelHeight(block, 204-yco);
+		
+	}
 }
 
 void do_effects_panels(unsigned short event)
@@ -1706,6 +1836,8 @@ static void object_panel_fields(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fields and Deflection", "Physics", 0, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	/* should become button, option? */
 	if(ob->pd==NULL) {
 		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
@@ -1815,6 +1947,8 @@ static void object_softbodies(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	/* do not allow to combine with force fields */
 	/* if(ob->pd && ob->pd->deflect) { */
 	/* no reason for that any more BM */
@@ -1933,6 +2067,8 @@ static void object_panel_particles_motion(Object *ob)
 	uiNewPanelTabbed("Particles ", "Physics");
 	if(uiNewPanel(curarea, block, "Particle Motion", "Physics", 320, 0, 318, 204)==0) return;
 	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	/* top row */
 	uiBlockBeginAlign(block);
 	uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",	0,180,75,20, &paf->totkey, 1.0, 100.0, 0, 0, "Specify the number of key positions");
@@ -1961,6 +2097,8 @@ static void object_panel_particles_motion(Object *ob)
 	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		75,10,75,20, &paf->timetex, 1.0, 10.0, 0, 0, "Specify texture used for the texture emission");
 	
 	/* right collumn */
+	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_CALCEFFECT, "GR:", 160, 155, 150, 20, &paf->group, "Limit Force Fields to this Group"); 
+
 	uiBlockBeginAlign(block);
 	uiDefBut(block, LABEL, 0, "Force:",				160,130,75,20, NULL, 0.0, 0, 0, 0, "");
 	uiDefButF(block, NUM, B_CALCEFFECT, "X:",		235,130,75,20, paf->force, -1.0, 1.0, 1, 2, "Specify the X axis of a continues force");
@@ -1992,6 +2130,8 @@ static void object_panel_particles(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Particles ", "Physics", 320, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	if (ob->type == OB_MESH) {
 		uiBlockBeginAlign(block);
 		if(paf==NULL)
@@ -2078,6 +2218,8 @@ static void object_panel_fluidsim(Object *ob)
 	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	if(ob->type==OB_MESH) {
 		uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
 				&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
@@ -2232,8 +2374,7 @@ void object_panels()
 	/* check context here */
 	ob= OBACT;
 	if(ob) {
-		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
-
+		object_panel_object(ob);
 		object_panel_anim(ob);
 		object_panel_draw(ob);
 		object_panel_constraint("Object");
@@ -2249,7 +2390,6 @@ void physics_panels()
 	/* check context here */
 	ob= OBACT;
 	if(ob) {
-		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 		object_panel_fields(ob);
 		object_panel_particles(ob);
 		object_panel_particles_motion(ob);

@@ -50,7 +50,7 @@ typedef struct Image {
 	struct ImBuf *mipmap[10];
 	
 	short ok, flag;
-	short lastframe, lastquality;
+	short lastframe, pad;
 
 	/* texture page */
 	short tpageflag, totbind;

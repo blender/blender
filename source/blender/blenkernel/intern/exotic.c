@@ -2611,7 +2611,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 			VECCOPY(co, eve->co);
 			Mat4MulVecfl(ob->obmat, co);
 			fprintf(fp, "%f %f %f\n", co[0], co[1], co[2] );
-			eve->vn= (struct EditVert *)tot;
+			eve->tmp.l = tot;
 			tot++;
 			eve= eve->next;
 		}
@@ -2619,10 +2619,19 @@ static void write_videoscape_mesh(Object *ob, char *str)
 		while(evl) {
 
 			if(evl->v4==0) {
-				fprintf(fp, "3 %p %p %p 0x%x\n", evl->v1->vn, evl->v2->vn, evl->v3->vn, kleur[evl->mat_nr]);
+				fprintf(fp, "3 %ld %ld %ld 0x%x\n", 
+						evl->v1->tmp.l,
+						evl->v2->tmp.l,
+						evl->v3->tmp.l, 
+						kleur[evl->mat_nr]);
 			}
 			else {
-				fprintf(fp, "4 %p %p %p %p 0x%x\n", evl->v1->vn, evl->v2->vn, evl->v3->vn, evl->v4->vn, kleur[evl->mat_nr]);
+				fprintf(fp, "4 %ld %ld %ld %ld 0x%x\n", 
+						evl->v1->tmp.l, 
+						evl->v2->tmp.l, 
+						evl->v3->tmp.l, 
+						evl->v4->tmp.l, 
+						kleur[evl->mat_nr]);
 			}
 			evl= evl->next;
 		}

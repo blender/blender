@@ -125,11 +125,14 @@ struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 void set_meta_stripdata(struct Sequence *seqm);
 void do_seq_count_cfra(struct ListBase *seqbase, int *totseq, int cfra);
 void do_build_seqar_cfra(struct ListBase *seqbase, struct Sequence ***seqar, int cfra);
-struct ImBuf *give_ibuf_seq(int cfra);
+struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra);
 void free_imbuf_effect_spec(int cfra);
 void free_imbuf_seq_except(int cfra);
 void free_imbuf_seq(void);
-void do_render_seq(void);
+
+/* still bad level call... */
+struct RenderResult;
+void do_render_seq(struct RenderResult *rr);
 
 
 #endif

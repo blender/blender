@@ -660,18 +660,6 @@ Package=<4>
     Project_Dep_Name gen_messaging
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name KX_blenderhook
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name KX_converter
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name KX_ketsji
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name KX_network
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name NG_loopbacknetwork
     End Project Dependency
     Begin Project Dependency
@@ -691,9 +679,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name SYS_system
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BRE_renderconverter
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name BL_src_pub

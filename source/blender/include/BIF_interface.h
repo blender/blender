@@ -77,6 +77,7 @@ struct ScrArea;
 #define UI_BLOCK_ENTER_OK	32
 #define UI_BLOCK_NOSHADOW	64
 #define UI_BLOCK_FRONTBUFFER	128
+#define UI_BLOCK_NO_HILITE	256
 
 	/* block->flag bits 12-15 are identical to but->flag bits */
 
@@ -92,6 +93,7 @@ struct ScrArea;
 #define UI_PNL_STOW		64
 #define UI_PNL_TO_MOUSE	128
 #define UI_PNL_UNSTOW	256
+#define UI_PNL_SCALE	512
 
 /* warning the first 4 flags are internal */
 /* but->flag */
@@ -113,7 +115,13 @@ struct ScrArea;
 #define UI_BUT_ALIGN_DOWN	(1<<15)
 
 
-/* Button types */
+/* Button types, bits stored in 1 value... and a short even!
+- bits 0-4:  bitnr (0-31)
+- bits 5-7:  pointer type
+- bit  8:    for 'bit'
+- bit  9-15: button type (now 6 bits, 64 types)
+*/
+
 #define CHA	32
 #define SHO	64
 #define INT	96
@@ -152,8 +160,11 @@ struct ScrArea;
 #define PULLDOWN (27<<9)
 #define ROUNDBOX (28<<9)
 #define CHARTAB (29<<9)
+#define BUT_COLORBAND (30<<9)
+#define BUT_NORMAL (31<<9)
+#define BUT_CURVE (32<<9)
 
-#define BUTTYPE	(31<<9)
+#define BUTTYPE	(63<<9)
 
 
 
@@ -242,6 +253,7 @@ uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retval, int icon, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
@@ -277,7 +289,7 @@ void	uiButSetFunc		(uiBut *but,		void (*func)(void *arg1, void *arg2), void *arg
 
 void	uiButSetCompleteFunc(uiBut *but,		void (*func)(char *str, void *arg), void *arg);
 
-void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)());
+void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct ScrArea *sa, uiBlock *block));
 
 
 extern void pupmenu_set_active(int val);
@@ -299,6 +311,9 @@ extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
 extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
+
+extern void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+extern void *uiSetCurFont_ext(float aspect);
 
 void shade_buttons_change_3d(void);
 

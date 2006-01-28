@@ -33,10 +33,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include <io.h>
 #else
@@ -46,6 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -599,7 +596,8 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 
 static int sample_backbuf_area(int x, int y, float size)
 {
-	unsigned int rect[129*129], *rt;
+	unsigned int *rt;
+	struct ImBuf *ibuf;
 	int x1, y1, x2, y2, a, tot=0, index;
 	
 	if(totvpaintundo>=MAXINDEX) return 0;
@@ -617,12 +615,15 @@ static int sample_backbuf_area(int x, int y, float size)
 #ifdef __APPLE__
 	glReadBuffer(GL_AUX0);
 #endif
-	glReadPixels(x1+curarea->winrct.xmin, y1+curarea->winrct.ymin, x2-x1+1, y2-y1+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
+	ibuf = IMB_allocImBuf(2*size + 1, 2*size + 1, 32, IB_rect, 0);
+	glReadPixels(x1+curarea->winrct.xmin, y1+curarea->winrct.ymin, x2-x1+1, y2-y1+1, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	glReadBuffer(GL_BACK);	
 
-	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr( (int)(4*size*size), rect);
+	if(G.order==B_ENDIAN)  {
+		IMB_convert_rgba_to_abgr(ibuf);
+	}
 
-	rt= rect;
+	rt= ibuf->rect;
 	size= (y2-y1)*(x2-x1);
 	if(size<=0) return 0;
 
@@ -642,6 +643,8 @@ static int sample_backbuf_area(int x, int y, float size)
 	for(a=1; a<=totvpaintundo; a++) {
 		if(indexar[a]) indexar[tot++]= a;
 	}
+
+	IMB_freeImBuf(ibuf);
 	
 	return tot;
 }

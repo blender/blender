@@ -745,7 +745,7 @@ void do_view3d_select_object_groupedmenu(void *arg, int event)
 	case 2: /* Immediate Children */
 	case 3: /* Parent */
 	case 4: /* Objects on Shared Layers */
-		select_group((short)event);
+		select_grouped((short)event);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -859,6 +859,12 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 13: /* select non-triangles/quads */
 			select_faces_by_numverts(5);
 			break;
+		case 14: /* select less */
+			select_sharp_edges();
+			break;
+		case 15: /* select less */
+			select_linked_flat_faces();
+			break;
 
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -887,6 +893,12 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Non-Manifold|Ctrl Alt Shift M", 
 					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Sharp Edges|Ctrl Alt Shift S", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Linked flat faces|Ctrl Alt Shift F", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -1776,6 +1788,7 @@ static void do_view3d_edit_object_copyattrmenu(void *arg, int event)
 	case 23:
 	case 24:
 	case 25:
+	case 26:
 		copy_attr((short)event);
 		break;
 		}
@@ -1810,32 +1823,33 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Constraints|Ctrl C, 22",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Constraints|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "NLA Strips|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 26, "");
 	
 	if (ob) {
 	
 		if ((ob->type == OB_MESH) || (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
 				(ob->type == OB_FONT) || (ob->type == OB_MBALL)) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Space|Ctrl C, 17",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Space|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 		}	
 		
 		if(ob->type == OB_FONT) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Font Settings|Ctrl C, 18",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 19",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Resolution|Ctrl C, 20",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Font Settings|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Resolution|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 		}
 		if(ob->type == OB_CURVE) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 19",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Resolution|Ctrl C, 20",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Resolution|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 		}
 	
 		if(ob->type==OB_MESH) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdiv|Ctrl C, 21",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Modifiers ...|Ctrl C, 24",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdiv|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Modifiers ...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
 		}
 	
 		if( give_parteff(ob) ) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Particle Settings|Ctrl C, 20",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Particle Settings|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 		}
 	}
 	

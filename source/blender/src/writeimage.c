@@ -30,68 +30,34 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
+#include "MEM_guardedalloc.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"  // ImBuf{}
 
+#include "BLI_blenlib.h"
+
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_texture_types.h" // EnvMap{}
 #include "DNA_image_types.h" // Image{}
 
 #include "BKE_global.h"		// struct G
+#include "BKE_image.h"
 #include "BKE_utildefines.h" // ELEM
 
+#include "BIF_screen.h"		// waitcursor
+#include "BIF_toolbox.h"
 #include "BIF_writeimage.h"
 
-#include "render.h"			// RE_make_existing_file, R. stuff
+#include "BSE_filesel.h"
 
-int BIF_write_ibuf(ImBuf *ibuf, char *name)
-{
-	int ok;
-
-	/* to be used for e.g. envmap, not rendered images */
-	
-	if(G.scene->r.imtype== R_IRIS) ibuf->ftype= IMAGIC;
-	else if ((G.scene->r.imtype==R_RADHDR)) {
-		ibuf->ftype= RADHDR;
-	}
-	else if ((G.scene->r.imtype==R_PNG)) {
-		ibuf->ftype= PNG;
-	}
-	else if ((G.scene->r.imtype==R_BMP)) {
-		ibuf->ftype= BMP;
-	}
-	else if ((G.have_libtiff) && (G.scene->r.imtype==R_TIFF)) {
-		ibuf->ftype= TIF;
-	}
-	else if ((G.scene->r.imtype==R_TARGA) || (G.scene->r.imtype==R_PNG)) {
-		// fall back to Targa if PNG writing is not supported
-		ibuf->ftype= TGA;
-	}
-	else if(G.scene->r.imtype==R_RAWTGA) {
-		ibuf->ftype= RAWTGA;
-	}
-	else if(G.scene->r.imtype==R_HAMX) {
-		ibuf->ftype= AN_hamx;
-	}
-	else if ELEM(G.scene->r.imtype, R_JPEG90, R_MOVIE) {
-		if(G.scene->r.quality < 10) G.scene->r.quality= 90;
-
-		ibuf->ftype= JPG|G.scene->r.quality;
-	}
-	else ibuf->ftype= TGA;
-	
-	RE_make_existing_file(name);
-	
-	ok = IMB_saveiff(ibuf, name, IB_rect);
-	if (ok == 0) {
-		perror(name);
-	}
-
-	return(ok);
-}
-
+#include "RE_pipeline.h"
 
 /* ------------------------------------------------------------------------- */
+
 
 void BIF_save_envmap(EnvMap *env, char *str)
 {
@@ -105,19 +71,124 @@ void BIF_save_envmap(EnvMap *env, char *str)
 	dx= env->cube[0]->ibuf->x;
 	ibuf= IMB_allocImBuf(3*dx, 2*dx, 24, IB_rect, 0);
 	
-	IMB_rectop(ibuf, env->cube[0]->ibuf, 
-			0, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[1]->ibuf, 
-			dx, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[2]->ibuf, 
-			2*dx, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[3]->ibuf, 
-			0, dx, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[4]->ibuf, 
-			dx, dx, 0, 0, dx, dx, IMB_rectcpy, 0);
-	IMB_rectop(ibuf, env->cube[5]->ibuf, 
-			2*dx, dx, 0, 0, dx, dx, IMB_rectcpy, 0);
+	IMB_rectcpy(ibuf, env->cube[0]->ibuf, 0, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[1]->ibuf, dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[2]->ibuf, 2*dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[3]->ibuf, 0, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[4]->ibuf, dx, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[5]->ibuf, 2*dx, dx, 0, 0, dx, dx);
 	
-	BIF_write_ibuf(ibuf, str);
+	BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 	IMB_freeImBuf(ibuf);
 }
+
+
+/* callback for fileselect to save rendered image, renderresult was checked to exist */
+static void save_rendered_image_cb(char *name)
+{
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+	
+	if(BLI_testextensie(name,".blend")) {
+		error("Wrong filename");
+		return;
+	}
+	
+	/* BKE_add_image_extension() checks for if extension was already set */
+	if(G.scene->r.scemode & R_EXTENSION) 
+		if(strlen(name)<FILE_MAXDIR+FILE_MAXFILE-5)
+			BKE_add_image_extension(name, G.scene->r.imtype);
+
+	strcpy(str, name);
+	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	
+	if(saveover(str)) {
+		RenderResult rres;
+		ImBuf *ibuf;
+		
+		RE_GetResultImage(RE_GetRender("Render"), &rres);
+
+		waitcursor(1); /* from screen.c */
+
+		ibuf= IMB_allocImBuf(rres.rectx, rres.recty, G.scene->r.planes, 0, 0);
+		ibuf->rect= rres.rect32;
+		ibuf->rect_float= rres.rectf;
+		ibuf->zbuf_float= rres.rectz;
+		
+		BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
+		IMB_freeImBuf(ibuf);	/* imbuf knows rects are not part of ibuf */
+		
+		strcpy(G.ima, name);
+		
+		waitcursor(0);
+	}
+}
+
+void save_image_filesel_str(char *str)
+{
+	switch(G.scene->r.imtype) {
+		case R_RADHDR:
+			strcpy(str, "Save Radiance HDR");
+			break;
+		case R_PNG:
+			strcpy(str, "Save PNG");
+			break;
+		case R_BMP:
+			strcpy(str, "Save BMP");
+			break;
+		case R_TIFF:
+			if (G.have_libtiff)
+				strcpy(str, "Save TIFF");
+			break;
+#ifdef WITH_OPENEXR
+		case R_OPENEXR:
+			strcpy(str, "Save OpenEXR");
+			break;
+#endif
+		case R_RAWTGA:
+			strcpy(str, "Save Raw Targa");
+			break;
+		case R_IRIS:
+			strcpy(str, "Save IRIS");
+			break;
+		case R_IRIZ:
+			strcpy(str, "Save IRIS");
+			break;
+		case R_HAMX:
+			strcpy(str, "Save HAMX");
+			break;
+		case R_JPEG90:
+		case R_MOVIE:
+		case R_AVICODEC:
+		case R_AVIRAW:
+		case R_AVIJPEG:
+			strcpy(str, "Save JPEG");
+			break;
+			
+		case R_TARGA:	/* default targa */
+		default:
+			strcpy(str, "Save Targa");
+			break;
+	}	
+}
+
+/* calls fileselect */
+void BIF_save_rendered_image_fs(void)
+{
+	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+	
+	if(!rr) {
+		error("No image rendered");
+	} else {
+		char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
+		
+		if(G.ima[0]==0) {
+			strcpy(dir, G.sce);
+			BLI_splitdirstring(dir, str);
+			strcpy(G.ima, dir);
+		}
+		
+		save_image_filesel_str(str);
+		activate_fileselect(FILE_SPECIAL, str, G.ima, save_rendered_image_cb);
+	}
+}
+

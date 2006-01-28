@@ -89,10 +89,6 @@ typedef void* NLContext;
 #define NL_SYMMETRIC        0x106
 #define NL_ERROR            0x108
 
-/* Enable / Disable */
-
-#define NL_NORMALIZE_ROWS  0x400
-
 /* Row parameters */
 
 #define NL_RIGHT_HAND_SIDE 0x500
@@ -142,7 +138,9 @@ void nlRightHandSideAdd(NLuint index, NLfloat value);
 
 /* Solve */
 
-NLboolean nlSolve(void);
+void nlPrintMatrix(void);
+NLboolean nlSolve();
+NLboolean nlSolveAdvanced(NLint *permutation, NLboolean solveAgain);
 
 #ifdef __cplusplus
 }

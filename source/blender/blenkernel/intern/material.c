@@ -34,35 +34,49 @@
  */
 
 #include <string.h>
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_bad_level_calls.h"
-#include "BKE_utildefines.h"
-
-#include "BKE_global.h"
-#include "BKE_main.h"
-
-#include "BKE_mesh.h"
-#include "BKE_library.h"
+#include "BKE_blender.h"
 #include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_icons.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_node.h"
+#include "BKE_utildefines.h"
 
 #include "BPY_extern.h"
 
+/* used in UI and render */
+Material defmaterial;
+
+/* called on startup, creator.c */
+void init_def_material(void)
+{
+	init_material(&defmaterial);
+}
+
+/* not material itself */
 void free_material(Material *ma)
 {
-	int a;
 	MTex *mtex;
+	int a;
 
 	BPY_free_scriptlink(&ma->scriptlink);
 	
@@ -74,6 +88,15 @@ void free_material(Material *ma)
 	
 	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
+	
+	BKE_icon_delete((struct ID*)ma);
+	ma->id.icon_id = 0;
+	
+	/* is no lib link block, but material extension */
+	if(ma->nodetree) {
+		ntreeFreeTree(ma->nodetree);
+		MEM_freeN(ma->nodetree);
+	}
 }
 
 void init_material(Material *ma)
@@ -115,9 +138,9 @@ void init_material(Material *ma)
 	
 	ma->rampfac_col= 1.0;
 	ma->rampfac_spec= 1.0;
-	ma->pr_lamp= 3; // two lamps, is bits
-	
-	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_TANGENT_STR;
+	ma->pr_lamp= 3;			/* two lamps, is bits */
+
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
 }
 
 Material *add_material(char *name)
@@ -149,8 +172,13 @@ Material *copy_material(Material *ma)
 	}
 	
 	BPY_copy_scriptlink(&ma->scriptlink);
+	
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
+	
+	if(ma->nodetree) {
+		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
+	}
 	
 	return man;
 }
@@ -245,6 +273,7 @@ void make_local_material(Material *ma)
 		new_id(0, (ID *)ma, 0);
 	}
 	else if(local && lib) {
+		
 		man= copy_material(ma);
 		man->id.us= 0;
 		
@@ -534,8 +563,7 @@ void new_material_to_objectdata(Object *ob)
 	ob->actcol= ob->totcol;
 }
 
-
-void init_render_material(Material *ma)
+static void do_init_render_material(Material *ma, int osa, float *amb)
 {
 	MTex *mtex;
 	int a, needuv=0;
@@ -551,77 +579,85 @@ void init_render_material(Material *ma)
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;
-			if(R.osa) {
+			if(osa) {
 				if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
 			}
 			
-			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND)) needuv= 1;
+			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
 			else if(ma->texco & (TEXCO_GLOB|TEXCO_UV|TEXCO_OBJECT)) needuv= 1;
 			else if(ma->texco & (TEXCO_LAVECTOR|TEXCO_VIEW|TEXCO_STICKY)) needuv= 1;
-			
-			if(mtex->object) mtex->object->flag |= OB_DO_IMAT;
-			
 		}
-	}
-	if(ma->mode & MA_ZTRA) {
-		/* if(ma->alpha==0.0 || ma->alpha==1.0) */
-		if(R.flag & R_RENDERING) R.flag |= R_ZTRA;
 	}
 	
 	if(ma->mode & MA_RADIO) needuv= 1;
 	
 	if(ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 		needuv= 1;
-		if(R.osa) ma->texco |= TEXCO_OSA;		/* for texfaces */
+		if(osa) ma->texco |= TEXCO_OSA;		/* for texfaces */
 	}
 	if(needuv) ma->texco |= NEED_UV;
 	
 	// since the raytracer doesnt recalc O structs for each ray, we have to preset them all
 	if(ma->mode & (MA_RAYMIRROR|MA_RAYTRANSP|MA_SHADOW_TRA)) { 
 		ma->texco |= NEED_UV|TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM;
-		if(R.osa) ma->texco |= TEXCO_OSA;
+		if(osa) ma->texco |= TEXCO_OSA;
 	}
 
-	ma->ambr= ma->amb*R.wrld.ambr;
-	ma->ambg= ma->amb*R.wrld.ambg;
-	ma->ambb= ma->amb*R.wrld.ambb;
+	ma->ambr= ma->amb*amb[0];
+	ma->ambg= ma->amb*amb[1];
+	ma->ambb= ma->amb*amb[2];
 	
+	/* will become or-ed result of all node modes */
+	ma->mode_l= ma->mode;
 }
 
-void init_render_materials()
+void init_render_material(Material *mat, int osa, float *amb)
 {
-	Material *ma;
+	do_init_render_material(mat, osa, amb);
 	
-	ma= G.main->mat.first;
-	while(ma) {
-		if(ma->id.us) init_render_material(ma);
-		ma= ma->id.next;
-	}
-	
-}
-
-void end_render_material(Material *ma)
-{
-	/* XXXX obsolete? check! */
-	if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
-		if( !(ma->mode & MA_HALO) ) {
-			ma->r= ma->g= ma->b= 1.0;
+	if(mat->nodetree && mat->use_nodes) {
+		bNode *node;
+		
+		for(node=mat->nodetree->nodes.first; node; node= node->next) {
+			if(node->id && GS(node->id->name)==ID_MA) {
+				Material *ma= (Material *)node->id;
+				if(ma!=mat) {
+					do_init_render_material(ma, osa, amb);
+					mat->texco |= ma->texco;
+					mat->mode_l |= ma->mode_l;
+				}
+			}
 		}
+		/* parses the geom nodes */
+		mat->texco |= ntreeShaderGetTexco(mat->nodetree, osa);
+		ntreeBeginExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
 	}
 }
 
-void end_render_materials()
+void init_render_materials(int osa, float *amb)
 {
 	Material *ma;
 	
-	ma= G.main->mat.first;
-	while(ma) {
-		if(ma->id.us) end_render_material(ma);
-		ma= ma->id.next;
-	}
-	
+	/* two steps, first initialize, then or the flags for layers */
+	for(ma= G.main->mat.first; ma; ma= ma->id.next)
+		if(ma->id.us) 
+			init_render_material(ma, osa, amb);
 }
 
+/* only needed for nodes now */
+void end_render_material(Material *mat)
+{
+	if(mat && mat->nodetree && mat->use_nodes)
+		ntreeEndExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
+}
+
+void end_render_materials(void)
+{
+	Material *ma;
+	for(ma= G.main->mat.first; ma; ma= ma->id.next)
+		if(ma->id.us) 
+			end_render_material(ma);
+}
 
 /* ****************** */
 
@@ -756,3 +792,89 @@ void delete_material_index()
 		freedisplist(&ob->disp);
 	}
 }
+
+
+/* r g b = current value, col = new value, fac==0 is no change */
+/* if g==NULL, it only does r channel */
+void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
+{
+	float tmp, facm= 1.0-fac;
+	
+	switch (type) {
+		case MA_RAMP_BLEND:
+			*r = facm*(*r) + fac*col[0];
+			if(g) {
+				*g = facm*(*g) + fac*col[1];
+				*b = facm*(*b) + fac*col[2];
+			}
+				break;
+		case MA_RAMP_ADD:
+			*r += fac*col[0];
+			if(g) {
+				*g += fac*col[1];
+				*b += fac*col[2];
+			}
+				break;
+		case MA_RAMP_MULT:
+			*r *= (facm + fac*col[0]);
+			if(g) {
+				*g *= (facm + fac*col[1]);
+				*b *= (facm + fac*col[2]);
+			}
+				break;
+		case MA_RAMP_SCREEN:
+			*r = 1.0 - (facm + fac*(1.0 - col[0])) * (1.0 - *r);
+			if(g) {
+				*g = 1.0 - (facm + fac*(1.0 - col[1])) * (1.0 - *g);
+				*b = 1.0 - (facm + fac*(1.0 - col[2])) * (1.0 - *b);
+			}
+				break;
+		case MA_RAMP_SUB:
+			*r -= fac*col[0];
+			if(g) {
+				*g -= fac*col[1];
+				*b -= fac*col[2];
+			}
+				break;
+		case MA_RAMP_DIV:
+			if(col[0]!=0.0)
+				*r = facm*(*r) + fac*(*r)/col[0];
+			if(g) {
+				if(col[1]!=0.0)
+					*g = facm*(*g) + fac*(*g)/col[1];
+				if(col[2]!=0.0)
+					*b = facm*(*b) + fac*(*b)/col[2];
+			}
+				break;
+		case MA_RAMP_DIFF:
+			*r = facm*(*r) + fac*fabs(*r-col[0]);
+			if(g) {
+				*g = facm*(*g) + fac*fabs(*g-col[1]);
+				*b = facm*(*b) + fac*fabs(*b-col[2]);
+			}
+				break;
+		case MA_RAMP_DARK:
+			tmp= fac*col[0];
+			if(tmp < *r) *r= tmp; 
+				if(g) {
+					tmp= fac*col[1];
+					if(tmp < *g) *g= tmp; 
+					tmp= fac*col[2];
+					if(tmp < *b) *b= tmp; 
+				}
+					break;
+		case MA_RAMP_LIGHT:
+			tmp= fac*col[0];
+			if(tmp > *r) *r= tmp; 
+				if(g) {
+					tmp= fac*col[1];
+					if(tmp > *g) *g= tmp; 
+					tmp= fac*col[2];
+					if(tmp > *b) *b= tmp; 
+				}
+					break;
+	}
+	
+}
+
+

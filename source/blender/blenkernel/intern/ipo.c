@@ -57,6 +57,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -178,9 +179,9 @@ float frame_to_float(int cfra)		/* see also bsystem_time in object.c */
 	float ctime;
 	
 	ctime= (float)cfra;
-	if(R.flag & R_SEC_FIELD) {
-		if((R.r.mode & R_FIELDSTILL)==0) ctime+= 0.5;
-	}
+//	if(R.flag & R_SEC_FIELD) {
+//		if((R.r.mode & R_FIELDSTILL)==0) ctime+= 0.5;
+//	}
 	ctime+= bluroffs;
 	ctime*= G.scene->r.framelen;
 	
@@ -1829,7 +1830,11 @@ void execute_action_ipo(bActionChannel *achan, bPoseChannel *pchan)
 		IpoCurve *icu;
 		for(icu= achan->ipo->curve.first; icu; icu= icu->next) {
 			void *poin= get_pchan_ipo_poin(pchan, icu->adrcode);
-			if(poin) write_ipo_poin(poin, IPO_FLOAT, icu->curval);
+			if(poin) {
+			  write_ipo_poin(poin, IPO_FLOAT, icu->curval);
+			  //printf("execute_action_ipo wrote_ipo_poin: %f\n", icu->curval);
+			  //printf("%s has poin %p value %f\n", achan->name, poin, icu->curval);
+			}
 		}
 	}
 }

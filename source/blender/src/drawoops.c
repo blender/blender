@@ -55,6 +55,7 @@
 #include "BKE_global.h"
 
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
@@ -222,7 +223,7 @@ void draw_icon_oops(float *co, short type)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 
-	BIF_draw_icon(co[0], co[1]-0.2, icon);
+	BIF_icon_draw(co[0], co[1]-0.2, icon);
 
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);

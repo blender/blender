@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
+#include <strstream>
 
 namespace TNT
 {
@@ -183,6 +184,17 @@ class Vector
     {
         initialize(N);
         copy(v);
+    }
+
+    Vector(Subscript N, char *s) :  v_(0), vm1_(0), n_(0)
+    {
+        initialize(N);
+        std::istrstream ins(s);
+
+        Subscript i;
+
+        for (i=0; i<N; i++)
+                ins >> v_[i];
     }
 
 

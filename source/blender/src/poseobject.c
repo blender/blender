@@ -119,12 +119,13 @@ void enter_posemode(void)
 
 void set_pose_keys (Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *chan;
 
 	if (ob->pose){
 		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
 			Bone *bone= chan->bone;
-			if(bone && (bone->flag & BONE_SELECTED)) {
+			if(bone && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer)) {
 				chan->flag |= POSE_KEY;		
 			}
 			else {
@@ -157,11 +158,12 @@ void exit_posemode(void)
 /* called by buttons to find a bone to display/edit values for */
 bPoseChannel *get_active_posechannel (Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	
 	/* find active */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE))
+		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
 			return pchan;
 	}
 	
@@ -194,6 +196,7 @@ int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 /* for the object with pose/action: create path curves for selected bones */
 void pose_calculate_path(Object *ob)
 {
+	bArmature *arm;
 	bPoseChannel *pchan;
 	Base *base;
 	float *fp;
@@ -201,6 +204,7 @@ void pose_calculate_path(Object *ob)
 	
 	if(ob==NULL || ob->pose==NULL)
 		return;
+	arm= ob->data;
 	
 	if(EFRA<=SFRA) return;
 	
@@ -209,10 +213,12 @@ void pose_calculate_path(Object *ob)
 	/* malloc the path blocks */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-			pchan->pathlen= EFRA-SFRA;
-			if(pchan->path)
-				MEM_freeN(pchan->path);
-			pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
+			if(arm->layer & pchan->bone->layer) {
+				pchan->pathlen= EFRA-SFRA;
+				if(pchan->path)
+					MEM_freeN(pchan->path);
+				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
+			}
 		}
 	}
 	
@@ -230,10 +236,12 @@ void pose_calculate_path(Object *ob)
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-				if(pchan->path) {
-					fp= pchan->path+3*(CFRA-SFRA);
-					VECCOPY(fp, pchan->pose_tail);
-					Mat4MulVecfl(ob->obmat, fp);
+				if(arm->layer & pchan->bone->layer) {
+					if(pchan->path) {
+						fp= pchan->path+3*(CFRA-SFRA);
+						VECCOPY(fp, pchan->pose_tail);
+						Mat4MulVecfl(ob->obmat, fp);
+					}
 				}
 			}
 		}
@@ -268,6 +276,7 @@ void pose_clear_paths(Object *ob)
 void pose_select_constraint_target(void)
 {
 	Object *ob= OBACT;
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	bConstraint *con;
 	
@@ -276,16 +285,18 @@ void pose_select_constraint_target(void)
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
-			
-			for(con= pchan->constraints.first; con; con= con->next) {
-				char *subtarget;
-				Object *target= get_constraint_target(con, &subtarget);
+		if(arm->layer & pchan->bone->layer) {
+			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
 				
-				if(ob==target) {
-					if(subtarget) {
-						bPoseChannel *pchanc= get_pose_channel(ob->pose, subtarget);
-						pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+				for(con= pchan->constraints.first; con; con= con->next) {
+					char *subtarget;
+					Object *target= get_constraint_target(con, &subtarget);
+					
+					if(ob==target) {
+						if(subtarget) {
+							bPoseChannel *pchanc= get_pose_channel(ob->pose, subtarget);
+							pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+						}
 					}
 				}
 			}
@@ -340,6 +351,7 @@ void pose_add_IK(void)
 void pose_clear_IK(void)
 {
 	Object *ob= OBACT;
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	bConstraint *con;
 	bConstraint *next;
@@ -351,17 +363,19 @@ void pose_clear_IK(void)
 	if(okee("Remove IK constraint(s)")==0) return;
 
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
-			
-			for(con= pchan->constraints.first; con; con= next) {
-				next= con->next;
-				if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
-					BLI_remlink(&pchan->constraints, con);
-					free_constraint_data(con);
-					MEM_freeN(con);
+		if(arm->layer & pchan->bone->layer) {
+			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				
+				for(con= pchan->constraints.first; con; con= next) {
+					next= con->next;
+					if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+						BLI_remlink(&pchan->constraints, con);
+						free_constraint_data(con);
+						MEM_freeN(con);
+					}
 				}
+				pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
 			}
-			pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
 		}
 	}
 	
@@ -377,6 +391,7 @@ void pose_clear_IK(void)
 void pose_clear_constraints(void)
 {
 	Object *ob= OBACT;
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	
 	/* paranoia checks */
@@ -387,9 +402,11 @@ void pose_clear_constraints(void)
 	
 	/* find active */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
-			free_constraints(&pchan->constraints);
-			pchan->constflag= 0;
+		if(arm->layer & pchan->bone->layer) {
+			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				free_constraints(&pchan->constraints);
+				pchan->constflag= 0;
+			}
 		}
 	}
 	
@@ -407,6 +424,7 @@ void pose_clear_constraints(void)
 void pose_copy_menu(void)
 {
 	Object *ob= OBACT;
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan, *pchanact;
 	short nr;
 	
@@ -425,21 +443,23 @@ void pose_copy_menu(void)
 	nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints");
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & BONE_SELECTED) {
-			if(pchan!=pchanact) {
-				if(nr==1) {
-					VECCOPY(pchan->loc, pchanact->loc);
-				}
-				else if(nr==2) {
-					QUATCOPY(pchan->quat, pchanact->quat);
-				}
-				else if(nr==3) {
-					VECCOPY(pchan->size, pchanact->size);
-				}
-				else if(nr==4) {
-					free_constraints(&pchan->constraints);
-					copy_constraints(&pchan->constraints, &pchanact->constraints);
-					pchan->constflag = pchanact->constflag;
+		if(arm->layer & pchan->bone->layer) {
+			if(pchan->bone->flag & BONE_SELECTED) {
+				if(pchan!=pchanact) {
+					if(nr==1) {
+						VECCOPY(pchan->loc, pchanact->loc);
+					}
+					else if(nr==2) {
+						QUATCOPY(pchan->quat, pchanact->quat);
+					}
+					else if(nr==3) {
+						VECCOPY(pchan->size, pchanact->size);
+					}
+					else if(nr==4) {
+						free_constraints(&pchan->constraints);
+						copy_constraints(&pchan->constraints, &pchanact->constraints);
+						pchan->constflag = pchanact->constflag;
+					}
 				}
 			}
 		}
@@ -616,6 +636,7 @@ void pose_adds_vgroups(Object *meshobj)
 	struct vgroup_map map;
 	DerivedMesh *dm;
 	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
+	bArmature *arm= poseobj->data;
 	bPoseChannel *pchan;
 	Bone *bone;
 	bDeformGroup *dg, *curdef;
@@ -629,47 +650,49 @@ void pose_adds_vgroups(Object *meshobj)
 	
 	for(pchan= poseobj->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
-		if(bone->flag & (BONE_SELECTED)) {
-			
-			/* check if mesh has vgroups */
-			dg= get_named_vertexgroup(meshobj, bone->name);
-			if(dg==NULL)
-				dg= add_defgroup_name(meshobj, bone->name);
-			
-			/* flipped bone */
-			if(Gwp.flag & VP_MIRROR_X) {
-				char name[32];
+		if(arm->layer & pchan->bone->layer) {
+			if(bone->flag & (BONE_SELECTED)) {
 				
-				BLI_strncpy(name, dg->name, 32);
-				bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+				/* check if mesh has vgroups */
+				dg= get_named_vertexgroup(meshobj, bone->name);
+				if(dg==NULL)
+					dg= add_defgroup_name(meshobj, bone->name);
 				
-				for (curdef = meshobj->defbase.first; curdef; curdef=curdef->next)
-					if (!strcmp(curdef->name, name))
-						break;
-				map.dgflip= curdef;
+				/* flipped bone */
+				if(Gwp.flag & VP_MIRROR_X) {
+					char name[32];
+					
+					BLI_strncpy(name, dg->name, 32);
+					bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+					
+					for (curdef = meshobj->defbase.first; curdef; curdef=curdef->next)
+						if (!strcmp(curdef->name, name))
+							break;
+					map.dgflip= curdef;
+				}
+				else map.dgflip= NULL;
+				
+				/* get the root of the bone in global coords */
+				VECCOPY(map.head, bone->arm_head);
+				Mat4MulVecfl(poseobj->obmat, map.head);
+				
+				/* get the tip of the bone in global coords */
+				VECCOPY(map.tail, bone->arm_tail);
+				Mat4MulVecfl(poseobj->obmat, map.tail);
+				
+				/* use the optimal vertices instead of mverts */
+				map.dg= dg;
+				map.bone= bone;
+				if(dm->foreachMappedVert) 
+					dm->foreachMappedVert(dm, pose_adds_vgroups__mapFunc, (void*) &map);
+				else {
+					Mesh *me= meshobj->data;
+					int i;
+					for(i=0; i<me->totvert; i++) 
+						pose_adds_vgroups__mapFunc(&map, i, (me->mvert+i)->co, NULL, NULL);
+				}
+				
 			}
-			else map.dgflip= NULL;
-			
-			/* get the root of the bone in global coords */
-			VECCOPY(map.head, bone->arm_head);
-			Mat4MulVecfl(poseobj->obmat, map.head);
-			
-            /* get the tip of the bone in global coords */
-			VECCOPY(map.tail, bone->arm_tail);
-            Mat4MulVecfl(poseobj->obmat, map.tail);
-			
-			/* use the optimal vertices instead of mverts */
-			map.dg= dg;
-			map.bone= bone;
-			if(dm->foreachMappedVert) 
-				dm->foreachMappedVert(dm, pose_adds_vgroups__mapFunc, (void*) &map);
-			else {
-				Mesh *me= meshobj->data;
-				int i;
-				for(i=0; i<me->totvert; i++) 
-					pose_adds_vgroups__mapFunc(&map, i, (me->mvert+i)->co, NULL, NULL);
-			}
-			
 		}
 	}
 	
@@ -688,6 +711,7 @@ void pose_adds_vgroups(Object *meshobj)
 void pose_flip_names(void)
 {
 	Object *ob= OBACT;
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	char newname[32];
 	
@@ -696,10 +720,12 @@ void pose_flip_names(void)
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
-			BLI_strncpy(newname, pchan->name, sizeof(newname));
-			bone_flip_name(newname, 1);	// 1 = do strip off number extensions
-			armature_bone_rename(ob->data, pchan->name, newname);
+		if(arm->layer & pchan->bone->layer) {
+			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				BLI_strncpy(newname, pchan->name, sizeof(newname));
+				bone_flip_name(newname, 1);	// 1 = do strip off number extensions
+				armature_bone_rename(ob->data, pchan->name, newname);
+			}
 		}
 	}
 	
@@ -716,6 +742,7 @@ void pose_flip_names(void)
 void pose_activate_flipped_bone(void)
 {
 	Object *ob= OBACT;
+	bArmature *arm= ob->data;
 	
 	if(ob==NULL) return;
 
@@ -726,8 +753,9 @@ void pose_activate_flipped_bone(void)
 		bPoseChannel *pchan, *pchanf;
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(pchan->bone->flag & BONE_ACTIVE) {
-				break;
+			if(arm->layer & pchan->bone->layer) {
+				if(pchan->bone->flag & BONE_ACTIVE)
+					break;
 			}
 		}
 		if(pchan) {
@@ -760,3 +788,39 @@ void pose_activate_flipped_bone(void)
 	}
 }
 
+
+void pose_movetolayer(void)
+{
+	Object *ob= OBACT;
+	bArmature *arm;
+	short lay= 0;
+	
+	if(ob==NULL) return;
+	arm= ob->data;
+	
+	if(ob->flag & OB_POSEMODE) {
+		bPoseChannel *pchan;
+		
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(arm->layer & pchan->bone->layer) {
+				if(pchan->bone->flag & BONE_SELECTED)
+					lay |= pchan->bone->layer;
+			}
+		}
+		if(lay==0) return;
+		
+		if( movetolayer_short_buts(&lay)==0 ) return;
+		if(lay==0) return;
+
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(arm->layer & pchan->bone->layer) {
+				if(pchan->bone->flag & BONE_SELECTED)
+					pchan->bone->layer= lay;
+			}
+		}
+		
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+}

@@ -41,10 +41,6 @@
  * - util.h       : Useful defines, memory management.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "blenpluginapi\util.h"
 #else
@@ -250,20 +246,6 @@ void de_interlace(struct ImBuf *ib)
 	IMB_de_interlace(ib);
 }
 
-void rectop(struct ImBuf *dbuf,
-			struct ImBuf *sbuf,
-			int destx,
-			int desty,
-			int srcx,
-			int srcy,
-			int width,
-			int height,
-			void (*operation)(unsigned int *, unsigned int*, int, int),
-			int value)
-{
-	IMB_rectop(dbuf, sbuf, destx, desty, srcx, srcy, width, height, operation, value);
-}
-
 /* -------------------------------------------------------------------------- */
 /* stuff from plugin.h                                                        */ 
 /* -------------------------------------------------------------------------- */
@@ -354,6 +336,5 @@ int pluginapi_force_ref(void)
 		(int) turbulence1 +
 		(int) de_interlace +
 		(int) interlace +
-		(int) gamwarp +
-		(int) rectop;
+		(int) gamwarp;
 }

@@ -46,13 +46,7 @@
 struct HaloRen;
 struct ShadeInput;
 
-typedef struct ShadeResult 
-{
-	float diff[3];
-	float spec[3];
-	float alpha;
-
-} ShadeResult;
+/* ------------------------------------------------------------------------- */
 
 typedef struct PixStr
 {
@@ -61,13 +55,14 @@ typedef struct PixStr
 	unsigned short mask, amount;
 } PixStr;
 
-/* ------------------------------------------------------------------------- */
-
 typedef struct PixStrMain
 {
+	struct PixStrMain *next, *prev;
 	struct PixStr *ps;
-	struct PixStrMain *next;
+	int counter;
 } PixStrMain;
+
+/* ------------------------------------------------------------------------- */
 
 
 void	calc_view_vector(float *view, float x, float y);
@@ -82,34 +77,30 @@ void	shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr);
 
 float	fresnel_fac(float *view, float *vn, float fresnel, float fac);
 void	calc_R_ref(struct ShadeInput *shi);
-float	spec(float inp, int hard);
+
+/* for nodes */
+void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
+
+void zbufshade(void);
+void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
+
+void *shadepixel(RenderPart *pa, float x, float y, int z, int facenr, int mask, float *col, float *rco);
+
+int count_mask(unsigned short mask);
+
+void zbufshade_tile(struct RenderPart *pa);
+void zbufshadeDA_tile(struct RenderPart *pa);
 
 /* -------- ray.c ------- */
 
+extern void freeoctree(Render *re);
+extern void makeoctree(Render *re);
+
 extern void ray_shadow(ShadeInput *, LampRen *, float *);
 extern void ray_trace(ShadeInput *, ShadeResult *);
-extern void ray_ao(ShadeInput *, World *, float *);
-
-/**
- * Do z buffer and shade
- */
-void zbufshade(void);
-
-/**
- * zbuffer and shade, anti aliased
- */
-void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
-
-/**
- * Also called in: zbuf.c
- */
-void *shadepixel(float x, float y, int z, int facenr, int mask, float *col);
-
-/**
- * A cryptic but very efficient way of counting the number of bits that 
- * is set in the unsigned short.
- */
-int count_mask(unsigned short mask);
+extern void ray_ao(ShadeInput *, float *);
+extern void init_jitter_plane(LampRen *lar);
+extern void init_ao_sphere(float *sphere, int tot, int iter);
 
 #endif /* RENDER_EXT_H */
 

@@ -39,6 +39,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <strstream>
 
 using namespace std;
 

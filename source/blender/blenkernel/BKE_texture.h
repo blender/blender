@@ -40,6 +40,8 @@ struct PluginTex;
 struct LampRen;
 struct ColorBand;
 struct HaloRen;
+struct TexMapping;
+struct EnvMap;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 16
@@ -50,7 +52,7 @@ int test_dlerr(const char *name,  const char *symbol);
 void open_plugin_tex(struct PluginTex *pit);
 struct PluginTex *add_plugin_tex(char *str);
 void free_plugin_tex(struct PluginTex *pit);
-struct ColorBand *add_colorband(void);
+struct ColorBand *add_colorband(int rangetype);
 int do_colorband(struct ColorBand *coba, float in, float out[4]);
 void default_tex(struct Tex *tex);
 struct Tex *add_texture(char *name);
@@ -60,6 +62,16 @@ struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
 struct Tex *give_current_texture(struct Object *ob, int act);
+
+struct TexMapping *add_mapping(void);
+void init_mapping(struct TexMapping *texmap);
+
+
+void    BKE_free_envmapdata(struct EnvMap *env);
+void    BKE_free_envmap(struct EnvMap *env);
+struct EnvMap *BKE_add_envmap(void);
+struct EnvMap *BKE_copy_envmap(struct EnvMap *env);
+
 
 #endif
 

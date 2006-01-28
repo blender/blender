@@ -59,7 +59,7 @@ ifeq ($(OS),darwin)
     LLIBS    += -lGLU -lGL
     LLIBS    += -lz -lstdc++
     ifdef USE_OSX10.4STUBS
-    	LLIBS    +=-lSystemStubs
+       LLIBS    +=-lSystemStubs
     endif 
     LLIBS    += -framework Carbon -framework AGL -framework OpenGL
     LLIBS    += -framework QuickTime -framework CoreAudio

@@ -59,86 +59,6 @@
 #include "BMF_BitmapFont.h"
 
 
-#ifdef __APPLE__	 
-#include <stdio.h>
-
-static int needs_nvidia_rasterpos_workaround(void)
-{
-	static int well_is_it= -1;
-	
-	if (well_is_it==-1)
-	{
-		well_is_it= (strncmp((char *)glGetString(GL_RENDERER), "NVIDIA GeForce 6800", 18) == 0);
-		if ( well_is_it != 0)
-		{
-			const GLubyte* vers = glGetString(GL_VERSION);
-			const GLubyte* v = vers;
-			int major = 0, minor = 0, sub = 0;
-			
-			//advance to the '-'
-			while ((*v != 0) && (*v!='-'))
-				v++;
-			
-			if (*v == '-')
-			{
-				int i = 0;
-				v++;
-				
-				while ((v[i] <= '9') && (v[i] >= '0'))
-				{
-					major *=10;
-					major += v[i]-'0';
-					i++;
-				}
-				
-				if (v[i] == '.')
-				{
-					i++;
-					while ((v[i] <= '9') && (v[i] >= '0'))
-					{
-						minor *=10;
-						minor += v[i]-'0';
-						i++;
-					}
-				}
-				else
-					major = -1;
-				
-				if (v[i] == '.')
-				{
-					i++;
-					while ((v[i] <= '9') && (v[i] >= '0'))
-					{
-						sub *=10;
-						sub += v[i]-'0';
-						i++;
-					}
-				}
-				else
-					minor = -1;
-			}
-
-			//OS X 10.4.3 is the first version that contained the fix for this problem
-			// and the 6800's driver version in it is 1.4.16.  So anything after that
-			// doesn't need the workaround
-
-			if ( (major == -1) || (minor == -1))
-			//If anything went wrong don't do the workaround
-			//
-				well_is_it = 0;
-			else if ( (major <= 1) && (minor <= 4) && (sub < 16))
-				well_is_it = 1;
-			else
-				well_is_it = 0;
-		}	
-	}
-
-	return well_is_it;
-}
-
-
-#endif
-
 BMF_BitmapFont::BMF_BitmapFont(BMF_FontData* fontData)
 : m_fontData(fontData)
 {
@@ -154,19 +74,7 @@ void BMF_BitmapFont::DrawString(char* str)
 	GLint alignment;
 	unsigned char c;
 
-#ifdef __APPLE__	 
-     GLint vp[4];  // hack stuff	 
-     GLubyte nullm = 0;      // hack stuff	 
- 	 
-     if(needs_nvidia_rasterpos_workaround()) {	 // was is_a_really_crappy_nvidia_card()
-             glGetIntegerv(GL_VIEWPORT, vp);   // hack stuff	 
- 	 
-             glBitmap(1, 1, 0, 0, -vp[0], vp[1], &nullm);	 
- 	 
-         }	 
- #endif
- 
- 	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
+	glGetIntegerv(GL_UNPACK_ALIGNMENT, &alignment);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	
 	while ( (c = (unsigned char) *str++) ) {

@@ -150,7 +150,7 @@ void do_action_buttons(unsigned short event)
 			else {
 				float extra;
 				
-				calc_action_range(G.saction->action, &G.v2d->cur.xmin, &G.v2d->cur.xmax);
+				calc_action_range(G.saction->action, &G.v2d->cur.xmin, &G.v2d->cur.xmax, 0);
 				if(G.saction->pin==0 && ob) {
 					G.v2d->cur.xmin= get_action_frame_inv(ob, G.v2d->cur.xmin);
 					G.v2d->cur.xmax= get_action_frame_inv(ob, G.v2d->cur.xmax);
@@ -929,7 +929,7 @@ void action_buttons(void)
 	from = (ID*) ob;
 
 	xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
-						B_ACTIONBROWSE, (ID*)G.saction->action, 
+						B_ACTIONBROWSE, ID_AC, 0, (ID*)G.saction->action, 
 						from, &(G.saction->actnr), B_ACTALONE, 
 						B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
 

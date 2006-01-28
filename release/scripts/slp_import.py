@@ -36,26 +36,11 @@ tolerance.
 # | http://www.redrival.com/scorpius                        |
 # | scorpius@netzero.com                                    |
 # | May 3, 2004                                             |
+# | Released under the Blender Artistic Licence (BAL)       |
+# | Import Export Suite v0.5                                |
+# +---------------------------------------------------------+
 # | Read and write SLP Triangle File Format (*.slp)         |
 # +---------------------------------------------------------+
-
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
 
 import Blender, meshtools
 #import time

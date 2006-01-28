@@ -140,7 +140,7 @@ static char *osxerror(int setget, const char *str, ...)
 	/* We prefer to use the dyld error string if setget is 0 */
 		if (setget == 0) {
 			NSLinkEditError(&ler, &lerno, &file, &dylderrstr);
-			printf("dyld: %s\n",dylderrstr);
+//			printf("dyld: %s\n",dylderrstr);
 			if (dylderrstr && strlen(dylderrstr))
 				strncpy(errstr,dylderrstr,ERR_STR_LEN);
 		}		

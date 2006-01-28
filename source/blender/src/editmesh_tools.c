@@ -54,6 +54,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_key_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -258,7 +259,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 							dist= (float)fabs(v1->co[2]-eve->co[2]);
 							if(dist<=limit) {
 								v1->f|= 128;
-								v1->vn= eve;
+								v1->tmp.v = eve;
 							}
 						}
 					}
@@ -284,8 +285,8 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 			if( (eed->v1->f & 128) || (eed->v2->f & 128) ) {
 				remedge(eed);
 
-				if(eed->v1->f & 128) eed->v1= eed->v1->vn;
-				if(eed->v2->f & 128) eed->v2= eed->v2->vn;
+				if(eed->v1->f & 128) eed->v1 = eed->v1->tmp.v;
+				if(eed->v2->f & 128) eed->v2 = eed->v2->tmp.v;
 				e1= addedgelist(eed->v1, eed->v2, eed);
 				
 				if(e1) e1->f2= 1;
@@ -315,10 +316,10 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 		nextvl= efa->next;
 		if(efa->f1==1) {
 			
-			if(efa->v1->f & 128) efa->v1= efa->v1->vn;
-			if(efa->v2->f & 128) efa->v2= efa->v2->vn;
-			if(efa->v3->f & 128) efa->v3= efa->v3->vn;
-			if(efa->v4 && (efa->v4->f & 128)) efa->v4= efa->v4->vn;
+			if(efa->v1->f & 128) efa->v1= efa->v1->tmp.v;
+			if(efa->v2->f & 128) efa->v2= efa->v2->tmp.v;
+			if(efa->v3->f & 128) efa->v3= efa->v3->tmp.v;
+			if(efa->v4 && (efa->v4->f & 128)) efa->v4= efa->v4->tmp.v;
 		
 			test= 0;
 			if(efa->v1==efa->v2) test+=1;
@@ -1060,8 +1061,8 @@ void fill_mesh(void)
 	while(eve) {
 		if(eve->f & SELECT) {
 			v1= BLI_addfillvert(eve->co);
-			eve->vn= v1;
-			v1->vn= eve;
+			eve->tmp.v= v1;
+			v1->tmp.v= eve;
 			v1->xs= 0;	// used for counting edges
 		}
 		eve= eve->next;
@@ -1070,7 +1071,7 @@ void fill_mesh(void)
 	eed= em->edges.first;
 	while(eed) {
 		if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
-			e1= BLI_addfilledge(eed->v1->vn, eed->v2->vn);
+			e1= BLI_addfilledge(eed->v1->tmp.v, eed->v2->tmp.v);
 			e1->v1->xs++; 
 			e1->v2->xs++;
 		}
@@ -1084,10 +1085,10 @@ void fill_mesh(void)
 	while(efa) {
 		nextvl= efa->next;
 		if( faceselectedAND(efa, 1) ) {
-			efa->v1->vn->xs--;
-			efa->v2->vn->xs--;
-			efa->v3->vn->xs--;
-			if(efa->v4) efa->v4->vn->xs--;
+			efa->v1->tmp.v->xs--;
+			efa->v2->tmp.v->xs--;
+			efa->v3->tmp.v->xs--;
+			if(efa->v4) efa->v4->tmp.v->xs--;
 			ok= 1;
 			
 		}
@@ -1107,7 +1108,9 @@ void fill_mesh(void)
 	if(BLI_edgefill(0, (G.obedit && G.obedit->actcol)?(G.obedit->actcol-1):0)) {
 		efa= fillfacebase.first;
 		while(efa) {
-			efan= addfacelist(efa->v3->vn, efa->v2->vn, efa->v1->vn, 0, NULL, NULL); // normals default pointing up
+			/* normals default pointing up */
+			efan= addfacelist(efa->v3->tmp.v, efa->v2->tmp.v, 
+							  efa->v1->tmp.v, 0, NULL, NULL);
 			EM_select_face(efan, 1);
 			efa= efa->next;
 		}
@@ -2625,7 +2628,7 @@ static int count_selected_edges(EditEdge *ed)
 {
 	int totedge = 0;
 	while(ed) {
-		ed->vn= 0;
+		ed->tmp.p = 0;
 		if( ed->f & SELECT ) totedge++;
 		ed= ed->next;
 	}
@@ -2652,10 +2655,10 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 		eed->f2= 0;
 		eed->f1= 0;
 		if( eed->f & SELECT ) {
-			eed->vn= (EditVert *) (&efaa[i]);
+			eed->tmp.p = (EditVert *) (&efaa[i]);
 			i++;
 		}
-		else eed->vn= NULL;
+		else eed->tmp.p = NULL;
 		
 		eed= eed->next;
 	}
@@ -2675,23 +2678,23 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 				e1= efa->e1;
 				e2= efa->e2;
 				e3= efa->e3;
-				if(e1->f2<3 && e1->vn) {
+				if(e1->f2<3 && e1->tmp.p) {
 					if(e1->f2<2) {
-						evp= (EVPtr *) e1->vn;
-						evp[(int)e1->f2]= efa;
+						evp= (EVPtr *) e1->tmp.p;
+						evp[(int)e1->f2] = efa;
 					}
 					e1->f2+= 1;
 				}
-				if(e2->f2<3 && e2->vn) {
+				if(e2->f2<3 && e2->tmp.p) {
 					if(e2->f2<2) {
-						evp= (EVPtr *) e2->vn;
+						evp= (EVPtr *) e2->tmp.p;
 						evp[(int)e2->f2]= efa;
 					}
 					e2->f2+= 1;
 				}
-				if(e3->f2<3 && e3->vn) {
+				if(e3->f2<3 && e3->tmp.p) {
 					if(e3->f2<2) {
-						evp= (EVPtr *) e3->vn;
+						evp= (EVPtr *) e3->tmp.p;
 						evp[(int)e3->f2]= efa;
 					}
 					e3->f2+= 1;
@@ -2903,7 +2906,7 @@ void beauty_fill(void)
 			/* f2 is set in collect_quadedges() */
 			if(eed->f2==2 && eed->h==0) {
 
-				efaa = (EVPtr *) eed->vn;
+				efaa = (EVPtr *) eed->tmp.p;
 
 				/* none of the faces should be treated before, nor be part of fgon */
 				ok= 1;
@@ -3075,7 +3078,7 @@ void join_triangles(void)
 		
 		if(eed->f2==2) {  /* points to 2 faces */
 			
-			efaa= (EVPtr *) eed->vn;
+			efaa= (EVPtr *) eed->tmp.p;
 			
 			/* don't do it if flagged */
 
@@ -3172,7 +3175,7 @@ void edge_flip(void)
 		
 		if(eed->f2==2) {  /* points to 2 faces */
 			
-			efaa= (EVPtr *) eed->vn;
+			efaa= (EVPtr *) eed->tmp.p;
 			
 			/* don't do it if flagged */
 
@@ -4040,7 +4043,7 @@ static void bevel_mesh(float bsize, int allfaces)
 			efa->f1-= 1;
 			v1= addvertlist(efa->v1->co);
 			v1->f= efa->v1->f & ~128;
-   			efa->v1->vn= v1;
+   			efa->v1->tmp.v = v1;
 #ifdef __NLA
    			v1->totweight = efa->v1->totweight;
    			if (efa->v1->totweight) {
@@ -4052,7 +4055,7 @@ static void bevel_mesh(float bsize, int allfaces)
 #endif
 			v1= addvertlist(efa->v2->co);
 			v1->f= efa->v2->f & ~128;
-   			efa->v2->vn= v1;
+   			efa->v2->tmp.v = v1;
 #ifdef __NLA
    			v1->totweight = efa->v2->totweight;
    			if (efa->v2->totweight) {
@@ -4064,7 +4067,7 @@ static void bevel_mesh(float bsize, int allfaces)
 #endif
 			v1= addvertlist(efa->v3->co);
 			v1->f= efa->v3->f & ~128;
-   			efa->v3->vn= v1;
+   			efa->v3->tmp.v = v1;
 #ifdef __NLA
    			v1->totweight = efa->v3->totweight;
    			if (efa->v3->totweight) {
@@ -4077,7 +4080,7 @@ static void bevel_mesh(float bsize, int allfaces)
 			if (efa->v4) {
 				v1= addvertlist(efa->v4->co);
 				v1->f= efa->v4->f & ~128;
-	   			efa->v4->vn= v1;
+	   			efa->v4->tmp.v = v1;
 #ifdef __NLA
 	   			v1->totweight = efa->v4->totweight;
 	   			if (efa->v4->totweight) {
@@ -4090,21 +4093,29 @@ static void bevel_mesh(float bsize, int allfaces)
 			}
 
 			/* Needs better adaption of creases? */
-   			addedgelist(efa->e1->v1->vn, efa->e1->v2->vn, efa->e1);
-   			addedgelist(efa->e2->v1->vn,efa->e2->v2->vn, efa->e2);   			
-   			addedgelist(efa->e3->v1->vn,efa->e3->v2->vn, efa->e3);   			
-   			if (efa->e4) addedgelist(efa->e4->v1->vn,efa->e4->v2->vn, efa->e4);  
+   			addedgelist(efa->e1->v1->tmp.v, 
+						efa->e1->v2->tmp.v, 
+						efa->e1);
+   			addedgelist(efa->e2->v1->tmp.v,
+						efa->e2->v2->tmp.v, 
+						efa->e2);
+   			addedgelist(efa->e3->v1->tmp.v,
+						efa->e3->v2->tmp.v,
+						efa->e3);
+   			if (efa->e4) addedgelist(efa->e4->v1->tmp.v,
+									 efa->e4->v2->tmp.v,
+									 efa->e4);
 
    			if(efa->v4) {
-				v1= efa->v1->vn;
-				v2= efa->v2->vn;
-				v3= efa->v3->vn;
-				v4= efa->v4->vn;
+				v1 = efa->v1->tmp.v;
+				v2 = efa->v2->tmp.v;
+				v3 = efa->v3->tmp.v;
+				v4 = efa->v4->tmp.v;
 				addfacelist(v1, v2, v3, v4, efa,NULL);
    			} else {
-   				v1= efa->v1->vn;
-   				v2= efa->v2->vn;
-   				v3= efa->v3->vn;
+   				v1= efa->v1->tmp.v;
+   				v2= efa->v2->tmp.v;
+   				v3= efa->v3->tmp.v;
    				addfacelist(v1, v2, v3, 0, efa,NULL);
    			}
 
@@ -4140,8 +4151,9 @@ static void bevel_mesh(float bsize, int allfaces)
 	eed= em->edges.first;
 	while(eed) {
 		eed->f2= eed->f1= 0;
-		if ( ((eed->v1->f & eed->v2->f) & 1) || allfaces) eed->f1 |= 4;	/* original edges */
-		eed->vn= 0;
+		if ( ((eed->v1->f & eed->v2->f) & 1) || allfaces) 
+			eed->f1 |= 4;	/* original edges */
+		eed->tmp.v = 0;
 		eed= eed->next;
 	}
 
@@ -4219,7 +4231,7 @@ static void bevel_mesh(float bsize, int allfaces)
 		eed->f1= 0;
 		eed->v1->f1 &= ~1;
 		eed->v2->f1 &= ~1;		
-		eed->vn= 0;
+		eed->tmp.v = 0;
 		eed= eed->next;
 	}
 
@@ -4232,11 +4244,11 @@ static void bevel_mesh(float bsize, int allfaces)
 	eve= em->verts.first;
 	while (eve) {
 		eve->f &= ~(64|128);
-		eve->vn= NULL;
+		eve->tmp.v = NULL;
 		eve= eve->next;
 	}
 	
-	/* eve->f: 128: first vertex in a list (->vn) */
+	/* eve->f: 128: first vertex in a list (->tmp.v) */
 	/*		  64: vertex is in a list */
 	
 	eve= em->verts.first;
@@ -4249,11 +4261,11 @@ static void bevel_mesh(float bsize, int allfaces)
 					if ((eve->f & (128|64)) == 0) {
 						/* fprintf(stderr,"Found vertex cluster:\n  *\n  *\n"); */
 						eve->f |= 128;
-						eve->vn= eve2;
+						eve->tmp.v = eve2;
 						eve3= eve2;
 					} else if ((eve->f & 64) == 0) {
 						/* fprintf(stderr,"  *\n"); */
-						if (eve3) eve3->vn= eve2;
+						if (eve3) eve3->tmp.v = eve2;
 						eve2->f |= 64;
 						eve3= eve2;
 					}
@@ -4261,7 +4273,7 @@ static void bevel_mesh(float bsize, int allfaces)
 			}
 			eve2= eve2->next;
 			if (!eve2) {
-				if (eve3) eve3->vn= NULL;
+				if (eve3) eve3->tmp.v = NULL;
 			}
 		}
 		eve= eve->next;
@@ -4291,11 +4303,11 @@ static void bevel_mesh(float bsize, int allfaces)
 			eve->f &= ~128;
 			a= 0;
 			neweve[a]= eve;
-			eve2= eve->vn;
+			eve2 = eve->tmp.v;
 			while (eve2) {
 				a++;
 				neweve[a]= eve2;
-				eve2= eve2->vn;
+				eve2 = eve2->tmp.v;
 			}
 			a++;
 			efa= NULL;
@@ -4378,7 +4390,7 @@ static void bevel_mesh(float bsize, int allfaces)
 	while (eve) {
 		eve->f1= 0;
 		eve->f &= ~(128|64);
-		eve->vn= NULL;
+		eve->tmp.v= NULL;
 		eve= eve->next;
 	}
 	
@@ -5143,10 +5155,10 @@ static float mesh_rip_edgedist(float mat[][4], float *co1, float *co2, short *mv
 static void mesh_rip_setface(EditFace *sefa)
 {
 	/* put new vertices & edges in best face */
-	if(sefa->v1->vn) sefa->v1= sefa->v1->vn;
-	if(sefa->v2->vn) sefa->v2= sefa->v2->vn;
-	if(sefa->v3->vn) sefa->v3= sefa->v3->vn;
-	if(sefa->v4 && sefa->v4->vn) sefa->v4= sefa->v4->vn;
+	if(sefa->v1->tmp.v) sefa->v1= sefa->v1->tmp.v;
+	if(sefa->v2->tmp.v) sefa->v2= sefa->v2->tmp.v;
+	if(sefa->v3->tmp.v) sefa->v3= sefa->v3->tmp.v;
+	if(sefa->v4 && sefa->v4->tmp.v) sefa->v4= sefa->v4->tmp.v;
 	
 	sefa->e1= addedgelist(sefa->v1, sefa->v2, sefa->e1);
 	sefa->e2= addedgelist(sefa->v2, sefa->v3, sefa->e2);
@@ -5212,11 +5224,11 @@ void mesh_rip(void)
 
 	/* duplicate vertices, new vertices get selected */
 	for(eve = em->verts.last; eve; eve= eve->prev) {
-		eve->vn= NULL;
+		eve->tmp.v = NULL;
 		if(eve->f & SELECT) {
-			eve->vn= addvertlist(eve->co);
+			eve->tmp.v = addvertlist(eve->co);
 			eve->f &= ~SELECT;
-			eve->vn->f |= SELECT;
+			eve->tmp.v->f |= SELECT;
 		}
 	}
 	
@@ -5230,29 +5242,37 @@ void mesh_rip(void)
 	/* or we do the distance trick */
 	if(seed==NULL) {
 		mindist= 1000000.0f;
-		if(sefa->e1->v1->vn || sefa->e1->v2->vn) {
-			dist= mesh_rip_edgedist(projectMat, sefa->e1->v1->co, sefa->e1->v2->co, mval);
+		if(sefa->e1->v1->tmp.v || sefa->e1->v2->tmp.v) {
+			dist = mesh_rip_edgedist(projectMat, 
+									 sefa->e1->v1->co, 
+									 sefa->e1->v2->co, mval);
 			if(dist<mindist) {
 				seed= sefa->e1;
 				mindist= dist;
 			}
 		}
-		if(sefa->e2->v1->vn || sefa->e2->v2->vn) {
-			dist= mesh_rip_edgedist(projectMat, sefa->e2->v1->co, sefa->e2->v2->co, mval);
+		if(sefa->e2->v1->tmp.v || sefa->e2->v2->tmp.v) {
+			dist = mesh_rip_edgedist(projectMat,
+									 sefa->e2->v1->co, 
+									 sefa->e2->v2->co, mval);
 			if(dist<mindist) {
 				seed= sefa->e2;
 				mindist= dist;
 			}
 		}
-		if(sefa->e3->v1->vn || sefa->e3->v2->vn) {
-			dist= mesh_rip_edgedist(projectMat, sefa->e3->v1->co, sefa->e3->v2->co, mval);
+		if(sefa->e3->v1->tmp.v || sefa->e3->v2->tmp.v) {
+			dist= mesh_rip_edgedist(projectMat, 
+									sefa->e3->v1->co, 
+									sefa->e3->v2->co, mval);
 			if(dist<mindist) {
 				seed= sefa->e3;
 				mindist= dist;
 			}
 		}
-		if(sefa->e4 && (sefa->e4->v1->vn || sefa->e4->v2->vn)) {
-			dist= mesh_rip_edgedist(projectMat, sefa->e4->v1->co, sefa->e4->v2->co, mval);
+		if(sefa->e4 && (sefa->e4->v1->tmp.v || sefa->e4->v2->tmp.v)) {
+			dist= mesh_rip_edgedist(projectMat, 
+									sefa->e4->v1->co, 
+									sefa->e4->v2->co, mval);
 			if(dist<mindist) {
 				seed= sefa->e4;
 				mindist= dist;
@@ -5269,16 +5289,17 @@ void mesh_rip(void)
 
 	/* duplicate edges in the loop, with at least 1 vertex selected, needed for selection flip */
 	for(eed = em->edges.last; eed; eed= eed->prev) {
-		eed->vn= NULL;
-		if((eed->v1->vn) || (eed->v2->vn)) {
+		eed->tmp.v = NULL;
+		if((eed->v1->tmp.v) || (eed->v2->tmp.v)) {
 			EditEdge *newed;
 			
-			newed= addedgelist(eed->v1->vn?eed->v1->vn:eed->v1, eed->v2->vn?eed->v2->vn:eed->v2, eed);
+			newed= addedgelist(eed->v1->tmp.v?eed->v1->tmp.v:eed->v1, 
+							   eed->v2->tmp.v?eed->v2->tmp.v:eed->v2, eed);
 			if(eed->f & SELECT) {
 				eed->f &= ~SELECT;
 				newed->f |= SELECT;
 			}
-			eed->vn= (EditVert *)newed;
+			eed->tmp.v = (EditVert *)newed;
 		}
 	}
 
@@ -5296,7 +5317,8 @@ void mesh_rip(void)
 		
 		for(efa= em->faces.first; efa; efa=efa->next) {
 			/* new vert in face */
-			if(efa->v1->vn || efa->v2->vn || efa->v3->vn || (efa->v4 && efa->v4->vn)) {
+			if (efa->v1->tmp.v || efa->v2->tmp.v || 
+				efa->v3->tmp.v || (efa->v4 && efa->v4->tmp.v)) {
 				/* face is tagged with loop */
 				if(efa->f1==1) {
 					mesh_rip_setface(efa);
@@ -5320,7 +5342,8 @@ void mesh_rip(void)
 	for(eed = em->edges.last; eed; eed= seed) {
 		seed= eed->prev;
 		if(eed->f1==0) {
-			if(eed->v1->vn || eed->v2->vn || (eed->v1->f & SELECT) || (eed->v2->f & SELECT)) {
+			if(eed->v1->tmp.v || eed->v2->tmp.v || 
+			   (eed->v1->f & SELECT) || (eed->v2->f & SELECT)) {
 				remedge(eed);
 				free_editedge(eed);
 				eed= NULL;
@@ -5335,7 +5358,7 @@ void mesh_rip(void)
 	/* and remove loose selected vertices, that got duplicated accidentally */
 	for(eve = em->verts.first; eve; eve= nextve) {
 		nextve= eve->next;
-		if(eve->f1==0 && (eve->vn || (eve->f & SELECT))) {
+		if(eve->f1==0 && (eve->tmp.v || (eve->f & SELECT))) {
 			BLI_remlink(&em->verts,eve);
 			free_editvert(eve);
 		}
@@ -5347,4 +5370,199 @@ void mesh_rip(void)
 	initTransform(TFM_TRANSLATION, 0);
 	Transform();
 }
+
+void shape_propagate(){
+	EditMesh *em = G.editMesh;
+	EditVert *ev = NULL;
+	Mesh* me = (Mesh*)G.obedit->data;
+	Key*  ky = NULL;
+	KeyBlock* kb = NULL;
+	Base* base=NULL;
+	
+	
+	if(me->key){
+		ky = me->key;
+	} else {
+		error("Object Has No Key");	
+		return;
+	}	
+
+	if(ky->block.first){
+		for(ev = em->verts.first; ev ; ev = ev->next){
+			if(ev->f & SELECT){
+				for(kb=ky->block.first;kb;kb = kb->next){
+					float *data;		
+					data = kb->data;			
+					VECCOPY(data+(ev->keyindex*3),ev->co);				
+				}
+			}		
+		}						
+	} else {
+		error("Object Has No Blendshapes");	
+		return;			
+	}
+	
+	//TAG Mesh Objects that share this data
+	for(base = G.scene->base.first; base; base = base->next){
+		if(base->object && base->object->data == me){
+			base->object->recalc = OB_RECALC_DATA;
+		}
+	}		
+
+	BIF_undo_push("Propagate Blendshape Verts");
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	return;	
+}
+
+void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *ev = NULL;
+	short mval[2], curval[2], event = 0, finished = 0, canceled = 0, fullcopy=0 ;
+	float perc = 0;
+	char str[64];
+	float *data, *odata;
+				
+	data  = fromBlock->data;
+	odata = thisBlock->data;
+	
+	getmouseco_areawin(mval);
+	curval[0] = mval[0] + 1; curval[1] = mval[1] + 1;
+
+	while (finished == 0)
+	{
+		getmouseco_areawin(mval);
+		if (mval[0] != curval[0] || mval[1] != curval[1])
+		{
+			
+			if(mval[0] > curval[0])
+				perc += 0.1;
+			else if(mval[0] < curval[0])
+				perc -= 0.1;
+				
+			if(perc < 0) perc = 0;
+			if(perc > 1) perc = 1;
+			
+			curval[0] = mval[0];
+			curval[1] = mval[1];
+
+			if(fullcopy == 1){
+				perc = 1;	
+			}
+
+			for(ev = em->verts.first; ev ; ev = ev->next){
+				if(ev->f & SELECT){
+					VecLerpf(ev->co,odata+(ev->keyindex*3),data+(ev->keyindex*3),perc);
+				}		
+			}	
+			sprintf(str,"Blending at %d%c  MMB to Copy at 100%c",(int)(perc*100),'%','%');
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			headerprint(str);
+			force_draw(0);			
+
+			if(fullcopy == 1){
+				break;	
+			}
+
+		} else {
+			PIL_sleep_ms(10);	
+		}
+
+		while(qtest()) {
+			unsigned short val=0;			
+			event= extern_qread(&val);	
+			if(val){
+				if(ELEM3(event, PADENTER, LEFTMOUSE, RETKEY)){
+					finished = 1;
+				}
+				else if (event == MIDDLEMOUSE){
+					fullcopy = 1;	
+				}
+				else if (ELEM3(event,ESCKEY,RIGHTMOUSE,RIGHTMOUSE)){
+					canceled = 1;
+					finished = 1;
+				}
+			} 
+		}
+	}
+	if(!canceled)						
+		BIF_undo_push("Copy Blendshape Verts");
+	else
+		for(ev = em->verts.first; ev ; ev = ev->next){
+			if(ev->f & SELECT){
+				VECCOPY(ev->co, odata+(ev->keyindex*3));
+			}		
+		}
+	return;
+}
+
+
+
+void shape_copy_select_from()
+{
+	Mesh* me = (Mesh*)G.obedit->data;
+	EditMesh *em = G.editMesh;
+	EditVert *ev = NULL;
+	int totverts = 0,curshape = G.obedit->shapenr;
+	
+	Key*  ky = NULL;
+	KeyBlock *kb = NULL,*thisBlock = NULL;
+	int maxlen=32, nr=0, a=0;
+	char *menu;
+	
+	if(me->key){
+		ky = me->key;
+	} else {
+		error("Object Has No Key");	
+		return;
+	}
+	
+	if(ky->block.first){
+		for(kb=ky->block.first;kb;kb = kb->next){
+			maxlen += 40; // Size of a block name
+			if(a == curshape-1){
+					thisBlock = kb;		
+			}
+			
+			a++;
+		}
+		a=0;
+		menu = MEM_callocN(maxlen, "Copy Shape Menu Text");
+		strcpy(menu, "Copy Vert Positions from Shape %t|");
+		for(kb=ky->block.first;kb;kb = kb->next){
+			if(a != curshape-1){ 
+				sprintf(menu,"%s %s %cx%d|",menu,kb->name,'%',a);
+			}
+			a++;
+		}
+		nr = pupmenu(menu);
+		MEM_freeN(menu);		
+	} else {
+		error("Object Has No Blendshapes");	
+		return;			
+	}
+	
+	a = 0;
+	
+	for(kb=ky->block.first;kb;kb = kb->next){
+		if(a == nr){
+			
+			for(ev = em->verts.first;ev;ev = ev->next){
+				totverts++;
+			}
+			
+			if(me->totvert != totverts){
+				error("Shape Has had Verts Added/Removed, please cycle editmode before copying");
+				return;	
+			}
+			shape_copy_from_lerp(thisBlock,kb);		
+					
+			return;
+		}
+		a++;
+	}		
+	return;
+}
+
 

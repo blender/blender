@@ -75,25 +75,6 @@ void error(char *str, ...);
 /* anim.c */
 extern struct ListBase editNurb;
 
-/* displist.c */
-#include "DNA_world_types.h"	/* for render_types */
-#include "render_types.h"
-extern struct RE_Render R;
-float Blinn_Spec(float *n, float *l, float *v, float a, float b, int);
-float Phong_Spec(float *, float *, float *, int, int);
-float CookTorr_Spec(float *n, float *l, float *v, int hard, int);
-float Toon_Spec(float *n, float *l, float *v, float a, float b, int);
-float WardIso_Spec(float *n, float *l, float *v, float a, int);
-
-float Toon_Diff(float *n, float *l, float *v, float a, float b);
-float OrenNayar_Diff(float *n, float *l, float *v, float rough);
-float Minnaert_Diff(float nl, float *n, float *v, float a);
-
-void add_to_diffuse(float *, ShadeInput *, float, float, float, float);
-void ramp_diffuse_result(float *diff, ShadeInput *shi);
-void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec);
-void ramp_spec_result(float *, float *, float *, ShadeInput *);
-
 void mainqenter (unsigned short event, short val);
 void waitcursor(int);
 void allqueue(unsigned short event, short val);
@@ -102,9 +83,6 @@ void allqueue(unsigned short event, short val);
 struct Material;
 extern struct Material defmaterial;
 
-/* effect.c */
-void    RE_jitterate1(float *jit1, float *jit2, int num, float rad1);
-void    RE_jitterate2(float *jit1, float *jit2, int num, float rad2);
 
 /* exotic.c */
 void load_editMesh(void);
@@ -118,7 +96,6 @@ int saveover(char *str);
 /* image.c */
 #include "DNA_image_types.h"
 void free_realtime_image(Image *ima); // has to become a callback, opengl stuff
-void RE_make_existing_file(char *name); // from render, but these funcs should be moved anyway 
 
 /* ipo.c */
 void copy_view3d_lock(short val);	// was a hack, to make scene layer ipo's possible
@@ -128,11 +105,12 @@ void allspace(unsigned short event, short val) ;
 #define OOPS_TEST             2
 
 /* mball.c */
-extern ListBase editelems;
+extern struct ListBase editelems;
 
 /* object.c */
-void BPY_free_scriptlink(ScriptLink *slink);
-void BPY_copy_scriptlink(ScriptLink *scriptlink);
+struct ScriptLink;
+void BPY_free_scriptlink(struct ScriptLink *slink);
+void BPY_copy_scriptlink(struct ScriptLink *scriptlink);
 float *give_cursor(void);  // become a callback or argument
 void exit_posemode(int freedata);
 
@@ -148,22 +126,7 @@ void free_editing(struct Editing *ed);	// scenes and sequences problem...
 void BPY_do_all_scripts (short int event);
 int BPY_call_importloader(char *name);
 
-/* texture.c */
-#define FLO 128
-#define INT	96
-struct EnvMap;
-struct Tex;
 
-void do_material_tex(ShadeInput *shi);
-void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, 
-	float *tg, float *tb, float *ta);
-void init_render_textures(void);
-void end_render_textures(void);
-
-void RE_free_envmap(struct EnvMap *env);      
-void RE_free_envmapdata(struct EnvMap *env);
-struct EnvMap *RE_copy_envmap(struct EnvMap *env);
-int RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
 extern char texstr[20][12];	/* buttons.c */
 
 

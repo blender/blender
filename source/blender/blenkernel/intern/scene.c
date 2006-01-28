@@ -65,17 +65,19 @@
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
 #include "BPY_extern.h"
-
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "nla.h"
@@ -112,6 +114,8 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
+/* copy_scene moved to src/header_info.c... should be back */
+
 /* do not free scene itself */
 void free_scene(Scene *sce)
 {
@@ -142,6 +146,7 @@ void free_scene(Scene *sce)
 	}
 	
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings){
 		MEM_freeN(sce->toolsettings);
@@ -151,6 +156,11 @@ void free_scene(Scene *sce)
 	if (sce->theDag) {
 		free_forest(sce->theDag);
 		MEM_freeN(sce->theDag);
+	}
+	
+	if(sce->nodetree) {
+		ntreeFreeTree(sce->nodetree);
+		MEM_freeN(sce->nodetree);
 	}
 }
 
@@ -171,8 +181,8 @@ Scene *add_scene(char *name)
 	sce->r.ysch= 256;
 	sce->r.xasp= 1;
 	sce->r.yasp= 1;
-	sce->r.xparts= 1;
-	sce->r.yparts= 1;
+	sce->r.xparts= 4;
+	sce->r.yparts= 4;
 	sce->r.size= 100;
 	sce->r.planes= 24;
 	sce->r.quality= 90;
@@ -217,19 +227,21 @@ Scene *add_scene(char *name)
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
 	
+	scene_add_render_layer(sce);
+	
 	return sce;
 }
 
-int object_in_scene(Object *ob, Scene *sce)
+Base *object_in_scene(Object *ob, Scene *sce)
 {
 	Base *base;
 	
 	base= sce->base.first;
 	while(base) {
-		if(base->object == ob) return 1;
+		if(base->object == ob) return base;
 		base= base->next;
 	}
-	return 0;
+	return NULL;
 }
 
 void set_scene_bg(Scene *sce)
@@ -275,12 +287,11 @@ void set_scene_bg(Scene *sce)
 		base->flag |= flag;
 		
 		ob->flag= base->flag;
-		ob->recalc= OB_RECALC;
 		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 		base= base->next;
 	}
-	// full update
+	// full animation update
 	scene_update_for_newframe(sce, sce->lay);
 	
 	/* do we need FRAMECHANGED in set_scene? */
@@ -306,23 +317,21 @@ void set_scene_name(char *name)
  */
 int next_object(int val, Base **base, Object **ob)
 {
-	extern ListBase duplilist;
-	static Object *dupob;
+	static ListBase *duplilist= NULL;
+	static DupliObject *dupob;
 	static int fase;
 	int run_again=1;
 	
 	/* init */
 	if(val==0) {
 		fase= F_START;
-		dupob= 0;
+		dupob= NULL;
 	}
 	else {
 
 		/* run_again is set when a duplilist has been ended */
 		while(run_again) {
 			run_again= 0;
-			
-				
 
 			/* the first base */
 			if(fase==F_START) {
@@ -357,30 +366,40 @@ int next_object(int val, Base **base, Object **ob)
 				}
 			}
 			
-			if(*base == 0) fase= F_START;
+			if(*base == NULL) fase= F_START;
 			else {
 				if(fase!=F_DUPLI) {
 					if( (*base)->object->transflag & OB_DUPLI) {
 						
-						make_duplilist(G.scene, (*base)->object);
-						dupob= duplilist.first;
+						duplilist= object_duplilist(G.scene, (*base)->object);
+						
+						dupob= duplilist->first;
 						
 					}
 				}
 				/* handle dupli's */
 				if(dupob) {
 					
-					*ob= dupob;
+					Mat4CpyMat4(dupob->ob->obmat, dupob->mat);
+					
+					(*base)->flag |= OB_FROMDUPLI;
+					*ob= dupob->ob;
 					fase= F_DUPLI;
 					
-					dupob= dupob->id.next;
+					dupob= dupob->next;
 				}
 				else if(fase==F_DUPLI) {
 					fase= F_SCENE;
-					free_duplilist();
+					(*base)->flag &= ~OB_FROMDUPLI;
+					
+					for(dupob= duplilist->first; dupob; dupob= dupob->next) {
+						Mat4CpyMat4(dupob->ob->obmat, dupob->omat);
+					}
+					
+					BLI_freelistN(duplilist);
+					duplilist= NULL;
 					run_again= 1;
 				}
-				
 			}
 		}
 	}
@@ -465,3 +484,20 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 		setcount++;
 	}
 }
+
+/* return default layer, also used to patch old files */
+void scene_add_render_layer(Scene *sce)
+{
+	SceneRenderLayer *srl;
+	int tot= 1 + BLI_countlist(&sce->r.layers);
+	
+	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
+	sprintf(srl->name, "%d RenderLayer", tot);
+	BLI_addtail(&sce->r.layers, srl);
+
+	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */
+	srl->lay= (1<<20) -1;
+	srl->layflag= 0x7FFF;	/* solid ztra halo strand */
+	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
+}
+

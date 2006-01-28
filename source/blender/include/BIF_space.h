@@ -53,6 +53,7 @@ struct SpaceOops;
 #define VIEW3D_HANDLER_BACKGROUND	1
 #define VIEW3D_HANDLER_PROPERTIES	2
 #define VIEW3D_HANDLER_OBJECT		3
+#define VIEW3D_HANDLER_PREVIEW		4
 
 /* ipo handler codes */
 #define IPO_HANDLER_PROPERTIES	20
@@ -60,6 +61,7 @@ struct SpaceOops;
 /* image handler codes */
 #define IMAGE_HANDLER_PROPERTIES	30
 #define IMAGE_HANDLER_PAINT			31
+#define IMAGE_HANDLER_CURVES		32
 
 /* action handler codes */
 #define ACTION_HANDLER_PROPERTIES	40
@@ -105,7 +107,7 @@ extern       void extern_set_butspace(int fkey);
 extern       void force_draw(int header);
 extern		 void force_draw_all(int header);
 extern		 void force_draw_plus(int type, int header);
-extern       void freespacelist(struct ListBase *lb);
+extern       void freespacelist(struct ScrArea *sa);
 extern       void handle_view3d_around(void);
 extern       void handle_view3d_lock(void);
 extern       void init_v2d_oops(struct ScrArea *, struct SpaceOops *);
@@ -114,9 +116,8 @@ extern       void newspace(struct ScrArea *sa, int type);
 extern       void set_rects_butspace(struct SpaceButs *buts);
 extern       void test_butspace(void);
 extern       void start_game(void);
-extern		 void select_group_menu(void);
+extern		 void select_grouped(short nr);
 extern		 void join_menu(void);
-extern		 void select_group(short nr);
 
 extern 		void BIF_undo_push(char *str);
 extern 		void BIF_undo(void);

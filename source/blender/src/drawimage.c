@@ -47,17 +47,22 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "DNA_camera_types.h"
+#include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -77,6 +82,7 @@
 #include "BIF_drawimage.h"
 #include "BIF_resources.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_editsima.h"
 #include "BIF_glutil.h"
 #include "BIF_space.h"
@@ -593,16 +599,16 @@ static void draw_image_view_icon(void)
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
 	if(G.sima->flag & SI_STICKYUVS) {
-		BIF_draw_icon(xPos, 5.0, ICON_STICKY2_UVS);
+		BIF_icon_draw(xPos, 5.0, ICON_STICKY2_UVS);
 		xPos = 25.0;
 	}
 	else if(G.sima->flag & SI_LOCALSTICKY) {
-		BIF_draw_icon(xPos, 5.0, ICON_STICKY_UVS);
+		BIF_icon_draw(xPos, 5.0, ICON_STICKY_UVS);
 		xPos = 25.0;
 	}
 
 	if(G.sima->flag & SI_SELACTFACE) {
-		BIF_draw_icon(xPos, 5.0, ICON_DRAW_UVFACES);
+		BIF_icon_draw(xPos, 5.0, ICON_DRAW_UVFACES);
 	}
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
@@ -815,6 +821,17 @@ void do_imagebuts(unsigned short event)
 	case B_SIMABRUSHCHANGE:
 		allqueue(REDRAWIMAGE, 0);
 		break;
+		
+	case B_SIMACURVES:
+		curvemapping_do_image(G.sima->cumap, G.sima->image);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_SIMARANGE:
+		curvemapping_set_black_white(G.sima->cumap, NULL, NULL);
+		curvemapping_do_image(G.sima->cumap, G.sima->image);
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 }
 
@@ -825,13 +842,18 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 230, 318, 204)==0)
+	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 
 	if (G.sima->image && G.sima->image->ibuf) {
-		char str[32];
+		char str[64];
 
 		sprintf(str, "Image: size %d x %d", G.sima->image->ibuf->x, G.sima->image->ibuf->y);
+		if(G.sima->image->ibuf->rect_float)
+			strcat(str, " 4x32 bits");
+		else 
+			strcat(str, " 4x8 bits");
+		
 		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
 
 		uiBlockBeginAlign(block);
@@ -890,7 +912,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 
 	uiBlockBeginAlign(block);	
 	id= (ID*)Gip.clone.image;
-	std_libbuttons(block, 979, 40, 0, NULL, B_SIMACLONEBROWSE, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
+	std_libbuttons(block, 979, 40, 0, NULL, B_SIMACLONEBROWSE, ID_IM, 0, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
 	uiDefButF(block, NUMSLI, B_SIMABRUSHCHANGE, "B ",979,20,230,19, &Gip.clone.alpha , 0.0, 1.0, 0, 0, "Blend clone image");
 	uiBlockEndAlign(block);
 
@@ -899,6 +921,79 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL, B_SIMABRUSHCHANGE, "TP", 940,1,50,19, &Gip.flag, 0, 0, 0, 0, "Enables tool shape while not drawing");
 #endif
 	uiDefButBitS(block, TOG|BIT, IMAGEPAINT_TORUS, B_SIMABRUSHCHANGE, "Wrap", 890,1,50,19, &Gip.flag, 0, 0, 0, 0, "Enables torus wrapping");
+}
+
+static void image_panel_curves_reset(void *cumap_v, void *unused)
+{
+	CurveMapping *cumap = cumap_v;
+	int a;
+	
+	for(a=0; a<CM_TOT; a++)
+		curvemap_reset(cumap->cm+a, &cumap->clipr);
+	
+	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
+	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;
+	curvemapping_set_black_white(cumap, NULL, NULL);
+	
+	curvemapping_changed(cumap, 0);
+	curvemapping_do_image(cumap, G.sima->image);
+	
+	allqueue(REDRAWIMAGE, 0);
+}
+
+
+static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
+{
+	uiBlock *block;
+	uiBut *bt;
+	
+	block= uiNewBlock(&curarea->uiblocks, "image_panel_curves", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_CURVES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Curves", "Image", 10, 450, 318, 204)==0)
+		return;
+	
+	if (G.sima->image && G.sima->image->ibuf) {
+		rctf rect;
+		
+		if(G.sima->cumap==NULL)
+			G.sima->cumap= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+		
+		rect.xmin= 110; rect.xmax= 310;
+		rect.ymin= 10; rect.ymax= 200;
+		curvemap_buttons(block, G.sima->cumap, 'c', B_SIMACURVES, B_SIMAGEDRAW, &rect);
+		
+		bt=uiDefBut(block, BUT, B_SIMARANGE, "Reset",	10, 160, 90, 19, NULL, 0.0f, 0.0f, 0, 0, "Reset Black/White point and curves");
+		uiButSetFunc(bt, image_panel_curves_reset, G.sima->cumap, NULL);
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_SIMARANGE, "Min R:",	10, 120, 90, 19, G.sima->cumap->black, -1000.0f, 1000.0f, 10, 2, "Black level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Min G:",	10, 100, 90, 19, G.sima->cumap->black+1, -1000.0f, 1000.0f, 10, 2, "Black level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Min B:",	10, 80, 90, 19, G.sima->cumap->black+2, -1000.0f, 1000.0f, 10, 2, "Black level");
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_SIMARANGE, "Max R:",	10, 50, 90, 19, G.sima->cumap->white, -1000.0f, 1000.0f, 10, 2, "White level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Max G:",	10, 30, 90, 19, G.sima->cumap->white+1, -1000.0f, 1000.0f, 10, 2, "White level");
+		uiDefButF(block, NUM, B_SIMARANGE, "Max B:",	10, 10, 90, 19, G.sima->cumap->white+2, -1000.0f, 1000.0f, 10, 2, "White level");
+		
+	}
+}
+
+/* are there curves? curves visible? and curves do something? */
+static int image_curves_active(ScrArea *sa)
+{
+	SpaceImage *sima= sa->spacedata.first;
+
+	if(sima->cumap) {
+		if(curvemapping_RGBA_does_something(sima->cumap)) {
+			short a;
+			for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+				if(sima->blockhandler[a] == IMAGE_HANDLER_CURVES)
+					return 1;
+			}
+		}
+	}
+	return 0;
 }
 
 static void image_blockhandlers(ScrArea *sa)
@@ -917,6 +1012,9 @@ static void image_blockhandlers(ScrArea *sa)
 			break;
 		case IMAGE_HANDLER_PAINT:
 			image_panel_paint(sima->blockhandler[a+1]);
+			break;		
+		case IMAGE_HANDLER_CURVES:
+			image_panel_curves(sima->blockhandler[a+1]);
 			break;		
 		}
 		/* clear action value for event */
@@ -977,6 +1075,126 @@ static void imagespace_grid(SpaceImage *sima)
 	
 }
 
+static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float xsize, float ysize)
+{
+	float tile= sima->zoom*15.0f;
+	float x, y, maxx, maxy;
+	
+	glColor3ub(100, 100, 100);
+	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
+	glColor3ub(160, 160, 160);
+	
+	maxx= x1+sima->zoom*xsize;
+	maxy= y1+sima->zoom*ysize;
+	
+	for(x=0; x<xsize; x+=30) {
+		for(y=0; y<ysize; y+=30) {
+			float fx= x1 + sima->zoom*x;
+			float fy= y1 + sima->zoom*y;
+			float tilex= tile, tiley= tile;
+			
+			if(fx+tile > maxx)
+				tilex= maxx-fx;
+			if(fy+tile > maxy)
+				tiley= maxy-fy;
+			
+			glRectf(fx, fy, fx + tilex, fy + tiley);
+		}
+	}
+	for(x=15; x<xsize; x+=30) {
+		for(y=15; y<ysize; y+=30) {
+			float fx= x1 + sima->zoom*x;
+			float fy= y1 + sima->zoom*y;
+			float tilex= tile, tiley= tile;
+			
+			if(fx+tile > maxx)
+				tilex= maxx-fx;
+			if(fy+tile > maxy)
+				tiley= maxy-fy;
+			
+			glRectf(fx, fy, fx + tilex, fy + tiley);
+		}
+	}
+}
+
+static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)
+{
+	
+	/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+	glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_UNSIGNED_INT, recti);
+	glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+}
+
+static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, float *rectf)
+{
+	float *trectf= MEM_mallocN(rectx*recty*4, "temp");
+	int a, b;
+	
+	for(a= rectx*recty -1, b= 4*a+3; a>=0; a--, b-=4)
+		trectf[a]= rectf[b];
+	
+	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_FLOAT, trectf);
+	MEM_freeN(trectf);
+	/* ogl trick below is slower... (on ATI 9600) */
+//	glColorMask(1, 0, 0, 0);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+3);
+//	glColorMask(0, 1, 0, 0);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+2);
+//	glColorMask(0, 0, 1, 0);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+1);
+//	glColorMask(1, 1, 1, 1);
+}
+
+static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int *recti)
+{
+	if(recti==NULL)
+		return;
+	
+	/* zbuffer values are signed, so we need to shift color range */
+	glPixelTransferf(GL_RED_SCALE, 0.5f);
+	glPixelTransferf(GL_GREEN_SCALE, 0.5f);
+	glPixelTransferf(GL_BLUE_SCALE, 0.5f);
+	glPixelTransferf(GL_RED_BIAS, 0.5f);
+	glPixelTransferf(GL_GREEN_BIAS, 0.5f);
+	glPixelTransferf(GL_BLUE_BIAS, 0.5f);
+	
+	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_INT, recti);
+	
+	glPixelTransferf(GL_RED_SCALE, 1.0f);
+	glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+	glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+	glPixelTransferf(GL_RED_BIAS, 0.0f);
+	glPixelTransferf(GL_GREEN_BIAS, 0.0f);
+	glPixelTransferf(GL_BLUE_BIAS, 0.0f);
+}
+
+static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty, float *rect_float)
+{
+	float bias, scale, *rectf;
+	int a;
+	
+	if(rect_float==NULL)
+		return;
+	
+	if(G.scene->camera && G.scene->camera->type==OB_CAMERA) {
+		bias= ((Camera *)G.scene->camera->data)->clipsta;
+		scale= 1.0f/((Camera *)G.scene->camera->data)->clipend;
+	}
+	else {
+		bias= 0.1f;
+		scale= 0.01f;
+	}
+	
+	rectf= MEM_mallocN(rectx*recty*4, "temp");
+	for(a= rectx*recty -1; a>=0; a--)
+		rectf[a]= (rect_float[a]-bias)*scale;
+
+	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_FLOAT, rectf);
+	
+	MEM_freeN(rectf);
+}
+
 void drawimagespace(ScrArea *sa, void *spacedata)
 {
 	SpaceImage *sima= spacedata;
@@ -1005,14 +1223,15 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	what_image(sima);
 	
 	if(sima->image) {
-		if(sima->image->ibuf==0) {
+		if(sima->image->ibuf==NULL) {
 			load_image(sima->image, IB_rect, G.sce, G.scene->r.cfra);
+			scrarea_queue_headredraw(sa);	/* update header for image options */
 		}	
 		tag_image_time(sima->image);
 		ibuf= sima->image->ibuf;
 	}
 	
-	if(ibuf==NULL || ibuf->rect==NULL) {
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		calc_image_view(sima, 'f');
 		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 		BIF_ThemeColorShade(TH_BACK, 20);
@@ -1033,7 +1252,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		glPixelZoom((float)sima->zoom, (float)sima->zoom);
 				
 		if(sima->flag & SI_EDITTILE) {
-			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 			
 			glPixelZoom(1.0, 1.0);
 			
@@ -1078,14 +1297,55 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				/* rect= ibuf->rect; */
 				for(sy= 0; sy+dy<=ibuf->y; sy+= dy) {
 					for(sx= 0; sx+dx<=ibuf->x; sx+= dx) {
-						glaDrawPixelsSafe(x1+sx*sima->zoom, y1+sy*sima->zoom, dx, dy, rect);
+						glaDrawPixelsSafe(x1+sx*sima->zoom, y1+sy*sima->zoom, dx, dy, dx, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 					}
 				}
 				
 				MEM_freeN(rect);
 			}
-			else 
-				glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+			else {
+				/* this part is generic image display */
+				
+				if(sima->flag & SI_SHOW_ALPHA) {
+					if(ibuf->rect)
+						sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
+					else if(ibuf->rect_float)
+						sima_draw_alpha_pixelsf(x1, y1, ibuf->x, ibuf->y, ibuf->rect_float);
+				}
+				else if(sima->flag & SI_SHOW_ZBUF) {
+					if(ibuf->zbuf)
+						sima_draw_zbuf_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf);
+					else
+						sima_draw_zbuffloat_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf_float);
+				}
+				else {
+					if(sima->flag & SI_USE_ALPHA) {
+						sima_draw_alpha_backdrop(sima, x1, y1, (float)ibuf->x, (float)ibuf->y);
+						glEnable(GL_BLEND);
+					}
+					
+					/* detect if we need to redo the curve map. 
+					   ibuf->rect is zero for compositor and render results after change 
+					   also: if no curves are active, we only keep the float rect
+					*/
+					if(ibuf->rect_float) {
+						if(image_curves_active(sa)) {
+							if(ibuf->rect==NULL)
+								curvemapping_do_image(G.sima->cumap, G.sima->image);
+						}
+						else if(ibuf->rect)
+							imb_freerectImBuf(ibuf);
+					}
+
+					if(ibuf->rect)
+						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+					else
+						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+					
+					if(sima->flag & SI_USE_ALPHA)
+						glDisable(GL_BLEND);
+				}
+			}
 			
 			if(Gip.current == IMAGEPAINT_CLONE) {
 				int w, h;
@@ -1102,7 +1362,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glaDrawPixelsSafe(x1 + offx, y1 + offy, w, h, clonerect);
+					glaDrawPixelsSafe(x1 + offx, y1 + offy, w, h, w, GL_RGBA, GL_UNSIGNED_BYTE, clonerect);
 					glDisable(GL_BLEND);
 
 					MEM_freeN(clonerect);
@@ -1119,6 +1379,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 	draw_image_transform(ibuf);
 
+	mywinset(sa->win);	/* restore scissor after gla call... */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
 	draw_image_view_tool();

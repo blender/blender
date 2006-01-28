@@ -35,10 +35,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #include <sys/times.h>
@@ -67,10 +63,12 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -102,8 +100,10 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -121,8 +121,6 @@
 #include "BSE_time.h"
 #include "BSE_view.h"
 
-#include "RE_renderconverter.h"
-
 #include "BPY_extern.h"
 
 #include "blendef.h"
@@ -132,7 +130,6 @@
 #include "BIF_transform.h"
 
 /* Modules used */
-#include "render.h"		// for ogl render
 #include "radio.h"
 
 /* locals */
@@ -340,10 +337,9 @@ static void draw_bgpic(void)
 	if(bgpic==0) return;
 	
 	if(bgpic->tex) {
-		init_render_texture(bgpic->tex);
+//		init_render_texture(bgpic->tex);
 		free_unused_animimages();
 		ima= bgpic->tex->ima;
-		end_render_texture(bgpic->tex);
 	}
 	else {
 		ima= bgpic->ima;
@@ -436,7 +432,7 @@ static void draw_bgpic(void)
 	
 	glaDefine2DArea(&curarea->winrct);
 	glPixelZoom(zoomx, zoomy);
-	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, bgpic->rect);
+	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, bgpic->rect);
 	glPixelZoom(1.0, 1.0);
 
 	glMatrixMode(GL_PROJECTION);
@@ -449,23 +445,6 @@ static void draw_bgpic(void)
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	
 	areawinset(curarea->win);	// restore viewport / scissor
-}
-
-void timestr(double time, char *str)
-{
-	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr= (int)      time/(60*60);
-	int min= (int) fmod(time/60, 60.0);
-	int sec= (int) fmod(time, 60.0);
-	int hun= (int) fmod(time*100.0, 100.0);
-
-	if (hr) {
-		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
-	} else {
-		sprintf(str, "%.2d:%.2d.%.2d",min,sec,hun);
-	}
-
-	str[11]=0;
 }
 
 static void drawgrid_draw(float wx, float wy, float x, float y, float dx)
@@ -867,7 +846,8 @@ static void view3d_get_viewborder_size(View3D *v3d, float size_r[2])
 void calc_viewborder(struct View3D *v3d, rcti *viewborder_r)
 {
 	float zoomfac, size[2];
-
+	float dx= 0.0f, dy= 0.0f;
+	
 	view3d_get_viewborder_size(v3d, size);
 
 		/* magic zoom calculation, no idea what
@@ -889,6 +869,15 @@ void calc_viewborder(struct View3D *v3d, rcti *viewborder_r)
 	viewborder_r->ymin= 0.5*v3d->area->winy - 0.5*size[1];
 	viewborder_r->xmax= viewborder_r->xmin + size[0];
 	viewborder_r->ymax= viewborder_r->ymin + size[1];
+	
+	dx= v3d->area->winx*G.vd->camdx;
+	dy= v3d->area->winy*G.vd->camdy;
+	
+	/* apply offset */
+	viewborder_r->xmin-= dx;
+	viewborder_r->ymin-= dy;
+	viewborder_r->xmax-= dx;
+	viewborder_r->ymax-= dy;
 }
 
 void view3d_set_1_to_1_viewborder(View3D *v3d)
@@ -928,14 +917,15 @@ static void drawviewborder(void)
 		glEnable(GL_BLEND);
 		glColor4f(0, 0, 0, ca->passepartalpha);
 		
-		if (x1 > 0.0) {
+		if (x1 > 0.0)
 			glRectf(0.0, (float)curarea->winy, x1, 0.0);
+		if (x2 < (float)curarea->winx)
 			glRectf(x2, (float)curarea->winy, (float)curarea->winx, 0.0);
-		}
-		if (y1 > 0.0)	{
+		if (y2 < (float)curarea->winy)
 			glRectf(x1, (float)curarea->winy, x2, y2);
+		if (y2 > 0.0) 
 			glRectf(x1, y1, x2, 0.0);
-		}
+
 		glDisable(GL_BLEND);
 	}
 	
@@ -1080,12 +1070,13 @@ static void draw_selected_name(Object *ob)
 	char info[128];
 
 	if(ob->type==OB_ARMATURE) {
+		bArmature *arm= ob->data;
 		char *name= NULL;
 		
 		if(ob==G.obedit) {
 			EditBone *ebo;
 			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
-				if (ebo->flag & BONE_ACTIVE) {
+				if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
 					name= ebo->name;
 					break;
 				}
@@ -1094,7 +1085,7 @@ static void draw_selected_name(Object *ob)
 		else if(ob->pose && (ob->flag & OB_POSEMODE)) {
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				if(pchan->bone->flag & BONE_ACTIVE) {
+				if((pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer)) {
 					name= pchan->name;
 					break;
 				}
@@ -1125,7 +1116,7 @@ static void draw_view_icon(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	BIF_draw_icon(5.0, 5.0, icon);
+	BIF_icon_draw(5.0, 5.0, icon);
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
@@ -1518,7 +1509,8 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone = pchan->bone;
-		if(bone && (bone->flag & BONE_ACTIVE)) break;
+		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
+			break;
 	}
 	if (!pchan) return;
 	
@@ -1558,13 +1550,14 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 
 static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 {
+	bArmature *arm= G.obedit->data;
 	EditBone *ebone;
 	uiBut *but;
 	
 	ebone= G.edbo.first;
 
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-		if (ebone->flag & BONE_ACTIVE)
+		if ((ebone->flag & BONE_ACTIVE) && (ebone->layer & arm->layer))
 			break;
 	}
 
@@ -1703,6 +1696,7 @@ void do_viewbuts(unsigned short event)
 				DAG_scene_sort(G.scene);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 				allqueue(REDRAWVIEW3D, 1);
+				allqueue(REDRAWBUTSOBJECT, 0);
 			}
 		}
 		break;
@@ -1712,9 +1706,9 @@ void do_viewbuts(unsigned short event)
 			bArmature *arm= G.obedit->data;
 			EditBone *ebone, *child;
 			
-			ebone= G.edbo.first;
 			for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-				if (ebone->flag & BONE_ACTIVE) break;
+				if ((ebone->flag & BONE_ACTIVE) && (ebone->layer & arm->layer))
+					break;
 			}
 			if (ebone) {
 				ebone->roll= M_PI*ob_eul[0]/180.0;
@@ -1765,7 +1759,8 @@ void do_viewbuts(unsigned short event)
 				
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				bone = pchan->bone;
-				if(bone && (bone->flag & BONE_ACTIVE)) break;
+				if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
+					break;
 			}
 			if (!pchan) return;
 			
@@ -1777,6 +1772,7 @@ void do_viewbuts(unsigned short event)
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:
 		{
+			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 		}
@@ -1971,47 +1967,74 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "View Properties", "View3d", 340, 10, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "View Properties", "View3d", 340, 30, 318, 254)==0) return;
+
+	/* to force height */
+	uiNewPanelHeight(block, 254);
 
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
 
-	uiDefBut(block, LABEL, 1, "Grid:",					10, 180, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 160, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 136, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+	uiDefBut(block, LABEL, 1, "Grid:",					10, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 200, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 176, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
 
-	uiDefBut(block, LABEL, 1, "3D Display:",					160, 180, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefButBitS(block, TOG, V3D_SHOW_FLOOR, REDRAWVIEW3D, "Grid Floor",160, 160, 150, 19, &vd->gridflag, 0, 0, 0, 0, "Show the grid floor in free camera mode");
+	uiDefBut(block, LABEL, 1, "3D Display:",							160, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefButBitS(block, TOG, V3D_SHOW_FLOOR, REDRAWVIEW3D, "Grid Floor",160, 200, 150, 19, &vd->gridflag, 0, 0, 0, 0, "Show the grid floor in free camera mode");
+	uiDefButBitS(block, TOG, V3D_SHOW_X, REDRAWVIEW3D, "X Axis",		160, 176, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the X Axis line");
+	uiDefButBitS(block, TOG, V3D_SHOW_Y, REDRAWVIEW3D, "Y Axis",		212, 176, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
+	uiDefButBitS(block, TOG, V3D_SHOW_Z, REDRAWVIEW3D, "Z Axis",		262, 176, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
+
+	uiDefBut(block, LABEL, 1, "View Camera:",			10, 150, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",		10, 130, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, V3D_SHOW_X, REDRAWVIEW3D, "X Axis",		160, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the X Axis line");
-	uiDefButBitS(block, TOG, V3D_SHOW_Y, REDRAWVIEW3D, "Y Axis",		212, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
-	uiDefButBitS(block, TOG, V3D_SHOW_Z, REDRAWVIEW3D, "Z Axis",		262, 136, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
-	uiBlockEndAlign(block);
-	
-	uiDefBut(block, LABEL, 1, "View Camera:",			10, 110, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",		10, 90, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 66, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 46, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 106, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 86, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 1, "3D Cursor:",				160, 110, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 1, "3D Cursor:",				160, 150, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	curs= give_cursor();
-	uiDefButF(block, NUM, REDRAWVIEW3D, "X:",			160, 90, 150, 22, curs, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "X co-ordinate of the 3D cursor");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Y:",			160, 68, 150, 22, curs+1, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Y co-ordinate of the 3D cursor");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Z:",			160, 46, 150, 22, curs+2, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Z co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "X:",			160, 130, 150, 22, curs, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "X co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Y:",			160, 108, 150, 22, curs+1, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Y co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Z:",			160, 86, 150, 22, curs+2, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Z co-ordinate of the 3D cursor");
 	uiBlockEndAlign(block);
 
-	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected", 10, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
-	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 160, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
+	uiDefBut(block, LABEL, 1, "Display:",				10, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected", 10, 30, 140, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
+	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 160, 30, 150, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
+
+	uiDefButBitS(block, TOGN, V3D_HIDE_HELPLINES, REDRAWVIEW3D, "Relationship Lines", 10, 6, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw dashed lines indicating Parent, Constraint, or Hook relationships");
 
 }
 
+static void view3d_panel_preview(ScrArea *sa, short cntrl)	// VIEW3D_HANDLER_PREVIEW
+{
+	uiBlock *block;
+	View3D *v3d= sa->spacedata.first;
+	int ofsx, ofsy;
+	
+	block= uiNewBlock(&sa->uiblocks, "view3d_panel_preview", UI_EMBOSS, UI_HELV, sa->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_SCALE | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_PREVIEW);  // for close and esc
+	
+	ofsx= -150+(sa->winx/2)/v3d->blockscale;
+	ofsy= -100+(sa->winy/2)/v3d->blockscale;
+	if(uiNewPanel(sa, block, "Preview", "View3d", ofsx, ofsy, 300, 200)==0) return;
+
+	uiBlockSetDrawExtraFunc(block, BIF_view3d_previewdraw);
+	
+	if(G.scene->recalc & SCE_PRV_CHANGED) {
+		G.scene->recalc &= ~SCE_PRV_CHANGED;
+		//printf("found recalc\n");
+		BIF_view3d_previewrender_free(sa);
+		BIF_preview_changed(0);
+	}
+}
 
 
 static void view3d_blockhandlers(ScrArea *sa)
@@ -2034,9 +2057,11 @@ static void view3d_blockhandlers(ScrArea *sa)
 			break;
 		case VIEW3D_HANDLER_OBJECT:
 			view3d_panel_object(v3d->blockhandler[a+1]);
-		
 			break;
-		
+		case VIEW3D_HANDLER_PREVIEW:
+			view3d_panel_preview(sa, v3d->blockhandler[a+1]);
+			break;
+			
 		}
 		/* clear action value for event */
 		v3d->blockhandler[a+1]= 0;
@@ -2044,6 +2069,14 @@ static void view3d_blockhandlers(ScrArea *sa)
 	uiDrawBlocksPanels(sa, 0);
 
 }
+
+/* ****************** View3d afterdraw *************** */
+
+typedef struct View3DAfter {
+	struct View3DAfter *next, *prev;
+	struct Base *base;
+	int type;
+} View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
 void add_view3d_after(View3D *v3d, Base *base, int type)
@@ -2102,6 +2135,45 @@ static void view3d_draw_transp(View3D *v3d, int flag)
 
 }
 
+/* *********************** */
+
+static void draw_dupli_objects(View3D *v3d, Base *base)
+{
+	ListBase *lb;
+	DupliObject *dob;
+	Base tbase;
+	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
+	char dt, dtx;
+	
+	/* debug */
+	if(base->object->dup_group && base->object->dup_group->id.us<1)
+		color= TH_REDALERT;
+	
+	tbase.flag= OB_FROMDUPLI|base->flag;
+	lb= object_duplilist(G.scene, base->object);
+
+	for(dob= lb->first; dob; dob= dob->next) {
+		tbase.object= dob->ob;
+		
+		Mat4CpyMat4(dob->ob->obmat, dob->mat);
+		/* extra service: draw the duplicator in drawtype of parent */
+		dt= tbase.object->dt; tbase.object->dt= base->object->dt;
+		dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+		
+		BIF_ThemeColorBlend(color, TH_BACK, 0.5);
+		draw_object(&tbase, DRAW_CONSTCOLOR);
+		
+		/* restore */
+		Mat4CpyMat4(dob->ob->obmat, dob->omat);
+		tbase.object->dt= dt;
+		tbase.object->dtx= dtx;
+	}
+	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
+
+	BLI_freelistN(lb);
+				
+}
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	View3D *v3d= spacedata;
@@ -2109,10 +2181,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Object *ob;
 	Scene *setscene;
 	
-	setwinmatrixview3d(0);	/* 0= no pick rect */
+	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
 
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, curarea->winmat);
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, sa->winmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
@@ -2128,7 +2200,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		v3d->pixsize= 2.0f*(len1>len2?len1:len2);
 		
 		/* correct for window size */
-		if(curarea->winx > sa->winy) v3d->pixsize/= (float)sa->winx;
+		if(sa->winx > sa->winy) v3d->pixsize/= (float)sa->winx;
 		else v3d->pixsize/= (float)sa->winy;
 	}
 	
@@ -2171,8 +2243,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		if(v3d->persp==2) {
 			if(G.scene->world) {
 				if(G.scene->world->mode & WO_STARS) {
-					RE_make_stars(star_stuff_init_func, star_stuff_vertex_func,
-								  star_stuff_term_func);
+//					RE_make_stars(star_stuff_init_func, star_stuff_vertex_func,
+//								  star_stuff_term_func);
 				}
 			}
 			if(v3d->flag & V3D_DISPBGPIC) draw_bgpic();
@@ -2204,21 +2276,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				draw_object(base, DRAW_CONSTCOLOR);
 
 				if(base->object->transflag & OB_DUPLI) {
-					extern ListBase duplilist;
-					Base tbase;
-					
-					tbase= *base;
-					
-					tbase.flag= OB_FROMDUPLI;
-					make_duplilist(setscene, base->object); /* make_duplilist(G.scene->set, base->object); */
-					ob= duplilist.first;
-					while(ob) {
-						tbase.object= ob;
-						draw_object(&tbase, DRAW_CONSTCOLOR);
-						ob= ob->id.next;
-					}
-					free_duplilist();
-					
+					draw_dupli_objects(v3d, base);
 				}
 			}
 			
@@ -2245,21 +2303,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			
 			/* dupli drawing */
 			if(base->object->transflag & OB_DUPLI) {
-				extern ListBase duplilist;
-				Base tbase;
-
-				BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5);
-				
-				tbase.flag= OB_FROMDUPLI;
-				make_duplilist(G.scene, base->object);
-
-				ob= duplilist.first;
-				while(ob) {
-					tbase.object= ob;
-					draw_object(&tbase, DRAW_CONSTCOLOR);
-					ob= ob->id.next;
-				}
-				free_duplilist();
+				draw_dupli_objects(v3d, base);
 			}
 			if((base->flag & SELECT)==0) {
 				if(base->object!=G.obedit) draw_object(base, 0);
@@ -2312,19 +2356,19 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	bwin_scalematrix(sa->win, v3d->blockscale, v3d->blockscale, v3d->blockscale);
 	view3d_blockhandlers(sa);
 
-	curarea->win_swap= WIN_BACK_OK;
+	sa->win_swap= WIN_BACK_OK;
 	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
-		addafterqueue(curarea->win, BACKBUFDRAW, 1);
+		addafterqueue(sa->win, BACKBUFDRAW, 1);
 	}
 	// test for backbuf select
 	if(G.obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
 		extern int afterqtest(short win, unsigned short evt);	//editscreen.c
 
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
-		if(afterqtest(curarea->win, BACKBUFDRAW)==0) {
-			addafterqueue(curarea->win, BACKBUFDRAW, 1);
+		if(afterqtest(sa->win, BACKBUFDRAW)==0) {
+			addafterqueue(sa->win, BACKBUFDRAW, 1);
 		}
 	}
 
@@ -2341,27 +2385,22 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 }
 
 
-	/* Called back by rendering system, icky
-	 */
-void drawview3d_render(struct View3D *v3d)
+void drawview3d_render(struct View3D *v3d, int winx, int winy)
 {
-	extern short v3d_windowmode;
 	Base *base;
-	Object *ob;
 	Scene *setscene;
-
+	float winmat[4][4];
+	
 	update_for_newframe_muted();	/* first, since camera can be animated */
 
-	v3d_windowmode= 1;
-	setwinmatrixview3d(0);
-	v3d_windowmode= 0;
-	glMatrixMode(GL_PROJECTION);
-	myloadmatrix(R.winmat);
-	glMatrixMode(GL_MODELVIEW);
+	setwinmatrixview3d(winx, winy, NULL);
 	
 	setviewmatrixview3d();
 	myloadmatrix(v3d->viewmat);
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, R.winmat);
+	glMatrixMode(GL_PROJECTION);
+	mygetmatrix(winmat);
+	glMatrixMode(GL_MODELVIEW);
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, winmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
@@ -2384,10 +2423,7 @@ void drawview3d_render(struct View3D *v3d)
 		glClearColor(col[0], col[1], col[2], 0.0); 
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glLoadIdentity();
-	myloadmatrix(v3d->viewmat);
-	
+
 	/* abuse! to make sure it doesnt draw the helpstuff */
 	G.f |= G_SIMULATION;
 
@@ -2406,18 +2442,7 @@ void drawview3d_render(struct View3D *v3d)
 					draw_object(base, DRAW_CONSTCOLOR);
 	
 					if(base->object->transflag & OB_DUPLI) {
-						extern ListBase duplilist;
-						Base tbase;
-						
-						tbase.flag= OB_FROMDUPLI;
-						make_duplilist(setscene, base->object); /* make_duplilist(G.scene->set, base->object); */
-						ob= duplilist.first;
-						while(ob) {
-							tbase.object= ob;
-							draw_object(&tbase, DRAW_CONSTCOLOR);
-							ob= ob->id.next;
-						}
-						free_duplilist();
+						draw_dupli_objects(v3d, base);
 					}
 				}
 			}
@@ -2442,22 +2467,7 @@ void drawview3d_render(struct View3D *v3d)
 			else {
 	
 				if(base->object->transflag & OB_DUPLI) {
-					extern ListBase duplilist;
-					Base tbase;
-					
-					draw_object(base, 0);
-					
-					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5f);
-					
-					tbase.flag= OB_FROMDUPLI;
-					make_duplilist(G.scene, base->object);
-					ob= duplilist.first;
-					while(ob) {
-						tbase.object= ob;
-						draw_object(&tbase, DRAW_CONSTCOLOR);
-						ob= ob->id.next;
-					}
-					free_duplilist();
+					draw_dupli_objects(v3d, base);
 				}
 				else if((base->flag & SELECT)==0) {
 					draw_object(base, 0);
@@ -2498,7 +2508,6 @@ void drawview3d_render(struct View3D *v3d)
 
 	glFlush();
 
-	glReadPixels(0, 0, R.rectx, R.recty, GL_RGBA, GL_UNSIGNED_BYTE, R.rectot);
 	glLoadIdentity();
 
 	free_all_realtime_images();

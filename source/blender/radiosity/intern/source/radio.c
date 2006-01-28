@@ -238,6 +238,8 @@ void set_radglobal()
 	RG.gamma= rad->gamma;
 	RG.maxiter= rad->maxiter;
 	
+	RG.re= NULL;	/* struct render, for when call it from render engine */
+	
 	rad_setlimits();
 }
 

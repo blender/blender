@@ -1,15 +1,12 @@
-
-/*  envmap.c        RENDER
+/* 
+ * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,23 +20,13 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributors: 2004/2005/2006 Blender Foundation, full recode
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * 
- *  may 1999
- * 
- * $Id$
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
 #include <string.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /* external modules: */
 #include "MEM_guardedalloc.h"
@@ -50,7 +37,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"        /* for rectcpy */
 
-#include "DNA_texture_types.h"
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -59,8 +46,8 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
-#include "BKE_world.h"   // init_render_world
 #include "BKE_image.h"   // BKE_write_ibuf 
+#include "BKE_texture.h"
 
 #include "MTC_matrixops.h"
 
@@ -69,78 +56,15 @@
 #define main main /* stupid SDL_main redefines main as SDL_main */
 
 /* this module */
-#include "RE_callbacks.h"
-#include "render.h"
+#include "render_types.h"
+#include "renderpipeline.h"
 #include "envmap.h"
-#include "mydevice.h"
 #include "rendercore.h" 
-#include "renderHelp.h"
+#include "renderdatabase.h" 
 #include "texture.h"
 #include "zbuf.h"
+#include "initrender.h"
 
-
-/* ------------------------------------------------------------------------- */
-
-EnvMap *RE_add_envmap(void)
-{
-	EnvMap *env;
-	
-	env= MEM_callocN(sizeof(EnvMap), "envmap");
-	env->type= ENV_CUBE;
-	env->stype= ENV_STATIC;
-	env->clipsta= 0.1;
-	env->clipend= 100.0;
-	env->cuberes= 100;
-	
-	return env;
-} /* end of EnvMap *RE_add_envmap() */
-
-/* ------------------------------------------------------------------------- */
-
-EnvMap *RE_copy_envmap(EnvMap *env)
-{
-	EnvMap *envn;
-	int a;
-	
-	envn= MEM_dupallocN(env);
-	envn->ok= 0;
-	for(a=0; a<6; a++) envn->cube[a]= 0;
-	if(envn->ima) id_us_plus((ID *)envn->ima);
-	
-	return envn;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void RE_free_envmapdata(EnvMap *env)
-{
-	Image *ima;
-	unsigned int a, part;
-	
-	for(part=0; part<6; part++) {
-		ima= env->cube[part];
-		if(ima) {
-			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-
-			for(a=0; a<BLI_ARRAY_NELEMS(ima->mipmap); a++) {
-				if(ima->mipmap[a]) IMB_freeImBuf(ima->mipmap[a]);
-			}
-			MEM_freeN(ima);
-			env->cube[part]= 0;
-		}
-	}
-	env->ok= 0;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void RE_free_envmap(EnvMap *env)
-{
-	
-	RE_free_envmapdata(env);
-	MEM_freeN(env);
-	
-}
 
 /* ------------------------------------------------------------------------- */
 
@@ -151,7 +75,7 @@ static void envmap_split_ima(EnvMap *env)
 /*  	extern rectcpy(); */
 	int dx, part;
 	
-	RE_free_envmapdata(env);	
+	BKE_free_envmapdata(env);	
 	
 	dx= env->ima->ibuf->y;
 	dx/= 2;
@@ -168,18 +92,18 @@ static void envmap_split_ima(EnvMap *env)
 			ima->ok= 1;
 			env->cube[part]= ima;
 		}
-		IMB_rectop(env->cube[0]->ibuf, env->ima->ibuf, 
-			0, 0, 0, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[1]->ibuf, env->ima->ibuf, 
-			0, 0, dx, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[2]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, 0, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[3]->ibuf, env->ima->ibuf, 
-			0, 0, 0, dx, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[4]->ibuf, env->ima->ibuf, 
-			0, 0, dx, dx, dx, dx, IMB_rectcpy, 0);
-		IMB_rectop(env->cube[5]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, dx, dx, dx, IMB_rectcpy, 0);
+		IMB_rectcpy(env->cube[0]->ibuf, env->ima->ibuf, 
+			0, 0, 0, 0, dx, dx);
+		IMB_rectcpy(env->cube[1]->ibuf, env->ima->ibuf, 
+			0, 0, dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[2]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[3]->ibuf, env->ima->ibuf, 
+			0, 0, 0, dx, dx, dx);
+		IMB_rectcpy(env->cube[4]->ibuf, env->ima->ibuf, 
+			0, 0, dx, dx, dx, dx);
+		IMB_rectcpy(env->cube[5]->ibuf, env->ima->ibuf, 
+			0, 0, 2*dx, dx, dx, dx);
 		env->ok= 2;
 	}
 }
@@ -187,52 +111,77 @@ static void envmap_split_ima(EnvMap *env)
 /* ------------------------------------------------------------------------- */
 /* ****************** RENDER ********************** */
 
-static void envmap_renderdata(EnvMap *env)
+/* copy current render */
+static Render *envmap_render_copy(Render *re, EnvMap *env)
 {
-	extern void init_filt_mask(void);
-	static RE_Render envR;
-	static Object *camera;
+	Render *envre;
 	int cuberes;
 	
-	if(env) {
-		envR= R;
-		camera= G.scene->camera;
-		
-		cuberes = (env->cuberes * R.r.size) / 100;
-		cuberes &= 0xFFFC;
-		env->lastsize= R.r.size;
-		R.rectx= R.r.xsch= R.recty= R.r.ysch= cuberes;
-		R.afmx= R.afmy= R.r.xsch/2;
-		R.xstart= R.ystart= -R.afmx;
-		R.xend= R.yend= R.xstart+R.rectx-1;
-
-		R.r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
-		R.r.filtertype= 0;
-		R.r.xparts= R.r.yparts= 1;
-		R.r.bufflag= 0;
-		R.r.size= 100;
-		R.ycor= 1.0; 
-		R.r.yasp= R.r.xasp= 1;
-		
-		R.near= env->clipsta;
-		R.far= env->clipend;
-		
-		G.scene->camera= env->object;
-		
-	}
-	else {
-		/* this to make sure init_renderdisplay works */
-		envR.winx= R.winx;
-		envR.winy= R.winy;
-		envR.winxof= R.winxof;
-		envR.winyof= R.winyof;
-		
-		R= envR;
-		G.scene->camera= camera;
-	}
+	envre= RE_NewRender("Envmap");
 	
-	/* gauss, gamma, etc */
-	init_filt_mask();
+	env->lastsize= re->r.size;
+	cuberes = (env->cuberes * re->r.size) / 100;
+	cuberes &= 0xFFFC;
+	
+	/* set up renderdata */
+	envre->r= re->r;
+	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
+	envre->r.layers.first= envre->r.layers.last= NULL;
+	envre->r.filtertype= 0;
+	envre->r.xparts= envre->r.yparts= 2;
+	envre->r.bufflag= 0;
+	envre->r.size= 100;
+	envre->r.yasp= envre->r.xasp= 1;
+	
+	RE_InitState(envre, &re->r, cuberes, cuberes, NULL);
+	envre->scene= re->scene;	/* unsure about this... */
+
+	/* view stuff in env render */
+	envre->ycor= 1.0; 
+	envre->clipsta= env->clipsta;	/* render_scene_set_window() respects this for now */
+	envre->clipend= env->clipend;
+	
+	RE_SetCamera(envre, env->object);
+	
+	/* callbacks */
+	envre->display_draw= re->display_draw;
+	envre->test_break= re->test_break;
+	
+	/* and for the evil stuff; copy the database... */
+	envre->totvlak= re->totvlak;
+	envre->totvert= re->totvert;
+	envre->tothalo= re->tothalo;
+	envre->totlamp= re->totlamp;
+	envre->lights= re->lights;
+	envre->vertnodeslen= re->vertnodeslen;
+	envre->vertnodes= re->vertnodes;
+	envre->blohalen= re->blohalen;
+	envre->bloha= re->bloha;
+	envre->blovllen= re->blovllen;
+	envre->blovl= re->blovl;
+	envre->oc= re->oc;
+	
+	return envre;
+}
+
+static void envmap_free_render_copy(Render *envre)
+{
+
+	envre->totvlak= 0;
+	envre->totvert= 0;
+	envre->tothalo= 0;
+	envre->totlamp= 0;
+	envre->lights.first= envre->lights.last= NULL;
+	envre->vertnodeslen= 0;
+	envre->vertnodes= NULL;
+	envre->blohalen= 0;
+	envre->bloha= NULL;
+	envre->blovllen= 0;
+	envre->blovl= NULL;
+	envre->oc.adrbranch= NULL;
+	envre->oc.adrnode= NULL;
+	
+	RE_FreeRender(envre);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -269,8 +218,9 @@ static void envmap_transmatrix(float mat[][4], int part)
 
 /* ------------------------------------------------------------------------- */
 
-static void env_rotate_scene(float mat[][4], int mode)
+static void env_rotate_scene(Render *re, float mat[][4], int mode)
 {
+	GroupObject *go;
 	VlakRen *vlr = NULL;
 	VertRen *ver = NULL;
 	LampRen *lar = NULL;
@@ -287,8 +237,8 @@ static void env_rotate_scene(float mat[][4], int mode)
 		MTC_Mat3CpyMat4(imat, mat);
 	}
 	
-	for(a=0; a<R.totvert; a++) {
-		if((a & 255)==0) ver= R.blove[a>>8];
+	for(a=0; a<re->totvert; a++) {
+		if((a & 255)==0) ver= RE_findOrAddVert(re, a);
 		else ver++;
 		
 		MTC_Mat4MulVecfl(tmat, ver->co);
@@ -303,15 +253,15 @@ static void env_rotate_scene(float mat[][4], int mode)
 		Normalise(ver->n);
 	}
 	
-	for(a=0; a<R.tothalo; a++) {
-		if((a & 255)==0) har= R.bloha[a>>8];
+	for(a=0; a<re->tothalo; a++) {
+		if((a & 255)==0) har= re->bloha[a>>8];
 		else har++;
 	
 		MTC_Mat4MulVecfl(tmat, har->co);
 	}
 		
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8];
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8];
 		else vlr++;
 		
 		xn= vlr->n[0];
@@ -324,10 +274,10 @@ static void env_rotate_scene(float mat[][4], int mode)
 		Normalise(vlr->n);
 	}
 	
-	set_normalflags();
+	set_normalflags(re);
 	
-	for(a=0; a<R.totlamp; a++) {
-		lar= R.la[a];
+	for(go=re->lights.first; go; go= go->next) {
+		lar= go->lampren;
 		
 		/* removed here some horrible code of someone in NaN who tried to fix
 		   prototypes... just solved by introducing a correct cmat[3][3] instead
@@ -358,25 +308,25 @@ static void env_rotate_scene(float mat[][4], int mode)
 
 /* ------------------------------------------------------------------------- */
 
-static void env_layerflags(unsigned int notlay)
+static void env_layerflags(Render *re, unsigned int notlay)
 {
 	VlakRen *vlr = NULL;
 	int a;
 	
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8];
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8];
 		else vlr++;
 		if(vlr->lay & notlay) vlr->flag &= ~R_VISIBLE;
 	}
 }
 
-static void env_hideobject(Object *ob)
+static void env_hideobject(Render *re, Object *ob)
 {
 	VlakRen *vlr = NULL;
 	int a;
 	
-	for(a=0; a<R.totvlak; a++) {
-		if((a & 255)==0) vlr= R.blovl[a>>8];
+	for(a=0; a<re->totvlak; a++) {
+		if((a & 255)==0) vlr= re->blovl[a>>8];
 		else vlr++;
 		if(vlr->ob == ob) vlr->flag &= ~R_VISIBLE;
 	}
@@ -384,14 +334,14 @@ static void env_hideobject(Object *ob)
 
 /* ------------------------------------------------------------------------- */
 
-static void env_set_imats()
+static void env_set_imats(Render *re)
 {
 	Base *base;
 	float mat[4][4];
 	
 	base= G.scene->base.first;
 	while(base) {
-		MTC_Mat4MulMat4(mat, base->object->obmat, R.viewmat);
+		MTC_Mat4MulMat4(mat, base->object->obmat, re->viewmat);
 		MTC_Mat4Invert(base->object->imat, mat);
 		
 		base= base->next;
@@ -401,112 +351,97 @@ static void env_set_imats()
 
 /* ------------------------------------------------------------------------- */
 
-static void render_envmap(EnvMap *env)
+static void render_envmap(Render *re, EnvMap *env)
 {
 	/* only the cubemap is implemented */
+	Render *envre;
 	ImBuf *ibuf;
 	Image *ima;
 	float oldviewinv[4][4], mat[4][4], tmat[4][4];
 	short part;
 	
 	/* need a recalc: ortho-render has no correct viewinv */
-	MTC_Mat4Invert(oldviewinv, R.viewmat);
+	MTC_Mat4Invert(oldviewinv, re->viewmat);
 
-	/* do first, envmap_renderdata copies entire R struct */
-	if(R.rectz) MEM_freeN(R.rectz); R.rectz= NULL;
-	if(R.rectot) MEM_freeN(R.rectot); R.rectot= NULL;
-	if(R.rectftot) MEM_freeN(R.rectftot); R.rectftot= NULL;
+	envre= envmap_render_copy(re, env);
 	
-	/* setup necessary globals */
-	envmap_renderdata(env);
-	
-	RE_local_init_render_display();
-
-	R.rectot= MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectot");
-	R.rectz=  MEM_mallocN(sizeof(int)*R.rectx*R.recty, "rectz");
+//	re->display_init(envre->result);
 
 	for(part=0; part<6; part++) {
 
-		RE_local_clear_render_display(R.win);
-		fillrect(R.rectot, R.rectx, R.recty, 0);
+		re->display_clear(envre->result);
 		
-		RE_setwindowclip(1,-1); /*  no jit:(-1) */
-		
-		MTC_Mat4CpyMat4(tmat, G.scene->camera->obmat);
+		MTC_Mat4CpyMat4(tmat, env->object->obmat);
 		MTC_Mat4Ortho(tmat);
 		envmap_transmatrix(tmat, part);
 		MTC_Mat4Invert(mat, tmat);
 		/* mat now is the camera 'viewmat' */
 
-		MTC_Mat4CpyMat4(R.viewmat, mat);
-		MTC_Mat4CpyMat4(R.viewinv, tmat);
+		MTC_Mat4CpyMat4(envre->viewmat, mat);
+		MTC_Mat4CpyMat4(envre->viewinv, tmat);
 		
 		/* we have to correct for the already rotated vertexcoords */
-		MTC_Mat4MulMat4(tmat, oldviewinv, R.viewmat);
+		MTC_Mat4MulMat4(tmat, oldviewinv, envre->viewmat);
 		MTC_Mat4Invert(env->imat, tmat);
 		
-		env_rotate_scene(tmat, 1);
-		init_render_world();
-		setzbufvlaggen(RE_projectverto);
-		env_layerflags(env->notlay);
-		env_hideobject(env->object);
-		env_set_imats();
+		env_rotate_scene(envre, tmat, 1);
+		init_render_world(envre);
+		project_renderdata(envre, projectverto, 0, 0);
+		env_layerflags(envre, env->notlay);
+		env_hideobject(envre, env->object);
+		env_set_imats(envre);
 				
-		if(RE_local_test_break()==0) {
-
-			RE_local_printrenderinfo(0.0, part);
-
-			if(R.r.mode & R_OSA) zbufshadeDA();
-			else zbufshade();
-
+		if(re->test_break()==0) {
+			RE_TileProcessor(envre);
 		}
 		
 		/* rotate back */
-		env_rotate_scene(tmat, 0);
+		env_rotate_scene(envre, tmat, 0);
 
-		if(RE_local_test_break()==0) {
-			ibuf= IMB_allocImBuf(R.rectx, R.recty, 24, IB_rect, 0);
+		if(re->test_break()==0) {
+			RenderLayer *rl= envre->result->layers.first;
+			
+			ibuf= IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect, 0);
+			ibuf->rect_float= rl->rectf;
+			IMB_rect_from_float(ibuf);
+			ibuf->rect_float= NULL;
+				
 			ima= MEM_callocN(sizeof(Image), "image");
-			memcpy(ibuf->rect, R.rectot, 4*ibuf->x*ibuf->y);
+			
 			ima->ibuf= ibuf;
 			ima->ok= 1;
 			env->cube[part]= ima;
 		}
 		
-		if(RE_local_test_break()) break;
+		if(re->test_break()) break;
 
 	}
 	
-	if(R.rectz) MEM_freeN(R.rectz); R.rectz= NULL;
-	if(R.rectot) MEM_freeN(R.rectot); R.rectot= NULL;
-	if(R.rectftot) MEM_freeN(R.rectftot); R.rectftot= NULL;
-	
-	if(RE_local_test_break()) RE_free_envmapdata(env);
+	if(re->test_break()) BKE_free_envmapdata(env);
 	else {
-		if(R.r.mode & R_OSA) env->ok= ENV_OSA;
+		if(envre->r.mode & R_OSA) env->ok= ENV_OSA;
 		else env->ok= ENV_NORMAL;
-		env->lastframe= G.scene->r.cfra;
+		env->lastframe= G.scene->r.cfra;	/* hurmf */
 	}
 	
 	/* restore */
-	envmap_renderdata(0);
-	env_set_imats();
-	init_render_world();
+	envmap_free_render_copy(envre);
+	env_set_imats(re);
 
 }
 
 /* ------------------------------------------------------------------------- */
 
-void make_envmaps()
+void make_envmaps(Render *re)
 {
 	Tex *tex;
 	int do_init= 0, depth= 0, trace;
 	
-	if (!(R.r.mode & R_ENVMAP)) return;
+	if (!(re->r.mode & R_ENVMAP)) return;
 	
 	/* we dont raytrace, disabling the flag will cause ray_transp render solid */
-	trace= (R.r.mode & R_RAYTRACE);
-	R.r.mode &= ~R_RAYTRACE;
+	trace= (re->r.mode & R_RAYTRACE);
+	re->r.mode &= ~R_RAYTRACE;
 
 	/* 5 = hardcoded max recursion level */
 	while(depth<5) {
@@ -524,21 +459,21 @@ void make_envmaps()
 								
 								if(tex->env->ok) {
 										/* free when OSA, and old one isn't OSA */
-									if((R.r.mode & R_OSA) && tex->env->ok==ENV_NORMAL) 
-										RE_free_envmapdata(tex->env);
+									if((re->r.mode & R_OSA) && tex->env->ok==ENV_NORMAL) 
+										BKE_free_envmapdata(tex->env);
 										/* free when size larger */
-									else if(tex->env->lastsize < R.r.size) 
-										RE_free_envmapdata(tex->env);
+									else if(tex->env->lastsize < re->r.size) 
+										BKE_free_envmapdata(tex->env);
 										/* free when env is in recalcmode */
 									else if(tex->env->recalc)
-										RE_free_envmapdata(tex->env);
+										BKE_free_envmapdata(tex->env);
 								}
 								
 								if(tex->env->ok==0 && depth==0) tex->env->recalc= 1;
 								
 								if(tex->env->ok==0) {
 									do_init= 1;
-									render_envmap(tex->env);
+									render_envmap(re, tex->env);
 									
 									if(depth==tex->env->depth) tex->env->recalc= 0;
 								}
@@ -553,12 +488,12 @@ void make_envmaps()
 	}
 
 	if(do_init) {
-		RE_local_init_render_display();
-		RE_local_clear_render_display(R.win);
-		R.flag |= R_REDRAW_PRV;
+		re->display_init(re->result);
+		re->display_clear(re->result);
+		re->flag |= R_REDRAW_PRV;
 	}	
 	// restore
-	R.r.mode |= trace;
+	re->r.mode |= trace;
 
 }
 
@@ -640,6 +575,7 @@ static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int fac
 int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	extern SDL_mutex *load_ibuf_lock; // initrender.c
+	extern Render R;				/* only in this call */
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
 	Image *ima;

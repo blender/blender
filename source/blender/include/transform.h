@@ -125,6 +125,7 @@ typedef struct TransData {
 	struct Object *ob;
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
+	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 } TransData;
@@ -283,7 +284,6 @@ int BoneEnvelope(TransInfo *t, short mval[2]);
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;
-void count_bone_select(TransInfo *t, struct ListBase *lb, int do_it);
 void flushTransUVs(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 

@@ -62,7 +62,7 @@ typedef struct ID {
 	 * to.
 	 */
 	short flag;
-	int pad;
+	int icon_id;
 } ID;
 
 /**
@@ -72,7 +72,8 @@ typedef struct Library {
 	ID id;
 	ID *idblock;
 	struct FileData *filedata;
-	char name[160];
+	char name[240];		/* reveiled in the UI, can store relative path */
+	char filename[240];	/* expanded name, not relative, used while reading */
 	int tot, pad;		/* tot, idblock and filedata are only fo read and write */
 } Library;
 
@@ -126,6 +127,7 @@ typedef struct Library {
 #define ID_AR		MAKE_ID2('A', 'R')
 #define ID_AC		MAKE_ID2('A', 'C')
 #define ID_SCRIPT	MAKE_ID2('P', 'Y')
+#define ID_NT		MAKE_ID2('N', 'T')
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
 #define ID_SEQ		MAKE_ID2('S', 'Q')

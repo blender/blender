@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'Texture Baker'
-Blender: 239
+Blender: 236
 Group: 'UV'
 Tooltip: 'Procedural to uvmapped texture baker'
 """
@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Official Page, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_mesh3d2uv2d_en.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "0.3.2 2005/12/28"
+__version__ = "0.3.1 2005/10/21"
 
 __bpydoc__ = """\
 This script "bakes" Blender procedural materials (including textures): it saves
@@ -48,10 +48,6 @@ Notes:<br>
 #     of the original mesh.
 #
 #     Released under Blender Artistic Licence
-#
-#   0.3.2
-#     blender 2.40 update to deal with the new shape  
-#     key system . 
 #
 #   0.3.1 
 #     stupid bug correction    
@@ -437,85 +433,6 @@ def REST_Shadeless(SHADEDict):
 # release : 0.2.6 ,  2005/05/29 , end
 #----------------------------------- 
 
-
-#----------------------------------- 
-# release : 0.3.2 ,  2005/12/28 , 13h00
-#----------------------------------- 
-def Blender240update(MESH2,FRAME):
-     """ 
-# ---------------------------
-# Function  Blender240update
-#        
-#  IN : MESH2   a mesh data bloc
-#       FRAME , the animation frame limit
-#        
-#  ADD : an ipo curve to the shape key
-#        named "Key 1" 
-#        
-#  OUT : nothing
-# ---------------------------   
-     """
-     # ---------------------------   
-     #  recuperation des clef de morphing pour ce mesh
-     # ---------------------------   
-     key = MESH2.getKey()
-     # ---------------------------   
-     #  recuperation de l'Ipo
-     # ---------------------------   
-     ipo = key.ipo
-     # ---------------------------   
-     #  si l'ipo n'existe pas on la cree 
-     # ---------------------------   
-     if ipo == None:
-        noipo = Blender.Ipo.New("Key","keyipo")
-        key.ipo = noipo
-     # ---------------------------   
-     #   raccourci de l'expression
-     # ---------------------------   
-     ipo = key.ipo
-     # ---------------------------   
-     #   identification de la clef de morphing
-     # ---------------------------   
-     keyidentity = "Key 1"
-     # ---------------------------   
-     #   recuperation de la courbe correspondante
-     #  c'est toujours la courbe 0
-     # ---------------------------   
-     ipocurve = ipo.getCurve(0)
-     # ---------------------------   
-     #  si la courbe n'existe pas (normalement, elle n'existe pas mais
-     # on gère le risque pour faciliter une eventuelle récupération de
-     # cette fonction dans un autre script ou pour les cas , certe peu
-     # probable, ou blender viendrait a etre modifie pour les ajouter 
-     # automatiquement ) on la cree ...
-     # ---------------------------   
-     if ipocurve == None:
-        ipocurve = ipo.addCurve(keyidentity)
-     # ---------------------------   
-     #  On applique l'attribut d'inetrpolation qui permet d'avoir
-     # une ligne droite
-     # ---------------------------   
-     ipocurve.setInterpolation("Linear")
-     # ---------------------------   
-     #  On retire tous les sommets qui pourraient se trouver sur la 
-     #  courbe (dans l'état actuel, cette opération est une sécurité 
-     #  superflue ) .
-     # ---------------------------   
-     while len(ipocurve.getPoints()) > 0:
-        ipocurve.delBezier(0)
-        ipocurve.recalc()
-     # ---------------------------   
-     #  On ajouter les sommets necessaires ...
-     # ---------------------------   
-     ipocurve.addBezier((-1,1))
-     # ---------------------------   
-     #   ... ce dernire n'est peut-être pas absolument obligatoire .
-     # ---------------------------   
-     ipocurve.addBezier((FRAME+1,1))
-#----------------------------------- 
-# release : 0.3.2 ,  2005/12/28 , end
-#----------------------------------- 
-         
 def Mesh2UVCoord (LIMIT):
    """
 # ---------------------------
@@ -527,7 +444,7 @@ def Mesh2UVCoord (LIMIT):
    """
    global PUTRAW, FRAME, SCENELAYERS
 
-   try:
+   try :
       MESH3D = Object.GetSelected()[0]
       if MESH3D.getType() == 'Mesh':
          MESH = MESH3D.getData()
@@ -537,8 +454,7 @@ def Mesh2UVCoord (LIMIT):
             CurSCENE=Blender.Scene.getCurrent()            
          except:
             NewOBJECT, CurSCENE = GET_newobject('Mesh','UVOBJECT')
-         MESH2 = NewOBJECT.getData()
-         MESH2.edges=[] 
+         MESH2 = NewOBJECT.getData() 
          NewOBJECT.layers=[RENDERLAYER]
 
          MESH2.faces=[]
@@ -569,12 +485,13 @@ def Mesh2UVCoord (LIMIT):
 
          NewOBJECT.setLocation (OBJPOS, OBJPOS, 0.0)
          NewOBJECT.setEuler (0.0, 0.0, 0.0)
+
          MESH2.removeAllKeys()
 
          MESH2.update()
          MESH2.insertKey (1, 'absolute')
          MESH2.update()
-  
+
          for f in MESH2.faces:
             for v in f.v:
                for n in [0,1]:
@@ -589,14 +506,6 @@ def Mesh2UVCoord (LIMIT):
          MESH2.insertKey (FRAME, 'absolute')
          MESH2.update()
 
-         #----------------------------------- 
-         # release : 0.3.2 ,  2005/12/28 , 13h00
-         #-----------------------------------            
-         Blender240update(MESH2,FRAME)       
-         #----------------------------------- 
-         # release : 0.3.2 ,  2005/12/28 , end
-         #-----------------------------------            
-         
          imagename = 'uvtext'
 
          name = "CHANGE IMAGE NAME ? %t | Replace it | No replace | Script help"

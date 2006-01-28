@@ -55,6 +55,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
@@ -90,6 +91,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_group.h"
+#include "BKE_icons.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -207,6 +209,7 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->ipo) ob->ipo->id.us--;
 	if(ob->action) ob->action->id.us--;
+	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose) {
@@ -254,6 +257,7 @@ void unlink_object(Object *ob)
 	Ipo *ipo;
 	Group *group;
 	bConstraint *con;
+	bActionStrip *strip;
 	int a;
 	char *str;
 	
@@ -301,6 +305,8 @@ void unlink_object(Object *ob)
 							obt->recalc |= OB_RECALC_DATA;
 						}
 					}
+					if(pchan->custom==ob)
+						pchan->custom= NULL;
 				}
 			}
 			
@@ -312,12 +318,19 @@ void unlink_object(Object *ob)
 					obt->recalc |= OB_RECALC_OB;
 				}
 			}
+			
 			/* object is deflector or field */
 			if(ob->pd) {
 				if(give_parteff(obt))
 					obt->recalc |= OB_RECALC_DATA;
 				else if(obt->soft)
 					obt->recalc |= OB_RECALC_DATA;
+			}
+			
+			/* strips */
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				if(strip->object==ob)
+					strip->object= NULL;
 			}
 		}
 		obt= obt->id.next;
@@ -662,6 +675,9 @@ void free_lamp(Lamp *la)
 		if(mtex) MEM_freeN(mtex);
 	}
 	la->ipo= 0;
+
+	BKE_icon_delete(&la->id);
+	la->id.icon_id = 0;
 }
 
 void *add_wave()
@@ -743,6 +759,8 @@ Object *add_object(int type)
 	Mat4One(ob->obmat);
 	ob->dt= OB_SHADED;
 	if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
+	ob->empty_drawtype= OB_ARROWS;
+	ob->empty_drawsize= 1.0;
 	
 	if(type==OB_CAMERA || type==OB_LAMP) {
 		ob->trackflag= OB_NEGZ;
@@ -869,6 +887,8 @@ Object *copy_object(Object *ob)
 	id_us_plus((ID *)obn->data);
 	id_us_plus((ID *)obn->ipo);
 	id_us_plus((ID *)obn->action);
+	id_us_plus((ID *)obn->dup_group);
+
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
 	
 	obn->disp.first= obn->disp.last= NULL;
@@ -888,6 +908,7 @@ Object *copy_object(Object *ob)
 
 void expand_local_object(Object *ob)
 {
+	bActionStrip *strip;
 	int a;
 	
 	id_lib_extern((ID *)ob->action);
@@ -897,6 +918,10 @@ void expand_local_object(Object *ob)
 	for(a=0; a<ob->totcol; a++) {
 		id_lib_extern((ID *)ob->mat[a]);
 	}
+	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+		id_lib_extern((ID *)strip->act);
+	}
+
 }
 
 void make_local_object(Object *ob)
@@ -970,10 +995,10 @@ void make_local_object(Object *ob)
 float bluroffs= 0.0;
 int no_speed_curve= 0;
 
-void set_mblur_offs(int blur)
+/* ugly call from render */
+void set_mblur_offs(float blur)
 {
-	bluroffs= R.r.blurfac*((float)blur);
-	bluroffs/= (float)R.r.osa;
+	bluroffs= blur;
 }
 	
 void disable_speed_curve(int val)
@@ -987,19 +1012,14 @@ float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 	/* returns float ( see frame_to_float in ipo.c) */
 
 	/* 2nd field */
-	if(R.flag & R_SEC_FIELD) {
-		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
-	}
+//	if(R.flag & R_SEC_FIELD) {
+//		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
+//	}
 
+	cfra+= bluroffs;
 
-	if(ob && (ob->flag & OB_FROMDUPLI));
-	else {
-			/* motion blur */
-		cfra+= bluroffs;
-	
-		/* global time */
-		cfra*= G.scene->r.framelen;	
-	}
+	/* global time */
+	cfra*= G.scene->r.framelen;	
 	
 	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
 	
@@ -1081,7 +1101,7 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	Mat4One(mat);
 	
 	cu= par->data;
-	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file */
+	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 		makeDispListCurveTypes(par, 0);
 	if(cu->path==NULL) return;
 	
@@ -1513,9 +1533,6 @@ void solve_tracking (Object *ob, float targetmat[][4])
 
 void where_is_object(Object *ob)
 {
-	
-	/* these have been mem copied */
-	if(ob->flag & OB_FROMDUPLI) return;
 	
 	where_is_object_time(ob, (float)G.scene->r.cfra);
 }

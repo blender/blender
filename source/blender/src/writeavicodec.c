@@ -55,9 +55,6 @@
 #include "BLI_blenlib.h"
 #include "DNA_userdef_types.h"
 
-#include "render_types.h"
-#include "render.h"			// lotsof R. stuff
-
 #include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"
@@ -646,6 +643,7 @@ static int open_avi_codec_file(char * name)
 
 void end_avi_codec(void)
 {
+#if 0
 	free_opts_data();
 
 	if (psUncompressed) {
@@ -667,11 +665,13 @@ void end_avi_codec(void)
 		AVIFileExit();
 		avifileinitdone--;
 	}
+#endif
 }
 
 
 void start_avi_codec(void)
 {
+#if 0
 	HRESULT hr;
 	BITMAPINFOHEADER bmi;
 	char name[2048];
@@ -731,11 +731,13 @@ void start_avi_codec(void)
 			BLI_move(bakname, name);
 		}
 	}
+#endif
 }
 
 
 void append_avi_codec(int frame)
 {
+#if 0
 	HRESULT hr;
 	BITMAPINFOHEADER bmi;
 	RGBTRIPLE *buffer, *to;
@@ -777,11 +779,13 @@ void append_avi_codec(int frame)
 			printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
 		}
 	}
+#endif
 }
 
 
 int get_avicodec_settings(void)
 {
+#if 0
 	int ret_val = 0;
 	AVICOMPRESSOPTIONS *aopts[1] = {&opts};
 	AviCodecData *acd = G.scene->r.avicodecdata;
@@ -824,6 +828,7 @@ int get_avicodec_settings(void)
 	}
 
 	return(ret_val);
+#endif
 }
 
 #endif // _WIN32

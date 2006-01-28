@@ -146,7 +146,7 @@ void BOP_mergeVertexs(BOP_Mesh *mesh, unsigned int firstFace);
  * @param facesB set of faces from object B
  */
 void BOP_Face2Face(BOP_Mesh *mesh, BOP_Faces *facesA, BOP_Faces *facesB)
-{
+{		
 	for(unsigned int idxFaceA=0;idxFaceA<facesA->size();idxFaceA++) {
 		BOP_Face *faceA = (*facesA)[idxFaceA];
 		MT_Plane3 planeA = faceA->getPlane();
@@ -160,28 +160,28 @@ void BOP_Face2Face(BOP_Mesh *mesh, BOP_Faces *facesA, BOP_Faces *facesB)
 			idxFaceB<facesB->size() && (faceA->getTAG() != BROKEN) && (faceA->getTAG() != PHANTOM);) {
 			BOP_Face *faceB = (*facesB)[idxFaceB];
 			if ((faceB->getTAG() != BROKEN) && (faceB->getTAG() != PHANTOM)) {
-				BOP_BBox boxB(mesh->getVertex(faceB->getVertex(0))->getPoint(),
-							  mesh->getVertex(faceB->getVertex(1))->getPoint(),
-							  mesh->getVertex(faceB->getVertex(2))->getPoint());
-				if (boxA.intersect(boxB)) {
+			  BOP_BBox boxB(mesh->getVertex(faceB->getVertex(0))->getPoint(),
+					mesh->getVertex(faceB->getVertex(1))->getPoint(),
+					mesh->getVertex(faceB->getVertex(2))->getPoint());
+			  if (boxA.intersect(boxB)) {
 
-					MT_Plane3 planeB = faceB->getPlane();
-					if (BOP_containsPoint(planeB,p1) && 
-						BOP_containsPoint(planeB,p2) && 
-						BOP_containsPoint(planeB,p3)) {
-						if (BOP_orientation(planeB,planeA)>0) {
-							BOP_intersectCoplanarFaces(mesh,facesB,faceA,faceB,false);
-						}
-					}
-					else {
-						BOP_intersectNonCoplanarFaces(mesh,facesA,facesB,faceA,faceB);
-					}
-				}			  
+			    MT_Plane3 planeB = faceB->getPlane();
+			    if (BOP_containsPoint(planeB,p1) && 
+				BOP_containsPoint(planeB,p2) && 
+				BOP_containsPoint(planeB,p3)) {
+			      if (BOP_orientation(planeB,planeA)>0) {
+				BOP_intersectCoplanarFaces(mesh,facesB,faceA,faceB,false);
+			      }
+			    }
+			    else {
+			      BOP_intersectNonCoplanarFaces(mesh,facesA,facesB,faceA,faceB);
+			    }
+			  }			  
 			}
 			if (faceB->getTAG()==BROKEN){
-				facesB->erase(facesB->begin()+idxFaceB);
+			  facesB->erase(facesB->begin()+idxFaceB);
 			}else
-				idxFaceB++;
+			  idxFaceB++;
 		}
 	}
 	

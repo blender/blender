@@ -269,9 +269,27 @@ def comprehansiveImageLoad(imagePath, filePath):
 					break
 			return img
 	
+	
+	
 	# No go.
 	print '\t\tImage Not Found "%s"' % imagePath
 	return None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -359,7 +377,9 @@ def load_mtl(dir, mtl_file, meshDict, materialDict):
 			l = fileLines[lIdx].split()
 			
 			# Detect a line that will be ignored
-			if len(l) == 0 or l[0].startswith('#'):
+			if len(l) == 0:
+				pass
+			elif l[0] == '#' or len(l) == 0:
 				pass
 			elif l[0] == 'newmtl':
 				currentMat = getMat('_'.join(l[1:]), materialDict) # Material should alredy exist.
@@ -408,26 +428,29 @@ def load_mtl(dir, mtl_file, meshDict, materialDict):
 # Returns unique name of object/mesh (preserve overwriting existing meshes) #
 #===========================================================================#
 def getUniqueName(name):
-	newName = name[:19] # 19 chars is the longest name.
+	newName = name
 	uniqueInt = 0
-	while newName in getUniqueName.uniqueNames:
-		newName = '%s.%.3i' % (name[:15], uniqueInt)
-		uniqueInt +=1
-	getUniqueName.uniqueNames.append(newName)
-	return newName
-getUniqueName.uniqueNames = []
+	while 1:
+		try:
+			ob = Object.Get(newName)
+			# Okay, this is working, so lets make a new name
+			newName = '%s.%d' % (name, uniqueInt)
+			uniqueInt +=1
+		except AttributeError:
+			if newName not in NMesh.GetNames():
+				return newName
+			else:
+				newName = '%s.%d' % (name, uniqueInt)
+				uniqueInt +=1
 
 #==================================================================================#
 # This loads data from .obj file                                                   #
 #==================================================================================#
-def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
+def load_obj(file):
 	
 	print '\nImporting OBJ file: "%s"' % file
 	
 	time1 = sys.time()
-	
-	getUniqueName.uniqueNames.extend( [ob.name for ob in Object.Get()] )
-	getUniqueName.uniqueNames.extend( NMesh.GetNames() )
 	
 	# Deselect all objects in the scene.
 	# do this first so we dont have to bother, with objects we import
@@ -444,9 +467,9 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	DIR = stripFile(file)
 	
 	tempFile = open(file, 'r')
-	fileLines = tempFile.readlines()	
+	fileLines = tempFile.readlines()
 	tempFile.close()
-	del tempFile
+	
 	uvMapList = [] # store tuple uv pairs here
 	
 	# This dummy vert makes life a whole lot easier-
@@ -466,10 +489,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	
 	currentMat = nullMat # Use this mat.
 	currentImg = None # Null image is a string, otherwise this should be set to an image object.\
-	if IMPORT_SMOOTH_ALL:
-		currentSmooth = True
-	else:
-		currentSmooth = False
+	currentSmooth = False
 	
 	# Store a list of unnamed names
 	currentUnnamedGroupIdx = 1
@@ -483,36 +503,63 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	#==================================================================================#
 	# Load all verts first (texture verts too)                                         #
 	#==================================================================================#
-
+	nonVertFileLines = []
+	smoothingGroups = {}
+	materialDict = {} # Store all imported materials as unique dict, names are key
+	lIdx = 0
 	print '\tfile length: %d' % len(fileLines)
 	
-	# Ignore normals and comments.
-	fileLines = [lsplit for l in fileLines if not l.startswith('vn') if not l.startswith('#') for lsplit in (l.split(),) if lsplit]
-	Vert = NMesh.Vert
-	vertList = [Vert(float(l[1]), float(l[2]), float(l[3]) ) for l in fileLines if l[0] == 'v']
-	uvMapList = [(float(l[1]), float(l[2])) for l in fileLines if l[0] == 'vt']
-	smoothingGroups =  dict([('_'.join(l[1:]), None) for l in fileLines if l[0] == 's' ])
-	materialDict =     dict([('_'.join(l[1:]), None) for l in fileLines if l[0] == 'usemtl']) # Store all imported materials as unique dict, names are key
-	print '\tvert:%i  texverts:%i  smoothgroups:%i  materials:%s' % (len(vertList), len(uvMapList), len(smoothingGroups), len(materialDict))
+	while lIdx < len(fileLines):
+		# Ignore vert normals
+		if fileLines[lIdx].startswith('vn'):
+			lIdx+=1
+			continue
+		
+		# Dont Bother splitting empty or comment lines.
+		if len(fileLines[lIdx]) == 0 or\
+		fileLines[lIdx][0] == '\n' or\
+		fileLines[lIdx][0] == '#':
+			pass
+		
+		else:
+			fileLines[lIdx] = fileLines[lIdx].split()		
+			l = fileLines[lIdx]
+			
+			# Splitting may 
+			if len(l) == 0:
+				pass
+			# Verts
+			elif l[0] == 'v':
+				vertList.append( NMesh.Vert(float(l[1]), float(l[2]), float(l[3]) ) )
+			
+			# UV COORDINATE
+			elif l[0] == 'vt':
+				uvMapList.append( (float(l[1]), float(l[2])) )
+			
+			# Smoothing groups, make a list of unique.
+			elif l[0] == 's':
+				if len(l) > 1:
+					smoothingGroups['_'.join(l[1:])] = None # Can we assign something more usefull? cant use sets yet
+						
+				# Keep Smoothing group line
+				nonVertFileLines.append(l)
+			
+			# Smoothing groups, make a list of unique.
+			elif l[0] == 'usemtl':
+				if len(l) > 1:
+					materialDict['_'.join(l[1:])] = None # Can we assign something more usefull? cant use sets yet
+						
+				# Keep Smoothing group line
+				nonVertFileLines.append(l)
+			
+			else:
+				nonVertFileLines.append(l)
+		lIdx+=1
 	
-	# Replace filelines, Excluding v excludes "v ", "vn " and "vt "
 	
-	# Remove any variables we may have created.
-	try: del _dummy
-	except: pass
-	try: del _x
-	except: pass
-	try: del _y
-	except: pass
-	try: del _z
-	except: pass
-	try: del lsplit
-	except: pass
-	del Vert
-	
-	# With negative values this is used a lot. make faster access.
-	len_uvMapList = len(uvMapList)
-	len_vertList = len(vertList)
+	del fileLines
+	fileLines = nonVertFileLines
+	del nonVertFileLines	
 	
 	#  Only want unique keys anyway
 	smoothingGroups['(null)'] = None # Make sure we have at least 1.
@@ -525,7 +572,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	
 	
 	# Make a list of all unused vert indicies that we can copy from
-	VERT_USED_LIST = [0]*len_vertList
+	VERT_USED_LIST = [0]*len(vertList)
 	
 	# Here we store a boolean list of which verts are used or not
 	# no we know weather to add them to the current mesh
@@ -537,9 +584,9 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	# We ignore it when naming the object.
 	currentObjectName = 'unnamed_obj_0' # If we cant get one, use this
 	
-	#meshDict = {} # The 3 variables below are stored in a tuple within this dict for each mesh
+	meshDict = {} # The 3 variables below are stored in a tuple within this dict for each mesh
 	currentMesh = NMesh.GetRaw() # The NMesh representation of the OBJ group/Object
-	#currentUsedVertList = {} # A Dict of smooth groups, each smooth group has a list of used verts and they are generated on demand so as to save memory.
+	currentUsedVertList = {} # A Dict of smooth groups, each smooth group has a list of used verts and they are generated on demand so as to save memory.
 	currentMaterialMeshMapping = {} # Used to store material indicies so we dont have to search the mesh for materials every time.
 	
 	# Every mesh has a null smooth group, this is used if there are no smooth groups in the OBJ file.
@@ -548,13 +595,14 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	
 	# For direct accsess to the Current Meshes, Current Smooth Groups- Used verts.
 	# This is of course context based and changes on the fly.
-	# Set the initial '(null)' Smooth group, every mesh has one.
 	currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
-	currentUsedVertList= {currentSmoothGroup: currentUsedVertListSmoothGroup }
+	
+	# Set the initial '(null)' Smooth group, every mesh has one.
+	currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup
 	
 	
 	# 0:NMesh, 1:SmoothGroups[UsedVerts[0,0,0,0]], 2:materialMapping['matname':matIndexForThisNMesh]
-	meshDict = {currentObjectName: (currentMesh, currentUsedVertList, currentMaterialMeshMapping) }
+	meshDict[currentObjectName] = (currentMesh, currentUsedVertList, currentMaterialMeshMapping) 
 	
 	# Only show the bad uv error once 
 	badObjUvs = 0
@@ -563,23 +611,20 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	
 	
 	#currentMesh.verts.append(vertList[0]) # So we can sync with OBJ indicies where 1 is the first item.
-	if len_uvMapList > 1:
+	if len(uvMapList) > 1:
 		currentMesh.hasFaceUV(1) # Turn UV's on if we have ANY texture coords in this obj file.
 	
 	
 	#==================================================================================#
 	# Load all faces into objects, main loop                                           #
 	#==================================================================================#
-	#lIdx = 0
+	lIdx = 0
 	# Face and Object loading LOOP
-	#while lIdx < len(fileLines):
-	#	l = fileLines[lIdx]
-	#for lIdx
-	for l in fileLines:
-		if len(l) == 0:
-			continue
+	while lIdx < len(fileLines):
+		l = fileLines[lIdx]
+		
 		# FACE
-		elif l[0] == 'f': 
+		if l[0] == 'f': 
 			# Make a face with the correct material.
 			
 			# Add material to mesh
@@ -601,19 +646,15 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 			vtIdxLs = []
 			
 			
-			fHasUV = len_uvMapList # Assume the face has a UV until it sho it dosent, if there are no UV coords then this will start as 0.
+			fHasUV = len(uvMapList) # Assume the face has a UV until it sho it dosent, if there are no UV coords then this will start as 0.
 			for v in l[1:]:
 				# OBJ files can have // or / to seperate vert/texVert/normal
 				# this is a bit of a pain but we must deal with it.
 				objVert = v.split('/')
 				
 				# Vert Index - OBJ supports negative index assignment (like python)
-				index = int(objVert[0])-1
-				# Account for negative indicies.
-				if index < 0:
-					index = len_vertList+index+1
 				
-				vIdxLs.append(index)
+				vIdxLs.append(int(objVert[0])-1)
 				if fHasUV:
 					# UV
 					index = 0 # Dummy var
@@ -621,17 +662,15 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 						index = vIdxLs[-1]
 					elif objVert[1]: # != '' # Its possible that theres no texture vert just he vert and normal eg 1//2
 						index = int(objVert[1])-1
-						if index < 0:
-							index = len_uvMapList+index+1
-						
-					if len_uvMapList > index:
+					
+					if len(uvMapList) > index:
 						vtIdxLs.append(index) # Seperate UV coords
 					else:
 						# BAD FILE, I have found this so I account for it.
 						# INVALID UV COORD
 						# Could ignore this- only happens with 1 in 1000 files.
 						badObjFaceTexCo +=1
-						vtIdxLs.append(1)
+						vtIdxLs.append(0)
 						
 						fHasUV = 0
 	
@@ -639,26 +678,12 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 					# The OBJ file would have to be corrupt or badly written for thi to happen
 					# but account for it anyway.
 					if len(vtIdxLs) > 0:
-						if vtIdxLs[-1] > len_uvMapList:
+						if vtIdxLs[-1] > len(uvMapList):
 							fHasUV = 0
 							
 							badObjUvs +=1 # ERROR, Cont
 			# Quads only, we could import quads using the method below but it polite to import a quad as a quad.
-			#print lIdx, len(vIdxLs), len(currentUsedVertListSmoothGroup)
-			#print fileLines[lIdx]
-			if len(vIdxLs) == 2:
-				if IMPORT_EDGES:
-					# Edge
-					for i in (0,1):
-						if currentUsedVertListSmoothGroup[vIdxLs[i]] == 0:
-							faceQuadVList[i] = vertList[vIdxLs[i]]
-							currentMesh.verts.append(faceQuadVList[i])
-							currentUsedVertListSmoothGroup[vIdxLs[i]] = len(currentMesh.verts)-1
-						else:
-							faceQuadVList[i] = currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[i]]]
-							
-					currentMesh.addEdge(faceQuadVList[0], faceQuadVList[1]) 
-			elif len(vIdxLs) == 4:
+			if len(vIdxLs) == 4:
 				
 				# Have found some files where wach face references the same vert
 				# - This causes a bug and stopts the import so lets check here
@@ -726,20 +751,22 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 			if len(l) == 1:
 				currentSmooth = True
 				currentSmoothGroup = '(null)'
+				try:
+					currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
+				except KeyError:
+					currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
+					currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup
+					
 			else:
-				if l[1] == 'off': # We all have a null group so dont need to try, will try anyway to avoid code duplication.
-					if not IMPORT_SMOOTH_ALL:
-						currentSmooth = False
+				if l[1] == 'off':
+					currentSmooth = False
 					currentSmoothGroup = '(null)'
+					# We all have a null group so dont need to try
+					currentUsedVertListSmoothGroup = currentUsedVertList['(null)']
 				else: 
 					currentSmooth = True
 					currentSmoothGroup = '_'.join(l[1:])
-			try:
-				currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
-			except KeyError:
-				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
-		
-		
+	
 		# OBJECT / GROUP
 		elif l[0] == 'o' or l[0] == 'g':
 			
@@ -756,10 +783,10 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 			else: # No name given
 				# Make a new empty name
 				if l[0] == 'g': # Make a blank group name
-					currentObjectName = 'unnamed_grp_%.4d' % currentUnnamedGroupIdx
+					currentObjectName = 'unnamed_grp_%d' % currentUnnamedGroupIdx
 					currentUnnamedGroupIdx +=1
 				else: # is an object.
-					currentObjectName = 'unnamed_ob_%.4d' % currentUnnamedObjectIdx
+					currentObjectName = 'unnamed_ob_%d' % currentUnnamedObjectIdx
 					currentUnnamedObjectIdx +=1
 			
 			
@@ -774,10 +801,11 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 				currentUsedVertList = {}
 				
 				# Sg is a string
-				########currentSmoothGroup = '(null)' # From examplesm changing the g/o shouldent change the smooth group.
-				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
-				
+				currentSmoothGroup = '(null)'
+				currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
+				currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup
 				currentMaterialMeshMapping = {}
+				
 				meshDict[currentObjectName] = (currentMesh, currentUsedVertList, currentMaterialMeshMapping)
 				currentMesh.hasFaceUV(1)
 				contextMeshMatIdx = -1
@@ -794,13 +822,8 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 					contextMeshMatIdx -1
 				
 				# For new meshes switch smoothing groups to null
-				########currentSmoothGroup = '(null)'  # From examplesm changing the g/o shouldent change the smooth group.
-				try:
-					currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
-				except:
-					currentUsedVertList[currentSmoothGroup] = currentUsedVertListSmoothGroup = VERT_USED_LIST[:]						
-					
-				
+				currentSmoothGroup = '(null)'
+				currentUsedVertListSmoothGroup = currentUsedVertList[currentSmoothGroup]
 		
 		# MATERIAL
 		elif l[0] == 'usemtl':
@@ -836,12 +859,11 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 		# MATERIAL FILE
 		elif l[0] == 'mtllib':
 			mtl_fileName.append(' '.join(l[1:]) ) # SHOULD SUPPORT MULTIPLE MTL?
-		#lIdx+=1
+		lIdx+=1
 	
 	# Applies material properties to materials alredy on the mesh as well as Textures.
-	if IMPORT_MTL:
-		for mtl in mtl_fileName:
-			load_mtl(DIR, mtl, meshDict, materialDict)	
+	for mtl in mtl_fileName:
+		load_mtl(DIR, mtl, meshDict, materialDict)	
 	
 	
 	importedObjects = []
@@ -872,78 +894,45 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	
 	
 	print "obj import time: ", sys.time() - time1
-
-def load_obj_ui(file):
 	
-	IMPORT_MTL = Draw.Create(1)
-	IMPORT_DIR = Draw.Create(0)
-	IMPORT_NEW_SCENE = Draw.Create(0)
-	IMPORT_EDGES = Draw.Create(1)
-	IMPORT_SMOOTH_ALL = Draw.Create(0)
+# Batch directory loading.
+def load_obj_dir(obj_dir):
 	
-	
-	# Get USER Options
-	pup_block = [\
-	('Material (*.mtl)', IMPORT_MTL, 'Imports material settings and images from the obj\'s .mtl file'),\
-	('All *.obj\'s in dir', IMPORT_DIR, 'Import all obj files in this dir (avoid overlapping data with "Create scene")'),\
-	('Create scene', IMPORT_NEW_SCENE, 'Imports each obj into its own scene, named from the file'),\
-	'Geometry...',\
-	('Edges', IMPORT_EDGES, 'Import faces with 2 verts as in edge'),\
-	('Smooths all faces', IMPORT_SMOOTH_ALL, 'Smooth all faces even if they are not in a smoothing group'),\
-	]
-	
-	if not os:
-		pup_block.pop(1) # Make sure this is the IMPORT_DIR option that requires OS
-	
-	if not Draw.PupBlock('Import...', pup_block):
-		return
-	
-	Window.WaitCursor(1)
-	Window.DrawProgressBar(0, '')
+	# Strip file
+	obj_dir = stripFile(obj_dir)	
 	time = sys.time()
 	
-	IMPORT_MTL = IMPORT_MTL.val
-	IMPORT_DIR = IMPORT_DIR.val
-	IMPORT_NEW_SCENE = IMPORT_NEW_SCENE.val
-	IMPORT_EDGES = IMPORT_EDGES.val
-	IMPORT_SMOOTH_ALL = IMPORT_SMOOTH_ALL.val
+	objFiles = [f for f in os.listdir(obj_dir) if f.lower().endswith('obj')]
 	
-	#orig_scene = Scene.GetCurrent()
-	
-	obj_dir = stripFile(file)
-	if IMPORT_DIR:
-		obj_files = [(obj_dir,f) for f in os.listdir(obj_dir) if f.lower().endswith('obj')]
-	else:
-		obj_files = [(obj_dir,stripPath(file))]
-	
-	obj_len = len(obj_files)
+	Window.DrawProgressBar(0, '')
 	count = 0
-	for d, f in obj_files:
-		count+= 1
-		if not sys.exists(d+f):
-			print 'Error: "%s%s" does not exist' % (d,f)
-		else:
-			if IMPORT_NEW_SCENE:
-				scn = Scene.New('.'.join(f.split('.')[0:-1]))
-				scn.makeCurrent()
-			
-			
-			Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (f, count, obj_len))
-			load_obj(d+f, IMPORT_MTL, IMPORT_EDGES, IMPORT_SMOOTH_ALL)
-			
-	
-	#orig_scene.makeCurrent() # We can leave them in there new scene.
+	obj_len = len(objFiles)
+	for obj in objFiles:
+		count+=1
+		
+		newScn = Scene.New(obj)
+		newScn.makeCurrent()
+		
+		Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (obj, count, obj_len))
+		
+		load_obj(obj_dir  + obj)
+		
 	Window.DrawProgressBar(1, '')
-	Window.WaitCursor(0)
-	
-	if count > 1:
-		print 'Total obj import "%s" dir: %.2f' % (obj_dir, sys.time() - time)
-	
+	print 'Total obj import "%s" dir: %.2f' % (obj_dir, sys.time() - time)
+
 
 def main():
-	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ')
-		
-
+	TEXT_IMPORT = 'Import a Wavefront OBJ'
+	TEXT_BATCH_IMPORT = 'Import *.obj to Scenes'
+	
+	if Window.GetKeyQualifiers() & Window.Qual.SHIFT:
+		if not os:
+			Draw.PupMenu('Module "os" not found, needed for batch load, using normal selector.')
+			Window.FileSelector(load_obj, TEXT_IMPORT)
+		else:
+			Window.FileSelector(load_obj_dir, TEXT_BATCH_IMPORT)
+	else:
+		Window.FileSelector(load_obj, TEXT_IMPORT)
 
 if __name__ == '__main__':
 	main()

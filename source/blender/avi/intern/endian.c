@@ -44,6 +44,7 @@
 #include <stdio.h> 
 #include "AVI_avi.h"
 #include "endian.h"
+#include "avi_intern.h"
 
 #if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
 #define WORDS_BIGENDIAN
@@ -165,7 +166,7 @@ void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int t
 #ifdef WORDS_BIGENDIAN
 	void *data;
 
-	data = malloc (size);
+	data = MEM_mallocN (size, "avi endian");
 
 	memcpy (data, datain, size);
 
@@ -208,7 +209,7 @@ void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int t
 		break;
 	}
 
-	free (data);
+	MEM_freeN (data);
 #else /* WORDS_BIGENDIAN */
 	fwrite (datain, block, size, fp);
 #endif /* WORDS_BIGENDIAN */

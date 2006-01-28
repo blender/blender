@@ -83,7 +83,7 @@ static IDType idtypes[]= {
 	{ ID_AR,		"Armature", IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CA,		"Camera",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CU,		"Curve",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_GR,		"Group",	0}, 
+	{ ID_GR,		"Group",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_ID,		"ID",		0}, 
 	{ ID_IM,		"Image",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_IP,		"Ipo",		IDTYPE_FLAGS_ISLINKABLE}, 
@@ -95,6 +95,7 @@ static IDType idtypes[]= {
 	{ ID_MA,		"Material", IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_MB,		"Metaball", IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_ME,		"Mesh",		IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_NT,		"NodeTree",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_OB,		"Object",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_SAMPLE,	"Sample",	0}, 
 	{ ID_SCE,		"Scene",	IDTYPE_FLAGS_ISLINKABLE}, 
@@ -287,13 +288,14 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *erro
 	return bfd;	
 }
 
-BlendFileData *BLO_read_from_memfile(MemFile *memfile, BlendReadError *error_r) 
+BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, BlendReadError *error_r) 
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
 	fd = blo_openblendermemfile(memfile, error_r);
 	if (fd) {
+		strcpy(fd->filename, filename);
 		bfd= blo_read_file_internal(fd, error_r);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;

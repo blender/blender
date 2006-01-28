@@ -53,6 +53,7 @@
 #include "BKE_armature.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
+#include "BKE_displist.h"
 #include "BKE_object.h"
 #include "BKE_ipo.h"
 #include "BKE_global.h"
@@ -959,6 +960,9 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 
 				/* note; when creating constraints that follow path, the curve gets the CU_PATH set now,
 					currently for paths to work it needs to go through the bevlist/displist system (ton) */
+				
+				if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+					makeDispListCurveTypes(data->tar, 0);
 				if(cu->path && cu->path->data) {
 					curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
 

@@ -64,7 +64,6 @@ CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include $(NAN_SDLCFLAGS)
 
 # External interfaces of modules:
 CPPFLAGS += -I../render/extern/include
-CPPFLAGS += -I../renderconverter
 CPPFLAGS += -I../blenkernel
 CPPFLAGS += -I../blenlib
 CPPFLAGS += -I../python
@@ -110,6 +109,10 @@ endif
 ifeq ($(WITH_QUICKTIME),true)
 	CPPFLAGS += -I../quicktime
 	CPPFLAGS += -DWITH_QUICKTIME
+endif
+
+ifeq ($(WITH_OPENEXR),true)
+	CPPFLAGS += -DWITH_OPENEXR
 endif
 
 ifeq ($(INTERNATIONAL), true)

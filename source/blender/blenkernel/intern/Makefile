@@ -83,3 +83,11 @@ ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 endif
 
+ifeq ($(WITH_OPENEXR), true)
+    CPPFLAGS += -DWITH_OPENEXR
+endif
+
+ifeq ($(WITH_QUICKTIME), true)
+	CPPFLAGS += -I../../quicktime
+	CPPFLAGS += -DWITH_QUICKTIME
+endif

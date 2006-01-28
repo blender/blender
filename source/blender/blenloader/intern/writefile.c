@@ -109,6 +109,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_color_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
@@ -124,6 +125,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_oops_types.h"
@@ -141,6 +143,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
@@ -153,6 +156,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_global.h" // for G
 #include "BKE_library.h" // for  set_listbasepointers
 #include "BKE_main.h" // G.main
+#include "BKE_node.h"
 #include "BKE_packedFile.h" // for packAll
 #include "BKE_screen.h" // for waitcursor
 #include "BKE_scene.h" // for do_seq
@@ -317,7 +321,7 @@ static void writestruct(WriteData *wd, int filecode, char *structname, int nr, v
 	BHead bh;
 	short *sp;
 
-	if(adr==0 || nr==0) return;
+	if(adr==NULL || nr==0) return;
 
 	/* init BHead */
 	bh.code= filecode;
@@ -326,7 +330,7 @@ static void writestruct(WriteData *wd, int filecode, char *structname, int nr, v
 
 	bh.SDNAnr= dna_findstruct_nr(wd->sdna, structname);
 	if(bh.SDNAnr== -1) {
-		printf("error: can't find SDNA code %s\n", structname);
+		printf("error: can't find SDNA code <%s>\n", structname);
 		return;
 	}
 	sp= wd->sdna->structs[bh.SDNAnr];
@@ -358,6 +362,49 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 
 	mywrite(wd, &bh, sizeof(BHead));
 	if(len) mywrite(wd, adr, len);
+}
+
+/* *************** writing some direct data structs used in more code parts **************** */
+
+static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
+{
+	int a;
+	
+	writestruct(wd, DATA, "CurveMapping", 1, cumap);
+	for(a=0; a<CM_TOT; a++)
+		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
+}
+
+/* this is only direct data, tree itself should have been written */
+static void write_nodetree(WriteData *wd, bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	bNodeLink *link;
+	
+	/* for link_list() speed, we write per list */
+	
+	for(node= ntree->nodes.first; node; node= node->next)
+		writestruct(wd, DATA, "bNode", 1, node);
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->storage) {
+			/* could be handlerized at some point, now only 1 exception still */
+			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+				write_curvemapping(wd, node->storage);
+			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
+				write_curvemapping(wd, node->storage);
+			else
+				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+		}
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	}
+	
+	for(link= ntree->links.first; link; link= link->next)
+		writestruct(wd, DATA, "bNodeLink", 1, link);
 }
 
 static void write_scriptlink(WriteData *wd, ScriptLink *slink)
@@ -1010,6 +1057,12 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			if(ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
 			
 			write_scriptlink(wd, &ma->scriptlink);
+			
+			/* nodetree is integral part of material, no libdata */
+			if(ma->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, ma->nodetree);
+				write_nodetree(wd, ma->nodetree);
+			}
 		}
 		ma= ma->id.next;
 	}
@@ -1084,7 +1137,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	MetaStack *ms;
 	Strip *strip;
 	TimeMarker *marker;
-
+	SceneRenderLayer *srl;
+	
 	sce= scebase->first;
 	while(sce) {
 		/* write LibData */
@@ -1160,10 +1214,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 
 		/* writing dynamic list of TimeMarkers to the blend file */
-		marker= sce->markers.first;
-		while(marker){
+		for(marker= sce->markers.first; marker; marker= marker->next)
 			writestruct(wd, DATA, "TimeMarker", 1, marker);
-			marker= marker->next;
+		
+		for(srl= sce->r.layers.first; srl; srl= srl->next)
+			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
+		
+		if(sce->nodetree) {
+			writestruct(wd, DATA, "bNodeTree", 1, sce->nodetree);
+			write_nodetree(wd, sce->nodetree);
 		}
 		
 		sce= sce->id.next;
@@ -1265,7 +1324,11 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					}
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
+					SpaceImage *sima= (SpaceImage *)sl;
+					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
+					if(sima->cumap)
+						write_curvemapping(wd, sima->cumap);
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
@@ -1287,6 +1350,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_TIME){
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
+				}
+				else if(sl->spacetype==SPACE_NODE){
+					writestruct(wd, DATA, "SpaceNode", 1, sl);
 				}
 				sl= sl->next;
 			}
@@ -1328,6 +1394,8 @@ static void write_libraries(WriteData *wd, Main *main)
 			while(a--) {
 				id= lbarray[a]->first;
 				while(id) {
+					if(G.rt==127 && GS(id->name)!=ID_GR) break;
+					
 					if(id->us>0 && (id->flag & LIB_EXTERN)) {
 
 						writestruct(wd, ID_ID, "ID", 1, id);
@@ -1387,8 +1455,8 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
-	act=idbase->first;
-	while (act) {
+	
+	for(act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
 
@@ -1397,7 +1465,6 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 				write_constraint_channels(wd, &chan->constraintChannels);
 			}
 		}
-		act=act->id.next;
 	}
 }
 
@@ -1487,39 +1554,31 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 static void write_groups(WriteData *wd, ListBase *idbase)
 {
 	Group *group;
-	GroupKey *gk;
 	GroupObject *go;
-	ObjectKey *ok;
 
-	group= idbase->first;
-	while(group) {
+	for(group= idbase->first; group; group= group->id.next) {
 		if(group->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_GR, "Group", 1, group);
-
-			gk= group->gkey.first;
-			while(gk) {
-				writestruct(wd, DATA, "GroupKey", 1, gk);
-				gk= gk->next;
-			}
 
 			go= group->gobject.first;
 			while(go) {
 				writestruct(wd, DATA, "GroupObject", 1, go);
 				go= go->next;
 			}
-			go= group->gobject.first;
-			while(go) {
-				ok= go->okey.first;
-				while(ok) {
-					writestruct(wd, DATA, "ObjectKey", 1, ok);
-					ok= ok->next;
-				}
-				go= go->next;
-			}
-
 		}
-		group= group->id.next;
+	}
+}
+
+static void write_nodetrees(WriteData *wd, ListBase *idbase)
+{
+	bNodeTree *ntree;
+	
+	for(ntree=idbase->first; ntree; ntree= ntree->id.next) {
+		if (ntree->id.us>0 || wd->current) {
+			writestruct(wd, ID_NT, "bNodeTree", 1, ntree);
+			write_nodetree(wd, ntree);
+		}
 	}
 }
 
@@ -1580,6 +1639,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_materials(wd, &G.main->mat);
 	write_textures (wd, &G.main->tex);
 	write_meshs    (wd, &G.main->mesh);
+	write_nodetrees(wd, &G.main->nodetree);
 	write_libraries(wd,  G.main->next);
 
 	write_global(wd);

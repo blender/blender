@@ -63,7 +63,6 @@ ECHO Copying required 3rd party dlls...
 XCOPY /Y ..\..\..\lib\windows\python\lib\python24.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
-XCOPY /Y ..\..\..\lib\windows\tiff\lib\libtiff.dll ..\..\bin
 ECHO Copying language folder
 ECHO Done
 "/>
@@ -141,7 +140,6 @@ XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\python\lib\python24_d.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\bin\debug
-XCOPY /Y ..\..\..\lib\windows\tiff\lib\libtiff.dll ..\..\bin\debug
 ECHO Copying language folder
 IF NOT EXIST ..\..\bin\debug\.blender MKDIR ..\..\bin\debug\.blender
 XCOPY /Y ..\..\bin\.blender ..\..\bin\debug\.blender /E

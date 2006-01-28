@@ -886,7 +886,7 @@ void do_ipo_buttons(short event)
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_IPOBORDER:
-		val= get_border(&rect, 2);
+		val= get_border(&rect, 3);
 		if(val) {
 			mval[0]= rect.xmin;
 			mval[1]= rect.ymin;
@@ -1179,7 +1179,7 @@ void ipo_buttons(void)
 	
 	uiClearButLock();
 
-	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, (ID*)G.sipo->ipo, G.sipo->from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
+	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, ID_IP, G.sipo->blocktype, (ID*)G.sipo->ipo, G.sipo->from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
 
 	/* COPY PASTE */
 	xco-= XIC/2;

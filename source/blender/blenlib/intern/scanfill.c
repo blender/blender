@@ -581,18 +581,18 @@ static void scanfill(PolyFill *pf, int mat_nr)
 			if(eed->v1->co[coy]==eed->v2->co[coy]) {
 				if(eed->v1->f==255 && eed->v2->f!=255) {
 					eed->v2->f= 255;
-					eed->v2->vn= eed->v1->vn;
+					eed->v2->tmp.v= eed->v1->tmp.v;
 				}
 				else if(eed->v2->f==255 && eed->v1->f!=255) {
 					eed->v1->f= 255;
-					eed->v1->vn= eed->v2->vn;
+					eed->v1->tmp.v= eed->v2->tmp.v;
 				}
 				else if(eed->v2->f==255 && eed->v1->f==255) {
-					eed->v1->vn= eed->v2->vn;
+					eed->v1->tmp.v= eed->v2->tmp.v;
 				}
 				else {
 					eed->v2->f= 255;
-					eed->v2->vn= eed->v1;
+					eed->v2->tmp.v = eed->v1;
 				}
 			}
 		}
@@ -627,11 +627,13 @@ static void scanfill(PolyFill *pf, int mat_nr)
 		BLI_remlink(&filledgebase,eed);
 		if(eed->v1->f==255) {
 			v1= eed->v1;
-			while(eed->v1->f==255 && eed->v1->vn!=v1) eed->v1= eed->v1->vn;
+			while((eed->v1->f == 255) && (eed->v1->tmp.v != v1)) 
+				eed->v1 = eed->v1->tmp.v;
 		}
 		if(eed->v2->f==255) {
 			v2= eed->v2;
-			while(eed->v2->f==255 && eed->v2->vn!=v2) eed->v2= eed->v2->vn;
+			while((eed->v2->f == 255) && (eed->v2->tmp.v != v2))
+				eed->v2 = eed->v2->tmp.v;
 		}
 		if(eed->v1!=eed->v2) addedgetoscanlist(eed,verts);
 
@@ -808,7 +810,7 @@ int BLI_edgefill(int mode, int mat_nr)
 {
 	/*
 	  - fill works with its own lists, so create that first (no faces!)
-	  - for vertices, put in ->vn the old pointer
+	  - for vertices, put in ->tmp.v the old pointer
 	  - struct elements xs en ys are not used here: don't hide stuff in it
 	  - edge flag ->f becomes 2 when it's a new edge
 	  - mode: & 1 is check for crossings, then create edges (TO DO )
@@ -980,10 +982,10 @@ int BLI_edgefill(int mode, int mat_nr)
 
 
 	/* CURRENT STATUS:
-	- eve->f  :1= availalble in edges
-	- eve->xs :polynumber
-	- eve->h  :amount of edges connected to vertex
-	- eve->vn :store! original vertex number
+	- eve->f      :1= availalble in edges
+	- eve->xs     :polynumber
+	- eve->h      :amount of edges connected to vertex
+	- eve->tmp.v  :store! original vertex number
 
 	- eed->f  :
 	- eed->f1 :poly number

@@ -1,17 +1,12 @@
-/* texture.c
- *
- *
+/*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,21 +20,15 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributor(s): 2004-2006, Blender Foundation, full recode
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include "MTC_matrixops.h"
 
@@ -70,10 +59,18 @@
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 
-#include "render.h"
+#include "renderpipeline.h"
+#include "render_types.h"
 #include "rendercore.h"
 #include "envmap.h"
 #include "texture.h"
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
 
 /* prototypes */
 static int calcimanr(int cfra, Tex *tex);
@@ -174,12 +171,6 @@ void init_render_texture(Tex *tex)
 			}
 		}
 	}
-	if(tex->imaflag & (TEX_ANTIALI+TEX_ANTISCALE)) {
-		if(tex->ima && tex->ima->lastquality<R.osa) {
-			if(tex->ima->ibuf) IMB_freeImBuf(tex->ima->ibuf);
-			tex->ima->ibuf= 0;
-		}
-	}
 	
 	if(tex->type==TEX_PLUGIN) {
 		if(tex->plugin && tex->plugin->doit) {
@@ -194,8 +185,8 @@ void init_render_texture(Tex *tex)
 		tex->extend= TEX_CLIP;
 		
 		if(tex->env) {
-			if(R.flag & R_RENDERING) {
-				if(tex->env->stype==ENV_ANIM) RE_free_envmapdata(tex->env);
+			if(G.rendering) {
+				if(tex->env->stype==ENV_ANIM) BKE_free_envmapdata(tex->env);
 			}
 		}
 	}
@@ -218,27 +209,6 @@ void init_render_textures()
 
 /* ------------------------------------------------------------------------- */
 
-void end_render_texture(Tex *tex)
-{
-
-
-}
-
-/* ------------------------------------------------------------------------- */
-
-void end_render_textures()
-{
-	Tex *tex;
-
-	tex= G.main->tex.first;
-	while(tex) {
-		if(tex->id.us) end_render_texture(tex);
-		tex= tex->id.next;
-	}
-
-}
-
-/* ------------------------------------------------------------------------- */
 
 /* this allows colorbanded textures to control normals as well */
 static void tex_normal_derivate(Tex *tex, TexResult *texres)
@@ -1159,7 +1129,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 
 /* ************************************** */
 
-static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
 
@@ -1253,33 +1223,6 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	return retval;
 }
 
-int multitex_ext(Tex *tex, float *texvec, float *tin, float *tr, float *tg, float *tb, float *ta)
-{
-	TexResult texr;
-	float dummy[3];
-	int retval;
-	
-	/* does not return Tin, hackish... */
-	if(tex->type==TEX_STUCCI) {
-		texr.nor= dummy;
-		dummy[0]= 1.0;
-		dummy[1]= dummy[2]= 0.0;
-	}
-	else texr.nor= NULL;
-	
-	retval= multitex(tex, texvec, NULL, NULL, 0, &texr);
-	if(tex->type==TEX_STUCCI) {
-		*tin= 0.5 + 0.7*texr.nor[0];
-		CLAMP(*tin, 0.0, 1.0);
-	}
-	else *tin= texr.tin;
-	*tr= texr.tr;
-	*tg= texr.tg;
-	*tb= texr.tb;
-	*ta= texr.ta;
-	return retval;
-}
-
 /* ------------------------------------------------------------------------- */
 
 /* in = destination, tex = texture, out = previous color */
@@ -1309,9 +1252,9 @@ static void texture_rgb_blend(float *in, float *tex, float *out, float fact, flo
 	case MTEX_SCREEN:
 		fact*= facg;
 		facm= 1.0-facg;
-		in[0]= 1.0-(facm+fact*(1.0-tex[0]))*(1.0-out[0]);
-		in[1]= 1.0-(facm+fact*(1.0-tex[1]))*(1.0-out[1]);
-		in[2]= 1.0-(facm+fact*(1.0-tex[2]))*(1.0-out[2]);
+		in[0]= 1.0 - (facm+fact*(1.0-tex[0])) * (1.0-out[0]);
+		in[1]= 1.0 - (facm+fact*(1.0-tex[1])) * (1.0-out[1]);
+		in[2]= 1.0 - (facm+fact*(1.0-tex[2])) * (1.0-out[2]);
 		break;
 
 	case MTEX_SUB:
@@ -1482,6 +1425,9 @@ void do_material_tex(ShadeInput *shi)
 			else if(mtex->texco==TEXCO_NORM) {
 				co= shi->orn; dx= shi->dxno; dy= shi->dyno;
 			}
+			else if(mtex->texco==TEXCO_TANGENT) {
+				co= shi->tang; dx= shi->dxno; dy= shi->dyno;
+			}
 			else if(mtex->texco==TEXCO_GLOB) {
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 			}
@@ -1498,6 +1444,15 @@ void do_material_tex(ShadeInput *shi)
 				dx[0]= shi->dxstrand;
 				dx[1]= dx[2]= 0.0f;
 				dy[0]= shi->dystrand;
+				dy[1]= dy[2]= 0.0f;
+			}
+			else if(mtex->texco==TEXCO_STRESS) {
+				co= tempvec; dx= dxt; dy= dyt;
+				co[0]= shi->stress;
+				co[1]= co[2]= 0.0f;
+				dx[0]= 0.0f;
+				dx[1]= dx[2]= 0.0f;
+				dy[0]= 0.0f;
 				dy[1]= dy[2]= 0.0f;
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
@@ -1720,23 +1675,37 @@ void do_material_tex(ShadeInput *shi)
 						fact= Tnor*tex->norfac;
 						if(fact>1.0) fact= 1.0; else if(fact<-1.0) fact= -1.0;
 						facm= 1.0- fact;
-						shi->vn[0]= facm*shi->vn[0] + fact*texres.nor[0];
-						shi->vn[1]= facm*shi->vn[1] + fact*texres.nor[1];
-						shi->vn[2]= facm*shi->vn[2] + fact*texres.nor[2];
+						if(shi->mat->mode & MA_TANGENT_V) {
+							shi->tang[0]= facm*shi->tang[0] + fact*texres.nor[0];
+							shi->tang[1]= facm*shi->tang[1] + fact*texres.nor[1];
+							shi->tang[2]= facm*shi->tang[2] + fact*texres.nor[2];
+						}
+						else {
+							shi->vn[0]= facm*shi->vn[0] + fact*texres.nor[0];
+							shi->vn[1]= facm*shi->vn[1] + fact*texres.nor[1];
+							shi->vn[2]= facm*shi->vn[2] + fact*texres.nor[2];
+						}
 					}
 					else {
-						float nor[3], dot;
+						if(shi->mat->mode & MA_TANGENT_V) {
+							shi->tang[0]+= Tnor*tex->norfac*texres.nor[0];
+							shi->tang[1]+= Tnor*tex->norfac*texres.nor[1];
+							shi->tang[2]+= Tnor*tex->norfac*texres.nor[2];
+						}
+						else {
+							float nor[3], dot;
 						
-						/* prevent bump to become negative normal */
-						nor[0]= Tnor*tex->norfac*texres.nor[0];
-						nor[1]= Tnor*tex->norfac*texres.nor[1];
-						nor[2]= Tnor*tex->norfac*texres.nor[2];
-						
-						dot= 0.5f + 0.5f*INPR(nor, shi->vn);
-						
-						shi->vn[0]+= dot*nor[0];
-						shi->vn[1]+= dot*nor[1];
-						shi->vn[2]+= dot*nor[2];
+							/* prevent bump to become negative normal */
+							nor[0]= Tnor*tex->norfac*texres.nor[0];
+							nor[1]= Tnor*tex->norfac*texres.nor[1];
+							nor[2]= Tnor*tex->norfac*texres.nor[2];
+							
+							dot= 0.5f + 0.5f*INPR(nor, shi->vn);
+							
+							shi->vn[0]+= dot*nor[0];
+							shi->vn[1]+= dot*nor[1];
+							shi->vn[2]+= dot*nor[2];
+						}
 					}					
 					Normalise(shi->vn);
 					
@@ -1851,6 +1820,13 @@ void do_material_tex(ShadeInput *shi)
 					shi->translucency= texture_value_blend(mtex->def_var, shi->translucency, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->translucency<0.0) shi->translucency= 0.0;
 					else if(shi->translucency>1.0) shi->translucency= 1.0;
+				}
+				if(mtex->mapto & MAP_LAYER) {
+					int flip= mtex->maptoneg & MAP_LAYER;
+					
+					shi->layerfac= texture_value_blend(mtex->def_var, shi->layerfac, texres.tin, varfac, mtex->blendtype, flip);
+					if(shi->layerfac<0.0) shi->layerfac= 0.0;
+					else if(shi->layerfac>1.0) shi->layerfac= 1.0;
 				}
 				if(mtex->mapto & MAP_AMB) {
 					int flip= mtex->maptoneg & MAP_AMB;
@@ -1992,7 +1968,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 /* ------------------------------------------------------------------------- */
 
 /* hor and zen are RGB vectors, blend is 1 float, should all be initialized */
-void do_sky_tex(float *lo, float *dxyview, float *hor, float *zen, float *blend)
+void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend)
 {
 	MTex *mtex;
 	TexResult texres;
@@ -2060,6 +2036,22 @@ void do_sky_tex(float *lo, float *dxyview, float *hor, float *zen, float *blend)
 					MTC_Mat4MulVecfl(mtex->object->imat, tempvec);
 					co= tempvec;
 				}
+				break;
+				
+			case TEXCO_GLOB:
+				if(rco) {
+					VECCOPY(tempvec, rco);
+					MTC_Mat4MulVecfl(R.viewinv, tempvec);
+					co= tempvec;
+				}
+				else
+					co= lo;
+				
+//				VECCOPY(shi->dxgl, shi->dxco);
+//				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+//				VECCOPY(shi->dygl, shi->dyco);
+//				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				break;
 			}
 			
 			/* placement */			
@@ -2378,7 +2370,7 @@ void render_realtime_texture(ShadeInput *shi)
 		tex2.type= TEX_IMAGE;
 	}
 	
-	if(((int)(shi->ys+0.5)) & 1) tex= &tex1; else tex= &tex2;	// threadsafe
+	if(shi->ys & 1) tex= &tex1; else tex= &tex2;	// threadsafe
 	
 	ima = shi->vlr->tface->tpage;
 	if(ima) {

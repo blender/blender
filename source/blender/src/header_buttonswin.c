@@ -46,6 +46,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -62,16 +63,21 @@
 #include "BIF_butspace.h"
 
 #include "BKE_armature.h"
+#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+
 #include "BSE_drawipo.h"
+#include "BSE_node.h"
 #include "BSE_headerbuttons.h"
 
 #include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -98,8 +104,11 @@ void free_matcopybuf(void)
  
 	if(matcopybuf.ramp_col) MEM_freeN(matcopybuf.ramp_col);
 	if(matcopybuf.ramp_spec) MEM_freeN(matcopybuf.ramp_spec);
+	
 	matcopybuf.ramp_col= NULL;
 	matcopybuf.ramp_spec= NULL;
+	
+	ntreeFreeTree(matcopybuf.nodetree);
 	
 	default_mtex(&mtexcopybuf);
 }
@@ -131,7 +140,7 @@ void do_buts_buttons(short event)
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_BUTSPREVIEW:
-		BIF_preview_changed(G.buts);
+		BIF_preview_changed(ID_TE);
 		G.buts->oldkeypress = 0;
 		scrarea_queue_headredraw(curarea);
 		scrarea_queue_winredraw(curarea);
@@ -143,9 +152,10 @@ void do_buts_buttons(short event)
 		break;
 	case B_MATCOPY:
 		if(G.buts->lockpoin) {
+			ma= G.buts->lockpoin;
 			if(matcopied) free_matcopybuf();
 
-			memcpy(&matcopybuf, G.buts->lockpoin, sizeof(Material));
+			memcpy(&matcopybuf, ma, sizeof(Material));
 			if(matcopybuf.ramp_col) matcopybuf.ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
 			if(matcopybuf.ramp_spec) matcopybuf.ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
 
@@ -155,12 +165,15 @@ void do_buts_buttons(short event)
 					matcopybuf.mtex[a]= MEM_dupallocN(mtex);
 				}
 			}
+			matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
+			
 			matcopied= 1;
 		}
 		break;
 	case B_MATPASTE:
 		if(matcopied && G.buts->lockpoin) {
 			ma= G.buts->lockpoin;
+			
 			/* free current mat */
 			if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 			if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
@@ -169,7 +182,7 @@ void do_buts_buttons(short event)
 				if(mtex && mtex->tex) mtex->tex->id.us--;
 				if(mtex) MEM_freeN(mtex);
 			}
-			
+
 			id= (ma->id);
 			memcpy(G.buts->lockpoin, &matcopybuf, sizeof(Material));
 			(ma->id)= id;
@@ -184,7 +197,10 @@ void do_buts_buttons(short event)
 					if(mtex->tex) id_us_plus((ID *)mtex->tex);
 				}
 			}
-			BIF_preview_changed(G.buts);
+			ntreeFreeTree(ma->nodetree);
+			ma->nodetree= ntreeCopyTree(matcopybuf.nodetree, 0);
+
+			BIF_preview_changed(ID_MA);
 			BIF_undo_push("Paste material settings");
 			scrarea_queue_winredraw(curarea);
 		}
@@ -261,11 +277,23 @@ void buttons_active_id(ID **id, ID **idfrom)
 
 			if(G.buts->texfrom==0) {
 				if(ob && ob->type<OB_LAMP && ob->type) {
+					bNode *node= NULL;
+					
 					ma= give_current_material(ob, ob->actcol);
-					*idfrom= (ID *)ma;
-					if(ma) {
-						mtex= ma->mtex[ ma->texact ];
-						if(mtex) *id= (ID *)mtex->tex;
+					if(ma && ma->use_nodes)
+						node= editnode_get_active_idnode(ma->nodetree, ID_TE);
+						
+					if(node) {
+						*idfrom= NULL;
+						*id= node->id;
+					}
+					else {
+						ma= editnode_get_active_material(ma);
+						*idfrom= (ID *)ma;
+						if(ma) {
+							mtex= ma->mtex[ ma->texact ];
+							if(mtex) *id= (ID *)mtex->tex;
+						}
 					}
 				}
 			}

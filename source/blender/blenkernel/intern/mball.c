@@ -30,8 +30,6 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
  * Contributor(s): Jiri Hnidek <jiri.hnidek@vslib.cz>.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
@@ -1106,7 +1104,6 @@ void vnormal (MB_POINT *point, PROCESS *p, MB_POINT *v)
 	}
 	
 	if(FALSE) {
-	/* if(R.flag & R_RENDERING) { */
 		MB_POINT temp;
 		
 		delta*= 2.0;
@@ -1437,11 +1434,12 @@ float init_meta(Object *ob)	/* return totsize */
 	Object *bob;
 	MetaBall *mb;
 	MetaElem *ml;
-	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], vec[3];
+	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], obmat[4][4], vec[3];
 	float temp1[4][4], temp2[4][4], temp3[4][4]; //max=0.0;
 	int a, obnr, zero_size=0;
 	char obname[32];
 	
+	Mat4CpyMat4(obmat, ob->obmat);	/* to cope with duplicators from next_object */
 	Mat4Invert(obinv, ob->obmat);
 	a= 0;
 	
@@ -1456,7 +1454,7 @@ float init_meta(Object *ob)	/* return totsize */
 			zero_size= 0;
 			ml= NULL;
 
-			if(bob==ob) {
+			if(bob==ob && (base->flag & OB_FROMDUPLI)==0) {
 				mat= imat= 0;
 				mb= ob->data;
 	
@@ -1471,7 +1469,6 @@ float init_meta(Object *ob)	/* return totsize */
 				splitIDname(bob->id.name+2, name, &nr);
 				if( strcmp(obname, name)==0 ) {
 					mb= bob->data;
-					
 					if(G.obedit && G.obedit->type==OB_MBALL && G.obedit->data==mb) 
 						ml= editelems.first;
 					else ml= mb->elems.first;
@@ -1535,7 +1532,7 @@ float init_meta(Object *ob)	/* return totsize */
 					imat= new_pgn_element(4*4*sizeof(float));
 					
 					/* mat is the matrix to transform from mball into the basis-mball */
-					Mat4Invert(obinv, ob->obmat);
+					Mat4Invert(obinv, obmat);
 					Mat4MulMat4(temp2, bob->obmat, obinv);
 					/* MetaBall transformation */
 					Mat4MulMat4(mat, temp1, temp2);
@@ -2002,7 +1999,7 @@ void metaball_polygonize(Object *ob)
 	mb= ob->data;
 
 	if(totelem==0) return;
-	if(!(R.flag & R_RENDERING) && (mb->flag==MB_UPDATE_NEVER)) return;
+	if(!(G.rendering) && (mb->flag==MB_UPDATE_NEVER)) return;
 	if(G.moving && mb->flag==MB_UPDATE_FAST) return;
 
 	freedisplist(&ob->disp);
@@ -2029,7 +2026,7 @@ void metaball_polygonize(Object *ob)
 	if(totelem > 1024) init_metaball_octal_tree(5);
 
 	/* width is size per polygonize cube */
-	if(R.flag & R_RENDERING) width= mb->rendersize;
+	if(G.rendering) width= mb->rendersize;
 	else {
 		width= mb->wiresize;
 		if(G.moving && mb->flag==MB_UPDATE_HALFRES) width*= 2;

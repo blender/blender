@@ -39,6 +39,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -60,11 +61,13 @@
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
@@ -79,6 +82,7 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_outliner.h"
 #include "BIF_language.h"
@@ -108,7 +112,7 @@
 
 #define TS_CHUNK	128
 
-#define TREESTORE(a) soops->treestore->data+(a)->store_index
+#define TREESTORE(a) ((a)?soops->treestore->data+(a)->store_index:NULL)
 
 /* ******************** PERSISTANT DATA ***************** */
 
@@ -509,13 +513,13 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						te->name= md->name;
 
 						if (md->type==eModifierType_Lattice) {
-							outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						} else if (md->type==eModifierType_Curve) {
-							outliner_add_element(soops, &te->subtree, ((CurveModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((CurveModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						} else if (md->type==eModifierType_Armature) {
-							outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						} else if (md->type==eModifierType_Hook) {
-							outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+							outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_LINKED_OB, 0);
 						}
 					}
 				}
@@ -541,6 +545,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						outliner_add_element(soops, &tenla->subtree, ob->scriptlink.scripts[a], te, 0, 0);
 					}
 				}
+				
+				if(ob->dup_group)
+					outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);
+				
 				if(ob->nlastrips.first) {
 					bActionStrip *strip;
 					TreeElement *ten;
@@ -767,6 +775,25 @@ static void outliner_build_tree(SpaceOops *soops)
 				outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
+	}
+	else if(soops->outlinevis == SO_GROUPS) {
+		Group *group;
+		GroupObject *go;
+		
+		for(group= G.main->group.first; group; group= group->id.next) {
+			if(group->id.us) {
+				te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
+				tselem= TREESTORE(te);
+				
+				for(go= group->gobject.first; go; go= go->next) {
+					ten= outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
+					ten->directdata= NULL;
+				}
+				outliner_make_hierarchy(soops, &te->subtree);
+				/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
+				for(go= group->gobject.first; go; go= go->next) go->ob->id.newid= NULL;
+			}
+		}
 	}
 	else if(soops->outlinevis == SO_SAME_TYPE) {
 		Object *ob= OBACT;
@@ -1006,8 +1033,9 @@ static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int s
 	}
 	if(set) {
 		extern_set_butspace(F5KEY);	// force shading buttons
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 1);
+		allqueue(REDRAWNODE, 0);
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWIPO, 0);
 	}
@@ -1101,7 +1129,7 @@ static int tree_element_active_lamp(SpaceOops *soops, TreeElement *te, int set)
 	
 	if(set) {
 		extern_set_butspace(F5KEY);
-		BIF_all_preview_changed();
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 1);
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWIPO, 0);
@@ -1406,7 +1434,7 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_ebone(te, tselem, set);
 		case TSE_MODIFIER:
 			return tree_element_active_modifier(te, tselem, set);
-		case TSE_MODIFIER_OB:
+		case TSE_LINKED_OB:
 			if(set) tree_element_active_object(soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
 			break;
@@ -1456,6 +1484,8 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			if(G.qual & LR_CTRLKEY) {
 				if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE)) 
 					error("Cannot edit builtin name");
+				else if(tselem->id->lib)
+					error("Cannot edit Library Data");
 				else {
 					tselem->flag |= TSE_TEXTBUT;
 				}
@@ -1689,12 +1719,9 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb)
 						
 					case ID_ME: case ID_CU: case ID_MB: case ID_LT:
 					case ID_LA: case ID_AR: case ID_CA:
-						idlevel= -2;
-						break;
-						
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
-					case ID_NLA: case ID_TXT:
+					case ID_NLA: case ID_TXT: case ID_GR:
 						if(idlevel==0) idlevel= idcode;
 						else if(idlevel!=idcode) idlevel= -1;
 							break;
@@ -1705,7 +1732,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb)
 	}
 }
 
-static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep)
+static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Material **matar=NULL;
 	int a, totcol=0;
@@ -1739,7 +1766,7 @@ static void unlink_material_cb(TreeElement *te, TreeStoreElem *tsep)
 	}
 }
 
-static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep)
+static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	MTex **mtex= NULL;
 	int a;
@@ -1768,8 +1795,25 @@ static void unlink_texture_cb(TreeElement *te, TreeStoreElem *tsep)
 	}
 }
 
+static void unlink_group_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	Group *group= (Group *)tselem->id;
+	
+	if(tsep) {
+		if( GS(tsep->id->name)==ID_OB) {
+			Object *ob= (Object *)tsep->id;
+			ob->dup_group= NULL;
+			group->id.us--;
+		}
+	}
+	else {
+		unlink_group(group);
+		group->id.us= 0;
+	}
+}
+
 static void outliner_do_libdata_operation(SpaceOops *soops, ListBase *lb, 
-										 void (*operation_cb)(TreeElement *, TreeStoreElem *))
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1779,7 +1823,7 @@ static void outliner_do_libdata_operation(SpaceOops *soops, ListBase *lb,
 		if(tselem->flag & TSE_SELECTED) {
 			if(tselem->type==0) {
 				TreeStoreElem *tsep= TREESTORE(te->parent);
-				operation_cb(te, tsep);
+				operation_cb(te, tsep, tselem);
 			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
@@ -1790,26 +1834,33 @@ static void outliner_do_libdata_operation(SpaceOops *soops, ListBase *lb,
 
 /* */
 
-static void object_select_cb(TreeElement *te, TreeStoreElem *tselem)
+static void object_select_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
-	base->flag |= SELECT;
-	base->object->flag |= SELECT;
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->flag |= SELECT;
+		base->object->flag |= SELECT;
+	}
 }
 
-static void object_deselect_cb(TreeElement *te, TreeStoreElem *tselem)
+static void object_deselect_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
-	base->flag &= ~SELECT;
-	base->object->flag &= ~SELECT;
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->flag &= ~SELECT;
+		base->object->flag &= ~SELECT;
+	}
 }
 
-static void object_delete_cb(TreeElement *te, TreeStoreElem *tselem)
+static void object_delete_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
 	if(base) {
 		// check also library later
 		if(G.obedit==base->object) exit_editmode(2);
@@ -1825,9 +1876,17 @@ static void object_delete_cb(TreeElement *te, TreeStoreElem *tselem)
 	}
 }
 
+static void id_local_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
+{
+	if(tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
+		tselem->id->lib= NULL;
+		tselem->id->flag= LIB_LOCAL;
+		new_id(0, tselem->id, 0);
+	}
+}
 
 static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb, 
-										 void (*operation_cb)(TreeElement *, TreeStoreElem *))
+										 void (*operation_cb)(TreeElement *, TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1840,7 +1899,7 @@ static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb,
 				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 				if(sce && G.scene != sce) set_scene(sce);
 				
-				operation_cb(te, tselem);
+				operation_cb(te, NULL, tselem);
 			}
 		}
 		if((tselem->flag & TSE_CLOSED)==0) {
@@ -1931,7 +1990,7 @@ void outliner_operation_menu(ScrArea *sa)
 		//else pupmenu("Scene Operations%t|Delete");
 	}
 	else if(objectlevel) {
-		short event= pupmenu("Object Operations%t|Select%x1|Deselect%x2|Delete%x4");
+		short event= pupmenu("Object Operations%t|Select%x1|Deselect%x2|Delete%x4|Make Local%x5");
 		if(event>0) {
 			char *str="";
 			
@@ -1951,18 +2010,21 @@ void outliner_operation_menu(ScrArea *sa)
 				DAG_scene_sort(G.scene);
 				str= "Delete Objects";
 			}
+			else if(event==5) {
+				outliner_do_object_operation(soops, &soops->tree, id_local_cb);
+				str= "Localized Objects";
+			}
 			
 			countall();
 			
 			BIF_undo_push(str);
-			allqueue(REDRAWALL, 0); // yah... to be sure :)
+			allqueue(REDRAWALL, 0);
 		}
 	}
 	else if(idlevel) {
 		if(idlevel==-1 || datalevel) error("Mixed selection");
-		else if(idlevel==-2) error("No operations available");
 		else {
-			short event= pupmenu("Data Operations%t|Unlink");
+			short event= pupmenu("Data Operations%t|Unlink %x1|Make Local %x2");
 			
 			if(event==1) {
 				switch(idlevel) {
@@ -1976,12 +2038,19 @@ void outliner_operation_menu(ScrArea *sa)
 						allqueue(REDRAWBUTSSHADING, 1);
 						BIF_undo_push("Unlink texture");
 						break;
+					case ID_GR:
+						outliner_do_libdata_operation(soops, &soops->tree, unlink_group_cb);
+						BIF_undo_push("Unlink group");
+						break;
 					default:
 						error("Not yet...");
 				}
-				allqueue(REDRAWOOPS, 0);
-				allqueue(REDRAWBUTSALL, 0);
-				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWALL, 0);
+			}
+			else if(event==2) {
+				outliner_do_libdata_operation(soops, &soops->tree, id_local_cb);
+				BIF_undo_push("Localized Data");
+				allqueue(REDRAWALL, 0); 
 			}
 		}
 	}
@@ -2025,102 +2094,104 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 	if(tselem->type) {
 		switch( tselem->type) {
 			case TSE_NLA:
-				BIF_draw_icon(x, y, ICON_NLA); break;
+				BIF_icon_draw(x, y, ICON_NLA); break;
 			case TSE_NLA_ACTION:
-				BIF_draw_icon(x, y, ICON_ACTION); break;
+				BIF_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:
-				BIF_draw_icon(x, y, ICON_VERTEXSEL); break;
+				BIF_icon_draw(x, y, ICON_VERTEXSEL); break;
 			case TSE_BONE:
 			case TSE_EBONE:
-				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
-				BIF_draw_icon(x, y, ICON_CONSTRAINT); break;
+				BIF_icon_draw(x, y, ICON_CONSTRAINT); break;
 			case TSE_MODIFIER_BASE:
-				BIF_draw_icon(x, y, ICON_MODIFIER); break;
-			case TSE_MODIFIER_OB:
-				BIF_draw_icon(x, y, ICON_OBJECT); break;
+				BIF_icon_draw(x, y, ICON_MODIFIER); break;
+			case TSE_LINKED_OB:
+				BIF_icon_draw(x, y, ICON_OBJECT); break;
 			case TSE_MODIFIER:
 			{
 				Object *ob= (Object *)tselem->id;
 				ModifierData *md= BLI_findlink(&ob->modifiers, tselem->nr);
 				switch(md->type) {
 					case eModifierType_Subsurf: 
-						BIF_draw_icon(x, y, ICON_MOD_SUBSURF); break;
+						BIF_icon_draw(x, y, ICON_MOD_SUBSURF); break;
 					case eModifierType_Armature: 
-						BIF_draw_icon(x, y, ICON_ARMATURE); break;
+						BIF_icon_draw(x, y, ICON_ARMATURE); break;
 					case eModifierType_Lattice: 
-						BIF_draw_icon(x, y, ICON_LATTICE); break;
+						BIF_icon_draw(x, y, ICON_LATTICE); break;
 					case eModifierType_Curve: 
-						BIF_draw_icon(x, y, ICON_CURVE); break;
+						BIF_icon_draw(x, y, ICON_CURVE); break;
 					case eModifierType_Build: 
-						BIF_draw_icon(x, y, ICON_MOD_BUILD); break;
+						BIF_icon_draw(x, y, ICON_MOD_BUILD); break;
 					case eModifierType_Mirror: 
-						BIF_draw_icon(x, y, ICON_MOD_MIRROR); break;
+						BIF_icon_draw(x, y, ICON_MOD_MIRROR); break;
 					case eModifierType_Decimate: 
-						BIF_draw_icon(x, y, ICON_MOD_DECIM); break;
+						BIF_icon_draw(x, y, ICON_MOD_DECIM); break;
 					case eModifierType_Wave: 
-						BIF_draw_icon(x, y, ICON_MOD_WAVE); break;
+						BIF_icon_draw(x, y, ICON_MOD_WAVE); break;
 					case eModifierType_Hook: 
-						BIF_draw_icon(x, y, ICON_HOOK); break;
+						BIF_icon_draw(x, y, ICON_HOOK); break;
 					case eModifierType_Softbody: 
-						BIF_draw_icon(x, y, ICON_MOD_SOFT); break;
+						BIF_icon_draw(x, y, ICON_MOD_SOFT); break;
 					case eModifierType_Boolean: 
-						BIF_draw_icon(x, y, ICON_MOD_BOOLEAN); break;
+						BIF_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
 					default:
-						BIF_draw_icon(x, y, ICON_DOT); break;
+						BIF_icon_draw(x, y, ICON_DOT); break;
 				}
 				break;
 			}
 			case TSE_SCRIPT_BASE:
-				BIF_draw_icon(x, y, ICON_TEXT); break;
+				BIF_icon_draw(x, y, ICON_TEXT); break;
 			case TSE_POSE_BASE:
-				BIF_draw_icon(x, y, ICON_ARMATURE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_ARMATURE_DEHLT); break;
 			case TSE_POSE_CHANNEL:
-				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
 			default:
-				BIF_draw_icon(x, y, ICON_DOT); break;
+				BIF_icon_draw(x, y, ICON_DOT); break;
 		}
 	}
 	else {
 		switch( GS(tselem->id->name)) {
 			case ID_SCE:
-				BIF_draw_icon(x, y, ICON_SCENE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_SCENE_DEHLT); break;
 			case ID_OB:
-				BIF_draw_icon(x, y, ICON_OBJECT); break;
+				BIF_icon_draw(x, y, ICON_OBJECT); break;
 			case ID_ME:
-				BIF_draw_icon(x, y, ICON_MESH); break;
+				BIF_icon_draw(x, y, ICON_MESH); break;
 			case ID_CU:
-				BIF_draw_icon(x, y, ICON_CURVE); break;
+				BIF_icon_draw(x, y, ICON_CURVE); break;
 			case ID_MB:
-				BIF_draw_icon(x, y, ICON_MBALL); break;
+				BIF_icon_draw(x, y, ICON_MBALL); break;
 			case ID_LT:
-				BIF_draw_icon(x, y, ICON_LATTICE); break;
+				BIF_icon_draw(x, y, ICON_LATTICE); break;
 			case ID_LA:
-				BIF_draw_icon(x, y, ICON_LAMP_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_LAMP_DEHLT); break;
 			case ID_MA:
-				BIF_draw_icon(x, y, ICON_MATERIAL_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
 			case ID_TE:
-				BIF_draw_icon(x, y, ICON_TEXTURE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_TEXTURE_DEHLT); break;
 			case ID_IP:
-				BIF_draw_icon(x, y, ICON_IPO_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_IPO_DEHLT); break;
 			case ID_IM:
-				BIF_draw_icon(x, y, ICON_IMAGE_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
 			case ID_SO:
-				BIF_draw_icon(x, y, ICON_SPEAKER); break;
+				BIF_icon_draw(x, y, ICON_SPEAKER); break;
 			case ID_AR:
-				BIF_draw_icon(x, y, ICON_ARMATURE); break;
+				BIF_icon_draw(x, y, ICON_ARMATURE); break;
 			case ID_CA:
-				BIF_draw_icon(x, y, ICON_CAMERA_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_CAMERA_DEHLT); break;
 			case ID_KE:
-				BIF_draw_icon(x, y, ICON_EDIT_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_EDIT_DEHLT); break;
 			case ID_WO:
-				BIF_draw_icon(x, y, ICON_WORLD_DEHLT); break;
+				BIF_icon_draw(x, y, ICON_WORLD_DEHLT); break;
 			case ID_AC:
-				BIF_draw_icon(x, y, ICON_ACTION); break;
+				BIF_icon_draw(x, y, ICON_ACTION); break;
 			case ID_NLA:
-				BIF_draw_icon(x, y, ICON_NLA); break;
+				BIF_icon_draw(x, y, ICON_NLA); break;
 			case ID_TXT:
-				BIF_draw_icon(x, y, ICON_SCRIPT); break;
+				BIF_icon_draw(x, y, ICON_SCRIPT); break;
+			case ID_GR:
+				BIF_icon_draw(x, y, ICON_CIRCLE_DEHLT); break;
 		}
 	}
 }
@@ -2223,7 +2294,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		if(active) {
 			uiSetRoundBox(15);
 			uiRoundBox( (float)startx+OL_H-1.5, (float)*starty+2.0, (float)startx+2*OL_H-4.0, (float)*starty+OL_H-1.0, OL_H/2.0-2.0);
-			glEnable(GL_BLEND);
+			glEnable(GL_BLEND);	/* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
 		}
@@ -2238,9 +2309,9 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 
 				// icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
-				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_RIGHT);
+				BIF_icon_draw(icon_x, *starty+2, ICON_TRIA_RIGHT);
 			else
-				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_DOWN);
+				BIF_icon_draw(icon_x, *starty+2, ICON_TRIA_DOWN);
 		}
 		offsx+= OL_X;
 		
@@ -2249,6 +2320,16 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 			// icons a bit higher
 		tselem_draw_icon(startx+offsx, *starty+2, tselem, te);
 		offsx+= OL_X;
+		
+		if(tselem->id->lib && tselem->type==0) {
+			glPixelTransferf(GL_ALPHA_SCALE, 0.5);
+			if(tselem->id->flag & LIB_INDIRECT)
+				BIF_icon_draw(startx+offsx, *starty+2, ICON_DATALIB);
+			else
+				BIF_icon_draw(startx+offsx, *starty+2, ICON_PARLIB);
+			glPixelTransferf(GL_ALPHA_SCALE, 1.0);
+			offsx+= OL_X;
+		}		
 		glDisable(GL_BLEND);
 
 		/* name */

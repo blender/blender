@@ -61,14 +61,16 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_object.h"
+#include "BKE_anim.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
@@ -81,9 +83,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-
-/* Modules used */
-#include "render.h"		/* R. stuff for ogl view render */
 
 #define TRACKBALLSIZE  (1.1)
 #define BL_NEAR_CLIP 0.001
@@ -535,6 +534,7 @@ void viewmove(int mode)
 	int firsttime=1;
 	short mvalball[2], mval[2], mvalo[2];
 	short use_sel = 0;
+	short preview3d_event= 1;
 	
 	/* 3D window may not be defined */
 	if( !G.vd ) {
@@ -591,7 +591,7 @@ void viewmove(int mode)
 					G.vd->view= 0;
 				}
 						
-				if(G.vd->persp==2 || (G.vd->persp==3 && mode!=1)) {
+				if(G.vd->persp==2 && mode!=1) {
 					G.vd->persp= 1;
 					scrarea_do_windraw(curarea);
 					scrarea_queue_headredraw(curarea);
@@ -700,16 +700,14 @@ void viewmove(int mode)
 				}
 			}
 			else if(mode==1) {	/* translate */
-				if(G.vd->persp==3) {
-					/* zoom= 0.5+0.5*(float)(2<<G.vd->rt1); */
-					/* dx-= (mval[0]-mvalo[0])/zoom; */
-					/* dy-= (mval[1]-mvalo[1])/zoom; */
-					/* G.vd->rt2= dx; */
-					/* G.vd->rt3= dy; */
-					/* if(G.vd->rt2<-320) G.vd->rt2= -320; */
-					/* if(G.vd->rt2> 320) G.vd->rt2=  320; */
-					/* if(G.vd->rt3<-250) G.vd->rt3= -250; */
-					/* if(G.vd->rt3> 250) G.vd->rt3=  250; */
+				if(G.vd->persp==2) {
+					float max= (float)MAX2(curarea->winx, curarea->winy);
+
+					G.vd->camdx += (mvalo[0]-mval[0])/(max);
+					G.vd->camdy += (mvalo[1]-mval[1])/(max);
+					CLAMP(G.vd->camdx, -1.0f, 1.0f);
+					CLAMP(G.vd->camdy, -1.0f, 1.0f);
+					preview3d_event= 0;
 				}
 				else {
 					window_to_3d(dvec, mval[0]-mvalo[0], mval[1]-mvalo[1]);
@@ -746,6 +744,8 @@ void viewmove(int mode)
 				
 				mval[1]= mvalo[1]; /* preserve first value */
 				mval[0]= mvalo[0];
+				
+				if(G.vd->persp==0 || G.vd->persp==2) preview3d_event= 0;
 			}
 			
 			mvalo[0]= mval[0];
@@ -769,26 +769,29 @@ void viewmove(int mode)
 		/* this in the end, otherwise get_mbut does not work on a PC... */
 		if( !(get_mbut() & (L_MOUSE|M_MOUSE))) break;
 	}
+
+	if(preview3d_event) 
+		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+	else
+		BIF_view3d_previewrender_signal(curarea, PR_PROJECTED);
+
 }
 
-short v3d_windowmode=0;
-
-/* important to not set windows active in here, can be renderwin for example */
-void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
+int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend)
 {
-	Camera *cam=0;
-	float near, far, winx = 0.0, winy = 0.0;
+	Camera *cam=NULL;
 	float lens, fac, x1, y1, x2, y2;
-	short orth;
+	float winx= (float)winxi, winy= (float)winyi;
+	int orth= 0;
 	
 	lens= G.vd->lens;	
 	
-	near= G.vd->near;
-	far= G.vd->far;
+	*clipsta= G.vd->near;
+	*clipend= G.vd->far;
 
 	if(G.vd->persp==2) {
-		near= G.vd->near;
-		far= G.vd->far;
+		*clipsta= G.vd->near;
+		*clipend= G.vd->far;
 		if(G.vd->camera) {
 			if(G.vd->camera->type==OB_LAMP ) {
 				Lamp *la;
@@ -799,25 +802,16 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 				x1= saacos(fac);
 				lens= 16.0*fac/sin(x1);
 		
-				near= la->clipsta;
-				far= la->clipend;
+				*clipsta= la->clipsta;
+				*clipend= la->clipend;
 			}
 			else if(G.vd->camera->type==OB_CAMERA) {
 				cam= G.vd->camera->data;
 				lens= cam->lens;
-				near= cam->clipsta;
-				far= cam->clipend;
+				*clipsta= cam->clipsta;
+				*clipend= cam->clipend;
 			}
 		}
-	}
-	
-	if(v3d_windowmode) { // hackish
-		winx= R.rectx;
-		winy= R.recty;
-	}
-	else {
-		winx= curarea->winx;
-		winy= curarea->winy;
 	}
 	
 	if(G.vd->persp==0) {
@@ -829,8 +823,8 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 		else y1= -G.vd->dist;
 		y2= -y1;
 		
-		far*= 0.5;	// otherwise too extreme low zbuffer quality
-		near= -far;
+		*clipend *= 0.5;	// otherwise too extreme low zbuffer quality
+		*clipsta= - *clipend;
 		orth= 1;
 	}
 	else {
@@ -860,46 +854,69 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 			if(winx>winy) dfac= 64.0/(fac*winx*lens);
 			else dfac= 64.0/(fac*winy*lens);
 			
-			x1= - near*winx*dfac;
+			x1= - *clipsta * winx*dfac;
 			x2= -x1;
-			y1= - near*winy*dfac;
+			y1= - *clipsta * winy*dfac;
 			y2= -y1;
 			orth= 0;
 		}
-	}
-
-	if(rect) {		/* picking */
-		rect->xmin/= winx;
-		rect->xmin= x1+rect->xmin*(x2-x1);
-		rect->ymin/= winy;
-		rect->ymin= y1+rect->ymin*(y2-y1);
-		rect->xmax/= winx;
-		rect->xmax= x1+rect->xmax*(x2-x1);
-		rect->ymax/= winy;
-		rect->ymax= y1+rect->ymax*(y2-y1);
-
-		if(orth) myortho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -far, far);
-		else mywindow(rect->xmin, rect->xmax, rect->ymin, rect->ymax, near, far);
-
-	}
-	else {
-		if(v3d_windowmode) {
-			if(orth) i_ortho(x1, x2, y1, y2, near, far, R.winmat);
-			else i_window(x1, x2, y1, y2, near, far, R.winmat);
-		}
-		else {
-			if(orth) myortho(x1, x2, y1, y2, near, far);
-			else mywindow(x1, x2, y1, y2, near, far);
+		/* cam view offset */
+		if(cam) {
+			float dx= G.vd->camdx*(x2-x1);
+			float dy= G.vd->camdy*(y2-y1);
+			x1+= dx;
+			x2+= dx;
+			y1+= dy;
+			y2+= dy;
 		}
 	}
-
-	if(v3d_windowmode==0) {
-		glMatrixMode(GL_PROJECTION);
-		mygetmatrix(curarea->winmat);
-		glMatrixMode(GL_MODELVIEW);
-	}
+	
+	viewplane->xmin= x1;
+	viewplane->ymin= y1;
+	viewplane->xmax= x2;
+	viewplane->ymax= y2;
+	
+	return orth;
 }
 
+/* important to not set windows active in here, can be renderwin for example */
+void setwinmatrixview3d(int winx, int winy, rctf *rect)		/* rect: for picking */
+{
+	rctf viewplane;
+	float clipsta, clipend, x1, y1, x2, y2;
+	int orth;
+	
+	orth= get_view3d_viewplane(winx, winy, &viewplane, &clipsta, &clipend);
+//	printf("%d %d %f %f %f %f %f %f\n", winx, winy, viewplane.xmin, viewplane.ymin, viewplane.xmax, viewplane.ymax, clipsta, clipend);
+	x1= viewplane.xmin;
+	y1= viewplane.ymin;
+	x2= viewplane.xmax;
+	y2= viewplane.ymax;
+	
+	if(rect) {		/* picking */
+		rect->xmin/= (float)curarea->winx;
+		rect->xmin= x1+rect->xmin*(x2-x1);
+		rect->ymin/= (float)curarea->winy;
+		rect->ymin= y1+rect->ymin*(y2-y1);
+		rect->xmax/= (float)curarea->winx;
+		rect->xmax= x1+rect->xmax*(x2-x1);
+		rect->ymax/= (float)curarea->winy;
+		rect->ymax= y1+rect->ymax*(y2-y1);
+		
+		if(orth) myortho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
+		else mywindow(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
+		
+	}
+	else {
+		if(orth) myortho(x1, x2, y1, y2, clipsta, clipend);
+		else mywindow(x1, x2, y1, y2, clipsta, clipend);
+	}
+
+	/* not sure what this was for? (ton) */
+	glMatrixMode(GL_PROJECTION);
+	mygetmatrix(curarea->winmat);
+	glMatrixMode(GL_MODELVIEW);
+}
 
 void obmat_to_viewmat(Object *ob)
 {
@@ -987,7 +1004,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	}
 	/* get rid of overlay button matrix */
 	persp(PERSP_VIEW);
-	setwinmatrixview3d(&rect);
+	setwinmatrixview3d(curarea->winx, curarea->winy, &rect);
 	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
 	
 	if(G.vd->drawtype > OB_WIRE) {
@@ -1019,6 +1036,27 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 				base->selcol= code;
 				glLoadName(code);
 				draw_object(base, DRAW_PICKING|DRAW_CONSTCOLOR);
+				
+				/* we draw group-duplicators for selection too */
+				if((base->object->transflag & OB_DUPLI) && base->object->dup_group) {
+					ListBase *lb;
+					DupliObject *dob;
+					Base tbase;
+					
+					tbase.flag= OB_FROMDUPLI;
+					lb= object_duplilist(G.scene, base->object);
+					
+					for(dob= lb->first; dob; dob= dob->next) {
+						tbase.object= dob->ob;
+						Mat4CpyMat4(dob->ob->obmat, dob->mat);
+						
+						draw_object(&tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
+						
+						Mat4CpyMat4(dob->ob->obmat, dob->omat);
+					}
+					BLI_freelistN(lb);
+				}
+				
 				code++;
 			}
 		}
@@ -1030,7 +1068,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	if(hits<0) error("Too many objects in select buffer");
 
 	G.f &= ~G_PICKSEL;
-	setwinmatrixview3d(0);
+	setwinmatrixview3d(curarea->winx, curarea->winy, NULL);
 	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
 	
 	if(G.vd->drawtype > OB_WIRE) {
@@ -1185,6 +1223,7 @@ void initlocalview()
 		
 		G.vd->localview= 0;
 	}
+	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 }
 
 void centreview()	/* like a localview without local! */
@@ -1202,17 +1241,21 @@ void centreview()	/* like a localview without local! */
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		if(ob->pose) {
+			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
 			float vec[3];
+			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if(pchan->bone->flag & BONE_SELECTED) {
-					ok= 1;
-					VECCOPY(vec, pchan->pose_head);
-					Mat4MulVecfl(ob->obmat, vec);
-					DO_MINMAX(vec, min, max);
-					VECCOPY(vec, pchan->pose_tail);
-					Mat4MulVecfl(ob->obmat, vec);
-					DO_MINMAX(vec, min, max);
+					if(pchan->bone->layer & arm->layer) {
+						ok= 1;
+						VECCOPY(vec, pchan->pose_head);
+						Mat4MulVecfl(ob->obmat, vec);
+						DO_MINMAX(vec, min, max);
+						VECCOPY(vec, pchan->pose_tail);
+						Mat4MulVecfl(ob->obmat, vec);
+						DO_MINMAX(vec, min, max);
+					}
 				}
 			}
 		}
@@ -1263,6 +1306,7 @@ void centreview()	/* like a localview without local! */
 	G.vd->cursor[2]= -G.vd->ofs[2];
 
 	scrarea_queue_winredraw(curarea);
+	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
 }
 
@@ -1324,7 +1368,7 @@ void endlocalview(ScrArea *sa)
 		countall();
 		allqueue(REDRAWVIEW3D, 0);	/* because of select */
 		allqueue(REDRAWOOPS, 0);	/* because of select */
-		
+		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 	}
 }
 
@@ -1379,6 +1423,8 @@ void view3d_home(int centre)
 		
 		scrarea_queue_winredraw(curarea);
 	}
+	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+
 }
 
 

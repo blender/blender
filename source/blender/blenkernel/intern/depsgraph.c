@@ -46,6 +46,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_ID.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
@@ -65,6 +66,7 @@
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -310,110 +312,90 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 	}
 }
 
-struct DagForest *build_dag(struct Scene *sce, short mask) 
+static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int mask)
 {
-	Base *base;
-	Object *ob;
 	bConstraint *con;
 	DagNode * node;
 	DagNode * node2;
 	DagNode * node3;
-	DagNode * scenenode;
-	DagForest *dag;
-	DagAdjList *itA;
 	Key *key;
-
-	dag = sce->theDag;
-	sce->dagisvalid=1;
-	if ( dag)
-		free_forest( dag ); 
-	else {
-		dag = dag_init();
-		sce->theDag = dag;
+	int addtoroot= 1;
+	
+	node = dag_get_node(dag, ob);
+	
+	if ((ob->data) && (mask&DAG_RL_DATA)) {
+		node2 = dag_get_node(dag,ob->data);
+		dag_add_relation(dag,node,node2,DAG_RL_DATA);
+		node2->first_ancestor = ob;
+		node2->ancestor_count += 1;
 	}
 	
-	/* add base node for scene. scene is always the first node in DAG */
-	scenenode = dag_add_node(dag, sce);	
-	
-	for(base = sce->base.first; base; base= base->next) {
-		int addtoroot = 1;
-		ob= (Object *) base->object;
-		
-		node = dag_get_node(dag,ob);
-		
-		if ((ob->data) && (mask&DAG_RL_DATA)) {
-			node2 = dag_get_node(dag,ob->data);
-			dag_add_relation(dag,node,node2,DAG_RL_DATA);
-			node2->first_ancestor = ob;
-			node2->ancestor_count += 1;
-		}
-		
-		if (ob->type == OB_ARMATURE) {
-			if (ob->pose){
-				bPoseChannel *pchan;
-				bConstraint *con;
-				Object * target;
-				char *subtarget;
-				
-				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
-					for (con = pchan->constraints.first; con; con=con->next){
-						if (constraint_has_target(con)) {
+	if (ob->type == OB_ARMATURE) {
+		if (ob->pose){
+			bPoseChannel *pchan;
+			bConstraint *con;
+			Object * target;
+			char *subtarget;
+			
+			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
+				for (con = pchan->constraints.first; con; con=con->next){
+					if (constraint_has_target(con)) {
+						
+						target = get_constraint_target(con, &subtarget);
+						if (target!=ob) {
+							// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
+							node3 = dag_get_node(dag, target);
 							
-							target = get_constraint_target(con, &subtarget);
-							if (target!=ob) {
-								// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
-								node3 = dag_get_node(dag, target);
-								
-								if(subtarget && subtarget[0])
-									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA);
-								else
-									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA);
-									
-							}
+							if(subtarget && subtarget[0])
+								dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA);
+							else
+								dag_add_relation(dag,node3,node, DAG_RL_OB_DATA);
+							
 						}
 					}
 				}
 			}
 		}
-		
-		/* driver dependencies */
-		if(ob->ipo) 
-			dag_add_driver_relation(ob->ipo, dag, node, 0);
-		
-		key= ob_get_key(ob);
-		if(key && key->ipo)
-			dag_add_driver_relation(key->ipo, dag, node, 1);
-		
-		if(ob->action) {
-			bActionChannel *chan;
-			for (chan = ob->action->chanbase.first; chan; chan=chan->next){
-				if(chan->ipo)
-					dag_add_driver_relation(chan->ipo, dag, node, 1);
-			}
+	}
+	
+	/* driver dependencies */
+	if(ob->ipo) 
+		dag_add_driver_relation(ob->ipo, dag, node, 0);
+	
+	key= ob_get_key(ob);
+	if(key && key->ipo)
+		dag_add_driver_relation(key->ipo, dag, node, 1);
+	
+	if(ob->action) {
+		bActionChannel *chan;
+		for (chan = ob->action->chanbase.first; chan; chan=chan->next){
+			if(chan->ipo)
+				dag_add_driver_relation(chan->ipo, dag, node, 1);
 		}
-		if(ob->nlastrips.first) {
-			bActionStrip *strip;
-			bActionChannel *chan;
-			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-				if(strip->act && strip->act!=ob->action)
-					for (chan = strip->act->chanbase.first; chan; chan=chan->next)
-						if(chan->ipo)
-							dag_add_driver_relation(chan->ipo, dag, node, 1);
-			}
+	}
+	if(ob->nlastrips.first) {
+		bActionStrip *strip;
+		bActionChannel *chan;
+		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+			if(strip->act && strip->act!=ob->action)
+				for (chan = strip->act->chanbase.first; chan; chan=chan->next)
+					if(chan->ipo)
+						dag_add_driver_relation(chan->ipo, dag, node, 1);
 		}
-		if (ob->modifiers.first) {
-			ModifierData *md;
-
-			for(md=ob->modifiers.first; md; md=md->next) {
-				ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
-				if (mti->updateDepgraph) mti->updateDepgraph(md, dag, ob, node);
-			}
-		}
-		if (ob->parent) {
-			node2 = dag_get_node(dag,ob->parent);
+	}
+	if (ob->modifiers.first) {
+		ModifierData *md;
+		
+		for(md=ob->modifiers.first; md; md=md->next) {
+			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 			
-			switch(ob->partype) {
+			if (mti->updateDepgraph) mti->updateDepgraph(md, dag, ob, node);
+		}
+	}
+	if (ob->parent) {
+		node2 = dag_get_node(dag,ob->parent);
+		
+		switch(ob->partype) {
 			case PARSKEL:
 				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_OB);
 				break;
@@ -430,89 +412,149 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 					else
 						dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
 				}
-				else
-					dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
-			}
-			addtoroot = 0;
+					else
+						dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
 		}
-		if (ob->track) {
-			node2 = dag_get_node(dag,ob->track);
-			dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
-			addtoroot = 0;
-		}
-		
-		if (ob->type==OB_MBALL) {
-			Object *mom= find_basis_mball(ob);
-			if(mom!=ob) {
-				node2 = dag_get_node(dag, mom);
-				dag_add_relation(dag,node,node2,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);  // mom depends on children!
-			}
-		}
-		else if (ob->type==OB_CURVE) {
-			Curve *cu= ob->data;
-			if(cu->bevobj) {
-				node2 = dag_get_node(dag, cu->bevobj);
-				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
-			}
-			if(cu->taperobj) {
-				node2 = dag_get_node(dag, cu->taperobj);
-				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+		addtoroot = 0;
+	}
+	if (ob->track) {
+		node2 = dag_get_node(dag,ob->track);
+		dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
+		addtoroot = 0;
+	}
+	
+	if (ob->transflag & OB_DUPLI) {
+		if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
+			GroupObject *go;
+			for(go= ob->dup_group->gobject.first; go; go= go->next) {
+				if(go->ob) {
+					node2 = dag_get_node(dag, go->ob);
+					/* node2 changes node1, this keeps animations updated in groups?? not logical? */
+					dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
+				}
 			}
 		}
-		else if(ob->type==OB_FONT) {
-			Curve *cu= ob->data;
-			if(cu->textoncurve) {
-				node2 = dag_get_node(dag, cu->textoncurve);
-				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
-			}
+	}
+	
+	if (ob->type==OB_MBALL) {
+		Object *mom= find_basis_mball(ob);
+		if(mom!=ob) {
+			node2 = dag_get_node(dag, mom);
+			dag_add_relation(dag,node,node2,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);  // mom depends on children!
 		}
-		else if(ob->type==OB_MESH) {
-			PartEff *paf= give_parteff(ob);
-			if(paf) {
-				Base *base1;
-				
-				/* ob location depends on itself */
-				if((paf->flag & PAF_STATIC)==0)
-					dag_add_relation(dag, node, node, DAG_RL_OB_DATA);
-				
-				/* force fields, warning for loop inside loop... */
-				for(base1 = G.scene->base.first; base1; base1= base1->next) {
-					if( (base1->lay & base->lay) && base1->object->pd) {
-						Object *ob1= base1->object;
-						PartDeflect *pd= ob1->pd;
+	}
+	else if (ob->type==OB_CURVE) {
+		Curve *cu= ob->data;
+		if(cu->bevobj) {
+			node2 = dag_get_node(dag, cu->bevobj);
+			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+		}
+		if(cu->taperobj) {
+			node2 = dag_get_node(dag, cu->taperobj);
+			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+		}
+	}
+	else if(ob->type==OB_FONT) {
+		Curve *cu= ob->data;
+		if(cu->textoncurve) {
+			node2 = dag_get_node(dag, cu->textoncurve);
+			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+		}
+	}
+	else if(ob->type==OB_MESH) {
+		PartEff *paf= give_parteff(ob);
+		if(paf) {
+			ListBase *listb;
+			pEffectorCache *ec;
+			
+			/* ob location depends on itself */
+			if((paf->flag & PAF_STATIC)==0)
+				dag_add_relation(dag, node, node, DAG_RL_OB_DATA);
+			
+			listb= pdInitEffectors(ob, paf->group);		/* note, makes copy... */
+			if(listb) {
+				for(ec= listb->first; ec; ec= ec->next) {
+					Object *ob1= ec->ob;
+					PartDeflect *pd= ob1->pd;
 						
-						if(pd->forcefield) {
-							node2 = dag_get_node(dag, ob1);
-							if(pd->forcefield==PFIELD_GUIDE)
-								dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
-							else
-								dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
-						}
+					if(pd->forcefield) {
+						node2 = dag_get_node(dag, ob1);
+						if(pd->forcefield==PFIELD_GUIDE)
+							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+						else
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
 					}
 				}
+				
+				pdEndEffectors(listb);	/* restores copy... */
 			}
 		}
-		
-		for (con = ob->constraints.first; con; con=con->next){
-			if (constraint_has_target(con)) {
-				char *str;
-				Object *obt= get_constraint_target(con, &str);
-
-				node2 = dag_get_node(dag, obt);
-				if(con->type==CONSTRAINT_TYPE_FOLLOWPATH)
+	}
+	
+	for (con = ob->constraints.first; con; con=con->next){
+		if (constraint_has_target(con)) {
+			char *str;
+			Object *obt= get_constraint_target(con, &str);
+			
+			node2 = dag_get_node(dag, obt);
+			if(con->type==CONSTRAINT_TYPE_FOLLOWPATH)
+				dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
+			else {
+				if(obt->type==OB_ARMATURE && str[0])
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
-				else {
-					if(obt->type==OB_ARMATURE && str[0])
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
-					else
-						dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
-				}
-				addtoroot = 0;
+				else
+					dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
 			}
+			addtoroot = 0;
 		}
+	}
+
+	if (addtoroot == 1 )
+		dag_add_relation(dag,scenenode,node,DAG_RL_SCENE);
+}
+
+struct DagForest *build_dag(struct Scene *sce, short mask) 
+{
+	Base *base;
+	Object *ob;
+	Group *group;
+	GroupObject *go;
+	DagNode *node;
+	DagNode *scenenode;
+	DagForest *dag;
+	DagAdjList *itA;
+
+	dag = sce->theDag;
+	sce->dagisvalid=1;
+	if ( dag)
+		free_forest( dag ); 
+	else {
+		dag = dag_init();
+		sce->theDag = dag;
+	}
+	
+	/* add base node for scene. scene is always the first node in DAG */
+	scenenode = dag_add_node(dag, sce);	
+	
+	/* add current scene objects */
+	for(base = sce->base.first; base; base= base->next) {
+		ob= base->object;
 		
-		if (addtoroot == 1 )
-			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE);
+		build_dag_object(dag, scenenode, ob, mask);
+		
+		/* handled in next loop */
+		if(ob->dup_group) 
+			ob->dup_group->id.flag |= LIB_DOIT;
+	}
+	
+	/* add groups used in current scene objects */
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(group->id.flag & LIB_DOIT) {
+			for(go= group->gobject.first; go; go= go->next) {
+				build_dag_object(dag, scenenode, go->ob, mask);
+			}
+			group->id.flag &= ~LIB_DOIT;
+		}
 	}
 	
 	/* Now all relations were built, but we need to solve 1 exceptional case;
@@ -1314,10 +1356,12 @@ void DAG_scene_sort(struct Scene *sce)
 				
 				time++;
 				base = sce->base.first;
-				while (base->object != node->ob)
+				while (base && base->object != node->ob)
 					base = base->next;
-				BLI_remlink(&sce->base,base);
-				BLI_addhead(&tempbase,base);
+				if(base) {
+					BLI_remlink(&sce->base,base);
+					BLI_addhead(&tempbase,base);
+				}
 			}	
 		}
 	}
@@ -1341,6 +1385,8 @@ void DAG_scene_sort(struct Scene *sce)
 			printf(" %s\n", base->object->id.name);
 		}
 	}
+	/* temporal...? */
+	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
 
 /* node was checked to have lasttime != curtime and is if type ID_OB */
@@ -1502,96 +1548,143 @@ static int exists_channel(Object *ob, char *name)
 	return 0;
 }
 
+static void dag_object_time_update_flags(Object *ob)
+{
+	
+	if(ob->ipo) ob->recalc |= OB_RECALC_OB;
+	else if(ob->constraints.first) {
+		bConstraint *con;
+		for (con = ob->constraints.first; con; con=con->next){
+			if (constraint_has_target(con)) {
+				ob->recalc |= OB_RECALC_OB;
+				break;
+			}
+		}
+	}
+	else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
+	else if(ob->parent) {
+		/* motion path or bone child */
+		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;
+	}
+	
+	if(ob->action || ob->nlastrips.first) {
+		/* since actions now are mixed, we set the recalcs on the safe side */
+		ob->recalc |= OB_RECALC_OB;
+		if(ob->type==OB_ARMATURE)
+			ob->recalc |= OB_RECALC_DATA;
+		else if(exists_channel(ob, "Shape"))
+			ob->recalc |= OB_RECALC_DATA;
+		else if(ob->dup_group) {
+			bActionStrip *strip;
+			/* this case is for groups with nla, whilst nla target has no action or nla */
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				if(strip->object)
+					strip->object->recalc |= OB_RECALC;
+			}
+		}
+	}
+	else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
+	else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
+	else {
+		Mesh *me;
+		Curve *cu;
+		Lattice *lt;
+		
+		switch(ob->type) {
+			case OB_MESH:
+				me= ob->data;
+				if(me->key) {
+					if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
+						ob->recalc |= OB_RECALC_DATA;
+						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+					}
+				}
+				else if(ob->effect.first) {
+					Effect *eff= ob->effect.first;
+					PartEff *paf= give_parteff(ob);
+					
+					if(eff->type==EFF_WAVE) 
+						ob->recalc |= OB_RECALC_DATA;
+					if(paf && paf->keys==NULL)
+						ob->recalc |= OB_RECALC_DATA;
+				}
+				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
+					// fluidsimSettings might not be initialized during load...
+					if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
+						ob->recalc |= OB_RECALC_DATA; // NT
+					}
+				}
+				break;
+			case OB_CURVE:
+			case OB_SURF:
+				cu= ob->data;
+				if(cu->key) {
+					if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
+						ob->recalc |= OB_RECALC_DATA;
+						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+					}
+				}
+					break;
+			case OB_LATTICE:
+				lt= ob->data;
+				if(lt->key) {
+					if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
+						ob->recalc |= OB_RECALC_DATA;
+						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+					}
+				}
+					break;
+			case OB_MBALL:
+				if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
+				break;
+		}
+	}		
+}
+
 /* flag all objects that need recalc, for changes in time for example */
 void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
+	Group *group;
+	GroupObject *go;
 	
 	/* set ob flags where animated systems are */
 	for(base= sce->base.first; base; base= base->next) {
+		ob= base->object;
 		
 		/* now if DagNode were part of base, the node->lay could be checked... */
 		/* we do all now, since the scene_flush checks layers and clears recalc flags even */
-		ob= base->object;
+		dag_object_time_update_flags(ob);
 		
-		if(ob->ipo) ob->recalc |= OB_RECALC_OB;
-		else if(ob->constraints.first) {
-			bConstraint *con;
-			for (con = ob->constraints.first; con; con=con->next){
-				if (constraint_has_target(con)) {
-					ob->recalc |= OB_RECALC_OB;
-					break;
-				}
-			}
-		}
-		else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
-		else if(ob->parent) {
-			if(ob->parent->type==OB_CURVE) ob->recalc |= OB_RECALC_OB;
-		}
+		/* handled in next loop */
+		if(ob->dup_group) 
+			ob->dup_group->id.flag |= LIB_DOIT;
 		
-		if(ob->action || ob->nlastrips.first) {
-			/* since actions now are mixed, we set the recalcs on the safe side */
-			ob->recalc |= OB_RECALC_OB;
-			if(ob->type==OB_ARMATURE)
-				ob->recalc |= OB_RECALC_DATA;
-			else if(exists_channel(ob, "Shape"))
-				ob->recalc |= OB_RECALC_DATA;
-				
-		}
-		else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
-		else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
-		else {
-			Mesh *me;
-			Curve *cu;
-			Lattice *lt;
-			
-			switch(ob->type) {
-				case OB_MESH:
-					me= ob->data;
-					if(me->key) {
-						if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
-							ob->recalc |= OB_RECALC_DATA;
-							ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-						}
-					}
-					else if(ob->effect.first) {
-						Effect *eff= ob->effect.first;
-						if(eff->type==EFF_WAVE) ob->recalc |= OB_RECALC_DATA;
-					}
-					if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
-						// fluidsimSettings might not be initialized during load...
-						if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
-							ob->recalc |= OB_RECALC_DATA; // NT
-						}
-					}
-					break;
-				case OB_CURVE:
-				case OB_SURF:
-					cu= ob->data;
-					if(cu->key) {
-						if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
-							ob->recalc |= OB_RECALC_DATA;
-							ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-						}
-					}
-					break;
-				case OB_LATTICE:
-					lt= ob->data;
-					if(lt->key) {
-						if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
-							ob->recalc |= OB_RECALC_DATA;
-							ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-						}
-					}
-					break;
-				case OB_MBALL:
-					if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
-					break;
+	}
+	
+	/* we do groups each once */
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(group->id.flag & LIB_DOIT) {
+			for(go= group->gobject.first; go; go= go->next) {
+				dag_object_time_update_flags(go->ob);
 			}
 		}
 	}
+	
 	DAG_scene_flush_update(sce, lay);
+	
+	/* and store the info in groubobject */
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(group->id.flag & LIB_DOIT) {
+			for(go= group->gobject.first; go; go= go->next) {
+				go->recalc= go->ob->recalc;
+//				printf("ob %s recalc %d\n", go->ob->id.name, go->recalc);
+			}
+			group->id.flag &= ~LIB_DOIT;
+		}
+	}
+	
 }
 
 /* for depgraph updating, all layers visible in a screen */

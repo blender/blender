@@ -34,10 +34,9 @@
 #ifndef DNA_MATERIAL_TYPES_H
 #define DNA_MATERIAL_TYPES_H
 
-/*  #include "BLI_listBase.h" */
-
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
+#include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
 #define MAX_MTEX	10
@@ -47,6 +46,8 @@ struct MTex;
 struct Ipo;
 struct Material;
 struct ColorBand;
+struct Group;
+struct bNodeTree;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
@@ -54,14 +55,16 @@ typedef struct Material {
 	ID id;
 	
 	short colormodel, lay;		/* lay: for dynamics (old engine, until 2.04) */
+	/* note, keep this below synced with render_types.h */
 	float r, g, b;
 	float specr, specg, specb;
 	float mirr, mirg, mirb;
 	float ambr, ambb, ambg;
-	
 	float amb, emit, ang, spectra, ray_mirror;
 	float alpha, ref, spec, zoffs, add;
 	float translucency;
+	/* end synced with render_types.h */
+	
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
 	float filter;		/* filter added, for raytrace transparency */
@@ -69,16 +72,15 @@ typedef struct Material {
 	short har;
 	char seed1, seed2;
 	
-	int mode; 
-	int mode2; /* even more material settings :) */
+	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
 	float strand_sta, strand_end, strand_ease;
+	float sbias;			/* shadow bias */
 	
 	/* for buttons and render*/
-	char rgbsel, texact, pr_type, pad;
-	short pr_back, pr_lamp, septex, pad4;
-	int pad5;
+	char rgbsel, texact, pr_type, use_nodes;
+	short pr_back, pr_lamp, septex, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;
@@ -97,7 +99,9 @@ typedef struct Material {
 	float rampfac_col, rampfac_spec;
 
 	struct MTex *mtex[10];
+	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
+	struct Group *group;	/* light group */
 	
 	/* dynamic properties */
 	float friction, fh, reflect;
@@ -107,7 +111,7 @@ typedef struct Material {
 	/* yafray: absorption color, dispersion parameters and material preset menu */
 	float YF_ar, YF_ag, YF_ab, YF_dscale, YF_dpwr;
 	int YF_dsmp, YF_preset, YF_djit;
-
+	
 	ScriptLink scriptlink;
 } Material;
 
@@ -156,6 +160,8 @@ typedef struct Material {
 #define MA_FULL_OSA		0x800000
 #define MA_TANGENT_STR	0x1000000
 #define MA_SHADBUF		0x2000000
+		/* note; we drop MA_TANGENT_STR later to become tangent_u */
+#define MA_TANGENT_V	0x4000000
 
 #define	MA_MODE_MASK	0x3ffffff	/* all valid mode bits */
 
@@ -163,7 +169,8 @@ typedef struct Material {
 #define MA_DIFF_LAMBERT		0
 #define MA_DIFF_ORENNAYAR	1
 #define MA_DIFF_TOON		2
-#define MA_DIFF_MINNAERT        3
+#define MA_DIFF_MINNAERT    3
+#define MA_DIFF_FRESNEL     4
 
 /* spec_shader */
 #define MA_SPEC_COOKTORR	0
@@ -205,10 +212,10 @@ typedef struct Material {
 #define TEXCO_OSA		512
 #define TEXCO_WINDOW	1024
 #define NEED_UV			2048
-	/* optim = use simpler AA */
-#define TEXCO_OPTIM		4096
-	/* stored in vertex->accum, 1 D */
+#define TEXCO_TANGENT	4096
+	/* still stored in vertex->accum, 1 D */
 #define TEXCO_STRAND	8192
+#define TEXCO_STRESS	16384
 
 /* mapto */
 #define MAP_COL			1
@@ -226,11 +233,14 @@ typedef struct Material {
 #define MAP_AMB			2048
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
+#define MAP_LAYER		16384
 
 /* pr_type */
-#define MA_FLAT			0
-#define MA_SPHERE		1
-#define MA_CUBE			2
+#define MA_SPHERE		0
+#define MA_CUBE			1
+#define MA_FLAT			2
+#define MA_MONKEY		3
+#define MA_SPHERE_A		4
 
 /* pr_back */
 #define MA_DARK			1

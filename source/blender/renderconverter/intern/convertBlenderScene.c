@@ -53,6 +53,7 @@
 #include "DNA_material_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -74,6 +75,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -312,6 +314,15 @@ void RE_make_stars(void (*initfunc)(void),
 
 /* ------------------------------------------------------------------------- */
 
+static VertRen *RE_duplicate_vertren(VertRen *ver)
+{
+	VertRen *v1= RE_findOrAddVert(R.totvert++);
+	int index= v1->index;
+	*v1= *ver;
+	v1->index= index;
+	return v1;
+}
+
 static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
@@ -320,10 +331,9 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 
 	for (v=0; v<vLen; v++) {
 		VlakRen *vlr = RE_findOrAddVlak(startvlak + vLen*uIndex + v);
-		VertRen *vert = RE_findOrAddVert(R.totvert++);
+		VertRen *vert = RE_duplicate_vertren(vlr->v2);
 
 		if (cyclv) {
-			*vert = *vlr->v2;
 			vlr->v2 = vert;
 
 			if (v==vLen-1) {
@@ -334,7 +344,6 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 				vlr->v1 = vert;
 			}
 		} else {
-			*vert = *vlr->v2;
 			vlr->v2 = vert;
 
 			if (v<vLen-1) {
@@ -343,59 +352,11 @@ static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsi
 			}
 
 			if (v==0) {
-				vert = RE_findOrAddVert(R.totvert++);
-				*vert = *vlr->v1;
-				vlr->v1 = vert;
+				vlr->v1 = RE_duplicate_vertren(vlr->v1);
 			} 
 		}
 	}
 }
-
-#if 0
-static void DBG_show_shared_render_faces(int firstvert, int firstface)
-{
-	int i;
-
-	for (i=firstvert; i<R.totvert; i++) {
-		VertRen *ver = RE_findOrAddVert(i);
-
-		ver->n[0] = ver->n[1] = ver->n[2] = 0.0;
-		ver->sticky = 0;
-	}
-
-	for (i=firstface; i<R.totvlak; i++) {
-		VlakRen *vlr = RE_findOrAddVlak(i);
-		float cent[3];
-
-		if (vlr->v4) {
-			CalcCent4f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
-			VecAddf(vlr->v4->n, vlr->v4->n, cent);
-			vlr->v4->sticky = (float*) (((int) vlr->v4->sticky) + 1);
-		} else {
-			CalcCent3f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co);
-		}
-
-		VecAddf(vlr->v1->n, vlr->v1->n, cent);
-		VecAddf(vlr->v2->n, vlr->v2->n, cent);
-		VecAddf(vlr->v3->n, vlr->v3->n, cent);
-
-		vlr->v1->sticky = (float*) (((int) vlr->v1->sticky) + 1);
-		vlr->v2->sticky = (float*) (((int) vlr->v2->sticky) + 1);
-		vlr->v3->sticky = (float*) (((int) vlr->v3->sticky) + 1);
-	}
-
-	for (i=firstvert; i<R.totvert; i++) {
-		VertRen *ver = RE_findOrAddVert(i);
-
-		VecMulf(ver->n, 1.f/(int) ver->sticky);
-
-		VecLerpf(ver->co, ver->co, ver->n, 0.3);
-		ver->sticky = 0;
-	}
-
-	calc_vertexnormals(firstvert, firstface);
-}
-#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -410,7 +371,139 @@ static int contrpuntnormr(float *n, float *puno)
 
 /* ------------------------------------------------------------------------- */
 
-static void calc_vertexnormals(int startvert, int startvlak)
+static void calc_edge_stress_add(float *accum, VertRen *v1, VertRen *v2)
+{
+	float len= VecLenf(v1->co, v2->co)/VecLenf(v1->orco, v2->orco);
+	float *acc;
+	
+	acc= accum + 2*v1->index;
+	acc[0]+= len;
+	acc[1]+= 1.0f;
+	
+	acc= accum + 2*v2->index;
+	acc[0]+= len;
+	acc[1]+= 1.0f;
+}
+
+static void calc_edge_stress(Mesh *me, int startvert, int startvlak)
+{
+	float loc[3], size[3], *accum, *acc, *accumoffs, *stress;
+	int a;
+	
+	if(startvert==R.totvert) return;
+	
+	mesh_get_texspace(me, loc, NULL, size);
+	
+	accum= MEM_callocN(2*sizeof(float)*(R.totvert-startvert), "temp accum for stress");
+	
+	/* de-normalize orco */
+	for(a=startvert; a<R.totvert; a++, acc+=2) {
+		VertRen *ver= RE_findOrAddVert(a);
+		if(ver->orco) {
+			ver->orco[0]= ver->orco[0]*size[0] +loc[0];
+			ver->orco[1]= ver->orco[1]*size[1] +loc[1];
+			ver->orco[2]= ver->orco[2]*size[2] +loc[2];
+		}
+	}
+	
+	/* add stress values */
+	accumoffs= accum - 2*startvert;	/* so we can use vertex index */
+	for(a=startvlak; a<R.totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(a);
+
+		if(vlr->v1->orco && vlr->v4) {
+			calc_edge_stress_add(accumoffs, vlr->v1, vlr->v2);
+			calc_edge_stress_add(accumoffs, vlr->v2, vlr->v3);
+			calc_edge_stress_add(accumoffs, vlr->v3, vlr->v1);
+			if(vlr->v4) {
+				calc_edge_stress_add(accumoffs, vlr->v3, vlr->v4);
+				calc_edge_stress_add(accumoffs, vlr->v4, vlr->v1);
+				calc_edge_stress_add(accumoffs, vlr->v2, vlr->v4);
+			}
+		}
+	}
+	
+	for(a=startvert; a<R.totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(a);
+		if(ver->orco) {
+			/* find stress value */
+			acc= accumoffs + 2*ver->index;
+			if(acc[1]!=0.0f)
+				acc[0]/= acc[1];
+			stress= RE_vertren_get_stress(ver, 1);
+			*stress= *acc;
+			
+			/* restore orcos */
+			ver->orco[0] = (ver->orco[0]-loc[0])/size[0];
+			ver->orco[1] = (ver->orco[1]-loc[1])/size[1];
+			ver->orco[2] = (ver->orco[2]-loc[2])/size[2];
+		}
+	}
+	
+	MEM_freeN(accum);
+}
+
+static void calc_tangent_vector(VlakRen *vlr, float fac1, float fac2, float fac3, float fac4)
+{
+	TFace *tface= vlr->tface;
+	
+	if(tface) {
+		VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
+		float *uv1= tface->uv[0], *uv2= tface->uv[1], *uv3= tface->uv[2], *uv4= tface->uv[3];
+		float tang[3], *tav;
+		float s1, s2, t1, t2, det;
+		
+		/* we calculate quads as two triangles, so weight for diagonal gets halved */
+		if(v4) {
+			fac1*= 0.5f;
+			fac3*= 0.5f;
+		}
+		
+		/* first tria, we use the V now */
+		s1= uv2[0] - uv1[0];
+		s2= uv3[0] - uv1[0];
+		t1= uv2[1] - uv1[1];
+		t2= uv3[1] - uv1[1];
+		det= 1.0f / (s1 * t2 - s2 * t1);
+		
+		/* normals in render are inversed... */
+		tang[0]= (t2 * (v1->co[0]-v2->co[0]) - t1 * (v1->co[0]-v3->co[0])); 
+		tang[1]= (t2 * (v1->co[1]-v2->co[1]) - t1 * (v1->co[1]-v3->co[1]));
+		tang[2]= (t2 * (v1->co[2]-v2->co[2]) - t1 * (v1->co[2]-v3->co[2]));
+		
+		tav= RE_vertren_get_tangent(v1, 1);
+		VECADDFAC(tav, tav, tang, fac1);
+		tav= RE_vertren_get_tangent(v2, 1);
+		VECADDFAC(tav, tav, tang, fac2);
+		tav= RE_vertren_get_tangent(v3, 1);
+		VECADDFAC(tav, tav, tang, fac3);
+		
+		if(v4) {
+			/* 2nd tria, we use the V now */
+			s1= uv3[0] - uv1[0];
+			s2= uv4[0] - uv1[0];
+			t1= uv3[1] - uv1[1];
+			t2= uv4[1] - uv1[1];
+			det= 1.0f / (s1 * t2 - s2 * t1);
+			
+			/* normals in render are inversed... */
+			tang[0]= (t2 * (v1->co[0]-v3->co[0]) - t1 * (v1->co[0]-v4->co[0])); 
+			tang[1]= (t2 * (v1->co[1]-v3->co[1]) - t1 * (v1->co[1]-v4->co[1]));
+			tang[2]= (t2 * (v1->co[2]-v3->co[2]) - t1 * (v1->co[2]-v4->co[2]));
+			
+			Normalise(tang);
+			
+			tav= RE_vertren_get_tangent(v1, 1);
+			VECADDFAC(tav, tav, tang, fac1);
+			tav= RE_vertren_get_tangent(v3, 1);
+			VECADDFAC(tav, tav, tang, fac3);
+			tav= RE_vertren_get_tangent(v4, 1);
+			VECADDFAC(tav, tav, tang, fac4);
+		}
+	}	
+}
+
+static void calc_vertexnormals(int startvert, int startvlak, int do_tangent)
 {
 	int a;
 
@@ -420,7 +513,8 @@ static void calc_vertexnormals(int startvert, int startvlak)
 		ver->n[0]=ver->n[1]=ver->n[2]= 0.0;
 	}
 
-		/* calculate cos of angles and point-masses */
+		/* calculate cos of angles and point-masses, use as weight factor to
+		   add face normal to vertex */
 	for(a=startvlak; a<R.totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(a);
 		if(vlr->flag & ME_SMOOTH) {
@@ -429,13 +523,13 @@ static void calc_vertexnormals(int startvert, int startvlak)
 			VertRen *adrve3= vlr->v3;
 			VertRen *adrve4= vlr->v4;
 			float n1[3], n2[3], n3[3], n4[3];
-			float fac1, fac2, fac3, fac4;
+			float fac1, fac2, fac3, fac4=0.0f;
 
 			VecSubf(n1, adrve2->co, adrve1->co);
 			Normalise(n1);
 			VecSubf(n2, adrve3->co, adrve2->co);
 			Normalise(n2);
-			if(adrve4==0) {
+			if(adrve4==NULL) {
 				VecSubf(n3, adrve1->co, adrve3->co);
 				Normalise(n3);
 
@@ -480,6 +574,9 @@ static void calc_vertexnormals(int startvert, int startvlak)
 			adrve3->n[0] +=fac3*vlr->n[0];
 			adrve3->n[1] +=fac3*vlr->n[1];
 			adrve3->n[2] +=fac3*vlr->n[2];
+			
+			if(do_tangent)
+				calc_tangent_vector(vlr, fac1, fac2, fac3, fac4);
 		}
 	}
 
@@ -504,6 +601,10 @@ static void calc_vertexnormals(int startvert, int startvlak)
 	for(a=startvert; a<R.totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(a);
 		Normalise(ver->n);
+		if(do_tangent) {
+			float *tav= RE_vertren_get_tangent(ver, 0);
+			if(tav) Normalise(tav);
+		}
 	}
 
 		/* vertex normal (puno) switch flags for during render */
@@ -541,30 +642,21 @@ typedef struct ASface {
 	VertRen *nver[4];
 } ASface;
 
-/* prototypes: */
-static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh);
-static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh);
-
-
-static void as_addvert(VertRen *v1, VlakRen *vlr)
+static void as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
 {
-	ASvert *asv;
 	ASface *asf;
 	int a;
 	
 	if(v1 == NULL) return;
 	
-	if(v1->svert==0) {
-		v1->svert= MEM_callocN(sizeof(ASvert), "asvert");
-		asv= v1->svert;
+	if(asv->faces.first==NULL) {
 		asf= MEM_callocN(sizeof(ASface), "asface");
 		BLI_addtail(&asv->faces, asf);
 	}
 	
-	asv= v1->svert;
 	asf= asv->faces.last;
 	for(a=0; a<4; a++) {
-		if(asf->vlr[a]==0) {
+		if(asf->vlr[a]==NULL) {
 			asf->vlr[a]= vlr;
 			asv->totface++;
 			break;
@@ -578,16 +670,6 @@ static void as_addvert(VertRen *v1, VlakRen *vlr)
 		asf->vlr[0]= vlr;
 		asv->totface++;
 	}
-}
-
-static void as_freevert(VertRen *ver)
-{
-	ASvert *asv;
-
-	asv= ver->svert;
-	BLI_freelistN(&asv->faces);
-	MEM_freeN(asv);
-	ver->svert= NULL;
 }
 
 static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh) 
@@ -641,37 +723,35 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thr
 
 static void autosmooth(int startvert, int startvlak, int degr)
 {
-	ASvert *asv;
+	ASvert *asv, *asverts, *asvertoffs;
 	ASface *asf;
 	VertRen *ver, *v1;
 	VlakRen *vlr;
 	float thresh;
 	int a, b, totvert;
 	
-	thresh= cos( M_PI*((float)degr)/180.0 );
+	if(startvert==R.totvert) return;
+	asverts= MEM_callocN(sizeof(ASvert)*(R.totvert-startvert), "all smooth verts");
+	asvertoffs= asverts-startvert;	 /* se we can use indices */
 	
-	/* initialize */
-	for(a=startvert; a<R.totvert; a++) {
-		ver= RE_findOrAddVert(a);
-		ver->svert= 0;
-	}
+	thresh= cos( M_PI*((float)degr)/180.0 );
 	
 	/* step one: construct listbase of all vertices and pointers to faces */
 	for(a=startvlak; a<R.totvlak; a++) {
 		vlr= RE_findOrAddVlak(a);
 		
-		as_addvert(vlr->v1, vlr);
-		as_addvert(vlr->v2, vlr);
-		as_addvert(vlr->v3, vlr);
-		as_addvert(vlr->v4, vlr);
+		as_addvert(asvertoffs+vlr->v1->index, vlr->v1, vlr);
+		as_addvert(asvertoffs+vlr->v2->index, vlr->v2, vlr);
+		as_addvert(asvertoffs+vlr->v3->index, vlr->v3, vlr);
+		if(vlr->v4) 
+			as_addvert(asvertoffs+vlr->v4->index, vlr->v4, vlr);
 	}
 	
 	/* we now test all vertices, when faces have a normal too much different: they get a new vertex */
 	totvert= R.totvert;
-	for(a=startvert; a<totvert; a++) {
-		ver= RE_findOrAddVert(a);
-		asv= ver->svert;
+	for(a=startvert, asv=asverts; a<totvert; a++, asv++) {
 		if(asv && asv->totface>1) {
+			ver= RE_findOrAddVert(a);
 			
 			asf= asv->faces.first;
 			while(asf) {
@@ -683,11 +763,9 @@ static void autosmooth(int startvert, int startvlak, int degr)
 						
 						/* already made a new vertex within threshold? */
 						v1= as_findvertex(vlr, ver, asv, thresh);
-						if(v1==0) {
+						if(v1==NULL) {
 							/* make a new vertex */
-							v1= RE_findOrAddVert(R.totvert++);
-							*v1= *ver;
-							v1->svert= 0;
+							v1= RE_duplicate_vertren(ver);
 						}
 						asf->nver[b]= v1;
 						if(vlr->v1==ver) vlr->v1= v1;
@@ -702,11 +780,10 @@ static void autosmooth(int startvert, int startvlak, int degr)
 	}
 	
 	/* free */
-	for(a=startvert; a<R.totvert; a++) {
-		ver= RE_findOrAddVert(a);
-		if(ver->svert) as_freevert(ver);
+	for(a=0; a<totvert-startvert; a++) {
+		BLI_freelistN(&asverts[a].faces);
 	}
-	
+	MEM_freeN(asverts);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -812,7 +889,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	Particle *pa=0;
 	HaloRen *har=0;
 	Material *ma=0;
-	float xn, yn, zn, imat[3][3], mat[4][4], hasize, stime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
+	float xn, yn, zn, imat[3][3], tmat[4][4], mat[4][4], hasize, stime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
 	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
@@ -823,12 +900,16 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	}
 
 	ma= give_render_material(ob, paf->omat);
-
+	
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
 
-	MTC_Mat4Invert(mat, R.viewmat);	/* particles do not have a ob transform anymore */
-	MTC_Mat3CpyMat4(imat, mat);
+	/* enable duplicators to work */
+	Mat4MulMat4(tmat, paf->imat, ob->obmat);
+	MTC_Mat4MulMat4(mat, tmat, R.viewmat);
+	
+	MTC_Mat4Invert(tmat, mat);
+	MTC_Mat3CpyMat4(imat, tmat);
 
 	R.flag |= R_HALO;
 
@@ -858,13 +939,13 @@ static void render_particle_system(Object *ob, PartEff *paf)
 		/* watch it: also calculate the normal of a particle */
 		if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
 			where_is_particle(paf, pa, stime, vec);
-			MTC_Mat4MulVecfl(R.viewmat, vec);
+			MTC_Mat4MulVecfl(mat, vec);
 			where_is_particle(paf, pa, ptime, vec1);
-			MTC_Mat4MulVecfl(R.viewmat, vec1);
+			MTC_Mat4MulVecfl(mat, vec1);
 		}
 		else {
 			where_is_particle(paf, pa, ctime, vec);
-			MTC_Mat4MulVecfl(R.viewmat, vec);
+			MTC_Mat4MulVecfl(mat, vec);
 		}
 
 		if(pa->mat_nr != mat_nr) {
@@ -926,11 +1007,9 @@ static void render_particle_system(Object *ob, PartEff *paf)
 
 /* ------------------------------------------------------------------------- */
 
-/* when objects are duplicated, they are freed immediate, but still might be
-in use for render... */
+/* old call... for when duplicators were using temporal objects */
 static Object *vlr_set_ob(Object *ob)
 {
-	if(ob->flag & OB_FROMDUPLI) return (Object *)ob->id.newid;
 	return ob;
 }
 
@@ -1184,7 +1263,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	}
 
 	if((ma->mode & MA_TANGENT_STR)==0)
-		calc_vertexnormals(totverto, totvlako);
+		calc_vertexnormals(totverto, totvlako, 0);
 }
 
 
@@ -1253,13 +1332,6 @@ static Material *give_render_material(Object *ob, int nr)
 	extern Material defmaterial;	// initrender.c
 	Object *temp;
 	Material *ma;
-
-	if(ob->flag & OB_FROMDUPLI) {
-		temp= (Object *)ob->id.newid;
-		if(temp && temp->type==OB_FONT) {
-			ob= temp;
-		}
-	}
 
 	ma= give_current_material(ob, nr);
 	if(ma==NULL) ma= &defmaterial;
@@ -1540,7 +1612,7 @@ static void init_render_mesh(Object *ob)
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
-	int a, a1, ok, need_orco=0, totvlako, totverto, vertofs;
+	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, totvlako, totverto, vertofs;
 	int end, do_autosmooth=0, totvert = 0, dm_needsfree;
 	
 	me= ob->data;
@@ -1568,24 +1640,19 @@ static void init_render_mesh(Object *ob)
 	for(a=1; a<=ob->totcol; a++) {
 		ma= give_render_material(ob, a);
 		if(ma) {
-			if(ma->texco & TEXCO_ORCO) {
+			if(ma->texco & (TEXCO_ORCO|TEXCO_STRESS))
 				need_orco= 1;
-				break;
-			}
+			if(ma->texco & TEXCO_STRESS)
+				need_stress= 1;
+			if(ma->mode & MA_TANGENT_V)
+				need_tangent= 1;
 		}
 	}
 	
 	if(need_orco) orco = get_object_orco(ob);
 	
-	/* duplicators don't call modifier stack */
-	if(ob->flag&OB_FROMDUPLI) {
-		dm= ob->derivedFinal;
-		dm_needsfree= 0;
-	}
-	else {
-		dm = mesh_create_derived_render(ob);
-		dm_needsfree= 1;
-	}
+	dm = mesh_create_derived_render(ob);
+	dm_needsfree= 1;
 	
 	if(dm==NULL) return;	/* in case duplicated object fails? */
 	
@@ -1613,7 +1680,9 @@ static void init_render_mesh(Object *ob)
 				orco+=3;
 			}
 			if(ms) {
-				ver->sticky= (float *)ms;
+				float *sticky= RE_vertren_get_sticky(ver, 1);
+				sticky[0]= ms->co[0];
+				sticky[1]= ms->co[1];
 				ms++;
 			}
 		}
@@ -1789,7 +1858,7 @@ static void init_render_mesh(Object *ob)
 	}
 	
 	if (test_for_displace( ob ) ) {
-		calc_vertexnormals(totverto, totvlako);
+		calc_vertexnormals(totverto, totvlako, 0);
 		do_displacement(ob, totvlako, R.totvlak-totvlako, totverto, R.totvert-totverto);
 	}
 
@@ -1797,8 +1866,11 @@ static void init_render_mesh(Object *ob)
 		autosmooth(totverto, totvlako, me->smoothresh);
 	}
 
-	calc_vertexnormals(totverto, totvlako);
+	calc_vertexnormals(totverto, totvlako, need_tangent);
 
+	if(need_stress)
+		calc_edge_stress(me, totverto, totvlako);
+	
 	if(dlm) displistmesh_free(dlm);
 	if(dm_needsfree) dm->release(dm);
 }
@@ -1835,24 +1907,11 @@ static void area_lamp_vectors(LampRen *lar)
 /* If lar takes more lamp data, the decoupling will be better. */
 void RE_add_render_lamp(Object *ob, int actual_render)
 {
-	Lamp *la;
-	LampRen *lar, **temp;
+	Lamp *la= ob->data;
+	LampRen *lar;
+	GroupObject *go;
 	float mat[4][4], hoek, xn, yn;
 	int c;
-	static int rlalen=LAMPINITSIZE; /*number of currently allocated lampren pointers*/
-	
-	if(R.totlamp>=rlalen) { /* Need more Lamp pointers....*/
-		printf("Alocating %i more lamp groups, %i total.\n", 
-			LAMPINITSIZE, rlalen+LAMPINITSIZE);
-		temp=R.la;
-		R.la=(LampRen**)MEM_callocN(sizeof(void*)*(rlalen+LAMPINITSIZE) , "renderlamparray");
-		memcpy(R.la, temp, rlalen*sizeof(void*));
-		memset(&(R.la[R.totlamp]), 0, LAMPINITSIZE*sizeof(void*));
-		rlalen+=LAMPINITSIZE;  
-		MEM_freeN(temp);	
-	}
-	
-	la= ob->data;
 
 	/* prevent only shadow from rendering light, but only return on render, not preview */
 	if(actual_render) {
@@ -1860,9 +1919,13 @@ void RE_add_render_lamp(Object *ob, int actual_render)
 			if((R.r.mode & R_SHADOW)==0)
 				return;
 	}
-
+	
+	go= MEM_callocN(sizeof(GroupObject), "groupobject");
+	BLI_addtail(&R.lights, go);
+	R.totlamp++;
 	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
-	R.la[R.totlamp++]= lar;
+	go->lampren= lar;
+	go->ob= ob;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
@@ -2306,11 +2369,11 @@ static void init_render_curve(Object *ob)
 
 				if(ver->co[2] < 0.0) {
 					VECCOPY(ver->n, n);
-					ver->sticky = (float*) 1;
+					ver->flag = 1;
 				}
 				else {
 					ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
-					ver->sticky = (float*) 0;
+					ver->flag = 0;
 				}
 
 				if (orco) {
@@ -2330,7 +2393,7 @@ static void init_render_curve(Object *ob)
 				vlr->v3= RE_findOrAddVert(startvert+index[2]);
 				vlr->v4= NULL;
 				
-				if(vlr->v1->sticky) {
+				if(vlr->v1->flag) {
 					VECCOPY(vlr->n, n);
 				}
 				else {
@@ -2429,15 +2492,15 @@ static void init_render_curve(Object *ob)
 			for(a=startvert; a<R.totvert; a++) {
 				ver= RE_findOrAddVert(a);
 				len= Normalise(ver->n);
-				if(len==0.0) ver->sticky= (float *)1;
-				else ver->sticky= 0;
+				if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
+				else ver->flag= 0;
 			}
 			for(a= startvlak; a<R.totvlak; a++) {
 				vlr= RE_findOrAddVlak(a);
-				if(vlr->v1->sticky) VECCOPY(vlr->v1->n, vlr->n);
-				if(vlr->v2->sticky) VECCOPY(vlr->v2->n, vlr->n);
-				if(vlr->v3->sticky) VECCOPY(vlr->v3->n, vlr->n);
-				if(vlr->v4->sticky) VECCOPY(vlr->v4->n, vlr->n);
+				if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
+				if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
+				if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
+				if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
 			}
 		}
 
@@ -2538,6 +2601,7 @@ void RE_freeRotateBlenderScene(void)
 {
 	ShadBuf *shb;
 	Object *ob = NULL;
+	GroupObject *go;
 	unsigned long *ztile;
 	int a, b, v;
 	char *ctile;
@@ -2546,10 +2610,11 @@ void RE_freeRotateBlenderScene(void)
 	
 	BLI_memarena_free(R.memArena);
 	R.memArena = NULL;
-
-	for(a=0; a<R.totlamp; a++) {
-		if(R.la[a]->shb) {
-			shb= R.la[a]->shb;
+	
+	for(go= R.lights.first; go; go= go->next) {
+		struct LampRen *lar= go->lampren;
+		if(lar->shb) {
+			shb= lar->shb;
 			v= (shb->size*shb->size)/256;
 			ztile= shb->zbuf;
 			ctile= shb->cbuf;
@@ -2559,20 +2624,17 @@ void RE_freeRotateBlenderScene(void)
 			
 			MEM_freeN(shb->zbuf);
 			MEM_freeN(shb->cbuf);
-			MEM_freeN(R.la[a]->shb);
+			MEM_freeN(lar->shb);
 		}
-		if(R.la[a]->jitter) MEM_freeN(R.la[a]->jitter);
-		MEM_freeN(R.la[a]);
+		if(lar->jitter) MEM_freeN(lar->jitter);
+		MEM_freeN(lar);
 	}
+	
+	BLI_freelistN(&R.lights);
 
 	/* note; these pointer arrays were allocated, with last element NULL to stop loop */
-	a=0;
-	while(R.blove[a]) {
-		MEM_freeN(R.blove[a]);
-		R.blove[a]= NULL;
-		a++;
-	}
-
+	RE_free_vertex_tables();
+	
 	a=0;
 	while(R.blovl[a]) {
 		MEM_freeN(R.blovl[a]);
@@ -2602,9 +2664,9 @@ void RE_freeRotateBlenderScene(void)
 
 	free_mesh_orco_hash();
 
-	end_render_textures();
-	end_render_materials();
 	end_radio_render();
+	end_render_materials();
+	
 	if(R.wrld.aosphere) {
 		MEM_freeN(R.wrld.aosphere);
 		R.wrld.aosphere= NULL;
@@ -2753,7 +2815,25 @@ static void check_non_flat_quads(void)
 	}
 }
 
-
+static void set_material_lightgroups(void)
+{
+	GroupObject *go, *gol;
+	Material *ma;
+	
+	/* it's a bit too many loops in loops... but will survive */
+	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
+		if(ma->group) {
+			for(go= ma->group->gobject.first; go; go= go->next) {
+				for(gol= R.lights.first; gol; gol= gol->next) {
+					if(gol->ob==go->ob) {
+						go->lampren= gol->lampren;
+						break;
+					}
+				}
+			}
+		}
+	}
+}
 
 extern int slurph_opt;	/* key.c */
 extern ListBase duplilist;
@@ -2765,13 +2845,13 @@ void RE_rotateBlenderScene(void)
 	unsigned int lay;
 	float mat[4][4];
 
-	if(G.scene->camera==0) return;
+	if(G.scene->camera==NULL) return;
 
 	R.memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
-
-	slurph_opt= 0;
-
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
+	R.lights.first= R.lights.last= NULL;
+	
+	slurph_opt= 0;
 
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if(G.scene->lay & 0xFF000000) lay= G.scene->lay & 0xFF000000;
@@ -2804,6 +2884,7 @@ void RE_rotateBlenderScene(void)
 	}
 	init_render_textures();
 	init_render_materials();
+	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* imat objects, OB_DO_IMAT can be set in init_render_materials
 	   has to be done here, since displace can have texture using Object map-input */
@@ -2853,6 +2934,7 @@ void RE_rotateBlenderScene(void)
 			if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & G.scene->lay)) ) {
 
 				if(ob->transflag & OB_DUPLI) {
+					
 					/* exception: mballs! */
 					/* yafray: Include at least one copy of a dupliframe object for yafray in the renderlist.
 					   mballs comment above true as well for yafray, they are not included, only all other object types */
@@ -2870,28 +2952,17 @@ void RE_rotateBlenderScene(void)
 						}
 					}
 					
-					make_duplilist(sce, ob);
 					if(ob->type==OB_MBALL) {
 						init_render_object(ob);
 					}
 					else {
-						obd= duplilist.first;
-						if(obd) {
-							/* exception, in background render it doesnt make the displist */
-							if ELEM(obd->type, OB_CURVE, OB_SURF) {
-								Curve *cu;
-
-								cu= obd->data;
-								if(cu->disp.first==NULL) {
-									obd->flag &= ~OB_FROMDUPLI;
-									makeDispListCurveTypes(obd, 0);
-									obd->flag |= OB_FROMDUPLI;
-								}
-							}
-						}
-
-						obd= duplilist.first;
-						while(obd) {
+						DupliObject *dob;
+						ListBase *lb= object_duplilist(sce, ob);
+						
+						for(dob= lb->first; dob; dob= dob->next) {
+							Object *obd= dob->ob;
+							Mat4CpyMat4(obd->obmat, dob->mat);
+							
 							if(obd->type!=OB_MBALL) {
 								/* yafray: special handling of duplivert objects for yafray:
 								   only the matrix is stored, together with the source object name.
@@ -2906,10 +2977,10 @@ void RE_rotateBlenderScene(void)
 								}
 								else init_render_object(obd);
 							}
-							obd= obd->id.next;
+							Mat4CpyMat4(obd->obmat, dob->omat);
 						}
+						BLI_freelistN(lb);
 					}
-					free_duplilist();
 				}
 				else {
 					/* yafray: if there are linked data objects (except lamps, empties or armatures),
@@ -2958,7 +3029,9 @@ void RE_rotateBlenderScene(void)
 	}
 
 	sort_halos();
-
+	
+	set_material_lightgroups();
+	
 	if(R.wrld.mode & WO_STARS) RE_make_stars(NULL, NULL, NULL);
 
 	slurph_opt= 1;
@@ -3073,8 +3146,13 @@ static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	if ((texco & TEXCO_ORCO) && (vr->orco)) {
 		VECCOPY(shi->lo, vr->orco);
 	}
-	if ((texco & TEXCO_STICKY) && (vr->sticky)) {
-		VECCOPY(shi->sticky, vr->sticky);
+	if (texco & TEXCO_STICKY) {
+		float *sticky= RE_vertren_get_sticky(vr, 0);
+		if(sticky) {
+			shi->sticky[0]= sticky[0];
+			shi->sticky[1]= sticky[1];
+			shi->sticky[2]= 0.0f;
+		}
 	}
 	if (texco & TEXCO_GLOB) {
 		VECCOPY(shi->gl, shi->co);
@@ -3213,6 +3291,6 @@ static void do_displacement(Object *ob, int startface, int numface, int startver
 	}
 	
 	/* Recalc vertex normals */
-	calc_vertexnormals(startvert, startface);
+	calc_vertexnormals(startvert, startface, 0);
 }
 

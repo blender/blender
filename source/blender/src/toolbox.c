@@ -55,10 +55,11 @@
 #include "BIF_language.h"
 #include "BIF_resources.h"
 
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
-#include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -67,13 +68,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "BKE_displist.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
+#include "BKE_main.h"
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
-#include "BKE_mesh.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 
 #include "BIF_editnla.h"
 #include "BIF_editarmature.h"
@@ -103,7 +105,6 @@
 #include "BDR_editmball.h"
 
 #include "BSE_editipo.h"
-#include "BSE_buttons.h"
 #include "BSE_filesel.h"
 #include "BSE_edit.h"
 #include "BSE_headerbuttons.h"
@@ -112,7 +113,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "render.h"		// R.flag
 
 static int tbx1, tbx2, tby1, tby2, tbfontyofs, tbmain=0;
 static int tbmemx=TBOXX/2, tbmemy=(TBOXEL-0.5)*TBOXH, tboldwin, addmode= 0;
@@ -1101,7 +1101,7 @@ void error(char *fmt, ...)
 	sprintf(nfmt, "%s", fmt);
 	
 	va_start(ap, fmt);
-	if (G.background || !G.curscreen || (R.flag & R_RENDERING)) {
+	if (G.background || !G.curscreen || (G.rendering)) {
 		vprintf(nfmt, ap);
 		printf("\n");
 	} else {
@@ -1273,6 +1273,55 @@ int movetolayer_buts(unsigned int *lay)
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
 }
+
+int movetolayer_short_buts(short *lay)
+{
+	uiBlock *block;
+	ListBase listb={0, 0};
+	int dx, dy, a, x1, y1, sizex=120, sizey=30;
+	short pivot[2], mval[2], ret=0;
+	
+	getmouseco_sc(mval);
+	
+	pivot[0]= CLAMPIS(mval[0], (sizex+10), G.curscreen->sizex-30);
+	pivot[1]= CLAMPIS(mval[1], (sizey/2)+10, G.curscreen->sizey-(sizey/2)-10);
+	
+	if (pivot[0]!=mval[0] || pivot[1]!=mval[1])
+		warp_pointer(pivot[0], pivot[1]);
+	
+	mywinset(G.curscreen->mainwin);
+	
+	x1= pivot[0]-sizex+10; 
+	y1= pivot[1]-sizey/2; 
+	
+	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_ENTER_OK);
+	
+	dx= (sizex-5)/10;
+	dy= sizey/2;
+	
+	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
+	
+	uiBlockBeginAlign(block);
+	for(a=0; a<8; a++) 
+		uiDefButBitS(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+	for(a=0; a<8; a++) 
+		uiDefButBitS(block, TOGR, 1<<(a+8), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+	
+	uiBlockEndAlign(block);
+	
+	x1-= 5;
+	uiDefBut(block, BUT, 1, "OK", (short)(x1+8*dx+10), (short)y1, (short)(3*dx), (short)(2*dy), NULL, 0, 0, 0, 0, "");
+	
+	uiBoundsBlock(block, 2);
+	
+	ret= uiDoBlocks(&listb, 0);
+	
+	if(ret==UI_RETURN_OK) return 1;
+	return 0;
+}
+
+
 
 /* ********************** CLEVER_NUMBUTS ******************** */
 
@@ -1470,9 +1519,6 @@ void clever_numbuts(void)
 	}
 	else if(curarea->spacetype==SPACE_IMASEL) {
 		clever_numbuts_imasel();
-	}
-	else if(curarea->spacetype==SPACE_BUTS){
-		clever_numbuts_buts();
 	}
 	else if(curarea->spacetype==SPACE_OOPS) {
 		clever_numbuts_oops();
@@ -1681,6 +1727,8 @@ static TBitem tb_mesh_select[]= {
 {	0, "SEPR",                          0, NULL},
 {	0, "Random...",			            5, NULL},
 {	0, "Non-Manifold|Shift Ctrl Alt M", 9, NULL},
+{	0, "Sharp Edges|Shift Ctrl Alt S", 14, NULL},
+{	0, "Linked Flat Faces|Shift Ctrl Alt F", 15, NULL},
 {	0, "Triangles|Shift Ctrl Alt 3",    11, NULL},
 {	0, "Quads|Shift Ctrl Alt 4",        12, NULL},
 {	0, "Non-Triangles/Quads|Shift Ctrl Alt 5", 13, NULL},
@@ -2220,6 +2268,10 @@ static TBitem addmenu_armature[]= {
 {	0, "Bone", 	8, NULL},
 {  -1, "", 			0, do_info_addmenu}};
 
+/* dynamic items */
+#define TB_ADD_GROUP	7
+#define TB_ADD_LAMP		10
+
 static TBitem tb_add[]= {
 {	0, "Mesh", 		0, addmenu_mesh},
 {	0, "Curve", 	1, addmenu_curve},
@@ -2228,23 +2280,10 @@ static TBitem tb_add[]= {
 {	0, "Text", 		4, NULL},
 {	0, "Empty", 	5, NULL},
 {	0, "SEPR", 		0, NULL},
+{	0, "Group", 	10, NULL},
+{	0, "SEPR", 		0, NULL},
 {	0, "Camera", 	6, NULL},
 {	0, "Lamp", 		7, addmenu_lamp},
-{	0, "SEPR", 		0, NULL},
-{	0, "Armature", 	8, NULL},
-{	0, "Lattice", 	9, NULL},
-{  -1, "", 			0, do_info_addmenu}};
-
-static TBitem tb_add_YF[]= {
-{	0, "Mesh", 		0, addmenu_mesh},
-{	0, "Curve", 	1, addmenu_curve},
-{	0, "Surface", 	2, addmenu_surf},
-{	0, "Meta", 	3, addmenu_meta},
-{	0, "Text", 		4, NULL},
-{	0, "Empty", 	5, NULL},
-{	0, "SEPR", 		0, NULL},
-{	0, "Camera", 	6, NULL},
-{	0, "Lamp", 		7, addmenu_YF_lamp},
 {	0, "SEPR", 		0, NULL},
 {	0, "Armature", 	8, NULL},
 {	0, "Lattice", 	9, NULL},
@@ -2340,13 +2379,58 @@ static void store_main(void *arg1, void *arg2)
 	tb_mainy= (int)arg2;
 }
 
+static void do_group_addmenu(void *arg, int event)
+{
+	Object *ob;
+	
+	add_object_draw(OB_EMPTY);
+	ob= OBACT;
+	
+	ob->dup_group= BLI_findlink(&G.main->group, event);
+	if(ob->dup_group) {
+		id_us_plus((ID *)ob->dup_group);
+		ob->transflag |= OB_DUPLIGROUP;
+		DAG_scene_sort(G.scene);
+	}
+}
+							 
+/* example of dynamic toolbox sublevel */
+static TBitem *create_group_sublevel(void)
+{
+	static TBitem addmenu[]= { {	0, "No Groups", 	0, NULL}, {  -1, "", 			0, NULL}};
+	TBitem *groupmenu;
+	Group *group;
+	int a;
+	
+	int tot= BLI_countlist(&G.main->group);
+	
+	if(tot==0) {
+		tb_add[TB_ADD_GROUP].poin= addmenu;
+		return NULL;
+	}
+	
+	groupmenu= MEM_callocN(sizeof(TBitem)*(tot+1), "group menu");
+	for(a=0, group= G.main->group.first; group; group= group->id.next, a++) {
+		groupmenu[a].name= group->id.name+2;
+		groupmenu[a].retval= a;
+	}
+	groupmenu[a].icon= -1;	/* end signal */
+	groupmenu[a].name= "";
+	groupmenu[a].retval= a;
+	groupmenu[a].poin= do_group_addmenu;
+	
+	tb_add[TB_ADD_GROUP].poin= groupmenu;
+	
+	return groupmenu;
+}
+
 void toolbox_n(void)
 {
 	uiBlock *block;
 	uiBut *but;
 	TBitem *menu1=NULL, *menu2=NULL, *menu3=NULL; 
 	TBitem *menu4=NULL, *menu5=NULL, *menu6=NULL;
-	TBitem *menu7=NULL;
+	TBitem *menu7=NULL, *groupmenu;
 	int dx=0;
 	short event, mval[2], tot=0;
 	char *str1=NULL, *str2=NULL, *str3=NULL, *str4=NULL, *str5=NULL, *str6=NULL, *str7=NULL;
@@ -2368,16 +2452,19 @@ void toolbox_n(void)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	uiBlockSetCol(block, TH_MENU_ITEM);
 	
+	/* dynamic menu entries */
+	groupmenu= create_group_sublevel();
+	
+	if (G.scene->r.renderer==R_YAFRAY)
+		tb_add[TB_ADD_LAMP].poin= addmenu_YF_lamp;
+	else
+		tb_add[TB_ADD_LAMP].poin= addmenu_lamp;
+	
 	/* select context for main items */
 	if(curarea->spacetype==SPACE_VIEW3D) {
 
 		if(U.uiflag & USER_PLAINMENUS) {
-			/* column layout menu */
-			if (G.scene->r.renderer==R_YAFRAY) {
-				menu1= tb_add_YF; str1= "Add";
-			} else {
-				 menu1= tb_add; str1= "Add";
-			}
+			menu1= tb_add; str1= "Add";
 			menu2= tb_object_edit; str2= "Edit";
 			menu3= tb_object_select; str3= "Select";
 			menu4= tb_transform; str4= "Transform";
@@ -2390,11 +2477,7 @@ void toolbox_n(void)
 		} else {
 			/* 3x2 layout menu */
 			menu1= tb_object; str1= "Object";
-			if (G.scene->r.renderer==R_YAFRAY) {
-				menu2= tb_add_YF; str2= "Add";
-			} else {
-				menu2= tb_add; str2= "Add";
-			}
+			menu2= tb_add; str2= "Add";
 			menu3= tb_object_select; str3= "Select";
 			menu4= tb_object_edit; str4= "Edit";
 			menu5= tb_transform; str5= "Transform";
@@ -2577,6 +2660,8 @@ void toolbox_n(void)
 	
 	uiBoundsBlock(block, 2);
 	event= uiDoBlocks(&tb_listb, 0);
+	
+	if(groupmenu) MEM_freeN(groupmenu);
 	
 	mywinset(curarea->win);
 }

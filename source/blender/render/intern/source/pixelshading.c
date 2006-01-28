@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,17 +19,9 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributor(s): 2004-2006, Blender Foundation, full recode
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * Shading of pixels
- *
- * 11-09-2000 nzc
- *
- * $Id$
- *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -45,6 +34,7 @@
 #include "MTC_vectorops.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_image_types.h"
@@ -56,112 +46,32 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "render.h"
+/* own module */
+#include "render_types.h"
+#include "renderpipeline.h"
+#include "renderdatabase.h"
 #include "texture.h"
-
-#include "vanillaRenderPipe_types.h"
 #include "pixelblending.h"
-#include "rendercore.h" /* for some shading functions... */
+#include "rendercore.h"
 #include "shadbuf.h"
-#include "zbufferdatastruct.h"
-
-#include "renderHelp.h"
-
 #include "gammaCorrectionTables.h"
-#include "errorHandler.h"
 #include "pixelshading.h"
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-/* ton: 
-  - unified render now uses face render routines from rendercore.c
-  - todo still: shalo render and sky routines */
-
-
-/* ------------------------------------------------------------------------- */
-static int calcHaloZ(HaloRen *har, int zz)
-{
-	
-	if(har->type & HA_ONLYSKY) {
-		if(zz!=0x7FFFFFFF) zz= - 0x7FFFFF;
-	}
-	else {
-		zz= (zz>>8);
-	}
-	return zz;
-}
-
-static void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) 
-{
-    HaloRen *har = NULL;
-    float dist = 0.0;
-    int zz = 0;
-	
-    /* Find har to go with haloNr */
-    har = RE_findOrAddHalo(haloNr);
-	
-    /* zz is a strange number... This call should effect that halo's are  */
-    /* never cut? Seems a bit strange to me now...   (nzc)                */
-	/* it checks for sky... which is info not available in unified (ton) */
-    zz = calcHaloZ(har, 0x7FFFFFFF);
-	if(zz> har->zs) {
-	
-		/* distance of this point wrt. the halo center. Maybe xcor is also needed? */
-		dist = ((x - har->xs) * (x - har->xs)) 
-			+  ((y - har->ys) * (y - har->ys) * R.ycor * R.ycor) ;
-		
-		collector[0] = 0.0f; collector[1] = 0.0f; 
-		collector[2] = 0.0f; collector[3] = 0.0f;
-		
-		if (dist < har->radsq) {
-			shadeHaloFloat(har, collector, zz, dist, 
-						   (x - har->xs), (y - har->ys) * R.ycor, har->flarec);
-		}; /* else: this pixel is not rendered for this halo: no colour */
-	}
-    return (void*) har;
-
-} /* end of void* renderHaloPixel(float x, float y, int haloNr) */
-
-
-
-/* ------------------------------------------------------------------------- */
-
-void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int mask)
-{
-    void* data = NULL;
-    
-    if (obdata[3] & RE_POLY) {
-		data = shadepixel(x, y, obdata[0], obdata[1], mask, collector);
-    }
-    else if (obdata[3] & RE_HALO) {
-        data = renderHaloPixel(collector, x, y, obdata[1]);
-    }
-	else if( obdata[1] == 0 ) {	
-		/* for lamphalo, but doesn't seem to be called? Actually it is, and  */
-		/* it returns NULL pointers. */
-        data = shadepixel(x, y, obdata[0], obdata[1], mask, collector);
- 	}
-    return data;
-   
-} /* end of void renderPixel(float x, float y, int *obdata) */
-
-/* ------------------------------------------------------------------------- */
-
-void renderSpotHaloPixel(float x, float y, float* fcol)
-{
-	shadepixel(x, y, 0, 0, 0, fcol);	
-}
-
-
-/* ------------------------------------------------------------------------- */
 
 extern float hashvectf[];
 
 static void render_lighting_halo(HaloRen *har, float *colf)
 {
+	GroupObject *go;
 	LampRen *lar;
 	float i, inp, inpr, rco[3], dco[3], lv[3], lampdist, ld, t, *vn;
 	float ir, ig, ib, shadfac, soft, lacol[3];
-	int a;
 	
 	ir= ig= ib= 0.0;
 	
@@ -170,8 +80,8 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 	
 	vn= har->no;
 	
-	for(a=0; a<R.totlamp; a++) {
-		lar= R.la[a];
+	for(go=R.lights.first; go; go= go->next) {
+		lar= go->lampren;
 		
 		/* test for lamplayer */
 		if(lar->mode & LA_LAYER) if((lar->lay & har->lay)==0) continue;
@@ -494,7 +404,7 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	if(har->mat) {
 		if(har->mat->mode & MA_HALO_SHADE) {
 			/* we test for lights because of preview... */
-			if(R.totlamp) render_lighting_halo(har, col);
+			if(R.lights.first) render_lighting_halo(har, col);
 		}
 
 		/* Next, we do the line and ring factor modifications. */
@@ -534,29 +444,14 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 
 */
 
-/* Sky vars. */
-enum RE_SkyAlphaBlendingType keyingType = RE_ALPHA_SKY; /* The blending type    */
-
-void setSkyBlendingMode(enum RE_SkyAlphaBlendingType mode) {
-	if ((RE_ALPHA_NODEF < mode) && (mode < RE_ALPHA_MAX) ) {
-		keyingType = mode;
-	} else {
-		/* error: false mode received */
-		keyingType = RE_ALPHA_SKY;
-	}
-}
-
-enum RE_SkyAlphaBlendingType getSkyBlendingMode() {
-	return keyingType;
-}
 
 /* This one renders into collector, as always.                               */
-void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
+void renderSkyPixelFloat(float *collector, float x, float y, float *rco)
 {
 
-	switch (keyingType) {
-	case RE_ALPHA_PREMUL:
-	case RE_ALPHA_KEY:
+	switch (R.r.alphamode) {
+	case R_ALPHAPREMUL:
+	case R_ALPHAKEY:
 		/* Premul or key: don't fill, and don't change the values! */
 		/* key alpha used to fill in color in 'empty' pixels, doesn't work anymore this way */
 		collector[0] = 0.0; 
@@ -564,9 +459,9 @@ void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
 		collector[2] = 0.0; 
 		collector[3] = 0.0; 
 		break;
-	case RE_ALPHA_SKY:
+	case R_ADDSKY:
 		/* Fill in the sky as if it were a normal face. */
-		shadeSkyPixel(collector, x, y);
+		shadeSkyPixel(collector, x, y, rco);
 		collector[3]= 0.0;
 		break;
 	default:
@@ -574,12 +469,10 @@ void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
 	}
 }
 
-
-
 /*
   Stuff the sky colour into the collector.
  */
-void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy) 
+void shadeSkyPixel(float *collector, float fx, float fy, float *rco) 
 {
 	float view[3], dxyview[2];
 	
@@ -593,7 +486,7 @@ void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy)
 
 	/* 1. Do a backbuffer image: */ 
 	if(R.r.bufflag & 1) {
-		fillBackgroundImage(collector, fx, fy);
+//		fillBackgroundImage(collector, fx, fy);
 		return;
 	} else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/*
@@ -616,26 +509,17 @@ void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy)
 		/* This one true because of the context of this routine  */
 /*  		if(rect[3] < 254) {  */
 		if(R.wrld.skytype & WO_SKYPAPER) {
-			view[0]= (fx+(R.xstart))/(float)R.afmx;
-			view[1]= (fy+(R.ystart))/(float)R.afmy;
+			view[0]= (fx/(float)R.winx);
+			view[1]= (fy/(float)R.winy);
 			view[2]= 0.0;
 			
-			dxyview[0]= 1.0/(float)R.afmx;
-			dxyview[1]= 1.0/(float)R.afmy;
+			dxyview[0]= 1.0f/(float)R.winx;
+			dxyview[1]= 1.0f/(float)R.winy;
 		}
 		else {
-			/* Wasn't this some pano stuff? */
-			view[0]= (fx+(R.xstart)+1.0);
-			
-			if(R.flag & R_SEC_FIELD) {
-				if(R.r.mode & R_ODDFIELD) view[1]= (fy+R.ystart+0.5)*R.ycor;
-				else view[1]= (fy+R.ystart+1.5)*R.ycor;
-			}
-			else view[1]= (fy+R.ystart+1.0)*R.ycor;
-			
-			view[2]= -R.viewfac;
-			
+			calc_view_vector(view, fx, fy);
 			fac= Normalise(view);
+			
 			if(R.wrld.skytype & WO_SKYTEX) {
 				dxyview[0]= 1.0/fac;
 				dxyview[1]= R.ycor/fac;
@@ -643,25 +527,20 @@ void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy)
 		}
 		
 		if(R.r.mode & R_PANORAMA) {
-			float panoco, panosi;
-			float u, v;
+			float u= view[0]; float v= view[2];
 			
-			panoco = getPanovCo();
-			panosi = getPanovSi();
-			u= view[0]; v= view[2];
-			
-			view[0]= panoco*u + panosi*v;
-			view[2]= -panosi*u + panoco*v;
+			view[0]= R.panoco*u + R.panosi*v;
+			view[2]= -R.panosi*u + R.panoco*v;
 		}
 	
 		/* get sky colour in the collector */
-		shadeSkyPixelFloat(collector, view, dxyview);
+		shadeSkyPixelFloat(collector, rco, view, dxyview);
 		collector[3] = 1.0f;
 	}
 }
 
 /* Only view vector is important here. Result goes to colf[3] */
-void shadeSkyPixelFloat(float *colf, float *view, float *dxyview)
+void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview)
 {
 	float lo[3], zen[3], hor[3], blend, blendm;
 	
@@ -698,7 +577,7 @@ void shadeSkyPixelFloat(float *colf, float *view, float *dxyview)
 			SWAP(float, lo[1],  lo[2]);
 			
 		}
-		do_sky_tex(lo, dxyview, hor, zen, &blend);
+		do_sky_tex(rco, lo, dxyview, hor, zen, &blend);
 	}
 
 	if(blend>1.0) blend= 1.0;
@@ -717,69 +596,5 @@ void shadeSkyPixelFloat(float *colf, float *view, float *dxyview)
 	}
 }
 
-
-/*
-  Render pixel (x,y) from the backbuffer into the collector
-	  
-  backbuf is type Image, backbuf->ibuf is an ImBuf.  ibuf->rect is the
-  rgba data (32 bit total), in ibuf->x by ibuf->y pixels. Copying
-  should be really easy. I hope I understand the way ImBuf works
-  correctly. (nzc)
-*/
-void fillBackgroundImageChar(char *col, float x, float y)
-{
-
-	int iy, ix;
-	unsigned int* imBufPtr;
-	
-	/* check to be sure... */
-	if (R.backbuf==NULL || R.backbuf->ok==0) {
-		/* bail out */
-		col[0] = 0;
-		col[1] = 0;
-		col[2] = 0;
-		col[3] = 255;
-		return;
-	}
-	/* load image if not already done?*/
-	if(R.backbuf->ibuf==0) {
-		R.backbuf->ok= 0;
-		return;
-	}
-
-	tag_image_time(R.backbuf);
-
-	/* Now for the real extraction: */
-	/* Get the y-coordinate of the scanline? */
-	iy= (int) ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(2*R.afmy);
-	ix= (int) ((x+R.afmx+R.xstart)*R.backbuf->ibuf->x)/(2*R.afmx);
-	
-	/* correct in case of fields rendering: */
-	if(R.flag & R_SEC_FIELD) {
-		if((R.r.mode & R_ODDFIELD)==0) {
-			if( iy<R.backbuf->ibuf->y) iy++;
-		}
-		else {
-			if( iy>0) iy--;
-		}
-	}
-
-	/* Offset into the buffer: start of scanline y: */
-  	imBufPtr = R.backbuf->ibuf->rect
-		+ (iy * R.backbuf->ibuf->x)
-		+ ix;
-
-	*( (int *)col) = *imBufPtr;
-	
-}
-
-void fillBackgroundImage(RE_COLBUFTYPE *collector, float x, float y)
-{
-	char col[4];
-	
-	fillBackgroundImageChar(col, x, y);
-	cpCharColV2FloatColV(col, collector);
-	
-}
 
 /* eof */

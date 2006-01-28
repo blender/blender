@@ -75,6 +75,7 @@ if( (cyclv) && a==sizev-1) {			    \
 
 /* prototypes */
 
+struct Base;
 struct Object;
 struct Curve;
 struct ListBase;
@@ -144,7 +145,7 @@ extern void makeDispListMesh(struct Object *ob);
 extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender);
 extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
 extern void makeDispListMBall(struct Object *ob);
-extern void shadeDispList(struct Object *ob);
+extern void shadeDispList(struct Base *base);
 void freefastshade(void);
 void imagestodisplist(void);
 void reshadeall_displist(void);

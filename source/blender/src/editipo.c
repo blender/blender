@@ -1969,6 +1969,42 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 	}
 }
 
+/* For inserting keys based on the object matrix - not on the current IPO value
+   Generically - it inserts the passed float value into the appropriate IPO */
+void insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float matrixvalue)
+{
+	IpoCurve *icu;
+	Object *ob;
+	void *poin= NULL;
+	float cfra;
+	int vartype;
+	
+	icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+	
+	if(icu) {
+		
+		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+		
+		if(poin) {
+			
+			cfra= frame_to_float(CFRA);
+			
+			/* if action is mapped in NLA, it returns a correction */
+			if(actname && actname[0] && GS(id->name)==ID_OB)
+				cfra= get_action_frame((Object *)id, cfra);
+ 			
+ 			if( GS(id->name)==ID_OB ) {
+ 				ob= (Object *)id;
+ 				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+ 					/* actually frametofloat calc again! */
+ 					cfra-= ob->sf*G.scene->r.framelen;
+ 				}
+ 			}
+ 			insert_vert_ipo(icu, cfra, matrixvalue);
+ 		}
+ 	}
+}
+
 void insertkey_editipo(void)
 {
 	EditIpo *ei;
@@ -2426,7 +2462,7 @@ void common_insertkey(void)
 		ob= OBACT;
 
 		if (ob && (ob->flag & OB_POSEMODE)) {
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Avail%x9");
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
 		else {
 			base= FIRSTBASE;
@@ -2435,8 +2471,7 @@ void common_insertkey(void)
 				base= base->next;
 			}
 			if(base==NULL) return;
-
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9");
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
 
 		if(ob) {
@@ -2444,7 +2479,6 @@ void common_insertkey(void)
 			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
 			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
 			else if(ob->type==OB_SURF) strcat(menustr, "| %x6|Surface%x7");
-			if(ob->flag & OB_FROMGROUP)	strcat(menustr, "| %x6|Entire Group%x10");
 		}
 
 		event= pupmenu(menustr);
@@ -2453,14 +2487,6 @@ void common_insertkey(void)
 		if(event==7) { // ob != NULL
 			insert_shapekey(ob);
 			return;
-		}
-
-		if(event==10) {
-			Group *group= find_group(ob);
-			if(group) {
-				add_group_key(group);
-				allqueue(REDRAWBUTSOBJECT, 0);
-			}
 		}
 
 		if (ob && (ob->flag & OB_POSEMODE)){
@@ -2503,6 +2529,25 @@ void common_insertkey(void)
 							}
 						}
 					}
+ 					if(event==11 || event==13) {
+ 						float obSpaceBoneMat[4][4]; 
+ 						
+ 						bone2objectspace(obSpaceBoneMat, pchan->pose_mat, pchan->bone->arm_mat);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, obSpaceBoneMat[3][0]);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, obSpaceBoneMat[3][1]);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, obSpaceBoneMat[3][2]);
+ 					}
+ 					if(event==12 || event==13) {
+ 						float obSpaceBoneMat[4][4];
+ 						float localQuat[4];
+ 						
+ 						bone2objectspace(obSpaceBoneMat, pchan->pose_mat, pchan->bone->arm_mat);
+ 						Mat4ToQuat(obSpaceBoneMat, localQuat);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, localQuat[0]);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, localQuat[1]);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, localQuat[2]);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, localQuat[2]);
+ 					}
 				}
 			}
 			if(ob->action)
@@ -2555,6 +2600,21 @@ void common_insertkey(void)
 						insertkey(id, ID_OB, actname, NULL, OB_LAY);
 						base->object->lay= tlay;
 					}
+ 					if(event==11 || event==13) {
+ 						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_X, ob->obmat[3][0]);
+ 						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Y, ob->obmat[3][1]);
+ 						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Z, ob->obmat[3][2]);
+ 					}
+ 					if(event==12 || event==13) {
+ 						float eul[3];
+ 						float rotMat[3][3];
+ 						
+ 						Mat3CpyMat4(rotMat, ob->obmat);
+ 						Mat3ToEul(rotMat, eul);
+ 						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_X, eul[0]*(5.72958));
+ 						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Y, eul[1]*(5.72958));
+ 						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Z, eul[2]*(5.72958));
+ 					}
 				}
 				base= base->next;
 			}
@@ -4548,3 +4608,12 @@ void move_to_frame(void)
 	}
 	BIF_undo_push("Set frame to selected Ipo vertex");
 }
+
+void bone2objectspace(float obSpaceBoneMat[][4], float obSpace[][4], float restPos[][4])
+{
+ 	float imat[4][4];
+ 
+ 	Mat4Invert(imat, restPos);
+ 	Mat4MulMat4(obSpaceBoneMat, obSpace, imat);
+}
+

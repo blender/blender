@@ -1,41 +1,8 @@
-# -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.4.7
-Copyright (c) jm soler juillet/novembre 2004-janvier 2006, 
-# ---------------------------------------------------------------
-    released under GNU Licence 
-    for the Blender 2.40 Python Scripts Bundle.
-Ce programme est libre, vous pouvez le redistribuer et/ou
-le modifier selon les termes de la Licence Publique Générale GNU
-publiée par la Free Software Foundation (version 2 ou bien toute
-autre version ultérieure choisie par vous).
-
-Ce programme est distribué car potentiellement utile, mais SANS
-AUCUNE GARANTIE, ni explicite ni implicite, y compris les garanties
-de commercialisation ou d'adaptation dans un but spécifique.
-Reportez-vous à la Licence Publique Générale GNU pour plus de détails.
-
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU
-en même temps que ce programme ; si ce n'est pas le cas, écrivez à la
-Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-MA 02111-1307, États-Unis.
-
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA    
-# ---------------------------------------------------------------
-
+SVG 2 OBJ translater, 0.3.3
+(c) jm soler juillet/novembre 2004-juin 2005, 
+#   released under Blender Artistic Licence 
+    for the Blender 2.37/36/35/34/33 Python Scripts Bundle.
 #---------------------------------------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_svg.htm
@@ -73,14 +40,10 @@ Yet done:
    L : absolute line to  
    C : absolute curve to
    S : absolute curve to with only one handle
-   H : absolute horizontal line to  
-   V : absolute vertical line to  
-   
    l : relative line to     2004/08/03
    c : relative curve to    2004/08/03
    s : relative curve to with only one handle  
-   h : relative horizontal line to 
-   v : relative vertical line to 
+
 
    A : courbe_vers_a, 
    V : ligne_tracee_v,
@@ -121,70 +84,19 @@ Changelog:
                     skew               
               - added a test on __name__ to load the script
                 outside from the blender menu  
-      0.3.3 : - matrix transform content control  
-      0.3.4 : - paths data reading rewritten (19/06/05) 
-      0.3.5 : - test on empty curve  (22/06/05)
-              - removed overlayed points
-      0.3.6 : - rewriting of the bezier point contruction to correct
-                a problem in the connection between L type point and
-                C or S type point         
-      0.3.7 : - code correction for bezier knot in Curveto command when
-                the command close a path
-      0.3.8 : - code was aded to manage quadratic bezier, 
-                Q,q command and T,t commands, as a normal  blender's bezier point 
-              - The last modications does not work with gimp 2.0 svg export . 
-                corrected too .
-      0.3.9 : - Path's A,a  command for ellipse's arc  .
-      0.4.0 : - To speed up the function filtre_DATA was removed and text
-                variables are changed into numeric variables               
-      0.4.1 : - svg, groups and shapes hierarchy  added
-              - now transform properties are computed  using a stack  with all
-                parented groups
-              - removed or replaced useless functions :
-              - skewY, skewX transforms
-              - radians in rotate transform 
-      0.4.2 : - Added functon to translate others shapes in path 
-	             rect, line, polyline, polygon
-	
-      0.4.3 : - various corrections 
-                  text font (id property exported by Adobe Illustrator are between coma)
-                  function  to code  s tag has been  rewritten 
-
-      0.4.4 : - various corrections      
-                to oblige the script to understand a line feed just after 
-                a tag . Rarely encountered problem, but it exits in a svg file
-                format exported by a outliner script for mesh .
-
-      0.4.5 : - update for CVS only, at least blender 2.38 and upper
-                no BezTriple module in older version
-                added a createCURVES function to avoid to use
-                the OBJ format export/import .
-
-                Perhaps problems with cyclic curves . If a closed curve 
-                does not appear closed in blender, enter edit mode select 
-                all  knot with Akey,  do a Hkey to set handle type (without 
-                this the knot are recalculated) , and finally use the Ckey 
-                to close the curve .
-                Should work ... not guaranted .
-
-      0.4.6 : - cyclic flag ...
-
-      0.4.7 : - Management of the svgz files . the complete python or the gzip.py 
-                file is needed .
-                Little improvement of the curve drawing using the createCURVES 
-                function 
+      0.3.3 : - controle du contenu des transformation de type matrix 
+      0.3.4 : - restructuration de la lecture des donnes paths (19/06/05) 
 ==================================================================================   
 =================================================================================="""
 
 SHARP_IMPORT=0
 SCALE=1
-scale_=1
-DEBUG = 0#print
+scale=1
+DEBUG =0 #print
 DEVELOPPEMENT=0
     
 import sys
-from math import cos,sin,tan, atan2, pi, ceil
-PI=pi
+from math import cos,sin,tan
 import Blender
 from Blender import Mathutils
 BLversion=Blender.Get('version')
@@ -227,69 +139,27 @@ os.split=split
 os.join=join
 
 def filtreFICHIER(nom):
-     """
-     Function  filtreFICHIER
-
-     in  : string  nom , filename
-     out : string  t   , if correct filecontaint 
-
-     Lit le contenu du fichier et en fait une pre-analyse 
-     pour savoir s'il merite d'etre traite .
-     """
-     # ----------
-     # 0.4.7 
-     # ----------
-     if nom.upper().find('.SVGZ')!=-1:
-         try :
-             import gzip 
-             tz=gzip.GzipFile(nom)
-             t=tz.read()
-         except:
-             name = "ERROR: fail to import gzip module or gzip error ... "  
-             result = Blender.Draw.PupMenu(name)
-             return "false"
-     else:    
-        f=open(nom,'rU')
-        t=f.read()
-        f.close()
-     # ----------
-     # 0.4.7  : end 
-     # ----------
+     f=open(nom,'rU')
+     t=f.read()
+     f.close()
      
-     # -----------------
-     #  pre-format ...
-     # -----------------
-     # --------------------
-     # 0.4.4  '\r','' -->  '\r',' ' 
-     #        '\n','' -->  '\n',' ' 
-     #--------------------
-     t=t.replace('\r',' ')
-     t=t.replace('\n',' ')
-     t=t.replace('svg:','')
+     t=t.replace('\r','')
+     t=t.replace('\n','')
      
      if t.upper().find('<SVG')==-1 :
          name = "ERROR: invalid or empty file ... "  # if no %xN int is set, indices start from 1
          result = Blender.Draw.PupMenu(name)
          return "false"
-     else:
-          return t
-
-     """
-     elif  t.upper().find('<PATH')==-1 and\
-           t.upper().find('<RECT')==-1 and\
-           t.upper().find('<LINE')==-1 and\
-           t.upper().find('<POLYLINE')==-1 	:
+     elif  t.upper().find('<PATH')==-1:
          name = "ERROR: there's no Path in this file ... "  # if no %xN int is set, indices start from 1
          result = Blender.Draw.PupMenu(name)
          return "false"
-     """
-
+     else:
+          return t
 
 #===============================
 # Data
 #===============================
-
-
 #===============================
 # Blender Curve Data
 #===============================
@@ -302,20 +172,16 @@ class Bez:
       def __init__(self):
            self.co=[]
            self.ha=[0,0]
-           self.tag=''
-
+           
 class ITEM:
       def __init__(self):
-               self.type        =  typBEZIER3D        
+               self.type        =  typBEZIER3D,        
                self.pntsUV      =  [0,0]              
                self.resolUV     =  [32,0]            
                self.orderUV     =  [0,0]             
                self.flagUV      =  [0,0]              
                self.Origine     =  [0.0,0.0]
                self.beziers_knot = []
-               self.fill=0
-               self.closed=0
-               self.color=[0.0,0.0,0.0]
 
 class COURBE:
       def __init__(self):
@@ -356,7 +222,7 @@ def test_egalitedespositions(f1,f2):
 
 
 def Open_GEOfile(dir,nom):
-    global SCALE,BOUNDINGBOX, scale_
+    global SCALE,BOUNDINGBOX, scale
     if BLversion>=233:
        Blender.Load(dir+nom+'OOO.obj', 1)
        BO=Blender.Object.Get()
@@ -365,7 +231,7 @@ def Open_GEOfile(dir,nom):
        BO[-1].RotZ=3.1416
        BO[-1].RotX=3.1416/2.0
        
-       if scale_==1:
+       if scale==1:
           BO[-1].LocY+=BOUNDINGBOX['rec'][3]
        else:
          BO[-1].LocY+=BOUNDINGBOX['rec'][3]/SCALE
@@ -376,14 +242,14 @@ def Open_GEOfile(dir,nom):
        print "Not yet implemented"
 
 def create_GEOtext(courbes):
-    global SCALE, B, BOUNDINGBOX,scale_
-
+    global SCALE, B, BOUNDINGBOX,scale
     r=BOUNDINGBOX['rec']
-    if scale_==1:
+
+    if scale==1:
        SCALE=1.0
-    elif scale_==2:
+    elif scale==2:
        SCALE=r[2]-r[0]
-    elif scale_==3:
+    elif scale==3:
        SCALE=r[3]-r[1]
  
     t=[]
@@ -418,535 +284,211 @@ def save_GEOfile(dir,nom,t):
      f.writelines(t)
      f.close()
 
-#--------------------
-# 0.4.5 : for blender cvs 2.38 ....
-#--------------------
-def createCURVES(courbes):
-    global SCALE, B, BOUNDINGBOX,scale_
-    from Blender import Curve, Object, Scene, BezTriple
 
-    r=BOUNDINGBOX['rec']
-    if scale_==1:
-       SCALE=1.0
-    elif scale_==2:
-       SCALE=r[2]-r[0]
-    elif scale_==3:
-       SCALE=r[3]-r[1]
+def filtre_DATA(c,D,n):
+    global DEBUG,TAGcourbe
+    #print 'c',c,'D',D,'n',n
+    l=[] 
+    if len(c[0])==1 and D[c[1]+1].find(',')!=-1:
+        for n2 in range(1,n+1): 
+           ld=D[c[1]+n2].split(',')
+           for l_ in ld: 
+               l.append(l_)
+               
+    elif len(c[0])==1 and D[c[1]+2][0] not in  TAGcourbe:
+        for n2 in range(1,n*2+1):
+           l.append(D[c[1]+n2])
+        if DEBUG==1 : print l 
 
-    [o.select(0) for o in Object.Get()]
-    for I in courbes.ITEM:
-        c = Curve.New()
-        # ----------
-        # 0.4.7 
-        # ----------
-        c.setResolu(24)  
-        scene = Scene.getCurrent()
-        ob = Object.New('Curve')
-        ob.link(c)
-        scene.link(ob)
-        ob.select(1)
-        bzn=0
-        #for b in courbes.ITEM[I].beziers_knot:
-        for k2 in range(0,len(courbes.ITEM[I].beziers_knot)):
-            bz=ajustement(courbes.ITEM[I].beziers_knot[k2], SCALE)
-            #bz=k1
-            if bzn==0:
-              cp1 =  bz[4],bz[5],0.0 , bz[0],bz[1],0.0, bz[2],bz[3],0.0, 
-              beztriple1 = BezTriple.New(cp1)
-              bez = c.appendNurb(beztriple1)
-              
-              bzn = 1
-            else:
-              cp2 =  bz[4],bz[5],0.0 , bz[0],bz[1],0.0, bz[2],bz[3],0.0
-              beztriple2 = BezTriple.New(cp2)
-              bez.append(beztriple2)
-
-        if courbes.ITEM[I].flagUV[0]==1 :
-          #--------------------
-          # 0.4.6 : cyclic flag ...
-          #--------------------
-           bez.flagU += 1
-           
-
+    return l
 
 #=====================================================================
 #=====      SVG format   :  DEBUT             =========================
 #=====================================================================
-#--------------------
-# 0.4.2
-#--------------------
-OTHERSSHAPES=['rect','line', 'polyline', 'polygon','circle','ellipse']
 
-#--------------------
-# 0.4.2
-#--------------------
-def rect(prp):
-  D=[]
-  if 'x' not in prp.keys(): x=0.0
-  else	: x=float(prp['x'])
-  if 'y' not in prp.keys(): y=0.0
-  else	: y=float(prp['y'])
-		
-  height=float(prp['height'])
-  width=float(prp['width'])
-	
-  """
-   normal rect
+def contruit_SYMETRIC(l):
+    L=[float(l[0]), float(l[1]),
+       float(l[2]),float(l[3])]
+    X=L[0]-(L[2]-L[0])
+    Y=L[1]-(L[3]-L[1])
+    l =[l[0],l[1],"%4s"%X,"%4s"%Y,l[2],l[3]]   
+    return l
 
-   x,y 
-                  h1       
-       *----------*
-       |          |
-       |          | 
-       |          |
-       *----------* v1
-       h2
-  """
-  if 'rx' not in prp.keys() or 'rx' not in prp.keys(): 
-     exec   """D=['M','%s','%s','h','%s','v','%s','h','%s','z']"""%(x,y,width,height,-width)	
-  else :
-     rx=float(prp['rx'])
-     if 'ry' not in prp.keys()  : 
-	    ry=float(prp['rx'])
-     else :	ry=float(prp['ry'])
-     if 'rx' in prp.keys() and prp['rx']<0.0: rx*=-1
-     if 'ry' in prp.keys() and prp['ry']<0.0: ry*=-1
-	
-     """
-   rounded corner
-      
-   x,y     M         h1       
-       ---*----------*  
-         /            \  
-        /              \
-    v2 *                * c1
-       |                |
-       |                |   
-       |                |
-    c3 *                * v2
-        \              /
-         \            /   
-          *----------*  
-          h2         c2
-     """
-     exec   """D=['M','%s','%s',
-                  'h','%s',
-                  'c','%s','%s','%s','%s','%s','%s',
-                  'v','%s',
-                  'c','%s','%s','%s','%s','%s','%s',
-                  'h','%s',
-                  'c','%s','%s','%s','%s','%s','%s',
-                  'v','%s',
-                  'c','%s','%s','%s','%s','%s','%s',
-                  'z']"""%(x+rx,y,
-                           width-2*rx,
-                           rx,0.0,rx,ry,rx,ry,
-                            height-ry,
-                           0.0,ry,-rx,ry,-rx,ry,
-                           -width+2*rx,
-                           -rx,0.0,-rx,-ry,-rx,-ry,
-                           -height+ry,
-                           0.0,0.0,0.0,-ry,rx,-ry
- )	
-                       
-  return D
-
-#--------------------
-# 0.4.2
-#--------------------
-def circle(prp):
-   if 'cx' not in prp.keys(): cx=0.0	
-   else : cx =float(prp['cx'])
-   if 'cy' not in prp.keys(): cy=0.0
-   else : cy =float(prp['cy'])
-   r = float(prp['r'])
-   exec """D=['M','%s','%s',                  
-              'C','%s','%s','%s','%s','%s','%s',
-              'C','%s','%s','%s','%s','%s','%s',
-              'C','%s','%s','%s','%s','%s','%s',
-              'C','%s','%s','%s','%s','%s','%s',
-              'Z']"""%( 
-                      cx,cy+r, 
-                      cx-r,cy+r*0.552, cx-0.552*r,cy+r, cx,cy+r,
-                      cx+r*0.552,cy+r, cx+r,cy+r*0.552, cx+r,cy,
-                      cx+r,cy-r*0.552,  cx+r*0.552,cy-r,   cx,cy-r,
-                      cx-r*0.552,cy-r, cx-r,cy-r*0.552, cx-r,cy
-                      )
-   return D 
-   
-#--------------------
-# 0.4.2
-#--------------------
-def ellipse(prp):
-   if 'cx' not in prp.keys(): cx=0.0	
-   else : cx =float(prp['cx'])
-   if 'cy' not in prp.keys(): cy=0.0
-   else : cy =float(prp['cy'])
-   ry = float(prp['rx'])
-   rx = float(prp['ry'])
-
-   exec """D=['M','%s','%s',                  
-              'C','%s','%s','%s','%s','%s','%s',
-              'C','%s','%s','%s','%s','%s','%s',
-              'C','%s','%s','%s','%s','%s','%s',
-              'C','%s','%s','%s','%s','%s','%s',
-              'Z']"""%( 
-                      cx,cy+rx, 
-                      cx-ry,cy+rx*0.552, cx-0.552*ry,cy+rx, cx,cy+rx,
-                      cx+ry*0.552,cy+rx, cx+ry,cy+rx*0.552, cx+ry,cy,
-                      cx+ry,cy-rx*0.552,  cx+ry*0.552,cy-rx,   cx,cy-rx,
-                      cx-ry*0.552,cy-rx, cx-ry,cy-rx*0.552, cx-ry,cy
-                      )
-   return D 
-#--------------------
-# 0.4.2
-#--------------------
-def line(prp):
-  exec   """D=['M','%s','%s',
-                  'L','%s','%s']"""%(prp['x1'],prp['y1'], prp['x2'],prp['y2'])
-  return D
-#--------------------
-# 0.4.2
-#--------------------    
-def polyline(prp):
- if 'points' in  prp.keys():
-    #print prp['points']
-    points=prp['points'].split(' ')
-    #print points
-    np=0
-    for p in points:
-     if p!='':
-        p=p.split(',')
-        if np==0:
-           exec "D=['M','%s','%s']"%(p[0],p[1])
-           np+=1
-        else: 
-           exec """D.append('L');D.append('%s');D.append('%s')"""%(p[0],p[1])
-    #print D
-    return D
- else:
-    return []
-
-#--------------------
-# 0.4.2
-#--------------------	
-def polygon(prp):
-    D=polyline(prp)
-    if D!=[]:
-        D.append('Z')
-    return D
-
-    
-#--------------------
-# 0.3.9
-#--------------------
-def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
-    rx=abs(rx)
-    ry=abs(ry)
-    px=abs((cos(ang)*(cpx-x)+sin(ang)*(cpy-y))*0.5)**2.0
-    py=abs((cos(ang)*(cpy-y)-sin(ang)*(cpx-x))*0.5)**2.0
-    pl=px/(rx**2.0)+py/(ry**2.0 )
-    if pl>1.0:
-        pl=pl**0.5;rx*=pl;ry*=pl
-    x0=(cos(ang)/rx)*cpx+(sin(ang)/rx)*cpy
-    y0=(-sin(ang)/ry)*cpx+(cos(ang)/ry)*cpy
-    x1=(cos(ang)/rx)*x+(sin(ang)/rx)*y
-    y1=(-sin(ang)/ry)*x+(cos(ang)/ ry)*y    
-    d=(x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)  
-    if abs(d)>0.0 :sq=1.0/d-0.25
-    else: sq=-0.25
-    if sq<0.0 :sq=0.0
-    sf=sq**0.5
-    if fs==fa :sf=-sf
-    xc=0.5*(x0+x1)-sf*(y1-y0)
-    yc=0.5*(y0+y1)+sf*(x1-x0)
-    ang_0=atan2(y0-yc,x0-xc)
-    ang_1=atan2(y1-yc,x1-xc)
-    ang_arc=ang_1-ang_0;
-    if (ang_arc < 0.0 and fs==1) :
-        ang_arc += 2.0 * PI
-    elif (ang_arc>0.0 and fs==0) :
-        ang_arc-=2.0*PI
-    n_segs=int(ceil(abs(ang_arc*2.0/(PI*0.5+0.001))))
-    P=[]
-    for i in range(n_segs):
-        ang0=ang_0+i*ang_arc/n_segs
-        ang1=ang_0+(i+1)*ang_arc/n_segs
-        ang_demi=0.25*(ang1-ang0)
-        t=2.66666*sin(ang_demi)*sin(ang_demi)/sin(ang_demi*2.0)
-        x1=xc+cos(ang0)-t*sin(ang0)
-        y1=yc+sin(ang0)+t*cos(ang0)
-        x2=xc+cos(ang1)
-        y2=yc+sin(ang1)
-        x3=x2+t*sin(ang1)
-        y3=y2-t*cos(ang1)
-        P.append([[(cos(ang)*rx)*x1+(-sin(ang)*ry)*y1,
-               (sin(ang)*rx)*x1+(cos(ang)*ry)*y1],
-              [(cos(ang)*rx)*x3+(-sin(ang)*ry)*y3,
-               (sin(ang)*rx)*x3+(cos(ang)*ry)*y3],
-              [(cos(ang)*rx)*x2+(-sin(ang)*ry)*y2,
-               (sin(ang)*rx)*x2+(cos(ang)*ry)*y2]])
-    return P
-
-
-#--------------------
-# 0.3.9
-#--------------------
-def courbe_vers_a(c,D,n0,CP):  #A,a
-    global SCALE
-
-    l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),
-        int(D[c[1]+4]),int(D[c[1]+5]),float(D[c[1]+6]),float(D[c[1]+7])]
-    if c[0]=='a':
-       l[5]=l[5] + CP[0]
-       l[6]=l[6] + CP[1]
-
-    B=Bez()
-    B.co=[ CP[0], CP[1], CP[0], CP[1], CP[0], CP[1] ]             
-    B.ha=[0,0]
-    B.tag=c[0]
- 
-    POINTS= calc_arc (CP[0],CP[1], 
-                      l[0], l[1], l[2]*(PI / 180.0),
-                      l[3], l[4], 
-                      l[5], l[6] )
-
-    if DEBUG == 1  : print POINTS
-    
-    for p in POINTS :
-        B=Bez()
-        B.co=[ p[2][0],p[2][1], p[0][0],p[0][1], p[1][0],p[1][1]]             
-        B.ha=[0,0]
-        B.tag=c[0]
-        BP=courbes.ITEM[n0].beziers_knot[-1]
-        BP.co[2]=B.co[2]
-        BP.co[3]=B.co[3]
-        courbes.ITEM[n0].beziers_knot.append(B)
-           
-    BP=courbes.ITEM[n0].beziers_knot[-1]
-    BP.co[2]=BP.co[0]
-    BP.co[3]=BP.co[1]
-
-    CP=[l[5], l[6]]
-    return  courbes,n0,CP    
-
-def mouvement_vers(c, D, n0,CP, proprietes):
+def mouvement_vers(c, D, n0,CP):
     global DEBUG,TAGcourbe
+    #print 'c',c,'D[c[1]+1]',D[c[1]+1]
 
-    #l=filtre_DATA(c,D,2)
-    l=[float(D[c[1]+1]),float(D[c[1]+2])]
-
-    if c[0]=='m':
-       l=[l[0]+CP[0],
-           l[1] + CP[1]]
-
+    l=filtre_DATA(c,D,1)
+    #print 'l',l
     if n0 in courbes.ITEM.keys():
        n0+=1
-
+    #
+    #   CP=[l[0],l[1]]        
+    #else:
+    #   CP=[l[0],l[1]] 
     CP=[l[0],l[1]] 
+
     courbes.ITEM[n0]=ITEM() 
     courbes.ITEM[n0].Origine=[l[0],l[1]] 
-
-    proprietes['n'].append(n0)
-    #print 'prop et item',proprietes['n'], courbes.ITEM.keys()
 
     B=Bez()
     B.co=[CP[0],CP[1],CP[0],CP[1],CP[0],CP[1]]
     B.ha=[0,0]
-    B.tag=c[0]
-    courbes.ITEM[n0].beziers_knot.append(B)
     
-    if DEBUG==1: print courbes.ITEM[n0], CP    
+    courbes.ITEM[n0].beziers_knot.append(B)
+    if DEBUG==1: print courbes.ITEM[n0], CP
+    
 
     return  courbes,n0,CP     
     
 def boucle_z(c,D,n0,CP): #Z,z
     #print c, 'close'
-    #print courbes.ITEM[n0].beziers_knot
-    courbes.ITEM[n0].flagUV[0]=1
-    #print 'len(courbes.ITEM[n0].beziers_knot)',len(courbes.ITEM[n0].beziers_knot)
-    if len(courbes.ITEM[n0].beziers_knot)>1:
-        BP=courbes.ITEM[n0].beziers_knot[-1]
-        BP0=courbes.ITEM[n0].beziers_knot[0]
-        if BP.tag in ['c','C','s','S']: 
-           BP.co[2]=BP0.co[2]  #4-5 point prec
-           BP.co[3]=BP0.co[3]
-           del courbes.ITEM[n0].beziers_knot[0]
-    else:
-     del courbes.ITEM[n0]
-
-     n0-=1 
+    courbes.ITEM[n0].flagUV[0]=1 
     return  courbes,n0,CP    
-
-def courbe_vers_q(c,D,n0,CP):  #Q,q
-    l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),float(D[c[1]+4])]
-    if c[0]=='q':
-       l=[l[0]+CP[0], l[1]+CP[1], l[2]+CP[0], l[3]+CP[1]]
+   
+def courbe_vers_s(c,D,n0,CP):  #S,s
+    l=filtre_DATA(c,D,2) 
+    if c[0]=='s':
+       l=["%4s"%(float(l[0])+float(CP[0])),
+          "%4s"%(float(l[1])+float(CP[1])),
+          "%4s"%(float(l[2])+float(CP[0])),
+          "%4s"%(float(l[3])+float(CP[1]))]
+    l=contruit_SYMETRIC(l)    
     B=Bez()
-    B.co=[l[2],  l[3],  l[2],  l[3], l[0], l[1]] #plus toucher au 2-3
+    B.co=[l[4],l[5],l[2],l[3],l[0],l[1]] #plus toucher au 2-3
     B.ha=[0,0]
-    B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
-    BP.co[2]=BP.co[0]
-    BP.co[3]=BP.co[1]
-    courbes.ITEM[n0].beziers_knot.append(B)
-    if DEBUG==1: print B.co,BP.co
-
-    CP=[l[2],l[3]]
-    if DEBUG==1:
-       pass 
-    if len(D)>c[1]+5 and D[c[1]+5] not in TAGcourbe :
-        c[1]+=4
-        courbe_vers_q(c, D, n0,CP)
-    return  courbes,n0,CP          
-
-def courbe_vers_t(c,D,n0,CP):  #T,t 
-    l=[float(D[c[1]+1]),float(D[c[1]+2])]
-    if c[0]=='t':
-       l=[l[0]+CP[0], l[1]+CP[1]]
-          
-    B=Bez()
-    B.co=[l[0], l[1], l[0], l[1], l[0], l[1]] #plus toucher au 2-3
-    B.ha=[0,0]
-    B.tag=c[0]
 
     BP=courbes.ITEM[n0].beziers_knot[-1]
-
-    l0=contruit_SYMETRIC([BP.co[0],BP.co[1],BP.co[4],BP.co[5]])
-
-    if BP.tag in ['q','Q','t','T','m','M']:
-       BP.co[2]=l0[2]
-       BP.co[3]=l0[3]
+    BP.co[2]=l[2]  #4-5 point prec
+    BP.co[3]=l[3]
 
     courbes.ITEM[n0].beziers_knot.append(B)
     if DEBUG==1: print B.co,BP.co
+    CP=[l[4],l[5]]    
 
-    CP=[l[0],l[1]]
-    if len(D)>c[1]+3 and D[c[1]+3] not in TAGcourbe :
-        c[1]+=4
-        courbe_vers_t(c, D, n0,CP)    
+    if len(D)<c[1]+3 and D[c[1]+3] not in TAGcourbe :
+        c[1]+=2
+        courbe_vers_c(c, D, n0,CP)
+    return  courbes,n0,CP
+
+def courbe_vers_a(c,D,n0,CP):  #A
+    #print c
     return  courbes,n0,CP     
 
-#--------------------
-# 0.4.3 : rewritten
-#--------------------
-def contruit_SYMETRIC(l):
-    X=l[2]-(l[0]-l[2])
-    Y=l[3]-(l[1]-l[3])
-    return X,Y
+def courbe_vers_q(c,D,n0,CP):  #Q
+    #print c
+    return  courbes,n0,CP     
 
-def courbe_vers_s(c,D,n0,CP):  #S,s
-    l=[float(D[c[1]+1]),
-       float(D[c[1]+2]),
-       float(D[c[1]+3]),
-       float(D[c[1]+4])]
-    if c[0]=='s':
-       l=[l[0]+CP[0], l[1]+CP[1], 
-          l[2]+CP[0], l[3]+CP[1]]
-    B=Bez()
-    B.co=[l[2],l[3],l[2],l[3],l[0],l[1]] #plus toucher au 2-3
-    B.ha=[0,0]
-    B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
-    #--------------------
-    # 0.4.3
-    #--------------------
-    BP.co[2],BP.co[3]=contruit_SYMETRIC([BP.co[4],BP.co[5],BP.co[0],BP.co[1]])
-    courbes.ITEM[n0].beziers_knot.append(B)
-    if DEBUG==1: print B.co,BP.co
-    #--------------------
-    # 0.4.3
-    #--------------------	
-    CP=[l[2],l[3]]    
-    if len(D)>c[1]+5 and D[c[1]+5] not in TAGcourbe :
-        c[1]+=4
-        courbe_vers_c(c, D, n0,CP)       
-    return  courbes,n0,CP
+def courbe_vers_t(c,D,n0,CP):  #T
+    return  courbes,n0,CP     
        
 def courbe_vers_c(c, D, n0,CP): #c,C
-    l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),
-       float(D[c[1]+4]),float(D[c[1]+5]),float(D[c[1]+6])]
+
+    l=filtre_DATA(c,D,3) 
+
+    print '\n','l',l, 'c',c,'CP', CP
+
     if c[0]=='c':
-       l=[l[0]+CP[0],
-          l[1]+CP[1],
-          l[2]+CP[0],
-          l[3]+CP[1],
-          l[4]+CP[0],
-          l[5]+CP[1]]
+       l=["%4s"%(float(l[0])+float(CP[0])),
+          "%4s"%(float(l[1])+float(CP[1])),
+          "%4s"%(float(l[2])+float(CP[0])),
+          "%4s"%(float(l[3])+float(CP[1])),
+          "%4s"%(float(l[4])+float(CP[0])),
+          "%4s"%(float(l[5])+float(CP[1]))]
+
+    #print l
+   
     B=Bez()
     B.co=[l[4],
           l[5],
-          l[4],
-          l[5],
+          l[0],
+          l[1],
           l[2],
           l[3]] #plus toucher au 2-3
+
     B.ha=[0,0]
-    B.tag=c[0]
+
     BP=courbes.ITEM[n0].beziers_knot[-1]
+
     BP.co[2]=l[0]
     BP.co[3]=l[1]
+
     courbes.ITEM[n0].beziers_knot.append(B)
     if DEBUG==1: print B.co,BP.co
+
     CP=[l[4],l[5]]
-    if len(D)>c[1]+7 and D[c[1]+7] not in TAGcourbe :
-        c[1]+=6
+    if DEBUG==1:
+       pass #print 'D[c[1]]', D[c[1]], c
+       #print D
+    if len(D)<c[1]+4 and D[c[1]+4] not in TAGcourbe :
+        c[1]+=3
         courbe_vers_c(c, D, n0,CP)
+
     return  courbes,n0,CP
     
     
 def ligne_tracee_l(c, D, n0,CP): #L,l
-    l=[float(D[c[1]+1]),float(D[c[1]+2])]
+    #print c
+    
+    l=filtre_DATA(c,D,1)
     if c[0]=='l':
-       l=[l[0]+CP[0],
-          l[1]+CP[1]]
+       l=["%4s"%(float(l[0])+float(CP[0])),
+          "%4s"%(float(l[1])+float(CP[1]))]
+
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
     B.ha=[0,0]
-    B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
-    if BP.tag in ['c','C','s','S','m','M']:
-       BP.co[2]=B.co[4]
-       BP.co[3]=B.co[5]
     courbes.ITEM[n0].beziers_knot.append(B)    
-    CP=[B.co[0],B.co[1]]
-    if len(D)>c[1]+3 and D[c[1]+3] not in TAGcourbe :
-        c[1]+=2
+
+    CP=[l[0],l[1]]
+
+    if len(D)<c[1]+2 and D[c[1]+2] not in TAGcourbe :
+        c[1]+=1
         ligne_tracee_l(c, D, n0,CP) #L
+            
     return  courbes,n0,CP    
     
     
 def ligne_tracee_h(c,D,n0,CP): #H,h
+    #print '|',c[0],'|',len(c[0]),'  --> ',CP[0]
+    #print   'D   :',D,' \n CP  :', CP 
     if c[0]=='h':
-       l=[float(D[c[1]+1])+float(CP[0]),CP[1]]
+       l=["%4s"%(float(D[c[1]+1])+float(CP[0])),"%4s"%float(CP[1])]
     else:
-       l=[float(D[c[1]+1]),CP[1]]
+       l=["%4s"%float(D[c[1]+1]),"%4s"%float(CP[1])]        
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
     B.ha=[0,0]
-    B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
-    if BP.tag in ['c','C','s','S','m','M']:
-        BP.co[2]=B.co[4]
-        BP.co[3]=B.co[5]
     courbes.ITEM[n0].beziers_knot.append(B)    
+
     CP=[l[0],l[1]]
+    #print 'CP', CP    
     return  courbes,n0,CP    
 
-def ligne_tracee_v(c,D,n0,CP): #V, v    
+def ligne_tracee_v(c,D,n0,CP): #V, v
+    #l=filtre_DATA(c,D,0)
+    
     if c[0]=='v':
-       l=[CP[0], float(D[c[1]+1])+CP[1]]
+       l=["%4s"%float(CP[0]),
+          "%4s"%(float(D[c[1]+1])+float(CP[1]))]
+       #print '|',c[0],'|', len(c[0]) ,'  --> ',CP
     else:
-       l=[CP[0], float(D[c[1]+1])]               
+       l=["%4s"%float(CP[0]),
+          "%4s"%float(D[c[1]+1])]        
+       #print '|',c[0],'|', len(c[0]) ,'  --> ',CP
+
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
     B.ha=[0,0]
-    B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
-    if BP.tag in ['c','C','s','S','m','M']:
-        BP.co[2]=B.co[4]
-        BP.co[3]=B.co[5]
     courbes.ITEM[n0].beziers_knot.append(B)    
+
     CP=[l[0],l[1]]
+    #print 'CP', CP
+    return  courbes,n0,CP    
+
+def boucle_tracee_z(c,D,n0,CP): #Z
+    #print c
+    #CP=[]
     return  courbes,n0,CP    
      
 Actions=   {     "C" : courbe_vers_c,
@@ -975,8 +517,81 @@ Actions=   {     "C" : courbe_vers_c,
 TAGcourbe=Actions.keys()
 TAGtransform=['M','L','C','S','H','V','T','Q']
 tagTRANSFORM=0
- 
+
+def get_content(val,t0):
+    t=t0[:] 
+    if t.find(' '+val+'="')!=-1:
+       t=t[t.find(' '+val+'="')+len(' '+val+'="'):]
+       val=t[:t.find('"')]
+       t=t[t.find('"'):]
+       return t0,val
+    else:
+       return t0,0
+
+def get_tag(val,t):
+    t=t[t.find('<'+val):]
+    val=t[:t.find('>')+1]
+    t=t[t.find('>')+1:]    
+    if DEBUG==3 : print t[:10], val
+    return t,val
+
+def get_data(val,t):
+    t=t[t.find('<'+val):]
+    val=t[:t.find('</'+val+'>')]
+    t=t[t.find('</'+val+'>')+3+len(val):]
+    if DEBUG==3 : print t[:10], val
+    return t,val
+    
+def get_val(val,t):
+    d=""
+    #print t
+    for l in t:
+        if l.find(val+'="')!=-1:
+            #print 'l', l
+            # 0.2.7 : - correction for inskape 0.40 cvs  SVG
+            l=l.replace('>','')
+            # 0.2.7 : -- end 
+            d=l[l[:-1].rfind('"')+1:-1]
+            #print 'd', d   
+            for nn in d:
+                if '0123456789.'.find(nn)==-1:
+                     d=d.replace(nn,"")
+                     #print d
+            d=float(d)
+            break
+        #else:
+        #  print l
+        d=0.0 
+    return d
+
+
+
+def get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox):
+    if viewbox==0:
+        h=get_val('height',SVG)
+        if DEBUG==1 : print 'h : ',h
+        w=get_val('width',SVG)
+        if DEBUG==1 : print 'w :',w
+        BOUNDINGBOX['rec']=[0.0,0.0,w,h]
+        r=BOUNDINGBOX['rec']
+        BOUNDINGBOX['coef']=w/h       
+    else:
+        viewbox=viewbox.split()
+        BOUNDINGBOX['rec']=[float(viewbox[0]),float(viewbox[1]),float(viewbox[2]),float(viewbox[3])]
+        r=BOUNDINGBOX['rec']
+        BOUNDINGBOX['coef']=(r[2]-r[0])/(r[3]-r[1])       
+
+    return BOUNDINGBOX
+
+# 0.2.8 : - correction for inskape 0.40 cvs  SVG
+def repack_DATA2(DATA):   
+    for d in Actions.keys():
+        DATA=DATA.replace(d,d+' ')
+    return DATA    
+
+
 def wash_DATA(ndata):
+   print 'ndata', ndata, len(ndata)
    if ndata!='':
        while ndata[0]==' ': 
            ndata=ndata[1:]
@@ -984,21 +599,17 @@ def wash_DATA(ndata):
            ndata=ndata[:-1]
        if ndata[0]==',':ndata=ndata[1:]
        if ndata[-1]==',':ndata=ndata[:-1]
-       #--------------------
-       # 0.4.0 : 'e'
-       #--------------------
-       if ndata.find('-')!=-1 and ndata[ndata.find('-')-1] not in [' ', ',', 'e']:
+       if ndata.find('-')!=-1 and ndata[ndata.find('-')-1] not in [' ',' ']:
           ndata=ndata.replace('-',',-')
        ndata=ndata.replace(',,',',')    
        ndata=ndata.replace(' ',',')
        ndata=ndata.split(',')
        for n in ndata :
-          if n=='' : ndata.remove(n)	
+          if n=='' : ndata.remove(n)
    return ndata
-
-#--------------------             
-# 0.3.4 : - reading data rewrittten
-#--------------------
+         
+	
+# 0.3.4 : - restructuration de la lecture des donnes paths
 def list_DATA(DATA):
     """
     cette fonction doit retourner une liste proposant
@@ -1007,304 +618,238 @@ def list_DATA(DATA):
     Par exemple :
     d="'M0,14.0 z" devient ['M','0.0','14.0','z'] 
     """
+    while DATA.count('  ')!=0 :
+        DATA=DATA.replace('  ',' ')
+
     tagplace=[]
+    DATA=DATA.replace('\n','')
+
     for d in Actions.keys():
         b1=0
         b2=len(DATA)
         while DATA.find(d,b1,b2)!=-1 :
+            #print d, b1 
             tagplace.append(DATA.find(d,b1,b2))
             b1=DATA.find(d,b1,b2)+1
     tagplace.sort()
     tpn=range(len(tagplace)-1)
-    #--------------------
-    # 0.3.5 :: short data,only one tag
-    #--------------------
-    if len(tagplace)-1>0:
-       DATA2=[]
-       for t in tpn: 
-          DATA2.append(DATA[tagplace[t]:tagplace[t]+1])    
-          ndata=DATA[tagplace[t]+1:tagplace[t+1]]
-          if DATA2[-1] not in ['z','Z'] :
-             ndata=wash_DATA(ndata)
-             for n in ndata : DATA2.append(n)       
-       DATA2.append(DATA[tagplace[t+1]:tagplace[t+1]+1])   
-       if DATA2[-1] not in ['z','Z'] and len(DATA)-1>=tagplace[t+1]+1:
-          ndata=DATA[tagplace[t+1]+1:-1]
+    DATA2=[]
+
+    for t in tpn: 
+             
+       DATA2.append(DATA[tagplace[t]:tagplace[t]+1])    
+       print DATA2[-1]
+
+       ndata=DATA[tagplace[t]+1:tagplace[t+1]]
+       if DATA2[-1] not in ['z','Z'] :
           ndata=wash_DATA(ndata)
           for n in ndata : DATA2.append(n)
-    else:
-        #--------------------	
-        # 0.3.5 : short data,only one tag
-        #--------------------
-        DATA2=[]
-        DATA2.append(DATA[tagplace[0]:tagplace[0]+1])
-        ndata=DATA[tagplace[0]+1:]
-        ndata=wash_DATA(ndata)
-        for n in ndata : DATA2.append(n)
+       
+    DATA2.append(DATA[tagplace[t+1]:tagplace[t+1]+1])   
+	
+    print DATA2[-1]
+	
+    if DATA2[-1] not in ['z','Z'] and len(DATA)-1>=tagplace[t+1]+1:
+       ndata=DATA[tagplace[t+1]+1:-1]
+       ndata=wash_DATA(ndata)
+       for n in ndata : DATA2.append(n)
+
     return DATA2    
 
+
 # 0.3
-def translate(tx=None,ty=None):
+def translate(tx,ty):
     return [1, 0, tx], [0, 1, ty],[0,0,1]
+
 # 0.3.2
-def scale(sx=None,sy=None):
-    if sy==None: sy=sx
+def scale(sx,sy):
     return [sx, 0, 0], [0, sy, 0],[0,0,1]
-# 0.4.1 : transslate a in radians
+# 0.3.2
 def rotate(a):
-    return [cos(a*3.1416/90.0), -sin(a*3.1416/90.0), 0], [sin(a*3.1416/90.0), cos(a*3.1416/90.0),0],[0,0,1]
+    return [cos(a), -sin(a), 0], [sin(a), cos(a),0],[0,0,1]
 # 0.3.2
 def skewX(a):
     return [1, tan(a), 0], [0, 1, 0],[0,0,1]
-# 0.4.1
-def skewY(a):
+# 0.3.2
+def skewX(a):
     return [1, 0, 0], [tan(a), 1 , 0],[0,0,1]
 # 0.3.2
 def matrix(a,b,c,d,e,f):
-    return [a,c,e],[b,d,f],[0,0,1]
+    return [a,b,e],[c,d,f],[0,0,1]
 
-# 0.4.2 : rewritten 
-def control_CONTAINT(txt):
+# 0.3.3
+def controle_CONTENU(val,t):
     """
-    les descriptions de transformation peuvent être seules ou plusieurs et
-    les séparateurs peuvent avoir été oubliés
+    une matrice peut s'ecrire : matrix(a,b,c,d,e,f) ou matrix(a b c d e f)
     """
-    t0=0
-    tlist=[]
-    while txt.count(')',t0)>0:
-        t1=txt.find(')',t0)
-        nt0=txt[t0:t1+1]
-        t2=nt0[nt0.find('(')+1:-1]
-        val=nt0[:nt0.find('(')]
-        while t2.find('  ')!=-1:
-                 t2=t2.replace('  ',' ')
-        t2=t2.replace(' ',',')
-        if t2.find('e'):
-              t3=t2.split(',')
-              t2='' 
-              for t in t3 :
-                   t=str(float(t)) 
-              t2=str(t3).replace(']','').replace('[','').replace('\'','')
-        if val=='rotate' :
-           t3=t2.split(',')
-           if len(t3)==3:
-              tlist.append('translate('+t3[1]+','+t3[2]+')')
-              tlist.append('rotate('+t3[0]+')')
-              tlist.append('translate(-'+t3[1]+',-'+t3[2]+')')
-        else:
-              tlist.append(val+'('+t2+')')
-        t0=t1+1
-    return tlist
-
-# 0.4.1 : apply transform stack
-def courbe_TRANSFORM(Courbe,proprietes):
-    # 1/ deplier le STACK
-    #   créer une matrice pour chaque transformation    
-    ST=[]
-    #print proprietes['stack'] 
-    for st in proprietes['stack'] :
-        if st and  type(st)==list:
-          for t in st:
-               exec "a,b,c=%s;T=Mathutils.Matrix(a,b,c)"%control_CONTAINT(t)[0]
-               ST.append(T)
-        elif st :
-           exec "a,b,c=%s;T=Mathutils.Matrix(a,b,c)"%control_CONTAINT(st)[0]
-           ST.append(T)              
-    if 'transform' in proprietes.keys():
-        for trans in control_CONTAINT(proprietes['transform']):
-           exec """a,b,c=%s;T=Mathutils.Matrix(a,b,c)"""%trans
-           ST.append(T)
-           #print ST
-    ST.reverse()
-    for n in proprietes['n']:
-     if n in Courbe.keys():
-        for bez0 in Courbe[n].beziers_knot:
-          bez=bez0.co
-          for b in [0,2,4]:
-              for t in ST:
-                 v=Mathutils.Vector([bez[b],bez[b+1],1.0])
-                 #v=Mathutils.MatMultVec(t, v)
-                 v=t * v
-                 bez[b]=v[0]
-                 bez[b+1]=v[1]          
-
-def filtre(d):
-    for nn in d:
-       if '0123456789.'.find(nn)==-1:
-          d=d.replace(nn,"")
-    return d
-
-def get_BOUNDBOX(BOUNDINGBOX,SVG):
-    if 'viewbox' not in SVG.keys():
-        h=float(filtre(SVG['height']))
-        if DEBUG==1 : print 'h : ',h
-        w=float(filtre(SVG['width']))
-        if DEBUG==1 : print 'w :',w
-        BOUNDINGBOX['rec']=[0.0,0.0,w,h]
-        r=BOUNDINGBOX['rec']
-        BOUNDINGBOX['coef']=w/h       
+    if val.find('matrix') and t.find(val+'(')!=-1 and t.find(val+',')==-1:
+       t0=t[t.find(val+'(')+len(val+'('):]
+       t0=t0[:t0.find(')')]
+       val=t0[:]
+       while val.find('  ')!=-1:
+           val=val.replace('  ',' ')
+       val=val.replace(' ',',')
+       t=t.replace(t0,val)
+       return val
     else:
-        viewbox=SVG['viewbox'].split()
-        BOUNDINGBOX['rec']=[float(viewbox[0]),float(viewbox[1]),float(viewbox[2]),float(viewbox[3])]
-        r=BOUNDINGBOX['rec']
-        BOUNDINGBOX['coef']=(r[2]-r[0])/(r[3]-r[1])       
-    return BOUNDINGBOX
+       return -1
 
-# 0.4.1 : attributs ex : 'id=', 'transform=', 'd=' ...
-def collecte_ATTRIBUTS(data):
-    data=data.replace('  ',' ')
-    ELEM={'TYPE':data[1:data.find(' ')]}
-    t1=len(data)
-    t2=0
-    ct=data.count('="')
-    while ct>0:
-        t0=data.find('="',t2)
-        t2=data.find(' ',t2)+1
-        id=data[t2:t0]
-        t2=data.find('"',t0+2)
-        if id!='d':
-           exec "ELEM[id]=\"\"\"%s\"\"\""%(data[t0+2:t2].replace('\\','/'))
-        else:
-              exec "ELEM[id]=[%s,%s]"%(t0+2,t2) 
-        ct=data.count('="',t2)
-    return ELEM
+# 0.3    
+def get_TRANSFORM(STRING):
+    STRING,TRANSFORM=get_content('transform',STRING)
+    #print 'TRANSFORM 1 :', TRANSFORM
+    for t in ['translate','scale','rotate','matrix','skewX','skewY'] :
+       if TRANSFORM.find(t)!=-1 and TRANSFORM.count('(')==1:
+         #print 'TRANSFORM 2 :', TRANSFORM
+         print ' getcontent ', t,' ',controle_CONTENU(t,TRANSFORM)
+         exec "a,b,c=%s;T=Mathutils.Matrix(a,b,c)"%TRANSFORM       
+    return  T
 
-# --------------------------------------------
-# 0.4.1 : to avoid to use sax and ths xml  
-#         tools of the complete python
-# --------------------------------------------
-def contruit_HIERARCHIE(t):
-    global CP, courbes, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
-    TRANSFORM=0
-    t=t.replace('\t',' ')
-    while t.find('  ')!=-1:
-          t=t.replace('  ',' ')
-    n0=0      
-    t0=t1=0
-    baliste=[]
-    balisetype=['?','?','/','/','!','!']
-    BALISES=['D',  #DECL_TEXTE',
-             'D',  #DECL_TEXTE',
-             'F',  #FERMANTE',
-             'E',  #ELEM_VIDE',
-             'd',  #DOC',
-             'R',  #REMARQUES',
-             'C',  #CONTENU',
-             'O'   #OUVRANTE'
-             ]
-    STACK=[]
-    while t1<len(t) and t0>-1:
-      t0=t.find('<',t0)
-      t1=t.find('>',t0)
-      ouvrante=0
-      #--------------------
-      # 0.4.4 , add 'else:' and 'break' to the 'if' statement
-      #--------------------
-      if t0>-1 and t1>-1:
-          if t[t0+1] in balisetype:
-             b=balisetype.index(t[t0+1])
-             if t[t0+2]=='-': 
-               b=balisetype.index(t[t0+1])+1
-             balise=BALISES[b]
-             if b==2:
-                 parent=STACK.pop(-1)
-                 if parent!=None and TRANSFORM>0:
-                     TRANSFORM-=1
-          elif t[t1-1] in balisetype:
-            balise=BALISES[balisetype.index(t[t1-1])+1]
-          else:
-            t2=t.find(' ',t0)  
-            if t2>t1: t2=t1
-            ouvrante=1
-            NOM=t[t0+1:t2]
-            if t.find('</'+NOM)>-1:
-               balise=BALISES[-1]
-            else:
-               balise=BALISES[-2]
-          if balise=='E' or balise=='O':
-             proprietes=collecte_ATTRIBUTS(t[t0:t1+ouvrante])
-             if  balise=='O' and 'transform' in proprietes.keys():
-                 STACK.append(proprietes['transform'])
-                 TRANSFORM+=1   
-             elif balise=='O' : 
-                 STACK.append(None)
-             proprietes['stack']=STACK[:]
-             D=[] 
-             if proprietes['TYPE'] in ['path'] and (proprietes['d'][1]-proprietes['d'][0]>1):
-                 D=list_DATA(t[proprietes['d'][0]+t0:proprietes['d'][1]+t0])
-             elif proprietes['TYPE'] in OTHERSSHAPES:
-                 exec "D=%s(proprietes)"% proprietes['TYPE']
-             if len(D)>0:
-                 cursor=0
-                 proprietes['n']=[]
-                 for cell in D: 
-                   if DEBUG==2 : print 'cell : ',cell ,' --'                   
-                   if len(cell)>=1 and cell[0] in TAGcourbe:
-                       prop=''
-                       if cell[0] in ['m','M']: 
-	                             prop=',proprietes'
-                       exec """courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP%s)"""%prop
-                   cursor+=1
-                 if TRANSFORM>0 or 'transform' in proprietes.keys() :
-                     courbe_TRANSFORM(courbes.ITEM,proprietes)
-             elif proprietes['TYPE'] in ['svg'] :
-                   BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,proprietes)          
-      else:
-         #--------------------
-         # 0.4.4 
-         #--------------------
-         break
-      t1+=1
-      t0=t1             
+# 0.3
+def G_move(l,a,t):
+    if a==0:
+        v=Mathutils.Vector([float(l[0]),float(l[1]),1.0])
+        v=Mathutils.MatMultVec(t, v)
+        return str(v[0]),str(v[1])
+    else :
+       #print 'l', l ,'t', t, 'a', a
+       l=l.split(',')
+       v=Mathutils.Vector([float(l[0]),float(l[1]),1.0])
+       v=Mathutils.MatMultVec(t, v)            
+       return str(v[0])+','+str(v[1])
+    
+# 0.3    
+def transform_DATA(D1,TRANSFORM):   
+    for cell in range(len(D1)):
+        if D1[cell] in TAGtransform:
+           if D1[cell+1].find(',')==-1:       
+                if D1[cell] in ['C', 'S','Q', 'M','L','T',]: #2 valeurs
+                    D1[cell+1],D1[cell+2]=G_move([D1[cell+1],D1[cell+2]],0,TRANSFORM)
+                    if D1[cell] in ['C', 'S','Q'] :
+                       D1[cell+3],D1[cell+4]=G_move([D1[cell+3],D1[cell+4]],0,TRANSFORM)
+                       if D1[cell] in ['C']:
+                          D1[cell+5],D1[cell+6]=G_move([D1[cell+5],D1[cell+6]],0,TRANSFORM)
+           else :
+                if D1[cell] == 'C': #6 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],-1,TRANSFORM)
+                    D1[cell+2]=G_move(D1[cell+2],-1,TRANSFORM)
+                    D1[cell+3]=G_move(D1[cell+3],-1,TRANSFORM)
+                elif D1[cell] in ['M','L','T']: #2 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],-1,TRANSFORM)
+                elif D1[cell] == ['S','Q']: #4 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],-1,TRANSFORM)
+                    D1[cell+2]=G_move(D1[cell+2],-1,TRANSFORM)
+           if D1[cell] == 'H': #1 valeurs x
+                n=0
+                D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
+           elif D1[cell] == 'V': #1 valeurs y
+                n=0
+                D1[cell+1]=G_move(D1[cell+1],1,TRANSFORM)
+    return D1            
+                
+def format_PATH(t,TRANSFORM):
+    global tagTRANSFORM
+    
+    t,PATH=get_tag('path',t)
+
+    if PATH.find(' transform="')!=-1:
+       TRANSFORM2=get_TRANSFORM(PATH)
+       # 0.3.3
+       TRANSFORM=TRANSFORM*TRANSFORM2
+       #TRANSFORM[1]+=TRANSFORM2[1]
+       tagTRANSFORM+=1
+       
+    if PATH.find(' id="')!=-1:
+       PATH,ID=get_content('id',PATH)
+       #print 'ident = ', ID
+
+    if PATH.find(' STROKE="')!=-1:
+       PATH,ID=get_content('stroke',PATH)
+       #print 'path stroke = ', ID
+
+    if PATH.find(' stroke-width="')!=-1:
+       PATH,ID=get_content('stroke-width',PATH)
+       #print 'path stroke-width = ', ID
+
+    if PATH.find(' d="')!=-1:
+       PATH,D=get_content('d',PATH)
+    D=list_DATA(D)
+
+    if  tagTRANSFORM in [1,2] : D=transform_DATA(D,TRANSFORM)
+    return t,D
+
+
+
                         
 def scan_FILE(nom):
-  global CP, courbes, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
+  global CP, courbes, SCALE, DEBUG, BOUNDINGBOX, scale, tagTRANSFORM
   dir,name=split(nom)
   name=name.split('.')
+  n0=0
   result=0
+  
   t=filtreFICHIER(nom)
+  
   if t!='false':
-     Blender.Window.EditMode(0)
      if not SHARP_IMPORT:
          warning = "Select Size : %t| As is %x1 | Scale on Height %x2| Scale on Width %x3" 
-         scale_ = Blender.Draw.PupMenu(warning)
-     # 0.4.1 : to avoid to use sax and the xml  
-     #         tools of the complete python
-     contruit_HIERARCHIE(t)
-     r=BOUNDINGBOX['rec']
-     if scale_==1:
-        SCALE=1.0
-     elif scale==2:
-        SCALE=r[2]-r[0]
-     elif scale_==3:
-        SCALE=r[3]-r[1]
+         scale = Blender.Draw.PupMenu(warning)
+     npat=0
+     l=0
+     do=0
+     t,SVG=get_tag('svg',t)
+
+     SVG,viewbox=get_content('viewBox',SVG)
+
+     SVG=SVG.split(' ')
+     if DEBUG==1 : print SVG
+     if viewbox==0:
+          BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,0)
+     else:
+          BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox)
+          
+     while t.find('<g')!=-1:
+         t,G=get_data('g',t)
+         TRANSFORM=Mathutils.Matrix([1.0,0.0,0.0],[0.0,1.0,0.0],[0,0,1])
+         tagTRANSFORM=0
+         if G.find(' transform="')!=-1:  
+            TRANSFORM=get_TRANSFORM(G)
+            tagTRANSFORM=1
+            
+         while G.find('path')!=-1: 
+            G,D=format_PATH(G,TRANSFORM)
+            #print D
+            cursor=0
+            for cell in D: 
+              if DEBUG==2 : print 'cell : ',cell ,' --'                   
+              if len(cell)>=1 and cell[0] in TAGcourbe:
+                   courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)            
+              cursor+=1
+              
+     # 0.3.1
+     while t.find('path')!=-1:
+            TRANSFORM=Mathutils.Matrix([1.0,0.0,0.0],[0.0,1.0,0.0],[0,0,1])
+            t,D=format_PATH(t,TRANSFORM)
+            cursor=0
+            for cell in D: 
+              if DEBUG==2 : print 'cell : ',cell ,' --'                   
+              if len(cell)>=1 and cell[0] in TAGcourbe:
+                   courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)            
+              cursor+=1
+
   courbes.number_of_items=len(courbes.ITEM.keys())
+
   for k in courbes.ITEM.keys():
      courbes.ITEM[k].pntsUV[0] =len(courbes.ITEM[k].beziers_knot)
 
-  #--------------------
-  # 0.4.5
-  #--------------------
-  CVS=2
-  if BLversion>=238 : 
-     warning = "CVS version you can import as : %t| Blender internal, experimental ? %x1 |  Old proofed method, import using Blender OBJ format  %x2" 
-     CVS=Blender.Draw.PupMenu(warning)
-
-  if courbes.number_of_items>0 and CVS==2:
+  if courbes.number_of_items>0:
      if len(PATTERN.keys() )>0:
         if DEBUG == 3 : print len(PATTERN.keys() )
      t=create_GEOtext(courbes)
      save_GEOfile(dir,name[0],t)
      Open_GEOfile(dir,name[0])
-
-  elif courbes.number_of_items>0 and CVS==1 :
-	   #--------------------
-     # 0.4.5
-     #--------------------
-	   createCURVES(courbes)
-	
   else:
-     pass      
+      pass
     
 def  ajustement(v,s):
      

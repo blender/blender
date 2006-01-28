@@ -84,7 +84,6 @@ PYPLAYERLIB ?= $(PYLIB)
     GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
     GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
     GRPLIB += $(OCGDIR)/blender/img/$(DEBUG_DIR)libimg.a
-    GRPLIB += $(OCGDIR)/blender/renderconverter/$(DEBUG_DIR)librenderconverter.a
     GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
     GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
     GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
@@ -158,6 +157,9 @@ endif
   ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
   endif
+  ifeq ($(WITH_OPENEXR), true)
+    COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
+  endif
   ifeq ($(WITH_FREETYPE2), true)
     ifeq ($(OS), windows)
       ifeq ($(FREE_WINDOWS), true)
@@ -212,6 +214,10 @@ ifeq ($(OS), windows)
     else
         COMLIB += $(NAN_SDL)/lib/SDL.lib
     endif
+endif
+
+ifeq ($(WITH_OPENEXR), true)
+    COMLIB += $(NAN_OPENEXR_LIBS)
 endif
 
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
