@@ -271,7 +271,7 @@ static void init_userdef_file(void)
 		}
 		if(U.obcenter_dia==0) U.obcenter_dia= 6;
 	}
-	if (G.main->versionfile <= 240) {
+	if (G.main->versionfile <= 241) {
 		bTheme *btheme;
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* Node editor theme, check for alpha==0 is safe, then color was never set */
