@@ -59,7 +59,7 @@ global E_selected
 E_selected = NMesh.EdgeFlags['SELECT']
 
 def make_sel_vert(*co):
-	vi= NMesh.Vert(*co)
+	v= NMesh.Vert(*co)
 	v.sel = 1 
 	me.verts.append(v)
 	return v
