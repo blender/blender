@@ -250,7 +250,9 @@ void BIF_preview_free_dbase(void)
 		free_main(pr_main);
 }
 
-static Scene *preview_prepare_scene(RenderInfo *ri, ID *id, int pr_method)
+/* call this with an ID pointer to initialize preview scene */
+/* call this with ID NULL to restore assigned ID pointers in preview scene */
+static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_method)
 {
 	Scene *sce;
 	Base *base;
@@ -259,18 +261,19 @@ static Scene *preview_prepare_scene(RenderInfo *ri, ID *id, int pr_method)
 	
 	sce= pr_main->scene.first;
 	if(sce) {
-		if(GS(id->name)==ID_MA) {
+		if(id_type==ID_MA) {
 			Material *mat= (Material *)id;
 			
-			if(pr_method==PR_ICON_RENDER) {
-				sce->lay= 1<<MA_SPHERE_A;
-			}
-			else {
-				sce->lay= 1<<mat->pr_type;
-				if(mat->nodetree)
-					ntreeInitPreview(mat->nodetree, ri->pr_rectx, ri->pr_recty);
-			}
-			
+			if(id) {
+				if(pr_method==PR_ICON_RENDER) {
+					sce->lay= 1<<MA_SPHERE_A;
+				}
+				else {
+					sce->lay= 1<<mat->pr_type;
+					if(mat->nodetree)
+						ntreeInitPreview(mat->nodetree, ri->pr_rectx, ri->pr_recty);
+				}
+			}			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='p') {
 					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL))
@@ -278,31 +281,41 @@ static Scene *preview_prepare_scene(RenderInfo *ri, ID *id, int pr_method)
 				}
 			}
 		}
+		else if(id_type==ID_TE) {
+			Tex *tex= (Tex *)id;
+			
+			sce->lay= 1<<MA_TEXTURE;
+			
+			for(base= sce->base.first; base; base= base->next) {
+				if(base->object->id.name[2]=='t') {
+					Material *mat= give_current_material(base->object, base->object->actcol);
+					if(mat && mat->mtex[0]) {
+						mat->mtex[0]->tex= tex;
+					}
+				}
+			}
+		}
+		else if(id_type==ID_LA) {
+			Lamp *la= (Lamp *)id;
+			
+			sce->lay= 1<<MA_LAMP;
+			
+			for(base= sce->base.first; base; base= base->next) {
+				if(base->object->id.name[2]=='p') {
+					if(base->object->type==OB_LAMP)
+						base->object->data= la;
+				}
+			}
+		}
+		else if(id_type==ID_WO) {
+			sce->lay= 1<<MA_SKY;
+			sce->world= (World *)id;
+		}
+		
 		return sce;
 	}
 	
 	return NULL;
-}
-
-/* prevent pointer from being 'hanging' in preview dbase */
-static void preview_exit_scene(RenderInfo *ri, ID *id)
-{
-	Scene *sce;
-	Base *base;
-	
-	if(pr_main==NULL) return;
-	
-	sce= pr_main->scene.first;
-	if(sce) {
-		if(GS(id->name)==ID_MA) {
-			for(base= sce->base.first; base; base= base->next) {
-				if(base->object->id.name[2]=='p') {
-					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL))
-						assign_material(base->object, NULL, base->object->actcol);
-				}
-			}
-		}
-	}
 }
 
 static void previewrender_progress(RenderResult *rr, rcti *unused)
@@ -345,7 +358,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	}
 	
 	/* get the stuff from the builtin preview dbase */
-	sce= preview_prepare_scene(ri, id, pr_method);
+	sce= preview_prepare_scene(ri, GS(id->name), id, pr_method);
 	if(sce==NULL) return;
 	
 	/* just create new render always now */
@@ -384,6 +397,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 			RE_ResultGet32(re, ri->rect);
 			if(GS(id->name)==ID_MA && ((Material *)id)->use_nodes)
 				allqueue(REDRAWNODE, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		else {
 			if(pr_method==PR_DRAW_RENDER && qtest()) {
@@ -391,7 +405,8 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 			}
 		}
 	}
-	preview_exit_scene(ri, id);
+	/* unassign the pointer */
+	preview_prepare_scene(ri, GS(id->name), NULL, 0);
 	RE_FreeRender(re);
 }
 
