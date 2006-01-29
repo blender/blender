@@ -5251,7 +5251,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	if(main->versionfile <= 240) {
+	if(main->versionfile <= 241) {
 		Scene *sce;
 		bArmature *arm;
 		
@@ -5267,10 +5267,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(sce->r.layers.first==NULL)
 				scene_add_render_layer(sce);
 		}
-	}
-	
-	if(main->versionfile <= 241) {
-		Object *ob;
+		//Object *ob;
 		
 		/* for empty drawsize and drawtype */
 		/* uncomment before release!  --broken
