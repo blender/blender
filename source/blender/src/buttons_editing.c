@@ -3058,7 +3058,7 @@ void do_meshbuts(unsigned short event)
 	Mesh *me;
 	float fac;
 	short randfac;
-
+	int count; /* store num of changes made to see if redraw & undo are needed*/
 	ob= OBACT;
 	if(ob && ob->type==OB_MESH) {
 
@@ -3183,10 +3183,13 @@ void do_meshbuts(unsigned short event)
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
-		notice("Removed: %d", removedoublesflag(1, G.scene->toolsettings->doublimit));
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Rem Doubles");
+		count= removedoublesflag(1, G.scene->toolsettings->doublimit);
+		notice("Removed: %d", count);
+		if (count) { /* only undo and redraw if an action is taken */
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+			BIF_undo_push("Rem Doubles");
+		}
 		break;
 	case B_SUBDIV:
 		waitcursor(1);
