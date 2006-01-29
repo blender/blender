@@ -404,7 +404,7 @@ SND_WaveSlot* SND_OpenALDevice::LoadSample(const STR_String& name,
 				ALenum al_error = alGetError();
 				
 #ifdef OUDE_OPENAL
-				unsigned int samplerate, numberofsamples;		// openal_2.12
+				ALsizei samplerate, numberofsamples;		// openal_2.12
 #else
 				int samplerate, numberofsamples;  // openal_2.14+
 #endif

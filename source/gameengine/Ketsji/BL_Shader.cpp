@@ -92,8 +92,8 @@ bool BL_Shader::LinkProgram()
 {
 #ifdef GL_ARB_shader_objects
 
-	int vertlen = 0, fraglen=0, proglen=0;
-	int vertstatus=0, fragstatus=0, progstatus=0;
+	GLint vertlen = 0, fraglen=0, proglen=0;
+	GLint vertstatus=0, fragstatus=0, progstatus=0;
 	unsigned int tmpVert=0, tmpFrag=0, tmpProg=0;
 	int char_len=0;
 
@@ -200,9 +200,11 @@ programError:
 void BL_Shader::PrintInfo(int len, unsigned int handle, int* num)
 {
 #ifdef GL_ARB_shader_objects
+	GLsizei number;
 	mLog = (char*)MEM_mallocN(sizeof(char)*len, "print_log");
 	//MT_assert(mLog, "Failed to create memory");
-	bgl::blGetInfoLogARB(handle, len, num, mLog);
+	bgl::blGetInfoLogARB(handle, len, &number, mLog);
+	*num = number;
 #endif//GL_ARB_shader_objects
 }
 
@@ -400,7 +402,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 		PyErr_Format(PyExc_TypeError, "invalid shader object");
 		return NULL;
 	}
-	int stat = 0;
+	GLint stat = 0;
 	bgl::blValidateProgramARB(mShader);
 	bgl::blGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB, &stat);
 	return PyInt_FromLong(0);
