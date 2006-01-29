@@ -1871,7 +1871,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 		memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
 		return;
 	}
-	if( (R.r.mode & R_OSA)==0 || sample==0) return;
+	//if( (R.r.mode & R_OSA)==0 || sample==0) return;
 		
 	rza= arectz;
 	rd= pa->rectdaps;
