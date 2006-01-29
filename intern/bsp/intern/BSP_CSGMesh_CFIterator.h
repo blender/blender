@@ -178,7 +178,6 @@ BSP_CSGMesh_FaceIt_Fill(
 	// assume CSG_IteratorPtr is of the correct type.
 	BSP_CSGMesh_FaceIt * face_it = (BSP_CSGMesh_FaceIt *)it;		
 	// essentially iterating through a triangle fan here.
-	const int tri_index = face_it->face_triangle;
 
 	if (face_it->pos->m_verts.size()>3) {
 		// QUAD

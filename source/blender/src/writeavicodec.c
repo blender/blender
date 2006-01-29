@@ -33,10 +33,6 @@
  * 
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 
 #define  INC_OLE2
@@ -73,10 +69,11 @@ static PAVISTREAM psUncompressed = NULL, psCompressed = NULL;
 
 // function definitions
 static void init_bmi(BITMAPINFOHEADER *bmi);
-static void opts_to_acd(AviCodecData *acd);
-static void acd_to_opts(AviCodecData *acd);
+static void opts_to_acd(struct AviCodecData *acd);
+static void acd_to_opts(struct AviCodecData *acd);
 static void free_opts_data();
 static int open_avi_codec_file(char * name);
+extern struct Render R;
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -507,7 +504,7 @@ static void init_bmi(BITMAPINFOHEADER *bmi)
 }
 
 
-static void opts_to_acd(AviCodecData *acd)
+static void opts_to_acd(struct AviCodecData *acd)
 {
 	HIC hic;
 	ICINFO icinfo;
@@ -546,7 +543,7 @@ static void opts_to_acd(AviCodecData *acd)
 }
 
 
-static void acd_to_opts(AviCodecData *acd)
+static void acd_to_opts(struct AviCodecData *acd)
 {
 	memset(&opts, 0, sizeof(opts));
 	if (acd) {

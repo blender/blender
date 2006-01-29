@@ -47,7 +47,8 @@
 #include "../../boolop/extern/BOP_Interface.h"
 #include <iostream>
 using namespace std;
-#include "BSP_MeshPrimitives.h";
+
+#include "BSP_MeshPrimitives.h"
 
 struct BSP_MeshInfo {
 	BSP_CSGMesh *output_mesh;

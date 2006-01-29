@@ -23,20 +23,14 @@
 #include "PHY_IMotionState.h"
 #include "OdePhysicsController.h"
 
-// Ode
-//#include <ode/config.h>
 #include <ode/ode.h>
 #include <../ode/src/joint.h>
 #include <ode/odemath.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 ODEPhysicsEnvironment::ODEPhysicsEnvironment()
 {
 	m_OdeWorld = dWorldCreate();
-	m_OdeSpace = dHashSpaceCreate(0);
+	m_OdeSpace = dHashSpaceCreate();
 	m_OdeContactGroup = dJointGroupCreate (0);
 	dWorldSetCFM (m_OdeWorld,1e-5f);
 
@@ -106,7 +100,7 @@ bool		ODEPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep1)
 		
 		//physics integrator + resolver update
 		//dWorldStep (m_OdeWorld,deltaTime);
-		dWorldQuickStep (m_OdeWorld,deltaTime);
+		//dWorldQuickStep (m_OdeWorld,deltaTime);
 		//dWorldID w, dReal stepsize)
 
 		//clear collision points

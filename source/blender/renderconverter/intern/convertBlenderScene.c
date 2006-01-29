@@ -90,8 +90,8 @@
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
-#include "render.h"
-
+#include "render_types.h"
+#include "rendercore.h"
 #include "RE_renderconverter.h"
 
 #include "BIF_space.h"
@@ -109,6 +109,7 @@
 #include "radio.h"
 #include "YafRay_Api.h"
 
+extern Render R;
 extern void error (char *fmt, ...);  /* defined in BIF_toolbox.h, but we dont need to include the rest */ 
 
 /* yafray: Identity transform 'hack' removed, exporter now transforms vertices back to world.

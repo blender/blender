@@ -31,10 +31,6 @@
  * The engine ties all game modules together. 
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #pragma warning (disable : 4786)
 #endif //WIN32
@@ -325,7 +321,7 @@ void KX_KetsjiEngine::EndFrame()
 
 }
 
-#include "PIL_time.h"
+// #include "PIL_time.h"
 
 void KX_KetsjiEngine::NextFrame()
 {

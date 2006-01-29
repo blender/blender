@@ -832,3 +832,4 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 		return (EditVert *)(poinval);
 	return NULL;
 }
+

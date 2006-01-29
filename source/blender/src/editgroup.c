@@ -129,3 +129,4 @@ void group_operation_with_menu(void)
 		else if(mode==2) rem_selected_from_group();
 	}
 }
+

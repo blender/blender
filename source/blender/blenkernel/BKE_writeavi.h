@@ -39,24 +39,19 @@ extern "C" {
 
 /* generic blender movie support, could move to own module */
 
-typedef struct bMovieHandle {
-	void (*start_movie)(RenderData *rd, int rectx, int recty);
-	void (*append_movie)(int frame, int *pixels, int rectx, int recty);
-	void (*end_movie)(void);
-} bMovieHandle;
-
-bMovieHandle *BKE_get_movie_handle(int imtype);
-
-
-/* ************** */	
-
 struct RenderData;	
 void start_avi(struct RenderData *rd, int rectx, int recty);
 void end_avi(void);
 void append_avi(int frame, int *pixels, int rectx, int recty);
 void makeavistring (struct RenderData *rd, char *string);
 
+typedef struct bMovieHandle {
+	void (*start_movie)(struct RenderData *rd, int rectx, int recty);
+	void (*append_movie)(int frame, int *pixels, int rectx, int recty);
+	void (*end_movie)(void);
+} bMovieHandle;
 
+bMovieHandle *BKE_get_movie_handle(int imtype);
 
 #ifdef __cplusplus
 }
