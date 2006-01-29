@@ -202,7 +202,7 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, int winx)
 {
 	float f, height, midy, clipxmin, clipxmax, sample_step;
-	int offset, offset_next, sofs, eofs;
+	int offset, offset_next, sofs, eofs, i=0;
 	signed short* s;
 	bSound *sound;
 	int wavesample, wavesamplemin, wavesamplemax, subsample_step=4; /* used for finding the min and max wave peaks */
@@ -222,16 +222,15 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	clipxmin= MAX2(x1, G.v2d->cur.xmin);
 	clipxmax= MIN2(x2, G.v2d->cur.xmax);
 	
-	
-	/* Align the clipxmin to the sample step
-	this stops dithering when the wave is being clipped on the left hand side
-	With adaptive sample picking (subsample_step>4) this dosent work */
-	
-	/* f=x1;
-	while (f<clipxmin)
-		f+=sample_step;
-	clipxmin=f; */
-	
+	/* Stops dithering on redraw when clipxmin is offset. */
+	if (clipxmin != x1) {
+		clipxmin = (float) ((int)((clipxmin*sample_step)+(i*sample_step))) / sample_step;
+		while (clipxmin < x1) {
+			clipxmin = (float) ((int)((clipxmin*sample_step)+(i*sample_step))) / sample_step;
+			i+=1;
+		}
+		clipxmin = (float)((int)clipxmin); /* snap to int */	
+	}
 	
 	/* when the sample step is 4 every sample of the wave is evaluated for min and max
 	values used to draw the wave, however this is slow ehrn zoomed out
