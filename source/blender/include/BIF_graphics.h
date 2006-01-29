@@ -48,7 +48,8 @@ enum {
 	CURSOR_HELP, 
 	CURSOR_STD, 
 	CURSOR_NONE,
-	CURSOR_PENCIL
+	CURSOR_PENCIL,
+	CURSOR_TEXTEDIT
 };
 
 void set_cursor(int curs);

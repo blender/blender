@@ -414,8 +414,11 @@ void window_set_cursor(Window *win, int curs) {
 		
 		/* detect if we use system cursor or Blender cursor */
 		switch(curs) {
+			case CURSOR_TEXTEDIT:
+				SetBlenderCursor(BC_TEXTEDITCURSOR);
+				break;
 			case CURSOR_VPAINT:
-				SetBlenderCursor(BC_KNIFECURSOR);
+				SetBlenderCursor(BC_PAINTBRUSHCURSOR);
 				break;
 			default:
 				GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
