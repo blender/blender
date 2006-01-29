@@ -2569,7 +2569,7 @@ static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
 							ys= (float)y + R.jit[samp][1];
 							shadepixel_sky(pa, xs, ys, zbuf, face, (1<<samp), fcol);
 							
-							if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
+							if(acol && acol[3]!=0.0) addAlphaUnderFloat(fcol, acol);
 							if(R.do_gamma) {
 								fcol[0]= gammaCorrect(fcol[0]);
 								fcol[1]= gammaCorrect(fcol[1]);
@@ -2585,7 +2585,7 @@ static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
 					ys= (float)y+R.samples->centLut[b>>4];
 					shadepixel_sky(pa, xs, ys, zbuf, face, curmask, fcol);
 					
-					if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
+					if(acol && acol[3]!=0.0) addAlphaUnderFloat(fcol, acol);
 					
 					if(R.do_gamma) {
 						fcol[0]= gammaCorrect(fcol[0]);
