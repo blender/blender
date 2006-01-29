@@ -2788,7 +2788,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
 		
-		if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
+		/* OB_DONE means the object itself got duplicated, so was already converted */
+		if(ob->flag & OB_DONE);
+		else if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
 			if(ob->transflag & OB_DUPLI) {
 				
 				/* exception: mballs! */
