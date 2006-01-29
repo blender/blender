@@ -849,6 +849,7 @@ static bNodeType cmp_node_curve_vec= {
 
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketType cmp_node_curve_rgb_in[]= {
+	{	SOCK_VALUE, 1, "Fac",	1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -864,6 +865,24 @@ static void do_curves(bNode *node, float *out, float *in)
 	out[3]= in[3];
 }
 
+static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
+{
+	
+	if(*fac>=1.0)
+		curvemapping_evaluateRGBF(node->storage, out, in);
+	else if(*fac<=0.0) {
+		VECCOPY(out, in);
+	}
+	else {
+		float col[4], mfac= 1.0f-*fac;
+		curvemapping_evaluateRGBF(node->storage, col, in);
+		out[0]= mfac*in[0] + *fac*col[0];
+		out[1]= mfac*in[1] + *fac*col[1];
+		out[2]= mfac*in[2] + *fac*col[2];
+	}
+	out[3]= in[3];
+}
+
 static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order input:  vec */
@@ -873,16 +892,19 @@ static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **i
 		return;
 
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
-		curvemapping_evaluateRGBF(node->storage, out[0]->vec, in[0]->vec);
+	if(in[1]->data==NULL) {
+		curvemapping_evaluateRGBF(node->storage, out[0]->vec, in[1]->vec);
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
+		CompBuf *cbuf= in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
 		curvemapping_premultiply(node->storage, 0);
-		composit1_pixel_processor(node, stackbuf, in[0]->data, NULL, do_curves);
+		if(in[0]->data)
+			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac);
+		else
+			composit1_pixel_processor(node, stackbuf, in[1]->data, NULL, do_curves);
 		curvemapping_premultiply(node->storage, 1);
 		
 		out[0]->data= stackbuf;
