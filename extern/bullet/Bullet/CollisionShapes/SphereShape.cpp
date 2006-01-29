@@ -58,3 +58,4 @@ void	SphereShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
 	inertia[0] = inertia[1] = inertia[2] = elem;
 
 }
+

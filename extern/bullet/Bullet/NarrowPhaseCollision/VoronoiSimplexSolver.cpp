@@ -591,3 +591,4 @@ bool	VoronoiSimplexSolver::ClosestPtPointTetrahedron(const SimdPoint3& p, const 
 
     return true;
 }
+

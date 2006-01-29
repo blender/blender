@@ -65,3 +65,4 @@ class TriangleMesh : public StridingMeshInterface
 };
 
 #endif //TRIANGLE_MESH_H
+
