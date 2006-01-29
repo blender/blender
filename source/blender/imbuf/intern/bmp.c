@@ -152,13 +152,18 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 			}
 
 		} else if (depth == 24) {
-			for (i = x * y; i > 0; i--) {
-				rect[0] = bmp[2];
-				rect[1] = bmp[1];
-				rect[2] = bmp[0];
-				
-				rect[3] = 255;
-				rect += 4; bmp += 3;
+			for (i = y; i > 0; i--) {
+				int j;
+				for (j = x ; j > 0; j--) {
+					rect[0] = bmp[2];
+					rect[1] = bmp[1];
+					rect[2] = bmp[0];
+					
+					rect[3] = 255;
+					rect += 4; bmp += 3;
+				}
+				/* for 24-bit images, rows are padded to multiples of 4 */
+				bmp += x % 4;	
 			}
 		} else if (depth == 32) {
 			for (i = x * y; i > 0; i--) {
