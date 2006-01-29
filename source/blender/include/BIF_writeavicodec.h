@@ -35,8 +35,8 @@
 
 #ifdef _WIN32
 
-void start_avi_codec(void);
-void append_avi_codec(int frame);
+void start_avi_codec(RenderData *rd,int rectx, int recty );
+void append_avi_codec(int frame,int *pixels,int rectx, int recty);
 void end_avi_codec(void);
 int get_avicodec_settings(void);
 

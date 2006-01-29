@@ -33,6 +33,10 @@
  * 
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 
 #define  INC_OLE2
@@ -50,6 +54,7 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "DNA_userdef_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -68,12 +73,11 @@ static int avifileinitdone = 0;
 static PAVISTREAM psUncompressed = NULL, psCompressed = NULL;
 
 // function definitions
-static void init_bmi(BITMAPINFOHEADER *bmi);
-static void opts_to_acd(struct AviCodecData *acd);
-static void acd_to_opts(struct AviCodecData *acd);
+static void init_bmi(BITMAPINFOHEADER *bmi,int rectx, int recty );
+static void opts_to_acd(AviCodecData *acd);
+static void acd_to_opts(AviCodecData *acd);
 static void free_opts_data();
-static int open_avi_codec_file(char * name);
-extern struct Render R;
+static int open_avi_codec_file(char * name,RenderData *rd,int rectx, int recty );
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -492,19 +496,19 @@ HRESULT STDMETHODCALLTYPE AVIBallDelete       (PAVISTREAM ps, LONG lStart, LONG 
 
 
 //////////////////////////////////////
-static void init_bmi(BITMAPINFOHEADER *bmi)
+static void init_bmi(BITMAPINFOHEADER *bmi,int rectx, int recty )
 {
 	memset(bmi, 0, sizeof(BITMAPINFOHEADER));
 	bmi->biSize = sizeof(BITMAPINFOHEADER);
-	bmi->biWidth = R.rectx;
-	bmi->biHeight = R.recty;
+	bmi->biWidth = rectx;
+	bmi->biHeight = recty;
 	bmi->biPlanes = 1;
 	bmi->biBitCount = 24;
 	bmi->biSizeImage = bmi->biWidth * bmi->biHeight * sizeof(RGBTRIPLE);
 }
 
 
-static void opts_to_acd(struct AviCodecData *acd)
+static void opts_to_acd(AviCodecData *acd)
 {
 	HIC hic;
 	ICINFO icinfo;
@@ -543,7 +547,7 @@ static void opts_to_acd(struct AviCodecData *acd)
 }
 
 
-static void acd_to_opts(struct AviCodecData *acd)
+static void acd_to_opts(AviCodecData *acd)
 {
 	memset(&opts, 0, sizeof(opts));
 	if (acd) {
@@ -581,7 +585,7 @@ static void free_opts_data()
 	}
 }
 
-static int open_avi_codec_file(char * name)
+static int open_avi_codec_file(char * name,RenderData *rd,int rectx, int recty )
 {
 	HRESULT hr;
 	WORD wVer;
@@ -606,7 +610,7 @@ static int open_avi_codec_file(char * name)
 			ret_val = 1;
 		} else {
 			// initialize the BITMAPINFOHEADER 
-			init_bmi(&bmi);
+			init_bmi(&bmi,rectx,recty);
 			// and associate a stream with the input images
 			memset(&strhdr, 0, sizeof(strhdr));
 			strhdr.fccType                = streamtypeVIDEO;	// stream type
@@ -614,7 +618,7 @@ static int open_avi_codec_file(char * name)
 				strhdr.fccHandler             = G.scene->r.avicodecdata->fccHandler;
 			}
 			strhdr.dwScale                = 1;
-			strhdr.dwRate                 = R.r.frs_sec;
+			strhdr.dwRate                 = rd->frs_sec;
 			strhdr.dwSuggestedBufferSize  = bmi.biSizeImage;
 			SetRect(&strhdr.rcFrame, 0, 0,						// rectangle for stream
 				(int) bmi.biWidth,
@@ -640,7 +644,6 @@ static int open_avi_codec_file(char * name)
 
 void end_avi_codec(void)
 {
-#if 0
 	free_opts_data();
 
 	if (psUncompressed) {
@@ -662,19 +665,17 @@ void end_avi_codec(void)
 		AVIFileExit();
 		avifileinitdone--;
 	}
-#endif
 }
 
 
-void start_avi_codec(void)
+void start_avi_codec(RenderData *rd,int rectx, int recty )
 {
-#if 0
 	HRESULT hr;
 	BITMAPINFOHEADER bmi;
 	char name[2048];
 	char bakname[2048];
 	
-	makeavistring(name);
+	makeavistring(rd,name);
 	sframe = (G.scene->r.sfra);
 
 	strcpy(bakname, name);
@@ -685,9 +686,9 @@ void start_avi_codec(void)
 	}
 
 	// initialize the BITMAPINFOHEADER 
-	init_bmi(&bmi);
+	init_bmi(&bmi,rectx,recty);
 
-	if (open_avi_codec_file(name)) {
+	if (open_avi_codec_file(name,rd,rectx,recty)) {
 		error("Can not open file %s", name);
 		G.afbreek = 1;
 	} else {
@@ -728,13 +729,11 @@ void start_avi_codec(void)
 			BLI_move(bakname, name);
 		}
 	}
-#endif
 }
 
 
-void append_avi_codec(int frame)
+void append_avi_codec(int frame,int *pixels,int rectx, int recty)
 {
-#if 0
 	HRESULT hr;
 	BITMAPINFOHEADER bmi;
 	RGBTRIPLE *buffer, *to;
@@ -743,14 +742,14 @@ void append_avi_codec(int frame)
 
 	if (psCompressed) {
 		// initialize the BITMAPINFOHEADER 
-		init_bmi(&bmi);
+		init_bmi(&bmi, rectx, recty);
 
 		// copy pixels
 		buffer = MEM_mallocN(bmi.biSizeImage, "append_win_avi");
 		to = buffer;
-		from = (unsigned char *) R.rectot;
-		for (y = R.recty; y > 0 ; y--) {
-			for (x = R.rectx; x > 0 ; x--) {
+		from = (unsigned char *) pixels;
+		for (y = recty; y > 0 ; y--) {
+			for (x = rectx; x > 0 ; x--) {
 				to->rgbtRed   = from[0];
 				to->rgbtGreen = from[1];
 				to->rgbtBlue  = from[2];
@@ -776,13 +775,11 @@ void append_avi_codec(int frame)
 			printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
 		}
 	}
-#endif
 }
 
 
 int get_avicodec_settings(void)
 {
-#if 0
 	int ret_val = 0;
 	AVICOMPRESSOPTIONS *aopts[1] = {&opts};
 	AviCodecData *acd = G.scene->r.avicodecdata;
@@ -825,7 +822,6 @@ int get_avicodec_settings(void)
 	}
 
 	return(ret_val);
-#endif
 }
 
 #endif // _WIN32
