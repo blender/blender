@@ -199,37 +199,101 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 	END_SEQ
 }
 
-static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2)
+static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, int winx)
 {
-	float f, height, midy;
-	int offset, sofs, eofs;
+	float f, height, midy, clipxmin, clipxmax, sample_step;
+	int offset, offset_next, sofs, eofs;
 	signed short* s;
 	bSound *sound;
-
+	int wavesample, wavesamplemin, wavesamplemax, subsample_step=4; /* used for finding the min and max wave peaks */
+	Uint8 *stream;
+	float fsofs, feofs_sofs, sound_width; /* for faster access in the loop */
+	
 	audio_makestream(seq->sound);
-	if(seq->sound->stream==NULL) return;
-
+	if(seq->sound->stream==NULL) return;	
+	
 	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
-	sound = seq->sound;
+	
 	sofs = ((int)( (((float)(seq->startdisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
 	eofs = ((int)( (((float)(seq->enddisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
-
-	for (f=x1; f<=x2; f+=0.2) {
-		offset = (int) ((float)sofs + ((f-x1)/(x2-x1)) * (float)(eofs-sofs)) & (~3);
-		if (offset >= sound->streamlen) offset = sound->streamlen-1;
-		s = (signed short*)(((Uint8*)sound->stream) + offset);
-		midy = (y1+y2)/2;
-		height = ( ( ((float)s[0]/32768 + (float)s[1]/32768)/2 ) * (y2-y1) )/2;
-		glBegin(GL_LINES);
-		glVertex2f(f, midy-height);
-		glVertex2f(f, midy+height);
-		glEnd();
+	
+	/* clip the drawing area to the screen bounds to save time */
+	sample_step= (G.v2d->cur.xmax-G.v2d->cur.xmin)/winx;
+	clipxmin= MAX2(x1, G.v2d->cur.xmin);
+	clipxmax= MIN2(x2, G.v2d->cur.xmax);
+	
+	
+	/* Align the clipxmin to the sample step
+	this stops dithering when the wave is being clipped on the left hand side
+	With adaptive sample picking (subsample_step>4) this dosent work */
+	
+	/* f=x1;
+	while (f<clipxmin)
+		f+=sample_step;
+	clipxmin=f; */
+	
+	
+	/* when the sample step is 4 every sample of the wave is evaluated for min and max
+	values used to draw the wave, however this is slow ehrn zoomed out
+	so when the sample step is above 1 (the larger the further out the zoom is)
+	so not evaluate all samples, only some.*/
+	if (sample_step > 1)
+		subsample_step= ((int)(subsample_step*sample_step*8)) & (~3);
+	
+	/* for speedy access */
+	midy = (y1+y2)/2;
+	fsofs= (float)sofs;
+	feofs_sofs= (float)(eofs-sofs);
+	sound_width= x2-x1;
+	height= y2-y1;
+	sound = seq->sound;
+	stream = sound->stream;
+	wavesample=0;
+	
+	/* we need to get the starting offset value, excuse the duplicate code */
+	f=clipxmin;
+	offset = (int) (fsofs + ((f-x1)/sound_width) * feofs_sofs) & (~3);
+	
+	/* start the loop, draw a line per sample_step -sample_step is about 1 line drawn per pixel */
+	glBegin(GL_LINES);
+	for (f=clipxmin+sample_step; f<=clipxmax; f+=sample_step) {
+		
+		offset_next = (int) (fsofs + ((f-x1)/sound_width) * feofs_sofs) & (~3);
+		
+		/* if this is close to the last sample just exit */
+		if (offset_next >= sound->streamlen) break;
+		
+		wavesamplemin = 655360;
+		wavesamplemax = -655360;
+		
+		/*find with high and low of the waveform for this draw,
+		evaluate small samples to find this range */
+		while (offset <= offset_next) {
+			s = (signed short*)(stream+offset);
+			
+			wavesample = s[0] + s[1]/2;
+			if (wavesamplemin>wavesample)
+				wavesamplemin=wavesample;
+			if (wavesamplemax<wavesample)
+				wavesamplemax=wavesample;
+			offset+=subsample_step;
+		}
+		/* draw the wave line, looks good up close and zoomed out */
+		glVertex2f(f,  midy-(((((float)wavesamplemin)/65536)* height)/2) );
+		glVertex2f(f,  midy-(((((float)wavesamplemax)/65536)* height)/2) );
+		offset=offset_next;
 	}
+	glEnd();
 }
 
-void drawseq(Sequence *seq)
+/*
+Draw a sequencer block, bounds check alredy made
+ScrArea is currently only used to get the windows width in pixels
+so wave file sample drawing precission is zoom adjusted
+*/
+void drawseq(Sequence *seq, ScrArea *sa)
 {
-	float v1[2], v2[2], x1, x2, y1, y2;
+	float v1[2], v2[2], x1, x2, y1, y2, color_tint[4];
 	unsigned int body, dark, light;
 	int len, size;
 	short mval[2];
@@ -260,7 +324,7 @@ void drawseq(Sequence *seq)
 
 	cpack(body);
 	glRectf(x1,  y1,  x2,  y2);
-	if (seq->type == SEQ_SOUND) drawseqwave(seq, x1, y1, x2, y2);
+	if (seq->type == SEQ_SOUND) drawseqwave(seq, x1, y1, x2, y2, sa->winx);
 	EmbossBoxf(x1, y1, x2, y2, seq->flag & 1, dark, light);
 
 	v1[1]= y1;
@@ -366,7 +430,9 @@ void drawseq(Sequence *seq)
 		glRasterPos3f(x1,  y1+0.2, 0.0);
 		BMF_DrawString(G.font, strp);
 	}
+	
 
+	
 	if(seq->type < SEQ_EFFECT) {
 		/* decoration: triangles */
 		x1= seq->startdisp;
@@ -383,11 +449,18 @@ void drawseq(Sequence *seq)
 				if(seq->flag & SEQ_OVERLAP) dark= light= 0x4040FF;
 				else dark= light= 0xFFFFFF;
 			}
-		}
-		else {
+		} else {
 			cpack(body);
 		}
-
+	
+		/*Tint the color for wave display to show through */
+		if (seq->type == SEQ_SOUND) {
+			glEnable( GL_BLEND );
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glGetFloatv(GL_CURRENT_COLOR, color_tint);
+			glColor4f(color_tint[0], color_tint[1], color_tint[2], 0.7);
+		}
+		
 		glBegin(GL_TRIANGLES);
 			v1[0]= x1; glVertex2fv(v1);
 			v2[0]= x1; glVertex2fv(v2);
@@ -395,7 +468,6 @@ void drawseq(Sequence *seq)
 		glEnd();
 
 		cpack(light);
-
 		glBegin(GL_LINE_STRIP);
 			v1[0]= x1; glVertex2fv(v1);
 			v2[0]= x1; glVertex2fv(v2);
@@ -405,12 +477,6 @@ void drawseq(Sequence *seq)
 		glEnd();
 	}
 
-	if(G.moving || (seq->flag & SEQ_LEFTSEL)) {
-		cpack(0xFFFFFF);
-		glRasterPos3f(x1,  y1+0.2, 0.0);
-		sprintf(str, "%d", seq->startdisp);
-		BMF_DrawString(G.font, str);
-	}
 
 		/* right triangle */
 	if(seq->type < SEQ_EFFECT) {
@@ -427,11 +493,20 @@ void drawseq(Sequence *seq)
 		else {
 			cpack(body);
 		}
+		/*Tint the color for wave display to show through */
+		if (seq->type == SEQ_SOUND) {
+			glGetFloatv(GL_CURRENT_COLOR, color_tint);
+			glColor4f(color_tint[0], color_tint[1], color_tint[2], 0.7);
+		}
+		
 		glBegin(GL_TRIANGLES);
 			v2[0]= x2; glVertex2fv(v2);
 			v1[0]= x2; glVertex2fv(v1);
 			v2[0]-= seq->handsize; v2[1]= (y1+y2)/2.0; glVertex2fv(v2); v2[1]= y2;
 		glEnd();
+		
+		if (seq->type == SEQ_SOUND)
+			glDisable( GL_BLEND );
 
 		cpack(dark);
 		glBegin(GL_LINE_STRIP);
@@ -442,7 +517,15 @@ void drawseq(Sequence *seq)
 			glVertex2fv(v2);
 		glEnd();
 	}
-
+	
+	
+	if(G.moving || (seq->flag & SEQ_LEFTSEL)) {
+		cpack(0xFFFFFF);
+		glRasterPos3f(x1,  y1+0.2, 0.0);
+		sprintf(str, "%d", seq->startdisp);
+		BMF_DrawString(G.font, str);
+	}
+	
 	if(G.moving || (seq->flag & SEQ_RIGHTSEL)) {
 		cpack(0xFFFFFF);
 		glRasterPos3f(x2-seq->handsize/2,  y1+0.2, 0.0);
@@ -834,7 +917,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 			{
 				/* dont draw */
 			} else {
-				drawseq(seq);
+				drawseq(seq, sa);
 			}
 			seq= seq->next;
 		}
@@ -851,7 +934,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 			{
 				/* dont draw */
 			} else {
-				drawseq(seq);
+				drawseq(seq, sa);
 			}
 			seq= seq->next;
 		}

@@ -37,7 +37,7 @@ struct ScrArea;
 struct Sequence;
 
 void drawseqspace(struct ScrArea *sa, void *spacedata);
-void drawseq(struct Sequence *seq);
+void drawseq(struct Sequence *seq, struct ScrArea *sa);
 void set_special_seq_update(int val);
 
 #endif
