@@ -45,6 +45,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
 #include "PIL_time.h"
 #include "IMB_imbuf.h"
@@ -557,75 +558,7 @@ void RE_AddObject(Render *re, Object *ob)
 	
 }
 
-/* ********** basic thread control API ************ */
-
-#define RE_MAX_THREAD 4
-
-typedef struct ThreadSlot {
-	RenderPart *part;
-	SDL_Thread *sdlthread;
-	int avail;
-} ThreadSlot;
-
-static ThreadSlot threadslots[RE_MAX_THREAD];
-
-static void init_threadslots(int tot)
-{
-	int a;
-	
-	if(tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
-	else if(tot<1) tot= 1;
-	
-	for(a=0; a< RE_MAX_THREAD; a++) {
-		threadslots[a].part= NULL;
-		threadslots[a].sdlthread= NULL;
-		if(a<tot)
-			threadslots[a].avail= 1;
-		else
-			threadslots[a].avail= 0;
-	}
-}
-
-static int available_threadslots(void)
-{
-	int a, counter=0;
-	for(a=0; a< RE_MAX_THREAD; a++)
-		if(threadslots[a].avail)
-			counter++;
-	return counter;
-}
-
-/* prototype for functional below */
-static int do_part_thread(void *pa_v);
-
-static void insert_threadslot(RenderPart *pa)
-{
-	int a;
-	for(a=0; a< RE_MAX_THREAD; a++) {
-		if(threadslots[a].avail) {
-			pa->thread= a;
-			threadslots[a].avail= 0;
-			threadslots[a].part= pa;
-			threadslots[a].sdlthread= SDL_CreateThread(do_part_thread, pa);
-			break;
-		}
-	}
-}
-
-static void remove_threadslot(RenderPart *pa)
-{
-	int a;
-	for(a=0; a< RE_MAX_THREAD; a++) {
-		if(threadslots[a].part==pa) {
-			threadslots[a].avail= 1;
-			threadslots[a].part= NULL;
-			SDL_WaitThread(threadslots[a].sdlthread, NULL);
-			threadslots[a].sdlthread= NULL;
-		}
-	}
-}
-
-/* ********** basic thread control API ************ */
+/* *************************************** */
 
 static int do_part_thread(void *pa_v)
 {
@@ -726,6 +659,7 @@ static RenderPart *find_nicest_part(Render *re)
 
 static void threaded_tile_processor(Render *re)
 {
+	ListBase threads;
 	RenderPart *pa;
 	int maxthreads=2, rendering=1, counter= 1;
 	
@@ -735,7 +669,7 @@ static void threaded_tile_processor(Render *re)
 		return;
 	
 	initparts(re);
-	init_threadslots(maxthreads);
+	BLI_init_threads(&threads, do_part_thread, maxthreads);
 	
 	/* assuming no new data gets added to dbase... */
 	R= *re;
@@ -745,11 +679,12 @@ static void threaded_tile_processor(Render *re)
 	while(rendering) {
 		
 		/* I noted that test_break() in a thread doesn't make ghost send ESC */
-		if(available_threadslots() && !re->test_break()) {
+		if(BLI_available_threads(&threads) && !re->test_break()) {
 			pa= find_nicest_part(re);
 			if(pa) {
-				pa->nr= counter++;	/* only for stats */
-				insert_threadslot(pa);
+				pa->nr= counter++;	/* for nicest part, and for stats */
+				pa->thread= BLI_available_thread_index(&threads);	/* sample index */
+				BLI_insert_thread(&threads, pa);
 			}
 		}
 		else
@@ -760,7 +695,7 @@ static void threaded_tile_processor(Render *re)
 		for(pa= re->parts.first; pa; pa= pa->next) {
 			if(pa->ready) {
 				if(pa->result) {
-					remove_threadslot(pa);	/* do it here, not in thread */
+					BLI_remove_thread(&threads, pa);
 					re->display_draw(pa->result, NULL);
 					free_render_result(pa->result);
 					pa->result= NULL;
@@ -771,13 +706,14 @@ static void threaded_tile_processor(Render *re)
 		}
 		
 		/* on break, wait for all slots to get freed */
-		if(re->test_break() && available_threadslots()==maxthreads)
+		if(re->test_break() && BLI_available_threads(&threads)==maxthreads)
 			rendering= 0;
 		
 	}
 	
 	if(malloc_lock) SDL_DestroyMutex(malloc_lock); malloc_lock= NULL;
 	
+	BLI_end_threads(&threads);
 	freeparts(re);
 }
 
@@ -849,6 +785,7 @@ static void do_render_final(Render *re, Scene *scene)
 		}
 		
 		ntreeCompositTagRender(scene->nodetree);
+		ntreeCompositTagAnimated(scene->nodetree);
 		
 		if(re->r.scemode & R_DOCOMP)
 			ntreeCompositExecTree(scene->nodetree, &re->r, 0);

@@ -47,6 +47,9 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
+
+#include "PIL_time.h"
 
 #include "MEM_guardedalloc.h"
 #include "IMB_imbuf.h"
@@ -283,7 +286,7 @@ static void group_verify_own_indices(bNodeTree *ngroup)
 			if(sock->own_index==0 && sock->intern==0)
 				sock->own_index= ++(ngroup->cur_index);
 	}
-//	printf("internal index %d\n", ngroup->cur_index);
+	//printf("internal index %d\n", ngroup->cur_index);
 }
 
 
@@ -408,6 +411,7 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 {
 	bNodeLink *link, *linkn;
 	bNode *node, *gnode, *nextn;
+	bNodeSocket *sock;
 	bNodeTree *ngroup;
 	float min[2], max[2];
 	int totnode=0;
@@ -478,16 +482,26 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 	gnode->locy= 0.5f*(min[1]+max[1]);
 	
 	/* relink external sockets */
-	for(link= ntree->links.first; link; link= link->next) {
+	for(link= ntree->links.first; link; link= linkn) {
+		linkn= link->next;
+		
 		if(link->tonode->flag & NODE_SELECT) {
 			link->tonode= gnode;
-			link->tosock= groupnode_find_tosock(gnode, link->tosock->own_index);
-			if(link->tosock==NULL) printf("Bad!\n");
+			sock= groupnode_find_tosock(gnode, link->tosock->own_index);
+			if(sock==NULL) {
+				nodeRemLink(ntree, link);	
+				printf("Removed link, cannot mix internal and external sockets in group\n");
+			}
+			else link->tosock= sock;
 		}
 		else if(link->fromnode->flag & NODE_SELECT) {
 			link->fromnode= gnode;
-			link->fromsock= groupnode_find_fromsock(gnode, link->fromsock->own_index);
-			if(link->fromsock==NULL) printf("Bad!\n");
+			sock= groupnode_find_fromsock(gnode, link->fromsock->own_index);
+			if(sock==NULL) {
+				nodeRemLink(ntree, link);	
+				printf("Removed link, cannot mix internal and external sockets in group\n");
+			}
+			else link->fromsock= sock;
 		}
 	}
 	
@@ -1553,32 +1567,53 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 	}
 }
 
-/* optimized tree execute test for compositing */
-void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
+
+/* ***************************** threaded version for execute composite nodes ************* */
+
+#define NODE_PROCESSING	1
+#define NODE_READY		2
+#define NODE_FINISHED	4
+
+/* not changing info, for thread callback */
+typedef struct ThreadData {
+	bNodeStack *stack;
+	RenderData *rd;
+} ThreadData;
+
+static int exec_composite_node(void *node_v)
 {
-	bNode *node;
-	bNodeSocket *sock;
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
-	bNodeStack *stack;
-	int totnode;
+	bNode *node= node_v;
+	ThreadData *thd= (ThreadData *)node->new;
 	
-	if(ntree==NULL) return;
+	node_get_stack(node, thd->stack, nsin, nsout);
 	
-	totnode= BLI_countlist(&ntree->nodes);
+	if(node->typeinfo->execfunc) {
+		node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
+	}
+	else if(node->type==NODE_GROUP && node->id) {
+		node_group_execute(thd->stack, thd->rd, node, nsin, nsout); 
+	}
 	
-	if(do_preview)
-		ntreeInitPreview(ntree, 0, 0);
-	
-	ntreeBeginExecTree(ntree);
-	
-	stack= ntree->stack;
+	node->exec |= NODE_READY;
+	return 0;
+}
+
+/* return total of executable nodes, for timecursor */
+static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
+{
+	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNode *node;
+	bNodeSocket *sock;
+	int totnode= 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->execfunc) {
 			int a;
 			
-			node_get_stack(node, stack, nsin, nsout);
+			node_get_stack(node, thd->stack, nsin, nsout);
 			
 			/* test the inputs */
 			for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
@@ -1607,24 +1642,110 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 						nsout[a]->data= NULL;
 					}
 				}
-				if(ntree->timecursor)
-					ntree->timecursor(totnode);
+				totnode++;
+				//printf("node needs exec %s\n", node->name);
 				
-				printf("exec node %s\n", node->name);
-				node->typeinfo->execfunc(rd, node, nsin, nsout);
+				/* tag for getExecutableNode() */
+				node->exec= 0;
+			}
+			else
+				/* tag for getExecutableNode() */
+				node->exec= NODE_READY|NODE_FINISHED;
+		}
+	}
+	return totnode;
+}
+
+static bNode *getExecutableNode(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->exec==0) {
+			
+			/* input sockets should be ready */
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->link)
+					if((sock->link->fromnode->exec & NODE_READY)==0)
+						break;
+			}
+			if(sock==NULL) {
+				printf("exec %s\n", node->name);
+				return node;
 			}
 		}
-		else if(node->type==NODE_GROUP && node->id) {
-			node_get_stack(node, stack, nsin, nsout);
-			node_group_execute(stack, rd, node, nsin, nsout); 
+	}
+	return NULL;
+}
+
+
+/* optimized tree execute test for compositing */
+void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
+{
+	bNode *node;
+	ListBase threads;
+	ThreadData thdata;
+	int totnode, maxthreads, rendering= 1;
+	
+	if(ntree==NULL) return;
+	
+	if(rd->mode & R_THREADS)
+		maxthreads= 2;
+	else
+		maxthreads= 1;
+	
+	if(do_preview)
+		ntreeInitPreview(ntree, 0, 0);
+	
+	ntreeBeginExecTree(ntree);
+	
+	/* setup callerdata for thread callback */
+	thdata.rd= rd;
+	thdata.stack= ntree->stack;
+	
+	/* sets need_exec tags in nodes */
+	totnode= setExecutableNodes(ntree, &thdata);
+	
+	BLI_init_threads(&threads, exec_composite_node, maxthreads);
+	
+	while(rendering) {
+		
+		if(BLI_available_threads(&threads)) {
+			node= getExecutableNode(ntree);
+			if(node) {
+				
+				if(ntree->timecursor)
+					ntree->timecursor(totnode--);
+				
+				node->new = (bNode *)&thdata;
+				node->exec= NODE_PROCESSING;
+				BLI_insert_thread(&threads, node);
+			}
 		}
-		totnode--;
+		else
+			PIL_sleep_ms(50);
+		
+		/* check for ready ones, and if we need to continue */
+		rendering= 0;
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->exec & NODE_READY) {
+				if((node->exec & NODE_FINISHED)==0) {
+					BLI_remove_thread(&threads, node);
+					node->exec |= NODE_FINISHED;
+				}
+			}
+			else rendering= 1;
+		}
 	}
 	
+	
+	BLI_end_threads(&threads);
 	
 	ntreeEndExecTree(ntree);
 	
 	free_unused_animimages();
 	
 }
+
 

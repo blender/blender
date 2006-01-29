@@ -109,7 +109,7 @@ typedef struct bNode {
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
 	short stack_index;		/* for groupnode, offset in global caller stack */
-	short nr;				/* number of this node in list, used for exec events */
+	short nr;				/* number of this node in list, used for UI exec events */
 	
 	ListBase inputs, outputs;
 	struct ID *id;			/* optional link to libdata */
@@ -120,7 +120,7 @@ typedef struct bNode {
 	float width, miniwidth;			
 	short custom1, custom2;	/* to be abused for buttons */
 	
-	short need_exec, pad1;	/* need_exec is set to optimize execution */
+	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
 	
 	rctf totr;				/* entire boundbox */
 	rctf butr;				/* optional buttons area */

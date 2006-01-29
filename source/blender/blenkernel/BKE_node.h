@@ -224,6 +224,7 @@ extern bNodeType *node_all_composit[];
 struct CompBuf;
 int ntreeCompositNeedsRender(struct bNodeTree *ntree);
 void ntreeCompositTagRender(struct bNodeTree *ntree);
+void ntreeCompositTagAnimated(struct bNodeTree *ntree);
 
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 

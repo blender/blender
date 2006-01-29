@@ -1840,6 +1840,7 @@ int ntreeCompositNeedsRender(bNodeTree *ntree)
 	return 0;
 }
 
+/* called from render pipeline, to tag render input and output */
 void ntreeCompositTagRender(bNodeTree *ntree)
 {
 	bNode *node;
@@ -1847,8 +1848,23 @@ void ntreeCompositTagRender(bNodeTree *ntree)
 	if(ntree==NULL) return;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_R_RESULT)
+		if( ELEM(node->type, CMP_NODE_R_RESULT, CMP_NODE_COMPOSITE))
 			NodeTagChanged(ntree, node);
 	}
 }
 
+/* tags nodes that have animation capabilities */
+void ntreeCompositTagAnimated(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_IMAGE) {
+			/* no actual test yet... */
+			if(node->storage)
+				NodeTagChanged(ntree, node);
+		}
+	}
+}
