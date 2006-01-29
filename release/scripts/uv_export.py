@@ -9,7 +9,7 @@ Tooltip: 'Export the UV face layout of the selected object to a .TGA file'
 
 __author__ = "Martin 'theeth' Poirier"
 __url__ = ("http://www.blender.org", "http://www.elysiun.com")
-__version__ = "1.3a"
+__version__ = "1.4"
 
 __bpydoc__ = """\
 This script exports the UV face layout of the selected mesh object to
@@ -26,8 +26,9 @@ There are more options to configure, like setting export path, if image should
 use object's name and more.
 
 Notes:<br>
-    Jean-Michel Soler (jms) wrote TGA functions used by this script.
-    Zaz added the default path code and Selected Face option.
+	 Jean-Michel Soler (jms) wrote TGA functions used by this script.<br>
+	 Zaz added the default path code and Selected Face option.<br>
+	 Macouno fixed a rounding error in the step calculations<br>
 """
 
 
@@ -62,18 +63,21 @@ Notes:<br>
 # Communicate problems and errors on:
 # http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender 
 # --------------------------
-#    Version 1.1      
+#	 Version 1.1		
 # Clear a bug that crashed the script when UV coords overlapped in the same faces
 # --------------------------
-#    Version 1.2
+#	 Version 1.2
 # Now with option to use the object's name as filename
 # --------------------------
-#    Version 1.3 Updates by Zaz from Elysiun.com
+#	 Version 1.3 Updates by Zaz from Elysiun.com
 # Default path is now the directory of the last saved .blend
 # New options: Work on selected face only & Scale image when face wraps
 # --------------------------
-#    Version 1.3a
+#	 Version 1.3a
 # Corrected a minor typo and added the tga extension to both export call
+# --------------------------
+#	 Version 1.4 Updates by Macouno from Elysiun.com
+# Fixed rounding error that can cause breaks in lines.
 # --------------------------
 
 import Blender
@@ -134,42 +138,42 @@ def bevent(evt):
 			UV_Export(bSize.val, bWSize.val, bFile.val + ".tga")
 
 def Buffer(height=16, width=16, profondeur=3,rvb=255 ):  
-   """  
-   reserve l'espace memoire necessaire  
-   """  
-   p=[rvb]  
-   b=p*height*width*profondeur  
-   return b  
+	"""  
+	reserve l'espace memoire necessaire  
+	"""  
+	p=[rvb]  
+	b=p*height*width*profondeur  
+	return b  
 
 def write_tgafile(loc2,bitmap,width,height,profondeur):  
-   f=open(loc2,'wb')  
+	f=open(loc2,'wb')  
 
-   Origine_en_haut_a_gauche=32  
-   Origine_en_bas_a_gauche=0  
+	Origine_en_haut_a_gauche=32  
+	Origine_en_bas_a_gauche=0  
 
-   Data_Type_2=2  
-   RVB=profondeur*8  
-   RVBA=32  
-   entete0=[]  
-   for t in range(18):  
-     entete0.append(chr(0))  
+	Data_Type_2=2  
+	RVB=profondeur*8  
+	RVBA=32  
+	entete0=[]  
+	for t in range(18):  
+	  entete0.append(chr(0))  
 
-   entete0[2]=chr(Data_Type_2)  
-   entete0[13]=chr(width/256)  
-   entete0[12]=chr(width % 256)  
-   entete0[15]=chr(height/256)  
-   entete0[14]=chr(height % 256)  
-   entete0[16]=chr(RVB)  
-   entete0[17]=chr(Origine_en_bas_a_gauche)  
+	entete0[2]=chr(Data_Type_2)  
+	entete0[13]=chr(width/256)  
+	entete0[12]=chr(width % 256)  
+	entete0[15]=chr(height/256)  
+	entete0[14]=chr(height % 256)  
+	entete0[16]=chr(RVB)  
+	entete0[17]=chr(Origine_en_bas_a_gauche)  
 
-   #Origine_en_haut_a_gauche  
+	#Origine_en_haut_a_gauche  
 
-   for t in entete0:  
-     f.write(t)  
+	for t in entete0:  
+	  f.write(t)  
 
-   for t in bitmap:  
-     f.write(chr(t))  
-   f.close()  
+	for t in bitmap:  
+	  f.write(chr(t))  
+	f.close()  
 
 def UV_Export(size, wsize, file):
 	obj = Blender.Object.GetSelected()
@@ -238,11 +242,12 @@ def UV_Export(size, wsize, file):
 				co2 = f[index + 1]
 			else:
 				co2 = f[0]
-			step = int(size*sqrt((co1[0]-co2[0])**2+(co1[1]-co2[1])**2))
+
+			step = int(ceil(size*sqrt((co1[0]-co2[0])**2+(co1[1]-co2[1])**2)))
 			if step:
-				for t in range(step + 1):
-					x = int((co1[0] + t*(co2[0]-co1[0])/step) * size)
-					y = int((co1[1] + t*(co2[1]-co1[1])/step) * size)
+				for t in range(step):
+					x = int(floor((co1[0] + t*(co2[0]-co1[0])/step) * size))
+					y = int(floor((co1[1] + t*(co2[1]-co1[1])/step) * size))
 
 					if bWrap.val:
 						x = x % wrapSize
@@ -251,16 +256,17 @@ def UV_Export(size, wsize, file):
 						x = int ((x - minx) * scale)
 						y = int ((y - miny) * scale)
 						
-					co = x * 3 + y * 3 * size
+					co = x * 3 + y * 3 * size;
+					
 					img[co] = 0
 					img[co+1] = 0
-					img[co+2] = 255
+					img[co+2] = 0
 					if wsize > 1:
 						for x in range(-1*wsize + 1,wsize):
 							for y in range(-1*wsize,wsize):
 								img[co + 3 * x + y * 3 * size] = 0
 								img[co + 3 * x + y * 3 * size +1] = 0
-								img[co + 3 * x + y * 3 * size +2] = 255
+								img[co + 3 * x + y * 3 * size +2] = 0
 	
 		for v in f:
 			x = int(v[0] * size)
@@ -276,8 +282,7 @@ def UV_Export(size, wsize, file):
 			co = x * 3 + y * 3 * size
 			img[co] = 0
 			img[co+1] = 0
-			img[co+2] = 0
-				
+			img[co+2] = 255 				
 	
 	
 	write_tgafile(file,img,size,size,3)

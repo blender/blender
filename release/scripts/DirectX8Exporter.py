@@ -1,17 +1,16 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'DirectX8(.x)...'
-Blender: 239
+Name: 'DirectX(.x)...'
+Blender: 240
 Group: 'Export'
 Submenu: 'Export all the scene' export
 Submenu: 'Export selected obj' exportsel
-Tip: 'Export to DirectX8 text file format format.'
+Tip: 'Export to DirectX text file format format.'
 """
-
 __author__ = "Arben (Ben) Omari"
 __url__ = ("blender", "elysiun", "Author's site, http://www.omariben.too.it")
-__version__ = "1.0"
+__version__ = "2.0"
 
 __bpydoc__ = """\
 This script exports a Blender mesh with armature to DirectX 8's text file
@@ -21,8 +20,8 @@ Notes:<br>
     Check author's site or the elYsiun forum for a new beta version of the
 DX exporter.
 """
-# DirectX8Exporter.py version 1.0
-# Copyright (C) 2003  Arben OMARI -- omariarben@everyday.com 
+# DirectXExporter.py version 2.0
+# Copyright (C) 2006  Arben OMARI -- omariarben@everyday.com 
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,10 +41,17 @@ DX exporter.
 import Blender
 from Blender import Types, Object, NMesh, Material,Armature
 from Blender.Mathutils import *
+import math
 
-global new_bon,mat_flip,index_list
+global mat_flip,index_list,space,bone_list,mat_dict
+bone_list =[]
 index_list = []
-new_bon = {}
+mat_dict = {}
+space = 0
+ANIM = 1
+NORMAL = 1
+TEXCOORDS = 1
+TEXTURE = 1
 mat_flip = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1])
 		
 
@@ -64,6 +70,7 @@ class xExport:
 	#Select Scene objects
 	#***********************************************
 	def SelectObjs(self):
+		global chld_obj
 		print "exporting..."
 		self.writeHeader()
 		for obj in Object.Get():
@@ -154,115 +161,117 @@ class xExport:
 	#Export Root Bone
 	#***********************************************
 	def writeRootBone(self,am_ob,child_obj):
-		global new_bon,mat_flip
-		space = 0
-		arm = am_ob.getData()
-		Blender.Set('curframe',1)
-		mat_ob = mat_flip * am_ob.matrixWorld
-		self.writeArmFrames(mat_ob, "RootFrame", 0)
-		root_bon = arm.getBones()
-		mat_r = self.writeCombineMatrix(root_bon[0])
-		name_r = root_bon[0].getName()
-		new_bon[name_r] = len(root_bon[0].getChildren())
-		self.writeArmFrames(mat_r, name_r, 1)
-		self.writeListOfChildrens(root_bon[0],2,arm)
-		self.file.write("}\n")
-		self.exportMeshArm(arm,am_ob,child_obj)
-		
-	#***********************************************
-	#Export Children Bones
-	#***********************************************
-	def writeListOfChildrens(self,bon,space,arm):
-		global  new_bon
-		bon_c = bon.getChildren()
-		Blender.Set('curframe',1)
-		for n in range(len(bon_c)):
-			name_h = bon_c[n].getName()
-			chi_h = bon_c[n].getChildren()
-			new_bon[name_h] = len(chi_h)
-
-		if bon_c == [] :
-			self.CloseBrackets(bon, new_bon, space, arm.getBones()[0])
-		
-		for nch in range(len(bon_c)):
-			mat = self.writeCombineMatrix(bon_c[nch])
-			name_ch = bon_c[nch].getName()
-			self.writeArmFrames(mat, name_ch,space)
-			self.findChildrens(bon_c[nch],space,arm)
-		
+		global mat_flip,space,root_bon,mat_ob
+		arms = am_ob.getData()
+		self.writeArmFrames(mat_flip, "RootFrame")
+		for bon in arms.bones.values():
+			if bon.hasParent():
+				pass
+			else:
+				root_bon = bon
+		space += 1
+		mat_rb = self.writeCombineMatrix(root_bon)
+		mat_r = mat_rb #* am_ob.matrixLocal
+		name_r = root_bon.name
+		name_f = name_r.replace(".","")
+		self.writeArmFrames(mat_r, name_f)
+		bon_c = self.findChildrens(root_bon)
+		self.writeChildren(bon_c)
+		self.file.write("  }\n")
+		self.exportMeshArm(arms,am_ob,child_obj)
 		
 	#***********************************************
 	#Create Children structure
 	#***********************************************
-	def CloseBrackets(self, bon, new_bon, space, root_bon):
+	def writeBon(self,bon):
+		global space
+		mat_r = self.writeCombineMatrix(bon)
+		name_r = bon.name
+		name_f = name_r.replace(".","")
+		self.writeArmFrames(mat_r, name_f)
+		
+		
+	def findChildrens(self,bon):
+		bon_c = bon.children
+		return bon_c
+		
+	
+	def writeChildren(self,bon_c):
+		global space,bone_list
+		space += 1
+		if bon_c:
+			for bo in bon_c:
+				if bo.name not in bone_list:
+					self.writeBon(bo)
+					bone_list.append(bo.name)
+					bo_c = bo.children 
+					self.writeChildren(bo_c)
+					self.closeBrackets()
+				
+				
+					
+	def closeBrackets(self):
+		global space
+		space = space-1
 		tab = "  "
-		self.file.write("%s" % (tab * (space -1)))
+		self.file.write("%s" % (tab * space))
 		self.file.write("}\n")
-		while bon.hasParent():
-			if new_bon[bon.getName()] == 0:
-				pare = bon.getParent()
-				name_p = pare.getName()
-				if new_bon[name_p] > 0:
-					new_bon[name_p] = new_bon[name_p] - 1
-				if new_bon[name_p] == 0 and pare != root_bon:
-					self.file.write("%s" % (tab * (space-2)))
-					self.file.write("}\n")
-				space = space - 1
-				bon = pare
-			else:
-				break
+		
 		
 			
-	#***********************************************
-	#Create Children structure
-	#***********************************************
-	def findChildrens(self,bon_c,space,arm):
-		bon_cc = bon_c
-		space += 1
-		self.writeListOfChildrens(bon_cc,space,arm)
-	
-	
 	#***********************************************
 	#Offset Matrix
 	#***********************************************
 	def writeMatrixOffset(self,bon):
-		Blender.Set('curframe',1)
-		mat_b = bon.getRestMatrix()       
-		mat_b.invert() 
+		global  chld_obj
+		Blender.Set('curframe', 1)
+		pose = chld_obj.getPose()
+		pos_b = pose.bones[bon.name]
+		mat_b = pos_b.poseMatrix
+		mat_b.invert()
 		return mat_b
 
-
 	
-
 	#***********************************************
 	#Combine Matrix
 	#***********************************************
 	def writeCombineMatrix(self,bon):
-		Blender.Set('curframe',1)
-		mat_b = bon.getRestMatrix()     
+		global  chld_obj
+		Blender.Set('curframe', 1)
+		pose = chld_obj.getPose()
+		pos_b = pose.bones[bon.name]
+		mat_b = pos_b.poseMatrix
 		if bon.hasParent():
-			pare = bon.getParent()
-			mat_p = pare.getRestMatrix()
-		else :
+			pare = bon.parent
+			pos_p = pose.bones[pare.name]
+			mat_p = pos_p.poseMatrix
+			
+		else:
 			mat_p = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1])
 		mat_p.invert()
-		mat_rb = mat_b * mat_p
-		return mat_rb
-
+		mat_f = mat_b * mat_p
+		
+		return mat_f
 	#***********************************************
 	#Combine Matrix
 	#***********************************************
-	def writeCombineAnimMatrix(self,bon):
-		
-		mat_b = bon.getRestMatrix()     
+	def writeAnimCombineMatrix(self,bon,fre):
+		global  chld_obj
+		Blender.Set('curframe', fre)
+		pose = chld_obj.getPose()
+		pos_b = pose.bones[bon.name]
+		mat_b = pos_b.poseMatrix
 		if bon.hasParent():
-			pare = bon.getParent()
-			mat_p = pare.getRestMatrix()
-		else :
+			pare = bon.parent
+			pos_p = pose.bones[pare.name]
+			mat_p = pos_p.poseMatrix
+			
+		else:
 			mat_p = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1])
 		mat_p.invert()
-		mat_rb = mat_b * mat_p
-		return mat_rb
+		mat_f = mat_b * mat_p
+		
+		return mat_f
 
 
 #*********************************************************************************************************************************************
@@ -271,16 +280,23 @@ class xExport:
 	#***********************************************
 	def writeSkinWeights(self, arm, mesh):
 		global index_list
-		
+		v_dict = {}
 		Blender.Set('curframe',1)
 		self.file.write("  XSkinMeshHeader {\n")
 		max_infl = 0
-		for bo in arm.getBones() :
-			name = bo.getName() 
+		#this part supply the missing getVertexInfluences(index)
+		for v in index_list:
+				v_dict[v] = []
+		for bo in arm.bones.values() :
+			name = bo.name
+			
 			try :
 				vertx_list = mesh.getVertsFromGroup(name,1)
+				for vn in vertx_list:
+					v_dict[vn[0]].append(name)
+				#---------------------------------------------------
 				for inde in vertx_list :
-					vert_infl = mesh.getVertexInfluences(inde[0])
+					vert_infl = v_dict[inde[0]]
 					ln_infl = len(vert_infl)
 					if ln_infl > max_infl :
 						max_infl = ln_infl
@@ -288,20 +304,21 @@ class xExport:
 			except:
 				pass
 		
-		self.file.write("    %s; \n" % (max_infl))
-		self.file.write("    %s; \n" % (max_infl * 3))
-		self.file.write("    %s; \n" % (len(arm.getBones())))
+		self.file.write("    %d; \n" % (max_infl))
+		self.file.write("    %d; \n" % (max_infl * 3))
+		self.file.write("    %d; \n" % (len(arm.bones.values())))
 		self.file.write("  }\n")
 		
-		for bo in arm.getBones() :
+		for bo in arm.bones.values() :
 			bo_list = []
 			weight_list = []
-			name = bo.getName() 
+			name = bo.name 
+			f_name = name.replace(".","")
 			try :
 				vert_list = mesh.getVertsFromGroup(name,1)
 				le = 0
 				for indx in vert_list:
-					ver_infl = mesh.getVertexInfluences(indx[0])
+					ver_infl = v_dict[indx[0]]
 					len_infl = float(len(ver_infl))
 					infl = 1 / len_infl
 					i = -1
@@ -314,28 +331,27 @@ class xExport:
 
 
 				self.file.write("  SkinWeights {\n")
-				self.file.write('    "%s"; \n' % (name))
-				self.file.write('     %s; \n' % (le))
+				self.file.write('    "%s"; \n' % (f_name))
+				self.file.write('     %d; \n' % (le))
 				count = 0
 				for ind in bo_list :
 					count += 1
 					if count == len(bo_list):
-						self.file.write("    %s; \n" % (ind))
+						self.file.write("    %d; \n" % (ind))
 					else :
-						self.file.write("    %s, \n" % (ind))
+						self.file.write("    %d, \n" % (ind))
 				cou = 0
 				for wegh in weight_list :
 					cou += 1
 					
 					if cou == len(weight_list):
-						self.file.write("    %s; \n" % (round(wegh,6)))
+						self.file.write("    %f; \n" % (round(wegh,6)))
 					else :
-						self.file.write("    %s, \n" % (round(wegh,6)))
+						self.file.write("    %f, \n" % (round(wegh,6)))
 
 			
 				matx = self.writeMatrixOffset(bo)
-			
-				self.writeOffsFrames(matx, name, 1)
+				self.writeOffsFrames(matx, name)
 			except :
 				pass
 		self.file.write("  }\n")
@@ -344,7 +360,8 @@ class xExport:
 	#***********************************************
 	# Write Matrices
 	#***********************************************
-	def writeArmFrames(self, matx, name, space):
+	def writeArmFrames(self, matx, name):
+		global space
 		tab = "  "
 		self.file.write("%s" % (tab * space))
 		self.file.write("Frame ")  
@@ -352,16 +369,16 @@ class xExport:
 		self.file.write("%s" % (tab * space))
 		self.file.write("  FrameTransformMatrix {\n")
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s,\n" %
+		self.file.write("    %f,%f,%f,%f,\n" %
 							(round(matx[0][0],4),round(matx[0][1],4),round(matx[0][2],4),round(matx[0][3],4)))
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s,\n" %
+		self.file.write("    %f,%f,%f,%f,\n" %
 							(round(matx[1][0],4),round(matx[1][1],4),round(matx[1][2],4),round(matx[1][3],4)))
 		self.file.write("%s" % (tab * space))	
-		self.file.write("    %s,%s,%s,%s,\n" %
+		self.file.write("    %f,%f,%f,%f,\n" %
 							(round(matx[2][0],4),round(matx[2][1],4),round(matx[2][2],4),round(matx[2][3],4)))
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s;;\n" %
+		self.file.write("    %f,%f,%f,%f;;\n" %
 							(round(matx[3][0],4),round(matx[3][1],4),round(matx[3][2],4),round(matx[3][3],6)))
 		self.file.write("%s" % (tab * space))
 		self.file.write("  }\n")
@@ -369,19 +386,20 @@ class xExport:
 	#***********************************************
 	# Write Matrices
 	#***********************************************
-	def writeOffsFrames(self, matx, name, space):
+	def writeOffsFrames(self, matx, name):
+		space = 1
 		tab = "  "
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s,\n" %
+		self.file.write("    %f,%f,%f,%f,\n" %
 							(round(matx[0][0],4),round(matx[0][1],4),round(matx[0][2],4),round(matx[0][3],4)))
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s,\n" %
+		self.file.write("    %f,%f,%f,%f,\n" %
 							(round(matx[1][0],4),round(matx[1][1],4),round(matx[1][2],4),round(matx[1][3],4)))
 		self.file.write("%s" % (tab * space))	
-		self.file.write("    %s,%s,%s,%s,\n" %
+		self.file.write("    %f,%f,%f,%f,\n" %
 							(round(matx[2][0],4),round(matx[2][1],4),round(matx[2][2],4),round(matx[2][3],4)))
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s;;\n" %
+		self.file.write("    %f,%f,%f,%f;;\n" %
 							(round(matx[3][0],4),round(matx[3][1],4),round(matx[3][2],4),round(matx[3][3],6)))
 		self.file.write("%s" % (tab * space))
 		self.file.write("  }\n")
@@ -445,7 +463,8 @@ template SkinWeights {\n\
 		mat_ob.invert()
 		mat = mat_arm * mat_ob
 		mat.invert()
-		self.writeArmFrames(mat, name.name, 1)
+		name_f = name.name.replace(".","")
+		self.writeArmFrames(mat, name_f)
 		mesh = NMesh.GetRawFromObject(name.name)
 		self.file.write("Mesh {\n")    
 		numface=len(mesh.faces)
@@ -461,8 +480,8 @@ template SkinWeights {\n\
 			for n in range(len(face.v)):
 				index_list.append(face.v[n].index)
 				vec_vert = Vector([face.v[n].co[0], face.v[n].co[1], face.v[n].co[2], 1])
-				f_vec_vert = VecMultMat(vec_vert, mat)
-				self.file.write("%s; %s; %s;" % (f_vec_vert[0], f_vec_vert[1], f_vec_vert[2]))
+				f_vec_vert = vec_vert * mat
+				self.file.write("%f; %f; %f;" % (round(f_vec_vert[0],4), round(f_vec_vert[1],4), round(f_vec_vert[2],4)))
 				if counter == numface :
 					if n == len(face.v)-1 :
 						self.file.write(";\n")
@@ -505,7 +524,8 @@ template SkinWeights {\n\
 		global index_list
 		#ROTATION
 		mat_ob = mat_flip * name.matrixWorld
-		self.writeArmFrames(mat_ob, name.name, 0)
+		name_f = name.name.replace(".","")
+		self.writeArmFrames(mat_ob, name_f)
 
 		self.file.write("Mesh {\n")    
 		numface=len(mesh.faces)
@@ -589,10 +609,9 @@ template SkinWeights {\n\
 		##MATERIAL NAME
 		for mat in Material.Get():
 			self.file.write("  Material")
-			for a in range(0,len(mat.name)):
-				if mat.name[a] == ".":
-					print "WARNING:the material " + mat.name + " contains '.' within.Many viewers may refuse to read the exported file"
-			self.file.write(" %s "% (mat.name))
+			name_m = mat.name
+			name_f = name_m.replace(".","")
+			self.file.write(" %s "% (name_f))
 			self.file.write("{\n")
 			self.file.write("    %s; %s; %s;" % (mat.R, mat.G, mat.B))
 			self.file.write("%s;;\n" % (mat.alpha))
@@ -609,7 +628,7 @@ template SkinWeights {\n\
 			self.file.write("    1.0;\n")
 			self.file.write("    1.0; 1.0; 1.0;;\n")
 			self.file.write("    0.0; 0.0; 0.0;;\n")
-			self.file.write("  TextureFilename {\n")
+			self.file.write("  TextureFilename {")
 			self.file.write('    "%s" ;'% (mat))
 			self.file.write("  }\n")
 			self.file.write("  }\n") 
@@ -711,47 +730,45 @@ template SkinWeights {\n\
 		
 		
 		
-		
+	
+	
 	#***********************************************
 	#WRITE ANIMATION KEYS
 	#***********************************************
 	def writeAnimation(self,arm_ob):
+		global mat_dict
 		arm = arm_ob.getData()
 		act_list = arm_ob.getAction()
 		ip = act_list.getAllChannelIpos()
-		for bon in arm.getBones() :
+		for bon in arm.bones.values() :
 			point_list = []
+			name = bon.name
+			name_f = name.replace(".", "")
 			try :
 				ip_bon_channel = ip[bon.name]
 				ip_bon_name = ip_bon_channel.getName()
-			
+				
 				ip_bon = Blender.Ipo.Get(ip_bon_name)
 				poi = ip_bon.getCurves()
+				
 				for po in poi[3].getPoints():
 					a = po.getPoints()
 					point_list.append(int(a[0]))
-				point_list.pop(0) 
-			
-			
+				#point_list.pop(0) 
+				
 				self.file.write(" Animation { \n")
-				self.file.write("  {%s}\n" %(bon.getName()))
+				self.file.write("  {%s}\n" %(name_f))
 				self.file.write("  AnimationKey { \n")
 				self.file.write("   4;\n")
-				self.file.write("   %s; \n" % (len(point_list)+1))
-
-				self.file.write("   %s;" % (1))
-				self.file.write("16;")
-				mat = self.writeCombineMatrix(bon)
-				self.writeFrames(mat)
-				self.file.write(",\n")
+				self.file.write("   %s; \n" % (len(point_list)))
 
 				for fr in point_list:
+					mat = self.writeAnimCombineMatrix(bon,fr)	
+					
 					self.file.write("   %s;" % (fr))
 					self.file.write("16;")
-					Blender.Set('curframe',fr)
 				
-					mat_new = self.writeCombineAnimMatrix(bon)
-					self.writeFrames(mat_new)
+					self.writeFrames(mat)
 				
 					if fr == point_list[len(point_list)-1]:
 						self.file.write(";\n")
@@ -864,8 +881,8 @@ arg = __script__['arg']
 
 if arg == 'exportsel':
 	fname = Blender.sys.makename(ext = ".x")
-	Blender.Window.FileSelector(my_callback_sel, "Export DirectX8", fname)	
+	Blender.Window.FileSelector(my_callback_sel, "Export DirectX", fname)	
 else:
 	fname = Blender.sys.makename(ext = ".x")
-	Blender.Window.FileSelector(my_callback, "Export DirectX8", fname)	
+	Blender.Window.FileSelector(my_callback, "Export DirectX", fname)	
 	

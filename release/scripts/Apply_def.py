@@ -54,49 +54,55 @@ directly manipulate or export its data.
 #
 # ***** END GPL LICENCE BLOCK *****
 
+
 import Blender
 
 Blender.Window.EditMode(0)
 
+NAME_LENGTH = 19
+PREFIX = "_def"
+PREFIX_LENGTH = len(PREFIX)
+
 ob_list = Blender.Object.GetSelected()
+
+for ob in ob_list:
+	ob.sel = 0
+
+used_names = [ob.name for ob in Blender.Object.Get()]
+used_names.extend(Blender.NMesh.GetNames())
+
+deformedList = []
 for ob in ob_list:
     if ob.getType() == "Mesh":
         name = ob.getName()
-        new_name = name + "_deformed"
+        new_name = "%s_def" % name[:NAME_LENGTH-PREFIX_LENGTH]
         num = 0
         new_mesh = Blender.NMesh.GetRawFromObject(name)
-        mesh = Blender.NMesh.GetRaw(new_name)
-        while mesh:
+        while new_name in used_names:
+            new_name = "%s_def.%.3i" % (name[:NAME_LENGTH-(PREFIX_LENGTH+PREFIX_LENGTH)], num)
             num += 1
-            new_name = name + "_deformed." + "%03i" % num
-            mesh = Blender.NMesh.GetRaw(new_name)
+        
+        used_names.append(new_name)
+        
         new_ob = Blender.NMesh.PutRaw(new_mesh, new_name)
         new_ob.setMatrix(ob.getMatrix())
-        try:
-            new_ob = Blender.Object.Get(new_name)
-            while 1:
-                num += 1
-                new_name = name + "_deformed." + "%03i" % num
-                new_ob = Blender.Object.Get(new_name)
-        except:
-            pass
         new_ob.setName(new_name)
-
+        deformedList.append(new_ob)
+        
+        # Vert groups.
         ob_mesh = ob.getData()
         new_ob_mesh = new_ob.getData()
-
-        # If SubSurf is off on the original, copy the vertex weight
-        if not ob_mesh.getMode() & Blender.NMesh.Modes['SUBSURF']:
-            for vgroupname in ob_mesh.getVertGroupNames():
+        
+        for vgroupname in ob_mesh.getVertGroupNames():
+            new_ob_mesh.addVertGroup(vgroupname)
+            if len(ob_mesh.verts) == len(new_ob_mesh.verts):
                 vlist = ob_mesh.getVertsFromGroup(vgroupname, True)
-                new_ob_mesh.addVertGroup(vgroupname)
-                for vpair in vlist:
-                    new_ob_mesh.assignVertsToGroup(vgroupname, [vpair[0]], vpair[1], 'add')
-        # If it's on, just add the vertex groups
-        else:
-            for vgroupname in ob_mesh.getVertGroupNames():
-                new_ob_mesh.addVertGroup(vgroupname)
+                try:
+                    for vpair in vlist:
+                        new_ob_mesh.assignVertsToGroup(vgroupname, [vpair[0]], vpair[1], 'add')
+                except:
+                    pass
 
-        new_ob_mesh.update()
-
-Blender.Window.EditMode(1)
+for ob in deformedList:
+	ob.sel = 1
+deformedList[0].sel = 1 # Keep the same object active.

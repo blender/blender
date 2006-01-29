@@ -1,40 +1,60 @@
 #!BPY
 """
-Name: 'BVH Empties to Armature'
-Blender: 237
+Name: 'Empties to Armature'
+Blender: 241
 Group: 'Animation'
-Tooltip: 'Create Armature from Empties created by BVH importer'
+Tooltip: 'Create Armature from a parented-empties chain'
 """
-__author__ = " Jean-Baptiste PERIN (jb_perin(at)yahoo.fr)"
+__author__ = " Jean-Baptiste PERIN (jb_perin(at)yahoo.fr) with valuable help from Vincent BILLET "
 __url__ = ("blender", "elysiun",
-"BVH 2 ARMATURE, http://www.zoo-logique.org/3D.Blender/index.php3?zoo=dld&rep=zip ",
+"BVH 2 ARMATURE, http://perso.wanadoo.fr/jb.perin/",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender") 
 
-__version__ = "2.2"
+__version__ = "2.42"
 
-__bpydoc__ = """ BVH2ARM.py v2.2
+__bpydoc__ = """ BVH2ARM.py 
 
 Script for generating armature on BVH empties.
 
-This script generates an armature and make bones
-follow empties created by Blender BVH import script.
- 
+This script generates an armature upon an empty-made parented chain, 
+and make the armature follow the empties 
+
 Usage:<br>
  - Import a bvh in Blender (File->Import->BVH);<br>
- - Launch this script (Alt-P);<br>
+ - Rotate some empties to match your model and insert Rot key for them. <br>
+ - Select the root empty of the hierarchical chain.<br>
+ - Launch this script ;<br>
  - Set up variables:<br>
-   "hipbonename": the name of the main bone;<br>
+   "hipbonename": the name of the main bone (automatically set to the selected empty).<br>
    "startframe":  the first frame of your anim;<br>
    "endframe":  the last frame of your anim;<br>
-   "decimation": the frequency (in number of frame) to which the armature is updated;<br>
-   "scale" to size the created armature.<br>
- - Press "Create Armature".
+   "decimation": the frequency (in number of frame) to which the armature's pos is updated;<br>
+- Press "Create Armature".
+Notes: <br>
+- The start frame configuration is used as the rest pose for the armature.<br>
+- If the armature already exists when script is launched, the current armature is re-used.
 """
-
-#----------------------------------------------
-# (c) Jean-Baptiste PERIN  june 2005, released under Blender Artistic Licence
-#    for the Blender 2.34-2.36 Python Scripts Bundle.
-#----------------------------------------------
+# -------------------------------------------------------------------------- 
+# BVH2ARM.py 
+# -------------------------------------------------------------------------- 
+# ***** BEGIN GPL LICENSE BLOCK ***** 
+# 
+# This program is free software; you can redistribute it and/or 
+# modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation; either version 2 
+# of the License, or (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program; if not, write to the Free Software Foundation, 
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. 
+# 
+# ***** END GPL LICENCE BLOCK ***** 
+# -------------------------------------------------------------------------- 
 
 
 
@@ -50,6 +70,9 @@ dicEmptyChild={}
 dicBoneRestInvEmpRest={}
 dicEmpRestInvBoneRest={}
 restFrame = 1
+bonerest={}
+emprest={}
+emp2bone={}
 
 ########################################################################
 #
@@ -111,8 +134,8 @@ def getEmpty(name):
 			p = o
 	return p
 
-def getChild(emp, emp_list):
-	return dicEmptyChild[emp.getName()]
+##def getChild(emp, emp_list):
+##	return dicEmptyChild[emp.getName()]
 
 
 #########
@@ -206,56 +229,9 @@ def GetOrCreateCurve(ipo, curvename):
 #
 ########################################################################
 
-def computeRootQuat2(empty, bone):
-
-	M1=dicBoneRestInvEmpRest[bone.getName()].rotationPart()
-	M2=dicEmpRestInvBoneRest[bone.getName()].rotationPart()
-	emprot = empty.getMatrix('worldspace').rotationPart()
-	emprot.transpose()
-	mat = M1*emprot*M2
-	mat.transpose()
-	return (mat.toQuat())
-
-	#emprest = dicEmptiesRestMatrix[empty.getName()].rotationPart()
-	#invemprest= dicEmptiesRestMatrix[empty.getName()].rotationPart()
-	##invemprest= emprest
-	##invemprest.invert()
-	##invemprest= dicEmptiesInvRestMatrix[empty.getName()].rotationPart()
-	#emprot = empty.getMatrix('worldspace').rotationPart()
-	#bonerest = dicBoneRestMatrix[bone.getName()].rotationPart()
-	#invbonerest = dicBoneRestMatrix[bone.getName()].rotationPart()
-	#invbonerest.invert()
-	#T2=emprot*invemprest
-	#T2.transpose()
-	#mat = bonerest*invemprest*T2*emprest*invbonerest
-	#mat.transpose()
-	#return (mat.toQuat())
-
-
 
 
 #########
-# Cette fonction 
-# in  : 
-# out : 
-#########
-def computeRootPos(empty, bone):
-	vec = computeScaledPos(empty.getMatrix('worldspace').translationPart()) - dicBoneRestMatrix[bone.getName()].translationPart()
-	mat = dicBoneRestMatrix[bone.getName()].rotationPart()
-	vec2 =  Mathutils.MatMultVec (mat, vec)
-	return vec2
-
-
-def computeRelativePos(empty,bone):
-	vec = computeScaledPos(empty.getMatrix('worldspace').translationPart())	- dicBoneRestMatrix[bone.getName()].translationPart()
-	rootempty = getEmpty(hipbonename)
-	vec3 = computeScaledPos(rootempty.getMatrix('worldspace').translationPart())
-	mat = dicBoneRestMatrix[bone.getName()].rotationPart()
-	vec2 =  Mathutils.MatMultVec (mat, vec-vec3)
-	return vec2
-
-
- #########
 # Cette fonction 
 # in  : 
 # out : 
@@ -277,31 +253,28 @@ def computeScaledPos(vec):
 # out : 
 #########
 def createBone (armature, empty, bone, empties):
+        global bonerest, emprest
 	children = getChildren(empty, empties)
-	for ch in children:
+	if len(children) != 0:
+	  for ch in children:
 		if len(children) >= 2:
 			bonename = empty.getName()[1:len(empty.getName())]+'_'+ch.getName()[1:len(ch.getName())]
 		else :
 			bonename = empty.getName()[1:len(empty.getName())]
-		b=Blender.Armature.Bone.New(bonename)
-		b.setHead(computeScaledPos(empty.getMatrix('worldspace').translationPart()))
-		b.setTail(computeScaledPos(ch.getMatrix('worldspace').translationPart()))
-		#b.setParent(bone)
-		matrice = empty.getMatrix('worldspace')
-		invmatrice = empty.getMatrix('worldspace')
-		invmatrice.invert()
-		invmatricet=empty.getMatrix('worldspace')
-		invmatricet.invert()
-		invmatricet.transpose()
-		dicEmptiesRestMatrix[empty.getName()] = matrice
-		dicEmptiesInvRestMatrix[empty.getName()] = invmatrice
-		armature.addBone(b)
-		invbonerest=b.getRestMatrix()
-		invbonerest.invert()
-		dicBoneRestMatrix[b.getName()] = b.getRestMatrix()
-		dicBoneRestInvEmpRest[b.getName()]=b.getRestMatrix()*invmatrice*invmatricet
-		dicEmpRestInvBoneRest[b.getName()]=matrice*invbonerest
-		dicBone[b.getName()]=b
+		print "creating Bone %s"%(bonename)
+		b=Blender.Armature.Editbone()
+		b.head = (computeScaledPos(empty.getMatrix('worldspace').translationPart()))
+		b.tail = (computeScaledPos(ch.getMatrix('worldspace').translationPart()))
+		b.parent = bone
+		# armature.makeEditable()  should already be editable????
+		armature.bones[bonename] = b
+		#print b.matrix
+		bonerest[bonename]=Blender.Mathutils.Matrix(b.matrix).resize4x4()
+		emprest[empty.getName()]=Blender.Mathutils.Matrix(empty.getMatrix('localspace')).resize4x4()
+		#M = Blender.Mathutils.Matrix(emprest[empty.getName()])
+		#emp2bone[bonename] =  Blender.Mathutils.Matrix(M.invert().rotationPart()*bonerest[bonename].rotationPart()).resize4x4()
+		#print emp2bone[bonename].rotationPart().toEuler()
+		dicBone[b.name]=b
 		createBone(armature, ch, b, empties)
 
 #########
@@ -310,13 +283,12 @@ def createBone (armature, empty, bone, empties):
 # out : 
 #########
 def f_createBone (armData, empty, bone, empties):
-	bones = armData.getBones()
-
+	bones = armData.bones.values()
 	def getBone(bonename):
 		bone = None
 		for b in bones:
 			#print b.getName()
-			if b.getName() == bonename:
+			if b.name == bonename:
 				bone = b
 		return bone
 
@@ -328,56 +300,41 @@ def f_createBone (armData, empty, bone, empties):
 			bonename = empty.getName()[1:len(empty.getName())]
 		#b=Blender.Armature.Bone.New(bonename)
 		b=getBone(bonename)
-		#b.setHead(empty.getMatrix('worldspace').translationPart())
-		#b.setTail(ch.getMatrix('worldspace').translationPart())
-		#b.setParent(bone)
-		matrice = empty.getMatrix('worldspace')
-		invmatrice = empty.getMatrix('worldspace')
-		invmatrice.invert()
-		invmatricet=empty.getMatrix('worldspace')
-		invmatricet.invert()
-		invmatricet.transpose()
-		dicEmptiesRestMatrix[empty.getName()] = matrice
-		dicEmptiesInvRestMatrix[empty.getName()] = invmatrice
-		#armature.addBone(b)
-		invbonerest=b.getRestMatrix()
-		invbonerest.invert()
-		dicBoneRestMatrix[b.getName()] = b.getRestMatrix()
-		dicBoneRestInvEmpRest[b.getName()]=b.getRestMatrix()*invmatrice*invmatricet
-		dicEmpRestInvBoneRest[b.getName()]=matrice*invbonerest
-		dicBone[b.getName()]=b
+		b.head = (computeScaledPos(empty.getMatrix('worldspace').translationPart()))
+		b.tail = (computeScaledPos(ch.getMatrix('worldspace').translationPart()))
+		b.parent = bone
+		bonerest[bonename]=Blender.Mathutils.Matrix(b.matrix).resize4x4()
+		emprest[empty.getName()]=Blender.Mathutils.Matrix(empty.getMatrix('localspace')).resize4x4()
+		dicBone[b.name]=b
 		#print "Ajout de ", b.getName(),"  au dictionnaire"
 		f_createBone(armData, ch, b, empties)
 	
-
 #########
 # Cette fonction fabrique une arma
 # in  : 
 # out : 
 #########
-def createArmature (rootEmpty, empties):
-	armData=Blender.Armature.New('monArmature')
+def createArmature (armObj, rootEmpty, empties):
+        global bonerest, emprest
+	armData=Blender.Armature.Armature('monArmature')
 	children = getChildren(rootEmpty, empties)
+	armObj.link(armData)
+	armData.makeEditable()
 	for ch in children:
-		b=Blender.Armature.Bone.New(rootEmpty.getName()[1:len(rootEmpty.getName())] + ch.getName()[1:len(ch.getName())])
-		b.setHead(computeScaledPos(rootEmpty.getMatrix('worldspace').translationPart()))
-		b.setTail(computeScaledPos(ch.getMatrix('worldspace').translationPart()))
-		armData.addBone(b)
-		matrice = ch.getMatrix('worldspace')
-		invmatrice = ch.getMatrix('worldspace')
-		invmatrice.invert()
-		invmatricet=ch.getMatrix('worldspace')
-		invmatricet.invert()
-		invmatricet.transpose()
-		dicEmptiesRestMatrix[rootEmpty.getName()] = matrice
-		dicEmptiesInvRestMatrix[rootEmpty.getName()] = invmatrice
-		invbonerest=b.getRestMatrix()
-		invbonerest.invert()
-		dicBoneRestMatrix[b.getName()] = b.getRestMatrix()
-		dicBoneRestInvEmpRest[b.getName()]=b.getRestMatrix()*invmatrice*invmatricet
-		dicEmpRestInvBoneRest[b.getName()]=matrice*invbonerest
-		dicBone[b.getName()]=b
+		b=Blender.Armature.Editbone()
+		bonename = rootEmpty.getName()[1:len(rootEmpty.getName())] + ch.getName()[1:len(ch.getName())]
+		print "creating Bone %s"%(bonename)
+
+		#print b, dir([b])
+		b.head=(computeScaledPos(rootEmpty.getMatrix('worldspace').translationPart()))
+		b.tail=(computeScaledPos(ch.getMatrix('worldspace').translationPart()))
+		
+		bonerest[bonename]=Blender.Mathutils.Matrix(b.matrix).resize4x4()
+		emprest[rootEmpty.getName()]=Blender.Mathutils.Matrix(rootEmpty.getMatrix('localspace')).resize4x4()
+		armData.bones[bonename] = b
+		dicBone[b.name]=b
 		createBone(armData, ch, b, empties)
+	armData.update()
 	return armData
 
 
@@ -388,37 +345,27 @@ def createArmature (rootEmpty, empties):
 # out : 
 #########
 def f_createArmature (rootEmpty, empties, armData):
-	bones = armData.getBones()
+	armData.makeEditable()
+	bones = armData.bones.values()
 
 	def getBone(bonename):
 		bone = None
 		for b in bones:
 			#print b.getName()
-			if b.getName() == bonename:
+			if b.name == bonename:
 				bone = b
 		return bone
 
 	children = getChildren(rootEmpty, empties)
 	for ch in children:
 		b=getBone(rootEmpty.getName()[1:len(rootEmpty.getName())] + ch.getName()[1:len(ch.getName())])
-		matrice = ch.getMatrix('worldspace')
-		invmatrice = ch.getMatrix('worldspace')
-		invmatrice.invert()
-		invmatricet=ch.getMatrix('worldspace')
-		invmatricet.invert()
-		invmatricet.transpose()
-		dicEmptiesRestMatrix[rootEmpty.getName()] = matrice
-		dicEmptiesInvRestMatrix[rootEmpty.getName()] = invmatrice
-		invbonerest=b.getRestMatrix()
-		invbonerest.invert()
-		dicBoneRestMatrix[b.getName()] = b.getRestMatrix()
-		dicBoneRestInvEmpRest[b.getName()]=b.getRestMatrix()*invmatrice*invmatricet
-		dicEmpRestInvBoneRest[b.getName()]=matrice*invbonerest
-		dicBone[b.getName()]=b
+		dicBone[b.name]=b
 		#print "Ajout de ", b.getName(),"  au dictionnaire"
-		
+		bonerest[b.name]=Blender.Mathutils.Matrix(b.matrix).resize4x4()
+		emprest[rootEmpty.getName()]=Blender.Mathutils.Matrix(rootEmpty.getMatrix('localspace')).resize4x4()
 		f_createBone(armData, ch, b, empties)
 
+	armData.update()
 
 
 #########
@@ -426,20 +373,34 @@ def f_createArmature (rootEmpty, empties, armData):
 # in  : 
 # out : 
 #########
-def moveBones(armature, empty, empties):
+def moveBones(larmature, empty, empties):
+        #print "move bones"
+        global bonerest, emprest
 	children = dicEmptyChild[empty.getName()]
+	thepose = larmature.getPose()
 	for ch in children:
 		if len(children) >= 2:
 			bonename = empty.getName()[1:len(empty.getName())]+'_'+ch.getName()[1:len(ch.getName())]
 		else :
 			bonename = empty.getName()[1:len(empty.getName())]
-		bone = dicBone[bonename]
-		#bone.setLoc(computeRootPos(empty,bone))
-		bone.setLoc(computeRelativePos(empty,bone))
-		bone.setQuat(computeRootQuat2(empty,bone))
-		chch = dicEmptyChild[ch.getName()]
+		thebone = thepose.bones[bonename]
+		trMatrix = empty.getMatrix('localspace')
+		bonerestmat = Blender.Mathutils.Matrix(bonerest[bonename])
+		invbonerestmat = Blender.Mathutils.Matrix(bonerest[bonename])
+		invbonerestmat.invert()
+		trMatrix[3][0] = 0.0
+		trMatrix[3][1] = 0.0
+		trMatrix[3][2] = 0.0
+		invemprestmat = Blender.Mathutils.Matrix(emprest[empty.getName()].rotationPart()).resize4x4()
+		invemprestmat.invert()
+		emprestmat = Blender.Mathutils.Matrix(emprest[empty.getName()].rotationPart()).resize4x4()
+		thebone.localMatrix = bonerestmat* invemprestmat *trMatrix * invbonerestmat 
+                thepose.update()
+                thebone.insertKey(larmature, Blender.Get('curframe'), [Blender.Object.Pose.ROT, Blender.Object.Pose.LOC])
+                thepose.update()
+                chch = dicEmptyChild[ch.getName()]
 		if len(chch) >= 1:
-			moveBones(armature, ch, empties)
+			moveBones(larmature, ch, empties)
 
 
 #########
@@ -447,26 +408,20 @@ def moveBones(armature, empty, empties):
 # in  : 
 # out : 
 #########
-def moveArmature (armature, empties):
+def moveArmature (larmature, empties):
+        global bonerest, emprest
+        #print "move armature"
+        thepose = larmature.getPose()
+        #armature.makeEditable()
 	root = Blender.Object.Get(hipbonename)
 	children = dicEmptyChild[hipbonename]
 	for ch in children:
 		b=dicBone[hipbonename[1:len(hipbonename)] + ch.getName()[1:len(ch.getName())]]
-		#b.setLoc(computeRootPos(root, b))
-		b.setLoc([0.0, 0.0, 0.0])
-		b.setQuat(computeRootQuat2(root, b))
-		moveBones(armature, ch, empties)
+		
+		moveBones(larmature, ch, empties)
+	#armature.update()
 
 
-def eraseIPO (objectname):
-	object = Blender.Object.Get(objectname)
-	lIpo = object.getIpo()
-	if lIpo != None:
-		nbCurves = lIpo.getNcurves()
- 		for i in range(nbCurves):
-			nbBezPoints = lIpo.getNBezPoints(i)
-			for j in range(nbBezPoints):
-				lIpo.delBezPoint(i)
 
 
 ########################################################################
@@ -512,7 +467,7 @@ def Main():
 
 	lesEmpties = getEmpties()
 	#print dicEmptyChild	
-
+	print "creating armature"
 	#armData = createArmature(em0, lesEmpties)
 	objects = Blender.Object.Get()
 	if 'OBArmature' in map(names,objects):
@@ -523,15 +478,16 @@ def Main():
 		#print armData.getBones()
 		f_createArmature(em0, lesEmpties, armData)
 	else:
-		armData= createArmature(em0, lesEmpties)
 		armObj=Blender.Object.New('Armature', 'OBArmature')
-		armObj.link(armData)
+		armData= createArmature(armObj, em0, lesEmpties)
+		#armObj.link(armData)
 		scn = Blender.Scene.getCurrent()
 		scn.link (armObj)
 
 		print 'OBArmature'+' was created'
 	#return myobj
- 
+	print emprest
+	armData.drawType = Blender.Armature.STICK 
 	##-----------
 	## Creation de l'ipo de l'armature
 	##-----------
@@ -540,7 +496,11 @@ def Main():
 	curvX =  GetOrCreateCurve(lipo, 'LocX')
 	curvY =  GetOrCreateCurve(lipo, 'LocY')
 	curvZ =  GetOrCreateCurve(lipo, 'LocZ')
+	curvrX =  GetOrCreateCurve(lipo, 'RotX')
+	curvrY =  GetOrCreateCurve(lipo, 'RotY')
+	curvrZ =  GetOrCreateCurve(lipo, 'RotZ')
 
+	print "animating armature"
 
 	#armData.drawAxes(1)
 	#armData.drawNames(1)
@@ -549,13 +509,16 @@ def Main():
 
 	Blender.Redraw()
 
+        action = Blender.Armature.NLA.NewAction()
+        action.setActive(armObj)
+
+
+
 	##-----------
 	## Enregistrement de la position  de l'armature
 	##-----------
 
-	bones = armData.getBones()
-	for bo in bones:
-		bo.setPose([Blender.Armature.Bone.ROT, Blender.Armature.Bone.LOC]) 
+	bones = armData.bones.values()
 
 	curvX.addBezier((Blender.Get("curframe"), getEmpty(hipbonename).getMatrix('worldspace').translationPart()[0]*scalef))
 	curvY.addBezier((Blender.Get("curframe"), getEmpty(hipbonename).getMatrix('worldspace').translationPart()[1]*scalef))
@@ -566,6 +529,12 @@ def Main():
 	curvY.setExtrapolation('Constant')
 	curvZ.setInterpolation('Linear')
 	curvZ.setExtrapolation('Constant')
+	curvrX.setInterpolation('Linear')
+	curvrX.setExtrapolation('Constant')
+	curvrY.setInterpolation('Linear')
+	curvrY.setExtrapolation('Constant')
+	curvrZ.setInterpolation('Linear')
+	curvrZ.setExtrapolation('Constant')
 
 	Blender.Redraw()
 
@@ -576,18 +545,19 @@ def Main():
 		## Positionnement des os
 		##-----------
 
-		moveArmature(armData, lesEmpties)
+		moveArmature(armObj, lesEmpties)
 
 
 		##-----------
 		## Enregistrement de la position  de l'armature
 		##-----------
 
-		for bo in bones:
-			bo.setPose([Blender.Armature.Bone.ROT, Blender.Armature.Bone.LOC]) 
 		curvX.addBezier((Blender.Get("curframe"), (getEmpty(hipbonename).getMatrix('worldspace').translationPart()[0])*scalef))
 		curvY.addBezier((Blender.Get("curframe"), (getEmpty(hipbonename).getMatrix('worldspace').translationPart()[1])*scalef))
 		curvZ.addBezier((Blender.Get("curframe"), (getEmpty(hipbonename).getMatrix('worldspace').translationPart()[2])*scalef))
+		curvrX.addBezier((Blender.Get("curframe"), (getEmpty(hipbonename).getMatrix('worldspace').rotationPart().toEuler()[0])*scalef/10))
+		curvrY.addBezier((Blender.Get("curframe"), (getEmpty(hipbonename).getMatrix('worldspace').rotationPart().toEuler()[1])*scalef/10))
+		curvrZ.addBezier((Blender.Get("curframe"), (getEmpty(hipbonename).getMatrix('worldspace').rotationPart().toEuler()[2])*scalef/10))
 
 		##-----------
 		## Passage a la frame suivante
@@ -596,6 +566,12 @@ def Main():
 		print num_frame
 		Blender.Set("curframe", num_frame)
 
+	curvX.Recalc()
+	curvY.Recalc()
+	curvZ.Recalc()
+	curvrX.Recalc()
+	curvrY.Recalc()
+	curvrZ.Recalc()
 	Blender.Set("curframe",startframe)
 	Blender.Redraw()
 
@@ -627,26 +603,35 @@ def button_event(evt):
 	global endframe, startframe, insertionframe, hipbonename, framedecimation , scalef
 	if evt==1:
 		startframe = SFrame2.val
-		insertionframe = IFrame.val
+		insertionframe = 100 #IFrame.val
 		endframe =  EFrame.val
 		hipbonename = HBName.val
 		framedecimation = FrameDecimation.val
-		scalef= eval(str(ScaleF.val))
+		scalef= 1.0 #eval(str(ScaleF.val))
 		#print "scalef = ", scalef
 		if startframe>=endframe:
 			Msg = 'Start frame must be lower than End frame'
+                        error_txt = "Error|Start frame must be lower than End frame"
+                        Blender.Draw.PupMenu(error_txt)
 		else:
 			ob = getEmpty(hipbonename)
 			if (ob!=None): 
 				if ob.getParent()!=None:
 					Msg = 'Empty '+hipbonename+ ' is not a root bone.'
+                                        error_txt = "Error|Empty %s is not a root bone"%hipbonename
+                                        Blender.Draw.PupMenu(error_txt)
 				else:  
 					if (0.0 > scalef):
 						Msg = 'Scale factor must be greater than 0'
+						error_txt = "Error|Scale factor must be greater than 0"
+						Blender.Draw.PupMenu(error_txt)
 					else:
 						#Blender.Draw.Exit()
 						Main()
+				#Main()
 			else:
+                                error_txt = "Error|Empty %s not found"%hipbonename
+                                Blender.Draw.PupMenu(error_txt)
 				Msg = 'Empty '+ hipbonename+ ' not found'
 				
 		#Blender.Draw.Redraw(1)
@@ -655,6 +640,9 @@ def button_event(evt):
 		ob = getEmpty(hipbonename)
 		if (ob!=None): 
 			if ob.getParent()!=None:
+                                error_txt = "Error|Empty %s is not a root bone"%hipbonename
+                                Blender.Draw.PupMenu(error_txt)
+
 				Msg = 'Empty '+hipbonename+ ' is not a root bone.'
 			else:  
 				#Blender.Draw.Exit()
@@ -671,15 +659,17 @@ def GUI():
 	Blender.BGL.glClear(Blender.BGL.GL_COLOR_BUFFER_BIT)
 	Blender.BGL.glColor3f(1,1,1)
 	Blender.BGL.glRasterPos2i(20,200)
-	Blender.Draw.Text ("BVH 2 ARMATURE v2.2 by Jean-Baptiste PERIN", 'normal')
-	HBName = Blender.Draw.String("HipBoneName: ", 0, 20, 175, 250, 20, '_Hips', 100)
+	selobj = Blender.Object.GetSelected()
+	if len(selobj) == 1 and type (selobj[0]) == Blender.Types.ObjectType:
+		hipname = selobj[0].getName()
+	else:
+		hipname = '_Hips'
+	Blender.Draw.Text ("BVH 2 ARMATURE v%s by %s"%(__version__, __author__), 'normal')
+	HBName = Blender.Draw.String("HipBoneName: ", 0, 20, 175, 250, 20, hipname, 100)
 	SFrame2 = Blender.Draw.Number("Startframe: ", 0, 20, 150, 250, 20, 1, 1,3000,"Start frame of anim")
 	EFrame = Blender.Draw.Number("Endframe: ", 0, 20, 125, 250, 20, Blender.Get("endframe"), 1,3000,"Last frame of anim")
-	#IFrame = Blender.Draw.Number("Insertionframe: ", 0, 20, 100, 250, 20, Blender.Get("staframe"), 1,3000,"")
-	FrameDecimation = Blender.Draw.Number("FrameDecimation: ", 0, 20, 75, 250, 20,5, 1,10,'number of frame to skip between two action keys')
-	ScaleF = Blender.Draw.Number("Scale: ", 0, 20, 50, 250, 20, 1.0, 0.0, 10.0,  'Scale Factor')
+	FrameDecimation = Blender.Draw.Number("FrameDecimation: ", 0, 20, 75, 250, 20,1, 1,10,'number of frame to skip between two action keys')
 	Blender.Draw.Toggle("Create Armature", 1, 20, 10, 100, 20, 0, "Create Armature")
-	#Blender.Draw.Toggle("Remove Empties", 2, 200, 10, 100, 20, 0, "Remove Empties")
 	Blender.BGL.glRasterPos2i(20,40)
 	Blender.Draw.Text (Msg, 'normal')
 

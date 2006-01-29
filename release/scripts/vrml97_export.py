@@ -4,6 +4,7 @@ Name: 'VRML97 (.wrl)...'
 Blender: 235
 Group: 'Export'
 Submenu: 'All Objects...' all
+Submenu: 'All Objects compressed...' comp
 Submenu: 'Selected Objects...' selected
 Tooltip: 'Export to VRML97 file (.wrl)'
 """
@@ -12,8 +13,8 @@ __author__ = ("Rick Kimball", "Ken Miller", "Steve Matthews", "Bart")
 __url__ = ["blender", "elysiun",
 "Author's (Rick) homepage, http://kimballsoftware.com/blender",
 "Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
-__version__ = "2005/06/03"
-
+__email__ = ["Bart, bart:neeneenee*de"]
+__version__ = "2006/01/17"
 __bpydoc__ = """\
 This script exports to VRML97 format.
 
@@ -37,8 +38,6 @@ for each texture);<br>
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2003,2004: Rick Kimball rick@vrmlworld.net
-#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -61,7 +60,7 @@ for each texture);<br>
 ####################################
 
 import Blender
-from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text
+from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text, sys, Mathutils
 from Blender.Scene import Render
 try:
     from os.path import exists, join
@@ -80,14 +79,8 @@ world = Blender.World.Get()
 worldmat = Blender.Texture.Get()
 filename = Blender.Get('filename')
 _safeOverwrite = True
-radD=math.pi/180.0
+extension = ''
 ARG=''
-
-def rad2deg(v):
-    return round(v*180.0/math.pi,4)
-
-def deg2rad(v):
-    return (v*math.pi)/180.0;
 
 class DrawTypes:
     """Object DrawTypes enum values
@@ -161,11 +154,12 @@ class VRML2Export:
 ##########################################################
 
     def writeHeader(self):
+        bfile = sys.expandpath(Blender.Get('filename'))
         self.file.write("#VRML V2.0 utf8\n\n")
         self.file.write("# This file was authored with Blender (http://www.blender.org/)\n")
         self.file.write("# Blender version %s\n" % Blender.Get('version'))
-        self.file.write("# Blender file %s\n" % filename)
-        self.file.write("# Exported using VRML97 exporter v1.50 (2005/06/03)\n\n")
+        self.file.write("# Blender file %s\n" % sys.basename(bfile))
+        self.file.write("# Exported using VRML97 exporter v1.55 (2006/01/17)\n\n")
 
     def writeInline(self):
         inlines = Blender.Scene.Get()
@@ -205,9 +199,8 @@ class VRML2Export:
     def writeViewpoint(self, thisObj):
         context = scene.getRenderingContext()
         ratio = float(context.imageSizeY())/float(context.imageSizeX())
-        lens = (360* (math.atan(ratio *16 / thisObj.data.getLens()) / 3.141593))*(3.141593/180)
-        if lens > 3.14:
-            lens = 3.14
+        lens = (360* (math.atan(ratio *16 / thisObj.data.getLens()) / math.pi))*(math.pi/180)
+        lens = min(lens, math.pi) 
         # get the camera location, subtract 90 degress from X to orient like VRML does
         loc = self.rotatePointForVRML(thisObj.loc)
         rot = [thisObj.RotX - 1.57, thisObj.RotY, thisObj.RotZ]
@@ -271,8 +264,8 @@ class VRML2Export:
             ambientIntensity = 0
 
         # compute cutoff and beamwidth
-        intensity=min(lamp.energy/1.5,1.0)
-        beamWidth=deg2rad(lamp.spotSize)*.37;
+        intensity=min(lamp.energy/1.75,1.0)
+        beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
         cutOffAngle=beamWidth*1.3
 
         (dx,dy,dz)=self.computeDirection(object)
@@ -303,7 +296,7 @@ class VRML2Export:
             ambi = 0
             ambientIntensity = 0
 
-        intensity=min(lamp.energy/1.5, 1.0) 
+        intensity=min(lamp.energy/1.75,1.0) 
         (dx,dy,dz)=self.computeDirection(object)
         self.writeIndented("DEF %s DirectionalLight {\n" % self.cleanStr(object.name),1)
         self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
@@ -322,7 +315,7 @@ class VRML2Export:
             ambientIntensity = 0
         om = object.getMatrix()
         location=self.rotVertex(om, (0,0,0));
-        intensity=min(lamp.energy/1.5,1.0)
+        intensity=min(lamp.energy/1.75,1.0) 
         radius = lamp.dist
         self.writeIndented("DEF %s PointLight {\n" % self.cleanStr(object.name),1)
         self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
@@ -346,28 +339,10 @@ class VRML2Export:
             self.writeIndented("# location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
             self.writeIndented("}\n",-1)
             self.writeIndented("\n")
-    def createDef(self, name):
-        name = name + str(self.nodeID)
-        self.nodeID=self.nodeID+1
-        if len(name) <= 3:
-            newname = "_" + str(self.nodeID)
-            return "%s" % (newname)
-        else:
-            for bad in [' ','"','#',"'",',','.','[','\\',']','{','}']:
-                name=name.replace(bad,'_')
-            if name in self.namesReserved:
-                newname = name[0:3] + "_" + str(self.nodeID)
-                return "%s" % (newname)
-            elif name[0].isdigit():
-                newname = "_" + name + str(self.nodeID)
-                return "%s" % (newname)
-            else:
-                newname = name
-                return "%s" % (newname)
 
     def secureName(self, name):
         name = name + str(self.nodeID)
-        self.nodeID=self.nodeID+1
+        self.nodeID += 1
         if len(name) <= 3:
             newname = "_" + str(self.nodeID)
             return "%s" % (newname)
@@ -385,13 +360,14 @@ class VRML2Export:
                 return "%s" % (newname)
 
     def writeIndexedFaceSet(self, object, normals = 0):
-
         imageMap={}   # set of used images
         sided={}      # 'one':cnt , 'two':cnt
         vColors={}    # 'multi':1
         meshName = self.cleanStr(object.name)
         mesh=object.getData()
         meshME = self.cleanStr(mesh.name)
+        if len(mesh.faces) == 0:
+					return
         for face in mesh.faces:
             if face.mode & Blender.NMesh.FaceModes['HALO'] and self.halonode == 0:
                 self.writeIndented("Billboard {\n",1)
@@ -437,23 +413,22 @@ class VRML2Export:
         issmooth=0
 
         if len(maters) > 0 or mesh.hasFaceUV():
-            self.writeIndented("appearance Appearance {\n", 1)
-            
-            # right now this script can only handle a single material per mesh.
-            if len(maters) >= 1:
-                mat=Blender.Material.Get(maters[0].name)
-                self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
-                if len(maters) > 1:
-                    print "Warning: mesh named %s has multiple materials" % meshName
-                    print "Warning: only one material per object handled"
-            else:
-                self.writeIndented("material NULL\n")
+          self.writeIndented("appearance Appearance {\n", 1)
+          # right now this script can only handle a single material per mesh.
+          if len(maters) >= 1:
+            mat=Blender.Material.Get(maters[0].name)
+            matFlags = mat.getMode()
+            if not matFlags & Blender.Material.Modes['TEXFACE']:
+              self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
+              if len(maters) > 1:
+                print "Warning: mesh named %s has multiple materials" % meshName
+                print "Warning: only one material per object handled"
         
             #-- textures
             if mesh.hasFaceUV():
                 for face in mesh.faces:
                     if (hasImageTexture == 0) and (face.image):
-                        self.writeImageTexture(face.image.name)
+                        self.writeImageTexture(face.image.name, face.image.filename)
                         hasImageTexture=1  # keep track of face texture
             if self.tilenode == 1:
                 self.writeIndented("textureTransform TextureTransform	{ scale %s %s }\n" % (face.image.xrep, face.image.yrep))
@@ -501,7 +476,7 @@ class VRML2Export:
                 if face.smooth:
                      issmooth=1
             if issmooth==1 and self.wire == 0:
-                creaseAngle=(mesh.getMaxSmoothAngle())*radD
+                creaseAngle=(mesh.getMaxSmoothAngle())*(math.pi/180.0)
                 self.writeIndented("creaseAngle %s\n" % (round(creaseAngle,self.cp)))
 
             #--- output vertexColors
@@ -636,22 +611,27 @@ class VRML2Export:
 	
         self.matNames[matName]=1
 
-        ambient = mat.amb/2
+        ambient = mat.amb/3
         diffuseR, diffuseG, diffuseB = mat.rgbCol[0], mat.rgbCol[1],mat.rgbCol[2]
         if len(world) > 0:
             ambi = world[0].getAmb()
-            ambi0, ambi1, ambi2 = ambi[0], ambi[1], ambi[2]
+            ambi0, ambi1, ambi2 = (ambi[0]*mat.amb)*2, (ambi[1]*mat.amb)*2, (ambi[2]*mat.amb)*2
         else:
-            ambi = 0
             ambi0, ambi1, ambi2 = 0, 0, 0
-        emisR, emisG, emisB = (diffuseR*mat.emit+ambi0)/4, (diffuseG*mat.emit+ambi1)/4, (diffuseB*mat.emit+ambi2)/4
+        emisR, emisG, emisB = (diffuseR*mat.emit+ambi0)/2, (diffuseG*mat.emit+ambi1)/2, (diffuseB*mat.emit+ambi2)/2
 
-        shininess = mat.hard/255.0
-        specR = (mat.specCol[0]+0.001)/(1.05/(mat.getSpec()+0.001))
-        specG = (mat.specCol[1]+0.001)/(1.05/(mat.getSpec()+0.001))
-        specB = (mat.specCol[2]+0.001)/(1.05/(mat.getSpec()+0.001))
+        shininess = mat.hard/512.0
+        specR = (mat.specCol[0]+0.001)/(1.25/(mat.getSpec()+0.001))
+        specG = (mat.specCol[1]+0.001)/(1.25/(mat.getSpec()+0.001))
+        specB = (mat.specCol[2]+0.001)/(1.25/(mat.getSpec()+0.001))
         transp = 1-mat.alpha
-
+        matFlags = mat.getMode()
+        if matFlags & Blender.Material.Modes['SHADELESS']:
+          ambient = 1
+          shine = 1
+          specR = emitR = diffuseR
+          specG = emitG = diffuseG
+          specB = emitB = diffuseB
         self.writeIndented("material DEF MA_%s Material {\n" % matName, 1)
         self.writeIndented("diffuseColor %s %s %s\n" % (round(diffuseR,self.cp), round(diffuseG,self.cp), round(diffuseB,self.cp)))
         self.writeIndented("ambientIntensity %s\n" % (round(ambient,self.cp)))
@@ -661,14 +641,14 @@ class VRML2Export:
         self.writeIndented("transparency %s\n" % (round(transp,self.cp)))
         self.writeIndented("}\n",-1)
 
-    def writeImageTexture(self, name):
+    def writeImageTexture(self, name, filename):
         if self.texNames.has_key(name):
             self.writeIndented("texture USE %s\n" % self.cleanStr(name))
             self.texNames[name] += 1
             return
         else:
             self.writeIndented("texture DEF %s ImageTexture {\n" % self.cleanStr(name), 1)
-            self.writeIndented("url \"%s\"\n" % name)
+            self.writeIndented("url \"%s\"\n" % name.split("\\")[-1].split("/")[-1])
             self.writeIndented("}\n",-1)
             self.texNames[name] = 1
 
@@ -687,7 +667,7 @@ class VRML2Export:
         if worldname in self.namesStandard:
             self.writeIndented("Background {\n",1)
         else:
-            self.writeIndented("DEF %s Background {\n" % self.createDef(worldname),1)
+            self.writeIndented("DEF %s Background {\n" % self.secureName(worldname),1)
         # No Skytype - just Hor color
         if blending == 0:
             self.writeIndented("groundColor %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
@@ -956,11 +936,8 @@ class VRML2Export:
     def writeIndented(self, s, inc=0):
         if inc < 1:
             self.indentLevel = self.indentLevel + inc
-
-        spaces=""
-        for x in xrange(self.indentLevel):
-            spaces = spaces + "\t"
-        self.file.write(spaces + s)
+        
+        self.file.write( self.indentLevel*"\t" + s)
 
         if inc > 0:
             self.indentLevel = self.indentLevel + inc
@@ -1016,7 +993,9 @@ def select_file(filename):
       if(result != 1):
         return
 
-  if filename.find('.wrl', -4) < 0: filename += '.wrl'
+  if not filename.endswith(extension):
+    filename += extension
+
   wrlexport=VRML2Export(filename)
   wrlexport.export(scene, world, worldmat)
 
@@ -1026,7 +1005,7 @@ def createWRLPath():
   
   if filename.find('.') != -1:
     filename = filename.split('.')[0]
-    filename += ".wrl"
+    filename += extension
     print filename
 
   return filename
@@ -1041,8 +1020,14 @@ except:
     print "older version"
 
 if Blender.Get('version') < 235:
-    print "Warning: VRML97 export failed, wrong blender version!"
-    print " You aren't running blender version 2.35 or greater"
-    print " download a newer version from http://blender3d.org/"
+  print "Warning: VRML97 export failed, wrong blender version!"
+  print " You aren't running blender version 2.35 or greater"
+  print " download a newer version from http://blender3d.org/"
 else:
-    Blender.Window.FileSelector(select_file,"Export VRML97",createWRLPath())
+  if ARG == 'comp':
+    extension=".wrz"
+    from gzip import *
+  else:
+    extension=".wrl"
+  Blender.Window.FileSelector(select_file,"Export VRML97",createWRLPath())
+
