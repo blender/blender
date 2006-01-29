@@ -187,8 +187,8 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 	al= col[3];
 	
 	rb2= rowbuf-4;
-	rb1= rb2-4*row_w;
-	rb3= rb2+4*row_w;
+	rb3= rb2-4*row_w;
+	rb1= rb2+4*row_w;
 	
 	maskand= (mask & 255);
 	maskshift= (mask >>8);

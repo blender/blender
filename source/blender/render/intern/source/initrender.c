@@ -486,16 +486,12 @@ void RE_SetCamera(Render *re, Object *camera)
 		pixsize= clipsta/re->viewfac;
 	}
 	
-	/* revision / simplification of subpixel offsets:
-	   - the matrix will go without offset from start (e.g. -100) to end (e.g. +99).
-	   - filling in with zbuffer will set offset of 0.5. to make sure clipped faces fill in too
-	   - in shadepixel() again that 0.5 offset is corrected
-	*/
-  	viewplane.xmin= -0.5f*(float)re->winx; 
-  	viewplane.ymin= -0.5f*re->ycor*(float)re->winy; 
-  	viewplane.xmax=  0.5f*(float)re->winx; 
-  	viewplane.ymax=  0.5f*re->ycor*(float)re->winy; 
-	
+	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
+	viewplane.xmin= -0.5f*(float)re->winx; 
+	viewplane.ymin= -0.5f*re->ycor*(float)re->winy; 
+	viewplane.xmax=  0.5f*(float)re->winx; 
+	viewplane.ymax=  0.5f*re->ycor*(float)re->winy; 
+
 	if(re->flag & R_SEC_FIELD) {
 		if(re->r.mode & R_ODDFIELD) {
 			viewplane.ymin-= .5*re->ycor;

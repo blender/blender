@@ -1290,14 +1290,18 @@ static void zbufinvulGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, flo
 
 static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a)
 {
-	float da,db,u1=0.0,u2=1.0;
-
+	float da,dw,u1=0.0,u2=1.0;
+	float v13;
+	
 	labda[0]= -1.0;
 	labda[1]= -1.0;
 
 	da= v2[a]-v1[a];
-	db= v2[3]-v1[3];
-
+	/* prob; we clip slightly larger, osa renders add 2 pixels on edges, should become variable? */
+	/* or better; increase r.winx/y size, but thats quite a complex one. do it later */
+	dw= 1.005f*(v2[3]-v1[3]);
+	v13= 1.005f*v1[3];
+	
 	/* according the original article by Liang&Barsky, for clipping of
 	 * homogenous coordinates with viewplane, the value of "0" is used instead of "-w" .
 	 * This differs from the other clipping cases (like left or top) and I considered
@@ -1305,8 +1309,8 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 	 * who would have thought that of L&B!
 	 */
 
-	if(cliptestf(-da-db, v1[3]+v1[a], &u1,&u2)) {
-		if(cliptestf(da-db, v1[3]-v1[a], &u1,&u2)) {
+	if(cliptestf(-da-dw, v13+v1[a], &u1,&u2)) {
+		if(cliptestf(da-dw, v13-v1[a], &u1,&u2)) {
 			*b3=1;
 			if(u2<1.0) {
 				labda[1]= u2;
@@ -1611,8 +1615,8 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 		zspan.zofsy= -pa->disprect.ymin - R.jit[pa->sample][1];
 	}
 	else {
-		zspan.zofsx= -pa->disprect.xmin -0.5f;
-		zspan.zofsy= -pa->disprect.ymin -0.5f;
+		zspan.zofsx= -pa->disprect.xmin;
+		zspan.zofsy= -pa->disprect.ymin;
 	}
 	
 	/* the buffers */
@@ -1815,8 +1819,8 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size)
 	zbuf_alloc_span(&zspan, size, size);
 	zspan.zmulx=  ((float)size)/2.0;
 	zspan.zmuly=  ((float)size)/2.0;
-	zspan.zofsx= -0.5f;
-	zspan.zofsy= -0.5f;
+	zspan.zofsx= 0.0f;
+	zspan.zofsy= 0.0f;
 	
 	/* the buffers */
 	zspan.rectz= rectz;
@@ -1871,7 +1875,6 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 		memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
 		return;
 	}
-	//if( (R.r.mode & R_OSA)==0 || sample==0) return;
 		
 	rza= arectz;
 	rd= pa->rectdaps;
@@ -1920,8 +1923,8 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	/* needed for transform from hoco to zbuffer co */
 	zspan.zmulx=  ((float)R.winx)/2.0;
 	zspan.zmuly=  ((float)R.winy)/2.0;
-	zspan.zofsx= -pa->disprect.xmin -0.5f;
-	zspan.zofsy= -pa->disprect.ymin -0.5f;
+	zspan.zofsx= -pa->disprect.xmin;
+	zspan.zofsy= -pa->disprect.ymin;
 	
 	/* the buffers */
 	zspan.arectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "Arectz");
@@ -1941,8 +1944,8 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		zspan.mask= 1<<zsample;
 		
 		if(R.r.mode & R_OSA) {
-			zspan.zofsx= -pa->disprect.xmin-R.jit[zsample][0]-0.5;
-			zspan.zofsy= -pa->disprect.ymin-R.jit[zsample][1]-0.5;
+			zspan.zofsx= -pa->disprect.xmin-R.jit[zsample][0];
+			zspan.zofsy= -pa->disprect.ymin-R.jit[zsample][1];
 		}
 		
 		for(v=0; v<R.totvlak; v++) {
