@@ -2455,18 +2455,12 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 {
 	EditMesh *em = G.editMesh;
 	int nselverts= EM_nvertices_selected();
-
-	if (nselverts<3) {
-		if (nselverts==0) {
-			error("No faces or vertices selected.");
-		} else {
-			error("At least one face or three vertices must be selected.");
-		}
+	float norm[3]={0.0, 0.0, 0.0}; /* used for storing the mesh normal */
+	
+	if (nselverts==0) {
+		error("No faces or vertices selected.");
 	} else if (EM_nfaces_selected()) {
-		float norm[3];
 		EditFace *efa;
-
-		norm[0]= norm[1]= norm[2]= 0.0;
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (faceselectedAND(efa, SELECT)) {
 				float fno[3];
@@ -2483,11 +2477,10 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 
 		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
-	} else {
-		float cent[3], norm[3];
+	} else if (nselverts>2) {
+		float cent[3];
 		EditVert *eve, *leve= NULL;
 
-		norm[0]= norm[1]= norm[2]= 0.0;
 		editmesh_calc_selvert_center(cent);
 		for (eve= em->verts.first; eve; eve= eve->next) {
 			if (eve->f & SELECT) {
@@ -2508,8 +2501,37 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 
 		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
+	} else if (nselverts==2) { /* Align view to edge (or 2 verts) */ 
+		EditVert *eve, *leve= NULL;
+
+		for (eve= em->verts.first; eve; eve= eve->next) {
+			if (eve->f & SELECT) {
+				if (leve) {
+					norm[0]= leve->co[0] - eve->co[0];
+					norm[1]= leve->co[1] - eve->co[1];
+					norm[2]= leve->co[2] - eve->co[2];
+					break; /* we know there are only 2 verts so no need to keep looking */
+				}
+				leve= eve;
+			}
+		}
+		Mat4Mul3Vecfl(G.obedit->obmat, norm);
+		view3d_align_axis_to_vector(v3d, axis, norm);
+	} else if (nselverts==1) { /* Align view to vert normal */ 
+		EditVert *eve, *leve= NULL;
+
+		for (eve= em->verts.first; eve; eve= eve->next) {
+			if (eve->f & SELECT) {
+				norm[0]= eve->no[0];
+				norm[1]= eve->no[1];
+				norm[2]= eve->no[2];
+				break; /* we know this is the only selected vert, so no need to keep looking */
+			}
+		}
+		Mat4Mul3Vecfl(G.obedit->obmat, norm);
+		view3d_align_axis_to_vector(v3d, axis, norm);
 	}
-}
+} 
 
 /* **************** VERTEX DEFORMS *************** */
 
