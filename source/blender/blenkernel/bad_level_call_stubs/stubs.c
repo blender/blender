@@ -36,7 +36,16 @@
 #include "BKE_bad_level_calls.h"
 #include "BLI_blenlib.h"
 #include "BPI_script.h"
+#include "DNA_texture_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
+
+
+
+
+#include "RE_render_ext.h"
+#include "RE_shader_ext.h"
+#include "RE_pipeline.h"
 
 int winqueue_break= 0;
 
@@ -194,3 +203,8 @@ struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_sele
 void elbeemDebugOut(char *msg) {}
 void fluidsimSettingsFree(struct FluidsimSettings* sb) {}
 
+/*new render funcs */
+void     externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta) {}
+int		multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres) {return 0;}
+Render *RE_GetRender(const char *name) {}
+RenderResult *RE_GetResult(Render *re) {}
