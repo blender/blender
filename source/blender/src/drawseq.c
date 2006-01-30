@@ -207,7 +207,7 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	bSound *sound;
 	int wavesample, wavesamplemin, wavesamplemax, subsample_step=4; /* used for finding the min and max wave peaks */
 	Uint8 *stream;
-	float fsofs, feofs_sofs, sound_width; /* for faster access in the loop */
+	float fsofs, feofs_sofs, sound_width, wavemulti; /* for faster access in the loop */
 	
 	audio_makestream(seq->sound);
 	if(seq->sound->stream==NULL) return;	
@@ -247,7 +247,9 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	height= y2-y1;
 	sound = seq->sound;
 	stream = sound->stream;
+	wavemulti = height/196605;
 	wavesample=0;
+	
 	
 	/* we need to get the starting offset value, excuse the duplicate code */
 	f=clipxmin;
@@ -262,15 +264,15 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 		/* if this is close to the last sample just exit */
 		if (offset_next >= sound->streamlen) break;
 		
-		wavesamplemin = 655360;
-		wavesamplemax = -655360;
+		wavesamplemin = 131070;
+		wavesamplemax = -131070;
 		
 		/*find with high and low of the waveform for this draw,
 		evaluate small samples to find this range */
-		while (offset <= offset_next) {
+		while (offset < offset_next) {
 			s = (signed short*)(stream+offset);
 			
-			wavesample = s[0] + s[1]/2;
+			wavesample = s[0]*2 + s[1];
 			if (wavesamplemin>wavesample)
 				wavesamplemin=wavesample;
 			if (wavesamplemax<wavesample)
@@ -278,8 +280,8 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 			offset+=subsample_step;
 		}
 		/* draw the wave line, looks good up close and zoomed out */
-		glVertex2f(f,  midy-(((((float)wavesamplemin)/65536)* height)/2) );
-		glVertex2f(f,  midy-(((((float)wavesamplemax)/65536)* height)/2) );
+		glVertex2f(f,  midy-(wavemulti*wavesamplemin) );
+		glVertex2f(f,  midy-(wavemulti*wavesamplemax) );
 		offset=offset_next;
 	}
 	glEnd();
@@ -861,7 +863,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	SpaceSeq *sseq;
 	Editing *ed;
 	Sequence *seq;
-	float col[3];
+	float col[3], i;
 	int ofsx, ofsy;
 
 	ed= G.scene->ed;
@@ -898,13 +900,34 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	BIF_ThemeColorShade(TH_BACK, -20);
 	glRectf(G.v2d->cur.xmin,  0.0,  G.v2d->cur.xmax,  1.0);
 
+	
 	boundbox_seq();
 	calc_ipogrid();
+	
+	
+	/*Draw Track Gradients */
+	i= MAX2(0, ((int)G.v2d->cur.ymin)-1); /*start drawing gradients at the bottom of the screen.*/
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_QUADS);
+	while (i<G.v2d->cur.ymax) {
+		BIF_ThemeColorShade(TH_BACK, 0);
+		glVertex2f(G.v2d->cur.xmax, i);
+		glVertex2f(G.v2d->cur.xmin, i);
+		BIF_ThemeColorShade(TH_BACK, 30);
+		glVertex2f(G.v2d->cur.xmin, i+1);
+		glVertex2f(G.v2d->cur.xmax, i+1);
+		i+=1.0;
+	}
+	glEnd();
+	glShadeModel(GL_FLAT);
+	/* End Draw Track Gradients */
+	
+	
 	draw_ipogrid();
 	draw_cfra_seq();
 
-	/* sequences: first deselect */
 
+	/* sequences: first deselect */
 	if(ed) {
 		seq= ed->seqbasep->first;
 		while(seq) { /* bound box test, dont draw outside the view */
