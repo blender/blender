@@ -32,8 +32,10 @@
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_ConstraintWrapper.h"
+#include "KX_VehicleWrapper.h"
 #include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsController.h"
+#include "PHY_IVehicle.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -66,7 +68,8 @@ static char gPySetSolverType__doc__[] = "setSolverType(int solverType) Very expe
 
 
 static char gPyCreateConstraint__doc__[] = "createConstraint(ob1,ob2,float restLength,float restitution,float damping)";
-static char gPyRemoveConstraint__doc__[] = "removeConstraint(constraint id)";
+static char gPyGetVehicleConstraint__doc__[] = "getVehicleConstraint(int constraintId)";
+static char gPyRemoveConstraint__doc__[] = "removeConstraint(int constraintId)";
 
 
 
@@ -291,6 +294,35 @@ static PyObject* gPySetSolverType(PyObject* self,
 
 
 
+static PyObject* gPyGetVehicleConstraint(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+#if defined(_WIN64)
+	__int64 constraintid;
+	if (PyArg_ParseTuple(args,"L",&constraintid))
+#else
+	long constraintid;
+	if (PyArg_ParseTuple(args,"l",&constraintid))
+#endif
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			
+			PHY_IVehicle* vehicle = PHY_GetActiveEnvironment()->getVehicleConstraint(constraintid);
+			if (vehicle)
+			{
+				KX_VehicleWrapper* pyWrapper = new KX_VehicleWrapper(vehicle,PHY_GetActiveEnvironment());
+				return pyWrapper;
+			}
+
+		}
+	}
+
+	Py_INCREF(Py_None); return Py_None;
+}
+
+
 
 
 
@@ -407,9 +439,11 @@ static struct PyMethodDef physicsconstraints_methods[] = {
    METH_VARARGS, gPySetSolverType__doc__},
 
 
-
   {"createConstraint",(PyCFunction) gPyCreateConstraint,
    METH_VARARGS, gPyCreateConstraint__doc__},
+     {"getVehicleConstraint",(PyCFunction) gPyGetVehicleConstraint,
+   METH_VARARGS, gPyGetVehicleConstraint__doc__},
+
   {"removeConstraint",(PyCFunction) gPyRemoveConstraint,
    METH_VARARGS, gPyRemoveConstraint__doc__},
 

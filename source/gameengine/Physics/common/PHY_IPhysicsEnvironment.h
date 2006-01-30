@@ -29,11 +29,13 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
 #ifndef _IPHYSICSENVIRONMENT
 #define _IPHYSICSENVIRONMENT
 
 #include <vector>
 #include "PHY_DynamicTypes.h"
+class PHY_IVehicle;
 
 /**
 *	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
@@ -84,6 +86,9 @@ class PHY_IPhysicsEnvironment
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ)=0;
 		virtual void		removeConstraint(int	constraintid)=0;
+
+		//complex constraint for vehicles
+		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId) =0;
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)=0;

@@ -67,6 +67,13 @@ public:
 			float axisX,float axisY,float axisZ);
 
 	virtual void		removeConstraint(int	constraintid);
+
+			//complex constraint for vehicles
+	virtual PHY_IVehicle*	getVehicleConstraint(int constraintId)
+	{
+		return 0;
+	}
+
 	virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
 

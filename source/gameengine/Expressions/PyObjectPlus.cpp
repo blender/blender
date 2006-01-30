@@ -79,7 +79,10 @@ PyTypeObject PyObjectPlus::Type = {
 
 PyObjectPlus::~PyObjectPlus()
 {
-	_Py_ForgetReference(this);
+	if (ob_refcnt)
+	{
+		_Py_ForgetReference(this);
+	}
 //	assert(ob_refcnt==0);
 }
 
