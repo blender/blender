@@ -495,8 +495,12 @@ void BIF_previewdraw(ScrArea *sa, uiBlock *block)
 		
 		/* we now do scalable previews! */
 		set_previewrect(ri, sa->win);
-		if(oldx==ri->pr_rectx && oldy==ri->pr_recty) 
+		if( ABS(oldx-ri->pr_rectx)<2 && ABS(oldy-ri->pr_recty)<2 ) {
+			/* restore old values for drawing! */
+			ri->pr_rectx= oldx;
+			ri->pr_recty= oldy;
 			glaDrawPixelsSafe(ri->disprect.xmin, ri->disprect.ymin, ri->pr_rectx, ri->pr_recty, ri->pr_rectx, GL_RGBA, GL_UNSIGNED_BYTE, ri->rect);
+		}
 		else {
 			MEM_freeN(ri->rect);
 			ri->rect= NULL;

@@ -812,7 +812,6 @@ void do_render_panels(unsigned short event)
 //		}
 		break;
 	case B_SET_EDGE:
-		G.scene->r.mode &= ~R_ZBLUR;
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_SET_ZBLUR:
@@ -1448,42 +1447,6 @@ static void render_panel_yafrayGlobal()
 	}
 }
 
-#if 0
-static void render_panel_sfx(void)
-{
-	uiBlock *block;
-	
-	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_dof", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Output", "Render");
-	if(uiNewPanel(curarea, block, "Post Effects", "Render", 320, 0, 318, 204)==0) return;
-	
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_ZBLUR,B_SET_ZBLUR,"Zblur",	10,180,140,20,&G.scene->r.mode,0,0, 0, 0, "Apply blur based on depth values in z-buffer");
-	uiDefButF(block, NUM,B_DIFF, "ZMin:",		10,160,140,20, &G.scene->r.zmin, 0.0, 1.0, 0, 0, "Specify the start distance with maximum blur");				
-	uiDefButF(block, NUM,B_DIFF, "Focus:",		10,140,140,20, &G.scene->r.focus, 0.0, 1.0, 0, 0, "Specify the focus distance (not blurred)");
-	uiDefButF(block, NUM,B_DIFF, "Blur:",		10,120,140,20, &G.scene->r.zblur, 1.0, 100.0, 0, 0, "Specify the maximum blur radius");	
-	uiDefButF(block, NUM,B_DIFF, "Gamma:",		10,100,140,20, &G.scene->r.zgamma, 0.05, 2.0, 0, 0, "Use Gamma corrected addition of colors");
-	uiDefButF(block, NUM,B_DIFF, "Sigma:",		10,80,140,20, &G.scene->r.zsigma, 1.0, 20.0, 0, 0, "Filter type control, higher value is stronger gaussian");
-	
-	/* Toon shading buttons */
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_EDGE, B_SET_EDGE, "Edge",	160, 180, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 160, 160, 150, 20, "Display edge settings");
-	
-	/* postprocess render buttons */
-	uiBlockBeginAlign(block);
-	if(R.rectftot)
-		uiDefIconTextButI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
-	else
-		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",		160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
-	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 160, 110, 150, 20, "Applies on RGBA floats while render or with Fbuf available");
-	uiBlockEndAlign(block);
-	
-	/* Dither control */
-	uiDefButF(block, NUM,B_DIFF, "Dither:",			160,80,150,20, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
-	
-}
-#endif
 
 static void layer_copy_func(void *lay_v, void *lay_p)
 {

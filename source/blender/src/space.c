@@ -1591,12 +1591,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_CTRLKEY || G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
 					make_parent();
 				else if(G.qual==LR_SHIFTKEY) {
-					//initTransform(TFM_PUSHPULL, CTX_NONE);
-					//Transform();
-					
-					//Ton: is this where is should go?
-					toggle_blockhandler(curarea, VIEW3D_HANDLER_PREVIEW, 0);
-					doredraw= 1;
+					if(G.obedit) {
+						initTransform(TFM_PUSHPULL, CTX_NONE);
+						Transform();
+					}
+					else {
+						toggle_blockhandler(curarea, VIEW3D_HANDLER_PREVIEW, 0);
+						doredraw= 1;
+					}
 				}
 				else if(G.qual==LR_ALTKEY)
 					clear_parent();
