@@ -159,10 +159,10 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 
 elif sys.platform == 'darwin':
 	use_international = 'true'
-	use_gameengine = 'false'
+	use_gameengine = 'true'
 	use_openal = 'true'
 	use_fmod = 'false'
-	use_openal = 'false'
+	use_openal = 'true'
 	use_quicktime = 'true'
 	use_openexr = 'true'
 	use_precomp = 'true'
@@ -173,7 +173,7 @@ elif sys.platform == 'darwin':
 	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
-	build_blender_player = 'false'
+	build_blender_player = 'true'
 	build_blender_plugin = 'false'
 	# TODO: replace darwin-6.1-powerpc with the actual directiory on the
 	#       build machine
