@@ -2164,7 +2164,7 @@ int view2dzoom(unsigned short event)
 				}
 			}
 		}
-		if(ELEM(event, WHEELUPMOUSE, WHEELDOWNMOUSE) || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+		if (ELEM(event, WHEELUPMOUSE, WHEELDOWNMOUSE) || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
 			if(U.viewzoom!=USER_ZOOM_CONT) {
 				mvalo[0]= mval[0];
@@ -2181,9 +2181,18 @@ int view2dzoom(unsigned short event)
 					G.v2d->cur.xmax-= dx;
 				}
 			}
-			else if (ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME)) {
+			else if (ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME)) {
 				G.v2d->cur.xmin+= dx;
 				G.v2d->cur.xmax-= dx;
+			}
+			else if (curarea->spacetype == SPACE_SEQ) {
+				/* less sensitivity on y scale */
+				G.v2d->cur.xmin+= dx;
+				G.v2d->cur.xmax-= dx;
+				if (!(ELEM(event, WHEELUPMOUSE, WHEELDOWNMOUSE))) {
+					G.v2d->cur.ymin+= dy/2;
+					G.v2d->cur.ymax-= dy/2;
+				}
 			}
 			else {
 				G.v2d->cur.xmin+= dx;
@@ -2298,7 +2307,7 @@ int view2dmove(unsigned short event)
 				else left= 0.0;
 				leftret= 0;
 			}
-		}
+		} 
 	}
 	else {
 		facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(curarea->winx);
