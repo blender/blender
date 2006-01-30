@@ -82,6 +82,7 @@ A sample loop can look like this (pseudo c);
 	BLI_end_threads(&lb);
 
  ************************************************ */
+static SDL_mutex *_malloc_lock= NULL;
 
 /* just a max for security reasons */
 #define RE_MAX_THREAD	8
@@ -93,8 +94,6 @@ typedef struct ThreadSlot {
 	SDL_Thread *sdlthread;
 	int avail;
 } ThreadSlot;
-
-static ThreadSlot threadslots[RE_MAX_THREAD];
 
 void BLI_init_threads(ListBase *threadbase, int (*do_thread)(void *), int tot)
 {
@@ -112,6 +111,8 @@ void BLI_init_threads(ListBase *threadbase, int (*do_thread)(void *), int tot)
 		BLI_addtail(threadbase, tslot);
 		tslot->do_thread= do_thread;
 	}
+	
+	_malloc_lock = SDL_CreateMutex();
 }
 
 /* amount of available threads */
@@ -178,6 +179,35 @@ void BLI_end_threads(ListBase *threadbase)
 		}
 	}
 	BLI_freelistN(threadbase);
+	
+	if(_malloc_lock) SDL_DestroyMutex(_malloc_lock); 
+	_malloc_lock= NULL;
 }
+
+/* ***************** Thread safe MEM_malloc/calloc/free ************************** */
+
+void *MEM_mallocT(int len, char *name)
+{
+	void *mem;
+	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	mem= MEM_mallocN(len, name);
+	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	return mem;
+}
+void *MEM_callocT(int len, char *name)
+{
+	void *mem;
+	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	mem= MEM_callocN(len, name);
+	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	return mem;
+}
+void MEM_freeT(void *poin)
+{
+	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	MEM_freeN(poin);
+	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+}
+
 
 /* eof */

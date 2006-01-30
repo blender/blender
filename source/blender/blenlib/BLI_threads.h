@@ -35,10 +35,14 @@
 void	BLI_init_threads	(ListBase *threadbase, int (*do_thread)(void *), int tot);
 int		BLI_available_threads(ListBase *threadbase);
 int		BLI_available_thread_index(ListBase *threadbase);
-void		BLI_insert_thread	(ListBase *threadbase, void *callerdata);
+void	BLI_insert_thread	(ListBase *threadbase, void *callerdata);
 void	BLI_remove_thread	(ListBase *threadbase, void *callerdata);
 void	BLI_end_threads		(ListBase *threadbase);
-
+		
+		/* threadsafe version of MEM_malloc and friends */
+void	*MEM_mallocT(int len, char *name);
+void	*MEM_callocT(int len, char *name);
+void	MEM_freeT(void *poin);
 
 #endif
 

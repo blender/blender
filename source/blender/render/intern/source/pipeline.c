@@ -106,7 +106,7 @@ Render R;
 /* ********* alloc and free ******** */
 
 
-SDL_mutex *malloc_lock= NULL;
+static SDL_mutex *malloc_lock= NULL;
 
 void *RE_mallocN(int len, char *name)
 {

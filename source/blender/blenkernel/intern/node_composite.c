@@ -50,8 +50,8 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
-#include "MEM_guardedalloc.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
@@ -74,16 +74,16 @@ typedef struct CompBuf {
 
 static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 {
-	CompBuf *cbuf= MEM_callocN(sizeof(CompBuf), "compbuf");
+	CompBuf *cbuf= MEM_callocT(sizeof(CompBuf), "compbuf");
 	
 	cbuf->x= sizex;
 	cbuf->y= sizey;
 	cbuf->type= type;
 	if(alloc) {
 		if(cbuf->type==CB_RGBA)
-			cbuf->rect= MEM_mallocN(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
+			cbuf->rect= MEM_mallocT(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
 		else
-			cbuf->rect= MEM_mallocN(sizeof(float)*sizex*sizey, "compbuf Fac rect");
+			cbuf->rect= MEM_mallocT(sizeof(float)*sizex*sizey, "compbuf Fac rect");
 		cbuf->malloc= 1;
 	}
 	cbuf->disprect.xmin= 0;
@@ -97,8 +97,8 @@ static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 void free_compbuf(CompBuf *cbuf)
 {
 	if(cbuf->malloc && cbuf->rect)
-		MEM_freeN(cbuf->rect);
-	MEM_freeN(cbuf);
+		MEM_freeT(cbuf->rect);
+	MEM_freeT(cbuf);
 }
 
 void print_compbuf(char *str, CompBuf *cbuf)
@@ -525,7 +525,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				CompBuf *outbuf, *zbuf=NULL;
 				
 				if(rr->rectf) 
-					MEM_freeN(rr->rectf);
+					MEM_freeT(rr->rectf);
 				outbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 1);
 				
 				if(in[1]->data==NULL)
@@ -535,7 +535,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				
 				if(in[2]->data) {
 					if(rr->rectz) 
-						MEM_freeN(rr->rectz);
+						MEM_freeT(rr->rectz);
 					zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 1);
 					composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
 					rr->rectz= zbuf->rect;
@@ -1398,7 +1398,7 @@ static float *make_gausstab(int rad)
 	
 	n = 2 * rad + 1;
 	
-	gausstab = (float *) MEM_mallocN(n * sizeof(float), "gauss");
+	gausstab = (float *) MEM_mallocT(n * sizeof(float), "gauss");
 	
 	sum = 0.0f;
 	for (i = -rad; i <= rad; i++) {
@@ -1421,7 +1421,7 @@ static float *make_bloomtab(int rad)
 	
 	n = 2 * rad + 1;
 	
-	bloomtab = (float *) MEM_mallocN(n * sizeof(float), "bloom");
+	bloomtab = (float *) MEM_mallocT(n * sizeof(float), "bloom");
 	
 	for (i = -rad; i <= rad; i++) {
 		val = pow(1.0 - fabs((float)i)/((float)rad), 4.0);
@@ -1488,7 +1488,7 @@ static void blur_single_image(CompBuf *new, CompBuf *img, float blurx, float blu
 	}
 	
 	/* vertical */
-	MEM_freeN(gausstab);
+	MEM_freeT(gausstab);
 	
 	rad = ceil(blury);
 	if(rad>imgy/2)
@@ -1535,7 +1535,7 @@ static void blur_single_image(CompBuf *new, CompBuf *img, float blurx, float blu
 	}
 	
 	free_compbuf(work);
-	MEM_freeN(gausstab);
+	MEM_freeT(gausstab);
 }
 
 /* reference has to be mapped 0-1, and equal in size */
@@ -1570,7 +1570,7 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 		rady= 1;
 	
 	x= MAX2(radx, rady);
-	maintabs= MEM_mallocN(x*sizeof(void *), "gauss array");
+	maintabs= MEM_mallocT(x*sizeof(void *), "gauss array");
 	for(i= 0; i<x; i++)
 		maintabs[i]= make_bloomtab(i+1);
 		
@@ -1654,8 +1654,8 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 	
 	x= MAX2(radx, rady);
 	for(i= 0; i<x; i++)
-		MEM_freeN(maintabs[i]);
-	MEM_freeN(maintabs);
+		MEM_freeT(maintabs[i]);
+	MEM_freeT(maintabs);
 	
 }
 
@@ -1700,7 +1700,7 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float 
 		rady= 1;
 	
 	x= MAX2(radx, rady);
-	maintabs= MEM_mallocN(x*sizeof(void *), "gauss array");
+	maintabs= MEM_mallocT(x*sizeof(void *), "gauss array");
 	for(i= 0; i<x; i++)
 		maintabs[i]= make_gausstab(i+1);
 	
@@ -1763,8 +1763,8 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float 
 	
 	x= MAX2(radx, rady);
 	for(i= 0; i<x; i++)
-		MEM_freeN(maintabs[i]);
-	MEM_freeN(maintabs);
+		MEM_freeT(maintabs[i]);
+	MEM_freeT(maintabs);
 	
 }
 
