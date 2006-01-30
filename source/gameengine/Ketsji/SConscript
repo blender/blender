@@ -64,6 +64,7 @@ source_files = ['BL_Shader.cpp',
                 'KX_BulletPhysicsController.cpp',
                 'KX_BlenderMaterial.cpp',
                 'KX_MaterialIpoController.cpp',
+		'KX_VehicleWrapper.cpp',
                 ]
 
 if user_options_dict['USE_PHYSICS'] == 'solid':
