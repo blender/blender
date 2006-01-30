@@ -1366,8 +1366,12 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	ScrArea *sa;
 	BWinEvent temp_bevt;
 	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		while( bwin_qread( sa->win, &temp_bevt ) ) {}
-		while( bwin_qread( sa->headwin, &temp_bevt ) ) {}
+		if(sa->win) {
+			while( bwin_qread( sa->win, &temp_bevt ) ) {}
+		}
+		if(sa->headwin) {
+			while( bwin_qread( sa->headwin, &temp_bevt ) ) {}
+		}
 	}
 	/* Done clearing events */
 	
