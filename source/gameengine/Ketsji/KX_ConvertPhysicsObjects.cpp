@@ -692,7 +692,6 @@ static CollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool p
 
 	//see if there is any polygons, if not, bail out.
 
-	int numUsedPolygons = 0;
 	int numPoints = 0;
 	SimdVector3* points = 0;
 
@@ -1044,11 +1043,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (meshobj)
 		materialname = meshobj->GetMaterialName(0);
 
-	const char* matname = materialname.ReadPtr();
-
-
 	physicscontroller->SetObject(gameobj->GetSGNode());
-				
 
 }
 	

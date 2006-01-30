@@ -351,8 +351,6 @@ void KX_BlenderMaterial::setTexData( bool enable )
 		return;
 	}
 
-	int lastblend = 0;
-
 	// for each enabled unit
 	for(i=0; (i<mMaterial->num_enabled); i++) {
 		if( !mTextures[i].Ok() ) continue;

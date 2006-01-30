@@ -214,7 +214,6 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	MT_Point3 topoint = frompoint + (m_distance) * todir;
 	MT_Point3 resultpoint;
 	MT_Vector3 resultnormal;
-	bool ready = false;
 	PHY_IPhysicsEnvironment* pe = m_scene->GetPhysicsEnvironment();
 
 	if (!pe)

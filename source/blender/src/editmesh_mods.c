@@ -2518,7 +2518,7 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
 	} else if (nselverts==1) { /* Align view to vert normal */ 
-		EditVert *eve, *leve= NULL;
+		EditVert *eve;
 
 		for (eve= em->verts.first; eve; eve= eve->next) {
 			if (eve->f & SELECT) {

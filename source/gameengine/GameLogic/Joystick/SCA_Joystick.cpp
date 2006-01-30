@@ -79,12 +79,24 @@ void SCA_Joystick::HandleEvents()
 		{
 			switch(m_private->m_event.type)
 			{
-			case SDL_JOYAXISMOTION: {HANDLE_AXISMOTION(OnAxisMotion);break;}
-			case SDL_JOYHATMOTION:	{HANDLE_HATMOTION(OnHatMotion);  break;}
-			case SDL_JOYBUTTONUP:	{HANDLE_BUTTONUP(OnButtonUp);	 break;}
-			case SDL_JOYBUTTONDOWN: {HANDLE_BUTTONDOWN(OnButtonDown);break;}
-			case SDL_JOYBALLMOTION: {HANDLE_BALLMOTION(OnBallMotion);break;}
-			default:				{HANDLE_NOEVENT(OnNothing); 	 break;}
+			case SDL_JOYAXISMOTION:
+				HANDLE_AXISMOTION(OnAxisMotion);
+				break;
+			case SDL_JOYHATMOTION:
+				HANDLE_HATMOTION(OnHatMotion);
+				break;
+			case SDL_JOYBUTTONUP:
+				HANDLE_BUTTONUP(OnButtonUp);
+				break;
+			case SDL_JOYBUTTONDOWN:
+				HANDLE_BUTTONDOWN(OnButtonDown);
+				break;
+			case SDL_JOYBALLMOTION: 
+				HANDLE_BALLMOTION(OnBallMotion);
+				break;
+			default:
+				HANDLE_NOEVENT(OnNothing);
+				break;
 			}
 		}
 	}

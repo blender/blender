@@ -66,6 +66,8 @@ int node_has_hidden_sockets(struct bNode *node);
 struct bNode *node_add_node(struct SpaceNode *snode, int type, float locx, float locy);
 
 /* ************* drawnode.c *************** */
+struct SpaceNode;
+struct bNodeLink;
 void node_draw_link(struct SpaceNode *snode, struct bNodeLink *link);
 
 void init_node_butfuncs(void);

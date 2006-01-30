@@ -501,173 +501,174 @@ void BOP_getPoints(BOP_Mesh*    mesh,
  * @param invertA indicates if points of same relative face had been exchanged
  */
 void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bool &invertA, bool &invertB) {
-  MT_Point3 sortedPoints[4];
-  unsigned int sortedFaces[4], position[4];
-  unsigned int i;
-  if (size == 2) {
+	MT_Point3 sortedPoints[4];
+	unsigned int sortedFaces[4], position[4];
+	unsigned int i;
+	if (size == 2) {
 
-    // Trivial case, only test the merge ...
-    if (BOP_comp(0,points[0].distance(points[1]))==0) {
-      face[0] = 3;
-      size--;
-    }
-  }
-  else {
-    // size is 3 or 4
-    // Get segment extreme points
-    MT_Scalar maxDistance = -1;
-    for(i=0;i<size-1;i++){
-      for(unsigned int j=i+1;j<size;j++){
-        MT_Scalar distance = points[i].distance(points[j]);
-        if (distance > maxDistance){
-          maxDistance = distance;
-          position[0] = i;
-          position[size-1] = j;
-        }
-      }
-    }
+		// Trivial case, only test the merge ...
+		if (BOP_comp(0,points[0].distance(points[1]))==0) {
+			face[0] = 3;
+			size--;
+		}
+	}
+	else {
+		// size is 3 or 4
+		// Get segment extreme points
+		MT_Scalar maxDistance = -1;
+		for(i=0;i<size-1;i++){
+			for(unsigned int j=i+1;j<size;j++){
+				MT_Scalar distance = points[i].distance(points[j]);
+				if (distance > maxDistance){
+					maxDistance = distance;
+					position[0] = i;
+					position[size-1] = j;
+				}
+			}
+		}
 
-    // Get segment inner points
-    position[1] = position[2] = size;
-    for(i=0;i<size;i++){
-      if ((i != position[0]) && (i != position[size-1])){
-        if (position[1] == size) position[1] = i;
-        else position[2] = i;
-      }
-    }
+		// Get segment inner points
+		position[1] = position[2] = size;
+		for(i=0;i<size;i++){
+			if ((i != position[0]) && (i != position[size-1])){
+				if (position[1] == size) position[1] = i;
+				else position[2] = i;
+			}
+		}
 
-    // Get inner points
-    if (position[2] < size) {
-      MT_Scalar d1 = points[position[1]].distance(points[position[0]]);
-      MT_Scalar d2 = points[position[2]].distance(points[position[0]]);
-      if (d1 > d2) {
-        unsigned int aux = position[1];
-        position[1] = position[2];
-        position[2] = aux;
-      }
-    }
+		// Get inner points
+		if (position[2] < size) {
+			MT_Scalar d1 = points[position[1]].distance(points[position[0]]);
+			MT_Scalar d2 = points[position[2]].distance(points[position[0]]);
+			if (d1 > d2) {
+				unsigned int aux = position[1];
+				position[1] = position[2];
+				position[2] = aux;
+			}
+		}
 
-    // Sort data
-    for(i=0;i<size;i++) {
-      sortedPoints[i] = points[position[i]];
-      sortedFaces[i] = face[position[i]];
-    }
+		// Sort data
+		for(i=0;i<size;i++) {
+			sortedPoints[i] = points[position[i]];
+			sortedFaces[i] = face[position[i]];
+		}
 
-    // invertA, invertB ¿?
-    invertA = false;
-    invertB = false;
-    if (face[1] == 1) {
-      // invertA¿?
-      for(i=0;i<size;i++) {
-        if (position[i] == 1) {
-          invertA = true;
-          break;
-        }
-        else if (position[i] == 0) break;
-      }
-      // invertB¿?
-      if (size == 4) {
-        for(unsigned int i=0;i<size;i++) {
-          if (position[i] == 3) {
-            invertB = true;
-            break;
-          }
-          else if (position[i] == 2) break;
-        }
-      }
-    }
-    else if (face[1] == 2) {
-      // invertB¿?
-      for(unsigned int i=0;i<size;i++) {
-        if (position[i] == 2) {
-          invertB = true;
-          break;
-        }
-        else if (position[i] == 1) break;
-      }
-    }
+		invertA = false;
+		invertB = false;
+		if (face[1] == 1) {
+
+			// invertA¿?
+			for(i=0;i<size;i++) {
+				if (position[i] == 1) {
+					invertA = true;
+          				break;
+        			}
+        			else if (position[i] == 0) break;
+      			}
+
+			// invertB¿?
+			if (size == 4) {
+				for(i=0;i<size;i++) {
+					if (position[i] == 3) {
+						invertB = true;
+						break;
+					}
+					else if (position[i] == 2) break;
+				}
+			}
+		}
+		else if (face[1] == 2) {
+			// invertB¿?
+			for(i=0;i<size;i++) {
+				if (position[i] == 2) {
+					invertB = true;
+					break;
+				}
+				else if (position[i] == 1) break;
+			}
+		}
 
 
-    // Merge data
-    MT_Scalar d1 = sortedPoints[1].distance(sortedPoints[0]);
-    MT_Scalar d2 = sortedPoints[1].distance(sortedPoints[2]);
-    if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[0]) {
-      if (BOP_comp(0,d2)==0 && sortedFaces[1] != sortedFaces[2])  {
-        if (d1 < d2) {
-          // merge 0 and 1
-          sortedFaces[0] = 3;
-          for(unsigned int i = 1; i<size-1;i++) {
-            sortedPoints[i] = sortedPoints[i+1];
-            sortedFaces[i] = sortedFaces[i+1];
-          }
-          size--;
-          if (size == 3) {
-            // merge 1 and 2 ???
-            d1 = sortedPoints[1].distance(sortedPoints[2]);
-            if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[2])  {
-              // merge!
-              sortedFaces[1] = 3;
-              size--;
-            }
-          }
-        }
-        else {
-          // merge 1 and 2
-          sortedFaces[1] = 3;
-          for(unsigned int i = 2; i<size-1;i++) {
-            sortedPoints[i] = sortedPoints[i+1];
-            sortedFaces[i] = sortedFaces[i+1];
-          }
-          size--;
-        }        
-      }
-      else {
-        // merge 0 and 1
-        sortedFaces[0] = 3;
-        for(unsigned int i = 1; i<size-1;i++) {
-          sortedPoints[i] = sortedPoints[i+1];
-          sortedFaces[i] = sortedFaces[i+1];
-        }
-        size--;
-        if (size == 3) {
-          // merge 1 i 2 ???
-          d1 = sortedPoints[1].distance(sortedPoints[2]);
-          if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[2])  {
-            // merge!
-            sortedFaces[1] = 3;
-            size--;
-          }
-        }
-      }     
-    }
-    else {
-      if (BOP_comp(0,d2)==0 && sortedFaces[1] != sortedFaces[2])  {
-        // merge 1 and 2
-        sortedFaces[1] = 3;
-        for(unsigned int i = 2; i<size-1;i++) {
-          sortedPoints[i] = sortedPoints[i+1];
-          sortedFaces[i] = sortedFaces[i+1];
-        }
-        size--;
-      }
-      else if (size == 4) {
-        d1 = sortedPoints[2].distance(sortedPoints[3]);
-        if (BOP_comp(0,d1)==0 && sortedFaces[2] != sortedFaces[3])  {
-          // merge 2 and 3
-          sortedFaces[2] = 3;
-          size--;
-        }
-      }
-    }
+		// Merge data
+		MT_Scalar d1 = sortedPoints[1].distance(sortedPoints[0]);
+		MT_Scalar d2 = sortedPoints[1].distance(sortedPoints[2]);
+		if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[0]) {
+			if (BOP_comp(0,d2)==0 && sortedFaces[1] != sortedFaces[2])  {
+				if (d1 < d2) {
+					// merge 0 and 1
+					sortedFaces[0] = 3;
+					for(i = 1; i<size-1;i++) {
+						sortedPoints[i] = sortedPoints[i+1];
+						sortedFaces[i] = sortedFaces[i+1];
+					}
+					size--;
+					if (size == 3) {
+						// merge 1 and 2 ???
+						d1 = sortedPoints[1].distance(sortedPoints[2]);
+						if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[2])  {
+							// merge!
+							sortedFaces[1] = 3;
+							size--;
+						}
+					}
+				}
+				else {
+					// merge 1 and 2
+					sortedFaces[1] = 3;
+					for(i = 2; i<size-1;i++) {
+						sortedPoints[i] = sortedPoints[i+1];
+						sortedFaces[i] = sortedFaces[i+1];
+					}
+					size--;
+				}        
+			}
+			else {
+				// merge 0 and 1
+				sortedFaces[0] = 3;
+				for(i = 1; i<size-1;i++) {
+					sortedPoints[i] = sortedPoints[i+1];
+					sortedFaces[i] = sortedFaces[i+1];
+				}
+				size--;
+				if (size == 3) {
+					// merge 1 i 2 ???
+					d1 = sortedPoints[1].distance(sortedPoints[2]);
+					if (BOP_comp(0,d1)==0 && sortedFaces[1] != sortedFaces[2])  {
+						// merge!
+						sortedFaces[1] = 3;
+						size--;
+					}
+				}
+			}     
+		}
+		else {
+			if (BOP_comp(0,d2)==0 && sortedFaces[1] != sortedFaces[2])  {
+				// merge 1 and 2
+				sortedFaces[1] = 3;
+				for(i = 2; i<size-1;i++) {
+					sortedPoints[i] = sortedPoints[i+1];
+					sortedFaces[i] = sortedFaces[i+1];
+				}
+				size--;
+			}
+			else if (size == 4) {
+				d1 = sortedPoints[2].distance(sortedPoints[3]);
+				if (BOP_comp(0,d1)==0 && sortedFaces[2] != sortedFaces[3])  {
+					// merge 2 and 3
+					sortedFaces[2] = 3;
+					size--;
+				}
+			}
+		}
     
-    // Merge initial points ...
-    for(i=0;i<size;i++) {
-      points[i] = sortedPoints[i];
-      face[i] = sortedFaces[i];
-    }
+		// Merge initial points ...
+		for(i=0;i<size;i++) {
+			points[i] = sortedPoints[i];
+			face[i] = sortedFaces[i];
+		}
 
-  }
-}  
+  	}
+}
 
 
 /**

@@ -28,7 +28,5 @@ public:
 
 };
 
-
-
-
 #endif //SIMPLE_CONSTRAINT_SOLVER_H
+

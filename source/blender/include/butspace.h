@@ -131,6 +131,7 @@ void test_imapoin_but(char *name, ID **idpp);
 
 void test_idbutton_cb(void *namev, void *arg2_unused);
 
+struct CurveMapping;
 void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
 
 /* -------------- internal event defines ------------ */

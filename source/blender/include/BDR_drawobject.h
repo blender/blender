@@ -48,6 +48,7 @@ struct BPoint;
 struct BezTriple;
 struct EditVert;
 struct EditFace;
+struct EditEdge;
 
 void mesh_foreachScreenVert(void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
 void mesh_foreachScreenEdge(void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
