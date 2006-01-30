@@ -644,6 +644,24 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	}
 }
 
+static int calc_ipobuttonswidth(ScrArea *sa)
+{
+	SpaceIpo *sipo= sa->spacedata.first;
+	EditIpo *ei;
+	int ipowidth = IPOBUTX;
+	int a;
+	
+	if (sipo == NULL) return IPOBUTX;
+	if ((sipo->totipo==0) || (sipo->editipo==0)) return IPOBUTX;
+	
+	ei= sipo->editipo;
+	
+	for(a=0; a<sipo->totipo; a++, ei++) {
+		if (BMF_GetStringWidth(G.font, ei->name) + 18 > ipowidth) ipowidth = BMF_GetStringWidth(G.font, ei->name) + 18;
+	}
+	return ipowidth;
+
+}
 
 void calc_scrollrcts(ScrArea *sa, View2D *v2d, int winx, int winy)
 {
@@ -664,9 +682,11 @@ void calc_scrollrcts(ScrArea *sa, View2D *v2d, int winx, int winy)
 		}
 	}
 	else if(sa->spacetype==SPACE_IPO) {
-		v2d->mask.xmax-= IPOBUTX;
+		int ipobutx = calc_ipobuttonswidth(sa);
 		
-		if(v2d->mask.xmax<IPOBUTX)
+		v2d->mask.xmax-= ipobutx;
+		
+		if(v2d->mask.xmax<ipobutx)
 			v2d->mask.xmax= winx;
 	}
 	
@@ -942,15 +962,17 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	uiBlock *block;
 	uiBut *but;
 	EditIpo *ei;
-	int a, y, sel, tot;
+	int a, y, sel, tot, ipobutx;
 	char naam[20];
 	
-	if(area->winx<IPOBUTX) return;
+	if(area->winx< calc_ipobuttonswidth(area)) return;
 	
 	if(sipo->butofs) {
 		tot= 30+IPOBUTY*sipo->totipo;
 		if(tot<area->winy) sipo->butofs= 0;
 	}
+	
+	ipobutx = calc_ipobuttonswidth(area);
 	
 	BIF_ThemeColor(TH_SHADE2);
 	glRects(v2d->mask.xmax,  0,  area->winx,  area->winy);
@@ -977,7 +999,7 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	
 	for(a=0; a<sipo->totipo; a++, ei++, y-=IPOBUTY) {
 		// this button defines visiblity, bit zero of flag (IPO_VISIBLE)
-		but= uiDefButBitS(block, TOG, IPO_VISIBLE, a+1, ei->name,  v2d->mask.xmax+18, y, IPOBUTX-15, IPOBUTY-1, &(ei->flag), 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, TOG, IPO_VISIBLE, a+1, ei->name,  v2d->mask.xmax+18, y, ipobutx-15, IPOBUTY-1, &(ei->flag), 0, 0, 0, 0, "");
 		// no hilite, its not visible, but most of all the winmatrix is not correct later on...
 		uiButSetFlag(but, UI_TEXT_LEFT|UI_NO_HILITE);
 		
@@ -1947,7 +1969,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 	
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);	/* for panel handler to work */
 	
-	v2d->hor.xmax+=IPOBUTX;
+	v2d->hor.xmax+=calc_ipobuttonswidth(sa);
 	calc_scrollrcts(sa, G.v2d, sa->winx, sa->winy);
 
 	BIF_GetThemeColor3fv(TH_BACK, col);
