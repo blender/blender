@@ -905,8 +905,10 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	calc_ipogrid();
 	
 	
-	/*Draw Track Gradients */
-	i= MAX2(0, ((int)G.v2d->cur.ymin)-1); /*start drawing gradients at the bottom of the screen.*/
+	/*Draw Track Gradients  Comment out for now do somthing more subtle
+	start drawing gradients at the bottom of the screen.*/
+	/*
+	i= MAX2(1, ((int)G.v2d->cur.ymin)-1); 
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
 	while (i<G.v2d->cur.ymax) {
@@ -920,7 +922,35 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	}
 	glEnd();
 	glShadeModel(GL_FLAT);
-	/* End Draw Track Gradients */
+	*/ /* End Draw Track Gradients */
+	
+	
+	/* Quad Stripes ?*/
+	/*i= MAX2(1, ((int)G.v2d->cur.ymin)-1);
+	glBegin(GL_QUADS);
+	while (i<G.v2d->cur.ymax) {
+		if (((int)i) & 1)
+			BIF_ThemeColorShade(TH_BACK, -15);
+		else
+			BIF_ThemeColorShade(TH_BACK, -25);
+		
+		glVertex2f(G.v2d->cur.xmax, i);
+		glVertex2f(G.v2d->cur.xmin, i);
+		glVertex2f(G.v2d->cur.xmin, i+1);
+		glVertex2f(G.v2d->cur.xmax, i+1);
+		i+=1.0;
+	}
+	glEnd();*/
+	
+	/* Force grid lines instead */
+	glBegin(GL_LINES);
+	while (i<G.v2d->cur.ymax) {
+		BIF_ThemeColorShade(TH_BACK, -40);
+		glVertex2f(G.v2d->cur.xmax, i);
+		glVertex2f(G.v2d->cur.xmin, i);
+		i+=1.0;
+	}
+	glEnd();
 	
 	
 	draw_ipogrid();
