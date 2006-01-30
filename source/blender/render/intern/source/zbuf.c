@@ -1299,9 +1299,14 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 	da= v2[a]-v1[a];
 	/* prob; we clip slightly larger, osa renders add 2 pixels on edges, should become variable? */
 	/* or better; increase r.winx/y size, but thats quite a complex one. do it later */
-	dw= 1.005f*(v2[3]-v1[3]);
-	v13= 1.005f*v1[3];
-	
+	if(a==2) {
+		dw= (v2[3]-v1[3]);
+		v13= v1[3];
+	}
+	else {
+		dw= 1.005f*(v2[3]-v1[3]);
+		v13= 1.005f*v1[3];
+	}	
 	/* according the original article by Liang&Barsky, for clipping of
 	 * homogenous coordinates with viewplane, the value of "0" is used instead of "-w" .
 	 * This differs from the other clipping cases (like left or top) and I considered
@@ -1457,6 +1462,10 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 
 							if(b2==0 && b3==1) {
 								/* completely 'in' */;
+								vlzp[clvl][0]= vlzp[v][0];
+								vlzp[clvl][1]= vlzp[v][1];
+								vlzp[clvl][2]= vlzp[v][2];
+								clvl++;
 							} else if(b3==0) {
 								vlzp[v][0]=0;
 								/* completely 'out' */;
