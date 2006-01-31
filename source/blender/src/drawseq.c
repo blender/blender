@@ -942,7 +942,8 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	}
 	glEnd();*/
 	
-	/* Force grid lines instead */
+	/* Force grid lines instead - Hangs on andys pc... will look at later */
+	/*
 	glBegin(GL_LINES);
 	while (i<G.v2d->cur.ymax) {
 		BIF_ThemeColorShade(TH_BACK, -40);
@@ -951,7 +952,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 		i+=1.0;
 	}
 	glEnd();
-	
+	*/
 	
 	draw_ipogrid();
 	draw_cfra_seq();
