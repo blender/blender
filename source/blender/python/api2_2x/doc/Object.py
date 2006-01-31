@@ -114,29 +114,29 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
   """
   Duplicate selected objects on visible layers from Blenders current scene,
   de-selecting the currently visible, selected objects and making a copy where all new objects are selected.
-  By default no data linked to the object is duplicated, use the kayword arguments to change this.
-  Object.GetSelected() will return the list of objects resulting from duplication.
+  By default no data linked to the object is duplicated; use the keyword arguments to change this.
+  L{Object.GetSelected()<GetSelected>} will return the list of objects resulting from duplication.
   
   @type mesh: bool
-  @param mesh: When non zero, mesh object data will be duplicated with the objects.
+  @param mesh: When non-zero, mesh object data will be duplicated with the objects.
   @type surface: bool
-  @param surface: When non zero, surface object data will be duplicated with the objects.
+  @param surface: When non-zero, surface object data will be duplicated with the objects.
   @type curve: bool
-  @param curve: When non zero, curve object data will be duplicated with the objects.
+  @param curve: When non-zero, curve object data will be duplicated with the objects.
   @type text: bool
-  @param text: When non zero, text object data will be duplicated with the objects.
+  @param text: When non-zero, text object data will be duplicated with the objects.
   @type metaball: bool
-  @param metaball: When non zero, metaball object data will be duplicated with the objects.
+  @param metaball: When non-zero, metaball object data will be duplicated with the objects.
   @type armature: bool
-  @param armature: When non zero, armature object data will be duplicated with the objects.
+  @param armature: When non-zero, armature object data will be duplicated with the objects.
   @type lamp: bool
-  @param lamp: When non zero, lamp object data will be duplicated with the objects.
+  @param lamp: When non-zero, lamp object data will be duplicated with the objects.
   @type material: bool
-  @param material: When non zero, materials used my the object or its object data will be duplicated with the objects.
+  @param material: When non-zero, materials used by the object or its object data will be duplicated with the objects.
   @type texture: bool
-  @param texture: When non zero, texture data used by the objects materials will be duplicated with the objects.
+  @param texture: When non-zero, texture data used by the object's materials will be duplicated with the objects.
   @type ipo: bool
-  @param ipo: When non zero, ipo data linked to the object will be duplicated with the objects.
+  @param ipo: When non-zero, Ipo data linked to the object will be duplicated with the objects.
   @return: None
 
   I{B{Example:}}
