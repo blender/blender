@@ -200,6 +200,7 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_FILTER		212
 #define CMP_NODE_MAP_VALUE	213
 #define CMP_NODE_TIME		214
+#define CMP_NODE_VECBLUR	215
 
 #define CMP_NODE_IMAGE			220
 #define CMP_NODE_R_RESULT		221

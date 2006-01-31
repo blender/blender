@@ -387,9 +387,10 @@ typedef struct Scene {
 #define R_RAYTRACE      0x10000
 		/* R_GAUSS is obsolete, but used to retrieve setting from old files */
 #define R_GAUSS      	0x20000
+		/* fbuf obsolete... */
 #define R_FBUF			0x40000
 #define R_THREADS		0x80000
-#define R_ZBLUR			0x100000
+#define R_SPEED			0x100000
 
 /* filtertype */
 #define R_FILTER_BOX	0

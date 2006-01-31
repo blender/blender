@@ -27,6 +27,7 @@
  */
 
 /* system includes */
+#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -1854,7 +1855,20 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		if(mode & MA_TANGENT_V) 
 			shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
 	}
-
+	
+	if(R.r.mode & R_SPEED) {
+		float *s1, *s2, *s3;
+		
+		s1= RE_vertren_get_winspeed(&R, v1, 0);
+		s2= RE_vertren_get_winspeed(&R, v2, 0);
+		s3= RE_vertren_get_winspeed(&R, v3, 0);
+		if(s1 && s2 && s3) {
+			shi->winspeed[0]= (l*s3[0] - u*s1[0] - v*s2[0]);
+			shi->winspeed[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
+			shi->winspeed[2]= 0.0f;
+		}			
+	}
+	
 	/* texture coordinates. shi->dxuv shi->dyuv have been set */
 	if(texco & NEED_UV) {
 		if(texco & TEXCO_ORCO) {
@@ -2111,9 +2125,8 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 /* note, facenr declared volatile due to over-eager -O2 optimizations
  * on cygwin (particularly -frerun-cse-after-loop)
  */
-void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, int mask, float *col, float *rco)
+void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, int mask, ShadeResult *shr, float *rco)
 {
-	ShadeResult shr;
 	ShadeInput shi;
 	VlakRen *vlr=NULL;
 	
@@ -2131,8 +2144,8 @@ void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, i
 	shi.depth= 0;	// means first hit, not raytracing
 	
 	if(facenr==0) {	/* sky */
-		col[0]= 0.0; col[1]= 0.0; col[2]= 0.0; col[3]= 0.0;
-		VECCOPY(rco, col);
+		memset(shr, 0, sizeof(ShadeResult));
+		rco[0]= rco[1]= rco[2]= 0.0f;
 	}
 	else if( (facenr & 0x7FFFFF) <= R.totvlak) {
 		VertRen *v1;
@@ -2327,34 +2340,38 @@ void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, i
 		VECCOPY(shi.vno, shi.vn);
 		
 		if(shi.mat->nodetree && shi.mat->use_nodes) {
-			ntreeShaderExecTree(shi.mat->nodetree, &shi, &shr);
+			ntreeShaderExecTree(shi.mat->nodetree, &shi, shr);
 		}
 		else {
 			/* copy all relevant material vars, note, keep this synced with render_types.h */
 			memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));
 			shi.har= shi.mat->har;
 			
-			shade_material_loop(&shi, &shr);
+			shade_material_loop(&shi, shr);
 		}
 		
 		/* after shading and composit layers */
-		if(shr.spec[0]<0.0f) shr.spec[0]= 0.0f;
-		if(shr.spec[1]<0.0f) shr.spec[1]= 0.0f;
-		if(shr.spec[2]<0.0f) shr.spec[2]= 0.0f;
+		if(shr->spec[0]<0.0f) shr->spec[0]= 0.0f;
+		if(shr->spec[1]<0.0f) shr->spec[1]= 0.0f;
+		if(shr->spec[2]<0.0f) shr->spec[2]= 0.0f;
 		
-		if(shr.diff[0]<0.0f) shr.diff[0]= 0.0f;
-		if(shr.diff[1]<0.0f) shr.diff[1]= 0.0f;
-		if(shr.diff[2]<0.0f) shr.diff[2]= 0.0f;
+		if(shr->diff[0]<0.0f) shr->diff[0]= 0.0f;
+		if(shr->diff[1]<0.0f) shr->diff[1]= 0.0f;
+		if(shr->diff[2]<0.0f) shr->diff[2]= 0.0f;
 		
-		VECADD(col, shr.diff, shr.spec);
+		VECADD(shr->combined, shr->diff, shr->spec);
+		
+		/* additional passes */
+		shr->winspeed[0]= shi.winspeed[0]; shr->winspeed[1]= shi.winspeed[1];
+		VECCOPY(shr->nor, shi.vn);
 		
 		/* NOTE: this is not correct here, sky from raytrace gets corrected... */
 		/* exposure correction */
 		if(R.wrld.exp!=0.0 || R.wrld.range!=1.0) {
 			if((shi.mat->mode & MA_SHLESS)==0) {
-				col[0]= R.wrld.linfac*(1.0-exp( col[0]*R.wrld.logfac) );
-				col[1]= R.wrld.linfac*(1.0-exp( col[1]*R.wrld.logfac) );
-				col[2]= R.wrld.linfac*(1.0-exp( col[2]*R.wrld.logfac) );
+				shr->combined[0]= R.wrld.linfac*(1.0-exp( shr->combined[0]*R.wrld.logfac) );
+				shr->combined[1]= R.wrld.linfac*(1.0-exp( shr->combined[1]*R.wrld.logfac) );
+				shr->combined[2]= R.wrld.linfac*(1.0-exp( shr->combined[2]*R.wrld.logfac) );
 			}
 		}
 		
@@ -2367,26 +2384,20 @@ void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, i
 		}
 		else alpha= 1.0;
 
-		if(shr.alpha!=1.0 || alpha!=1.0) {
+		if(shr->alpha!=1.0 || alpha!=1.0) {
 			if(shi.mat->mode & MA_RAYTRANSP) {
 				fac= alpha;	
-				if(R.r.mode & R_UNIFIED)
-					/* unified alpha overs everything... */
-					col[3]= 1.0f;
-				else {
-					/* sky was applied allready for ray transp, only do mist */
-					col[3]= shr.alpha;
-				}
+				shr->combined[3]= shr->alpha;
 			}
 			else {
-				fac= alpha*(shr.alpha);
-				col[3]= fac;
+				fac= alpha*(shr->alpha);
+				shr->combined[3]= fac;
 			}			
-			col[0]*= fac;
-			col[1]*= fac;
-			col[2]*= fac;
+			shr->combined[0]*= fac;
+			shr->combined[1]*= fac;
+			shr->combined[2]*= fac;
 		}
-		else col[3]= 1.0;
+		else shr->combined[3]= 1.0;
 	}
 	
 	if(R.flag & R_LAMPHALO) {
@@ -2403,29 +2414,30 @@ void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, i
 			calc_view_vector(shi.view, x, y);
 			shi.co[2]= 0.0;
 			
-			renderspothalo(&shi, col, 1.0);
+			renderspothalo(&shi, shr->combined, 1.0);
 		}
 		else
-			renderspothalo(&shi, col, col[3]);
+			renderspothalo(&shi, shr->combined, shr->combined[3]);
 	}
 	
 	return vlr;
 }
 
-static void shadepixel_sky(RenderPart *pa, float x, float y, int z, int facenr, int mask, float *colf)
+static void shadepixel_sky(RenderPart *pa, float x, float y, int z, int facenr, int mask, ShadeResult *shr)
 {
 	VlakRen *vlr;
 	float collector[4], rco[3];
 	
-	vlr= shadepixel(pa, x, y, z, facenr, mask, colf, rco);
-	if(colf[3] != 1.0) {
+	vlr= shadepixel(pa, x, y, z, facenr, mask, shr, rco);
+	if(shr->combined[3] != 1.0) {
+		
 		/* bail out when raytrace transparency (sky included already) */
 		if(vlr && (R.r.mode & R_RAYTRACE))
 			if(vlr->mat->mode & MA_RAYTRANSP) return;
 		
 		renderSkyPixelFloat(collector, x, y, vlr?rco:NULL);
-		addAlphaOverFloat(collector, colf);
-		QUATCOPY(colf, collector);
+		addAlphaOverFloat(collector, shr->combined);
+		QUATCOPY(shr->combined, collector);
 	}
 }
 
@@ -2503,14 +2515,16 @@ static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 
 /* ********************* MAINLOOPS ******************** */
 
-static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
+static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 {
+	RenderResult *rr= pa->result;
+	ShadeResult shr;
 	PixStr *ps;
 	float xs, ys;
-	float fcol[4], *rf, *grf, *acol= NULL;
+	float *fcol= shr.combined, *rf, *rectf= rl->rectf;
 	long *rd, *rectdaps= pa->rectdaps;
 	int zbuf, samp, curmask, face, mask, fullmask;
-	int b, x, y, full_osa, seed, crop=0;
+	int b, x, y, full_osa, seed, crop=0, offs=0, od;
 	
 	if(R.test_break()) return; 
 	
@@ -2519,23 +2533,24 @@ static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
 
 	fullmask= (1<<R.osa)-1;
 	
-	/* might need it for gamma, in end of this function */
-	grf= rectf;
-	
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
 		crop= 1;
 		rectf+= 4*(pa->rectx + 1);
 		rectdaps+= pa->rectx + 1;
-		if(recta) recta+= 4*(pa->rectx + 1);
+		offs= pa->rectx + 1;
 	}
 	
-	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++) {
+	/* scanline updates have to be 2 lines behind */
+	rr->renrect.ymin= 0;
+	rr->renrect.ymax= -2*crop;
+	
+	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++, rr->renrect.ymax++) {
 		rf= rectf;
 		rd= rectdaps;
-		if(recta) acol= recta;
-
-		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, rd++, rf+=4) {
+		od= offs;
+		
+		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, rd++, rf+=4, od++) {
 			BLI_thread_srandom(pa->thread, seed+x);
 			
 			ps= (PixStr *)(*rd);
@@ -2567,9 +2582,8 @@ static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
 						if(curmask & (1<<samp)) {
 							xs= (float)x + R.jit[samp][0];
 							ys= (float)y + R.jit[samp][1];
-							shadepixel_sky(pa, xs, ys, zbuf, face, (1<<samp), fcol);
+							shadepixel_sky(pa, xs, ys, zbuf, face, (1<<samp), &shr);
 							
-							if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
 							if(R.do_gamma) {
 								fcol[0]= gammaCorrect(fcol[0]);
 								fcol[1]= gammaCorrect(fcol[1]);
@@ -2579,14 +2593,12 @@ static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
 						}
 					}
 				}
-				else {
+				else if(curmask) {
 					b= R.samples->centmask[curmask];
 					xs= (float)x+R.samples->centLut[b & 15];
 					ys= (float)y+R.samples->centLut[b>>4];
-					shadepixel_sky(pa, xs, ys, zbuf, face, curmask, fcol);
-					
-					if(acol && acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
-					
+					shadepixel_sky(pa, xs, ys, zbuf, face, curmask, &shr);
+	
 					if(R.do_gamma) {
 						fcol[0]= gammaCorrect(fcol[0]);
 						fcol[1]= gammaCorrect(fcol[1]);
@@ -2600,22 +2612,29 @@ static void shadeDA_tile(RenderPart *pa, float *rectf, float *recta)
 				if(ps==NULL) break;
 				else ps= ps->next;
 			}
-			if(acol) acol+=4;
+			
+			/* passes */
+			if(rl->passflag & SCE_PASS_VECTOR) {
+				float *fp= rl->rectvec+2*od;
+				fp[0]= shr.winspeed[0];
+				fp[1]= shr.winspeed[1];
+			}
 		}
 		
 		rectf+= 4*pa->rectx;
 		rectdaps+= pa->rectx;
-		if(recta) recta+= 4*pa->rectx;
+		offs+= pa->rectx;
 		seed+= pa->rectx;
 		
 		if(y&1) if(R.test_break()) break; 
 	}
 	
 	if(R.do_gamma) {
-		for(y= pa->rectx*pa->recty; y>0; y--, grf+=4) {
-			grf[0] = invGammaCorrect(grf[0]);
-			grf[1] = invGammaCorrect(grf[1]);
-			grf[2] = invGammaCorrect(grf[2]);
+		rectf= rl->rectf;
+		for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
+			rectf[0] = invGammaCorrect(rectf[0]);
+			rectf[1] = invGammaCorrect(rectf[1]);
+			rectf[2] = invGammaCorrect(rectf[2]);
 		}
 	}			
 	
@@ -2706,9 +2725,10 @@ static void make_pixelstructs(RenderPart *pa, ListBase *lb)
 /* supposed to be fully threadable! */
 void zbufshadeDA_tile(RenderPart *pa)
 {
+	RenderResult *rr= pa->result;
 	RenderLayer *rl;
 	ListBase psmlist= {NULL, NULL};
-	float *acolrect= NULL, *edgerect= NULL;
+	float *edgerect= NULL;
 	
 	set_part_zbuf_clipflag(pa);
 	
@@ -2718,7 +2738,9 @@ void zbufshadeDA_tile(RenderPart *pa)
 	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	if(R.r.mode & R_EDGE) edgerect= RE_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 	
-	for(rl= pa->result->layers.first; rl; rl= rl->next) {
+	for(rl= rr->layers.first; rl; rl= rl->next) {
+		/* indication for scanline updates */
+		rr->renlay= rl;
 
 		/* initialize pixelstructs */
 		addpsmain(&psmlist);
@@ -2737,19 +2759,27 @@ void zbufshadeDA_tile(RenderPart *pa)
 			fillrect(pa->rectz, pa->rectx, pa->recty, 0x7FFFFFFF);
 
 		
-		/* we do transp layer first, so its get added with filter in main buffer... still incorrect though */
+		/* shades solid */
+		if(rl->layflag & SCE_LAY_SOLID) 
+			shadeDA_tile(pa, rl);
+		
+		/* transp layer */
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
-				acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
-				zbuffer_transp_shade(pa, acolrect, rl->lay, rl->layflag);
+				float *acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+				float *fcol= rl->rectf, *acol= acolrect;
+				int x;
+				
+				/* swap for live updates */
+				SWAP(float *, acolrect, rl->rectf);
+				zbuffer_transp_shade(pa, rl->rectf, rl->lay, rl->layflag);
+				SWAP(float *, acolrect, rl->rectf);
+				
+				for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
+					addAlphaOverFloat(fcol, acol);
+				}
+				RE_freeN(acolrect);
 			}
-		}
-
-		/* shades solid and adds transparent layer */
-		if(rl->layflag & SCE_LAY_SOLID) 
-			shadeDA_tile(pa, rl->rectf, acolrect);
-		else if(acolrect) {
-			SWAP(float *, acolrect, rl->rectf);
 		}
 		
 		/* extra layers */
@@ -2763,10 +2793,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 			convert_zbuf_to_distbuf(pa, rl);
 		
 		/* free stuff within loop! */
-		if(acolrect) {
-			RE_freeN(acolrect);
-			acolrect= NULL;
-		}
 		RE_freeN(pa->rectdaps); pa->rectdaps= NULL;
 		freeps(&psmlist);
 	}
@@ -2786,35 +2812,67 @@ void zbufshadeDA_tile(RenderPart *pa)
 /* supposed to be fully threadable! */
 void zbufshade_tile(RenderPart *pa)
 {
+	ShadeResult shr;
+	RenderResult *rr= pa->result;
 	RenderLayer *rl;
-	
+
 	set_part_zbuf_clipflag(pa);
 	
 	/* zbuffer code clears/inits rects */
 	pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
 	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	
-	for(rl= pa->result->layers.first; rl; rl= rl->next) {
+	for(rl= rr->layers.first; rl; rl= rl->next) {
+		/* indication for scanline updates */
+		rr->renlay= rl;
+		
 		zbuffer_solid(pa, rl->lay, rl->layflag);
 		
 		if(!R.test_break()) {
 			if(rl->layflag & SCE_LAY_SOLID) {
 				float *fcol= rl->rectf;
-				int x, y, *rp= pa->rectp, *rz= pa->rectz;
-
-				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4) {
-						shadepixel_sky(pa, (float)x, (float)y, *rz, *rp, 0, fcol);
+				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0;
+				
+				/* init scanline updates */
+				rr->renrect.ymin=rr->renrect.ymax= 0;
+				
+				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
+					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4, offs++) {
+						shadepixel_sky(pa, (float)x, (float)y, *rz, *rp, 0, &shr);
+						QUATCOPY(fcol, shr.combined);
+						
+						/* passes */
+						if(*rp && (rl->passflag & SCE_PASS_VECTOR)) {
+							float *fp= rl->rectvec+2*(offs);
+							fp[0]= shr.winspeed[0];
+							fp[1]= shr.winspeed[1];
+						}
 					}
-					if(y&1) if(R.test_break()) break; 
+					if(y&1)
+						if(R.test_break()) break; 
 				}
 			}
 		}
 		
-		if(!R.test_break())
-			if(R.flag & R_ZTRA)
-				if(rl->layflag & SCE_LAY_ZTRA)
+		if(!R.test_break()) {
+			if(R.flag & R_ZTRA) {
+				if(rl->layflag & SCE_LAY_ZTRA) {
+					float *acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+					float *fcol= rl->rectf, *acol= acolrect;
+					int x;
+					
+					/* swap for live updates */
+					SWAP(float *, acolrect, rl->rectf);
 					zbuffer_transp_shade(pa, rl->rectf, rl->lay, rl->layflag);
+					SWAP(float *, acolrect, rl->rectf);
+					
+					for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
+						addAlphaOverFloat(fcol, acol);
+					}
+					RE_freeN(acolrect);
+				}
+			}
+		}
 		
 		if(!R.test_break()) {
 			if(R.r.mode & R_EDGE) {

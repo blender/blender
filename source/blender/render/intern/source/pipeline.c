@@ -150,6 +150,7 @@ static void free_render_result(RenderResult *res)
 		RenderLayer *rl= res->layers.first;
 		if(rl->rectf) RE_freeN(rl->rectf);
 		if(rl->rectz) RE_freeN(rl->rectz);
+		if(rl->rectvec) RE_freeN(rl->rectvec);
 		BLI_remlink(&res->layers, rl);
 		RE_freeN(rl);
 	}
@@ -193,9 +194,6 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	rr->tilerect.ymin= partrct->ymin - re->disprect.ymin;
 	rr->tilerect.ymax= partrct->ymax - re->disprect.ymax;
 	
-	/* copy, so display callbacks can find out too */
-	rr->actlay= re->r.actlay;
-	
 	/* check renderdata for amount of layers */
 	for(srl= re->r.layers.first; srl; srl= srl->next) {
 		rl= RE_callocN(sizeof(RenderLayer), "new render layer");
@@ -209,6 +207,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
 		if(srl->passflag  & SCE_PASS_Z)
 			rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+		if(srl->passflag  & SCE_PASS_VECTOR)
+			rl->rectvec= RE_callocN(rectx*recty*sizeof(float)*2, "layer float Vector");
 		
 	}
 	/* previewrender and envmap don't do layers, so we make a default one */
@@ -229,6 +229,47 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	return rr;
 }
 
+static int render_result_needs_vector(RenderResult *rr)
+{
+	RenderLayer *rl;
+	
+	for(rl= rr->layers.first; rl; rl= rl->next)
+		if(rl->passflag & SCE_PASS_VECTOR)
+			return 1;
+	return 0;
+}
+
+static void do_merge_tile(RenderResult *rr, RenderResult *rrpart, float *target, float *tile, int pixsize)
+{
+	int y, ofs, copylen, tilex, tiley;
+	
+	copylen= tilex= rrpart->rectx;
+	tiley= rrpart->recty;
+	
+	if(rrpart->crop) {	/* filters add pixel extra */
+		tile+= pixsize*(rrpart->crop + rrpart->crop*tilex);
+		
+		copylen= tilex - 2*rrpart->crop;
+		tiley -= 2*rrpart->crop;
+		
+		ofs= (rrpart->tilerect.ymin + rrpart->crop)*rr->rectx + (rrpart->tilerect.xmin+rrpart->crop);
+		target+= pixsize*ofs;
+	}
+	else {
+		ofs= (rrpart->tilerect.ymin*rr->rectx + rrpart->tilerect.xmin);
+		target+= pixsize*ofs;
+	}
+
+	copylen *= sizeof(float)*pixsize;
+	tilex *= pixsize;
+	ofs= pixsize*rr->rectx;
+
+	for(y=0; y<tiley; y++) {
+		memcpy(target, tile, copylen);
+		target+= ofs;
+		tile+= tilex;
+	}
+}
 
 /* used when rendering to a full buffer, or when reading the exr part-layer-pass file */
 /* no test happens here if it fits... we also assume layers are in sync */
@@ -236,53 +277,18 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 {
 	RenderLayer *rl, *rlp;
-	float *rf, *rfp;
-	float *rz, *rzp;
-	int y, height, len, copylen;
 	
 	for(rl= rr->layers.first, rlp= rrpart->layers.first; rl && rlp; rl= rl->next, rlp= rlp->next) {
 		
-		/* first combined and z pass */
-		if(rl->rectf && rlp->rectf) {
-			int ofs;
-			
-			rzp= rlp->rectz;
-			rfp= rlp->rectf;
-			
-			copylen=len= rrpart->rectx;
-			height= rrpart->recty;
-			
-			if(rrpart->crop) {	/* filters add pixel extra */
-				
-				if(rzp) rzp+= rrpart->crop + rrpart->crop*len;
-				if(rfp) rfp+= 4*(rrpart->crop + rrpart->crop*len);
-				
-				copylen= len-2*rrpart->crop;
-				height -= 2*rrpart->crop;
-				
-				ofs= (rrpart->tilerect.ymin + rrpart->crop)*rr->rectx + (rrpart->tilerect.xmin+rrpart->crop);
-				rz= rl->rectz+ ofs;
-				rf= rl->rectf+ 4*ofs;
-			}
-			else {
-				ofs= (rrpart->tilerect.ymin*rr->rectx + rrpart->tilerect.xmin);
-				rz= rl->rectz+ ofs;
-				rf= rl->rectf+ 4*ofs;
-			}
-
-			for(y=0; y<height; y++) {
-				if(rzp) {
-					memcpy(rz, rzp, 4*copylen);
-					rz+= rr->rectx;
-					rzp+= len;
-				}
-				if(rfp) {
-					memcpy(rf, rfp, 16*copylen);
-					rf+= 4*rr->rectx;
-					rfp+= 4*len;
-				}
-			}
-		}
+		/* combined */
+		if(rl->rectf && rlp->rectf)
+			do_merge_tile(rr, rrpart, rl->rectf, rlp->rectf, 4);
+		/* z */
+		if(rl->rectz && rlp->rectz)
+			do_merge_tile(rr, rrpart, rl->rectz, rlp->rectz, 1);
+		/* vector */
+		if(rl->rectvec && rlp->rectvec)
+			do_merge_tile(rr, rrpart, rl->rectvec, rlp->rectvec, 2);
 	}
 }
 
@@ -313,7 +319,7 @@ RenderResult *RE_GetResult(Render *re)
 /* fill provided result struct with what's currently active or done */
 void RE_GetResultImage(Render *re, RenderResult *rr)
 {
-	memset(rr, sizeof(RenderResult), 0);
+	memset(rr, 0, sizeof(RenderResult));
 
 	if(re && re->result) {
 		RenderLayer *rl;
@@ -359,7 +365,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	}
 	else
 		/* else fill with black */
-		memset(rect, sizeof(int)*re->rectx*re->recty, 0);
+		memset(rect, 0, sizeof(int)*re->rectx*re->recty);
 }
 
 
@@ -573,9 +579,9 @@ static int do_part_thread(void *pa_v)
 			zbufshadeDA_tile(pa);
 		else
 			zbufshade_tile(pa);
-			
-		if(!R.test_break())
-			merge_render_result(R.result, pa->result);
+		
+		/* merge too on break! */	
+		merge_render_result(R.result, pa->result);
 	}
 	
 	pa->ready= 1;
@@ -661,12 +667,15 @@ static void threaded_tile_processor(Render *re)
 {
 	ListBase threads;
 	RenderPart *pa;
-	int maxthreads=2, rendering=1, counter= 1;
+	int maxthreads, rendering=1, counter= 1, hasdrawn, drawtimer=0;
 	
 	if(re->result==NULL)
 		return;
 	if(re->test_break())
 		return;
+	
+	if(re->r.mode & R_THREADS) maxthreads= 2;
+	else maxthreads= 1;
 	
 	initparts(re);
 	BLI_init_threads(&threads, do_part_thread, maxthreads);
@@ -687,10 +696,13 @@ static void threaded_tile_processor(Render *re)
 				BLI_insert_thread(&threads, pa);
 			}
 		}
-		else
+		else {
 			PIL_sleep_ms(50);
+			drawtimer++;
+		}
 		
 		/* check for ready ones to display, and if we need to continue */
+		hasdrawn= 0;
 		rendering= 0;
 		for(pa= re->parts.first; pa; pa= pa->next) {
 			if(pa->ready) {
@@ -700,10 +712,20 @@ static void threaded_tile_processor(Render *re)
 					free_render_result(pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
+					hasdrawn= 1;
 				}
 			}
-			else rendering= 1;
+			else {
+				rendering= 1;
+				if(pa->nr && pa->result && drawtimer>20) {
+					re->display_draw(pa->result, &pa->result->renrect);
+					hasdrawn= 1;
+				}
+			}
 		}
+		
+		if(hasdrawn)
+			drawtimer= 0;
 		
 		/* on break, wait for all slots to get freed */
 		if(re->test_break() && BLI_available_threads(&threads)==maxthreads)
@@ -719,7 +741,7 @@ static void threaded_tile_processor(Render *re)
 
 void RE_TileProcessor(Render *re)
 {
-	if(re->r.mode & R_THREADS) 
+	if(1) 
 		threaded_tile_processor(re);
 	else
 		render_tile_processor(re);	
@@ -734,8 +756,11 @@ void render_one_frame(Render *re)
 //	re->cfra= cfra;	/* <- unused! */
 	
 	/* make render verts/faces/halos/lamps */
-	RE_Database_FromScene(re, re->scene, 1);
-
+	if(render_result_needs_vector(re->result))
+		RE_Database_FromScene_Vectors(re, re->scene);
+	else
+	   RE_Database_FromScene(re, re->scene, 1);
+	
 	RE_TileProcessor(re);
 	
 	/* free all render verts etc */

@@ -74,22 +74,14 @@ extern struct Render R;
 void addAlphaOverFloat(float *dest, float *source)
 {
     /* d = s + (1-alpha_s)d*/
-    float c;
     float mul;
     
 	mul= 1.0 - source[3];
 
-	c= (mul*dest[0]) + source[0];
-       dest[0]= c;
-   
-	c= (mul*dest[1]) + source[1];
-       dest[1]= c;
-
-	c= (mul*dest[2]) + source[2];
-       dest[2]= c;
-
-	c= (mul*dest[3]) + source[3];
-       dest[3]= c;
+	dest[0]= (mul*dest[0]) + source[0];
+	dest[1]= (mul*dest[1]) + source[1];
+	dest[2]= (mul*dest[2]) + source[2];
+	dest[3]= (mul*dest[3]) + source[3];
 
 }
 
@@ -98,7 +90,6 @@ void addAlphaOverFloat(float *dest, float *source)
 
 void addAlphaUnderFloat(float *dest, float *source)
 {
-    float c;
     float mul;
     
     if( (-RE_EMPTY_COLOUR_FLOAT < dest[3])
@@ -112,18 +103,10 @@ void addAlphaUnderFloat(float *dest, float *source)
 
 	mul= 1.0 - dest[3];
 
-	c= (mul*source[0]) + dest[0];
-       dest[0]= c;
-   
-	c= (mul*source[1]) + dest[1];
-       dest[1]= c;
-
-	c= (mul*source[2]) + dest[2];
-       dest[2]= c;
-
-	c= (mul*source[3]) + dest[3];
-       dest[3]= c;
-
+	dest[0]+= (mul*source[0]);
+	dest[1]+= (mul*source[1]);
+	dest[2]+= (mul*source[2]);
+	dest[3]+= (mul*source[3]);
 } 
 
 
@@ -228,6 +211,68 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 		rb3+= 4;
 	}
 }
+
+/* filtered adding to scanlines */
+void add_filt_fmask_alphaunder(unsigned int mask, float *col, float *rowbuf, int row_w)
+{
+	/* calc the value of mask */
+	float **fmask1= R.samples->fmask1, **fmask2=R.samples->fmask2;
+	float *rb1, *rb2, *rb3;
+	float val, r, g, b, al, acol[4];
+	unsigned int a, maskand, maskshift;
+	int j;
+	
+	r= col[0];
+	g= col[1];
+	b= col[2];
+	al= col[3];
+	
+	rb2= rowbuf-4;
+	rb3= rb2-4*row_w;
+	rb1= rb2+4*row_w;
+	
+	maskand= (mask & 255);
+	maskshift= (mask >>8);
+	
+	for(j=2; j>=0; j--) {
+		
+		a= j;
+		
+		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		if(val!=0.0) {
+			acol[0]= val*r;
+			acol[1]= val*g;
+			acol[2]= val*b;
+			acol[3]= val*al;
+			addAlphaUnderFloat(rb1, acol);
+		}
+		a+=3;
+		
+		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		if(val!=0.0) {
+			acol[0]= val*r;
+			acol[1]= val*g;
+			acol[2]= val*b;
+			acol[3]= val*al;
+			addAlphaUnderFloat(rb2, acol);
+		}
+		a+=3;
+		
+		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		if(val!=0.0) {
+			acol[0]= val*r;
+			acol[1]= val*g;
+			acol[2]= val*b;
+			acol[3]= val*al;
+			addAlphaUnderFloat(rb3, acol);
+		}
+		
+		rb1+= 4;
+		rb2+= 4;
+		rb3+= 4;
+	}
+}
+
 
 /* ------------------------------------------------------------------------- */
 void addalphaAddFloat(float *dest, float *source)

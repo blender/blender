@@ -91,16 +91,7 @@
 #define RE_STRAND_ELEMS		1
 #define RE_TANGENT_ELEMS	3
 #define RE_STRESS_ELEMS		1
-
-/* render allocates totvert/256 of these nodes, for lookup and quick alloc */
-typedef struct VertTableNode {
-	struct VertRen *vert;
-	float *rad;
-	float *sticky;
-	float *strand;
-	float *tangent;
-	float *stress;
-} VertTableNode;
+#define RE_WINSPEED_ELEMS		2
 
 float *RE_vertren_get_sticky(Render *re, VertRen *ver, int verify)
 {
@@ -179,6 +170,21 @@ float *RE_vertren_get_tangent(Render *re, VertRen *ver, int verify)
 	return tangent + (ver->index & 255)*RE_TANGENT_ELEMS;
 }
 
+/* needs malloc */
+float *RE_vertren_get_winspeed(Render *re, VertRen *ver, int verify)
+{
+	float *winspeed;
+	int nr= ver->index>>8;
+	
+	winspeed= re->vertnodes[nr].winspeed;
+	if(winspeed==NULL) {
+		if(verify) 
+			winspeed= re->vertnodes[nr].winspeed= MEM_mallocN(256*RE_WINSPEED_ELEMS*sizeof(float), "winspeed table");
+		else
+			return NULL;
+	}
+	return winspeed + (ver->index & 255)*RE_WINSPEED_ELEMS;
+}
 
 VertRen *RE_findOrAddVert(Render *re, int nr)
 {
@@ -218,6 +224,31 @@ VertRen *RE_findOrAddVert(Render *re, int nr)
 	return v;
 }
 
+void free_renderdata_vertnodes(VertTableNode *vertnodes)
+{
+	int a;
+	
+	for(a=0; vertnodes[a].vert; a++) {
+		MEM_freeN(vertnodes[a].vert);
+		
+		if(vertnodes[a].rad)
+			MEM_freeN(vertnodes[a].rad);
+		if(vertnodes[a].sticky)
+			MEM_freeN(vertnodes[a].sticky);
+		if(vertnodes[a].strand)
+			MEM_freeN(vertnodes[a].strand);
+		if(vertnodes[a].tangent)
+			MEM_freeN(vertnodes[a].tangent);
+		if(vertnodes[a].stress)
+			MEM_freeN(vertnodes[a].stress);
+		if(vertnodes[a].winspeed)
+			MEM_freeN(vertnodes[a].winspeed);
+	}
+	
+	MEM_freeN(vertnodes);
+	
+}
+
 void free_renderdata_tables(Render *re)
 {
 	int a=0;
@@ -241,22 +272,7 @@ void free_renderdata_tables(Render *re)
 	}
 
 	if(re->vertnodes) {
-		for(a=0; re->vertnodes[a].vert; a++) {
-			MEM_freeN(re->vertnodes[a].vert);
-
-			if(re->vertnodes[a].rad)
-				MEM_freeN(re->vertnodes[a].rad);
-			if(re->vertnodes[a].sticky)
-				MEM_freeN(re->vertnodes[a].sticky);
-			if(re->vertnodes[a].strand)
-				MEM_freeN(re->vertnodes[a].strand);
-			if(re->vertnodes[a].tangent)
-				MEM_freeN(re->vertnodes[a].tangent);
-			if(re->vertnodes[a].stress)
-				MEM_freeN(re->vertnodes[a].stress);
-		}
-		
-		MEM_freeN(re->vertnodes);
+		free_renderdata_vertnodes(re->vertnodes);
 		re->vertnodes= NULL;
 		re->vertnodeslen= 0;
 	}

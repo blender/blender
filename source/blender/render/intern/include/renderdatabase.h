@@ -36,8 +36,21 @@ struct HaloRen;
 struct Material;
 struct Render;
 
+/* render allocates totvert/256 of these nodes, for lookup and quick alloc */
+typedef struct VertTableNode {
+	struct VertRen *vert;
+	float *rad;
+	float *sticky;
+	float *strand;
+	float *tangent;
+	float *stress;
+	float *winspeed;
+} VertTableNode;
+
 /* renderdatabase.c */
 void free_renderdata_tables(struct Render *re);
+void free_renderdata_vertnodes(struct VertTableNode *vertnodes);
+
 void set_normalflags(Render *re);
 void project_renderdata(struct Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, int part);
 
@@ -54,6 +67,7 @@ float *RE_vertren_get_stress(struct Render *re, struct VertRen *ver, int verify)
 float *RE_vertren_get_rad(struct Render *re, struct VertRen *ver, int verify);
 float *RE_vertren_get_strand(struct Render *re, struct VertRen *ver, int verify);
 float *RE_vertren_get_tangent(struct Render *re, struct VertRen *ver, int verify);
+float *RE_vertren_get_winspeed(struct Render *re, struct VertRen *ver, int verify);
 
 /* haloren->type: flags */
 #define HA_ONLYSKY		1
@@ -61,8 +75,9 @@ float *RE_vertren_get_tangent(struct Render *re, struct VertRen *ver, int verify
 #define HA_XALPHA		4
 #define HA_FLARECIRC	8
 
-
+/* convertblender.c */
 void init_render_world(Render *re);
+void RE_Database_FromScene_Vectors(Render *re, struct Scene *sce);
 
 
 #endif /* RENDERDATABASE_H */

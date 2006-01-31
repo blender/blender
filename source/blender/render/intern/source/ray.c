@@ -628,6 +628,8 @@ void makeoctree(Render *re)
 	}
 	
 	MEM_freeN(ocface);
+	re->stats_draw(&re->i);
+
 }
 
 /* ************ raytracer **************** */

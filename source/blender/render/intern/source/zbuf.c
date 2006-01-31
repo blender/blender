@@ -56,6 +56,7 @@
 #include "RE_render_ext.h"
 
 /* local includes */
+#include "gammaCorrectionTables.h"
 #include "render_types.h"
 #include "renderpipeline.h"
 #include "renderdatabase.h"
@@ -1879,7 +1880,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 	long *rd;
 	
 	/* now, in OSA the pixstructs contain all faces filled in */
-	if(R.r.mode & R_OSA) fillrect(arectz, pa->rectx, pa->recty, 0x7FFFFFFF);
+	if(R.osa) fillrect(arectz, pa->rectx, pa->recty, 0x7FFFFFFF);
 	else {
 		memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
 		return;
@@ -1952,7 +1953,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		copyto_abufz(pa, zspan.arectz, zsample);	/* init zbuffer */
 		zspan.mask= 1<<zsample;
 		
-		if(R.r.mode & R_OSA) {
+		if(R.osa) {
 			zspan.zofsx= -pa->disprect.xmin-R.jit[zsample][0];
 			zspan.zofsy= -pa->disprect.ymin-R.jit[zsample][1];
 		}
@@ -2010,7 +2011,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 			}
 		}
 		
-		if((R.r.mode & R_OSA)==0) break;
+		if(R.osa==0) break;
 		if(R.test_break()) break;
 	}
 	
@@ -2033,13 +2034,14 @@ static int vergzvlak(const void *a1, const void *a2)
  */
 static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, int mask, float *fcol)
 {
+	ShadeResult shr;
 	float rco[3];
 	
 	if( (facenr & 0x7FFFFF) > R.totvlak) {
 		printf("error in shadetrapixel nr: %d\n", (facenr & 0x7FFFFF));
 		return;
 	}
-	if(R.r.mode & R_OSA) {
+	if(R.osa) {
 		VlakRen *vlr= RE_findOrAddVlak(&R, (facenr-1) & 0x7FFFFF);
 		float accumcol[4]={0,0,0,0}, tot=0.0;
 		int a;
@@ -2047,11 +2049,11 @@ static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, i
 		if(vlr->flag & R_FULL_OSA) {
 			for(a=0; a<R.osa; a++) {
 				if(mask & (1<<a)) {
-					shadepixel(pa, x+R.jit[a][0], y+R.jit[a][1], z, facenr, 1<<a, fcol, rco);
-					accumcol[0]+= fcol[0];
-					accumcol[1]+= fcol[1];
-					accumcol[2]+= fcol[2];
-					accumcol[3]+= fcol[3];
+					shadepixel(pa, x+R.jit[a][0], y+R.jit[a][1], z, facenr, 1<<a, &shr, rco);
+					accumcol[0]+= shr.combined[0];
+					accumcol[1]+= shr.combined[1];
+					accumcol[2]+= shr.combined[2];
+					accumcol[3]+= shr.combined[3];
 					tot+= 1.0;
 				}
 			}
@@ -2065,11 +2067,14 @@ static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, i
 			int b= R.samples->centmask[mask];
 			x= x+R.samples->centLut[b & 15];
 			y= y+R.samples->centLut[b>>4];
-			shadepixel(pa, x, y, z, facenr, mask, fcol, rco);
-	
+			shadepixel(pa, x, y, z, facenr, mask, &shr, rco);
+			QUATCOPY(fcol, shr.combined);
 		}
 	}
-	else shadepixel(pa, x, y, z, facenr, mask, fcol, rco);
+	else {
+		shadepixel(pa, x, y, z, facenr, mask, &shr, rco);
+		QUATCOPY(fcol, shr.combined);
+	}
 }
 
 static int addtosampcol(float *sampcol, float *fcol, int mask)
@@ -2089,14 +2094,15 @@ static int addtosampcol(float *sampcol, float *fcol, int mask)
 
 void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short layflag)
 {
+	RenderResult *rr= pa->result;
 	APixstr *APixbuf;      /* Zbuffer: linked list of face samples */
-	APixstr *ap, *apn;
+	APixstr *ap, *aprect, *apn;
 	ListBase apsmbase={NULL, NULL};
-	float col[4], fcol[4], tempcol[4], sampcol[16*4], *scol, accumcol[4];
-	float fac, alpha[32];
-	int x, y, a, zrow[MAX_ZROW][3], totface, nr;
+	float fcol[4], sampcol[16*4];
+	float fac, alpha[32], *passrect= pass;
+	int x, y, crop=0, a, zrow[MAX_ZROW][3], totface;
 	int sval;
-	
+
 	/* looks nicer for calling code */
 	if(R.test_break())
 		return;
@@ -2110,7 +2116,7 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 	}
 	
 	/* alpha LUT */
-	if(R.r.mode & R_OSA ) {
+	if(R.osa) {
 		fac= (1.0/(float)R.osa);
 		for(a=0; a<=R.osa; a++) {
 			alpha[a]= (float)a*fac;
@@ -2119,12 +2125,26 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 	
 	/* fill the Apixbuf */
 	zbuffer_abuf(pa, APixbuf, &apsmbase, lay, layflag);
+	aprect= APixbuf;
 	
-	/* render tile */
-	ap= APixbuf;
+	/* filtered render, for now we assume only 1 filter size */
+	if(pa->crop) {
+		crop= 1;
+		passrect+= 4*(pa->rectx + 1);
+		aprect+= pa->rectx + 1;
+	}
 	
-	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, ap++, pass+=4) {
+	/* init scanline updates */
+	rr->renrect.ymin= 0;
+	rr->renrect.ymax= -pa->crop;
+
+	/* render the tile */
+	
+	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++, rr->renrect.ymax++) {
+		pass= passrect;
+		ap= aprect;
+		
+		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, ap++, pass+=4) {
 
 			if(ap->p[0]) {
 				/* sort in z */
@@ -2148,23 +2168,14 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 					
 					shadetrapixel(pa, (float)x, (float)y, zrow[0][0], zrow[0][1], zrow[0][2], fcol);
 					
-					nr= count_mask(zrow[0][2]);
-					if( (R.r.mode & R_OSA) && nr<R.osa) {
-						fac= alpha[ nr ];
-						col[0]= (fcol[0]*fac);
-						col[1]= (fcol[1]*fac);
-						col[2]= (fcol[2]*fac);
-						col[3]= (fcol[3]*fac);
+					if(R.osa) {
+						add_filt_fmask(zrow[0][2], fcol, pass, rr->rectx);
 					}
 					else {
-						col[0]= fcol[0];
-						col[1]= fcol[1];
-						col[2]= fcol[2];
-						col[3]= fcol[3];
+						QUATCOPY(pass, fcol);
 					}
 				}
 				else {
-					col[0]= col[1]= col[2]= col[3]= 0.0f;
 					
 					if(totface==2) {
 						if(zrow[0][0] < zrow[1][0]) {
@@ -2178,62 +2189,43 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 						qsort(zrow, totface, sizeof(int)*3, vergzvlak);
 					}
 					
-					/* join when pixels are adjacent */
-					
-					while(totface>0) {
-						totface--;
+					if(R.osa==0) {
+						while(totface>0) {
+							totface--;
+							
+							shadetrapixel(pa, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
+							addAlphaUnderFloat(pass, fcol);
+							
+							if(pass[3]>=0.999) break;
+						}
+					}
+					else {
+						/* for each mask-sample we alpha-under colors. then in end it's added using filter */
+						memset(sampcol, 0, 4*sizeof(float)*R.osa);
+
+						while(totface>0) {
+							totface--;
+							
+							shadetrapixel(pa, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
+							sval= addtosampcol(sampcol, fcol, zrow[totface][2]);
+							
+							if(sval==0) break;
+						}
 						
-						shadetrapixel(pa, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
-						
-						a= count_mask(zrow[totface][2]);
-						if( (R.r.mode & R_OSA ) && a<R.osa) {
-							if(totface>0) {
-								memset(sampcol, 0, 4*sizeof(float)*R.osa);
-								sval= addtosampcol(sampcol, fcol, zrow[totface][2]);
-								
-								/* sval==0: alpha completely full */
-								while( (sval != 0) && (totface>0) ) {
-									a= count_mask(zrow[totface-1][2]);
-									if(a==R.osa) break;
-									totface--;
-									
-									shadetrapixel(pa, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
-									sval= addtosampcol(sampcol, fcol, zrow[totface][2]);
-								}
-								
-								scol= sampcol;
-								accumcol[0]= scol[0]; accumcol[1]= scol[1];
-								accumcol[2]= scol[2]; accumcol[3]= scol[3];
-								scol+= 4;
-								for(a=1; a<R.osa; a++, scol+=4) {
-									accumcol[0]+= scol[0]; accumcol[1]+= scol[1];
-									accumcol[2]+= scol[2]; accumcol[3]+= scol[3];
-								}
-								tempcol[0]= accumcol[0]/R.osa;
-								tempcol[1]= accumcol[1]/R.osa;
-								tempcol[2]= accumcol[2]/R.osa;
-								tempcol[3]= accumcol[3]/R.osa;
-								
-								addAlphaUnderFloat(col, tempcol);
-								
-							}
-							else {
-								fac= alpha[a];
-								fcol[0]= (fcol[0]*fac);
-								fcol[1]= (fcol[1]*fac);
-								fcol[2]= (fcol[2]*fac);
-								fcol[3]= (fcol[3]*fac);
-								addAlphaUnderFloat(col, fcol);
-							}
-						}	
-						else addAlphaUnderFloat(col, fcol);	/* no osa or full pixel with same face? */
-						
-						if(col[3]>=0.999) break;
+						for(a=0; a<R.osa; a++) 
+							add_filt_fmask(1<<a, sampcol+4*a, pass, rr->rectx);
 					}
 				}
-				if(col[3]!=0.0) addAlphaOverFloat(pass, col);
+				//if(R.osa && R.do_gamma) {
+				//	pass[0]= invGammaCorrect(pass[0]);
+				//	pass[1]= invGammaCorrect(pass[1]);
+				//	pass[2]= invGammaCorrect(pass[2]);
+				//}
 			}
 		}
+		
+		aprect+= pa->rectx;
+		passrect+= 4*pa->rectx;
 	}
 
 	RE_freeN(APixbuf);

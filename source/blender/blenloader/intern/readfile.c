@@ -4910,7 +4910,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 
 		while(sce) {
-			sce->r.mode &= ~R_ZBLUR;	// disabled for release
 			
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0f;
 			

@@ -70,6 +70,8 @@ typedef struct CompBuf {
 
 /* defines also used for pixel size */
 #define CB_RGBA		4
+#define CB_VEC3		3
+#define CB_VEC2		2
 #define CB_VAL		1
 
 static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
@@ -82,6 +84,10 @@ static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 	if(alloc) {
 		if(cbuf->type==CB_RGBA)
 			cbuf->rect= MEM_mallocT(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
+		else if(cbuf->type==CB_VEC3)
+			cbuf->rect= MEM_mallocT(4*sizeof(float)*sizex*sizey, "compbuf Vector3 rect");
+		else if(cbuf->type==CB_VEC2)
+			cbuf->rect= MEM_mallocT(4*sizeof(float)*sizex*sizey, "compbuf Vector2 rect");
 		else
 			cbuf->rect= MEM_mallocT(sizeof(float)*sizex*sizey, "compbuf Fac rect");
 		cbuf->malloc= 1;
@@ -735,6 +741,7 @@ static bNodeSocketType cmp_node_rresult_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Vec",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -760,6 +767,11 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 				CompBuf *zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 0);
 				zbuf->rect= rl->rectz;
 				out[2]->data= zbuf;
+			}
+			if(out[3]->hasoutput && rl->rectvec) {
+				CompBuf *vecbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VEC2, 0);
+				vecbuf->rect= rl->rectvec;
+				out[3]->data= vecbuf;
 			}
 			
 			generate_preview(node, stackbuf);
@@ -1080,34 +1092,33 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 	float *row1, *row2, *row3;
 	float *fp, mfac= 1.0f-fac;
 	int rowlen, x, y, c;
+	int pixlen= in->type;
 	
 	rowlen= in->x;
 	
-	if(in->type==CB_RGBA) {
+	for(y=2; y<in->y; y++) {
+		/* setup rows */
+		row1= in->rect + pixlen*(y-2)*rowlen;
+		row2= row1 + pixlen*rowlen;
+		row3= row2 + pixlen*rowlen;
 		
-		for(y=2; y<in->y; y++) {
-			/* setup rows */
-			row1= in->rect + 4*(y-2)*rowlen;
-			row2= row1 + 4*rowlen;
-			row3= row2 + 4*rowlen;
-			
-			fp= out->rect + 4*(y-1)*rowlen;
-			QUATCOPY(fp, row2);
-			fp+= 4;
-			
-			for(x=2; x<rowlen; x++) {
-				for(c=0; c<4; c++) {
-					fp[0]= mfac*row2[4] + fac*(filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8]);
-					fp++; row1++; row2++; row3++;
-				}
+		fp= out->rect + pixlen*(y-1)*rowlen;
+		QUATCOPY(fp, row2);
+		fp+= pixlen;
+		
+		for(x=2; x<rowlen; x++) {
+			for(c=0; c<pixlen; c++) {
+				fp[0]= mfac*row2[4] + fac*(filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8]);
+				fp++; row1++; row2++; row3++;
 			}
 		}
-	}	
+	}
 }
+
+static float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
 
 static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
 	float sharp[9]= {-1,-1,-1,-1,9,-1,-1,-1,-1};
 	float laplace[9]= {1/8.0f, -1/8.0f, 1/8.0f, -1/8.0f, 1.0f, -1/8.0f, 1/8.0f, -1/8.0f, 1/8.0f};
 	float sobel[9]= {1,2,1,0,0,0,-1,-2,-1};
@@ -1821,6 +1832,81 @@ static bNodeType cmp_node_blur= {
 	
 };
 
+/* **************** VECTOR BLUR ******************** */
+static bNodeSocketType cmp_node_vecblur_in[]= {
+	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, "Vec",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_vecblur_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void fill_rct_in_image(rcti poly, float *rect, int xsize, int ysize, float *col)
+{
+	float *dest;
+	int x, y;
+	
+	for(y=poly.ymin; y<poly.ymax; y++) {
+		for(x=poly.xmin; x<poly.xmax; x++) {
+			dest= rect + 4*(xsize*y + x);
+			QUATCOPY(dest, col);
+		}
+	}
+	
+}
+
+
+static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	CompBuf *new, *img= in[0]->data, *vecbuf= in[1]->data, *wbuf;
+	float *vect, *dest;
+	int x, y;
+	
+	if(img==NULL || vecbuf==NULL || out[0]->hasoutput==0)
+		return;
+	if(vecbuf->x!=img->x || vecbuf->y!=img->y) {
+		printf("cannot do different sized vecbuf yet\n");
+		return;
+	}
+	if(vecbuf->type!=CB_VEC2) {
+		printf("input should be vecbuf\n");
+		return;
+	}
+	
+	/* make weights version of vectors */
+	wbuf= alloc_compbuf(img->x, img->y, CB_VAL, 1); // allocs
+	dest= wbuf->rect;
+	vect= vecbuf->rect;
+	for(y=0; y<img->y; y++) {
+		for(x=0; x<img->x; x++, dest++, vect+=2) {
+			*dest= 0.02f*sqrt(vect[0]*vect[0] + vect[1]*vect[1]);
+			if(*dest>1.0f) *dest= 1.0f;
+		}
+	}
+	
+	/* make output size of input image */
+	new= alloc_compbuf(img->x, img->y, CB_RGBA, 1); // allocs
+	
+	blur_with_reference(new, img, wbuf, 100.0f, 100.0f);
+	
+	free_compbuf(wbuf);
+	out[0]->data= new;
+}
+
+static bNodeType cmp_node_vecblur= {
+	/* type code   */	CMP_NODE_VECBLUR,
+	/* name        */	"Vector Blur",
+	/* width+range */	120, 80, 200,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_vecblur_in,
+	/* output sock */	cmp_node_vecblur_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_vecblur
+	
+};
+
 
 /* ****************** types array for all shaders ****************** */
 
@@ -1842,6 +1928,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_rresult,
 	&cmp_node_alphaover,
 	&cmp_node_blur,
+	&cmp_node_vecblur,
 	&cmp_node_map_value,
 	NULL
 };

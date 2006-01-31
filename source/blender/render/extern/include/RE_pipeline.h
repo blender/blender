@@ -65,8 +65,9 @@ typedef struct RenderLayer {
 	unsigned int lay;			
 	int layflag, passflag;		
 	
-	float *rectf;	/* standard rgba buffer */
-	float *rectz;	/* standard camera coordinate zbuffer */
+	float *rectf;	/* 4 float, standard rgba buffer */
+	float *rectz;	/* 1 float, standard camera coordinate zbuffer */
+	float *rectvec;	/* 2 float, screen aligned speed vectors */
 	
 	ListBase passes;
 	
@@ -90,7 +91,10 @@ typedef struct RenderResult {
 	
 	/* the main buffers */
 	ListBase layers;
-	int actlay;				/* copy of renderdata..., so display callbacks can find out */
+	
+	/* allowing live updates: */
+	rcti renrect;
+	RenderLayer *renlay;
 	
 	/* optional saved endresult on disk */
 	char exrfile[FILE_MAXDIR];

@@ -721,10 +721,23 @@ static void renderwin_clear_display_cb(RenderResult *rr)
 */
 
 /* can get as well the full picture, as the parts while rendering */
-static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *unused)
+static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 {
 	rcti win_rct;
 	float *rectf, fullrect[2][2];
+	int ymin, ymax;
+	
+	/* if renrect argument, we only display scanlines */
+	if(renrect) {
+		ymin= renrect->ymin;
+		ymax= renrect->ymax-ymin;
+		if(ymax<2) return;
+		renrect->ymin= renrect->ymax;
+	}
+	else {
+		ymin= 0;
+		ymax= rr->recty-2*rr->crop;
+	}
 	
 	/* renderwindow cruft */
 	win_rct.xmin= win_rct.ymin= 0;
@@ -736,9 +749,13 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *unused)
 	if(rr->rectf)
 		rectf= rr->rectf;
 	else {
-		RenderLayer *rl= BLI_findlink(&rr->layers, rr->actlay);
+		RenderLayer *rl= rr->renlay;
+		if(rl==NULL) return;
 		rectf= rl->rectf;
-	}	
+	}
+	/* if scanline updates... */
+	rectf+= 4*rr->rectx*ymin;
+	
 	/* when rendering more pixels than needed, we crop away cruft */
 	if(rr->crop)
 		rectf+= 4*(rr->crop*rr->rectx + rr->crop);
@@ -746,14 +763,14 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *unused)
 	/* tilerect defines drawing offset from (0,0) */
 	/* however, tilerect (xmin, ymin) is first pixel */
 	fullrect[0][0] += (rr->tilerect.xmin+rr->crop)*rw->zoom;
-	fullrect[0][1] += (rr->tilerect.ymin+rr->crop)*rw->zoom;
+	fullrect[0][1] += (rr->tilerect.ymin+rr->crop + ymin)*rw->zoom;
 
 	glEnable(GL_SCISSOR_TEST);
 	glaDefine2DArea(&win_rct);
 
 	glDrawBuffer(GL_FRONT);
 	glPixelZoom(rw->zoom, rw->zoom);
-	glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, rr->recty-2*rr->crop, rr->rectx, 
+	glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
 					  GL_RGBA, GL_FLOAT, rectf);
 	glPixelZoom(1.0, 1.0);
 	glFlush();
