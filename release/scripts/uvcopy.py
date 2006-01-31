@@ -2,15 +2,15 @@
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'UVcopy'
 Blender: 242
-Group: 'UV'
+Group: 'Object'
 Tip: 'Copy UV coords from a mesh to another that has same vertex indices'
 """
 
-__author__ = "Martin Poirier, Toni Alatalo et. al."
+__author__ = "Toni Alatalo, Martin Poirier et. al."
 __url__ = ("blender", "elysiun",
 "Script's homepage, http://www.elysiun.com/forum/viewtopic.php?t=14897", 
 "Communicate problems and errors, http://www.elysiun.com/forum/viewtopic.php?t=14897")
-__version__ = "0.1 01/2006"
+__version__ = "0.2 01/2006"
 
 __bpydoc__ = """\
 This script copies UV coords from a mesh to another (version of the same mesh).
@@ -18,24 +18,34 @@ This script copies UV coords from a mesh to another (version of the same mesh).
 
 import Blender
  
-Name_From = "Unwrapped" #XXX active and 1st selected object, or what? two first selected?
-Name_To   = "Original" 
+scene = Blender.Scene.GetCurrent()
+
+unwrapped = scene.getActiveObject()
+targets = Blender.Object.GetSelected()
  
-me1 = Blender.Object.Get(Name_To) 
-me2 = Blender.Object.Get(Name_From) 
- 
-if me1: 
-    me1 = me1.getData() 
+if unwrapped: 
+    source = unwrapped.data
 else: 
-    print "No object named "+Name_To+"." 
+    raise RuntimeError, "No active object to copy UVs from." 
  
-if me2: 
-    me2 = me2.getData() 
+if targets:
+    try:
+        targets.remove(unwrapped)
+    except ValueError:
+        print "ob for sourcedata was not in targets, so did not need to remove", unwrapped, targets
+    #try:
+    #    target = targets[0].data
+    #except IndexError:
+    if not targets:
+        raise RuntimeError, "no selected object other than the source, hence no target defined."
 else: 
-    print "No object named "+Name_From+"." 
- 
-if me1 and me2: 
-    for i in range(len(me1.faces)): 
-        me1.faces[i].uv = me2.faces[i].uv 
-    me1.update() 
-    print "Copied UV from object "+Name_From+" to object "+Name_To+"."
+    raise RuntimeError, "No selected object(s) to copy UVs to."
+
+if source and targets:
+    for target in targets:
+        target = target.data
+        for i in range(len(target.faces)): 
+            target.faces[i].uv = source.faces[i].uv
+            #print "copied to target:", target.name, target.data.faces[i].uv, ", source being:", source.faces[i].uv
+        target.update() 
+        #print "Copied UV from object " + unwrapped.name + " to object(s) " + target.name + "."
