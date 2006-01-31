@@ -48,4 +48,4 @@ if source and targets:
             target.faces[i].uv = source.faces[i].uv
             #print "copied to target:", target.name, target.data.faces[i].uv, ", source being:", source.faces[i].uv
         target.update() 
-        #print "Copied UV from object " + unwrapped.name + " to object(s) " + target.name + "."
+        print "Copied UV from object " + unwrapped.name + " to object(s) " + str([target.name for target in targets]) + "."
