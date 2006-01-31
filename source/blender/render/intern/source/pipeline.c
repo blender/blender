@@ -741,7 +741,7 @@ static void threaded_tile_processor(Render *re)
 
 void RE_TileProcessor(Render *re)
 {
-	if(1) 
+	if(0) 
 		threaded_tile_processor(re);
 	else
 		render_tile_processor(re);	
@@ -761,7 +761,7 @@ void render_one_frame(Render *re)
 	else
 	   RE_Database_FromScene(re, re->scene, 1);
 	
-	RE_TileProcessor(re);
+	threaded_tile_processor(re);
 	
 	/* free all render verts etc */
 	RE_Database_Free(re);
