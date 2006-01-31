@@ -97,7 +97,7 @@ public:
 	 * @param	rI	inner radius
 	 * @param	rO	outer radius
 	 */
-	inline virtual void setRadii(TUns32& rI, TUns32& rO) const;
+	inline virtual void getRadii(TUns32& rI, TUns32& rO) const;
 
 protected:
 	/**
@@ -113,7 +113,7 @@ protected:
 };
 
 
-inline void IMG_BrushRGBA32::setRadii(TUns32& rI, TUns32& rO) const
+inline void IMG_BrushRGBA32::getRadii(TUns32& rI, TUns32& rO) const
 {
 	rI = m_ri;
 	rO = m_ro;

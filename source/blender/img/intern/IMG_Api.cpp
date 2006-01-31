@@ -67,7 +67,7 @@ void IMG_BrushSetInnerRaduisRatio(IMG_BrushPtr brush,float aspect)
 		if (he > si) si = we;
 		he = si/2;
 		we = (TUns32)(aspect*si/2);
-		if (we < 2) we = 2;
+//		if (we < 2) we = 2;
 
 
 		((IMG_BrushRGBA32*)brush)->setRadii(we,he);

@@ -63,7 +63,6 @@ void IMG_BrushRGBA32::setTransparency(float a)
 
 void IMG_BrushRGBA32::setRadii(TUns32 rI, TUns32 rO)
 {
-	if ((rI < 2) || (rO < 2)) return;
 	m_ri = rI;
 	m_ro = rO;
 
@@ -85,8 +84,9 @@ void IMG_BrushRGBA32::setRadii(TUns32 rI, TUns32 rO)
 
 void IMG_BrushRGBA32::updateImage()
 {
-    TUns32 cx = m_width >> 1;
-    TUns32 cy = m_height >> 1;
+    float fcx = m_width / 2.0f;
+    float fcy = m_height/ 2.0f ;
+
 	
 	// Prepare pixel values for this pixmap
 	IMG_ColorRGBA c (m_color.m_r, m_color.m_g, m_color.m_b, 0.f);
@@ -102,30 +102,29 @@ void IMG_BrushRGBA32::updateImage()
 		TPixelPtr desPtr = getPixelPtr(0, y);
 		for (TUns32 x = 0; x < m_width; x++) {
 			// Calculate the distance between current pixel and center
-            float dX = (float)((TInt32)x) - ((TInt32)cx);
-            float dY = (float)((TInt32)y) - ((TInt32)cy);
+            float dX = (float)((TInt32)x - fcx);
+            float dY = (float)((TInt32)y - fcy);
             float d = (float) ::sqrt(dX*dX + dY*dY);
 			float a;
 
 			if (d <= m_ri) {
 				*desPtr = pIn;
 			}
-			else if ((d < m_ro) && (m_ri < m_ro)) {
-				// Calculate alpha, linear
-                a = (d - m_ri) / (m_ro - m_ri);
-				// Now: 0 <= a <= 1
-				//a = m_alpha + a * (1.f - m_alpha);
-				a = (1.f - a) * m_alpha;
-				// Now: m_alpha <= a <= 1
-#if 0
-                a = (float)::pow(a, 0.2);
-#endif
-				// Store pixel
-				*pa = (TUns8)(a * ((float)0xFF));
-				*desPtr = p;
-			}
-			else {
-				*desPtr = pOut;
+			else { 
+				if ((d < m_ro) && (m_ri < m_ro)) {
+					// Calculate alpha, linear
+					a = (d - m_ri) / (m_ro - m_ri);
+					// Now: 0 <= a <= 1
+					a = (float)::pow(a, 0.5f);
+					a = (1.f - a) * m_alpha;
+					// Now: m_alpha <= a <= 1
+					// Store pixel
+					*pa = (TUns8)(a * ((float)0xFF));
+					*desPtr = p;
+				}
+				else {
+					*desPtr = pOut;
+				}
 			}
 			desPtr++;
 		}

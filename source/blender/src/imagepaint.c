@@ -120,7 +120,9 @@ static int imagepaint_init(IMG_BrushPtr **brush, IMG_CanvasPtr **canvas, IMG_Can
 		*clonecanvas= NULL;
 	
 	/* initialize paint settings */
-	if(Gip.current >= IMAGEPAINT_AIRBRUSH && Gip.current <= IMAGEPAINT_SOFTEN)
+	if((Gip.current == IMAGEPAINT_AIRBRUSH) ||
+	   (Gip.current ==  IMAGEPAINT_AUX1) ||
+	   (Gip.current ==  IMAGEPAINT_AUX2))
 		Gip.flag |= IMAGEPAINT_TIMED;
 	else
 		Gip.flag &= ~IMAGEPAINT_TIMED;
@@ -184,6 +186,8 @@ static void imagepaint_paint_tool(IMG_BrushPtr *brush, IMG_CanvasPtr *canvas, IM
 
 		IMG_CanvasCloneAt(canvas, clonecanvas, prevuv[0], prevuv[1], offx, offy, tool->size, tool->rgba[3], tool->innerradius);
 	}
+	else if(Gip.flag & IMAGEPAINT_TIMED) 
+		IMG_CanvasDrawLineUVEX(canvas, brush,  uv[0], uv[1],uv[0], uv[1], torus);
 	else
 		IMG_CanvasDrawLineUVEX(canvas, brush, prevuv[0], prevuv[1], uv[0], uv[1], torus);
 }
@@ -195,7 +199,7 @@ void imagepaint_paint(short mousebutton)
 	short prevmval[2], mval[2];
 	double prevtime, curtime;
 	float prevuv[2], uv[2];
-	int paint= 0, moved= 0;
+	int paint= 0, moved= 0, firsttouch=1 ;
 	ImagePaintTool *tool= &Gip.tool[Gip.current];
 
 	if(!imagepaint_init(&brush, &canvas, &clonecanvas))
@@ -215,10 +219,11 @@ void imagepaint_paint(short mousebutton)
 			/* see if need to draw because of timer */
 			curtime = PIL_check_seconds_timer();
 
-			if((curtime - prevtime) > (5.0/tool->timing)) {
+			if(((curtime - prevtime) > (5.0/tool->timing)) || firsttouch) {
 				prevtime= curtime;
 				paint= 1;
 			}
+			else paint= 0;
 		}
 		else if(paint) {
 			/* check if we moved enough to draw */
@@ -244,6 +249,7 @@ void imagepaint_paint(short mousebutton)
 			prevmval[0]= mval[0];
 			prevmval[1]= mval[1];
 		}
+		firsttouch = 0;
 
 		if(paint)
 			imagepaint_redraw(0, paint);
