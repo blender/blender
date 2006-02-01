@@ -168,7 +168,7 @@ def scanFillPoints(pointList):
 
     try:
         ob = Blender.Object.Get('.scanfill')
-    except AttributeError:
+    except ValueError:
         ob = Blender.Object.New('Mesh')
         ob.setName('.scanfill')
         ob.link(nme)
