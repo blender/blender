@@ -229,6 +229,7 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args );
 static PyObject *Object_bake_to_action( BPy_Object * self, PyObject * args );
+static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self, PyObject * args );
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_setName( BPy_Object * self, PyObject * args );
@@ -562,6 +563,8 @@ works only if self and the object specified are of the same type."},
 	 "(  ) - Inserts a key into Action based on current/giventime object matrix"},
 	 {"bake_to_action", ( PyCFunction ) Object_bake_to_action, METH_VARARGS,
 	 "(  ) - creates a new action with the information from object animations"},
+	 {"setConstraintInfluenceForBone", ( PyCFunction ) Object_setConstraintInfluenceForBone, METH_VARARGS,
+	  "(  ) - sets a constraint influence for a certain bone in this (armature)object."},
 	{"getAllProperties", ( PyCFunction ) Object_getAllProperties,
 	 METH_NOARGS,
 	 "() - Get all the properties from this object"},
@@ -2510,6 +2513,22 @@ static PyObject *Object_bake_to_action( BPy_Object * self, PyObject * args )
 	//G.scene->r.cfra = oldframe;
 
 	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self, PyObject * args ) {
+	char *boneName, *constName;
+	float influence;
+
+	IpoCurve *icu;
+
+	if( !PyArg_ParseTuple( args, "ssf", &boneName,  &constName, &influence ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError, "expects: bonename, constraintname, influenceval" ) );
+	
+	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName, CO_ENFORCE);
+	insert_vert_ipo(icu, CFRA, influence);
+
+	Py_INCREF( Py_None );
+	return ( Py_None );
 }
 
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args )
