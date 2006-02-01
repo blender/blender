@@ -1137,10 +1137,10 @@ int BLI_strncasecmp(const char *s1, const char *s2, int n) {
 void BLI_timestr(double time, char *str)
 {
 	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr= (int)      time/(60*60);
-	int min= (int) fmod(time/60, 60.0);
-	int sec= (int) fmod(time, 60.0);
-	int hun= (int) fmod(time*100.0, 100.0);
+	int  hr= ((int) time) / (60*60);
+	int min= ( ((int) time) / 60 ) % 60;
+	int sec= ((int) (time)) % 60;
+	int hun= ((int) (time * 100.0)) % 100;
 	
 	if (hr) {
 		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
