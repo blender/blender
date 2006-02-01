@@ -3338,8 +3338,9 @@ char *get_vertexgroup_menustr(Object *ob)
 {
 	bDeformGroup *dg;
 	int defCount, min, index;
-	char (*qsort_ptr)[32] = NULL;
+	char (*qsort_ptr)[sizeof(dg->name)+5] = NULL; // +5 for "%x99|"
 	char *s, *menustr;
+	int printed;
 	
 	defCount=BLI_countlist(&ob->defbase);
 	
@@ -3354,15 +3355,15 @@ char *get_vertexgroup_menustr(Object *ob)
 		qsort_ptr = MEM_callocN (defCount * sizeof (qsort_ptr[0]),
 								 "qsort_ptr");
 		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
-			snprintf (qsort_ptr[index - 1], sizeof (qsort_ptr[0]),
-					  "%s%%x%d|", dg->name, index);
+			printed = snprintf (qsort_ptr[index - 1], sizeof (dg->name), dg->name);
+			snprintf (qsort_ptr[index - 1]+printed, 5+1, "%%x%d|", index); // +1 to move the \0
 		}
 		
 		qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]),
 			   ( int (*)(const void *, const void *) ) strcmp);
 	}
 	
-	s= menustr = MEM_callocN((32 * defCount)+30, "menustr");	// plus 30 for when defCount==0
+	s= menustr = MEM_callocN((sizeof(qsort_ptr[0]) * defCount)+30, "menustr");      // plus 30 for when defCount==0
 	if(defCount) {
 		for (index = 0; index < defCount; index++) {
 			int cnt= sprintf (s, "%s", qsort_ptr[index]);
