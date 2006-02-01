@@ -83,9 +83,6 @@ variables on the UI for now
 #include  "BIF_editdeform.h"
 
 
-double	PIL_check_seconds_timer		(void);
-
-double glb_colsearchcost;
 
 /* ********** soft body engine ******* */
 
@@ -161,48 +158,12 @@ static float sb_time_scale(Object *ob)
 
 /*+++ collider caching and dicing +++*/
 
-/* 1rst idea *******************
+/********************
 for each target object/face the ortho bounding box (OBB) is stored
 faces paralell to global axes 
 so only simple "value" in [min,max] ckecks are used
 float operations still
 */
-
-/* another idea pending is:
-split 
-typedef struct ccd_Mesh {
-..
-	MFace *mface;
-..
-}ccd_Mesh;
-
-to-->
-typedef struct ccd_Mesh {
-	int totvert, totface,totface001,totface001 ..;
-..
-	MFace *mface;
-
-    MFace000 *mface;
-    MFace001 *mface;
-..
-}ccd_Mesh;
-
-or even-->
-typedef struct ccd_Mesh {
-	int totvert, totface, totfacelist;
-..
-	MFace *mface;
-	MFaceLists **mface;
-
-..
-}ccd_Mesh;
-
-copy MFace pointers to lists with 
-if {OBB of face  touches list MFaceXXX} add to MFaceXXX
-in order to have reduced lists to walk through,
-this however needs a decition which list(s) to walk in sb_detect_collisionCached()
---> needs to balace 'householding costs <-> benefit gained'
-*/  
 
 /* just an ID here to reduce the prob for killing objects
 ** ob->sumohandle points to we should not kill :)
@@ -227,102 +188,10 @@ typedef struct ccd_Mesh {
 }ccd_Mesh;
 
 
-/*
-***
-*** seems not to be worth it
-***
-void setup_dices(ccd_Mesh *pccd_M, float *bbmin,float *bbmax)
-{
-	MFace *mface=NULL;
-	ccdf_minmax *mima =NULL;
-	int i,
-		  xpypzp,
-		  xpypzn,
-		  xpynzp,
-		  xpynzn,
-		  
-		  xnypzp,
-		  xnypzn,
-		  xnynzp,
-		  xnynzn;
 
-    float mx,my,mz;
-
-		  xpypzp=
-		  xpypzn=
-		  xpynzp=
-		  xpynzn=
-		  
-		  xnypzp=
-		  xnypzn=
-		  xnynzp=
-		  xnynzn=0
-		  ;
-
-	mx = (bbmax[0] + bbmin[0]) /2.0f;
-	my = (bbmax[1] + bbmin[1]) /2.0f;
-	mz = (bbmax[2] + bbmin[2]) /2.0f;
-
-	if(pccd_M->totface == 0) return;
-	mface = pccd_M->mface;
-	mima  = pccd_M->mima;
-	for(i=0; i < pccd_M->totface; i++,mface++,mima++ ){
-		if (mima->maxx >= mx) { //needs adding to xp list
-			if (mima->maxy >= my) { //needs adding to xpyp list
-				if (mima->maxz >= mz) { //needs adding to xpypzp list
-					xpypzp++;
-				}
-				if (mima->minz <= mz) { //needs adding to xpypzn list
-					xpypzn++;
-				}
-			}
-			if (mima->miny <= my) { //needs adding to xpyn list
-				if (mima->maxz >= mz) { //needs adding to xpynzp list
-					xpynzp++;
-				}
-				if (mima->minz <= mz) { //needs adding to xpynzn list
-					xpynzn++;
-				}
-			}
-			
-		}
-		if (mima->minx <= mx) { //needs adding to xn list
-			if (mima->maxy >= my) { //needs adding to xpyn list
-				if (mima->maxz >= mz) { //needs adding to xnypzp list
-					xnypzp++;
-				}
-				if (mima->minz <= mz) { //needs adding to xnypzn list
-					xnypzn++;
-				}
-			}
-			if (mima->miny <= my) { //needs adding to xnyn list
-				if (mima->maxz >= mz) { //needs adding to xnynzp list
-					xnynzp++;
-				}
-				if (mima->minz <= mz) { //needs adding to xnynzn list
-					xnynzn++;
-				}
-			}
-		}
-		
-	}
-	
-printf("xpypzp%d xpypzn%d xpynzp%d xpynzn%d xnypzp%d xnypzn%d xnynzp%d xnynzn%d totface%d\n",
-	      xpypzp,
-		  xpypzn,
-		  xpynzp,
-		  xpynzn,
-		  
-		  xnypzp,
-		  xnypzn,
-		  xnynzp,
-		  xnynzn,
-		  pccd_M->totface
-);
-}
-*/
-
-
+#if (0)
+/* build cache for self intersection */
+/* waiting for being needed          */
 ccd_Mesh *ccd_mesh_make_self(Object *ob)
 {
 	SoftBody *sb;
@@ -429,7 +298,7 @@ ccd_Mesh *ccd_mesh_make_self(Object *ob)
 	}
 	return pccd_M;
 }
-
+#endif
 
 ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
 {
@@ -566,9 +435,10 @@ void ccd_build_deflector_cache(Object *vertexowner)
 			if((vertexowner) && (ob == vertexowner)){ 
                 /* duuh thats myself! */ 
                 /* anyhow to do some clever caching with o frozen version */ 
+				/* 
 			    if(ob->pd && ob->pd->deflect) {
                 ob->sumohandle=ccd_mesh_make_self(ob);
-				}
+				} no self intersection test yet*/
 				/* if vertexowner is given  we don't want to check collision with owner object */ 
 				base = base->next;
 				continue;				
@@ -978,152 +848,9 @@ int sb_detect_collisionCached(float opco[3], float facenormal[3], float *damp,
        }/* if (base->object->type==OB_MESH && (base->lay & par_layer)) { */
 	   base = base->next;
 	} /* while (base) */
-	
-	return deflected;
-	
+	return deflected;	
 }
 
-int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
-						float force[3], unsigned int par_layer,struct Object *vertexowner)
-{
-	Base *base;
-	Object *ob;
-	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3], dv2[3],
-		facedist,n_mag,t,force_mag_norm,
-		innerfacethickness = -0.5f, outerfacethickness = 0.2f,
-		ee = 5.0f, ff = 0.1f, fa;
-	int a, deflected=0;
-		
-	base= G.scene->base.first;
-	while (base) {
-		/*Only proceed for mesh object in same layer */
-		if(base->object->type==OB_MESH && (base->lay & par_layer)) {
-			ob= base->object;
-			if((vertexowner) && (ob == vertexowner)){ 
-				/* if vertexowner is given  we don't want to check collision with owner object */ 
-				base = base->next;
-				continue;				
-			}
-
-			/* only with deflecting set */
-			if(ob->pd && ob->pd->deflect) {
-				DerivedMesh *dm= NULL;				
-				DispListMesh *disp_mesh= NULL;
-				MFace *mface= NULL;
-				Object *copyob;
-				int dmNeedsFree;				
-				
-				/* do object level stuff */
-				/* need to have user control for that since it depends on model scale */
-				innerfacethickness =-ob->pd->pdef_sbift;
-				outerfacethickness =ob->pd->pdef_sboft;
-				fa = (ff*outerfacethickness-outerfacethickness);
-				fa *= fa;
-				fa = 1.0f/fa;
-				copyob = ob;
-				
-				if(1) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_deform(copyob, &dmNeedsFree);
-				} else {
-					dm = mesh_get_derived_final(copyob, &dmNeedsFree);
-				}
-				
-				if (dm) {
-					disp_mesh = dm->convertToDispListMesh(dm, 1);
-					mface= disp_mesh->mface;
-					a = disp_mesh->totface;
-				}
-				else {
-					a = 0 ;
-				}
-				
-				/* use mesh*/
-				while (a--) {
-					/* Calculate the global co-ordinates of the vertices*/
-					if (dm){
-						dm->getVertCo(dm,mface->v1,nv1);
-						Mat4MulVecfl(ob->obmat, nv1);
-						
-						dm->getVertCo(dm,mface->v2,nv2);
-						Mat4MulVecfl(ob->obmat, nv2);
-						
-						dm->getVertCo(dm,mface->v3,nv3);
-						Mat4MulVecfl(ob->obmat, nv3);
-						
-						
-						if (mface->v4){
-							dm->getVertCo(dm,mface->v4,nv4);
-							Mat4MulVecfl(ob->obmat, nv4);
-						}
-					}
-					
-					
-					
-					/* switch origin to be nv2*/
-					VECSUB(edge1, nv1, nv2);
-					VECSUB(edge2, nv3, nv2);
-					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
-					
-					Crossf(d_nvect, edge2, edge1);
-					n_mag = Normalise(d_nvect);
-					facedist = Inpf(dv1,d_nvect);
-					
-					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
-						dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
-						dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
-						dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
-						if ( LineIntersectsTriangle( opco, dv2, nv1, nv2, nv3, &t)){
-							force_mag_norm =(float)exp(-ee*facedist);
-							if (facedist > outerfacethickness*ff)
-								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-							Vec3PlusStVec(force,force_mag_norm,d_nvect);
-							*damp=ob->pd->pdef_sbdamp;
-							deflected = 2;
-						}
-					}		
-					if (mface->v4){ /* quad */
-						/* switch origin to be nv4 */
-						VECSUB(edge1, nv3, nv4);
-						VECSUB(edge2, nv1, nv4);
-						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
-						
-						Crossf(d_nvect, edge2, edge1);
-						n_mag = Normalise(d_nvect);
-						facedist = Inpf(dv1,d_nvect);
-						
-						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
-							dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
-							dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
-							dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
-							if (LineIntersectsTriangle( opco, dv2, nv1, nv3, nv4, &t)){
-								force_mag_norm =(float)exp(-ee*facedist);
-								if (facedist > outerfacethickness*ff)
-									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								Vec3PlusStVec(force,force_mag_norm,d_nvect);
-								*damp=ob->pd->pdef_sbdamp;
-								deflected = 2;
-							}
-							
-						}
-					}
-					mface++;
-					
-                }/* while a */		
-				/* give it away */
-				if (disp_mesh) {
-					displistmesh_free(disp_mesh);
-				}
-				if (dm) {
-					if (dmNeedsFree) dm->release(dm);
-				} 
-		} /* if(ob->pd && ob->pd->deflect) */
-       }/* if (base->object->type==OB_MESH && (base->lay & par_layer)) { */
-	   base = base->next;
-	} /* while (base) */
-	
-	return deflected;
-	
-}
 
 /* aye this belongs to arith.c */
 static void Vec3PlusStVec(float *v, float s, float *v1)
@@ -1135,27 +862,12 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 
 static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *force,float *cf)
 {
-	double startX,endX;
-
-	int deflected;
 	float s_actpos[3], s_futurepos[3];
-
+	int deflected;
 	
 	VECCOPY(s_actpos,actpos);
-	if(futurepos)
-		VECCOPY(s_futurepos,futurepos);
-	
-startX=PIL_check_seconds_timer();
-
-if(G.rt !=666)
+	if(futurepos) VECCOPY(s_futurepos,futurepos);
 	deflected= sb_detect_collisionCached(s_actpos, facenormal, cf, force , ob->lay, ob);
-else
-	deflected= sb_detect_collision(s_actpos, facenormal, cf, force , ob->lay, ob);
-
-endX=PIL_check_seconds_timer();
-glb_colsearchcost += endX - startX;
-
-
 	return(deflected);
 }
 
@@ -2151,16 +1863,10 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	}
 	else if(dtime>0.0) {
 
-		double startX,endX;
 
-		startX=PIL_check_seconds_timer();
-		glb_colsearchcost = 0;
 		/* reset deflector cache, sumohandle is free, but its still sorta abuse... (ton) */
-if(G.rt !=666)
-{
 		free_sumo_handles();
 		ccd_build_deflector_cache(ob);
-}		
 		
 		if (TRUE) {	/*  */
 			/* special case of 2nd order Runge-Kutta type AKA Heun */
@@ -2206,11 +1912,9 @@ if(G.rt !=666)
 			interpolate_exciter(ob, 2, 2);
 			softbody_apply_goalsnap(ob);
 
-			endX=PIL_check_seconds_timer();			
-
 			if(G.f & G_DEBUG) {
 				if (loops > HEUNWARNLIMIT) /* monitor high loop counts say 1000 after testing */
-					printf("%d heun integration loops/frame %f %f\n",loops,endX- startX,glb_colsearchcost);
+					printf("%d heun integration loops/frame \n",loops);
 			}
 			
 		}
@@ -2220,10 +1924,7 @@ if(G.rt !=666)
 			/* yah! Nicholas Guttenberg (NichG) here is the place to plug in */
 		}
 			/* reset deflector cache */
-if(G.rt !=666)
-{
-			free_sumo_handles();
-}
+		free_sumo_handles();
 	}
 
 	softbody_to_object(ob, vertexCos, numVerts);
