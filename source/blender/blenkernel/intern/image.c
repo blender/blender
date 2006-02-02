@@ -491,6 +491,8 @@ void load_image(Image * ima, int flags, char *relabase, int framenum)
 {
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 
+	if(ima->id.lib) relabase= ima->id.lib->filename;
+	
 	if (ima->ibuf == NULL) {
 
 		// is there a PackedFile with this image ?;
@@ -578,7 +580,10 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 	if(ima==0) return;
 	
 	strcpy(str, ima->name);
-	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	if(ima->id.lib)
+		BLI_convertstringcode(str, ima->id.lib->filename, G.scene->r.cfra);
+	else
+		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 	
 	if(tex->imaflag & TEX_STD_FIELD) de_interlacefunc= de_interlace_st;
 	else de_interlacefunc= de_interlace_ng;
