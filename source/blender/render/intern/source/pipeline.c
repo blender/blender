@@ -836,6 +836,15 @@ static void do_render_fields(Render *re)
 	
 }
 
+static void ntree_render_scenes(Render *re)
+{
+	SceneRenderLayer *srl;
+	
+	for(srl= re->r.layers.first; srl; srl= srl->next) {
+		
+	}
+}
+
 static void do_render_final(Render *re, Scene *scene)
 {
 	/* we set start time here, for main Blender loops */
@@ -867,11 +876,14 @@ static void do_render_final(Render *re, Scene *scene)
 		}
 		
 		if(!re->test_break()) {
+			/* checks if there are layer nodes that need scene */
+			ntree_render_scenes(re);
+			
 			ntreeCompositTagRender(scene->nodetree);
 			ntreeCompositTagAnimated(scene->nodetree);
 			
 			if(re->r.scemode & R_DOCOMP)
-				ntreeCompositExecTree(scene->nodetree, &re->r, 0);
+				ntreeCompositExecTree(scene->nodetree, &re->r, G.background==0);
 		}
 	}
 	
@@ -980,7 +992,6 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 }
 
 /* general Blender frame render call */
-/* should return 1 when all is OK, otherwise it throws up errors */
 void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 {
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */

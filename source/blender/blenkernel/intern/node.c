@@ -1711,7 +1711,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	if(ntree==NULL) return;
 	
 	if(rd->mode & R_THREADS)
-		maxthreads= 2;
+		maxthreads= 1;
 	else
 		maxthreads= 1;
 	
