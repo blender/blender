@@ -731,6 +731,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->parts= 1;
 				dl->nr= len;
 				dl->col= nu->mat_nr;
+				dl->charidx = nu->charidx;
 
 				data= dl->verts;
 				if(nu->flagu & 1) dl->type= DL_POLY;
@@ -898,6 +899,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 					dlnew->parts= 1;
 					dlnew->type= DL_POLY;
 					dlnew->col= dl->col;
+					dlnew->charidx = dl->charidx;
 					
 					fp= dl->verts;
 					dpoly= 3*dl->nr;
@@ -917,6 +919,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 					dlnew->parts= 1;
 					dlnew->type= DL_POLY;
 					dlnew->col= dl->col;
+					dlnew->charidx= dl->charidx;
 					
 					fp= dl->verts+3*(dl->nr-1);
 					dpoly= 3*dl->nr;
@@ -1151,6 +1154,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				dl->parts= 1;
 				dl->nr= len;
 				dl->col= nu->mat_nr;
+				dl->charidx= nu->charidx;
 				dl->rt= nu->flag;
 				
 				data= dl->verts;
@@ -1167,6 +1171,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				BLI_addtail(dispbase, dl);
 
 				dl->col= nu->mat_nr;
+				dl->charidx= nu->charidx;
 				dl->rt= nu->flag;
 				
 				data= dl->verts;
@@ -1256,6 +1261,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 					dl->parts= bl->nr;
 					dl->nr= dlb->nr;
 					dl->col= nu->mat_nr;
+					dl->charidx= nu->charidx;
 					dl->rt= nu->flag;
 					dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "col2");
 					bevp= (BevPoint *)(bl+1);
