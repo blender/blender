@@ -2032,9 +2032,8 @@ static int vergzvlak(const void *a1, const void *a2)
 /**
 * Shade this face at this location in SCS.
  */
-static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, int mask, float *fcol)
+static void shadetrapixel(ShadePixelInfo *shpi, float x, float y, int z, int facenr, int mask, float *fcol)
 {
-	ShadeResult shr;
 	float rco[3];
 	
 	if( (facenr & 0x7FFFFF) > R.totvlak) {
@@ -2049,11 +2048,11 @@ static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, i
 		if(vlr->flag & R_FULL_OSA) {
 			for(a=0; a<R.osa; a++) {
 				if(mask & (1<<a)) {
-					shadepixel(pa, x+R.jit[a][0], y+R.jit[a][1], z, facenr, 1<<a, &shr, rco, 0);
-					accumcol[0]+= shr.combined[0];
-					accumcol[1]+= shr.combined[1];
-					accumcol[2]+= shr.combined[2];
-					accumcol[3]+= shr.combined[3];
+					shadepixel(shpi, x+R.jit[a][0], y+R.jit[a][1], z, facenr, 1<<a, rco);
+					accumcol[0]+= shpi->shr.combined[0];
+					accumcol[1]+= shpi->shr.combined[1];
+					accumcol[2]+= shpi->shr.combined[2];
+					accumcol[3]+= shpi->shr.combined[3];
 					tot+= 1.0;
 				}
 			}
@@ -2067,13 +2066,13 @@ static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, i
 			int b= R.samples->centmask[mask];
 			x= x+R.samples->centLut[b & 15];
 			y= y+R.samples->centLut[b>>4];
-			shadepixel(pa, x, y, z, facenr, mask, &shr, rco, 0);
-			QUATCOPY(fcol, shr.combined);
+			shadepixel(shpi, x, y, z, facenr, mask, rco);
+			QUATCOPY(fcol, shpi->shr.combined);
 		}
 	}
 	else {
-		shadepixel(pa, x, y, z, facenr, mask, &shr, rco, 0);
-		QUATCOPY(fcol, shr.combined);
+		shadepixel(shpi, x, y, z, facenr, mask, rco);
+		QUATCOPY(fcol, shpi->shr.combined);
 	}
 }
 
@@ -2095,6 +2094,7 @@ static int addtosampcol(float *sampcol, float *fcol, int mask)
 void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short layflag)
 {
 	RenderResult *rr= pa->result;
+	ShadePixelInfo shpi;
 	APixstr *APixbuf;      /* Zbuffer: linked list of face samples */
 	APixstr *ap, *aprect, *apn;
 	ListBase apsmbase={NULL, NULL};
@@ -2114,6 +2114,11 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 		G.afbreek= 1;
 		return;
 	}
+	
+	/* fill shadepixel info struct */
+	shpi.thread= pa->thread;
+	shpi.lay= lay;
+	shpi.passflag= 0;
 	
 	/* alpha LUT */
 	if(R.osa) {
@@ -2166,7 +2171,7 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 				
 				if(totface==1) {
 					
-					shadetrapixel(pa, (float)x, (float)y, zrow[0][0], zrow[0][1], zrow[0][2], fcol);
+					shadetrapixel(&shpi, (float)x, (float)y, zrow[0][0], zrow[0][1], zrow[0][2], fcol);
 					
 					if(R.osa) {
 						add_filt_fmask(zrow[0][2], fcol, pass, rr->rectx);
@@ -2193,7 +2198,7 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 						while(totface>0) {
 							totface--;
 							
-							shadetrapixel(pa, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
+							shadetrapixel(&shpi, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
 							addAlphaUnderFloat(pass, fcol);
 							
 							if(pass[3]>=0.999) break;
@@ -2206,7 +2211,7 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 						while(totface>0) {
 							totface--;
 							
-							shadetrapixel(pa, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
+							shadetrapixel(&shpi, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2], fcol);
 							sval= addtosampcol(sampcol, fcol, zrow[totface][2]);
 							
 							if(sval==0) break;

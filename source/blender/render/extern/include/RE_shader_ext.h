@@ -103,7 +103,7 @@ typedef struct ShadeInput
 	short osatex, puno;
 	int mask;
 	int depth;
-	
+	unsigned int lay;
 } ShadeInput;
 
 

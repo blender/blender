@@ -1539,6 +1539,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		shi.thread= origshi->thread;
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
+		shi.lay= origshi->lay;
 		shi.do_preview= 0;
 		
 		shade_ray(&isec, &shi, &shr);

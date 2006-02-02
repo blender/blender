@@ -1479,7 +1479,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	
 }
 
-
+#if 0
 static void shade_lamp_loop_pass(ShadeInput *shi, ShadeResult *shr, int passflag)
 {
 	Material *ma= shi->mat;
@@ -1551,7 +1551,8 @@ static void shade_lamp_loop_pass(ShadeInput *shi, ShadeResult *shr, int passflag
 			
 			/* test for lamp layer */
 			if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
-			
+			if((lar->lay & shi->lay)==0) continue;
+
 			/* accumulates in shr->diff and shr->spec and shr->shad */
 			shade_one_light(lar, shi, shr, passflag);
 		}
@@ -1620,8 +1621,8 @@ static void shade_lamp_loop_pass(ShadeInput *shi, ShadeResult *shr, int passflag
 		/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
 		if(shi->mat->mode & MA_RAYTRANSP) shr->alpha= 1.0;
 	}	
-	
 }
+#endif
 
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 {
@@ -1661,6 +1662,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				if (lar->type==LA_YF_PHOTON) continue;
 				
 				if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
+				if((lar->lay & shi->lay)==0) continue;
 				
 				lv[0]= shi->co[0]-lar->co[0];
 				lv[1]= shi->co[1]-lar->co[1];
@@ -1792,6 +1794,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 		/* test for lamp layer */
 		if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
+		if((lar->lay & shi->lay)==0) continue;
 		
 		/* accumulates in shr->diff and shr->spec, 0= no passrender */
 		shade_one_light(lar, shi, shr, 0);
@@ -2282,8 +2285,9 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 /* note, facenr declared volatile due to over-eager -O2 optimizations
  * on cygwin (particularly -frerun-cse-after-loop)
  */
-void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, int mask, ShadeResult *shr, float *rco, int passflag)
+void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int facenr, int mask, float *rco)
 {
+	ShadeResult *shr= &shpi->shr;
 	ShadeInput shi;
 	VlakRen *vlr=NULL;
 	
@@ -2293,8 +2297,10 @@ void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, i
 	/* currently in use for dithering (soft shadow) node preview */
 	shi.xs= (int)(x+0.5f);
 	shi.ys= (int)(y+0.5f);
-	shi.thread= pa->thread;
+
+	shi.thread= shpi->thread;
 	shi.do_preview= R.r.scemode & R_NODE_PREVIEW;
+	shi.lay= shpi->lay;
 
 	/* mask is used to indicate amount of samples (ray shad/mir and AO) */
 	shi.mask= mask;
@@ -2585,21 +2591,21 @@ void *shadepixel(RenderPart *pa, float x, float y, int z, volatile int facenr, i
 	return vlr;
 }
 
-static void shadepixel_sky(RenderPart *pa, float x, float y, int z, int facenr, int mask, ShadeResult *shr, int passflag)
+static void shadepixel_sky(ShadePixelInfo *shpi, float x, float y, int z, int facenr, int mask)
 {
 	VlakRen *vlr;
 	float collector[4], rco[3];
 	
-	vlr= shadepixel(pa, x, y, z, facenr, mask, shr, rco, passflag);
-	if(shr->combined[3] != 1.0) {
+	vlr= shadepixel(shpi, x, y, z, facenr, mask, rco);
+	if(shpi->shr.combined[3] != 1.0) {
 		
 		/* bail out when raytrace transparency (sky included already) */
 		if(vlr && (R.r.mode & R_RAYTRACE))
 			if(vlr->mat->mode & MA_RAYTRANSP) return;
 		
 		renderSkyPixelFloat(collector, x, y, vlr?rco:NULL);
-		addAlphaOverFloat(collector, shr->combined);
-		QUATCOPY(shr->combined, collector);
+		addAlphaOverFloat(collector, shpi->shr.combined);
+		QUATCOPY(shpi->shr.combined, collector);
 	}
 }
 
@@ -2770,13 +2776,13 @@ static void add_passes(RenderLayer *rl, int offset, ShadeResult *shr)
 static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 {
 	RenderResult *rr= pa->result;
-	ShadeResult shr;
+	ShadePixelInfo shpi;
 	PixStr *ps;
 	float xs, ys;
-	float *fcol= shr.combined, *rf, *rectf= rl->rectf;
+	float *fcol= shpi.shr.combined, *rf, *rectf= rl->rectf;
 	long *rd, *rectdaps= pa->rectdaps;
 	int zbuf, samp, curmask, face, mask, fullmask;
-	int b, x, y, full_osa, seed, crop=0, offs=0, od, renderpassflag, addpassflag;
+	int b, x, y, full_osa, seed, crop=0, offs=0, od, addpassflag;
 	
 	if(R.test_break()) return; 
 	
@@ -2785,11 +2791,13 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 
 	fullmask= (1<<R.osa)-1;
 	
-	/* bit clumsy, but with passes we need different shade code */
+	/* fill shadepixel info struct */
+	shpi.thread= pa->thread;
+	shpi.lay= rl->lay;
+	shpi.passflag= 0;
+	
 	if(rl->passflag & ~(SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR|SCE_PASS_COMBINED))
-		renderpassflag= rl->passflag;
-	else
-		renderpassflag= 0;
+		shpi.passflag= rl->passflag;
 	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 				
 	/* filtered render, for now we assume only 1 filter size */
@@ -2841,7 +2849,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 						if(curmask & (1<<samp)) {
 							xs= (float)x + R.jit[samp][0];
 							ys= (float)y + R.jit[samp][1];
-							shadepixel_sky(pa, xs, ys, zbuf, face, (1<<samp), &shr, renderpassflag);
+							shadepixel_sky(&shpi, xs, ys, zbuf, face, (1<<samp));
 							
 							if(R.do_gamma) {
 								fcol[0]= gammaCorrect(fcol[0]);
@@ -2851,7 +2859,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 							add_filt_fmask(1<<samp, fcol, rf, pa->rectx);
 							
 							if(addpassflag)
-								add_filt_passes(rl, curmask, pa->rectx, od, &shr);
+								add_filt_passes(rl, curmask, pa->rectx, od, &shpi.shr);
 						}
 					}
 				}
@@ -2859,7 +2867,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 					b= R.samples->centmask[curmask];
 					xs= (float)x+R.samples->centLut[b & 15];
 					ys= (float)y+R.samples->centLut[b>>4];
-					shadepixel_sky(pa, xs, ys, zbuf, face, curmask, &shr, renderpassflag);
+					shadepixel_sky(&shpi, xs, ys, zbuf, face, curmask);
 	
 					if(R.do_gamma) {
 						fcol[0]= gammaCorrect(fcol[0]);
@@ -2869,7 +2877,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 					add_filt_fmask(curmask, fcol, rf, pa->rectx);
 					
 					if(addpassflag)
-						add_filt_passes(rl, curmask, pa->rectx, od, &shr);
+						add_filt_passes(rl, curmask, pa->rectx, od, &shpi.shr);
 				}
 				
 				mask |= curmask;
@@ -3061,6 +3069,8 @@ void zbufshadeDA_tile(RenderPart *pa)
 	
 	if(edgerect) RE_freeN(edgerect);
 	
+	/* display active layer */
+	rr->renlay= BLI_findlink(&rr->layers, R.r.actlay);
 
 }
 
@@ -3070,9 +3080,10 @@ void zbufshadeDA_tile(RenderPart *pa)
 /* supposed to be fully threadable! */
 void zbufshade_tile(RenderPart *pa)
 {
-	ShadeResult *shr= RE_mallocN(sizeof(ShadeResult), "shaderesult");
+	ShadePixelInfo shpi;
 	RenderResult *rr= pa->result;
 	RenderLayer *rl;
+	int addpassflag;
 	
 	set_part_zbuf_clipflag(pa);
 	
@@ -3080,35 +3091,38 @@ void zbufshade_tile(RenderPart *pa)
 	pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
 	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	
+	shpi.thread= pa->thread;
+	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
 		/* indication for scanline updates */
 		rr->renlay= rl;
+		
+		/* fill shadepixel info struct */
+		shpi.lay= rl->lay;
+		shpi.passflag= 0;
+		
+		if(rl->passflag & ~(SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR|SCE_PASS_COMBINED))
+			shpi.passflag= rl->passflag;
+		addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 		
 		zbuffer_solid(pa, rl->lay, rl->layflag);
 		
 		if(!R.test_break()) {
 			if(rl->layflag & SCE_LAY_SOLID) {
 				float *fcol= rl->rectf;
-				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0, renderpassflag, addpassflag;
-				
-				/* bit clumsy, but with passes we shade differently */
-				if(rl->passflag & ~(SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR|SCE_PASS_COMBINED))
-					renderpassflag= rl->passflag;
-				else
-					renderpassflag= 0;
-				addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
+				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0;
 				
 				/* init scanline updates */
 				rr->renrect.ymin=rr->renrect.ymax= 0;
 				
 				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
 					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4, offs++) {
-						shadepixel_sky(pa, (float)x, (float)y, *rz, *rp, 0, shr, renderpassflag);
-						QUATCOPY(fcol, shr->combined);
+						shadepixel_sky(&shpi, (float)x, (float)y, *rz, *rp, 0);
+						QUATCOPY(fcol, shpi.shr.combined);
 						
 						/* passes */
 						if(*rp && addpassflag)
-							add_passes(rl, offs, shr);
+							add_passes(rl, offs, &shpi.shr);
 					}
 					if(y&1)
 						if(R.test_break()) break; 
@@ -3153,7 +3167,10 @@ void zbufshade_tile(RenderPart *pa)
 			convert_zbuf_to_distbuf(pa, rl);
 
 	}
-								 RE_freeN(shr);
+
+	/* display active layer */
+	rr->renlay= BLI_findlink(&rr->layers, R.r.actlay);
+	
 	RE_freeN(pa->rectp); pa->rectp= NULL;
 	RE_freeN(pa->rectz); pa->rectz= NULL;
 }

@@ -866,11 +866,13 @@ static void do_render_final(Render *re, Scene *scene)
 				render_one_frame(re);
 		}
 		
-		ntreeCompositTagRender(scene->nodetree);
-		ntreeCompositTagAnimated(scene->nodetree);
-		
-		if(re->r.scemode & R_DOCOMP)
-			ntreeCompositExecTree(scene->nodetree, &re->r, 0);
+		if(!re->test_break()) {
+			ntreeCompositTagRender(scene->nodetree);
+			ntreeCompositTagAnimated(scene->nodetree);
+			
+			if(re->r.scemode & R_DOCOMP)
+				ntreeCompositExecTree(scene->nodetree, &re->r, 0);
+		}
 	}
 	
 

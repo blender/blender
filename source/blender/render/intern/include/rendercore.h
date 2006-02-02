@@ -49,6 +49,14 @@ struct ShadeResult;
 
 /* ------------------------------------------------------------------------- */
 
+/* to make passing on variables to shadepixel() easier */
+typedef struct ShadePixelInfo {
+	int thread;
+	int passflag;
+	unsigned int lay;
+	ShadeResult shr;
+} ShadePixelInfo;
+
 typedef struct PixStr
 {
 	struct PixStr *next;
@@ -85,8 +93,7 @@ void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 void zbufshade(void);
 void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 
-void *shadepixel(RenderPart *pa, float x, float y, int z, int facenr, int mask, struct ShadeResult *shr, float *rco, int passflag);
-
+void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int facenr, int mask, float *rco);
 int count_mask(unsigned short mask);
 
 void zbufshade_tile(struct RenderPart *pa);
