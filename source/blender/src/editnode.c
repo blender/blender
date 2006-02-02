@@ -189,8 +189,9 @@ static void load_node_image(char *str)	/* called from fileselect */
 		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
 		
-		addqueue(curarea->win, RENDERPREVIEW, 1);
-		allqueue(REDRAWNODE, 0);
+		NodeTagChanged(snode->edittree, node);
+		snode_handle_recalc(snode);
+		allqueue(REDRAWNODE, 0); 
 	}
 }
 
@@ -223,6 +224,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 			else strcpy(name, U.textudir);
 			
 			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+			break;
 		}
 		case B_NODE_TREE_EXEC:
 			snode_handle_recalc(snode);
@@ -236,8 +238,8 @@ static void composit_node_event(SpaceNode *snode, short event)
 				node= snode_get_editgroup(snode);
 				if(node)
 					NodeTagChanged(snode->nodetree, node);
+				snode_handle_recalc(snode);
 			}
-			snode_handle_recalc(snode);
 		}			
 	}
 }
@@ -1669,8 +1671,6 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RENDERPREVIEW:
 			if(snode->treetype==NTREE_SHADER)
 				shader_node_previewrender(sa, snode);
-			else if(snode->treetype==NTREE_COMPOSIT)
-				snode_handle_recalc(snode);
 			break;
 			
 		case PADPLUSKEY:

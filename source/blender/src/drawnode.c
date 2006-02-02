@@ -571,7 +571,7 @@ static void node_browse_image_cb(void *ntree_v, void *node_v)
 
 		BLI_strncpy(node->name, node->id->name+2, 21);
 
-		addqueue(curarea->win, RENDERPREVIEW, 1);
+		NodeTagChanged(ntree, node); 
 	}
 	node->menunr= 0;
 }
