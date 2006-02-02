@@ -112,6 +112,13 @@ void BLI_init_threads(ListBase *threadbase, int (*do_thread)(void *), int tot)
 		tslot->do_thread= do_thread;
 	}
 	
+	/* weak weak... now only 1 thread system at a time can be used */
+	if(_malloc_lock) {
+		printf("error; multiple locks active\n");
+		SDL_DestroyMutex(_malloc_lock); 
+		_malloc_lock= NULL;
+	}
+	
 	_malloc_lock = SDL_CreateMutex();
 }
 

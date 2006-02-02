@@ -430,6 +430,18 @@ static void do_copy_rgba(bNode *node, float *out, float *in)
 {
 	QUATCOPY(out, in);
 }
+static void do_copy_rgb(bNode *node, float *out, float *in)
+{
+	VECCOPY(out, in);
+	out[3]= 1.0f;
+}
+static void do_copy_rg(bNode *node, float *out, float *in)
+{
+	out[0]= in[0];
+	out[1]= in[1];
+	out[2]= 0.0f;
+	out[3]= 1.0f;
+}
 static void do_copy_value(bNode *node, float *out, float *in)
 {
 	out[0]= in[0];
@@ -447,7 +459,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 	
 	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
 		Image *ima= (Image *)node->id;
-		CompBuf *cbuf;
+		CompBuf *cbuf, *inbuf= in[0]->data;
 		int rectx, recty;
 		
 		/* scene size? */
@@ -465,10 +477,18 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			cbuf->rect= ima->ibuf->rect_float;
 
 			/* when no alpha, we can simply copy */
-			if(in[1]->data==NULL)
-				composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_copy_rgba);
+			if(in[1]->data==NULL) {
+				void (*func)(bNode *, float *, float *);
+				
+				if(inbuf==NULL || inbuf->type==CB_RGBA) func= do_copy_rgba;
+				else if(inbuf->type==CB_VEC3) func= do_copy_rgb;
+				else if(inbuf->type==CB_VEC2) func= do_copy_rg;
+				else func= do_copy_value;
+				
+				composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, func);
+			}
 			else
-				composit2_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+				composit2_pixel_processor(node, cbuf, inbuf, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
 			
 			if(in[2]->data) {
 				CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 0);
@@ -493,8 +513,24 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		}
 
 	}	/* lets make only previews when not done yet, so activating doesnt update */
-	else if(in[0]->data && node->preview && node->preview->rect==NULL)
-		generate_preview(node, in[0]->data);
+	else if(in[0]->data && node->preview && node->preview->rect==NULL) {
+		CompBuf *cbuf, *inbuf= in[0]->data;
+		
+		if(inbuf->type!=CB_RGBA) {
+			void (*func)(bNode *, float *, float *);
+			
+			if(inbuf->type==CB_VEC3) func= do_copy_rgb;
+			else if(inbuf->type==CB_VEC2) func= do_copy_rg;
+			else func= do_copy_value;
+			
+			cbuf= alloc_compbuf(inbuf->x, inbuf->y, CB_RGBA, 1);
+			composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, func);
+			generate_preview(node, cbuf);
+			free_compbuf(cbuf);
+		}
+		else
+			generate_preview(node, inbuf);
+	}
 }
 
 static bNodeType cmp_node_viewer= {
@@ -737,13 +773,55 @@ static bNodeType cmp_node_image= {
 };
 
 /* **************** RENDER RESULT ******************** */
+
+/* output socket defines */
+#define RRES_OUT_IMAGE	0
+#define RRES_OUT_ALPHA	1
+#define RRES_OUT_Z		2
+#define RRES_OUT_NOR	3
+#define RRES_OUT_VEC	4
+#define RRES_OUT_COL	5
+#define RRES_OUT_DIFF	6
+#define RRES_OUT_SPEC	7
+#define RRES_OUT_SHAD	8
+#define RRES_OUT_AO		9
+#define RRES_OUT_RAY	10
+
 static bNodeSocketType cmp_node_rresult_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, "Vec",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Speed",	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+//	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+//	{	SOCK_RGBA, 0, "Diffuse",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+//	{	SOCK_RGBA, 0, "Specular",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+//	{	SOCK_RGBA, 0, "Shadow",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+//	{	SOCK_RGBA, 0, "AO",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+//	{	SOCK_RGBA, 0, "Ray",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
+
+static CompBuf *compbuf_from_pass(RenderLayer *rl, int rectx, int recty, int passcode)
+{
+	float *fp= RE_RenderLayerGetPass(rl, passcode);
+	if(fp) {
+		CompBuf *buf;
+		int buftype= CB_VEC3;
+		
+		if(passcode==SCE_PASS_Z)
+			buftype= CB_VAL;
+		else if(passcode==SCE_PASS_VECTOR)
+			buftype= CB_VEC2;
+		else if(passcode==SCE_PASS_RGBA)
+			buftype= CB_RGBA;
+			
+		buf= alloc_compbuf(rectx, recty, buftype, 0);
+		buf->rect= fp;
+		return buf;
+	}
+	return NULL;
+}
 
 static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -759,21 +837,30 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 			stackbuf->rect= rl->rectf;
 			
 			/* put on stack */	
-			out[0]->data= stackbuf;
+			out[RRES_OUT_IMAGE]->data= stackbuf;
 			
-			if(out[1]->hasoutput)
-				out[1]->data= alphabuf_from_rgbabuf(stackbuf);
-			if(out[2]->hasoutput && rl->rectz) {
-				CompBuf *zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 0);
-				zbuf->rect= rl->rectz;
-				out[2]->data= zbuf;
-			}
-			if(out[3]->hasoutput && rl->rectvec) {
-				CompBuf *vecbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VEC2, 0);
-				vecbuf->rect= rl->rectvec;
-				out[3]->data= vecbuf;
-			}
-			
+			if(out[RRES_OUT_ALPHA]->hasoutput)
+				out[RRES_OUT_ALPHA]->data= alphabuf_from_rgbabuf(stackbuf);
+			if(out[RRES_OUT_Z]->hasoutput)
+				out[RRES_OUT_Z]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_Z);
+			if(out[RRES_OUT_VEC]->hasoutput)
+				out[RRES_OUT_VEC]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
+			if(out[RRES_OUT_NOR]->hasoutput)
+				out[RRES_OUT_NOR]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
+/*			
+			if(out[RRES_OUT_COL]->hasoutput)
+				out[RRES_OUT_COL]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
+			if(out[RRES_OUT_DIFF]->hasoutput)
+				out[RRES_OUT_DIFF]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_DIFFUSE);
+			if(out[RRES_OUT_SPEC]->hasoutput)
+				out[RRES_OUT_SPEC]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_SPEC);
+			if(out[RRES_OUT_SHAD]->hasoutput)
+				out[RRES_OUT_SHAD]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
+			if(out[RRES_OUT_AO]->hasoutput)
+				out[RRES_OUT_AO]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_AO);
+			if(out[RRES_OUT_RAY]->hasoutput)
+				out[RRES_OUT_RAY]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_RAY);
+*/			
 			generate_preview(node, stackbuf);
 		}
 	}	
@@ -804,6 +891,15 @@ static bNodeSocketType cmp_node_normal_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void do_normal(bNode *node, float *out, float *in)
+{
+	bNodeSocket *sock= node->outputs.first;
+	float *nor= sock->ns.vec;
+	
+	/* render normals point inside... the widget points outside */
+	out[0]= -INPR(nor, in);
+}
+
 /* generates normal, does dot product */
 static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -811,9 +907,23 @@ static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, 
 	/* stack order input:  normal */
 	/* stack order output: normal, value */
 	
-	VECCOPY(out[0]->vec, sock->ns.vec);
-	/* render normals point inside... the widget points outside */
-	out[1]->vec[0]= -INPR(out[0]->vec, in[0]->vec);
+	/* input no image? then only vector op */
+	if(in[0]->data==NULL) {
+		VECCOPY(out[0]->vec, sock->ns.vec);
+		/* render normals point inside... the widget points outside */
+		out[1]->vec[0]= -INPR(out[0]->vec, in[0]->vec);
+	}
+	else if(out[1]->hasoutput) {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
+		
+		composit1_pixel_processor(node, stackbuf, in[0]->data, NULL, do_normal);
+		
+		out[1]->data= stackbuf;
+	}
+	
+	
 }
 
 static bNodeType cmp_node_normal= {
@@ -1842,21 +1952,6 @@ static bNodeSocketType cmp_node_vecblur_out[]= {
 	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-
-static void fill_rct_in_image(rcti poly, float *rect, int xsize, int ysize, float *col)
-{
-	float *dest;
-	int x, y;
-	
-	for(y=poly.ymin; y<poly.ymax; y++) {
-		for(x=poly.xmin; x<poly.xmax; x++) {
-			dest= rect + 4*(xsize*y + x);
-			QUATCOPY(dest, col);
-		}
-	}
-	
-}
-
 
 static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {

@@ -118,7 +118,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_SPEC		16
 #define SCE_PASS_SHADOW		32
 #define SCE_PASS_AO			64
-#define SCE_PASS_MIRROR		128
+#define SCE_PASS_RAY		128
 #define SCE_PASS_NORMAL		256
 #define SCE_PASS_VECTOR		512
 

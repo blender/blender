@@ -212,24 +212,18 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 	}
 }
 
-/* filtered adding to scanlines */
-void add_filt_fmask_alphaunder(unsigned int mask, float *col, float *rowbuf, int row_w)
+void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize)
 {
 	/* calc the value of mask */
 	float **fmask1= R.samples->fmask1, **fmask2=R.samples->fmask2;
 	float *rb1, *rb2, *rb3;
-	float val, r, g, b, al, acol[4];
+	float val;
 	unsigned int a, maskand, maskshift;
-	int j;
+	int i, j;
 	
-	r= col[0];
-	g= col[1];
-	b= col[2];
-	al= col[3];
-	
-	rb2= rowbuf-4;
-	rb3= rb2-4*row_w;
-	rb1= rb2+4*row_w;
+	rb2= rowbuf-pixsize;
+	rb3= rb2-pixsize*row_w;
+	rb1= rb2+pixsize*row_w;
 	
 	maskand= (mask & 255);
 	maskshift= (mask >>8);
@@ -240,39 +234,29 @@ void add_filt_fmask_alphaunder(unsigned int mask, float *col, float *rowbuf, int
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
 		if(val!=0.0) {
-			acol[0]= val*r;
-			acol[1]= val*g;
-			acol[2]= val*b;
-			acol[3]= val*al;
-			addAlphaUnderFloat(rb1, acol);
+			for(i= 0; i<pixsize; i++)
+				rb1[i]+= val*in[i];
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
 		if(val!=0.0) {
-			acol[0]= val*r;
-			acol[1]= val*g;
-			acol[2]= val*b;
-			acol[3]= val*al;
-			addAlphaUnderFloat(rb2, acol);
+			for(i= 0; i<pixsize; i++)
+				rb2[i]+= val*in[i];
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
 		if(val!=0.0) {
-			acol[0]= val*r;
-			acol[1]= val*g;
-			acol[2]= val*b;
-			acol[3]= val*al;
-			addAlphaUnderFloat(rb3, acol);
+			for(i= 0; i<pixsize; i++)
+				rb3[i]+= val*in[i];
 		}
 		
-		rb1+= 4;
-		rb2+= 4;
-		rb3+= 4;
+		rb1+= pixsize;
+		rb2+= pixsize;
+		rb3+= pixsize;
 	}
 }
-
 
 /* ------------------------------------------------------------------------- */
 void addalphaAddFloat(float *dest, float *source)

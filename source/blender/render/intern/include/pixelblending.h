@@ -34,6 +34,7 @@
  * (float vecs to float vec)
  */
 void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w);
+void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize);
 
 /**
  * Alpha-over blending for floats.

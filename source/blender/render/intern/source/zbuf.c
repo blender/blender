@@ -2049,7 +2049,7 @@ static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, i
 		if(vlr->flag & R_FULL_OSA) {
 			for(a=0; a<R.osa; a++) {
 				if(mask & (1<<a)) {
-					shadepixel(pa, x+R.jit[a][0], y+R.jit[a][1], z, facenr, 1<<a, &shr, rco);
+					shadepixel(pa, x+R.jit[a][0], y+R.jit[a][1], z, facenr, 1<<a, &shr, rco, 0);
 					accumcol[0]+= shr.combined[0];
 					accumcol[1]+= shr.combined[1];
 					accumcol[2]+= shr.combined[2];
@@ -2067,12 +2067,12 @@ static void shadetrapixel(RenderPart *pa, float x, float y, int z, int facenr, i
 			int b= R.samples->centmask[mask];
 			x= x+R.samples->centLut[b & 15];
 			y= y+R.samples->centLut[b>>4];
-			shadepixel(pa, x, y, z, facenr, mask, &shr, rco);
+			shadepixel(pa, x, y, z, facenr, mask, &shr, rco, 0);
 			QUATCOPY(fcol, shr.combined);
 		}
 	}
 	else {
-		shadepixel(pa, x, y, z, facenr, mask, &shr, rco);
+		shadepixel(pa, x, y, z, facenr, mask, &shr, rco, 0);
 		QUATCOPY(fcol, shr.combined);
 	}
 }
@@ -2238,15 +2238,21 @@ void zbuffer_transp_shade(RenderPart *pa, float *pass, unsigned int lay, short l
 /* uses part zbuffer values to convert into distances from camera in renderlayer */
 void convert_zbuf_to_distbuf(RenderPart *pa, RenderLayer *rl)
 {
+	RenderPass *rpass;
 	float *rectzf, zco;
 	int a, *rectz, ortho= R.r.mode & R_ORTHO;
 	
 	if(pa->rectz==NULL) return;
-	if(rl->rectz==NULL) {
+	for(rpass= rl->passes.first; rpass; rpass= rpass->next)
+		if(rpass->passtype==SCE_PASS_Z)
+			break;
+	
+	if(rpass==NULL) {
 		printf("called convert zbuf wrong...\n");
 		return;
 	}
-	rectzf= rl->rectz;
+	
+	rectzf= rpass->rect;
 	rectz= pa->rectz;
 	
 	for(a=pa->rectx*pa->recty; a>0; a--, rectz++, rectzf++) {

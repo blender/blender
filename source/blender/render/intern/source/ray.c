@@ -1516,7 +1516,7 @@ static void color_combine(float *result, float fac1, float fac2, float *col1, fl
 #endif
 
 /* the main recursive tracer itself */
-static void traceray(short depth, float *start, float *vec, float *col, VlakRen *vlr, int mask, int osatex, int traflag)
+static void traceray(ShadeInput *origshi, short depth, float *start, float *vec, float *col, VlakRen *vlr, int traflag)
 {
 	ShadeInput shi;
 	ShadeResult shr;
@@ -1533,9 +1533,13 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 
 	if( d3dda(&isec) ) {
 		
-		shi.mask= mask;
-		shi.osatex= osatex;
+		shi.mask= origshi->mask;
+		shi.osatex= origshi->osatex;
 		shi.depth= 1;	// only now to indicate tracing
+		shi.thread= origshi->thread;
+		shi.xs= origshi->xs;
+		shi.ys= origshi->ys;
+		shi.do_preview= 0;
 		
 		shade_ray(&isec, &shi, &shr);
 		
@@ -1559,10 +1563,10 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 						refraction(refract, shi.vn, shi.view, shi.ang);
 					}
 					traflag |= RAY_TRA;
-					traceray(depth-1, shi.co, refract, tracol, shi.vlr, shi.mask, osatex, traflag ^ RAY_TRAFLIP);
+					traceray(origshi, depth-1, shi.co, refract, tracol, shi.vlr, traflag ^ RAY_TRAFLIP);
 				}
 				else
-					traceray(depth-1, shi.co, shi.view, tracol, shi.vlr, shi.mask, osatex, 0);
+					traceray(origshi, depth-1, shi.co, shi.view, tracol, shi.vlr, 0);
 				
 				f= shr.alpha; f1= 1.0-f;
 				fr= 1.0+ shi.mat->filter*(shi.r-1.0);
@@ -1591,7 +1595,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 				float mircol[4];
 				
 				reflection(ref, shi.vn, shi.view, NULL);			
-				traceray(depth-1, shi.co, ref, mircol, shi.vlr, shi.mask, osatex, 0);
+				traceray(origshi, depth-1, shi.co, ref, mircol, shi.vlr, 0);
 			
 				f1= 1.0-f;
 
@@ -1767,10 +1771,10 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		
 		if(shi->mat->mode & MA_RAYTRANSP) {
 			refraction(refract, shi->vn, shi->view, shi->ang);
-			traceray(shi->mat->ray_depth_tra, shi->co, refract, tracol, shi->vlr, shi->mask, 0, RAY_TRA|RAY_TRAFLIP);
+			traceray(shi, shi->mat->ray_depth_tra, shi->co, refract, tracol, shi->vlr, RAY_TRA|RAY_TRAFLIP);
 		}
 		else
-			traceray(shi->mat->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, shi->mask, 0, 0);
+			traceray(shi, shi->mat->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, 0);
 		
 		f= shr->alpha; f1= 1.0-f;
 		fr= 1.0+ shi->mat->filter*(shi->r-1.0);
@@ -1796,7 +1800,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			else
 				reflection(vec, shi->vn, shi->view, NULL);
 	
-			traceray(shi->mat->ray_depth, shi->co, vec, mircol, shi->vlr, shi->mask, shi->osatex, 0);
+			traceray(shi, shi->mat->ray_depth, shi->co, vec, mircol, shi->vlr, 0);
 			
 			f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
 			shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
@@ -2073,7 +2077,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 		bias= 0.0;
 		nrm= shi->facenor;
 	}
-	
+
 	vec= sphere_sampler(R.wrld.aomode, R.wrld.aosamp, shi->thread, shi->xs, shi->ys);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much

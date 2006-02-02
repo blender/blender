@@ -133,6 +133,11 @@ void RE_freeN(void *poin)
 
 /* ********************** */
 
+static int g_break= 0;
+static int thread_break(void)
+{
+	return g_break;
+}
 
 /* default callbacks, set in each new render */
 static void result_nothing(RenderResult *rr) {}
@@ -148,9 +153,14 @@ static void free_render_result(RenderResult *res)
 
 	while(res->layers.first) {
 		RenderLayer *rl= res->layers.first;
+		
 		if(rl->rectf) RE_freeN(rl->rectf);
-		if(rl->rectz) RE_freeN(rl->rectz);
-		if(rl->rectvec) RE_freeN(rl->rectvec);
+		while(rl->passes.first) {
+			RenderPass *rpass= rl->passes.first;
+			RE_freeN(rpass->rect);
+			BLI_remlink(&rl->passes, rpass);
+			RE_freeN(rpass);
+		}
 		BLI_remlink(&res->layers, rl);
 		RE_freeN(rl);
 	}
@@ -163,6 +173,25 @@ static void free_render_result(RenderResult *res)
 		RE_freeN(res->rectf);
 	
 	RE_freeN(res);
+}
+
+static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, char *mallocstr)
+{
+	RenderPass *rpass= MEM_mallocN(sizeof(RenderPass), mallocstr);
+	
+	BLI_addtail(&rl->passes, rpass);
+	rpass->passtype= passtype;
+	rpass->rect= MEM_callocN(sizeof(float)*rectsize, mallocstr);
+}
+
+float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
+{
+	RenderPass *rpass;
+	
+	for(rpass=rl->passes.first; rpass; rpass= rpass->next)
+		if(rpass->passtype== passtype)
+			return rpass->rect;
+	return NULL;
 }
 
 /* called by main render as well for parts */
@@ -205,10 +234,25 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl->passflag= srl->passflag;
 		
 		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
+		
 		if(srl->passflag  & SCE_PASS_Z)
-			rl->rectz= RE_callocN(rectx*recty*sizeof(float), "layer float Z");
+			render_layer_add_pass(rl, rectx*recty, SCE_PASS_Z, "Layer float Z");
 		if(srl->passflag  & SCE_PASS_VECTOR)
-			rl->rectvec= RE_callocN(rectx*recty*sizeof(float)*2, "layer float Vector");
+			render_layer_add_pass(rl, rectx*recty*2, SCE_PASS_VECTOR, "layer float Vector");
+		if(srl->passflag  & SCE_PASS_NORMAL)
+			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_NORMAL, "layer float Normal");
+		if(srl->passflag  & SCE_PASS_RGBA)
+			render_layer_add_pass(rl, rectx*recty*4, SCE_PASS_RGBA, "layer float Color");
+		if(srl->passflag  & SCE_PASS_DIFFUSE)
+			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_DIFFUSE, "layer float Diffuse");
+		if(srl->passflag  & SCE_PASS_SPEC)
+			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_SPEC, "layer float Spec");
+		if(srl->passflag  & SCE_PASS_SHADOW)
+			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_SHADOW, "layer float Shadow");
+		if(srl->passflag  & SCE_PASS_AO)
+			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_AO, "layer float AO");
+		if(srl->passflag  & SCE_PASS_RAY)
+			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_RAY, "layer float Mirror");
 		
 	}
 	/* previewrender and envmap don't do layers, so we make a default one */
@@ -217,13 +261,11 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		BLI_addtail(&rr->layers, rl);
 		
 		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "prev/env float rgba");
-		rl->rectz= RE_callocN(rectx*recty*sizeof(float), "prev/env float Z");
 		
 		/* note, this has to be in sync with scene.c */
 		rl->lay= (1<<20) -1;
 		rl->layflag= 0x7FFF;	/* solid ztra halo strand */
-		rl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
-		
+		rl->passflag= SCE_PASS_COMBINED;
 	}
 	
 	return rr;
@@ -277,18 +319,30 @@ static void do_merge_tile(RenderResult *rr, RenderResult *rrpart, float *target,
 static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 {
 	RenderLayer *rl, *rlp;
+	RenderPass *rpass, *rpassp;
 	
 	for(rl= rr->layers.first, rlp= rrpart->layers.first; rl && rlp; rl= rl->next, rlp= rlp->next) {
 		
 		/* combined */
 		if(rl->rectf && rlp->rectf)
 			do_merge_tile(rr, rrpart, rl->rectf, rlp->rectf, 4);
-		/* z */
-		if(rl->rectz && rlp->rectz)
-			do_merge_tile(rr, rrpart, rl->rectz, rlp->rectz, 1);
-		/* vector */
-		if(rl->rectvec && rlp->rectvec)
-			do_merge_tile(rr, rrpart, rl->rectvec, rlp->rectvec, 2);
+		
+		/* passes are allocated in sync */
+		for(rpass= rl->passes.first, rpassp= rlp->passes.first; rpass && rpassp; rpass= rpass->next, rpassp= rpassp->next) {
+			switch(rpass->passtype) {
+				case SCE_PASS_Z:
+					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 1);
+					break;
+				case SCE_PASS_VECTOR:
+					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 2);
+					break;
+				case SCE_PASS_RGBA:
+					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 4);
+					break;
+				default:
+					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 3);
+			}
+		}
 	}
 }
 
@@ -337,7 +391,7 @@ void RE_GetResultImage(Render *re, RenderResult *rr)
 			if(rr->rectf==NULL)
 				rr->rectf= rl->rectf;
 			if(rr->rectz==NULL)
-				rr->rectz= rl->rectz;	
+				rr->rectz= RE_RenderLayerGetPass(rl, SCE_PASS_Z);	
 		}
 	}
 }
@@ -683,11 +737,12 @@ static void threaded_tile_processor(Render *re)
 	/* assuming no new data gets added to dbase... */
 	R= *re;
 	
+	/* set threadsafety */
+	R.test_break= thread_break;
 	malloc_lock = SDL_CreateMutex();
 	
 	while(rendering) {
 		
-		/* I noted that test_break() in a thread doesn't make ghost send ESC */
 		if(BLI_available_threads(&threads) && !re->test_break()) {
 			pa= find_nicest_part(re);
 			if(pa) {
@@ -728,12 +783,14 @@ static void threaded_tile_processor(Render *re)
 			drawtimer= 0;
 		
 		/* on break, wait for all slots to get freed */
-		if(re->test_break() && BLI_available_threads(&threads)==maxthreads)
+		if( (g_break=re->test_break()) && BLI_available_threads(&threads)==maxthreads)
 			rendering= 0;
 		
 	}
 	
+	/* restore threadsafety */
 	if(malloc_lock) SDL_DestroyMutex(malloc_lock); malloc_lock= NULL;
+	g_break= 0;
 	
 	BLI_end_threads(&threads);
 	freeparts(re);

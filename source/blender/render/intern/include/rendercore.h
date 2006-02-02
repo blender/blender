@@ -85,7 +85,7 @@ void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 void zbufshade(void);
 void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 
-void *shadepixel(RenderPart *pa, float x, float y, int z, int facenr, int mask, struct ShadeResult *shr, float *rco);
+void *shadepixel(RenderPart *pa, float x, float y, int z, int facenr, int mask, struct ShadeResult *shr, float *rco, int passflag);
 
 int count_mask(unsigned short mask);
 

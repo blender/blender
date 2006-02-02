@@ -46,11 +46,15 @@ typedef struct TexResult {
 typedef struct ShadeResult 
 {
 	float combined[4];
+	float col[4];
+	float alpha;
 	float diff[3];
 	float spec[3];
-	float alpha;
+	float shad[3];
+	float ao[3];
+	float ray[3];
 	float nor[3];
-	float winspeed[2];
+	float winspeed[3];
 	
 } ShadeResult;
 

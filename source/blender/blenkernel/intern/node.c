@@ -1243,7 +1243,7 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 {
 	if(ntree->type==NTREE_COMPOSIT) {
 		bNodeSocket *sock;
-		
+
 		for(sock= node->outputs.first; sock; sock= sock->next) {
 			if(sock->ns.data) {
 				free_compbuf(sock->ns.data);
@@ -1447,14 +1447,35 @@ static void composit_end_exec(bNodeTree *ntree)
 		}
 		node->need_exec= 0;
 	}
-				
+	
+	/* internally, group buffers are not stored */
 	for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
-		if(ns->data) {
-			print_compbuf("error: buf hanging in stack", ns->data);
+		if(ns->data)
 			free_compbuf(ns->data);
+	}
+}
+
+static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack)
+{
+	bNodeTree *ntree= (bNodeTree *)gnode->id;
+	bNode *node;
+	
+	stack+= gnode->stack_index;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->execfunc) {
+			bNodeSocket *sock;
+			
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->intern) {
+					if(sock->link) {
+						bNodeStack *ns= stack + sock->link->fromsock->stack_index;
+						ns->hasoutput= 1;
+					}
+				}
+			}
 		}
 	}
-				
 }
 
 /* stack indices make sure all nodes only write in allocated data, for making it thread safe */
@@ -1481,7 +1502,6 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		for(a=0; a<ntree->stacksize; a++, ns++) ns->hasinput= 1;
 		
 		/* tag used outputs, so we know when we can skip operations */
-		/* hrms... groups... */
 		for(node= ntree->nodes.first; node; node= node->next) {
 			bNodeSocket *sock;
 			for(sock= node->inputs.first; sock; sock= sock->next) {
@@ -1490,6 +1510,8 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 					ns->hasoutput= 1;
 				}
 			}
+			if(node->type==NODE_GROUP && node->id)
+				group_tag_used_outputs(node, ntree->stack);
 		}
 		if(ntree->type==NTREE_COMPOSIT)
 			composit_begin_exec(ntree);
@@ -1610,48 +1632,46 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 	int totnode= 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->execfunc) {
-			int a;
-			
-			node_get_stack(node, thd->stack, nsin, nsout);
-			
-			/* test the inputs */
-			for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
-				/* is sock in use? */
-				if(sock->link) {
-					if(nsin[a]->data==NULL || sock->link->fromnode->need_exec) {
-						node->need_exec= 1;
-						break;
-					}
-				}
-			}
-			
-			/* test the outputs */
-			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
-				if(nsout[a]->data==NULL && nsout[a]->hasoutput) {
+		int a;
+		
+		node_get_stack(node, thd->stack, nsin, nsout);
+		
+		/* test the inputs */
+		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+			/* is sock in use? */
+			if(sock->link) {
+				if(nsin[a]->data==NULL || sock->link->fromnode->need_exec) {
 					node->need_exec= 1;
 					break;
 				}
 			}
-			if(node->need_exec) {
-				
-				/* free output buffers */
-				for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
-					if(nsout[a]->data) {
-						free_compbuf(nsout[a]->data);
-						nsout[a]->data= NULL;
-					}
-				}
-				totnode++;
-				//printf("node needs exec %s\n", node->name);
-				
-				/* tag for getExecutableNode() */
-				node->exec= 0;
-			}
-			else
-				/* tag for getExecutableNode() */
-				node->exec= NODE_READY|NODE_FINISHED;
 		}
+		
+		/* test the outputs */
+		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+			if(nsout[a]->data==NULL && nsout[a]->hasoutput) {
+				node->need_exec= 1;
+				break;
+			}
+		}
+		if(node->need_exec) {
+			
+			/* free output buffers */
+			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if(nsout[a]->data) {
+					free_compbuf(nsout[a]->data);
+					nsout[a]->data= NULL;
+				}
+			}
+			totnode++;
+			//printf("node needs exec %s\n", node->name);
+			
+			/* tag for getExecutableNode() */
+			node->exec= 0;
+		}
+		else
+			/* tag for getExecutableNode() */
+			node->exec= NODE_READY|NODE_FINISHED;
 	}
 	return totnode;
 }

@@ -194,6 +194,18 @@ static void load_node_image(char *str)	/* called from fileselect */
 	}
 }
 
+static bNode *snode_get_editgroup(SpaceNode *snode)
+{
+	bNode *gnode;
+	
+	/* get the groupnode */
+	for(gnode= snode->nodetree->nodes.first; gnode; gnode= gnode->next)
+		if(gnode->flag & NODE_GROUP_EDIT)
+			break;
+	return gnode;
+}
+
+
 static void composit_node_event(SpaceNode *snode, short event)
 {
 	
@@ -219,7 +231,12 @@ static void composit_node_event(SpaceNode *snode, short event)
 			/* B_NODE_EXEC */
 		{
 			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
-			if(node) NodeTagChanged(snode->edittree, node);
+			if(node) {
+				NodeTagChanged(snode->edittree, node);
+				node= snode_get_editgroup(snode);
+				if(node)
+					NodeTagChanged(snode->nodetree, node);
+			}
 			snode_handle_recalc(snode);
 		}			
 	}
@@ -383,17 +400,6 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 			}
 		}
 	}
-}
-
-static bNode *snode_get_editgroup(SpaceNode *snode)
-{
-	bNode *gnode;
-	
-	/* get the groupnode */
-	for(gnode= snode->nodetree->nodes.first; gnode; gnode= gnode->next)
-		if(gnode->flag & NODE_GROUP_EDIT)
-			break;
-	return gnode;
 }
 
 static void snode_make_group_editable(SpaceNode *snode, bNode *gnode)

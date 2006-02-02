@@ -1576,16 +1576,17 @@ static void render_panel_layers(void)
 
 	uiDefBut(block, LABEL, 0, "Passes:",					10,30,150,20, NULL, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	130, 30, 155, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
-	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			285, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	130, 30, 115, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
+	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			245, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_NOP,"Vec",	270, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Vector pass");	
 	
-	uiDefButBitS(block, TOG, SCE_PASS_DIFFUSE, B_NOP,"Diff",10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_SPEC, B_NOP,"Spec",	55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_SHADOW, B_NOP,"Shad",	100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_AO, B_NOP,"AO",		145, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_MIRROR, B_NOP,"Mirr",	185, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	230, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_NOP,"Vec",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_RGBA, B_NOP,"Col",	10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_DIFFUSE, B_NOP,"Diff",55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SPEC, B_NOP,"Spec",	100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SHADOW, B_NOP,"Shad",	145, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_AO, B_NOP,"AO",		185, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_RAY, B_NOP,"Ray",	225, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Mirror and Transparent pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
 }	
 
 void render_panels()
