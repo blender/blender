@@ -606,16 +606,19 @@ static int sample_backbuf_area(int x, int y, float size)
 	
 	x1= x-size;
 	x2= x+size;
-	CLAMP(x1, 0, curarea->winx);
-	CLAMP(x2, 0, curarea->winx);
+	CLAMP(x1, 0, curarea->winx-1);
+	CLAMP(x2, 0, curarea->winx-1);
 	y1= y-size;
 	y2= y+size;
-	CLAMP(y1, 0, curarea->winy);
-	CLAMP(y2, 0, curarea->winy);
+	CLAMP(y1, 0, curarea->winy-1);
+	CLAMP(y2, 0, curarea->winy-1);
 #ifdef __APPLE__
 	glReadBuffer(GL_AUX0);
 #endif
-	ibuf = IMB_allocImBuf(2*size + 1, 2*size + 1, 32, IB_rect, 0);
+	
+	if(x1>=x2 || y1>=y2) return 0;
+	
+	ibuf = IMB_allocImBuf(2*size + 4, 2*size + 4, 32, IB_rect, 0);
 	glReadPixels(x1+curarea->winrct.xmin, y1+curarea->winrct.ymin, x2-x1+1, y2-y1+1, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 	glReadBuffer(GL_BACK);	
 
