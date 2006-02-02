@@ -497,7 +497,10 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 								}
 								
 								VECCOPY(ob->obmat[3], vec);
-								new_dupli_object(lb, ob, ob->obmat, par->lay);
+								/* put object back in original state, so it cam be restored OK */
+								Mat4CpyMat4(tmat, ob->obmat);
+								Mat4CpyMat4(ob->obmat, copyob.obmat);
+								new_dupli_object(lb, ob, tmat, par->lay);
 							}
 						}
 						else { // non static particles
@@ -523,7 +526,11 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 							}
 
 							VECCOPY(ob->obmat[3], vec);
-							new_dupli_object(lb, ob, ob->obmat, par->lay);
+							
+							/* put object back in original state, so it cam be restored OK */
+							Mat4CpyMat4(tmat, ob->obmat);
+							Mat4CpyMat4(ob->obmat, copyob.obmat);
+							new_dupli_object(lb, ob, tmat, par->lay);
 						}					
 					}
 					/* temp copy, to have ipos etc to work OK */
