@@ -2170,7 +2170,7 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	}
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
 
-	BLI_freelistN(lb);
+	free_object_duplilist(lb);
 				
 }
 

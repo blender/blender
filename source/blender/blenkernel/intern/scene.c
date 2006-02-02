@@ -396,7 +396,7 @@ int next_object(int val, Base **base, Object **ob)
 						Mat4CpyMat4(dupob->ob->obmat, dupob->omat);
 					}
 					
-					BLI_freelistN(duplilist);
+					free_object_duplilist(duplilist);
 					duplilist= NULL;
 					run_again= 1;
 				}

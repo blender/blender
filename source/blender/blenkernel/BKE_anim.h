@@ -38,10 +38,12 @@ struct Path;
 struct Object;
 struct PartEff;
 struct Scene;
+struct ListBase;
 
 typedef struct DupliObject {
 	struct DupliObject *next, *prev;
 	struct Object *ob;
+	unsigned int origlay;
 	float mat[4][4], omat[4][4];
 } DupliObject;
 
@@ -50,7 +52,8 @@ void calc_curvepath(struct Object *ob);
 int interval_test(int min, int max, int p1, int cycl);
 int where_on_path(struct Object *ob, float ctime, float *vec, float *dir);
 
-ListBase *object_duplilist(struct Scene *sce, struct Object *ob);
+struct ListBase *object_duplilist(struct Scene *sce, struct Object *ob);
+void free_object_duplilist(struct ListBase *lb);
 int count_duplilist(struct Object *ob);
 
 #endif

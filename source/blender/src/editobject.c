@@ -3200,7 +3200,7 @@ void make_duplilist_real()
 					apply_obmat(ob);
 				}
 				
-				BLI_freelistN(lb);
+				free_object_duplilist(lb);
 				
 				base->object->transflag &= ~OB_DUPLI;	
 			}

@@ -2845,7 +2845,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 						}
 						Mat4CpyMat4(obd->obmat, dob->omat);
 					}
-					BLI_freelistN(lb);
+					free_object_duplilist(lb);
 				}
 			}
 			else {
@@ -3011,7 +3011,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene)
 						}
 						Mat4CpyMat4(obd->obmat, dob->omat);
 					}
-					BLI_freelistN(lb);
+					free_object_duplilist(lb);
 				}
 			}
 			else {

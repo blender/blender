@@ -277,13 +277,15 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 
 /* ****************** DUPLICATOR ************** */
 
-static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4])
+static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay)
 {
 	DupliObject *dob= MEM_mallocN(sizeof(DupliObject), "dupliobject");
 	BLI_addtail(lb, dob);
 	dob->ob= ob;
 	Mat4CpyMat4(dob->mat, mat);
 	Mat4CpyMat4(dob->omat, ob->obmat);
+	dob->origlay= ob->lay;
+	ob->lay= lay;
 }
 
 static void group_duplilist(ListBase *lb, Object *ob)
@@ -300,7 +302,7 @@ static void group_duplilist(ListBase *lb, Object *ob)
 	for(go= ob->dup_group->gobject.first; go; go= go->next) {
 		if(go->ob!=ob) {
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
-			new_dupli_object(lb, go->ob, mat);
+			new_dupli_object(lb, go->ob, mat, ob->lay);
 		}
 	}
 }
@@ -329,7 +331,7 @@ static void frames_duplilist(ListBase *lb, Object *ob)
 		if(ok) {
 			do_ob_ipo(ob);
 			where_is_object_time(ob, (float)G.scene->r.cfra);
-			new_dupli_object(lb, ob, ob->obmat);
+			new_dupli_object(lb, ob, ob->obmat, ob->lay);
 		}
 	}
 
@@ -367,7 +369,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 		Mat4CpyMat4(tmat, obmat);
 		Mat4MulMat43(obmat, tmat, mat);
 	}
-	new_dupli_object(vdd->lb, vdd->ob, obmat);
+	new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay);
 }
 
 static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
@@ -495,7 +497,7 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 								}
 								
 								VECCOPY(ob->obmat[3], vec);
-								new_dupli_object(lb, ob, ob->obmat);
+								new_dupli_object(lb, ob, ob->obmat, par->lay);
 							}
 						}
 						else { // non static particles
@@ -521,7 +523,7 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 							}
 
 							VECCOPY(ob->obmat[3], vec);
-							new_dupli_object(lb, ob, ob->obmat);
+							new_dupli_object(lb, ob, ob->obmat, par->lay);
 						}					
 					}
 					/* temp copy, to have ipos etc to work OK */
@@ -596,7 +598,7 @@ static void font_duplilist(ListBase *lb, Object *par)
 			Mat4CpyMat4(obmat, par->obmat);
 			VECCOPY(obmat[3], vec);
 			
-			new_dupli_object(lb, ob, obmat);
+			new_dupli_object(lb, ob, obmat, par->lay);
 		}
 		
 	}
@@ -638,6 +640,14 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 	return &duplilist;
 }
 
+void free_object_duplilist(ListBase *lb)
+{
+	DupliObject *dob;
+	
+	for(dob= lb->first; dob; dob= dob->next)
+		dob->ob->lay= dob->origlay;
+	BLI_freelistN(lb);
+}
 
 int count_duplilist(Object *ob)
 {
