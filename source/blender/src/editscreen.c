@@ -74,6 +74,7 @@
 #include "BKE_blender.h"
 #include "BKE_screen.h"
 
+#include "BIF_cursors.h"
 #include "BIF_editsound.h"
 #include "BIF_glutil.h"
 #include "BIF_gl.h"
@@ -166,7 +167,11 @@ static int choose_cursor(ScrArea *sa)
 		else if(G.f & G_WEIGHTPAINT) return CURSOR_VPAINT;
 		else if(G.f & G_FACESELECT) return CURSOR_FACESEL;
 		else return CURSOR_STD;
-	} else {
+	}
+	else if (sa->spacetype==SPACE_TEXT) {
+		return CURSOR_TEXTEDIT;
+	}
+	else {
 		return CURSOR_STD;
 	}
 }
@@ -1246,6 +1251,7 @@ void screenmain(void)
 			if (newactarea) {
 				if (BLI_in_rcti(&newactarea->headrct, mval[0], mval[1])) {
 					newactwin= newactarea->headwin;
+					set_cursor(CURSOR_STD);
 				} else {
 					newactwin= newactarea->win;
 				}
@@ -1256,7 +1262,8 @@ void screenmain(void)
 			if (newactarea && (newactarea != g_activearea)) {
 				if (g_activearea) scrarea_queue_headredraw(g_activearea);
 				scrarea_queue_headredraw(newactarea);
-				set_cursor(newactarea->cursor);
+				if (!(BLI_in_rcti(&newactarea->headrct, mval[0], mval[1]))) /* header always gets std cursor */
+					set_cursor(newactarea->cursor);
 				g_activearea= newactarea;
 			}
 			/* when you move mouse from header to window, buttons can remain hilited otherwise */
@@ -1267,7 +1274,8 @@ void screenmain(void)
 			
 			if (G.curscreen->winakt) {
 				areawinset(G.curscreen->winakt);
-				set_cursor(choose_cursor(g_activearea));
+				if (!(BLI_in_rcti(&newactarea->headrct, mval[0], mval[1]))) /* header always gets std cursor */
+					set_cursor(choose_cursor(g_activearea));
 			}
 		} 
 		else {
