@@ -48,9 +48,12 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_threads.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+/* NOTE: uses threadsafe malloc/calloc/free, for use in compositor */
 
 /* ********************************* color curve ********************* */
 
@@ -292,7 +295,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	cuma->maxtable= clipr->xmax;
 	
 	/* hrmf... we now rely on blender ipo beziers, these are more advanced */
-	bezt= MEM_callocN(cuma->totpoint*sizeof(BezTriple), "beztarr");
+	bezt= MEM_callocT(cuma->totpoint*sizeof(BezTriple), "beztarr");
 	
 	for(a=0; a<cuma->totpoint; a++) {
 		cuma->mintable= MIN2(cuma->mintable, cmp[a].x);
@@ -353,9 +356,9 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	}	
 	/* make the bezier curve */
 	if(cuma->table)
-		MEM_freeN(cuma->table);
+		MEM_freeT(cuma->table);
 	totpoint= (cuma->totpoint-1)*CM_RESOL;
-	fp= allpoints= MEM_mallocN(totpoint*2*sizeof(float), "table");
+	fp= allpoints= MEM_mallocT(totpoint*2*sizeof(float), "table");
 	
 	for(a=0; a<cuma->totpoint-1; a++, fp += 2*CM_RESOL) {
 		correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a+1].vec[0], bezt[a+1].vec[1]);
@@ -363,14 +366,14 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 		forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a+1].vec[0][1], bezt[a+1].vec[1][1], fp+1, CM_RESOL-1, 2);
 	}
 	
-	MEM_freeN(bezt);
+	MEM_freeT(bezt);
 	
 	range= CM_TABLEDIV*(cuma->maxtable - cuma->mintable);
 	cuma->range= 1.0f/range;
 	
 	/* now make a table with CM_TABLE equal x distances */
 	fp= allpoints;
-	cmp= MEM_callocN((CM_TABLE+1)*sizeof(CurveMapPoint), "dist table");
+	cmp= MEM_callocT((CM_TABLE+1)*sizeof(CurveMapPoint), "dist table");
 	cmp[0].x= cuma->mintable;
 	cmp[0].y= allpoints[1];
 	
@@ -397,20 +400,20 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	cmp[CM_TABLE].x= cuma->maxtable;
 	cmp[CM_TABLE].y= allpoints[2*totpoint-1];
 	
-	MEM_freeN(allpoints);
+	MEM_freeT(allpoints);
 	cuma->table= cmp;
 }
 
 /* call when you do images etc, needs restore too. also verifies tables */
 void curvemapping_premultiply(CurveMapping *cumap, int restore)
 {
-	static CurveMapPoint *table[3]= {NULL, NULL, NULL};
 	int a;
 	
 	if(restore) {
 		for(a=0; a<3; a++) {
-			MEM_freeN(cumap->cm[a].table);
-			cumap->cm[a].table= table[a];
+			MEM_freeT(cumap->cm[a].table);
+			cumap->cm[a].table= cumap->cm[a].premultable;
+			cumap->cm[a].premultable= NULL;
 		}
 	}
 	else {
@@ -418,8 +421,9 @@ void curvemapping_premultiply(CurveMapping *cumap, int restore)
 		for(a=0; a<3; a++) {
 			if(cumap->cm[a].table==NULL)
 				curvemap_make_table(cumap->cm+a, &cumap->clipr);
-			table[a]= cumap->cm[a].table;
-			cumap->cm[a].table= MEM_dupallocN(cumap->cm[a].table);
+			cumap->cm[a].premultable= cumap->cm[a].table;
+			cumap->cm[a].table= MEM_mallocT((CM_TABLE+1)*sizeof(CurveMapPoint), "premul table");
+			memcpy(cumap->cm[a].table, cumap->cm[a].premultable, (CM_TABLE+1)*sizeof(CurveMapPoint));
 		}
 		
 		if(cumap->cm[3].table==NULL)

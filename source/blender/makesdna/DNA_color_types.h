@@ -55,7 +55,7 @@ typedef struct CurveMap {
 	float mintable, maxtable;		/* the x-axis range for the table */
 	CurveMapPoint *curve;			/* actual curve */
 	CurveMapPoint *table;			/* display and evaluate table */
-	
+	CurveMapPoint *premultable;		/* for RGB curves, premulled table */
 } CurveMap;
 
 typedef struct CurveMapping {
