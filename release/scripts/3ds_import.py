@@ -17,6 +17,11 @@ This script imports a 3ds file and the materials into Blender for editing.
 
 Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 
+0.94 by Campbell Barton<br> 
+- Face import tested to be about overall 16x speedup over 0.93.
+- Material importing speedup.
+- Tested with more models.
+- Support some corrupt models.
 
 0.93 by Campbell Barton<br> 
 - Tested with 400 3ds files from turbosquid and samples.
@@ -272,8 +277,8 @@ def add_texture_to_material(image, texture, material, mapto):
 		if index>10:
 			print "/tError: Cannot add diffuse map.  Too many textures"
 
-def process_next_chunk(file, filename, previous_chunk):
-	scn = Scene.GetCurrent()
+def process_next_chunk(file, filename, previous_chunk, scn):
+	#print previous_chunk.bytes_read, "BYTES READ"
 	contextObName = None
 	contextLamp = [None, None] # object, Data
 	contextMaterial = None
@@ -295,6 +300,7 @@ def process_next_chunk(file, filename, previous_chunk):
 	
 	
 	def putContextMesh(myContextMesh):
+		#print 'prtting myContextMesh', myContextMesh.name
 		INV_MAT = Blender.Mathutils.Matrix(contextMatrix)
 		
 		INV_MAT.invert()
@@ -318,8 +324,8 @@ def process_next_chunk(file, filename, previous_chunk):
 		objectList.append(newOb) # last 2 recal normals
 		newOb.setMatrix(contextMatrix)
 		
-		Blender.Window.EditMode(1)
-		Blender.Window.EditMode(0)
+		#Blender.Window.EditMode(1)
+		#Blender.Window.EditMode(0)
 	
 	
 	#a spare chunk
@@ -328,12 +334,14 @@ def process_next_chunk(file, filename, previous_chunk):
 
 	#loop through all the data for this chunk (previous chunk) and see what it is
 	while (previous_chunk.bytes_read<previous_chunk.length):
+		#print '\t', previous_chunk.bytes_read, 'keep going'
 		#read the next chunk
 		#print "reading a chunk"
 		read_chunk(file, new_chunk)
 
 		#is it a Version chunk?
 		if (new_chunk.ID==VERSION):
+			#print "if (new_chunk.ID==VERSION):"
 			#print "found a VERSION chunk"
 			#read in the version of the file
 			#it's an unsigned short (H)
@@ -347,25 +355,27 @@ def process_next_chunk(file, filename, previous_chunk):
 
 		#is it an object info chunk?
 		elif (new_chunk.ID==OBJECTINFO):
+			#print "elif (new_chunk.ID==OBJECTINFO):"
 			# print "found an OBJECTINFO chunk"
-			process_next_chunk(file, filename, new_chunk)
+			process_next_chunk(file, filename, new_chunk, scn)
 			
 			#keep track of how much we read in the main chunk
 			new_chunk.bytes_read+=temp_chunk.bytes_read
 
 		#is it an object chunk?
 		elif (new_chunk.ID==OBJECT):
+			"elif (new_chunk.ID==OBJECT):"
 			tempName = read_string(file)
 			contextObName = getUniqueName( tempName )
 			new_chunk.bytes_read += (len(tempName)+1)
 		
 		#is it a material chunk?
 		elif (new_chunk.ID==MATERIAL):
-			# print "found a MATERIAL chunk"
+			#print "elif (new_chunk.ID==MATERIAL):"
 			contextMaterial = Material.New()
 		
 		elif (new_chunk.ID==MAT_NAME):
-			# print "Found a MATNAME chunk"
+			#print "elif (new_chunk.ID==MAT_NAME):"
 			material_name=""
 			material_name=read_string(file)
 			
@@ -373,11 +383,10 @@ def process_next_chunk(file, filename, previous_chunk):
 			new_chunk.bytes_read+=(len(material_name)+1)
 			
 			contextMaterial.setName(material_name)
-			MATDICT[material_name] = contextMaterial.name
+			MATDICT[material_name] = (contextMaterial.name, contextMaterial)
 		
 		elif (new_chunk.ID==MAT_AMBIENT):
-			# print "Found a MATAMBIENT chunk"
-
+			#print "elif (new_chunk.ID==MAT_AMBIENT):"
 			read_chunk(file, temp_chunk)
 			temp_data=file.read(struct.calcsize("3B"))
 			data=struct.unpack("3B", temp_data)
@@ -386,8 +395,7 @@ def process_next_chunk(file, filename, previous_chunk):
 			new_chunk.bytes_read+=temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_DIFFUSE):
-			# print "Found a MATDIFFUSE chunk"
-
+			#print "elif (new_chunk.ID==MAT_DIFFUSE):"
 			read_chunk(file, temp_chunk)
 			temp_data=file.read(struct.calcsize("3B"))
 			data=struct.unpack("3B", temp_data)
@@ -396,8 +404,7 @@ def process_next_chunk(file, filename, previous_chunk):
 			new_chunk.bytes_read+=temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_SPECULAR):
-			# print "Found a MATSPECULAR chunk"
-
+			#print "elif (new_chunk.ID==MAT_SPECULAR):"
 			read_chunk(file, temp_chunk)
 			temp_data=file.read(struct.calcsize("3B"))
 			data=struct.unpack("3B", temp_data)
@@ -407,10 +414,11 @@ def process_next_chunk(file, filename, previous_chunk):
 			new_chunk.bytes_read+=temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_TEXTURE_MAP):
-			#print 'DIFFUSE MAP'
+			#print "elif (new_chunk.ID==MAT_TEXTURE_MAP):"
 			new_texture=Blender.Texture.New('Diffuse')
 			new_texture.setType('Image')
 			while (new_chunk.bytes_read<new_chunk.length):
+				#print "MAT_TEXTURE_MAP..while", new_chunk.bytes_read, new_chunk.length
 				read_chunk(file, temp_chunk)
 				
 				if (temp_chunk.ID==MAT_MAP_FILENAME):
@@ -428,6 +436,7 @@ def process_next_chunk(file, filename, previous_chunk):
 			add_texture_to_material(img, new_texture, contextMaterial, "DIFFUSE")
 			
 		elif (new_chunk.ID==MAT_SPECULAR_MAP):
+			#print "elif (new_chunk.ID==MAT_SPECULAR_MAP):"
 			new_texture=Blender.Texture.New('Specular')
 			new_texture.setType('Image')
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -447,6 +456,7 @@ def process_next_chunk(file, filename, previous_chunk):
 			add_texture_to_material(img, new_texture, contextMaterial, "SPECULAR")
 	
 		elif (new_chunk.ID==MAT_OPACITY_MAP):
+			#print "new_texture=Blender.Texture.New('Opacity')"
 			new_texture=Blender.Texture.New('Opacity')
 			new_texture.setType('Image')
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -466,6 +476,7 @@ def process_next_chunk(file, filename, previous_chunk):
 			add_texture_to_material(img, new_texture, contextMaterial, "OPACITY")
 
 		elif (new_chunk.ID==MAT_BUMP_MAP):
+			#print "elif (new_chunk.ID==MAT_BUMP_MAP):"
 			new_texture=Blender.Texture.New('Bump')
 			new_texture.setType('Image')
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -485,6 +496,7 @@ def process_next_chunk(file, filename, previous_chunk):
 			add_texture_to_material(img, new_texture, contextMaterial, "BUMP")
 			
 		elif (new_chunk.ID==MAT_TRANSPARENCY):
+			#print "elif (new_chunk.ID==MAT_TRANSPARENCY):"
 			read_chunk(file, temp_chunk)
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 			data=struct.unpack("H", temp_data)
@@ -494,9 +506,6 @@ def process_next_chunk(file, filename, previous_chunk):
 
 
 		elif (new_chunk.ID==OBJECT_LAMP): # Basic lamp support.
-			# print "Found an OBJECT_MESH chunk"
-			#if contextLamp != None: # Write context mesh if we have one.
-			#	putContextLamp(contextLamp)
 			
 			#print 'LAMP!!!!!!!!!'
 			temp_data=file.read(STRUCT_SIZE_3FLOAT)
@@ -534,8 +543,7 @@ def process_next_chunk(file, filename, previous_chunk):
 			contextMatrix = Blender.Mathutils.Matrix(); contextMatrix.identity()
 		
 		elif (new_chunk.ID==OBJECT_VERTICES):
-			# print "Found an OBJECT_VERTICES chunk"
-			#print "object_verts: length: ", new_chunk.length
+			# print "elif (new_chunk.ID==OBJECT_VERTICES):"
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 			data=struct.unpack("H", temp_data)
 			new_chunk.bytes_read+=2
@@ -551,55 +559,55 @@ def process_next_chunk(file, filename, previous_chunk):
 			#print "object verts: bytes read: ", new_chunk.bytes_read
 
 		elif (new_chunk.ID==OBJECT_FACES):
-			# print "Found an OBJECT_FACES chunk"
-			#print "object faces: length: ", new_chunk.length
+			# print "elif (new_chunk.ID==OBJECT_FACES):"
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 			data=struct.unpack("H", temp_data)
 			new_chunk.bytes_read+=2
 			num_faces=data[0]
 			#print "number of faces: ", num_faces
 			
-			"""
-			
-			for counter in xrange(num_faces):
-				temp_data=file.read(STRUCT_SIZE_4UNSIGNED_SHORT)
-				new_chunk.bytes_read += STRUCT_SIZE_4UNSIGNED_SHORT #4 short ints x 2 bytes each
-				data=struct.unpack("4H", temp_data)
-				
-				#insert the mesh info into the faces, don't worry about data[3] it is a 3D studio thing
-				contextMesh.faces.extend([contextMesh.verts[data[i]] for i in xrange(3) ])
-				f = contextMesh.faces[-1]
-				if contextMeshUV:
-					contextMesh.faceUV= 1 # Make sticky coords.
-					f.uv = [ contextMeshUV[data[i]] for i in xrange(3) ]
-			
-			"""
 			
 			def getface():
+				# print '\ngetting a face'
 				temp_data=file.read(STRUCT_SIZE_4UNSIGNED_SHORT)
 				new_chunk.bytes_read += STRUCT_SIZE_4UNSIGNED_SHORT #4 short ints x 2 bytes each
-				data=struct.unpack("4H", temp_data)
-				verts = [contextMesh.verts[data[i]] for i in xrange(3) ]
-				
-				if verts[0]==verts[1] or verts[0]==verts[2] or verts[1]==verts[2]:
+				v1,v2,v3, dummy =struct.unpack("4H", temp_data)
+				if v1 == v2 or v1 == v3 or v2 == v3:
 					return None
-				else:
-					return verts
+				return contextMesh.verts[v1], contextMesh.verts[v2], contextMesh.verts[v3]
 			
-			contextFaceMapping = {} # So error faces dont unsync the this.
-			#contextMesh.faces.extend( [getface() for i in xrange(num_faces)] )
-			for i in xrange(num_faces):
-				ok=0
-				face= getface()
-				if face:
-					lenback = len(contextMesh.faces)
-					contextMesh.faces.extend( face )
-					if len(contextMesh.faces) != lenback:
-						ok=1
-						contextFaceMapping[i] = len(contextMesh.faces)-1
-				if not ok:
-					contextFaceMapping[i] = None
-					
+			faces = [ getface() for i in xrange(num_faces)]
+			contextMesh.faces.extend( [f for f in faces if f] )
+			
+			# face mapping so duplicate faces dont mess us up.
+			if len(contextMesh.faces) == len(faces):
+				contextFaceMapping = None
+			else:
+				contextFaceMapping = {}
+				meshFaceOffset=0
+				for i, f in enumerate(faces):
+					if not f: # Face used stupid verts-
+						contextFaceMapping[i]= None
+						meshFaceOffset+=1
+					else:
+						#print "DOUBLE FACE", '\tfacelen', len(f), i, num_faces, (i-meshFaceOffset)
+						#print i-meshFaceOffset, len(contextMesh.faces)q
+						if len(contextMesh.faces) <= i-meshFaceOffset: # SHOULD NEVER HAPPEN, CORRUPS 3DS?
+							contextFaceMapping[i]= None
+							meshFaceOffset-=1
+						else:
+							meshface = contextMesh.faces[i-meshFaceOffset]
+							ok=True
+							for vi in xrange(len(f)):
+								if meshface.v[vi] != f[vi]:
+									ok=False
+									break
+							if ok:
+								meshFaceOffset+=1
+								contextFaceMapping[i]= i-meshFaceOffset
+							else:
+								contextFaceMapping[i]= None
+			
 			
 			#print 'LENFACEWS', len(contextMesh.faces), num_faces
 			if contextMeshUV:
@@ -610,41 +618,40 @@ def process_next_chunk(file, filename, previous_chunk):
 			#print "object faces: bytes read: ", new_chunk.bytes_read
 
 		elif (new_chunk.ID==OBJECT_MATERIAL):
-			# print "Found an OBJECT_MATERIAL chunk"
+			# print "elif (new_chunk.ID==OBJECT_MATERIAL):"
 			material_name=""
 			material_name = read_string(file)
 			new_chunk.bytes_read += len(material_name)+1 # remove 1 null character.
 
 			#look up the material in all the materials
 			material_found=0
-			for mat in Material.Get():
+			try:
+				mat_name, mat = MATDICT[material_name]
+			except:
+				mat_name = mat = None
 				
-				#found it, add it to the mesh
-				if(mat.name==material_name):
-					if len(contextMesh.materials) >= 15:
-						print "\tCant assign more than 16 materials per mesh, keep going..."
+			msh_materials = contextMesh.materials
+				
+			if mat:
+				meshHasMat = 0
+				for i, myMat in enumerate(msh_materials):
+					if myMat.name == mat_name:
+						meshHasMat = 1
+						mat_index = i
 						break
+				
+				if not meshHasMat:
+					
+					if len(msh_materials) > 15:
+						print "\tCant assign more than 16 materials per mesh, keep going..."
+						material_found = 0
 					else:
-						meshHasMat = 0
-						for myMat in contextMesh.materials:
-							if myMat.name == mat.name:
-								meshHasMat = 1
-						
-						if meshHasMat == 0:
-							contextMesh.materials =  contextMesh.materials + [mat]
-							material_found=1
-							
-							#figure out what material index this is for the mesh
-							for mat_counter in xrange(len(contextMesh.materials)):
-								if contextMesh.materials[mat_counter].name == material_name:
-									mat_index=mat_counter
-									#print "material index: ",mat_index
-							
-						
-						break # get out of this for loop so we don't accidentally set material_found back to 0
-				else:
-					material_found=0
-					# print "Not matching: ", mat.name, " and ", material_name
+						mat_index = len(msh_materials)
+						contextMesh.materials =  msh_materials + [mat]
+						material_found=1
+			else:
+				material_found=0
+				# print "Not matching: ", mat.name, " and ", material_name
 			#print contextMesh.materials
 			if material_found == 1:
 				contextMaterial = mat
@@ -654,26 +661,32 @@ def process_next_chunk(file, filename, previous_chunk):
 				new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
 				num_faces_using_mat=data[0]
 				
+				try:
+					img = TEXTURE_DICT[ MATDICT[contextMaterial.name][0] ]
+					contextMesh.faceUV = 1
+				except KeyError:
+					img = None
+				
+				
 				#list of faces using mat
 				for face_counter in xrange(num_faces_using_mat):
 					temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 					new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
 					data=struct.unpack("H", temp_data)
-					facemap = contextFaceMapping[data[0]]
-					if facemap != None: # Face map can be None when teh face has bad data.
-						face = contextMesh.faces[facemap]
+					
+					# We dont have to use context face mapping.
+					if contextFaceMapping:
+						facemap= contextFaceMapping[data[0]]
+						if facemap != None:
+							face= contextMesh.faces[contextFaceMapping[data[0]]]
+						else:
+							face= None
+					else:
+						face = contextMesh.faces[data[0]]
+						
+					if face:
 						face.mat = mat_index
-						
-						
-						mname = MATDICT[contextMaterial.name]
-						
-						try:
-							img = TEXTURE_DICT[mname]
-						except:
-							img = None
-						
 						if img:
-							contextMesh.faceUV = 1
 							#print 'Assigning image', img.name
 							face.mode |= TEXMODE
 							face.image = img
@@ -689,11 +702,12 @@ def process_next_chunk(file, filename, previous_chunk):
 			#print "object mat: bytes read: ", new_chunk.bytes_read
 
 		elif (new_chunk.ID == OBJECT_UV):
-			# print "Found an OBJECT_UV chunk"
+			# print "elif (new_chunk.ID == OBJECT_UV):"
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 			data=struct.unpack("H", temp_data)
 			new_chunk.bytes_read+=2
 			num_uv=data[0]
+			
 			def getuv():
 				temp_data=file.read(STRUCT_SIZE_2FLOAT)
 				new_chunk.bytes_read += STRUCT_SIZE_2FLOAT #2 float x 4 bytes each
@@ -701,19 +715,9 @@ def process_next_chunk(file, filename, previous_chunk):
 				return Vector(data[0], data[1])
 				
 			contextMeshUV = [ getuv() for i in xrange(num_uv) ]
-			'''
-			for counter in xrange(num_uv):
-				temp_data=file.read(STRUCT_SIZE_2FLOAT)
-				new_chunk.bytes_read += STRUCT_SIZE_2FLOAT #2 float x 4 bytes each
-				data=struct.unpack("2f", temp_data)
-				
-				#insert the insert the UV coords in the vertex data
-				contextMeshUV[counter].uvco = data
-			'''
 		
 		elif (new_chunk.ID == OBJECT_TRANS_MATRIX):
-			# print "Found an OBJECT_TRANS_MATRIX chunk"
-			
+			# print "elif (new_chunk.ID == OBJECT_TRANS_MATRIX):"
 			temp_data=file.read(STRUCT_SIZE_4x3MAT)
 			data = list( struct.unpack("ffffffffffff", temp_data) )
 			new_chunk.bytes_read += STRUCT_SIZE_4x3MAT 
@@ -735,8 +739,10 @@ def process_next_chunk(file, filename, previous_chunk):
 
 
 		#update the previous chunk bytes read
+		# print "previous_chunk.bytes_read += new_chunk.bytes_read"
+		# print previous_chunk.bytes_read, new_chunk.bytes_read
 		previous_chunk.bytes_read += new_chunk.bytes_read
-		#print "Bytes left in this chunk: ", previous_chunk.length-previous_chunk.bytes_read
+		## print "Bytes left in this chunk: ", previous_chunk.length-previous_chunk.bytes_read
 	
 	# FINISHED LOOP
 	# There will be a number of objects still not added
@@ -749,8 +755,8 @@ def process_next_chunk(file, filename, previous_chunk):
 def load_3ds(filename):
 	print '\n\nImporting "%s"' % filename
 	
-	# 
-	for ob in Scene.GetCurrent().getChildren():
+	scn = Scene.GetCurrent()
+	for ob in scn.getChildren():
 		ob.sel = 0
 	time1 = Blender.sys.time()
 	
@@ -768,12 +774,11 @@ def load_3ds(filename):
 		file.close()
 		return
 
-	process_next_chunk(file, filename, current_chunk)
+	process_next_chunk(file, filename, current_chunk, scn)
 	
 	# Select all new objects.
 	print 'finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1))
 	file.close()
-
 
 
 if __name__  == '__main__':
@@ -784,17 +789,20 @@ if __name__  == '__main__':
 """
 TIME = Blender.sys.time()
 import os
+print "Searching for files"
 os.system('find /metavr/ -iname "*.3ds" > /tmp/temp3ds_list')
+print "Done"
 file = open('/tmp/temp3ds_list', 'r')
-lines = file.readlines()[200:]
-file.close()		
+lines = file.readlines()
+file.close()
 for i, _3ds in enumerate(lines):
-	_3ds= _3ds[:-1]
-	print "Importing", _3ds, i
-	_3ds_file = _3ds.split('/')[-1].split('\\')[-1]
-	newScn = Scene.New(_3ds_file)
-	newScn.makeCurrent()
-	my_callback(_3ds)
+	if i > 817:
+		_3ds= _3ds[:-1]
+		print "Importing", _3ds, '\nNUMBER', i, 'of', len(lines)
+		_3ds_file = _3ds.split('/')[-1].split('\\')[-1]
+		newScn = Scene.New(_3ds_file)
+		newScn.makeCurrent()
+		load_3ds(_3ds)
 
 print "TOTAL TIME: %.6f" % (Blender.sys.time() - TIME)
 """
