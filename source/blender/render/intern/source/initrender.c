@@ -153,6 +153,41 @@ static float filt_mitchell(float x)	/* Mitchell & Netravali's two-param cubic */
 	return 0.0;
 }
 
+/* x ranges from -1 to 1 */
+float RE_filter_value(int type, float x)
+{
+	float gaussfac= 1.6f;
+	
+	x= ABS(x);
+	
+	switch(type) {
+		case R_FILTER_BOX:
+			if(x>1.0) return 0.0f;
+			return 1.0;
+			
+		case R_FILTER_TENT:
+			if(x>1.0) return 0.0f;
+			return 1.0f-x;
+			
+		case R_FILTER_GAUSS:
+			x*= gaussfac;
+			return (1.0/exp(x*x) - 1.0/exp(gaussfac*gaussfac*2.25));
+			
+		case R_FILTER_MITCH:
+			return filt_mitchell(x*gaussfac);
+			
+		case R_FILTER_QUAD:
+			return filt_quadratic(x*gaussfac);
+			
+		case R_FILTER_CUBIC:
+			return filt_cubic(x*gaussfac);
+			
+		case R_FILTER_CATROM:
+			return filt_catrom(x*gaussfac);
+	}
+	return 0.0f;
+}
+
 static float calc_weight(Render *re, float *weight, int i, int j)
 {
 	float x, y, dist, totw= 0.0;

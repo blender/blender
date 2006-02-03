@@ -218,4 +218,4 @@ int		multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 struct Render *RE_GetRender(const char *name) {return (struct Render *)NULL;}
 struct RenderResult *RE_GetResult(Render *re) {return (struct RenderResult *)NULL;}
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype) {return NULL;}
-
+float RE_filter_value(int type, float x) {return 0.0f;}

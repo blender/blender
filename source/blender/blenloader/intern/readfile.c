@@ -3593,6 +3593,25 @@ static void bone_version_239(ListBase *lb)
 	}
 }
 
+static void ntree_version_241(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree->type==NTREE_COMPOSIT) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_BLUR) {
+				if(node->storage==NULL) {
+					NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur patch");
+					nbd->sizex= node->custom1;
+					nbd->sizey= node->custom2;
+					nbd->filtertype= R_FILTER_QUAD;
+					node->storage= nbd;
+				}
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -5253,6 +5272,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 241) {
 		Scene *sce;
 		bArmature *arm;
+		bNodeTree *ntree;
 		
 		/* updating layers still */
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
@@ -5265,7 +5285,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* adds default layer */
 			if(sce->r.layers.first==NULL)
 				scene_add_render_layer(sce);
+			/* node version changes */
+			if(sce->nodetree)
+				ntree_version_241(sce->nodetree);
 		}
+		
+		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
+			ntree_version_241(ntree);
+		
 		//Object *ob;
 		
 		/* for empty drawsize and drawtype */

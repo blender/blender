@@ -771,6 +771,8 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 		else if(type==CMP_NODE_MAP_VALUE)
 			node->storage= add_mapping();
+		else if(type==CMP_NODE_BLUR)
+			node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
 	}
 	
 	return node;

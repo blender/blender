@@ -171,8 +171,8 @@ void RE_test_break_cb	(struct Render *re, int (*f)(void));
 void RE_test_return_cb	(struct Render *re, int (*f)(void));
 void RE_error_cb		(struct Render *re, void (*f)(const char *str));
 
-
-
+/* should move to kernel once... still unsure on how/where */
+float RE_filter_value(int type, float x);
 
 #endif /* RE_PIPELINE_H */
 

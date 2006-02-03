@@ -699,17 +699,34 @@ static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNo
 static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
+		NodeBlurData *nbd= node->storage;
 		uiBut *bt;
+		short dy= butr->ymin+19;
+		short dx= (butr->xmax-butr->xmin)/2;
+		short dx3=(butr->xmax-butr->xmin)/3;
+		char str[256];
 		
 		uiBlockBeginAlign(block);
+		sprintf(str, "Filter Type%%t|Flat %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
+		uiDefButS(block, MENU, B_NODE_EXEC,str,		
+				  butr->xmin, dy, dx3, 19, 
+				  &nbd->filtertype, 0, 0, 0, 0, "Set sampling filter for blur");
+		uiDefButC(block, TOG, B_NODE_EXEC, "Bokeh",		
+				  butr->xmin+dx3, dy, dx3, 19, 
+				  &nbd->bokeh, 0, 0, 0, 0, "Uses circular filter, warning it's slow!");
+		uiDefButC(block, TOG, B_NODE_EXEC, "Gamma",		
+				  butr->xmin+2*dx3, dy, dx3, 19, 
+				  &nbd->gamma, 0, 0, 0, 0, "Applies filter on gamma corrected values");
+		
+		dy-=19;
 		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
-					 butr->xmin, butr->ymin, (butr->xmax-butr->xmin)/2, 19, 
-					 &node->custom1, 0, 256, 0, 0, "");
+					 butr->xmin, dy, dx, 19, 
+					 &nbd->sizex, 0, 256, 0, 0, "");
 		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
-					 butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin, (butr->xmax-butr->xmin)/2, 19, 
-					 &node->custom2, 0, 256, 0, 0, "");
+					 butr->xmin+dx, dy, dx, 19, 
+					 &nbd->sizey, 0, 256, 0, 0, "");
 	}
-	return 19;
+	return 38;
 }
 
 static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
