@@ -447,6 +447,7 @@ typedef struct Scene {
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1
 #define R_OPENEXR_ZBUF	2
+#define R_PREVIEW_JPG	4
 
 
 /* **************** SCENE ********************* */

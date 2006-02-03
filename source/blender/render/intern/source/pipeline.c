@@ -1055,13 +1055,21 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				ibuf->rect_float= rres.rectf;
 				ibuf->zbuf_float= rres.rectz;
 				ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-				IMB_freeImBuf(ibuf);	/* imbuf knows which rects are not part of ibuf */
-
 				if(ok==0) {
 					printf("Render error: cannot save %s\n", name);
 					break;
 				}
 				else printf("Saved: %s", name);
+				
+				/* optional preview images for exr */
+				if(ok && scene->r.imtype==R_OPENEXR && (scene->r.subimtype & R_PREVIEW_JPG)) {
+					if(BLI_testextensie(name, ".exr")) name[strlen(name)-4]= 0;
+					BKE_add_image_extension(name, R_JPEG90);
+					BKE_write_ibuf(ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
+					printf("Saved: %s", name);
+				}
+				   
+				IMB_freeImBuf(ibuf);	/* imbuf knows which rects are not part of ibuf */
 			}
 			
 			BLI_timestr(re->i.lastframetime, name);
