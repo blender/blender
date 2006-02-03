@@ -3027,7 +3027,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene)
 void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 {
 	struct VertTableNode *vertnodes;
-	int vertnodeslen= 0;
+	int vertnodeslen, totvert;
+	
 	printf("creating speed vectors \n");
 	re->r.mode |= R_SPEED;
 
@@ -3037,6 +3038,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	/* copy away vertex info */
 	vertnodes= re->vertnodes;
 	vertnodeslen= re->vertnodeslen;
+	totvert= re->totvert;
 	re->vertnodes= NULL;
 	re->vertnodeslen= 0;
 	
@@ -3045,8 +3047,8 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	
 	RE_Database_FromScene(re, sce, 1);
 	
-	if(re->vertnodeslen!=vertnodeslen) {
-		printf("ERROR: vertex tables different in size %d %d\n", re->vertnodeslen, vertnodeslen);
+	if(re->totvert!=totvert) {
+		printf("ERROR: vertex tables different in size %d %d\n", re->totvert, totvert);
 	}
 	else {
 		VertRen *ver= NULL, *oldver= NULL;
