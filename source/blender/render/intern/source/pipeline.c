@@ -177,11 +177,11 @@ static void free_render_result(RenderResult *res)
 
 static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, char *mallocstr)
 {
-	RenderPass *rpass= MEM_mallocN(sizeof(RenderPass), mallocstr);
+	RenderPass *rpass= RE_mallocN(sizeof(RenderPass), mallocstr);
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype= passtype;
-	rpass->rect= MEM_callocN(sizeof(float)*rectsize, mallocstr);
+	rpass->rect= RE_callocN(sizeof(float)*rectsize, mallocstr);
 }
 
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
@@ -851,7 +851,7 @@ static void do_render_final(Render *re, Scene *scene)
 	re->i.starttime= PIL_check_seconds_timer();
 
 	if(re->r.scemode & R_DOSEQ) {
-		re->result->rect32= MEM_callocN(sizeof(int)*re->rectx*re->recty, "rectot");
+		re->result->rect32= RE_callocN(sizeof(int)*re->rectx*re->recty, "rectot");
 		if(!re->test_break()) 
 			do_render_seq(re->result);
 	}
@@ -1038,12 +1038,12 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				/* note; the way it gets 32 bits rects is weak... */
 				int dofree=0;
 				if(rres.rect32==NULL) {
-					rres.rect32= MEM_mallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+					rres.rect32= RE_mallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 					dofree= 1;
 				}
 				RE_ResultGet32(re, rres.rect32);
 				mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
-				if(dofree) MEM_freeN(rres.rect32);
+				if(dofree) RE_freeN(rres.rect32);
 				printf("Append frame %d", scene->r.cfra);
 			}
 			else {
