@@ -774,13 +774,13 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 		
 		uiBlockBeginAlign(block);
 		sprintf(str, "Filter Type%%t|Flat %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
-		uiDefButS(block, MENU, B_NODE_EXEC,str,		
+		uiDefButS(block, MENU, B_NODE_EXEC+node->nr,str,		
 				  butr->xmin, dy, dx3, 19, 
 				  &nbd->filtertype, 0, 0, 0, 0, "Set sampling filter for blur");
-		uiDefButC(block, TOG, B_NODE_EXEC, "Bokeh",		
+		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Bokeh",		
 				  butr->xmin+dx3, dy, dx3, 19, 
 				  &nbd->bokeh, 0, 0, 0, 0, "Uses circular filter, warning it's slow!");
-		uiDefButC(block, TOG, B_NODE_EXEC, "Gamma",		
+		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Gamma",		
 				  butr->xmin+2*dx3, dy, dx3, 19, 
 				  &nbd->gamma, 0, 0, 0, 0, "Applies filter on gamma corrected values");
 		
@@ -832,6 +832,28 @@ static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode 
 	return 80;
 }
 
+static int node_composit_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		short dx= (butr->xmax-butr->xmin)/2;
+		
+		uiDefBut(block, BUT_CURVE, B_NODE_EXEC+node->nr, "", 
+				 butr->xmin, butr->ymin+24, butr->xmax-butr->xmin, butr->ymax-butr->ymin-24, 
+				 node->storage, 0.0f, 1.0f, 0, 0, "");
+		
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Sta:",
+				  butr->xmin, butr->ymin, dx, 19, 
+				  &node->custom1, 1.0, 20000.0, 0, 0, "Start frame");
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "End:",
+				  butr->xmin+dx, butr->ymin, dx, 19, 
+				  &node->custom2, 1.0, 20000.0, 0, 0, "End frame");
+		
+	}
+	
+	return node->width-NODE_DY;
+}
+
 
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
@@ -875,6 +897,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MAP_VALUE:
 			ntype->butfunc= node_composit_buts_map_value;
+			break;
+		case CMP_NODE_TIME:
+			ntype->butfunc= node_composit_buts_time;
 			break;
 		default:
 			ntype->butfunc= NULL;

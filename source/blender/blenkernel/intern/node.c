@@ -769,6 +769,11 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 		else if(type==CMP_NODE_CURVE_RGB)
 			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+		else if(type==CMP_NODE_TIME) {
+			node->custom1= G.scene->r.sfra;
+			node->custom2= G.scene->r.efra;
+			node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+		}
 		else if(type==CMP_NODE_MAP_VALUE)
 			node->storage= add_mapping();
 		else if(type==CMP_NODE_BLUR)
@@ -927,7 +932,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 				MEM_freeN(node->storage);
 		}
 		else if(ntree->type==NTREE_COMPOSIT) {
-			if(node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB)
+			if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
 				curvemapping_free(node->storage);
 			else 
 				MEM_freeN(node->storage);

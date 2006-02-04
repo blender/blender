@@ -950,6 +950,36 @@ static bNodeType cmp_node_normal= {
 	
 };
 
+/* **************** CURVE Time  ******************** */
+
+/* custom1 = sfra, custom2 = efra */
+static bNodeSocketType cmp_node_time_out[]= {
+	{	SOCK_VALUE, 0, "Fac",	1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void node_composit_exec_time(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order output: fac */
+	float fac= 0.0f;
+	
+	if(node->custom1 < node->custom2)
+		fac= (G.scene->r.cfra - node->custom1)/(float)(node->custom2-node->custom1);
+	
+	out[0]->vec[0]= curvemapping_evaluateF(node->storage, 0, fac);
+}
+
+static bNodeType cmp_node_time= {
+	/* type code   */	CMP_NODE_TIME,
+	/* name        */	"Time",
+	/* width+range */	140, 100, 320,
+	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_OPTIONS,
+	/* input sock  */	NULL,
+	/* output sock */	cmp_node_time_out,
+	/* storage     */	"CurveMapping",
+	/* execfunc    */	node_composit_exec_time
+};
+
 /* **************** CURVE VEC  ******************** */
 static bNodeSocketType cmp_node_curve_vec_in[]= {
 	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
@@ -2184,6 +2214,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_normal,
 	&cmp_node_curve_vec,
 	&cmp_node_curve_rgb,
+	&cmp_node_time,
 	&cmp_node_image,
 	&cmp_node_rresult,
 	&cmp_node_alphaover,
@@ -2222,5 +2253,7 @@ void ntreeCompositTagAnimated(bNodeTree *ntree)
 			if(node->storage)
 				NodeTagChanged(ntree, node);
 		}
+		else if(node->type==CMP_NODE_TIME)
+			NodeTagChanged(ntree, node);
 	}
 }

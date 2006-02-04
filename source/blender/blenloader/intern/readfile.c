@@ -1267,10 +1267,10 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		node->storage= newdataadr(fd, node->storage);
 		if(node->storage) {
 			
-			/* could be handlerized at some point, now only 1 exception still */
+			/* could be handlerized at some point */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				direct_link_curvemapping(fd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
+			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_TIME || node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
 				direct_link_curvemapping(fd, node->storage);
 			
 		}
