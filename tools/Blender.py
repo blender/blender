@@ -274,14 +274,16 @@ class BlenderEnvironment(SConsEnvironment):
             if lenv['WITH_BF_GAMEENGINE']:
                     lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
             if lenv['BF_DEBUG']:
-                    lenv.Append(CCFLAGS = lenv['BF_DEBUG_FLAGS'], CXXFLAGS = lenv['BF_DEBUG_FLAGS'])
+                    lenv.Append(CFLAGS = lenv['BF_DEBUG_FLAGS'], CCFLAGS = lenv['BF_DEBUG_FLAGS'])
             else:
-                    lenv.Append(CCFLAGS = lenv['REL_CFLAGS'], CXXFLAGS = lenv['REL_CCFLAGS'])
+                    lenv.Append(CFLAGS = lenv['REL_CFLAGS'], CCFLAGS = lenv['REL_CCFLAGS'])
             if lenv['BF_PROFILE']:
-                    lenv.Append(CCFLAGS = lenv['BF_PROFILE_FLAGS'], CXXFLAGS = lenv['BF_PROFILE_FLAGS'])
+                    lenv.Append(CFLAGS = lenv['BF_PROFILE_FLAGS'], CCFLAGS = lenv['BF_PROFILE_FLAGS'])
             if compileflags:
+                lenv.Append(CFLAGS = compileflags)
                 lenv.Append(CCFLAGS = compileflags)
-                lenv.Append(CXXFLAGS = compileflags)
+            lenv.Append(CFLAGS = Split(lenv['C_WARN']))
+            lenv.Append(CCFLAGS = Split(lenv['CC_WARN']))
             lib = lenv.Library(target= '#'+root_build_dir+'lib/'+libname, source=sources)
             SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
         else:
