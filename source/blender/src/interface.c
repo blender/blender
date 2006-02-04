@@ -1263,9 +1263,12 @@ static int ui_do_but_MENU(uiBut *but)
 	ui_check_but(but);
 	/* no draw of button now, for floating panels the matrix now is invalid...
 	   the button still is active, and will be redrawn in main loop to de-activate it */
+	/* but, if no hilites, we send redraw to queue */
+	if(but->flag & UI_NO_HILITE)
+		addqueue(but->block->winq, REDRAW, 1);
 	
 	uibut_do_func(but);
-
+	
 	/* return no existing event, because the menu sends events instead */
 	return -1;
 }

@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "DNA_group_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -225,6 +226,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	
 	/* check renderdata for amount of layers */
 	for(srl= re->r.layers.first; srl; srl= srl->next) {
+
 		rl= RE_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
@@ -267,6 +269,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl->layflag= 0x7FFF;	/* solid ztra halo strand */
 		rl->passflag= SCE_PASS_COMBINED;
 	}
+	
+	/* display active layer */
+	rr->renlay= BLI_findlink(&rr->layers, re->r.actlay);
 	
 	return rr;
 }
@@ -836,16 +841,91 @@ static void do_render_fields(Render *re)
 	
 }
 
-static void ntree_render_scenes(Render *re)
+static void do_render_scene_node(Render *re, Scene *sce)
 {
-	SceneRenderLayer *srl;
+	Render *resc= RE_NewRender(sce->id.name+2);
 	
-	for(srl= re->r.layers.first; srl; srl= srl->next) {
-		
-	}
+	/* makes render result etc */
+	RE_InitState(resc, &sce->r, re->winx, re->winy, &re->disprect);
+	
+	/* now use renderdata and camera to set viewplane */
+	RE_SetCamera(resc, sce->camera);
+	
+	/* still unsure entity this... */
+	resc->scene= sce;
+	
+	/* ensure scene has depsgraph, base flags etc OK. Warning... also sets G.scene */
+	set_scene_bg(sce);
+
+	/* copy callbacks */
+	resc->display_draw= re->display_draw;
+	resc->test_break= re->test_break;
+	resc->stats_draw= re->stats_draw;
+	
+	if(resc->r.mode & R_FIELDS)
+		do_render_fields(resc);
+	else if(resc->r.mode & R_MBLUR)
+		do_render_blurred(resc, resc->r.cfra);
+	else
+		render_one_frame(resc);
+
 }
 
-static void do_render_final(Render *re, Scene *scene)
+static void ntree_render_scenes(Render *re)
+{
+	bNode *node;
+	
+	if(re->scene->nodetree==NULL) return;
+	
+	/* check for render-result nodes using other scenes, we tag them LIB_DOIT */
+	for(node= re->scene->nodetree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_RESULT) {
+			if(node->id) {
+				if(node->id != (ID *)re->scene)
+					node->id->flag |= LIB_DOIT;
+				else
+					node->id->flag &= ~LIB_DOIT;
+			}
+		}
+	}
+	
+	/* now foreach render-result node tagged we do a full render */
+	/* results are stored in a way compisitor will find it */
+	for(node= re->scene->nodetree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_RESULT) {
+			if(node->id && node->id != (ID *)re->scene) {
+				if(node->id->flag & LIB_DOIT) {
+					do_render_scene_node(re, (Scene *)node->id);
+					node->id->flag &= ~LIB_DOIT;
+				}
+			}
+		}
+	}
+	
+	/* still the global... */
+	if(G.scene!=re->scene)
+		set_scene_bg(re->scene);
+	
+}
+
+/* helper call to detect if theres a render-result node */
+int composite_needs_render(Scene *sce)
+{
+	bNodeTree *ntree= sce->nodetree;
+	bNode *node;
+	
+	if(ntree==NULL) return 1;
+	if(sce->use_nodes==0) return 1;
+
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_RESULT)
+			if(node->id==NULL || node->id!=&sce->id)
+				return 1;
+	}
+	return 0;
+}
+
+static void do_render_final(Render *re)
 {
 	/* we set start time here, for main Blender loops */
 	re->i.starttime= PIL_check_seconds_timer();
@@ -856,14 +936,8 @@ static void do_render_final(Render *re, Scene *scene)
 			do_render_seq(re->result);
 	}
 	else {
-		/* first check if theres nodetree with render result */
-		int do_render= ntreeCompositNeedsRender(scene->nodetree);
-		/* but.. do we use nodes? */
-		if(scene->use_nodes==0) do_render= 1;
 		
-		re->scene= scene;
-		
-		if(do_render) {
+		if(composite_needs_render(re->scene)) {
 			/* now use renderdata and camera to set viewplane */
 			RE_SetCamera(re, re->scene->camera);
 			
@@ -875,15 +949,16 @@ static void do_render_final(Render *re, Scene *scene)
 				render_one_frame(re);
 		}
 		
-		if(!re->test_break()) {
-			/* checks if there are layer nodes that need scene */
-			ntree_render_scenes(re);
+		if(!re->test_break() && re->scene->nodetree) {
+			ntreeCompositTagRender(re->scene->nodetree);
+			ntreeCompositTagAnimated(re->scene->nodetree);
 			
-			ntreeCompositTagRender(scene->nodetree);
-			ntreeCompositTagAnimated(scene->nodetree);
-			
-			if(re->r.scemode & R_DOCOMP)
-				ntreeCompositExecTree(scene->nodetree, &re->r, G.background==0);
+			if(re->r.scemode & R_DOCOMP) {
+				/* checks if there are render-result nodes that need scene */
+				ntree_render_scenes(re);
+				
+				ntreeCompositExecTree(re->scene->nodetree, &re->r, G.background==0);
+			}
 		}
 	}
 	
@@ -999,7 +1074,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	G.rendering= 1;
 	
 	if(render_initialize_from_scene(re, scene)) {
-		do_render_final(re, scene);
+		do_render_final(re);
 	}
 }
 
@@ -1025,7 +1100,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
 		re->r.cfra= scene->r.cfra;	/* weak.... */
 		
-		do_render_final(re, scene);
+		do_render_final(re);
 		
 		/* write image or movie */
 		if(re->test_break()==0) {

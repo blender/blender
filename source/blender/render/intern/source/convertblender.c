@@ -2747,6 +2747,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	unsigned int lay;
 
 	re->scene= scene;
+	
+	re->i.infostr= "Preparing Scene data";
+	re->stats_draw(&re->i);
 
 	/* XXX add test if dbase was filled already? */
 	
@@ -2895,6 +2898,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		check_non_flat_quads(re);
 		set_normalflags(re);
 		
+		re->i.infostr= "Creating Shadowbuffers";
+		re->stats_draw(&re->i);
+
 		/* SHADOW BUFFER */
 		for(go=re->lights.first; go; go= go->next) {
 			LampRen *lar= go->lampren;
@@ -2903,7 +2909,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			if(lar->shb) {
 				makeshadowbuf(re, lar);
 			}
-			re->stats_draw(&re->i);
 		}
 		
 		/* yafray: 'direct' radiosity, environment maps and octree init not needed for yafray render */
@@ -2914,9 +2919,13 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				if(re->r.mode & R_RADIO) do_radio_render(re);
 			
 			/* octree */
-			if(!re->test_break())
-				if(re->r.mode & R_RAYTRACE) makeoctree(re);
-			
+			if(!re->test_break()) {
+				if(re->r.mode & R_RAYTRACE) {
+					re->i.infostr= "Filling Octree";
+					re->stats_draw(&re->i);
+					makeoctree(re);
+				}
+			}
 			/* ENVIRONMENT MAPS */
 			if(!re->test_break())
 				make_envmaps(re);
@@ -2931,6 +2940,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	else
 		re->i.convertdone= 1;
 	
+	re->i.infostr= NULL;
+	re->stats_draw(&re->i);
 }
 
 static void database_fromscene_vectors(Render *re, Scene *scene)

@@ -643,7 +643,7 @@ void calc_renderwin_rectangle(int rectx, int recty, int posmask, int renderpos_r
 /* init renderwin, alloc/open/resize */
 static void renderwin_init_display_cb(RenderResult *rr) 
 {
-	if (G.afbreek == 0) {
+	if (G.afbreek != 1) {
 		int rendersize[2], renderpos[2], imagesize[2];
 
 		calc_renderwin_rectangle(rr->rectx, rr->recty, G.winpos, renderpos, rendersize);
@@ -807,6 +807,9 @@ static void printrenderinfo_cb(RenderStats *rs)
 
 		BLI_timestr(rs->lastframetime, info_time_str);
 		spos+= sprintf(spos, " Time:%s ", info_time_str);
+		
+		if(rs->infostr)
+			spos+= sprintf(spos, " | %s", rs->infostr);
 		
 		if(render_win) {
 			if(render_win->render_text) MEM_freeN(render_win->render_text);
@@ -1026,28 +1029,12 @@ void BIF_do_render(int anim)
 		}
 	}
 
-	/* if start render in 3d win, use layer from window (e.g also local view) */
-	if(curarea && curarea->spacetype==SPACE_VIEW3D) {
-		int lay= G.scene->lay;
-		/*
-		 * if view is defined (might not be if called form script), check
-		 * and set layers
-		 */
-		if(G.vd) {
-			if(G.vd->lay & 0xFF000000)	// localview
-				G.scene->lay |= G.vd->lay;
-			else
-				G.scene->lay= G.vd->lay;
-		}
-		
-		do_render(anim);
-		
-		G.scene->lay= lay;
-	}
-	else do_render(anim);
+	do_render(anim);
 
-	if(G.scene->use_nodes)
+	if(G.scene->use_nodes) {
 		allqueue(REDRAWNODE, 1);
+		allqueue(REDRAWIMAGE, 1);
+	}
 	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }

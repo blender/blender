@@ -663,20 +663,75 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 		return 19;
 }
 
-static char *scene_layer_menu(void)
+/* if we use render result from other scene, we make a nice title */
+static void set_render_result_title(void *node_v, void *unused)
+{
+	bNode *node= node_v;
+	Scene *sce;
+	SceneRenderLayer *srl;
+	char str[64];
+	
+	if(node->id) {
+		BLI_strncpy(str, node->id->name+2, 21);
+		strcat(str, "|");
+		sce= (Scene *)node->id;
+	}
+	else {
+		str[0]= 0;
+		sce= G.scene;
+	}
+	srl= BLI_findlink(&sce->r.layers, node->custom1);
+	if(srl==NULL) {
+		node->custom1= 0;
+		srl= sce->r.layers.first;
+	}
+	
+	strcat(str, srl->name);
+	BLI_strncpy(node->name, str, 32);
+}
+
+static char *scene_layer_menu(Scene *sce)
 {
 	SceneRenderLayer *srl;
-	int len= 32 + 32*BLI_countlist(&G.scene->r.layers);
+	int len= 32 + 32*BLI_countlist(&sce->r.layers);
 	short a, nr;
 	char *str= MEM_callocN(len, "menu layers");
 	
 	strcpy(str, "Active Layer %t");
 	a= strlen(str);
-	for(nr=0, srl= G.scene->r.layers.first; srl; srl= srl->next, nr++) {
+	for(nr=0, srl= sce->r.layers.first; srl; srl= srl->next, nr++) {
 		a+= sprintf(str+a, "|%s %%x%d", srl->name, nr);
 	}
 	
 	return str;
+}
+
+static void node_browse_scene_cb(void *ntree_v, void *node_v)
+{
+	bNodeTree *ntree= ntree_v;
+	bNode *node= node_v;
+	Scene *sce;
+	
+	if(node->menunr<1) return;
+	
+	if(node->id) {
+		node->id->us--;
+		node->id= NULL;
+	}
+	sce= BLI_findlink(&G.main->scene, node->menunr-1);
+	if(sce!=G.scene) {
+		node->id= &sce->id;
+		id_us_plus(node->id);
+	}
+	
+	set_render_result_title(node, NULL);
+	nodeSetActive(ntree, node);
+
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWNODE, 0);
+	NodeTagChanged(ntree, node); 
+
+	node->menunr= 0;
 }
 
 
@@ -686,11 +741,22 @@ static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNo
 		uiBut *bt;
 		char *strp;
 		
-		strp= scene_layer_menu();
+		/* browse button scene */
+		uiBlockBeginAlign(block);
+		IDnames_to_pupstring(&strp, NULL, "", &(G.main->scene), NULL, NULL);
+		node->menunr= 0;
+		bt= uiDefButS(block, MENU, B_NOP, strp, 
+					  butr->xmin, butr->ymin, 20, 19, 
+					  &node->menunr, 0, 0, 0, 0, "Browse Scene to use RenderLayer from");
+		uiButSetFunc(bt, node_browse_scene_cb, ntree, node);
+		if(strp) MEM_freeN(strp);
+		
+		/* browse button layer */
+		strp= scene_layer_menu(node->id?(Scene *)node->id:G.scene);
 		bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
-				  butr->xmin, butr->ymin, (butr->xmax-butr->xmin), 19, 
+				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-20, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
-		uiButSetFunc(bt, node_but_title_cb, node, bt);
+		uiButSetFunc(bt, set_render_result_title, node, NULL);
 		MEM_freeN(strp);
 	}
 	return 19;

@@ -688,8 +688,10 @@ static PyObject *Scene_makeCurrent( BPy_Scene * self )
 {
 	Scene *scene = self->scene;
 
-	if( scene )
+	if( scene ) {
 		set_scene( scene );
+		scene_update_for_newframe(scene, scene->lay);
+	}
 
 	Py_INCREF( Py_None );
 	return Py_None;

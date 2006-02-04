@@ -459,6 +459,7 @@ void start_game(void)
 		 * Better would be to make a better routine
 		 * in the game engine for finding the camera.
 		 *  - zr
+		 * Note: yes, this is all very badly hacked! (ton)
 		 */
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
 		if (!sc->camera) {
@@ -500,7 +501,8 @@ void start_game(void)
 
 	restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(startscene);
-	
+	scene_update_for_newframe(G.scene, G.scene->lay);
+
 	if (G.flags & G_FILE_AUTOPLAY)
 		exit_usiblender();
 

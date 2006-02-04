@@ -1993,7 +1993,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						int redisplay= (!G.background && !(G.rendering));
 						
 						oldsce= G.scene;
-						if(seq->scene!=G.scene) set_scene_bg(seq->scene);	/* set_scene does full dep updates */
+						if(seq->scene!=G.scene) set_scene_bg(seq->scene);
 
 						/* prevent eternal loop */
 						doseq= G.scene->r.scemode & R_DOSEQ;

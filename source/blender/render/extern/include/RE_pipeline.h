@@ -110,6 +110,7 @@ typedef struct RenderStats {
 	int totface, totvert, tothalo, totlamp, totpart;
 	short curfield, curblur, curpart, partsdone, convertdone;
 	double starttime, lastframetime;
+	char *infostr;
 	
 } RenderStats;
 

@@ -832,8 +832,13 @@ static CompBuf *compbuf_from_pass(RenderLayer *rl, int rectx, int recty, int pas
 
 static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+	RenderResult *rr;
 	
+	if(node->id && node->id!=&G.scene->id)
+		rr= RE_GetResult(RE_GetRender(node->id->name+2));
+	else
+		rr= RE_GetResult(RE_GetRender("Render"));
+		
 	if(rr) {
 		RenderLayer *rl= BLI_findlink(&rr->layers, node->custom1);
 		if(rl) {
@@ -1406,18 +1411,31 @@ static bNodeSocketType cmp_node_alphaover_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_alphaover(bNode *node, float *out, float *src, float *dest)
+static void do_alphaover(bNode *node, float *out, float *src, float *over)
 {
-	float mul= 1.0f - dest[3];
 	
-	if(mul<=0.0f) {
-		QUATCOPY(out, dest);
+	if(over[3]<=0.0f) {
+		QUATCOPY(out, src);
+	}
+	else if(over[3]>=1.0f) {
+		QUATCOPY(out, over);
 	}
 	else {
-		out[0]= (mul*src[0]) + dest[0];
-		out[1]= (mul*src[1]) + dest[1];
-		out[2]= (mul*src[2]) + dest[2];
-		out[3]= (mul*src[3]) + dest[3];
+		float mul= 1.0f - over[3];
+		
+		/* handle case where backdrop has no alpha, but still color */
+		if(src[0]==0.0f) {
+			out[0]= over[0];
+			out[1]= (mul*src[1]) + over[1];
+			out[2]= (mul*src[2]) + over[2];
+			out[3]= (mul*src[3]) + over[3];
+		}
+		else {
+			out[0]= (mul*src[0]) + over[0];
+			out[1]= (mul*src[1]) + over[1];
+			out[2]= (mul*src[2]) + over[2];
+			out[3]= (mul*src[3]) + over[3];
+		}
 	}	
 }
 
@@ -2177,19 +2195,6 @@ bNodeType *node_all_composit[]= {
 
 /* ******************* parse ************ */
 
-/* helper call to detect if theres a render-result node */
-int ntreeCompositNeedsRender(bNodeTree *ntree)
-{
-	bNode *node;
-	
-	if(ntree==NULL) return 1;
-	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_R_RESULT)
-			return 1;
-	}
-	return 0;
-}
 
 /* called from render pipeline, to tag render input and output */
 void ntreeCompositTagRender(bNodeTree *ntree)

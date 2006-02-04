@@ -1603,7 +1603,6 @@ static int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 				
 				lb->first= lb->last= node->block;
 				retval= uiDoBlocks(lb, event);
-				
 				((struct Link *)node->block)->prev= prev;
 
 				break;

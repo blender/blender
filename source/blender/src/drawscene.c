@@ -128,7 +128,9 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 		sc= sc->id.next;
 	}
 
-	set_scene_bg(G.scene);	
+	set_scene_bg(G.scene);
+	scene_update_for_newframe(G.scene, G.scene->lay);
+
 	set_radglobal();
 		
 	/* complete redraw */

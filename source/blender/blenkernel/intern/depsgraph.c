@@ -1624,7 +1624,12 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
 				}
-					break;
+				break;
+			case OB_FONT:
+				cu= ob->data;
+				if(cu->nurb.first==NULL && cu->str && cu->vfont)
+					ob->recalc |= OB_RECALC_DATA;
+				break;
 			case OB_LATTICE:
 				lt= ob->data;
 				if(lt->key) {

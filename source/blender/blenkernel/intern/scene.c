@@ -291,13 +291,13 @@ void set_scene_bg(Scene *sce)
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 		base= base->next;
 	}
-	// full animation update
-	scene_update_for_newframe(sce, sce->lay);
+	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 	
 	/* do we need FRAMECHANGED in set_scene? */
 //	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 }
 
+/* called from creator.c */
 void set_scene_name(char *name)
 {
 	Scene *sce;
@@ -468,7 +468,7 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 		if(sce->theDag==NULL)
 			DAG_scene_sort(sce);
 		
-		DAG_scene_update_flags(sce, lay);   // only stuff that moves
+		DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
 		
 		for(base= sce->base.first; base; base= base->next) {
 			ob= base->object;
