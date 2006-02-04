@@ -121,8 +121,8 @@ CFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 CPPFLAGS = ['-DXP_UNIX']
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 PLATFORM_LINKFLAGS = '-framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
-REL_CFLAGS = ' -O2 '
-REL_CCFLAGS = ' -O2 '
+REL_CFLAGS = ['-O2']
+REL_CCFLAGS = ['-O2']
 ##BF_DEPEND = 'true'
 ##
 ##AR = ar
