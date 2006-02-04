@@ -1,34 +1,9 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-expressions_env = library_env.Copy ()
+sources = env.Glob('*.cpp')
 
-source_files = ['BoolValue.cpp',
-                'ConstExpr.cpp',
-                'EmptyValue.cpp',
-                'ErrorValue.cpp',
-                'EXP_C-Api.cpp',
-                'Expression.cpp',
-                'FloatValue.cpp',
-                'IdentifierExpr.cpp',
-                'IfExpr.cpp',
-                'InputParser.cpp',
-                'IntValue.cpp',
-                'KX_HashedPtr.cpp',
-                'ListValue.cpp',
-                'Operator1Expr.cpp',
-                'Operator2Expr.cpp',
-                'PyObjectPlus.cpp',
-                'StringValue.cpp',
-                'Value.cpp',
-                'VectorValue.cpp']
+incs ='. #source/kernel/gen_system #intern/string #intern/moto/include'
+incs += ' ' + env['BF_PYTHON_INC']
 
-expressions_env.Append (CPPPATH = ['.',
-                                   '#source/kernel/gen_system',
-                                   '#intern/string',
-				   '#intern/moto/include'])
-
-expressions_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
-
-expressions_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_expressions', source=source_files)
+env.BlenderLib ( 'blender_expressions', sources, Split(incs), [], libtype='game', priority = 45 )

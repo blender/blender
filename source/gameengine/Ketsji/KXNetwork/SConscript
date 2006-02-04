@@ -1,25 +1,12 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-kx_network_env = library_env.Copy ()
+sources = env.Glob('*.cpp')
 
-source_files = ['KX_NetworkEventManager.cpp',
-                'KX_NetworkMessageActuator.cpp',
-                'KX_NetworkMessageSensor.cpp',
-                'KX_NetworkObjectActuator.cpp',
-                'KX_NetworkObjectSensor.cpp'
-                ]
+incs = '. #source/kernel/gen_system #intern/string #source/gameengine/Ketsji'
+incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions'
+incs += ' #source/gameengine/Network'
 
-kx_network_env.Append (CPPPATH = ['.',
-                                  '#source/kernel/gen_system',
-                                  '#intern/string',
-                                  '#source/gameengine/Ketsji',
-                                  '#source/gameengine/GameLogic',
-                                  '#source/gameengine/Expressions',
-                                  '#source/gameengine/Network',
-                                 ])
+incs += ' ' + env['BF_PYTHON_INC']
 
-kx_network_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
-
-kx_network_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_network', source=source_files)
+env.BlenderLib ( 'KX_network', Split(sources), Split(incs), defines=[],libtype='game2', priority=5 )

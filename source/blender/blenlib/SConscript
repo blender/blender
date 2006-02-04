@@ -1,47 +1,15 @@
 #!/usr/bin/python
-Import ('extra_includes')
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-blenlib_env = library_env.Copy ()
+sources = env.Glob('intern/*.c')
 
-source_files = ['intern/BLI_dynstr.c',
-                'intern/BLI_ghash.c',
-                'intern/edgehash.c',
-                'intern/BLI_linklist.c',
-                'intern/BLI_memarena.c',
-                'intern/arithb.c',
-                'intern/dynlib.c',
-                'intern/fileops.c',
-                'intern/gsqueue.c',
-                'intern/matrixops.c',
-                'intern/noise.c',
-                'intern/psfont.c',
-                'intern/rand.c',
-                'intern/rct.c',
-                'intern/scanfill.c',
-                'intern/storage.c',
-                'intern/time.c',
-                'intern/util.c',
-                'intern/vectorops.c',
-                'intern/freetypefont.c',
-		'intern/jitter.c',
-		'intern/threads.c',
-                'intern/winstuff.c']
+incs = '. ../makesdna ../blenkernel #/intern/guardedalloc ../include'
+incs += ' ' + env['BF_FREETYPE_INC']
+incs += ' ' + env['BF_ZLIB_INC']
+incs += ' ' + env['BF_SDL_INC']
+defs = ''
 
+if env['WITH_BF_FREETYPE'] == 1:
+    defs = 'WITH_FREETYPE2'
 
-blenlib_env.Append (CPPPATH = ['.',
-                               '../blenlib',
-                               '../makesdna',
-                               '../blenkernel',
-                               '#/intern/guardedalloc',
-                               '../include'])
-
-if user_options_dict['USE_INTERNATIONAL'] == 1:
-    blenlib_env.Append (CPPDEFINES = 'WITH_FREETYPE2')
-
-blenlib_env.Append (CPPPATH = extra_includes)
-blenlib_env.Prepend (CPPPATH = user_options_dict['FREETYPE_INCLUDE'])
-blenlib_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
-blenlib_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
-blenlib_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenlib', source=source_files)
+env.BlenderLib ( 'blender_blenlib', sources, Split(incs), Split(defs), libtype='core', priority = 85 )

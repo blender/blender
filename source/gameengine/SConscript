@@ -1,5 +1,5 @@
 #!/usr/bin/python
-Import ('user_options_dict')
+Import ('env')
 
 SConscript(['BlenderRoutines/SConscript',
             'Converter/SConscript',
@@ -14,12 +14,14 @@ SConscript(['BlenderRoutines/SConscript',
             'Rasterizer/SConscript',
             'Rasterizer/RAS_OpenGLRasterizer/SConscript',
             'SceneGraph/SConscript',
-            'Physics/Bullet/SConscript'])
+            'Physics/Bullet/SConscript',
+            'Physics/Sumo/SConscript'
+            ])
 
-if user_options_dict['BUILD_BLENDER_PLAYER']:
-	SConscript(['GamePlayer/SConscript'])
+if env['WITH_BF_PLAYER']:
+    SConscript(['GamePlayer/SConscript'])
 
-if user_options_dict['USE_PHYSICS'] == 'solid':
-    SConscript(['Physics/Sumo/SConscript'])
-elif user_options_dict['USE_PHYSICS'] == 'ode':
-    SConscript(['Physics/BlOde/SConscript'])
+#if user_options_dict['USE_PHYSICS'] == 'solid':
+#    SConscript(['Physics/Sumo/SConscript'])
+#elif user_options_dict['USE_PHYSICS'] == 'ode':
+#    SConscript(['Physics/BlOde/SConscript'])

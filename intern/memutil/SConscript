@@ -1,11 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-memutil_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
 
-source_files = ['intern/MEM_RefCountedC-Api.cpp']
+incs = '.'
 
-memutil_env.Append (CPPPATH = ['.','../memutil'])
-
-memutil_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_MEM', source=source_files)
+env.BlenderLib ('blender_MEM', sources, Split(incs), [], libtype='intern', priority = 10 )

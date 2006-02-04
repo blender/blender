@@ -1,24 +1,10 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-bmfont_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
 
-source_files = ['intern/BMF_Api.cpp',
-                'intern/BMF_BitmapFont.cpp',
-                'intern/BMF_font_helv10.cpp',
-                'intern/BMF_font_helv12.cpp',
-                'intern/BMF_font_helvb10.cpp',
-                'intern/BMF_font_helvb12.cpp',
-                'intern/BMF_font_helvb14.cpp',
-                'intern/BMF_font_helvb8.cpp',
-                'intern/BMF_font_scr12.cpp',
-                'intern/BMF_font_scr14.cpp',
-                'intern/BMF_font_scr15.cpp']
+incs = '. intern'
+incs += ' ' + env['BF_OPENGL_INC']
+defs = ''
 
-bmfont_env.Append (CPPPATH = ['.',
-                              '../bmfont',
-                              'intern'])
-
-bmfont_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
-bmfont_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_BMF', source=source_files)
+env.BlenderLib ('blender_BMF', sources, Split(incs), Split(defs), libtype='intern', priority = 20 )

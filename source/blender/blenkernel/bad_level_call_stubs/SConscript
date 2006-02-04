@@ -1,27 +1,14 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-blenkernel_blc_env = library_env.Copy ()
+sources = 'stubs.c'
 
-source_files = ['stubs.c'
-                ]
-blenkernel_blc_env.Append (CPPPATH = ['.',
-                                  '..',
-                                  '../../render/extern/include',
-                                  '#/intern/iksolver/extern',
-                                  '../../blenlib',
-                                  '../../include',
-                                  '../../makesdna'])
-"""
-,
-                                  '#/intern/guardedalloc',
-                                  '../python',
-                                  '../imbuf',
-                                  '../avi',
-                                  '../blenloader']
-"""
-if user_options_dict['USE_INTERNATIONAL'] == 1:
-    blenkernel_blc_env.Append (CPPDEFINES = 'WITH_FREETYPE2')
+incs = '. .. ../../render/extern/include'
+incs += ' #/intern/iksolver/extern ../../blenlib'
+incs += ' ../../include ../../makesdna'
 
-blenkernel_blc_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenkernel_blc', source=source_files)
+defs = ''
+if env['WITH_BF_FREETYPE'] == 1:
+    defs += 'WITH_FREETYPE2'
+
+env.BlenderLib ('blenkernel_blc', sources = Split(sources), includes=Split(incs), defines=Split(defs), libtype='player2',priority=0 )

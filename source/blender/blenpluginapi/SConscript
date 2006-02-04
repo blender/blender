@@ -1,17 +1,14 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-blenplugin_env = library_env.Copy ()
+sources = env.Glob('intern/*.c')
 
-source_files = ['intern/pluginapi.c']
+incs = '. .. #/intern/guardedalloc ../blenlib ../imbuf ../makesdna'
 
-blenplugin_env.Append (CPPPATH = ['.',
-                                  '..',
-                                  '../blenpluginapi',
-                                  '#/intern/guardedalloc',
-                                  '../blenlib',
-                                  '../imbuf',
-                                  '../makesdna'])
+defs = []
 
-blenplugin_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenpluginapi', source=source_files)
+if env['WITH_BF_QUICKTIME'] == 1:
+	defs.append('WITH_QUICKTIME')
+	incs += ' ' + env['BF_QUICKTIME_INC']
+
+env.BlenderLib ( libname = 'blender_blenpluginapi', sources = sources, includes = Split(incs), defines = defs, libtype='core', priority = 75 )

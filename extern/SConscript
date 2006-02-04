@@ -1,14 +1,10 @@
 #!/usr/bin/python
 
-Import('user_options_dict')
+Import('env')
 
-
-print "externs..."
 SConscript(['qhull/SConscript',
-            'solid/SConscript',
-	    'bullet/SConscript'])
-            
-            
-if user_options_dict['USE_INTERNATIONAL'] == 1:
-    print "bftgl"
+			'solid/SConscript',
+			'bullet/SConscript'])
+
+if env['WITH_BF_FREETYPE'] == 1:
     SConscript(['bFTGL/SConscript'])

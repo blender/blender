@@ -1,22 +1,10 @@
 #!/usr/bin/python
-Import ('extra_includes')
-Import ('user_options_dict')
-Import ('library_env')
+#Import ('extra_includes')
+Import ('env')
 
-avi_env = library_env.Copy ()
+sources = env.Glob('intern/*.c')
 
-source_files = ['intern/avi.c',
-                'intern/avirgb.c',
-                'intern/codecs.c',
-                'intern/endian.c',
-                'intern/mjpeg.c',
-                'intern/options.c',
-                'intern/rgb32.c']
+incs = '. #/intern/guardedalloc'
+incs += ' ' + env['BF_JPEG_INC']
 
-avi_env.Append (CPPPATH = ['.',
-                           '../avi',
-                           '#/intern/guardedalloc'])
-
-avi_env.Append (CPPPATH=user_options_dict['JPEG_INCLUDE'])
-avi_env.Append (CPPPATH=extra_includes)
-avi_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_avi', source=source_files)
+env.BlenderLib ('blender_avi', sources, Split(incs), [], libtype='core', priority = 90 )

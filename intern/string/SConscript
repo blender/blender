@@ -1,11 +1,7 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-string_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
+incs = '.'
 
-source_files = ['intern/STR_String.cpp']
-
-string_env.Append (CPPPATH = ['.', '../string'])
-
-string_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_STR', source=source_files)
+env.BlenderLib ('blender_STR', sources, Split(incs), [], libtype='core', priority = 30 )

@@ -1,81 +1,32 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-blenkernel_env = library_env.Copy ()
+sources = env.Glob('intern/*.c')
 
-source_files = ['intern/constraint.c',
-		'intern/depsgraph.c',
-                'intern/DerivedMesh.c',
-                'intern/group.c',
-                'intern/icons.c',
-                'intern/material.c',
-                'intern/sca.c',
-                'intern/world.c',
-                'intern/curve.c',
-                'intern/mball.c',
-                'intern/scene.c',
-                'intern/writeavi.c',
-                'intern/action.c',
-                'intern/deform.c',
-                'intern/image.c',
-                'intern/mesh.c',
-                'intern/modifier.c',
-                'intern/screen.c',
-                'intern/anim.c',
-                'intern/displist.c',
-                'intern/ipo.c',
-                'intern/nla.c',
-                'intern/sound.c',
-                'intern/armature.c',
-                'intern/effect.c',
-                'intern/key.c',
-                'intern/object.c',
-                'intern/CCGSubSurf.c',
-                'intern/subsurf_ccg.c',
-                'intern/blender.c',
-                'intern/exotic.c',
-                'intern/lattice.c',
-                'intern/packedFile.c',
-                'intern/text.c',
-                'intern/script.c',
-                'intern/bmfont.c',
-                'intern/font.c',
-                'intern/library.c',
-                'intern/property.c',
-                'intern/softbody.c',
-		'intern/node.c',
-		'intern/node_shaders.c',
-		'intern/node_composite.c',
-		'intern/colortools.c',
-                'intern/texture.c']
+incs = '. #/intern/guardedalloc ../include ../blenlib ../makesdna'
+incs += ' ../python ../render/extern/include #/intern/decimation/extern'
+incs += ' ../imbuf ../avi #/intern/elbeem/extern'
+incs += ' #/intern/iksolver/extern ../blenloader ../quicktime'
 
-blenkernel_env.Append (CPPPATH = ['.',
-                                  '../blenkernel',
-                                  '#/intern/guardedalloc',
-                                  '../include',
-                                  '../blenlib',
-                                  '../makesdna',
-                                  '../python',
-                                  '../render/extern/include',
-                                  '../../../intern/decimation/extern',
-                                  '../imbuf',
-                                  '../avi',
- 	                          '../quicktime',
-                                  '#/intern/elbeem/extern',
-                                  '#/intern/iksolver/extern',
-                                  '../blenloader'])
+incs += ' ' + env['BF_OPENGL_INC']
+incs += ' ' + env['BF_ZLIB_INC']
+incs += ' ' + env['BF_SDL_INC']
 
-if user_options_dict['USE_INTERNATIONAL'] == 1:
-    blenkernel_env.Append (CPPDEFINES = 'WITH_FREETYPE2')
+defs = ''
 
-#fixme: if user_options_dict['USE_CCGSUBSURFLIB'] == 1:
-#    blenkernel_env.Append (CPPDEFINES = 'WITH_CCGSUBSURF')
+if env['WITH_BF_FREETYPE'] == 1:
+    defs += 'WITH_FREETYPE2'
 
-blenkernel_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenkernel', source=source_files)
+if env['WITH_BF_OPENEXR'] == 1:
+    defs += ' WITH_OPENEXR'
 
-SConscript(['bad_level_call_stubs/SConscript'])
+if env['WITH_BF_QUICKTIME'] == 1:
+    defs += ' WITH_QUICKTIME'
+    incs += ' ' + env['BF_QUICKTIME_INC']
 
-blenkernel_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
-blenkernel_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
-blenkernel_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
+defs += ' WITH_CCGSUBSURF'
+
+if env['WITH_BF_PLAYER']:
+    SConscript(['bad_level_call_stubs/SConscript'])
+
+env.BlenderLib ( libname = 'blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype='core', priority = 65 )

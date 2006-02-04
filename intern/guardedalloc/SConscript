@@ -1,11 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
 
-guardal_env = library_env.Copy ()
+Import('env')
 
-source_files = ['intern/mallocn.c']
+sources = env.Glob('intern/*.c')
+incs = '.'
 
-guardal_env.Append (CPPPATH = ['../guardedalloc'])
-
-guardal_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_guardedalloc', source=source_files)
+env.BlenderLib ('blender_guardedalloc', sources, Split(incs), [], libtype='intern', priority = 0 )

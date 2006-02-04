@@ -1,22 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-dec_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
 
-source_files = ['intern/LOD_EdgeCollapser.cpp',
-                'intern/LOD_ExternNormalEditor.cpp',
-                'intern/LOD_FaceNormalEditor.cpp',
-                'intern/LOD_ManMesh2.cpp',
-                'intern/LOD_MeshPrimitives.cpp',
-                'intern/LOD_QSDecimator.cpp',
-                'intern/LOD_QuadricEditor.cpp',
-                'intern/LOD_decimation.cpp']
+incs = '. ../moto/include ../container ../memutil'
 
-dec_env.Append (CPPPATH = ['intern',
-                           'extern',
-                           '../moto/include',
-                           '../container',
-                           '../memutil'])
-
-dec_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_LOD', source=source_files)
+env.BlenderLib ('blender_LOD', sources, Split(incs) , [], libtype=['core','common', 'player2'], priority = [10, 20, 5] )

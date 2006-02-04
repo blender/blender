@@ -1,15 +1,6 @@
-#!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+#!/usr/bin/env python
+Import ('env')
 
-img_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
 
-source_files = ['intern/IMG_Api.cpp',
-                'intern/IMG_BrushRGBA32.cpp',
-                'intern/IMG_CanvasRGBA32.cpp',
-                'intern/IMG_Line.cpp',
-                'intern/IMG_Pixmap.cpp',
-                'intern/IMG_PixmapRGBA32.cpp',
-                'intern/IMG_Rect.cpp']
-
-img_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_img', source=source_files)
+env.BlenderLib ( 'blender_img', sources, [], [], libtype='core', priority = 35 )

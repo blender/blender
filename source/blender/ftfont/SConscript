@@ -1,23 +1,15 @@
 #!/usr/bin/python
-Import ('extra_includes')
-Import ('user_options_dict')
-Import ('library_env')
+import sys
+Import ('env')
 
-ftf_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
 
-source_files = ['intern/FTF_Api.cpp',
-                'intern/FTF_TTFont.cpp']
-
-include_paths = ['.',
-		'intern',
-		'../blenkernel',
-		'../blenlib',
-		'../makesdna']
+incs = '. intern ../blenkernel ../blenlib ../makesdna'
+incs += ' ' + env['BF_FTGL_INC']
+incs += ' ' + env['BF_FREETYPE_INC']
+incs += ' ' + env['BF_GETTEXT_INC']
                  
-ftf_env.Append(CPPPATH = extra_includes)
-ftf_env.Append(CPPPATH = include_paths)
-ftf_env.Prepend (CPPPATH = user_options_dict['FTGL_INCLUDE'])
-ftf_env.Prepend (CPPPATH = user_options_dict['FREETYPE_INCLUDE'])
-ftf_env.Prepend (CPPPATH = user_options_dict['GETTEXT_INCLUDE'])
-ftf_env.Append(CPPDEFINES = 'FTGL_STATIC_LIBRARY')
-ftf_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_FTF', source=source_files)
+defs = 'FTGL_STATIC_LIBRARY'
+if sys.platform == 'win32':
+	defs += ' _WIN32 USE_GETTEXT_DLL'
+env.BlenderLib ( 'blender_FTF', sources, Split(incs), Split(defs), libtype='international', priority=0 )

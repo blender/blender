@@ -1,18 +1,10 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-kernel_env = library_env.Copy ()
+sources = 'gen_messaging/intern/messaging.c gen_system/GEN_HashedPtr.cpp'
+sources += ' gen_system/GEN_Matrix4x4.cpp gen_system/SYS_SingletonSystem.cpp'
+sources += ' gen_system/SYS_System.cpp'
 
-source_files = ['gen_messaging/intern/messaging.c',
-                'gen_system/GEN_HashedPtr.cpp',
-                'gen_system/GEN_Matrix4x4.cpp',
-                'gen_system/SYS_SingletonSystem.cpp',
-                'gen_system/SYS_System.cpp']
+incs = 'gen_messaging gen_system #/intern/string #/intern/moto/include'
 
-kernel_env.Append (CPPPATH = ['gen_messaging',
-                              'gen_system',
-                              '#/intern/string',
-                              '#/intern/moto/include'])
-
-kernel_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_kernel', source=source_files)
+env.BlenderLib ( 'blender_kernel', Split(sources), Split(incs), [], libtype = ['common','game2'], priority = [15, 10] )

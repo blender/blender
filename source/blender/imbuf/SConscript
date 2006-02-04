@@ -1,56 +1,23 @@
 #!/usr/bin/python
-Import ('extra_includes')
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-imbuf_env = library_env.Copy ()
+sources = env.Glob('intern/*.c')
 
-#if user_options_dict['USE_OPENEXR'] == 1:
-#    SConscript (['intern/openexr/SConscript'])
+incs = '. ../makesdna #/intern/guardedalloc ../blenlib'
+incs += ' ../avi ../quicktime ../blenkernel'
 
-source_files = ['intern/allocimbuf.c',
-                'intern/amiga.c',
-                'intern/anim.c',
-                'intern/anim5.c',
-                'intern/antialias.c',
-                'intern/bitplanes.c',
-                'intern/bmp.c',
-                'intern/cmap.c',
-                'intern/cspace.c',
-                'intern/data.c',
-                'intern/dither.c',
-                'intern/divers.c',
-                'intern/dynlibtiff.c',
-                'intern/filter.c',
-                'intern/ham.c',
-                'intern/hamx.c',
-                'intern/iff.c',
-                'intern/imageprocess.c',
-                'intern/iris.c',
-                'intern/jpeg.c',
-                'intern/png.c',
-                'intern/radiance_hdr.c',
-                'intern/readimage.c',
-                'intern/rectop.c',
-                'intern/rotate.c',
-                'intern/scaling.c',
-                'intern/targa.c',
-                'intern/tiff.c',
-                'intern/util.c',
-                'intern/writeimage.c']
+incs += ' ' + env['BF_JPEG_INC']
+incs += ' ' + env['BF_PNG_INC']
+incs += ' ' + env['BF_TIFF_INC']
+incs += ' ' + env['BF_ZLIB_INC']
 
-imbuf_env.Append (CPPPATH = ['.',
-                             '../imbuf',
-                             '../makesdna',
-                             '#/intern/guardedalloc',
-                             '../blenlib',
-                             '../avi',
-                             '../quicktime',
-                             '../blenkernel'])
+defs = []
 
-imbuf_env.Append (CPPPATH = user_options_dict['JPEG_INCLUDE'])
-imbuf_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
-imbuf_env.Append (CPPPATH = user_options_dict['TIFF_INCLUDE'])
-imbuf_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
-imbuf_env.Append (CPPPATH = extra_includes)
-imbuf_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_imbuf', source=source_files)
+if env['WITH_BF_OPENEXR'] == 1:
+    defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_QUICKTIME']==1:
+	incs += ' ' + env['BF_QUICKTIME_INC']
+	defs.append('WITH_QUICKTIME')
+
+env.BlenderLib ( libname = 'blender_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype='core', priority = 80 )

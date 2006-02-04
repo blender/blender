@@ -1,126 +1,33 @@
 #!/usr/bin/python
 import sys
 
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-ketsji_env = library_env.Copy ()
+sources = env.Glob('*.cpp')
 
-source_files = ['BL_Shader.cpp',
-		'BL_Material.cpp',
-		'BL_Texture.cpp',
-		'KX_WorldIpoController.cpp',
-                'KX_WorldInfo.cpp',
-                'KX_VisibilityActuator.cpp',
-                'KX_VertexProxy.cpp',
-                'KX_TrackToActuator.cpp',
-                'KX_TouchSensor.cpp',
-                'KX_TouchEventManager.cpp',
-                'KX_TimeLogger.cpp',
-                'KX_TimeCategoryLogger.cpp',
-                'KX_SoundActuator.cpp',
-                'KX_SG_NodeRelationships.cpp',
-		'KX_SG_BoneParentNodeRelationship.cpp',
-                'KX_SceneActuator.cpp',
-                'KX_Scene.cpp',
-                'KX_ScalingInterpolator.cpp',
-                'KX_ScalarInterpolator.cpp',
-                'KX_SCA_ReplaceMeshActuator.cpp',
-                'KX_SCA_EndObjectActuator.cpp',
-                'KX_SCA_AddObjectActuator.cpp',
-                'KX_RaySensor.cpp',
-                'KX_RayEventManager.cpp',
-		'KX_RayCast.cpp',
-                'KX_RadarSensor.cpp',
-                'KX_PyMath.cpp',
-                'KX_PythonInit.cpp',
-                'KX_PyConstraintBinding.cpp',
-                'KX_PositionInterpolator.cpp',
-		'KX_PolygonMaterial.cpp',
-                'KX_PhysicsObjectWrapper.cpp',
-                'KX_OrientationInterpolator.cpp',
-                'KX_ObjectActuator.cpp',
-                'KX_ObColorIpoSGController.cpp',
-                'KX_NearSensor.cpp',
-                'KX_MouseFocusSensor.cpp',
-                'KX_MotionState.cpp',
-                'KX_MeshProxy.cpp',
-                'KX_LightIpoSGController.cpp',
-                'KX_Light.cpp',
-                'KX_KetsjiEngine.cpp',
-                'KX_IpoActuator.cpp',
-                'KX_IPO_SGController.cpp',
-                'KX_IPhysicsController.cpp',
-                'KX_GameObject.cpp',
-                'KX_GameActuator.cpp',
-                'KX_EmptyObject.cpp',
-                'KX_ConvertPhysicsObjects.cpp',
-                'KX_ConstraintWrapper.cpp',
-                'KX_ConstraintActuator.cpp',
-                'KX_CDActuator.cpp',
-                'KX_CameraIpoSGController.cpp',
-                'KX_CameraActuator.cpp',
-                'KX_Camera.cpp',
-                'KX_BulletPhysicsController.cpp',
-                'KX_BlenderMaterial.cpp',
-                'KX_MaterialIpoController.cpp',
-		'KX_VehicleWrapper.cpp',
-                ]
+incs = '. #source/kernel/gen_system #intern/string #intern/guardedalloc'
+incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer #intern/bmfont'
+incs += ' #intern/SoundSystem #intern/SoundSystem/include #intern/SoundSystem/openal'
+incs += ' #intern/SoundSystem/dummy #intern/SoundSystem/intern #source/gameengine/Converter'
+incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf #intern/moto/include'
+incs += ' #source/gameengine/Ketsji #source/gameengine/Ketsji/KXNetwork #source/blender/blenlib'
+incs += ' #source/blender/blenkernel #source/blender #source/blender/include'
+incs += ' #source/blender/makesdna #source/blender/python #source/gameengine/Rasterizer'
+incs += ' #source/gameengine/GameLogic #source/gameengine/Expressions #source/gameengine/Network'
+incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common #source/gameengine/Physics/Bullet'
+incs += ' #source/gameengine/Physics/BlOde #source/gameengine/Physics/Dummy'
+incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/include'
+incs += ' #source/gameengine/Physics/Sumo/Fuzzics/include #source/gameengine/Network/LoopBackNetwork'
+incs += ' #source/blender/misc #source/blender/blenloader'
 
-if user_options_dict['USE_PHYSICS'] == 'solid':
-    source_files += ['KX_SumoPhysicsController.cpp']
-    ketsji_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
+#TODO:
+#if sys.platform == 'win32':
+#	ketsji_env.Append (CXXFLAGS = ['/GR'])
+#	ketsji_env.Append ( CCFLAGS =['/Ox'])
 
-if user_options_dict['USE_PHYSICS'] == 'ode':
-    source_files += ['KX_OdePhysicsController.cpp']
-    ketsji_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
+incs += ' ' + env['BF_SOLID_INC']
+incs += ' ' + env['BF_PYTHON_INC']
+incs += ' ' + env['BF_SDL_INC']
+incs += ' ' + env['BF_BULLET_INC']
 
-
-ketsji_env.Append (CPPPATH = ['.',
-                              '#source/kernel/gen_system',
-                              '#intern/string',
-                              '#intern/guardedalloc',
-                              '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
-                              '#intern/bmfont',
-                              '#intern/SoundSystem',
-                              '#intern/SoundSystem/include',
-                              '#intern/SoundSystem/openal',
-                              '#intern/SoundSystem/dummy',
-                              '#intern/SoundSystem/intern',
-                              '#source/gameengine/Converter',
-                              '#source/gameengine/BlenderRoutines',
-                              '#source/blender/imbuf',
-                              '#intern/moto/include',
-                              '#source/gameengine/Ketsji',
-                              '#source/gameengine/Ketsji/KXNetwork',
-                              '#source/blender/blenlib',
-                              '#source/blender/blenkernel',
-                              '#source/blender',
-                              '#source/blender/include',
-                              '#source/blender/makesdna',
-                              '#source/blender/python',
-                              '#source/gameengine/Rasterizer',
-                              '#source/gameengine/GameLogic',
-                              '#source/gameengine/Expressions',
-                              '#source/gameengine/Network',
-                              '#source/gameengine/SceneGraph',
-                              '#source/gameengine/Physics/common',
-                              '#source/gameengine/Physics/Bullet',
-                              '#source/gameengine/Physics/BlOde',
-                              '#source/gameengine/Physics/Dummy',
-                              '#source/gameengine/Physics/Sumo',
-                              '#source/gameengine/Physics/Sumo/include',
-                              '#source/gameengine/Physics/Sumo/Fuzzics/include',
-                              '#source/gameengine/Network/LoopBackNetwork',
-                              '#source/blender/misc',
-                              '#source/blender/blenloader'
-                             ])
-
-if sys.platform == 'win32':
-	ketsji_env.Append (CXXFLAGS = ['/GR'])
-	ketsji_env.Append ( CCFLAGS =['/Ox'])
-ketsji_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
-ketsji_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
-ketsji_env.Append (CPPPATH = user_options_dict['BULLET_INCLUDE'])
-
-ketsji_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/KX_ketsji', source=source_files)
+env.BlenderLib ( 'KX_ketsji', sources, Split(incs), [], libtype='game', priority=25 )

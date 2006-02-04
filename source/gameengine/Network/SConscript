@@ -1,17 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-ng_network_env = library_env.Copy ()
+sources = env.Glob('*.cpp') #'NG_NetworkMessage.cpp NG_NetworkObject.cpp NG_NetworkScene.cpp'
 
-source_files = ['NG_NetworkMessage.cpp',
-                'NG_NetworkObject.cpp',
-                'NG_NetworkScene.cpp']
+incs = '. #source/kernel/gen_system #intern/string #intern/moto/include'
 
-ng_network_env.Append (CPPPATH=['.',
-                                '#source/kernel/gen_system',
-                                '#intern/string',
-				'#intern/moto/include'
-                               ])
-
-ng_network_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/NG_network', source=source_files)
+env.BlenderLib ( 'NG_network', sources, Split(incs), [], libtype='game2', priority=15 )

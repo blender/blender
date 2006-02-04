@@ -1,16 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-phy_physics_env = library_env.Copy ()
+sources = 'PHY_IMotionState.cpp PHY_IPhysicsController.cpp PHY_IPhysicsEnvironment.cpp'
 
-source_files = ['PHY_IMotionState.cpp',
-                'PHY_IPhysicsController.cpp',
-                'PHY_IPhysicsEnvironment.cpp']
+incs = '. ../Dummy #intern/moto/include'
 
-phy_physics_env.Append (CPPPATH = ['.',
-                                   '../Dummy',
-                                   '#intern/moto/include'
-                                  ])
-
-phy_physics_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Physics', source=source_files)
+env.BlenderLib ( 'PHY_Physics', Split(sources), Split(incs), [], libtype=['game', 'game2'], priority=[20, 35] )

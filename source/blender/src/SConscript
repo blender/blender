@@ -1,181 +1,38 @@
 #!/usr/bin/python
-Import ('extra_includes')
-Import ('user_options_dict')
-Import ('library_env')
-Import ('defines')
+Import ('env')
 
-src_env = library_env.Copy ()
-src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
-src_env.Append(CPPDEFINES = defines)
+# TODO: src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
 
-source_files = ['B.blend.c',
-                'Bfont.c',
-                'bfont.ttf.c',
-                'blenderbuttons.c',
-                'booleanops.c',
-                'booleanops_mesh.c',
-                'buttons_editing.c',
-                'buttons_logic.c',
-                'buttons_object.c',
-                'buttons_scene.c',
-                'buttons_script.c',
-                'buttons_shading.c',
-                'butspace.c',
-                'cmap.tga.c',
-                'cmovie.tga.c',
-                'cursors.c',
-                'drawaction.c',
-		'drawarmature.c',
-                'drawdeps.c',
-                'drawimage.c',
-                'drawimasel.c',
-                'drawipo.c',
-                'drawmesh.c',
-                'drawnla.c',
-                'drawobject.c',
-                'drawoops.c',
-                'drawscene.c',
-                'drawscript.c',
-                'drawseq.c',
-                'drawsound.c',
-                'drawtext.c',
-                'drawtime.c',
-                'drawview.c',
-		'drawnode.c',
-                'edit.c',
-                'editaction.c',
-                'editarmature.c',
-                'editconstraint.c',
-                'editcurve.c',
-                'editdeform.c',
-                'editface.c',
-                'editfont.c',
-                'editgroup.c',
-                'editimasel.c',
-                'editipo.c',
-                'editipo_lib.c',
-                'editipo_mods.c',
-                'editkey.c',
-                'editlattice.c',
-                'editmball.c',
-                'editmesh.c',
-		'editnode.c',
-                'editmesh_add.c',
-                'editmesh_lib.c',
-                'editmesh_loop.c',
-                'editmesh_mods.c',
-                'editmesh_tools.c',
-                'editmode_undo.c',
-                'editnla.c',
-                'editobject.c',
-                'editoops.c',
-                'editscreen.c',
-                'editseq.c',
-                'editsima.c',
-                'editsound.c',
-                'edittime.c',
-                'editview.c',
-                'eventdebug.c',
-                'filesel.c',
-                'fluidsim.c',
-                'ghostwinlay.c',
-                'glutil.c',
-                'headerbuttons.c',
-                'header_action.c',
-                'header_buttonswin.c',
-                'header_filesel.c',
-                'header_image.c',
-                'header_imasel.c',
-                'header_info.c',
-                'header_ipo.c',
-                'header_nla.c',
-                'header_oops.c',
-                'header_script.c',
-                'header_seq.c',
-                'header_sound.c',
-                'header_text.c',
-                'header_time.c',
-                'header_view3d.c',
-		'header_node.c',
-                'imagepaint.c',
-                'imasel.c',
-                'interface.c',
-                'interface_panel.c',
-                'interface_draw.c',
-                'interface_icons.c',
-                'keyval.c',
-                'lorem.c',
-                'mainqueue.c',
-                'meshtools.c',
-                'mywindow.c',
-                'oops.c',
-                'outliner.c',
-                'splash.jpg.c',
-                'parametrizer.c',
-                'playanim.c',
-                'poseobject.c',
-                'previewrender.c',
-                'preview.blend.c',
-                'renderwin.c',
-                'resources.c',
-                'scrarea.c',
-                'screendump.c',
-                'sequence.c',
-                'seqaudio.c',
-                'space.c',
-                'spacetypes.c',
-                'swapbuffers.c',
-                'toets.c',
-                'toolbox.c',
-                'transform.c',
-                'transform_generics.c',
-                'transform_numinput.c',
-                'transform_constraints.c',
-                'transform_conversions.c',
-                'transform_manipulator.c',
-                'unwrapper.c',
-                'usiblender.c',
-                'view.c',
-                'vpaint.c',
-                'writeavicodec.c',
-                'writeimage.c',
-                'writemovie.c',
-                'language.c']
+sources = env.Glob('*.c')
 
-src_env.Append (CPPPATH = ['#/intern/guardedalloc',
-                           '../blenlib',
-                           '../makesdna',
-                           '../blenkernel',
-                           '../include',
-                           '#/intern/bmfont',
-                           '../imbuf',
-                           '../render/extern/include',
-                           '#/intern/bsp/extern',
-                           '../radiosity/extern/include',
-                           '#/intern/decimation/extern',
-                           '../blenloader',
-                           '../python',
-                           '../../kernel/gen_system',
-                           '#/intern/SoundSystem',
-                           '../readstreamglue',
-                           '../img',
-                           '../quicktime',
-                           '#/intern/elbeem/extern',
-                           '#/intern/ghost',
-                           '#/intern/opennl/extern'])
+incs = ' #/intern/guardedalloc ../blenlib ../makesdna ../blenkernel'
+incs += ' ../include #/intern/bmfont ../imbuf ../render/extern/include'
+incs += ' #/intern/bsp/extern ../renderconverter ../radiosity/extern/include'
+incs += ' #/intern/decimation/extern ../blenloader ../python'
+incs += ' ../../kernel/gen_system #/intern/SoundSystem ../readstreamglue'
+incs += ' ../img ../quicktime #/intern/elbeem/extern'
+incs += ' #/intern/ghost #/intern/opennl/extern'
 
-src_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
-src_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
-src_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
+incs += ' ' + env['BF_PYTHON_INC']
+incs += ' ' + env['BF_SDL_INC']
+incs += ' ' + env['BF_OPENGL_INC']
 
-if user_options_dict['USE_INTERNATIONAL'] == 1:
-    src_env.Append (CPPPATH=['../ftfont'])
-    src_env.Append (CPPDEFINES = 'INTERNATIONAL')
-    src_env.Append (CPPDEFINES = 'FTGL_STATIC_LIBRARY')
+defs = []
 
-if user_options_dict['USE_BUILDINFO'] == 1:
-    src_env.Append (CPPDEFINES = 'NAN_BUILDINFO')
+if env['WITH_BF_FREETYPE'] == 1:
+    incs += ' ../ftfont'
+    defs.append('INTERNATIONAL')
+    defs.append('FTGL_STATIC_LIBRARY')
 
-src_env.Append (CPPPATH=extra_includes)
+if env['WITH_BF_OPENEXR'] == 1:
+    defs.append('WITH_OPENEXR')
 
-src_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blendersrc', source=source_files)
+if env['WITH_BF_QUICKTIME']==1:
+    incs += ' ' + env['BF_QUICKTIME_INC']
+    defs.append('WITH_QUICKTIME')
+
+# TODO buildinfo
+#if env['USE_BUILDINFO'] == 1:
+#    defs += ' NAN_BUILDINFO'
+
+env.BlenderLib ( libname = 'src', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )

@@ -1,20 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-readblenfile_env = library_env.Copy ()
+sources = env.Glob('intern/*.c')
 
-source_files = ['intern/BLO_readblenfile.c']
+incs = '.  ../blenloader ../blenloader/intern ../blenkernel ../blenlib ../makesdna ../../kernel/gen_messaging'
 
-readblenfile_env.Append (CPPPATH = ['.',
-
-'../readblenfile',
-									'../readstreamglue',
-									'../blenloader',
-									'../blenloader/intern',
-									'../blenkernel',
-									'../blenlib',
-									'../makesdna',
-									'../../kernel/gen_messaging'])
-
-readblenfile_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_readblenfile', source=source_files)
+env.BlenderLib ( 'blender_readblenfile', sources, Split(incs), [], libtype='common', priority = 0 )

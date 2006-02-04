@@ -1,25 +1,18 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-creator_env = library_env.Copy ()
+sources = 'creator.c'
 
-source_files = ['creator.c']
+incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
+incs += ' ../blender/include ../blender/blenloader ../blender/imbuf'
+incs += ' ../blender/renderconverter ../blender/render/extern/include'
+incs += ' ../blender/python ../blender/makesdna ../kernel/gen_messaging'
+incs += ' ../kernel/gen_system'
+incs += ' ' + env['BF_OPENGL_INC']
 
-creator_env.Append (CPPPATH = ['#/intern/guardedalloc',
-                               '../blender/blenlib',
-                               '../blender/blenkernel',
-                               '../blender/include',
-                               '../blender/blenloader',
-                               '../blender/imbuf',
-                               '../blender/render/extern/include',
-                               '../blender/python',
-                               '../blender/makesdna',
-                               '../kernel/gen_messaging',
-                               '../kernel/gen_system'])
-creator_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
+defs = []
+if env['WITH_BF_QUICKTIME']==1:
+    incs += ' ' + env['BF_QUICKTIME_INC']
+    defs.append('WITH_QUICKTIME')
 
-if user_options_dict['USE_QUICKTIME'] == 1:
-    creator_env.Append (CPPDEFINES = ['WITH_QUICKTIME'])
-
-creator_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_creator', source=source_files)
+env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )

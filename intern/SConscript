@@ -13,6 +13,10 @@ SConscript(['SoundSystem/SConscript',
             'elbeem/SConscript',
             'opennl/SConscript'])
 
+# NEW_CSG was intended for intern/csg, but
+# getting it to compile is difficult
+# intern/bsp has been used anyway, so
+# perhaps get rid of intern/csg?
 NEW_CSG='false'
 
 if NEW_CSG=='false':

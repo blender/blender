@@ -1,19 +1,9 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-ras_openglrasterizer_env = library_env.Copy ()
+sources = env.Glob('*.cpp') #'RAS_GLExtensionManager.cpp RAS_OpenGLRasterizer.cpp RAS_VAOpenGLRasterizer.cpp'
 
-source_files = ['RAS_GLExtensionManager.cpp',
-                'RAS_OpenGLRasterizer.cpp',
-                'RAS_VAOpenGLRasterizer.cpp']
+incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer'
+incs += ' ' + env['BF_OPENGL_INC']
 
-ras_openglrasterizer_env.Append (CPPPATH=['.',
-                                          '#source/kernel/gen_system',
-                                          '#intern/string',
-                                          '#intern/moto/include',
-                                          '#source/gameengine/Rasterizer'
-                                         ])
-ras_openglrasterizer_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
-
-ras_openglrasterizer_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/RAS_OpenGLRasterizer', source=source_files)
+env.BlenderLib ( 'RAS_OpenGLRasterizer', Split(sources), Split(incs), [], libtype='game', priority=40 )

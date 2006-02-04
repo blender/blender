@@ -1,11 +1,7 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-cont_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
+incs = '.'
 
-source_files = ['intern/CTR_List.cpp']
-
-cont_env.Append (CPPPATH = ['.','../container'])
-
-cont_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_CTR', source=source_files)
+env.BlenderLib ('blender_CTR', sources, Split(incs) , [], libtype='intern', priority = 5 )

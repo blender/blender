@@ -1,28 +1,13 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-blenloader_env = library_env.Copy ()
+sources = env.Glob('intern/*.c')
 
-source_files = ['intern/genfile.c',
-                'intern/readblenentry.c',
-                'intern/undofile.c',
-                'intern/readfile.c',
-                'intern/writefile.c']
+incs = '. #/intern/guardedalloc ../blenlib ../blenkernel'
+incs += ' ../makesdna ../readblenfile ../include'
+incs += ' ../python ../../kernel/gen_messaging'
+incs += ' ../render/extern/include'
 
-blenloader_env.Append (CPPPATH = ['.',
-                                  '../blenloader',
-                                  '#/intern/guardedalloc',
-                                  '../blenlib',
-                                  '../blenkernel',
-                                  '../makesdna',
-                                  '../readblenfile',
-                                  '../include',
-                                  '../python',
-                                  '../../kernel/gen_messaging',
-                                  '../render/extern/include',
-                                  '../writestreamglue',
-                                  '../readstreamglue'])
+incs += ' ' + env['BF_ZLIB_INC']
 
-blenloader_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_blenloader', source=source_files)
-blenloader_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
+env.BlenderLib ( 'blender_blenloader', sources, Split(incs), [], libtype='core', priority = 70 )

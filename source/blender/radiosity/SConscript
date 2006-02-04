@@ -1,26 +1,12 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-rad_env = library_env.Copy ()
+sources = env.Glob('intern/source/*.c')
 
-source_files = ['intern/source/raddisplay.c',
-                'intern/source/radfactors.c',
-                'intern/source/radrender.c',
-                'intern/source/radio.c',
-                'intern/source/radnode.c',
-                'intern/source/radpostprocess.c',
-                'intern/source/radpreprocess.c']
+incs = 'extern/include ../blenlib ../blenkernel ../makesdna ../include'
+incs += ' #/intern/guardedalloc ../render/extern/include'
+incs += ' ../render/intern/include'
 
-rad_env.Append (CPPPATH = ['extern/include',
-                           '../blenlib',
-                           '../blenkernel',
-                           '../makesdna',
-                           '../include',
-                           '#/intern/guardedalloc',
-                           '../render/extern/include',
-                           '../render/intern/include'])
+incs += ' ' + env['BF_OPENGL_INC']
 
-rad_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
-
-rad_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_radiosity', source=source_files)
+env.BlenderLib ( 'blender_radiosity', sources, Split(incs), [], libtype='core', priority=50 )

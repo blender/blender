@@ -1,14 +1,11 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
-
-makesdna_env = library_env.Copy ()
+Import ('env')
 
 objs = []
 
 o = SConscript('intern/SConscript')
 objs.append (o)
 
-makesdna_env.Append (CPPPATH = ['#/intern/guardedalloc'])
+incs = '#/intern/guardedalloc'
 
-makesdna_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_makesdna', source=objs)
+env.BlenderLib ( 'blender_makesdna', objs, Split(incs), [], libtype='common', priority = 10 )

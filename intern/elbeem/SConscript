@@ -1,55 +1,23 @@
 #!/usr/bin/python
-Import ('library_env')
-Import('user_options_dict');
-Import('use_fluidsim');
+import sys
+Import('env')
+ 
+#if use_fluidsim=='false':
+#   # print "El'Beem Fluid Simulation Disabled..." # debug
+#   elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
+#   elbeem_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
+#   elbeem_env.Append(CPPDEFINES= 'ELBEEM_DUMMIES');
+#   # dummy interface build
+#   Sources = [ 
+#       "intern/utilities.cpp",
+#       "intern/blenderdummy.cpp"
+#           ]; # sources
 
-elbeem_env = library_env.Copy();
-elbeem_env.Append(CPPDEFINES= 'NOGUI');
-elbeem_env.Append(CPPDEFINES= [('ELBEEM_BLENDER',1)] );
-		
-if use_fluidsim=='false':
-	# print "El'Beem Fluid Simulation Disabled..." # debug
-	elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
-	# dummy interface build
-	Sources = [ 
-		"intern/utilities.cpp",
-		"intern/blenderdummy.cpp"
-			]; # sources
-else:
-	# print "Including El'Beem Fluid Simulation..." # debug
-	elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
-	elbeem_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
-	elbeem_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
+sources = env.Glob('intern/*.cpp')
 
-	# main build----------------------------------------
-	Sources = [ 
+defs = 'NOGUI ELBEEM_BLENDER=1'
+if sys.platform=='win32':
+    defs += ' USE_MSVC6FIXES'
+incs = env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] + ' ' +env['BF_SDL_INC']
 
-		"intern/cfgparser.cpp",
-		"intern/cfglexer.cpp",
-
-		"intern/attributes.cpp",
-		"intern/elbeem.cpp",
-		"intern/isosurface.cpp",
-		"intern/ntl_blenderdumper.cpp",
-		"intern/ntl_bsptree.cpp",
-		"intern/ntl_geometrymodel.cpp",
-		"intern/ntl_geometryobject.cpp",
-		"intern/ntl_lightobject.cpp",
-		"intern/ntl_ray.cpp",
-		"intern/ntl_scene.cpp",
-		"intern/ntl_world.cpp",
-		"intern/parametrizer.cpp",
-		"intern/particletracer.cpp",
-		"intern/simulation_object.cpp",
-		"intern/utilities.cpp",
-		"intern/blendercall.cpp",
-
-		"intern/solver_init.cpp",
-		"intern/solver_interface.cpp",
-		"intern/solver_main.cpp",
-		"intern/solver_util.cpp"
-
-		]; # sources
-
-elbeem_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_elbeem', source=Sources)
-
+env.BlenderLib ('blender_elbeem', sources, Split(incs), Split(defs), libtype='blender', priority=0 )

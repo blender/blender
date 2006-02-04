@@ -1,22 +1,17 @@
 #!/usr/bin/python
-Import ('extra_includes')
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-openexr_env = library_env.Copy ()
+source_files = ['openexr_api.cpp']
 
-source_files = ['openexr_api.cpp'
-                ]
+incs = ['.',
+	'../../../blenkernel',
+	'../../',
+	'..',
+	'../../../blenlib',
+	'../../../makesdna']
+incs += Split(env['BF_OPENEXR_INC'])
 
-include_paths = ['.',
-		'../../../blenkernel',
-		'../../',
-		'..',
-		'../../../blenlib',
-		'../../../makesdna']
+defs = []
                  
-openexr_env.Append(CPPPATH = extra_includes)
-openexr_env.Append(CPPPATH = include_paths)
-openexr_env.Prepend (CPPPATH = user_options_dict['OPENEXR_INCLUDE'])
-#ftf_env.Append(CPPDEFINES = 'FTGL_STATIC_LIBRARY')
-openexr_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_openexr', source=source_files)
+#openexr_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_openexr', source=source_files)
+env.BlenderLib ('blender_openexr', source_files, incs, defs, libtype='core', priority = 90)

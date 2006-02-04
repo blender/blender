@@ -1,17 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-iksolver_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
 
-source_files = ['intern/IK_QTask.cpp',
-                'intern/IK_QJacobianSolver.cpp',
-                'intern/IK_QSegment.cpp',
-                'intern/IK_QJacobian.cpp',
-                'intern/IK_Solver.cpp']
+incs = 'intern ../moto/include ../memutil'
 
-iksolver_env.Append (CPPPATH = ['intern',
-                                '../moto/include',
-                                '../memutil'])
-
-iksolver_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_IK', source=source_files)
+env.BlenderLib ('blender_IK', sources, Split(incs), [], libtype='blender', priority=10 )

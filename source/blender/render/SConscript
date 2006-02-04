@@ -1,39 +1,18 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-render_env = library_env.Copy ()
+sources = env.Glob('intern/source/*.c')
 
-source_files = ['intern/source/convertblender.c',
-                'intern/source/edgeRender.c',
-                'intern/source/envmap.c',
-                'intern/source/gammaCorrectionTables.c',
-                'intern/source/imagetexture.c',
-                'intern/source/initrender.c',
-                'intern/source/pixelblending.c',
-                'intern/source/pixelshading.c',
-		'intern/source/pipeline.c',
-                'intern/source/ray.c',
-                'intern/source/rendercore.c',
-                'intern/source/renderdatabase.c',
-                'intern/source/shadbuf.c',
-                'intern/source/texture.c',
-                'intern/source/zbuf.c']
+incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna'
+incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
+incs += ' ../quicktime ../include ../../kernel/gen_messaging ../yafray'
 
+incs += ' ' + env['BF_SDL_INC']
 
-render_env.Append (CPPPATH = ['intern/include',
-                              '#/intern/guardedalloc',
-                              '../blenlib',
-                              '../makesdna',
-                              'extern/include',
-                              '../blenkernel',
-                              '../radiosity/extern/include',
-                              '../imbuf',
-                              '../quicktime',
-                              '../include',
-                              '../../kernel/gen_messaging',
-                              '../yafray'])
+defs = []
 
-render_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
+if env['WITH_BF_QUICKTIME'] == 1:
+	defs.append('WITH_QUICKTIME')
+	incs += ' ' + env['BF_QUICKTIME_INC']
 
-render_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_render', source=source_files)
+env.BlenderLib ( libname = 'blender_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=45 )

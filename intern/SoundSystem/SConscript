@@ -1,47 +1,17 @@
 #!/usr/bin/python
-import sys
 
-Import ('user_options_dict')
-Import ('extra_includes')
-Import ('library_env')
+Import ('env')
 
-soundsys_env = library_env.Copy ()
+sources = env.Glob('dummy/*.cpp') + env.Glob('intern/*.cpp')
 
-source_files = ['dummy/SND_DummyDevice.cpp',
-                'intern/SND_AudioDevice.cpp',
-                'intern/SND_C-api.cpp',
-                'intern/SND_CDObject.cpp',
-                'intern/SND_DeviceManager.cpp',
-                'intern/SND_IdObject.cpp',
-                'intern/SND_Scene.cpp',
-                'intern/SND_SoundListener.cpp',
-                'intern/SND_SoundObject.cpp',
-                'intern/SND_Utils.cpp',
-                'intern/SND_WaveCache.cpp',
-                'intern/SND_WaveSlot.cpp']
+incs = '. intern ../moto/include ../string dummy openal sdl'
+defs = ''
+if env['WITH_BF_OPENAL'] == 1:
+    sources += env.Glob('openal/*.cpp') + env.Glob('sdl/*.cpp')
+    incs += ' ' + env['BF_OPENAL_INC']
+    incs += ' ' + env['BF_SDL_INC']
 
-soundsys_env.Append (CPPPATH = ['.',
-                                '../SoundSystem',
-                                'intern',
-                                '../moto/include',
-                                '../string',
-                                'dummy',
-                                'openal',
-                                'sdl'])
+if env['WITH_BF_OPENAL'] == 0:
+    defs = 'NO_SOUND'
 
-if user_options_dict['USE_OPENAL'] == 1:
-    source_files += ['openal/SND_OpenALDevice.cpp',
-                     'openal/pthread_cancel.cpp',
-		     'sdl/SND_SDLCDDevice.cpp']
-    soundsys_env.Append (CPPPATH=user_options_dict['OPENAL_INCLUDE'])
-    soundsys_env.Append (CPPPATH=user_options_dict['SDL_INCLUDE'])
-        
-if user_options_dict['USE_FMOD'] == 1:
-    source_files += ['fmod/SND_FmodDevice.cpp']
-
-if user_options_dict['USE_OPENAL'] == 0 and user_options_dict['USE_FMOD'] == 0:
-    soundsys_env.Append (CPPDEFINES = 'NO_SOUND')
-
-soundsys_env.Append (CPPPATH = extra_includes)
-
-soundsys_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/soundsystem', source=source_files)
+env.BlenderLib ('blender_sndsys', sources, Split(incs), Split(defs), libtype=['core','player2'], priority = [20,10] )

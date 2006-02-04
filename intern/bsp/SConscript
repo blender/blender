@@ -1,25 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-bsp_env = library_env.Copy ()
+sources = env.Glob('intern/*.cpp')
 
-source_files = ['intern/BSP_CSGHelper.cpp',
-                'intern/BSP_CSGMesh.cpp',
-                'intern/BSP_CSGMeshBuilder.cpp',
-                'intern/BSP_CSGMeshSplitter.cpp',
-                'intern/BSP_CSGNCMeshSplitter.cpp',
-                'intern/BSP_CSGUserData.cpp',
-                'intern/BSP_FragNode.cpp',
-                'intern/BSP_FragTree.cpp',
-                'intern/BSP_MeshFragment.cpp',
-                'intern/BSP_MeshPrimitives.cpp',
-                'intern/BSP_Triangulate.cpp',
-                'intern/CSG_BooleanOps.cpp']
+incs = 'intern ../container ../moto/include ../memutil'
 
-bsp_env.Append (CPPPATH = ['intern',
-                           '../container',
-                           '../moto/include',
-                           '../memutil'])
-
-bsp_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_BSP', source=source_files)
+env.BlenderLib ('blender_BSP', sources, Split(incs), [], libtype='core', priority=15 )

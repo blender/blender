@@ -1,13 +1,8 @@
 #!/usr/bin/python
-Import ('user_options_dict')
-Import ('library_env')
+Import ('env')
 
-phy_dummy_env = library_env.Copy ()
+sources = 'DummyPhysicsEnvironment.cpp'
 
-source_files = ['DummyPhysicsEnvironment.cpp']
+incs = '. ../common'
 
-phy_dummy_env.Append (CPPPATH = ['.',
-                                 '../common'
-                                ])
-
-phy_dummy_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Dummy', source=source_files)
+env.BlenderLib ( 'PHY_Dummy', Split(sources), Split(incs), [], libtype='game', priority=10 )
