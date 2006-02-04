@@ -1613,7 +1613,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 	Material *ma=0;
 	int v, zvlnr;
 	unsigned short clipmask;
-	short transp=0, env=0, wire=0;
+	short nofill=0, env=0, wire=0;
 
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
 	
@@ -1650,7 +1650,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 		if((vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
 			if(vlr->mat!=ma) {
 				ma= vlr->mat;
-				transp= ma->mode & MA_ZTRA;
+				nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
 				env= (ma->mode & MA_ENV);
 				wire= (ma->mode & MA_WIRE);
 				
@@ -1658,7 +1658,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 				else zspan.zbuffunc= zbufinvulGL4;
 			}
 			
-			if(transp==0) {
+			if(nofill==0) {
 				unsigned short partclip;
 				
 				/* partclipping doesn't need viewplane clipping */
@@ -1922,10 +1922,10 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, short layflag)
 {
 	ZSpan zspan;
-	Material *ma=0;
+	Material *ma=NULL;
 	VlakRen *vlr=NULL;
 	float vec[3], hoco[4], mul, zval, fval;
-	int v, zvlnr, zsample;
+	int v, zvlnr, zsample, dofill;
 	unsigned short clipmask;
 	
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
@@ -1963,8 +1963,12 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 				vlr= R.blovl[v>>8];
 			else vlr++;
 			
-			ma= vlr->mat;
-			if(ma->mode & (MA_ZTRA)) {
+			if(vlr->mat!=ma) {
+				ma= vlr->mat;
+				dofill= (ma->mode & MA_ZTRA) && !(ma->mode & MA_ONLYCAST);
+			}
+			
+			if(dofill) {
 				if((vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
 					unsigned short partclip;
 					

@@ -972,18 +972,21 @@ static int testnode(Isect *is, Node *no, OcVal ocval)
 		while(vlr) {
 			
 			if(is->vlrorig != vlr) {
-				
-				ov= no->ov+nr;
-				if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
-					//accepted++;
+				/* I now... cpu cycle waste, might do smarter once */
+				if(is->mode==DDA_MIRROR && (vlr->mat->mode & MA_ONLYCAST));
+				else {
+					ov= no->ov+nr;
+					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
+						//accepted++;
 
-					isect.vlr= vlr;
-					if(intersection(&isect)) {
-						if(isect.labda<is->labda) *is= isect;
-						found= 1;
+						isect.vlr= vlr;
+						if(intersection(&isect)) {
+							if(isect.labda<is->labda) *is= isect;
+							found= 1;
+						}
 					}
+					//else rejected++;
 				}
-				//else rejected++;
 			}
 			
 			nr++;

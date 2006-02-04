@@ -3230,14 +3230,15 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiDefButBitI(block, TOG, MA_ZTRA, B_MATZTRANSP,"ZTransp",	110,50,100,19, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
 	uiDefButF(block, NUM, B_DIFF, "Zoffs:",						210,50,100,19, &(ma->zoffs), 0.0, 10.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
 				  
-	uiDefButBitI(block, TOG, MA_WIRE, 0,	"Wire",				10,30,100,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
-	uiDefBlockBut(block, strand_menu, ma, "Strands",			110,30,100, 19, "Display strand settings for static particles");
-	uiDefButBitI(block, TOG, MA_ZINV, 0,	"ZInvert",			210,30,100,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
+	uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		10,30,75,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
+	uiDefButBitI(block, TOG, MA_WIRE, B_MATPRV,	"Wire",				85,30,75,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
+	uiDefBlockBut(block, strand_menu, ma, "Strands",			160,30,75, 19, "Display strand settings for static particles");
+	uiDefButBitI(block, TOG, MA_ZINV, B_MATPRV,	"ZInvert",			236,30,75,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
 				  
-	uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		10,10,75,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
-	uiDefButBitI(block, TOG, MA_RADIO, B_NOP,	"Radio",		85,10,75,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
+	uiDefButBitI(block, TOG, MA_RADIO, B_NOP,	"Radio",		10,10,75,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
+	uiDefButBitI(block, TOG, MA_ONLYCAST, B_MATPRV,"OnlyCast",		85,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes faces only cast shadows, not rendered");
 	uiDefButBitI(block, TOG, MA_TRACEBLE, B_NOP,"Traceable",	160,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material to being detected by ray tracing");
-	uiDefButBitI(block, TOG, MA_SHADBUF, B_NOP,	"Shadbuf",		235,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
+	uiDefButBitI(block, TOG, MA_SHADBUF, B_MATPRV,	"Shadbuf",		235,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
 				  
 	
 }

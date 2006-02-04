@@ -147,6 +147,7 @@ typedef struct Material {
 #define MA_FACETEXTURE	0x800
 #define MA_HALOTEX		0x1000
 #define MA_HALOPUNO		0x2000
+#define MA_ONLYCAST		0x2000
 #define MA_NOMIST		0x4000
 #define MA_HALO_SHADE	0x4000
 #define MA_HALO_FLARE	0x8000
