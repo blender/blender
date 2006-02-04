@@ -132,8 +132,8 @@ BF_OPENGL_LIB_STATIC = [ BF_OPENGL + '/lib/libGL.a', BF_OPENGL + '/lib/libGLU.a'
 CCFLAGS = ['/nologo', '/Og', '/Ot', '/Ob1', '/Op', '/G6','/EHsc', '/J', '/W3', '/Gd', '/MT']
 
 CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DUSE_OPENAL', '-DFTGL_LIBRARY_STATIC']
-REL_CFLAGS = []
-REL_CCFLAGS = []
+REL_CFLAGS = ['-O2', '-DNDEBUG']
+REL_CCFLAGS = ['-O2', '-DNDEBUG']
 ##BF_DEPEND = 'true'
 ##
 ##AR = ar
