@@ -1,10 +1,10 @@
 LCGDIR = '#../lib/darwin-6.1-powerpc'
-BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
-BF_PYTHON_VERSION = '2.4'
-BF_PYTHON_INC = BF_PYTHON + BF_PYTHON_VERSION + '/include/python' + BF_PYTHON_VERSION
-BF_PYTHON_BINARY = BF_PYTHON + BF_PYTHON_VERSION +'/bin/python'+BF_PYTHON_VERSION
+BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
+BF_PYTHON_VERSION = '2.3'
+BF_PYTHON_INC = '${BF_PYTHON}' + '${BF_PYTHON_VERSION}' + '/include/python' + '${BF_PYTHON_VERSION}'
+BF_PYTHON_BINARY = '${BF_PYTHON}' + '${BF_PYTHON_VERSION}' +'/bin/python' + '${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = ''
-BF_PYTHON_LIBPATH = '/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/config'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}' + '${BF_PYTHON_VERSION}' + '/lib/python'+ '${BF_PYTHON_VERSION}' +'/config'
 BF_PYTHON_LINKFLAGS = '-u __dummy -u _PyMac_Error -framework System -framework Python'
 
 WITH_BF_OPENAL = 'true'
@@ -40,7 +40,7 @@ BF_PNG_INC = BF_PNG + '/include'
 BF_PNG_LIB = 'png'
 BF_PNG_LIBPATH = BF_PNG + '/lib'
 
-WITH_BF_TIFF = 'true'
+WITH_BF_TIFF = 'false'
 BF_TIFF = LCGDIR + '/tiff'
 BF_TIFF_INC = BF_TIFF + '/include'
 BF_TIFF_LIB = 'tiff'
@@ -62,7 +62,7 @@ BF_FTGL = '#extern/bFTGL'
 BF_FTGL_INC = BF_FTGL + '/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
-WITH_BF_GAMEENGINE='true'
+WITH_BF_GAMEENGINE='false'
 
 WITH_BF_ODE = 'false'
 BF_ODE = LCGDIR + '/ode'
@@ -129,13 +129,13 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = ' -Wall -W -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wredundant-decls -Wno-long-double'
+C_WARN = ' -Wall  -Wno-long-double'
 
-CC_WARN = ' -Wall -W -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wredundant-decls -Wreorder -Wctor-dtor-privacy -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual -Wsign-promo -Wsynth -Wno-long-double'
+CC_WARN = ' -Wall  -Wno-long-double'
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'stdc++'
+LLIBS = 'stdc++ SystemStubs'
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
@@ -143,7 +143,7 @@ BF_PROFILE_FLAGS = ' -pg -g '
 BF_PROFILE = 'false'
 
 BF_DEBUG = 'false'
-BF_DEBUG_FLAGS = ''
+BF_DEBUG_FLAGS = '-g'
 
 BF_BUILDDIR='../build/darwin'
 BF_INSTALLDIR='../install/darwin'
