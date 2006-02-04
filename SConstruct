@@ -146,6 +146,9 @@ opts.Update(env)
 if 'blenderplayer' in B.targets:
     env['WITH_BF_PLAYER'] = True
 
+if 'blendernogame' in B.targets:
+    env['WITH_BF_GAMEENGINE'] = False
+
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
 B.root_build_dir = env['BF_BUILDDIR']
@@ -292,6 +295,10 @@ bininstalltarget = env.Alias('install-bin', blenderinstall)
 
 if env['WITH_BF_PLAYER']:
     blenderplayer = env.Alias('blenderplayer', B.program_list)
+
+if not env['WITH_BF_GAMEENGINE']:
+    blendernogame = env.Alias('blendernogame', B.program_list)
+
 Default(B.program_list)
 Default(installtarget)
 
