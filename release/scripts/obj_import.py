@@ -71,21 +71,7 @@ def stripExt(name): # name is a string
 
 
 from Blender import *
-
-
-
-# Adds a slash to the end of a path if its not there.
-def addSlash(path):
-	if path.endswith('\\') or path.endswith('/'):
-		return path
-	return path + sys.sep
-	
-
-def getExt(name):
-	index = name.rfind('.')
-	if index != -1:
-		return name[index+1:]
-	return name
+import BPyImage
 
 try:
 	import os
@@ -93,189 +79,6 @@ except:
 	# So we know if os exists.
 	print 'Module "os" not found, install python to enable comprehensive image finding and batch loading.'
 	os = None
-
-#===========================================================================#
-# Comprehansive image loader, will search and find the image                #
-# Will return a blender image or none if the image is missing               #
-#===========================================================================#
-def comprehansiveImageLoad(imagePath, filePath):
-	
-	# When we have the file load it with this. try/except niceness.
-	def imageLoad(path):
-		try:
-			img = Image.Load(path)
-			print '\t\tImage loaded "%s"' % path
-			return img
-		except:
-			print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
-			return None
-	
-	# Image formats blender can read
-	IMAGE_EXT = ['jpg', 'jpeg', 'png', 'tga', 'bmp', 'rgb', 'sgi', 'bw', 'iff', 'lbm', # Blender Internal
-	'gif', 'psd', 'tif', 'tiff', 'pct', 'pict', 'pntg', 'qtif'] # Quacktime, worth a try.
-	
-	
-	
-	
-	print '\tAttempting to load "%s"' % imagePath
-	if sys.exists(imagePath):
-		print '\t\tFile found where expected.'
-		return imageLoad(imagePath)
-	
-	imageFileName =  stripPath(imagePath) # image path only
-	imageFileName_lower =  imageFileName.lower() # image path only
-	imageFileName_noext = stripExt(imageFileName) # With no extension.
-	imageFileName_noext_lower = stripExt(imageFileName_lower) # With no extension.
-	imageFilePath = stripFile(imagePath)
-	
-	# Remove relative path from image path
-	if imageFilePath.startswith('./') or imageFilePath.startswith('.\\'):
-		imageFilePath = imageFilePath[2:]
-	
-	
-	# Attempt to load from obj path.
-	tmpPath = stripFile(filePath) + stripFile(imageFilePath)
-	if sys.exists(tmpPath):
-		print '\t\tFile found in obj dir.'
-		return imageLoad(imagePath)
-	
-	# OS NEEDED IF WE GO ANY FURTHER.
-	if not os:
-		return
-	
-	
-	# We have os.
-	# GATHER PATHS.
-	paths = {} # Store possible paths we may use, dict for no doubles.
-	tmpPath = addSlash(sys.expandpath('//')) # Blenders path
-	if sys.exists(tmpPath):
-		print '\t\tSearching in %s' % tmpPath
-		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
-		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
-		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
-		
-	tmpPath = imageFilePath
-	if sys.exists(tmpPath):
-		print '\t\tSearching in %s' % tmpPath
-		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
-		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
-		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
-
-	tmpPath = stripFile(filePath)
-	if sys.exists(tmpPath):
-		print '\t\tSearching in %s' % tmpPath
-		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
-		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
-		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
-	
-	tmpPath = addSlash(Get('texturesdir'))
-	if tmpPath and sys.exists(tmpPath):
-		print '\t\tSearching in %s' % tmpPath
-		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
-		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
-		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
-	
-	# Add path if relative image patrh was given.
-	for k in paths.iterkeys():
-		tmpPath = k + imageFilePath
-		if sys.exists(tmpPath):
-			paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
-			paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
-			paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
-	# DONE
-	
-	
-	# 
-	for path, files in paths.iteritems():
-		
-		if sys.exists(path + imageFileName):
-			return imageLoad(path + imageFileName)
-		
-		# If the files not there then well do a case insensitive seek.
-		filesOrigCase = files[0]
-		filesLower = files[1]
-		filesLowerNoExt = files[2]
-		
-		# We are going to try in index the file directly, if its not there just keep on
-		index = None
-		try:
-			# Is it just a case mismatch?
-			index = filesLower.index(imageFileName_lower)
-		except:
-			try:
-				# Have the extensions changed?
-				index = filesLowerNoExt.index(imageFileName_noext_lower)
-				
-				ext = getExt( filesLower[index] ) # Get the extension of the file that matches all but ext.
-				
-				# Check that the ext is useable eg- not a 3ds file :)
-				if ext.lower() not in IMAGE_EXT:
-					index = None
-			
-			except:
-				index = None
-		
-		if index != None:
-			tmpPath = path + filesOrigCase[index]
-			img = imageLoad( tmpPath )
-			if img != None:
-				print '\t\tImage Found "%s"' % tmpPath
-				return img
-	
-	
-	# IMAGE NOT FOUND IN ANY OF THE DIRS!, DO A RECURSIVE SEARCH.
-	print '\t\tImage Not Found in any of the dirs, doing a recusrive search'
-	for path in paths.iterkeys():
-		# Were not going to use files
-		
-		
-		#------------------
-		# finds the file starting at the root.
-		#	def findImage(findRoot, imagePath):
-		#W---------------
-		
-		# ROOT, DIRS, FILES
-		pathWalk = os.walk(path)
-		pathList = [True]
-		
-		matchList = [] # Store a list of (match, size), choose the biggest.
-		while True:
-			try:
-				pathList  = pathWalk.next()
-			except:
-				break
-			
-			for file in pathList[2]:
-				file_lower = file.lower()
-				# FOUND A MATCH
-				if (file_lower == imageFileName_lower) or\
-				(stripExt(file_lower) == imageFileName_noext_lower and getExt(file_lower) in IMAGE_EXT):
-					name = pathList[0] + sys.sep + file
-					size = os.path.getsize(name)
-					print '\t\t\tfound:', name 
-					matchList.append( (name, size) )
-		
-		if matchList:
-			# Sort by file size
-			matchList.sort(lambda A, B: cmp(B[1], A[1]) )
-			
-			print '\t\tFound "%s"' % matchList[0][0]
-			
-			# Loop through all we have found
-			img = None
-			for match in matchList:
-				img = imageLoad(match[0]) # 0 - first, 0 - pathname
-				if img != None:
-					break
-			return img
-	
-	# No go.
-	print '\t\tImage Not Found "%s"' % imagePath
-	return None
-
-
-
-
 
 #==================================================================================#
 # This function sets textures defined in .mtl file                                 #
@@ -292,7 +95,7 @@ def loadMaterialImage(mat, img_fileName, type, meshDict, dir):
 	texture.setType('Image')
 	
 	# Absolute path - c:\.. etc would work here
-	image = comprehansiveImageLoad(img_fileName, dir)
+	image = BPyImage.comprehansiveImageLoad(img_fileName, dir)
 	
 	if image:
 		texture.image = image
@@ -483,9 +286,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	#==================================================================================#
 	# Load all verts first (texture verts too)                                         #
 	#==================================================================================#
-
 	print '\tfile length: %d' % len(fileLines)
-	
 	# Ignore normals and comments.
 	fileLines = [lsplit for l in fileLines if not l.startswith('vn') if not l.startswith('#') for lsplit in (l.split(),) if lsplit]
 	Vert = NMesh.Vert
@@ -496,7 +297,6 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	print '\tvert:%i  texverts:%i  smoothgroups:%i  materials:%s' % (len(vertList), len(uvMapList), len(smoothingGroups), len(materialDict))
 	
 	# Replace filelines, Excluding v excludes "v ", "vn " and "vt "
-	
 	# Remove any variables we may have created.
 	try: del _dummy
 	except: pass
@@ -509,6 +309,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	try: del lsplit
 	except: pass
 	del Vert
+	
 	
 	# With negative values this is used a lot. make faster access.
 	len_uvMapList = len(uvMapList)
@@ -525,7 +326,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	
 	
 	# Make a list of all unused vert indicies that we can copy from
-	VERT_USED_LIST = [0]*len_vertList
+	VERT_USED_LIST = [-1]*len_vertList
 	
 	# Here we store a boolean list of which verts are used or not
 	# no we know weather to add them to the current mesh
@@ -552,7 +353,6 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	currentUsedVertListSmoothGroup = VERT_USED_LIST[:]
 	currentUsedVertList= {currentSmoothGroup: currentUsedVertListSmoothGroup }
 	
-	
 	# 0:NMesh, 1:SmoothGroups[UsedVerts[0,0,0,0]], 2:materialMapping['matname':matIndexForThisNMesh]
 	meshDict = {currentObjectName: (currentMesh, currentUsedVertList, currentMaterialMeshMapping) }
 	
@@ -570,12 +370,10 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 	#==================================================================================#
 	# Load all faces into objects, main loop                                           #
 	#==================================================================================#
-	#lIdx = 0
-	# Face and Object loading LOOP
-	#while lIdx < len(fileLines):
-	#	l = fileLines[lIdx]
-	#for lIdx
-	for l in fileLines:
+	lIdx = 0
+	while lIdx < len(fileLines):
+		l = fileLines[lIdx]
+		#for l in fileLines:
 		if len(l) == 0:
 			continue
 		# FACE
@@ -602,47 +400,63 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 			
 			
 			fHasUV = len_uvMapList # Assume the face has a UV until it sho it dosent, if there are no UV coords then this will start as 0.
-			for v in l[1:]:
-				# OBJ files can have // or / to seperate vert/texVert/normal
-				# this is a bit of a pain but we must deal with it.
-				objVert = v.split('/')
-				
-				# Vert Index - OBJ supports negative index assignment (like python)
-				index = int(objVert[0])-1
-				# Account for negative indicies.
-				if index < 0:
-					index = len_vertList+index+1
-				
-				vIdxLs.append(index)
-				if fHasUV:
-					# UV
-					index = 0 # Dummy var
-					if len(objVert) == 1:
-						index = vIdxLs[-1]
-					elif objVert[1]: # != '' # Its possible that theres no texture vert just he vert and normal eg 1//2
-						index = int(objVert[1])-1
-						if index < 0:
-							index = len_uvMapList+index+1
-						
-					if len_uvMapList > index:
-						vtIdxLs.append(index) # Seperate UV coords
-					else:
-						# BAD FILE, I have found this so I account for it.
-						# INVALID UV COORD
-						# Could ignore this- only happens with 1 in 1000 files.
-						badObjFaceTexCo +=1
-						vtIdxLs.append(1)
-						
-						fHasUV = 0
-	
-					# Dont add a UV to the face if its larger then the UV coord list
-					# The OBJ file would have to be corrupt or badly written for thi to happen
-					# but account for it anyway.
-					if len(vtIdxLs) > 0:
-						if vtIdxLs[-1] > len_uvMapList:
-							fHasUV = 0
+			
+			# Support stupid multiline faces
+			# not an obj spec but some objs exist that do this.
+			# f 1 2 3 \ 
+			#   4 5 6 \
+			# ..... instead of the more common and sane.
+			# f 1 2 3 4 5 6
+			#
+			# later lines are not modified, just skepped by advancing "lIdx"
+			while l[-1] == '\\':
+				l.pop()
+				lIdx+=1
+				l.extend(fileLines[lIdx])
+			# Done supporting crappy obj faces over multiple lines.
+			
+			for v in l:
+				if v is not 'f': # Only the first v will be f, any better ways to skip it?
+					# OBJ files can have // or / to seperate vert/texVert/normal
+					# this is a bit of a pain but we must deal with it.
+					objVert = v.split('/')
+					
+					# Vert Index - OBJ supports negative index assignment (like python)
+					index = int(objVert[0])-1
+					# Account for negative indicies.
+					if index < 0:
+						index = len_vertList+index+1
+					
+					vIdxLs.append(index)
+					if fHasUV:
+						# UV
+						index = 0 # Dummy var
+						if len(objVert) == 1:
+							index = vIdxLs[-1]
+						elif objVert[1]: # != '' # Its possible that theres no texture vert just he vert and normal eg 1//2
+							index = int(objVert[1])-1
+							if index < 0:
+								index = len_uvMapList+index+1
 							
-							badObjUvs +=1 # ERROR, Cont
+						if len_uvMapList > index:
+							vtIdxLs.append(index) # Seperate UV coords
+						else:
+							# BAD FILE, I have found this so I account for it.
+							# INVALID UV COORD
+							# Could ignore this- only happens with 1 in 1000 files.
+							badObjFaceTexCo +=1
+							vtIdxLs.append(1)
+							
+							fHasUV = 0
+		
+						# Dont add a UV to the face if its larger then the UV coord list
+						# The OBJ file would have to be corrupt or badly written for thi to happen
+						# but account for it anyway.
+						if len(vtIdxLs) > 0:
+							if vtIdxLs[-1] > len_uvMapList:
+								fHasUV = 0
+								
+								badObjUvs +=1 # ERROR, Cont
 			# Quads only, we could import quads using the method below but it polite to import a quad as a quad.
 			#print lIdx, len(vIdxLs), len(currentUsedVertListSmoothGroup)
 			#print fileLines[lIdx]
@@ -650,7 +464,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 				if IMPORT_EDGES:
 					# Edge
 					for i in (0,1):
-						if currentUsedVertListSmoothGroup[vIdxLs[i]] == 0:
+						if currentUsedVertListSmoothGroup[vIdxLs[i]] == -1:
 							faceQuadVList[i] = vertList[vIdxLs[i]]
 							currentMesh.verts.append(faceQuadVList[i])
 							currentUsedVertListSmoothGroup[vIdxLs[i]] = len(currentMesh.verts)-1
@@ -671,7 +485,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 					badObjFaceVerts+=1
 				else:
 					for i in quadList: #  quadList == [0,1,2,3] 
-						if currentUsedVertListSmoothGroup[vIdxLs[i]] == 0:
+						if currentUsedVertListSmoothGroup[vIdxLs[i]] == -1:
 							faceQuadVList[i] = vertList[vIdxLs[i]]
 							currentMesh.verts.append(faceQuadVList[i])
 							currentUsedVertListSmoothGroup[vIdxLs[i]] = len(currentMesh.verts)-1
@@ -699,7 +513,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 						badObjFaceVerts+=1
 					else:
 						for k, j in [(0,0), (1,i+1), (2,i+2)]:
-							if currentUsedVertListSmoothGroup[vIdxLs[j]] == 0:
+							if currentUsedVertListSmoothGroup[vIdxLs[j]] == -1:
 								faceTriVList[k] = vertList[vIdxLs[j]]
 								currentMesh.verts.append(faceTriVList[k])
 								currentUsedVertListSmoothGroup[vIdxLs[j]] = len(currentMesh.verts)-1
@@ -827,17 +641,15 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 				
 				except KeyError: # Not in dict, add for first time.
 					# Image has not been added, Try and load the image
-					currentImg = comprehansiveImageLoad(newImgName, DIR) # Use join in case of spaces 
+					currentImg = BPyImage.comprehansiveImageLoad(newImgName, DIR) # Use join in case of spaces 
 					imageDict[newImgName] = currentImg
 					# These may be None, thats okay.
-					
-					
 		
 		# MATERIAL FILE
 		elif l[0] == 'mtllib':
 			mtl_fileName.append(' '.join(l[1:]) ) # SHOULD SUPPORT MULTIPLE MTL?
-		#lIdx+=1
-	
+		lIdx+=1
+		
 	# Applies material properties to materials alredy on the mesh as well as Textures.
 	if IMPORT_MTL:
 		for mtl in mtl_fileName:
@@ -851,7 +663,6 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 		# Ignore no vert meshes.
 		if not nme.verts: # == []
 			continue
-		
 		name = getUniqueName(mk)
 		ob = NMesh.PutRaw(nme, name)
 		ob.name = name
@@ -938,12 +749,12 @@ def load_obj_ui(file):
 	
 	if count > 1:
 		print 'Total obj import "%s" dir: %.2f' % (obj_dir, sys.time() - time)
-	
+
 
 def main():
 	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ')
-		
-
 
 if __name__ == '__main__':
 	main()
+
+#load_obj('/cube.obj')
