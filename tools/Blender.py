@@ -171,7 +171,7 @@ def buildinfo(lenv, build_type):
     build_date = time.strftime ("%Y-%m-%d")
     build_time = time.strftime ("%H:%M:%S")
     obj = []
-    if True: #user_options_dict['USE_BUILDINFO'] == 1:
+    if lenv['BF_BUILDINFO']==1: #user_options_dict['USE_BUILDINFO'] == 1:
         if sys.platform=='win32':
             build_info_file = open("source/creator/winbuildinfo.h", 'w')
             build_info_file.write("char *build_date=\"%s\";\n"%build_date)

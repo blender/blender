@@ -41,7 +41,7 @@ def validate_arguments(args, bc):
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_DEBUG',
-            'BF_PRIORITYLIST'
+            'BF_PRIORITYLIST', 'BF_BUILDINFO'
            ]
 
     all_list = opts_list + arg_list
@@ -249,7 +249,9 @@ def read_opts(cfg, args):
         ('BF_DEBUG_FLAGS', 'Debug flags', ''),
         
         ('BF_BUILDDIR', 'Build dir', ''),
-        ('BF_INSTALLDIR', 'Installation dir', '')
+        ('BF_INSTALLDIR', 'Installation dir', ''),
+
+        (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true'))
 
     ) # end of opts.AddOptions()
 
