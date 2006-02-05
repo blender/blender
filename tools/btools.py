@@ -162,8 +162,6 @@ def read_opts(cfg, args):
         ('BF_ZLIB_LIB', 'ZLib library', ''),
         ('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
 
-        (BoolOption('WITH_BF_FFMPEG', 'Use FFMpeg sequencer', 'false')),
-
         (BoolOption('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', 'true')),
 
         ('BF_GETTEXT', 'gettext base path', ''),
