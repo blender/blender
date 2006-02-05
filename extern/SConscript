@@ -3,8 +3,8 @@
 Import('env')
 
 SConscript(['qhull/SConscript',
-			'solid/SConscript',
-			'bullet/SConscript'])
+            'solid/SConscript',
+            'bullet/SConscript'])
 
-if env['WITH_BF_FREETYPE'] == 1:
+if env['WITH_BF_INTERNATIONAL']:
     SConscript(['bFTGL/SConscript'])

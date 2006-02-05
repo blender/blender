@@ -24,12 +24,13 @@ def validate_arguments(args, bc):
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
             'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH',
             'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH',
-            'WITH_BF_GETTEXT', 'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
+            'WITH_BF_INTERNATIONAL',
+            'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_ODE', 'BF_ODE', 'BF_ODE_INC', 'BF_ODE_LIB',
             'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
             'BF_SOLID', 'BF_SOLID_INC',
-            'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
+            'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_OPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
@@ -159,7 +160,8 @@ def read_opts(cfg, args):
         ('BF_ZLIB_LIB', 'ZLib library', ''),
         ('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
 
-        (BoolOption('WITH_BF_GETTEXT', 'Use gettext if true', 'true')),
+        (BoolOption('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', 'true')),
+
         ('BF_GETTEXT', 'gettext base path', ''),
         ('BF_GETTEXT_INC', 'gettext include path', ''),
         ('BF_GETTEXT_LIB', 'gettext library', ''),
@@ -203,7 +205,6 @@ def read_opts(cfg, args):
 ##BF_PARANOID = 'true'
 ##
 ### enable freetype2 support for text objects
-        (BoolOption('WITH_BF_FREETYPE', 'Use Freetype if true', 'true')),
         ('BF_FREETYPE', 'Freetype base path', ''),
         ('BF_FREETYPE_INC', 'Freetype include path', ''),
         ('BF_FREETYPE_LIB', 'Freetype library', ''),

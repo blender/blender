@@ -9,7 +9,7 @@ incs += ' ' + env['BF_ZLIB_INC']
 incs += ' ' + env['BF_SDL_INC']
 defs = ''
 
-if env['WITH_BF_FREETYPE'] == 1:
+if env['WITH_BF_INTERNATIONAL'] == 1:
     defs = 'WITH_FREETYPE2'
 
 env.BlenderLib ( 'blender_blenlib', sources, Split(incs), Split(defs), libtype='core', priority = 85 )

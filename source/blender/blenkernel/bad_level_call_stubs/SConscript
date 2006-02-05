@@ -8,7 +8,7 @@ incs += ' #/intern/iksolver/extern ../../blenlib'
 incs += ' ../../include ../../makesdna'
 
 defs = ''
-if env['WITH_BF_FREETYPE'] == 1:
+if env['WITH_BF_INTERNATIONAL']:
     defs += 'WITH_FREETYPE2'
 
 env.BlenderLib ('blenkernel_blc', sources = Split(sources), includes=Split(incs), defines=Split(defs), libtype='player2',priority=0 )

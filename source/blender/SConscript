@@ -16,7 +16,7 @@ SConscript(['avi/SConscript',
             'src/SConscript',
             'yafray/SConscript'])
 
-if env['WITH_BF_FREETYPE'] == 1:
+if env['WITH_BF_INTERNATIONAL'] == 1:
     SConscript (['ftfont/SConscript'])
 
 if env['WITH_BF_OPENEXR'] == 1:

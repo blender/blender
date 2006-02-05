@@ -19,7 +19,7 @@ incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
 
-if env['WITH_BF_FREETYPE'] == 1:
+if env['WITH_BF_INTERNATIONAL'] == 1:
     incs += ' ../ftfont'
     defs.append('INTERNATIONAL')
     defs.append('FTGL_STATIC_LIBRARY')

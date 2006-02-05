@@ -114,16 +114,16 @@ def setup_staticlibs(lenv):
         lenv['BF_JPEG_LIBPATH'],
         lenv['BF_TIFF_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
-        lenv['BF_GETTEXT_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
-        lenv['BF_FREETYPE_LIBPATH'],
-#        lenv['BF_QUICKTIME_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ]
     libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 
+    if lenv['WITH_BF_INTERNATIONAL']:
+        libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
+        libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
     if lenv['WITH_BF_OPENAL']:
-        lenv['BF_OPENAL_LIBPATH']
+        libincs += Split(lenv['BF_OPENAL_LIBPATH'])
 
     return statlibs, libincs
 
@@ -132,10 +132,11 @@ def setup_syslibs(lenv):
         lenv['BF_PYTHON_LIB'],
         lenv['BF_JPEG_LIB'],
         lenv['BF_PNG_LIB'],
-        lenv['BF_ZLIB_LIB'],
-        lenv['BF_FREETYPE_LIB'],
-        lenv['BF_GETTEXT_LIB']
+        lenv['BF_ZLIB_LIB']
         ]
+    if lenv['WITH_BF_INTERNATIONAL']:
+        syslibs += Split(lenv['BF_FREETYPE_LIB'])
+        syslibs += Split(lenv['BF_GETTEXT_LIB'])
     if lenv['WITH_BF_OPENAL']:
        syslibs += Split(lenv['BF_OPENAL_LIB'])
     if lenv['OURPLATFORM']=='win32vc':
