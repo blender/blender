@@ -338,7 +338,7 @@ class BlenderEnvironment(SConsEnvironment):
     def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
         lenv = self.Copy()
-        if lenv['OURPLATFORM']=='win32-vc':
+        if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
             lenv.Append(LINKFLAGS = Split(lenv['PLATFORM_LINKFLAGS']))
         if  lenv['OURPLATFORM']=='darwin':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
