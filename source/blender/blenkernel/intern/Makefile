@@ -66,6 +66,7 @@ CPPFLAGS += -I../../render/extern/include
 
 # for sound
 #CPPFLAGS += -I../../../kernel/gen_system
+CPPFLAGS +=  $(NAN_SDLCFLAGS)
 
 CPPFLAGS += -I$(NAN_IKSOLVER)/include
 CPPFLAGS += -I$(NAN_DECIMATION)/include
@@ -81,6 +82,10 @@ ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -DWITH_FREETYPE2
     CPPFLAGS += -I$(NAN_FREETYPE)/include
     CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
+endif
+
+ifeq ($(WITH_FFMPEG),true)
+    CPPFLAGS += -DWITH_FFMPEG
 endif
 
 ifeq ($(WITH_OPENEXR), true)

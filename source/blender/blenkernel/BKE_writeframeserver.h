@@ -1,6 +1,4 @@
 /**
- * $Id$
- *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -30,29 +28,19 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifndef BKE_WRITEAVI_H
-#define BKE_WRITEAVI_H
+#ifndef BKE_WRITEFRAMESERVER_H
+#define BKE_WRITEFRAMESERVER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* generic blender movie support, could move to own module */
-
 struct RenderData;	
-void start_avi(struct RenderData *rd, int rectx, int recty);
-void end_avi(void);
-void append_avi(int frame, int *pixels, int rectx, int recty);
-void makeavistring (struct RenderData *rd, char *string);
 
-typedef struct bMovieHandle {
-	void (*start_movie)(struct RenderData *rd, int rectx, int recty);
-	void (*append_movie)(int frame, int *pixels, int rectx, int recty);
-	void (*end_movie)(void);
-	int (*get_next_frame)(void); /* can be null */
-} bMovieHandle;
-
-bMovieHandle *BKE_get_movie_handle(int imtype);
+extern void start_frameserver(struct RenderData *rd, int rectx, int recty);
+extern void end_frameserver(void);
+extern void append_frameserver(int frame, int *pixels, int rectx, int recty);
+extern int frameserver_loop();
 
 #ifdef __cplusplus
 }

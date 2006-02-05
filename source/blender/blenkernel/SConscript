@@ -20,6 +20,9 @@ if env['WITH_BF_INTERNATIONAL'] == 1:
 if env['WITH_BF_OPENEXR'] == 1:
     defs += ' WITH_OPENEXR'
 
+if env['WITH_BF_FFMPEG'] == 1:
+    defs += ' WITH_FFMPEG'
+
 if env['WITH_BF_QUICKTIME'] == 1:
     defs += ' WITH_QUICKTIME'
     incs += ' ' + env['BF_QUICKTIME_INC']

@@ -57,6 +57,12 @@
 #include "BIF_writeavicodec.h"
 #endif
 
+#ifdef WITH_FFMPEG
+#include "BKE_writeffmpeg.h"
+#endif
+
+#include "BKE_writeframeserver.h"
+
 bMovieHandle *BKE_get_movie_handle(int imtype)
 {
 	static bMovieHandle mh;
@@ -65,6 +71,7 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 	mh.start_movie= start_avi;
 	mh.append_movie= append_avi;
 	mh.end_movie= end_avi;
+	mh.get_next_frame = 0;
 	
 	/* do the platform specific handles */
 #ifdef __sgi
@@ -86,6 +93,19 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 		mh.end_movie= end_qt;
 	}
 #endif
+#ifdef WITH_FFMPEG
+	if (imtype == R_FFMPEG) {
+		mh.start_movie = start_ffmpeg;
+		mh.append_movie = append_ffmpeg;
+		mh.end_movie = end_ffmpeg;
+	}
+#endif
+	if (imtype == R_FRAMESERVER) {
+		mh.start_movie = start_frameserver;
+		mh.append_movie = append_frameserver;
+		mh.end_movie = end_frameserver;
+		mh.get_next_frame = frameserver_loop;
+	}
 	
 	return &mh;
 }

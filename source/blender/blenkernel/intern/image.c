@@ -279,11 +279,13 @@ void free_unused_animimages()
 int BKE_imtype_is_movie(int imtype)
 {
 	switch(imtype) {
-		case R_MOVIE:
-		case R_AVIRAW:
-		case R_AVIJPEG:
-		case R_AVICODEC:
-		case R_QUICKTIME:
+	case R_MOVIE:
+	case R_AVIRAW:
+	case R_AVIJPEG:
+	case R_AVICODEC:
+	case R_QUICKTIME:
+	case R_FFMPEG:
+	case R_FRAMESERVER:
 			return 1;
 	}
 	return 0;
