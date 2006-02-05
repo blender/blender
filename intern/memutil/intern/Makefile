@@ -38,5 +38,5 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_2_CPP_WARNINGS)
 
-CPPFLAGS += -I..
+CPPFLAGS += -I.. -I../..
 
