@@ -51,7 +51,8 @@ BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'z'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
-WITH_BF_GETTEXT = 'true'
+WITH_BF_INTERNATIONAL = 'true'
+
 BF_GETTEXT = LCGDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'freegettext'
@@ -96,7 +97,6 @@ BF_SOLID_LIB = 'extern_solid'
 #BF_PARANOID = 'true'
 
 # enable freetype2 support for text objects
-WITH_BF_FREETYPE = 'true'
 BF_FREETYPE = '#../extra/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include '
 BF_FREETYPE_LIB = 'freetype'
