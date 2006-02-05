@@ -4,27 +4,27 @@ import os
 
 Import ('env')
 
-window_system = sys.platform
+window_system = env['OURPLATFORM']
 
 sources = env.Glob('intern/*.cpp')
 
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window']
 
 if window_system == 'linux2':
-	for f in pf:
-		sources.remove('intern' + os.sep + f + 'Win32.cpp')
-		sources.remove('intern' + os.sep + f + 'Carbon.cpp')
-elif window_system == 'win32':
-	for f in pf:
-		sources.remove('intern' + os.sep + f + 'X11.cpp')
-		sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+    for f in pf:
+        sources.remove('intern' + os.sep + f + 'Win32.cpp')
+        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+elif window_system in ('win32-vc', 'win32-mingw', 'cygwin'):
+    for f in pf:
+        sources.remove('intern' + os.sep + f + 'X11.cpp')
+        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
 elif window_system == 'darwin':
-	for f in pf:
-		sources.remove('intern' + os.sep + f + 'Win32.cpp')
-		sources.remove('intern' + os.sep + f + 'X11.cpp')
+    for f in pf:
+        sources.remove('intern' + os.sep + f + 'Win32.cpp')
+        sources.remove('intern' + os.sep + f + 'X11.cpp')
 else:
-	print "Unknown window system specified."
-	Exit()
+    print "Unknown window system specified."
+    Exit()
 
 incs = '. ../string ' + env['BF_OPENGL_INC']
 env.BlenderLib ('blender_GHOST', sources, Split(incs), [], libtype='core', priority = 25 ) 
