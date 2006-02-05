@@ -81,8 +81,6 @@ def add_lib_to_dict(dict = None, libtype = None, libname = None, priority = 100)
         print "Wrong type combinations for libtype and priority. Only str and int or list and list"
         Exit()
 
-#libs = init_lib_dict(libs)
-
 def create_blender_liblist(lenv = None, libtype = None):
     if not lenv or not libtype:
         print "missing arg"
@@ -96,7 +94,6 @@ def create_blender_liblist(lenv = None, libtype = None):
         curlib = libs[libtype]
         for sk in sortlist:
             v = curlib[sk]
-        #for k,v in sorted(libs[libtype].iteritems()):
             lst.append('#' + root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
 
     return lst
@@ -112,13 +109,14 @@ def setup_staticlibs(lenv):
         lenv['BF_OPENGL_LIBPATH'],
         lenv['BF_SDL_LIBPATH'],
         lenv['BF_JPEG_LIBPATH'],
-        lenv['BF_TIFF_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ]
     libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 
+    if lenv['WITH_BF_TIFF']:
+        libincs += lenv['BF_TIFF_LIBPATH'],
     if lenv['WITH_BF_INTERNATIONAL']:
         libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
         libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
@@ -140,8 +138,9 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_OPENAL']:
        syslibs += Split(lenv['BF_OPENAL_LIB'])
     if lenv['OURPLATFORM']=='win32vc':
-            syslibs += Split(lenv['BF_ICONV_LIB'])
-    syslibs += Split(lenv['BF_TIFF_LIB'])
+        syslibs += Split(lenv['BF_ICONV_LIB'])
+    if lenv['WITH_BF_TIFF']:
+        syslibs += Split(lenv['BF_TIFF_LIB'])
     if lenv['WITH_BF_OPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])
     syslibs += Split(lenv['BF_SDL_LIB'])
