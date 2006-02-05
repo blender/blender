@@ -105,7 +105,7 @@ endif
         export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/IlmImf -I$(NAN_OPENEXR)/include/Imath -I$(NAN_OPENEXR)/include/Iex
       endif
     else
-      export NAN_OPENEXR ?= /usr/local
+      export NAN_OPENEXR ?= /usr
       export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
       export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
     endif
@@ -342,7 +342,8 @@ endif
     # enable freetype2 support for text objects
     export WITH_FREETYPE2 ?= true
 
-
+    # enable ffmpeg support
+    export WITH_FFMPEG ?= true
   else
   ifeq ($(OS),openbsd)
 
@@ -479,7 +480,7 @@ endif
 
     # enable freetype2 support for text objects
     export WITH_FREETYPE2 ?= true
-    
+
     # enable quicktime support
     # export WITH_QUICKTIME ?= true
 

@@ -139,6 +139,8 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])
+    if lenv['WITH_BF_FFMPEG']:
+        syslibs += Split(lenv['BF_FFMPEG_LIB'])
     syslibs += Split(lenv['BF_SDL_LIB'])
     syslibs += Split(lenv['BF_OPENGL_LIB'])
     syslibs += Split(lenv['LLIBS'])

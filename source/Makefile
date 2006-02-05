@@ -150,6 +150,7 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(NAN_BULLET)/lib/libbullet.a
 endif
     COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
+    COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
     COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
     COMLIB += $(NAN_PNG)/lib/libpng.a
     COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a

@@ -20,6 +20,7 @@ def validate_arguments(args, bc):
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
             'WITH_BF_FMOD',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH',
+            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB', 
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
             'BF_TIFF', 'BF_TIFF_INC',
@@ -136,6 +137,9 @@ def read_opts(cfg, args):
         ('BF_OPENEXR_INC', 'OPENEXR include path', ''),
         ('BF_OPENEXR_LIB', 'OPENEXR library', ''),
         ('BF_OPENEXR_LIBPATH', 'OPENEXR library path', ''),
+
+        (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', 'false')),
+        ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
 
         (BoolOption('WITH_BF_JPEG', 'Use JPEG if true', 'true')),
         ('BF_JPEG', 'JPEG base path', ''),
