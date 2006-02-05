@@ -1986,9 +1986,15 @@ void do_seq_ipo(Sequence *seq)
 	/* seq_ipo has an exception: calc both fields immediately */
 	
 	if(seq->ipo) {
-		ctime= frame_to_float(G.scene->r.cfra - seq->startdisp);
-		div= (seq->enddisp - seq->startdisp)/100.0f;
-		if(div==0.0) return;
+		if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+			ctime = frame_to_float(G.scene->r.cfra);
+			div = 1.0;
+		} else {
+			ctime= frame_to_float(G.scene->r.cfra 
+					      - seq->startdisp);
+			div= (seq->enddisp - seq->startdisp)/100.0f;
+			if(div==0.0) return;
+		}
 		
 		/* 2nd field */
 		calc_ipo(seq->ipo, (ctime+0.5f)/div);
@@ -2099,8 +2105,10 @@ void do_all_data_ipos()
 	if (ed) {
 		seq= ed->seqbasep->first;
 		while(seq) {
-			if ((seq->type == SEQ_SOUND) && (seq->ipo) && 
-				(seq->startdisp<=G.scene->r.cfra+2) && (seq->enddisp>G.scene->r.cfra)) 
+			if ((seq->type == SEQ_RAM_SOUND
+			     || seq->type == SEQ_HD_SOUND) && (seq->ipo) && 
+				(seq->startdisp<=G.scene->r.cfra+2) && 
+			    (seq->enddisp>G.scene->r.cfra)) 
 					do_seq_ipo(seq);
 			seq= seq->next;
 		}
