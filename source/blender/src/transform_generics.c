@@ -300,7 +300,7 @@ void recalcData(TransInfo *t)
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		flushTransUVs(t);
-		if (G.sima->flag & SI_LSCM_LIVE)
+		if (G.sima->flag & SI_LIVE_UNWRAP)
 			unwrap_lscm_live_re_solve();
 	}
 	else {
@@ -484,8 +484,8 @@ void postTrans (TransInfo *t)
 	}
 
 	if(t->spacetype==SPACE_IMAGE) {
-		if (G.sima->flag & SI_LSCM_LIVE)
-			unwrap_lscm_live_end();
+		if (G.sima->flag & SI_LIVE_UNWRAP)
+			unwrap_lscm_live_end(t->state == TRANS_CANCEL);
 	}
 }
 

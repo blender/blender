@@ -2,11 +2,33 @@
 #ifndef __PARAMETRIZER_INTERN_H__
 #define __PARAMETRIZER_INTERN_H__
 
-/* Hash:
-   -----
-   - insert only
-   - elements are all stored in a flat linked list
-*/
+/* Utils */
+
+#if 0
+	#define param_assert(condition);
+	#define param_warning(message);
+	#define param_test_equals_ptr(condition);
+	#define param_test_equals_int(condition);
+#else
+	#define param_assert(condition) \
+		if (!(condition)) \
+			{ printf("Assertion %s:%d\n", __FILE__, __LINE__); abort(); }
+	#define param_warning(message) \
+		{ printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message); }
+	#define param_test_equals_ptr(str, a, b) \
+		if (a != b) \
+			{ printf("Equals %s => %p != %p\n", str, a, b); };
+	#define param_test_equals_int(str, a, b) \
+		if (a != b) \
+			{ printf("Equals %s => %d != %d\n", str, a, b); };
+#endif
+
+typedef enum PBool {
+	P_TRUE = 1,
+	P_FALSE = 0
+} PBool;
+
+/* Special Purpose Hash */
 
 typedef long PHashKey;
 
@@ -16,36 +38,12 @@ typedef struct PHashLink {
 } PHashLink;
 
 typedef struct PHash {
-	PHashLink *first;
+	PHashLink **list;
 	PHashLink **buckets;
 	int size, cursize, cursize_id;
 } PHash;
 
-PHash *phash_new(int sizehint);
-void phash_delete_with_links(PHash *ph);
-void phash_delete(PHash *ph);
 
-int phash_size(PHash *ph);
-
-void phash_insert(PHash *ph, PHashLink *link);
-PHashLink *phash_lookup(PHash *ph, PHashKey key);
-PHashLink *phash_next(PHash *ph, PHashKey key, PHashLink *link);
-
-#if 0
-	#define param_assert(condition)
-	#define param_warning(message);
-#else
-	#define param_assert(condition) \
-		if (!(condition)) \
-			{ printf("Assertion %s:%d\n", __FILE__, __LINE__); abort(); }
-	#define param_warning(message) \
-		{ printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message); }
-#endif
-
-typedef enum PBool {
-	P_TRUE = 1,
-	P_FALSE = 0
-} PBool;
 
 struct PVert;
 struct PEdge;
@@ -64,6 +62,8 @@ typedef struct PHeapLink {
 typedef struct PHeap {
 	unsigned int size;
 	unsigned int bufsize;
+	MemArena *arena;
+	PHeapLink *freelinks;
 	PHeapLink *links;
 	PHeapLink **tree;
 } PHeap;
@@ -71,58 +71,61 @@ typedef struct PHeap {
 /* Simplices */
 
 typedef struct PVert {
-	struct PVertLink {
-		struct PVert *next;
-		PHashKey key;
-	} link;
+	struct PVert *nextlink;
+
+	union PVertUnion {
+		PHashKey key;			/* construct */
+		int id;					/* abf/lscm matrix index */
+		float distortion;		/* area smoothing */
+		PHeapLink *heaplink;	/* edge collapsing */
+	} u;
 
 	struct PEdge *edge;
 	float *co;
 	float uv[2];
-	int flag;
+	unsigned char flag;
 
-	union PVertUnion {
-		int index; /* lscm matrix index */
-		float distortion; /* area smoothing */
-	} u;
 } PVert; 
 
 typedef struct PEdge {
-	struct PEdgeLink {
-		struct PEdge *next;
-		PHashKey key;
-	} link;
+	struct PEdge *nextlink;
+
+	union PEdgeUnion {
+		PHashKey key;					/* construct */
+		int id;							/* abf matrix index */
+		PHeapLink *heaplink;			/* fill holes */
+		struct PEdge *nextcollapse;		/* simplification */
+	} u;
 
 	struct PVert *vert;
 	struct PEdge *pair;
 	struct PEdge *next;
 	struct PFace *face;
 	float *orig_uv, old_uv[2];
-	int flag;
+	unsigned short flag;
 
-	union PEdgeUnion {
-		PHeapLink *heaplink;
-	} u;
 } PEdge;
 
 typedef struct PFace {
-	struct PFaceLink {
-		struct PFace *next;
-		PHashKey key;
-	} link;
-
-	struct PEdge *edge;
-	int flag;
+	struct PFace *nextlink;
 
 	union PFaceUnion {
-		int chart; /* chart construction */
-		float area3d; /* stretch */
+		PHashKey key;			/* construct */
+		int chart;				/* construct splitting*/
+		float area3d;			/* stretch */
+		int id;					/* abf matrix index */
 	} u;
+
+	struct PEdge *edge;
+	unsigned char flag;
+
 } PFace;
 
 enum PVertFlag {
 	PVERT_PIN = 1,
-	PVERT_SELECT = 2
+	PVERT_SELECT = 2,
+	PVERT_INTERIOR = 4,
+	PVERT_COLLAPSE = 8
 };
 
 enum PEdgeFlag {
@@ -131,7 +134,10 @@ enum PEdgeFlag {
 	PEDGE_PIN = 4,
 	PEDGE_SELECT = 8,
 	PEDGE_DONE = 16,
-	PEDGE_FILLED = 32
+	PEDGE_FILLED = 32,
+	PEDGE_COLLAPSE = 64,
+	PEDGE_COLLAPSE_EDGE = 128,
+	PEDGE_COLLAPSE_PAIR = 256
 };
 
 /* for flipping faces */
@@ -139,15 +145,21 @@ enum PEdgeFlag {
 
 enum PFaceFlag {
 	PFACE_CONNECTED = 1,
-	PFACE_FILLED = 2
+	PFACE_FILLED = 2,
+	PFACE_COLLAPSE = 4
 };
 
 /* Chart */
 
 typedef struct PChart {
-	PHash *verts;
-	PHash *edges;
-	PHash *faces;
+	PVert *verts;
+	PEdge *edges;
+	PFace *faces;
+	int nverts, nedges, nfaces;
+
+	PVert *collapsed_verts;
+	PEdge *collapsed_edges;
+	PFace *collapsed_faces;
 
 	union PChartUnion {
 		struct PChartLscm {
@@ -161,7 +173,7 @@ typedef struct PChart {
 		} pack;
 	} u;
 
-	int flag;
+	unsigned char flag;
 	struct PHandle *handle;
 } PChart;
 
@@ -173,16 +185,21 @@ enum PHandleState {
 	PHANDLE_STATE_ALLOCATED,
 	PHANDLE_STATE_CONSTRUCTED,
 	PHANDLE_STATE_LSCM,
-	PHANDLE_STATE_STRETCH,
+	PHANDLE_STATE_STRETCH
 };
 
 typedef struct PHandle {
-	PChart *construction_chart;
-	PChart **charts;
-	int ncharts;
 	enum PHandleState state;
 	MemArena *arena;
-	PBool implicit;
+
+	PChart *construction_chart;
+	PHash *hash_verts;
+	PHash *hash_edges;
+	PHash *hash_faces;
+
+	PChart **charts;
+	int ncharts;
+
 	RNG *rng;
 	float blend;
 } PHandle;

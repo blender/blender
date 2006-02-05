@@ -3973,7 +3973,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					toggle_uv_select('f');
 				break;
 			case EKEY :
-				if(okee("LSCM Unwrap"))
+				if(okee("Unwrap"))
 					unwrap_lscm();
 				break;
 			case GKEY:
@@ -4036,6 +4036,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					initTransform(TFM_RESIZE, CTX_NONE);
 					Transform();
 				}
+				else if((G.qual==LR_SHIFTKEY) && is_uv_tface_editing_allowed())
+					smooth_area_tface_uv();
 				break;
 			case VKEY:
 				if((G.qual==0))
@@ -4100,6 +4102,7 @@ static void init_imagespace(ScrArea *sa)
 	sima->spacetype= SPACE_IMAGE;
 	sima->zoom= 1;
 	sima->blockscale= 0.7;
+	sima->flag = SI_LOCALSTICKY;
 }
 
 

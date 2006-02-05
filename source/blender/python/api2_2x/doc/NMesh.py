@@ -82,7 +82,7 @@ Example::
 @var EdgeFlags: The available edge flags.
     - SELECT - selected.
     - EDGEDRAW - edge is drawn out of edition mode.
-    - SEAM - edge is a seam for LSCM UV unwrapping
+    - SEAM - edge is a seam for UV unwrapping
     - FGON - edge is part of a F-Gon.
 """
 

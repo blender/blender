@@ -5280,6 +5280,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(arm->layer==0) arm->layer= 1;
 		}
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			bScreen *sc;
+
 			if(sce->r.xparts<2) sce->r.xparts= 4;
 			if(sce->r.yparts<2) sce->r.yparts= 4;
 			/* adds default layer */
@@ -5288,6 +5290,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* node version changes */
 			if(sce->nodetree)
 				ntree_version_241(sce->nodetree);
+
+			/* uv calculation options moved to toolsettings */
+			sce->toolsettings->uvcalc_radius = 1.0f;
+			sce->toolsettings->uvcalc_cubesize = 1.0f;
+			sce->toolsettings->uvcalc_mapdir = 1;
+			sce->toolsettings->uvcalc_mapalign = 1;
+			sce->toolsettings->uvcalc_flag = 1;
+
+			/* enable uv editor local sticky by default */
+			for (sc= main->screen.first; sc; sc= sc->id.next) {
+				ScrArea *sa;
+				for (sa= sc->areabase.first; sa; sa= sa->next) {
+					SpaceLink *sl;
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_IMAGE) {
+							SpaceImage *sima= (SpaceImage*)sl;
+							if(!(sima->flag & SI_STICKYUVS))
+								sima->flag |= SI_LOCALSTICKY;
+						}
+					}
+				}
+			}
 		}
 		
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)

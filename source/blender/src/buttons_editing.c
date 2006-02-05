@@ -159,8 +159,6 @@
 
 static float editbutweight=1.0;
 float editbutvweight=1;
-float uv_calc_radius= 1.0, uv_calc_cubesize= 1.0;
-short uv_calc_mapdir= 1, uv_calc_mapalign= 1, facesel_draw_edges= 0;
 
 extern ListBase editNurb;
 
@@ -3853,7 +3851,7 @@ void do_uvautocalculationbuts(unsigned short event)
 	case B_UVAUTO_WINDOW:
 		if(select_area(SPACE_VIEW3D)) calculate_uv_map(event);
 		break;
-	case B_UVAUTO_LSCM:
+	case B_UVAUTO_UNWRAP:
 		unwrap_lscm();
 		break;
 	}
@@ -3871,28 +3869,6 @@ static void editing_panel_mesh_uvautocalculation(void)
 		return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_LSCM,"LSCM Unwrap",100,row,200,butH, 0, 0, 0, 0, 0, "Applies conformal UV mapping, preserving local angles");
-	uiBlockEndAlign(block);
-	row-= butHB+butS;
-
-	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_STD1,"Standard",100,row,100,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping");
-	uiDefBut(block, BUT, B_UVAUTO_STD2,"/2",200,row,33,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/2");
-	uiDefBut(block, BUT, B_UVAUTO_STD4,"/4",233,row,34,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/4");
-	uiDefBut(block, BUT, B_UVAUTO_STD8,"/8",267,row,33,butH, 0, 0, 0, 0, 0, "Applies standard UV mapping 1/8");
-	uiBlockEndAlign(block);
-	row-= butHB+butS;
-
-	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS1,"Bounds",100,row,100,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/1");
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS2,"/2",200,row,33,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/2");
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS4,"/4",233,row,34,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/4");
-	uiDefBut(block, BUT, B_UVAUTO_BOUNDS8,"/8",267,row,33,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping with bounds 1/8");
-	uiDefBut(block, BUT, B_UVAUTO_WINDOW,"From Window",100,row-butH,200,butH, 0, 0, 0, 0, 0, "Applies planar UV mapping from window");
-	uiBlockEndAlign(block);
-	row-= 2*butHB+butS;
-
-	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D, "Draw Faces",	100,row,200,butH, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButBitI(block,TOG, G_DRAWEDGES, REDRAWVIEW3D,"Draw Edges",100,row-butHB,200,butH,&G.f, 2.0, 0, 0, 0,  "Displays edges of visible faces");
  	uiDefButBitI(block,TOG, G_HIDDENEDGES, REDRAWVIEW3D,"Draw Hidden Edges",100,row-2*butHB,200,butH,&G.f, 2.0, 1.0, 0, 0,  "Displays edges of hidden faces");
@@ -3900,36 +3876,35 @@ static void editing_panel_mesh_uvautocalculation(void)
 	uiBlockEndAlign(block);
 	row-= 4*butHB+butS;
 
-	row= 180;
-
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_CUBE,"Cube",315,row,200,butH, 0, 0, 0, 0, 0, "Applies cube UV mapping");
-	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Size:",315,row-butHB,200,butH, &uv_calc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size");
+	uiDefButS(block, MENU, REDRAWBUTSEDIT, "Unwrapper%t|Conformal%x0|Conformal (Old)%x2",100,row,200,butH, &G.scene->toolsettings->unwrapper, 0, 0, 0, 0, "Unwrap method");
+	if (G.scene->toolsettings->unwrapper != 2)
+		uiDefButBitS(block, TOG, 1, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
+	row= 180;
+
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_SPHERE,"Sphere",315,row,200,butH, 0, 0, 0, 0, 0, "Applies spherical UV mapping");
+	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Cube Size:",315,row,200,butH, &G.scene->toolsettings->uvcalc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size for cube mapping");
 	uiBlockEndAlign(block);
 	row-= butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_UVAUTO_CYLINDER,"Cylinder",315,row,200,butH, 0, 0, 0, 0, 0, "Applies cylindrical UV mapping");
-	uiDefButF(block, NUM,B_UVAUTO_CYLRADIUS ,"Radius:",315,row-butHB,200,butH, &uv_calc_radius, 0.1, 100.0, 10, 3, "Defines the radius of the UV mapping cylinder");
+	uiDefButF(block, NUM,B_UVAUTO_CYLRADIUS ,"Cyl Radius:",315,row,200,butH, &G.scene->toolsettings->uvcalc_radius, 0.1, 100.0, 10, 3, "Defines the radius of the UV mapping cylinder");
 	uiBlockEndAlign(block);
-	row-= 2*butHB+butS;
-
+	row-= butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_UVAUTO_FACE,"View Aligns Face",315,row,200,butH, &uv_calc_mapdir,2.0, 1.0, 0.0,0.0, "View is on equator for cylindrical and spherical UV mapping");
-	uiDefButS(block, ROW,B_UVAUTO_TOP,"VA Top",315,row-butHB,100,butH, &uv_calc_mapdir,2.0, 0.0, 0.0,0.0, "View is on poles for cylindrical and spherical UV mapping");
-	uiDefButS(block, ROW,B_UVAUTO_TOP,"Al Obj",415,row-butHB,100,butH, &uv_calc_mapdir,2.0, 2.0, 0.0,0.0, "Align to object for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_FACE,"View Aligns Face",315,row,200,butH, &G.scene->toolsettings->uvcalc_mapdir,2.0, 1.0, 0.0,0.0, "View is on equator for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_TOP,"VA Top",315,row-butHB,100,butH, &G.scene->toolsettings->uvcalc_mapdir,2.0, 0.0, 0.0,0.0, "View is on poles for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_TOP,"Al Obj",415,row-butHB,100,butH, &G.scene->toolsettings->uvcalc_mapdir,2.0, 2.0, 0.0,0.0, "Align to object for cylindrical and spherical UV mapping");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_UVAUTO_ALIGNX,"Polar ZX",315,row,100,butH, &uv_calc_mapalign,2.0, 0.0, 0.0,0.0, "Polar 0 is X for cylindrical and spherical UV mapping");
-	uiDefButS(block, ROW,B_UVAUTO_ALIGNY,"Polar ZY",415,row,100,butH, &uv_calc_mapalign,2.0, 1.0, 0.0,0.0, "Polar 0 is Y for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_ALIGNX,"Polar ZX",315,row,100,butH, &G.scene->toolsettings->uvcalc_mapalign,2.0, 0.0, 0.0,0.0, "Polar 0 is X for cylindrical and spherical UV mapping");
+	uiDefButS(block, ROW,B_UVAUTO_ALIGNY,"Polar ZY",415,row,100,butH, &G.scene->toolsettings->uvcalc_mapalign,2.0, 1.0, 0.0,0.0, "Polar 0 is Y for cylindrical and spherical UV mapping");
 	uiBlockEndAlign(block);
 }
 

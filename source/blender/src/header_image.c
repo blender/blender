@@ -543,8 +543,10 @@ static void do_image_selectmenu(void *arg, int event)
 		allqueue(REDRAWIMAGE, 0);
 		break;  
 	case 5: /* Toggle UVs Stick to Vertex in Mesh */
-		if(G.sima->flag & SI_STICKYUVS)
+		if(G.sima->flag & SI_STICKYUVS) {
 			G.sima->flag &= ~SI_STICKYUVS;
+			G.sima->flag |= SI_LOCALSTICKY;
+		}
 		else {
 			G.sima->flag |= SI_STICKYUVS;
 			G.sima->flag &= ~SI_LOCALSTICKY;
@@ -1030,8 +1032,8 @@ static void do_image_uvsmenu(void *arg, int event)
 		unwrap_lscm();
 		break;
 	case 11:
-		if(G.sima->flag & SI_LSCM_LIVE) G.sima->flag &= ~SI_LSCM_LIVE;
-		else G.sima->flag |= SI_LSCM_LIVE;
+		if(G.sima->flag & SI_LIVE_UNWRAP) G.sima->flag &= ~SI_LIVE_UNWRAP;
+		else G.sima->flag |= SI_LIVE_UNWRAP;
 		break;
 	case 12:
 		minimize_stretch_tface_uv();
@@ -1062,9 +1064,9 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
-	if(G.sima->flag & SI_LSCM_LIVE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "LSCM Live Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "LSCM Live Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "LSCM Unwrap|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+	if(G.sima->flag & SI_LIVE_UNWRAP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Live Unwrap Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Live Unwrap Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unwrap|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpin|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pin|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 
@@ -1123,7 +1125,6 @@ void image_buttons(void)
 	char naam[256];
 	/* This should not be a static var */
 	static int headerbuttons_packdummy;
-	extern short CurrentUnwrapper;
 
 	headerbuttons_packdummy = 0;
 		
@@ -1212,9 +1213,6 @@ void image_buttons(void)
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	xco,0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Updates other affected window spaces automatically to reflect changes in real time");
 
-	xco += 2*XIC;
-	uiDefButS(block, MENU, B_NOP, "Unwrapper%t|Old LSCM%x0|New LSCM%x1",xco,0,85,YIC, &CurrentUnwrapper, 0, 0, 0, 0, "Unwrapper");
-	
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;
 	

@@ -602,7 +602,7 @@ static void draw_image_view_icon(void)
 		BIF_icon_draw(xPos, 5.0, ICON_STICKY2_UVS);
 		xPos = 25.0;
 	}
-	else if(G.sima->flag & SI_LOCALSTICKY) {
+	else if(!(G.sima->flag & SI_LOCALSTICKY)) {
 		BIF_icon_draw(xPos, 5.0, ICON_STICKY_UVS);
 		xPos = 25.0;
 	}
@@ -1503,20 +1503,28 @@ void image_viewzoom(unsigned short event, int invert)
  */
 void image_home(void)
 {
-	int width, height;
+	int width, height, imgwidth, imgheight;
 	float zoomX, zoomY;
 
 	if (curarea->spacetype != SPACE_IMAGE) return;
-	if ((G.sima->image == 0) || (G.sima->image->ibuf == 0)) return;
+
+	if ((G.sima->image == 0) || (G.sima->image->ibuf == 0)) {
+		imgwidth = 256;
+		imgheight = 256;
+	}
+	else {
+		imgwidth = G.sima->image->ibuf->x;
+		imgheight = G.sima->image->ibuf->y;
+	}
 
 	/* Check if the image will fit in the image with zoom==1 */
 	width = curarea->winx;
 	height = curarea->winy;
-	if (((G.sima->image->ibuf->x >= width) || (G.sima->image->ibuf->y >= height)) && 
+	if (((imgwidth >= width) || (imgheight >= height)) && 
 		((width > 0) && (height > 0))) {
 		/* Find the zoom value that will fit the image in the image space */
-		zoomX = ((float)width) / ((float)G.sima->image->ibuf->x);
-		zoomY = ((float)height) / ((float)G.sima->image->ibuf->y);
+		zoomX = ((float)width) / ((float)imgwidth);
+		zoomY = ((float)height) / ((float)imgheight);
 		G.sima->zoom= MIN2(zoomX, zoomY);
 
 		image_zoom_power_of_two();

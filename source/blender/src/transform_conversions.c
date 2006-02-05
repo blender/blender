@@ -1786,7 +1786,7 @@ static void createTransUVs(TransInfo *t)
 		}
 	}
 
-	if (G.sima->flag & SI_LSCM_LIVE)
+	if (G.sima->flag & SI_LIVE_UNWRAP)
 		unwrap_lscm_live_begin();
 }
 

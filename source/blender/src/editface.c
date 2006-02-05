@@ -265,17 +265,14 @@ void calculate_uv_map(unsigned short mapmode)
 	float dx, dy, rotatematrix[4][4], radius= 1.0, min[3], cent[3], max[3];
 	float fac= 1.0, upangledeg= 0.0, sideangledeg= 90.0;
 	int i, b, mi, a, n;
-	/* settings from buttonswindow */
-	extern float uv_calc_radius, uv_calc_cubesize;
-	extern short uv_calc_mapdir, uv_calc_mapalign;
 
-	if(uv_calc_mapdir==1)  {
+	if(G.scene->toolsettings->uvcalc_mapdir==1)  {
 		upangledeg= 90.0;
 		sideangledeg= 0.0;
 	}
 	else {
 		upangledeg= 0.0;
-		if(uv_calc_mapalign==1) sideangledeg= 0.0;
+		if(G.scene->toolsettings->uvcalc_mapalign==1) sideangledeg= 0.0;
 		else sideangledeg= 90.0;
 	}
 
@@ -366,10 +363,10 @@ void calculate_uv_map(unsigned short mapmode)
 	case B_UVAUTO_SPHERE:
 		uv_calc_center_vector(cent, ob, me);
 			
-		if(mapmode==B_UVAUTO_CYLINDER) radius = uv_calc_radius;
+		if(mapmode==B_UVAUTO_CYLINDER) radius = G.scene->toolsettings->uvcalc_radius;
 
 		/* be compatible to the "old" sphere/cylinder mode */
-		if (uv_calc_mapdir== 2)
+		if (G.scene->toolsettings->uvcalc_mapdir== 2)
 			Mat4One(rotatematrix);
 		else 
 			uv_calc_map_matrix(rotatematrix,ob,upangledeg,sideangledeg,radius);
@@ -410,6 +407,7 @@ void calculate_uv_map(unsigned short mapmode)
 		short cox, coy;
 		float *loc= ob->obmat[3];
 		MVert *mv= me->mvert;
+		float cubesize = G.scene->toolsettings->uvcalc_cubesize;
 
 		tface= me->tface;
 		mface= me->mface;
@@ -426,23 +424,23 @@ void calculate_uv_map(unsigned short mapmode)
 				else if(no[1]>=no[0] && no[1]>=no[2]) coy= 2;
 				else { cox= 1; coy= 2; }
 				
-				tface->uv[0][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v1)->co[cox]);
-				tface->uv[0][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v1)->co[coy]);
+				tface->uv[0][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v1)->co[cox]);
+				tface->uv[0][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v1)->co[coy]);
 				dx = floor(tface->uv[0][0]);
 				dy = floor(tface->uv[0][1]);
 				tface->uv[0][0] -= dx;
 				tface->uv[0][1] -= dy;
-				tface->uv[1][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v2)->co[cox]);
-				tface->uv[1][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v2)->co[coy]);
+				tface->uv[1][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v2)->co[cox]);
+				tface->uv[1][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v2)->co[coy]);
 				tface->uv[1][0] -= dx;
 				tface->uv[1][1] -= dy;
-				tface->uv[2][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v3)->co[cox]);
-				tface->uv[2][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v3)->co[coy]);
+				tface->uv[2][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v3)->co[cox]);
+				tface->uv[2][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v3)->co[coy]);
 				tface->uv[2][0] -= dx;
 				tface->uv[2][1] -= dy;
 				if(mface->v4) {
-					tface->uv[3][0]= 0.5+0.5*uv_calc_cubesize*(loc[cox] + (mv+mface->v4)->co[cox]);
-					tface->uv[3][1]= 0.5+0.5*uv_calc_cubesize*(loc[coy] + (mv+mface->v4)->co[coy]);
+					tface->uv[3][0]= 0.5+0.5*cubesize*(loc[cox] + (mv+mface->v4)->co[cox]);
+					tface->uv[3][1]= 0.5+0.5*cubesize*(loc[coy] + (mv+mface->v4)->co[coy]);
 					tface->uv[3][0] -= dx;
 					tface->uv[3][1] -= dy;
 				}
@@ -1093,7 +1091,7 @@ void face_borderselect()
 #define UV_STD2_MAPPING 129
 #define UV_STD1_MAPPING 128
 #define UV_WINDOW_MAPPING 5
-#define UV_LSCM_MAPPING 6
+#define UV_UNWRAP_MAPPING 6
 #define UV_CYL_EX 32
 #define UV_SPHERE_EX 34
 
@@ -1113,7 +1111,7 @@ void uv_autocalc_tface()
 	              MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
 	              MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
 	              MENUSTRING("Sphere",        UV_SPHERE_MAPPING) "|"
-	              MENUSTRING("LSCM",          UV_LSCM_MAPPING) "|"
+	              MENUSTRING("Unwrap",          UV_UNWRAP_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
 	              MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
@@ -1150,7 +1148,7 @@ void uv_autocalc_tface()
 		calculate_uv_map(B_UVAUTO_STD1); break;
 	case UV_WINDOW_MAPPING:
 		calculate_uv_map(B_UVAUTO_WINDOW); break;
-	case UV_LSCM_MAPPING:
+	case UV_UNWRAP_MAPPING:
 		unwrap_lscm(); break;
 	}
 }

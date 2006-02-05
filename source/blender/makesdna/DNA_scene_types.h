@@ -308,7 +308,15 @@ typedef struct ToolSettings {
 	// Cylinder - Tube - Circle
 	short vertices;
 
-	char pad2,pad3;
+	// UV Calculation
+	short unwrapper;
+	float uvcalc_radius;
+	float uvcalc_cubesize;
+	short uvcalc_mapdir;
+	short uvcalc_mapalign;
+	short uvcalc_flag;
+
+	short pad2;
 } ToolSettings;
 
 typedef struct Scene {

@@ -1282,6 +1282,7 @@ void toggle_uv_select(int mode)
 	case 's':
 		G.sima->flag ^= SI_STICKYUVS; 
 		if (G.sima->flag & SI_STICKYUVS) G.sima->flag &= ~SI_LOCALSTICKY;
+		else G.sima->flag |= SI_LOCALSTICKY;
 		break;
 	case 'l': 
 		 G.sima->flag ^= SI_LOCALSTICKY;

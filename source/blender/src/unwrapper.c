@@ -67,8 +67,6 @@
 
 #include "parametrizer.h"
 
-short CurrentUnwrapper = 0;
-
 /* Implementation Least Squares Conformal Maps parameterization, based on
  * chapter 2 of:
  * Bruno Levy, Sylvain Petitjean, Nicolas Ray, Jerome Maillot. Least Squares
@@ -1143,7 +1141,7 @@ void unwrap_lscm(void)
 	Mesh *me;
 	int totgroup, *groups=NULL, a;
 
-	if (CurrentUnwrapper == 1) {
+	if (G.scene->toolsettings->unwrapper != 2) {
 		unwrap_lscm_new();
 		return;
 	}
@@ -1435,22 +1433,25 @@ void unwrap_lscm_new(void)
 {
 	Mesh *me;
 	ParamHandle *handle;
+	short abf = G.scene->toolsettings->unwrapper == 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 	
 	me= get_mesh(OBACT);
 	if(me==0 || me->tface==0) return;
 
-	handle = construct_param_handle(me, 0, 1);
+	handle = construct_param_handle(me, 0, fillholes);
 
-	param_lscm_begin(handle, PARAM_FALSE);
+	param_lscm_begin(handle, PARAM_FALSE, abf);
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 
 	param_pack(handle);
+
 	param_flush(handle);
 
 	param_delete(handle);
 
-	BIF_undo_push("UV lscm unwrap");
+	BIF_undo_push("UV unwrap");
 
 	object_uvs_changed(OBACT);
 
@@ -1465,11 +1466,12 @@ void minimize_stretch_tface_uv(void)
 	double lasttime;
 	short doit = 1, escape = 0, val, blend = 0;
 	unsigned short event = 0;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 	
 	me = get_mesh(OBACT);
 	if(me==0 || me->tface==0) return;
 
-	handle = construct_param_handle(me, 1, 0);
+	handle = construct_param_handle(me, 1, fillholes);
 
 	lasttime = PIL_check_seconds_timer();
 
@@ -1527,6 +1529,7 @@ void minimize_stretch_tface_uv(void)
 			headerprint(str);
 
 			lasttime = PIL_check_seconds_timer();
+			object_uvs_changed(OBACT);
 			if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
 			else force_draw(0);
 		}
@@ -1549,6 +1552,28 @@ void minimize_stretch_tface_uv(void)
 	allqueue(REDRAWIMAGE, 0);
 }
 
+void smooth_area_tface_uv(void)
+{
+	Mesh *me;
+	ParamHandle *handle;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
+	
+	me = get_mesh(OBACT);
+	if(me==0 || me->tface==0) return;
+
+	handle = construct_param_handle(me, 1, fillholes);
+	param_smooth_area(handle);
+	param_flush(handle);
+	param_delete(handle);
+
+	BIF_undo_push("UV smooth area");
+
+	object_uvs_changed(OBACT);
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
 /* LSCM live mode */
 
 static ParamHandle *liveHandle = NULL;
@@ -1556,21 +1581,23 @@ static ParamHandle *liveHandle = NULL;
 void unwrap_lscm_live_begin(void)
 {
 	Mesh *me;
+	short abf = G.scene->toolsettings->unwrapper == 1;
+	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 
-	if (CurrentUnwrapper == 0)
+	if (G.scene->toolsettings->unwrapper == 2)
 		return;
 	
 	me= get_mesh(OBACT);
 	if(me==0 || me->tface==0) return;
 
-	liveHandle = construct_param_handle(me, 0, 0);
+	liveHandle = construct_param_handle(me, 0, fillholes);
 
-	param_lscm_begin(liveHandle, PARAM_TRUE);
+	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
 }
 
 void unwrap_lscm_live_re_solve(void)
 {
-	if (CurrentUnwrapper == 0) {
+	if (G.scene->toolsettings->unwrapper == 2) {
 		unwrap_lscm();
 		return;
 	}
@@ -1581,13 +1608,15 @@ void unwrap_lscm_live_re_solve(void)
 	}
 }
 	
-void unwrap_lscm_live_end(void)
+void unwrap_lscm_live_end(short cancel)
 {
-	if (CurrentUnwrapper == 0)
+	if (G.scene->toolsettings->unwrapper == 2)
 		return;
 
 	if (liveHandle) {
 		param_lscm_end(liveHandle);
+		if (cancel)
+			param_flush_restore(liveHandle);
 		param_delete(liveHandle);
 		liveHandle = NULL;
 	}

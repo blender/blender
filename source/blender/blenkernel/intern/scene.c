@@ -208,7 +208,7 @@ Scene *add_scene(char *name)
 
 	sce->r.stereomode = 1;  // no stereo
 
-	sce->toolsettings = MEM_mallocN(sizeof(struct ToolSettings),"Tool Settings Struct");
+	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;
@@ -219,6 +219,10 @@ Scene *add_scene(char *name)
 	sce->toolsettings->rings = 32;
 	sce->toolsettings->vertices = 32;
 	sce->toolsettings->editbutflag = 1;
+	sce->toolsettings->uvcalc_radius = 1.0f;
+	sce->toolsettings->uvcalc_cubesize = 1.0f;
+	sce->toolsettings->uvcalc_mapdir = 1;
+	sce->toolsettings->uvcalc_mapalign = 1;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
