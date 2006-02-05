@@ -252,8 +252,6 @@ for dp, dn, df in os.walk('bin/.blender'):
         dotblendlist.append(dp+os.sep+f)
         dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
 
-Exit()
-
 dotblenderinstall = []
 for targetdir,srcfile in zip(dottargetlist, dotblendlist):
     td, tf = os.path.split(targetdir)
