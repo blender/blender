@@ -101,9 +101,9 @@ BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 WITH_BF_OPENGL = 'true'
 BF_OPENGL = '/usr/X11R6'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
-BF_OPENGL_LIB = 'GL GLU Xmu Xext X11 Xi'
+BF_OPENGL_LIB = 'GL GLU X11 Xi'
 BF_OPENGL_LIBPATH = '/usr/X11R6/lib'
-BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/lib/libGL.a ${BF_OPENGL}/lib/libGLU.a ${BF_OPENGL}/lib/libXmu.a ${BF_OPENGL}/lib/libXext.a ${BF_OPENGL}/lib/libX11.a ${BF_OPENGL}/lib/libXi.a'
+BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/lib/libGL.a ${BF_OPENGL}/lib/libGLU.a ${BF_OPENGL}/lib/libX11.a ${BF_OPENGL}/lib/libXi.a'
 ##
 ##CC = gcc
 ##CCC = g++
