@@ -931,9 +931,13 @@ static void do_render_final(Render *re)
 	re->i.starttime= PIL_check_seconds_timer();
 
 	if(re->r.scemode & R_DOSEQ) {
-		re->result->rect32= RE_callocN(sizeof(int)*re->rectx*re->recty, "rectot");
+		if (!re->result->rect32) {
+			re->result->rect32= RE_callocN(
+				sizeof(int)*re->rectx*re->recty, 
+				"do_render_final rectot");
+		}
 		if(!re->test_break()) 
-			do_render_seq(re->result);
+			do_render_seq(re->result, re->r.cfra);
 	}
 	else {
 		
@@ -967,7 +971,6 @@ static void do_render_final(Render *re)
 	re->stats_draw(&re->i);
 	
 	re->display_draw(re->result, NULL);
-	
 }
 
 
@@ -1078,13 +1081,77 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	}
 }
 
+static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
+{
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+	RenderResult rres;
+	
+	RE_GetResultImage(re, &rres);
+
+	/* write movie or image */
+	if(BKE_imtype_is_movie(scene->r.imtype)) {
+		int dofree = 0;
+		/* note; the way it gets 32 bits rects is weak... */
+		if(rres.rect32==NULL) {
+			rres.rect32= RE_mallocN(sizeof(int)
+						* rres.rectx
+						* rres.recty, 
+						"temp 32 bits rect");
+			dofree = 1;
+		}
+		RE_ResultGet32(re, rres.rect32);
+		mh->append_movie(scene->r.cfra, 
+				 rres.rect32, rres.rectx, rres.recty);
+		if(dofree) {
+			RE_freeN(rres.rect32);
+		}
+		printf("Append frame %d", scene->r.cfra);
+	} else {
+		ImBuf *ibuf= IMB_allocImBuf(rres.rectx, 
+					    rres.recty, scene->r.planes, 0, 0);
+		int ok;
+		
+		BKE_makepicstring(name, (scene->r.cfra));
+
+                /* if not exists, BKE_write_ibuf makes one */
+		ibuf->rect= rres.rect32;    
+
+		ibuf->rect_float= rres.rectf;
+		ibuf->zbuf_float= rres.rectz;
+		ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, 
+				   scene->r.subimtype, scene->r.quality);
+		if(ok==0) {
+			printf("Render error: cannot save %s\n", name);
+			G.afbreek=1;
+			return;
+		}
+		else printf("Saved: %s", name);
+		
+		/* optional preview images for exr */
+		if(ok && scene->r.imtype==R_OPENEXR 
+		   && (scene->r.subimtype & R_PREVIEW_JPG)) {
+			if(BLI_testextensie(name, ".exr")) 
+				name[strlen(name)-4]= 0;
+			BKE_add_image_extension(name, R_JPEG90);
+			BKE_write_ibuf(ibuf, name, R_JPEG90, 
+				       scene->r.subimtype, scene->r.quality);
+			printf("Saved: %s", name);
+		}
+		
+                /* imbuf knows which rects are not part of ibuf */
+		IMB_freeImBuf(ibuf);	
+	}
+	
+	BLI_timestr(re->i.lastframetime, name);
+	printf(" Time: %s\n", name);
+	fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
+}
 
 /* saves images to disk */
 void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
@@ -1096,63 +1163,36 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	/* confusing... scene->r or re->r? make a decision once! */
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		mh->start_movie(&scene->r, re->rectx, re->recty);
-	
-	for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
-		re->r.cfra= scene->r.cfra;	/* weak.... */
-		
-		do_render_final(re);
-		
-		/* write image or movie */
-		if(re->test_break()==0) {
-			RenderResult rres;
-			
-			RE_GetResultImage(re, &rres);
 
-			/* write movie or image */
-			if(BKE_imtype_is_movie(scene->r.imtype)) {
-				/* note; the way it gets 32 bits rects is weak... */
-				int dofree=0;
-				if(rres.rect32==NULL) {
-					rres.rect32= RE_mallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
-					dofree= 1;
-				}
-				RE_ResultGet32(re, rres.rect32);
-				mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
-				if(dofree) RE_freeN(rres.rect32);
-				printf("Append frame %d", scene->r.cfra);
-			}
-			else {
-				ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
-				int ok;
-				
-				BKE_makepicstring(name, (scene->r.cfra));
-				ibuf->rect= rres.rect32;		/* if not exists, BKE_write_ibuf makes one */
-				ibuf->rect_float= rres.rectf;
-				ibuf->zbuf_float= rres.rectz;
-				ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-				if(ok==0) {
-					printf("Render error: cannot save %s\n", name);
-					break;
-				}
-				else printf("Saved: %s", name);
-				
-				/* optional preview images for exr */
-				if(ok && scene->r.imtype==R_OPENEXR && (scene->r.subimtype & R_PREVIEW_JPG)) {
-					if(BLI_testextensie(name, ".exr")) name[strlen(name)-4]= 0;
-					BKE_add_image_extension(name, R_JPEG90);
-					BKE_write_ibuf(ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
-					printf("Saved: %s", name);
-				}
-				   
-				IMB_freeImBuf(ibuf);	/* imbuf knows which rects are not part of ibuf */
-			}
-			
-			BLI_timestr(re->i.lastframetime, name);
-			printf(" Time: %s\n", name);
-			fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
-		}
+	if (mh->get_next_frame) {
+		while (!(G.afbreek == 1)) {
+			int nf = mh->get_next_frame();
+			if (nf >= 0 
+			    && nf >= scene->r.sfra 
+			    && nf <= scene->r.efra) {
+				scene->r.cfra = nf;
+				re->r.cfra= scene->r.cfra; /* weak.... */
 		
-		if(G.afbreek==1) break;
+				do_render_final(re);
+
+				if(re->test_break() == 0) {
+					do_write_image_or_movie(re, scene, mh);
+				}
+			}
+		}
+	} else {
+		for(scene->r.cfra= sfra; 
+		    scene->r.cfra<=efra; scene->r.cfra++) {
+			re->r.cfra= scene->r.cfra;	   /* weak.... */
+		
+			do_render_final(re);
+
+			if(re->test_break() == 0) {
+				do_write_image_or_movie(re, scene, mh);
+			}
+		
+			if(G.afbreek==1) break;
+		}
 	}
 	
 	/* end movie */

@@ -64,3 +64,6 @@ ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
+ifeq ($(WITH_FFMPEG),true)
+        CPPFLAGS += -DWITH_FFMPEG
+endif
