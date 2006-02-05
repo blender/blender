@@ -34,6 +34,7 @@ def validate_arguments(args, bc):
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_OPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
+            'WITH_BF_FFMPEG',
             'WITH_BF_PLAYER',
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS',
             'REL_CFLAGS', 'REL_CCFLAGS',
@@ -156,6 +157,8 @@ def read_opts(cfg, args):
         ('BF_ZLIB_INC', 'ZLib include path', ''),
         ('BF_ZLIB_LIB', 'ZLib library', ''),
         ('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
+
+        (BoolOption('WITH_BF_FFMPEG', 'Use FFMpeg sequencer', 'false')),
 
         (BoolOption('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', 'true')),
 
