@@ -4111,8 +4111,10 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		tmp = PySequence_GetItem( args, i );
 		nverts = PySequence_Size( tmp );
 
-		if( nverts == 2 )	/* again, ignore 2-vert tuples */
-			break;
+		if( nverts == 2 ) {	/* again, ignore 2-vert tuples */
+			Py_DECREF( tmp );
+			continue;
+		}
 
 		/*
 		 * go through some contortions to guarantee the third and fourth
