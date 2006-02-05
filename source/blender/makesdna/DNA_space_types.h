@@ -146,7 +146,8 @@ typedef struct SpaceSeq {
 	View2D v2d;
 	
 	short mainb, zoom;
-	int pad2;
+        short chanshown;
+	short pad2;
 	
 } SpaceSeq;
 
@@ -560,5 +561,10 @@ typedef struct SpaceImaSel {
 #define TIME_ALL_BUTS_WIN		8
 #define TIME_WITH_SEQ_AUDIO		16
 
+/* sseq->mainb */
+#define SEQ_DRAW_SEQUENCE        0
+#define SEQ_DRAW_IMG_IMBUF       1
+#define SEQ_DRAW_IMG_WAVEFORM    2
+#define SEQ_DRAW_IMG_VECTORSCOPE 3
 
 #endif

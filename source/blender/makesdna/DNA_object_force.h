@@ -91,8 +91,8 @@ typedef struct SoftBody {
 	float infrict;		/* softbody inner springs friction */
  	
 	/* baking */
-	short sfra, efra;
-	short interval, pad2;
+	int sfra, efra;
+	int interval, pad2;
 	
 	SBVertex **keys;			/* array of size totpointkey */
 	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */

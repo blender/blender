@@ -48,19 +48,18 @@ typedef struct StripElem {
 	char name[80];
 	struct ImBuf *ibuf;
 	struct StripElem *se1, *se2, *se3;
-	short ok, nr;
-	int pad;
-
+	short ok;
+	unsigned char isneeded;
+	unsigned char pad;
+	int nr;
 } StripElem;
 
 typedef struct Strip {
 	struct Strip *next, *prev;
-	short rt, len, us, done;
+	int rt, len, us, done;
 	StripElem *stripdata;
 	char dir[160];
-	short orx, ory;
-	int pad;
-
+	int orx, ory;
 } Strip;
 
 
@@ -77,6 +76,9 @@ typedef struct PluginSeq {
 
 	float data[32];
 
+	void *instance_private_data;
+	void **current_private_data;
+
 	void (*doit)(void);
 
 	void (*callback)(void);
@@ -91,14 +93,14 @@ typedef struct Sequence {
 	void *lib;
 	char name[24];
 
-	short flag, type;			/*flags bitmap (see below) and the type of sequence*/
+	short flag, type;	/*flags bitmap (see below) and the type of sequence*/
 	int len;
 	int start, startofs, endofs;
 	int startstill, endstill;
 	int machine, depth;
-	int startdisp, enddisp;		/*starting and ending points in the sequence*/
+	int startdisp, enddisp;	/*starting and ending points in the sequence*/
 	float mul, handsize;
-	int sfra;				/* starting frame according to the timeline of the scene */
+	int sfra;		/* starting frame according to the timeline of the scene */
 
 	Strip *strip;
 	StripElem *curelem;
@@ -117,11 +119,12 @@ typedef struct Sequence {
 	ListBase seqbase;
 
 	struct bSound *sound;	/* the linked "bSound" object */
-	float level, pan;		/* level in dB (0=full), pan -1..1 */
-	int curpos;				/* last sample position in audio_fill() */
+        struct hdaudio *hdaudio; /* external hdaudio object */
+	float level, pan;	/* level in dB (0=full), pan -1..1 */
+	int curpos;		/* last sample position in audio_fill() */
 	float strobe;
 
-	void *effectdata;			/* Struct pointer for effect settings */
+	void *effectdata;	/* Struct pointer for effect settings */
 
 } Sequence;
 
@@ -135,8 +138,9 @@ typedef struct Editing {
 	ListBase *seqbasep;
 	ListBase seqbase;
 	ListBase metastack;
-	short flag, rt;
-	int pad;
+	short flag;
+	short pad;
+	int rt;
 } Editing;
 
 /* ************* Effect Variable Structs ********* */
@@ -165,13 +169,15 @@ typedef struct GlowVars {
 #define SEQ_MUTE		32
 #define SEQ_MAKE_PREMUL	64
 #define SEQ_REVERSE_FRAMES	128
+#define SEQ_IPO_FRAME_LOCKED    256
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0
 #define SEQ_META		1
 #define SEQ_SCENE		2
 #define SEQ_MOVIE		3
-#define SEQ_SOUND		4
+#define SEQ_RAM_SOUND		4
+#define SEQ_HD_SOUND            5
 
 #define SEQ_EFFECT		8
 #define SEQ_CROSS		8

@@ -59,10 +59,10 @@ typedef struct Base {
 } Base;
 
 typedef struct AviCodecData {
-	void			*lpFormat;			/* save format */
-	void			*lpParms;			/* compressor options */
-	unsigned int	cbFormat;			/* size of lpFormat buffer */
-	unsigned int	cbParms;			/* size of lpParms buffer */
+	void			*lpFormat;  /* save format */
+	void			*lpParms;   /* compressor options */
+	unsigned int	cbFormat;	    /* size of lpFormat buffer */
+	unsigned int	cbParms;	    /* size of lpParms buffer */
 
 	unsigned int	fccType;            /* stream type, for consistency */
 	unsigned int	fccHandler;         /* compressor */
@@ -78,14 +78,31 @@ typedef struct AviCodecData {
 
 typedef struct QuicktimeCodecData {
 
-	void			*cdParms;			/* codec/compressor options */
-	void			*pad;				/* padding */
+	void			*cdParms;   /* codec/compressor options */
+	void			*pad;	    /* padding */
 
-	unsigned int	cdSize;				/* size of cdParms buffer */
-	unsigned int	pad2;				/* padding */
+	unsigned int	cdSize;		    /* size of cdParms buffer */
+	unsigned int	pad2;		    /* padding */
 
 	char			qtcodecname[128];
 } QuicktimeCodecData;
+
+typedef struct FFMpegCodecData {
+        int type;
+        int codec;
+        int audio_codec;
+        int video_bitrate;
+        int audio_bitrate;
+        int gop_size;
+        int flags;
+
+	int rc_min_rate;
+	int rc_max_rate;
+	int rc_buffer_size;
+	int mux_packet_size;
+	int mux_rate;
+} FFMpegCodecData;
+
 
 typedef struct AudioData {
 	int mixrate;
@@ -125,8 +142,12 @@ typedef struct SceneRenderLayer {
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
+        struct FFMpegCodecData ffcodecdata;
 
-	short cfra, sfra, efra;	/* fames as in 'images' */
+	int cfra, sfra, efra;	/* fames as in 'images' */
+
+        short pad1;
+
 	short images, framapto, flag;
 	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
@@ -135,14 +156,13 @@ typedef struct RenderData {
 	float edgeR, edgeG, edgeB;
 	
 	short fullscreen, xplay, yplay, freqplay;	/* standalone player */
-	short depth, attrib, rt1, rt2;				/* standalone player */
+	short depth, attrib, rt1, rt2;			/* standalone player */
 
-	short stereomode;					/* standalone player stereo settings */
+	short stereomode;	/* standalone player stereo settings */
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
  	
- 	short filtertype;			/* filter is box, tent, gauss, mitch, etc */
-
+ 	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
 
 	short size, maximsize;	/* size in %, max in Kb */
 	/* from buttons: */
@@ -266,7 +286,7 @@ typedef struct RenderData {
 	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	char backbuf[160], pic[160], ftype[160];
-	
+
 } RenderData;
 
 
@@ -451,6 +471,8 @@ typedef struct Scene {
 #define R_RADHDR	21
 #define R_TIFF		22
 #define R_OPENEXR	23
+#define R_FFMPEG        24
+#define R_FRAMESERVER   25
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1
@@ -498,6 +520,8 @@ typedef struct Scene {
 #define AUDIO_SYNC		2
 #define AUDIO_SCRUB		4
 
+#define FFMPEG_MULTIPLEX_AUDIO  1
+#define FFMPEG_AUTOSPLIT_OUTPUT 2
 
 #ifdef __cplusplus
 }

@@ -161,6 +161,9 @@ typedef struct UserDef {
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	int textimeout, texcollectrate;
+        int memcachelimit;
+        short frameserverport;
+	short pad;
 	short obcenter_dia, pad1, pad2, pad3;
 } UserDef;
 
