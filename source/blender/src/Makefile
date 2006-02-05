@@ -81,10 +81,10 @@ CPPFLAGS += -I../radiosity/extern/include
 
 CPPFLAGS += -I$(SRCHOME)/gameengine/Physics/Sumo/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_MEMUTIL)/include
 
 CPPFLAGS += -I$(NAN_DECIMATION)/include
 CPPFLAGS += -I$(NAN_BSP)/include
-
 CPPFLAGS += -I$(NAN_OPENNL)/include
 
 CPPFLAGS += -I../readstreamglue
@@ -109,6 +109,10 @@ endif
 ifeq ($(WITH_QUICKTIME),true)
 	CPPFLAGS += -I../quicktime
 	CPPFLAGS += -DWITH_QUICKTIME
+endif
+
+ifeq ($(WITH_FFMPEG),true)
+        CPPFLAGS += -DWITH_FFMPEG
 endif
 
 ifeq ($(WITH_OPENEXR),true)

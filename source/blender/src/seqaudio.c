@@ -23,7 +23,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): intrr
+ * Contributor(s): intrr, Peter Schlaile
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -96,7 +96,7 @@ int audio_playing=0;
 /* local protos ------------------- */
 void audio_mixdown(void);
 
-static void makewavstring (char *string) 
+void makewavstring (char *string) 
 {
 	char txt[64];
 
@@ -166,7 +166,9 @@ void audio_mixdown()
 	oldcfra = CFRA;
 	audiostream_play(SFRA, 0, 1);
 	for (CFRA = SFRA, i = 0; (CFRA<=EFRA); 
-	     CFRA=(int) ( ((float)(audio_pos-64)/( G.scene->audio.mixrate*4 ))*(float)G.scene->r.frs_sec )) {
+	     CFRA=(int) ( ((float)(audio_pos-64)
+			   /( G.scene->audio.mixrate*4 ))
+			  *(float)G.scene->r.frs_sec )) {
 		if (cfra2 != CFRA) {
 			cfra2 = CFRA;
 			set_timecursor(CFRA);
@@ -176,9 +178,14 @@ void audio_mixdown()
 		if (ed) {
 			seq= ed->seqbasep->first;
 			while(seq) {
-				if ((seq->type == SEQ_SOUND) && (seq->ipo)
-				  &&(seq->startdisp<=G.scene->r.cfra+2) && (seq->enddisp>G.scene->r.cfra)) do_seq_ipo(seq);
-				seq= seq->next;
+				if ((seq->type == SEQ_RAM_SOUND
+				     || seq->type == SEQ_HD_SOUND) 
+				    && (seq->ipo)
+				    && (seq->startdisp<=G.scene->r.cfra+2) 
+				    && (seq->enddisp>G.scene->r.cfra)) {
+					do_seq_ipo(seq);
+				}
+				seq = seq->next;
 			}
 		}		
 		audio_fill(buf+i, NULL, 64);
@@ -198,6 +205,43 @@ void audio_mixdown()
 
 	return;
 }
+
+void audiostream_fill(Uint8 *mixdown, int len)
+{    
+	int oldcfra = CFRA;
+	Editing *ed;
+	Sequence *seq;
+	int i;
+
+	memset(mixdown, 0, len);
+
+	for (i = 0; i < len; i += 64) {
+		CFRA = (int) ( ((float)(audio_pos-64)
+				/( G.scene->audio.mixrate*4 ))
+			       *(float)G.scene->r.frs_sec );
+
+		ed = G.scene->ed;
+		if (ed) {
+			seq = ed->seqbasep->first;
+			while(seq) {
+				if ((seq->type == SEQ_RAM_SOUND
+				     || seq->type == SEQ_HD_SOUND) 
+				    && (seq->ipo)
+				    && (seq->startdisp <= G.scene->r.cfra + 2) 
+				    && (seq->enddisp > G.scene->r.cfra)) {
+					do_seq_ipo(seq);
+				}
+				seq = seq->next;
+			}
+		}		
+	
+		audio_fill(mixdown + i, NULL, 
+			   (len - i) > 64 ? 64 : (len - i));
+	}
+
+	CFRA = oldcfra;
+}
+
 
 static void audio_levels(Uint8 *buf, int len, float db, float facf, float pan)
 {
@@ -262,53 +306,120 @@ void audio_makestream(bSound *sound)
 	}	
 }
 
+static void audio_fill_ram_sound(Sequence *seq, void * mixdown, 
+				 Uint8 * sstream, int len)
+{
+	Uint8* cvtbuf;
+	bSound* sound;
+	float facf;
+
+	sound = seq->sound;
+	audio_makestream(sound);
+	if ((seq->curpos<sound->streamlen -len) && (seq->curpos>=0) &&
+	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
+	{
+		if(seq->ipo && seq->ipo->curve.first) facf = seq->facf0; else facf = 1.0;
+		cvtbuf = malloc(len);					
+		memcpy(cvtbuf, ((Uint8*)sound->stream)+(seq->curpos & (~3)), len);
+		audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
+		if (!mixdown) {
+			SDL_MixAudio(sstream, cvtbuf, len, SDL_MIX_MAXVOLUME);
+		} else {
+			SDL_MixAudio((Uint8*)mixdown, cvtbuf, len, SDL_MIX_MAXVOLUME);
+		}
+		free(cvtbuf);
+	}
+	seq->curpos += len;
+}
+
+static void audio_fill_hd_sound(Sequence *seq, 
+				void * mixdown, Uint8 * sstream, 
+				int len)
+{
+	Uint8* cvtbuf;
+	float facf;
+
+	if ((seq->curpos >= 0) &&
+	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
+	{
+		if(seq->ipo && seq->ipo->curve.first) 
+			facf = seq->facf0; else facf = 1.0;
+		cvtbuf = malloc(len);
+		
+		sound_hdaudio_extract(seq->hdaudio, (short*) cvtbuf,
+				      seq->curpos / 4,
+				      G.scene->audio.mixrate,
+				      2,
+				      len / 4);
+		
+		audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
+		if (!mixdown) {
+			SDL_MixAudio(sstream, 
+				     cvtbuf, len, SDL_MIX_MAXVOLUME);
+		} else {
+			SDL_MixAudio((Uint8*)mixdown, 
+				     cvtbuf, len, SDL_MIX_MAXVOLUME);
+		}
+		free(cvtbuf);
+	}
+	seq->curpos += len;
+}
+
+static void audio_fill_seq(Sequence * seq, void * mixdown,
+			   Uint8 *sstream, int len)
+{
+	while(seq) {
+		if (seq->type == SEQ_META) {
+			audio_fill_seq(seq->seqbase.first,
+				       mixdown, sstream, len);
+		}
+		if ( (seq->type == SEQ_RAM_SOUND) &&
+		     (seq->sound) &&
+		     (!(seq->flag & SEQ_MUTE))) {
+			audio_fill_ram_sound(seq, mixdown, sstream, len);
+		}
+		if ( (seq->type == SEQ_HD_SOUND) &&
+		     (!(seq->flag & SEQ_MUTE)))	{
+			if (!seq->hdaudio) {
+				char name[FILE_MAXDIR+FILE_MAXFILE];
+
+				strncpy(name, seq->strip->dir, 
+					FILE_MAXDIR-1);
+				strncat(name, 
+					seq->strip->stripdata->name, 
+					FILE_MAXFILE-1);
+				BLI_convertstringcode(name, G.sce, 
+						      G.scene->r.cfra);
+				
+				seq->hdaudio= sound_open_hdaudio(name);
+			}
+			if (seq->hdaudio) {
+				audio_fill_hd_sound(seq, mixdown, 
+						    sstream, len);
+			}
+		}
+		seq = seq->next;
+	}
+}
+
 void audio_fill(void *mixdown, Uint8 *sstream, int len)
 {    
-	static Editing *ed;
-	static Sequence *seq;
-	static Uint8* cvtbuf;
-	static bSound* sound;
-	static float facf;
+	Editing *ed;
+	Sequence *seq;
 
-
-	ed= G.scene->ed;
+	ed = G.scene->ed;
 	if((ed) && (!(G.scene->audio.flag & AUDIO_MUTE))) {
-		seq= ed->seqbasep->first;
-		while(seq) {
-			if ( (seq->type == SEQ_SOUND) &&
-			     (seq->sound) &&
-			     (!(seq->flag & SEQ_MUTE)))
-   			{
-   				sound = seq->sound;
-   				audio_makestream(sound);
-   				if ((seq->curpos<sound->streamlen -len) && (seq->curpos>=0) &&
-   				    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
-  				{
-					if(seq->ipo && seq->ipo->curve.first) facf = seq->facf0; else facf = 1.0;
-					cvtbuf = malloc(len);					
-					memcpy(cvtbuf, ((Uint8*)sound->stream)+(seq->curpos & (~3)), len);
-					audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
-					if (!mixdown) {
-						SDL_MixAudio(sstream, cvtbuf, len, SDL_MIX_MAXVOLUME);
-					} else {
-						SDL_MixAudio((Uint8*)mixdown, cvtbuf, len, SDL_MIX_MAXVOLUME);					
-					}
-					free(cvtbuf);						
-  				}
-    			seq->curpos += len;
-			}
-			seq= seq->next;
-		}	
+		seq = ed->seqbasep->first;
+		audio_fill_seq(seq, mixdown, sstream, len);
 	}
-
        
-    audio_pos += len;    
-    if (audio_scrub) { 
-    	audio_scrub--;
-    	if (!audio_scrub) {
-    		audiostream_stop();
-    	}
-    }
+	audio_pos += len;    
+	if (audio_scrub) { 
+		audio_scrub--;
+		if (!audio_scrub) {
+			audiostream_stop();
+		}
+	}
 }    
 
 static int audio_init(SDL_AudioSpec *desired)
@@ -317,14 +428,15 @@ static int audio_init(SDL_AudioSpec *desired)
 
 	SDL_CloseAudio();
 
-	obtained = (SDL_AudioSpec*)MEM_mallocN(sizeof(SDL_AudioSpec), "SDL_AudioSpec");
+	obtained = (SDL_AudioSpec*)MEM_mallocN(sizeof(SDL_AudioSpec), 
+					       "SDL_AudioSpec");
 
 	desired->callback=audio_fill;
 
-	if ( SDL_OpenAudio(desired, obtained) < 0 ){
-	  fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
-	  if (obtained) MEM_freeN(obtained);
-	  return 0;
+	if ( SDL_OpenAudio(desired, obtained) < 0 ) {
+		fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+		if (obtained) MEM_freeN(obtained);
+		return 0;
 	}
 	hardware_spec=obtained;
 	
@@ -334,26 +446,59 @@ static int audio_init(SDL_AudioSpec *desired)
 	return 1;
 }
 
+static int audiostream_play_seq(Sequence * seq, Uint32 startframe)
+{
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+	int have_sound = 0;
+
+	while(seq) {
+		if (seq->type == SEQ_META) {
+			if (audiostream_play_seq(
+				    seq->seqbase.first, startframe)) {
+				have_sound = 1;
+			}
+		}
+		if ((seq->type == SEQ_RAM_SOUND) && (seq->sound)) {
+			have_sound = 1;
+			seq->curpos = (int)( (((float)((float)startframe
+						       -(float)seq->start)
+					       / (float)G.scene->r.frs_sec)
+					      * ((float)G.scene->audio.mixrate)
+					      * 4 ));
+		}
+		if ((seq->type == SEQ_HD_SOUND)) {
+			have_sound = 1;
+			if (!seq->hdaudio) {
+				strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
+				strncat(name, seq->strip->stripdata->name, 
+					FILE_MAXFILE-1);
+				
+				seq->hdaudio = sound_open_hdaudio(name);
+			}
+			seq->curpos = (int)( (((float)((float)startframe
+						       - (float)seq->start)
+					       / (float)G.scene->r.frs_sec)
+					      * ((float)G.scene->audio.mixrate)
+					      * 4 ));
+		}
+		seq= seq->next;
+	}
+	return have_sound;
+}
+
 void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 {
 	static SDL_AudioSpec desired;
 	Editing *ed;
-	Sequence *seq;
-	bSound *sound=NULL;
+	int have_sound = 0;
 
 	ed= G.scene->ed;
 	if(ed) {
-		seq= ed->seqbasep->first;
-		while(seq) {
-			if ((seq->type == SEQ_SOUND) && (seq->sound)) {
-				sound = ((bSound*)seq->sound);
-				seq->curpos = (int)( (((float)((float)startframe-(float)seq->start)/(float)G.scene->r.frs_sec)*((float)G.scene->audio.mixrate)*4 ));
-			}
-			seq= seq->next;
-		}	
+		have_sound = 
+			audiostream_play_seq(ed->seqbasep->first, startframe);
 	}
 
-	if(sound) {
+	if(have_sound) {
 		/* this call used to be in startup */
 		sound_init_audio();
 	}
@@ -368,12 +513,14 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
    			U.mixbufsize = 0;	/* no audio */
    		}
    	}
-    audio_pos = ( ((int)( (((float)startframe)/(float)G.scene->r.frs_sec)*(G.scene->audio.mixrate)*4 )) & (~3) );		
-
-    audio_scrub = duration;
-    if (!mixdown) {
-    	SDL_PauseAudio(0);
-	    audio_playing++;
+	audio_pos = ( ((int)( (((float)startframe)
+			       /(float)G.scene->r.frs_sec)
+			      *(G.scene->audio.mixrate)*4 )) & (~3) );
+	
+	audio_scrub = duration;
+	if (!mixdown) {
+		SDL_PauseAudio(0);
+		audio_playing++;
 	}
 }
 
@@ -389,8 +536,8 @@ void audiostream_scrub(Uint32 frame)
 
 void audiostream_stop(void)
 {
-    SDL_PauseAudio(1);
-    audio_playing=0;
+	SDL_PauseAudio(1);
+	audio_playing=0;
 }
 
 int audiostream_pos(void) 

@@ -411,14 +411,14 @@ void time_buttons(ScrArea *sa)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, REDRAWALL,"Start:",	
+	uiDefButI(block, NUM, REDRAWALL,"Start:",	
 		xco,0, 4.5*XIC, YIC,
 		&G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 		"The start frame of the animation");
 
 	xco += 4.5*XIC;
 
-	uiDefButS(block, NUM, REDRAWALL,"End:",	
+	uiDefButI(block, NUM, REDRAWALL,"End:",	
 		xco,0,4.5*XIC,YIC,
 		&G.scene->r.efra,MINFRAMEF,MAXFRAMEF, 0, 0,
 		"The end  frame of the animation");
@@ -426,7 +426,7 @@ void time_buttons(ScrArea *sa)
 
 	xco += 4.5*XIC+16;
 	
-	uiDefButS(block, NUM, B_NEWFRAME, "",
+	uiDefButI(block, NUM, B_NEWFRAME, "",
 		xco,0,3.5*XIC,YIC,
 		&(G.scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
 		"Displays Current Frame of animation. Click to change.");

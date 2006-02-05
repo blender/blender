@@ -107,7 +107,8 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_IMAGE) return "IMAGE";
 	else if(seq->type==SEQ_SCENE) return "SCENE";
 	else if(seq->type==SEQ_MOVIE) return "MOVIE";
-	else if(seq->type==SEQ_SOUND) return "AUDIO";
+	else if(seq->type==SEQ_RAM_SOUND) return "AUDIO (RAM)";
+	else if(seq->type==SEQ_HD_SOUND) return "AUDIO (HD)";
 	else if(seq->type<SEQ_EFFECT) return seq->strip->dir;
 	else if(seq->type==SEQ_CROSS) return "CROSS";
 	else if(seq->type==SEQ_GAMCROSS) return "GAMMA CROSS";
@@ -169,7 +170,9 @@ static unsigned int seq_color(Sequence *seq)
 		return 0x0080B0;
 	case SEQ_PLUGIN:
 		return 0x906000;
-	case SEQ_SOUND:
+	case SEQ_HD_SOUND:
+		if(seq->flag & SEQ_MUTE) return 0x707060; else return 0x787850;
+	case SEQ_RAM_SOUND:
 		if(seq->flag & SEQ_MUTE) return 0x707060; else return 0x787850;
 	default:
 		return 0x906060;
@@ -325,7 +328,7 @@ void drawseq(Sequence *seq, ScrArea *sa)
 
 	cpack(body);
 	glRectf(x1,  y1,  x2,  y2);
-	if (seq->type == SEQ_SOUND) drawseqwave(seq, x1, y1, x2, y2, sa->winx);
+	if (seq->type == SEQ_RAM_SOUND) drawseqwave(seq, x1, y1, x2, y2, sa->winx);
 	EmbossBoxf(x1, y1, x2, y2, seq->flag & 1, dark, light);
 
 	v1[1]= y1;
@@ -405,7 +408,10 @@ void drawseq(Sequence *seq, ScrArea *sa)
 				else
 					sprintf(str, "%d %s: %d-%d", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine);
 			}
-			else if (seq->type == SEQ_SOUND) {
+			else if (seq->type == SEQ_RAM_SOUND) {
+				sprintf(str, "%d %s", seq->len, seq->strip->stripdata->name);
+			}
+			else if (seq->type == SEQ_HD_SOUND) {
 				sprintf(str, "%d %s", seq->len, seq->strip->stripdata->name);
 			}
 			else if (seq->type == SEQ_MOVIE) {
@@ -455,7 +461,7 @@ void drawseq(Sequence *seq, ScrArea *sa)
 		}
 	
 		/*Tint the color for wave display to show through */
-		if (seq->type == SEQ_SOUND) {
+		if (seq->type == SEQ_RAM_SOUND) {
 			glEnable( GL_BLEND );
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glGetFloatv(GL_CURRENT_COLOR, color_tint);
@@ -495,7 +501,7 @@ void drawseq(Sequence *seq, ScrArea *sa)
 			cpack(body);
 		}
 		/*Tint the color for wave display to show through */
-		if (seq->type == SEQ_SOUND) {
+		if (seq->type == SEQ_RAM_SOUND) {
 			glGetFloatv(GL_CURRENT_COLOR, color_tint);
 			glColor4f(color_tint[0], color_tint[1], color_tint[2], 0.7);
 		}
@@ -506,7 +512,7 @@ void drawseq(Sequence *seq, ScrArea *sa)
 			v2[0]-= seq->handsize; v2[1]= (y1+y2)/2.0; glVertex2fv(v2); v2[1]= y2;
 		glEnd();
 		
-		if (seq->type == SEQ_SOUND)
+		if (seq->type == SEQ_RAM_SOUND)
 			glDisable( GL_BLEND );
 
 		cpack(dark);
@@ -555,30 +561,40 @@ static void draw_image_seq(ScrArea *sa)
 	StripElem *se;
 	struct ImBuf *ibuf;
 	int x1, y1, rectx, recty;
+	int free_ibuf = 0;
 	float zoom;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
-	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
-	recty= (G.scene->r.size*G.scene->r.ysch)/100;
-	
-	ibuf= (ImBuf *)give_ibuf_seq(rectx, recty, (G.scene->r.cfra));
-
-	if(special_seq_update) {
-       se = special_seq_update->curelem;
-       if(se) {
-           if(se->ok==2) {
-               if(se->se1)
-                   ibuf= se->se1->ibuf;
-           }
-           else ibuf= se->ibuf;
-       }
-	}
-	if(ibuf==0 || ibuf->rect==0) return;
 
 	sseq= sa->spacedata.first;
 	if(sseq==0) return;
+
+	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
+	recty= (G.scene->r.size*G.scene->r.ysch)/100;
+
+	ibuf= (ImBuf *)give_ibuf_seq(rectx, recty,
+				     (G.scene->r.cfra), sseq->chanshown);
+
+	if(special_seq_update) {
+		se = special_seq_update->curelem;
+		if(se) {
+			if(se->ok==2) {
+				if(se->se1)
+					ibuf= se->se1->ibuf;
+			}
+			else ibuf= se->ibuf;
+		}
+	}
+	if(ibuf==0 || ibuf->rect==0) return;
+
+	if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM) {
+		ibuf = make_waveform_view_from_ibuf(ibuf);
+		free_ibuf = 1;
+	} else if (sseq->mainb == SEQ_DRAW_IMG_VECTORSCOPE) {
+		ibuf = make_vectorscope_view_from_ibuf(ibuf);
+		free_ibuf = 1;
+	}
 
 	if (sseq->zoom > 0) zoom = sseq->zoom;
 	else zoom = -1.0/sseq->zoom;
@@ -593,6 +609,10 @@ static void draw_image_seq(ScrArea *sa)
 	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	
 	glPixelZoom(1.0, 1.0);
+
+	if (free_ibuf) {
+		IMB_freeImBuf(ibuf);
+	}
 
 	sa->win_swap= WIN_BACK_OK;
 }
@@ -679,7 +699,8 @@ static void draw_extra_seqinfo(void)
 		glRasterPos3f(xco,  0.3, 0.0);
 		BMF_DrawString(G.font, str);
 	}
-	else if(last_seq->type==SEQ_SOUND) {
+	else if(last_seq->type==SEQ_RAM_SOUND
+		|| last_seq->type == SEQ_HD_SOUND) {
 
 		sta= last_seq->startofs;
 		end= last_seq->len-1-last_seq->endofs;
@@ -790,44 +811,59 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
 
 	}
-	else if(last_seq->type==SEQ_SOUND) {
+	else if(last_seq->type==SEQ_RAM_SOUND || 
+		last_seq->type==SEQ_HD_SOUND) {
 
 		uiDefBut(block, LABEL, 0, "Type: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
-		uiDefButBitS(block, TOG, SEQ_MUTE, B_NOP, "Mute", 10,90,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Gain (dB):", 10,70,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Pan:", 	10,50,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
+		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
+			     SEQ_BUT_RELOAD, "IPO Frame locked",
+			     10,90,150,19, &last_seq->flag, 
+			     0.0, 1.0, 0, 0, 
+			     "Lock the IPO coordinates to the "
+			     "global frame counter.");
+
+		uiDefButBitS(block, TOG, SEQ_MUTE, B_NOP, "Mute", 10,70,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
+		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
+		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Pan:", 	10,30,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
 	}
 	else if(last_seq->type>=SEQ_EFFECT) {
 		uiDefBut(block, LABEL, 0, "Type: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
+		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
+			     SEQ_BUT_RELOAD, "IPO Frame locked",
+			     10,90,150,19, &last_seq->flag, 
+			     0.0, 1.0, 0, 0, 
+			     "Lock the IPO coordinates to the "
+			     "global frame counter.");
+
 		if(last_seq->type==SEQ_WIPE){
 			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
 			char formatstring[256];
 			strncpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5", 255);
-			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,90,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
-			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,65,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
+			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,65,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
+			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,40,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
 			switch(wipe->wipetype){ /*Skip Types that do not require angle*/
 				case DO_IRIS_WIPE:
 				case DO_CLOCK_WIPE:
 				break;
 				
 				default:
-					uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Angle:",	10,40,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
+					uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Angle:",	10,15,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
 			}
-			uiDefButS(block, TOG,SEQ_BUT_EFFECT,"Wipe In",  10,15,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
+			uiDefButS(block, TOG,SEQ_BUT_EFFECT,"Wipe In",  10,-10,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
 		}
 		else if(last_seq->type==SEQ_GLOW){
 			GlowVars *glow = (GlowVars *)last_seq->effectdata;
 
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,90,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:", 	10,70,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,50,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,30,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
-			uiDefButI(block, NUM, B_NOP, "Quality:", 10,10,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
-			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-10,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,70,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:", 	10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,30,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,10,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
+			uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, -15.0, 0, 0, "Accuracy of the blur effect");
+			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
 		}
 
 	}
@@ -869,7 +905,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	ed= G.scene->ed;
 
 	sseq= curarea->spacedata.first;
-	if(sseq->mainb==1) {
+	if(sseq->mainb) {
 		draw_image_seq(curarea);
 		return;
 	}

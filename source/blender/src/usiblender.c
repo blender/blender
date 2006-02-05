@@ -44,6 +44,7 @@
 #include <unistd.h> /* getpid */
 #endif
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 #include "BMF_Api.h"
 #ifdef INTERNATIONAL
@@ -295,6 +296,14 @@ static void init_userdef_file(void)
 		U.texcollectrate = 60;
 		U.textimeout = 120;
 	}
+	if (U.memcachelimit <= 0) {
+		U.memcachelimit = 32;
+	}
+	if (U.frameserverport == 0) {
+		U.frameserverport = 8080;
+	}
+
+	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 	
 	reset_autosave();
 	

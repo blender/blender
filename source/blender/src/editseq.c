@@ -389,7 +389,7 @@ void mouse_select_seq(void)
 				strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
 			}
 		} else
-		if (seq->type == SEQ_SOUND) {
+		if (seq->type == SEQ_HD_SOUND || seq->type == SEQ_RAM_SOUND) {
 			if(seq->strip) {
 				strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
 			}
@@ -583,7 +583,8 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
 }
 
-static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
+static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile, 
+					  int cfra, int machine)
 {
 	Sequence *seq;
 	bSound *sound;
@@ -617,7 +618,7 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 	/* make seq */
 	seq= alloc_sequence(cfra, machine);
 	seq->len= totframe;
-	seq->type= SEQ_SOUND;
+	seq->type= SEQ_RAM_SOUND;
 	seq->sound = sound;
 
 	calc_sequence(seq);
@@ -651,6 +652,67 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 
 	return seq;
 }
+
+static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
+{
+	Sequence *seq;
+	struct hdaudio *hdaudio;
+	Strip *strip;
+	StripElem *se;
+	int totframe, a;
+	char name[160], rel[160];
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+
+	totframe= 0;
+
+	strncpy(str, sfile->dir, FILE_MAXDIR-1);
+	strncat(str, sfile->file, FILE_MAXDIR-1);
+
+	/* is it a sound file? */
+	hdaudio = sound_open_hdaudio(str);
+	if(hdaudio==0) {
+		error("The selected file is not a sound file");
+		return;
+	}
+
+	totframe= sound_hdaudio_get_duration(hdaudio, G.scene->r.frs_sec);
+
+	/* make seq */
+	seq= alloc_sequence(cfra, machine);
+	seq->len= totframe;
+	seq->type= SEQ_HD_SOUND;
+	seq->hdaudio= hdaudio;
+
+	calc_sequence(seq);
+	
+	if(sfile->flag & FILE_STRINGCODE) {
+		strcpy(name, sfile->dir);
+		strcpy(rel, G.sce);
+		BLI_makestringcode(rel, name);
+	} else {
+		strcpy(name, sfile->dir);
+	}
+
+	/* strip and stripdata */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len= totframe;
+	strip->us= 1;
+	strncpy(strip->dir, name, FILE_MAXDIR-1);
+	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
+
+	/* name movie in first strip */
+	strncpy(se->name, sfile->file, FILE_MAXFILE-1);
+
+	for(a=1; a<=totframe; a++, se++) {
+		se->ok= 2;
+		se->ibuf = 0;
+		se->nr= a;
+	}
+
+	/* last active name */
+	strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
+}
+
 
 static void add_image_strips(char *name)
 {
@@ -749,7 +811,7 @@ static void add_movie_strip(char *name)
 
 }
 
-static void add_sound_strip(char *name)
+static void add_sound_strip_ram(char *name)
 {
 	SpaceFile *sfile;
 	float x, y;
@@ -769,11 +831,39 @@ static void add_sound_strip(char *name)
 
 	waitcursor(1);
 
-	sfile_to_snd_sequence(sfile, cfra, machine);
+	sfile_to_ramsnd_sequence(sfile, cfra, machine);
 
 	waitcursor(0);
 
-	BIF_undo_push("Add sound strip Sequencer");
+	BIF_undo_push("Add ram sound strip Sequencer");
+	transform_seq('g', 0);
+}
+
+static void add_sound_strip_hd(char *name)
+{
+	SpaceFile *sfile;
+	float x, y;
+	int cfra, machine;
+	short mval[2];
+
+	deselect_all_seq();
+
+	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
+	if (sfile==0) return;
+
+	/* where will it be */
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+	cfra= (int)(x+0.5);
+	machine= (int)(y+0.5);
+
+	waitcursor(1);
+
+	sfile_to_hdsnd_sequence(sfile, cfra, machine);
+
+	waitcursor(0);
+
+	BIF_undo_push("Add hd sound strip Sequencer");
 	transform_seq('g', 0);
 }
 
@@ -901,7 +991,12 @@ static int add_seq_effect(int type)
 	seq= ed->seqbasep->first;
 	while(seq) {
 		if(seq->flag & SELECT) {
-			if (seq->type == SEQ_SOUND) { error("Can't apply effects to audio sequence strips"); return 0; }
+			if (seq->type == SEQ_RAM_SOUND
+			    || seq->type == SEQ_HD_SOUND) { 
+				error("Can't apply effects to "
+				      "audio sequence strips");
+				return 0;
+			}
 			if(seq != seq2) {
 				if(seq1==0) seq1= seq;
 				else if(seq3==0) seq3= seq;
@@ -1019,8 +1114,11 @@ void add_sequence(int type)
 		case SEQ_MOVIE:
 			event = 102;
 			break;
-		case SEQ_SOUND:
+		case SEQ_RAM_SOUND:
 			event = 103;
+			break;
+		case SEQ_HD_SOUND:
+			event = 104;
 			break;
 		case SEQ_PLUGIN:
 			event = 10;
@@ -1061,7 +1159,7 @@ void add_sequence(int type)
 		}
 	}
 	else {
-		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio%x103|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Wipe%x13|Glow%x14");
+		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio (RAM)%x103|Audio (HD)%x104|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Wipe%x13|Glow%x14");
 	}
 
 	if(event<1) return;
@@ -1146,7 +1244,11 @@ void add_sequence(int type)
 		break;
 	case 103:
 		if (!last_sounddir[0]) strncpy(last_sounddir, U.sounddir, FILE_MAXDIR-1);
-		activate_fileselect(FILE_SPECIAL, "Select Wav", last_sounddir, add_sound_strip);
+		activate_fileselect(FILE_SPECIAL, "Select Audio (RAM)", last_sounddir, add_sound_strip_ram);
+		break;
+	case 104:
+		if (!last_sounddir[0]) strncpy(last_sounddir, U.sounddir, FILE_MAXDIR-1);
+		activate_fileselect(FILE_SPECIAL, "Select Audio (HD)", last_sounddir, add_sound_strip_hd);
 		break;
 	}
 }
@@ -1242,7 +1344,9 @@ static void recurs_del_seq(ListBase *lb)
 	while(seq) {
 		seqn= seq->next;
 		if(seq->flag & SELECT) {
-			if(seq->type==SEQ_SOUND && seq->sound) seq->sound->id.us--;
+			if(seq->type==SEQ_RAM_SOUND && seq->sound) 
+				seq->sound->id.us--;
+
 			BLI_remlink(lb, seq);
 			if(seq==last_seq) last_seq= 0;
 			if(seq->type==SEQ_META) recurs_del_seq(&seq->seqbase);
@@ -1370,7 +1474,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
 			}
-			else if(seq->type == SEQ_SOUND) {
+			else if(seq->type == SEQ_RAM_SOUND) {
 				seqn= MEM_dupallocN(seq);
 				seq->newseq= seqn;
 				BLI_addtail(new, seqn);
@@ -1378,6 +1482,32 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				seqn->strip= MEM_dupallocN(seq->strip);
 				seqn->anim= 0;
 				seqn->sound->id.us++;
+				if(seqn->ipo) seqn->ipo->id.us++;
+
+				if(seqn->len>0) {
+					seqn->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+					/* copy first elem */
+					*seqn->strip->stripdata= *seq->strip->stripdata;
+					se= seqn->strip->stripdata;
+					a= seq->len;
+					while(a--) {
+						se->ok= 1;
+						se++;
+					}
+				}
+
+				seq->flag &= SEQ_DESEL;
+				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
+			}
+			else if(seq->type == SEQ_HD_SOUND) {
+				seqn= MEM_dupallocN(seq);
+				seq->newseq= seqn;
+				BLI_addtail(new, seqn);
+
+				seqn->strip= MEM_dupallocN(seq->strip);
+				seqn->anim= 0;
+				seqn->hdaudio
+					= sound_copy_hdaudio(seq->hdaudio);
 				if(seqn->ipo) seqn->ipo->id.us++;
 
 				if(seqn->len>0) {
@@ -1574,7 +1704,10 @@ void make_meta(void)
 	while(seq) {
 		if(seq->flag & SELECT) {
 			tot++;
-			if (seq->type == SEQ_SOUND) { error("Can't make Meta Strip from audio"); return; }
+			if (seq->type == SEQ_RAM_SOUND) { 
+				error("Can't make Meta Strip from audio"); 
+				return; 
+			}
 		}
 		seq= seq->next;
 	}
@@ -1860,7 +1993,7 @@ void transform_seq(int mode, int context)
 									seq->startofs= ix;
 									seq->startstill= 0;
 								}
-								else if (seq->type != SEQ_SOUND) {
+								else if (seq->type != SEQ_RAM_SOUND && seq->type != SEQ_HD_SOUND) {
 									seq->startstill= -ix;
 									seq->startofs= 0;
 								}
@@ -1883,7 +2016,7 @@ void transform_seq(int mode, int context)
 									seq->endofs= -ix;
 									seq->endstill= 0;
 								}
-								else if (seq->type != SEQ_SOUND) {
+								else if (seq->type != SEQ_RAM_SOUND && seq->type != SEQ_HD_SOUND) {
 									seq->endstill= ix;
 									seq->endofs= 0;
 								}
@@ -2061,7 +2194,7 @@ void clever_numbuts_seq(void)
 			allqueue(REDRAWSEQ, 0);
 		}
 	}
-	else if(last_seq->type==SEQ_SOUND) {
+	else if(last_seq->type==SEQ_RAM_SOUND || last_seq->type==SEQ_HD_SOUND) {
 
 		add_numbut(0, TEX, "Name:", 0.0, 21.0, last_seq->name+2, 0);
 		add_numbut(1, NUM|FLO, "Gain (dB):", -96.0, 6.0, &last_seq->level, 0);

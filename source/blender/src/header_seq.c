@@ -248,9 +248,12 @@ static void do_seq_addmenu(void *arg, int event)
 		add_sequence(SEQ_MOVIE);
 		break;
 	case 2:
-		add_sequence(SEQ_SOUND);
+		add_sequence(SEQ_RAM_SOUND);
 		break;
 	case 3:
+		add_sequence(SEQ_HD_SOUND);
+		break;
+	case 4:
 		add_sequence(SEQ_SCENE);
 		break;
 	}
@@ -268,8 +271,9 @@ static uiBlock *seq_addmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (RAM)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 
@@ -479,15 +483,33 @@ void seq_buttons()
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 
-	/* IMAGE */
-	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Shows the sequence output image preview");
+	/* CHANNEL shown in 3D preview */
+	uiDefButS(block, NUM, B_REDR, "C",
+		  xco += XIC, 0, 3.5 * XIC,YIC,
+		  &sseq->chanshown, 0, MAXSEQ, 0, 0,
+		  "Channel shown in 3D preview. Click to change.");
 
-	/* ZOOM and BORDER */
 	xco+= 8;
+	xco += 3.5*XIC;
+
+	/* IMAGE */
+	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SEQ_SEQUENCER, 
+			  "Image Preview: %t" 
+			  "|Sequence %x0"
+			  "|Image Preview %x1"
+			  "|Luma Waveform %x2"
+			  "|Chroma Vectorscope %x3",
+			  xco,0,XIC+10,YIC, &sseq->mainb, 0.0, 3.0, 
+			  0, 0, 
+			  "Shows the sequence output image preview");
+	xco+=10;
+	/* ZOOM and BORDER */
+	xco+= 16;
 	uiBlockBeginAlign(block);
 	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
 	uiBlockEndAlign(block);
+
 
 	/* CLEAR MEM */
 	xco+= 8;

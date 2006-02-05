@@ -79,6 +79,7 @@
 
 #include "DNA_image_types.h"
 #include "BKE_writeavi.h"
+#include "BKE_writeffmpeg.h"
 #include "BKE_image.h"
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
@@ -92,6 +93,18 @@
 #include "quicktime_export.h"
 #endif
 
+#ifdef WITH_FFMPEG
+
+#include <ffmpeg/avcodec.h> /* for PIX_FMT_* and CODEC_ID_* */
+#include <ffmpeg/avformat.h>
+
+static int ffmpeg_preset_sel = 0;
+
+extern int is_container(int);
+
+extern void makeffmpegstring(char* string);
+
+#endif
 
 /* here the calls for scene buttons
    - render
@@ -523,12 +536,21 @@ void playback_anim(void)
 {	
 	char file[FILE_MAXDIR+FILE_MAXFILE];
 	
+	switch (G.scene->r.imtype) {
 #ifdef WITH_QUICKTIME
-	if(G.scene->r.imtype == R_QUICKTIME)
+	case R_QUICKTIME:
 		makeqtstring(file);
-	else
+		break;
 #endif
+#ifdef WITH_FFMPEG
+	case R_FFMPEG:
+		makeffmpegstring(file);
+		break;
+#endif
+	default:
 		makeavistring(&G.scene->r, file);
+		break;
+	}
 	if(BLI_exist(file)) {
 		run_playanim(file);
 	}
@@ -603,7 +625,9 @@ void do_render_panels(unsigned short event)
 		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
-		
+#ifdef WITH_FFMPEG
+		G.scene->r.ffcodecdata.gop_size = 15;
+#endif		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set PAL");
 		allqueue(REDRAWBUTSSCENE, 0);
@@ -612,6 +636,20 @@ void do_render_panels(unsigned short event)
 
 	case B_FILETYPEMENU:
 		allqueue(REDRAWBUTSSCENE, 0);
+#ifdef WITH_FFMPEG
+                if (G.scene->r.imtype == R_FFMPEG) {
+                       if (G.scene->r.ffcodecdata.codec <= 0) 
+			       G.scene->r.ffcodecdata.codec = CODEC_ID_MPEG4;
+                       if (G.scene->r.ffcodecdata.audio_codec <= 0) 
+			       G.scene->r.ffcodecdata.audio_codec 
+				       = CODEC_ID_MP2;
+                       if (G.scene->r.ffcodecdata.video_bitrate <= 1) 
+			       G.scene->r.ffcodecdata.video_bitrate = 1152;
+                       if (G.scene->r.ffcodecdata.audio_bitrate <= 0) 
+			       G.scene->r.ffcodecdata.audio_bitrate = 128;
+                       break;
+                }
+#endif
 #if defined (_WIN32) || defined (__APPLE__)
 		// fall through to codec settings if this is the first
 		// time R_AVICODEC is selected for this scene.
@@ -687,6 +725,9 @@ void do_render_panels(unsigned short event)
 		G.scene->r.frs_sec= 25;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
+#ifdef WITH_FFMPEG
+		G.scene->r.ffcodecdata.gop_size = 15;
+#endif		
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set PAL 16/9");
@@ -772,6 +813,9 @@ void do_render_panels(unsigned short event)
 		G.scene->r.frs_sec= 30;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 2;
+#ifdef WITH_FFMPEG
+		G.scene->r.ffcodecdata.gop_size = 18;
+#endif		
 		
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set NTSC");
@@ -960,6 +1004,85 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	return block;
 }
 
+#ifdef WITH_FFMPEG
+
+static char* ffmpeg_format_pup(void) 
+{
+	static char string[2048];
+	char formatstring[2048];
+#if 0
+       int i = 0;
+       int stroffs = 0;
+       AVOutputFormat* next = first_oformat;
+       formatstring = "FFMpeg format: %%t";
+      sprintf(string, formatstring);
+       formatstring = "|%s %%x%d";
+       /* FIXME: This should only be generated once */
+       while (next != NULL) {
+               if (next->video_codec != CODEC_ID_NONE && !(next->flags & AVFMT_NOFILE)) {
+                       sprintf(string+stroffs, formatstring, next->name, i++);
+                       stroffs += strlen(string+stroffs);
+               }
+               next = next->next;
+       }
+       return string;
+#endif
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       sprintf(string, formatstring,
+               "MPEG-1", FFMPEG_MPEG1,
+               "MPEG-2", FFMPEG_MPEG2,
+               "MPEG-4", FFMPEG_MPEG4,
+               "AVI",    FFMPEG_AVI,
+               "Quicktime", FFMPEG_MOV,
+               "DV", FFMPEG_DV);
+       return string;
+}
+
+static char* ffmpeg_preset_pup(void) 
+{
+	static char string[2048];
+	char formatstring[2048];
+
+       strcpy(formatstring, "FFMpeg preset: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       sprintf(string, formatstring,
+               "", FFMPEG_PRESET_NONE,
+               "DVD", FFMPEG_PRESET_DVD,
+               "SVCD", FFMPEG_PRESET_SVCD,
+               "VCD", FFMPEG_PRESET_VCD,
+               "DV", FFMPEG_PRESET_DV);
+       return string;
+}
+
+
+static char* ffmpeg_codec_pup(void) {
+       static char string[2048];
+       char formatstring[2048];
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       sprintf(string, formatstring,
+               "MPEG1", CODEC_ID_MPEG1VIDEO,
+               "MPEG2", CODEC_ID_MPEG2VIDEO,
+               "MPEG4(divx)", CODEC_ID_MPEG4,
+               "HuffYUV", CODEC_ID_HUFFYUV,
+	       "DV", CODEC_ID_DVVIDEO);
+       return string;
+
+}
+
+static char* ffmpeg_audio_codec_pup(void) {
+       static char string[2048];
+       char formatstring[2048];
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       sprintf(string, formatstring,
+               "MP2", CODEC_ID_MP2,
+               "MP3", CODEC_ID_MP3,
+               "AC3", CODEC_ID_AC3,
+               "AAC", CODEC_ID_AAC,
+	       "PCM", CODEC_ID_PCM_S16LE);
+       return string;
+
+}
+
+#endif
 
 static char *imagetype_pup(void)
 {
@@ -981,6 +1104,11 @@ static char *imagetype_pup(void)
 	strcat(formatstring, "|%s %%x%d");	// add space for AVI Codec
 #endif
 
+#ifdef WITH_FFMPEG
+       strcat(formatstring, "|%s %%x%d"); // Add space for ffmpeg
+#endif
+       strcat(formatstring, "|%s %%x%d"); // Add space for frameserver
+
 #ifdef WITH_QUICKTIME
 	if(G.have_quicktime)
 		strcat(formatstring, "|%s %%x%d");	// add space for Quicktime
@@ -988,6 +1116,10 @@ static char *imagetype_pup(void)
 
 	if(G.have_quicktime) {
 		sprintf(string, formatstring,
+			"Frameserver",   R_FRAMESERVER,
+#ifdef WITH_FFMPEG
+                       "FFMpeg",         R_FFMPEG,
+#endif
 			"AVI Raw",        R_AVIRAW,
 			"AVI Jpeg",       R_AVIJPEG,
 #ifdef _WIN32
@@ -1011,6 +1143,10 @@ static char *imagetype_pup(void)
 		);
 	} else {
 		sprintf(string, formatstring,
+			"Frameserver",   R_FRAMESERVER,
+#ifdef WITH_FFMPEG
+                       "FFMpeg",         R_FFMPEG,
+#endif
 			"AVI Raw",        R_AVIRAW,
 			"AVI Jpeg",       R_AVIJPEG,
 #ifdef _WIN32
@@ -1230,10 +1366,163 @@ static void render_panel_anim(void)
 	uiDefButS(block, NUM, B_RTCHANGED, "rt:",789,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation");
-	uiDefButS(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "The end  frame of the animation");
+	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation");
+	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "The end  frame of the animation");
 	uiBlockEndAlign(block);
 }
+
+#ifdef WITH_FFMPEG
+static void render_panel_ffmpeg_video(void)
+{
+       int yofs;
+       int xcol1;
+       int xcol2;
+       uiBlock *block;
+       block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_video", 
+			  UI_EMBOSS, UI_HELV, curarea->win);
+       if (uiNewPanel(curarea, block, "Video", "Render", 960, 0, 318, 204) 
+	   == 0) return;
+
+       if (ffmpeg_preset_sel != 0) {
+	       int isntsc = (G.scene->r.frs_sec != 25);
+	       switch (ffmpeg_preset_sel) {
+	       case FFMPEG_PRESET_VCD:
+		       G.scene->r.ffcodecdata.type = FFMPEG_MPEG1;
+		       G.scene->r.ffcodecdata.video_bitrate = 1150;
+		       G.scene->r.xsch = 352;
+		       G.scene->r.ysch = isntsc ? 240 : 288;
+		       G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
+		       G.scene->r.ffcodecdata.rc_max_rate = 1150;
+		       G.scene->r.ffcodecdata.rc_min_rate = 1150;
+		       G.scene->r.ffcodecdata.rc_buffer_size = 40*8;
+		       G.scene->r.ffcodecdata.mux_packet_size = 2324;
+		       G.scene->r.ffcodecdata.mux_rate = 2352 * 75 * 8;
+		       break;
+	       case FFMPEG_PRESET_SVCD:
+		       G.scene->r.ffcodecdata.type = FFMPEG_MPEG2;
+		       G.scene->r.ffcodecdata.video_bitrate = 2040;
+		       G.scene->r.xsch = 480;
+		       G.scene->r.ysch = isntsc ? 480 : 576;
+		       G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
+		       G.scene->r.ffcodecdata.rc_max_rate = 2516;
+		       G.scene->r.ffcodecdata.rc_min_rate = 0;
+		       G.scene->r.ffcodecdata.rc_buffer_size = 224*8;
+		       G.scene->r.ffcodecdata.mux_packet_size = 2324;
+		       G.scene->r.ffcodecdata.mux_rate = 0;
+	       
+		       break;
+	       case FFMPEG_PRESET_DVD:
+		       G.scene->r.ffcodecdata.type = FFMPEG_MPEG2;
+		       G.scene->r.ffcodecdata.video_bitrate = 6000;
+		       G.scene->r.xsch = 720;
+		       G.scene->r.ysch = isntsc ? 480 : 576;
+		       G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
+		       G.scene->r.ffcodecdata.rc_max_rate = 9000;
+		       G.scene->r.ffcodecdata.rc_min_rate = 0;
+		       G.scene->r.ffcodecdata.rc_buffer_size = 224*8;
+		       G.scene->r.ffcodecdata.mux_packet_size = 2048;
+		       G.scene->r.ffcodecdata.mux_rate = 10080000;
+	       
+		       break;
+	       case FFMPEG_PRESET_DV:
+		       G.scene->r.ffcodecdata.type = FFMPEG_DV;
+		       G.scene->r.xsch = 720;
+		       G.scene->r.ysch = isntsc ? 480 : 576;
+		       break;
+	       }
+	       ffmpeg_preset_sel = 0;
+       }
+
+       xcol1 = 872;
+       xcol2 = 1002;
+
+       yofs = 54;
+       uiDefBut(block, LABEL, 0, "Format", xcol1, yofs+88, 
+		110, 20, 0, 0, 0, 0, 0, "");
+       uiDefBut(block, LABEL, 0, "Preset", xcol2, yofs+88, 
+		110, 20, 0, 0, 0, 0, 0, "");
+       uiDefButI(block, MENU, B_DIFF, ffmpeg_format_pup(), 
+		 xcol1, yofs+66, 110, 20, &G.scene->r.ffcodecdata.type, 
+		 0,0,0,0, "output file format");
+       uiDefButI(block, NUM, B_DIFF, "Bitrate", 
+		 xcol1, yofs+44, 110, 20, 
+		 &G.scene->r.ffcodecdata.video_bitrate, 
+		 1, 14000, 0, 0, "Video bitrate(kb/s)");
+       uiDefButI(block, NUM, B_DIFF, "Min Rate", 
+		 xcol1, yofs+22, 110, 20, &G.scene->r.ffcodecdata.rc_min_rate, 
+		 0, 14000, 0, 0, "Rate control: min rate(kb/s)");
+       uiDefButI(block, NUM, B_DIFF, "Max Rate", 
+		 xcol1, yofs, 110, 20, &G.scene->r.ffcodecdata.rc_max_rate, 
+		 1, 14000, 0, 0, "Rate control: max rate(kb/s)");
+
+       uiDefButI(block, NUM, B_DIFF, "Mux Rate", 
+		 xcol1, yofs, 110, 20, 
+		 &G.scene->r.ffcodecdata.mux_rate, 
+		 0, 100000000, 0, 0, "Mux rate (bits/s(!))");
+
+
+       uiDefButI(block, MENU, B_DIFF, ffmpeg_preset_pup(), 
+		 xcol2, yofs+66, 110, 20, &ffmpeg_preset_sel, 
+		 0,0,0,0, "Output file format preset selection");
+       uiDefButI(block, NUM, B_DIFF, "GOP Size", 
+		 xcol2, yofs+44, 110, 20, &G.scene->r.ffcodecdata.gop_size, 
+		 0, 100, 0, 0, "Distance between key frames");
+       uiDefButI(block, NUM, B_DIFF, "Buffersize", 
+		 xcol2, yofs+22, 110, 20,
+		 &G.scene->r.ffcodecdata.rc_buffer_size, 
+		 0, 2000, 0, 0, "Rate control: buffer size (kb)");
+       uiDefButI(block, NUM, B_DIFF, "Mux PSize", 
+		 xcol2, yofs, 110, 20, 
+		 &G.scene->r.ffcodecdata.mux_packet_size, 
+		 0, 16384, 0, 0, "Mux packet size (byte)");
+
+       uiDefButBitI(block, TOG, FFMPEG_AUTOSPLIT_OUTPUT, B_NOP,
+		    "Autosplit Output", 
+		    xcol2, yofs-22, 110, 20, 
+		    &G.scene->r.ffcodecdata.flags, 
+		    0, 1, 0,0, "Autosplit output at 2GB boundary.");
+
+
+       if (G.scene->r.ffcodecdata.type == FFMPEG_AVI 
+	   || G.scene->r.ffcodecdata.type == FFMPEG_MOV) {
+               uiDefBut(block, LABEL, 0, "Codec", 
+			xcol1, yofs-44, 110, 20, 0, 0, 0, 0, 0, "");
+               uiDefButI(block, MENU,B_NOP, ffmpeg_codec_pup(), 
+			 xcol1, yofs-66, 110, 20, 
+			 &G.scene->r.ffcodecdata.codec, 
+			 0,0,0,0, "FFMpeg codec to use");
+       }
+
+
+}
+static void render_panel_ffmpeg_audio(void)
+{
+       int yofs;
+       int xcol;
+       uiBlock *block;
+       block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_audio", UI_EMBOSS, UI_HELV, curarea->win);
+       if (uiNewPanel(curarea, block, "Audio", "Render", 960, 0, 318, 204) 
+	   == 0) return;
+       yofs = 54;
+       xcol = 892;
+
+       uiDefButBitI(block, TOG, FFMPEG_MULTIPLEX_AUDIO, B_NOP,
+		    "Multiplex audio", xcol, yofs, 225, 20, 
+		    &G.scene->r.ffcodecdata.flags, 
+		    0, 1, 0,0, "Interleave audio with the output video");
+       uiDefBut(block, LABEL, 0, "Codec", 
+		xcol, yofs-22, 225, 20, 0, 0, 0, 0, 0, "");
+       uiDefButI(block, MENU,B_NOP, ffmpeg_audio_codec_pup(), 
+		 xcol, yofs-44, 225, 20, 
+		 &G.scene->r.ffcodecdata.audio_codec, 
+		 0,0,0,0, "FFMpeg codec to use");
+       uiDefButI(block, NUM, B_DIFF, "Bitrate", 
+		 xcol, yofs-66, 110, 20, 
+		 &G.scene->r.ffcodecdata.audio_bitrate, 
+		 32, 384, 0, 0, "Audio bitrate(kb/s)");
+}
+#endif
+
 
 static void render_panel_format(void)
 {
@@ -1267,7 +1556,6 @@ static void render_panel_format(void)
 	uiDefButBitI(block, TOG, R_COSMO, 0,"Cosmo",	1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
 #endif
 
-	
 	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,225,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
 
 	yofs -= 22;
@@ -1597,6 +1885,13 @@ void render_panels()
 	render_panel_layers();
 	render_panel_render();
 	render_panel_anim();
+#ifdef WITH_FFMPEG
+       if (G.scene->r.imtype == R_FFMPEG) {
+               render_panel_ffmpeg_video();
+	       render_panel_ffmpeg_audio();
+       }
+#endif
+
 	render_panel_format();
 	/* yafray: GI & Global panel, only available when yafray enabled for rendering */
 	if (G.scene->r.renderer==R_YAFRAY) {
@@ -1631,8 +1926,8 @@ void anim_panels()
 	uiDefButBitS(block, TOG, AUDIO_SYNC, B_SOUND_CHANGED, "Sync",160,130,150,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	10,100,150,20,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
-	uiDefButS(block, NUM,REDRAWSEQ,"End:",	160,100,150,20,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
+	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",	10,100,150,20,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
+	uiDefButI(block, NUM,REDRAWSEQ,"End:",	160,100,150,20,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
 
 
 

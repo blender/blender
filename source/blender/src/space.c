@@ -41,6 +41,7 @@
 #endif
 
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 #ifdef INTERNATIONAL
 #include "BIF_language.h"
@@ -2971,8 +2972,16 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"System:",
-			(xpos+edgsp+(4*midsp)+(4*mpref)),y4label,mpref,buth,
+			(xpos+edgsp+(4*midsp)+(4*mpref)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
+		uiDefButI(block, NUM, B_MEMCACHELIMIT, "MEM Cache Limit ",
+			  (xpos+edgsp+(4*mpref)+(4*midsp)), y5, mpref, buth, 
+			  &U.memcachelimit, 0.0, 1024.0, 30, 2, 
+			  "Memory cache limit in sequencer");
+		uiDefButS(block, NUM, B_REDR, "Frameserver Port ",
+			  (xpos+edgsp+(4*mpref)+(4*midsp)), y4, mpref, buth, 
+			  &U.frameserverport, 0.0, 32727.0, 30, 2, 
+			  "Frameserver Port for Framserver-Rendering");
 
 		uiDefButBitI(block, TOG, USER_DISABLE_SOUND, B_SOUNDTOGGLE, "Disable Game Sound",
 			(xpos+edgsp+(4*mpref)+(4*midsp)),y3,mpref,buth,
@@ -3202,6 +3211,12 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				default_gl_light();
 				addqueue(sa->win, REDRAW, 1);
 				allqueue(REDRAWVIEW3D, 0);
+			} 
+			else if (val==B_MEMCACHELIMIT) {
+				printf("Setting memcache limit to %d\n",
+				       U.memcachelimit);
+				MEM_CacheLimiter_set_maximum(
+					U.memcachelimit * 1024 * 1024);
 			}
 			else do_global_buttons(val);
 			
@@ -3660,7 +3675,9 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(G.qual==LR_ALTKEY)
 				un_meta();
 			else if((G.qual==0)){
-				if ((last_seq) && (last_seq->type == SEQ_SOUND)) 
+				if ((last_seq) && 
+				    (last_seq->type == SEQ_RAM_SOUND
+				     || last_seq->type == SEQ_HD_SOUND)) 
 				{
 					last_seq->flag ^= SEQ_MUTE;
 					doredraw = 1;
@@ -3706,8 +3723,9 @@ static void init_seqspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, sseq);
 
 	sseq->spacetype= SPACE_SEQ;
-	sseq->zoom= 1;
+	sseq->zoom= 4;
 	sseq->blockscale= 0.7;
+	sseq->chanshown = 0;
 	
 	/* seq space goes from (0,8) to (250, 0) */
 

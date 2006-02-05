@@ -528,6 +528,7 @@ void test_flags_file(SpaceFile *sfile)
 				}
 				else if(BLI_testextensie(file->relname, ".avi")
 					||	BLI_testextensie(file->relname, ".flc")
+					||	BLI_testextensie(file->relname, ".dv")
 					||	BLI_testextensie(file->relname, ".mov")
 					||	BLI_testextensie(file->relname, ".movie")
 					||	BLI_testextensie(file->relname, ".mv")) {

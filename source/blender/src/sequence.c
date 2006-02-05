@@ -23,9 +23,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Peter Schlaile <peter@schlaile.de> 2005/2006
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -63,6 +61,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_editsound.h"
 
 #include "BSE_sequence.h"
 
@@ -70,7 +69,8 @@
 
 #include "blendef.h"
 
-Sequence *seq_arr[MAXSEQ+1];
+static void do_build_seq_depend(Sequence * seq, int cfra);
+
 int seqrectx, seqrecty;
 
 /* support for plugin sequences: */
@@ -78,6 +78,7 @@ int seqrectx, seqrecty;
 void open_plugin_seq(PluginSeq *pis, char *seqname)
 {
 	int (*version)();
+	void* (*alloc_private)();
 	char *cp;
 
 	/* to be sure: (is tested for) */
@@ -86,6 +87,7 @@ void open_plugin_seq(PluginSeq *pis, char *seqname)
 	pis->varstr= 0;
 	pis->cfra= 0;
 	pis->version= 0;
+	pis->instance_private_data = 0;
 
 	/* clear the error list */
 	PIL_dynlib_get_error_as_string(NULL);
@@ -133,6 +135,15 @@ void open_plugin_seq(PluginSeq *pis, char *seqname)
 				return;
 			}
 		}
+		alloc_private = (void* (*)())PIL_dynlib_find_symbol(
+			pis->handle, "plugin_seq_alloc_private_data");
+		if (alloc_private) {
+			pis->instance_private_data = alloc_private();
+		}
+		
+		pis->current_private_data = (void**) 
+			PIL_dynlib_find_symbol(
+				pis->handle, "plugin_private_data");
 	}
 }
 
@@ -168,10 +179,20 @@ PluginSeq *add_plugin_seq(char *str, char *seqname)
 
 void free_plugin_seq(PluginSeq *pis)
 {
-
 	if(pis==0) return;
 
 	/* no PIL_dynlib_close: same plugin can be opened multiple times with 1 handle */
+
+	if (pis->instance_private_data) {
+		void (*free_private)(void *);
+
+		free_private = (void (*)(void *))PIL_dynlib_find_symbol(
+			pis->handle, "plugin_seq_free_private_data");
+		if (free_private) {
+			free_private(pis->instance_private_data);
+		}
+	}
+
 	MEM_freeN(pis);
 }
 
@@ -185,7 +206,10 @@ void free_stripdata(int len, StripElem *se)
 	seo= se;
 
 	for(a=0; a<len; a++, se++) {
-		if(se->ibuf && se->ok!=2) IMB_freeImBuf(se->ibuf);
+		if(se->ibuf && se->ok!=2) {
+			IMB_freeImBuf(se->ibuf);
+			se->ibuf = 0;
+		}
 	}
 
 	MEM_freeN(seo);
@@ -226,6 +250,7 @@ void free_sequence(Sequence *seq)
 	if(seq->effectdata) MEM_freeN(seq->effectdata);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
+	if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
 
 	free_plugin_seq(seq->plugin);
 
@@ -1619,13 +1644,10 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 	if(se->se3->ok==2) se3= se->se3->se1;
 	else se3= se->se3;
 
-	if(se1==0 || se2==0 || se3==0 || se1->ibuf==0 || se2->ibuf==0 || se3->ibuf==0) {
+	if(se1==0 || se2==0 || se3==0) {
 		make_black_ibuf(se->ibuf);
 		return;
 	}
-
-	x= se2->ibuf->x;
-	y= se2->ibuf->y;
 
 	if(seq->ipo && seq->ipo->curve.first) {
 		do_seq_ipo(seq);
@@ -1643,6 +1665,43 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 	}
 
 	if( G.scene->r.mode & R_FIELDS ); else facf= fac;
+
+	/* FIXME: This should be made available to external plugins too... */
+	if (seq->type == SEQ_CROSS || seq->type == SEQ_GAMCROSS ||
+	    seq->type == SEQ_WIPE) {
+		if (fac == 0.0 && facf == 0.0) {
+			if (se1->ibuf==0) {
+				make_black_ibuf(se->ibuf);
+				return;
+			}
+			if (se->ibuf != se1->ibuf) {
+				IMB_freeImBuf(se->ibuf);
+				se->ibuf = se1->ibuf;
+				IMB_refImBuf(se->ibuf);
+			}
+			return;
+		} else if (fac == 1.0 && facf == 1.0) {
+			if (se2->ibuf==0) {
+				make_black_ibuf(se->ibuf);
+				return;
+			}
+			if (se->ibuf != se2->ibuf) {
+				IMB_freeImBuf(se->ibuf);
+				se->ibuf = se2->ibuf;
+				IMB_refImBuf(se->ibuf);
+			}
+			return;
+		} 
+	} 
+
+
+	if (se1->ibuf==0 || se2->ibuf==0 || se3->ibuf==0) {
+		make_black_ibuf(se->ibuf);
+		return;
+	}
+
+	x= se2->ibuf->x;
+	y= se2->ibuf->y;
 
 	switch(seq->type) {
 	case SEQ_CROSS:
@@ -1681,10 +1740,18 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 
 			if((G.f & G_PLAYANIM)==0) waitcursor(1);
 
-			if(seq->plugin->cfra) *(seq->plugin->cfra)= frame_to_float(CFRA);
+			if(seq->plugin->cfra) 
+				*(seq->plugin->cfra)= frame_to_float(CFRA);
 
-			cp= PIL_dynlib_find_symbol(seq->plugin->handle, "seqname");
+			cp = PIL_dynlib_find_symbol(
+				seq->plugin->handle, "seqname");
+
 			if(cp) strncpy(cp, seq->name+2, 22);
+
+			if (seq->plugin->current_private_data) {
+				*seq->plugin->current_private_data 
+					= seq->plugin->instance_private_data;
+			}
 
 			if (seq->plugin->version<=2) {
 				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf);
@@ -1692,8 +1759,9 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 				if(se3->ibuf) IMB_convert_rgba_to_abgr(se3->ibuf);
 			}
 
-			((SeqDoit)seq->plugin->doit)(seq->plugin->data, fac, facf, x, y,
-						se1->ibuf, se2->ibuf, se->ibuf, se3->ibuf);
+			((SeqDoit)seq->plugin->doit)(
+				seq->plugin->data, fac, facf, x, y,
+				se1->ibuf, se2->ibuf, se->ibuf, se3->ibuf);
 
 			if (seq->plugin->version<=2) {
 				if(se1->ibuf) IMB_convert_rgba_to_abgr(se1->ibuf);
@@ -1707,29 +1775,6 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 		break;
 	}
 
-}
-
-int evaluate_seq_frame(int cfra)
-{
-	Sequence *seq;
-	Editing *ed;
-	int totseq=0;
-
-	memset(seq_arr, 0, 4*MAXSEQ);
-
-	ed= G.scene->ed;
-	if(ed==0) return 0;
-
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
-			seq_arr[seq->machine]= seq;
-			totseq++;
-		}
-		seq= seq->next;
-	}
-
-	return totseq;
 }
 
 StripElem *give_stripelem(Sequence *seq, int cfra)
@@ -1765,63 +1810,114 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 	return se;
 }
 
+static int evaluate_seq_frame_gen(
+	Sequence ** seq_arr, ListBase *seqbase, int cfra)
+{
+	Sequence *seq;
+	int totseq=0;
+
+	memset(seq_arr, 0, sizeof(Sequence*) * MAXSEQ);
+
+	seq= seqbase->first;
+	while(seq) {
+		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
+			seq_arr[seq->machine]= seq;
+			totseq++;
+		}
+		seq= seq->next;
+	}
+
+	return totseq;
+}
+
+int evaluate_seq_frame(int cfra)
+{
+       Editing *ed;
+       Sequence *seq_arr[MAXSEQ+1];
+
+       ed= G.scene->ed;
+       if(ed==0) return 0;
+	
+       return evaluate_seq_frame_gen(seq_arr, ed->seqbasep, cfra);
+
+}
+
+static Sequence * get_shown_seq_from_metastrip(Sequence * seqm, int cfra)
+{
+	Sequence *seq, *seqim, *seqeff;
+	Sequence *seq_arr[MAXSEQ+1];
+	int b;
+
+	seq = 0;
+
+	if(evaluate_seq_frame_gen(seq_arr, &seqm->seqbase, cfra)) {
+
+		/* we take the upper effect strip or 
+		   the lowest imagestrip/metastrip */
+		seqim= seqeff= 0;
+
+		for(b=1; b<MAXSEQ; b++) {
+			if(seq_arr[b]) {
+				seq= seq_arr[b];
+				if(seq->type & SEQ_EFFECT) {
+					if(seqeff==0) seqeff= seq;
+					else if(seqeff->machine < seq->machine)
+						seqeff= seq;
+				}
+				else {
+					if(seqim==0) seqim= seq;
+					else if(seqim->machine > seq->machine)
+						seqim= seq;
+				}
+			}
+		}
+		if(seqeff) seq= seqeff;
+		else if(seqim) seq= seqim;
+		else seq= 0;
+	}
+	
+	return seq;
+}
  
 void set_meta_stripdata(Sequence *seqm)
 {
-	Sequence *seq, *seqim, *seqeff;
-	Editing *ed;
-	ListBase *tempbase;
+	Sequence *seq;
 	StripElem *se;
-	int a, cfra, b;
+	int a, cfra;
 
 	/* sets all ->se1 pointers in stripdata, to read the ibuf from it */
-
-	ed= G.scene->ed;
-	if(ed==0) return;
-
-	tempbase= ed->seqbasep;
-	ed->seqbasep= &seqm->seqbase;
 
 	se= seqm->strip->stripdata;
 	for(a=0; a<seqm->len; a++, se++) {
 		cfra= a+seqm->start;
-		if(evaluate_seq_frame(cfra)) {
-
-			/* we take the upper effect strip or the lowest imagestrip/metastrip */
-			seqim= seqeff= 0;
-
-			for(b=1; b<MAXSEQ; b++) {
-				if(seq_arr[b]) {
-					seq= seq_arr[b];
-					if(seq->type & SEQ_EFFECT) {
-						if(seqeff==0) seqeff= seq;
-						else if(seqeff->machine < seq->machine) seqeff= seq;
-					}
-					else {
-						if(seqim==0) seqim= seq;
-						else if(seqim->machine > seq->machine) seqim= seq;
-					}
-				}
-			}
-			if(seqeff) seq= seqeff;
-			else if(seqim) seq= seqim;
-			else seq= 0;
-
-			if(seq) {
-				se->se1= give_stripelem(seq, cfra);
-			}
-			else se->se1= 0;
+		seq = get_shown_seq_from_metastrip(seqm, cfra);
+		if (seq) {
+			se->se1= give_stripelem(seq, cfra);
+		} else { 
+			se->se1= 0;
 		}
 	}
 
-	ed->seqbasep= tempbase;
 }
 
 
 
 /* HELP FUNCTIONS FOR GIVE_IBUF_SEQ */
 
-void do_seq_count_cfra(ListBase *seqbase, int *totseq, int cfra)
+static void do_seq_count_cfra(ListBase *seqbase, int *totseq, int cfra)
+{
+	Sequence *seq;
+
+	seq= seqbase->first;
+	while(seq) {
+		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
+			(*totseq)++;
+		}
+		seq= seq->next;
+	}
+}
+
+static void do_seq_unref_cfra(ListBase *seqbase, int cfra)
 {
 	Sequence *seq;
 
@@ -1831,22 +1927,362 @@ void do_seq_count_cfra(ListBase *seqbase, int *totseq, int cfra)
 
 			if(seq->seqbase.first) {
 
-				if(cfra< seq->start) do_seq_count_cfra(&seq->seqbase, totseq, seq->start);
-				else if(cfra> seq->start+seq->len-1) do_seq_count_cfra(&seq->seqbase, totseq, seq->start+seq->len-1);
-				else do_seq_count_cfra(&seq->seqbase, totseq, cfra);
+				if(cfra< seq->start) do_seq_unref_cfra(&seq->seqbase, seq->start);
+				else if(cfra> seq->start+seq->len-1) do_seq_unref_cfra(&seq->seqbase, seq->start+seq->len-1);
+				else do_seq_unref_cfra(&seq->seqbase, cfra);
 			}
 
-			(*totseq)++;
+			if (seq->curelem && seq->curelem->ibuf 
+			   && seq->curelem->isneeded) {
+				IMB_cache_limiter_unref(seq->curelem->ibuf);
+			}
 		}
 		seq= seq->next;
 	}
 }
 
-void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
+static void do_seq_test_unref_cfra(ListBase *seqbase, int cfra)
+{
+	Sequence *seq;
+
+	seq= seqbase->first;
+	while(seq) {
+		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
+
+			if(seq->seqbase.first) {
+
+				if(cfra< seq->start) do_seq_test_unref_cfra(&seq->seqbase, seq->start);
+				else if(cfra> seq->start+seq->len-1) do_seq_test_unref_cfra(&seq->seqbase, seq->start+seq->len-1);
+				else do_seq_test_unref_cfra(&seq->seqbase, cfra);
+			}
+
+			if (seq->curelem && seq->curelem->ibuf
+				&& seq->curelem->isneeded) {
+			  if (IMB_cache_limiter_get_refcount(seq->curelem->ibuf)) {
+			    fprintf(stderr, "refcount Arggh: %p, %d\n", 
+				    seq, seq->type);
+			  }
+			}
+		}
+		seq= seq->next;
+	}
+}
+
+static void do_effect_depend(int cfra, Sequence * seq, StripElem *se)
+{
+	float fac, facf;
+
+	if(seq->ipo && seq->ipo->curve.first) {
+		do_seq_ipo(seq);
+		fac= seq->facf0;
+		facf= seq->facf1;
+	} else if (  seq->type == SEQ_CROSS 
+		  || seq->type == SEQ_GAMCROSS 
+		  || seq->type == SEQ_PLUGIN 
+		  || seq->type == SEQ_WIPE) {
+		fac= (float)(cfra - seq->startdisp);
+		facf= (float)(fac+0.5);
+		fac /= seq->len;
+		facf /= seq->len;
+	} else {
+		fac= facf= 1.0;
+	}
+
+	if( G.scene->r.mode & R_FIELDS ); else facf= fac;
+	
+	/* FIXME: This should be made available to external plugins too... */
+	if (seq->type == SEQ_CROSS || seq->type == SEQ_GAMCROSS ||
+	    seq->type == SEQ_WIPE) {
+		if (fac == 0.0 && facf == 0.0) {
+			do_build_seq_depend(seq->seq1, cfra);
+		} else if (fac == 1.0 && facf == 1.0) {
+			do_build_seq_depend(seq->seq2, cfra);
+		} else {
+			do_build_seq_depend(seq->seq1, cfra);
+			do_build_seq_depend(seq->seq2, cfra);
+		}
+	} else {
+		do_build_seq_depend(seq->seq1, cfra);
+		do_build_seq_depend(seq->seq2, cfra);
+	}
+	do_build_seq_depend(seq->seq3, cfra);
+}
+
+static void do_build_seq_depend(Sequence * seq, int cfra)
+{
+	StripElem *se;
+
+	se=seq->curelem= give_stripelem(seq, cfra);
+
+	if(se && !se->isneeded) {
+		se->isneeded = 1;
+		if(seq->seqbase.first) {
+			Sequence * seqmshown 
+				= get_shown_seq_from_metastrip(seq, cfra);
+			if (seqmshown) {
+				if(cfra< seq->start) 
+					do_build_seq_depend(
+						seqmshown, seq->start);
+				else if(cfra> seq->start+seq->len-1) 
+					do_build_seq_depend(
+						seqmshown, seq->start
+						+ seq->len-1);
+				else do_build_seq_depend(seqmshown, cfra);
+			}
+		}
+
+		if (seq->type & SEQ_EFFECT) {
+			do_effect_depend(cfra, seq, se);
+		}
+	}
+}
+
+static void do_build_seq_ibuf(Sequence * seq, int cfra)
+{
+	StripElem *se;
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+
+	se=seq->curelem= give_stripelem(seq, cfra);
+
+	if(se && se->isneeded) {
+		if(seq->type == SEQ_META) {
+			se->ok= 2;
+			if(se->se1==0) set_meta_stripdata(seq);
+			if(se->se1) {
+				se->ibuf= se->se1->ibuf;
+			}
+		}
+		else if(seq->type == SEQ_RAM_SOUND
+			|| seq->type == SEQ_HD_SOUND) {
+			se->ok= 2;
+		}
+		else if(seq->type & SEQ_EFFECT) {
+			
+			/* test if image is too small or discarded from cache: reload */
+			if(se->ibuf) {
+				if(se->ibuf->x < seqrectx 
+				   || se->ibuf->y < seqrecty 
+				   || !se->ibuf->rect) {
+					IMB_freeImBuf(se->ibuf);
+					se->ibuf= 0;
+				}
+			}
+			
+			/* does the effect should be recalculated? */
+			
+			if(se->ibuf==0 
+			   || (se->se1 != seq->seq1->curelem) 
+			   || (se->se2 != seq->seq2->curelem) 
+			   || (se->se3 != seq->seq3->curelem)) {
+				se->se1= seq->seq1->curelem;
+				se->se2= seq->seq2->curelem;
+				se->se3= seq->seq3->curelem;
+				
+				if(se->ibuf==0) {
+					se->ibuf= IMB_allocImBuf(
+						(short)seqrectx, 
+						(short)seqrecty, 
+						32, IB_rect, 0);
+				}
+				do_effect(cfra, seq, se);
+			}
+			
+			/* test size */
+			if(se->ibuf) {
+				if(se->ibuf->x != seqrectx 
+				   || se->ibuf->y != seqrecty ) {
+					if(G.scene->r.mode & R_OSA) {
+						IMB_scaleImBuf(
+							se->ibuf, 
+							(short)seqrectx, 
+							(short)seqrecty);
+					} else {
+						IMB_scalefastImBuf(
+							se->ibuf, 
+							(short)seqrectx, 
+							(short)seqrecty);
+					}
+				}
+			}
+		}
+		else if(seq->type < SEQ_EFFECT) {
+			if(se->ibuf) {
+				/* test if image too small 
+				   or discarded from cache: reload */
+				if(se->ibuf->x < seqrectx 
+				   || se->ibuf->y < seqrecty 
+				   || !se->ibuf->rect) {
+					IMB_freeImBuf(se->ibuf);
+					se->ibuf= 0;
+					se->ok= 1;
+				}
+			}
+			
+			if(seq->type==SEQ_IMAGE) {
+				if(se->ok && se->ibuf==0) {
+					
+					/* if playanim or render: no waitcursor */
+					if((G.f & G_PLAYANIM)==0) waitcursor(1);
+					
+					strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
+					strncat(name, se->name, FILE_MAXFILE);
+					BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+					se->ibuf= IMB_loadiffname(name, IB_rect);
+					
+					if((G.f & G_PLAYANIM)==0) waitcursor(0);
+					
+					if(se->ibuf==0) se->ok= 0;
+					else {
+						if(seq->flag & SEQ_MAKE_PREMUL) {
+							if(se->ibuf->depth==32 && se->ibuf->zbuf==0) converttopremul(se->ibuf);
+						}
+						seq->strip->orx= se->ibuf->x;
+						seq->strip->ory= se->ibuf->y;
+						if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
+						if(seq->mul==0.0) seq->mul= 1.0;
+						if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
+					}
+				}
+			}
+			else if(seq->type==SEQ_MOVIE) {
+				if(se->ok && se->ibuf==0) {
+					
+					/* if playanim r render: no waitcursor */
+					if((G.f & G_PLAYANIM)==0) waitcursor(1);
+					
+					if(seq->anim==0) {
+						strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
+						strncat(name, seq->strip->stripdata->name, FILE_MAXFILE-1);
+						BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+						
+						seq->anim = openanim(name, IB_rect);
+					}
+					if(seq->anim) {
+						se->ibuf = IMB_anim_absolute(seq->anim, se->nr);
+					}
+					
+					if(se->ibuf==0) se->ok= 0;
+					else {
+						if(seq->flag & SEQ_MAKE_PREMUL) {
+							if(se->ibuf->depth==32) converttopremul(se->ibuf);
+						}
+						seq->strip->orx= se->ibuf->x;
+						seq->strip->ory= se->ibuf->y;
+						if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
+						if(seq->mul==0.0) seq->mul= 1.0;
+						if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
+					}
+					if((G.f & G_PLAYANIM)==0) waitcursor(0);
+				}
+			}
+			else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
+				printf("Sorry, sequence scene is not yet back...\n");
+#if 0
+				View3D *vd;
+				Scene *oldsce;
+				unsigned int *rectot;
+				int oldcfra, doseq;
+				int redisplay= (!G.background && !(R.flag & R_RENDERING));
+				
+				oldsce= G.scene;
+				if(seq->scene!=G.scene) set_scene_bg(seq->scene);
+				
+				/* prevent eternal loop */
+				doseq= G.scene->r.scemode & R_DOSEQ;
+				G.scene->r.scemode &= ~R_DOSEQ;
+				
+				/* store Current FRAme */
+				oldcfra= CFRA;
+				
+				CFRA= ( seq->sfra + se->nr );
+				
+				waitcursor(1);
+				
+				rectot= R.rectot; R.rectot= NULL;
+				oldx= R.rectx; oldy= R.recty;
+				/* needed because current 3D window cannot define the layers, like in a background render */
+				vd= G.vd;
+				G.vd= NULL;
+				
+				RE_initrender(NULL);
+				if (redisplay) {
+					mainwindow_make_active();
+					if(R.r.mode & R_FIELDS) update_for_newframe_muted();
+					R.flag= 0;
+					
+					free_filesel_spec(G.scene->r.pic);
+				}
+				
+				se->ibuf= IMB_allocImBuf(R.rectx, R.recty, 32, IB_rect, 0);
+				if(R.rectot) memcpy(se->ibuf->rect, R.rectot, 4*R.rectx*R.recty);
+				if(R.rectz) {
+					se->ibuf->zbuf= (int *)R.rectz;
+					/* make sure ibuf frees it */
+					se->ibuf->mall |= IB_zbuf;
+					R.rectz= NULL;
+				}
+				
+				/* and restore */
+				G.vd= vd;
+				
+				if((G.f & G_PLAYANIM)==0) waitcursor(0);
+				CFRA= oldcfra;
+				if(R.rectot) MEM_freeN(R.rectot);
+				R.rectot= rectot;
+				R.rectx=oldx; R.recty=oldy;
+				G.scene->r.scemode |= doseq;
+				if(seq->scene!=oldsce) set_scene_bg(oldsce);	/* set_scene does full dep updates */
+				
+				/* restore!! */
+				R.rectx= seqrectx;
+				R.recty= seqrecty;
+				
+				/* added because this flag is checked for
+				 * movie writing when rendering an anim.
+				 * very convoluted. fix. -zr
+				 */
+				R.r.imtype= G.scene->r.imtype;
+#endif
+			}
+			
+			/* size test */
+			if(se->ibuf) {
+				if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
+					
+					if (0) { // G.scene->r.mode & R_FIELDS) {
+						
+						if (seqrecty > 288) IMB_scalefieldImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
+						else {
+							IMB_de_interlace(se->ibuf);
+							
+							if(G.scene->r.mode & R_OSA)
+								IMB_scaleImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
+							else
+								IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
+						}
+					}
+					else {
+						if(G.scene->r.mode & R_OSA)
+							IMB_scaleImBuf(se->ibuf,(short)seqrectx, (short)seqrecty);
+						else
+							IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
+					}
+				}
+				
+			}
+		}
+		if (se->ibuf) {
+			IMB_cache_limiter_insert(se->ibuf);
+			IMB_cache_limiter_ref(se->ibuf);
+			IMB_cache_limiter_touch(se->ibuf);
+		}
+	}
+}
+
+static void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 {
 	Sequence *seq;
 	StripElem *se;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if(seqar==NULL) return;
 	
@@ -1856,227 +2292,22 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 		/* set at zero because free_imbuf_seq... */
 		seq->curelem= 0;
 
-		if ((seq->type == SEQ_SOUND) && (seq->ipo)
-		  &&(seq->startdisp<=cfra+2) && (seq->enddisp>cfra)) do_seq_ipo(seq);
+		if ((seq->type == SEQ_RAM_SOUND
+		     || seq->type == SEQ_HD_SOUND) && (seq->ipo)
+		    && (seq->startdisp <= cfra+2) 
+		    && (seq->enddisp > cfra)) {
+			do_seq_ipo(seq);
+		}
 
 		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
-
-			if(seq->seqbase.first) {
-				if(cfra< seq->start) do_build_seqar_cfra(&seq->seqbase, seqar, seq->start);
-				else if(cfra> seq->start+seq->len-1) do_build_seqar_cfra(&seq->seqbase, seqar, seq->start+seq->len-1);
-				else do_build_seqar_cfra(&seq->seqbase, seqar, cfra);
-			}
-
 			**seqar= seq;
 			(*seqar)++;
 
-			se=seq->curelem= give_stripelem(seq, cfra);
-
-			if(se) {
-				if(seq->type == SEQ_META) {
-					se->ok= 2;
-					if(se->se1==0) set_meta_stripdata(seq);
-					if(se->se1) {
-						se->ibuf= se->se1->ibuf;
-					}
-				}
-				else if(seq->type == SEQ_SOUND) {
-					se->ok= 2;
-				}
-				else if(seq->type & SEQ_EFFECT) {
-
-					/* test if image is too small: reload */
-					if(se->ibuf) {
-						if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty) {
-							IMB_freeImBuf(se->ibuf);
-							se->ibuf= 0;
-						}
-					}
-
-					/* does the effect should be recalculated? */
-
-					if(se->ibuf==0 || (se->se1 != seq->seq1->curelem) || (se->se2 != seq->seq2->curelem) || (se->se3 != seq->seq3->curelem)) {
-						se->se1= seq->seq1->curelem;
-						se->se2= seq->seq2->curelem;
-						se->se3= seq->seq3->curelem;
-
-						if(se->ibuf==0) se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
-
-						do_effect(cfra, seq, se);
-					}
-
-					/* test size */
-					if(se->ibuf) {
-						if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
-							if(G.scene->r.mode & R_OSA)
-								IMB_scaleImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-							else
-								IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-						}
-					}
-				}
-				else if(seq->type < SEQ_EFFECT) {
-
-					if(se->ibuf) {
-						/* test if image too small: reload */
-						if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty) {
-							IMB_freeImBuf(se->ibuf);
-							se->ibuf= 0;
-							se->ok= 1;
-						}
-					}
-
-					if(seq->type==SEQ_IMAGE) {
-						if(se->ok && se->ibuf==0) {
-
-							/* if playanim or render: no waitcursor */
-							if((G.f & G_PLAYANIM)==0) waitcursor(1);
-
-							strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
-							strncat(name, se->name, FILE_MAXFILE);
-							BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
-							se->ibuf= IMB_loadiffname(name, IB_rect);
-
-							if((G.f & G_PLAYANIM)==0) waitcursor(0);
-
-							if(se->ibuf==0) se->ok= 0;
-							else {
-								if(seq->flag & SEQ_MAKE_PREMUL) {
-									if(se->ibuf->depth==32 && se->ibuf->zbuf==0) converttopremul(se->ibuf);
-								}
-								seq->strip->orx= se->ibuf->x;
-								seq->strip->ory= se->ibuf->y;
-								if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
-								if(seq->mul==0.0) seq->mul= 1.0;
-								if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
-							}
-						}
-					}
-					else if(seq->type==SEQ_MOVIE) {
-						if(se->ok && se->ibuf==0) {
-
-							/* if playanim r render: no waitcursor */
-							if((G.f & G_PLAYANIM)==0) waitcursor(1);
-
-							if(seq->anim==0) {
-								strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
-								strncat(name, seq->strip->stripdata->name, FILE_MAXFILE-1);
-								BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
-
-								seq->anim = openanim(name, IB_rect);
-							}
-							if(seq->anim) {
-								se->ibuf = IMB_anim_absolute(seq->anim, se->nr);
-							}
-
-							if(se->ibuf==0) se->ok= 0;
-							else {
-								if(seq->flag & SEQ_MAKE_PREMUL) {
-									if(se->ibuf->depth==32) converttopremul(se->ibuf);
-								}
-								seq->strip->orx= se->ibuf->x;
-								seq->strip->ory= se->ibuf->y;
-								if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
-								if(seq->mul==0.0) seq->mul= 1.0;
-								if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
-							}
-							if((G.f & G_PLAYANIM)==0) waitcursor(0);
-						}
-					}
-					else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
-						printf("Sorry, sequence scene is not yet back...\n");
-#if 0						
-						View3D *vd;
-						Scene *oldsce;
-						unsigned int *rectot;
-						int oldcfra, doseq;
-						int redisplay= (!G.background && !(G.rendering));
-						
-						oldsce= G.scene;
-						if(seq->scene!=G.scene) set_scene_bg(seq->scene);
-
-						/* prevent eternal loop */
-						doseq= G.scene->r.scemode & R_DOSEQ;
-						G.scene->r.scemode &= ~R_DOSEQ;
-
-						/* store Current FRAme */
-						oldcfra= CFRA;
-
-						CFRA= ( seq->sfra + se->nr );
-
-						waitcursor(1);
-
-//						rectot= R.rectot; R.rectot= NULL;
-//						oldx= R.rectx; oldy= R.recty;
-						/* needed because current 3D window cannot define the layers, like in a background render */
-						vd= G.vd;
-						G.vd= NULL;
-
-//						RE_initrender(NULL);
-						if (redisplay) {
-							mainwindow_make_active();
-//							if(R.r.mode & R_FIELDS) update_for_newframe_muted();
-//							R.flag= 0;
-
-							free_filesel_spec(G.scene->r.pic);
-						}
-
-//						se->ibuf= IMB_allocImBuf(R.rectx, R.recty, 32, IB_rect, 0);
-//						if(R.rectot) memcpy(se->ibuf->rect, R.rectot, 4*R.rectx*R.recty);
-//						if(R.rectz) {
-//							se->ibuf->zbuf= (int *)R.rectz;
-							/* make sure ibuf frees it */
-//							se->ibuf->mall |= IB_zbuf;
-//							R.rectz= NULL;
-//						}
-
-						/* and restore */
-						G.vd= vd;
-
-						if((G.f & G_PLAYANIM)==0) waitcursor(0);
-						CFRA= oldcfra;
-//						if(R.rectot) MEM_freeN(R.rectot);
-//						R.rectot= rectot;
-//						R.rectx=oldx; R.recty=oldy;
-						G.scene->r.scemode |= doseq;
-						if(seq->scene!=oldsce) set_scene_bg(oldsce);	/* set_scene does full dep updates */
-
-						/* restore!! */
-//						R.rectx= seqrectx;
-//						R.recty= seqrecty;
-
-						/* added because this flag is checked for
-						 * movie writing when rendering an anim.
-						 * very convoluted. fix. -zr
-						 */
-//						R.r.imtype= G.scene->r.imtype;
-#endif
-					}
-					/* size test */
-					if(se->ibuf) {
-						if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
-
-							if (0) { //G.scene->r.mode & R_FIELDS) {
-
-								if (seqrecty > 288) IMB_scalefieldImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-								else {
-									IMB_de_interlace(se->ibuf);
-
-									if(G.scene->r.mode & R_OSA)
-										IMB_scaleImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-									else
-										IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-								}
-							}
-							else {
-								if(G.scene->r.mode & R_OSA)
-									IMB_scaleImBuf(se->ibuf,(short)seqrectx, (short)seqrecty);
-								else
-									IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-							}
-						}
-					}
-				}
+			/* nobody is needed a priori */
+			se = seq->curelem= give_stripelem(seq, cfra);
+	
+			if (se) {
+				se->isneeded = 0;
 			}
 		}
 
@@ -2084,7 +2315,43 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 	}
 }
 
-ImBuf *give_ibuf_seq(int rectx, int recty, int cfra)
+static void do_build_seq_ibufs(ListBase *seqbase, int cfra)
+{
+	Sequence *seq;
+
+	seq= seqbase->first;
+	while(seq) {
+
+		/* set at zero because free_imbuf_seq... */
+		seq->curelem= 0;
+
+		if ((seq->type == SEQ_RAM_SOUND
+		     || seq->type == SEQ_HD_SOUND) && (seq->ipo)
+		    && (seq->startdisp <= cfra+2) 
+		    && (seq->enddisp > cfra)) {
+			do_seq_ipo(seq);
+		}
+
+		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
+			if(seq->seqbase.first) {
+				if(cfra< seq->start) 
+					do_build_seq_ibufs(&seq->seqbase, 
+							   seq->start);
+				else if(cfra> seq->start+seq->len-1) 
+					do_build_seq_ibufs(&seq->seqbase, 
+							   seq->start
+							   + seq->len-1);
+				else do_build_seq_ibufs(&seq->seqbase, cfra);
+			}
+
+			do_build_seq_ibuf(seq, cfra);
+		}
+
+		seq= seq->next;
+	}
+}
+
+ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 {
 	Sequence **tseqar, **seqar;
 	Sequence *seq, *seqfirst=0;/*  , *effirst=0; */
@@ -2094,7 +2361,8 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra)
 
 	/* we make recursively a 'stack' of sequences, these are
 	 * sorted nicely as well.
-	 * this method has been developed especially for stills before or after metas
+	 * this method has been developed especially for 
+	 * stills before or after metas
 	 */
 
 	totseq= 0;
@@ -2110,15 +2378,18 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra)
 	/* tseqar is needed because in do_build_... the pointer changes */
 	seqar= tseqar= MEM_callocN(sizeof(void *)*totseq, "seqar");
 
-	/* this call loads and makes the ibufs */
+	/* this call creates the sequence order array */
 	do_build_seqar_cfra(ed->seqbasep, &seqar, cfra);
+
 	seqar= tseqar;
 
 	for(seqnr=0; seqnr<totseq; seqnr++) {
 		seq= seqar[seqnr];
 
 		se= seq->curelem;
-		if((seq->type != SEQ_SOUND) && (se)) {
+		if((seq->type != SEQ_RAM_SOUND && seq->type != SEQ_HD_SOUND) 
+		   && (se) && 
+		   (chanshown == 0 || seq->machine == chanshown)) {
 			if(seq->type==SEQ_META) {
 
 				/* bottom strip! */
@@ -2150,10 +2421,195 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra)
 
 	MEM_freeN(seqar);
 
+	/* we know, that we have to build the ibuf of seqfirst, 
+	   now build the dependencies and later the ibufs */
+
+	if (seqfirst) {
+		do_build_seq_depend(seqfirst, cfra);
+		do_build_seq_ibufs(ed->seqbasep, cfra);
+		do_seq_unref_cfra(ed->seqbasep, cfra);
+		do_seq_test_unref_cfra(ed->seqbasep, cfra);
+	}
+
+
 	if(!seqfirst) return 0;
 	if(!seqfirst->curelem) return 0;
 	return seqfirst->curelem->ibuf;
 
+}
+
+static void rgb_to_yuv(float rgb[3], float yuv[3]) {
+        yuv[0]= 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2];
+        yuv[1]= 0.492*(rgb[2] - yuv[0]);
+        yuv[2]= 0.877*(rgb[0] - yuv[0]);
+
+        /* Normalize */
+        yuv[1]*= 255.0/(122*2.0);
+        yuv[1]+= 0.5;
+
+        yuv[2]*= 255.0/(157*2.0);
+        yuv[2]+= 0.5;
+}
+
+static inline void scope_put_pixel(unsigned char* table, unsigned char * pos)
+{
+	char newval = table[*pos];
+	pos[0] = pos[1] = pos[2] = newval;
+	pos[3] = 255;
+}
+
+static void wform_put_line(int w,
+			   unsigned char * last_pos, unsigned char * new_pos)
+{
+	if (last_pos > new_pos) {
+		unsigned char* temp = new_pos;
+		new_pos = last_pos;
+		last_pos = temp;
+	}
+
+	while (last_pos < new_pos) {
+		if (last_pos[0] == 0) {
+			last_pos[0] = last_pos[1] = last_pos[2] = 32;
+			last_pos[3] = 255;
+		}
+		last_pos += 4*w;
+	}
+}
+
+struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf)
+{
+	struct ImBuf * rval = IMB_allocImBuf(ibuf->x + 3, 515, 32, IB_rect, 0);
+	int x,y;
+	unsigned char* src = (unsigned char*) ibuf->rect;
+	unsigned char* tgt = (unsigned char*) rval->rect;
+	int w = ibuf->x + 3;
+	int h = 515;
+	float waveform_gamma = 0.2;
+	unsigned char wtable[256];
+
+	for (x = 0; x < 256; x++) {
+		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
+						 waveform_gamma)*255);
+	}
+
+	for (y = 0; y < h; y++) {
+		unsigned char * last_p = 0;
+
+		for (x = 0; x < w; x++) {
+			unsigned char * rgb = src + 4 * (ibuf->x * y + x);
+			float v = 1.0 * 
+				(  0.299*rgb[0] 
+				 + 0.587*rgb[1] 
+				 + 0.114*rgb[2]) / 255.0;
+			unsigned char * p = tgt;
+			p += 4 * (w * ((int) (v * (h - 3)) + 1) + x + 1);
+
+			scope_put_pixel(wtable, p);
+			p += 4 * w;
+			scope_put_pixel(wtable, p);
+
+			if (last_p != 0) {
+				wform_put_line(w, last_p, p);
+			}
+			last_p = p;
+		}
+	}
+
+	for (x = 0; x < w; x++) {
+		unsigned char * p = tgt + 4 * x;
+		p[1] = p[3] = 255.0;
+		p[4 * w + 1] = p[4 * w + 3] = 255.0;
+		p = tgt + 4 * (w * (h - 1) + x);
+		p[1] = p[3] = 255.0;
+		p[-4 * w + 1] = p[-4 * w + 3] = 255.0;
+	}
+
+	for (y = 0; y < h; y++) {
+		unsigned char * p = tgt + 4 * w * y;
+		p[1] = p[3] = 255.0;
+		p[4 + 1] = p[4 + 3] = 255.0;
+		p = tgt + 4 * (w * y + w - 1);
+		p[1] = p[3] = 255.0;
+		p[-4 + 1] = p[-4 + 3] = 255.0;
+	}
+	
+	return rval;
+}
+
+static void vectorscope_put_cross(unsigned char r, unsigned char g, 
+				  unsigned char b, 
+				  char * tgt, int w, int h, int size)
+{
+	float rgb[3], yuv[3];
+	char * p;
+	int x = 0;
+	int y = 0;
+
+	rgb[0]= (float)r/255.0;
+	rgb[1]= (float)g/255.0;
+	rgb[2]= (float)b/255.0;
+	rgb_to_yuv(rgb, yuv);
+			
+	p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
+		       + (int) ((yuv[1] * (w - 3) + 1)));
+
+	if (r == 0 && g == 0 && b == 0) {
+		r = 255;
+	}
+
+	for (y = -size; y <= size; y++) {
+		for (x = -size; x <= size; x++) {
+			char * q = p + 4 * (y * w + x);
+			q[0] = r; q[1] = g; q[2] = b; q[3] = 255;
+		}
+	}
+}
+
+struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf)
+{
+	struct ImBuf * rval = IMB_allocImBuf(515, 515, 32, IB_rect, 0);
+	int x,y;
+	char* src = (char*) ibuf->rect;
+	char* tgt = (char*) rval->rect;
+	float rgb[3], yuv[3];
+	int w = 515;
+	int h = 515;
+	float scope_gamma = 0.2;
+	unsigned char wtable[256];
+
+	for (x = 0; x < 256; x++) {
+		wtable[x] = (unsigned char) (pow(((float) x + 1)/256, 
+						 scope_gamma)*255);
+	}
+
+	for (x = 0; x <= 255; x++) {
+		vectorscope_put_cross(255   ,     0,255 - x, tgt, w, h, 1);
+		vectorscope_put_cross(255   ,     x,      0, tgt, w, h, 1);
+		vectorscope_put_cross(255- x,   255,      0, tgt, w, h, 1);
+		vectorscope_put_cross(0,        255,      x, tgt, w, h, 1);
+		vectorscope_put_cross(0,    255 - x,    255, tgt, w, h, 1);
+		vectorscope_put_cross(x,          0,    255, tgt, w, h, 1);
+	}
+
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			char * src1 = src + 4 * (ibuf->x * y + x);
+			char * p;
+			
+			rgb[0]= (float)src1[0]/255.0;
+			rgb[1]= (float)src1[1]/255.0;
+			rgb[2]= (float)src1[2]/255.0;
+			rgb_to_yuv(rgb, yuv);
+			
+			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
+				       + (int) ((yuv[1] * (w - 3) + 1)));
+			scope_put_pixel(wtable, p);
+		}
+	}
+
+	vectorscope_put_cross(0, 0, 0, tgt, w, h, 3);
+
+	return rval;
 }
 
 void free_imbuf_effect_spec(int cfra)
@@ -2269,13 +2725,13 @@ void free_imbuf_seq()
 }
 
 /* bad levell call... renderer makes a 32 bits rect to put result in */
-void do_render_seq(RenderResult *rr)
+void do_render_seq(RenderResult *rr, int cfra)
 {
 	ImBuf *ibuf;
 
 	G.f |= G_PLAYANIM;	/* waitcursor patch */
 
-	ibuf= give_ibuf_seq(rr->rectx, rr->recty, CFRA);
+	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0);
 	if(ibuf && rr->rect32) {
 		printf("copied\n");
 		memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
@@ -2285,7 +2741,9 @@ void do_render_seq(RenderResult *rr)
 		/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
 		/* } */
 
-		free_imbuf_seq_except(CFRA);
+		/* Let the cache limitor take care of this
+		   free_imbuf_seq_except(cfra);
+		*/
 	}
 	G.f &= ~G_PLAYANIM;
 
