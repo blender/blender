@@ -66,6 +66,8 @@ class MEM_CacheLimiter;
 extern "C" {
 	extern void MEM_CacheLimiter_set_maximum(int m);
 	extern int MEM_CacheLimiter_get_maximum();
+        // this is rather _ugly_!
+        extern int mem_in_use;
 };
 #endif
 
@@ -141,9 +143,6 @@ public:
 		delete handle;
 	}
 	void enforce_limits() {
-		// this is rather _ugly_!
-		extern int mem_in_use;
-
 		int max = MEM_CacheLimiter_get_maximum();
 		if (max == 0) {
 			return;
