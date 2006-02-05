@@ -100,7 +100,7 @@ ifeq ($(OS),linux)
   ifeq ($(CPU),$(findstring $(CPU), "i386 x86_64 ia64"))
     COMMENT = "MESA 3.1"
     LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
-    LLIBS += -lutil -lc -lm -ldl -lpthread -lopenal -lavformat -lavcodec -lavutil -ldts -lz
+    LLIBS += -lutil -lc -lm -ldl -lpthread -lavformat -lavcodec -lavutil -ldts -lz
 #    LLIBS += -L$(NAN_ODE)/lib -lode
     LOPTS = -export-dynamic
     DADD = -lGL -lGLU
