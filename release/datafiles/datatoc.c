@@ -97,7 +97,7 @@ int main(int argc, char**argv) {
 		fprintf (fpout, "%3d,", getc(fpin));
 	}
 	
-	fprintf (fpout, "\n};\n");
+	fprintf (fpout, "\n};\n\n");
 	
 	fclose(fpin);
 	fclose(fpout);
