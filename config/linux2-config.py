@@ -1,8 +1,8 @@
 LCGDIR = '../lib/linux2'
 BF_PYTHON = '/usr'
 BF_PYTHON_VERSION = '2.4'
-BF_PYTHON_INC = BF_PYTHON + '/include/python${BF_PYTHON_VERSION}'
-BF_PYTHON_BINARY = BF_PYTHON+'/bin/python${BF_PYTHON_VERSION}'
+BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
 
 WITH_BF_OPENAL = 'true'
@@ -40,7 +40,7 @@ BF_TIFF_LIB = 'tiff'
 
 WITH_BF_ZLIB = 'true'
 BF_ZLIB = '/usr'
-BF_ZLIB_INC = BF_ZLIB + '/include'
+BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'z'
 
 WITH_BF_GETTEXT = 'true'
@@ -67,7 +67,7 @@ BF_BULLET_INC = '${BF_BULLET}/LinearMath ${BF_BULLET}/BulletDynamics ${BF_BULLET
 BF_BULLET_LIB = 'extern_bullet'
 
 BF_SOLID = '#extern/solid'
-BF_SOLID_INC = BF_SOLID
+BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
 #WITH_BF_NSPR = 'true'
