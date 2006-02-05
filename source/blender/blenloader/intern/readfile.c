@@ -5820,6 +5820,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	bController *cont;
 	bActuator *act;
 	bActionStrip *strip;
+	PartEff *paf;
 	int a;
 
 
@@ -5845,6 +5846,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, ob->mat[a]);
 	}
 	
+	paf = give_parteff(ob);
+	if (paf && paf->group) 
+		expand_doit(fd, mainvar, paf->group);
+
 	sens= ob->sensors.first;
 	while(sens) {
 		for(a=0; a<sens->totlinks; a++) {
@@ -6024,13 +6029,14 @@ static void give_base_to_objects(Scene *sce, ListBase *lb)
 	Object *ob;
 	Base *base;
 
-	/* give all objects which are LIB_EXTERN and LIB_NEEDLINK a base */
+	/* give all objects which are LIB_INDIRECT a base */
 	ob= lb->first;
 	while(ob) {
 
-		if(ob->id.us==0) {
+		if( ob->id.flag & LIB_INDIRECT ) {
+			/* hrmf... groups give user counter, so we check in that case entire scene */
+			if(ob->id.us==0 || ((ob->flag & OB_FROMGROUP) && object_in_scene(ob, sce)==0) ) {
 
-			if( ob->id.flag & LIB_INDIRECT ) {
 				base= MEM_callocN( sizeof(Base), "add_ext_base");
 				BLI_addtail(&(sce->base), base);
 				base->lay= ob->lay;
