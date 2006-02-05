@@ -260,9 +260,9 @@ def set_quiet_output(env):
     env['BUILDERS']['Program'] = program
 
 def  my_appit_print(target, source, env):
-	a = '%s' % (target[0])
-	d, f = os.path.split(a)
-	return "making bundle for " + f
+    a = '%s' % (target[0])
+    d, f = os.path.split(a)
+    return "making bundle for " + f
 
 def AppIt(target=None, source=None, env=None):
     import shutil
@@ -293,9 +293,9 @@ def AppIt(target=None, source=None, env=None):
     shutil.copy(bldroot + '/bin/.blender/.bfont.ttf', cmd)
     shutil.copy(bldroot + '/bin/.blender/.Blanguages', cmd)
     cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
-    commands.getoutput(cmd)	
+    commands.getoutput(cmd) 
     cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
-    commands.getoutput(cmd)	
+    commands.getoutput(cmd) 
     cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
     commands.getoutput(cmd)
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
@@ -358,17 +358,8 @@ class BlenderEnvironment(SConsEnvironment):
         SConsEnvironment.Default(self, prog)
         program_list.append(prog)
         if  lenv['OURPLATFORM']=='darwin':
-        	lenv['BINARYKIND'] = binarykind
-        	lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
-
-## TODO: have register for libs/programs, so that we test only that
-#  which have expressed their need to be tested in their own sconscript
-    def BlenderUnitTest(env, source, **kwargs):
-        test = env.Program(source, **kwargs)
-        env.AddPostAction(test, test[0].abspath)
-        env.Alias('check', test)
-        env.AlwaysBuild(test)
-        return test
+            lenv['BINARYKIND'] = binarykind
+            lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
 
     def Glob(lenv, pattern):
         path = string.replace(GetBuildPath(lenv,'SConscript'),'SConscript', '')
