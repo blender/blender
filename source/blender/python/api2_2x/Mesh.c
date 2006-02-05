@@ -2461,7 +2461,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	case 1:
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PySequence_Check( tmp ) ) {
+		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) == 1 ) {
 			/* if another sequence, use it */
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
@@ -3204,12 +3204,17 @@ static PyObject *MFace_getImage( BPy_MFace *self )
 static int MFace_setImage( BPy_MFace *self, PyObject *value )
 {
 	TFace *face;
-	if( !self->mesh->tface )
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"face has no texture values" );
 
 	if( !MFace_get_pointer( self ) )
 		return -1;
+
+	if( !self->mesh->tface )
+#if 0
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"face has no texture values" );
+#else
+		make_tfaces( self->mesh );
+#endif
 
 	face = &self->mesh->tface[self->index];
     if( value == Py_None )
@@ -3219,6 +3224,7 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
             return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected image object" );
         face->tpage = ( ( BPy_Image * ) value )->image;
+		face->mode |= TF_TEX;
     }
 
     return 0;
@@ -3449,10 +3455,6 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 	TFace *face;
 	int length, i;
 
-	if( !self->mesh->tface )
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"face has no texture values" );
-
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
@@ -3465,6 +3467,14 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 	if( length != PySequence_Size( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					    "size of vertex and UV sequences differ" );
+
+	if( !self->mesh->tface )
+#if 0
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"face has no texture values" );
+#else
+		make_tfaces( self->mesh );
+#endif
 
 	face = &self->mesh->tface[self->index];
 	for( i=0; i<length; ++i ) {
@@ -3525,10 +3535,6 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 	TFace *face;
 	int length, i, mask;
 
-	if( !self->mesh->tface )
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"face has no texture values" );
-
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
@@ -3540,6 +3546,14 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 	if( length != PyTuple_Size( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					    "size of vertex and UV lists differ" );
+
+	if( !self->mesh->tface )
+#if 0
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"face has no texture values" );
+#else
+		make_tfaces( self->mesh );
+#endif
 
 	/* set coord select state, one bit at a time */
 	face = &self->mesh->tface[self->index];
@@ -4014,7 +4028,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	case 1:		/* better be a sequence or a tuple */
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PySequence_Check( tmp ) ) {
+		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) == 1 ) {
 			/* if another sequence, use it */
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
@@ -6118,8 +6132,9 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 			}
 		} else {
 			if( !mesh->msticky ) {
-				mesh->msticky= MEM_callocN( mesh->totvert*sizeof( MSticky ),
+				mesh->msticky= MEM_mallocN( mesh->totvert*sizeof( MSticky ),
 						"sticky" );
+				memset( mesh->msticky, 255, mesh->totvert*sizeof( MSticky ) );
 				/* TODO: rework RE_make_sticky() so we can calculate */
 			}
 		}
@@ -6144,7 +6159,9 @@ static PyObject *Mesh_getMode( BPy_Mesh * self )
 static int Mesh_setMode( BPy_Mesh *self, PyObject *value )
 {
 	short param;
-	static short bitmask = ME_NOPUNOFLIP | ME_TWOSIDED | ME_AUTOSMOOTH;
+	static short bitmask = ME_ISDONE | ME_NOPUNOFLIP | ME_TWOSIDED |
+		ME_UVEFFECT | ME_VCOLEFFECT | ME_AUTOSMOOTH | ME_SMESH |
+		ME_SUBSURF | ME_OPT_EDGES;
 
 	if( !PyInt_CheckExact ( value ) ) {
 		char errstr[128];
