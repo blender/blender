@@ -5,4 +5,4 @@ sources = env.Glob('intern/*.cpp')
 
 incs = '. ..'
 
-env.BlenderLib ('blender_MEM', sources, Split(incs), [], libtype='intern', priority = 10 )
+env.BlenderLib ('blender_MEM', sources, Split(incs), [], libtype='intern', priority = 0 )
