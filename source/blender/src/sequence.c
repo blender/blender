@@ -2451,7 +2451,7 @@ static void rgb_to_yuv(float rgb[3], float yuv[3]) {
         yuv[2]+= 0.5;
 }
 
-static inline void scope_put_pixel(unsigned char* table, unsigned char * pos)
+static void scope_put_pixel(unsigned char* table, unsigned char * pos)
 {
 	char newval = table[*pos];
 	pos[0] = pos[1] = pos[2] = newval;
