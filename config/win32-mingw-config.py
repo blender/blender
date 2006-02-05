@@ -39,11 +39,8 @@ BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
-WITH_BF_TIFF = 'true'
 BF_TIFF = LCGDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
-BF_TIFF_LIB = 'z tiff'
-BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = 'true'
 BF_ZLIB = LCGDIR + '/zlib'

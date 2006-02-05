@@ -294,7 +294,7 @@ if sys.platform=='win32':
     windlls = []
     allinstall += windlls
 
-installtarget = env.Alias('install', [allinstall])
+installtarget = env.Alias('install', allinstall)
 bininstalltarget = env.Alias('install-bin', blenderinstall)
 
 if env['WITH_BF_PLAYER']:

@@ -115,8 +115,6 @@ def setup_staticlibs(lenv):
         ]
     libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 
-    if lenv['WITH_BF_TIFF']:
-        libincs += lenv['BF_TIFF_LIBPATH'],
     if lenv['WITH_BF_INTERNATIONAL']:
         libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
         libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
@@ -139,8 +137,6 @@ def setup_syslibs(lenv):
        syslibs += Split(lenv['BF_OPENAL_LIB'])
     if lenv['OURPLATFORM']=='win32vc':
         syslibs += Split(lenv['BF_ICONV_LIB'])
-    if lenv['WITH_BF_TIFF']:
-        syslibs += Split(lenv['BF_TIFF_LIB'])
     if lenv['WITH_BF_OPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])
     syslibs += Split(lenv['BF_SDL_LIB'])
