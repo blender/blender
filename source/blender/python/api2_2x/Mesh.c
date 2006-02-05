@@ -2461,7 +2461,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	case 1:
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) == 1 ) {
+		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) > 0 ) {
 			/* if another sequence, use it */
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
@@ -4028,7 +4028,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	case 1:		/* better be a sequence or a tuple */
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) == 1 ) {
+		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) > 0 ) {
 			/* if another sequence, use it */
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )

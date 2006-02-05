@@ -4,25 +4,6 @@
 The Blender.Mesh submodule.
 
 B{New}:
- - L{transform()<Mesh.transform>}: apply transform matrix to mesh vertices
- - L{getFromObject()<Mesh.getFromObject>}: get mesh data from other
-   geometry objects
- - L{findEdges()<Mesh.findEdges>}: determine if and where edges exist in the
-   mesh's edge list
- - delete methods for L{verts<MVertSeq.delete>}, L{edges<MEdgeSeq.delete>}
-   and L{faces<MFaceSeq.delete>}
- - new experimental mesh tools:
-   L{mesh.fill()<Mesh.Mesh.fill>},
-   L{mesh.flipNormals()<Mesh.Mesh.flipNormals>},
-   L{mesh.recalcNormals()<Mesh.Mesh.recalcNormals>},
-   L{mesh.remDoubles()<Mesh.Mesh.remDoubles>},
-   L{mesh.smooth()<Mesh.Mesh.smooth>},
-   L{mesh.subdivide()<Mesh.Mesh.subdivide>},
-   L{mesh.toSphere()<Mesh.Mesh.toSphere>},
-   L{mesh.quadToTriangle()<Mesh.Mesh.quadToTriangle>},
-   L{mesh.triangleToQuad()<Mesh.Mesh.triangleToQuad>}
- - methods for accessing and modifying vertex groups
- - and if you're never used Mesh before, everything!
 
 Mesh Data
 =========
@@ -465,8 +446,11 @@ class MFace:
       list.  It is in the range [0,15].
   @type mat: int
   @ivar image: The Image used as a texture for this face.
-      Will throw an exception if the mesh does not have UV faces; use
-      L{Mesh.faceUV} to test.
+      Setting this attribute will create UV faces if they do not exist.
+      Getting this attribute throw an exception if the mesh does not have 
+      UV faces; use L{Mesh.faceUV} to test.  
+      Assigning an image will automatically set the TEX attribute of the
+      L{mode} bitfield.
   @type image: Image
   @ivar mode: The texture mode bitfield (see L{FaceModes}).
       Will throw an exception if the mesh does not have UV faces; use
@@ -492,14 +476,16 @@ class MFace:
   @type transp: int
 
   @ivar uv: The face's UV coordinates.  Each vertex has its own UV coordinate.
-      Will throw an exception if the mesh does not have UV faces; use
-      L{Mesh.faceUV} to test.
+      Setting this attribute will create UV faces if they do not exist.
+      Getting this attribute throw an exception if the mesh does not have 
+      UV faces; use L{Mesh.faceUV} to test.  
   @type uv: list of vectors (WRAPPED DATA)
   @ivar uvSel: The face's UV coordinates seletion state; a 1 indicates the
       vertex is selected.  Each vertex has its own UV coordinate select state
       (this is not the same as the vertex's edit mode selection state).
-      Will throw an exception if the mesh does not have UV faces; use
-      L{Mesh.faceUV} to test.
+      Setting this attribute will create UV faces if they do not exist.
+      Getting this attribute throw an exception if the mesh does not have 
+      UV faces; use L{Mesh.faceUV} to test.  
   @type uvSel: list of ints
   @ivar no: The face's normal vector (x, y, z).  Read-only.
   @type no: vector
