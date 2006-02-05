@@ -58,6 +58,18 @@
 #include "quicktime_import.h"
 #endif
 
+#ifdef WITH_FFMPEG
+#include <ffmpeg/avcodec.h>
+#include <ffmpeg/avformat.h>
+
+#if LIBAVFORMAT_VERSION_INT < (49 << 16)
+#define FFMPEG_OLD_FRAME_RATE 1
+#else
+#define FFMPEG_CODEC_IS_POINTER 1
+#endif
+
+#endif
+
 #define UTIL_DEBUG 0
 
 /* from misc_util: flip the bytes from x  */
@@ -195,15 +207,103 @@ static int isqtime (char *name) {
 }
 #endif
 
+#ifdef WITH_FFMPEG
+void do_init_ffmpeg()
+{
+	static int ffmpeg_init = 0;
+	if (!ffmpeg_init) {
+		ffmpeg_init = 1;
+		av_register_all();
+	}
+}
+
+
+static int isffmpeg (char *filename) {
+	AVFormatContext *pFormatCtx;
+	int            i, videoStream;
+	AVCodec *pCodec;
+	AVCodecContext *pCodecCtx;
+
+	do_init_ffmpeg();
+
+	if(av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL)!=0) {
+		fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
+		return 0;
+	}
+
+	if(av_find_stream_info(pFormatCtx)<0) {
+		fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
+		av_close_input_file(pFormatCtx);
+		return 0;
+	}
+
+	dump_format(pFormatCtx, 0, filename, 0);
+
+
+        /* Find the first video stream */
+	videoStream=-1;
+	for(i=0; i<pFormatCtx->nb_streams; i++)
+#ifdef FFMPEG_CODEC_IS_POINTER
+		if(pFormatCtx->streams[i]->codec->codec_type==CODEC_TYPE_VIDEO)
+#else
+		if(pFormatCtx->streams[i]->codec.codec_type==CODEC_TYPE_VIDEO)
+#endif
+		{
+			videoStream=i;
+			break;
+		}
+
+#ifdef FFMPEG_CODEC_IS_POINTER
+	pCodecCtx=pFormatCtx->streams[videoStream]->codec;
+#else
+	pCodecCtx=&pFormatCtx->streams[videoStream]->codec;
+#endif
+
+	if(videoStream==-1) {
+		avcodec_close(pCodecCtx);
+		av_close_input_file(pFormatCtx);
+		return 0;
+	}
+
+
+        /* Find the decoder for the video stream */
+	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+	if(pCodec==NULL) {
+		avcodec_close(pCodecCtx);
+		av_close_input_file(pFormatCtx);
+		return 0;
+	}
+
+	if(pCodec->capabilities & CODEC_CAP_TRUNCATED)
+		pCodecCtx->flags|=CODEC_FLAG_TRUNCATED;
+
+	if(avcodec_open(pCodecCtx, pCodec)<0) {
+		avcodec_close(pCodecCtx);
+		av_close_input_file(pFormatCtx);
+		return 0;
+	}
+
+	avcodec_close(pCodecCtx);
+	av_close_input_file(pFormatCtx);
+
+	return 1;
+}
+#endif
+
 int imb_get_anim_type(char * name) {
 	int type;
 	struct stat st;
 
 	if(UTIL_DEBUG) printf("in getanimtype: %s\n", name);
 
+#ifdef WITH_FFMPEG
+	/* stat test below fails on large files > 4GB */
+	if (isffmpeg(name)) return (ANIM_FFMPEG);
+#endif
+
 	if (ib_stat(name,&st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
-	
+
 	if (isavi(name)) return (ANIM_AVI);
 
 	if (ismovie(name)) return (ANIM_MOVIE);
@@ -223,6 +323,7 @@ int IMB_isanim(char *filename) {
 		if (G.have_quicktime){
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".flc")
+				||	BLI_testextensie(filename, ".dv")
 				||	BLI_testextensie(filename, ".mov")
 				||	BLI_testextensie(filename, ".movie")
 				||	BLI_testextensie(filename, ".mv")) {
@@ -232,6 +333,7 @@ int IMB_isanim(char *filename) {
 			}
 		} else { // no quicktime
 			if(		BLI_testextensie(filename, ".avi")
+				||	BLI_testextensie(filename, ".dv")
 				||	BLI_testextensie(filename, ".mv")) {
 				type = imb_get_anim_type(filename);
 			}

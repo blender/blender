@@ -94,7 +94,11 @@ typedef struct ImBuf{
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
+
 	float *rect_float;		/**< floating point Rect equivilant */
+
+	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
+	int refcounter;                /**< Refcounter for multiple users */
 } ImBuf;
 
 /* Moved from BKE_bmfont_types.h because it is a userflag bit mask. */
@@ -133,8 +137,8 @@ typedef enum {
 #define IB_zbuf			(1 << 13)
 
 #define IB_mem			(1 << 14)
-#define IB_rectfloat	(1 << 15)
-#define IB_zbuffloat	(1 << 16)
+#define IB_rectfloat	        (1 << 15)
+#define IB_zbuffloat	        (1 << 16)
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.

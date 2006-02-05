@@ -49,6 +49,7 @@ static short lastmincol;
 static short lastcbits;
 short alpha_col0 = FALSE;
 
+extern void IMB_free_cache_limiter();
 
 /*
  * there still is a bug here. If you want to convert an image to a 1 bit colormap you get
@@ -61,6 +62,7 @@ void IMB_freeImBufdata(void)
 	lastcube= 0;
 	if (lastcoltab) free(lastcoltab);
 	lastcoltab= 0;
+	IMB_free_cache_limiter();
 }
 
 

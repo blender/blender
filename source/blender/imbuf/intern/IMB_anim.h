@@ -78,6 +78,11 @@
 #endif /* _WIN32 || __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
+#ifdef WITH_FFMPEG
+#include <ffmpeg/avformat.h>
+#include <ffmpeg/avcodec.h>
+#endif
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -112,6 +117,7 @@
 #define ANIM_MDEC		(1 << 5)
 #define ANIM_AVI		(1 << 6)
 #define ANIM_QTIME		(1 << 7)
+#define ANIM_FFMPEG             (1 << 8)
 
 #define ANIM5_MMAP		0
 #define ANIM5_MALLOC		1
@@ -168,6 +174,16 @@ struct anim {
 		/* quicktime */
 	struct _QuicktimeMovie *qtime;
 #endif /* WITH_QUICKTIME */
+
+#ifdef WITH_FFMPEG
+	AVFormatContext *pFormatCtx;
+	AVCodecContext *pCodecCtx;
+	AVCodec *pCodec;
+	AVFrame *pFrameRGB;
+	AVFrame *pFrame; 
+	int videoStream;
+#endif
+
 };
 
 #endif

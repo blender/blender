@@ -85,6 +85,17 @@
 #include "IMB_anim.h"
 #include "IMB_anim5.h"
 
+#ifdef WITH_FFMPEG
+#include <ffmpeg/avformat.h>
+#include <ffmpeg/avcodec.h>
+
+#if LIBAVFORMAT_VERSION_INT < (49 << 16)
+#define FFMPEG_OLD_FRAME_RATE 1
+#else
+#define FFMPEG_CODEC_IS_POINTER 1
+#endif
+
+#endif
 
 /****/
 
@@ -293,6 +304,7 @@ void IMB_free_anim_ibuf(struct anim * anim) {
 	anim->ibuf1 = anim->ibuf2 = NULL;
 }
 
+static void free_anim_ffmpeg(struct anim * anim);
 
 void IMB_free_anim(struct anim * anim) {
 	if (anim == NULL) {
@@ -307,6 +319,9 @@ void IMB_free_anim(struct anim * anim) {
 
 #ifdef WITH_QUICKTIME
 	free_anim_quicktime(anim);
+#endif
+#ifdef WITH_FFMPEG
+	free_anim_ffmpeg(anim);
 #endif
 
 	free(anim);
@@ -473,6 +488,287 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 	return ibuf;
 }
 
+#ifdef WITH_FFMPEG
+
+extern void do_init_ffmpeg();
+
+static int startffmpeg(struct anim * anim) {
+	int            i, videoStream;
+
+	AVCodec *pCodec;
+	AVFormatContext *pFormatCtx;
+	AVCodecContext *pCodecCtx;
+
+	if (anim == 0) return(-1);
+
+	do_init_ffmpeg();
+
+	if(av_open_input_file(&pFormatCtx, anim->name, NULL, 0, NULL)!=0) {
+		return -1;
+	}
+
+	if(av_find_stream_info(pFormatCtx)<0) {
+		av_close_input_file(pFormatCtx);
+		return -1;
+	}
+
+	dump_format(pFormatCtx, 0, anim->name, 0);
+
+
+        /* Find the first video stream */
+	videoStream=-1;
+	for(i=0; i<pFormatCtx->nb_streams; i++)
+#ifdef FFMPEG_CODEC_IS_POINTER
+		if(pFormatCtx->streams[i]->codec->codec_type==CODEC_TYPE_VIDEO)
+#else
+		if(pFormatCtx->streams[i]->codec.codec_type==CODEC_TYPE_VIDEO)
+#endif
+		{
+			videoStream=i;
+			break;
+		}
+
+	if(videoStream==-1) {
+		av_close_input_file(pFormatCtx);
+		return -1;
+	}
+
+#ifdef FFMPEG_CODEC_IS_POINTER
+	pCodecCtx=pFormatCtx->streams[videoStream]->codec;
+#else
+	pCodecCtx=&pFormatCtx->streams[videoStream]->codec;
+#endif
+
+        /* Find the decoder for the video stream */
+	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
+	if(pCodec==NULL) {
+		avcodec_close(pCodecCtx);
+		av_close_input_file(pFormatCtx);
+		return -1;
+	}
+
+	pCodecCtx->workaround_bugs = 1;
+	pCodecCtx->lowres = 0;
+	pCodecCtx->idct_algo= FF_IDCT_AUTO;
+	pCodecCtx->skip_frame= AVDISCARD_DEFAULT;
+	pCodecCtx->skip_idct= AVDISCARD_DEFAULT;
+	pCodecCtx->skip_loop_filter= AVDISCARD_DEFAULT;
+	pCodecCtx->error_resilience= FF_ER_CAREFUL;
+	pCodecCtx->error_concealment= 3;
+
+	if(avcodec_open(pCodecCtx, pCodec)<0) {
+		avcodec_close(pCodecCtx);
+		av_close_input_file(pFormatCtx);
+		return -1;
+	}
+
+#ifdef FFMPEG_OLD_FRAME_RATE
+	if(pCodecCtx->frame_rate>1000 && pCodecCtx->frame_rate_base==1)
+		pCodecCtx->frame_rate_base=1000;
+
+
+	anim->duration = pFormatCtx->duration * pCodecCtx->frame_rate 
+		/ pCodecCtx->frame_rate_base / AV_TIME_BASE;
+#else
+	anim->duration = pFormatCtx->duration * av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) / AV_TIME_BASE;
+
+#endif
+	anim->params = 0;
+
+	anim->x = pCodecCtx->width;
+	anim->y = pCodecCtx->height;
+	anim->interlacing = 0;
+	anim->orientation = 0;
+	anim->framesize = anim->x * anim->y * 4;
+
+	anim->curposition = -1;
+
+	anim->pFormatCtx = pFormatCtx;
+	anim->pCodecCtx = pCodecCtx;
+	anim->pCodec = pCodec;
+	anim->videoStream = videoStream;
+
+	anim->pFrame = avcodec_alloc_frame();
+	anim->pFrameRGB = avcodec_alloc_frame();
+
+	if (avpicture_get_size(PIX_FMT_RGBA32, anim->x, anim->y)
+	    != anim->x * anim->y * 4) {
+		fprintf (stderr,
+			 "ffmpeg has changed alloc scheme ... ARGHHH!\n");
+		avcodec_close(anim->pCodecCtx);
+		av_close_input_file(anim->pFormatCtx);
+		av_free(anim->pFrameRGB);
+		av_free(anim->pFrame);
+		return -1;
+	}
+
+	/*printf("x:%d y:%d size:%d interl:%d dur:%d\n", anim->x, anim->y, anim->framesize, anim->interlacing, anim->duration);*/
+	return (0);
+}
+
+static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
+	ImBuf * ibuf;
+	int frameFinished;
+	AVPacket packet;
+	offset_t pos_to_match = AV_NOPTS_VALUE;
+	int pos_found = 1;
+
+	if (anim == 0) return (0);
+
+	ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect, 0);
+
+	avpicture_fill((AVPicture *)anim->pFrameRGB, 
+		       (unsigned char*) ibuf->rect, 
+		       PIX_FMT_RGBA32, anim->x, anim->y);
+
+	if (position != anim->curposition + 1) { 
+		int keyframe_found = 0;
+		int scan_pos = position;
+		int max_scan = 18; /* max mpeg 1/2 gop size */
+#ifdef FFMPEG_OLD_FRAME_RATE
+		long long pos = (long long) anim->pCodecCtx->frame_rate_base 
+			* position * AV_TIME_BASE 
+			/ anim->pCodecCtx->frame_rate;
+#else
+		long long pos = (long long) position * AV_TIME_BASE 
+		   / av_q2d(anim->pFormatCtx->streams[anim->videoStream]
+			    ->r_frame_rate);
+#endif
+		long long st_time = anim->pFormatCtx
+			->streams[anim->videoStream]->start_time;
+		if (st_time != AV_NOPTS_VALUE) {
+			pos += st_time;
+		}
+
+		av_seek_frame(anim->pFormatCtx, -1, 
+			      pos, AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD );
+
+		while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
+			if(packet.stream_index == anim->videoStream) {
+				pos_to_match 
+					= url_ftell(&anim->pFormatCtx->pb);
+				if ((packet.flags & PKT_FLAG_KEY) != 0) {
+					keyframe_found = 1;
+				}
+				av_free_packet(&packet);
+				break;
+			}
+			av_free_packet(&packet);
+		}
+		/* if all ffmpeg seek bugs are fixed, the following
+		   loop is obsolete ... (but does not hurt very much...)
+		*/
+
+		while (!keyframe_found && max_scan--) {
+			scan_pos--;
+#ifdef FFMPEG_OLD_FRAME_RATE
+			pos = (long long) 
+				anim->pCodecCtx->frame_rate_base 
+				* scan_pos * AV_TIME_BASE 
+				/ anim->pCodecCtx->frame_rate;
+#else
+			pos = (long long) scan_pos * AV_TIME_BASE 
+				/ av_q2d(anim->pFormatCtx
+					 ->streams[anim->videoStream]
+					 ->r_frame_rate);
+#endif
+			av_seek_frame(anim->pFormatCtx, -1, 
+				      pos, 
+				      AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
+
+			while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
+				if(packet.stream_index == anim->videoStream) {
+					if ((packet.flags & PKT_FLAG_KEY) 
+					    != 0) {
+						keyframe_found = 1;
+					} 
+					av_free_packet(&packet);
+					break;
+				}
+				av_free_packet(&packet);
+			}
+		}
+
+		if (max_scan <= 0) {
+			fprintf(stderr, 
+				"Warning: Key frame not found, "
+				"doesn't hurt, but _slow_...!\n");
+		}
+
+		av_seek_frame(anim->pFormatCtx, -1, 
+			      pos, AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
+
+		pos_found = 0;
+		avcodec_flush_buffers(anim->pCodecCtx);
+	}
+
+	while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
+		if (packet.stream_index == anim->videoStream 
+		    && !pos_found) {
+			if (url_ftell(&anim->pFormatCtx->pb) == pos_to_match) {
+				pos_found = 1;
+			} 
+		}
+		if(packet.stream_index == anim->videoStream) {
+			avcodec_decode_video(anim->pCodecCtx, 
+					     anim->pFrame, &frameFinished, 
+					     packet.data, packet.size);
+
+			if(frameFinished && pos_found) {
+				unsigned char * p =(unsigned char*) ibuf->rect;
+				unsigned char * e = p + anim->x * anim->y * 4;
+
+				img_convert((AVPicture *)anim->pFrameRGB, 
+					    PIX_FMT_RGBA32, 
+					    (AVPicture*)anim->pFrame, 
+					    anim->pCodecCtx->pix_fmt, 
+					    anim->pCodecCtx->width, 
+					    anim->pCodecCtx->height);
+				IMB_flipy(ibuf);
+				if (G.order == L_ENDIAN) {
+					/* BGRA -> RGBA */
+					while (p != e) {
+						unsigned char a = p[0];
+						p[0] = p[2];
+						p[2] = a;
+						p += 4;
+					}
+				} else {
+					/* ARGB -> RGBA */
+					while (p != e) {
+						unsigned long a =
+							*(unsigned long*) p;
+						a = (a << 8) | p[0];
+						*(unsigned long*) p = a;
+						p += 4;
+					}
+				}
+				av_free_packet(&packet);
+				break;
+			}
+		}
+
+		av_free_packet(&packet);
+	}
+
+	return(ibuf);
+}
+
+static void free_anim_ffmpeg(struct anim * anim) {
+	if (anim == NULL) return;
+
+	if (anim->pCodecCtx) {
+		avcodec_close(anim->pCodecCtx);
+		av_close_input_file(anim->pFormatCtx);
+		av_free(anim->pFrameRGB);
+		av_free(anim->pFrame);
+	}
+	anim->duration = 0;
+}
+
+#endif
+
+
 /* probeer volgende plaatje te lezen */
 /* Geen plaatje, probeer dan volgende animatie te openen */
 /* gelukt, haal dan eerste plaatje van animatie */
@@ -487,6 +783,9 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 	free_anim_avi(anim);
 #ifdef WITH_QUICKTIME
 	free_anim_quicktime(anim);
+#endif
+#ifdef WITH_FFMPEG
+	free_anim_ffmpeg(anim);
 #endif
 
 	if (anim->curtype != 0) return (0);
@@ -518,6 +817,12 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 #ifdef WITH_QUICKTIME
 	case ANIM_QTIME:
 		if (startquicktime(anim)) return (0);
+		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0);
+		break;
+#endif
+#ifdef WITH_FFMPEG
+	case ANIM_FFMPEG:
+		if (startffmpeg(anim)) return (0);
 		ibuf = IMB_allocImBuf (anim->x, anim->y, 24, 0, 0);
 		break;
 #endif
@@ -582,6 +887,12 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 #ifdef WITH_QUICKTIME
 	case ANIM_QTIME:
 		ibuf = qtime_fetchibuf(anim, position);
+		if (ibuf) anim->curposition = position;
+		break;
+#endif
+#ifdef WITH_FFMPEG
+	case ANIM_FFMPEG:
+		ibuf = ffmpeg_fetchibuf(anim, position);
 		if (ibuf) anim->curposition = position;
 		break;
 #endif

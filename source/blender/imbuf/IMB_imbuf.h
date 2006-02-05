@@ -176,6 +176,28 @@ struct ImBuf *IMB_allocImBuf(short x, short y,
 
 /**
  *
+ * Increase reference count to imbuf
+ * (to delete an imbuf you have to call freeImBuf as many times as it
+ * is referenced)
+ *
+ * @attention Defined in allocimbuf.c
+ */
+
+void IMB_refImBuf(struct ImBuf * ibuf);
+
+/**
+ *
+ * @attention Defined in allocimbuf.c
+ */
+void IMB_cache_limiter_insert(struct ImBuf * i);
+void IMB_cache_limiter_unmanage(struct ImBuf * i);
+void IMB_cache_limiter_touch(struct ImBuf * i);
+void IMB_cache_limiter_ref(struct ImBuf * i);
+void IMB_cache_limiter_unref(struct ImBuf * i);
+int IMB_cache_limiter_get_refcount(struct ImBuf * i);
+
+/**
+ *
  * @attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1);

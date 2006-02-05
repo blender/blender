@@ -43,6 +43,7 @@
 
 #include "IMB_divers.h"
 #include "IMB_allocimbuf.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 static unsigned int dfltcmap[16] = {
 	0x00000000, 0xffffffff, 0x777777ff, 0xccccccff, 
@@ -135,15 +136,25 @@ void IMB_freecmapImBuf(struct ImBuf * ibuf)
 void IMB_freeImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf){
-		imb_freeplanesImBuf(ibuf);
-		imb_freerectImBuf(ibuf);
-		imb_freerectfloatImBuf(ibuf);
-		IMB_freezbufImBuf(ibuf);
-		IMB_freezbuffloatImBuf(ibuf);
-		IMB_freecmapImBuf(ibuf);
-		freeencodedbufferImBuf(ibuf);
-		MEM_freeN(ibuf);
+		if (ibuf->refcounter > 0) {
+			ibuf->refcounter--;
+		} else {
+			imb_freeplanesImBuf(ibuf);
+			imb_freerectImBuf(ibuf);
+			imb_freerectfloatImBuf(ibuf);
+			IMB_freezbufImBuf(ibuf);
+			IMB_freezbuffloatImBuf(ibuf);
+			IMB_freecmapImBuf(ibuf);
+			freeencodedbufferImBuf(ibuf);
+			IMB_cache_limiter_unmanage(ibuf);
+			MEM_freeN(ibuf);
+		}
 	}
+}
+
+void IMB_refImBuf(struct ImBuf * ibuf)
+{
+	ibuf->refcounter++;
 }
 
 short addzbufImBuf(struct ImBuf * ibuf)
@@ -444,7 +455,8 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	
 	// set malloc flag
 	tbuf.mall		= ibuf2->mall;
-	
+	tbuf.c_handle           = 0;
+
 	*ibuf2 = tbuf;
 	
 	if (ibuf1->cmap){
@@ -453,4 +465,82 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	}
 
 	return(ibuf2);
+}
+
+/* support for cache limiting */
+
+static void imbuf_cache_destructor(void * data)
+{
+	struct ImBuf * ibuf = (struct ImBuf*) data;
+
+	imb_freeplanesImBuf(ibuf);
+	imb_freerectImBuf(ibuf);
+	IMB_freezbufImBuf(ibuf);
+	IMB_freecmapImBuf(ibuf);
+	freeencodedbufferImBuf(ibuf);
+	
+	ibuf->c_handle = 0;
+}
+
+static MEM_CacheLimiterC ** get_imbuf_cache_limiter()
+{
+	static MEM_CacheLimiterC * c = 0;
+	if (!c) {
+		c = new_MEM_CacheLimiter(imbuf_cache_destructor);
+	}
+	return &c;
+}
+
+void IMB_free_cache_limiter()
+{
+	delete_MEM_CacheLimiter(*get_imbuf_cache_limiter());
+	*get_imbuf_cache_limiter() = 0;
+}
+
+void IMB_cache_limiter_insert(struct ImBuf * i)
+{
+	if (!i->c_handle) {
+		i->c_handle = MEM_CacheLimiter_insert(
+			*get_imbuf_cache_limiter(), i);
+		MEM_CacheLimiter_ref(i->c_handle);
+		MEM_CacheLimiter_enforce_limits(
+			*get_imbuf_cache_limiter());
+		MEM_CacheLimiter_unref(i->c_handle);
+	}
+}
+
+void IMB_cache_limiter_unmanage(struct ImBuf * i)
+{
+	if (i->c_handle) {
+		MEM_CacheLimiter_unmanage(i->c_handle);
+		i->c_handle = 0;
+	}
+}
+
+void IMB_cache_limiter_touch(struct ImBuf * i)
+{
+	if (i->c_handle) {
+		MEM_CacheLimiter_touch(i->c_handle);
+	}
+}
+
+void IMB_cache_limiter_ref(struct ImBuf * i)
+{
+	if (i->c_handle) {
+		MEM_CacheLimiter_ref(i->c_handle);
+	}
+}
+
+void IMB_cache_limiter_unref(struct ImBuf * i)
+{
+	if (i->c_handle) {
+		MEM_CacheLimiter_unref(i->c_handle);
+	}
+}
+
+int IMB_cache_limiter_get_refcount(struct ImBuf * i)
+{
+	if (i->c_handle) {
+		MEM_CacheLimiter_get_refcount(i->c_handle);
+	}
 }

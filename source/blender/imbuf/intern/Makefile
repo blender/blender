@@ -62,6 +62,7 @@ CPPFLAGS += -I../../avi
 CPPFLAGS += -I../../quicktime
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_MEMUTIL)/include
 # This is not really needed, but until /include is cleaned, it must be
 # there for proper compilation.
 # - No, it is also needed in antialias, for listbase (nzc)
@@ -71,5 +72,9 @@ CPPFLAGS += -I..
 
 ifeq ($(WITH_QUICKTIME), true)
    CPPFLAGS += -DWITH_QUICKTIME
+endif
+
+ifeq ($(WITH_FFMPEG), true)
+   CPPFLAGS += -DWITH_FFMPEG
 endif
 
