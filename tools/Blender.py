@@ -259,10 +259,56 @@ def set_quiet_output(env):
     env['BUILDERS']['Library'] = static_lib
     env['BUILDERS']['Program'] = program
 
+def  my_appit_print(target, source, env):
+	a = '%s' % (target[0])
+	d, f = os.path.split(a)
+	return "making bundle for " + f
+
+def AppIt(target=None, source=None, env=None):
+    import shutil
+    import commands
+    import os.path
+    
+    a = '%s' % (target[0])
+    builddir, b = os.path.split(a)
+    bldroot = env.Dir('.').abspath
+    binary = env['BINARYKIND']
+    
+    sourcedir = bldroot + '/source/darwin/%s.app'%binary
+    sourceinfo = bldroot + "/source/darwin/%s.app/Contents/Info.plist"%binary
+    targetinfo = builddir +'/' + "%s.app/Contents/Info.plist"%binary
+    cmd = builddir + '/' +'%s.app'%binary
+    
+    if os.path.isdir(cmd):
+        shutil.rmtree(cmd)
+    shutil.copytree(sourcedir, cmd)
+    cmd = "cat %s | sed s/VERSION/`cat release/VERSION`/ | sed s/DATE/`date +'%%Y-%%b-%%d'`/ > %s"%(sourceinfo,targetinfo)
+    commands.getoutput(cmd)
+    cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,builddir, binary, binary)
+    commands.getoutput(cmd)
+    cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/'%(builddir, binary)
+    print cmd
+    commands.getoutput(cmd)
+    cmd = builddir + '/%s.app/Contents/MacOS/.blender'%binary
+    shutil.copy(bldroot + '/bin/.blender/.bfont.ttf', cmd)
+    shutil.copy(bldroot + '/bin/.blender/.Blanguages', cmd)
+    cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
+    commands.getoutput(cmd)	
+    cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+    commands.getoutput(cmd)	
+    cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+    commands.getoutput(cmd)
+    cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
+    commands.getoutput(cmd)
+    cmd = 'find %s/%s.app -name CVS -prune -exec rm -rf {} \;'%(builddir, binary)
+    commands.getoutput(cmd)
+    cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(builddir, binary)
+    commands.getoutput(cmd)
 
 #### END ACTION STUFF #########
 
 class BlenderEnvironment(SConsEnvironment):
+
 
     def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None):
         if not self or not libname or not sources:
@@ -293,7 +339,7 @@ class BlenderEnvironment(SConsEnvironment):
         # note: libs is a global
         add_lib_to_dict(libs, libtype, libname, priority)
 
-    def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None):
+    def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
         lenv = self.Copy()
         if lenv['OURPLATFORM']=='win32-vc':
@@ -311,6 +357,9 @@ class BlenderEnvironment(SConsEnvironment):
         prog = lenv.Program(target=builddir+'bin/'+progname, source=sources)
         SConsEnvironment.Default(self, prog)
         program_list.append(prog)
+        if  lenv['OURPLATFORM']=='darwin':
+        	lenv['BINARYKIND'] = binarykind
+        	lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
 
 ## TODO: have register for libs/programs, so that we test only that
 #  which have expressed their need to be tested in their own sconscript

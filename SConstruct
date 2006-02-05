@@ -57,6 +57,7 @@ B.possible_types = ['core', 'common', 'blender', 'intern',
                     'international', 'game', 'game2',
                     'player', 'player2', 'system']
 
+B.binarykind = ['blender' , 'blenderplayer']
 ##################################
 # target and argument validation #
 ##################################
@@ -223,7 +224,7 @@ dobj = B.buildinfo(env, "dynamic")
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
-env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs)
+env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
     playerlist = B.create_blender_liblist(env, 'player')
     playerlist += B.create_blender_liblist(env, 'core')
@@ -233,7 +234,7 @@ if env['WITH_BF_PLAYER']:
     playerlist += B.create_blender_liblist(env, 'game')
     playerlist += B.create_blender_liblist(env, 'game2')
     playerlist += B.create_blender_liblist(env, 'player2')
-    env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs)
+    env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
 ##### Now define some targets
 
