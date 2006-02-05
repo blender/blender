@@ -1,66 +1,66 @@
 LCGDIR = '#../lib/darwin-6.1-powerpc'
 BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
 BF_PYTHON_VERSION = '2.3'
-BF_PYTHON_INC = '${BF_PYTHON}' + '${BF_PYTHON_VERSION}' + '/include/python' + '${BF_PYTHON_VERSION}'
-BF_PYTHON_BINARY = '${BF_PYTHON}' + '${BF_PYTHON_VERSION}' +'/bin/python' + '${BF_PYTHON_VERSION}'
+BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
+BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = ''
-BF_PYTHON_LIBPATH = '${BF_PYTHON}' + '${BF_PYTHON_VERSION}' + '/lib/python'+ '${BF_PYTHON_VERSION}' +'/config'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
 BF_PYTHON_LINKFLAGS = '-u __dummy -u _PyMac_Error -framework System -framework Python'
 
 WITH_BF_OPENAL = 'true'
 BF_OPENAL = LCGDIR + '/openal'
-BF_OPENAL_INC = BF_OPENAL + '/include'
+BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
-BF_OPENAL_LIBPATH = BF_OPENAL + '/lib'
+BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_SDL = 'true'
 BF_SDL = LCGDIR + '/sdl' #$(shell sdl-config --prefix)
-BF_SDL_INC = BF_SDL + '/include' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
+BF_SDL_INC = '${BF_SDL}/include' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
-BF_SDL_LIBPATH = BF_SDL + '/lib'
+BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
 WITH_BF_FMOD = 'false'
 BF_FMOD = LCGDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = '/usr/local'
-BF_OPENEXR_INC = BF_OPENEXR + '/include/OpenEXR'
+BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath '
 
 
 WITH_BF_JPEG = 'true'
 BF_JPEG = LCGDIR + '/jpeg'
-BF_JPEG_INC = BF_JPEG + '/include'
+BF_JPEG_INC = '${BF_JPEG}/include'
 BF_JPEG_LIB = 'jpeg'
-BF_JPEG_LIBPATH = BF_JPEG + '/lib'
+BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 
 WITH_BF_PNG = 'true'
 BF_PNG = LCGDIR + '/png'
-BF_PNG_INC = BF_PNG + '/include'
+BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
-BF_PNG_LIBPATH = BF_PNG + '/lib'
+BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 WITH_BF_TIFF = 'false'
 BF_TIFF = LCGDIR + '/tiff'
-BF_TIFF_INC = BF_TIFF + '/include'
+BF_TIFF_INC = '${BF_TIFF}/include'
 BF_TIFF_LIB = 'tiff'
-BF_TIFF_LIBPATH = BF_TIFF + '/lib'
+BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = 'true'
 BF_ZLIB = '/usr'
-BF_ZLIB_INC = BF_ZLIB + '/include'
+BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'z'
 
 WITH_BF_INTERNATIONAL = 'true'
 
 BF_GETTEXT = LCGDIR + '/gettext'
-BF_GETTEXT_INC = BF_GETTEXT + '/include'
+BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'intl'
-BF_GETTEXT_LIBPATH = BF_GETTEXT + '/lib'
+BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_FTGL = 'true'
 BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = BF_FTGL + '/include'
+BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE='true'
@@ -68,16 +68,16 @@ WITH_BF_PLAYER='false'
 
 WITH_BF_ODE = 'false'
 BF_ODE = LCGDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
+BF_ODE_INC = '${BF_ODE}/include'
+BF_ODE_LIB = '${BF_ODE}/lib/libode.a'
 
 WITH_BF_BULLET = 'true'
 BF_BULLET = '#extern/bullet'
-BF_BULLET_INC = BF_BULLET + '/LinearMath ' + BF_BULLET + '/BulletDynamics ' + BF_BULLET + '/Bullet'
+BF_BULLET_INC = '${BF_BULLET}/LinearMath ${BF_BULLET}/BulletDynamics ${BF_BULLET}/Bullet'
 BF_BULLET_LIB = 'extern_bullet'
 
 BF_SOLID = '#extern/solid'
-BF_SOLID_INC = BF_SOLID
+BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
 #WITH_BF_NSPR = 'true'
@@ -99,9 +99,9 @@ BF_SOLID_LIB = 'extern_solid'
 
 # enable freetype2 support for text objects
 BF_FREETYPE = LCGDIR + '/freetype'
-BF_FREETYPE_INC = BF_FREETYPE + '/include ' + BF_FREETYPE + '/include/freetype2'
+BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
-BF_FREETYPE_LIBPATH = BF_FREETYPE + '/lib'
+BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
 WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
 
