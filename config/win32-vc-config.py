@@ -19,9 +19,9 @@ BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
 WITH_BF_SDL = 'true'
-BF_SDL = LCGDIR + '/sdl' #$(shell sdl-config --prefix)
-BF_SDL_INC = '${BF_SDL}/include' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
-BF_SDL_LIB = 'SDL.lib' #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
+BF_SDL = LCGDIR + '/sdl'
+BF_SDL_INC = '${BF_SDL}/include'
+BF_SDL_LIB = 'SDL.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
 WITH_BF_FMOD = 'false'
@@ -111,39 +111,23 @@ BF_QUICKTIME_INC = '${BF_QUICKTIME}/CIncludes'
 BF_QUICKTIME_LIB = 'qtmlClient'
 BF_QUICKTIME_LIBPATH = '${BF_QUICKTIME}/Libraries'
 
-# Mesa Libs should go here if your using them as well....
 WITH_BF_OPENGL = 'true'
-#BF_OPENGL = 'C:\\MingW'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'
 BF_OPENGL_LIB = 'opengl32 glu32'
 BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a',
-             '${BF_OPENGL}/lib/libXmu.a', '${BF_OPENGL}/lib/libXext.a',
-             '${BF_OPENGL}/lib/libX11.a', '${BF_OPENGL}/lib/libXi.a' ]
-##
-##CC = gcc
-##CCC = g++
-##ifeq ($CPU),alpha)
-##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
+                         '${BF_OPENGL}/lib/libXmu.a', '${BF_OPENGL}/lib/libXext.a',
+                         '${BF_OPENGL}/lib/libX11.a', '${BF_OPENGL}/lib/libXi.a' ]
 
 CCFLAGS = ['/nologo', '/Og', '/Ot', '/Ob1', '/Op', '/G6','/EHsc', '/J', '/W3', '/Gd', '/MT']
 
 CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DUSE_OPENAL', '-DFTGL_LIBRARY_STATIC']
 REL_CFLAGS = ['-O2', '-DNDEBUG']
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
-##BF_DEPEND = 'true'
-##
-##AR = ar
-##ARFLAGS = ruv
-##ARFLAGSQUIET = ru
-##
 C_WARN = []
-#
 CC_WARN = []
 
-##FIX_STUBS_WARNINGS = -Wno-unused
-
-LLIBS = 'ws2_32 dxguid vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid'  #[ '-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
+LLIBS = 'ws2_32 dxguid vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid'
 
 PLATFORM_LINKFLAGS = '''
                         /SUBSYSTEM:CONSOLE 
@@ -159,8 +143,5 @@ PLATFORM_LINKFLAGS = '''
                         /NODEFAULTLIB:"libcmtd.lib"
                     '''
                         
-##LOPTS = --dynamic
-##DYNLDFLAGS = -shared $(LDFLAGS)
-
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'
