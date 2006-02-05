@@ -3877,7 +3877,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 	row-= 4*butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, REDRAWBUTSEDIT, "Unwrapper%t|Conformal%x0|Conformal (Old)%x2",100,row,200,butH, &G.scene->toolsettings->unwrapper, 0, 0, 0, 0, "Unwrap method");
+	uiDefButS(block, MENU, REDRAWBUTSEDIT, "Unwrapper%t|Conformal%x0|Angle Based%x1|Conformal (Old)%x2",100,row,200,butH, &G.scene->toolsettings->unwrapper, 0, 0, 0, 0, "Unwrap method");
 	if (G.scene->toolsettings->unwrapper != 2)
 		uiDefButBitS(block, TOG, 1, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
 	uiBlockEndAlign(block);
