@@ -246,10 +246,13 @@ blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
 dotblendlist = []
 dottargetlist = []
 for dp, dn, df in os.walk('bin/.blender'):
-    dn.remove('CVS')
+    if 'CVS' in dn:
+        dn.remove('CVS')
     for f in df:
         dotblendlist.append(dp+os.sep+f)
         dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
+
+Exit()
 
 dotblenderinstall = []
 for targetdir,srcfile in zip(dottargetlist, dotblendlist):
@@ -264,7 +267,8 @@ scriptinstall = env.Install(dir=env['BF_INSTALLDIR']+'/.blender/scripts', source
 pluglist = []
 plugtargetlist = []
 for tp, tn, tf in os.walk('release/plugins'):
-    tn.remove('CVS')
+    if 'CVS' in tn:
+        tn.remove('CVS')
     for f in tf:
         pluglist.append(tp+os.sep+f)
         plugtargetlist.append(env['BF_INSTALLDIR']+tp[7:]+os.sep+f)
@@ -277,7 +281,8 @@ for targetdir,srcfile in zip(plugtargetlist, pluglist):
 textlist = []
 texttargetlist = []
 for tp, tn, tf in os.walk('release/text'):
-    tn.remove('CVS')
+    if 'CVS' in tn:
+        tn.remove('CVS')
     for f in tf:
         textlist.append(tp+os.sep+f)
 
