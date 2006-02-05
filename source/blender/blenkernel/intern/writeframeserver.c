@@ -321,9 +321,9 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	rendered_frame = pixels;
 
 	for (y = recty - 1; y >= 0; y--) {
-		uint8_t* target = row;
-		uint8_t* src = rendered_frame + rectx * 4 * y;
-		uint8_t* end = src + rectx * 4;
+		unsigned char* target = row;
+		unsigned char* src = rendered_frame + rectx * 4 * y;
+		unsigned char* end = src + rectx * 4;
 		while (src != end) {
 			target[2] = src[2];
 			target[1] = src[1];
