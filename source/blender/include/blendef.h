@@ -34,8 +34,8 @@
 
 /* **************** MAX ********************* */
 
-#define MAXFRAME	30000
-#define MAXFRAMEF	30000.0f
+#define MAXFRAME	300000
+#define MAXFRAMEF	300000.0f
 
 #define MINFRAME	1
 #define MINFRAMEF	1.0
@@ -276,6 +276,8 @@
 #define B_UITHEMERESET		322
 #define B_UITHEMEIMPORT		323
 #define B_UITHEMEEXPORT		324
+
+#define B_MEMCACHELIMIT         325
 
 /* Definitions for the fileselect buttons in user prefs */
 #define B_FONTDIRFILESEL  	330

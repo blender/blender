@@ -37,6 +37,7 @@ struct bSound;
 struct bSample;
 struct ListBase;
 struct PackedFile;
+struct hdaudio;
 
 void sound_init_audio(void);
 void sound_initialize_sounds(void);
@@ -64,8 +65,23 @@ void sound_play_sound(struct bSound *sound);
 void sound_stop_all_sounds(void);
 
 void sound_set_position(void *object,
-						struct bSound *sound,
-						float obmatrix[4][4]);
+			struct bSound *sound,
+			float obmatrix[4][4]);
+
+struct hdaudio * sound_open_hdaudio(char * name);
+struct hdaudio * sound_copy_hdaudio(struct hdaudio * c);
+
+long sound_hdaudio_get_duration(struct hdaudio * hdaudio, int frame_rate);
+void sound_hdaudio_extract(struct hdaudio * hdaudio, 
+			   short * target_buffer,
+			   int sample_position /* units of target_rate */,
+			   int target_rate,
+			   int target_channels,
+			   int nb_samples /* in target */);
+			   
+void sound_close_hdaudio(struct hdaudio * hdaudio);
+
+
 
 #endif
 

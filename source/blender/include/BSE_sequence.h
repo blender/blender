@@ -123,16 +123,19 @@ void do_effect(int cfra, struct Sequence *seq, struct StripElem *se);
 int evaluate_seq_frame(int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 void set_meta_stripdata(struct Sequence *seqm);
-void do_seq_count_cfra(struct ListBase *seqbase, int *totseq, int cfra);
-void do_build_seqar_cfra(struct ListBase *seqbase, struct Sequence ***seqar, int cfra);
-struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra);
+struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel); 
+/* chansel: render this channel. Default=0 (renders end result)*/
+
+struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf);
+struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf);
+
 void free_imbuf_effect_spec(int cfra);
 void free_imbuf_seq_except(int cfra);
 void free_imbuf_seq(void);
 
 /* still bad level call... */
 struct RenderResult;
-void do_render_seq(struct RenderResult *rr);
+void do_render_seq(struct RenderResult *rr, int cfra);
 
 
 #endif

@@ -125,6 +125,8 @@
 
 #define AN_INIT an_stringdec = stringdec; an_stringenc = stringenc;
 
+struct MEM_CacheLimiterHandle_s;
+
 typedef struct ImBuf{
 	short	x,y;		/* width in pixels, height in scanlines */
 	short	skipx;		/* width in ints to get to the next scanline */
@@ -148,7 +150,11 @@ typedef struct ImBuf{
 	unsigned char *encodedbuffer;
 	unsigned int   encodedsize;
 	unsigned int   encodedbuffersize;
+
 	float *rect_float;
+
+	struct MEM_CacheLimiterHandle_s * c_handle;
+        int refcounter;
 } ImBuf;
 
 extern struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);

@@ -43,6 +43,7 @@
 void audio_mixdown();
 void audio_makestream(bSound *sound);
 void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown);
+void audiostream_fill(Uint8* mixdown, int len);
 void audiostream_start(Uint32 frame);
 void audiostream_scrub(Uint32 frame);
 void audiostream_stop(void);

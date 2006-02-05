@@ -1186,7 +1186,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 					if(seq->type==SEQ_IMAGE)
 						writestruct(wd, DATA, "StripElem", strip->len, strip->stripdata);
-					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_SOUND)
+					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
 
 					strip->done= 1;

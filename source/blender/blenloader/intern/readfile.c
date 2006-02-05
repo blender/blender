@@ -2639,6 +2639,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 						}
 					}
 					seq->anim= 0;
+					seq->hdaudio = 0;
 				}
 				END_SEQ
 			}
@@ -2740,7 +2741,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 						}
 					}
 				}
-				else if(seq->type==SEQ_SOUND) {
+				else if(seq->type==SEQ_RAM_SOUND
+					|| seq->type == SEQ_HD_SOUND) {
 					/* only first stripelem is in file */
 					se= newdataadr(fd, seq->strip->stripdata);
 
