@@ -289,9 +289,11 @@ textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
-if sys.platform=='win32':
-    # TODO: gather all needed dlls from lib/windows for inclusion in install
-    windlls = []
+if env['OURPLATFORM'] == 'win32-vc':
+    windlls = env.Install(dir=env['BF_INSTALLDIR'], source = ['#../lib/windows/gettext/lib/gnu_gettext.dll',
+               '#../lib/windows/png/lib/libpng.dll',
+               '#../lib/windows/sdl/lib/SDL.dll',
+               '#../lib/windows/zlib/lib/zlib.dll'])
     allinstall += windlls
 
 installtarget = env.Alias('install', allinstall)
