@@ -1,18 +1,18 @@
 LCGDIR = '../lib/linux2'
 BF_PYTHON = '/usr'
 BF_PYTHON_VERSION = '2.4'
-BF_PYTHON_INC = BF_PYTHON + '/include/python' + BF_PYTHON_VERSION
-BF_PYTHON_BINARY = BF_PYTHON+'/bin/python'+BF_PYTHON_VERSION
-BF_PYTHON_LIB = 'python' + BF_PYTHON_VERSION #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
+BF_PYTHON_INC = BF_PYTHON + '/include/python${BF_PYTHON_VERSION}'
+BF_PYTHON_BINARY = BF_PYTHON+'/bin/python${BF_PYTHON_VERSION}'
+BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
 
 WITH_BF_OPENAL = 'true'
 BF_OPENAL = '/usr'
-BF_OPENAL_INC = BF_OPENAL+'/include'
+BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
 
 WITH_BF_SDL = 'true'
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
-BF_SDL_INC = BF_SDL + '/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
+BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 
 WITH_BF_FMOD = 'false'
@@ -20,22 +20,22 @@ BF_FMOD = LCGDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = '/usr'
-BF_OPENEXR_INC = BF_OPENEXR + '/include/OpenEXR'
+BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath '
 
 WITH_BF_JPEG = 'true'
 BF_JPEG = '/usr'
-BF_JPEG_INC = BF_JPEG + '/include'
+BF_JPEG_INC = '${BF_JPEG}/include'
 BF_JPEG_LIB = 'jpeg'
 
 WITH_BF_PNG = 'true'
 BF_PNG = '/usr'
-BF_PNG_INC = BF_PNG + '/include'
+BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
 
 WITH_BF_TIFF = 'true'
 BF_TIFF = '/usr'
-BF_TIFF_INC = BF_TIFF + '/include'
+BF_TIFF_INC = '${BF_TIFF}/include'
 BF_TIFF_LIB = 'tiff'
 
 WITH_BF_ZLIB = 'true'
@@ -45,13 +45,13 @@ BF_ZLIB_LIB = 'z'
 
 WITH_BF_GETTEXT = 'true'
 BF_GETTEXT = '/usr'
-BF_GETTEXT_INC = BF_GETTEXT + '/include'
+BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextlib'
-BF_GETTEXT_LIBPATH = BF_GETTEXT + '/lib'
+BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_FTGL = 'true'
 BF_FTGL = '#extern/bFTGL'
-BF_FTGL_INC = BF_FTGL + '/include'
+BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE='true'
@@ -63,7 +63,7 @@ BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
 WITH_BF_BULLET = 'true'
 BF_BULLET = '#extern/bullet'
-BF_BULLET_INC = BF_BULLET + '/LinearMath ' + BF_BULLET + '/BulletDynamics ' + BF_BULLET + '/Bullet'
+BF_BULLET_INC = '${BF_BULLET}/LinearMath ${BF_BULLET}/BulletDynamics ${BF_BULLET}/Bullet'
 BF_BULLET_LIB = 'extern_bullet'
 
 BF_SOLID = '#extern/solid'
@@ -90,20 +90,20 @@ BF_SOLID_LIB = 'extern_solid'
 # enable freetype2 support for text objects
 WITH_BF_FREETYPE = 'true'
 BF_FREETYPE = '/usr'
-BF_FREETYPE_INC = BF_FREETYPE + '/include ' + BF_FREETYPE + '/include/freetype2'
+BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 
 WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
 BF_QUICKTIME = '/usr/local'
-BF_QUICKTIME_INC = BF_QUICKTIME + '/include' 
+BF_QUICKTIME_INC = '${BF_QUICKTIME}/include' 
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_OPENGL = 'true'
 BF_OPENGL = '/usr/X11R6'
-BF_OPENGL_INC = BF_OPENGL + '/include'
+BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIB = 'GL GLU Xmu Xext X11 Xi'
 BF_OPENGL_LIBPATH = '/usr/X11R6/lib'
-BF_OPENGL_LIB_STATIC = BF_OPENGL + '/lib/libGL.a ' + BF_OPENGL + '/lib/libGLU.a ' + BF_OPENGL + '/lib/libXmu.a ' + BF_OPENGL + '/lib/libXext.a ' + BF_OPENGL + '/lib/libX11.a ' + BF_OPENGL + '/lib/libXi.a'
+BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/lib/libGL.a ${BF_OPENGL}/lib/libGLU.a ${BF_OPENGL}/lib/libXmu.a ${BF_OPENGL}/lib/libXext.a ${BF_OPENGL}/lib/libX11.a ${BF_OPENGL}/lib/libXi.a'
 ##
 ##CC = gcc
 ##CCC = g++
