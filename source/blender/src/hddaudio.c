@@ -179,7 +179,11 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 
 struct hdaudio * sound_copy_hdaudio(struct hdaudio * c)
 {
+#ifdef WITH_FFMPEG
 	return sound_open_hdaudio(c->filename);
+#else
+	return 0;
+#endif
 }
 
 long sound_hdaudio_get_duration(struct hdaudio * hdaudio, int frame_rate)
