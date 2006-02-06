@@ -16,6 +16,6 @@ if env['WITH_BF_QUICKTIME'] == 1:
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_FFMPEG'] == 1:
-    defs += ' WITH_FFMPEG'
+    defs.append('WITH_FFMPEG')
 
 env.BlenderLib ( libname = 'blender_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=45 )
