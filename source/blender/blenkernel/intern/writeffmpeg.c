@@ -350,7 +350,8 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 
 	/* FIXME: Really bad hack (tm) for NTSC support */
 	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
-		c->time_base = av_d2q(29.97, 0);
+		c->time_base.den = 2997;
+		c->time_base.num = 100;
 	} else {
 		c->time_base.den = G.scene->r.frs_sec;
 		c->time_base.num = 1;
