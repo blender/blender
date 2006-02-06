@@ -461,7 +461,7 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 
 static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int y, int index)
 {
-	struct { short mval[2], pass, select, dist; int lastIndex, closestIndex; EditVert *closest; } *data = userData;
+	struct { short mval[2], pass, select; int dist, lastIndex, closestIndex; EditVert *closest; } *data = userData;
 
 	if (data->pass==0) {
 		if (index<=data->lastIndex)
@@ -472,7 +472,7 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 	}
 
 	if (data->dist>3) {
-		short temp = abs(data->mval[0] - x) + abs(data->mval[1]- y);
+		int temp = abs(data->mval[0] - x) + abs(data->mval[1]- y);
 		if ((eve->f&1)==data->select) temp += 5;
 
 		if (temp<data->dist) {
@@ -501,7 +501,7 @@ static EditVert *findnearestvert(short *dist, short sel)
 		}
 	}
 	else {
-		struct { short mval[2], pass, select, dist; int lastIndex, closestIndex; EditVert *closest; } data;
+		struct { short mval[2], pass, select; int dist, lastIndex, closestIndex; EditVert *closest; } data;
 		static int lastSelectedIndex=0;
 		static EditVert *lastSelected=NULL;
 
