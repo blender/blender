@@ -879,7 +879,9 @@ static void p_split_vert(PChart *chart, PEdge *e)
 
 	if (copy) {
 		/* not found, copying */
+		v->flag |= PVERT_SPLIT;
 		v = p_vert_copy(chart, v);
+		v->flag |= PVERT_SPLIT;
 
 		v->nextlink = chart->verts;
 		chart->verts = v;
@@ -1035,17 +1037,9 @@ static PFace *p_face_add_fill(PChart *chart, PVert *v1, PVert *v2, PVert *v3)
 
 static PBool p_quad_split_direction(float **co)
 {
-    float a1, a2;
-	
-	a1 = p_vec_angle_cos(co[0], co[1], co[2]);
-	a1 += p_vec_angle_cos(co[1], co[0], co[2]);
-	a1 += p_vec_angle_cos(co[2], co[0], co[1]);
+	float fac= VecLenf(co[0], co[2]) - VecLenf(co[1], co[3]);
 
-	a2 = p_vec_angle_cos(co[0], co[1], co[3]);
-	a2 += p_vec_angle_cos(co[1], co[0], co[3]);
-	a2 += p_vec_angle_cos(co[3], co[0], co[1]);
-
-	return (a1 > a2);
+	return (fac > 0.0f);
 }
 
 /* Construction: boundary filling */
@@ -1216,9 +1210,9 @@ static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
     }
 }
 
+#if 0
 /* Polygon kernel for inserting uv's non overlapping */
 
-#if 0
 static int p_polygon_point_in(float *cp1, float *cp2, float *p)
 {
 	if ((cp1[0] == p[0]) && (cp1[1] == p[1]))
@@ -1332,7 +1326,9 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
 	MEM_freeN(oldpoints);
 	MEM_freeN(newpoints);
 }
+#endif
 
+#if 0
 /* Edge Collapser */
 
 int NCOLLAPSE = 1;
@@ -2136,13 +2132,13 @@ static void p_chart_complexify(PChart *chart)
 
 	p_chart_post_split_flush(chart);
 }
-#endif
 
 #if 0
 static void p_chart_simplify(PChart *chart)
 {
 	/* Not implemented, needs proper reordering in split_flush. */
 }
+#endif
 #endif
 
 /* ABF */
@@ -2332,7 +2328,6 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 
 	nlNewContext();
 	nlSolverParameteri(NL_NB_VARIABLES, nvar);
-	/*nlSolverParameteri(NL_ABF, NL_TRUE); should set symmetric */
 
 	nlBegin(NL_SYSTEM);
 
@@ -2659,7 +2654,156 @@ static PBool p_chart_abf_solve(PChart *chart)
 
 /* Least Squares Conformal Maps */
 
-static void p_chart_extrema_verts(PChart *chart, PVert **v1, PVert **v2)
+static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
+{
+	if (pin1 == pin2) {
+		/* degenerate case */
+		PFace *f = chart->faces;
+		*pin1 = f->edge->vert;
+		*pin2 = f->edge->next->vert;
+
+		(*pin1)->uv[0] = 0.0f;
+		(*pin1)->uv[1] = 0.5f;
+		(*pin2)->uv[0] = 1.0f;
+		(*pin2)->uv[1] = 0.5f;
+	}
+	else {
+		int diru, dirv, dir;
+		float sub[3];
+
+		VecSubf(sub, (*pin1)->co, (*pin2)->co);
+		sub[0] = fabs(sub[0]);
+		sub[1] = fabs(sub[1]);
+		sub[2] = fabs(sub[2]);
+
+		if ((sub[0] > sub[1]) && (sub[0] > sub[2]))
+			dir = 0;
+		else if ((sub[1] > sub[0]) && (sub[1] > sub[2]))
+			dir = 1;
+		else
+			dir = 2;
+
+		if (dir == 2) {
+			diru = 1;
+			dirv = 0;
+		}
+		else {
+			diru = 0;
+			dirv = 1;
+		}
+
+		(*pin1)->uv[diru] = (*pin1)->co[dir];
+		(*pin1)->uv[dirv] = (*pin1)->co[(dir+1)%3];
+		(*pin2)->uv[diru] = (*pin2)->co[dir];
+		(*pin2)->uv[dirv] = (*pin2)->co[(dir+1)%3];
+	}
+}
+
+static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PVert **pin2)
+{
+	PEdge *be, *lastbe = NULL, *maxe1 = NULL, *maxe2 = NULL, *be1, *be2;
+	PEdge *cure = NULL, *firste1 = NULL, *firste2 = NULL, *nextbe;
+	float maxlen = 0.0f, curlen = 0.0f, totlen = 0.0f, firstlen = 0.0f;
+	float len1, len2;
+ 
+ 	/* find longest series of verts split in the chart itself, these are
+	   marked during construction */
+	be = outer;
+	lastbe = p_boundary_edge_prev(be);
+	do {
+		float len = p_edge_length(be);
+		totlen += len;
+
+		nextbe = p_boundary_edge_next(be);
+
+		if ((be->vert->flag & PVERT_SPLIT) ||
+		    (lastbe->vert->flag & nextbe->vert->flag & PVERT_SPLIT)) {
+			if (!cure) {
+				if (be == outer)
+					firste1 = be;
+				cure = be;
+			}
+			else
+				curlen += p_edge_length(lastbe);
+		}
+		else if (cure) {
+			if (curlen > maxlen) {
+				maxlen = curlen;
+				maxe1 = cure;
+				maxe2 = lastbe;
+			}
+
+			if (firste1 == cure) {
+				firstlen = curlen;
+				firste2 = lastbe;
+			}
+
+			curlen = 0.0f;
+			cure = NULL;
+		}
+
+		lastbe = be;
+		be = nextbe;
+	} while(be != outer);
+
+	/* make sure we also count a series of splits over the starting point */
+	if (cure && (cure != outer)) {
+		firstlen += curlen + p_edge_length(be);
+
+		if (firstlen > maxlen) {
+			maxlen = firstlen;
+			maxe1 = cure;
+			maxe2 = firste2;
+		}
+	}
+
+	if (!maxe1 || (maxlen < 0.5f*totlen))
+		return P_FALSE;
+	
+	/* find pin1 in the split vertices */
+	be1 = maxe1;
+	be2 = maxe2;
+	len1 = 0.0f;
+	len2 = 0.0f;
+
+	do {
+		if (len1 < len2) {
+			len1 += p_edge_length(be1);
+			be1 = p_boundary_edge_next(be1);
+		}
+		else {
+			be2 = p_boundary_edge_prev(be2);
+			len2 += p_edge_length(be2);
+		}
+	} while (be1 != be2);
+
+	*pin1 = be1->vert;
+
+	/* find pin2 outside the split vertices */
+	be1 = maxe1;
+	be2 = maxe2;
+	len1 = 0.0f;
+	len2 = 0.0f;
+
+	do {
+		if (len1 < len2) {
+			be1 = p_boundary_edge_prev(be1);
+			len1 += p_edge_length(be1);
+		}
+		else {
+			len2 += p_edge_length(be2);
+			be2 = p_boundary_edge_next(be2);
+		}
+	} while (be1 != be2);
+
+	*pin2 = be1->vert;
+
+	p_chart_pin_positions(chart, pin1, pin2);
+
+	return P_TRUE;
+}
+
+static void p_chart_extrema_verts(PChart *chart, PVert **pin1, PVert **pin2)
 {
 	float minv[3], maxv[3], dirlen;
 	PVert *v, *minvert[3], *maxvert[3];
@@ -2696,37 +2840,10 @@ static void p_chart_extrema_verts(PChart *chart, PVert **v1, PVert **v2)
 		}
 	}
 
-	if (minvert[dir] == maxvert[dir]) {
-		/* degenerate case */
-		PFace *f = chart->faces;
-		*v1 = f->edge->vert;
-		*v2 = f->edge->next->vert;
+	*pin1 = minvert[dir];
+	*pin2 = maxvert[dir];
 
-		(*v1)->uv[0] = 0.0f;
-		(*v1)->uv[1] = 0.5f;
-		(*v2)->uv[0] = 1.0f;
-		(*v2)->uv[1] = 0.5f;
-	}
-	else {
-		int diru, dirv;
-
-		*v1 = minvert[dir];
-		*v2 = maxvert[dir];
-
-		if (dir == 2) {
-			diru = 1;
-			dirv = 0;
-		}
-		else {
-			diru = 0;
-			dirv = 1;
-		}
-
-		(*v1)->uv[diru] = (*v1)->co[dir];
-		(*v1)->uv[dirv] = (*v1)->co[(dir+1)%3];
-		(*v2)->uv[diru] = (*v2)->co[dir];
-		(*v2)->uv[dirv] = (*v2)->co[(dir+1)%3];
-	}
+	p_chart_pin_positions(chart, pin1, pin2);
 }
 
 static void p_chart_lscm_load_solution(PChart *chart)
@@ -2775,7 +2892,12 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
 
 		if (npins <= 1) {
 			/* not enough pins, lets find some ourself */
-			p_chart_extrema_verts(chart, &pin1, &pin2);
+			PEdge *outer;
+
+			p_chart_boundaries(chart, NULL, &outer);
+
+			if (!p_chart_symmetry_pins(chart, outer, &pin1, &pin2))
+				p_chart_extrema_verts(chart, &pin1, &pin2);
 
 			chart->u.lscm.pin1 = pin1;
 			chart->u.lscm.pin2 = pin2;
