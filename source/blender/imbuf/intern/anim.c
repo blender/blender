@@ -93,6 +93,7 @@
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
 #define FFMPEG_CODEC_IS_POINTER 1
+#define FFMPEG_HAVE_SKIP_FRAME  1
 #endif
 
 #endif
@@ -550,7 +551,9 @@ static int startffmpeg(struct anim * anim) {
 	pCodecCtx->workaround_bugs = 1;
 	pCodecCtx->lowres = 0;
 	pCodecCtx->idct_algo= FF_IDCT_AUTO;
+#if FFMPEG_HAVE_SKIP_FRAME
 	pCodecCtx->skip_frame= AVDISCARD_DEFAULT;
+#endif
 	pCodecCtx->skip_idct= AVDISCARD_DEFAULT;
 	pCodecCtx->skip_loop_filter= AVDISCARD_DEFAULT;
 	pCodecCtx->error_resilience= FF_ER_CAREFUL;
