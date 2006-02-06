@@ -101,13 +101,6 @@ ifeq ($(OS),linux)
     COMMENT = "MESA 3.1"
     LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
     LLIBS += -lutil -lc -lm -ldl -lpthread 
-    ifeq ($(WITH_FFMPEG),true)
-      ifeq ($(NAN_USE_FFMPEG_CONFIG), true)
-        LLIBS += $(NAN_FFMPEGLIBS)
-      else
-        LLIBS += -lavformat -lavcodec -lavutil -ldts -lz
-      endif
-    endif
 #    LLIBS += -L$(NAN_ODE)/lib -lode
     LOPTS = -export-dynamic
     DADD = -lGL -lGLU
@@ -163,4 +156,8 @@ endif
 
 ifneq ($(OS), irix)
    LLIBS += $(NAN_SDLLIBS)
+endif
+
+ifeq ($(WITH_FFMPEG),true)
+   LLIBS += $(NAN_FFMPEGLIBS)
 endif

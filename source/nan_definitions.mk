@@ -330,6 +330,12 @@ endif
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
+ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
+    export NAN_FFMPEG ?= /usr
+    export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavcodec -lavutil -ldts -lz
+    export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
+endif
+
     # Uncomment the following line to use Mozilla inplace of netscape
     export CPPFLAGS += -DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
