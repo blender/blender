@@ -1444,21 +1444,23 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 	
 	totvlako= re->totvlak;
 	totverto= re->totvert;
-
-	need_orco= 0;
-	for(a=1; a<=ob->totcol; a++) {
-		ma= give_render_material(re, ob, a);
-		if(ma) {
-			if(ma->texco & (TEXCO_ORCO|TEXCO_STRESS))
-				need_orco= 1;
-			if(ma->texco & TEXCO_STRESS)
-				need_stress= 1;
-			if(ma->mode & MA_TANGENT_V)
-				need_tangent= 1;
-		}
-	}
 	
-	if(need_orco) orco = get_object_orco(re, ob);
+	if(!only_verts) {
+		need_orco= 0;
+		for(a=1; a<=ob->totcol; a++) {
+			ma= give_render_material(re, ob, a);
+			if(ma) {
+				if(ma->texco & (TEXCO_ORCO|TEXCO_STRESS))
+					need_orco= 1;
+				if(ma->texco & TEXCO_STRESS)
+					need_stress= 1;
+				if(ma->mode & MA_TANGENT_V)
+					need_tangent= 1;
+			}
+		}
+		
+		if(need_orco) orco = get_object_orco(re, ob);
+	}
 	
 	dm = mesh_create_derived_render(ob);
 	dm_needsfree= 1;
@@ -2185,7 +2187,7 @@ static void init_render_surf(Render *re, Object *ob)
 	freedisplist(&displist);
 }
 
-static void init_render_curve(Render *re, Object *ob)
+static void init_render_curve(Render *re, Object *ob, int only_verts)
 {
 	extern Material defmaterial;	// initrender.c
 	Curve *cu;
@@ -2256,32 +2258,34 @@ static void init_render_curve(Render *re, Object *ob)
 					orco += 3;
 				}
 			}
+			
+			if(only_verts==0) {
+				startvlak= re->totvlak;
+				index= dl->index;
+				for(a=0; a<dl->parts; a++, index+=3) {
 
-			startvlak= re->totvlak;
-			index= dl->index;
-			for(a=0; a<dl->parts; a++, index+=3) {
-
-				vlr= RE_findOrAddVlak(re, re->totvlak++);
-				vlr->ob = ob;
-				vlr->v1= RE_findOrAddVert(re, startvert+index[0]);
-				vlr->v2= RE_findOrAddVert(re, startvert+index[1]);
-				vlr->v3= RE_findOrAddVert(re, startvert+index[2]);
-				vlr->v4= NULL;
-				
-				if(vlr->v1->flag) {
-					VECCOPY(vlr->n, n);
+					vlr= RE_findOrAddVlak(re, re->totvlak++);
+					vlr->ob = ob;
+					vlr->v1= RE_findOrAddVert(re, startvert+index[0]);
+					vlr->v2= RE_findOrAddVert(re, startvert+index[1]);
+					vlr->v3= RE_findOrAddVert(re, startvert+index[2]);
+					vlr->v4= NULL;
+					
+					if(vlr->v1->flag) {
+						VECCOPY(vlr->n, n);
+					}
+					else {
+						vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
+					}
+					
+					vlr->mat= matar[ dl->col ];
+					vlr->flag= 0;
+					if( (cu->flag & CU_NOPUNOFLIP) ) {
+						vlr->flag |= R_NOPUNOFLIP;
+					}
+					vlr->ec= 0;
+					vlr->lay= ob->lay;
 				}
-				else {
-					vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
-				}
-				
-				vlr->mat= matar[ dl->col ];
-				vlr->flag= 0;
-				if( (cu->flag & CU_NOPUNOFLIP) ) {
-					vlr->flag |= R_NOPUNOFLIP;
-				}
-				vlr->ec= 0;
-				vlr->lay= ob->lay;
 			}
 		}
 		else if (dl->type==DL_SURF) {
@@ -2304,77 +2308,79 @@ static void init_render_curve(Render *re, Object *ob)
 				}
 			}
 
-			startvlak= re->totvlak;
+			if(dl->bevelSplitFlag || only_verts==0) {
+				startvlak= re->totvlak;
 
-			for(a=0; a<dl->parts; a++) {
+				for(a=0; a<dl->parts; a++) {
 
-				frontside= (a >= dl->nr/2);
+					frontside= (a >= dl->nr/2);
 
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-				p1+= startvert;
-				p2+= startvert;
-				p3+= startvert;
-				p4+= startvert;
+					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+					p1+= startvert;
+					p2+= startvert;
+					p3+= startvert;
+					p4+= startvert;
 
-				for(; b<dl->nr; b++) {
-					vlr= RE_findOrAddVlak(re, re->totvlak++);
-					vlr->ob= ob;
-					vlr->v1= RE_findOrAddVert(re, p2);
-					vlr->v2= RE_findOrAddVert(re, p1);
-					vlr->v3= RE_findOrAddVert(re, p3);
-					vlr->v4= RE_findOrAddVert(re, p4);
-					vlr->ec= ME_V2V3+ME_V3V4;
-					if(a==0) vlr->ec+= ME_V1V2;
+					for(; b<dl->nr; b++) {
+						vlr= RE_findOrAddVlak(re, re->totvlak++);
+						vlr->ob= ob;
+						vlr->v1= RE_findOrAddVert(re, p2);
+						vlr->v2= RE_findOrAddVert(re, p1);
+						vlr->v3= RE_findOrAddVert(re, p3);
+						vlr->v4= RE_findOrAddVert(re, p4);
+						vlr->ec= ME_V2V3+ME_V3V4;
+						if(a==0) vlr->ec+= ME_V1V2;
 
-					vlr->flag= dl->rt;
-					vlr->lay= ob->lay;
+						vlr->flag= dl->rt;
+						vlr->lay= ob->lay;
 
-					/* this is not really scientific: the vertices
-						* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
-						* front and backside treated different!!
-						*/
+						/* this is not really scientific: the vertices
+							* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
+							* front and backside treated different!!
+							*/
 
-					if(frontside)
-						CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
-					else 
-						CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+						if(frontside)
+							CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
+						else 
+							CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
 
-					vlr->mat= matar[ dl->col ];
+						vlr->mat= matar[ dl->col ];
 
-					p4= p3;
-					p3++;
-					p2= p1;
-					p1++;
+						p4= p3;
+						p3++;
+						p2= p1;
+						p1++;
+					}
 				}
-			}
 
-			if (dl->bevelSplitFlag) {
-				for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
-					if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
-						split_v_renderfaces(re, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
-			}
+				if (dl->bevelSplitFlag) {
+					for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
+						if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
+							split_v_renderfaces(re, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
+				}
 
-			/* vertex normals */
-			for(a= startvlak; a<re->totvlak; a++) {
-				vlr= RE_findOrAddVlak(re, a);
+				/* vertex normals */
+				for(a= startvlak; a<re->totvlak; a++) {
+					vlr= RE_findOrAddVlak(re, a);
 
-				VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
-				VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
-				VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
-				VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
-			}
-			for(a=startvert; a<re->totvert; a++) {
-				ver= RE_findOrAddVert(re, a);
-				len= Normalise(ver->n);
-				if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
-				else ver->flag= 0;
-			}
-			for(a= startvlak; a<re->totvlak; a++) {
-				vlr= RE_findOrAddVlak(re, a);
-				if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
-				if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
-				if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
-				if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
+					VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
+					VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
+					VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
+					VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
+				}
+				for(a=startvert; a<re->totvert; a++) {
+					ver= RE_findOrAddVert(re, a);
+					len= Normalise(ver->n);
+					if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
+					else ver->flag= 0;
+				}
+				for(a= startvlak; a<re->totvlak; a++) {
+					vlr= RE_findOrAddVlak(re, a);
+					if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
+					if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
+					if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
+					if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
+				}
 			}
 		}
 
@@ -2430,7 +2436,9 @@ static void set_phong_threshold(Render *re, Object *ob, int startface, int numfa
 	}
 }
 
-static void init_render_object(Render *re, Object *ob, int only_verts)
+/* par = pointer to duplicator parent, needed for object lookup table */
+/* index = when duplicater copies same object (particle), the counter */
+static void init_render_object(Render *re, Object *ob, Object *par, int index, int only_verts)
 {
 	float mat[4][4];
 	int startface, startvert;
@@ -2443,7 +2451,7 @@ static void init_render_object(Render *re, Object *ob, int only_verts)
 	if(ob->type==OB_LAMP)
 		add_render_lamp(re, ob, 1);
 	else if ELEM(ob->type, OB_FONT, OB_CURVE)
-		init_render_curve(re, ob);
+		init_render_curve(re, ob, only_verts);
 	else if(ob->type==OB_SURF)
 		init_render_surf(re, ob);
 	else if(ob->type==OB_MESH)
@@ -2457,7 +2465,9 @@ static void init_render_object(Render *re, Object *ob, int only_verts)
 	
 	/* generic post process here */
 	if(startvert!=re->totvert) {
-	
+		
+		RE_addRenderObject(re, ob, par, index, startvert, re->totvert, startface, re->totvlak);
+		
 		/* the exception below is because displace code now is in init_render_mesh call, 
 		I will look at means to have autosmooth enabled for all object types 
 		and have it as general postprocess, like displace */
@@ -2810,7 +2820,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				if (re->r.renderer==R_YAFRAY) {
 					if ((ob->type!=OB_MBALL) && ((ob->transflag & OB_DUPLIFRAMES)!=0)) {
 						printf("Object %s has OB_DUPLIFRAMES set, adding to renderlist\n", ob->id.name);
-						init_render_object(re, ob, 0);
+						init_render_object(re, ob, NULL, 0, 0);
 					}
 				}
 				/* before make duplis, update particle for current frame */
@@ -2822,7 +2832,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				}
 				
 				if(ob->type==OB_MBALL) {
-					init_render_object(re, ob, 0);
+					init_render_object(re, ob, NULL, 0, 0);
 				}
 				else {
 					DupliObject *dob;
@@ -2844,7 +2854,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 								printf("Adding dupli matrix for object %s\n", obd->id.name);
 								YAF_addDupliMtx(obd);
 							}
-							else init_render_object(re, obd, 0);
+							else init_render_object(re, obd, ob, dob->index, 0);
 						}
 						Mat4CpyMat4(obd->obmat, dob->omat);
 					}
@@ -2864,14 +2874,14 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 								(ob->parent->type!=OB_LATTICE) && YAF_objectKnownData(ob))
 							printf("From parent: Added dupli matrix for linked data object %s\n", ob->id.name);
 						else
-							init_render_object(re, ob, 0);
+							init_render_object(re, ob, NULL, 0, 0);
 					}
 					else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) && (ob->type!=OB_ARMATURE) && YAF_objectKnownData(ob))
 						printf("Added dupli matrix for linked data object %s\n", ob->id.name);
 					else
-						init_render_object(re, ob, 0);
+						init_render_object(re, ob, NULL, 0, 0);
 				}
-				else init_render_object(re, ob, 0);
+				else init_render_object(re, ob, NULL, 0, 0);
 			}
 
 		}
@@ -2944,7 +2954,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	re->stats_draw(&re->i);
 }
 
-static void database_fromscene_vectors(Render *re, Scene *scene)
+static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 {
 	extern int slurph_opt;	/* key.c */
 	Base *base;
@@ -2968,9 +2978,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene)
 	else lay= re->scene->lay;
 	
 	/* applies changes fully, still using G.scene for timing... */
-	G.scene->r.cfra--;
+	G.scene->r.cfra+=timeoffset;
 	scene_update_for_newframe(re->scene, lay);
-	G.scene->r.cfra++;
 	
 	/* if no camera, viewmat should have been set! */
 	if(re->scene->camera) {
@@ -3007,7 +3016,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene)
 				}
 				
 				if(ob->type==OB_MBALL) {
-					init_render_object(re, ob, 1);
+					init_render_object(re, ob, NULL, 0, 1);
 				}
 				else {
 					DupliObject *dob;
@@ -3018,7 +3027,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene)
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
 						if(obd->type!=OB_MBALL) {
-							init_render_object(re, obd, 1);
+							init_render_object(re, obd, ob, dob->index, 1);
 						}
 						Mat4CpyMat4(obd->obmat, dob->omat);
 					}
@@ -3026,75 +3035,167 @@ static void database_fromscene_vectors(Render *re, Scene *scene)
 				}
 			}
 			else {
-				init_render_object(re, ob, 1);
+				init_render_object(re, ob, NULL, 0, 1);
 			}
 			
 		}
 	}
 	
 	project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0);
+
+	/* do this in end, particles for example need cfra */
+	G.scene->r.cfra-=timeoffset;
+}
+
+static void calculate_speedvectors(Render *re, VertTableNode *nodesb, int starta, int startb, int endvert, int step)
+{
+	VertRen *ver= NULL, *oldver= NULL;
+	float *speed, div, zco[2], oldzco[2];
+	float zmulx= re->winx/2, zmuly= re->winy/2, len;
+	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
+	int a, b;
+	
+	/* set first vertices OK */
+	a= starta-1;
+	ver= re->vertnodes[a>>8].vert + (a & 255);
+	b= startb-1;
+	oldver= nodesb[b>>8].vert + (b & 255);
+	
+	for(a=starta, b= startb; a<endvert; a++, b++) {
+		if((a & 255)==0)
+			ver= re->vertnodes[a>>8].vert;
+		else
+			ver++;
+		if((b & 255)==0)
+			oldver= nodesb[b>>8].vert;
+		else
+			oldver++;
+		
+		/* now map both hocos to screenspace, uses very primitive clip still */
+		if(ver->ho[3]<0.1f) div= 10.0f;
+		else div= 1.0f/ver->ho[3];
+		zco[0]= zmulx*(1.0+ver->ho[0]*div);
+		zco[1]= zmuly*(1.0+ver->ho[1]*div);
+		
+		if(oldver->ho[3]<0.1f) div= 10.0f;
+		else div= 1.0f/oldver->ho[3];
+		oldzco[0]= zmulx*(1.0+oldver->ho[0]*div);
+		oldzco[1]= zmuly*(1.0+oldver->ho[1]*div);
+		
+		zco[0]= oldzco[0] - zco[0];
+		zco[1]= oldzco[1] - zco[1];
+		
+		/* maximize speed for image width, otherwise it never looks good */
+		len= zco[0]*zco[0] + zco[1]*zco[1];
+		if(len > winsq) {
+			len= winroot/sqrt(len);
+			zco[0]*= len;
+			zco[1]*= len;
+		}
+		
+		speed= RE_vertren_get_winspeed(re, ver, 1);
+		if(step) {
+			speed[2]= -zco[0];
+			speed[3]= -zco[1];
+		}
+		else {
+			speed[0]= zco[0];
+			speed[1]= zco[1];
+		}
+		
+		//printf("speed %d %f %f\n", a, speed[0], speed[1]);
+	}
+	
 }
 
 void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 {
-	struct VertTableNode *vertnodes;
-	int vertnodeslen, totvert;
+	VertTableNode *oldvertnodes, *newvertnodes, *vertnodes;
+	ObjectRen *obren, *oldobren;
+	ListBase oldtable, newtable, *table;
+	int oldvertnodeslen, oldtotvert, newvertnodeslen, newtotvert;
+	int step;
 	
 	printf("creating speed vectors \n");
 	re->r.mode |= R_SPEED;
 
 	/* creates entire dbase */
-	database_fromscene_vectors(re, sce);
+	database_fromscene_vectors(re, sce, -1);
 	
 	/* copy away vertex info */
-	vertnodes= re->vertnodes;
-	vertnodeslen= re->vertnodeslen;
-	totvert= re->totvert;
+	oldvertnodes= re->vertnodes;
+	oldvertnodeslen= re->vertnodeslen;
+	oldtotvert= re->totvert;
 	re->vertnodes= NULL;
 	re->vertnodeslen= 0;
 	
-	/* free dbase and make the real one */
+	/* copy away object table */
+	oldtable= re->objecttable;
+	re->objecttable.first= re->objecttable.last= NULL;
+	
+	/* free dbase and make the future one */
 	RE_Database_Free(re);
 	
+	/* creates entire dbase */
+	database_fromscene_vectors(re, sce, +1);
+	
+	/* copy away vertex info */
+	newvertnodes= re->vertnodes;
+	newvertnodeslen= re->vertnodeslen;
+	newtotvert= re->totvert;
+	re->vertnodes= NULL;
+	re->vertnodeslen= 0;
+	
+	/* copy away object table */
+	newtable= re->objecttable;
+	re->objecttable.first= re->objecttable.last= NULL;
+	
+	/* free dbase and make the real one */
+	RE_Database_Free(re);
 	RE_Database_FromScene(re, sce, 1);
 	
-	if(re->totvert!=totvert) {
-		printf("ERROR: vertex tables different in size %d %d\n", re->totvert, totvert);
-	}
-	else {
-		VertRen *ver= NULL, *oldver= NULL;
-		float *speed, div, zco[2], oldzco[2];
-		float zmulx= re->winx/2, zmuly= re->winy/2;
-		int a;
+	for(step= 0; step<2; step++) {
 		
-		for(a=0; a< re->totvert;a++) {
-			if((a & 255)==0) {
-				ver= re->vertnodes[a>>8].vert;
-				oldver= vertnodes[a>>8].vert;
+		if(step) {
+			table= &newtable;
+			vertnodes= newvertnodes;
+		}
+		else {
+			table= &oldtable;
+			vertnodes= oldvertnodes;
+		}
+		
+		oldobren= table->first;
+		
+		for(obren= re->objecttable.first; obren && oldobren; obren= obren->next, oldobren= oldobren->next) {
+			int ok= 1;
+			
+			/* find matching object in old table */
+			if(oldobren->ob!=obren->ob || oldobren->par!=obren->par || oldobren->index!=obren->index) {
+				ok= 0;
+				for(oldobren= table->first; oldobren; oldobren= oldobren->next)
+					if(oldobren->ob==obren->ob && oldobren->par==obren->par && oldobren->index==obren->index)
+						break;
+				if(oldobren==NULL)
+					oldobren= table->first;
+				else
+					ok= 1;
 			}
-			else {
-				ver++;
-				oldver++;
-			}
+			if(ok==0)
+				continue;
 			
-			/* now map both hocos to screenspace */
-			div= 1.0f/ver->ho[3];
-			zco[0]= zmulx*(1.0+ver->ho[0]*div);
-			zco[1]= zmuly*(1.0+ver->ho[1]*div);
+			/* check if both have same amounts of vertices */
+			if(obren->endvert-obren->startvert != oldobren->endvert-oldobren->startvert)
+				continue;
 			
-			div= 1.0f/oldver->ho[3];
-			oldzco[0]= zmulx*(1.0+oldver->ho[0]*div);
-			oldzco[1]= zmuly*(1.0+oldver->ho[1]*div);
-			
-			speed= RE_vertren_get_winspeed(re, ver, 1);
-			speed[0]= oldzco[0] - zco[0];
-			speed[1]= oldzco[1] - zco[1];
-			//printf("speed %d %f %f\n", a, speed[0], speed[1]);
+			calculate_speedvectors(re, vertnodes, obren->startvert, oldobren->startvert, obren->endvert, step);
 		}
 	}
 	
-	free_renderdata_vertnodes(vertnodes);
-	
+	free_renderdata_vertnodes(oldvertnodes);
+	BLI_freelistN(&oldtable);
+	free_renderdata_vertnodes(newvertnodes);
+	BLI_freelistN(&newtable);
 }
 
 

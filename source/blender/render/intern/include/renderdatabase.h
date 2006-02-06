@@ -30,6 +30,7 @@
 #ifndef RENDERDATABASE_H
 #define RENDERDATABASE_H
 
+struct Object;
 struct VlakRen;
 struct VertRen;
 struct HaloRen;
@@ -61,6 +62,7 @@ struct VertRen *RE_findOrAddVert(struct Render *re, int nr);
 struct HaloRen *RE_findOrAddHalo(struct Render *re, int nr);
 struct HaloRen *RE_inithalo(struct Render *re, struct Material *ma, float *vec, float *vec1, float *orco, float hasize, 
 					 float vectsize, int seed);
+void RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int sve, int eve, int sfa, int efa);
 
 float *RE_vertren_get_sticky(struct Render *re, struct VertRen *ver, int verify);
 float *RE_vertren_get_stress(struct Render *re, struct VertRen *ver, int verify);

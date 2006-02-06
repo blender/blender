@@ -59,7 +59,9 @@
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
+
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
 
 #include "DNA_material_types.h" 
 #include "DNA_mesh_types.h" 
@@ -91,7 +93,7 @@
 #define RE_STRAND_ELEMS		1
 #define RE_TANGENT_ELEMS	3
 #define RE_STRESS_ELEMS		1
-#define RE_WINSPEED_ELEMS		2
+#define RE_WINSPEED_ELEMS	4
 
 float *RE_vertren_get_sticky(Render *re, VertRen *ver, int verify)
 {
@@ -170,7 +172,7 @@ float *RE_vertren_get_tangent(Render *re, VertRen *ver, int verify)
 	return tangent + (ver->index & 255)*RE_TANGENT_ELEMS;
 }
 
-/* needs malloc */
+/* needs calloc! not all renderverts have them */
 float *RE_vertren_get_winspeed(Render *re, VertRen *ver, int verify)
 {
 	float *winspeed;
@@ -179,7 +181,7 @@ float *RE_vertren_get_winspeed(Render *re, VertRen *ver, int verify)
 	winspeed= re->vertnodes[nr].winspeed;
 	if(winspeed==NULL) {
 		if(verify) 
-			winspeed= re->vertnodes[nr].winspeed= MEM_mallocN(256*RE_WINSPEED_ELEMS*sizeof(float), "winspeed table");
+			winspeed= re->vertnodes[nr].winspeed= MEM_callocN(256*RE_WINSPEED_ELEMS*sizeof(float), "winspeed table");
 		else
 			return NULL;
 	}
@@ -224,9 +226,25 @@ VertRen *RE_findOrAddVert(Render *re, int nr)
 	return v;
 }
 
+void RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int sve, int eve, int sfa, int efa)
+{
+	ObjectRen *obr= MEM_mallocN(sizeof(ObjectRen), "object render struct");
+	
+	BLI_addtail(&re->objecttable, obr);
+	obr->ob= ob;
+	obr->par= par;
+	obr->index= index;
+	obr->startvert= sve;
+	obr->endvert= eve;
+	obr->startface= sfa;
+	obr->endface= efa;
+}
+
 void free_renderdata_vertnodes(VertTableNode *vertnodes)
 {
 	int a;
+	
+	if(vertnodes==NULL) return;
 	
 	for(a=0; vertnodes[a].vert; a++) {
 		MEM_freeN(vertnodes[a].vert);
@@ -276,6 +294,8 @@ void free_renderdata_tables(Render *re)
 		re->vertnodes= NULL;
 		re->vertnodeslen= 0;
 	}
+	
+	BLI_freelistN(&re->objecttable);
 }
 
 

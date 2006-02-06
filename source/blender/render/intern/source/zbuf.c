@@ -38,6 +38,9 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
+#include "BLI_jitter.h"
+
 #include "MTC_matrixops.h"
 #include "MEM_guardedalloc.h"
 
@@ -1865,7 +1868,430 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size)
 	zbuf_free_span(&zspan);
 }
 
+/* ******************** VECBLUR ACCUM BUF ************************* */
 
+static void zbuf_fill_in_rgba(ZSpan *zspan, float *col, float alpha, float *v1, float *v2, float *v3, float *v4)
+{
+	double zxd, zyd, zy0, zverg;
+	float x0,y0,z0;
+	float x1,y1,z1,x2,y2,z2,xx1;
+	float *span1, *span2;
+	float *rectpofs, *rp, *rectzofs, *rz;
+	int x, y;
+	int sn1, sn2, rectx, my0, my2;
+	
+	/* init */
+	zbuf_init_span(zspan);
+	
+	/* set spans */
+	zbuf_add_to_span(zspan, v1, v2);
+	zbuf_add_to_span(zspan, v2, v3);
+	zbuf_add_to_span(zspan, v3, v4);
+	zbuf_add_to_span(zspan, v4, v1);
+	
+	/* clipped */
+	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
+	
+	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
+	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
+	
+	//	printf("my %d %d\n", my0, my2);
+	if(my2<my0) return;
+	
+	/* ZBUF DX DY, in floats still */
+	x1= v1[0]- v2[0];
+	x2= v2[0]- v3[0];
+	y1= v1[1]- v2[1];
+	y2= v2[1]- v3[1];
+	z1= v1[2]- v2[2];
+	z2= v2[2]- v3[2];
+	x0= y1*z2-z1*y2;
+	y0= z1*x2-x1*z2;
+	z0= x1*y2-y1*x2;
+	
+	if(z0==0.0) return;
+	
+	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
+	
+	zxd= -(double)x0/(double)z0;
+	zyd= -(double)y0/(double)z0;
+	zy0= ((double)my2)*zyd + (double)xx1;
+	
+	/* start-offset in rect */
+	rectx= zspan->rectx;
+	rectzofs= (float *)(zspan->rectz+rectx*my2);
+	rectpofs= (float *)(zspan->rectp+4*rectx*my2);
+	
+	/* correct span */
+	sn1= (my0 + my2)/2;
+	if(zspan->span1[sn1] < zspan->span2[sn1]) {
+		span1= zspan->span1+my2;
+		span2= zspan->span2+my2;
+	}
+	else {
+		span1= zspan->span2+my2;
+		span2= zspan->span1+my2;
+	}
+	
+	for(y=my2; y>=my0; y--, span1--, span2--) {
+		
+		sn1= floor(*span1);
+		sn2= floor(*span2);
+		sn1++; 
+		
+		if(sn2>=rectx) sn2= rectx-1;
+		if(sn1<0) sn1= 0;
+		
+		if(sn2>=sn1) {
+			zverg= (double)sn1*zxd + zy0;
+			rz= rectzofs+sn1;
+			rp= rectpofs+4*sn1;
+			x= sn2-sn1;
+			
+			while(x>=0) {
+				if( zverg < *rz) {
+					*rz= zverg;
+					VECCOPY(rp, col);
+					rp[3]= alpha;
+				}
+				zverg+= zxd;
+				rz++; 
+				rp+=4; 
+				x--;
+			}
+		}
+		
+		zy0-=zyd;
+		rectzofs-= rectx;
+		rectpofs-= 4*rectx;
+	}
+}
+
+static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
+{
+	char *row1, *row2, *row3;
+	char prev, next, step;
+	int a, x, y;
+	
+	/* 1: tag pixels to be candidate for AA */
+	for(y=2; y<ysize; y++) {
+		/* setup rows */
+		row1= rectmove + (y-2)*xsize;
+		row2= row1 + xsize;
+		row3= row2 + xsize;
+		for(x=2; x<xsize; x++, row1++, row2++, row3++) {
+			if(row2[1]) {
+				if(row2[0]==0 || row2[2]==0 || row1[1]==0 || row3[1]==0)
+					row2[1]= 128;
+			}
+		}
+	}
+	/* 2: evaluate horizontal scanlines and calculate alphas */
+	row1= rectmove;
+	for(y=0; y<ysize; y++) {
+		row1++;
+		for(x=1; x<xsize; x++, row1++) {
+			if(row1[0]==128 && row1[1]==128) {
+				/* find previous color and next color and amount of steps to blend */
+				prev= row1[-1];
+				step= 1;
+				while(x+step<xsize && row1[step]==128)
+					step++;
+				
+				if(x+step!=xsize) {
+					/* now we can blend values */
+					next= row1[step];
+					if(prev!=next) {
+						for(a=0; a<step; a++) {
+							int fac, mfac;
+							
+							fac= ((a+1)<<8)/(step+1);
+							mfac= 255-fac;
+							
+							row1[a]= (prev*mfac + next*fac)>>8; 
+						}
+					}
+				}
+			}
+		}
+	}
+	/* 2: evaluate vertical scanlines and calculate alphas */
+	for(x=0; x<xsize; x++) {
+		row1= rectmove + x+xsize;
+		
+		for(y=1; y<ysize; y++, row1+=xsize) {
+			if(row1[0]==128 && row1[xsize]==128) {
+				/* find previous color and next color and amount of steps to blend */
+				prev= row1[-xsize];
+				step= 1;
+				while(y+step<ysize && row1[step*xsize]==128)
+					step++;
+				
+				if(y+step!=ysize) {
+					/* now we can blend values */
+					next= row1[step*xsize];
+					if(prev!=next) {
+						for(a=0; a<step; a++) {
+							int fac, mfac;
+							
+							fac= ((a+1)<<8)/(step+1);
+							mfac= 255-fac;
+							
+							row1[a*xsize]= (prev*mfac + next*fac)>>8; 
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
+	/* last: pixels with 0 we fill in zbuffer, with 1 we skip for mask */
+	for(y=2; y<ysize; y++) {
+		/* setup rows */
+		row1= rectmove + (y-2)*xsize;
+		row2= row1 + xsize;
+		row3= row2 + xsize;
+		for(x=2; x<xsize; x++, row1++, row2++, row3++) {
+			if(row2[1]==0) {
+				if(row2[0]>1 || row2[2]>1 || row1[1]>1 || row3[1]>1)
+					row2[1]= 1;
+			}
+		}
+	}
+}
+
+
+void zbuf_accumulate_vecblur(int samples, int maxspeed, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect)
+{
+	ZSpan zspan;
+	float jit[16][2];
+	float v1[3], v2[3], v3[3], v4[3], fx, fy;
+	float *rectdraw, *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz;
+	float maxspeedsq= (float)maxspeed*maxspeed;
+	int y, x, step;
+	char *rectmove, *dm;
+	
+	zbuf_alloc_span(&zspan, xsize, ysize);
+	zspan.zmulx=  ((float)xsize)/2.0;
+	zspan.zmuly=  ((float)ysize)/2.0;
+	zspan.zofsx= 0.0f;
+	zspan.zofsy= 0.0f;
+	
+	/* the buffers */
+	rectz= MEM_mallocT(sizeof(float)*xsize*ysize, "zbuf accum");
+	zspan.rectz= (int *)rectz;
+	
+	rectmove= MEM_callocT(xsize*ysize, "rectmove");
+	rectdraw= MEM_mallocT(4*sizeof(float)*xsize*ysize, "rect draw");
+	zspan.rectp= (int *)rectdraw;
+	
+	/* make vertex buffer with averaged speed and zvalues */
+	rectvz= MEM_callocT(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
+	dvz= rectvz;
+	for(y=0; y<=ysize; y++) {
+		
+		if(y==0) {
+			dvec1= vecbufrect + 4*y*xsize;
+			dz1= zbufrect + y*xsize;
+		}
+		else {
+			dvec1= vecbufrect + 4*(y-1)*xsize;
+			dz1= zbufrect + (y-1)*xsize;
+		}
+		
+		if(y==ysize) {
+			dvec2= vecbufrect + 4*(y-1)*xsize;
+			dz2= zbufrect + (y-1)*xsize;
+		}
+		else {
+			dvec2= vecbufrect + 4*y*xsize;
+			dz2= zbufrect + y*xsize;
+		}
+		
+		for(x=0; x<=xsize; x++, dz1++, dz2++) {
+			
+			/* two vectors, so a step loop */
+			for(step=0; step<2; step++, dvec1+=2, dvec2+=2, dvz+=2) {
+				/* average on minimal speed */
+				int div= 0;
+				
+				if(x!=0) {
+					if(dvec1[-4]!=0.0f || dvec1[-3]!=0.0f) {
+						dvz[0]= dvec1[-4];
+						dvz[1]= dvec1[-3];
+						div++;
+					}
+					if(dvec2[-4]!=0.0f || dvec2[-3]!=0.0f) {
+						if(div==0) {
+							dvz[0]= dvec2[-4];
+							dvz[1]= dvec2[-3];
+							div++;
+						}
+						else if( (ABS(dvec2[-4]) + ABS(dvec2[-3]))< (ABS(dvz[0]) + ABS(dvz[1])) ) {
+							dvz[0]= dvec2[-4];
+							dvz[1]= dvec2[-3];
+						}
+					}
+				}
+
+				if(x!=xsize) {
+					if(dvec1[0]!=0.0f || dvec1[1]!=0.0f) {
+						if(div==0) {
+							dvz[0]= dvec1[0];
+							dvz[1]= dvec1[1];
+							div++;
+						}
+						else if( (ABS(dvec1[0]) + ABS(dvec1[1]))< (ABS(dvz[0]) + ABS(dvz[1])) ) {
+							dvz[0]= dvec1[0];
+							dvz[1]= dvec1[1];
+						}
+					}
+					if(dvec2[0]!=0.0f || dvec2[1]!=0.0f) {
+						if(div==0) {
+							dvz[0]= dvec2[0];
+							dvz[1]= dvec2[1];
+						}
+						else if( (ABS(dvec2[0]) + ABS(dvec2[1]))< (ABS(dvz[0]) + ABS(dvz[1])) ) {
+							dvz[0]= dvec2[0];
+							dvz[1]= dvec2[1];
+						}
+					}
+				}
+				
+				if(maxspeed) {
+					float speedsq= dvz[0]*dvz[0] + dvz[1]*dvz[1];
+					if(speedsq > maxspeedsq) {
+						speedsq= (float)maxspeed/sqrt(speedsq);
+						dvz[0]*= speedsq;
+						dvz[1]*= speedsq;
+					}
+				}
+			}
+			/* the z coordinate */
+			if(x!=0) {
+				if(x!=xsize)
+					dvz[0]= 0.25f*(dz1[-1] + dz2[-1] + dz1[0] + dz2[0]);
+				else dvz[0]= 0.5f*(dz1[0] + dz2[0]);
+			}
+			else dvz[0]= 0.5f*(dz1[-1] + dz2[-1]);
+			
+			dvz++;
+		}
+	}
+	
+	/* set border speeds to keep border speeds on border */
+	dz1= rectvz;
+	dz2= rectvz+5*(ysize)*(xsize+1);
+	for(x=0; x<=xsize; x++, dz1+=5, dz2+=5) {
+		dz1[1]= 0.0f;
+		dz2[1]= 0.0f;
+		dz1[3]= 0.0f;
+		dz2[3]= 0.0f;
+	}
+	dz1= rectvz;
+	dz2= rectvz+5*(xsize);
+	for(y=0; y<=ysize; y++, dz1+=5*(xsize+1), dz2+=5*(xsize+1)) {
+		dz1[0]= 0.0f;
+		dz2[0]= 0.0f;
+		dz1[2]= 0.0f;
+		dz2[2]= 0.0f;
+	}
+	
+	/* tag moving pixels, only these faces we draw */
+	dm= rectmove;
+	dvec1= vecbufrect;
+	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4) {
+		if(dvec1[0]!=0.0f || dvec1[1]!=0.0f)
+			*dm= 255;
+	}
+	
+	antialias_tagbuf(xsize, ysize, rectmove);
+	
+	BLI_initjit(jit[0], 16);
+	
+	
+	/* accumulate */
+	samples/= 2;
+	for(step= 1; step<=samples; step++) {
+		float speedfac= 0.5f*(float)step/(float)(samples+1);
+		float blendfac= 1.0f/(ABS(step)+1);
+		float mfac= 1.0f-blendfac;
+		int side, z= 4;
+		
+		for(side=0; side<2; side++) {
+			
+			/* clear zbuf, if we draw future we fill in not moving pixels */
+			if(0)
+				for(x= xsize*ysize-1; x>=0; x--) rectz[x]= 10e16;
+			else 
+				for(x= xsize*ysize-1; x>=0; x--) {
+					if(rectmove[x]==0)
+						rectz[x]= zbufrect[x];
+					else
+						rectz[x]= 10e16;
+				}
+			
+			/* clear drawing buffer */
+			for(x= 4*xsize*ysize-1; x>=0; x--) rectdraw[x]= 0.0f;
+			
+			dimg= imgrect;
+			dm= rectmove;
+			dz1= rectvz;
+			dz2= rectvz + 5*(xsize + 1);
+			
+			if(side) {
+				dz1+= 2;
+				dz2+= 2;
+				z= 2;
+				speedfac= -speedfac;
+			}
+
+			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
+				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=5, dz2+=5, dm++) {
+					if(*dm>1) {
+						float alpha= (*dm==255?1.0f:((float)*dm)/255.0f);
+						/* make vertices */
+						v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= dz1[z];
+						v2[0]= speedfac*dz1[5]+fx+1.0f;		v2[1]= speedfac*dz1[6]+fy;			v2[2]= dz1[z+5];
+						v3[0]= speedfac*dz2[5]+fx+1.0f;		v3[1]= speedfac*dz2[6]+fy+1.0f;		v3[2]= dz2[z+5];
+						v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= dz2[z];
+						
+						zbuf_fill_in_rgba(&zspan, dimg, alpha, v1, v2, v3, v4);
+					}
+				}
+				dz1+=5;
+				dz2+=5;
+			}
+			
+			/* accum */
+			for(dz1= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dz1+=4, dz2+=4) {
+				if(dz1[3]!=0.0f) {
+					if(dz1[3]==1.0f) {
+						dz2[0]= mfac*dz2[0] + blendfac*dz1[0];
+						dz2[1]= mfac*dz2[1] + blendfac*dz1[1];
+						dz2[2]= mfac*dz2[2] + blendfac*dz1[2];
+						dz2[3]= mfac*dz2[3] + blendfac*dz1[3];
+					}
+					else {
+						float bfac= dz1[3]*blendfac;
+						float mf= 1.0f - bfac;
+						dz2[0]= mf*dz2[0] + bfac*dz1[0];
+						dz2[1]= mf*dz2[1] + bfac*dz1[1];
+						dz2[2]= mf*dz2[2] + bfac*dz1[2];
+						dz2[3]= mf*dz2[3] + bfac*dz1[3];
+					}
+				}
+			}
+		}
+	}
+	
+	MEM_freeT(rectz);
+	MEM_freeT(rectmove);
+	MEM_freeT(rectdraw);
+	MEM_freeT(rectvz);
+	zbuf_free_span(&zspan);
+}
 
 /* ******************** ABUF ************************* */
 

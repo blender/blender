@@ -182,7 +182,17 @@ static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, c
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype= passtype;
-	rpass->rect= RE_callocN(sizeof(float)*rectsize, mallocstr);
+	if(passtype==SCE_PASS_VECTOR) {
+		float *rect;
+		int x;
+		
+		/* initialize to max speed */
+		rect= rpass->rect= RE_mallocN(sizeof(float)*rectsize, mallocstr);
+		for(x= rectsize-1; x>=0; x--)
+			rect[x]= 10000.0f;
+	}
+	else
+		rpass->rect= RE_callocN(sizeof(float)*rectsize, mallocstr);
 }
 
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
@@ -240,7 +250,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		if(srl->passflag  & SCE_PASS_Z)
 			render_layer_add_pass(rl, rectx*recty, SCE_PASS_Z, "Layer float Z");
 		if(srl->passflag  & SCE_PASS_VECTOR)
-			render_layer_add_pass(rl, rectx*recty*2, SCE_PASS_VECTOR, "layer float Vector");
+			render_layer_add_pass(rl, rectx*recty*4, SCE_PASS_VECTOR, "layer float Vector");
 		if(srl->passflag  & SCE_PASS_NORMAL)
 			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_NORMAL, "layer float Normal");
 		if(srl->passflag  & SCE_PASS_RGBA)
@@ -339,7 +349,7 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 1);
 					break;
 				case SCE_PASS_VECTOR:
-					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 2);
+					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 4);
 					break;
 				case SCE_PASS_RGBA:
 					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 4);

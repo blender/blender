@@ -70,6 +70,7 @@ typedef struct CompBuf {
 
 /* defines also used for pixel size */
 #define CB_RGBA		4
+#define CB_VEC4		4
 #define CB_VEC3		3
 #define CB_VEC2		2
 #define CB_VAL		1
@@ -819,7 +820,7 @@ static CompBuf *compbuf_from_pass(RenderLayer *rl, int rectx, int recty, int pas
 		if(passcode==SCE_PASS_Z)
 			buftype= CB_VAL;
 		else if(passcode==SCE_PASS_VECTOR)
-			buftype= CB_VEC2;
+			buftype= CB_VEC4;
 		else if(passcode==SCE_PASS_RGBA)
 			buftype= CB_RGBA;
 			
@@ -2138,7 +2139,8 @@ static bNodeType cmp_node_blur= {
 /* **************** VECTOR BLUR ******************** */
 static bNodeSocketType cmp_node_vecblur_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 1, "Vec",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, "Speed",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketType cmp_node_vecblur_out[]= {
@@ -2146,45 +2148,46 @@ static bNodeSocketType cmp_node_vecblur_out[]= {
 	{	-1, 0, ""	}
 };
 
+
+
 static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	NodeBlurData nbd;
-	CompBuf *new, *img= in[0]->data, *vecbuf= in[1]->data, *wbuf;
-	float *vect, *dest;
-	int x, y;
+	extern void zbuf_accumulate_vecblur(int samples, int maxspeed, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
+
+//	NodeBlurData nbd;
+	CompBuf *new, *img= in[0]->data, *vecbuf= in[2]->data, *zbuf= in[1]->data;
 	
-	if(img==NULL || vecbuf==NULL || out[0]->hasoutput==0)
+	if(img==NULL || vecbuf==NULL || zbuf==NULL || out[0]->hasoutput==0)
 		return;
 	if(vecbuf->x!=img->x || vecbuf->y!=img->y) {
-		printf("cannot do different sized vecbuf yet\n");
+		printf("ERROR: cannot do different sized vecbuf yet\n");
 		return;
 	}
-	if(vecbuf->type!=CB_VEC2) {
-		printf("input should be vecbuf\n");
+	if(vecbuf->type!=CB_VEC4) {
+		printf("ERROR: input should be vecbuf\n");
+		return;
+	}
+	if(zbuf->type!=CB_VAL) {
+		printf("ERROR: input should be zbuf\n");
+		return;
+	}
+	if(zbuf->x!=img->x || zbuf->y!=img->y) {
+		printf("ERROR: cannot do different sized zbuf yet\n");
 		return;
 	}
 	
-	/* make weights version of vectors */
-	wbuf= alloc_compbuf(img->x, img->y, CB_VAL, 1); // allocs
-	dest= wbuf->rect;
-	vect= vecbuf->rect;
-	for(y=0; y<img->y; y++) {
-		for(x=0; x<img->x; x++, dest++, vect+=2) {
-			*dest= 0.02f*sqrt(vect[0]*vect[0] + vect[1]*vect[1]);
-			if(*dest>1.0f) *dest= 1.0f;
-		}
-	}
+	//new= alloc_compbuf(img->x, img->y, img->type, 1);
+	new= dupalloc_compbuf(img);
 	
-	/* make output size of input image */
-	new= alloc_compbuf(img->x, img->y, CB_RGBA, 1); // allocs
+//	do_filter3(vecbuf, vecbuf, soft, 1.0f);
+		
+	/* call special zbuffer version */
+	zbuf_accumulate_vecblur(node->custom1, node->custom2, img->x, img->y, new->rect, img->rect, vecbuf->rect, zbuf->rect);
 	
-	nbd.sizex= 100; nbd.sizey= 100; nbd.filtertype= R_FILTER_GAUSS;
-	blur_with_reference(new, img, wbuf, &nbd);
-	
-	free_compbuf(wbuf);
 	out[0]->data= new;
 }
 
+/* custom1: itterations, custom2: maxspeed (0 = nolimit) */
 static bNodeType cmp_node_vecblur= {
 	/* type code   */	CMP_NODE_VECBLUR,
 	/* name        */	"Vector Blur",

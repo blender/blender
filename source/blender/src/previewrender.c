@@ -264,6 +264,8 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 		if(id_type==ID_MA) {
 			Material *mat= (Material *)id;
 			
+			sce->r.mode |= R_SHADOW;
+
 			if(id) {
 				if(pr_method==PR_ICON_RENDER) {
 					sce->lay= 1<<MA_SPHERE_A;
@@ -299,6 +301,7 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 			Lamp *la= (Lamp *)id;
 			
 			sce->lay= 1<<MA_LAMP;
+			sce->r.mode &= ~R_SHADOW;
 			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='p') {

@@ -277,7 +277,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 
 /* ****************** DUPLICATOR ************** */
 
-static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay)
+static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index)
 {
 	DupliObject *dob= MEM_mallocN(sizeof(DupliObject), "dupliobject");
 	BLI_addtail(lb, dob);
@@ -285,6 +285,7 @@ static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay)
 	Mat4CpyMat4(dob->mat, mat);
 	Mat4CpyMat4(dob->omat, ob->obmat);
 	dob->origlay= ob->lay;
+	dob->index= index;
 	ob->lay= lay;
 }
 
@@ -302,7 +303,7 @@ static void group_duplilist(ListBase *lb, Object *ob)
 	for(go= ob->dup_group->gobject.first; go; go= go->next) {
 		if(go->ob!=ob) {
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
-			new_dupli_object(lb, go->ob, mat, ob->lay);
+			new_dupli_object(lb, go->ob, mat, ob->lay, 0);
 		}
 	}
 }
@@ -331,7 +332,7 @@ static void frames_duplilist(ListBase *lb, Object *ob)
 		if(ok) {
 			do_ob_ipo(ob);
 			where_is_object_time(ob, (float)G.scene->r.cfra);
-			new_dupli_object(lb, ob, ob->obmat, ob->lay);
+			new_dupli_object(lb, ob, ob->obmat, ob->lay, G.scene->r.cfra);
 		}
 	}
 
@@ -369,7 +370,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 		Mat4CpyMat4(tmat, obmat);
 		Mat4MulMat43(obmat, tmat, mat);
 	}
-	new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay);
+	new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index);
 }
 
 static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
@@ -442,7 +443,7 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 	float ctime, vec1[3];
 	float vec[3], tmat[4][4], mat[3][3];
 	float *q2;
-	int lay, a;
+	int lay, a, counter;	/* counter is used to find in render the indexed object */
 	
 	pa= paf->keys;
 	if(pa==0) {
@@ -465,7 +466,7 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 					/* temp copy, to have ipos etc to work OK */
 					copyob= *ob;
 					
-					for(a=0, pa= paf->keys; a<paf->totpart; a++, pa+=paf->totkey) {
+					for(a=0, pa= paf->keys, counter=0; a<paf->totpart; a++, pa+=paf->totkey, counter++) {
 						
 						if(paf->flag & PAF_STATIC) {
 							float mtime;
@@ -473,7 +474,7 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 							where_is_particle(paf, pa, pa->time, vec1);
 							mtime= pa->time+pa->lifetime;
 							
-							for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
+							for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep, counter++) {
 								
 								/* make sure hair grows until the end.. */ 
 								if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
@@ -500,11 +501,11 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 								/* put object back in original state, so it cam be restored OK */
 								Mat4CpyMat4(tmat, ob->obmat);
 								Mat4CpyMat4(ob->obmat, copyob.obmat);
-								new_dupli_object(lb, ob, tmat, par->lay);
+								new_dupli_object(lb, ob, tmat, par->lay, counter);
 							}
 						}
 						else { // non static particles
-							   
+							
 							if((paf->flag & PAF_UNBORN)==0 && ctime < pa->time) continue;
 							if((paf->flag & PAF_DIED)==0 && ctime > pa->time+pa->lifetime) continue;
 
@@ -527,10 +528,10 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 
 							VECCOPY(ob->obmat[3], vec);
 							
-							/* put object back in original state, so it cam be restored OK */
+							/* put object back in original state, so it can be restored OK */
 							Mat4CpyMat4(tmat, ob->obmat);
 							Mat4CpyMat4(ob->obmat, copyob.obmat);
-							new_dupli_object(lb, ob, tmat, par->lay);
+							new_dupli_object(lb, ob, tmat, par->lay, counter);
 						}					
 					}
 					/* temp copy, to have ipos etc to work OK */
@@ -605,7 +606,7 @@ static void font_duplilist(ListBase *lb, Object *par)
 			Mat4CpyMat4(obmat, par->obmat);
 			VECCOPY(obmat[3], vec);
 			
-			new_dupli_object(lb, ob, obmat, par->lay);
+			new_dupli_object(lb, ob, obmat, par->lay, a);
 		}
 		
 	}

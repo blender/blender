@@ -795,6 +795,23 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 	return 38;
 }
 
+static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		short dy= butr->ymin;
+		short dx= (butr->xmax-butr->xmin);
+		
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Samples:",
+					 butr->xmin, dy+19, dx, 19, 
+					 &node->custom1, 1, 256, 0, 0, "Amount of samples");
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "MaxSpeed:",
+					 butr->xmin, dy, dx, 19, 
+					 &node->custom2, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
+	}
+	return 38;
+}
+
 static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -891,6 +908,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_BLUR:
 			ntype->butfunc= node_composit_buts_blur;
+			break;
+		case CMP_NODE_VECBLUR:
+			ntype->butfunc= node_composit_buts_vecblur;
 			break;
 		case CMP_NODE_FILTER:
 			ntype->butfunc= node_composit_buts_filter;

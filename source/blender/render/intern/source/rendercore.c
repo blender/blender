@@ -2025,8 +2025,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		if(s1 && s2 && s3) {
 			shi->winspeed[0]= (l*s3[0] - u*s1[0] - v*s2[0]);
 			shi->winspeed[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
-			shi->winspeed[2]= 0.0f;
-		}			
+			shi->winspeed[2]= (l*s3[2] - u*s1[2] - v*s2[2]);
+			shi->winspeed[3]= (l*s3[3] - u*s1[3] - v*s2[3]);
+		}
 	}
 	
 	/* texture coordinates. shi->dxuv shi->dyuv have been set */
@@ -2530,7 +2531,7 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 //		}
 		
 		/* additional passes */
-		shr->winspeed[0]= shi.winspeed[0]; shr->winspeed[1]= shi.winspeed[1];
+		QUATCOPY(shr->winspeed, shi.winspeed);
 		VECCOPY(shr->nor, shi.vn);
 		
 		/* NOTE: this is not correct here, sky from raytrace gets corrected... */
@@ -2716,8 +2717,18 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				col= shr->nor;
 				break;
 			case SCE_PASS_VECTOR:
-				col= shr->winspeed;
-				pixsize= 2;
+			{
+				/* add minimum speed in pixel */
+				fp= rpass->rect + 4*offset;
+				if( (ABS(shr->winspeed[0]) + ABS(shr->winspeed[1]))< (ABS(fp[0]) + ABS(fp[1])) ) {
+					fp[0]= shr->winspeed[0];
+					fp[1]= shr->winspeed[1];
+				}
+				if( (ABS(shr->winspeed[2]) + ABS(shr->winspeed[3]))< (ABS(fp[2]) + ABS(fp[3])) ) {
+					fp[2]= shr->winspeed[2];
+					fp[3]= shr->winspeed[3];
+				}
+			}
 				break;
 		}
 		if(col) {
@@ -2761,7 +2772,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeResult *shr)
 				break;
 			case SCE_PASS_VECTOR:
 				col= shr->winspeed;
-				pixsize= 2;
+				pixsize= 4;
 				break;
 		}
 		if(col) {
@@ -3121,7 +3132,7 @@ void zbufshade_tile(RenderPart *pa)
 						QUATCOPY(fcol, shpi.shr.combined);
 						
 						/* passes */
-						if(*rp && addpassflag)
+						if(addpassflag)
 							add_passes(rl, offs, &shpi.shr);
 					}
 					if(y&1)

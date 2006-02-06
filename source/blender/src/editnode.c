@@ -154,6 +154,7 @@ static void snode_handle_recalc(SpaceNode *snode)
 			}
 			
 			snode->nodetree->timecursor= NULL;
+			waitcursor(0);
 		}
 	}
 }

@@ -40,6 +40,7 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"	/* TexResult, ShadeResult, ShadeInput */
 
+struct Object;
 struct MemArena;
 struct VertTableNode;
 struct Octree;
@@ -85,7 +86,6 @@ typedef struct Octree {
 	int ocres;
 	int branchcount, nodecount;
 } Octree;
-
 
 /* controls state of render, everything that's read-only during render stage */
 struct Render
@@ -150,6 +150,7 @@ struct Render
 	struct HaloRen **bloha;
 	int blovllen;
 	struct VlakRen **blovl;
+	ListBase objecttable;
 	
 	struct GHash *orco_hash;
 
@@ -188,6 +189,14 @@ typedef struct ShadBuf {
 	long *zbuf;
 	char *cbuf;
 } ShadBuf;
+
+/* ------------------------------------------------------------------------- */
+/* lookup of objects in database */
+typedef struct ObjectRen {
+	struct ObjectRen *next, *prev;
+	struct Object *ob, *par;
+	int index, startvert, endvert, startface, endface;
+} ObjectRen;
 
 /* ------------------------------------------------------------------------- */
 
