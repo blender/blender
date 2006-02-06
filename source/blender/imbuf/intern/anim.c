@@ -551,7 +551,7 @@ static int startffmpeg(struct anim * anim) {
 	pCodecCtx->workaround_bugs = 1;
 	pCodecCtx->lowres = 0;
 	pCodecCtx->idct_algo= FF_IDCT_AUTO;
-#if FFMPEG_HAVE_SKIP_FRAME
+#ifdef FFMPEG_HAVE_SKIP_FRAME
 	pCodecCtx->skip_frame= AVDISCARD_DEFAULT;
 #endif
 	pCodecCtx->skip_idct= AVDISCARD_DEFAULT;
