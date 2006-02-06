@@ -111,6 +111,12 @@ endif
     endif
   # Platform Dependent settings go below:
 
+  ifeq ($(NAN_USE_FFMPEG_CONFIG), true)
+    export NAN_FFMPEG ?= $(shell ffmpeg-config --prefix)
+    export NAN_FFMPEGLIBS ?= $(shell ffmpeg-config --libs avformat avcodec)
+    export NAN_FFMPEGCFLAGS ?= $(shell ffmpeg-config --cflags)
+  endif
+
   ifeq ($(OS),beos)
 
     export ID = $(USER)
