@@ -343,7 +343,9 @@ endif
     export WITH_FREETYPE2 ?= true
 
     # enable ffmpeg support
-    export WITH_FFMPEG ?= true
+    ifndef NAN_NO_FFMPEG
+	  export WITH_FFMPEG ?= true
+    endif
   else
   ifeq ($(OS),openbsd)
 
