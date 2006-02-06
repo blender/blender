@@ -94,6 +94,11 @@ $Id$
     (unless you have overridden any of them in your
     $BLENDERHOME/user-config.py).
 
+    NOTE: The best way to avoid confusion is the
+    copy $BLENDERHOME/config/(platform)-config.py to
+    $BLENDERHOME/user-config.py. You should NEVER have to modify
+    $BLENDERHOME/config/(platform)-config.py
+
     Configuring the output
     ----------------------
 
