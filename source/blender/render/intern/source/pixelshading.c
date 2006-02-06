@@ -521,8 +521,8 @@ void shadeSkyPixel(float *collector, float fx, float fy, float *rco)
 			fac= Normalise(view);
 			
 			if(R.wrld.skytype & WO_SKYTEX) {
-				dxyview[0]= 1.0/fac;
-				dxyview[1]= R.ycor/fac;
+				dxyview[0]= -R.viewdx/fac;
+				dxyview[1]= -R.viewdy/fac;
 			}
 		}
 		
