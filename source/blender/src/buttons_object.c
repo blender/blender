@@ -253,7 +253,10 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 	/* adds ipo & channels & curve if needed */
 	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, CO_ENFORCE);
 
-	insert_vert_ipo(icu, CFRA, con->enforce);
+	if(ob->action)
+		insert_vert_ipo(icu, get_action_frame(ob, (float)CFRA), con->enforce);
+	else
+		insert_vert_ipo(icu, CFRA, con->enforce);
 	
 	/* make sure ipowin shows it */
 	ob->ipowin= ID_CO;
