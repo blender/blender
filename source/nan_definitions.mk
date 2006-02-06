@@ -89,6 +89,10 @@ endif
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
     ifeq ($(FREE_WINDOWS), true)
       export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
+      export NAN_FFMPEG ?= $(LCGDIR)/gcc/ffmpeg
+      export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavutil -lavcodec
+      export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
+
     else
       export NAN_FTGL ?= $(LCGDIR)/ftgl
     endif
