@@ -291,9 +291,10 @@ allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, t
 
 if env['OURPLATFORM'] == 'win32-vc':
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = ['#../lib/windows/gettext/lib/gnu_gettext.dll',
-               '#../lib/windows/png/lib/libpng.dll',
-               '#../lib/windows/sdl/lib/SDL.dll',
-               '#../lib/windows/zlib/lib/zlib.dll'])
+                        '#../lib/windows/png/lib/libpng.dll',
+                        '#../lib/windows/python/lib/python24.dll',
+                        '#../lib/windows/sdl/lib/SDL.dll',
+                        '#../lib/windows/zlib/lib/zlib.dll'])
     allinstall += windlls
 
 installtarget = env.Alias('install', allinstall)
