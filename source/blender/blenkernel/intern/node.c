@@ -779,7 +779,10 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 		else if(type==CMP_NODE_BLUR)
 			node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
 		else if(type==CMP_NODE_VECBLUR) {
-			node->custom1= 32;
+			NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur data");
+			node->storage= nbd;
+			nbd->samples= 32;
+			nbd->fac= 1.0f;
 		}
 	}
 	

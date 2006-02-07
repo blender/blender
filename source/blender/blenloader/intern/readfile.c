@@ -3610,6 +3610,15 @@ static void ntree_version_241(bNodeTree *ntree)
 					node->storage= nbd;
 				}
 			}
+			else if(node->type==CMP_NODE_VECBLUR) {
+				if(node->storage==NULL) {
+					NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur patch");
+					nbd->samples= node->custom1;
+					nbd->maxspeed= node->custom2;
+					nbd->fac= 1.0f;
+					node->storage= nbd;
+				}
+			}
 		}
 	}
 }

@@ -46,6 +46,7 @@
 
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_node_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_global.h"
@@ -2062,14 +2063,14 @@ static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 }
 
 
-void zbuf_accumulate_vecblur(int samples, int maxspeed, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect)
+void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect)
 {
 	ZSpan zspan;
 	float jit[16][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
 	float *rectdraw, *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz;
-	float maxspeedsq= (float)maxspeed*maxspeed;
-	int y, x, step;
+	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
+	int y, x, step, maxspeed= nbd->maxspeed, samples= nbd->samples;
 	char *rectmove, *dm;
 	
 	zbuf_alloc_span(&zspan, xsize, ysize);
@@ -2214,7 +2215,7 @@ void zbuf_accumulate_vecblur(int samples, int maxspeed, int xsize, int ysize, fl
 	/* accumulate */
 	samples/= 2;
 	for(step= 1; step<=samples; step++) {
-		float speedfac= 0.5f*(float)step/(float)(samples+1);
+		float speedfac= 0.5f*nbd->fac*(float)step/(float)(samples+1);
 		float blendfac= 1.0f/(ABS(step)+1);
 		float mfac= 1.0f-blendfac;
 		int side, z= 4;

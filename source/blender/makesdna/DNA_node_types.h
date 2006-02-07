@@ -186,7 +186,8 @@ typedef struct NodeImageAnim {
 } NodeImageAnim;
 
 typedef struct NodeBlurData {
-	short sizex, sizey;
+	short sizex, sizey, samples, maxspeed;
+	float fac;
 	short filtertype;
 	char bokeh, gamma;
 } NodeBlurData;

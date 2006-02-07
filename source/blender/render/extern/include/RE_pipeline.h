@@ -36,6 +36,7 @@
 
 struct Scene;
 struct RenderData;
+struct NodeBlurData;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -174,6 +175,8 @@ void RE_error_cb		(struct Render *re, void (*f)(const char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
+/* vector blur zbuffer method */
+void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
 
 #endif /* RE_PIPELINE_H */
 

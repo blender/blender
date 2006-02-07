@@ -798,18 +798,22 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
+		NodeBlurData *nbd= node->storage;
 		short dy= butr->ymin;
 		short dx= (butr->xmax-butr->xmin);
 		
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Samples:",
-					 butr->xmin, dy+19, dx, 19, 
-					 &node->custom1, 1, 256, 0, 0, "Amount of samples");
+				 butr->xmin, dy+38, dx, 19, 
+				 &nbd->samples, 1, 256, 0, 0, "Amount of samples");
 		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "MaxSpeed:",
-					 butr->xmin, dy, dx, 19, 
-					 &node->custom2, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
+				  butr->xmin, dy+19, dx, 19, 
+				  &nbd->maxspeed, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "BlurFac:",
+				  butr->xmin, dy, dx, 19, 
+				  &nbd->fac, 0.0f, 2.0f, 10, 2, "Scaling factor for motion vectors, actually 'shutter speed' in frames");
 	}
-	return 38;
+	return 57;
 }
 
 static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)

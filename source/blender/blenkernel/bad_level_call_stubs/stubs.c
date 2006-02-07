@@ -39,6 +39,7 @@
 #include "BPI_script.h"
 #include "DNA_texture_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
 #include "RE_render_ext.h"
@@ -221,4 +222,4 @@ float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype) {return NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
 
 /* node_composite.c */
-void zbuf_accumulate_vecblur(int samples, int maxspeed, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) {}
+void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) {}

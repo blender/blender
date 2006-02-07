@@ -2152,9 +2152,7 @@ static bNodeSocketType cmp_node_vecblur_out[]= {
 
 static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	extern void zbuf_accumulate_vecblur(int samples, int maxspeed, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
-
-//	NodeBlurData nbd;
+	NodeBlurData *nbd= node->storage;
 	CompBuf *new, *img= in[0]->data, *vecbuf= in[2]->data, *zbuf= in[1]->data;
 	
 	if(img==NULL || vecbuf==NULL || zbuf==NULL || out[0]->hasoutput==0)
@@ -2176,13 +2174,10 @@ static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in,
 		return;
 	}
 	
-	//new= alloc_compbuf(img->x, img->y, img->type, 1);
 	new= dupalloc_compbuf(img);
 	
-//	do_filter3(vecbuf, vecbuf, soft, 1.0f);
-		
 	/* call special zbuffer version */
-	zbuf_accumulate_vecblur(node->custom1, node->custom2, img->x, img->y, new->rect, img->rect, vecbuf->rect, zbuf->rect);
+	RE_zbuf_accumulate_vecblur(nbd, img->x, img->y, new->rect, img->rect, vecbuf->rect, zbuf->rect);
 	
 	out[0]->data= new;
 }
@@ -2195,7 +2190,7 @@ static bNodeType cmp_node_vecblur= {
 	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_vecblur_in,
 	/* output sock */	cmp_node_vecblur_out,
-	/* storage     */	"",
+	/* storage     */	"NodeBlurData",
 	/* execfunc    */	node_composit_exec_vecblur
 	
 };
