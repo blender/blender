@@ -14,6 +14,7 @@ Import('env')
 #           ]; # sources
 
 sources = env.Glob('intern/*.cpp')
+sources.remove('intern/blenderdummy.cpp')
 
 defs = 'NOGUI ELBEEM_BLENDER=1'
 if env['OURPLATFORM']=='win32-vc':
