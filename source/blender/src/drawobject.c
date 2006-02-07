@@ -3171,12 +3171,17 @@ static void draw_forcefield(Object *ob)
 	float imat[4][4], tmat[4][4];
 	float vec[3]= {0.0, 0.0, 0.0};
 	int curcol;
+	float size;
 	
 	if(ob!=G.obedit && (ob->flag & SELECT)) {
 		if(ob==OBACT) curcol= TH_ACTIVE;
 		else curcol= TH_SELECT;
 	}
 	else curcol= TH_WIRE;
+	
+	/* scale size of circle etc with the empty drawsize */
+	if (ob->type == OB_EMPTY) size = ob->empty_drawsize;
+	else size = 1.0;
 	
 	/* calculus here, is reused in PFIELD_FORCE */
 	mygetmatrix(tmat);
@@ -3195,13 +3200,13 @@ static void draw_forcefield(Object *ob)
 		else 
 			force_val = pd->f_strength;
 		force_val*= 0.1;
-		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, size, tmat);
 		vec[2]= 0.5*force_val;
-		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, size, tmat);
 		vec[2]= 1.0*force_val;
-		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, size, tmat);
 		vec[2]= 1.5*force_val;
-		drawcircball(GL_LINE_LOOP, vec, 1.0, tmat);
+		drawcircball(GL_LINE_LOOP, vec, size, tmat);
 		
 	}
 	else if (pd->forcefield == PFIELD_FORCE) {
@@ -3213,11 +3218,11 @@ static void draw_forcefield(Object *ob)
 			ffall_val = pd->f_power;
 
 		BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
-		drawcircball(GL_LINE_LOOP, vec, 1.0, imat);
+		drawcircball(GL_LINE_LOOP, vec, size, imat);
 		BIF_ThemeColorBlend(curcol, TH_BACK, 0.9 - 0.4 / pow(1.5, (double)ffall_val));
-		drawcircball(GL_LINE_LOOP, vec, 1.5, imat);
+		drawcircball(GL_LINE_LOOP, vec, size*1.5, imat);
 		BIF_ThemeColorBlend(curcol, TH_BACK, 0.9 - 0.4 / pow(2.0, (double)ffall_val));
-		drawcircball(GL_LINE_LOOP, vec, 2.0, imat);
+		drawcircball(GL_LINE_LOOP, vec, size*2.0, imat);
 	}
 	else if (pd->forcefield == PFIELD_VORTEX) {
 		float ffall_val, force_val;
@@ -3235,12 +3240,12 @@ static void draw_forcefield(Object *ob)
 
 		BIF_ThemeColorBlend(curcol, TH_BACK, 0.7);
 		if (force_val < 0) {
-			drawspiral(vec, 1.0, imat, 1);
-			drawspiral(vec, 1.0, imat, 16);
+			drawspiral(vec, size*1.0, imat, 1);
+			drawspiral(vec, size*1.0, imat, 16);
 		}
 		else {
-			drawspiral(vec, 1.0, imat, -1);
-			drawspiral(vec, 1.0, imat, -16);
+			drawspiral(vec, size*1.0, imat, -1);
+			drawspiral(vec, size*1.0, imat, -16);
 		}
 	}
 	else if (pd->forcefield == PFIELD_GUIDE && ob->type==OB_CURVE) {
