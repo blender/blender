@@ -95,6 +95,7 @@ void			ntreeInitTypes(struct bNodeTree *ntree);
 void			ntreeMakeOwnType(struct bNodeTree *ntree);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
+void			ntreeMakeLocal(struct bNodeTree *ntree);
 
 void			ntreeSocketUseFlags(struct bNodeTree *ntree);
 

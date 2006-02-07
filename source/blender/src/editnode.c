@@ -420,6 +420,12 @@ static void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	}
 	
 	if(gnode && gnode->type==NODE_GROUP && gnode->id) {
+		if(gnode->id->lib) {
+			if(okee("Make Group Local"))
+				ntreeMakeLocal((bNodeTree *)gnode->id);
+			else
+				return;
+		}
 		gnode->flag |= NODE_GROUP_EDIT;
 		snode->edittree= (bNodeTree *)gnode->id;
 		
@@ -431,6 +437,8 @@ static void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	}
 	else 
 		snode->edittree= snode->nodetree;
+	
+	ntreeSolveOrder(snode->nodetree);
 	
 	/* finally send out events for new active node */
 	if(snode->treetype==NTREE_SHADER) {
@@ -473,6 +481,66 @@ static void snode_verify_groups(SpaceNode *snode)
 		nodeVerifyGroup((bNodeTree *)gnode->id);
 	
 }
+
+static void node_addgroup(SpaceNode *snode)
+{
+	bNodeTree *ngroup;
+	int tot= 0, offs, val;
+	char *strp;
+	
+	if(snode->edittree!=snode->nodetree) {
+		error("Can not add a Group in a Group");
+		return;
+	}
+	
+	/* construct menu with choices */
+	for(ngroup= G.main->nodetree.first; ngroup; ngroup= ngroup->id.next) {
+		if(ngroup->type==snode->treetype)
+			tot++;
+	}
+	if(tot==0) {
+		error("No groups available in database");
+		return;
+	}
+	strp= MEM_mallocN(32*tot+32, "menu");
+	strcpy(strp, "Add Group %t");
+	offs= strlen(strp);
+	
+	for(tot=0, ngroup= G.main->nodetree.first; ngroup; ngroup= ngroup->id.next, tot++) {
+		if(ngroup->type==snode->treetype)
+			offs+= sprintf(strp+offs, "|%s %%x%d", ngroup->id.name+2, tot);
+	}	
+	
+	val= pupmenu(strp);
+	if(val>=0) {
+		ngroup= BLI_findlink(&G.main->nodetree, val);
+		if(ngroup) {
+			bNode *node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup);
+			
+			/* generics */
+			if(node) {
+				float locx, locy;
+				short mval[2];
+
+				node_deselectall(snode, 0);
+				
+				getmouseco_areawin(mval);
+				areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
+				
+				node->locx= locx;
+				node->locy= locy + 60.0f;		// arbitrary.. so its visible
+				node->flag |= SELECT;
+				
+				id_us_plus(node->id);
+				
+				node_set_active(snode, node);
+				BIF_undo_push("Add Node");
+			}
+		}			
+	}
+	MEM_freeN(strp);
+}
+
 
 /* ************************** Node generic ************** */
 
@@ -1736,6 +1804,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_ALTKEY) {
 					if(okee("Ungroup"))
 						node_ungroup(snode);
+				}
+				else if(G.qual==LR_SHIFTKEY) {
+					node_addgroup(snode);
 				}
 				else
 					transform_nodes(snode->edittree, 'g', "Translate Node");

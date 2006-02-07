@@ -1203,7 +1203,7 @@ static void direct_link_curvemapping(FileData *fd, CurveMapping *cumap)
 
 /* ************ READ NODE TREE *************** */
 
-/* singe node tree, ntree is not NULL */
+/* singe node tree (also used for material/scene trees), ntree is not NULL */
 static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 {
 	bNode *node;
@@ -1212,30 +1212,33 @@ static void lib_link_ntree(FileData *fd, ID *id, bNodeTree *ntree)
 		node->id= newlibadr_us(fd, id->lib, node->id);
 }
 
-/* library linking after fileread */
+/* library ntree linking after fileread */
 static void lib_link_nodetree(FileData *fd, Main *main)
+{
+	bNodeTree *ntree;
+	
+	/* only link ID pointers */
+	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
+		if(ntree->id.flag & LIB_NEEDLINK) {
+			ntree->id.flag -= LIB_NEEDLINK;
+			lib_link_ntree(fd, &ntree->id, ntree);
+		}
+	}
+}
+
+/* verify types for nodes and groups, all data has to be read */
+static void lib_verify_nodetree(Main *main)
 {
 	Scene *sce;
 	Material *ma;
 	bNodeTree *ntree;
 	bNode *node;
 	
-	/* in multiple steps, first link ID pointers */
-	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
-		if(ntree->id.flag & LIB_NEEDLINK) {
-			lib_link_ntree(fd, &ntree->id, ntree);
-		}
-	}
-	
 	/* now create the own typeinfo structs an verify nodes */
 	/* here we still assume no groups in groups */
 	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
-		if(ntree->id.flag & LIB_NEEDLINK) {
-			ntree->id.flag -= LIB_NEEDLINK;
-			
-			ntreeVerifyTypes(ntree);	/* internal nodes, no groups! */
-			ntreeMakeOwnType(ntree);	/* for group usage */
-		}
+		ntreeVerifyTypes(ntree);	/* internal nodes, no groups! */
+		ntreeMakeOwnType(ntree);	/* for group usage */
 	}
 	
 	/* now verify all types in material trees, groups are set OK now */
@@ -1249,6 +1252,8 @@ static void lib_link_nodetree(FileData *fd, Main *main)
 			ntreeVerifyTypes(sce->nodetree);
 	}
 }
+
+
 
 /* ntree itself has been read! */
 static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
@@ -5370,7 +5375,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_armature(fd, main);
 	lib_link_action(fd, main);
 	lib_link_vfont(fd, main);
-	lib_link_nodetree(fd, main);	/* has to be done after materials, it will verify group nodes */
+	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 
@@ -5453,6 +5458,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
+	lib_verify_nodetree(bfd->main);
 	
 	link_global(fd, bfd, fg);	/* as last */
 
@@ -5936,6 +5942,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	}
 	expand_doit(fd, mainvar, sce->camera);
 	expand_doit(fd, mainvar, sce->world);
+	
+	if(sce->nodetree)
+		expand_nodetree(fd, mainvar, sce->nodetree);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
@@ -6175,6 +6184,7 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	G.main= mainlist.first;
 
 	lib_link_all(fd, G.main);
+	lib_verify_nodetree(G.main);
 
 	DAG_scene_sort(G.scene);
 }
@@ -6259,6 +6269,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	G.main= fd->mainlist.first;
 
 	lib_link_all(fd, G.main);
+	lib_verify_nodetree(G.main);
 
 	/* give a base to loose objects */
 	give_base_to_objects(G.scene, &(G.main->object), sfile->flag & FILE_LINK);

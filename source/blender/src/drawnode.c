@@ -1361,7 +1361,16 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
 		BIF_icon_set_aspect(ICON_NODE, snode->aspect);
-		BIF_icon_draw_blended(iconofs, rct->ymax-NODE_DY+2, ICON_NODE, 0, -60);
+		if(node->id->lib) {
+			glPixelTransferf(GL_GREEN_SCALE, 0.7f);
+			glPixelTransferf(GL_BLUE_SCALE, 0.3f);
+			BIF_icon_draw(iconofs, rct->ymax-NODE_DY+2, ICON_NODE);
+			glPixelTransferf(GL_GREEN_SCALE, 1.0f);
+			glPixelTransferf(GL_BLUE_SCALE, 1.0f);
+		}
+		else {
+			BIF_icon_draw_blended(iconofs, rct->ymax-NODE_DY+2, ICON_NODE, 0, -60);
+		}
 		glDisable(GL_BLEND);
 	}
 	if(node->typeinfo->flag & NODE_OPTIONS) {
@@ -1442,9 +1451,6 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 			
 			if(node->block && sock->link==NULL) {
 				float *butpoin= sock->ns.vec;
-				
-				if(node->type==NODE_GROUP && sock->tosock)
-					butpoin= sock->tosock->ns.vec;
 				
 				if(sock->type==SOCK_VALUE) {
 					bt= uiDefButF(node->block, NUM, B_NODE_EXEC+node->nr, sock->name, 

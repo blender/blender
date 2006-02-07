@@ -358,7 +358,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	if(cuma->table)
 		MEM_freeT(cuma->table);
 	totpoint= (cuma->totpoint-1)*CM_RESOL;
-	fp= allpoints= MEM_mallocT(totpoint*2*sizeof(float), "table");
+	fp= allpoints= MEM_callocT(totpoint*2*sizeof(float), "table");
 	
 	for(a=0; a<cuma->totpoint-1; a++, fp += 2*CM_RESOL) {
 		correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a+1].vec[0], bezt[a+1].vec[1]);

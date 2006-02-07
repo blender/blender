@@ -725,7 +725,10 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 	BLI_addtail(&ntree->nodes, node);
 	node->typeinfo= ntype;
 	
-	BLI_strncpy(node->name, ntype->name, NODE_MAXSTR);
+	if(ngroup)
+		BLI_strncpy(node->name, ngroup->id.name+2, NODE_MAXSTR);
+	else
+		BLI_strncpy(node->name, ntype->name, NODE_MAXSTR);
 	node->type= ntype->type;
 	node->flag= NODE_SELECT|ntype->flag;
 	node->width= ntype->width;
@@ -868,6 +871,77 @@ bNodeTree *ntreeAddTree(int type)
 	return ntree;
 }
 
+bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
+{
+	bNodeTree *newtree;
+	bNode *node, *nnode, *last;
+	bNodeLink *link, *nlink;
+	bNodeSocket *sock;
+	int a;
+	
+	if(ntree==NULL) return NULL;
+	
+	if(internal_select==0) {
+		/* is ntree part of library? */
+		for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
+			if(newtree==ntree) break;
+		if(newtree)
+			newtree= copy_libblock(ntree);
+		else
+			newtree= MEM_dupallocN(ntree);
+		newtree->nodes.first= newtree->nodes.last= NULL;
+		newtree->links.first= newtree->links.last= NULL;
+	}
+	else
+		newtree= ntree;
+	
+	last= ntree->nodes.last;
+	for(node= ntree->nodes.first; node; node= node->next) {
+		
+		node->new= NULL;
+		if(internal_select==0 || (node->flag & NODE_SELECT)) {
+			nnode= nodeCopyNode(newtree, node);	/* sets node->new */
+			if(internal_select) {
+				node->flag &= ~NODE_SELECT;
+				nnode->flag |= NODE_SELECT;
+			}
+			node->flag &= ~NODE_ACTIVE;
+		}
+		if(node==last) break;
+	}
+	
+	/* check for copying links */
+	for(link= ntree->links.first; link; link= link->next) {
+		if(link->fromnode->new && link->tonode->new) {
+			nlink= nodeAddLink(newtree, link->fromnode->new, NULL, link->tonode->new, NULL);
+			/* sockets were copied in order */
+			for(a=0, sock= link->fromnode->outputs.first; sock; sock= sock->next, a++) {
+				if(sock==link->fromsock)
+					break;
+			}
+			nlink->fromsock= BLI_findlink(&link->fromnode->new->outputs, a);
+			
+			for(a=0, sock= link->tonode->inputs.first; sock; sock= sock->next, a++) {
+				if(sock==link->tosock)
+					break;
+			}
+			nlink->tosock= BLI_findlink(&link->tonode->new->inputs, a);
+		}
+	}
+	
+	/* own type definition for group usage */
+	if(internal_select==0) {
+		if(ntree->owntype) {
+			newtree->owntype= MEM_dupallocN(ntree->owntype);
+			if(ntree->owntype->inputs)
+				newtree->owntype->inputs= MEM_dupallocN(ntree->owntype->inputs);
+			if(ntree->owntype->outputs)
+				newtree->owntype->outputs= MEM_dupallocN(ntree->owntype->outputs);
+		}
+	}	
+	return newtree;
+}
+
 #pragma mark /* ************** Free stuff ********** */
 
 /* goes over entire tree */
@@ -972,70 +1046,111 @@ void ntreeFreeTree(bNodeTree *ntree)
 	}
 }
 
-bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
+
+void ntreeMakeLocal(bNodeTree *ntree)
 {
-	bNodeTree *newtree;
-	bNode *node, *nnode, *last;
-	bNodeLink *link, *nlink;
-	bNodeSocket *sock;
-	int a;
+	int local=0, lib=0;
 	
-	if(ntree==NULL) return NULL;
+	/* - only lib users: do nothing
+	    * - only local users: set flag
+	    * - mixed: make copy
+	    */
 	
-	if(internal_select==0) {
-		newtree= MEM_dupallocN(ntree);
-		newtree->nodes.first= newtree->nodes.last= NULL;
-		newtree->links.first= newtree->links.last= NULL;
+	if(ntree->id.lib==NULL) return;
+	if(ntree->id.us==1) {
+		ntree->id.lib= 0;
+		ntree->id.flag= LIB_LOCAL;
+		new_id(0, (ID *)ntree, 0);
+		return;
 	}
-	else
-		newtree= ntree;
 	
-	last= ntree->nodes.last;
-	for(node= ntree->nodes.first; node; node= node->next) {
+	/* now check users of groups... again typedepending, callback... */
+	if(ntree->type==NTREE_SHADER) {
+		Material *ma;
+		for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+			if(ma->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= ma->nodetree->nodes.first; node; node= node->next) {
+					if(node->id == (ID *)ntree) {
+						if(ma->id.lib) lib= 1;
+						else local= 1;
+					}
+				}
+			}
+		}
+	}
+	else if(ntree->type==NTREE_COMPOSIT) {
+		Scene *sce;
+		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+			if(sce->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= sce->nodetree->nodes.first; node; node= node->next) {
+					if(node->id == (ID *)ntree) {
+						if(sce->id.lib) lib= 1;
+						else local= 1;
+					}
+				}
+			}
+		}
+	}
+	
+	/* if all users are local, we simply make tree local */
+	if(local && lib==0) {
+		ntree->id.lib= NULL;
+		ntree->id.flag= LIB_LOCAL;
+		new_id(0, (ID *)ntree, 0);
+	}
+	else if(local && lib) {
+		/* this is the mixed case, we copy the tree and assign it to local users */
+		bNodeTree *newtree= ntreeCopyTree(ntree, 0);
 		
-		node->new= NULL;
-		if(internal_select==0 || (node->flag & NODE_SELECT)) {
-			nnode= nodeCopyNode(newtree, node);	/* sets node->new */
-			if(internal_select) {
-				node->flag &= ~NODE_SELECT;
-				nnode->flag |= NODE_SELECT;
+		newtree->id.us= 0;
+		
+		if(ntree->type==NTREE_SHADER) {
+			Material *ma;
+			for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+				if(ma->nodetree) {
+					bNode *node;
+					
+					/* find if group is in tree */
+					for(node= ma->nodetree->nodes.first; node; node= node->next) {
+						if(node->id == (ID *)ntree) {
+							if(ma->id.lib==NULL) {
+								node->id= &newtree->id;
+								newtree->id.us++;
+								ntree->id.us--;
+							}
+						}
+					}
+				}
 			}
-			node->flag &= ~NODE_ACTIVE;
 		}
-		if(node==last) break;
+		else if(ntree->type==NTREE_COMPOSIT) {
+			Scene *sce;
+			for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+				if(sce->nodetree) {
+					bNode *node;
+					
+					/* find if group is in tree */
+					for(node= sce->nodetree->nodes.first; node; node= node->next) {
+						if(node->id == (ID *)ntree) {
+							if(sce->id.lib==NULL) {
+								node->id= &newtree->id;
+								newtree->id.us++;
+								ntree->id.us--;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
-	
-	/* check for copying links */
-	for(link= ntree->links.first; link; link= link->next) {
-		if(link->fromnode->new && link->tonode->new) {
-			nlink= nodeAddLink(newtree, link->fromnode->new, NULL, link->tonode->new, NULL);
-			/* sockets were copied in order */
-			for(a=0, sock= link->fromnode->outputs.first; sock; sock= sock->next, a++) {
-				if(sock==link->fromsock)
-					break;
-			}
-			nlink->fromsock= BLI_findlink(&link->fromnode->new->outputs, a);
-			
-			for(a=0, sock= link->tonode->inputs.first; sock; sock= sock->next, a++) {
-				if(sock==link->tosock)
-					break;
-			}
-			nlink->tosock= BLI_findlink(&link->tonode->new->inputs, a);
-		}
-	}
-	
-	/* own type definition for group usage */
-	if(internal_select==0) {
-		if(ntree->owntype) {
-			newtree->owntype= MEM_dupallocN(ntree->owntype);
-			if(ntree->owntype->inputs)
-				newtree->owntype->inputs= MEM_dupallocN(ntree->owntype->inputs);
-			if(ntree->owntype->outputs)
-				newtree->owntype->outputs= MEM_dupallocN(ntree->owntype->outputs);
-		}
-	}	
-	return newtree;
 }
+
 
 #pragma mark /* ************ find stuff *************** */
 
@@ -1405,16 +1520,8 @@ static int ntree_begin_exec_tree(bNodeTree *ntree)
 		
 		if(node->type==NODE_GROUP) {
 			if(node->id) {
-				
 				node->stack_index= index;
 				index+= ntree_begin_exec_tree((bNodeTree *)node->id);
-
-				/* copy internal data from internal nodes to own input sockets */
-				for(sock= node->inputs.first; sock; sock= sock->next) {
-					if(sock->tosock) {
-						sock->ns= sock->tosock->ns;
-					}
-				}
 			}
 		}
 	}
