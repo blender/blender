@@ -104,6 +104,8 @@ static PyObject *RenderData_SetBackbufPath( BPy_RenderData * self,
 static PyObject *RenderData_GetBackbufPath( BPy_RenderData * self );
 static PyObject *RenderData_EnableBackbuf( BPy_RenderData * self,
 					   PyObject * args );
+static PyObject *RenderData_EnableThreads( BPy_RenderData * self, 
+					   PyObject * args );
 static PyObject *RenderData_SetFtypePath( BPy_RenderData * self,
 					  PyObject * args );
 static PyObject *RenderData_GetFtypePath( BPy_RenderData * self );
@@ -283,6 +285,9 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"enableBackbuf", ( PyCFunction ) RenderData_EnableBackbuf,
 	 METH_VARARGS,
 	 "(bool) - enable/disable the backbuf image\n"},
+	{"enableThreads", ( PyCFunction ) RenderData_EnableThreads,
+	 METH_VARARGS,
+	 "(bool) - enable/disable threaded rendering\n"},
 	{"setFtypePath", ( PyCFunction ) RenderData_SetFtypePath, METH_VARARGS,
 	 "(string) - get/set the path to output the Ftype file\n"},
 	{"getFtypePath", ( PyCFunction ) RenderData_GetFtypePath, METH_NOARGS,
@@ -572,6 +577,7 @@ PyObject *Render_Init( void )
 	PyModule_AddIntConstant( submodule, "BEST", PY_BEST );
 	PyModule_AddIntConstant( submodule, "SKYDOME", PY_SKYDOME );
 	PyModule_AddIntConstant( submodule, "GIFULL", PY_FULL );
+	PyModule_AddIntConstant( submodule, "OPENEXR", R_OPENEXR );
 
 	return ( submodule );
 }
@@ -1087,6 +1093,13 @@ PyObject *RenderData_EnableBackbuf( BPy_RenderData * self, PyObject * args )
 					&self->renderContext->bufflag );
 }
 
+//------------------------------------RenderData.EnableThreads() --------
+PyObject *RenderData_EnableThreads( BPy_RenderData * self, PyObject * args )
+{
+	return M_Render_BitToggleInt( args, R_THREADS,
+					&self->renderContext->mode );
+}
+
 //------------------------------------RenderData.SetFtypePath() ---------
 PyObject *RenderData_SetFtypePath( BPy_RenderData * self, PyObject * args )
 {
@@ -1526,6 +1539,9 @@ PyObject *RenderData_SetImageType( BPy_RenderData * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected constant" ) );
 
+	//this same logic and more is in buttons_scene.c imegetype_pup code
+	//but only in generating strings for the popup menu, no way to reuse that :(
+
 	if( type == R_AVIRAW )
 		self->renderContext->imtype = R_AVIRAW;
 	else if( type == R_AVIJPEG )
@@ -1534,6 +1550,7 @@ PyObject *RenderData_SetImageType( BPy_RenderData * self, PyObject * args )
 	else if( type == R_AVICODEC )
 		self->renderContext->imtype = R_AVICODEC;
 #endif
+
 	else if( type == R_QUICKTIME && G.have_quicktime )
 		self->renderContext->imtype = R_QUICKTIME;
 	else if( type == R_TARGA )
@@ -1556,6 +1573,12 @@ PyObject *RenderData_SetImageType( BPy_RenderData * self, PyObject * args )
 		self->renderContext->imtype = R_IRIZ;
 	else if( type == R_FTYPE )
 		self->renderContext->imtype = R_FTYPE;
+
+#ifdef WITH_OPENEXR
+	else if( type == R_OPENEXR)
+		self->renderContext->imtype = R_OPENEXR;
+#endif
+
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );
