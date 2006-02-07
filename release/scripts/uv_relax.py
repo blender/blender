@@ -75,37 +75,37 @@ def main():
 	relaxEdgeDict= {}
 	relaxVertList= [relaxVert(v) for v in me.verts]
 	
-	tempVertUVList = [list() for v in me.verts]
+	tempVertUVList = [Vector(0,0,0) for v in me.verts] # Z is an int for scaling the first 2 values.
 	
 	for f in me.faces:
 		for i in xrange(len(f.v)):
 			v1,v2= f.v[i], f.v[i-1]
 			key= sortPair(v1.index, v2.index)
+			rv1= relaxVertList[v1.index]
+			rv2= relaxVertList[v2.index]
 			try: # Do nothing if we exist.
 				tmpEdge= relaxEdgeDict[key]
 			except:
-				tmpEdge= relaxEdgeDict[key]= relaxEdge(relaxVertList[key[0]],relaxVertList[key[1]])
+				tmpEdge= relaxEdgeDict[key]= relaxEdge(rv1,rv2)
 			
 			# Add the edges to the face.
-			rv1= relaxVertList[v1.index]
-			rv2= relaxVertList[v2.index]
 			rv1.edges.append(tmpEdge)
 			rv2.edges.append(tmpEdge)
-				
+			
 			# Will get to all v1's no need to add both per edge.
 			rv1.bfaces.append( (f, i)   )
-			tempVertUVList[v1.index].append(f.uv[i])
+			tempVertUVList[v1.index].x += f.uv[i].x
+			tempVertUVList[v1.index].y += f.uv[i].y
+			tempVertUVList[v1.index].z+=1
 			if f.uvSel[i]:
 				rv1.sel= True
 	
 	# Now average UV's into the relaxVerts
 	for i, rv in enumerate(relaxVertList):
-		tempUV = Vector(0,0)
-		
-		for uv in tempVertUVList[i]:
-			tempUV+= uv
-		tempUV= tempUV * (1/float(len(tempVertUVList[i])))
-		rv.uv= tempUV
+		if tempVertUVList[i].z > 0:
+			newUV= tempVertUVList[i] * (1/tempVertUVList[i].z)
+			rv.uv.x= newUV.x
+			rv.uv.y= newUV.y
 	del tempVertUVList
 	
 	# Loop while the button is held, so clicking on a menu wont immediatly exit.
