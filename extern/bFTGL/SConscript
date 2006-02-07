@@ -27,4 +27,4 @@ defs = ''
 
 sources = env.Glob('src/*.cpp')
 
-env.BlenderLib ( 'extern_ftgl', sources, Split(incs), Split(defs), libtype='international', priority=5)
+env.BlenderLib ( 'extern_ftgl', sources, Split(incs), Split(defs), libtype=['international','player'], priority=[5, 210])

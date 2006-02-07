@@ -7,4 +7,4 @@ sources = env.Glob('intern/*.c')
 incs = '. #/intern/guardedalloc'
 incs += ' ' + env['BF_JPEG_INC']
 
-env.BlenderLib ('blender_avi', sources, Split(incs), [], libtype='core', priority = 90 )
+env.BlenderLib ('bf_avi', sources, Split(incs), [], libtype=['core','player'], priority = [90, 50] )

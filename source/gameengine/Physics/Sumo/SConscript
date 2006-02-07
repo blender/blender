@@ -18,9 +18,9 @@ incs =['.',
 	]
 incs += [sumoenv['BF_SOLID_INC']]
 
-if sumoenv['PLATFORM']=='win32':
-	sumoenv.Append (CXXFLAGS = ['/GR'])
-	sumoenv.Append ( CCFLAGS =['/O1'])
+cflags = []
+if env['OURPLATFORM']=='win32-vc':
+	cflags.append('/GR')
+	cflags.append('/O1')
 
-#env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Sumo', source=source_files)
-env.BlenderLib ( 'PHY_Sumo', sources, incs, [], libtype='game2', priority=30 )
+env.BlenderLib ( 'bf_sumo', sources, incs, [], libtype=['game2','player'], priority=[30, 70] , compileflags=cflags)

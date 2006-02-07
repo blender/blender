@@ -31,4 +31,4 @@ sources = env.Glob('src/*.cpp') + env.Glob('src/convex/*.cpp') + env.Glob('src/c
 
 incs = 'include src src/broad src/complex src/convex ../qhull/include'
 
-env.BlenderLib ( libname='extern_solid', sources=sources, includes=Split(incs), defines=Split(defs), libtype='game2', priority=45 , compileflags = cflags)
+env.BlenderLib ( libname='extern_solid', sources=sources, includes=Split(incs), defines=Split(defs), libtype=['game2','player'], priority=[45, 75] , compileflags = cflags)

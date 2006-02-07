@@ -13,4 +13,4 @@ if env['WITH_BF_OPENAL']:
 else:
     defs = 'NO_SOUND'
 
-env.BlenderLib ('blender_sndsys', sources, Split(incs), Split(defs), libtype=['core','player2'], priority = [20,10] )
+env.BlenderLib ('bf_soundsystem', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [20,140] )

@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import sys
 Import ('env')
 
 sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp'
@@ -8,9 +7,9 @@ incs = '. ../common'
 
 incs += ' ' + env['BF_BULLET_INC']
 
-#TODO:
-#if sys.platform=='win32':
-#	phy_bullet_env.Append (CXXFLAGS = ['/GR'])
-# phy_bullet_env.Append (CCFLAGS =['/O2'])
+cflags = []
+if env['OURPLATFORM']=='win32-vc':
+    cflags.append('/GR')
+    cflags.append('/O2')
 
-env.BlenderLib ( 'PHY_Bullet', Split(sources), Split(incs), [], libtype='game', priority=15 )
+env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,90] )

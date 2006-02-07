@@ -12,4 +12,4 @@ defs = ''
 if env['WITH_BF_INTERNATIONAL'] == 1:
     defs = 'WITH_FREETYPE2'
 
-env.BlenderLib ( 'blender_blenlib', sources, Split(incs), Split(defs), libtype='core', priority = 85 )
+env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [85,195] )

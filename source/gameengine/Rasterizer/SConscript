@@ -1,13 +1,12 @@
 #!/usr/bin/python
-import sys
 Import ('env')
 
 sources = env.Glob('*.cpp')
 
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include'
 
-#TODO:
-#if sys.platform=='win32':
-#	ras_rasterizer_env.Append ( CCFLAGS =['/Ox'])
+cflags = []
+if env['OURPLATFORM']=='win32-vc':
+    cflags.append('/Ox')
 
-env.BlenderLib ( 'RAS_rasterizer', sources, Split(incs), [], libtype='game', priority=35 )
+env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115], compileflags = cflags )

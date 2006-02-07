@@ -7,4 +7,4 @@ incs = '. intern'
 incs += ' ' + env['BF_OPENGL_INC']
 defs = ''
 
-env.BlenderLib ('blender_BMF', sources, Split(incs), Split(defs), libtype='intern', priority = 20 )
+env.BlenderLib ('bf_bmfont', sources, Split(incs), Split(defs), libtype=['intern','player'], priority = [20, 185] )

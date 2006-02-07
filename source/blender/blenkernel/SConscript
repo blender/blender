@@ -32,4 +32,4 @@ defs += ' WITH_CCGSUBSURF'
 if env['WITH_BF_PLAYER']:
     SConscript(['bad_level_call_stubs/SConscript'])
 
-env.BlenderLib ( libname = 'blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype='core', priority = 65 )
+env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )

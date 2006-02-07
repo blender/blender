@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import sys
 Import ('env')
 
 sources = env.Glob('*.cpp')
@@ -22,8 +21,8 @@ incs += ' ' + env['BF_SOLID_INC']
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 
-# TODO: 
-#if sys.platform=='win32':
-#	kx_blenderhook_env.Append (CXXFLAGS = ['/GR'])
+cxxflags = []
+if env['OURPLATFORM']=='win32-vc':
+	cxxflags.append ('/GR')
 
-env.BlenderLib ( 'KX_blenderhook', sources, Split(incs), [], libtype=['game', 'game2'], priority=[0, 0] )
+env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 55] , compileflags=cxxflags)

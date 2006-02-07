@@ -32,4 +32,4 @@ sources = ['src/geom.c',
 
 incs = 'include src'
 
-env.BlenderLib ( 'extern_qhull', sources, Split(incs), Split(defs), libtype='game2', priority=50, compileflags = cflags)
+env.BlenderLib ( 'extern_qhull', sources, Split(incs), Split(defs), libtype=['game2','player'], priority=[50, 85], compileflags = cflags)

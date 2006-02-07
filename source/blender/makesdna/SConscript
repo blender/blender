@@ -8,4 +8,4 @@ objs.append (o)
 
 incs = '#/intern/guardedalloc'
 
-env.BlenderLib ( 'blender_makesdna', objs, Split(incs), [], libtype='common', priority = 10 )
+env.BlenderLib ( 'bf_dna', objs, Split(incs), [], libtype=['common','player'], priority = [10, 215] )

@@ -9,4 +9,4 @@ incs += ' #source/gameengine/Network'
 
 incs += ' ' + env['BF_PYTHON_INC']
 
-env.BlenderLib ( 'KX_network', Split(sources), Split(incs), defines=[],libtype='game2', priority=5 )
+env.BlenderLib ( 'kx_network', Split(sources), Split(incs), defines=[],libtype=['game2', 'player'], priority=[5, 155] )

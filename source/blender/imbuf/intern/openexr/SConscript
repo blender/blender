@@ -13,5 +13,4 @@ incs += Split(env['BF_OPENEXR_INC'])
 
 defs = []
                  
-#openexr_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_openexr', source=source_files)
-env.BlenderLib ('blender_openexr', source_files, incs, defs, libtype='core', priority = 90)
+env.BlenderLib ('bf_openexr', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])

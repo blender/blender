@@ -10,4 +10,4 @@ incs += ' ../render/extern/include'
 
 incs += ' ' + env['BF_ZLIB_INC']
 
-env.BlenderLib ( 'blender_blenloader', sources, Split(incs), [], libtype='core', priority = 70 )
+env.BlenderLib ( 'bf_blenloader', sources, Split(incs), [], libtype=['core','player'], priority = [70, 30] )

@@ -27,4 +27,4 @@ else:
     Exit()
 
 incs = '. ../string ' + env['BF_OPENGL_INC']
-env.BlenderLib ('blender_GHOST', sources, Split(incs), [], libtype='core', priority = 25 ) 
+env.BlenderLib ('bf_ghost', sources, Split(incs), [], libtype=['core','player'], priority = [25,15] ) 

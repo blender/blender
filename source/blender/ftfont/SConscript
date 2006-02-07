@@ -12,4 +12,5 @@ incs += ' ' + env['BF_GETTEXT_INC']
 defs = 'FTGL_STATIC_LIBRARY'
 if sys.platform == 'win32':
 	defs += ' _WIN32 USE_GETTEXT_DLL'
-env.BlenderLib ( 'blender_FTF', sources, Split(incs), Split(defs), libtype='international', priority=0 )
+
+env.BlenderLib ( 'bf_ftfont', sources, Split(incs), Split(defs), libtype=['international','player'], priority=[0, 205] )

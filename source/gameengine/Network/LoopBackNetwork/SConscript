@@ -5,4 +5,4 @@ sources = 'NG_LoopBackNetworkDeviceInterface.cpp'
 
 incs = '. #source/kernel/gen_system #intern/string #source/gameengine/Network'
 
-env.BlenderLib ( 'NG_loopbacknetwork', Split(sources), Split(incs), defines=[],libtype='game2', priority=25 )
+env.BlenderLib ( 'bf_loopbacknetwork', Split(sources), Split(incs), defines=[],libtype=['game2', 'player'], priority=[25, 165] )
