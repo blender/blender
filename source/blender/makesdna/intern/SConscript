@@ -20,7 +20,7 @@ if sys.platform != 'cygwin':
     makesdna_tool.Append (CCFLAGS = cflags)
 makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
-makesdna_tool.Append (LIBS = 'blender_guardedalloc')
+makesdna_tool.Append (LIBS = 'bf_guardedalloc')
 makesdna_tool.Program (target = '#'+root_build_dir+os.sep+'makesdna', source = source_files)
 
 dna_dict = dna.Dictionary()
