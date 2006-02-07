@@ -6042,7 +6042,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 }
 
 
-static void give_base_to_objects(Scene *sce, ListBase *lb, int is_linked)
+static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib)
 {
 	Object *ob;
 	Base *base;
@@ -6053,7 +6053,7 @@ static void give_base_to_objects(Scene *sce, ListBase *lb, int is_linked)
 
 		if( ob->id.flag & LIB_INDIRECT ) {
 			/* hrmf... groups give user counter, so we check in that case entire scene */
-			if(ob->id.us==0 || (is_linked==0 && (ob->flag & OB_FROMGROUP) && object_in_scene(ob, sce)==0) ) {
+			if(ob->id.us==0 || (ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_scene(ob, sce)==0) ) {
 
 				base= MEM_callocN( sizeof(Base), "add_ext_base");
 				BLI_addtail(&(sce->base), base);
@@ -6272,7 +6272,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	lib_verify_nodetree(G.main);
 
 	/* give a base to loose objects */
-	give_base_to_objects(G.scene, &(G.main->object), sfile->flag & FILE_LINK);
+	give_base_to_objects(G.scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:mainl->curlib);
 	/* has been removed... erm, why? (ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
 	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
