@@ -296,9 +296,12 @@ bininstalltarget = env.Alias('install-bin', blenderinstall)
 
 if env['WITH_BF_PLAYER']:
     blenderplayer = env.Alias('blenderplayer', B.program_list)
+    Depends(blenderplayer,installtarget)
 
 if not env['WITH_BF_GAMEENGINE']:
     blendernogame = env.Alias('blendernogame', B.program_list)
+    Depends(blendernogame,installtarget)
+
 
 Default(B.program_list)
 Default(installtarget)
