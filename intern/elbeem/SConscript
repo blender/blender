@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import os
 Import('env')
  
 #if use_fluidsim=='false':
@@ -14,11 +15,11 @@ Import('env')
 #           ]; # sources
 
 sources = env.Glob('intern/*.cpp')
-sources.remove('intern/blenderdummy.cpp')
+sources.remove('intern'+os.sep+'blenderdummy.cpp')
 
 defs = 'NOGUI ELBEEM_BLENDER=1'
 if env['OURPLATFORM']=='win32-vc':
     defs += ' USE_MSVC6FIXES'
 incs = env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] + ' ' +env['BF_SDL_INC']
 
-env.BlenderLib ('blender_elbeem', sources, Split(incs), Split(defs), libtype='blender', priority=0 )
+env.BlenderLib ('bf_elbeem', sources, Split(incs), Split(defs), libtype='blender', priority=0 )
