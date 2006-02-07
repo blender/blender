@@ -1189,7 +1189,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 {
 	Material *ma= shi->mat;
 	VlakRen *vlr= shi->vlr;
-	float lv[3], lampdist, ld, lacol[3], shadfac[4];
+	float lv[3], lampdist, ld= 1.0f, lacol[3], shadfac[4];
 	float i, is, inp, i_noshad, *vn, *view, vnor[3], phongcorr;
 	
 	vn= shi->vn;
@@ -2027,6 +2027,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			shi->winspeed[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
 			shi->winspeed[2]= (l*s3[2] - u*s1[2] - v*s2[2]);
 			shi->winspeed[3]= (l*s3[3] - u*s1[3] - v*s2[3]);
+		}
+		else {
+			shi->winspeed[0]= shi->winspeed[1]= shi->winspeed[2]= shi->winspeed[3]= 0.0f;
 		}
 	}
 	

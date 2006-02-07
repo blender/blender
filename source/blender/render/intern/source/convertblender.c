@@ -549,7 +549,7 @@ static void autosmooth(Render *re, int startvert, int startvlak, int degr)
 	asverts= MEM_callocN(sizeof(ASvert)*(re->totvert-startvert), "all smooth verts");
 	asvertoffs= asverts-startvert;	 /* se we can use indices */
 	
-	thresh= cos( M_PI*((float)degr)/180.0 );
+	thresh= cos( M_PI*(0.1f+(float)degr)/180.0 );
 	
 	/* step one: construct listbase of all vertices and pointers to faces */
 	for(a=startvlak; a<re->totvlak; a++) {
@@ -1445,22 +1445,30 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 	totvlako= re->totvlak;
 	totverto= re->totvert;
 	
-	if(!only_verts) {
-		need_orco= 0;
-		for(a=1; a<=ob->totcol; a++) {
-			ma= give_render_material(re, ob, a);
-			if(ma) {
-				if(ma->texco & (TEXCO_ORCO|TEXCO_STRESS))
-					need_orco= 1;
-				if(ma->texco & TEXCO_STRESS)
-					need_stress= 1;
-				if(ma->mode & MA_TANGENT_V)
-					need_tangent= 1;
-			}
+	need_orco= 0;
+	for(a=1; a<=ob->totcol; a++) {
+		ma= give_render_material(re, ob, a);
+		if(ma) {
+			if(ma->texco & (TEXCO_ORCO|TEXCO_STRESS))
+				need_orco= 1;
+			if(ma->texco & TEXCO_STRESS)
+				need_stress= 1;
+			if(ma->mode & MA_TANGENT_V)
+				need_tangent= 1;
+			/* radio faces need autosmooth, to separate shared vertices in corners */
+			if(re->r.mode & R_RADIO)
+				if(ma->mode & MA_RADIO) 
+					do_autosmooth= 1;
 		}
-		
-		if(need_orco) orco = get_object_orco(re, ob);
 	}
+	
+	/* check autosmooth, we then have to skip only-verts optimize */
+	do_autosmooth |= (me->flag & ME_AUTOSMOOTH);
+	if(do_autosmooth)
+		only_verts= 0;
+	
+	if(!only_verts)
+		if(need_orco) orco = get_object_orco(re, ob);
 	
 	dm = mesh_create_derived_render(ob);
 	dm_needsfree= 1;
@@ -1529,11 +1537,6 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 				if(ok) {
 					TFace *tface= NULL;
 
-					/* radio faces need autosmooth, to separate shared vertices in corners */
-					if(re->r.mode & R_RADIO)
-						if(ma->mode & MA_RADIO) 
-							do_autosmooth= 1;
-					
 					end= dlm?dlm->totface:me->totface;
 					if (dlm) {
 						mface= dlm->mface;
@@ -1678,7 +1681,7 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 			do_displacement(re, ob, totvlako, re->totvlak-totvlako, totverto, re->totvert-totverto);
 		}
 
-		if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
+		if(do_autosmooth) {
 			autosmooth(re, totverto, totvlako, me->smoothresh);
 		}
 
@@ -3169,7 +3172,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 		
 		for(obren= re->objecttable.first; obren && oldobren; obren= obren->next, oldobren= oldobren->next) {
 			int ok= 1;
-			
+
 			/* find matching object in old table */
 			if(oldobren->ob!=obren->ob || oldobren->par!=obren->par || oldobren->index!=obren->index) {
 				ok= 0;
@@ -3185,8 +3188,10 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 				continue;
 			
 			/* check if both have same amounts of vertices */
-			if(obren->endvert-obren->startvert != oldobren->endvert-oldobren->startvert)
+			if(obren->endvert-obren->startvert != oldobren->endvert-oldobren->startvert) {
+				printf("Warning: object %s has different amount of vertices on other frame\n", obren->ob->id.name+2);
 				continue;
+			}
 			
 			calculate_speedvectors(re, vertnodes, obren->startvert, oldobren->startvert, obren->endvert, step);
 		}
