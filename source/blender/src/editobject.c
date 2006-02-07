@@ -2850,6 +2850,7 @@ void copy_attr(short event)
 						cu1= base->object->data;
 						
 						cu1->resolu= cu->resolu;
+						cu1->resolu_ren= cu->resolu_ren;
 						
 						nu= cu1->nurb.first;
 						

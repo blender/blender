@@ -60,22 +60,16 @@ struct Nurb *duplicateNurb( struct Nurb *nu);
 void duplicateNurblist( struct ListBase *lb1,  struct ListBase *lb2);
 void test2DNurb( struct Nurb *nu);
 void minmaxNurb( struct Nurb *nu, float *min, float *max);
-void extend_spline(float * pnts, int in, int out);
-void calcknots(float *knots, short aantal, short order, short type);
-void makecyclicknots(float *knots, short pnts, short order);
+
 void makeknots( struct Nurb *nu, short uv, short type);
-void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end);
+
 void makeNurbfaces( struct Nurb *nu, float *data, int rowstride);
-void makeNurbcurve_forw(struct Nurb *nu, float *data);
-void makeNurbcurve( struct Nurb *nu, float *data, int dim);
+void makeNurbcurve( struct Nurb *nu, float *data, int resolu, int dim);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 float *make_orco_curve( struct Object *ob);
 float *make_orco_surf( struct Object *ob);
 void makebevelcurve( struct Object *ob,  struct ListBase *disp);
-short bevelinside(struct BevList *bl1,struct BevList *bl2);
-int vergxcobev(const void *a1, const void *a2);
-void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *sina, float *cosa);
-void alfa_bezpart( struct BezTriple *prevbezt,  struct BezTriple *bezt,  struct Nurb *nu, float *data_a);
+
 void makeBevelList( struct Object *ob);
 void calchandleNurb( struct BezTriple *bezt, struct BezTriple *prev,  struct BezTriple *next, int mode);
 void calchandlesNurb( struct Nurb *nu);
@@ -83,7 +77,7 @@ void testhandlesNurb( struct Nurb *nu);
 void autocalchandlesNurb( struct Nurb *nu, int flag);
 void autocalchandlesNurb_all(int flag);
 void sethandlesNurb(short code);
-void swapdata(void *adr1, void *adr2, int len);
+
 void switchdirectionNurb( struct Nurb *nu);
 
 float (*curve_getVertexCos(struct Curve *cu, struct ListBase *lb, int *numVerts_r))[3];

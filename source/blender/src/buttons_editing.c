@@ -2269,7 +2269,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_SETRESOLU, "DefResolU:",	760,160,150,19, &cu->resolu, 1.0, 1024.0, 0, 0, "Default resolution");
-		//uiDefBut(block, BUT, B_SETRESOLU, "Set",		880,160,30,19, 0, 0, 0, 0, 0, "Set resolution for interpolation");
+		uiDefButS(block, NUM, B_NOP, "RenResolU",		760,140,150,19, &cu->resolu_ren, 0.0f, 1024, 0, 0, "Set resolution for rendering. A value of zero skips this operation.");
 
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		760,90,150,19, &cu->width, 0.0, 2.0, 1, 0, "Make interpolated result thinner or fatter");
@@ -2281,9 +2281,9 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButBitS(block, TOG, CU_BACK, B_MAKEDISP, "Back",	760,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled back for curves");
-		uiDefButBitS(block, TOG, CU_FRONT, B_MAKEDISP, "Front",810,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled front for curves");
-		uiDefButBitS(block, TOG, CU_3D, B_CU3D, "3D",		860,130,50,19, &cu->flag, 0, 0, 0, 0, "Allow Curve Object to be 3d, it doesn't fill then");
+		uiDefButBitS(block, TOG, CU_BACK, B_MAKEDISP, "Back",	760,115,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled back for curves");
+		uiDefButBitS(block, TOG, CU_FRONT, B_MAKEDISP, "Front",810,115,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled front for curves");
+		uiDefButBitS(block, TOG, CU_3D, B_CU3D, "3D",		860,115,50,19, &cu->flag, 0, 0, 0, 0, "Allow Curve Object to be 3d, it doesn't fill then");
 	}
 }
 

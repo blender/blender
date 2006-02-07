@@ -2197,6 +2197,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 	VertRen *ver;
 	VlakRen *vlr;
 	DispList *dl;
+	ListBase olddl={NULL, NULL};
 	Material *matar[32];
 	float len, *data, *fp, *orco=NULL;
 	float n[3], mat[4][4];
@@ -2208,11 +2209,15 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 
 	/* no modifier call here, is in makedisp */
 
+	if(cu->resolu_ren) 
+		SWAP(ListBase, olddl, cu->disp);
+	
 	/* test displist */
-	if(cu->disp.first==0) makeDispListCurveTypes(ob, 0);
+	if(cu->disp.first==NULL) 
+		makeDispListCurveTypes(ob, 0);
 	dl= cu->disp.first;
-	if(cu->disp.first==0) return;
-
+	if(cu->disp.first==NULL) return;
+	
 	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 
@@ -2388,6 +2393,12 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 		}
 
 		dl= dl->next;
+	}
+	
+	/* not very elegant... but we want original displist in UI */
+	if(cu->resolu_ren) {
+		freedisplist(&cu->disp);
+		SWAP(ListBase, olddl, cu->disp);
 	}
 }
 

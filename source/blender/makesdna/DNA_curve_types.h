@@ -144,6 +144,8 @@ typedef struct Curve {
 	
 	/* default */
 	short resolu, resolv;
+	short resolu_ren, resolv_ren;
+	int pad2;
 	
 	/* font part */
 	short len, lines, pos, spacemode;

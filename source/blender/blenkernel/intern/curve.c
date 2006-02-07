@@ -483,52 +483,7 @@ void minmaxNurb(Nurb *nu, float *min, float *max)
 /* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline calculations ~~~~~~~~~~~ */
 
 
-/* actually, doubles should be used here as much as possible */
-
-void extend_spline(float * pnts, int in, int out)
-{
-	float *_pnts;
-	double * add;
-	int i, j, k, in2;
-
-	_pnts = pnts;
-	add = (double*)MEM_mallocN((in)* sizeof(double), "extend_spline");
-
-        in2 = in -1;
-
-	for (k = 3; k > 0; k--){
-		pnts = _pnts;
-
-		/* copy points to 'add' */
-		for (i = 0; i < in; i++){
-			add[i] = *pnts;
-			pnts += 3;
-		}
-
-		/* inverse forward differencing */
-		for (i = 0; i < in2; i++){
-			for (j = in2; j > i; j--){
-				add[j] -= add[j - 1];
-			}
-		}
-
-		pnts = _pnts;
-		for (i = out; i > 0; i--){
-			*pnts = (float)(add[0]);
-			pnts += 3;
-			for (j = 0; j < in2; j++){
-				add[j] += add[j+1];
-			}
-		}
-
-		_pnts++;
-	}
-
-	MEM_freeN(add);
-}
-
-
-void calcknots(float *knots, short aantal, short order, short type)
+static void calcknots(float *knots, short aantal, short order, short type)
 /* knots: number of pnts NOT corrected for cyclic */
 /* type;	 0: uniform, 1: endpoints, 2: bezier */
 {
@@ -567,7 +522,7 @@ void calcknots(float *knots, short aantal, short order, short type)
 	}
 }
 
-void makecyclicknots(float *knots, short pnts, short order)
+static void makecyclicknots(float *knots, short pnts, short order)
 /* pnts, order: number of pnts NOT corrected for cyclic */
 {
 	int a, b, order2, c;
@@ -617,7 +572,7 @@ void makeknots(Nurb *nu, short uv, short type)	/* 0: uniform, 1: endpoints, 2: b
 	}
 }
 
-void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end)
+static void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end)
 {
 	float d, e;
 	int i, i1 = 0, i2 = 0 ,j, orderpluspnts, opp2, o2;
@@ -839,100 +794,13 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 	MEM_freeN(jend);
 }
 
-
-void makeNurbcurve_forw(Nurb *nu, float *data)
-/* *data: has to be 3*4*pntsu*resolu in size and zero-ed */
-{
-	BPoint *bp;
-	float *basisu, *sum, *fp,  *in;
-	float u, ustart, uend, ustep, sumdiv;
-	int i, j, k, len, resolu, istart, iend;
-	int wanted, org;
-
-	if(nu->knotsu==0) return;
-	if(data==0) return;
-
-	/* allocate and init */
-	len= nu->pntsu;
-	if(len==0) return;
-	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbcurve1");
-
-	resolu= nu->resolu*nu->pntsu;
-	if(resolu==0) {
-		MEM_freeN(sum);
-		return;
-	}
-
-	fp= nu->knotsu;
-	ustart= fp[nu->orderu-1];
-	uend= fp[nu->pntsu];
-	ustep= (uend-ustart)/(resolu-1);
-	basisu= (float *)MEM_mallocN(sizeof(float)*(nu->orderu+nu->pntsu), "makeNurbcurve3");
-
-	in= data;
-	u= ustart;
-	for (k = nu->orderu - 1; k < nu->pntsu; k++){
-
-		wanted = (int)((nu->knotsu[k+1] - nu->knotsu[k]) / ustep);
-		org = 4;	/* equal to order */
-		if (org > wanted) org = wanted;
-
-		for (j = org; j > 0; j--){
-
-			basisNurb(u, nu->orderu, nu->pntsu, nu->knotsu, basisu, &istart, &iend);
-			/* calc sum */
-			sumdiv= 0.0;
-			fp= sum;
-			for(i= istart; i<=iend; i++, fp++) {
-				/* do the rational component */
-				*fp= basisu[i];
-				sumdiv+= *fp;
-			}
-			if(sumdiv!=0.0) if(sumdiv<0.999 || sumdiv>1.001) {
-				/* is this normalizing needed? */
-				fp= sum;
-				for(i= istart; i<=iend; i++, fp++) {
-					*fp/= sumdiv;
-				}
-			}
-
-			/* one! (1.0) real point */
-			fp= sum;
-			bp= nu->bp+ istart;
-			for(i= istart; i<=iend; i++, bp++, fp++) {
-
-				if(*fp!=0.0) {
-					in[0]+= (*fp) * bp->vec[0];
-					in[1]+= (*fp) * bp->vec[1];
-					in[2]+= (*fp) * bp->vec[2];
-				}
-			}
-
-			in+=3;
-
-			u+= ustep;
-		}
-
-		if (wanted > org){
-			extend_spline(in - 3 * org, org, wanted);
-			in += 3 * (wanted - org);
-			u += ustep * (wanted - org);
-		}
-	}
-
-	/* free */
-	MEM_freeN(sum);
-	MEM_freeN(basisu);
-}
-
-
-void makeNurbcurve(Nurb *nu, float *data, int dim)
+void makeNurbcurve(Nurb *nu, float *data, int resolu, int dim)
 /* data has to be dim*4*pntsu*resolu in size and zero-ed */
 {
 	BPoint *bp;
 	float u, ustart, uend, ustep, sumdiv;
 	float *basisu, *sum, *fp,  *in;
-	int i, len, resolu, istart, iend, cycl;
+	int i, len, istart, iend, cycl;
 
 	if(nu->knotsu==0) return;
 	if(nu->orderu>nu->pntsu) return;
@@ -943,7 +811,7 @@ void makeNurbcurve(Nurb *nu, float *data, int dim)
 	if(len==0) return;
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbcurve1");
 
-	resolu= nu->resolu*nu->pntsu;
+	resolu*= nu->pntsu;
 	if(resolu==0) {
 		MEM_freeN(sum);
 		return;
@@ -1363,7 +1231,7 @@ int cu_isectLL(float *v1, float *v2, float *v3, float *v4, short cox, short coy,
 }
 
 
-short bevelinside(BevList *bl1,BevList *bl2)
+static short bevelinside(BevList *bl1,BevList *bl2)
 {
 	/* is bl2 INSIDE bl1 ? with left-right method and "labda's" */
 	/* returns '1' if correct hole  */
@@ -1422,7 +1290,7 @@ struct bevelsort {
 	int dir;
 };
 
-int vergxcobev(const void *a1, const void *a2)
+static int vergxcobev(const void *a1, const void *a2)
 {
 	const struct bevelsort *x1=a1,*x2=a2;
 
@@ -1433,7 +1301,7 @@ int vergxcobev(const void *a1, const void *a2)
 
 /* this function cannot be replaced with atan2, but why? */
 
-void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *sina, float *cosa)
+static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *sina, float *cosa)
 {
 	float t01, t02, x3, y3;
 
@@ -1470,7 +1338,7 @@ void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *sina, flo
 
 }
 
-void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *data_a)
+static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *data_a, int resolu)
 {
 	BezTriple *pprev, *next, *last;
 	float fac, dfac, t[4];
@@ -1493,9 +1361,9 @@ void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *data_a)
 	else next= bezt+1;
 	
 	fac= 0.0;
-	dfac= 1.0f/(float)nu->resolu;
+	dfac= 1.0f/(float)resolu;
 	
-	for(a=0; a<nu->resolu; a++, fac+= dfac) {
+	for(a=0; a<resolu; a++, fac+= dfac) {
 		
 		set_four_ipo(fac, t, KEY_BSPLINE);
 		
@@ -1519,7 +1387,7 @@ void makeBevelList(Object *ob)
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	float  *data, *data_a, *v1, *v2, min, inp, x1, x2, y1, y2, vec[3];
 	struct bevelsort *sortdata, *sd, *sd1;
-	int a, b, len, nr, poly;
+	int a, b, len, nr, poly, resolu;
 
 	/* this function needs an object, because of tflag and upflag */
 	cu= ob->data;
@@ -1532,7 +1400,11 @@ void makeBevelList(Object *ob)
 	
 	while(nu) {
 		if(nu->pntsu>1) {
-		
+			if(G.rendering && cu->resolu_ren!=0) 
+				resolu= cu->resolu_ren;
+			else
+				resolu= nu->resolu;
+			
 			if((nu->type & 7)==CU_POLY) {
 	
 				len= nu->pntsu;
@@ -1558,7 +1430,7 @@ void makeBevelList(Object *ob)
 			}
 			else if((nu->type & 7)==CU_BEZIER) {
 	
-				len= nu->resolu*(nu->pntsu+ (nu->flagu & 1) -1)+1;	/* in case last point is not cyclic */
+				len= resolu*(nu->pntsu+ (nu->flagu & 1) -1)+1;	/* in case last point is not cyclic */
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
 				BLI_addtail(&(cu->bev), bl);
 	
@@ -1577,8 +1449,8 @@ void makeBevelList(Object *ob)
 					bezt++;
 				}
 				
-				data= MEM_mallocN(3*sizeof(float)*(nu->resolu+1), "makeBevelList2");
-				data_a= MEM_callocN(sizeof(float)*(nu->resolu+1), "data_a");
+				data= MEM_mallocN(3*sizeof(float)*(resolu+1), "makeBevelList2");
+				data_a= MEM_callocN(sizeof(float)*(resolu+1), "data_a");
 				
 				while(a--) {
 					if(prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) {
@@ -1598,13 +1470,13 @@ void makeBevelList(Object *ob)
 						v2= bezt->vec[0];
 						
 						/* always do all three, to prevent data hanging around */
-						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, nu->resolu, 3);
-						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu, 3);
-						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu, 3);
+						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, resolu, 3);
+						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, resolu, 3);
+						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, resolu, 3);
 						
 						if((nu->type & CU_2D)==0) {
 							if(cu->flag & CU_3D) {
-								alfa_bezpart(prevbezt, bezt, nu, data_a);
+								alfa_bezpart(prevbezt, bezt, nu, data_a, resolu);
 							}
 						}
 						
@@ -1620,7 +1492,7 @@ void makeBevelList(Object *ob)
 						
 						v1= data;
 						v2= data_a;
-						nr= nu->resolu;
+						nr= resolu;
 						
 						while(nr--) {
 							bevp->x= v1[0]; 
@@ -1631,7 +1503,7 @@ void makeBevelList(Object *ob)
 							v1+=3;
 							v2++;
 						}
-						bl->nr+= nu->resolu;
+						bl->nr+= resolu;
 	
 					}
 					prevbezt= bezt;
@@ -1651,7 +1523,7 @@ void makeBevelList(Object *ob)
 			}
 			else if((nu->type & 7)==CU_NURBS) {
 				if(nu->pntsv==1) {
-					len= nu->resolu*nu->pntsu;
+					len= resolu*nu->pntsu;
 					bl= MEM_mallocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList3");
 					BLI_addtail(&(cu->bev), bl);
 					bl->nr= len;
@@ -1661,7 +1533,7 @@ void makeBevelList(Object *ob)
 					bevp= (BevPoint *)(bl+1);
 	
 					data= MEM_callocN(4*sizeof(float)*len, "makeBevelList4");    /* has to be zero-ed */
-					makeNurbcurve(nu, data, 4);
+					makeNurbcurve(nu, data, resolu, 4);
 					
 					v1= data;
 					while(len--) {
@@ -2346,7 +2218,7 @@ void sethandlesNurb(short code)
 	}
 }
 
-void swapdata(void *adr1, void *adr2, int len)
+static void swapdata(void *adr1, void *adr2, int len)
 {
 
 	if(len<=0) return;

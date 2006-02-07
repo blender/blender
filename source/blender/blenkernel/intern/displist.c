@@ -650,11 +650,17 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 	BezTriple *bezt, *prevbezt;
 	BPoint *bp;
 	float *data, *v1, *v2;
-	int a, len;
+	int a, len, resolu;
 	
 	nu= nubase->first;
 	while(nu) {
 		if(nu->hide==0) {
+			
+			if(G.rendering && cu->resolu_ren!=0) 
+				resolu= cu->resolu_ren;
+			else
+				resolu= nu->resolu;
+			
 			if((nu->type & 7)==CU_BEZIER) {
 				
 				/* count */
@@ -668,7 +674,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 					if(a==0 && (nu->flagu & 1)) bezt= nu->bezt;
 					
 					if(prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) len++;
-					else len+= nu->resolu;
+					else len+= resolu;
 					
 					if(a==0 && (nu->flagu & 1)==0) len++;
 					
@@ -709,10 +715,10 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 					else {
 						v1= prevbezt->vec[1];
 						v2= bezt->vec[0];
-						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, nu->resolu, 3);
-						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu, 3);
-						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu, 3);
-						data+= 3*nu->resolu;
+						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, resolu, 3);
+						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, resolu, 3);
+						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, resolu, 3);
+						data+= 3*resolu;
 					}
 					
 					if(a==0 && dl->type==DL_SEGM) {
@@ -724,7 +730,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				}
 			}
 			else if((nu->type & 7)==CU_NURBS) {
-				len= nu->pntsu*nu->resolu;
+				len= nu->pntsu*resolu;
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
 				BLI_addtail(dispbase, dl);
@@ -736,7 +742,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				data= dl->verts;
 				if(nu->flagu & 1) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
-				makeNurbcurve(nu, data, 3);
+				makeNurbcurve(nu, data, resolu, 3);
 			}
 			else if((nu->type & 7)==CU_POLY) {
 				len= nu->pntsu;
@@ -1161,7 +1167,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				if(nu->flagu & 1) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
-				makeNurbcurve(nu, data, 3);
+				makeNurbcurve(nu, data, nu->resolu, 3);
 			}
 			else {
 				len= nu->resolu*nu->resolv;
