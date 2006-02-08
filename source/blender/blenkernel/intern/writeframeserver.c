@@ -1,5 +1,5 @@
 /*
- * Frameserver 
+ * Frameserver
  * Makes Blender accessible from TMPGenc directly using VFAPI (you can
  * use firefox too ;-)
  *
@@ -26,6 +26,7 @@
 #include <winbase.h>
 #include <direct.h>
 #else
+#include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
