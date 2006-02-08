@@ -63,6 +63,7 @@ struct rctf;
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
+#include "BKE_nla.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -298,6 +299,9 @@ static PyObject *Object_setSBUseEdges( BPy_Object * self, PyObject * args );
 static PyObject *Object_getSBStiffQuads( BPy_Object * self );
 static PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertShapeKey(BPy_Object * self);
+static PyObject *Object_copyNLA( BPy_Object * self, PyObject * args );
+static PyObject *Object_convertActionToStrip( BPy_Object * self );
+
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
 /*****************************************************************************/
@@ -565,8 +569,11 @@ works only if self and the object specified are of the same type."},
 	 "(  ) - creates a new action with the information from object animations"},
 	 {"setConstraintInfluenceForBone", ( PyCFunction ) Object_setConstraintInfluenceForBone, METH_VARARGS,
 	  "(  ) - sets a constraint influence for a certain bone in this (armature)object."},
-	{"getAllProperties", ( PyCFunction ) Object_getAllProperties,
-	 METH_NOARGS,
+	 {"copyNLA", ( PyCFunction ) Object_copyNLA, METH_VARARGS,
+	  "(  ) - copies all NLA strips from another object to this object."},
+	{"convertActionToStrip", ( PyCFunction ) Object_convertActionToStrip, METH_NOARGS,
+	 "(  ) - copies all NLA strips from another object to this object."},
+	{"getAllProperties", ( PyCFunction ) Object_getAllProperties, METH_NOARGS,
 	 "() - Get all the properties from this object"},
 	{"addProperty", ( PyCFunction ) Object_addProperty, METH_VARARGS,
 	 "() - Add a property to this object"},
@@ -2529,6 +2536,23 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self, PyObje
 
 	Py_INCREF( Py_None );
 	return ( Py_None );
+}
+
+static PyObject *Object_copyNLA( BPy_Object * self, PyObject * args ) {
+	BPy_Object *bpy_fromob;
+
+	if( !PyArg_ParseTuple( args, "O", &bpy_fromob ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError, "requires a Blender Object to copy NLA strips from." ) );
+	copy_nlastrips(&self->object->nlastrips, &bpy_fromob->object->nlastrips);
+
+	Py_INCREF( Py_None );
+	return ( Py_None );
+}
+
+static PyObject *Object_convertActionToStrip( BPy_Object * self ) {
+	//when BPY gets a Strip type, make this to return the created strip.
+	convert_action_to_strip(self->object);
+	return EXPP_incr_ret_True (); //figured that True is closer to a Strip than None..
 }
 
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args )

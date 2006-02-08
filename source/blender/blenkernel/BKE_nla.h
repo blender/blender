@@ -35,11 +35,13 @@
 
 struct bActionStrip;
 struct ListBase;
+struct Object;
 
-void free_actionstrip(struct bActionStrip* strip);
+void free_actionstrip (struct bActionStrip* strip);
 void free_nlastrips (struct ListBase *nlalist);
 void copy_nlastrips (struct ListBase *dst, struct ListBase *src);
 void copy_actionstrip (struct bActionStrip **dst, struct bActionStrip **src);
-
+void find_stridechannel(struct Object *ob, struct bActionStrip *strip);
+struct bActionStrip *convert_action_to_strip (struct Object *ob);
 #endif
 

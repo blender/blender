@@ -276,20 +276,6 @@ static void set_active_strip(Object *ob, bActionStrip *act)
 	}	
 }
 
-static void find_stridechannel(Object *ob, bActionStrip *strip)
-{
-	if(ob && ob->pose) {
-		bPoseChannel *pchan;
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
-			if(pchan->flag & POSE_STRIDE)
-				break;
-		if(pchan)
-			BLI_strncpy(strip->stridechannel, pchan->name, 32);
-		else
-			strip->stridechannel[0]= 0;
-	}
-}
-
 static void convert_nla(short mval[2])
 {
 	bActionStrip *strip, *nstrip;
@@ -343,32 +329,14 @@ static void convert_nla(short mval[2])
 	
 	switch (event){
 	case 1:
-		if (base->object->action){
-			/* Make new actionstrip */
-			nstrip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
-			
+		if (base->object->action) {
 			deselect_nlachannel_keys(0);
-			
-			/* Link the action to the nstrip */
-			nstrip->act = base->object->action;
-			id_us_plus(&nstrip->act->id);
-			calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend, 1);
-			nstrip->start = nstrip->actstart;
-			nstrip->end = nstrip->actend;
-			nstrip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
-			
-			find_stridechannel(base->object, nstrip);
+			nstrip = convert_action_to_strip(base->object); //creates a new NLA strip from the action in given object
 			set_active_strip(base->object, nstrip);
-			
-			nstrip->repeat = 1.0;
-							
-			BLI_addtail(&base->object->nlastrips, nstrip);
-			
 			BIF_undo_push("Convert NLA");
 			allqueue (REDRAWNLA, 0);
 		}
-		
-		
+
 		break;
 	default:
 		break;

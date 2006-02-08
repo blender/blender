@@ -40,7 +40,9 @@
 #include "DNA_action_types.h"
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
+#include "DNA_object_types.h"
 #include "MEM_guardedalloc.h"
+#include "BKE_object.h" /* for convert_action_to_strip(ob) */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -87,6 +89,49 @@ void copy_nlastrips (ListBase *dst, ListBase *src)
 			strip->ipo->id.us++;
 	}
 }
+
+/* from editnla, for convert_action_to_strip -- no UI code so should be ok here.. */
+void find_stridechannel(Object *ob, bActionStrip *strip)
+{
+	if(ob && ob->pose) {
+		bPoseChannel *pchan;
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+			if(pchan->flag & POSE_STRIDE)
+				break;
+		if(pchan)
+			BLI_strncpy(strip->stridechannel, pchan->name, 32);
+		else
+			strip->stridechannel[0]= 0;
+	}
+}
+
+//called by convert_nla / bpy api with an object with the action to be converted to a new strip
+bActionStrip *convert_action_to_strip (Object *ob)
+{
+	bActionStrip *nstrip;
+
+	/* Make new actionstrip */
+	nstrip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
+			
+	/* Link the action to the nstrip */
+	nstrip->act = ob->action;
+	id_us_plus(&nstrip->act->id);
+	calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend, 1);
+	nstrip->start = nstrip->actstart;
+	nstrip->end = nstrip->actend;
+	nstrip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
+			
+	find_stridechannel(ob, nstrip);
+	//set_active_strip(ob, nstrip); /* is in editnla as does UI calls */
+			
+	nstrip->repeat = 1.0;
+							
+	BLI_addtail(&ob->nlastrips, nstrip);
+	return nstrip; /* is created, malloced etc. here so is safe to just return the pointer?
+			  this is needed for setting this active in UI, and probably useful for API too */
+	
+}
+
 
 
 void free_actionstrip(bActionStrip* strip)
