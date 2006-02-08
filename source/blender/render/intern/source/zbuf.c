@@ -1683,7 +1683,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 						else {
 							zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 							if(vlr->v4) {
-								if(zvlnr) zvlnr+= 0x800000;
+								if(zvlnr) zvlnr+= RE_QUAD_OFFS;
 								zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 							}
 						}
@@ -2429,7 +2429,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 							else {
 								zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 								if(vlr->v4) {
-									zvlnr+= 0x800000;
+									zvlnr+= RE_QUAD_OFFS;
 									zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 								}
 							}
@@ -2533,12 +2533,12 @@ static void shadetrapixel(ShadePixelInfo *shpi, float x, float y, int z, int fac
 {
 	float rco[3];
 	
-	if( (facenr & 0x7FFFFF) > R.totvlak) {
-		printf("error in shadetrapixel nr: %d\n", (facenr & 0x7FFFFF));
+	if( (facenr & RE_QUAD_MASK) > R.totvlak) {
+		printf("error in shadetrapixel nr: %d\n", (facenr & RE_QUAD_MASK));
 		return;
 	}
 	if(R.osa) {
-		VlakRen *vlr= RE_findOrAddVlak(&R, (facenr-1) & 0x7FFFFF);
+		VlakRen *vlr= RE_findOrAddVlak(&R, (facenr-1) & RE_QUAD_MASK);
 		float accumcol[4]={0,0,0,0}, tot=0.0;
 		int a;
 		

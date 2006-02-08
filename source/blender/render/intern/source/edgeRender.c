@@ -64,6 +64,7 @@
 
 #include "render_types.h"
 #include "renderpipeline.h"
+#include "renderdatabase.h"
 #include "edgeRender.h"
 #include "zbuf.h" /* for zbufclipwire and zbufclip */
 
@@ -611,7 +612,7 @@ static int zBufferEdgeRenderObjects(void)
 				    zbufclip(&zspan, zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
 					     vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 				    if(vlr->v4) {
-					    zvlnr+= 0x800000; /* in a sense, the 'adjoint' face */
+					    zvlnr+= RE_QUAD_OFFS; /* in a sense, the 'adjoint' face */
 					    zbufclip(&zspan, zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
 						     vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 				    }

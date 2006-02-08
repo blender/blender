@@ -2314,11 +2314,11 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 		memset(shr, 0, sizeof(ShadeResult));
 		rco[0]= rco[1]= rco[2]= 0.0f;
 	}
-	else if( (facenr & 0x7FFFFF) <= R.totvlak) {
+	else if( (facenr & RE_QUAD_MASK) <= R.totvlak) {
 		VertRen *v1;
 		float alpha, fac, zcor;
 		
-		vlr= RE_findOrAddVlak(&R, (facenr-1) & 0x7FFFFF);
+		vlr= RE_findOrAddVlak(&R, (facenr-1) & RE_QUAD_MASK);
 		
 		shi.vlr= vlr;
 		shi.mat= vlr->mat;
@@ -2427,7 +2427,7 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 		}
 		
 		/* calcuate normals, texture coords, vertex colors, etc */
-		if(facenr & 0x800000)
+		if(facenr & RE_QUAD_OFFS)
 			shade_input_set_coords(&shi, 1.0, 1.0, 0, 2, 3);
 		else 
 			shade_input_set_coords(&shi, 1.0, 1.0, 0, 1, 2);
@@ -2449,7 +2449,7 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 			VertRen *v2, *v3;
 			float *s1, *s2, *s3;
 			
-			if(facenr & 0x800000) {
+			if(facenr & RE_QUAD_OFFS) {
 				v2= vlr->v3; v3= vlr->v4;
 			} else {
 				v2= vlr->v2; v3= vlr->v3;
@@ -2878,7 +2878,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 				/* check osa level */
 				if(face==0) full_osa= 0;
 				else {
-					VlakRen *vlr= RE_findOrAddVlak(&R, (face-1) & 0x7FFFFF);
+					VlakRen *vlr= RE_findOrAddVlak(&R, (face-1) & RE_QUAD_MASK);
 					full_osa= (vlr->flag & R_FULL_OSA);
 				}
 				

@@ -37,6 +37,9 @@ struct HaloRen;
 struct Material;
 struct Render;
 
+#define RE_QUAD_MASK	0x7FFFFFF
+#define RE_QUAD_OFFS	0x8000000
+
 /* render allocates totvert/256 of these nodes, for lookup and quick alloc */
 typedef struct VertTableNode {
 	struct VertRen *vert;

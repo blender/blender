@@ -61,7 +61,7 @@ typedef struct Path {
 #
 typedef struct BevList {
 	struct BevList *next, *prev;
-	short nr, flag;
+	int nr, flag;
 	short poly, gat;
 } BevList;
 
