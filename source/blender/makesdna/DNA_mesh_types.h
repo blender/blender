@@ -155,14 +155,14 @@ typedef struct Mesh {
 #define TF_SUB		3
 
 /* tface->unwrap */
-#define TF_SEAM1	1
-#define TF_SEAM2	2
-#define TF_SEAM3	4
-#define TF_SEAM4	8
-#define TF_PIN1	    16
-#define TF_PIN2	    32
-#define TF_PIN3	    64
-#define TF_PIN4	    128
+#define TF_DEPRECATED1	1
+#define TF_DEPRECATED2	2
+#define TF_DEPRECATED3	4
+#define TF_DEPRECATED4	8
+#define TF_PIN1		    16
+#define TF_PIN2		    32
+#define TF_PIN3	   		64
+#define TF_PIN4	    	128
 
 #define MESH_MAX_VERTS 2000000000L
 

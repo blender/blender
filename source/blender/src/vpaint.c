@@ -652,26 +652,6 @@ static int sample_backbuf_area(int x, int y, float size)
 	return tot;
 }
 
-static unsigned int sample_backbuf(int x, int y)
-{
-	unsigned int col;
-	
-	if(x>=curarea->winx || y>=curarea->winy) return 0;
-	
-	x+= curarea->winrct.xmin;
-	y+= curarea->winrct.ymin;
-
-#ifdef __APPLE__
-	glReadBuffer(GL_AUX0);
-#endif
-	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
-	glReadBuffer(GL_BACK);	
-
-	if(G.order==B_ENDIAN) SWITCH_INT(col);
-		
-	return framebuffer_to_index(col);
-}
-
 static int calc_vp_alpha_dl(VPaint *vp, float *vert_nor, short *mval)
 {
 	float fac, dx, dy;

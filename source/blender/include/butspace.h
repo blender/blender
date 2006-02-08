@@ -86,6 +86,7 @@ extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
 extern void do_cambuts(unsigned short event);
 extern void do_armbuts(unsigned short event);
+extern void do_uvautocalculationbuts(unsigned short event);
 
 extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
@@ -112,11 +113,6 @@ extern void do_scriptbuts(unsigned short event);
 
 /* ipowindow */
 extern void do_ipobuts(unsigned short event);	// drawipo.c (bad! ton)
-
-/* uvautocalculation */
-void do_uvautocalculationbuts(unsigned short event);
-void get_uvautocalculationsettings(float *radius,float *cubesize, int *mapdir, int *mapalign);
-
 
 /* butspace.c */
 void test_meshpoin_but(char *name, struct ID **idpp);

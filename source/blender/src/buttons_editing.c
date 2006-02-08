@@ -3540,7 +3540,8 @@ void do_fpaintbuts(unsigned short event)
 	Mesh *me;
 	Object *ob;
 	bDeformGroup *defGroup;
-	extern TFace *lasttface; /* caches info on tface bookkeeping ?*/
+	TFace *activetf, *tf;
+	int a;
 	extern VPaint Gwp;         /* from vpaint */
 
 	ob= OBACT;
@@ -3555,42 +3556,37 @@ void do_fpaintbuts(unsigned short event)
 	case B_COPY_TF_UV:
 	case B_COPY_TF_COL:
 	case B_COPY_TF_TEX:
-		me= get_mesh(ob);
-		if(me && me->tface) {
-/*  			extern TFace *lasttface; */
-			TFace *tface= me->tface;
-			int a= me->totface;
+		me = get_mesh(OBACT);
+		activetf = get_active_tface();
 
-			set_lasttface();
-			if(lasttface) {
-
-				while(a--) {
-					if(tface!=lasttface && (tface->flag & TF_SELECT)) {
-						if(event==B_COPY_TF_MODE) {
-							tface->mode= lasttface->mode;
-							tface->transp= lasttface->transp;
-						}
-						else if(event==B_COPY_TF_UV) {
-							memcpy(tface->uv, lasttface->uv, sizeof(tface->uv));
-							tface->tpage= lasttface->tpage;
-							tface->tile= lasttface->tile;
-
-							if(lasttface->mode & TF_TILES) tface->mode |= TF_TILES;
-							else tface->mode &= ~TF_TILES;
-
-						}
-						else if(event==B_COPY_TF_TEX) {
-							tface->tpage= lasttface->tpage;
-							tface->tile= lasttface->tile;
-
-							if(lasttface->mode & TF_TILES) tface->mode |= TF_TILES;
-							else tface->mode &= ~TF_TILES;
-						}
-						else if(event==B_COPY_TF_COL) memcpy(tface->col, lasttface->col, sizeof(tface->col));
+		if(me && activetf) {
+			for (a=0, tf=me->tface; a < me->totface; a++, tf++) {
+				if(tf!=activetf && (tf->flag & TF_SELECT)) {
+					if(event==B_COPY_TF_MODE) {
+						tf->mode= activetf->mode;
+						tf->transp= activetf->transp;
 					}
-					tface++;
+					else if(event==B_COPY_TF_UV) {
+						memcpy(tf->uv, activetf->uv, sizeof(tf->uv));
+						tf->tpage= activetf->tpage;
+						tf->tile= activetf->tile;
+
+						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
+						else tf->mode &= ~TF_TILES;
+
+					}
+					else if(event==B_COPY_TF_TEX) {
+						tf->tpage= activetf->tpage;
+						tf->tile= activetf->tile;
+
+						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
+						else tf->mode &= ~TF_TILES;
+					}
+					else if(event==B_COPY_TF_COL)
+						memcpy(tf->col, activetf->col, sizeof(tf->col));
 				}
 			}
+
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			do_shared_vertexcol(me);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3616,17 +3612,17 @@ void do_fpaintbuts(unsigned short event)
 		break;
 
 	case B_TFACE_HALO:
-		set_lasttface();
-		if(lasttface) {
-			lasttface->mode &= ~TF_BILLBOARD2;
+		activetf = get_active_tface();
+		if(activetf) {
+			activetf->mode &= ~TF_BILLBOARD2;
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		break;
 
 	case B_TFACE_BILLB:
-		set_lasttface();
-		if(lasttface) {
-			lasttface->mode &= ~TF_BILLBOARD;
+		activetf = get_active_tface();
+		if(activetf) {
+			activetf->mode &= ~TF_BILLBOARD;
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		break;
@@ -3786,38 +3782,37 @@ static void editing_panel_mesh_texface(void)
 {
 	extern VPaint Gvp;         /* from vpaint */
 	uiBlock *block;
-	extern TFace *lasttface;
+	TFace *tf;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_texface", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture face", "Editing", 960, 0, 318, 204)==0) return;
 
-	set_lasttface();	// checks for ob type
-	if(lasttface) {
+	tf = get_active_tface();
+	if(tf) {
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &tf->mode, 0, 0, 0, 0, "Render face with texture");
+		uiDefButBitS(block, TOG, TF_TILES, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &tf->mode, 0, 0, 0, 0, "Use tilemode for face");
+		uiDefButBitS(block, TOG, TF_LIGHT, REDRAWVIEW3D, "Light",	720,160,60,19, &tf->mode, 0, 0, 0, 0, "Use light for face");
+		uiDefButBitS(block, TOG, TF_INVISIBLE, REDRAWVIEW3D, "Invisible",780,160,60,19, &tf->mode, 0, 0, 0, 0, "Make face invisible");
+		uiDefButBitS(block, TOG, TF_DYNAMIC, REDRAWVIEW3D, "Collision", 840,160,60,19, &tf->mode, 0, 0, 0, 0, "Use face for collision detection");
 
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face with texture");
-		uiDefButBitS(block, TOG, TF_TILES, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use tilemode for face");
-		uiDefButBitS(block, TOG, TF_LIGHT, REDRAWVIEW3D, "Light",	720,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use light for face");
-		uiDefButBitS(block, TOG, TF_INVISIBLE, REDRAWVIEW3D, "Invisible",780,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Make face invisible");
-		uiDefButBitS(block, TOG, TF_DYNAMIC, REDRAWVIEW3D, "Collision", 840,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use face for collision detection");
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, TF_SHAREDCOL, REDRAWVIEW3D, "Shared",	600,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Blend vertex colours across face when vertices are shared");
-		uiDefButBitS(block, TOG, TF_TWOSIDE, REDRAWVIEW3D, "Twoside",660,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face twosided");
-		uiDefButBitS(block, TOG, TF_OBCOL, REDRAWVIEW3D, "ObColor",720,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colours");
+		uiDefButBitS(block, TOG, TF_SHAREDCOL, REDRAWVIEW3D, "Shared",	600,135,60,19, &tf->mode, 0, 0, 0, 0, "Blend vertex colours across face when vertices are shared");
+		uiDefButBitS(block, TOG, TF_TWOSIDE, REDRAWVIEW3D, "Twoside",660,135,60,19, &tf->mode, 0, 0, 0, 0, "Render face twosided");
+		uiDefButBitS(block, TOG, TF_OBCOL, REDRAWVIEW3D, "ObColor",720,135,60,19, &tf->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colours");
 
 		uiBlockBeginAlign(block);
 		
-		uiDefButBitS(block, TOG, TF_BILLBOARD, B_TFACE_HALO, "Halo",	600,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Screen aligned billboard");
-		uiDefButBitS(block, TOG, TF_BILLBOARD2, B_TFACE_BILLB, "Billboard",660,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
-		uiDefButBitS(block, TOG, TF_SHADOW, REDRAWVIEW3D, "Shadow", 720,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Face is used for shadow");
-		uiDefButBitS(block, TOG, TF_BMFONT, REDRAWVIEW3D, "Text", 780,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Enable bitmap text on face");
+		uiDefButBitS(block, TOG, TF_BILLBOARD, B_TFACE_HALO, "Halo",	600,110,60,19, &tf->mode, 0, 0, 0, 0, "Screen aligned billboard");
+		uiDefButBitS(block, TOG, TF_BILLBOARD2, B_TFACE_BILLB, "Billboard",660,110,60,19, &tf->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
+		uiDefButBitS(block, TOG, TF_SHADOW, REDRAWVIEW3D, "Shadow", 720,110,60,19, &tf->mode, 0, 0, 0, 0, "Face is used for shadow");
+		uiDefButBitS(block, TOG, TF_BMFONT, REDRAWVIEW3D, "Text", 780,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable bitmap text on face");
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &lasttface->transp, 2.0, 0.0, 0, 0, "Render colour of textured face as colour");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &lasttface->transp, 2.0, 1.0, 0, 0, "Render face transparent and add colour of face");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &lasttface->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, 0.0, 0, 0, "Render colour of textured face as colour");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, 1.0, 0, 0, "Render face transparent and add colour of face");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
 
 		uiBlockSetCol(block, TH_AUTO);
 
@@ -3832,29 +3827,9 @@ static void editing_panel_mesh_texface(void)
 	}
 }
 
-void do_uvautocalculationbuts(unsigned short event)
+void do_uvcalculationbuts(unsigned short event)
 {
-	switch(event) {
-	case B_UVAUTO_STD1:
-	case B_UVAUTO_STD2:
-	case B_UVAUTO_STD4:
-	case B_UVAUTO_STD8:
-	case B_UVAUTO_CUBE:
-		calculate_uv_map(event);
-		break;
-	case B_UVAUTO_BOUNDS1:
-	case B_UVAUTO_BOUNDS2:
-	case B_UVAUTO_BOUNDS4:
-	case B_UVAUTO_BOUNDS8:
-	case B_UVAUTO_SPHERE:
-	case B_UVAUTO_CYLINDER:
-	case B_UVAUTO_WINDOW:
-		if(select_area(SPACE_VIEW3D)) calculate_uv_map(event);
-		break;
-	case B_UVAUTO_UNWRAP:
-		unwrap_lscm();
-		break;
-	}
+	/* nothing to do here */
 }
 
 static void editing_panel_mesh_uvautocalculation(void)
@@ -3877,9 +3852,8 @@ static void editing_panel_mesh_uvautocalculation(void)
 	row-= 4*butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, REDRAWBUTSEDIT, "Unwrapper%t|Conformal%x0|Angle Based%x1|Conformal (Old)%x2",100,row,200,butH, &G.scene->toolsettings->unwrapper, 0, 0, 0, 0, "Unwrap method");
-	if (G.scene->toolsettings->unwrapper != 2)
-		uiDefButBitS(block, TOG, 1, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
+	uiDefButS(block, MENU, REDRAWBUTSEDIT, "Unwrapper%t|Conformal%x0|Angle Based%x1",100,row,200,butH, &G.scene->toolsettings->unwrapper, 0, 0, 0, 0, "Unwrap method");
+	uiDefButBitS(block, TOG, 1, B_NOP, "Fill Holes",100,row-butHB,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Fill holes to prevent internal overlaps");
 	uiBlockEndAlign(block);
 	row-= 2*butHB+butS;
 

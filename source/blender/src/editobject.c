@@ -1504,10 +1504,8 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 
 		if(freedata) free_editMesh(G.editMesh);
 
-		if(G.f & G_FACESELECT) {
-			set_seamtface();
+		if(G.f & G_FACESELECT)
 			allqueue(REDRAWIMAGE, 0);
-		}
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(G.obedit, NULL, 'e');
 	}

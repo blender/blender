@@ -36,7 +36,7 @@
 struct TFace;
 struct Mesh;
 
-void set_lasttface(void);
+struct TFace *get_active_tface(void);
 void calculate_uv_map(unsigned short mapmode);
 void default_uv(float uv[][2], float size);
 void default_tface(struct TFace *tface);
@@ -49,13 +49,13 @@ void selectswap_tface(void);
 void rotate_uv_tface(void);
 void mirror_uv_tface(void);
 void minmax_tface(float *min, float *max);
-int face_pick(struct Mesh *me, short x, short y, unsigned int *index);
 void face_select(void);
 void face_borderselect(void);
 void uv_autocalc_tface(void);
 void set_faceselect(void);
 void face_draw(void);
 void get_same_uv(void);  
+void seam_mark_clear_tface(short mode);
 
 #endif /* BDR_EDITFACE_H */
 

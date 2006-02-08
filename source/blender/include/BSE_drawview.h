@@ -37,6 +37,7 @@ struct Object;
 struct BGpic;
 struct rcti;
 struct ScrArea;
+struct ImBuf;
 
 void setalpha_bgpic(struct BGpic *bgpic);
 void default_gl_light(void);
@@ -52,6 +53,11 @@ void do_viewbuts(unsigned short event);
 void add_view3d_after(struct View3D *v3d, struct Base *base, int type);
 
 void backdrawview3d(int test);
+void check_backbuf(void);
+unsigned int sample_backbuf(int x, int y);
+struct ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax);
+unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, short *dist);;
+
 void drawview3dspace(struct ScrArea *sa, void *spacedata);
 void drawview3d_render(struct View3D *v3d, int winx, int winy);
 

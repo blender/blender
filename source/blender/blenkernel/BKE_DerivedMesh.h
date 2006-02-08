@@ -47,7 +47,6 @@
 
 struct MVert;
 struct Object;
-struct TFace;
 struct EditMesh;
 struct DispListMesh;
 struct ModifierData;
@@ -144,7 +143,7 @@ struct DerivedMesh {
 			/* Draw all faces uses TFace 
 			 *  o Drawing options too complicated to enumerate, look at code.
 			 */
-	void (*drawFacesTex)(DerivedMesh *dm, int (*setDrawOptions)(struct TFace *tf, int matnr));
+	void (*drawMappedFacesTex)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int matnr), void *userData);
 
 			/* Draw mapped faces (no color, or texture)
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face-index, drawSmooth_r) returns true

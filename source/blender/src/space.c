@@ -1265,6 +1265,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if (G.qual==LR_CTRLKEY) {
 					if(G.obedit && G.obedit->type==OB_MESH)
 						Edge_Menu();
+					else if (G.f & G_FACESELECT)
+						seam_mark_clear_tface(0);
 				}
 				else if (G.qual==LR_SHIFTKEY) {
 					if (G.obedit && G.obedit->type==OB_MESH) {
@@ -3992,7 +3994,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case EKEY :
 				if(okee("Unwrap"))
-					unwrap_lscm();
+					unwrap_lscm(0);
 				break;
 			case GKEY:
 				if((G.qual==0) && is_uv_tface_editing_allowed()) {

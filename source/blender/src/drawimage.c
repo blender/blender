@@ -205,24 +205,24 @@ void calc_image_view(SpaceImage *sima, char mode)
 
 void what_image(SpaceImage *sima)
 {
-	extern TFace *lasttface;	/* editface.c */
+	TFace *activetf;
 	Mesh *me;
 		
 	if(sima->mode==SI_TEXTURE) {
 		if(G.f & G_FACESELECT) {
 
 			sima->image= 0;
-			me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
-			set_lasttface();
+			me= get_mesh(OBACT);
+			activetf = get_active_tface();
 			
-			if(me && me->tface && lasttface && lasttface->mode & TF_TEX) {
-				sima->image= lasttface->tpage;
+			if(me && me->tface && activetf && activetf->mode & TF_TEX) {
+				sima->image= activetf->tpage;
 					
 				if(sima->flag & SI_EDITTILE);
-				else sima->curtile= lasttface->tile;
+				else sima->curtile= activetf->tile;
 				
 				if(sima->image) {
-					if(lasttface->mode & TF_TILES)
+					if(activetf->mode & TF_TILES)
 						sima->image->tpageflag |= IMA_TILES;
 					else sima->image->tpageflag &= ~IMA_TILES;
 				}

@@ -515,7 +515,8 @@ static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flag
 	flags_p = (int*) BLI_edgehash_lookup_p(eh, v0, v1);
 	*flags_p |= flags;
 }
-static EdgeHash *get_marked_edge_info(Mesh *me)
+
+EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 {
 	EdgeHash *eh = BLI_edgehash_new();
 	int i;
@@ -618,20 +619,25 @@ static int draw_tfaces3D__setActiveOpts(void *userData, int index)
 		return 0;
 	}
 }
-static int draw_tfaces3D__drawFaceOpts(TFace *tface, int matnr)
+static int draw_tfaces3D__drawFaceOpts(void *userData, int index, int matnr)
 {
-	if (tface && !(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT)) {
-		return 2; /* Don't set color */
-	} else {
+	Mesh *me = (Mesh*)userData;
+
+	if (me->tface) {
+		TFace *tface = &me->tface[index];
+		if (!(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT))
+			return 2; /* Don't set color */
+		else
+			return 0;
+	} else
 		return 0;
-	}
 }
 static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 {
 	struct { Mesh *me; EdgeHash *eh; } data;
 
 	data.me = me;
-	data.eh = get_marked_edge_info(me);
+	data.eh = get_tface_mesh_marked_edge_info(me);
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
@@ -657,7 +663,7 @@ static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		BIF_ThemeColor4(TH_FACE_SELECT);
 
-		dm->drawFacesTex(dm, draw_tfaces3D__drawFaceOpts);
+		dm->drawMappedFacesTex(dm, draw_tfaces3D__drawFaceOpts, (void*)me);
 
 		glDisable(GL_BLEND);
 	}
@@ -838,8 +844,11 @@ static Object *g_draw_tface_mesh_ob = NULL;
 static int g_draw_tface_mesh_islight = 0;
 static int g_draw_tface_mesh_istex = 0;
 static unsigned char g_draw_tface_mesh_obcol[4];
-static int draw_tface_mesh__set_draw(TFace *tface, int matnr)
+static int draw_tface_mesh__set_draw(void *userData, int index, int matnr)
 {
+	Mesh *me = (Mesh*)userData;
+	TFace *tface = (me->tface)? &me->tface[index]: NULL;
+
 	if (tface && ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE))) return 0;
 
 	if (set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
@@ -901,7 +910,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 		int start, totface;
 
-		dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
+		dm->drawMappedFacesTex(dm, draw_tface_mesh__set_draw, (void*)me);
 
 		start = 0;
 		totface = me->totface;

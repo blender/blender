@@ -3574,55 +3574,56 @@ static uiBlock *view3d_paintmenu(void *arg_unused)
 
 static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 {
-	extern TFace *lasttface;
-	set_lasttface();
-	
-	switch(event) {
-	case 0: /*	textured */
-		lasttface->mode ^= TF_TEX;
-		break;
-	case 1: /* tiled*/
-		lasttface->mode ^= TF_TILES;
-		break;
-	case 2: /* light */
-		lasttface->mode ^= TF_LIGHT;
-		break;
-	case 3: /* invisible */
-		lasttface->mode ^= TF_INVISIBLE;
-		break;
-	case 4: /* collision */
-		lasttface->mode ^= TF_DYNAMIC;
-		break;
-	case 5: /* shared vertex colors */
-		lasttface->mode ^= TF_SHAREDCOL;
-		break;
-	case 6: /* two sided */
-		lasttface->mode ^= TF_TWOSIDE;
-		break;
-	case 7: /* use object color */
-		lasttface->mode ^= TF_OBCOL;
-		break;
-	case 8: /* halo */
-		lasttface->mode ^= TF_BILLBOARD;
-		break;
-	case 9: /* billboard */
-		lasttface->mode ^= TF_BILLBOARD2;
-		break;
-	case 10: /* shadow */
-		lasttface->mode ^= TF_SHADOW;
-		break;
-	case 11: /* text */
-		lasttface->mode ^= TF_BMFONT;
-		break;
-	case 12: /* opaque blend mode */
-		lasttface->transp = TF_SOLID;
-		break;
-	case 13: /* additive blend mode */
-		lasttface->transp |= TF_ADD;
-		break;
-	case 14: /* alpha blend mode */
-		lasttface->transp = TF_ALPHA;
-		break;
+	TFace *tf = get_active_tface();
+
+	if (tf) {
+		switch(event) {
+		case 0: /*	textured */
+			tf->mode ^= TF_TEX;
+			break;
+		case 1: /* tiled*/
+			tf->mode ^= TF_TILES;
+			break;
+		case 2: /* light */
+			tf->mode ^= TF_LIGHT;
+			break;
+		case 3: /* invisible */
+			tf->mode ^= TF_INVISIBLE;
+			break;
+		case 4: /* collision */
+			tf->mode ^= TF_DYNAMIC;
+			break;
+		case 5: /* shared vertex colors */
+			tf->mode ^= TF_SHAREDCOL;
+			break;
+		case 6: /* two sided */
+			tf->mode ^= TF_TWOSIDE;
+			break;
+		case 7: /* use object color */
+			tf->mode ^= TF_OBCOL;
+			break;
+		case 8: /* halo */
+			tf->mode ^= TF_BILLBOARD;
+			break;
+		case 9: /* billboard */
+			tf->mode ^= TF_BILLBOARD2;
+			break;
+		case 10: /* shadow */
+			tf->mode ^= TF_SHADOW;
+			break;
+		case 11: /* text */
+			tf->mode ^= TF_BMFONT;
+			break;
+		case 12: /* opaque blend mode */
+			tf->transp = TF_SOLID;
+			break;
+		case 13: /* additive blend mode */
+			tf->transp |= TF_ADD;
+			break;
+		case 14: /* alpha blend mode */
+			tf->transp = TF_ALPHA;
+			break;
+		}
 	}
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -3630,61 +3631,60 @@ static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 
 static uiBlock *view3d_facesel_propertiesmenu(void *arg_unused)
 {
-	extern TFace *lasttface;
+	TFace *tf = get_active_tface();
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
-	/* to display ticks/crosses depending on face properties */
-	set_lasttface();
+	/* display ticks/crosses depending on active tface properties */
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_facesel_propertiesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_facesel_propertiesmenu, NULL);
 	
-	if (lasttface->mode & TF_TEX) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Textured",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	if (tf->mode & TF_TEX) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Textured",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Textured",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if (lasttface->mode & TF_TILES) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Tiled",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	if (tf->mode & TF_TILES) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Tiled",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Tiled",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	
-	if (lasttface->mode & TF_LIGHT) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Light",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	if (tf->mode & TF_LIGHT) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Light",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Light",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	
-	if (lasttface->mode & TF_INVISIBLE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Invisible",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	if (tf->mode & TF_INVISIBLE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Invisible",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Invisible",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	
-	if (lasttface->mode & TF_DYNAMIC) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Collision",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	if (tf->mode & TF_DYNAMIC) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Collision",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Collision",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	
-	if (lasttface->mode & TF_SHAREDCOL) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Shared Vertex Colors",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	if (tf->mode & TF_SHAREDCOL) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Shared Vertex Colors",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Shared Vertex Colors",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	
-	if (lasttface->mode & TF_TWOSIDE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Two Sided",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	if (tf->mode & TF_TWOSIDE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Two Sided",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Two Sided",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
-	if (lasttface->mode & TF_OBCOL) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Use Object Color",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	if (tf->mode & TF_OBCOL) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Use Object Color",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Use Object Color",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	
-	if (lasttface->mode & TF_BILLBOARD) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Halo",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	if (tf->mode & TF_BILLBOARD) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Halo",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Halo",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	
-	if (lasttface->mode & TF_BILLBOARD2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Billboard",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
+	if (tf->mode & TF_BILLBOARD2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Billboard",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Billboard",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 		
-	if (lasttface->mode & TF_SHADOW) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Shadow",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+	if (tf->mode & TF_SHADOW) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Shadow",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Shadow",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	
-	if (lasttface->mode & TF_BMFONT) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Text",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	if (tf->mode & TF_BMFONT) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Text",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Text",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if (lasttface->transp == TF_SOLID) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Opaque Blend Mode",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
+	if (tf->transp == TF_SOLID) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Opaque Blend Mode",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Opaque Blend Mode",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
 	
-	if (lasttface->transp == TF_ADD) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Additive Blend Mode",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
+	if (tf->transp == TF_ADD) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Additive Blend Mode",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Additive Blend Mode",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	
-	if (lasttface->transp == TF_ALPHA) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Alpha Blend Mode",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	if (tf->transp == TF_ALPHA) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Alpha Blend Mode",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Alpha Blend Mode",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -3731,44 +3731,36 @@ static void do_view3d_faceselmenu(void *arg, int event)
 {
 	/* code copied from buttons.c :(	
 		would be nice if it was split up into functions */
-	Mesh *me=NULL;
-	Object *ob=NULL;
-	extern TFace *lasttface; /* caches info on tface bookkeeping ?*/
-	TFace *tface;
+	Mesh *me;
+	TFace *tf, *activetf;
 	int a;
 	
 	switch(event) {
 	case 0: /* copy draw mode */
 	case 1: /* copy UVs */
 	case 2: /* copy vertex colors */
-		ob= OBACT;
-		if(ob==0) return;
-		me= get_mesh(ob);
-		if(!(me && me->tface)) return;
+		me= get_mesh(OBACT);
+		activetf = get_active_tface();
 
-		tface= me->tface;
-		a= me->totface;
-		set_lasttface();
-		if(lasttface) {
-		
-			while(a--) {
-				if(tface!=lasttface && (tface->flag & TF_SELECT)) {
+		if (me && activetf) {
+			for (a=0, tf=me->tface; a < me->totface; a++, tf++) {
+				if(tf!=activetf && (tf->flag & TF_SELECT)) {
 					if(event==0) {
-						tface->mode= lasttface->mode;
-						tface->transp= lasttface->transp;
+						tf->mode= activetf->mode;
+						tf->transp= activetf->transp;
 					} else if(event==1) {
-						memcpy(tface->uv, lasttface->uv, sizeof(tface->uv));
-						tface->tpage= lasttface->tpage;
-						tface->tile= lasttface->tile;
+						memcpy(tf->uv, activetf->uv, sizeof(tf->uv));
+						tf->tpage= activetf->tpage;
+						tf->tile= activetf->tile;
 						
-						if(lasttface->mode & TF_TILES) tface->mode |= TF_TILES;
-						else tface->mode &= ~TF_TILES;
+						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
+						else tf->mode &= ~TF_TILES;
 						
 					} else if(event==2)
-						memcpy(tface->col, lasttface->col, sizeof(tface->col));
+						memcpy(tf->col, activetf->col, sizeof(tf->col));
 				}
-				tface++;
 			}
+
 			do_shared_vertexcol(me);	
 		}
 		break;
@@ -3784,7 +3776,12 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	case 9: /* mirror UVs */
 		mirror_uv_tface();
 		break;
-	
+	case 10: /* mark border seam */
+		seam_mark_clear_tface(1);
+		break;
+	case 11: /* clear seam */
+		seam_mark_clear_tface(2);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
@@ -3794,8 +3791,6 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
-	
-	set_lasttface();
 	
 	block= uiNewBlock(&curarea->uiblocks, "view3d_faceselmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_faceselmenu, NULL);
@@ -3817,6 +3812,11 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Seam|Ctrl E",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mark Border Seam|Ctrl E",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	uiDefIconTextBlockBut(block, view3d_facesel_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Faces", 0, yco-=20, 120, 19, "");
 
 	if(curarea->headertype==HEADERTOP) {

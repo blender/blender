@@ -38,6 +38,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_heap.h"
+#include "BLI_edgehash.h"
 
 #include "MTC_matrixops.h"
 
@@ -91,7 +93,59 @@
 
 #include "BDR_unwrapper.h"
 
-TFace *lasttface=NULL;
+/* returns 0 if not found, otherwise 1 */
+static int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
+{
+	if (!me->tface || me->totface==0)
+		return 0;
+
+	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
+		check_backbuf();
+		persp(PERSP_VIEW);
+	}
+
+	if (rect) {
+		/* sample rect to increase changes of selecting, so that when clicking
+		   on an edge in the backbuf, we can still select a face */
+		short dist;
+		*index = sample_backbuf_rect(mval, 3, 1, me->totface+1, &dist);
+	}
+	else
+		/* sample only on the exact position */
+		*index = sample_backbuf(mval[0], mval[1]);
+
+	if ((*index)<=0 || (*index)>(unsigned int)me->totface)
+		return 0;
+
+	(*index)--;
+	
+	return 1;
+}
+
+/* returns 0 if not found, otherwise 1 */
+static int facesel_edge_pick(Mesh *me, short *mval, unsigned int *index)
+{
+	short dist;
+	unsigned int min = me->totface + 1;
+	unsigned int max = me->totface + me->totedge + 1;
+
+	if (me->totedge == 0)
+		return 0;
+
+	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
+		check_backbuf();
+		persp(PERSP_VIEW);
+	}
+
+	*index = sample_backbuf_rect(mval, 50, min, max, &dist);
+
+	if (*index == 0)
+		return 0;
+
+	(*index)--;
+	
+	return 1;
+}
 
 static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 {
@@ -487,47 +541,32 @@ void calculate_uv_map(unsigned short mapmode)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-void set_lasttface()
+TFace *get_active_tface()
 {
 	Mesh *me;
-	TFace *tface;
+	TFace *tf;
 	int a;
 	
-	lasttface= 0;
-	if(OBACT==NULL || OBACT->type!=OB_MESH) return;
+	if(OBACT==NULL || OBACT->type!=OB_MESH)
+		return NULL;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->tface==0)
+		return NULL;
 	
-	tface= me->tface;
-	a= me->totface;
-	while(a--) {
-		if(tface->flag & TF_ACTIVE) {
-			lasttface= tface;
-			return;
-		}
-		tface++;
-	}
+	for(a=0, tf=me->tface; a < me->totface; a++, tf++)
+		if(tf->flag & TF_ACTIVE)
+			return tf;
 
-	tface= me->tface;
-	a= me->totface;
-	while(a--) {
-		if(tface->flag & TF_SELECT) {
-			lasttface= tface;
-			return;
-		}
-		tface++;
-	}
+	for(a=0, tf=me->tface; a < me->totface; a++, tf++)
+		if(tf->flag & TF_SELECT)
+			return tf;
 
-	tface= me->tface;
-	a= me->totface;
-	while(a--) {
-		if((tface->flag & TF_HIDE)==0) {
-			lasttface= tface;
-			return;
-		}
-		tface++;
-	}
+	for(a=0, tf=me->tface; a < me->totface; a++, tf++)
+		if((tf->flag & TF_HIDE)==0)
+			return tf;
+	
+	return NULL;
 }
 
 void default_uv(float uv[][2], float size)
@@ -660,7 +699,7 @@ void select_linked_tfaces(int mode)
 			error("The active object is not in this layer");
 			
 		getmouseco_areawin(mval);
-		if (!face_pick(me, mval[0], mval[1], &index)) return;
+		if (!facesel_face_pick(me, mval, &index, 1)) return;
 	}
 
 	select_linked_tfaces_with_seams(mode, me, index);
@@ -910,53 +949,273 @@ void minmax_tface(float *min, float *max)
 	}
 }
 
-/**
- * Returns the face under the give position in screen coordinates.
- * Code extracted from face_select routine.
- * Question: why is all of the backbuffer drawn?
- * We're only interested in one pixel!
- * @author	Maarten Gribnau
- * @param	me		the mesh with the faces to be picked
- * @param	x		the x-coordinate to pick at
- * @param	y		the y-coordinate to pick at
- * @param	index	the index of the face
- * @return 1 if found, 0 if none found
- */
-int face_pick(Mesh *me, short x, short y, unsigned int *index)
+#define ME_SEAM_DONE ME_SEAM_LAST		/* reuse this flag */
+
+static float seam_cut_cost(Mesh *me, int e1, int e2, int vert)
 {
-	unsigned int col;
+	MVert *v = me->mvert + vert;
+	MEdge *med1 = me->medge + e1, *med2 = me->medge + e2;
+	MVert *v1 = me->mvert + ((med1->v1 == vert)? med1->v2: med1->v1);
+	MVert *v2 = me->mvert + ((med2->v1 == vert)? med2->v2: med2->v1);
+	float cost, d1[3], d2[3];
 
-	if (me==0 || me->tface==0)
-		return 0;
+	cost = VecLenf(v1->co, v->co);
+	cost += VecLenf(v->co, v2->co);
 
-	/* Have OpenGL draw in the back buffer with color coded face indices */
-	if (curarea->win_swap==WIN_EQUAL) {
-		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
+	VecSubf(d1, v->co, v1->co);
+	VecSubf(d2, v2->co, v->co);
+
+	cost = cost + 0.5f*cost*(2.0f - fabs(d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2]));
+
+	return cost;
+}
+
+static void seam_add_adjacent(Mesh *me, Heap *heap, int mednum, int vertnum, int *nedges, int *edges, int *prevedge, float *cost)
+{
+	int startadj, endadj = nedges[vertnum+1];
+
+	for (startadj = nedges[vertnum]; startadj < endadj; startadj++) {
+		int adjnum = edges[startadj];
+		MEdge *medadj = me->medge + adjnum;
+		float newcost;
+
+		if (medadj->flag & ME_SEAM_DONE)
+			continue;
+
+		newcost = cost[mednum] + seam_cut_cost(me, mednum, adjnum, vertnum);
+
+		if (cost[adjnum] > newcost) {
+			cost[adjnum] = newcost;
+			prevedge[adjnum] = mednum;
+			BLI_heap_insert(heap, newcost, (void*)adjnum);
+		}
 	}
-	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
-		backdrawview3d(0);
-		persp(PERSP_VIEW);
-	}
-	/* Read the pixel under the cursor */
-#ifdef __APPLE__
-	glReadBuffer(GL_AUX0);
-#endif
-	glReadPixels(x+curarea->winrct.xmin, y+curarea->winrct.ymin, 1, 1,
-		GL_RGBA, GL_UNSIGNED_BYTE, &col);
-	glReadBuffer(GL_BACK);
+}
 
-	/* Unbelievable! */
-	if (G.order==B_ENDIAN) {
-		SWITCH_INT(col);
-	}
-	/* Convert the color back to a face index */
-	*index = framebuffer_to_index(col);
-	if (col==0 || (*index)<=0 || (*index)>(unsigned) me->totface)
-		return 0;
+static int seam_shortest_path(Mesh *me, int source, int target)
+{
+	Heap *heap;
+	EdgeHash *ehash;
+	float *cost;
+	MEdge *med;
+	int a, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
+	TFace *tf;
+	MFace *mf;
 
-	(*index)--;
+	/* mark hidden edges as done, so we don't use them */
+	ehash = BLI_edgehash_new();
+
+	for (a=0, mf=me->mface, tf=me->tface; a<me->totface; a++, tf++, mf++) {
+		if (!(tf->flag & TF_HIDE)) {
+			BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
+			BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
+			if (mf->v4) {
+				BLI_edgehash_insert(ehash, mf->v3, mf->v4, NULL);
+				BLI_edgehash_insert(ehash, mf->v4, mf->v1, NULL);
+			}
+			else
+				BLI_edgehash_insert(ehash, mf->v3, mf->v1, NULL);
+		}
+	}
+
+	for (a=0, med=me->medge; a<me->totedge; a++, med++)
+		if (!BLI_edgehash_haskey(ehash, med->v1, med->v2))
+			med->flag |= ME_SEAM_DONE;
+
+	BLI_edgehash_free(ehash, NULL);
+
+	/* alloc */
+	nedges = MEM_callocN(sizeof(*nedges)*me->totvert+1, "SeamPathNEdges");
+	edges = MEM_mallocN(sizeof(*edges)*me->totedge*2, "SeamPathEdges");
+	prevedge = MEM_mallocN(sizeof(*prevedge)*me->totedge, "SeamPathPrevious");
+	cost = MEM_mallocN(sizeof(*cost)*me->totedge, "SeamPathCost");
+
+	/* count edges, compute adjacent edges offsets and fill adjacent edges */
+	for (a=0, med=me->medge; a<me->totedge; a++, med++) {
+		nedges[med->v1+1]++;
+		nedges[med->v2+1]++;
+	}
+
+	for (a=1; a<me->totvert; a++) {
+		int newswap = nedges[a+1];
+		nedges[a+1] = nedgeswap + nedges[a];
+		nedgeswap = newswap;
+	}
+	nedges[0] = nedges[1] = 0;
+
+	for (a=0, med=me->medge; a<me->totedge; a++, med++) {
+		edges[nedges[med->v1+1]++] = a;
+		edges[nedges[med->v2+1]++] = a;
+
+		cost[a] = 1e20f;
+		prevedge[a] = -1;
+	}
+
+	/* regular dijkstra shortest path, but over edges instead of vertices */
+	heap = BLI_heap_new();
+	BLI_heap_insert(heap, 0.0f, (void*)source);
+	cost[source] = 0.0f;
+
+	while (!BLI_heap_empty(heap)) {
+		mednum = (int)BLI_heap_popmin(heap);
+		med = me->medge + mednum;
+
+		if (mednum == target)
+			break;
+
+		if (med->flag & ME_SEAM_DONE)
+			continue;
+
+		med->flag |= ME_SEAM_DONE;
+
+		seam_add_adjacent(me, heap, mednum, med->v1, nedges, edges, prevedge, cost);
+		seam_add_adjacent(me, heap, mednum, med->v2, nedges, edges, prevedge, cost);
+	}
 	
+	MEM_freeN(nedges);
+	MEM_freeN(edges);
+	MEM_freeN(cost);
+	BLI_heap_free(heap, NULL);
+
+	for (a=0, med=me->medge; a<me->totedge; a++, med++)
+		med->flag &= ~ME_SEAM_DONE;
+
+	if (mednum != target) {
+		MEM_freeN(prevedge);
+		return 0;
+	}
+
+	/* follow path back to source and mark as seam */
+	if (mednum == target) {
+		short allseams = 1;
+
+		mednum = target;
+		do {
+			med = me->medge + mednum;
+			if (!(med->flag & ME_SEAM)) {
+				allseams = 0;
+				break;
+			}
+			mednum = prevedge[mednum];
+		} while (mednum != source);
+
+		mednum = target;
+		do {
+			med = me->medge + mednum;
+			if (allseams)
+				med->flag &= ~ME_SEAM;
+			else
+				med->flag |= ME_SEAM;
+			mednum = prevedge[mednum];
+		} while (mednum != -1);
+	}
+
+	MEM_freeN(prevedge);
 	return 1;
+}
+
+static void seam_select(Mesh *me, short *mval, short path)
+{
+	unsigned int index = 0;
+	MEdge *medge, *med;
+	int a, lastindex = -1;
+
+	if (!facesel_edge_pick(me, mval, &index))
+		return;
+
+	for (a=0, med=me->medge; a<me->totedge; a++, med++) {
+		if (med->flag & ME_SEAM_LAST) {
+			lastindex = a;
+			med->flag &= ~ME_SEAM_LAST;
+			break;
+		}
+	}
+
+	medge = me->medge + index;
+	if (!path || (lastindex == -1) || (index == lastindex) ||
+	    !seam_shortest_path(me, lastindex, index))
+		medge->flag ^= ME_SEAM;
+	medge->flag |= ME_SEAM_LAST;
+
+	G.f |= G_DRAWSEAMS;
+
+	if (G.rt == 8)
+		unwrap_lscm(1);
+
+	BIF_undo_push("Mark Seam");
+
+	object_tface_flags_changed(OBACT, 1);
+}
+
+void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
+{
+	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
+	BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
+	if (mf->v4) {
+		BLI_edgehash_insert(ehash, mf->v3, mf->v4, NULL);
+		BLI_edgehash_insert(ehash, mf->v4, mf->v1, NULL);
+	}
+	else
+		BLI_edgehash_insert(ehash, mf->v3, mf->v1, NULL);
+}
+
+void seam_mark_clear_tface(short mode)
+{
+	Mesh *me;
+	TFace *tf;
+	MFace *mf;
+	MEdge *med;
+	int a;
+	
+	me= get_mesh(OBACT);
+	if(me==0 || me->tface==0 || me->totface==0) return;
+
+	if (mode == 0)
+		mode = pupmenu("Seams%t|Mark Border Seam %x1|Clear Seam %x2");
+
+	if (mode != 1 && mode != 2)
+		return;
+
+	if (mode == 2) {
+		EdgeHash *ehash = BLI_edgehash_new();
+
+		for (a=0, mf=me->mface, tf=me->tface; a<me->totface; a++, tf++, mf++)
+			if (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT))
+				seam_edgehash_insert_face(ehash, mf);
+
+		for (a=0, med=me->medge; a<me->totedge; a++, med++)
+			if (BLI_edgehash_haskey(ehash, med->v1, med->v2))
+				med->flag &= ~ME_SEAM;
+
+		BLI_edgehash_free(ehash, NULL);
+	}
+	else {
+		/* mark edges that are on both selected and deselected faces */
+		EdgeHash *ehash1 = BLI_edgehash_new();
+		EdgeHash *ehash2 = BLI_edgehash_new();
+
+		for (a=0, mf=me->mface, tf=me->tface; a<me->totface; a++, tf++, mf++) {
+			if ((tf->flag & TF_HIDE) || !(tf->flag & TF_SELECT))
+				seam_edgehash_insert_face(ehash1, mf);
+			else
+				seam_edgehash_insert_face(ehash2, mf);
+		}
+
+		for (a=0, med=me->medge; a<me->totedge; a++, med++)
+			if (BLI_edgehash_haskey(ehash1, med->v1, med->v2) &&
+			    BLI_edgehash_haskey(ehash2, med->v1, med->v2))
+				med->flag |= ME_SEAM;
+
+		BLI_edgehash_free(ehash1, NULL);
+		BLI_edgehash_free(ehash2, NULL);
+	}
+
+	if (G.rt == 8)
+		unwrap_lscm(1);
+
+	BIF_undo_push("Mark Seam");
+
+	object_tface_flags_changed(OBACT, 1);
 }
 
 void face_select()
@@ -975,7 +1234,13 @@ void face_select()
 	}
 	me = get_mesh(ob);
 	getmouseco_areawin(mval);
-	if (!face_pick(me, mval[0], mval[1], &index)) return;
+
+	if (G.qual & LR_ALTKEY) {
+		seam_select(me, mval, (G.qual & LR_SHIFTKEY) != 0);
+		return;
+	}
+
+	if (!facesel_face_pick(me, mval, &index, 1)) return;
 	
 	tsel= (((TFace*)me->tface)+index);
 	msel= (((MFace*)me->mface)+index);
@@ -1002,8 +1267,6 @@ void face_select()
 			tsel->flag |= TF_SELECT;
 	}
 	else tsel->flag |= TF_SELECT;
-	
-	lasttface = tsel;
 	
 	/* image window redraw */
 	
@@ -1149,7 +1412,7 @@ void uv_autocalc_tface()
 	case UV_WINDOW_MAPPING:
 		calculate_uv_map(B_UVAUTO_WINDOW); break;
 	case UV_UNWRAP_MAPPING:
-		unwrap_lscm(); break;
+		unwrap_lscm(0); break;
 	}
 }
 
@@ -1176,10 +1439,6 @@ void set_faceselect()	/* toggle */
 
 	if(G.f & G_FACESELECT) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
-		if(me) {
-			set_lasttface();
-			set_seamtface(); /* set TF_SEAM flags in tface */
-		}
 		BIF_undo_push("Set UV Faceselect");
 	}
 	else if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
@@ -1497,7 +1756,7 @@ void face_draw()
 		if ((xy[0] != xy_old[0]) || (xy[1] != xy_old[1])) {
 
 			/* Get face to draw on */
-			if (!face_pick(me, xy[0], xy[1], &face_index)) face = NULL;
+			if (!facesel_face_pick(me, xy, &face_index, 0)) face = NULL;
 			else face = (((TFace*)me->tface)+face_index);
 
 			/* Check if this is another face. */

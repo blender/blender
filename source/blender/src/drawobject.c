@@ -71,6 +71,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_edgehash.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
@@ -4110,17 +4111,47 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 		return 0;
 	}
 }
+
+static int bbs_mesh_wire__setDrawOpts(void *userData, int index)
+{
+	struct { Mesh *me; EdgeHash *eh; int offset; } *data = userData;
+	MEdge *med = data->me->medge + index;
+	unsigned int flags = (int)BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+
+	if (flags & 1) {
+		set_framebuffer_index_color(data->offset+index);
+		return 1;
+	} else
+		return 0;
+}
+
 static void bbs_mesh_solid(Object *ob)
 {
 	int dmNeedsFree;
 	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
+	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
-	dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, ob->data, 0);
-	
-	if (dmNeedsFree) {
-		dm->release(dm);
+	dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0);
+
+	/* draw edges for seam marking in faceselect mode, but not when painting,
+	   so that painting doesn't get interrupted on an edge */
+	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))) {
+		struct { Mesh *me; EdgeHash *eh; int offset; } userData;
+
+		userData.me = me;
+		userData.eh = get_tface_mesh_marked_edge_info(me);
+		userData.offset = userData.me->totface+1;
+
+		bglPolygonOffset(1.0);
+		dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOpts, (void*)&userData);
+		bglPolygonOffset(0.0);
+
+		BLI_edgehash_free(userData.eh, NULL);
 	}
+
+	if (dmNeedsFree)
+		dm->release(dm);
 }
 
 void draw_object_backbufsel(Object *ob)
@@ -4145,7 +4176,7 @@ void draw_object_backbufsel(Object *ob)
 			
 			// we draw edges always, for loop (select) tools
 			em_wireoffs= bbs_mesh_wire(dm, em_solidoffs);
-			
+
 			if(G.scene->selectmode & SCE_SELECT_VERTEX) 
 				em_vertoffs= bbs_mesh_verts(dm, em_wireoffs);
 			else em_vertoffs= em_wireoffs;

@@ -571,6 +571,8 @@ void viewmove(int mode)
 			VECCOPY(obofs, ofs);
 		}
 	}
+	else
+		ofs[0] = ofs[1] = ofs[2] = 0.0f;
 
 	reverse= 1.0f;
 	if (G.vd->persmat[2][1] < 0.0f)

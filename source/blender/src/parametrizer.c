@@ -4,6 +4,7 @@
 #include "BLI_memarena.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_heap.h"
 
 #include "BKE_utildefines.h"
 
@@ -127,148 +128,6 @@ static PHashLink *phash_next(PHash *ph, PHashKey key, PHashLink *link)
 			return NULL;
 	
 	return link;
-}
-
-/* Heap */
-
-#define PHEAP_PARENT(i) ((i-1)>>1)
-#define PHEAP_LEFT(i)   ((i<<1)+1)
-#define PHEAP_RIGHT(i)  ((i<<1)+2)
-#define PHEAP_COMPARE(a, b) (a->value < b->value)
-#define PHEAP_EQUALS(a, b) (a->value == b->value)
-#define PHEAP_SWAP(heap, i, j) \
-	{ SWAP(int, heap->tree[i]->index, heap->tree[j]->index); \
-	  SWAP(PHeapLink*, heap->tree[i], heap->tree[j]);  }
-
-static void pheap_down(PHeap *heap, int i)
-{
-	while (P_TRUE) {
-		int size = heap->size, smallest;
-		int l = PHEAP_LEFT(i);
-		int r = PHEAP_RIGHT(i);
-
-		smallest = ((l < size) && PHEAP_COMPARE(heap->tree[l], heap->tree[i]))? l: i;
-
-		if ((r < size) && PHEAP_COMPARE(heap->tree[r], heap->tree[smallest]))
-			smallest = r;
-		
-		if (smallest == i)
-			break;
-
-		PHEAP_SWAP(heap, i, smallest);
-		i = smallest;
-	}
-}
-
-static void pheap_up(PHeap *heap, int i)
-{
-	while (i > 0) {
-		int p = PHEAP_PARENT(i);
-
-		if (PHEAP_COMPARE(heap->tree[p], heap->tree[i]))
-			break;
-
-		PHEAP_SWAP(heap, p, i);
-		i = p;
-	}
-}
-
-static PHeap *pheap_new()
-{
-	PHeap *heap = (PHeap*)MEM_callocN(sizeof(PHeap), "PHeap");
-	heap->bufsize = 1;
-	heap->tree = (PHeapLink**)MEM_mallocN(sizeof(PHeapLink*), "PHeapTree");
-	heap->arena = BLI_memarena_new(1<<16);
-
-	return heap;
-}
-
-static void pheap_delete(PHeap *heap)
-{
-	MEM_freeN(heap->tree);
-	BLI_memarena_free(heap->arena);
-	MEM_freeN(heap);
-}
-
-static PHeapLink *pheap_insert(PHeap *heap, float value, void *ptr)
-{
-	PHeapLink *link;
-
-	if ((heap->size + 1) > heap->bufsize) {
-		int newsize = heap->bufsize*2;
-
-		PHeapLink **ntree = (PHeapLink**)MEM_mallocN(newsize*sizeof(PHeapLink*), "PHeapTree");
-		memcpy(ntree, heap->tree, sizeof(PHeapLink*)*heap->size);
-		MEM_freeN(heap->tree);
-
-		heap->tree = ntree;
-		heap->bufsize = newsize;
-	}
-
-	param_assert(heap->size < heap->bufsize);
-
-	if (heap->freelinks) {
-		link = heap->freelinks;
-		heap->freelinks = (PHeapLink*)(((PHeapLink*)heap->freelinks)->ptr);
-	}
-	else
-		link = (PHeapLink*)BLI_memarena_alloc(heap->arena, sizeof *link);
-	link->value = value;
-	link->ptr = ptr;
-	link->index = heap->size;
-
-	heap->tree[link->index] = link;
-
-	heap->size++;
-
-	pheap_up(heap, heap->size-1);
-
-	return link;
-}
-
-#if 0
-static int pheap_empty(PHeap *heap)
-{
-	return (heap->size == 0);
-}
-
-static PHeapLink *pheap_toplink(PHeap *heap)
-{
-	return heap->tree[0];
-}
-#endif
-
-static void *pheap_popmin(PHeap *heap)
-{
-	void *ptr = heap->tree[0]->ptr;
-
-	heap->tree[0]->ptr = heap->freelinks;
-	heap->freelinks = heap->tree[0];
-
-	if (heap->size == 1)
-		heap->size--;
-	else {
-		PHEAP_SWAP(heap, 0, heap->size-1);
-		heap->size--;
-
-		pheap_down(heap, 0);
-	}
-
-	return ptr;
-}
-
-static void pheap_remove(PHeap *heap, PHeapLink *link)
-{
-	int i = link->index;
-
-	while (i > 0) {
-		int p = PHEAP_PARENT(i);
-
-		PHEAP_SWAP(heap, p, i);
-		i = p;
-	}
-
-	pheap_popmin(heap);
 }
 
 /* Geometry */
@@ -1110,13 +969,13 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 	PEdge *e, *e1, *e2;
 	PHashKey vkeys[3];
 	PFace *f;
-	struct PHeap *heap = pheap_new(nedges);
+	struct Heap *heap = BLI_heap_new();
 	float angle;
 
 	e = be;
 	do {
 		angle = p_edge_boundary_angle(e);
-		e->u.heaplink = pheap_insert(heap, angle, e);
+		e->u.heaplink = BLI_heap_insert(heap, angle, e);
 
 		e = p_boundary_edge_next(e);
 	} while(e != be);
@@ -1127,20 +986,20 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 		e->pair = be;
 		be->pair = e;
 
-		pheap_remove(heap, e->u.heaplink);
-		pheap_remove(heap, be->u.heaplink);
+		BLI_heap_remove(heap, e->u.heaplink);
+		BLI_heap_remove(heap, be->u.heaplink);
 	}
 	else {
 		while (nedges > 2) {
 			PEdge *ne, *ne1, *ne2;
 
-			e = (PEdge*)pheap_popmin(heap);
+			e = (PEdge*)BLI_heap_popmin(heap);
 
 			e1 = p_boundary_edge_prev(e);
 			e2 = p_boundary_edge_next(e);
 
-			pheap_remove(heap, e1->u.heaplink);
-			pheap_remove(heap, e2->u.heaplink);
+			BLI_heap_remove(heap, e1->u.heaplink);
+			BLI_heap_remove(heap, e2->u.heaplink);
 			e->u.heaplink = e1->u.heaplink = e2->u.heaplink = NULL;
 
 			e->flag |= PEDGE_FILLED;
@@ -1175,15 +1034,15 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 			else {
 				ne2->vert->edge = ne2;
 				
-				ne2->u.heaplink = pheap_insert(heap, p_edge_boundary_angle(ne2), ne2);
-				e2->u.heaplink = pheap_insert(heap, p_edge_boundary_angle(e2), e2);
+				ne2->u.heaplink = BLI_heap_insert(heap, p_edge_boundary_angle(ne2), ne2);
+				e2->u.heaplink = BLI_heap_insert(heap, p_edge_boundary_angle(e2), e2);
 			}
 
 			nedges--;
 		}
 	}
 
-	pheap_delete(heap);
+	BLI_heap_free(heap, NULL);
 }
 
 static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
@@ -2008,7 +1867,7 @@ static void p_chart_simplify_compute(PChart *chart)
 	   collapsed may then be view as stacks, where the next collapse/split
 	   is at the top of the respective lists. */
 
-	PHeap *heap = pheap_new();
+	Heap *heap = BLI_heap_new();
 	PVert *v, **wheelverts;
 	PEdge *collapsededges = NULL, *e;
 	int nwheelverts, i, ncollapsed = 0;
@@ -2023,7 +1882,7 @@ static void p_chart_simplify_compute(PChart *chart)
 		p_collapse_cost_vertex(v, &cost, &e);
 
 		if (e)
-			v->u.heaplink = pheap_insert(heap, cost, e);
+			v->u.heaplink = BLI_heap_insert(heap, cost, e);
 		else
 			v->u.heaplink = NULL;
 	}
@@ -2032,12 +1891,12 @@ static void p_chart_simplify_compute(PChart *chart)
 		e->u.nextcollapse = NULL;
 
 	/* pop edge collapse out of heap one by one */
-	while (!pheap_empty(heap)) {
+	while (!BLI_heap_empty(heap)) {
 		if (ncollapsed == NCOLLAPSE)
 			break;
 
-		PHeapLink *link = pheap_toplink(heap);
-		PEdge *edge = (PEdge*)pheap_popmin(heap), *pair = edge->pair;
+		HeapNode *link = BLI_heap_top(heap);
+		PEdge *edge = (PEdge*)BLI_heap_popmin(heap), *pair = edge->pair;
 		PVert *oldv, *keepv;
 		PEdge *wheele, *nexte;
 
@@ -2081,21 +1940,21 @@ static void p_chart_simplify_compute(PChart *chart)
 			v = wheelverts[i];
 
 			if (v->u.heaplink) {
-				pheap_remove(heap, v->u.heaplink);
+				BLI_heap_remove(heap, v->u.heaplink);
 				v->u.heaplink = NULL;
 			}
 		
 			p_collapse_cost_vertex(v, &cost, &collapse);
 
 			if (collapse)
-				v->u.heaplink = pheap_insert(heap, cost, collapse);
+				v->u.heaplink = BLI_heap_insert(heap, cost, collapse);
 		}
 
 		ncollapsed++;
 	}
 
 	MEM_freeN(wheelverts);
-	pheap_delete(heap);
+	BLI_heap_free(heap, NULL);
 
 	p_chart_post_collapse_flush(chart, collapsededges);
 }

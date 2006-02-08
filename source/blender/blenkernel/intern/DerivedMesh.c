@@ -366,7 +366,7 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
 }
-static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr)) 
+static void meshDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index, int matnr), void *userData) 
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->me;
@@ -382,7 +382,7 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		int flag;
 		unsigned char *cp= NULL;
 		
-		flag = setDrawParams(tf, mf->mat_nr);
+		flag = setDrawParams(userData, i, mf->mat_nr);
 
 		if (flag==0) {
 			continue;
@@ -535,7 +535,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
 	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
-	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
+	mdm->dm.drawMappedFacesTex = meshDM_drawMappedFacesTex;
 	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
 
 	mdm->dm.drawMappedEdges = meshDM_drawMappedEdges;
@@ -1202,7 +1202,8 @@ static void ssDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 	
 #undef PASSVERT
 }
-static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr)) 
+
+static void ssDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index, int matnr), void *userData) 
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
@@ -1210,7 +1211,7 @@ static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, i
 	MFace *mface= dlm->mface;
 	TFace *tface = dlm->tface;
 	float *nors = dlm->nors;
-	int a;
+	int a, index=-1;
 	
 	for (a=0; a<dlm->totface; a++) {
 		MFace *mf= &mface[a];
@@ -1218,7 +1219,9 @@ static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, i
 		int flag;
 		unsigned char *cp= NULL;
 		
-		flag = setDrawParams(tf, mf->mat_nr);
+		if (mf->flag&ME_FACE_STEPINDEX) index++;
+
+		flag = setDrawParams(userData, index, mf->mat_nr);
 
 		if (flag==0) {
 			continue;
@@ -1401,7 +1404,7 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 	
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
-	ssdm->dm.drawFacesTex = ssDM_drawFacesTex;
+	ssdm->dm.drawMappedFacesTex = ssDM_drawMappedFacesTex;
 	ssdm->dm.drawMappedFaces = ssDM_drawMappedFaces;
 
 		/* EM functions */
@@ -1624,7 +1627,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
-	int i, numVerts, cageIndex = modifiers_getCageIndex(ob, NULL);
+	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL);
 
 	modifiers_clearErrors(ob);
 

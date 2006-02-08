@@ -51,23 +51,6 @@ struct PFace;
 struct PChart;
 struct PHandle;
 
-/* Heap */
-
-typedef struct PHeapLink {
-	void *ptr;
-	float value;
-	int index;
-} PHeapLink;
-
-typedef struct PHeap {
-	unsigned int size;
-	unsigned int bufsize;
-	MemArena *arena;
-	PHeapLink *freelinks;
-	PHeapLink *links;
-	PHeapLink **tree;
-} PHeap;
-
 /* Simplices */
 
 typedef struct PVert {
@@ -77,7 +60,7 @@ typedef struct PVert {
 		PHashKey key;			/* construct */
 		int id;					/* abf/lscm matrix index */
 		float distortion;		/* area smoothing */
-		PHeapLink *heaplink;	/* edge collapsing */
+		HeapNode *heaplink;		/* edge collapsing */
 	} u;
 
 	struct PEdge *edge;
@@ -93,7 +76,7 @@ typedef struct PEdge {
 	union PEdgeUnion {
 		PHashKey key;					/* construct */
 		int id;							/* abf matrix index */
-		PHeapLink *heaplink;			/* fill holes */
+		HeapNode *heaplink;				/* fill holes */
 		struct PEdge *nextcollapse;		/* simplification */
 	} u;
 

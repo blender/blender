@@ -1029,7 +1029,7 @@ static void do_image_uvsmenu(void *arg, int event)
 		pin_tface_uv(0);
 		break;
     case 10:
-		unwrap_lscm();
+		unwrap_lscm(0);
 		break;
 	case 11:
 		if(G.sima->flag & SI_LIVE_UNWRAP) G.sima->flag &= ~SI_LIVE_UNWRAP;
@@ -1072,7 +1072,7 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Minimize Stretch|Ctrl V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Minimize Stretch|Ctrl V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Limit Stitch...|Shift V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Stitch|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBlockBut(block, image_uvs_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");

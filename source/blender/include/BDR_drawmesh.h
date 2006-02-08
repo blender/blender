@@ -37,6 +37,7 @@ struct Image;
 struct TFace;
 struct Object;
 struct Mesh;
+struct EdgeHash;
 
 /**
  * Enables or disable mipmapping for realtime images (textures).
@@ -74,6 +75,7 @@ void free_all_realtime_images(void);
 void make_repbind(struct Image *ima);
 int set_tpage(struct TFace *tface);
 void draw_tface_mesh(struct Object *ob, struct Mesh *me, int dt);
+struct EdgeHash *get_tface_mesh_marked_edge_info(struct Mesh *me);
 void init_realtime_GL(void); 
 
 #endif /* BDR_DRAWMESH_H */

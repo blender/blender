@@ -580,7 +580,7 @@ void do_butspace(unsigned short event)
 		do_constraintbuts(event);
 	}
 	else if(event<=B_UVAUTOCALCBUTS) {
-		do_uvautocalculationbuts(event);
+		do_uvcalculationbuts(event);
 	}
 	else if(event<=B_EFFECTSBUTS) {
 		do_effects_panels(event);
