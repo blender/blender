@@ -149,7 +149,7 @@ void node_buttons(ScrArea *sa)
 				  &(snode->treetype), 2, 0, 0, 0, "Material Nodes");
 	xco+= XIC;
 	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,2,XIC,YIC-2,
-				  &(snode->treetype), 2, 1, 0, 0, "Composit Nodes");
+				  &(snode->treetype), 2, 1, 0, 0, "Composite Nodes");
 	xco+= 2*XIC;
 	uiBlockEndAlign(block);
 	
