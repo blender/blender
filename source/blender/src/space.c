@@ -219,7 +219,7 @@ void toggle_blockhandler(ScrArea *sa, short eventcode, short val)
 			
 			/* specific free calls */
 			if(eventcode==VIEW3D_HANDLER_PREVIEW)
-				BIF_view3d_previewrender_free(sa);
+				BIF_view3d_previewrender_free(sa->spacedata.first);
 			
 			addnew= 0;
 		}
@@ -4714,9 +4714,7 @@ void freespacelist(ScrArea *sa)
 			if(vd->clipbb) MEM_freeN(vd->clipbb);
 			if(G.vd==vd) G.vd= NULL;
 			if(vd->ri) { 
-				BIF_view3d_previewrender_free(sa);
-				if (vd->ri->rect) MEM_freeN(vd->ri->rect);
-				MEM_freeN(vd->ri);
+				BIF_view3d_previewrender_free(vd);
 			}
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
@@ -4759,7 +4757,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 
 	duplicatelist(lb1, lb2);
 	
-	/* lb1 is copy from lb2, from lb2 we free the file list */
+	/* lb1 is copy from lb2, from lb2 we free stuff, rely on event system to properly re-alloc */
 	
 	sl= lb2->first;
 	while(sl) {
@@ -4767,6 +4765,9 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceFile *sfile= (SpaceFile*) sl;
 			sfile->libfiledata= 0;
 			sfile->filelist= 0;
+		}
+		else if(sl->spacetype==SPACE_VIEW3D) {
+			BIF_view3d_previewrender_free((View3D *)sl);
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
 			SpaceOops *so= (SpaceOops *)sl;
@@ -4781,15 +4782,6 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
 		}
-		/* __PINFAKE */
-/*		else if(sfile->spacetype==SPACE_ACTION) {
-			SpaceAction *sa= (SpaceAction *)sfile;
-			if (sa->flag & SACTION_PIN)
-				if (sa->action)
-					sa->action->id.us++;
-
-		}
-*/		/* end PINFAKE */
 
 		sl= sl->next;
 	}

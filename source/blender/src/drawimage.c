@@ -1171,7 +1171,7 @@ static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int 
 
 static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty, float *rect_float)
 {
-	float bias, scale, *rectf;
+	float bias, scale, *rectf, clipend;
 	int a;
 	
 	if(rect_float==NULL)
@@ -1179,7 +1179,8 @@ static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty,
 	
 	if(G.scene->camera && G.scene->camera->type==OB_CAMERA) {
 		bias= ((Camera *)G.scene->camera->data)->clipsta;
-		scale= 1.0f/((Camera *)G.scene->camera->data)->clipend;
+		clipend= ((Camera *)G.scene->camera->data)->clipend;
+		scale= 1.0f/(clipend-bias);
 	}
 	else {
 		bias= 0.1f;
@@ -1187,9 +1188,16 @@ static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty,
 	}
 	
 	rectf= MEM_mallocN(rectx*recty*4, "temp");
-	for(a= rectx*recty -1; a>=0; a--)
-		rectf[a]= (rect_float[a]-bias)*scale;
-
+	for(a= rectx*recty -1; a>=0; a--) {
+		if(rect_float[a]>clipend)
+			rectf[a]= 0.0f;
+		else if(rect_float[a]<bias)
+			rectf[a]= 1.0f;
+		else {
+			rectf[a]= 1.0f - (rect_float[a]-bias)*scale;
+			rectf[a]*= rectf[a];
+		}
+	}
 	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_FLOAT, rectf);
 	
 	MEM_freeN(rectf);

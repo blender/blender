@@ -127,8 +127,14 @@ typedef struct {
 	Window *win;
 
 	int rectx, recty;	/* size of image */
+	
+	int sparex, sparey;	/* spare rect size */
+	unsigned int *rectspare;
+	float *rectsparef;
+	
 	float zoom, zoomofs[2];
 	int active;
+	short storespare, showspare;
 	
 	int mbut[3];
 	int lmouse[2];
@@ -150,7 +156,7 @@ static RenderWin *render_win= NULL;
 /* only called in function open_renderwin */
 static RenderWin *renderwin_alloc(Window *win)
 {
-	RenderWin *rw= MEM_mallocN(sizeof(*rw), "RenderWin");
+	RenderWin *rw= MEM_callocN(sizeof(*rw), "RenderWin");
 	rw->win= win;
 	rw->zoom= 1.0;
 	rw->active= 0;
@@ -261,6 +267,7 @@ static void renderwin_draw_render_info(RenderWin *rw)
 	if(RW_HEADERY) {
 		float colf[3];
 		rcti rect;
+		char *str;
 		
 		window_get_size(rw->win, &rect.xmax, &rect.ymax);
 		rect.xmin= 0;
@@ -274,10 +281,15 @@ static void renderwin_draw_render_info(RenderWin *rw)
 		glClearColor(colf[0], colf[1], colf[2], 1.0); 
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		if(rw->render_text) {
+		if(rw->showspare)
+			str= rw->render_text_spare;
+		else
+			str= rw->render_text;
+		
+		if(str) {
 			BIF_ThemeColor(TH_TEXT);
 			glRasterPos2i(12, 5);
-			BMF_DrawString(G.fonts, rw->render_text);
+			BMF_DrawString(G.fonts, str);
 		}
 		
 		BIF_SetTheme(curarea);	// restore theme
@@ -318,15 +330,35 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 	} else {
 		RenderResult rres;
 		
-		RE_GetResultImage(RE_GetRender("Render"), &rres);
+		if(rw->showspare) {
+			rres.rectx= rw->sparex;
+			rres.recty= rw->sparey;
+			rres.rect32= rw->rectspare;
+			rres.rectf= rw->rectsparef;
+		}
+		else
+			RE_GetResultImage(RE_GetRender("Render"), &rres);
+		
 		if(rres.rectf) {
 			
 			glPixelZoom(rw->zoom, rw->zoom);
 			if(rw->flags & RW_FLAGS_ALPHA) {
-				/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-	//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
-	//				glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx, rr->recty, GL_LUMINANCE, GL_UNSIGNED_INT, R.rectot);
-	//				glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+				if(rres.rect32) {
+					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
+					glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_LUMINANCE, GL_UNSIGNED_INT, rres.rect32);
+					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
+				}
+				else {
+					float *trectf= MEM_mallocN(rres.rectx*rres.recty*4, "temp");
+					int a, b;
+					
+					for(a= rres.rectx*rres.recty -1, b= 4*a+3; a>=0; a--, b-=4)
+						trectf[a]= rres.rectf[b];
+					
+					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_LUMINANCE, GL_FLOAT, trectf);
+					MEM_freeN(trectf);
+				}
 			}
 			else {
 				if(rres.rect32)
@@ -499,7 +531,7 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 			renderwin_queue_redraw(render_win);
 		}
 		else if (evt==JKEY) {
-//			if(R.flag==0) BIF_swap_render_rects();
+			if(G.rendering==0) BIF_swap_render_rects();
 		} 
 		else if (evt==ZKEY) {
 			if (rw->flags&RW_FLAGS_OLDZOOM) {
@@ -558,8 +590,8 @@ static char *renderwin_get_title(int doswap)
 	swap+= doswap;
 	
 	if(swap & 1) {
-		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render (spare)";
-		else title = "Blender:Render (spare)";
+		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render (previous frame)";
+		else title = "Blender:Render (previous frame)";
 	}
 	else {
 		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render";
@@ -1003,6 +1035,39 @@ static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, in
 	}
 }
 #endif
+
+static void renderwin_store_spare(void)
+{
+	RenderResult rres;
+	
+	if(render_win==0 || render_win->storespare==0)
+		return;
+
+	if(render_win->showspare) {
+		render_win->showspare= 0;
+		window_set_title(render_win->win, renderwin_get_title(1));
+	}
+	
+	if(render_win->render_text_spare) MEM_freeN(render_win->render_text_spare);
+	render_win->render_text_spare= render_win->render_text;
+	render_win->render_text= NULL;
+	
+	if(render_win->rectspare) MEM_freeN(render_win->rectspare);
+	render_win->rectspare= NULL;
+	if(render_win->rectsparef) MEM_freeN(render_win->rectsparef);
+	render_win->rectsparef= NULL;
+	
+	RE_GetResultImage(RE_GetRender("Render"), &rres);
+	
+	if(rres.rect32)
+		render_win->rectspare= MEM_dupallocN(rres.rect32);
+	else if(rres.rectf)
+		render_win->rectsparef= MEM_dupallocN(rres.rectf);
+
+	render_win->sparex= rres.rectx;
+	render_win->sparey= rres.recty;
+}
+
 /* -------------- API: externally called --------------- */
 
 /* not used anywhere ??? */
@@ -1016,6 +1081,8 @@ void BIF_renderwin_make_active(void)
 }
 #endif
 
+
+
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)
 {
@@ -1028,6 +1095,8 @@ void BIF_do_render(int anim)
 			slink_flag = 1;
 		}
 	}
+	
+	renderwin_store_spare();
 
 	do_render(anim);
 
@@ -1108,41 +1177,27 @@ void BIF_redraw_render_rect(void)
 
 void BIF_swap_render_rects(void)
 {
-#if 0
-	unsigned int *temp;
-
-	if(R.rectspare==0) {
-		R.rectspare= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-		R.sparex= R.rectx;
-		R.sparey= R.recty;
-	}
-	else if(R.sparex!=R.rectx || R.sparey!=R.recty) {
-		temp= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-					
-		scalefastrect(R.rectspare, temp, R.sparex, R.sparey, R.rectx, R.recty);
-		MEM_freeN(R.rectspare);
-		R.rectspare= temp;
-					
-		R.sparex= R.rectx;
-		R.sparey= R.recty;
+	RenderResult rres;
+	
+	if (render_win==NULL) return;
+	
+	render_win->storespare= 1;
+	render_win->showspare ^= 1;
+		
+	RE_GetResultImage(RE_GetRender("Render"), &rres);
+		
+	if(render_win->sparex!=rres.rectx || render_win->sparey!=rres.recty) {
+		if(render_win->rectspare) MEM_freeN(render_win->rectspare);
+		render_win->rectspare= NULL;
+		if(render_win->rectsparef) MEM_freeN(render_win->rectsparef);
+		render_win->rectsparef= NULL;
 	}
 	
-	temp= R.rectot;
-	R.rectot= R.rectspare;
-	R.rectspare= temp;
-	
-	if (render_win) {
-		char *tmp= render_win->render_text_spare;
-		render_win->render_text_spare= render_win->render_text;
-		render_win->render_text= tmp;
-		
-		window_set_title(render_win->win, renderwin_get_title(1));
-		
-	}
+	window_set_title(render_win->win, renderwin_get_title(1));
 
 	/* redraw */
 	BIF_redraw_render_rect();
-#endif
+
 }				
 
 /* called from usiblender.c too, to free and close renderwin */
@@ -1152,7 +1207,9 @@ void BIF_close_render_display(void)
 		if (render_win->info_text) MEM_freeN(render_win->info_text);
 		if (render_win->render_text) MEM_freeN(render_win->render_text);
 		if (render_win->render_text_spare) MEM_freeN(render_win->render_text_spare);
-
+		if (render_win->rectspare) MEM_freeN(render_win->rectspare);
+		if (render_win->rectsparef) MEM_freeN(render_win->rectsparef);
+			
 		window_destroy(render_win->win); /* ghost close window */
 		MEM_freeN(render_win);
 

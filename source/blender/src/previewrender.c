@@ -562,9 +562,8 @@ void BIF_view3d_previewrender_signal(ScrArea *sa, short signal)
 	}
 }
 
-void BIF_view3d_previewrender_free(ScrArea *sa)
+void BIF_view3d_previewrender_free(View3D *v3d)
 {
-	View3D *v3d= sa->spacedata.first;
 
 	if(v3d->ri) {
 		RenderInfo *ri= v3d->ri;
@@ -574,8 +573,9 @@ void BIF_view3d_previewrender_free(ScrArea *sa)
 			RE_FreeRender(ri->re);
 			ri->re= NULL;
 		}
-		ri->status= 0;
-		ri->cury= 0;
+		if (v3d->ri->rect) MEM_freeN(v3d->ri->rect);
+		MEM_freeN(v3d->ri);
+		v3d->ri= NULL;
 	}
 }
 

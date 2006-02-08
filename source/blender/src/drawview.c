@@ -2031,7 +2031,7 @@ static void view3d_panel_preview(ScrArea *sa, short cntrl)	// VIEW3D_HANDLER_PRE
 	if(G.scene->recalc & SCE_PRV_CHANGED) {
 		G.scene->recalc &= ~SCE_PRV_CHANGED;
 		//printf("found recalc\n");
-		BIF_view3d_previewrender_free(sa);
+		BIF_view3d_previewrender_free(sa->spacedata.first);
 		BIF_preview_changed(0);
 	}
 }

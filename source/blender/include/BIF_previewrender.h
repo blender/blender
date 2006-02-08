@@ -32,6 +32,7 @@
 
 #include "DNA_vec_types.h"
 
+struct View3D;
 struct SpaceButs;
 struct RenderInfo;
 struct Image;
@@ -83,6 +84,6 @@ void	BIF_preview_free_dbase	(void);
 
 void	BIF_view3d_previewrender(struct ScrArea *sa);
 void	BIF_view3d_previewdraw	(struct ScrArea *sa, struct uiBlock *block);
-void	BIF_view3d_previewrender_free(struct ScrArea *sa);
+void	BIF_view3d_previewrender_free(struct View3D *v3d);
 void	BIF_view3d_previewrender_clear(struct ScrArea *sa);
 void	BIF_view3d_previewrender_signal(struct ScrArea *sa, short signal);

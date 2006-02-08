@@ -189,7 +189,7 @@ static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, c
 		/* initialize to max speed */
 		rect= rpass->rect= RE_mallocN(sizeof(float)*rectsize, mallocstr);
 		for(x= rectsize-1; x>=0; x--)
-			rect[x]= 10000.0f;
+			rect[x]= PASS_VECTOR_MAX;
 	}
 	else
 		rpass->rect= RE_callocN(sizeof(float)*rectsize, mallocstr);

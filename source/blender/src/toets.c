@@ -684,7 +684,6 @@ int blenderqread(unsigned short event, short val)
 		break;
 	case JKEY:
 		if(textediting==0 && textspace==0) {
-			/* NEED CHECK FOR RENDER WINDOW HERE */
 			if (G.qual==0) {
 				BIF_swap_render_rects();
 				return 0;
