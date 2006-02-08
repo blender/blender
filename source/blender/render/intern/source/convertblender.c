@@ -536,7 +536,8 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thr
 	return NULL;
 }
 
-static void autosmooth(Render *re, int startvert, int startvlak, int degr)
+/* note; autosmooth happens in object space still, after applying autosmooth we rotate */
+static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak, int degr)
 {
 	ASvert *asv, *asverts, *asvertoffs;
 	ASface *asf;
@@ -549,7 +550,7 @@ static void autosmooth(Render *re, int startvert, int startvlak, int degr)
 	asverts= MEM_callocN(sizeof(ASvert)*(re->totvert-startvert), "all smooth verts");
 	asvertoffs= asverts-startvert;	 /* se we can use indices */
 	
-	thresh= cos( M_PI*(0.1f+(float)degr)/180.0 );
+	thresh= cos( M_PI*(0.5f+(float)degr)/180.0 );
 	
 	/* step one: construct listbase of all vertices and pointers to faces */
 	for(a=startvlak; a<re->totvlak; a++) {
@@ -599,6 +600,19 @@ static void autosmooth(Render *re, int startvert, int startvlak, int degr)
 		BLI_freelistN(&asverts[a].faces);
 	}
 	MEM_freeN(asverts);
+	
+	/* rotate vertices and calculate normal of faces */
+	for(a=startvert; a<re->totvert; a++) {
+		ver= RE_findOrAddVert(re, a);
+		MTC_Mat4MulVecfl(mat, ver->co);
+	}
+	for(a=startvlak; a<re->totvlak; a++) {
+		vlr= RE_findOrAddVlak(re, a);
+		if(vlr->v4) 
+			CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+		else 
+			CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+	}		
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1492,7 +1506,8 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 		for(a=0; a<totvert; a++, mvert++) {
 			ver= RE_findOrAddVert(re, re->totvert++);
 			VECCOPY(ver->co, mvert->co);
-			MTC_Mat4MulVecfl(mat, ver->co);
+			if(do_autosmooth==0)	/* autosmooth on original unrotated data to prevent differences between frames */
+				MTC_Mat4MulVecfl(mat, ver->co);
 
 			if(orco) {
 				ver->orco= orco;
@@ -1581,10 +1596,10 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 							else vlr->v4= 0;
 
 							/* render normals are inverted in render */
-							if(vlr->v4) len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
-								vlr->v1->co, vlr->n);
-							else len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
-								vlr->n);
+							if(vlr->v4) 
+								len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+							else 
+								len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 
 							vlr->mat= ma;
 							vlr->flag= flag;
@@ -1682,7 +1697,7 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 		}
 
 		if(do_autosmooth) {
-			autosmooth(re, totverto, totvlako, me->smoothresh);
+			autosmooth(re, mat, totverto, totvlako, me->smoothresh);
 		}
 
 		calc_vertexnormals(re, totverto, totvlako, need_tangent);
@@ -3130,6 +3145,9 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	int oldvertnodeslen, oldtotvert, newvertnodeslen, newtotvert;
 	int step;
 	
+	re->i.infostr= "Calculating previous vectors";
+	re->stats_draw(&re->i);
+	
 	printf("creating speed vectors \n");
 	re->r.mode |= R_SPEED;
 
@@ -3151,6 +3169,9 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	RE_Database_Free(re);
 	
 	/* creates entire dbase */
+	re->i.infostr= "Calculating next frame vectors";
+	re->stats_draw(&re->i);
+	
 	database_fromscene_vectors(re, sce, +1);
 	
 	/* copy away vertex info */
@@ -3195,9 +3216,10 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 				else
 					ok= 1;
 			}
-			if(ok==0)
+			if(ok==0) {
+				printf("speed table: missing object %s\n", obren->ob->id.name+2);
 				continue;
-			
+			}
 			/* check if both have same amounts of vertices */
 			if(obren->endvert-obren->startvert != oldobren->endvert-oldobren->startvert) {
 				printf("Warning: object %s has different amount of vertices on other frame\n", obren->ob->id.name+2);
@@ -3212,6 +3234,9 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	BLI_freelistN(&oldtable);
 	free_renderdata_vertnodes(newvertnodes);
 	BLI_freelistN(&newtable);
+	
+	re->i.infostr= NULL;
+	re->stats_draw(&re->i);
 }
 
 

@@ -107,7 +107,7 @@ Render R;
 /* ********* alloc and free ******** */
 
 
-static SDL_mutex *malloc_lock= NULL;
+SDL_mutex *malloc_lock= NULL;
 
 void *RE_mallocN(int len, char *name)
 {
@@ -699,7 +699,7 @@ static void render_tile_processor(Render *re)
 	freeparts(re);
 }
 
-static RenderPart *find_nicest_part(Render *re)
+static RenderPart *find_next_part(Render *re)
 {
 	RenderPart *pa, *best= NULL;
 	int centx=re->winx/2, centy=re->winy/2, tot=1;
@@ -735,7 +735,7 @@ static RenderPart *find_nicest_part(Render *re)
 static void threaded_tile_processor(Render *re)
 {
 	ListBase threads;
-	RenderPart *pa;
+	RenderPart *pa, *nextpa;
 	int maxthreads, rendering=1, counter= 1, hasdrawn, drawtimer=0;
 	
 	if(re->result==NULL)
@@ -756,15 +756,17 @@ static void threaded_tile_processor(Render *re)
 	R.test_break= thread_break;
 	malloc_lock = SDL_CreateMutex();
 	
+	/* timer loop demands to sleep when no parts are left */
+	nextpa= find_next_part(re);
+	
 	while(rendering) {
 		
-		if(BLI_available_threads(&threads) && !re->test_break()) {
-			pa= find_nicest_part(re);
-			if(pa) {
-				pa->nr= counter++;	/* for nicest part, and for stats */
-				pa->thread= BLI_available_thread_index(&threads);	/* sample index */
-				BLI_insert_thread(&threads, pa);
-			}
+		if(nextpa && BLI_available_threads(&threads) && !re->test_break()) {
+			nextpa->nr= counter++;	/* for nicest part, and for stats */
+			nextpa->thread= BLI_available_thread_index(&threads);	/* sample index */
+			BLI_insert_thread(&threads, nextpa);
+
+			nextpa= find_next_part(re);
 		}
 		else {
 			PIL_sleep_ms(50);
