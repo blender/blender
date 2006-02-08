@@ -507,10 +507,9 @@ void shadeSkyPixel(float *collector, float fx, float fy, float *rco)
 		*/
 
 		/* This one true because of the context of this routine  */
-/*  		if(rect[3] < 254) {  */
 		if(R.wrld.skytype & WO_SKYPAPER) {
-			view[0]= (fx/(float)R.winx);
-			view[1]= (fy/(float)R.winy);
+			view[0]= -1.0f + 2.0f*(fx/(float)R.winx);
+			view[1]= -1.0f + 2.0f*(fy/(float)R.winy);
 			view[2]= 0.0;
 			
 			dxyview[0]= 1.0f/(float)R.winx;

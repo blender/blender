@@ -954,6 +954,9 @@ static void do_render_final(Render *re)
 	else {
 		
 		if(composite_needs_render(re->scene)) {
+			/* save memory... free all cached images */
+			ntreeFreeCache(re->scene->nodetree);
+			
 			/* now use renderdata and camera to set viewplane */
 			RE_SetCamera(re, re->scene->camera);
 			

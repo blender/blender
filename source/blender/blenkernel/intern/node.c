@@ -975,13 +975,15 @@ static void node_unlink_node(bNodeTree *ntree, bNode *node)
 	}
 }
 
-static void composit_free_sockets(bNode *node)
+static void composit_free_node_cache(bNode *node)
 {
 	bNodeSocket *sock;
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(sock->ns.data)
+		if(sock->ns.data) {
 			free_compbuf(sock->ns.data);
+			sock->ns.data= NULL;
+		}
 	}
 }
 
@@ -994,7 +996,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 		node->id->us--;
 	
 	if(ntree->type==NTREE_COMPOSIT)
-		composit_free_sockets(node);
+		composit_free_node_cache(node);
 	BLI_freelistN(&node->inputs);
 	BLI_freelistN(&node->outputs);
 	
@@ -1046,6 +1048,16 @@ void ntreeFreeTree(bNodeTree *ntree)
 	}
 }
 
+void ntreeFreeCache(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	if(ntree->type==NTREE_COMPOSIT)
+		for(node= ntree->nodes.first; node; node= node->next)
+			composit_free_node_cache(node);
+}
 
 void ntreeMakeLocal(bNodeTree *ntree)
 {

@@ -2650,7 +2650,10 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 		pass= passrect;
 		ap= aprect;
 		od= offs;
-	
+		
+		if(R.test_break())
+			break;
+		
 		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, ap++, pass+=4, od++) {
 			
 			if(ap->p[0]==NULL) {
