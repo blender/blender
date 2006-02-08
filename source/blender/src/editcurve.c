@@ -1874,7 +1874,7 @@ int convertspline(short type, Nurb *nu)
 	else if( (nu->type & 7)==CU_NURBS) {
 		if(type==0) {			/* to Poly */
 			nu->type &= ~7;
-			MEM_freeN(nu->knotsu);
+			if(nu->knotsu) MEM_freeN(nu->knotsu); /* python created nurbs have a knotsu of zero */
 			nu->knotsu= 0;
 			if(nu->knotsv) MEM_freeN(nu->knotsv);
 			nu->knotsv= 0;
