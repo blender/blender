@@ -778,6 +778,7 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 
 		/* choice:  */
 		if(tex->imaflag & TEX_MIPMAP) {
+			float bumpscale;
 			
 			dx= minx;
 			dy= miny;
@@ -785,6 +786,10 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 			if(maxd>0.5) maxd= 0.5;
 
 			pixsize = 1.0f/ (float) MIN2(ibuf->x, ibuf->y);
+			
+			bumpscale= pixsize/maxd;
+			if(bumpscale>1.0f) bumpscale= 1.0f;
+			else bumpscale*=bumpscale;
 			
 			curmap= 0;
 			previbuf= ibuf;
@@ -853,6 +858,8 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 						texres->ta= dy*texres->ta+ dx*texr.ta;
 					}
 				}
+				texres->nor[0]*= bumpscale;
+				texres->nor[1]*= bumpscale;
 			}
 			else {
 				maxx= fx+minx;
