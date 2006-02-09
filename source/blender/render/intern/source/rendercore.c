@@ -543,6 +543,61 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 	}
 }
 
+static void lamphalo_tile(RenderPart *pa, float *pass, unsigned int lay)
+{
+	ShadeInput shi;
+	float zco, fac;
+	long *rd= pa->rectdaps;
+	int x, y, *rz= pa->rectz;
+	
+	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, pass+=4) {
+			
+			calc_view_vector(shi.view, x, y);
+			
+			if(rd && *rd) {
+				PixStr *ps= (PixStr *)*rd;
+				int samp, totsamp= 0;
+				
+				while(ps) {
+					/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */
+					zco= ((float)ps->z)/2147483647.0f;
+					shi.co[2]= R.winmat[3][2]/( R.winmat[2][3]*zco - R.winmat[2][2] );
+					
+					fac= shi.co[2]/shi.view[2];
+					shi.co[0]= fac*shi.view[0];
+					shi.co[1]= fac*shi.view[1];
+					
+					totsamp+= samp= count_mask(ps->mask);
+					fac= ((float)samp)/(float)R.osa;
+					renderspothalo(&shi, pass, fac);
+					ps= ps->next;
+				}
+				if(totsamp<R.osa) {
+					fac= ((float)R.osa-totsamp)/(float)R.osa;
+					shi.co[2]= 0.0f;
+					renderspothalo(&shi, pass, fac);
+				}
+				
+			}
+			else {
+				/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */
+				zco= ((float)*rz)/2147483647.0f;
+				zco= shi.co[2]= R.winmat[3][2]/( R.winmat[2][3]*zco - R.winmat[2][2] );
+				fac= shi.co[2]/shi.view[2];
+				shi.co[0]= fac*shi.view[0];
+				shi.co[1]= fac*shi.view[1];
+				
+				renderspothalo(&shi, pass, 1.0);
+			}
+			
+			if(rd) rd++;
+		}
+		if(y&1)
+			if(R.test_break()) break; 
+	}
+}				
+
 /* ---------------- shaders ----------------------- */
 
 static double Normalise_d(double *n)
@@ -3050,22 +3105,24 @@ void zbufshadeDA_tile(RenderPart *pa)
 		addpsmain(&psmlist);
 		pa->rectdaps= RE_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
 		
-		if(rl->layflag & SCE_LAY_SOLID) {
-			for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
-				zbuffer_solid(pa, rl->lay, rl->layflag);
-				make_pixelstructs(pa, &psmlist);
-				
-				if(R.r.mode & R_EDGE) edge_enhance_calc(pa, edgerect);
-				if(R.test_break()) break; 
-			}
+		/* always fill visibility */
+		for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
+			zbuffer_solid(pa, rl->lay, rl->layflag);
+			make_pixelstructs(pa, &psmlist);
+			
+			if(R.r.mode & R_EDGE) edge_enhance_calc(pa, edgerect);
+			if(R.test_break()) break; 
 		}
-		else	/* need to clear rectz for next passes */
-			fillrect(pa->rectz, pa->rectx, pa->recty, 0x7FFFFFFF);
-
 		
 		/* shades solid */
 		if(rl->layflag & SCE_LAY_SOLID) 
 			shadeDA_tile(pa, rl);
+		
+		/* lamphalo after solid, before ztra, looks nicest because ztra does own halo */
+		if(R.flag & R_LAMPHALO)
+			if(rl->layflag & SCE_LAY_HALO)
+				if(!(rl->layflag & SCE_LAY_SOLID))
+					lamphalo_tile(pa, rl->rectf, rl->lay);
 		
 		/* transp layer */
 		if(R.flag & R_ZTRA) {
@@ -3171,26 +3228,30 @@ void zbufshade_tile(RenderPart *pa)
 			}
 		}
 		
-		if(!R.test_break()) {
-			if(R.flag & R_ZTRA) {
-				if(rl->layflag & SCE_LAY_ZTRA) {
-					float *acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
-					float *fcol= rl->rectf, *acol= acolrect;
-					int x;
-					
-					if(addpassflag & SCE_PASS_VECTOR)
-						reset_sky_speedvectors(pa, rl);
-					
-					/* swap for live updates */
-					SWAP(float *, acolrect, rl->rectf);
-					zbuffer_transp_shade(pa, rl, rl->rectf);
-					SWAP(float *, acolrect, rl->rectf);
-					
-					for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
-						addAlphaOverFloat(fcol, acol);
-					}
-					RE_freeN(acolrect);
+		/* lamphalo after solid, before ztra, looks nicest because ztra does own halo */
+		if(R.flag & R_LAMPHALO)
+			if(rl->layflag & SCE_LAY_HALO)
+				if(!(rl->layflag & SCE_LAY_SOLID))
+					lamphalo_tile(pa, rl->rectf, rl->lay);
+		
+		if(R.flag & R_ZTRA) {
+			if(rl->layflag & SCE_LAY_ZTRA) {
+				float *acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+				float *fcol= rl->rectf, *acol= acolrect;
+				int x;
+				
+				if(addpassflag & SCE_PASS_VECTOR)
+					reset_sky_speedvectors(pa, rl);
+				
+				/* swap for live updates */
+				SWAP(float *, acolrect, rl->rectf);
+				zbuffer_transp_shade(pa, rl, rl->rectf);
+				SWAP(float *, acolrect, rl->rectf);
+				
+				for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
+					addAlphaOverFloat(fcol, acol);
 				}
+				RE_freeN(acolrect);
 			}
 		}
 		
@@ -3202,10 +3263,9 @@ void zbufshade_tile(RenderPart *pa)
 			}
 		}
 		
-		if(!R.test_break())
-			if(R.flag & R_HALO)
-				if(rl->layflag & SCE_LAY_HALO)
-					halo_tile(pa, rl->rectf, rl->lay);
+		if(R.flag & R_HALO)
+			if(rl->layflag & SCE_LAY_HALO)
+				halo_tile(pa, rl->rectf, rl->lay);
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);

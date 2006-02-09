@@ -2111,11 +2111,11 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		uiDefButBitS(block, TOG, LA_SHAD, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, LA_ONLYSHADOW, 0,"OnlyShadow",			10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
+	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_NOP,"OnlyShadow",			10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
 
 	if(la->type==LA_SPOT) {
 		uiDefButBitS(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,70,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
-		uiDefButBitS(block, TOG, LA_HALO, 0,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
+		uiDefButBitS(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
 
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
@@ -2123,7 +2123,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
 		uiBlockEndAlign(block);
 	
-		uiDefButF(block, NUMSLI,0,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
+		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
 		
 		if(la->mode & LA_SHAD) {
 			uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,10240, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
@@ -2133,10 +2133,10 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	200,70,100,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Sets the shadow map clip end beyond which objects will not generate shadows");
 			uiBlockEndAlign(block);
 			
-			uiDefButS(block, NUM,0,"Samples:",		100,30,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
-			uiDefButS(block, NUM,0,"Halo step:",	200,30,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
-			uiDefButF(block, NUM,0,"Bias:",			100,10,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
-			uiDefButF(block, NUM,0,"Soft:",			200,10,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
+			uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",		100,30,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
+			uiDefButS(block, NUM,B_NOP,"Halo step:",	200,30,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
+			uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",			100,10,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",			200,10,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
 		}
 	}
 	else if(la->type==LA_AREA && (la->mode & LA_SHAD_RAY)) {
