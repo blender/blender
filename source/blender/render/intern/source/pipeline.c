@@ -946,9 +946,7 @@ static void do_render_final(Render *re)
 
 	if(re->r.scemode & R_DOSEQ) {
 		if (!re->result->rect32) {
-			re->result->rect32= RE_callocN(
-				sizeof(int)*re->rectx*re->recty, 
-				"do_render_final rectot");
+			re->result->rect32= RE_callocN(sizeof(int)*re->rectx*re->recty, "do_render_final rectot");
 		}
 		if(!re->test_break()) 
 			do_render_seq(re->result, re->r.cfra);
@@ -1110,22 +1108,17 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		int dofree = 0;
 		/* note; the way it gets 32 bits rects is weak... */
 		if(rres.rect32==NULL) {
-			rres.rect32= RE_mallocN(sizeof(int)
-						* rres.rectx
-						* rres.recty, 
-						"temp 32 bits rect");
+			rres.rect32= RE_mallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 			dofree = 1;
 		}
 		RE_ResultGet32(re, rres.rect32);
-		mh->append_movie(scene->r.cfra, 
-				 rres.rect32, rres.rectx, rres.recty);
+		mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
 		if(dofree) {
 			RE_freeN(rres.rect32);
 		}
 		printf("Append frame %d", scene->r.cfra);
 	} else {
-		ImBuf *ibuf= IMB_allocImBuf(rres.rectx, 
-					    rres.recty, scene->r.planes, 0, 0);
+		ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
 		int ok;
 		
 		BKE_makepicstring(name, (scene->r.cfra));
@@ -1135,8 +1128,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 
 		ibuf->rect_float= rres.rectf;
 		ibuf->zbuf_float= rres.rectz;
-		ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, 
-				   scene->r.subimtype, scene->r.quality);
+		ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 		if(ok==0) {
 			printf("Render error: cannot save %s\n", name);
 			G.afbreek=1;
@@ -1145,13 +1137,12 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		else printf("Saved: %s", name);
 		
 		/* optional preview images for exr */
-		if(ok && scene->r.imtype==R_OPENEXR 
-		   && (scene->r.subimtype & R_PREVIEW_JPG)) {
+		if(ok && scene->r.imtype==R_OPENEXR && (scene->r.subimtype & R_PREVIEW_JPG)) {
 			if(BLI_testextensie(name, ".exr")) 
 				name[strlen(name)-4]= 0;
 			BKE_add_image_extension(name, R_JPEG90);
-			BKE_write_ibuf(ibuf, name, R_JPEG90, 
-				       scene->r.subimtype, scene->r.quality);
+			ibuf->depth= 24; 
+			BKE_write_ibuf(ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
 			printf("Saved: %s", name);
 		}
 		
@@ -1184,9 +1175,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {
 			int nf = mh->get_next_frame();
-			if (nf >= 0 
-			    && nf >= scene->r.sfra 
-			    && nf <= scene->r.efra) {
+			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = nf;
 				re->r.cfra= scene->r.cfra; /* weak.... */
 		
