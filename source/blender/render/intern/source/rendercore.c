@@ -2628,23 +2628,26 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 	}
 	
 	if(R.flag & R_LAMPHALO) {
-		if(facenr<=0) {	/* calc view vector and put shi.co at far */
-			if(R.r.mode & R_ORTHO) {
-				/* x and y 3d coordinate can be derived from pixel coord and winmat */
-				float fx= 2.0/(R.rectx*R.winmat[0][0]);
-				float fy= 2.0/(R.recty*R.winmat[1][1]);
+		if(shpi->layflag & SCE_LAY_HALO) {
+
+			if(facenr<=0) {	/* calc view vector and put shi.co at far */
+				if(R.r.mode & R_ORTHO) {
+					/* x and y 3d coordinate can be derived from pixel coord and winmat */
+					float fx= 2.0/(R.rectx*R.winmat[0][0]);
+					float fy= 2.0/(R.recty*R.winmat[1][1]);
+					
+					shi.co[0]= (0.5 + x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
+					shi.co[1]= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+				}
 				
-				shi.co[0]= (0.5 + x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
-				shi.co[1]= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+				calc_view_vector(shi.view, x, y);
+				shi.co[2]= 0.0;
+				
+				renderspothalo(&shi, shr->combined, 1.0);
 			}
-			
-			calc_view_vector(shi.view, x, y);
-			shi.co[2]= 0.0;
-			
-			renderspothalo(&shi, shr->combined, 1.0);
+			else
+				renderspothalo(&shi, shr->combined, shr->combined[3]);
 		}
-		else
-			renderspothalo(&shi, shr->combined, shr->combined[3]);
 	}
 	
 	return vlr;
@@ -2887,6 +2890,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	/* fill shadepixel info struct */
 	shpi.thread= pa->thread;
 	shpi.lay= rl->lay;
+	shpi.layflag= rl->layflag;
 	shpi.passflag= 0;
 	
 	if(rl->passflag & ~(SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR|SCE_PASS_COMBINED))
@@ -3197,6 +3201,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		/* fill shadepixel info struct */
 		shpi.lay= rl->lay;
+		shpi.layflag= rl->layflag;
 		shpi.passflag= 0;
 		
 		if(rl->passflag & ~(SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR|SCE_PASS_COMBINED))

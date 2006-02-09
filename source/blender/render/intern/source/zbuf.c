@@ -2637,6 +2637,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	/* fill shadepixel info struct */
 	shpi.thread= pa->thread;
 	shpi.lay= rl->lay;
+	shpi.layflag= rl->layflag;
 	shpi.passflag= 0;
 	
 	if(rl->passflag & ~(SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR|SCE_PASS_COMBINED))

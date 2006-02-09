@@ -52,7 +52,7 @@ struct ShadeResult;
 /* to make passing on variables to shadepixel() easier */
 typedef struct ShadePixelInfo {
 	int thread;
-	int passflag;
+	int layflag, passflag;
 	unsigned int lay;
 	ShadeResult shr;
 } ShadePixelInfo;
