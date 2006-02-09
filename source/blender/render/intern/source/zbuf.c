@@ -1871,7 +1871,7 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size)
 
 /* ******************** VECBLUR ACCUM BUF ************************* */
 
-static void zbuf_fill_in_rgba(ZSpan *zspan, float *col, float alpha, float *v1, float *v2, float *v3, float *v4)
+static void zbuf_fill_in_rgba(ZSpan *zspan, float *col, float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
@@ -1952,8 +1952,7 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, float *col, float alpha, float *v1, 
 			while(x>=0) {
 				if( zverg < *rz) {
 					*rz= zverg;
-					VECCOPY(rp, col);
-					rp[3]= alpha;
+					QUATCOPY(rp, col);
 				}
 				zverg+= zxd;
 				rz++; 
@@ -2202,9 +2201,11 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	/* tag moving pixels, only these faces we draw */
 	dm= rectmove;
 	dvec1= vecbufrect;
-	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4) {
-		if(dvec1[0]!=0.0f || dvec1[1]!=0.0f)
-			*dm= 255;
+	dimg= imgrect;
+	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4, dimg+=4) {
+		if(dimg[3]>0.9f)
+			if(dvec1[0]!=0.0f || dvec1[1]!=0.0f)
+				*dm= 255;
 	}
 	
 	antialias_tagbuf(xsize, ysize, rectmove);
@@ -2217,7 +2218,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	for(step= 1; step<=samples; step++) {
 		float speedfac= 0.5f*nbd->fac*(float)step/(float)(samples+1);
 		float blendfac= 1.0f/(ABS(step)+1);
-		float mfac= 1.0f-blendfac;
+		float col[4];
 		int side, z= 4;
 		
 		for(side=0; side<2; side++) {
@@ -2251,14 +2252,26 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
 				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=5, dz2+=5, dm++) {
 					if(*dm>1) {
-						float alpha= (*dm==255?1.0f:((float)*dm)/255.0f);
+						float *colp;
+						
 						/* make vertices */
 						v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= dz1[z];
 						v2[0]= speedfac*dz1[5]+fx+1.0f;		v2[1]= speedfac*dz1[6]+fy;			v2[2]= dz1[z+5];
 						v3[0]= speedfac*dz2[5]+fx+1.0f;		v3[1]= speedfac*dz2[6]+fy+1.0f;		v3[2]= dz2[z+5];
 						v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= dz2[z];
 						
-						zbuf_fill_in_rgba(&zspan, dimg, alpha*dimg[3], v1, v2, v3, v4);
+						/* make sure we fill in premulled */
+						if(*dm==255) colp= dimg;
+						else {
+							colp= col;
+							col[3]= ((float)*dm)/255.0f;
+							col[0]= col[3]*dimg[0];
+							col[1]= col[3]*dimg[1];
+							col[2]= col[3]*dimg[2];
+							col[3]= col[3]*dimg[3];
+						}
+						
+						zbuf_fill_in_rgba(&zspan, colp, v1, v2, v3, v4);
 					}
 				}
 				dz1+=5;
@@ -2268,20 +2281,20 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			/* accum */
 			for(dz1= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dz1+=4, dz2+=4) {
 				if(dz1[3]!=0.0f) {
-					if(dz1[3]==1.0f) {
-						dz2[0]= mfac*dz2[0] + blendfac*dz1[0];
-						dz2[1]= mfac*dz2[1] + blendfac*dz1[1];
-						dz2[2]= mfac*dz2[2] + blendfac*dz1[2];
-						dz2[3]= mfac*dz2[3] + blendfac*dz1[3];
-					}
-					else {
+					//if(dz1[3]==1.0f) {
+					//	dz2[0]= mfac*dz2[0] + blendfac*dz1[0];
+					//	dz2[1]= mfac*dz2[1] + blendfac*dz1[1];
+					//	dz2[2]= mfac*dz2[2] + blendfac*dz1[2];
+					//	dz2[3]= mfac*dz2[3] + blendfac*dz1[3];
+					//}
+					//else {
 						float bfac= dz1[3]*blendfac;
 						float mf= 1.0f - bfac;
-						dz2[0]= mf*dz2[0] + bfac*dz1[0];
-						dz2[1]= mf*dz2[1] + bfac*dz1[1];
-						dz2[2]= mf*dz2[2] + bfac*dz1[2];
-						dz2[3]= mf*dz2[3] + bfac*dz1[3];
-					}
+						dz2[0]= mf*dz2[0] + blendfac*dz1[0];
+						dz2[1]= mf*dz2[1] + blendfac*dz1[1];
+						dz2[2]= mf*dz2[2] + blendfac*dz1[2];
+						dz2[3]= mf*dz2[3] + bfac;
+					//}
 				}
 			}
 		}
@@ -2453,7 +2466,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 
 /* different rules for transparent pass...  */
 /* if shr is zero, we clear winspeed if it's initialized to max still */
-static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr)
+static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float weight)
 {
 	RenderPass *rpass;
 	
@@ -2488,14 +2501,15 @@ static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr)
 			{
 				fp= rpass->rect + 4*offset;
 				if(shr) {
-					/* add minimum speed in pixel */
-					if( (ABS(shr->winspeed[0]) + ABS(shr->winspeed[1]))< (ABS(fp[0]) + ABS(fp[1])) ) {
-						fp[0]= shr->winspeed[0];
-						fp[1]= shr->winspeed[1];
+					if(weight==1.0f) {
+						QUATCOPY(fp, shr->winspeed);
 					}
-					if( (ABS(shr->winspeed[2]) + ABS(shr->winspeed[3]))< (ABS(fp[2]) + ABS(fp[3])) ) {
-						fp[2]= shr->winspeed[2];
-						fp[3]= shr->winspeed[3];
+					else {
+						/* only can do this when speed was cleared! */
+						fp[0]+= weight*shr->winspeed[0];
+						fp[1]+= weight*shr->winspeed[1];
+						fp[2]+= weight*shr->winspeed[2];
+						fp[3]+= weight*shr->winspeed[3];
 					}
 				}
 				else {
@@ -2511,7 +2525,7 @@ static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr)
 		if(col) {
 			fp= rpass->rect + pixsize*offset;
 			for(a=0; a<pixsize; a++)
-				fp[a]= col[a];
+				fp[a]+= weight*col[a];
 		}
 	}
 }
@@ -2571,14 +2585,24 @@ static void shadetrapixel(ShadePixelInfo *shpi, float x, float y, int z, int fac
 	}
 }
 
-static int addtosampcol(float *sampcol, float *fcol, int mask)
+static int addtosamp_shr(ShadeResult *samp_shr, ShadeResult *shr, int mask, int addpassflag)
 {
 	int a, retval = R.osa;
 	
 	for(a=0; a < R.osa; a++) {
-		if(mask & (1<<a)) addAlphaUnderFloat(sampcol, fcol);
-		if(sampcol[3]>0.999) retval--;
-		sampcol+= 4;
+		if(mask & (1<<a)) {
+			addAlphaUnderFloat(samp_shr->combined, shr->combined);
+			
+			if(addpassflag & SCE_PASS_VECTOR) {
+				QUATCOPY(samp_shr->winspeed, shr->winspeed);
+			}
+			else if(addpassflag & SCE_PASS_NORMAL) {
+				VECCOPY(samp_shr->nor, shr->nor);
+			}
+		}
+		
+		if(samp_shr->combined[3]>0.999) retval--;
+		samp_shr++;
 	}
 	return retval;
 }
@@ -2593,7 +2617,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	APixstr *APixbuf;      /* Zbuffer: linked list of face samples */
 	APixstr *ap, *aprect, *apn;
 	ListBase apsmbase={NULL, NULL};
-	float sampcol[16*4];
+	ShadeResult samp_shr[16];
 	float fac, alpha[32], *passrect= pass;
 	int x, y, crop=0, a, zrow[MAX_ZROW][3], totface;
 	int sval, addpassflag, offs= 0, od, addzbuf;
@@ -2657,8 +2681,8 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, ap++, pass+=4, od++) {
 			
 			if(ap->p[0]==NULL) {
-				if(addpassflag) 
-					add_transp_passes(rl, od, NULL);
+				if(addpassflag & SCE_PASS_VECTOR) 
+					add_transp_passes(rl, od, NULL, 1.0f);
 			}
 			else {
 				/* sort in z */
@@ -2689,7 +2713,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 						QUATCOPY(pass, shpi.shr.combined);
 					}
 					if(addpassflag) 
-						add_transp_passes(rl, od, &shpi.shr);
+						add_transp_passes(rl, od, &shpi.shr, 1.0f);
 					if(addzbuf)
 						if(pa->rectz[od]>zrow[0][0])
 							pa->rectz[od]= zrow[0][0];
@@ -2719,29 +2743,34 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 							shadetrapixel(&shpi, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2]);
 							addAlphaUnderFloat(pass, shpi.shr.combined);
 							if(addpassflag) 
-								add_transp_passes(rl, od, &shpi.shr);
+								add_transp_passes(rl, od, &shpi.shr, 1.0f);
 
 							if(pass[3]>=0.999) break;
 						}
 					}
 					else {
 						/* for each mask-sample we alpha-under colors. then in end it's added using filter */
-						memset(sampcol, 0, 4*sizeof(float)*R.osa);
+						memset(samp_shr, 0, sizeof(ShadeResult)*R.osa);
 
 						while(totface>0) {
 							totface--;
 							
 							shadetrapixel(&shpi, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2]);
-							sval= addtosampcol(sampcol, shpi.shr.combined, zrow[totface][2]);
+							sval= addtosamp_shr(samp_shr, &shpi.shr, zrow[totface][2], addpassflag);
 							
-							if(addpassflag) 
-								add_transp_passes(rl, od, &shpi.shr);
-
 							if(sval==0) break;
 						}
 						
-						for(a=0; a<R.osa; a++) 
-							add_filt_fmask(1<<a, sampcol+4*a, pass, rr->rectx);
+						/* we need to clear speed vectors */
+						if(addpassflag & SCE_PASS_VECTOR) 
+							add_transp_passes(rl, od, NULL, 1.0f);
+						
+						for(a=0; a<R.osa; a++) {
+							add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
+						
+							if(addpassflag) 
+								add_transp_passes(rl, od, samp_shr+a, alpha[1]);
+						}
 					}
 				}
 				//if(R.osa && R.do_gamma) {
