@@ -202,6 +202,10 @@ void rem_blockhandler(ScrArea *sa, short eventcode)
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		if( sl->blockhandler[a]==eventcode) {
 			sl->blockhandler[a]= 0;
+			
+			/* specific free calls */
+			if(eventcode==IMAGE_HANDLER_PREVIEW)
+				image_preview_event(0);
 			break;
 		}
 	}
@@ -220,6 +224,8 @@ void toggle_blockhandler(ScrArea *sa, short eventcode, short val)
 			/* specific free calls */
 			if(eventcode==VIEW3D_HANDLER_PREVIEW)
 				BIF_view3d_previewrender_free(sa->spacedata.first);
+			else if(eventcode==IMAGE_HANDLER_PREVIEW)
+				image_preview_event(0);
 			
 			addnew= 0;
 		}
@@ -1608,8 +1614,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_ALTKEY)
 					clear_parent();
 				else if((G.qual==0)) {
-					//toggle_blockhandler(curarea, VIEW3D_HANDLER_PREVIEW, 0);
-					//doredraw= 1;
                 	start_game();
 				}
 				break;				
@@ -3918,7 +3922,10 @@ void free_soundspace(SpaceSound *ssound)
 
 /* ******************** SPACE: IMAGE ********************** */
 
-/*  extern void drawimagespace(ScrArea *sa, void *spacedata); BIF_drawimage.h */
+static void changeimagepace(ScrArea *sa, void *spacedata)
+{
+	image_preview_event(2);
+}
 
 static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
@@ -4038,12 +4045,20 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case PKEY:
-				if(G.qual==LR_SHIFTKEY)
-					select_pinned_tface_uv();
-				else if(G.qual==LR_ALTKEY)
-					pin_tface_uv(0);
-				else
-					pin_tface_uv(1);
+				if(G.f & G_FACESELECT) {
+					if(G.qual==LR_SHIFTKEY)
+						select_pinned_tface_uv();
+					else if(G.qual==LR_ALTKEY)
+						pin_tface_uv(0);
+					else
+						pin_tface_uv(1);
+				}
+				else {
+					if(G.qual==LR_SHIFTKEY) {
+						toggle_blockhandler(curarea, IMAGE_HANDLER_PREVIEW, 0);
+						scrarea_queue_winredraw(curarea);
+					}
+				}
 				break;
 			case RKEY:
 				if((G.qual==0) && is_uv_tface_editing_allowed()) {
@@ -5223,7 +5238,7 @@ SpaceType *spaceimage_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Image");
-		spacetype_set_winfuncs(st, drawimagespace, NULL, winqreadimagespace);
+		spacetype_set_winfuncs(st, drawimagespace, changeimagepace, winqreadimagespace);
 	}
 
 	return st;

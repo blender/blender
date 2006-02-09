@@ -72,6 +72,7 @@
 #include "BIF_keyval.h"
 #include "BIF_mainqueue.h"
 
+#include "BIF_drawimage.h"
 #include "BIF_previewrender.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
@@ -1042,12 +1043,15 @@ void ui_draw_panel(uiBlock *block)
 			uiSetRoundBox(3);
 			uiRoundBox(block->minx, block->maxy, block->maxx, block->maxy+PNL_HEADER, 8);
 
-			// blend now for panels in 3d window, test...
 			glEnable(GL_BLEND);
 			BIF_ThemeColor4(TH_PANEL);
-			
+		
 			uiSetRoundBox(12);
-			uiRoundBox(block->minx, block->miny, block->maxx, block->maxy, 8);
+			/* bad code... but its late :) */
+			if(strcmp(block->name, "image_panel_preview")==0)
+				uiRoundRect(block->minx, block->miny, block->maxx, block->maxy, 8);
+			else
+				uiRoundBox(block->minx, block->miny, block->maxx, block->maxy, 8);
 
 			// glRectf(block->minx, block->miny, block->maxx, block->maxy);
 			
@@ -1623,7 +1627,8 @@ static void ui_drag_panel(uiBlock *block, int doscale)
 	/* exception handling, 3d window preview panel */
 	if(block->drawextra==BIF_view3d_previewdraw)
 		BIF_view3d_previewrender_signal(curarea, PR_DISPRECT);
-	
+	else if(strcmp(block->name, "image_panel_preview")==0)
+		image_preview_event(2);
 }
 
 

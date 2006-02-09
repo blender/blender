@@ -278,6 +278,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl->lay= (1<<20) -1;
 		rl->layflag= 0x7FFF;	/* solid ztra halo strand */
 		rl->passflag= SCE_PASS_COMBINED;
+		
+		re->r.actlay= 0;
 	}
 	
 	/* display active layer */

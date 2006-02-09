@@ -67,6 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_image.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
@@ -89,6 +90,7 @@
 #include "BIF_screen.h"
 #include "BIF_transform.h"
 
+#include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
@@ -97,6 +99,8 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"  // event codes
+
+#include "interface.h"	/* bad.... but preview code needs UI info. Will solve... (ton) */
 
 static unsigned char *alloc_alpha_clone_image(int *width, int *height)
 {
@@ -144,6 +148,22 @@ static void setcloneimage()
 	}
 }
 
+static int image_preview_active(ScrArea *sa, float *xim, float *yim)
+{
+	SpaceImage *sima= sa->spacedata.first;
+	short a;
+	
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		if(sima->blockhandler[a] == IMAGE_HANDLER_PREVIEW) {
+			if(xim) *xim= (G.scene->r.size*G.scene->r.xsch)/100;
+			if(yim) *yim= (G.scene->r.size*G.scene->r.ysch)/100;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+
 /**
  * Sets up the fields of the View2D member of the SpaceImage struct
  * This routine can be called in two modes:
@@ -161,11 +181,12 @@ void calc_image_view(SpaceImage *sima, char mode)
 	float x1, y1;
 	float zoom;
 	
-	if(sima->image && sima->image->ibuf) {
+	if(image_preview_active(curarea, &xim, &yim));
+	else if(sima->image && sima->image->ibuf) {
 		xim= sima->image->ibuf->x;
 		yim= sima->image->ibuf->y;
 	}
-	
+		
 	sima->v2d.tot.xmin= 0;
 	sima->v2d.tot.ymin= 0;
 	sima->v2d.tot.xmax= xim;
@@ -996,6 +1017,117 @@ static int image_curves_active(ScrArea *sa)
 	return 0;
 }
 
+void image_preview_event(int event)
+{
+	int exec= 0;
+	
+
+	if(event==0) {
+		G.scene->r.scemode &= ~R_COMP_CROP;
+		exec= 1;
+	}
+	else if(event==2 || (G.scene->r.scemode & R_COMP_CROP)==0) {
+		if(image_preview_active(curarea, NULL, NULL)) {
+			G.scene->r.scemode |= R_COMP_CROP;
+			exec= 1;
+		}
+	}
+	
+	if(exec) {
+		ScrArea *sa;
+		
+		ntreeCompositTagGenerators(G.scene->nodetree);
+	
+		for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+			if(sa->spacetype==SPACE_NODE) {
+				addqueue(sa->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+				break;
+			}
+		}
+	}	
+}
+
+
+/* nothing drawn here, we use it to store values */
+static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
+{
+	rctf dispf;
+	rcti *disprect= &G.scene->r.disprect;
+	int winx= (G.scene->r.size*G.scene->r.xsch)/100;
+	int winy= (G.scene->r.size*G.scene->r.ysch)/100;
+	short mval[2];
+	
+	/* while dragging we don't update the rects */
+	if(block->panel->flag & PNL_SELECT)
+		return;
+	if(get_mbut() & M_MOUSE)
+		return;
+
+	BLI_init_rctf(&dispf, 15.0f, (block->maxx - block->minx)-15.0f, 15.0f, (block->maxy - block->miny)-15.0f);
+	ui_graphics_to_window_rct(sa->win, &dispf, disprect);
+	
+	/* correction for gla draw */
+	BLI_translate_rcti(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
+	
+	calc_image_view(G.sima, 'p');
+//	printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
+	/* map to image space coordinates */
+	mval[0]= disprect->xmin; mval[1]= disprect->ymin;
+	areamouseco_to_ipoco(G.v2d, mval, &dispf.xmin, &dispf.ymin);
+	mval[0]= disprect->xmax; mval[1]= disprect->ymax;
+	areamouseco_to_ipoco(G.v2d, mval, &dispf.xmax, &dispf.ymax);
+	
+	/* map to render coordinates */
+	disprect->xmin= dispf.xmin;
+	disprect->xmax= dispf.xmax;
+	disprect->ymin= dispf.ymin;
+	disprect->ymax= dispf.ymax;
+	
+	CLAMP(disprect->xmin, 0, winx);
+	CLAMP(disprect->xmax, 0, winx);
+	CLAMP(disprect->ymin, 0, winy);
+	CLAMP(disprect->ymax, 0, winy);
+//	printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
+	
+	image_preview_event(1);
+}
+
+static int is_preview_allowed(ScrArea *cur)
+{
+	ScrArea *sa;
+
+	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa!=cur && sa->spacetype==SPACE_IMAGE) {
+			if(image_preview_active(sa, NULL, NULL))
+			   return 0;
+		}
+	}
+	return 1;
+}
+
+static void image_panel_preview(ScrArea *sa, short cntrl)	// IMAGE_HANDLER_PREVIEW
+{
+	uiBlock *block;
+	SpaceImage *sima= sa->spacedata.first;
+	int ofsx, ofsy;
+	
+	if(is_preview_allowed(sa)==0) {
+		rem_blockhandler(sa, IMAGE_HANDLER_PREVIEW);
+		return;
+	}
+	
+	block= uiNewBlock(&sa->uiblocks, "image_panel_preview", UI_EMBOSS, UI_HELV, sa->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | UI_PNL_SCALE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_PREVIEW);  // for close and esc
+	
+	ofsx= -150+(sa->winx/2)/sima->blockscale;
+	ofsy= -100+(sa->winy/2)/sima->blockscale;
+	if(uiNewPanel(sa, block, "Preview", "Image", ofsx, ofsy, 300, 200)==0) return;
+	
+	uiBlockSetDrawExtraFunc(block, preview_cb);
+	
+}
+
 static void image_blockhandlers(ScrArea *sa)
 {
 	SpaceImage *sima= sa->spacedata.first;
@@ -1015,6 +1147,9 @@ static void image_blockhandlers(ScrArea *sa)
 			break;		
 		case IMAGE_HANDLER_CURVES:
 			image_panel_curves(sima->blockhandler[a+1]);
+			break;		
+		case IMAGE_HANDLER_PREVIEW:
+			image_panel_preview(sa, sima->blockhandler[a+1]);
 			break;		
 		}
 		/* clear action value for event */
@@ -1248,9 +1383,24 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		draw_tfaces();
 	}
 	else {
+		float xim, yim, xoffs=0.0f, yoffs= 0.0f;
+		
+		if(image_preview_active(curarea, &xim, &yim)) {
+			xoffs= G.scene->r.disprect.xmin;
+			yoffs= G.scene->r.disprect.ymin;
+			glColor3ub(0,0,0);
+			calc_image_view(sima, 'f');	
+			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+			glRectf(0.0f, 0.0f, 1.0f, 1.0f);
+			glLoadIdentity();
+		}
+		else {
+			xim= ibuf->x; yim= ibuf->y;
+		}
+		
 		/* calc location */
-		x1= (curarea->winx-sima->zoom*ibuf->x)/2;
-		y1= (curarea->winy-sima->zoom*ibuf->y)/2;
+		x1= sima->zoom*xoffs + (curarea->winx-sima->zoom*xim)/2;
+		y1= sima->zoom*yoffs + (curarea->winy-sima->zoom*yim)/2;
 	
 		x1-= sima->zoom*sima->xof;
 		y1-= sima->zoom*sima->yof;
@@ -1432,8 +1582,16 @@ static void image_zoom_set_factor(float zoomfac)
 	height= 256;
 	if (sima->image) {
 		if (sima->image->ibuf) {
-			width= sima->image->ibuf->x;
-			height= sima->image->ibuf->y;
+			float xim, yim;
+			/* I know a bit weak... but preview uses not actual image size */
+			if(image_preview_active(curarea, &xim, &yim)) {
+				width= (int) xim;
+				height= (int) yim;
+			}
+			else {
+				width= sima->image->ibuf->x;
+				height= sima->image->ibuf->y;
+			}
 		}
 	}
 	width *= sima->zoom;
@@ -1479,6 +1637,12 @@ void image_viewmove(int mode)
 		}
 		else BIF_wait_for_statechange();
 	}
+	
+	if(image_preview_active(curarea, NULL, NULL)) {
+		/* recalculates new preview rect */
+		scrarea_do_windraw(curarea);
+		image_preview_event(2);
+	}
 }
 
 void image_viewzoom(unsigned short event, int invert)
@@ -1497,8 +1661,12 @@ void image_viewzoom(unsigned short event, int invert)
 		sima->zoom= (invert)? 4.0: 0.25;
 	else if(event==PAD8)
 		sima->zoom= (invert)? 8.0: 0.125;
-	else
-		return;
+	
+	if(image_preview_active(curarea, NULL, NULL)) {
+		/* recalculates new preview rect */
+		scrarea_do_windraw(curarea);
+		image_preview_event(2);
+	}
 }
 
 /**

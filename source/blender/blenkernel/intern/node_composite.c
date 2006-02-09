@@ -121,6 +121,27 @@ void print_compbuf(char *str, CompBuf *cbuf)
 	
 }
 
+static CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type)
+{
+	CompBuf *cbuf;
+	rcti disprect= *drect;
+	float *outfp;
+	int dx, y;
+	
+	if(disprect.xmax>rectx) disprect.xmax= rectx;
+	if(disprect.ymax>recty) disprect.ymax= recty;
+	if(disprect.xmin>= disprect.xmax) return NULL;
+	if(disprect.ymin>= disprect.ymax) return NULL;
+	
+	cbuf= alloc_compbuf(disprect.xmax-disprect.xmin, disprect.ymax-disprect.ymin, type, 1);
+	outfp= cbuf->rect;
+	rectf += type*(disprect.ymin*rectx + disprect.xmin);
+	dx= type*cbuf->x;
+	for(y=cbuf->y; y>0; y--, outfp+=dx, rectf+=type*rectx)
+		memcpy(outfp, rectf, type*dx);
+	
+	return cbuf;
+}
 
 
 #if 0
@@ -466,59 +487,52 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 	/* stack order input sockets: col, alpha, z */
 	
 	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
+		RenderData *rd= data;
 		Image *ima= (Image *)node->id;
 		CompBuf *cbuf, *inbuf= in[0]->data;
 		int rectx, recty;
+
+		/* re-create output, derive size from scene */
+//		rectx= (rd->size*rd->xsch)/100;
+//		recty= (rd->size*rd->ysch)/100;
+		if(inbuf==NULL) {
+			rectx= 320; recty= 256;
+		}
+		else {
+			rectx= inbuf->x;
+			recty= inbuf->y;
+		}
 		
-		/* scene size? */
-		if(1) {
-			RenderData *rd= data;
-
-			/* re-create output, derive size from scene */
-			rectx= (rd->size*rd->xsch)/100;
-			recty= (rd->size*rd->ysch)/100;
+		if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
+		ima->ibuf= IMB_allocImBuf(rectx, recty, 32, IB_rectfloat, 0); // do alloc
+		
+		cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	// no alloc
+		cbuf->rect= ima->ibuf->rect_float;
+		
+		/* when no alpha, we can simply copy */
+		if(in[1]->data==NULL) {
+			void (*func)(bNode *, float *, float *);
 			
-			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-			ima->ibuf= IMB_allocImBuf(rectx, recty, 32, IB_rectfloat, 0); // do alloc
+			if(inbuf==NULL || inbuf->type==CB_RGBA) func= do_copy_rgba;
+			else if(inbuf->type==CB_VEC3) func= do_copy_rgb;
+			else if(inbuf->type==CB_VEC2) func= do_copy_rg;
+			else func= do_copy_value;
 			
-			cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	// no alloc
-			cbuf->rect= ima->ibuf->rect_float;
-
-			/* when no alpha, we can simply copy */
-			if(in[1]->data==NULL) {
-				void (*func)(bNode *, float *, float *);
-				
-				if(inbuf==NULL || inbuf->type==CB_RGBA) func= do_copy_rgba;
-				else if(inbuf->type==CB_VEC3) func= do_copy_rgb;
-				else if(inbuf->type==CB_VEC2) func= do_copy_rg;
-				else func= do_copy_value;
-				
-				composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, func);
-			}
-			else
-				composit2_pixel_processor(node, cbuf, inbuf, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
-			
-			if(in[2]->data) {
-				CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 0);
-				addzbuffloatImBuf(ima->ibuf);
-				zbuf->rect= ima->ibuf->zbuf_float;
-				composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
-				free_compbuf(zbuf);
-			}
-
-			generate_preview(node, cbuf);
-			free_compbuf(cbuf);
+			composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, func);
 		}
-		else { /* test */
-			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-			ima->ibuf= IMB_allocImBuf(rectx, recty, 32, 0, 0); // do alloc
-			ima->ibuf->mall= IB_rectfloat;
-			cbuf= in[0]->data;
-			ima->ibuf->rect_float= cbuf->rect;
-			ima->ibuf->x= cbuf->x;
-			ima->ibuf->y= cbuf->y;
-			cbuf->rect= NULL;
+		else
+			composit2_pixel_processor(node, cbuf, inbuf, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+		
+		if(in[2]->data) {
+			CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 0);
+			addzbuffloatImBuf(ima->ibuf);
+			zbuf->rect= ima->ibuf->zbuf_float;
+			composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
+			free_compbuf(zbuf);
 		}
+
+		generate_preview(node, cbuf);
+		free_compbuf(cbuf);
 
 	}	/* lets make only previews when not done yet, so activating doesnt update */
 	else if(in[0]->data && node->preview && node->preview->rect==NULL) {
@@ -715,54 +729,80 @@ static void animated_image(bNode *node, int cfra)
 	}
 }
 
+static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
+{
+	Image *ima;
+	CompBuf *stackbuf;
+	
+	/* animated image? */
+	if(node->storage)
+		animated_image(node, rd->cfra);
+	
+	ima= (Image *)node->id;
+	
+	/* test if image is OK */
+	if(ima->ok==0) return NULL;
+	
+	if(ima->ibuf==NULL) {
+		
+		load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
+		if(ima->ibuf==NULL) {
+			ima->ok= 0;
+			return NULL;
+		}
+	}
+	if(ima->ibuf->rect_float==NULL)
+		IMB_float_from_rect(ima->ibuf);
+	
+	if(rd->scemode & R_COMP_CROP) {
+		stackbuf= get_cropped_compbuf(&rd->disprect, ima->ibuf->rect_float, ima->ibuf->x, ima->ibuf->y, CB_RGBA);
+	}
+	else {
+		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
+		stackbuf= alloc_compbuf(ima->ibuf->x, ima->ibuf->y, CB_RGBA, 0);
+		stackbuf->rect= ima->ibuf->rect_float;
+	}
+	
+	return stackbuf;
+}
+
+static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
+{
+	Image *ima= (Image *)node->id;
+	CompBuf *zbuf= NULL;
+	
+	if(ima->ibuf && ima->ibuf->zbuf_float) {
+		if(rd->scemode & R_COMP_CROP) {
+			zbuf= get_cropped_compbuf(&rd->disprect, ima->ibuf->zbuf_float, ima->ibuf->x, ima->ibuf->y, CB_VAL);
+		}
+		else {
+			zbuf= alloc_compbuf(ima->ibuf->x, ima->ibuf->y, CB_VAL, 0);
+			zbuf->rect= ima->ibuf->zbuf_float;
+		}
+	}
+	return zbuf;
+}
 
 static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	RenderData *rd= data;
 	
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha */
 	if(node->id) {
-		Image *ima;
-		CompBuf *stackbuf;
-		
-		/* animated image? */
-		if(node->storage)
-			animated_image(node, rd->cfra);
-		
-		ima= (Image *)node->id;
-		
-		/* test if image is OK */
-		if(ima->ok==0) return;
-		
-		if(ima->ibuf==NULL) {
-			
-			load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
-			if(ima->ibuf==NULL) {
-				ima->ok= 0;
-				return;
-			}
-		}
-		if(ima->ibuf->rect_float==NULL)
-			IMB_float_from_rect(ima->ibuf);
-		
-		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
-		stackbuf= alloc_compbuf(ima->ibuf->x, ima->ibuf->y, CB_RGBA, 0);
-		stackbuf->rect= ima->ibuf->rect_float;
+		CompBuf *stackbuf= node_composit_get_image(node, data);
 		
 		/* put ibuf on stack */	
 		out[0]->data= stackbuf;
 		
-		if(out[1]->hasoutput)
-			out[1]->data= alphabuf_from_rgbabuf(stackbuf);
-		
-		if(out[2]->hasoutput && ima->ibuf->zbuf_float) {
-			CompBuf *zbuf= alloc_compbuf(ima->ibuf->x, ima->ibuf->y, CB_VAL, 0);
-			zbuf->rect= ima->ibuf->zbuf_float;
-			out[2]->data= zbuf;
+		if(stackbuf) {
+			if(out[1]->hasoutput)
+				out[1]->data= alphabuf_from_rgbabuf(stackbuf);
+			
+			if(out[2]->hasoutput)
+				out[2]->data= node_composit_get_zimage(node, data);
+			
+			generate_preview(node, stackbuf);
 		}
-		
-		generate_preview(node, stackbuf);
 	}	
 }
 
@@ -810,7 +850,8 @@ static bNodeSocketType cmp_node_rresult_out[]= {
 	{	-1, 0, ""	}
 };
 
-static CompBuf *compbuf_from_pass(RenderLayer *rl, int rectx, int recty, int passcode)
+
+static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, int recty, int passcode)
 {
 	float *fp= RE_RenderLayerGetPass(rl, passcode);
 	if(fp) {
@@ -823,9 +864,13 @@ static CompBuf *compbuf_from_pass(RenderLayer *rl, int rectx, int recty, int pas
 			buftype= CB_VEC4;
 		else if(passcode==SCE_PASS_RGBA)
 			buftype= CB_RGBA;
-			
-		buf= alloc_compbuf(rectx, recty, buftype, 0);
-		buf->rect= fp;
+		
+		if(rd->scemode & R_COMP_CROP)
+			buf= get_cropped_compbuf(&rd->disprect, fp, rectx, recty, buftype);
+		else {
+			buf= alloc_compbuf(rectx, recty, buftype, 0);
+			buf->rect= fp;
+		}
 		return buf;
 	}
 	return NULL;
@@ -833,6 +878,7 @@ static CompBuf *compbuf_from_pass(RenderLayer *rl, int rectx, int recty, int pas
 
 static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	RenderData *rd= data;
 	RenderResult *rr;
 	
 	if(node->id && node->id!=&G.scene->id)
@@ -846,8 +892,12 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 			CompBuf *stackbuf;
 			
 			/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
-			stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
-			stackbuf->rect= rl->rectf;
+			if(rd->scemode & R_COMP_CROP)
+				stackbuf= get_cropped_compbuf(&rd->disprect, rl->rectf, rr->rectx, rr->recty, CB_RGBA);
+			else {
+				stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
+				stackbuf->rect= rl->rectf;
+			}
 			
 			/* put on stack */	
 			out[RRES_OUT_IMAGE]->data= stackbuf;
@@ -855,24 +905,24 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 			if(out[RRES_OUT_ALPHA]->hasoutput)
 				out[RRES_OUT_ALPHA]->data= alphabuf_from_rgbabuf(stackbuf);
 			if(out[RRES_OUT_Z]->hasoutput)
-				out[RRES_OUT_Z]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_Z);
+				out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_Z);
 			if(out[RRES_OUT_VEC]->hasoutput)
-				out[RRES_OUT_VEC]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
+				out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
 			if(out[RRES_OUT_NOR]->hasoutput)
-				out[RRES_OUT_NOR]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
+				out[RRES_OUT_NOR]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
 /*			
 			if(out[RRES_OUT_COL]->hasoutput)
-				out[RRES_OUT_COL]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
+				out[RRES_OUT_COL]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
 			if(out[RRES_OUT_DIFF]->hasoutput)
-				out[RRES_OUT_DIFF]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_DIFFUSE);
+				out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_DIFFUSE);
 			if(out[RRES_OUT_SPEC]->hasoutput)
-				out[RRES_OUT_SPEC]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_SPEC);
+				out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SPEC);
 			if(out[RRES_OUT_SHAD]->hasoutput)
-				out[RRES_OUT_SHAD]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
+				out[RRES_OUT_SHAD]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
 			if(out[RRES_OUT_AO]->hasoutput)
-				out[RRES_OUT_AO]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_AO);
+				out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_AO);
 			if(out[RRES_OUT_RAY]->hasoutput)
-				out[RRES_OUT_RAY]->data= compbuf_from_pass(rl, rr->rectx, rr->recty, SCE_PASS_RAY);
+				out[RRES_OUT_RAY]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RAY);
 */			
 			generate_preview(node, stackbuf);
 		}
@@ -2255,3 +2305,19 @@ void ntreeCompositTagAnimated(bNodeTree *ntree)
 			NodeTagChanged(ntree, node);
 	}
 }
+
+
+/* called from image window preview */
+void ntreeCompositTagGenerators(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if( ELEM(node->type, CMP_NODE_R_RESULT, CMP_NODE_IMAGE))
+			NodeTagChanged(ntree, node);
+	}
+}
+
+

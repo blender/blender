@@ -1852,6 +1852,10 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 	ntreeBeginExecTree(ntree);
 	
+	/* prevent unlucky accidents */
+	if(G.background)
+		rd->scemode &= ~R_COMP_CROP;
+	
 	/* setup callerdata for thread callback */
 	thdata.rd= rd;
 	thdata.stack= ntree->stack;

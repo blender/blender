@@ -254,8 +254,9 @@ typedef struct RenderData {
 	 * identical materials with this number.*/
 	short same_mat_redux;
 	
-	/* safety and border rect */
+	/* safety, border and display rect */
 	rctf safety, border;
+	rcti disprect;
 	
 	/* information on different layers to be rendered */
 	ListBase layers;
@@ -442,6 +443,7 @@ typedef struct Scene {
 #define R_EXTENSION		0x0010
 #define R_NODE_PREVIEW	0x0020
 #define R_DOCOMP		0x0040
+#define R_COMP_CROP		0x0080
 
 /* alphamode */
 #define R_ADDSKY		0

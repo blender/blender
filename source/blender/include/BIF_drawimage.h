@@ -48,6 +48,7 @@ void image_viewcentre(void);
 void uvco_to_areaco(float *vec, short *mval);
 void uvco_to_areaco_noclip(float *vec, int *mval);
 void what_image(struct SpaceImage *sima);
+void image_preview_event(int event);
 
 #endif
 
