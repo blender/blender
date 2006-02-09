@@ -107,7 +107,7 @@ Render R;
 /* ********* alloc and free ******** */
 
 
-SDL_mutex *malloc_lock= NULL;
+SDL_mutex *malloc_lock= NULL, *load_ibuf_lock=NULL;
 
 void *RE_mallocN(int len, char *name)
 {
@@ -756,7 +756,8 @@ static void threaded_tile_processor(Render *re)
 	
 	/* set threadsafety */
 	R.test_break= thread_break;
-	malloc_lock = SDL_CreateMutex();
+	malloc_lock= SDL_CreateMutex();
+	load_ibuf_lock= SDL_CreateMutex();
 	
 	/* timer loop demands to sleep when no parts are left */
 	nextpa= find_next_part(re);
@@ -809,6 +810,7 @@ static void threaded_tile_processor(Render *re)
 	
 	/* restore threadsafety */
 	if(malloc_lock) SDL_DestroyMutex(malloc_lock); malloc_lock= NULL;
+	if(load_ibuf_lock) SDL_DestroyMutex(load_ibuf_lock); load_ibuf_lock= NULL;
 	g_break= 0;
 	
 	BLI_end_threads(&threads);

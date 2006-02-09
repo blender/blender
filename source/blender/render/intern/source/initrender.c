@@ -661,12 +661,6 @@ void initparts(Render *re)
 }
 
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-// exported to other files, belongs in include... later
-SDL_mutex *render_abuf_lock=NULL, *load_ibuf_lock=NULL;
-
-
 
 /* **************************************************************** */
 /*                sticky texture coords                             */
