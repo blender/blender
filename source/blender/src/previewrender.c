@@ -110,7 +110,7 @@
 #define PR_YMAX		195
 
 
-void set_previewrect(RenderInfo *ri, int win)
+static void set_previewrect(RenderInfo *ri, int win)
 {
 	rctf viewplane;
 	
@@ -349,9 +349,10 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	
 	if(ri->cury>=ri->pr_recty) return;
 	
-	if(ri->rect==NULL) {
-		ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "butsrect");
-	}
+	/* because preview render size differs all the time, we alloc here to make sure its right size */
+	if(ri->rect)
+		MEM_freeN(ri->rect);
+	ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 	
 	/* check for return with a new event */
 	if(pr_method!=PR_ICON_RENDER && qtest()) {

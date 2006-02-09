@@ -860,6 +860,16 @@ void clear_id_newpoins()
 	}
 }
 
+/* only for library fixes */
+static void image_fix_relative_path(Image *ima)
+{
+	if(ima->id.lib==NULL) return;
+	if(strncmp(ima->name, "//", 2)==0) {
+		BLI_convertstringcode(ima->name, ima->id.lib->filename, 0);
+		BLI_makestringcode(G.sce, ima->name);
+	}
+}
+
 /* if lib!=NULL, only all from lib local */
 void all_local(Library *lib)
 {
@@ -880,6 +890,10 @@ void all_local(Library *lib)
 					id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
 
 					if(id->lib) {
+						/* relative file patch */
+						if(GS(id->name)==ID_IM)
+							image_fix_relative_path((Image *)id);
+						
 						id->lib= NULL;
 						new_id(lbarray[a], id, 0);	/* new_id only does it with double names */
 						sort_alpha_id(lbarray[a], id);

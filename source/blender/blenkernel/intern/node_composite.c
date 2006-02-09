@@ -487,14 +487,10 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 	/* stack order input sockets: col, alpha, z */
 	
 	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
-		RenderData *rd= data;
 		Image *ima= (Image *)node->id;
 		CompBuf *cbuf, *inbuf= in[0]->data;
 		int rectx, recty;
 
-		/* re-create output, derive size from scene */
-//		rectx= (rd->size*rd->xsch)/100;
-//		recty= (rd->size*rd->ysch)/100;
 		if(inbuf==NULL) {
 			rectx= 320; recty= 256;
 		}
