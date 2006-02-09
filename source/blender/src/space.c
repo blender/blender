@@ -57,6 +57,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_group_types.h" /* used for select_same_group */
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
@@ -597,6 +598,20 @@ static void select_parent(void)	/* Makes parent active and de-selected OBACT */
 	}
 }
 
+static void select_same_group(Object *ob)	/* Select objects in the same group as the active */
+{
+	Base *base;
+	Group *group= find_group(ob);
+	if (!group || !ob)
+		return;
+	
+	for (base= FIRSTBASE; base; base= base->next)
+		if (object_in_group(base->object, group)) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+		}
+}
+
 void select_grouped(short nr)
 {
 	Base *base;
@@ -609,8 +624,9 @@ void select_grouped(short nr)
 				base->object->flag |= SELECT;
 			}
 			base= base->next;
-		}		
+		}
 	}
+	else if(nr==5) select_same_group(OBACT);
 	else if(nr==2) select_children(OBACT, 0);
 	else if(nr==1) select_children(OBACT, 1);
 	else if(nr==3) select_parent();
@@ -632,7 +648,8 @@ static void select_grouped_menu(void)
 	str= MEM_mallocN(160, "groupmenu");
 	strcpy(str, "Select Grouped%t|Children%x1|"
 	            "Immediate Children%x2|Parent%x3|"
-	            "Objects on Shared Layers%x4");
+	            "Objects on Shared Layers%x4|"
+                "Objects in Same Group%x5|");
 
 	/* here we go */
 	
