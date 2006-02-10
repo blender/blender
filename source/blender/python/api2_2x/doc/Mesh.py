@@ -258,7 +258,7 @@ class MVertSeq:
 
   def extend(coords):
     """
-    Append one or more vertices to the mesh.  Unlike L{MEdgeSeq.extend()} and
+    Append zero or more vertices to the mesh.  Unlike L{MEdgeSeq.extend()} and
     L{MFaceSeq.extend()} no attempt is made to check for duplicate vertices in
     the parameter list, or for vertices already in the mesh.
 
@@ -334,10 +334,10 @@ class MEdgeSeq:
 
   def extend(vertseq):
     """
-    Add one or more edges to the mesh.  Edges which already exist in the 
-    mesh are ignored.  If three or four verts are specified in any tuple,
-    an edge is also created between the first and last vertices (this is
-    useful when adding faces).
+    Add zero or more edges to the mesh.  Edges which already exist in the 
+    mesh or with both vertices the same are ignored.  If three or four verts
+    are specified in any sequence, an edge is also created between the first
+    and last vertices (this is useful when adding faces).  
 
     Example::
       import Blender
@@ -523,9 +523,10 @@ class MFaceSeq:
 
   def extend(vertseq):
     """
-    Add one or more faces to the mesh.  Faces which already exist in the 
-    mesh are ignored.  Sequences of two vertices are accepted, but no face
-    will be created.
+    Add zero or more faces and edges to the mesh.  Faces which already exist
+    in the mesh, or faces which contain the same vertex multiple times are
+    ignored.  Sequences of two vertices are accepted, but no face will be
+    created.
 
     Example::
       import Blender

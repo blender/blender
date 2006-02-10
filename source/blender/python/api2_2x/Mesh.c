@@ -350,7 +350,7 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	char state;
 	MVert *newvert, *srcvert, *dstvert;
 	int count;
-
+	MSticky *newsticky = NULL, *srcsticky, *dststicky;
 
 	/* is there are deformed verts also, delete them first */
 	if( mesh->dvert )
@@ -358,6 +358,11 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 
 	newvert = (MVert *)MEM_mallocN(
 			sizeof( MVert )*( mesh->totvert-to_delete ), "MVerts" );
+
+	/* is there are UV verts, track them too */
+	if( mesh->msticky )
+	newsticky = (MSticky *)MEM_mallocN(
+			sizeof( MSticky )*( mesh->totvert-to_delete ), "MStickies" );
 
 	/*
 	 * do "smart compaction" of the table; find and copy groups of vertices
@@ -367,6 +372,8 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	dstvert = newvert;
 	srcvert = mesh->mvert;
 	tmpvert = vert_table;
+	dststicky = newsticky;
+	srcsticky = mesh->msticky;
 	count = 0;
 	state = 1;
 	for( i = 0; i < mesh->totvert; ++i, ++tmpvert ) {
@@ -376,6 +383,7 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 				++count;
 			} else {
 				srcvert = mesh->mvert + i;
+				srcsticky = mesh->msticky + i;
 				count = 1;
 				state = 1;
 			}
@@ -387,6 +395,11 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 				if( count ) {
 					memcpy( dstvert, srcvert, sizeof( MVert ) * count );
 					dstvert += count;
+					if( newsticky ) {
+						memcpy( dststicky, srcsticky, sizeof( MSticky )
+								* count );
+						dststicky += count;
+					}
 				}
 				count = 1;
 				state = 0;
@@ -395,13 +408,20 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	}
 
 	/* if we were gathering verts at the end of the loop, copy those */
-	if( state && count )
+	if( state && count ) {
 		memcpy( dstvert, srcvert, sizeof( MVert ) * count );
+		if( newsticky )
+			memcpy( dststicky, srcsticky, sizeof( MSticky ) * count );
+	}
 
 	/* delete old vertex list, install the new one, update vertex count */
 
 	MEM_freeN( mesh->mvert );
 	mesh->mvert = newvert;
+	if( newsticky ) {
+		MEM_freeN( mesh->msticky );
+		mesh->msticky = newsticky;
+	}
 	mesh->totvert -= to_delete;
 }
 
@@ -1605,6 +1625,9 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 			if( !PySequence_Check ( tmp ) )
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected a sequence of sequence triplets" );
+			else if( !PySequence_Size ( tmp ) ) {
+				Py_RETURN_NONE;
+			}
 			args = tmp;
 		}
 		Py_INCREF( args );		/* so we can safely DECREF later */
@@ -1707,7 +1730,22 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 	mesh->mvert = newvert;
 
 	/*
-	 * maybe not quite done; if there are keys, have to fix those lists up
+	 * if there are UV vertives, have to fix those
+	 */
+
+	if( mesh->msticky ) {
+		MSticky *tmpsticky;
+
+		tmpsticky = MEM_mallocN( newlen*sizeof( MSticky ), "sticky" );
+		memset( tmpsticky +mesh->totvert, 255,
+				(newlen-mesh->totvert)*sizeof( MSticky ) );
+		memcpy( tmpsticky, mesh->msticky, mesh->totvert*sizeof( MSticky ) );
+		MEM_freeN( mesh->msticky );
+		mesh->msticky = tmpsticky;
+	}
+
+	/*
+	 * if there are keys, have to fix those lists up
 	 */
 
 	if( mesh->key ) {
@@ -2461,7 +2499,13 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	case 1:
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) > 0 ) {
+		if( PySequence_Check( tmp ) ) {
+
+			/* ignore empty sequences */
+			if( !PySequence_Size( tmp ) ) {
+				Py_RETURN_NONE;
+			}
+
 			/* if another sequence, use it */
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
@@ -2526,8 +2570,8 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"expected 2 to 4 MVerts per sequence" );
 		}
-		Py_DECREF( tmp );
 
+		Py_DECREF( tmp );
 		if( nverts == 2 )
 			++new_edge_count;	/* if only two vert, then add only edge */
 		else
@@ -2563,26 +2607,21 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			if( k == nverts )	/* final edge */ 
 				k = 0;
 
-			/* sort verts into search list, abort if two are the same */
-			if( e[j]->index < e[k]->index ) {
-				tmppair->v[0] = e[j]->index;
-				tmppair->v[1] = e[k]->index;
-				tmppair->swap = 0;
-			} else if( e[j]->index > e[k]->index ) {
-				tmppair->v[0] = e[k]->index;
-				tmppair->v[1] = e[j]->index;
-				tmppair->swap = 1;
-			} else {
-				MEM_freeN( newpair );
-				for(j = 0; j < nverts; ++j )
-					Py_DECREF( e[j] );
-				Py_DECREF( args );
-				return EXPP_ReturnPyObjError( PyExc_ValueError,
-						"tuple contains duplicate vertices" );
+			/* sort verts into search list, skip if two are the same */
+			if( e[j]->index != e[k]->index ) {
+				if( e[j]->index < e[k]->index ) {
+					tmppair->v[0] = e[j]->index;
+					tmppair->v[1] = e[k]->index;
+					tmppair->swap = 0;
+				} else {
+					tmppair->v[0] = e[k]->index;
+					tmppair->v[1] = e[j]->index;
+					tmppair->swap = 1;
+				} 
+				tmppair->index = new_edge_count;
+				++new_edge_count;
+				tmppair++;
 			}
-			tmppair->index = new_edge_count;
-			++new_edge_count;
-			tmppair++;
 		}
 
 		/* free the new references */
@@ -4028,7 +4067,13 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	case 1:		/* better be a sequence or a tuple */
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
-		if( PySequence_Check( tmp ) && PySequence_Size( tmp ) > 0 ) {
+		if( PySequence_Check( tmp ) ) {
+
+			/* ignore empty sequences */
+			if( !PySequence_Size( tmp ) ) {
+				Py_RETURN_NONE;
+			}
+
 			/* if another sequence, use it */
 			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
@@ -4103,6 +4148,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	/* scan the input list and build the new face pair list */
 	len = PySequence_Size( args );
 	tmppair = newpair;
+
 	for( i = 0; i < len; ++i ) {
 		BPy_MVert *e;
 		MFace tmpface;
@@ -4158,13 +4204,23 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 					SWAP( int, vert[k], vert[k+1] );
 					SWAP( char, order[k], order[k+1] );
 				} else if( vert[k] == vert[k+1] ) {
+#if 0
 					MEM_freeN( newpair );
 					Py_DECREF( args );
 					return EXPP_ReturnPyObjError( PyExc_ValueError,
 						"tuple contains duplicate vertices" );
+#else
+					break;
+#endif
 				}
 			}
+			if( k < j )
+				break;
 			tmppair->v[j] = vert[j];
+		}
+		if( j >= 0 ) {
+			--new_face_count;
+			continue;
 		}
 		tmppair->index = i;
 
