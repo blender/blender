@@ -800,8 +800,9 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 				pixsize= 1.0f / (float)MIN2(ibuf->x, ibuf->y); /* this used to be 1.0 */		
 				curmap++;
 			}
-			
+	ibuf->encodedsize++;
 			if(previbuf!=ibuf || (tex->imaflag & TEX_INTERPOL)) {
+	previbuf->encodedsize++;
 				/* sample at least 1 pixel */
 				if (minx < 0.5f / ima->ibuf->x) minx = 0.5f / ima->ibuf->x;
 				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;

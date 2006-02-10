@@ -112,9 +112,10 @@ static void snode_drawstring(SpaceNode *snode, char *str, int okwidth)
 /* **************  Socket callbacks *********** */
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
+/* also: butpoin is to the first element of socket nodestack struct */
 static uiBlock *socket_vector_menu(void *butpoin_v)
 {
-	float *butpoin= butpoin_v;
+	bNodeStack *ns= butpoin_v;
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
@@ -123,9 +124,9 @@ static uiBlock *socket_vector_menu(void *butpoin_v)
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "X ",	 0,40,180,20, butpoin, -1.0, 1.0, 10, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Y ",	 0,20,180,20, butpoin+1, -1.0, 1.0, 10, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Z ",	 0,0,180,20, butpoin+2, -1.0, 1.0, 10, 0, "");
+	uiDefButF(block, NUMSLI, 0, "X ",	 0,40,180,20, ns->vec, ns->min, ns->max, 10, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Y ",	 0,20,180,20, ns->vec+1, ns->min, ns->max, 10, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Z ",	 0,0,180,20, ns->vec+2, ns->min, ns->max, 10, 0, "");
 	
 	uiBlockSetDirection(block, UI_TOP);
 	
@@ -210,7 +211,7 @@ static int node_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *
 		
 		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", 
 				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-				  sock->ns.vec, 0.0f, 1.0f, 10, 2, "");
+				  sock->ns.vec, sock->ns.min, sock->ns.max, 10, 2, "");
 		
 	}
 	return 20;
@@ -1455,7 +1456,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 				if(sock->type==SOCK_VALUE) {
 					bt= uiDefButF(node->block, NUM, B_NODE_EXEC+node->nr, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
-						  butpoin, 0.0f, 1.0f, 10, 2, "");
+						  butpoin, sock->ns.min, sock->ns.max, 10, 2, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 				else if(sock->type==SOCK_VECTOR) {

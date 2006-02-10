@@ -49,6 +49,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_image_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -84,6 +85,8 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
+
+#include "IMB_imbuf_types.h"
 
 #include "envmap.h"
 #include "render_types.h"
@@ -2578,7 +2581,20 @@ void RE_Database_Free(Render *re)
 	
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
-
+	
+	{
+		int curmap;
+		Image *ima;
+		for(ima= G.main->image.first; ima; ima= ima->id.next) {
+			if(ima->ibuf)
+				printf("%s %d %d ref %d\n", ima->id.name+2, ima->ibuf->x, ima->ibuf->y, ima->ibuf->encodedsize);
+			for(curmap=0; curmap<BLI_ARRAY_NELEMS(ima->mipmap); curmap++) {
+				if(ima->mipmap[curmap]) {
+					printf("%s %d %d ref %d\n", ima->id.name+2, ima->mipmap[curmap]->x, ima->mipmap[curmap]->y, ima->mipmap[curmap]->encodedsize);
+				}
+			}
+		}
+	}
 }
 
 /* per face check if all samples should be taken.

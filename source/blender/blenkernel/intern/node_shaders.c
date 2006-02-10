@@ -198,9 +198,9 @@ static bNodeType sh_node_geom= {
 #define MAT_IN_NORMAL	3
 
 static bNodeSocketType sh_node_material_in[]= {
-	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
-	{	SOCK_RGBA, 1, "Spec",		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Refl",		0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Spec",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Refl",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };

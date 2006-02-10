@@ -119,7 +119,9 @@ static bNodeSocket *node_add_socket_type(ListBase *lb, bNodeSocketType *stype)
 	sock->ns.vec[1]= stype->val2;
 	sock->ns.vec[2]= stype->val3;
 	sock->ns.vec[3]= stype->val4;
-				
+	sock->ns.min= stype->min;
+	sock->ns.max= stype->max;
+	
 	if(lb)
 		BLI_addtail(lb, sock);
 	
@@ -155,6 +157,8 @@ static bNodeSocket *verify_socket(ListBase *lb, bNodeSocketType *stype)
 		sock->type= stype->type;		/* in future, read this from tydefs! */
 		if(stype->limit==0) sock->limit= 0xFFF;
 		else sock->limit= stype->limit;
+		sock->ns.min= stype->min;
+		sock->ns.max= stype->max;
 		sock->tosock= stype->internsock;
 		
 		BLI_remlink(lb, sock);
