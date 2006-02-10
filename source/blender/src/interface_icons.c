@@ -751,6 +751,10 @@ void BIF_icon_draw(float x, float y, int icon_id)
 		/* di->rect contains image in 'rendersize', we only scale if needed */
 		else if(di->rw!=di->w && di->rh!=di->h) {
 			ImBuf *ima;
+			if(di->w>2000 || di->h>2000) { /* something has gone wrong! */
+				printf("insane icon size di->w %d di->h %d\n",di->w,di->h);
+				return;
+			}
 			/* first allocate imbuf for scaling and copy preview into it */
 			ima = IMB_allocImBuf(di->rw, di->rh, 32, IB_rect, 0);
 			memcpy(ima->rect, di->rect, di->rw*di->rh*sizeof(unsigned int));	
