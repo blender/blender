@@ -986,17 +986,18 @@ static void texture_panel_image(Tex *tex)
 
 	/* types */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, TEX_INTERPOL, 0, "InterPol",			10, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Interpolates pixels of the Image to fit texture mapping");
-	uiDefButBitS(block, TOG, TEX_USEALPHA, B_TEXPRV, "UseAlpha",	85, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Click to use Image's alpha channel");
-	uiDefButBitS(block, TOG, TEX_CALCALPHA, B_TEXPRV, "CalcAlpha",	160, 180, 75, 18, &tex->imaflag, 0, 0, 0, 0, "Click to calculate an alpha channel based on Image RGB values");
-	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	235, 180, 75, 18, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
+	uiDefButBitS(block, TOG, TEX_MIPMAP, B_IMAPTEST, "MipMap",	10, 180, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Generates and uses mipmaps");
+	uiDefButBitS(block, TOG, TEX_GAUSS_MIP, 0, "Gauss",			70, 180, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Enable Gauss filter to sample down mipmaps");
+	uiDefButBitS(block, TOG, TEX_INTERPOL, 0, "Interpol",		120, 180, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Interpolates pixels using Area filter");
+	uiDefButBitS(block, TOG, TEX_IMAROT, B_TEXPRV, "Rot90",		180, 180, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Actually flips X and Y for rendering, rotates and mirrors");
+	uiDefButBitS(block, TOG, TEX_ANTIALI, 0, "Anti",			220, 180, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Toggles Image anti-aliasing");
+	uiDefButBitS(block, TOG, TEX_ANIM5, B_RELOADIMA, "Movie",	260, 180, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Click to enable movie frames as Images");
 	
-	uiDefButBitS(block, TOG, TEX_MIPMAP, B_IMAPTEST, "MipMap",	10, 160, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Generates a series of pictures to use for mipmapping");
-	uiDefButBitS(block, TOG, TEX_FIELDS, B_IMAPTEST, "Fields",	70, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Click to enable use of fields in Image");
-	uiDefButBitS(block, TOG, TEX_IMAROT, B_TEXPRV, "Rot90",		120, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Actually flips X and Y for rendering, rotates and mirrors");
-	uiDefButBitS(block, TOG, TEX_ANIM5, B_RELOADIMA, "Movie",	170, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Click to enable movie frames as Images");
-	uiDefButBitS(block, TOG, TEX_ANTIALI, 0, "Anti",				220, 160, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Toggles Image anti-aliasing");
-	uiDefButBitS(block, TOG, TEX_STD_FIELD, 0, "StField",			260, 160, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Standard Field Toggle");
+	uiDefButBitS(block, TOG, TEX_USEALPHA, B_TEXPRV, "UseAlpha",	10, 160, 70, 18, &tex->imaflag, 0, 0, 0, 0, "Click to use Image's alpha channel");
+	uiDefButBitS(block, TOG, TEX_CALCALPHA, B_TEXPRV, "CalcAlpha",	80, 160, 70, 18, &tex->imaflag, 0, 0, 0, 0, "Click to calculate an alpha channel based on Image RGB values");
+	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	150, 160, 60, 18, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
+	uiDefButBitS(block, TOG, TEX_FIELDS, B_IMAPTEST, "Fields",		210, 160, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+	uiDefButBitS(block, TOG, TEX_STD_FIELD, 0, "Odd",				270, 160, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Standard Field Toggle");
 	uiBlockEndAlign(block);
 	
 	/* file input */

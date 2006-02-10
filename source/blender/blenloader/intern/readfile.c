@@ -5286,6 +5286,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	if(main->versionfile <= 241) {
+		Tex *tex;
 		Scene *sce;
 		bArmature *arm;
 		bNodeTree *ntree;
@@ -5333,6 +5334,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
 			ntree_version_241(ntree);
 		
+//		for(tex= main->tex.first; tex; tex= tex->id.next)
+//			tex->imaflag |= TEX_GAUSS_MIP;
+
 		//Object *ob;
 		
 		/* for empty drawsize and drawtype */

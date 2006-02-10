@@ -566,20 +566,24 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	}
 }	
 
-static void makemipmap(Image *ima)
+static void makemipmap(Tex *tex, Image *ima)
 {
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf, *nbuf;
 	int minsize, curmap=0;
 	
 	ibuf= ima->ibuf;
 	minsize= MIN2(ibuf->x, ibuf->y);
 	
-	while(minsize>3 && curmap<BLI_ARRAY_NELEMS(ima->mipmap)) {
-		
-		ibuf= IMB_dupImBuf(ibuf);
-		IMB_filter(ibuf);
-		ima->mipmap[curmap]= (struct ImBuf *)IMB_onehalf(ibuf);
-		IMB_freeImBuf(ibuf);
+	while(minsize>10 && curmap<BLI_ARRAY_NELEMS(ima->mipmap)) {
+		if(tex->imaflag & TEX_GAUSS_MIP) {
+			nbuf= IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect, 0);
+			IMB_filterN(nbuf, ibuf);
+			ima->mipmap[curmap]= (struct ImBuf *)IMB_onehalf(nbuf);
+			IMB_freeImBuf(nbuf);
+		}
+		else {
+			ima->mipmap[curmap]= (struct ImBuf *)IMB_onehalf(ibuf);
+		}
 		ibuf= ima->mipmap[curmap];
 		
 		curmap++;
@@ -617,7 +621,7 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 		if(tex->imaflag & TEX_MIPMAP) {
 			if(ima->mipmap[0]==NULL) {
 				if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
-				if(ima->mipmap[0]==NULL) makemipmap(ima);
+				if(ima->mipmap[0]==NULL) makemipmap(tex, ima);
 				if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
 			}
 		}
@@ -800,9 +804,8 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 				pixsize= 1.0f / (float)MIN2(ibuf->x, ibuf->y); /* this used to be 1.0 */		
 				curmap++;
 			}
-	ibuf->encodedsize++;
+
 			if(previbuf!=ibuf || (tex->imaflag & TEX_INTERPOL)) {
-	previbuf->encodedsize++;
 				/* sample at least 1 pixel */
 				if (minx < 0.5f / ima->ibuf->x) minx = 0.5f / ima->ibuf->x;
 				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;

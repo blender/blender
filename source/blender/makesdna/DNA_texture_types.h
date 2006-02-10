@@ -238,8 +238,8 @@ typedef struct TexMapping {
 #define TEX_ANTISCALE	512
 #define TEX_STD_FIELD	1024
 #define TEX_NORMALMAP	2048
+#define TEX_GAUSS_MIP	4096
 
-#define TEX_LASOPPATCH	8192
 #define TEX_MORKPATCH	16384
 
 /* flag */

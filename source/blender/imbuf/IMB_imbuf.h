@@ -284,6 +284,7 @@ void IMB_antialias(struct ImBuf * ibuf);
  * @attention Defined in filter.c
  */
 void IMB_filter(struct ImBuf *ibuf);
+void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
 
 /**
  *

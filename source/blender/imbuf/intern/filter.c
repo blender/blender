@@ -203,6 +203,36 @@ void imb_filterx(struct ImBuf *ibuf)
 	}
 }
 
+void IMB_filterN(ImBuf *out, ImBuf *in)
+{
+	register char *row1, *row2, *row3;
+	register char *cp;
+	int rowlen, x, y;
+	
+	rowlen= in->x;
+	
+	for(y=2; y<in->y; y++) {
+		/* setup rows */
+		row1= (char *)(in->rect + (y-2)*rowlen);
+		row2= row1 + 4*rowlen;
+		row3= row2 + 4*rowlen;
+		
+		cp= (char *)(out->rect + (y-1)*rowlen);
+		cp[0]= row2[0];
+		cp[1]= row2[1];
+		cp[2]= row2[2];
+		cp[3]= row2[3];
+		cp+= 4;
+		
+		for(x=2; x<rowlen; x++) {
+			cp[0]= (row1[0] + 2*row1[4] + row1[8] + 2*row2[0] + 4*row2[4] + 2*row2[8] + row3[0] + 2*row3[4] + row3[8])>>4;
+			cp[1]= (row1[1] + 2*row1[5] + row1[9] + 2*row2[1] + 4*row2[5] + 2*row2[9] + row3[1] + 2*row3[5] + row3[9])>>4;
+			cp[2]= (row1[2] + 2*row1[6] + row1[10] + 2*row2[2] + 4*row2[6] + 2*row2[10] + row3[2] + 2*row3[6] + row3[10])>>4;
+			cp[3]= (row1[3] + 2*row1[7] + row1[11] + 2*row2[3] + 4*row2[7] + 2*row2[11] + row3[3] + 2*row3[7] + row3[11])>>4;
+			cp+=4; row1+=4; row2+=4; row3+=4;
+		}
+	}
+}
 
 void IMB_filter(struct ImBuf *ibuf)
 {
