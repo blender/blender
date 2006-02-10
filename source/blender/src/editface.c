@@ -1213,6 +1213,7 @@ void seam_mark_clear_tface(short mode)
 	if (G.rt == 8)
 		unwrap_lscm(1);
 
+	G.f |= G_DRAWSEAMS;
 	BIF_undo_push("Mark Seam");
 
 	object_tface_flags_changed(OBACT, 1);
@@ -1422,34 +1423,44 @@ void set_faceselect()	/* toggle */
 	Mesh *me = 0;
 	
 	scrarea_queue_headredraw(curarea);
-	if(ob==NULL || ob->id.lib) return;
-	
-	if(G.f & G_FACESELECT) G.f &= ~G_FACESELECT;
-	else {
-		if (ob && ob->type == OB_MESH) G.f |= G_FACESELECT;
+	if(ob==NULL) return;
+	if(ob->id.lib) {
+		error("Can't edit library data");
+		return;
 	}
+
+	me= get_mesh(ob);
+	if(me && me->id.lib) {
+		error("Can't edit library data");
+		return;
+	}
+	
+	if(G.f & G_FACESELECT) {
+		G.f &= ~G_FACESELECT;
+
+		if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
+			if(me) {
+				reveal_tface();
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			}
+			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
+			BIF_undo_push("End UV Faceselect");
+		}
+	}
+	else if (me) {
+		G.f |= G_FACESELECT;
+		if(me->tface==NULL)
+			make_tfaces(me);
+
+		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
+		BIF_undo_push("Set UV Faceselect");
+	}
+
+	countall();
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWIMAGE, 0);
-	
-	ob= OBACT;
-	me= get_mesh(ob);
-	if(me && me->tface==NULL) make_tfaces(me);
-
-	if(G.f & G_FACESELECT) {
-		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
-		BIF_undo_push("Set UV Faceselect");
-	}
-	else if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
-		if(me) {
-			reveal_tface();
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		}
-		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-		BIF_undo_push("End UV Faceselect");
-	}
-	countall();
 }
 
 
