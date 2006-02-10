@@ -505,6 +505,9 @@ void IMB_rectfill(struct ImBuf *drect, float col[4]);
 short imb_addrectImBuf(struct ImBuf * ibuf);
 void imb_freerectImBuf(struct ImBuf * ibuf);
 
+short imb_addrectfloatImBuf(struct ImBuf * ibuf);
+void imb_freerectfloatImBuf(struct ImBuf * ibuf);
+
 #ifdef WITH_QUICKTIME
 /**
  *

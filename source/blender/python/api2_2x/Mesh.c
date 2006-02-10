@@ -2500,6 +2500,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
 		if( PySequence_Check( tmp ) ) {
+			PyObject *tmp2 = 0;
 
 			/* ignore empty sequences */
 			if( !PySequence_Size( tmp ) ) {
@@ -2507,7 +2508,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			}
 
 			/* if another sequence, use it */
-			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
+			tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
 				args = tmp;
 			Py_INCREF( args );
@@ -4068,6 +4069,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
 		if( PySequence_Check( tmp ) ) {
+			PyObject *tmp2 = 0;
 
 			/* ignore empty sequences */
 			if( !PySequence_Size( tmp ) ) {
@@ -4075,7 +4077,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			}
 
 			/* if another sequence, use it */
-			PyObject *tmp2 = PySequence_ITEM( tmp, 0 );
+			tmp2 = PySequence_ITEM( tmp, 0 );
 			if( PySequence_Check( tmp2 ) )
 				args = tmp;
 			Py_INCREF( args );

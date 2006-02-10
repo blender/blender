@@ -37,7 +37,7 @@ struct ImBuf;
 struct EnvMap;
 
 void BIF_save_rendered_image(char *name);
-void BIF_save_rendered_image_fs(void);
+void BIF_save_rendered_image_fs(int zbuf);
 void BIF_save_envmap(struct EnvMap *env, char *str);
 void save_image_filesel_str(char *str);
 

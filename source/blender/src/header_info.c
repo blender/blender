@@ -769,7 +769,7 @@ static void do_info_filemenu(void *arg, int event)
 		}
 		break;
 	case 6: /* save image */
-		BIF_save_rendered_image_fs();
+		BIF_save_rendered_image_fs(0);
 		break;
 	case 22: /* save runtime */
 		activate_fileselect(FILE_SPECIAL, "Save Runtime", "", write_runtime_check);

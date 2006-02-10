@@ -83,10 +83,15 @@ void BIF_save_envmap(EnvMap *env, char *str)
 }
 
 
+#define FTOCHAR(val) val<=0.0f?255: 255-(val>=255.0f?255: (char)(val))
+
 /* callback for fileselect to save rendered image, renderresult was checked to exist */
-static void save_rendered_image_cb(char *name)
+static void save_rendered_image_cb_real(char *name, int zbuf)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
+	int pixel, end;
+	float *pixf = 0;
+	char *pixc = 0;
 	
 	if(BLI_testextensie(name,".blend")) {
 		error("Wrong filename");
@@ -110,9 +115,26 @@ static void save_rendered_image_cb(char *name)
 		waitcursor(1); /* from screen.c */
 
 		ibuf= IMB_allocImBuf(rres.rectx, rres.recty, G.scene->r.planes, 0, 0);
-		ibuf->rect= rres.rect32;
-		ibuf->rect_float= rres.rectf;
-		ibuf->zbuf_float= rres.rectz;
+		if (zbuf == 1) {
+			if (ibuf->rect ==NULL) imb_addrectImBuf(ibuf);
+			if (ibuf->rect_float==NULL) imb_addrectfloatImBuf(ibuf);
+
+			ibuf->zbuf_float= rres.rectz;
+
+			pixc = (char *)ibuf->rect;
+			pixf = (float *)ibuf->rect_float;
+
+			end = ibuf->x * ibuf->y;
+			for(pixel = 0; pixel < end; pixel++, pixf+=4, pixc+=4) {
+				pixf[0] = pixf[1] = pixf[2] = pixf[3] = 1-rres.rectz[pixel]/100000000000;
+				pixc[0] = pixc[1] = pixc[2] = pixc[3] = FTOCHAR(rres.rectz[pixel]);
+			}
+			ibuf->zbuf_float= rres.rectz;
+		} else {
+			ibuf->rect= rres.rect32;
+			ibuf->rect_float= rres.rectf;
+			ibuf->zbuf_float= rres.rectz;
+		}
 		
 		BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 		IMB_freeImBuf(ibuf);	/* imbuf knows rects are not part of ibuf */
@@ -121,6 +143,14 @@ static void save_rendered_image_cb(char *name)
 		
 		waitcursor(0);
 	}
+}
+
+static void save_rendered_image_cb(char *name) {
+	save_rendered_image_cb_real(name,0);
+}
+
+static void save_rendered_image_zbuf_cb(char *name) {
+	save_rendered_image_cb_real(name,1);
 }
 
 void save_image_filesel_str(char *str)
@@ -171,8 +201,8 @@ void save_image_filesel_str(char *str)
 	}	
 }
 
-/* calls fileselect */
-void BIF_save_rendered_image_fs(void)
+/* calls fileselect if zbuf is set we are rendering the zbuffer */
+void BIF_save_rendered_image_fs(int zbuf)
 {
 	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
 	
@@ -188,7 +218,12 @@ void BIF_save_rendered_image_fs(void)
 		}
 		
 		save_image_filesel_str(str);
+		if (zbuf) {
+			activate_fileselect(FILE_SPECIAL, str, G.ima, save_rendered_image_zbuf_cb);
+			return;
+		}
 		activate_fileselect(FILE_SPECIAL, str, G.ima, save_rendered_image_cb);
 	}
 }
+
 

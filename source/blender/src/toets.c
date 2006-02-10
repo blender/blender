@@ -403,12 +403,14 @@ int blenderqread(unsigned short event, short val)
 		break;
 	case F3KEY:
 		if(G.qual==0) {
-			BIF_save_rendered_image_fs();
+			BIF_save_rendered_image_fs(0);
 			return 0;
 		}
 		else if(G.qual & LR_CTRLKEY) {
-			/* all alt+ctrl+shift combos are needed here... */
 			BIF_screendump(0);
+		}
+		else if(G.qual & LR_SHIFTKEY) {
+			BIF_save_rendered_image_fs(1);
 		}
 		break;
 	case F4KEY:
