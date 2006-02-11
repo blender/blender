@@ -545,6 +545,27 @@ static PEdge *p_edge_lookup(PHandle *handle, PHashKey *vkeys)
 	return NULL;
 }
 
+static PBool p_face_exists(PHandle *handle, PHashKey *vkeys, int i1, int i2, int i3)
+{
+	PHashKey key = PHASH_edge(vkeys[i1], vkeys[i2]);
+	PEdge *e = (PEdge*)phash_lookup(handle->hash_edges, key);
+
+	while (e) {
+		if ((e->vert->u.key == vkeys[i1]) && (e->next->vert->u.key == vkeys[i2])) {
+			if (e->next->next->vert->u.key == vkeys[i3])
+				return P_TRUE;
+		}
+		else if ((e->vert->u.key == vkeys[i2]) && (e->next->vert->u.key == vkeys[i1])) {
+			if (e->next->next->vert->u.key == vkeys[i3])
+				return P_TRUE;
+		}
+
+		e = (PEdge*)phash_next(handle->hash_edges, key, (PHashLink*)e);
+	}
+
+	return P_FALSE;
+}
+
 static PChart *p_chart_new(PHandle *handle)
 {
 	PChart *chart = (PChart*)MEM_callocN(sizeof*chart, "PChart");
@@ -894,11 +915,25 @@ static PFace *p_face_add_fill(PChart *chart, PVert *v1, PVert *v2, PVert *v3)
 	return f;
 }
 
-static PBool p_quad_split_direction(float **co)
+static PBool p_quad_split_direction(PHandle *handle, float **co, PHashKey *vkeys)
 {
 	float fac= VecLenf(co[0], co[2]) - VecLenf(co[1], co[3]);
+	PBool dir = (fac <= 0.0f);
 
-	return (fac > 0.0f);
+	/* the face exists check is there because of a special case: when
+	   two quads share three vertices, they can each be split into two
+	   triangles, resulting in two identical triangles. for example in
+	   suzanne's nose. */
+	if (dir) {
+		if (p_face_exists(handle,vkeys,0,1,2) || p_face_exists(handle,vkeys,0,2,3))
+			return !dir;
+	}
+	else {
+		if (p_face_exists(handle,vkeys,0,1,3) || p_face_exists(handle,vkeys,1,2,3))
+			return !dir;
+	}
+
+	return dir;
 }
 
 /* Construction: boundary filling */
@@ -3985,7 +4020,7 @@ void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
 	param_assert((nverts == 3) || (nverts == 4));
 
 	if (nverts == 4) {
-		if (!p_quad_split_direction(co)) {
+		if (p_quad_split_direction(phandle, co, vkeys)) {
 			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 1, 2, pin, select);
 			p_face_add_construct(phandle, key, vkeys, co, uv, 0, 2, 3, pin, select);
 		}
