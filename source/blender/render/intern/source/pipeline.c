@@ -107,33 +107,6 @@ Render R;
 /* ********* alloc and free ******** */
 
 
-SDL_mutex *malloc_lock= NULL, *load_ibuf_lock=NULL;
-
-void *RE_mallocN(int len, char *name)
-{
-	void *mem;
-	if(malloc_lock) SDL_mutexP(malloc_lock);
-	mem= MEM_mallocN(len, name);
-	if(malloc_lock) SDL_mutexV(malloc_lock);
-	return mem;
-}
-void *RE_callocN(int len, char *name)
-{
-	void *mem;
-	if(malloc_lock) SDL_mutexP(malloc_lock);
-	mem= MEM_callocN(len, name);
-	if(malloc_lock) SDL_mutexV(malloc_lock);
-	return mem;
-}
-void RE_freeN(void *poin)
-{
-	if(malloc_lock) SDL_mutexP(malloc_lock);
-	MEM_freeN(poin);
-	if(malloc_lock) SDL_mutexV(malloc_lock);
-}
-
-/* ********************** */
-
 static int g_break= 0;
 static int thread_break(void)
 {
@@ -155,30 +128,30 @@ static void free_render_result(RenderResult *res)
 	while(res->layers.first) {
 		RenderLayer *rl= res->layers.first;
 		
-		if(rl->rectf) RE_freeN(rl->rectf);
+		if(rl->rectf) MEM_freeT(rl->rectf);
 		while(rl->passes.first) {
 			RenderPass *rpass= rl->passes.first;
-			RE_freeN(rpass->rect);
+			MEM_freeT(rpass->rect);
 			BLI_remlink(&rl->passes, rpass);
-			RE_freeN(rpass);
+			MEM_freeT(rpass);
 		}
 		BLI_remlink(&res->layers, rl);
-		RE_freeN(rl);
+		MEM_freeT(rl);
 	}
 	
 	if(res->rect32)
-		RE_freeN(res->rect32);
+		MEM_freeT(res->rect32);
 	if(res->rectz)
-		RE_freeN(res->rectz);
+		MEM_freeT(res->rectz);
 	if(res->rectf)
-		RE_freeN(res->rectf);
+		MEM_freeT(res->rectf);
 	
-	RE_freeN(res);
+	MEM_freeT(res);
 }
 
 static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, char *mallocstr)
 {
-	RenderPass *rpass= RE_mallocN(sizeof(RenderPass), mallocstr);
+	RenderPass *rpass= MEM_mallocT(sizeof(RenderPass), mallocstr);
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype= passtype;
@@ -187,12 +160,12 @@ static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, c
 		int x;
 		
 		/* initialize to max speed */
-		rect= rpass->rect= RE_mallocN(sizeof(float)*rectsize, mallocstr);
+		rect= rpass->rect= MEM_mallocT(sizeof(float)*rectsize, mallocstr);
 		for(x= rectsize-1; x>=0; x--)
 			rect[x]= PASS_VECTOR_MAX;
 	}
 	else
-		rpass->rect= RE_callocN(sizeof(float)*rectsize, mallocstr);
+		rpass->rect= MEM_callocT(sizeof(float)*rectsize, mallocstr);
 }
 
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
@@ -222,7 +195,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	if(rectx<=0 || recty<=0)
 		return NULL;
 	
-	rr= RE_callocN(sizeof(RenderResult), "new render result");
+	rr= MEM_callocT(sizeof(RenderResult), "new render result");
 	rr->rectx= rectx;
 	rr->recty= recty;
 	/* crop is one or two extra pixels rendered for filtering, is used for merging and display too */
@@ -237,7 +210,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	/* check renderdata for amount of layers */
 	for(srl= re->r.layers.first; srl; srl= srl->next) {
 
-		rl= RE_callocN(sizeof(RenderLayer), "new render layer");
+		rl= MEM_callocT(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
 		strcpy(rl->name, srl->name);
@@ -245,7 +218,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl->layflag= srl->layflag;
 		rl->passflag= srl->passflag;
 		
-		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "layer float rgba");
+		rl->rectf= MEM_callocT(rectx*recty*sizeof(float)*4, "layer float rgba");
 		
 		if(srl->passflag  & SCE_PASS_Z)
 			render_layer_add_pass(rl, rectx*recty, SCE_PASS_Z, "Layer float Z");
@@ -269,10 +242,10 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	}
 	/* previewrender and envmap don't do layers, so we make a default one */
 	if(rr->layers.first==NULL) {
-		rl= RE_callocN(sizeof(RenderLayer), "new render layer");
+		rl= MEM_callocT(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
-		rl->rectf= RE_callocN(rectx*recty*sizeof(float)*4, "prev/env float rgba");
+		rl->rectf= MEM_callocT(rectx*recty*sizeof(float)*4, "prev/env float rgba");
 		
 		/* note, this has to be in sync with scene.c */
 		rl->lay= (1<<20) -1;
@@ -457,7 +430,7 @@ Render *RE_NewRender(const char *name)
 	}
 	
 	/* new render data struct */
-	re= RE_callocN(sizeof(Render), "new render");
+	re= MEM_callocT(sizeof(Render), "new render");
 	BLI_addtail(&RenderList, re);
 	strncpy(re->name, name, RE_MAXNAME);
 	
@@ -487,7 +460,7 @@ void RE_FreeRender(Render *re)
 	free_render_result(re->result);
 	
 	BLI_remlink(&RenderList, re);
-	RE_freeN(re);
+	MEM_freeT(re);
 }
 
 /* exit blender */
@@ -754,10 +727,8 @@ static void threaded_tile_processor(Render *re)
 	/* assuming no new data gets added to dbase... */
 	R= *re;
 	
-	/* set threadsafety */
+	/* set threadsafe break */
 	R.test_break= thread_break;
-	malloc_lock= SDL_CreateMutex();
-	load_ibuf_lock= SDL_CreateMutex();
 	
 	/* timer loop demands to sleep when no parts are left */
 	nextpa= find_next_part(re);
@@ -809,8 +780,6 @@ static void threaded_tile_processor(Render *re)
 	}
 	
 	/* restore threadsafety */
-	if(malloc_lock) SDL_DestroyMutex(malloc_lock); malloc_lock= NULL;
-	if(load_ibuf_lock) SDL_DestroyMutex(load_ibuf_lock); load_ibuf_lock= NULL;
 	g_break= 0;
 	
 	BLI_end_threads(&threads);
@@ -948,7 +917,7 @@ static void do_render_final(Render *re)
 
 	if(re->r.scemode & R_DOSEQ) {
 		if (!re->result->rect32) {
-			re->result->rect32= RE_callocN(sizeof(int)*re->rectx*re->recty, "do_render_final rectot");
+			re->result->rect32= MEM_callocT(sizeof(int)*re->rectx*re->recty, "do_render_final rectot");
 		}
 		if(!re->test_break()) 
 			do_render_seq(re->result, re->r.cfra);
@@ -1110,13 +1079,13 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		int dofree = 0;
 		/* note; the way it gets 32 bits rects is weak... */
 		if(rres.rect32==NULL) {
-			rres.rect32= RE_mallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+			rres.rect32= MEM_mallocT(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 			dofree = 1;
 		}
 		RE_ResultGet32(re, rres.rect32);
 		mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
 		if(dofree) {
-			RE_freeN(rres.rect32);
+			MEM_freeT(rres.rect32);
 		}
 		printf("Append frame %d", scene->r.cfra);
 	} else {

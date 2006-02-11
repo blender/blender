@@ -32,10 +32,6 @@
 
 struct Render;
 
-void *RE_mallocN(int len, char *name);
-void *RE_callocN(int len, char *name);
-void RE_freeN(void *poin);
-
 #define PASS_VECTOR_MAX	10000.0f
 
 #endif /* PIPELINE_H */

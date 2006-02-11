@@ -34,10 +34,12 @@
 
 /* External modules: */
 #include "MTC_matrixops.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
-#include "BLI_rand.h"
 #include "BLI_jitter.h"
+#include "BLI_rand.h"
+#include "BLI_threads.h"
 
 #include "BKE_utildefines.h"
 
@@ -3010,10 +3012,10 @@ static PixStrMain *addpsmain(ListBase *lb)
 {
 	PixStrMain *psm;
 	
-	psm= (PixStrMain *)RE_mallocN(sizeof(PixStrMain),"pixstrMain");
+	psm= (PixStrMain *)MEM_mallocT(sizeof(PixStrMain),"pixstrMain");
 	BLI_addtail(lb, psm);
 	
-	psm->ps= (PixStr *)RE_mallocN(4096*sizeof(PixStr),"pixstr");
+	psm->ps= (PixStr *)MEM_mallocT(4096*sizeof(PixStr),"pixstr");
 	psm->counter= 0;
 	
 	return psm;
@@ -3026,8 +3028,8 @@ static void freeps(ListBase *lb)
 	for(psm= lb->first; psm; psm= psmnext) {
 		psmnext= psm->next;
 		if(psm->ps)
-			RE_freeN(psm->ps);
-		RE_freeN(psm);
+			MEM_freeT(psm->ps);
+		MEM_freeT(psm);
 	}
 	lb->first= lb->last= NULL;
 }
@@ -3097,9 +3099,9 @@ void zbufshadeDA_tile(RenderPart *pa)
 	
 	/* allocate the necessary buffers */
 				/* zbuffer inits these rects */
-	pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
-	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
-	if(R.r.mode & R_EDGE) edgerect= RE_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
+	pa->rectp= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	pa->rectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectz");
+	if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
 		/* indication for scanline updates */
@@ -3107,7 +3109,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 
 		/* initialize pixelstructs */
 		addpsmain(&psmlist);
-		pa->rectdaps= RE_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
+		pa->rectdaps= MEM_callocT(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
 		
 		/* always fill visibility */
 		for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
@@ -3131,7 +3133,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 		/* transp layer */
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
-				float *acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+				float *acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				float *fcol= rl->rectf, *acol= acolrect;
 				int x;
 				
@@ -3146,7 +3148,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 				for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
 					addAlphaOverFloat(fcol, acol);
 				}
-				RE_freeN(acolrect);
+				MEM_freeT(acolrect);
 			}
 		}
 		
@@ -3161,15 +3163,15 @@ void zbufshadeDA_tile(RenderPart *pa)
 			convert_zbuf_to_distbuf(pa, rl);
 		
 		/* free stuff within loop! */
-		RE_freeN(pa->rectdaps); pa->rectdaps= NULL;
+		MEM_freeT(pa->rectdaps); pa->rectdaps= NULL;
 		freeps(&psmlist);
 	}
 	
 	/* free all */
-	RE_freeN(pa->rectp); pa->rectp= NULL;
-	RE_freeN(pa->rectz); pa->rectz= NULL;
+	MEM_freeT(pa->rectp); pa->rectp= NULL;
+	MEM_freeT(pa->rectz); pa->rectz= NULL;
 	
-	if(edgerect) RE_freeN(edgerect);
+	if(edgerect) MEM_freeT(edgerect);
 	
 	/* display active layer */
 	rr->renlay= BLI_findlink(&rr->layers, R.r.actlay);
@@ -3190,8 +3192,8 @@ void zbufshade_tile(RenderPart *pa)
 	set_part_zbuf_clipflag(pa);
 	
 	/* zbuffer code clears/inits rects */
-	pa->rectp= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
-	pa->rectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
+	pa->rectp= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	pa->rectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	
 	shpi.thread= pa->thread;
 	
@@ -3241,7 +3243,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
-				float *acolrect= RE_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+				float *acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				float *fcol= rl->rectf, *acol= acolrect;
 				int x;
 				
@@ -3256,7 +3258,7 @@ void zbufshade_tile(RenderPart *pa)
 				for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
 					addAlphaOverFloat(fcol, acol);
 				}
-				RE_freeN(acolrect);
+				MEM_freeT(acolrect);
 			}
 		}
 		
@@ -3280,8 +3282,8 @@ void zbufshade_tile(RenderPart *pa)
 	/* display active layer */
 	rr->renlay= BLI_findlink(&rr->layers, R.r.actlay);
 	
-	RE_freeN(pa->rectp); pa->rectp= NULL;
-	RE_freeN(pa->rectz); pa->rectz= NULL;
+	MEM_freeT(pa->rectp); pa->rectp= NULL;
+	MEM_freeT(pa->rectz); pa->rectz= NULL;
 }
 
 /* ------------------------------------------------------------------------ */

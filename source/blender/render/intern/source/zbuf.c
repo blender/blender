@@ -55,8 +55,6 @@
 #include "radio_types.h"
 #include "radio.h"  /* needs RG, some root data for radiosity */
 
-#include "SDL_thread.h"
-
 #include "RE_render_ext.h"
 
 /* local includes */
@@ -87,15 +85,15 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
 	zspan->rectx= rectx;
 	zspan->recty= recty;
 	
-	zspan->span1= RE_mallocN(recty*sizeof(float), "zspan");
-	zspan->span2= RE_mallocN(recty*sizeof(float), "zspan");
+	zspan->span1= MEM_mallocT(recty*sizeof(float), "zspan");
+	zspan->span2= MEM_mallocT(recty*sizeof(float), "zspan");
 }
 
 static void zbuf_free_span(ZSpan *zspan)
 {
 	if(zspan) {
-		if(zspan->span1) RE_freeN(zspan->span1);
-		if(zspan->span2) RE_freeN(zspan->span2);
+		if(zspan->span1) MEM_freeT(zspan->span1);
+		if(zspan->span2) MEM_freeT(zspan->span2);
 		zspan->span1= zspan->span2= NULL;
 	}
 }
@@ -261,9 +259,9 @@ static APixstr *addpsmainA(ListBase *lb)
 {
 	APixstrMain *psm;
 
-	psm= RE_mallocN(sizeof(APixstrMain), "addpsmainA");
+	psm= MEM_mallocT(sizeof(APixstrMain), "addpsmainA");
 	BLI_addtail(lb, psm);
-	psm->ps= RE_callocN(4096*sizeof(APixstr),"pixstr");
+	psm->ps= MEM_callocT(4096*sizeof(APixstr),"pixstr");
 
 	return psm->ps;
 }
@@ -275,8 +273,8 @@ static void freepsA(ListBase *lb)
 	for(psm= lb->first; psm; psm= psmnext) {
 		psmnext= psm->next;
 		if(psm->ps)
-			RE_freeN(psm->ps);
-		RE_freeN(psm);
+			MEM_freeT(psm->ps);
+		MEM_freeT(psm);
 	}
 }
 
@@ -2398,7 +2396,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	zspan.zofsy= -pa->disprect.ymin;
 	
 	/* the buffers */
-	zspan.arectz= RE_mallocN(sizeof(int)*pa->rectx*pa->recty, "Arectz");
+	zspan.arectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "Arectz");
 	zspan.apixbuf= APixbuf;
 	zspan.apsmbase= apsmbase;
 	
@@ -2480,7 +2478,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		if(R.test_break()) break;
 	}
 	
-	RE_freeN(zspan.arectz);
+	MEM_freeT(zspan.arectz);
 	zbuf_free_span(&zspan);
 
 }
@@ -2646,7 +2644,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	if(R.test_break())
 		return;
 	
-	APixbuf= RE_callocN(pa->rectx*pa->recty*sizeof(APixstr), "APixbuf");
+	APixbuf= MEM_callocT(pa->rectx*pa->recty*sizeof(APixstr), "APixbuf");
 	
 	if(R.osa>16) {
 		printf("abufsetrow: osa too large\n");
@@ -2818,7 +2816,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 		offs+= pa->rectx;
 	}
 
-	RE_freeN(APixbuf);
+	MEM_freeT(APixbuf);
 	freepsA(&apsmbase);	
 
 }

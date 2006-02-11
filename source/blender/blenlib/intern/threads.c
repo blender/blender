@@ -191,6 +191,17 @@ void BLI_end_threads(ListBase *threadbase)
 	_malloc_lock= NULL;
 }
 
+void BLI_lock_thread(void)
+{
+	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+}
+
+void BLI_unlock_thread(void)
+{
+	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+}
+
+
 /* ***************** Thread safe MEM_malloc/calloc/free ************************** */
 
 void *MEM_mallocT(int len, char *name)

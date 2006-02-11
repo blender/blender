@@ -30,9 +30,10 @@
 
 /* external modules: */
 #include "MEM_guardedalloc.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
-#include "BKE_utildefines.h"
+#include "BLI_threads.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"        /* for rectcpy */
@@ -48,12 +49,9 @@
 #include "BKE_global.h"
 #include "BKE_image.h"   // BKE_write_ibuf 
 #include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
 #include "MTC_matrixops.h"
-
-#include "SDL_thread.h"
-#undef main 
-#define main main /* stupid SDL_main redefines main as SDL_main */
 
 /* this module */
 #include "render_types.h"
@@ -574,7 +572,6 @@ static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int fac
 
 int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
-	extern SDL_mutex *load_ibuf_lock; // initrender.c
 	extern Render R;				/* only in this call */
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
@@ -591,10 +588,10 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
 			// Now thread safe
-			if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
+			BLI_lock_thread();
 			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
 			if(env->ima->ok && env->ok==0) envmap_split_ima(env);
-			if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
+			BLI_unlock_thread();
 		}
 	}
 

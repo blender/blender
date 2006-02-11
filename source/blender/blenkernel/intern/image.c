@@ -572,7 +572,8 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 	ibuf->y /= 2;
 }
 
-
+/* important note: all calls here and calls inside can NOT use threadsafe malloc! */
+/* this entire function is mutex'ed with the same lock as for mallocs */
 void ima_ibuf_is_nul(Tex *tex, Image *ima)
 {
 	void (*de_interlacefunc)(struct ImBuf *ibuf);

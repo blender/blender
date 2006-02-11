@@ -48,6 +48,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -55,8 +56,6 @@
 #include "BKE_image.h"
 #include "BKE_texture.h"
 #include "BKE_library.h"
-
-#include "SDL_thread.h"
 
 #include "renderpipeline.h"
 #include "render_types.h"
@@ -106,10 +105,9 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 	}
 	
 	if(ima->ibuf==NULL) {
-		extern SDL_mutex *load_ibuf_lock; // initrender.c
-		if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
+		BLI_lock_thread();
 		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-		if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
+		BLI_unlock_thread();
 	}
 
 	if (ima->ok) {
@@ -594,7 +592,6 @@ static void makemipmap(Tex *tex, Image *ima)
 
 int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, TexResult *texres)
 {
-	extern SDL_mutex *load_ibuf_lock; // initrender.c
 	TexResult texr;
 	ImBuf *ibuf, *previbuf;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy;
@@ -611,18 +608,18 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 	}
 	
 	if(ima->ibuf==NULL) {
-		if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
+		BLI_lock_thread();
 		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-		if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
+		BLI_unlock_thread();
 	}
 	
 	if (ima->ok) {
 	
 		if(tex->imaflag & TEX_MIPMAP) {
 			if(ima->mipmap[0]==NULL) {
-				if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
+				BLI_lock_thread();
 				if(ima->mipmap[0]==NULL) makemipmap(tex, ima);
-				if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
+				BLI_unlock_thread();
 			}
 		}
 	

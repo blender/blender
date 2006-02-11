@@ -52,7 +52,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
-#include "IMB_imbuf.h"
+/* NOTE: no imbuf calls allowed in composit, we need threadsafe malloc! */
 #include "IMB_imbuf_types.h"
 
 #include "RE_pipeline.h"
@@ -143,6 +143,48 @@ static CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int re
 	return cbuf;
 }
 
+static CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy)
+{
+	CompBuf *outbuf; 
+	float *rectf, *newrectf, *rf;
+	int x, y, c, pixsize= inbuf->type;
+	int ofsx, ofsy, stepx, stepy;
+	
+	if(inbuf->x==newx && inbuf->y==newy)
+		return dupalloc_compbuf(inbuf);
+	
+	outbuf= alloc_compbuf(newx, newy, inbuf->type, 1);
+	newrectf= outbuf->rect;
+	
+	stepx = (65536.0 * (inbuf->x - 1.0) / (newx - 1.0)) + 0.5;
+	stepy = (65536.0 * (inbuf->y - 1.0) / (newy - 1.0)) + 0.5;
+	ofsy = 32768;
+	
+	for (y = newy; y > 0 ; y--){
+		rectf = inbuf->rect;
+		rectf += pixsize * (ofsy >> 16) * inbuf->x;
+
+		ofsy += stepy;
+		ofsx = 32768;
+		
+		for (x = newx ; x>0 ; x--) {
+			
+			rf= rectf + pixsize*(ofsx >> 16);
+			for(c=0; c<pixsize; c++)
+				newrectf[c] = rf[c];
+			
+			newrectf+= pixsize;
+			
+			ofsx += stepx;
+		}
+	}
+	
+	return outbuf;
+}
+
+
+
+/* **************************************************** */
 
 #if 0
 /* on first call, disprect should be initialized to 'out', then you can call this on all 'src' images */
@@ -418,7 +460,7 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 	bNodePreview *preview= node->preview;
 	
 	if(preview) {
-		ImBuf *ibuf= IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0, 0);	/* empty */
+		CompBuf *cbuf;
 		
 		if(stackbuf->x > stackbuf->y) {
 			preview->xsize= 140;
@@ -428,13 +470,13 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 			preview->ysize= 140;
 			preview->xsize= (140*stackbuf->x)/stackbuf->y;
 		}
-		ibuf->rect_float= stackbuf->rect;
-		ibuf= IMB_scalefastImBuf(ibuf, preview->xsize, preview->ysize);
 		
-		/* this ensures free-imbuf does the right stuff */
-		SWAP(float *, ibuf->rect_float, node->preview->rect);
+		cbuf= scalefast_compbuf(stackbuf, preview->xsize, preview->ysize);
 		
-		IMB_freeImBuf(ibuf);
+		/* this ensures free-compbuf does the right stuff */
+		SWAP(float *, cbuf->rect, node->preview->rect);
+		
+		free_compbuf(cbuf);
 	}
 }
 
@@ -490,7 +532,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		Image *ima= (Image *)node->id;
 		CompBuf *cbuf, *inbuf= in[0]->data;
 		int rectx, recty;
-
+		
 		if(inbuf==NULL) {
 			rectx= 320; recty= 256;
 		}
@@ -499,9 +541,33 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			recty= inbuf->y;
 		}
 		
-		if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-		ima->ibuf= IMB_allocImBuf(rectx, recty, 32, IB_rectfloat, 0); // do alloc
+		/* full copy of imbuf, but threadsafe... */
+		if(ima->ibuf==NULL) {
+			ima->ibuf = MEM_callocT(sizeof(struct ImBuf), "ImBuf_struct");
+			ima->ibuf->depth= 32;
+			ima->ibuf->ftype= TGA;
+		}
 		
+		/* cleanup of composit image */
+		if(ima->ibuf->rect) {
+			MEM_freeT(ima->ibuf->rect);
+			ima->ibuf->rect= NULL;
+			ima->ibuf->mall &= ~IB_rect;
+		}
+		if(ima->ibuf->zbuf_float) {
+			MEM_freeT(ima->ibuf->zbuf_float);
+			ima->ibuf->zbuf_float= NULL;
+			ima->ibuf->mall &= ~IB_zbuffloat;
+		}
+		if(ima->ibuf->rect_float)
+			MEM_freeT(ima->ibuf->rect_float);
+		
+		ima->ibuf->x= rectx;
+		ima->ibuf->y= recty;
+		ima->ibuf->mall |= IB_rectfloat;
+		ima->ibuf->rect_float= MEM_mallocT(4*rectx*recty*sizeof(float), "viewer rect");
+		
+		/* now we combine the input with ibuf */
 		cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	// no alloc
 		cbuf->rect= ima->ibuf->rect_float;
 		
@@ -520,10 +586,14 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			composit2_pixel_processor(node, cbuf, inbuf, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
 		
 		if(in[2]->data) {
-			CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 0);
-			addzbuffloatImBuf(ima->ibuf);
-			zbuf->rect= ima->ibuf->zbuf_float;
+			CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 1);
+			ima->ibuf->zbuf_float= zbuf->rect;
+			ima->ibuf->mall |= IB_zbuffloat;
+			
 			composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
+			
+			/* free compbuf, but not the rect */
+			zbuf->malloc= 0;
 			free_compbuf(zbuf);
 		}
 
@@ -725,6 +795,26 @@ static void animated_image(bNode *node, int cfra)
 	}
 }
 
+static float *float_from_byte_rect(int rectx, int recty, char *rect)
+{
+	/* quick method to convert byte to floatbuf */
+	float *rect_float= MEM_mallocT(4*sizeof(float)*rectx*recty, "float rect");
+	float *tof = rect_float;
+	int i;
+	
+	for (i = rectx*recty; i > 0; i--) {
+		tof[0] = ((float)rect[0])*(1.0f/255.0f);
+		tof[1] = ((float)rect[1])*(1.0f/255.0f);
+		tof[2] = ((float)rect[2])*(1.0f/255.0f);
+		tof[3] = ((float)rect[3])*(1.0f/255.0f);
+		rect += 4; 
+		tof += 4;
+	}
+	return rect_float;
+}
+
+
+
 static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
 {
 	Image *ima;
@@ -740,15 +830,19 @@ static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
 	if(ima->ok==0) return NULL;
 	
 	if(ima->ibuf==NULL) {
-		
+		BLI_lock_thread();
 		load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
+		BLI_unlock_thread();
 		if(ima->ibuf==NULL) {
 			ima->ok= 0;
 			return NULL;
 		}
 	}
-	if(ima->ibuf->rect_float==NULL)
-		IMB_float_from_rect(ima->ibuf);
+	if(ima->ibuf->rect_float==NULL) {
+		/* can't use imbuf module, we need secure malloc */
+		ima->ibuf->rect_float= float_from_byte_rect(ima->ibuf->x, ima->ibuf->y, (char *)ima->ibuf->rect);
+		ima->ibuf->mall |= IB_rectfloat;
+	}
 	
 	if(rd->scemode & R_COMP_CROP) {
 		stackbuf= get_cropped_compbuf(&rd->disprect, ima->ibuf->rect_float, ima->ibuf->x, ima->ibuf->y, CB_RGBA);
