@@ -541,6 +541,7 @@ void IMB_cache_limiter_unref(struct ImBuf * i)
 int IMB_cache_limiter_get_refcount(struct ImBuf * i)
 {
 	if (i->c_handle) {
-		MEM_CacheLimiter_get_refcount(i->c_handle);
+		return MEM_CacheLimiter_get_refcount(i->c_handle);
 	}
+	return 0;
 }
