@@ -797,6 +797,7 @@ void BLI_make_existing_file(char *name)
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file)
 {
+	int sl;
 
 	if (!string || !dir || !file) return; /* We don't want any NULLs */
 	
@@ -827,9 +828,15 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 	
 	strcat(string, dir);
 
-	/* Make sure string ends in one (and only one) slash */
-	if (string[strlen(string)-1] != '/' && string[strlen(string)-1] != '\\')
-		strcat(string, "/");
+	/* Make sure string ends in one (and only one) slash */	
+	/* first trim all slashes from the end of the string */
+	sl = strlen(string);
+	while (sl>0 && ( string[sl-1] == '/' || string[sl-1] == '\\') ) {
+		string[sl-1] = '\0';
+		sl--;
+	}
+	/* since we've now removed all slashes, put back one slash at the end. */
+	strcat(string, "/");
 	
 	while (*file && (*file == '/' || *file == '\\')) /* Trim slashes from the front of file */
 		file++;
