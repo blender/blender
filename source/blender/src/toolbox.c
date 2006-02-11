@@ -1803,7 +1803,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 {	0, "Split|Y", 				4, 		NULL},
 {	0, "Separate|P", 			3, 		NULL},
 {	0, "SEPR",					0, NULL},
-{	0, "Smooth|W, 0", 			2, NULL},
+{	0, "Smooth|W, Alt 1", 			2, NULL},
 {	0, "Remove Doubles|W, 5", 			1, NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", 	0, NULL},
@@ -1813,7 +1813,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 static TBitem tb_mesh_edit_edge[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
 {	0, "SEPR",						0, NULL},
-{	0, "Bevel|W, Alt 1", 					6, 		NULL},
+{	0, "Bevel|W, Alt 2", 					6, 		NULL},
 {	0, "Loop Subdivide|Ctrl R", 		4, 		NULL},
 {	0, "Knife Subdivide...|Shift K", 	3, 		NULL},
 {	0, "SEPR", 								0, NULL},
@@ -1841,8 +1841,8 @@ static TBitem tb_mesh_edit_face[]= {
 {	0, "Convert to Triangles|Ctrl T", 	2, 		NULL},
 {	0, "Convert to Quads|Alt J", 		3, 		NULL},
 {	0, "Flip Triangle Edges|Ctrl F", 	4, 		NULL},
-{	0, "Set Smooth|W, Alt 4", 	6, 		NULL},
-{	0, "Set Solid|W, Alt 5", 	7, 		NULL},
+{	0, "Set Smooth|W, Alt 3", 	6, 		NULL},
+{	0, "Set Solid|W, Alt 4", 	7, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_facesmenu}};
 
 
