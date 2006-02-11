@@ -805,7 +805,8 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 	glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
 					  GL_RGBA, GL_FLOAT, rectf);
 	glPixelZoom(1.0, 1.0);
-	glFlush();
+//	glFlush();
+	glFinish();
 	glDrawBuffer(GL_BACK);
 }
 
