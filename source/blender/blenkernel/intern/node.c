@@ -828,7 +828,7 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 				nnode->storage= MEM_dupallocN(nnode->storage);
 		}
 		else if(ntree->type==NTREE_COMPOSIT) {
-			if(node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB)
+			if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
 				nnode->storage= curvemapping_copy(node->storage);
 			else 
 				nnode->storage= MEM_dupallocN(nnode->storage);
