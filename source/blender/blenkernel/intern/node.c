@@ -1057,10 +1057,11 @@ void ntreeFreeCache(bNodeTree *ntree)
 	bNode *node;
 	
 	if(ntree==NULL) return;
-	
+
 	if(ntree->type==NTREE_COMPOSIT)
 		for(node= ntree->nodes.first; node; node= node->next)
 			composit_free_node_cache(node);
+
 }
 
 void ntreeMakeLocal(bNodeTree *ntree)
@@ -1506,6 +1507,23 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 			node->typeinfo->execfunc(data, node, nsin, nsout);
 		}
 	}
+	
+	/* free internal group output nodes */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->execfunc) {
+			bNodeSocket *sock;
+			
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				if(sock->intern) {
+					bNodeStack *ns= stack + sock->stack_index;
+					if(ns->data) {
+						free_compbuf(ns->data);
+						ns->data= NULL;
+					}
+				}
+			}
+		}
+	}
 }
 
 /* recursively called for groups */
@@ -1570,7 +1588,7 @@ static void composit_end_exec(bNodeTree *ntree)
 	bNode *node;
 	bNodeStack *ns;
 	int a;
-	
+
 	for(node= ntree->nodes.first; node; node= node->next) {
 		bNodeSocket *sock;
 		
@@ -1586,8 +1604,10 @@ static void composit_end_exec(bNodeTree *ntree)
 	
 	/* internally, group buffers are not stored */
 	for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
-		if(ns->data)
+		if(ns->data) {
+			printf("freed leftover buffer from stack\n");
 			free_compbuf(ns->data);
+		}
 	}
 }
 

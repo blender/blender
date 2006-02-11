@@ -62,6 +62,7 @@ void converttopremul(struct ImBuf *ibuf);
 void tag_image_time(struct Image *ima);
 void free_old_images(void);
 
+void free_all_imagetextures(void);
 
 #ifdef __cplusplus
 }

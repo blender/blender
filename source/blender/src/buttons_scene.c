@@ -913,6 +913,7 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	return block;
 }
 
+#if 0
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *post_render_menu(void *arg_unused)
 {
@@ -935,6 +936,7 @@ static uiBlock *post_render_menu(void *arg_unused)
 	
 	return block;
 }
+#endif
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *framing_render_menu(void *arg_unused)
@@ -1246,31 +1248,18 @@ static void render_panel_output(void)
 	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
 	uiBlockEndAlign(block);
 
-	uiDefButBitS(block, TOG, R_EXTENSION, 0, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
+	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 	
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_EDGE, 0,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
+	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display edge settings");
-	
-	/* postprocess render buttons */
-	uiBlockBeginAlign(block);
-//	if(R.rectftot)
-//		uiDefIconTextButBitI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
-//	else
-//		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
-	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 170, 68, 140, 20, "Applies on RGBA floats while render or with Fbuf available");
 	uiBlockEndAlign(block);
-	
-	/* removed, for time being unified and normal render will use same gamma for blending (2.0) */
-	//if (G.scene->r.mode & R_GAMMA) {
-	//	uiDefButF(block, NUMSLI, B_NOP,"Gamma:",		10, 68, 142, 20,
-	//			 &(G.scene->r.gamma), 0.2, 5.0, B_GAMMASLI, 0,
-	//			 "The gamma value for blending oversampled images (1.0 = no correction).");
-	//}
+
+	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 170, 68, 140, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
 }
 
 static void render_panel_render(void)

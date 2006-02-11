@@ -73,6 +73,7 @@
 #include "BKE_group.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"
+#include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
@@ -2581,6 +2582,10 @@ void RE_Database_Free(Render *re)
 	
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
+	
+	if(re->scene->r.scemode & R_FREE_IMAGE)
+		free_all_imagetextures();
+
 }
 
 /* per face check if all samples should be taken.
@@ -3070,9 +3075,11 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 			}
 			
 		}
+		if(re->test_break()) break;
 	}
 	
-	project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0);
+	if(!re->test_break())
+		project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0);
 
 	/* do this in end, particles for example need cfra */
 	G.scene->r.cfra-=timeoffset;
@@ -3170,12 +3177,13 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	/* free dbase and make the future one */
 	RE_Database_Free(re);
 	
-	/* creates entire dbase */
-	re->i.infostr= "Calculating next frame vectors";
-	re->stats_draw(&re->i);
-	
-	database_fromscene_vectors(re, sce, +1);
-	
+	if(!re->test_break()) {
+		/* creates entire dbase */
+		re->i.infostr= "Calculating next frame vectors";
+		re->stats_draw(&re->i);
+		
+		database_fromscene_vectors(re, sce, +1);
+	}	
 	/* copy away vertex info */
 	newvertnodes= re->vertnodes;
 	newvertnodeslen= re->vertnodeslen;
@@ -3189,46 +3197,50 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	
 	/* free dbase and make the real one */
 	RE_Database_Free(re);
-	RE_Database_FromScene(re, sce, 1);
 	
-	for(step= 0; step<2; step++) {
-		
-		if(step) {
-			table= &newtable;
-			vertnodes= newvertnodes;
-		}
-		else {
-			table= &oldtable;
-			vertnodes= oldvertnodes;
-		}
-		
-		oldobren= table->first;
-		
-		for(obren= re->objecttable.first; obren && oldobren; obren= obren->next, oldobren= oldobren->next) {
-			int ok= 1;
-
-			/* find matching object in old table */
-			if(oldobren->ob!=obren->ob || oldobren->par!=obren->par || oldobren->index!=obren->index) {
-				ok= 0;
-				for(oldobren= table->first; oldobren; oldobren= oldobren->next)
-					if(oldobren->ob==obren->ob && oldobren->par==obren->par && oldobren->index==obren->index)
-						break;
-				if(oldobren==NULL)
-					oldobren= table->first;
-				else
-					ok= 1;
+	if(!re->test_break())
+		RE_Database_FromScene(re, sce, 1);
+	
+	if(!re->test_break()) {
+		for(step= 0; step<2; step++) {
+			
+			if(step) {
+				table= &newtable;
+				vertnodes= newvertnodes;
 			}
-			if(ok==0) {
-				printf("speed table: missing object %s\n", obren->ob->id.name+2);
-				continue;
-			}
-			/* check if both have same amounts of vertices */
-			if(obren->endvert-obren->startvert != oldobren->endvert-oldobren->startvert) {
-				printf("Warning: object %s has different amount of vertices on other frame\n", obren->ob->id.name+2);
-				continue;
+			else {
+				table= &oldtable;
+				vertnodes= oldvertnodes;
 			}
 			
-			calculate_speedvectors(re, vertnodes, obren->startvert, oldobren->startvert, obren->endvert, step);
+			oldobren= table->first;
+			
+			for(obren= re->objecttable.first; obren && oldobren; obren= obren->next, oldobren= oldobren->next) {
+				int ok= 1;
+
+				/* find matching object in old table */
+				if(oldobren->ob!=obren->ob || oldobren->par!=obren->par || oldobren->index!=obren->index) {
+					ok= 0;
+					for(oldobren= table->first; oldobren; oldobren= oldobren->next)
+						if(oldobren->ob==obren->ob && oldobren->par==obren->par && oldobren->index==obren->index)
+							break;
+					if(oldobren==NULL)
+						oldobren= table->first;
+					else
+						ok= 1;
+				}
+				if(ok==0) {
+					// printf("speed table: missing object %s\n", obren->ob->id.name+2);
+					continue;
+				}
+				/* check if both have same amounts of vertices */
+				if(obren->endvert-obren->startvert != oldobren->endvert-oldobren->startvert) {
+					printf("Warning: object %s has different amount of vertices on other frame\n", obren->ob->id.name+2);
+					continue;
+				}
+				
+				calculate_speedvectors(re, vertnodes, obren->startvert, oldobren->startvert, obren->endvert, step);
+			}
 		}
 	}
 	

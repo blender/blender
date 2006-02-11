@@ -80,17 +80,17 @@ void free_image_buffers(Image *ima)
 	if(ima->ibuf) {
 		if (ima->ibuf->userdata) {
 			MEM_freeN(ima->ibuf->userdata);
-			ima->ibuf->userdata = 0;
+			ima->ibuf->userdata = NULL;
 		}
 		IMB_freeImBuf(ima->ibuf);
-		ima->ibuf= 0;
+		ima->ibuf= NULL;
 	}
 	if(ima->anim) IMB_free_anim(ima->anim);
-	ima->anim= 0;
+	ima->anim= NULL;
 	
 	for(a=0; a<BLI_ARRAY_NELEMS(ima->mipmap); a++) {
 		if(ima->mipmap[a]) IMB_freeImBuf(ima->mipmap[a]);
-		ima->mipmap[a]= 0;
+		ima->mipmap[a]= NULL;
 	}
 	
 	free_realtime_image(ima);
@@ -273,6 +273,30 @@ void free_unused_animimages()
 	}
 }
 
+void free_all_imagetextures(void)
+{
+	Tex *tex;
+	Image *ima;
+	unsigned int totsize= 0;
+	
+	for(ima= G.main->image.first; ima; ima= ima->id.next)
+		ima->id.flag &= ~LIB_DOIT;
+	
+	for(tex= G.main->tex.first; tex; tex= tex->id.next)
+		if(tex->ima)
+			tex->ima->id.flag |= LIB_DOIT;
+	
+	for(ima= G.main->image.first; ima; ima= ima->id.next) {
+		if(ima->ibuf && (ima->id.flag & LIB_DOIT)) {
+			if(ima->mipmap[0]) 
+				totsize+= 1.33*ima->ibuf->x*ima->ibuf->y*4;
+			else
+				totsize+= ima->ibuf->x*ima->ibuf->y*4;
+			free_image_buffers(ima);
+		}
+	}
+	printf("freed total %d MB\n", totsize/(1024*1024));
+}
 
 /* *********** READ AND WRITE ************** */
 
@@ -474,8 +498,8 @@ struct anim *openanim(char * name, int flags)
 
 	
 	ibuf = IMB_anim_absolute(anim, 0);
-	if (ibuf == 0) {
-		printf("anim_absolute 0 failed\n");
+	if (ibuf == NULL) {
+		printf("not an anim; %s\n", name);
 		IMB_free_anim(anim);
 		return(0);
 	}

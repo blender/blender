@@ -670,9 +670,10 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		RE_stats_draw_cb(re, view3d_previewrender_stats);
 		RE_test_break_cb(re, qtest);
 		
-		/* no osa, blur, seq, for preview render */
+		/* no osa, blur, seq, layers, etc for preview render */
 		rdata= G.scene->r;
-		rdata.mode &= ~(R_OSA|R_MBLUR|R_DOSEQ);
+		rdata.mode &= ~(R_OSA|R_MBLUR);
+		rdata.scemode &= ~(R_DOSEQ|R_DOCOMP|R_FREE_IMAGE);
 		rdata.layers.first= rdata.layers.last= NULL;
 	
 		RE_InitState(re, &rdata, sa->winx, sa->winy, &ri->disprect);
