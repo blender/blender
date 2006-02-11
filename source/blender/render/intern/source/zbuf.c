@@ -1871,13 +1871,20 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size)
 
 /* ******************** VECBLUR ACCUM BUF ************************* */
 
-static void zbuf_fill_in_rgba(ZSpan *zspan, float *col, float *v1, float *v2, float *v3, float *v4)
+typedef struct DrawBufPixel {
+	float *colpoin;
+	float alpha;
+} DrawBufPixel;
+
+
+static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float *v2, float *v3, float *v4)
 {
+	DrawBufPixel *rectpofs, *rp;
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
 	float x1,y1,z1,x2,y2,z2,xx1;
 	float *span1, *span2;
-	float *rectpofs, *rp, *rectzofs, *rz;
+	float *rectzofs, *rz;
 	int x, y;
 	int sn1, sn2, rectx, my0, my2;
 	
@@ -1920,8 +1927,8 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, float *col, float *v1, float *v2, fl
 	
 	/* start-offset in rect */
 	rectx= zspan->rectx;
-	rectzofs= (float *)(zspan->rectz+rectx*my2);
-	rectpofs= (float *)(zspan->rectp+4*rectx*my2);
+	rectzofs= (float *)(zspan->rectz + rectx*my2);
+	rectpofs= ((DrawBufPixel *)zspan->rectp) + rectx*my2;
 	
 	/* correct span */
 	sn1= (my0 + my2)/2;
@@ -1946,24 +1953,24 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, float *col, float *v1, float *v2, fl
 		if(sn2>=sn1) {
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
-			rp= rectpofs+4*sn1;
+			rp= rectpofs+sn1;
 			x= sn2-sn1;
 			
 			while(x>=0) {
 				if( zverg < *rz) {
 					*rz= zverg;
-					QUATCOPY(rp, col);
+					*rp= *col;
 				}
 				zverg+= zxd;
 				rz++; 
-				rp+=4; 
+				rp++; 
 				x--;
 			}
 		}
 		
 		zy0-=zyd;
 		rectzofs-= rectx;
-		rectpofs-= 4*rectx;
+		rectpofs-= rectx;
 	}
 }
 
@@ -2061,15 +2068,15 @@ static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 	}
 }
 
-
 void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect)
 {
 	ZSpan zspan;
+	DrawBufPixel *rectdraw, *dr;
 	float jit[16][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
-	float *rectdraw, *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz;
+	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
 	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
-	int y, x, step, maxspeed= nbd->maxspeed, samples= nbd->samples;
+	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	char *rectmove, *dm;
 	
 	zbuf_alloc_span(&zspan, xsize, ysize);
@@ -2083,8 +2090,38 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	zspan.rectz= (int *)rectz;
 	
 	rectmove= MEM_callocT(xsize*ysize, "rectmove");
-	rectdraw= MEM_mallocT(4*sizeof(float)*xsize*ysize, "rect draw");
+	rectdraw= MEM_mallocT(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
 	zspan.rectp= (int *)rectdraw;
+	
+	/* min speed? then copy speedbuffer to recalculate speed vectors */
+	if(nbd->minspeed) {
+		float minspeed= (float)nbd->minspeed;
+		float minspeedsq= minspeed*minspeed;
+		
+		minvecbufrect= MEM_mallocT(4*sizeof(float)*xsize*ysize, "minspeed buf");
+		
+		dvec1= vecbufrect;
+		dvec2= minvecbufrect;
+		for(x= 2*xsize*ysize; x>0; x--, dvec1+=2, dvec2+=2) {
+			if(dvec1[0]==0.0f && dvec1[1]==0.0f) {
+				dvec2[0]= dvec1[0];
+				dvec2[1]= dvec1[1];
+			}
+			else {
+				float speedsq= dvec1[0]*dvec1[0] + dvec1[1]*dvec1[1];
+				if(speedsq <= minspeedsq) {
+					dvec2[0]= 0.0f;
+					dvec2[1]= 0.0f;
+				}
+				else {
+					speedsq= 1.0f - minspeed/sqrt(speedsq);
+					dvec2[0]= speedsq*dvec1[0];
+					dvec2[1]= speedsq*dvec1[1];
+				}
+			}
+		}
+		SWAP(float *, minvecbufrect, vecbufrect);
+	}
 	
 	/* make vertex buffer with averaged speed and zvalues */
 	rectvz= MEM_callocT(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
@@ -2158,7 +2195,6 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 						}
 					}
 				}
-				
 				if(maxspeed) {
 					float speedsq= dvz[0]*dvz[0] + dvz[1]*dvz[1];
 					if(speedsq > maxspeedsq) {
@@ -2201,11 +2237,9 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	/* tag moving pixels, only these faces we draw */
 	dm= rectmove;
 	dvec1= vecbufrect;
-	dimg= imgrect;
-	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4, dimg+=4) {
-		if(dimg[3]>0.9f)
-			if(dvec1[0]!=0.0f || dvec1[1]!=0.0f)
-				*dm= 255;
+	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4) {
+		if(dvec1[0]!=0.0f || dvec1[1]!=0.0f)
+			*dm= 255;
 	}
 	
 	antialias_tagbuf(xsize, ysize, rectmove);
@@ -2218,7 +2252,6 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	for(step= 1; step<=samples; step++) {
 		float speedfac= 0.5f*nbd->fac*(float)step/(float)(samples+1);
 		float blendfac= 1.0f/(ABS(step)+1);
-		float col[4];
 		int side, z= 4;
 		
 		for(side=0; side<2; side++) {
@@ -2235,7 +2268,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 				}
 			
 			/* clear drawing buffer */
-			for(x= 4*xsize*ysize-1; x>=0; x--) rectdraw[x]= 0.0f;
+			for(x= xsize*ysize-1; x>=0; x--) rectdraw[x].colpoin= NULL;
 			
 			dimg= imgrect;
 			dm= rectmove;
@@ -2252,7 +2285,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
 				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=5, dz2+=5, dm++) {
 					if(*dm>1) {
-						float *colp;
+						DrawBufPixel col;
 						
 						/* make vertices */
 						v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= dz1[z];
@@ -2260,18 +2293,12 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 						v3[0]= speedfac*dz2[5]+fx+1.0f;		v3[1]= speedfac*dz2[6]+fy+1.0f;		v3[2]= dz2[z+5];
 						v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= dz2[z];
 						
-						/* make sure we fill in premulled */
-						if(*dm==255) colp= dimg;
-						else {
-							colp= col;
-							col[3]= ((float)*dm)/255.0f;
-							col[0]= col[3]*dimg[0];
-							col[1]= col[3]*dimg[1];
-							col[2]= col[3]*dimg[2];
-							col[3]= col[3]*dimg[3];
-						}
+						if(*dm==255) col.alpha= 1.0f;
+						else if(*dm<2) col.alpha= 0.0f;
+						else col.alpha= ((float)*dm)/255.0f;
+						col.colpoin= dimg;
 						
-						zbuf_fill_in_rgba(&zspan, colp, v1, v2, v3, v4);
+						zbuf_fill_in_rgba(&zspan, &col, v1, v2, v3, v4);
 					}
 				}
 				dz1+=5;
@@ -2279,22 +2306,15 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			}
 			
 			/* accum */
-			for(dz1= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dz1+=4, dz2+=4) {
-				if(dz1[3]!=0.0f) {
-					//if(dz1[3]==1.0f) {
-					//	dz2[0]= mfac*dz2[0] + blendfac*dz1[0];
-					//	dz2[1]= mfac*dz2[1] + blendfac*dz1[1];
-					//	dz2[2]= mfac*dz2[2] + blendfac*dz1[2];
-					//	dz2[3]= mfac*dz2[3] + blendfac*dz1[3];
-					//}
-					//else {
-						float bfac= dz1[3]*blendfac;
-						float mf= 1.0f - bfac;
-						dz2[0]= mf*dz2[0] + blendfac*dz1[0];
-						dz2[1]= mf*dz2[1] + blendfac*dz1[1];
-						dz2[2]= mf*dz2[2] + blendfac*dz1[2];
-						dz2[3]= mf*dz2[3] + bfac;
-					//}
+			for(dr= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dr++, dz2+=4) {
+				if(dr->colpoin) {
+					float bfac= dr->alpha*blendfac;
+					float mf= 1.0f - bfac;
+					
+					dz2[0]= mf*dz2[0] + bfac*dr->colpoin[0];
+					dz2[1]= mf*dz2[1] + bfac*dr->colpoin[1];
+					dz2[2]= mf*dz2[2] + bfac*dr->colpoin[2];
+					dz2[3]= mf*dz2[3] + bfac*dr->colpoin[3];
 				}
 			}
 		}
@@ -2304,6 +2324,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	MEM_freeT(rectmove);
 	MEM_freeT(rectdraw);
 	MEM_freeT(rectvz);
+	if(minvecbufrect) MEM_freeT(vecbufrect);  /* rects were swapped! */
 	zbuf_free_span(&zspan);
 }
 
@@ -2464,8 +2485,31 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 
 }
 
-/* different rules for transparent pass...  */
-/* if shr is zero, we clear winspeed if it's initialized to max still */
+/* different rules for speed in transparent pass...  */
+/* if speed is zero or alpha small, we clear winspeed if it's initialized to max still */
+
+static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha)
+{
+	RenderPass *rpass;
+	
+	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
+		if(rpass->passtype==SCE_PASS_VECTOR) {
+			float *fp= rpass->rect + 4*offset;
+			
+			if(speed && alpha>0.95f) {
+				QUATCOPY(fp, speed);
+			}
+			else {
+				/* clear */
+				if(fp[0]==PASS_VECTOR_MAX) fp[0]= 0.0f;
+				if(fp[1]==PASS_VECTOR_MAX) fp[1]= 0.0f;
+				if(fp[2]==PASS_VECTOR_MAX) fp[2]= 0.0f;
+				if(fp[3]==PASS_VECTOR_MAX) fp[3]= 0.0f;
+			}
+		}
+	}
+}
+
 static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float weight)
 {
 	RenderPass *rpass;
@@ -2496,30 +2540,6 @@ static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, flo
 				break;
 			case SCE_PASS_NORMAL:
 				if(shr) col= shr->nor;
-				break;
-			case SCE_PASS_VECTOR:
-			{
-				fp= rpass->rect + 4*offset;
-				if(shr) {
-					if(weight==1.0f) {
-						QUATCOPY(fp, shr->winspeed);
-					}
-					else {
-						/* only can do this when speed was cleared! */
-						fp[0]+= weight*shr->winspeed[0];
-						fp[1]+= weight*shr->winspeed[1];
-						fp[2]+= weight*shr->winspeed[2];
-						fp[3]+= weight*shr->winspeed[3];
-					}
-				}
-				else {
-					/* clear */
-					if(fp[0]==PASS_VECTOR_MAX) fp[0]= 0.0f;
-					if(fp[1]==PASS_VECTOR_MAX) fp[1]= 0.0f;
-					if(fp[2]==PASS_VECTOR_MAX) fp[2]= 0.0f;
-					if(fp[3]==PASS_VECTOR_MAX) fp[3]= 0.0f;
-				}
-			}
 				break;
 		}
 		if(col) {
@@ -2683,7 +2703,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 			
 			if(ap->p[0]==NULL) {
 				if(addpassflag & SCE_PASS_VECTOR) 
-					add_transp_passes(rl, od, NULL, 1.0f);
+					add_transp_speed(rl, od, NULL, 0.0f);
 			}
 			else {
 				/* sort in z */
@@ -2713,8 +2733,13 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 					else {
 						QUATCOPY(pass, shpi.shr.combined);
 					}
+					
 					if(addpassflag) 
 						add_transp_passes(rl, od, &shpi.shr, 1.0f);
+					
+					if(addpassflag & SCE_PASS_VECTOR)
+						add_transp_speed(rl, od, shpi.shr.winspeed, pass[3]);
+					
 					if(addzbuf)
 						if(pa->rectz[od]>zrow[0][0])
 							pa->rectz[od]= zrow[0][0];
@@ -2745,9 +2770,11 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 							addAlphaUnderFloat(pass, shpi.shr.combined);
 							if(addpassflag) 
 								add_transp_passes(rl, od, &shpi.shr, 1.0f);
-
+							
 							if(pass[3]>=0.999) break;
 						}
+						if(addpassflag & SCE_PASS_VECTOR)
+							add_transp_speed(rl, od, shpi.shr.winspeed, pass[3]);
 					}
 					else {
 						/* for each mask-sample we alpha-under colors. then in end it's added using filter */
@@ -2762,15 +2789,19 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 							if(sval==0) break;
 						}
 						
-						/* we need to clear speed vectors */
-						if(addpassflag & SCE_PASS_VECTOR) 
-							add_transp_passes(rl, od, NULL, 1.0f);
-						
 						for(a=0; a<R.osa; a++) {
 							add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
 						
 							if(addpassflag) 
 								add_transp_passes(rl, od, samp_shr+a, alpha[1]);
+						}
+						
+						if(addpassflag & SCE_PASS_VECTOR) {
+							fac= 0.0f;
+							for(a=0; a<R.osa; a++) 
+								fac+= samp_shr[a].combined[3];
+							fac*= alpha[1];
+							add_transp_speed(rl, od, samp_shr[0].winspeed, fac);
 						}
 					}
 				}
