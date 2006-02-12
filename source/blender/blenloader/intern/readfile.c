@@ -5288,6 +5288,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 241) {
 		Tex *tex;
 		Scene *sce;
+		Lamp *la;
 		bArmature *arm;
 		bNodeTree *ntree;
 		
@@ -5333,6 +5334,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
 			ntree_version_241(ntree);
+		
+		for(la= main->lamp.first; la; la= la->id.next)
+			if(la->buffers==0)
+				la->buffers= 1;
 		
 //		for(tex= main->tex.first; tex; tex= tex->id.next)
 //			tex->imaflag |= TEX_GAUSS_MIP;
@@ -5549,16 +5554,16 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 		}
 		else {
 			id= is_yet_read(mainvar, bhead);
-			if(id==0) {
+			if(id==NULL) {
 				// BHEAD+DATA dependancy
 				id= (ID *)(bhead+1);
 				read_libblock(fd, mainvar, bhead, LIB_TESTIND, NULL);
 			}
 			else {
-				/* removed line below... I *really* dont know whatfor (Id is read, so...) 
-				   it caused a whole lot of extra and unneeded oldmap entries */
-				/* oldnewmap_insert(fd->libmap, bhead->old, id, 1); */
-				/* printf("expand: already read %s\n", id->name); */
+				/* this is actually only needed on UI call? when ID was already read before, and another append
+				   happens which invokes same ID... in that case the lookup table needs this entry */
+				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+				// printf("expand: already read %s\n", id->name);
 			}
 		}
 	}
