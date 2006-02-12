@@ -87,6 +87,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
+#include "PIL_time.h"
 #include "IMB_imbuf_types.h"
 
 #include "envmap.h"
@@ -2468,6 +2469,8 @@ static void set_phong_threshold(Render *re, Object *ob, int startface, int numfa
 /* index = when duplicater copies same object (particle), the counter */
 static void init_render_object(Render *re, Object *ob, Object *par, int index, int only_verts)
 {
+	static double lasttime= 0.0;
+	double time;
 	float mat[4][4];
 	int startface, startvert;
 	
@@ -2506,6 +2509,17 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 		ob->smoothresh= 0.0;
 		if( (re->r.mode & R_RAYTRACE) && (re->r.mode & R_SHADOW) ) 
 			set_phong_threshold(re, ob, startface, re->totvlak-startface, startvert, re->totvert-startvert);
+	}
+	
+	time= PIL_check_seconds_timer();
+	if(time - lasttime > 1.0) {
+		lasttime= time;
+		/* clumsy copying still */
+		re->i.totvert= re->totvert;
+		re->i.totface= re->totvlak;
+		re->i.tothalo= re->tothalo;
+		re->i.totlamp= re->totlamp;
+		re->stats_draw(&re->i);
 	}
 }
 
@@ -2773,8 +2787,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 
 	re->scene= scene;
 	
+	/* per second, per object, stats print this */
 	re->i.infostr= "Preparing Scene data";
-	re->stats_draw(&re->i);
 
 	/* XXX add test if dbase was filled already? */
 	
@@ -2872,6 +2886,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 							else init_render_object(re, obd, ob, dob->index, 0);
 						}
 						Mat4CpyMat4(obd->obmat, dob->omat);
+						if(re->test_break()) break;
 					}
 					free_object_duplilist(lb);
 				}
@@ -2984,6 +2999,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	
 	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
+	re->i.totface=re->i.totvert=re->i.totlamp=re->i.tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
 
 	slurph_opt= 0;
@@ -3134,9 +3150,6 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	int step;
 	
 	re->i.infostr= "Calculating previous vectors";
-	re->stats_draw(&re->i);
-	
-	printf("creating speed vectors \n");
 	re->r.mode |= R_SPEED;
 
 	/* creates entire dbase */
@@ -3159,7 +3172,6 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	if(!re->test_break()) {
 		/* creates entire dbase */
 		re->i.infostr= "Calculating next frame vectors";
-		re->stats_draw(&re->i);
 		
 		database_fromscene_vectors(re, sce, +1);
 	}	

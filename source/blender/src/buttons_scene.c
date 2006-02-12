@@ -1740,13 +1740,26 @@ static void layer_copy_func(void *lay_v, void *lay_p)
 	allqueue(REDRAWBUTSSCENE, 0);
 }
 
-static void delete_scene_layer_func(void *srl_v, void *unused1)
+static void delete_scene_layer_func(void *srl_v, void *act_i)
 {
 	if(BLI_countlist(&G.scene->r.layers)>1) {
+		long act= (long)act_i;
+		
 		BLI_remlink(&G.scene->r.layers, srl_v);
 		MEM_freeN(srl_v);
 		G.scene->r.actlay= 0;
 		
+		if(G.scene->nodetree) {
+			bNode *node;
+			for(node= G.scene->nodetree->nodes.first; node; node= node->next) {
+				if(node->type==CMP_NODE_R_RESULT && node->id==NULL) {
+					if(node->custom1==act)
+						node->custom1= 0;
+					else if(node->custom1>act)
+						node->custom1--;
+				}
+			}
+		}
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWNODE, 0);
 	}
@@ -1758,7 +1771,7 @@ static void rename_scene_layer_func(void *srl_v, void *unused_v)
 		SceneRenderLayer *srl= srl_v;
 		bNode *node;
 		for(node= G.scene->nodetree->nodes.first; node; node= node->next) {
-			if(node->type==CMP_NODE_R_RESULT) {
+			if(node->type==CMP_NODE_R_RESULT && node->id==NULL) {
 				if(node->custom1==G.scene->r.actlay)
 					BLI_strncpy(node->name, srl->name, NODE_MAXSTR);
 			}
@@ -1837,7 +1850,7 @@ static void render_panel_layers(void)
 	bt= uiDefBut(block, TEX, REDRAWNODE, "",  33,130,252,20, srl->name, 0.0, 31.0, 0, 0, "");
 	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
 	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 130, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
-	uiButSetFunc(bt, delete_scene_layer_func, srl, NULL);
+	uiButSetFunc(bt, delete_scene_layer_func, srl, (void *)(long)G.scene->r.actlay);
 	uiBlockEndAlign(block);
 
 	/* RenderLayer visible-layers */

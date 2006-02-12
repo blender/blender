@@ -707,6 +707,16 @@ static RenderPart *find_next_part(Render *re)
 	return best;
 }
 
+static void print_part_stats(Render *re, RenderPart *pa)
+{
+	char str[64];
+	
+	sprintf(str, "Part %d-%d\n", pa->nr, re->i.totpart);
+	re->i.infostr= str;
+	re->stats_draw(&re->i);
+	re->i.infostr= NULL;
+}
+
 static void threaded_tile_processor(Render *re)
 {
 	ListBase threads;
@@ -755,6 +765,7 @@ static void threaded_tile_processor(Render *re)
 				if(pa->result) {
 					BLI_remove_thread(&threads, pa);
 					re->display_draw(pa->result, NULL);
+					print_part_stats(re, pa);
 					free_render_result(pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
@@ -947,6 +958,8 @@ static void do_render_final(Render *re)
 				/* checks if there are render-result nodes that need scene */
 				ntree_render_scenes(re);
 				
+				re->i.infostr= "Compositing";
+				re->stats_draw(&re->i);
 				ntreeCompositExecTree(re->scene->nodetree, &re->r, G.background==0);
 			}
 		}

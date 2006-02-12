@@ -762,7 +762,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 	/* if renrect argument, we only display scanlines */
 	if(renrect) {
 		ymin= renrect->ymin;
-		ymax= renrect->ymax-ymin - 1;	/* dunno... scanline updating seems to be nasty? */
+		ymax= renrect->ymax-ymin;	/* dunno... scanline updating seems to be nasty? */
 		if(ymax<2) return;
 		renrect->ymin= renrect->ymax;
 	}
