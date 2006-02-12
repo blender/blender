@@ -53,7 +53,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"	/* PET modes			*/
+#include "DNA_scene_types.h"		/* PET modes			*/
 #include "DNA_screen_types.h"	/* area dimensions		*/
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -70,7 +70,7 @@
 #include "BIF_space.h"			/* undo					*/
 #include "BIF_toets.h"			/* persptoetsen			*/
 #include "BIF_mywindow.h"		/* warp_pointer			*/
-#include "BIF_toolbox.h"		/* notice				*/
+#include "BIF_toolbox.h"			/* notice				*/
 #include "BIF_editmesh.h"
 #include "BIF_editsima.h"
 #include "BIF_drawimage.h"		/* uvco_to_areaco_noclip */
@@ -145,8 +145,8 @@ float InputScaleRatio(TransInfo *t, short mval[2]) {
 	float ratio, dx, dy;
 	if(t->flag & T_SHIFT_MOD) {
 		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		float dx = (float)(t->center2d[0] - t->shiftmval[0]);
-		float dy = (float)(t->center2d[1] - t->shiftmval[1]);
+		dx = (float)(t->center2d[0] - t->shiftmval[0]);
+		dy = (float)(t->center2d[1] - t->shiftmval[1]);
 		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
 		
 		dx= (float)(t->center2d[0] - mval[0]);
@@ -174,6 +174,34 @@ float InputHorizontalRatio(TransInfo *t, short mval[2]) {
 		y = mval[0];
 	}
 	return (float)(y - pad) / (float)(curarea->winx - 2 * pad);
+}
+
+float InputHorizontalAbsolute(TransInfo *t, short mval[2]) {
+	float vec[3];
+	if(t->flag & T_SHIFT_MOD) {
+		short dx = t->shiftmval[0] + (mval[0] - t->shiftmval[0]) / 10 - t->imval[0];
+		short dy = t->shiftmval[1] + (mval[1] - t->shiftmval[1]) / 10 - t->imval[1];
+		convertViewVec(t, t->vec, dx, dy);
+	}
+	else {
+		convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+	}
+	Projf(vec, t->vec, t->viewinv[0]);
+	return Inpf(t->viewinv[0], vec) * 2.0f;
+}
+
+float InputVerticalAbsolute(TransInfo *t, short mval[2]) {
+	float vec[3];
+	if(t->flag & T_SHIFT_MOD) {
+		short dx = t->shiftmval[0] + (mval[0] - t->shiftmval[0]) / 10 - t->imval[0];
+		short dy = t->shiftmval[1] + (mval[1] - t->shiftmval[1]) / 10 - t->imval[1];
+		convertViewVec(t, t->vec, dx, dy);
+	}
+	else {
+		convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
+	}
+	Projf(vec, t->vec, t->viewinv[1]);
+	return Inpf(t->viewinv[1], vec) * 2.0f;
 }
 
 /* ************************** SPACE DEPENDANT CODE **************************** */
@@ -1213,7 +1241,6 @@ void initShear(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Shear;
-	t->fac = (float)(t->center2d[0] - t->imval[0]);
 }
 
 int Shear(TransInfo *t, short mval[2]) 
@@ -1228,7 +1255,7 @@ int Shear(TransInfo *t, short mval[2])
 	Mat3CpyMat4(persmat, t->viewmat);
 	Mat3Inv(persinv, persmat);
 
-	value = -0.005f * ((float)(t->center2d[0] - mval[0]) - t->fac);
+	value = 0.05f * InputHorizontalAbsolute(t, mval);
 
 	snapGrid(t, &value);
 
@@ -2145,18 +2172,16 @@ void initShrinkFatten(TransInfo *t)
 int ShrinkFatten(TransInfo *t, short mval[2]) 
 {
 	float vec[3];
-	float ratio;
+	float distance;
 	int i;
 	char str[50];
 	TransData *td = t->data;
 
-	convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
-	Projf(vec, t->vec, t->viewinv[1]);
-	ratio = Inpf(t->viewinv[1], vec) * -2.0f;
+	distance = -InputVerticalAbsolute(t, mval);
 
-	snapGrid(t, &ratio);
+	snapGrid(t, &distance);
 
-	applyNumInput(&t->num, &ratio);
+	applyNumInput(&t->num, &distance);
 
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
@@ -2168,7 +2193,7 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Shrink/Fatten: %.4f %s", ratio, t->proptext);
+		sprintf(str, "Shrink/Fatten: %.4f %s", distance, t->proptext);
 	}
 	
 	
@@ -2177,7 +2202,7 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 			break;
 
 		VECCOPY(vec, td->axismtx[2]);
-		VecMulf(vec, ratio);
+		VecMulf(vec, distance);
 		VecMulf(vec, td->factor);
 
 		VecAddf(td->loc, td->iloc, vec);
@@ -2301,9 +2326,7 @@ int PushPull(TransInfo *t, short mval[2])
 	char str[50];
 	TransData *td = t->data;
 
-	convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
-	Projf(vec, t->vec, t->viewinv[1]);
-	distance = Inpf(t->viewinv[1], vec) * 2.0f;
+	distance = InputVerticalAbsolute(t, mval);
 
 	snapGrid(t, &distance);
 
