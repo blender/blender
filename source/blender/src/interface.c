@@ -2014,6 +2014,14 @@ static int ui_do_but_NUM(uiBut *but)
 	else {
 		retval= but->retval;
 		/* firsttime: this button can be approached with enter as well */
+		
+		/* drag-lock - prevent unwanted scroll adjustments */
+		/* change last value (now 3) to adjust threshold in pixels */
+		while (get_mbut() & L_MOUSE & ( abs(mval[0]-sx) <= 3) ) {
+			uiGetMouse(mywinget(), mval);
+		}
+		sx = mval[0]; /* ignore mouse movement within drag-lock */
+
 		while (get_mbut() & L_MOUSE) {
 			qual= get_qual();
 			
