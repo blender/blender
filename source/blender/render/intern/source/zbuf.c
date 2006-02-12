@@ -1819,7 +1819,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	zbuf_free_span(&zspan);
 }
 
-void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size)
+void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, float jity)
 {
 	ZSpan zspan;
 	VlakRen *vlr= NULL;
@@ -1831,8 +1831,8 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size)
 	zbuf_alloc_span(&zspan, size, size);
 	zspan.zmulx=  ((float)size)/2.0;
 	zspan.zmuly=  ((float)size)/2.0;
-	zspan.zofsx= 0.0f;
-	zspan.zofsy= 0.0f;
+	zspan.zofsx= jitx;
+	zspan.zofsy= jity;
 	
 	/* the buffers */
 	zspan.rectz= rectz;

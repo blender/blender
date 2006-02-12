@@ -42,6 +42,7 @@
  * @param lar The vector of lamps
  */
 void makeshadowbuf(struct Render *re, LampRen *lar);
+void freeshadowbuf(struct LampRen *lar);
 
 /**
  * Determines the shadow factor for a face and lamp. There is some

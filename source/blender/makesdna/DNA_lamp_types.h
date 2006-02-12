@@ -56,12 +56,12 @@ typedef struct Lamp {
 	float haint;
 	float att1, att2;
 	
-	short bufsize, samp;
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
+	short bufsize, samp, buffers, filtertype, pad;
 	
 	short ray_samp, ray_sampy, ray_sampz, ray_samp_type;
-	short area_shape, pad;
+	short area_shape;
 	float area_size, area_sizey, area_sizez;
 	
 	/* texact is for buttons */
@@ -72,7 +72,7 @@ typedef struct Lamp {
 	short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
 	float YF_causticblur, YF_ltradius;
 	/* yafray: glow params */
-	float YF_glowint, YF_glowofs, YF_pad3;
+	float YF_glowint, YF_glowofs;
 	short YF_glowtype, YF_pad2;
 	
 	struct MTex *mtex[10];
@@ -110,6 +110,11 @@ typedef struct Lamp {
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 #define LA_YF_SOFT		16384
+
+/* filtertype */
+#define LA_SHADBUF_BOX		0
+#define LA_SHADBUF_TENT		1
+#define LA_SHADBUF_GAUSS	2
 
 /* area shape */
 #define LA_AREA_SQUARE	0

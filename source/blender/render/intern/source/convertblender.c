@@ -1723,7 +1723,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	
 	/* if(la->spsi<16) return; */
 	
-	/* memory reservation */
+	/* memory alloc */
 	shb= (struct ShadBuf *)MEM_callocN( sizeof(struct ShadBuf),"initshadbuf");
 	lar->shb= shb;
 	
@@ -1733,6 +1733,9 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	
 	/* percentage render: keep track of min and max */
 	shb->size= (lar->bufsize*re->r.size)/100;
+	
+	if(lar->buffers>1) shb->size/= 2;
+	
 	if(shb->size<512) shb->size= 512;
 	else if(shb->size > lar->bufsize) shb->size= lar->bufsize;
 	
@@ -1741,16 +1744,6 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	shb->samp= lar->samp;
 	shb->soft= lar->soft;
 	shb->shadhalostep= lar->shadhalostep;
-	
-	shb->zbuf= (unsigned long *)MEM_mallocN( sizeof(unsigned long)*(shb->size*shb->size)/256, "initshadbuf2");
-	shb->cbuf= (char *)MEM_callocN( (shb->size*shb->size)/256, "initshadbuf3");
-	
-	if(shb->zbuf==0 || shb->cbuf==0) {
-		if(shb->zbuf) MEM_freeN(shb->zbuf);
-		MEM_freeN(lar->shb);
-		lar->shb= 0;		
-		return;
-	}
 	
 	MTC_Mat4Ortho(mat);
 	MTC_Mat4Invert(shb->winmat, mat);	/* winmat is temp */
@@ -1834,6 +1827,8 @@ static void add_render_lamp(Render *re, Object *ob, int actual_render)
 
 	lar->bufsize = la->bufsize;
 	lar->samp = la->samp;
+	lar->buffers= la->buffers;
+	lar->filtertype= la->filtertype;
 	lar->soft = la->soft;
 	lar->shadhalostep = la->shadhalostep;
 	lar->clipsta = la->clipsta;
@@ -2516,12 +2511,8 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 
 void RE_Database_Free(Render *re)
 {
-	ShadBuf *shb;
 	Object *ob = NULL;
 	GroupObject *go;
-	unsigned long *ztile;
-	int b, v;
-	char *ctile;
 
 	/* FREE */
 	
@@ -2532,19 +2523,7 @@ void RE_Database_Free(Render *re)
 	
 	for(go= re->lights.first; go; go= go->next) {
 		struct LampRen *lar= go->lampren;
-		if(lar->shb) {
-			shb= lar->shb;
-			v= (shb->size*shb->size)/256;
-			ztile= shb->zbuf;
-			ctile= shb->cbuf;
-			for(b=0; b<v; b++, ztile++, ctile++) {
-				if(*ctile) MEM_freeN((void *) *ztile);
-			}
-			
-			MEM_freeN(shb->zbuf);
-			MEM_freeN(shb->cbuf);
-			MEM_freeN(lar->shb);
-		}
+		freeshadowbuf(lar);
 		if(lar->jitter) MEM_freeN(lar->jitter);
 		MEM_freeN(lar);
 	}

@@ -47,7 +47,7 @@ void projectverto(float *v1, float winmat[][4], float *adr);
 int testclip(float *v); 
 
 void set_part_zbuf_clipflag(struct RenderPart *pa);
-void zbuffer_shadow(struct Render *re, struct LampRen *lar, int *rectz, int size);
+void zbuffer_shadow(struct Render *re, struct LampRen *lar, int *rectz, int size, float jitx, float jity);
 void zbuffer_solid(struct RenderPart *pa, unsigned int layer, short layflag);
 void zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass);
 void convert_zbuf_to_distbuf(struct RenderPart *pa, struct RenderLayer *rl);

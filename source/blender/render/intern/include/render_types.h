@@ -176,18 +176,22 @@ struct Render
 
 /* ------------------------------------------------------------------------- */
 
+typedef struct ShadSampleBuf {
+	struct ShadSampleBuf *next, *prev;
+	long *zbuf;
+	char *cbuf;
+} ShadSampleBuf;
 
 typedef struct ShadBuf {
-	short samp, shadhalostep;
+	short samp, shadhalostep, totbuf;
 	float persmat[4][4];
 	float viewmat[4][4];
 	float winmat[4][4];
-	float *jit;
-	float d,clipend,pixsize,soft;
+	float *jit, *weight;
+	float d, clipend, pixsize, soft;
 	int co[3];
-	int size,bias;
-	long *zbuf;
-	char *cbuf;
+	int size, bias;
+	ListBase buffers;
 } ShadBuf;
 
 /* ------------------------------------------------------------------------- */
@@ -287,6 +291,8 @@ typedef struct LampRen
 	short samp;
 	/** Softness factor for shadow */
 	float soft;
+	/** amount of subsample buffers */
+	short buffers, filtertype;
 	/** shadow plus halo: detail level */
 	short shadhalostep;
 	/** Near clip of the lamp */

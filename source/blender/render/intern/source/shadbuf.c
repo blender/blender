@@ -30,9 +30,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_lamp_types.h"
+
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 
 #include "renderpipeline.h"
@@ -84,7 +87,7 @@ static void copy_to_ztile(int *rectz, int size, int x1, int y1, int tile, char *
 }
 
 #if 0
-static int sizeoflampbuf(struct ShadBuf *shb)
+static int sizeoflampbuf(ShadBuf *shb)
 {
 	int num,count=0;
 	char *cp;
@@ -98,6 +101,7 @@ static int sizeoflampbuf(struct ShadBuf *shb)
 }
 #endif
 
+/* not threadsafe... */
 static float *give_jitter_tab(int samp)
 {
 	/* these are all possible jitter tables, takes up some
@@ -123,65 +127,75 @@ static float *give_jitter_tab(int samp)
 	
 }
 
-void makeshadowbuf(Render *re, LampRen *lar)
+static void make_jitter_weight_tab(ShadBuf *shb, short filtertype) 
 {
-	struct ShadBuf *shb= lar->shb;
-	float wsize, dist;
-	int *rectz, *rz, *rz1, verg, verg1;
+	float *jit, totw= 0.0f;
+	int a, tot=shb->samp*shb->samp;
+	
+	shb->weight= MEM_mallocN(sizeof(float)*tot, "weight tab lamp");
+	
+	for(jit= shb->jit, a=0; a<tot; a++, jit+=2) {
+		if(filtertype==LA_SHADBUF_TENT) 
+			shb->weight[a]= 0.71f - sqrt(jit[0]*jit[0] + jit[1]*jit[1]);
+		else if(filtertype==LA_SHADBUF_GAUSS) 
+			shb->weight[a]= RE_filter_value(R_FILTER_GAUSS, 1.8f*sqrt(jit[0]*jit[0] + jit[1]*jit[1]));
+		else
+			shb->weight[a]= 1.0f;
+		
+		totw+= shb->weight[a];
+	}
+	
+	totw= 1.0f/totw;
+	for(a=0; a<tot; a++) {
+		shb->weight[a]*= totw;
+	}
+}
+
+/* create Z tiles (for compression): this system is 24 bits!!! */
+static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
+{
+	ShadSampleBuf *shsample;
+	float dist;
 	unsigned long *ztile;
-	int a, x, y, minx, miny, byt1, byt2, square;
+	int *rz, *rz1, verg, verg1, size= shb->size;
+	int a, x, y, minx, miny, byt1, byt2;
 	char *rc, *rcline, *ctile, *zt;
-
-	shb->jit= give_jitter_tab(shb->samp);
-
-	/* matrices and window: in winmat the transformation is being put,
-		transforming from observer view to lamp view, including lamp window matrix */
-	wsize= shb->pixsize*(shb->size/2.0);
-
-	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->clipend, shb->winmat);
-
-	MTC_Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
 	
-	/* temp, will be restored */
-	MTC_Mat4SwapMat4(shb->persmat, re->winmat);
-
-	/* zbuffering */
- 	rectz= MEM_mallocN(sizeof(int)*shb->size*shb->size, "makeshadbuf");
+	shsample= MEM_mallocN( sizeof(ShadSampleBuf), "shad sample buf");
+	BLI_addtail(&shb->buffers, shsample);
+	
+	shsample->zbuf= MEM_mallocN( sizeof(unsigned long)*(size*size)/256, "initshadbuf2");
+	shsample->cbuf= MEM_callocN( (size*size)/256, "initshadbuf3");
+	
+	ztile= shsample->zbuf;
+	ctile= shsample->cbuf;
+	
+	/* help buffer */
 	rcline= MEM_mallocN(256*4+sizeof(int), "makeshadbuf2");
-
-	project_renderdata(re, projectvert, 0, 0);
 	
-	zbuffer_shadow(re, lar, rectz, shb->size);
-	
-	square= lar->mode & LA_SQUARE;
-
-	/* create Z tiles (for compression): this system is 24 bits!!! */
-	
-	ztile= shb->zbuf;
-	ctile= shb->cbuf;
-	for(y=0; y<shb->size; y+=16) {
-		if(y< shb->size/2) miny= y+15-shb->size/2;
-		else miny= y-shb->size/2;	
-				
-		for(x=0; x<shb->size; x+=16) {
-
+	for(y=0; y<size; y+=16) {
+		if(y< size/2) miny= y+15-size/2;
+		else miny= y-size/2;	
+		
+		for(x=0; x<size; x+=16) {
+			
 			/* is tile within spotbundle? */
-			a= shb->size/2;
+			a= size/2;
 			if(x< a) minx= x+15-a;
 			else minx= x-a;	
 			
 			dist= sqrt( (float)(minx*minx+miny*miny) );
-
+			
 			if(square==0 && dist>(float)(a+12)) {	/* 12, tested with a onlyshadow lamp */
 				a= 256; verg= 0; /* 0x80000000; */ /* 0x7FFFFFFF; */
 				rz1= (&verg)+1;
 			} 
 			else {
-				copy_to_ztile(rectz, shb->size, x, y, 16, rcline);
+				copy_to_ztile(rectz, size, x, y, 16, rcline);
 				rz1= (int *)rcline;
 				
 				verg= (*rz1 & 0xFFFFFF00);
-
+				
 				for(a=0;a<256;a++,rz1++) {
 					if( (*rz1 & 0xFFFFFF00) !=verg) break;
 				}
@@ -191,7 +205,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 				*ztile= *(rz1-1);
 			}
 			else {
-
+				
 				/* ACOMP etc. are defined to work L/B endian */
 				
 				rc= rcline;
@@ -203,7 +217,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 				for(a=1;a<256;a++,rc+=4) {
 					byt1 &= (verg==rc[ACOMP]);
 					byt2 &= (verg1==rc[BCOMP]);
-
+					
 					if(byt1==0) break;
 				}
 				if(byt1 && byt2) {	/* only store byte */
@@ -211,7 +225,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 					*ztile= (unsigned long)MEM_mallocN(256+4, "tile1");
 					rz= (int *)*ztile;
 					*rz= *rz1;
-
+					
 					zt= (char *)(rz+1);
 					rc= rcline;
 					for(a=0; a<256; a++, zt++, rc+=4) *zt= rc[GCOMP];	
@@ -221,7 +235,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 					*ztile= (unsigned long)MEM_mallocN(2*256+4,"Tile2");
 					rz= (int *)*ztile;
 					*rz= *rz1;
-
+					
 					zt= (char *)(rz+1);
 					rc= rcline;
 					for(a=0; a<256; a++, zt+=2, rc+=4) {
@@ -248,6 +262,44 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	}
 
 	MEM_freeN(rcline);
+
+}
+
+void makeshadowbuf(Render *re, LampRen *lar)
+{
+	ShadBuf *shb= lar->shb;
+	float wsize, *jitbuf, twozero[2]= {0.0f, 0.0f};
+	int *rectz, samples;
+	
+	/* jitter, weights */
+	shb->jit= give_jitter_tab(shb->samp);
+	make_jitter_weight_tab(shb, lar->filtertype);
+	
+	shb->totbuf= lar->buffers;
+	if(shb->totbuf==4) jitbuf= give_jitter_tab(2);
+	else if(shb->totbuf==9) jitbuf= give_jitter_tab(3);
+	else jitbuf= twozero;
+	
+	/* matrices and window: in winmat the transformation is being put,
+		transforming from observer view to lamp view, including lamp window matrix */
+	wsize= shb->pixsize*(shb->size/2.0);
+
+	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->clipend, shb->winmat);
+	MTC_Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
+	/* temp, will be restored */
+	MTC_Mat4SwapMat4(shb->persmat, re->winmat);
+
+	/* zbuffering */
+ 	rectz= MEM_mallocN(sizeof(int)*shb->size*shb->size, "makeshadbuf");
+
+	project_renderdata(re, projectvert, 0, 0);
+	
+	for(samples=0; samples<shb->totbuf; samples++) {
+		zbuffer_shadow(re, lar, rectz, shb->size, jitbuf[2*samples], jitbuf[2*samples+1]);
+		/* create Z tiles (for compression): this system is 24 bits!!! */
+		compress_shadowbuf(shb, rectz, lar->mode & LA_SQUARE);
+	}
+	
 	MEM_freeN(rectz);
 	
 	/* old matrix back */
@@ -256,10 +308,38 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	/* printf("lampbuf %d\n", sizeoflampbuf(shb)); */
 }
 
-static int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
+void freeshadowbuf(LampRen *lar)
+{
+	if(lar->shb) {
+		ShadBuf *shb= lar->shb;
+		ShadSampleBuf *shsample;
+		int b, v;
+		
+		v= (shb->size*shb->size)/256;
+		
+		for(shsample= shb->buffers.first; shsample; shsample= shsample->next) {
+			unsigned long *ztile= shsample->zbuf;
+			char *ctile= shsample->cbuf;
+			
+			for(b=0; b<v; b++, ztile++, ctile++)
+				if(*ctile) MEM_freeN((void *) *ztile);
+			
+			MEM_freeN(shsample->zbuf);
+			MEM_freeN(shsample->cbuf);
+		}
+		BLI_freelistN(&shb->buffers);
+		
+		if(shb->weight) MEM_freeN(shb->weight);
+		MEM_freeN(lar->shb);
+		
+		lar->shb= NULL;
+	}
+}
+
+
+static int firstreadshadbuf(ShadBuf *shb, ShadSampleBuf *shsample, int **rz, int xs, int ys, int nr)
 {
 	/* return a 1 if fully compressed shadbuf-tile && z==const */
-	static int *rz;
 	int ofs;
 	char *ct;
 
@@ -269,13 +349,13 @@ static int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
    
 	/* calc z */
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
-	ct= shb->cbuf+ofs;
+	ct= shsample->cbuf+ofs;
 	if(*ct==0) {
 	    if(nr==0) {
-			rz= *( (int **)(shb->zbuf+ofs) );
+			*rz= *( (int **)(shsample->zbuf+ofs) );
 			return 1;
 	    }
-		else if(rz!= *( (int **)(shb->zbuf+ofs) )) return 0;
+		else if(*rz!= *( (int **)(shsample->zbuf+ofs) )) return 0;
 		
 	    return 1;
 	}
@@ -283,7 +363,8 @@ static int firstreadshadbuf(struct ShadBuf *shb, int xs, int ys, int nr)
 	return 0;
 }
 
-static float readshadowbuf(struct ShadBuf *shb, int bias, int xs, int ys, int zs)	/* return 1.0 : fully in light */
+/* return 1.0 : fully in light */
+static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int xs, int ys, int zs)	
 {
 	float temp;
 	int *rz, ofs;
@@ -300,8 +381,8 @@ static float readshadowbuf(struct ShadBuf *shb, int bias, int xs, int ys, int zs
 
 	/* calc z */
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
-	ct= shb->cbuf+ofs;
-	rz= *( (int **)(shb->zbuf+ofs) );
+	ct= shsample->cbuf+ofs;
+	rz= *( (int **)(shsample->zbuf+ofs) );
 
 	if(*ct==3) {
 		ct= ((char *)rz)+3*16*(ys & 15)+3*(xs & 15);
@@ -348,34 +429,35 @@ static float readshadowbuf(struct ShadBuf *shb, int bias, int xs, int ys, int zs
 
 /* the externally called shadow testing (reading) function */
 /* return 1.0: no shadow at all */
-float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp)
+float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp)
 {
-	float fac, co[4], dx[3], dy[3], aantal=0;
-	float xs1,ys1, siz, *j, xres, yres;
-	int xs,ys, zs, bias;
-	short a,num;
+	ShadSampleBuf *shsample;
+	float fac, co[4], dx[3], dy[3], shadfac=0.0f;
+	float xs1,ys1, siz, *jit, *weight, xres, yres;
+	int xs, ys, zs, bias, *rz;
+	short a, num;
 	
-	if(inp <= 0.0) return 0.0;
+	if(inp <= 0.0f) return 0.0f;
 
 	/* rotate renderco en osaco */
-	siz= 0.5*(float)shb->size;
+	siz= 0.5f*(float)shb->size;
 	VECCOPY(co, rco);
-	co[3]= 1.0;
+	co[3]= 1.0f;
 
 	MTC_Mat4MulVec4fl(shb->persmat, co);	/* rational hom co */
 
-	xs1= siz*(1.0+co[0]/co[3]);
-	ys1= siz*(1.0+co[1]/co[3]);
+	xs1= siz*(1.0f+co[0]/co[3]);
+	ys1= siz*(1.0f+co[1]/co[3]);
 
 	/* Clip for z: clipsta and clipend clip values of the shadow buffer. We
 		* can test for -1.0/1.0 because of the properties of the
 		* coordinate transformations. */
 	fac= (co[2]/co[3]);
 
-	if(fac>=1.0) {
-		return 0.0;
-	} else if(fac<= -1.0) {
-		return 1.0;
+	if(fac>=1.0f) {
+		return 0.0f;
+	} else if(fac<= -1.0f) {
+		return 1.0f;
 	}
 
 	zs= ((float)0x7FFFFFFF)*fac;
@@ -386,69 +468,73 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, f
 	
 	/* with inp==1.0, bias is half the size. correction value was 1.1, giving errors 
 	   on cube edges, with one side being almost frontal lighted (ton)  */
-	bias= (1.5-inp*inp)*shb->bias;
+	bias= (1.5f-inp*inp)*shb->bias;
 
 	if(num==1) {
-		return readshadowbuf(shb, bias, (int)xs1, (int)ys1, zs);
+		for(shsample= shb->buffers.first; shsample; shsample= shsample->next)
+			shadfac += readshadowbuf(shb, shsample, bias, (int)xs1, (int)ys1, zs);
+		
+		return shadfac/(float)shb->totbuf;
 	}
 
-	co[0]= rco[0]+dxco[0];
-	co[1]= rco[1]+dxco[1];
-	co[2]= rco[2]+dxco[2];
+	/* calculate filter size */
+	VECCOPY(co, dxco);
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
-	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
-	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
+	MTC_Mat4Mul3Vecfl(shb->persmat, co);
+	
+	dx[0]= co[0]/co[3];
+	dx[1]= co[1]/co[3];
 
-	co[0]= rco[0]+dyco[0];
-	co[1]= rco[1]+dyco[1];
-	co[2]= rco[2]+dyco[2];
+	VECCOPY(co, dyco);
 	co[3]= 1.0;
-	MTC_Mat4MulVec4fl(shb->persmat,co);	/* rational hom co */
-	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
-	dy[1]= ys1- siz*(1.0+co[1]/co[3]);
+	MTC_Mat4Mul3Vecfl(shb->persmat, co);
+	
+	dy[0]= co[0]/co[3];
+	dy[1]= co[1]/co[3];
 
 	xres= fac*( fabs(dx[0])+fabs(dy[0]) );
 	yres= fac*( fabs(dx[1])+fabs(dy[1]) );
-
 	if(xres<fac) xres= fac;
 	if(yres<fac) yres= fac;
 	
 	xs1-= (xres)/2;
 	ys1-= (yres)/2;
 
-	j= shb->jit;
-
-	if(xres<16.0 && yres<16.0) {
-	    if(firstreadshadbuf(shb, (int)xs1, (int)ys1, 0)) {
-			if(firstreadshadbuf(shb, (int)(xs1+xres), (int)ys1, 1)) {
-				if(firstreadshadbuf(shb, (int)xs1, (int)(ys1+yres), 1)) {
-					if(firstreadshadbuf(shb, (int)(xs1+xres), (int)(ys1+yres), 1)) {
-						return readshadowbuf(shb, bias,(int)xs1, (int)ys1, zs);
+	if(xres<16.0f && yres<16.0f) {
+		shsample= shb->buffers.first;
+	    if(firstreadshadbuf(shb, shsample, &rz, (int)xs1, (int)ys1, 0)) {
+			if(firstreadshadbuf(shb, shsample, &rz, (int)(xs1+xres), (int)ys1, 1)) {
+				if(firstreadshadbuf(shb, shsample, &rz, (int)xs1, (int)(ys1+yres), 1)) {
+					if(firstreadshadbuf(shb, shsample, &rz, (int)(xs1+xres), (int)(ys1+yres), 1)) {
+						return readshadowbuf(shb, shsample, bias,(int)xs1, (int)ys1, zs);
 					}
 				}
 			}
 	    }
 	}
-
-	for(a=num;a>0;a--) {
-		/* instead of jit i tried random: ugly! */
-		/* note: the plus 0.5 gives best sampling results, jit used to go from 0-1 */
-		/* xs1 and ys1 are already corrected to be corner of sample area */
-		xs= xs1 + xres*(j[0] + 0.5);
-		ys= ys1 + yres*(j[1] + 0.5);
-		j+=2;
+	
+	for(shsample= shb->buffers.first; shsample; shsample= shsample->next) {
+		jit= shb->jit;
+		weight= shb->weight;
 		
-		aantal+= readshadowbuf(shb, bias, xs, ys, zs);
+		for(a=num; a>0; a--, jit+=2, weight++) {
+			/* instead of jit i tried random: ugly! */
+			/* note: the plus 0.5 gives best sampling results, jit goes from -0.5 to 0.5 */
+			/* xs1 and ys1 are already corrected to be corner of sample area */
+			xs= xs1 + xres*(jit[0] + 0.5f);
+			ys= ys1 + yres*(jit[1] + 0.5f);
+			
+			shadfac+= *weight * readshadowbuf(shb, shsample, bias, xs, ys, zs);
+		}
 	}
 
 	/* Renormalizes for the sample number: */
-	return aantal/( (float)(num) );
+	return shadfac/(float)shb->totbuf;
 }
 
 /* different function... sampling behind clipend can be LIGHT, bias is negative! */
 /* return: light */
-static float readshadowbuf_halo(struct ShadBuf *shb, int xs, int ys, int zs)
+static float readshadowbuf_halo(ShadBuf *shb, ShadSampleBuf *shsample, int xs, int ys, int zs)
 {
 	float temp;
 	int *rz, ofs;
@@ -464,8 +550,8 @@ static float readshadowbuf_halo(struct ShadBuf *shb, int xs, int ys, int zs)
 
 	/* calc z */
 	ofs= (ys>>4)*(shb->size>>4) + (xs>>4);
-	ct= shb->cbuf+ofs;
-	rz= *( (int **)(shb->zbuf+ofs) );
+	ct= shsample->cbuf+ofs;
+	rz= *( (int **)(shsample->zbuf+ofs) );
 
 	if(*ct==3) {
 		ct= ((char *)rz)+3*16*(ys & 15)+3*(xs & 15);
@@ -524,6 +610,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 {
 	/* p1 p2 already are rotated in spot-space */
 	ShadBuf *shb= lar->shb;
+	ShadSampleBuf *shsample;
 	float co[4], siz;
 	float labda, labdao, labdax, labday, ldx, ldy;
 	float zf, xf1, yf1, zf1, xf2, yf2, zf2;
@@ -620,7 +707,7 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 		if(labda==labdao || labda>=1.0) break;
 		
 		zf= zf1 + labda*(zf2-zf1);
-		count+= 1.0;
+		count+= (float)shb->totbuf;
 
 		if(zf<= -1.0) lightcount += 1.0;	/* close to the spot */
 		else {
@@ -629,7 +716,8 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 			if(zf>=1.0) z= 0x7FFFF000;
 			else z= (int)(0x7FFFF000*zf);
 			
-			lightcount+= readshadowbuf_halo(shb, x, y, z);
+			for(shsample= shb->buffers.first; shsample; shsample= shsample->next)
+				lightcount+= readshadowbuf_halo(shb, shsample, x, y, z);
 			
 		}
 	}
