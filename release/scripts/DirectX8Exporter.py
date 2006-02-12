@@ -318,9 +318,14 @@ class xExport:
 				vert_list = mesh.getVertsFromGroup(name,1)
 				le = 0
 				for indx in vert_list:
-					ver_infl = v_dict[indx[0]]
-					len_infl = float(len(ver_infl))
-					infl = 1 / len_infl
+					infl = 0.0
+					if len(ver_infl) != 0:
+						sum = 0.0
+						for bone_name, weight in ver_infl:
+							if bone_name == name:
+								infl = weight
+								sum += weight
+						infl/= sum
 					i = -1
 					for el in index_list :
 						i += 1
