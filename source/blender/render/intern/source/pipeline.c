@@ -634,7 +634,7 @@ static int do_part_thread(void *pa_v)
 }
 
 /* returns with render result filled, not threaded */
-static void render_tile_processor(Render *re)
+static void render_tile_processor(Render *re, int firsttile)
 {
 	RenderPart *pa;
 	
@@ -654,18 +654,24 @@ static void render_tile_processor(Render *re)
 	R= *re;
 	
 	for(pa= re->parts.first; pa; pa= pa->next) {
-		do_part_thread(pa);
-		
-		if(pa->result) {
-			if(!re->test_break()) {
-				re->display_draw(pa->result, NULL);
-				re->i.partsdone++;
-			}
-			free_render_result(pa->result);
-			pa->result= NULL;
-		}		
-		if(re->test_break())
-			break;
+		if(firsttile) {
+			re->i.partsdone++;	/* was reset in initparts */
+			firsttile--;
+		}
+		else {
+			do_part_thread(pa);
+			
+			if(pa->result) {
+				if(!re->test_break()) {
+					re->display_draw(pa->result, NULL);
+					re->i.partsdone++;
+				}
+				free_render_result(pa->result);
+				pa->result= NULL;
+			}		
+			if(re->test_break())
+				break;
+		}
 	}
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
@@ -797,12 +803,13 @@ static void threaded_tile_processor(Render *re)
 	freeparts(re);
 }
 
-void RE_TileProcessor(Render *re)
+/* currently only called by preview renders */
+void RE_TileProcessor(Render *re, int firsttile)
 {
 	if(0) 
 		threaded_tile_processor(re);
 	else
-		render_tile_processor(re);	
+		render_tile_processor(re, firsttile);	
 }
 
 

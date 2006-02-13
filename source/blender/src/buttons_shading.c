@@ -2519,7 +2519,7 @@ void do_matbuts(unsigned short event)
 	case B_MATZTRANSP:
 		if(ma) {
 			ma->mode &= ~MA_RAYTRANSP;
-			BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);	/// temporal... 3d preview
+			//BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);	/// temporal... 3d preview
 			allqueue(REDRAWBUTSSHADING, 0);
 			BIF_preview_changed(ID_MA);
 		}

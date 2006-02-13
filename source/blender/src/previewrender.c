@@ -189,19 +189,19 @@ void BIF_preview_changed(short id_code)
 			if(sbuts->mainb==CONTEXT_SHADING) {
 				int tab= sbuts->tab[CONTEXT_SHADING];
 				if(tab==TAB_SHADING_MAT && (id_code==ID_MA || id_code==ID_TE)) {
-					if (sbuts->ri) sbuts->ri->cury= 0;
+					if (sbuts->ri) sbuts->ri->curtile= 0;
 					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}
 				else if(tab==TAB_SHADING_TEX && (id_code==ID_TE || id_code==-1)) {
-					if (sbuts->ri) sbuts->ri->cury= 0;
+					if (sbuts->ri) sbuts->ri->curtile= 0;
 					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}
 				else if(tab==TAB_SHADING_LAMP && (id_code==ID_LA || id_code==ID_TE)) {
-					if (sbuts->ri) sbuts->ri->cury= 0;
+					if (sbuts->ri) sbuts->ri->curtile= 0;
 					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}
 				else if(tab==TAB_SHADING_WORLD && (id_code==ID_WO || id_code==ID_TE)) {
-					if (sbuts->ri) sbuts->ri->cury= 0;
+					if (sbuts->ri) sbuts->ri->curtile= 0;
 					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}
 			}
@@ -216,7 +216,7 @@ void BIF_preview_changed(short id_code)
 			View3D *vd= sa->spacedata.first;
 			/* if is has a renderinfo, we consider that reason for signalling */
 			if (vd->ri) {
-				vd->ri->cury= 0;
+				vd->ri->curtile= 0;
 				addafterqueue(sa->win, RENDERPREVIEW, 1);
 			}
 		}
@@ -261,11 +261,14 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 	
 	sce= pr_main->scene.first;
 	if(sce) {
+		
+		sce->r.mode |= G.scene->r.mode & R_THREADS;
+		
 		if(id_type==ID_MA) {
 			Material *mat= (Material *)id;
 			
 			sce->r.mode |= R_SHADOW;
-
+			
 			if(id) {
 				if(pr_method==PR_ICON_RENDER) {
 					sce->lay= 1<<MA_SPHERE_A;
@@ -321,11 +324,13 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 	return NULL;
 }
 
-static void previewrender_progress(RenderResult *rr, rcti *unused)
+static void previewrender_progress(RenderResult *rr, rcti *renrect)
 {
 	RenderLayer *rl;
 	RenderInfo *ri= G.buts->ri;
 	float ofsx, ofsy;
+	
+	if(renrect) return;
 	
 	rl= rr->layers.first;
 	
@@ -345,14 +350,10 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	Render *re;
 	RenderStats *rstats;
 	Scene *sce;
+	int oldx= ri->pr_rectx, oldy= ri->pr_recty;
 	char name [32];
 	
-	if(ri->cury>=ri->pr_recty) return;
-	
-	/* because preview render size differs all the time, we alloc here to make sure its right size */
-	if(ri->rect)
-		MEM_freeN(ri->rect);
-	ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
+	if(ri->tottile && ri->curtile>=ri->tottile) return;
 	
 	/* check for return with a new event */
 	if(pr_method!=PR_ICON_RENDER && qtest()) {
@@ -365,53 +366,79 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	sce= preview_prepare_scene(ri, GS(id->name), id, pr_method);
 	if(sce==NULL) return;
 	
-	/* just create new render always now */
-	sprintf(name, "ButsPreview %d", area?area->win:0);
-	re= RE_NewRender(name);
+	/* set drawing conditions OK */
+	if(area) {
+		set_previewrect(ri, area->win); // uses UImat
+		
+		/* because preview render size can differs */
+		if(ri->rect && (oldx!=ri->pr_rectx || oldy!=ri->pr_recty)) {
+			MEM_freeN(ri->rect);
+			ri->rect= NULL;
+			ri->curtile= 0;
+		}
+	}
 	
-	/* handle cases */
-	if(pr_method==PR_DRAW_RENDER) {
-		RE_display_draw_cb(re, previewrender_progress);
-		RE_test_break_cb(re, qtest);
-		sce->r.scemode |= R_NODE_PREVIEW;
+	sprintf(name, "ButsPreview %d", area?area->win:0);
+	re= RE_GetRender(name);
+	if(re==NULL || ri->curtile==0) {
+		
+		re= RE_NewRender(name);
+		
+		/* handle cases */
+		if(pr_method==PR_DRAW_RENDER) {
+			RE_display_draw_cb(re, previewrender_progress);
+			RE_test_break_cb(re, qtest);
+			sce->r.scemode |= R_NODE_PREVIEW;
+		}
+		else if(pr_method==PR_DO_RENDER) {
+			RE_test_break_cb(re, qtest);
+			sce->r.scemode |= R_NODE_PREVIEW;
+		}
+		else {	/* PR_ICON_RENDER */
+			sce->r.scemode &= ~R_NODE_PREVIEW;
+		}
+		
+		/* allocates render result */
+		RE_InitState(re, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
 	}
-	else if(pr_method==PR_DO_RENDER) {
-		RE_test_break_cb(re, qtest);
-		sce->r.scemode |= R_NODE_PREVIEW;
-	}
-	else {	/* PR_ICON_RENDER */
-		sce->r.scemode &= ~R_NODE_PREVIEW;
-	}
-
 	/* entire cycle for render engine */
-	RE_InitState(re, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
 	RE_SetCamera(re, sce->camera);
 	RE_Database_FromScene(re, sce, 1);
-	RE_TileProcessor(re);	// actual render engine
+	RE_TileProcessor(re, ri->curtile);	// actual render engine
 	RE_Database_Free(re);
-
+	
 	/* handle results */
 	if(pr_method==PR_ICON_RENDER) {
+		if(ri->rect==NULL)
+			ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 		RE_ResultGet32(re, ri->rect);
 	}
 	else {
 		rstats= RE_GetStats(re);
-		if(rstats->totpart==rstats->partsdone && rstats->partsdone) {
-			ri->cury= ri->pr_recty;
+		
+		if(rstats->partsdone!=ri->curtile) {
+			if(ri->rect==NULL)
+				ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 			RE_ResultGet32(re, ri->rect);
+		}
+		
+		if(rstats->totpart==rstats->partsdone && rstats->partsdone) {
 			if(GS(id->name)==ID_MA && ((Material *)id)->use_nodes)
 				allqueue(REDRAWNODE, 0);
 			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		else {
-			if(pr_method==PR_DRAW_RENDER && qtest()) {
+			if(pr_method==PR_DRAW_RENDER && qtest())
 				addafterqueue(area->win, RENDERPREVIEW, 1);
-			}
 		}
+		
+		ri->curtile= rstats->partsdone;
+		ri->tottile= rstats->totpart;
 	}
+
 	/* unassign the pointer */
 	preview_prepare_scene(ri, GS(id->name), NULL, 0);
-	RE_FreeRender(re);
+	
 }
 
 
@@ -458,7 +485,6 @@ void BIF_previewrender_buts(SpaceButs *sbuts)
 	if (idshow) {
 		BKE_icon_changed(BKE_icon_getid(idshow));
 		uiPanelPush(block);
-		set_previewrect(sbuts->ri, sbuts->area->win); // uses UImat
 		BIF_previewrender(idshow, sbuts->ri, sbuts->area, PR_DRAW_RENDER);
 		uiPanelPop(block);
 		end_previewrect();
@@ -467,7 +493,7 @@ void BIF_previewrender_buts(SpaceButs *sbuts)
 		/* no active block to draw. But we do draw black if possible */
 		if(sbuts->ri->rect) {
 			memset(sbuts->ri->rect, 0, sizeof(int)*sbuts->ri->pr_rectx*sbuts->ri->pr_recty);
-			sbuts->ri->cury= sbuts->ri->pr_recty;
+			sbuts->ri->tottile= 10000;
 			addqueue(curarea->win, REDRAW, 1);
 		}
 		return;
@@ -488,8 +514,7 @@ void BIF_previewdraw(ScrArea *sa, uiBlock *block)
 	
 	if (!sbuts->ri) {
 		sbuts->ri= MEM_callocN(sizeof(RenderInfo), "butsrenderinfo");
-		sbuts->ri->cury = 0;
-		sbuts->ri->rect = NULL;
+		sbuts->ri->tottile = 10000;
 	}
 	
 	if (sbuts->ri->rect==NULL) BIF_preview_changed(id_code);
@@ -508,11 +533,11 @@ void BIF_previewdraw(ScrArea *sa, uiBlock *block)
 		else {
 			MEM_freeN(ri->rect);
 			ri->rect= NULL;
-			sbuts->ri->cury= 0;
+			sbuts->ri->curtile= 0;
 		}
 		end_previewrect();
 	}
-	if(sbuts->ri->cury==0) BIF_preview_changed(id_code);
+	if(sbuts->ri->curtile==0) BIF_preview_changed(id_code);
 	
 }
 
@@ -522,10 +547,12 @@ static void view3d_previewrender_stats(RenderStats *rs)
 	printf("rendered %.3f\n", rs->lastframetime);
 }
 
-static void view3d_previewrender_progress(RenderResult *rr, rcti *unused)
+static void view3d_previewrender_progress(RenderResult *rr, rcti *renrect)
 {
 	RenderLayer *rl;
 	int ofsx, ofsy;
+	
+	if(renrect) return;
 	
 	rl= rr->layers.first;
 	
@@ -555,7 +582,8 @@ void BIF_view3d_previewrender_signal(ScrArea *sa, short signal)
 	if(v3d && v3d->ri) {
 		RenderInfo *ri= v3d->ri;
 		ri->status &= ~signal;
-		ri->cury= 0;
+		ri->curtile= 0;
+		// printf("preview signal\n");
 		if(ri->re && (signal & PR_DBASE))
 			RE_Database_Free(ri->re);
 
@@ -608,6 +636,8 @@ static int view3d_previewrender_get_rects(ScrArea *sa, rctf *viewplane, RenderIn
 	if(ri->rect && (rectx!=ri->pr_rectx || recty!=ri->pr_recty)) {
 		MEM_freeN(ri->rect);
 		ri->rect= NULL;
+		ri->curtile= 0;
+		printf("changed size\n");
 	}
 	ri->pr_rectx= rectx;
 	ri->pr_recty= recty;
@@ -622,7 +652,7 @@ void BIF_view3d_previewrender_clear(ScrArea *sa)
 
 	if(v3d->ri) {
 		RenderInfo *ri= v3d->ri;
-		ri->cury= 0;
+		ri->curtile= 0;
 		if(ri->rect)
 			MEM_freeN(ri->rect);
 		ri->rect= NULL;
@@ -642,15 +672,17 @@ void BIF_view3d_previewrender(ScrArea *sa)
 	int orth;
 	
 	/* first get the render info right */
-	if (!v3d->ri)
+	if (!v3d->ri) {
 		ri= v3d->ri= MEM_callocN(sizeof(RenderInfo), "butsrenderinfo");
+		ri->tottile= 10000;
+	}
 	ri= v3d->ri;
 	
 	if(0==view3d_previewrender_get_rects(sa, &viewplane, ri, &clipsta, &clipend, &orth))
 		return;
 	
 	/* render is finished, so return */
-	if(ri->cury>=ri->pr_rectx) return;
+	if(ri->tottile && ri->curtile>=ri->tottile) return;
 
 	/* or return with a new event */
 	if(qtest()) {
@@ -685,6 +717,8 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		
 		/* until here are no escapes */
 		ri->status |= PR_DISPRECT;
+		ri->curtile= 0;
+		// printf("new render\n");
 	}
 
 	re= ri->re;
@@ -700,6 +734,8 @@ void BIF_view3d_previewrender(ScrArea *sa)
 			else
 				RE_SetWindow(ri->re, &viewplane, clipsta, clipend);
 			ri->status |= PR_DISPRECT;
+			ri->curtile= 0;
+			// printf("disprect update\n");
 		}
 		if((ri->status & PR_DBASE)==0) {
 			unsigned int lay= G.scene->lay;
@@ -717,6 +753,8 @@ void BIF_view3d_previewrender(ScrArea *sa)
 			rstats= RE_GetStats(re);
 			if(rstats->convertdone) 
 				ri->status |= PR_DBASE|PR_PROJECTED|PR_ROTATED;
+			ri->curtile= 0;
+			// printf("dbase update\n");
 		}
 		if((ri->status & PR_PROJECTED)==0) {
 			if(ri->status & PR_DBASE) {
@@ -727,31 +765,32 @@ void BIF_view3d_previewrender(ScrArea *sa)
 				RE_DataBase_ApplyWindow(re);
 				ri->status |= PR_PROJECTED;
 			}
+			ri->curtile= 0;
+			// printf("project update\n");
 		}
 	
 		/* OK, can we enter render code? */
 		if(ri->status==(PR_DISPRECT|PR_DBASE|PR_PROJECTED|PR_ROTATED)) {
-			RE_TileProcessor(ri->re);
+			// printf("curtile %d tottile %d\n", ri->curtile, ri->tottile);
+			RE_TileProcessor(ri->re, ri->curtile);
 	
 			if(ri->rect==NULL)
-				ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "preview view3d rect");
+				ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "preview view3d rect");
 			
 			RE_ResultGet32(ri->re, ri->rect);
 		}
 		
 		rstats= RE_GetStats(ri->re);
-		if(rstats->totpart==rstats->partsdone && rstats->partsdone) {
-			ri->cury= 12000;	/* arbitrary... */
+		if(rstats->totpart==rstats->partsdone && rstats->partsdone)
 			addqueue(sa->win, REDRAW, 1);
-		}
-		else {
+		else
 			addafterqueue(curarea->win, RENDERPREVIEW, 1);
-			ri->cury= 0;
-		}
+		
+		ri->curtile= rstats->partsdone;
+		ri->tottile= rstats->totpart;
 	}
 	else {
 		addafterqueue(curarea->win, RENDERPREVIEW, 1);
-		ri->cury= 0;
 	}
 }
 
@@ -790,7 +829,7 @@ void BIF_view3d_previewdraw(struct ScrArea *sa, struct uiBlock *block)
 		addafterqueue(sa->win, RENDERPREVIEW, 1);
 	else {
 		view3d_previewdraw_rect(sa, block, v3d->ri);
-		if(v3d->ri->cury==0) 
+		if(v3d->ri->curtile==0) 
 			addafterqueue(sa->win, RENDERPREVIEW, 1);
 	}
 }

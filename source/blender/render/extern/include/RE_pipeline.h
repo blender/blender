@@ -156,7 +156,7 @@ void RE_Database_Free (struct Render *re);
 void RE_DataBase_ApplyWindow(struct Render *re);
 
 /* the main processor, assumes all was set OK! */
-void RE_TileProcessor(struct Render *re);
+void RE_TileProcessor(struct Render *re, int firsttile);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);

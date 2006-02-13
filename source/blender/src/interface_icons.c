@@ -684,7 +684,8 @@ static void icon_set_image(ID* id, DrawInfo* di)
 	if (!di->rect)
 		di->rect = MEM_callocN(di->rw*di->rh*sizeof(unsigned int), "laprevrect");		
 	
-	ri.cury = 0;
+	ri.curtile= 0;
+	ri.tottile= 0;
 	ri.rect = NULL;
 	ri.pr_rectx = di->rw;
 	ri.pr_recty = di->rh;

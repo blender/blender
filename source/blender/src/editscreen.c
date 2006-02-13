@@ -805,6 +805,15 @@ static int nafterqitems= 0;
 void addafterqueue(short win, unsigned short evt, short val)
 {
 	if (nafterqitems<MAXQUEUE) {
+		int a;
+		
+		/* only one afterqueue event of each type */
+		for(a=0; a<nafterqitems; a++) {
+			if(afterqueue[a][0]==win && afterqueue[a][1]==evt) {
+				afterqueue[a][2]= val;
+				return;
+			}
+		}
 		afterqueue[nafterqitems][0]= win;
 		afterqueue[nafterqitems][1]= evt;
 		afterqueue[nafterqitems][2]= val;

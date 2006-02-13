@@ -48,7 +48,7 @@ typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 typedef struct RenderInfo {
 	int pr_rectx;
 	int pr_recty;
-	short cury, status;
+	short curtile, tottile, status;
 	rcti disprect;			/* storage for view3d preview rect */
 	unsigned int* rect;		
 	struct Render *re;		/* persistant render */

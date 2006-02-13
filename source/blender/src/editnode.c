@@ -113,7 +113,8 @@ static void shader_node_previewrender(ScrArea *sa, SpaceNode *snode)
 					RenderInfo ri;	
 //					int test= node->lasty;
 					
-					ri.cury = node->lasty;
+					ri.curtile = 0;
+					ri.tottile = 0;
 					ri.rect = NULL;
 					ri.pr_rectx = PREVIEW_RENDERSIZE;
 					ri.pr_recty = PREVIEW_RENDERSIZE;
@@ -121,7 +122,8 @@ static void shader_node_previewrender(ScrArea *sa, SpaceNode *snode)
 					BIF_previewrender(snode->id, &ri, NULL, PR_DO_RENDER);	/* sends redraw event */
 					if(ri.rect) MEM_freeN(ri.rect);
 					
-					if(ri.cury<PREVIEW_RENDERSIZE-2)
+					/* when not finished... */
+					if(ri.curtile<ri.tottile)
 						addafterqueue(sa->win, RENDERPREVIEW, 1);
 //					if(test!=node->lasty)
 //						printf("node rendered to %d\n", node->lasty);
