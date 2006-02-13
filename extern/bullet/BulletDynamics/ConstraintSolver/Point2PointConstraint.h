@@ -14,11 +14,13 @@
 #include "SimdVector3.h"
 
 #include "ConstraintSolver/JacobianEntry.h"
+#include "TypedConstraint.h"
+
 class RigidBody;
 
 
 /// point to point constraint between two rigidbodies each with a pivotpoint that descibes the 'ballsocket' location in local space
-class Point2PointConstraint
+class Point2PointConstraint : public TypedConstraint
 {
 	JacobianEntry	m_jac[3]; //3 orthogonal linear constraints
 	RigidBody&	m_rbA;
@@ -27,7 +29,7 @@ class Point2PointConstraint
 	SimdVector3	m_pivotInA;
 	SimdVector3	m_pivotInB;
 	
-	int	m_constraintId;
+	
 public:
 
 	Point2PointConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB);
@@ -51,10 +53,6 @@ public:
 		return m_rbB;
 	}
 
-	int GetConstraintId()
-	{
-		return m_constraintId;
-	}
 
 
 };

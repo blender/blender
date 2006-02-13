@@ -13,7 +13,10 @@ class ToiContactDispatcher;
 class Dispatcher;
 //#include "BroadphaseInterface.h"
 
-class Vehicle;
+//switch on/off new vehicle support
+//#define NEW_BULLET_VEHICLE_SUPPORT 1
+
+class WrapperVehicle;
 class PersistentManifold;
 class BroadphaseInterface;
 class IDebugDraw;
@@ -79,11 +82,15 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 			float axisX,float axisY,float axisZ);
 	    virtual void		removeConstraint(int	constraintid);
 
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
 		//complex constraint for vehicles
+		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId);
+#else
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId)
 		{
 			return 0;
 		}
+#endif //NEW_BULLET_VEHICLE_SUPPORT
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
@@ -132,7 +139,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		std::vector<Point2PointConstraint*> m_p2pConstraints;
 
-		std::vector<Vehicle*>	m_vehicles;
+		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
 		class ToiContactDispatcher* m_dispatcher;
 

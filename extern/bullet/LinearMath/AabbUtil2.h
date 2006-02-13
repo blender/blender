@@ -39,10 +39,11 @@ DEALINGS IN THE SOFTWARE.
 SIMD_FORCE_INLINE bool TestAabbAgainstAabb2(const SimdVector3 &aabbMin1, const SimdVector3 &aabbMax1,
 								const SimdVector3 &aabbMin2, const SimdVector3 &aabbMax2)
 {
-	if (aabbMin1[0] > aabbMax2[0] || aabbMax1[0] < aabbMin2[0]) return false;
-	if (aabbMin1[2] > aabbMax2[2] || aabbMax1[2] < aabbMin2[2]) return false;
-	if (aabbMin1[1] > aabbMax2[1] || aabbMax1[1] < aabbMin2[1]) return false;
-	return true;
+	bool overlap = true;
+	overlap = (aabbMin1[0] > aabbMax2[0] || aabbMax1[0] < aabbMin2[0]) ? false : overlap;
+	overlap = (aabbMin1[2] > aabbMax2[2] || aabbMax1[2] < aabbMin2[2]) ? false : overlap;
+	overlap = (aabbMin1[1] > aabbMax2[1] || aabbMax1[1] < aabbMin2[1]) ? false : overlap;
+	return overlap;
 }
 
 /// conservative test for overlap between triangle and aabb

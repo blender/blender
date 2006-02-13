@@ -8,6 +8,7 @@
  * of this software for any purpose.  
  * It is provided "as is" without express or implied warranty.
 */
+
 #include "ConvexConcaveCollisionAlgorithm.h"
 #include "Dynamics/RigidBody.h"
 #include "CollisionShapes/MultiSphereShape.h"
@@ -120,7 +121,7 @@ void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,fl
 
 	boxBody->GetCollisionShape()->GetAabb(boxInTriangleSpace,m_aabbMin,m_aabbMax);
 
-	float extraMargin = CONVEX_DISTANCE_MARGIN;//+0.1f;
+	float extraMargin = collisionMarginTriangle;//CONVEX_DISTANCE_MARGIN;//+0.1f;
 
 	SimdVector3 extra(extraMargin,extraMargin,extraMargin);
 

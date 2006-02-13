@@ -333,6 +333,13 @@ void KX_KetsjiEngine::NextFrame()
 		m_clockTime = m_kxsystem->GetTimeInSeconds();
 	
 	double deltatime = m_clockTime - m_frameTime;
+	if (deltatime<0.f)
+	{
+		printf("problem with clock\n");
+		deltatime = 0.f;
+		m_clockTime = 0.f;
+		m_frameTime = 0.f;
+	}
 
 	// Compute the number of logic frames to do each update (fixed tic bricks)
 	int frames =int(deltatime*m_ticrate);
@@ -341,9 +348,21 @@ void KX_KetsjiEngine::NextFrame()
 //		PIL_sleep_ms(4);
 	
 	KX_SceneList::iterator sceneit;
+	int frameOut = 5;
 	
+	if (frames>frameOut)
+	{
+		printf("framedOut: %d\n",frames);
+		m_frameTime+=(frames-frameOut)*(1.0/m_ticrate);
+		frames = frameOut;
+	}
+
 	while (frames)
 	{
+		if (frames > frameOut)
+		{
+			printf ("what happened\n");
+		}
 
 		m_frameTime += 1.0/m_ticrate;
 		

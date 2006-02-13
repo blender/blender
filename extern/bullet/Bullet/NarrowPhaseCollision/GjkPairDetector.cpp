@@ -139,8 +139,9 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 		if (checkPenetration && !isValid)
 		{
 			//penetration case
-			m_minkowskiA->SetMargin(marginA);
-			m_minkowskiB->SetMargin(marginB);
+			
+			//m_minkowskiA->SetMargin(marginA);
+			//m_minkowskiB->SetMargin(marginB);
 
 			//if there is no way to handle penetrations, bail out
 			if (m_penetrationDepthSolver)

@@ -13,9 +13,10 @@ public:
 	virtual ~PHY_IVehicle();
 	
 	virtual void	AddWheel(
-			PHY_Vector3	connectionPoint,
-			PHY_Vector3	downDirection,
-			PHY_Vector3	axleDirection,
+			PHY_IMotionState* motionState,
+			PHY__Vector3	connectionPoint,
+			PHY__Vector3	downDirection,
+			PHY__Vector3	axleDirection,
 			float	suspensionRestLength,
 			float wheelRadius,
 			bool hasSteering
@@ -24,13 +25,20 @@ public:
 
 	virtual	int		GetNumWheels() const = 0;
 	
-	virtual const PHY_IMotionState*		GetWheelMotionState(int wheelIndex) const = 0;
+	virtual void	GetWheelPosition(int wheelIndex,float& posX,float& posY,float& posZ) const = 0;
+	virtual void	GetWheelOrientationQuaternion(int wheelIndex,float& quatX,float& quatY,float& quatZ,float& quatW) const = 0;
+	virtual float	GetWheelRotation(int wheelIndex) const = 0;
 
 	virtual int	GetUserConstraintId() const =0;
 	virtual int	GetUserConstraintType() const =0;
 
 	//some basic steering/braking/tuning/balancing (bikes)
 
+	virtual	void	SetSteeringValue(float steering,int wheelIndex) = 0;
+
+	virtual	void	ApplyEngineForce(float force,int wheelIndex) = 0;
+
+	virtual	void	ApplyBraking(float braking,int wheelIndex) = 0;
 
 };
 

@@ -14,12 +14,12 @@
 
 
 static RigidBody s_fixed(MassProps(0,SimdVector3(0.f,0.f,0.f)),0.f,0.f,1.f,1.f);
-static int gConstraintId = 1;
+
 
 Point2PointConstraint::Point2PointConstraint():
 m_rbA(s_fixed),m_rbB(s_fixed)
 {
-	m_constraintId = gConstraintId++;//just create some unique ID for now
+
 
 	s_fixed.setMassProps(0.f,SimdVector3(0.f,0.f,0.f));
 }
@@ -27,7 +27,7 @@ m_rbA(s_fixed),m_rbB(s_fixed)
 Point2PointConstraint::Point2PointConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB)
 :m_rbA(rbA),m_rbB(rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB)
 {
-	m_constraintId = gConstraintId++;//just create some unique ID for now
+
 }
 
 
@@ -35,7 +35,7 @@ Point2PointConstraint::Point2PointConstraint(RigidBody& rbA,const SimdVector3& p
 :m_rbA(rbA),m_rbB(s_fixed),m_pivotInA(pivotInA),m_pivotInB(rbA.getCenterOfMassTransform()(pivotInA))
 {
 	s_fixed.setMassProps(0.f,SimdVector3(1e10f,1e10f,1e10f));
-	m_constraintId = gConstraintId++;//just create some unique ID for now
+	
 }
 
 void	Point2PointConstraint::BuildJacobian()

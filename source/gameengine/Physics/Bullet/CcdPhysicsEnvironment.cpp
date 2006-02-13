@@ -20,7 +20,7 @@
 #include "NarrowPhaseCollision/SubSimplexConvexCast.h"
 
 #include "CollisionDispatch/ToiContactDispatcher.h"
-
+#include "PHY_IMotionState.h"
 
 #include "CollisionDispatch/EmptyCollisionAlgorithm.h"
 #include "CollisionDispatch/UnionFind.h"
@@ -29,6 +29,16 @@
 #include "CollisionShapes/SphereShape.h"
 
 bool useIslands = true;
+
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+#include "Vehicle/RaycastVehicle.h"
+#include "Vehicle/VehicleRaycaster.h"
+#include "Vehicle/VehicleTuning.h"
+#include "PHY_IVehicle.h"
+VehicleTuning	gTuning;
+
+#endif //NEW_BULLET_VEHICLE_SUPPORT
+#include "AabbUtil2.h"
 
 #include "ConstraintSolver/ConstraintSolver.h"
 #include "ConstraintSolver/Point2PointConstraint.h"
@@ -44,9 +54,146 @@ void DrawRasterizerLine(const float* from,const float* to,int color);
 #include "ConstraintSolver/ContactConstraint.h"
 
 
-
 #include <stdio.h>
 
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+class WrapperVehicle : public PHY_IVehicle
+{
+
+	RaycastVehicle*	m_vehicle;
+	PHY_IPhysicsController*	m_chassis;
+		
+public:
+
+	WrapperVehicle(RaycastVehicle* vehicle,PHY_IPhysicsController* chassis)
+		:m_vehicle(vehicle),
+		m_chassis(chassis)
+	{
+	}
+
+	RaycastVehicle*	GetVehicle()
+	{
+		return m_vehicle;
+	}
+
+	PHY_IPhysicsController*	GetChassis()
+	{
+		return m_chassis;
+	}
+
+	virtual void	AddWheel(
+			PHY_IMotionState*	motionState,
+			PHY__Vector3	connectionPoint,
+			PHY__Vector3	downDirection,
+			PHY__Vector3	axleDirection,
+			float	suspensionRestLength,
+			float wheelRadius,
+			bool hasSteering
+		)
+	{
+		SimdVector3 connectionPointCS0(connectionPoint[0],connectionPoint[1],connectionPoint[2]);
+		SimdVector3 wheelDirectionCS0(downDirection[0],downDirection[1],downDirection[2]);
+		SimdVector3 wheelAxle(axleDirection[0],axleDirection[1],axleDirection[2]);
+		
+
+		WheelInfo& info = m_vehicle->AddWheel(connectionPointCS0,wheelDirectionCS0,wheelAxle,
+			suspensionRestLength,wheelRadius,gTuning,hasSteering);
+		info.m_clientInfo = motionState;
+		
+	}
+
+	void	SyncWheels()
+	{
+		int numWheels = GetNumWheels();
+		int i;
+		for (i=0;i<numWheels;i++)
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(i);
+			PHY_IMotionState* motionState = (PHY_IMotionState*)info.m_clientInfo ;
+			SimdTransform trans = m_vehicle->GetWheelTransformWS(i);
+			SimdQuaternion orn = trans.getRotation();
+			const SimdVector3& pos = trans.getOrigin();
+			motionState->setWorldOrientation(orn.x(),orn.y(),orn.z(),orn[3]);
+			motionState->setWorldPosition(pos.x(),pos.y(),pos.z());
+
+		}
+	}
+
+	virtual	int		GetNumWheels() const
+	{
+		return m_vehicle->GetNumWheels();
+	}
+	
+	virtual void	GetWheelPosition(int wheelIndex,float& posX,float& posY,float& posZ) const
+	{
+		SimdTransform	trans = m_vehicle->GetWheelTransformWS(wheelIndex);
+		posX = trans.getOrigin().x();
+		posY = trans.getOrigin().y();
+		posZ = trans.getOrigin().z();
+	}
+	virtual void	GetWheelOrientationQuaternion(int wheelIndex,float& quatX,float& quatY,float& quatZ,float& quatW) const
+	{
+		SimdTransform	trans = m_vehicle->GetWheelTransformWS(wheelIndex);
+		SimdQuaternion quat = trans.getRotation();
+		SimdMatrix3x3 orn2(quat);
+
+		quatX = trans.getRotation().x();
+		quatY = trans.getRotation().y();
+		quatZ = trans.getRotation().z();
+		quatW = trans.getRotation()[3];
+		
+
+		//printf("test");
+
+
+	}
+
+	virtual float	GetWheelRotation(int wheelIndex) const
+	{
+		float rotation = 0.f;
+
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(wheelIndex);
+			rotation = info.m_rotation;
+		}
+		return rotation;
+
+	}
+
+
+	
+	virtual int	GetUserConstraintId() const
+	{
+		return m_vehicle->GetUserConstraintId();
+	}
+
+	virtual int	GetUserConstraintType() const
+	{
+		return m_vehicle->GetUserConstraintType();
+	}
+
+	virtual	void	SetSteeringValue(float steering,int wheelIndex)
+	{
+		m_vehicle->SetSteeringValue(steering,wheelIndex);
+	}
+
+	virtual	void	ApplyEngineForce(float force,int wheelIndex)
+	{
+		m_vehicle->ApplyEngineForce(force,wheelIndex);
+	}
+
+	virtual	void	ApplyBraking(float braking,int wheelIndex)
+	{
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(wheelIndex);
+			info.m_brake = braking;
+		}
+	}
+
+};
+#endif //NEW_BULLET_VEHICLE_SUPPORT
 
 
 
@@ -192,7 +339,7 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				 removeConstraint(p2p->GetConstraintId());
+				 removeConstraint(p2p->GetUserConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -209,7 +356,7 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				removeConstraint(p2p->GetConstraintId());
+				removeConstraint(p2p->GetUserConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -414,20 +561,25 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			p2p->SolveConstraint( timeStep );
 			
 		}
-		/*
+
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
 		//vehicles
-		int numVehicles = m_vehicles.size();
-		for (i=0;i<numVehicles;i++)
+		int numVehicles = m_wrapperVehicles.size();
+		for (int i=0;i<numVehicles;i++)
 		{
-			Vehicle* vehicle = m_vehicles[i];
-			vehicle->UpdateVehicle( timeStep );
+			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
+			RaycastVehicle* vehicle = wrapperVehicle->GetVehicle();
+			vehicle->UpdateVehicle( timeStep);
 		}
-		*/
+#endif //NEW_BULLET_VEHICLE_SUPPORT
+
 		
 		
 		
 	}
 	
+
+
 	{
 		
 		
@@ -593,8 +745,26 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			
 	}
 	
+
+
 	SyncMotionStates(timeStep);
 
+	
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+		//sync wheels for vehicles
+		int numVehicles = m_wrapperVehicles.size();
+		for (int i=0;i<numVehicles;i++)
+		{
+			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
+			
+			for (int j=0;j<wrapperVehicle->GetVehicle()->GetNumWheels();j++)
+			{
+				wrapperVehicle->GetVehicle()->UpdateWheelTransformsWS(wrapperVehicle->GetVehicle()->GetWheelInfo(j));
+			}
+			
+			wrapperVehicle->SyncWheels();
+		}
+#endif //NEW_BULLET_VEHICLE_SUPPORT
 	}
 	return true;
 }
@@ -734,6 +904,78 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 }
 
 
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+
+class BlenderVehicleRaycaster : public VehicleRaycaster
+{
+	CcdPhysicsEnvironment* m_physEnv;
+	PHY_IPhysicsController*	m_chassis;
+
+public:
+	BlenderVehicleRaycaster(CcdPhysicsEnvironment* physEnv,PHY_IPhysicsController* chassis):
+	m_physEnv(physEnv),
+		m_chassis(chassis)
+	{
+	}
+
+	/*	struct VehicleRaycasterResult
+	{
+		VehicleRaycasterResult() :m_distFraction(-1.f){};
+		SimdVector3	m_hitPointInWorld;
+		SimdVector3	m_hitNormalInWorld;
+		SimdScalar	m_distFraction;
+	};
+*/
+	virtual void* CastRay(const SimdVector3& from,const SimdVector3& to, VehicleRaycasterResult& result)
+	{
+		
+		
+		float hit[3];
+		float normal[3];
+
+		PHY_IPhysicsController*	ignore = m_chassis;
+		void* hitObject = m_physEnv->rayTest(ignore,from.x(),from.y(),from.z(),to.x(),to.y(),to.z(),hit[0],hit[1],hit[2],normal[0],normal[1],normal[2]);
+		if (hitObject)
+		{
+			result.m_hitPointInWorld[0] = hit[0];
+			result.m_hitPointInWorld[1] = hit[1];
+			result.m_hitPointInWorld[2] = hit[2];
+			result.m_hitNormalInWorld[0] = normal[0];
+			result.m_hitNormalInWorld[1] = normal[1];
+			result.m_hitNormalInWorld[2] = normal[2];
+			result.m_hitNormalInWorld.normalize();
+			//calc fraction? or put it in the interface?
+			//calc for now
+			
+			result.m_distFraction = (result.m_hitPointInWorld-from).length() / (to-from).length();
+			//some safety for 'explosion' due to sudden penetration of the full 'ray'
+/*			if (result.m_distFraction<0.1)
+			{
+				printf("Vehicle Raycast: avoided instability due to penetration. Consider moving the connection points deeper inside vehicle chassis");
+				result.m_distFraction = 1.f;
+				hitObject = 0;
+			}
+			*/
+
+/*			if (result.m_distFraction>1.)
+			{
+				printf("Vehicle Raycast: avoided instability 1Consider moving the connection points deeper inside vehicle chassis");				
+				result.m_distFraction = 1.f;
+				hitObject = 0;
+			}
+			*/
+
+				
+			
+		}
+		//?
+		return hitObject;
+	}
+};
+#endif //NEW_BULLET_VEHICLE_SUPPORT
+
+static int gConstraintUid = 1;
+
 int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
 														float pivotX,float pivotY,float pivotZ,
 														float axisX,float axisY,float axisZ)
@@ -769,12 +1011,32 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			}
 			
 			m_p2pConstraints.push_back(p2p);
-			
+			p2p->SetUserConstraintId(gConstraintUid++);
+			p2p->SetUserConstraintType(type);
 			//64 bit systems can't cast pointer to int. could use size_t instead.
-			return p2p->GetConstraintId();
+			return p2p->GetUserConstraintId();
 			
 			break;
 		}
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+
+	case PHY_VEHICLE_CONSTRAINT:
+		{
+			VehicleTuning* tuning = new VehicleTuning();
+			RigidBody* chassis = rb0;
+			BlenderVehicleRaycaster* raycaster = new BlenderVehicleRaycaster(this,ctrl0);
+			RaycastVehicle* vehicle = new RaycastVehicle(*tuning,chassis,raycaster);
+			vehicle->SetBalance(false);
+			WrapperVehicle* wrapperVehicle = new WrapperVehicle(vehicle,ctrl0);
+			m_wrapperVehicles.push_back(wrapperVehicle);
+			vehicle->SetUserConstraintId(gConstraintUid++);
+			vehicle->SetUserConstraintType(type);
+			return vehicle->GetUserConstraintId();
+
+			break;
+		};
+#endif //NEW_BULLET_VEHICLE_SUPPORT
+
 	default:
 		{
 		}
@@ -797,7 +1059,7 @@ void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 		!(i==m_p2pConstraints.end()); i++)
 		{
 			Point2PointConstraint* p2p = (*i);
-			if (p2p->GetConstraintId() == constraintId)
+			if (p2p->GetUserConstraintId() == constraintId)
 			{
 				std::swap(*i, m_p2pConstraints.back());
 				m_p2pConstraints.pop_back();
@@ -814,11 +1076,21 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 
 	SimdTransform	rayFromTrans,rayToTrans;
 	rayFromTrans.setIdentity();
-	rayFromTrans.setOrigin(SimdVector3(fromX,fromY,fromZ));
+
+	SimdVector3 rayFrom(fromX,fromY,fromZ);
+
+	rayFromTrans.setOrigin(rayFrom);
 	rayToTrans.setIdentity();
-	rayToTrans.setOrigin(SimdVector3(toX,toY,toZ));
+	SimdVector3 rayTo(toX,toY,toZ);
+	rayToTrans.setOrigin(rayTo);
 
+	//do culling based on aabb (rayFrom/rayTo)
+	SimdVector3 rayAabbMin = rayFrom;
+	SimdVector3 rayAabbMax = rayFrom;
+	rayAabbMin.setMin(rayTo);
+	rayAabbMax.setMax(rayTo);
 
+	
 	CcdPhysicsController* nearestHit = 0;
 	
 	std::vector<CcdPhysicsController*>::iterator i;
@@ -830,71 +1102,81 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 	!(i==m_controllers.end()); i++)
 	{
 		CcdPhysicsController* ctrl = (*i);
+		if (ctrl == ignoreClient)
+			continue;
 		RigidBody* body = ctrl->GetRigidBody();
+		SimdVector3 bodyAabbMin,bodyAabbMax;
+		body->getAabb(bodyAabbMin,bodyAabbMax);
 
-		if (body->GetCollisionShape()->IsConvex())
+		//check aabb overlap
+
+		if (TestAabbAgainstAabb2(rayAabbMin,rayAabbMax,bodyAabbMin,bodyAabbMax))
 		{
-			ConvexCast::CastResult rayResult;
-			rayResult.m_fraction = 1.f;
-
-			ConvexShape* convexShape = (ConvexShape*) body->GetCollisionShape();
-			VoronoiSimplexSolver	simplexSolver;
-			SubsimplexConvexCast convexCaster(&pointShape,convexShape,&simplexSolver);
-			
-			if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,body->getCenterOfMassTransform(),body->getCenterOfMassTransform(),rayResult))
+			if (body->GetCollisionShape()->IsConvex())
 			{
-				//add hit
-				rayResult.m_normal.normalize();
-				if (rayResult.m_fraction < minFraction)
+				ConvexCast::CastResult rayResult;
+				rayResult.m_fraction = 1.f;
+
+				ConvexShape* convexShape = (ConvexShape*) body->GetCollisionShape();
+				VoronoiSimplexSolver	simplexSolver;
+				SubsimplexConvexCast convexCaster(&pointShape,convexShape,&simplexSolver);
+				
+				if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,body->getCenterOfMassTransform(),body->getCenterOfMassTransform(),rayResult))
 				{
-
-
-					minFraction = rayResult.m_fraction;
-					nearestHit = ctrl;
-					normalX = rayResult.m_normal.getX();
-					normalY = rayResult.m_normal.getY();
-					normalZ = rayResult.m_normal.getZ();
-					hitX = rayResult.m_hitTransformA.getOrigin().getX();
-					hitY = rayResult.m_hitTransformA.getOrigin().getY();
-					hitZ = rayResult.m_hitTransformA.getOrigin().getZ();
-				}
-			}
-		}
-		else
-		{
-				if (body->GetCollisionShape()->IsConcave())
-				{
-
-					TriangleMeshShape* triangleMesh = (TriangleMeshShape*)body->GetCollisionShape();
-					
-					SimdTransform worldToBody = body->getCenterOfMassTransform().inverse();
-
-					SimdVector3 rayFromLocal = worldToBody * rayFromTrans.getOrigin();
-					SimdVector3 rayToLocal = worldToBody * rayToTrans.getOrigin();
-
-					RaycastCallback	rcb(rayFromLocal,rayToLocal);
-					rcb.m_hitFraction = minFraction;
-
-					SimdVector3 aabbMax(1e30f,1e30f,1e30f);
-
-					triangleMesh->ProcessAllTriangles(&rcb,-aabbMax,aabbMax);
-					if (rcb.m_hitFound)// && (rcb.m_hitFraction < minFraction))
+					//add hit
+					if (rayResult.m_normal.length2() > 0.0001f)
 					{
-						nearestHit = ctrl;
-						minFraction = rcb.m_hitFraction;
-						SimdVector3 hitNormalWorld = body->getCenterOfMassTransform()(rcb.m_hitNormalLocal);
+						rayResult.m_normal.normalize();
+						if (rayResult.m_fraction < minFraction)
+						{
 
-						normalX = hitNormalWorld.getX();
-						normalY = hitNormalWorld.getY();
-						normalZ = hitNormalWorld.getZ();
-						SimdVector3 hitWorld;
-						hitWorld.setInterpolate3(rayFromTrans.getOrigin(),rayToTrans.getOrigin(),rcb.m_hitFraction);
-						hitX = hitWorld.getX();
-						hitY = hitWorld.getY();
-						hitZ = hitWorld.getZ();
-						
+
+							minFraction = rayResult.m_fraction;
+							nearestHit = ctrl;
+							normalX = rayResult.m_normal.getX();
+							normalY = rayResult.m_normal.getY();
+							normalZ = rayResult.m_normal.getZ();
+							hitX = rayResult.m_hitTransformA.getOrigin().getX();
+							hitY = rayResult.m_hitTransformA.getOrigin().getY();
+							hitZ = rayResult.m_hitTransformA.getOrigin().getZ();
+						}
 					}
 				}
+			}
+			else
+			{
+					if (body->GetCollisionShape()->IsConcave())
+					{
+
+						TriangleMeshShape* triangleMesh = (TriangleMeshShape*)body->GetCollisionShape();
+						
+						SimdTransform worldToBody = body->getCenterOfMassTransform().inverse();
+
+						SimdVector3 rayFromLocal = worldToBody * rayFromTrans.getOrigin();
+						SimdVector3 rayToLocal = worldToBody * rayToTrans.getOrigin();
+
+						RaycastCallback	rcb(rayFromLocal,rayToLocal);
+						rcb.m_hitFraction = minFraction;
+
+						triangleMesh->ProcessAllTriangles(&rcb,rayAabbMin,rayAabbMax);
+						if (rcb.m_hitFound)// && (rcb.m_hitFraction < minFraction))
+						{
+							nearestHit = ctrl;
+							minFraction = rcb.m_hitFraction;
+							SimdVector3 hitNormalWorld = body->getCenterOfMassTransform()(rcb.m_hitNormalLocal);
+
+							normalX = hitNormalWorld.getX();
+							normalY = hitNormalWorld.getY();
+							normalZ = hitNormalWorld.getZ();
+							SimdVector3 hitWorld;
+							hitWorld.setInterpolate3(rayFromTrans.getOrigin(),rayToTrans.getOrigin(),rcb.m_hitFraction);
+							hitX = hitWorld.getX();
+							hitY = hitWorld.getY();
+							hitZ = hitWorld.getZ();
+							
+						}
+					}
+			}
 		}
 	}
 
@@ -925,8 +1207,9 @@ Dispatcher* CcdPhysicsEnvironment::GetDispatcher()
 CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 {
 	
-	
-	m_vehicles.clear();
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+	m_wrapperVehicles.clear();
+#endif //NEW_BULLET_VEHICLE_SUPPORT
 	
 	//m_broadphase->DestroyScene();
 	//delete broadphase ? release reference on broadphase ?
@@ -958,3 +1241,25 @@ const PersistentManifold*	CcdPhysicsEnvironment::GetManifold(int index) const
 {
 	return m_dispatcher->GetManifoldByIndexInternal(index);
 }
+
+
+
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+
+//complex constraint for vehicles
+PHY_IVehicle*	CcdPhysicsEnvironment::getVehicleConstraint(int constraintId)
+{
+	int i;
+
+	int numVehicles = m_wrapperVehicles.size();
+	for (i=0;i<numVehicles;i++)
+	{
+		WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
+		if (wrapperVehicle->GetVehicle()->GetUserConstraintId() == constraintId)
+			return wrapperVehicle;
+	}
+
+	return 0;
+}
+
+#endif //NEW_BULLET_VEHICLE_SUPPORT

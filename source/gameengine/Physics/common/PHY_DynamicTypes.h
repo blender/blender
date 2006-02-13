@@ -103,7 +103,6 @@ typedef enum PHY_ConstraintType {
 
 } PHY_ConstraintType;
 
-typedef float	PHY_Vector3[3];
 
 #endif //__PHY_DYNAMIC_TYPES
 
