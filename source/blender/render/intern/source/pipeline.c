@@ -844,9 +844,11 @@ static void do_render_fields(Render *re)
 	
 }
 
-static void do_render_scene_node(Render *re, Scene *sce)
+static void do_render_scene_node(Render *re, Scene *sce, int cfra)
 {
 	Render *resc= RE_NewRender(sce->id.name+2);
+	
+	sce->r.cfra= cfra;
 	
 	/* makes render result etc */
 	RE_InitState(resc, &sce->r, re->winx, re->winy, &re->disprect);
@@ -877,6 +879,7 @@ static void do_render_scene_node(Render *re, Scene *sce)
 static void ntree_render_scenes(Render *re)
 {
 	bNode *node;
+	int cfra= re->scene->r.cfra;
 	
 	if(re->scene->nodetree==NULL) return;
 	
@@ -898,7 +901,7 @@ static void ntree_render_scenes(Render *re)
 		if(node->type==CMP_NODE_R_RESULT) {
 			if(node->id && node->id != (ID *)re->scene) {
 				if(node->id->flag & LIB_DOIT) {
-					do_render_scene_node(re, (Scene *)node->id);
+					do_render_scene_node(re, (Scene *)node->id, cfra);
 					node->id->flag &= ~LIB_DOIT;
 				}
 			}
