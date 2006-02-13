@@ -249,6 +249,7 @@ void RAS_MeshObject::ScheduleWireframePoly(const KX_VertexIndex& idx,
 int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 									const MT_Point3& xyz,
 									const MT_Point2& uv,
+									const MT_Vector4& tangent,
 									const unsigned int rgbacolor,
 									const MT_Vector3& normal,
 									RAS_IPolyMaterial* mat,
@@ -257,7 +258,7 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 	
 	int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-	RAS_TexVert newvert(xyz,uv,rgbacolor,normal, 0);
+	RAS_TexVert newvert(xyz,uv,tangent,rgbacolor,normal, 0);
 #define KX_FIND_SHARED_VERTICES
 #ifdef KX_FIND_SHARED_VERTICES
 	
@@ -423,7 +424,6 @@ void RAS_MeshObject::MarkVisible(double* oglmatrix,
 		bucket->MarkVisibleMeshSlot(ms,visible,useObjectColor,rgbavec);
 	}
 }
-
 
 
 void RAS_MeshObject::RemoveFromBuckets(double* oglmatrix,

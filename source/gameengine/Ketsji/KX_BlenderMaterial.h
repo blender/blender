@@ -23,7 +23,7 @@ class KX_BlenderMaterial :  public PyObjectPlus, public RAS_IPolyMaterial
 public:
 	// --------------------------------
 	KX_BlenderMaterial(
-		class KX_Scene*	scene, // light/obj list
+		class KX_Scene*	scene,
 		BL_Material*	mat,
 		bool			skin,
 		int				lightlayer,
@@ -34,25 +34,32 @@ public:
 	virtual ~KX_BlenderMaterial();
 
 	// --------------------------------
-	virtual TCachingInfo GetCachingInfo(void) const
-	{
-		// --
+	virtual TCachingInfo GetCachingInfo(void) const {
 		return (void*) this;
 	}
 
-	// --------------------------------
-	virtual bool Activate(
+	virtual 
+	bool Activate(
 		RAS_IRasterizer* rasty, 
-		TCachingInfo& cachingInfo) const;
+		TCachingInfo& cachingInfo
+	) const;
+	
+	virtual 
+	void ActivateMeshSlot(
+		const KX_MeshSlot & ms, 
+		RAS_IRasterizer* rasty 
+	) const;
 	
 	void ActivateMat(
-		RAS_IRasterizer* rasty, 
-		TCachingInfo& cachingInfo)const;
-		
+		RAS_IRasterizer* rasty,
+		TCachingInfo& cachingInfo
+	)const;
+
 	void ActivatShaders(
 		RAS_IRasterizer* rasty, 
-		TCachingInfo& cachingInfo)const;
-	// --------------------------------
+		TCachingInfo& cachingInfo
+	)const;
+
 
 	TFace* GetTFace(void) const;
 
@@ -73,36 +80,34 @@ public:
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, setTexture );
 
 	KX_PYMETHOD_DOC( KX_BlenderMaterial, setBlending );
+
 	// --------------------------------
 	// pre calculate to avoid pops/lag at startup
 	virtual void OnConstruction( );
-
 private:
 	BL_Material*	mMaterial;
 	BL_Shader*		mShader;
 	KX_Scene*		mScene;
 	BL_Texture		mTextures[MAXTEX];		// texture array
-	
 	bool			mUserDefBlend;
 	unsigned int	mBlendFunc[2];
 	bool			mModified;
 
+
 	// message centers
-	void	setTexData( bool enable );
-	void	setShaderData( bool enable );
+	void	setTexData( bool enable,RAS_IRasterizer *ras);
+	void	setShaderData( bool enable, RAS_IRasterizer *ras);
 
-	void	setTextureEnvironment( int textureIndex );
-	void	setEnvMap( bool val, bool cube=false);
-	void	setTexMatrixData(int i);
 	bool	setDefaultBlending();
-	void	setObjectMatrixData(int i);
+	void	setObjectMatrixData(int i, RAS_IRasterizer *ras);
+	void	setTexMatrixData(int i);
 
+	void	setLightData();
+
+	void	applyTexGen(RAS_IRasterizer *ras);
 	// cleanup stuff
-	void	DisableTexData();
 	void	OnExit();
 
-	//void	DisableNonEnabled();
-	// --
 	mutable int	mPass;
 };
 

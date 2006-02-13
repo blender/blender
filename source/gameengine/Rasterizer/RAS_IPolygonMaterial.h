@@ -130,6 +130,7 @@ public:
 	{ 
 		return false; 
 	}
+	virtual void ActivateMeshSlot(const class KX_MeshSlot & ms, RAS_IRasterizer* rasty) const {}
 
 	virtual bool				Equals(const RAS_IPolyMaterial& lhs) const;
 	bool				Less(const RAS_IPolyMaterial& rhs) const;
@@ -148,7 +149,6 @@ public:
 	 * PreCalculate texture gen
 	 */
 	virtual void OnConstruction(){}
-
 };
 
 inline  bool operator ==( const RAS_IPolyMaterial & rhs,const RAS_IPolyMaterial & lhs)

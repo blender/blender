@@ -3,6 +3,13 @@
 
 #include "PyObjectPlus.h"
 #include "BL_Material.h"
+#include "BL_Texture.h"
+// --
+#include "MT_Matrix4x4.h"
+#include "MT_Matrix3x3.h"
+#include "MT_Tuple2.h"
+#include "MT_Tuple3.h"
+#include "MT_Tuple4.h"
 
 // -----------------------------------
 // user state management
@@ -12,20 +19,26 @@ typedef struct uSampler
 	int				pass;
 	int				unit;
 	int				loc;
-	unsigned int	glTexture;
+	BL_Texture*		gl_texture;
+	int				flag;
 }uSampler;
 
 #define SAMP_2D		1
 #define SAMP_CUBE	2
+#define ATTRIBMAX	1
+
+// uSampler::flag;
+enum 
+{
+	OWN=1
+};
 
 // ----------------
 class BL_Shader : public PyObjectPlus
 {
 	Py_Header;
 private:
-	unsigned int	mShader, 
-					mVert,
-					mFrag;
+	unsigned int	mShader;
 	int				mPass;
 	bool			mOk;
 	bool			mUse;
@@ -33,13 +46,40 @@ private:
 	char*			vertProg;
 	char*			fragProg;
 	bool			mError;
-	char*			mLog;
+	
+	int				mAttr;
+	int				mPreDefLoc;
+	int				mPreDefType;
+	bool			mDeleteTexture;
 
 	bool			LinkProgram();
-	void			PrintInfo( int len, unsigned int handle,int *num);
 public:
 	BL_Shader(PyTypeObject *T=&Type);
 	virtual ~BL_Shader();
+
+	enum AttribTypes{
+		SHD_TANGENT =1
+	};
+
+	enum GenType {
+		MODELVIEWMATRIX,
+		MODELVIEWMATRIX_TRANSPOSE,
+		MODELVIEWMATRIX_INVERSE,
+		MODELVIEWMATRIX_INVERSETRANSPOSE,
+	
+		// Model matrix
+		MODELMATRIX,
+		MODELMATRIX_TRANSPOSE,
+		MODELMATRIX_INVERSE,
+		MODELMATRIX_INVERSETRANSPOSE,
+	
+		// View Matrix
+		VIEWMATRIX,
+		VIEWMATRIX_TRANSPOSE,
+		VIEWMATRIX_INVERSE,
+		VIEWMATRIX_INVERSETRANSPOSE,
+		CAM_POS
+	};
 
 	char*		GetVertPtr();
 	char*		GetFragPtr();
@@ -53,18 +93,28 @@ public:
 	// ---
 	// access
 	const uSampler*		getSampler(int i);
-	const bool			Ok()const;
+	void				SetSampler(int loc, int unit);
 
+	const bool			Ok()const;
 	unsigned int		GetProg();
-	unsigned int		GetVertexShader();
-	unsigned int		GetFragmentShader();
-	
-	void InitializeSampler(
-		int type,
-		int unit,
-		int pass,
-		unsigned int texture
-	);
+	void				SetProg(bool enable);
+	int					GetAttribute(){return mAttr;};
+
+	void InitializeSampler( int type, int unit, int pass, BL_Texture* texture );
+
+	void Update( const class KX_MeshSlot & ms, class RAS_IRasterizer* rasty );
+
+	// form tuhopuu2
+	virtual int GetAttribLocation(const STR_String& name);
+	virtual void BindAttribute(const STR_String& attr, int loc);
+	virtual int GetUniformLocation(const STR_String& name);
+	virtual void SetUniform(int uniform, const MT_Tuple2& vec);
+	virtual void SetUniform(int uniform, const MT_Tuple3& vec);
+	virtual void SetUniform(int uniform, const MT_Tuple4& vec);
+	virtual void SetUniform(int uniform, const unsigned int& val);
+	virtual void SetUniform(int uniform, const float& val);
+	virtual void SetUniform(int uniform, const MT_Matrix4x4& vec, bool transpose=false);
+	virtual void SetUniform(int uniform, const MT_Matrix3x3& vec, bool transpose=false);
 
 	// -----------------------------------
 	// python interface
@@ -93,6 +143,10 @@ public:
 
 	KX_PYMETHOD_DOC( BL_Shader, setUniformMatrix4 );
 	KX_PYMETHOD_DOC( BL_Shader, setUniformMatrix3 );
+
+	KX_PYMETHOD_DOC( BL_Shader, setUniformDef );
+
+	KX_PYMETHOD_DOC( BL_Shader, setAttrib );
 
 	// these come from within the material buttons
 	// sampler2d/samplerCube work

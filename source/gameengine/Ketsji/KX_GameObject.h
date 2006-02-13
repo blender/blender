@@ -526,7 +526,6 @@ public:
 		void
 	);
 
-		
 	/**
 	 * Was this object marked visible? (only for the ewxplicit
 	 * visibility system).
@@ -609,7 +608,6 @@ public:
 	KX_PYMETHOD(KX_GameObject,GetParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
-
 private :
 
 	/**	

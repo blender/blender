@@ -351,9 +351,11 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 					material->flag[i] |= ( tface->transp  &TF_ALPHA	)?USEALPHA:0;
 					material->flag[i] |= ( tface->transp  &TF_ADD	)?CALCALPHA:0;
 					material->ras_mode|= ( tface->transp  &(TF_ADD | TF_ALPHA))?TRANSP:0;
-					material->mapping[i].mapping |= ( (material->img[i]->flag & IMA_REFLECT)!=0 )?USEREFL:0;
-					//material->blend_mode[i] = BLEND_MUL;
-					i++;// skip to the next image
+					if(material->img[i]->flag & IMA_REFLECT)
+						material->mapping[i].mapping |= USEREFL;
+					else
+						material->mapping[i].mapping |= USEUV;
+					i++;
 					valid_index++;
 				}
 			}
@@ -416,6 +418,16 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 						if(mttmp->object)
 							material->mapping[i].objconame = mttmp->object->id.name;
 					}
+					else if(mttmp->texco &TEXCO_REFL)
+						material->mapping[i].mapping |= USEREFL;
+					else if(mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
+						material->mapping[i].mapping |= USEORCO;
+					else if(mttmp->texco &TEXCO_UV)
+						material->mapping[i].mapping |= USEUV;
+					else if(mttmp->texco &TEXCO_NORM)
+						material->mapping[i].mapping |= USENORM;
+					else
+						material->mapping[i].mapping |= DISABLE;
 					
 					material->mapping[i].scale[0] = mttmp->size[0];
 					material->mapping[i].scale[1] = mttmp->size[1];
@@ -463,6 +475,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 			material->IdMode = GREATERTHAN2;
 			break;
 		}
+		material->SetUsers(mat->id.us);
 
 		material->num_enabled = valid_index;
 
@@ -497,6 +510,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 				valid++;
 			}
 		}
+		material->SetUsers(-1);
 		material->num_enabled	= valid;
 		material->IdMode		= TEXFACE;
 		material->speccolor[0]	= 1.f;
@@ -556,6 +570,87 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 }
 
 
+static void BL_ComputeTriTangentSpace(const MT_Vector3 &v1, const MT_Vector3 &v2, const MT_Vector3 &v3, 
+	const MT_Vector2 &uv1, const MT_Vector2 &uv2, const MT_Vector2 &uv3, 
+	MFace* mface, MT_Vector3 *tan1, MT_Vector3 *tan2)
+{
+		MT_Vector3 dx1(v2 - v1), dx2(v3 - v1);
+		MT_Vector2 duv1(uv2 - uv1), duv2(uv3 - uv1);
+		
+		MT_Scalar r = 1.0 / (duv1.x() * duv2.y() - duv2.x() * duv1.y());
+		duv1 *= r;
+		duv2 *= r;
+		MT_Vector3 sdir(duv2.y() * dx1 - duv1.y() * dx2);
+		MT_Vector3 tdir(duv1.x() * dx2 - duv2.x() * dx1);
+		
+		tan1[mface->v1] += sdir;
+		tan1[mface->v2] += sdir;
+		tan1[mface->v3] += sdir;
+		
+		tan2[mface->v1] += tdir;
+		tan2[mface->v2] += tdir;
+		tan2[mface->v3] += tdir;
+}
+
+static MT_Vector4*  BL_ComputeMeshTangentSpace(Mesh* mesh)
+{
+	MFace* mface = static_cast<MFace*>(mesh->mface);
+	TFace* tface = static_cast<TFace*>(mesh->tface);
+
+	MT_Vector3 *tan1 = new MT_Vector3[mesh->totvert];
+	MT_Vector3 *tan2 = new MT_Vector3[mesh->totvert];
+	
+	unsigned int v;
+	for (v = 0; v < mesh->totvert; v++)
+	{
+		tan1[v] = MT_Vector3(0.0, 0.0, 0.0);
+		tan2[v] = MT_Vector3(0.0, 0.0, 0.0);
+	}
+	
+	for (unsigned int p = 0; p < mesh->totface; p++, mface++, tface++)
+	{
+		MT_Vector3 	v1(mesh->mvert[mface->v1].co),
+				v2(mesh->mvert[mface->v2].co),
+				v3(mesh->mvert[mface->v3].co);
+				
+		MT_Vector2	uv1(tface->uv[0]),
+				uv2(tface->uv[1]),
+				uv3(tface->uv[2]);
+				
+		BL_ComputeTriTangentSpace(v1, v2, v3, uv1, uv2, uv3, mface, tan1, tan2);
+		if (mface->v4)
+		{
+			MT_Vector3 v4(mesh->mvert[mface->v4].co);
+			MT_Vector2 uv4(tface->uv[3]);
+			
+			BL_ComputeTriTangentSpace(v1, v3, v4, uv1, uv3, uv4, mface, tan1, tan2);
+		}
+	}
+	
+	MT_Vector4 *tangent = new MT_Vector4[mesh->totvert];
+	for (v = 0; v < mesh->totvert; v++)
+	{
+		const MT_Vector3 no(mesh->mvert[v].no[0]/32767.0, 
+					mesh->mvert[v].no[1]/32767.0, 
+					mesh->mvert[v].no[2]/32767.0);
+		// Gram-Schmidt orthogonalize
+		MT_Vector3 t(tan1[v] - no.cross(no.cross(tan1[v])));
+		if (!MT_fuzzyZero(t))
+			t /= t.length();
+
+		tangent[v].x() = t.x();
+		tangent[v].y() = t.y();
+		tangent[v].z() = t.z();
+		// Calculate handedness
+		tangent[v].w() = no.dot(tan1[v].cross(tan2[v])) < 0.0 ? -1.0 : 1.0;
+	}
+	
+	delete [] tan1;
+	delete [] tan2;
+	
+	return tangent;
+}
+
 RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools* rendertools, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_MeshObject *meshobj;
@@ -576,6 +671,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	else {
 		meshobj = new RAS_MeshObject(lightlayer);
 	}
+	MT_Vector4 *tangent = 0;
+	if (tface)
+		tangent = BL_ComputeMeshTangentSpace(mesh);
 	
 	meshobj->SetName(mesh->id.name);
 	
@@ -600,7 +698,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					pt1(mesh->mvert[mface->v2].co),
 					pt2(mesh->mvert[mface->v3].co),
 					pt3(0.0, 0.0, 0.0);
-			
+			MT_Vector4	tan0(0.0, 0.0, 0.0, 0.0),
+					tan1(0.0, 0.0, 0.0, 0.0),
+					tan2(0.0, 0.0, 0.0, 0.0),
+					tan3(0.0, 0.0, 0.0, 0.0);
+
 			no0 /= 32767.0;
 			no1 /= 32767.0;
 			no2 /= 32767.0;
@@ -655,6 +757,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					uv1 = uv[1];
 					uv2 = uv[2];
 					uv3 = uv[3];
+					if(tangent){
+						tan0 = tangent[mface->v1];
+						tan1 = tangent[mface->v2];
+						tan2 = tangent[mface->v3];
+						if (mface->v4)
+							tan3 = tangent[mface->v4];
+					}
 					// this is needed to free up memory afterwards
 					converter->RegisterPolyMaterial(polymat);
 				}
@@ -800,19 +909,19 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					d3=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v3, &mesh->dvert[mface->v3], polymat);
 					if (nverts==4)
 						d4=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v4, &mesh->dvert[mface->v4], polymat);
-					poly->SetVertex(0,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt0,uv0,rgb0,no0,d1,flat, polymat));
-					poly->SetVertex(1,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt1,uv1,rgb1,no1,d2,flat, polymat));
-					poly->SetVertex(2,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt2,uv2,rgb2,no2,d3,flat, polymat));
+					poly->SetVertex(0,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt0,uv0,tan0,rgb0,no0,d1,flat, polymat));
+					poly->SetVertex(1,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt1,uv1,tan1,rgb1,no1,d2,flat, polymat));
+					poly->SetVertex(2,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt2,uv2,tan2,rgb2,no2,d3,flat, polymat));
 					if (nverts==4)
-						poly->SetVertex(3,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt3,uv3,rgb3,no3,d4, flat,polymat));
+						poly->SetVertex(3,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt3,uv3,tan3,rgb3,no3,d4, flat,polymat));
 				}
 				else
 				{
-					poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,rgb0,no0,polymat,mface->v1));
-					poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,rgb1,no1,polymat,mface->v2));
-					poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,rgb2,no2,polymat,mface->v3));
+					poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,tan0,rgb0,no0,polymat,mface->v1));
+					poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,tan1,rgb1,no1,polymat,mface->v2));
+					poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,tan2,rgb2,no2,polymat,mface->v3));
 					if (nverts==4)
-						poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,rgb3,no3,polymat,mface->v4));
+						poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,tan3,rgb3,no3,polymat,mface->v4));
 				}
 				meshobj->AddPolygon(poly);
 				if (poly->IsCollider())
@@ -850,7 +959,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		mit != meshobj->GetLastMaterial(); ++ mit) {
 		(*mit)->GetPolyMaterial()->OnConstruction();
 	}
-	// -----------------------------------
+
+	if(tangent)
+		delete [] tangent;
 
 
 	return meshobj;

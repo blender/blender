@@ -7,12 +7,6 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_multitexture
 ---------------------------------------------------------------------------- */
-/* defined in glext.h
-#ifndef GL_ARB_multitexture
-#define GL_ARB_multitexture 1
-#endif
-*/
-
 #ifdef GL_ARB_multitexture
 	#define GL_TEXTURE0_ARB                   0x84C0
 	#define GL_TEXTURE1_ARB                   0x84C1
@@ -34,12 +28,6 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_texture_env_combine
 ---------------------------------------------------------------------------- */
-/*
-#ifndef GL_ARB_texture_env_combine
-	#define GL_ARB_texture_env_combine 1
-#endif
-*/
-
 #ifdef GL_ARB_texture_env_combine
 	#define GL_COMBINE_ARB                    0x8570
 	#define GL_COMBINE_RGB_ARB                0x8571
@@ -68,12 +56,6 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_texture_cube_map
 ---------------------------------------------------------------------------- */
-/*
-#ifndef GL_ARB_texture_cube_map
-	#define GL_ARB_texture_cube_map 1
-#endif
-*/
-
 #ifdef GL_ARB_texture_cube_map
 	#define GL_NORMAL_MAP_ARB                 0x8511
 	#define GL_REFLECTION_MAP_ARB             0x8512
@@ -92,11 +74,6 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_shader_objects
 ---------------------------------------------------------------------------- */
-/*
-#ifndef GL_ARB_shader_objects
-	#define GL_ARB_shader_objects 1
-#endif
-*/
 #ifdef GL_ARB_shader_objects
 	#define GL_PROGRAM_OBJECT_ARB             0x8B40
 	#define GL_SHADER_OBJECT_ARB              0x8B48
@@ -137,12 +114,6 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_vertex_shader
 ---------------------------------------------------------------------------- */
-/*
-#ifndef GL_ARB_vertex_shader
-	#define GL_ARB_vertex_shader 1
-#endif
-*/
-
 #ifdef GL_ARB_vertex_shader
 	#define GL_VERTEX_SHADER_ARB              0x8B31
 	#define GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB 0x8B4A
@@ -157,16 +128,22 @@
 /* ----------------------------------------------------------------------------
 	GL_ARB_fragment_shader
 ---------------------------------------------------------------------------- */
-/*
-#ifndef GL_ARB_fragment_shader
-	#define GL_ARB_fragment_shader 1
-#endif
-*/
-
 #ifdef GL_ARB_fragment_shader
 	#define GL_FRAGMENT_SHADER_ARB            0x8B30
 	#define GL_MAX_FRAGMENT_UNIFORM_COMPONENTS_ARB 0x8B49
 	#define GL_FRAGMENT_SHADER_DERIVATIVE_HINT_ARB 0x8B8B
+#endif
+
+
+/* ----------------------------------------------------------------------------
+	GL_ARB_depth_texture
+---------------------------------------------------------------------------- */
+#ifndef GL_ARB_depth_texture
+	#define GL_DEPTH_COMPONENT16_ARB          0x81A5
+	#define GL_DEPTH_COMPONENT24_ARB          0x81A6
+	#define GL_DEPTH_COMPONENT32_ARB          0x81A7
+	#define GL_TEXTURE_DEPTH_SIZE_ARB         0x884A
+	#define GL_DEPTH_TEXTURE_MODE_ARB         0x884B
 #endif
 
 

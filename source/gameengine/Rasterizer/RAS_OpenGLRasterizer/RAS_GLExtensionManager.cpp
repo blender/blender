@@ -406,6 +406,22 @@ PFNGLGETACTIVEATTRIBARBPROC blGetActiveAttribARB;
 PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
 #endif
 
+
+#ifdef GL_ARB_vertex_program
+ PFNGLVERTEXATTRIB1FARBPROC blVertexAttrib1fARB;
+ PFNGLVERTEXATTRIB1FVARBPROC blVertexAttrib1fvARB;
+ PFNGLVERTEXATTRIB2FARBPROC blVertexAttrib2fARB;
+ PFNGLVERTEXATTRIB2FVARBPROC blVertexAttrib2fvARB;
+ PFNGLVERTEXATTRIB3FARBPROC blVertexAttrib3fARB;
+ PFNGLVERTEXATTRIB3FVARBPROC blVertexAttrib3fvARB;
+ PFNGLVERTEXATTRIB4FARBPROC blVertexAttrib4fARB;
+ PFNGLVERTEXATTRIB4FVARBPROC blVertexAttrib4fvARB;
+ PFNGLGETPROGRAMSTRINGARBPROC blGetProgramStringARB;
+ PFNGLGETVERTEXATTRIBDVARBPROC blGetVertexAttribdvARB;
+ PFNGLGETVERTEXATTRIBFVARBPROC blGetVertexAttribfvARB;
+ PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
+#endif
+
 } // namespace bgl
 
 using namespace bgl;
@@ -586,6 +602,44 @@ static void LinkExtensions()
 		RAS_EXT_support._ARB_fragment_shader = 1;
 		if (doDebugMessages)
 			std::cout << "Detected GL_ARB_fragment_shader" << std::endl;
+	}
+#endif
+
+#if defined(GL_ARB_vertex_program)
+	if (QueryExtension("GL_ARB_vertex_program"))
+	{
+		bgl::blVertexAttrib1fARB = reinterpret_cast<PFNGLVERTEXATTRIB1FARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib1fARB"));
+		bgl::blVertexAttrib1fvARB = reinterpret_cast<PFNGLVERTEXATTRIB1FVARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib1fvARB"));
+		bgl::blVertexAttrib2fARB = reinterpret_cast<PFNGLVERTEXATTRIB2FARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib2fARB"));
+		bgl::blVertexAttrib2fvARB = reinterpret_cast<PFNGLVERTEXATTRIB2FVARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib2fvARB"));
+		bgl::blVertexAttrib3fARB = reinterpret_cast<PFNGLVERTEXATTRIB3FARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib3fARB"));
+		bgl::blVertexAttrib3fvARB = reinterpret_cast<PFNGLVERTEXATTRIB3FVARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib3fvARB"));
+		bgl::blVertexAttrib4fARB = reinterpret_cast<PFNGLVERTEXATTRIB4FARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib4fARB"));
+		bgl::blVertexAttrib4fvARB = reinterpret_cast<PFNGLVERTEXATTRIB4FVARBPROC>(bglGetProcAddress((const GLubyte *) "glVertexAttrib4fvARB"));
+		bgl::blGetVertexAttribdvARB = reinterpret_cast<PFNGLGETVERTEXATTRIBDVARBPROC>(bglGetProcAddress((const GLubyte *) "glGetVertexAttribdvARB"));
+		bgl::blGetVertexAttribfvARB = reinterpret_cast<PFNGLGETVERTEXATTRIBFVARBPROC>(bglGetProcAddress((const GLubyte *) "glGetVertexAttribfvARB"));
+		bgl::blGetVertexAttribivARB = reinterpret_cast<PFNGLGETVERTEXATTRIBIVARBPROC>(bglGetProcAddress((const GLubyte *) "glGetVertexAttribivARB"));
+		if (bgl::blVertexAttrib1fARB && bgl::blVertexAttrib1fvARB && bgl::blVertexAttrib2fARB && bgl::blVertexAttrib2fvARB && bgl::blVertexAttrib3fARB && bgl::blVertexAttrib3fvARB && bgl::blGetVertexAttribdvARB) {
+			EnableExtension(_GL_ARB_vertex_program);
+			RAS_EXT_support._ARB_vertex_program = 1;
+			if (doDebugMessages)
+				std::cout << "Enabled GL_ARB_vertex_program" << std::endl;
+		} else {
+			std::cout << "ERROR: GL_ARB_vertex_program implementation is broken!" << std::endl;
+		}
+	}
+#endif
+
+
+#ifdef GL_ARB_depth_texture
+	if (QueryExtension("GL_ARB_depth_texture"))
+	{
+		EnableExtension(_GL_ARB_depth_texture);
+		RAS_EXT_support._ARB_depth_texture = 1;
+		if (doDebugMessages)
+		{
+			std::cout << "Detected GL_ARB_depth_texture" << std::endl;
+		}
 	}
 #endif
 

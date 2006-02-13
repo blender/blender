@@ -449,6 +449,7 @@ KX_GameObject::MarkVisible(
 	}
 }
 
+
 void KX_GameObject::addLinearVelocity(const MT_Vector3& lin_vel,bool local)
 {
 	if (m_pPhysicsController1)
@@ -1128,7 +1129,6 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
 	
 	return NULL;
 }
-
 
 /* --------------------------------------------------------------------- 
  * Some stuff taken from the header

@@ -71,6 +71,7 @@ public:
 	{}
 	RAS_TexVert(const MT_Point3& xyz,
 				const MT_Point2& uv,
+				const MT_Vector4& tangent,
 				const unsigned int rgba,
 				const MT_Vector3& normal,
 				const short flag);
@@ -94,6 +95,10 @@ public:
 		return m_normal;
 	}
 	
+	const float* getTangent() const {
+		return m_tangent;
+	}
+
 	const unsigned char* getRGBA() const {
 		return (unsigned char *) &m_rgba;
 	}

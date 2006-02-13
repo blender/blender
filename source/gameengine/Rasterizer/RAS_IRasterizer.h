@@ -98,6 +98,25 @@ public:
 			
 			RAS_STEREO_MAXSTEREO
 	};
+
+	/**
+	 * Texture gen modes.
+	 */
+	enum TexCoGen {
+		RAS_TEXCO_GEN,		//< GPU will generate texture coordinates
+		RAS_TEXCO_ORCO,		//< Vertex coordinates (object space)
+		RAS_TEXCO_GLOB,		//< Vertex coordinates (world space)
+		RAS_TEXCO_UV1,		//< UV coordinates
+		RAS_TEXCO_OBJECT,	//< Use another object's position as coordinates
+		RAS_TEXCO_LAVECTOR,	//< Light vector as coordinates
+		RAS_TEXCO_VIEW,		//< View vector as coordinates
+		RAS_TEXCO_STICKY,	//< Sticky coordinates
+		RAS_TEXCO_WINDOW,	//< Window coordinates
+		RAS_TEXCO_NORM,		//< Normal coordinates 
+		RAS_TEXTANGENT,		//<
+		RAS_TEXCO_DISABLE	//< Disable this texture unit (cached)
+	};
+
 	/**
 	 * Render pass identifiers for stereo.
 	 */
@@ -369,6 +388,11 @@ public:
 	virtual void	SetPolygonOffset(float mult, float add) = 0;
 	
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
+
+	virtual void	SetTexCoords(TexCoGen coords, int unit) = 0;
+	virtual void	SetAttrib(int type) = 0;
+	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const = 0;
+
 };
 
 #endif //__RAS_IRASTERIZER

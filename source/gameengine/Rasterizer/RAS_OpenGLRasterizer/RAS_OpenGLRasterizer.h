@@ -44,6 +44,8 @@ using namespace std;
 #include "RAS_MaterialBucket.h"
 #include "RAS_ICanvas.h"
 
+#define RAS_MAX 3// match in BL_Material
+
 struct	OglDebugLine
 {
 	MT_Vector3	m_from;
@@ -87,6 +89,8 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_focallength;
 	bool			m_setfocallength;
 	int				m_noOfScanlines;
+	TexCoGen		m_texco[RAS_MAX];
+	bool			m_useTang;
 	
 	bool			InterlacedStereo() const;
 
@@ -277,6 +281,11 @@ public:
 	}
 
 	std::vector <OglDebugLine>	m_debugLines;
+
+	virtual void	SetTexCoords(TexCoGen coords,int enabled);
+	void			TexCoord(const RAS_TexVert &tv, int unit);
+	virtual void	SetAttrib(int type);
+	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const;
 
 };
 

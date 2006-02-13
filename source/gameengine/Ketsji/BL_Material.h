@@ -20,7 +20,7 @@ struct EnvMap;
 	although the more you add the slower the search time will be.
 	we will go for three, which should be enough
 */
-#define MAXTEX			3//match in RAS_TexVert
+#define MAXTEX			3//match in RAS_TexVert & RAS_OpenGLRasterizer
 
 // different mapping modes
 class BL_Mapping
@@ -39,6 +39,10 @@ class BL_Material
 private:
 	unsigned int rgb[4];
 	MT_Point2 uv[4];
+	
+	int num_users;
+	bool share;
+
 public:
 	// -----------------------------------
 	BL_Material();
@@ -82,6 +86,9 @@ public:
 	void SetConversionUV(MT_Point2 *uv);
 	void GetConversionUV(MT_Point2 *uv);
 
+	void SetSharedMaterial(bool v);
+	bool IsShared();
+	void SetUsers(int num);
 };
 
 // BL_Material::IdMode
@@ -132,9 +139,14 @@ enum BL_ras_mode
 // BL_Material::mapping[index]::mapping
 enum BL_MappingFlag
 {
-	USEREFL=1,
-	USEENV=2,
-	USEOBJ=4
+	USEENV	=1,
+	// --
+	USEREFL	=2,
+	USEOBJ	=4,
+	USENORM	=8,
+	USEORCO =16,
+	USEUV	=32,
+	DISABLE =64
 };
 
 // BL_Material::BL_Mapping::projplane

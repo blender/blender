@@ -135,8 +135,6 @@ void RAS_MaterialBucket::MarkVisibleMeshSlot(KX_MeshSlot& ms,
 	(*it).m_RGBAcolor= rgbavec;
 }
 
-
-
 bool RAS_MaterialBucket::IsTransparant() const
 {	
 	return (m_material->IsTransparant());
@@ -180,10 +178,11 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 	bool dolights = false;
 	const unsigned int flag = m_material->GetFlag();
 
+
 	if( flag & RAS_BLENDERMAT)
-		dolights = flag &RAS_MULTILIGHT;
+		dolights = (flag &RAS_MULTILIGHT)!=0;
 	else
-		dolights = m_material->GetDrawingMode()&16;
+		dolights = (m_material->GetDrawingMode()&16)!=0;
 
 	if ((rasty->GetDrawingMode() <= RAS_IRasterizer::KX_SOLID) || !dolights)
 	{
@@ -206,6 +205,7 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 	if (!ms.m_bVisible)
 		return;
 	
+	m_material->ActivateMeshSlot(ms, rasty);
 	rendertools->SetClientObject(ms.m_clientObj);
 
 	/* __NLA Do the deformation */
@@ -311,7 +311,6 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 	}
 	
 	int drawmode;
-
 	for (T_MeshSlotList::const_iterator it = m_meshSlots.begin();
 	! (it == m_meshSlots.end()); ++it)
 	{

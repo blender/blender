@@ -78,7 +78,6 @@ public:
 	mutable bool				m_bVisible; // for visibility
 	mutable bool  				m_bObjectColor;
 	mutable MT_Vector4			m_RGBAcolor;
-	
 	KX_MeshSlot() :
 		m_pDeformer(NULL), 
 		m_bVisible(true)
@@ -124,7 +123,7 @@ public:
 								bool visible,
 								bool color,
 								const MT_Vector4& rgbavec);
-	
+
 	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
 		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, int drawmode);
 	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,

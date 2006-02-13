@@ -397,7 +397,9 @@ typedef struct BL_EXTInfo
 		_ARB_shader_objects(0),
 		_ARB_vertex_shader(0),
 		_ARB_fragment_shader(0),
-		_EXT_texture3D(0)
+		_EXT_texture3D(0),
+		_ARB_vertex_program(0),
+		_ARB_depth_texture(0)
 	{
 		//
 	}
@@ -409,6 +411,8 @@ typedef struct BL_EXTInfo
 	bool _ARB_vertex_shader;
 	bool _ARB_fragment_shader;
 	bool _EXT_texture3D;
+	bool _ARB_vertex_program;
+	bool _ARB_depth_texture;
 }BL_EXTInfo;
 
 extern BL_EXTInfo RAS_EXT_support;
@@ -499,6 +503,22 @@ extern PFNGLBINDATTRIBLOCATIONARBPROC blBindAttribLocationARB;
 extern PFNGLGETACTIVEATTRIBARBPROC blGetActiveAttribARB;
 extern PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
 #endif
+
+#ifdef GL_ARB_vertex_program
+extern PFNGLVERTEXATTRIB1FARBPROC blVertexAttrib1fARB;
+extern PFNGLVERTEXATTRIB1FVARBPROC blVertexAttrib1fvARB;
+extern PFNGLVERTEXATTRIB2FARBPROC blVertexAttrib2fARB;
+extern PFNGLVERTEXATTRIB2FVARBPROC blVertexAttrib2fvARB;
+extern PFNGLVERTEXATTRIB3FARBPROC blVertexAttrib3fARB;
+extern PFNGLVERTEXATTRIB3FVARBPROC blVertexAttrib3fvARB;
+extern PFNGLVERTEXATTRIB4FARBPROC blVertexAttrib4fARB;
+extern PFNGLVERTEXATTRIB4FVARBPROC blVertexAttrib4fvARB;
+extern PFNGLGETPROGRAMSTRINGARBPROC blGetProgramStringARB;
+extern PFNGLGETVERTEXATTRIBDVARBPROC blGetVertexAttribdvARB;
+extern PFNGLGETVERTEXATTRIBFVARBPROC blGetVertexAttribfvARB;
+extern PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
+#endif
+
 
 } /* namespace bgl */
 

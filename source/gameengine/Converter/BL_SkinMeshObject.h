@@ -139,10 +139,11 @@ public:
 	int FindOrAddDeform(unsigned int vtxarray, unsigned int mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat);
 	int FindOrAddVertex(int vtxarray,const MT_Point3& xyz,
 		const MT_Point2& uv,
+		const MT_Vector4& tangent,
 		const unsigned int rgbacolor,
 		const MT_Vector3& normal, int defnr, bool flat, RAS_IPolyMaterial* mat)
 	{
-		RAS_TexVert tempvert(xyz,uv,rgbacolor,normal,flat ? TV_CALCFACENORMAL : 0);
+		RAS_TexVert tempvert(xyz,uv,tangent,rgbacolor,normal,flat ? TV_CALCFACENORMAL : 0);
 		
 		//		KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);

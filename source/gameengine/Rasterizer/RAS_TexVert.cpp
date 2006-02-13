@@ -39,6 +39,7 @@
 
 RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Point2& uv,
+						 const MT_Vector4& tangent,
 						 const unsigned int rgba,
 						 const MT_Vector3& normal,
 						 const short flag) 
@@ -48,6 +49,7 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 	uv.getValue(m_uv2); // ..py access
 	SetRGBA(rgba);
 	SetNormal(normal);
+	tangent.getValue(m_tangent);
 	m_flag = flag;
 	m_unit = 2;
 }
@@ -126,6 +128,12 @@ const float* RAS_TexVert::getNormal() const
 {
 	return m_normal;
 }
+
+const float* RAS_TexVert::getTangent() const
+{
+	return m_tangent;
+}
+
 
 const float* RAS_TexVert::getLocalXYZ() const
 { 

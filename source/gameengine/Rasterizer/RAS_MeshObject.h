@@ -236,6 +236,7 @@ public:
 							int vtxarray,
 							const MT_Point3& xyz,
 							const MT_Point2& uv,
+							const MT_Vector4& tangent,
 							const unsigned int rgbacolor,
 							const MT_Vector3& normal,
 							RAS_IPolyMaterial* mat,

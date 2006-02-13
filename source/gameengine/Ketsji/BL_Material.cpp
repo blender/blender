@@ -54,6 +54,8 @@ BL_Material::BL_Material()
 	material_index = 0;
 	amb=0.5f;
 	num_enabled = 0;
+	num_users = 1;
+	share = false;
 
 	int i;
 	for(i=0; i<4; i++)
@@ -113,4 +115,22 @@ void BL_Material::GetConversionUV(MT_Point2 *nuv){
 	*nuv   = uv[3];
 }
 
+
+void BL_Material::SetSharedMaterial(bool v)
+{
+	if((v && num_users == -1) || num_users > 1 )
+		share = true;
+	else 
+		share = false;
+}
+
+bool BL_Material::IsShared()
+{
+	return share;
+}
+
+void BL_Material::SetUsers(int num)
+{
+	num_users = num;
+}
 

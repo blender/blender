@@ -81,6 +81,7 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_focallength(0.0),
 	m_setfocallength(false),
 	m_noOfScanlines(32),
+	m_useTang(0),
 	m_materialCachingInfo(0)
 {
 	m_viewmatrix.Identity();
@@ -599,6 +600,15 @@ float RAS_OpenGLRasterizer::GetFocalLength()
 void RAS_OpenGLRasterizer::SwapBuffers()
 {
 	m_2DCanvas->SwapBuffers();
+}
+
+
+
+void RAS_OpenGLRasterizer::GetViewMatrix(MT_Matrix4x4 &mat) const
+{
+	float viewmat[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, viewmat);
+	mat.setValue(viewmat);
 }
 
 
@@ -1191,6 +1201,59 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(const vecVertexArray & vertexa
 	}	//for each vertexarray
 }
 
+void RAS_OpenGLRasterizer::SetAttrib(int type)
+{
+	if(type == RAS_TEXTANGENT) m_useTang=true;
+}
+
+
+void RAS_OpenGLRasterizer::SetTexCoords(TexCoGen coords,int unit)
+{
+	// this changes from material to material
+	if(unit <= RAS_MAX)
+		m_texco[unit] = coords;
+}
+
+
+void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv, int enabled)
+{
+#ifdef GL_ARB_multitexture
+	if(bgl::RAS_EXT_support._ARB_multitexture)
+	{
+		for(int unit=0; unit<enabled; unit++)
+		{
+			if( tv.getFlag() & TV_2NDUV && tv.getUnit() == unit ) {
+				bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
+				continue;
+			}
+			switch(m_texco[unit])
+			{
+			case RAS_TEXCO_DISABLE:
+			case RAS_TEXCO_OBJECT:
+			case RAS_TEXCO_GEN:
+				break;
+			case RAS_TEXCO_ORCO:
+			case RAS_TEXCO_GLOB:
+				bgl::blMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getLocalXYZ());
+				break;
+			case RAS_TEXCO_UV1:
+				bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
+				break;
+			case RAS_TEXCO_NORM:
+				bgl::blMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getNormal());
+				break;
+
+			}
+		}
+	}
+#endif
+#ifdef GL_ARB_vertex_program
+	if(m_useTang && bgl::RAS_EXT_support._ARB_vertex_program)
+		bgl::blVertexAttrib4fvARB(1/*tangent*/, tv.getTangent());
+#endif
+}
+
+
 void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 		const vecVertexArray& vertexarrays,
 		const vecIndexArrays & indexarrays,
@@ -1259,65 +1322,28 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 					{
 
 						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
-
+						
+						//
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
-
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 					}
@@ -1330,69 +1356,32 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 						// However it depends on the way the colors are packed into 
 						// the m_rgba field of RAS_TexVert
 						
+						//
 						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+					
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
-
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
-
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 					}
@@ -1410,52 +1399,21 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 					{
 
 						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
-
+						//
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
-
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
-
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
-
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 					}
@@ -1464,53 +1422,24 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 				{
 					for (unsigned int i=0;i<numindices;i+=3)
 					{
+						//
 						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
-
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 						
+						//
 						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
 						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
-						// ------------------------------
-						for(unit =0; unit<enabled; unit++) {
-							if( vertexarray[(indexarray[vindex])].getFlag() & TV_2NDUV &&
-								vertexarray[(indexarray[vindex])].getUnit() == unit ) 
-							{
-								bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV2());
-								continue;
-							}
-							bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, vertexarray[(indexarray[vindex])].getUV1());
-						}
-						// ------------------------------
+						TexCoord(vertexarray[(indexarray[vindex])],enabled );
 						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
 						vindex++;
 					}
