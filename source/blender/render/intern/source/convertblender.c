@@ -2729,6 +2729,7 @@ static void set_material_lightgroups(Render *re)
 	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
 		if(ma->group) {
 			for(go= ma->group->gobject.first; go; go= go->next) {
+				go->lampren= NULL;
 				for(gol= re->lights.first; gol; gol= gol->next) {
 					if(gol->ob==go->ob) {
 						go->lampren= gol->lampren;
