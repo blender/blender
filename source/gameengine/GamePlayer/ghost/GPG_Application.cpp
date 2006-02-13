@@ -494,11 +494,12 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
-		
+
 #ifdef GL_ARB_multitexture
+		int gameflag =(G.fileflags & G_FILE_GAME_MAT);
 		// ----------------------------------
 		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
-			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
 			int unitmax=0;
 			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
 			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;

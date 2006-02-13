@@ -59,7 +59,7 @@
 extern "C"
 {
 #endif  // __cplusplus
-	
+#include "BKE_global.h"	
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "BLO_readfile.h"
@@ -605,7 +605,7 @@ int main(int argc, char** argv)
 #ifdef NDEBUG
 						if (closeConsole)
 						{
-							::FreeConsole();    // Close a console window
+							//::FreeConsole();    // Close a console window
 						}
 #endif // NDEBUG
 #endif // WIN32
@@ -613,7 +613,8 @@ int main(int argc, char** argv)
 						Scene *scene = bfd->curscene;
 						strcpy (pathname, maggie->name);
 						char *startscenename = scene->id.name + 2;
-						
+						G.fileflags  = bfd->fileflags;
+
 						titlename = maggie->name;
 						
 						// Check whether the game should be displayed full-screen
