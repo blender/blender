@@ -1057,6 +1057,11 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	int winy= (G.scene->r.size*G.scene->r.ysch)/100;
 	short mval[2];
 	
+	if(G.scene->r.mode & R_BORDER) {
+		winx*= (G.scene->r.border.xmax - G.scene->r.border.xmin);
+		winy*= (G.scene->r.border.ymax - G.scene->r.border.ymin);
+	}
+	
 	/* while dragging we don't update the rects */
 	if(block->panel->flag & PNL_SELECT)
 		return;

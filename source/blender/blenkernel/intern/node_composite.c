@@ -459,7 +459,7 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 {
 	bNodePreview *preview= node->preview;
 	
-	if(preview) {
+	if(preview && stackbuf) {
 		CompBuf *cbuf;
 		
 		if(stackbuf->x > stackbuf->y) {
