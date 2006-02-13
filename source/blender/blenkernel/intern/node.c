@@ -709,8 +709,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	}
 	
 	/* remove the gnode & work tree */
-	ntreeFreeTree(wgroup);
-	MEM_freeN(wgroup);
+	free_libblock(&G.main->nodetree, wgroup);
 	
 	nodeFreeNode(ntree, gnode);
 	
