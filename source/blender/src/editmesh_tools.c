@@ -5565,4 +5565,383 @@ void shape_copy_select_from()
 	return;
 }
 
+/* Collection Routines|Currently used by the improved merge code*/
+/* both buildEdge_collection() and buildFace_collection() create a series of lists*/
+/* these lists are filled with edges or faces that are topologically connected.*/
+
+#define MERGELIMIT 0.001
+
+LinkNode *build_edgecollection(LinkNode *allCollections)
+{
+	EditEdge *eed;
+	
+	LinkNode *edgeCollection, *currEdge;
+	
+	edgeCollection = NULL;
+	currEdge = NULL;
+	allCollections = NULL;
+	
+	int currTag, lowtag;
+	
+	short ebalanced = 0;
+	short listfound;
+	
+	currTag = 1;
+	
+	for (eed=G.editMesh->edges.first; eed; eed = eed->next)
+	{	
+		eed->tmp.l = 0;
+		eed->v1->tmp.l = 0;
+		eed->v2->tmp.l = 0;
+	}
+	
+	/*1st pass*/
+	for(eed=G.editMesh->edges.first; eed; eed=eed->next)
+		{
+			if(eed->f&SELECT)
+			{
+				
+				eed->v1->tmp.l = currTag;
+				eed->v2->tmp.l = currTag;
+			
+				currTag +=1;
+			}
+		}
+			
+	/*2nd pass - Brute force. Loop through selected faces until there are no 'unbalanced' edges left (those with both vertices 'tmp.l' tag matching */
+	while(ebalanced == 0)
+	{
+		ebalanced = 1;
+		for(eed=G.editMesh->edges.first; eed; eed = eed->next)
+		{
+			if(eed->f&SELECT)
+			{
+				if(eed->v1->tmp.l != eed->v2->tmp.l) /*unbalanced*/
+				{
+					if(eed->v1->tmp.l > eed->v2->tmp.l && eed->v2->tmp.l !=0) eed->v1->tmp.l = eed->v2->tmp.l; 
+					else if(eed->v1 != 0) eed->v2->tmp.l = eed->v1->tmp.l; 
+					ebalanced = 0;
+				}
+			}
+		}
+	}
+	
+	/*3rd pass, set all the edge flags (unnessecary?)*/
+	for(eed=G.editMesh->edges.first; eed; eed = eed->next)
+	{
+		if(eed->f&SELECT) eed->tmp.l = eed->v1->tmp.l;
+	}
+	
+	/*build our list of lists - Needs to be in a seperate function, identical to build_facecollection()!*/
+	for(eed=G.editMesh->edges.first; eed; eed=eed->next)
+	{
+		if(eed->f&SELECT)
+		{
+			if(allCollections) /*allCollections is NOT NULL*/
+			{
+				for(edgeCollection = allCollections; edgeCollection; edgeCollection=edgeCollection->next)
+				{
+					currEdge = edgeCollection->link;
+					if(((EditEdge*)currEdge->link)->tmp.l == eed->tmp.l)
+					{
+						BLI_linklist_append(&currEdge,eed);	
+						listfound = 1;
+						break;
+					}
+					else listfound = 0;
+				}
+				
+				if(!listfound) 
+				{
+					/*add a new faceCollection to the Collections list*/
+					edgeCollection = NULL;
+					BLI_linklist_prepend(&edgeCollection, eed);
+					BLI_linklist_append(allCollections, edgeCollection);
+				
+				}
+			}
+			else /*allCollections is a 'zero length list'*/
+			{
+				edgeCollection = NULL;
+				BLI_linklist_prepend(&edgeCollection, eed);
+				BLI_linklist_prepend(&allCollections, edgeCollection); /*this actually looks like it is correct*/
+			}
+			}
+		}
+	return allCollections;
+	
+}
+
+LinkNode *build_facecollection(LinkNode *allCollections) /*Builds a collection of lists of connected faces from the currently selected set*/
+{
+	EditFace *efa;
+	
+	LinkNode *faceCollection, *currFace;
+	
+	faceCollection = NULL;
+	currFace = NULL;
+	allCollections = NULL;
+	
+	int currTag, lowtag;
+	short listfound,aCount;
+	int tagArray[3];	/*used to pull the tags out of faces vertices. an entry of -1 means no vertex exists....*/
+	currTag = 1;		/*don't start with zero since f1 is cleared to that in editvert and editface structs already*/
+
+	for (efa=G.editMesh->faces.first; efa; efa=efa->next){
+	
+		efa->tmp.l = 0;
+		efa->v1->tmp.l = 0;
+		efa->v2->tmp.l = 0;
+		efa->v3->tmp.l = 0;
+		if(efa->v4) efa->v4->tmp.l = 0; 
+
+	}
+	
+	/*1st pass*/
+	for (efa=G.editMesh->faces.first; efa; efa=efa->next)
+	{
+		
+		if(efa->f&SELECT)
+		{	/*face has no vertices that have been visited before since all the f1 tags are zero*/
+			if((efa->v1->tmp.l + efa->v2->tmp.l + efa->v3->tmp.l + ((efa->v4) ? efa->v4->tmp.l : 0)) == 0)
+			{ 
+				efa->v1->tmp.l = currTag;
+				efa->v2->tmp.l = currTag;
+				efa->v3->tmp.l = currTag;
+				if(efa->v4) efa->v4->tmp.l = currTag; 
+			}
+			else
+			{	/*the face has some vert tagged allready as a result of another face that it shares verts with being already visited*/
+				lowtag = currTag+1; /* plus one? why? this makes little sense!*/
+				
+				/*test to find the lowest tag....*/
+				if(efa->v1->tmp.l < lowtag && efa->v1->tmp.l != 0 && efa->v1->tmp.l != -1) lowtag = efa->v1->tmp.l;
+				if(efa->v2->tmp.l < lowtag && efa->v2->tmp.l != 0 && efa->v2->tmp.l != -1) lowtag = efa->v2->tmp.l;
+				if(efa->v3->tmp.l < lowtag && efa->v3->tmp.l != 0 && efa->v3->tmp.l != -1) lowtag = efa->v3->tmp.l;
+				
+				if(efa->v4){
+				if(efa->v4->tmp.l < lowtag && efa->v4->tmp.l != 0 && efa->v4->tmp.l != -1) lowtag = efa->v4->tmp.l;
+				}
+				
+			/*set all vertices to lowest tag*/
+				efa->v1->tmp.l = lowtag;
+				efa->v2->tmp.l = lowtag;
+				efa->v3->tmp.l = lowtag;
+				if(efa->v4) efa->v4->tmp.l = lowtag;			
+			}
+			currTag += 1;
+		}
+	}
+	
+	/*2nd pass - Nessecary because of faces connected only by a single vertex*/
+	
+	for (efa=G.editMesh->faces.first; efa; efa=efa->next)
+	{
+		
+		lowtag = currTag+1; /*plus one? why? this makes little sense!*/
+		if(efa->f&SELECT)
+		{
+			tagArray[0] =  efa->v1->tmp.l;
+			tagArray[1] =  efa->v2->tmp.l;
+			tagArray[2] =  efa->v3->tmp.l;
+			tagArray[3] = (efa->v4) ? efa->v4->tmp.l : -1; /*could be a triangle, have to test*/
+			
+			if(efa->v1->tmp.l < lowtag && efa->v1->tmp.l != 0 && efa->v1->tmp.l != -1) lowtag = efa->v1->tmp.l;
+			if(efa->v2->tmp.l < lowtag && efa->v2->tmp.l != 0 && efa->v2->tmp.l != -1) lowtag = efa->v2->tmp.l;
+			if(efa->v3->tmp.l < lowtag && efa->v3->tmp.l != 0 && efa->v3->tmp.l != -1) lowtag = efa->v3->tmp.l;
+				
+			if(efa->v4){
+			if(efa->v4->tmp.l < lowtag && efa->v4->tmp.l != 0 && efa->v4->tmp.l != -1) lowtag = efa->v4->tmp.l;
+			}
+			
+						
+			efa->tmp.l = lowtag; /*actually tag the face now with lowtag*/
+		}
+	}
+
+	/*build our list of lists*/
+	for(efa=G.editMesh->faces.first; efa; efa=efa->next)
+	{
+		if(efa->f&SELECT)
+		{
+			if(allCollections) /*allCollections is NOT NULL*/
+			{
+				for(faceCollection = allCollections; faceCollection; faceCollection=faceCollection->next)
+				{
+					currFace = faceCollection->link;
+					if(((EditFace*)currFace->link)->tmp.l == efa->tmp.l) /*put efa into this list.........*/
+					{
+						BLI_linklist_append(&currFace,efa);	
+						listfound = 1;
+						break;
+					}
+					else listfound = 0;
+				}
+				
+				if(!listfound) 
+				{
+					/*add a new faceCollection to the Collections list*/
+					faceCollection = NULL;
+					BLI_linklist_prepend(&faceCollection, efa);
+					BLI_linklist_append(allCollections, faceCollection);
+				
+				}
+			}
+			else /*allCollections is a 'zero length list'*/
+			{
+				faceCollection = NULL;
+				BLI_linklist_prepend(&faceCollection, efa);
+				BLI_linklist_prepend(&allCollections, faceCollection); /*this actually looks like it is correct*/
+			}
+			}
+		}
+	return allCollections;
+	}
+
+void freeCollections(LinkNode *allCollections)
+{
+	LinkNode *Collection;
+	Collection = NULL;
+	
+	for(Collection = allCollections; Collection; Collection = Collection->next)
+	{
+		BLI_linklist_free((LinkNode*)Collection->link,NULL);
+	}
+	
+	BLI_linklist_free(allCollections,NULL);
+}
+
+int collapseEdges(void)
+{
+	LinkNode *allCollections, *edgeCollection, *currEdge;
+	
+	int totEdges, groupCount, mergecount,vCount;
+	float avgCount[3];
+	
+	mergecount = 0;
+	
+	allCollections = build_edgecollection(allCollections);
+	groupCount = BLI_linklist_length(allCollections);
+	
+	
+	for(edgeCollection = allCollections; edgeCollection; edgeCollection = edgeCollection->next)
+	{
+		totEdges = BLI_linklist_length(edgeCollection->link);
+		mergecount += totEdges;
+		avgCount[0] = 0; avgCount[1] = 0; avgCount[2] = 0;
+		vCount = 0;
+		
+		for(currEdge = edgeCollection->link; currEdge; currEdge = currEdge->next)
+		{
+			avgCount[0] += ((EditEdge*)currEdge->link)->v1->co[0];
+			avgCount[1] += ((EditEdge*)currEdge->link)->v1->co[1];
+			avgCount[2] += ((EditEdge*)currEdge->link)->v1->co[2];
+			
+			avgCount[0] += ((EditEdge*)currEdge->link)->v2->co[0];
+			avgCount[1] += ((EditEdge*)currEdge->link)->v2->co[1];
+			avgCount[2] += ((EditEdge*)currEdge->link)->v2->co[2];
+			
+			vCount +=2;
+		}
+		
+		avgCount[0] /= vCount; avgCount[1] /=vCount; avgCount[2] /= vCount;
+		
+		for(currEdge = edgeCollection->link; currEdge; currEdge = currEdge->next)
+		{
+			VECCOPY(((EditEdge*)currEdge->link)->v1->co,avgCount);
+			VECCOPY(((EditEdge*)currEdge->link)->v2->co,avgCount);
+		}
+	}
+	freeCollections(allCollections);
+	removedoublesflag(1, MERGELIMIT);
+	/*get rid of this!*/
+	countall();
+	return mergecount;
+
+	
+}
+
+int collapseFaces(void)
+{
+	LinkNode *allCollections, *faceCollection, *currFace;
+	
+	int groupCount;
+	int vCount,totFaces,mergecount;
+	float avgCount[3];
+	
+	mergecount = 0;
+	allCollections = build_facecollection(allCollections);
+	groupCount = BLI_linklist_length(allCollections);
+
+	for(faceCollection = allCollections; faceCollection; faceCollection = faceCollection->next)
+	{
+		totFaces = BLI_linklist_length(faceCollection->link);
+		mergecount += totFaces;
+		avgCount[0] = 0; avgCount[1] = 0; avgCount[2] = 0;
+		vCount = 0;
+		for(currFace = faceCollection->link; currFace; currFace = currFace->next)
+		{
+			avgCount[0] += ((EditFace*)currFace->link)->v1->co[0];
+			avgCount[1] += ((EditFace*)currFace->link)->v1->co[1];
+			avgCount[2] += ((EditFace*)currFace->link)->v1->co[2];
+			
+			avgCount[0] += ((EditFace*)currFace->link)->v2->co[0];
+			avgCount[1] += ((EditFace*)currFace->link)->v2->co[1];
+			avgCount[2] += ((EditFace*)currFace->link)->v2->co[2];
+			
+			avgCount[0] += ((EditFace*)currFace->link)->v3->co[0];
+			avgCount[1] += ((EditFace*)currFace->link)->v3->co[1];
+			avgCount[2] += ((EditFace*)currFace->link)->v3->co[2];
+			
+			vCount+= 3;
+			
+			if(((EditFace*)currFace->link)->v4)
+			{
+				avgCount[0] += ((EditFace*)currFace->link)->v3->co[0];
+				avgCount[1] += ((EditFace*)currFace->link)->v3->co[1];
+				avgCount[2] += ((EditFace*)currFace->link)->v3->co[2];
+				vCount+=1;
+			}
+			
+		}
+		
+		avgCount[0] /= vCount; avgCount[1] /=vCount; avgCount[2] /= vCount;
+		
+		for(currFace = faceCollection->link; currFace; currFace = currFace->next)
+		{
+			VECCOPY(((EditFace*)currFace->link)->v1->co,avgCount);
+			VECCOPY(((EditFace*)currFace->link)->v2->co,avgCount);
+			VECCOPY(((EditFace*)currFace->link)->v3->co,avgCount);
+			if(((EditFace*)currFace->link)->v4) VECCOPY(((EditFace*)currFace->link)->v4->co, avgCount);
+		}
+	}
+	freeCollections(allCollections);
+	removedoublesflag(1, MERGELIMIT);
+	/*get rid of this!*/
+	countall();
+	return mergecount;
+}
+
+int merge_firstlast(int first)
+{
+	EditVert *ev,*mergevert;
+	
+	if(first == 0) mergevert=G.editMesh->lastvert;
+	else mergevert=G.editMesh->firstvert;
+	
+	if(mergevert->f&SELECT){
+	for (ev=G.editMesh->verts.first; ev; ev=ev->next)
+	{
+		if (ev->f&SELECT)
+			VECCOPY(ev->co,mergevert->co);
+			}
+	}
+	
+	countall();
+
+return removedoublesflag(1,MERGELIMIT);
+}
+#undef MERGELIMIT
+
+
 

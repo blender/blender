@@ -1575,6 +1575,8 @@ typedef struct UndoMesh {
 	EditFaceC *faces;
 	TFace *tfaces;
 	int totvert, totedge, totface;
+	int lastvert, firstvert; /*index for last and first selected vert. -1 if no first/last vert exists (nasty)*/
+	short selectmode;
 } UndoMesh;
 
 
@@ -1609,9 +1611,30 @@ static void *editMesh_to_undoMesh(void)
 	EditEdgeC *eedc=NULL;
 	EditFaceC *efac=NULL;
 	TFace *tface= NULL;
-	int a=0;
+	int i, a=0;
 	
 	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
+	
+	um->selectmode = G.scene->selectmode;
+	um->lastvert = -1;
+	um->firstvert = -1;
+	
+	if(em->lastvert){
+		for (i=0,eve=G.editMesh->verts.first; eve; i++,eve=eve->next){
+			if(eve == em->lastvert){
+				um->lastvert = i;
+				break;
+			}
+		}
+	}
+	if(em->firstvert){
+		for (i=0,eve=G.editMesh->verts.first; eve; i++,eve=eve->next){
+			if(eve == em->firstvert){
+				um->firstvert = i;
+				break;
+			}
+		}
+	}
 
 	for(eve=em->verts.first; eve; eve= eve->next) um->totvert++;
 	for(eed=em->edges.first; eed; eed= eed->next) um->totedge++;
@@ -1678,7 +1701,7 @@ static void *editMesh_to_undoMesh(void)
 
 static void undoMesh_to_editMesh(void *umv)
 {
-	UndoMesh *um= umv;
+	UndoMesh *um= (UndoMesh*)umv;
 	EditMesh *em= G.editMesh;
 	EditVert *eve, **evar=NULL;
 	EditEdge *eed;
@@ -1689,11 +1712,15 @@ static void undoMesh_to_editMesh(void *umv)
 	TFace *tface;
 	int a=0;
 	
+	G.scene->selectmode = um->selectmode;
+	
 	free_editMesh(G.editMesh);
 	
 	/* malloc blocks */
 	memset(em, 0, sizeof(EditMesh));
 
+	
+		
 	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
 
 	/* now copy vertices */
@@ -1743,6 +1770,22 @@ static void undoMesh_to_editMesh(void *umv)
 	
 	end_editmesh_fastmalloc();
 	if(evar) MEM_freeN(evar);
+	
+	/*restore last and first selected vertex pointers*/
+	
+	G.totvert = um->totvert; 
+	if(um->lastvert != -1 || um-> firstvert != -1){ 
+
+		EM_init_index_arrays(1,0,0);
+		if(um->lastvert != -1) em->lastvert = EM_get_vert_for_index(um->lastvert);
+		else em->lastvert = NULL;
+		
+		if(um->firstvert != -1) em->firstvert = EM_get_vert_for_index(um->firstvert);
+		else em->firstvert = NULL;
+		
+		EM_free_index_arrays();
+	}
+
 }
 
 

@@ -130,6 +130,9 @@ typedef struct EditMesh
 	EditEdge *alledges, *curedge;
 	EditFace *allfaces, *curface;
 	
+	/*for improved merge code*/
+	EditVert *lastvert, *firstvert;
+	
 		/* DerivedMesh caches... note that derived cage can be equivalent
 		 * to derived final, care should be taken on release.
 		 */

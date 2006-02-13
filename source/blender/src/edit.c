@@ -66,6 +66,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_linklist.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -600,6 +601,17 @@ void countall()
 				G.totface++;
 				if(efa->f & SELECT) G.totfacesel++;
 			}
+			
+			/*for keeping track of last & first vertex selected*/
+			/*lastvert and first must be cleared in two circumstances.....*/
+			// 1: if last/first vert exists but is NOT selected, get rid of it.
+			// 2: if totvertsel = 0, get rid of last/first vert
+			
+			if((G.editMesh->lastvert) && ( !(G.editMesh->lastvert->f&SELECT) )) G.editMesh->lastvert = NULL;
+			else if(G.totvertsel == 0) G.editMesh->lastvert = NULL;
+			
+			if((G.editMesh->firstvert) && ( !(G.editMesh->firstvert->f&SELECT) )) G.editMesh->firstvert = NULL;
+			else if(G.totvertsel == 0) G.editMesh->firstvert = NULL;
 		}
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
@@ -1552,25 +1564,61 @@ void snapmenu()
 }
 
 
+#define MERGELIMIT 0.001
 void mergemenu(void)
-{
+{	
+
 	short event;
-
-	event = pupmenu("Merge %t|At Center%x1|At Cursor%x2");
-
-	if (event==-1) return; /* Return if the menu is closed without any choices */
-
-	if (event==1) 
-		snap_to_center(); /*Merge at Center*/
-	else
-		snap_sel_to_curs(); /*Merge at Cursor*/
-
-	notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
+	int remCount;
+	if(G.scene->selectmode == SCE_SELECT_VERTEX)
+		if(G.editMesh->firstvert && G.editMesh->lastvert) event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4");
+		else if (G.editMesh->firstvert) event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4");
+		else if (G.editMesh->lastvert) event = pupmenu("Merge %t|At Last %x1|At Center%x3|At Cursor%x4");
+		else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4");
+		
+	else if(G.scene->selectmode == SCE_SELECT_EDGE)
+		event = pupmenu("Merge %t|Collapse Edges%x2|At Center%x3|At Cursor%x4");
+		
+	else if(G.scene->selectmode == SCE_SELECT_FACE)
+		event = pupmenu("Merge %t|Collapse Faces%x5|At Center%x3|At Cursor%x4");
+	else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4");
+	switch (event)
+	{
+		case -1:
+			return;
+		case 3:
+			snap_to_center();
+			remCount = removedoublesflag(1,MERGELIMIT);
+			BIF_undo_push("Merge at center");
+			break;
+		case 4:
+			snap_sel_to_curs();
+			remCount = removedoublesflag(1,MERGELIMIT);
+			BIF_undo_push("Merge at cursor");
+			break;
+		case 1:
+			remCount = merge_firstlast(0);
+			BIF_undo_push("Merge at last selected");
+			break;
+		case 6:
+			remCount = merge_firstlast(1);
+			BIF_undo_push("Merge at first selected");
+			break;
+		case 2:
+			remCount = collapseEdges();
+			BIF_undo_push("Collapse Edges");
+			break;
+		case 5:
+			remCount = collapseFaces();
+			BIF_undo_push("Collapse Faces");
+			break;
+	}
+	notice("Removed %d Vertices", remCount);
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
-	BIF_undo_push("Merge"); /* push the mesh down the undo pipe */
-
 }
+#undef MERGELIMIT
+
 
 void delete_context_selected(void) 
 {

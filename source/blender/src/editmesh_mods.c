@@ -1052,7 +1052,11 @@ void mouse_mesh(void)
 			}
 		}
 		else if(eve) {
-			if((eve->f & SELECT)==0) eve->f |= SELECT;
+			if((eve->f & SELECT)==0) {
+				eve->f |= SELECT;
+				if((G.qual & LR_SHIFTKEY)==0) G.editMesh->firstvert = eve;
+				else G.editMesh->lastvert = eve;
+			}
 			else if(G.qual & LR_SHIFTKEY) eve->f &= ~SELECT;
 		}
 		
@@ -1937,10 +1941,20 @@ void EM_selectmode_menu(void)
 	else pupmenu_set_active(3);
 	
 	val= pupmenu("Select Mode%t|Vertices|Edges|Faces");
+	
+	
 	if(val>0) {
 		if(val==1) G.scene->selectmode= SCE_SELECT_VERTEX;
-		else if(val==2) G.scene->selectmode= SCE_SELECT_EDGE;
-		else G.scene->selectmode= SCE_SELECT_FACE;
+			
+		else if(val==2){
+			if((G.qual==LR_CTRLKEY)) EM_convertsel(G.scene->selectmode, SCE_SELECT_EDGE);
+			G.scene->selectmode= SCE_SELECT_EDGE;
+		}
+		
+		else{
+		 if((G.qual==LR_CTRLKEY)) EM_convertsel(G.scene->selectmode, SCE_SELECT_FACE);
+		 G.scene->selectmode= SCE_SELECT_FACE;
+		}
 	
 		EM_selectmode_set(); // when mode changes
 		allqueue(REDRAWVIEW3D, 1);
