@@ -1975,8 +1975,8 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float 
 static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 {
 	char *row1, *row2, *row3;
-	char prev, next, step;
-	int a, x, y;
+	char prev, next;
+	int a, x, y, step;
 	
 	/* 1: tag pixels to be candidate for AA */
 	for(y=2; y<ysize; y++) {
