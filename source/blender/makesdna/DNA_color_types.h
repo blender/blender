@@ -70,6 +70,7 @@ typedef struct CurveMapping {
 
 /* cumap->flag */
 #define CUMA_DO_CLIP			1
+#define CUMA_PREMULLED			2
 
 #endif
 

@@ -1205,12 +1205,10 @@ static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **i
 		CompBuf *cbuf= in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
-		curvemapping_premultiply(node->storage, 0);
 		if(in[0]->data)
 			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac);
 		else
 			composit1_pixel_processor(node, stackbuf, in[1]->data, NULL, do_curves);
-		curvemapping_premultiply(node->storage, 1);
 		
 		out[0]->data= stackbuf;
 	}

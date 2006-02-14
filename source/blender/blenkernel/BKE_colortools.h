@@ -56,5 +56,7 @@ void				curvemapping_evaluate_premulRGBF(struct CurveMapping *cumap, float *veco
 void				curvemapping_do_image(struct CurveMapping *cumap, struct Image *ima);
 void				curvemapping_premultiply(struct CurveMapping *cumap, int restore);
 int					curvemapping_RGBA_does_something(struct CurveMapping *cumap);
+void				curvemapping_initialize(struct CurveMapping *cumap);
+
 #endif
 

@@ -405,36 +405,45 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 }
 
 /* call when you do images etc, needs restore too. also verifies tables */
+/* it uses a flag to prevent premul or free to happen twice */
 void curvemapping_premultiply(CurveMapping *cumap, int restore)
 {
 	int a;
 	
 	if(restore) {
-		for(a=0; a<3; a++) {
-			MEM_freeT(cumap->cm[a].table);
-			cumap->cm[a].table= cumap->cm[a].premultable;
-			cumap->cm[a].premultable= NULL;
+		if(cumap->flag & CUMA_PREMULLED) {
+			for(a=0; a<3; a++) {
+				MEM_freeT(cumap->cm[a].table);
+				cumap->cm[a].table= cumap->cm[a].premultable;
+				cumap->cm[a].premultable= NULL;
+			}
+			
+			cumap->flag &= ~CUMA_PREMULLED;
 		}
 	}
 	else {
-		/* verify and copy */
-		for(a=0; a<3; a++) {
-			if(cumap->cm[a].table==NULL)
-				curvemap_make_table(cumap->cm+a, &cumap->clipr);
-			cumap->cm[a].premultable= cumap->cm[a].table;
-			cumap->cm[a].table= MEM_mallocT((CM_TABLE+1)*sizeof(CurveMapPoint), "premul table");
-			memcpy(cumap->cm[a].table, cumap->cm[a].premultable, (CM_TABLE+1)*sizeof(CurveMapPoint));
-		}
-		
-		if(cumap->cm[3].table==NULL)
-			curvemap_make_table(cumap->cm+3, &cumap->clipr);
-	
-		/* premul */
-		for(a=0; a<3; a++) {
-			int b;
-			for(b=0; b<=CM_TABLE; b++) {
-				cumap->cm[a].table[b].y= curvemap_evaluateF(cumap->cm+3, cumap->cm[a].table[b].y);
+		if((cumap->flag & CUMA_PREMULLED)==0) {
+			/* verify and copy */
+			for(a=0; a<3; a++) {
+				if(cumap->cm[a].table==NULL)
+					curvemap_make_table(cumap->cm+a, &cumap->clipr);
+				cumap->cm[a].premultable= cumap->cm[a].table;
+				cumap->cm[a].table= MEM_mallocT((CM_TABLE+1)*sizeof(CurveMapPoint), "premul table");
+				memcpy(cumap->cm[a].table, cumap->cm[a].premultable, (CM_TABLE+1)*sizeof(CurveMapPoint));
 			}
+			
+			if(cumap->cm[3].table==NULL)
+				curvemap_make_table(cumap->cm+3, &cumap->clipr);
+		
+			/* premul */
+			for(a=0; a<3; a++) {
+				int b;
+				for(b=0; b<=CM_TABLE; b++) {
+					cumap->cm[a].table[b].y= curvemap_evaluateF(cumap->cm+3, cumap->cm[a].table[b].y);
+				}
+			}
+			
+			cumap->flag |= CUMA_PREMULLED;
 		}
 	}
 }
@@ -619,3 +628,14 @@ int curvemapping_RGBA_does_something(CurveMapping *cumap)
 	return 0;
 }
 
+void curvemapping_initialize(CurveMapping *cumap)
+{
+	int a;
+	
+	if(cumap==NULL) return;
+	
+	for(a=0; a<CM_TOT; a++) {
+		if(cumap->cm[a].table==NULL)
+			curvemap_make_table(cumap->cm+a, &cumap->clipr);
+	}
+}

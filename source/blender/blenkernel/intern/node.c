@@ -1562,7 +1562,21 @@ static int ntree_begin_exec_tree(bNodeTree *ntree)
 	return index;
 }
 
-/* copy socket compbufs to stack */
+/* groups have same node storage data... cannot initialize them while using in threads */
+static void composit_begin_exec_groupdata(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB)) {
+			curvemapping_initialize(node->storage);
+			if(node->type==CMP_NODE_CURVE_RGB)
+				curvemapping_premultiply(node->storage, 0);
+		}
+	}
+}
+
+/* copy socket compbufs to stack, initialize group usage of curve nodes */
 static void composit_begin_exec(bNodeTree *ntree)
 {
 	bNode *node;
@@ -1577,8 +1591,22 @@ static void composit_begin_exec(bNodeTree *ntree)
 				sock->ns.data= NULL;
 			}
 		}
+		if(node->type==NODE_GROUP)
+			composit_begin_exec_groupdata((bNodeTree *)node->id);
 	}
 }
+
+/* groups have same node storage data... cannot initialize them while using in threads */
+static void composit_end_exec_groupdata(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_CURVE_RGB)
+			curvemapping_premultiply(node->storage, 1);
+	}
+}
+
 
 /* copy stack compbufs to sockets */
 static void composit_end_exec(bNodeTree *ntree)
@@ -1598,6 +1626,9 @@ static void composit_end_exec(bNodeTree *ntree)
 				ns->data= NULL;
 			}
 		}
+		if(node->type==NODE_GROUP)
+			composit_end_exec_groupdata((bNodeTree *)node->id);
+
 		node->need_exec= 0;
 	}
 	
