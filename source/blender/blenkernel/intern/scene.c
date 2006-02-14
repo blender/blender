@@ -231,6 +231,7 @@ Scene *add_scene(char *name)
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
 	
+	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
 	return sce;

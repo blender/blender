@@ -694,7 +694,7 @@ static void set_render_result_title(void *node_v, void *unused)
 static char *scene_layer_menu(Scene *sce)
 {
 	SceneRenderLayer *srl;
-	int len= 32 + 32*BLI_countlist(&sce->r.layers);
+	int len= 40 + 40*BLI_countlist(&sce->r.layers);
 	short a, nr;
 	char *str= MEM_callocN(len, "menu layers");
 	
@@ -754,9 +754,15 @@ static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNo
 		
 		/* browse button layer */
 		strp= scene_layer_menu(node->id?(Scene *)node->id:G.scene);
-		bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
+		if(node->id)
+			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC+node->nr, ICON_SCENE_DEHLT, strp, 
 				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-20, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
+		else
+			bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
+				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-20, 19, 
+				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
+		
 		uiButSetFunc(bt, set_render_result_title, node, NULL);
 		MEM_freeN(strp);
 	}

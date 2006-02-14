@@ -458,8 +458,13 @@ void do_info_buttons(unsigned short event)
 			nr= pupmenu("Add scene%t|Empty|Link Objects|Link ObData|Full Copy");
 			if(nr<= 0) return;
 			if(nr==1) {
+				ListBase lb;
+				
 				sce= add_scene(G.scene->id.name+2);
+				/* pretty bad ass copying here. we should use copy_scene to do all (ton) */
+				lb= sce->r.layers;
 				sce->r= G.scene->r;
+				sce->r.layers= lb;
 #ifdef _WIN32
 				if (sce->r.avicodecdata) {
 					sce->r.avicodecdata = MEM_dupallocN(G.scene->r.avicodecdata);

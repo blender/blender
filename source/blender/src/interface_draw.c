@@ -1524,7 +1524,7 @@ static void ui_draw_text_icon(uiBut *but)
 			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
 				ui_draw_icon(but, but->icon);
 
-				if(but->flag & UI_TEXT_LEFT) x= but->x1 + BIF_icon_get_width(but->icon)+4.0;
+				if(but->flag & UI_TEXT_LEFT) x= but->x1 + but->aspect*BIF_icon_get_width(but->icon)+5.0;
 				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
 			else {

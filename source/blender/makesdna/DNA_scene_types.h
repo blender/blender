@@ -435,16 +435,17 @@ typedef struct Scene {
 #define R_YAFRAY	1
 
 /* scemode */
-#define R_DOSEQ			0x0001
-#define R_BG_RENDER		0x0002
+#define R_DOSEQ				0x0001
+#define R_BG_RENDER			0x0002
 		/* passepartout is camera option now, keep this for backward compatibility */
-#define R_PASSEPARTOUT	0x0004
+#define R_PASSEPARTOUT		0x0004
 
-#define R_EXTENSION		0x0010
-#define R_NODE_PREVIEW	0x0020
-#define R_DOCOMP		0x0040
-#define R_COMP_CROP		0x0080
-#define R_FREE_IMAGE	0x0100
+#define R_EXTENSION			0x0010
+#define R_NODE_PREVIEW		0x0020
+#define R_DOCOMP			0x0040
+#define R_COMP_CROP			0x0080
+#define R_FREE_IMAGE		0x0100
+#define R_SINGLE_LAYER		0x0200
 
 /* alphamode */
 #define R_ADDSKY		0

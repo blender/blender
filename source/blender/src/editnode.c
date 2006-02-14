@@ -717,7 +717,6 @@ static void transform_nodes(bNodeTree *ntree, char mode, char *undostr)
 		
 		getmouseco_areawin(mval);
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || firsttime) {
-//			char str[64];
 
 			firsttime= 0;
 			
@@ -733,8 +732,6 @@ static void transform_nodes(bNodeTree *ntree, char mode, char *undostr)
 				}
 			}
 			
-//			sprintf(str, "X: %.1f Y: %.1f", mx-mxstart, my-mystart);
-//			headerprint(str);
 			force_draw(0);
 		}
 		else
