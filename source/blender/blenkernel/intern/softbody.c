@@ -717,12 +717,9 @@ int sb_detect_collisionCached(float opco[3], float facenormal[3], float *damp,
 
 			/* only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
-				DerivedMesh *dm= NULL;				
-				DispListMesh *disp_mesh= NULL;
 				MFace *mface= NULL;
 				MVert *mvert= NULL;
 				ccdf_minmax *mima= NULL;
-
 				
 				if(ob->sumohandle){
 					ccd_Mesh *ccdm=ob->sumohandle;
@@ -1662,7 +1659,7 @@ static void softbody_baked_add(Object *ob, float framenr)
 	dfra= (float)sb->interval;
 	
 	if(sb->totkey==0) {
-		if(sb->sfra >= sb->efra) return;		/* safety, UI or py setting allows *
+		if(sb->sfra >= sb->efra) return;		/* safety, UI or py setting allows */
 		if(sb->interval<1) sb->interval= 1;		/* just be sure */
 		
 		sb->totkey= 1 + (int)(ceil( (efra-sfra)/dfra ) );
