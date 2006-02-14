@@ -321,6 +321,7 @@ typedef struct TexMapping {
 #define MTEX_DIFF		6
 #define MTEX_LIGHT		7
 #define MTEX_SCREEN		8
+#define MTEX_OVERLAY	9
 
 /* **************** EnvMap ********************* */
 
