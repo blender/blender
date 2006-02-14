@@ -116,12 +116,12 @@ bool BL_Shader::LinkProgram()
 	tmpVert = bgl::blCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 	bgl::blShaderSourceARB(tmpVert, 1, (const char**)&vertProg, 0);
 	bgl::blCompileShaderARB(tmpVert);
-	bgl::blGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB, &vertlen);
+	bgl::blGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB,(GLint*) &vertlen);
 	
 	// print info if any
 	if( vertlen > 0){
 		STR_String str("",vertlen);
-		bgl::blGetInfoLogARB(tmpVert, vertlen, &char_len, str.Ptr());
+		bgl::blGetInfoLogARB(tmpVert, vertlen, (GLsizei*)&char_len, str.Ptr());
 		if(char_len >0) {
 			spit("---- Vertex Shader Error ----");
 			spit(str.ReadPtr());
@@ -129,7 +129,7 @@ bool BL_Shader::LinkProgram()
 		str.Clear();
 	}
 	// check for compile errors
-	bgl::blGetObjectParameterivARB(tmpVert, GL_OBJECT_COMPILE_STATUS_ARB, &vertstatus);
+	bgl::blGetObjectParameterivARB(tmpVert, GL_OBJECT_COMPILE_STATUS_ARB,(GLint*)&vertstatus);
 	if(!vertstatus) {
 		spit("---- Vertex shader failed to compile ----");
 		goto programError;
@@ -139,10 +139,10 @@ bool BL_Shader::LinkProgram()
 	tmpFrag = bgl::blCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
 	bgl::blShaderSourceARB(tmpFrag, 1,(const char**)&fragProg, 0);
 	bgl::blCompileShaderARB(tmpFrag);
-	bgl::blGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, &fraglen);
+	bgl::blGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, (GLint*) &fraglen);
 	if(fraglen >0 ){
 		STR_String str("",fraglen);
-		bgl::blGetInfoLogARB(tmpFrag, fraglen, &char_len, str.Ptr());
+		bgl::blGetInfoLogARB(tmpFrag, fraglen,(GLsizei*) &char_len, str.Ptr());
 		if(char_len >0) {
 			spit("---- Fragment Shader Error ----");
 			spit(str.ReadPtr());
@@ -150,7 +150,7 @@ bool BL_Shader::LinkProgram()
 		str.Clear();
 	}
 
-	bgl::blGetObjectParameterivARB(tmpFrag, GL_OBJECT_COMPILE_STATUS_ARB, &fragstatus);
+	bgl::blGetObjectParameterivARB(tmpFrag, GL_OBJECT_COMPILE_STATUS_ARB, (GLint*) &fragstatus);
 	if(!fragstatus){
 		spit("---- Fragment shader failed to compile ----");
 		goto programError;
@@ -163,13 +163,13 @@ bool BL_Shader::LinkProgram()
 	bgl::blAttachObjectARB(tmpProg, tmpVert);
 	bgl::blAttachObjectARB(tmpProg, tmpFrag);
 	bgl::blLinkProgramARB(tmpProg);
-	bgl::blGetObjectParameterivARB(tmpProg, GL_OBJECT_INFO_LOG_LENGTH_ARB, &proglen);
-	bgl::blGetObjectParameterivARB(tmpProg, GL_OBJECT_LINK_STATUS_ARB, &progstatus);
+	bgl::blGetObjectParameterivARB(tmpProg, GL_OBJECT_INFO_LOG_LENGTH_ARB, (GLint*) &proglen);
+	bgl::blGetObjectParameterivARB(tmpProg, GL_OBJECT_LINK_STATUS_ARB, (GLint*) &progstatus);
 	
 
 	if(proglen > 0) {
 		STR_String str("",proglen);
-		bgl::blGetInfoLogARB(tmpProg, proglen, &char_len, str.Ptr());
+		bgl::blGetInfoLogARB(tmpProg, proglen, (GLsizei*)&char_len, str.Ptr());
 		if(char_len >0) {
 			spit("---- GLSL Program ----");
 			spit(str.ReadPtr());
@@ -674,12 +674,12 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 	}
 	int stat = 0;
 	bgl::blValidateProgramARB(mShader);
-	bgl::blGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB, &stat);
+	bgl::blGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB,(GLint*) &stat);
 
 	if(stat > 0) {
 		int char_len=0;
 		STR_String str("",stat);
-		bgl::blGetInfoLogARB(mShader, stat, &char_len, str.Ptr());
+		bgl::blGetInfoLogARB(mShader, stat,(GLsizei*) &char_len, str.Ptr());
 		if(char_len >0) {
 			spit("---- GLSL Validation ----");
 			spit(str.ReadPtr());
