@@ -633,7 +633,6 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 				if (tex->imaflag & TEX_FIELDS) de_interlacefunc(ima->ibuf);
 			}
 		}
-		else printf("Not an anim");
 		
 	} else {
 		// create a packedfile for this image when autopack is on

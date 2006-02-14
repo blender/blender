@@ -2962,8 +2962,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			/* octree */
 			if(!re->test_break()) {
 				if(re->r.mode & R_RAYTRACE) {
-					re->i.infostr= "Filling Octree";
-					re->stats_draw(&re->i);
 					makeoctree(re);
 				}
 			}

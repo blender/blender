@@ -43,6 +43,8 @@
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
 
+#include "PIL_time.h"
+
 #include "render_types.h"
 #include "renderpipeline.h"
 #include "rendercore.h"
@@ -259,8 +261,6 @@ static void ocwrite(Octree *oc, VlakRen *vlr, short x, short y, short z, float r
 	Node *no;
 	short a, oc0, oc1, oc2, oc3, oc4, oc5;
 
-	if(face_in_node(NULL, x,y,z, rtf)==0) return;
-
 	x<<=2;
 	y<<=1;
 
@@ -465,7 +465,8 @@ void makeoctree(Render *re)
 	int a, b, c, oc1, oc2, oc3, oc4, x, y, z, ocres2;
 	short rts[4][3], ocmin[6], *ocmax;
 	char *ocface;	// front, top, size view of face, to fill in
-
+	double lasttime= PIL_check_seconds_timer();
+	
 	oc= &re->oc;
 	oc->adrbranch= MEM_callocN(sizeof(void *)*BRANCH_ARRAY, "octree branches");
 	oc->adrnode= MEM_callocN(sizeof(void *)*NODE_ARRAY, "octree nodes");
@@ -525,7 +526,20 @@ void makeoctree(Render *re)
 	oc->ocsize= sqrt(t00*t00+t01*t01+t02*t02);	/* global, max size octree */
 
 	for(v=0; v<re->totvlak; v++) {
-		if((v & 255)==0) vlr= re->blovl[v>>8];	
+		if((v & 255)==0) {
+			double time= PIL_check_seconds_timer();
+
+			vlr= re->blovl[v>>8];
+			if(re->test_break())
+				break;
+			if(time-lasttime>1.0) {
+				char str[32];
+				sprintf(str, "Filling Octree: %d", v);
+				re->i.infostr= str;
+				re->stats_draw(&re->i);
+				lasttime= time;
+			}
+		}
 		else vlr++;
 		
 		if(vlr->mat->mode & MA_TRACEBLE) {
@@ -549,8 +563,6 @@ void makeoctree(Render *re)
 					}
 				}
 				
-				
-				
 				for(c=0;c<3;c++) {
 					oc1= rts[0][c];
 					oc2= rts[1][c];
@@ -567,59 +579,68 @@ void makeoctree(Render *re)
 					if(ocmax[c]>oc->ocres-1) ocmax[c]=oc->ocres-1;
 					if(ocmin[c]<0) ocmin[c]=0;
 				}
-
-				d2dda(oc, 0,1,0,1,ocface+ocres2,rts,rtf);
-				d2dda(oc, 0,1,0,2,ocface,rts,rtf);
-				d2dda(oc, 0,1,1,2,ocface+2*ocres2,rts,rtf);
-				d2dda(oc, 1,2,0,1,ocface+ocres2,rts,rtf);
-				d2dda(oc, 1,2,0,2,ocface,rts,rtf);
-				d2dda(oc, 1,2,1,2,ocface+2*ocres2,rts,rtf);
-				if(v4==NULL) {
-					d2dda(oc, 2,0,0,1,ocface+ocres2,rts,rtf);
-					d2dda(oc, 2,0,0,2,ocface,rts,rtf);
-					d2dda(oc, 2,0,1,2,ocface+2*ocres2,rts,rtf);
+				
+				if(ocmin[0]==ocmax[0] && ocmin[1]==ocmax[1] && ocmin[2]==ocmax[2]) {
+					ocwrite(oc, vlr, ocmin[0], ocmin[1], ocmin[2], rtf);
 				}
 				else {
-					d2dda(oc, 2,3,0,1,ocface+ocres2,rts,rtf);
-					d2dda(oc, 2,3,0,2,ocface,rts,rtf);
-					d2dda(oc, 2,3,1,2,ocface+2*ocres2,rts,rtf);
-					d2dda(oc, 3,0,0,1,ocface+ocres2,rts,rtf);
-					d2dda(oc, 3,0,0,2,ocface,rts,rtf);
-					d2dda(oc, 3,0,1,2,ocface+2*ocres2,rts,rtf);
-				}
-				/* nothing todo with triangle..., just fills :) */
-				filltriangle(oc, 0,1,ocface+ocres2,ocmin);
-				filltriangle(oc, 0,2,ocface,ocmin);
-				filltriangle(oc, 1,2,ocface+2*ocres2,ocmin);
-				
-				/* init static vars here */
-				face_in_node(vlr, 0,0,0, rtf);
-				
-				for(x=ocmin[0];x<=ocmax[0];x++) {
-					a= oc->ocres*x;
-					for(y=ocmin[1];y<=ocmax[1];y++) {
-						if(ocface[a+y+ocres2]) {
-							b= oc->ocres*y+2*ocres2;
-							for(z=ocmin[2];z<=ocmax[2];z++) {
-								if(ocface[b+z] && ocface[a+z]) ocwrite(oc, vlr, x,y,z, rtf);
+					
+					d2dda(oc, 0,1,0,1,ocface+ocres2,rts,rtf);
+					d2dda(oc, 0,1,0,2,ocface,rts,rtf);
+					d2dda(oc, 0,1,1,2,ocface+2*ocres2,rts,rtf);
+					d2dda(oc, 1,2,0,1,ocface+ocres2,rts,rtf);
+					d2dda(oc, 1,2,0,2,ocface,rts,rtf);
+					d2dda(oc, 1,2,1,2,ocface+2*ocres2,rts,rtf);
+					if(v4==NULL) {
+						d2dda(oc, 2,0,0,1,ocface+ocres2,rts,rtf);
+						d2dda(oc, 2,0,0,2,ocface,rts,rtf);
+						d2dda(oc, 2,0,1,2,ocface+2*ocres2,rts,rtf);
+					}
+					else {
+						d2dda(oc, 2,3,0,1,ocface+ocres2,rts,rtf);
+						d2dda(oc, 2,3,0,2,ocface,rts,rtf);
+						d2dda(oc, 2,3,1,2,ocface+2*ocres2,rts,rtf);
+						d2dda(oc, 3,0,0,1,ocface+ocres2,rts,rtf);
+						d2dda(oc, 3,0,0,2,ocface,rts,rtf);
+						d2dda(oc, 3,0,1,2,ocface+2*ocres2,rts,rtf);
+					}
+					/* nothing todo with triangle..., just fills :) */
+					filltriangle(oc, 0,1,ocface+ocres2,ocmin);
+					filltriangle(oc, 0,2,ocface,ocmin);
+					filltriangle(oc, 1,2,ocface+2*ocres2,ocmin);
+					
+					/* init static vars here */
+					face_in_node(vlr, 0,0,0, rtf);
+					
+					for(x=ocmin[0];x<=ocmax[0];x++) {
+						a= oc->ocres*x;
+						for(y=ocmin[1];y<=ocmax[1];y++) {
+							if(ocface[a+y+ocres2]) {
+								b= oc->ocres*y+2*ocres2;
+								for(z=ocmin[2];z<=ocmax[2];z++) {
+									if(ocface[b+z] && ocface[a+z]) {
+										if(face_in_node(NULL, x, y, z, rtf))
+											ocwrite(oc, vlr, x,y,z, rtf);
+									}
+								}
 							}
 						}
 					}
-				}
-				
-				/* same loops to clear octree, doubt it can be done smarter */
-				for(x=ocmin[0];x<=ocmax[0];x++) {
-					a= oc->ocres*x;
-					for(y=ocmin[1];y<=ocmax[1];y++) {
-						/* x-y */
-						ocface[a+y+ocres2]= 0;
+					
+					/* same loops to clear octree, doubt it can be done smarter */
+					for(x=ocmin[0];x<=ocmax[0];x++) {
+						a= oc->ocres*x;
+						for(y=ocmin[1];y<=ocmax[1];y++) {
+							/* x-y */
+							ocface[a+y+ocres2]= 0;
 
-						b= oc->ocres*y + 2*ocres2;
-						for(z=ocmin[2];z<=ocmax[2];z++) {
-							/* y-z */
-							ocface[b+z]= 0;
-							/* x-z */
-							ocface[a+z]= 0;
+							b= oc->ocres*y + 2*ocres2;
+							for(z=ocmin[2];z<=ocmax[2];z++) {
+								/* y-z */
+								ocface[b+z]= 0;
+								/* x-z */
+								ocface[a+z]= 0;
+							}
 						}
 					}
 				}
@@ -628,8 +649,8 @@ void makeoctree(Render *re)
 	}
 	
 	MEM_freeN(ocface);
+	re->i.infostr= NULL;
 	re->stats_draw(&re->i);
-
 }
 
 /* ************ raytracer **************** */
