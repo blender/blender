@@ -1901,6 +1901,8 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 				node->exec= NODE_PROCESSING;
 				BLI_insert_thread(&threads, node);
 			}
+			else
+				PIL_sleep_ms(50);
 		}
 		else
 			PIL_sleep_ms(50);
