@@ -5575,17 +5575,13 @@ LinkNode *build_edgecollection(LinkNode *allCollections)
 {
 	EditEdge *eed;
 	
-	LinkNode *edgeCollection, *currEdge;
-	
-	edgeCollection = NULL;
-	currEdge = NULL;
-	allCollections = NULL;
-	
+	LinkNode *edgeCollection = NULL, *currEdge = NULL;
 	int currTag, lowtag;
 	
 	short ebalanced = 0;
 	short listfound;
-	
+
+	allCollections = NULL;	
 	currTag = 1;
 	
 	for (eed=G.editMesh->edges.first; eed; eed = eed->next)
@@ -5676,16 +5672,14 @@ LinkNode *build_facecollection(LinkNode *allCollections) /*Builds a collection o
 {
 	EditFace *efa;
 	
-	LinkNode *faceCollection, *currFace;
-	
-	faceCollection = NULL;
-	currFace = NULL;
-	allCollections = NULL;
-	
+	LinkNode *faceCollection = NULL, *currFace = NULL;
+
 	int currTag, lowtag;
 	short listfound,aCount;
 	int tagArray[3];	/*used to pull the tags out of faces vertices. an entry of -1 means no vertex exists....*/
 	currTag = 1;		/*don't start with zero since f1 is cleared to that in editvert and editface structs already*/
+
+	allCollections = NULL;
 
 	for (efa=G.editMesh->faces.first; efa; efa=efa->next){
 	
