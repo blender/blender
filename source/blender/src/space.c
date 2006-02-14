@@ -77,6 +77,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_node.h"

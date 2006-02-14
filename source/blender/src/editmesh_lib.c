@@ -62,6 +62,8 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "BIF_editmesh.h"
 
+#include "BSE_edit.h"
+
 #include "editmesh.h"
 
 
@@ -488,7 +490,6 @@ void EM_selectmode_set(void)
 		for(efa= em->faces.first; efa; efa= efa->next) 
 			if(efa->f & SELECT) EM_select_face(efa, 1);
 	}
-	BIF_undo_push("Selectmode Set");
 }
 
 /* paranoia check, actually only for entering editmode. rule:

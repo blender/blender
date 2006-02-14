@@ -899,7 +899,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	SpaceSeq *sseq;
 	Editing *ed;
 	Sequence *seq;
-	float col[3], i;
+	float col[3];
 	int ofsx, ofsy;
 
 	ed= G.scene->ed;

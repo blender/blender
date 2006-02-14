@@ -319,7 +319,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 
 	safe_puts(header);
 
-	rendered_frame = pixels;
+	rendered_frame = (unsigned char *)pixels;
 
 	for (y = recty - 1; y >= 0; y--) {
 		unsigned char* target = row;
