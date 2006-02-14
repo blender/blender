@@ -104,7 +104,8 @@ static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 static CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 {
 	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);
-	memcpy(dupbuf->rect, cbuf->rect, cbuf->type*sizeof(float)*cbuf->x*cbuf->y);
+	if(dupbuf)
+		memcpy(dupbuf->rect, cbuf->rect, cbuf->type*sizeof(float)*cbuf->x*cbuf->y);
 	return dupbuf;
 }
 

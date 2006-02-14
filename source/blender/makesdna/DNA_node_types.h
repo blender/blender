@@ -167,6 +167,7 @@ typedef struct bNodeTree {
 	
 	/* callbacks */
 	void (*timecursor)(int nr);
+	void (*stats_draw)(char *str);
 	
 } bNodeTree;
 

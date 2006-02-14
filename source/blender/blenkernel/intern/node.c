@@ -1407,7 +1407,7 @@ static void nodeInitPreview(bNode *node, int xsize, int ysize)
 	
 	if(node->preview==NULL) {
 		node->preview= MEM_callocN(sizeof(bNodePreview), "node preview");
-		printf("added preview %s\n", node->name);
+//		printf("added preview %s\n", node->name);
 	}
 	
 	/* node previews can get added with variable size this way */
@@ -1876,10 +1876,8 @@ static bNode *getExecutableNode(bNodeTree *ntree)
 					if((sock->link->fromnode->exec & NODE_READY)==0)
 						break;
 			}
-			if(sock==NULL) {
-				printf("exec %s\n", node->name);
+			if(sock==NULL)
 				return node;
-			}
 		}
 	}
 	return NULL;
@@ -1926,7 +1924,13 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 			if(node) {
 				
 				if(ntree->timecursor)
-					ntree->timecursor(totnode--);
+					ntree->timecursor(totnode);
+				if(ntree->stats_draw) {
+					char str[64];
+					sprintf(str, "Compositing %d %s\n", totnode, node->name);
+					ntree->stats_draw(str);
+				}
+				totnode--;
 				
 				node->new = (bNode *)&thdata;
 				node->exec= NODE_PROCESSING;

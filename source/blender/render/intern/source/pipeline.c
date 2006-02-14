@@ -931,6 +931,14 @@ int composite_needs_render(Scene *sce)
 	return 0;
 }
 
+/* bad call... need to think over proper method still */
+static void render_composit_stats(char *str)
+{
+	R.i.infostr= str;
+	R.stats_draw(&R.i);
+	R.i.infostr= NULL;
+}
+
 static void do_render_final(Render *re)
 {
 	/* we set start time here, for main Blender loops */
@@ -944,10 +952,11 @@ static void do_render_final(Render *re)
 			do_render_seq(re->result, re->r.cfra);
 	}
 	else {
+		bNodeTree *ntree= re->scene->nodetree;
 		
 		if(composite_needs_render(re->scene)) {
 			/* save memory... free all cached images */
-			ntreeFreeCache(re->scene->nodetree);
+			ntreeFreeCache(ntree);
 			
 			/* now use renderdata and camera to set viewplane */
 			RE_SetCamera(re, re->scene->camera);
@@ -960,17 +969,17 @@ static void do_render_final(Render *re)
 				render_one_frame(re);
 		}
 		
-		if(!re->test_break() && re->scene->nodetree) {
-			ntreeCompositTagRender(re->scene->nodetree);
-			ntreeCompositTagAnimated(re->scene->nodetree);
+		if(!re->test_break() && ntree) {
+			ntreeCompositTagRender(ntree);
+			ntreeCompositTagAnimated(ntree);
 			
 			if(re->r.scemode & R_DOCOMP) {
 				/* checks if there are render-result nodes that need scene */
 				ntree_render_scenes(re);
 				
-				re->i.infostr= "Compositing";
-				re->stats_draw(&re->i);
-				ntreeCompositExecTree(re->scene->nodetree, &re->r, G.background==0);
+				ntree->stats_draw= render_composit_stats;
+				ntreeCompositExecTree(ntree, &re->r, G.background==0);
+				ntree->stats_draw= NULL;
 			}
 		}
 	}
