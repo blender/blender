@@ -199,6 +199,7 @@ typedef struct Material {
 #define MA_RAMP_DIFF		6
 #define MA_RAMP_DARK		7
 #define MA_RAMP_LIGHT		8
+#define MA_RAMP_OVERLAY		9
 
 /* texco */
 #define TEXCO_ORCO		1
