@@ -1849,7 +1849,7 @@ static void render_panel_layers(void)
 	
 //	uiDefButBitS(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	33,130,50,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
 	
-	bt= uiDefBut(block, TEX, REDRAWNODE, "",  33,180,202,20, srl->name, 0.0, 31.0, 0, 0, "");
+	bt= uiDefBut(block, TEX, REDRAWNODE, "",  33,130,252,20, srl->name, 0.0, 31.0, 0, 0, "");
 	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
 	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 130, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
 	uiButSetFunc(bt, delete_scene_layer_func, srl, (void *)(long)G.scene->r.actlay);
