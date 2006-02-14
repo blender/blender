@@ -136,6 +136,8 @@ static char *mapto_blendtype_pup(void)
 	strcat(string, tempstr);
 	sprintf(tempstr, formatstr, "Screen", MTEX_SCREEN);
 	strcat(string, tempstr);
+	sprintf(tempstr, formatstr, "Overlay", MTEX_OVERLAY);
+	strcat(string, tempstr);
 	
 	sprintf(tempstr, formatstr, "Difference", MTEX_DIFF);
 	strcat(string, tempstr);
