@@ -3106,6 +3106,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 	for(rl= rr->layers.first; rl; rl= rl->next) {
 		/* indication for scanline updates */
 		rr->renlay= rl;
+		rr->renrect.ymin=rr->renrect.ymax= 0;
 
 		/* initialize pixelstructs */
 		addpsmain(&psmlist);
@@ -3200,6 +3201,7 @@ void zbufshade_tile(RenderPart *pa)
 	for(rl= rr->layers.first; rl; rl= rl->next) {
 		/* indication for scanline updates */
 		rr->renlay= rl;
+		rr->renrect.ymin=rr->renrect.ymax= 0;
 		
 		/* fill shadepixel info struct */
 		shpi.lay= rl->lay;
@@ -3216,9 +3218,6 @@ void zbufshade_tile(RenderPart *pa)
 			if(rl->layflag & SCE_LAY_SOLID) {
 				float *fcol= rl->rectf;
 				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0;
-				
-				/* init scanline updates */
-				rr->renrect.ymin=rr->renrect.ymax= 0;
 				
 				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
 					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4, offs++) {

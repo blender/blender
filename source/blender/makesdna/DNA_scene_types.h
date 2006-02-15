@@ -439,7 +439,7 @@ typedef struct Scene {
 #define R_BG_RENDER			0x0002
 		/* passepartout is camera option now, keep this for backward compatibility */
 #define R_PASSEPARTOUT		0x0004
-
+#define R_PREVIEWBUTS		0x0008
 #define R_EXTENSION			0x0010
 #define R_NODE_PREVIEW		0x0020
 #define R_DOCOMP			0x0040

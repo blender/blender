@@ -854,6 +854,7 @@ static void do_render_scene_node(Render *re, Scene *sce, int cfra)
 	RE_InitState(resc, &sce->r, re->winx, re->winy, &re->disprect);
 	
 	/* now use renderdata and camera to set viewplane */
+	if(sce->camera==NULL) return;
 	RE_SetCamera(resc, sce->camera);
 	
 	/* still unsure entity this... */

@@ -2804,7 +2804,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	else lay= re->scene->lay;
 	
 	/* applies changes fully */
-	scene_update_for_newframe(re->scene, lay);
+	if((re->r.scemode & R_PREVIEWBUTS)==0)
+		scene_update_for_newframe(re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if(use_camera_view && re->scene->camera) {

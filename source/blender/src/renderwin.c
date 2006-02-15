@@ -763,7 +763,8 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 	if(renrect) {
 		ymin= renrect->ymin;
 		ymax= renrect->ymax-ymin;
-		if(ymax<2 || renrect->ymax>=rr->recty) return;
+		if(ymax<2 || renrect->ymax>=rr->recty) /* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
+			return;
 		renrect->ymin= renrect->ymax;
 	}
 	else {
