@@ -2217,6 +2217,7 @@ static float p_abf_compute_gradient(PAbfSystem *sys, PChart *chart)
 static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 {
 	PFace *f;
+	PEdge *e;
 	int i, j, ninterior = sys->ninterior, nvar = 2*sys->ninterior;
 	PBool success;
 
@@ -2408,6 +2409,15 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 
 			dalpha = (sys->bAlpha[e3->u.id] - dlambda1);
 			sys->alpha[e3->u.id] += dalpha/sys->weight[e3->u.id] - pre[2];
+
+			/* clamp */
+			e = f->edge;
+			do {
+				if (sys->alpha[e->u.id] > M_PI)
+					sys->alpha[e->u.id] = M_PI;
+				else if (sys->alpha[e->u.id] < 0.0f)
+					sys->alpha[e->u.id] = 0.0f;
+			} while (e != f->edge);
 		}
 
 		for (i = 0; i < ninterior; i++) {
