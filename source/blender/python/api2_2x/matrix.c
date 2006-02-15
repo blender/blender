@@ -154,7 +154,7 @@ PyObject *Matrix_TranslationPart(MatrixObject * self)
 {
 	float vec[4];
 
-	if(self->colSize < 3 && self->rowSize < 4){
+	if(self->colSize < 3 || self->rowSize < 4){
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Matrix.translationPart: inappropriate matrix size\n");
 	}
@@ -171,7 +171,7 @@ PyObject *Matrix_RotationPart(MatrixObject * self)
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
-	if(self->colSize < 3 && self->rowSize < 3){
+	if(self->colSize < 3 || self->rowSize < 3){
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Matrix.rotationPart: inappropriate matrix size\n");
 	}
@@ -397,7 +397,7 @@ static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 	matA = (MatrixObject*)objectA;
 	matB = (MatrixObject*)objectB;
 
-	if (matA->colSize != matB->colSize && matA->rowSize != matB->rowSize){
+	if (matA->colSize != matB->colSize || matA->rowSize != matB->rowSize){
 		if (comparison_type == Py_NE){
 			return EXPP_incr_ret(Py_True); 
 		}else{
