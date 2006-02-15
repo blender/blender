@@ -200,6 +200,7 @@ typedef struct ObjectRen {
 	struct ObjectRen *next, *prev;
 	struct Object *ob, *par;
 	int index, startvert, endvert, startface, endface;
+	float *vectors;
 } ObjectRen;
 
 /* ------------------------------------------------------------------------- */

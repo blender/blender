@@ -3080,43 +3080,32 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	G.scene->r.cfra-=timeoffset;
 }
 
-static void calculate_speedvectors(Render *re, VertTableNode *nodesb, int starta, int startb, int endvert, int step)
+static void calculate_speedvectors(Render *re, float *vectors, int startvert, int endvert, int step)
 {
-	VertRen *ver= NULL, *oldver= NULL;
-	float *speed, div, zco[2], oldzco[2];
+	VertRen *ver= NULL;
+	float *speed, div, zco[2];
 	float zmulx= re->winx/2, zmuly= re->winy/2, len;
 	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
-	int a, b;
+	int a;
 	
-	/* set first vertices OK */
-	a= starta-1;
+	/* set first vertex OK */
+	a= startvert-1;
 	ver= re->vertnodes[a>>8].vert + (a & 255);
-	b= startb-1;
-	oldver= nodesb[b>>8].vert + (b & 255);
 	
-	for(a=starta, b= startb; a<endvert; a++, b++) {
+	for(a=startvert; a<endvert; a++, vectors+=2) {
 		if((a & 255)==0)
 			ver= re->vertnodes[a>>8].vert;
 		else
 			ver++;
-		if((b & 255)==0)
-			oldver= nodesb[b>>8].vert;
-		else
-			oldver++;
 		
-		/* now map both hocos to screenspace, uses very primitive clip still */
+		/* now map hocos to screenspace, uses very primitive clip still */
 		if(ver->ho[3]<0.1f) div= 10.0f;
 		else div= 1.0f/ver->ho[3];
 		zco[0]= zmulx*(1.0+ver->ho[0]*div);
 		zco[1]= zmuly*(1.0+ver->ho[1]*div);
 		
-		if(oldver->ho[3]<0.1f) div= 10.0f;
-		else div= 1.0f/oldver->ho[3];
-		oldzco[0]= zmulx*(1.0+oldver->ho[0]*div);
-		oldzco[1]= zmuly*(1.0+oldver->ho[1]*div);
-		
-		zco[0]= oldzco[0] - zco[0];
-		zco[1]= oldzco[1] - zco[1];
+		zco[0]= vectors[0] - zco[0];
+		zco[1]= vectors[1] - zco[1];
 		
 		/* maximize speed for image width, otherwise it never looks good */
 		len= zco[0]*zco[0] + zco[1]*zco[1];
@@ -3141,12 +3130,57 @@ static void calculate_speedvectors(Render *re, VertTableNode *nodesb, int starta
 	
 }
 
+/* makes copy per object of all vectors */
+/* result should be that we can free entire database */
+static void copy_dbase_object_vectors(Render *re, ListBase *lb)
+{
+	ObjectRen *obren, *obrenlb;
+	VertRen *ver;
+	float zmulx= re->winx/2, zmuly= re->winy/2;
+	float div, *vec;
+	int a;
+	
+	for(obren= re->objecttable.first; obren; obren= obren->next) {
+		obrenlb= MEM_dupallocN(obren);
+		BLI_addtail(lb, obrenlb);
+		if(obren->endvert>obren->startvert) {
+			vec= obrenlb->vectors= MEM_mallocN(2*sizeof(float)*(obren->endvert- obren->startvert), "vector array");
+
+			/* first vertex */
+			a= obren->startvert-1;
+			ver= re->vertnodes[a>>8].vert + (a & 255);
+
+			for(a=obren->startvert; a<obren->endvert; a++, vec+=2) {
+				if((a & 255)==0)
+					ver= re->vertnodes[a>>8].vert;
+				else
+					ver++;
+				
+				if(ver->ho[3]<0.1f) div= 10.0f;
+				else div= 1.0f/ver->ho[3];
+				vec[0]= zmulx*(1.0+ver->ho[0]*div);
+				vec[1]= zmuly*(1.0+ver->ho[1]*div);
+				
+			}
+		}
+	}
+}
+
+static void free_dbase_object_vectors(ListBase *lb)
+{
+	ObjectRen *obren;
+	
+	for(obren= lb->first; obren; obren= obren->next)
+		if(obren->vectors)
+			MEM_freeN(obren->vectors);
+	BLI_freelistN(lb);
+}
+
 void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 {
-	VertTableNode *oldvertnodes, *newvertnodes, *vertnodes;
 	ObjectRen *obren, *oldobren;
-	ListBase oldtable, newtable, *table;
-	int oldvertnodeslen, oldtotvert, newvertnodeslen, newtotvert;
+	ListBase *table;
+	ListBase oldtable= {NULL, NULL}, newtable= {NULL, NULL};
 	int step;
 	
 	re->i.infostr= "Calculating previous vectors";
@@ -3156,16 +3190,8 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	database_fromscene_vectors(re, sce, -1);
 	
 	/* copy away vertex info */
-	oldvertnodes= re->vertnodes;
-	oldvertnodeslen= re->vertnodeslen;
-	oldtotvert= re->totvert;
-	re->vertnodes= NULL;
-	re->vertnodeslen= 0;
-	
-	/* copy away object table */
-	oldtable= re->objecttable;
-	re->objecttable.first= re->objecttable.last= NULL;
-	
+	copy_dbase_object_vectors(re, &oldtable);
+		
 	/* free dbase and make the future one */
 	RE_Database_Free(re);
 	
@@ -3176,15 +3202,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 		database_fromscene_vectors(re, sce, +1);
 	}	
 	/* copy away vertex info */
-	newvertnodes= re->vertnodes;
-	newvertnodeslen= re->vertnodeslen;
-	newtotvert= re->totvert;
-	re->vertnodes= NULL;
-	re->vertnodeslen= 0;
-	
-	/* copy away object table */
-	newtable= re->objecttable;
-	re->objecttable.first= re->objecttable.last= NULL;
+	copy_dbase_object_vectors(re, &newtable);
 	
 	/* free dbase and make the real one */
 	RE_Database_Free(re);
@@ -3195,17 +3213,12 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	if(!re->test_break()) {
 		for(step= 0; step<2; step++) {
 			
-			if(step) {
+			if(step)
 				table= &newtable;
-				vertnodes= newvertnodes;
-			}
-			else {
+			else
 				table= &oldtable;
-				vertnodes= oldvertnodes;
-			}
 			
 			oldobren= table->first;
-			
 			for(obren= re->objecttable.first; obren && oldobren; obren= obren->next, oldobren= oldobren->next) {
 				int ok= 1;
 
@@ -3230,15 +3243,13 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 					continue;
 				}
 				
-				calculate_speedvectors(re, vertnodes, obren->startvert, oldobren->startvert, obren->endvert, step);
+				calculate_speedvectors(re, oldobren->vectors, obren->startvert, obren->endvert, step);
 			}
 		}
 	}
 	
-	free_renderdata_vertnodes(oldvertnodes);
-	BLI_freelistN(&oldtable);
-	free_renderdata_vertnodes(newvertnodes);
-	BLI_freelistN(&newtable);
+	free_dbase_object_vectors(&oldtable);
+	free_dbase_object_vectors(&newtable);
 	
 	re->i.infostr= NULL;
 	re->stats_draw(&re->i);
