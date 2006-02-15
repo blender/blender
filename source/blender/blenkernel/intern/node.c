@@ -812,6 +812,7 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	duplicatelist(&nnode->outputs, &node->outputs);
 	for(sock= nnode->outputs.first; sock; sock= sock->next) {
 		sock->own_index= 0;
+		sock->stack_index= 0;
 		sock->ns.data= NULL;
 	}
 	
@@ -941,7 +942,11 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 			if(ntree->owntype->outputs)
 				newtree->owntype->outputs= MEM_dupallocN(ntree->owntype->outputs);
 		}
-	}	
+	}
+	/* weird this is required... there seem to be link pointers wrong still? */
+	/* anyhoo, doing this solves crashes on copying entire tree (copy scene) and delete nodes */
+	ntreeSolveOrder(newtree);
+
 	return newtree;
 }
 
@@ -1675,7 +1680,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 	
 	/* goes recursive over all groups */
 	ntree->stacksize= ntree_begin_exec_tree(ntree);
-	
+
 	if(ntree->stacksize) {
 		bNode *node;
 		bNodeStack *ns;
@@ -1824,8 +1829,10 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 		
 		/* test the inputs */
 		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+			/* skip viewer nodes in bg render */
+			if(node->type==CMP_NODE_VIEWER && G.background);
 			/* is sock in use? */
-			if(sock->link) {
+			else if(sock->link) {
 				if(nsin[a]->data==NULL || sock->link->fromnode->need_exec) {
 					node->need_exec= 1;
 					break;
@@ -1927,7 +1934,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 					ntree->timecursor(totnode);
 				if(ntree->stats_draw) {
 					char str[64];
-					sprintf(str, "Compositing %d %s\n", totnode, node->name);
+					sprintf(str, "Compositing %d %s", totnode, node->name);
 					ntree->stats_draw(str);
 				}
 				totnode--;

@@ -845,15 +845,31 @@ static void printrenderinfo_cb(RenderStats *rs)
 		if(rs->infostr)
 			spos+= sprintf(spos, " | %s", rs->infostr);
 		
-		if(render_win) {
-			if(render_win->render_text) MEM_freeN(render_win->render_text);
-			render_win->render_text= BLI_strdup(str);
-			glDrawBuffer(GL_FRONT);
-			renderwin_draw_render_info(render_win);
-			glFlush();
-			glDrawBuffer(GL_BACK);
-		}
+		if(render_win->render_text) MEM_freeN(render_win->render_text);
+		render_win->render_text= BLI_strdup(str);
+		glDrawBuffer(GL_FRONT);
+		renderwin_draw_render_info(render_win);
+		glFlush();
+		glDrawBuffer(GL_BACK);
 	}
+
+	/* temporal render debug printing, needed for testing orange renders atm... will be gone soon (or option) */
+	if(rs->convertdone) {
+		spos= str;
+		spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
+		
+		if(rs->infostr) {
+			spos+= sprintf(spos, " | %s", rs->infostr);
+		}
+		else {
+			if(rs->tothalo)
+				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+			else 
+				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
+		}
+		printf(str); printf("\n");
+	}	
+	
 }
 
 /* -------------- callback system to allow ESC from rendering ----------------------- */

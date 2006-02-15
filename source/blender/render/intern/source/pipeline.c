@@ -121,6 +121,29 @@ static void int_nothing(int val) {}
 static int void_nothing(void) {return 0;}
 static void print_error(const char *str) {printf("ERROR: %s\n", str);}
 
+static void stats_background(RenderStats *rs)
+{
+	extern int mem_in_use;
+	float megs_used_memory= mem_in_use/(1024.0*1024.0);
+	char str[400], *spos= str;
+	
+	if(rs->convertdone) {
+		
+		spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
+		
+		if(rs->infostr) {
+			spos+= sprintf(spos, " | %s", rs->infostr);
+		}
+		else {
+			if(rs->tothalo)
+				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+			else 
+				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
+		}
+		printf(str); printf("\n");
+	}	
+}
+
 static void free_render_result(RenderResult *res)
 {
 	if(res==NULL) return;
@@ -441,8 +464,11 @@ Render *RE_NewRender(const char *name)
 	re->timecursor= int_nothing;
 	re->test_break= void_nothing;
 	re->test_return= void_nothing;
-	re->error= print_error;	
-	re->stats_draw= stats_nothing;
+	re->error= print_error;
+	if(G.background)
+		re->stats_draw= stats_background;
+	else
+		re->stats_draw= stats_nothing;
 	
 	/* init some variables */
 	re->ycor= 1.0f;
@@ -717,7 +743,7 @@ static void print_part_stats(Render *re, RenderPart *pa)
 {
 	char str[64];
 	
-	sprintf(str, "Part %d-%d\n", pa->nr, re->i.totpart);
+	sprintf(str, "Part %d-%d", pa->nr, re->i.totpart);
 	re->i.infostr= str;
 	re->stats_draw(&re->i);
 	re->i.infostr= NULL;
