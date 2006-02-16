@@ -696,9 +696,10 @@ class Object:
 
   def setMatrix(matrix):
     """
-    Sets the object's matrix and updates it's transformation. 
-    @type matrix: Py_Matrix 4x4
-    @param matrix: a python matrix 4x4.
+    Sets the object's matrix and updates its transformation. 
+    @type matrix: Py_Matrix 3x3 or 4x4
+    @param matrix: a 3x3 or 4x4 Python matrix.  If a 3x3 matrix is given,
+    it is extended to a 4x4 matrix.
     """
 
   def setName(name):

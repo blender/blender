@@ -2197,11 +2197,26 @@ static PyObject *Object_setMatrix( BPy_Object * self, PyObject * args )
 			( PyExc_TypeError,
 			  "expected matrix object as argument" );
 
-	for( x = 0; x < 4; x++ ) {
-		for( y = 0; y < 4; y++ ) {
-			self->object->obmat[x][y] = mat->matrix[x][y];
+	if( mat->rowSize == 4 && mat->colSize == 4 ) {
+		for( x = 0; x < 4; x++ ) {
+			for( y = 0; y < 4; y++ ) {
+				self->object->obmat[x][y] = mat->matrix[x][y];
+			}
 		}
-	}
+	} else if( mat->rowSize == 3 && mat->colSize == 3 ) {
+		for( x = 0; x < 3; x++ ) {
+			for( y = 0; y < 3; y++ ) {
+				self->object->obmat[x][y] = mat->matrix[x][y];
+			}
+		}
+		/* if a 3x3 matrix, clear the fourth row/column */
+		for( x = 0; x < 3; x++ )
+			self->object->obmat[x][3] = self->object->obmat[3][x] = 0.0;
+		self->object->obmat[3][3] = 1.0;
+	} else 
+		return EXPP_ReturnPyObjError ( PyExc_ValueError,
+			  "expected 3x3 or 4x4 matrix" );
+
 	apply_obmat( self->object );
 
 	/* since we have messed with object, we need to flag for DAG recalc */
