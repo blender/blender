@@ -166,7 +166,7 @@ short addzbufImBuf(struct ImBuf * ibuf)
 	IMB_freezbufImBuf(ibuf);
 	
 	size = ibuf->x * ibuf->y * sizeof(unsigned int);
-	if ( (ibuf->zbuf = MEM_mallocN(size, "addzbufImBuf")) ){
+	if ( (ibuf->zbuf = MEM_mapallocN(size, "addzbufImBuf")) ){
 		ibuf->mall |= IB_zbuf;
 		ibuf->flags |= IB_zbuf;
 		return (TRUE);
@@ -184,7 +184,7 @@ short addzbuffloatImBuf(struct ImBuf * ibuf)
 	IMB_freezbuffloatImBuf(ibuf);
 	
 	size = ibuf->x * ibuf->y * sizeof(float);
-	if ( (ibuf->zbuf_float = MEM_mallocN(size, "addzbuffloatImBuf")) ){
+	if ( (ibuf->zbuf_float = MEM_mapallocN(size, "addzbuffloatImBuf")) ){
 		ibuf->mall |= IB_zbuffloat;
 		ibuf->flags |= IB_zbuffloat;
 		return (TRUE);
@@ -263,7 +263,7 @@ short imb_addrectfloatImBuf(struct ImBuf * ibuf)
 	size = ibuf->x * ibuf->y;
 	size = size * 4 * sizeof(float);
 	
-	if ( (ibuf->rect_float = MEM_mallocN(size, "imb_addrectfloatImBuf")) ){
+	if ( (ibuf->rect_float = MEM_mapallocN(size, "imb_addrectfloatImBuf")) ){
 		ibuf->mall |= IB_rectfloat;
 		ibuf->flags |= IB_rectfloat;
 		return (TRUE);
@@ -283,7 +283,7 @@ short imb_addrectImBuf(struct ImBuf * ibuf)
 	size = ibuf->x * ibuf->y;
  	size = size * sizeof(unsigned int);
 
-	if ( (ibuf->rect = MEM_mallocN(size, "imb_addrectImBuf")) ){
+	if ( (ibuf->rect = MEM_mapallocN(size, "imb_addrectImBuf")) ){
 		ibuf->mall |= IB_rect;
 		ibuf->flags |= IB_rect;
 		if (ibuf->depth > 32) return (addzbufImBuf(ibuf));

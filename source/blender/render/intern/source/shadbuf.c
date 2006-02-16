@@ -290,7 +290,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	MTC_Mat4SwapMat4(shb->persmat, re->winmat);
 
 	/* zbuffering */
- 	rectz= MEM_mallocN(sizeof(int)*shb->size*shb->size, "makeshadbuf");
+ 	rectz= MEM_mapallocN(sizeof(int)*shb->size*shb->size, "makeshadbuf");
 
 	project_renderdata(re, projectvert, 0, 0);
 	

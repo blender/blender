@@ -40,8 +40,11 @@
 #include <string.h>	/* memcpy */
 #include <stdarg.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+/* mmap exception */
+#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#else
+#include <sys/types.h>
+#include <sys/mman.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -60,19 +63,21 @@ typedef struct localListBase
 	void *first, *last;
 } localListBase;
 
+	/* note: keep this struct aligned (e.g., irix/gcc) - Hos */
 typedef struct MemHead {
 	int tag1;
 	int len;
 	struct MemHead *next,*prev;
-	char * name;
-	char * nextname;
+	const char * name;
+	const char * nextname;
 	int tag2;
-	int pad; /* keep this in, due to alignment issues (e.g., irix/gcc) - Hos */
+	int mmap;	/* if true, memory was mmapped */
 } MemHead;
 
 typedef struct MemTail {
 	int tag3, pad;
 } MemTail;
+
 
 /* --------------------------------------------------------------------- */
 /* local functions                                                       */
@@ -81,8 +86,8 @@ typedef struct MemTail {
 static void addtail(localListBase *listbase, void *vlink);
 static void remlink(localListBase *listbase, void *vlink);
 static void rem_memblock(MemHead *memh);
-static void MemorY_ErroR(char *block, char *error);
-static char *check_memlist(MemHead *memh);
+static void MemorY_ErroR(const char *block, const char *error);
+static const char *check_memlist(MemHead *memh);
 
 /* --------------------------------------------------------------------- */
 /* locally used defines                                                  */
@@ -107,7 +112,7 @@ static char *check_memlist(MemHead *memh);
 	
 
 int totblock= 0;
-int mem_in_use= 0;
+unsigned long mem_in_use= 0, mmap_in_use= 0;
 
 static struct localListBase _membase;
 static struct localListBase *membase = &_membase;
@@ -130,7 +135,7 @@ static void (*error_callback)(char *) = NULL;
 /* implementation                                                        */
 /* --------------------------------------------------------------------- */
 
-static void print_error(char *str, ...)
+static void print_error(const char *str, ...)
 {
 	char buf[1024];
 	va_list ap;
@@ -144,7 +149,7 @@ static void print_error(char *str, ...)
 
 int MEM_check_memory_integrity()
 {
-	char* err_val = NULL;
+	const char* err_val = NULL;
 	MemHead* listend;
 	/* check_memlist starts from the front, and runs until it finds
 	 * the requested chunk. For this test, that's the last one. */
@@ -180,74 +185,92 @@ void *MEM_dupallocN(void *vmemh)
 	if (vmemh) {
 		MemHead *memh= vmemh;
 		memh--;
-
-		newp= MEM_mallocN(memh->len, "dupli_alloc");
+		
+		if(memh->mmap)
+			newp= MEM_mapallocN(memh->len, "dupli_alloc");
+		else
+			newp= MEM_mallocN(memh->len, "dupli_mapalloc");
 		memcpy(newp, vmemh, memh->len);
 	}
 
 	return newp;
 }
 
-void *MEM_mallocN(unsigned int len, char *str)
+static void make_memhead_header(MemHead *memh, unsigned int len, const char *str)
+{
+	MemTail *memt;
+	
+	memh->tag1 = MEMTAG1;
+	memh->name = str;
+	memh->nextname = 0;
+	memh->len = len;
+	memh->mmap = 0;
+	memh->tag2 = MEMTAG2;
+	
+	memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
+	memt->tag3 = MEMTAG3;
+	
+	addtail(membase,&memh->next);
+	if (memh->next) memh->nextname = MEMNEXT(memh->next)->name;
+	
+	totblock++;
+	mem_in_use += len;
+}
+
+void *MEM_mallocN(unsigned int len, const char *str)
 {
 	MemHead *memh;
-	MemTail *memt;
 
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 	
 	memh= (MemHead *)malloc(len+sizeof(MemHead)+sizeof(MemTail));
 
-	if(memh!=0) {
-		memh->tag1 = MEMTAG1;
-		memh->name = str;
-		memh->nextname = 0;
-		memh->len = len;
-/*  		memh->level = 0; */
-		memh->tag2 = MEMTAG2;
-
-		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
-		memt->tag3 = MEMTAG3;
-
-		addtail(membase,&memh->next);
-		if (memh->next) memh->nextname = MEMNEXT(memh->next)->name;
-
-		totblock++;
-		mem_in_use += len;
+	if(memh) {
+		make_memhead_header(memh, len, str);
 		return (++memh);
 	}
 	print_error("Malloc returns nill: len=%d in %s\n",len,str);
-	return 0;
+	return NULL;
 }
 
-void *MEM_callocN(unsigned int len, char *str)
+void *MEM_callocN(unsigned int len, const char *str)
 {
 	MemHead *memh;
-	MemTail *memt;
 
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 
 	memh= (MemHead *)calloc(len+sizeof(MemHead)+sizeof(MemTail),1);
 
-	if(memh!=0) {
-		memh->tag1 = MEMTAG1;
-		memh->name = str;
-		memh->nextname = 0;
-		memh->len = len;
-/*  		memh->level = 0; */
-		memh->tag2 = MEMTAG2;
-
-		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
-		memt->tag3 = MEMTAG3;
-
-		addtail(membase,&memh->next);
-		if (memh->next) memh->nextname = MEMNEXT(memh->next)->name;
-
-		totblock++;
-		mem_in_use += len;
+	if(memh) {
+		make_memhead_header(memh, len, str);
 		return (++memh);
 	}
 	print_error("Calloc returns nill: len=%d in %s\n",len,str);
 	return 0;
+}
+
+/* note; mmap returns zero'd memory */
+void *MEM_mapallocN(unsigned int len, const char *str)
+{
+#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+	return MEM_callocN(len, str);
+#else
+	MemHead *memh;
+	
+	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
+	
+	memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail), 
+			   PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+	
+	if(memh!=(MemHead *)-1) {
+		make_memhead_header(memh, len, str);
+		memh->mmap= 1;
+		mmap_in_use += len;
+		return (++memh);
+	}
+	print_error("Mapalloc returns nill: len=%d in %s\n",len, str);
+	return NULL;
+#endif
 }
 
 
@@ -270,9 +293,9 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	short error = 0;
 	MemTail *memt;
 	MemHead *memh= vmemh;
-	char *name;
+	const char *name;
 
-	if (memh == 0){
+	if (memh == NULL){
 		MemorY_ErroR("free","attempt to free NULL pointer");
 		/* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
 		return(-1);
@@ -304,7 +327,7 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 			memh->tag1 = MEMFREE;
 			memh->tag2 = MEMFREE;
 			memt->tag3 = MEMFREE;
-			/* na tags !!! */
+			/* after tags !!! */
 			rem_memblock(memh);
 			
 			return(0);
@@ -323,7 +346,7 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 	}
 
 	totblock--;
-	/* hier moet een DUMP plaatsvinden */
+	/* here a DUMP should happen */
 
 	return(error);
 }
@@ -371,18 +394,24 @@ static void rem_memblock(MemHead *memh)
 
 	totblock--;
 	mem_in_use -= memh->len;
-	free(memh);
+	if(memh->mmap) {
+		mmap_in_use -= memh->len;
+		if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
+			printf("Couldn't unmap memory %s\n", memh->name);
+	}
+	else	
+		free(memh);
 }
 
-static void MemorY_ErroR(char *block, char *error)
+static void MemorY_ErroR(const char *block, const char *error)
 {
-	print_error("Memoryblock %s: %s\n",block,error);
+	print_error("Memoryblock %s: %s\n",block, error);
 }
 
-static char *check_memlist(MemHead *memh)
+static const char *check_memlist(MemHead *memh)
 {
 	MemHead *forw,*back,*forwok,*backok;
-	char *name;
+	const char *name;
 
 	forw = membase->first;
 	if (forw) forw = MEMNEXT(forw);

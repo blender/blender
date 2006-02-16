@@ -87,12 +87,17 @@ extern "C" {
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(unsigned int len, char * str);
+	void *MEM_callocN(unsigned int len, const char * str);
 	
 	/** Allocate a block of memory of size len, with tag name str. The
-	 * name must be a static, because only a pointer to it is stored !
-	 * */
-	void *MEM_mallocN(unsigned int len, char * str);
+		* name must be a static, because only a pointer to it is stored !
+		* */
+	void *MEM_mallocN(unsigned int len, const char * str);
+	
+	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
+		Can be free'd with MEM_freeN as usual.
+		* */
+	void *MEM_mapallocN(unsigned int len, const char * str);
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. */ 

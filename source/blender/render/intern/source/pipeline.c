@@ -183,12 +183,12 @@ static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, c
 		int x;
 		
 		/* initialize to max speed */
-		rect= rpass->rect= MEM_mallocT(sizeof(float)*rectsize, mallocstr);
+		rect= rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, mallocstr);
 		for(x= rectsize-1; x>=0; x--)
 			rect[x]= PASS_VECTOR_MAX;
 	}
 	else
-		rpass->rect= MEM_callocT(sizeof(float)*rectsize, mallocstr);
+		rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, mallocstr);
 }
 
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
@@ -244,7 +244,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl->layflag= srl->layflag;
 		rl->passflag= srl->passflag;
 		
-		rl->rectf= MEM_callocT(rectx*recty*sizeof(float)*4, "layer float rgba");
+		rl->rectf= MEM_mapallocT(rectx*recty*sizeof(float)*4, "layer float rgba");
 		
 		if(srl->passflag  & SCE_PASS_Z)
 			render_layer_add_pass(rl, rectx*recty, SCE_PASS_Z, "Layer float Z");
@@ -271,7 +271,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl= MEM_callocT(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
-		rl->rectf= MEM_callocT(rectx*recty*sizeof(float)*4, "prev/env float rgba");
+		rl->rectf= MEM_mapallocT(rectx*recty*sizeof(float)*4, "prev/env float rgba");
 		
 		/* note, this has to be in sync with scene.c */
 		rl->lay= (1<<20) -1;
@@ -1159,7 +1159,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		int dofree = 0;
 		/* note; the way it gets 32 bits rects is weak... */
 		if(rres.rect32==NULL) {
-			rres.rect32= MEM_mallocT(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+			rres.rect32= MEM_mapallocT(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 			dofree = 1;
 		}
 		RE_ResultGet32(re, rres.rect32);

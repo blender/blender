@@ -2084,11 +2084,11 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	zspan.zofsy= 0.0f;
 	
 	/* the buffers */
-	rectz= MEM_mallocT(sizeof(float)*xsize*ysize, "zbuf accum");
+	rectz= MEM_mapallocT(sizeof(float)*xsize*ysize, "zbuf accum");
 	zspan.rectz= (int *)rectz;
 	
-	rectmove= MEM_callocT(xsize*ysize, "rectmove");
-	rectdraw= MEM_mallocT(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
+	rectmove= MEM_mapallocT(xsize*ysize, "rectmove");
+	rectdraw= MEM_mapallocT(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
 	zspan.rectp= (int *)rectdraw;
 	
 	/* min speed? then copy speedbuffer to recalculate speed vectors */
@@ -2096,7 +2096,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 		float minspeed= (float)nbd->minspeed;
 		float minspeedsq= minspeed*minspeed;
 		
-		minvecbufrect= MEM_mallocT(4*sizeof(float)*xsize*ysize, "minspeed buf");
+		minvecbufrect= MEM_mapallocT(4*sizeof(float)*xsize*ysize, "minspeed buf");
 		
 		dvec1= vecbufrect;
 		dvec2= minvecbufrect;
@@ -2122,7 +2122,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	}
 	
 	/* make vertex buffer with averaged speed and zvalues */
-	rectvz= MEM_callocT(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
+	rectvz= MEM_mapallocT(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
 	dvz= rectvz;
 	for(y=0; y<=ysize; y++) {
 		
@@ -2625,7 +2625,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeResult *shr, int mask, int 
 	return retval;
 }
 
-#define MAX_ZROW	1000
+#define MAX_ZROW	2000
 /* main render call to fill in pass the full transparent layer */
 
 void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)

@@ -1729,15 +1729,20 @@ static void info_text(int x, int y)
 {
 	Object *ob= OBACT;
 	extern float hashvectf[];
-	extern int mem_in_use;
+	extern unsigned long mem_in_use, mmap_in_use;
 	unsigned int swatch_color;
 	float fac1, fac2, fac3;
-	char infostr[300];
-	char *headerstr;
+	char infostr[300], memstr[64];
+	char *headerstr, *s;
 	int hsize;
 
+	s= memstr + sprintf(memstr," | Mem:%.2fM ", ((mem_in_use-mmap_in_use)>>10)/1024.0);
+	if(mmap_in_use)
+		sprintf(s,"(%.2fM) ", ((mmap_in_use)>>10)/1024.0);
+
+	
 	if(G.obedit) {
-		char *s = infostr;
+		s = infostr;
 
 		s+= sprintf(s, "%s", G.editModeTitleExtra);
 		if(G.obedit->type==OB_MESH) {
@@ -1757,15 +1762,15 @@ static void info_text(int x, int y)
 			s+= sprintf(s,"Ve:%d-%d", G.totvertsel, G.totvert);
 		}
 
-		sprintf(s," | Mem:%.2fM ", (mem_in_use>>10)/1024.0);
+		strcat(s, memstr);
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
-		sprintf(infostr,"Bo:%d-%d | Mem:%.2fM ",
-					G.totbonesel, G.totbone, (mem_in_use>>10)/1024.0);
+		sprintf(infostr,"Bo:%d-%d %s",
+					G.totbonesel, G.totbone, memstr);
 	}
 	else {
-		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d | Mem:%.2fM | Time:%s | ",
-			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp,  (mem_in_use>>10)/1024.0, info_time_str);
+		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d %s | Time:%s | ",
+			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp, memstr, info_time_str);
 	}
 	if(ob) {
 		strcat(infostr, ob->id.name+2);

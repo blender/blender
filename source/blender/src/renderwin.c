@@ -827,22 +827,23 @@ static void renderwin_progress_display_cb(RenderResult *rr, rcti *rect)
 static void printrenderinfo_cb(RenderStats *rs)
 {
 	extern char info_time_str[32];	// header_info.c
-	extern int mem_in_use;
-	static float megs_used_memory;
+	extern unsigned long mem_in_use, mmap_in_use;
+	static float megs_used_memory, mmap_used_memory;
 	char str[300], *spos= str;
 		
+	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
+	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
+	
 	if(render_win) {
-		megs_used_memory= mem_in_use/(1024.0*1024.0);
-		
 		if(G.scene->lay & 0xFF000000)
 			spos+= sprintf(spos, "Localview | ");
 		else if(G.scene->r.scemode & R_SINGLE_LAYER)
 			spos+= sprintf(spos, "Single Layer | ");
 		
 		if(rs->tothalo)
-			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory);
+			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory, mmap_used_memory);
 		else 
-			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory);
+			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory, mmap_used_memory);
 
 		BLI_timestr(rs->lastframetime, info_time_str);
 		spos+= sprintf(spos, " Time:%s ", info_time_str);
@@ -861,7 +862,7 @@ static void printrenderinfo_cb(RenderStats *rs)
 	/* temporal render debug printing, needed for testing orange renders atm... will be gone soon (or option) */
 	if(G.rt==7 && rs->convertdone) {
 		spos= str;
-		spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
+		spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM)", G.scene->r.cfra, megs_used_memory, mmap_used_memory);
 		
 		if(rs->infostr) {
 			spos+= sprintf(spos, " | %s", rs->infostr);

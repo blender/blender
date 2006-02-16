@@ -84,13 +84,13 @@ static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 	cbuf->type= type;
 	if(alloc) {
 		if(cbuf->type==CB_RGBA)
-			cbuf->rect= MEM_mallocT(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
+			cbuf->rect= MEM_mapallocT(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
 		else if(cbuf->type==CB_VEC3)
-			cbuf->rect= MEM_mallocT(3*sizeof(float)*sizex*sizey, "compbuf Vector3 rect");
+			cbuf->rect= MEM_mapallocT(3*sizeof(float)*sizex*sizey, "compbuf Vector3 rect");
 		else if(cbuf->type==CB_VEC2)
-			cbuf->rect= MEM_mallocT(2*sizeof(float)*sizex*sizey, "compbuf Vector2 rect");
+			cbuf->rect= MEM_mapallocT(2*sizeof(float)*sizex*sizey, "compbuf Vector2 rect");
 		else
-			cbuf->rect= MEM_mallocT(sizeof(float)*sizex*sizey, "compbuf Fac rect");
+			cbuf->rect= MEM_mapallocT(sizeof(float)*sizex*sizey, "compbuf Fac rect");
 		cbuf->malloc= 1;
 	}
 	cbuf->disprect.xmin= 0;
@@ -113,6 +113,7 @@ void free_compbuf(CompBuf *cbuf)
 {
 	if(cbuf->malloc && cbuf->rect)
 		MEM_freeT(cbuf->rect);
+
 	MEM_freeT(cbuf);
 }
 
@@ -1869,7 +1870,7 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 	float *src, *dest, *wb;
 	
 	wbuf= alloc_compbuf(imgx, imgy, CB_VAL, 1);
-	memset(wbuf->rect, sizeof(float)*imgx*imgy, 0);
+//	memset(wbuf->rect, sizeof(float)*imgx*imgy, 0);
 	
 	/* horizontal */
 	radx = (float)nbd->sizex;
@@ -1894,7 +1895,7 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 //	refd= ref->rect;
 	src= img->rect;
 	
-	memset(new->rect, 4*imgx*imgy, 0);
+//	memset(new->rect, 4*imgx*imgy, 0);
 	
 	radxf= (float)radx;
 	radyf= (float)rady;
@@ -2060,7 +2061,7 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 	for(j= 4*radx*rady -1; j>=0; j--)
 		gausstab[j]*= val;
 	
-	memset(new->rect, 4*imgx*imgy, 0);
+//	memset(new->rect, 4*imgx*imgy, 0);
 	
 	for (y = -rady+1; y < imgy+rady-1; y++) {
 		

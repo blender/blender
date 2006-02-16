@@ -45,6 +45,7 @@ void	BLI_unlock_thread	(void);
 		/* threadsafe version of MEM_malloc and friends */
 void	*MEM_mallocT(int len, char *name);
 void	*MEM_callocT(int len, char *name);
+void	*MEM_mapallocT(int len, char *name);
 void	MEM_freeT(void *poin);
 
 #endif

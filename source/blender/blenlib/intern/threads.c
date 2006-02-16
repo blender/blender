@@ -220,6 +220,14 @@ void *MEM_callocT(int len, char *name)
 	if(_malloc_lock) SDL_mutexV(_malloc_lock);
 	return mem;
 }
+void *MEM_mapallocT(int len, char *name)
+{
+	void *mem;
+	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	mem= MEM_mapallocN(len, name);
+	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	return mem;
+}
 void MEM_freeT(void *poin)
 {
 	if(_malloc_lock) SDL_mutexP(_malloc_lock);
