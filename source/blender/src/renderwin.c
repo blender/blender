@@ -834,6 +834,11 @@ static void printrenderinfo_cb(RenderStats *rs)
 	if(render_win) {
 		megs_used_memory= mem_in_use/(1024.0*1024.0);
 		
+		if(G.scene->lay & 0xFF000000)
+			spos+= sprintf(spos, "Localview | ");
+		else if(G.scene->r.scemode & R_SINGLE_LAYER)
+			spos+= sprintf(spos, "Single Layer | ");
+		
 		if(rs->tothalo)
 			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory);
 		else 
@@ -854,7 +859,7 @@ static void printrenderinfo_cb(RenderStats *rs)
 	}
 
 	/* temporal render debug printing, needed for testing orange renders atm... will be gone soon (or option) */
-	if(rs->convertdone) {
+	if(G.rt==7 && rs->convertdone) {
 		spos= str;
 		spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
 		
@@ -980,6 +985,8 @@ static void end_test_break_callback()
 static void do_render(int anim)
 {
 	Render *re= RE_NewRender("Render");
+	unsigned int lay= G.scene->lay;
+	int scemode= G.scene->r.scemode;
 	
 	/* we set this flag to prevent renderwindow queue to execute another render */
 	G.rendering= 1;
@@ -1000,11 +1007,24 @@ static void do_render(int anim)
 	if(G.obedit)
 		exit_editmode(0);	/* 0 = no free data */
 
+	/* allow localview render for objects with lights in normal layers */
+	if(curarea->spacetype==SPACE_VIEW3D) {
+		if(G.vd->lay & 0xFF000000) {
+			G.scene->lay |= G.vd->lay;
+			G.scene->r.scemode |= R_SINGLE_LAYER;
+		}
+		else G.scene->lay= G.vd->lay;
+	}
+	
 	if(anim)
 		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 	else
 		RE_BlenderFrame(re, G.scene, G.scene->r.cfra);
 
+	/* restore local view exception */
+	G.scene->lay= lay;
+	G.scene->r.scemode= scemode;
+	
 	if(render_win) window_set_cursor(render_win->win, CURSOR_STD);
 
 	free_filesel_spec(G.scene->r.pic);

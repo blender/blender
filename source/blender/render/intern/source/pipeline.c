@@ -210,7 +210,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	RenderResult *rr;
 	RenderLayer *rl;
 	SceneRenderLayer *srl;
-	int rectx, recty;
+	int rectx, recty, nr;
 	
 	rectx= partrct->xmax - partrct->xmin;
 	recty= partrct->ymax - partrct->ymin;
@@ -231,8 +231,11 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	rr->tilerect.ymax= partrct->ymax - re->disprect.ymax;
 	
 	/* check renderdata for amount of layers */
-	for(srl= re->r.layers.first; srl; srl= srl->next) {
-
+	for(nr=0, srl= re->r.layers.first; srl; srl= srl->next, nr++) {
+		
+		if((re->r.scemode & R_SINGLE_LAYER) && nr!=re->r.actlay)
+			continue;
+		
 		rl= MEM_callocT(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
@@ -279,18 +282,20 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	}
 	
 	/* display active layer */
-	rr->renlay= BLI_findlink(&rr->layers, re->r.actlay);
+	rr->renlay= render_get_active_layer(re, rr);
 	
 	return rr;
 }
 
-static int render_result_needs_vector(RenderResult *rr)
+static int render_result_needs_vector(Render *re)
 {
-	RenderLayer *rl;
+	if(re->r.scemode & R_DOCOMP) {
+		RenderLayer *rl;
 	
-	for(rl= rr->layers.first; rl; rl= rl->next)
-		if(rl->passflag & SCE_PASS_VECTOR)
-			return 1;
+		for(rl= re->result->layers.first; rl; rl= rl->next)
+			if(rl->passflag & SCE_PASS_VECTOR)
+				return 1;
+	}
 	return 0;
 }
 
@@ -383,6 +388,16 @@ RenderResult *RE_GetResult(Render *re)
 	return NULL;
 }
 
+RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
+{
+	if(re->r.scemode & R_SINGLE_LAYER)
+		return rr->layers.first;
+	else 
+		return BLI_findlink(&rr->layers, re->r.actlay);
+	
+}
+
+
 /* fill provided result struct with what's currently active or done */
 void RE_GetResultImage(Render *re, RenderResult *rr)
 {
@@ -399,7 +414,8 @@ void RE_GetResultImage(Render *re, RenderResult *rr)
 		rr->rect32= re->result->rect32;
 		
 		/* active layer */
-		rl= BLI_findlink(&re->result->layers, re->r.actlay);
+		rl= render_get_active_layer(re, re->result);
+
 		if(rl) {
 			if(rr->rectf==NULL)
 				rr->rectf= rl->rectf;
@@ -542,7 +558,10 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		/* initialize render result */
 		free_render_result(re->result);
 		re->result= new_render_result(re, &re->disprect, 0);
-
+		
+		/* single layer render disables composit */
+		if(re->r.scemode & R_SINGLE_LAYER)
+			re->r.scemode &= ~R_DOCOMP;
 	}
 }
 
@@ -847,7 +866,7 @@ void render_one_frame(Render *re)
 //	re->cfra= cfra;	/* <- unused! */
 	
 	/* make render verts/faces/halos/lamps */
-	if(render_result_needs_vector(re->result))
+	if(render_result_needs_vector(re))
 		RE_Database_FromScene_Vectors(re, re->scene);
 	else
 	   RE_Database_FromScene(re, re->scene, 1);
@@ -1004,9 +1023,11 @@ static void do_render_final(Render *re)
 				/* checks if there are render-result nodes that need scene */
 				ntree_render_scenes(re);
 				
-				ntree->stats_draw= render_composit_stats;
-				ntreeCompositExecTree(ntree, &re->r, G.background==0);
-				ntree->stats_draw= NULL;
+				if(!re->test_break()) {
+					ntree->stats_draw= render_composit_stats;
+					ntreeCompositExecTree(ntree, &re->r, G.background==0);
+					ntree->stats_draw= NULL;
+				}
 			}
 		}
 	}

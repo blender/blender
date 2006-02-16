@@ -31,6 +31,10 @@
 #define PIPELINE_H
 
 struct Render;
+struct RenderResult;
+struct RenderLayer;
+
+struct RenderLayer *render_get_active_layer(struct Render *re, struct RenderResult *rr);
 
 #define PASS_VECTOR_MAX	10000.0f
 

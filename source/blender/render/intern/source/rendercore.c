@@ -3175,8 +3175,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 	if(edgerect) MEM_freeT(edgerect);
 	
 	/* display active layer */
-	rr->renlay= BLI_findlink(&rr->layers, R.r.actlay);
-
+	rr->renlay= render_get_active_layer(&R, rr);
 }
 
 
@@ -3279,7 +3278,7 @@ void zbufshade_tile(RenderPart *pa)
 	}
 
 	/* display active layer */
-	rr->renlay= BLI_findlink(&rr->layers, R.r.actlay);
+	rr->renlay= render_get_active_layer(&R, rr);
 	
 	MEM_freeT(pa->rectp); pa->rectp= NULL;
 	MEM_freeT(pa->rectz); pa->rectz= NULL;
