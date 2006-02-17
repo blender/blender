@@ -2486,7 +2486,7 @@ static PyObject *MEdgeSeq_nextIter( BPy_MEdgeSeq * self )
 static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 {
 	int len, nverts;
-	int i, j;
+	int i, j, ok;
 	int new_edge_count, good_edges;
 	SrchEdges *oldpair, *newpair, *tmppair, *tmppair2;
 	PyObject *tmp;
@@ -2500,7 +2500,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
 		if( PySequence_Check( tmp ) ) {
-			PyObject *tmp2 = 0;
+			PyObject *tmp2;
 
 			/* ignore empty sequences */
 			if( !PySequence_Size( tmp ) ) {
@@ -2572,7 +2572,23 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 				"expected 2 to 4 MVerts per sequence" );
 		}
 
+		/* get MVerts, check they're from this mesh */
+		ok = 1;
+		for(j = 0; ok && j < nverts; ++j ) {
+			e[0] = (BPy_MVert *)PySequence_GetItem( tmp, j );
+			if( (void *)e[0]->data != (void *)self->mesh )
+				ok = 0;
+			Py_DECREF( e[0] );
+		}
 		Py_DECREF( tmp );
+
+		/* not MVerts from another mesh ... error */
+		if( !ok ) {
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"vertices are from a different mesh" );
+		}
+
 		if( nverts == 2 )
 			++new_edge_count;	/* if only two vert, then add only edge */
 		else
@@ -4045,7 +4061,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	 */
 
 	int len, nverts;
-	int i, j, k, new_face_count;
+	int i, j, k, ok, new_face_count;
 	int good_faces;
 	SrchFaces *oldpair, *newpair, *tmppair, *tmppair2;
 	PyObject *tmp;
@@ -4069,7 +4085,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		/* if a sequence... */
 		tmp = PyTuple_GET_ITEM( args, 0 );
 		if( PySequence_Check( tmp ) ) {
-			PyObject *tmp2 = 0;
+			PyObject *tmp2;
 
 			/* ignore empty sequences */
 			if( !PySequence_Size( tmp ) ) {
@@ -4121,6 +4137,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	/* verify the param list and get a total count of number of edges */
 	new_face_count = 0;
 	for( i = 0; i < len; ++i ) {
+		BPy_MVert *e;
 		tmp = PySequence_GetItem( args, i );
 
 		/* not a tuple of MVerts... error */
@@ -4137,6 +4154,23 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"expected 2 to 4 MVerts per sequence" );
+		}
+
+		/* get MVerts, check they're from this mesh */
+		ok = 1;
+		for(j = 0; ok && j < nverts; ++j ) {
+			e = (BPy_MVert *)PySequence_GetItem( tmp, j );
+			if( (void *)e->data != (void *)self->mesh )
+				ok = 0;
+			Py_DECREF( e );
+		}
+		Py_DECREF( tmp );
+
+		/* not MVerts from another mesh ... error */
+		if( !ok ) {
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"vertices are from a different mesh" );
 		}
 
 		if( nverts != 2 )		/* new faces cannot have only 2 verts */
