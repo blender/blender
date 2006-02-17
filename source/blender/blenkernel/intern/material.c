@@ -831,18 +831,18 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 				break;
 		case MA_RAMP_OVERLAY:
 			if(*r < 0.5f)
-				*r *= (facm + fac*col[0]);
+				*r *= (facm + 2.0f*fac*col[0]);
 			else
-				*r = 1.0 - (facm + fac*(1.0 - col[0])) * (1.0 - *r);
+				*r = 1.0 - (facm + 2.0f*fac*(1.0 - col[0])) * (1.0 - *r);
 			if(g) {
 				if(*g < 0.5f)
-					*g *= (facm + fac*col[1]);
+					*g *= (facm + 2.0f*fac*col[1]);
 				else
-					*g = 1.0 - (facm + fac*(1.0 - col[1])) * (1.0 - *g);
+					*g = 1.0 - (facm + 2.0f*fac*(1.0 - col[1])) * (1.0 - *g);
 				if(*b < 0.5f)
-					*b *= (facm + fac*col[2]);
+					*b *= (facm + 2.0f*fac*col[2]);
 				else
-					*b = 1.0 - (facm + fac*(1.0 - col[2])) * (1.0 - *b);
+					*b = 1.0 - (facm + 2.0f*fac*(1.0 - col[2])) * (1.0 - *b);
 			}
 				break;
 		case MA_RAMP_SUB:

@@ -885,6 +885,18 @@ static int node_composit_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node
 	return node->width-NODE_DY;
 }
 
+static int node_composit_buts_alphaover(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		
+		/* alpha type */
+		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "ConvertPremul",
+					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
+					 &node->custom1, 0, 0, 0, 0, "");
+	}
+	return 19;
+}
+
 
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
@@ -934,6 +946,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_TIME:
 			ntype->butfunc= node_composit_buts_time;
+			break;
+		case CMP_NODE_ALPHAOVER:
+			ntype->butfunc= node_composit_buts_alphaover;
 			break;
 		default:
 			ntype->butfunc= NULL;

@@ -448,21 +448,6 @@ static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_b
 	}
 }
 
-/* ok to delete this and use the generalised version below? */
-static CompBuf *alphabuf_from_rgbabuf(CompBuf *cbuf)
-{
-	CompBuf *valbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
-	float *valf, *rectf;
-	int tot;
-	
-	valf= valbuf->rect;
-	rectf= cbuf->rect + 3;
-	for(tot= cbuf->x*cbuf->y; tot>0; tot--, valf++, rectf+=4)
-		*valf= *rectf;
-	
-	return valbuf;
-}
-
 static CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 {
 	CompBuf *valbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
@@ -1571,7 +1556,7 @@ static void node_composit_exec_rgbtobw(void *data, bNode *node, bNodeStack **in,
 	
 	/* input no image? then only color operation */
 	if(in[0]->data==NULL) {
-		do_rgbtobw(node, out[0], in[0]);
+		do_rgbtobw(node, out[0]->vec, in[0]->vec);
 	}
 	else {
 		/* make output size of input image */
@@ -1789,7 +1774,7 @@ static bNodeSocketType cmp_node_alphaover_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_alphaover(bNode *node, float *out, float *src, float *over)
+static void do_alphaover_premul(bNode *node, float *out, float *src, float *over)
 {
 	
 	if(over[3]<=0.0f) {
@@ -1817,6 +1802,37 @@ static void do_alphaover(bNode *node, float *out, float *src, float *over)
 	}	
 }
 
+/* result will be still premul, but the over part is premulled */
+static void do_alphaover_key(bNode *node, float *out, float *src, float *over)
+{
+	
+	if(over[3]<=0.0f) {
+		QUATCOPY(out, src);
+	}
+	else if(over[3]>=1.0f) {
+		QUATCOPY(out, over);
+	}
+	else {
+		float premul= over[3];
+		float mul= 1.0f - premul;
+		
+		/* handle case where backdrop has no alpha, but still color */
+		if(src[0]==0.0f) {
+			out[0]= over[0];
+			out[1]= (mul*src[1]) + premul*over[1];
+			out[2]= (mul*src[2]) + premul*over[2];
+			out[3]= (mul*src[3]) + premul*over[3];
+		}
+		else {
+			out[0]= (mul*src[0]) + premul*over[0];
+			out[1]= (mul*src[1]) + premul*over[1];
+			out[2]= (mul*src[2]) + premul*over[2];
+			out[3]= (mul*src[3]) + premul*over[3];
+		}
+	}	
+}
+
+
 static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: col col */
@@ -1824,24 +1840,28 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 	
 	/* input no image? then only color operation */
 	if(in[0]->data==NULL) {
-		do_alphaover(node, out[0]->vec, in[0]->vec, in[1]->vec);
+		do_alphaover_premul(node, out[0]->vec, in[0]->vec, in[1]->vec);
 	}
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
-		composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_alphaover);
+		if(node->custom1)
+			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_alphaover_key);
+		else
+			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_alphaover_premul);
 		
 		out[0]->data= stackbuf;
 	}
 }
 
+/* custom1: convert 'over' to premul */
 static bNodeType cmp_node_alphaover= {
 	/* type code   */	CMP_NODE_ALPHAOVER,
 	/* name        */	"AlphaOver",
 	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OPERATOR, 0,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_alphaover_in,
 	/* output sock */	cmp_node_alphaover_out,
 	/* storage     */	"",
