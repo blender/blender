@@ -1254,7 +1254,7 @@ static void node_add_menu(SpaceNode *snode)
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		/* compo menu, still hardcoded defines... solve */
-		event= pupmenu("Add Node%t|Render Result %x221|Composite %x222|Viewer%x201|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Vector Blur %x215|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Map Value %x213|Time %x214|Normal %x207");
+		event= pupmenu("Add Node%t|Render Result %x221|Composite %x222|Viewer%x201|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Vector Blur %x215|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Map Value %x213|Time %x214|Normal %x207||Separate RGBA %x216|Separate HSVA %x217|Set Alpha %x218");
 		if(event<1) return;
 	}
 	else return;

@@ -185,7 +185,7 @@ void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 				/* switch material render loop */
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
 
-/* ************** COMPOSIT NODES *************** */
+/* ************** COMPOSITE NODES *************** */
 
 /* note: types are needed to restore callbacks, don't change values */
 #define CMP_NODE_VIEWER		201
@@ -203,6 +203,9 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_MAP_VALUE	213
 #define CMP_NODE_TIME		214
 #define CMP_NODE_VECBLUR	215
+#define CMP_NODE_SEPRGBA	216
+#define CMP_NODE_SEPHSVA	217
+#define CMP_NODE_SETALPHA	218
 
 #define CMP_NODE_IMAGE			220
 #define CMP_NODE_R_RESULT		221

@@ -75,6 +75,12 @@ typedef struct CompBuf {
 #define CB_VEC2		2
 #define CB_VAL		1
 
+/* defines for RGBA channels */
+#define CHAN_R	0
+#define CHAN_G	1
+#define CHAN_B	2
+#define CHAN_A	3
+
 static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 {
 	CompBuf *cbuf= MEM_callocT(sizeof(CompBuf), "compbuf");
@@ -442,7 +448,7 @@ static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_b
 	}
 }
 
-/*  */
+/* ok to delete this and use the generalised version below? */
 static CompBuf *alphabuf_from_rgbabuf(CompBuf *cbuf)
 {
 	CompBuf *valbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
@@ -451,6 +457,25 @@ static CompBuf *alphabuf_from_rgbabuf(CompBuf *cbuf)
 	
 	valf= valbuf->rect;
 	rectf= cbuf->rect + 3;
+	for(tot= cbuf->x*cbuf->y; tot>0; tot--, valf++, rectf+=4)
+		*valf= *rectf;
+	
+	return valbuf;
+}
+
+static CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
+{
+	CompBuf *valbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
+	float *valf, *rectf;
+	int tot;
+	
+	valf= valbuf->rect;
+	
+	/* defaults to returning alpha channel */
+	if ((channel < CHAN_R) && (channel > CHAN_A)) channel = CHAN_A;
+
+	rectf= cbuf->rect + channel;
+	
 	for(tot= cbuf->x*cbuf->y; tot>0; tot--, valf++, rectf+=4)
 		*valf= *rectf;
 	
@@ -888,7 +913,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 		
 		if(stackbuf) {
 			if(out[1]->hasoutput)
-				out[1]->data= alphabuf_from_rgbabuf(stackbuf);
+				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 			
 			if(out[2]->hasoutput)
 				out[2]->data= node_composit_get_zimage(node, data);
@@ -995,7 +1020,7 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 			out[RRES_OUT_IMAGE]->data= stackbuf;
 			
 			if(out[RRES_OUT_ALPHA]->hasoutput)
-				out[RRES_OUT_ALPHA]->data= alphabuf_from_rgbabuf(stackbuf);
+				out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 			if(out[RRES_OUT_Z]->hasoutput)
 				out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_Z);
 			if(out[RRES_OUT_VEC]->hasoutput)
@@ -1505,7 +1530,7 @@ static void node_composit_exec_valtorgb(void *data, bNode *node, bNodeStack **in
 			out[0]->data= stackbuf;
 			
 			if(out[1]->hasoutput)
-				out[1]->data= alphabuf_from_rgbabuf(stackbuf);
+				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
 
 		}
 	}
@@ -1546,7 +1571,7 @@ static void node_composit_exec_rgbtobw(void *data, bNode *node, bNodeStack **in,
 	
 	/* input no image? then only color operation */
 	if(in[0]->data==NULL) {
-		out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
+		do_rgbtobw(node, out[0], in[0]);
 	}
 	else {
 		/* make output size of input image */
@@ -1568,6 +1593,188 @@ static bNodeType cmp_node_rgbtobw= {
 	/* output sock */	cmp_node_rgbtobw_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_rgbtobw
+	
+};
+
+/* **************** SEPARATE RGBA ******************** */
+static bNodeSocketType cmp_node_seprgba_in[]= {
+	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_seprgba_out[]= {
+	{	SOCK_VALUE, 0, "R",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "G",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "B",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "A",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void node_composit_exec_seprgba(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: bw channels */
+	/* stack order in: col */
+	
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		out[0]->vec[0] = in[0]->vec[0];
+		out[1]->vec[0] = in[0]->vec[1];
+		out[2]->vec[0] = in[0]->vec[2];
+		out[3]->vec[0] = in[0]->vec[3];
+	}
+	else {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+
+		/* don't do any pixel processing, just copy the stack directly (faster, I presume) */
+		if(out[0]->hasoutput)
+			out[0]->data= valbuf_from_rgbabuf(cbuf, CHAN_R);
+		if(out[1]->hasoutput)
+			out[1]->data= valbuf_from_rgbabuf(cbuf, CHAN_G);
+		if(out[2]->hasoutput)
+			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
+		if(out[3]->hasoutput)
+			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
+	}
+}
+
+static bNodeType cmp_node_seprgba= {
+	/* type code   */	CMP_NODE_SEPRGBA,
+	/* name        */	"Separate RGBA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_OPERATOR, 0,
+	/* input sock  */	cmp_node_seprgba_in,
+	/* output sock */	cmp_node_seprgba_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_seprgba
+	
+};
+
+/* **************** SEPARATE HSVA ******************** */
+static bNodeSocketType cmp_node_sephsva_in[]= {
+	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_sephsva_out[]= {
+	{	SOCK_VALUE, 0, "H",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "S",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "V",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "A",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_sephsva(bNode *node, float *out, float *in)
+{
+	float h, s, v;
+	
+	rgb_to_hsv(in[0], in[1], in[2], &h, &s, &v);
+	
+	out[0]= h;
+	out[1]= s;
+	out[2]= v;
+	out[3]= in[3];
+}
+
+static void node_composit_exec_sephsva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: bw channels */
+	/* stack order in: col */
+
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		float h, s, v;
+	
+		rgb_to_hsv(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &h, &s, &v);
+		
+		out[0]->vec[0] = h;
+		out[1]->vec[0] = s;
+		out[2]->vec[0] = v;
+		out[3]->vec[0] = in[0]->vec[3];
+	}
+	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+
+		/* convert the RGB stackbuf to an HSV representation */
+		composit1_pixel_processor(node, stackbuf, in[0]->data, NULL, do_sephsva);
+
+		/* separate each of those channels */
+		if(out[0]->hasoutput)
+			out[0]->data= valbuf_from_rgbabuf(stackbuf, CHAN_R);
+		if(out[1]->hasoutput)
+			out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_G);
+		if(out[2]->hasoutput)
+			out[2]->data= valbuf_from_rgbabuf(stackbuf, CHAN_B);
+		if(out[3]->hasoutput)
+			out[3]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+			
+		free_compbuf(stackbuf);
+	}
+}
+
+static bNodeType cmp_node_sephsva= {
+	/* type code   */	CMP_NODE_SEPHSVA,
+	/* name        */	"Separate HSVA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_OPERATOR, 0,
+	/* input sock  */	cmp_node_sephsva_in,
+	/* output sock */	cmp_node_sephsva_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_sephsva
+	
+};
+
+/* **************** SET ALPHA ******************** */
+static bNodeSocketType cmp_node_setalpha_in[]= {
+	{	SOCK_RGBA, 1, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Alpha",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_setalpha_out[]= {
+	{	SOCK_RGBA, 0, "Image",	0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: RGBA image */
+	/* stack order in: col, alpha */
+	
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		out[0]->vec[0] = in[0]->vec[0];
+		out[0]->vec[1] = in[0]->vec[1];
+		out[0]->vec[2] = in[0]->vec[2];
+		out[0]->vec[3] = in[1]->vec[0];
+	}
+	else {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		if(in[1]->vec[0]==1.0f) {
+			/* pass on image */
+			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_copy_rgb);
+		}
+		else {
+			/* send an compbuf or a value to set as alpha - composit2_pixel_processor handles choosing the right one */
+			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+		}
+	
+		out[0]->data= stackbuf;
+	}
+}
+
+static bNodeType cmp_node_setalpha= {
+	/* type code   */	CMP_NODE_SETALPHA,
+	/* name        */	"Set Alpha",
+	/* width+range */	120, 40, 140,
+	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_setalpha_in,
+	/* output sock */	cmp_node_setalpha_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_setalpha
 	
 };
 
@@ -2363,6 +2570,9 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_blur,
 	&cmp_node_vecblur,
 	&cmp_node_map_value,
+	&cmp_node_seprgba,
+	&cmp_node_sephsva,
+	&cmp_node_setalpha,
 	NULL
 };
 
