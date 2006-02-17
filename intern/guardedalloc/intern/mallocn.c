@@ -386,21 +386,28 @@ static void remlink(localListBase *listbase, void *vlink)
 
 static void rem_memblock(MemHead *memh)
 {
-	remlink(membase,&memh->next);
-	if (memh->prev){
-		if (memh->next) MEMNEXT(memh->prev)->nextname = MEMNEXT(memh->next)->name;
-		else MEMNEXT(memh->prev)->nextname = 0;
-	}
+    remlink(membase,&memh->next);
+    if (memh->prev){
+        if (memh->next) MEMNEXT(memh->prev)->nextname = 
+MEMNEXT(memh->next)->name;
+        else MEMNEXT(memh->prev)->nextname = 0;
+    }
 
-	totblock--;
-	mem_in_use -= memh->len;
-	if(memh->mmap) {
-		mmap_in_use -= memh->len;
-		if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
-			printf("Couldn't unmap memory %s\n", memh->name);
-	}
-	else	
-		free(memh);
+    totblock--;
+    mem_in_use -= memh->len;
+   
+#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+    free(memh);
+#else   
+   
+    if(memh->mmap) {
+        mmap_in_use -= memh->len;
+        if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
+            printf("Couldn't unmap memory %s\n", memh->name);
+    }
+    else   
+        free(memh);
+#endif
 }
 
 static void MemorY_ErroR(const char *block, const char *error)
