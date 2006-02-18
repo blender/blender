@@ -2384,7 +2384,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	Material *ma=NULL;
 	VlakRen *vlr=NULL;
 	float vec[3], hoco[4], mul, zval, fval;
-	int v, zvlnr, zsample, dofill;
+	int v, zvlnr, zsample, dofill= 0;
 	unsigned short clipmask;
 	
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);

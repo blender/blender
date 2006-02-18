@@ -73,6 +73,7 @@ void callLocalErrorCallBack(char* msg)
 	}
 }
 
+#if 0
 /* ignore if the interrupt wasn't set */
 static int callLocalInterruptCallBack(void)
 {
@@ -82,7 +83,7 @@ static int callLocalInterruptCallBack(void)
 		return 0;
 	}
 }
-
+#endif
 
 /* local types */
 typedef struct PolyFill {
@@ -243,21 +244,6 @@ static void addfillface(EditVert *v1, EditVert *v2, EditVert *v3, int mat_nr)
 	evl->mat_nr= mat_nr;
 }
 
-
-static int boundinside(PolyFill *pf1, PolyFill *pf2)
-{
-	/* is pf2 INSIDE pf1 ? using bounding box */
-	/* test first if polys exist */
-
-	if(pf1->edges==0 || pf2->edges==0) return 0;
-
-	if(pf2->max[cox]<pf1->max[cox])
-		if(pf2->max[coy]<pf1->max[coy])
-			if(pf2->min[cox]>pf1->min[cox])
-				if(pf2->min[coy]>pf1->min[coy]) return 1;
-	return 0;
-}
-
 static int boundisect(PolyFill *pf2, PolyFill *pf1)
 {
 	/* has pf2 been touched (intersected) by pf1 ? with bounding box */
@@ -280,9 +266,6 @@ static int boundisect(PolyFill *pf2, PolyFill *pf1)
 
 	return 1;
 }
-
-
-
 
 
 static void mergepolysSimp(PolyFill *pf1, PolyFill *pf2)	/* add pf2 to pf1 */
@@ -308,22 +291,6 @@ static void mergepolysSimp(PolyFill *pf1, PolyFill *pf2)	/* add pf2 to pf1 */
 	pf1->f= (pf1->f | pf2->f);
 }
 
-
-
-static EditEdge *existfilledge(EditVert *v1, EditVert *v2)
-{
-	EditEdge *eed;
-
-	eed= filledgebase.first;
-	while(eed) {
-		if(eed->v1==v1 && eed->v2==v2) return eed;
-		if(eed->v2==v1 && eed->v1==v2) return eed;
-		eed= eed->next;
-	}
-	return 0;
-}
-
-
 static short testedgeside(float *v1, float *v2, float *v3)
 /* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
@@ -337,18 +304,6 @@ static short testedgeside(float *v1, float *v2, float *v3)
 		if(v1[cox]==v3[cox] && v1[coy]==v3[coy]) return 0;
 		if(v2[cox]==v3[cox] && v2[coy]==v3[coy]) return 0;
 	}
-	return 1;
-}
-
-static short testedgeside2(float *v1, float *v2, float *v3)
-/* is v3 to the right of v1-v2 ? no intersection allowed! */
-{
-	float inp;
-
-	inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy])
-	    +(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
-
-	if(inp<=0.0) return 0;
 	return 1;
 }
 
@@ -421,7 +376,7 @@ static ScFillVert *addedgetoscanlist(EditEdge *eed, int len)
 	sc= (ScFillVert *)bsearch(&scsearch,scdata,len,
 	    sizeof(ScFillVert), vergscdata);
 
-	if(sc==0) printf("Error in search edge: %lx\n",eed);
+	if(sc==0) printf("Error in search edge: %p\n",eed);
 	else if(addedgetoscanvert(sc,eed)==0) return sc;
 
 	return 0;

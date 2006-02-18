@@ -80,14 +80,9 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 	FT_GlyphSlot glyph;
 	FT_UInt glyph_index;
 	FT_Outline ftoutline;
-	const char *fontname;
 	float scale, height;
 	float dx, dy;
-	int i,j,k,l,m=0;
-	
-	// Variables
-	int *npoints;
-	int *onpoints;
+	int j,k,l,m=0;
 	
 	// adjust font size
 	height= ((double) face->bbox.yMax - (double) face->bbox.yMin);
@@ -106,6 +101,9 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 	// If loading succeeded, convert the FT glyph to the internal format
 	if(!err)
 	{
+		int *npoints;
+		int *onpoints;
+		
 		// First we create entry for the new character to the character list
 		che= (VChar *) MEM_callocN(sizeof(struct VChar), "objfnt_char");
 		BLI_addtail(&vfd->characters, che);
@@ -273,17 +271,15 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 				}
 			}
 		}
+		if(npoints) MEM_freeN(npoints);
+		if(onpoints) MEM_freeN(onpoints);	
 	}
-	
-	if(npoints) MEM_freeN(npoints);
-	if(onpoints) MEM_freeN(onpoints);	
 }
 
 int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 {
 	// Freetype2
 	FT_Face face;
-	FT_UInt glyph_index;
 	struct TmpFont *tf;
 	
 	// Find the correct FreeType font
@@ -324,7 +320,6 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	FT_Face face;
 	FT_ULong charcode = 0, lcode;
 	FT_UInt glyph_index;
-	FT_UInt temp;
 	const char *fontname;
 	VFontData *vfd;
 

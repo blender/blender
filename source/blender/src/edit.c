@@ -1569,7 +1569,8 @@ void mergemenu(void)
 {	
 
 	short event;
-	int remCount;
+	int remCount= 0;
+	
 	if(G.scene->selectmode == SCE_SELECT_VERTEX)
 		if(G.editMesh->firstvert && G.editMesh->lastvert) event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4");
 		else if (G.editMesh->firstvert) event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4");

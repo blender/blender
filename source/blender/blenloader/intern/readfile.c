@@ -114,6 +114,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h" // for give_parteff
 #include "BKE_global.h" // for G
+#include "BKE_group.h"
 #include "BKE_property.h" // for get_property
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
@@ -468,7 +469,6 @@ static Main *blo_find_main(ListBase *mainlist, const char *name, const char *rel
 	Main *m;
 	Library *lib;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
-	char libname1[FILE_MAXDIR+FILE_MAXFILE];
 	
 	strcpy(name1, name);
 	cleanup_path(relabase, name1);
@@ -1232,7 +1232,6 @@ static void lib_verify_nodetree(Main *main)
 	Scene *sce;
 	Material *ma;
 	bNodeTree *ntree;
-	bNode *node;
 	
 	/* now create the own typeinfo structs an verify nodes */
 	/* here we still assume no groups in groups */
@@ -3237,7 +3236,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
 	Main *newmain;
-	Library *libr;
 	
 	for(newmain= fd->mainlist.first; newmain; newmain= newmain->next) {
 		if(newmain->curlib) {
@@ -3343,10 +3341,6 @@ static void lib_link_group(FileData *fd, Main *main)
 
 /* ************** GENERAL & MAIN ******************** */
 
-static char *libname(short id_code)
-{
-	
-}
 
 static char *dataname(short id_code)
 {
@@ -5286,7 +5280,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	if(main->versionfile <= 241) {
-		Tex *tex;
+//		Tex *tex;
 		Scene *sce;
 		Lamp *la;
 		bArmature *arm;
