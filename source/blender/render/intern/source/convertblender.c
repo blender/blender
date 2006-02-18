@@ -1829,6 +1829,7 @@ static void add_render_lamp(Render *re, Object *ob, int actual_render)
 	lar->bufsize = la->bufsize;
 	lar->samp = la->samp;
 	lar->buffers= la->buffers;
+	if(lar->buffers==0) lar->buffers= 1;
 	lar->filtertype= la->filtertype;
 	lar->soft = la->soft;
 	lar->shadhalostep = la->shadhalostep;
