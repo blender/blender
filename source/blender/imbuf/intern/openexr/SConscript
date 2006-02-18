@@ -8,7 +8,8 @@ incs = ['.',
 	'../../',
 	'..',
 	'../../../blenlib',
-	'intern/include #/intern/guardedalloc',
+	'intern/include',
+	'#/intern/guardedalloc',
 	'../../../makesdna']
 incs += Split(env['BF_OPENEXR_INC'])
 
