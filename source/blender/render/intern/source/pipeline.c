@@ -936,6 +936,9 @@ static void do_render_scene_node(Render *re, Scene *sce, int cfra)
 	/* makes render result etc */
 	RE_InitState(resc, &sce->r, re->winx, re->winy, &re->disprect);
 	
+	/* this to enable this scene to create speed vectors */
+	resc->r.scemode |= R_DOCOMP;
+	
 	/* now use renderdata and camera to set viewplane */
 	if(sce->camera==NULL) return;
 	RE_SetCamera(resc, sce->camera);
@@ -1222,10 +1225,14 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 
                 /* if not exists, BKE_write_ibuf makes one */
 		ibuf->rect= rres.rect32;    
-
 		ibuf->rect_float= rres.rectf;
 		ibuf->zbuf_float= rres.rectz;
+		
+		/* float factor for random dither, imbuf takes care of it */
+		ibuf->dither= scene->r.dither_intensity;
+
 		ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+		
 		if(ok==0) {
 			printf("Render error: cannot save %s\n", name);
 			G.afbreek=1;

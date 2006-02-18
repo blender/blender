@@ -136,6 +136,9 @@ static void save_rendered_image_cb_real(char *name, int zbuf)
 			ibuf->zbuf_float= rres.rectz;
 		}
 		
+		/* float factor for random dither, imbuf takes care of it */
+		ibuf->dither= G.scene->r.dither_intensity;
+		
 		BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 		IMB_freeImBuf(ibuf);	/* imbuf knows rects are not part of ibuf */
 		

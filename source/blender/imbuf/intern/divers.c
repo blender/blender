@@ -33,6 +33,7 @@
  */
 
 #include "BLI_blenlib.h"
+#include "BLI_rand.h"
 
 #include "imbuf.h"
 #include "imbuf_patch.h"
@@ -172,6 +173,7 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 {
 	/* quick method to convert floatbuf to byte */
 	float *tof = ibuf->rect_float;
+	float dither= ibuf->dither;
 	int i;
 	unsigned char *to = (unsigned char *) ibuf->rect;
 	
@@ -181,14 +183,33 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		to = (unsigned char *) ibuf->rect;
 	}
 	
-	for (i = ibuf->x * ibuf->y; i > 0; i--) 
-	{
-		to[0] = FTOCHAR(tof[0]);
-		to[1] = FTOCHAR(tof[1]);
-		to[2] = FTOCHAR(tof[2]);
-		to[3] = FTOCHAR(tof[3]);
-		to += 4; 
-		tof += 4;
+	if(dither==0.0f) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--) {
+			to[0] = FTOCHAR(tof[0]);
+			to[1] = FTOCHAR(tof[1]);
+			to[2] = FTOCHAR(tof[2]);
+			to[3] = FTOCHAR(tof[3]);
+			to += 4; 
+			tof += 4;
+		}
+	}
+	else {
+		float dither_value, col;
+		dither= dither/255.0f;
+		for (i = ibuf->x * ibuf->y; i > 0; i--) {
+			dither_value = (BLI_frand()-0.5)*dither; 
+			col= tof[0] + dither_value;
+			to[0] = FTOCHAR(col);
+			col= tof[1] + dither_value;
+			to[1] = FTOCHAR(col);
+			col= tof[2] + dither_value;
+			to[2] = FTOCHAR(col);
+			col= tof[3] + dither_value;
+			to[3] = FTOCHAR(col);
+
+			to += 4; 
+			tof += 4;
+		}
 	}
 }
 

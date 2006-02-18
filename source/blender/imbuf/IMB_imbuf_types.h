@@ -96,7 +96,8 @@ typedef struct ImBuf{
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
 
 	float *rect_float;		/**< floating point Rect equivilant */
-
+	float dither;			/**< random dither value, for conversion from float -> byte rect */
+	
 	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
 	int refcounter;                /**< Refcounter for multiple users */
 } ImBuf;
