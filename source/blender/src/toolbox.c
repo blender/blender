@@ -59,8 +59,10 @@
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
@@ -73,6 +75,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_main.h"
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
@@ -104,436 +107,18 @@
 #include "BDR_editcurve.h"
 #include "BDR_editmball.h"
 
+#include "BSE_drawipo.h"
+#include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"
-#include "BSE_edit.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 
 #include "IMB_imbuf.h"
 
-#include "mydevice.h"
 #include "blendef.h"
-
-static int tbx1, tbx2, tby1, tby2, tbfontyofs, tbmain=0;
-static int tbmemx=TBOXX/2, tbmemy=(TBOXEL-0.5)*TBOXH, tboldwin, addmode= 0;
-static int oldcursor;
-
-	/* variables per item */
-static char *tbstr, *tbstr1, *keystr; 	
-static void (*tbfunc)(int);
-static int tbval;
-
-/* prototypes ----------------------- */
-TBcallback *callback_dummy(int level, int entry);
-
-
-/* *********** PC PATCH ************* */
-
-void ColorFunc(int i)
-{
-	if(i==TBOXBLACK) glColor3ub(0, 0, 0);
-	else if(i==TBOXWHITE) glColor3ub(240, 240, 240);
-	else if(i==TBOXGREY) glColor3ub(160, 160, 160);
-	else glColor3ub(0, 0, 0);
-}
-
-/* ********************* PYTHON TOOLBOX CALLBACK ************************* */
-
-#ifdef PY_TOOLBOX 
-/* see bpython/intern/py_toolbox.c */
-
-/* moved to BIF_toolbox.h */
-/* typedef char** (*tbox_callback)(int, int); */
-
-TBcallback *callback_dummy(int level, int entry)
-{
-	return NULL;
-}	
-
-/* callback func ptr for py_toolbox */
-Tbox_callbackfunc g_toolbox_menucallback = &callback_dummy;
-
-void tboxSetCallback(Tbox_callbackfunc f)
-{
-	g_toolbox_menucallback = f;
-}
-
-#endif
-
-/* ********************* TOOLBOX ITEMS ************************* */
-
-void tbox_setinfo(int x, int y)
-{
-	/* dependant of tbmain vars are set */
-	tbstr= 0;
-	tbstr1= 0;
-	tbfunc= 0;
-	tbval= 0;
-	keystr = NULL;
-
-/* main menu entries: defined in BIF_toolbox.h */
-	
-	if(x==0) {
-		switch(y) {
-			case TBOX_MAIN_FILE:		tbstr= "FILE";		break;
-			case TBOX_MAIN_EDIT:		tbstr= "EDIT";		break;
-			case TBOX_MAIN_ADD:		
-				if (addmode==OB_MESH) tbstr= "  MESH";
-				else if(addmode==OB_CURVE) tbstr= "  CURVE";
-				else if(addmode==OB_SURF) tbstr= "  SURF";
-				else if(addmode==OB_MBALL) tbstr= "  META";
-				else tbstr= "ADD";
-				break;
-			case TBOX_MAIN_OBJECT1:		tbstr= "OBJECT";	break;
-			case TBOX_MAIN_OBJECT2:		tbstr= "OBJECT";	break;
-			case TBOX_MAIN_MESH:		tbstr= "MESH";		break;
-			case TBOX_MAIN_CURVE:		tbstr= "CURVE";		break;
-			case TBOX_MAIN_KEY:			tbstr= "KEY";		break;
-			case TBOX_MAIN_RENDER:		tbstr= "RENDER";	break;
-			case TBOX_MAIN_VIEW:		tbstr= "VIEW";		break;
-			case TBOX_MAIN_SEQ:		tbstr= "SEQUENCE";	break;
-#ifdef PY_TOOLBOX
-			case TBOX_MAIN_PYTOOL:		
-			{
-				if (g_toolbox_menucallback(0, 0)) // valid callback?
-					tbstr= "PYTOOL";	
-				break;
-			}
-#endif
-		}
-	}
-	
-/* TOPICS */
-	else {
-		
-		
-/* FILE TOPICS */
-		if(tbmain==TBOX_MAIN_FILE) {
-			switch(y) {
-				case 0: tbstr= "New";				tbstr1= "c|x";		keystr= "Ctrl X";	break;
-				case 1: tbstr= "Open";				tbstr1= "F1";		keystr= "F1";		break;
-				case 2: tbstr= "Reopen Last";		tbstr1= "c|o";		keystr= "Ctrl O";	break;
-				case 3: tbstr= "Append";			tbstr1= "shift+F1";	keystr= "Shift F1";	break;
-				case 4: tbstr= "";					tbstr1= "";			keystr= "";			break;
-				case 5: tbstr= "Save As";			tbstr1= "F2";		keystr= "F2";		break;
-				case 6: tbstr= "Save";				tbstr1= "c|w";		keystr= "Ctrl W";	break;
-				case 7: tbstr= "";					tbstr1= "";			keystr= "";			break;
-				case 8: tbstr= "Save Image";		tbstr1= "F3";		keystr= "F3";		break;
-				case 9: tbstr= "Save VRML";			tbstr1= "c|F2";		keystr= "Ctrl F2";	break;
-				case 10: tbstr= "Save DXF";			tbstr1= "shift+F2";	keystr= "Shift F2";	break;
-				case 11: tbstr= "Save VideoScape";	tbstr1= "a|w";		keystr= "Alt W";	break;
-				case 12: tbstr= "Save UserPrefs";	tbstr1= "c|u";		keystr= "Ctrl U";	break;
-				case 13: tbstr= "Quit";				tbstr1= "q";		keystr= "Q";		break;
-			}
-		}
-
-/* EDIT TOPICS */
-		if(tbmain==TBOX_MAIN_EDIT) {
-			switch(y) {
-				case 0: tbstr= "(De)Select All";	tbstr1= "a";	keystr= "A";		break;
-				case 1: tbstr= "Border Select";		tbstr1= "b";	keystr= "B";		break;
-				case 2: tbstr= "Select Linked";		tbstr1= "l";	keystr= "L";		break;
-				case 3: tbstr= "Hide Selected";		tbstr1= "h";	keystr= "H";		break;
-				case 4: tbstr= "Duplicate";			tbstr1= "D";	keystr= "Shift D";	break;
-				case 5: tbstr= "Delete";			tbstr1= "x";	keystr= "X";		break;
-				case 6: tbstr= "Edit Mode";			tbstr1= "Tab";	keystr= "Tab";		break;
-				case 7: tbstr= "Grabber";			tbstr1= "g";	keystr= "G";		break;
-				case 8: tbstr= "Rotate";			tbstr1= "r";	keystr= "R";		break;
-				case 9: tbstr= "Scale";				tbstr1= "s";	keystr= "S";		break;
-				case 10: tbstr= "Shrink/Fatten";	tbstr1= "a|s";	keystr= "Alt S";	break;
-				case 11: tbstr= "Shear";			tbstr1= "c|s";	keystr= "Ctrl S";	break;
-				case 12: tbstr= "Warp/Bend";		tbstr1= "W";	keystr= "Shift W";	break;
-				case 13: tbstr= "Snap Menu";		tbstr1= "S";	keystr= "Shift S";	break;
-			}
-		}
-
-/* ADD TOPICS */
-		if(tbmain==TBOX_MAIN_ADD) {
-
-			if(addmode==0) {
-				switch(y) {
-					case 0: tbstr= "Mesh";		tbstr1= ">>";	keystr= ">>";	tbval=OB_MESH;										break;
-					case 1: tbstr= "Curve";		tbstr1= ">>";	keystr= ">>";	tbval=OB_CURVE;										break;
-					case 2: tbstr= "Surface";	tbstr1= ">>";	keystr= ">>";	tbval=OB_SURF;										break;
-					case 3: tbstr= "Meta";		tbstr1= ">>";	keystr= ">>";	tbval=OB_MBALL;										break;
-					case 4: tbstr= "Text";		tbstr1= "";		keystr= "";		tbval=OB_FONT;	tbfunc= add_primitiveFont;			break;
-					case 5: tbstr= "Empty";		tbstr1= "A";	keystr= "";		tbval=OB_EMPTY;										break;
-					case 6: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
-					case 7: tbstr= "Camera";	tbstr1= "A";	keystr= "";		tbval=OB_CAMERA;									break;
-					case 8: tbstr= "Lamp";		tbstr1= "A";	keystr= "";		tbval=OB_LAMP;										break;
-					case 9: tbstr= "Armature";	tbstr1= "";		keystr= "";		tbval=OB_ARMATURE;	tbfunc=add_primitiveArmature;	break;
-					case 10: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
-					case 11: tbstr= "Lattice";	tbstr1= "A";	keystr= "";		tbval=OB_LATTICE;									break;
-					case 12: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
-					case 13: tbstr= "";			tbstr1= "";		keystr= "";		tbval=0;											break;
-				}
-				if(tbstr1 && tbstr1[0]=='A') tbfunc= (void (*)(int))add_object_draw;
-			}
-			else if(addmode==OB_MESH) {		
-				switch(y) {
-					case 0: tbstr= ">Plane";	tbstr1= "A";	keystr= "";		tbval=0;	break;
-					case 1: tbstr= ">Cube";		tbstr1= "A";	keystr= "";		tbval=1;	break;
-					case 2: tbstr= ">Circle";	tbstr1= "A";	keystr= "";		tbval=4;	break;
-					case 3: tbstr= ">UVsphere";	tbstr1= "A";	keystr= "";		tbval=11;	break;
-					case 4: tbstr= ">Icosphere";tbstr1= "A";	keystr= "";		tbval=12;	break;
-					case 5: tbstr= ">Cylinder";	tbstr1= "A";	keystr= "";		tbval=5;	break;
-					case 6: tbstr= ">Tube";		tbstr1= "A";	keystr= "";		tbval=6;	break;
-					case 7: tbstr= ">Cone";		tbstr1= "A";	keystr= "";		tbval=7;	break;
-					case 8: tbstr= ">";			tbstr1= "";		keystr= "";					break;
-					case 9: tbstr= ">Grid";		tbstr1= "A";	keystr= "";		tbval=10;	break;
-					case 13: tbstr= ">Monkey";	tbstr1= "A";	keystr= "";		tbval=13;	break;
-				}
-				if(tbstr1 && tbstr1[0]=='A') tbfunc= add_primitiveMesh;
-			}
-			else if(addmode==OB_SURF) {
-				switch(y) {
-					case 0: tbstr= ">Curve";	tbstr1= "A";	keystr= "";		tbval=0; break;
-					case 1: tbstr= ">Circle";	tbstr1= "A";	keystr= "";		tbval=1; break;
-					case 2: tbstr= ">Surface";	tbstr1= "A";	keystr= "";		tbval=2; break;
-					case 3: tbstr= ">Tube";		tbstr1= "A";	keystr= "";		tbval=3; break;
-					case 4: tbstr= ">Sphere";	tbstr1= "A";	keystr= "";		tbval=4; break;
-					case 5: tbstr= ">Donut";	tbstr1= "A";	keystr= "";		tbval=5; break;
-				}
-				if(tbstr1 && tbstr1[0]=='A') tbfunc= add_primitiveNurb;
-			}
-/*			else if (addmode==OB_ARMATURE){
-				switch(y) {
-					case 0: tbstr= ">Bone";		tbstr1= "A";	keystr= "";		tbval=0; break;
-					case 1: tbstr= ">Hand";		tbstr1= "A";	keystr= "";		tbval=1; break;
-					case 2: tbstr= ">Biped";	tbstr1= "A";	keystr= "";		tbval=2; break;
-				}
-				if(tbstr1 && tbstr1[0]=='A') tbfunc= add_primitiveArmature;	
-			}
-*/
-			else if(addmode==OB_CURVE) {
-				switch(y) {
-					case 0: tbstr= ">Bezier Curve";		tbstr1= "A";	keystr= "";	tbval=10;	break;
-					case 1: tbstr= ">Bezier Circle";	tbstr1= "A";	keystr= "";	tbval=11;	break;
-					case 2: tbstr= ">";					tbstr1= "";		keystr= "";				break;
-					case 3: tbstr= ">Nurbs Curve";		tbstr1= "A";	keystr= "";	tbval=40;	break;
-					case 4: tbstr= ">Nurbs Circle";		tbstr1= "A";	keystr= "";	tbval=41;	break;
-					case 5: tbstr= ">";					tbstr1= "";		keystr= "";				break;
-					case 6: tbstr= ">Path";				tbstr1= "A";	keystr= "";	tbval=46;	break;
-				}
-				if(tbstr1 && tbstr1[0]=='A') tbfunc= add_primitiveCurve;
-			}
-			else if(addmode==OB_MBALL) {
-				switch(y) {
-					case 0: tbstr= "Ball";			tbstr1= "A";	tbval=1; break;
-					case 1: tbstr= "Tube";			tbstr1= "A";	tbval=2; break;
-					case 2: tbstr= "Plane";			tbstr1= "A";	tbval=3; break;
-					case 3: tbstr= "Elipsoid";		tbstr1= "A";	tbval=4; break;
-					case 4: tbstr= "Cube";			tbstr1= "A";	tbval=5; break;
-					case 5: tbstr= "";			tbstr1= "";		break;
-					case 6: tbstr= "";			tbstr1= "";		break;
-					case 7: tbstr= "";			tbstr1= "";		break;
-					case 8: tbstr= "";			tbstr1= "";		break;
-					case 9: tbstr= "";			tbstr1= "";		break;
-					case 10: tbstr= "";			tbstr1= "";		break;
-					case 11: tbstr= "Duplicate";tbstr1= "D";	break;
-				}
-				if(tbstr1 && tbstr1[0]=='A') tbfunc= add_primitiveMball;
-			}
-		}
-		
-/* OB TOPICS 1 */
-		else if(tbmain==TBOX_MAIN_OBJECT1) {
-			switch(y) {
-				case 0: tbstr= "Clear Size";		tbstr1= "a|s";	keystr= "Alt S";	break;
-				case 1: tbstr= "Clear Rotation";	tbstr1= "a|r";	keystr= "Alt R";	break;
-				case 2: tbstr= "Clear Location";	tbstr1= "a|g";	keystr= "Alt G";	break;
-				case 3: tbstr= "Clear Origin";		tbstr1= "a|o";	keystr= "Alt O";	break;
-				case 4: tbstr= "Make Parent";		tbstr1= "c|p";	keystr= "Ctrl P";	break;
-				case 5: tbstr= "Clear Parent";		tbstr1= "a|p";	keystr= "Alt P";	break;
-/* 	Unkown what tbstr1 should be...
-				case 6: tbstr= "MkVert Parent";		tbstr1= "c|a|p";	keystr= "Ctrl Alt P";	break;
-*/
-				case 7: tbstr= "Make Track";		tbstr1= "c|t";	keystr= "Ctrl T";	break;
-				case 8: tbstr= "Clear Track";		tbstr1= "a|t";	keystr= "Alt T";	break;
-/*				case 9:	tbstr= "";					tbstr1= "";		keystr= "";			break; */
-				case 10: tbstr= "Image Displist";	tbstr1= "c|d";	keystr= "Ctrl D";	break;
-				case 11: tbstr= "Image Aspect";		tbstr1= "a|v";	keystr= "Alt V";	break;
-				case 12: tbstr= "Vect Paint";		tbstr1= "v";	keystr= "V";	break;
-			}
-		}
-		
-/* OB TOPICS 2 */
-		else if(tbmain==TBOX_MAIN_OBJECT2) {
-			switch(y) {
-				case 0: tbstr= "Edit Mode";			tbstr1= "Tab";	keystr= "Tab";			break;
-				case 1: tbstr= "Move To Layer";		tbstr1= "m";	keystr= "M";			break;
-				case 2: tbstr= "Delete";			tbstr1= "x";	keystr= "X";			break;
-				case 3: tbstr= "Delete All";		tbstr1= "c|x";	keystr= "Ctrl X";		break;
-				case 4: tbstr= "Apply Size/Rot";	tbstr1= "c|a";	keystr= "Ctrl A";		break;
-				case 5: tbstr= "Apply Deform";		tbstr1= "c|A";	keystr= "Ctrl Shift A";	break;
-				case 6: tbstr= "Join";				tbstr1= "c|j";	keystr= "Ctrl J";		break;
-				case 7: tbstr= "Make Local";		tbstr1= "l";	keystr= "L";			break;
-				case 8: tbstr= "Select Linked";		tbstr1= "L";	keystr= "Shift L";		break;
-				case 9: tbstr= "Make Links";		tbstr1= "c|l";	keystr= "Ctrl L";		break;
-				case 10: tbstr= "Copy Menu";		tbstr1= "c|c";	keystr= "Ctrl C";		break;
-				case 11: tbstr= "Convert Menu";		tbstr1= "a|c";	keystr= "Alt C";		break;
-				case 12: tbstr= "Boolean Op";		tbstr1= "w";	keystr= "W";		break;
-			}
-		}
-
-/* mesh TOPICS */
-		else if(tbmain==TBOX_MAIN_MESH) {
-			switch(y) {
-				case 0: tbstr= "Select Linked";		tbstr1= "l";	keystr= "L";		break;
-				case 1: tbstr= "Deselect Linked";	tbstr1= "L";	keystr= "Shift L";	break;
-				case 2: tbstr= "Extrude";			tbstr1= "e";	keystr= "E";		break;
-				case 3: tbstr= "Delete Menu";		tbstr1= "x";	keystr= "X";		break;
-				case 4: tbstr= "Make edge/face";	tbstr1= "f";	keystr= "F";		break;
-				case 5: tbstr= "Fill";				tbstr1= "F";	keystr= "Shift F";	break;
-				case 6: tbstr= "Split";				tbstr1= "y";	keystr= "Y";		break;
-				case 7: tbstr= "Undo/reload";		tbstr1= "u";	keystr= "U";		break;
-				case 8: tbstr= "Calc Normals";		tbstr1= "c|n";	keystr= "Ctrl N";	break;
-				case 9: tbstr= "Separate";			tbstr1= "p";	keystr= "P";		break;
-				case 10: tbstr= "Write Videosc";	tbstr1= "a|w";	keystr= "Alt W";	break;
-/*				case 11: tbstr= "";					tbstr1= "";		keystr= "";			break; */
-			}
-		}
-	
-/* CURVE TOPICS */
-		else if(tbmain==TBOX_MAIN_CURVE) {
-			switch(y) {
-				case 0: tbstr= "Select Linked";		tbstr1= "l";	keystr= "L";		break;
-				case 1: tbstr= "Deselect Linked";	tbstr1= "L";	keystr= "Shift L";	break;
-				case 2: tbstr= "Extrude";			tbstr1= "e";	keystr= "E";		break;
-				case 3: tbstr= "Delete Menu";		tbstr1= "x";	keystr= "X";		break;
-				case 4: tbstr= "Make Segment";		tbstr1= "f";	keystr= "F";		break;
-				case 5: tbstr= "Cyclic";			tbstr1= "c";	keystr= "C";		break;
-/*				case 6: tbstr= "";					tbstr1= "";		keystr= "";			break; */
-				case 7: tbstr= "Select Row";		tbstr1= "R";	keystr= "Shift R";	break;
-				case 8: tbstr= "Calc Handle";		tbstr1= "h";	keystr= "H";		break;
-				case 9: tbstr= "Auto Handle";		tbstr1= "H";	keystr= "Shift H";	break;
-				case 10: tbstr= "Vect Handle";		tbstr1= "v";	keystr= "V";		break;
-				case 11: tbstr= "Specials";			tbstr1= "w";	keystr= "W";		break;
-			}
-		}
-	
-/* KEY TOPICS */
-		else if(tbmain==TBOX_MAIN_KEY) {
-			switch(y) {
-				case 0: tbstr= "Insert";	tbstr1= "i";		keystr= "I";		break;
-				case 1: tbstr= "Show";		tbstr1= "k";		keystr= "K";		break;
-				case 2: tbstr= "Next";		tbstr1= "PageUp";	keystr= "PgUp";		break;
-				case 3: tbstr= "Prev";		tbstr1= "PageDn";	keystr= "PgDn";		break;
-				case 4: tbstr= "Show+Sel";	tbstr1= "K";		keystr= "Shift K";	break;
-/*				case 5: tbstr= "";			tbstr1= "";			keystr= "";			break;
-				case 6: tbstr= "";			tbstr1= "";			keystr= "";			break;
-				case 7: tbstr= "";			tbstr1= "";			keystr= "";			break;
-				case 8: tbstr= "";			tbstr1= "";			keystr= "";			break;
-				case 9: tbstr= "";			tbstr1= "";			keystr= "";			break;
-				case 10: tbstr= "";			tbstr1= "";			keystr= "";			break;
-				case 11: tbstr= "";			tbstr1= "";			keystr= "";			break; */
-			}
-		}
-/* SEQUENCER TOPICS */
-                else if(tbmain==TBOX_MAIN_SEQ) {
-                        switch(y) {
-                                case 0: tbstr= "Add Strip";  tbstr1= "A"; keystr= "Shift A"; break;
-                                case 1: tbstr= "Change Str"; tbstr1= "c"; keystr= "C";       break;
-                                case 2: tbstr= "Delete Str"; tbstr1= "x"; keystr= "X";       break;
-                                case 3: tbstr= "Make Meta";  tbstr1= "m"; keystr= "M";       break;
-                                case 4: tbstr= "Str Params"; tbstr1= "n"; keystr= "N";       break;
-                        }
-                }
-
-/* RENDER TOPICS */
-		else if(tbmain==TBOX_MAIN_RENDER) {
-			switch(y) {
-				case 0: tbstr= "Render Window";	tbstr1= "F11";	keystr= "F11";		break;
-				case 1: tbstr= "Render";		tbstr1= "F12";	keystr= "F12";		break;
-				case 2: tbstr= "Set Border";	tbstr1= "B";	keystr= "Shift B";	break;
-				case 3: tbstr= "Image Zoom";	tbstr1= "z";	keystr= "Z";		break;
-/*				case 4: tbstr= "";				tbstr1= "";		keystr= "";			break;
-				case 5: tbstr= "";				tbstr1= "";		keystr= "";			break;
-				case 6: tbstr= "";				tbstr1= "";		keystr= "";			break;
-				case 7: tbstr= "";				tbstr1= "";		keystr= "";			break;
-				case 8: tbstr= "";				tbstr1= "";		keystr= "";			break;
-				case 9: tbstr= "";				tbstr1= "";		keystr= "";			break;
-				case 10: tbstr= "";				tbstr1= "";		keystr= "";			break;
-				case 11: tbstr= "";				tbstr1= "";		keystr= "";			break; */
-			}
-		}
-	
-/* VIEW TOPICS */
-		else if(tbmain==TBOX_MAIN_VIEW) {
-			switch(y) {
-/*				case 0: tbstr= "";		tbstr1= "";	break;
-				case 1: tbstr= "";		tbstr1= "";	break;
-				case 2: tbstr= "";		tbstr1= "";	break;
-				case 3: tbstr= "";		tbstr1= "";	break; */
-				case 4: tbstr= "Centre";		tbstr1= "c";	keystr= "C";		break;
-				case 5: tbstr= "Home";			tbstr1= "C";	keystr= "Shift C";	break;
-/*				case 6: tbstr= "";		tbstr1= "";	break;
-				case 7: tbstr= "";		tbstr1= "";	break;
-				case 8: tbstr= "";		tbstr1= "";	break;*/
-				case 9: tbstr= "Z-Buffer";		tbstr1= "z";	keystr= "Z";		break;
-/*				case 10: tbstr= "";		tbstr1= "";	break;
-				case 11: tbstr= "";		tbstr1= "";	break;*/
-			}
-		}
-#ifdef PY_TOOLBOX
-		else if(tbmain==TBOX_MAIN_PYTOOL) {
-			TBcallback *t= g_toolbox_menucallback(0, y); // call python menu constructor
-			if (t) { 
-				tbstr = t->desc; 
-				keystr = t->key;
-				tbfunc = t->cb;
-				tbval = t->val;
-			}
-		}
-#endif
-	}
-}
-
-/* ******************** INIT ************************** */
-
-void bgnpupdraw(int startx, int starty, int endx, int endy)
-{
-	#if defined(__sgi) || defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
-
-	/* this is a dirty patch: XgetImage gets sometimes the backbuffer */
-	my_get_frontbuffer_image(0, 0, 1, 1);
-	my_put_frontbuffer_image();
-	#endif
-
-	tboldwin= mywinget();
-
-	mywinset(G.curscreen->mainwin);
-	
-	/* tinsy bit larger, 1 pixel on the rand */
-	
-	glReadBuffer(GL_FRONT);
-	glDrawBuffer(GL_FRONT);
-
-	glFlush();
-
-	my_get_frontbuffer_image(startx-1, starty-4, endx-startx+5, endy-starty+6);
-
-	oldcursor= get_cursor();
-	set_cursor(CURSOR_STD);
-	
-	tbfontyofs= (TBOXH-11)/2 +1;	/* ypos text in toolbox */
-}
-
-void endpupdraw(void)
-{
-	glFlush();
-	my_put_frontbuffer_image();
-	
-	if(tboldwin) {
-		mywinset(tboldwin);
-		set_cursor(oldcursor);
-	}
-
-	glReadBuffer(GL_BACK);
-	glDrawBuffer(GL_BACK);
-}
-
-/* ********************************************** */
+#include "butspace.h"
+#include "mydevice.h"
 
 void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 {
@@ -572,471 +157,6 @@ void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 	case 'y': *event= YKEY; break;
 	case 'z': *event= ZKEY; break;
 	}
-}
-
-void tbox_execute(void)
-{
-	/* if tbfunc: call function */
-	/* if tbstr1 is a string: put value tbval in queue */
-	unsigned short event=0;
-	unsigned short qual1=0, qual2=0;
-
-	/* needed to check for valid selected objects */
-	Base *base=NULL;
-	Object *ob=NULL;
-
-	base= BASACT;
-	if (base) ob= base->object;
-
-	if(tbfunc) {
-		tbfunc(tbval);
-	}
-	else if(tbstr1) {
-		if(strcmp(tbstr1, "Tab")==0) {
-			event= TABKEY;
-		}
-		else if(strcmp(tbstr1, "PageUp")==0) {
-			event= PAGEUPKEY;
-		}
-		else if(strcmp(tbstr1, "PageDn")==0) {
-			event= PAGEDOWNKEY;
-		}
-		else if(strcmp(tbstr1, "shift+F1")==0) {
-			qual1= LEFTSHIFTKEY;
-			event= F1KEY;
-		}
-		else if(strcmp(tbstr1, "shift+F2")==0) {
-			qual1= LEFTSHIFTKEY;
-			event= F2KEY;
-		}
-		/* ctrl-s (Shear): switch into editmode ### */
-		else if(strcmp(tbstr1, "c|s")==0) {
-			/* check that a valid object is selected to prevent crash */
-			if(!ob) error("Only selected objects can be sheared");
-			else if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
-				error("Only editable 3D objects can be sheared");
-			}
-			else if ((base->lay & G.vd->lay)==0) {
-				error("Only objects on visible layers can be sheared");
-			}
-			else {
-				if (!G.obedit) {
-					enter_editmode();
-					/* ### put these into a deselectall_gen() */
-					if(G.obedit->type==OB_MESH) deselectall_mesh();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
-					else if(G.obedit->type==OB_MBALL) deselectall_mball();
-					else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
-					/* ### */
-				}
-				qual1 = LEFTCTRLKEY;
-				event = SKEY;
-			}
-		}
-		else if(strcmp(tbstr1, "W")==0) {
-			if (!ob) error ("Only selected objects can be warped");
-		        /* check that a valid object is selected to prevent crash */
-			else if ((ob->type==OB_LAMP) || (ob->type==OB_EMPTY) || (ob->type==OB_FONT) || (ob->type==OB_CAMERA)) {
-				error("Only editable 3D objects can be warped");
-			}
-			else if ((base->lay & G.vd->lay)==0) {
-				error("Only objects on visible layers can be warped");
-			}
-			else {
-				if (!G.obedit) {
-					enter_editmode();
-					/* ### put these into a deselectall_gen() */
-					if(G.obedit->type==OB_MESH) deselectall_mesh();
-					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) deselectall_nurb();
-					else if(G.obedit->type==OB_MBALL) deselectall_mball();
-					else if(G.obedit->type==OB_LATTICE) deselectall_Latt();
-					/* ### */
-				}
-				qual1 = LEFTSHIFTKEY;
-				event = WKEY;
-			}
-		}
-
-		else if(strlen(tbstr1)<4 || (strlen(tbstr1)==4 && tbstr1[2]=='F')) {
-				
-			if(tbstr1[1]=='|') {
-				if(tbstr1[0]=='c') qual1= LEFTCTRLKEY;
-				else if(tbstr1[0]=='a') qual1= LEFTALTKEY;
-				
-				if (tbstr1[2]=='F') {
-					switch(tbstr1[3]) {
-					case '1': event= F1KEY; break;
-					case '2': event= F2KEY; break;
-					case '3': event= F3KEY; break;
-					case '4': event= F4KEY; break;
-					case '5': event= F5KEY; break;
-					case '6': event= F6KEY; break;
-					case '7': event= F7KEY; break;
-					case '8': event= F8KEY; break;
-					case '9': event= F9KEY; break;
-					}
-				}
-				else asciitoraw(tbstr1[2], &event, &qual2);
-			}
-			else if(tbstr1[1]==0) {
-				asciitoraw(tbstr1[0], &event, &qual2);
-			}
-			else if(tbstr1[0]=='F') {
-				event= atoi(tbstr1+1);
-				switch(event) {
-					case 1: event= F1KEY; break;
-					case 2: event= F2KEY; break;
-					case 3: event= F3KEY; break;
-					case 4: event= F4KEY; break;
-					case 5: event= F5KEY; break;
-					case 6: event= F6KEY; break;
-					case 7: event= F7KEY; break;
-					case 8: event= F8KEY; break;
-					case 9: event= F9KEY; break;
-					case 10: event= F10KEY; break;
-					case 11: event= F11KEY; break;
-					case 12: event= F12KEY; break;
-				}
-			}
-		}
-		
-		if(event) {
-			if(qual1) mainqenter(qual1, 1);
-			if(qual2) mainqenter(qual2, 1);
-			mainqenter(event, 1);
-			mainqenter(event, 0);
-			mainqenter(EXECUTE, 1);
-			if(qual1) mainqenter(qual1, 0);
-			if(qual2) mainqenter(qual2, 0);
-		}
-	}
-	
-}
-
-void tbox_getmouse(mval)
-short *mval;
-{
-
-	getmouseco_sc(mval);
-
-}
-
-void tbox_setmain(int val)
-{
-	tbmain= val;
-
-	if(tbmain==0 && G.obedit) {
-		addmode= G.obedit->type;
-	}
-}
-
-void bgntoolbox(void)
-{
-	short xmax, ymax, mval[2];
-	
-	xmax = G.curscreen->sizex;
-	ymax = G.curscreen->sizey;
-
-   	tbox_getmouse(mval);
-	
-	if(mval[0]<95) mval[0]= 95;
-	if(mval[0]>xmax-95) mval[0]= xmax-95;
-
-	warp_pointer(mval[0], mval[1]);
-
-	tbx1= mval[0]-tbmemx;
-	tby1= mval[1]-tbmemy;
-	if(tbx1<10) tbx1= 10;
-	if(tby1<10) tby1= 10;
-	
-	tbx2= tbx1+TBOXX;
-	tby2= tby1+TBOXY;
-	if(tbx2>xmax) {
-		tbx2= xmax-10;
-		tbx1= tbx2-TBOXX;
-	}
-	if(tby2>ymax) {
-		tby2= ymax-10;
-		tby1= tby2-TBOXY;
-	}
-
-	bgnpupdraw(tbx1, tby1, tbx2, tby2);
-}
-
-void endtoolbox(void)
-{
-	short mval[2];
-	
-	tbox_getmouse(mval);
-	if(mval[0]>tbx1 && mval[0]<tbx2)
-		if(mval[1]>tby1 && mval[1]<tby2) {
-			tbmemx= mval[0]-(tbx1);
-			tbmemy= mval[1]-(tby1);
-	}
-	
-	endpupdraw();
-}
-
-
-void tbox_embossbox(short x1, short y1, short x2, short y2, short type)	
-/* type: 0=menu, 1=menusel, 2=topic, 3=topicsel */
-{
-	
-	if(type==0) {
-		glColor3ub(160, 160, 160);
-		glRects(x1+1, y1+1, x2-1, y2-1);
-	}
-	if(type==1) {
-		glColor3ub(50, 50, 100);
-		glRects(x1+1, y1+1, x2-1, y2-1);
-	}
-	if(type==2) {
-		glColor3ub(190, 190, 190);
-		glRects(x1+1, y1+1, x2-1, y2-1);
-	}
-	if(type==3) {
-		cpack(0xc07070);
-		glRects(x1+1, y1+1, x2-1, y2-1);
-	}
-	
-	if(type & 1) cpack(0xFFFFFF);
-	else cpack(0x0);
-}
-
-
-void tbox_drawelem_body( int x, int y, int type)
-{
-	int x1 = 0, y1, x2 = 0, y2;
-	
-	if(x==0) {
-		x1= tbx1; x2= tbx1+TBOXXL;
-	}
-	else if(x==1) {
-		x1= tbx1+TBOXXL;
-		x2= x1+ TBOXXR-1;
-	}
-	
-	y1= tby1+ (TBOXEL-y-1)*TBOXH;
-	y2= y1+TBOXH-1;
-	
-	tbox_embossbox(x1, y1, x2, y2, type);
-	
-}
-
-void tbox_drawelem_text( int x, int y, int type)
-{
-	int x1 = 0, y1, x2 = 0, y2, len1, len2;
-	
-	if(x==0) {
-		x1= tbx1; x2= tbx1+TBOXXL;
-	}
-	else if(x==1) {
-		x1= tbx1+TBOXXL;
-		x2= x1+ TBOXXR-1;
-	}
-	
-	y1= tby1+ (TBOXEL-y-1)*TBOXH;
-	y2= y1+TBOXH-1;
-	
-	if(type==0 || type==2) {
-		ColorFunc(TBOXBLACK);
-	}
-	else {
-		glColor3ub(240, 240, 240);
-	}
-	
-	/* text */
-	tbox_setinfo(x, y);
-	if(tbstr && tbstr[0]) {
-		len1= 5+BMF_GetStringWidth(G.font, tbstr);
-		if(keystr) len2= 5+BMF_GetStringWidth(G.font, keystr); else len2= 0;
-		
-		while(len1>0 && (len1+len2+5>x2-x1) ) {
-			tbstr[strlen(tbstr)-1]= 0;
-			len1= BMF_GetStringWidth(G.font, tbstr);
-		}
-		
-		glRasterPos2i(x1+5, y1+tbfontyofs);
-		BIF_DrawString(G.font, tbstr, (U.transopts & USER_TR_MENUS));
-		
-		if(keystr && keystr[0]) {
-			if(type & 1) {
-				ColorFunc(TBOXBLACK);
-	
-				glRecti(x2-len2-2,  y1+2,  x2-3,  y2-2);
-				ColorFunc(TBOXWHITE);
-				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-				BIF_DrawString(G.font, keystr, (U.transopts & USER_TR_MENUS));
-			}
-			else {
-				ColorFunc(TBOXBLACK);
-				glRasterPos2i(x2-len2,  y1+tbfontyofs);
-				BIF_DrawString(G.font, keystr, (U.transopts & USER_TR_MENUS));
-			}
-		}
-	}
-}
-
-
-void tbox_drawelem(x, y, type)
-int x, y, type;	
-{
-	/* type: 0=menu, 1=menusel, 2=topic, 3=topicsel */
-
-	tbox_drawelem_body(x, y, type);
-	tbox_drawelem_text(x, y, type);
-	
-}
-
-void tbox_getactive(x, y)
-int *x, *y;
-{
-	short mval[2];
-	
-	tbox_getmouse(mval);
-	
-	mval[0]-=tbx1;
-	if(mval[0]<TBOXXL) *x= 0;
-	else *x= 1;
-	
-	*y= mval[1]-tby1;
-	*y/= TBOXH;
-	*y= TBOXEL- *y-1;
-	if(*y<0) *y= 0;
-	if(*y>TBOXEL-1) *y= TBOXEL-1;
-	
-}
-
-void drawtoolbox(void)
-{
-	int x, y, actx, acty, type;
-
-	tbox_getactive(&actx, &acty);
-
-	/* background */
-	for(x=0; x<2; x++) {
-		
-		for(y=0; y<TBOXEL; y++) {
-			
-			if(x==0) type= 0; 
-			else type= 2;
-			
-			if(actx==x && acty==y) type++;
-			if(type==0) {
-				if(tbmain==y) type= 1;
-			}
-			
-			tbox_drawelem_body(x, y, type);
-			
-		}
-	}
-
-	/* text */
-	for(x=0; x<2; x++) {
-		
-		for(y=0; y<TBOXEL; y++) {
-			
-			if(x==0) type= 0; 
-			else type= 2;
-			
-			if(actx==x && acty==y) type++;
-			if(type==0) {
-				if(tbmain==y) type= 1;
-			}
-			
-			tbox_drawelem_text(x, y, type);
-			
-		}
-	}
-	glFlush();		/* for geforce, to show it in the frontbuffer */
-
-}
-
-
-void toolbox(void)
-{
-	int actx, acty, y;
-	unsigned short event;
-	short val, mval[2], xo= -1, yo=0;
-	
-	bgntoolbox();
-	glColor3ub(0xB0, 0xB0, 0xB0);
-	uiDrawMenuBox((float)tbx1, (float)tby1-1, (float)tbx2, (float)tby2, 0);
-	drawtoolbox();
-	
-	/* 
-	 *	The active window will be put back in the queue.
-	 */
-
-	while(1) {
-		event= extern_qread(&val);
-		if(event) {
-			switch(event) {
-				case LEFTMOUSE: case MIDDLEMOUSE: case RIGHTMOUSE: case RETKEY: case PADENTER:
-					if(val==1) {
-						tbox_getactive(&actx, &acty);
-						tbox_setinfo(actx, acty);
-						
-						if(event==RIGHTMOUSE) {
-							if(addmode) {
-								addmode= 0;
-								drawtoolbox();
-							}
-						}
-						else if(tbstr1 && tbstr1[0]=='>') {
-							addmode= tbval;
-							drawtoolbox();
-						}
-						else {
-							endtoolbox();
-							tbox_execute();
-							return;
-						}
-					}
-					break;
-				case ESCKEY:
-					/* alt keys: to prevent conflicts with over-draw and stow/push/pop at sgis */
-#ifndef MAART
-/* Temporary for making screen dumps (Alt+PrtSc) */
-				case LEFTALTKEY:
-				case RIGHTALTKEY:
-#endif /* MAART */
-					if(val) endtoolbox();
-					return;
-			}
-		}
-		
-		tbox_getmouse(mval);
-		if(mval[0]<tbx1-10 || mval[0]>tbx2+10 || mval[1]<tby1-10 || mval[1]>tby2+10) break;
-		
-		tbox_getactive(&actx, &acty);
-		
-		/* mouse handling and redraw */
-		if(xo!=actx || yo!=acty) {
-			if(actx==0) {
-				if (acty==0) addmode=0;
-				
-				tbox_drawelem(0, tbmain, 0);
-				tbox_drawelem(0, acty, 1);
-				
-				tbmain= acty;
-				addmode= 0;
-				for(y=0; y<TBOXEL; y++) tbox_drawelem(1, y, 2);
-			}
-			else if(xo> -1) {
-				if(xo==0) tbox_drawelem(xo, yo, 1);
-				else tbox_drawelem(xo, yo, 2);
-				tbox_drawelem(actx, acty, 3);
-			}
-			
-			glFlush();		/* for geforce, to show it in the frontbuffer */
-			
-			xo= actx;
-			yo= acty;
-		}
-	}
-
-	endtoolbox();
 }
 
 /* ************************************  */
@@ -1320,7 +440,6 @@ int movetolayer_short_buts(short *lay)
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
 }
-
 
 
 /* ********************** CLEVER_NUMBUTS ******************** */
@@ -1615,6 +734,8 @@ static void tb_do_hotkey(void *arg, int event)
 	else if(event & TB_PAD) {
 		event &= ~TB_PAD;
 		switch(event) {
+		case '-': key= PADMINUS; break;
+		case '+': key= PADPLUSKEY; break;
 		case '0': key= PAD0; break;
 		case '5': key= PAD5; break;
 		case '/': key= PADSLASHKEY; break;
@@ -2328,6 +1449,154 @@ static TBitem tb_render[]= {
 	{       0, "Anim",                                      3, NULL},
 	{  -1, "",                      0, tb_do_render}};
 
+/* ************************* NODES *********************** */
+
+
+/* dynamic items */
+#define TB_SH_INPUTS		0
+#define TB_SH_OUTPUTS		1
+#define TB_SH_OP_COLOR		2
+#define TB_SH_OP_VECTOR		3
+#define TB_SH_CONVERTORS	4
+#define TB_SH_GENERATORS	5
+#define TB_SH_GROUPS		6
+
+static TBitem tb_node_addsh[]= {
+	{	0, "Inputs",		1, NULL},
+	{	0, "Outputs",		2, NULL},
+	{	0, "Color Ops",		3, NULL},
+	{	0, "Vector Ops",	4, NULL},
+	{	0, "Convertors",	5, NULL},
+	{	0, "Generators",	6, NULL},
+	{	0, "Groups",		7, NULL},
+	{  -1, "", 			0, NULL}};
+
+
+#define TB_CMP_INPUTS		0
+#define TB_CMP_OUTPUTS		1
+#define TB_CMP_OP_COLOR		2
+#define TB_CMP_OP_VECTOR	3
+#define TB_CMP_OP_FILTER	4
+#define TB_CMP_CONVERTORS	5
+#define TB_CMP_GENERATORS	6
+#define TB_CMP_GROUPS		7
+
+static TBitem tb_node_addcomp[]= {
+	{	0, "Inputs",		1, NULL},
+	{	0, "Outputs",		2, NULL},
+	{	0, "Color Ops",		3, NULL},
+	{	0, "Vector Ops",	4, NULL},
+	{	0, "Filters",		5, NULL},
+	{	0, "Convertors",	6, NULL},
+	{	0, "Generators",	7, NULL},
+	{	0, "Groups",		8, NULL},
+	{  -1, "", 			0, NULL}};
+
+static void do_node_addmenu(void *arg, int event)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	float locx, locy;
+	short mval[2];
+	
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
+	node_add_node(snode, event, locx, locy);
+	
+	addqueue(curarea->win, B_NODE_TREE_EXEC, 1);
+	
+	BIF_undo_push("Add Node");
+	
+}
+
+/* dynamic toolbox sublevel */
+static TBitem *node_add_sublevel(void **poin, bNodeTree *ntree, int nodeclass)
+{
+	static TBitem _addmenu[]= { {	0, "Empty", 	0, NULL}, {  -1, "", 			0, NULL}};
+	bNodeType **typedefs;
+	TBitem *addmenu;
+	int tot= 0, a;
+	
+	if(ntree) {
+		if(nodeclass==NODE_CLASS_GROUP) {
+			bNodeTree *ngroup= G.main->nodetree.first;
+			for(; ngroup; ngroup= ngroup->id.next)
+				if(ngroup->type==ntree->type)
+					tot++;
+		}
+		else {
+			for(typedefs= ntree->alltypes; *typedefs; typedefs++)
+				if( (*typedefs)->nclass == nodeclass )
+					tot++;
+		}
+	}	
+	if(tot==0) {
+		*poin= _addmenu;
+		return NULL;
+	}
+	
+	addmenu= MEM_callocN(sizeof(TBitem)*(tot+1), "types menu");
+	
+	if(nodeclass==NODE_CLASS_GROUP) {
+		bNodeTree *ngroup= G.main->nodetree.first;
+		for(tot=0, a=0; ngroup; ngroup= ngroup->id.next, tot++) {
+			if(ngroup->type==ntree->type) {
+				addmenu[a].name= ngroup->id.name+2;
+				addmenu[a].retval= NODE_GROUP_MENU+tot;	/* so we can use BLI_findlink() */
+				a++;
+			}
+		}
+	}
+	else {
+		for(a=0, typedefs= ntree->alltypes; *typedefs; typedefs++) {
+			if( (*typedefs)->nclass == nodeclass ) {
+				addmenu[a].name= (*typedefs)->name;
+				addmenu[a].retval= (*typedefs)->type;
+				a++;
+			}
+		}
+	}
+
+	addmenu[a].icon= -1;	/* end signal */
+	addmenu[a].name= "";
+	addmenu[a].retval= a;
+	addmenu[a].poin= do_node_addmenu;
+	
+	*poin= addmenu;
+	
+	return addmenu;
+}
+
+
+static TBitem tb_node_edit[]= {
+	{	0, "Duplicate|Shift D", TB_SHIFT|'d', 		NULL},
+	{	0, "Delete|X", 'x', 		NULL},
+	{	0, "SEPR", 		0, NULL},
+	{	0, "Make Group|Ctrl G", TB_CTRL|'g', 		NULL},
+	{	0, "Ungroup|Alt G", TB_ALT|'g', 		NULL},
+	{	0, "Edit Group", TB_TAB, NULL},
+	{	0, "SEPR", 		0, NULL},
+	{	0, "Hide/Unhide|H", 'h', NULL},
+	{	0, "SEPR", 		0, NULL},
+	{	0, "Show Cyclic Dependencies", 'c', NULL},
+	{  -1, "", 			0, tb_do_hotkey}};
+
+static TBitem tb_node_select[]= {
+	{	0, "Select/Deselect All|A", 	'a', NULL},
+	{	0, "Border Select|B", 	'b', NULL},
+	{  -1, "", 			0, tb_do_hotkey}};
+
+static TBitem tb_node_transform[]= {
+	{	0, "Grab/Move|G", 'g', 		NULL},
+	{  -1, "", 			0, tb_do_hotkey}};
+
+static TBitem tb_node_view[]= {
+	{	0, "Zoom in|NumPad +",	TB_PAD|'+', NULL},
+	{	0, "Zoom out|NumPad -",	TB_PAD|'-', NULL},
+	{	0, "View all|Home",	TB_PAD|'h', NULL},
+	{  -1, "", 			0, tb_do_hotkey}};
+
+
+/* *********************************************** */
 
 static uiBlock *tb_makemenu(void *arg)
 {
@@ -2434,7 +1703,9 @@ void toolbox_n(void)
 	uiBut *but;
 	TBitem *menu1=NULL, *menu2=NULL, *menu3=NULL; 
 	TBitem *menu4=NULL, *menu5=NULL, *menu6=NULL;
-	TBitem *menu7=NULL, *groupmenu;
+	TBitem *menu7=NULL, *groupmenu= NULL;
+	TBitem *node_add_gen= NULL, *node_add_group= NULL, *node_add_out= NULL, *node_add_in= NULL;
+	TBitem *node_add_op_col= NULL, *node_add_op_filt= NULL, *node_add_op_vec= NULL, *node_add_con= NULL;
 	int dx=0;
 	short event, mval[2], tot=0;
 	char *str1=NULL, *str2=NULL, *str3=NULL, *str4=NULL, *str5=NULL, *str6=NULL, *str7=NULL;
@@ -2456,17 +1727,17 @@ void toolbox_n(void)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	uiBlockSetCol(block, TH_MENU_ITEM);
 	
-	/* dynamic menu entries */
-	groupmenu= create_group_sublevel();
-	
-	if (G.scene->r.renderer==R_YAFRAY)
-		tb_add[TB_ADD_LAMP].poin= addmenu_YF_lamp;
-	else
-		tb_add[TB_ADD_LAMP].poin= addmenu_lamp;
-	
 	/* select context for main items */
 	if(curarea->spacetype==SPACE_VIEW3D) {
 
+		/* dynamic menu entries */
+		groupmenu= create_group_sublevel();
+		
+		if (G.scene->r.renderer==R_YAFRAY)
+			tb_add[TB_ADD_LAMP].poin= addmenu_YF_lamp;
+		else
+			tb_add[TB_ADD_LAMP].poin= addmenu_lamp;
+		
 		if(U.uiflag & USER_PLAINMENUS) {
 			menu1= tb_add; str1= "Add";
 			menu2= tb_object_edit; str2= "Edit";
@@ -2585,6 +1856,43 @@ void toolbox_n(void)
 		else {
 		}
 	}
+	else if(curarea->spacetype==SPACE_NODE) {
+		SpaceNode *snode= curarea->spacedata.first;
+		
+		if(snode->treetype==NTREE_COMPOSIT)
+			menu1= tb_node_addcomp; 
+		else
+			menu1= tb_node_addsh; 
+		str1= "Add";
+		menu2= tb_node_edit; str2= "Edit";
+		menu3= tb_node_select; str3= "Select";
+		menu4= tb_node_transform; str4= "Transform";
+		menu5= tb_node_view; str5= "View";
+		
+		if(snode->treetype==NTREE_SHADER) {
+			node_add_in= node_add_sublevel(&menu1[TB_SH_INPUTS].poin, snode->nodetree, NODE_CLASS_INPUT);
+			node_add_out= node_add_sublevel(&menu1[TB_SH_OUTPUTS].poin, snode->nodetree, NODE_CLASS_OUTPUT);
+			node_add_op_col= node_add_sublevel(&menu1[TB_SH_OP_COLOR].poin, snode->nodetree, NODE_CLASS_OP_COLOR);
+			node_add_op_vec= node_add_sublevel(&menu1[TB_SH_OP_VECTOR].poin, snode->nodetree, NODE_CLASS_OP_VECTOR);
+			node_add_con= node_add_sublevel(&menu1[TB_SH_CONVERTORS].poin, snode->nodetree, NODE_CLASS_CONVERTOR);
+			node_add_gen= node_add_sublevel(&menu1[TB_SH_GENERATORS].poin, snode->nodetree, NODE_CLASS_GENERATOR);
+			node_add_group= node_add_sublevel(&menu1[TB_SH_GROUPS].poin, snode->nodetree, NODE_CLASS_GROUP);
+		}
+		else if(snode->treetype==NTREE_COMPOSIT) {
+			node_add_in= node_add_sublevel(&menu1[TB_CMP_INPUTS].poin, snode->nodetree, NODE_CLASS_INPUT);
+			node_add_out= node_add_sublevel(&menu1[TB_CMP_OUTPUTS].poin, snode->nodetree, NODE_CLASS_OUTPUT);
+			node_add_op_col= node_add_sublevel(&menu1[TB_CMP_OP_COLOR].poin, snode->nodetree, NODE_CLASS_OP_COLOR);
+			node_add_op_filt= node_add_sublevel(&menu1[TB_CMP_OP_FILTER].poin, snode->nodetree, NODE_CLASS_OP_FILTER);
+			node_add_op_vec= node_add_sublevel(&menu1[TB_CMP_OP_VECTOR].poin, snode->nodetree, NODE_CLASS_OP_VECTOR);
+			node_add_con= node_add_sublevel(&menu1[TB_CMP_CONVERTORS].poin, snode->nodetree, NODE_CLASS_CONVERTOR);
+			node_add_gen= node_add_sublevel(&menu1[TB_CMP_GENERATORS].poin, snode->nodetree, NODE_CLASS_GENERATOR);
+			node_add_group= node_add_sublevel(&menu1[TB_CMP_GROUPS].poin, snode->nodetree, NODE_CLASS_GROUP);
+		}
+		
+		dx= 96;
+		tot= 5;
+		
+	}
 	
 	getmouseco_sc(mval);
 	
@@ -2623,7 +1931,7 @@ void toolbox_n(void)
 		but=uiDefBlockBut(block, tb_makemenu, menu6, str6,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_LEFT);
 		uiButSetFunc(but, store_main, (void *)-dx, (void *)5);
-	} else if (tot==7) {
+	} else if (tot==5 || tot==7) {
                 /* check if it fits, dubious */
 		if(mval[0]-0.25*dx+tb_mainx < 6) mval[0]= 6 + 0.25*dx -tb_mainx;
 		else if(mval[0]+0.25*dx+tb_mainx > G.curscreen->sizex-6)
@@ -2652,20 +1960,33 @@ void toolbox_n(void)
 		but=uiDefIconTextBlockBut(block, tb_makemenu, menu5, ICON_RIGHTARROW_THIN, str5, mval[0]+tb_mainx,mval[1]+tb_mainy-80, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_RIGHT);
 		uiButSetFunc(but, store_main, (void *)-32, (void *)75);
-
-		but=uiDefIconTextBlockBut(block, tb_makemenu, menu6, ICON_RIGHTARROW_THIN, str6, mval[0]+tb_mainx,mval[1]+tb_mainy-100, dx, 19, "");
-		uiButSetFlag(but, UI_MAKE_RIGHT);
-		uiButSetFunc(but, store_main, (void *)-32, (void *)95);
-
-		but=uiDefIconTextBlockBut(block, tb_makemenu, menu7, ICON_RIGHTARROW_THIN, str7, mval[0]+tb_mainx,mval[1]+tb_mainy-120, dx, 19, "");
-		uiButSetFlag(but, UI_MAKE_RIGHT);
-		uiButSetFunc(but, store_main, (void *)-32, (void *)105);
+		
+		if(tot>5) {
+			but=uiDefIconTextBlockBut(block, tb_makemenu, menu6, ICON_RIGHTARROW_THIN, str6, mval[0]+tb_mainx,mval[1]+tb_mainy-100, dx, 19, "");
+			uiButSetFlag(but, UI_MAKE_RIGHT);
+			uiButSetFunc(but, store_main, (void *)-32, (void *)95);
+		}
+		if(tot>6) {
+			but=uiDefIconTextBlockBut(block, tb_makemenu, menu7, ICON_RIGHTARROW_THIN, str7, mval[0]+tb_mainx,mval[1]+tb_mainy-120, dx, 19, "");
+			uiButSetFlag(but, UI_MAKE_RIGHT);
+			uiButSetFunc(but, store_main, (void *)-32, (void *)105);
+		}
 	}
 	
 	uiBoundsBlock(block, 2);
 	event= uiDoBlocks(&tb_listb, 0);
 	
+	/* free all dynamic entries... clumsy! */
 	if(groupmenu) MEM_freeN(groupmenu);
+	
+	if(node_add_in) MEM_freeN(node_add_in);
+	if(node_add_out) MEM_freeN(node_add_out);
+	if(node_add_op_col) MEM_freeN(node_add_op_col);
+	if(node_add_op_filt) MEM_freeN(node_add_op_filt);
+	if(node_add_op_vec) MEM_freeN(node_add_op_vec);
+	if(node_add_con) MEM_freeN(node_add_con);
+	if(node_add_gen) MEM_freeN(node_add_gen);
+	if(node_add_group) MEM_freeN(node_add_group);
 	
 	mywinset(curarea->win);
 }

@@ -1123,7 +1123,7 @@ static void ui_warp_pointer(short x, short y)
 	#endif
 }
 
-
+#define TBOXH 20
 static int ui_do_but_MENU(uiBut *but)
 {
 	uiBlock *block;

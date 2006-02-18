@@ -51,6 +51,7 @@
 #include "PIL_time.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "intern/openexr/openexr_api.h"
 
 #include "RE_pipeline.h"
 #include "radio.h"
@@ -104,6 +105,7 @@ static struct ListBase RenderList= {NULL, NULL};
 /* hardcopy of current render, used while rendering for speed */
 Render R;
 
+void *exrhandle= NULL;
 /* ********* alloc and free ******** */
 
 
@@ -361,6 +363,37 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 3);
 			}
 		}
+	}
+}
+
+
+static void save_render_result_tile(Render *re, RenderPart *pa)
+{
+	RenderResult *rrpart= pa->result;
+	RenderLayer *rlp;
+	int offs, partx, party;
+	
+	for(rlp= rrpart->layers.first; rlp; rlp= rlp->next) {
+		
+		if(rrpart->crop) {	/* filters add pixel extra */
+			offs= (rrpart->crop + rrpart->crop*rrpart->rectx);
+		}
+		else {
+			offs= 0;
+		}
+		party= rrpart->tilerect.ymin + rrpart->crop;
+		partx= rrpart->tilerect.xmin + rrpart->crop;
+		
+		/* combined */
+		if(rlp->rectf) {
+			int xstride= 4;
+			imb_exrtile_set_channel(exrhandle, "R", xstride, xstride*pa->rectx, rlp->rectf   + xstride*offs);
+			imb_exrtile_set_channel(exrhandle, "G", xstride, xstride*pa->rectx, rlp->rectf+1 + xstride*offs);
+			imb_exrtile_set_channel(exrhandle, "B", xstride, xstride*pa->rectx, rlp->rectf+2 + xstride*offs);
+			imb_exrtile_set_channel(exrhandle, "A", xstride, xstride*pa->rectx, rlp->rectf+3 + xstride*offs);
+			
+			imb_exrtile_write_channels(exrhandle, partx, party);
+		}		
 	}
 }
 
@@ -709,6 +742,7 @@ static void render_tile_processor(Render *re, int firsttile)
 			if(pa->result) {
 				if(!re->test_break()) {
 					re->display_draw(pa->result, NULL);
+					
 					re->i.partsdone++;
 				}
 				free_render_result(pa->result);
@@ -817,6 +851,9 @@ static void threaded_tile_processor(Render *re)
 					BLI_remove_thread(&threads, pa);
 					re->display_draw(pa->result, NULL);
 					print_part_stats(re, pa);
+					
+					if(exrhandle) save_render_result_tile(re, pa);
+					
 					free_render_result(pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
@@ -872,6 +909,7 @@ void render_one_frame(Render *re)
 	   RE_Database_FromScene(re, re->scene, 1);
 	
 	threaded_tile_processor(re);
+	//render_tile_processor(re, 0);
 	
 	/* free all render verts etc */
 	RE_Database_Free(re);
@@ -1072,11 +1110,6 @@ static int is_rendering_allowed(Render *re)
 		return 0;
 	}
 	
-	if(re->r.xparts*re->r.yparts>64) {
-		re->error("No more than 64 parts supported");
-		return 0;
-	}
-	
 	if(re->r.yparts>1 && (re->r.mode & R_PANORAMA)) {
 		re->error("No Y-Parts supported for Panorama");
 		return 0;
@@ -1132,6 +1165,15 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	re->display_init(re->result);
 	re->display_clear(re->result);
 	
+	if(0) {
+		exrhandle= imb_exrtile_get_handle();
+		imb_exrtile_add_channel(exrhandle, "R");
+		imb_exrtile_add_channel(exrhandle, "G");
+		imb_exrtile_add_channel(exrhandle, "B");
+		imb_exrtile_add_channel(exrhandle, "A");
+		imb_exrtile_begin_write(exrhandle, "/tmp/render.exr", winx, winy, winx/scene->r.xparts, winy/scene->r.yparts);
+	}
+	
 	return 1;
 }
 
@@ -1144,6 +1186,10 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	
 	if(render_initialize_from_scene(re, scene)) {
 		do_render_final(re);
+		
+		if(exrhandle)
+			imb_exrtile_close(exrhandle);
+		exrhandle= NULL;
 	}
 }
 

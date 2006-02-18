@@ -47,11 +47,20 @@ extern "C" {
  * @param mem pointer to loaded OpenEXR bitstream
  */
   
-int imb_is_a_openexr(unsigned char *mem);
+int		imb_is_a_openexr			(unsigned char *mem);
 	
-short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags);
+short	imb_save_openexr			(struct ImBuf *ibuf, char *name, int flags);
 
-struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags);
+struct ImBuf *imb_load_openexr		(unsigned char *mem, int size, int flags);
+
+
+void *	imb_exrtile_get_handle		(void);
+void	imb_exrtile_add_channel		(void *handle, char *channame);
+void	imb_exrtile_begin_write		(void *handle, char *filename, int width, int height, int tilex, int tiley);
+void	imb_exrtile_set_channel		(void *handle, char *channame, int xstride, int ystride, float *rect);
+void	imb_exrtile_write_channels	(void *handle, int partx, int party);
+void	imb_exrtile_close			(void *handle);
+
 
 #ifdef __cplusplus
 }

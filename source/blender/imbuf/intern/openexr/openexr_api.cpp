@@ -35,9 +35,12 @@
 
 extern "C"
 {
+#include "MEM_guardedalloc.h"
+
+#include "BLI_blenlib.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-	
 #include "IMB_allocimbuf.h"
 }
 
@@ -54,6 +57,7 @@ extern "C"
 #include <IlmImf/ImfOutputFile.h>
 #include <IlmImf/ImfCompression.h>
 #include <IlmImf/ImfCompressionAttribute.h>
+#include <IlmImf/ImfStringAttribute.h>
 #include <Imath/ImathBox.h>
 #else
 #include <OpenEXR/half.h>
@@ -67,6 +71,7 @@ extern "C"
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfCompression.h>
 #include <OpenEXR/ImfCompressionAttribute.h>
+#include <OpenEXR/ImfStringAttribute.h>
 #endif
 
 using namespace Imf;
@@ -326,6 +331,111 @@ short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
 	}
 }
 
+/* ********************* Tile file support ************************************ */
+
+typedef struct ExrTileHandle {
+	TiledOutputFile *file;
+	int tilex, tiley;
+	int width, height;
+	ListBase channels;
+} ExrTileHandle;
+
+typedef struct ExrTileChannel {
+	struct ExrTileChannel *next, *prev;
+	char *name;
+	int xstride, ystride;
+	float *rect;
+} ExrTileChannel;
+
+/* not threaded! write one tiled file at a time */
+void *imb_exrtile_get_handle(void)
+{
+	static ExrTileHandle data;
+	
+	data.channels.first= data.channels.last= NULL;
+	return &data;
+}
+
+void imb_exrtile_add_channel(void *handle, char *channame)
+{
+	ExrTileHandle *data= (ExrTileHandle *)handle;
+	ExrTileChannel *echan;
+	
+	echan= (ExrTileChannel *)MEM_callocN(sizeof(ExrTileChannel), "exr tile channel");
+	echan->name= channame;
+	BLI_addtail(&data->channels, echan);
+}
+
+void imb_exrtile_begin_write(void *handle, char *filename, int width, int height, int tilex, int tiley)
+{
+	ExrTileHandle *data= (ExrTileHandle *)handle;
+	Header header (width, height);
+	ExrTileChannel *echan;
+	
+	data->tilex= tilex;
+	data->tiley= tiley;
+	data->width= width;
+	data->height= height;
+	
+	for(echan= (ExrTileChannel *)data->channels.first; echan; echan= echan->next)
+		header.channels().insert (echan->name, Channel (FLOAT));
+	
+	header.setTileDescription (TileDescription (tilex, tiley, ONE_LEVEL));
+	
+	header.insert ("comments", StringAttribute ("Blender RenderResult"));
+	
+	data->file = new TiledOutputFile(filename, header);
+}
+
+
+void imb_exrtile_set_channel(void *handle, char *channame, int xstride, int ystride, float *rect)
+{
+	ExrTileHandle *data= (ExrTileHandle *)handle;
+	ExrTileChannel *echan;
+	
+	for(echan= (ExrTileChannel *)data->channels.first; echan; echan= echan->next)
+		if(strcmp(echan->name, channame)==0)
+			break;
+	if(echan) {
+		echan->xstride= xstride;
+		echan->ystride= ystride;
+		echan->rect= rect;
+	}
+	else
+		printf("imb_exrtile_set_channel error\n");
+}
+
+
+void imb_exrtile_write_channels(void *handle, int partx, int party)
+{
+	ExrTileHandle *data= (ExrTileHandle *)handle;
+	FrameBuffer frameBuffer;
+	ExrTileChannel *echan;
+	
+	for(echan= (ExrTileChannel *)data->channels.first; echan; echan= echan->next) {
+		float *rect= echan->rect - echan->xstride*partx - echan->ystride*party;
+
+		frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)rect, 
+							echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+	}
+	
+	data->file->setFrameBuffer (frameBuffer);
+	printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
+	data->file->writeTile (partx/data->tilex, party/data->tiley);	
+	
+}
+
+void imb_exrtile_close(void *handle)
+{
+	ExrTileHandle *data= (ExrTileHandle *)handle;
+	
+	delete data->file;
+	
+	BLI_freelistN(&data->channels);
+}
+
+
+/* ********************************************************* */
 
 typedef struct RGBA
 {
@@ -360,6 +470,16 @@ static int exr_has_zbuffer(InputFile *file)
 	return 0;
 }
 
+static int exr_is_renderresult(InputFile *file)
+{
+	const StringAttribute *comments= file->header().findTypedAttribute<StringAttribute>("comments");
+	if(comments) {
+	
+		if(comments->value() == "Blender RenderResult")
+			return 1;
+	}
+	return 0;
+}
 
 struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 {
@@ -381,6 +501,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 		//	   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
 		//exr_print_filecontents(file);
+		int flipped= exr_is_renderresult(file);
 		
 		ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
 		
@@ -393,14 +514,14 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 				FrameBuffer frameBuffer;
 				float *first;
 				int xstride = sizeof(float) * 4;
-				int ystride = - xstride*width;
+				int ystride = flipped ? xstride*width : - xstride*width;
 				
 				imb_addrectfloatImBuf(ibuf);
 				
 				/* inverse correct first pixel for datawindow coordinates (- dw.min.y because of y flip) */
 				first= ibuf->rect_float - 4*(dw.min.x - dw.min.y*width);
 				/* but, since we read y-flipped (negative y stride) we move to last scanline */
-				first+= 4*(height-1)*width;
+				if(!flipped) first+= 4*(height-1)*width;
 				
 				frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
 				frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
@@ -413,7 +534,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 					
 					addzbuffloatImBuf(ibuf);
 					firstz= ibuf->zbuf_float - (dw.min.x - dw.min.y*width);
-					firstz+= (height-1)*width;
+					if(!flipped) firstz+= (height-1)*width;
 					frameBuffer.insert ("Z", Slice (FLOAT,  (char *)firstz , sizeof(float), -width*sizeof(float)));
 				}
 				

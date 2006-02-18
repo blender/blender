@@ -33,79 +33,8 @@
 #ifndef BIF_TOOLBOX_H
 #define BIF_TOOLBOX_H
 
-
-	/* TBOXX: width in pixels */
-#define TBOXXL  80
-#define TBOXXR  200
-#define TBOXX	(TBOXXL+TBOXXR)
-	/* TBOXEL: amount of element vertically */
-#define TBOXEL	14
-	/* TBOXH: height of 1 element */
-#define TBOXH	20
-#define TBOXY	TBOXH*TBOXEL
-
-#define TBOXBLACK	1
-#define TBOXDGREY	2
-#define TBOXWHITE	3
-#define TBOXGREY	4
-#define TBOXLGREY	5
-
-/* toolbox menu code defines
-   -> SPACE->(MAIN_ENTRY) */
-#ifdef MAART
-enum {
-	TBOX_MAIN_FILE,
-	TBOX_MAIN_ADD,
-	TBOX_MAIN_EDIT,
-	TBOX_MAIN_OBJECT1,
-	TBOX_MAIN_OBJECT2,
-	TBOX_MAIN_MESH,
-	TBOX_MAIN_CURVE,
-	TBOX_MAIN_KEY,
-	TBOX_MAIN_RENDER,
-	TBOX_MAIN_VIEW,
-        TBOX_MAIN_SEQ,
-	TBOX_MAIN_PYTOOL = 13
-};
-
-#else
-enum {
-	TBOX_MAIN_ADD,
-	TBOX_MAIN_FILE,
-	TBOX_MAIN_EDIT,
-	TBOX_MAIN_OBJECT1,
-	TBOX_MAIN_OBJECT2,
-	TBOX_MAIN_MESH,
-	TBOX_MAIN_CURVE,
-	TBOX_MAIN_KEY,
-	TBOX_MAIN_RENDER,
-	TBOX_MAIN_VIEW,
-        TBOX_MAIN_SEQ,
-	TBOX_MAIN_PYTOOL = 13
-};
-#endif
-
-/* protos */
-
 /* toolbox.c */
-void ColorFunc (int i);
-void mygetcursor (short int *index);
-void tbox_setinfo (int x, int y);
-void bgnpupdraw (int startx, int starty, int endx, int endy);
-void endpupdraw (void);
 void asciitoraw (int ch, short unsigned int *event, short unsigned int *qual);
-void tbox_execute (void);
-void tbox_getmouse (short int *mval);
-void tbox_setmain (int val);
-void bgntoolbox (void);
-void endtoolbox (void);
-void tbox_embossbox (short int x1, short int y1, short int x2, short int y2, short int type);
-void tbox_drawelem_body (int x, int y, int type);
-void tbox_drawelem_text (int x, int y, int type);
-void tbox_drawelem (int x, int y, int type);
-void tbox_getactive (int *x, int *y);
-void drawtoolbox (void);
-void toolbox (void);
 
 void toolbox_n(void);
 void toolbox_n_add(void);

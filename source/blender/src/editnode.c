@@ -1221,7 +1221,19 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	
 	node_deselectall(snode, 0);
 	
-	node= nodeAddNodeType(snode->edittree, type, NULL);
+	if(type>=NODE_GROUP_MENU) {
+		if(snode->edittree!=snode->nodetree) {
+			error("Can not add a Group in a Group");
+			return NULL;
+		}
+		else {
+			bNodeTree *ngroup= BLI_findlink(&G.main->nodetree, type-NODE_GROUP_MENU);
+			if(ngroup)
+				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup);
+		}
+	}
+	else
+		node= nodeAddNodeType(snode->edittree, type, NULL);
 	
 	/* generics */
 	if(node) {
@@ -1237,35 +1249,11 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 
 		node_set_active(snode, node);
 		snode_verify_groups(snode);
+		
+		if(node->id)
+			id_us_plus(node->id);
 	}
 	return node;
-}
-
-/* hotkey context */
-static void node_add_menu(SpaceNode *snode)
-{
-	float locx, locy;
-	short event, mval[2];
-	
-	if(snode->treetype==NTREE_SHADER) {
-		/* shader menu, still hardcoded defines... solve */
-		event= pupmenu("Add Node%t|Output%x1|Geometry%x108|Material%x100|Texture%x106|Mapping%x109|Normal%x107|RGB Curves%x111|Vector Curves%x110|Value %x102|Color %x101|Mix Color %x103|ColorRamp %x104|Color to BW %x105");
-		if(event<1) return;
-	}
-	else if(snode->treetype==NTREE_COMPOSIT) {
-		/* compo menu, still hardcoded defines... solve */
-		event= pupmenu("Add Node%t|Render Result %x221|Composite %x222|Viewer%x201|Image %x220|RGB Curves%x209|AlphaOver %x210|Blur %x211|Vector Blur %x215|Filter %x212|Value %x203|Color %x202|Mix %x204|ColorRamp %x205|Color to BW %x206|Map Value %x213|Time %x214|Normal %x207||Separate RGBA %x216|Separate HSVA %x217|Set Alpha %x218");
-		if(event<1) return;
-	}
-	else return;
-	
-	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	node_add_node(snode, event, locx, locy);
-	
-	snode_handle_recalc(snode);
-	
-	BIF_undo_push("Add Node");
 }
 
 void node_adduplicate(SpaceNode *snode)
@@ -1772,7 +1760,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY:
 			if(G.qual==LR_SHIFTKEY) {
 				if(fromlib) fromlib= -1;
-				else node_add_menu(snode);
+				else toolbox_n_add();
 			}
 			else if(G.qual==0) {
 				node_deselectall(snode, 1);

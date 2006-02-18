@@ -47,5 +47,6 @@ CPPFLAGS += -I../../../blenkernel
 CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../imbuf/intern
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += $(NAN_OPENEXR_INC)
 CPPFLAGS += -I.

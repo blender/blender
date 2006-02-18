@@ -78,13 +78,16 @@ typedef struct bNodeType {
 
 } bNodeType;
 
-/* nodetype->nclass, also for themes */
+/* nodetype->nclass, for add-menu and themes */
 #define NODE_CLASS_INPUT		0
 #define NODE_CLASS_OUTPUT		1
 #define NODE_CLASS_GENERATOR	2
-#define NODE_CLASS_OPERATOR		3
-#define NODE_CLASS_GROUP		4
-#define NODE_CLASS_FILE			5
+#define NODE_CLASS_OP_COLOR		3
+#define NODE_CLASS_OP_VECTOR	4
+#define NODE_CLASS_OP_FILTER	5
+#define NODE_CLASS_GROUP		6
+#define NODE_CLASS_FILE			7
+#define NODE_CLASS_CONVERTOR	8
 
 /* ************** GENERIC API, TREES *************** */
 
@@ -142,7 +145,8 @@ void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
 
 /* ************** COMMON NODES *************** */
 
-#define NODE_GROUP		2
+#define NODE_GROUP			2
+#define NODE_GROUP_MENU		1000
 
 extern bNodeType node_group_typeinfo;
 
@@ -153,6 +157,9 @@ struct ShadeInput;
 struct ShadeResult;
 
 /* note: types are needed to restore callbacks, don't change values */
+/* range 1 - 100 is reserved for common nodes */
+/* using toolbox, we add node groups by assuming the values below don't exceed NODE_GROUP_MENU for now */
+
 #define SH_NODE_OUTPUT		1
 
 #define SH_NODE_MATERIAL	100
@@ -206,6 +213,7 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_SEPRGBA	216
 #define CMP_NODE_SEPHSVA	217
 #define CMP_NODE_SETALPHA	218
+#define CMP_NODE_HUE_SAT	219
 
 #define CMP_NODE_IMAGE			220
 #define CMP_NODE_R_RESULT		221

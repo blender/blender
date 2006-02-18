@@ -914,7 +914,7 @@ static bNodeType cmp_node_image= {
 	/* type code   */	CMP_NODE_IMAGE,
 	/* name        */	"Image",
 	/* width+range */	120, 80, 300,
-	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_PREVIEW|NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	cmp_node_image_out,
 	/* storage     */	"NodeImageAnim",
@@ -1036,7 +1036,7 @@ static bNodeType cmp_node_rresult= {
 	/* type code   */	CMP_NODE_R_RESULT,
 	/* name        */	"Render Result",
 	/* width+range */	120, 80, 300,
-	/* class+opts  */	NODE_CLASS_GENERATOR, NODE_PREVIEW|NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	cmp_node_rresult_out,
 	/* storage     */	"",
@@ -1095,7 +1095,7 @@ static bNodeType cmp_node_normal= {
 	/* type code   */	CMP_NODE_NORMAL,
 	/* name        */	"Normal",
 	/* width+range */	100, 60, 200,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_normal_in,
 	/* output sock */	cmp_node_normal_out,
 	/* storage     */	"",
@@ -1156,7 +1156,7 @@ static bNodeType cmp_node_curve_vec= {
 	/* type code   */	CMP_NODE_CURVE_VEC,
 	/* name        */	"Vector Curves",
 	/* width+range */	200, 140, 320,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_curve_vec_in,
 	/* output sock */	cmp_node_curve_vec_out,
 	/* storage     */	"CurveMapping",
@@ -1231,7 +1231,7 @@ static bNodeType cmp_node_curve_rgb= {
 	/* type code   */	CMP_NODE_CURVE_RGB,
 	/* name        */	"RGB Curves",
 	/* width+range */	200, 140, 320,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_curve_rgb_in,
 	/* output sock */	cmp_node_curve_rgb_out,
 	/* storage     */	"CurveMapping",
@@ -1289,6 +1289,71 @@ static bNodeType cmp_node_rgb= {
 	
 };
 
+/* **************** Hue Saturation ******************** */
+static bNodeSocketType cmp_node_hue_sat_in[]= {
+	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_hue_sat_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_hue_sat(bNode *node, float *out, float *in)
+{
+	NodeHueSat *nhs= node->storage;
+	
+	if(nhs->hue!=0.0f || nhs->sat!=1.0) {
+		float hsv[3];
+		
+		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
+		hsv[0]+= nhs->hue;
+		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
+		hsv[1]*= nhs->sat;
+		if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
+		hsv_to_rgb(hsv[0], hsv[1], hsv[2], out, out+1, out+2);
+		
+		out[3]= in[3];
+	}
+	else {
+		QUATCOPY(out, in);
+	}
+}
+
+static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order in: Image */
+	/* stack order out: Image */
+	
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		do_hue_sat(node, out[0]->vec, in[0]->vec);
+	}
+	else {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+		if(cbuf->type==CB_RGBA) {
+			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+			
+			composit1_pixel_processor(node, stackbuf, cbuf, NULL, do_hue_sat);
+			
+			out[0]->data= stackbuf;
+		}
+	}
+}
+
+static bNodeType cmp_node_hue_sat= {
+	/* type code   */	CMP_NODE_HUE_SAT,
+	/* name        */	"Hue Saturation",
+	/* width+range */	150, 80, 250,
+	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_hue_sat_in,
+	/* output sock */	cmp_node_hue_sat_out,
+	/* storage     */	"NodeHueSat", 
+	/* execfunc    */	node_composit_exec_hue_sat
+	
+};
+
 /* **************** MIX RGB ******************** */
 static bNodeSocketType cmp_node_mix_rgb_in[]= {
 	{	SOCK_VALUE, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -1339,7 +1404,7 @@ static bNodeType cmp_node_mix_rgb= {
 	/* type code   */	CMP_NODE_MIX_RGB,
 	/* name        */	"Mix",
 	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_mix_rgb_in,
 	/* output sock */	cmp_node_mix_rgb_out,
 	/* storage     */	"", 
@@ -1470,7 +1535,7 @@ static bNodeType cmp_node_filter= {
 	/* type code   */	CMP_NODE_FILTER,
 	/* name        */	"Filter",
 	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
 	/* input sock  */	cmp_node_filter_in,
 	/* output sock */	cmp_node_filter_out,
 	/* storage     */	"", 
@@ -1525,7 +1590,7 @@ static bNodeType cmp_node_valtorgb= {
 	/* type code   */	CMP_NODE_VALTORGB,
 	/* name        */	"ColorRamp",
 	/* width+range */	240, 200, 300,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_valtorgb_in,
 	/* output sock */	cmp_node_valtorgb_out,
 	/* storage     */	"ColorBand",
@@ -1573,7 +1638,7 @@ static bNodeType cmp_node_rgbtobw= {
 	/* type code   */	CMP_NODE_RGBTOBW,
 	/* name        */	"RGB to BW",
 	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OPERATOR, 0,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
 	/* input sock  */	cmp_node_rgbtobw_in,
 	/* output sock */	cmp_node_rgbtobw_out,
 	/* storage     */	"",
@@ -1626,7 +1691,7 @@ static bNodeType cmp_node_seprgba= {
 	/* type code   */	CMP_NODE_SEPRGBA,
 	/* name        */	"Separate RGBA",
 	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_OPERATOR, 0,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
 	/* input sock  */	cmp_node_seprgba_in,
 	/* output sock */	cmp_node_seprgba_out,
 	/* storage     */	"",
@@ -1702,7 +1767,7 @@ static bNodeType cmp_node_sephsva= {
 	/* type code   */	CMP_NODE_SEPHSVA,
 	/* name        */	"Separate HSVA",
 	/* width+range */	80, 40, 140,
-	/* class+opts  */	NODE_CLASS_OPERATOR, 0,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
 	/* input sock  */	cmp_node_sephsva_in,
 	/* output sock */	cmp_node_sephsva_out,
 	/* storage     */	"",
@@ -1755,7 +1820,7 @@ static bNodeType cmp_node_setalpha= {
 	/* type code   */	CMP_NODE_SETALPHA,
 	/* name        */	"Set Alpha",
 	/* width+range */	120, 40, 140,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_setalpha_in,
 	/* output sock */	cmp_node_setalpha_out,
 	/* storage     */	"",
@@ -1861,7 +1926,7 @@ static bNodeType cmp_node_alphaover= {
 	/* type code   */	CMP_NODE_ALPHAOVER,
 	/* name        */	"AlphaOver",
 	/* width+range */	80, 40, 120,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_alphaover_in,
 	/* output sock */	cmp_node_alphaover_out,
 	/* storage     */	"",
@@ -1916,7 +1981,7 @@ static bNodeType cmp_node_map_value= {
 	/* type code   */	CMP_NODE_MAP_VALUE,
 	/* name        */	"Map Value",
 	/* width+range */	100, 60, 150,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_VECTOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_map_value_in,
 	/* output sock */	cmp_node_map_value_out,
 	/* storage     */	"TexMapping",
@@ -2499,7 +2564,7 @@ static bNodeType cmp_node_blur= {
 	/* type code   */	CMP_NODE_BLUR,
 	/* name        */	"Blur",
 	/* width+range */	120, 80, 200,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
 	/* input sock  */	cmp_node_blur_in,
 	/* output sock */	cmp_node_blur_out,
 	/* storage     */	"NodeBlurData",
@@ -2558,7 +2623,7 @@ static bNodeType cmp_node_vecblur= {
 	/* type code   */	CMP_NODE_VECBLUR,
 	/* name        */	"Vector Blur",
 	/* width+range */	120, 80, 200,
-	/* class+opts  */	NODE_CLASS_OPERATOR, NODE_OPTIONS,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
 	/* input sock  */	cmp_node_vecblur_in,
 	/* output sock */	cmp_node_vecblur_out,
 	/* storage     */	"NodeBlurData",
@@ -2571,25 +2636,26 @@ static bNodeType cmp_node_vecblur= {
 
 bNodeType *node_all_composit[]= {
 	&node_group_typeinfo,
-	&cmp_node_viewer,
 	&cmp_node_composite,
+	&cmp_node_viewer,
 	&cmp_node_output_file,
+	&cmp_node_rresult,
+	&cmp_node_image,
+	&cmp_node_curve_rgb,
+	&cmp_node_mix_rgb,
+	&cmp_node_hue_sat,
+	&cmp_node_alphaover,
 	&cmp_node_value,
 	&cmp_node_rgb,
-	&cmp_node_mix_rgb,
-	&cmp_node_filter,
-	&cmp_node_valtorgb,
-	&cmp_node_rgbtobw,
 	&cmp_node_normal,
 	&cmp_node_curve_vec,
-	&cmp_node_curve_rgb,
 	&cmp_node_time,
-	&cmp_node_image,
-	&cmp_node_rresult,
-	&cmp_node_alphaover,
+	&cmp_node_filter,
 	&cmp_node_blur,
 	&cmp_node_vecblur,
 	&cmp_node_map_value,
+	&cmp_node_valtorgb,
+	&cmp_node_rgbtobw,
 	&cmp_node_seprgba,
 	&cmp_node_sephsva,
 	&cmp_node_setalpha,

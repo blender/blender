@@ -573,6 +573,7 @@ static void node_browse_image_cb(void *ntree_v, void *node_v)
 		BLI_strncpy(node->name, node->id->name+2, 21);
 
 		NodeTagChanged(ntree, node); 
+		addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+node->nr);
 	}
 	node->menunr= 0;
 }
@@ -891,10 +892,26 @@ static int node_composit_buts_alphaover(uiBlock *block, bNodeTree *ntree, bNode 
 		
 		/* alpha type */
 		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "ConvertPremul",
-					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
-					 &node->custom1, 0, 0, 0, 0, "");
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
+				  &node->custom1, 0, 0, 0, 0, "");
 	}
 	return 19;
+}
+
+static int node_composit_buts_hue_sat(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeHueSat *nhs= node->storage;
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Hue ",
+				  butr->xmin, butr->ymin+19.0f, butr->xmax-butr->xmin, 19, 
+				  &nhs->hue, 0.0f, 1.0f, 100, 0, "");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Sat ",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
+				  &nhs->sat, 0.0f, 1.0f, 100, 0, "");
+	}
+	return 38;
 }
 
 
@@ -949,6 +966,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_ALPHAOVER:
 			ntype->butfunc= node_composit_buts_alphaover;
+			break;
+		case CMP_NODE_HUE_SAT:
+			ntype->butfunc= node_composit_buts_hue_sat;
 			break;
 		default:
 			ntype->butfunc= NULL;
@@ -1339,7 +1359,7 @@ static int node_get_colorid(bNode *node)
 	}
 	if(node->typeinfo->nclass==NODE_CLASS_GENERATOR)
 		return TH_NODE_GENERATOR;
-	if(node->typeinfo->nclass==NODE_CLASS_OPERATOR)
+	if(ELEM4(node->typeinfo->nclass, NODE_CLASS_OP_COLOR, NODE_CLASS_OP_VECTOR, NODE_CLASS_OP_FILTER, NODE_CLASS_CONVERTOR))
 		return TH_NODE_OPERATOR;
 	if(node->typeinfo->nclass==NODE_CLASS_GROUP)
 		return TH_NODE_GROUP;
