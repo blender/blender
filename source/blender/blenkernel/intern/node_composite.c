@@ -1291,6 +1291,7 @@ static bNodeType cmp_node_rgb= {
 
 /* **************** Hue Saturation ******************** */
 static bNodeSocketType cmp_node_hue_sat_in[]= {
+	{	SOCK_VALUE, 1, "Fac",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -1299,20 +1300,23 @@ static bNodeSocketType cmp_node_hue_sat_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_hue_sat(bNode *node, float *out, float *in)
+static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 {
 	NodeHueSat *nhs= node->storage;
 	
-	if(nhs->hue!=0.5f || nhs->sat!=1.0) {
-		float hsv[3];
+	if(*fac!=0.0f && (nhs->hue!=0.5f || nhs->sat!=1.0)) {
+		float col[3], hsv[3], mfac= 1.0f - *fac;
 		
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
 		hsv[0]+= (nhs->hue - 0.5f);
 		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
 		hsv[1]*= nhs->sat;
 		if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
-		hsv_to_rgb(hsv[0], hsv[1], hsv[2], out, out+1, out+2);
+		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		
+		out[0]= mfac*in[0] + *fac*col[0];
+		out[1]= mfac*in[1] + *fac*col[1];
+		out[2]= mfac*in[2] + *fac*col[2];
 		out[3]= in[3];
 	}
 	else {
@@ -1322,21 +1326,21 @@ static void do_hue_sat(bNode *node, float *out, float *in)
 
 static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* stack order in: Image */
+	/* stack order in: Fac, Image */
 	/* stack order out: Image */
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
-		do_hue_sat(node, out[0]->vec, in[0]->vec);
+	if(in[1]->data==NULL) {
+		do_hue_sat_fac(node, out[0]->vec, in[1]->vec, in[0]->vec);
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
+		CompBuf *cbuf= in[1]->data;
 		if(cbuf->type==CB_RGBA) {
 			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 			
-			composit1_pixel_processor(node, stackbuf, cbuf, NULL, do_hue_sat);
-			
+			composit2_pixel_processor(node, stackbuf, cbuf, in[1]->vec, in[0]->data, in[0]->vec, do_hue_sat_fac);
+
 			out[0]->data= stackbuf;
 		}
 	}
