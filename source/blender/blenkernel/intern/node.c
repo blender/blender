@@ -793,6 +793,7 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 		else if(type==CMP_NODE_HUE_SAT) {
 			NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
 			node->storage= nhs;
+			nhs->hue= 0.5f;
 			nhs->sat= 1.0f;
 		}
 	}

@@ -32,17 +32,23 @@
 
 #include <stdlib.h>
 
-#include "BKE_nla.h"
-#include "BKE_blender.h"
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
+
 #include "DNA_space_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_action_types.h"
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
-#include "MEM_guardedalloc.h"
+
+#include "BKE_nla.h"
+#include "BKE_action.h"
+#include "BKE_blender.h"
+#include "BKE_library.h"
 #include "BKE_object.h" /* for convert_action_to_strip(ob) */
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

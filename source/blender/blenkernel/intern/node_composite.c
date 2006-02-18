@@ -1303,11 +1303,11 @@ static void do_hue_sat(bNode *node, float *out, float *in)
 {
 	NodeHueSat *nhs= node->storage;
 	
-	if(nhs->hue!=0.0f || nhs->sat!=1.0) {
+	if(nhs->hue!=0.5f || nhs->sat!=1.0) {
 		float hsv[3];
 		
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
-		hsv[0]+= nhs->hue;
+		hsv[0]+= (nhs->hue - 0.5f);
 		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
 		hsv[1]*= nhs->sat;
 		if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
@@ -2314,7 +2314,7 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 	int radx, rady, imgx= img->x, imgy= img->y;
 	int x, y;
 	int i, j;
-	float *src, *dest, *srcd;
+	float *src= NULL, *dest, *srcd= NULL;
 	
 	/* horizontal */
 	radx = fac*(float)nbd->sizex;

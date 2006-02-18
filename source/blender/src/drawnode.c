@@ -909,7 +909,7 @@ static int node_composit_buts_hue_sat(uiBlock *block, bNodeTree *ntree, bNode *n
 				  &nhs->hue, 0.0f, 1.0f, 100, 0, "");
 		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Sat ",
 				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
-				  &nhs->sat, 0.0f, 1.0f, 100, 0, "");
+				  &nhs->sat, 0.0f, 2.0f, 100, 0, "");
 	}
 	return 38;
 }

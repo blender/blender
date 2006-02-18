@@ -1066,6 +1066,9 @@ static void do_render_final(Render *re)
 				
 				if(!re->test_break()) {
 					ntree->stats_draw= render_composit_stats;
+					/* in case it was never initialized */
+					R.stats_draw= re->stats_draw;
+					
 					ntreeCompositExecTree(ntree, &re->r, G.background==0);
 					ntree->stats_draw= NULL;
 				}
