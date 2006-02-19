@@ -9,13 +9,13 @@ BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 WITH_BF_OPENAL = 'true'
 BF_OPENAL = LCGDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
-BF_OPENAL_LIB = 'openal'
+BF_OPENAL_LIB = 'openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_SDL = 'true'
-BF_SDL = '#../extra/SDL-1.2.9' #$(shell sdl-config --prefix)
+BF_SDL = LCGDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
-BF_SDL_LIB = 'SDLmain SDL' #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
+BF_SDL_LIB = 'SDL'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
 WITH_BF_FMOD = 'false'
@@ -24,8 +24,8 @@ BF_FMOD = LCGDIR + '/fmod'
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = LCGDIR + '/gcc/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
-BF_OPENEXR_LIB = ' Iex Half IlmImf Imath '
-BF_OPENEXR_LIBPATH = LCGDIR+'/openexr/lib'
+BF_OPENEXR_LIB = ' Half IlmImf Iex '
+BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 
 WITH_BF_JPEG = 'true'
 BF_JPEG = LCGDIR + '/jpeg'
@@ -45,15 +45,15 @@ BF_TIFF_INC = '${BF_TIFF}/include'
 WITH_BF_ZLIB = 'true'
 BF_ZLIB = LCGDIR + '/zlib'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
-BF_ZLIB_LIB = 'z'
+#BF_ZLIB_LIB = 'z'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = 'true'
 
 BF_GETTEXT = LCGDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'freegettext'
-BF_GETTEXT_LIBPATH = '#../extra/gettext'
+BF_GETTEXT_LIB = 'gnu_gettext'
+BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_FTGL = 'true'
 BF_FTGL = LCGDIR + '/ftgl'
@@ -94,8 +94,8 @@ BF_SOLID_LIB = 'extern_solid'
 #BF_PARANOID = 'true'
 
 # enable freetype2 support for text objects
-BF_FREETYPE = '#../extra/freetype'
-BF_FREETYPE_INC = '${BF_FREETYPE}/include '
+BF_FREETYPE = LCGDIR + '/gcc/freetype'
+BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
@@ -141,7 +141,7 @@ CC_WARN = [ '-Wall', '-W', '-Wshadow', '-Wpointer-arith', '-Wcast-qual', '-Wcast
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm' ] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
+LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
