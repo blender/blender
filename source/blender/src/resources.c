@@ -492,137 +492,139 @@ void BIF_InitTheme(void)
 char *BIF_ThemeColorsPup(int spacetype)
 {
 	char *cp= MEM_callocN(32*32, "theme pup");
-	char str[32];
+	char *str = cp;
 	
 	if(spacetype==0) {
-		sprintf(str, "Outline %%x%d|", TH_BUT_OUTLINE); strcat(cp, str);
-		sprintf(str, "Neutral %%x%d|", TH_BUT_NEUTRAL); strcat(cp, str);
-		sprintf(str, "Action %%x%d|", TH_BUT_ACTION); strcat(cp, str);
-		sprintf(str, "Setting %%x%d|", TH_BUT_SETTING); strcat(cp, str);
-		sprintf(str, "Special Setting 1%%x%d|", TH_BUT_SETTING1); strcat(cp, str);
-		sprintf(str, "Special Setting 2 %%x%d|", TH_BUT_SETTING2); strcat(cp, str);
-		sprintf(str, "Number Input %%x%d|", TH_BUT_NUM); strcat(cp, str);
-		sprintf(str, "Text Input %%x%d|", TH_BUT_TEXTFIELD); strcat(cp, str);
-		sprintf(str, "Text Input Highlight %%x%d|", TH_BUT_TEXTFIELD_HI); strcat(cp, str);
-		sprintf(str, "Popup %%x%d|", TH_BUT_POPUP); strcat(cp, str);
-		sprintf(str, "Text %%x%d|", TH_BUT_TEXT); strcat(cp, str);
-		sprintf(str, "Text Highlight %%x%d|", TH_BUT_TEXT_HI); strcat(cp, str);
-			strcat(cp,"%l|");
-		sprintf(str, "Menu Background %%x%d|", TH_MENU_BACK); strcat(cp, str);
-		sprintf(str, "Menu Item %%x%d|", TH_MENU_ITEM); strcat(cp, str);
-		sprintf(str, "Menu Item Highlight %%x%d|", TH_MENU_HILITE); strcat(cp, str);
-		sprintf(str, "Menu Text %%x%d|", TH_MENU_TEXT); strcat(cp, str);
-		sprintf(str, "Menu Text Highlight %%x%d|", TH_MENU_TEXT_HI); strcat(cp, str);
-		strcat(cp,"%l|");
-		sprintf(str, "Drawtype %%x%d|", TH_BUT_DRAWTYPE); strcat(cp, str);
+		str += sprintf(str, "Outline %%x%d|", TH_BUT_OUTLINE);
+		str += sprintf(str, "Neutral %%x%d|", TH_BUT_NEUTRAL);
+		str += sprintf(str, "Action %%x%d|", TH_BUT_ACTION);
+		str += sprintf(str, "Setting %%x%d|", TH_BUT_SETTING);
+		str += sprintf(str, "Special Setting 1%%x%d|", TH_BUT_SETTING1);
+		str += sprintf(str, "Special Setting 2 %%x%d|", TH_BUT_SETTING2);
+		str += sprintf(str, "Number Input %%x%d|", TH_BUT_NUM);
+		str += sprintf(str, "Text Input %%x%d|", TH_BUT_TEXTFIELD);
+		str += sprintf(str, "Text Input Highlight %%x%d|", TH_BUT_TEXTFIELD_HI);
+		str += sprintf(str, "Popup %%x%d|", TH_BUT_POPUP);
+		str += sprintf(str, "Text %%x%d|", TH_BUT_TEXT);
+		str += sprintf(str, "Text Highlight %%x%d|", TH_BUT_TEXT_HI);
+		str += sprintf(str, "%%l|");
+		str += sprintf(str, "Menu Background %%x%d|", TH_MENU_BACK);
+		str += sprintf(str, "Menu Item %%x%d|", TH_MENU_ITEM);
+		str += sprintf(str, "Menu Item Highlight %%x%d|", TH_MENU_HILITE);
+		str += sprintf(str, "Menu Text %%x%d|", TH_MENU_TEXT);
+		str += sprintf(str, "Menu Text Highlight %%x%d|", TH_MENU_TEXT_HI);
+		str += sprintf(str, "%l|");
+		str += sprintf(str, "Drawtype %%x%d|", TH_BUT_DRAWTYPE);
 	}
 	else {
 		// first defaults for each space
-		sprintf(str, "Background %%x%d|", TH_BACK); strcat(cp, str);
-		sprintf(str, "Text %%x%d|", TH_TEXT); strcat(cp, str);
-		sprintf(str, "Text Highlight %%x%d|", TH_TEXT_HI); strcat(cp, str);
-		sprintf(str, "Header %%x%d|", TH_HEADER); strcat(cp, str);
+		str += sprintf(str, "Background %%x%d|", TH_BACK);
+		str += sprintf(str, "Text %%x%d|", TH_TEXT);
+		str += sprintf(str, "Text Highlight %%x%d|", TH_TEXT_HI);
+		str += sprintf(str, "Header %%x%d|", TH_HEADER);
 		
-		if(spacetype==SPACE_VIEW3D) {
-			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
-			strcat(cp,"%l|");
-			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
-			sprintf(str, "Wire %%x%d|", TH_WIRE); strcat(cp, str);
-			sprintf(str, "Lamp %%x%d|", TH_LAMP); strcat(cp, str);
-			sprintf(str, "Object Selected %%x%d|", TH_SELECT); strcat(cp, str);
-			sprintf(str, "Object Active %%x%d|", TH_ACTIVE); strcat(cp, str);
-			sprintf(str, "Transform %%x%d|", TH_TRANSFORM); strcat(cp, str);
-			strcat(cp,"%l|");
-			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
-			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
-			sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE); strcat(cp, str);
-			sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT); strcat(cp, str);
-			sprintf(str, "Edge Seam %%x%d|", TH_EDGE_SEAM); strcat(cp, str);
-			sprintf(str, "Edge UV Face Select %%x%d|", TH_EDGE_FACESEL); strcat(cp, str);
-			sprintf(str, "Face (transp) %%x%d|", TH_FACE); strcat(cp, str);
-			sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT); strcat(cp, str);
-			sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT); strcat(cp, str);
-			sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE); strcat(cp, str);
-			sprintf(str, "Normal %%x%d|", TH_NORMAL); strcat(cp, str);
-			sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID); strcat(cp, str);
-			sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_IPO) {
-			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
-			strcat(cp,"%l|");
-			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
-			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Ipo Channels %%x%d|", TH_SHADE2); strcat(cp, str);
-			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
-			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_FILE) {
-			sprintf(str, "Selected file %%x%d", TH_HILITE); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_NLA) {
-			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
-			strcat(cp,"%l|");
-			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
-			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Bars %%x%d|", TH_SHADE2); strcat(cp, str);
-			sprintf(str, "Bars selected %%x%d|", TH_HILITE); strcat(cp, str);
-			sprintf(str, "Strips %%x%d|", TH_STRIP); strcat(cp, str);
-			sprintf(str, "Strips selected %%x%d|", TH_STRIP_SELECT); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_ACTION) {
-			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
-			strcat(cp,"%l|");
-			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
-			sprintf(str, "RVK Sliders %%x%d|", TH_FACE); strcat(cp, str);
-			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Channels %%x%d|", TH_SHADE2); strcat(cp, str);
-			sprintf(str, "Channels Selected %%x%d|", TH_HILITE); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_IMAGE) {
-			strcat(cp,"%l|");
-			sprintf(str, "Vertex %%x%d|", TH_VERTEX); strcat(cp, str);
-			sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT); strcat(cp, str);
-			sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE); strcat(cp, str);
-			sprintf(str, "Face %%x%d|", TH_FACE); strcat(cp, str);
-			sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_SEQ) {
-			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
-			sprintf(str, "Window Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_SOUND) {
-			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
-			sprintf(str, "Window Slider %%x%d|", TH_SHADE1); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_BUTS) {
-			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_IMASEL) {
-			sprintf(str, "Main Shade %%x%d|", TH_SHADE1); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_TEXT) {
-			sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1); strcat(cp, str);
-			sprintf(str, "Selected Text %%x%d|", TH_SHADE2); strcat(cp, str);
-			sprintf(str, "Cursor %%x%d|", TH_HILITE); strcat(cp, str);
-			strcat(cp,"%l|");
-			sprintf(str, "Syntax Builtin %%x%d|", TH_SYNTAX_B); strcat(cp, str);
-			sprintf(str, "Syntax Special %%x%d|", TH_SYNTAX_V); strcat(cp, str);
-			sprintf(str, "Syntax Comment %%x%d|", TH_SYNTAX_C); strcat(cp, str);
-			sprintf(str, "Syntax Strings %%x%d|", TH_SYNTAX_L); strcat(cp, str);
-			sprintf(str, "Syntax Numbers %%x%d|", TH_SYNTAX_N); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_TIME) {
-			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
-		}
-		else if(spacetype==SPACE_NODE) {
-			sprintf(str, "Wires %%x%d|", TH_WIRE); strcat(cp, str);
-			sprintf(str, "Wires Select %%x%d|", TH_EDGE_SELECT); strcat(cp, str);
-			strcat(cp,"%l|");
-			sprintf(str, "Node Backdrop %%x%d|", TH_NODE); strcat(cp, str);
-			sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT); strcat(cp, str);
-			sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR); strcat(cp, str);
-			sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR); strcat(cp, str);
-			sprintf(str, "Group Node %%x%d|", TH_NODE_GROUP); strcat(cp, str);
+		switch(spacetype) {
+		case SPACE_VIEW3D:
+			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "Wire %%x%d|", TH_WIRE);
+			str += sprintf(str, "Lamp %%x%d|", TH_LAMP);
+			str += sprintf(str, "Object Selected %%x%d|", TH_SELECT);
+			str += sprintf(str, "Object Active %%x%d|", TH_ACTIVE);
+			str += sprintf(str, "Transform %%x%d|", TH_TRANSFORM);
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
+			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
+			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
+			str += sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT);
+			str += sprintf(str, "Edge Seam %%x%d|", TH_EDGE_SEAM);
+			str += sprintf(str, "Edge UV Face Select %%x%d|", TH_EDGE_FACESEL);
+			str += sprintf(str, "Face (transp) %%x%d|", TH_FACE);
+			str += sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT);
+			str += sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT);
+			str += sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE);
+			str += sprintf(str, "Normal %%x%d|", TH_NORMAL);
+			str += sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID);
+			str += sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE);
+			break;
+		case SPACE_IPO:
+			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "Window Sliders %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Ipo Channels %%x%d|", TH_SHADE2);
+			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
+			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
+			break;
+		case SPACE_FILE:
+			str += sprintf(str, "Selected file %%x%d", TH_HILITE);
+			break;
+		case SPACE_NLA:
+			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Bars %%x%d|", TH_SHADE2);
+			str += sprintf(str, "Bars selected %%x%d|", TH_HILITE);
+			str += sprintf(str, "Strips %%x%d|", TH_STRIP);
+			str += sprintf(str, "Strips selected %%x%d|", TH_STRIP_SELECT);
+			break;
+		case SPACE_ACTION:
+			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "RVK Sliders %%x%d|", TH_FACE);
+			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Channels %%x%d|", TH_SHADE2);
+			str += sprintf(str, "Channels Selected %%x%d|", TH_HILITE);
+			break;
+		case SPACE_IMAGE:
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
+			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
+			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
+			str += sprintf(str, "Face %%x%d|", TH_FACE);
+			str += sprintf(str, "Face Selected %%x%d", TH_FACE_SELECT);
+			break;
+		case SPACE_SEQ:
+			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "Window Sliders %%x%d|", TH_SHADE1);
+			break;
+		case SPACE_SOUND:
+			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "Window Slider %%x%d|", TH_SHADE1);
+			break;
+		case SPACE_BUTS:
+			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
+			break;
+		case SPACE_IMASEL:
+			str += sprintf(str, "Main Shade %%x%d|", TH_SHADE1);
+			break;
+		case SPACE_TEXT:
+			str += sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Selected Text %%x%d|", TH_SHADE2);
+			str += sprintf(str, "Cursor %%x%d|", TH_HILITE);
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Syntax Builtin %%x%d|", TH_SYNTAX_B);
+			str += sprintf(str, "Syntax Special %%x%d|", TH_SYNTAX_V);
+			str += sprintf(str, "Syntax Comment %%x%d|", TH_SYNTAX_C);
+			str += sprintf(str, "Syntax Strings %%x%d|", TH_SYNTAX_L);
+			str += sprintf(str, "Syntax Numbers %%x%d|", TH_SYNTAX_N);
+			break;
+		case SPACE_TIME:
+			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			break;
+		case SPACE_NODE:
+			str += sprintf(str, "Wires %%x%d|", TH_WIRE);
+			str += sprintf(str, "Wires Select %%x%d|", TH_EDGE_SELECT);
+			str += sprintf(str, "%l|");
+			str += sprintf(str, "Node Backdrop %%x%d|", TH_NODE);
+			str += sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT);
+			str += sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR);
+			str += sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR);
+			str += sprintf(str, "Group Node %%x%d|", TH_NODE_GROUP);
+			break;
 		}
 	}
 	return cp;

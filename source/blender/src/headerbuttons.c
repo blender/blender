@@ -184,41 +184,42 @@
 char *windowtype_pup(void)
 {
 	static char string[1024];
+	char *str = string;
 
-	strcpy(string, "Window type:%t"); //14
-	strcat(string, "|3D View %x1"); //30
+	str += sprintf(str, "%s", "Window type:%t"); //14
+	str += sprintf(str, "%s", "|3D View %x1"); //30
 
-	strcat(string, "|%l"); // 33
+	str += sprintf(str, "%s", "|%l"); // 33
 
-	strcat(string, "|Ipo Curve Editor %x2"); //54
-	strcat(string, "|Action Editor %x12"); //73
-	strcat(string, "|NLA Editor %x13"); //94
+	str += sprintf(str, "%s", "|Ipo Curve Editor %x2"); //54
+	str += sprintf(str, "%s", "|Action Editor %x12"); //73
+	str += sprintf(str, "%s", "|NLA Editor %x13"); //94
 
-	strcat(string, "|%l"); //97
+	str += sprintf(str, "%s", "|%l"); //97
 
-	strcat(string, "|UV/Image Editor %x6"); //117
+	str += sprintf(str, "%s", "|UV/Image Editor %x6"); //117
 
-	strcat(string, "|Video Sequence Editor %x8"); //143
-	strcat(string, "|Timeline %x15"); //163
-	strcat(string, "|Audio Window %x11"); //163
-	strcat(string, "|Text Editor %x9"); //179
+	str += sprintf(str, "%s", "|Video Sequence Editor %x8"); //143
+	str += sprintf(str, "%s", "|Timeline %x15"); //163
+	str += sprintf(str, "%s", "|Audio Window %x11"); //163
+	str += sprintf(str, "%s", "|Text Editor %x9"); //179
 
-	strcat(string, "|%l"); //192
+	str += sprintf(str, "%s", "|%l"); //192
 
 
-	strcat(string, "|User Preferences %x7"); //213
-	strcat(string, "|Outliner %x3"); //232
-	strcat(string, "|Buttons Window %x4"); //251
-	strcat(string, "|Node Editor %x16");
+	str += sprintf(str, "%s", "|User Preferences %x7"); //213
+	str += sprintf(str, "%s", "|Outliner %x3"); //232
+	str += sprintf(str, "%s", "|Buttons Window %x4"); //251
+	str += sprintf(str, "%s", "|Node Editor %x16");
 
-	strcat(string, "|%l"); //254
+	str += sprintf(str, "%s", "|%l"); //254
 
-	strcat(string, "|Image Browser %x10"); //273
-	strcat(string, "|File Browser %x5"); //290
+	str += sprintf(str, "%s", "|Image Browser %x10"); //273
+	str += sprintf(str, "%s", "|File Browser %x5"); //290
 
-	strcat(string, "|%l"); //293
+	str += sprintf(str, "%s", "|%l"); //293
 
-	strcat(string, "|Scripts Window %x14"); //313
+	str += sprintf(str, "%s", "|Scripts Window %x14"); //313
 
 	return (string);
 }

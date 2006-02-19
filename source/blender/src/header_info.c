@@ -243,51 +243,37 @@ int buttons_do_unpack()
 {
 	int how;
 	char menu[2048];
-	char line[128];
+	char *line = menu;
 	int ret_value = RET_OK, count = 0;
 
 	count = countPackedFiles();
 
-	if (count) {
-		if (count == 1) {
-			sprintf(menu, "Unpack 1 file%%t");
-		} else {
-			sprintf(menu, "Unpack %d files%%t", count);
-		}
-		
-		sprintf(line, "|Use files in current directory (create when necessary)%%x%d", PF_USE_LOCAL);
-		strcat(menu, line);
-	
-		sprintf(line, "|Write files to current directory (overwrite existing files)%%x%d", PF_WRITE_LOCAL);
-		strcat(menu, line);
-	
-		sprintf(line, "|%%l|Use files in original location (create when necessary)%%x%d", PF_USE_ORIGINAL);
-		strcat(menu, line);
-	
-		sprintf(line, "|Write files to original location (overwrite existing files)%%x%d", PF_WRITE_ORIGINAL);
-		strcat(menu, line);
-	
-		sprintf(line, "|%%l|Disable AutoPack, keep all packed files %%x%d", PF_KEEP);
-		strcat(menu, line);
-	
-		sprintf(line, "|Ask for each file %%x%d", PF_ASK);
-		strcat(menu, line);
-		
-		how = pupmenu(menu);
-		
-		if(how != -1) {
-			if (how != PF_KEEP) {
-				unpackAll(how);
-			}
-			G.fileflags &= ~G_AUTOPACK;
-		} else {
-			ret_value = RET_CANCEL;
-		}
-	} else {
+	if(!count) {
 		pupmenu("No packed files. Autopack disabled");
+		return ret_value;
 	}
+	if (count == 1)
+		line += sprintf(line, "Unpack 1 file%%t");
+	else
+		line += sprintf(line, "Unpack %d files%%t", count);
 	
-	return (ret_value);
+	line += sprintf(line, "|Use files in current directory (create when necessary)%%x%d", PF_USE_LOCAL);
+	line += sprintf(line, "|Write files to current directory (overwrite existing files)%%x%d", PF_WRITE_LOCAL);
+	line += sprintf(line, "|%%l|Use files in original location (create when necessary)%%x%d", PF_USE_ORIGINAL);
+	line += sprintf(line, "|Write files to original location (overwrite existing files)%%x%d", PF_WRITE_ORIGINAL);
+	line += sprintf(line, "|%%l|Disable AutoPack, keep all packed files %%x%d", PF_KEEP);
+	line += sprintf(line, "|Ask for each file %%x%d", PF_ASK);
+
+	how = pupmenu(menu);
+
+	if(how == -1)
+		ret_value = RET_CANCEL;
+	else {
+		if (how != PF_KEEP) unpackAll(how);
+		G.fileflags &= ~G_AUTOPACK;
+ 	}
+ 	
+	return ret_value;
 }
 
 /* here, because of all creator stuff */
@@ -550,8 +536,7 @@ static int write_runtime(char *str, char *exename)
 #endif
 	if (ext && (!BLI_testextensie(str, ext))) {
 		freestr= MEM_mallocN(strlen(str) + strlen(ext) + 1, "write_runtime_check");
-		strcpy(freestr, str);
-		strcat(freestr, ext);
+		sprintf(freestr,"%s%s", str, ext);
 		str= freestr;
 	}
 

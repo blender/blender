@@ -117,39 +117,26 @@ static int packdummy = 0;
 
 static char *mapto_blendtype_pup(void)
 {
+	static char formatstr[] = "|%s %%x%d";
 	static char string[1024];
-	char formatstr[1024];
-	char tempstr[1024];
+	char *str = string;
 	
-	strcpy(string, "Blending Mode: %t");
-	strcpy(formatstr, "|%s %%x%d");
-	
-	sprintf(tempstr, formatstr, "Mix", MTEX_BLEND);
-	strcat(string, tempstr);
+	str += sprintf(str, "Mix", MTEX_BLEND);
 
-	sprintf(tempstr, formatstr, "Add", MTEX_ADD);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Subtract", MTEX_SUB);
-	strcat(string, tempstr);
+	str += sprintf(str, "Add", MTEX_ADD);
+	str += sprintf(str, "Subtract", MTEX_SUB);
 
-	sprintf(tempstr, formatstr, "Multiply", MTEX_MUL);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Screen", MTEX_SCREEN);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Overlay", MTEX_OVERLAY);
-	strcat(string, tempstr);
+	str += sprintf(str, "Multiply", MTEX_MUL);
+	str += sprintf(str, "Screen", MTEX_SCREEN);
+	str += sprintf(str, "Overlay", MTEX_OVERLAY);
 	
-	sprintf(tempstr, formatstr, "Difference", MTEX_DIFF);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Divide", MTEX_DIV);
-	strcat(string, tempstr);
+	str += sprintf(str, "Difference", MTEX_DIFF);
+	str += sprintf(str, "Divide", MTEX_DIV);
 	
-	sprintf(tempstr, formatstr, "Darken", MTEX_DARK);
-	strcat(string, tempstr);
-	sprintf(tempstr, formatstr, "Lighten", MTEX_LIGHT);
-	strcat(string, tempstr);
+	str += sprintf(str, "Darken", MTEX_DARK);
+	str += sprintf(str, "Lighten", MTEX_LIGHT);
 
-	return (string);
+	return string;
 }
 
 void shade_buttons_change_3d(void)

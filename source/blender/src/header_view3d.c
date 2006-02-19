@@ -3838,14 +3838,12 @@ static char *view3d_modeselect_pup(void)
 {
 	Object *ob= OBACT;
 	static char string[1024];
-	char formatstr[1024];
-	char tempstr[1024];
+	static char formatstr[] = "|%s %%x%d %%i%d";
+	char *str = string;
+
+	str += sprintf(str, "Mode: %%t");
 	
-	strcpy(string, "Mode: %t");
-	strcpy(formatstr, "|%s %%x%d %%i%d");
-	
-	sprintf(tempstr, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT);
-	strcat(string, tempstr);
+	str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT);
 	
 	if(ob==NULL) return string;
 	
@@ -3854,27 +3852,21 @@ static char *view3d_modeselect_pup(void)
 		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
-		sprintf(tempstr, formatstr, "Edit Mode", V3D_EDITMODE_SEL, ICON_EDITMODE_HLT);
-		strcat(string, tempstr);
+		str += sprintf(str, formatstr, "Edit Mode", V3D_EDITMODE_SEL, ICON_EDITMODE_HLT);
 	}
 
 	if (ob->type == OB_MESH) {
 	
-		sprintf(tempstr, formatstr, "UV Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
-		strcat(string, tempstr);
-		sprintf(tempstr, formatstr, "Vertex Paint", V3D_VERTEXPAINTMODE_SEL, ICON_VPAINT_HLT);
-		strcat(string, tempstr);
-		sprintf(tempstr, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
-		strcat(string, tempstr);
-		sprintf(tempstr, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
-		strcat(string, tempstr);
+		str += sprintf(str, formatstr, "UV Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
+		str += sprintf(str, formatstr, "Vertex Paint", V3D_VERTEXPAINTMODE_SEL, ICON_VPAINT_HLT);
+		str += sprintf(str, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
+		str += sprintf(str, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
 	}
 
 	
 	/* if active object is an armature */
 	if (ob->type==OB_ARMATURE) {
-		sprintf(tempstr, formatstr, "Pose Mode", V3D_POSEMODE_SEL, ICON_POSE_HLT);
-		strcat(string, tempstr);
+		str += sprintf(str, formatstr, "Pose Mode", V3D_POSEMODE_SEL, ICON_POSE_HLT);
 	}
 	
 	return (string);
@@ -3883,41 +3875,44 @@ static char *view3d_modeselect_pup(void)
 
 static char *drawtype_pup(void)
 {
-	static char string[512];
-
-	strcpy(string, "Draw type: %t"); 
-	strcat(string, "|Bounding Box %x1"); 
-	strcat(string, "|Wireframe %x2");
-	strcat(string, "|Solid %x3");
-	strcat(string, "|Shaded %x4");
-	strcat(string, "|Textured %x5");
-	return (string);
+ 	static char string[512];
+ 	char *str = string;
+	
+	str += sprintf(str, "%s", "Draw type: %t"); 
+	str += sprintf(str, "%s", "|Bounding Box %x1"); 
+	str += sprintf(str, "%s", "|Wireframe %x2");
+	str += sprintf(str, "%s", "|Solid %x3");
+	str += sprintf(str, "%s", "|Shaded %x4");
+	str += sprintf(str, "%s", "|Textured %x5");
+	return string;
 }
 static char *around_pup(void)
 {
 	static char string[512];
+	char *str = string;
 
-	strcpy(string, "Pivot: %t"); 
-	strcat(string, "|Bounding Box Center %x0"); 
-	strcat(string, "|Median Point %x3");
-	strcat(string, "|3D Cursor %x1");
-	strcat(string, "|Individual Centers %x2");
-	strcat(string, "|Active Object %x4");
-	return (string);
+	str += sprintf(str, "%s", "Pivot: %t"); 
+	str += sprintf(str, "%s", "|Bounding Box Center %x0"); 
+	str += sprintf(str, "%s", "|Median Point %x3");
+	str += sprintf(str, "%s", "|3D Cursor %x1");
+	str += sprintf(str, "%s", "|Individual Centers %x2");
+	str += sprintf(str, "%s", "|Active Object %x4");
+	return string;
 }
 
 static char *propfalloff_pup(void)
 {
 	static char string[512];
-
-	strcpy(string, "Falloff: %t"); 
-	strcat(string, "|Smooth Falloff%x0");
-	strcat(string, "|Sphere Falloff%x1");
-	strcat(string, "|Root Falloff%x2"); 
-	strcat(string, "|Sharp Falloff%x3"); 
-	strcat(string, "|Linear Falloff%x4");
-	strcat(string, "|Constant, No Falloff%x5");
-	return (string);
+	char *str = string;
+	
+	str += sprintf(str, "%s", "Falloff: %t"); 
+	str += sprintf(str, "%s", "|Smooth Falloff%x0");
+	str += sprintf(str, "%s", "|Sphere Falloff%x1");
+	str += sprintf(str, "%s", "|Root Falloff%x2"); 
+	str += sprintf(str, "%s", "|Sharp Falloff%x3"); 
+	str += sprintf(str, "%s", "|Linear Falloff%x4");
+	str += sprintf(str, "%s", "|Constant, No Falloff%x5");
+	return string;
 }
 
 

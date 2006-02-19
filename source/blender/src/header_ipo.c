@@ -763,67 +763,44 @@ static uiBlock *ipo_selectmenu(void *arg_unused)
 static char *ipo_modeselect_pup(void)
 {
 	Object *ob= OBACT;
+	static char formatstring[] = "|%s %%x%d %%i%d";
 	static char string[1024];
-	char tmpstr[1024];
-	char formatstring[1024];
+	char *str = string;
+ 	
+	str += sprintf(str, "Ipo type: %%t");
 
-	strcpy(string, "Ipo type: %t");
+	if(ob)
+		str += sprintf(str,formatstring, "Object",ID_OB, ICON_OBJECT);
+
+	if(ob && give_current_material(ob, ob->actcol)) // check for material
+		str += sprintf(str,formatstring, "Material",ID_MA, ICON_MATERIAL);
+
+	if(G.scene->world)
+		str += sprintf(str,formatstring, "World",ID_WO, ICON_WORLD);
+
+	if(ob && ob->type==OB_CURVE)
+		str += sprintf(str,formatstring, "Path",ID_CU, ICON_CURVE);
+
+	if(ob && ob->type==OB_CAMERA)
+		str += sprintf(str,formatstring, "Camera",ID_CA, ICON_CAMERA);
 	
-	strcpy(formatstring, "|%s %%x%d %%i%d");
+	if(ob && ob->type==OB_LAMP)
+		str += sprintf(str,formatstring, "Lamp",ID_LA, ICON_LAMP);
 
-	if(ob) {
-		sprintf(tmpstr,formatstring,"Object",ID_OB, ICON_OBJECT);
-		strcat(string,tmpstr);
-	}
-
-	if(ob && give_current_material(ob, ob->actcol)) { // check for material
-		sprintf(tmpstr,formatstring,"Material",ID_MA, ICON_MATERIAL);
-		strcat(string,tmpstr);
-	}
-
-	if(G.scene->world) {
-		sprintf(tmpstr,formatstring,"World",ID_WO, ICON_WORLD);
-		strcat(string,tmpstr);
-	}
-
-	if(ob && ob->type==OB_CURVE) {
-		sprintf(tmpstr,formatstring,"Path",ID_CU, ICON_CURVE);
-		strcat(string,tmpstr);
-	}
-
-	if(ob && ob->type==OB_CAMERA) {
-		sprintf(tmpstr,formatstring,"Camera",ID_CA, ICON_CAMERA);
-		strcat(string,tmpstr);
-	}
-	
-	if(ob && ob->type==OB_LAMP) {
-		sprintf(tmpstr,formatstring,"Lamp",ID_LA, ICON_LAMP);
-		strcat(string,tmpstr);
-	}
-
-	if(ob && give_current_texture(ob, ob->actcol)) {
-		sprintf(tmpstr,formatstring,"Texture",ID_TE, ICON_TEXTURE);
-		strcat(string,tmpstr);
-	}
+	if(ob && give_current_texture(ob, ob->actcol))
+		str += sprintf(str,formatstring, "Texture",ID_TE, ICON_TEXTURE);
 
 	if(ob){
-		if ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
-			sprintf(tmpstr,formatstring,"Shape",ID_KE, ICON_EDIT);
-			strcat(string,tmpstr);
-		}
-		if (ob->type==OB_ARMATURE){
-			sprintf(tmpstr,formatstring,"Pose",ID_PO, ICON_POSE_HLT);
-			strcat(string,tmpstr);
-		}
+		if ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)
+			str += sprintf(str,formatstring, "Shape",ID_KE, ICON_EDIT);
+		if (ob->type==OB_ARMATURE)
+			str += sprintf(str,formatstring, "Pose",ID_PO, ICON_POSE_HLT);
 #ifdef __CON_IPO
-		sprintf(tmpstr,formatstring,"Constraint",ID_CO, ICON_CONSTRAINT);
-		strcat(string,tmpstr);
+		str += sprintf(str,formatstring, "Constraint",ID_CO, ICON_CONSTRAINT);
 #endif
 	}
 
-	sprintf(tmpstr,formatstring,"Sequence",ID_SEQ, ICON_SEQUENCE);
-	strcat(string,tmpstr);
-
+	str += sprintf(str,formatstring, "Sequence",ID_SEQ, ICON_SEQUENCE);
 
 	return (string);
 }
