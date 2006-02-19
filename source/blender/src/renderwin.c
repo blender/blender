@@ -806,7 +806,8 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 	glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
 					  GL_RGBA, GL_FLOAT, rectf);
 	glPixelZoom(1.0, 1.0);
-//	glFlush();
+	
+	/* no glFlush(); here... threads render hates it! */
 	glFinish();
 	glDrawBuffer(GL_BACK);
 }
@@ -855,7 +856,9 @@ static void printrenderinfo_cb(RenderStats *rs)
 		render_win->render_text= BLI_strdup(str);
 		glDrawBuffer(GL_FRONT);
 		renderwin_draw_render_info(render_win);
-		glFlush();
+		
+		/* no glFlush(); here... threads render hates it! */
+		glFinish();
 		glDrawBuffer(GL_BACK);
 	}
 
