@@ -105,6 +105,13 @@ typedef struct bMinMaxConstraint{
 	char		subtarget[32];
 } bMinMaxConstraint;
 
+typedef struct bSizeLikeConstraint{
+	Object		*tar;
+	int			flag;
+	int			reserved1;
+	char		subtarget[32];
+} bSizeLikeConstraint;
+
 typedef struct bActionConstraint{
 	Object		*tar;
 	short		type;
@@ -174,7 +181,7 @@ typedef struct bStretchToConstraint{
 #define CONSTRAINT_TYPE_SIZELIMIT	7	/* Unimplemented */
 #define CONSTRAINT_TYPE_ROTLIKE		8	
 #define CONSTRAINT_TYPE_LOCLIKE		9	
-#define CONSTRAINT_TYPE_SIZELIKE	10	/* Unimplemented */
+#define CONSTRAINT_TYPE_SIZELIKE	10
 #define CONSTRAINT_TYPE_PYTHON		11	/* Unimplemented */
 #define CONSTRAINT_TYPE_ACTION		12
 #define CONSTRAINT_TYPE_LOCKTRACK	13	/* New Tracking constraint that locks an axis in place - theeth */
@@ -208,6 +215,12 @@ typedef struct bStretchToConstraint{
 #define LOCLIKE_Y		0x02
 #define LOCLIKE_Z		0x04
 #define LOCSPACE		0x08
+ 
+/* bSizeLikeConstraint.flag */
+#define SIZELIKE_X		0x01
+#define SIZELIKE_Y		0x02
+#define SIZELIKE_Z		0x04
+#define SIZESPACE		0x08
 
 /* Axis flags */
 #define LOCK_X		0x00

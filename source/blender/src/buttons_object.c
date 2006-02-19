@@ -334,6 +334,9 @@ static void get_constraint_typestring (char *str, bConstraint *con)
 	case CONSTRAINT_TYPE_LOCLIKE:
 		strcpy (str, "Copy Location");
 		return;
+	case CONSTRAINT_TYPE_SIZELIKE:
+		strcpy (str, "Copy Size");
+		return;
 	case CONSTRAINT_TYPE_ACTION:
 		strcpy (str, "Action");
 		return;
@@ -366,6 +369,8 @@ static int get_constraint_col(bConstraint *con)
 	case CONSTRAINT_TYPE_LOCLIKE:
 		return TH_BUT_POPUP;
 	case CONSTRAINT_TYPE_MINMAX:
+		return TH_BUT_POPUP;
+	case CONSTRAINT_TYPE_SIZELIKE:
 		return TH_BUT_POPUP;
 	case CONSTRAINT_TYPE_ACTION:
 		return TH_BUT_ACTION;
@@ -686,6 +691,38 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 			}
 			break;
+		case CONSTRAINT_TYPE_SIZELIKE:
+			{
+				bSizeLikeConstraint *data = con->data;
+				bArmature *arm;
+				height = 66;
+			
+				BIF_ThemeColor(curCol);
+				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else
+					strcpy (data->subtarget, "");
+				uiBlockEndAlign(block);
+
+				/* Draw XYZ toggles */
+				uiBlockBeginAlign(block);
+				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+				but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+				but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				uiBlockEndAlign(block);
+			}
+ 			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data = con->data;
@@ -977,6 +1014,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIKE,"Copy Location",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIKE,"Copy Rotation",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SIZELIKE,"Copy Size",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1080,6 +1118,16 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_LOCLIKE);
 			add_constraint_to_active(ob, con);
 
+			BIF_undo_push("Add constraint");
+		}
+		break;
+ 	case B_CONSTRAINT_ADD_SIZELIKE:
+ 		{
+ 			bConstraint *con;
+ 
+ 			con = add_new_constraint(CONSTRAINT_TYPE_SIZELIKE);
+			add_constraint_to_active(ob, con);
+  
 			BIF_undo_push("Add constraint");
 		}
 		break;

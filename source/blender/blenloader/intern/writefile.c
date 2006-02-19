@@ -647,6 +647,9 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 		case CONSTRAINT_TYPE_LOCLIKE:
 			writestruct(wd, DATA, "bLocateLikeConstraint", 1, con->data);
 			break;
+		case CONSTRAINT_TYPE_SIZELIKE:
+			writestruct(wd, DATA, "bSizeLikeConstraint", 1, con->data);
+			break;
 		case CONSTRAINT_TYPE_ACTION:
 			writestruct(wd, DATA, "bActionConstraint", 1, con->data);
 			break;

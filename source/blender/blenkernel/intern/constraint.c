@@ -181,6 +181,14 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 				break;
+	 		case CONSTRAINT_TYPE_SIZELIKE:
+ 			{
+ 				bSizeLikeConstraint *data;
+ 				data = con->data;
+ 
+ 				ID_NEW(data->tar);
+ 			}
+ 				break;
 			case CONSTRAINT_TYPE_FOLLOWPATH:
 			{
 				bFollowPathConstraint *data;
@@ -281,6 +289,13 @@ char constraint_has_target (bConstraint *con)
 				return 1;
 		}
 		break;
+	case CONSTRAINT_TYPE_SIZELIKE:
+		{
+			bSizeLikeConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
 	case CONSTRAINT_TYPE_MINMAX:
 		{
 			bMinMaxConstraint *data = con->data;
@@ -338,6 +353,12 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 		{
 			bRotateLikeConstraint *data = con->data;
 			*subtarget= data->subtarget;
+			return data->tar;
+		}
+		break;
+	case CONSTRAINT_TYPE_SIZELIKE:
+		{
+			bSizeLikeConstraint *data = con->data;
 			return data->tar;
 		}
 		break;
@@ -414,6 +435,13 @@ void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 		case CONSTRAINT_TYPE_ROTLIKE:
 		{
 			bRotateLikeConstraint *data = con->data;
+			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
+		}
+			break;
+		case CONSTRAINT_TYPE_SIZELIKE:
+		{
+			bSizeLikeConstraint *data = con->data;
 			data->tar= ob;
 			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
@@ -572,6 +600,15 @@ void *new_constraint_data (short type)
 			bLocateLikeConstraint *data;
 			data = MEM_callocN(sizeof(bLocateLikeConstraint), "loclikeConstraint");
 			data->flag = LOCLIKE_X|LOCLIKE_Y|LOCLIKE_Z;
+			result = data;
+		}
+		break;
+	case CONSTRAINT_TYPE_SIZELIKE:
+		{
+			bSizeLikeConstraint *data;
+			data = MEM_callocN(sizeof(bLocateLikeConstraint), "sizelikeConstraint");
+
+			data->flag |= SIZELIKE_X|SIZELIKE_Y|SIZELIKE_Z;
 			result = data;
 		}
 		break;
@@ -890,6 +927,21 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				Mat4One (mat);
 		} 
 		break;
+	case CONSTRAINT_TYPE_SIZELIKE:
+		{
+			bSizeLikeConstraint *data;
+			data = (bSizeLikeConstraint*)con->data;
+
+			if (data->tar){
+				/*	Update the location of the target object */
+				where_is_object_time (data->tar, ctime);	
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				valid=1;
+			}
+			else
+				Mat4One (mat);
+		} 
+		break;
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data;
@@ -1101,6 +1153,24 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			ob->obmat[2][2] = tmat[2][2]*size[2];
 		}
 		break;
+ 	case CONSTRAINT_TYPE_SIZELIKE:
+ 		{
+ 			float obsize[3], size[3];
+ 			bSizeLikeConstraint *data;
+ 
+ 			data = constraint->data;
+ 
+ 			Mat4ToSize(targetmat, size);
+ 			Mat4ToSize(ob->obmat, obsize);
+ 			
+ 			if (data->flag & SIZELIKE_X && obsize[0] != 0)
+ 				VecMulf(ob->obmat[0], size[0] / obsize[0]);
+ 			if (data->flag & SIZELIKE_Y && obsize[1] != 0)
+ 				VecMulf(ob->obmat[1], size[1] / obsize[1]);
+ 			if (data->flag & SIZELIKE_Z && obsize[2] != 0)
+ 				VecMulf(ob->obmat[2], size[2] / obsize[2]);
+  		}
+  		break;
 	case CONSTRAINT_TYPE_NULL:
 		{
 		}

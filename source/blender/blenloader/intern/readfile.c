@@ -1399,6 +1399,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			};
 			break;
+		case CONSTRAINT_TYPE_SIZELIKE:
+			{
+				bSizeLikeConstraint *data;
+				data= ((bSizeLikeConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			};
+			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data;
@@ -5716,6 +5723,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_ROTLIKE:
 			{
 				bRotateLikeConstraint *data = (bRotateLikeConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				break;
+			}
+		case CONSTRAINT_TYPE_SIZELIKE:
+			{
+				bSizeLikeConstraint *data = (bSizeLikeConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 				break;
 			}
