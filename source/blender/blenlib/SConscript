@@ -3,6 +3,7 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
+cflags=''
 incs = '. ../makesdna ../blenkernel #/intern/guardedalloc ../include'
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']
@@ -12,4 +13,7 @@ defs = ''
 if env['WITH_BF_INTERNATIONAL'] == 1:
     defs = 'WITH_FREETYPE2'
 
-env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [85,195] )
+if env['OURPLATFORM'] == 'linux2':
+    cflags='-pthread'
+
+env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [85,195], compileflags =cflags )

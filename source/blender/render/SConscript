@@ -1,6 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
+cflags=''
 sources = env.Glob('intern/source/*.c')
 
 incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna'
@@ -12,10 +13,13 @@ incs += ' ' + env['BF_SDL_INC']
 defs = []
 
 if env['WITH_BF_QUICKTIME'] == 1:
-	defs.append('WITH_QUICKTIME')
-	incs += ' ' + env['BF_QUICKTIME_INC']
+    defs.append('WITH_QUICKTIME')
+    incs += ' ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_FFMPEG'] == 1:
     defs.append('WITH_FFMPEG')
 
-env.BlenderLib ( libname = 'blender_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=45 )
+if env['OURPLATFORM']=='linux2':
+    cflags='-pthread'
+
+env.BlenderLib ( libname = 'blender_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=45, compileflags=cflags )
