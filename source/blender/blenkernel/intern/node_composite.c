@@ -1781,6 +1781,7 @@ static bNodeType cmp_node_setalpha= {
 
 /* **************** ALPHAOVER ******************** */
 static bNodeSocketType cmp_node_alphaover_in[]= {
+	{	SOCK_VALUE, 0, "Fac",			1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
@@ -1790,44 +1791,44 @@ static bNodeSocketType cmp_node_alphaover_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_alphaover_premul(bNode *node, float *out, float *src, float *over)
+static void do_alphaover_premul(bNode *node, float *out, float *src, float *over, float fac)
 {
 	
 	if(over[3]<=0.0f) {
 		QUATCOPY(out, src);
 	}
-	else if(over[3]>=1.0f) {
+	else if(fac==1.0f && over[3]>=1.0f) {
 		QUATCOPY(out, over);
 	}
 	else {
-		float mul= 1.0f - over[3];
+		float mul= 1.0f - fac*over[3];
 
-		out[0]= (mul*src[0]) + over[0];
-		out[1]= (mul*src[1]) + over[1];
-		out[2]= (mul*src[2]) + over[2];
-		out[3]= (mul*src[3]) + over[3];
+		out[0]= (mul*src[0]) + fac*over[0];
+		out[1]= (mul*src[1]) + fac*over[1];
+		out[2]= (mul*src[2]) + fac*over[2];
+		out[3]= (mul*src[3]) + fac*over[3];
 	}	
 }
 
 /* result will be still premul, but the over part is premulled */
-static void do_alphaover_key(bNode *node, float *out, float *src, float *over)
+static void do_alphaover_key(bNode *node, float *out, float *src, float *over, float fac)
 {
 	
 	if(over[3]<=0.0f) {
 		QUATCOPY(out, src);
 	}
-	else if(over[3]>=1.0f) {
+	else if(fac==1.0f && over[3]>=1.0f) {
 		QUATCOPY(out, over);
 	}
 	else {
-		float premul= over[3];
+		float premul= fac*over[3];
 		float mul= 1.0f - premul;
 
 		out[0]= (mul*src[0]) + premul*over[0];
 		out[1]= (mul*src[1]) + premul*over[1];
 		out[2]= (mul*src[2]) + premul*over[2];
 		out[3]= (mul*src[3]) + premul*over[3];
-	}	
+	}
 }
 
 
@@ -1839,18 +1840,18 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 		return;
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
-		do_alphaover_premul(node, out[0]->vec, in[0]->vec, in[1]->vec);
+	if(in[1]->data==NULL) {
+		do_alphaover_premul(node, out[0]->vec, in[1]->vec, in[2]->vec, in[0]->vec[0]);
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
+		CompBuf *cbuf= in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
 		if(node->custom1)
-			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_alphaover_key);
+			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_key);
 		else
-			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_alphaover_premul);
+			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_premul);
 		
 		out[0]->data= stackbuf;
 	}
