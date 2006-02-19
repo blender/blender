@@ -579,6 +579,7 @@ void *add_lamp(void)
 	la->soft= 3.0;
 	la->ray_samp= la->ray_sampy= la->ray_sampz= 1; 
 	la->area_size=la->area_sizey=la->area_sizez= 1.0; 
+	la->buffers= 1;
 	
 	return la;
 }

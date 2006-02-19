@@ -111,22 +111,44 @@ static void snode_drawstring(SpaceNode *snode, char *str, int okwidth)
 
 /* **************  Socket callbacks *********** */
 
-/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
-/* also: butpoin is to the first element of socket nodestack struct */
-static uiBlock *socket_vector_menu(void *butpoin_v)
+static void socket_vector_menu_cb(void *node_v, void *ntree_v)
 {
-	bNodeStack *ns= butpoin_v;
+	NodeTagChanged(ntree_v, node_v); 
+	addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+((bNode *)node_v)->nr);
+}
+
+/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
+static uiBlock *socket_vector_menu(void *socket_v)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	bNode *node;
+	bNodeSocket *sock= socket_v;
+	bNodeStack *ns= &sock->ns;
 	uiBlock *block;
+	uiBut *bt;
+	
+	/* a bit ugly... retrieve the node the socket comes from */
+	for(node= snode->nodetree->nodes.first; node; node= node->next) {
+		bNodeSocket *sockt;
+		for(sockt= node->inputs.first; sockt; sockt= sockt->next)
+			if(sockt==sock)
+				break;
+		if(sockt)
+			break;
+	}
 	
 	block= uiNewBlock(&curarea->uiblocks, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
-	
+
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "X ",	 0,40,180,20, ns->vec, ns->min, ns->max, 10, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Y ",	 0,20,180,20, ns->vec+1, ns->min, ns->max, 10, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Z ",	 0,0,180,20, ns->vec+2, ns->min, ns->max, 10, 0, "");
+	bt= uiDefButF(block, NUMSLI, 0, "X ",	 0,40,180,20, ns->vec, ns->min, ns->max, 10, 0, "");
+	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
+	bt= uiDefButF(block, NUMSLI, 0, "Y ",	 0,20,180,20, ns->vec+1, ns->min, ns->max, 10, 0, "");
+	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
+	bt= uiDefButF(block, NUMSLI, 0, "Z ",	 0,0,180,20, ns->vec+2, ns->min, ns->max, 10, 0, "");
+	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
 	
 	uiBlockSetDirection(block, UI_TOP);
 	
@@ -295,6 +317,59 @@ static int node_buts_normal(uiBlock *block, bNodeTree *ntree, bNode *node, rctf 
 	return (int)(node->width-NODE_DY);
 }
 
+static void node_browse_tex_cb(void *ntree_v, void *node_v)
+{
+	bNodeTree *ntree= ntree_v;
+	bNode *node= node_v;
+	Tex *tex;
+	
+	if(node->menunr<1) return;
+	
+	if(node->id) {
+		node->id->us--;
+		node->id= NULL;
+	}
+	tex= BLI_findlink(&G.main->tex, node->menunr-1);
+
+	node->id= &tex->id;
+	id_us_plus(node->id);
+	BLI_strncpy(node->name, node->id->name+2, 21);
+	
+	nodeSetActive(ntree, node);
+	
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWNODE, 0);
+	NodeTagChanged(ntree, node); 
+	
+	node->menunr= 0;
+}
+
+static int node_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt;
+		char *strp;
+		
+		/* browse button texture */
+		uiBlockBeginAlign(block);
+		IDnames_to_pupstring(&strp, NULL, "", &(G.main->tex), NULL, NULL);
+		node->menunr= 0;
+		bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
+					  butr->xmin, butr->ymin, 20, 19, 
+					  &node->menunr, 0, 0, 0, 0, "Browse texture");
+		uiButSetFunc(bt, node_browse_tex_cb, ntree, node);
+		if(strp) MEM_freeN(strp);
+		
+		if(node->id) {
+			bt= uiDefBut(block, TEX, B_NOP, "TE:",
+						 butr->xmin+19, butr->ymin, butr->xmax-butr->xmin-19, 19, 
+						 node->id->name+2, 0.0, 19.0, 0, 0, "Texture name");
+			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
+		}
+		
+	}	
+	return 19;
+}
 
 
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
@@ -443,21 +518,6 @@ static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *no
 	return 38;
 }
 
-static int node_shader_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		uiBut *bt;
-		
-		bt= uiDefIDPoinBut(block, test_texpoin_but, ID_TE, B_NODE_EXEC+node->nr, "",
-						   butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
-						   &node->id,  ""); 
-		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-		
-	}	
-	return 19;
-}
-
-
 static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -519,7 +579,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			ntype->butfunc= node_shader_buts_material;
 			break;
 		case SH_NODE_TEXTURE:
-			ntype->butfunc= node_shader_buts_texture;
+			ntype->butfunc= node_buts_texture;
 			break;
 		case SH_NODE_NORMAL:
 			ntype->butfunc= node_buts_normal;
@@ -969,6 +1029,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_HUE_SAT:
 			ntype->butfunc= node_composit_buts_hue_sat;
+			break;
+		case CMP_NODE_TEXTURE:
+			ntype->butfunc= node_buts_texture;
 			break;
 		default:
 			ntype->butfunc= NULL;
@@ -1504,7 +1567,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 				else if(sock->type==SOCK_VECTOR) {
-					uiDefBlockBut(node->block, socket_vector_menu, butpoin, sock->name, 
+					uiDefBlockBut(node->block, socket_vector_menu, sock, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)sock->locy-9, (short)node->width-NODE_DY, 17, 
 						  "");
 				}

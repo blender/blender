@@ -147,6 +147,7 @@
 
 #include "BPY_extern.h"
 
+#include "butspace.h"
 #include "mydevice.h"
 #include "blendef.h"
 #include "datatoc.h"
@@ -5073,6 +5074,11 @@ void allqueue(unsigned short event, short val)
 				if(sa->spacetype==SPACE_NODE) {
 					scrarea_queue_headredraw(sa);
 					scrarea_queue_winredraw(sa);
+				}
+				break;
+			case RECALC_COMPOSITE:
+				if(sa->spacetype==SPACE_NODE) {
+					addqueue(sa->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 				}
 				break;
 			case REDRAWANIM:

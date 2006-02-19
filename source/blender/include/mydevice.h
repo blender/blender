@@ -252,6 +252,7 @@
 #define SCREEN_HANDLER		0x4036
 #define REDRAWANIM			0x4037
 #define REDRAWNODE			0x4038
+#define RECALC_COMPOSITE	0x4039
 
 #endif	/* !__MYDEVICE_H__ */
 

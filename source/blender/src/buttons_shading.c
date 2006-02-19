@@ -277,6 +277,15 @@ void do_texbuts(unsigned short event)
 	tex= G.buts->lockpoin;
 	
 	switch(event) {
+	case B_TEXPRV:
+		BIF_preview_changed(ID_TE);
+		allqueue(REDRAWBUTSSHADING, 0);
+		
+		if(tex && G.scene->nodetree) {
+			NodeTagIDChanged(G.scene->nodetree, &tex->id);
+			allqueue(RECALC_COMPOSITE, 0);
+		}
+		break;
 	case B_TEXCHANNEL:
 		scrarea_queue_headredraw(curarea);
 		BIF_preview_changed(ID_TE);
@@ -287,6 +296,11 @@ void do_texbuts(unsigned short event)
 		tex->stype= 0;
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_preview_changed(ID_TE);
+		
+		if(tex && G.scene->nodetree) {
+			NodeTagIDChanged(G.scene->nodetree, &tex->id);
+			allqueue(RECALC_COMPOSITE, 0);
+		}
 		break;
 	case B_DEFTEXVAR:
 		if(tex==0) return;
@@ -2449,10 +2463,6 @@ void do_matbuts(unsigned short event)
 		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 0);
 		shade_buttons_change_3d();
-		break;
-	case B_TEXPRV:
-		BIF_preview_changed(ID_TE);
-		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case B_LAMPPRV:
 		BIF_preview_changed(ID_LA);

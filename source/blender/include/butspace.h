@@ -176,7 +176,6 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_MATPRV		1206
 #define B_LAMPPRV		1207
 #define B_WORLDPRV		1208
-#define B_TEXPRV		1209
 #define B_MTEXCOL		1210
 #define B_TEXCLEAR		1211
 #define B_MTEXPASTE		1212
@@ -215,6 +214,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_REDRAWCBAND	1318
 #define B_BANDCOL		1319
 #define B_LOADTEXIMA1	1320
+#define B_TEXPRV		1321
 
 #define B_PLUGBUT		1325
 /* B_PLUGBUT reserves 24 buttons at least! */

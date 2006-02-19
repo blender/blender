@@ -1409,6 +1409,18 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 	}
 }
 
+void NodeTagIDChanged(bNodeTree *ntree, ID *id)
+{
+	if(ntree->type==NTREE_COMPOSIT) {
+		bNode *node;
+		
+		for(node= ntree->nodes.first; node; node= node->next)
+			if(node->id==id)
+				NodeTagChanged(ntree, node);
+	}
+}
+
+
 #pragma mark /* *************** preview *********** */
 
 /* if node->preview, then we assume the rect to exist */

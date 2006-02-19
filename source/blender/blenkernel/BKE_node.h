@@ -33,6 +33,7 @@
 #ifndef BKE_NODE_H
 #define BKE_NODE_H
 
+struct ID;
 struct bNodeTree;
 struct bNode;
 struct bNodeLink;
@@ -134,6 +135,7 @@ struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 
 void			NodeTagChanged(struct bNodeTree *ntree, struct bNode *node);
+void			NodeTagIDChanged(struct bNodeTree *ntree, struct ID *id);
 
 /* ************** Groups ****************** */
 
@@ -214,11 +216,12 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_SEPHSVA	217
 #define CMP_NODE_SETALPHA	218
 #define CMP_NODE_HUE_SAT	219
-
 #define CMP_NODE_IMAGE			220
 #define CMP_NODE_R_RESULT		221
 #define CMP_NODE_COMPOSITE		222
 #define CMP_NODE_OUTPUT_FILE	223
+#define CMP_NODE_TEXTURE		224
+#define CMP_NODE_TRANSLATE		225
 
 
 /* filter types */

@@ -2336,7 +2336,6 @@ static int ui_do_but_SLI(uiBut *but)
 	float f, fstart, tempf = 0.0, deler, value;
 	int sx, h, temp, pos=0, lvalue, redraw;
 	short mval[2], qual;
-	float curmatrix[4][4];
 
 	value= ui_get_but_val(but);
 	uiGetMouse(mywinget(), mval);
@@ -2420,9 +2419,13 @@ static int ui_do_but_SLI(uiBut *but)
 			   because button callback function MIGHT change it
 			   - which has until now occured through the Python API
 			*/
-			Mat4CpyMat4(curmatrix, UIwinmat);
+			/* This is really not possible atm... nothing in Blender
+			   supports such functionality even now. Calling function 
+			   callbacks while using a button screws up the UI (ton) 
+			*/
+			/* Mat4CpyMat4(curmatrix, UIwinmat);
 			uibut_do_func(but);
-			Mat4CpyMat4(UIwinmat, curmatrix);
+			Mat4CpyMat4(UIwinmat, curmatrix); */
 		} 
 		else BIF_wait_for_statechange();
 	}
@@ -2451,11 +2454,12 @@ static int ui_do_but_SLI(uiBut *but)
 				ui_set_but_val(but, tempf);
 
 		}
-		uibut_do_func(but);
 	}
+
 	ui_check_but(but);
 	ui_draw_but(but);
 	ui_block_flush_back(but->block);
+	uibut_do_func(but);
 	
 	return but->retval;
 }
