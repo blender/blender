@@ -243,7 +243,7 @@ static float *getFaceUV(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 
 static void get_face_uv_map_vert(UvVertMap *vmap, struct MFace *mf, int fi, CCGVertHDL *fverts) {
 	unsigned int *fv = &mf->v1;
-	UvMapVert *v, *nv, *firstv = get_first_uv_map_vert(vmap);
+	UvMapVert *v, *nv;
 	int j, nverts= mf->v4? 4: 3;
 
 	for (j=0; j<nverts; j++, fv++) {
@@ -254,7 +254,7 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MFace *mf, int fi, CCGV
 				break;
 		}
 
-		fverts[j]= (CCGVertHDL)(nv - firstv);
+		fverts[j]= (CCGVertHDL)(nv->f*4 + nv->tfindex);
 	}
 }
 
@@ -265,11 +265,12 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, Mesh *me, DispLis
 	int totvert = dlm?dlm->totvert:me->totvert;
 	int totface = dlm?dlm->totface:me->totface;
 	int i, j, seam;
-	UvMapVert *v, *firstv;
+	UvMapVert *v;
 	UvVertMap *vmap;
 	float limit[2];
 	CCGVertHDL fverts[4];
 	EdgeHash *ehash;
+	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
 
 	limit[0]= limit[1]= 0.0001f;
 	vmap= make_uv_vert_map(mface, tface, totface, totvert, 0, limit);
@@ -277,9 +278,6 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, Mesh *me, DispLis
 		return 0;
 	
 	ccgSubSurf_initFullSync(ss);
-
-	/* use this to get consistent vert handles with different heap addresses */
-	firstv= (totvert > 0)? get_first_uv_map_vert(vmap): NULL;
 
 	/* create vertices */
 	for (i=0; i<totvert; i++) {
@@ -295,7 +293,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, Mesh *me, DispLis
 		for (v=get_uv_map_vert(vmap, i); v; v=v->next) {
 			if (v->separate) {
 				CCGVert *ssv;
-				CCGVertHDL vhdl = (CCGVertHDL)(v - firstv);
+				CCGVertHDL vhdl = (CCGVertHDL)(v->f*4 + v->tfindex);
 				float uv[3];
 
 				uv[0]= (tface+v->f)->uv[v->tfindex][0];
@@ -326,11 +324,13 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, Mesh *me, DispLis
 
 			if (!BLI_edgehash_haskey(ehash, v0, v1)) {
 				CCGEdge *e, *orige= ccgSubSurf_getFaceEdge(origss, origf, j);
-				CCGEdgeHDL ehdl= (CCGEdgeHDL)((int)fverts[j], (int)fverts[(j+1)%nverts]);
-				float crease = ccgSubSurf_getEdgeCrease(origss, orige);
+				CCGEdgeHDL ehdl= (CCGEdgeHDL)(i*4 + j);
+				float crease;
 
 				if ((mv0->flag&mv1->flag) & ME_VERT_MERGED)
-					crease = 2.0f;
+					crease = creaseFactor;
+				else
+					crease = ccgSubSurf_getEdgeCrease(origss, orige);
 
 				ccgSubSurf_syncEdge(ss, ehdl, fverts[j], fverts[(j+1)%nverts], crease, &e);
 				BLI_edgehash_insert(ehash, v0, v1, NULL);

@@ -1189,11 +1189,6 @@ UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v)
 	return vmap->vert[v];
 }
 
-UvMapVert *get_first_uv_map_vert(UvVertMap *vmap)
-{
-	return ((vmap->buf != NULL)? vmap->buf: NULL);
-}
-
 void free_uv_vert_map(UvVertMap *vmap)
 {
 	if (vmap) {
