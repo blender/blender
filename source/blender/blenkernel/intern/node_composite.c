@@ -1510,7 +1510,7 @@ static void node_composit_exec_valtorgb(void *data, bNode *node, bNodeStack **in
 	/* stack order in: fac */
 	/* stack order out: col, alpha */
 	
-	if(out[0]->hasoutput==0 || out[1]->hasoutput==0) 
+	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) 
 		return;
 	
 	if(node->storage) {
