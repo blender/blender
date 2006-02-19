@@ -170,7 +170,7 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
 		if(tslot->callerdata==callerdata) {
 			tslot->callerdata= NULL;
-			SDL_WaitThread(tslot->sdlthread, NULL);
+			SDL_KillThread(tslot->sdlthread);
 			tslot->sdlthread= NULL;
 		}
 	}
