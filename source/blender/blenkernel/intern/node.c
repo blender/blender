@@ -1585,54 +1585,37 @@ static int ntree_begin_exec_tree(bNodeTree *ntree)
 	return index;
 }
 
-/* groups have same node storage data... cannot initialize them while using in threads */
-static void composit_begin_exec_groupdata(bNodeTree *ntree)
+/* copy socket compbufs to stack, initialize usage of curve nodes */
+static void composit_begin_exec(bNodeTree *ntree, int is_group)
 {
 	bNode *node;
+	bNodeSocket *sock;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
+		if(is_group==0) {
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				bNodeStack *ns= ntree->stack + sock->stack_index;
+				
+				if(sock->ns.data) {
+					ns->data= sock->ns.data;
+					sock->ns.data= NULL;
+				}
+			}
+		}		
+		/* cannot initialize them while using in threads */
 		if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB)) {
 			curvemapping_initialize(node->storage);
 			if(node->type==CMP_NODE_CURVE_RGB)
 				curvemapping_premultiply(node->storage, 0);
 		}
-	}
-}
-
-/* copy socket compbufs to stack, initialize group usage of curve nodes */
-static void composit_begin_exec(bNodeTree *ntree)
-{
-	bNode *node;
-	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		bNodeSocket *sock;
-		for(sock= node->outputs.first; sock; sock= sock->next) {
-			if(sock->ns.data) {
-				bNodeStack *ns= ntree->stack + sock->stack_index;
-
-				ns->data= sock->ns.data;
-				sock->ns.data= NULL;
-			}
-		}
 		if(node->type==NODE_GROUP)
-			composit_begin_exec_groupdata((bNodeTree *)node->id);
+			composit_begin_exec((bNodeTree *)node->id, 1);
+
 	}
 }
-
-/* groups have same node storage data... cannot initialize them while using in threads */
-static void composit_end_exec_groupdata(bNodeTree *ntree)
-{
-	bNode *node;
-	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_CURVE_RGB)
-			curvemapping_premultiply(node->storage, 1);
-	}
-}
-
 
 /* copy stack compbufs to sockets */
-static void composit_end_exec(bNodeTree *ntree)
+static void composit_end_exec(bNodeTree *ntree, int is_group)
 {
 	extern void print_compbuf(char *str, struct CompBuf *cbuf);
 	bNode *node;
@@ -1640,26 +1623,33 @@ static void composit_end_exec(bNodeTree *ntree)
 	int a;
 
 	for(node= ntree->nodes.first; node; node= node->next) {
-		bNodeSocket *sock;
+		if(is_group==0) {
+			bNodeSocket *sock;
 		
-		for(sock= node->outputs.first; sock; sock= sock->next) {
-			ns= ntree->stack + sock->stack_index;
-			if(ns->data) {
-				sock->ns.data= ns->data;
-				ns->data= NULL;
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				ns= ntree->stack + sock->stack_index;
+				if(ns->data) {
+					sock->ns.data= ns->data;
+					ns->data= NULL;
+				}
 			}
 		}
+		if(node->type==CMP_NODE_CURVE_RGB)
+			curvemapping_premultiply(node->storage, 1);
+		
 		if(node->type==NODE_GROUP)
-			composit_end_exec_groupdata((bNodeTree *)node->id);
+			composit_end_exec((bNodeTree *)node->id, 1);
 
 		node->need_exec= 0;
 	}
 	
-	/* internally, group buffers are not stored */
-	for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
-		if(ns->data) {
-			printf("freed leftover buffer from stack\n");
-			free_compbuf(ns->data);
+	if(is_group==0) {
+		/* internally, group buffers are not stored */
+		for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
+			if(ns->data) {
+				printf("freed leftover buffer from stack\n");
+				free_compbuf(ns->data);
+			}
 		}
 	}
 }
@@ -1723,7 +1713,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 				group_tag_used_outputs(node, ntree->stack);
 		}
 		if(ntree->type==NTREE_COMPOSIT)
-			composit_begin_exec(ntree);
+			composit_begin_exec(ntree, 0);
 		else
 			ntree->stack1= MEM_dupallocN(ntree->stack);
 	}
@@ -1738,7 +1728,7 @@ void ntreeEndExecTree(bNodeTree *ntree)
 		
 		/* another callback candidate! */
 		if(ntree->type==NTREE_COMPOSIT)
-			composit_end_exec(ntree);
+			composit_end_exec(ntree, 0);
 		
 		if(ntree->stack)
 			MEM_freeN(ntree->stack);

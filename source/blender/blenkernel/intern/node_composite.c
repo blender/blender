@@ -197,6 +197,58 @@ static CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy)
 	return outbuf;
 }
 
+static CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
+{
+	if(inbuf && inbuf->type!=type && inbuf->rect_procedural==NULL) {
+		CompBuf *outbuf= alloc_compbuf(inbuf->x, inbuf->y, type, 1); 
+		float *inrf= inbuf->rect;
+		float *outrf= outbuf->rect;
+		int x= inbuf->x*inbuf->y;
+		
+		if(type==CB_VAL && inbuf->type==CB_VEC3) {
+			for(; x>0; x--, outrf+= 1, inrf+= 3)
+				*outrf= 0.333333f*(inrf[0]+inrf[1]+inrf[2]);
+		}
+		else if(type==CB_VAL && inbuf->type==CB_RGBA) {
+			for(; x>0; x--, outrf+= 1, inrf+= 4)
+				*outrf= inrf[0]*0.35f + inrf[1]*0.45f + inrf[2]*0.2f;
+		}
+		else if(type==CB_VEC3 && inbuf->type==CB_VAL) {
+			for(; x>0; x--, outrf+= 3, inrf+= 1) {
+				outrf[0]= inrf[0];
+				outrf[1]= inrf[0];
+				outrf[2]= inrf[0];
+			}
+		}
+		else if(type==CB_VEC3 && inbuf->type==CB_RGBA) {
+			for(; x>0; x--, outrf+= 3, inrf+= 4) {
+				outrf[0]= inrf[0];
+				outrf[1]= inrf[1];
+				outrf[2]= inrf[2];
+			}
+		}
+		else if(type==CB_RGBA && inbuf->type==CB_VAL) {
+			for(; x>0; x--, outrf+= 4, inrf+= 1) {
+				outrf[0]= inrf[0];
+				outrf[1]= inrf[0];
+				outrf[2]= inrf[0];
+				outrf[3]= inrf[0];
+			}
+		}
+		else if(type==CB_RGBA && inbuf->type==CB_VEC3) {
+			for(; x>0; x--, outrf+= 4, inrf+= 3) {
+				outrf[0]= inrf[0];
+				outrf[1]= inrf[1];
+				outrf[2]= inrf[2];
+				outrf[3]= 1.0f;
+			}
+		}
+		
+		return outbuf;
+	}
+	return inbuf;
+}
+
 float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, int yrad)
 {
 	if(cbuf) {
@@ -224,61 +276,90 @@ float *compbuf_get_pixel(CompBuf *cbuf, float *rectf, int x, int y, int xrad, in
 
 /* Pixel-to-Pixel operation, 1 Image in, 1 out */
 static void composit1_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, float *src_col,
-									  void (*func)(bNode *, float *, float *))
+									  void (*func)(bNode *, float *, float *), 
+									  int src_type)
 {
+	CompBuf *src_use;
 	float *outfp=out->rect, *srcfp;
 	int xrad, yrad, x, y;
+	
+	src_use= typecheck_compbuf(src_buf, src_type);
 	
 	xrad= out->xrad;
 	yrad= out->yrad;
 	
 	for(y= -yrad; y<-yrad+out->y; y++) {
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
-			srcfp= compbuf_get_pixel(src_buf, src_col, x, y, xrad, yrad);
+			srcfp= compbuf_get_pixel(src_use, src_col, x, y, xrad, yrad);
 			func(node, outfp, srcfp);
 		}
 	}
+	
+	if(src_use!=src_buf)
+		free_compbuf(src_use);
 }
 
 /* Pixel-to-Pixel operation, 2 Images in, 1 out */
 static void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_buf, float *src_col,
-									  CompBuf *fac_buf, float *fac, void (*func)(bNode *, float *, float *, float *))
+									  CompBuf *fac_buf, float *fac, void (*func)(bNode *, float *, float *, float *), 
+									  int src_type, int fac_type)
 {
+	CompBuf *src_use, *fac_use;
 	float *outfp=out->rect, *srcfp, *facfp;
 	int xrad, yrad, x, y;
 	
+	src_use= typecheck_compbuf(src_buf, src_type);
+	fac_use= typecheck_compbuf(fac_buf, fac_type);
+
 	xrad= out->xrad;
 	yrad= out->yrad;
 	
 	for(y= -yrad; y<-yrad+out->y; y++) {
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
-			srcfp= compbuf_get_pixel(src_buf, src_col, x, y, xrad, yrad);
-			facfp= compbuf_get_pixel(fac_buf, fac, x, y, xrad, yrad);
+			srcfp= compbuf_get_pixel(src_use, src_col, x, y, xrad, yrad);
+			facfp= compbuf_get_pixel(fac_use, fac, x, y, xrad, yrad);
 			
 			func(node, outfp, srcfp, facfp);
 		}
 	}
+	if(src_use!=src_buf)
+		free_compbuf(src_use);
+	if(fac_use!=fac_buf)
+		free_compbuf(fac_use);
 }
 
 /* Pixel-to-Pixel operation, 3 Images in, 1 out */
 static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, float *src1_col, CompBuf *src2_buf, float *src2_col, 
-									  CompBuf *fac_buf, float fac, void (*func)(bNode *, float *, float *, float *, float))
+									  CompBuf *fac_buf, float fac, void (*func)(bNode *, float *, float *, float *, float), 
+									  int src1_type, int src2_type, int fac_type)
 {
+	CompBuf *src1_use, *src2_use, *fac_use;
 	float *outfp=out->rect, *src1fp, *src2fp, *facfp;
 	int xrad, yrad, x, y;
+	
+	src1_use= typecheck_compbuf(src1_buf, src1_type);
+	src2_use= typecheck_compbuf(src2_buf, src2_type);
+	fac_use= typecheck_compbuf(fac_buf, fac_type);
 	
 	xrad= out->xrad;
 	yrad= out->yrad;
 	
 	for(y= -yrad; y<-yrad+out->y; y++) {
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
-			src1fp= compbuf_get_pixel(src1_buf, src1_col, x, y, xrad, yrad);
-			src2fp= compbuf_get_pixel(src2_buf, src2_col, x, y, xrad, yrad);
-			facfp= compbuf_get_pixel(fac_buf, &fac, x, y, xrad, yrad);
+			src1fp= compbuf_get_pixel(src1_use, src1_col, x, y, xrad, yrad);
+			src2fp= compbuf_get_pixel(src2_use, src2_col, x, y, xrad, yrad);
+			facfp= compbuf_get_pixel(fac_use, &fac, x, y, xrad, yrad);
 			
 			func(node, outfp, src1fp, src2fp, *facfp);
 		}
 	}
+	
+	if(src1_use!=src1_buf)
+		free_compbuf(src1_use);
+	if(src2_use!=src2_buf)
+		free_compbuf(src2_use);
+	if(fac_use!=fac_buf)
+		free_compbuf(fac_use);
 }
 
 static CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
@@ -340,7 +421,7 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 static bNodeSocketType cmp_node_viewer_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Z",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -351,13 +432,6 @@ static void do_copy_rgba(bNode *node, float *out, float *in)
 static void do_copy_rgb(bNode *node, float *out, float *in)
 {
 	VECCOPY(out, in);
-	out[3]= 1.0f;
-}
-static void do_copy_rg(bNode *node, float *out, float *in)
-{
-	out[0]= in[0];
-	out[1]= in[1];
-	out[2]= 0.0f;
 	out[3]= 1.0f;
 }
 static void do_copy_value(bNode *node, float *out, float *in)
@@ -377,15 +451,16 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 	
 	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
 		Image *ima= (Image *)node->id;
-		CompBuf *cbuf, *inbuf= in[0]->data;
+		CompBuf *cbuf, *tbuf;
 		int rectx, recty;
 		
-		if(inbuf==NULL) {
+		tbuf= in[0]->data?in[0]->data:(in[1]->data?in[1]->data:in[2]->data);
+		if(tbuf==NULL) {
 			rectx= 320; recty= 256;
 		}
 		else {
-			rectx= inbuf->x;
-			recty= inbuf->y;
+			rectx= tbuf->x;
+			recty= tbuf->y;
 		}
 		
 		/* full copy of imbuf, but threadsafe... */
@@ -420,24 +495,17 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		
 		/* when no alpha, we can simply copy */
 		if(in[1]->data==NULL) {
-			void (*func)(bNode *, float *, float *);
-			
-			if(inbuf==NULL || inbuf->type==CB_RGBA) func= do_copy_rgba;
-			else if(inbuf->type==CB_VEC3) func= do_copy_rgb;
-			else if(inbuf->type==CB_VEC2) func= do_copy_rg;
-			else func= do_copy_value;
-			
-			composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, func);
+			composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_copy_rgba, CB_RGBA);
 		}
 		else
-			composit2_pixel_processor(node, cbuf, inbuf, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+			composit2_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
 		
 		if(in[2]->data) {
 			CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 1);
 			ima->ibuf->zbuf_float= zbuf->rect;
 			ima->ibuf->mall |= IB_zbuffloat;
 			
-			composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
+			composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value, CB_VAL);
 			
 			/* free compbuf, but not the rect */
 			zbuf->malloc= 0;
@@ -452,14 +520,8 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		CompBuf *cbuf, *inbuf= in[0]->data;
 		
 		if(inbuf->type!=CB_RGBA) {
-			void (*func)(bNode *, float *, float *);
-			
-			if(inbuf->type==CB_VEC3) func= do_copy_rgb;
-			else if(inbuf->type==CB_VEC2) func= do_copy_rg;
-			else func= do_copy_value;
-			
 			cbuf= alloc_compbuf(inbuf->x, inbuf->y, CB_RGBA, 1);
-			composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, func);
+			composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, do_copy_rgba, CB_RGBA);
 			generate_preview(node, cbuf);
 			free_compbuf(cbuf);
 		}
@@ -506,15 +568,15 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				outbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 1);
 				
 				if(in[1]->data==NULL)
-					composit1_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, do_copy_rgba);
+					composit1_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, do_copy_rgba, CB_RGBA);
 				else
-					composit2_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+					composit2_pixel_processor(node, outbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
 				
 				if(in[2]->data) {
 					if(rr->rectz) 
 						MEM_freeT(rr->rectz);
 					zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 1);
-					composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value);
+					composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value, CB_VAL);
 					rr->rectz= zbuf->rect;
 					zbuf->malloc= 0;
 					free_compbuf(zbuf);
@@ -909,13 +971,13 @@ static void texture_procedural(CompBuf *cbuf, float *col, float xco, float yco)
 	
 	retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 	
-	if(type==1) {
+	if(type==CB_VAL) {
 		if(texres.talpha)
 			col[0]= texres.ta;
 		else
 			col[0]= texres.tin;
 	}
-	else if(type==4) {
+	else if(type==CB_RGBA) {
 		if(texres.talpha)
 			col[3]= texres.ta;
 		else
@@ -945,7 +1007,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 		
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;
-		composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba);
+		composit1_pixel_processor(node, prevbuf, prevbuf, out[0]->vec, do_copy_rgba, CB_RGBA);
 		generate_preview(node, prevbuf);
 		free_compbuf(prevbuf);
 		
@@ -1019,7 +1081,7 @@ static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, 
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
 		
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_normal);
+		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_normal, CB_VEC3);
 		
 		out[1]->data= stackbuf;
 	}
@@ -1114,7 +1176,7 @@ static bNodeSocketType cmp_node_curve_rgb_out[]= {
 
 static void do_curves(bNode *node, float *out, float *in)
 {
-	curvemapping_evaluateRGBF(node->storage, out, in);
+	curvemapping_evaluate_premulRGBF(node->storage, out, in);
 	out[3]= in[3];
 }
 
@@ -1122,13 +1184,13 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 {
 	
 	if(*fac>=1.0)
-		curvemapping_evaluateRGBF(node->storage, out, in);
+		curvemapping_evaluate_premulRGBF(node->storage, out, in);
 	else if(*fac<=0.0) {
 		VECCOPY(out, in);
 	}
 	else {
 		float col[4], mfac= 1.0f-*fac;
-		curvemapping_evaluateRGBF(node->storage, col, in);
+		curvemapping_evaluate_premulRGBF(node->storage, col, in);
 		out[0]= mfac*in[0] + *fac*col[0];
 		out[1]= mfac*in[1] + *fac*col[1];
 		out[2]= mfac*in[2] + *fac*col[2];
@@ -1138,8 +1200,8 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 
 static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* stack order input:  vec */
-	/* stack order output: vec */
+	/* stack order input:  fac, image */
+	/* stack order output: image */
 	
 	if(out[0]->hasoutput==0)
 		return;
@@ -1154,9 +1216,9 @@ static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **i
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
 		if(in[0]->data)
-			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac);
+			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);
 		else
-			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_curves);
+			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_curves, CB_RGBA);
 		
 		out[0]->data= stackbuf;
 	}
@@ -1273,13 +1335,11 @@ static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in,
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[1]->data;
-		if(cbuf->type==CB_RGBA) {
-			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
-			
-			composit2_pixel_processor(node, stackbuf, cbuf, in[1]->vec, in[0]->data, in[0]->vec, do_hue_sat_fac);
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit2_pixel_processor(node, stackbuf, cbuf, in[1]->vec, in[0]->data, in[0]->vec, do_hue_sat_fac, CB_RGBA, CB_VAL);
 
-			out[0]->data= stackbuf;
-		}
+		out[0]->data= stackbuf;
 	}
 }
 
@@ -1336,7 +1396,7 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 		CompBuf *cbuf= in[1]->data?in[1]->data:in[2]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
-		composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, fac, do_mix_rgb);
+		composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, fac, do_mix_rgb, CB_RGBA, CB_RGBA, CB_VAL);
 		
 		out[0]->data= stackbuf;
 	}
@@ -1370,19 +1430,18 @@ static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 {
 	float *row1, *row2, *row3;
 	float *fp, f1, f2, mfac= 1.0f-fac;
-	int rowlen, x, y, c;
+	int rowlen, x, y, c, pix= in->type;
 	
 	rowlen= in->x;
 	
-	if(in->type==CB_RGBA) {
+	for(y=2; y<in->y; y++) {
+		/* setup rows */
+		row1= in->rect + pix*(y-2)*rowlen;
+		row2= row1 + pix*rowlen;
+		row3= row2 + pix*rowlen;
+		fp= out->rect + pix*(y-1)*rowlen + pix;
 		
-		for(y=2; y<in->y; y++) {
-			/* setup rows */
-			row1= in->rect + 4*(y-2)*rowlen;
-			row2= row1 + 4*rowlen;
-			row3= row2 + 4*rowlen;
-			fp= out->rect + 4*(y-1)*rowlen + 4;
-			
+		if(pix==CB_RGBA) {
 			for(x=2; x<rowlen; x++) {
 				for(c=0; c<3; c++) {
 					f1= filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8];
@@ -1395,7 +1454,15 @@ static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 				fp++; row1++; row2++; row3++;
 			}
 		}
-	}	
+		else if(pix==CB_VAL) {
+			for(x=2; x<rowlen; x++) {
+				f1= filter[0]*row1[0] + filter[1]*row1[1] + filter[2]*row1[2] + filter[3]*row2[0] + filter[4]*row2[1] + filter[5]*row2[2] + filter[6]*row3[0] + filter[7]*row3[1] + filter[8]*row3[2];
+				f2= filter[0]*row1[0] + filter[3]*row1[1] + filter[6]*row1[2] + filter[1]*row2[0] + filter[4]*row2[1] + filter[7]*row2[2] + filter[2]*row3[0] + filter[5]*row3[1] + filter[8]*row3[2];
+				fp[0]= mfac*row2[1] + fac*sqrt(f1*f1 + f2*f2);
+				fp++; row1++; row2++; row3++;
+			}
+		}
+	}
 }
 
 static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
@@ -1417,10 +1484,26 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 		QUATCOPY(fp, row2);
 		fp+= pixlen;
 		
-		for(x=2; x<rowlen; x++) {
-			for(c=0; c<pixlen; c++) {
-				fp[0]= mfac*row2[4] + fac*(filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8]);
+		if(pixlen==1) {
+			for(x=2; x<rowlen; x++) {
+				fp[0]= mfac*row2[1] + fac*(filter[0]*row1[0] + filter[1]*row1[1] + filter[2]*row1[2] + filter[3]*row2[0] + filter[4]*row2[1] + filter[5]*row2[2] + filter[6]*row3[0] + filter[7]*row3[1] + filter[8]*row3[2]);
 				fp++; row1++; row2++; row3++;
+			}
+		}
+		else if(pixlen==3) {
+			for(x=2; x<rowlen; x++) {
+				for(c=0; c<pixlen; c++) {
+					fp[0]= mfac*row2[3] + fac*(filter[0]*row1[0] + filter[1]*row1[3] + filter[2]*row1[6] + filter[3]*row2[0] + filter[4]*row2[3] + filter[5]*row2[6] + filter[6]*row3[0] + filter[7]*row3[3] + filter[8]*row3[6]);
+					fp++; row1++; row2++; row3++;
+				}
+			}
+		}
+		else {
+			for(x=2; x<rowlen; x++) {
+				for(c=0; c<pixlen; c++) {
+					fp[0]= mfac*row2[4] + fac*(filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8]);
+					fp++; row1++; row2++; row3++;
+				}
 			}
 		}
 	}
@@ -1445,7 +1528,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 	if(in[1]->data) {
 		/* make output size of first available input image */
 		CompBuf *cbuf= in[1]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1); // allocs
 		
 		switch(node->custom1) {
 			case CMP_FILT_SOFT:
@@ -1523,7 +1606,7 @@ static void node_composit_exec_valtorgb(void *data, bNode *node, bNodeStack **in
 			CompBuf *cbuf= in[0]->data;
 			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 			
-			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_colorband_composit);
+			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_colorband_composit, CB_VAL);
 			
 			out[0]->data= stackbuf;
 			
@@ -1579,7 +1662,7 @@ static void node_composit_exec_rgbtobw(void *data, bNode *node, bNodeStack **in,
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
 		
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_rgbtobw);
+		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_rgbtobw, CB_RGBA);
 		
 		out[0]->data= stackbuf;
 	}
@@ -1698,7 +1781,7 @@ static void node_composit_exec_sephsva(void *data, bNode *node, bNodeStack **in,
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 
 		/* convert the RGB stackbuf to an HSV representation */
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sephsva);
+		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sephsva, CB_RGBA);
 
 		/* separate each of those channels */
 		if(out[0]->hasoutput)
@@ -1754,13 +1837,13 @@ static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
-		if(in[1]->vec[0]==1.0f) {
+		if(in[1]->data==NULL && in[1]->vec[0]==1.0f) {
 			/* pass on image */
-			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_copy_rgb);
+			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_copy_rgb, CB_RGBA);
 		}
 		else {
 			/* send an compbuf or a value to set as alpha - composit2_pixel_processor handles choosing the right one */
-			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba);
+			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
 		}
 	
 		out[0]->data= stackbuf;
@@ -1849,9 +1932,9 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
 		if(node->custom1)
-			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_key);
+			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_key, CB_RGBA, CB_RGBA, CB_VAL);
 		else
-			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_premul);
+			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_premul, CB_RGBA, CB_RGBA, CB_VAL);
 		
 		out[0]->data= stackbuf;
 	}
@@ -1895,8 +1978,8 @@ static void do_map_value(bNode *node, float *out, float *src)
 
 static void node_composit_exec_map_value(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* stack order in: col col */
-	/* stack order out: col */
+	/* stack order in: valbuf */
+	/* stack order out: valbuf */
 	if(out[0]->hasoutput==0) return;
 	
 	/* input no image? then only value operation */
@@ -1908,7 +1991,7 @@ static void node_composit_exec_map_value(void *data, bNode *node, bNodeStack **i
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
 		
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_map_value);
+		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_map_value, CB_VAL);
 		
 		out[0]->data= stackbuf;
 	}
@@ -1977,6 +2060,7 @@ static float *make_bloomtab(int rad)
 	return bloomtab;
 }
 
+/* both input images of same type, either 4 or 1 channel */
 static void blur_single_image(CompBuf *new, CompBuf *img, float scale, NodeBlurData *nbd)
 {
 	CompBuf *work;
@@ -2205,10 +2289,13 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 	
 }
 
+/* only accepts RGBA buffers */
 static void gamma_correct_compbuf(CompBuf *img, int inversed)
 {
 	float *drect;
 	int x;
+	
+	if(img->type!=CB_RGBA) return;
 	
 	drect= img->rect;
 	if(inversed) {
@@ -2242,14 +2329,16 @@ static float hexagon_filter(float fi, float fj)
 	else return 1.0f;
 }
 #endif
+
 /* uses full filter, no horizontal/vertical optimize possible */
+/* both images same type, either 1 or 4 channels */
 static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurData *nbd)
 {
 	register float val;
 	float radxf, radyf;
 	float *gausstab, *dgauss;
 	int radx, rady, imgx= img->x, imgy= img->y;
-	int x, y;
+	int x, y, pix= img->type;
 	int i, j;
 	float *src= NULL, *dest, *srcd= NULL;
 	
@@ -2295,8 +2384,8 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 	for (y = -rady+1; y < imgy+rady-1; y++) {
 		
 		if(y<=0) srcd= img->rect;
-		else if(y<imgy) srcd+= 4*imgx;
-		else srcd= img->rect + 4*(imgy-1)*imgx;
+		else if(y<imgy) srcd+= pix*imgx;
+		else srcd= img->rect + pix*(imgy-1)*imgx;
 			
 		for (x = -radx+1; x < imgx+radx-1 ; x++) {
 			int minxr= x-radx<0?-x:-radx;
@@ -2304,23 +2393,25 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 			int minyr= y-rady<0?-y:-rady;
 			int maxyr= y+rady>imgy?imgy-y:rady;
 			
-			float *destd= new->rect + 4*( (y + minyr)*imgx + x + minxr);
+			float *destd= new->rect + pix*( (y + minyr)*imgx + x + minxr);
 			float *dgausd= gausstab + (minyr+rady)*2*radx + minxr+radx;
 			
 			if(x<=0) src= srcd;
-			else if(x<imgx) src+= 4;
-			else src= srcd + 4*(imgx-1);
+			else if(x<imgx) src+= pix;
+			else src= srcd + pix*(imgx-1);
 			
-			for (i= minyr; i < maxyr; i++, destd+= 4*imgx, dgausd+= 2*radx) {
+			for (i= minyr; i < maxyr; i++, destd+= pix*imgx, dgausd+= 2*radx) {
 				dest= destd;
 				dgauss= dgausd;
-				for (j= minxr; j < maxxr; j++, dest+=4, dgauss++) {
+				for (j= minxr; j < maxxr; j++, dest+=pix, dgauss++) {
 					val= *dgauss;
 					if(val!=0.0f) {
 						dest[0] += val * src[0];
-						dest[1] += val * src[1];
-						dest[2] += val * src[2];
-						dest[3] += val * src[3];
+						if(pix>1) {
+							dest[1] += val * src[1];
+							dest[2] += val * src[2];
+							dest[3] += val * src[3];
+						}
 					}
 				}
 			}
@@ -2334,21 +2425,26 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 /* reference has to be mapped 0-1, and equal in size */
 static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBlurData *nbd)
 {
-	CompBuf *blurbuf;
+	CompBuf *blurbuf, *ref_use;
 	register float sum, val;
 	float rval, gval, bval, aval, radxf, radyf;
 	float **maintabs;
 	float *gausstabx, *gausstabcenty;
 	float *gausstaby, *gausstabcentx;
 	int radx, rady, imgx= img->x, imgy= img->y;
-	int x, y;
+	int x, y, pix= img->type;
 	int i, j;
 	float *src, *dest, *refd, *blurd;
 
+	if(ref->x!=img->x && ref->y!=img->y)
+		return;
+	
+	ref_use= typecheck_compbuf(ref, CB_VAL);
+	
 	/* trick is; we blur the reference image... but only works with clipped values*/
 	blurbuf= alloc_compbuf(imgx, imgy, CB_VAL, 1);
 	blurd= blurbuf->rect;
-	refd= ref->rect;
+	refd= ref_use->rect;
 	for(x= imgx*imgy; x>0; x--, refd++, blurd++) {
 		if(refd[0]<0.0f) blurd[0]= 0.0f;
 		else if(refd[0]>1.0f) blurd[0]= 1.0f;
@@ -2382,7 +2478,7 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 	radyf= (float)rady;
 	
 	for (y = 0; y < imgy; y++) {
-		for (x = 0; x < imgx ; x++, dest+=4, refd++) {
+		for (x = 0; x < imgx ; x++, dest+=pix, refd++) {
 			int refradx= (int)(refd[0]*radxf);
 			int refrady= (int)(refd[0]*radyf);
 			
@@ -2392,8 +2488,11 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 			else if(refrady<1) refrady= 1;
 
 			if(refradx==1 && refrady==1) {
-				src= img->rect + 4*( y*imgx + x);
-				QUATCOPY(dest, src);
+				src= img->rect + pix*( y*imgx + x);
+				if(pix==1)
+					dest[0]= src[0];
+				else
+					QUATCOPY(dest, src);
 			}
 			else {
 				int minxr= x-refradx<0?-x:-refradx;
@@ -2401,7 +2500,7 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 				int minyr= y-refrady<0?-y:-refrady;
 				int maxyr= y+refrady>imgy?imgy-y:refrady;
 	
-				float *srcd= img->rect + 4*( (y + minyr)*imgx + x + minxr);
+				float *srcd= img->rect + pix*( (y + minyr)*imgx + x + minxr);
 				
 				gausstabx= maintabs[refradx-1];
 				gausstabcentx= gausstabx+refradx;
@@ -2410,23 +2509,27 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 
 				sum= gval = rval= bval= aval= 0.0f;
 				
-				for (i= minyr; i < maxyr; i++, srcd+= 4*imgx) {
+				for (i= minyr; i < maxyr; i++, srcd+= pix*imgx) {
 					src= srcd;
-					for (j= minxr; j < maxxr; j++, src+=4) {
+					for (j= minxr; j < maxxr; j++, src+=pix) {
 					
 						val= gausstabcenty[i]*gausstabcentx[j];
 						sum+= val;
 						rval += val * src[0];
-						gval += val * src[1];
-						bval += val * src[2];
-						aval += val * src[3];
+						if(pix>1) {
+							gval += val * src[1];
+							bval += val * src[2];
+							aval += val * src[3];
+						}
 					}
 				}
 				sum= 1.0f/sum;
 				dest[0] = rval*sum;
-				dest[1] = gval*sum;
-				dest[2] = bval*sum;
-				dest[3] = aval*sum;
+				if(pix>1) {
+					dest[1] = gval*sum;
+					dest[2] = bval*sum;
+					dest[3] = aval*sum;
+				}
 			}
 		}
 	}
@@ -2438,6 +2541,8 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 		MEM_freeT(maintabs[i]);
 	MEM_freeT(maintabs);
 	
+	if(ref_use!=ref)
+		free_compbuf(ref_use);
 }
 
 
@@ -2446,16 +2551,14 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 {
 	CompBuf *new, *img= in[0]->data;
 	
-	if(img==NULL || out[0]->hasoutput==0)
+	if(img==NULL || img->type==CB_VEC3 || out[0]->hasoutput==0)
 		return;
 	
 	/* if fac input, we do it different */
 	if(in[1]->data) {
 		
-		/* test fitness if reference */
-		
 		/* make output size of input image */
-		new= alloc_compbuf(img->x, img->y, CB_RGBA, 1); // allocs
+		new= alloc_compbuf(img->x, img->y, img->type, 1); // allocs
 		
 		blur_with_reference(new, img, in[1]->data, node->storage);
 		

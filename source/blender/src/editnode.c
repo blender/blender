@@ -240,7 +240,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 				NodeTagChanged(snode->edittree, node);
 				node= snode_get_editgroup(snode);
 				if(node)
-					NodeTagChanged(snode->nodetree, node);
+					NodeTagIDChanged(snode->nodetree, node->id);
 				snode_handle_recalc(snode);
 			}
 		}			
@@ -1403,9 +1403,12 @@ static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, 
 		}
 		
 		/* and last trick: insert a convertor when types dont match */
-		if(link->tosock->type!=link->fromsock->type) {
-			node_insert_convertor(snode, link);
-			ntreeSolveOrder(snode->edittree);		/* so nice do it twice! well, the sort-order can only handle 1 added link at a time */
+		if(snode->treetype==NTREE_SHADER) {
+			if(link->tosock->type!=link->fromsock->type) {
+				node_insert_convertor(snode, link);
+				/* so nice do it twice! well, the sort-order can only handle 1 added link at a time */
+				ntreeSolveOrder(snode->edittree);
+			}
 		}
 	}
 	

@@ -85,7 +85,6 @@ typedef struct bNodeSocket {
 #define SOCK_VALUE		0
 #define SOCK_VECTOR		1
 #define SOCK_RGBA		2
-#define SOCK_IMAGE		3
 
 /* sock->flag, first bit is select */
 #define SOCK_HIDDEN				2
