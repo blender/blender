@@ -26,8 +26,7 @@ and will not join faces that have mis-matching data.
 """
 
 
-from Blender import Object, Mathutils, Draw, Window, sys
-import math
+from Blender import Scene, Object, Mathutils, Draw, Window, sys
 
 TRI_LIST = (0,1,2)
 
@@ -89,11 +88,10 @@ def isfaceCoLin(imagQuag):
 	# Work out how different from 90 each edge is.
 	diff = 0
 	try:
-		diff += abs(vecAngle(edgeVec1, edgeVec2) - 90)
-		diff += abs(vecAngle(edgeVec2, edgeVec3) - 90)
-		diff += abs(vecAngle(edgeVec3, edgeVec4) - 90)
-		diff += abs(vecAngle(edgeVec4, edgeVec1) - 90)
-	
+		diff = abs(vecAngle(edgeVec1, edgeVec2) - 90)
+		diff = max(diff, abs(vecAngle(edgeVec2, edgeVec3) - 90))
+		diff = max(diff, abs(vecAngle(edgeVec3, edgeVec4) - 90))
+		diff = max(diff, abs(vecAngle(edgeVec4, edgeVec1) - 90))
 	except:
 		return 1.0
 	
@@ -101,7 +99,7 @@ def isfaceCoLin(imagQuag):
 	if not diff:
 		return 0.0
 	
-	return diff/360
+	return min(diff/180, 1.0)
 
 
 # Meause the areas of the 2 possible ways of subdividing the imagined quad.
@@ -151,7 +149,7 @@ def meshJoinFacesTest(f1, f2, V1FREE, V2FREE):
 
 
 # Measure how good a quad the 2 tris will make,
-def measureFacePair(f1, f2, f1free, f2free):
+def measureFacePair(f1, f2, f1free, f2free, limit):
 	# Make a imaginary quad. from 2 tris into 4 verts
 	imagFace = meshJoinFacesTest(f1, f2, f1free, f2free)
 	if imagFace is False:
@@ -163,24 +161,29 @@ def measureFacePair(f1, f2, f1free, f2free):
 	# each value will add to the measure value
 	# and be between 0 and 1.0
 	
-	measure+= isfaceNoDiff(imagFace)
-	measure+= isfaceCoLin(imagFace)
-	measure+= isfaceConcave(imagFace)
+	measure+= isfaceNoDiff(imagFace)/3
+	if measure > limit: return False
+	measure+= isfaceCoLin(imagFace)/3
+	if measure > limit: return False
+	measure+= isfaceConcave(imagFace)/3
+	if measure > limit: return False
 	
-	# For debugging.
 	'''
+	# For debugging.
+	
 	a1= isfaceNoDiff(imagFace)
 	a2= isfaceCoLin(imagFace)
 	a3= isfaceConcave(imagFace)
 	
-	print 'a1 %f' % a1
-	print 'a2 %f' % a2
-	print 'a3 %f' % a3
+	#print 'a1 NODIFF  %f' % a1
+	#print 'a2 COLIN   %f' % a2
+	#print 'a3 CONCAVE %f' % a3
 	
-	measure = a1+a2+a3
+	measure = (a1+a2+a3)/3
+	if measure > limit: return False
 	'''
 	
-	return [f1,f2, measure/3, f1free, f2free]
+	return [f1,f2, measure, f1free, f2free]
 
 
 # We know the faces are good to join, simply execute the join
@@ -225,11 +228,7 @@ def meshJoinFaces(f1, f2, V1FREE, V2FREE, mesh):
 	# remove the edge from accress the new quad
 	f2.v.pop(not V2FREE)
 	
-	
-	# DEBUG
-	if mesh.edges:
-		mesh.removeEdge(edgeVert1, edgeVert2)
-		
+	mesh.removeEdge(edgeVert1, edgeVert2)
 	#return f2
 
 
@@ -285,10 +284,8 @@ def compareFaceCol(f1, f2):
 					
 	return True	
 
-def sortPair(a,b):
-	return min(a,b), max(a,b)
 
-def tri2quad(mesh, limit, selectedFacesOnly):
+def tri2quad(mesh, limit, selectedFacesOnly, respectUVs, respectVCols):
 	print '\nStarting tri2quad for mesh: %s' % mesh.name
 	print '\t...finding pairs'
 	time1 = sys.time()	# Time the function
@@ -303,25 +300,36 @@ def tri2quad(mesh, limit, selectedFacesOnly):
 	else:
 		faceList = [f for f in mesh.faces if len(f) == 3]
 	
-	has_face_uv = mesh.hasFaceUV()
-	has_vert_col = mesh.hasVertexColours() 
+	# Set if applicable for this mesh.
+	has_face_uv= has_vert_col = False
+	if respectUVs:
+		has_face_uv = mesh.hasFaceUV()
+	if respectVCols:
+		has_vert_col = mesh.hasVertexColours() 
 	
 	
 	# Build a list of edges and tris that use those edges.
+	# This is so its faster to find tri pairs.
 	edgeFaceUsers = {}
 	for f in faceList:
-		i1,i2,i3 = f.v[0].index, f.v[1].index, f.v[2].index
-		ed1, ed2, ed3 = sortPair(i1, i2), sortPair(i2, i3), sortPair(i3, i1)
+		
+		edkey1a= edkey3b= f.v[0].index
+		edkey1b= edkey2a= f.v[1].index
+		edkey2b= edkey3a= f.v[2].index
+		
+		if edkey1a > edkey1b:  edkey1a, edkey1b = edkey1b, edkey1a
+		if edkey2a > edkey2b:  edkey2a, edkey2b = edkey2b, edkey2a
+		if edkey3a > edkey3b:  edkey3a, edkey3b = edkey3b, edkey3a
 		
 		# The second int in the tuple is the free vert, its easier to store then to work it out again.
-		try: edgeFaceUsers[ed1].append((f, 2))
-		except:	edgeFaceUsers[ed1] = [(f, 2)]
+		try: edgeFaceUsers[edkey1a, edkey1b].append((f, 2))
+		except:	edgeFaceUsers[edkey1a, edkey1b] = [(f, 2)]
 		
-		try: edgeFaceUsers[ed2].append((f, 0))
-		except:	edgeFaceUsers[ed2] = [(f, 0)]
+		try: edgeFaceUsers[edkey2a, edkey2b].append((f, 0))
+		except:	edgeFaceUsers[edkey2a, edkey2b] = [(f, 0)]
 		
-		try: edgeFaceUsers[ed3].append((f, 1))
-		except:	edgeFaceUsers[ed3] = [(f, 1)]
+		try: edgeFaceUsers[edkey3a, edkey3b].append((f, 1))
+		except:	edgeFaceUsers[edkey3a, edkey3b] = [(f, 1)]
 	
 	
 	edgeDoneCount = 0
@@ -339,8 +347,9 @@ def tri2quad(mesh, limit, selectedFacesOnly):
 			else:
 				# We can now store the qpair and measure
 				# there eligability for becoming 1 quad.
-				pair = measureFacePair(f1, f2, f1free, f2free)
-				if pair is not False and pair[2] < limit: # Some terraible error
+				pair = measureFacePair(f1, f2, f1free, f2free, limit)
+				#if pair is not False and pair[2] < limit: # Some terraible error
+				if pair is not False: # False means its above the limit.
 					facePairLs.append(pair)
 					pairCount += 1
 			
@@ -372,7 +381,7 @@ def tri2quad(mesh, limit, selectedFacesOnly):
 			
 			if not pIdx % 20:
 				p = (0.5 + ((float((len_facePairLs - (len_facePairLs - pIdx))))/len_facePairLs*0.5)) * 0.99
-				Window.DrawProgressBar(p, 'Joining Face count: %i' % joinCount)
+				Window.DrawProgressBar(p, 'Joining Face count: %i of %i' % (joinCount, len_facePairLs))
 				draws +=1
 				
 	# print 'Draws', draws
@@ -383,11 +392,7 @@ def tri2quad(mesh, limit, selectedFacesOnly):
 	while fIdx:
 		fIdx -=1
 		if len(mesh.faces[fIdx]) < 3:
-			mesh.faces.pop(fIdx)
-	
-	# Was buggy in 2.4.alpha fixed now I think
-	#mesh.faces[0].sel = 0
-	
+			mesh.faces.pop(fIdx)	
 	
 	if joinCount:
 		print "tri2quad time for %s: %s	joined %s tri's into quads" % (mesh.name, sys.time()-time1, joinCount)
@@ -407,8 +412,14 @@ def error(str):
 	Draw.PupMenu('ERROR%t|'+str)
 
 def main():
+	scn= Scene.GetCurrent()
+	
 	#selection = Object.Get()
 	selection = Object.GetSelected()
+	actob = scn.getActiveObject()
+	if not actob.sel:
+		selection.append(actob)
+	
 	if len(selection) is 0:
 		error('No object selected')
 		return
@@ -422,14 +433,20 @@ def main():
 	
 	# Create the variables.
 	selectedFacesOnly = Draw.Create(1)
+	respectUVs = Draw.Create(1)
+	respectVCols = Draw.Create(1)
 	limit = Draw.Create(25)
 	
 	
 	pup_block = [\
 	('Selected Faces Only', selectedFacesOnly, 'Use only selected faces from all selected meshes.'),\
+	('UV Delimit', respectUVs, 'Only join pairs that have matching UVs on the joining edge.'),\
+	('VCol Delimit', respectVCols, 'Only join pairs that have matching Vert Colors on the joining edge.'),\
 	('Limit: ', limit, 1, 100, 'A higher value will join more tris to quads, even if the quads are not perfect.'),\
 	]
 	selectedFacesOnly = selectedFacesOnly.val
+	respectUVs = respectUVs.val
+	respectVCols = respectVCols.val
 	limit = limit.val
 	
 	if not Draw.PupBlock('Tri2Quad for %i mesh object(s)' % len(meshDict), pup_block):
@@ -443,7 +460,7 @@ def main():
 	
 	for ob in meshDict.itervalues():
 		mesh = ob.getData()
-		tri2quad(mesh, limit, selectedFacesOnly)
+		tri2quad(mesh, limit, selectedFacesOnly, respectUVs, respectVCols)
 	if is_editmode: Window.EditMode(1)
 
 # Dont run when importing
