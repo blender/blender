@@ -121,20 +121,20 @@ static char *mapto_blendtype_pup(void)
 	static char string[1024];
 	char *str = string;
 	
-	str += sprintf(str, "Mix", MTEX_BLEND);
+	str += sprintf(str, formatstr, "Mix", MTEX_BLEND);
 
-	str += sprintf(str, "Add", MTEX_ADD);
-	str += sprintf(str, "Subtract", MTEX_SUB);
+	str += sprintf(str, formatstr, "Add", MTEX_ADD);
+	str += sprintf(str, formatstr, "Subtract", MTEX_SUB);
 
-	str += sprintf(str, "Multiply", MTEX_MUL);
-	str += sprintf(str, "Screen", MTEX_SCREEN);
-	str += sprintf(str, "Overlay", MTEX_OVERLAY);
+	str += sprintf(str, formatstr, "Multiply", MTEX_MUL);
+	str += sprintf(str, formatstr, "Screen", MTEX_SCREEN);
+	str += sprintf(str, formatstr, "Overlay", MTEX_OVERLAY);
 	
-	str += sprintf(str, "Difference", MTEX_DIFF);
-	str += sprintf(str, "Divide", MTEX_DIV);
+	str += sprintf(str, formatstr, "Difference", MTEX_DIFF);
+	str += sprintf(str, formatstr, "Divide", MTEX_DIV);
 	
-	str += sprintf(str, "Darken", MTEX_DARK);
-	str += sprintf(str, "Lighten", MTEX_LIGHT);
+	str += sprintf(str, formatstr, "Darken", MTEX_DARK);
+	str += sprintf(str, formatstr, "Lighten", MTEX_LIGHT);
 
 	return string;
 }

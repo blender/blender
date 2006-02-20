@@ -513,7 +513,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 		str += sprintf(str, "Menu Item Highlight %%x%d|", TH_MENU_HILITE);
 		str += sprintf(str, "Menu Text %%x%d|", TH_MENU_TEXT);
 		str += sprintf(str, "Menu Text Highlight %%x%d|", TH_MENU_TEXT_HI);
-		str += sprintf(str, "%l|");
+		str += sprintf(str, "%%l|");
 		str += sprintf(str, "Drawtype %%x%d|", TH_BUT_DRAWTYPE);
 	}
 	else {
@@ -526,14 +526,14 @@ char *BIF_ThemeColorsPup(int spacetype)
 		switch(spacetype) {
 		case SPACE_VIEW3D:
 			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
 			str += sprintf(str, "Wire %%x%d|", TH_WIRE);
 			str += sprintf(str, "Lamp %%x%d|", TH_LAMP);
 			str += sprintf(str, "Object Selected %%x%d|", TH_SELECT);
 			str += sprintf(str, "Object Active %%x%d|", TH_ACTIVE);
 			str += sprintf(str, "Transform %%x%d|", TH_TRANSFORM);
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
 			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
 			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
@@ -550,7 +550,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			break;
 		case SPACE_IPO:
 			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
 			str += sprintf(str, "Window Sliders %%x%d|", TH_SHADE1);
 			str += sprintf(str, "Ipo Channels %%x%d|", TH_SHADE2);
@@ -562,7 +562,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			break;
 		case SPACE_NLA:
 			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
 			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
 			str += sprintf(str, "Bars %%x%d|", TH_SHADE2);
@@ -572,7 +572,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			break;
 		case SPACE_ACTION:
 			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
 			str += sprintf(str, "RVK Sliders %%x%d|", TH_FACE);
 			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
@@ -580,7 +580,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Channels Selected %%x%d|", TH_HILITE);
 			break;
 		case SPACE_IMAGE:
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
 			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
 			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
@@ -605,7 +605,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1);
 			str += sprintf(str, "Selected Text %%x%d|", TH_SHADE2);
 			str += sprintf(str, "Cursor %%x%d|", TH_HILITE);
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Syntax Builtin %%x%d|", TH_SYNTAX_B);
 			str += sprintf(str, "Syntax Special %%x%d|", TH_SYNTAX_V);
 			str += sprintf(str, "Syntax Comment %%x%d|", TH_SYNTAX_C);
@@ -618,7 +618,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 		case SPACE_NODE:
 			str += sprintf(str, "Wires %%x%d|", TH_WIRE);
 			str += sprintf(str, "Wires Select %%x%d|", TH_EDGE_SELECT);
-			str += sprintf(str, "%l|");
+			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Node Backdrop %%x%d|", TH_NODE);
 			str += sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT);
 			str += sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR);
