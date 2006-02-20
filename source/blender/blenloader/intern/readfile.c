@@ -5881,6 +5881,9 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	if (paf && paf->group) 
 		expand_doit(fd, mainvar, paf->group);
 
+	if(ob->dup_group)
+		expand_doit(fd, mainvar, ob->dup_group);
+
 	sens= ob->sensors.first;
 	while(sens) {
 		for(a=0; a<sens->totlinks; a++) {
