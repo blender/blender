@@ -362,6 +362,46 @@ static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_b
 		free_compbuf(fac_use);
 }
 
+/* Pixel-to-Pixel operation, 4 Images in, 1 out */
+static void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, float *src1_col, CompBuf *fac1_buf, float *fac1, 
+									  CompBuf *src2_buf, float *src2_col, CompBuf *fac2_buf, float *fac2, 
+									  void (*func)(bNode *, float *, float *, float *, float *, float *), 
+									  int src1_type, int fac1_type, int src2_type, int fac2_type)
+{
+	CompBuf *src1_use, *src2_use, *fac1_use, *fac2_use;
+	float *outfp=out->rect, *src1fp, *src2fp, *fac1fp, *fac2fp;
+	int xrad, yrad, x, y;
+	
+	src1_use= typecheck_compbuf(src1_buf, src1_type);
+	src2_use= typecheck_compbuf(src2_buf, src2_type);
+	fac1_use= typecheck_compbuf(fac1_buf, fac1_type);
+	fac2_use= typecheck_compbuf(fac2_buf, fac2_type);
+	
+	xrad= out->xrad;
+	yrad= out->yrad;
+	
+	for(y= -yrad; y<-yrad+out->y; y++) {
+		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
+			src1fp= compbuf_get_pixel(src1_use, src1_col, x, y, xrad, yrad);
+			src2fp= compbuf_get_pixel(src2_use, src2_col, x, y, xrad, yrad);
+			fac1fp= compbuf_get_pixel(fac1_use, fac1, x, y, xrad, yrad);
+			fac2fp= compbuf_get_pixel(fac2_use, fac2, x, y, xrad, yrad);
+			
+			func(node, outfp, src1fp, fac1fp, src2fp, fac2fp);
+		}
+	}
+	
+	if(src1_use!=src1_buf)
+		free_compbuf(src1_use);
+	if(src2_use!=src2_buf)
+		free_compbuf(src2_use);
+	if(fac1_use!=fac1_buf)
+		free_compbuf(fac1_use);
+	if(fac2_use!=fac2_buf)
+		free_compbuf(fac2_use);
+}
+
+
 static CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 {
 	CompBuf *valbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
@@ -1953,6 +1993,65 @@ static bNodeType cmp_node_alphaover= {
 	
 };
 
+/* **************** Z COMBINE ******************** */
+static bNodeSocketType cmp_node_zcombine_in[]= {
+	{	SOCK_RGBA, 1, "Image",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_zcombine_out[]= {
+	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
+{
+	if(*z1 <= *z2) {
+		QUATCOPY(out, src1);
+	}
+	else {
+		QUATCOPY(out, src2);
+	}
+}
+
+static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order in: col z col z */
+	/* stack order out: col z */
+	if(out[0]->hasoutput==0) 
+		return;
+	
+	/* no input no image do nothing now */
+	if(in[0]->data==NULL || in[1]->data==NULL || in[2]->data==NULL || in[3]->data==NULL) {
+		return;
+	}
+	else {
+		/* make output size of first input image */
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, 
+								   in[3]->data, in[3]->vec, do_zcombine, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
+		
+		out[0]->data= stackbuf;
+	}
+}
+
+static bNodeType cmp_node_zcombine= {
+	/* type code   */	CMP_NODE_ZCOMBINE,
+	/* name        */	"Z Combine",
+	/* width+range */	80, 40, 120,
+	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_zcombine_in,
+	/* output sock */	cmp_node_zcombine_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_zcombine
+	
+};
+
 /* **************** MAP VALUE ******************** */
 static bNodeSocketType cmp_node_map_value_in[]= {
 	{	SOCK_VALUE, 1, "Value",			1.0f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
@@ -2739,6 +2838,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_setalpha,
 	&cmp_node_texture,
 	&cmp_node_translate,
+	&cmp_node_zcombine,
 	NULL
 };
 
