@@ -284,7 +284,6 @@ def compareFaceCol(f1, f2):
 					
 	return True	
 
-
 def tri2quad(mesh, limit, selectedFacesOnly, respectUVs, respectVCols):
 	print '\nStarting tri2quad for mesh: %s' % mesh.name
 	print '\t...finding pairs'
@@ -444,13 +443,14 @@ def main():
 	('VCol Delimit', respectVCols, 'Only join pairs that have matching Vert Colors on the joining edge.'),\
 	('Limit: ', limit, 1, 100, 'A higher value will join more tris to quads, even if the quads are not perfect.'),\
 	]
+	
+	if not Draw.PupBlock('Tri2Quad for %i mesh object(s)' % len(meshDict), pup_block):
+		return
+	
 	selectedFacesOnly = selectedFacesOnly.val
 	respectUVs = respectUVs.val
 	respectVCols = respectVCols.val
 	limit = limit.val
-	
-	if not Draw.PupBlock('Tri2Quad for %i mesh object(s)' % len(meshDict), pup_block):
-		return	
 	
 	# We now know we can execute
 	is_editmode = Window.EditMode()
