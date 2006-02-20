@@ -99,7 +99,7 @@ def isfaceCoLin(imagQuag):
 	if not diff:
 		return 0.0
 	
-	return min(diff/180, 1.0)
+	return min(diff/90, 1.0)
 
 
 # Meause the areas of the 2 possible ways of subdividing the imagined quad.
