@@ -153,7 +153,7 @@ static CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int re
 	rectf += type*(disprect.ymin*rectx + disprect.xmin);
 	dx= type*cbuf->x;
 	for(y=cbuf->y; y>0; y--, outfp+=dx, rectf+=type*rectx)
-		memcpy(outfp, rectf, type*dx);
+		memcpy(outfp, rectf, sizeof(float)*dx);
 	
 	return cbuf;
 }
@@ -903,7 +903,7 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 			buftype= CB_VEC4;
 		else if(passcode==SCE_PASS_RGBA)
 			buftype= CB_RGBA;
-		
+
 		if(rd->scemode & R_COMP_CROP)
 			buf= get_cropped_compbuf(&rd->disprect, fp, rectx, recty, buftype);
 		else {
