@@ -366,6 +366,7 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 
 static void save_render_result_tile(Render *re, RenderPart *pa)
 {
+#ifdef WITH_OPENEXR
 	RenderResult *rrpart= pa->result;
 	RenderLayer *rlp;
 	int offs, partx, party;
@@ -392,6 +393,7 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 			imb_exrtile_write_channels(exrhandle, partx, party);
 		}		
 	}
+#endif
 }
 
 
@@ -1187,8 +1189,10 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	if(render_initialize_from_scene(re, scene)) {
 		do_render_final(re);
 		
+#ifdef WITH_OPENEXR
 		if(exrhandle)
 			imb_exrtile_close(exrhandle);
+#endif
 		exrhandle= NULL;
 	}
 }

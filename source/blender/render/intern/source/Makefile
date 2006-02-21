@@ -67,3 +67,7 @@ endif
 ifeq ($(WITH_FFMPEG),true)
         CPPFLAGS += -DWITH_FFMPEG
 endif
+
+ifeq ($(WITH_OPENEXR),true)
+	CPPFLAGS += -DWITH_OPENEXR
+endif
