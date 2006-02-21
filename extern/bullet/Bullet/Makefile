@@ -38,6 +38,7 @@ DIR = $(OCGDIR)/$(SOURCEDIR)
 CCSRCS  = $(wildcard BroadphaseCollision/*.cpp)
 CCSRCS += $(wildcard NarrowPhaseCollision/*.cpp)
 CCSRCS += $(wildcard CollisionShapes/*.cpp)
+CCSRCS += $(wildcard CollisionDispatch/*.cpp)
 
 CPPFLAGS += -DUSE_DOUBLES -DQHULL -D_LIB
 CPPFLAGS += -I../Bullet -I../BulletDynamics -I../LinearMath
@@ -52,4 +53,4 @@ objdirs:
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)BroadphaseCollision
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)NarrowPhaseCollision
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)CollisionShapes
-
+	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)CollisionDispatch

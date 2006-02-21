@@ -35,7 +35,7 @@ LIBNAME = bulletdyn
 SOURCEDIR = extern/bullet/BulletDynamics
 DIR = $(OCGDIR)/$(SOURCEDIR)
 
-CCSRCS =  $(wildcard CollisionDispatch/*.cpp)
+CCSRCS =  $(wildcard Vehicle/*.cpp)
 CCSRCS += $(wildcard ConstraintSolver/*.cpp)
 CCSRCS += $(wildcard Dynamics/*.cpp)
 
@@ -49,7 +49,7 @@ include nan_compile.mk
 .PHONY: objdirs
 objdirs:
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)
-	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)CollisionDispatch
+	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)Vehicle
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)ConstraintSolver
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)Dynamics
 

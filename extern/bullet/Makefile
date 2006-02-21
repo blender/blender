@@ -50,6 +50,7 @@ install: all debug
 	@[ -d $(NAN_BULLET)/include/Dynamics ] || mkdir $(NAN_BULLET)/include/Dynamics
 	@[ -d $(NAN_BULLET)/include/ConstraintSolver ] || mkdir $(NAN_BULLET)/include/ConstraintSolver
 	@[ -d $(NAN_BULLET)/include/CollisionDispatch ] || mkdir $(NAN_BULLET)/include/CollisionDispatch
+	@[ -d $(NAN_BULLET)/include/Vehicle ] || mkdir $(NAN_BULLET)/include/Vehicle
 	@[ -d $(NAN_BULLET)/lib ] || mkdir $(NAN_BULLET)/lib
 	@[ -d $(NAN_BULLET)/lib/debug ] || mkdir $(NAN_BULLET)/lib/debug
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh $(DIR)/Bullet/libbullet.a $(NAN_BULLET)/lib/
@@ -65,7 +66,8 @@ endif
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh Bullet/CollisionShapes/*.h $(NAN_BULLET)/include/CollisionShapes
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh Bullet/BroadphaseCollision/*.h $(NAN_BULLET)/include/BroadphaseCollision
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh Bullet/NarrowPhaseCollision/*.h $(NAN_BULLET)/include/NarrowPhaseCollision
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh Bullet/CollisionDispatch/*.h $(NAN_BULLET)/include/CollisionDispatch
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh BulletDynamics/Dynamics/*.h $(NAN_BULLET)/include/Dynamics
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh BulletDynamics/ConstraintSolver/*.h $(NAN_BULLET)/include/ConstraintSolver
-	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh BulletDynamics/CollisionDispatch/*.h $(NAN_BULLET)/include/CollisionDispatch
+	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh BulletDynamics/Vehicle/*.h $(NAN_BULLET)/include/Vehicle
 	@$(NANBLENDERHOME)/intern/tools/cpifdiff.sh LinearMath/*.h $(NAN_BULLET)/include
