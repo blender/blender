@@ -2686,9 +2686,9 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	/* init scanline updates */
 	rr->renrect.ymin= 0;
 	rr->renrect.ymax= -pa->crop;
-
+	rr->renlay= rl;
+				
 	/* render the tile */
-	
 	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++, rr->renrect.ymax++) {
 		pass= passrect;
 		ap= aprect;
@@ -2815,6 +2815,9 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 		passrect+= 4*pa->rectx;
 		offs+= pa->rectx;
 	}
+
+	/* disable scanline updating */
+	rr->renlay= NULL;
 
 	MEM_freeT(APixbuf);
 	freepsA(&apsmbase);	

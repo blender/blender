@@ -761,9 +761,13 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 	
 	/* if renrect argument, we only display scanlines */
 	if(renrect) {
+		 /* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
+		if(rr->renlay==NULL || renrect->ymax>=rr->recty)
+			return;
+		
 		ymin= renrect->ymin;
 		ymax= renrect->ymax-ymin;
-		if(ymax<2 || renrect->ymax>=rr->recty) /* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
+		if(ymax<2)
 			return;
 		renrect->ymin= renrect->ymax;
 	}

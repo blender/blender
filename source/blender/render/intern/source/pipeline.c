@@ -283,9 +283,6 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		re->r.actlay= 0;
 	}
 	
-	/* display active layer */
-	rr->renlay= render_get_active_layer(re, rr);
-	
 	return rr;
 }
 
@@ -806,7 +803,7 @@ static void threaded_tile_processor(Render *re)
 {
 	ListBase threads;
 	RenderPart *pa, *nextpa;
-	int maxthreads, rendering=1, counter= 1, hasdrawn, drawtimer=0;
+	int maxthreads, rendering=1, counter= 1, drawtimer=0;
 	
 	if(re->result==NULL)
 		return;
@@ -831,6 +828,7 @@ static void threaded_tile_processor(Render *re)
 	while(rendering) {
 		
 		if(nextpa && BLI_available_threads(&threads) && !re->test_break()) {
+			drawtimer= 0;
 			nextpa->nr= counter++;	/* for nicest part, and for stats */
 			nextpa->thread= BLI_available_thread_index(&threads);	/* sample index */
 			BLI_insert_thread(&threads, nextpa);
@@ -843,7 +841,6 @@ static void threaded_tile_processor(Render *re)
 		}
 		
 		/* check for ready ones to display, and if we need to continue */
-		hasdrawn= 0;
 		rendering= 0;
 		for(pa= re->parts.first; pa; pa= pa->next) {
 			if(pa->ready) {
@@ -857,20 +854,17 @@ static void threaded_tile_processor(Render *re)
 					free_render_result(pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
-					hasdrawn= 1;
+					drawtimer= 0;
 				}
 			}
 			else {
 				rendering= 1;
 				if(pa->nr && pa->result && drawtimer>20) {
 					re->display_draw(pa->result, &pa->result->renrect);
-					hasdrawn= 1;
+					drawtimer= 0;
 				}
 			}
 		}
-		
-		if(hasdrawn)
-			drawtimer= 0;
 		
 		/* on break, wait for all slots to get freed */
 		if( (g_break=re->test_break()) && BLI_available_threads(&threads)==maxthreads)

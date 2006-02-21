@@ -103,7 +103,7 @@ typedef struct RenderResult {
 	
 	/* optional saved endresult on disk */
 	char exrfile[FILE_MAXDIR];
-	int filehandle;
+	void *exrhandle;
 	
 } RenderResult;
 

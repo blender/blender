@@ -2910,7 +2910,8 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	/* scanline updates have to be 2 lines behind */
 	rr->renrect.ymin= 0;
 	rr->renrect.ymax= -2*crop;
-	
+	rr->renlay= rl;
+				
 	for(y=pa->disprect.ymin+crop; y<pa->disprect.ymax-crop; y++, rr->renrect.ymax++) {
 		rf= rectf;
 		rd= rectdaps;
@@ -2993,6 +2994,9 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 		
 		if(y&1) if(R.test_break()) break; 
 	}
+	
+	/* disable scanline updating */
+	rr->renlay= NULL;
 	
 	if(R.do_gamma) {
 		rectf= rl->rectf;
@@ -3104,9 +3108,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 	if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
-		/* indication for scanline updates */
-		rr->renlay= rl;
-		rr->renrect.ymin=rr->renrect.ymax= 0;
 
 		/* initialize pixelstructs */
 		addpsmain(&psmlist);
@@ -3175,6 +3176,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 	if(edgerect) MEM_freeT(edgerect);
 	
 	/* display active layer */
+	rr->renrect.ymin=rr->renrect.ymax= 0;
 	rr->renlay= render_get_active_layer(&R, rr);
 }
 
@@ -3198,9 +3200,6 @@ void zbufshade_tile(RenderPart *pa)
 	shpi.thread= pa->thread;
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
-		/* indication for scanline updates */
-		rr->renlay= rl;
-		rr->renrect.ymin=rr->renrect.ymax= 0;
 		
 		/* fill shadepixel info struct */
 		shpi.lay= rl->lay;
@@ -3218,6 +3217,10 @@ void zbufshade_tile(RenderPart *pa)
 				float *fcol= rl->rectf;
 				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0;
 				
+				/* initialize scanline updates for main thread */
+				rr->renrect.ymin= 0;
+				rr->renlay= rl;
+				
 				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
 					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4, offs++) {
 						shadepixel_sky(&shpi, (float)x, (float)y, *rz, *rp, 0);
@@ -3230,6 +3233,9 @@ void zbufshade_tile(RenderPart *pa)
 					if(y&1)
 						if(R.test_break()) break; 
 				}
+				
+				/* disable scanline updating */
+				rr->renlay= NULL;
 			}
 		}
 		
@@ -3278,6 +3284,7 @@ void zbufshade_tile(RenderPart *pa)
 	}
 
 	/* display active layer */
+	rr->renrect.ymin=rr->renrect.ymax= 0;
 	rr->renlay= render_get_active_layer(&R, rr);
 	
 	MEM_freeT(pa->rectp); pa->rectp= NULL;
