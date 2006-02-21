@@ -1950,7 +1950,7 @@ static void do_alphaover_key(bNode *node, float *out, float *src, float *over, f
 		out[0]= (mul*src[0]) + premul*over[0];
 		out[1]= (mul*src[1]) + premul*over[1];
 		out[2]= (mul*src[2]) + premul*over[2];
-		out[3]= (mul*src[3]) + premul*over[3];
+		out[3]= (mul*src[3]) + fac*over[3];
 	}
 }
 
