@@ -17,7 +17,7 @@
 #include "CollisionDispatch/EmptyCollisionAlgorithm.h"
 #include "CollisionDispatch/ConvexConcaveCollisionAlgorithm.h"
 
-#include "NarrowphaseCollision/CollisionObject.h"
+#include "NarrowPhaseCollision/CollisionObject.h"
 #include <algorithm>
 
 void CollisionDispatcher::FindUnions()

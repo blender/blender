@@ -11,7 +11,7 @@
 
 #include "CollisionWorld.h"
 #include "CollisionDispatcher.h"
-#include "NarrowphaseCollision/CollisionObject.h"
+#include "NarrowPhaseCollision/CollisionObject.h"
 #include "CollisionShapes/CollisionShape.h"
 
 #include "BroadphaseCollision/BroadphaseInterface.h"
