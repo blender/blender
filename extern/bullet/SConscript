@@ -84,7 +84,9 @@ sources = [         'Bullet/BroadphaseCollision/BroadphaseProxy.cpp',
                 'Bullet/CollisionDispatch/UnionFind.cpp',
 		'Bullet/NarrowPhaseCollision/CollisionObject.cpp',
 		'Bullet/CollisionDispatch/CollisionWorld.cpp',
-                
+                'BulletDynamics/Vehicle/RaycastVehicle.cpp',
+		'BulletDynamics/Vehicle/WheelInfo.cpp',
+ 
                 'BulletDynamics/ConstraintSolver/ContactConstraint.cpp',
                 'BulletDynamics/ConstraintSolver/OdeConstraintSolver.cpp',
                 'BulletDynamics/ConstraintSolver/Point2PointConstraint.cpp',
