@@ -1305,7 +1305,7 @@ void face_borderselect()
 		sy= (rect.ymax-rect.ymin+1);
 		if(sx*sy<=0) return;
 
-		ibuf = IMB_allocImBuf(sx,sy,32,0,0);
+		ibuf = IMB_allocImBuf(sx,sy,32,IB_rect,0);
 		rt = ibuf->rect;
 		glReadPixels(rect.xmin+curarea->winrct.xmin,  rect.ymin+curarea->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
 		if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
