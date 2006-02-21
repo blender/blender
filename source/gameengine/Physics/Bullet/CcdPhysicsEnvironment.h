@@ -14,7 +14,7 @@ class Dispatcher;
 //#include "BroadphaseInterface.h"
 
 //switch on/off new vehicle support
-//#define NEW_BULLET_VEHICLE_SUPPORT 1
+#define NEW_BULLET_VEHICLE_SUPPORT 1
 
 #include "ConstraintSolver/ContactSolverInfo.h"
 
