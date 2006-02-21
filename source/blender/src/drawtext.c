@@ -173,7 +173,7 @@ static int render_string (char *in) {
 	while(*in) {
 		if (*in=='\t') {
 			if (temp_char_pos && *(in-1)=='\t') i= st->tabnumber;
-			else i= st->tabnumber - (temp_char_pos%st->tabnumber);
+			else if (st->tabnumber > 0) i= st->tabnumber - (temp_char_pos%st->tabnumber);
 
 			while(i--) temp_char_write(' ', r);
 		} else temp_char_write(*in, r);
