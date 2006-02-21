@@ -15,7 +15,8 @@
 #include "ConstraintSolver/TypedConstraint.h"
 
 struct MassProps;
-struct WheelInfo;
+#include "WheelInfo.h"
+
 struct	VehicleRaycaster;
 class VehicleTuning;
 
