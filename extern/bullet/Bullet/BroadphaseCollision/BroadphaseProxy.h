@@ -45,15 +45,19 @@ CONCAVE_SHAPES_START_HERE,
 ///BroadphaseProxy
 struct BroadphaseProxy
 {
+
+	//Usually the client CollisionObject or Rigidbody class
+	void*	m_clientObject;
+
+
 	BroadphaseProxy() :m_clientObject(0),m_clientObjectType(-1){}
-	BroadphaseProxy(void* object,int type)
-		:m_clientObject(object),
-		m_clientObjectType(type)
+	BroadphaseProxy(int shapeType,void* userPtr)
+		:m_clientObject(userPtr),
+		m_clientObjectType(shapeType)
 	{
 	}
 
-	void        *m_clientObject;
-
+	
 	int GetClientObjectType ( ) const { return m_clientObjectType;}
 
 	

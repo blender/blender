@@ -25,8 +25,8 @@ struct SimpleBroadphaseProxy : public BroadphaseProxy
 	
 	SimpleBroadphaseProxy() {};
 
-	SimpleBroadphaseProxy(void* object,int type,const SimdPoint3& minpt,const SimdPoint3& maxpt)
-	:BroadphaseProxy(object,type),
+	SimpleBroadphaseProxy(const SimdPoint3& minpt,const SimdPoint3& maxpt,int shapeType,void* userPtr)
+	:BroadphaseProxy(shapeType,userPtr),
 	m_min(minpt),m_max(maxpt)		
 	{
 	}
@@ -64,7 +64,8 @@ public:
 	SimpleBroadphase();
 	virtual ~SimpleBroadphase();
 
-	virtual BroadphaseProxy*	CreateProxy(  void *object,int type, const SimdVector3& min,  const SimdVector3& max) ;
+	virtual BroadphaseProxy*	CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr);
+
 	virtual void	DestroyProxy(BroadphaseProxy* proxy);
 	virtual void	SetAabb(BroadphaseProxy* proxy,const SimdVector3& aabbMin,const SimdVector3& aabbMax);
 	virtual void	CleanProxyFromPairs(BroadphaseProxy* proxy);

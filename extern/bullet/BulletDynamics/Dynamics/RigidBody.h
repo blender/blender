@@ -4,6 +4,10 @@
 #include <vector>
 #include <SimdPoint3.h>
 #include <SimdTransform.h>
+#include "BroadphaseCollision/BroadphaseProxy.h"
+
+
+#include "NarrowPhaseCollision/CollisionObject.h"
 
 class CollisionShape;
 struct MassProps;
@@ -17,14 +21,14 @@ extern bool gUseEpa;
 
 /// RigidBody class for RigidBody Dynamics
 /// 
-class RigidBody  {
+class RigidBody  : public CollisionObject
+{
 public:
 
 	RigidBody(const MassProps& massProps,SimdScalar linearDamping,SimdScalar angularDamping,SimdScalar friction,SimdScalar restitution);
 
 	void			proceedToTransform(const SimdTransform& newTrans); 
 	
-	bool			mergesSimulationIslands() const;
 	
 	/// continuous collision detection needs prediction
 	void			predictIntegratedTransform(SimdScalar step, SimdTransform& predictedTransform) const;
@@ -35,7 +39,13 @@ public:
 	
 	void			setDamping(SimdScalar lin_damping, SimdScalar ang_damping);
 	
-	CollisionShape*	GetCollisionShape() { return m_collisionShape; }
+	inline const CollisionShape*	GetCollisionShape() const {
+		return m_collisionShape;
+	}
+
+	inline CollisionShape*	GetCollisionShape() {
+			return m_collisionShape;
+	}
 	
 	void			setMassProps(SimdScalar mass, const SimdVector3& inertia);
 	
@@ -121,12 +131,9 @@ public:
 		m_worldTransform.getOrigin() += v; 
 	}
 
-	void	SetCollisionShape(CollisionShape* mink);
-
+	
 	void	getAabb(SimdVector3& aabbMin,SimdVector3& aabbMax) const;
 
-	int	GetActivationState() const { return m_activationState1;}
-	void SetActivationState(int newState);
 
 	void	setRestitution(float rest)
 	{
@@ -144,10 +151,9 @@ public:
 	{
 		return m_friction;
 	}
-	void	activate();
 
 private:
-	SimdTransform	m_worldTransform;
+	
 	SimdMatrix3x3	m_invInertiaTensorWorld;
 	SimdVector3		m_gravity;	
 	SimdVector3		m_invInertiaLocal;
@@ -166,23 +172,36 @@ private:
 	SimdScalar		m_friction;
 	SimdScalar		m_restitution;
 
-	CollisionShape*	m_collisionShape;
+	BroadphaseProxy*	m_broadphaseProxy;
+
+
 
 	
 public:
+	const BroadphaseProxy*	GetBroadphaseProxy() const
+	{
+		return m_broadphaseProxy;
+	}
+	BroadphaseProxy*	GetBroadphaseProxy() 
+	{
+		return m_broadphaseProxy;
+	}
+	void	SetBroadphaseProxy(BroadphaseProxy* broadphaseProxy)
+	{
+		m_broadphaseProxy = broadphaseProxy;
+	}
+	
+
 	/// for ode solver-binding
 	dMatrix3		m_R;//temp
 	dMatrix3		m_I;
 	dMatrix3		m_invI;
-	int				m_islandTag1;//temp
-	int				m_activationState1;//temp
-	float			m_deactivationTime;
 
 	int				m_odeTag;
 	float		m_padding[1024];
 	SimdVector3		m_tacc;//temp
 	SimdVector3		m_facc;
-	SimdScalar		m_hitFraction; //time of impact calculation
+	
 
 	int	m_debugBodyId;
 };

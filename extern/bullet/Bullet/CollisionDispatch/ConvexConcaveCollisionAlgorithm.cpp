@@ -10,15 +10,12 @@
 */
 
 #include "ConvexConcaveCollisionAlgorithm.h"
-#include "Dynamics/RigidBody.h"
+#include "NarrowPhaseCollision/CollisionObject.h"
 #include "CollisionShapes/MultiSphereShape.h"
-#include "ConstraintSolver/ContactConstraint.h"
 #include "CollisionShapes/BoxShape.h"
 #include "ConvexConvexAlgorithm.h"
 #include "BroadphaseCollision/BroadphaseProxy.h"
 #include "CollisionShapes/TriangleShape.h"
-#include "ConstraintSolver/ConstraintSolver.h"
-#include "ConstraintSolver/ContactSolverInfo.h"
 #include "CollisionDispatch/ManifoldResult.h"
 #include "NarrowPhaseCollision/RaycastCallback.h"
 #include "CollisionShapes/TriangleMeshShape.h"
@@ -76,29 +73,30 @@ void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 	//printf("triangle %d",m_triangleCount++);
 
 
-	RigidBody* triangleBody = (RigidBody*)m_triangleProxy.m_clientObject;
-
 	//aabb filter is already applied!	
 
 	CollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher = m_dispatcher;
 
-	ConvexShape* tmp = static_cast<ConvexShape*>(triangleBody->GetCollisionShape());
+	
 
 	if (m_boxProxy->IsConvexShape())
 	{
 		TriangleShape tm(triangle[0],triangle[1],triangle[2]);	
 		tm.SetMargin(m_collisionMarginTriangle);
+	
+		CollisionObject* ob = static_cast<CollisionObject*>(m_triangleProxy.m_clientObject);
 
-		RigidBody* triangleBody = (RigidBody* )m_triangleProxy.m_clientObject;
+		CollisionShape* tmpShape = ob->m_collisionShape;
+		ob->m_collisionShape = &tm;
 		
-		triangleBody->SetCollisionShape(&tm);
 		ConvexConvexAlgorithm cvxcvxalgo(m_manifoldPtr,ci,m_boxProxy,&m_triangleProxy);
-		triangleBody->SetCollisionShape(&tm);
 		cvxcvxalgo.ProcessCollision(m_boxProxy,&m_triangleProxy,m_timeStep,m_stepCount,m_useContinuous);
+		ob->m_collisionShape = tmpShape;
+
 	}
 
-	triangleBody->SetCollisionShape(tmp);
+	
 
 }
 
@@ -113,13 +111,16 @@ void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,fl
 	m_collisionMarginTriangle = collisionMarginTriangle;
 
 	//recalc aabbs
-	RigidBody* boxBody = (RigidBody* )m_boxProxy->m_clientObject;
-	RigidBody* triBody = (RigidBody* )m_triangleProxy.m_clientObject;
+	CollisionObject* boxBody = (CollisionObject* )m_boxProxy->m_clientObject;
+	CollisionObject* triBody = (CollisionObject* )m_triangleProxy.m_clientObject;
 
 	SimdTransform boxInTriangleSpace;
-	boxInTriangleSpace = triBody->getCenterOfMassTransform().inverse() * boxBody->getCenterOfMassTransform();
+	boxInTriangleSpace = triBody->m_worldTransform.inverse() * boxBody->m_worldTransform;
 
-	boxBody->GetCollisionShape()->GetAabb(boxInTriangleSpace,m_aabbMin,m_aabbMax);
+	CollisionShape* boxshape = static_cast<CollisionShape*>(boxBody->m_collisionShape);
+	CollisionShape* triangleShape = static_cast<CollisionShape*>(triBody->m_collisionShape);
+
+	boxshape->GetAabb(boxInTriangleSpace,m_aabbMin,m_aabbMax);
 
 	float extraMargin = collisionMarginTriangle;//CONVEX_DISTANCE_MARGIN;//+0.1f;
 
@@ -142,15 +143,13 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 	if (m_concave.GetClientObjectType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
 	{
 
-		RigidBody* convexbody = (RigidBody* )m_convex.m_clientObject;
-		RigidBody* concavebody = (RigidBody* )m_concave.m_clientObject;
+		if (!m_dispatcher->NeedsCollision(m_convex,m_concave))
+			return;
 
-			//todo: move this in the dispatcher
-		if ((convexbody->GetActivationState() == 2) &&(concavebody->GetActivationState() == 2))
-		return;
+		
 
-
-		TriangleMeshShape* triangleMesh = (TriangleMeshShape*) concavebody->GetCollisionShape();
+		CollisionObject*	triOb = static_cast<CollisionObject*>(m_concave.m_clientObject);
+		TriangleMeshShape* triangleMesh = static_cast<TriangleMeshShape*>( triOb->m_collisionShape);
 		
 		if (m_convex.IsConvexShape())
 		{
@@ -160,7 +159,7 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 #ifdef USE_BOX_TRIANGLE
 			m_boxTriangleCallback.m_manifoldPtr->ClearManifold();
 #endif
-			m_boxTriangleCallback.m_manifoldPtr->SetBodies(convexbody,concavebody);		
+			m_boxTriangleCallback.m_manifoldPtr->SetBodies(m_convex.m_clientObject,m_concave.m_clientObject);
 
 			triangleMesh->ProcessAllTriangles( &m_boxTriangleCallback,m_boxTriangleCallback.GetAabbMin(),m_boxTriangleCallback.GetAabbMax());
 			
@@ -175,24 +174,11 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount)
 {
 
-	return 1.f;
-
 	//quick approximation using raycast, todo: use proper continuou collision detection
-	RigidBody* convexbody = (RigidBody* )m_convex.m_clientObject;
-	const SimdVector3& from = convexbody->getCenterOfMassPosition();
-		
-	SimdVector3 radVec(0,0,0);
+	CollisionObject* convexbody = (CollisionObject* )m_convex.m_clientObject;
+	const SimdVector3& from = convexbody->m_worldTransform.getOrigin();
 	
-	float minradius = 0.05f;
-	float lenSqr = convexbody->getLinearVelocity().length2();
-	if (lenSqr > SIMD_EPSILON)
-	{
-		radVec = convexbody->getLinearVelocity();
-		radVec.normalize();
-		radVec *= minradius;
-	}
-
-	SimdVector3 to = from + radVec + convexbody->getLinearVelocity() * timeStep*1.01f;
+	SimdVector3 to = convexbody->m_nextPredictedWorldTransform.getOrigin();
 	//only do if the motion exceeds the 'radius'
 
 
@@ -206,9 +192,9 @@ float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,B
 	if (m_concave.GetClientObjectType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
 	{
 
-		RigidBody* concavebody = (RigidBody* )m_concave.m_clientObject;
+		CollisionObject* concavebody = (CollisionObject* )m_concave.m_clientObject;
 
-		TriangleMeshShape* triangleMesh = (TriangleMeshShape*) concavebody->GetCollisionShape();
+		TriangleMeshShape* triangleMesh = (TriangleMeshShape*) concavebody->m_collisionShape;
 		
 		if (triangleMesh)
 		{

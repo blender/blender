@@ -234,6 +234,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\NarrowPhaseCollision\CollisionObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\CollisionObject.h"
+				>
+			</File>
+			<File
 				RelativePath=".\NarrowPhaseCollision\ContinuousConvexCollision.cpp"
 				>
 			</File>
@@ -502,11 +510,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\BroadphaseCollision\CollisionDispatcher.cpp"
+				RelativePath=".\BroadphaseCollision\Dispatcher.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\BroadphaseCollision\CollisionDispatcher.h"
+				RelativePath=".\BroadphaseCollision\Dispatcher.h"
 				>
 			</File>
 			<File
@@ -575,6 +583,66 @@
 			</File>
 			<File
 				RelativePath="..\LinearMath\SimdVector3.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="CollisionDispatch"
+			>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionDispatcher.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionDispatcher.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionWorld.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionWorld.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConcaveCollisionAlgorithm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConcaveCollisionAlgorithm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConvexAlgorithm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConvexAlgorithm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\EmptyCollisionAlgorithm.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\EmptyCollisionAlgorithm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ManifoldResult.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ManifoldResult.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\UnionFind.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\UnionFind.h"
 				>
 			</File>
 		</Filter>

@@ -9,13 +9,18 @@
 #include "SimdVector3.h"
 #include "SimdScalar.h"	
 #include "SimdMatrix3x3.h"
+#include "SimdTransform.h"
+#include "Dynamics/RigidBody.h"
 
+
+#include "BroadphaseCollision/BroadphaseProxy.h" //for CollisionShape access
 class CollisionShape;
 
 extern float gDeactivationTime;
 extern float gLinearSleepingTreshold;
 extern float gAngularSleepingTreshold;
 extern bool gDisableDeactivation;
+class CcdPhysicsEnvironment;
 
 
 struct CcdConstructionInfo
@@ -27,22 +32,26 @@ struct CcdConstructionInfo
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
 		m_MotionState(0),
-		m_collisionShape(0)
-
+		m_physicsEnv(0),
+		m_inertiaFactor(1.f),
+		m_scaling(1.f,1.f,1.f)
 	{
 	}
+
 	SimdVector3	m_localInertiaTensor;
 	SimdVector3	m_gravity;
+	SimdVector3	m_scaling;
 	SimdScalar	m_mass;
 	SimdScalar	m_restitution;
 	SimdScalar	m_friction;
 	SimdScalar	m_linearDamping;
 	SimdScalar	m_angularDamping;
-	void*		m_broadphaseHandle;
-	class	PHY_IMotionState*			m_MotionState;
 
 	CollisionShape*			m_collisionShape;
-	
+	class	PHY_IMotionState*			m_MotionState;
+
+	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
+	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
 };
 
 
@@ -53,15 +62,19 @@ class CcdPhysicsController : public PHY_IPhysicsController
 {
 	RigidBody* m_body;
 	class	PHY_IMotionState*			m_MotionState;
+	
+
 	void*		m_newClientInfo;
 
+	CcdConstructionInfo	m_cci;//needed for replication
 	void GetWorldOrientation(SimdMatrix3x3& mat);
+
+	void CreateRigidbody();
 
 	public:
 	
 		int				m_collisionDelay;
 	
-		void*  m_broadphaseHandle;
 
 		CcdPhysicsController (const CcdConstructionInfo& ci);
 
@@ -70,7 +83,9 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		RigidBody* GetRigidBody() { return m_body;}
 
-		CollisionShape*	GetCollisionShape();
+		CollisionShape*	GetCollisionShape() { 
+			return m_body->GetCollisionShape();
+		}
 		////////////////////////////////////
 		// PHY_IPhysicsController interface
 		////////////////////////////////////
@@ -109,6 +124,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		// reading out information from physics
 		virtual void		GetLinearVelocity(float& linvX,float& linvY,float& linvZ);
+		virtual void		GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ);
 		virtual void		GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ); 
 		virtual	void		getReactionForce(float& forceX,float& forceY,float& forceZ);
 
@@ -131,6 +147,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		bool	wantsSleeping();
 
 		void	UpdateDeactivation(float timeStep);
+
+		static SimdTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
 
 		void	SetAabb(const SimdVector3& aabbMin,const SimdVector3& aabbMax);
 

@@ -13,19 +13,19 @@
 #define MANIFOLD_RESULT_H
 
 #include "NarrowPhaseCollision/DiscreteCollisionDetectorInterface.h"
-class RigidBody;
+struct CollisionObject;
 class PersistentManifold;
 
 
 class ManifoldResult : public DiscreteCollisionDetectorInterface::Result
 {
 	PersistentManifold* m_manifoldPtr;
-	RigidBody* m_body0;
-	RigidBody* m_body1;
+	CollisionObject* m_body0;
+	CollisionObject* m_body1;
 
 public:
 
-	ManifoldResult(RigidBody* body0,RigidBody* body1,PersistentManifold* manifoldPtr);
+	ManifoldResult(CollisionObject* body0,CollisionObject* body1,PersistentManifold* manifoldPtr);
 
 
 	virtual void AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth);

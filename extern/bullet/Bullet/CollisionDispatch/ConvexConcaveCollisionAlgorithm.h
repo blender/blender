@@ -12,7 +12,7 @@
 #define CONVEX_CONCAVE_COLLISION_ALGORITHM_H
 
 #include "BroadphaseCollision/CollisionAlgorithm.h"
-#include "BroadphaseCollision/CollisionDispatcher.h"
+#include "BroadphaseCollision/Dispatcher.h"
 #include "BroadphaseCollision/BroadphaseInterface.h"
 #include "CollisionShapes/TriangleCallback.h"
 #include "NarrowPhaseCollision/PersistentManifold.h"

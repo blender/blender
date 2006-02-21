@@ -9,7 +9,7 @@
  * It is provided "as is" without express or implied warranty.
 */
 #include "CollisionAlgorithm.h"
-#include "CollisionDispatcher.h"
+#include "Dispatcher.h"
 
 CollisionAlgorithm::CollisionAlgorithm(const CollisionAlgorithmConstructionInfo& ci)
 {

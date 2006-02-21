@@ -41,12 +41,12 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\LinearMath"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="TRUE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -72,7 +72,7 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -107,7 +107,7 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -133,7 +133,7 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -160,6 +160,10 @@
 				RelativePath="..\PHY_IPhysicsEnvironment.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\PHY_IVehicle.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -183,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\PHY_IVehicle.h"
+				>
+			</File>
+			<File
 				RelativePath="..\PHY_Pro.h"
 				>
 			</File>
@@ -198,4 +206,6 @@
 			>
 		</File>
 	</Files>
+	<Globals>
+	</Globals>
 </VisualStudioProject>

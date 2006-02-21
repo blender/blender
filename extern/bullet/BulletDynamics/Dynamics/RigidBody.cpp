@@ -9,10 +9,7 @@ float gLinearAirDamping = 1.f;
 static int uniqueId = 0;
 
 RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdScalar angularDamping,SimdScalar friction,SimdScalar restitution)
-: m_collisionShape(0),
-	m_activationState1(1),
-	m_deactivationTime(0.f),
-	m_hitFraction(1.f),
+: 
 	m_gravity(0.0f, 0.0f, 0.0f),
 	m_linearDamping(0.f),
 	m_angularDamping(0.5f),
@@ -32,11 +29,7 @@ RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdSc
 
 }
 
-void RigidBody::activate()
-{
-		SetActivationState(1);
-		m_deactivationTime = 0.f;
-}
+
 void RigidBody::setLinearVelocity(const SimdVector3& lin_vel)
 { 
 
@@ -52,13 +45,9 @@ void RigidBody::predictIntegratedTransform(SimdScalar timeStep,SimdTransform& pr
 	
 void	RigidBody::getAabb(SimdVector3& aabbMin,SimdVector3& aabbMax) const
 {
-	m_collisionShape ->GetAabb(m_worldTransform,aabbMin,aabbMax);
+	GetCollisionShape()->GetAabb(m_worldTransform,aabbMin,aabbMax);
 }
 
-void	RigidBody::SetCollisionShape(CollisionShape* mink)
-{
-	m_collisionShape = mink;
-}
 
 
 void RigidBody::setGravity(const SimdVector3& acceleration) 
@@ -69,15 +58,8 @@ void RigidBody::setGravity(const SimdVector3& acceleration)
 	}
 }
 
-bool RigidBody::mergesSimulationIslands() const
-{
-	return ( getInvMass() != 0) ;
-}
 
-void RigidBody::SetActivationState(int newState) 
-{ 
-	m_activationState1 = newState;
-}
+
 
 
 
@@ -110,7 +92,17 @@ void RigidBody::proceedToTransform(const SimdTransform& newTrans)
 
 void RigidBody::setMassProps(SimdScalar mass, const SimdVector3& inertia)
 {
-	m_inverseMass = mass != 0.0f ? 1.0f / mass : 0.0f;
+	if (mass == 0.f)
+	{
+		m_collisionFlags = CollisionObject::isStatic;
+		m_inverseMass = 0.f;
+	} else
+	{
+		m_collisionFlags = 0;
+		m_inverseMass = 1.0f / mass;
+	}
+	
+
 	m_invInertiaLocal.setValue(inertia[0] != 0.0f ? 1.0f / inertia[0]: 0.0f,
 						   inertia[1] != 0.0f ? 1.0f / inertia[1]: 0.0f,
 						   inertia[2] != 0.0f ? 1.0f / inertia[2]: 0.0f);
@@ -152,12 +144,6 @@ SimdQuaternion RigidBody::getOrientation() const
 void RigidBody::setCenterOfMassTransform(const SimdTransform& xform)
 {
 	m_worldTransform = xform;
-	SimdQuaternion orn;
-//	m_worldTransform.getBasis().getRotation(orn);
-//	orn.normalize();
-//	m_worldTransform.setBasis(SimdMatrix3x3(orn));
-
-//	m_worldTransform.getBasis().getRotation(m_orn1);
 	updateInertiaTensor();
 }
 

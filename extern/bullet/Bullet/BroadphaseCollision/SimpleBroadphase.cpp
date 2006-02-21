@@ -9,7 +9,7 @@
  * It is provided "as is" without express or implied warranty.
 */
 #include "SimpleBroadphase.h"
-#include "BroadphaseCollision/CollisionDispatcher.h"
+#include "BroadphaseCollision/Dispatcher.h"
 #include "BroadphaseCollision/CollisionAlgorithm.h"
 
 #include "SimdVector3.h"
@@ -43,7 +43,7 @@ SimpleBroadphase::~SimpleBroadphase()
 }
 
 
-BroadphaseProxy*	SimpleBroadphase::CreateProxy( void *object, int type, const SimdVector3& min,  const SimdVector3& max) 
+BroadphaseProxy*	SimpleBroadphase::CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr)
 {
 	if (m_numProxies >= SIMPLE_MAX_PROXIES)
 	{
@@ -53,7 +53,7 @@ BroadphaseProxy*	SimpleBroadphase::CreateProxy( void *object, int type, const Si
 	assert(min[0]<= max[0] && min[1]<= max[1] && min[2]<= max[2]);
 
 	int freeIndex= m_freeProxies[m_firstFreeProxy];
-	BroadphaseProxy* proxy = new (&m_proxies[freeIndex])SimpleBroadphaseProxy(object,type,min,max);
+	BroadphaseProxy* proxy = new (&m_proxies[freeIndex])SimpleBroadphaseProxy(min,max,shapeType,userPtr);
 	m_firstFreeProxy++;
 
 	m_pProxies[m_numProxies] = proxy;
@@ -151,6 +151,13 @@ void	SimpleBroadphase::AddOverlappingPair(BroadphaseProxy* proxy0,BroadphaseProx
 		assert(!m_OverlappingPairs[m_NumOverlapBroadphasePair].m_algorithms[i]);
 		m_OverlappingPairs[m_NumOverlapBroadphasePair].m_algorithms[i] = 0;
 	}
+
+	if (m_NumOverlapBroadphasePair >= SIMPLE_MAX_OVERLAP)
+	{
+		printf("Error: too many overlapping objects: m_NumOverlapBroadphasePair: %d\n",m_NumOverlapBroadphasePair);
+		assert(0);
+	}
+
 	m_NumOverlapBroadphasePair++;
 }
 	

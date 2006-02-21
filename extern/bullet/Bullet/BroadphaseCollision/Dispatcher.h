@@ -8,8 +8,8 @@
  * of this software for any purpose.  
  * It is provided "as is" without express or implied warranty.
 */
-#ifndef COLLISION_DISPATCHER_H
-#define COLLISION_DISPATCHER_H
+#ifndef _DISPATCHER_H
+#define _DISPATCHER_H
 
 class CollisionAlgorithm;
 struct BroadphaseProxy;
@@ -18,7 +18,7 @@ class RigidBody;
 enum CollisionDispatcherId
 {
 	RIGIDBODY_DISPATCHER = 0,
-	RAGDOLL_DISPATCHER
+	USERCALLBACK_DISPATCHER
 };
 
 class PersistentManifold;
@@ -45,7 +45,8 @@ struct DispatcherInfo
 	
 };
 
-/// Collision Dispatcher can be used in combination with broadphase and collision algorithms.
+/// Dispatcher can be used in combination with broadphase to dispatch overlapping pairs.
+/// For example for pairwise collision detection or user callbacks (game logic).
 class Dispatcher
 {
 
@@ -64,8 +65,11 @@ public:
 
 	virtual void ReleaseManifold(PersistentManifold* manifold)=0;
 
+	virtual bool	NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1) = 0;
+
+
 
 };
 
 
-#endif //COLLISION_DISPATCHER_H
+#endif //_DISPATCHER_H

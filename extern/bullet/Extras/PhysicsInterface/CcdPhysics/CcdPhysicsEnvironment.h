@@ -9,11 +9,16 @@ class CcdPhysicsController;
 
 
 class Point2PointConstraint;
-class ToiContactDispatcher;
+class CollisionDispatcher;
 class Dispatcher;
 //#include "BroadphaseInterface.h"
 
-class Vehicle;
+//switch on/off new vehicle support
+#define NEW_BULLET_VEHICLE_SUPPORT 1
+
+#include "ConstraintSolver/ContactSolverInfo.h"
+
+class WrapperVehicle;
 class PersistentManifold;
 class BroadphaseInterface;
 class IDebugDraw;
@@ -24,14 +29,16 @@ class IDebugDraw;
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 	SimdVector3 m_gravity;
-	BroadphaseInterface*	m_broadphase;
+	
 	IDebugDraw*	m_debugDrawer;
 	int	m_numIterations;
 	int	m_ccdMode;
 	int	m_solverType;
 	
+	ContactSolverInfo	m_solverInfo;
+
 	public:
-		CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
+		CcdPhysicsEnvironment(CollisionDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
 
 		virtual		~CcdPhysicsEnvironment();
 
@@ -59,10 +66,12 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual void		setLinearAirDamping(float damping);
 		virtual void		setUseEpa(bool epa) ;
 
-		virtual	void		beginFrame() {};
+		virtual	void		beginFrame();
 		virtual void		endFrame() {};
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
+		bool				proceedDeltaTimeOneStep(float timeStep);
+
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
 		//returns 0.f if no fixed timestep is used
 
@@ -75,8 +84,17 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
-		virtual void		removeConstraint(int constraintid);
+	    virtual void		removeConstraint(int	constraintid);
 
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+		//complex constraint for vehicles
+		virtual class PHY_IVehicle*	getVehicleConstraint(int constraintId);
+#else
+		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId)
+		{
+			return 0;
+		}
+#endif //NEW_BULLET_VEHICLE_SUPPORT
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
@@ -104,9 +122,12 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		void	removeCcdPhysicsController(CcdPhysicsController* ctrl);
 
-		BroadphaseInterface*	GetBroadphase() { return m_broadphase; }
+		BroadphaseInterface*	GetBroadphase();
 
-		Dispatcher* GetDispatcher();
+		CollisionDispatcher* GetDispatcher();
+		
+		const CollisionDispatcher* GetDispatcher() const;
+
 
 		int	GetNumControllers();
 
@@ -118,16 +139,18 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 	private:
 		
-		void	UpdateActivationState();	
+		
 		void	SyncMotionStates(float timeStep);
 		
 		std::vector<CcdPhysicsController*> m_controllers;
 
 		std::vector<Point2PointConstraint*> m_p2pConstraints;
 
-		std::vector<Vehicle*>	m_vehicles;
+		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		class ToiContactDispatcher* m_dispatcher;
+		class CollisionWorld*	m_collisionWorld;
+		
+		class ConstraintSolver*	m_solver;
 
 		bool	m_scalingPropagated;
 

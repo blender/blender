@@ -11,9 +11,9 @@
 
 #include "ManifoldResult.h"
 #include "NarrowPhaseCollision/PersistentManifold.h"
-#include "Dynamics/RigidBody.h"
+#include "NarrowPhaseCollision/CollisionObject.h"
 
-ManifoldResult::ManifoldResult(RigidBody* body0,RigidBody* body1,PersistentManifold* manifoldPtr)
+ManifoldResult::ManifoldResult(CollisionObject* body0,CollisionObject* body1,PersistentManifold* manifoldPtr)
 		:m_manifoldPtr(manifoldPtr),
 		m_body0(body0),
 		m_body1(body1)
@@ -25,8 +25,8 @@ void ManifoldResult::AddContactPoint(const SimdVector3& normalOnBInWorld,const S
 	if (depth > m_manifoldPtr->GetManifoldMargin())
 		return;
 
-	SimdTransform transAInv = m_body0->getCenterOfMassTransform().inverse();
-	SimdTransform transBInv= m_body1->getCenterOfMassTransform().inverse();
+	SimdTransform transAInv = m_body0->m_worldTransform.inverse();
+	SimdTransform transBInv= m_body1->m_worldTransform.inverse();
 	SimdVector3 pointA = pointInWorld + normalOnBInWorld * depth;
 	SimdVector3 localA = transAInv(pointA );
 	SimdVector3 localB = transBInv(pointInWorld);

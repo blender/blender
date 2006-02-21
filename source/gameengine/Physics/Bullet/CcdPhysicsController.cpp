@@ -3,6 +3,7 @@
 #include "Dynamics/RigidBody.h"
 #include "PHY_IMotionState.h"
 #include "BroadphaseCollision/BroadphaseProxy.h"
+#include "BroadphaseCollision/BroadphaseInterface.h"
 #include "CollisionShapes/ConvexShape.h"
 #include "CcdPhysicsEnvironment.h"
 
@@ -29,12 +30,10 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	
 	m_MotionState = ci.m_MotionState;
 
-
-	m_broadphaseHandle = ci.m_broadphaseHandle;
-
-	m_collisionShape = ci.m_collisionShape;
-
+	
+	
 	CreateRigidbody();
+	
 
 	
 	#ifdef WIN32
@@ -44,21 +43,31 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 
 }
 
-void CcdPhysicsController::CreateRigidbody()
+SimdTransform	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
 {
 	SimdTransform trans;
 	float tmp[3];
-	m_MotionState->getWorldPosition(tmp[0],tmp[1],tmp[2]);
+	motionState->getWorldPosition(tmp[0],tmp[1],tmp[2]);
 	trans.setOrigin(SimdVector3(tmp[0],tmp[1],tmp[2]));
 
 	SimdQuaternion orn;
-	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
+	motionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
 	trans.setRotation(orn);
+	return trans;
+
+}
+
+void CcdPhysicsController::CreateRigidbody()
+{
+
+	SimdTransform trans = GetTransformFromMotionState(m_cci.m_MotionState);
 
 	MassProps mp(m_cci.m_mass, m_cci.m_localInertiaTensor);
 
 	m_body = new RigidBody(mp,0,0,m_cci.m_friction,m_cci.m_restitution);
+	m_body->m_collisionShape = m_cci.m_collisionShape;
 	
+
 	//
 	// init the rigidbody properly
 	//
@@ -74,7 +83,6 @@ void CcdPhysicsController::CreateRigidbody()
 CcdPhysicsController::~CcdPhysicsController()
 {
 	//will be reference counted, due to sharing
-	//delete m_collisionShape;
 	m_cci.m_physicsEnv->removeCcdPhysicsController(this);
 	delete m_MotionState;
 	delete m_body;
@@ -96,7 +104,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 	float scale[3];
 	m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
 	SimdVector3 scaling(scale[0],scale[1],scale[2]);
-	m_collisionShape->setLocalScaling(scaling);
+	GetCollisionShape()->setLocalScaling(scaling);
 
 	return true;
 }
@@ -115,12 +123,13 @@ void		CcdPhysicsController::WriteDynamicsToMotionState()
 		// controller replication
 void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)
 {
-
 	m_MotionState = motionstate;
-	m_broadphaseHandle = 0;
+
+	
+
 	m_body = 0;
 	CreateRigidbody();
-			
+	
 	m_cci.m_physicsEnv->addCcdPhysicsController(this);
 
 
@@ -387,8 +396,8 @@ bool CcdPhysicsController::wantsSleeping()
 	//disable deactivation
 	if (gDisableDeactivation || (gDeactivationTime == 0.f))
 		return false;
-	//2 == ISLAND_SLEEPING, 3 == WANTS_DEACTIVATION
-	if ( (m_body->GetActivationState() == 2) || (m_body->GetActivationState() == 3))
+
+	if ( (m_body->GetActivationState() == ISLAND_SLEEPING) || (m_body->GetActivationState() == WANTS_DEACTIVATION))
 		return true;
 
 	if (m_body->m_deactivationTime> gDeactivationTime)

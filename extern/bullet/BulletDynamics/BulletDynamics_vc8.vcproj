@@ -41,12 +41,12 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\LinearMath;..\Bullet;..\BulletDynamics"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="TRUE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -72,7 +72,7 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -107,7 +107,7 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -133,7 +133,7 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -208,54 +208,50 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="CollisionDispatch"
+			Name="Vehicle"
 			>
 			<File
-				RelativePath=".\CollisionDispatch\ConvexConcaveCollisionAlgorithm.cpp"
+				RelativePath=".\Vehicle\RaycastVehicle.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\ConvexConcaveCollisionAlgorithm.h"
+				RelativePath=".\Vehicle\RaycastVehicle.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\ConvexConvexAlgorithm.cpp"
+				RelativePath=".\Vehicle\VehicleControl.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\ConvexConvexAlgorithm.h"
+				RelativePath=".\Vehicle\VehicleFrame.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\EmptyCollisionAlgorithm.cpp"
+				RelativePath=".\Vehicle\VehicleInputController.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\EmptyCollisionAlgorithm.h"
+				RelativePath=".\Vehicle\VehicleRaycaster.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\ManifoldResult.cpp"
+				RelativePath=".\Vehicle\VehicleTuning.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\ManifoldResult.h"
+				RelativePath=".\Vehicle\VehicleTuning.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\ToiContactDispatcher.cpp"
+				RelativePath=".\Vehicle\WheelInfo.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\ToiContactDispatcher.h"
+				RelativePath=".\Vehicle\WheelInfo.h"
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionDispatch\UnionFind.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CollisionDispatch\UnionFind.h"
+				RelativePath=".\Vehicle\WheelSkidInfo.h"
 				>
 			</File>
 		</Filter>

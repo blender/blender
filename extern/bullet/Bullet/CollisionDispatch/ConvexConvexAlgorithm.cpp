@@ -13,11 +13,11 @@
 #include <stdio.h>
 #include "NarrowPhaseCollision/DiscreteCollisionDetectorInterface.h"
 #include "BroadphaseCollision/BroadphaseInterface.h"
-#include "Dynamics/RigidBody.h"
+#include "NarrowPhaseCollision/CollisionObject.h"
 #include "CollisionShapes/ConvexShape.h"
 #include "NarrowPhaseCollision/GjkPairDetector.h"
 #include "BroadphaseCollision/BroadphaseProxy.h"
-#include "BroadphaseCollision/CollisionDispatcher.h"
+#include "CollisionDispatch/CollisionDispatcher.h"
 #include "CollisionShapes/BoxShape.h"
 #include "CollisionDispatch/ManifoldResult.h"
 
@@ -75,13 +75,8 @@ m_useEpa(!gUseEpa)
 {
 	CheckPenetrationDepthSolver();
 
-	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
-	RigidBody* body1 = (RigidBody*)m_box1.m_clientObject;
-
-	if ((body0->getInvMass() != 0.f) || 
-		(body1->getInvMass() != 0.f))
 	{
-		if (!m_manifoldPtr)
+		if (!m_manifoldPtr && m_dispatcher->NeedsCollision(m_box0,m_box1))
 		{
 			m_manifoldPtr = m_dispatcher->GetNewManifold(proxy0->m_clientObject,proxy1->m_clientObject);
 			m_ownManifold = true;
@@ -169,32 +164,25 @@ void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 //
 void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount, bool useContinuous)
 {
+	if (!m_manifoldPtr)
+		return;
+
 	CheckPenetrationDepthSolver();
 
 //	printf("ConvexConvexAlgorithm::ProcessCollision\n");
 
+	bool needsCollision = m_dispatcher->NeedsCollision(m_box0,m_box1);
+	if (!needsCollision)
+		return;
 	
-	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
-	RigidBody* body1 = (RigidBody*)m_box1.m_clientObject;
-
-	//todo: move this in the dispatcher
-	if ((body0->GetActivationState() == 2) &&(body1->GetActivationState() == 2))
-		return;
-
-
-	if (!m_manifoldPtr)
-		return;
-
-	if ((body0->getInvMass() == 0.f) && 
-		(body1->getInvMass() == 0.f))
-	{
-		return;
-	}
-
-	ManifoldResult output(body0,body1,m_manifoldPtr);
+	CollisionObject*	col0 = static_cast<CollisionObject*>(m_box0.m_clientObject);
+	CollisionObject*	col1 = static_cast<CollisionObject*>(m_box1.m_clientObject);
 	
-	ConvexShape* min0 = static_cast<ConvexShape*>(body0->GetCollisionShape());
-	ConvexShape* min1 = static_cast<ConvexShape*>(body1->GetCollisionShape());	
+	ManifoldResult output(col0,col1,m_manifoldPtr);
+	
+	ConvexShape* min0 = static_cast<ConvexShape*>(col0->m_collisionShape);
+	ConvexShape* min1 = static_cast<ConvexShape*>(col1->m_collisionShape);
+	
 	GjkPairDetector::ClosestPointInput input;
 
 	SphereShape	sphere(0.2f);
@@ -218,8 +206,8 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 
 	input.m_maximumDistanceSquared = 1e30;//
 	
-	input.m_transformA = body0->getCenterOfMassTransform();
-	input.m_transformB = body1->getCenterOfMassTransform();
+	input.m_transformA = col0->m_worldTransform;
+	input.m_transformB = col1->m_worldTransform;
     
 	m_gjkPairDetector.GetClosestPoints(input,output);
 
@@ -231,34 +219,19 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 	CheckPenetrationDepthSolver();
 
 
-	
-	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
-	RigidBody* body1 = (RigidBody*)m_box1.m_clientObject;
+	bool needsCollision = m_dispatcher->NeedsCollision(m_box0,m_box1);
 
-	if (!m_manifoldPtr)
+	if (!needsCollision)
 		return 1.f;
 
-	if ((body0->getInvMass() == 0.f) && 
-		(body1->getInvMass() == 0.f))
-	{
-		return 1.f;
-	}
-
-
-	ConvexShape* min0 = static_cast<ConvexShape*>(body0->GetCollisionShape());
-	ConvexShape* min1 = static_cast<ConvexShape*>(body1->GetCollisionShape());	
 	
-	GjkPairDetector::ClosestPointInput input;
-	input.m_transformA = body0->getCenterOfMassTransform();
-	input.m_transformB = body1->getCenterOfMassTransform();
-	SimdTransform predictA,predictB;
-
-	body0->predictIntegratedTransform(timeStep,predictA);
-	body1->predictIntegratedTransform(timeStep,predictB);
-
-
+	CollisionObject* col0 = static_cast<CollisionObject*>(m_box0.m_clientObject);
+	CollisionObject* col1 = static_cast<CollisionObject*>(m_box1.m_clientObject);
+	
+	ConvexShape* min0 = static_cast<ConvexShape*>(col0->m_collisionShape);
+	ConvexShape* min1 = static_cast<ConvexShape*>(col1->m_collisionShape);
+	
 	ConvexCast::CastResult result;
-
 
 	VoronoiSimplexSolver voronoiSimplex;
 	//SubsimplexConvexCast ccd(&voronoiSimplex);
@@ -269,24 +242,21 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 	if (disableCcd)
 		return 1.f;
 
-	if (ccd.calcTimeOfImpact(input.m_transformA,predictA,input.m_transformB,predictB,result))
+	if (ccd.calcTimeOfImpact(col0->m_worldTransform,col0->m_nextPredictedWorldTransform,
+		col1->m_worldTransform,col1->m_nextPredictedWorldTransform,result))
 	{
 	
 		//store result.m_fraction in both bodies
-		int i;
-		i=0;
-		
-//		if (result.m_fraction< 0.1f)
-//			result.m_fraction = 0.1f;
+	
+		if (col0->m_hitFraction	> result.m_fraction)
+			col0->m_hitFraction  = result.m_fraction;
 
-		if (body0->m_hitFraction > result.m_fraction)
-			body0->m_hitFraction  = result.m_fraction;
-
-		if (body1->m_hitFraction > result.m_fraction)
-			body1->m_hitFraction  = result.m_fraction;
+		if (col1->m_hitFraction > result.m_fraction)
+			col1->m_hitFraction  = result.m_fraction;
 
 		return result.m_fraction;
 	}
+
 
 	return 1.f;
 

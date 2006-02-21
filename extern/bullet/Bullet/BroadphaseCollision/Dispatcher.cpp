@@ -8,7 +8,7 @@
  * of this software for any purpose.  
  * It is provided "as is" without express or implied warranty.
 */
-#include "CollisionDispatcher.h"
+#include "Dispatcher.h"
 
 Dispatcher::~Dispatcher()
 {

@@ -662,6 +662,7 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"
+#include "BroadphaseCollision/BroadphaseInterface.h"
 
 #include "KX_BulletPhysicsController.h"
 #include "CollisionShapes/BoxShape.h"
@@ -1010,8 +1011,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	bm->SetMargin(0.06);
 
 	ci.m_collisionShape = bm;
-	ci.m_broadphaseHandle = 0;
-	ci.m_friction = 5.f* smmaterial->m_friction;//tweak the friction a bit, so the default 0.5 works nice
+
+	
+	ci.m_friction = smmaterial->m_friction;//tweak the friction a bit, so the default 0.5 works nice
 	ci.m_restitution = smmaterial->m_restitution;
 	ci.m_physicsEnv = env;
 	// drag / damping is inverted
@@ -1028,6 +1030,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	}
 
 	
+
 	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
 	bool isActor = objprop->m_isactor;

@@ -9,12 +9,14 @@ class CcdPhysicsController;
 
 
 class Point2PointConstraint;
-class ToiContactDispatcher;
+class CollisionDispatcher;
 class Dispatcher;
 //#include "BroadphaseInterface.h"
 
 //switch on/off new vehicle support
 //#define NEW_BULLET_VEHICLE_SUPPORT 1
+
+#include "ConstraintSolver/ContactSolverInfo.h"
 
 class WrapperVehicle;
 class PersistentManifold;
@@ -27,14 +29,16 @@ class IDebugDraw;
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 	SimdVector3 m_gravity;
-	BroadphaseInterface*	m_broadphase;
+	
 	IDebugDraw*	m_debugDrawer;
 	int	m_numIterations;
 	int	m_ccdMode;
 	int	m_solverType;
 	
+	ContactSolverInfo	m_solverInfo;
+
 	public:
-		CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
+		CcdPhysicsEnvironment(CollisionDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
 
 		virtual		~CcdPhysicsEnvironment();
 
@@ -118,9 +122,12 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		void	removeCcdPhysicsController(CcdPhysicsController* ctrl);
 
-		BroadphaseInterface*	GetBroadphase() { return m_broadphase; }
+		BroadphaseInterface*	GetBroadphase();
 
-		Dispatcher* GetDispatcher();
+		CollisionDispatcher* GetDispatcher();
+		
+		const CollisionDispatcher* GetDispatcher() const;
+
 
 		int	GetNumControllers();
 
@@ -132,7 +139,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 	private:
 		
-		void	UpdateActivationState();	
+		
 		void	SyncMotionStates(float timeStep);
 		
 		std::vector<CcdPhysicsController*> m_controllers;
@@ -141,7 +148,9 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		class ToiContactDispatcher* m_dispatcher;
+		class CollisionWorld*	m_collisionWorld;
+		
+		class ConstraintSolver*	m_solver;
 
 		bool	m_scalingPropagated;
 

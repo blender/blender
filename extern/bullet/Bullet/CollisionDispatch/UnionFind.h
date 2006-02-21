@@ -5,16 +5,24 @@
 class UnionFind
   {
     private:
-      int *id, *sz;
-	  int m_N;
+		int*	m_id;
+		int*	m_sz;
+		int m_N;
 
     public:
-      int find(int x);
-		UnionFind(int N);
-	  void	reset();
+		int find(int x);
+	  
+		UnionFind();
+		~UnionFind();
+
+	  void	reset(int N);
 
       int find(int p, int q);
       void unite(int p, int q);
+
+	  void	Allocate(int N);
+	  void	Free();
+
   };
 
 

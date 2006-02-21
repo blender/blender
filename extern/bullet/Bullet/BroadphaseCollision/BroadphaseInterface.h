@@ -12,6 +12,7 @@
 #define 	BROADPHASE_INTERFACE_H
 
 
+
 struct	DispatcherInfo;
 class Dispatcher;
 struct BroadphaseProxy;
@@ -21,7 +22,7 @@ struct BroadphaseProxy;
 class BroadphaseInterface
 {
 public:
-	virtual BroadphaseProxy*	CreateProxy(  void *object,int type, const SimdVector3& min,  const SimdVector3& max) =0;
+	virtual BroadphaseProxy*	CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr ) =0;
 	virtual void	DestroyProxy(BroadphaseProxy* proxy)=0;
 	virtual void	SetAabb(BroadphaseProxy* proxy,const SimdVector3& aabbMin,const SimdVector3& aabbMax)=0;
 	virtual void	CleanProxyFromPairs(BroadphaseProxy* proxy)=0;
