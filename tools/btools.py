@@ -33,7 +33,7 @@ def validate_arguments(args, bc):
             'BF_SOLID', 'BF_SOLID_INC',
             'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
-            'WITH_BF_OPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
+            'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
             'WITH_BF_FFMPEG',
             'WITH_BF_PLAYER',
@@ -218,7 +218,7 @@ def read_opts(cfg, args):
         ('BF_QUICKTIME_LIB', 'QuickTime library', ''),
         ('BF_QUICKTIME_LIBPATH', 'QuickTime library path', ''),
 
-        (BoolOption('WITH_BF_OPENGL', 'Use MESA if true', 'true')),
+        (BoolOption('WITH_BF_STATICOPENGL', 'Use MESA if true', 'true')),
         ('BF_OPENGL', 'OpenGL base path', ''),
         ('BF_OPENGL_INC', 'OpenGL include path', ''),
         ('BF_OPENGL_LIB', 'OpenGL libraries', ''),

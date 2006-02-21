@@ -104,7 +104,7 @@ BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
 # Mesa Libs should go here if your using them as well....
-WITH_BF_OPENGL = 'true'
+WITH_BF_STATICOPENGL = 'true'
 BF_OPENGL = 'C:\\MingW'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'

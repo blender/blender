@@ -103,7 +103,7 @@ BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
 
 # Mesa Libs should go here if your using them as well....
-WITH_BF_OPENGL = 'true'
+WITH_BF_STATICOPENGL = 'true'
 BF_OPENGL_LIB = 'GL GLU'
 BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = '-framework OpenGL'

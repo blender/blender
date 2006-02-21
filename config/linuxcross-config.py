@@ -94,7 +94,7 @@ BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = BF_QUICKTIME + '/include' 
 
 # Mesa Libs should go here if your using them as well....
-WITH_BF_OPENGL = 'true'
+WITH_BF_STATICOPENGL = 'true'
 BF_OPENGL = '/usr/X11R6'
 BF_OPENGL_INC = BF_OPENGL + '/include'
 BF_OPENGL_LIB = 'GL GLU Xmu Xext X11 Xi'

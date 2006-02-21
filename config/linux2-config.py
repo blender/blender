@@ -96,12 +96,13 @@ BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include' 
 
 # Mesa Libs should go here if your using them as well....
-WITH_BF_OPENGL = 'true'
-BF_OPENGL = '/usr/X11R6'
+WITH_BF_STATICOPENGL = 'false'
+BF_OPENGL = '/usr/lib'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIB = 'GL GLU X11 Xi'
 BF_OPENGL_LIBPATH = '/usr/X11R6/lib'
-BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/lib/libGL.a ${BF_OPENGL}/lib/libGLU.a ${BF_OPENGL}/lib/libX11.a ${BF_OPENGL}/lib/libXi.a'
+BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/libGL.a ${BF_OPENGL}/libGLU.a ${BF_OPENGL}/libXxf86vm.a ${BF_OPENGL}/libX11.a ${BF_OPENGL}/libXi.a ${BF_OPENGL}/libXext.a ${BF_OPENGL}/libXxf86vm.a'
+
 ##
 ##CC = gcc
 ##CCC = g++
