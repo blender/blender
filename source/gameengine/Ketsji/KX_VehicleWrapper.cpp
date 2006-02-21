@@ -158,6 +158,81 @@ PyObject* KX_VehicleWrapper::PyApplyEngineForce(PyObject* self,
 	return Py_None;
 }
 
+PyObject* KX_VehicleWrapper::PySetTyreFriction(PyObject* self, 
+											PyObject* args, 
+											PyObject* kwds)
+{
+	float wheelFriction;
+	int wheelIndex;
+
+	if (PyArg_ParseTuple(args,"fi",&wheelFriction,&wheelIndex))
+	{
+		m_vehicle->SetWheelFriction(wheelFriction,wheelIndex);
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* KX_VehicleWrapper::PySetSuspensionStiffness(PyObject* self, 
+											PyObject* args, 
+											PyObject* kwds)
+{
+	float suspensionStiffness;
+	int wheelIndex;
+
+	if (PyArg_ParseTuple(args,"fi",&suspensionStiffness,&wheelIndex))
+	{
+		m_vehicle->SetSuspensionStiffness(suspensionStiffness,wheelIndex);
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* KX_VehicleWrapper::PySetSuspensionDamping(PyObject* self, 
+											PyObject* args, 
+											PyObject* kwds)
+{
+	float suspensionDamping;
+	int wheelIndex;
+
+	if (PyArg_ParseTuple(args,"fi",&suspensionDamping,&wheelIndex))
+	{
+		m_vehicle->SetSuspensionDamping(suspensionDamping,wheelIndex);
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* KX_VehicleWrapper::PySetSuspensionCompression(PyObject* self, 
+											PyObject* args, 
+											PyObject* kwds)
+{
+	float suspensionCompression;
+	int wheelIndex;
+
+	if (PyArg_ParseTuple(args,"fi",&suspensionCompression,&wheelIndex))
+	{
+		m_vehicle->SetSuspensionCompression(suspensionCompression,wheelIndex);
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+PyObject* KX_VehicleWrapper::PySetRollInfluence(PyObject* self, 
+											PyObject* args, 
+											PyObject* kwds)
+{
+	float rollInfluence;
+	int wheelIndex;
+
+	if (PyArg_ParseTuple(args,"fi",&rollInfluence,&wheelIndex))
+	{
+		m_vehicle->SetRollInfluence(rollInfluence,wheelIndex);
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 PyObject* KX_VehicleWrapper::PyApplyBraking(PyObject* self, 
 											PyObject* args, 
@@ -275,8 +350,17 @@ PyMethodDef KX_VehicleWrapper::Methods[] = {
 	{"setSteeringValue",(PyCFunction) KX_VehicleWrapper::sPySetSteeringValue, METH_VARARGS},
 	{"applyEngineForce",(PyCFunction) KX_VehicleWrapper::sPyApplyEngineForce, METH_VARARGS},
 	{"applyBraking",(PyCFunction) KX_VehicleWrapper::sPyApplyBraking, METH_VARARGS},
+
+	{"setTyreFriction",(PyCFunction) KX_VehicleWrapper::sPySetTyreFriction, METH_VARARGS},
+
+	{"setSuspensionStiffness",(PyCFunction) KX_VehicleWrapper::sPySetSuspensionStiffness, METH_VARARGS},
+
+	{"setSuspensionDamping",(PyCFunction) KX_VehicleWrapper::sPySetSuspensionDamping, METH_VARARGS},
+
+	{"setSuspensionCompression",(PyCFunction) KX_VehicleWrapper::sPySetSuspensionCompression, METH_VARARGS},
+
+	{"setRollInfluence",(PyCFunction) KX_VehicleWrapper::sPySetRollInfluence, METH_VARARGS},
+
 	{NULL,NULL} //Sentinel
 };
-
-
 

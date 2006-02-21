@@ -40,6 +40,17 @@ public:
 
 	virtual	void	ApplyBraking(float braking,int wheelIndex) = 0;
 
+	virtual	void	SetWheelFriction(float friction,int wheelIndex) = 0;
+	
+	virtual	void	SetSuspensionStiffness(float suspensionStiffness,int wheelIndex) = 0;
+	
+	virtual	void	SetSuspensionDamping(float suspensionStiffness,int wheelIndex) = 0;
+	
+	virtual	void	SetSuspensionCompression(float suspensionStiffness,int wheelIndex) = 0;
+	
+	virtual	void	SetRollInfluence(float rollInfluence,int wheelIndex) = 0;
+
+
 };
 
 #endif //PHY_IVEHICLE_H

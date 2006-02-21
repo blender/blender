@@ -587,7 +587,7 @@ void	RaycastVehicle::UpdateFriction(SimdScalar	timeStep)
 					
 					SimdVector3 sideImp = axle[wheel] * sideImpulse[wheel];
 
-					rel_pos[2] *= 0.1;
+					rel_pos[2] *= wheelInfo.m_rollInfluence;
 					m_chassisBody->applyImpulse(sideImp,rel_pos);
 
 					//apply friction impulse on the ground

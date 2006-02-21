@@ -197,6 +197,57 @@ public:
 		}
 	}
 
+	virtual	void	SetWheelFriction(float friction,int wheelIndex)
+	{
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(wheelIndex);
+			info.m_frictionSlip = friction;
+		}
+
+	}
+	
+	virtual	void	SetSuspensionStiffness(float suspensionStiffness,int wheelIndex)
+	{
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(wheelIndex);
+			info.m_suspensionStiffness = suspensionStiffness;
+
+		}
+	}
+
+	virtual	void	SetSuspensionDamping(float suspensionDamping,int wheelIndex)
+	{
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(wheelIndex);
+			info.m_wheelsDampingRelaxation = suspensionDamping;
+		}
+	}
+
+	virtual	void	SetSuspensionCompression(float suspensionCompression,int wheelIndex)
+	{
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(wheelIndex);
+			info.m_wheelsDampingCompression = suspensionCompression;
+		}
+	}
+
+
+	
+	virtual	void	SetRollInfluence(float rollInfluence,int wheelIndex)
+	{
+		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
+		{
+			WheelInfo& info = m_vehicle->GetWheelInfo(wheelIndex);
+			info.m_rollInfluence = rollInfluence;
+		}
+	}
+
+
+
 };
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 

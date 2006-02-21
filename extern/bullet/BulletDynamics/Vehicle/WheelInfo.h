@@ -67,6 +67,7 @@ struct WheelInfo
 	SimdScalar	m_steering;
 	SimdScalar	m_rotation;
 	SimdScalar	m_deltaRotation;
+	SimdScalar	m_rollInfluence;
 
 	SimdScalar	m_engineForce;
 
@@ -96,6 +97,7 @@ struct WheelInfo
 		m_rotation = 0.f;
 		m_deltaRotation = 0.f;
 		m_brake = 0.f;
+		m_rollInfluence = 0.1f;
 		m_bIsFrontWheel = ci.m_bIsFrontWheel;
 
 	}

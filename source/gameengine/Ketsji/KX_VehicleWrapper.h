@@ -39,7 +39,16 @@ public:
 
 	KX_PYMETHOD(KX_VehicleWrapper,ApplyBraking);
 
+	KX_PYMETHOD(KX_VehicleWrapper,SetTyreFriction);
 
+	KX_PYMETHOD(KX_VehicleWrapper,SetSuspensionStiffness);
+	
+	KX_PYMETHOD(KX_VehicleWrapper,SetSuspensionDamping);
+	
+	KX_PYMETHOD(KX_VehicleWrapper,SetSuspensionCompression);
+	
+	KX_PYMETHOD(KX_VehicleWrapper,SetRollInfluence);
+	
 
 private:
 	PHY_IVehicle*			 m_vehicle;
