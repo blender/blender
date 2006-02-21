@@ -1950,9 +1950,9 @@ static int draw_mesh_object(Base *base, int dt)
 		if (finalNeedsFree) finalDM->release(finalDM);
 	}
 	else {
-		BoundBox *bb = mesh_get_bb(me);
-
-		if(me->totface<=4 || boundbox_clip(ob->obmat, bb)) {
+		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
+		
+		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
 			int baseDMneedsFree, realDMneedsFree;
 			DerivedMesh *baseDM = mesh_get_derived_deform(ob, &baseDMneedsFree);
 			DerivedMesh *realDM = mesh_get_derived_final(ob, &realDMneedsFree);
