@@ -82,7 +82,7 @@ static int render_height;
 
 
 #if !defined(_WIN32)
-static inline int closesocket(int fd) {
+static int closesocket(int fd) {
 	return close(fd);
 }
 #endif
