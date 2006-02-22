@@ -5912,12 +5912,12 @@ int collapseFaces(int uvmerge){
 	CollectedFace *currface;
 	Collection *facecollection;
 	
-	allcollections.first = 0;
-	allcollections.last = 0;
-	
 	int groupcount;
 	int vcount,totFaces,mergecount;
 	float avgcount[3];
+	
+	allcollections.first = 0;
+	allcollections.last = 0;
 	
 	mergecount = 0;
 	build_facecollection(&allcollections);
