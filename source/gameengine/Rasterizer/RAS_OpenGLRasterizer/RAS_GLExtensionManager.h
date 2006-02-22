@@ -52,6 +52,10 @@
 #  undef __glext_h_
 #endif
 
+#ifdef __sgi
+#  undef GL_ARB_vertex_program
+#endif
+
 #include "glext.h"
 
 #include "EXT_separate_specular_color.h"

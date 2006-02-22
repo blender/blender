@@ -30,7 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef __sgi
+//#ifdef __sgi
+#if 0
 
 #include <unistd.h>
 #include <movie.h>

@@ -259,8 +259,13 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 	
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 	
+#if defined(__sgi)
+	memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail), 
+			   PROT_READ|PROT_WRITE, MAP_SHARED, -1, 0);
+#else
 	memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail), 
 			   PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+#endif
 	
 	if(memh!=(MemHead *)-1) {
 		make_memhead_header(memh, len, str);
