@@ -412,12 +412,12 @@ void EM_convertsel(short oldmode, short selectmode)
 			for(eed= em->edges.first; eed; eed= eed->next){
 					if(eed->v1->f&SELECT) eed->f1 = 1;
 					else if(eed->v2->f&SELECT) eed->f1 = 1;
-				}
-		
+			}
+			
 			for(eed= em->edges.first; eed; eed= eed->next){
 					if(eed->f1 == 1) EM_select_edge(eed,1);	
-				}
-			}		
+			}
+		}		
 		else if(selectmode == SCE_SELECT_FACE){
 			/*select all faces associated with every selected vertex*/
 			for(efa= em->faces.first; efa; efa= efa->next){
@@ -430,10 +430,10 @@ void EM_convertsel(short oldmode, short selectmode)
 						}
 					}
 						
-				}
+			}
 			for(efa= em->faces.first; efa; efa= efa->next){
 				if(efa->f1 == 1) EM_select_face(efa,1);
-				}
+			}
 			check_fgons_selection();
 			countall();
 		}
@@ -448,13 +448,13 @@ void EM_convertsel(short oldmode, short selectmode)
 					else if(efa->e4){
 						if(efa->e4->f&SELECT) efa->f1 = 1;
 					}
-				}
+			}
 			for(efa= em->faces.first; efa; efa= efa->next){
 					if(efa->f1 == 1) EM_select_face(efa,1);
-				}
+			}
 			check_fgons_selection();
 			countall();
-			}
+		}
 	}
 }
 

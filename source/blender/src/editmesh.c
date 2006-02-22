@@ -1205,6 +1205,9 @@ void load_editMesh(void)
 	}
 
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	
+	em->lastvert = NULL;
+	em->firstvert = NULL;
 
 	waitcursor(0);
 }

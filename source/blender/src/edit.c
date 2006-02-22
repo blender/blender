@@ -1569,7 +1569,7 @@ void mergemenu(void)
 {	
 
 	short event;
-	int remCount= 0;
+	int remCount = 0;
 	
 	if(G.scene->selectmode == SCE_SELECT_VERTEX)
 		if(G.editMesh->firstvert && G.editMesh->lastvert) event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4");
@@ -1588,29 +1588,34 @@ void mergemenu(void)
 		case -1:
 			return;
 		case 3:
-			snap_to_center();
-			remCount = removedoublesflag(1,MERGELIMIT);
+			if(G.qual & LR_CTRLKEY) remCount = merge_target(0,1);
+			else remCount = merge_target(0,0);
 			BIF_undo_push("Merge at center");
 			break;
 		case 4:
-			snap_sel_to_curs();
-			remCount = removedoublesflag(1,MERGELIMIT);
+			if(G.qual & LR_CTRLKEY) remCount = merge_target(1,1);
+			else remCount = merge_target(1,0);
 			BIF_undo_push("Merge at cursor");
 			break;
 		case 1:
-			remCount = merge_firstlast(0);
+			if(G.qual & LR_CTRLKEY) remCount = merge_firstlast(0,1);
+			else remCount = merge_firstlast(0,0);
 			BIF_undo_push("Merge at last selected");
 			break;
 		case 6:
-			remCount = merge_firstlast(1);
+			if(G.qual & LR_CTRLKEY) remCount = merge_firstlast(1,1);
+			else remCount = merge_firstlast(1,0);
 			BIF_undo_push("Merge at first selected");
 			break;
 		case 2:
-			remCount = collapseEdges();
+			if(G.qual & LR_CTRLKEY) remCount = collapseEdges(1);
+			else remCount = collapseEdges(0);
+			
 			BIF_undo_push("Collapse Edges");
 			break;
 		case 5:
-			remCount = collapseFaces();
+			if(G.qual & LR_CTRLKEY) remCount = collapseFaces(1);
+			else remCount = collapseFaces(0);
 			BIF_undo_push("Collapse Faces");
 			break;
 	}

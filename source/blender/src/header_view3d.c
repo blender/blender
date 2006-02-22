@@ -4085,26 +4085,29 @@ void do_view3d_buttons(short event)
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
 			G.scene->selectmode= SCE_SELECT_VERTEX;
 		EM_selectmode_set();
+		BIF_undo_push("Selectmode Set: Vertex");
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_EDGE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0){
 			if( (G.scene->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX){
 				if(G.qual==LR_CTRLKEY) EM_convertsel(SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
-				}
+			}
 			G.scene->selectmode = SCE_SELECT_EDGE;
 		}
 		EM_selectmode_set();
+		BIF_undo_push("Selectmode Set: Edge");
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_FACE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0){
 			if( ((G.scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((G.scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
 				if(G.qual==LR_CTRLKEY) EM_convertsel((G.scene->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
-				}
+			}
 			G.scene->selectmode = SCE_SELECT_FACE;
 		}
 		EM_selectmode_set();
+		BIF_undo_push("Selectmode Set: Face");
 		allqueue(REDRAWVIEW3D, 1);
 		break;	
 	

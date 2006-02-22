@@ -1944,16 +1944,20 @@ void EM_selectmode_menu(void)
 	
 	
 	if(val>0) {
-		if(val==1) G.scene->selectmode= SCE_SELECT_VERTEX;
-			
+		if(val==1){ 
+			G.scene->selectmode= SCE_SELECT_VERTEX; 
+			BIF_undo_push("Selectmode Set: Vertex");
+			}
 		else if(val==2){
 			if((G.qual==LR_CTRLKEY)) EM_convertsel(G.scene->selectmode, SCE_SELECT_EDGE);
 			G.scene->selectmode= SCE_SELECT_EDGE;
+			BIF_undo_push("Selectmode Set: Edge");
 		}
 		
 		else{
-		 if((G.qual==LR_CTRLKEY)) EM_convertsel(G.scene->selectmode, SCE_SELECT_FACE);
-		 G.scene->selectmode= SCE_SELECT_FACE;
+			if((G.qual==LR_CTRLKEY)) EM_convertsel(G.scene->selectmode, SCE_SELECT_FACE);
+			G.scene->selectmode= SCE_SELECT_FACE;
+			BIF_undo_push("Selectmode Set: Vertex");
 		}
 	
 		EM_selectmode_set(); // when mode changes
