@@ -117,7 +117,7 @@ ifeq ($(OS),irix)
     CCC	= CC
     CFLAGS	+= -n32 -mips3 -Xcpluscomm
     CCFLAGS	+= -n32 -mips3 -Xcpluscomm -LANG:std
-    CCFLAGS	+= -LANG:libc_in_namespace_std=off
+    CCFLAGS	+= -LANG:libc_in_namespace_std=off -I$(MIPS73_ISOHEADERS)
     REL_CFLAGS	+= -n32 -mips3 -O2 -OPT:Olimit=0
     REL_CCFLAGS += -n32 -mips3 -O2 -OPT:Olimit=0
     OPENGL_HEADERS = /usr/include
@@ -302,6 +302,11 @@ ifdef NAN_DEPEND
 -include $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.d) $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.d)
 endif
 
+OBJS_AR := $(OBJS)
+OBJS_AR += $(CSRCS:%.c=%.o)
+OBJS_AR += $(CCSRCS:%.cpp=%.o)
+OBJS_AR += $(WINRC:%.rc=%.res)
+
 OBJS += $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.o)
 OBJS += $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.o)
 OBJS += $(WINRC:%.rc=$(DIR)/$(DEBUG_DIR)%.res)
@@ -317,9 +322,9 @@ $(LIB_a): $(OBJS)
 	@$(RM) $(LIB_a)
         ifdef NAN_QUIET
 	@echo " -- lib: lib$(LIBNAME).a -- "
-	@$(AR) $(ARFLAGSQUIET) $@ $(OBJS)
+	@cd $(DIR)/$(DEBUG_DIR); $(AR) $(ARFLAGSQUIET) $@ $(OBJS_AR)
         else
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	cd $(DIR)/$(DEBUG_DIR); $(AR) $(ARFLAGS) $@ $(OBJS_AR)
         endif
       else
         ifdef NAN_QUIET
