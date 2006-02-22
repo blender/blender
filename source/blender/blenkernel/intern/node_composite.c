@@ -2438,32 +2438,34 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 	float *gausstab, *dgauss;
 	int radx, rady, imgx= img->x, imgy= img->y;
 	int x, y, pix= img->type;
-	int i, j;
+	int i, j, n;
 	float *src= NULL, *dest, *srcd= NULL;
 	
 	/* horizontal */
-	radx = fac*(float)nbd->sizex;
-	if(radx>imgx/2)
-		radx= imgx/2;
-	else if(radx<1) 
-		radx= 1;
+	radxf = fac*(float)nbd->sizex;
+	if(radxf>imgx/2.0f)
+		radxf= imgx/2.0f;
+	else if(radxf<1.0f) 
+		radxf= 1.0f;
 	
 	/* vertical */
-	rady = fac*(float)nbd->sizey;
-	if(rady>imgy/2)
-		rady= imgy/2;
-	else if(rady<1) 
-		rady= 1;
+	radyf = fac*(float)nbd->sizey;
+	if(radyf>imgy/2.0f)
+		radyf= imgy/2.0f;
+	else if(radyf<1.0f) 
+		radyf= 1.0f;
 	
-	radxf= (float)radx;
-	radyf= (float)rady;
+	radx= ceil(radxf);
+	rady= ceil(radyf);
+	
+	n = (2*radx+1)*(2*rady+1);
 	
 	/* create a full filter image */
-	gausstab= MEM_mallocT(sizeof(float)*radx*rady*4, "filter tab");
+	gausstab= MEM_mallocT(sizeof(float)*n, "filter tab");
 	dgauss= gausstab;
 	val= 0.0f;
-	for(j=-rady; j<rady; j++) {
-		for(i=-radx; i<radx; i++, dgauss++) {
+	for(j=-rady; j<=rady; j++) {
+		for(i=-radx; i<=radx; i++, dgauss++) {
 			float fj= (float)j/radyf;
 			float fi= (float)i/radxf;
 			float dist= sqrt(fj*fj + fi*fi);
@@ -2474,9 +2476,13 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 			val+= *dgauss;
 		}
 	}
-	val= 1.0f/val;
-	for(j= 4*radx*rady -1; j>=0; j--)
-		gausstab[j]*= val;
+
+	if(val!=0.0f) {
+		val= 1.0f/val;
+		for(j= n -1; j>=0; j--)
+			gausstab[j]*= val;
+	}
+	else gausstab[4]= 1.0f;
 	
 //	memset(new->rect, 4*imgx*imgy, 0);
 	
@@ -2488,9 +2494,9 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 			
 		for (x = -radx+1; x < imgx+radx-1 ; x++) {
 			int minxr= x-radx<0?-x:-radx;
-			int maxxr= x+radx>imgx?imgx-x:radx;
+			int maxxr= x+radx>=imgx?imgx-x-1:radx;
 			int minyr= y-rady<0?-y:-rady;
-			int maxyr= y+rady>imgy?imgy-y:rady;
+			int maxyr= y+rady>imgy-1?imgy-y-1:rady;
 			
 			float *destd= new->rect + pix*( (y + minyr)*imgx + x + minxr);
 			float *dgausd= gausstab + (minyr+rady)*2*radx + minxr+radx;
@@ -2499,10 +2505,10 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 			else if(x<imgx) src+= pix;
 			else src= srcd + pix*(imgx-1);
 			
-			for (i= minyr; i < maxyr; i++, destd+= pix*imgx, dgausd+= 2*radx) {
+			for (i= minyr; i <=maxyr; i++, destd+= pix*imgx, dgausd+= 2*radx + 1) {
 				dest= destd;
 				dgauss= dgausd;
-				for (j= minxr; j < maxxr; j++, dest+=pix, dgauss++) {
+				for (j= minxr; j <=maxxr; j++, dest+=pix, dgauss++) {
 					val= *dgauss;
 					if(val!=0.0f) {
 						dest[0] += val * src[0];
@@ -2664,6 +2670,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		out[0]->data= new;
 	}
 	else {
+		
 		if(in[1]->vec[0]==0.0f) {
 			/* pass on image */
 			new= alloc_compbuf(img->x, img->y, img->type, 0);
