@@ -1474,14 +1474,22 @@ static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 	
 	rowlen= in->x;
 	
-	for(y=2; y<in->y; y++) {
+	for(y=0; y<in->y; y++) {
 		/* setup rows */
-		row1= in->rect + pix*(y-2)*rowlen;
-		row2= row1 + pix*rowlen;
-		row3= row2 + pix*rowlen;
-		fp= out->rect + pix*(y-1)*rowlen + pix;
+		if(y==0) row1= in->rect;
+		else row1= in->rect + pix*(y-1)*rowlen;
+		
+		row2= in->rect + y*pix*rowlen;
+		
+		if(y==in->y-1) row3= row2;
+		else row3= row2 + pix*rowlen;
+		
+		fp= out->rect + pix*y*rowlen;
 		
 		if(pix==CB_RGBA) {
+			QUATCOPY(fp, row2);
+			fp+= pix;
+			
 			for(x=2; x<rowlen; x++) {
 				for(c=0; c<3; c++) {
 					f1= filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8];
@@ -1493,6 +1501,7 @@ static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 				/* no alpha... will clear it completely */
 				fp++; row1++; row2++; row3++;
 			}
+			QUATCOPY(fp, row2+4);
 		}
 		else if(pix==CB_VAL) {
 			for(x=2; x<rowlen; x++) {
@@ -1514,37 +1523,51 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 	
 	rowlen= in->x;
 	
-	for(y=2; y<in->y; y++) {
+	for(y=0; y<in->y; y++) {
 		/* setup rows */
-		row1= in->rect + pixlen*(y-2)*rowlen;
-		row2= row1 + pixlen*rowlen;
-		row3= row2 + pixlen*rowlen;
+		if(y==0) row1= in->rect;
+		else row1= in->rect + pixlen*(y-1)*rowlen;
 		
-		fp= out->rect + pixlen*(y-1)*rowlen;
-		QUATCOPY(fp, row2);
-		fp+= pixlen;
+		row2= in->rect + y*pixlen*rowlen;
+		
+		if(y==in->y-1) row3= row2;
+		else row3= row2 + pixlen*rowlen;
+		
+		fp= out->rect + pixlen*(y)*rowlen;
 		
 		if(pixlen==1) {
+			fp[0]= row2[0];
+			fp+= pixlen;
+			
 			for(x=2; x<rowlen; x++) {
 				fp[0]= mfac*row2[1] + fac*(filter[0]*row1[0] + filter[1]*row1[1] + filter[2]*row1[2] + filter[3]*row2[0] + filter[4]*row2[1] + filter[5]*row2[2] + filter[6]*row3[0] + filter[7]*row3[1] + filter[8]*row3[2]);
 				fp++; row1++; row2++; row3++;
 			}
+			fp[0]= row2[1];
 		}
 		else if(pixlen==3) {
+			VECCOPY(fp, row2);
+			fp+= pixlen;
+			
 			for(x=2; x<rowlen; x++) {
 				for(c=0; c<pixlen; c++) {
 					fp[0]= mfac*row2[3] + fac*(filter[0]*row1[0] + filter[1]*row1[3] + filter[2]*row1[6] + filter[3]*row2[0] + filter[4]*row2[3] + filter[5]*row2[6] + filter[6]*row3[0] + filter[7]*row3[3] + filter[8]*row3[6]);
 					fp++; row1++; row2++; row3++;
 				}
 			}
+			VECCOPY(fp, row2+3);
 		}
 		else {
+			QUATCOPY(fp, row2);
+			fp+= pixlen;
+			
 			for(x=2; x<rowlen; x++) {
 				for(c=0; c<pixlen; c++) {
 					fp[0]= mfac*row2[4] + fac*(filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8]);
 					fp++; row1++; row2++; row3++;
 				}
 			}
+			QUATCOPY(fp, row2+4);
 		}
 	}
 }
