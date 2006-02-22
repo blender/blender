@@ -99,6 +99,8 @@
 #define VP_SUB	2
 #define VP_MUL	3
 #define VP_FILT	4
+#define VP_LIGHTEN	5
+#define VP_DARKEN	6
 
 #define MAXINDEX	512000
 
@@ -556,6 +558,61 @@ static unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
+static unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
+{
+	char *cp1, *cp2, *cp;
+	int mfac;
+	unsigned int col=0;
+	
+	if(fac==0) return col1;
+	if(fac>=255) return col2;
+
+	mfac= 255-fac;
+	
+	cp1= (char *)&col1;
+	cp2= (char *)&col2;
+	cp=  (char *)&col;
+	
+	/* See if are lighter, if so mix, else dont do anything.
+	if the paint col is darker then the original, then ignore */
+	if (cp1[1]+cp1[2]+cp1[3] > cp2[1]+cp2[2]+cp2[3])
+		return col1;
+	
+	cp[0]= 255;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])>>8;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])>>8;
+	cp[3]= (mfac*cp1[3]+fac*cp2[3])>>8;
+	
+	return col;
+}
+
+static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
+{
+	char *cp1, *cp2, *cp;
+	int mfac;
+	unsigned int col=0;
+	
+	if(fac==0) return col1;
+	if(fac>=255) return col2;
+
+	mfac= 255-fac;
+	
+	cp1= (char *)&col1;
+	cp2= (char *)&col2;
+	cp=  (char *)&col;
+	
+	/* See if were darker, if so mix, else dont do anything.
+	if the paint col is brighter then the original, then ignore */
+	if (cp1[1]+cp1[2]+cp1[3] < cp2[1]+cp2[2]+cp2[3])
+		return col1;
+	
+	cp[0]= 255;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])>>8;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])>>8;
+	cp[3]= (mfac*cp1[3]+fac*cp2[3])>>8;
+	return col;
+}
+
 static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
 {
 
@@ -563,6 +620,8 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 	else if(Gvp.mode==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_SUB) *col= mcol_sub( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_MUL) *col= mcol_mul( *col, paintcol, alpha);
+	else if(Gvp.mode==VP_LIGHTEN) *col= mcol_lighten( *col, paintcol, alpha);
+	else if(Gvp.mode==VP_DARKEN) *col= mcol_darken( *col, paintcol, alpha);
 	
 	/* if no spray, clip color adding with colorig & orig alpha */
 	if((Gvp.flag & VP_SPRAY)==0) {
@@ -575,6 +634,8 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 		else if(Gvp.mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_SUB) testcol= mcol_sub( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_MUL) testcol= mcol_mul( *colorig, paintcol, alpha);
+		else if(Gvp.mode==VP_LIGHTEN)  testcol= mcol_lighten( *colorig, paintcol, alpha);
+		else if(Gvp.mode==VP_DARKEN)   testcol= mcol_darken( *colorig, paintcol, alpha);
 		
 		cp= (char *)col;
 		ct= (char *)&testcol;
@@ -753,7 +814,13 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 	else if(Gwp.mode==VP_MUL) 
 		/* first mul, then blend the fac */
 		dw->weight = ((1.0-alpha) + alpha*paintval)*dw->weight;
-	
+	else if(Gwp.mode==VP_LIGHTEN) {
+		if (dw->weight < paintval)
+			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+	} else if(Gwp.mode==VP_DARKEN) {
+		if (dw->weight > paintval)
+			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+	}
 	CLAMP(dw->weight, 0.0f, 1.0f);
 	
 	/* if no spray, clip result with orig weight & orig alpha */
@@ -761,7 +828,6 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 		float testw=0.0f;
 		
 		alpha= Gwp.a;
-		
 		if(Gwp.mode==VP_MIX || Gwp.mode==VP_FILT)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
 		else if(Gwp.mode==VP_ADD)
@@ -770,8 +836,18 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 			testw = uw->weight - paintval*alpha;
 		else if(Gwp.mode==VP_MUL) 
 			/* first mul, then blend the fac */
-			testw = ((1.0-alpha) + alpha*paintval)*uw->weight;
-		
+			testw = ((1.0-alpha) + alpha*paintval)*uw->weight;		
+		else if(Gwp.mode==VP_LIGHTEN) {
+			if (uw->weight < paintval)
+				testw = paintval*alpha + uw->weight*(1.0-alpha);
+			else
+				testw = uw->weight;
+		} else if(Gwp.mode==VP_DARKEN) {
+			if (uw->weight > paintval)
+				testw = paintval*alpha + uw->weight*(1.0-alpha);
+			else
+				testw = uw->weight;
+		}
 		CLAMP(testw, 0.0f, 1.0f);
 		
 		if( testw<uw->weight ) {
