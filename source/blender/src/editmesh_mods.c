@@ -1880,6 +1880,9 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices/edges/
 					eve->f |= SELECT;
 			}
 		}
+		EM_selectmode_flush();
+		countall();
+		BIF_undo_push("Select Random: Vertices");
 	}
 	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -1888,6 +1891,9 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices/edges/
 					EM_select_edge(eed, 1);
 			}
 		}
+		EM_selectmode_flush();
+		countall();
+		BIF_undo_push("Select Random:Edges");
 	}
 	else {
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -1896,11 +1902,11 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices/edges/
 					EM_select_face(efa, 1);
 			}
 		}
+		
+		EM_selectmode_flush();
+		countall();
+		BIF_undo_push("Select Random:Faces");
 	}
-	
-	EM_selectmode_flush();
-
-	countall();
 	allqueue(REDRAWVIEW3D, 0);
 }
 
