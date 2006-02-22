@@ -2378,20 +2378,24 @@ void buttons_enji(uiBlock *block, Object *ob)
 void buttons_ketsji(uiBlock *block, Object *ob)
 {
 	uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
-			  10,205,75,19, &ob->gameflag, 0, 0, 0, 0,
+			  10,205,55,19, &ob->gameflag, 0, 0, 0, 0,
 			  "Objects that are evaluated by the engine ");
 	if(ob->gameflag & OB_ACTOR) {	
-		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 85,205,65,19, 
+		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 65,205,55,19, 
 				  &ob->gameflag, 0, 0, 0, 0, 
 				  "Objects that don't restitute collisions (like a ghost)");
-		uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 150,205,65,19, 
+		uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 120,205,70,19, 
 				  &ob->gameflag, 0, 0, 0, 0, 
 				  "Motion defined by laws of physics");
 	
 		if(ob->gameflag & OB_DYNAMIC) {
-			uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 215,205,135,19, 
+			uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 180,205,70,19, 
 					  &ob->gameflag, 0, 0, 0, 0, 
 					  "Enable rolling physics");
+			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 250,205,100,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Disable auto (de)activation");
+
 			uiDefButBitI(block, TOG, OB_DO_FH, B_DIFF, "Do Fh", 10,185,50,19, 
 					  &ob->gameflag, 0, 0, 0, 0, 
 					  "Use Fh settings in Materials");

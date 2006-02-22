@@ -115,6 +115,7 @@ public:
 		{
 			WheelInfo& info = m_vehicle->GetWheelInfo(i);
 			PHY_IMotionState* motionState = (PHY_IMotionState*)info.m_clientInfo ;
+			m_vehicle->UpdateWheelTransform(i);
 			SimdTransform trans = m_vehicle->GetWheelTransformWS(i);
 			SimdQuaternion orn = trans.getRotation();
 			const SimdVector3& pos = trans.getOrigin();
@@ -668,6 +669,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 							{
 								break;
 							}
+						case DISABLE_DEACTIVATION:
+							{
+								color.setValue(1,0,1);
+							};
 							
 						};
 
@@ -751,7 +756,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 						body->SetActivationState( WANTS_DEACTIVATION );
 				} else
 				{
-					body->SetActivationState( ACTIVE_TAG );
+					if (body->GetActivationState() != DISABLE_DEACTIVATION)
+						body->SetActivationState( ACTIVE_TAG );
 				}
 
 				if (useIslands)
@@ -785,12 +791,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		for (int i=0;i<numVehicles;i++)
 		{
 			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
-			
-			for (int j=0;j<wrapperVehicle->GetVehicle()->GetNumWheels();j++)
-			{
-				wrapperVehicle->GetVehicle()->UpdateWheelTransform(j);
-			}
-			
+		
 			wrapperVehicle->SyncWheels();
 		}
 #endif //NEW_BULLET_VEHICLE_SUPPORT

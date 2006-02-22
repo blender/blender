@@ -374,9 +374,8 @@ void		CcdPhysicsController::setNewClientInfo(void* clientinfo)
 
 void	CcdPhysicsController::UpdateDeactivation(float timeStep)
 {
-	if ( (m_body->GetActivationState() == 2))
+	if ( (m_body->GetActivationState() == ISLAND_SLEEPING) || (m_body->GetActivationState() == DISABLE_DEACTIVATION))
 		return;
-	
 
 	if ((m_body->getLinearVelocity().length2() < gLinearSleepingTreshold*gLinearSleepingTreshold) &&
 		(m_body->getAngularVelocity().length2() < gAngularSleepingTreshold*gAngularSleepingTreshold))
@@ -392,6 +391,9 @@ void	CcdPhysicsController::UpdateDeactivation(float timeStep)
 
 bool CcdPhysicsController::wantsSleeping()
 {
+
+	if (m_body->GetActivationState() == DISABLE_DEACTIVATION)
+		return false;
 
 	//disable deactivation
 	if (gDisableDeactivation || (gDeactivationTime == 0.f))

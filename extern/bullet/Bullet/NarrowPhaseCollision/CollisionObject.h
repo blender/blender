@@ -7,6 +7,7 @@
 #define ACTIVE_TAG 1
 #define ISLAND_SLEEPING 2
 #define WANTS_DEACTIVATION 3
+#define DISABLE_DEACTIVATION 4
 
 struct	BroadphaseProxy;
 class	CollisionShape;

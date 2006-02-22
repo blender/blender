@@ -92,7 +92,9 @@ const SimdTransform&	RaycastVehicle::GetWheelTransformWS( int wheelIndex ) const
 
 void	RaycastVehicle::UpdateWheelTransform( int wheelIndex )
 {
+	
 	WheelInfo& wheel = m_wheelInfo[ wheelIndex ];
+	UpdateWheelTransformsWS(wheel);
 	SimdVector3 up = -wheel.m_raycastInfo.m_wheelDirectionWS;
 	const SimdVector3& right = wheel.m_raycastInfo.m_wheelAxleWS;
 	SimdVector3 fwd = up.cross(right);

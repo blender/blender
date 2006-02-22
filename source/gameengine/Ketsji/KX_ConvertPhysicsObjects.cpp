@@ -1033,6 +1033,10 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
+
+	if (objprop->m_disableSleeping)
+		physicscontroller->GetRigidBody()->SetActivationState(DISABLE_DEACTIVATION);
+	
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
 	// store materialname in auxinfo, needed for touchsensors

@@ -85,6 +85,7 @@ struct KX_ObjectProperties
 	bool	m_isactor;
 	bool	m_concave;
 	bool	m_isdeformable;
+	bool	m_disableSleeping;
 	KX_BoundBoxClass	m_boundclass;
 	union {
 		KX_BoxBounds	box;

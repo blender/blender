@@ -119,6 +119,11 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 				{
 					allSleeping = false;
 				}
+				if ((((CollisionObject*)manifold->GetBody0()) && ((CollisionObject*)manifold->GetBody0())->GetActivationState()== DISABLE_DEACTIVATION) ||
+					(((CollisionObject*)manifold->GetBody1()) && ((CollisionObject*)manifold->GetBody1())->GetActivationState() == DISABLE_DEACTIVATION))
+				{
+					allSleeping = false;
+				}
 
 				islandmanifold.push_back(manifold);
 			}
