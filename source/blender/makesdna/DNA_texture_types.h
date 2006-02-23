@@ -112,13 +112,13 @@ typedef struct EnvMap {
 	struct Image *ima;		/* type ENV_LOAD */
 	struct Image *cube[6];		/* these images are dynamic, not part of the main struct */
 	float imat[4][4];
+	float obimat[3][3];
 	short type, stype;
 	float clipsta, clipend;
 	unsigned int notlay;
 	short cuberes, depth;
 	short ok, lastframe;
 	short recalc, lastsize;
-	int pad1;
 } EnvMap;
 
 typedef struct Tex {

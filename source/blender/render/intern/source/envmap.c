@@ -355,6 +355,7 @@ static void render_envmap(Render *re, EnvMap *env)
 	Render *envre;
 	ImBuf *ibuf;
 	Image *ima;
+	float orthmat[4][4];
 	float oldviewinv[4][4], mat[4][4], tmat[4][4];
 	short part;
 	
@@ -363,14 +364,20 @@ static void render_envmap(Render *re, EnvMap *env)
 
 	envre= envmap_render_copy(re, env);
 	
-//	re->display_init(envre->result);
+	/* precalc orthmat for object */
+	MTC_Mat4CpyMat4(orthmat, env->object->obmat);
+	MTC_Mat4Ortho(orthmat);
+	
+	/* need imat later for texture imat */
+	MTC_Mat4MulMat4(mat, orthmat, re->viewmat);
+	MTC_Mat4Invert(tmat, mat);
+	MTC_Mat3CpyMat4(env->obimat, tmat);
 
 	for(part=0; part<6; part++) {
 
 		re->display_clear(envre->result);
 		
-		MTC_Mat4CpyMat4(tmat, env->object->obmat);
-		MTC_Mat4Ortho(tmat);
+		MTC_Mat4CpyMat4(tmat, orthmat);
 		envmap_transmatrix(tmat, part);
 		MTC_Mat4Invert(mat, tmat);
 		/* mat now is the camera 'viewmat' */
@@ -488,7 +495,7 @@ void make_envmaps(Render *re)
 	if(do_init) {
 		re->display_init(re->result);
 		re->display_clear(re->result);
-		re->flag |= R_REDRAW_PRV;
+		// re->flag |= R_REDRAW_PRV;
 	}	
 	// restore
 	re->r.mode |= trace;
@@ -603,7 +610,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	
 	/* rotate to envmap space, if object is set */
 	VECCOPY(vec, texvec);
-	if(env->object) MTC_Mat4Mul3Vecfl(env->object->imat, vec);
+	if(env->object) MTC_Mat3MulVecfl(env->obimat, vec);
 	else MTC_Mat4Mul3Vecfl(R.viewinv, vec);
 	
 	face= envcube_isect(vec, sco);
@@ -611,8 +618,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	
 	if(osatex) {
 		if(env->object) {
-			MTC_Mat4Mul3Vecfl(env->object->imat, dxt);
-			MTC_Mat4Mul3Vecfl(env->object->imat, dyt);
+			MTC_Mat3MulVecfl(env->obimat, dxt);
+			MTC_Mat3MulVecfl(env->obimat, dyt);
 		}
 		else {
 			MTC_Mat4Mul3Vecfl(R.viewinv, dxt);
