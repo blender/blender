@@ -42,6 +42,9 @@ extern "C"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
+
+#define WITH_OPENEXR
+#include "openexr_multi.h"
 }
 
 #include <iostream>
@@ -333,103 +336,213 @@ short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
 
 /* ********************* Tile file support ************************************ */
 
-typedef struct ExrTileHandle {
-	TiledOutputFile *file;
+typedef struct ExrHandle {
+	InputFile *ifile;
+	TiledOutputFile *tofile;
+	OutputFile *ofile;
 	int tilex, tiley;
 	int width, height;
 	ListBase channels;
-} ExrTileHandle;
+} ExrHandle;
 
-typedef struct ExrTileChannel {
-	struct ExrTileChannel *next, *prev;
-	char *name;
+#define CHANMAXNAME 64
+typedef struct ExrChannel {
+	struct ExrChannel *next, *prev;
+	char name[2*CHANMAXNAME + 1];
 	int xstride, ystride;
 	float *rect;
-} ExrTileChannel;
+} ExrChannel;
 
 /* not threaded! write one tiled file at a time */
-void *imb_exrtile_get_handle(void)
+void *IMB_exr_get_handle(void)
 {
-	static ExrTileHandle data;
+	static ExrHandle data;
 	
-	data.channels.first= data.channels.last= NULL;
+	memset(&data, sizeof(ExrHandle), 0);
+	
 	return &data;
 }
 
-void imb_exrtile_add_channel(void *handle, char *channame)
+/* still clumsy name handling, layers/channels can be ordered as list in list later */
+void IMB_exr_add_channel(void *handle, const char *layname, const char *channame)
 {
-	ExrTileHandle *data= (ExrTileHandle *)handle;
-	ExrTileChannel *echan;
+	ExrHandle *data= (ExrHandle *)handle;
+	ExrChannel *echan;
 	
-	echan= (ExrTileChannel *)MEM_callocN(sizeof(ExrTileChannel), "exr tile channel");
-	echan->name= channame;
+	echan= (ExrChannel *)MEM_callocN(sizeof(ExrChannel), "exr tile channel");
+	
+	if(layname) {
+		char lay[CHANMAXNAME], chan[CHANMAXNAME];
+		strncpy(lay, layname, CHANMAXNAME-1);
+		strncpy(chan, channame, CHANMAXNAME-1);
+
+		sprintf(echan->name, "%s.%s", lay, chan);
+	}
+	else
+		strncpy(echan->name, channame, 2*CHANMAXNAME);
+	printf("added channel %s\n", echan->name);
 	BLI_addtail(&data->channels, echan);
 }
 
-void imb_exrtile_begin_write(void *handle, char *filename, int width, int height, int tilex, int tiley)
+void IMB_exr_begin_write(void *handle, char *filename, int width, int height)
 {
-	ExrTileHandle *data= (ExrTileHandle *)handle;
+	ExrHandle *data= (ExrHandle *)handle;
 	Header header (width, height);
-	ExrTileChannel *echan;
+	ExrChannel *echan;
+	
+	data->width= width;
+	data->height= height;
+	
+	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
+		header.channels().insert (echan->name, Channel (FLOAT));
+	
+	header.insert ("comments", StringAttribute ("Blender MultiChannel"));
+	
+	data->ofile = new OutputFile(filename, header);
+}
+
+void IMB_exrtile_begin_write(void *handle, char *filename, int width, int height, int tilex, int tiley)
+{
+	ExrHandle *data= (ExrHandle *)handle;
+	Header header (width, height);
+	ExrChannel *echan;
 	
 	data->tilex= tilex;
 	data->tiley= tiley;
 	data->width= width;
 	data->height= height;
 	
-	for(echan= (ExrTileChannel *)data->channels.first; echan; echan= echan->next)
+	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
 	header.setTileDescription (TileDescription (tilex, tiley, ONE_LEVEL));
+	header.lineOrder() = RANDOM_Y,
+	header.compression() = NO_COMPRESSION;
 	
-	header.insert ("comments", StringAttribute ("Blender RenderResult"));
+	header.insert ("comments", StringAttribute ("Blender MultiChannel"));
 	
-	data->file = new TiledOutputFile(filename, header);
+	data->tofile = new TiledOutputFile(filename, header);
 }
 
-
-void imb_exrtile_set_channel(void *handle, char *channame, int xstride, int ystride, float *rect)
+int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 {
-	ExrTileHandle *data= (ExrTileHandle *)handle;
-	ExrTileChannel *echan;
+	ExrHandle *data= (ExrHandle *)handle;
 	
-	for(echan= (ExrTileChannel *)data->channels.first; echan; echan= echan->next)
-		if(strcmp(echan->name, channame)==0)
+	data->ifile = new InputFile(filename);
+	if(data->ifile) {
+		Box2i dw = data->ifile->header().dataWindow();
+		data->width= *width  = dw.max.x - dw.min.x + 1;
+		data->height= *height = dw.max.y - dw.min.y + 1;
+		
+		const ChannelList &channels = data->ifile->header().channels();
+		
+		for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
+			IMB_exr_add_channel(data, NULL, i.name());
+		
+		return 1;
+	}
+	return 0;
+}
+
+/* still clumsy name handling, layers/channels can be ordered as list in list later */
+void IMB_exr_set_channel(void *handle, char *layname, char *channame, int xstride, int ystride, float *rect)
+{
+	ExrHandle *data= (ExrHandle *)handle;
+	ExrChannel *echan;
+	char name[2*CHANMAXNAME + 1];
+	
+	if(layname) {
+		char lay[CHANMAXNAME], chan[CHANMAXNAME];
+		strncpy(lay, layname, CHANMAXNAME-1);
+		strncpy(chan, channame, CHANMAXNAME-1);
+		
+		sprintf(name, "%s.%s", lay, chan);
+	}
+	else
+		strncpy(name, channame, 2*CHANMAXNAME);
+	
+	
+	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
+		if(strcmp(echan->name, name)==0)
 			break;
+	
 	if(echan) {
 		echan->xstride= xstride;
 		echan->ystride= ystride;
 		echan->rect= rect;
 	}
 	else
-		printf("imb_exrtile_set_channel error\n");
+		printf("IMB_exrtile_set_channel error %s\n", name);
 }
 
 
-void imb_exrtile_write_channels(void *handle, int partx, int party)
+void IMB_exrtile_write_channels(void *handle, int partx, int party)
 {
-	ExrTileHandle *data= (ExrTileHandle *)handle;
+	ExrHandle *data= (ExrHandle *)handle;
 	FrameBuffer frameBuffer;
-	ExrTileChannel *echan;
+	ExrChannel *echan;
 	
-	for(echan= (ExrTileChannel *)data->channels.first; echan; echan= echan->next) {
+	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next) {
 		float *rect= echan->rect - echan->xstride*partx - echan->ystride*party;
 
 		frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)rect, 
 							echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
 	}
 	
-	data->file->setFrameBuffer (frameBuffer);
+	data->tofile->setFrameBuffer (frameBuffer);
 	printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
-	data->file->writeTile (partx/data->tilex, party/data->tiley);	
+	data->tofile->writeTile (partx/data->tilex, party/data->tiley);	
 	
 }
 
-void imb_exrtile_close(void *handle)
+void IMB_exr_write_channels(void *handle)
 {
-	ExrTileHandle *data= (ExrTileHandle *)handle;
+	ExrHandle *data= (ExrHandle *)handle;
+	FrameBuffer frameBuffer;
+	ExrChannel *echan;
 	
-	delete data->file;
+	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
+		frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
+												echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+	
+	data->ofile->setFrameBuffer (frameBuffer);
+	data->ofile->writePixels (data->height);	
+	
+}
+
+void IMB_exr_read_channels(void *handle)
+{
+	ExrHandle *data= (ExrHandle *)handle;
+	FrameBuffer frameBuffer;
+	ExrChannel *echan;
+	
+	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next) {
+		/* no datawindow correction needed */
+		if(echan->rect)
+			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
+												echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+	}
+	
+	data->ifile->setFrameBuffer (frameBuffer);
+	data->ifile->readPixels (0, data->height-1);	
+}
+
+
+void IMB_exr_close(void *handle)
+{
+	ExrHandle *data= (ExrHandle *)handle;
+	ExrChannel *echan;
+	
+	if(data->ifile)
+		delete data->ifile;
+	else if(data->ofile)
+		delete data->ofile;
+	else if(data->tofile)
+		delete data->tofile;
+	
+	data->ifile= NULL;
+	data->ofile= NULL;
+	data->tofile= NULL;
 	
 	BLI_freelistN(&data->channels);
 }
@@ -473,11 +586,9 @@ static int exr_has_zbuffer(InputFile *file)
 static int exr_is_renderresult(InputFile *file)
 {
 	const StringAttribute *comments= file->header().findTypedAttribute<StringAttribute>("comments");
-	if(comments) {
-	
-		if(comments->value() == "Blender RenderResult")
+	if(comments)
+		if(comments->value() == "Blender MultiChannel")
 			return 1;
-	}
 	return 0;
 }
 
@@ -529,7 +640,8 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 																		/* 1.0 is fill value */
 				frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f));
 
-				if(exr_has_zbuffer(file)) {
+				if(exr_has_zbuffer(file)) 
+				{
 					float *firstz;
 					
 					addzbuffloatImBuf(ibuf);

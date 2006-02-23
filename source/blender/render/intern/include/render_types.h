@@ -332,15 +332,14 @@ typedef struct LampRen
 
 /* **************** defines ********************* */
 
-/* mode flag is same as for renderdata */
-/* flag */
+/* R.r.mode flag is same as for renderdata */
+
+/* R.flag */
 #define R_ZTRA			1
 #define R_HALO			2
 #define R_SEC_FIELD		4
 #define R_LAMPHALO		8
-#define R_RENDERING		16
-#define R_ANIMRENDER	32
-#define R_REDRAW_PRV	64
+#define R_FILEBUFFER	16
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1

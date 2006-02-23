@@ -51,12 +51,15 @@
 #include "PIL_time.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "intern/openexr/openexr_api.h"
+
+#include "intern/openexr/openexr_multi.h"
 
 #include "RE_pipeline.h"
 #include "radio.h"
 
 #include "BSE_sequence.h"  /* <----------------- bad!!! */
+
+#include "SDL_thread.h"
 
 /* internal */
 #include "render_types.h"
@@ -67,9 +70,6 @@
 #include "initrender.h"
 #include "shadbuf.h"
 #include "zbuf.h"
-
-#include "SDL_thread.h"
-#include "SDL_mutex.h"
 
 /* render flow
 
@@ -105,7 +105,8 @@ static struct ListBase RenderList= {NULL, NULL};
 /* hardcopy of current render, used while rendering for speed */
 Render R;
 
-void *exrhandle= NULL;
+static SDL_mutex *exrtile_lock= NULL;
+
 /* ********* alloc and free ******** */
 
 
@@ -156,7 +157,7 @@ static void free_render_result(RenderResult *res)
 		if(rl->rectf) MEM_freeT(rl->rectf);
 		while(rl->passes.first) {
 			RenderPass *rpass= rl->passes.first;
-			MEM_freeT(rpass->rect);
+			if(rpass->rect) MEM_freeT(rpass->rect);
 			BLI_remlink(&rl->passes, rpass);
 			MEM_freeT(rpass);
 		}
@@ -174,23 +175,90 @@ static void free_render_result(RenderResult *res)
 	MEM_freeT(res);
 }
 
-static void render_layer_add_pass(RenderLayer *rl, int rectsize, int passtype, char *mallocstr)
+static char *get_pass_name(int passtype, int channel)
 {
-	RenderPass *rpass= MEM_mallocT(sizeof(RenderPass), mallocstr);
+	
+	if(passtype == SCE_PASS_COMBINED) {
+		if(channel==0) return "Combined.R";
+		else if(channel==1) return "Combined.G";
+		else if(channel==2) return "Combined.B";
+		else return "Combined.A";
+	}
+	if(passtype == SCE_PASS_Z)
+		return "Z";
+	if(passtype == SCE_PASS_VECTOR) {
+		if(channel==0) return "Vector.X";
+		else if(channel==1) return "Vector.Y";
+		else if(channel==2) return "Vector.Z";
+		else return "Vector.W";
+	}
+	if(passtype == SCE_PASS_NORMAL) {
+		if(channel==0) return "Normal.X";
+		else if(channel==1) return "Normal.Y";
+		else return "Normal.Z";
+	}
+	if(passtype == SCE_PASS_RGBA) {
+		if(channel==0) return "Color.R";
+		else if(channel==1) return "Color.G";
+		else if(channel==2) return "Color.B";
+		else return "Color.A";
+	}
+	if(passtype == SCE_PASS_DIFFUSE) {
+		if(channel==0) return "Diffuse.R";
+		else if(channel==1) return "Diffuse.G";
+		else return "Diffuse.B";
+	}
+	if(passtype == SCE_PASS_SPEC) {
+		if(channel==0) return "Spec.R";
+		else if(channel==1) return "Spec.G";
+		else return "Spec.B";
+	}
+	if(passtype == SCE_PASS_SHADOW) {
+		if(channel==0) return "Shadow.R";
+		else if(channel==1) return "Shadow.G";
+		else return "Shadow.B";
+	}
+	if(passtype == SCE_PASS_AO) {
+		if(channel==0) return "AO.R";
+		else if(channel==1) return "AO.G";
+		else return "AO.B";
+	}
+	if(passtype == SCE_PASS_RAY) {
+		if(channel==0) return "Ray.R";
+		else if(channel==1) return "Ray.G";
+		else return "Ray.B";
+	}
+	return "Unknown";
+}
+
+static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
+{
+	char *typestr= get_pass_name(passtype, 0);
+	RenderPass *rpass= MEM_callocT(sizeof(RenderPass), typestr);
+	int rectsize= rr->rectx*rr->recty*channels;
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype= passtype;
-	if(passtype==SCE_PASS_VECTOR) {
-		float *rect;
-		int x;
-		
-		/* initialize to max speed */
-		rect= rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, mallocstr);
-		for(x= rectsize-1; x>=0; x--)
-			rect[x]= PASS_VECTOR_MAX;
+	rpass->channels= channels;
+	
+	if(rr->exrhandle) {
+		int a;
+		for(a=0; a<channels; a++)
+			IMB_exr_add_channel(rr->exrhandle, rl->name, get_pass_name(passtype, a));
 	}
-	else
-		rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, mallocstr);
+	else {
+		if(passtype==SCE_PASS_VECTOR) {
+			float *rect;
+			int x;
+			
+			/* initialize to max speed */
+			rect= rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, typestr);
+			for(x= rectsize-1; x>=0; x--)
+				rect[x]= PASS_VECTOR_MAX;
+		}
+		else
+			rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, typestr);
+	}
 }
 
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
@@ -203,10 +271,11 @@ float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
 	return NULL;
 }
 
+
 /* called by main render as well for parts */
 /* will read info from Render *re to define layers */
 /* called in threads */
-/* winrct is coordinate rect of entire image, partrct the part within */
+/* re->winx,winy is coordinate space of entire image, partrct the part within */
 static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 {
 	RenderResult *rr;
@@ -232,6 +301,11 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	rr->tilerect.ymin= partrct->ymin - re->disprect.ymin;
 	rr->tilerect.ymax= partrct->ymax - re->disprect.ymax;
 	
+	/* this flag needs cleared immediate after result was made */
+	if(re->flag & R_FILEBUFFER) {
+		rr->exrhandle= IMB_exr_get_handle();
+	}
+	
 	/* check renderdata for amount of layers */
 	for(nr=0, srl= re->r.layers.first; srl; srl= srl->next, nr++) {
 		
@@ -246,26 +320,33 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		rl->layflag= srl->layflag;
 		rl->passflag= srl->passflag;
 		
-		rl->rectf= MEM_mapallocT(rectx*recty*sizeof(float)*4, "layer float rgba");
+		if(rr->exrhandle) {
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R");
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.G");
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.B");
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.A");
+		}
+		else
+			rl->rectf= MEM_mapallocT(rectx*recty*sizeof(float)*4, "Combined rgba");
 		
 		if(srl->passflag  & SCE_PASS_Z)
-			render_layer_add_pass(rl, rectx*recty, SCE_PASS_Z, "Layer float Z");
+			render_layer_add_pass(rr, rl, 1, SCE_PASS_Z);
 		if(srl->passflag  & SCE_PASS_VECTOR)
-			render_layer_add_pass(rl, rectx*recty*4, SCE_PASS_VECTOR, "layer float Vector");
+			render_layer_add_pass(rr, rl, 4, SCE_PASS_VECTOR);
 		if(srl->passflag  & SCE_PASS_NORMAL)
-			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_NORMAL, "layer float Normal");
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_NORMAL);
 		if(srl->passflag  & SCE_PASS_RGBA)
-			render_layer_add_pass(rl, rectx*recty*4, SCE_PASS_RGBA, "layer float Color");
+			render_layer_add_pass(rr, rl, 4, SCE_PASS_RGBA);
 		if(srl->passflag  & SCE_PASS_DIFFUSE)
-			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_DIFFUSE, "layer float Diffuse");
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE);
 		if(srl->passflag  & SCE_PASS_SPEC)
-			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_SPEC, "layer float Spec");
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_SPEC);
 		if(srl->passflag  & SCE_PASS_SHADOW)
-			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_SHADOW, "layer float Shadow");
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
 		if(srl->passflag  & SCE_PASS_AO)
-			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_AO, "layer float AO");
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
 		if(srl->passflag  & SCE_PASS_RAY)
-			render_layer_add_pass(rl, rectx*recty*3, SCE_PASS_RAY, "layer float Mirror");
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_RAY);
 		
 	}
 	/* previewrender and envmap don't do layers, so we make a default one */
@@ -346,19 +427,7 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 		
 		/* passes are allocated in sync */
 		for(rpass= rl->passes.first, rpassp= rlp->passes.first; rpass && rpassp; rpass= rpass->next, rpassp= rpassp->next) {
-			switch(rpass->passtype) {
-				case SCE_PASS_Z:
-					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 1);
-					break;
-				case SCE_PASS_VECTOR:
-					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 4);
-					break;
-				case SCE_PASS_RGBA:
-					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 4);
-					break;
-				default:
-					do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, 3);
-			}
+			do_merge_tile(rr, rrpart, rpass->rect, rpassp->rect, rpass->channels);
 		}
 	}
 }
@@ -366,10 +435,12 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 
 static void save_render_result_tile(Render *re, RenderPart *pa)
 {
-#ifdef WITH_OPENEXR
 	RenderResult *rrpart= pa->result;
 	RenderLayer *rlp;
+	RenderPass *rpassp;
 	int offs, partx, party;
+	
+	if(exrtile_lock) SDL_mutexP(exrtile_lock);
 	
 	for(rlp= rrpart->layers.first; rlp; rlp= rlp->next) {
 		
@@ -384,18 +455,69 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 		
 		/* combined */
 		if(rlp->rectf) {
-			int xstride= 4;
-			imb_exrtile_set_channel(exrhandle, "R", xstride, xstride*pa->rectx, rlp->rectf   + xstride*offs);
-			imb_exrtile_set_channel(exrhandle, "G", xstride, xstride*pa->rectx, rlp->rectf+1 + xstride*offs);
-			imb_exrtile_set_channel(exrhandle, "B", xstride, xstride*pa->rectx, rlp->rectf+2 + xstride*offs);
-			imb_exrtile_set_channel(exrhandle, "A", xstride, xstride*pa->rectx, rlp->rectf+3 + xstride*offs);
-			
-			imb_exrtile_write_channels(exrhandle, partx, party);
-		}		
+			int a, xstride= 4;
+			for(a=0; a<xstride; a++)
+				IMB_exr_set_channel(re->result->exrhandle, rlp->name, get_pass_name(SCE_PASS_COMBINED, a), 
+								xstride, xstride*pa->rectx, rlp->rectf+a + xstride*offs);
+		}
+		
+		/* passes are allocated in sync */
+		for(rpassp= rlp->passes.first; rpassp; rpassp= rpassp->next) {
+			int a, xstride= rpassp->channels;
+			for(a=0; a<xstride; a++)
+				IMB_exr_set_channel(re->result->exrhandle, rlp->name, get_pass_name(rpassp->passtype, a), 
+									xstride, xstride*pa->rectx, rpassp->rect+a + xstride*offs);
+		}
+		
 	}
-#endif
+
+	IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
+
+	if(exrtile_lock) SDL_mutexV(exrtile_lock);
+
 }
 
+static void read_render_result(Render *re)
+{
+	RenderLayer *rl;
+	RenderPass *rpass;
+	void *exrhandle= IMB_exr_get_handle();
+	int rectx, recty;
+	
+	free_render_result(re->result);
+	re->result= new_render_result(re, &re->disprect, 0);
+
+	IMB_exr_begin_read(exrhandle, "/tmp/render.exr", &rectx, &recty);
+	if(rectx!=re->result->rectx || recty!=re->result->recty) {
+		printf("error in reading render result\n");
+	}
+	else {
+		for(rl= re->result->layers.first; rl; rl= rl->next) {
+			
+			/* combined */
+			if(rl->rectf) {
+				int a, xstride= 4;
+				for(a=0; a<xstride; a++)
+					IMB_exr_set_channel(exrhandle, rl->name, get_pass_name(SCE_PASS_COMBINED, a), 
+										xstride, xstride*rectx, rl->rectf+a);
+			}
+			
+			/* passes are allocated in sync */
+			for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
+				int a, xstride= rpass->channels;
+				for(a=0; a<xstride; a++)
+					IMB_exr_set_channel(exrhandle, rl->name, get_pass_name(rpass->passtype, a), 
+										xstride, xstride*rectx, rpass->rect+a);
+			}
+			
+		}
+		printf("before read\n");
+		IMB_exr_read_channels(exrhandle);
+		printf("after read\n");
+	}
+	
+	IMB_exr_close(exrhandle);
+}
 
 /* *************************************************** */
 
@@ -590,7 +712,7 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		/* initialize render result */
 		free_render_result(re->result);
 		re->result= new_render_result(re, &re->disprect, 0);
-		
+			
 		/* single layer render disables composit */
 		if(re->r.scemode & R_SINGLE_LAYER)
 			re->r.scemode &= ~R_DOCOMP;
@@ -701,8 +823,11 @@ static int do_part_thread(void *pa_v)
 		else
 			zbufshade_tile(pa);
 		
-		/* merge too on break! */	
-		merge_render_result(R.result, pa->result);
+		/* merge too on break! */
+		if(R.result->exrhandle)
+			save_render_result_tile(&R, pa);
+		else
+			merge_render_result(R.result, pa->result);
 	}
 	
 	pa->ready= 1;
@@ -805,12 +930,18 @@ static void threaded_tile_processor(Render *re)
 {
 	ListBase threads;
 	RenderPart *pa, *nextpa;
-	int maxthreads, rendering=1, counter= 1, drawtimer=0;
+	RenderResult *rr= re->result;
+	int maxthreads, rendering=1, counter= 1, drawtimer=0, hasdrawn;
 	
-	if(re->result==NULL)
+	if(rr==NULL)
 		return;
 	if(re->test_break())
 		return;
+	
+	if(rr->exrhandle) {
+		IMB_exrtile_begin_write(rr->exrhandle, "/tmp/render.exr", rr->rectx, rr->recty, rr->rectx/re->r.xparts, rr->recty/re->r.yparts);
+		exrtile_lock = SDL_CreateMutex();
+	}
 	
 	if(re->r.mode & R_THREADS) maxthreads= 2;
 	else maxthreads= 1;
@@ -844,37 +975,45 @@ static void threaded_tile_processor(Render *re)
 		
 		/* check for ready ones to display, and if we need to continue */
 		rendering= 0;
+		hasdrawn= 0;
 		for(pa= re->parts.first; pa; pa= pa->next) {
 			if(pa->ready) {
 				if(pa->result) {
 					BLI_remove_thread(&threads, pa);
+
 					re->display_draw(pa->result, NULL);
 					print_part_stats(re, pa);
-					
-					if(exrhandle) save_render_result_tile(re, pa);
 					
 					free_render_result(pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
-					drawtimer= 0;
+					hasdrawn= 1;
 				}
 			}
 			else {
 				rendering= 1;
 				if(pa->nr && pa->result && drawtimer>20) {
 					re->display_draw(pa->result, &pa->result->renrect);
-					drawtimer= 0;
+					hasdrawn= 1;
 				}
 			}
 		}
-		
+		if(hasdrawn)
+			drawtimer= 0;
+
 		/* on break, wait for all slots to get freed */
 		if( (g_break=re->test_break()) && BLI_available_threads(&threads)==maxthreads)
 			rendering= 0;
 		
 	}
 	
-	/* restore threadsafety */
+	if(rr->exrhandle) {
+		if(exrtile_lock) SDL_DestroyMutex(exrtile_lock); 
+		IMB_exr_close(rr->exrhandle);
+		read_render_result(re);
+	}
+	
+	/* unset threadsafety */
 	g_break= 0;
 	
 	BLI_end_threads(&threads);
@@ -1158,7 +1297,9 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 		disprect.ymax= winy;
 	}
 	
+/*	if(G.rt) re->flag |= R_FILEBUFFER; */
 	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	re->flag &= ~R_FILEBUFFER;
 	
 	re->scene= scene;
 	if(!is_rendering_allowed(re))
@@ -1166,15 +1307,6 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	
 	re->display_init(re->result);
 	re->display_clear(re->result);
-	
-	if(0) {
-		exrhandle= imb_exrtile_get_handle();
-		imb_exrtile_add_channel(exrhandle, "R");
-		imb_exrtile_add_channel(exrhandle, "G");
-		imb_exrtile_add_channel(exrhandle, "B");
-		imb_exrtile_add_channel(exrhandle, "A");
-		imb_exrtile_begin_write(exrhandle, "/tmp/render.exr", winx, winy, winx/scene->r.xparts, winy/scene->r.yparts);
-	}
 	
 	return 1;
 }
@@ -1189,11 +1321,6 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	if(render_initialize_from_scene(re, scene)) {
 		do_render_final(re);
 		
-#ifdef WITH_OPENEXR
-		if(exrhandle)
-			imb_exrtile_close(exrhandle);
-#endif
-		exrhandle= NULL;
 	}
 }
 

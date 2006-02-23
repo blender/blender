@@ -58,7 +58,7 @@ typedef struct Render Render;
 
 typedef struct RenderPass {
 	struct RenderPass *next, *prev;
-	int passtype;
+	int passtype, channels;
 	float *rect;
 } RenderPass;
 

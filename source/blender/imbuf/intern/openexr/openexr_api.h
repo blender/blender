@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -20,14 +17,14 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2005 Blender Foundation
  * All rights reserved.
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Austin Benesh.
+ * Contributor(s): Austin Benesh. Ton Roosendaal.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef _OPENEXR_API_H
@@ -37,8 +34,8 @@
 extern "C" {
 #endif
 
-#define OPENEXR_FLOATRGB 0x1
-#define OPENEXR_ZBUF 0x2
+#define OPENEXR_FLOATRGB	0x1
+#define OPENEXR_ZBUF		0x2
   
 #include <stdio.h>
   
@@ -52,15 +49,6 @@ int		imb_is_a_openexr			(unsigned char *mem);
 short	imb_save_openexr			(struct ImBuf *ibuf, char *name, int flags);
 
 struct ImBuf *imb_load_openexr		(unsigned char *mem, int size, int flags);
-
-
-void *	imb_exrtile_get_handle		(void);
-void	imb_exrtile_add_channel		(void *handle, char *channame);
-void	imb_exrtile_begin_write		(void *handle, char *filename, int width, int height, int tilex, int tiley);
-void	imb_exrtile_set_channel		(void *handle, char *channame, int xstride, int ystride, float *rect);
-void	imb_exrtile_write_channels	(void *handle, int partx, int party);
-void	imb_exrtile_close			(void *handle);
-
 
 #ifdef __cplusplus
 }

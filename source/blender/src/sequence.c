@@ -2182,7 +2182,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				Scene *oldsce;
 				unsigned int *rectot;
 				int oldcfra, doseq;
-				int redisplay= (!G.background && !(R.flag & R_RENDERING));
+				int redisplay= (!G.background && !G.rendering);
 				
 				oldsce= G.scene;
 				if(seq->scene!=G.scene) set_scene_bg(seq->scene);
