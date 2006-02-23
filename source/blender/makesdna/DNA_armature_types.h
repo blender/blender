@@ -63,7 +63,7 @@ typedef struct Bone {
 	float			dist, weight;			/*  dist, weight: for non-deformgroup deforms */
 	float			xwidth, length, zwidth;	/*  width: for block bones. keep in this order, transform! */
 	float			ease1, ease2;			/*  length of bezier handles */
-	float			rad_head, rad_tail;	/* radius for head/tail sphere, defining deform as well */
+	float			rad_head, rad_tail;	/* radius for head/tail sphere, defining deform as well, parent->rad_tip overrides rad_head*/
 	
 	float			size[3];		/*  patch for upward compat, UNUSED! */
 	short			layer;
