@@ -1832,6 +1832,11 @@ static void render_panel_layers(void)
 	SceneRenderLayer *srl= BLI_findlink(&G.scene->r.layers, G.scene->r.actlay);
 	char *strp;
 	
+	if(srl==NULL) {
+		G.scene->r.actlay= 0;
+		srl= G.scene->r.layers.first;
+	}
+	
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_layers", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Output", "Render");
 	if(uiNewPanel(curarea, block, "Render Layers", "Render", 320, 0, 318, 204)==0) return;
