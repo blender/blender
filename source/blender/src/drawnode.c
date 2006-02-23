@@ -707,7 +707,7 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 					  &nia->frames, 0.0, 10000.0, 0, 0, "Amount of images used in animation");
 			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "SFra:",
 					  butr->xmin+width, dy, width, 19, 
-					  &nia->sfra, 1.0, 1000.0, 0, 0, "Start frame of animation");
+					  &nia->sfra, 1.0, 10000.0, 0, 0, "Start frame of animation");
 			dy-= 19;
 			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "First:",
 					  butr->xmin, dy, width, 19, 
