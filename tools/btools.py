@@ -37,14 +37,14 @@ def validate_arguments(args, bc):
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
             'WITH_BF_FFMPEG',
             'WITH_BF_PLAYER',
-            'CFLAGS', 'CCFLAGS', 'CPPFLAGS',
+            'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
             'BF_PROFILE_FLAGS' ]
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_DEBUG',
-            'BF_PRIORITYLIST', 'BF_BUILDINFO'
+            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX'
            ]
 
     all_list = opts_list + arg_list

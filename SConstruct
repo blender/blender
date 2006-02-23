@@ -108,6 +108,13 @@ if not env:
     print "Could not create a build environment"
     Exit()
 
+cc = B.arguments.get('CC', None)
+cxx = B.arguments.get('CXX', None)
+if cc:
+	env['CC'] = cc
+if cxx:
+	env['CXX'] = cxx
+
 if env['CC'] in ['cl', 'cl.exe'] and sys.platform=='win32':
     platform = 'win32-vc'
 elif env['CC'] in ['gcc'] and sys.platform=='win32':
