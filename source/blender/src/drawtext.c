@@ -1539,7 +1539,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break; /* BREAK C */
 		case DKEY:
-			if (G.qual == LR_CTRLKEY) {
+			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
+				//uncommenting
+				txt_order_cursors(text);
+				uncomment(text);
+				do_draw = 1;
+				if (st->showsyntax) get_format_string();
+				break;
+			} else if (G.qual == LR_CTRLKEY) {
 				txt_delete_char(text);
 				if (st->showsyntax) get_format_string();
 				do_draw= 1;

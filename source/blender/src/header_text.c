@@ -365,6 +365,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			comment(text);
+			if (st->showsyntax) get_format_string();
 			break;
 		}
 		break;
@@ -372,6 +373,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			uncomment(text);
+			if (st->showsyntax) get_format_string();
 			break;
 		}
 		break;
@@ -437,7 +439,7 @@ static uiBlock *text_formatmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unindent|Shift Tab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Comment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Uncomment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Uncomment|Ctrl Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
