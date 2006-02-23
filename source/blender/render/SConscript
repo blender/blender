@@ -19,6 +19,9 @@ if env['WITH_BF_QUICKTIME'] == 1:
 if env['WITH_BF_FFMPEG'] == 1:
     defs.append('WITH_FFMPEG')
 
+if env['WITH_BF_OPENEXR']:
+    defs.append('WITH_OPENEXR')
+
 if env['OURPLATFORM']=='linux2':
     cflags='-pthread'
 
