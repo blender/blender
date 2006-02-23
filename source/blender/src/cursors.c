@@ -633,7 +633,7 @@ BEGIN_CURSOR_BLOCK
 		/*small*/
 		paintbrush_sbm, paintbrush_smsk,
 		16, 16, 
-		9,  8,
+		0,  15,
 		/*big*/
 		NULL, NULL,
 		32,32, 
