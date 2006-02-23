@@ -2236,7 +2236,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	dm= rectmove;
 	dvec1= vecbufrect;
 	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4) {
-		if(dvec1[0]!=0.0f || dvec1[1]!=0.0f)
+		if(dvec1[0]!=0.0f || dvec1[1]!=0.0f || dvec1[2]!=0.0f || dvec1[3]!=0.0f)
 			*dm= 255;
 	}
 	
@@ -2484,9 +2484,10 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 }
 
 /* different rules for speed in transparent pass...  */
-/* if speed is zero or alpha small, we clear winspeed if it's initialized to max still */
-
-static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha)
+/* speed pointer NULL = sky, we clear */
+/* else if either alpha is full or no solid was filled in: copy speed */
+/* else fill in minimum speed */
+static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, long *rdrect)
 {
 	RenderPass *rpass;
 	
@@ -2494,15 +2495,27 @@ static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float al
 		if(rpass->passtype==SCE_PASS_VECTOR) {
 			float *fp= rpass->rect + 4*offset;
 			
-			if(speed && alpha>0.95f) {
-				QUATCOPY(fp, speed);
-			}
-			else {
+			if(speed==NULL) {
 				/* clear */
 				if(fp[0]==PASS_VECTOR_MAX) fp[0]= 0.0f;
 				if(fp[1]==PASS_VECTOR_MAX) fp[1]= 0.0f;
 				if(fp[2]==PASS_VECTOR_MAX) fp[2]= 0.0f;
 				if(fp[3]==PASS_VECTOR_MAX) fp[3]= 0.0f;
+			}
+			else if(rdrect==NULL || rdrect[offset]==0 || alpha>0.95f) {
+				QUATCOPY(fp, speed);
+			}
+			else {
+				/* add minimum speed in pixel */
+				if( (ABS(speed[0]) + ABS(speed[1]))< (ABS(fp[0]) + ABS(fp[1])) ) {
+					fp[0]= speed[0];
+					fp[1]= speed[1];
+				}
+				if( (ABS(speed[2]) + ABS(speed[3]))< (ABS(fp[2]) + ABS(fp[3])) ) {
+					fp[2]= speed[2];
+					fp[3]= speed[3];
+				}
+				
 			}
 		}
 	}
@@ -2636,7 +2649,8 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	APixstr *ap, *aprect, *apn;
 	ListBase apsmbase={NULL, NULL};
 	ShadeResult samp_shr[16];
-	float fac, alpha[32], *passrect= pass;
+	float fac, sampalpha, *passrect= pass;
+	long *rdrect;
 	int x, y, crop=0, a, zrow[MAX_ZROW][3], totface;
 	int sval, addpassflag, offs= 0, od, addzbuf;
 
@@ -2663,24 +2677,22 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 	addzbuf= rl->passflag & SCE_PASS_Z;
 	
-	/* alpha LUT */
-	if(R.osa) {
-		fac= (1.0/(float)R.osa);
-		for(a=0; a<=R.osa; a++) {
-			alpha[a]= (float)a*fac;
-		}
-	}
+	if(R.osa)
+		sampalpha= 1.0f/(float)R.osa;
+	else
+		sampalpha= 1.0f;
 	
 	/* fill the Apixbuf */
 	zbuffer_abuf(pa, APixbuf, &apsmbase, rl->lay);
 	aprect= APixbuf;
+	rdrect= pa->rectdaps;
 	
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
 		crop= 1;
-		passrect+= 4*(pa->rectx + 1);
-		aprect+= pa->rectx + 1;
 		offs= pa->rectx + 1;
+		passrect+= 4*offs;
+		aprect+= offs;
 	}
 	
 	/* init scanline updates */
@@ -2701,7 +2713,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 			
 			if(ap->p[0]==NULL) {
 				if(addpassflag & SCE_PASS_VECTOR) 
-					add_transp_speed(rl, od, NULL, 0.0f);
+					add_transp_speed(rl, od, NULL, 0.0f, rdrect);
 			}
 			else {
 				/* sort in z */
@@ -2736,7 +2748,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 						add_transp_passes(rl, od, &shpi.shr, 1.0f);
 					
 					if(addpassflag & SCE_PASS_VECTOR)
-						add_transp_speed(rl, od, shpi.shr.winspeed, pass[3]);
+						add_transp_speed(rl, od, shpi.shr.winspeed, pass[3], rdrect);
 					
 					if(addzbuf)
 						if(pa->rectz[od]>zrow[0][0])
@@ -2772,7 +2784,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 							if(pass[3]>=0.999) break;
 						}
 						if(addpassflag & SCE_PASS_VECTOR)
-							add_transp_speed(rl, od, shpi.shr.winspeed, pass[3]);
+							add_transp_speed(rl, od, shpi.shr.winspeed, pass[3], rdrect);
 					}
 					else {
 						/* for each mask-sample we alpha-under colors. then in end it's added using filter */
@@ -2791,23 +2803,17 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 							add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
 						
 							if(addpassflag) 
-								add_transp_passes(rl, od, samp_shr+a, alpha[1]);
+								add_transp_passes(rl, od, samp_shr+a, sampalpha);
 						}
 						
 						if(addpassflag & SCE_PASS_VECTOR) {
 							fac= 0.0f;
 							for(a=0; a<R.osa; a++) 
 								fac+= samp_shr[a].combined[3];
-							fac*= alpha[1];
-							add_transp_speed(rl, od, samp_shr[0].winspeed, fac);
+							add_transp_speed(rl, od, samp_shr[0].winspeed, fac*sampalpha, rdrect);
 						}
 					}
 				}
-				//if(R.osa && R.do_gamma) {
-				//	pass[0]= invGammaCorrect(pass[0]);
-				//	pass[1]= invGammaCorrect(pass[1]);
-				//	pass[2]= invGammaCorrect(pass[2]);
-				//}
 			}
 		}
 		

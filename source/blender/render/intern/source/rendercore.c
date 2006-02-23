@@ -2749,24 +2749,21 @@ static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 
 static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl)
 {
-	
 	/* speed vector exception... if solid render was done, sky pixels are set to zero already */
 	/* for all pixels with alpha zero, we re-initialize speed again then */
-	if(rl->layflag & SCE_LAY_SOLID) {
-		float *fp, *col;
-		int a;
-		
-		fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
-		if(fp==NULL) return;
-		col= rl->rectf+3;
-		
-		for(a= 4*pa->rectx*pa->recty -4; a>=0; a-=4) {
-			if(col[a]==0.0f) {
-				fp[a]= PASS_VECTOR_MAX;
-				fp[a+1]= PASS_VECTOR_MAX;
-				fp[a+2]= PASS_VECTOR_MAX;
-				fp[a+3]= PASS_VECTOR_MAX;
-			}
+	float *fp, *col;
+	int a;
+	
+	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
+	if(fp==NULL) return;
+	col= rl->rectf+3;
+	
+	for(a= 4*pa->rectx*pa->recty -4; a>=0; a-=4) {
+		if(col[a]==0.0f) {
+			fp[a]= PASS_VECTOR_MAX;
+			fp[a+1]= PASS_VECTOR_MAX;
+			fp[a+2]= PASS_VECTOR_MAX;
+			fp[a+3]= PASS_VECTOR_MAX;
 		}
 	}
 }
@@ -3140,7 +3137,8 @@ void zbufshadeDA_tile(RenderPart *pa)
 				int x;
 				
 				if(rl->passflag & SCE_PASS_VECTOR)
-					reset_sky_speedvectors(pa, rl);
+					if(rl->layflag & SCE_LAY_SOLID)
+						reset_sky_speedvectors(pa, rl);
 				
 				/* swap for live updates */
 				SWAP(float *, acolrect, rl->rectf);
@@ -3252,7 +3250,8 @@ void zbufshade_tile(RenderPart *pa)
 				int x;
 				
 				if(addpassflag & SCE_PASS_VECTOR)
-					reset_sky_speedvectors(pa, rl);
+					if(rl->layflag & SCE_LAY_SOLID)
+						reset_sky_speedvectors(pa, rl);
 				
 				/* swap for live updates */
 				SWAP(float *, acolrect, rl->rectf);

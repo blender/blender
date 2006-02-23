@@ -3117,6 +3117,7 @@ static void calculate_speedvectors(Render *re, float *vectors, int startvert, in
 		}
 		
 		speed= RE_vertren_get_winspeed(re, ver, 1);
+		/* note; in main vecblur loop speedvec is negated again */
 		if(step) {
 			speed[2]= -zco[0];
 			speed[3]= -zco[1];
@@ -3125,10 +3126,7 @@ static void calculate_speedvectors(Render *re, float *vectors, int startvert, in
 			speed[0]= zco[0];
 			speed[1]= zco[1];
 		}
-		
-		//printf("speed %d %f %f\n", a, speed[0], speed[1]);
 	}
-	
 }
 
 /* makes copy per object of all vectors */
