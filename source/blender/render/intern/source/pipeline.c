@@ -762,7 +762,6 @@ void RE_SetView(Render *re, float mat[][4])
 }
 
 /* image and movie output has to move to either imbuf or kernel */
-
 void RE_display_init_cb(Render *re, void (*f)(RenderResult *rr))
 {
 	re->display_init= f;
