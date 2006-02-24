@@ -83,8 +83,8 @@ typedef struct MemTail {
 /* local functions                                                       */
 /* --------------------------------------------------------------------- */
 
-static void addtail(localListBase *listbase, void *vlink);
-static void remlink(localListBase *listbase, void *vlink);
+static void addtail(volatile localListBase *listbase, void *vlink);
+static void remlink(volatile localListBase *listbase, void *vlink);
 static void rem_memblock(MemHead *memh);
 static void MemorY_ErroR(const char *block, const char *error);
 static const char *check_memlist(MemHead *memh);
@@ -111,11 +111,11 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 	
 
-int totblock= 0;
-unsigned long mem_in_use= 0, mmap_in_use= 0;
+volatile int totblock= 0;
+volatile unsigned long mem_in_use= 0, mmap_in_use= 0;
 
-static struct localListBase _membase;
-static struct localListBase *membase = &_membase;
+volatile static struct localListBase _membase;
+volatile static struct localListBase *membase = &_membase;
 static void (*error_callback)(char *) = NULL;
 
 #ifdef malloc
@@ -360,7 +360,7 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 /* local functions                                                       */
 /* --------------------------------------------------------------------- */
 
-static void addtail(localListBase *listbase, void *vlink)
+static void addtail(volatile localListBase *listbase, void *vlink)
 {
 	struct localLink *link= vlink;
 
@@ -375,7 +375,7 @@ static void addtail(localListBase *listbase, void *vlink)
 	listbase->last = link;
 }
 
-static void remlink(localListBase *listbase, void *vlink)
+static void remlink(volatile localListBase *listbase, void *vlink)
 {
 	struct localLink *link= vlink;
 
