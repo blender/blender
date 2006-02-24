@@ -71,9 +71,9 @@ typedef struct RenderPart
 	
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
-	short crop, ready;				/* crop is amount of pixels we crop, for filter */
-	short sample, nr;				/* sample can be used by zbuffers, nr is partnr */
-	short thread;					/* thread id */
+	volatile short crop, ready;		/* crop is amount of pixels we crop, for filter */
+	volatile short sample, nr;		/* sample can be used by zbuffers, nr is partnr */
+	volatile short thread;			/* thread id */
 	
 } RenderPart;
 
@@ -162,7 +162,7 @@ struct Render
 	/* callbacks */
 	void (*display_init)(RenderResult *rr);
 	void (*display_clear)(RenderResult *rr);
-	void (*display_draw)(RenderResult *rr, rcti *rect);
+	void (*display_draw)(RenderResult *rr, volatile rcti *rect);
 	
 	void (*stats_draw)(RenderStats *ri);
 	void (*timecursor)(int i);

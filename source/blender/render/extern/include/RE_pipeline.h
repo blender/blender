@@ -98,8 +98,8 @@ typedef struct RenderResult {
 	ListBase layers;
 	
 	/* allowing live updates: */
-	rcti renrect;
-	RenderLayer *renlay;
+	volatile rcti renrect;
+	volatile RenderLayer *renlay;
 	
 	/* optional saved endresult on disk */
 	char exrfile[FILE_MAXDIR];
@@ -166,7 +166,7 @@ void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
 /* display and event callbacks */
 void RE_display_init_cb	(struct Render *re, void (*f)(RenderResult *rr));
 void RE_display_clear_cb(struct Render *re, void (*f)(RenderResult *rr));
-void RE_display_draw_cb	(struct Render *re, void (*f)(RenderResult *rr, struct rcti *rect));
+void RE_display_draw_cb	(struct Render *re, void (*f)(RenderResult *rr, volatile struct rcti *rect));
 void RE_stats_draw_cb	(struct Render *re, void (*f)(RenderStats *rs));
 void RE_timecursor_cb	(struct Render *re, void (*f)(int));
 void RE_test_break_cb	(struct Render *re, int (*f)(void));

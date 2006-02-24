@@ -753,7 +753,7 @@ static void renderwin_clear_display_cb(RenderResult *rr)
 */
 
 /* can get as well the full picture, as the parts while rendering */
-static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
+static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *renrect)
 {
 	rcti win_rct;
 	float *rectf, fullrect[2][2];
@@ -786,9 +786,8 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 	if(rr->rectf)
 		rectf= rr->rectf;
 	else {
-		RenderLayer *rl= rr->renlay;
-		if(rl==NULL) return;
-		rectf= rl->rectf;
+		if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
+		rectf= rr->renlay->rectf;
 	}
 	/* if scanline updates... */
 	rectf+= 4*rr->rectx*ymin;
@@ -818,7 +817,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, rcti *renrect)
 
 
 /* in render window; display a couple of scanlines of rendered image */
-static void renderwin_progress_display_cb(RenderResult *rr, rcti *rect)
+static void renderwin_progress_display_cb(RenderResult *rr, volatile rcti *rect)
 {
 	if (render_win) {
 		renderwin_progress(render_win, rr, rect);

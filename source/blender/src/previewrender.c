@@ -326,7 +326,7 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 	return NULL;
 }
 
-static void previewrender_progress(RenderResult *rr, rcti *renrect)
+static void previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 {
 	RenderLayer *rl;
 	RenderInfo *ri= G.buts->ri;
@@ -549,7 +549,7 @@ static void view3d_previewrender_stats(RenderStats *rs)
 	printf("rendered %.3f\n", rs->lastframetime);
 }
 
-static void view3d_previewrender_progress(RenderResult *rr, rcti *renrect)
+static void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 {
 	RenderLayer *rl;
 	int ofsx, ofsy;

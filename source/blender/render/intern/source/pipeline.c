@@ -103,14 +103,14 @@
 static struct ListBase RenderList= {NULL, NULL};
 
 /* hardcopy of current render, used while rendering for speed */
-Render R;
+volatile Render R;
 
 static SDL_mutex *exrtile_lock= NULL;
 
 /* ********* alloc and free ******** */
 
 
-static int g_break= 0;
+static volatile int g_break= 0;
 static int thread_break(void)
 {
 	return g_break;
@@ -118,7 +118,7 @@ static int thread_break(void)
 
 /* default callbacks, set in each new render */
 static void result_nothing(RenderResult *rr) {}
-static void result_rcti_nothing(RenderResult *rr, rcti *rect) {}
+static void result_rcti_nothing(RenderResult *rr, volatile struct rcti *rect) {}
 static void stats_nothing(RenderStats *rs) {}
 static void int_nothing(int val) {}
 static int void_nothing(void) {return 0;}
@@ -276,7 +276,7 @@ float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
 /* will read info from Render *re to define layers */
 /* called in threads */
 /* re->winx,winy is coordinate space of entire image, partrct the part within */
-static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
+static RenderResult *new_render_result(volatile Render *re, rcti *partrct, int crop)
 {
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -433,7 +433,7 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 }
 
 
-static void save_render_result_tile(Render *re, RenderPart *pa)
+static void save_render_result_tile(volatile Render *re, RenderPart *pa)
 {
 	RenderResult *rrpart= pa->result;
 	RenderLayer *rlp;
@@ -450,8 +450,6 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 		else {
 			offs= 0;
 		}
-		party= rrpart->tilerect.ymin + rrpart->crop;
-		partx= rrpart->tilerect.xmin + rrpart->crop;
 		
 		/* combined */
 		if(rlp->rectf) {
@@ -470,6 +468,9 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 		}
 		
 	}
+
+	party= rrpart->tilerect.ymin + rrpart->crop;
+	partx= rrpart->tilerect.xmin + rrpart->crop;
 
 	IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
 
@@ -770,7 +771,7 @@ void RE_display_clear_cb(Render *re, void (*f)(RenderResult *rr))
 {
 	re->display_clear= f;
 }
-void RE_display_draw_cb(Render *re, void (*f)(RenderResult *rr, rcti *rect))
+void RE_display_draw_cb(Render *re, void (*f)(RenderResult *rr, volatile rcti *rect))
 {
 	re->display_draw= f;
 }
