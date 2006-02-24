@@ -51,6 +51,11 @@ from Blender.Draw import *
 from Blender.Mathutils import *
 from Blender.BGL import *
 
+try:
+	set()
+except:
+	from sets import set	
+	
 ######################################################################
 # Functions to handle the global structures of the script NF, NE and NC
 # which contain informations about faces and corners to be created
@@ -60,7 +65,7 @@ E_selected = NMesh.EdgeFlags['SELECT']
 
 def make_sel_vert(*co):
 	v= NMesh.Vert(*co)
-	v.sel = 1 
+	v.sel = 1
 	me.verts.append(v)
 	return v
 
@@ -70,14 +75,16 @@ def make_sel_face(verts):
 	me.addFace(f)
 
 def add_to_NV(old,dir,new):
-	if old in NV.keys():		NV[old][dir] = new
-	else:					   NV[old] = {dir:new}
+	try:
+		NV[old][dir] = new
+	except:
+		NV[old] = {dir:new}	   
 
 def get_v(old, *neighbors):
-
 	# compute the direction of the new vert
-	if len(neighbors) == 1 : dir = (neighbors[0].co - old.co).normalize()
-	else : dir = (neighbors[0].co - old.co).normalize() + (neighbors[1].co-old.co).normalize()
+	if len(neighbors) == 1: dir = (neighbors[0].co - old.co).normalize()
+		#dir
+	else: dir = (neighbors[0].co - old.co).normalize() + (neighbors[1].co-old.co).normalize()
 	 
 	# look in NV if this vert already exists
 	key = tuple(dir)
@@ -122,7 +129,6 @@ def make_faces():
 			# determine and store the face to be created
 
 			lenV = [len(x) for x in newV]
-			
 			if 2 not in lenV :			  
 				new_f = NMesh.Face(newV)
 				if sum(Esel) == nV : new_f.sel = 1
@@ -185,6 +191,7 @@ def make_faces():
 				# Preparing the corners
 				for i in enumV:
 					if lenV[i] == 2 :	   NC.setdefault(V[i],[]).append(newV[i])
+				
 			
 			old_faces.append(f)
 			
@@ -222,7 +229,7 @@ def make_edges():
 def make_corners():
 	""" Make the faces corresponding to corners """
 
-	for v in NV.keys():
+	for v in NV.iterkeys():
 		V = NV[v].values()
 		nV = len(V)
 		
@@ -279,7 +286,7 @@ def make_corners():
 					New_V = Vector(0.0, 0.0,0.0)
 					New_d = [0.0, 0.0,0.0]
 		
-					for x in hc.keys():		 New_V += x.co
+					for x in hc.iterkeys():		 New_V += x.co
 					for dir in NV[v] :
 						for i in xrange(3):	 New_d[i] += dir[i]
 
@@ -299,7 +306,7 @@ def clear_old():
 
 	for f in old_faces: me.removeFace(f)
 	
-	for v in NV.keys():
+	for v in NV.iterkeys():
 		if v not in NV_ext :  me.verts.remove(v)
 
 	for e in me.edges:
@@ -358,7 +365,7 @@ Register(draw, event, bevent)
 def bevel():
 	""" The main function, which creates the bevel """
 	global me,NV,NV_ext,NE,NC, old_faces,old_dist
-
+	t= Blender.sys.time()
 	scn = Scene.GetCurrent()
 	ob = scn.getActiveObject() 
 	if ob == None or ob.getType() != 'Mesh': 
@@ -384,7 +391,7 @@ def bevel():
 	clear_old()
 
 	old_dist = dist.val
-
+	print '\tbevel in %.6f sec' % (Blender.sys.time()-t)
 	me.update(1)
 	if is_editmode: Window.EditMode(1)
 	Window.WaitCursor(0)
@@ -398,8 +405,8 @@ def bevel_update():
 	fac = dist.val - old_dist
 	old_dist = dist.val
 
-	for old_v in NV.keys():
-		for dir in NV[old_v].keys():
+	for old_v in NV.iterkeys():
+		for dir in NV[old_v].iterkeys():
 			for i in range(3):
 				NV[old_v][dir].co[i] += fac*dir[i]
 
