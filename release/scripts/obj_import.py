@@ -95,7 +95,7 @@ def loadMaterialImage(mat, img_fileName, type, meshDict, dir):
 	texture.setType('Image')
 	
 	# Absolute path - c:\.. etc would work here
-	image = BPyImage.comprehansiveImageLoad(img_fileName, dir)
+	image = BPyImage.comprehensiveImageLoad(img_fileName, dir)
 	
 	if image:
 		texture.image = image
@@ -641,7 +641,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0):
 				
 				except KeyError: # Not in dict, add for first time.
 					# Image has not been added, Try and load the image
-					currentImg = BPyImage.comprehansiveImageLoad(newImgName, DIR) # Use join in case of spaces 
+					currentImg = BPyImage.comprehensiveImageLoad(newImgName, DIR) # Use join in case of spaces 
 					imageDict[newImgName] = currentImg
 					# These may be None, thats okay.
 		
