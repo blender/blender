@@ -59,8 +59,6 @@
 
 #include "BSE_sequence.h"  /* <----------------- bad!!! */
 
-#include "SDL_thread.h"
-
 /* internal */
 #include "render_types.h"
 #include "renderpipeline.h"
@@ -105,7 +103,7 @@ static struct ListBase RenderList= {NULL, NULL};
 /* hardcopy of current render, used while rendering for speed */
 volatile Render R;
 
-static SDL_mutex *exrtile_lock= NULL;
+//static SDL_mutex *exrtile_lock= NULL;
 
 /* ********* alloc and free ******** */
 
@@ -440,7 +438,7 @@ static void save_render_result_tile(volatile Render *re, RenderPart *pa)
 	RenderPass *rpassp;
 	int offs, partx, party;
 	
-	if(exrtile_lock) SDL_mutexP(exrtile_lock);
+//	if(exrtile_lock) SDL_mutexP(exrtile_lock);
 	
 	for(rlp= rrpart->layers.first; rlp; rlp= rlp->next) {
 		
@@ -474,7 +472,7 @@ static void save_render_result_tile(volatile Render *re, RenderPart *pa)
 
 	IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
 
-	if(exrtile_lock) SDL_mutexV(exrtile_lock);
+//	if(exrtile_lock) SDL_mutexV(exrtile_lock);
 
 }
 
@@ -809,7 +807,7 @@ void RE_AddObject(Render *re, Object *ob)
 
 /* *************************************** */
 
-static int do_part_thread(void *pa_v)
+static void *do_part_thread(void *pa_v)
 {
 	RenderPart *pa= pa_v;
 	
@@ -832,7 +830,7 @@ static int do_part_thread(void *pa_v)
 	
 	pa->ready= 1;
 	
-	return 0;
+	return NULL;
 }
 
 /* returns with render result filled, not threaded */
@@ -940,7 +938,7 @@ static void threaded_tile_processor(Render *re)
 	
 	if(rr->exrhandle) {
 		IMB_exrtile_begin_write(rr->exrhandle, "/tmp/render.exr", rr->rectx, rr->recty, rr->rectx/re->r.xparts, rr->recty/re->r.yparts);
-		exrtile_lock = SDL_CreateMutex();
+//		exrtile_lock = SDL_CreateMutex();
 	}
 	
 	if(re->r.mode & R_THREADS) maxthreads= 2;
@@ -1008,7 +1006,7 @@ static void threaded_tile_processor(Render *re)
 	}
 	
 	if(rr->exrhandle) {
-		if(exrtile_lock) SDL_DestroyMutex(exrtile_lock); 
+//		if(exrtile_lock) SDL_DestroyMutex(exrtile_lock); 
 		IMB_exr_close(rr->exrhandle);
 		read_render_result(re);
 	}

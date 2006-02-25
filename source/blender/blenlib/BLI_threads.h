@@ -32,7 +32,7 @@
 #define BLI_THREADS_H 
 
 
-void	BLI_init_threads	(ListBase *threadbase, int (*do_thread)(void *), int tot);
+void	BLI_init_threads	(ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int		BLI_available_threads(ListBase *threadbase);
 int		BLI_available_thread_index(ListBase *threadbase);
 void	BLI_insert_thread	(ListBase *threadbase, void *callerdata);

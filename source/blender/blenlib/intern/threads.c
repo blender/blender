@@ -31,12 +31,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
-#include "SDL_thread.h"
 
 /* ********** basic thread control API ************ 
 
@@ -82,20 +83,20 @@ A sample loop can look like this (pseudo c);
 	BLI_end_threads(&lb);
 
  ************************************************ */
-static SDL_mutex *_malloc_lock= NULL;
+static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* just a max for security reasons */
 #define RE_MAX_THREAD	8
 
 typedef struct ThreadSlot {
 	struct ThreadSlot *next, *prev;
-	int (*do_thread)(void *);
+	void *(*do_thread)(void *);
 	void *callerdata;
-	SDL_Thread *sdlthread;
+	pthread_t pthread;
 	int avail;
 } ThreadSlot;
 
-void BLI_init_threads(ListBase *threadbase, int (*do_thread)(void *), int tot)
+void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
 	int a;
 	
@@ -110,16 +111,8 @@ void BLI_init_threads(ListBase *threadbase, int (*do_thread)(void *), int tot)
 		ThreadSlot *tslot= MEM_callocN(sizeof(ThreadSlot), "threadslot");
 		BLI_addtail(threadbase, tslot);
 		tslot->do_thread= do_thread;
+		tslot->avail= 1;
 	}
-	
-	/* weak weak... now only 1 thread system at a time can be used */
-	if(_malloc_lock) {
-		printf("error; multiple locks active\n");
-		SDL_DestroyMutex(_malloc_lock); 
-		_malloc_lock= NULL;
-	}
-	
-	_malloc_lock = SDL_CreateMutex();
 }
 
 /* amount of available threads */
@@ -129,7 +122,7 @@ int BLI_available_threads(ListBase *threadbase)
 	int counter=0;
 	
 	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->sdlthread==NULL)
+		if(tslot->avail)
 			counter++;
 	}
 	return counter;
@@ -142,7 +135,7 @@ int BLI_available_thread_index(ListBase *threadbase)
 	int counter=0;
 	
 	for(tslot= threadbase->first; tslot; tslot= tslot->next, counter++) {
-		if(tslot->sdlthread==NULL)
+		if(tslot->avail)
 			return counter;
 	}
 	return 0;
@@ -154,9 +147,10 @@ void BLI_insert_thread(ListBase *threadbase, void *callerdata)
 	ThreadSlot *tslot;
 	
 	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->sdlthread==NULL) {
+		if(tslot->avail) {
+			tslot->avail= 0;
 			tslot->callerdata= callerdata;
-			tslot->sdlthread= SDL_CreateThread(tslot->do_thread, tslot->callerdata);
+			pthread_create(&tslot->pthread, NULL, tslot->do_thread, tslot->callerdata);
 			return;
 		}
 	}
@@ -170,8 +164,8 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
 		if(tslot->callerdata==callerdata) {
 			tslot->callerdata= NULL;
-			SDL_WaitThread(tslot->sdlthread, NULL);
-			tslot->sdlthread= NULL;
+			pthread_join(tslot->pthread, NULL);
+			tslot->avail= 1;
 		}
 	}
 }
@@ -181,24 +175,22 @@ void BLI_end_threads(ListBase *threadbase)
 	ThreadSlot *tslot;
 	
 	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->sdlthread) {
-			SDL_WaitThread(tslot->sdlthread, NULL);
+		if(tslot->avail==0) {
+			pthread_join(tslot->pthread, NULL);
 		}
 	}
 	BLI_freelistN(threadbase);
 	
-	if(_malloc_lock) SDL_DestroyMutex(_malloc_lock); 
-	_malloc_lock= NULL;
 }
 
 void BLI_lock_thread(void)
 {
-	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	pthread_mutex_lock(&_malloc_lock);
 }
 
 void BLI_unlock_thread(void)
 {
-	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	pthread_mutex_unlock(&_malloc_lock);
 }
 
 
@@ -207,32 +199,32 @@ void BLI_unlock_thread(void)
 void *MEM_mallocT(int len, char *name)
 {
 	void *mem;
-	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	pthread_mutex_lock(&_malloc_lock);
 	mem= MEM_mallocN(len, name);
-	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	pthread_mutex_unlock(&_malloc_lock);
 	return mem;
 }
 void *MEM_callocT(int len, char *name)
 {
 	void *mem;
-	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	pthread_mutex_lock(&_malloc_lock);
 	mem= MEM_callocN(len, name);
-	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	pthread_mutex_unlock(&_malloc_lock);
 	return mem;
 }
 void *MEM_mapallocT(int len, char *name)
 {
 	void *mem;
-	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	pthread_mutex_lock(&_malloc_lock);
 	mem= MEM_mapallocN(len, name);
-	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	pthread_mutex_unlock(&_malloc_lock);
 	return mem;
 }
 void MEM_freeT(void *poin)
 {
-	if(_malloc_lock) SDL_mutexP(_malloc_lock);
+	pthread_mutex_lock(&_malloc_lock);
 	MEM_freeN(poin);
-	if(_malloc_lock) SDL_mutexV(_malloc_lock);
+	pthread_mutex_unlock(&_malloc_lock);
 }
 
 

@@ -1801,7 +1801,7 @@ typedef struct ThreadData {
 	RenderData *rd;
 } ThreadData;
 
-static int exec_composite_node(void *node_v)
+static void *exec_composite_node(void *node_v)
 {
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
