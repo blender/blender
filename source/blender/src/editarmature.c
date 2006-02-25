@@ -472,7 +472,7 @@ static void *get_bone_from_selectbuffer(Base *base, unsigned int *buffer, short 
 				
 				hitresult &= ~(BONESEL_ANY);
 				/* Determine what the current bone is */
-				if (G.obedit==NULL) {
+				if (G.obedit==NULL || base->object!=G.obedit) {
 					/* no singular posemode, so check for correct object */
 					if(base->selcol == (hitresult & 0xFFFF)) {
 						bone = get_indexed_bone(ob, hitresult);
