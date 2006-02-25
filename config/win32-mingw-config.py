@@ -130,14 +130,9 @@ REL_CCFLAGS = [ '-O2' ]
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = [ '-Wall', '-W', '-Wshadow', '-Wpointer-arith', '-Wbad-function-cast',
-        '-Wcast-qual', '-Wcast-align', '-Waggregate-return',
-        '-Wstrict-prototypes', '-Wmissing-prototypes',
-        '-Wmissing-declarations', '-Wnested-externs', '-Wredundant-decls' ]
+C_WARN = [ '-Wall' , '-Wno-char-subscripts' ]
 
-CC_WARN = [ '-Wall', '-W', '-Wshadow', '-Wpointer-arith', '-Wcast-qual', '-Wcast-align',
-        '-Wredundant-decls', '-Wreorder', '-Wctor-dtor-privacy', '-Wnon-virtual-dtor',
-        '-Wold-style-cast', '-Woverloaded-virtual', '-Wsign-promo', '-Wsynth' ]
+CC_WARN = [ '-Wall' ]
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
