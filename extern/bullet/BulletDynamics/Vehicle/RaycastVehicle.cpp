@@ -539,7 +539,7 @@ void	RaycastVehicle::UpdateFriction(SimdScalar	timeStep)
 				{
 					sliding = true;
 					
-					SimdScalar factor = maximp / sqrtf(impulseSquared);
+					SimdScalar factor = maximp / SimdSqrt(impulseSquared);
 					
 					m_wheelInfo[wheel].m_skidInfo *= factor;
 				}
