@@ -14,9 +14,14 @@ BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_SDL = 'true'
 BF_SDL = LCGDIR + '/sdl'
-BF_SDL_INC = '${BF_SDL}/include' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
+BF_SDL_INC = '${BF_SDL}/include'
 BF_SDL_LIB = 'SDL'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
+
+BF_PTHREADS = LCGDIR + '/pthreads'
+BF_PTHREADS_INC = '${BF_PTHREADS}/include'
+BF_PTHREADS_LIB = 'pthreadGC2'
+BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
 WITH_BF_FMOD = 'false'
 BF_FMOD = LCGDIR + '/fmod'

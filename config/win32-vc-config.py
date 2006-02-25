@@ -24,6 +24,11 @@ BF_SDL_INC = '${BF_SDL}/include'
 BF_SDL_LIB = 'SDL.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
+BF_PTHREADS = LCGDIR + '/pthreads'
+BF_PTHREADS_INC = '${BF_PTHREADS}/include'
+BF_PTHREADS_LIB = 'pthreadVC2'
+BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
+
 WITH_BF_FMOD = 'false'
 BF_FMOD = LCGDIR + '/fmod'
 

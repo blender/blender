@@ -124,6 +124,9 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_STATICOPENGL']:
         statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
 
+    if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+        libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
+
     return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -147,6 +150,9 @@ def setup_syslibs(lenv):
     syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
         syslibs += Split(lenv['BF_OPENGL_LIB'])
+    if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+        syslibs += Split(lenv['BF_PTHREADS_LIB'])
+
     syslibs += Split(lenv['LLIBS'])
 
     return syslibs

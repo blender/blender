@@ -18,6 +18,7 @@ def validate_arguments(args, bc):
             'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LINKFLAGS',
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
+            'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_FMOD',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH',
             'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB', 
@@ -128,6 +129,11 @@ def read_opts(cfg, args):
         ('BF_SDL_INC', 'SDL include path', ''),     #$(shell $(BF_SDL)/bin/sdl-config --cflags)
         ('BF_SDL_LIB', 'SDL library', ''),      #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
         ('BF_SDL_LIBPATH', 'SDL library path', ''),
+
+        ('BF_PTHREADS', 'Pthreads base path', ''),
+        ('BF_PTHREADS_INC', 'Pthreads include path', ''),
+        ('BF_PTHREADS_LIB', 'Pthreads library', ''),
+        ('BF_PTHREADS_LIBPATH', 'Pthreads library path', ''),
 
         (BoolOption('WITH_BF_FMOD', 'Use FMOD if true', 'false')),
         #  BF_FMOD = $(LCGDIR)/fmod

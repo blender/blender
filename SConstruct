@@ -19,10 +19,10 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
 #
-# The Original Code is: none of this file.
+# The Original Code is: all of this file.
 #
 # Contributor(s): Nathan Letwory.
 #
@@ -290,12 +290,17 @@ textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
-if env['OURPLATFORM'] == 'win32-vc':
-    windlls = env.Install(dir=env['BF_INSTALLDIR'], source = ['#../lib/windows/gettext/lib/gnu_gettext.dll',
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+    dllsources = ['#../lib/windows/gettext/lib/gnu_gettext.dll',
                         '#../lib/windows/png/lib/libpng.dll',
                         '#../lib/windows/python/lib/python24.dll',
                         '#../lib/windows/sdl/lib/SDL.dll',
-                        '#../lib/windows/zlib/lib/zlib.dll'])
+                        '#../lib/windows/zlib/lib/zlib.dll']
+    if env['OURPLATFORM'] == 'win32-mingw':
+        dllsources += ['#../lib/windows/pthreads/lib/pthreadGC2.dll']
+    else:
+        dllsources += ['#../lib/windows/pthreads/lib/pthreadVC2.dll']
+    windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
 installtarget = env.Alias('install', allinstall)
