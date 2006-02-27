@@ -212,6 +212,7 @@ endif
 ifeq ($(OS), windows)
     ifeq ($(FREE_WINDOWS), true)
         COMLIB += $(NAN_SDL)/lib/libSDL.a
+        COMLIB += $(NAN_PTHREADS)/lib/libpthreadGC2.a
     else
         COMLIB += $(NAN_SDL)/lib/SDL.lib
     endif

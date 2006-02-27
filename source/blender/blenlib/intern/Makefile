@@ -56,9 +56,10 @@ CPPFLAGS += -I$(SRCHOME)/blender/blenkernel
 CPPFLAGS += -I../../include/
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
-# path to sdl for threads
-CPPFLAGS += $(NAN_SDLCFLAGS)
 
+ifdef NAN_PTHREADS
+  CPPFLAGS += -I$(NAN_PTHREADS)/include
+endif
 ifeq ($(WITH_FREETYPE2), true)
 	CPPFLAGS += -DWITH_FREETYPE2
 endif

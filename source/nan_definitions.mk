@@ -100,6 +100,7 @@ endif
     export WITH_OPENEXR ?= true
     ifeq ($(OS),windows)
       ifeq ($(FREE_WINDOWS), true)
+        export NAN_PTHREADS ?= $(LCGDIR)/pthreads
         export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
         export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
         export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
