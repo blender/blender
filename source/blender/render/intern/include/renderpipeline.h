@@ -35,6 +35,7 @@ struct RenderResult;
 struct RenderLayer;
 
 struct RenderLayer *render_get_active_layer(struct Render *re, struct RenderResult *rr);
+float panorama_pixel_rot(struct Render *re);
 
 #define PASS_VECTOR_MAX	10000.0f
 

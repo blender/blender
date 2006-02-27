@@ -56,7 +56,7 @@ void free_renderdata_tables(struct Render *re);
 void free_renderdata_vertnodes(struct VertTableNode *vertnodes);
 
 void set_normalflags(Render *re);
-void project_renderdata(struct Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, int part);
+void project_renderdata(struct Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs);
 
 /* functions are not exported... so wrong names */
 

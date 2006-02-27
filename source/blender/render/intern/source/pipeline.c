@@ -101,7 +101,7 @@
 static struct ListBase RenderList= {NULL, NULL};
 
 /* hardcopy of current render, used while rendering for speed */
-volatile Render R;
+Render R;
 
 //static SDL_mutex *exrtile_lock= NULL;
 
@@ -274,7 +274,7 @@ float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
 /* will read info from Render *re to define layers */
 /* called in threads */
 /* re->winx,winy is coordinate space of entire image, partrct the part within */
-static RenderResult *new_render_result(volatile Render *re, rcti *partrct, int crop)
+static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 {
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -431,7 +431,7 @@ static void merge_render_result(RenderResult *rr, RenderResult *rrpart)
 }
 
 
-static void save_render_result_tile(volatile Render *re, RenderPart *pa)
+static void save_render_result_tile(Render *re, RenderPart *pa)
 {
 	RenderResult *rrpart= pa->result;
 	RenderLayer *rlp;
@@ -881,7 +881,69 @@ static void render_tile_processor(Render *re, int firsttile)
 	freeparts(re);
 }
 
-static RenderPart *find_next_part(Render *re)
+/* calculus for how much 1 pixel rendered should rotate the 3d geometry */
+/* is not that simple, needs to be corrected for errors of larger viewplane sizes */
+/* called in initrender.c, initparts() */
+float panorama_pixel_rot(Render *re)
+{
+	float psize, phi, xfac;
+	
+	/* size of 1 pixel mapped to viewplane coords */
+	psize= (re->viewplane.xmax-re->viewplane.xmin)/(float)re->winx;
+	/* angle of a pixel */
+	phi= atan(psize/re->clipsta);
+	
+	/* correction factor for viewplane shifting, first calculate how much the viewplane angle is */
+	xfac= ((re->viewplane.xmax-re->viewplane.xmin))/(float)re->xparts;
+	xfac= atan(0.5f*xfac/re->clipsta); 
+	/* and how much the same viewplane angle is wrapped */
+	psize= 0.5f*phi*((float)re->partx);
+	
+	/* the ratio applied to final per-pixel angle */
+	phi*= xfac/psize;
+	
+	return phi;
+}
+
+/* call when all parts stopped rendering, to find the next Y slice */
+/* if slice found, it rotates the dbase */
+static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
+{
+	RenderPart *pa, *best= NULL;
+	
+	*minx= re->winx;
+	
+	/* most left part of the non-rendering parts */
+	for(pa= re->parts.first; pa; pa= pa->next) {
+		if(pa->ready==0 && pa->nr==0) {
+			if(pa->disprect.xmin < *minx) {
+				best= pa;
+				*minx= pa->disprect.xmin;
+			}
+		}
+	}
+			
+	if(best) {
+		float phi= panorama_pixel_rot(re);
+
+		R.panodxp= (re->winx - (best->disprect.xmin + best->disprect.xmax) )/2;
+		R.panodxv= ((viewplane->xmax-viewplane->xmin)*R.panodxp)/(float)R.winx;
+		
+		/* shift viewplane */
+		R.viewplane.xmin = viewplane->xmin + R.panodxv;
+		R.viewplane.xmax = viewplane->xmax + R.panodxv;
+		RE_SetWindow(re, &R.viewplane, R.clipsta, R.clipend);
+		Mat4CpyMat4(R.winmat, re->winmat);
+		
+		/* rotate database according to part coordinates */
+		project_renderdata(re, projectverto, 1, -R.panodxp*phi);
+		R.panosi= sin(R.panodxp*phi);
+		R.panoco= cos(R.panodxp*phi);
+	}
+	return best;
+}
+
+static RenderPart *find_next_part(Render *re, int minx)
 {
 	RenderPart *pa, *best= NULL;
 	int centx=re->winx/2, centy=re->winy/2, tot=1;
@@ -906,8 +968,16 @@ static RenderPart *find_next_part(Render *re)
 			disty= centy - (pa->disprect.ymin+pa->disprect.ymax)/2;
 			distx= (int)sqrt(distx*distx + disty*disty);
 			if(distx<mindist) {
-				best= pa;
-				mindist= distx;
+				if(re->r.mode & R_PANORAMA) {
+					if(pa->disprect.xmin==minx) {
+						best= pa;
+						mindist= distx;
+					}
+				}
+				else {
+					best= pa;
+					mindist= distx;
+				}
 			}
 		}
 	}
@@ -929,7 +999,8 @@ static void threaded_tile_processor(Render *re)
 	ListBase threads;
 	RenderPart *pa, *nextpa;
 	RenderResult *rr= re->result;
-	int maxthreads, rendering=1, counter= 1, drawtimer=0, hasdrawn;
+	rctf viewplane= re->viewplane;
+	int maxthreads, rendering=1, counter= 1, drawtimer=0, hasdrawn, minx;
 	
 	if(rr==NULL)
 		return;
@@ -937,7 +1008,7 @@ static void threaded_tile_processor(Render *re)
 		return;
 	
 	if(rr->exrhandle) {
-		IMB_exrtile_begin_write(rr->exrhandle, "/tmp/render.exr", rr->rectx, rr->recty, rr->rectx/re->r.xparts, rr->recty/re->r.yparts);
+		IMB_exrtile_begin_write(rr->exrhandle, "/tmp/render.exr", rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
 //		exrtile_lock = SDL_CreateMutex();
 	}
 	
@@ -953,18 +1024,27 @@ static void threaded_tile_processor(Render *re)
 	/* set threadsafe break */
 	R.test_break= thread_break;
 	
-	/* timer loop demands to sleep when no parts are left */
-	nextpa= find_next_part(re);
+	/* timer loop demands to sleep when no parts are left, so we enter loop with a part */
+	if(re->r.mode & R_PANORAMA)
+		nextpa= find_next_pano_slice(re, &minx, &viewplane);
+	else
+		nextpa= find_next_part(re, 0);
 	
 	while(rendering) {
 		
-		if(nextpa && BLI_available_threads(&threads) && !re->test_break()) {
+		if(re->test_break())
+			PIL_sleep_ms(50);
+		else if(nextpa && BLI_available_threads(&threads)) {
 			drawtimer= 0;
 			nextpa->nr= counter++;	/* for nicest part, and for stats */
 			nextpa->thread= BLI_available_thread_index(&threads);	/* sample index */
 			BLI_insert_thread(&threads, nextpa);
 
-			nextpa= find_next_part(re);
+			nextpa= find_next_part(re, minx);
+		}
+		else if(re->r.mode & R_PANORAMA) {
+			if(nextpa==NULL && BLI_available_threads(&threads)==maxthreads)
+				nextpa= find_next_pano_slice(re, &minx, &viewplane);
 		}
 		else {
 			PIL_sleep_ms(50);
@@ -1042,7 +1122,6 @@ void render_one_frame(Render *re)
 	   RE_Database_FromScene(re, re->scene, 1);
 	
 	threaded_tile_processor(re);
-	//render_tile_processor(re, 0);
 	
 	/* free all render verts etc */
 	RE_Database_Free(re);
@@ -1226,10 +1305,6 @@ static int is_rendering_allowed(Render *re)
 			re->error("No border supported for Panorama");
 			return 0;
 		}
-		if(re->r.yparts>1) {
-			re->error("No Y-Parts supported for Panorama");
-			return 0;
-		}
 		if(re->r.mode & R_ORTHO) {
 			re->error("No Ortho render possible for Panorama");
 			return 0;
@@ -1244,17 +1319,7 @@ static int is_rendering_allowed(Render *re)
 		}
 	}
 	
-	if(re->r.xparts*re->r.yparts>=2 && (re->r.mode & R_MOVIECROP) && (re->r.mode & R_BORDER)) {
-		re->error("Combination of border, crop and parts not allowed");
-		return 0;
-	}
-	
-	if(re->r.yparts>1 && (re->r.mode & R_PANORAMA)) {
-		re->error("No Y-Parts supported for Panorama");
-		return 0;
-	}
-	
-	/* check valid camera */
+ 	/* check valid camera */
 	if(re->scene->camera==NULL)
 		re->scene->camera= scene_find_camera(re->scene);
 	if(re->scene->camera==NULL) {
@@ -1278,8 +1343,6 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	/* calculate actual render result and display size */
 	winx= (scene->r.size*scene->r.xsch)/100;
 	winy= (scene->r.size*scene->r.ysch)/100;
-	//	if(scene->r.mode & R_PANORAMA)
-	//		winx*= scene->r.xparts;
 	
 	/* only in movie case we render smaller part */
 	if(scene->r.mode & R_BORDER) {

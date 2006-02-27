@@ -408,7 +408,7 @@ typedef struct Scene {
 #define R_RADIO			0x0100
 #define R_BORDER		0x0200
 #define R_PANORAMA		0x0400
-#define R_MOVIECROP		0x0800
+						/* was moviecrop 0x0800 */
 #define R_COSMO			0x1000
 #define R_ODDFIELD		0x2000
 #define R_MBLUR			0x4000

@@ -71,9 +71,9 @@ typedef struct RenderPart
 	
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
-	volatile short crop, ready;		/* crop is amount of pixels we crop, for filter */
-	volatile short sample, nr;		/* sample can be used by zbuffers, nr is partnr */
-	volatile short thread;			/* thread id */
+	short crop, ready;				/* crop is amount of pixels we crop, for filter */
+	short sample, nr;				/* sample can be used by zbuffers, nr is partnr */
+	short thread;					/* thread id */
 	
 } RenderPart;
 
@@ -108,10 +108,16 @@ struct Render
 	/* final picture width and height (within disprect) */
 	int rectx, recty;
 	
+	/* real maximum amount of xparts/yparts after correction for minimum */
+	int xparts, yparts;
+	/* real maximum size of parts after correction for minimum 
+	   partx*xparts can be larger than rectx, in that case last part is smaller */
+	int partx, party;
+	
 	/* correction values for pixels or view */
 	float ycor, viewfac;
 	float bluroffsx, bluroffsy;
-	float panosi, panoco;
+	float panophi, panosi, panoco, panodxp, panodxv;
 	
 	/* Matrices */
 	float grvec[3];			/* for world */

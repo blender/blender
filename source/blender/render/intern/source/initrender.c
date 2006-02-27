@@ -579,7 +579,7 @@ void freeparts(Render *re)
 
 void initparts(Render *re)
 {
-	int nr, xd, yd, xpart, ypart, xparts, yparts;
+	int nr, xd, yd, partx, party, xparts, yparts;
 	int xminb, xmaxb, yminb, ymaxb;
 	
 	freeparts(re);
@@ -599,14 +599,33 @@ void initparts(Render *re)
 	yparts= re->r.yparts;
 	
 	/* mininum part size */
-	if(re->rectx/xparts < 64) 
-		xparts= 1 + re->rectx/64;
+	if(re->r.mode & R_PANORAMA) {
+		if(re->rectx/xparts < 8) 
+			xparts= 1 + re->rectx/8;
+	}
+	else
+		if(re->rectx/xparts < 64) 
+			xparts= 1 + re->rectx/64;
+	
 	if(re->recty/yparts < 64) 
 		yparts= 1 + re->recty/64;
 	
 	/* part size */
-	xpart= re->rectx/xparts;
-	ypart= re->recty/yparts;
+	partx= re->rectx/xparts;
+	party= re->recty/yparts;
+	
+	/* if remainder pixel, add one, then parts are more equal in size for large panoramas */
+	if(re->rectx % partx)
+		partx++;
+	
+	re->xparts= xparts;
+	re->yparts= yparts;
+	re->partx= partx;
+	re->party= party;
+	
+	/* calculate rotation factor of 1 pixel */
+	if(re->r.mode & R_PANORAMA)
+		re->panophi= panorama_pixel_rot(re);
 	
 	for(nr=0; nr<xparts*yparts; nr++) {
 		rcti disprect;
@@ -615,19 +634,19 @@ void initparts(Render *re)
 		xd= (nr % xparts);
 		yd= (nr-xd)/xparts;
 		
-		disprect.xmin= xminb+ xd*xpart;
-		disprect.ymin= yminb+ yd*ypart;
+		disprect.xmin= xminb+ xd*partx;
+		disprect.ymin= yminb+ yd*party;
 		
 		/* ensure we cover the entire picture, so last parts go to end */
 		if(xd<xparts-1) {
-			disprect.xmax= disprect.xmin + xpart;
+			disprect.xmax= disprect.xmin + partx;
 			if(disprect.xmax > xmaxb)
 				disprect.xmax = xmaxb;
 		}
 		else disprect.xmax= xmaxb;
 		
 		if(yd<yparts-1) {
-			disprect.ymax= disprect.ymin + ypart;
+			disprect.ymax= disprect.ymin + party;
 			if(disprect.ymax > ymaxb)
 				disprect.ymax = ymaxb;
 		}

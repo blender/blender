@@ -525,13 +525,6 @@ void shadeSkyPixel(float *collector, float fx, float fy, float *rco)
 			}
 		}
 		
-		if(R.r.mode & R_PANORAMA) {
-			float u= view[0]; float v= view[2];
-			
-			view[0]= R.panoco*u + R.panosi*v;
-			view[2]= -R.panosi*u + R.panoco*v;
-		}
-	
 		/* get sky colour in the collector */
 		shadeSkyPixelFloat(collector, rco, view, dxyview);
 		collector[3] = 1.0f;

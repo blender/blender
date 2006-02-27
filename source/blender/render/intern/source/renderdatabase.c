@@ -482,20 +482,6 @@ HaloRen *RE_inithalo(Render *re, Material *ma,   float *vec,   float *vec1,
 
 /* -------------------------- operations on entire database ----------------------- */
 
-static float get_pano_rot(Render *re, int part)
-{
-	static float alpha= 1.0;
-
-	/* part==0 init all */
-	if(part==0) {
-		alpha= ((float)re->r.xsch)/re->viewfac;
-		alpha= 2.0*atan(alpha/2.0);
-	}
-	
-	/* rotate it all around the y-as with phi degrees */
-	return 0.5*(re->r.xparts-1)*alpha + part*alpha;
-}
-
 /* ugly function for halos in panorama */
 static int panotestclip(Render *re, int do_pano, float *v)
 {
@@ -513,7 +499,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
 	if( v[1]>abs4) c+=4;
 	else if( v[1]< -abs4) c+=8;
 
-	abs4*= re->r.xparts;
+	abs4*= re->xparts;
 	if( v[0]>abs4) c+=2;
 	else if( v[0]< -abs4) c+=1;
 
@@ -530,7 +516,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
   - shadow buffering (shadbuf.c)
 */
 
-void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, int part)
+void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs)
 {
 	VlakRen *vlr = NULL;
 	VertRen *ver = NULL;
@@ -539,7 +525,7 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 	int a;
 	
 	if(do_pano) {
-		float panophi= get_pano_rot(re, part);
+		float panophi= xoffs;
 		
 		re->panosi= sin(panophi);
 		re->panoco= cos(panophi);

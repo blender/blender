@@ -84,10 +84,16 @@ extern struct Render R;
 void calc_view_vector(float *view, float x, float y)
 {
 
+	view[2]= -R.clipsta;
+	
 	if(R.r.mode & R_ORTHO) {
-		view[0]= view[1]= 0.0;
+		view[0]= view[1]= 0.0f;
 	}
 	else {
+		
+		if(R.r.mode & R_PANORAMA)
+			x-= R.panodxp;
+		
 		/* move x and y to real viewplane coords */
 		x= (x/(float)R.winx);
 		view[0]= R.viewplane.xmin + x*(R.viewplane.xmax - R.viewplane.xmin);
@@ -100,16 +106,14 @@ void calc_view_vector(float *view, float x, float y)
 //			else view[1]= (y+R.ystart+1.0)*R.ycor;
 //		}
 //		else view[1]= (y+R.ystart+R.bluroffsy+0.5)*R.ycor;
-	}
 	
-	view[2]= -R.clipsta;
-	
-	if(R.r.mode & R_PANORAMA) {
-		float u= view[0]; float v= view[2];
-		view[0]= R.panoco*u + R.panosi*v;
-		view[2]= -R.panosi*u + R.panoco*v;
-	}
+		if(R.r.mode & R_PANORAMA) {
+			float u= view[0] + R.panodxv; float v= view[2];
+			view[0]= R.panoco*u + R.panosi*v;
+			view[2]= -R.panosi*u + R.panoco*v;
+		}
 
+	}
 }
 
 #if 0

@@ -5335,6 +5335,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+			if(sce->r.mode & R_PANORAMA) {
+				/* all these checks to ensure saved files with cvs version keep working... */
+				if(sce->r.xsch < sce->r.ysch) {
+					Object *obc= newlibadr(fd, lib, sce->camera);
+					if(obc && obc->type==OB_CAMERA) {
+						Camera *cam= newlibadr(fd, lib, obc->data);
+						if(cam->lens>=10.0f) {
+							sce->r.xsch*= sce->r.xparts;
+							cam->lens*= (float)sce->r.ysch/(float)sce->r.xsch;
+						}
+					}
+				}
+			}
 		}
 		
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)

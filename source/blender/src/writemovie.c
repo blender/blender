@@ -305,24 +305,9 @@ void start_movie(void)
 			numfields = 2;
 		}
 	}
-	
-	if(R.r.mode & R_MOVIECROP) {
-		if (ntsc) {
-			if (R.rectx > 640) mv_outx = 720;
-			else mv_outx = 640;
-			mv_outy = 480;
-			numfields = 2;
-		} else {
-			if (R.rectx > 720) mv_outx = 768;
-			else mv_outx = 720;
-			mv_outy = 576;
-			numfields = 2;
-		}
-	}
-	
+		
 	qualnow = R.r.quality;
 
-	
 	fd = open(name, O_BINARY|O_RDWR);
 	if (fd != -1) {
 		if (flock(fd, LOCK_EX) == -1) report_flock();

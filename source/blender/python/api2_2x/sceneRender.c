@@ -1526,8 +1526,10 @@ PyObject *RenderData_SetRenderer( BPy_RenderData * self, PyObject * args )
 //------------------------------------RenderData.EnableCropping() -------
 PyObject *RenderData_EnableCropping( BPy_RenderData * self, PyObject * args )
 {
-	return M_Render_BitToggleInt( args, R_MOVIECROP,
+/*	return M_Render_BitToggleInt( args, R_MOVIECROP,
 				      &self->renderContext->mode );
+*/
+	printf("cropping option is now default, obsolete\n");
 }
 
 //------------------------------------RenderData.SetImageType() ---------

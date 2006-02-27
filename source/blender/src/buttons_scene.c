@@ -790,7 +790,7 @@ void do_render_panels(unsigned short event)
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PR_PANO:
-		G.scene->r.xsch= 36;
+		G.scene->r.xsch= 576;
 		G.scene->r.ysch= 176;
 		G.scene->r.xasp= 115;
 		G.scene->r.yasp= 100;
@@ -1290,7 +1290,7 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,2.0, 64.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
+	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,2.0, 512.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
 	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,2.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
 	uiBlockEndAlign(block);
 
