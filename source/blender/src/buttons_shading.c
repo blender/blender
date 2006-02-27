@@ -2741,10 +2741,10 @@ static void material_panel_texture(Material *ma)
 			else uiDefIconButBitS(block, TOG, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
 		}
 	}
-	
+	uiBlockBeginAlign(block);
 	uiDefIconBut(block, BUT, B_MTEXCOPY, ICON_COPYUP,	100,180,23,21, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
 	uiDefIconBut(block, BUT, B_MTEXPASTE, ICON_PASTEUP,	125,180,23,21, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
-
+	uiBlockEndAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
 	
 	mtex= ma->mtex[ ma->texact ];
@@ -3056,10 +3056,10 @@ static void material_panel_material(Material *ma)
 	if(uiNewPanel(curarea, block, "Material", "Material", 320, 0, 318, 204)==0) return;
 	
 	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
-	
+	uiBlockBeginAlign(block);
 	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	262,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	283,200,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-	
+	uiBlockEndAlign(block);
 	if(ma->dynamode & MA_DRAW_DYNABUTS) {
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_DIFF, "Restitut ",		128,120,175,20, &ma->reflect, 0.0, 1.0, 0, 0, "Elasticity of collisions");

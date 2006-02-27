@@ -2492,7 +2492,7 @@ void logic_buts(void)
 	else buttons_ketsji(block, ob);
 	
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT, B_ADD_PROP, "ADD property",		10, 90, 340, 24,
+	uiDefBut(block, BUT, B_ADD_PROP, "Add Property",		10, 90, 340, 24,
 			 NULL, 0.0, 100.0, 100, 0,
 			 "");
 	
@@ -2500,6 +2500,7 @@ void logic_buts(void)
 	
 	a= 0;
 	prop= ob->prop.first;
+	uiBlockBeginAlign(block);
 	while(prop) {
 		
 		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(70-20*a), 40, 19, NULL, 0.0, 0.0, 1, (float)a, "");
@@ -2532,7 +2533,7 @@ void logic_buts(void)
 		a++;
 		prop= prop->next;
 	}
-	
+	uiBlockEndAlign(block);
 	uiClearButLock();
 
 	idar= get_selected_and_linked_obs(&count, G.buts->scaflag);
