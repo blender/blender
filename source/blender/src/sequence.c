@@ -2741,9 +2741,10 @@ void do_render_seq(RenderResult *rr, int cfra)
 		/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
 		/* } */
 
-		/* Let the cache limitor take care of this
-		   free_imbuf_seq_except(cfra);
-		*/
+		/* Let the cache limitor take care of this (schlaile) */
+		/* no, doesnt seem to work for float buffer? (ton) */
+		free_imbuf_seq_except(cfra);
+		
 	}
 	G.f &= ~G_PLAYANIM;
 
