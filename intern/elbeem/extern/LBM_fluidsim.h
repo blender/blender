@@ -53,7 +53,7 @@ void fluidsimBake(struct Object* ob);
 
 /* read & write bobj / bobj.gz files (e.g. for fluid sim surface meshes) */
 void writeBobjgz(char *filename, struct Object *ob);
-struct Mesh* readBobjgz(char *filename, struct Mesh *orgmesh);
+struct Mesh* readBobjgz(char *filename, struct Mesh *orgmesh, float* bbstart, float *bbsize);
 
 /* create derived mesh for fluid sim objects */
 // WARNING - currently implemented in DerivedMesh.c!
@@ -66,7 +66,7 @@ int performElbeemSimulation(char *cfgfilename);
 /* init axis aligned BB for mesh object */
 // implemented in source/blender/blenkernel/intern/DerivedMesh.c
 void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
-		 /*RET*/ float start[3], /*RET*/ float size[3] );
+		 /*RET*/ float start[3], /*RET*/ float size[3], /*RET*/ struct Mesh **bbmesh );
 
 // implemented in intern/elbeem/utilities.cpp
 /* set elbeem debug output level (0=off to 10=full on) */

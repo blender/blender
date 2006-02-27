@@ -127,6 +127,7 @@ typedef struct Library {
 #define ID_AR		MAKE_ID2('A', 'R')
 #define ID_AC		MAKE_ID2('A', 'C')
 #define ID_SCRIPT	MAKE_ID2('P', 'Y')
+#define ID_FLUIDSIM	MAKE_ID2('F', 'S')
 #define ID_NT		MAKE_ID2('N', 'T')
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */

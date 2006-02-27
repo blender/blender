@@ -171,6 +171,13 @@ int snd_ar[SND_TOTIPO]= {
 	SND_VOLUME, SND_PITCH, SND_PANNING, SND_ATTEN
 };
 
+int fluidsim_ar[FLUIDSIM_TOTIPO]= {
+	FLUIDSIM_VISC, FLUIDSIM_TIME,
+	FLUIDSIM_GRAV_X , FLUIDSIM_GRAV_Y , FLUIDSIM_GRAV_Z ,
+	FLUIDSIM_VEL_X  , FLUIDSIM_VEL_Y  , FLUIDSIM_VEL_Z  ,
+	FLUIDSIM_ACTIVE 
+};
+
 
 
 float frame_to_float(int cfra)		/* see also bsystem_time in object.c */

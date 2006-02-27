@@ -8,9 +8,13 @@
  *****************************************************************************/
 
 #include "simulation_object.h"
+#include "solver_interface.h"
 #include "ntl_bsptree.h"
-#include "ntl_scene.h"
+#include "ntl_ray.h"
+#include "ntl_world.h"
+#include "solver_interface.h"
 #include "particletracer.h"
+#include "elbeem.h"
 
 #ifdef _WIN32
 #else
@@ -32,22 +36,15 @@ SimulationObject::SimulationObject() :
 	mpGlob(NULL),
 	mPanic( false ),
 	mDebugType( 1 /* =FLUIDDISPNothing*/ ),
-	mSolverType("-"), mStepsPerFrame( 10 ),
-	mpLbm(NULL),
-	mpParam( NULL ),
+	mStepsPerFrame( 10 ),
+	mpLbm(NULL), mpParam( NULL ),
 	mShowSurface(true), mShowParticles(false),
 	mSelectedCid( NULL ),
+	mpElbeemSettings( NULL )
 
-	stnOld("opt"),
-	stnFsgr("fsgr")
 {
 	mpParam = new Parametrizer();
-
-	for(int i=0; i<MAX_DEBDISPSET; i++) {
-		mDebDispSet[i].type  = (i);
-		mDebDispSet[i].on    = false;
-		mDebDispSet[i].scale = 1.0;
-	}
+	//for(int i=0; i<MAX_DEBDISPSET; i++) { mDebDispSet[i].type  = (i); mDebDispSet[i].on    = false; mDebDispSet[i].scale = 1.0; }
 
 	// reset time
 	mTime 						= 0.0;
@@ -60,9 +57,10 @@ SimulationObject::SimulationObject() :
  *****************************************************************************/
 SimulationObject::~SimulationObject()
 {
-	if(mpGiTree != NULL) delete mpGiTree;
-	delete mpLbm;
-  delete mpParam;
+	if(mpGiTree)         delete mpGiTree;
+	if(mpElbeemSettings) delete mpElbeemSettings;
+	if(mpLbm)            delete mpLbm;
+  if(mpParam)          delete mpParam;
 	debMsgStd("SimulationObject",DM_MSG,"El'Beem Done!\n",10);
 }
 
@@ -77,7 +75,7 @@ void SimulationObject::initGeoTree(int id) {
 		return;
 	}
 	mGeoInitId = id;
-	ntlScene *scene = mpGlob->getScene();
+	ntlScene *scene = mpGlob->getSimScene();
 	mpGiObjects = scene->getObjects();
 
 	if(mpGiTree != NULL) delete mpGiTree;
@@ -95,6 +93,11 @@ void SimulationObject::freeGeoTree() {
 
 
 
+// copy & remember settings for later use
+void SimulationObject::copyElbeemSettings(elbeemSimulationSettings *settings) {
+	mpElbeemSettings = new elbeemSimulationSettings;
+	*mpElbeemSettings = *settings;
+}
 
 /******************************************************************************
  * simluation interface: initialize simulation using the given configuration file 
@@ -102,33 +105,34 @@ void SimulationObject::freeGeoTree() {
 int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 {
 	if(!SIMWORLD_OK()) return 1;
+	
+	// already inited?
+	if(mpLbm) return 0;
+	
 	mpGlob = glob;
 	if(!getVisible()) {
 		mpAttrs->setAllUsed();
 		return 0;
 	}
 
-	//mDimension is deprecated
+
+	//mDimension, mSolverType are deprecated
+	string mSolverType(""); 
 	mSolverType = mpAttrs->readString("solver", mSolverType, "SimulationObject","mSolverType", false ); 
-	if(mSolverType == stnFsgr) {
-		mpLbm = createSolver(); 
-	} else if(mSolverType == stnOld) {
-		errFatal("SimulationObject::initializeLbmSimulation","Invalid solver type - note that mDimension is deprecated, use the 'solver' keyword instead", SIMWORLD_INITERROR);
-		return 1;
-	}
+	//errFatal("SimulationObject::initializeLbmSimulation","Invalid solver type - note that mDimension is deprecated, use the 'solver' keyword instead", SIMWORLD_INITERROR); return 1;
 
-
+	mpLbm = createSolver(); 
   /* check lbm pointer */
 	if(mpLbm == NULL) {
-		errFatal("SimulationObject::initializeLbmSimulation","Unable to init dim"<<mSolverType<<" LBM solver! ", SIMWORLD_INITERROR);
+		errFatal("SimulationObject::initializeLbmSimulation","Unable to init LBM solver! ", SIMWORLD_INITERROR);
 		return 1;
 	}
-	debugOut("SimulationObject::initialized "<< mpLbm->getIdString() <<" LBM solver! ", 2);
+	debMsgStd("SimulationObject::initialized",DM_MSG,"IdStr:"<<mpLbm->getIdString() <<" LBM solver! ", 2);
 
 	// for non-param simulations
 	mpLbm->setParametrizer( mpParam );
 	mpParam->setAttrList( getAttributeList() );
-	// not needed.. done in solver_init: mpParam->setSize ...
+	// not needed.. done in solver_init: mpParam->setSize ... in solver_interface
 	mpParam->parseAttrList();
 
 	mpLbm->setAttrList( getAttributeList() );
@@ -152,6 +156,27 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpLbm->setGeoEnd( mGeoEnd );
 	mpLbm->setRenderGlobals( mpGlob );
 	mpLbm->setName( getName() + "_lbm" );
+	if(mpElbeemSettings) {
+		// set further settings from API struct init
+		mpLbm->setSmoothing(1.0 * mpElbeemSettings->surfaceSmoothing, 1.0 * mpElbeemSettings->surfaceSmoothing);
+		mpLbm->setSizeX(mpElbeemSettings->resolutionxyz);
+		mpLbm->setSizeY(mpElbeemSettings->resolutionxyz);
+		mpLbm->setSizeZ(mpElbeemSettings->resolutionxyz);
+		mpLbm->setPreviewSize(mpElbeemSettings->previewresxyz);
+		mpLbm->setRefinementDesired(mpElbeemSettings->maxRefine);
+		mpLbm->setGenerateParticles(mpElbeemSettings->generateParticles);
+
+		string dinitType = std::string("no");
+		if     (mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_PARTSLIP) dinitType = std::string("part"); 
+		else if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_FREESLIP) dinitType = std::string("free"); 
+		else /*if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_NOSLIP)*/ dinitType = std::string("no"); 
+		mpLbm->setDomainBound(dinitType);
+		mpLbm->setDomainPartSlip(mpElbeemSettings->obstaclePartslip);
+		mpLbm->setDumpVelocities(mpElbeemSettings->generateVertexVectors);
+		debMsgStd("SimulationObject::initialize",DM_MSG,"Added domain bound: "<<dinitType<<" ps="<<mpElbeemSettings->obstaclePartslip<<" vv"<<mpElbeemSettings->generateVertexVectors<<","<<mpLbm->getDumpVelocities(), 9 );
+
+		debMsgStd("SimulationObject::initialize",DM_MSG,"Set ElbeemSettings values "<<mpLbm->getGenerateParticles(),10);
+	}
 	mpLbm->initializeSolver();
 
 	// print cell type stats
@@ -175,7 +200,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 	mpLbm->deleteCellIterator( &cid );
 
-#if ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
 	char charNl = '\n';
 	debugOutNnl("SimulationObject::initializeLbmSimulation celltype stats: " <<charNl, 5);
 	debugOutNnl("no. of cells = "<<totalCells<<", "<<charNl ,5);
@@ -199,12 +224,18 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		out<<"\tFractions: [empty/bnd - fluid - interface - ext. if]  =  [" << ebFrac<<" - " << flFrac<<" - " << ifFrac<<"] "<< charNl;
 
 		if(diffInits > 0) {
-			debugOut("SimulationObject::initializeLbmSimulation celltype Warning: Diffinits="<<diffInits<<" !!!!!!!!!" , 5);
+			debMsgStd("SimulationObject::initializeLbmSimulation",DM_MSG,"celltype Warning: Diffinits="<<diffInits<<" !!!!!!!!!" , 5);
 		}
 		debugOutNnl(out.str(), 5);
 	}
-#endif // ELBEEM_BLENDER==1
+#endif // ELBEEM_PLUGIN==1
 
+	// might be modified by mpLbm
+	mpParts->setStart( mGeoStart );
+	mpParts->setEnd( mGeoEnd );
+	mpParts->setCastShadows( false );
+	mpParts->setReceiveShadows( false );
+	mpParts->searchMaterial( glob->getMaterials() );
 	mpLbm->initParticles(mpParts);
 
 	// this has to be inited here - before, the values might be unknown
@@ -218,12 +249,19 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		if(mShowSurface) mObjects.push_back( surf );
 	}
 	
-	mpParts->setStart( mGeoStart );
-	mpParts->setEnd( mGeoEnd );
-	mpParts->setCastShadows( false );
-	mpParts->setReceiveShadows( false );
-	mpParts->searchMaterial( glob->getMaterials() );
-	if(mShowParticles) mObjects.push_back(mpParts);
+#ifdef ELBEEM_PLUGIN
+	mShowParticles=1;
+#endif // ELBEEM_PLUGIN
+	//if(getenv("ELBEEM_DUMPPARTICLE")) {   // DEBUG ENABLE!!!!!!!!!!
+	if(mpLbm->getGenerateParticles()>0.0) {
+		mShowParticles=1;
+		mpParts->setDumpParts(true);
+	}
+		//debMsgStd("SimulationObject::init",DM_NOTIFY,"Using envvar ELBEEM_DUMPPARTICLE to set mShowParticles, DEBUG!",1);
+	//}  // DEBUG ENABLE!!!!!!!!!!
+	if(mShowParticles) {
+		mObjects.push_back(mpParts);
+	}
 
 	// add objects to display for debugging (e.g. levelset particles)
 	vector<ntlGeometryObject *> debugObjs = mpLbm->getDebugObjects();
@@ -247,17 +285,17 @@ void SimulationObject::setFrameNum(int num) {
  *****************************************************************************/
 void SimulationObject::step( void )
 {
-	if(mpParam->getAniFrameTime()>0.0) {
+	if(mpParam->getCurrentAniFrameTime()>0.0) {
 		// dont advance for stopped time
 		mpLbm->step();
 
 		mpParts->savePreviousPositions();
 		mpLbm->advanceParticles(mpParts);
-		mTime += mpParam->getStepTime();
+		mTime += mpParam->getTimestep();
 	}
 	if(mpLbm->getPanic()) mPanic = true;
 
-  //debMsgStd("SimulationObject::step",DM_MSG," Sim '"<<mName<<"' stepped to "<<mTime<<" (stept="<<(mpParam->getStepTime())<<", framet="<<getFrameTime()<<") ", 10);
+  //debMsgStd("SimulationObject::step",DM_MSG," Sim '"<<mName<<"' stepped to "<<mTime<<" (stept="<<(mpParam->getTimestep())<<", framet="<<getFrameTime()<<") ", 10);
 }
 /*! prepare visualization of simulation for e.g. raytracing */
 void SimulationObject::prepareVisualization( void ) {
@@ -273,12 +311,12 @@ double SimulationObject::getStartTime( void ) {
 	return mpParam->getAniStart();
 }
 /* get time for a single animation frame */
-double SimulationObject::getFrameTime( void ) {
-	return mpParam->getAniFrameTime();
+double SimulationObject::getFrameTime( int frame ) {
+	return mpParam->getAniFrameTime(frame);
 }
 /* get time for a single time step  */
-double SimulationObject::getStepTime( void ) {
-	return mpParam->getStepTime();
+double SimulationObject::getTimestep( void ) {
+	return mpParam->getTimestep();
 }
 
 
@@ -307,17 +345,12 @@ SimulationObject::getObjectsEnd()
 
 void SimulationObject::drawDebugDisplay() {
 #ifndef NOGUI
-	//debugOut(" SD: "<<mDebugType<<" v"<<getVisible()<<" don"<< (mDebDispSet[mDebugType].on) , 10);
 	if(!getVisible()) return;
 
-	if( mDebugType > (MAX_DEBDISPSET-1) ){
-		errFatal("SimulationObject::drawDebugDisplay","Invalid debug type!", SIMWORLD_GENERICERROR);
-		return;
-	}
-
-	mDebDispSet[ mDebugType ].on = true;
+	//if( mDebugType > (MAX_DEBDISPSET-1) ){ errFatal("SimulationObject::drawDebugDisplay","Invalid debug type!", SIMWORLD_GENERICERROR); return; }
+	//mDebDispSet[ mDebugType ].on = true;
 	//errorOut( mDebugType <<"//"<< mDebDispSet[mDebugType].type );
-	mpLbm->debugDisplay( &mDebDispSet[ mDebugType ] );
+	mpLbm->debugDisplay( mDebugType );
 
 	//::lbmMarkedCellDisplay<>( mpLbm );
 	mpLbm->lbmMarkedCellDisplay();
@@ -331,7 +364,7 @@ void SimulationObject::drawInteractiveDisplay()
 	if(!getVisible()) return;
 	if(mSelectedCid) {
 		// in debugDisplayNode if dispset is on is ignored...
-		mpLbm->debugDisplayNode( &mDebDispSet[ FLUIDDISPGrid ], mSelectedCid );
+		mpLbm->debugDisplayNode( FLUIDDISPGrid, mSelectedCid );
 	}
 #endif
 }
@@ -365,4 +398,9 @@ void SimulationObject::setMouseClick()
 	}
 }
 
+/*! notify object that dump is in progress (e.g. for field dump) */
+void SimulationObject::notifyShaderOfDump(int frameNr,char *frameNrStr,string outfilename) {
+	if(!mpLbm) return;
+	mpLbm->notifySolverOfDump(frameNr,frameNrStr,outfilename);
+}
 

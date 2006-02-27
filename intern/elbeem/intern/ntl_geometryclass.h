@@ -28,6 +28,7 @@ class ntlGeometryClass
 		//! Default constructor
 		inline ntlGeometryClass() :
 			mVisible( 1 ), mName( "[ObjNameUndef]" ),
+			mObjectId(-1),
 			mpAttrs( NULL ) 
 		{ 
 				mpAttrs = new AttributeList("objAttrs"); 
@@ -62,6 +63,10 @@ class ntlGeometryClass
 		virtual inline ntlVec3Gfx *getBBStart() { return NULL; }
 		virtual inline ntlVec3Gfx *getBBEnd() 	{ return NULL; }
 
+		/*! Set/get the object id*/
+		inline void setObjectId(int set) { mObjectId=set; }
+		inline int getObjectId() const { return mObjectId; }
+
 		/*! GUI - this function is called for selected objects to display debugging information with OpenGL */
 		virtual void drawDebugDisplay() { /* do nothing by default */ }
 		/*! GUI - this function is called for selected objects to display interactive information with OpenGL */
@@ -78,6 +83,9 @@ class ntlGeometryClass
 
 		/*! Name of this object */
 		string mName;
+
+		/*! global scene object id */
+		int mObjectId;
 
 		/*! configuration attributes */
 		AttributeList *mpAttrs;

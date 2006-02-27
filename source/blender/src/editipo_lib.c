@@ -93,6 +93,7 @@ char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
 char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "SizeX", "SizeY",
 	"SizeZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
+char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
 
 char *getname_ac_ei(int nr) 
 {
@@ -195,6 +196,12 @@ char *getname_cam_ei(int nr)
 char *getname_snd_ei(int nr)
 {
 	if(nr>=SND_VOLUME && nr<=SND_ATTEN) return snd_ic_names[nr-1];
+	return ic_name_empty[0];
+}
+
+char *getname_fluidsim_ei(int nr)
+{
+	if(nr <= FLUIDSIM_TOTIPO) return fluidsim_ic_names[nr-1];
 	return ic_name_empty[0];
 }
 

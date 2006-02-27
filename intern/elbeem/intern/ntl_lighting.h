@@ -3,15 +3,89 @@
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
  * Copyright 2003,2004 Nils Thuerey
  *
- * a geometry object
- * all other geometry objects are derived from this one
+ * a light object
+ * default omni light implementation
  *
  *****************************************************************************/
-#ifndef NTL_MATERIAL_HH
-#define NTL_MATERIAL_HH
+#ifndef NTL_LIGHTING_H
+#define NTL_LIGHTING_H
 
 #include "ntl_vector3dim.h"
+class ntlMaterial;
 class ntlRay;
+class ntlRenderGlobals;
+class ntlGeometryObject;
+
+
+
+/* shadow map directions */
+#define LSM_RIGHT 0
+#define LSM_LEFT  1
+#define LSM_UP    2
+#define LSM_DOWN  3
+#define LSM_FRONT 4
+#define LSM_BACK  5
+
+/*! Basic object for lights, all other light are derived from this one */
+class ntlLightObject
+{
+public:
+  /* CONSTRUCTORS */
+  /*! Default constructor */
+  ntlLightObject(ntlRenderGlobals *glob);
+  /*! Constructor with parameters */
+  ntlLightObject(ntlRenderGlobals *glob, const ntlColor& col);
+  /*! Destructor */
+  virtual ~ntlLightObject();
+
+	/*! prepare light for rendering (for example shadow maps) */
+	virtual void prepare( bool );
+	
+	/*! do the illumination... */
+	virtual ntlColor illuminatePoint(ntlRay &reflectedRay, 
+																	 ntlGeometryObject *closest,
+																	 ntlColor &highlight);
+	/*! shade the point */
+	const ntlColor
+	getShadedColor(const ntlRay &reflectedray, ntlVec3Gfx lightDir,
+								 ntlMaterial *surf, ntlColor &highlight) const;
+
+
+  /* access methods */
+  /*! Access the active flag */
+  inline void setActive(bool set) { mActive = set; }
+  inline bool getActive() const { return mActive; }
+  /*! Access the shadow flag */
+  inline void setCastShadows(bool set) { mCastShadows = set; }
+  inline bool getCastShadows() const { return mCastShadows; }
+  /*! Access the light color */
+  inline void setColor(ntlColor set) { mcColor = set; }
+  inline ntlColor getColor() const { return mcColor; }
+  
+  /*! Access the omni light position */
+  void setPosition(ntlVec3Gfx set) { mvPosition = set; }
+  ntlVec3Gfx getPosition() const { return mvPosition; }
+	
+
+protected:
+	/*! render globals */
+	ntlRenderGlobals *mpGlob;
+
+	/*! is this light acitve? */
+	bool mActive;
+
+	/*! does it cast shadows? */
+	bool mCastShadows;
+
+  /*! color of this light */
+	ntlColor  mcColor;
+
+	/*! light position */
+	ntlVec3Gfx  mvPosition;
+
+private:
+
+};
 
 
 //! Properties of an geo object, describing the reflection properties of the surface
@@ -20,12 +94,12 @@ class ntlMaterial
 public:
   // CONSTRUCTORS
   //! Default constructor
-  inline ntlMaterial( void );
+  ntlMaterial( void );
   //! Constructor with parameters
   /*! Sets reflectance, ambient reflection, specular intensity
    *  specular exponent, mirror intensity 
    *  transparency, refraction index */
-  inline ntlMaterial( string name,
+  ntlMaterial( string name,
          const ntlColor& Ref, const ntlColor& Amb, 
 			   gfxReal Spec, gfxReal Exp, gfxReal Mirror,
 			   gfxReal Trans, gfxReal Refrac, gfxReal TAdd,
@@ -121,47 +195,6 @@ public:
 };
 
 
-
-
-/******************************************************************************
- * Default constructor
- *****************************************************************************/
-inline ntlMaterial::ntlMaterial( void ) : 
-	mName( "default" ),
-  mDiffuseRefl(0.5,0.5,0.5),  mAmbientRefl(0.0,0.0,0.0),
-  mSpecular(0.0), mSpecExponent(0.0), mMirror(0.0),
-  mTransparence(0.0), mRefracIndex(0.0), mTransAdditive(0.0), mTransAttCol(0.0),
-	mFresnel( 0 )
-  //mNtfId(0), mNtfFluid(0), mNtfSolid(0)
-{ 
-  // just do default init...
-}
-
-
-
-/******************************************************************************
- * Init constructor
- *****************************************************************************/
-inline 
-ntlMaterial::ntlMaterial( string name,
-													const ntlColor& Ref, const ntlColor& Amb,
-													gfxReal Spec, gfxReal SpecEx, gfxReal Mirr,
-													gfxReal Trans, gfxReal Refrac, gfxReal TAdd,
-													const ntlColor& Att, int fres)
-{
-	mName					= name;
-	mDiffuseRefl  = Ref;
-	mAmbientRefl  = Amb;
-	mSpecular     = Spec;
-	mSpecExponent = SpecEx;
-	mMirror       = Mirr;
-	mTransparence = Trans;
-	mRefracIndex  = Refrac;
-	mTransAdditive = TAdd;
-	mTransAttCol   = Att;
-	mFresnel 			= fres;
-}
-
 /******************************************************************************
  * Macro to define the default surface properties for a newly created object
  *****************************************************************************/
@@ -201,3 +234,5 @@ ntlMaterial::calculateFresnel(const ntlVec3Gfx &dir, const ntlVec3Gfx &normal, g
 
 
 #endif
+
+

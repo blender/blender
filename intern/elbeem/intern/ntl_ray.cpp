@@ -8,8 +8,11 @@
  *****************************************************************************/
 
 
+#include "utilities.h"
 #include "ntl_ray.h"
-#include "ntl_scene.h"
+#include "ntl_world.h"
+#include "ntl_geometryobject.h"
+#include "ntl_geometryshader.h"
 
 
 /* Minimum value for refl/refr to be traced */
@@ -116,7 +119,7 @@ ntlRay::~ntlRay()
 #define MIDDLE 2
 
 //! intersect ray with AABB
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 void ntlRay::intersectFrontAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, ntlVec3Gfx &retnormal,ntlVec3Gfx &retcoord) const
 {
   char   inside = true;   /* inside box? */
@@ -288,7 +291,7 @@ void ntlRay::intersectBackAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, n
   retnormal = normal;
   retcoord = coord;
 }
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 
 //! intersect ray with AABB
 void ntlRay::intersectCompleteAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &tmin, gfxReal &tmax) const
@@ -441,7 +444,7 @@ void ntlRay::intersectCompleteAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &
  *****************************************************************************/
 const ntlColor ntlRay::shade() //const
 {
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
   ntlGeometryObject           *closest = NULL;
   gfxReal                      minT = GFX_REAL_MAX;
   vector<ntlLightObject*>     *lightlist = mpGlob->getLightList();
@@ -457,9 +460,9 @@ const ntlColor ntlRay::shade() //const
   /* find closes object that intersects */
 	ntlTriangle *tri = NULL;
 	ntlVec3Gfx normal;
-	mpGlob->getScene()->intersectScene(*this, minT, normal, tri, 0);
+	mpGlob->getRenderScene()->intersectScene(*this, minT, normal, tri, 0);
 	if(minT>0) {
-		closest = mpGlob->getScene()->getObject( tri->getObjectId() );
+		closest = mpGlob->getRenderScene()->getObject( tri->getObjectId() );
 	}
 
   /* object hit... */
@@ -481,7 +484,7 @@ const ntlColor ntlRay::shade() //const
     ntlMaterial *clossurf = closest->getMaterial();
 		/*if(mpGlob->getDebugOut() > 5) {
 			errorOut("Ray hit: at "<<intersectionPosition<<" n:"<<normal<<"    dn:"<<valDN<<" ins:"<<intersectionInside<<"  cl:"<<((unsigned int)closest) ); 
-			errorOut(" t1:"<<mpGlob->getScene()->getVertex(tri->getPoints()[0])<<" t2:"<<mpGlob->getScene()->getVertex(tri->getPoints()[1])<<" t3:"<<mpGlob->getScene()->getVertex(tri->getPoints()[2]) ); 
+			errorOut(" t1:"<<mpGlob->getRenderScene()->getVertex(tri->getPoints()[0])<<" t2:"<<mpGlob->getRenderScene()->getVertex(tri->getPoints()[1])<<" t3:"<<mpGlob->getScene()->getVertex(tri->getPoints()[2]) ); 
 			errorOut(" trin:"<<tri->getNormal() );
 		} // debug */
 
@@ -559,9 +562,9 @@ const ntlColor ntlRay::shade() //const
 					refractionPosition2 -= (triangleNormal*getVecEpsilon() );
 
 					ntlRay reflectedRay2 = ntlRay(refractionPosition2, reflectedDir, mDepth+1, mContribution*currRefl, mpGlob);
-					mpGlob->getScene()->intersectScene(reflectedRay2, minT2, normal2, tri2, 0);
+					mpGlob->getRenderScene()->intersectScene(reflectedRay2, minT2, normal2, tri2, 0);
 					if(minT2>0) {
-						closest2 = mpGlob->getScene()->getObject( tri2->getObjectId() );
+						closest2 = mpGlob->getRenderScene()->getObject( tri2->getObjectId() );
 					}
 
 					/* object hit... */
@@ -649,11 +652,252 @@ const ntlColor ntlRay::shade() //const
     return ntlColor(currentColor);
   }
 
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
   /* no object hit -> ray goes to infinity */
   return mpGlob->getBackgroundCol(); 
 }
 
+
+
+/******************************************************************************
+ ******************************************************************************
+ ******************************************************************************
+ * scene implementation
+ ******************************************************************************
+ ******************************************************************************
+ *****************************************************************************/
+
+
+
+/******************************************************************************
+ * Constructor
+ *****************************************************************************/
+ntlScene::ntlScene( ntlRenderGlobals *glob, bool del ) :
+	mpGlob( glob ), mSceneDel(del),
+	mpTree( NULL ),
+	mDisplayListId( -1 ), 
+	mSceneBuilt( false ), mFirstInitDone( false )
+{
+}
+
+
+/******************************************************************************
+ * Destructor
+ *****************************************************************************/
+ntlScene::~ntlScene()
+{
+	if(mpTree != NULL) delete mpTree;
+
+	// cleanup lists, only if this is the rendering cleanup scene
+	if(mSceneDel) {
+		for (vector<ntlGeometryClass*>::iterator iter = mGeos.begin();
+				iter != mGeos.end(); iter++) {
+			//errMsg("ntlScene::~ntlScene","Deleting obj "<<(*iter)->getName() );
+			delete (*iter);
+		}
+		for (vector<ntlLightObject*>::iterator iter = mpGlob->getLightList()->begin();
+				 iter != mpGlob->getLightList()->end(); iter++) {
+			delete (*iter);
+		}
+		for (vector<ntlMaterial*>::iterator iter = mpGlob->getMaterials()->begin();
+				 iter != mpGlob->getMaterials()->end(); iter++) {
+			delete (*iter);
+		}
+	}
+	errMsg("ntlScene::~ntlScene","Deleted, ObjFree:"<<mSceneDel);
+}
+
+
+/******************************************************************************
+ * Build the scene arrays (obj, tris etc.)
+ *****************************************************************************/
+void ntlScene::buildScene(double time,bool firstInit)
+{
+	const bool buildInfo=true;
+
+	if(firstInit) {
+		mObjects.clear();
+		/* init geometry array, first all standard objects */
+		for (vector<ntlGeometryClass*>::iterator iter = mGeos.begin();
+				iter != mGeos.end(); iter++) {
+			bool geoinit = false;
+			int tid = (*iter)->getTypeId();
+			if(tid & GEOCLASSTID_OBJECT) {
+				ntlGeometryObject *geoobj = (ntlGeometryObject*)(*iter);
+				geoinit = true;
+				mObjects.push_back( geoobj );
+				if(buildInfo) debMsgStd("ntlScene::BuildScene",DM_MSG,"added GeoObj "<<geoobj->getName()<<" Id:"<<geoobj->getObjectId(), 5 );
+			}
+			//if(geoshad) {
+			if(tid & GEOCLASSTID_SHADER) {
+				ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter);
+				geoinit = true;
+				if(!mFirstInitDone) {
+					// only on first init
+					geoshad->initializeShader();
+				}
+				for (vector<ntlGeometryObject*>::iterator siter = geoshad->getObjectsBegin();
+						siter != geoshad->getObjectsEnd();
+						siter++) {
+					if(buildInfo) debMsgStd("ntlScene::BuildScene",DM_MSG,"added shader geometry "<<(*siter)->getName()<<" Id:"<<(*siter)->getObjectId(), 5 );
+					mObjects.push_back( (*siter) );
+				}
+			}
+
+			if(!geoinit) {
+				errFatal("ntlScene::BuildScene","Invalid geometry class!", SIMWORLD_INITERROR);
+				return;
+			}
+		}
+	}
+
+	// collect triangles
+	mTriangles.clear();
+	mVertices.clear();
+	mVertNormals.clear();
+
+	/* for test mode deactivate transparencies etc. */
+	if( mpGlob->getTestMode() ) {
+		debugOut("ntlScene::buildScene : Test Mode activated!", 2);
+		// assign random colors to dark materials
+		int matCounter = 0;
+		ntlColor stdCols[] = { ntlColor(0,0,1.0), ntlColor(0,1.0,0), ntlColor(1.0,0.7,0) , ntlColor(0.7,0,0.6) };
+		int stdColNum = 4;
+		for (vector<ntlMaterial*>::iterator iter = mpGlob->getMaterials()->begin();
+					 iter != mpGlob->getMaterials()->end(); iter++) {
+			(*iter)->setTransparence(0.0);
+			(*iter)->setMirror(0.0);
+			(*iter)->setFresnel(false);
+			// too dark?
+			if( norm((*iter)->getDiffuseRefl()) <0.01) {
+				(*iter)->setDiffuseRefl( stdCols[matCounter] );
+				matCounter ++;
+				matCounter = matCounter%stdColNum;
+			}
+		}
+
+		// restrict output file size to 400
+		float downscale = 1.0;
+		if(mpGlob->getResX() > 400){ downscale = 400.0/(float)mpGlob->getResX(); }
+		if(mpGlob->getResY() > 400){ 
+			float downscale2 = 400.0/(float)mpGlob->getResY(); 
+			if(downscale2<downscale) downscale=downscale2;
+		}
+		mpGlob->setResX( (int)(mpGlob->getResX() * downscale) );
+		mpGlob->setResY( (int)(mpGlob->getResY() * downscale) );
+
+	}
+
+	/* collect triangles from objects */
+	int idCnt = 0;          // give IDs to objects
+	bool debugTriCollect = false;
+	if(debugTriCollect) debMsgStd("ntlScene::buildScene",DM_MSG,"Start...",5);
+  for (vector<ntlGeometryObject*>::iterator iter = mObjects.begin();
+       iter != mObjects.end();
+       iter++) {
+		/* only add visible objects */
+		if(firstInit) {
+			if(debugTriCollect) debMsgStd("ntlScene::buildScene",DM_MSG,"Collect init of "<<(*iter)->getName()<<" idCnt:"<<idCnt, 4 );
+			(*iter)->initialize( mpGlob ); }
+		if(debugTriCollect) debMsgStd("ntlScene::buildScene",DM_MSG,"Collecting tris from "<<(*iter)->getName(), 4 );
+
+		int vstart = mVertNormals.size();
+		(*iter)->setObjectId(idCnt);
+		(*iter)->getTriangles(&mTriangles, &mVertices, &mVertNormals, idCnt);
+		(*iter)->applyTransformation(time, &mVertices, &mVertNormals, vstart, mVertices.size(), false );
+
+		if(debugTriCollect) debMsgStd("ntlScene::buildScene",DM_MSG,"Done with "<<(*iter)->getName()<<" totTris:"<<mTriangles.size()<<" totVerts:"<<mVertices.size()<<" totNorms:"<<mVertNormals.size(), 4 );
+		idCnt ++;
+	}
+	if(debugTriCollect) debMsgStd("ntlScene::buildScene",DM_MSG,"End",5);
+
+
+	/* calculate triangle normals, and initialize flags */
+  for (vector<ntlTriangle>::iterator iter = mTriangles.begin();
+       iter != mTriangles.end();
+       iter++) {
+
+		// calculate normal from triangle points
+		ntlVec3Gfx normal = 
+			cross( (ntlVec3Gfx)( (mVertices[(*iter).getPoints()[2]] - mVertices[(*iter).getPoints()[0]]) *-1.0),  // BLITZ minus sign right??
+			(ntlVec3Gfx)(mVertices[(*iter).getPoints()[1]] - mVertices[(*iter).getPoints()[0]]) );
+		normalize(normal);
+		(*iter).setNormal( normal );
+	}
+
+
+
+	// scene geometry built 
+	mSceneBuilt = true;
+
+	// init shaders that require complete geometry
+	if(!mFirstInitDone) {
+		// only on first init
+		for (vector<ntlGeometryClass*>::iterator iter = mGeos.begin();
+				iter != mGeos.end(); iter++) {
+			if( (*iter)->getTypeId() & GEOCLASSTID_SHADER ) {
+				ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter);
+				geoshad->postGeoConstrInit( mpGlob );
+			}
+		}
+		mFirstInitDone = true;
+	}
+
+	// check unused attributes (for classes and objects!)
+  for (vector<ntlGeometryObject*>::iterator iter = mObjects.begin(); iter != mObjects.end(); iter++) {
+		if((*iter)->getAttributeList()->checkUnusedParams()) {
+			(*iter)->getAttributeList()->print(); // DEBUG
+			errFatal("ntlScene::buildScene","Unused params for object '"<< (*iter)->getName() <<"' !", SIMWORLD_INITERROR );
+			return;
+		}
+	}
+	for (vector<ntlGeometryClass*>::iterator iter = mGeos.begin(); iter != mGeos.end(); iter++) { 
+		if((*iter)->getAttributeList()->checkUnusedParams()) {
+			(*iter)->getAttributeList()->print(); // DEBUG
+			errFatal("ntlScene::buildScene","Unused params for object '"<< (*iter)->getName() <<"' !", SIMWORLD_INITERROR );
+			return;
+		}
+	}
+
+}
+
+/******************************************************************************
+ * Prepare the scene triangles and maps for raytracing
+ *****************************************************************************/
+void ntlScene::prepareScene(double time)
+{
+	/* init triangles... */
+	buildScene(time, false);
+	// what for currently not used ???
+	if(mpTree != NULL) delete mpTree;
+	mpTree = new ntlTree( mpGlob->getTreeMaxDepth(), mpGlob->getTreeMaxTriangles(), 
+												this, TRI_GEOMETRY );
+
+	//debMsgStd("ntlScene::prepareScene",DM_MSG,"Stats - tris:"<< (int)mTriangles.size()<<" verts:"<<mVertices.size()<<" vnorms:"<<mVertNormals.size(), 5 );
+}
+/******************************************************************************
+ * Do some memory cleaning, when frame is finished
+ *****************************************************************************/
+void ntlScene::cleanupScene( void )
+{
+	mTriangles.clear();
+	mVertices.clear();
+	mVertNormals.clear();
+
+	if(mpTree != NULL) delete mpTree;
+	mpTree = NULL;
+}
+
+
+/******************************************************************************
+ * Intersect a ray with the scene triangles
+ *****************************************************************************/
+void ntlScene::intersectScene(const ntlRay &r, gfxReal &distance, ntlVec3Gfx &normal, ntlTriangle *&tri,int flags) const
+{
+	distance = -1.0;
+  mpGlob->setCounterSceneInter( mpGlob->getCounterSceneInter()+1 );
+	mpTree->intersect(r, distance, normal, tri, flags, false);
+}
 
 
 

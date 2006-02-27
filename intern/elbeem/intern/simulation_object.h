@@ -13,13 +13,15 @@
 
 #define USE_GLUTILITIES
 #include "ntl_geometryshader.h"
-#include "solver_interface.h"
 #include "parametrizer.h"
 
+class LbmSolverInterface;
+class CellIdentifierInterface;
 class ntlTree;
 class ntlRenderGlobals;
 class ntlRenderGlobals;
 class ParticleTracer;
+struct elbeemSimulationSettings;
 
 
 //! type fluid geometry init 
@@ -48,6 +50,8 @@ class SimulationObject :
 		SimulationObject();
 		/*! Destructor */
 		virtual ~SimulationObject();
+		/*! for init from API */
+		void copyElbeemSettings(elbeemSimulationSettings *settings);
 
 
 		/*! init tree for certain geometry init */
@@ -86,6 +90,8 @@ class SimulationObject :
 		/*! Do geo etc. init */
 		virtual int postGeoConstrInit(ntlRenderGlobals *glob) { return initializeLbmSimulation(glob); };
 		virtual int initializeShader() { /* ... */ return true; };
+		/*! notify object that dump is in progress (e.g. for field dump) */
+		virtual void notifyShaderOfDump(int frameNr,char *frameNrStr,string outfilename);
 		/*! simluation interface: draw the simulation with OpenGL */
 		virtual void draw( void ) {};
 		virtual vector<ntlGeometryObject *>::iterator getObjectsBegin();
@@ -97,13 +103,6 @@ class SimulationObject :
 		/*! prepare visualization of simulation for e.g. raytracing */
 		virtual void prepareVisualization( void );
 
-		/*! get current start simulation time */
-		virtual double getStartTime( void );
-		/*! get time for a single animation frame */
-		virtual double getFrameTime( void );
-		/*! get time for a single time step in the simulation */
-		virtual double getStepTime( void );
-
 		/*! GUI - display debug info */
 		virtual void drawDebugDisplay();
 		/*! GUI - display interactive info  */
@@ -111,6 +110,13 @@ class SimulationObject :
 		/*! GUI - handle mouse movement for selection  */
 		virtual void setMousePos(int x,int y, ntlVec3Gfx org, ntlVec3Gfx dir);
 		virtual void setMouseClick();
+
+		/*! get current start simulation time */
+		double getStartTime( void );
+		/*! get time for a single animation frame */
+		double getFrameTime( int frame );
+		/*! get time for a single time step in the simulation */
+		double getTimestep( void );
 
 		//! access solver
 		LbmSolverInterface *getSolver(){ return mpLbm; }
@@ -143,7 +149,6 @@ class SimulationObject :
 
 		//! dimension of the simulation - now given by LBM-DIM define globally
 		//! solver type
-		string mSolverType;
 
 		/*! when no parametrizer, use this as no. of steps per frame */
 		int mStepsPerFrame;
@@ -165,17 +170,13 @@ class SimulationObject :
 		bool mShowParticles;
 
 		/*! debug display settings */
-#ifndef USE_MSVC6FIXES
-		static const int MAX_DEBDISPSET = 10;
-#else
-		// so this is a known and documented MSVC6 bug
-		// work around
-		enum {MAX_DEBDISPSET = 10};
-#endif
-		fluidDispSettings mDebDispSet[ MAX_DEBDISPSET ];
+		int mDebDispSetting;
 
 		/*! pointer to identifier of selected node */
 		CellIdentifierInterface *mSelectedCid;
+
+		/*! storage of API settings */
+		elbeemSimulationSettings *mpElbeemSettings;
 
 	public:
 
@@ -183,6 +184,7 @@ class SimulationObject :
 
 		/*! set type of info to display */
 		inline void setDebugDisplay(int disp) { mDebugType = disp; }
+		inline int getDebugDisplay() { return mDebugType; }
 
 		/* miscelleanous access functions */
 
@@ -197,10 +199,6 @@ class SimulationObject :
 		/*! get bounding box of fluid for GUI */
 		virtual inline ntlVec3Gfx *getBBStart() 	{ return &mGeoStart; }
 		virtual inline ntlVec3Gfx *getBBEnd() 		{ return &mGeoEnd; }
-
-		/*! solver dimension constants */
-		const string stnOld;
-		const string stnFsgr;
 
 };
 

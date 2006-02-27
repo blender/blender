@@ -8,11 +8,16 @@
  *****************************************************************************/
 
 #include "attributes.h"
+#include "ntl_matrices.h"
+#include "elbeem.h"
 #include <sstream>
 
 
 //! output attribute values? on=1/off=0
 #define DEBUG_ATTRIBUTES 0
+
+//! output channel values? on=1/off=0
+#define DEBUG_CHANNELS 0
 
 
 /******************************************************************************
@@ -70,20 +75,19 @@ bool Attribute::initChannel(int elemSize) {
 	mValue = newvalue;
 
 	mChannelInited = elemSize;
-	print();
+	if(DEBUG_CHANNELS) print();
 	return true;
 }
 
 // get value as string 
-string Attribute::getAsString()
+string Attribute::getAsString(bool debug)
 {
-	if(mIsChannel) {
+	if(mIsChannel && (!debug)) {
 		errMsg("Attribute::getAsString", "Attribute \"" << mName << "\" used as string is a channel! Not allowed...");
 		print();
 		return string("");
 	}
 	if(mValue.size()!=1) {
-		//errMsg("Attribute::getAsString", "Attribute \"" << mName << "\" used as string has invalid value '"<< getCompleteString() <<"' ");
 		// for directories etc. , this might be valid! cutoff "..." first
 		string comp = getCompleteString();
 		if(comp.size()<2) return string("");
@@ -215,7 +219,7 @@ ntlVec3d Attribute::getAsVec3d()
 }
 		
 // get value as 4x4 matrix 
-ntlMat4Gfx Attribute::getAsMat4Gfx()
+void Attribute::getAsMat4Gfx(ntlMat4Gfx *mat)
 {
 	bool success = true;
 	ntlMat4Gfx ret(0.0);
@@ -265,9 +269,10 @@ ntlMat4Gfx Attribute::getAsMat4Gfx()
 #if ELBEEM_PLUGIN!=1
 		gElbeemState = -4; // parse error
 #endif
-		return ntlMat4Gfx(0.0);
+		*mat = ntlMat4Gfx(0.0);
+		return;
 	}
-	return ret;
+	*mat = ret;
 }
 		
 
@@ -355,7 +360,7 @@ bool AttributeList::checkUnusedParams()
 			i != mAttrs.end(); i++) {
 		if((*i).second) {
 			if(!(*i).second->getUsed()) {
-				errMsg("AttributeList::checkUnusedParams", "List "<<mName<<" has unknown parameter '"<<(*i).first<<"' = '"<< mAttrs[(*i).first]->getAsString() <<"' ");
+				errMsg("AttributeList::checkUnusedParams", "List "<<mName<<" has unknown parameter '"<<(*i).first<<"' = '"<< mAttrs[(*i).first]->getAsString(true) <<"' ");
 				found = true;
 			}
 		}
@@ -409,7 +414,7 @@ string AttributeList::readString(string name, string defaultValue, string source
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
 	find(name)->setUsed(true);
-	return find(name)->getAsString(); 
+	return find(name)->getAsString(false); 
 }
 ntlVec3d AttributeList::readVec3d(string name, ntlVec3d defaultValue, string source,string target, bool needed) {
 	if(!exists(name)) {
@@ -421,14 +426,16 @@ ntlVec3d AttributeList::readVec3d(string name, ntlVec3d defaultValue, string sou
 	return find(name)->getAsVec3d(); 
 }
 
-ntlMat4Gfx AttributeList::readMat4Gfx(string name, ntlMat4Gfx defaultValue, string source,string target, bool needed) {
+void AttributeList::readMat4Gfx(string name, ntlMat4Gfx defaultValue, string source,string target, bool needed, ntlMat4Gfx *mat) {
 	if(!exists(name)) {
 		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return defaultValue;
+	 	*mat = defaultValue;
+		return;
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
 	find(name)->setUsed(true);
-	return find(name)->getAsMat4Gfx(); 
+	find(name)->getAsMat4Gfx( mat ); 
+	return;
 }
 
 // set that a parameter can be given, and will be ignored...
@@ -442,15 +449,39 @@ bool AttributeList::ignoreParameter(string name, string source) {
 // read channels
 AnimChannel<double> AttributeList::readChannelFloat(string name) {
 	if(!exists(name)) { return AnimChannel<double>(0.0); } 
-	return find(name)->getChannelFloat(); 
+	AnimChannel<double> ret = find(name)->getChannelFloat(); 
+	find(name)->setUsed(true);
+	channelSimplifyd(ret);
+	return ret;
 }
 AnimChannel<int> AttributeList::readChannelInt(string name) {
 	if(!exists(name)) { return AnimChannel<int>(0); } 
-	return find(name)->getChannelInt(); 
+	AnimChannel<int> ret = find(name)->getChannelInt(); 
+	find(name)->setUsed(true);
+	channelSimplifyi(ret);
+	return ret;
 }
 AnimChannel<ntlVec3d> AttributeList::readChannelVec3d(string name) {
 	if(!exists(name)) { return AnimChannel<ntlVec3d>(0.0); } 
-	return find(name)->getChannelVec3d(); 
+	AnimChannel<ntlVec3d> ret = find(name)->getChannelVec3d(); 
+	find(name)->setUsed(true);
+	channelSimplifyVd(ret);
+	return ret;
+}
+AnimChannel<ntlVec3f> AttributeList::readChannelVec3f(string name) {
+	if(!exists(name)) { return AnimChannel<ntlVec3f>(0.0); } 
+
+	AnimChannel<ntlVec3d> convert = find(name)->getChannelVec3d(); 
+	// convert to float
+	vector<ntlVec3f> vals;
+	for(size_t i=0; i<convert.accessValues().size(); i++) {
+		vals.push_back( vec2F(convert.accessValues()[i]) );
+	}
+	vector<double> times = convert.accessTimes();
+	AnimChannel<ntlVec3f> ret(vals, times);
+	find(name)->setUsed(true);
+	channelSimplifyVf(ret);
+	return ret;
 }
 
 /******************************************************************************
@@ -509,7 +540,6 @@ void AttributeList::print()
 }
 
 
-
 /******************************************************************************
  * import attributes from other attribute list
  *****************************************************************************/
@@ -525,6 +555,134 @@ void AttributeList::import(AttributeList *oal)
 	}
 }
 
+
+/******************************************************************************
+ * channel max finding
+ *****************************************************************************/
+ntlVec3f channelFindMaxVf (AnimChannel<ntlVec3f> channel) {
+	ntlVec3f ret(0.0);
+	float maxLen = 0.0;
+	for(size_t i=0; i<channel.accessValues().size(); i++) {
+		float nlen = normNoSqrt(channel.accessValues()[i]);
+		if(nlen>maxLen) { ret=channel.accessValues()[i]; maxLen=nlen; }
+	}
+	return ret;
+}
+ntlVec3d channelFindMaxVd (AnimChannel<ntlVec3d> channel) {
+	ntlVec3d ret(0.0);
+	float maxLen = 0.0;
+	for(size_t i=0; i<channel.accessValues().size(); i++) {
+		float nlen = normNoSqrt(channel.accessValues()[i]);
+		if(nlen>maxLen) { ret=channel.accessValues()[i]; maxLen=nlen; }
+	}
+	return ret;
+}
+int      channelFindMaxi  (AnimChannel<float   > channel) {
+	int ret = 0;
+	float maxLen = 0.0;
+	for(size_t i=0; i<channel.accessValues().size(); i++) {
+		float nlen = ABS(channel.accessValues()[i]);
+		if(nlen>maxLen) { ret= (int)channel.accessValues()[i]; maxLen=nlen; }
+	}
+	return ret;
+}
+float    channelFindMaxf  (AnimChannel<float   > channel) {
+	float ret = 0.0;
+	float maxLen = 0.0;
+	for(size_t i=0; i<channel.accessValues().size(); i++) {
+		float nlen = ABS(channel.accessValues()[i]);
+		if(nlen>maxLen) { ret=channel.accessValues()[i]; maxLen=nlen; }
+	}
+	return ret;
+}
+double   channelFindMaxd  (AnimChannel<double  > channel) {
+	double ret = 0.0;
+	float maxLen = 0.0;
+	for(size_t i=0; i<channel.accessValues().size(); i++) {
+		float nlen = ABS(channel.accessValues()[i]);
+		if(nlen>maxLen) { ret=channel.accessValues()[i]; maxLen=nlen; }
+	}
+	return ret;
+}
+
+/******************************************************************************
+ // unoptimized channel simplification functions, use elbeem.cpp functions
+ // warning - currently only with single precision
+ *****************************************************************************/
+
+template<class SCALAR>
+static bool channelSimplifyScalarT(AnimChannel<SCALAR> &channel) {
+	int   size = channel.getSize();
+	if(size<=1) return false;
+	float *nchannel = new float[2*size];
+	if(DEBUG_CHANNELS) errMsg("channelSimplifyf","S" << channel.printChannel() );
+	// convert to array
+	for(size_t i=0; i<channel.accessValues().size(); i++) {
+		nchannel[i*2 + 0] = (float)channel.accessValues()[i];
+		nchannel[i*2 + 1] = (float)channel.accessTimes()[i];
+	}
+	bool ret = elbeemSimplifyChannelFloat(nchannel, &size);
+	if(ret) {
+		vector<SCALAR> vals;
+		vector<double> times;
+		for(int i=0; i<size; i++) {
+			vals.push_back(  (SCALAR)(nchannel[i*2 + 0]) );
+			times.push_back( (double)(nchannel[i*2 + 1]) );
+		}
+		channel = AnimChannel<SCALAR>(vals, times);
+		if(DEBUG_CHANNELS) errMsg("channelSimplifyf","C" << channel.printChannel() );
+	}
+	delete [] nchannel;
+	return ret;
+}
+bool channelSimplifyi  (AnimChannel<int   > &channel) { return channelSimplifyScalarT<int>(channel); }
+bool channelSimplifyf  (AnimChannel<float> &channel) { return channelSimplifyScalarT<float>(channel); }
+bool channelSimplifyd  (AnimChannel<double  > &channel) { return channelSimplifyScalarT<double>(channel); }
+template<class VEC>
+static bool channelSimplifyVecT(AnimChannel<VEC> &channel) {
+	int   size = channel.getSize();
+	if(size<=1) return false;
+	float *nchannel = new float[4*size];
+	if(DEBUG_CHANNELS) errMsg("channelSimplifyf","S" << channel.printChannel() );
+	// convert to array
+	for(size_t i=0; i<channel.accessValues().size(); i++) {
+		nchannel[i*4 + 0] = (float)channel.accessValues()[i][0];
+		nchannel[i*4 + 1] = (float)channel.accessValues()[i][1];
+		nchannel[i*4 + 2] = (float)channel.accessValues()[i][2];
+		nchannel[i*4 + 3] = (float)channel.accessTimes()[i];
+	}
+	bool ret = elbeemSimplifyChannelVec3(nchannel, &size);
+	if(ret) {
+		vector<VEC> vals;
+		vector<double> times;
+		for(int i=0; i<size; i++) {
+			vals.push_back(  VEC(nchannel[i*4 + 0], nchannel[i*4 + 1], nchannel[i*4 + 2] ) );
+			times.push_back( (double)(nchannel[i*4 + 3]) );
+		}
+		channel = AnimChannel<VEC>(vals, times);
+		if(DEBUG_CHANNELS) errMsg("channelSimplifyf","C" << channel.printChannel() );
+	}
+	delete [] nchannel;
+	return ret;
+}
+bool channelSimplifyVf (AnimChannel<ntlVec3f> &channel) {
+	return channelSimplifyVecT<ntlVec3f>(channel);
+}
+bool channelSimplifyVd (AnimChannel<ntlVec3d> &channel) {
+	return channelSimplifyVecT<ntlVec3d>(channel);
+}
+
+template<class Scalar>
+string AnimChannel<Scalar>::printChannel() {
+	std::ostringstream ostr;
+	ostr << " CHANNEL #"<<  mValue.size() <<" = { ";
+	for(size_t i=0;i<mValue.size();i++) {
+		ostr <<"'"<< mValue[i]<<"' ";
+		ostr << "@"<<mTimes[i]<<"; ";
+	}
+	ostr << " } ";
+	return ostr.str();
+} // */
 
 
 

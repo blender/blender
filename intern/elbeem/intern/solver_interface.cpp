@@ -12,283 +12,10 @@
 
 /* LBM Files */ 
 #include "solver_interface.h" 
-#include "ntl_scene.h"
 #include "ntl_ray.h"
+#include "ntl_world.h"
 #include "elbeem.h"
 
-
-/*****************************************************************************/
-//! common variables 
-
-/*****************************************************************************/
-/*! class for solver templating - 3D implementation D3Q19 */
-
-	//! how many dimensions?
-	const int LbmD3Q19::cDimension = 3;
-
-	// Wi factors for collide step 
-	const LbmFloat LbmD3Q19::cCollenZero    = (1.0/3.0);
-	const LbmFloat LbmD3Q19::cCollenOne     = (1.0/18.0);
-	const LbmFloat LbmD3Q19::cCollenSqrtTwo = (1.0/36.0);
-
-	//! threshold value for filled/emptied cells 
-	const LbmFloat LbmD3Q19::cMagicNr2    = 1.0005;
-	const LbmFloat LbmD3Q19::cMagicNr2Neg = -0.0005;
-	const LbmFloat LbmD3Q19::cMagicNr     = 1.010001;
-	const LbmFloat LbmD3Q19::cMagicNrNeg  = -0.010001;
-
-	//! size of a single set of distribution functions 
-	const int    LbmD3Q19::cDfNum      = 19;
-	//! direction vector contain vecs for all spatial dirs, even if not used for LBM model
-	const int    LbmD3Q19::cDirNum     = 27;
-
-	//const string LbmD3Q19::dfString[ cDfNum ] = { 
-	const char* LbmD3Q19::dfString[ cDfNum ] = { 
-		" C", " N"," S"," E"," W"," T"," B",
-		"NE","NW","SE","SW",
-		"NT","NB","ST","SB",
-		"ET","EB","WT","WB"
-	};
-
-	const int LbmD3Q19::dfNorm[ cDfNum ] = { 
-		cDirC, cDirN, cDirS, cDirE, cDirW, cDirT, cDirB, 
-		cDirNE, cDirNW, cDirSE, cDirSW, 
-		cDirNT, cDirNB, cDirST, cDirSB, 
-		cDirET, cDirEB, cDirWT, cDirWB
-	};
-
-	const int LbmD3Q19::dfInv[ cDfNum ] = { 
-		cDirC,  cDirS, cDirN, cDirW, cDirE, cDirB, cDirT,
-		cDirSW, cDirSE, cDirNW, cDirNE,
-		cDirSB, cDirST, cDirNB, cDirNT, 
-		cDirWB, cDirWT, cDirEB, cDirET
-	};
-
-	const int LbmD3Q19::dfRefX[ cDfNum ] = { 
-		0,  0, 0, 0, 0, 0, 0,
-		cDirSE, cDirSW, cDirNE, cDirNW,
-		0, 0, 0, 0, 
-		cDirEB, cDirET, cDirWB, cDirWT
-	};
-
-	const int LbmD3Q19::dfRefY[ cDfNum ] = { 
-		0,  0, 0, 0, 0, 0, 0,
-		cDirNW, cDirNE, cDirSW, cDirSE,
-		cDirNB, cDirNT, cDirSB, cDirST,
-		0, 0, 0, 0
-	};
-
-	const int LbmD3Q19::dfRefZ[ cDfNum ] = { 
-		0,  0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 
-		cDirST, cDirSB, cDirNT, cDirNB,
-		cDirWT, cDirWB, cDirET, cDirEB
-	};
-
-	// Vector Order 3D:
-	//  0   1  2   3  4   5  6       7  8  9 10  11 12 13 14  15 16 17 18     19 20 21 22  23 24 25 26
-	//  0,  0, 0,  1,-1,  0, 0,      1,-1, 1,-1,  0, 0, 0, 0,  1, 1,-1,-1,     1,-1, 1,-1,  1,-1, 1,-1
-	//  0,  1,-1,  0, 0,  0, 0,      1, 1,-1,-1,  1, 1,-1,-1,  0, 0, 0, 0,     1, 1,-1,-1,  1, 1,-1,-1
-	//  0,  0, 0,  0, 0,  1,-1,      0, 0, 0, 0,  1,-1, 1,-1,  1,-1, 1,-1,     1, 1, 1, 1, -1,-1,-1,-1
-
-	const int LbmD3Q19::dfVecX[ cDirNum ] = { 
-		0, 0,0, 1,-1, 0,0,
-		1,-1,1,-1,
-		0,0,0,0,
-		1,1,-1,-1,
-		 1,-1, 1,-1,
-		 1,-1, 1,-1,
-	};
-	const int LbmD3Q19::dfVecY[ cDirNum ] = { 
-		0, 1,-1, 0,0,0,0,
-		1,1,-1,-1,
-		1,1,-1,-1,
-		0,0,0,0,
-		 1, 1,-1,-1,
-		 1, 1,-1,-1
-	};
-	const int LbmD3Q19::dfVecZ[ cDirNum ] = { 
-		0, 0,0,0,0,1,-1,
-		0,0,0,0,
-		1,-1,1,-1,
-		1,-1,1,-1,
-		 1, 1, 1, 1,
-		-1,-1,-1,-1
-	};
-
-	const LbmFloat LbmD3Q19::dfDvecX[ cDirNum ] = {
-		0, 0,0, 1,-1, 0,0,
-		1,-1,1,-1,
-		0,0,0,0,
-		1,1,-1,-1,
-		 1,-1, 1,-1,
-		 1,-1, 1,-1
-	};
-	const LbmFloat LbmD3Q19::dfDvecY[ cDirNum ] = {
-		0, 1,-1, 0,0,0,0,
-		1,1,-1,-1,
-		1,1,-1,-1,
-		0,0,0,0,
-		 1, 1,-1,-1,
-		 1, 1,-1,-1
-	};
-	const LbmFloat LbmD3Q19::dfDvecZ[ cDirNum ] = {
-		0, 0,0,0,0,1,-1,
-		0,0,0,0,
-		1,-1,1,-1,
-		1,-1,1,-1,
-		 1, 1, 1, 1,
-		-1,-1,-1,-1
-	};
-
-	/* principal directions */
-	const int LbmD3Q19::princDirX[ 2*LbmD3Q19::cDimension ] = { 
-		1,-1, 0,0, 0,0
-	};
-	const int LbmD3Q19::princDirY[ 2*LbmD3Q19::cDimension ] = { 
-		0,0, 1,-1, 0,0
-	};
-	const int LbmD3Q19::princDirZ[ 2*LbmD3Q19::cDimension ] = { 
-		0,0, 0,0, 1,-1
-	};
-
-	/*! arrays for les model coefficients, inited in lbmsolver constructor */
-	LbmFloat LbmD3Q19::lesCoeffDiag[ (cDimension-1)*(cDimension-1) ][ cDirNum ];
-	LbmFloat LbmD3Q19::lesCoeffOffdiag[ cDimension ][ cDirNum ];
-
-
-	const LbmFloat LbmD3Q19::dfLength[ cDfNum ]= { 
-		cCollenZero,
-		cCollenOne, cCollenOne, cCollenOne, 
-		cCollenOne, cCollenOne, cCollenOne,
-		cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo, 
-		cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo, 
-		cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo
-	};
-
-	/* precalculated equilibrium dfs, inited in lbmsolver constructor */
-	LbmFloat LbmD3Q19::dfEquil[ cDfNum ];
-
-// D3Q19 end
-
-
-
-/*****************************************************************************/
-/*! class for solver templating - 2D implementation D2Q9 */
-
-		//! how many dimensions?
-		const int LbmD2Q9::cDimension = 2;
-
-		//! Wi factors for collide step 
-		const LbmFloat LbmD2Q9::cCollenZero    = (4.0/9.0);
-		const LbmFloat LbmD2Q9::cCollenOne     = (1.0/9.0);
-		const LbmFloat LbmD2Q9::cCollenSqrtTwo = (1.0/36.0);
-
-		//! threshold value for filled/emptied cells 
-		const LbmFloat LbmD2Q9::cMagicNr2    = 1.0005;
-		const LbmFloat LbmD2Q9::cMagicNr2Neg = -0.0005;
-		const LbmFloat LbmD2Q9::cMagicNr     = 1.010001;
-		const LbmFloat LbmD2Q9::cMagicNrNeg  = -0.010001;
-
-		//! size of a single set of distribution functions 
-		const int LbmD2Q9::cDfNum  = 9;
-		const int LbmD2Q9::cDirNum = 9;
-
-	//const string LbmD2Q9::dfString[ cDfNum ] = { 
-	const char* LbmD2Q9::dfString[ cDfNum ] = { 
-		" C", 
-		" N",	" S", " E", " W",
-		"NE", "NW", "SE","SW" 
-	};
-
-	const int LbmD2Q9::dfNorm[ cDfNum ] = { 
-		cDirC, 
-		cDirN,  cDirS,  cDirE,  cDirW,
-		cDirNE, cDirNW, cDirSE, cDirSW 
-	};
-
-	const int LbmD2Q9::dfInv[ cDfNum ] = { 
-		cDirC,  
-		cDirS,  cDirN,  cDirW,  cDirE,
-		cDirSW, cDirSE, cDirNW, cDirNE 
-	};
-
-	const int LbmD2Q9::dfRefX[ cDfNum ] = { 
-		0,  
-		0,  0,  0,  0,
-		cDirSE, cDirSW, cDirNE, cDirNW 
-	};
-
-	const int LbmD2Q9::dfRefY[ cDfNum ] = { 
-		0,  
-		0,  0,  0,  0,
-		cDirNW, cDirNE, cDirSW, cDirSE 
-	};
-
-	const int LbmD2Q9::dfRefZ[ cDfNum ] = { 
-		0,  0, 0, 0, 0,
-		0, 0, 0, 0
-	};
-
-	// Vector Order 2D:
-	// 0  1 2  3  4  5  6 7  8
-	// 0, 0,0, 1,-1, 1,-1,1,-1 
-	// 0, 1,-1, 0,0, 1,1,-1,-1 
-
-	const int LbmD2Q9::dfVecX[ cDirNum ] = { 
-		0, 
-		0,0, 1,-1,
-		1,-1,1,-1 
-	};
-	const int LbmD2Q9::dfVecY[ cDirNum ] = { 
-		0, 
-		1,-1, 0,0,
-		1,1,-1,-1 
-	};
-	const int LbmD2Q9::dfVecZ[ cDirNum ] = { 
-		0, 0,0,0,0, 0,0,0,0 
-	};
-
-	const LbmFloat LbmD2Q9::dfDvecX[ cDirNum ] = {
-		0, 
-		0,0, 1,-1,
-		1,-1,1,-1 
-	};
-	const LbmFloat LbmD2Q9::dfDvecY[ cDirNum ] = {
-		0, 
-		1,-1, 0,0,
-		1,1,-1,-1 
-	};
-	const LbmFloat LbmD2Q9::dfDvecZ[ cDirNum ] = {
-		0, 0,0,0,0, 0,0,0,0 
-	};
-
-	const int LbmD2Q9::princDirX[ 2*LbmD2Q9::cDimension ] = { 
-		1,-1, 0,0
-	};
-	const int LbmD2Q9::princDirY[ 2*LbmD2Q9::cDimension ] = { 
-		0,0, 1,-1
-	};
-	const int LbmD2Q9::princDirZ[ 2*LbmD2Q9::cDimension ] = { 
-		0,0, 0,0
-	};
-
-
-	/*! arrays for les model coefficients, inited in lbmsolver constructor */
-	LbmFloat LbmD2Q9::lesCoeffDiag[ (cDimension-1)*(cDimension-1) ][ cDirNum ];
-	LbmFloat LbmD2Q9::lesCoeffOffdiag[ cDimension ][ cDirNum ];
-
-
-	const LbmFloat LbmD2Q9::dfLength[ cDfNum ]= { 
-		cCollenZero,
-		cCollenOne, cCollenOne, cCollenOne, cCollenOne, 
-		cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo, cCollenSqrtTwo
-	};
-
-	/* precalculated equilibrium dfs, inited in lbmsolver constructor */
-	LbmFloat LbmD2Q9::dfEquil[ cDfNum ];
-
-// D2Q9 end
 
 
 
@@ -308,9 +35,9 @@ LbmSolverInterface::LbmSolverInterface() :
   mInitDone( false ),
   mInitDensityGradient( false ),
 	mpAttrs( NULL ), mpParam( NULL ),
-	mNumParticlesLost(0), mNumInvalidDfs(0), mNumFilledCells(0), mNumEmptiedCells(0), mNumUsedCells(0), mMLSUPS(0),
+	mNumParticlesLost(0), 
+	mNumInvalidDfs(0), mNumFilledCells(0), mNumEmptiedCells(0), mNumUsedCells(0), mMLSUPS(0),
 	mDebugVelScale( 0.01 ), mNodeInfoString("+"),
-	mRandom( 5123 ),
 	mvGeoStart(-1.0), mvGeoEnd(1.0),
 	mAccurateGeoinit(0),
 	mName("lbm_default") ,
@@ -321,10 +48,14 @@ LbmSolverInterface::LbmSolverInterface() :
 	mpGiObjects( NULL ), mGiObjInside(), mpGlob( NULL ),
 	mRefinementDesired(0),
 	mOutputSurfacePreview(0), mPreviewFactor(0.25),
-	mSmoothSurface(0.0), mSmoothNormals(0.0),
-	mMarkedCells(), mMarkedCellIndex(0)
+	mSmoothSurface(1.0), mSmoothNormals(1.0),
+	mPartGenProb(0.),
+	mDumpVelocities(false),
+	mMarkedCells(), mMarkedCellIndex(0),
+	mDomainBound("noslip"), mDomainPartSlipValue(0.1),
+	mTForceStrength(0.0)
 {
-#if ELBEEM_BLENDER==1
+#if ELBEEM_PLUGIN==1
 	if(gDebugLevel<=1) mSilent = true;
 #endif
 }
@@ -341,7 +72,7 @@ void initGridSizes(int &sizex, int &sizey, int &sizez,
 		int mMaxRefine, bool parallel) 
 {
 	// fix size inits to force cubic cells and mult4 level dimensions
-	const int debugGridsizeInit = 1;
+	const int debugGridsizeInit = 0;
   if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Called - size X:"<<sizex<<" Y:"<<sizey<<" Z:"<<sizez<<" " ,10);
 
 	int maxGridSize = sizex; // get max size
@@ -383,6 +114,10 @@ void initGridSizes(int &sizex, int &sizey, int &sizez,
 
 void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
 		double *reqret, string *reqstr) {
+	// debug estimation?
+	const bool debugMemEst = false;
+	// COMPRESSGRIDS define is not available here, make sure it matches
+	const bool useGridComp = true;
 	// make sure we can handle bid numbers here... all double
 	double memCnt = 0.0;
 	double ddTotalNum = (double)dTotalNum;
@@ -392,12 +127,15 @@ void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
 	double currResz = (double)resz;
 	double rcellSize = ((currResx*currResy*currResz) *ddTotalNum);
 	memCnt += (double)(sizeof(CellFlagType) * (rcellSize/ddTotalNum +4.0) *2.0);
-#if COMPRESSGRIDS==0
-	memCnt += (double)(sizeof(LbmFloat) * (rcellSize +4.0) *2.0);
-#else // COMPRESSGRIDS==0
-	double compressOffset = (double)(currResx*currResy*ddTotalNum*2.0);
-	memCnt += (double)(sizeof(LbmFloat) * (rcellSize+compressOffset +4.0));
-#endif // COMPRESSGRIDS==0
+	if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG,"res:"<<PRINT_VEC(currResx,currResy,currResz)<<" rcellSize:"<<rcellSize<<" mc:"<<memCnt, 10);
+  if(!useGridComp) {
+		memCnt += (double)(sizeof(LbmFloat) * (rcellSize +4.0) *2.0);
+		if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG," no-comp, mc:"<<memCnt, 10);
+	} else {
+		double compressOffset = (double)(currResx*currResy*ddTotalNum*2.0);
+		memCnt += (double)(sizeof(LbmFloat) * (rcellSize+compressOffset +4.0));
+		if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG," w-comp, mc:"<<memCnt, 10);
+	}
 	for(int i=refine-1; i>=0; i--) {
 		currResx /= 2.0;
 		currResy /= 2.0;
@@ -405,10 +143,12 @@ void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
 		rcellSize = ((currResz*currResy*currResx) *ddTotalNum);
 		memCnt += (double)(sizeof(CellFlagType) * (rcellSize/ddTotalNum +4.0) *2.0);
 		memCnt += (double)(sizeof(LbmFloat) * (rcellSize +4.0) *2.0);
+		if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG,"refine "<<i<<", mc:"<<memCnt, 10);
 	}
 
 	// isosurface memory
 	memCnt += (double)( (3*sizeof(int)+sizeof(float)) * ((resx+2)*(resy+2)*(resz+2)) );
+	if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG,"iso, mc:"<<memCnt, 10);
 
 	double memd = memCnt;
 	char *sizeStr = "";
@@ -453,7 +193,7 @@ CellFlagType LbmSolverInterface::readBoundaryFlagInt(string name, int defaultVal
 		return (CellFlagType)( CFFluid );
 	}
 	errMsg("LbmSolverInterface::readBoundaryFlagInt","Invalid value '"<<val<<"' " );
-# if LBM_STRICT_DEBUG==1
+# if FSGR_STRICT_DEBUG==1
 	errFatal("readBoundaryFlagInt","Strict abort..."<<val, SIMWORLD_INITERROR);
 # endif
 	return defaultValue;
@@ -480,7 +220,9 @@ void LbmSolverInterface::parseStdAttrList() {
 	mSizex = (int)sizeVec[0]; 
 	mSizey = (int)sizeVec[1]; 
 	mSizez = (int)sizeVec[2];
-	mpParam->setSize(mSizex, mSizey, mSizez ); // param needs size in any case
+	// param needs size in any case
+	// test solvers might not have mpPara, though
+	if(mpParam) mpParam->setSize(mSizex, mSizey, mSizez ); 
 
 	mInitDensityGradient = mpAttrs->readBool("initdensitygradient", mInitDensityGradient,"LbmSolverInterface", "mInitDensityGradient", false);
 	mGeoInitId = mpAttrs->readInt("geoinitid", mGeoInitId,"LbmSolverInterface", "mGeoInitId", false);
@@ -488,6 +230,20 @@ void LbmSolverInterface::parseStdAttrList() {
 
 	mDebugVelScale = mpAttrs->readFloat("debugvelscale", mDebugVelScale,"LbmSolverInterface", "mDebugVelScale", false);
 	mNodeInfoString = mpAttrs->readString("nodeinfo", mNodeInfoString, "SimulationLbm","mNodeInfoString", false );
+
+	mDumpVelocities = mpAttrs->readBool("dump_velocities", mDumpVelocities, "SimulationLbm","mDumpVelocities", false );
+	if(getenv("ELBEEM_DUMPVELOCITIES")) {
+		int get = atoi(getenv("ELBEEM_DUMPVELOCITIES"));
+		if((get==0)||(get==1)) {
+			mDumpVelocities = get;
+			debMsgStd("LbmSolverInterface::parseAttrList",DM_NOTIFY,"Using envvar ELBEEM_DUMPVELOCITIES to set mDumpVelocities to "<<get<<","<<mDumpVelocities,8);
+		}
+	}
+	
+	// new test vars
+	mTForceStrength = mpAttrs->readFloat("tforcestrength", mTForceStrength,"LbmSolverInterface", "mTForceStrength", false);
+
+	mPartGenProb = mpAttrs->readFloat("partgenprob", mPartGenProb,"LbmFsgrSolver", "mPartGenProb", false);
 }
 
 
@@ -500,7 +256,7 @@ void LbmSolverInterface::parseStdAttrList() {
 void LbmSolverInterface::initGeoTree(int id) {
 	if(mpGlob == NULL) { errFatal("LbmSolverInterface::initGeoTree","Requires globals!",SIMWORLD_INITERROR); return; }
 	mGeoInitId = id;
-	ntlScene *scene = mpGlob->getScene();
+	ntlScene *scene = mpGlob->getSimScene();
 	mpGiObjects = scene->getObjects();
 	mGiObjInside.resize( mpGiObjects->size() );
 	mGiObjDistance.resize( mpGiObjects->size() );
@@ -779,25 +535,26 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, ntlVec3Gfx dir,
 	}
 }
 
+
 /*****************************************************************************/
-/*! get max. velocity of all objects to initialize as fluid regions or inflow */
-ntlVec3Gfx LbmSolverInterface::getGeoMaxInitialVelocity() {
+ntlVec3Gfx LbmSolverInterface::getGeoMaxMovementVelocity(LbmFloat simtime, LbmFloat stepsize) {
 	ntlVec3Gfx max(0.0);
 	if(mpGlob == NULL) return max;
-
-	ntlScene *scene = mpGlob->getScene();
-	mpGiObjects = scene->getObjects();
+	// mpGiObjects has to be inited here...
 	
 	for(int i=0; i< (int)mpGiObjects->size(); i++) {
+		errMsg("MVT","i"<<i<<" "<< (*mpGiObjects)[i]->getName() ); // DEBUG
 		if( (*mpGiObjects)[i]->getGeoInitType() & (FGI_FLUID|FGI_MBNDINFLOW) ){
-			ntlVec3Gfx ovel = (*mpGiObjects)[i]->getInitialVelocity();
-			if( normNoSqrt(ovel) > normNoSqrt(max) ) { max = ovel; } 
-			//errMsg("IVT","i"<<i<<" "<< (*mpGiObjects)[i]->getInitialVelocity() ); // DEBUG
+			//ntlVec3Gfx objMaxVel = obj->calculateMaxVel(sourceTime,targetTime);
+			ntlVec3Gfx orgvel = (*mpGiObjects)[i]->calculateMaxVel( simtime, simtime+stepsize );
+			if( normNoSqrt(orgvel) > normNoSqrt(max) ) { max = orgvel; } 
+			//errMsg("MVT","i"<<i<<" a"<< (*mpGiObjects)[i]->getInitialVelocity(simtime)<<" o"<<orgvel ); // DEBUG
+			// TODO check if inflow and simtime 
+			ntlVec3Gfx inivel = (*mpGiObjects)[i]->getInitialVelocity(simtime);
+			if( normNoSqrt(inivel) > normNoSqrt(max) ) { max = inivel; } 
 		}
 	}
-	//errMsg("IVT","max "<<" "<< max ); // DEBUG
-	// unused !? mGiInsideCnt.resize( mpGiObjects->size() );
-
+	errMsg("MVT","max "<<" "<< max ); // DEBUG
 	return max;
 }
 

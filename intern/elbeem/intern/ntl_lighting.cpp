@@ -8,10 +8,9 @@
  *****************************************************************************/
 
 
-#include "ntl_lightobject.h"
+#include "ntl_lighting.h"
 #include "ntl_ray.h"
-#include "ntl_scene.h"
-#include "ntl_renderglobals.h"
+#include "ntl_world.h"
 
 
 /******************************************************************************
@@ -126,7 +125,7 @@ ntlColor ntlLightObject::illuminatePoint(ntlRay &reflectedRay, ntlGeometryObject
 		ntlTriangle *tri;
 		ntlVec3Gfx triNormal;
 		gfxReal trit;
-		mpGlob->getScene()->intersectScene(rayOfLight, trit, triNormal, tri, TRI_CASTSHADOWS);
+		mpGlob->getRenderScene()->intersectScene(rayOfLight, trit, triNormal, tri, TRI_CASTSHADOWS);
 		if(( trit>0 )&&( trit<lightDirNorm )) visibility = 0.0;
 		if(mpGlob->getDebugOut() > 5) errorOut("Omni lighting with "<<visibility );
 	}
@@ -141,4 +140,43 @@ ntlColor ntlLightObject::illuminatePoint(ntlRay &reflectedRay, ntlGeometryObject
 	return current_color;
 }
 
+
+
+/******************************************************************************
+ * Default constructor
+ *****************************************************************************/
+ntlMaterial::ntlMaterial( void ) : 
+	mName( "default" ),
+  mDiffuseRefl(0.5,0.5,0.5),  mAmbientRefl(0.0,0.0,0.0),
+  mSpecular(0.0), mSpecExponent(0.0), mMirror(0.0),
+  mTransparence(0.0), mRefracIndex(0.0), mTransAdditive(0.0), mTransAttCol(0.0),
+	mFresnel( 0 )
+  //mNtfId(0), mNtfFluid(0), mNtfSolid(0)
+{ 
+  // just do default init...
+}
+
+
+
+/******************************************************************************
+ * Init constructor
+ *****************************************************************************/
+ntlMaterial::ntlMaterial( string name,
+													const ntlColor& Ref, const ntlColor& Amb,
+													gfxReal Spec, gfxReal SpecEx, gfxReal Mirr,
+													gfxReal Trans, gfxReal Refrac, gfxReal TAdd,
+													const ntlColor& Att, int fres)
+{
+	mName					= name;
+	mDiffuseRefl  = Ref;
+	mAmbientRefl  = Amb;
+	mSpecular     = Spec;
+	mSpecExponent = SpecEx;
+	mMirror       = Mirr;
+	mTransparence = Trans;
+	mRefracIndex  = Refrac;
+	mTransAdditive = TAdd;
+	mTransAttCol   = Att;
+	mFresnel 			= fres;
+}
 

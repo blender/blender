@@ -53,6 +53,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
@@ -141,6 +142,14 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 						conchan->ipo= ipo;
 					}
 				}
+				else if(si->blocktype==ID_FLUIDSIM) { // NT
+					if( (ob->fluidsimSettings) && 
+					    (ob->fluidsimSettings->ipo) ) {
+						// decrement users counter
+						ob->fluidsimSettings->ipo->id.us--; 
+					}
+					ob->fluidsimSettings->ipo = ipo;
+				} 
 				else if(si->blocktype==ID_OB) {
 					if(ob->ipo)
 						ob->ipo->id.us--;
@@ -798,6 +807,9 @@ static char *ipo_modeselect_pup(void)
 #ifdef __CON_IPO
 		str += sprintf(str,formatstring, "Constraint",ID_CO, ICON_CONSTRAINT);
 #endif
+		if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
+			str += sprintf(str,formatstring,"Fluidsim",ID_FLUIDSIM, ICON_WORLD);
+		}
 	}
 
 	str += sprintf(str,formatstring, "Sequence",ID_SEQ, ICON_SEQUENCE);
@@ -1135,6 +1147,8 @@ void ipo_buttons(void)
 		icon = ICON_SEQUENCE;
 	else if(G.sipo->blocktype == ID_TE)
 		icon = ICON_TEXTURE;
+	else if(G.sipo->blocktype == ID_FLUIDSIM)
+		icon = ICON_WORLD;
 
 	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Show IPO type");
 

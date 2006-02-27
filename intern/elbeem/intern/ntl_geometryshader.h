@@ -38,6 +38,9 @@ class ntlGeometryShader :
 		virtual vector<ntlGeometryObject *>::iterator getObjectsBegin() { return mObjects.begin(); }
 		/*! Get end iterator for all objects */
 		virtual vector<ntlGeometryObject *>::iterator getObjectsEnd() { return mObjects.end(); }
+		
+		/*! notify object that dump is in progress (e.g. for field dump) */
+		virtual void notifyShaderOfDump(int frameNr,char *frameNrStr,string outfilename) = 0;
 
 	protected:
 

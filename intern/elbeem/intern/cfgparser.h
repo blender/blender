@@ -244,7 +244,7 @@
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 87 "src/cfgparser.yy"
+#line 85 "src/cfgparser.yy"
 typedef union YYSTYPE {
   int    intValue;
   float  floatValue;

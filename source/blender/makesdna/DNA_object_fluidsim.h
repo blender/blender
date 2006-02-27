@@ -33,12 +33,15 @@
 #ifndef DNA_OBJECT_FLUIDSIM_H
 #define DNA_OBJECT_FLUIDSIM_H
 
+#include "DNA_ID.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 	
 struct Mesh;
+struct Ipo;
+struct MVert;
 	
 typedef struct FluidsimSettings {
 	/* domain,fluid or obstacle */
@@ -87,6 +90,24 @@ typedef struct FluidsimSettings {
 	/* store start coords of axis aligned bounding box together with size */
 	/* values are inited during derived mesh display */
 	float bbStart[3], bbSize[3];
+
+	/* animated params */
+	struct Ipo *ipo;
+
+	/* additional flags depending on the type, lower short contains flags
+	 * to check validity, higher short additional flags */
+	int typeFlags;
+
+	/* boundary "stickiness" for part slip values */
+	float partSlipValue;
+	/* particle generation - on if >0, then determines amount */
+	float generateParticles, dummy;
+	/* particle display - size scaling, and alpha influence */
+	float particleInfSize, particleInfAlpha;
+
+	/* save fluidsurface normals in mvert.no, and surface vertex velocities (if available) in mvert.co */
+	struct MVert *meshSurfNormals;
+
 } FluidsimSettings;
 
 /* ob->fluidsimSettings defines */
@@ -96,6 +117,24 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_OBSTACLE		8
 #define OB_FLUIDSIM_INFLOW      16
 #define OB_FLUIDSIM_OUTFLOW     32
+#define OB_FLUIDSIM_PARTICLE    64
+
+#define OB_TYPEFLAG_START       16
+#define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))
+#define OB_FSBND_NOSLIP         (1<<(OB_TYPEFLAG_START+2))
+#define OB_FSBND_PARTSLIP       (1<<(OB_TYPEFLAG_START+3))
+#define OB_FSBND_FREESLIP       (1<<(OB_TYPEFLAG_START+4))
+#define OB_FSINFLOW_LOCALCOORD  (1<<(OB_TYPEFLAG_START+5))
+#define OB_FSDOMAIN_NOVECGEN      (1<<(OB_TYPEFLAG_START+6))
+
+// guiDisplayMode particle flags
+#define OB_FSDOM_GEOM     1
+#define OB_FSDOM_PREVIEW  2
+#define OB_FSDOM_FINAL    3
+#define OB_FSPART_BUBBLE  (1<<1)
+#define OB_FSPART_DROP    (1<<2)
+#define OB_FSPART_NEWPART (1<<3)
+#define OB_FSPART_FLOAT   (1<<4)
 
 #ifdef __cplusplus
 }

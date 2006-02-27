@@ -60,6 +60,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -122,6 +123,7 @@ extern int snd_ar[];
 extern int ac_ar[];
 extern int co_ar[];
 extern int te_ar[];
+extern int fluidsim_ar[]; // NT
 
 /* forwards */
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
@@ -426,6 +428,32 @@ static void make_ob_editipo(Object *ob, SpaceIpo *si)
 		}
 		
 		
+		ei++;
+	}
+	//fprintf(stderr,"FSIMAKE_OPBJ call %d \n", si->totipo);
+}
+
+// copied from make_seq_editipo
+static void make_fluidsim_editipo(SpaceIpo *si) // NT
+{
+	EditIpo *ei;
+	int a;
+	char *name;
+	ei= si->editipo= MEM_callocN(FLUIDSIM_TOTIPO*sizeof(EditIpo), "fluidsim_editipo");
+	si->totipo = FLUIDSIM_TOTIPO;
+	for(a=0; a<FLUIDSIM_TOTIPO; a++) {
+		//fprintf(stderr,"FSINAME %d %d \n",a,fluidsim_ar[a], (int)(getname_fluidsim_ei(fluidsim_ar[a]))  );
+		name = getname_fluidsim_ei(fluidsim_ar[a]);
+		strcpy(ei->name, name);
+		ei->adrcode= fluidsim_ar[a];
+		ei->col= ipo_rainbow(a, FLUIDSIM_TOTIPO);
+		ei->icu= find_ipocurve(si->ipo, ei->adrcode);
+		if(ei->icu) {
+			ei->flag = ei->icu->flag;
+		} 
+		//else { ei->flag |= IPO_VISIBLE; }
+		//fprintf(stderr,"FSIMAKE eif%d,icuf%d icu%d %d|%d\n", ei->flag,ei->icu->flag, (int)ei->icu, IPO_VISIBLE,IPO_SELECT);
+		//fprintf(stderr,"FSIMAKE eif%d icu%d %d|%d\n", ei->flag, (int)ei->icu, IPO_VISIBLE,IPO_SELECT);
 		ei++;
 	}
 }
@@ -886,6 +914,12 @@ static void make_editipo(void)
 			ob->ipowin= ID_PO;
 		}
 	}
+	else if(G.sipo->blocktype==ID_FLUIDSIM) {
+		if (ob) { // NT
+			ob->ipowin= ID_FLUIDSIM;
+			make_fluidsim_editipo(G.sipo);
+		}
+	}
 
 	if(G.sipo->editipo==0) return;
 	
@@ -1058,6 +1092,13 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 		//			*from= (ID *)sound;
 		//			if(sound) *ipo= sound->ipo;
 		//		}
+	}
+	else if(blocktype==ID_FLUIDSIM) {
+		if(ob && ( ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
+			FluidsimSettings *fss= ob->fluidsimSettings;
+			*from= (ID *)ob;
+			if(fss) *ipo= fss->ipo;
+		}
 	}
 }
 
@@ -1673,6 +1714,17 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 						return key->ipo;
 					}
 					return NULL;
+				}
+				else if(blocktype== ID_FLUIDSIM) {
+					Object *ob= (Object *)from;
+					if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
+						FluidsimSettings *fss= ob->fluidsimSettings;
+						if(fss->ipo==NULL) {
+							fss->ipo= add_ipo("FluidsimIpo", ID_FLUIDSIM);
+							//fprintf(stderr,"FSIPO NEW!\n");
+						}
+						return fss->ipo;
+					}
 				}
 			}
 			break;

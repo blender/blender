@@ -15,7 +15,7 @@
 
 #include "utilities.h"
 #include "solver_interface.h"
-#include "ntl_scene.h"
+#include "ntl_ray.h"
 #include <stdio.h>
 
 #if PARALLEL==1
@@ -25,22 +25,14 @@
 #define PARALLEL 0
 #endif // PARALLEL
 
-#ifndef LBMMODEL_DEFINED
-// force compiler error!
-ERROR - define model first!
-#endif // LBMMODEL_DEFINED
-
 
 // general solver setting defines
 
-// default to 3dim
-#ifndef LBMDIM
-#define LBMDIM 3
-#endif // LBMDIM
-
-
 //! debug coordinate accesses and the like? (much slower)
+//  might be enabled by compilation
+#ifndef FSGR_STRICT_DEBUG
 #define FSGR_STRICT_DEBUG 0
+#endif // FSGR_STRICT_DEBUG
 
 //! debug coordinate accesses and the like? (much slower)
 #define FSGR_OMEGA_DEBUG 0
@@ -81,6 +73,7 @@ ERROR - define model first!
 #define FSGR_MAXNOOFLEVELS 5
 
 // enable/disable fine grid compression for finest level
+// make sure this is same as useGridComp in calculateMemreqEstimate
 #if LBMDIM==3
 #define COMPRESSGRIDS 1
 #else 
@@ -113,15 +106,14 @@ ERROR - define model first!
 #endif
 #endif
 
-#if ELBEEM_BLENDER!=1
+#if LBM_INCLUDE_TESTSOLVERS==1
 #include "solver_test.h"
-#endif // ELBEEM_BLENDER==1
+#endif // LBM_INCLUDE_TESTSOLVERS==1
 
 /*****************************************************************************/
 /*! cell access classes */
-template<typename D>
 class UniformFsgrCellIdentifier : 
-	public CellIdentifierInterface 
+	public CellIdentifierInterface , public LbmCellContents
 {
 	public:
 		//! which grid level?
@@ -137,14 +129,13 @@ class UniformFsgrCellIdentifier :
 		virtual string getAsString() {
 			std::ostringstream ret;
 			ret <<"{ i"<<x<<",j"<<y;
-			if(D::cDimension>2) ret<<",k"<<z;
+			if(LBMDIM>2) ret<<",k"<<z;
 			ret <<" }";
 			return ret.str();
 		}
 
 		virtual bool equal(CellIdentifierInterface* other) {
-			//UniformFsgrCellIdentifier<D> *cid = dynamic_cast<UniformFsgrCellIdentifier<D> *>( other );
-			UniformFsgrCellIdentifier<D> *cid = (UniformFsgrCellIdentifier<D> *)( other );
+			UniformFsgrCellIdentifier *cid = (UniformFsgrCellIdentifier *)( other );
 			if(!cid) return false;
 			if( x==cid->x && y==cid->y && z==cid->z && level==cid->level ) return true;
 			return false;
@@ -165,7 +156,7 @@ public:
 	//! size this level was advanced to 
 	LbmFloat time;
 	//! size of a single lbm step in time units on this level 
-	LbmFloat stepsize;
+	LbmFloat timestep;
 	//! step count
 	int lsteps;
 	//! gravity force for this level
@@ -203,9 +194,8 @@ public:
 
 /*****************************************************************************/
 /*! class for solving a LBM problem */
-template<class D>
 class LbmFsgrSolver : 
-	public D // this means, the solver is a lbmData object and implements the lbmInterface
+	public LbmSolverInterface // this means, the solver is a lbmData object and implements the lbmInterface
 {
 
 	public:
@@ -213,26 +203,23 @@ class LbmFsgrSolver :
 		LbmFsgrSolver();
 		//! Destructor 
 		virtual ~LbmFsgrSolver();
-		//! id string of solver
-		virtual string getIdString();
-		//! dimension of solver
-		virtual int getDimension();
 
 		//! initilize variables fom attribute list 
 		virtual void parseAttrList();
 		//! Initialize omegas and forces on all levels (for init/timestep change)
 		void initLevelOmegas();
 		//! finish the init with config file values (allocate arrays...) 
-		virtual bool initializeSolver(); //( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ );
+		virtual bool initializeSolver(); 
+		//! notify object that dump is in progress (e.g. for field dump) 
+		virtual void notifySolverOfDump(int frameNr,char *frameNrStr,string outfilename);
 
 #if LBM_USE_GUI==1
 		//! show simulation info (implement LbmSolverInterface pure virtual func)
-		virtual void debugDisplay(fluidDispSettings *set);
+		virtual void debugDisplay(int set);
 #endif
 		
-		
 		// implement CellIterator<UniformFsgrCellIdentifier> interface
-		typedef UniformFsgrCellIdentifier<typename D::LbmCellContents> stdCellId;
+		typedef UniformFsgrCellIdentifier stdCellId;
 		virtual CellIdentifierInterface* getFirstCell( );
 		virtual void advanceCell( CellIdentifierInterface* );
 		virtual bool noEndCell( CellIdentifierInterface* );
@@ -249,7 +236,7 @@ class LbmFsgrSolver :
 		virtual LbmFloat   getCellFill     ( CellIdentifierInterface* ,int set);
 		virtual CellFlagType getCellFlag   ( CellIdentifierInterface* ,int set);
 		virtual LbmFloat   getEquilDf      ( int );
-		virtual int        getDfNum        ( );
+		virtual ntlVec3Gfx getVelocityAt   (float x, float y, float z);
 		// convert pointers
 		stdCellId* convertBaseCidToStdCid( CellIdentifierInterface* basecid);
 
@@ -264,6 +251,8 @@ class LbmFsgrSolver :
 		LBM_INLINED void initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass);
 		LBM_INLINED void initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel);
 		LBM_INLINED void changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
+		//! interpolate velocity and density at a given position
+		void interpolateCellValues(int level,int ei,int ej,int ek,int workSet, LbmFloat &retrho, LbmFloat &retux, LbmFloat &retuy, LbmFloat &retuz);
 
 		/*! perform a single LBM step */
 		void stepMain();
@@ -288,8 +277,8 @@ class LbmFsgrSolver :
 	
 		// gui/output debugging functions
 #if LBM_USE_GUI==1
-		virtual void debugDisplayNode(fluidDispSettings *dispset, CellIdentifierInterface* cell );
-		virtual void lbmDebugDisplay(fluidDispSettings *dispset);
+		virtual void debugDisplayNode(int dispset, CellIdentifierInterface* cell );
+		virtual void lbmDebugDisplay(int dispset);
 		virtual void lbmMarkedCellDisplay();
 #endif // LBM_USE_GUI==1
 		virtual void debugPrintNodeInfo(CellIdentifierInterface* cell, int forceSet=-1);
@@ -298,7 +287,7 @@ class LbmFsgrSolver :
 		void prepareVisualization( void );
 
 		/*! type for cells */
-		typedef typename D::LbmCell LbmCell;
+		//typedef typename this->LbmCell LbmCell;
 		
 	protected:
 
@@ -311,6 +300,8 @@ class LbmFsgrSolver :
 		void adaptTimestep();
 		//! init mObjectSpeeds for current parametrization
 		void recalculateObjectSpeeds();
+		//! init moving obstacles for next sim step sim 
+		void initMovingObstacles(bool staticInit);
 		//! flag reinit step - always works on finest grid!
 		void reinitFlags( int workSet );
 		//! mass dist weights
@@ -347,10 +338,6 @@ class LbmFsgrSolver :
 		
 		//! use time adaptivity? 
 		bool mTimeAdap;
-		//! domain boundary free/no slip type
-		string mDomainBound;
-		//! part slip value for domain
-		LbmFloat mDomainPartSlipValue;
 
 		//! fluid vol height
 		LbmFloat mFVHeight;
@@ -364,12 +351,17 @@ class LbmFsgrSolver :
 		//! smoother surface initialization?
 		int mInitSurfaceSmoothing;
 
+		//! lock time step down switching
 		int mTimestepReduceLock;
+		//! count no. of switches
 		int mTimeSwitchCounts;
+		// only switch of maxvel is higher for several steps...
+		int mTimeMaxvelStepCnt;
+
 		//! total simulation time so far 
-		LbmFloat mSimulationTime;
+		LbmFloat mSimulationTime, mLastSimTime;
 		//! smallest and largest step size so far 
-		LbmFloat mMinStepTime, mMaxStepTime;
+		LbmFloat mMinTimestep, mMaxTimestep;
 		//! track max. velocity
 		LbmFloat mMxvx, mMxvy, mMxvz, mMaxVlen;
 
@@ -442,17 +434,10 @@ class LbmFsgrSolver :
 		int mDisableStandingFluidInit;
 		//! debug function to force tadap syncing
 		int mForceTadapRefine;
-
-#ifndef ELBEEM_BLENDER
-		// test functions
-		bool mUseTestdata;
-		LbmTestdata *mpTest;
-		void initTestdata();
-		void destroyTestdata();
-		void handleTestdata();
-		void exportTestdata();
+		//! border cutoff value
+		int mCutoff;
+		//! store particle tracer
 		ParticleTracer *mpParticles;
-#endif // ELBEEM_BLENDER==1
 
 		// strict debug interface
 #		if FSGR_STRICT_DEBUG==1
@@ -467,8 +452,226 @@ class LbmFsgrSolver :
 		LbmFloat* debRACPNT(int level,  int ii,int ij,int ik, int is );
 		LbmFloat& debRAC(LbmFloat* s,int l);
 #		endif // FSGR_STRICT_DEBUG==1
+
+		bool mUseTestdata;
+#if LBM_INCLUDE_TESTSOLVERS==1
+		// test functions
+		LbmTestdata *mpTest;
+		void initTestdata();
+		void destroyTestdata();
+		void handleTestdata();
+		void exportTestdata();
+		void set3dHeight(int ,int );
+	public:
+		// needed from testdata
+		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat &retux, LbmFloat &retuy);
+#endif // LBM_INCLUDE_TESTSOLVERS==1
+
+	public: // former LbmModelLBGK  functions
+		// relaxation funtions - implemented together with relax macros
+		static inline LbmFloat getVelVecLen(int l, LbmFloat ux,LbmFloat uy,LbmFloat uz);
+		static inline LbmFloat getCollideEq(int l, LbmFloat rho,  LbmFloat ux, LbmFloat uy, LbmFloat uz);
+		inline LbmFloat getLesNoneqTensorCoeff( LbmFloat df[], 				LbmFloat feq[] );
+		inline LbmFloat getLesOmega(LbmFloat omega, LbmFloat csmago, LbmFloat Qo);
+		inline void collideArrays( int i, int j, int k, // position - more for debugging
+				LbmFloat df[], LbmFloat &outrho, // out only!
+				// velocity modifiers (returns actual velocity!)
+				LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, LbmFloat omega, LbmFloat csmago, LbmFloat *newOmegaRet, LbmFloat *newQoRet);
+
+
+		// former LBM models
+	public:
+
+//! shorten static const definitions
+#define STCON static const
+
+#if LBMDIM==3
+		
+		//! id string of solver
+		virtual string getIdString() { return string("FreeSurfaceFsgrSolver[BGK_D3Q19]"); }
+
+		//! how many dimensions? UNUSED? replace by LBMDIM?
+		STCON int cDimension;
+
+		// Wi factors for collide step 
+		STCON LbmFloat cCollenZero;
+		STCON LbmFloat cCollenOne;
+		STCON LbmFloat cCollenSqrtTwo;
+
+		//! threshold value for filled/emptied cells 
+		STCON LbmFloat cMagicNr2;
+		STCON LbmFloat cMagicNr2Neg;
+		STCON LbmFloat cMagicNr;
+		STCON LbmFloat cMagicNrNeg;
+
+		//! size of a single set of distribution functions 
+		STCON int    cDfNum;
+		//! direction vector contain vecs for all spatial dirs, even if not used for LBM model
+		STCON int    cDirNum;
+
+		//! distribution functions directions 
+		typedef enum {
+			 cDirInv=  -1,
+			 cDirC  =  0,
+			 cDirN  =  1,
+			 cDirS  =  2,
+			 cDirE  =  3,
+			 cDirW  =  4,
+			 cDirT  =  5,
+			 cDirB  =  6,
+			 cDirNE =  7,
+			 cDirNW =  8,
+			 cDirSE =  9,
+			 cDirSW = 10,
+			 cDirNT = 11,
+			 cDirNB = 12,
+			 cDirST = 13,
+			 cDirSB = 14,
+			 cDirET = 15,
+			 cDirEB = 16,
+			 cDirWT = 17,
+			 cDirWB = 18
+		} dfDir;
+
+		/* Vector Order 3D:
+		 *  0   1  2   3  4   5  6       7  8  9 10  11 12 13 14  15 16 17 18     19 20 21 22  23 24 25 26
+		 *  0,  0, 0,  1,-1,  0, 0,      1,-1, 1,-1,  0, 0, 0, 0,  1, 1,-1,-1,     1,-1, 1,-1,  1,-1, 1,-1
+		 *  0,  1,-1,  0, 0,  0, 0,      1, 1,-1,-1,  1, 1,-1,-1,  0, 0, 0, 0,     1, 1,-1,-1,  1, 1,-1,-1
+		 *  0,  0, 0,  0, 0,  1,-1,      0, 0, 0, 0,  1,-1, 1,-1,  1,-1, 1,-1,     1, 1, 1, 1, -1,-1,-1,-1
+		 */
+
+		/*! name of the dist. function 
+			 only for nicer output */
+		STCON char* dfString[ 19 ];
+
+		/*! index of normal dist func, not used so far?... */
+		STCON int dfNorm[ 19 ];
+
+		/*! index of inverse dist func, not fast, but useful... */
+		STCON int dfInv[ 19 ];
+
+		/*! index of x reflected dist func for free slip, not valid for all DFs... */
+		STCON int dfRefX[ 19 ];
+		/*! index of x reflected dist func for free slip, not valid for all DFs... */
+		STCON int dfRefY[ 19 ];
+		/*! index of x reflected dist func for free slip, not valid for all DFs... */
+		STCON int dfRefZ[ 19 ];
+
+		/*! dist func vectors */
+		STCON int dfVecX[ 27 ];
+		STCON int dfVecY[ 27 ];
+		STCON int dfVecZ[ 27 ];
+
+		/*! arrays as before with doubles */
+		STCON LbmFloat dfDvecX[ 27 ];
+		STCON LbmFloat dfDvecY[ 27 ];
+		STCON LbmFloat dfDvecZ[ 27 ];
+
+		/*! principal directions */
+		STCON int princDirX[ 2*3 ];
+		STCON int princDirY[ 2*3 ];
+		STCON int princDirZ[ 2*3 ];
+
+		/*! vector lengths */
+		STCON LbmFloat dfLength[ 19 ];
+
+		/*! equilibrium distribution functions, precalculated = getCollideEq(i, 0,0,0,0) */
+		static LbmFloat dfEquil[ 19 ];
+
+		/*! arrays for les model coefficients */
+		static LbmFloat lesCoeffDiag[ (3-1)*(3-1) ][ 27 ];
+		static LbmFloat lesCoeffOffdiag[ 3 ][ 27 ];
+
+#else // end LBMDIM==3 , LBMDIM==2
+		
+		//! id string of solver
+		virtual string getIdString() { return string("FreeSurfaceFsgrSolver[BGK_D2Q9]"); }
+
+		//! how many dimensions?
+		STCON int cDimension;
+
+		//! Wi factors for collide step 
+		STCON LbmFloat cCollenZero;
+		STCON LbmFloat cCollenOne;
+		STCON LbmFloat cCollenSqrtTwo;
+
+		//! threshold value for filled/emptied cells 
+		STCON LbmFloat cMagicNr2;
+		STCON LbmFloat cMagicNr2Neg;
+		STCON LbmFloat cMagicNr;
+		STCON LbmFloat cMagicNrNeg;
+
+		//! size of a single set of distribution functions 
+		STCON int    cDfNum;
+		STCON int    cDirNum;
+
+		//! distribution functions directions 
+		typedef enum {
+			 cDirInv=  -1,
+			 cDirC  =  0,
+			 cDirN  =  1,
+			 cDirS  =  2,
+			 cDirE  =  3,
+			 cDirW  =  4,
+			 cDirNE =  5,
+			 cDirNW =  6,
+			 cDirSE =  7,
+			 cDirSW =  8
+		} dfDir;
+
+		/* Vector Order 2D:
+		 * 0  1 2  3  4  5  6 7  8
+		 * 0, 0,0, 1,-1, 1,-1,1,-1 
+		 * 0, 1,-1, 0,0, 1,1,-1,-1  */
+
+		/* name of the dist. function 
+			 only for nicer output */
+		STCON char* dfString[ 9 ];
+
+		/* index of normal dist func, not used so far?... */
+		STCON int dfNorm[ 9 ];
+
+		/* index of inverse dist func, not fast, but useful... */
+		STCON int dfInv[ 9 ];
+
+		/* index of x reflected dist func for free slip, not valid for all DFs... */
+		STCON int dfRefX[ 9 ];
+		/* index of x reflected dist func for free slip, not valid for all DFs... */
+		STCON int dfRefY[ 9 ];
+		/* index of x reflected dist func for free slip, not valid for all DFs... */
+		STCON int dfRefZ[ 9 ];
+
+		/* dist func vectors */
+		STCON int dfVecX[ 9 ];
+		STCON int dfVecY[ 9 ];
+		/* Z, 2D values are all 0! */
+		STCON int dfVecZ[ 9 ];
+
+		/* arrays as before with doubles */
+		STCON LbmFloat dfDvecX[ 9 ];
+		STCON LbmFloat dfDvecY[ 9 ];
+		/* Z, 2D values are all 0! */
+		STCON LbmFloat dfDvecZ[ 9 ];
+
+		/*! principal directions */
+		STCON int princDirX[ 2*2 ];
+		STCON int princDirY[ 2*2 ];
+		STCON int princDirZ[ 2*2 ];
+
+		/* vector lengths */
+		STCON LbmFloat dfLength[ 9 ];
+
+		/* equilibrium distribution functions, precalculated = getCollideEq(i, 0,0,0,0) */
+		static LbmFloat dfEquil[ 9 ];
+
+		/*! arrays for les model coefficients */
+		static LbmFloat lesCoeffDiag[ (2-1)*(2-1) ][ 9 ];
+		static LbmFloat lesCoeffOffdiag[ 2 ][ 9 ];
+
+#endif  // LBMDIM==2
 };
 
+#undef STCON
 
 
 /*****************************************************************************/
@@ -479,7 +682,7 @@ class LbmFsgrSolver :
 // cell mark debugging
 #if FSGR_STRICT_DEBUG==10
 #define debugMarkCell(lev,x,y,z) \
-	errMsg("debugMarkCell",D::mName<<" step: "<<D::mStepCnt<<" lev:"<<(lev)<<" marking "<<PRINT_VEC((x),(y),(z))<<" line "<< __LINE__ ); \
+	errMsg("debugMarkCell",this->mName<<" step: "<<this->mStepCnt<<" lev:"<<(lev)<<" marking "<<PRINT_VEC((x),(y),(z))<<" line "<< __LINE__ ); \
 	debugMarkCellCall((lev),(x),(y),(z));
 #else // FSGR_STRICT_DEBUG==1
 #define debugMarkCell(lev,x,y,z) \
@@ -494,8 +697,8 @@ class LbmFsgrSolver :
 
 //! flag array acces macro
 #define _RFLAG(level,xx,yy,zz,set) mLevel[level].mprsFlags[set][ LBMGI((level),(xx),(yy),(zz),(set)) ]
-#define _RFLAG_NB(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+D::dfVecX[dir],(yy)+D::dfVecY[dir],(zz)+D::dfVecZ[dir],set) ]
-#define _RFLAG_NBINV(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+D::dfVecX[D::dfInv[dir]],(yy)+D::dfVecY[D::dfInv[dir]],(zz)+D::dfVecZ[D::dfInv[dir]],set) ]
+#define _RFLAG_NB(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set) ]
+#define _RFLAG_NBINV(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+this->dfVecX[this->dfInv[dir]],(yy)+this->dfVecY[this->dfInv[dir]],(zz)+this->dfVecZ[this->dfInv[dir]],set) ]
 
 // array data layouts
 // standard array layout  -----------------------------------------------------------------------------------------------
@@ -503,8 +706,8 @@ class LbmFsgrSolver :
 //#define _LBMQI(level, ii,ij,ik, is, lunused) ( ((is)*mLevel[level].lOffsz) + (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
 #define _LBMQI(level, ii,ij,ik, is, lunused) ( (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
 #define _QCELL(level,xx,yy,zz,set,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx),(yy),(zz),(set), l)*dTotalNum +(l)])
-#define _QCELL_NB(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx)+D::dfVecX[dir],(yy)+D::dfVecY[dir],(zz)+D::dfVecZ[dir],set, l)*dTotalNum +(l)])
-#define _QCELL_NBINV(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx)+D::dfVecX[D::dfInv[dir]],(yy)+D::dfVecY[D::dfInv[dir]],(zz)+D::dfVecZ[D::dfInv[dir]],set, l)*dTotalNum +(l)])
+#define _QCELL_NB(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set, l)*dTotalNum +(l)])
+#define _QCELL_NBINV(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx)+this->dfVecX[this->dfInv[dir]],(yy)+this->dfVecY[this->dfInv[dir]],(zz)+this->dfVecZ[this->dfInv[dir]],set, l)*dTotalNum +(l)])
 
 #define QCELLSTEP dTotalNum
 #define _RACPNT(level, ii,ij,ik, is )  &QCELL(level,ii,ij,ik,is,0)
@@ -555,7 +758,6 @@ class LbmFsgrSolver :
 #define dNW 6
 #define dSE 7
 #define dSW 8
-#define LBM_DFNUM 9
 #else
 // direction indices
 #define dC 0
@@ -577,12 +779,11 @@ class LbmFsgrSolver :
 #define dEB 16
 #define dWT 17
 #define dWB 18
-#define LBM_DFNUM 19
 #endif
 //? #define dWB 18
 
 // default init for dFlux values
-#define FLUX_INIT 0.5f * (float)(D::cDfNum)
+#define FLUX_INIT 0.5f * (float)(this->cDfNum)
 
 // only for non DF dir handling!
 #define dNET 19
@@ -617,24 +818,44 @@ class LbmFsgrSolver :
 
 
 
+/******************************************************************************/
+/*! equilibrium functions */
+/******************************************************************************/
+
+/*! calculate length of velocity vector */
+inline LbmFloat LbmFsgrSolver::getVelVecLen(int l, LbmFloat ux,LbmFloat uy,LbmFloat uz) {
+	return ((ux)*dfDvecX[l]+(uy)*dfDvecY[l]+(uz)*dfDvecZ[l]);
+};
+
+/*! calculate equilibrium DF for given values */
+inline LbmFloat LbmFsgrSolver::getCollideEq(int l, LbmFloat rho,  LbmFloat ux, LbmFloat uy, LbmFloat uz) {
+#if FSGR_STRICT_DEBUG==1
+	if((l<0)||(l>LBM_DFNUM)) { errFatal("LbmFsgrSolver::getCollideEq","Invalid DFEQ call "<<l, SIMWORLD_PANIC ); /* no access to mPanic here */	}
+#endif // FSGR_STRICT_DEBUG==1
+	LbmFloat tmp = getVelVecLen(l,ux,uy,uz); 
+	return( dfLength[l] *( 
+				+ rho - (3.0/2.0*(ux*ux + uy*uy + uz*uz)) 
+				+ 3.0 *tmp 
+				+ 9.0/2.0 *(tmp*tmp) )
+			);
+};
+
 /*****************************************************************************/
 /* init a given cell with flag, density, mass and equilibrium dist. funcs */
 
-template<class D>
-void LbmFsgrSolver<D>::changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag) {
+void LbmFsgrSolver::changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag) {
 	CellFlagType pers = RFLAG(level,xx,yy,zz,set) & CFPersistMask;
 	RFLAG(level,xx,yy,zz,set) = newflag | pers;
 }
 
-template<class D>
 void 
-LbmFsgrSolver<D>::initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass) {
+LbmFsgrSolver::initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass) {
   /* init eq. dist funcs */
 	LbmFloat *ecel;
 	int workSet = mLevel[level].setCurr;
 
 	ecel = RACPNT(level, i,j,k, workSet);
-	FORDF0 { RAC(ecel, l) = D::dfEquil[l] * rho; }
+	FORDF0 { RAC(ecel, l) = this->dfEquil[l] * rho; }
 	RAC(ecel, dMass) = mass;
 	RAC(ecel, dFfrac) = mass/rho;
 	RAC(ecel, dFlux) = FLUX_INIT;
@@ -646,14 +867,13 @@ LbmFsgrSolver<D>::initEmptyCell(int level, int i,int j,int k, CellFlagType flag,
 	return;
 }
 
-template<class D>
 void 
-LbmFsgrSolver<D>::initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel) {
+LbmFsgrSolver::initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel) {
 	LbmFloat *ecel;
 	int workSet = mLevel[level].setCurr;
 
 	ecel = RACPNT(level, i,j,k, workSet);
-	FORDF0 { RAC(ecel, l) = D::getCollideEq(l, rho,vel[0],vel[1],vel[2]); }
+	FORDF0 { RAC(ecel, l) = getCollideEq(l, rho,vel[0],vel[1],vel[2]); }
 	RAC(ecel, dMass) = mass;
 	RAC(ecel, dFfrac) = mass/rho;
 	RAC(ecel, dFlux) = FLUX_INIT;
@@ -665,24 +885,20 @@ LbmFsgrSolver<D>::initVelocityCell(int level, int i,int j,int k, CellFlagType fl
 	return;
 }
 
-template<class D>
-int LbmFsgrSolver<D>::getForZMinBnd() { 
+int LbmFsgrSolver::getForZMinBnd() { 
 	return 0; 
 }
-template<class D>
-int LbmFsgrSolver<D>::getForZMin1()   { 
-	if(D::cDimension==2) return 0;
+int LbmFsgrSolver::getForZMin1()   { 
+	if(LBMDIM==2) return 0;
 	return 1; 
 }
 
-template<class D>
-int LbmFsgrSolver<D>::getForZMaxBnd(int lev) { 
-	if(D::cDimension==2) return 1;
+int LbmFsgrSolver::getForZMaxBnd(int lev) { 
+	if(LBMDIM==2) return 1;
 	return mLevel[lev].lSizez -0;
 }
-template<class D>
-int LbmFsgrSolver<D>::getForZMax1(int lev)   { 
-	if(D::cDimension==2) return 1;
+int LbmFsgrSolver::getForZMax1(int lev)   { 
+	if(LBMDIM==2) return 1;
 	return mLevel[lev].lSizez -1;
 }
 

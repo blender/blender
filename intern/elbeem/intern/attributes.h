@@ -11,7 +11,7 @@
 #ifndef NTL_ATTRIBUTES_H
 
 #include "utilities.h"
-#include "ntl_matrices.h"
+template<class T> class ntlMatrix4x4;
 
 
 //! An animated attribute channel
@@ -19,19 +19,24 @@ template<class Scalar>
 class AnimChannel
 {
 	public:
+		// default constructor
+		AnimChannel() : 
+			mValue(), mTimes() { mInited = false; }
+
 		// null init constructor
 		AnimChannel(Scalar null) : 
-			mValue(1), mTimes(1) { mValue[0]=null; mTimes[0]=0.0; };
+			mValue(1), mTimes(1) { mValue[0]=null; mTimes[0]=0.0; mInited = true; }
 
 		// proper init
 		AnimChannel(vector<Scalar> v, vector<double> t) : 
-			mValue(v), mTimes(t) { };
+			mValue(v), mTimes(t) { mInited = true; }
 
 		// desctructor, nothing to do
 		~AnimChannel() { };
 
 		// get interpolated value at time t
 		Scalar get(double t) {
+			if(!mInited) { Scalar null; null=(Scalar)(0.0); return null; }
 			if(t<=mTimes[0])               { return mValue[0]; }
 			if(t>=mTimes[mTimes.size()-1]) { return mValue[mTimes.size()-1]; }
 			for(size_t i=0; i<mTimes.size()-1; i++) {
@@ -40,7 +45,7 @@ class AnimChannel
 					// interpolate
 					double d = mTimes[i+1]-mTimes[i];
 					double f = (t-mTimes[i])/d;
-					return mValue[i] * (1.0-f) + mValue[i+1] * f;
+					return (Scalar)(mValue[i] * (1.0-f) + mValue[i+1] * f);
 				}
 			}
 			// whats this...?
@@ -50,6 +55,7 @@ class AnimChannel
 		// get uninterpolated value at time t
 		Scalar getConstant(double t) {
 			//errMsg("DEBB","getc"<<t<<" ");
+			if(!mInited) { Scalar null; null=(Scalar)0.0; return null; }
 			if(t<=mTimes[0])               { return mValue[0]; }
 			if(t>=mTimes[mTimes.size()-1]) { return mValue[mTimes.size()-1]; }
 			for(size_t i=0; i<mTimes.size()-1; i++) {
@@ -69,13 +75,28 @@ class AnimChannel
 			mTimes.push_back(0.0);
 		}
 
+		//! debug function, prints channel as string
+		string printChannel();
+		//! valid init?
+		bool isInited() { return mInited; }
+
+		//! get number of entries (value and time sizes have to be equal)
+		int getSize() { return mValue.size(); };
+		//! raw access of value vector
+		vector<Scalar> &accessValues() { return mValue; }
+		//! raw access of time vector
+		vector<double> &accessTimes() { return mTimes; }
+		
 	protected:
 
+		/*! inited at least once? */
+		bool mInited;
 		/*! anim channel attribute values */
 		vector<Scalar> mValue;
 		/*! anim channel attr times */
 		vector<double> mTimes;
 };
+
 
 //! A single attribute
 class Attribute
@@ -106,7 +127,7 @@ class Attribute
 		bool getIsChannel() { return mIsChannel; }
 
 		//! get value as string 
-		string getAsString();
+		string getAsString(bool debug=false);
 		//! get value as integer value
 		int getAsInt();
 		//! get value as boolean
@@ -116,13 +137,13 @@ class Attribute
 		//! get value as 3d vector 
 		ntlVec3d getAsVec3d();
 		//! get value as 4x4 matrix
-		ntlMat4Gfx getAsMat4Gfx();
+		void getAsMat4Gfx(ntlMatrix4x4<gfxReal> *mat);
 
 		//! get channel as integer value
 		AnimChannel<int> getChannelInt();
 		//! get channel as double value
 		AnimChannel<double> getChannelFloat();
-		//! get channel as double value
+		//! get channel as double vector
 		AnimChannel<ntlVec3d> getChannelVec3d();
 
 		//! get the concatenated string of all value string
@@ -207,11 +228,12 @@ class AttributeList
 		double   readFloat(string name, double defaultValue,   string source,string target, bool needed);
 		string   readString(string name, string defaultValue,   string source,string target, bool needed);
 		ntlVec3d readVec3d(string name, ntlVec3d defaultValue,  string source,string target, bool needed);
-		ntlMat4Gfx readMat4Gfx(string name, ntlMat4Gfx defaultValue,  string source,string target, bool needed);
+		void readMat4Gfx(string name, ntlMatrix4x4<gfxReal> defaultValue,  string source,string target, bool needed, ntlMatrix4x4<gfxReal> *mat);
 		//! read attributes channels (attribute should be inited before)
 		AnimChannel<int>     readChannelInt(string name);
 		AnimChannel<double>  readChannelFloat(string name);
 		AnimChannel<ntlVec3d> readChannelVec3d(string name);
+		AnimChannel<ntlVec3f> readChannelVec3f(string name);
 
 		//! set that a parameter can be given, and will be ignored...
 		bool ignoreParameter(string name, string source);
@@ -228,6 +250,19 @@ class AttributeList
 		map<string, Attribute*> mAttrs;
 
 };
+
+ntlVec3f channelFindMaxVf (AnimChannel<ntlVec3f> channel);
+ntlVec3d channelFindMaxVd (AnimChannel<ntlVec3d> channel);
+int      channelFindMaxi  (AnimChannel<int     > channel);
+float    channelFindMaxf  (AnimChannel<float   > channel);
+double   channelFindMaxd  (AnimChannel<double  > channel);
+
+// unoptimized channel simplification functions, use elbeem.cpp functions
+bool channelSimplifyVf (AnimChannel<ntlVec3f> &channel);
+bool channelSimplifyVd (AnimChannel<ntlVec3d> &channel);
+bool channelSimplifyi  (AnimChannel<int     > &channel);
+bool channelSimplifyf  (AnimChannel<float   > &channel);
+bool channelSimplifyd  (AnimChannel<double  > &channel);
 
 #define NTL_ATTRIBUTES_H
 #endif

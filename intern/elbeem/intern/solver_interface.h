@@ -29,11 +29,10 @@
 #include "utilities.h"
 #include "ntl_bsptree.h"
 #include "ntl_geometryobject.h"
-#include "ntl_rndstream.h"
 #include "parametrizer.h"
 #include "attributes.h"
-#include "particletracer.h"
 #include "isosurface.h"
+class ParticleTracer;
 
 // use which fp-precision for LBM? 1=float, 2=double
 #ifdef PRECISION_LBM_SINGLE
@@ -67,6 +66,17 @@ typedef ntlVec3d LbmVec;
 #endif
 
 
+// default to 3dim
+#ifndef LBMDIM
+#define LBMDIM 3
+#endif // LBMDIM
+
+#if LBMDIM==2
+#define LBM_DFNUM 9
+#else
+#define LBM_DFNUM 19
+#endif
+
 // conversions (lbm and parametrizer)
 template<class T> inline LbmVec     vec2L(T v) { return LbmVec(v[0],v[1],v[2]); }
 template<class T> inline ParamVec   vec2P(T v) { return ParamVec(v[0],v[1],v[2]); }
@@ -75,39 +85,72 @@ template<class T> inline ParamVec   vec2P(T v) { return ParamVec(v[0],v[1],v[2])
 // bubble id type
 typedef int BubbleId;
 
-// for both short int/char
+// basic cell type distinctions
 #define CFUnused              (1<< 0)
 #define CFEmpty               (1<< 1)
 #define CFBnd                 (1<< 2)
-#define CFBndNoslip           (1<< 3)
-#define CFBndFreeslip         (1<< 4)
-#define CFBndPartslip         (1<< 5)
-// force symmetry for flag reinit
-#define CFNoInterpolSrc       (1<< 6) 
-#define CFFluid               (1<< 7)
-#define CFInter               (1<< 8)
-#define CFNoNbFluid           (1<< 9)
-#define CFNoNbEmpty           (1<<10)
-#define CFNoDelete            (1<<11)
-#define CFNoBndFluid          (1<<12)
-	
-//! refinement tags
-// cell treated normally on coarser grids
-#define CFGrNorm              (1<<13)
-// border cells to be interpolated from finer grid
-#define CFGrFromFine          (1<<14)
-#define CFGrFromCoarse        (1<<15)
-#define CFGrCoarseInited      (1<<16)
-// 32k aux border marker 
-#define CFGrToFine            (1<<17)
-#define CFMbndInflow          (1<<18)
-#define CFMbndOutflow         (1<<19)
+#define CFMbndInflow          (1<< 3)
+#define CFMbndOutflow         (1<< 4)
+#define CFFluid               (1<< 5)
+#define CFInter               (1<< 6)
+// additional for fluid (needed separately for adaptive grids)
+#define CFNoBndFluid          (1<< 7)
+#define CFNoDelete            (1<< 8)
 
-// debug/helper type
-#define CFIgnore              (1<<20)
+// additional bnd add flags
+#define CFBndNoslip           (1<< 9)
+#define CFBndFreeslip         (1<<10)
+#define CFBndPartslip         (1<<11)
+#define CFBndMoving           (1<<12)
+
+// additional for fluid/interface
+// force symmetry for flag reinit 
+#define CFNoInterpolSrc       (1<< 9) 
+#define CFNoNbFluid           (1<<10)
+#define CFNoNbEmpty           (1<<11)
+	
+// cell treated normally on coarser grids
+#define CFGrNorm              (1<< 9)
+#define CFGrCoarseInited      (1<<10)
+
+// (the following values shouldnt overlap to ensure
+// proper coarsening)
+// border cells to be interpolated from finer grid
+#define CFGrFromFine          (1<<13)
+// 32k aux border marker 
+#define CFGrToFine            (1<<14)
+// also needed on finest level
+#define CFGrFromCoarse        (1<<15)
+// additional refinement tags (coarse grids only?)
+// */
 
 // above 24 is used to encode in/outflow object type
 #define CFPersistMask (0xFF000000 | CFMbndInflow | CFMbndOutflow)
+
+/*
+// TEST
+// additional bnd add flags
+#define CFBndNoslip           (1<< 9)
+#define CFBndFreeslip         (1<<10)
+#define CFBndPartslip         (1<<11)
+#define CFBndMoving           (1<<12)
+
+// additional for fluid/interface
+// force symmetry for flag reinit 
+#define CFNoInterpolSrc       (1<<13) 
+#define CFNoNbFluid           (1<<14)
+#define CFNoNbEmpty           (1<<15)
+	
+// additional refinement tags (coarse grids only?)
+// cell treated normally on coarser grids
+#define CFGrNorm              (1<<16)
+// border cells to be interpolated from finer grid
+#define CFGrFromFine          (1<<17)
+#define CFGrFromCoarse        (1<<18)
+#define CFGrCoarseInited      (1<<19)
+// 32k aux border marker 
+#define CFGrToFine            (1<<20)
+// TEST */
 
 // nk
 #define CFInvalid             (CellFlagType)(1<<31)
@@ -129,14 +172,12 @@ typedef int BubbleId;
 // max. no. of cell values for 3d
 #define dTotalNum 22
 
-
 /*****************************************************************************/
 /*! a single lbm cell */
 /*  the template is only needed for 
  *  dimension dependend constants e.g. 
  *  number of df's in model */
-template<typename D>
-class LbmCellTemplate {
+class LbmCellContents {
 	public:
 		LbmFloat     df[ 27 ]; // be on the safe side here...
   	LbmFloat     rho;
@@ -145,51 +186,7 @@ class LbmCellTemplate {
 		CellFlagType flag;
 		BubbleId     bubble;
   	LbmFloat     ffrac;
-
-		//! test if a flag is set 
-		inline bool test(CellFlagType t) {
-			return ((flag & t)==t);
-		}
-		//! test if any of the given flags is set 
-		inline bool testAny(CellFlagType t) {
-			return ((flag & t)!=0);
-		}
-		//! test if the cell is empty 
-		inline bool isEmpty() {
-			return (flag == CFEmpty);
-		}
-
-		//! init default values for a certain flag type
-		inline void initDefaults(CellFlagType type) {
-			flag = type;
-			vel = LbmVec(0.0);
-			for(int l=0; l<D::cDfNum;l++) df[l] = D::dfEquil[l];
-				
-			if(type & CFFluid) {
-				rho = mass = ffrac = 1.0;
-				bubble = -1;
-			}
-			else if(type & CFInter) {
-				rho = mass = ffrac = 0.0;
-				bubble = 0;
-			}
-			else if(type & CFBnd) {
-				rho = mass = ffrac = 0.0;
-				bubble = -1;
-			}
-			else if(type & CFEmpty) {
-				rho = mass = ffrac = 0.0;
-				bubble = 0;
-			} else {
-				// ?
-				rho = mass = ffrac = 0.0;
-				bubble = -1;
-			}
-		}
-
-		//TODO add init method?
 };
-
 
 /* struct for the coordinates of a cell in the grid */
 typedef struct {
@@ -217,13 +214,6 @@ typedef struct {
 #define FLUIDDISPDensity    5
 #define FLUIDDISPGrid       6
 #define FLUIDDISPSurface    7
-
-//! settings for a debug display
-typedef struct fluidDispSettings_T {
-	int            type;  // what to display
-	bool           on;    // display enabled?
-	float          scale; // additional scale param
-} fluidDispSettings;
 
 
 
@@ -265,11 +255,12 @@ class LbmSolverInterface
 		virtual ~LbmSolverInterface() { };
 		//! id string of solver
 		virtual string getIdString() = 0;
-		//! dimension of solver
-		virtual int getDimension() = 0;
 
 		/*! finish the init with config file values (allocate arrays...) */
-		virtual bool initializeSolver() =0; //( ntlTree *tree, vector<ntlGeometryObject*> *objects ) = 0;
+		virtual bool initializeSolver() =0;
+		
+		/*! notify object that dump is in progress (e.g. for field dump) */
+		virtual void notifySolverOfDump(int frameNr,char *frameNrStr,string outfilename) = 0;
 
 		/*! parse a boundary flag string */
 		CellFlagType readBoundaryFlagInt(string name, int defaultValue, string source,string target, bool needed);
@@ -292,7 +283,7 @@ class LbmSolverInterface
 
 #if LBM_USE_GUI==1
 		/*! show simulation info */
-		virtual void debugDisplay(fluidDispSettings *) = 0;
+		virtual void debugDisplay(int) = 0;
 #endif
 
 		/*! init tree for certain geometry init */
@@ -305,8 +296,8 @@ class LbmSolverInterface
 				const gfxReal halfCellsize, bool &thinHit, bool recurse);
 		/*! set render globals, for scene/tree access */
 		void setRenderGlobals(ntlRenderGlobals *glob) { mpGlob = glob; };
-		/*! get max. velocity of all objects to initialize as fluid regions */
-		ntlVec3Gfx getGeoMaxInitialVelocity();
+		/*! get max. velocity of all objects to initialize as fluid regions, and of all moving objects */
+		ntlVec3Gfx getGeoMaxMovementVelocity(LbmFloat simtime, LbmFloat stepsize);
 
 		/* rt interface functions */
 		unsigned int getIsoVertexCount()  { return mpIso->getIsoVertexCount(); }
@@ -374,6 +365,20 @@ class LbmSolverInterface
 		//! set desired refinement
 		inline void setRefinementDesired(int set){ mRefinementDesired = set; }
 
+		//! set/get dump velocities flag
+		inline void setDumpVelocities(bool set)	{ mDumpVelocities = set; }
+		inline bool getDumpVelocities() const	{ return mDumpVelocities; }
+
+		//! set/get particle generation prob.
+		inline void setGenerateParticles(LbmFloat set)	{ mPartGenProb = set; }
+		inline LbmFloat getGenerateParticles() const	{ return mPartGenProb; }
+
+		//! set/get dump velocities flag
+		inline void setDomainBound(std::string set)	{ mDomainBound = set; }
+		inline std::string getDomainBound() const	{ return mDomainBound; }
+		//! set/get dump velocities flag
+		inline void setDomainPartSlip(LbmFloat set)	{ mDomainPartSlipValue = set; }
+		inline LbmFloat getDomainPartSlip() const	{ return mDomainPartSlipValue; }
 
 		// cell iterator interface
 		
@@ -399,18 +404,19 @@ class LbmSolverInterface
 		virtual LbmVec     getCellVelocity ( CellIdentifierInterface*,int ) = 0;
 		/*! get equilibrium distribution functions */
 		virtual LbmFloat   getEquilDf      ( int ) = 0;
-		/*! get number of distribution functions */
-		virtual int        getDfNum        ( ) = 0;
 		/*! redundant cell functions */
 		virtual LbmFloat   getCellDf       ( CellIdentifierInterface* ,int set, int dir) = 0;
 		virtual LbmFloat   getCellMass     ( CellIdentifierInterface* ,int set) = 0;
 		virtual LbmFloat   getCellFill     ( CellIdentifierInterface* ,int set) = 0;
 		virtual CellFlagType getCellFlag   ( CellIdentifierInterface* ,int set) = 0;
 
+		/*! get velocity directly from position */
+		virtual ntlVec3Gfx getVelocityAt(float x, float y, float z) = 0;
+
 		// gui/output debugging functions
 #if LBM_USE_GUI==1
-		virtual void debugDisplayNode(fluidDispSettings *dispset, CellIdentifier cell ) = 0;
-		virtual void lbmDebugDisplay(fluidDispSettings *dispset) = 0;
+		virtual void debugDisplayNode(int dispset, CellIdentifier cell ) = 0;
+		virtual void lbmDebugDisplay(int dispset) = 0;
 		virtual void lbmMarkedCellDisplay() = 0;
 #endif // LBM_USE_GUI==1
 		virtual void debugPrintNodeInfo(CellIdentifier cell, int forceSet=-1) = 0;
@@ -484,11 +490,6 @@ class LbmSolverInterface
 		/*! string for node info debugging output */
 		string mNodeInfoString;
 
-
-		/*! an own random stream */
-		ntlRandomStream mRandom;
-
-
 		// geo init vars
 		// TODO deprecate SimulationObject vars
 
@@ -534,353 +535,26 @@ class LbmSolverInterface
 		float mSmoothSurface;
 		float mSmoothNormals;
 
+		//! particle generation probability
+		LbmFloat mPartGenProb;
+
+		//! dump velocities?
+		bool mDumpVelocities;
+
 		// list for marked cells
 		vector<CellIdentifierInterface *> mMarkedCells;
 		int mMarkedCellIndex;
+
+		//! domain boundary free/no slip type
+		std::string mDomainBound;
+		//! part slip value for domain
+		LbmFloat mDomainPartSlipValue;
+
+		//! test vars
+		// strength of applied force
+		LbmFloat mTForceStrength;
+
 };
-
-
-//! shorten static const definitions
-#define STCON static const
-
-
-/*****************************************************************************/
-/*! class for solver templating - 3D implementation */
-class LbmD3Q19 {
-
-	public:
-
-		// constructor, init interface
-		LbmD3Q19() {};
-		// virtual destructor 
-		virtual ~LbmD3Q19() {};
-		//! id string of solver
-		string getIdString() { return string("3D"); }
-
-		//! how many dimensions?
-		STCON int cDimension;
-
-		// Wi factors for collide step 
-		STCON LbmFloat cCollenZero;
-		STCON LbmFloat cCollenOne;
-		STCON LbmFloat cCollenSqrtTwo;
-
-		//! threshold value for filled/emptied cells 
-		STCON LbmFloat cMagicNr2;
-		STCON LbmFloat cMagicNr2Neg;
-		STCON LbmFloat cMagicNr;
-		STCON LbmFloat cMagicNrNeg;
-
-		//! size of a single set of distribution functions 
-		STCON int    cDfNum;
-		//! direction vector contain vecs for all spatial dirs, even if not used for LBM model
-		STCON int    cDirNum;
-
-		//! distribution functions directions 
-		typedef enum {
-			 cDirInv=  -1,
-			 cDirC  =  0,
-			 cDirN  =  1,
-			 cDirS  =  2,
-			 cDirE  =  3,
-			 cDirW  =  4,
-			 cDirT  =  5,
-			 cDirB  =  6,
-			 cDirNE =  7,
-			 cDirNW =  8,
-			 cDirSE =  9,
-			 cDirSW = 10,
-			 cDirNT = 11,
-			 cDirNB = 12,
-			 cDirST = 13,
-			 cDirSB = 14,
-			 cDirET = 15,
-			 cDirEB = 16,
-			 cDirWT = 17,
-			 cDirWB = 18
-		} dfDir;
-
-		/* Vector Order 3D:
-		 *  0   1  2   3  4   5  6       7  8  9 10  11 12 13 14  15 16 17 18     19 20 21 22  23 24 25 26
-		 *  0,  0, 0,  1,-1,  0, 0,      1,-1, 1,-1,  0, 0, 0, 0,  1, 1,-1,-1,     1,-1, 1,-1,  1,-1, 1,-1
-		 *  0,  1,-1,  0, 0,  0, 0,      1, 1,-1,-1,  1, 1,-1,-1,  0, 0, 0, 0,     1, 1,-1,-1,  1, 1,-1,-1
-		 *  0,  0, 0,  0, 0,  1,-1,      0, 0, 0, 0,  1,-1, 1,-1,  1,-1, 1,-1,     1, 1, 1, 1, -1,-1,-1,-1
-		 */
-
-		/*! name of the dist. function 
-			 only for nicer output */
-		STCON char* dfString[ 19 ];
-
-		/*! index of normal dist func, not used so far?... */
-		STCON int dfNorm[ 19 ];
-
-		/*! index of inverse dist func, not fast, but useful... */
-		STCON int dfInv[ 19 ];
-
-		/*! index of x reflected dist func for free slip, not valid for all DFs... */
-		STCON int dfRefX[ 19 ];
-		/*! index of x reflected dist func for free slip, not valid for all DFs... */
-		STCON int dfRefY[ 19 ];
-		/*! index of x reflected dist func for free slip, not valid for all DFs... */
-		STCON int dfRefZ[ 19 ];
-
-		/*! dist func vectors */
-		STCON int dfVecX[ 27 ];
-		STCON int dfVecY[ 27 ];
-		STCON int dfVecZ[ 27 ];
-
-		/*! arrays as before with doubles */
-		STCON LbmFloat dfDvecX[ 27 ];
-		STCON LbmFloat dfDvecY[ 27 ];
-		STCON LbmFloat dfDvecZ[ 27 ];
-
-		/*! principal directions */
-		STCON int princDirX[ 2*3 ];
-		STCON int princDirY[ 2*3 ];
-		STCON int princDirZ[ 2*3 ];
-
-		/*! vector lengths */
-		STCON LbmFloat dfLength[ 19 ];
-
-		/*! equilibrium distribution functions, precalculated = getCollideEq(i, 0,0,0,0) */
-		static LbmFloat dfEquil[ 19 ];
-
-		/*! arrays for les model coefficients */
-		static LbmFloat lesCoeffDiag[ (3-1)*(3-1) ][ 27 ];
-		static LbmFloat lesCoeffOffdiag[ 3 ][ 27 ];
-
-}; // LbmData3D
-
-
-
-/*****************************************************************************/
-//! class for solver templating - 2D implementation 
-class LbmD2Q9 {
-	
-	public:
-
-		// constructor, init interface
-		LbmD2Q9() {};
-		// virtual destructor 
-		virtual ~LbmD2Q9() {};
-		//! id string of solver
-		string getIdString() { return string("2D"); }
-
-		//! how many dimensions?
-		STCON int cDimension;
-
-		//! Wi factors for collide step 
-		STCON LbmFloat cCollenZero;
-		STCON LbmFloat cCollenOne;
-		STCON LbmFloat cCollenSqrtTwo;
-
-		//! threshold value for filled/emptied cells 
-		STCON LbmFloat cMagicNr2;
-		STCON LbmFloat cMagicNr2Neg;
-		STCON LbmFloat cMagicNr;
-		STCON LbmFloat cMagicNrNeg;
-
-		//! size of a single set of distribution functions 
-		STCON int    cDfNum;
-		STCON int    cDirNum;
-
-		//! distribution functions directions 
-		typedef enum {
-			 cDirInv=  -1,
-			 cDirC  =  0,
-			 cDirN  =  1,
-			 cDirS  =  2,
-			 cDirE  =  3,
-			 cDirW  =  4,
-			 cDirNE =  5,
-			 cDirNW =  6,
-			 cDirSE =  7,
-			 cDirSW =  8
-		} dfDir;
-
-		/* Vector Order 2D:
-		 * 0  1 2  3  4  5  6 7  8
-		 * 0, 0,0, 1,-1, 1,-1,1,-1 
-		 * 0, 1,-1, 0,0, 1,1,-1,-1  */
-
-		/* name of the dist. function 
-			 only for nicer output */
-		STCON char* dfString[ 9 ];
-
-		/* index of normal dist func, not used so far?... */
-		STCON int dfNorm[ 9 ];
-
-		/* index of inverse dist func, not fast, but useful... */
-		STCON int dfInv[ 9 ];
-
-		/* index of x reflected dist func for free slip, not valid for all DFs... */
-		STCON int dfRefX[ 9 ];
-		/* index of x reflected dist func for free slip, not valid for all DFs... */
-		STCON int dfRefY[ 9 ];
-		/* index of x reflected dist func for free slip, not valid for all DFs... */
-		STCON int dfRefZ[ 9 ];
-
-		/* dist func vectors */
-		STCON int dfVecX[ 9 ];
-		STCON int dfVecY[ 9 ];
-		/* Z, 2D values are all 0! */
-		STCON int dfVecZ[ 9 ];
-
-		/* arrays as before with doubles */
-		STCON LbmFloat dfDvecX[ 9 ];
-		STCON LbmFloat dfDvecY[ 9 ];
-		/* Z, 2D values are all 0! */
-		STCON LbmFloat dfDvecZ[ 9 ];
-
-		/*! principal directions */
-		STCON int princDirX[ 2*2 ];
-		STCON int princDirY[ 2*2 ];
-		STCON int princDirZ[ 2*2 ];
-
-		/* vector lengths */
-		STCON LbmFloat dfLength[ 9 ];
-
-		/* equilibrium distribution functions, precalculated = getCollideEq(i, 0,0,0,0) */
-		static LbmFloat dfEquil[ 9 ];
-
-		/*! arrays for les model coefficients */
-		static LbmFloat lesCoeffDiag[ (2-1)*(2-1) ][ 9 ];
-		static LbmFloat lesCoeffOffdiag[ 2 ][ 9 ];
-
-}; // LbmData3D
-
-
-
-// lbmdimensions
-
-// not needed hereafter
-#undef STCON
-
-
-
-/*****************************************************************************/
-//! class for solver templating - lbgk (srt) model implementation 
-template<class DQ>
-class LbmModelLBGK : public DQ , public LbmSolverInterface {
-	public:
-
-		/*! type for cells contents, needed for cell id interface */
-		typedef DQ LbmCellContents;
-		/*! type for cells */
-		typedef LbmCellTemplate< LbmCellContents > LbmCell;
-
-		// constructor
-		LbmModelLBGK() : DQ(), LbmSolverInterface() {};
-		// virtual destructor 
-		virtual ~LbmModelLBGK() {};
-		//! id string of solver
-		string getIdString() { return DQ::getIdString() + string("lbgk]"); }
-
-		/*! calculate length of velocity vector */
-		static inline LbmFloat getVelVecLen(int l, LbmFloat ux,LbmFloat uy,LbmFloat uz) {
-			return ((ux)*DQ::dfDvecX[l]+(uy)*DQ::dfDvecY[l]+(uz)*DQ::dfDvecZ[l]);
-		};
-
-		/*! calculate equilibrium DF for given values */
-		static inline LbmFloat getCollideEq(int l, LbmFloat rho,  LbmFloat ux, LbmFloat uy, LbmFloat uz) {
-			LbmFloat tmp = getVelVecLen(l,ux,uy,uz); 
-			return( DQ::dfLength[l] *( 
-						+ rho - (3.0/2.0*(ux*ux + uy*uy + uz*uz)) 
-						+ 3.0 *tmp 
-						+ 9.0/2.0 *(tmp*tmp) )
-					);
-		};
-
-		
-		/*! relaxation LES functions */
-		inline LbmFloat getLesNoneqTensorCoeff(
-				LbmFloat df[], 				
-				LbmFloat feq[] ) {
-			LbmFloat Qo = 0.0;
-			for(int m=0; m< ((DQ::cDimension*DQ::cDimension)-DQ::cDimension)/2 ; m++) { 
-				LbmFloat qadd = 0.0;
-				for(int l=1; l<DQ::cDfNum; l++) { 
-					if(DQ::lesCoeffOffdiag[m][l]==0.0) continue;
-					qadd += DQ::lesCoeffOffdiag[m][l]*(df[l]-feq[l]);
-				}
-				Qo += (qadd*qadd);
-			}
-			Qo *= 2.0; // off diag twice
-			for(int m=0; m<DQ::cDimension; m++) { 
-				LbmFloat qadd = 0.0;
-				for(int l=1; l<DQ::cDfNum; l++) { 
-					if(DQ::lesCoeffDiag[m][l]==0.0) continue;
-					qadd += DQ::lesCoeffDiag[m][l]*(df[l]-feq[l]);
-				}
-				Qo += (qadd*qadd);
-			}
-			Qo = sqrt(Qo);
-			return Qo;
-		}
-		inline LbmFloat getLesOmega(LbmFloat omega, LbmFloat csmago, LbmFloat Qo) {
-			const LbmFloat tau = 1.0/omega;
-			const LbmFloat nu = (2.0*tau-1.0) * (1.0/6.0);
-			const LbmFloat C = csmago;
-			const LbmFloat Csqr = C*C;
-			LbmFloat S = -nu + sqrt( nu*nu + 18.0*Csqr*Qo ) / (6.0*Csqr);
-			return( 1.0/( 3.0*( nu+Csqr*S ) +0.5 ) );
-		}
-
-		// "normal" collision
-		inline void collideArrays(LbmFloat df[], 				
-				LbmFloat &outrho, // out only!
-				// velocity modifiers (returns actual velocity!)
-				LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, 
-				LbmFloat omega, LbmFloat csmago, 
-				LbmFloat *newOmegaRet, LbmFloat *newQoRet
-			) {
-			LbmFloat rho=df[0]; 
-			LbmFloat ux = mux;
-			LbmFloat uy = muy;
-			LbmFloat uz = muz; 
-			for(int l=1; l<DQ::cDfNum; l++) { 
-				rho += df[l]; 
-				ux  += (DQ::dfDvecX[l]*df[l]); 
-				uy  += (DQ::dfDvecY[l]*df[l]);  
-				uz  += (DQ::dfDvecZ[l]*df[l]);  
-			}  
-			LbmFloat feq[19];
-			for(int l=0; l<DQ::cDfNum; l++) { 
-				feq[l] = getCollideEq(l,rho,ux,uy,uz); 
-			}
-
-			LbmFloat omegaNew;
-			LbmFloat Qo = 0.0;
-			if(csmago>0.0) {
-				Qo = getLesNoneqTensorCoeff(df,feq);
-				omegaNew = getLesOmega(omega,csmago,Qo);
-			} else {
-				omegaNew = omega; // smago off...
-			}
-			if(newOmegaRet) *newOmegaRet = omegaNew; // return value for stats
-			if(newQoRet)    *newQoRet = Qo; // return value of non-eq. stress tensor
-
-			for(int l=0; l<DQ::cDfNum; l++) { 
-				df[l] = (1.0-omegaNew ) * df[l] + omegaNew * feq[l]; 
-			}  
-
-			mux = ux;
-			muy = uy;
-			muz = uz;
-			outrho = rho;
-		};
-
-}; // LBGK
-
-#ifdef LBMMODEL_DEFINED
-// force compiler error!
-ERROR - Dont include several LBM models at once...
-#endif
-#define LBMMODEL_DEFINED 1
-
-
-typedef LbmModelLBGK<  LbmD2Q9 > LbmBGK2D;
-typedef LbmModelLBGK< LbmD3Q19 > LbmBGK3D;
 
 
 // helper function to create consistent grid resolutions

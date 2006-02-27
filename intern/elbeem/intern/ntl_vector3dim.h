@@ -92,6 +92,7 @@ using std::string;
 
 #ifndef M_PI
 #define M_PI 3.1415926536
+#define M_E  2.7182818284
 #endif
 
 // make sure elbeem plugin def is valid

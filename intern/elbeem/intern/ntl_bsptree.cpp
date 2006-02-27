@@ -9,7 +9,6 @@
 
 
 #include "ntl_bsptree.h"
-#include "ntl_scene.h"
 #include "utilities.h"
 
 #include <algorithm>
@@ -146,7 +145,7 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
   mStart(0.0), mEnd(0.0), mMaxDepth( depth ), mMaxListLength( objnum ), mpRoot( NULL) ,
   mpNodeStack( NULL), mpTBB( NULL ),
 	mTriangleMask( 0xFFFF ),
-  mCurrentDepth(0), mCurrentNodes(0)
+  mCurrentDepth(0), mCurrentNodes(0), mTriDoubles(0)
 {  
 	// init scene data pointers
 	mpVertices = scene->getVertexPointer();
@@ -175,11 +174,12 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
 	mpTBB = new TriangleBBox[ noOfTriangles ];
 	int bbCount = 0;
   mStart = mEnd = (*mpVertices)[ mpTriangles->front().getPoints()[0] ];
+	//errMsg("TreeDebug","Start");
   for (vector<ntlTriangle>::iterator iter = mpTriangles->begin();
        iter != mpTriangles->end(); 
        iter++ ) {
+		//errorOut(" d "<< convertFlags2String((int)(*iter).getFlags()) <<" "<< convertFlags2String( (int)mTriangleMask)<<" add? "<<( ((int)(*iter).getFlags() & (int)mTriangleMask) != 0 ) );
 		// discard triangles that dont match mask
-		//errorOut(" d "<<(int)(*iter).getFlags() <<" "<< (int)mTriangleMask );
 		if( ((int)(*iter).getFlags() & (int)mTriangleMask) == 0 ) {
 			continue;
 		}
@@ -194,9 +194,11 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
 		// */
 
 		ntlVec3Gfx bbs, bbe;
+		//errMsg("TreeDebug","Triangle");
 		for(int i=0;i<3;i++) {
 			int index = (*iter).getPoints()[i];
 			ntlVec3Gfx tp = (*mpVertices)[ index ];
+			//errMsg("TreeDebug","  Point "<<i<<" = "<<tp<<" ");
 			if(tp[0] < mStart[0]) mStart[0]= tp[0];
 			if(tp[0] > mEnd[0])   mEnd[0]= tp[0];
 			if(tp[1] < mStart[1]) mStart[1]= tp[1];
@@ -241,6 +243,8 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
 	mpRoot->cloneVec = 0;
 	globalSortingPoints = mpVertices;
 	mpTriDist = new char[ mppTriangles->size() ];
+	mNumNodes = 1;
+	mAbortSubdiv = 0;
 
   /* create tree */
   debugOutInter( "Generating BSP Tree...  (Nodes "<< mCurrentNodes <<
@@ -265,9 +269,15 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
 	triPerLeaf /= (gfxReal)noLeafs;
 	debMsgStd("ntlTree::ntlTree",DM_MSG,"Tree ("<<doSort<<","<<chooseAxis<<") Stats: Leafs:"<<noLeafs<<", avgDepth:"<<avgDepth<<
 			", triPerLeaf:"<<triPerLeaf<<", triDoubles:"<<mTriDoubles<<", totalTris:"<<totalTris
+			<<" nodes:"<<mNumNodes
 			//<<" T"<< (totalTris%3)  // 0=ich, 1=f, 2=a
 			, 2 );
 
+	if(mAbortSubdiv) {
+		errMsg("ntlTree::ntlTree","Aborted... "<<mNumNodes);
+  	deleteNode(mpRoot);
+		mpRoot = NULL;
+	}
 }
 
 /******************************************************************************
@@ -295,6 +305,7 @@ void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 	if( ( (int)node->members->size() > mMaxListLength) &&
 			(depth < mMaxDepth ) 
 			&& (node->cloneVec<10)
+			&& (!mAbortSubdiv)
 			) {
 
 		gfxReal planeDiv = 0.499999;	// position of plane division
@@ -339,6 +350,9 @@ void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 			node->child[i]->members = NULL;
 			nextAxis = (axis+1)%3;
 			node->child[i]->axis = nextAxis;
+			mNumNodes++;
+			// abort when using 256MB only for tree...
+			if(mNumNodes*sizeof(BSPNode)> 1024*1024*512) mAbortSubdiv = 1;
 
 			/* current division plane */
 			if(!i) {
@@ -489,6 +503,7 @@ void ntlTree::intersect(const ntlRay &ray, gfxReal &distance,
   ray.intersectCompleteAABB(mStart,mEnd,mindist,maxdist);
 
   if((maxdist < 0.0) ||
+		 (!mpRoot) ||
      (mindist == GFX_REAL_MAX) ||
      (maxdist == GFX_REAL_MAX) ) {
     distance = -1.0;
@@ -681,6 +696,7 @@ void ntlTree::intersectX(const ntlRay &ray, gfxReal &distance,
   ray.intersectCompleteAABB(mStart,mEnd,mindist,maxdist); // +X
 
   if((maxdist < 0.0) ||
+		 (!mpRoot) ||
      (mindist == GFX_REAL_MAX) ||
      (maxdist == GFX_REAL_MAX) ) {
     distance = -1.0;

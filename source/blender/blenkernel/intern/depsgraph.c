@@ -1610,8 +1610,8 @@ static void dag_object_time_update_flags(Object *ob)
 				}
 				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
 					// fluidsimSettings might not be initialized during load...
-					if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
-						ob->recalc |= OB_RECALC_DATA; // NT
+					if(ob->fluidsimSettings->type & (OB_FLUIDSIM_DOMAIN|OB_FLUIDSIM_PARTICLE)) {
+						ob->recalc |= OB_RECALC_DATA; // NT FSPARTICLE
 					}
 				}
 				break;

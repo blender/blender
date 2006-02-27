@@ -67,6 +67,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+// FSPARTICLE
+#include "DNA_object_fluidsim.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -2502,7 +2504,10 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 	int a, totpart;
 	
 	pa= paf->keys;
-	if(pa==NULL) {
+	// FSPARTICLE always rebuild fluid particle system upon change...
+	if( (pa==NULL) 
+	    || ( (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings) && (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) 
+			) {
 		build_particle_system(ob);
 		pa= paf->keys;
 		if(pa==NULL) return;
@@ -2558,7 +2563,10 @@ static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
 	int a, use_norm=0, totpart;
 	
 	pa= paf->keys;
-	if(pa==NULL) {
+	// FSPARTICLE always rebuild upon change...
+	if( (pa==NULL) 
+	    || ( (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings) && (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) 
+			) {
 		build_particle_system(ob);
 		pa= paf->keys;
 		if(pa==NULL) return;

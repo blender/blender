@@ -52,6 +52,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_ipo_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -69,6 +70,9 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_ipo.h"
 #include "LBM_fluidsim.h"
+// FIXME move?
+// TODO FIXME DOUBLE elbeem.h! in intern/extern...
+#include "elbeem.h"
 
 #include "BLI_editVert.h"
 #include "BIF_editdeform.h"
@@ -80,7 +84,6 @@
 #include "BSE_headerbuttons.h"
 
 #include "mydevice.h"
-
 #include "SDL.h"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
@@ -98,6 +101,9 @@
 #ifdef __APPLE__	/* MacOS X */
 #undef main
 #endif
+
+// from DerivedMesh.c
+void initElbeemMesh(struct Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles);
 
 /* from header info.c */
 extern int start_progress_bar(void);
@@ -179,6 +185,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->orgMesh = (Mesh *)srcob->data;
 	fss->meshSurface = NULL;
 	fss->meshBB = NULL;
+	fss->meshSurfNormals = NULL;
 
 	// first init of bounding box
 	fss->bbStart[0] = 0.0;
@@ -187,7 +194,15 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->bbSize[0] = 1.0;
 	fss->bbSize[1] = 1.0;
 	fss->bbSize[2] = 1.0;
-	fluidsimGetAxisAlignedBB(srcob->data, srcob->obmat, fss->bbStart, fss->bbSize);
+	fluidsimGetAxisAlignedBB(srcob->data, srcob->obmat, fss->bbStart, fss->bbSize, &fss->meshBB);
+	
+	fss->typeFlags = 0;
+	fss->partSlipValue = 0.0;
+
+	fss->generateParticles = 0.0;
+	fss->particleInfSize = 0.0;
+	fss->particleInfAlpha = 0.0;
+
 	return fss;
 }
 
@@ -202,6 +217,16 @@ void fluidsimSettingsFree(FluidsimSettings *fss)
 		MEM_freeN(freeFsMesh);
 	}
 
+	freeFsMesh = fss->meshBB;
+	if(freeFsMesh) { // same as before...
+		if(freeFsMesh->mvert) MEM_freeN(freeFsMesh->mvert);
+		if(freeFsMesh->medge) MEM_freeN(freeFsMesh->medge);
+		if(freeFsMesh->mface) MEM_freeN(freeFsMesh->mface);
+		MEM_freeN(freeFsMesh);
+	}
+
+	if(fss->meshSurfNormals) MEM_freeN(fss->meshSurfNormals);
+
 	MEM_freeN(fss);
 }
 
@@ -213,17 +238,121 @@ void fluidsimGetGeometryObjFilename(struct Object *ob, char *dst) { //, char *sr
 }
 
 
+
+
+/* ******************************************************************************** */
+/* ********************** fluid sim channel helper functions ********************** */
+/* ******************************************************************************** */
+
+// no. of entries for the two channel sizes
+#define CHANNEL_FLOAT 1
+#define CHANNEL_VEC   3
+
+#define FS_FREE_ONECHANNEL(c,str) { \
+	if(c){ MEM_freeN(c); c=NULL; } \
+} // end ONE CHANN, debug: fprintf(stderr,"freeing " str " \n"); 
+
+#define FS_FREE_CHANNELS { \
+	FS_FREE_ONECHANNEL(timeAtIndex,"timeAtIndex");\
+	FS_FREE_ONECHANNEL(timeAtFrame,"timeAtFrame");\
+	FS_FREE_ONECHANNEL(channelDomainTime,"channelDomainTime"); \
+	FS_FREE_ONECHANNEL(channelDomainGravity,"channelDomainGravity");\
+	FS_FREE_ONECHANNEL(channelDomainViscosity,"channelDomainViscosity");\
+	for(i=0;i<256;i++) { \
+		FS_FREE_ONECHANNEL(channelObjMove[i][0],"channelObjMove0"); \
+		FS_FREE_ONECHANNEL(channelObjMove[i][1],"channelObjMove1"); \
+		FS_FREE_ONECHANNEL(channelObjMove[i][2],"channelObjMove2"); \
+		FS_FREE_ONECHANNEL(channelObjInivel[i],"channelObjInivel"); \
+		FS_FREE_ONECHANNEL(channelObjActive[i],"channelObjActive"); \
+	}  \
+} // end FS FREE CHANNELS
+
+
+// simplify channels before printing
+// for API this is done anyway upon init
+static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char *str, int entries) 
+{ 
+	int i,j; 
+	int channelSize = paramsize; 
+
+	if(entries==3) {
+		elbeemSimplifyChannelVec3( channel, &channelSize); 
+	} else if(entries==1) {
+		elbeemSimplifyChannelFloat( channel, &channelSize); 
+	} else {
+		// invalid, cant happen?
+	}
+
+	fprintf(file, "    CHANNEL %s = \n", str); 
+	for(i=0; i<channelSize;i++) { 
+		fprintf(file,"      ");  
+		for(j=0;j<=entries;j++) {  // also print time value
+			fprintf(file," %f ", channel[i*(entries+1)+j] ); 
+			if(j==entries-1){ fprintf(file,"  "); }
+		} 
+		fprintf(file," \n");  
+	} 
+
+	fprintf(file,  "    ; \n" ); 
+}
+
+
+static void fluidsimInitChannel(float **setchannel, int size, float *time, 
+		int *icuIds, float *defaults, Ipo* ipo, int entries) {
+	int i,j;
+	IpoCurve* icus[3];
+	char *cstr = NULL;
+	float *channel = NULL;
+	float aniFrlen = G.scene->r.framelen;
+	if((entries<1) || (entries>3)) {
+		printf("fluidsimInitChannel::Error - invalid no. of entries: %d\n",entries);
+		entries = 1;
+	}
+
+	cstr = "fluidsiminit_channelfloat";
+	if(entries>1) cstr = "fluidsiminit_channelvec";
+	channel = MEM_callocN( size* (entries+1)* sizeof(float), cstr );
+	
+	if(ipo) {
+		for(i=0; i<entries; i++) icus[i]  = find_ipocurve(ipo, icuIds[i] );
+	} else {
+		for(i=0; i<entries; i++) icus[i]  = NULL; 
+	}
+	
+	for(j=0; j<entries; j++) {
+		if(icus[j]) { 
+			for(i=1; i<=size; i++) {
+				calc_icu(icus[j], aniFrlen*((float)i) );
+				channel[(i-1)*(entries+1) + j] = icus[j]->curval;
+			}
+		}  else {
+			for(i=1; i<=size; i++) { channel[(i-1)*(entries+1) + j] = defaults[j]; }
+		}
+	}
+	// set time values
+	for(i=1; i<=size; i++) {
+		channel[(i-1)*(entries+1) + entries] = time[i];
+	}
+
+	*setchannel = channel;
+}
+
+
+
+/* ******************************************************************************** */
 /* ********************** simulation thread             ************************* */
+/* ******************************************************************************** */
+
 SDL_mutex	*globalBakeLock=NULL;
 int			globalBakeState = 0; // 0 everything ok, -1 abort simulation, 1 sim done
 int			globalBakeFrame = 0;
 
 // run simulation in seperate thread
-int fluidsimSimulateThread(void *ptr) {
-	char* fnameCfgPath = (char*)(ptr);
-	int ret;
+int fluidsimSimulateThread(void) { // *ptr) {
+	//char* fnameCfgPath = (char*)(ptr);
+	int ret=0;
 	
- 	ret = performElbeemSimulation(fnameCfgPath);
+ ret = elbeemSimulate();
 	SDL_mutexP(globalBakeLock);
 	if(globalBakeState==0) {
 		// if no error, set to normal exit
@@ -242,31 +371,27 @@ void simulateThreadIncreaseFrame(void) {
 	SDL_mutexV(globalBakeLock);
 }
 
-/* remember files created during bake for deletion */
-	//createdFiles[numCreatedFiles] = (char *)malloc(strlen(str)+1); 
-	//strcpy(createdFiles[numCreatedFiles] ,str); 
-#define ADD_CREATEDFILE(str) \
-	if(numCreatedFiles<255) {\
-		createdFiles[numCreatedFiles] = strdup(str); \
-		numCreatedFiles++; }
 
+/* ******************************************************************************** */
 /* ********************** write fluidsim config to file ************************* */
+/* ******************************************************************************** */
+
 void fluidsimBake(struct Object *ob)
 {
 	FILE *fileCfg;
 	int i;
 	struct Object *fsDomain = NULL;
-	FluidsimSettings *fssDomain;
+	FluidsimSettings *domainSettings;
 	struct Object *obit = NULL; /* object iterator */
 	int origFrame = G.scene->r.cfra;
 	char debugStrBuffer[256];
 	int dirExist = 0;
 	int gridlevels = 0;
-	char *createdFiles[256];
-	int  numCreatedFiles = 0;
-	int  doDeleteCreatedFiles = 1;
 	int simAborted = 0; // was the simulation aborted by user?
-	char *delEnvStr = "BLENDER_DELETEELBEEMFILES";
+	int  doExportOnly = 0;
+	char *exportEnvStr = "BLENDER_ELBEEMEXPORTONLY";
+	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
+	//char *channelNames[3] = { "translation","rotation","scale" };
 
 	char *suffixConfig = "fluidsim.cfg";
 	char *suffixSurface = "fluidsurface";
@@ -275,17 +400,46 @@ void fluidsimBake(struct Object *ob)
 	char targetFile[FILE_MAXDIR+FILE_MAXFILE]; // temp. store filename from targetDir for access
 	int  outStringsChanged = 0;             // modified? copy back before baking
 	int  haveSomeFluid = 0;                 // check if any fluid objects are set
-	int noFrames = G.scene->r.efra - 1 /*G.scene->r.sfra*/;
 
-	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
+	// config vars, inited before either export or run...
+	double calcViscosity = 0.0;
+	int noFrames;
+	double aniFrameTime;
+	float aniFrlen;
+	int   channelObjCount;
+	float *bbStart = NULL;
+	float *bbSize = NULL;
+	float domainMat[4][4];
+	float invDomMat[4][4];
+	// channel data
+	int   allchannelSize; // fixed by no. of frames
+	int   startFrame = 1;  // dont use G.scene->r.sfra here, always start with frame 1
+	// easy frame -> sim time calc
+	float *timeAtFrame=NULL, *timeAtIndex=NULL;
+	// domain
+	float *channelDomainTime = NULL;
+	float *channelDomainViscosity = NULL; 
+	float *channelDomainGravity = NULL;
+	// objects (currently max. 256 objs)
+	float *channelObjMove[256][3]; // object movments , 0=trans, 1=rot, 2=scale
+	float *channelObjInivel[256];    // initial velocities
+	float *channelObjActive[256];    // obj active channel
 
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
-		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to  envvar '%s'\n",strEnvName); 
+		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to envvar '%s'\n",strEnvName); 
+		elbeemDebugOut(debugStrBuffer);
+	}
+	if(getenv(exportEnvStr)) {
+		doExportOnly = atoi(getenv(exportEnvStr));
+		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Exporting mode set to '%d' due to envvar '%s'\n",doExportOnly, exportEnvStr); 
 		elbeemDebugOut(debugStrBuffer);
 	}
 
+	// make sure it corresponds to startFrame setting
+	// old: noFrames = G.scene->r.efra - G.scene->r.sfra +1;
+	noFrames = G.scene->r.efra - 0;
 	if(noFrames<=0) {
 		pupmenu("Fluidsim Bake Error%t|No frames to export - check your animation range settings. Aborted%x0");
 		return;
@@ -296,36 +450,37 @@ void fluidsimBake(struct Object *ob)
 		if((obit->fluidsimFlag & OB_FLUIDSIM_ENABLE)&&(obit->type==OB_MESH)) {
 			if(obit->fluidsimSettings->type == OB_FLUIDSIM_DOMAIN) {
 				if(obit != ob) {
-					snprintf(debugStrBuffer,256,"fluidsimBake::warning - More than one domain!\n"); 
-					elbeemDebugOut(debugStrBuffer);
+					//snprintf(debugStrBuffer,256,"fluidsimBake::warning - More than one domain!\n"); elbeemDebugOut(debugStrBuffer);
+					pupmenu("Fluidsim Bake Error%t|There should be only one domain object! Aborted%x0");
+					return;
 				}
 			}
 		}
 	}
 	/* these both have to be valid, otherwise we wouldnt be here...*/
 	fsDomain = ob;
-	fssDomain = ob->fluidsimSettings;
+	domainSettings = ob->fluidsimSettings;
 	/* rough check of settings... */
-	if(fssDomain->previewresxyz > fssDomain->resolutionxyz) {
-		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", fssDomain->previewresxyz ,  fssDomain->resolutionxyz); 
+	if(domainSettings->previewresxyz > domainSettings->resolutionxyz) {
+		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz); 
 		elbeemDebugOut(debugStrBuffer);
-		fssDomain->previewresxyz = fssDomain->resolutionxyz;
+		domainSettings->previewresxyz = domainSettings->resolutionxyz;
 	}
 	// set adaptive coarsening according to resolutionxyz
 	// this should do as an approximation, with in/outflow
 	// doing this more accurate would be overkill
 	// perhaps add manual setting?
-	if(fssDomain->maxRefine <0) {
-		if(fssDomain->resolutionxyz>128) {
+	if(domainSettings->maxRefine <0) {
+		if(domainSettings->resolutionxyz>128) {
 			gridlevels = 2;
 		} else
-		if(fssDomain->resolutionxyz>64) {
+		if(domainSettings->resolutionxyz>64) {
 			gridlevels = 1;
 		} else {
 			gridlevels = 0;
 		}
 	} else {
-		gridlevels = fssDomain->maxRefine;
+		gridlevels = domainSettings->maxRefine;
 	}
 	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels ); 
 	elbeemDebugOut(debugStrBuffer);
@@ -347,12 +502,13 @@ void fluidsimBake(struct Object *ob)
 	}
 
 	// prepare names...
-	strncpy(targetDir, fssDomain->surfdataPath, FILE_MAXDIR);
-	strncpy(newSurfdataPath, fssDomain->surfdataPath, FILE_MAXDIR);
+	strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
+	strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR);
 	BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
 
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
+	if(!doExportOnly) { strcat(targetFile,".tmp"); }  // dont overwrite/delete original file
 	// make sure all directories exist
 	// as the bobjs use the same dir, this only needs to be checked
 	// for the cfg output
@@ -361,7 +517,11 @@ void fluidsimBake(struct Object *ob)
 	// check selected directory
 	// simply try to open cfg file for writing to test validity of settings
 	fileCfg = fopen(targetFile, "w");
-	if(fileCfg) { dirExist = 1; fclose(fileCfg); }
+	if(fileCfg) { 
+		dirExist = 1; fclose(fileCfg); 
+		// remove cfg dummy from  directory test
+		if(!doExportOnly) { BLI_delete(targetFile, 0,0); }
+	}
 
 	if((strlen(targetDir)<1) || (!dirExist)) {
 		char blendDir[FILE_MAXDIR+FILE_MAXFILE], blendFile[FILE_MAXDIR+FILE_MAXFILE];
@@ -395,316 +555,302 @@ void fluidsimBake(struct Object *ob)
 		selection = pupmenu(dispmsg);
 		if(selection<1) return; // 0 from menu, or -1 aborted
 		strcpy(targetDir, newSurfdataPath);
+		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
 		BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
 	}
 	
+	// --------------------------------------------------------------------------------------------
+	// dump data for start frame 
+	// CHECK more reasonable to number frames according to blender?
 	// dump data for frame 0
-  G.scene->r.cfra = 1 /*G.scene->r.sfra*/;
+  G.scene->r.cfra = startFrame;
   scene_update_for_newframe(G.scene, G.scene->lay);
+	
+	// init common export vars for both file export and run
+	for(i=0; i<256; i++) {
+		channelObjMove[i][0] = channelObjMove[i][1] = channelObjMove[i][2] = NULL;
+		channelObjInivel[i] = NULL;
+		channelObjActive[i] = NULL;
+	}
+	allchannelSize = G.scene->r.efra; // always use till last frame
+	aniFrameTime = (domainSettings->animEnd - domainSettings->animStart)/(double)noFrames;
+	// blender specific - scale according to map old/new settings in anim panel:
+	aniFrlen = G.scene->r.framelen;
+	if(domainSettings->viscosityMode==1) {
+		/* manual mode */
+		calcViscosity = (1.0/(domainSettings->viscosityExponent*10)) * domainSettings->viscosityValue;
+	} else {
+		calcViscosity = fluidsimViscosityPreset[ domainSettings->viscosityMode ];
+	}
 
-	// start writing
+	bbStart = fsDomain->fluidsimSettings->bbStart; 
+	bbSize = fsDomain->fluidsimSettings->bbSize;
+	fluidsimGetAxisAlignedBB(fsDomain->data, fsDomain->obmat, bbStart, bbSize, &domainSettings->meshBB);
+
+	// always init
+	{ int timeIcu[1] = { FLUIDSIM_TIME };
+		float timeDef[1] = { 1. };
+		int gravIcu[3] = { FLUIDSIM_GRAV_X, FLUIDSIM_GRAV_Y, FLUIDSIM_GRAV_Z };
+		float gravDef[3] = { domainSettings->gravx, domainSettings->gravy, domainSettings->gravz };
+		int viscIcu[1] = { FLUIDSIM_VISC };
+		float viscDef[1] = { 1. };
+
+		// time channel is a bit special, init by hand...
+		timeAtIndex = MEM_callocN( (allchannelSize+1)*1*sizeof(float), "fluidsiminit_timeatindex");
+		for(i=0; i<=G.scene->r.efra; i++) {
+			timeAtIndex[i] = (float)(i-startFrame);
+		}
+		fluidsimInitChannel( &channelDomainTime, allchannelSize, timeAtIndex, timeIcu,timeDef, domainSettings->ipo, CHANNEL_FLOAT ); // NDEB
+		// time channel is a multiplicator for aniFrameTime
+		if(channelDomainTime) {
+			for(i=0; i<allchannelSize; i++) { 
+				channelDomainTime[i*2+0] = aniFrameTime * channelDomainTime[i*2+0]; 
+				if(channelDomainTime[i*2+0]<0.) channelDomainTime[i*2+0] = 0.;
+			}
+		}
+		timeAtFrame = MEM_callocN( (allchannelSize+1)*1*sizeof(float), "fluidsiminit_timeatframe");
+		timeAtFrame[0] = timeAtFrame[1] = domainSettings->animStart; // start at index 1
+		if(channelDomainTime) {
+			for(i=2; i<=allchannelSize; i++) {
+				timeAtFrame[i] = timeAtFrame[i-1]+channelDomainTime[(i-1)*2+0];
+			}
+		} else {
+			for(i=2; i<=allchannelSize; i++) { timeAtFrame[i] = timeAtFrame[i-1]+aniFrameTime; }
+		}
+
+		fluidsimInitChannel( &channelDomainViscosity, allchannelSize, timeAtFrame, viscIcu,viscDef, domainSettings->ipo, CHANNEL_FLOAT ); // NDEB
+		if(channelDomainViscosity) {
+			for(i=0; i<allchannelSize; i++) { channelDomainViscosity[i*2+0] = calcViscosity * channelDomainViscosity[i*2+0]; }
+		}
+		fluidsimInitChannel( &channelDomainGravity, allchannelSize, timeAtFrame, gravIcu,gravDef, domainSettings->ipo, CHANNEL_VEC );
+	} // domain channel init
+	
+	// init obj movement channels
+	channelObjCount=0;
+	for(obit= G.main->object.first; obit; obit= obit->id.next) {
+		//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
+		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
+				(obit->type==OB_MESH) &&
+				(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&  // if has to match 3 places! // CHECKMATCH
+				(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE) ) {
+
+			//  cant use fluidsimInitChannel for obj channels right now, due
+			//  to the special DXXX channels, and the rotation specialities
+			IpoCurve *icuex[3][3];
+			int icuIds[3][3] = { 
+				{OB_LOC_X,  OB_LOC_Y,  OB_LOC_Z},
+				{OB_ROT_X,  OB_ROT_Y,  OB_ROT_Z},
+				{OB_SIZE_X, OB_SIZE_Y, OB_SIZE_Z} 
+			};
+			// relative ipos
+			IpoCurve *icudex[3][3];
+			int icudIds[3][3] = { 
+				{OB_DLOC_X,  OB_DLOC_Y,  OB_DLOC_Z},
+				{OB_DROT_X,  OB_DROT_Y,  OB_DROT_Z},
+				{OB_DSIZE_X, OB_DSIZE_Y, OB_DSIZE_Z} 
+			};
+			int j,k;
+			float vals[3] = {0.0,0.0,0.0}; 
+			int o = channelObjCount;
+			int   inivelIcu[3] =  { FLUIDSIM_VEL_X, FLUIDSIM_VEL_Y, FLUIDSIM_VEL_Z };
+			float inivelDefs[3] = { obit->fluidsimSettings->iniVelx, obit->fluidsimSettings->iniVely, obit->fluidsimSettings->iniVelz };
+			int   activeIcu[1] =  { FLUIDSIM_ACTIVE };
+			float activeDefs[1] = { 1 }; // default to on
+
+			// check & init loc,rot,size
+			for(j=0; j<3; j++) {
+				for(k=0; k<3; k++) {
+					icuex[j][k]  = find_ipocurve(obit->ipo, icuIds[j][k] );
+					icudex[j][k] = find_ipocurve(obit->ipo, icudIds[j][k] );
+				}
+			}
+
+			for(j=0; j<3; j++) {
+				channelObjMove[o][j] = MEM_callocN( allchannelSize*4*sizeof(float), "fluidsiminit_objmovchannel");
+				for(i=1; i<=allchannelSize; i++) {
+
+					for(k=0; k<3; k++) {
+						if(icuex[j][k]) { 
+							calc_icu(icuex[j][k], aniFrlen*((float)i) );
+							vals[k] = icuex[j][k]->curval; 
+						}  else {
+							float setval=0.0;
+							if(j==0) { setval = obit->loc[k];
+							} else if(j==1) { setval = ( 180.0*obit->rot[k] )/( 10.0*M_PI );
+							} else { setval = obit->size[k]; }
+							vals[k] = setval;
+						}
+						if(icudex[j][k]) { 
+							calc_icu(icudex[j][k], aniFrlen*((float)i) );
+							vals[k] += icudex[j][k]->curval; 
+						} 
+					} // k
+
+					for(k=0; k<3; k++) {
+						float set = vals[k];
+						if(j==1) { // rot is downscaled by 10 for ipo !?
+							set = 360.0 - (10.0*set);
+						}
+						channelObjMove[o][j][(i-1)*4 + k] = set; // - obit->loc[k];
+					} // k
+					channelObjMove[o][j][(i-1)*4 + 3] = timeAtFrame[i];
+				}
+			}
+
+			fluidsimInitChannel( &channelObjInivel[o], allchannelSize, timeAtFrame, inivelIcu,inivelDefs, obit->fluidsimSettings->ipo, CHANNEL_VEC );
+			fluidsimInitChannel( &channelObjActive[o], allchannelSize, timeAtFrame, activeIcu,activeDefs, obit->fluidsimSettings->ipo, CHANNEL_FLOAT );
+
+			channelObjCount++;
+
+		}
+	}
+
+	// init trafo matrix
+	MTC_Mat4CpyMat4(domainMat, fsDomain->obmat);
+	if(!Mat4Invert(invDomMat, domainMat)) {
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
+		elbeemDebugOut(debugStrBuffer);
+		// FIXME add fatal msg
+		FS_FREE_CHANNELS;
+		return;
+	}
+
+
+	// --------------------------------------------------------------------------------------------
+	// start writing / exporting
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
+	if(!doExportOnly) { strcat(targetFile,".tmp"); }  // dont overwrite/delete original file
 	// make sure these directories exist as well
 	if(outStringsChanged) {
 		BLI_make_existing_file(targetFile);
 	}
-	fileCfg = fopen(targetFile, "w");
-	if(!fileCfg) {
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", targetFile); 
-		elbeemDebugOut(debugStrBuffer);
-	
-		pupmenu("Fluidsim Bake Error%t|Unable to output files... Aborted%x0");
-		return;
-	}
-	ADD_CREATEDFILE(targetFile);
 
-	fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, targetFile );
-	// file open -> valid settings -> store
-	strncpy(fssDomain->surfdataPath, newSurfdataPath, FILE_MAXDIR);
+	if(!doExportOnly) {
+		SDL_Thread *simthr = NULL;
 
-	/* output simulation  settings */
-	{
-		double calcViscosity = 0.0;
-		double aniFrameTime = (fssDomain->animEnd - fssDomain->animStart)/(double)noFrames;
-		char *simString = "\n"
-		"attribute \"simulation1\" { \n" 
-		"  solver = \"fsgr\"; \n"  "\n" 
-		"  p_domainsize  = " "%f"   /* realsize */ "; \n" 
-		"  p_anistart    = " "%f"   /* aniStart*/ "; \n" 
-		"  p_gravity = " "%f %f %f" /* pGravity*/ "; \n"  "\n" 
-		"  p_normgstar = %f; \n"    /* use gstar param? */
-		"  p_viscosity = " "%f"     /* pViscosity*/ "; \n"  "\n" 
-		
-		"  maxrefine = " "%d" /* maxRefine*/ ";  \n" 
-		"  size = " "%d"      /* gridSize*/ ";  \n" 
-		"  surfacepreview = " "%d" /* previewSize*/ "; \n" 
-		"  smoothsurface = 1.0;  \n"
+		// perform simulation with El'Beem api and SDL threads
+		elbeemSimulationSettings fsset;
+		fsset.version = 1;
 
-		  "  geoinitid = 1;  \n"  "\n" 
-			"  isovalue =  0.4900; \n" 
-			"  isoweightmethod = 1; \n"  "\n"    
-
-		"\n" ;
-    
-		if(fssDomain->viscosityMode==1) {
-			/* manual mode */
-			calcViscosity = (1.0/(fssDomain->viscosityExponent*10)) * fssDomain->viscosityValue;
-		} else {
-			calcViscosity = fluidsimViscosityPreset[ fssDomain->viscosityMode ];
-		}
-		fprintf(fileCfg, simString,
-				(double)fssDomain->realsize, 
-				(double)fssDomain->animStart, 
-				(double)fssDomain->gravx, (double)fssDomain->gravy, (double)fssDomain->gravz,
-				(double)fssDomain->gstar,
-				calcViscosity,
-				gridlevels, (int)fssDomain->resolutionxyz, (int)fssDomain->previewresxyz 
-				);
-
-		// export animatable params
-		if(fsDomain->ipo) {
-			int i;
-			float tsum=0.0, shouldbe=0.0;
-			fprintf(fileCfg, "  CHANNEL p_aniframetime = ");
-			for(i=1 /*G.scene->r.sfra*/; i<G.scene->r.efra; i++) {
-				float anit = (calc_ipo_time(fsDomain->ipo, i+1) -
-					calc_ipo_time(fsDomain->ipo, i)) * aniFrameTime;
-				if(anit<0.0) anit = 0.0;
-				tsum += anit;
-			}
-			// make sure inaccurate integration doesnt modify end time
-			shouldbe = ((float)(G.scene->r.efra - 1 /*G.scene->r.sfra*/)) *aniFrameTime;
-			for(i=1 /*G.scene->r.sfra*/; i<G.scene->r.efra; i++) {
-				float anit = (calc_ipo_time(fsDomain->ipo, i+1) -
-					calc_ipo_time(fsDomain->ipo, i)) * aniFrameTime;
-				if(anit<0.0) anit = 0.0;
-				anit *= (shouldbe/tsum);
-				fprintf(fileCfg," %f %d  \n",anit, (i-1)); // start with 0
-			}
-			fprintf(fileCfg, "; #cfgset, base=%f \n", aniFrameTime );
-			//fprintf(stderr, "DEBUG base=%f tsum=%f, sb=%f, ts2=%f \n", aniFrameTime, tsum,shouldbe,tsum2 );
-		} else {
-			fprintf(fileCfg, "  p_aniframetime = " "%f" /* 2 aniFrameTime*/ "; #cfgset \n" ,
-				aniFrameTime ); 
-		}
-			
-		fprintf(fileCfg,  "} \n" );
-	}
-
-	// output blender object transformation
-	{
-		float domainMat[4][4];
-		float invDomMat[4][4];
-		char* blendattrString = "\n" 
-			"attribute \"btrafoattr\" { \n"
-			"  transform = %f %f %f %f   "
-			           "   %f %f %f %f   "
-			           "   %f %f %f %f   "
-			           "   %f %f %f %f ;\n"
-			"} \n";
-
-		MTC_Mat4CpyMat4(domainMat, fsDomain->obmat);
-		if(!Mat4Invert(invDomMat, domainMat)) {
-			snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
-			elbeemDebugOut(debugStrBuffer);
-			// FIXME add fatal msg
-			return;
-		}
-
-		fprintf(fileCfg, blendattrString,
-				invDomMat[0][0],invDomMat[1][0],invDomMat[2][0],invDomMat[3][0], 
-				invDomMat[0][1],invDomMat[1][1],invDomMat[2][1],invDomMat[3][1], 
-				invDomMat[0][2],invDomMat[1][2],invDomMat[2][2],invDomMat[3][2], 
-				invDomMat[0][3],invDomMat[1][3],invDomMat[2][3],invDomMat[3][3] );
-	}
-
-
-
-	fprintf(fileCfg, "raytracing {\n");
-
-	/* output picture settings for preview renders */
-	{
-		char *rayString = "\n" 
-			"  anistart=     0; \n" 
-			"  aniframes=    " "%d" /*1 frameEnd-frameStart+0*/ "; #cfgset \n" 
-			"  frameSkip=    false; \n" 
-			"  filename=     \"" "%s" /* rayPicFilename*/  "\"; #cfgset \n" 
-			"  aspect      1.0; \n" 
-			"  resolution  " "%d %d" /*2,3 blendResx,blendResy*/ "; #cfgset \n" 
-			"  antialias       1; \n" 
-			"  ambientlight    (1, 1, 1); \n" 
-			"  maxRayDepth       6; \n" 
-			"  treeMaxDepth     25; \n"
-			"  treeMaxTriangles  8; \n" 
-			"  background  (0.08,  0.08, 0.20); \n" 
-			"  eyepoint= (" "%f %f %f"/*4,5,6 eyep*/ "); #cfgset  \n" 
-			"  lookat= (" "%f %f %f"/*7,8,9 lookatp*/ "); #cfgset  \n" 
-			"  upvec= (0 0 1);  \n" 
-			"  fovy=  " "%f" /*blendFov*/ "; #cfgset \n" 
-			"  blenderattr= \"btrafoattr\"; \n"
-			"\n\n";
-
-		char *lightString = "\n" 
-			"  light { \n" 
-			"    type= omni; \n" 
-			"    active=     1; \n" 
-			"    color=      (1.0,  1.0,  1.0); \n" 
-			"    position=   (" "%f %f %f"/*1,2,3 eyep*/ "); #cfgset \n" 
-			"    castShadows= 1; \n"  
-			"  } \n\n" ;
-
-		struct Object *cam = G.scene->camera;
-		float  eyex=2.0, eyey=2.0, eyez=2.0;
-		int    resx = 200, resy=200;
-		float  lookatx=0.0, lookaty=0.0, lookatz=0.0;
-		float  fov = 45.0;
-
+		// setup global settings
+		for(i=0 ; i<3; i++) fsset.geoStart[i] = bbStart[i];
+		for(i=0 ; i<3; i++) fsset.geoSize[i] = bbSize[i];
+		// simulate with 50^3
+		fsset.resolutionxyz = (int)domainSettings->resolutionxyz;
+		fsset.previewresxyz = (int)domainSettings->previewresxyz;
+		// 10cm water domain
+		fsset.realsize = domainSettings->realsize;
+		fsset.viscosity = calcViscosity;
+		// earth gravity
+		fsset.gravity[0] = domainSettings->gravx;
+		fsset.gravity[1] = domainSettings->gravy;
+		fsset.gravity[2] = domainSettings->gravz;
+		// simulate 5 frames, each 0.03 seconds, output to ./apitest_XXX.bobj.gz
+		fsset.animStart = domainSettings->animStart;
+		fsset.aniFrameTime = aniFrameTime;
+		fsset.noOfFrames = noFrames - 1; // is otherwise subtracted in parser
 		strcpy(targetFile, targetDir);
 		strcat(targetFile, suffixSurface);
-		resx = G.scene->r.xsch;
-		resy = G.scene->r.ysch;
-		if((cam) && (cam->type == OB_CAMERA)) {
-			Camera *camdata= G.scene->camera->data;
-			double lens = camdata->lens;
-			double imgRatio = (double)resx/(double)resy;
-			fov = 360.0 * atan(16.0*imgRatio/lens) / M_PI;
-			//R.near= camdata->clipsta; R.far= camdata->clipend;
+		// defaults for compressibility and adaptive grids
+		fsset.gstar = domainSettings->gstar;
+		fsset.maxRefine = domainSettings->maxRefine; // check <-> gridlevels
+		fsset.generateParticles = domainSettings->generateParticles; 
+		strcpy( fsset.outputPath, targetFile);
 
-			eyex = cam->loc[0];
-			eyey = cam->loc[1];
-			eyez = cam->loc[2];
-			// TODO - place lookat in middle of domain?
-		}
+		// domain channels
+		fsset.channelSizeFrameTime = 
+		fsset.channelSizeViscosity = 
+		fsset.channelSizeGravity =  allchannelSize;
+		fsset.channelFrameTime = channelDomainTime;
+		fsset.channelViscosity = channelDomainViscosity;
+		fsset.channelGravity = channelDomainGravity;
 
-		fprintf(fileCfg, rayString,
-				(noFrames+1), targetFile, resx,resy,
-				eyex, eyey, eyez ,
-				lookatx, lookaty, lookatz,
-				fov
-				);
-		fprintf(fileCfg, lightString, 
-				eyex, eyey, eyez );
-	}
+		if(     (domainSettings->typeFlags&OB_FSBND_NOSLIP))   fsset.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
+		else if((domainSettings->typeFlags&OB_FSBND_PARTSLIP)) fsset.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
+		else if((domainSettings->typeFlags&OB_FSBND_FREESLIP)) fsset.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
+		fsset.obstaclePartslip = domainSettings->partSlipValue;
+		fsset.generateVertexVectors = (int)(!(domainSettings->typeFlags&OB_FSDOMAIN_NOVECGEN));
+		// fprintf(stderr," VVV %d %d \n",fsset.generateVertexVectors , (domainSettings->typeFlags&OB_FSDOMAIN_NOVECGEN)); // DEBUG
 
+		// init blender trafo matrix
+ 		// fprintf(stderr,"elbeemInit - mpTrafo:\n");
+		{ int j; 
+		for(i=0; i<4; i++) {
+			for(j=0; j<4; j++) {
+				fsset.surfaceTrafo[i*4+j] = invDomMat[j][i];
+ 				// fprintf(stderr,"elbeemInit - mpTrafo %d %d = %f (%d) \n", i,j, fsset.surfaceTrafo[i*4+j] , (i*4+j) );
+			}
+		} }
 
-	/* output fluid domain */
-	{
-		char * domainString = "\n" 
-			"  geometry { \n" 
-			"    type= fluidlbm; \n" 
-			"    name = \""   "%s" /*name*/   "\"; #cfgset \n" 
-			"    visible=  1; \n" 
-			"    attributes=  \"simulation1\"; \n" 
-			//"    define { material_surf  = \"fluidblue\"; } \n" 
-			"    start= " "%f %f %f" /*bbstart*/ "; #cfgset \n" 
-			"    end  = " "%f %f %f" /*bbend  */ "; #cfgset \n" 
-			"  } \n" 
-			"\n";
-		float *bbStart = fsDomain->fluidsimSettings->bbStart; 
-		float *bbSize = fsDomain->fluidsimSettings->bbSize;
-		fluidsimGetAxisAlignedBB(fsDomain->data, fsDomain->obmat, bbStart, bbSize);
-
-		fprintf(fileCfg, domainString,
-			fsDomain->id.name, 
-			bbStart[0],           bbStart[1],           bbStart[2],
-			bbStart[0]+bbSize[0], bbStart[1]+bbSize[1], bbStart[2]+bbSize[2]
-		);
-	}
-
-    
-	/* setup geometry */
-	{
-		char *objectStringStart = 
-			"  geometry { \n" 
-			"    type= objmodel; \n" 
-			"    name = \""   "%s" /* name */   "\"; #cfgset \n" 
-			// DEBUG , also obs invisible?
-			"    visible=  0; \n" 
-			"    define { \n" ;
-		char *obstacleString = 
-			"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
-			"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
-		char *fluidString = 
-			"      geoinittype= \"" "%s" /* type */  "\"; \n" 
-			"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" 
-			"      initial_velocity= "   "%f %f %f" /* vel vector */  "; #cfgset \n" ;
-		char *objectStringEnd = 
-			"      geoinit_intersect = 1; \n"  /* always use accurate init here */
-			"      geoinitid= 1; \n" 
-			"    } \n" 
-			"  } \n" 
-			"\n" ;
-		char fnameObjdat[FILE_MAXFILE];
-        
+	  // init solver with settings
+		elbeemInit(&fsset);
+		
+		// init objects
+		channelObjCount = 0;
 		for(obit= G.main->object.first; obit; obit= obit->id.next) {
 			//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
-			if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
+			if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // if has to match 3 places! // CHECKMATCH
 					(obit->type==OB_MESH) &&
-				  (obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN)
+					(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&
+					(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE)
 				) {
-					fluidsimGetGeometryObjFilename(obit, fnameObjdat); //, outPrefix);
-					strcpy(targetFile, targetDir);
-					strcat(targetFile, fnameObjdat);
-					fprintf(fileCfg, objectStringStart, obit->id.name ); // abs path
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) {
-						fprintf(fileCfg, fluidString, "fluid", targetFile, // do use absolute paths?
-							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
-					}
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) {
-						fprintf(fileCfg, fluidString, "inflow", targetFile, // do use absolute paths?
-							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
-					}
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OUTFLOW) {
-						fprintf(fileCfg, fluidString, "outflow", targetFile, // do use absolute paths?
-							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
-					}
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OBSTACLE) {
-						fprintf(fileCfg, obstacleString, "bnd_no" , targetFile); // abs path
-					}
-					fprintf(fileCfg, objectStringEnd ); // abs path
-					ADD_CREATEDFILE(targetFile);
-					writeBobjgz(targetFile, obit);
-			}
-		}
-	}
-  
-	/* fluid material */
-	fprintf(fileCfg, 
-		"  material { \n"
-		"    type= phong; \n"
-		"    name=          \"fluidblue\"; \n"
-		"    diffuse=       0.3 0.5 0.9; \n"
-		"    ambient=       0.1 0.1 0.1; \n"
-		"    specular=      0.2  10.0; \n"
-		"  } \n" );
+				float *verts=NULL;
+				int *tris=NULL;
+				int numVerts=0, numTris=0;
+				int o = channelObjCount;
+				elbeemMesh fsmesh;
+				elbeemResetMesh( &fsmesh );
+				fsmesh.type = obit->fluidsimSettings->type;;
+				// get name of object for debugging solver
+				fsmesh.name = obit->id.name; 
 
+				initElbeemMesh(obit, &numVerts, &verts, &numTris, &tris);
+				fsmesh.numVertices   = numVerts;
+				fsmesh.numTriangles  = numTris;
+				fsmesh.vertices      = verts;
+				fsmesh.triangles     = tris;
 
+				fsmesh.channelSizeTranslation  = 
+				fsmesh.channelSizeRotation     = 
+				fsmesh.channelSizeScale        = 
+				fsmesh.channelSizeInitialVel   = 
+				fsmesh.channelSizeActive       = allchannelSize;
 
-	fprintf(fileCfg, "} // end raytracing\n");
-	fclose(fileCfg);
+				fsmesh.channelTranslation      = channelObjMove[o][0];
+				fsmesh.channelRotation         = channelObjMove[o][1];
+				fsmesh.channelScale            = channelObjMove[o][2];
+				fsmesh.channelActive           = channelObjActive[o];
+				if( (fsmesh.type == OB_FLUIDSIM_FLUID) ||
+						(fsmesh.type == OB_FLUIDSIM_INFLOW) ) {
+					fsmesh.channelInitialVel       = channelObjInivel[o];
+				  fsmesh.localInivelCoords = ((obit->fluidsimSettings->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
+				} 
 
-	strcpy(targetFile, targetDir);
-	strcat(targetFile, suffixConfig);
-	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Wrote %s\n", targetFile); 
-	elbeemDebugOut(debugStrBuffer);
+				if(     (obit->fluidsimSettings->typeFlags&OB_FSBND_NOSLIP))   fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
+				else if((obit->fluidsimSettings->typeFlags&OB_FSBND_PARTSLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
+				else if((obit->fluidsimSettings->typeFlags&OB_FSBND_FREESLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
+				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
 
-	// perform simulation
-	{
-		SDL_Thread *simthr = NULL;
+				elbeemAddMesh(&fsmesh);
+
+				if(verts) MEM_freeN(verts);
+				if(tris) MEM_freeN(tris);
+				channelObjCount++;
+			} // valid mesh
+		} // objects
+		
 		globalBakeLock = SDL_CreateMutex();
 		// set to neutral, -1 means user abort, -2 means init error
 		globalBakeState = 0;
-		globalBakeFrame = 1;
+		globalBakeFrame = 0;
 		simthr = SDL_CreateThread(fluidsimSimulateThread, targetFile);
-#ifndef WIN32
-		// DEBUG for win32 debugging, dont use threads...
-#endif // WIN32
+
 		if(!simthr) {
 			snprintf(debugStrBuffer,256,"fluidsimBake::error: Unable to create thread... running without one.\n"); 
 			elbeemDebugOut(debugStrBuffer);
 			set_timecursor(0);
-			performElbeemSimulation(targetFile);
+			elbeemSimulate();
 		} else {
 			int done = 0;
 			unsigned short event=0;
@@ -747,7 +893,8 @@ void fluidsimBake(struct Object *ob)
 				// redraw the 3D for showing progress once in a while...
 				if(lastRedraw!=globalBakeFrame) {
 					ScrArea *sa;
-					G.scene->r.cfra = lastRedraw = globalBakeFrame;
+					G.scene->r.cfra = startFrame+globalBakeFrame;
+					lastRedraw = globalBakeFrame;
 					update_for_newframe_muted();
 					sa= G.curscreen->areabase.first;
 					while(sa) {
@@ -762,19 +909,278 @@ void fluidsimBake(struct Object *ob)
 		}
 		SDL_DestroyMutex(globalBakeLock);
 		globalBakeLock = NULL;
-	} // thread creation
-
-	// cleanup sim files
-	if(getenv(delEnvStr)) {
-		doDeleteCreatedFiles = atoi(getenv(delEnvStr));
-	}
-	for(i=0; i<numCreatedFiles; i++) {
-		if(doDeleteCreatedFiles>0) {
-			//fprintf(stderr," CREATED '%s' deleting... \n", createdFiles[i]); // debug
-			BLI_delete(createdFiles[i], 0,0);
+	} // El'Beem API init, thread creation 
+	// --------------------------------------------------------------------------------------------
+	else
+	{ // write config file to be run with command line simulator
+		fileCfg = fopen(targetFile, "w");
+		if(!fileCfg) {
+			snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", targetFile); 
+			elbeemDebugOut(debugStrBuffer);
+		
+			pupmenu("Fluidsim Bake Error%t|Unable to output files... Aborted%x0");
+			FS_FREE_CHANNELS;
+			return;
 		}
-		free(createdFiles[i]);
-	}
+		//ADD_CREATEDFILE(targetFile);
+
+		fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, targetFile );
+		// file open -> valid settings -> store
+		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
+
+		/* output simulation  settings */
+		{
+			char *dtype[3] = { "no", "part", "free" };
+			float pslip = domainSettings->partSlipValue; int bi=0;
+			char *simString = "\n"
+			"attribute \"simulation1\" { \n" 
+			"  solver = \"fsgr\"; \n"  "\n" 
+			"  p_domainsize  = " "%f"   /* realsize */ "; \n" 
+			"  p_anistart    = " "%f"   /* aniStart*/ "; \n" 
+			"  p_normgstar = %f; \n"    /* use gstar param? */
+			"  maxrefine = " "%d"       /* maxRefine*/ ";  \n" 
+			"  size = " "%d"            /* gridSize*/ ";  \n" 
+			"  surfacepreview = " "%d"  /* previewSize*/ "; \n" 
+			"  dump_velocities = " "%d"  /* vector dump */ "; \n" 
+			"  smoothsurface = 1.0;  \n"
+			"  smoothnormals = 1.0;  \n"
+			"  geoinitid = 1;  \n"  "\n" 
+			"  isovalue =  0.4900; \n" 
+			"  isoweightmethod = 1; \n"  "\n" ;
+
+			fprintf(fileCfg, simString,
+					(double)domainSettings->realsize, (double)domainSettings->animStart, (double)domainSettings->gstar,
+					gridlevels, (int)domainSettings->resolutionxyz, (int)domainSettings->previewresxyz ,
+					(int)(!(domainSettings->typeFlags&OB_FSDOMAIN_NOVECGEN))
+					);
+
+			if((domainSettings->typeFlags&OB_FSBND_NOSLIP)) bi=0;
+			else if((domainSettings->typeFlags&OB_FSBND_PARTSLIP)) bi=1;
+			else if((domainSettings->typeFlags&OB_FSBND_FREESLIP)) bi=2;
+			fprintf(fileCfg, "  domainbound = %s; domainpartslip=%f; \n", dtype[bi], pslip); 
+
+			fprintf(fileCfg,"  # org aniframetime: %f \n", aniFrameTime); 
+			fluidsimPrintChannel(fileCfg, channelDomainTime,allchannelSize,"p_aniframetime",CHANNEL_FLOAT);
+			fluidsimPrintChannel(fileCfg, channelDomainViscosity,allchannelSize,"p_viscosity",CHANNEL_FLOAT);
+			fluidsimPrintChannel(fileCfg, channelDomainGravity,  allchannelSize,"p_gravity",CHANNEL_VEC);
+
+			fprintf(fileCfg,  "\n} \n" );
+		}
+
+		// output blender object transformation
+		{
+			char* blendattrString = "\n" 
+				"attribute \"btrafoattr\" { \n"
+				"  transform = %f %f %f %f   "
+									 "   %f %f %f %f   "
+									 "   %f %f %f %f   "
+									 "   %f %f %f %f ;\n"
+				"} \n";
+
+			fprintf(fileCfg, blendattrString,
+					invDomMat[0][0],invDomMat[1][0],invDomMat[2][0],invDomMat[3][0], 
+					invDomMat[0][1],invDomMat[1][1],invDomMat[2][1],invDomMat[3][1], 
+					invDomMat[0][2],invDomMat[1][2],invDomMat[2][2],invDomMat[3][2], 
+					invDomMat[0][3],invDomMat[1][3],invDomMat[2][3],invDomMat[3][3] );
+		}
+
+
+
+		fprintf(fileCfg, "raytracing {\n");
+
+		/* output picture settings for preview renders */
+		{
+			char *rayString = "\n" 
+				"  anistart=     0; \n" 
+				"  aniframes=    " "%d" /*1 frameEnd-frameStart+0*/ "; #cfgset \n" 
+				"  frameSkip=    false; \n" 
+				"  filename=     \"" "%s" /* rayPicFilename*/  "\"; #cfgset \n" 
+				"  aspect      1.0; \n" 
+				"  resolution  " "%d %d" /*2,3 blendResx,blendResy*/ "; #cfgset \n" 
+				"  antialias       1; \n" 
+				"  ambientlight    (1, 1, 1); \n" 
+				"  maxRayDepth       6; \n" 
+				"  treeMaxDepth     25; \n"
+				"  treeMaxTriangles  8; \n" 
+				"  background  (0.08,  0.08, 0.20); \n" 
+				"  eyepoint= (" "%f %f %f"/*4,5,6 eyep*/ "); #cfgset  \n" 
+				"  lookat= (" "%f %f %f"/*7,8,9 lookatp*/ "); #cfgset  \n" 
+				"  upvec= (0 0 1);  \n" 
+				"  fovy=  " "%f" /*blendFov*/ "; #cfgset \n" 
+				"  blenderattr= \"btrafoattr\"; \n"
+				"\n\n";
+
+			char *lightString = "\n" 
+				"  light { \n" 
+				"    type= omni; \n" 
+				"    active=     1; \n" 
+				"    color=      (1.0,  1.0,  1.0); \n" 
+				"    position=   (" "%f %f %f"/*1,2,3 eyep*/ "); #cfgset \n" 
+				"    castShadows= 1; \n"  
+				"  } \n\n" ;
+
+			struct Object *cam = G.scene->camera;
+			float  eyex=2.0, eyey=2.0, eyez=2.0;
+			int    resx = 200, resy=200;
+			float  lookatx=0.0, lookaty=0.0, lookatz=0.0;
+			float  fov = 45.0;
+
+			strcpy(targetFile, targetDir);
+			strcat(targetFile, suffixSurface);
+			resx = G.scene->r.xsch;
+			resy = G.scene->r.ysch;
+			if((cam) && (cam->type == OB_CAMERA)) {
+				Camera *camdata= G.scene->camera->data;
+				double lens = camdata->lens;
+				double imgRatio = (double)resx/(double)resy;
+				fov = 360.0 * atan(16.0*imgRatio/lens) / M_PI;
+				//R.near= camdata->clipsta; R.far= camdata->clipend;
+
+				eyex = cam->loc[0];
+				eyey = cam->loc[1];
+				eyez = cam->loc[2];
+				// TODO - place lookat in middle of domain?
+			}
+
+			fprintf(fileCfg, rayString,
+					(noFrames+0), targetFile, resx,resy,
+					eyex, eyey, eyez ,
+					lookatx, lookaty, lookatz,
+					fov
+					);
+			fprintf(fileCfg, lightString, 
+					eyex, eyey, eyez );
+		}
+
+
+		/* output fluid domain */
+		{
+			char * domainString = "\n" 
+				"  geometry { \n" 
+				"    type= fluidlbm; \n" 
+				"    name = \""   "%s" /*name*/   "\"; #cfgset \n" 
+				"    visible=  1; \n" 
+				"    attributes=  \"simulation1\"; \n" 
+				//"    define { material_surf  = \"fluidblue\"; } \n" 
+				"    start= " "%f %f %f" /*bbstart*/ "; #cfgset \n" 
+				"    end  = " "%f %f %f" /*bbend  */ "; #cfgset \n" 
+				"  } \n" 
+				"\n";
+			fprintf(fileCfg, domainString,
+				fsDomain->id.name, 
+				bbStart[0],           bbStart[1],           bbStart[2],
+				bbStart[0]+bbSize[0], bbStart[1]+bbSize[1], bbStart[2]+bbSize[2]
+			);
+		}
+
+			
+		/* setup geometry */
+		{
+			char *objectStringStart = 
+				"  geometry { \n" 
+				"    type= objmodel; \n" 
+				"    name = \""   "%s" /* name */   "\"; #cfgset \n" 
+				// DEBUG , also obs invisible?
+				"    visible=  0; \n" 
+				"    define { \n" ;
+			char *outflowString = 
+				"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
+				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
+			char *obstacleString = 
+				"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
+				"      geoinit_partslip = \"" "%f" /* partslip */  "\"; #cfgset \n" 
+				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
+			char *fluidString = 
+				"      geoinittype= \"" "%s" /* type */  "\"; \n" 
+				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
+				//"      initial_velocity= "   "%f %f %f" /* vel vector */  "; #cfgset \n" ;
+			char *inflowString = 
+				"      geoinittype= \"" "%s" /* type */  "\"; \n" 
+				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" 
+				//"      initial_velocity= "   "%f %f %f" /* vel vector */  "; #cfgset \n" 
+				"      geoinit_localinivel = "   "%d" /* local coords */  "; #cfgset \n" ;
+			char *objectStringEnd = 
+				"      geoinit_intersect = 1; \n"  /* always use accurate init here */
+				"      geoinitid= 1; \n" 
+				"    } \n" 
+				"  } \n" 
+				"\n" ;
+			char fnameObjdat[FILE_MAXFILE];
+					
+			channelObjCount = 0;
+			for(obit= G.main->object.first; obit; obit= obit->id.next) {
+				if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
+						(obit->type==OB_MESH) &&  // if has to match 3 places! // CHECKMATCH
+						(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&
+						(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE)
+					) {
+
+					fluidsimGetGeometryObjFilename(obit, fnameObjdat);
+					strcpy(targetFile, targetDir);
+					strcat(targetFile, fnameObjdat);
+					fprintf(fileCfg, objectStringStart, obit->id.name ); // abs path
+					if(obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) {
+						fprintf(fileCfg, fluidString, "fluid", targetFile // do use absolute paths?
+								//,(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz 
+								);
+					}
+					if(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) {
+				 		int locc = ((obit->fluidsimSettings->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
+						fprintf(fileCfg, inflowString, "inflow", targetFile // do use absolute paths?
+								//,(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz
+							  ,locc );
+					}
+					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OBSTACLE) {
+						char *btype[3] = { "bnd_no", "bnd_part", "bnd_free" };
+						float pslip = obit->fluidsimSettings->partSlipValue; int bi=0;
+				 		if((obit->fluidsimSettings->typeFlags&OB_FSBND_NOSLIP)) bi=0;
+						else if((obit->fluidsimSettings->typeFlags&OB_FSBND_PARTSLIP)) bi=1;
+						else if((obit->fluidsimSettings->typeFlags&OB_FSBND_FREESLIP)) bi=2;
+						fprintf(fileCfg, obstacleString, btype[bi], pslip, targetFile); // abs path
+					}
+					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OUTFLOW) {
+						fprintf(fileCfg, outflowString, "outflow" , targetFile); // abs path
+					}
+
+					fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][0],allchannelSize, "translation", CHANNEL_VEC);
+					fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][1],allchannelSize, "rotation"   , CHANNEL_VEC);
+					fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][2],allchannelSize, "scale"      , CHANNEL_VEC);
+					fluidsimPrintChannel(fileCfg, channelObjActive[channelObjCount] ,allchannelSize, "geoactive"  , CHANNEL_FLOAT);
+					if( (obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) ||
+							(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) ) {
+						fluidsimPrintChannel(fileCfg, channelObjInivel[channelObjCount],allchannelSize,"initial_velocity" ,CHANNEL_VEC);
+					} 
+					channelObjCount++;
+
+					fprintf(fileCfg, objectStringEnd ); // abs path
+					writeBobjgz(targetFile, obit);
+				}
+			}
+		}
+		
+		/* fluid material */
+		fprintf(fileCfg, 
+			"  material { \n"
+			"    type= phong; \n"
+			"    name=          \"fluidblue\"; \n"
+			"    diffuse=       0.3 0.5 0.9; \n"
+			"    ambient=       0.1 0.1 0.1; \n"
+			"    specular=      0.2  10.0; \n"
+			"  } \n" );
+
+		fprintf(fileCfg, "} // end raytracing\n");
+		fclose(fileCfg);
+
+		strcpy(targetFile, targetDir);
+		strcat(targetFile, suffixConfig);
+		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Wrote %s\n", targetFile); 
+		elbeemDebugOut(debugStrBuffer);
+
+		pupmenu("Fluidsim Bake Message%t|Config files exported successfully!%x0");
+	} // config file export done!
+
+	// --------------------------------------------------------------------------------------------
+	FS_FREE_CHANNELS;
 
 	// go back to "current" blender time
 	waitcursor(0);

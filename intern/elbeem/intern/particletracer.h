@@ -9,7 +9,18 @@
 #ifndef NTL_PARTICLETRACER_H
 
 #include "ntl_geometryobject.h"
+template<class Scalar> class ntlMatrix4x4;
 
+// particle types
+#define PART_BUBBLE (1<< 1)
+#define PART_DROP   (1<< 2)
+#define PART_INTER  (1<< 3)
+#define PART_FLOAT  (1<< 4)
+
+// particle state
+#define PART_IN     (1<< 8)
+#define PART_OUT    (1<< 9)
+#define PART_INACTIVE (1<<10)
 
 //! A single particle
 class ParticleObject
@@ -17,24 +28,26 @@ class ParticleObject
 	public:
   	//! Standard constructor
   	inline ParticleObject(ntlVec3Gfx mp) :
-			mPos(mp),mVel(0.0), mStatus(0), mActive( true ) { };
+			mPos(mp),mVel(0.0), mSize(1.0), mStatus(0),mLifeTime(0) { };
   	//! Copy constructor
   	inline ParticleObject(const ParticleObject &a) :
-			mPos(a.mPos), mVel(a.mVel), 
-			mStatus(a.mStatus), mActive(a.mActive) { };
+			mPos(a.mPos), mVel(a.mVel), mSize(a.mSize), 
+			mStatus(a.mStatus),
+			mLifeTime(a.mLifeTime) { };
   	//! Destructor
   	inline ~ParticleObject() { /* empty */ };
 
 		//! add vector to position
-		inline void advance(double vx, double vy, double vz) {
+		inline void advance(float vx, float vy, float vz) {
 			mPos[0] += vx; mPos[1] += vy; mPos[2] += vz; }
 		//! advance with own velocity
 		inline void advanceVel() { mPos += mVel; }
 		//! add acceleration to velocity
 		inline void addToVel(ntlVec3Gfx acc) { mVel += acc; }
 
-		//! get vector to position
+		//! get/set vector to position
 		inline ntlVec3Gfx getPos() { return mPos; }
+		inline void setPos(ntlVec3Gfx set) { mPos=set; }
 		//! set velocity
 		inline void setVel(ntlVec3Gfx set) { mVel = set; }
 		//! set velocity
@@ -42,14 +55,31 @@ class ParticleObject
 		//! get velocity
 		inline ntlVec3Gfx getVel() { return mVel; }
 
+		//! get/set size value
+		inline gfxReal getSize() { return mSize; }
+		inline void setSize(gfxReal set) { mSize=set; }
+
+		//! get whole flags
+		inline int getFlags() const { return mStatus; }
+		//! get status (higher byte)
+		inline int getStatus() const { return (mStatus&0xFF00); }
+		//! set status  (higher byte)
+		inline void setStatus(int set) { mStatus = set|(mStatus&0x00FF); }
+		//! get type (lower byte)
+		inline int getType() const { return (mStatus&0x00FF); }
+		//! set type (lower byte)
+		inline void setType(int set) { mStatus = set|(mStatus&0xFF00); }
 		//! get active flag
-		inline bool getActive() { return mActive; }
+		inline bool getActive() const { return ((mStatus&PART_INACTIVE)==0); }
 		//! set active flag
-		inline void setActive(bool set) { mActive = set; }
-		//! get status int
-		inline int getStatus() { return mStatus; }
-		//! setstatus int
-		inline void setStatus(int set) { mStatus = set; }
+		inline void setActive(bool set) { 
+			if(set) mStatus &= (~PART_INACTIVE);	
+			else mStatus |= PART_INACTIVE;
+		}
+		//! get/set lifetime
+		inline int getLifeTime() const { return mLifeTime; }
+		//! set type (lower byte)
+		inline void setLifeTime(int set) { mLifeTime = set; }
 		
 	protected:
 
@@ -57,11 +87,12 @@ class ParticleObject
 		ntlVec3Gfx mPos;
 		/*! the particle velocity */
 		ntlVec3Gfx mVel;
-
+		/*! size / mass of particle */
+		gfxReal mSize;
 		/*! particle status */
 		int mStatus;
-		/*! particle active? */
-		bool mActive;
+		/*! count survived time steps */
+		int mLifeTime;
 };
 
 
@@ -73,10 +104,10 @@ class ParticleTracer :
   	//! Standard constructor
   	ParticleTracer();
   	//! Destructor
-  	~ParticleTracer() { /* empty */ };
+  	~ParticleTracer();
 
 		//! add a particle at this position
-		void addParticle(double x, double y, double z);
+		void addParticle(float x, float y, float z);
 
 		//! save particle positions before adding a new timestep
 		void savePreviousPositions();
@@ -87,78 +118,60 @@ class ParticleTracer :
 		//! parse settings from attributes (dont use own list!)
 		void parseAttrList( AttributeList *att );
 
+		//! adapt time step by rescaling velocities
+		void adaptPartTimestep(float factor);
 
 		// access funcs
 		
-		//! set the number of timesteps to trace
-		void setTimesteps(int steps);
-
-		//! set the number of particles
-		inline void setNumParticles(int set) { mNumParticles = set; }
 		//! get the number of particles
-		inline int  getNumParticles() 				{ return mNumParticles; }
-
-		//! set the number of timesteps to trace
-		inline void setTrailLength(int set) { mTrailLength = set; mParts.resize(mTrailLength*mTrailInterval); }
-		//! get the number of timesteps to trace
-		inline int  getTrailLength()				{ return mTrailLength; }
-		//! set the number of timesteps between each anim step saving
-		inline void setTrailInterval(int set) { mTrailInterval = set; mParts.resize(mTrailLength*mTrailInterval); }
-
-		//! get the no. of particles in the current array
-		inline int getPartArraySize() { return mParts[0].size(); }
+		inline int  getNumParticles() 				{ return mParts.size(); }
 
 		//! iterate over all newest particles (for advancing positions)
-		inline vector<ParticleObject>::iterator getParticlesBegin() { return mParts[0].begin(); }
+		inline vector<ParticleObject>::iterator getParticlesBegin() { return mParts.begin(); }
 		//! end iterator for newest particles
-		inline vector<ParticleObject>::iterator getParticlesEnd() { return mParts[0].end(); }
+		inline vector<ParticleObject>::iterator getParticlesEnd() { return mParts.end(); }
 		//! end iterator for newest particles
-		inline ParticleObject* getLast() { return &(mParts[0][ mParts[0].size()-1 ]); }
+		inline ParticleObject* getLast() { return &(mParts[ mParts.size()-1 ]); }
 		
 		/*! set geometry start (for renderer) */
-		inline void setStart(ntlVec3Gfx set) { mStart = set; }
+		inline void setStart(ntlVec3Gfx set) { mStart = set; initTrafoMatrix(); }
 		/*! set geometry end (for renderer) */
-		inline void setEnd(ntlVec3Gfx set) { mEnd = set; }
+		inline void setEnd(ntlVec3Gfx set) { mEnd = set; initTrafoMatrix(); }
+		/*! get values */
+		inline ntlVec3Gfx getStart() { return mStart; }
+		/*! set geometry end (for renderer) */
+		inline ntlVec3Gfx getEnd() { return mEnd; }
 		
 		/*! set simulation domain start */
-		inline void setSimStart(ntlVec3Gfx set) { mSimStart = set; }
+		inline void setSimStart(ntlVec3Gfx set) { mSimStart = set; initTrafoMatrix(); }
 		/*! set simulation domain end */
-		inline void setSimEnd(ntlVec3Gfx set) { mSimEnd = set; }
+		inline void setSimEnd(ntlVec3Gfx set) { mSimEnd = set; initTrafoMatrix(); }
+		
+		/*! set/get dump flag */
+		inline void setDumpParts(bool set) { mDumpParts = set; }
+		inline bool getDumpParts() { return mDumpParts; }
 		
 		//! set the particle scaling factor
-		inline void setPartScale(double set) { mPartScale = set; }
-		//! set the trail scaling factor
-		inline void setTrailScale(double set) { mTrailScale = set; }
+		inline void setPartScale(float set) { mPartScale = set; }
 
 
 		// NTL geometry implementation
-
 		/*! Get the triangles from this object */
 		virtual void getTriangles( vector<ntlTriangle> *triangles, 
 				vector<ntlVec3Gfx> *vertices, 
 				vector<ntlVec3Gfx> *normals, int objectId );
 
+		virtual void notifyOfDump(int frameNr,char *frameNrStr,string outfilename);
+		// free deleted particles
+		void cleanup();
 
 	protected:
 
 		/*! the particle array (for multiple timesteps) */
-		vector< vector<ParticleObject> > mParts;
-
-		/*! desired number of particles */
-		int mNumParticles;
-
-		/*! number of particle positions to trace */
-		int mTrailLength;
-
-		/*! number of timesteps to between saving particle positions */
-		int mTrailInterval;
-		int mTrailIntervalCounter;
+		vector<ParticleObject> mParts;
 
 		/*! size of the particles to display */
-		double mPartSize;
-
-		/*! size of the particle trail */
-		double mTrailScale;
+		float mPartSize;
 
 		/*! start and end vectors for the triangulation region to create particles in */
 		ntlVec3Gfx mStart, mEnd;
@@ -167,18 +180,28 @@ class ParticleTracer :
 		ntlVec3Gfx mSimStart, mSimEnd;
 
 		/*! scaling param for particles */
-		double mPartScale;
+		float mPartScale;
 		/*! head and tail distance for particle shapes */
-		double mPartHeadDist, mPartTailDist;
+		float mPartHeadDist, mPartTailDist;
 		/*! no of segments for particle cone */
 		int mPartSegments;
 		/*! use length/absval of values to scale particles? */
 		int mValueScale;
 		/*! value length maximal cutoff value, for mValueScale==2 */
-		double mValueCutoffTop;
+		float mValueCutoffTop;
 		/*! value length minimal cutoff value, for mValueScale==2 */
-		double mValueCutoffBottom;
+		float mValueCutoffBottom;
 
+		/*! dump particles (or certain types of) to disk? */
+		int mDumpParts;
+		/*! show only a certain type (debugging) */
+		int mShowOnly;
+
+		//! transform matrix
+		ntlMatrix4x4<gfxReal> *mpTrafo;
+
+		/*! init sim/pos transformation */
+		void initTrafoMatrix();
 };
 
 #define NTL_PARTICLETRACER_H

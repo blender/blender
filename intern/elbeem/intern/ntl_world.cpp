@@ -12,9 +12,7 @@
 #include <sstream>
 #include "utilities.h"
 #include "ntl_world.h"
-#include "ntl_scene.h"
 #include "parametrizer.h"
-#include "globals.h"
 
 // for non-threaded renderViz
 #ifndef NOGUI
@@ -25,114 +23,41 @@
 
 
 /* external parser functions from cfgparser.cxx */
+#ifndef ELBEEM_PLUGIN
 /* parse given file as config file */
 void parseFile(string filename);
 /* set pointers for parsing */
 void setPointers( ntlRenderGlobals *setglob);
+#endif // ELBEEM_PLUGIN
 
 
 /******************************************************************************
  * Constructor
  *****************************************************************************/
 ntlWorld::ntlWorld(string filename, bool commandlineMode) 
-	/*:
-	mpGlob(NULL), 
-  mpLightList(NULL), mpPropList(NULL), mpSims(NULL),
-	mpOpenGLRenderer(NULL),
-	mStopRenderVisualization( false ),
-	mThreadRunning( false ), 
-	mSimulationTime(0.0), mFirstSim(-1),
-	mSingleStepDebug( false ),
-	mFrameCnt(0)*/
 {
-#if 0
-  /* create scene storage */
-  mpGlob = new ntlRenderGlobals();
-  mpLightList = new vector<ntlLightObject*>;
-  mpPropList = new vector<ntlMaterial*>;
-  mpSims = new vector<SimulationObject*>;
+#ifndef ELBEEM_PLUGIN
 
-  mpGlob->setLightList(mpLightList);
-  mpGlob->setMaterials(mpPropList);
-  mpGlob->setSims(mpSims);
+		initDefaults();
+#	ifdef NOGUI
+		commandlineMode = true; // remove warning...
+#	endif // NOGUI
 
-	/* init default material */
-  ntlMaterial *def = GET_GLOBAL_DEFAULT_MATERIAL;
- 	mpPropList->push_back( def );
-
-	/* init the scene object */
- 	ntlScene *scene;
-	scene = new ntlScene( mpGlob );
-	mpGlob->setScene( scene );
-
-	// moved TODO test...
-#endif // 0
-
-	initDefaults();
-#ifndef NOGUI
-	// setup opengl display, save first animation step for start time 
-	if(!commandlineMode) {
-		mpOpenGLRenderer = new ntlOpenGLRenderer( mpGlob );
-	}
-#else // NOGUI
-	commandlineMode = true; // remove warning...
-#endif // NOGUI
-	// load config
-  setPointers( getRenderGlobals() );
-  parseFile( filename.c_str() );
-	finishWorldInit();
-	/*if(!SIMWORLD_OK()) return;
-
-	// init the scene for the first time
-  long sstartTime = getTime();
-	scene->buildScene();
-	long sstopTime = getTime();
-	debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Scene build time: "<< getTimeString(sstopTime-sstartTime) <<" ", 10);
-
-	// TODO check simulations, run first steps
-	mFirstSim = -1;
-	if(mpSims->size() > 0) {
-
-		// use values from first simulation as master time scale
-		long startTime = getTime();
-		
-		// remember first active sim
-		for(size_t i=0;i<mpSims->size();i++) {
-			if(!(*mpSims)[i]->getVisible()) continue;
-			if((*mpSims)[i]->getPanic())    continue;
-
-			// check largest timestep
-			if(mFirstSim>=0) {
-				if( (*mpSims)[i]->getStepTime() > (*mpSims)[mFirstSim]->getStepTime() ) {
-					mFirstSim = i;
-					debMsgStd("ntlWorld::ntlWorld",DM_MSG,"First Sim changed: "<<i ,10);
-				}
-			}
-			// check any valid sim
-			if(mFirstSim<0) {
-				mFirstSim = i;
-				debMsgStd("ntlWorld::ntlWorld",DM_MSG,"First Sim: "<<i ,10);
-			}
+		// load config
+		setPointers( getRenderGlobals() );
+		parseFile( filename.c_str() );
+#	ifndef NOGUI
+		// setup opengl display, save first animation step for start time 
+		// init after parsing file...
+		if(!commandlineMode) {
+			mpOpenGLRenderer = new ntlOpenGLRenderer( mpGlob );
 		}
+#	endif // NOGUI
+		finishWorldInit();
 
-		if(mFirstSim>=0) {
-			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime() ,10);
-			while(mSimulationTime < (*mpSims)[mFirstSim]->getStartTime() ) {
-			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime()<<" simtime:"<<mSimulationTime ,10);
-				advanceSims(-1);
-			}
-			long stopTime = getTime();
-
-			mSimulationTime += (*mpSims)[mFirstSim]->getStartTime();
-			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Time for start simulations times "<<": "<< getTimeString(stopTime-startTime) <<"s ", 1);
-#ifndef NOGUI
-			guiResetSimulationTimeRange( mSimulationTime );
-#endif
-		} else {
-			if(!mpGlob->getSingleFrameMode()) debMsgStd("ntlWorld::ntlWorld",DM_WARNING,"No active simulations!", 1);
-		}
-	}
-*/
+#else // ELBEEM_PLUGIN
+	errFatal("ntlWorld::init","Cfg file parsing not supported for API version!", SIMWORLD_INITERROR);
+#endif // ELBEEM_PLUGIN
 }
 
 ntlWorld::ntlWorld(elbeemSimulationSettings *settings)
@@ -141,34 +66,53 @@ ntlWorld::ntlWorld(elbeemSimulationSettings *settings)
 	// todo init settings
 	SimulationObject *sim = new SimulationObject();
 	mpGlob->getSims()->push_back( sim );
-	mpGlob->getScene()->addGeoClass( sim );
+	// important - add to both, only render scene objects are free'd 
+	mpGlob->getRenderScene()->addGeoClass( sim );
+	mpGlob->getSimScene()->addGeoClass( sim );
 	sim->setGeoStart(ntlVec3Gfx(settings->geoStart[0],settings->geoStart[1],settings->geoStart[2]));
 	sim->setGeoEnd(ntlVec3Gfx(
 			settings->geoStart[0]+settings->geoSize[0],
 			settings->geoStart[1]+settings->geoSize[1],
 			settings->geoStart[2]+settings->geoSize[2] ));
-	sim->getSolver()->setSmoothing(1.0, 0.0);
-	sim->getSolver()->setPreviewSize(settings->previewresxyz);
-	sim->getSolver()->setRefinementDesired(settings->maxRefine);
+	// further init in postGeoConstrInit/initializeLbmSimulation of SimulationObject
+	sim->copyElbeemSettings(settings);
 
 	Parametrizer *param = sim->getParametrizer();
 	param->setSize( settings->resolutionxyz );
 	param->setDomainSize( settings->realsize );
 	param->setViscosity( settings->viscosity );
-	param->setGravity( ParamVec(settings->gravx, settings->gravy, settings->gravx) );
+	param->setGravity( ParamVec(settings->gravity[0], settings->gravity[1], settings->gravity[2]) );
 	param->setAniStart( settings->animStart );
-	param->setAniFrameTime( settings->aniFrameTime );
+	param->setAniFrameTimeChannel( settings->aniFrameTime );
 	param->setNormalizedGStar( settings->gstar );
 
-	// dont setup lights, camera, materials...?
-  /*
-	ntlMaterial *fluidmat = new ntlMaterial( );
-	currentMaterial->setAmbientRefl( ntlColor(0.3, 0.5, 0.9) ); 
-	currentMaterial->setDiffuseRefl( ntlColor(0.3, 0.5, 0.9) ); 
-	currentMaterial->setSpecular( 0.2 ); 
-	currentMaterial->setSpecExponent( 10.0 ); 
-	mpGlob->getMaterials()->push_back( fluidmat );
-	// */
+	// init domain channels
+	vector<ParamFloat> valf; 
+	vector<ParamVec> valv; 
+	vector<double> time;
+
+#define INIT_CHANNEL_FLOAT(channel,size) \
+	valf.clear(); time.clear(); elbeemSimplifyChannelFloat(channel,&size); \
+	for(int i=0; i<size; i++) { valf.push_back( channel[2*i+0] ); time.push_back( channel[2*i+1] ); } 
+#define INIT_CHANNEL_VEC(channel,size) \
+	valv.clear(); time.clear(); elbeemSimplifyChannelVec3(channel,&size); \
+	for(int i=0; i<size; i++) { valv.push_back( ParamVec(channel[4*i+0],channel[4*i+1],channel[4*i+2]) ); time.push_back( channel[4*i+3] ); } 
+
+	INIT_CHANNEL_FLOAT(settings->channelViscosity, settings->channelSizeViscosity);
+	param->initViscosityChannel(valf,time);
+
+	INIT_CHANNEL_VEC(settings->channelGravity, settings->channelSizeGravity);
+	param->initGravityChannel(valv,time);
+
+	INIT_CHANNEL_FLOAT(settings->channelFrameTime, settings->channelSizeFrameTime);
+	param->initAniFrameTimeChannel(valf,time);
+
+#undef INIT_CHANNEL_FLOAT
+#undef INIT_CHANNEL_VEC
+	
+	mpGlob->setAniFrames( settings->noOfFrames );
+	mpGlob->setOutFilename( settings->outputPath );
+	// further init in postGeoConstrInit/initializeLbmSimulation of SimulationObject
 }
 
 void ntlWorld::initDefaults()
@@ -196,8 +140,11 @@ void ntlWorld::initDefaults()
  	mpPropList->push_back( def );
 
 	/* init the scene object */
- 	ntlScene *newscene = new ntlScene( mpGlob );
-	mpGlob->setScene( newscene );
+ 	ntlScene *renderscene = new ntlScene( mpGlob, true );
+	mpGlob->setRenderScene( renderscene );
+	// sim scene shouldnt delete objs, may only contain subset
+ 	ntlScene *simscene = new ntlScene( mpGlob, false );
+	mpGlob->setSimScene( simscene );
 }
 
 void ntlWorld::finishWorldInit()
@@ -206,7 +153,10 @@ void ntlWorld::finishWorldInit()
 
 	// init the scene for the first time
   long sstartTime = getTime();
-	mpGlob->getScene()->buildScene();
+
+	// first init sim scene for geo setup
+	mpGlob->getSimScene()->buildScene(0.0, true);
+	mpGlob->getRenderScene()->buildScene(0.0, true);
 	long sstopTime = getTime();
 	debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Scene build time: "<< getTimeString(sstopTime-sstartTime) <<" ", 10);
 
@@ -225,7 +175,7 @@ void ntlWorld::finishWorldInit()
 
 			// check largest timestep
 			if(mFirstSim>=0) {
-				if( (*mpSims)[i]->getStepTime() > (*mpSims)[mFirstSim]->getStepTime() ) {
+				if( (*mpSims)[i]->getTimestep() > (*mpSims)[mFirstSim]->getTimestep() ) {
 					mFirstSim = i;
 					debMsgStd("ntlWorld::ntlWorld",DM_MSG,"First Sim changed: "<<i ,10);
 				}
@@ -246,7 +196,7 @@ void ntlWorld::finishWorldInit()
 			long stopTime = getTime();
 
 			mSimulationTime += (*mpSims)[mFirstSim]->getStartTime();
-			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Time for start simulations times "<<": "<< getTimeString(stopTime-startTime) <<"s ", 1);
+			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Time for start-sims:"<< getTimeString(stopTime-startTime) , 1);
 #ifndef NOGUI
 			guiResetSimulationTimeRange( mSimulationTime );
 #endif
@@ -263,7 +213,8 @@ void ntlWorld::finishWorldInit()
  *****************************************************************************/
 ntlWorld::~ntlWorld()
 {
-	delete mpGlob->getScene();
+	delete mpGlob->getRenderScene();
+	delete mpGlob->getSimScene();
   delete mpGlob;
   delete mpLightList;
   delete mpPropList;
@@ -271,6 +222,7 @@ ntlWorld::~ntlWorld()
 #ifndef NOGUI
 	if(mpOpenGLRenderer) delete mpOpenGLRenderer;
 #endif // NOGUI
+	debMsgStd("ntlWorld",DM_NOTIFY, "ntlWorld done", 10);
 }
 
 /******************************************************************************/
@@ -349,9 +301,9 @@ int ntlWorld::renderVisualization( bool multiThreaded )
 			advanceSims(mFrameCnt);
 			mFrameCnt++;
 			long stopTime = getTime();
-			debMsgStd("ntlWorld::renderVisualization",DM_MSG,"Time for "<<mSimulationTime<<": "<< getTimeString(stopTime-startTime) <<"s ", 10);
+			debMsgStd("ntlWorld::renderVisualization",DM_MSG,"Time for t="<<mSimulationTime<<": "<< getTimeString(stopTime-startTime) <<" ", 10);
 		} else {
-			double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getStepTime();
+			double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getTimestep();
 			singleStepSims(targetTime);
 
 			// check paniced sims (normally done by advanceSims
@@ -390,7 +342,7 @@ int ntlWorld::renderVisualization( bool multiThreaded )
 int ntlWorld::singleStepVisualization( void ) 
 {
 	mThreadRunning = true;
-	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getStepTime();
+	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getTimestep();
 	singleStepSims(targetTime);
 	mSimulationTime = (*mpSims)[0]->getCurrentTime();
 
@@ -419,12 +371,10 @@ int ntlWorld::advanceSims(int framenum)
 	//debMsgStd("ntlWorld::advanceSims",DM_MSG,"Advancing sims to "<<targetTime, 10 ); // timedebug
 
 	for(size_t i=0;i<mpSims->size();i++) { (*mpSims)[i]->setFrameNum(framenum); }
-	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime();
-//FIXME check blender abort here...
-//FIXME check no ipo export
+	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime(framenum);
 
 	// time stopped? nothing else to do...
-	if( (*mpSims)[mFirstSim]->getFrameTime() <= 0.0 ){ 
+	if( (*mpSims)[mFirstSim]->getFrameTime(framenum) <= 0.0 ){ 
 		done=true; allPanic=false; 
 	}
 
@@ -437,17 +387,25 @@ int ntlWorld::advanceSims(int framenum)
 #endif // ELBEEM_BLENDER==1
 
 	// step all the sims, and check for panic
+	debMsgStd("ntlWorld::advanceSims",DM_MSG, " sims "<<mpSims->size()<<" t"<<targetTime<<" done:"<<done<<" panic:"<<allPanic, 10); // debug // timedebug
 	while(!done) {
-		double nextTargetTime = (*mpSims)[mFirstSim]->getCurrentTime() + (*mpSims)[mFirstSim]->getStepTime();
+		double nextTargetTime = (*mpSims)[mFirstSim]->getCurrentTime() + (*mpSims)[mFirstSim]->getTimestep();
 		singleStepSims(nextTargetTime);
 
 		// check target times
 		done = true;
 		allPanic = false;
-		for(size_t i=0;i<mpSims->size();i++) {
-			if(!(*mpSims)[i]->getVisible()) continue;
-			if((*mpSims)[i]->getPanic()) allPanic = true; // do any panic now!?
-			//debMsgStd("ntlWorld::advanceSims",DM_MSG, " sim "<<i<<" c"<<(*mpSims)[i]->getCurrentTime()<<" p"<<(*mpSims)[i]->getPanic()<<" t"<<targetTime, 10); // debug // timedebug
+		//if((framenum>0) && (nextTargetTime<=(*mpSims)[mFirstSim]->getCurrentTime()) ) { 
+		if((*mpSims)[mFirstSim]->getTimestep() <1e-9 ) { 
+			// safety check, avoid timesteps that are too small
+			errMsg("ntlWorld::advanceSims","Invalid time step, causing panic! curr:"<<(*mpSims)[mFirstSim]->getCurrentTime()<<" next:"<<nextTargetTime<<", stept:"<< (*mpSims)[mFirstSim]->getTimestep() );
+			allPanic = true; 
+		} else {
+			for(size_t i=0;i<mpSims->size();i++) {
+				if(!(*mpSims)[i]->getVisible()) continue;
+				if((*mpSims)[i]->getPanic()) allPanic = true; // do any panic now!?
+				debMsgStd("ntlWorld::advanceSims",DM_MSG, "Sim "<<i<<", currt:"<<(*mpSims)[i]->getCurrentTime()<<", nt:"<<nextTargetTime<<", panic:"<<(*mpSims)[i]->getPanic()<<", targett:"<<targetTime, 10); // debug // timedebug
+			} 
 		}
 		if( (targetTime - (*mpSims)[mFirstSim]->getCurrentTime()) > LBM_TIME_EPSILON) done=false;
 		if(allPanic) done = true;
@@ -474,7 +432,7 @@ int ntlWorld::advanceSims(int framenum)
 /* dont check target time, if *targetTime==NULL */
 void ntlWorld::singleStepSims(double targetTime) {
 	const bool debugTime = false;
-	//double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getStepTime();
+	//double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getTimestep();
 	if(debugTime) errMsg("ntlWorld::singleStepSims","Target time: "<<targetTime);
 
 	for(size_t i=0;i<mpSims->size();i++) {
@@ -484,7 +442,7 @@ void ntlWorld::singleStepSims(double targetTime) {
 		bool done = false;
 		while(!done) {
 			// try to prevent round off errs
-			if(debugTime) errMsg("ntlWorld::singleStepSims","Test sim "<<i<<" curt:"<< sim->getCurrentTime()<<" target:"<<targetTime<<" delta:"<<(targetTime - sim->getCurrentTime())<<" stept:"<<sim->getStepTime()<<" leps:"<<LBM_TIME_EPSILON ); // timedebug
+			if(debugTime) errMsg("ntlWorld::singleStepSims","Test sim "<<i<<" curt:"<< sim->getCurrentTime()<<" target:"<<targetTime<<" delta:"<<(targetTime - sim->getCurrentTime())<<" stept:"<<sim->getTimestep()<<" leps:"<<LBM_TIME_EPSILON ); // timedebug
 			if( (targetTime - sim->getCurrentTime()) > LBM_TIME_EPSILON) {
 				if(debugTime) errMsg("ntlWorld::singleStepSims","Stepping sim "<<i<<" t:"<< sim->getCurrentTime()); // timedebug
 				sim->step();
@@ -509,7 +467,7 @@ void ntlWorld::singleStepSims(double targetTime) {
  *****************************************************************************/
 int ntlWorld::renderScene( void )
 {
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 	char nrStr[5];														/* nr conversion */
 	//std::ostringstream outfilename(""); 					  /* ppm file */
 	std::ostringstream outfn_conv("");  						/* converted ppm with other suffix */
@@ -541,8 +499,8 @@ int ntlWorld::renderScene( void )
   /* start program */
 	timeStart = getTime();
 
-	/* build scene geometry */
-	glob->getScene()->prepareScene();
+	/* build scene geometry, calls buildScene(t,false) */
+	glob->getRenderScene()->prepareScene(mSimulationTime);
 
   /* start program */
 	totalStart = getTime();
@@ -566,7 +524,7 @@ int ntlWorld::renderScene( void )
 
 	/* check if vectors are valid */
 	if( (equal(upVec,ntlVec3Gfx(0.0))) || (equal(rightVec,ntlVec3Gfx(0.0))) ) {
-		errorOut("NTL ERROR: Invalid viewpoint vectors!\n");
+		errMsg("ntlWorld::renderScene","Invalid viewpoint vectors! up="<<upVec<<" right="<<rightVec);
 		return(1);
 	}
 
@@ -856,15 +814,66 @@ int ntlWorld::renderScene( void )
 	delete [] aaCol;
 	delete [] aaUse;
 	delete [] finalPic;
-	glob->getScene()->cleanupScene();
+	glob->getRenderScene()->cleanupScene();
 
 	if(mpGlob->getSingleFrameMode() ) {
 		debMsgStd("ntlWorld::renderScene",DM_NOTIFY, "Single frame mode done...", 1 );
 		return 1;
 	}
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 	return 0;
 }
 
+
+/******************************************************************************
+ * renderglobals
+ *****************************************************************************/
+
+
+/*****************************************************************************/
+/* Constructor with standard value init */
+ntlRenderGlobals::ntlRenderGlobals() :
+	mpRenderScene(NULL), mpSimScene(NULL),
+  mpLightList( NULL ), mpMaterials( NULL ), mpSims( NULL ),
+  mResX(320), mResY(200), mAADepth(-1), mMaxColVal(255), 
+  mRayMaxDepth( 5 ),
+  mvEye(0.0,0.0,5.0), mvLookat(0.0,0.0,0.0), mvUpvec(0.0,1.0,0.0), 
+  mAspect(320.0/200.0), 
+  mFovy(45), mcBackgr(0.0,0.0,0.0), mcAmbientLight(0.0,0.0,0.0), 
+  mDebugOut( 0 ),
+  mAniStart(0), mAniFrames( -1 ), mAniCount( 0 ),
+	mFrameSkip( 0 ),
+  mCounterRays( 0 ), mCounterShades( 0 ), mCounterSceneInter( 0 ),
+	mOutFilename( "pic" ),
+	mTreeMaxDepth( 30 ), mTreeMaxTriangles( 30 ),
+	mpOpenGlAttr(NULL),
+	mpBlenderAttr(NULL),
+	mTestSphereEnabled( false ),
+	mDebugPixelX( -1 ), mDebugPixelY( -1 ), mTestMode(false),
+	mSingleFrameMode(false), mSingleFrameFilename("")
+	//,mpRndDirections( NULL ), mpRndRoulette( NULL )
+{ 
+	// create internal attribute list for opengl renderer
+	mpOpenGlAttr = new AttributeList("__ntlOpenGLRenderer");
+	mpBlenderAttr = new AttributeList("__ntlBlenderAttr");
+};
+
+
+/*****************************************************************************/
+/* Destructor */
+ntlRenderGlobals::~ntlRenderGlobals() {
+	if(mpOpenGlAttr) delete mpOpenGlAttr;
+	if(mpBlenderAttr) delete mpBlenderAttr;
+}
+
+
+/*****************************************************************************/
+//! get the next random photon direction
+//ntlVec3Gfx ntlRenderGlobals::getRandomDirection( void ) { 
+	//return ntlVec3Gfx( 
+			//(mpRndDirections->getGfxReal()-0.5), 
+			//(mpRndDirections->getGfxReal()-0.5),  
+			//(mpRndDirections->getGfxReal()-0.5) ); 
+//} 
 
 

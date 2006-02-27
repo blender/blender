@@ -9,7 +9,111 @@
  *
  *****************************************************************************/
 
+#if FSGR_STRICT_DEBUG==1
+#define CAUSE_PANIC { this->mPanic=1; /* *((int*)(0x0)) = 1; crash*/ }
+#else // FSGR_STRICT_DEBUG==1
+#define CAUSE_PANIC { this->mPanic=1; } /*set flag*/
+#endif // FSGR_STRICT_DEBUG==1
 
+
+
+#if LBM_INCLUDE_TESTSOLVERS!=1
+
+// off for non testing
+#define PRECOLLIDE_MODS(rho,ux,uy,uz) 
+
+#else // LBM_INCLUDE_TESTSOLVERS!=1
+
+#define PRECOLLIDE_GETPOS \
+	LbmVec( \
+			((this->mvGeoEnd[0]-this->mvGeoStart[0])/(LbmFloat)this->mSizex) * (LbmFloat)i + this->mvGeoStart[0], \
+			((this->mvGeoEnd[1]-this->mvGeoStart[1])/(LbmFloat)this->mSizey) * (LbmFloat)j + this->mvGeoStart[1], \
+			((this->mvGeoEnd[2]-this->mvGeoStart[2])/(LbmFloat)this->mSizez) * (LbmFloat)k + this->mvGeoStart[2]  \
+			)
+
+// debug modifications of collide vars (testing)
+#define PRECOLLIDE_MODS(rho,ux,uy,uz) \
+	if( (this->mTForceStrength>0.) && (RFLAG(0,i,j,k, mLevel[0].setCurr)&CFNoBndFluid) ) { \
+		LbmVec pos = PRECOLLIDE_GETPOS; \
+		LbmVec vel(ux,uy,uz); \
+		mpTest->mControlParts.modifyVelocity(pos,vel); /* */\
+		if((i==16)&&(j==10)){ /*debugMarkCell(0,16,10,0);*/ errMsg("FTDEB"," at "<<PRINT_IJK<<" targ:"<<vel<<",len:"<<norm(vel)<<",  org:"<<ntlVec3Gfx(ux,uy,uz) ); }\
+		ux = vel[0]; uy=vel[1]; uz=vel[2]; \
+		/* test acutal values...? */ \
+	}
+ 	/* end PRECOLLIDE_MODS */
+
+// debug modifications of collide vars (testing)
+#define _PRECOLLIDE_MODS(rho,ux,uy,uz) \
+	if(this->mTForceStrength>0.) { \
+		LbmVec u(ux,uy,uz); \
+		LbmVec pos = PRECOLLIDE_GETPOS; \
+		LbmVec targv = u; const int lev=0; \
+		mpTest->mControlParts.modifyVelocity(pos,targv); /* */\
+		LbmVec devia = (targv-u); \
+		LbmVec set; \
+		set = u + (devia/this->mOmega) * this->mTForceStrength; /* */\
+		set = u + targv*this->mTForceStrength; /* */\
+		ux = set[0]; uy=set[1]; uz=set[2]; \
+		if(j==10){ errMsg("FTDEB"," at "<<PRINT_IJK<<" targ"<<targv<<","<<norm(targv)<<"  set:"<<set<<","<<norm(set) ); }\
+	}
+ 	/* end PRECOLLIDE_MODS */
+
+#endif // LBM_INCLUDE_TESTSOLVERS!=1
+
+/*
+
+	\
+	if((0) && (j>=0.01*this->mSizey) && (j<0.9*this->mSizey)) { \
+		if((1) && (i>=0.5*this->mSizex) && (i<0.6*this->mSizex)) { \
+			LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
+			LbmVec u(ux,uy,uz); LbmVec t(1., 0., 0.); \
+			ux = len*t[0]; uy=len*t[1]; uz=len*t[2]; \
+		} \
+		if((1) && (i>=0.65*this->mSizex) && (i<0.75*this->mSizex)) { \
+			LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
+			LbmVec u(ux,uy,uz); LbmVec t(0., 1., 0.); \
+			ux = len*t[0]; uy=len*t[1]; uz=len*t[2]; \
+		} \
+	} \
+	\
+	if((0) && (j>=0.0*this->mSizey) && (j<1.0 *this->mSizey)) { \
+		if((1) && (i>=0.6 *this->mSizex) && (i<0.7 *this->mSizex)) { \
+			LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
+			LbmVec u(ux,uy,uz); \
+			LbmVec t(0., 1., 0.); \
+			LbmFloat devia = norm(u-t); \
+			// 0.0001-strong, 0.000001-small, 
+			t = u - (devia/this->mOmega) * this->mTForceStrength; \
+			// ux = len*t[0]; uy=len*t[1]; uz=len*t[2]; 
+			ux = t[0]; uy=t[1]; uz=t[2]; \
+			//ux= uy= uz= 0.0; 
+			//errMsg("DDDD"," at "<<PRINT_IJK);  
+		} \
+	} \
+	if(0) { \
+		LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
+		LbmVec u(ux,uy,uz); \
+		LbmVec p(i/(LbmFloat)this->mSizex, j/(LbmFloat)this->mSizey, k/(LbmFloat)this->mSizez); \
+		LbmVec cp(0.5, 0.5, 0.5); \
+		LbmVec delt = cp - p; \
+		LbmFloat dist = norm(delt); \
+		normalize(delt); \
+		LbmVec tang = cross(delt, LbmVec(0.,0.,1.)); \
+		normalize(tang); \
+		const LbmFloat falloff = 5.0; \
+		LbmVec targv = tang*1.0 * 1.0/(1.0+falloff*dist); \
+		LbmVec devia = (targv-u); \
+		LbmFloat devial = norm(devia); \
+		LbmVec set; \
+		set = u +targv * this->mTForceStrength; \
+		set = u + (devia/this->mOmega) * this->mTForceStrength; \
+		ux = set[0]; uy=set[1]; uz=set[2]; \
+		if(j==10){ errMsg("FTDEB"," at "<<PRINT_IJK<<" dist:"<<delt<<","<<dist<<" targ"<<targv<<","<<norm(targv)<<"  set:"<<set<<","<<norm(set) ); }\
+	} \
+
+*/
+	
 /******************************************************************************
  * normal relaxation
  *****************************************************************************/
@@ -165,20 +269,20 @@
 // treatment of freeslip reflection
 // used both for OPT and nonOPT
 #define DEFAULT_STREAM_FREESLIP(l,invl,mnbf) \
-		/*const int inv_l = D::dfInv[l];*/ \
+		/*const int inv_l = this->dfInv[l];*/ \
 		int nb1 = 0, nb2 = 0;   /* is neighbor in this direction an obstacle? */\
 		LbmFloat newval = 0.0; /* new value for m[l], differs for free/part slip */\
-		const int dx = D::dfVecX[invl], dy = D::dfVecY[invl], dz = D::dfVecZ[invl]; \
+		const int dx = this->dfVecX[invl], dy = this->dfVecY[invl], dz = this->dfVecZ[invl]; \
 		if(dz==0) { \
 			nb1 = !(RFLAG(lev, i,   j+dy,k, SRCS(lev))&(CFFluid|CFInter)); \
 			nb2 = !(RFLAG(lev, i+dx,j,   k, SRCS(lev))&(CFFluid|CFInter)); \
 			if((nb1)&&(!nb2)) { \
 				/* x reflection */\
-				newval = QCELL(lev, i+dx,j,k,SRCS(lev), D::dfRefX[l]); \
+				newval = QCELL(lev, i+dx,j,k,SRCS(lev), this->dfRefX[l]); \
 			} else  \
 			if((!nb1)&&(nb2)) { \
 				/* y reflection */\
-				newval = QCELL(lev, i,j+dy,k,SRCS(lev), D::dfRefY[l]); \
+				newval = QCELL(lev, i,j+dy,k,SRCS(lev), this->dfRefY[l]); \
 			} else { \
 				/* normal no slip in all other cases */\
 				newval = QCELL(lev, i,j,k,SRCS(lev), invl); \
@@ -189,11 +293,11 @@
 			nb2 = !(RFLAG(lev, i+dx,j,k, SRCS(lev))&(CFFluid|CFInter)); \
 			if((nb1)&&(!nb2)) { \
 				/* x reflection */\
-				newval = QCELL(lev, i+dx,j,k,SRCS(lev), D::dfRefX[l]); \
+				newval = QCELL(lev, i+dx,j,k,SRCS(lev), this->dfRefX[l]); \
 			} else  \
 			if((!nb1)&&(nb2)) { \
 				/* z reflection */\
-				newval = QCELL(lev, i,j,k+dz,SRCS(lev), D::dfRefZ[l]); \
+				newval = QCELL(lev, i,j,k+dz,SRCS(lev), this->dfRefZ[l]); \
 			} else { \
 				/* normal no slip in all other cases */\
 				newval = ( QCELL(lev, i,j,k,SRCS(lev), invl) ); \
@@ -205,11 +309,11 @@
 			nb2 = !(RFLAG(lev, i,j+dy,k, SRCS(lev))&(CFFluid|CFInter)); \
 			if((nb1)&&(!nb2)) { \
 				/* y reflection */\
-				newval = QCELL(lev, i,j+dy,k,SRCS(lev), D::dfRefY[l]); \
+				newval = QCELL(lev, i,j+dy,k,SRCS(lev), this->dfRefY[l]); \
 			} else  \
 			if((!nb1)&&(nb2)) { \
 				/* z reflection */\
-				newval = QCELL(lev, i,j,k+dz,SRCS(lev), D::dfRefZ[l]); \
+				newval = QCELL(lev, i,j,k+dz,SRCS(lev), this->dfRefZ[l]); \
 			} else { \
 				/* normal no slip in all other cases */\
 				newval = ( QCELL(lev, i,j,k,SRCS(lev), invl) ); \
@@ -217,7 +321,7 @@
 		} \
 		if(mnbf & CFBndPartslip) { /* part slip interpolation */ \
 			const LbmFloat partv = mObjectPartslips[(int)(mnbf>>24)]; \
-			m[l] = RAC(ccel, D::dfInv[l] ) * partv + newval * (1.0-partv); /* part slip */ \
+			m[l] = RAC(ccel, this->dfInv[l] ) * partv + newval * (1.0-partv); /* part slip */ \
 		} else {\
 			m[l] = newval; /* normal free slip*/\
 		}\
@@ -228,20 +332,22 @@
 
 #if FSGR_STRICT_DEBUG==1
 #define MARKCELLCHECK \
-	debugMarkCell(lev,i,j,k); D::mPanic=1;
-#define STREAMCHECK(ni,nj,nk,nl) \
-	if((m[l] < -1.0) || (m[l]>1.0)) {\
-		errMsg("STREAMCHECK","Invalid streamed DF l"<<l<<" value:"<<m[l]<<" at "<<PRINT_IJK<<" from "<<PRINT_VEC(ni,nj,nk)<<" nl"<<(nl)<<\
+	debugMarkCell(lev,i,j,k); CAUSE_PANIC;
+#define STREAMCHECK(id,ni,nj,nk,nl) \
+	if((m[nl] < -1.0) || (m[nl]>1.0)) {\
+		errMsg("STREAMCHECK","ID"<<id<<" Invalid streamed DF nl"<<nl<<" value:"<<m[nl]<<" at "<<PRINT_IJK<<" from "<<PRINT_VEC(ni,nj,nk)<<" nl"<<(nl)<<\
 				" nfc"<< RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr)<<" nfo"<< RFLAG(lev, ni,nj,nk, mLevel[lev].setOther)  ); \
+		/*FORDF0{ errMsg("STREAMCHECK"," at "<<PRINT_IJK<<" df "<<l<<"="<<m[l] ); } */ \
 		MARKCELLCHECK; \
 	}
 #define COLLCHECK \
 	if( (rho>2.0) || (rho<-1.0) || (ABS(ux)>1.0) || (ABS(uy)>1.0) |(ABS(uz)>1.0) ) {\
 		errMsg("COLLCHECK","Invalid collision values r:"<<rho<<" u:"PRINT_VEC(ux,uy,uz)<<" at? "<<PRINT_IJK ); \
+		/*FORDF0{ errMsg("COLLCHECK"," at? "<<PRINT_IJK<<" df "<<l<<"="<<m[l] ); }*/ \
 		MARKCELLCHECK; \
 	}
 #else
-#define STREAMCHECK(ni,nj,nk,nl) 
+#define STREAMCHECK(id, ni,nj,nk,nl) 
 #define COLLCHECK
 #endif
 
@@ -249,121 +355,38 @@
 
 #define DEFAULT_STREAM \
 		m[dC] = RAC(ccel,dC); \
+		STREAMCHECK(1, i,j,k, dC); \
 		FORDF1 { \
-			CellFlagType nbf = nbflag[ D::dfInv[l] ];\
+			CellFlagType nbf = nbflag[ this->dfInv[l] ];\
 			if(nbf & CFBnd) { \
 				if(nbf & CFBndNoslip) { \
 					/* no slip, default */ \
-					m[l] = RAC(ccel, D::dfInv[l] ); STREAMCHECK(i,j,k, D::dfInv[l]); /* noslip */ \
+					m[l] = RAC(ccel, this->dfInv[l] ); /* noslip */ \
+					if(nbf&CFBndMoving) m[l]+=QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); /* obs. speed*/ \
+					STREAMCHECK(2, i,j,k, l); \
 				} else if(nbf & (CFBndFreeslip|CFBndPartslip)) { \
 					/* free slip */ \
 					if(l<=LBMDIM*2) { \
-						m[l] = RAC(ccel, D::dfInv[l] ); STREAMCHECK(i,j,k, D::dfInv[l]); /* noslip for <dim*2 */ \
+						m[l] = RAC(ccel, this->dfInv[l] ); STREAMCHECK(3, i,j,k, l); /* noslip for <dim*2 */ \
 					} else { \
-					const int inv_l = D::dfInv[l]; \
-					DEFAULT_STREAM_FREESLIP(l,inv_l,nbf); \
-				} /* l>2*dim free slip */ \
-				\
+						const int inv_l = this->dfInv[l]; \
+						DEFAULT_STREAM_FREESLIP(l,inv_l,nbf); \
+					} /* l>2*dim free slip */ \
+					\
 				} /* type reflect */\
 				else {\
-					errMsg("LbmFsgrSolver","Invalid Bnd type at "<<PRINT_IJK<<" f"<<convertCellFlagType2String(nbf)<<",nbdir"<<D::dfInv[l] ); \
+					errMsg("LbmFsgrSolver","Invalid Bnd type at "<<PRINT_IJK<<" f"<<convertCellFlagType2String(nbf)<<",nbdir"<<this->dfInv[l] ); \
 				} \
 			} else { \
 				m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); \
-				STREAMCHECK(i+D::dfVecX[D::dfInv[l]], j+D::dfVecY[D::dfInv[l]],k+D::dfVecZ[D::dfInv[l]], l); \
+				STREAMCHECK(4, i+this->dfVecX[this->dfInv[l]], j+this->dfVecY[this->dfInv[l]],k+this->dfVecZ[this->dfInv[l]], l); \
 			} \
 		}   
 
-#define _________________DEFAULT_STREAM \
-		m[dC] = RAC(ccel,dC); \
-		FORDF1 { \
-			CellFlagType nbf = nbflag[ D::dfInv[l] ];\
-			if(nbf & CFBnd) { \
-				if(nbf & CFBndNoslip) { \
-					/* no slip, default */ \
-					m[l] = RAC(ccel, D::dfInv[l] ); STREAMCHECK(i,j,k, D::dfInv[l]); /* noslip */ \
-				} else if(nbf & (CFBndFreeslip|CFBndPartslip)) { \
-					/* free slip */ \
-					if(l<=LBMDIM*2) { \
-						m[l] = RAC(ccel, D::dfInv[l] ); STREAMCHECK(i,j,k, D::dfInv[l]); /* noslip for <dim*2 */ \
-					} else { \
-					const int inv_l = D::dfInv[l]; \
-					int debug_srcl = -1; \
-					int nb1 = 0, nb2 = 0;   /* is neighbor in this direction an obstacle? */\
-					LbmFloat newval = 0.0; /* new value for m[l], differs for free/part slip */\
-					const int dx = D::dfVecX[inv_l], dy = D::dfVecY[inv_l], dz = D::dfVecZ[inv_l]; \
-					\
-					if(dz==0) { \
-						nb1 = !(RFLAG(lev, i,   j+dy,k, SRCS(lev))&(CFFluid|CFInter)); /* FIXME add noslip|free|part here */ \
-						nb2 = !(RFLAG(lev, i+dx,j,   k, SRCS(lev))&(CFFluid|CFInter)); \
-						if((nb1)&&(!nb2)) { \
-							/* x reflection */\
-							newval = QCELL(lev, i+dx,j,k,SRCS(lev), D::dfRefX[l]); \
-							debug_srcl = D::dfRefX[l]; \
-						} else  \
-						if((!nb1)&&(nb2)) { \
-							/* y reflection */\
-							newval = QCELL(lev, i,j+dy,k,SRCS(lev), D::dfRefY[l]); \
-							debug_srcl = D::dfRefY[l]; \
-						} else { \
-							/* normal no slip in all other cases */\
-							newval = QCELL(lev, i,j,k,SRCS(lev), inv_l); \
-							debug_srcl = inv_l; \
-						} \
-					} else /* z=0 */\
-					if(dy==0) { \
-						nb1 = !(RFLAG(lev, i,j,k+dz, SRCS(lev))&(CFFluid|CFInter)); \
-						nb2 = !(RFLAG(lev, i+dx,j,k, SRCS(lev))&(CFFluid|CFInter)); \
-						if((nb1)&&(!nb2)) { \
-							/* x reflection */\
-							newval = QCELL(lev, i+dx,j,k,SRCS(lev), D::dfRefX[l]); \
-						} else  \
-						if((!nb1)&&(nb2)) { \
-							/* z reflection */\
-							newval = QCELL(lev, i,j,k+dz,SRCS(lev), D::dfRefZ[l]); \
-						} else { \
-							/* normal no slip in all other cases */\
-							newval = ( QCELL(lev, i,j,k,SRCS(lev), inv_l) ); \
-						} \
-						/* end y=0 */ \
-					} else { \
-						/* x=0 */\
-						nb1 = !(RFLAG(lev, i,j,k+dz, SRCS(lev))&(CFFluid|CFInter)); \
-						nb2 = !(RFLAG(lev, i,j+dy,k, SRCS(lev))&(CFFluid|CFInter)); \
-						if((nb1)&&(!nb2)) { \
-							/* y reflection */\
-							newval = QCELL(lev, i,j+dy,k,SRCS(lev), D::dfRefY[l]); \
-						} else  \
-						if((!nb1)&&(nb2)) { \
-							/* z reflection */\
-							newval = QCELL(lev, i,j,k+dz,SRCS(lev), D::dfRefZ[l]); \
-						} else { \
-							/* normal no slip in all other cases */\
-							newval = ( QCELL(lev, i,j,k,SRCS(lev), inv_l) ); \
-						} \
-					} \
-					if(nbf & CFBndPartslip) { /* part slip interpolation */ \
-						const LbmFloat partv = mObjectPartslips[(int)(nbf>>24)]; \
-						m[l] = RAC(ccel, D::dfInv[l] ) * partv + newval * (1.0-partv); /* part slip */ \
-					} else {\
-						m[l] = newval; /* normal free slip*/\
-					}\
-					/*if(RFLAG(lev, i,j,k, SRCS(lev))&CFInter) errMsg("FS","at "<<PRINT_IJK<<",l"<<l<<" nb1"<<nb1<<" nb2"<<nb2<<" dx"<<PRINT_VEC(dx,dy,dz)<<",srcl"<<debug_srcl<<" -> "<<newval );*/ \
-				} /* l>2*dim free slip */ \
-				\
-				} /* type reflect */\
-				else {\
-					errMsg("LbmFsgrSolver","Invalid Bnd type at "<<PRINT_IJK<<" f"<<convertCellFlagType2String(nbf)<<",nbdir"<<D::dfInv[l] ); \
-				} \
-			} else { \
-				m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); \
-				STREAMCHECK(i+D::dfVecX[D::dfInv[l]], j+D::dfVecY[D::dfInv[l]],k+D::dfVecZ[D::dfInv[l]], l); \
-			} \
-		}   
 
 // careful ux,uy,uz need to be inited before!
 #define DEFAULT_COLLIDE \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago, &mDebugOmegaRet, &lcsmqo ); \
+			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago, &mDebugOmegaRet, &lcsmqo ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; }   \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -372,13 +395,13 @@
 			m[0] = RAC(ccel,0); \
 			FORDF1 { /* df0 is set later on... */ \
 				/* FIXME CHECK INV ? */\
-				if(RFLAG_NBINV(lev, i,j,k,SRCS(lev),l)&CFBnd) { errMsg("???", "bnd-err-nobndfl"); D::mPanic=1;  \
+				if(RFLAG_NBINV(lev, i,j,k,SRCS(lev),l)&CFBnd) { errMsg("???", "bnd-err-nobndfl"); CAUSE_PANIC;  \
 				} else { m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l, l); } \
-				STREAMCHECK(i+D::dfVecX[D::dfInv[l]], j+D::dfVecY[D::dfInv[l]],k+D::dfVecZ[D::dfInv[l]], l); \
+				STREAMCHECK(8, i+this->dfVecX[this->dfInv[l]], j+this->dfVecY[this->dfInv[l]],k+this->dfVecZ[this->dfInv[l]], l); \
 			}   \
-			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
+			rho=m[0]; \
 			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
+			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; } \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -387,6 +410,20 @@
 #else  // 3D, opt OPT3D==true
 
 
+// handle mov. obj 
+#if FSGR_STRICT_DEBUG==1
+#define LBMDS_ADDMOV(linv,l) if(nbflag[linv]&CFBndMoving){ \
+		if(QCELL_NBINV(lev, i, j, k, SRCS(lev), l,dFlux)== (mSimulationTime+this->mpParam->getTimestep()) ) { \
+			m[l]+=QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); /* obs. speed*/ \
+		} else { \
+			CAUSE_PANIC; errMsg("INVALID_MOV_OBJ_TIME"," at "<<PRINT_IJK<<" from l"<<l<<" t="<<mSimulationTime<<" ct="<<QCELL_NBINV(lev, i, j, k, SRCS(lev), l,dFlux)); \
+		} \
+	}
+#else // FSGR_STRICT_DEBUG==1
+#define LBMDS_ADDMOV(linv,l) if(nbflag[linv]&CFBndMoving){ m[l]+=QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); } /* obs. speed*/ 
+#endif // FSGR_STRICT_DEBUG==1
+
+// default stream opt3d add moving bc val
 #define DEFAULT_STREAM \
 		m[dC] = RAC(ccel,dC); \
 		/* explicit streaming */ \
@@ -400,26 +437,26 @@
 			m[dET] = CSRC_ET; m[dEB] = CSRC_EB; m[dWT] = CSRC_WT; m[dWB] = CSRC_WB; \
 		} else { \
 			/* explicit streaming, normal velocity always zero for obstacles */ \
-			if(nbflag[dS ]&CFBnd) { m[dN ] = RAC(ccel,dS ); } else { m[dN ] = CSRC_N ; } \
-			if(nbflag[dN ]&CFBnd) { m[dS ] = RAC(ccel,dN ); } else { m[dS ] = CSRC_S ; } \
-			if(nbflag[dW ]&CFBnd) { m[dE ] = RAC(ccel,dW ); } else { m[dE ] = CSRC_E ; } \
-			if(nbflag[dE ]&CFBnd) { m[dW ] = RAC(ccel,dE ); } else { m[dW ] = CSRC_W ; } \
-			if(nbflag[dB ]&CFBnd) { m[dT ] = RAC(ccel,dB ); } else { m[dT ] = CSRC_T ; } \
-			if(nbflag[dT ]&CFBnd) { m[dB ] = RAC(ccel,dT ); } else { m[dB ] = CSRC_B ; } \
+			if(nbflag[dS ]&CFBnd) { m[dN ] = RAC(ccel,dS ); LBMDS_ADDMOV(dS ,dN ); } else { m[dN ] = CSRC_N ; } \
+			if(nbflag[dN ]&CFBnd) { m[dS ] = RAC(ccel,dN ); LBMDS_ADDMOV(dN ,dS ); } else { m[dS ] = CSRC_S ; } \
+			if(nbflag[dW ]&CFBnd) { m[dE ] = RAC(ccel,dW ); LBMDS_ADDMOV(dW ,dE ); } else { m[dE ] = CSRC_E ; } \
+			if(nbflag[dE ]&CFBnd) { m[dW ] = RAC(ccel,dE ); LBMDS_ADDMOV(dE ,dW ); } else { m[dW ] = CSRC_W ; } \
+			if(nbflag[dB ]&CFBnd) { m[dT ] = RAC(ccel,dB ); LBMDS_ADDMOV(dB ,dT ); } else { m[dT ] = CSRC_T ; } \
+			if(nbflag[dT ]&CFBnd) { m[dB ] = RAC(ccel,dT ); LBMDS_ADDMOV(dT ,dB ); } else { m[dB ] = CSRC_B ; } \
  			\
 			/* also treat free slip here */ \
-			if(nbflag[dSW]&CFBnd) { if(nbflag[dSW]&CFBndNoslip){ m[dNE] = RAC(ccel,dSW); }else{ DEFAULT_STREAM_FREESLIP(dNE,dSW,nbflag[dSW]);} } else { m[dNE] = CSRC_NE; } \
-			if(nbflag[dSE]&CFBnd) { if(nbflag[dSE]&CFBndNoslip){ m[dNW] = RAC(ccel,dSE); }else{ DEFAULT_STREAM_FREESLIP(dNW,dSE,nbflag[dSE]);} } else { m[dNW] = CSRC_NW; } \
-			if(nbflag[dNW]&CFBnd) { if(nbflag[dNW]&CFBndNoslip){ m[dSE] = RAC(ccel,dNW); }else{ DEFAULT_STREAM_FREESLIP(dSE,dNW,nbflag[dNW]);} } else { m[dSE] = CSRC_SE; } \
-			if(nbflag[dNE]&CFBnd) { if(nbflag[dNE]&CFBndNoslip){ m[dSW] = RAC(ccel,dNE); }else{ DEFAULT_STREAM_FREESLIP(dSW,dNE,nbflag[dNE]);} } else { m[dSW] = CSRC_SW; } \
-			if(nbflag[dSB]&CFBnd) { if(nbflag[dSB]&CFBndNoslip){ m[dNT] = RAC(ccel,dSB); }else{ DEFAULT_STREAM_FREESLIP(dNT,dSB,nbflag[dSB]);} } else { m[dNT] = CSRC_NT; } \
-			if(nbflag[dST]&CFBnd) { if(nbflag[dST]&CFBndNoslip){ m[dNB] = RAC(ccel,dST); }else{ DEFAULT_STREAM_FREESLIP(dNB,dST,nbflag[dST]);} } else { m[dNB] = CSRC_NB; } \
-			if(nbflag[dNB]&CFBnd) { if(nbflag[dNB]&CFBndNoslip){ m[dST] = RAC(ccel,dNB); }else{ DEFAULT_STREAM_FREESLIP(dST,dNB,nbflag[dNB]);} } else { m[dST] = CSRC_ST; } \
-			if(nbflag[dNT]&CFBnd) { if(nbflag[dNT]&CFBndNoslip){ m[dSB] = RAC(ccel,dNT); }else{ DEFAULT_STREAM_FREESLIP(dSB,dNT,nbflag[dNT]);} } else { m[dSB] = CSRC_SB; } \
-			if(nbflag[dWB]&CFBnd) { if(nbflag[dWB]&CFBndNoslip){ m[dET] = RAC(ccel,dWB); }else{ DEFAULT_STREAM_FREESLIP(dET,dWB,nbflag[dWB]);} } else { m[dET] = CSRC_ET; } \
-			if(nbflag[dWT]&CFBnd) { if(nbflag[dWT]&CFBndNoslip){ m[dEB] = RAC(ccel,dWT); }else{ DEFAULT_STREAM_FREESLIP(dEB,dWT,nbflag[dWT]);} } else { m[dEB] = CSRC_EB; } \
-			if(nbflag[dEB]&CFBnd) { if(nbflag[dEB]&CFBndNoslip){ m[dWT] = RAC(ccel,dEB); }else{ DEFAULT_STREAM_FREESLIP(dWT,dEB,nbflag[dEB]);} } else { m[dWT] = CSRC_WT; } \
-			if(nbflag[dET]&CFBnd) { if(nbflag[dET]&CFBndNoslip){ m[dWB] = RAC(ccel,dET); }else{ DEFAULT_STREAM_FREESLIP(dWB,dET,nbflag[dET]);} } else { m[dWB] = CSRC_WB; } \
+			if(nbflag[dSW]&CFBnd) { if(nbflag[dSW]&CFBndNoslip){ m[dNE] = RAC(ccel,dSW); LBMDS_ADDMOV(dSW,dNE); }else{ DEFAULT_STREAM_FREESLIP(dNE,dSW,nbflag[dSW]);} } else { m[dNE] = CSRC_NE; } \
+			if(nbflag[dSE]&CFBnd) { if(nbflag[dSE]&CFBndNoslip){ m[dNW] = RAC(ccel,dSE); LBMDS_ADDMOV(dSE,dNW); }else{ DEFAULT_STREAM_FREESLIP(dNW,dSE,nbflag[dSE]);} } else { m[dNW] = CSRC_NW; } \
+			if(nbflag[dNW]&CFBnd) { if(nbflag[dNW]&CFBndNoslip){ m[dSE] = RAC(ccel,dNW); LBMDS_ADDMOV(dNW,dSE); }else{ DEFAULT_STREAM_FREESLIP(dSE,dNW,nbflag[dNW]);} } else { m[dSE] = CSRC_SE; } \
+			if(nbflag[dNE]&CFBnd) { if(nbflag[dNE]&CFBndNoslip){ m[dSW] = RAC(ccel,dNE); LBMDS_ADDMOV(dNE,dSW); }else{ DEFAULT_STREAM_FREESLIP(dSW,dNE,nbflag[dNE]);} } else { m[dSW] = CSRC_SW; } \
+			if(nbflag[dSB]&CFBnd) { if(nbflag[dSB]&CFBndNoslip){ m[dNT] = RAC(ccel,dSB); LBMDS_ADDMOV(dSB,dNT); }else{ DEFAULT_STREAM_FREESLIP(dNT,dSB,nbflag[dSB]);} } else { m[dNT] = CSRC_NT; } \
+			if(nbflag[dST]&CFBnd) { if(nbflag[dST]&CFBndNoslip){ m[dNB] = RAC(ccel,dST); LBMDS_ADDMOV(dST,dNB); }else{ DEFAULT_STREAM_FREESLIP(dNB,dST,nbflag[dST]);} } else { m[dNB] = CSRC_NB; } \
+			if(nbflag[dNB]&CFBnd) { if(nbflag[dNB]&CFBndNoslip){ m[dST] = RAC(ccel,dNB); LBMDS_ADDMOV(dNB,dST); }else{ DEFAULT_STREAM_FREESLIP(dST,dNB,nbflag[dNB]);} } else { m[dST] = CSRC_ST; } \
+			if(nbflag[dNT]&CFBnd) { if(nbflag[dNT]&CFBndNoslip){ m[dSB] = RAC(ccel,dNT); LBMDS_ADDMOV(dNT,dSB); }else{ DEFAULT_STREAM_FREESLIP(dSB,dNT,nbflag[dNT]);} } else { m[dSB] = CSRC_SB; } \
+			if(nbflag[dWB]&CFBnd) { if(nbflag[dWB]&CFBndNoslip){ m[dET] = RAC(ccel,dWB); LBMDS_ADDMOV(dWB,dET); }else{ DEFAULT_STREAM_FREESLIP(dET,dWB,nbflag[dWB]);} } else { m[dET] = CSRC_ET; } \
+			if(nbflag[dWT]&CFBnd) { if(nbflag[dWT]&CFBndNoslip){ m[dEB] = RAC(ccel,dWT); LBMDS_ADDMOV(dWT,dEB); }else{ DEFAULT_STREAM_FREESLIP(dEB,dWT,nbflag[dWT]);} } else { m[dEB] = CSRC_EB; } \
+			if(nbflag[dEB]&CFBnd) { if(nbflag[dEB]&CFBndNoslip){ m[dWT] = RAC(ccel,dEB); LBMDS_ADDMOV(dEB,dWT); }else{ DEFAULT_STREAM_FREESLIP(dWT,dEB,nbflag[dEB]);} } else { m[dWT] = CSRC_WT; } \
+			if(nbflag[dET]&CFBnd) { if(nbflag[dET]&CFBndNoslip){ m[dWB] = RAC(ccel,dET); LBMDS_ADDMOV(dET,dWB); }else{ DEFAULT_STREAM_FREESLIP(dWB,dET,nbflag[dET]);} } else { m[dWB] = CSRC_WB; } \
 		} 
 
 
@@ -522,9 +559,10 @@
 				+ MSRC_ST - MSRC_SB \
 				+ MSRC_ET - MSRC_EB \
 				+ MSRC_WT - MSRC_WB ;  \
+			PRECOLLIDE_MODS(rho,ux,uy,uz); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			COLL_CALCULATE_DFEQ(lcsmeq); \
-			COLL_CALCULATE_NONEQTENSOR(lev, MSRC_)\
+			COLL_CALCULATE_NONEQTENSOR(lev, MSRC_); \
 			COLL_CALCULATE_CSMOMEGAVAL(lev, lcsmomega); \
 			CSMOMEGA_STATS(lev,lcsmomega); \
  			\
@@ -579,6 +617,7 @@
 				+ MSRC_ST - MSRC_SB \
 				+ MSRC_ET - MSRC_EB \
 				+ MSRC_WT - MSRC_WB ;  \
+			PRECOLLIDE_MODS(rho,ux,uy,uz); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
  			\
 			RAC(tcel,dC ) = (1.0-OMEGA(lev))*MSRC_C  + OMEGA(lev)*EQC ; \
@@ -624,6 +663,7 @@
 				+ MSRC_NT + MSRC_NB - MSRC_ST - MSRC_SB + mLevel[lev].gravity[1];  \
 			uz = MSRC_T - MSRC_B + MSRC_NT - MSRC_NB + MSRC_ST - MSRC_SB \
 				+ MSRC_ET - MSRC_EB + MSRC_WT - MSRC_WB + mLevel[lev].gravity[2];  \
+			PRECOLLIDE_MODS(rho,ux,uy,uz); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			COLL_CALCULATE_DFEQ(lcsmeq); \
 			COLL_CALCULATE_NONEQTENSOR(lev, MSRC_) \
@@ -664,6 +704,7 @@
 				+ CSRC_NT + CSRC_NB - CSRC_ST - CSRC_SB + mLevel[lev].gravity[1];  \
 			uz = CSRC_T - CSRC_B + CSRC_NT - CSRC_NB + CSRC_ST - CSRC_SB \
 				+ CSRC_ET - CSRC_EB + CSRC_WT - CSRC_WB + mLevel[lev].gravity[2];  \
+			PRECOLLIDE_MODS(rho,ux,uy,uz); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			COLL_CALCULATE_DFEQ(lcsmeq); \
 			COLL_CALCULATE_NONEQTENSOR(lev, CSRC_) \
@@ -703,6 +744,7 @@
 				+ CSRC_NT + CSRC_NB - CSRC_ST - CSRC_SB + mLevel[lev].gravity[1];  \
 			uz = CSRC_T - CSRC_B + CSRC_NT - CSRC_NB + CSRC_ST - CSRC_SB \
 				+ CSRC_ET - CSRC_EB + CSRC_WT - CSRC_WB + mLevel[lev].gravity[2];  \
+			PRECOLLIDE_MODS(rho,ux,uy,uz); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			RAC(tcel,dC ) = (1.0-OMEGA(lev))*CSRC_C  + OMEGA(lev)*EQC ; \
 			RAC(tcel,dN ) = (1.0-OMEGA(lev))*CSRC_N  + OMEGA(lev)*EQN ;  \
@@ -734,13 +776,12 @@
 #define OPTIMIZED_STREAMCOLLIDE_DEBUG \
 			m[0] = RAC(ccel,0); \
 			FORDF1 { /* df0 is set later on... */ \
-				if(RFLAG_NB(lev, i,j,k,SRCS(lev),l)&CFBnd) { errMsg("???", "bnd-err-nobndfl"); D::mPanic=1;  \
+				if(RFLAG_NB(lev, i,j,k,SRCS(lev),l)&CFBnd) { errMsg("???", "bnd-err-nobndfl"); CAUSE_PANIC;\
 				} else { m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l, l); } \
-				STREAMCHECK(i+D::dfVecX[D::dfInv[l]], j+D::dfVecY[D::dfInv[l]],k+D::dfVecZ[D::dfInv[l]], l); \
+				STREAMCHECK(9, i+this->dfVecX[this->dfInv[l]], j+this->dfVecY[this->dfInv[l]],k+this->dfVecZ[this->dfInv[l]], l); \
 			}   \
 			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
+			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; } \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -752,13 +793,12 @@
 /*DEBUG \
 			m[0] = RAC(ccel,0); \
 			FORDF1 { \
-				if(RFLAG_NB(lev, i,j,k,SRCS(lev),l)&CFBnd) { errMsg("???", "bnd-err-nobndfl"); D::mPanic=1;  \
+				if(RFLAG_NB(lev, i,j,k,SRCS(lev),l)&CFBnd) { errMsg("???", "bnd-err-nobndfl");CAUSE_PANIC; \
 				} else { m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l, l); } \
 			}   \
 errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lcsmomega ); \
 			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago  , &mDebugOmegaRet, &lcsmqo  ); \
+			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago  , &mDebugOmegaRet, &lcsmqo  ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			*/
 #if USE_LES==1
@@ -811,7 +851,7 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 						(((    (at))>0.0) && (!(QCELL((alev), (ai),(aj),(ak),mLevel[(alev)].setOther, l) > -1.0 ))) ){ \
 					errMsg("INVDFSCHECK", " l"<<(alev)<<" "<<PRINT_VEC((ai),(aj),(ak))<<" fc:"<<RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setCurr )<<" fo:"<<RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setOther )<<" dfl"<<l ); \
 					debugMarkCell((alev), (ai),(aj),(ak));\
-					D::mPanic = 1; \
+					CAUSE_PANIC; \
 				}
 				// end ADD_INT_DFSCHECK
 #define ADD_INT_FLAGCHECK(alev, ai,aj,ak, at, afac) \
@@ -821,7 +861,7 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 							" fc:"<<   convertCellFlagType2String(RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setCurr  )) <<\
 							" fold:"<< convertCellFlagType2String(RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setOther )) ); \
 					debugMarkCell((alev), (ai),(aj),(ak));\
-					D::mPanic = 1; \
+					CAUSE_PANIC; \
 				}
 				// end ADD_INT_DFSCHECK
 				
@@ -833,7 +873,7 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 				if(	(RFLAG(lev+1, (ix),(iy),(iz), mLevel[lev+1].setCurr) != (CFFluid|CFGrFromCoarse)) ){\
 					errMsg("INTFLAGUNU_CHECK", PRINT_VEC(i,j,k)<<" child not unused at l"<<(lev+1)<<" "<<PRINT_VEC((ix),(iy),(iz))<<" flag: "<<  RFLAG(lev+1, (ix),(iy),(iz), mLevel[lev+1].setCurr) ); \
 					debugMarkCell((lev+1), (ix),(iy),(iz));\
-					D::mPanic = 1; \
+					CAUSE_PANIC; \
 				}\
 				RFLAG(lev+1, (ix),(iy),(iz), mLevel[lev+1].setCurr) |= CFGrCoarseInited; \
 				// INTUNUTCHECK 
@@ -841,7 +881,7 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 				if(	QCELL(lev+1, (ix),(iy),(iz), mLevel[lev+1].setCurr, l) <= 0.0 ){\
 					errMsg("INVDFCCELLCHECK", "caseId:"<<caseId<<" "<<PRINT_VEC(i,j,k)<<" child inter at "<<PRINT_VEC((ix),(iy),(iz))<<" invalid df "<<l<<" = "<< QCELL(lev+1, (ix),(iy),(iz), mLevel[lev+1].setCurr, l) ); \
 					debugMarkCell((lev+1), (ix),(iy),(iz));\
-					D::mPanic = 1; \
+					CAUSE_PANIC; \
 				}\
 				// INTSTRICTCHECK
 
@@ -858,11 +898,11 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 		{ /*LbmFloat rho,ux,uy,uz;*/ \
 			rho = ux=uy=uz=0.0; \
 			FORDF0{ LbmFloat m = QCELL(lev,i,j,k, dstSet, l); \
-				rho += m; ux  += (D::dfDvecX[l]*m); uy  += (D::dfDvecY[l]*m); uz  += (D::dfDvecZ[l]*m);  \
-				if(ABS(m)>1.0) { errMsg("interpolateCellFromCoarse", "ICFC_DFCHECK cell  "<<PRINT_IJK<<" m"<<l<<":"<< m ); D::mPanic=1; }\
+				rho += m; ux  += (this->dfDvecX[l]*m); uy  += (this->dfDvecY[l]*m); uz  += (this->dfDvecZ[l]*m);  \
+				if(ABS(m)>1.0) { errMsg("interpolateCellFromCoarse", "ICFC_DFCHECK cell  "<<PRINT_IJK<<" m"<<l<<":"<< m );CAUSE_PANIC;}\
 				/*errMsg("interpolateCellFromCoarse", " cell "<<PRINT_IJK<<" df"<<l<<":"<<m );*/ \
 			}  \
-			/*if(D::mPanic) { errMsg("interpolateCellFromCoarse", "ICFC_DFOUT cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) ); }*/ \
+			/*if(this->mPanic) { errMsg("interpolateCellFromCoarse", "ICFC_DFOUT cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) ); }*/ \
 			if(markNbs) errMsg("interpolateCellFromCoarse", " cell "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) );  \
 			/*errMsg("interpolateCellFromCoarse", "ICFC_DFDEBUG cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) ); */\
 		} \
@@ -872,7 +912,7 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 			/* might also have CFGrCoarseInited (shouldnt be a problem here)*/	\
 			errMsg("interpolateCellFromCoarse", "CHECK cell not CFGrFromCoarse? "<<PRINT_IJK<<" flag:"<< RFLAG(lev,i,j,k, dstSet)<<" fstr:"<<convertCellFlagType2String(  RFLAG(lev,i,j,k, dstSet) ));	\
 			/* FIXME check this warning...? return; this can happen !? */	\
-			/*D::mPanic = 1;*/	\
+			/*CAUSE_PANIC;*/	\
 		}	\
 		// end INTDEBOUT
 #else // FSGR_STRICT_DEBUG==1
@@ -894,15 +934,15 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 							ADD_INT_DFSCHECK(alev, ai,aj,ak, at, afac, l); \
 							df *= (afac); \
 							rho += df;  \
-							ux  += (D::dfDvecX[l]*df);  \
-							uy  += (D::dfDvecY[l]*df);   \
-							uz  += (D::dfDvecZ[l]*df);   \
+							ux  += (this->dfDvecX[l]*df);  \
+							uy  += (this->dfDvecY[l]*df);   \
+							uz  += (this->dfDvecZ[l]*df);   \
 							intDf[l] += df; \
 						} 
 // write interpolated dfs back to cell (correct non-eq. parts)
 #define IDF_WRITEBACK_ \
 		FORDF0{ \
-			LbmFloat eq = D::getCollideEq(l, rho,ux,uy,uz);\
+			LbmFloat eq = getCollideEq(l, rho,ux,uy,uz);\
 			QCELL(lev,i,j,k, dstSet, l) = (eq+ (intDf[l]-eq)*mDfScaleDown);\
 		} \
 		/* check that all values are ok */ \
@@ -913,18 +953,18 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 		LbmFloat feq[LBM_DFNUM]; \
 		LbmFloat dfScale = mDfScaleDown; \
 		FORDF0{ \
-			feq[l] = D::getCollideEq(l, rho,ux,uy,uz); \
+			feq[l] = getCollideEq(l, rho,ux,uy,uz); \
 		} \
 		if(mLevel[lev  ].lcsmago>0.0) {\
-			LbmFloat Qo = D::getLesNoneqTensorCoeff(intDf,feq); \
-			omegaDst  = D::getLesOmega(mLevel[lev+0].omega,mLevel[lev+0].lcsmago,Qo); \
-			omegaSrc = D::getLesOmega(mLevel[lev-1].omega,mLevel[lev-1].lcsmago,Qo); \
+			LbmFloat Qo = this->getLesNoneqTensorCoeff(intDf,feq); \
+			omegaDst  = this->getLesOmega(mLevel[lev+0].omega,mLevel[lev+0].lcsmago,Qo); \
+			omegaSrc = this->getLesOmega(mLevel[lev-1].omega,mLevel[lev-1].lcsmago,Qo); \
 		} else {\
 			omegaDst = mLevel[lev+0].omega; \
 			omegaSrc = mLevel[lev-1].omega;\
 		} \
 		 \
-		dfScale   = (mLevel[lev+0].stepsize/mLevel[lev-1].stepsize)* (1.0/omegaDst-1.0)/ (1.0/omegaSrc-1.0);  \
+		dfScale   = (mLevel[lev+0].timestep/mLevel[lev-1].timestep)* (1.0/omegaDst-1.0)/ (1.0/omegaSrc-1.0);  \
 		FORDF0{ \
 			/*errMsg("SMAGO"," org"<<mDfScaleDown<<" n"<<dfScale<<" qc"<< QCELL(lev,i,j,k, dstSet, l)<<" idf"<<intDf[l]<<" eq"<<feq[l] ); */ \
 			QCELL(lev,i,j,k, dstSet, l) = (feq[l]+ (intDf[l]-feq[l])*dfScale);\
@@ -1015,7 +1055,7 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 		COLL_CALCULATE_CSMOMEGAVAL(lev+0, lcsmDstOmega); \
 		COLL_CALCULATE_CSMOMEGAVAL(lev-1, lcsmSrcOmega); \
 		\
-		lcsmdfscale   = (mLevel[lev+0].stepsize/mLevel[lev-1].stepsize)* (1.0/lcsmDstOmega-1.0)/ (1.0/lcsmSrcOmega-1.0);  \
+		lcsmdfscale   = (mLevel[lev+0].timestep/mLevel[lev-1].timestep)* (1.0/lcsmDstOmega-1.0)/ (1.0/lcsmSrcOmega-1.0);  \
 		RAC(dstcell, dC ) = (lcsmeq[dC ] + (intDf[dC ]-lcsmeq[dC ] )*lcsmdfscale);\
 		RAC(dstcell, dN ) = (lcsmeq[dN ] + (intDf[dN ]-lcsmeq[dN ] )*lcsmdfscale);\
 		RAC(dstcell, dS ) = (lcsmeq[dS ] + (intDf[dS ]-lcsmeq[dS ] )*lcsmdfscale);\
@@ -1069,4 +1109,105 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 #endif
 
 #endif// OPT3D==0 
+
+
+
+/******************************************************************************/
+/*! relaxation LES functions */
+/******************************************************************************/
+
+
+inline LbmFloat LbmFsgrSolver::getLesNoneqTensorCoeff(
+		LbmFloat df[], 				
+		LbmFloat feq[] ) {
+	LbmFloat Qo = 0.0;
+	for(int m=0; m< ((LBMDIM*LBMDIM)-LBMDIM)/2 ; m++) { 
+		LbmFloat qadd = 0.0;
+		for(int l=1; l<this->cDfNum; l++) { 
+			if(this->lesCoeffOffdiag[m][l]==0.0) continue;
+			qadd += this->lesCoeffOffdiag[m][l]*(df[l]-feq[l]);
+		}
+		Qo += (qadd*qadd);
+	}
+	Qo *= 2.0; // off diag twice
+	for(int m=0; m<LBMDIM; m++) { 
+		LbmFloat qadd = 0.0;
+		for(int l=1; l<this->cDfNum; l++) { 
+			if(this->lesCoeffDiag[m][l]==0.0) continue;
+			qadd += this->lesCoeffDiag[m][l]*(df[l]-feq[l]);
+		}
+		Qo += (qadd*qadd);
+	}
+	Qo = sqrt(Qo);
+	return Qo;
+};
+
+inline LbmFloat LbmFsgrSolver::getLesOmega(LbmFloat omega, LbmFloat csmago, LbmFloat Qo) {
+	const LbmFloat tau = 1.0/omega;
+	const LbmFloat nu = (2.0*tau-1.0) * (1.0/6.0);
+	const LbmFloat C = csmago;
+	const LbmFloat Csqr = C*C;
+	LbmFloat S = -nu + sqrt( nu*nu + 18.0*Csqr*Qo ) / (6.0*Csqr);
+	return( 1.0/( 3.0*( nu+Csqr*S ) +0.5 ) );
+}
+
+#define DEBUG_CALCPRINTCELL(str,df) {\
+		LbmFloat rho=df[0], ux=0., uy=0., uz=0.; \
+		for(int l=1; l<this->cDfNum; l++) { \
+			rho += df[l];  \
+			ux  += (this->dfDvecX[l]*df[l]);  \
+			uy  += (this->dfDvecY[l]*df[l]);  \
+			uz  += (this->dfDvecZ[l]*df[l]);  \
+		} \
+		errMsg("DEBUG_CALCPRINTCELL",">"<<str<<" rho="<<rho<<" vel="<<ntlVec3Gfx(ux,uy,uz) ); \
+	} /* END DEBUG_CALCPRINTCELL */ 
+
+// "normal" collision
+inline void LbmFsgrSolver::collideArrays(
+		int i, int j, int k, // position - more for debugging
+		LbmFloat df[], 				
+		LbmFloat &outrho, // out only!
+		// velocity modifiers (returns actual velocity!)
+		LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, 
+		LbmFloat omega, LbmFloat csmago, 
+		LbmFloat *newOmegaRet, LbmFloat *newQoRet
+	) {
+	LbmFloat rho=df[0]; 
+	LbmFloat ux = mux;
+	LbmFloat uy = muy;
+	LbmFloat uz = muz; 
+	for(int l=1; l<this->cDfNum; l++) { 
+		rho += df[l]; 
+		ux  += (this->dfDvecX[l]*df[l]); 
+		uy  += (this->dfDvecY[l]*df[l]);  
+		uz  += (this->dfDvecZ[l]*df[l]);  
+	}  
+
+	PRECOLLIDE_MODS(rho,ux,uy,uz);
+	LbmFloat feq[19];
+	for(int l=0; l<this->cDfNum; l++) { 
+		feq[l] = getCollideEq(l,rho,ux,uy,uz); 
+	}
+
+	LbmFloat omegaNew;
+	LbmFloat Qo = 0.0;
+	if(csmago>0.0) {
+		Qo = getLesNoneqTensorCoeff(df,feq);
+		omegaNew = getLesOmega(omega,csmago,Qo);
+	} else {
+		omegaNew = omega; // smago off...
+	}
+	if(newOmegaRet) *newOmegaRet = omegaNew; // return value for stats
+	if(newQoRet)    *newQoRet = Qo; // return value of non-eq. stress tensor
+
+	for(int l=0; l<this->cDfNum; l++) { 
+		df[l] = (1.0-omegaNew ) * df[l] + omegaNew * feq[l]; 
+	}  
+	if((i==16)&&(j==10)) DEBUG_CALCPRINTCELL( "2dcoll "<<PRINT_IJK, df);
+
+	mux = ux;
+	muy = uy;
+	muz = uz;
+	outrho = rho;
+};
 

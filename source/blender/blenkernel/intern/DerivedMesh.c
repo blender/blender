@@ -555,26 +555,46 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	mdm->freeNors = 0;
 	mdm->freeVerts = 0;
 
-	if (vertCos) {
+	if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
+		 (ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)&&
+	   (ob->fluidsimSettings->meshSurface) &&
+		 (me->totvert == ((Mesh *)(ob->fluidsimSettings->meshSurface))->totvert) ) {
+		// dont recompute for fluidsim mesh, use from readBobjgz
+		// TODO? check for modifiers!?
 		int i;
-
-		/* copy the original verts to preserve flag settings; if this is too
-		 * costly, must at least use MEM_callocN to clear flags */
-		mdm->verts = MEM_dupallocN( me->mvert );
-		for (i=0; i<me->totvert; i++) {
-			VECCOPY(mdm->verts[i].co, vertCos[i]);
-		}
 		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
 		mdm->freeNors = 1;
-		mdm->freeVerts = 1;
+		for (i=0; i<me->totvert; i++) {
+			MVert *mv= &mdm->verts[i];
+			MVert *fsv; 
+			fsv = &ob->fluidsimSettings->meshSurfNormals[i];
+			VECCOPY(mv->no, fsv->no);
+			//mv->no[0]= 30000; mv->no[1]= mv->no[2]= 0; // DEBUG fixed test normals
+		}
 	} else {
+		// recompute normally
+
+		if (vertCos) {
+			int i;
+
+			/* copy the original verts to preserve flag settings; if this is too
+			 * costly, must at least use MEM_callocN to clear flags */
+			mdm->verts = MEM_dupallocN( me->mvert );
+			for (i=0; i<me->totvert; i++) {
+				VECCOPY(mdm->verts[i].co, vertCos[i]);
+			}
+			mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
+			mdm->freeNors = 1;
+			mdm->freeVerts = 1;
+		} else {
 			// XXX this is kinda hacky because we shouldn't really be editing
 			// the mesh here, however, we can't just call mesh_build_faceNormals(ob)
 			// because in the case when a key is applied to a mesh the vertex normals
 			// would never be correctly computed.
-		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
-		mdm->freeNors = 1;
-	}
+			mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
+			mdm->freeNors = 1;
+		}
+	} // fs TEST
 
 	return (DerivedMesh*) mdm;
 }
@@ -2072,8 +2092,9 @@ void writeBobjgz(char *filename, struct Object *ob)
 	wri = dlm->totvert;
 	gzwrite(gzf, &wri, sizeof(wri));
 	for(i=0; i<wri;i++) {
-		VECCOPY(vec, dlm->mvert[i].co); /* get transformed point */
-		Mat4MulVecfl(ob->obmat, vec);
+		VECCOPY(vec, dlm->mvert[i].co);
+	//VECCOPY(vec, dlm->mvert[i].co); /* get transformed point */
+	//Mat4MulVecfl(ob->obmat, vec);
 		for(j=0; j<3; j++) {
 			wrf = vec[j]; 
 			gzwrite(gzf, &wrf, sizeof( wrf )); 
@@ -2087,7 +2108,8 @@ void writeBobjgz(char *filename, struct Object *ob)
 	for(i=0; i<wri;i++) {
 		VECCOPY(vec, dlm->mvert[i].no);
 		// FIXME divide? mv->no[0]= (short)(no[0]*32767.0);
-		Mat3MulVecfl(rotmat, vec); 
+	//VECCOPY(vec, dlm->mvert[i].no);
+	//Mat3MulVecfl(rotmat, vec); 
 		Normalise(vec);
 		for(j=0; j<3; j++) {
 			wrf = vec[j];
@@ -2130,8 +2152,63 @@ void writeBobjgz(char *filename, struct Object *ob)
 	dm->release(dm);
 }
 
+void initElbeemMesh(struct Object *ob, 
+		int *numVertices, float **vertices, 
+		int *numTriangles, int **triangles) 
+{
+	DispListMesh *dlm = NULL;
+	DerivedMesh *dm = NULL;
+	MFace *mface = NULL;
+	int countTris=0, i;
+	float *verts;
+	int *tris;
+
+	dm = mesh_create_derived_render(ob);
+	if(!dm) { *numVertices = *numTriangles = 0; *triangles=NULL; *vertices=NULL; }
+	dlm = dm->convertToDispListMesh(dm, 1);
+	if(!dlm) { dm->release(dm); *numVertices = *numTriangles = 0; *triangles=NULL; *vertices=NULL; }
+	mface = dlm->mface;
+
+	*numVertices = dlm->totvert;
+	verts = MEM_callocN( dlm->totvert*3*sizeof(float), "elbeemmesh_vertices");
+	for(i=0; i<dlm->totvert; i++) {
+		VECCOPY( &verts[i*3], dlm->mvert[i].co);
+	}
+	*vertices = verts;
+
+	for(i=0; i<dlm->totface; i++) {
+		countTris++;
+		if(mface[i].v4) { countTris++; }
+	}
+	*numTriangles = countTris;
+	tris = MEM_callocN( countTris*3*sizeof(int), "elbeemmesh_triangles");
+	countTris = 0;
+	for(i=0; i<dlm->totface; i++) {
+		int face[4];
+		face[0] = mface[i].v1;
+		face[1] = mface[i].v2;
+		face[2] = mface[i].v3;
+		face[3] = mface[i].v4;
+
+		tris[countTris*3+0] = face[0]; 
+		tris[countTris*3+1] = face[1]; 
+		tris[countTris*3+2] = face[2]; 
+		countTris++;
+		if(face[3]) { 
+			tris[countTris*3+0] = face[0]; 
+			tris[countTris*3+1] = face[2]; 
+			tris[countTris*3+2] = face[3]; 
+			countTris++;
+		}
+	}
+	*triangles = tris;
+
+	if(dlm) displistmesh_free(dlm);
+	dm->release(dm);
+}
+
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
-Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
+Mesh* readBobjgz(char *filename, Mesh *orgmesh, float* bbstart, float *bbsize) //, fluidsimDerivedMesh *fsdm)
 {
 	int wri,i,j;
 	char debugStrBuffer[256];
@@ -2211,9 +2288,13 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 	for(i=0; i<newmesh->totvert;i++) {
 		for(j=0; j<3; j++) {
 			gotBytes = gzread(gzf, &wrf, sizeof( wrf )); 
-			newmesh->mvert[i].no[j] = wrf*32767.0;
+			newmesh->mvert[i].no[j] = (short)(wrf*32767.0f);
+			//newmesh->mvert[i].no[j] = 0.5; // DEBUG tst
 		}
+	//fprintf(stderr,"  DEBDPCN nm%d, %d = %d,%d,%d \n",
+			//(int)(newmesh->mvert), i, newmesh->mvert[i].no[0], newmesh->mvert[i].no[1], newmesh->mvert[i].no[2]);
 	}
+	//fprintf(stderr,"  DPCN 0 = %d,%d,%d \n", newmesh->mvert[0].no[0], newmesh->mvert[0].no[1], newmesh->mvert[0].no[2]);
 
 	
 	/* compute no. of triangles */
@@ -2258,6 +2339,61 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 	return newmesh;
 }
 
+/* read zipped fluidsim velocities into the co's of the fluidsimsettings normals struct */
+void readVelgz(char *filename, Object *srcob)
+{
+	char debugStrBuffer[256];
+	int wri, i, j;
+	float wrf;
+	gzFile gzf;
+	MVert *vverts = srcob->fluidsimSettings->meshSurfNormals;
+	int len = strlen(filename);
+	Mesh *mesh = srcob->data;
+	// mesh and vverts have to be valid from loading...
+
+	// clean up in any case
+	for(i=0; i<mesh->totvert;i++) { 
+		for(j=0; j<3; j++) {
+		 	vverts[i].co[j] = 0.; 
+		} 
+	} 
+	if(srcob->fluidsimSettings->typeFlags&OB_FSDOMAIN_NOVECGEN) return;
+
+	if(len<7) { 
+		//printf("readVelgz Eror: invalid filename '%s'\n",filename); // DEBUG
+		return; 
+	}
+
+	// .bobj.gz , correct filename
+	// 87654321
+	filename[len-6] = 'v';
+	filename[len-5] = 'e';
+	filename[len-4] = 'l';
+
+	snprintf(debugStrBuffer,256,"Reading '%s' GZ_VEL... ",filename); elbeemDebugOut(debugStrBuffer); 
+	gzf = gzopen(filename, "rb");
+	if (!gzf) { 
+		//printf("readVelgz Eror: unable to open file '%s'\n",filename); // DEBUG
+		return; 
+	}
+
+	gzread(gzf, &wri, sizeof( wri ));
+	if(wri != mesh->totvert) {
+		//printf("readVelgz Eror: invalid no. of velocities %d vs. %d aborting.\n" ,wri ,mesh->totvert ); // DEBUG
+		return; 
+	}
+
+	for(i=0; i<mesh->totvert;i++) {
+		for(j=0; j<3; j++) {
+			gzread(gzf, &wrf, sizeof( wrf )); 
+			vverts[i].co[j] = wrf;
+		}
+		//if(i<20) fprintf(stderr, "GZ_VELload %d = %f,%f,%f  \n",i,vverts[i].co[0],vverts[i].co[1],vverts[i].co[2]); // DEBUG
+	}
+
+	gzclose(gzf);
+}
+
 
 /* ***************************** fluidsim derived mesh ***************************** */
 
@@ -2297,6 +2433,9 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 		if(srcob->data == srcob->fluidsimSettings->meshSurface)
 		 srcob->data = srcob->fluidsimSettings->orgMesh;
 		srcob->fluidsimSettings->meshSurface = NULL;
+
+		if(srcob->fluidsimSettings->meshSurfNormals) MEM_freeN(srcob->fluidsimSettings->meshSurfNormals);
+		srcob->fluidsimSettings->meshSurfNormals = NULL;
 	} 
 
 	// init bounding box
@@ -2305,7 +2444,7 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 	lastBB[0] = bbSize[0];  // TEST
 	lastBB[1] = bbSize[1]; 
 	lastBB[2] = bbSize[2];
-	fluidsimGetAxisAlignedBB(srcob->fluidsimSettings->orgMesh, srcob->obmat, bbStart, bbSize);
+	fluidsimGetAxisAlignedBB(srcob->fluidsimSettings->orgMesh, srcob->obmat, bbStart, bbSize, &srcob->fluidsimSettings->meshBB);
 	// check free fsmesh... TODO
 	
 	if(!useRenderParams) {
@@ -2314,7 +2453,8 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 		displaymode = srcob->fluidsimSettings->renderDisplayMode;
 	}
 	
-	snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d, dm %d)\n", srcob->id.name, useRenderParams, displaymode); // debug
+	snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d, dm %d), curFra=%d, sFra=%d #=%d \n", 
+			srcob->id.name, useRenderParams, displaymode, G.scene->r.cfra, G.scene->r.sfra, curFrame ); // debug
 	elbeemDebugOut(debugStrBuffer); // debug
 
  	strncpy(targetDir, srcob->fluidsimSettings->surfdataPath, FILE_MAXDIR);
@@ -2335,7 +2475,11 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 	snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d, dm %d) '%s' \n", srcob->id.name, useRenderParams, displaymode, targetFile);  // debug
 	elbeemDebugOut(debugStrBuffer); // debug
 
-	mesh = readBobjgz(targetFile, srcob->fluidsimSettings->orgMesh );
+	if(displaymode!=2) { // dont add bounding box for final
+		mesh = readBobjgz(targetFile, srcob->fluidsimSettings->orgMesh ,NULL,NULL);
+	} else {
+		mesh = readBobjgz(targetFile, srcob->fluidsimSettings->orgMesh, bbSize,bbSize );
+	}
 	if(!mesh) {
 		// display org. object upon failure
 		srcob->data = srcob->fluidsimSettings->orgMesh;
@@ -2347,13 +2491,27 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 	}
 	srcob->fluidsimSettings->meshSurface = mesh;
 	srcob->data = mesh;
+	srcob->fluidsimSettings->meshSurfNormals = MEM_dupallocN(mesh->mvert);
+
+	// load vertex velocities, if they exist...
+	// TODO? use generate flag as loading flag as well?
+	// warning, needs original .bobj.gz mesh loading filename
+	if(displaymode==3) {
+		readVelgz(targetFile, srcob);
+	} else {
+		// no data for preview, only clear...
+		int i,j;
+		for(i=0; i<mesh->totvert;i++) { for(j=0; j<3; j++) { srcob->fluidsimSettings->meshSurfNormals[i].co[j] = 0.; }} 
+	}
+
+	//fprintf(stderr,"LOADFLM DEBXHCH fs=%d 3:%d,%d,%d \n", (int)mesh, ((Mesh *)(srcob->fluidsimSettings->meshSurface))->mvert[3].no[0], ((Mesh *)(srcob->fluidsimSettings->meshSurface))->mvert[3].no[1], ((Mesh *)(srcob->fluidsimSettings->meshSurface))->mvert[3].no[2]);
 	return;
 }
 
 /* helper function */
 /* init axis aligned BB for mesh object */
 void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
-		 /*RET*/ float start[3], /*RET*/ float size[3] )
+		 /*RET*/ float start[3], /*RET*/ float size[3], /*RET*/ struct Mesh **bbmesh )
 {
 	float bbsx=0.0, bbsy=0.0, bbsz=0.0;
 	float bbex=1.0, bbey=1.0, bbez=1.0;
@@ -2387,6 +2545,25 @@ void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
 		size[0] = bbex-bbsx;
 		size[1] = bbey-bbsy;
 		size[2] = bbez-bbsz;
+	}
+
+	// init bounding box mesh?
+	if(bbmesh) {
+		int i,j;
+		Mesh *newmesh = NULL;
+		if(!(*bbmesh)) { newmesh = MEM_callocN(sizeof(Mesh), "fluidsimGetAxisAlignedBB_meshbb"); }
+		else {           newmesh = *bbmesh; }
+
+		newmesh->totvert = 8;
+		if(!newmesh->mvert) newmesh->mvert = MEM_callocN(sizeof(MVert)*newmesh->totvert, "fluidsimBBMesh_bobjvertices");
+		for(i=0; i<8; i++) {
+			for(j=0; j<3; j++) newmesh->mvert[i].co[j] = start[j]; 
+		}
+
+		newmesh->totface = 6;
+		if(!newmesh->mface) newmesh->mface = MEM_callocN(sizeof(MFace)*newmesh->totface, "fluidsimBBMesh_bobjfaces");
+
+		*bbmesh = newmesh;
 	}
 }
 

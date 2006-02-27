@@ -40,9 +40,9 @@ class IsoSurface :
 	public:
 
 		/*! Constructor */
-		IsoSurface(double iso, double blend);
+		IsoSurface(double iso);
 		/*! Destructor */
-		~IsoSurface();
+		virtual ~IsoSurface();
 
 		/*! Init ararys etc. */
 		virtual void initializeIsosurface(int setx, int sety, int setz, ntlVec3Gfx extent);
@@ -62,9 +62,6 @@ class IsoSurface :
 
 		//! Level of the iso surface 
 		double mIsoValue;
-
-		//! blending distance for marching cubes 
-		double mBlendVal;
 
 		//! Store all the triangles vertices 
 		vector<IsoLevelVertex> mPoints;
@@ -96,8 +93,12 @@ class IsoSurface :
 		vector<int> mAcrossEdge;
 		vector< vector<int> > mAdjacentFaces;
 
-		vector<unsigned> flags;
-		unsigned flag_curr;
+		//! cutoff border area
+		int mCutoff;
+		
+		//! trimesh vars
+		vector<int> flags;
+		int mFlagCnt;
 		vector<ntlVec3Gfx> cornerareas;
 		vector<float> pointareas;
 		vector< vector<int> > neighbors;
@@ -116,6 +117,8 @@ class IsoSurface :
 		//! set loop subdiv num
 		inline void setSmoothSurface(float set) { mSmoothSurface = set; };
 		inline void setSmoothNormals(float set) { mSmoothNormals = set; };
+		inline float getSmoothSurface() { return mSmoothSurface; }
+		inline float getSmoothNormals() { return mSmoothNormals; }
 
 		// geometry object functions 
 		virtual void getTriangles( vector<ntlTriangle> *triangles, 
@@ -155,6 +158,8 @@ class IsoSurface :
 			return mpData + ISOLEVEL_INDEX(ii+1,jj+1,kk+1); 
 #endif
 		}
+		//! set cut off border
+		inline void setCutoff(int set) { mCutoff = set; };
 
 		//! OpenGL viz "interface"
 		unsigned int getIsoVertexCount() {
@@ -169,16 +174,21 @@ class IsoSurface :
 		unsigned int *getIsoIndexArray() {
 			return &(mIndices[0]);
 		}
+		
+		// surface smoothing functions
+		void setSmoothRad(float radi1, float radi2, ntlVec3Gfx mscc);
+		void smoothSurface(float val, bool smoothNorm);
+		void smoothNormals(float val);
 
 	protected:
 
-		//! computer normal
+		//! compute normal
 		inline ntlVec3Gfx getNormal(int i, int j,int k);
-
-		void subdivide();
-		void smoothSurface(float val);
-		void smoothNormals(float val);
-		void diffuseVertexField(ntlVec3Gfx *field, const int pointerScale, int v, float invsigma2, ntlVec3Gfx &flt);
+		//! smoothing helper function
+		bool diffuseVertexField(ntlVec3Gfx *field, int pointerScale, int v, float invsigma2, ntlVec3Gfx &flt);
+		vector<int> mDboundary;
+		float mSCrad1, mSCrad2;
+		ntlVec3Gfx mSCcenter;
 };
 
 

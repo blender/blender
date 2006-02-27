@@ -58,6 +58,7 @@ char *getname_cu_ei(int nr);
 char *getname_la_ei(int nr);
 char *getname_cam_ei(int nr);
 char *getname_snd_ei(int nr);
+char *getname_fluidsim_ei(int nr);
 
 struct EditIpo *get_active_editipo(void);
 

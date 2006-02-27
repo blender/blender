@@ -2371,6 +2371,10 @@ static void lib_link_object(FileData *fd, Main *main)
 				act= act->next;
 			}
 
+			if(ob->fluidsimSettings) {
+				ob->fluidsimSettings->ipo = newlibadr_us(fd, ob->id.lib, ob->fluidsimSettings->ipo);
+			}
+
 			lib_link_scriptlink(fd, &ob->id, &ob->scriptlink);
 			lib_link_modifiers(fd, ob);
 		}

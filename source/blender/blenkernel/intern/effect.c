@@ -51,6 +51,11 @@
 #include "DNA_object_force.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
+// FSPARTICLE
+#include "DNA_object_fluidsim.h"
+#include "LBM_fluidsim.h"
+#include <zlib.h>
+#include <string.h>
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -1594,6 +1599,7 @@ void build_particle_system(Object *ob)
 	float *volengths= NULL, *folengths= NULL;
 	int deform=0, a, totpart, paf_sta, paf_end;
 	int waitcursor_set= 0, totvert, totface, curface, curvert;
+	int readMask =0, activeParts;
 	
 	/* return conditions */
 	if(ob->type!=OB_MESH) return;
@@ -1603,6 +1609,104 @@ void build_particle_system(Object *ob)
 	if(paf==NULL) return;
 	if(paf->keys) MEM_freeN(paf->keys);	/* free as early as possible, for returns */
 	paf->keys= NULL;
+	
+	// FSPARTICLE all own created...
+	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
+	    (ob->fluidsimSettings) && 
+		  (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) {
+		char *suffix  = "fluidsurface_particles_#";
+		char *suffix2 = ".gz";
+		char filename[256];
+		int  curFrame = G.scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
+		int  j, numFileParts;
+		gzFile gzf;
+		float vel[3];
+
+		if(ob==G.obedit) { // off...
+			paf->totpart = 1;
+			return;
+		}
+
+		// ok, start loading
+		strcpy(filename, ob->fluidsimSettings->surfdataPath);
+		strcat(filename, suffix);
+		BLI_convertstringcode(filename, G.sce, curFrame); // fixed #frame-no 
+		strcat(filename, suffix2);
+
+		gzf = gzopen(filename, "rb");
+		if (!gzf) {
+			//char debugStrBuffer[256];
+			//define win32... snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s'\n", filename);
+			//elbeemDebugOut(debugStrBuffer);
+			paf->totpart = 1;
+			return;
+		}
+
+		gzread(gzf, &totpart, sizeof(totpart));
+		numFileParts = totpart;
+		totpart = (G.rendering)?totpart:(paf->disp*totpart)/100;
+		paf->totpart= totpart;
+		paf->totkey= 1;
+		/* initialize particles */
+		new_particle(paf);// ?
+		ftime = 0.0;
+		dtime= 0.0f;
+
+		// set up reading mask
+		//for(j=1; j<=4; j++ ){ if(ob->fluidsimSettings->guiDisplayMode&j) readMask |= (1<<j); }
+		readMask = ob->fluidsimSettings->guiDisplayMode;
+		activeParts=0;
+		// FIXME only allocate needed ones?
+		
+		//fprintf(stderr,"FSPARTICLE debug set %s , tot%d mask=%d \n", filename, totpart, readMask	);
+		for(a=0; a<totpart; a++, ftime+=dtime) {
+			int ptype=0;
+			short shsize=0;
+			float convertSize=0.0;
+			gzread(gzf, &ptype, sizeof( ptype )); 
+			//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d t=%d , mask=%d  , active%d\n", filename, a, ptype, readMask, activeParts	);
+			if(ptype&readMask) {
+				activeParts++;
+				pa= new_particle(paf);
+				pa->time= ftime;
+				pa->lifetime= ftime + G.scene->r.efra +1.0;
+				pa->co[0] = 0.0;
+				pa->co[1] = 
+				pa->co[2] = 1.0*(float)a / (float)totpart;
+				pa->no[0] = pa->no[1] = pa->no[2] = 0.0;
+				pa->mat_nr= paf->omat;
+				gzread(gzf, &convertSize, sizeof( float )); 
+				// convert range of  1.0-10.0 to shorts 1000-10000)
+				shsize = (short)(convertSize*1000.0);
+				pa->rt = shsize;
+				//if(a<200) fprintf(stderr,"SREAD %f %d %d \n",convertSize,shsize,pa->rt);
+
+				for(j=0; j<3; j++) {
+					float wrf;
+					gzread(gzf, &wrf, sizeof( wrf )); 
+					pa->co[j] = wrf;
+					//fprintf(stderr,"Rj%d ",j);
+				}
+				for(j=0; j<3; j++) {
+					float wrf;
+					gzread(gzf, &wrf, sizeof( wrf )); 
+					vel[j] = wrf;
+				}
+			} else {
+				// skip...
+				for(j=0; j<2*3+1; j++) {
+					float wrf; gzread(gzf, &wrf, sizeof( wrf )); 
+				}
+			}
+			//fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+		}
+		gzclose( gzf );
+
+		totpart = paf->totpart = activeParts;
+		//fprintf(stderr,"PARTOBH debug  %s %d \n", ob->id.name, totpart); // DEBUG
+		return;
+	}
+	
 	
 	if(paf->end < paf->sta) return;
 	

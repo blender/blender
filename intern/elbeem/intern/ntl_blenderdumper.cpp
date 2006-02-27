@@ -14,7 +14,8 @@
 #include "utilities.h"
 #include "ntl_matrices.h"
 #include "ntl_blenderdumper.h"
-#include "ntl_scene.h"
+#include "ntl_world.h"
+#include "solver_interface.h"
 
 #include <zlib.h>
 
@@ -31,17 +32,15 @@ ntlBlenderDumper::ntlBlenderDumper(string filename, bool commandlineMode) :
 	AttributeList *pAttrs = glob->getBlenderAttributes();
 	mpTrafo = new ntlMat4Gfx(0.0);
 	mpTrafo->initId();
-	(*mpTrafo) = pAttrs->readMat4Gfx("transform" , (*mpTrafo), "ntlBlenderDumper","mpTrafo", false ); 
+	pAttrs->readMat4Gfx("transform" , (*mpTrafo), "ntlBlenderDumper","mpTrafo", false, mpTrafo ); 
 }
 ntlBlenderDumper::ntlBlenderDumper(elbeemSimulationSettings *settings) :
 	ntlWorld(settings), mpTrafo(NULL)
 {
 	// same as normal constructor here
-  ntlRenderGlobals *glob = mpGlob;
-	AttributeList *pAttrs = glob->getBlenderAttributes();
 	mpTrafo = new ntlMat4Gfx(0.0);
-	mpTrafo->initId();
-	(*mpTrafo) = pAttrs->readMat4Gfx("transform" , (*mpTrafo), "ntlBlenderDumper","mpTrafo", false ); 
+	mpTrafo->initArrayCheck(settings->surfaceTrafo);
+	//errMsg("ntlBlenderDumper","mpTrafo inited: "<<(*mpTrafo) );
 }
 
 
@@ -52,6 +51,7 @@ ntlBlenderDumper::ntlBlenderDumper(elbeemSimulationSettings *settings) :
 ntlBlenderDumper::~ntlBlenderDumper()
 {
 	delete mpTrafo;
+	debMsgStd("ntlBlenderDumper",DM_NOTIFY, "ntlBlenderDumper done", 10);
 }
 
 /******************************************************************************
@@ -61,11 +61,11 @@ int ntlBlenderDumper::renderScene( void )
 {
 	char nrStr[5];								/* nr conversion */
   ntlRenderGlobals *glob = mpGlob;
-  ntlScene *scene = mpGlob->getScene();
+  ntlScene *scene = mpGlob->getSimScene();
 	bool debugOut = true;
-#if ELBEEM_BLENDER==1
+#if ELBEEM_PLUGIN==1
 	debugOut = false;
-#endif // ELBEEM_BLENDER==1
+#endif // ELBEEM_PLUGIN==1
 
 	// output path
 	/*std::ostringstream ecrpath("");
@@ -91,6 +91,7 @@ int ntlBlenderDumper::renderScene( void )
   vector<ntlTriangle> Triangles;
   vector<ntlVec3Gfx>  Vertices;
   vector<ntlVec3Gfx>  VertNormals;
+	errMsg("ntlBlenderDumper","mpTrafo : "<<(*mpTrafo) );
 
 	/* init geometry array, first all standard objects */
 	int idCnt = 0;          // give IDs to objects
@@ -106,80 +107,117 @@ int ntlBlenderDumper::renderScene( void )
 		if(tid & GEOCLASSTID_SHADER) {
 			ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter); //dynamic_cast<ntlGeometryShader*>(*iter);
 			hideObjs.push_back( (*iter)->getName() );
+			geoshad->notifyShaderOfDump(glob->getAniCount(),nrStr,glob->getOutFilename());
 			for (vector<ntlGeometryObject*>::iterator siter = geoshad->getObjectsBegin();
 					siter != geoshad->getObjectsEnd();
 					siter++) {
 				if(debugOut) debMsgStd("ntlBlenderDumper::BuildScene",DM_MSG,"added shader geometry "<<(*siter)->getName(), 8);
+
+				(*siter)->notifyOfDump(glob->getAniCount(),nrStr,glob->getOutFilename());
+				bool doDump = false;
+				bool isPreview = false;
+				// only dump final&preview surface meshes
+				if( (*siter)->getName().find( "final" ) != string::npos) {
+					doDump = true;
+				} else if( (*siter)->getName().find( "preview" ) != string::npos) {
+					doDump = true;
+					isPreview = true;
+				}
+				if(!doDump) continue;
 				
 				// only dump geo shader objects
 				Triangles.clear();
 				Vertices.clear();
 				VertNormals.clear();
 				(*siter)->initialize( mpGlob );
+				//int vstart = mVertNormals.size()-1;
 				(*siter)->getTriangles(&Triangles, &Vertices, &VertNormals, idCnt);
+
 				idCnt ++;
 
 				// always dump mesh, even empty ones...
-				//if(Vertices.size() <= 0) continue;
-				//if(Triangles.size() <= 0) continue;
-
-				for(size_t i=0; i<Vertices.size(); i++) {
-					Vertices[i] = (*mpTrafo) * Vertices[i];
-				}
 
 				// dump to binary file
 				std::ostringstream boutfilename("");
 				//boutfilename << ecrpath.str() << glob->getOutFilename() <<"_"<< (*siter)->getName() <<"_" << nrStr << ".obj";
-				boutfilename << glob->getOutFilename() <<"_"<< (*siter)->getName() <<"_" << nrStr << ".bobj";
+				boutfilename << glob->getOutFilename() <<"_"<< (*siter)->getName() <<"_" << nrStr;
 				if(debugOut) debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"B-Dumping: "<< (*siter)->getName() 
 						<<", triangles:"<<Triangles.size()<<", vertices:"<<Vertices.size()<<
 						" to "<<boutfilename.str() , 7);
-				bool isPreview = false;
-				if( (*siter)->getName().find( "preview" ) != string::npos) {
-					isPreview = true;
-				}
-				boutfilename << ".gz";
-
-				// compress all bobj's except for preview ones...
 				gzFile gzf;
-				if(isPreview) {
-					gzf = gzopen(boutfilename.str().c_str(), "wb1");
-				} else {
-					gzf = gzopen(boutfilename.str().c_str(), "wb9");
+
+				// output velocities if desired
+				// WARNING - this is dirty, but simobjs are the only geoshaders right now
+				SimulationObject *sim = (SimulationObject *)geoshad;
+				LbmSolverInterface *lbm = sim->getSolver();
+				if((!isPreview) && (lbm->getDumpVelocities())) {
+					std::ostringstream bvelfilename;
+					bvelfilename << boutfilename.str();
+					bvelfilename << ".bvel.gz";
+					gzf = gzopen(bvelfilename.str().c_str(), "wb9");
+					if(gzf) {
+						int numVerts;
+						if(sizeof(numVerts)!=4) { errMsg("ntlBlenderDumper::renderScene","Invalid int size"); return 1; }
+						numVerts = Vertices.size();
+						gzwrite(gzf, &numVerts, sizeof(numVerts));
+						for(size_t i=0; i<Vertices.size(); i++) {
+							// returns smoothed velocity, scaled by frame time
+							ntlVec3Gfx v = lbm->getVelocityAt( Vertices[i][0], Vertices[i][1], Vertices[i][2] );
+							// translation not necessary, test rotation & scaling?
+							//? v = (*mpTrafo) * v;
+							for(int j=0; j<3; j++) {
+								float vertp = v[j];
+								//if(i<20) errMsg("ntlBlenderDumper","DUMP_VEL final "<<i<<" = "<<v);
+								gzwrite(gzf, &vertp, sizeof(vertp)); }
+						}
+						gzclose( gzf );
+					}
 				}
+
+				// compress all bobj's 
+				boutfilename << ".bobj.gz";
+				//if(isPreview) { } else { }
+				gzf = gzopen(boutfilename.str().c_str(), "wb1"); // wb9 is slow for large meshes!
 				if (!gzf) {
 					errMsg("ntlBlenderDumper::renderScene","Unable to open output '"<<boutfilename<<"' ");
 					return 1; }
 				
-				int wri;
-				float wrf;
-				if(sizeof(wri)!=4) { errMsg("ntlBlenderDumper::renderScene","Invalid int size"); return 1; }
-				wri = Vertices.size();
-				gzwrite(gzf, &wri, sizeof(wri));
+				// transform into source space
+				for(size_t i=0; i<Vertices.size(); i++) {
+					Vertices[i] = (*mpTrafo) * Vertices[i];
+				}
+				// write to file
+				int numVerts;
+				if(sizeof(numVerts)!=4) { errMsg("ntlBlenderDumper::renderScene","Invalid int size"); return 1; }
+				numVerts = Vertices.size();
+				gzwrite(gzf, &numVerts, sizeof(numVerts));
 				for(size_t i=0; i<Vertices.size(); i++) {
 					for(int j=0; j<3; j++) {
-						wrf = Vertices[i][j];
-						gzwrite(gzf, &wrf, sizeof(wrf)); }
+						float vertp = Vertices[i][j];
+						gzwrite(gzf, &vertp, sizeof(vertp)); }
 				}
 
 				// should be the same as Vertices.size
-				wri = VertNormals.size();
-				gzwrite(gzf, &wri, sizeof(wri));
+				if(VertNormals.size() != (size_t)numVerts) {
+					errMsg("ntlBlenderDumper::renderScene","Normals have to have same size as vertices!");
+					VertNormals.resize( Vertices.size() );
+				}
+				gzwrite(gzf, &numVerts, sizeof(numVerts));
 				for(size_t i=0; i<VertNormals.size(); i++) {
 					for(int j=0; j<3; j++) {
-						wrf = VertNormals[i][j];
-						gzwrite(gzf, &wrf, sizeof(wrf)); }
+						float normp = VertNormals[i][j];
+						gzwrite(gzf, &normp, sizeof(normp)); }
 				}
 
-				wri = Triangles.size();
-				gzwrite(gzf, &wri, sizeof(wri));
+				int numTris = Triangles.size();
+				gzwrite(gzf, &numTris, sizeof(numTris));
 				for(size_t i=0; i<Triangles.size(); i++) {
 					for(int j=0; j<3; j++) {
-						wri = Triangles[i].getPoints()[j];
-						gzwrite(gzf, &wri, sizeof(wri)); }
+						int triIndex = Triangles[i].getPoints()[j];
+						gzwrite(gzf, &triIndex, sizeof(triIndex)); }
 				}
 				gzclose( gzf );
-				debMsgDirect(" Wrote: '"<<boutfilename.str()<<"'. ");
+				debMsgStd("ntlBlenderDumper::renderScene",DM_NOTIFY," Wrote: '"<<boutfilename.str()<<"' ", 2);
 				numGMs++;
 			}
 		}
@@ -200,6 +238,7 @@ int ntlBlenderDumper::renderScene( void )
 	debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"Scene #"<<nrStr<<" dump time: "<< getTimeString(stopTime-startTime) <<" ", 10);
 
 	// still render for preview...
+debugOut = false; // DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	if(debugOut) {
 		debMsgStd("ntlBlenderDumper::renderScene",DM_NOTIFY,"Performing preliminary render", 1);
 		ntlWorld::renderScene(); }

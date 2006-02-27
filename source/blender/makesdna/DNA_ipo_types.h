@@ -326,6 +326,26 @@ typedef short IPO_Channel;
 #define CO_ROLL		9
 */
 
+/* ******************** */
+/* fluidsim ipos NT */
+
+#define FLUIDSIM_TOTIPO	9
+#define FLUIDSIM_TOTNAM	9
+
+#define FLUIDSIM_VISC   1
+#define FLUIDSIM_TIME   2
+
+#define FLUIDSIM_GRAV_X 3
+#define FLUIDSIM_GRAV_Y 4
+#define FLUIDSIM_GRAV_Z 5
+
+#define FLUIDSIM_VEL_X  6
+#define FLUIDSIM_VEL_Y  7
+#define FLUIDSIM_VEL_Z  8
+
+#define FLUIDSIM_ACTIVE 9
+
+
 /* these are IpoCurve specific */
 /* **************** IPO ********************* */
 

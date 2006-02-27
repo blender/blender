@@ -32,7 +32,6 @@ typedef ntlVec3d ParamVec;
 #define PARAM_ANISTART	 			(1<<12)
 #define PARAM_SURFACETENSION 	(1<<13)
 #define PARAM_DENSITY				 	(1<<14)
-#define PARAM_CELLSIZE			 	(1<<15)
 #define PARAM_GSTAR					 	(1<<16)
 #define PARAM_SIMMAXSPEED			(1<<18)
 #define PARAM_FLUIDVOLHEIGHT  (1<<19)
@@ -58,9 +57,9 @@ class Parametrizer {
 		void parseAttrList( void );
 
 		/*! function that tries to calculate all the missing values from the given ones
-		 *  prints errors and returns false if thats not possible */
-		bool calculateAllMissingValues( bool silent = false );
-		bool oldCalculateAllMissingValues( void );
+		 *  prints errors and returns false if thats not possible 
+		 *  currently needs time value as well */
+		bool calculateAllMissingValues( double time, bool silent );
 		/*! is the parametrizer used at all? */
 		bool isUsed() { return true; }
 
@@ -83,7 +82,9 @@ class Parametrizer {
 		/*! check if the calculated flags are set in the values int */
 		bool checkCalculatedValues(int check) { /*errorOut( " b"<<((mSeenValues&check)==check) );*/ return ((mCalculatedValues&check)==check); }
 		/*! advance to next render/output frame */
-		void setFrameNum(int num);
+		void setFrameNum(int frame);
+		ParamFloat getAniFrameTime(int frame);
+		ParamFloat getCurrentAniFrameTime(){ return getAniFrameTime(mFrameNum); };
 
 		/*! scale a given speed vector in m/s to lattice values 
 		 *  usage string is only needed for debugging */
@@ -91,17 +92,17 @@ class Parametrizer {
 
 		/* simple calulation functions */
 		/*! get omega for LBM */
-		ParamFloat calculateOmega( ParamFloat t );
+		ParamFloat calculateOmega( double time );
 		/*! get no. of timesteps for LBM */
 		int calculateNoOfSteps( ParamFloat timelen );
 		/*! get external force x component */
-		ParamVec calculateGravity( ParamFloat t );
+		ParamVec calculateGravity( double time );
 		/*! get no of steps for the given length in seconds */
 		int calculateStepsForSecs( ParamFloat s );
+		/*! get no of steps for a singel animation frame */
+		int calculateAniStepsPerFrame(int frame);
 		/*! get start time of animation */
 		int calculateAniStart( void );
-		/*! get no of steps for a singel animation frame */
-		int calculateAniStepsPerFrame( void );
 		/*! get extent of the domain = (1,1,1) if parametrizer not used, (x,y,z) [m] otherwise */
 		ParamVec calculateExtent( void );
 		/*! get (scaled) surface tension */
@@ -111,7 +112,7 @@ class Parametrizer {
  		/*! calculate size of a single cell */
 		ParamFloat calculateCellSize(void);
  		/*! calculate the lattice viscosity */
-		ParamFloat calculateLatticeViscosity(void);
+		ParamFloat calculateLatticeViscosity( double time );
 
 		/*! calculate lattice velocity from real world value [m/s] */
 		ParamVec calculateLattVelocityFromRw( ParamVec ivel );
@@ -119,23 +120,9 @@ class Parametrizer {
 		ParamVec calculateRwVelocityFromLatt( ParamVec ivel );
 
 
-		/*! set relaxation time */
-		void setRelaxTime(ParamFloat set) { mRelaxTime = set; seenThis( PARAM_RELAXTIME ); }
-		/*! get relaxation time */
-		ParamFloat getRelaxTime( void )   { return mRelaxTime; }
-
-		/*! set reynolds number */
-		void setReynolds(ParamFloat set) { mReynolds = set; seenThis( PARAM_REYNOLDS ); }
-		/*! get reynolds number */
-		ParamFloat getReynolds( void )   { return mReynolds; }
-
 		/*! set kinematic viscosity */
-		void setViscosity(ParamFloat set) { 
-			mViscosity = set; seenThis( PARAM_VISCOSITY ); 
-			mcViscosity = AnimChannel<ParamFloat>(mViscosity);
-		}
-		/*! get current kinematic viscosity (warning - this might change over time) */
-		ParamFloat getViscosity( void )   { return mViscosity; }
+		void setViscosity(ParamFloat set) { mcViscosity = AnimChannel<ParamFloat>(set); seenThis( PARAM_VISCOSITY ); }
+		void initViscosityChannel(vector<ParamFloat> val, vector<double> time) { mcViscosity = AnimChannel<ParamFloat>(val,time); }
 
 		/*! set speed of sound */
 		void setSoundSpeed(ParamFloat set) { mSoundSpeed = set; seenThis( PARAM_SOUNDSPEED ); }
@@ -143,25 +130,21 @@ class Parametrizer {
 		ParamFloat getSoundSpeed( void )   { return mSoundSpeed; }
 
 		/*! set the external force */
-		void setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { 
-			mGravity = ParamVec(setx,sety,setz); seenThis( PARAM_GRAVITY ); 
-			mcGravity = AnimChannel<ParamVec>(mGravity);
-		}
-		void setGravity(ParamVec set) { 
-			mGravity = set; seenThis( PARAM_GRAVITY ); 
-			mcGravity = AnimChannel<ParamVec>(mGravity);
-		}
+		void setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { mcGravity = AnimChannel<ParamVec>(ParamVec(setx,sety,setz)); seenThis( PARAM_GRAVITY ); }
+		void setGravity(ParamVec set) { mcGravity = AnimChannel<ParamVec>(set); seenThis( PARAM_GRAVITY ); }
+		void initGravityChannel(vector<ParamVec> val, vector<double> time) { mcGravity = AnimChannel<ParamVec>(val,time); }
+		ParamVec getGravity(double time) { return mcGravity.get( time ); }
 
 		/*! set the length of a single time step */
-		void setStepTime(ParamFloat set) { mStepTime = set; seenThis( PARAM_STEPTIME ); }
+		void setTimestep(ParamFloat set) { mTimestep = set; seenThis( PARAM_STEPTIME ); }
 		/*! get the length of a single time step */
-		ParamFloat getStepTime( void);
+		ParamFloat getTimestep( void);
 		/*! set a desired step time for rescaling/adaptive timestepping */
-		void setDesiredStepTime(ParamFloat set) { mDesiredStepTime = set; }
+		void setDesiredTimestep(ParamFloat set) { mDesiredTimestep = set; }
 		/*! get the length of a single time step */
-		ParamFloat getMaxStepTime( void )   { return mMaxStepTime; }
+		ParamFloat getMaxTimestep( void )   { return mMaxTimestep; }
 		/*! get the length of a single time step */
-		ParamFloat getMinStepTime( void )   { return mMinStepTime; }
+		ParamFloat getMinTimestep( void )   { return mMinTimestep; }
 
 		/*! set the time scaling factor */
 		void setTimeFactor(ParamFloat set) { mTimeFactor = set; seenThis( PARAM_TIMEFACTOR ); }
@@ -173,19 +156,14 @@ class Parametrizer {
 		void setSize(int i,int j, int k) { mSizex = i; mSizey = j; mSizez = k; seenThis( PARAM_SIZE ); }
 
 		/*! set time of an animation frame (renderer)  */
-		void setAniFrameTime(ParamFloat set) { mAniFrameTime = set; seenThis( PARAM_ANIFRAMETIME ); }
-		/*! get time of an animation frame (renderer)  */
-		ParamFloat getAniFrameTime( void )   { return mAniFrameTime; }
+		//void setAniFrameTime(ParamFloat set) { mAniFrameTime = set; seenThis( PARAM_ANIFRAMETIME ); }
+		void setAniFrameTimeChannel(ParamFloat set) { mcAniFrameTime = AnimChannel<ParamFloat>(set); seenThis( PARAM_ANIFRAMETIME ); }
+		void initAniFrameTimeChannel(vector<ParamFloat> val, vector<double> time) { mcAniFrameTime = AnimChannel<ParamFloat>(val,time); seenThis( PARAM_ANIFRAMETIME ); }
 
 		/*! set starting time of the animation (renderer) */
 		void setAniStart(ParamFloat set) { mAniStart = set; seenThis( PARAM_ANISTART ); }
 		/*! get starting time of the animation (renderer) */
 		ParamFloat getAniStart( void )   { return mAniStart; }
-
-		/*! set starting time of the animation (renderer) */
-		void setSurfaceTension(ParamFloat set) { mSurfaceTension = set; seenThis( PARAM_SURFACETENSION ); }
-		/*! get starting time of the animation (renderer) */
-		ParamFloat getSurfaceTension( void )   { return mSurfaceTension; }
 
 		/*! set fluid density */
 		void setDensity(ParamFloat set) { mDensity = set; seenThis( PARAM_DENSITY ); }
@@ -213,8 +191,8 @@ class Parametrizer {
 		/*! get the size of a single lbm cell */
 		ParamFloat getDomainSize( void )   { return mDomainSize; }
 
-		/*! set the size of a single lbm cell */
-		void setCellSize(ParamFloat set) { mCellSize = set; seenThis( PARAM_CELLSIZE ); }
+		/*! set the size of a single lbm cell (dont use, normally set by domainsize and resolution) */
+		void setCellSize(ParamFloat set) { mCellSize = set; }
 		/*! get the size of a single lbm cell */
 		ParamFloat getCellSize( void )   { return mCellSize; }
 
@@ -246,9 +224,6 @@ class Parametrizer {
 		/*! get maximum allowed omega for time adaptivity */
 		int getTadapLevels( void )   { return mTadapLevels; }
 
-		/*! get current gravity value (warning this might change over time!) */
-		ParamVec getGravity( void )   { return mGravity; }
-
 		/*! set */
 		//	void set(ParamFloat set) { m = set; seenThis( PARAM_ ); }
 		/*! get */
@@ -258,15 +233,7 @@ class Parametrizer {
 
 	private:
 
-		/*! relaxation time [s] */
-		ParamFloat mRelaxTime;
-
-		/*! reynolds number (calculated from domain length and max. speed [dimensionless] */
-		ParamFloat mReynolds;
-
 		/*! kinematic viscosity of the fluid [m^2/s] */
-		ParamFloat mViscosity;
-		/*! animated channel */
 		AnimChannel<ParamFloat> mcViscosity;
 
 		/*! speed of sound of the fluid [m/s] */
@@ -282,18 +249,14 @@ class Parametrizer {
 		ParamFloat mTimeStep;
 
 		/*! external force as acceleration [m/s^2] */
-		ParamVec mGravity;
 		AnimChannel<ParamVec> mcGravity;
-		/*! force converted to lattice units (returned by calc gravity) */
-		ParamVec mLatticeGravity;
-
 
 		/*! length of one time step in the simulation */
-		ParamFloat mStepTime;
+		ParamFloat mTimestep;
 		/*! desired step time for rescaling/adaptive timestepping, only regarded if >0.0, reset after usage */
-		ParamFloat mDesiredStepTime;
+		ParamFloat mDesiredTimestep;
 		/*! minimal and maximal step times for current setup */
-		ParamFloat mMaxStepTime, mMinStepTime;
+		ParamFloat mMaxTimestep, mMinTimestep;
 
 		/*! domain resoultion, the same values as in lbmsolver */
 		int mSizex, mSizey, mSizez;
@@ -302,18 +265,17 @@ class Parametrizer {
 		ParamFloat mTimeFactor;
 
 		/*! for renderer - length of an animation step [s] */
-		ParamFloat mAniFrameTime;
-		/*! animated channel */
 		AnimChannel<ParamFloat> mcAniFrameTime;
+		/*! current value for next frame */
+		ParamFloat mAniFrameTime;
+		/*! time step scaling factor for testing/debugging */
+		ParamFloat mTimeStepScale;
 
 		/*! for renderer - start time of the animation [s] */
 		ParamFloat mAniStart;
 
 		/*! extent of the domain in meters */
 		ParamVec mExtent;
-
-		/*! surface tension, [kg/s^2] */
-		ParamFloat mSurfaceTension;
 
 		/*! fluid density [kg/m^3], default 1.0 g/cm^3 */
 		ParamFloat mDensity;
@@ -334,15 +296,14 @@ class Parametrizer {
 		/*! no. of levels for max omega (set by fsgr, not in cfg file) */
 		int mTadapLevels;
 
+		/*! remember current frame number */
+		int mFrameNum;
 
 		/*! values that are seen for this simulation */
 		int mSeenValues;
 
 		/*! values that are calculated from the seen ones for this simulation */
 		int mCalculatedValues;
-
-		/*! is the parametrizer active? */
-		//bool mActive;
 
 		/*! pointer to the attribute list */
 		AttributeList *mpAttrs;

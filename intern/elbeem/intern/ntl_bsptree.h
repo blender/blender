@@ -6,14 +6,11 @@
  * Tree container for fast triangle intersects
  *
  *****************************************************************************/
-
-
-#ifndef NTL_TREE_HH
-#define NTL_TREE_HH
+#ifndef NTL_TREE_H
+#define NTL_TREE_H
 
 #include "ntl_vector3dim.h"
 #include "ntl_ray.h"
-#include "ntl_triangle.h"
 
 
 #define AXIS_X 0
@@ -29,6 +26,8 @@ class BSPNode;
 class BSPStackElement;
 class BSPStack;
 class TriangleBBox;
+class ntlScene;
+class ntlTriangle;
 
 
 //! Class for a bsp tree for triangles
@@ -85,6 +84,9 @@ class ntlTree
 
 		//! root node pointer
 		BSPNode *mpRoot;
+		//! count no. of node
+		int mNumNodes;
+		int mAbortSubdiv;
 
 		//! stack for the node pointers
 		BSPStack *mpNodeStack;

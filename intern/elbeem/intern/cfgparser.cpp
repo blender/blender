@@ -299,19 +299,17 @@
   int yy_parse( void );
 
 // local variables to access objects 
+#include "solver_interface.h"
 #include "simulation_object.h"
 #ifdef LBM_INCLUDE_TESTSOLVERS
 #include "simulation_complbm.h"
 #endif // LBM_INCLUDE_TESTSOLVERS
 
 #include "parametrizer.h"
-#include "ntl_renderglobals.h"
-#include "ntl_scene.h"
-
-#include "ntl_lightobject.h"
-#include "ntl_material.h"
+#include "ntl_world.h"
+#include "ntl_ray.h"
+#include "ntl_lighting.h"
 #include "ntl_geometrymodel.h"
-#include "globals.h"
 
 	/* global variables */
 	static map<string,AttributeList*> attrs; /* global attribute storage */
@@ -333,11 +331,11 @@
 	AttributeList				*currentAttrib;
 	string							currentAttrName, currentAttribAddName;
 
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 #include "ntl_geometrybox.h"
 #include "ntl_geometrysphere.h"
 	ntlGeometryBox      *currentGeometryBox;
-#endif //ELBEEM_BLENDER
+#endif //ELBEEM_PLUGIN
 	
 	/* material init checks */
 	ntlMaterial  				*currentMaterial;
@@ -358,14 +356,14 @@
 #endif
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 87 "src/cfgparser.yy"
+#line 85 "src/cfgparser.yy"
 typedef union YYSTYPE {
   int    intValue;
   float  floatValue;
   char  *charValue;
 } YYSTYPE;
 /* Line 190 of yacc.c.  */
-#line 369 "bld-std-gcc/src/cfgparser.cpp"
+#line 367 "bld-std-gcc/src/cfgparser.cpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -377,7 +375,7 @@ typedef union YYSTYPE {
 
 
 /* Line 213 of yacc.c.  */
-#line 381 "bld-std-gcc/src/cfgparser.cpp"
+#line 379 "bld-std-gcc/src/cfgparser.cpp"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -609,21 +607,21 @@ static const short int yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned short int yyrline[] =
 {
-       0,   146,   146,   147,   150,   151,   152,   153,   157,   160,
-     175,   176,   176,   179,   180,   181,   182,   184,   185,   186,
-     187,   188,   189,   190,   191,   192,   193,   194,   195,   196,
-     197,   198,   199,   200,   202,   203,   204,   205,   210,   214,
-     219,   223,   229,   233,   237,   241,   245,   249,   253,   257,
-     261,   265,   269,   273,   277,   281,   285,   289,   294,   303,
-     314,   315,   318,   326,   327,   328,   329,   333,   338,   343,
-     348,   366,   365,   386,   387,   390,   399,   407,   412,   418,
-     430,   431,   432,   433,   434,   435,   436,   437,   438,   443,
-     448,   454,   460,   466,   471,   486,   502,   508,   518,   529,
-     530,   533,   538,   542,   543,   544,   545,   546,   547,   548,
-     549,   550,   551,   556,   561,   566,   571,   577,   582,   587,
-     592,   597,   602,   613,   613,   623,   623,   626,   626,   629,
-     630,   629,   637,   638,   637,   645,   648,   658,   661,   673,
-     675,   681,   692,   704
+       0,   144,   144,   145,   148,   149,   150,   151,   155,   158,
+     173,   174,   174,   177,   178,   179,   180,   182,   183,   184,
+     185,   186,   187,   188,   189,   190,   191,   192,   193,   194,
+     195,   196,   197,   198,   200,   201,   202,   203,   208,   212,
+     217,   221,   227,   231,   235,   239,   243,   247,   251,   255,
+     259,   263,   267,   271,   275,   279,   283,   287,   292,   301,
+     312,   313,   316,   324,   325,   326,   327,   331,   336,   341,
+     346,   364,   363,   385,   386,   389,   398,   406,   411,   417,
+     429,   430,   431,   432,   433,   434,   435,   436,   437,   442,
+     447,   453,   459,   465,   470,   485,   501,   510,   520,   531,
+     532,   535,   540,   544,   545,   546,   547,   548,   549,   550,
+     551,   552,   553,   558,   563,   568,   573,   579,   584,   589,
+     594,   599,   604,   615,   615,   625,   625,   628,   628,   631,
+     632,   631,   639,   640,   639,   647,   650,   660,   663,   675,
+     677,   683,   694,   706
 };
 #endif
 
@@ -1583,12 +1581,12 @@ yyreduce:
   switch (yyn)
     {
         case 8:
-#line 157 "src/cfgparser.yy"
+#line 155 "src/cfgparser.yy"
     { yy_debug = (yyvsp[0].intValue); }
     break;
 
   case 9:
-#line 160 "src/cfgparser.yy"
+#line 158 "src/cfgparser.yy"
     { 
 		int sdebug = (yyvsp[0].intValue); 
 		if(sdebug<0) sdebug=0;
@@ -1598,114 +1596,114 @@ yyreduce:
     break;
 
   case 38:
-#line 211 "src/cfgparser.yy"
+#line 209 "src/cfgparser.yy"
     { reglob->setAniStart( (yyvsp[0].intValue) ); }
     break;
 
   case 39:
-#line 215 "src/cfgparser.yy"
+#line 213 "src/cfgparser.yy"
     { /*reglob->setAniFrameTime( $2 );*/ debMsgStd("cfgparser",DM_NOTIFY,"Deprecated setting aniframetime!",1); }
     break;
 
   case 40:
-#line 220 "src/cfgparser.yy"
+#line 218 "src/cfgparser.yy"
     { reglob->setAniFrames( ((yyvsp[0].intValue))-1 ); }
     break;
 
   case 41:
-#line 224 "src/cfgparser.yy"
+#line 222 "src/cfgparser.yy"
     { reglob->setFrameSkip( ((yyvsp[0].intValue)) ); }
     break;
 
   case 42:
-#line 230 "src/cfgparser.yy"
+#line 228 "src/cfgparser.yy"
     { reglob->setResX( (yyvsp[-1].intValue) ); reglob->setResY( (yyvsp[0].intValue)); }
     break;
 
   case 43:
-#line 234 "src/cfgparser.yy"
+#line 232 "src/cfgparser.yy"
     { reglob->setAADepth( (yyvsp[0].intValue) ); }
     break;
 
   case 44:
-#line 238 "src/cfgparser.yy"
+#line 236 "src/cfgparser.yy"
     { reglob->setEye( ntlVec3Gfx((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); }
     break;
 
   case 45:
-#line 242 "src/cfgparser.yy"
+#line 240 "src/cfgparser.yy"
     { reglob->setLookat( ntlVec3Gfx((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); }
     break;
 
   case 46:
-#line 246 "src/cfgparser.yy"
+#line 244 "src/cfgparser.yy"
     { reglob->setUpVec( ntlVec3Gfx((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); }
     break;
 
   case 47:
-#line 250 "src/cfgparser.yy"
+#line 248 "src/cfgparser.yy"
     { reglob->setFovy( (yyvsp[0].floatValue) ); }
     break;
 
   case 48:
-#line 254 "src/cfgparser.yy"
+#line 252 "src/cfgparser.yy"
     { reglob->setAspect( (yyvsp[0].floatValue) ); }
     break;
 
   case 49:
-#line 258 "src/cfgparser.yy"
+#line 256 "src/cfgparser.yy"
     { reglob->setAmbientLight( ntlColor((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue))  ); }
     break;
 
   case 50:
-#line 262 "src/cfgparser.yy"
+#line 260 "src/cfgparser.yy"
     { reglob->setBackgroundCol( ntlColor((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); }
     break;
 
   case 51:
-#line 266 "src/cfgparser.yy"
+#line 264 "src/cfgparser.yy"
     { reglob->setOutFilename( (yyvsp[0].charValue) ); }
     break;
 
   case 52:
-#line 270 "src/cfgparser.yy"
+#line 268 "src/cfgparser.yy"
     { reglob->setTreeMaxDepth( (yyvsp[0].intValue) ); }
     break;
 
   case 53:
-#line 274 "src/cfgparser.yy"
+#line 272 "src/cfgparser.yy"
     { reglob->setTreeMaxTriangles( (yyvsp[0].intValue) ); }
     break;
 
   case 54:
-#line 278 "src/cfgparser.yy"
+#line 276 "src/cfgparser.yy"
     { reglob->setRayMaxDepth( (yyvsp[0].intValue) ); }
     break;
 
   case 55:
-#line 282 "src/cfgparser.yy"
+#line 280 "src/cfgparser.yy"
     { reglob->setDebugPixel( (yyvsp[-1].intValue), (yyvsp[0].intValue) ); }
     break;
 
   case 56:
-#line 286 "src/cfgparser.yy"
+#line 284 "src/cfgparser.yy"
     { reglob->setTestMode( (yyvsp[0].intValue) ); }
     break;
 
   case 57:
-#line 290 "src/cfgparser.yy"
+#line 288 "src/cfgparser.yy"
     { if(attrs[(yyvsp[0].charValue)] == NULL){ yyerror("OPENGL ATTRIBUTES: The attribute was not found!"); }
 			reglob->getOpenGlAttributes()->import( attrs[(yyvsp[0].charValue)] ); }
     break;
 
   case 58:
-#line 295 "src/cfgparser.yy"
+#line 293 "src/cfgparser.yy"
     { if(attrs[(yyvsp[0].charValue)] == NULL){ yyerror("BLENDER ATTRIBUTES: The attribute was not found!"); }
 			reglob->getBlenderAttributes()->import( attrs[(yyvsp[0].charValue)] ); }
     break;
 
   case 59:
-#line 307 "src/cfgparser.yy"
+#line 305 "src/cfgparser.yy"
     { 
 				/* reset light pointers */
 				currentLightOmni = NULL; 
@@ -1713,7 +1711,7 @@ yyreduce:
     break;
 
   case 62:
-#line 319 "src/cfgparser.yy"
+#line 317 "src/cfgparser.yy"
     { currentLightOmni = new ntlLightObject( reglob );
 		  currentLight = currentLightOmni;
 			reglob->getLightList()->push_back(currentLight);
@@ -1721,28 +1719,28 @@ yyreduce:
     break;
 
   case 67:
-#line 333 "src/cfgparser.yy"
+#line 331 "src/cfgparser.yy"
     { 
 			currentLight->setActive( (yyvsp[0].intValue) ); 
 		}
     break;
 
   case 68:
-#line 338 "src/cfgparser.yy"
+#line 336 "src/cfgparser.yy"
     { 
 			currentLight->setCastShadows( (yyvsp[0].intValue) ); 
 		}
     break;
 
   case 69:
-#line 343 "src/cfgparser.yy"
+#line 341 "src/cfgparser.yy"
     { 
 			currentLight->setColor( ntlColor((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); 
 		}
     break;
 
   case 70:
-#line 348 "src/cfgparser.yy"
+#line 346 "src/cfgparser.yy"
     { 
 		int init = 0;
 		if(currentLightOmni != NULL) {
@@ -1752,16 +1750,17 @@ yyreduce:
     break;
 
   case 71:
-#line 366 "src/cfgparser.yy"
+#line 364 "src/cfgparser.yy"
     {
 				// geo classes have attributes...
-				reglob->getScene()->addGeoClass(currentGeoClass);
+				reglob->getRenderScene()->addGeoClass(currentGeoClass);
+				reglob->getSimScene()->addGeoClass(currentGeoClass);
 				currentAttrib = currentGeoClass->getAttributeList();
 			}
     break;
 
   case 72:
-#line 372 "src/cfgparser.yy"
+#line 371 "src/cfgparser.yy"
     { 
 				/* reset geometry object pointers */
 				currentGeoObj			 = NULL; 
@@ -1769,39 +1768,39 @@ yyreduce:
 				currentGeometrySim = NULL; 
 				currentGeometryModel = NULL; 
 				currentAttrib = NULL;
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 				currentGeometryBox = NULL; 
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 			}
     break;
 
   case 75:
-#line 390 "src/cfgparser.yy"
+#line 389 "src/cfgparser.yy"
     { 
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 			currentGeometryBox = new ntlGeometryBox( );
 			currentGeoClass = currentGeometryBox;
 			currentGeoObj = (ntlGeometryObject*)( currentGeometryBox );
-#else // ELBEEM_BLENDER
+#else // ELBEEM_PLUGIN
 			yyerror("GEOTYPE_BOX : This object type is not supported in this version!");
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 		}
     break;
 
   case 76:
-#line 399 "src/cfgparser.yy"
+#line 398 "src/cfgparser.yy"
     { 
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 			currentGeoClass = new ntlGeometrySphere( );
 			currentGeoObj = (ntlGeometryObject*)( currentGeoClass );
-#else // ELBEEM_BLENDER
+#else // ELBEEM_PLUGIN
 			yyerror("GEOTYPE_SPHERE : This object type is not supported in this version!");
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 		}
     break;
 
   case 77:
-#line 407 "src/cfgparser.yy"
+#line 406 "src/cfgparser.yy"
     { 
 			currentGeometryModel = new ntlGeometryObjModel( );
 			currentGeoClass = currentGeometryModel;
@@ -1810,7 +1809,7 @@ yyreduce:
     break;
 
   case 78:
-#line 412 "src/cfgparser.yy"
+#line 411 "src/cfgparser.yy"
     { 
 			currentGeometrySim = new SimulationObject();
 			currentGeoClass = currentGeometrySim;
@@ -1820,7 +1819,7 @@ yyreduce:
     break;
 
   case 79:
-#line 418 "src/cfgparser.yy"
+#line 417 "src/cfgparser.yy"
     { 
 #ifdef LBM_INCLUDE_TESTSOLVERS
 			currentGeometrySim = new SimulationCompareLbm();
@@ -1833,14 +1832,14 @@ yyreduce:
     break;
 
   case 89:
-#line 443 "src/cfgparser.yy"
+#line 442 "src/cfgparser.yy"
     { 
 			currentGeoClass->setName( (yyvsp[0].charValue) ); 
 		}
     break;
 
   case 90:
-#line 448 "src/cfgparser.yy"
+#line 447 "src/cfgparser.yy"
     { 
 			if(currentGeoObj == NULL){ yyerror(" MATERIAL : This property can only be set for geometry objects!"); }
 			currentGeoObj->setMaterialName( (yyvsp[0].charValue) ); 
@@ -1848,7 +1847,7 @@ yyreduce:
     break;
 
   case 91:
-#line 454 "src/cfgparser.yy"
+#line 453 "src/cfgparser.yy"
     { 
 			if(currentGeoObj == NULL){ yyerror(" CAST_SHADOW : This property can only be set for geometry objects!"); }
 			currentGeoObj->setCastShadows( (yyvsp[0].intValue) ); 
@@ -1856,7 +1855,7 @@ yyreduce:
     break;
 
   case 92:
-#line 460 "src/cfgparser.yy"
+#line 459 "src/cfgparser.yy"
     { 
 			if(currentGeoObj == NULL){ yyerror(" RECEIVE_SHADOW : This property can only be set for geometry objects!"); }
 			currentGeoObj->setReceiveShadows( (yyvsp[0].intValue) ); 
@@ -1864,21 +1863,21 @@ yyreduce:
     break;
 
   case 93:
-#line 466 "src/cfgparser.yy"
+#line 465 "src/cfgparser.yy"
     { 
 			currentGeoClass->setVisible( (yyvsp[0].intValue) ); 
 		}
     break;
 
   case 94:
-#line 471 "src/cfgparser.yy"
+#line 470 "src/cfgparser.yy"
     { 
 		int init = 0;
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 		if(currentGeometryBox != NULL){ 
 			currentGeometryBox->setStart( ntlVec3Gfx((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); init=1; }
-#else // ELBEEM_BLENDER
-#endif // ELBEEM_BLENDER
+#else // ELBEEM_PLUGIN
+#endif // ELBEEM_PLUGIN
 		if(currentGeometrySim != NULL){ 
 			currentGeometrySim->setGeoStart( ntlVec3Gfx((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); init=1; }
 		if(currentGeometryModel != NULL){ 
@@ -1888,14 +1887,14 @@ yyreduce:
     break;
 
   case 95:
-#line 486 "src/cfgparser.yy"
+#line 485 "src/cfgparser.yy"
     { 
 		int init = 0;
-#ifndef ELBEEM_BLENDER
+#ifndef ELBEEM_PLUGIN
 		if(currentGeometryBox != NULL){ 
 			currentGeometryBox->setEnd( ntlVec3Gfx((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); init=1; }
-#else // ELBEEM_BLENDER
-#endif // ELBEEM_BLENDER
+#else // ELBEEM_PLUGIN
+#endif // ELBEEM_PLUGIN
 		if(currentGeometrySim != NULL){ 
 			currentGeometrySim->setGeoEnd( ntlVec3Gfx((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); init=1; }
 		if(currentGeometryModel != NULL){ 
@@ -1905,20 +1904,23 @@ yyreduce:
     break;
 
   case 96:
-#line 502 "src/cfgparser.yy"
+#line 501 "src/cfgparser.yy"
     { 
 			if(attrs[(yyvsp[0].charValue)] == NULL){ yyerror("GEO ATTRIBUTES: The attribute was not found!"); }
-			currentGeoClass->getAttributeList()->import( attrs[(yyvsp[0].charValue)] ); 
+			else {
+				if(currentGeoClass->getAttributeList())
+					currentGeoClass->getAttributeList()->import( attrs[(yyvsp[0].charValue)] ); 
+			}
 		}
     break;
 
   case 97:
-#line 510 "src/cfgparser.yy"
+#line 512 "src/cfgparser.yy"
     { }
     break;
 
   case 98:
-#line 522 "src/cfgparser.yy"
+#line 524 "src/cfgparser.yy"
     { 
 				/* reset geometry object pointers */
 				currentMaterial = NULL; 
@@ -1926,7 +1928,7 @@ yyreduce:
     break;
 
   case 101:
-#line 534 "src/cfgparser.yy"
+#line 536 "src/cfgparser.yy"
     { currentMaterial = new ntlMaterial( );
 			currentMaterial = currentMaterial;
 			reglob->getMaterials()->push_back(currentMaterial);
@@ -1934,34 +1936,34 @@ yyreduce:
     break;
 
   case 102:
-#line 538 "src/cfgparser.yy"
+#line 540 "src/cfgparser.yy"
     {
 		yyerror("MATTYPE: Blinn NYI!"); }
     break;
 
   case 113:
-#line 556 "src/cfgparser.yy"
+#line 558 "src/cfgparser.yy"
     { 
 			currentMaterial->setName( (yyvsp[0].charValue) ); 
 		}
     break;
 
   case 114:
-#line 561 "src/cfgparser.yy"
+#line 563 "src/cfgparser.yy"
     {
 			currentMaterial->setAmbientRefl( ntlColor((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); 
 		}
     break;
 
   case 115:
-#line 566 "src/cfgparser.yy"
+#line 568 "src/cfgparser.yy"
     { 
 			currentMaterial->setDiffuseRefl( ntlColor((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); 
 		}
     break;
 
   case 116:
-#line 571 "src/cfgparser.yy"
+#line 573 "src/cfgparser.yy"
     { 
 			currentMaterial->setSpecular( (yyvsp[-1].floatValue) ); 
 			currentMaterial->setSpecExponent( (yyvsp[0].floatValue) ); 
@@ -1969,56 +1971,56 @@ yyreduce:
     break;
 
   case 117:
-#line 577 "src/cfgparser.yy"
+#line 579 "src/cfgparser.yy"
     { 
 			currentMaterial->setMirror( (yyvsp[0].floatValue) ); 
 		}
     break;
 
   case 118:
-#line 582 "src/cfgparser.yy"
+#line 584 "src/cfgparser.yy"
     { 
 			currentMaterial->setTransparence( (yyvsp[0].floatValue) ); 
 		}
     break;
 
   case 119:
-#line 587 "src/cfgparser.yy"
+#line 589 "src/cfgparser.yy"
     { 
 			currentMaterial->setRefracIndex( (yyvsp[0].floatValue) ); 
 		}
     break;
 
   case 120:
-#line 592 "src/cfgparser.yy"
+#line 594 "src/cfgparser.yy"
     { 
 			currentMaterial->setTransAdditive( (yyvsp[0].floatValue) ); 
 		}
     break;
 
   case 121:
-#line 597 "src/cfgparser.yy"
+#line 599 "src/cfgparser.yy"
     { 
 			currentMaterial->setTransAttCol( ntlColor((yyvsp[-2].floatValue),(yyvsp[-1].floatValue),(yyvsp[0].floatValue)) ); 
 		}
     break;
 
   case 122:
-#line 602 "src/cfgparser.yy"
+#line 604 "src/cfgparser.yy"
     {
 		currentMaterial->setFresnel( (yyvsp[0].intValue) ); 
 	}
     break;
 
   case 123:
-#line 613 "src/cfgparser.yy"
+#line 615 "src/cfgparser.yy"
     { 
 		currentAttrib = new AttributeList((yyvsp[-1].charValue)); 
 		currentAttrName = (yyvsp[-1].charValue); }
     break;
 
   case 124:
-#line 616 "src/cfgparser.yy"
+#line 618 "src/cfgparser.yy"
     { // store attribute
 			//std::cerr << " NEW ATTR " << currentAttrName << std::endl;
 			//currentAttrib->print();
@@ -2027,12 +2029,12 @@ yyreduce:
     break;
 
   case 129:
-#line 629 "src/cfgparser.yy"
+#line 631 "src/cfgparser.yy"
     { currentAttrValue.clear(); currentAttribAddName = (yyvsp[-1].charValue); }
     break;
 
   case 130:
-#line 630 "src/cfgparser.yy"
+#line 632 "src/cfgparser.yy"
     {
       currentAttrib->addAttr( currentAttribAddName, currentAttrValue, lineCount, true); 
 			//std::cerr << " ADD ATTRCHANNEL " << currentAttribAddName << std::endl;
@@ -2041,12 +2043,12 @@ yyreduce:
     break;
 
   case 132:
-#line 637 "src/cfgparser.yy"
+#line 639 "src/cfgparser.yy"
     { currentAttrValue.clear(); currentAttribAddName = (yyvsp[-1].charValue); }
     break;
 
   case 133:
-#line 638 "src/cfgparser.yy"
+#line 640 "src/cfgparser.yy"
     {
       currentAttrib->addAttr( currentAttribAddName, currentAttrValue, lineCount, false); 
 			//std::cerr << " ADD ATTRNORM " << currentAttribAddName << std::endl;
@@ -2055,21 +2057,21 @@ yyreduce:
     break;
 
   case 135:
-#line 645 "src/cfgparser.yy"
+#line 647 "src/cfgparser.yy"
     { 
 		//std::cerr << "LLL "<<$2<<std::endl; // ignore newline entries  
 		if(strcmp((yyvsp[0].charValue),"\n")) currentAttrValue.push_back((yyvsp[0].charValue)); }
     break;
 
   case 136:
-#line 648 "src/cfgparser.yy"
+#line 650 "src/cfgparser.yy"
     {  
 		//std::cerr << "LRR "<<$1<<std::endl;
 		if(strcmp((yyvsp[0].charValue),"\n")) currentAttrValue.push_back((yyvsp[0].charValue)); }
     break;
 
   case 138:
-#line 662 "src/cfgparser.yy"
+#line 664 "src/cfgparser.yy"
     {
   if ( ((yyvsp[0].floatValue) < 0.0) || ((yyvsp[0].floatValue) > 1.0) ) {
     yyerror("Value out of range (only 0 to 1 allowed)");
@@ -2081,17 +2083,17 @@ yyreduce:
     break;
 
   case 139:
-#line 674 "src/cfgparser.yy"
+#line 676 "src/cfgparser.yy"
     { (yyval.floatValue) = (yyvsp[0].floatValue); }
     break;
 
   case 140:
-#line 676 "src/cfgparser.yy"
+#line 678 "src/cfgparser.yy"
     { (yyval.floatValue) = (float) (yyvsp[0].intValue); /* conversion from integers */ }
     break;
 
   case 141:
-#line 682 "src/cfgparser.yy"
+#line 684 "src/cfgparser.yy"
     {
   if ( (yyvsp[0].intValue) <= 0 ) {
     yy_error("Value out of range (has to be above zero)");
@@ -2103,7 +2105,7 @@ yyreduce:
     break;
 
   case 142:
-#line 693 "src/cfgparser.yy"
+#line 695 "src/cfgparser.yy"
     {
   //cout << " " << $1 << " ";
   if ( (yyvsp[0].intValue) < 0 ) {
@@ -2116,7 +2118,7 @@ yyreduce:
     break;
 
   case 143:
-#line 705 "src/cfgparser.yy"
+#line 707 "src/cfgparser.yy"
     {
   if( ( (yyvsp[0].intValue) != 0 ) && ( (yyvsp[0].intValue) != 1 ) ) {
     yy_error("Boolean value has to be 1|0, 'true'|'false' or 'on'|'off'!");
@@ -2130,7 +2132,7 @@ yyreduce:
     }
 
 /* Line 1037 of yacc.c.  */
-#line 2134 "bld-std-gcc/src/cfgparser.cpp"
+#line 2136 "bld-std-gcc/src/cfgparser.cpp"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2358,7 +2360,7 @@ yyreturn:
 }
 
 
-#line 713 "src/cfgparser.yy"
+#line 715 "src/cfgparser.yy"
 
 
 /*---------------------------------------------------------------------------*/

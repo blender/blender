@@ -9,7 +9,7 @@
 
 #include "isosurface.h"
 #include "mcubes_tables.h"
-#include "ntl_scene.h"
+#include "ntl_ray.h"
 
 #include <algorithm>
 #include <stdio.h>
@@ -20,23 +20,15 @@
 #include <ieeefp.h>
 #endif
 
-/*
-template class vector<IsoLevelVertex>;
-template class vector<int>;
-template class vector<unsigned int>;
-template class vector<float>;
-template class vector<ntlVec3Gfx>;
-template class vector< vector<int> >;
-*/
 
 /******************************************************************************
  * Constructor
  *****************************************************************************/
-IsoSurface::IsoSurface(double iso, double blend) :
+IsoSurface::IsoSurface(double iso) :
 	ntlGeometryObject(),
 	mSizex(-1), mSizey(-1), mSizez(-1),
+	mpData(NULL),
   mIsoValue( iso ), 
-	mBlendVal( blend ),
 	mPoints(), 
 	mpEdgeVerticesX(NULL), mpEdgeVerticesY(NULL), mpEdgeVerticesZ(NULL),
 	mIndices(),
@@ -44,7 +36,10 @@ IsoSurface::IsoSurface(double iso, double blend) :
   mStart(0.0), mEnd(0.0), mDomainExtent(0.0),
   mInitDone(false),
 	mSmoothSurface(0.0), mSmoothNormals(0.0),
-	mAcrossEdge(), mAdjacentFaces()
+	mAcrossEdge(), mAdjacentFaces(),
+	mCutoff(-1), // off by default
+	mFlagCnt(1),
+	mSCrad1(0.), mSCrad2(0.), mSCcenter(0.)
 {
 }
 
@@ -87,16 +82,6 @@ void IsoSurface::initializeIsosurface(int setx, int sety, int setz, ntlVec3Gfx e
   
 	// marching cubes are ready 
 	mInitDone = true;
-	/*unsigned long int memCnt = (3*sizeof(int)*nodes + sizeof(float)*nodes);
-	double memd = memCnt;
-	char *sizeStr = "";
-	const double sfac = 1000.0;
-	if(memd>sfac){ memd /= sfac; sizeStr="KB"; }
-	if(memd>sfac){ memd /= sfac; sizeStr="MB"; }
-	if(memd>sfac){ memd /= sfac; sizeStr="GB"; }
-	if(memd>sfac){ memd /= sfac; sizeStr="TB"; }
-
-	debMsgStd("IsoSurface::initializeIsosurface",DM_MSG,"Inited "<<PRINT_VEC(setx,sety,setz)<<" alloced:"<< memd<<" "<<sizeStr<<"." ,10);*/
 }
 
 
@@ -107,11 +92,10 @@ void IsoSurface::initializeIsosurface(int setx, int sety, int setz, ntlVec3Gfx e
  *****************************************************************************/
 IsoSurface::~IsoSurface( void )
 {
-
+	if(mpData) delete [] mpData;
 	if(mpEdgeVerticesX) delete [] mpEdgeVerticesX;
 	if(mpEdgeVerticesY) delete [] mpEdgeVerticesY;
 	if(mpEdgeVerticesZ) delete [] mpEdgeVerticesZ;
-
 }
 
 
@@ -132,10 +116,10 @@ void IsoSurface::triangulate( void )
 		return;
 	}
 
-  // get grid spacing
-  gsx = (mEnd[0]-mStart[0])/(double)(mSizex-1.0);
-  gsy = (mEnd[1]-mStart[1])/(double)(mSizey-1.0);
-  gsz = (mEnd[2]-mStart[2])/(double)(mSizez-1.0);
+  // get grid spacing (-2 to have same spacing as sim)
+  gsx = (mEnd[0]-mStart[0])/(double)(mSizex-2.0);
+  gsy = (mEnd[1]-mStart[1])/(double)(mSizey-2.0);
+  gsz = (mEnd[2]-mStart[2])/(double)(mSizez-2.0);
 
   // clean up previous frame
 	mIndices.clear();
@@ -169,13 +153,13 @@ void IsoSurface::triangulate( void )
 		0,0,0,0,  1,1,1,1 };
 
   // let the cubes march 
-	pz = mStart[2]-gsz;
+	pz = mStart[2]-gsz*0.5;
 	for(int k=1;k<(mSizez-2);k++) {
 		pz += gsz;
-		py = mStart[1]-gsy;
+		py = mStart[1]-gsy*0.5;
 		for(int j=1;j<(mSizey-2);j++) {
       py += gsy;
-			px = mStart[0]-gsx;
+			px = mStart[0]-gsx*0.5;
 			for(int i=1;i<(mSizex-2);i++) {
    			px += gsx;
 				int baseIn = ISOLEVEL_INDEX( i+0, j+0, k+0);
@@ -275,6 +259,12 @@ void IsoSurface::triangulate( void )
 
 				}
 
+				const int coAdd=2;
+				if(i<coAdd+mCutoff) continue;
+				if(j<coAdd+mCutoff) continue;
+				if((mCutoff>0) && (k<coAdd)) continue;
+				if(i>mSizex-2-coAdd-mCutoff) continue;
+				if(j>mSizey-2-coAdd-mCutoff) continue;
 
 				// Create the triangles... 
 				for(int e=0; mcTriTable[cubeIndex][e]!=-1; e+=3) {
@@ -283,13 +273,10 @@ void IsoSurface::triangulate( void )
 					mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+1] ] );
 					mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+2] ] );
 				}
-
 				
-      }
-    }
-
+      }//i
+    }// j
   } // k
-  
 
   // precalculate normals using an approximation of the scalar field gradient 
 	for(int ni=0;ni<(int)mPoints.size();ni++) {
@@ -297,11 +284,10 @@ void IsoSurface::triangulate( void )
 		normalize( mPoints[ni].n );
 	}
 
-	//for(int i=0; i<mLoopSubdivs; i++) { subdivide(); }// DEBUG test
-	if(mSmoothSurface>0.0) { smoothSurface(mSmoothSurface); }
+	if(mSmoothSurface>0.0) { smoothSurface(mSmoothSurface, (mSmoothNormals<=0.0) ); }
 	if(mSmoothNormals>0.0) { smoothNormals(mSmoothNormals); }
 	myTime_t tritimeend = getTime(); 
-	debMsgStd("IsoSurface::triangulate",DM_MSG,"took "<< ((tritimeend-tritimestart)/(double)1000.0)<<"s, ss="<<mSmoothSurface<<" sm="<<mSmoothNormals , 10 );
+	debMsgStd("IsoSurface::triangulate",DM_MSG,"took "<< getTimeString(tritimeend-tritimestart)<<", S("<<mSmoothSurface<<","<<mSmoothNormals<<")" , 10 );
 }
 
 
@@ -406,7 +392,6 @@ inline ntlVec3Gfx IsoSurface::getNormal(int i, int j,int k) {
 
 
 
-
 /******************************************************************************
  * 
  * Surface improvement
@@ -418,334 +403,109 @@ inline ntlVec3Gfx IsoSurface::getNormal(int i, int j,int k) {
  * 
  *****************************************************************************/
 
-
-// Subdivide a mesh allways loop
-/*void IsoSurface::subdivide()
-{
-	int i;
-
-	mAdjacentFaces.clear(); 
-	mAcrossEdge.clear();
-
-	//void TriMesh::need_adjacentfaces()
-	{
-		vector<int> numadjacentfaces(mPoints.size());
-		//errMsg("SUBDIV ADJFA1", " "<<mPoints.size()<<" - "<<numadjacentfaces.size() );
-		int i;
-		for (i = 0; i < (int)mIndices.size()/3; i++) {
-			numadjacentfaces[mIndices[i*3 + 0]]++;
-			numadjacentfaces[mIndices[i*3 + 1]]++;
-			numadjacentfaces[mIndices[i*3 + 2]]++;
-		}
-
-		mAdjacentFaces.resize(mPoints.size());
-		for (i = 0; i < (int)mPoints.size(); i++)
-			mAdjacentFaces[i].reserve(numadjacentfaces[i]);
-
-		for (i = 0; i < (int)mIndices.size()/3; i++) {
-			for (int j = 0; j < 3; j++)
-				mAdjacentFaces[mIndices[i*3 + j]].push_back(i);
-		}
-
-	}
-
-	// Find the face across each edge from each other face (-1 on boundary)
-	// If topology is bad, not necessarily what one would expect...
-	//void TriMesh::need_across_edge()
-	{
-		mAcrossEdge.resize(mIndices.size(), -1);
-
-		for (int i = 0; i < (int)mIndices.size()/3; i++) {
-			for (int j = 0; j < 3; j++) {
-				if (mAcrossEdge[i*3 + j] != -1)
-					continue;
-				int v1 = mIndices[i*3 + ((j+1)%3)];
-				int v2 = mIndices[i*3 + ((j+2)%3)];
-				const vector<int> &a1 = mAdjacentFaces[v1];
-				const vector<int> &a2 = mAdjacentFaces[v2];
-				for (int k1 = 0; k1 < (int)a1.size(); k1++) {
-					int other = a1[k1];
-					if (other == i)
-						continue;
-					vector<int>::const_iterator it =
-						std::find(a2.begin(), a2.end(), other);
-					if (it == a2.end())
-						continue;
-
-					//int ind = (faces[other].indexof(v1)+1)%3;
-					int ind = -1;
-					if( mIndices[other*3+0] == (unsigned int)v1 ) ind = 0;
-					else if( mIndices[other*3+1] == (unsigned int)v1 ) ind = 1;
-					else if( mIndices[other*3+2] == (unsigned int)v1 ) ind = 2;
-					ind = (ind+1)%3;
-
-					if ( (int)mIndices[other*3 + ((ind+1)%3)] != v2)
-						continue;
-					mAcrossEdge[i*3 + j] = other;
-					mAcrossEdge[other*3 + ind] = i;
-					break;
-				}
-			}
-		}
-
-		//errMsg("SUBDIV ACREDG", "Done.\n");
-	}
-
-	//errMsg("SUBDIV","start");
-	// Introduce new vertices
-	int nf = (int)mIndices.size() / 3;
-
-	//vector<TriMesh::Face> newverts(nf, TriMesh::Face(-1,-1,-1));
-	vector<int> newverts(nf*3); //, TriMesh::Face(-1,-1,-1));
-	for(int j=0; j<(int)newverts.size(); j++) newverts[j] = -1;
-
-	int old_nv = (int)mPoints.size();
-	mPoints.reserve(4 * old_nv);
-	vector<int> newvert_count(old_nv + 3*nf); // wichtig...?
-	//errMsg("NC", newvert_count.size() );
-
-	for (i = 0; i < nf; i++) {
-		for (int j = 0; j < 3; j++) {
-			int ae = mAcrossEdge[i*3 + j];
-			if (newverts[i*3 + j] == -1 && ae != -1) {
-				if (mAcrossEdge[ae*3 + 0] == i)
-					newverts[i*3 + j] = newverts[ae*3 + 0];
-				else if (mAcrossEdge[ae*3 + 1] == i)
-					newverts[i*3 + j] = newverts[ae*3 + 1];
-				else if (mAcrossEdge[ae*3 + 2] == i)
-					newverts[i*3 + j] = newverts[ae*3 + 2];
-			}
-			if (newverts[i*3 + j] == -1) {
-				IsoLevelVertex ilv;
-				ilv.v = ntlVec3Gfx(0.0);
-				ilv.n = ntlVec3Gfx(0.0);
-				mPoints.push_back(ilv);
-				newverts[i*3 + j] = (int)mPoints.size() - 1;
-				if (ae != -1) {
-					if (mAcrossEdge[ae*3 + 0] == i)
-						newverts[ae*3 + 0] = newverts[i*3 + j];
-					else if (mAcrossEdge[ae*3 + 1] == i)
-						newverts[ae*3 + 1] = newverts[i*3 + j];
-					else if (mAcrossEdge[ae*3 + 2] == i)
-						newverts[ae*3 + 2] = newverts[i*3 + j];
-				}
-			}
-			if(ae != -1) {
-				mPoints[newverts[i*3 + j]].v +=
-					mPoints[ mIndices[i*3 + ( j     )] ].v * 0.25f  + // j = 0,1,2?
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].v * 0.375f +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].v * 0.375f;
-#if RECALCNORMALS==0
-				mPoints[newverts[i*3 + j]].n +=
-					mPoints[ mIndices[i*3 + ( j     )] ].n * 0.25f  + // j = 0,1,2?
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].n * 0.375f +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].n * 0.375f;
-#endif // RECALCNORMALS==0
-			} else {
-				mPoints[newverts[i*3 + j]].v +=
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].v * 0.5f   +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].v * 0.5f  ;
-#if RECALCNORMALS==0
-				mPoints[newverts[i*3 + j]].n +=
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].n * 0.5f   +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].n * 0.5f  ;
-#endif // RECALCNORMALS==0
-			}
-
-			newvert_count[newverts[i*3 + j]]++;
-		}
-	}
-	for (i = old_nv; i < (int)mPoints.size(); i++) {
-		if (!newvert_count[i])
-			continue;
-		float scale = 1.0f / newvert_count[i];
-		mPoints[i].v *= scale;
-
-#if RECALCNORMALS==0
-		//mPoints[i].n *= scale;
-		//normalize( mPoints[i].n );
-#endif // RECALCNORMALS==0
-	}
-
-	// Update old vertices
-	for (i = 0; i < old_nv; i++) {
-			ntlVec3Gfx bdyavg(0.0), nbdyavg(0.0);
-			ntlVec3Gfx norm_bdyavg(0.0), norm_nbdyavg(0.0); // N
-			int nbdy = 0, nnbdy = 0;
-			int naf = (int)mAdjacentFaces[i].size();
-			if (!naf)
-				continue;
-			for (int j = 0; j < naf; j++) {
-				int af = mAdjacentFaces[i][j];
-
-				int afi = -1;
-				if( mIndices[af*3+0] == (unsigned int)i ) afi = 0;
-				else if( mIndices[af*3+1] == (unsigned int)i ) afi = 1;
-				else if( mIndices[af*3+2] == (unsigned int)i ) afi = 2;
-
-				int n1 = (afi+1) % 3;
-				int n2 = (afi+2) % 3;
-				if (mAcrossEdge[af*3 + n1] == -1) {
-					bdyavg += mPoints[newverts[af*3 + n1]].v;
-#if RECALCNORMALS==0
-					//norm_bdyavg += mPoints[newverts[af*3 + n1]].n;
-#endif // RECALCNORMALS==0
-					nbdy++;
-				} else {
-					nbdyavg += mPoints[newverts[af*3 + n1]].v;
-#if RECALCNORMALS==0
-					//norm_nbdyavg += mPoints[newverts[af*3 + n1]].n;
-#endif // RECALCNORMALS==0
-					nnbdy++;
-				}
-				if (mAcrossEdge[af*3 + n2] == -1) {
-					bdyavg += mPoints[newverts[af*3 + n2]].v;
-#if RECALCNORMALS==0
-					//norm_bdyavg += mPoints[newverts[af*3 + n2]].n;
-#endif // RECALCNORMALS==0
-					nbdy++;
-				} else {
-					nbdyavg += mPoints[newverts[af*3 + n2]].v;
-#if RECALCNORMALS==0
-					//norm_nbdyavg += mPoints[newverts[af*3 + n2]].n;
-#endif // RECALCNORMALS==0
-					nnbdy++;
-				}
-			}
-
-			float alpha;
-			ntlVec3Gfx newpt;
-			if (nbdy) {
-				newpt = bdyavg / (float) nbdy;
-				alpha = 0.5f;
-			} else if (nnbdy) {
-				newpt = nbdyavg / (float) nnbdy;
-				if (nnbdy == 6)
-					alpha = 1.05;
-				else if (nnbdy == 8)
-					alpha = 0.86;
-				else if (nnbdy == 10)
-					alpha = 0.7;
-				else
-					alpha = 0.6;
-			} else {
-				continue;
-			}
-			mPoints[i].v *= 1.0f - alpha;
-			mPoints[i].v += newpt * alpha;
-
-#if RECALCNORMALS==0
-			//mPoints[i].n *= 1.0f - alpha;
-			//mPoints[i].n += newpt * alpha;
-#endif // RECALCNORMALS==0
-	}
-
-	// Insert new faces
-	mIndices.reserve(4*nf);
-	for (i = 0; i < nf; i++) {
-		mIndices.push_back( mIndices[i*3 + 0]);
-		mIndices.push_back( newverts[i*3 + 2]);
-		mIndices.push_back( newverts[i*3 + 1]);
-
-		mIndices.push_back( mIndices[i*3 + 1]);
-		mIndices.push_back( newverts[i*3 + 0]);
-		mIndices.push_back( newverts[i*3 + 2]);
-
-		mIndices.push_back( mIndices[i*3 + 2]);
-		mIndices.push_back( newverts[i*3 + 1]);
-		mIndices.push_back( newverts[i*3 + 0]);
-
-		mIndices[i*3+0] = newverts[i*3+0];
-		mIndices[i*3+1] = newverts[i*3+1];
-		mIndices[i*3+2] = newverts[i*3+2];
-	}
-
-	// recalc normals
-#if RECALCNORMALS==1
-	{
-		int nf = (int)mIndices.size()/3, nv = (int)mPoints.size(), i;
-		for (i = 0; i < nv; i++) {
-			mPoints[i].n = ntlVec3Gfx(0.0);
-		}
-		for (i = 0; i < nf; i++) {
-			const ntlVec3Gfx &p0 = mPoints[mIndices[i*3+0]].v;
-			const ntlVec3Gfx &p1 = mPoints[mIndices[i*3+1]].v;
-			const ntlVec3Gfx &p2 = mPoints[mIndices[i*3+2]].v;
-			ntlVec3Gfx a = p0-p1, b = p1-p2, c = p2-p0;
-			float l2a = normNoSqrt(a), l2b = normNoSqrt(b), l2c = normNoSqrt(c);
-
-			ntlVec3Gfx facenormal = cross(a, b);
-
-			mPoints[mIndices[i*3+0]].n += facenormal * (1.0f / (l2a * l2c));
-			mPoints[mIndices[i*3+1]].n += facenormal * (1.0f / (l2b * l2a));
-			mPoints[mIndices[i*3+2]].n += facenormal * (1.0f / (l2c * l2b));
-		}
-
-		for (i = 0; i < nv; i++) {
-			normalize(mPoints[i].n);
-		}
-	}
-#else // RECALCNORMALS==1
-		for (i = 0; i < (int)mPoints.size(); i++) {
-			normalize(mPoints[i].n);
-		}
-#endif // RECALCNORMALS==1
-
-	//errMsg("SUBDIV","done nv:"<<mPoints.size()<<" nf:"<<mIndices.size() );
-}*/
-
+void IsoSurface::setSmoothRad(float radi1, float radi2, ntlVec3Gfx mscc) {
+	mSCrad1 = radi1*radi1;
+	mSCrad2 = radi2*radi2;
+	mSCcenter = mscc;
+}
 
 // Diffuse a vector field at 1 vertex, weighted by
 // a gaussian of width 1/sqrt(invsigma2)
-void IsoSurface::diffuseVertexField(ntlVec3Gfx *field, const int pointerScale, int v, float invsigma2, ntlVec3Gfx &flt)
+bool IsoSurface::diffuseVertexField(ntlVec3Gfx *field, const int pointerScale, int src, float invsigma2, ntlVec3Gfx &flt)
 {
+	if((neighbors[src].size()<1) || (pointareas[src]<=0.0)) return 0;
+	const ntlVec3Gfx srcp = mPoints[src].v;
+	const ntlVec3Gfx srcn = mPoints[src].n;
+	if(mSCrad1>0.0 && mSCrad2>0.0) {
+		ntlVec3Gfx dp = mSCcenter-srcp; dp[2] = 0.0; // only xy-plane
+		float rd = normNoSqrt(dp);
+		if(rd > mSCrad2) {
+		//errMsg("TRi","p"<<srcp<<" c"<<mSCcenter<<" rd:"<<rd<<" r1:"<<mSCrad1<<" r2:"<<mSCrad2<<" ");
+			//invsigma2 *= (rd*rd-mSCrad1);
+			//flt = ntlVec3Gfx(100); return 1;
+			return 0;
+		} else if(rd > mSCrad1) {
+			// optimize?
+			float org = 1.0/sqrt(invsigma2);
+			org *= (1.0- (rd-mSCrad1) / (mSCrad2-mSCrad1));
+			invsigma2 = 1.0/(org*org);
+			//flt = ntlVec3Gfx((rd-mSCrad1) / (mSCrad2-mSCrad1)); return 1;
+			//errMsg("TRi","p"<<srcp<<" rd:"<<rd<<" r1:"<<mSCrad1<<" r2:"<<mSCrad2<<" org:"<<org<<" is:"<<invsigma2);
+			//invsigma2 *= (rd*rd-mSCrad1);
+			//return 0;
+		} else {
+		}
+	}
 	flt = ntlVec3Gfx(0.0);
-	flt += *(field+pointerScale*v) *pointareas[v];
-	float sum_w = pointareas[v];
-	const ntlVec3Gfx &nv = mPoints[v].n;
+	flt += *(field+pointerScale*src) *pointareas[src];
+	float sum_w = pointareas[src];
+	//const ntlVec3Gfx &nv = mPoints[src].n;
 
-	unsigned &flag = flag_curr;
-	flag++;
-	flags[v] = flag;
-	vector<int> boundary = neighbors[v];
-	while (!boundary.empty()) {
-		const int bbn = boundary.back();
-		boundary.pop_back();
-		if (flags[bbn] == flag) continue;
+	int flag = mFlagCnt; 
+	mFlagCnt++;
+	flags[src] = flag;
+	//vector<int> mDboundary = neighbors[src];
+	mDboundary = neighbors[src];
+	while (!mDboundary.empty()) {
+		const int bbn = mDboundary.back();
+		mDboundary.pop_back();
+		if(flags[bbn]==flag) continue;
 		flags[bbn] = flag;
 
-		// gaussian weight of width 1/sqrt(invsigma2)
-		const float d2 = invsigma2 * normNoSqrt(mPoints[bbn].v - mPoints[v].v);
-		if(d2 >= 9.0f) continue; // 25 also possible  , slower
-		//float w = (d2 >=  9.0f) ? 0.0f : exp(-0.5f*d2);
-		float w = exp(-0.5f*d2);
-		if(dot(nv, mPoints[bbn].n) <= 0.0f) continue; // faster than before d2 calc?
+		// normal check
+		const float nvdot = dot(srcn, mPoints[bbn].n); // faster than before d2 calc?
+		if(nvdot <= 0.0f) continue; // faster than before d2 calc?
 
+		// gaussian weight of width 1/sqrt(invsigma2)
+		const float d2 = invsigma2 * normNoSqrt(mPoints[bbn].v - srcp);
+		if(d2 >= 9.0f) continue; // 25 also possible  , slower
+		//if(dot(srcn, mPoints[bbn].n) <= 0.0f) continue; // faster than before d2 calc?
+
+		//float w = (d2 >=  9.0f) ? 0.0f : exp(-0.5f*d2);
+		//float w = expf(-0.5f*d2); 
+#if 0
+		float w=1.0;
 		// Downweight things pointing in different directions
-		w *= dot(nv , mPoints[bbn].n);
+		w *= nvdot; //dot(srcn , mPoints[bbn].n);
 		// Surface area "belonging" to each point
 		w *= pointareas[bbn];
 		// Accumulate weight times field at neighbor
 		flt += *(field+pointerScale*bbn)*w;
-
 		sum_w += w;
-		for (int i = 0; i < (int)neighbors[bbn].size(); i++) {
-			int nn = neighbors[bbn][i];
+		// */
+#else
+		// more aggressive smoothing with: float w=1.0;
+		float w=nvdot * pointareas[bbn];
+		// Accumulate weight times field at neighbor
+		flt += *(field+pointerScale*bbn)*w;
+		sum_w += w;
+#endif
+		// */
+
+		for(int i = 0; i < (int)neighbors[bbn].size(); i++) {
+			const int nn = neighbors[bbn][i];
 			if (flags[nn] == flag) continue;
-			boundary.push_back(nn);
+			mDboundary.push_back(nn);
 		}
 	}
 	flt /= sum_w;
+	return 1;
 }
 
-void IsoSurface::smoothSurface(float sigma)
+// REF
+// TestData::getTriangles message: Time for surface generation:3.75s, S(0.0390625,0.1171875) 
+	// ntlWorld::ntlWorld message: Time for start-sims:0s
+	// TestData::getTriangles message: Time for surface generation:3.69s, S(0.0390625,0.1171875) 
+
+	
+
+void IsoSurface::smoothSurface(float sigma, bool normSmooth)
 {
 	int nv = mPoints.size();
 	if ((int)flags.size() != nv) flags.resize(nv);
 	int nf = mIndices.size()/3;
 
 	{ // need neighbors
-
 		vector<int> numneighbors(mPoints.size());
 		int i;
 		for (i = 0; i < (int)mIndices.size()/3; i++) {
@@ -845,10 +605,11 @@ void IsoSurface::smoothSurface(float sigma)
 
 	vector<ntlVec3Gfx> dflt(nv);
 	for (int i = 0; i < nv; i++) {
-		diffuseVertexField( &mPoints[0].v, 2,
-				   i, invsigma2, dflt[i]);
-		// Just keep the displacement
-		dflt[i] -= mPoints[i].v;
+		if(diffuseVertexField( &mPoints[0].v, 2,
+				   i, invsigma2, dflt[i])) {
+			// Just keep the displacement
+			dflt[i] -= mPoints[i].v;
+		} else { dflt[i] = 0.0; } //?mPoints[i].v; }
 	}
 
 	// Slightly better small-neighborhood approximation
@@ -869,8 +630,9 @@ void IsoSurface::smoothSurface(float sigma)
 	// Filter displacement field
 	vector<ntlVec3Gfx> dflt2(nv);
 	for (int i = 0; i < nv; i++) {
-		diffuseVertexField( &dflt[0], 1,
-				   i, invsigma2, dflt2[i]);
+		if(diffuseVertexField( &dflt[0], 1,
+				   i, invsigma2, dflt2[i])) { }
+		else { /*mPoints[i].v=0.0;*/ dflt2[i] = 0.0; }//dflt2[i]; }
 	}
 
 	// Update vertex positions
@@ -881,10 +643,13 @@ void IsoSurface::smoothSurface(float sigma)
 	// when normals smoothing off, this cleans up quite well
 	// costs ca. 50% additional time though
 	float nsFac = 1.5f;
-	{ float ninvsigma2 = 1.0f / (nsFac*nsFac*sigma*sigma);
+	if(normSmooth) { float ninvsigma2 = 1.0f / (nsFac*nsFac*sigma*sigma);
 		for (int i = 0; i < nv; i++) {
-			diffuseVertexField( &mPoints[0].n, 2, i, ninvsigma2, dflt[i]);
-			normalize(dflt[i]);
+			if( diffuseVertexField( &mPoints[0].n, 2, i, ninvsigma2, dflt[i]) ) {
+				normalize(dflt[i]);
+			} else {
+				dflt[i] = mPoints[i].n;
+			}
 		}
 		for (int i = 0; i < nv; i++) {
 			mPoints[i].n = dflt[i];
@@ -896,7 +661,9 @@ void IsoSurface::smoothSurface(float sigma)
 
 void IsoSurface::smoothNormals(float sigma)
 {
-	{ // need neighbor
+	// reuse from smoothSurface
+	if(neighbors.size() != mPoints.size()) { 
+		// need neighbor
 		vector<int> numneighbors(mPoints.size());
 		int i;
 		for (i = 0; i < (int)mIndices.size()/3; i++) {
@@ -998,13 +765,13 @@ void IsoSurface::smoothNormals(float sigma)
 
 	vector<ntlVec3Gfx> nflt(nv);
 	for (int i = 0; i < nv; i++) {
-		diffuseVertexField( &mPoints[0].n, 2, i, invsigma2, nflt[i]);
-		normalize(nflt[i]);
+		if(diffuseVertexField( &mPoints[0].n, 2, i, invsigma2, nflt[i])) {
+			normalize(nflt[i]);
+		} else { nflt[i]=mPoints[i].n; }
 	}
 
-	for (int i = 0; i < nv; i++) {
-		mPoints[i].n = nflt[i];
-	}
+	// copy back
+	for (int i = 0; i < nv; i++) { mPoints[i].n = nflt[i]; }
 
 	//errMsg("SMNRMLS","done v:"<<sigma); // DEBUG
 }

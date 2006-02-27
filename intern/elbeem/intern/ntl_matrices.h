@@ -77,9 +77,12 @@ public:
 	inline void initRotationX(Scalar rot);
 	inline void initRotationY(Scalar rot);
 	inline void initRotationZ(Scalar rot);
+	inline void initRotationXYZ(Scalar rotx,Scalar roty, Scalar rotz);
 	//! init scaling matrix
 	inline void initScaling(Scalar scale);
 	inline void initScaling(Scalar x, Scalar y, Scalar z);
+	//! from 16 value array (init id if all 0)
+	inline void initArrayCheck(Scalar *array);
 
 	//! public to avoid [][] operators
   Scalar value[4][4];  //< Storage of vector values
@@ -593,8 +596,8 @@ template<class Scalar>
 inline void 
 ntlMatrix4x4<Scalar>::initRotationX(Scalar rot)
 {
-	double drot = (double)rot;
-	while(drot < 0.0) drot += (M_PI*2.0);
+	double drot = (double)(rot/360.0*2.0*M_PI);
+	//? while(drot < 0.0) drot += (M_PI*2.0);
 
 	this->initId();
 	value[1][1] = (Scalar)  cos(drot);
@@ -606,8 +609,8 @@ template<class Scalar>
 inline void 
 ntlMatrix4x4<Scalar>::initRotationY(Scalar rot)
 {
-	double drot = (double)rot;
-	while(drot < 0.0) drot += (M_PI*2.0);
+	double drot = (double)(rot/360.0*2.0*M_PI);
+	//? while(drot < 0.0) drot += (M_PI*2.0);
 
 	this->initId();
 	value[0][0] = (Scalar)  cos(drot);
@@ -619,14 +622,40 @@ template<class Scalar>
 inline void 
 ntlMatrix4x4<Scalar>::initRotationZ(Scalar rot)
 {
-	double drot = (double)rot;
-	while(drot < 0.0) drot += (M_PI*2.0);
+	double drot = (double)(rot/360.0*2.0*M_PI);
+	//? while(drot < 0.0) drot += (M_PI*2.0);
 
 	this->initId();
 	value[0][0] = (Scalar)  cos(drot);
 	value[0][1] = (Scalar)  sin(drot);
 	value[1][0] = (Scalar)(-sin(drot));
 	value[1][1] = (Scalar)  cos(drot);
+}
+template<class Scalar>
+inline void 
+ntlMatrix4x4<Scalar>::initRotationXYZ( Scalar rotx, Scalar roty, Scalar rotz)
+{
+	ntlMatrix4x4<Scalar> val;
+	ntlMatrix4x4<Scalar> rot;
+	this->initId();
+
+	// org
+	/*rot.initRotationX(rotx);
+	(*this) *= rot;
+	rot.initRotationY(roty);
+	(*this) *= rot;
+	rot.initRotationZ(rotz);
+	(*this) *= rot;
+	// org */
+
+	// blender
+	rot.initRotationZ(rotz);
+	(*this) *= rot;
+	rot.initRotationY(roty);
+	(*this) *= rot;
+	rot.initRotationX(rotx);
+	(*this) *= rot;
+	// blender */
 }
 
 //! init scaling matrix
@@ -651,6 +680,20 @@ ntlMatrix4x4<Scalar>::initScaling(Scalar x, Scalar y, Scalar z)
 }
 
 
+//! from 16 value array (init id if all 0)
+template<class Scalar>
+inline void 
+ntlMatrix4x4<Scalar>::initArrayCheck(Scalar *array)
+{
+	bool allZero = true;
+	for(int i=0; i<4; i++) {
+		for(int j=0; j<4; j++) {
+			value[i][j] = array[i*4+j];
+			if(array[i*4+j]!=0.0) allZero=false;
+		}
+	}
+	if(allZero) this->initId();
+}
 
 
 #define NTL_MATRICES_H

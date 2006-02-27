@@ -27,13 +27,13 @@ bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker);
 
 
 /* debugging outputs , debug level 0 (off) to 10 (max) */
-#ifdef ELBEEM_BLENDER
+#ifdef ELBEEM_PLUGIN
 #define DEBUG 0
 void setGlobalBakeState(int set);
 int  getGlobalBakeState(void);
-#else // ELBEEM_BLENDER
+#else // ELBEEM_PLUGIN
 #define DEBUG 10
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 extern "C" int gDebugLevel;
 
 // state of the simulation world

@@ -6,14 +6,20 @@
  * ray class
  *
  *****************************************************************************/
-#ifndef NTL_RAY_HH
-#define NTL_RAY_HH
+#ifndef NTL_RAY_H
+#define NTL_RAY_H
 
+#include <sstream>
 #include "ntl_vector3dim.h"
-#include "ntl_lightobject.h"
+#include "ntl_lighting.h"
 #include "ntl_geometryobject.h"
-#include "ntl_renderglobals.h"
+#include "ntl_bsptree.h"
 
+class ntlTriangle;
+class ntlRay;
+class ntlTree;
+class ntlScene;
+class ntlRenderGlobals;
 
 //! store data for an intersection of a ray and a triangle
 // NOT YET USED
@@ -131,12 +137,279 @@ private:
 };
 
 
-
+/******************************************************************************
+ *
+ * a single triangle
+ *
+ *****************************************************************************/
 
 // triangle intersection code in bsptree.cpp
 // intersectTriangle(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v);
-// ...
 
+/*! Triangle flag defines */
+#define TRI_GEOMETRY      (1<<0)
+#define TRI_CASTSHADOWS   (1<<1)
+#define TRI_MAKECAUSTICS  (1<<2)
+#define TRI_NOCAUSTICS    (1<<3)
+
+
+class ntlTriangle
+{
+public:
+  /* CONSTRUCTORS */
+  /*! Default constructor */
+  inline ntlTriangle( void );
+  /*! Constructor with parameters */
+  inline ntlTriangle(int *p, bool smooth, int obj, ntlVec3Gfx norm, int setflags);
+  /*! Copy - Constructor */
+  inline ntlTriangle(const ntlTriangle &tri);
+  /*! Destructor */
+  inline ~ntlTriangle() {}
+
+	/* Access methods */
+
+	/*! Acces to points of triangle */
+	inline int *getPoints( void ) { return mPoints; }
+	/*! Acces normal smoothing */
+	inline bool getSmoothNormals( void ) const { return mSmoothNormals; }
+	inline void setSmoothNormals( bool set){ mSmoothNormals = set; }
+	/*! Access object */
+	inline int getObjectId( void ) const { return mObjectId; }
+	inline void setObjectId( int set) { mObjectId = set; }
+	/*! Acces normal index */
+	inline ntlVec3Gfx getNormal( void ) const { return mNormal; }
+	inline void setNormal( ntlVec3Gfx set ) { mNormal = set; }
+	/*! Acces flags */
+	inline int getFlags( void ) const { return mFlags; }
+	inline void setFlags( int set ) { mFlags = set; }
+	/*! Access last intersection ray ID */
+	inline int  getLastRay( void ) const { return mLastRay; }
+	inline void setLastRay( int set ) { mLastRay = set; }
+	/*! Acces bbox id */
+	inline int getBBoxId( void ) const { return mBBoxId; }
+	inline void setBBoxId( int set ) { mBBoxId = set; }
+
+	/*! Get average of the three points for this axis */
+	inline gfxReal getAverage( int axis ) const;
+
+	/*! operator < for sorting, uses global sorting axis */
+	inline friend bool operator<(const ntlTriangle &lhs, const ntlTriangle &rhs);
+	/*! operator > for sorting, uses global sorting axis */
+	inline friend bool operator>(const ntlTriangle &lhs, const ntlTriangle &rhs);
+
+protected:
+
+private:
+
+	/*! indices to the three points of the triangle */
+	int mPoints[3];
+
+	/*! bounding box id (for tree generation), -1 if invalid */
+	int mBBoxId;
+
+	/*! Should the normals of this triangle get smoothed? */
+	bool mSmoothNormals;
+
+	/*! Id of parent object */
+	int mObjectId;
+
+	/*! Index to normal (for not smooth triangles) */
+	//int mNormalIndex; ??
+	ntlVec3Gfx mNormal;
+
+	/*! Flags for object attributes cast shadows, make caustics etc. */
+	int mFlags;
+
+	/*! ID of last ray that an intersection was calculated for */
+	int mLastRay;
+
+};
+
+
+	
+
+/******************************************************************************
+ * Default Constructor
+ *****************************************************************************/
+ntlTriangle::ntlTriangle( void ) :
+	mBBoxId(-1),
+	mLastRay( 0 )
+{
+	mPoints[0] = mPoints[1] = mPoints[2] = 0;
+	mSmoothNormals = 0;
+	mObjectId = 0;
+	mNormal = ntlVec3Gfx(0.0);
+	mFlags = 0;
+}
+
+
+/******************************************************************************
+ * Constructor
+ *****************************************************************************/
+ntlTriangle::ntlTriangle(int *p, bool smooth, int obj, ntlVec3Gfx norm, int setflags) :
+	mBBoxId(-1),
+	mLastRay( 0 )
+{
+	mPoints[0] = p[0];
+	mPoints[1] = p[1];
+	mPoints[2] = p[2];
+	mSmoothNormals = smooth;
+	mObjectId = obj;
+	mNormal = norm;
+	mFlags = setflags;
+}
+
+
+/******************************************************************************
+ * Copy Constructor
+ *****************************************************************************/
+ntlTriangle::ntlTriangle(const ntlTriangle &tri) :
+	mBBoxId(-1),
+	mLastRay( 0 )
+{
+	mPoints[0] = tri.mPoints[0];
+	mPoints[1] = tri.mPoints[1];
+	mPoints[2] = tri.mPoints[2];
+	mSmoothNormals = tri.mSmoothNormals;
+	mObjectId      = tri.mObjectId;
+	mNormal        = tri.mNormal;
+	mFlags         = tri.mFlags;
+}
+
+
+
+
+/******************************************************************************
+ * Triangle sorting functions
+ *****************************************************************************/
+
+/* variables imported from ntl_bsptree.cc, necessary for using the stl sort funtion */
+/* Static global variable for sorting direction */
+extern int globalSortingAxis;
+/* Access to points array for sorting */
+extern vector<ntlVec3Gfx> *globalSortingPoints;
+	
+
+gfxReal ntlTriangle::getAverage( int axis ) const
+{ 
+	return ( ( (*globalSortingPoints)[ mPoints[0] ][axis] + 
+						 (*globalSortingPoints)[ mPoints[1] ][axis] + 
+						 (*globalSortingPoints)[ mPoints[2] ][axis] )/3.0);
+}
+
+bool operator<(const ntlTriangle &lhs,const ntlTriangle &rhs)
+{
+	return ( lhs.getAverage(globalSortingAxis) < 
+					 rhs.getAverage(globalSortingAxis) );
+}
+
+bool operator>(const ntlTriangle &lhs,const ntlTriangle &rhs)
+{
+	return ( lhs.getAverage(globalSortingAxis) > 
+					 rhs.getAverage(globalSortingAxis) );
+}
+
+
+
+/******************************************************************************
+ *
+ * Scene object, that contains and manages all geometry objects
+ *
+ *****************************************************************************/
+
+
+
+class ntlScene
+{
+public:
+  /* CONSTRUCTORS */
+  /*! Default constructor */
+  ntlScene( ntlRenderGlobals *glob, bool del=true );
+  /*! Default destructor */
+   ~ntlScene();
+
+	/*! Add an object to the scene */
+	inline void addGeoClass(ntlGeometryClass *geo) { 
+		mGeos.push_back( geo ); 
+		geo->setObjectId(mGeos.size());
+	}
+
+	/*! Acces a certain object */
+	inline ntlGeometryObject *getObject(int id) { 
+		if(!mSceneBuilt) { errMsg("ntlScene::getObject","Scene not inited!"); return NULL; }
+		return mObjects[id]; }
+
+	/*! Acces object array */
+	inline vector<ntlGeometryObject*> *getObjects() { 
+		if(!mSceneBuilt) { errMsg("ntlScene::getObjects[]","Scene not inited!"); return NULL; }
+		return &mObjects; }
+
+	/*! Acces geo class array */
+	inline vector<ntlGeometryClass*> *getGeoClasses() { 
+		if(!mSceneBuilt) { errMsg("ntlScene::getGeoClasses[]","Scene not inited!"); return NULL; }
+		return &mGeos; }
+
+	/*! draw scene with opengl */
+	//void draw();
+	
+	/*! Build/first init the scene arrays */
+	void buildScene(double time, bool firstInit);
+	
+	//! Prepare the scene triangles and maps for raytracing
+	void prepareScene(double time);
+	//! Do some memory cleaning, when frame is finished
+	void cleanupScene( void );
+
+	/*! Intersect a ray with the scene triangles */
+	void intersectScene(const ntlRay &r, gfxReal &distance, ntlVec3Gfx &normal, ntlTriangle *&tri, int flags) const;
+
+	/*! return a vertex */
+	ntlVec3Gfx getVertex(int index) { return mVertices[index]; } 
+
+	// for tree generation 
+	/*! return pointer to vertices vector */
+	vector<ntlVec3Gfx> *getVertexPointer( void ) { return &mVertices; }
+	/*! return pointer to vertices vector */
+	vector<ntlVec3Gfx> *getVertexNormalPointer( void ) { return &mVertNormals; }
+	/*! return pointer to vertices vector */
+	vector<ntlTriangle> *getTrianglePointer( void ) { return &mTriangles; }
+
+private:
+
+	/*! Global settings */
+	ntlRenderGlobals *mpGlob;
+
+	/*! free objects? (only necessary for render scene, which  contains all) */
+	bool mSceneDel;
+
+  /*! List of geometry classes */
+  vector<ntlGeometryClass *> mGeos;
+
+  /*! List of geometry objects */
+  vector<ntlGeometryObject *> mObjects;
+
+  /*! List of triangles */
+  vector<ntlTriangle> mTriangles;
+  /*! List of vertices */
+  vector<ntlVec3Gfx>  mVertices;
+  /*! List of normals */
+  vector<ntlVec3Gfx>  mVertNormals;
+  /*! List of triangle normals */
+  vector<ntlVec3Gfx>  mTriangleNormals;
+
+	/*! Tree to store quickly intersect triangles */
+	ntlTree *mpTree;
+
+	/*! id of dislpay list for raytracer stuff */
+	int mDisplayListId;
+
+	/*! was the scene successfully built? only then getObject(i) requests are valid */
+	bool mSceneBuilt;
+
+	/*! shader/obj initializations are only done on first init */
+	bool mFirstInitDone;
+
+};
 
 
 #endif

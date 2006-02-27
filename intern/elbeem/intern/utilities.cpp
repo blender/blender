@@ -30,8 +30,8 @@ extern "C" void simulateThreadIncreaseFrame(void);
 extern "C" SDL_mutex *globalBakeLock;
 // global state variables
 extern "C" int globalBakeState;
-extern "C" int globalBakeFrame;
-#endif // ELBEEM_BLENDER==1
+//extern "C" int globalBakeFrame; not needed...?
+#endif // ELBEEM_PLUGIN==1
 
 #include "utilities.h"
 
@@ -184,8 +184,9 @@ myTime_t getTime()
 string getTimeString(myTime_t usecs) {
 	std::ostringstream ret;
 	//myTime_t us = usecs % 1000;
-	myTime_t ms = usecs / (60*1000);
-	myTime_t ss = (usecs / 1000) - (ms*60);
+	myTime_t ms = (myTime_t)(   (double)usecs / (60.0*1000.0)  );
+	myTime_t ss = (myTime_t)(  ((double)usecs / 1000.0) - ((double)ms*60.0)  );
+	int      ps = (int)(       ((double)usecs - (double)ss*1000.0)/10.0 );
 
  	//ret.setf(ios::showpoint|ios::fixed);
  	//ret.precision(5); ret.width(7);
@@ -193,7 +194,13 @@ string getTimeString(myTime_t usecs) {
 	if(ms>0) {
 		ret << ms<<"m"<< ss<<"s" ;
 	} else {
-		ret << ss<<"s" ;
+		if(ps>0) {
+			ret << ss<<".";
+			if(ps<10) { ret <<"0"; }
+			ret <<ps<<"s" ;
+		} else {
+			ret << ss<<"s" ;
+		}
 	}
 	return ret.str();
 }
@@ -368,6 +375,7 @@ double elbeemEstimateMemreq(int res,
 
 
 #if ELBEEM_BLENDER==1
+// Blender state sync
 void setGlobalBakeState(int set) {
 	SDL_mutexP(globalBakeLock);
 	globalBakeState = set;
