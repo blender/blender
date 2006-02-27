@@ -330,7 +330,7 @@ static void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_bu
 
 /* Pixel-to-Pixel operation, 3 Images in, 1 out */
 static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, float *src1_col, CompBuf *src2_buf, float *src2_col, 
-									  CompBuf *fac_buf, float fac, void (*func)(bNode *, float *, float *, float *, float), 
+									  CompBuf *fac_buf, float *fac, void (*func)(bNode *, float *, float *, float *, float), 
 									  int src1_type, int src2_type, int fac_type)
 {
 	CompBuf *src1_use, *src2_use, *fac_use;
@@ -348,7 +348,7 @@ static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_b
 		for(x= -xrad; x<-xrad+out->x; x++, outfp+=out->type) {
 			src1fp= compbuf_get_pixel(src1_use, src1_col, x, y, xrad, yrad);
 			src2fp= compbuf_get_pixel(src2_use, src2_col, x, y, xrad, yrad);
-			facfp= compbuf_get_pixel(fac_use, &fac, x, y, xrad, yrad);
+			facfp= compbuf_get_pixel(fac_use, fac, x, y, xrad, yrad);
 			
 			func(node, outfp, src1fp, src2fp, *facfp);
 		}
@@ -1407,12 +1407,12 @@ static bNodeSocketType cmp_node_mix_rgb_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_mix_rgb(bNode *node, float *out, float *in1, float *in2, float fac)
+static void do_mix_rgb(bNode *node, float *out, float *in1, float *in2, float *fac)
 {
 	float col[3];
 	
 	VECCOPY(col, in1);
-	ramp_blend(node->custom1, col, col+1, col+2, fac, in2);
+	ramp_blend(node->custom1, col, col+1, col+2, fac[0], in2);
 	VECCOPY(out, col);
 	out[3]= in1[3];
 }
@@ -1421,11 +1421,9 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 {
 	/* stack order in: fac, Image, Image */
 	/* stack order out: Image */
-	float fac= in[0]->vec[0];
+	float *fac= in[0]->vec;
 	
 	if(out[0]->hasoutput==0) return;
-	
-	CLAMP(fac, 0.0f, 1.0f);
 	
 	/* input no image? then only color operation */
 	if(in[1]->data==NULL && in[2]->data==NULL) {
@@ -1995,9 +1993,9 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
 		
 		if(node->custom1)
-			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_key, CB_RGBA, CB_RGBA, CB_VAL);
+			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_key, CB_RGBA, CB_RGBA, CB_VAL);
 		else
-			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec[0], do_alphaover_premul, CB_RGBA, CB_RGBA, CB_VAL);
+			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_premul, CB_RGBA, CB_RGBA, CB_VAL);
 		
 		out[0]->data= stackbuf;
 	}
