@@ -733,7 +733,9 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 	Mat4One( object->parentinv );
 	Mat4One( object->obmat );
 	object->dt = OB_SHADED;	// drawtype
-
+	object->empty_drawsize= 1.0;
+	object->empty_drawtype= OB_ARROWS;
+	
 	if( U.flag & USER_MAT_ON_OB ) {
 		object->colbits = -1;
 	}
