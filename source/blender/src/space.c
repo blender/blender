@@ -1467,7 +1467,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else {
 					if((G.qual==LR_SHIFTKEY)) {
 						if(G.f & G_FACESELECT)
-							clear_vpaint_selectedfaces();
+							if (G.f & G_WEIGHTPAINT)
+								clear_wpaint_selectedfaces();
+							else
+								clear_vpaint_selectedfaces();
 						else if(G.f & G_VERTEXPAINT)
 							clear_vpaint();
 						else

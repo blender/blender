@@ -51,6 +51,7 @@ void vertex_paint(void);
 void set_vpaint(void); 
 
 void set_wpaint(void);
+void clear_wpaint_selectedfaces(void);
 void weight_paint(void);
 void wpaint_undo (void);
 void copy_wpaint_undo (struct MDeformVert *dverts, int dcount);

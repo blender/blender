@@ -3537,8 +3537,14 @@ static void do_view3d_paintmenu(void *arg, int event)
 	case 1: /* undo weight painting */
 		wpaint_undo();
 		break;
-	case 2: /* clear vertex colors */
-		clear_vpaint();
+	case 2: /* set vertex colors/weight */
+		if(G.f & G_FACESELECT)
+			clear_vpaint_selectedfaces();
+		else /* we know were in vertex paint mode */
+			clear_vpaint();
+		break;
+	case 3: /* set vertex colors/weight */
+		clear_wpaint_selectedfaces();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -3558,10 +3564,12 @@ static uiBlock *view3d_paintmenu(void *arg_unused)
 	
 	if (G.f & G_VERTEXPAINT) {
 		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	} else if (G.f & G_WEIGHTPAINT && G.f & G_FACESELECT) {
+		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Weight|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	}
-		
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -3766,7 +3774,7 @@ static void do_view3d_faceselmenu(void *arg, int event)
 			do_shared_vertexcol(me);	
 		}
 		break;
-	case 3: /* clear vertex colors */
+	case 3: /* set vertex colors */
 		clear_vpaint_selectedfaces();
 		break;
 	case 8: /* uv calculation */
@@ -3810,7 +3818,7 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy UVs & Textures",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Vertex Colors",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

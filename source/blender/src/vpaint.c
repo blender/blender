@@ -360,6 +360,94 @@ void clear_vpaint_selectedfaces()
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+
+void clear_wpaint_selectedfaces()
+{
+	extern float editbutvweight;
+	float paintweight= editbutvweight;
+	Mesh *me;
+	TFace *tface;
+	MFace *mface;
+	Object *ob;
+	int index, vgroup;
+	MDeformWeight *dw, *uw;
+	
+	ob= OBACT;
+	me= ob->data;
+	if(me==0 || me->totface==0 || me->dvert==0 || !me->tface) return;
+	
+	if(indexar==NULL) init_vertexpaint();
+	for(index=0, tface=me->tface; index<me->totface; index++) {
+		if((tface->flag & TF_SELECT)==0) {
+			indexar[index]= 0;
+		} else {
+			indexar[index]= index+1;
+		}
+		tface++;
+	}
+	
+	copy_wpaint_undo(me->dvert, me->totvert);
+	vgroup= ob->actdef-1;
+	
+	for(index=0; index<me->totface; index++) {
+		if(indexar[index] && indexar[index]<=me->totface) {
+			mface= me->mface + (indexar[index]-1);
+			if(!((me->dvert+mface->v1)->flag)) {
+				dw= verify_defweight(me->dvert+mface->v1, vgroup);
+				if(dw) {
+					uw= verify_defweight(wpaintundobuf+mface->v1, vgroup);
+					uw->weight= dw->weight;
+					dw->weight= paintweight;
+				}
+				(me->dvert+mface->v1)->flag= 1;
+			}
+			
+			if(!((me->dvert+mface->v2)->flag)) {
+				dw= verify_defweight(me->dvert+mface->v2, vgroup);
+				if(dw) {
+					uw= verify_defweight(wpaintundobuf+mface->v2, vgroup);
+					uw->weight= dw->weight;
+					dw->weight= paintweight;
+				}
+				(me->dvert+mface->v2)->flag= 1;
+			}
+			
+			if(!((me->dvert+mface->v3)->flag)) {
+				dw= verify_defweight(me->dvert+mface->v3, vgroup);
+				if(dw) {
+					uw= verify_defweight(wpaintundobuf+mface->v3, vgroup);
+					uw->weight= dw->weight;
+					dw->weight= paintweight;
+				}
+				(me->dvert+mface->v3)->flag= 1;
+			}
+			
+			if(mface->v4) {
+				if(!((me->dvert+mface->v4)->flag)) {
+					dw= verify_defweight(me->dvert+mface->v4, vgroup);
+					if(dw) {
+						uw= verify_defweight(wpaintundobuf+mface->v4, vgroup);
+						uw->weight= dw->weight;
+						dw->weight= paintweight;
+					}
+				}
+				(me->dvert+mface->v4)->flag= 1;
+			}
+		}
+	}
+	
+	index=0;
+	while (index<me->totvert) {
+		(me->dvert+index)->flag= 0;
+		index++;
+	}
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	BIF_undo_push("Set vertex weight");
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+
 void vpaint_dogamma()
 {
 	Mesh *me;
