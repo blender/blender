@@ -573,7 +573,7 @@ void LbmFsgrSolver::initLevelOmegas()
  *****************************************************************************/
 bool LbmFsgrSolver::initializeSolver()
 {
-  debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init start... (Layout:"<<ALSTRING<<") "<<this->mInitDone<<" "<<(int)this,1);
+//  debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init start... (Layout:"<<ALSTRING<<") "<<this->mInitDone<<" "<<((int)this),1);
 
 	// size inits to force cubic cells and mult4 level dimensions
 	// and make sure we dont allocate too much...
