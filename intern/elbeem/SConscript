@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys
 import os
-import('env')
+Import('env')
 
 sources = env.Glob('intern/*.cpp')
 
