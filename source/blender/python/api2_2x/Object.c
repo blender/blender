@@ -47,6 +47,7 @@ struct rctf;
 #include "DNA_oops_types.h" 
 
 #include "BKE_action.h"
+#include "BKE_anim.h" /* used for dupli-objects */
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
@@ -218,6 +219,11 @@ static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args );
 static PyObject *Object_materialUsage( void );
 static PyObject *Object_getDupliVerts ( BPy_Object * self );
+static PyObject *Object_getDupliFrames ( BPy_Object * self );
+static PyObject *Object_getDupliGroup ( BPy_Object * self );
+static PyObject *Object_getDupliRot ( BPy_Object * self );
+static PyObject *Object_getDupliNoSpeed ( BPy_Object * self );
+static PyObject *Object_getDupliObjects ( BPy_Object * self);
 static PyObject *Object_getEffects( BPy_Object * self );
 static PyObject *Object_setDeltaLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setDrawMode( BPy_Object * self, PyObject * args );
@@ -250,6 +256,10 @@ static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject *args );
 static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args );
+static PyObject *Object_setDupliFrames ( BPy_Object * self, PyObject * args );
+static PyObject *Object_setDupliGroup ( BPy_Object * self, PyObject * args );
+static PyObject *Object_setDupliRot ( BPy_Object * self , PyObject * args);
+static PyObject *Object_setDupliNoSpeed ( BPy_Object * self , PyObject * args);
 static PyObject *Object_getPIStrength( BPy_Object * self );
 static PyObject *Object_setPIStrength( BPy_Object * self, PyObject * args );
 static PyObject *Object_getPIFalloff( BPy_Object * self );
@@ -468,13 +478,22 @@ automatic when the script finishes."},
 	{"getSBStiffQuads", ( PyCFunction ) Object_getSBStiffQuads, METH_NOARGS,
 	 "Returns SB StiffQuads"},
 	{"setSBStiffQuads", ( PyCFunction ) Object_setSBStiffQuads, METH_VARARGS,
-	 "Sets SB StiffQuads"}, 	 
-
-	                   	 
+	 "Sets SB StiffQuads"},
 	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_NOARGS,
 	 "Returns the object's bounding box"},
 	{"getDupliVerts", ( PyCFunction ) Object_getDupliVerts,
-	 METH_NOARGS, "Returns state of duplicates propertie"},
+	 METH_VARARGS, "Returns state of duplicates propertie"},
+	{"getDupliFrames", ( PyCFunction ) Object_getDupliFrames,
+	 METH_NOARGS, "Returns state of Frames duplicates propertie"},
+	{"getDupliGroup", ( PyCFunction ) Object_getDupliGroup,
+	 METH_NOARGS, "Returns state of Group duplicates propertie"},
+	{"getDupliRot", ( PyCFunction ) Object_getDupliRot,
+	 METH_NOARGS, "Returns state of Rot duplicates propertie"},
+	{"getDupliNoSpeed", ( PyCFunction ) Object_getDupliNoSpeed,
+	 METH_NOARGS, "Returns state of Nospeed duplicates propertie"},
+	{"getDupliObjects", ( PyCFunction ) Object_getDupliObjects,
+	 METH_NOARGS, "Returns of list of tuples for object duplicated (object, dupliMatrix)\n\
+	 by dupliframe or dupliverst state "},
 	{"makeDisplayList", ( PyCFunction ) Object_makeDisplayList,
 	 METH_NOARGS,
 	 "Update this object's Display List. Some changes like turning \n\
@@ -601,7 +620,15 @@ works only if self and the object specified are of the same type."},
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
 	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
-	 {"insertShapeKey", ( PyCFunction ) Object_insertShapeKey,
+	{"setDupliFrames", ( PyCFunction ) Object_setDupliFrames,
+	 METH_VARARGS, "- set or reset state of Frames duplicates propertie"},
+	{"setDupliGroup", ( PyCFunction ) Object_setDupliGroup,
+	 METH_VARARGS, "- set or reset state of Group duplicates propertie"},
+	{"setDupliRot", ( PyCFunction ) Object_setDupliRot,
+	 METH_VARARGS, "- set or reset state of Rot duplicates propertie"},
+	{"setDupliNoSpeed", ( PyCFunction ) Object_setDupliNoSpeed,
+	 METH_VARARGS, "- set or reset state of Nospeed duplicates propertie"},
+	{"insertShapeKey", ( PyCFunction ) Object_insertShapeKey,
 	 METH_NOARGS, "() - Insert a Shape Key in the current object"},
 	{NULL, NULL, 0, NULL}
 };
@@ -3064,7 +3091,7 @@ static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args ) {
 	int setting= 0;
 	if( !PyArg_ParseTuple( args, "i", &setting ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected a string") );
+						"expected a int, 0/1 for True/False") );
 	}
 	if (self && self->object) {
 		if (setting)
@@ -3074,6 +3101,139 @@ static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args ) {
 	}
 	return Py_None;
 }
+
+static PyObject *Object_getDupliFrames ( BPy_Object * self ) {
+	if (self->object->transflag & OB_DUPLIFRAMES)
+		return EXPP_incr_ret_True ();
+	else
+		return EXPP_incr_ret_False();
+}
+
+static PyObject *Object_setDupliFrames ( BPy_Object * self, PyObject * args ) {
+	int setting= 0;
+	if( !PyArg_ParseTuple( args, "i", &setting ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a int, 0/1 for True/False") );
+	}
+	if (self && self->object) {
+		if (setting)
+			self->object->transflag |= OB_DUPLIFRAMES;
+		else 
+			self->object->transflag &= ~OB_DUPLIFRAMES;
+	}
+	return Py_None;
+}
+
+static PyObject *Object_getDupliGroup ( BPy_Object * self ) {
+	if (self->object->transflag & OB_DUPLIGROUP)
+		return EXPP_incr_ret_True ();
+	else
+		return EXPP_incr_ret_False();
+}
+
+static PyObject *Object_setDupliGroup ( BPy_Object * self, PyObject * args ) {
+	int setting= 0;
+	if( !PyArg_ParseTuple( args, "i", &setting ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a int, 0/1 for True/False") );
+	}
+	if (self && self->object) {
+		if (setting)
+			self->object->transflag |= OB_DUPLIGROUP;
+		else 
+			self->object->transflag &= ~OB_DUPLIGROUP;
+	}
+	return Py_None;
+}
+
+static PyObject *Object_getDupliRot ( BPy_Object * self ) {
+	if (self->object->transflag & OB_DUPLIROT)
+		return EXPP_incr_ret_True ();
+	else
+		return EXPP_incr_ret_False();
+}
+
+static PyObject *Object_setDupliRot ( BPy_Object * self, PyObject * args ) {
+	int setting= 0;
+	if( !PyArg_ParseTuple( args, "i", &setting ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a int, 0/1 for True/False") );
+	}
+	if (self && self->object) {
+		if (setting)
+			self->object->transflag |= OB_DUPLIROT;
+		else 
+			self->object->transflag &= ~OB_DUPLIROT;
+	}
+	return Py_None;
+}
+
+static PyObject *Object_getDupliNoSpeed ( BPy_Object * self ) {
+	if (self->object->transflag & OB_DUPLINOSPEED)
+		return EXPP_incr_ret_True ();
+	else
+		return EXPP_incr_ret_False();
+}
+
+static PyObject *Object_setDupliNoSpeed ( BPy_Object * self, PyObject * args ) {
+	int setting= 0;
+	if( !PyArg_ParseTuple( args, "i", &setting ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a int, 0/1 for True/False") );
+	}
+	if (self && self->object) {
+		if (setting)
+			self->object->transflag |= OB_DUPLINOSPEED;
+		else 
+			self->object->transflag &= ~OB_DUPLINOSPEED;
+	}
+	return Py_None;
+}
+
+static PyObject *Object_getDupliObjects ( BPy_Object * self  )
+	{
+	PyObject *dupli_objects_list= PyList_New( 0 );
+	Object *ob= self->object;
+	Scene *sce= G.scene;
+	DupliObject *dob;
+	ListBase *lb;
+	int index=0;
+	
+	
+	if(ob->transflag & OB_DUPLI) {
+		/* before make duplis, update particle for current frame */
+		if(ob->transflag & OB_DUPLIVERTS) {
+			PartEff *paf= give_parteff(ob);
+			if(paf) {
+				if(paf->flag & PAF_ANIMATED) build_particle_system(ob);
+			}
+		}
+		if(ob->type!=OB_MBALL) {
+			lb= object_duplilist(sce, ob);
+			dupli_objects_list= PyList_New( BLI_countlist(&(lb))-1 );
+			if( !dupli_objects_list )
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"PyList_New() failed" );
+			
+			dob = lb->first;
+			while(dob) {
+					
+				PyList_SetItem( dupli_objects_list, index,
+				  Py_BuildValue( "(OO)",
+				  Object_CreatePyObject(dob->ob),
+				  newMatrixObject((float*)dob->mat,4,4,Py_NEW) )
+				);
+				index++;
+				dob= dob->next;
+				
+			}
+			free_object_duplilist(lb);
+			
+		}
+	}
+	return dupli_objects_list;
+}
+
 
 static PyObject *Object_getEffects( BPy_Object * self )
 {
@@ -3341,12 +3501,6 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return PyInt_FromLong( obj->object->dupon );
 	if( StringEqual( name, "DupOff" ) )
 		return PyInt_FromLong( obj->object->dupoff );
-	if( StringEqual( name, "Dupliframes" ) ){
-		if (obj->object->transflag & OB_DUPLIFRAMES)
-			return EXPP_incr_ret_True();
-		else
-			return EXPP_incr_ret_False();
-	}
 	if (StringEqual (name, "oopsLoc")) {
 		if (G.soops) {
 			Oops *oops= G.soops->oops.first;
@@ -3472,19 +3626,6 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 
 	if( StringEqual( name, "DupOff" ) )
 		return ( !PyArg_Parse( value, "h", &( object->dupoff ) ) );
-
-	if( StringEqual( name, "Dupliframes" ) ) {
-		short dupli;
-		if ( !PyArg_Parse( value, "h", &dupli ) )
-			return -1;
-
-		if (dupli)
-			obj->object->transflag |= OB_DUPLIFRAMES;
-		else
-			obj->object->transflag &= ~OB_DUPLIFRAMES;
-
-		return 0;
-	}
 	if( StringEqual( name, "colbits" ) )
 		return ( !PyArg_Parse( value, "h", &( object->colbits ) ) );
 

@@ -517,6 +517,55 @@ class Object:
     @return: a boolean value.
     """
 
+  def getDupliFrames():
+    """
+    Get state of DupliFrames animation property
+    @return: a boolean value.
+    """
+
+  def getDupliGroup():
+    """
+    Get state of DupliGroup animation property
+    @note: This does not return the group used or that there is a dupli group set for this object. Only that dupliGroup is enabled.
+    @return: a boolean value.
+    """
+    
+  def getDupliRot():
+    """
+    Get state of DupliRot animation property
+    @return: a boolean value.
+    """
+    
+  def getDupliNoSpeed():
+    """
+    Get state of DupliRot animation property
+    @return: a boolean value.
+    """
+    
+  def getDupliObjects():
+    """
+    Returns of list of tuples for object duplicated
+    by dupliframe, dupliverts dupligroups and animation functions.
+    The first item is the original object that is duplicated
+    the second is the 4x4 worldspace dupli-matrix.
+    @rtype: List
+    @return: list of tuples (object, matrix)
+    Example::
+     import Blender
+     from Blender import Object, Scene, Mathutils
+
+     ob= Object.Get('Cube')
+     dupe_obs= ob.getDupliObjects()
+     scn= Scene.GetCurrent()
+     for dupe_ob, dupe_matrix in dupe_obs:
+       print dupe_ob.name
+       empty_ob= Object.New('Empty')
+       scn.link(empty_ob)
+       empty_ob.setMatrix(dupe_matrix)
+     Blender.Redraw()
+    """
+
+
   def insertIpoKey(keytype):
     """
     Inserts keytype values in object ipo at curframe. Uses module constants.
@@ -906,8 +955,32 @@ class Object:
   def setDupliVerts(data):
     """
     Set state of DupliVerts animation property
-    @param data: boolean value True, False, 0 or not 0.
+    @param data: boolean value True/False, non zero/zero.
     """
+
+  def setDupliFrames(data):
+    """
+    Set state of DupliFrames animation property
+    @param data: boolean value True/False, non zero/zero.
+    """
+
+  def setDupliGroups(data):
+    """
+    Set state of DupliGroup animation property, this does not set the group used. 
+    @param data: boolean value True/False, non zero/zero.
+    """
+
+  def setDupliRot(data):
+    """
+    Set state of DupliRot animation property
+    @param data: boolean value True/False, non zero/zero.
+    """
+    
+  def setDupliNoSpeed (data):
+    """
+    Set state of DupliNoSpeed animation property
+     @param data: boolean value True/False, non zero/zero.
+     """
 
   def getPIStregth():
     """
