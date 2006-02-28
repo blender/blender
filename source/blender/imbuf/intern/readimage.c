@@ -96,7 +96,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 	} else {
 		if ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC)){
 			return (imb_loadiris((uchar *) mem, flags));
-		} else if ((BIG_LONG(mem[0]) & 0xfffffff0) == 0xffd8ffe0) {
+		} else if (imb_is_a_jpeg((uchar *)mem)) {
 			return (imb_ibJpegImageFromMemory((uchar *)mem, size, flags));
 		}
 		

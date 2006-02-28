@@ -72,6 +72,12 @@ static int jpeg_failed = FALSE;
 static int jpeg_default_quality;
 static int ibuf_ftype;
 
+int imb_is_a_jpeg(unsigned char *mem) {
+
+	if ((mem[0]== 0xFF) && (mem[1] == 0xD8))return 1;
+	return 0;
+}
+
 static void jpeg_error (j_common_ptr cinfo)
 {
 	/* Always display the message */
@@ -280,25 +286,21 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 				}
 				buffer = row_pointer[0];
 				
-				switch(depth) {
-					case 1:
-						for (x = ibuf->x; x > 0; x--) {
+				for (x=ibuf->x; x >0; x--) {
+					switch(depth) {
+						case 1:
 							rect[3] = 255;
 							rect[0] = rect[1] = rect[2] = *buffer++;
 							rect += 4;
-						}
-						break;
-					case 3:
-						for (x = ibuf->x; x > 0; x--) {
+							break;
+						case 3:
 							rect[3] = 255;
 							rect[0] = *buffer++;
 							rect[1] = *buffer++;
 							rect[2] = *buffer++;
 							rect += 4;
-						}
-						break;
-					case 4:
-						for (x = ibuf->x; x > 0; x--) {
+							break;
+						case 4:
 							r = *buffer++;
 							g = *buffer++;
 							b = *buffer++;
@@ -326,7 +328,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 							rect[1] = g;
 							rect[0] = r;
 							rect += 4;
-						}
+					}
 				}
 			}
 			jpeg_finish_decompress(cinfo);
