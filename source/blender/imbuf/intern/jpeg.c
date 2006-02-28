@@ -286,21 +286,25 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 				}
 				buffer = row_pointer[0];
 				
-				for (x=ibuf->x; x >0; x--) {
-					switch(depth) {
-						case 1:
+				switch(depth) {
+					case 1:
+						for (x=ibuf->x; x >0; x--) {
 							rect[3] = 255;
 							rect[0] = rect[1] = rect[2] = *buffer++;
 							rect += 4;
+						}
 							break;
-						case 3:
+					case 3:
+						for (x=ibuf->x; x >0; x--) {
 							rect[3] = 255;
 							rect[0] = *buffer++;
 							rect[1] = *buffer++;
 							rect[2] = *buffer++;
 							rect += 4;
+						}
 							break;
-						case 4:
+					case 4:
+						for (x=ibuf->x; x >0; x--) {
 							r = *buffer++;
 							g = *buffer++;
 							b = *buffer++;
@@ -328,7 +332,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 							rect[1] = g;
 							rect[0] = r;
 							rect += 4;
-					}
+						}
 				}
 			}
 			jpeg_finish_decompress(cinfo);
