@@ -330,7 +330,7 @@ static void composit2_pixel_processor(bNode *node, CompBuf *out, CompBuf *src_bu
 
 /* Pixel-to-Pixel operation, 3 Images in, 1 out */
 static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, float *src1_col, CompBuf *src2_buf, float *src2_col, 
-									  CompBuf *fac_buf, float *fac, void (*func)(bNode *, float *, float *, float *, float), 
+									  CompBuf *fac_buf, float *fac, void (*func)(bNode *, float *, float *, float *, float *), 
 									  int src1_type, int src2_type, int fac_type)
 {
 	CompBuf *src1_use, *src2_use, *fac_use;
@@ -350,7 +350,7 @@ static void composit3_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_b
 			src2fp= compbuf_get_pixel(src2_use, src2_col, x, y, xrad, yrad);
 			facfp= compbuf_get_pixel(fac_use, fac, x, y, xrad, yrad);
 			
-			func(node, outfp, src1fp, src2fp, *facfp);
+			func(node, outfp, src1fp, src2fp, facfp);
 		}
 	}
 	
@@ -1935,43 +1935,43 @@ static bNodeSocketType cmp_node_alphaover_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_alphaover_premul(bNode *node, float *out, float *src, float *over, float fac)
+static void do_alphaover_premul(bNode *node, float *out, float *src, float *over, float *fac)
 {
 	
 	if(over[3]<=0.0f) {
 		QUATCOPY(out, src);
 	}
-	else if(fac==1.0f && over[3]>=1.0f) {
+	else if(*fac==1.0f && over[3]>=1.0f) {
 		QUATCOPY(out, over);
 	}
 	else {
-		float mul= 1.0f - fac*over[3];
+		float mul= 1.0f - *fac*over[3];
 
-		out[0]= (mul*src[0]) + fac*over[0];
-		out[1]= (mul*src[1]) + fac*over[1];
-		out[2]= (mul*src[2]) + fac*over[2];
-		out[3]= (mul*src[3]) + fac*over[3];
+		out[0]= (mul*src[0]) + *fac*over[0];
+		out[1]= (mul*src[1]) + *fac*over[1];
+		out[2]= (mul*src[2]) + *fac*over[2];
+		out[3]= (mul*src[3]) + *fac*over[3];
 	}	
 }
 
 /* result will be still premul, but the over part is premulled */
-static void do_alphaover_key(bNode *node, float *out, float *src, float *over, float fac)
+static void do_alphaover_key(bNode *node, float *out, float *src, float *over, float *fac)
 {
 	
 	if(over[3]<=0.0f) {
 		QUATCOPY(out, src);
 	}
-	else if(fac==1.0f && over[3]>=1.0f) {
+	else if(*fac==1.0f && over[3]>=1.0f) {
 		QUATCOPY(out, over);
 	}
 	else {
-		float premul= fac*over[3];
+		float premul= fac[0]*over[3];
 		float mul= 1.0f - premul;
 
 		out[0]= (mul*src[0]) + premul*over[0];
 		out[1]= (mul*src[1]) + premul*over[1];
 		out[2]= (mul*src[2]) + premul*over[2];
-		out[3]= (mul*src[3]) + fac*over[3];
+		out[3]= (mul*src[3]) + fac[0]*over[3];
 	}
 }
 
@@ -1985,7 +1985,7 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 	
 	/* input no image? then only color operation */
 	if(in[1]->data==NULL) {
-		do_alphaover_premul(node, out[0]->vec, in[1]->vec, in[2]->vec, in[0]->vec[0]);
+		do_alphaover_premul(node, out[0]->vec, in[1]->vec, in[2]->vec, in[0]->vec);
 	}
 	else {
 		/* make output size of input image */
