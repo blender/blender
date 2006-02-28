@@ -151,14 +151,6 @@ SOURCE=.\ConstraintSolver\SorLcp.h
 # Begin Group "CollisionDispatch"
 
 # PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\EmptyCollisionAlgorithm.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\EmptyCollisionAlgorithm.h
-# End Source File
 # End Group
 # Begin Group "Dynamics"
 

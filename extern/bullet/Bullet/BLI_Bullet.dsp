@@ -40,8 +40,8 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-MTL=midl.exe
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GX /Zd /O2 /I "../LinearMath" /I "." /D "NDEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "BUM_INLINED" /D "USE_ALGEBRAIC" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -70,8 +70,8 @@ PostBuild_Cmds=XCOPY  /Y .\release\*.lib .\..\..\..\..\lib\windows\bullet\lib\*.
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-MTL=midl.exe
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../LinearMath" /I "." /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "BUM_INLINED" /D "USE_ALGEBRAIC" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -280,14 +280,6 @@ SOURCE=.\BroadphaseCollision\CollisionAlgorithm.cpp
 # Begin Source File
 
 SOURCE=.\BroadphaseCollision\CollisionAlgorithm.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\BroadphaseCollision\CollisionDispatcher.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\BroadphaseCollision\CollisionDispatcher.h
 # End Source File
 # Begin Source File
 
