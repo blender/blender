@@ -249,6 +249,7 @@ static short imb_save_openexr_half(struct ImBuf *ibuf, char *name, int flags)
 		file->setFrameBuffer (frameBuffer);				  
 		file->writePixels (height);					  
 		delete file;
+		delete pixels;
 	}
 	catch (const std::exception &exc)
 	{      
