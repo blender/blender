@@ -3014,6 +3014,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 					
 					for(dob= lb->first; dob; dob= dob->next) {
 						Object *obd= dob->ob;
+						
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
 						if(obd->type!=OB_MBALL) {
@@ -3030,7 +3031,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 							}
 							else init_render_object(re, obd, ob, dob->index, 0);
 						}
-						Mat4CpyMat4(obd->obmat, dob->omat);
+						
 						if(re->test_break()) break;
 					}
 					free_object_duplilist(lb);
@@ -3198,12 +3199,12 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 					
 					for(dob= lb->first; dob; dob= dob->next) {
 						Object *obd= dob->ob;
+						
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
 						if(obd->type!=OB_MBALL) {
 							init_render_object(re, obd, ob, dob->index, 1);
 						}
-						Mat4CpyMat4(obd->obmat, dob->omat);
 					}
 					free_object_duplilist(lb);
 				}

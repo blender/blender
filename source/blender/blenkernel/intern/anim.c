@@ -291,6 +291,7 @@ static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, 
 
 static void group_duplilist(ListBase *lb, Object *ob)
 {
+	DupliObject *dob;
 	GroupObject *go;
 	float mat[4][4];
 	
@@ -306,6 +307,10 @@ static void group_duplilist(ListBase *lb, Object *ob)
 			new_dupli_object(lb, go->ob, mat, ob->lay, 0);
 		}
 	}
+	
+	/* make copy already, because in group dupli's deform displists can be makde, requiring parent matrices */
+	for(dob= lb->first; dob; dob= dob->next)
+		Mat4CpyMat4(dob->ob->obmat, dob->mat);
 }
 
 static void frames_duplilist(ListBase *lb, Object *ob)
@@ -616,6 +621,7 @@ static void font_duplilist(ListBase *lb, Object *par)
 
 /* ***************************** */
 
+/* note; group dupli's already set transform matrix. see note in group_duplilist() */
 ListBase *object_duplilist(Scene *sce, Object *ob)
 {
 	static ListBase duplilist={NULL, NULL};
@@ -652,8 +658,11 @@ void free_object_duplilist(ListBase *lb)
 {
 	DupliObject *dob;
 	
-	for(dob= lb->first; dob; dob= dob->next)
+	for(dob= lb->first; dob; dob= dob->next) {
 		dob->ob->lay= dob->origlay;
+		Mat4CpyMat4(dob->ob->obmat, dob->omat);
+	}
+	
 	BLI_freelistN(lb);
 }
 

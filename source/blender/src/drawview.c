@@ -82,6 +82,7 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -2300,6 +2301,7 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 		tbase.object= dob->ob;
 		
 		Mat4CpyMat4(dob->ob->obmat, dob->mat);
+		
 		/* extra service: draw the duplicator in drawtype of parent */
 		dt= tbase.object->dt; tbase.object->dt= base->object->dt;
 		dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
@@ -2307,14 +2309,13 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 		BIF_ThemeColorBlend(color, TH_BACK, 0.5);
 		draw_object(&tbase, DRAW_CONSTCOLOR);
 		
-		/* restore */
-		Mat4CpyMat4(dob->ob->obmat, dob->omat);
 		tbase.object->dt= dt;
 		tbase.object->dtx= dtx;
 	}
+	
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
-
-	free_object_duplilist(lb);
+	
+	free_object_duplilist(lb);	/* does restore */
 				
 }
 
@@ -2439,6 +2440,26 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, no layer check here, gets correct flushed */
 	for(base= G.scene->base.first; base; base= base->next) {
 		object_handle_update(base->object);   // bke_object.h
+#if 0		
+		if(v3d->lay & base->lay) {
+			if(base->object->dup_group) {
+				GroupObject *go;
+				for(go= base->object->dup_group->gobject.first; go; go= go->next) {
+					if(go->ob) {
+						if(go->ob->type==OB_MESH) {
+							int dummy;
+							mesh_get_derived_deform(go->ob, &dummy);
+							mesh_get_derived_final(go->ob, &dummy);
+						}
+						else if(go->ob->type==OB_CURVE) {
+							cu= ob->data;
+							if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
+						}
+					}
+				}
+			}
+		}
+#endif
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
