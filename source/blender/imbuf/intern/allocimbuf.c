@@ -475,10 +475,12 @@ static void imbuf_cache_destructor(void * data)
 
 	imb_freeplanesImBuf(ibuf);
 	imb_freerectImBuf(ibuf);
+	imb_freerectfloatImBuf(ibuf);
 	IMB_freezbufImBuf(ibuf);
+	IMB_freezbuffloatImBuf(ibuf);
 	IMB_freecmapImBuf(ibuf);
 	freeencodedbufferImBuf(ibuf);
-	
+
 	ibuf->c_handle = 0;
 }
 
