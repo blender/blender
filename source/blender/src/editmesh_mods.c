@@ -979,6 +979,47 @@ static void edgering_select(EditEdge *startedge, int select){
     		if(eed->f2) EM_select_edge(eed, select);
 	}
 }
+
+static void loop_multiselect(int looptype)
+{
+	EditEdge *eed;
+	EditEdge **edarray;
+	int edindex, edfirstcount;
+	
+	/*edarray = MEM_mallocN(sizeof(*edarray)*G.totedgesel,"edge array");*/
+	edarray = MEM_mallocN(sizeof(EditEdge*)*G.totedgesel,"edge array");
+	edindex = 0;
+	edfirstcount = G.totedgesel;
+	
+	for(eed=G.editMesh->edges.first; eed; eed=eed->next){
+		if(eed->f&SELECT){
+			edarray[edindex] = eed;
+			edindex += 1;
+		}
+	}
+	
+	if(looptype){
+		for(edindex = 0; edindex < edfirstcount; edindex +=1){
+			eed = edarray[edindex];
+			edgering_select(eed,SELECT);
+		}
+		countall();
+		EM_select_flush();
+		BIF_undo_push("Edge Ring Multi-Select");
+	}
+	else{
+		for(edindex = 0; edindex < edfirstcount; edindex +=1){
+			eed = edarray[edindex];
+			edgeloop_select(eed,SELECT);
+		}
+		countall();
+		EM_select_flush();
+		BIF_undo_push("Edge Loop Multi-Select");
+	}
+	MEM_freeN(edarray);
+	allqueue(REDRAWVIEW3D,0);
+}
+		
 /* ***************** MAIN MOUSE SELECTION ************** */
 
 // just to have the functions nice together
@@ -1854,6 +1895,7 @@ void select_less(void)
 	}
 	
 	countall();
+	BIF_undo_push("Select Less");
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1951,22 +1993,27 @@ void EM_selectmode_menu(void)
 	
 	if(val>0) {
 		if(val==1){ 
-			G.scene->selectmode= SCE_SELECT_VERTEX; 
+			G.scene->selectmode= SCE_SELECT_VERTEX;
+			EM_selectmode_set();
+			countall(); 
 			BIF_undo_push("Selectmode Set: Vertex");
 			}
 		else if(val==2){
 			if((G.qual==LR_CTRLKEY)) EM_convertsel(G.scene->selectmode, SCE_SELECT_EDGE);
 			G.scene->selectmode= SCE_SELECT_EDGE;
+			EM_selectmode_set();
+			countall();
 			BIF_undo_push("Selectmode Set: Edge");
 		}
 		
 		else{
 			if((G.qual==LR_CTRLKEY)) EM_convertsel(G.scene->selectmode, SCE_SELECT_FACE);
 			G.scene->selectmode= SCE_SELECT_FACE;
+			EM_selectmode_set();
+			countall();
 			BIF_undo_push("Selectmode Set: Vertex");
 		}
-	
-		EM_selectmode_set(); // when mode changes
+		
 		allqueue(REDRAWVIEW3D, 1);
 	}
 }
@@ -2013,7 +2060,7 @@ void editmesh_mark_seam(int clear)
 void Edge_Menu() {
 	short ret;
 
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5");
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5|Edge Loop Select%x7|Edge Ring Select%x8");
 
 	switch(ret)
 	{
@@ -2036,6 +2083,12 @@ void Edge_Menu() {
 	case 6:
         	CutEdgeloop(1);
 		BIF_undo_push("Loopcut New");
+		break;
+	case 7:
+		loop_multiselect(0);
+		break;
+	case 8:
+		loop_multiselect(1);
 		break;
 	}
 }

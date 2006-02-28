@@ -410,52 +410,49 @@ void EM_convertsel(short oldmode, short selectmode)
 		if(selectmode == SCE_SELECT_EDGE){
 			/*select all edges associated with every selected vertex*/
 			for(eed= em->edges.first; eed; eed= eed->next){
-					if(eed->v1->f&SELECT) eed->f1 = 1;
-					else if(eed->v2->f&SELECT) eed->f1 = 1;
+				if(eed->v1->f&SELECT) eed->f1 = 1;
+				else if(eed->v2->f&SELECT) eed->f1 = 1;
 			}
 			
 			for(eed= em->edges.first; eed; eed= eed->next){
-					if(eed->f1 == 1) EM_select_edge(eed,1);	
+				if(eed->f1 == 1) EM_select_edge(eed,1);	
 			}
 		}		
 		else if(selectmode == SCE_SELECT_FACE){
 			/*select all faces associated with every selected vertex*/
 			for(efa= em->faces.first; efa; efa= efa->next){
-					if(efa->v1->f&SELECT) efa->f1 = 1;
-					else if(efa->v2->f&SELECT) efa->f1 = 1;
-					else if(efa->v3->f&SELECT) efa->f1 = 1;
-					else{ 
-						if(efa->v4){
-							if(efa->v4->f&SELECT) efa->f1 =1;
-						}
+				if(efa->v1->f&SELECT) efa->f1 = 1;
+				else if(efa->v2->f&SELECT) efa->f1 = 1;
+				else if(efa->v3->f&SELECT) efa->f1 = 1;
+				else{ 
+					if(efa->v4){
+						if(efa->v4->f&SELECT) efa->f1 =1;
 					}
-						
+				}
 			}
 			for(efa= em->faces.first; efa; efa= efa->next){
 				if(efa->f1 == 1) EM_select_face(efa,1);
 			}
-			check_fgons_selection();
-			countall();
 		}
 	}
 	
 	if(oldmode == SCE_SELECT_EDGE){
 		if(selectmode == SCE_SELECT_FACE){
 			for(efa= em->faces.first; efa; efa= efa->next){
-					if(efa->e1->f&SELECT) efa->f1 = 1;
-					else if(efa->e2->f&SELECT) efa->f1 = 1;
-					else if(efa->e3->f&SELECT) efa->f1 = 1;
-					else if(efa->e4){
-						if(efa->e4->f&SELECT) efa->f1 = 1;
-					}
+				if(efa->e1->f&SELECT) efa->f1 = 1;
+				else if(efa->e2->f&SELECT) efa->f1 = 1;
+				else if(efa->e3->f&SELECT) efa->f1 = 1;
+				else if(efa->e4){
+					if(efa->e4->f&SELECT) efa->f1 = 1;
+				}
 			}
 			for(efa= em->faces.first; efa; efa= efa->next){
-					if(efa->f1 == 1) EM_select_face(efa,1);
+				if(efa->f1 == 1) EM_select_face(efa,1);
 			}
-			check_fgons_selection();
-			countall();
 		}
 	}
+	
+	check_fgons_selection();
 }
 
 /* when switching select mode, makes sure selection is consistant for editing */

@@ -4093,6 +4093,7 @@ void do_view3d_buttons(short event)
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
 			G.scene->selectmode= SCE_SELECT_VERTEX;
 		EM_selectmode_set();
+		countall();
 		BIF_undo_push("Selectmode Set: Vertex");
 		allqueue(REDRAWVIEW3D, 1);
 		break;
@@ -4104,6 +4105,7 @@ void do_view3d_buttons(short event)
 			G.scene->selectmode = SCE_SELECT_EDGE;
 		}
 		EM_selectmode_set();
+		countall();
 		BIF_undo_push("Selectmode Set: Edge");
 		allqueue(REDRAWVIEW3D, 1);
 		break;
@@ -4115,6 +4117,7 @@ void do_view3d_buttons(short event)
 			G.scene->selectmode = SCE_SELECT_FACE;
 		}
 		EM_selectmode_set();
+		countall();
 		BIF_undo_push("Selectmode Set: Face");
 		allqueue(REDRAWVIEW3D, 1);
 		break;	
