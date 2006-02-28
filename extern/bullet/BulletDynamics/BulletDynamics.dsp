@@ -67,8 +67,8 @@ LIB32=link.exe -lib
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 MTL=midl.exe
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../LinearMath" /I "../Bullet" /I "../BulletDynamics" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../LinearMath" /I "../Bullet" /I "../BulletDynamics" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -153,51 +153,11 @@ SOURCE=.\ConstraintSolver\SorLcp.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\CollisionDispatch\ConvexConcaveCollisionAlgorithm.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\ConvexConcaveCollisionAlgorithm.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\ConvexConvexAlgorithm.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\ConvexConvexAlgorithm.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\CollisionDispatch\EmptyCollisionAlgorithm.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\CollisionDispatch\EmptyCollisionAlgorithm.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\ManifoldResult.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\ManifoldResult.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\ToiContactDispatcher.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\ToiContactDispatcher.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\UnionFind.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CollisionDispatch\UnionFind.h
 # End Source File
 # End Group
 # Begin Group "Dynamics"

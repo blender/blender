@@ -99,14 +99,6 @@ SOURCE=..\..\intern\attributes.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\blendercall.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\blenderdummy.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\intern\cfglexer.cpp
 # End Source File
 # Begin Source File
@@ -139,15 +131,11 @@ SOURCE=..\..\intern\ntl_geometryobject.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\ntl_lightobject.cpp
+SOURCE=..\..\intern\ntl_lighting.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\intern\ntl_ray.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\ntl_scene.cpp
 # End Source File
 # Begin Source File
 
@@ -232,6 +220,10 @@ SOURCE=..\..\intern\ntl_geometryobject.h
 # Begin Source File
 
 SOURCE=..\..\intern\ntl_geometryshader.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_lighting.h
 # End Source File
 # Begin Source File
 
