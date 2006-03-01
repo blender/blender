@@ -92,7 +92,8 @@ typedef struct SoftBody {
  	
 	/* baking */
 	int sfra, efra;
-	int interval, pad2;
+	int interval;
+	short local, pad2;		/* local==1: use local coords for baking */
 	
 	SBVertex **keys;			/* array of size totpointkey */
 	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */

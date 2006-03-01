@@ -1570,7 +1570,7 @@ static void curve_surf_to_softbody(Object *ob)
 
 
 /* copies softbody result back in object */
-static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts)
+static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, int local)
 {
 	BodyPoint *bp= ob->soft->bpoint;
 	int a;
@@ -1580,7 +1580,8 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts)
 	
 	for(a=0; a<numVerts; a++, bp++) {
 		VECCOPY(vertexCos[a], bp->pos);
-		Mat4MulVecfl(ob->imat, vertexCos[a]);	/* softbody is in global coords */
+		if(local==0) 
+			Mat4MulVecfl(ob->imat, vertexCos[a]);	/* softbody is in global coords, baked optionally not */
 	}
 }
 
@@ -1637,7 +1638,7 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3],
 		bp->pos[2]= data[0]*key0->vec[2] +  data[1]*key1->vec[2] + data[2]*key2->vec[2] + data[3]*key3->vec[2];
 	}
 	
-	softbody_to_object(ob, vertexCos, numVerts);
+	softbody_to_object(ob, vertexCos, numVerts, sb->local);
 	
 	return 1;
 }
@@ -1666,6 +1667,9 @@ static void softbody_baked_add(Object *ob, float framenr)
 		sb->keys= MEM_callocN( sizeof(void *)*sb->totkey, "sb keys");
 	}
 	
+	/* inverse matrix might not be uptodate... */
+	Mat4Invert(ob->imat, ob->obmat);
+	
 	/* now find out if we have to store a key */
 	
 	/* offset in keys array */
@@ -1685,6 +1689,8 @@ static void softbody_baked_add(Object *ob, float framenr)
 			
 			for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++, key++) {
 				VECCOPY(key->vec, bp->pos);
+				if(sb->local)
+					Mat4MulVecfl(ob->imat, key->vec);
 			}
 		}
 	}
@@ -1924,7 +1930,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		free_sumo_handles();
 	}
 
-	softbody_to_object(ob, vertexCos, numVerts);
+	softbody_to_object(ob, vertexCos, numVerts, 0);
 	sb->ctime= ctime;
 
 	

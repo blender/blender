@@ -2056,10 +2056,13 @@ static void object_softbodies(Object *ob)
 			uiDefButI(block, NUM, B_DIFF, "Start:",			10, 170,100,20, &sb->sfra, 1.0, 10000.0, 10, 0, "Start frame for baking");
 			uiDefButI(block, NUM, B_DIFF, "End:",			110, 170,100,20, &sb->efra, 1.0, 10000.0, 10, 0, "End frame for baking");
 			uiDefButI(block, NUM, B_DIFF, "Interval:",		210, 170,100,20, &sb->interval, 1.0, 10.0, 10, 0, "Interval in frames between baked keys");
+			uiBlockEndAlign(block);
+			
+			uiDefButS(block, TOG, B_DIFF, "Local",			10, 145,100,20, &sb->local, 0.0, 0.0, 0, 0, "Use local coordinates for baking");
 			
 			uiClearButLock();
-			
 			uiBlockBeginAlign(block);
+			
 			if(sb->keys) {
 				char str[128];
 				uiDefIconTextBut(block, BUT, B_SOFTBODY_BAKE_FREE, ICON_X, "FREE BAKE", 10, 120,300,20, NULL, 0.0, 0.0, 0, 0, "Free baked result");
