@@ -18,6 +18,7 @@ typedef enum ModifierType {
 	eModifierType_Hook,
 	eModifierType_Softbody,
 	eModifierType_Boolean,
+	eModifierType_Array,
 
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -79,6 +80,60 @@ typedef struct BuildModifierData {
 	float start, length;
 	int randomize, seed;
 } BuildModifierData;
+
+typedef struct ArrayModifierData {
+	ModifierData modifier;
+
+	/* the curve object to use for MOD_ARR_FITCURVE */
+	struct Object *curve_ob;
+	/* the object to use for object offset */
+	struct Object *offset_ob;
+	/* a constant duplicate offset;
+	   1 means the duplicates are 1 unit apart
+    */
+	float offset[3];
+	/* a scaled factor for duplicate offsets;
+	   1 means the duplicates are 1 object-width apart
+    */
+	float scale[3];
+	/* the length over which to distribute the duplicates */
+	float length;
+	/* the limit below which to merge vertices in adjacent duplicates */
+	float merge_dist;
+	/* determines how duplicate count is calculated; one of:
+	      MOD_ARR_FIXEDCOUNT -> fixed
+	      MOD_ARR_FITLENGTH  -> calculated to fit a set length
+	      MOD_ARR_FITCURVE   -> calculated to fit the length of a Curve object
+    */
+	int fit_type;
+	/* flags specifying how total offset is calculated; binary OR of:
+	     MOD_ARR_OFF_CONST    -> total offset += offset
+	     MOD_ARR_OFF_RELATIVE -> total offset += relative * object width
+	     MOD_ARR_OFF_OBJ      -> total offset += offset_ob's matrix
+	   total offset is the sum of the individual enabled offsets
+	*/
+	int offset_type;
+	/* general flags:
+	      MOD_ARR_MERGE -> merge vertices in adjacent duplicates
+	*/
+	int flags;
+	/* the number of duplicates to generate for MOD_ARR_FIXEDCOUNT */
+	int count;
+} ArrayModifierData;
+
+/* ArrayModifierData->fit_type */
+#define MOD_ARR_FIXEDCOUNT 0
+#define MOD_ARR_FITLENGTH  1
+#define MOD_ARR_FITCURVE   2
+
+/* ArrayModifierData->offset_type */
+#define MOD_ARR_OFF_CONST    1<<0
+#define MOD_ARR_OFF_RELATIVE 1<<1
+#define MOD_ARR_OFF_OBJ      1<<2
+
+/* ArrayModifierData->flags */
+#define MOD_ARR_MERGE      1<<0
+#define MOD_ARR_MERGEFINAL 1<<1
 
 typedef struct MirrorModifierData {
 	ModifierData modifier;

@@ -5859,6 +5859,12 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 			
 		expand_doit(fd, mainvar, cmd->object);
 	}
+	else if (md->type==eModifierType_Array) {
+		ArrayModifierData *amd = (ArrayModifierData*) md;
+			
+		expand_doit(fd, mainvar, amd->curve_ob);
+		expand_doit(fd, mainvar, amd->offset_ob);
+	}
 }
 
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)

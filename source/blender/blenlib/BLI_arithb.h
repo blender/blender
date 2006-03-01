@@ -490,6 +490,12 @@ VecMulf(
 	float *v1, 
 	float f
 );
+	int
+VecLenCompare(
+	float *v1,
+	float *v2,
+	float limit
+);
 	int 
 VecCompare(
 	float *v1, 

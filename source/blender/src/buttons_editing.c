@@ -1236,6 +1236,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 26;
 		} else if (md->type==eModifierType_Boolean) {
 			height = 46;
+		} else if (md->type==eModifierType_Array) {
+			height = 186;
 		}
 
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -1352,6 +1354,127 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			BooleanModifierData *bmd = (BooleanModifierData*) md;
 			uiDefButI(block, MENU, B_MODIFIER_RECALC, "Operation%t|Intersect%x0|Union%x1|Difference%x2",	lx,(cy-=19),buttonWidth,19, &bmd->operation, 0.0, 1.0, 0, 0, "Boolean operation to perform");
 			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &bmd->object, "Mesh object to use for boolean operation");
+		} else if (md->type==eModifierType_Array) {
+			ArrayModifierData *amd = (ArrayModifierData*) md;
+			float range = 10000;
+			int cytop, halfwidth = (width - 5)/2 - 15;
+			int halflx = lx + halfwidth + 10;
+
+			uiBlockSetEmboss(block, UI_EMBOSSX);
+			uiBlockEndAlign(block);
+
+			/* length parameters */
+			uiBlockBeginAlign(block);
+			sprintf(str, "Length Fit%%t|Fixed Count%%x%d|Fixed Length%%x%d"
+			        "|Fit To Curve Length%%x%d",
+			        MOD_ARR_FIXEDCOUNT, MOD_ARR_FITLENGTH, MOD_ARR_FITCURVE);
+			uiDefButI(block, MENU, B_MODIFIER_RECALC, str,
+			          lx, (cy-=19), buttonWidth, 19, &amd->fit_type,
+			          0.0, 1.0, 0, 0, "Array length calculation method");
+			switch(amd->fit_type)
+			{
+			case MOD_ARR_FIXEDCOUNT:
+				uiDefButI(block, NUM, B_MODIFIER_RECALC, "Count:",
+				          lx, (cy -= 19), buttonWidth, 19, &amd->count,
+				          1, 1000, 0, 0, "Number of duplicates to make");
+				break;
+			case MOD_ARR_FITLENGTH:
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Length:",
+				          lx, (cy -= 19), buttonWidth, 19, &amd->length,
+				          0, range, 10, 2,
+				          "Length to fit array within");
+				break;
+			case MOD_ARR_FITCURVE:
+				uiDefIDPoinBut(block, modifier_testCurveObj, ID_OB,
+				               B_CHANGEDEP, "Ob: ",
+				               lx, (cy -= 19), buttonWidth, 19, &amd->curve_ob,
+				               "Curve object to fit array length to");
+				break;
+			}
+			uiBlockEndAlign(block);
+
+			/* offset parameters */
+			cy -= 10;
+			cytop= cy;
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, MOD_ARR_OFF_CONST, B_MODIFIER_RECALC,
+			             "Constant Offset", lx, (cy-=19), halfwidth, 19,
+			             &amd->offset_type, 0, 0, 0, 0,
+			             "Constant offset between duplicates");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "X:",
+			          lx, (cy-=19), halfwidth, 19,
+			          &amd->offset[0],
+			          -range, range, 10, 3,
+			          "Constant component for duplicate offsets");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Y:",
+			          lx, (cy-=19), halfwidth, 19,
+			          &amd->offset[1],
+			          -range, range, 10, 3,
+			          "Constant component for duplicate offsets");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Z:",
+			          lx, (cy-=19), halfwidth, 19,
+			          &amd->offset[2],
+			          -range, range, 10, 3,
+			          "Constant component for duplicate offsets");
+			uiBlockEndAlign(block);
+
+			cy= cytop;
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, MOD_ARR_OFF_RELATIVE, B_MODIFIER_RECALC,
+			             "Relative Offset", halflx, (cy-=19), halfwidth, 19,
+			             &amd->offset_type, 0, 0, 0, 0,
+			             "Offset between duplicates relative to object width");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "X:",
+			          halflx, (cy-=19), halfwidth, 19,
+			          &amd->scale[0],
+			          -range, range, 10, 3,
+			          "Component for duplicate offsets relative to object width");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Y:",
+			          halflx, (cy-=19), halfwidth, 19,
+			          &amd->scale[1],
+			          -range, range, 10, 3,
+			          "Component for duplicate offsets relative to object width");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Z:",
+			          halflx, (cy-=19), halfwidth, 19,
+			          &amd->scale[2],
+			          -range, range, 10, 3,
+			          "Component for duplicate offsets relative to object width");
+			uiBlockEndAlign(block);
+
+			/* vertex merging parameters */
+			cy -= 10;
+			cytop= cy;
+
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, MOD_ARR_MERGE, B_MODIFIER_RECALC,
+			             "Merge",
+			             lx, (cy-=19), halfwidth/2, 19, &amd->flags,
+			             0, 0, 0, 0,
+			             "Merge vertices in adjacent duplicates");
+			uiDefButBitI(block, TOG, MOD_ARR_MERGEFINAL, B_MODIFIER_RECALC,
+			             "First Last",
+			             lx + halfwidth/2, cy, (halfwidth+1)/2, 19,
+			             &amd->flags,
+			             0, 0, 0, 0,
+			             "Merge vertices in first duplicate with vertices"
+			             " in last duplicate");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Limit:",
+					  lx, (cy-=19), halfwidth, 19, &amd->merge_dist,
+					  0, 1.0f, 1, 4,
+					  "Limit below which to merge vertices");
+
+			/* offset ob */
+			cy = cytop;
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, MOD_ARR_OFF_OBJ, B_MODIFIER_RECALC,
+			             "Object Offset", halflx, (cy -= 19), halfwidth, 19,
+			             &amd->offset_type, 0, 0, 0, 0,
+			             "Add an object transformation to the total offset");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
+			               "Ob: ", halflx, (cy -= 19), halfwidth, 19,
+			               &amd->offset_ob,
+			               "Object from which to take offset transformation");
+			uiBlockEndAlign(block);
 		}
 		uiBlockEndAlign(block);
 

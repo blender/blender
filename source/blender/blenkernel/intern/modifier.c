@@ -5,6 +5,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_arithb.h"
+#include "BLI_edgehash.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -16,9 +17,14 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
+#include "DNA_curve_types.h"
 
 #include "BLI_editVert.h"
 
+#include "MTC_matrixops.h"
+#include "MTC_vectorops.h"
+
+#include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -37,6 +43,77 @@
 #include "LOD_decimation.h"
 
 #include "CCGSubSurf.h"
+
+/* helper function for modifiers - usage is of this is discouraged, but
+   avoids duplicate modifier code for DispListMesh and EditMesh */
+
+DispListMesh *displistmesh_from_editmesh(EditMesh *em)
+{
+	DispListMesh *outDLM = MEM_callocN(sizeof(*outDLM), "em_mod_dlm");
+	EditVert *eve, *preveve;
+	EditEdge *eed;
+	EditFace *efa;
+	int i;
+
+	for (i=0,eve=em->verts.first; eve; eve= eve->next)
+		eve->prev = (EditVert*) i++;
+
+	outDLM->totvert = BLI_countlist(&em->verts);
+	outDLM->totedge = BLI_countlist(&em->edges);
+	outDLM->totface = BLI_countlist(&em->faces);
+
+	outDLM->mvert = MEM_mallocN(sizeof(*outDLM->mvert)*outDLM->totvert,
+	                           "em_mod_mv");
+	outDLM->medge = MEM_mallocN(sizeof(*outDLM->medge)*outDLM->totedge,
+	                           "em_mod_med");
+	outDLM->mface = MEM_mallocN(sizeof(*outDLM->mface)*outDLM->totface,
+	                           "em_mod_mf");
+
+	/* Need to be able to mark loose edges */
+	for (eed=em->edges.first; eed; eed=eed->next) {
+		eed->f2 = 0;
+	}
+	for (efa=em->faces.first; efa; efa=efa->next) {
+		efa->e1->f2 = 1;
+		efa->e2->f2 = 1;
+		efa->e3->f2 = 1;
+		if (efa->e4) efa->e4->f2 = 1;
+	}
+
+	for (i=0,eve=em->verts.first; i<outDLM->totvert; i++,eve=eve->next) {
+		MVert *mv = &outDLM->mvert[i];
+
+		VECCOPY(mv->co, eve->co);
+		mv->mat_nr = 0;
+		mv->flag = ME_VERT_STEPINDEX;
+	}
+	for (i=0,eed=em->edges.first; i<outDLM->totedge; i++,eed=eed->next) {
+		MEdge *med = &outDLM->medge[i];
+
+		med->v1 = (int) eed->v1->prev;
+		med->v2 = (int) eed->v2->prev;
+		med->crease = (unsigned char) (eed->crease*255.0f);
+		med->flag = ME_EDGEDRAW|ME_EDGERENDER|ME_EDGE_STEPINDEX;
+		
+		if (eed->seam) med->flag |= ME_SEAM;
+		if (!eed->f2) med->flag |= ME_LOOSEEDGE;
+	}
+	for (i=0,efa=em->faces.first; i<outDLM->totface; i++,efa=efa->next) {
+		MFace *mf = &outDLM->mface[i];
+		mf->v1 = (int) efa->v1->prev;
+		mf->v2 = (int) efa->v2->prev;
+		mf->v3 = (int) efa->v3->prev;
+		mf->v4 = efa->v4?(int) efa->v4->prev:0;
+		mf->mat_nr = efa->mat_nr;
+		mf->flag = efa->flag|ME_FACE_STEPINDEX;
+		test_index_face(mf, NULL, NULL, efa->v4?4:3);
+	}
+
+	for (preveve=NULL, eve=em->verts.first; eve; preveve=eve, eve= eve->next)
+		eve->prev = preveve;
+
+	return outDLM;
+}
 
 /***/
 
@@ -452,6 +529,506 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *der
 	return derivedmesh_from_displistmesh(ndlm, NULL);
 }
 
+/* Array */
+/* Array modifier: duplicates the object multiple times along an axis
+*/
+
+static void arrayModifier_initData(ModifierData *md)
+{
+	ArrayModifierData *amd = (ArrayModifierData*) md;
+
+	/* default to 2 duplicates distributed along the x-axis by an
+	   offset of 1 object-width
+	*/
+	amd->curve_ob = amd->offset_ob = NULL;
+	amd->count = 2;
+	amd->offset[0] = amd->offset[1] = amd->offset[2] = 0;
+	amd->scale[0] = 1;
+	amd->scale[1] = amd->scale[2] = 0;
+	amd->length = 0;
+	amd->merge_dist = 0.01;
+	amd->fit_type = MOD_ARR_FIXEDCOUNT;
+	amd->offset_type = MOD_ARR_OFF_RELATIVE;
+	amd->flags = 0;
+}
+
+static void arrayModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ArrayModifierData *amd = (ArrayModifierData*) md;
+	ArrayModifierData *tamd = (ArrayModifierData*) target;
+
+	tamd->curve_ob = amd->curve_ob;
+	tamd->offset_ob = amd->offset_ob;
+	tamd->count = amd->count;
+	VECCOPY(tamd->offset, amd->offset);
+	VECCOPY(tamd->scale, amd->scale);
+	tamd->length = amd->length;
+	tamd->merge_dist = amd->merge_dist;
+	tamd->fit_type = amd->fit_type;
+	tamd->offset_type = amd->offset_type;
+	tamd->flags = amd->flags;
+}
+
+static void arrayModifier_foreachObjectLink(ModifierData *md,
+                  Object *ob,
+                  void (*walk)(void *userData, Object *ob, Object **obpoin),
+                  void *userData)
+{
+	ArrayModifierData *amd = (ArrayModifierData*) md;
+
+	walk(userData, ob, &amd->curve_ob);
+	walk(userData, ob, &amd->offset_ob);
+}
+
+static void arrayModifier_updateDepgraph(ModifierData *md,
+                                         DagForest *forest,
+                                         Object *ob,
+                                         DagNode *obNode)
+{
+	ArrayModifierData *amd = (ArrayModifierData*) md;
+
+	if (amd->curve_ob) {
+		DagNode *curNode = dag_get_node(forest, amd->curve_ob);
+
+		dag_add_relation(forest, curNode, obNode,
+		                 DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+	}
+	if (amd->offset_ob) {
+		DagNode *curNode = dag_get_node(forest, amd->offset_ob);
+
+		dag_add_relation(forest, curNode, obNode,
+		                 DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+	}
+}
+
+float displistmesh_width(DispListMesh *dlm, int axis)
+{
+	int i;
+	float min_co, max_co;
+	MVert *mv;
+
+	/* if there are no vertices, width is 0 */
+	if(dlm->totvert == 0) return 0;
+
+	/* find the minimum and maximum coordinates on the desired axis */
+	min_co = max_co = dlm->mvert[0].co[axis];
+	for (i=1; i < dlm->totvert; i++) {
+		mv = &dlm->mvert[i];
+
+		if(mv->co[axis] < min_co) min_co = mv->co[axis];
+		if(mv->co[axis] > max_co) max_co = mv->co[axis];
+	}
+
+	return max_co - min_co;
+}
+
+typedef struct IndexMapEntry {
+	/* the new vert index that this old vert index maps to */
+	int new;
+	/* -1 if this vert isn't merged, otherwise the old vert index it
+	 * should be replaced with
+	 */
+	int merge;
+	/* 1 if this vert's first copy is merged with the last copy of its
+	 * merge target, otherwise 0
+	 */
+	short merge_final;
+} IndexMapEntry;
+
+static int calc_mapping(IndexMapEntry *indexMap, int oldVert, int copy)
+{
+	int newVert;
+
+	if(indexMap[oldVert].merge < 0) {
+		newVert = indexMap[oldVert].new + copy + 1;
+	} else if(indexMap[oldVert].merge == oldVert) {
+		/* This vert was merged with itself */
+		newVert = indexMap[oldVert].new;
+	} else {
+		/* This vert wasn't merged with itself, so increment vert number. */
+		newVert = indexMap[indexMap[oldVert].merge].new + copy;
+	}
+
+	return newVert;
+}
+
+static DispListMesh *arrayModifier_doArray(ArrayModifierData *amd,
+                                           Object *ob, DispListMesh *inDLM,
+                                           float (*vertexCos)[3],
+                                           int initFlags)
+{
+	int i, j;
+	/* offset matrix */
+	float offset[4][4];
+	float final_offset[4][4];
+	float tmp_mat[4][4];
+	float length = amd->length;
+	int count = amd->count;
+	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "array_dlm");
+
+	IndexMapEntry *indexMap;
+
+	EdgeHash *edges;
+
+	MTC_Mat4One(offset);
+
+	if(amd->offset_type & MOD_ARR_OFF_CONST)
+		VecAddf(offset[3], offset[3], amd->offset);
+	if(amd->offset_type & MOD_ARR_OFF_RELATIVE) {
+		for(j = 0; j < 3; j++)
+			offset[3][j] += amd->scale[j] * displistmesh_width(inDLM, j);
+	}
+
+	if((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
+		float obinv[4][4];
+		float result_mat[4][4];
+
+		if(ob)
+			MTC_Mat4Invert(obinv, ob->obmat);
+		else
+			MTC_Mat4One(obinv);
+
+		MTC_Mat4MulSerie(result_mat, offset,
+		                 obinv, amd->offset_ob->obmat,
+		                 NULL, NULL, NULL, NULL, NULL);
+		MTC_Mat4CpyMat4(offset, result_mat);
+	}
+
+	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
+		Curve *cu = amd->curve_ob->data;
+		if(cu) {
+			if(!cu->path)
+				calc_curvepath(amd->curve_ob);
+
+			if(cu->path)
+				length = cu->path->totdist;
+		}
+	}
+
+	/* calculate the maximum number of copies which will fit within the
+	   prescribed length */
+	if(amd->fit_type == MOD_ARR_FITLENGTH
+	   || amd->fit_type == MOD_ARR_FITCURVE) {
+		float dist = sqrt(MTC_dot3Float(offset[3], offset[3]));
+
+		if(dist != 0)
+			/* this gives length = first copy start to last copy end
+			   add a tiny offset for floating point rounding errors */
+			count = (length + 0.00001) / dist;
+		else
+			/* if the offset has no translation, just make one copy */
+			count = 1;
+	}
+
+	if(count < 1)
+		count = 1;
+
+	dlm->totvert = dlm->totedge = dlm->totface = 0;
+	indexMap = MEM_callocN(sizeof(*indexMap)*inDLM->totvert, "indexmap");
+
+	/* allocate memory for count duplicates (including original) */
+	dlm->mvert = MEM_callocN(sizeof(*dlm->mvert)*inDLM->totvert*count,
+	                         "dlm_mvert");
+	dlm->mface = MEM_callocN(sizeof(*dlm->mface)*inDLM->totface*count,
+	                         "dlm_mface");
+
+	if (inDLM->medge)
+		dlm->medge = MEM_callocN(sizeof(*dlm->medge)*inDLM->totedge*count,
+		                         "dlm_medge");
+	if (inDLM->tface)
+		dlm->tface = MEM_callocN(sizeof(*dlm->tface)*inDLM->totface*count,
+		                         "dlm_tface");
+	if (inDLM->mcol)
+		dlm->mcol = MEM_callocN(sizeof(*dlm->mcol)*inDLM->totface*4*count,
+		                        "dlm_mcol");
+
+	/* calculate the offset matrix of the final copy (for merging) */ 
+	MTC_Mat4One(final_offset);
+
+	for(j=0; j < count - 1; j++) {
+		MTC_Mat4MulMat4(tmp_mat, final_offset, offset);
+		MTC_Mat4CpyMat4(final_offset, tmp_mat);
+	}
+
+	for (i=0; i<inDLM->totvert; i++) {
+		MVert *inMV = &inDLM->mvert[i];
+		MVert *mv = &dlm->mvert[dlm->totvert++];
+		MVert *mv2;
+		float co[3];
+
+		*mv = *inMV;
+
+		if (vertexCos) {
+			VECCOPY(mv->co, vertexCos[i]);
+		}
+		if (initFlags) mv->flag |= ME_VERT_STEPINDEX;
+
+		indexMap[i].new = dlm->totvert-1;
+		indexMap[i].merge = -1; /* default to no merge */
+		indexMap[i].merge_final = 0; /* default to no merge */
+
+		VECCOPY(co, mv->co);
+		
+		/* Attempts to merge verts from one duplicate with verts from the
+		 * next duplicate which are closer than amd->merge_dist.
+		 * Only the first such vert pair is merged.
+		 * If verts are merged in the first duplicate pair, they are merged
+		 * in all pairs.
+		 */
+		if((count > 1) && (amd->flags & MOD_ARR_MERGE)) {
+			float tmp_co[3];
+			VECCOPY(tmp_co, mv->co);
+			MTC_Mat4MulVecfl(offset, tmp_co);
+
+			for(j = 0; j < inDLM->totvert; j++) {
+				inMV = &inDLM->mvert[j];
+				/* if this vert is within merge limit, merge */
+				if(VecLenCompare(tmp_co, inMV->co, amd->merge_dist)) {
+					indexMap[i].merge = j;
+
+					/* test for merging with final copy of merge target */
+					if(amd->flags & MOD_ARR_MERGEFINAL) {
+						inMV = &inDLM->mvert[i];
+						VECCOPY(tmp_co, inDLM->mvert[j].co);
+						MTC_Mat4MulVecfl(final_offset, tmp_co);
+						if(VecLenCompare(tmp_co, inMV->co, amd->merge_dist))
+							indexMap[i].merge_final = 1;
+					}
+					break;
+				}
+			}
+		}
+
+		/* if no merging, generate copies of this vert */
+		if(indexMap[i].merge < 0) {
+			for(j=0; j < count - 1; j++) {
+				mv2 = &dlm->mvert[dlm->totvert++];
+
+				*mv2 = *mv;
+				MTC_Mat4MulVecfl(offset, co);
+				VECCOPY(mv2->co, co);
+				mv2->flag &= ~ME_VERT_STEPINDEX;
+			}
+		} else if(indexMap[i].merge != i && indexMap[i].merge_final) {
+			/* if this vert is not merging with itself, and it is merging
+			 * with the final copy of its merge target, remove the first copy
+			 */
+			dlm->totvert--;
+		}
+	}
+
+	/* make a hashtable so we can avoid duplicate edges from merging */
+	edges = BLI_edgehash_new();
+
+	for (i=0; i<inDLM->totedge; i++) {
+		MEdge *inMED = &inDLM->medge[i];
+		MEdge med;
+		MEdge *med2;
+		int vert1, vert2;
+
+		med = *inMED;
+		med.v1 = indexMap[inMED->v1].new;
+		med.v2 = indexMap[inMED->v2].new;
+
+		/* if vertices are to be merged with the final copies of their
+		 * merge targets, calculate that final copy
+		 */
+		if(indexMap[inMED->v1].merge_final) {
+			med.v1 = calc_mapping(indexMap, indexMap[inMED->v1].merge,
+			                      count - 2);
+		}
+		if(indexMap[inMED->v2].merge_final) {
+			med.v2 = calc_mapping(indexMap, indexMap[inMED->v2].merge,
+			                      count - 2);
+		}
+
+		if (initFlags) {
+			med.flag |= ME_EDGEDRAW|ME_EDGERENDER|ME_EDGE_STEPINDEX;
+		}
+
+		if(!BLI_edgehash_haskey(edges, med.v1, med.v2)) {
+			dlm->medge[dlm->totedge++] = med;
+			BLI_edgehash_insert(edges, med.v1, med.v2, NULL);
+		}
+
+		for(j=0; j < count - 1; j++)
+		{
+			vert1 = calc_mapping(indexMap, inMED->v1, j);
+			vert2 = calc_mapping(indexMap, inMED->v2, j);
+			/* avoid duplicate edges */
+			if(!BLI_edgehash_haskey(edges, vert1, vert2)) {
+				med2 = &dlm->medge[dlm->totedge++];
+
+				*med2 = med;
+				med2->v1 = vert1;
+				med2->v2 = vert2;
+				med2->flag &= ~ME_EDGE_STEPINDEX;
+
+				BLI_edgehash_insert(edges, med2->v1, med2->v2, NULL);
+			}
+		}
+	}
+
+	/* don't need the hashtable any more */
+	BLI_edgehash_free(edges, NULL);
+
+	for (i=0; i<inDLM->totface; i++) {
+		MFace *inMF = &inDLM->mface[i];
+		MFace *mf = &dlm->mface[dlm->totface++];
+		MFace *mf2;
+		TFace *tf = NULL;
+		MCol *mc = NULL;
+
+		*mf = *inMF;
+		mf->v1 = indexMap[inMF->v1].new;
+		mf->v2 = indexMap[inMF->v2].new;
+		mf->v3 = indexMap[inMF->v3].new;
+		mf->v4 = indexMap[inMF->v4].new;
+
+		/* if vertices are to be merged with the final copies of their
+		 * merge targets, calculate that final copy
+		 */
+		if(indexMap[inMF->v1].merge_final)
+			mf->v1 = calc_mapping(indexMap, indexMap[inMF->v1].merge, count-2);
+		if(indexMap[inMF->v2].merge_final)
+			mf->v2 = calc_mapping(indexMap, indexMap[inMF->v2].merge, count-2);
+		if(indexMap[inMF->v3].merge_final)
+			mf->v3 = calc_mapping(indexMap, indexMap[inMF->v3].merge, count-2);
+		if(indexMap[inMF->v4].merge_final)
+			mf->v4 = calc_mapping(indexMap, indexMap[inMF->v4].merge, count-2);
+
+		if (initFlags) mf->flag |= ME_FACE_STEPINDEX;
+
+		if (inDLM->tface) {
+			TFace *inTF = &inDLM->tface[i];
+			TFace *tf = &dlm->tface[dlm->totface-1];
+
+			*tf = *inTF;
+		} else if (inDLM->mcol) {
+			MCol *inMC = &inDLM->mcol[i*4];
+			MCol *mc = &dlm->mcol[(dlm->totface-1)*4];
+
+			mc[0] = inMC[0];
+			mc[1] = inMC[1];
+			mc[2] = inMC[2];
+			mc[3] = inMC[3];
+		}
+		
+		for(j=0; j < count - 1; j++)
+		{
+			mf2 = &dlm->mface[dlm->totface++];
+
+			*mf2 = *mf;
+
+			mf2->v1 = calc_mapping(indexMap, inMF->v1, j);
+			mf2->v2 = calc_mapping(indexMap, inMF->v2, j);
+			mf2->v3 = calc_mapping(indexMap, inMF->v3, j);
+			if (inMF->v4)
+				mf2->v4 = calc_mapping(indexMap, inMF->v4, j);
+
+			mf2->flag &= ~ME_FACE_STEPINDEX;
+
+			if (inDLM->tface) {
+				TFace *inTF = &inDLM->tface[i];
+				tf = &dlm->tface[dlm->totface-1];
+
+				*tf = *inTF;
+			} else if (inDLM->mcol) {
+				MCol *inMC = &inDLM->mcol[i*4];
+				mc = &dlm->mcol[(dlm->totface-1)*4];
+
+				mc[0] = inMC[0];
+				mc[1] = inMC[1];
+				mc[2] = inMC[2];
+				mc[3] = inMC[3];
+			}
+
+			test_index_face(mf2, mc, tf, inMF->v4?4:3);
+
+			/* if the face has fewer than 3 vertices, don't create it */
+			if(mf2->v3 == 0)
+				dlm->totface--;
+		}
+	}
+
+	MEM_freeN(indexMap);
+
+	return dlm;
+}
+
+static void *arrayModifier_applyModifier_internal(ModifierData *md,
+                                                  Object *ob,
+                                                  void *derivedData,
+                                                  float (*vertexCos)[3],
+                                                  int useRenderParams,
+                                                  int isFinalCalc)
+{
+	DerivedMesh *dm = derivedData;
+	ArrayModifierData *amd = (ArrayModifierData*) md;
+	DispListMesh *outDLM, *inDLM;
+
+	if (dm) {
+		inDLM = dm->convertToDispListMesh(dm, 1);
+	} else {
+		Mesh *me = ob->data;
+
+		inDLM = MEM_callocN(sizeof(*inDLM), "inDLM");
+		inDLM->dontFreeVerts = inDLM->dontFreeOther = 1;
+		inDLM->mvert = me->mvert;
+		inDLM->medge = me->medge;
+		inDLM->mface = me->mface;
+		inDLM->tface = me->tface;
+		inDLM->mcol = me->mcol;
+		inDLM->totvert = me->totvert;
+		inDLM->totedge = me->totedge;
+		inDLM->totface = me->totface;
+	}
+
+	outDLM = arrayModifier_doArray(amd, ob, inDLM, vertexCos, dm?0:1);
+
+	displistmesh_free(inDLM);
+	
+	mesh_calc_normals(outDLM->mvert, outDLM->totvert, outDLM->mface,
+	                  outDLM->totface, &outDLM->nors);
+
+	return derivedmesh_from_displistmesh(outDLM, NULL);
+}
+
+static void *arrayModifier_applyModifier(ModifierData *md,
+                                         Object *ob,
+                                         void *derivedData,
+                                         float (*vertexCos)[3],
+                                         int useRenderParams,
+                                         int isFinalCalc)
+{
+	return arrayModifier_applyModifier_internal(md, ob, derivedData,
+	                                            vertexCos, 0, 1);
+}
+
+static void *arrayModifier_applyModifierEM(ModifierData *md,
+                                           Object *ob,
+                                           void *editData,
+                                           void *derivedData,
+                                           float (*vertexCos)[3])
+{
+	if (derivedData) {
+		return arrayModifier_applyModifier_internal(md, ob, derivedData,
+		                                            vertexCos, 0, 1);
+	} else {
+		ArrayModifierData *amd = (ArrayModifierData*) md;
+		DispListMesh *outDLM, *inDLM = displistmesh_from_editmesh(editData);
+
+		outDLM = arrayModifier_doArray(amd, ob, inDLM, vertexCos, 0);
+
+		displistmesh_free(inDLM);
+
+		mesh_calc_normals(outDLM->mvert, outDLM->totvert,
+		                  outDLM->mface, outDLM->totface, &outDLM->nors);
+
+		return derivedmesh_from_displistmesh(outDLM, NULL);
+	}
+}
+
 /* Mirror */
 
 static void mirrorModifier_initData(ModifierData *md)
@@ -649,71 +1226,12 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 	if (derivedData) {
 		return mirrorModifier_applyModifier__internal(md, ob, derivedData, vertexCos, 0, 1);
 	} else {
+		DispListMesh *inDLM, *outDLM;
 		MirrorModifierData *mmd = (MirrorModifierData*) md;
-		DispListMesh *outDLM, *inDLM = MEM_callocN(sizeof(*inDLM), "mm_dlm");
-		EditMesh *em = editData;
-		EditVert *eve, *preveve;
-		EditEdge *eed;
-		EditFace *efa;
-		int i;
-
-		for (i=0,eve=em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
-
-		inDLM->totvert = BLI_countlist(&em->verts);
-		inDLM->totedge = BLI_countlist(&em->edges);
-		inDLM->totface = BLI_countlist(&em->faces);
-
-		inDLM->mvert = MEM_mallocN(sizeof(*inDLM->mvert)*inDLM->totvert*2, "mm_mv");
-		inDLM->medge = MEM_mallocN(sizeof(*inDLM->medge)*inDLM->totedge*2, "mm_med");
-		inDLM->mface = MEM_mallocN(sizeof(*inDLM->mface)*inDLM->totface*2, "mm_mf");
-
-			/* Need to be able to mark loose edges */
-		for (eed=em->edges.first; eed; eed=eed->next) {
-			eed->f2 = 0;
-		}
-		for (efa=em->faces.first; efa; efa=efa->next) {
-			efa->e1->f2 = 1;
-			efa->e2->f2 = 1;
-			efa->e3->f2 = 1;
-			if (efa->e4) efa->e4->f2 = 1;
-		}
-
-		for (i=0,eve=em->verts.first; i<inDLM->totvert; i++,eve=eve->next) {
-			MVert *mv = &inDLM->mvert[i];
-
-			VECCOPY(mv->co, eve->co);
-			mv->mat_nr = 0;
-			mv->flag = ME_VERT_STEPINDEX;
-		}
-		for (i=0,eed=em->edges.first; i<inDLM->totedge; i++,eed=eed->next) {
-			MEdge *med = &inDLM->medge[i];
-
-			med->v1 = (int) eed->v1->prev;
-			med->v2 = (int) eed->v2->prev;
-			med->crease = (unsigned char) (eed->crease*255.0f);
-			med->flag = ME_EDGEDRAW|ME_EDGERENDER|ME_EDGE_STEPINDEX;
-			
-			if (eed->seam) med->flag |= ME_SEAM;
-			if (!eed->f2) med->flag |= ME_LOOSEEDGE;
-		}
-		for (i=0,efa=em->faces.first; i<inDLM->totface; i++,efa=efa->next) {
-			MFace *mf = &inDLM->mface[i];
-			mf->v1 = (int) efa->v1->prev;
-			mf->v2 = (int) efa->v2->prev;
-			mf->v3 = (int) efa->v3->prev;
-			mf->v4 = efa->v4?(int) efa->v4->prev:0;
-			mf->mat_nr = efa->mat_nr;
-			mf->flag = efa->flag|ME_FACE_STEPINDEX;
-			test_index_face(mf, NULL, NULL, efa->v4?4:3);
-		}
-
+		
+		inDLM = displistmesh_from_editmesh((EditMesh*)editData);
 		outDLM = mirrorModifier__doMirror(mmd, inDLM, vertexCos, 0);
-
 		displistmesh_free(inDLM);
-
-		for (preveve=NULL, eve=em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
 
 		mesh_calc_normals(outDLM->mvert, outDLM->totvert, outDLM->mface, outDLM->totface, &outDLM->nors);
 
@@ -1290,6 +1808,19 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->copyData = buildModifier_copyData;
 		mti->dependsOnTime = buildModifier_dependsOnTime;
 		mti->applyModifier = buildModifier_applyModifier;
+
+		mti = INIT_TYPE(Array);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+		             | eModifierTypeFlag_SupportsMapping
+		             | eModifierTypeFlag_SupportsEditmode
+		             | eModifierTypeFlag_EnableInEditmode;
+		mti->initData = arrayModifier_initData;
+		mti->copyData = arrayModifier_copyData;
+		mti->foreachObjectLink = arrayModifier_foreachObjectLink;
+		mti->updateDepgraph = arrayModifier_updateDepgraph;
+		mti->applyModifier = arrayModifier_applyModifier;
+		mti->applyModifierEM = arrayModifier_applyModifierEM;
 
 		mti = INIT_TYPE(Mirror);
 		mti->type = eModifierTypeType_Constructive;

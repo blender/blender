@@ -1814,6 +1814,17 @@ void VecMulf(float *v1, float f)
 	v1[2]*= f;
 }
 
+int VecLenCompare(float *v1, float *v2, float limit)
+{
+    float x,y,z;
+
+	x=v1[0]-v2[0];
+	y=v1[1]-v2[1];
+	z=v1[2]-v2[2];
+
+	return ((x*x + y*y + z*z) < (limit*limit));
+}
+
 int VecCompare( float *v1, float *v2, float limit)
 {
 	if( fabs(v1[0]-v2[0])<limit )
