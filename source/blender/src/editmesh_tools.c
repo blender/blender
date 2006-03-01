@@ -212,7 +212,8 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	xvertsort *sortblock, *sb, *sb1;
 	struct facesort *vlsortblock, *vsb, *vsb1;
 	float dist;
-	int a, b, test, amount;
+	int a, b, test, amount, currweight, doubweight, targetweight;
+	MDeformWeight *newdw;
 
 	/* flag 128 is cleared, count */
 	eve= em->verts.first;
@@ -270,6 +271,51 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 		sb++;
 	}
 	MEM_freeN(sortblock);
+
+	
+	for(eve = em->verts.first; eve; eve=eve->next){
+		
+		if(eve->f & flag) {
+			if(eve->f & 128) {
+			
+				v1 = eve->tmp.v;
+				
+				if(v1->dw && eve->dw){
+				
+					for(doubweight=0; doubweight < eve->totweight; doubweight++){
+						targetweight = -1;
+						for(currweight = 0; currweight < v1->totweight; currweight++){
+							if(v1->dw[currweight].def_nr == eve->dw[doubweight].def_nr){
+								targetweight = currweight;
+								break;
+							}
+						}
+						
+						if(targetweight != -1){		/*average*/
+							v1->dw[targetweight].weight = (v1->dw[targetweight].weight + eve->dw[doubweight].weight) / 2;
+						}
+						else{	/*append*/
+							newdw = MEM_callocN(sizeof(MDeformWeight)*(v1->totweight+1), "MDeformWeight Append");
+							memcpy(newdw, v1->dw, sizeof(MDeformVert)*v1->totweight);
+							MEM_freeN(v1->dw);
+							
+							v1->dw= newdw;
+							v1->dw[v1->totweight].weight = eve->dw[doubweight].weight;
+							v1->dw[v1->totweight].def_nr = eve->dw[doubweight].def_nr;
+							v1->totweight++;
+						}	
+					}
+				}
+				else if(eve->dw){	/*just straight copy vert weights*/
+					
+					newdw = MEM_mallocN(sizeof(MDeformWeight) * (eve->totweight), "MDeformWeight Copy");
+					memcpy(newdw, eve->dw, sizeof(MDeformWeight)*eve->totweight);
+					v1->dw= newdw;
+					
+				}
+			}
+		}
+	}
 
 	/* test edges and insert again */
 	eed= em->edges.first;
