@@ -489,7 +489,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
 	float abs4;
 	short c=0;
 
-	if(do_pano) return testclip(v);
+	if(do_pano==0) return testclip(v);
 
 	abs4= fabs(v[3]);
 
