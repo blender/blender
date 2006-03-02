@@ -2674,7 +2674,7 @@ void copy_attr_menu()
 	}
 
 	if(ob->type==OB_MESH){
-		strcat(str, "|Subdiv%x21");
+		strcat(str, "|Subdiv%x21|AutoSmooth%x27");
 	}
 
 	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
@@ -2927,6 +2927,17 @@ void copy_attr(short event)
 				}
 				else if(event==26) {
 					copy_nlastrips(&base->object->nlastrips, &ob->nlastrips);
+				}
+				else if(event==27) {
+					if (base->object->type==OB_MESH) {
+						Mesh *me= ob->data;
+						Mesh *cme= base->object->data;
+						cme->smoothresh= me->smoothresh;
+						if(me->flag & ME_AUTOSMOOTH)
+							cme->flag |= ME_AUTOSMOOTH;
+						else
+							cme->flag &= ~ME_AUTOSMOOTH;
+					}
 				}
 			}
 		}
