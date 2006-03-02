@@ -229,7 +229,7 @@ void *MEM_mallocN(unsigned int len, const char *str)
 		make_memhead_header(memh, len, str);
 		return (++memh);
 	}
-	print_error("Malloc returns nill: len=%d in %s\n",len,str);
+	print_error("Malloc returns nill: len=%d in %s, total %d\n",len, str, mem_in_use);
 	return NULL;
 }
 
@@ -245,7 +245,7 @@ void *MEM_callocN(unsigned int len, const char *str)
 		make_memhead_header(memh, len, str);
 		return (++memh);
 	}
-	print_error("Calloc returns nill: len=%d in %s\n",len,str);
+	print_error("Calloc returns nill: len=%d in %s, total %d\n",len, str, mem_in_use);
 	return 0;
 }
 
@@ -268,7 +268,7 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 		mmap_in_use += len;
 		return (++memh);
 	}
-	print_error("Mapalloc returns nill: len=%d in %s\n",len, str);
+	print_error("Mapalloc returns nill: len=%d in %s, total %d\n",len, str, mmap_in_use);
 	return NULL;
 #endif
 }
