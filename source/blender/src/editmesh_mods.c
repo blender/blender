@@ -1004,7 +1004,7 @@ static void loop_multiselect(int looptype)
 			edgering_select(eed,SELECT);
 		}
 		countall();
-		EM_select_flush();
+		EM_selectmode_flush();
 		BIF_undo_push("Edge Ring Multi-Select");
 	}
 	else{
@@ -1013,7 +1013,7 @@ static void loop_multiselect(int looptype)
 			edgeloop_select(eed,SELECT);
 		}
 		countall();
-		EM_select_flush();
+		EM_selectmode_flush();
 		BIF_undo_push("Edge Loop Multi-Select");
 	}
 	MEM_freeN(edarray);
