@@ -2622,6 +2622,7 @@ static PyObject *Object_setLocation( BPy_Object * self, PyObject * args )
 
 	/* since we have messed with object, we need to flag for DAG recalc */
 	self->object->recalc |= OB_RECALC_OB;  
+	DAG_object_flush_update(G.scene, self->object, OB_RECALC_DATA);
 
 	Py_INCREF( Py_None );
 	return ( Py_None );
