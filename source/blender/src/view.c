@@ -1056,7 +1056,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 						
 						Mat4CpyMat4(dob->ob->obmat, dob->omat);
 					}
-					BLI_freelistN(lb);
+					free_object_duplilist(lb);
 				}
 				
 				code++;
