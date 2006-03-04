@@ -79,63 +79,87 @@ Notes:<br>
 #	 Version 1.4 Updates by Macouno from Elysiun.com
 # Fixed rounding error that can cause breaks in lines.
 # --------------------------
+#  Version 2.0
+# New interface using PupBlock and FileSelector
+# Save/Load config to Registry
+# Edit in external program
+# --------------------------
+
+FullPython = False
 
 import Blender
+
+try:
+	import os
+	FullPython = True
+except:
+	pass
+
 from math import *
 
-default_file = Blender.sys.dirname(Blender.Get ("filename")) + Blender.sys.sep
 
-bSize = Blender.Draw.Create(500)
-bWSize = Blender.Draw.Create(1)
-bFile = Blender.Draw.Create(default_file)
-bObFile = Blender.Draw.Create(1)
-bWrap = Blender.Draw.Create(1)
-bAllFaces = Blender.Draw.Create(1)
+def ExportConfig():
+	conf = {}
+	
+	conf["SIZE"] = bSize.val
+	conf["WSIZE"] = bWSize.val
+	conf["OBFILE"] = bObFile.val
+	conf["WRAP"] = bWrap.val
+	conf["ALLFACES"] = bAllFaces.val
+	conf["EDIT"] = bEdit.val
+	conf["EXTERNALEDITOR"] = bEditPath.val
+	
+	Blender.Registry.SetKey("UVEXPORT", conf, True)
 
-def draw():
-	global bSize, bWSize, bFile, bObFile, bWrap, bAllFaces
-	# clearing screen
-	Blender.BGL.glClearColor(0.5, 0.5, 0.5, 1)
-	Blender.BGL.glColor3f(1.,1.,1.)
-	Blender.BGL.glClear(Blender.BGL.GL_COLOR_BUFFER_BIT)
+def ImportConfig():
+	global bSize, bWSize, bObFile, bWrap, bAllFaces
+	
+	conf = Blender.Registry.GetKey("UVEXPORT", True)
+	
+	if not conf:
+		return
+	
+	try:
+		bSize.val = conf["SIZE"]
+		bWSize.val = conf["WSIZE"]
+		bObFile.val = conf["OBFILE"]
+		bWrap.val = conf["WRAP"]
+		bAllFaces.val = conf["ALLFACES"]
+		bEdit.val = conf["EDIT"]
+		bEditPath.val = conf["EXTERNALEDITOR"]
+	except KeyError:
+		pass
+			
+	
 
-	#Title
-	Blender.BGL.glColor3f(1, 1, 1)
-	Blender.BGL.glRasterPos2d(8, 183)
-	Blender.Draw.Text("Blender UV Faces Export")
-	Blender.BGL.glRasterPos2d(8, 163)
-	Blender.Draw.Text("""(C) Feb. 2003 Martin Poirier (aka "theeth")""")
-  
-	# Instructions
-	Blender.BGL.glRasterPos2d(8, 83)
-	Blender.Draw.Text("1 - Select the mesh you want to export")
-	Blender.BGL.glRasterPos2d(8, 63)
-	Blender.Draw.Text("2 - Define the Size and WireSize parameters")
-	Blender.BGL.glRasterPos2d(8, 43)
-	Blender.Draw.Text("3 - Push the EXPORT button!!!")
+def Export(f):
+	obj = Blender.Scene.getCurrent().getActiveObject()
 
-	# Buttons
-	Blender.Draw.Button("EXPORT", 3, 10, 10, 100, 25)
-	Blender.Draw.Button("Exit", 1, 200, 177, 40, 18)
-	bSize = Blender.Draw.Number("Size", 4, 10, 130, 90, 18, bSize.val, 100, 10000, "Size of the exported image")
-	bWSize = Blender.Draw.Number("Wire Size", 4, 120, 130, 90, 18, bWSize.val, 1, 5, "Size of the wire of the faces")
-	bWrap = Blender.Draw.Toggle("Wrap", 5, 220, 130, 50, 20, bWrap.val, "Wrap to image size, scale otherwise")
-	bAllFaces = Blender.Draw.Toggle("AllFaces", 6, 280, 130, 60, 20, bAllFaces.val, "Export All or only selected faces")
+	if not obj:
+		Blender.Draw.PupMenu("ERROR%t|No Active Object!")
+		return
 
-	bFile = Blender.Draw.String("Path: ", 4, 10, 100, 200, 20, bFile.val, 100, "Filename path")
-	bObFile = Blender.Draw.Toggle("Ob", 4, 212, 100, 30, 20, bObFile.val, "Use object name in filename")
+	if obj.getType() != "Mesh":
+		Blender.Draw.PupMenu("ERROR%t|Not a Mesh!")
+		return
 
-def event(evt, val):
-	if evt == Blender.Draw.ESCKEY and not val: Blender.Draw.Exit()
-
-def bevent(evt):
-	bSize, bWSize, bFile, bObFile
-	if evt == 1: Blender.Draw.Exit()
-	if evt == 3:
-		if bObFile.val:
-			UV_Export(bSize.val, bWSize.val, bFile.val + Blender.Object.GetSelected()[0].name + ".tga")
-		else:
-			UV_Export(bSize.val, bWSize.val, bFile.val + ".tga")
+	mesh = obj.getData()
+	if not mesh.hasFaceUV():
+		Blender.Draw.PupMenu("ERROR%t|No UV coordinates!")
+		return
+	
+	if bObFile.val:
+		name = f + obj.name + ".tga"
+	else:
+		name = f + ".tga"
+		
+	UV_Export(mesh, bSize.val, bWSize.val, bWrap.val, bAllFaces.val, name)
+	
+	if FullPython and bEdit.val and bEditPath.val:
+		filepath = os.path.realpath(name)
+		print filepath
+		os.spawnl(os.P_NOWAIT, bEditPath.val, "", filepath)
+	
 
 def Buffer(height=16, width=16, profondeur=3,rvb=255 ):  
 	"""  
@@ -175,21 +199,7 @@ def write_tgafile(loc2,bitmap,width,height,profondeur):
 	  f.write(chr(t))  
 	f.close()  
 
-def UV_Export(size, wsize, file):
-	obj = Blender.Object.GetSelected()
-	if not obj:
-		Blender.Draw.PupMenu("ERROR%t|No Active Object!")
-		return
-	obj = obj[0];
-	if obj.getType() != "Mesh":
-		Blender.Draw.PupMenu("ERROR%t|Not a Mesh!")
-		return
-	mesh = obj.getData()
-	if not mesh.hasFaceUV():
-		Blender.Draw.PupMenu("ERROR%t|No UV coordinates!")
-		return
-	
-
+def UV_Export(mesh, size, wsize, wrap, allface, file):
 	vList = []
 	faces = []
 
@@ -199,9 +209,8 @@ def UV_Export(size, wsize, file):
 	
 	step = 0
 
-	if bAllFaces.val:
+	if allface:
 		faces = mesh.faces
-
 	else:
 		faces = mesh.getSelectedFaces ()
 
@@ -210,7 +219,7 @@ def UV_Export(size, wsize, file):
 
 	img = Buffer(size+1,size+1)
 
-	if bWrap.val:
+	if wrap:
 		wrapSize = size
 	else:
 		wrapSize = size
@@ -249,7 +258,7 @@ def UV_Export(size, wsize, file):
 					x = int(floor((co1[0] + t*(co2[0]-co1[0])/step) * size))
 					y = int(floor((co1[1] + t*(co2[1]-co1[1])/step) * size))
 
-					if bWrap.val:
+					if wrap:
 						x = x % wrapSize
 						y = y % wrapSize
 					else:
@@ -272,7 +281,7 @@ def UV_Export(size, wsize, file):
 			x = int(v[0] * size)
 			y = int(v[1] * size)
 
-			if bWrap.val:
+			if wrap:
 				x = x % wrapSize
 				y = y % wrapSize
 			else:
@@ -286,5 +295,45 @@ def UV_Export(size, wsize, file):
 	
 	
 	write_tgafile(file,img,size,size,3)
+	
+def SetEditorAndExport(f):
+	global bEditPath
+	bEditPath.val = f
+	
+	ExportConfig()
+	
+	Blender.Window.FileSelector(Export, "Save UV Image")
+	
+# ###################################### MAIN SCRIPT BODY ###############################
 
-Blender.Draw.Register(draw,event,bevent)
+bSize = Blender.Draw.Create(500)
+bWSize = Blender.Draw.Create(1)
+bObFile = Blender.Draw.Create(1)
+bWrap = Blender.Draw.Create(1)
+bAllFaces = Blender.Draw.Create(1)
+bEdit = Blender.Draw.Create(0)
+bEditPath = Blender.Draw.Create("")
+
+ImportConfig()
+
+Block = []
+
+Block.append(("Size: ", bSize, 100, 10000, "Size of the exported image"))
+Block.append(("Wire: ", bWSize, 1, 5, "Size of the wire of the faces"))
+Block.append(("Wrap", bWrap, "Wrap to image size, scale otherwise"))
+Block.append(("All Faces", bAllFaces, "Export all or only selected faces"))
+Block.append(("Ob", bObFile, "Use object name in filename"))
+
+if FullPython:
+	Block.append(("Edit", bEdit, "Edit resulting file in an external program"))
+	Block.append(("Editor: ", bEditPath, 0, 1024, "Path to external editor (leave blank to select a new one)"))
+
+retval = Blender.Draw.PupBlock("UV Image Export", Block)
+
+if retval:
+	ExportConfig()
+	
+	if bEdit.val and not bEditPath.val:
+		Blender.Window.FileSelector(SetEditorAndExport, "Select Editor")
+	else:
+		Blender.Window.FileSelector(Export, "Save UV Image")
