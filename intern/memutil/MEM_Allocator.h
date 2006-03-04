@@ -54,11 +54,11 @@ struct MEM_Allocator
 #endif
 
 	MEM_Allocator() throw() {}
-	MEM_Allocator(const MEM_Allocator& __a) throw() {}
+	MEM_Allocator(const MEM_Allocator&) throw() {}
 
 #ifndef MS_VISUALC_6_0_WORKAROUND
 	template<typename _Tp1>
-        MEM_Allocator(const MEM_Allocator<_Tp1> __a) throw() { }
+        MEM_Allocator(const MEM_Allocator<_Tp1>) throw() { }
 #endif
 
 	~MEM_Allocator() throw() {}

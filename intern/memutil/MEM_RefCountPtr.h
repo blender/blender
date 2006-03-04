@@ -140,7 +140,7 @@ protected :
 	};
 
 	MEM_RefCountable (
-		const MEM_RefCountable & other
+		const MEM_RefCountable &
 	) :
 		m_count (0)
 	{

@@ -79,7 +79,7 @@ public:
 	 * Returns the type of drawing context used in this window.
 	 * @return The current type of drawing context.
 	 */
-	inline virtual GHOST_TDrawingContextType getDrawingContextType() = 0;
+	virtual GHOST_TDrawingContextType getDrawingContextType() = 0;
 
 	/**
 	 * Tries to install a rendering context in this window.
@@ -193,7 +193,7 @@ public:
 	 * Returns the window user data.
 	 * @return The window user data.
 	 */
-	inline virtual GHOST_TUserDataPtr getUserData() const = 0;
+	virtual GHOST_TUserDataPtr getUserData() const = 0;
 	
 	/**
 	 * Changes the window user data.

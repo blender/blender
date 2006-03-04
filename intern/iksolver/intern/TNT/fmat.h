@@ -38,7 +38,6 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
-#include <strstream>
 #ifdef TNT_USE_REGIONS
 #include "region2d.h"
 #endif
@@ -197,18 +196,6 @@ class Fortran_Matrix
         copy(v);
     }
 
-
-    Fortran_Matrix(Subscript M, Subscript N, char *s)
-    {
-        initialize(M,N);
-        std::istrstream ins(s);
-
-        Subscript i, j;
-
-        for (i=1; i<=M; i++)
-            for (j=1; j<=N; j++)
-                ins >> (*this)(i,j);
-    }
 
     // destructor
     ~Fortran_Matrix()
