@@ -12,31 +12,48 @@ This module provides access to B{Mesh Data} objects in Blender.  It differs
 from the NMesh module by allowing direct access to the actual Blender data, 
 so that changes are done immediately without need to update or put the data
 back into the original mesh.  The result is faster operations with less memory
-usage.
+usage.  The example below creates a simple pyramid, and sets some of the
+face's attributes (the vertex color):
 
 Example::
 
-  import Blender
-  from Blender import Mesh, Material, Window
+  from Blender import *
 
   editmode = Window.EditMode()    # are we in edit mode?  If so ...
   if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
 
-  me = Mesh.Get("Plane")          # get the mesh data called "Plane"
+  # define vertices and faces for a pyramid
+  coords=[ [-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1], [0,0,1] ]	
+  faces= [ [3,2,1,0], [0,1,4], [1,2,4], [2,3,4], [3,0,4] ]
 
-  if not me.materials:             # if there are no materials ...
-    newmat = Material.New()        # create one ...
-    me.materials=[newmat]          # and set the mesh's list of mats
+  me = Mesh.New('myMesh')          # create a new mesh
 
-  print me.materials               # print the list of materials
-  mat = me.materials[0]            # grab the first material in the list
-  mat.R = 1.0                      # redefine its red component
-  for v in me.verts:               # loop the list of vertices
-    v.co[0] *= 2.5                 # multiply the coordinates
-    v.co[1] *= 5.0
-    v.co[2] *= 2.5
+  me.verts.extend(coords)          # add vertices to mesh
+
+  for f in faces:                  # replace face indices to MVerts
+    for i in xrange(len(f)):
+      f[i] = me.verts[f[i]]
+
+  me.faces.extend(faces)           # add faces to the mesh (also adds edges)
+
+  me.vertexColors = 1              # enable vertex colors 
+  me.faces[1].col[0].r = 255       # make each vertex a different color
+  me.faces[1].col[1].g = 255
+  me.faces[1].col[2].b = 255
+
+  ob = Object.New('Mesh','myObj')  # link mesh to an object
+  ob.link(me)
+
+  sc = Scene.GetCurrent()          # link object to current scene
+  sc.link(ob)
 
   if editmode: Window.EditMode(1)  # optional, just being nice
+
+Vertices, edges and faces are added to a mesh using the .extend() methods.
+For best speed and efficiency, gather all vertices, edges or faces into a
+list and call .extend() once as in the above example.  Similarly, deleting
+from the mesh is done with the .delete() methods and are most efficient when
+done once.
 
 @type Modes: readonly dictionary
 @type FaceFlags: readonly dictionary
