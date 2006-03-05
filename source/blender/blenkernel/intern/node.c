@@ -846,7 +846,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	node->new= nnode;
 	nnode->new= NULL;
 	nnode->preview= NULL;
-	
+	nnode->block= NULL;
+
 	return nnode;
 }
 
