@@ -252,16 +252,29 @@ void *MEM_callocN(unsigned int len, const char *str)
 /* note; mmap returns zero'd memory */
 void *MEM_mapallocN(unsigned int len, const char *str)
 {
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32) || defined(__sgi)
+#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
 	return MEM_callocN(len, str);
 #else
 	MemHead *memh;
 	
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 	
-	memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail), 
-			   PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
-	
+#ifdef __sgi
+	{
+#include <fcntl.h>
+
+	  int fd;
+	  fd = open("/dev/zero", O_RDWR);
+
+	  memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail),
+		     PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	  close(fd);
+	}
+#else
+	memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail),
+		   PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
+#endif
+
 	if(memh!=(MemHead *)-1) {
 		make_memhead_header(memh, len, str);
 		memh->mmap= 1;
