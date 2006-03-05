@@ -2128,12 +2128,18 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 {
 	
 	switch(event) {
-		 
+	int count; 
+	
 	case 0: /* make vertex parent */
 		make_parent();
 		break;
 	case 1: /* remove doubles */
-		notice("Removed: %d", removedoublesflag(1, G.scene->toolsettings->doublimit));
+		count= removedoublesflag(1, G.scene->toolsettings->doublimit);
+		notice("Removed: %d", count);
+		if (count) { /* only undo and redraw if an action is taken */
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			BIF_undo_push("Rem Doubles");
+		}
 		break;
 	case 2: /* smooth */
 		vertexsmooth();
