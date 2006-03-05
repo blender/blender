@@ -591,9 +591,13 @@ void fluidsimBake(struct Object *ob)
 	{ int timeIcu[1] = { FLUIDSIM_TIME };
 		float timeDef[1] = { 1. };
 		int gravIcu[3] = { FLUIDSIM_GRAV_X, FLUIDSIM_GRAV_Y, FLUIDSIM_GRAV_Z };
-		float gravDef[3] = { domainSettings->gravx, domainSettings->gravy, domainSettings->gravz };
+		float gravDef[3];
 		int viscIcu[1] = { FLUIDSIM_VISC };
 		float viscDef[1] = { 1. };
+
+		gravDef[0] = domainSettings->gravx;
+		gravDef[1] = domainSettings->gravy;
+		gravDef[2] = domainSettings->gravz;
 
 		// time channel is a bit special, init by hand...
 		timeAtIndex = MEM_callocN( (allchannelSize+1)*1*sizeof(float), "fluidsiminit_timeatindex");
@@ -653,9 +657,13 @@ void fluidsimBake(struct Object *ob)
 			float vals[3] = {0.0,0.0,0.0}; 
 			int o = channelObjCount;
 			int   inivelIcu[3] =  { FLUIDSIM_VEL_X, FLUIDSIM_VEL_Y, FLUIDSIM_VEL_Z };
-			float inivelDefs[3] = { obit->fluidsimSettings->iniVelx, obit->fluidsimSettings->iniVely, obit->fluidsimSettings->iniVelz };
+			float inivelDefs[3];
 			int   activeIcu[1] =  { FLUIDSIM_ACTIVE };
 			float activeDefs[1] = { 1 }; // default to on
+
+			inivelDefs[0] = obit->fluidsimSettings->iniVelx;
+			inivelDefs[1] = obit->fluidsimSettings->iniVely;
+			inivelDefs[2] = obit->fluidsimSettings->iniVelz;
 
 			// check & init loc,rot,size
 			for(j=0; j<3; j++) {
