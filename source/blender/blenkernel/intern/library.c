@@ -75,6 +75,8 @@
 #include "DNA_action_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_node_types.h"
+#include "DNA_nla_types.h"
+#include "DNA_effect_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -105,6 +107,7 @@
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_node.h"
+#include "BKE_effect.h"
 
 #include "BPI_script.h"
 
@@ -870,6 +873,42 @@ static void image_fix_relative_path(Image *ima)
 	}
 }
 
+#define LIBTAG(a)	if(a && a->id.lib) {a->id.flag &=~LIB_INDIRECT; a->id.flag |= LIB_EXTERN;}
+
+static void lib_indirect_test_id(ID *id)
+{
+	
+	if(id->lib)
+		return;
+
+	if(GS(id->name)==ID_OB) {		
+		Object *ob= (Object *)id;
+		bActionStrip *strip;
+		Mesh *me;
+		PartEff *paf;
+		int a;
+
+		for (strip=ob->nlastrips.first; strip; strip=strip->next){
+			LIBTAG(strip->object); 
+			LIBTAG(strip->act);
+			LIBTAG(strip->ipo);
+		}
+	
+		for(a=0; a<ob->totcol; a++) {
+			LIBTAG(ob->mat[a]);
+		}
+		
+		paf = give_parteff(ob);
+		if (paf) 
+			LIBTAG(paf->group);
+	
+		LIBTAG(ob->dup_group);
+		me= ob->data;
+		LIBTAG(me);
+	}
+}
+
+
 /* if lib!=NULL, only all from lib local */
 void all_local(Library *lib)
 {
@@ -909,6 +948,13 @@ void all_local(Library *lib)
 			BLI_addtail(lbarray[a], id);
 			new_id(lbarray[a], id, 0);
 		}
+	}
+
+	/* patch 3: make sure library data isn't indirect falsely... */
+	a= set_listbasepointers(G.main, lbarray);
+	while(a--) {
+		for(id= lbarray[a]->first; id; id=id->next)
+			lib_indirect_test_id(id);
 	}
 }
 
