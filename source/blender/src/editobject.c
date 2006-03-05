@@ -3003,7 +3003,9 @@ void make_links_menu()
 		strcat(str, "|Lattice Data%x2");
 	else if(ob->type==OB_ARMATURE)
 		strcat(str, "|Armature Data%x2");
-
+	else if(ob->type==OB_EMPTY)
+		strcat(str, "|Group%x6");
+	
 	event= pupmenu(str);
 
 	if(event<= 0) return;
@@ -3108,6 +3110,14 @@ void make_links(short event)
 					if(obt->ipo) {
 						id_us_plus((ID *)obt->ipo);
 						do_ob_ipo(obt);
+					}
+				}
+				else if(event==6) {
+					if(ob->dup_group) ob->dup_group->id.us--;
+					obt->dup_group= ob->dup_group;
+					if(obt->dup_group) {
+						id_us_plus((ID *)obt->dup_group);
+						obt->transflag |= OB_DUPLIGROUP;
 					}
 				}
 				else if(event==3) {  /* materials */
@@ -4544,7 +4554,7 @@ void selectlinks_menu(void)
 	/* If you modify this menu, please remember to update view3d_select_linksmenu
 	 * in header_view3d.c and the menu in toolbox.c
 	 */
-	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4");
+	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|Group%x5");
 	
 	if (nr <= 0) return;
 	
@@ -4588,6 +4598,9 @@ void selectlinks(int nr)
 			if(tex==0) return;
 		}
 	}
+	else if(nr==5) {
+		if(ob->dup_group==NULL) return;
+	}
 	else return;
 	
 	base= FIRSTBASE;
@@ -4615,6 +4628,9 @@ void selectlinks(int nr)
 						}
 					}
 				}
+			}
+			else if(nr==5) {
+				if(base->object->dup_group==ob->dup_group) base->flag |= SELECT;
 			}
 			base->object->flag= base->flag;
 		}

@@ -1668,6 +1668,7 @@ static void do_view3d_edit_object_makelinksmenu(void *arg, int event)
 	case 2:
 	case 3:
 	case 4:
+	case 6:
 		make_links((short)event);
 		break;
 		}
@@ -1714,6 +1715,8 @@ static uiBlock *view3d_edit_object_makelinksmenu(void *arg_unused)
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 		} else if(ob->type==OB_ARMATURE) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature Data|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+		} else if(ob->type==OB_EMPTY) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Group|Ctrl L, 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 		}
 	}
 	
