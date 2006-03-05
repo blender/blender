@@ -121,6 +121,7 @@ void spaceipo_assign_ipo(struct SpaceIpo *si, struct Ipo *ipo);
 
 /* header_text.c */
 void do_text_editmenu_to3dmenu(void *arg, int event);
+void do_text_formatmenu_convert(void *arg, int event);
 
 /* header_info.c */
 void do_info_add_meshmenu(void *arg, int event);

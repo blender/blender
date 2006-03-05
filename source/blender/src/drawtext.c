@@ -2049,3 +2049,108 @@ static int check_numbers(char *string)
 	}
 	return 0;
 }
+
+void convert_tabs (struct SpaceText *st, int tab)
+{
+	Text *text = st->text;
+	TextLine *tmp;
+	char *check_line, *new_line, *format;
+	int a, j, extra, number; //unknown for now
+	
+	if (!text) return;
+	
+	tmp = text->lines.first;
+	
+	//first convert to all space, this make it alot easier to convert to tabs because there is no mixtures of ' ' && '\t'
+	while(tmp) {
+		check_line = tmp->line;
+		new_line = MEM_mallocN(render_string(check_line)+1, "Converted_Line");
+		format = MEM_mallocN(render_string(check_line)+1, "Converted_Syntax_format");
+		j = 0;
+		for (a=0; a < strlen(check_line); a++) { //foreach char in line
+			if(check_line[a] == '\t') { //checking for tabs
+				//get the number of spaces this tabs is showing
+				//i dont like doing it this way but will look into it later
+				new_line[j] = '\0';
+				number = render_string(new_line);
+				new_line[j] = '\t';
+				new_line[j+1] = '\0';
+				number = render_string(new_line)-number;
+				for(extra = 0; extra < number; extra++) {
+					new_line[j] = ' ';
+					j++;
+				}
+			} else {
+				new_line[j] = check_line[a];
+				++j;
+			}
+		}
+		new_line[j] = '\0';
+		// put new_line in the tmp->line spot still need to try and set the curc correctly
+		if (tmp->line) MEM_freeN(tmp->line);
+		if(tmp->format) MEM_freeN(tmp->format);
+		
+		tmp->line = new_line;
+		tmp->len = strlen(new_line);
+		tmp->format = format;
+		tmp = tmp->next;
+	}
+	
+	if (tab) // Converting to tabs
+	{	//start over from the begining
+		tmp = text->lines.first;
+		
+		while(tmp) {
+			check_line = tmp->line;
+			extra = 0;
+			for (a = 0; a < strlen(check_line); a++) {
+				number = 0;
+				for (j = 0; j < st->tabnumber; j++) {
+					if ((a+j) <= strlen(check_line)) { //check to make sure we are not pass the end of the line
+						if(check_line[a+j] != ' ') {
+							number = 1;
+						}
+					}
+				}
+				if (!number) { //found all number of space to equal a tab
+					a = a+(st->tabnumber-1);
+					extra = extra+1;
+				}
+			}
+			
+			if ( extra > 0 ) { //got tabs make malloc and do what you have to do
+				new_line = MEM_mallocN(strlen(check_line)-(((st->tabnumber*extra)-extra)-1), "Converted_Line");
+				format = MEM_mallocN(strlen(check_line)-(((st->tabnumber*extra)-extra)-1), "Converted_Syntax_format");
+				extra = 0; //reuse vars
+				for (a = 0; a < strlen(check_line); a++) {
+					number = 0;
+					for (j = 0; j < st->tabnumber; j++) {
+						if ((a+j) <= strlen(check_line)) { //check to make sure we are not pass the end of the line
+							if(check_line[a+j] != ' ') {
+								number = 1;
+							}
+						}
+					}
+					if (!number) { //found all number of space to equal a tab
+						new_line[extra] = '\t';
+						a = a+(st->tabnumber-1);
+						++extra;
+						
+					} else { //not adding a tab
+						new_line[extra] = check_line[a];
+						++extra;
+					}
+				}
+				new_line[extra] = '\0';
+				// put new_line in the tmp->line spot still need to try and set the curc correctly
+				if (tmp->line) MEM_freeN(tmp->line);
+				if(tmp->format) MEM_freeN(tmp->format);
+				
+				tmp->line = new_line;
+				tmp->len = strlen(new_line);
+				tmp->format = format;
+			}
+			tmp = tmp->next;
+		}
+	}
+}

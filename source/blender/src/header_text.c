@@ -425,6 +425,33 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 	return block;
 }
 
+void do_text_formatmenu_convert(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first;
+	
+	switch(event) {
+	case 1: convert_tabs(st, 0); break;
+	case 2: convert_tabs(st, 1); break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *text_formatmenu_convert(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "do_text_formatmenu_convert", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_text_formatmenu_convert, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Spaces",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "Converts script whitespace to spaces based on Tab:");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Tabs",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "Converts script whitespace to tabs based on Tab:");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 /* Format menu */
 static uiBlock *text_formatmenu(void *arg_unused)
 {
@@ -440,6 +467,8 @@ static uiBlock *text_formatmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Comment", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Uncomment|Ctrl Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, text_formatmenu_convert, NULL, ICON_RIGHTARROW_THIN, "Convert whitespace", 0, yco-=20, menuwidth, 19, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
