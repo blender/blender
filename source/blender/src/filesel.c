@@ -479,7 +479,7 @@ void test_flags_file(SpaceFile *sfile)
 				
 				if(sfile->type==FILE_LOADLIB) {
 					char name[FILE_MAXDIR+FILE_MAXFILE];
-					strcpy(name, sfile->dir);
+					BLI_strncpy(name, sfile->dir, sizeof(name));
 					strcat(name, file->relname);
 					
 					/* prevent current file being used as acceptable dir */
@@ -654,7 +654,7 @@ static void split_sfile(SpaceFile *sfile, char *s1)
 {
 	char string[FILE_MAXDIR+FILE_MAXFILE], dir[FILE_MAXDIR], file[FILE_MAXFILE];
 
-	strcpy(string, s1);
+	BLI_strncpy(string, s1, sizeof(string));
 
 	BLI_split_dirfile(string, dir, file);
 	
@@ -664,7 +664,7 @@ static void split_sfile(SpaceFile *sfile, char *s1)
 		}
 		else test_flags_file(sfile);
 	}
-	strcpy(sfile->file, file);
+	BLI_strncpy(sfile->file, file, sizeof(sfile->file));
 		
 	BLI_make_file_string(G.sce, sfile->dir, dir, "");
 }
@@ -1231,7 +1231,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	if(curarea->headwin) addqueue(curarea->headwin, CHANGED, 1);
 
 	name[2]= 0;
-	strcpy(name, file);
+	BLI_strncpy(name, file, sizeof(name));
 	
 	sfile= curarea->spacedata.first;
 	/* sfile wants a (*)(short), but get (*)(char*) */
@@ -1250,11 +1250,11 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	if(type==FILE_MAIN) {
 		char *groupname;
 		
-		strcpy(sfile->file, name+2);
+		BLI_strncpy(sfile->file, name+2, sizeof(sfile->file));
 
 		groupname = BLO_idcode_to_name( GS(name) );
 		if (groupname) {
-			strcpy(sfile->dir, groupname);
+			BLI_strncpy(sfile->dir, groupname, sizeof(sfile->dir) - 1);
 			strcat(sfile->dir, "/");
 		}
 
@@ -1265,7 +1265,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 		freefilelist(sfile);
 	}
 	else if(type==FILE_LOADLIB) {
-		strcpy(sfile->dir, name);
+		BLI_strncpy(sfile->dir, name, sizeof(sfile->dir));
 		if( is_a_library(sfile, temp, group) ) {
 			/* force a reload of the library-filelist */
 			freefilelist(sfile);
@@ -1303,7 +1303,7 @@ void activate_imageselect(int type, char *title, char *file, void (*func)(char *
 	addqueue(curarea->win, CHANGED, 1);
 
 	name[2]= 0;
-	strcpy(name, file);
+	BLI_strncpy(name, file, sizeof(name));
 
 	simasel= curarea->spacedata.first;
 	simasel->returnfunc= func;
@@ -1314,11 +1314,9 @@ void activate_imageselect(int type, char *title, char *file, void (*func)(char *
 	BLI_split_dirfile(name, dir, simasel->file);
 	BLI_cleanup_dir(G.sce, simasel->dir);
 	if(strcmp(dir, simasel->dir)!=0) simasel->fase= 0;
-	strcpy(simasel->dir, dir);
-	
-	BLI_strncpy(simasel->title, title, sizeof(simasel->title));
 
-	
+	BLI_strncpy(simasel->dir, dir, sizeof(simasel->dir));
+	BLI_strncpy(simasel->title, title, sizeof(simasel->title));
 	
 	/* filetoname= 1; */
 }
@@ -1335,7 +1333,7 @@ void activate_databrowse(ID *id, int idcode, int fromcode, int retval, short *me
 		id= lb->first;
 	}
 	
-	if(id) strcpy(str, id->name);
+	if(id) BLI_strncpy(str, id->name, sizeof(str));
 	else return;
 	
 	activate_fileselect(FILE_MAIN, "SELECT DATABLOCK", str, (void (*) (char*))func);
@@ -1510,7 +1508,7 @@ static void filesel_execute(SpaceFile *sfile)
 			if(strncmp(sfile->title, "Save", 4)==0) free_filesel_spec(sfile->dir);
 			if(strncmp(sfile->title, "Export", 6)==0) free_filesel_spec(sfile->dir);
 			
-			strcpy(name, sfile->dir);
+			BLI_strncpy(name, sfile->dir, sizeof(name));
 			strcat(name, sfile->file);
 			
 			if(sfile->flag & FILE_STRINGCODE) BLI_makestringcode(G.sce, name);
@@ -1534,7 +1532,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 					match = TRUE;
 				}
 			}
-			if (match) strcpy(sfile->file, "");
+			if (match) sfile->file[0] = '\0';
 			if(sfile->type==FILE_MAIN) filesel_select_objects(sfile);
 			scrarea_queue_winredraw(curarea);
 		}
@@ -1565,7 +1563,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		
 		/* which string */
 		if (selected) {
-			strcpy(sfile->dir, selected);
+			BLI_strncpy(sfile->dir, selected, sizeof(sfile->dir));
 			BLI_make_exist(sfile->dir);
 			BLI_cleanup_dir(G.sce, sfile->dir);
 			freefilelist(sfile);
@@ -1854,7 +1852,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else {
 						if( strcmp(sfile->file, sfile->filelist[act].relname)) {
 							do_draw= 1;
-							strcpy(sfile->file, sfile->filelist[act].relname);
+							BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
 						}
 						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
 					}
@@ -2092,9 +2090,9 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(sfile->type==FILE_MAIN) break;
 
 #ifdef WIN32
-			strcpy(sfile->dir, "\\");
+			BLI_strncpy(sfile->dir, "\\", sizeof(sfile->dir));
 #else
-			strcpy(sfile->dir, "/");
+			BLI_strncpy(sfile->dir, "/", sizeof(sfile->dir));
 #endif
 			freefilelist(sfile);
 			sfile->ofs= 0;
@@ -2289,7 +2287,7 @@ static void do_library_append(SpaceFile *sfile)
 		}
 		
 		/* in sfile->dir is the whole lib name */
-		strcpy(G.lib, sfile->dir);
+		BLI_strncpy(G.lib, sfile->dir, sizeof(G.lib) );
 		
 	}
 }
@@ -2621,7 +2619,7 @@ void clever_numbuts_filesel()
 
 	if (test != -1 && !(S_ISDIR(sfile->filelist[test].type))){
 		BLI_make_file_string(G.sce, orgname, sfile->dir, sfile->filelist[test].relname);
-		strcpy(filename, sfile->filelist[test].relname);
+		BLI_strncpy(filename, sfile->filelist[test].relname, sizeof(filename));
 		
 		add_numbut(0, TEX, "", 0, len, filename, "Rename File");
 
