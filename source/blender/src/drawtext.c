@@ -168,7 +168,7 @@ void free_txt_data(void) {
 
 static int render_string (char *in) {
 	SpaceText *st= curarea->spacedata.first;
-	int r= 0, i;
+	int r = 0, i = 0;
 	
 	while(*in) {
 		if (*in=='\t') {
