@@ -98,6 +98,8 @@ struct Render
 	
 	/* result of rendering */
 	RenderResult *result;
+	/* if render with single-layer option, other rendered layers are stored here */
+	RenderResult *pushedresult;
 	
 	/* window size, display rect, viewplane */
 	int winx, winy;

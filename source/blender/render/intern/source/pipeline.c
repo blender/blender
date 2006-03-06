@@ -173,6 +173,47 @@ static void free_render_result(RenderResult *res)
 	MEM_freeT(res);
 }
 
+/* all layers except the active one get temporally pushed away */
+static void push_render_result(Render *re)
+{
+	re->pushedresult= re->result;
+	re->result= NULL;
+}
+
+/* if scemode is R_SINGLE_LAYER, at end of rendering, merge the both render results */
+static void pop_render_result(Render *re)
+{
+	
+	if(re->result==NULL) {
+		printf("pop render result error; no current result!\n");
+		return;
+	}
+	if(re->pushedresult) {
+		if(re->pushedresult->rectx==re->result->rectx && re->pushedresult->recty==re->result->recty) {
+			/* find which layer in pushedresult should be replaced */
+			RenderLayer *rlpush= BLI_findlink(&re->pushedresult->layers, re->r.actlay);
+			RenderLayer *rl= re->result->layers.first;
+			
+			if(rlpush && rl) {
+				/* remove rendered layer */
+				BLI_remlink(&re->result->layers, rl);
+				
+				/* insert it in the pushed result, and remove its counterpart */
+				BLI_insertlinkbefore(&re->pushedresult->layers, rlpush, rl);
+				BLI_remlink(&re->pushedresult->layers, rlpush);
+				
+				/* add old layer in result, and swap results */
+				BLI_addtail(&re->result->layers, rlpush);
+				SWAP(RenderResult *, re->result, re->pushedresult);
+			}
+		}
+		
+		free_render_result(re->pushedresult);
+		re->pushedresult= NULL;
+	}
+}
+
+
 static char *get_pass_name(int passtype, int channel)
 {
 	
@@ -543,11 +584,12 @@ RenderResult *RE_GetResult(Render *re)
 
 RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
 {
-	if(re->r.scemode & R_SINGLE_LAYER)
-		return rr->layers.first;
-	else 
-		return BLI_findlink(&rr->layers, re->r.actlay);
+	RenderLayer *rl= BLI_findlink(&rr->layers, re->r.actlay);
 	
+	if(rl) 
+		return rl;
+	else 
+		return rr->layers.first;
 }
 
 
@@ -616,10 +658,8 @@ Render *RE_NewRender(const char *name)
 	
 	/* only one render per name exists */
 	re= RE_GetRender(name);
-	if(re) {
-		BLI_remlink(&RenderList, re);
-		RE_FreeRender(re);
-	}
+	if(re)
+		return re;
 	
 	/* new render data struct */
 	re= MEM_callocT(sizeof(Render), "new render");
@@ -653,6 +693,7 @@ void RE_FreeRender(Render *re)
 	free_sample_tables(re);
 	
 	free_render_result(re->result);
+	free_render_result(re->pushedresult);
 	
 	BLI_remlink(&RenderList, re);
 	MEM_freeT(re);
@@ -708,13 +749,8 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		/* always call, checks for gamma, gamma tables and jitter too */
 		make_sample_tables(re);	
 		
-		/* initialize render result */
 		free_render_result(re->result);
 		re->result= new_render_result(re, &re->disprect, 0);
-			
-		/* single layer render disables composit */
-		if(re->r.scemode & R_SINGLE_LAYER)
-			re->r.scemode &= ~R_DOCOMP;
 	}
 }
 
@@ -1268,6 +1304,10 @@ static void do_render_final(Render *re)
 				render_one_frame(re);
 		}
 		
+		/* swap render result */
+		if(re->r.scemode & R_SINGLE_LAYER)
+			pop_render_result(re);
+		
 		if(!re->test_break() && ntree) {
 			ntreeCompositTagRender(ntree);
 			ntreeCompositTagAnimated(ntree);
@@ -1359,6 +1399,10 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	}
 	
 /*	if(G.rt) re->flag |= R_FILEBUFFER; */
+	
+	if(scene->r.scemode & R_SINGLE_LAYER)
+		push_render_result(re);
+	
 	RE_InitState(re, &scene->r, winx, winy, &disprect);
 	re->flag &= ~R_FILEBUFFER;
 	
