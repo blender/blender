@@ -1852,23 +1852,45 @@ void movetolayer(void)
 	if(lay==0) return;
 	lay &= 0xFFFFFF;
 	
-	if( movetolayer_buts(&lay)==0 ) return;
 	if(lay==0) return;
-
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASE(base) {
-			/* upper byte is used for local view */
-			local= base->lay & 0xFF000000;  
-			base->lay= lay + local;
-			base->object->lay= lay;
-			if(base->object->type==OB_LAMP) islamp= 1;
-		}
-		base= base->next;
-	}
 	
+	if(G.vd->localview) {
+		/* now we can move out of localview. */
+		if (!okee("Move from localview")) return;
+		base= FIRSTBASE;
+		while(base) {
+			if TESTBASE(base) {
+				lay= base->lay & ~G.vd->lay;
+				base->lay= lay;
+				base->object->lay= lay;
+				base->object->flag &= ~SELECT;
+				base->flag &= ~SELECT;
+				if(base->object->type==OB_LAMP) islamp= 1;
+			}
+			base= base->next;
+		}
+	} else {
+		if( movetolayer_buts(&lay)==0 ) return;
+		
+		/* normal non localview operation */
+		base= FIRSTBASE;
+		while(base) {
+			if TESTBASE(base) {
+				/* upper byte is used for local view */
+				local= base->lay & 0xFF000000;  
+				base->lay= lay + local;
+				base->object->lay= lay;
+				if(base->object->type==OB_LAMP) islamp= 1;
+			}
+			base= base->next;
+		}
+	}
 	if(islamp && G.vd->drawtype == OB_SHADED) reshadeall_displist();
-
+	
+	/* to avoid operations on active objects in hidden layers */
+	if (!(BASACT->lay & G.vd->lay))
+		BASACT= NULL;
+	
 	countall();
 	DAG_scene_sort(G.scene);
 	
