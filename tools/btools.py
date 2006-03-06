@@ -44,7 +44,7 @@ def validate_arguments(args, bc):
             'BF_PROFILE_FLAGS' ]
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
-            'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_DEBUG',
+            'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_DEBUG', 'BF_DEBUG_FLAGS',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX'
            ]
 
