@@ -274,7 +274,10 @@ int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value)
 			editbone->zwidth = ((BPy_EditBone*)value)->zwidth;
 			VECCOPY(editbone->head, ((BPy_EditBone*)value)->head);
 			VECCOPY(editbone->tail, ((BPy_EditBone*)value)->tail);
-
+			
+			// FIXME, should be exposed via python. this avoids creating bones with no layers.
+			editbone->layer= 1;
+			
 			//set object pointer
 			((BPy_EditBone*)value)->editbone = editbone;
 
