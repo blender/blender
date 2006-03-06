@@ -1109,13 +1109,38 @@ void makebevelcurve(Object *ob, ListBase *disp)
 		fp[3]= fp[4]= 0.0;
 		fp[5]= cu->ext1;
 	}
+	else if( (cu->flag & (CU_FRONT|CU_BACK))==0 && cu->ext1==0.0f)	{ // we make a full round bevel in that case
+		
+		nr= 4+ 2*cu->bevresol;
+		   
+		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p1");
+		dl->verts= MEM_mallocN(nr*3*sizeof(float), "makebevelcurve p1");
+		BLI_addtail(disp, dl);
+		dl->type= DL_POLY;
+		dl->parts= 1;
+		dl->flag= DL_BACK_CURVE;
+		dl->nr= nr;
+
+		/* a circle */
+		fp= dl->verts;
+		dhoek= (2.0f*M_PI/(nr));
+		hoek= -(nr-1)*dhoek;
+		
+		for(a=0; a<nr; a++) {
+			fp[0]= 0.0;
+			fp[1]= (float)(cos(hoek)*(cu->ext2));
+			fp[2]= (float)(sin(hoek)*(cu->ext2)) - cu->ext1;
+			hoek+= dhoek;
+			fp+= 3;
+		}
+	}
 	else {
 		short dnr;
 		
 		/* bevel now in three parts, for proper vertex normals */
 		/* part 1 */
 		dnr= nr= 2+ cu->bevresol;
-		if( (cu->flag & (CU_FRONT|CU_BACK))==0)	// we make a full round bevel in that case
+		if( (cu->flag & (CU_FRONT|CU_BACK))==0)
 			nr= 3+ 2*cu->bevresol;
 		   
 		dl= MEM_callocN(sizeof(DispList), "makebevelcurve p1");
