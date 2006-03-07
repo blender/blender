@@ -5613,7 +5613,7 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 	bNode *node;
 	
 	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->id)
+		if(node->id && node->type!=CMP_NODE_R_RESULT)
 			expand_doit(fd, mainvar, node->id);
 
 }
