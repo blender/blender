@@ -2631,7 +2631,7 @@ static void copymenu_modifiers(Object *ob)
 
 				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 
-				if (base->object->type==OB_MESH) {
+				if (base->object->type==ob->type) {
 					if (event==NUM_MODIFIER_TYPES) {
 						object_free_modifiers(base->object);
 
@@ -2703,7 +2703,7 @@ void copy_attr_menu()
 
 	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
 	
-	if(ob->type==OB_MESH){
+	if(ob->type==OB_MESH || ob->type==OB_CURVE){
 		strcat(str, "|Modifiers ...%x24");
 	}
 
