@@ -43,8 +43,6 @@ void free_editText(void);
 void free_vertexpaint(void);
 
 /* readfile.c */
-struct PluginSeq;
-void open_plugin_seq(struct PluginSeq *pis, char *seqname);
 struct SpaceButs;
 void set_rects_butspace(struct SpaceButs *buts);
 struct SpaceImaSel;

@@ -964,10 +964,18 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy)
 		ofsy += stepy;
 		ofsx = 32768;
 		
-		for (x = newx ; x>0 ; x--){
-			if (do_rect)  *newrect++ = rect[ofsx >> 16];
-			if (do_float) *newrectf++ = rectf[ofsx >> 16];
-			ofsx += stepx;
+		if (do_rect) {
+			for (x = newx ; x>0 ; x--){
+				*newrect++ = rect[ofsx >> 16];
+				ofsx += stepx;
+			}
+		}
+
+		if (do_float) {
+			for (x = newx ; x>0 ; x--){
+				*newrectf++ = rectf[ofsx >> 16];
+				ofsx += stepx;
+			}
 		}
 	}
 

@@ -126,6 +126,8 @@ typedef struct Sequence {
 
 	void *effectdata;	/* Struct pointer for effect settings */
 
+	int anim_preseek;
+	int pad;
 } Sequence;
 
 typedef struct MetaStack {
@@ -170,6 +172,7 @@ typedef struct GlowVars {
 #define SEQ_MAKE_PREMUL	64
 #define SEQ_REVERSE_FRAMES	128
 #define SEQ_IPO_FRAME_LOCKED    256
+#define SEQ_EFFECT_NOT_LOADED   512
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

@@ -165,10 +165,7 @@ static int handle_request(char * req)
 {
 	char * p;
 	char * path;
-
-	if (strlen(req) < 20) {
-		return -1;
-	}
+	int pathlen;
 
 	if (memcmp(req, "GET ", 4) != 0) {
 		return -1;
@@ -188,8 +185,9 @@ static int handle_request(char * req)
 	}
 
 	write_ppm = 0;
+	pathlen = strlen(path);
 
-	if (memcmp(path, "/images/ppm/", 12) == 0) {
+	if (pathlen > 12 && memcmp(path, "/images/ppm/", 12) == 0) {
 		write_ppm = 1;
 		return atoi(path + 12);
 	}

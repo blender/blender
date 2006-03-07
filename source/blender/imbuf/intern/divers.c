@@ -141,25 +141,32 @@ void IMB_interlace(struct ImBuf *ibuf)
 void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 {
 	uchar gam[256];
-	int i, do_float=0;
-	uchar *rect = (uchar *) ibuf->rect;
-	float *rectf = ibuf->rect_float;
+	int i;
+	uchar *rect;
+	float *rectf;
 
 	if (ibuf == 0) return;
-	if (ibuf->rect == 0) return;
-        if (ibuf->rect != NULL) do_float = 1;
 	if (gamma == 1.0) return;
 
-	gamma = 1.0 / gamma;
-	for (i = 255 ; i >= 0 ; i--) gam[i] = (255.0 * pow(i / 255.0 ,
-		gamma))  + 0.5;
-
 	rect = (uchar *) ibuf->rect;
-	for (i = ibuf->x * ibuf->y ; i>0 ; i--, rect+=4){
-		rect[0] = gam[rect[0]];
-		rect[1] = gam[rect[1]];
-		rect[2] = gam[rect[2]];
-		if (do_float) {
+	rectf = ibuf->rect_float;
+
+	gamma = 1.0 / gamma;
+
+	if (rect) {
+		for (i = 255 ; i >= 0 ; i--) 
+			gam[i] = (255.0 * pow(i / 255.0 ,
+					      gamma))  + 0.5;
+
+		for (i = ibuf->x * ibuf->y ; i>0 ; i--, rect+=4){
+			rect[0] = gam[rect[0]];
+			rect[1] = gam[rect[1]];
+			rect[2] = gam[rect[2]];
+		}
+	}
+
+	if (rectf) {
+		for (i = ibuf->x * ibuf->y ; i>0 ; i--, rectf+=4){
 			rectf[0] = pow(rectf[0] / 255.0, gamma);
 			rectf[1] = pow(rectf[1] / 255.0, gamma);
 			rectf[2] = pow(rectf[2] / 255.0, gamma);

@@ -104,7 +104,7 @@
 #include "BLI_arithb.h"
 #include "BLI_storage_types.h" // for relname flags
 
-#include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) open_plugin_seq set_rects_butspace check_imasel_copy
+#include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) set_rects_butspace check_imasel_copy
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -2718,9 +2718,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->curelem= 0;
 
 			seq->plugin= newdataadr(fd, seq->plugin);
-			if(seq->plugin) open_plugin_seq(seq->plugin, seq->name+2);
-
 			seq->effectdata= newdataadr(fd, seq->effectdata);
+			
+			if (seq->type & SEQ_EFFECT) {
+				seq->flag |= SEQ_EFFECT_NOT_LOADED;
+			}
 
 			seq->strip= newdataadr(fd, seq->strip);
 			if(seq->strip && seq->strip->done==0) {

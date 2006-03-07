@@ -70,6 +70,8 @@
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
 #include "BSE_sequence.h"
+#include "BSE_seqeffects.h"
+#include "BSE_seqscopes.h"
 #include "BSE_seqaudio.h"
 
 #include "IMB_imbuf_types.h"
@@ -596,8 +598,14 @@ static void draw_image_seq(ScrArea *sa)
 		free_ibuf = 1;
 	}
 
-	if (sseq->zoom > 0) zoom = sseq->zoom;
-	else zoom = -1.0/sseq->zoom;
+	if (sseq->zoom > 0) {
+		zoom = sseq->zoom;
+	} else if (sseq->zoom == 0) {
+		zoom = 1.0;
+	} else {
+		zoom = -1.0/sseq->zoom;
+	}
+
 	/* calc location */
 	x1= (sa->winx-zoom*ibuf->x)/2;
 	y1= (sa->winy-zoom*ibuf->y)/2;
@@ -809,6 +817,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		
 		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
+		uiDefButI(block, NUM, SEQ_BUT_RELOAD, "Preseek:",			10,-10,150,19, &last_seq->anim_preseek, 0.0, 50.0, 100, 0, "On MPEG-seeking preseek this many frames");
 
 	}
 	else if(last_seq->type==SEQ_RAM_SOUND || 

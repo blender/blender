@@ -85,6 +85,7 @@
 
 #include "BSE_edit.h"
 #include "BSE_sequence.h"
+#include "BSE_seqeffects.h"
 #include "BSE_filesel.h"
 #include "BSE_drawipo.h"
 #include "BSE_seqaudio.h"
@@ -111,15 +112,18 @@ static void shuffle_seq(Sequence *);
 
 static void change_plugin_seq(char *str)	/* called from fileselect */
 {
-/*  	extern Sequence *last_seq; already done few lines before !!!*/
+	struct SeqEffectHandle sh;
 
-	if(last_seq && last_seq->type!=SEQ_PLUGIN) return;
+	if(last_seq && last_seq->type != SEQ_PLUGIN) return;
 
-	free_plugin_seq(last_seq->plugin);
+	sh = get_sequence_effect(last_seq);
+	sh.free(last_seq);
+	sh.init_plugin(last_seq, str);
 
-	last_seq->plugin= (PluginSeq *)add_plugin_seq(str, last_seq->name+2);
+	last_seq->machine = MAX3(last_seq->seq1->machine, 
+				 last_seq->seq2->machine, 
+				 last_seq->seq3->machine);
 
-	last_seq->machine= MAX3(last_seq->seq1->machine, last_seq->seq2->machine, last_seq->seq3->machine);
 	if( test_overlap_seq(last_seq) ) shuffle_seq(last_seq);
 	
 	BIF_undo_push("Load/change Sequencer plugin");
@@ -404,11 +408,13 @@ void mouse_select_seq(void)
 			if(seq->flag & SELECT) {
 				if(hand==0) seq->flag &= SEQ_DESEL;
 				else if(hand==1) {
-					if(seq->flag & SEQ_LEFTSEL) seq->flag &= ~SEQ_LEFTSEL;
+					if(seq->flag & SEQ_LEFTSEL) 
+						seq->flag &= ~SEQ_LEFTSEL;
 					else seq->flag |= SEQ_LEFTSEL;
 				}
 				else if(hand==2) {
-					if(seq->flag & SEQ_RIGHTSEL) seq->flag &= ~SEQ_RIGHTSEL;
+					if(seq->flag & SEQ_RIGHTSEL) 
+						seq->flag &= ~SEQ_RIGHTSEL;
 					else seq->flag |= SEQ_RIGHTSEL;
 				}
 			}
@@ -553,6 +559,7 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	seq->len= totframe;
 	seq->type= SEQ_MOVIE;
 	seq->anim= anim;
+	seq->anim_preseek = IMB_anim_get_preseek(anim);
 
 	calc_sequence(seq);
 	
@@ -981,6 +988,7 @@ static int add_seq_effect(int type)
 	float x, y;
 	int cfra, machine;
 	short mval[2];
+	struct SeqEffectHandle sh;
 
 	if(G.scene->ed==0) return 0;
 	ed= G.scene->ed;
@@ -1037,23 +1045,14 @@ static int add_seq_effect(int type)
 
 	seq->type= event_to_efftype(type);
 
-	/* Allocate variable structs for effects with settings */
-	if(seq->type==SEQ_WIPE){
-		init_wipe_effect(seq);
-	}
-	else if(seq->type==SEQ_GLOW){
-		init_glow_effect(seq);
-	}
+	sh = get_sequence_effect(seq);
 
-	if(seq->type==SEQ_ALPHAUNDER || seq->type==SEQ_ALPHAOVER) {
-		seq->seq2= seq1;
-		seq->seq1= seq2;
-	}
-	else {
-		seq->seq1= seq1;
-		seq->seq2= seq2;
-	}
+	seq->seq1= seq1;
+	seq->seq2= seq2;
 	seq->seq3= seq3;
+
+	sh.init(seq);
+
 	calc_sequence(seq);
 
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -1069,12 +1068,12 @@ static int add_seq_effect(int type)
 static void load_plugin_seq(char *str)		/* called from fileselect */
 {
 	Editing *ed;
+	struct SeqEffectHandle sh;
 
 	add_seq_effect(10);		/* this sets last_seq */
 
-	free_plugin_seq(last_seq->plugin);
-
-	last_seq->plugin= (PluginSeq *)add_plugin_seq(str, last_seq->name+2);
+	sh = get_sequence_effect(last_seq);
+	sh.init_plugin(last_seq, str);
 
 	if(last_seq->plugin==0) {
 		ed= G.scene->ed;
@@ -1261,33 +1260,46 @@ void change_sequence(void)
 	if(last_seq==0) return;
 
 	if(last_seq->type & SEQ_EFFECT) {
-		event= pupmenu("Change Effect%t|Switch A <-> B %x1|Switch B <-> C %x10|Plugin%x11|Recalculate%x12|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Wipe%x13|Glow%x14");
-		if(event>0) {
+		event = pupmenu("Change Effect%t"
+				"|Switch A <-> B %x1"
+				"|Switch B <-> C %x10"
+				"|Plugin%x11"
+				"|Recalculate%x12"
+				"|Cross%x2"
+				"|Gamma Cross%x3"
+				"|Add%x4"
+				"|Sub%x5"
+				"|Mul%x6"
+				"|Alpha Over%x7"
+				"|Alpha Under%x8"
+				"|Alpha Over Drop%x9"
+				"|Wipe%x13"
+				"|Glow%x14");
+		if(event > 0) {
 			if(event==1) {
-				SWAP(Sequence *, last_seq->seq1, last_seq->seq2);
+				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);
 			}
 			else if(event==10) {
-				SWAP(Sequence *, last_seq->seq2, last_seq->seq3);
+				SWAP(Sequence *,last_seq->seq2,last_seq->seq3);
 			}
 			else if(event==11) {
-				activate_fileselect(FILE_SPECIAL, "Select Plugin", U.plugseqdir, change_plugin_seq);
+				activate_fileselect(
+					FILE_SPECIAL, "Select Plugin", 
+					U.plugseqdir, change_plugin_seq);
 			}
-			else if(event==12);	/* recalculate: only new_stripdata */
+			else if(event==12);	
+                                /* recalculate: only new_stripdata */
 			else {
-				/* to be sure, free plugin */
-				free_plugin_seq(last_seq->plugin);
-				last_seq->plugin= 0;
-				last_seq->type= event_to_efftype(event);
+				/* free previous effect and init new effect */
+				struct SeqEffectHandle sh;
 
-				switch(last_seq->type){
-					case SEQ_WIPE:
-						init_wipe_effect(last_seq);
-						break;
-					case SEQ_GLOW:
-						init_glow_effect(last_seq);
-						break;
-				}
+				sh = get_sequence_effect(last_seq);
+				sh.free(last_seq);
 
+				last_seq->type = event_to_efftype(event);
+
+				sh = get_sequence_effect(last_seq);
+				sh.init(last_seq);
 			}
 			new_stripdata(last_seq);
 			allqueue(REDRAWSEQ, 0);
@@ -1296,7 +1308,10 @@ void change_sequence(void)
 	}
 	else if(last_seq->type == SEQ_IMAGE) {
 		if(okee("Change images")) {
-			activate_fileselect(FILE_SPECIAL, "Select Images", last_imagename, reload_image_strip);
+			activate_fileselect(FILE_SPECIAL, 
+					    "Select Images", 
+					    last_imagename, 
+					    reload_image_strip);
 		}
 	}
 	else if(last_seq->type == SEQ_MOVIE) {
@@ -1379,7 +1394,9 @@ void del_seq(void)
 		while(seq) {
 			seqn= seq->next;
 			if(seq->type & SEQ_EFFECT) {
-				if( is_a_sequence(seq->seq1)==0 || is_a_sequence(seq->seq2)==0 || is_a_sequence(seq->seq3)==0 ) {
+				if(    is_a_sequence(seq->seq1)==0 
+				    || is_a_sequence(seq->seq2)==0 
+				    || is_a_sequence(seq->seq3)==0 ) {
 					BLI_remlink(ed->seqbasep, seq);
 					if(seq==last_seq) last_seq= 0;
 					free_sequence(seq);
@@ -1436,7 +1453,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
 
 				seqn->seqbase.first= seqn->seqbase.last= 0;
-				recurs_dupli_seq(&seq->seqbase, &seqn->seqbase);
+				recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);
 
 			}
 			else if(seq->type == SEQ_SCENE) {
@@ -1446,7 +1463,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 
 				seqn->strip= MEM_dupallocN(seq->strip);
 
-				if(seq->len>0) seqn->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+				if(seq->len>0) seqn->strip->stripdata = MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -1548,10 +1565,12 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 
 					if(seqn->ipo) seqn->ipo->id.us++;
 
-					if(seq->plugin) {
-						seqn->plugin= MEM_dupallocN(seq->plugin);
-						open_plugin_seq(seqn->plugin, seqn->name+2);
+					if (seq->type & SEQ_EFFECT) {
+						struct SeqEffectHandle sh;
+						sh = get_sequence_effect(seq);
+						sh.copy(seq, seqn);
 					}
+
 					seqn->strip= MEM_dupallocN(seq->strip);
 
 					if(seq->len>0) seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
@@ -1795,7 +1814,9 @@ void un_meta(void)
 		while(seq) {
 			seqn= seq->next;
 			if(seq->type & SEQ_EFFECT) {
-				if( is_a_sequence(seq->seq1)==0 || is_a_sequence(seq->seq2)==0 || is_a_sequence(seq->seq3)==0 ) {
+				if(    is_a_sequence(seq->seq1)==0 
+				    || is_a_sequence(seq->seq2)==0 
+				    || is_a_sequence(seq->seq3)==0 ) {
 					BLI_remlink(ed->seqbasep, seq);
 					if(seq==last_seq) last_seq= 0;
 					free_sequence(seq);

@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Peter Schlaile <peter@schlaile.de> 2005
+ * Contributor(s): Peter Schlaile <peter [at] schlaile [dot] de> 2005
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -38,6 +38,7 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
+#include <ffmpeg/rational.h>
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
@@ -65,8 +66,12 @@ struct hdaudio {
 	AVCodecContext *pCodecCtx;
 	int frame_position;
 	int frame_duration;
+	int frame_alloc_duration;
+	int decode_pos;
 	int frame_size;
 	short * decode_cache;
+	short * decode_cache_zero;
+	short * resample_cache;
 	int decode_cache_size;
 	int target_channels;
 	int target_rate;
@@ -76,6 +81,20 @@ struct hdaudio {
 
 #endif
 };
+
+#ifdef WITH_FFMPEG
+#ifdef FFMPEG_CODEC_IS_POINTER
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return stream->codec;
+}
+#else
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return &stream->codec;
+}
+#endif
+#endif
 
 struct hdaudio * sound_open_hdaudio(char * filename)
 {
@@ -104,11 +123,8 @@ struct hdaudio * sound_open_hdaudio(char * filename)
         /* Find the first audio stream */
 	audioStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-#ifdef FFMPEG_CODEC_IS_POINTER
-		if(pFormatCtx->streams[i]->codec->codec_type==CODEC_TYPE_AUDIO)
-#else
-		if(pFormatCtx->streams[i]->codec.codec_type==CODEC_TYPE_AUDIO)
-#endif
+		if(get_codec_from_stream(pFormatCtx->streams[i])
+		   ->codec_type == CODEC_TYPE_AUDIO)
 		{
 			audioStream=i;
 			break;
@@ -119,11 +135,7 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 		return 0;
 	}
 
-#ifdef FFMPEG_CODEC_IS_POINTER
-	pCodecCtx=pFormatCtx->streams[audioStream]->codec;
-#else
-	pCodecCtx=&pFormatCtx->streams[audioStream]->codec;
-#endif
+	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[audioStream]);
 
         /* Find the decoder for the audio stream */
 	pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
@@ -132,11 +144,6 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
-
-#if 0
-	if(pCodec->capabilities & CODEC_CAP_TRUNCATED)
-		pCodecCtx->flags|=CODEC_FLAG_TRUNCATED;
-#endif
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
 		avcodec_close(pCodecCtx);
@@ -155,22 +162,23 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 	rval->pCodecCtx = pCodecCtx;
 	rval->pCodec = pCodec;
 	rval->audioStream = audioStream;
-	rval->frame_position = -1;
+	rval->frame_position = -10;
 
-	/* FIXME: This only works with integer frame rates ... */
-	rval->frame_duration = AV_TIME_BASE;
+	rval->frame_duration = AV_TIME_BASE / 10;
+	rval->frame_alloc_duration = AV_TIME_BASE;
 	rval->decode_cache_size = 
 		(long long) rval->sample_rate * rval->channels
-		* rval->frame_duration / AV_TIME_BASE
+		* rval->frame_alloc_duration / AV_TIME_BASE
 		* 2;
 
 	rval->decode_cache = (short*) MEM_mallocN(
 		rval->decode_cache_size * sizeof(short), 
 		"hdaudio decode cache");
-
+	rval->decode_pos = 0;
 	rval->target_channels = -1;
 	rval->target_rate = -1;
 	rval->resampler = 0;
+	rval->resample_cache = 0;
 	return rval;
 #else
 	return 0;
@@ -195,21 +203,27 @@ long sound_hdaudio_get_duration(struct hdaudio * hdaudio, int frame_rate)
 #endif
 }
 
-void sound_hdaudio_extract(struct hdaudio * hdaudio, 
-			   short * target_buffer,
-			   int sample_position /* units of target_rate */,
-			   int target_rate,
-			   int target_channels,
-			   int nb_samples /* in target */)
-{
 #ifdef WITH_FFMPEG
+static void sound_hdaudio_extract_small_block(
+	struct hdaudio * hdaudio, 
+	short * target_buffer,
+	int sample_position /* units of target_rate */,
+	int target_rate,
+	int target_channels,
+	int nb_samples /* in target */)
+{
 	AVPacket packet;
 	int frame_position;
 	int frame_size = (long long) target_rate 
 		* hdaudio->frame_duration / AV_TIME_BASE;
+	int in_frame_size = (long long) hdaudio->sample_rate
+		* hdaudio->frame_duration / AV_TIME_BASE;
 	int rate_conversion = 
 		(target_rate != hdaudio->sample_rate) 
 		|| (target_channels != hdaudio->channels);
+	int sample_ofs = target_channels * (sample_position % frame_size);
+
+	frame_position = sample_position / frame_size; 
 
 	if (hdaudio == 0) return;
 
@@ -226,94 +240,261 @@ void sound_hdaudio_extract(struct hdaudio * hdaudio,
 				target_rate, hdaudio->sample_rate);
 			hdaudio->target_rate = target_rate;
 			hdaudio->target_channels = target_channels;
+			if (hdaudio->resample_cache) {
+				MEM_freeN(hdaudio->resample_cache);
+			}
+			
+
+			hdaudio->resample_cache = (short*) MEM_mallocN(
+				(long long) 
+				hdaudio->target_channels 
+				* frame_size * 2
+				* sizeof(short), 
+				"hdaudio resample cache");
+
+			if (frame_position == hdaudio->frame_position) {
+				audio_resample(hdaudio->resampler,
+					       hdaudio->resample_cache,
+					       hdaudio->decode_cache_zero,
+					       in_frame_size * 7 / 4);
+			}
 		}
 	}
 
-	frame_position = sample_position / frame_size; 
-
-	if (frame_position != hdaudio->frame_position) { 
-		long decode_pos = 0;
-
+	if (frame_position == hdaudio->frame_position + 1
+	    && in_frame_size * hdaudio->channels <= hdaudio->decode_pos) {
+		int bl_size = in_frame_size * hdaudio->channels;
+		int decode_pos = hdaudio->decode_pos;
+	       
 		hdaudio->frame_position = frame_position;
 
-		av_seek_frame(hdaudio->pFormatCtx, -1, 
-			      (long long) frame_position * AV_TIME_BASE, 
-			      AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
+		memcpy(hdaudio->decode_cache,
+		       hdaudio->decode_cache + bl_size,
+		       (decode_pos - bl_size) * sizeof(short));
+		
+		decode_pos -= bl_size;
 
 		while(av_read_frame(hdaudio->pFormatCtx, &packet) >= 0) {
-			if(packet.stream_index == hdaudio->audioStream) {
-				int data_size;
-				int len;
-				uint8_t *audio_pkt_data;
-				int audio_pkt_size;
-	
-				audio_pkt_data = packet.data;
-				audio_pkt_size = packet.size;
+			int data_size;
+			int len;
+			uint8_t *audio_pkt_data;
+			int audio_pkt_size;
 
-				while (audio_pkt_size > 0) {
-					len = avcodec_decode_audio(
-						hdaudio->pCodecCtx, 
-						hdaudio->decode_cache 
-						+ decode_pos, 
-						&data_size, 
-						audio_pkt_data, 
-						audio_pkt_size);
-					if (data_size <= 0) {
-						continue;
-					}
-					if (len < 0) {
-					        audio_pkt_size = 0;
-						break;
-					}
+			if(packet.stream_index != hdaudio->audioStream) {
+				av_free_packet(&packet);
+				continue;
+			}
 
-					audio_pkt_size -= len;
-					audio_pkt_data += len;
+			audio_pkt_data = packet.data;
+			audio_pkt_size = packet.size;
 
-					decode_pos += 
-						data_size / sizeof(short);
-					if (decode_pos + data_size
-					    / sizeof(short)
-					    > hdaudio->decode_cache_size) {
-						av_free_packet(&packet);
-						break;
-					}
+			while (audio_pkt_size > 0) {
+				len = avcodec_decode_audio(
+					hdaudio->pCodecCtx, 
+					hdaudio->decode_cache 
+					+ decode_pos, 
+					&data_size, 
+					audio_pkt_data, 
+					audio_pkt_size);
+				if (data_size <= 0) {
+					continue;
 				}
-				if (decode_pos + data_size / sizeof(short)
+				if (len < 0) {
+					audio_pkt_size = 0;
+					break;
+				}
+				
+				audio_pkt_size -= len;
+				audio_pkt_data += len;
+				
+				decode_pos += data_size / sizeof(short);
+				if (decode_pos + data_size
+				    / sizeof(short)
 				    > hdaudio->decode_cache_size) {
 					break;
 				}
 			}
 			av_free_packet(&packet);
+
+			if (decode_pos + data_size / sizeof(short)
+			    > hdaudio->decode_cache_size) {
+				break;
+			}
 		}
+
+		if (rate_conversion) {
+			audio_resample(hdaudio->resampler,
+				       hdaudio->resample_cache,
+				       hdaudio->decode_cache_zero,
+				       in_frame_size * 7 / 4);
+		}
+
+		hdaudio->decode_pos = decode_pos;
 	}
 
-	if (!rate_conversion) {
-		int ofs = target_channels * (sample_position % frame_size);
-		memcpy(target_buffer,
-		       hdaudio->decode_cache + ofs,
-		       nb_samples * target_channels * sizeof(short));
-	} else {
-		double ratio = (double) hdaudio->sample_rate / target_rate;
-		long in_samples = (long) ((nb_samples + 16) * ratio);
-		short temp_buffer[target_channels * (nb_samples + 64)];
+	if (frame_position != hdaudio->frame_position) { 
+		long decode_pos = 0;
+		long long st_time = hdaudio->pFormatCtx
+			->streams[hdaudio->audioStream]->start_time;
+		double time_base = 
+			av_q2d(hdaudio->pFormatCtx
+			       ->streams[hdaudio->audioStream]->time_base);
+		long long pos = frame_position * AV_TIME_BASE
+			* hdaudio->frame_duration / AV_TIME_BASE;
 
-		int s = audio_resample(hdaudio->resampler,
-				       temp_buffer,
-				       hdaudio->decode_cache
-				       + target_channels * 
-				       (long) 
-				       (ratio*(sample_position % frame_size)),
-				       in_samples);
-		if (s < nb_samples || s > nb_samples + 63) {
-			fprintf(stderr, "resample ouch: %d != %d\n",
-				s, nb_samples);
+		hdaudio->frame_position = frame_position;
+
+		if (st_time == AV_NOPTS_VALUE) {
+			st_time = 0;
 		}
-		memcpy(target_buffer, temp_buffer,
-		       nb_samples * target_channels * sizeof(short));
+
+		pos += st_time * AV_TIME_BASE * time_base;
+
+		av_seek_frame(hdaudio->pFormatCtx, -1, 
+			      pos, 
+			      AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
+		avcodec_flush_buffers(hdaudio->pCodecCtx);
+
+		hdaudio->decode_cache_zero = 0;
+
+		while(av_read_frame(hdaudio->pFormatCtx, &packet) >= 0) {
+			int data_size;
+			int len;
+			uint8_t *audio_pkt_data;
+			int audio_pkt_size;
+
+			if(packet.stream_index != hdaudio->audioStream) {
+				av_free_packet(&packet);
+				continue;
+			}
+
+			audio_pkt_data = packet.data;
+			audio_pkt_size = packet.size;
+
+			if (!hdaudio->decode_cache_zero 
+			    && audio_pkt_size > 0) { 
+				long long diff;
+
+				if (packet.pts == AV_NOPTS_VALUE) {
+					fprintf(stderr,
+						"hdaudio: audio "
+						"pts=NULL audio "
+						"distortion!\n");
+					diff = 0;
+				} else {
+					long long pts = packet.pts;
+					long long spts = (long long) (
+						pos / time_base / AV_TIME_BASE 
+						+ 0.5);
+					diff = spts - pts;
+					if (diff < 0) {
+						fprintf(stderr,
+							"hdaudio: "
+							"negative seek: "
+							"%lld < %lld "
+							"audio distortion!!\n",
+							spts, pts);
+						diff = 0;
+					}
+				}
+
+
+				diff *= hdaudio->sample_rate * time_base;
+				diff *= hdaudio->channels;
+
+				if (diff > hdaudio->decode_cache_size / 2) {
+					fprintf(stderr,
+						"hdaudio: audio "
+						"diff too large!!\n");
+					diff = 0;
+				}
+
+				hdaudio->decode_cache_zero
+					= hdaudio->decode_cache + diff;
+			}
+
+			while (audio_pkt_size > 0) {
+				len = avcodec_decode_audio(
+					hdaudio->pCodecCtx, 
+					hdaudio->decode_cache 
+					+ decode_pos, 
+					&data_size, 
+					audio_pkt_data, 
+					audio_pkt_size);
+				if (data_size <= 0) {
+					continue;
+				}
+				if (len < 0) {
+					audio_pkt_size = 0;
+					break;
+				}
+				
+				audio_pkt_size -= len;
+				audio_pkt_data += len;
+				
+				decode_pos += data_size / sizeof(short);
+				if (decode_pos + data_size
+				    / sizeof(short)
+				    > hdaudio->decode_cache_size) {
+					break;
+				}
+			}
+	
+			av_free_packet(&packet);
+
+			if (decode_pos + data_size / sizeof(short)
+			    > hdaudio->decode_cache_size) {
+				break;
+			}
+		}
+		if (rate_conversion) {
+			audio_resample(hdaudio->resampler,
+				       hdaudio->resample_cache,
+				       hdaudio->decode_cache_zero,
+				       in_frame_size * 7 / 4);
+		}
+		hdaudio->decode_pos = decode_pos;
+	}
+
+	memcpy(target_buffer, (rate_conversion 
+			       ? hdaudio->resample_cache 
+			       : hdaudio->decode_cache_zero) + sample_ofs, 
+	       nb_samples * target_channels * sizeof(short));
+}
+#endif
+
+
+void sound_hdaudio_extract(struct hdaudio * hdaudio, 
+			   short * target_buffer,
+			   int sample_position /* units of target_rate */,
+			   int target_rate,
+			   int target_channels,
+			   int nb_samples /* in target */)
+{
+#ifdef WITH_FFMPEG
+	long long max_samples = (long long) target_rate 
+		* hdaudio->frame_duration / AV_TIME_BASE / 4;
+
+	while (nb_samples > max_samples) {
+		sound_hdaudio_extract_small_block(hdaudio, target_buffer,
+						  sample_position,
+						  target_rate,
+						  target_channels,
+						  max_samples);
+		target_buffer += max_samples * target_channels;
+		sample_position += max_samples;
+		nb_samples -= max_samples;
+	}
+	if (nb_samples > 0) {
+		sound_hdaudio_extract_small_block(hdaudio, target_buffer,
+						  sample_position,
+						  target_rate,
+						  target_channels,
+						  nb_samples);
 	}
 #else
 
-#endif
+#endif	
 }
 			   
 void sound_close_hdaudio(struct hdaudio * hdaudio)
@@ -324,6 +505,9 @@ void sound_close_hdaudio(struct hdaudio * hdaudio)
 		avcodec_close(hdaudio->pCodecCtx);
 		av_close_input_file(hdaudio->pFormatCtx);
 		MEM_freeN (hdaudio->decode_cache);
+		if (hdaudio->resample_cache) {
+			MEM_freeN(hdaudio->resample_cache);
+		}
 		free(hdaudio->filename);
 		MEM_freeN (hdaudio);
 	}

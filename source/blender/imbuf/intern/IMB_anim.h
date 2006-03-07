@@ -153,6 +153,7 @@ struct anim {
 	int orientation; 
 	size_t framesize;
 	int interlacing;
+	int preseek;
 	
 		/* data */
 	struct ImBuf * ibuf1, * ibuf2;

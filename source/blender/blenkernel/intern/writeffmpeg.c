@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include <stdlib.h>
+#include <ffmpeg/rational.h>
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
 
@@ -28,6 +29,7 @@
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
 #define FFMPEG_CODEC_IS_POINTER 1
+#define FFMPEG_CODEC_TIME_BASE  1
 #endif
 
 #include "BKE_writeffmpeg.h"
@@ -77,8 +79,6 @@ static uint8_t* audio_output_buffer = 0;
 static int audio_outbuf_size = 0;
 
 static RenderData *ffmpeg_renderdata;
-static int ffmpeg_rectx;
-static int ffmpeg_recty;
 
 #define FFMPEG_AUTOSPLIT_SIZE 2000000000
 
@@ -92,11 +92,23 @@ void delete_picture(AVFrame* f)
 	}
 }
 
+#ifdef FFMPEG_CODEC_IS_POINTER
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return stream->codec;
+}
+#else
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return &stream->codec;
+}
+#endif
+
 int write_audio_frame(void) {
 	AVCodecContext* c = NULL;
 	AVPacket pkt;
 
-	c = audio_stream->codec;
+	c = get_codec_from_stream(audio_stream);
 
 	audiostream_fill(audio_input_buffer, 
 			 audio_input_frame_size 
@@ -108,8 +120,12 @@ int write_audio_frame(void) {
 					audio_outbuf_size, 
 					(short*) audio_input_buffer);
 	pkt.data = audio_output_buffer;
+#ifdef FFMPEG_CODEC_TIME_BASE
 	pkt.pts = av_rescale_q(c->coded_frame->pts, 
 			       c->time_base, audio_stream->time_base);
+#else
+	pkt.pts = c->coded_frame->pts;
+#endif
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
 	if (av_write_frame(outfile, &pkt) != 0) {
@@ -150,8 +166,10 @@ AVOutputFormat* ffmpeg_get_format(int format)
 			f = guess_format("dv", NULL, NULL);
 			break;
 		case FFMPEG_MPEG1:
-		case FFMPEG_MPEG2:
 			f = guess_format("mpeg", NULL, NULL);
+			break;
+		case FFMPEG_MPEG2:
+			f = guess_format("dvd", NULL, NULL);
 			break;
 		case FFMPEG_MPEG4:
 			f = guess_format("mp4", NULL, NULL);
@@ -218,11 +236,7 @@ void makeffmpegstring(char* string) {
 static void write_video_frame(AVFrame* frame) {
 	int outsize = 0;
 	int ret;
-#ifdef FFMPEG_CODEC_IS_POINTER
-	AVCodecContext* c = video_stream->codec;
-#else
-	AVCodecContext* c = &video_stream->codec;
-#endif
+	AVCodecContext* c = get_codec_from_stream(video_stream);
 	frame->pts = G.scene->r.cfra - G.scene->r.sfra;
 
 	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
@@ -231,9 +245,13 @@ static void write_video_frame(AVFrame* frame) {
 		AVPacket packet;
 		av_init_packet(&packet);
 
+#ifdef FFMPEG_CODEC_TIME_BASE
 		packet.pts = av_rescale_q(c->coded_frame->pts,
 					  c->time_base,
 					  video_stream->time_base);
+#else
+		packet.pts = c->coded_frame->pts;
+#endif
 		if (c->coded_frame->key_frame)
 			packet.flags |= PKT_FLAG_KEY;
 		packet.stream_index = video_stream->index;
@@ -252,11 +270,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 {
 	uint8_t* rendered_frame;
 
-#ifdef FFMPEG_CODEC_IS_POINTER
-	AVCodecContext* c = video_stream->codec;
-#else
-	AVCodecContext* c = &video_stream->codec;
-#endif
+	AVCodecContext* c = get_codec_from_stream(video_stream);
 	int width = c->width;
 	int height = c->height;
 	AVFrame* rgb_frame;
@@ -334,11 +348,7 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 
 	/* Set up the codec context */
 	
-#ifdef FFMPEG_CODEC_IS_POINTER
-	c = st->codec;
-#else
-	c = &st->codec;
-#endif
+	c = get_codec_from_stream(st);
 	c->codec_id = codec_id;
 	c->codec_type = CODEC_TYPE_VIDEO;
 
@@ -348,6 +358,7 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	c->width = rectx;
 	c->height = recty;
 
+#ifdef FFMPEG_CODEC_TIME_BASE
 	/* FIXME: Really bad hack (tm) for NTSC support */
 	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
 		c->time_base.den = 2997;
@@ -356,6 +367,16 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 		c->time_base.den = G.scene->r.frs_sec;
 		c->time_base.num = 1;
 	}
+#else
+	/* FIXME: Really bad hack (tm) for NTSC support */
+	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
+		c->frame_rate = 2997;
+		c->frame_rate_base = 100;
+	} else {
+		c->frame_rate = G.scene->r.frs_sec;
+		c->frame_rate_base = 1;
+	}
+#endif
 	
 	c->gop_size = ffmpeg_gop_size;
 	c->bit_rate = ffmpeg_video_bitrate*1000;
@@ -419,7 +440,7 @@ AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 	st = av_new_stream(of, 1);
 	if (!st) return NULL;
 
-	c = st->codec;
+	c = get_codec_from_stream(st);
 	c->codec_id = codec_id;
 	c->codec_type = CODEC_TYPE_AUDIO;
 
@@ -445,7 +466,7 @@ AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 
 	if (c->frame_size <= 1) {
 		audio_input_frame_size = audio_outbuf_size / c->channels;
-		switch(st->codec->codec_id) {
+		switch(c->codec_id) {
 		case CODEC_ID_PCM_S16LE:
 		case CODEC_ID_PCM_S16BE:
 		case CODEC_ID_PCM_U16LE:
@@ -600,14 +621,14 @@ void append_ffmpeg(int frame, int *pixels, int rectx, int recty)
 		       )) {
 		write_audio_frame();
 	}
-	write_video_frame(generate_video_frame(pixels));
+	write_video_frame(generate_video_frame((unsigned char*) pixels));
 
 	if (ffmpeg_autosplit) {
-		if (url_fsize(&outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
+		if (url_ftell(&outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
 			end_ffmpeg();
 			ffmpeg_autosplit_count++;
-			start_ffmpeg_impl(rectx, recty,
-					  ffmpeg_renderdata);
+			start_ffmpeg_impl(ffmpeg_renderdata,
+					  rectx, recty);
 		}
 	}
 }
@@ -625,8 +646,8 @@ void end_ffmpeg(void)
 	
 	/* Close the video codec */
 
-	if (video_stream && video_stream->codec) {
-		avcodec_close(video_stream->codec);
+	if (video_stream && get_codec_from_stream(video_stream)) {
+		avcodec_close(get_codec_from_stream(video_stream));
 	}
 
 	

@@ -63,8 +63,6 @@ void fluidsimSettingsFree(struct FluidsimSettings* sb);
 
 
 /* readfile.c */
-	/* struct PluginSeq; */
-void open_plugin_seq(struct PluginSeq *pis, char *seqname){}
 	/* struct SpaceButs; */
 void set_rects_butspace(struct SpaceButs *buts){}
 	/* struct SpaceImaSel; */

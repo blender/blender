@@ -217,6 +217,18 @@ void do_init_ffmpeg()
 	}
 }
 
+#ifdef FFMPEG_CODEC_IS_POINTER
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return stream->codec;
+}
+#else
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return &stream->codec;
+}
+#endif
+
 
 static int isffmpeg (char *filename) {
 	AVFormatContext *pFormatCtx;
@@ -243,21 +255,14 @@ static int isffmpeg (char *filename) {
         /* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-#ifdef FFMPEG_CODEC_IS_POINTER
-		if(pFormatCtx->streams[i]->codec->codec_type==CODEC_TYPE_VIDEO)
-#else
-		if(pFormatCtx->streams[i]->codec.codec_type==CODEC_TYPE_VIDEO)
-#endif
+		if(get_codec_from_stream(pFormatCtx->streams[i])
+		   ->codec_type==CODEC_TYPE_VIDEO)
 		{
 			videoStream=i;
 			break;
 		}
 
-#ifdef FFMPEG_CODEC_IS_POINTER
-	pCodecCtx=pFormatCtx->streams[videoStream]->codec;
-#else
-	pCodecCtx=&pFormatCtx->streams[videoStream]->codec;
-#endif
+	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
 
 	if(videoStream==-1) {
 		avcodec_close(pCodecCtx);
@@ -273,9 +278,6 @@ static int isffmpeg (char *filename) {
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
-
-	if(pCodec->capabilities & CODEC_CAP_TRUNCATED)
-		pCodecCtx->flags|=CODEC_FLAG_TRUNCATED;
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
 		avcodec_close(pCodecCtx);

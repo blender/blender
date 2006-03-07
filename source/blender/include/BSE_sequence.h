@@ -44,9 +44,6 @@ struct Editing;
 struct ImBuf;
 struct Scene;
 
-void open_plugin_seq(struct PluginSeq *pis, char *seqname);
-struct PluginSeq *add_plugin_seq(char *str, char *seqname);
-void free_plugin_seq(struct PluginSeq *pis);
 void free_stripdata(int len, struct StripElem *se);
 void free_strip(struct Strip *strip);
 void new_stripdata(struct Sequence *seq);
@@ -58,64 +55,6 @@ void free_editing(struct Editing *ed);
 void calc_sequence(struct Sequence *seq);
 void sort_seq(void);
 void clear_scene_in_allseqs(struct Scene *sce);
-void do_alphaover_effect(float facf0,
-						 float facf1,
-						 int x, int y,
-						 unsigned int *rect1,
-						 unsigned int *rect2,
-						 unsigned int *out);
-void do_alphaunder_effect(float facf0, float facf1,
-						  int x, int y,
-						  unsigned int *rect1, unsigned int *rect2,
-						  unsigned int *out);
-void do_cross_effect(float facf0, float facf1,
-					 int x, int y,
-					 unsigned int *rect1, unsigned int *rect2,
-					 unsigned int *out);
-void do_gammacross_effect(float facf0, float facf1,
-						  int x, int y,
-						  unsigned int *rect1, unsigned int *rect2,
-						  unsigned int *out);
-void do_add_effect(float facf0, float facf1,
-				   int x, int y,
-				   unsigned int *rect1, unsigned int *rect2,
-				   unsigned int *out);
-void do_sub_effect(float facf0, float facf1,
-				   int x, int y,
-				   unsigned int *rect1, unsigned int *rect2,
-				   unsigned int *out);
-void do_drop_effect(float facf0, float facf1,
-					int x, int y,
-					unsigned int *rect2i, unsigned int *rect1i,
-					unsigned int *outi);
-void do_drop_effect2(float facf0, float facf1,
-					 int x, int y,
-					 unsigned int *rect2, unsigned int *rect1,
-					 unsigned int *out);
-void do_mul_effect(float facf0, float facf1,
-				   int x, int y,
-				   unsigned int *rect1, unsigned int *rect2,
-				   unsigned int *out);
-/* Wipe effect */
-enum {DO_SINGLE_WIPE, DO_DOUBLE_WIPE, DO_BOX_WIPE, DO_CROSS_WIPE,
-      DO_IRIS_WIPE,DO_CLOCK_WIPE};
-float in_band(float width,float dist, float perc,int side,int dir);
-float check_zone(int x, int y, int xo, int yo, struct Sequence *seq, float facf0);
-void init_wipe_effect(struct Sequence *seq);
-void do_wipe_effect(struct Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out);
-
-/* Glow effect */
-enum {
-	GlowR=0,
-	GlowG=1,
-	GlowB=2,
-	GlowA=3
-};
-void RVBlurBitmap2( unsigned char* map, int width, int height, float blur, int quality);
-void RVIsolateHighlights (unsigned char* in, unsigned char* out, int width, int height, int threshold, float boost, float clamp);
-void RVAddBitmaps (unsigned char* a,unsigned char* b, unsigned char* c, int width, int height);
-void init_glow_effect(struct Sequence *seq);
-void do_glow_effect(struct Sequence *seq, float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out);
 
 void make_black_ibuf(struct ImBuf *ibuf);
 void multibuf(struct ImBuf *ibuf, float fmul);
@@ -125,9 +64,6 @@ struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 void set_meta_stripdata(struct Sequence *seqm);
 struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel); 
 /* chansel: render this channel. Default=0 (renders end result)*/
-
-struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf);
-struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf);
 
 void free_imbuf_effect_spec(int cfra);
 void free_imbuf_seq_except(int cfra);

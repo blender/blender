@@ -88,12 +88,19 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
+#include <ffmpeg/rational.h>
+
+/* #define FFMPEG_SEEK_DEBUG 1 */
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
 #define FFMPEG_CODEC_IS_POINTER 1
-#define FFMPEG_HAVE_SKIP_FRAME  1
+#define FFMPEG_HAVE_SKIP_OPTS   1
+#endif
+
+#ifndef FF_ER_CAREFUL 
+#define FF_ER_CAREFUL FF_ER_CAREFULL
 #endif
 
 #endif
@@ -136,6 +143,7 @@ static int startmovie(struct anim * anim) {
 	anim->framesize = dmImageFrameSize(anim->params);
 
 	anim->curposition = 0;
+	anim->preseek = 0;
 
 	/*printf("x:%d y:%d size:%d interl:%d dur:%d\n", anim->x, anim->y, anim->framesize, anim->interlacing, anim->duration);*/
 	return (0);
@@ -439,6 +447,7 @@ static int startavi (struct anim *anim) {
 	anim->framesize = anim->x * anim->y * 4;
 
 	anim->curposition = 0;
+	anim->preseek = 0;
 
 	/*  printf("x:%d y:%d size:%d interl:%d dur:%d\n", anim->x, anim->y, anim->framesize, anim->interlacing, anim->duration);*/
 
@@ -493,6 +502,18 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 
 extern void do_init_ffmpeg();
 
+#ifdef FFMPEG_CODEC_IS_POINTER
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return stream->codec;
+}
+#else
+static AVCodecContext* get_codec_from_stream(AVStream* stream)
+{
+	return &stream->codec;
+}
+#endif
+
 static int startffmpeg(struct anim * anim) {
 	int            i, videoStream;
 
@@ -519,12 +540,8 @@ static int startffmpeg(struct anim * anim) {
         /* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-#ifdef FFMPEG_CODEC_IS_POINTER
-		if(pFormatCtx->streams[i]->codec->codec_type==CODEC_TYPE_VIDEO)
-#else
-		if(pFormatCtx->streams[i]->codec.codec_type==CODEC_TYPE_VIDEO)
-#endif
-		{
+		if(get_codec_from_stream(pFormatCtx->streams[i])->codec_type
+		   == CODEC_TYPE_VIDEO)	{
 			videoStream=i;
 			break;
 		}
@@ -534,11 +551,7 @@ static int startffmpeg(struct anim * anim) {
 		return -1;
 	}
 
-#ifdef FFMPEG_CODEC_IS_POINTER
-	pCodecCtx=pFormatCtx->streams[videoStream]->codec;
-#else
-	pCodecCtx=&pFormatCtx->streams[videoStream]->codec;
-#endif
+	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
 
         /* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
@@ -551,11 +564,11 @@ static int startffmpeg(struct anim * anim) {
 	pCodecCtx->workaround_bugs = 1;
 	pCodecCtx->lowres = 0;
 	pCodecCtx->idct_algo= FF_IDCT_AUTO;
-#ifdef FFMPEG_HAVE_SKIP_FRAME
+#ifdef FFMPEG_HAVE_SKIP_OPTS
 	pCodecCtx->skip_frame= AVDISCARD_DEFAULT;
-#endif
 	pCodecCtx->skip_idct= AVDISCARD_DEFAULT;
 	pCodecCtx->skip_loop_filter= AVDISCARD_DEFAULT;
+#endif
 	pCodecCtx->error_resilience= FF_ER_CAREFUL;
 	pCodecCtx->error_concealment= 3;
 
@@ -573,7 +586,9 @@ static int startffmpeg(struct anim * anim) {
 	anim->duration = pFormatCtx->duration * pCodecCtx->frame_rate 
 		/ pCodecCtx->frame_rate_base / AV_TIME_BASE;
 #else
-	anim->duration = pFormatCtx->duration * av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) / AV_TIME_BASE;
+	anim->duration = pFormatCtx->duration 
+		* av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) 
+		/ AV_TIME_BASE;
 
 #endif
 	anim->params = 0;
@@ -605,7 +620,12 @@ static int startffmpeg(struct anim * anim) {
 		return -1;
 	}
 
-	/*printf("x:%d y:%d size:%d interl:%d dur:%d\n", anim->x, anim->y, anim->framesize, anim->interlacing, anim->duration);*/
+	if (pCodecCtx->has_b_frames) {
+		anim->preseek = 18; /* FIXME: detect gopsize ... */
+	} else {
+		anim->preseek = 0;
+	}
+
 	return (0);
 }
 
@@ -625,22 +645,49 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		       PIX_FMT_RGBA32, anim->x, anim->y);
 
 	if (position != anim->curposition + 1) { 
+		if (position > anim->curposition + 1 
+		    && anim->preseek 
+		    && position - (anim->curposition + 1) < anim->preseek) {
+			while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
+				if (packet.stream_index == anim->videoStream) {
+					avcodec_decode_video(
+						anim->pCodecCtx, 
+						anim->pFrame, &frameFinished, 
+						packet.data, packet.size);
+
+					if (frameFinished) {
+						anim->curposition++;
+					}
+				}
+				av_free_packet(&packet);
+				if (position == anim->curposition+1) {
+					break;
+				}
+			}
+		}
+	}
+
+	if (position != anim->curposition + 1) { 
 		int keyframe_found = 0;
-		int scan_pos = position;
-		int max_scan = 18; /* max mpeg 1/2 gop size */
 #ifdef FFMPEG_OLD_FRAME_RATE
-		long long pos = (long long) anim->pCodecCtx->frame_rate_base 
-			* position * AV_TIME_BASE 
-			/ anim->pCodecCtx->frame_rate;
+		double frame_rate = 
+			(double) anim->pCodecCtx->frame_rate
+			/ (double) anim->pCodecCtx->frame_rate_base;
 #else
-		long long pos = (long long) position * AV_TIME_BASE 
-		   / av_q2d(anim->pFormatCtx->streams[anim->videoStream]
-			    ->r_frame_rate);
+		double frame_rate = 
+			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
+			       ->r_frame_rate);
 #endif
+		double time_base = 
+			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
+			       ->time_base);
+		long long pos = (long long) position * AV_TIME_BASE 
+			/ frame_rate;
 		long long st_time = anim->pFormatCtx
 			->streams[anim->videoStream]->start_time;
+
 		if (st_time != AV_NOPTS_VALUE) {
-			pos += st_time;
+			pos += st_time * AV_TIME_BASE * time_base;
 		}
 
 		av_seek_frame(anim->pFormatCtx, -1, 
@@ -653,49 +700,23 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 				if ((packet.flags & PKT_FLAG_KEY) != 0) {
 					keyframe_found = 1;
 				}
+
 				av_free_packet(&packet);
 				break;
 			}
 			av_free_packet(&packet);
 		}
-		/* if all ffmpeg seek bugs are fixed, the following
-		   loop is obsolete ... (but does not hurt very much...)
-		*/
 
-		while (!keyframe_found && max_scan--) {
-			scan_pos--;
-#ifdef FFMPEG_OLD_FRAME_RATE
-			pos = (long long) 
-				anim->pCodecCtx->frame_rate_base 
-				* scan_pos * AV_TIME_BASE 
-				/ anim->pCodecCtx->frame_rate;
-#else
-			pos = (long long) scan_pos * AV_TIME_BASE 
-				/ av_q2d(anim->pFormatCtx
-					 ->streams[anim->videoStream]
-					 ->r_frame_rate);
-#endif
-			av_seek_frame(anim->pFormatCtx, -1, 
-				      pos, 
-				      AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
-
-			while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
-				if(packet.stream_index == anim->videoStream) {
-					if ((packet.flags & PKT_FLAG_KEY) 
-					    != 0) {
-						keyframe_found = 1;
-					} 
-					av_free_packet(&packet);
-					break;
-				}
-				av_free_packet(&packet);
+		if (!keyframe_found) {
+			int scan_pos = position - anim->preseek;
+			if (scan_pos < 0) {
+				scan_pos = 0;
 			}
-		}
 
-		if (max_scan <= 0) {
-			fprintf(stderr, 
-				"Warning: Key frame not found, "
-				"doesn't hurt, but _slow_...!\n");
+			pos = (long long) scan_pos * AV_TIME_BASE / frame_rate;
+			if (st_time != AV_NOPTS_VALUE) {
+				pos += st_time * AV_TIME_BASE * time_base;
+			}
 		}
 
 		av_seek_frame(anim->pFormatCtx, -1, 
@@ -710,6 +731,11 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		    && !pos_found) {
 			if (url_ftell(&anim->pFormatCtx->pb) == pos_to_match) {
 				pos_found = 1;
+				if (anim->pCodecCtx->has_b_frames) {
+					pos_found++;
+					/* account for delay caused by
+					   decoding pipeline */
+				}
 			} 
 		}
 		if(packet.stream_index == anim->videoStream) {
@@ -717,7 +743,9 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					     anim->pFrame, &frameFinished, 
 					     packet.data, packet.size);
 
-			if(frameFinished && pos_found) {
+			if (frameFinished && pos_found == 2) {
+				pos_found = 1;
+			} else if(frameFinished && pos_found == 1) {
 				unsigned char * p =(unsigned char*) ibuf->rect;
 				unsigned char * e = p + anim->x * anim->y * 4;
 
@@ -923,4 +951,14 @@ struct ImBuf * IMB_anim_nextpic(struct anim * anim) {
 
 int IMB_anim_get_duration(struct anim *anim) {
 	return anim->duration;
+}
+
+void IMB_anim_set_preseek(struct anim * anim, int preseek)
+{
+	anim->preseek = preseek;
+}
+
+int IMB_anim_get_preseek(struct anim * anim)
+{
+	return anim->preseek;
 }
