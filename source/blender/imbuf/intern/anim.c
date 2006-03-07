@@ -313,7 +313,9 @@ void IMB_free_anim_ibuf(struct anim * anim) {
 	anim->ibuf1 = anim->ibuf2 = NULL;
 }
 
+#ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(struct anim * anim);
+#endif
 
 void IMB_free_anim(struct anim * anim) {
 	if (anim == NULL) {
