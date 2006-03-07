@@ -128,11 +128,12 @@ void RE_FreeRender (struct Render *re);
 void RE_FreeAllRender (void);
 
 /* get results and statistics */
-RenderResult *RE_GetResult(struct Render *re);
-void RE_GetResultImage(struct Render *re, RenderResult *rr);
-RenderStats *RE_GetStats(struct Render *re);
+struct RenderResult *RE_GetResult(struct Render *re);
+void RE_GetResultImage(struct Render *re, struct RenderResult *rr);
+struct RenderStats *RE_GetStats(struct Render *re);
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
-float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype);
+struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
+float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 
 /* obligatory initialize call, disprect is optional */
 void RE_InitState (struct Render *re, struct RenderData *rd, int winx, int winy, rcti *disprect);
@@ -162,6 +163,9 @@ void RE_TileProcessor(struct Render *re, int firsttile);
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);
 void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
 
+/* render a specific scene, with image size and disprect of Render *re */
+/* currently in use to render Composite Nodes */
+void RE_RenderScene(struct Render *re, struct Scene *sce, int cfra);
 
 /* display and event callbacks */
 void RE_display_init_cb	(struct Render *re, void (*f)(RenderResult *rr));

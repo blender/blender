@@ -110,7 +110,7 @@ static void save_rendered_image_cb_real(char *name, int zbuf)
 		RenderResult rres;
 		ImBuf *ibuf;
 		
-		RE_GetResultImage(RE_GetRender("Render"), &rres);
+		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 
 		waitcursor(1); /* from screen.c */
 
@@ -207,7 +207,7 @@ void save_image_filesel_str(char *str)
 /* calls fileselect if zbuf is set we are rendering the zbuffer */
 void BIF_save_rendered_image_fs(int zbuf)
 {
-	RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+	RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
 	
 	if(!rr) {
 		error("No image rendered");

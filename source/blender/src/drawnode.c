@@ -817,15 +817,20 @@ static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNo
 		strp= scene_layer_menu(node->id?(Scene *)node->id:G.scene);
 		if(node->id)
 			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC+node->nr, ICON_SCENE_DEHLT, strp, 
-				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-20, 19, 
+				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
 		else
 			bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
-				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-20, 19, 
+				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
-		
 		uiButSetFunc(bt, set_render_result_title, node, NULL);
 		MEM_freeN(strp);
+		
+		/* re-render */
+		bt= uiDefIconButS(block, TOG, B_NODE_EXEC+node->nr, ICON_SCENE, 
+				  butr->xmax-20, butr->ymin, 20, 19, 
+				  &node->custom2, 0, 0, 0, 0, "Re-render this Layer");
+		
 	}
 	return 19;
 }

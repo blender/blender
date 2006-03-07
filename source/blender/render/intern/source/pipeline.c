@@ -191,20 +191,25 @@ static void pop_render_result(Render *re)
 	if(re->pushedresult) {
 		if(re->pushedresult->rectx==re->result->rectx && re->pushedresult->recty==re->result->recty) {
 			/* find which layer in pushedresult should be replaced */
-			RenderLayer *rlpush= BLI_findlink(&re->pushedresult->layers, re->r.actlay);
+			SceneRenderLayer *srl;
+			RenderLayer *rlpush;
 			RenderLayer *rl= re->result->layers.first;
+			int nr;
 			
-			if(rlpush && rl) {
-				/* remove rendered layer */
-				BLI_remlink(&re->result->layers, rl);
-				
-				/* insert it in the pushed result, and remove its counterpart */
-				BLI_insertlinkbefore(&re->pushedresult->layers, rlpush, rl);
-				BLI_remlink(&re->pushedresult->layers, rlpush);
-				
-				/* add old layer in result, and swap results */
-				BLI_addtail(&re->result->layers, rlpush);
-				SWAP(RenderResult *, re->result, re->pushedresult);
+			/* render result should be empty after this */
+			BLI_remlink(&re->result->layers, rl);
+			
+			/* reconstruct render result layers */
+			for(nr=0, srl= re->scene->r.layers.first; srl; srl= srl->next, nr++) {
+				if(nr==re->r.actlay)
+					BLI_addtail(&re->result->layers, rl);
+				else {
+					rlpush= RE_GetRenderLayer(re->pushedresult, srl->name);
+					if(rlpush) {
+						BLI_remlink(&re->pushedresult->layers, rlpush);
+						BLI_addtail(&re->result->layers, rlpush);
+					}
+				}
 			}
 		}
 		
@@ -310,6 +315,17 @@ float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype)
 	return NULL;
 }
 
+RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
+{
+	RenderLayer *rl;
+	
+	if(rr==NULL) return NULL;
+	
+	for(rl= rr->layers.first; rl; rl= rl->next)
+		if(strncmp(rl->name, name, RE_MAXNAME)==0)
+			return rl;
+	return NULL;
+}
 
 /* called by main render as well for parts */
 /* will read info from Render *re to define layers */
@@ -1175,9 +1191,12 @@ static void do_render_fields(Render *re)
 	
 }
 
-static void do_render_scene_node(Render *re, Scene *sce, int cfra)
+/* within context of current Render *re, render another scene.
+   it uses current render image size and disprect, but doesn't execute composite
+*/
+void RE_RenderScene(Render *re, Scene *sce, int cfra)
 {
-	Render *resc= RE_NewRender(sce->id.name+2);
+	Render *resc= RE_NewRender(sce->id.name);
 	
 	sce->r.cfra= cfra;
 	
@@ -1236,7 +1255,7 @@ static void ntree_render_scenes(Render *re)
 		if(node->type==CMP_NODE_R_RESULT) {
 			if(node->id && node->id != (ID *)re->scene) {
 				if(node->id->flag & LIB_DOIT) {
-					do_render_scene_node(re, (Scene *)node->id, cfra);
+					RE_RenderScene(re, (Scene *)node->id, cfra);
 					node->id->flag &= ~LIB_DOIT;
 				}
 			}
@@ -1314,7 +1333,8 @@ static void do_render_final(Render *re)
 			
 			if(re->r.scemode & R_DOCOMP) {
 				/* checks if there are render-result nodes that need scene */
-				ntree_render_scenes(re);
+				if((re->r.scemode & R_SINGLE_LAYER)==0)
+					ntree_render_scenes(re);
 				
 				if(!re->test_break()) {
 					ntree->stats_draw= render_composit_stats;

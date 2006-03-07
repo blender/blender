@@ -337,7 +337,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 			rres.rectf= rw->rectsparef;
 		}
 		else
-			RE_GetResultImage(RE_GetRender("Render"), &rres);
+			RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 		
 		if(rres.rectf) {
 			
@@ -395,7 +395,7 @@ static void renderwin_mouse_moved(RenderWin *rw)
 {
 	RenderResult rres;
 	
-	RE_GetResultImage(RE_GetRender("Render"), &rres);
+	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 
 	if (rw->flags & RW_FLAGS_PIXEL_EXAMINING) {
 		int imgco[2], ofs=0;
@@ -564,20 +564,20 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 			renderwin_reset_view(rw);
 		} 
 		else if (evt==F3KEY) {
-//			if(R.flag==0) {
-//				mainwindow_raise();
-//				mainwindow_make_active();
-//				rw->active= 0;
-//				areawinset(find_biggest_area()->win);
-//				BIF_save_rendered_image_fs();
-//			}
+			if(G.rendering==0) {
+				mainwindow_raise();
+				mainwindow_make_active();
+				rw->active= 0;
+				areawinset(find_biggest_area()->win);
+				BIF_save_rendered_image_fs(0);
+			}
 		} 
 		else if (evt==F11KEY) {
 			BIF_toggle_render_display();
 		} 
 		else if (evt==F12KEY) {
-			/* if it's rendering, this flag is set */
-//			if(R.flag==0) BIF_do_render(0);
+			if(G.rendering==0) 
+				BIF_do_render(0);
 		}
 	}
 }
@@ -991,7 +991,7 @@ static void end_test_break_callback()
 
 static void do_render(int anim)
 {
-	Render *re= RE_NewRender("Render");
+	Render *re= RE_NewRender(G.scene->id.name);
 	unsigned int lay= G.scene->lay;
 	int scemode= G.scene->r.scemode;
 	
@@ -1009,7 +1009,6 @@ static void do_render(int anim)
 	RE_stats_draw_cb(re, printrenderinfo_cb);
 	
 	if(render_win) window_set_cursor(render_win->win, CURSOR_WAIT);
-	waitcursor(1);
 
 	if(G.obedit)
 		exit_editmode(0);	/* 0 = no free data */
@@ -1033,7 +1032,7 @@ static void do_render(int anim)
 	G.scene->r.scemode= scemode;
 	
 	if(render_win) window_set_cursor(render_win->win, CURSOR_STD);
-
+	
 	free_filesel_spec(G.scene->r.pic);
 
 	G.afbreek= 0;
@@ -1052,7 +1051,7 @@ static void do_render(int anim)
 	
 	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
 	
-	waitcursor(0);	// waitcursor checks rendering R.flag...
+	waitcursor(0);
 }
 
 #if 0
@@ -1102,7 +1101,7 @@ static void renderwin_store_spare(void)
 	if(render_win->rectsparef) MEM_freeN(render_win->rectsparef);
 	render_win->rectsparef= NULL;
 	
-	RE_GetResultImage(RE_GetRender("Render"), &rres);
+	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 	
 	if(rres.rect32)
 		render_win->rectspare= MEM_dupallocN(rres.rect32);
@@ -1157,7 +1156,7 @@ void BIF_do_render(int anim)
 /* the RE_Render is only used to make sure we got the picture in the result */
 void BIF_do_ogl_render(View3D *v3d, int anim)
 {
-	Render *re= RE_NewRender("Render");
+	Render *re= RE_NewRender(G.scene->id.name);
 	RenderResult *rr;
 	int winx, winy;
 	
@@ -1229,7 +1228,7 @@ void BIF_swap_render_rects(void)
 	render_win->storespare= 1;
 	render_win->showspare ^= 1;
 		
-	RE_GetResultImage(RE_GetRender("Render"), &rres);
+	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 		
 	if(render_win->sparex!=rres.rectx || render_win->sparey!=rres.recty) {
 		if(render_win->rectspare) MEM_freeN(render_win->rectspare);
@@ -1280,7 +1279,7 @@ void BIF_toggle_render_display(void)
 		}
 	} 
 	else {
-		RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+		RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
 		if(rr) renderwin_init_display_cb(rr);
 	}
 }

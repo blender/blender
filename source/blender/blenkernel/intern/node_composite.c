@@ -599,7 +599,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 	if(node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
 		RenderData *rd= data;
 		if(rd->scemode & R_DOCOMP) {
-			RenderResult *rr= RE_GetResult(RE_GetRender("Render"));
+			RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
 			if(rr) {
 				CompBuf *outbuf, *zbuf=NULL;
 				
@@ -917,16 +917,16 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 
 static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	Scene *sce= node->id?(Scene *)node->id:G.scene;
 	RenderData *rd= data;
 	RenderResult *rr;
 	
-	if(node->id && node->id!=&G.scene->id)
-		rr= RE_GetResult(RE_GetRender(node->id->name+2));
-	else
-		rr= RE_GetResult(RE_GetRender("Render"));
+	rr= RE_GetResult(RE_GetRender(sce->id.name));
 		
 	if(rr) {
-		RenderLayer *rl= BLI_findlink(&rr->layers, node->custom1);
+		SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+		RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
+
 		if(rl) {
 			CompBuf *stackbuf;
 			
@@ -969,10 +969,11 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 }
 
 /* custom1 = render layer in use */
+/* custom2 = re-render tag */
 static bNodeType cmp_node_rresult= {
 	/* type code   */	CMP_NODE_R_RESULT,
 	/* name        */	"Render Result",
-	/* width+range */	120, 80, 300,
+	/* width+range */	150, 100, 300,
 	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	cmp_node_rresult_out,

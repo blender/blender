@@ -51,6 +51,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_editview.h"
@@ -75,6 +76,8 @@
 #include "BLI_arithb.h"
 
 #include "BDR_editobject.h"
+
+#include "RE_pipeline.h"
 
 #include "blendef.h"
 #include "butspace.h"
@@ -147,16 +150,15 @@ static void snode_handle_recalc(SpaceNode *snode)
 			
 			ntreeCompositExecTree(snode->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
 			
+			snode->nodetree->timecursor= NULL;
 			waitcursor(0);
+			
 			allqueue(REDRAWNODE, 1);
 			allqueue(REDRAWIMAGE, 1);
 			if(G.scene->r.scemode & R_DOCOMP) {
 				BIF_redraw_render_rect();	/* seems to screwup display? */
 				mywinset(curarea->win);
 			}
-			
-			snode->nodetree->timecursor= NULL;
-			waitcursor(0);
 		}
 	}
 }
@@ -209,6 +211,47 @@ static bNode *snode_get_editgroup(SpaceNode *snode)
 	return gnode;
 }
 
+/* node has to be of type render result */
+/* is a bit clumsy copying renderdata here... scene nodes use render size of current render */
+static void composite_node_render(SpaceNode *snode, bNode *node)
+{
+	RenderData rd;
+	Scene *scene= NULL;
+	int scemode, actlay;
+	
+	/* the button press won't show up otherwise, button hilites disabled */
+	force_draw(0);
+	
+	if(node->id && node->id!=(ID *)G.scene) {
+		scene= G.scene;
+		set_scene_bg((Scene *)node->id);
+		rd= G.scene->r;
+		G.scene->r.xsch= scene->r.xsch;
+		G.scene->r.ysch= scene->r.ysch;
+		G.scene->r.size= scene->r.size;
+		G.scene->r.mode &= ~(R_BORDER|R_DOCOMP);
+		G.scene->r.mode |= scene->r.mode & R_BORDER;
+		G.scene->r.border= scene->r.border;
+	}
+	
+	scemode= G.scene->r.scemode;
+	actlay= G.scene->r.actlay;
+	
+	G.scene->r.scemode |= R_SINGLE_LAYER;
+	G.scene->r.actlay= node->custom1;
+	
+	BIF_do_render(0);
+	
+	G.scene->r.scemode= scemode;
+	G.scene->r.actlay= actlay;
+
+	node->custom2= 0;
+	
+	if(scene) {
+		G.scene->r= rd;
+		set_scene_bg(scene);
+	}
+}
 
 static void composit_node_event(SpaceNode *snode, short event)
 {
@@ -238,9 +281,14 @@ static void composit_node_event(SpaceNode *snode, short event)
 			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
 			if(node) {
 				NodeTagChanged(snode->edittree, node);
-				node= snode_get_editgroup(snode);
-				if(node)
-					NodeTagIDChanged(snode->nodetree, node->id);
+				/* not the best implementation of the world... but we need it to work now :) */
+				if(node->type==CMP_NODE_R_RESULT && node->custom2)
+					composite_node_render(snode, node);
+				else {
+					node= snode_get_editgroup(snode);
+					if(node)
+						NodeTagIDChanged(snode->nodetree, node->id);
+				}
 				snode_handle_recalc(snode);
 			}
 		}			

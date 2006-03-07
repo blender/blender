@@ -1325,6 +1325,7 @@ static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty,
 	else {
 		bias= 0.1f;
 		scale= 0.01f;
+		clipend= 100.0f;
 	}
 	
 	rectf= MEM_mallocN(rectx*recty*4, "temp");

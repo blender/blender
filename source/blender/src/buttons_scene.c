@@ -1777,6 +1777,7 @@ static void rename_scene_layer_func(void *srl_v, void *unused_v)
 			}
 		}
 	}
+	allqueue(REDRAWBUTSSCENE, 0);
 	allqueue(REDRAWNODE, 0);
 }
 
