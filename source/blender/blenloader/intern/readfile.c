@@ -1477,7 +1477,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	bPoseChannel *pchan;
 	bArmature *arm= ob->data;
 	int rebuild= 0;
-	if (!pose)
+	if (!pose || !arm)
 		return;
 
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
