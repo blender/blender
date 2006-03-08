@@ -1376,11 +1376,29 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 	}
 }
 
+/* loop-in-a-loop I know, but we need it! (ton) */
+static void get_face_center(float *cent, EditVert *eve)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	
+	for(efa= em->faces.first; efa; efa= efa->next)
+		if(efa->f & SELECT)
+			if(efa->v1==eve || efa->v2==eve || efa->v3==eve || efa->v4==eve)
+				break;
+	if(efa) {
+		VECCOPY(cent, efa->cent);
+	}
+}
+
 static void VertsToTransData(TransData *td, EditVert *eve)
 {
 	td->flag = 0;
 	td->loc = eve->co;
+	
 	VECCOPY(td->center, td->loc);
+	if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE))
+		get_face_center(td->center, eve);
 	VECCOPY(td->iloc, td->loc);
 
 	// Setting normals

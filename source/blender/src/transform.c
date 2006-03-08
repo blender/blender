@@ -1407,10 +1407,19 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	/* local constraint shouldn't alter center */
 	if (t->around == V3D_LOCAL) {
 		if (t->flag & T_OBJECT) {
-			VECCOPY(center, td->center);	// not supported in editmode yet
+			VECCOPY(center, td->center);
+		}
+		else if (t->flag & T_EDIT) {
+			
+			if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+				VECCOPY(center, td->center);
+			}
+			else {
+				VECCOPY(center, t->center);
+			}
 		}
 		else {
-			VECCOPY(center, t->center);		// Editmode needs to define center too...
+			VECCOPY(center, t->center);
 		}
 	}
 	else {
@@ -1789,8 +1798,14 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		/* local constraint shouldn't alter center */
 		if (t->around == V3D_LOCAL) {
-			if (t->flag & (T_OBJECT|T_POSE))
-				VECCOPY(t->center, td->center);		// not supported in editmode yet
+			if (t->flag & (T_OBJECT|T_POSE)) {
+				VECCOPY(t->center, td->center);
+			}
+			else {
+				if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+					VECCOPY(t->center, td->center);
+				}
+			}
 		}
 		
 		if (t->con.applyRot) {
