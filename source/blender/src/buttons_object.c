@@ -1185,24 +1185,45 @@ void do_constraintbuts(unsigned short event)
 	allqueue (REDRAWBUTSOBJECT, 0);
 }
 
-static void softbody_bake(Object *ob)
+void softbody_bake(Object *ob)
 {
-	SoftBody *sb= ob->soft;
+	Base *base;
+	SoftBody *sb;
 	ScrArea *sa;
 	float frameleno= G.scene->r.framelen;
-	int cfrao= CFRA;
+	int cfrao= CFRA, sfra=100000, efra=0;
 	unsigned short event=0;
 	short val;
 	
 	G.scene->r.framelen= 1.0;		// baking has to be in uncorrected time
-	CFRA= sb->sfra;
+	
+	if(ob) {
+		sb= ob->soft;
+		sfra= MIN2(sfra, sb->sfra);
+		efra= MAX2(efra, sb->efra);
+		sbObjectToSoftbody(ob);	// put softbody in restposition, free bake
+		ob->softflag |= OB_SB_BAKEDO;
+	}
+	else {
+		for(base=G.scene->base.first; base; base= base->next) {
+			if(TESTBASE(base)) {
+				if(base->object->soft) {
+					sb= base->object->soft;
+					sfra= MIN2(sfra, sb->sfra);
+					efra= MAX2(efra, sb->efra);
+					sbObjectToSoftbody(base->object);	// put softbody in restposition, free bake
+					base->object->softflag |= OB_SB_BAKEDO;
+				}
+			}
+		}
+	}
+	
+	CFRA= sfra;
 	update_for_newframe_muted();	// put everything on this frame
-	sbObjectToSoftbody(ob);	// put softbody in restposition
-	ob->softflag |= OB_SB_BAKEDO;
 	
 	curarea->win_swap= 0;		// clean swapbuffers
 	
-	for(; CFRA <= sb->efra; CFRA++) {
+	for(; CFRA <= efra; CFRA++) {
 		set_timecursor(CFRA);
 		
 		update_for_newframe_muted();
@@ -1222,11 +1243,32 @@ static void softbody_bake(Object *ob)
 		if(event==ESCKEY) break;
 	}
 	
-	if(event==ESCKEY) sbObjectToSoftbody(ob);	// clears all
+	if(event==ESCKEY) {
+		if(ob) 
+			sbObjectToSoftbody(ob);	// free bake
+		else {
+			for(base=G.scene->base.first; base; base= base->next) {
+				if(TESTBASE(base)) {
+					if(base->object->soft) {
+						sbObjectToSoftbody(base->object);	// free bake
+					}
+				}
+			}
+		}
+	}
 	
 	/* restore */
 	waitcursor(0);
-	ob->softflag &= ~OB_SB_BAKEDO;
+	
+	if(ob) 
+		ob->softflag &= ~OB_SB_BAKEDO;
+	else {
+		for(base=G.scene->base.first; base; base= base->next)
+			if(TESTBASE(base))
+				if(base->object->soft)
+					base->object->softflag &= ~OB_SB_BAKEDO;
+	}
+	
 	CFRA= cfrao;
 	G.scene->r.framelen= frameleno;
 	update_for_newframe_muted();

@@ -1213,6 +1213,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					view3d_edit_clipping(v3d);
 				else if(G.qual==LR_SHIFTKEY)
 					set_render_border();
+				else if(G.qual==LR_CTRLKEY) {
+					if(okee("Bake all selected")) {
+						extern void softbody_bake(Object *ob);
+						softbody_bake(NULL);
+					}
+				}
 				else if(G.qual==0)
 					borderselect();
 				break;
