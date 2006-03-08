@@ -208,5 +208,7 @@ int collapseFaces(int uvmerge);
 int merge_firstlast(int first, int uvmerge);
 int merge_target( int target, int uvmerge);
 
+void pathselect(void);
+
 #endif
 

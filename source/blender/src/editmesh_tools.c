@@ -40,6 +40,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include <string.h>
 #include <math.h>
 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -6076,6 +6077,176 @@ int merge_target(int target, int uvmerge)
 	
 }
 #undef MERGELIMIT
+
+typedef struct PathNode{
+	struct PathNode *next, *prev;
+	int u;
+	ListBase edges;
+} PathNode;
+
+typedef struct PathEdge{
+	struct PathEdge *next, *prev;
+	int v;
+	float w;
+} PathEdge;
+
+static PathNode *Extract_Min(ListBase *Q, float *d)
+{
+	PathNode *currpn, *minpn;
+	int min;
+	
+	min=((PathNode*)Q->last)->u;
+	
+	for(currpn=(PathNode*)Q->first; currpn; currpn=currpn->next){
+		if(d[currpn->u] <= d[min]){ 
+			min = currpn->u;
+			minpn = currpn;
+		}
+	}
+	return(minpn);
+}
+
+void pathselect(void)
+{
+	EditVert *eve, *s, *t;
+	EditEdge *eed;
+	PathEdge *newpe, *currpe;
+	PathNode *newpn, *currpn;
+	ListBase Q,S;
+	int v, *previous, pathvert;
+	int unbalanced, totnodes;
+	short physical;
+	float *d;
+	
+	Q.first = Q.last = 0;
+	S.first = S.last = 0;
+	s = t = NULL;
+	
+	countall(); /*paranoid?*/
+	if(G.totvertsel == 2){
+		physical= pupmenu("Distance Method? %t|Edge Length%x1|Topological%x0");
+		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
+			if(t) break;
+			else{
+				if(eve->f&SELECT){
+					if(s) t = eve;
+					else s = eve;
+				}
+			}
+		}
+		/*need to find out if t is actually reachable by s....*/
+		for(eve=G.editMesh->verts.first; eve; eve=eve->next){ 
+			eve->f1 = 0;
+		}
+		
+		s->f1 = 1;
+		
+		unbalanced = 1;
+		
+		while(unbalanced){
+			unbalanced = 0;
+			for(eed=G.editMesh->edges.first; eed; eed=eed->next){
+				if(eed->h == 0){
+					if(eed->v1->f1 && !eed->v2->f1){ 
+						eed->v2->f1 = 1;
+						unbalanced = 1;
+					}
+					else if(eed->v2->f1 && !eed->v1->f1){
+						eed->v1->f1 = 1;
+						unbalanced = 1;
+					}
+				}
+			}
+			
+			/*if(s->f1 == t->f1) break; */
+			
+		}
+		
+		if(s->f1 && t->f1){ /*t can be reached by s*/
+			totnodes = 0;
+			for(eve=G.editMesh->verts.first; eve; eve=eve->next){
+				if(eve->f1){
+					eve->tmp.l = totnodes; /*store index*/
+					newpn = MEM_mallocN(sizeof(PathNode), "Path Node");
+					newpn->u = eve->tmp.l;
+					newpn->next = 0;
+					newpn->prev = 0;
+					newpn->edges.first = 0;
+					newpn->edges.last = 0;
+					BLI_addtail(&Q, newpn);
+					totnodes++;
+				}
+				else eve->tmp.l = -1; /*paranoia*/
+			}
+			
+			for(eed=G.editMesh->edges.first; eed; eed=eed->next){
+				for(currpn = Q.first; currpn; currpn=currpn->next){
+					if(eed->v1->f1 && eed->v1->tmp.l == currpn->u){
+						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
+						newpe->v = eed->v2->tmp.l;
+						if(physical){
+							newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+						}
+						else newpe->w = 1;
+						newpe->next = 0;
+						newpe->prev = 0;
+						BLI_addtail(&(currpn->edges), newpe);
+					} else 
+					if(eed->v2->f1 && eed->v2->tmp.l == currpn->u){
+						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
+						newpe->v = eed->v1->tmp.l;
+						if(physical){
+							newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+						}
+						else newpe->w = 1;
+						newpe->next = 0;
+						newpe->prev = 0;
+						BLI_addtail(&(currpn->edges), newpe);
+					}
+				}
+			}
+			
+			d = MEM_callocN(sizeof(float)*totnodes, "path select distances");
+			previous = MEM_callocN(sizeof(int)*totnodes, "indices");
+			
+			for(v=0; v < totnodes; v++){
+				d[v] = 100000;	/*some impossibly large number.... redefine this better*/
+				previous[v] = -1; /*array of indices*/
+			}
+			
+			d[s->tmp.l] = 0;
+			
+			while(Q.first){
+				currpn = Extract_Min(&Q,d);
+				BLI_remlink(&Q, currpn);
+				BLI_addtail(&S, currpn);
+				
+				for(currpe=currpn->edges.first; currpe; currpe=currpe->next){
+					if(d[currpe->v] > (d[currpn->u] + currpe->w)){
+						d[currpe->v] = d[currpn->u] + currpe->w;
+						previous[currpe->v] = currpn->u;
+					}
+				}
+			}
+			
+			pathvert = t->tmp.l;
+			while(pathvert != -1){
+				for(eve=G.editMesh->verts.first; eve; eve=eve->next){
+					if(eve->tmp.l == pathvert) eve->f |= SELECT;
+				}
+				pathvert = previous[pathvert];
+			}
+			
+			for(currpn=S.first; currpn; currpn=currpn->next) BLI_freelistN(&(currpn->edges));
+			BLI_freelistN(&S);
+			MEM_freeN(d);
+			MEM_freeN(previous);
+			
+			EM_select_flush();
+			
+		}
+	}
+}
 
 
 
