@@ -538,13 +538,13 @@ int main(int argc, char **argv)
 			case 'f':
 				a++;
 				if (G.scene && a < argc) {
-					Render *re= RE_NewRender("Render");
+					Render *re= RE_NewRender(G.scene->id.name);
 					RE_BlenderAnim(re, G.scene, atoi(argv[a]), atoi(argv[a]));
 				}
 				break;
 			case 'a':
 				if (G.scene) {
-					Render *re= RE_NewRender("Render");
+					Render *re= RE_NewRender(G.scene->id.name);
 					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 				}
 				break;
