@@ -1655,7 +1655,9 @@ static void softbody_baked_add(Object *ob, float framenr)
 	
 	/* convert cfra time to system time */
 	sfra= (float)sb->sfra;
+	fac1= ob->sf; ob->sf= 0.0f;	/* disable startframe */
 	cfra= bsystem_time(ob, NULL, framenr, 0.0);
+	ob->sf= fac1;
 	efra= (float)sb->efra;
 	dfra= (float)sb->interval;
 	
@@ -1673,7 +1675,7 @@ static void softbody_baked_add(Object *ob, float framenr)
 	/* now find out if we have to store a key */
 	
 	/* offset in keys array */
-	if(cfra==efra) {
+	if(cfra>=(efra)) {
 		ofs1= sb->totkey-1;
 		fac1= 0.0;
 	}
