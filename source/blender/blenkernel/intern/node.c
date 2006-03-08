@@ -1831,23 +1831,12 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 	bNodeSocket *sock;
 	int totnode= 0;
 	
+	/* note; do not add a dependency sort here, the stack was created already */
+	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		int a;
 		
 		node_get_stack(node, thd->stack, nsin, nsout);
-		
-		/* test the inputs */
-		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
-			/* skip viewer nodes in bg render */
-			if(node->type==CMP_NODE_VIEWER && G.background);
-			/* is sock in use? */
-			else if(sock->link) {
-				if(nsin[a]->data==NULL || sock->link->fromnode->need_exec) {
-					node->need_exec= 1;
-					break;
-				}
-			}
-		}
 		
 		/* test the outputs */
 		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
@@ -1856,6 +1845,29 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 				break;
 			}
 		}
+		
+		/* test the inputs */
+		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+			/* skip viewer nodes in bg render */
+			if(node->type==CMP_NODE_VIEWER && G.background)
+				node->need_exec= 0;
+			/* is sock in use? */
+			else if(sock->link) {
+				bNodeLink *link= sock->link;
+				/* this is the test for a cyclic case */
+				if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
+					if(nsin[a]->data==NULL || sock->link->fromnode->need_exec) {
+						node->need_exec= 1;
+						break;
+					}
+				}
+				else {
+					node->need_exec= 0;
+					printf("Node %s skipped, cyclic dependency\n", node->name);
+				}
+			}
+		}
+		
 		if(node->need_exec) {
 			
 			/* free output buffers */
@@ -1866,7 +1878,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 				}
 			}
 			totnode++;
-			//printf("node needs exec %s\n", node->name);
+			printf("node needs exec %s\n", node->name);
 			
 			/* tag for getExecutableNode() */
 			node->exec= 0;
