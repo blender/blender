@@ -147,10 +147,13 @@ static void snode_handle_recalc(SpaceNode *snode)
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		if(G.scene->use_nodes) {
 			snode->nodetree->timecursor= set_timecursor;
-			
+			G.afbreek= 0;
+			snode->nodetree->test_break= blender_test_break;
+
 			ntreeCompositExecTree(snode->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
 			
 			snode->nodetree->timecursor= NULL;
+			snode->nodetree->test_break= NULL;
 			waitcursor(0);
 			
 			allqueue(REDRAWNODE, 1);

@@ -1878,7 +1878,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 				}
 			}
 			totnode++;
-			printf("node needs exec %s\n", node->name);
+//			printf("node needs exec %s\n", node->name);
 			
 			/* tag for getExecutableNode() */
 			node->exec= 0;
@@ -1970,8 +1970,14 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		else
 			PIL_sleep_ms(50);
 		
-		/* check for ready ones, and if we need to continue */
 		rendering= 0;
+		/* test for ESC */
+		if(ntree->test_break && ntree->test_break()) {
+			for(node= ntree->nodes.first; node; node= node->next)
+				node->exec |= NODE_READY;
+		}
+		
+		/* check for ready ones, and if we need to continue */
 		for(node= ntree->nodes.first; node; node= node->next) {
 			if(node->exec & NODE_READY) {
 				if((node->exec & NODE_FINISHED)==0) {
