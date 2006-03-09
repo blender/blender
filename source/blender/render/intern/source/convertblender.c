@@ -3245,11 +3245,17 @@ static void calculate_speedvectors(Render *re, float *vectors, int startvert, in
 		/* now map hocos to screenspace, uses very primitive clip still */
 		if(ver->ho[3]<0.1f) div= 10.0f;
 		else div= 1.0f/ver->ho[3];
-		zco[0]= zmulx*(1.0+ver->ho[0]*div);
-		zco[1]= zmuly*(1.0+ver->ho[1]*div);
+		zco[0]= zmulx*(1.0f+ver->ho[0]*div);
+		zco[1]= zmuly*(1.0f+ver->ho[1]*div);
 		
 		zco[0]= vectors[0] - zco[0];
 		zco[1]= vectors[1] - zco[1];
+		
+		/* enable nice masks for hardly moving stuff or float inaccuracy */
+		if(zco[0]<0.1f && zco[0]>-0.1f && zco[1]<0.1f && zco[1]>-0.1f ) {
+			zco[0]= 0.0f;
+			zco[1]= 0.0f;
+		}
 		
 		/* maximize speed for image width, otherwise it never looks good */
 		len= zco[0]*zco[0] + zco[1]*zco[1];
@@ -3269,7 +3275,6 @@ static void calculate_speedvectors(Render *re, float *vectors, int startvert, in
 			speed[0]= zco[0];
 			speed[1]= zco[1];
 		}
-
 	}
 }
 
@@ -3375,8 +3380,8 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 				
 				if(ver->ho[3]<0.1f) div= 10.0f;
 				else div= 1.0f/ver->ho[3];
-				vec[0]= zmulx*(1.0+ver->ho[0]*div);
-				vec[1]= zmuly*(1.0+ver->ho[1]*div);
+				vec[0]= zmulx*(1.0f+ver->ho[0]*div);
+				vec[1]= zmuly*(1.0f+ver->ho[1]*div);
 				
 			}
 		}
