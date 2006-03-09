@@ -63,6 +63,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BLI_rand.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_heap.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -6079,8 +6080,8 @@ int merge_target(int target, int uvmerge)
 #undef MERGELIMIT
 
 typedef struct PathNode{
-	struct PathNode *next, *prev;
 	int u;
+	int visited;
 	ListBase edges;
 } PathNode;
 
@@ -6090,40 +6091,25 @@ typedef struct PathEdge{
 	float w;
 } PathEdge;
 
-static PathNode *Extract_Min(ListBase *Q, float *d)
-{
-	PathNode *currpn, *minpn;
-	int min;
-	
-	min=((PathNode*)Q->last)->u;
-	
-	for(currpn=(PathNode*)Q->first; currpn; currpn=currpn->next){
-		if(d[currpn->u] <= d[min]){ 
-			min = currpn->u;
-			minpn = currpn;
-		}
-	}
-	return(minpn);
-}
-
 void pathselect(void)
 {
 	EditVert *eve, *s, *t;
 	EditEdge *eed;
 	PathEdge *newpe, *currpe;
-	PathNode *newpn, *currpn;
-	ListBase Q,S;
-	int v, *previous, pathvert;
-	int unbalanced, totnodes;
+	PathNode *currpn;
+	PathNode *Q;
+	int v, *previous, pathvert, pnindex; /*pnindex redundant?*/
+ 	int unbalanced, totnodes;
 	short physical;
-	float *d;
+	float *cost;
+	Heap *heap; /*binary heap for sorting pointers to PathNodes based upon a 'cost'*/
 	
-	Q.first = Q.last = 0;
-	S.first = S.last = 0;
 	s = t = NULL;
 	
 	countall(); /*paranoid?*/
-	if(G.totvertsel == 2){
+	
+				
+	if(G.totvertsel == 2 && G.totedgesel == 0){
 		physical= pupmenu("Distance Method? %t|Edge Length%x1|Topological%x0");
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if(t) break;
@@ -6142,61 +6128,63 @@ void pathselect(void)
 		s->f1 = 1;
 		
 		unbalanced = 1;
-		
+		totnodes = 1;
 		while(unbalanced){
 			unbalanced = 0;
 			for(eed=G.editMesh->edges.first; eed; eed=eed->next){
-				if(eed->h == 0){
+				if(!eed->h){
 					if(eed->v1->f1 && !eed->v2->f1){ 
-						eed->v2->f1 = 1;
-						unbalanced = 1;
+							eed->v2->f1 = 1;
+							totnodes++;
+							unbalanced = 1;
 					}
 					else if(eed->v2->f1 && !eed->v1->f1){
-						eed->v1->f1 = 1;
-						unbalanced = 1;
+							eed->v1->f1 = 1;
+							totnodes++;
+							unbalanced = 1;
 					}
 				}
 			}
-			
-			/*if(s->f1 == t->f1) break; */
-			
 		}
 		
+		
+		
 		if(s->f1 && t->f1){ /*t can be reached by s*/
+			Q = MEM_callocN(sizeof(PathNode)*totnodes, "Path Select Nodes");
 			totnodes = 0;
 			for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 				if(eve->f1){
-					eve->tmp.l = totnodes; /*store index*/
-					newpn = MEM_mallocN(sizeof(PathNode), "Path Node");
-					newpn->u = eve->tmp.l;
-					newpn->next = 0;
-					newpn->prev = 0;
-					newpn->edges.first = 0;
-					newpn->edges.last = 0;
-					BLI_addtail(&Q, newpn);
+					Q[totnodes].u = totnodes;
+					Q[totnodes].edges.first = 0;
+					Q[totnodes].edges.last = 0;
+					Q[totnodes].visited = 0;
+					eve->tmp.p = &(Q[totnodes]);
 					totnodes++;
 				}
-				else eve->tmp.l = -1; /*paranoia*/
+				else eve->tmp.p = NULL;
 			}
 			
 			for(eed=G.editMesh->edges.first; eed; eed=eed->next){
-				for(currpn = Q.first; currpn; currpn=currpn->next){
-					if(eed->v1->f1 && eed->v1->tmp.l == currpn->u){
+				if(!eed->h){
+					if(eed->v1->f1){
+						currpn = ((PathNode*)eed->v1->tmp.p);
+						
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
-						newpe->v = eed->v2->tmp.l;
+						newpe->v = ((PathNode*)eed->v2->tmp.p)->u;
 						if(physical){
-							newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
 						newpe->next = 0;
 						newpe->prev = 0;
 						BLI_addtail(&(currpn->edges), newpe);
-					} else 
-					if(eed->v2->f1 && eed->v2->tmp.l == currpn->u){
+					} 
+					if(eed->v2->f1){
+						currpn = ((PathNode*)eed->v2->tmp.p); 
 						newpe = MEM_mallocN(sizeof(PathEdge), "Path Edge");
-						newpe->v = eed->v1->tmp.l;
+						newpe->v = ((PathNode*)eed->v1->tmp.p)->u;
 						if(physical){
-							newpe->w = VecLenf(eed->v1->co, eed->v2->co);
+								newpe->w = VecLenf(eed->v1->co, eed->v2->co);
 						}
 						else newpe->w = 1;
 						newpe->next = 0;
@@ -6206,47 +6194,61 @@ void pathselect(void)
 				}
 			}
 			
-			d = MEM_callocN(sizeof(float)*totnodes, "path select distances");
-			previous = MEM_callocN(sizeof(int)*totnodes, "indices");
+			heap = BLI_heap_new();
+			cost = MEM_callocN(sizeof(float)*totnodes, "Path Select Costs");
+			previous = MEM_callocN(sizeof(int)*totnodes, "PathNode indices");
 			
 			for(v=0; v < totnodes; v++){
-				d[v] = 100000;	/*some impossibly large number.... redefine this better*/
+				cost[v] = 1000000;
 				previous[v] = -1; /*array of indices*/
 			}
 			
-			d[s->tmp.l] = 0;
-			
-			while(Q.first){
-				currpn = Extract_Min(&Q,d);
-				BLI_remlink(&Q, currpn);
-				BLI_addtail(&S, currpn);
+			pnindex = ((PathNode*)s->tmp.p)->u;
+			cost[pnindex] = 0;
+			BLI_heap_insert(heap,  0.0f, (void*)pnindex);
+						
+			while( !BLI_heap_empty(heap) ){
+				
+				pnindex = (int)BLI_heap_popmin(heap);
+				currpn = &(Q[pnindex]);
+				
+				if(currpn == (PathNode*)t->tmp.p) /*target has been reached....*/
+					break;
 				
 				for(currpe=currpn->edges.first; currpe; currpe=currpe->next){
-					if(d[currpe->v] > (d[currpn->u] + currpe->w)){
-						d[currpe->v] = d[currpn->u] + currpe->w;
-						previous[currpe->v] = currpn->u;
+					if(!Q[currpe->v].visited){
+						if( cost[currpe->v] > (cost[currpn->u ] + currpe->w) ){
+							cost[currpe->v] = cost[currpn->u] + currpe->w;
+							previous[currpe->v] = currpn->u;
+							Q[currpe->v].visited = 1;
+							BLI_heap_insert(heap, cost[currpe->v], (void*)currpe->v);
+						}
 					}
 				}
 			}
 			
-			pathvert = t->tmp.l;
+			pathvert = ((PathNode*)t->tmp.p)->u;
 			while(pathvert != -1){
 				for(eve=G.editMesh->verts.first; eve; eve=eve->next){
-					if(eve->tmp.l == pathvert) eve->f |= SELECT;
+					if(eve->f1){
+						if( ((PathNode*)eve->tmp.p)->u == pathvert) eve->f |= SELECT;
+					}
 				}
 				pathvert = previous[pathvert];
 			}
 			
-			for(currpn=S.first; currpn; currpn=currpn->next) BLI_freelistN(&(currpn->edges));
-			BLI_freelistN(&S);
-			MEM_freeN(d);
+			for(v=0; v < totnodes; v++) BLI_freelistN(&(Q[v].edges));
+			MEM_freeN(Q);
+			MEM_freeN(cost);
 			MEM_freeN(previous);
+			BLI_heap_free(heap, NULL);
 			
 			EM_select_flush();
 			
 		}
 	}
+	else{
+		error("Path Selection requires that exactly two vertices be selected");
+		return;
+	}
 }
-
-
-
