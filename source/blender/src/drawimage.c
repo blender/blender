@@ -1490,21 +1490,21 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 					
 					/* detect if we need to redo the curve map. 
 					   ibuf->rect is zero for compositor and render results after change 
-					   also: if no curves are active, we only keep the float rect
+					   convert to 32 bits always... drawing float rects isnt supported well (atis)
 					*/
 					if(ibuf->rect_float) {
-						if(image_curves_active(sa)) {
-							if(ibuf->rect==NULL)
+						if(ibuf->rect==NULL) {
+							if(image_curves_active(sa))
 								curvemapping_do_image(G.sima->cumap, G.sima->image);
+							else 
+								IMB_rect_from_float(ibuf);
 						}
-						else if(ibuf->rect)
-							imb_freerectImBuf(ibuf);
 					}
 
 					if(ibuf->rect)
 						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-					else
-						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+//					else
+//						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 					
 					if(sima->flag & SI_USE_ALPHA)
 						glDisable(GL_BLEND);
