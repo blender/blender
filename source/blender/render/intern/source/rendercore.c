@@ -1656,9 +1656,9 @@ static void shade_lamp_loop_pass(ShadeInput *shi, ShadeResult *shr, int passflag
 	}
 	
 	if(passflag & SCE_PASS_COMBINED) {
-		shr->combined[0]= shr->diff[0]+(shr->ao[0])*shr->col[0] + shr->spec[0];
-		shr->combined[1]= shr->diff[1]+(shr->ao[1])*shr->col[1] + shr->spec[1];
-		shr->combined[2]= shr->diff[2]+(shr->ao[2])*shr->col[2] + shr->spec[2];
+		shr->combined[0]= shr->diff[0] + shr->ao[0]*shr->col[0] + shr->spec[0];
+		shr->combined[1]= shr->diff[1] + shr->ao[1]*shr->col[1] + shr->spec[1];
+		shr->combined[2]= shr->diff[2] + shr->ao[2]*shr->col[2] + shr->spec[2];
 		shr->combined[3]= shr->alpha;
 	}
 	
@@ -1843,7 +1843,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	if(R.wrld.mode & WO_AMB_OCC) {
 		ambient_occlusion(shi, shr);
-		VECADD(shr->diff, shr->diff, shr->ao);
+		shr->diff[0] += shi->r*shr->ao[0];
+		shr->diff[1] += shi->r*shr->ao[1];
+		shr->diff[2] += shi->r*shr->ao[2];
 	}
 	
 	for(go=lights->first; go; go= go->next) {
