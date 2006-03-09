@@ -972,6 +972,7 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, short newx, short newy)
 		}
 
 		if (do_float) {
+			ofsx = 32768;
 			for (x = newx ; x>0 ; x--){
 				*newrectf++ = rectf[ofsx >> 16];
 				ofsx += stepx;
