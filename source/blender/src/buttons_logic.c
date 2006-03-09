@@ -2500,7 +2500,7 @@ void logic_buts(void)
 	
 	a= 0;
 	prop= ob->prop.first;
-	uiBlockBeginAlign(block);
+//	uiBlockBeginAlign(block);
 	while(prop) {
 		
 		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(70-20*a), 40, 19, NULL, 0.0, 0.0, 1, (float)a, "");
@@ -2533,7 +2533,8 @@ void logic_buts(void)
 		a++;
 		prop= prop->next;
 	}
-	uiBlockEndAlign(block);
+//	uiBlockEndAlign(block);
+//  Note: something is wrong with alignment... it attempts to align the next buttons now? will check later...
 	uiClearButLock();
 
 	idar= get_selected_and_linked_obs(&count, G.buts->scaflag);
