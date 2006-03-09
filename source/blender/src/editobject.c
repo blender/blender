@@ -1888,7 +1888,7 @@ void movetolayer(void)
 	if(islamp && G.vd->drawtype == OB_SHADED) reshadeall_displist();
 	
 	/* to avoid operations on active objects in hidden layers */
-	if (!(BASACT->lay & G.vd->lay))
+	if (BASACT && !(BASACT->lay & G.vd->lay))
 		BASACT= NULL;
 	
 	countall();
