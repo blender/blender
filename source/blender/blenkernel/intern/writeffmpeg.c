@@ -21,9 +21,9 @@
 #include <stdio.h>
 
 #include <stdlib.h>
-#include <ffmpeg/rational.h>
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
+#include <ffmpeg/rational.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
