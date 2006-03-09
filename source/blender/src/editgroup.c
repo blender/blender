@@ -101,29 +101,36 @@ void rem_selected_from_group(void)
 
 void group_operation_with_menu(void)
 {
-	Base *base;
 	Group *group= NULL;
 	int mode;
 	
-	for(base=FIRSTBASE; base; base= base->next) {
-		if TESTBASE(base) {
-			group= find_group(base->object);
-			if(group) break;
-		}
-	}
+	/* are there existing groups? */
+	for(group= G.main->group.first; group; group= group->id.next)
+		if(group->id.lib==NULL)
+			break;
 	
-	if(group && group->id.lib) {
-		error("Cannot edit library data");
-		return;
-	}
-	
-	if(base)
-		mode= pupmenu("Groups %t|Add to current Group %x3|Add to New Group %x1|Remove from all Groups %x2");
+	if(group)
+		mode= pupmenu("Groups %t|Add to existing Group %x3|Add to New Group %x1|Remove from all Groups %x2");
 	else
 		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from all Groups %x2");
 	
 	if(mode>0) {
 		if(group==NULL || mode==1) group= add_group();
+		if(mode==3) {
+			int tot= BLI_countlist(&G.main->group);
+			char *strp= MEM_callocN(tot*32 + 32, "group menu"), *strp1;
+			
+			strp1= strp;
+			for(tot=1, group= G.main->group.first; group; group= group->id.next, tot++) {
+				if(group->id.lib==NULL) {
+					strp1 += sprintf(strp1, "%s %%x%d|", group->id.name+2, tot);
+				}
+			}
+			tot= pupmenu(strp);
+			MEM_freeN(strp);
+			if(tot>0) group= BLI_findlink(&G.main->group, tot-1);
+			else return;
+		}
 		
 		if(mode==1 || mode==3) add_selected_to_group(group);
 		else if(mode==2) rem_selected_from_group();
