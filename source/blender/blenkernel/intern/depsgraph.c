@@ -1504,6 +1504,11 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay)
 	DagAdjList *itA;
 	int lasttime;
 	
+	if(sce->theDag==NULL) {
+		printf("DAG zero... not allowed to happen!\n");
+		DAG_scene_sort(sce);
+	}
+	
 	firstnode= sce->theDag->DagNode.first;  // always scene node
 	
 	/* first we flush the layer flags */

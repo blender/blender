@@ -75,6 +75,7 @@
 #include "BKE_screen.h"
 
 #include "BIF_cursors.h"
+#include "BIF_drawscene.h"
 #include "BIF_editsound.h"
 #include "BIF_glutil.h"
 #include "BIF_gl.h"
@@ -2227,7 +2228,9 @@ void setscreen(bScreen *sc)
 		sa->cursor= CURSOR_STD;
 	}
 	
-	G.scene= sc->scene;
+	if(G.scene!=sc->scene)
+		set_scene(sc->scene);
+
 	countall();
 	
 	G.curscreen->winakt= 0;
