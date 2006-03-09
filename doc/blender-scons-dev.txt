@@ -100,7 +100,7 @@ $Id$
     the priorities us BF_PRIORITYLIST=1 on the command-line while running
     a build.
 
-    % scons BF_PRIORITY_LIST=1
+    % scons BF_PRIORITYLIST=1
 
     This will give a list with values suggested by the system. Make
     changes to all SConscripts in question to reflect or change the
@@ -108,7 +108,7 @@ $Id$
     internal, external library or core library, and make sure there are
     sane values. You can use large and negative numbers to test with,
     but after you've got a working linking order, do change the system
-    to reflect BF_PRIORITY_LIST values.
+    to reflect BF_PRIORITYLIST values.
 
     Also, if you find that a library needs to be given multiple times to
     the linker, you can do that by giving a python list with the names
