@@ -218,6 +218,7 @@ struct Render *RE_GetRender(const char *name) {return (struct Render *)NULL;}
 struct RenderResult *RE_GetResult(Render *re) {return (struct RenderResult *)NULL;}
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype) {return NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
+struct RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name) {return (struct RenderLayer *)NULL;}
 
 /* node_composite.c */
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) {}
