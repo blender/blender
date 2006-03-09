@@ -1752,9 +1752,18 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	int result = 0;
 	int charmax = G.charmax;
 
-	/* <builtin> font in use */
+	/* <builtin> font in use. There are TTF <builtin> and non-TTF <builtin> fonts */
 	if(!strcmp(G.selfont->name, "<builtin>"))
-		charmax = 0xff;
+	{
+		if(G.ui_international == TRUE)
+		{
+			charmax = 0xff;
+		}
+		else
+		{
+			charmax = 0xff;
+		}
+	}
 
 	/* Category list exited without selecting the area */
 	if(G.charmax == 0)
@@ -1775,7 +1784,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 	cs = G.charstart;
 
-	/* Set the font */
+	/* Set the font, in case it is not <builtin> font */
 	if(G.selfont && strcmp(G.selfont->name, "<builtin>"))
 	{
 		char tmpStr[256];
@@ -1793,6 +1802,13 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			strcpy(tmpStr, G.selfont->name);
 			BLI_convertstringcode(tmpStr, G.sce, 0);
 			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
+		}
+	}
+	else
+	{
+		if(G.ui_international == TRUE)
+		{
+			FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, 14.0);
 		}
 	}
 
@@ -1833,11 +1849,18 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			}
 			else
 			{
-				ustr[0] = cs;
-				ustr[1] = 0;
+				if(G.ui_international == TRUE)
+				{
+					wcs2utf8s((char *)ustr, (wchar_t *)wstr);
+				}
+				else
+				{
+					ustr[0] = cs;
+					ustr[1] = 0;
+				}
 			}
 
-			if(G.selfont && strcmp(G.selfont->name, "<builtin>"))
+			if((G.selfont && strcmp(G.selfont->name, "<builtin>")) || (G.selfont && !strcmp(G.selfont->name, "<builtin>") && G.ui_international == TRUE))
 			{
 				float wid;
 				float llx, lly, llz, urx, ury, urz;
