@@ -3740,7 +3740,6 @@ void draw_object(Base *base, int flag)
 	if((G.vd->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
-				printf ("%d %s <--", __LINE__, __FUNCTION__);
 				drawSolidSelect(base);
 			}
 		}
