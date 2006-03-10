@@ -123,10 +123,10 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 ##ifeq ($CPU),alpha)
 ##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
 
-CFLAGS = [ '-pipe' '-funsigned-char', '-fno-strict-aliasing' ]
+CCFLAGS = [ '-pipe' '-funsigned-char', '-fno-strict-aliasing' ]
 
 CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS' ]
-CCFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
+CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]
 ##BF_DEPEND = 'true'
