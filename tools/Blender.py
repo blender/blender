@@ -39,6 +39,7 @@ quicklist = [] # The list of libraries/programs to compile during a quickie
 program_list = [] # A list holding Nodes to final binaries, used to create installs
 arguments = None
 targets = None
+resources = []
 
 #some internals
 blenderdeps = [] # don't manipulate this one outside this module!
@@ -47,6 +48,10 @@ blenderdeps = [] # don't manipulate this one outside this module!
 
 possible_types = ['core'] # can be set in ie. SConstruct
 libs = {}
+
+def getresources():
+    return resources
+
 def init_lib_dict():
     for pt in possible_types:
         libs[pt] = {}
@@ -317,6 +322,21 @@ def AppIt(target=None, source=None, env=None):
 
 class BlenderEnvironment(SConsEnvironment):
 
+    def BlenderRes(self=None, libname=None, source=None, libtype=['core'], priority=[100]):
+        global libs
+        if not self or not libname or not source:
+            print bc.FAIL+'Cannot continue.  Missing argument for BlenderRes '+libname+bc.ENDC
+            Exit()
+        if self['OURPLATFORM'] not in ('win32-vc','win32-mingw'):
+            print bc.FAIL+'BlenderRes is for windows only!'+bc.END
+            Exit()
+        
+        print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
+        lenv = self.Copy()
+        res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
+      
+        SConsEnvironment.Default(self, res)
+        resources.append(res)
 
     def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None):
         if not self or not libname or not sources:

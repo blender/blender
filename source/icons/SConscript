@@ -1,0 +1,6 @@
+#!/usr/bin/python
+Import ('env')
+
+source = 'winblender_scons.rc'
+
+env.BlenderRes('winresource', source, ['core', 'player'], priority=[95 , 100])

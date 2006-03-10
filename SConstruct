@@ -228,7 +228,7 @@ for tp in B.possible_types:
 if B.arguments.get('BF_PRIORITYLIST', '0')=='1':
     B.propose_priorities()
 
-dobj = B.buildinfo(env, "dynamic")
+dobj = B.buildinfo(env, "dynamic") + B.resources
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
