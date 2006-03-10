@@ -3673,13 +3673,6 @@ void draw_object(Base *base, int flag)
 				else colindex = 6;
 			}
 			else if(ob->flag & OB_FROMGROUP) {
-				/*****
-				if(base->flag & (SELECT+BA_WAS_SEL)) {
-					if(G.scene->basact==base) colindex = 11;
-					else colindex= 10;
-				}
-				else colindex = 9;
-				******/
 				if(base->flag & (SELECT+BA_WAS_SEL)) {
 					if(G.scene->basact==base) BIF_ThemeColor(TH_GROUP_ACTIVE);
 					else BIF_ThemeColor(TH_GROUP); 
