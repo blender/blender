@@ -116,8 +116,8 @@ static int PoseBoneMapping_Init(PyObject *dictionary, ListBase *posechannels){
 		if (!py_posechannel)
 			return -1;
 
-		if(PyDict_SetItem(dictionary, 
-			PyString_FromString(pchan->name), py_posechannel) == -1){
+		if(PyDict_SetItemString(dictionary,
+					pchan->name, py_posechannel) == -1){
 			return -1;
 		}
 		Py_DECREF(py_posechannel);
