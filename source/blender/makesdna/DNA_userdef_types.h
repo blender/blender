@@ -80,7 +80,7 @@ typedef struct ThemeSpace {
 	
 	char wire[4], select[4];
 	char lamp[4];
-	char active[4], transform[4];
+	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
 	char edge_seam[4], edge_facesel[4];
@@ -120,6 +120,8 @@ typedef struct bTheme {
 	ThemeSpace toops;
 	ThemeSpace ttime;
 	ThemeSpace tnode;
+
+	unsigned char bpad[4], bpad1[4];
 	
 } bTheme;
 

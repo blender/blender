@@ -229,6 +229,10 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->select; break;
 			case TH_ACTIVE:
 				cp= ts->active; break;
+			case TH_GROUP:
+				cp= ts->group; break;
+			case TH_GROUP_ACTIVE:
+				cp= ts->group_active; break;
 			case TH_TRANSFORM:
 				cp= ts->transform; break;
 			case TH_VERTEX:
@@ -354,6 +358,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
 	SETCOL(btheme->tv3d.active, 0xff, 0xbb, 0xff, 255);
+	SETCOL(btheme->tv3d.group, 0x32, 0xcd, 0x32, 255);
+	SETCOL(btheme->tv3d.group_active, 0xb4, 0xee, 0xb4, 255);
 	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
 	SETCOL(btheme->tv3d.vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tv3d.vertex_select, 0xff, 0xff, 0x70, 255);
@@ -532,6 +538,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Lamp %%x%d|", TH_LAMP);
 			str += sprintf(str, "Object Selected %%x%d|", TH_SELECT);
 			str += sprintf(str, "Object Active %%x%d|", TH_ACTIVE);
+			str += sprintf(str, "Object Grouped %%x%d|", TH_GROUP);
+			str += sprintf(str, "Object Grouped Active %%x%d|", TH_GROUP_ACTIVE);
 			str += sprintf(str, "Transform %%x%d|", TH_TRANSFORM);
 			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);

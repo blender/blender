@@ -1896,11 +1896,21 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 			/* If drawing wire and drawtype is not OB_WIRE then we are
 				* overlaying the wires.
 				*/
+
 		if (dt!=OB_WIRE) {
 			if(base->flag & SELECT) {
-				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+
+				if(ob==OBACT && ob->flag & OB_FROMGROUP) 
+					BIF_ThemeColor(TH_GROUP_ACTIVE);
+				else if(ob->flag & OB_FROMGROUP) 
+					BIF_ThemeColor(TH_GROUP);
+				else
+					BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			} else {
-				BIF_ThemeColor(TH_WIRE);
+				if (ob->flag & OB_FROMGROUP) 
+					BIF_ThemeColor(TH_GROUP);
+				else
+					BIF_ThemeColor(TH_WIRE);
 			}
 
 			bglPolygonOffset(1.0);
@@ -3471,7 +3481,9 @@ static void drawSolidSelect(Base *base)
 static void drawWireExtra(Object *ob) 
 {
 	if(ob!=G.obedit && (ob->flag & SELECT)) {
-		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
+		if(ob==OBACT && ob->dtx & OB_DRAWWIRE) BIF_ThemeColor(TH_GROUP_ACTIVE);
+		else if(ob->dtx & OB_DRAWWIRE) BIF_ThemeColor(TH_GROUP);
+		else if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
 		else BIF_ThemeColor(TH_SELECT);
 	}
 	else BIF_ThemeColor(TH_WIRE);
@@ -3661,11 +3673,19 @@ void draw_object(Base *base, int flag)
 				else colindex = 6;
 			}
 			else if(ob->flag & OB_FROMGROUP) {
+				/*****
 				if(base->flag & (SELECT+BA_WAS_SEL)) {
 					if(G.scene->basact==base) colindex = 11;
 					else colindex= 10;
 				}
 				else colindex = 9;
+				******/
+				if(base->flag & (SELECT+BA_WAS_SEL)) {
+					if(G.scene->basact==base) BIF_ThemeColor(TH_GROUP_ACTIVE);
+					else BIF_ThemeColor(TH_GROUP); 
+				}
+				else BIF_ThemeColor(TH_GROUP);
+				colindex= 0;
 			}
 
 		}	
@@ -3720,6 +3740,7 @@ void draw_object(Base *base, int flag)
 	if((G.vd->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
+				printf ("%d %s <--", __LINE__, __FUNCTION__);
 				drawSolidSelect(base);
 			}
 		}
