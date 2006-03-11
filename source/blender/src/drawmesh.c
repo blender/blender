@@ -813,7 +813,7 @@ static int set_draw_settings_cached(int clearcache, int textured, TFace *texface
 	if (c_badtex) lit= 0;
 	if (lit!=c_lit || litob!=c_litob || litmatnr!=c_litmatnr) {
 		if (lit) {
-			Material *ma= give_current_material_or_def(litob, litmatnr);
+			Material *ma= give_current_material_or_def(litob, litmatnr+1);
 			float spec[4];
 
 			spec[0]= ma->spec*ma->specr;
@@ -855,7 +855,7 @@ static int draw_tface__set_draw(TFace *tface, int matnr)
 		glColor3ubv(g_draw_tface_mesh_obcol);
 		return 2; /* Don't set color */
 	} else if (!tface) {
-		Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr);
+		Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr+1);
 		if(ma) glColor3f(ma->r, ma->g, ma->b);
 		else glColor3f(0.5, 0.5, 0.5);
 		return 1; /* Set color from mcol if available */
@@ -869,7 +869,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	TFace *tface = (me->tface)? &me->tface[index]: NULL;
 	int matnr = me->mface[index].mat_nr;
 
-	draw_tface__set_draw(tface, matnr);
+	return draw_tface__set_draw(tface, matnr);
 }
 
 void draw_tface_mesh(Object *ob, Mesh *me, int dt)
