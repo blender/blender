@@ -286,6 +286,10 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
 				SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 			}
+			if(btheme->tv3d.group[3]==0) {
+				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
+				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
+			}
 		}
 	}
 	

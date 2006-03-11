@@ -1903,7 +1903,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 				if(ob==OBACT && ob->flag & OB_FROMGROUP) 
 					BIF_ThemeColor(TH_GROUP_ACTIVE);
 				else if(ob->flag & OB_FROMGROUP) 
-					BIF_ThemeColor(TH_GROUP);
+					BIF_ThemeColorShade(TH_GROUP_ACTIVE, -16);
 				else
 					BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 			} else {
@@ -3481,13 +3481,22 @@ static void drawSolidSelect(Base *base)
 static void drawWireExtra(Object *ob) 
 {
 	if(ob!=G.obedit && (ob->flag & SELECT)) {
-		if(ob==OBACT && ob->dtx & OB_DRAWWIRE) BIF_ThemeColor(TH_GROUP_ACTIVE);
-		else if(ob->dtx & OB_DRAWWIRE) BIF_ThemeColor(TH_GROUP);
-		else if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
-		else BIF_ThemeColor(TH_SELECT);
+		if(ob==OBACT) {
+			if(ob->flag & OB_FROMGROUP) BIF_ThemeColor(TH_GROUP_ACTIVE);
+			else BIF_ThemeColor(TH_ACTIVE);
+		}
+		else if(ob->flag & OB_FROMGROUP)
+			BIF_ThemeColorShade(TH_GROUP_ACTIVE, -16);
+		else
+			BIF_ThemeColor(TH_SELECT);
 	}
-	else BIF_ThemeColor(TH_WIRE);
-
+	else {
+		if(ob->flag & OB_FROMGROUP)
+			BIF_ThemeColor(TH_GROUP);
+		else
+			BIF_ThemeColor(TH_WIRE);
+	}
+	
 	bglPolygonOffset(1.0);
 	glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 	
@@ -3675,7 +3684,7 @@ void draw_object(Base *base, int flag)
 			else if(ob->flag & OB_FROMGROUP) {
 				if(base->flag & (SELECT+BA_WAS_SEL)) {
 					if(G.scene->basact==base) BIF_ThemeColor(TH_GROUP_ACTIVE);
-					else BIF_ThemeColor(TH_GROUP); 
+					else BIF_ThemeColorShade(TH_GROUP_ACTIVE, -16); 
 				}
 				else BIF_ThemeColor(TH_GROUP);
 				colindex= 0;

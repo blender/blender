@@ -358,8 +358,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
 	SETCOL(btheme->tv3d.active, 0xff, 0xbb, 0xff, 255);
-	SETCOL(btheme->tv3d.group, 0x32, 0xcd, 0x32, 255);
-	SETCOL(btheme->tv3d.group_active, 0xb4, 0xee, 0xb4, 255);
+	SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
+	SETCOL(btheme->tv3d.group_active, 0x55, 0xbb, 0x55, 255);
 	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
 	SETCOL(btheme->tv3d.vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tv3d.vertex_select, 0xff, 0xff, 0x70, 255);
