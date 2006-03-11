@@ -2075,6 +2075,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
 	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
+	int tsktsk= 0;
 	char *rectmove, *dm;
 	
 	zbuf_alloc_span(&zspan, xsize, ysize);
@@ -2090,6 +2091,16 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	rectmove= MEM_mapallocT(xsize*ysize, "rectmove");
 	rectdraw= MEM_mapallocT(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
 	zspan.rectp= (int *)rectdraw;
+	
+	/* debug... check if PASS_VECTOR_MAX still is in buffers */
+	dvec1= vecbufrect;
+	for(x= 4*xsize*ysize; x>0; x--, dvec1++) {
+		if(dvec1[0]==PASS_VECTOR_MAX) {
+			dvec1[0]= 0.0f;
+			tsktsk= 1;
+		}
+	}
+	if(tsktsk) printf("tsk tsk! PASS_VECTOR_MAX left in buffer...\n");
 	
 	/* min speed? then copy speedbuffer to recalculate speed vectors */
 	if(nbd->minspeed) {
