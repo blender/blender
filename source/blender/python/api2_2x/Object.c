@@ -1700,12 +1700,7 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 	}
 	self->object->data = data;
 
-	if( self->object->type == OB_MESH ) {
-		self->object->totcol = 0;
-		EXPP_synchronizeMaterialLists( self->object );
-	}
-
-	//creates the curve for the text object
+	/* creates the curve for the text object */
 	if (self->object->type == OB_FONT) 
 		text_to_curve(self->object, 0);
 
@@ -1714,10 +1709,14 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		if( oldid->us > 0 ) {
 			oldid->us--;
 		} else {
-			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"old object reference count below 0" ) );
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"old object reference count below 0" );
 		}
 	}
+
+	/* make sure data and object materials are consistent */
+	test_object_materials( id );
+
 	return EXPP_incr_ret( Py_None );
 }
 
