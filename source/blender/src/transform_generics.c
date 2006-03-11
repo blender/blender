@@ -507,7 +507,7 @@ static void apply_grid3(TransInfo *t, float *val, int max_index, float fac1, flo
 	for (i=0; i<=max_index; i++) {
 
 		/* evil hack - snapping needs to be adapted for image aspect ratio */
-		if(t->spacetype==SPACE_IMAGE) {
+		if((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 			float aspx, aspy;
 			transform_aspect_ratio_tface_uv(&aspx, &aspy);
 			if(i==0) asp= aspx;
