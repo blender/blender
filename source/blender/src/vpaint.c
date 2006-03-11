@@ -1669,14 +1669,15 @@ void set_vpaint(void)		/* toggle */
 	allqueue(REDRAWVIEW3D, 1); 	/* including header */
 	allqueue(REDRAWBUTSEDIT, 0);
 	
+	if (me)
+		/* update modifier stack for mapping requirements */
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
 	if(G.f & G_VERTEXPAINT) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);
 	}
 	else {
 		freefastshade();	/* to be sure */
-		if (me) {
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		}
 		if((G.f & G_FACESELECT)==0) setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	}
 }

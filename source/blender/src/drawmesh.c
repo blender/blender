@@ -619,7 +619,7 @@ static int draw_tfaces3D__setActiveOpts(void *userData, int index)
 		return 0;
 	}
 }
-static int draw_tfaces3D__drawFaceOpts(void *userData, int index, int matnr)
+static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
@@ -844,11 +844,8 @@ static Object *g_draw_tface_mesh_ob = NULL;
 static int g_draw_tface_mesh_islight = 0;
 static int g_draw_tface_mesh_istex = 0;
 static unsigned char g_draw_tface_mesh_obcol[4];
-static int draw_tface_mesh__set_draw(void *userData, int index, int matnr)
+static int draw_tface__set_draw(TFace *tface, int matnr)
 {
-	Mesh *me = (Mesh*)userData;
-	TFace *tface = (me->tface)? &me->tface[index]: NULL;
-
 	if (tface && ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE))) return 0;
 
 	if (set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
@@ -866,6 +863,15 @@ static int draw_tface_mesh__set_draw(void *userData, int index, int matnr)
 		return 1; /* Set color from tface */
 	}
 }
+static int draw_tface_mapped__set_draw(void *userData, int index)
+{
+	Mesh *me = (Mesh*)userData;
+	TFace *tface = (me->tface)? &me->tface[index]: NULL;
+	int matnr = me->mface[index].mat_nr;
+
+	draw_tface__set_draw(tface, matnr);
+}
+
 void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 /* maximum dt (drawtype): exactly according values that have been set */
 {
@@ -910,7 +916,10 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 		int start, totface;
 
-		dm->drawMappedFacesTex(dm, draw_tface_mesh__set_draw, (void*)me);
+		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface)
+			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
+		else
+			dm->drawFacesTex(dm, draw_tface__set_draw);
 
 		start = 0;
 		totface = me->totface;

@@ -46,6 +46,7 @@
  */
 
 struct MVert;
+struct TFace;
 struct Object;
 struct EditMesh;
 struct DispListMesh;
@@ -140,10 +141,10 @@ struct DerivedMesh {
 			 */
 	void (*drawFacesColored)(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2);
 
-			/* Draw all faces uses TFace 
+			/* Draw all faces using TFace 
 			 *  o Drawing options too complicated to enumerate, look at code.
 			 */
-	void (*drawMappedFacesTex)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int matnr), void *userData);
+	void (*drawFacesTex)(DerivedMesh *dm, int (*setDrawOptions)(struct TFace *tface, int matnr));
 
 			/* Draw mapped faces (no color, or texture)
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face-index, drawSmooth_r) returns true
@@ -156,6 +157,11 @@ struct DerivedMesh {
 			 * is disabled), in which case the implementation should draw as smooth shaded.
 			 */
 	void (*drawMappedFaces)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors);
+
+			/* Draw mapped faces using TFace 
+			 *  o Drawing options too complicated to enumerate, look at code.
+			 */
+	void (*drawMappedFacesTex)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData);
 
 			/* Draw mapped edges as lines
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge) returns true

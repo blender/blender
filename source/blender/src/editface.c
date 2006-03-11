@@ -1435,14 +1435,15 @@ void set_faceselect()	/* toggle */
 		return;
 	}
 	
+	if(me) /* make sure modifiers are updated for mapping requirements */
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
 	if(G.f & G_FACESELECT) {
 		G.f &= ~G_FACESELECT;
 
 		if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
-			if(me) {
+			if(me)
 				reveal_tface();
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			}
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 			BIF_undo_push("End UV Faceselect");
 		}
@@ -1463,6 +1464,34 @@ void set_faceselect()	/* toggle */
 	allqueue(REDRAWIMAGE, 0);
 }
 
+void set_texturepaint() /* toggle */
+{
+	Object *ob = OBACT;
+	Mesh *me = 0;
+	
+	scrarea_queue_headredraw(curarea);
+	if(ob==NULL) return;
+	if(ob->id.lib) {
+		error("Can't edit library data");
+		return;
+	}
+
+	me= get_mesh(ob);
+	if(me && me->id.lib) {
+		error("Can't edit library data");
+		return;
+	}
+	
+	if(me)
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+	if(G.f & G_TEXTUREPAINT)
+		G.f &= ~G_TEXTUREPAINT;
+	else if (me)
+		G.f |= G_TEXTUREPAINT;
+
+	allqueue(REDRAWVIEW3D, 0);
+}
 
 /**
  * Get the view ray through the screen point.

@@ -366,7 +366,8 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
 }
-static void meshDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index, int matnr), void *userData) 
+
+static void meshDM_drawFacesTex_common(DerivedMesh *dm, int (*drawParams)(TFace *tface, int matnr), int (*drawParamsMapped)(void *userData, int index), void *userData) 
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->me;
@@ -382,7 +383,10 @@ static void meshDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void
 		int flag;
 		unsigned char *cp= NULL;
 		
-		flag = setDrawParams(userData, i, mf->mat_nr);
+		if (drawParams)
+			flag = drawParams(tf, mf->mat_nr);
+		else
+			flag = drawParamsMapped(userData, i);
 
 		if (flag==0) {
 			continue;
@@ -425,6 +429,15 @@ static void meshDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void
 		glEnd();
 	}
 }
+static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tface, int matnr)) 
+{
+	meshDM_drawFacesTex_common(dm, setDrawParams, NULL, NULL);
+}
+static void meshDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index), void *userData) 
+{
+	meshDM_drawFacesTex_common(dm, NULL, setDrawParams, userData);
+}
+
 static void meshDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) 
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
@@ -535,8 +548,9 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
 	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
-	mdm->dm.drawMappedFacesTex = meshDM_drawMappedFacesTex;
+	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
 	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
+	mdm->dm.drawMappedFacesTex = meshDM_drawMappedFacesTex;
 
 	mdm->dm.drawMappedEdges = meshDM_drawMappedEdges;
 	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
@@ -1223,7 +1237,7 @@ static void ssDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 #undef PASSVERT
 }
 
-static void ssDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index, int matnr), void *userData) 
+static void ssDM_drawFacesTex_common(DerivedMesh *dm, int (*drawParams)(TFace *tface, int matnr), int (*drawParamsMapped)(void *userData, int index), void *userData) 
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
@@ -1239,9 +1253,13 @@ static void ssDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *
 		int flag;
 		unsigned char *cp= NULL;
 		
-		if (mf->flag&ME_FACE_STEPINDEX) index++;
-
-		flag = setDrawParams(userData, index, mf->mat_nr);
+		if (drawParams) {
+			flag = drawParams(tf, mf->mat_nr);
+		}
+		else {
+			if (mf->flag&ME_FACE_STEPINDEX) index++;
+			flag = drawParamsMapped(userData, index);
+		}
 
 		if (flag==0) {
 			continue;
@@ -1282,6 +1300,15 @@ static void ssDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *
 		glEnd();
 	}
 }
+static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tface, int matnr))
+{
+	ssDM_drawFacesTex_common(dm, setDrawParams, NULL, NULL);
+}
+static void ssDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index), void *userData) 
+{
+	ssDM_drawFacesTex_common(dm, NULL, setDrawParams, userData);
+}
+
 static void ssDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) 
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -1424,8 +1451,9 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 	
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
-	ssdm->dm.drawMappedFacesTex = ssDM_drawMappedFacesTex;
+	ssdm->dm.drawFacesTex = ssDM_drawFacesTex;
 	ssdm->dm.drawMappedFaces = ssDM_drawMappedFaces;
+	ssdm->dm.drawMappedFacesTex = ssDM_drawMappedFacesTex;
 
 		/* EM functions */
 	
@@ -1484,7 +1512,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
 	return dm;
 }
 
-static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
+static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform, int needMapping)
 {
 	Mesh *me = ob->data;
 	ModifierData *md= modifiers_getVirtualModifierList(ob);
@@ -1559,6 +1587,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			continue;
 		}
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (needMapping && !modifier_supportsMapping(md)) continue;
 
 			/* How to apply modifier depends on (a) what we already have as
 			 * a result of previous modifiers (could be a DerivedMesh or just
@@ -1849,20 +1878,26 @@ static void mesh_build_data(Object *ob)
 	clear_mesh_caches(ob);
 
 	if(ob!=G.obedit) {
-		if( (G.f & G_WEIGHTPAINT) && ob==(G.scene->basact?G.scene->basact->object:NULL)) {
+		Object *obact = G.scene->basact?G.scene->basact->object:NULL;
+		int editing = (G.f & (G_FACESELECT|G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT));
+		int needMapping = editing && (ob==obact);
+
+		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
 			MCol *mcol = me->mcol;
 			TFace *tface =  me->tface;
 
 			me->tface = NULL;
 			me->mcol = (MCol*) calc_weightpaint_colors(ob);
 
-			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1,
+			                    needMapping);
 
 			MEM_freeN(me->mcol);
 			me->mcol = mcol;
 			me->tface = tface;
 		} else {
-			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1,
+			                    needMapping);
 		}
 
 		INIT_MINMAX(min, max);
@@ -1938,7 +1973,7 @@ DerivedMesh *mesh_create_derived_render(Object *ob)
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0);
 
 	return final;
 }
@@ -1947,7 +1982,7 @@ DerivedMesh *mesh_create_derived_no_deform(Object *ob, float (*vertCos)[3])
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(ob, vertCos, NULL, &final, 0, 0);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 0, 0, 0);
 
 	return final;
 }
@@ -1956,7 +1991,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Object *ob, float (*vertCos)[3
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0, 0);
 
 	return final;
 }

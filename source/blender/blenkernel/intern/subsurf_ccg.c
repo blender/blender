@@ -1376,7 +1376,15 @@ static void ccgDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned ch
 
 	ccgFaceIterator_free(fi);
 }
-static void ccgDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index, int matnr), void *userData) {
+
+static void ccgDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tface, int matnr))
+{
+	/* unimplemented, no textures in editmode anyway */
+}
+static void ccgDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void *userData, int index), void *userData)
+{
+	/* unfinished code, no textures in editmode anyway */
+
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
@@ -1396,7 +1404,7 @@ static void ccgDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawParams)(void 
 		TFace *tf = tface?&tface[index]:NULL;
 		unsigned char *cp= NULL;
 		int findex = ccgDM_getFaceMapIndex(ccgdm, ss, f); 
-		int flag = (findex == -1)? 0: setDrawParams(userData, findex, mf->mat_nr);
+		int flag = (findex == -1)? 0: setDrawParams(userData, findex);
 
 		if (flag==0) {
 			continue;
@@ -1663,8 +1671,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, int d
 	ccgdm->dm.drawLooseEdges = ccgDM_drawLooseEdges;
 	ccgdm->dm.drawFacesSolid = ccgDM_drawFacesSolid;
 	ccgdm->dm.drawFacesColored = ccgDM_drawFacesColored;
-	ccgdm->dm.drawMappedFacesTex = ccgDM_drawMappedFacesTex;
+	ccgdm->dm.drawFacesTex = ccgDM_drawFacesTex;
 	ccgdm->dm.drawMappedFaces = ccgDM_drawMappedFaces;
+	ccgdm->dm.drawMappedFacesTex = ccgDM_drawMappedFacesTex;
 
 	ccgdm->dm.drawMappedEdgesInterp = ccgDM_drawMappedEdgesInterp;
 	ccgdm->dm.drawMappedEdges = ccgDM_drawMappedEdges;
