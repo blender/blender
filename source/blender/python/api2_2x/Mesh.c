@@ -552,11 +552,13 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	int i;
 	MFace *tmpface;
 	TFace *tmptface;
+	MCol *tmpmcol;
 
 		/* if there are faces to delete, handle it */
 	if( to_delete ) {
 		MFace *newface, *srcface, *dstface;
 		TFace *newtface = NULL, *srctface, *dsttface;
+		MCol *newmcol = NULL, *srcmcol, *dstmcol;
 		char state;
 		int count;
 
@@ -565,6 +567,9 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 		if( mesh->tface )
 			newtface = (TFace *)MEM_mallocN( ( mesh->totface-to_delete )
 					* sizeof( TFace ), "TFace" );
+		else if( mesh->mcol )
+			newmcol = (MCol *)MEM_mallocN( ( mesh->totface-to_delete )
+					* 4 * sizeof( MCol ), "MCol" );
 
 		/*
 		 * do "smart compaction" of the faces; find and copy groups of faces
@@ -577,6 +582,9 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 		dsttface = newtface;
 		srctface = mesh->tface;
 		tmptface = srctface;
+		dstmcol = newmcol;
+		srcmcol = mesh->mcol;
+		tmpmcol = srcmcol;
 
 		count = 0;
 		state = 1;
@@ -588,6 +596,7 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 				} else {
 					srcface = tmpface;
 					srctface = tmptface;
+					srcmcol = tmpmcol;
 					count = 1;
 					state = 1;
 				}
@@ -603,6 +612,10 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 							memcpy( dsttface, srctface, sizeof( TFace )
 									* count );
 							dsttface += count;
+						} else if( newmcol ) {
+							memcpy( dstmcol, srcmcol, sizeof( MCol )
+									* 4 * count );
+							dstmcol += count;
 						}
 					}
 					count = 1;
@@ -611,6 +624,7 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 			}
 			++tmpface; 
 			++tmptface; 
+			++tmpmcol; 
 		}
 
 	/* if we were gathering faces at the end of the loop, copy those */
@@ -618,6 +632,8 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 			memcpy( dstface, srcface, sizeof( MFace ) * count );
 			if( newtface )
 				memcpy( dsttface, srctface, sizeof( TFace ) * count );
+			else if( newmcol )
+				memcpy( dstmcol, srcmcol, sizeof( MCol ) * 4 * count );
 		}
 
 	/* delete old face list, install the new one, update face count */
@@ -628,6 +644,9 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 		if( newtface ) {
 			MEM_freeN( mesh->tface );
 			mesh->tface = newtface;
+		} else if( newmcol ) {
+			MEM_freeN( mesh->mcol );
+			mesh->mcol = newmcol;
 		}
 	}
 
@@ -794,8 +813,8 @@ static void MCol_dealloc( BPy_MCol * self )
 static PyObject *MCol_repr( BPy_MCol * self )
 {
 	return PyString_FromFormat( "[MCol %d %d %d %d]",
-			(int)self->color->r, (int)self->color->g, 
-			(int)self->color->b, (int)self->color->a ); 
+			(int)self->color->b, (int)self->color->g, 
+			(int)self->color->r, (int)self->color->a ); 
 }
 
 /************************************************************************
@@ -2555,8 +2574,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		tmp = PySequence_GetItem( args, i );
 
 		/* not a tuple of MVerts... error */
-		if( !PySequence_Check( tmp ) ||
-				EXPP_check_sequence_consistency( tmp, &MVert_Type ) != 1 ) {
+		if( !PySequence_Check( tmp ) ) {
 			Py_DECREF( tmp );
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -2572,21 +2590,49 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 				"expected 2 to 4 MVerts per sequence" );
 		}
 
-		/* get MVerts, check they're from this mesh */
-		ok = 1;
-		for(j = 0; ok && j < nverts; ++j ) {
-			e[0] = (BPy_MVert *)PySequence_GetItem( tmp, j );
-			if( (void *)e[0]->data != (void *)self->mesh )
-				ok = 0;
-			Py_DECREF( e[0] );
-		}
-		Py_DECREF( tmp );
+		if( EXPP_check_sequence_consistency( tmp, &MVert_Type ) == 1 ) {
 
-		/* not MVerts from another mesh ... error */
-		if( !ok ) {
-			Py_DECREF( args );
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"vertices are from a different mesh" );
+			/* get MVerts, check they're from this mesh */
+			ok = 1;
+			for( j = 0; ok && j < nverts; ++j ) {
+				e[0] = (BPy_MVert *)PySequence_GetItem( tmp, j );
+				if( (void *)e[0]->data != (void *)self->mesh )
+					ok = 0;
+				Py_DECREF( e[0] );
+			}
+			Py_DECREF( tmp );
+
+			/* not MVerts from another mesh ... error */
+			if( !ok ) {
+				Py_DECREF( args );
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"vertices are from a different mesh" );
+			}
+		} else {
+			ok = 0; 
+			for( j = 0; ok == 0 && j < nverts; ++j ) {
+				PyObject *item = PySequence_ITEM( tmp, j );
+				if( !PyInt_CheckExact( item ) )
+					ok = 1;
+				else {
+					int index = PyInt_AsLong ( item );
+					if( index < 0 || index >= self->mesh->totvert )
+						ok = 2;
+				}
+				Py_DECREF( item );
+			}
+			Py_DECREF( tmp );
+
+			/* not ints or outside of vertex list ... error */
+			if( ok ) {
+				Py_DECREF( args );
+				if( ok == 1 )
+					return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected an integer index" );
+				else
+					return EXPP_ReturnPyObjError( PyExc_KeyError,
+						"index out of range" );
+			}
 		}
 
 		if( nverts == 2 )
@@ -2605,12 +2651,20 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	new_edge_count = 0;
 	for( i = 0; i < len; ++i ) {
 		int edge_count;
+		int eedges[4];
 		tmp = PySequence_GetItem( args, i );
 		nverts = PySequence_Size( tmp );
 
 		/* get new references for the vertices */
-		for(j = 0; j < nverts; ++j )
-			e[j] = (BPy_MVert *)PySequence_GetItem( tmp, j );
+		for(j = 0; j < nverts; ++j ) {
+			PyObject *item = PySequence_ITEM( tmp, j );
+			if( BPy_MVert_Check( item ) ) {
+				eedges[j] = ((BPy_MVert *)item)->index;
+			} else {
+				eedges[j] = PyInt_AsLong ( item );
+			}
+			Py_DECREF( item );
+		}
 		Py_DECREF( tmp );
 
 		if( nverts == 2 )
@@ -2619,20 +2673,20 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			edge_count = nverts;	
 
 		/* now add the edges to the search list */
-		for(j = 0; j < edge_count; ++j ) {
+		for( j = 0; j < edge_count; ++j ) {
 			int k = j+1;
 			if( k == nverts )	/* final edge */ 
 				k = 0;
 
 			/* sort verts into search list, skip if two are the same */
-			if( e[j]->index != e[k]->index ) {
-				if( e[j]->index < e[k]->index ) {
-					tmppair->v[0] = e[j]->index;
-					tmppair->v[1] = e[k]->index;
+			if( eedges[j] != eedges[k] ) {
+				if( eedges[j] < eedges[k] ) {
+					tmppair->v[0] = eedges[j];
+					tmppair->v[1] = eedges[k];
 					tmppair->swap = 0;
 				} else {
-					tmppair->v[0] = e[k]->index;
-					tmppair->v[1] = e[j]->index;
+					tmppair->v[0] = eedges[k];
+					tmppair->v[1] = eedges[j];
 					tmppair->swap = 1;
 				} 
 				tmppair->index = new_edge_count;
@@ -2641,9 +2695,6 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			}
 		}
 
-		/* free the new references */
-		for( j = 0; j < nverts; ++j )
-			Py_DECREF( e[j] );
 	}
 
 	/* sort the new edge pairs */
@@ -4061,16 +4112,14 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	 */
 
 	int len, nverts;
-	int i, j, k, ok, new_face_count;
+	int i, j, k, new_face_count;
 	int good_faces;
 	SrchFaces *oldpair, *newpair, *tmppair, *tmppair2;
 	PyObject *tmp;
 	MFace *tmpface;
 	Mesh *mesh = self->mesh;
 
-	/*
-	 * before we try to add faces, add edges; if it fails; exit
-	 */
+	/* before we try to add faces, add edges; if it fails; exit */
 
 	tmp = MEdgeSeq_extend( self, args );
 	if( !tmp )
@@ -4134,47 +4183,18 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		Py_RETURN_NONE;
 	}
 
-	/* verify the param list and get a total count of number of edges */
+	/* 
+	 * Since we call MEdgeSeq_extend first, we already know the input list
+	 * is valid.  Here we just need to count the total number of faces.
+	 */
+
 	new_face_count = 0;
 	for( i = 0; i < len; ++i ) {
-		BPy_MVert *e;
-		tmp = PySequence_GetItem( args, i );
-
-		/* not a tuple of MVerts... error */
-		if( !PySequence_Check( tmp ) ||
-				EXPP_check_sequence_consistency( tmp, &MVert_Type ) != 1 ) {
-			Py_DECREF( args );
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected sequence of MVert sequences" );
-		}
-
-		/* not the right number of MVerts... error */
+		tmp = PySequence_ITEM( args, i );
 		nverts = PySequence_Size( tmp );
-		if( nverts < 2 || nverts > 4 ) {
-			Py_DECREF( args );
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected 2 to 4 MVerts per sequence" );
-		}
-
-		/* get MVerts, check they're from this mesh */
-		ok = 1;
-		for(j = 0; ok && j < nverts; ++j ) {
-			e = (BPy_MVert *)PySequence_GetItem( tmp, j );
-			if( (void *)e->data != (void *)self->mesh )
-				ok = 0;
-			Py_DECREF( e );
-		}
-		Py_DECREF( tmp );
-
-		/* not MVerts from another mesh ... error */
-		if( !ok ) {
-			Py_DECREF( args );
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"vertices are from a different mesh" );
-		}
-
 		if( nverts != 2 )		/* new faces cannot have only 2 verts */
 			++new_face_count;
+		Py_DECREF( tmp );
 	}
 
 	/* OK, commit to allocating the search structures */
@@ -4186,7 +4206,6 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	tmppair = newpair;
 
 	for( i = 0; i < len; ++i ) {
-		BPy_MVert *e;
 		MFace tmpface;
 		unsigned int vert[4]={0,0,0,0};
 		unsigned char order[4]={0,1,2,3};
@@ -4197,34 +4216,35 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			Py_DECREF( tmp );
 			continue;
 		}
+	
+		/*
+		 * get the face's vertices' indexes
+		 */
+	
+		for( j = 0; j < nverts; ++j ) {
+			PyObject *item = PySequence_ITEM( tmp, j );
+			if( BPy_MVert_Check( item ) )
+				vert[j] = ((BPy_MVert *)item)->index;
+			else
+				vert[j] = PyInt_AsLong( item );
+			Py_DECREF( item );
+		}
+		Py_DECREF( tmp );
+		tmpface.v1 = vert[0];
+		tmpface.v2 = vert[1];
+		tmpface.v3 = vert[2];
+		tmpface.v4 = vert[3];
 
 		/*
 		 * go through some contortions to guarantee the third and fourth
 		 * vertices are not index 0
 		 */
-
-		e = (BPy_MVert *)PySequence_ITEM( tmp, 0 );
-		tmpface.v1 = e->index;
-		Py_DECREF( e );
-		e = (BPy_MVert *)PySequence_ITEM( tmp, 1 );
-		tmpface.v2 = e->index;
-		Py_DECREF( e );
-		e = (BPy_MVert *)PySequence_ITEM( tmp, 2 );
-		tmpface.v3 = e->index;
-		Py_DECREF( e );
-		if( nverts == 4 ) {
-			e = (BPy_MVert *)PySequence_ITEM( tmp, 3 );
-			tmpface.v4 = e->index;
-			Py_DECREF( e );
-		}
-		Py_DECREF( tmp );
-
 		eeek_fix( &tmpface, NULL, nverts==4 );
 		vert[0] = tmpface.v1;
 		vert[1] = tmpface.v2;
 		vert[2] = tmpface.v3;
 		if( nverts == 3 )
-			tmppair->v[3] = 0;
+			vert[3] = tmppair->v[3] = 0;
 		else
 			vert[3] = tmpface.v4;
 
@@ -4240,14 +4260,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 					SWAP( int, vert[k], vert[k+1] );
 					SWAP( char, order[k], order[k+1] );
 				} else if( vert[k] == vert[k+1] ) {
-#if 0
-					MEM_freeN( newpair );
-					Py_DECREF( args );
-					return EXPP_ReturnPyObjError( PyExc_ValueError,
-						"tuple contains duplicate vertices" );
-#else
 					break;
-#endif
 				}
 			}
 			if( k < j )
@@ -4352,6 +4365,13 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			memcpy( tmptface, mesh->tface, mesh->totface*sizeof(TFace));
 			MEM_freeN( mesh->tface );
 			mesh->tface = tmptface;
+		} else if( mesh->mcol ) {
+			MCol *tmpmcol;
+
+			tmpmcol = MEM_callocN(totface*4*sizeof(MCol), "Mesh_addFaces");
+			memcpy( tmpmcol, mesh->mcol, mesh->totface*4*sizeof(MCol));
+			MEM_freeN( mesh->mcol );
+			mesh->mcol = tmpmcol;
 		}
 
 	/* sort the faces back into their original input list order */
@@ -6176,12 +6196,9 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 	int param, i;
 	Mesh *mesh = self->mesh;
 
-	if( !PyInt_CheckExact( value ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
+	param = PyObject_IsTrue( value );
 
-	param = PyInt_AsLong( value );
-	if( param != 0 && param != 1 )
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument in range [0,1]" );
 

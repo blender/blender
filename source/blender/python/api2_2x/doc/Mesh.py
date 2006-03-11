@@ -29,11 +29,6 @@ Example::
   me = Mesh.New('myMesh')          # create a new mesh
 
   me.verts.extend(coords)          # add vertices to mesh
-
-  for f in faces:                  # replace face indices to MVerts
-    for i in xrange(len(f)):
-      f[i] = me.verts[f[i]]
-
   me.faces.extend(faces)           # add faces to the mesh (also adds edges)
 
   me.vertexColors = 1              # enable vertex colors 
@@ -364,12 +359,12 @@ class MEdgeSeq:
       v = me.verts                    # get vertices
       if len(v) >= 6:                 # if there are enough vertices...
         me.edges.extend(v[0],v[1])    #   add a single edge
-        l=[(v[1],v[2],v[3]),[v[0],v[2],v[4],v[5]]]
+        l=[(v[1],v[2],v[3]),[0,2,4,5]]
         me.edges.extend(l)            #   add multiple edges
 
-    @type vertseq: sequence(s) of MVerts
-    @param vertseq: either two to four MVerts, or sequence (list or tuple) 
-    of sequences each containing two to four MVerts.
+    @type vertseq: sequence(s) of ints or MVerts
+    @param vertseq: either two to four ints or MVerts, or sequence
+    (list or tuple) of sequences each containing two to four ints or MVerts.
     """
 
   def delete(edges):
@@ -553,12 +548,12 @@ class MFaceSeq:
       v = me.verts                    # get vertices
       if len(v) >= 6:                 # if there are enough vertices...
         me.faces.extend(v[1],v[2],v[3]) #   add a single edge
-        l=[(v[0],v[1]),[v[0],v[2],v[4],v[5]]]
+        l=[(v[0],v[1]),[0,2,4,5]]
         me.faces.extend(l)            #   add another face
 
     @type vertseq: sequence(s) of MVerts
-    @param vertseq: either two to four MVerts, or sequence (list or tuple) 
-    of sequences each containing two to four MVerts.
+    @param vertseq: either two to four ints or MVerts, or sequence (list or
+    tuple) of sequences each containing two to four ints or MVerts.
     """
 
   def delete(deledges, faces):
