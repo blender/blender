@@ -2149,7 +2149,7 @@ static int dl_surf_to_renderdata(Render *re, Object *ob, DispList *dl, Material 
 	VertRen *v1, *v2, *v3, *v4, *ver;
 	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
 	Curve *cu= ob->data;
-	float *data, n1[3], *orcobase= orco, flen;
+	float *data, n1[3], flen;
 	int u, v, orcoret= 0;
 	int p1, p2, p3, p4, a;
 	int sizeu, nsizeu, sizev, nsizev;
@@ -3239,11 +3239,63 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	G.scene->r.cfra-=timeoffset;
 }
 
+/* choose to use static, to prevent giving too many args to this call */
+static void speedvector_project(Render *re, float *zco, VertRen *ver)
+{
+	static float pixelphix=0.0f, pixelphiy=0.0f, zmulx=0.0f, zmuly=0.0f;
+	static int pano= 0;
+	float div;
+	
+	/* initialize */
+	if(re) {
+		pano= re->r.mode & R_PANORAMA;
+		
+		/* precalculate amount of radians 1 pixel rotates */
+		if(pano) {
+			/* size of 1 pixel mapped to viewplane coords */
+			float psize= (re->viewplane.xmax-re->viewplane.xmin)/(float)re->winx;
+			/* x angle of a pixel */
+			pixelphix= atan(psize/re->clipsta);
+			
+			psize= (re->viewplane.ymax-re->viewplane.ymin)/(float)re->winy;
+			/* y angle of a pixel */
+			pixelphiy= atan(psize/re->clipsta);
+		}
+		zmulx= re->winx/2;
+		zmuly= re->winy/2;
+		
+		return;
+	}
+	
+	/* now map hocos to screenspace, uses very primitive clip still */
+	if(ver->ho[3]<0.1f) div= 10.0f;
+	else div= 1.0f/ver->ho[3];
+	
+	/* use cylinder projection */
+	if(pano) {
+		float vec[3], ang;
+		/* angle between (0,0,-1) and (ver->co) */
+		VECCOPY(vec, ver->co);
+
+		ang= saacos(-vec[2]/sqrt(vec[0]*vec[0] + vec[2]*vec[2]));
+		if(vec[0]<0.0f) ang= -ang;
+		zco[0]= ang/pixelphix + zmulx;
+		
+		ang= 0.5f*M_PI - saacos(vec[1]/sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]));
+		zco[1]= ang/pixelphiy + zmuly;
+		
+	}
+	else {
+		zco[0]= zmulx*(1.0f+ver->ho[0]*div);
+		zco[1]= zmuly*(1.0f+ver->ho[1]*div);
+	}
+}
+
 static void calculate_speedvectors(Render *re, float *vectors, int startvert, int endvert, int step)
 {
 	VertRen *ver= NULL;
-	float *speed, div, zco[2];
-	float zmulx= re->winx/2, zmuly= re->winy/2, len;
+	float *speed, zco[2];
+	float len;
 	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
 	int a;
 	
@@ -3257,11 +3309,7 @@ static void calculate_speedvectors(Render *re, float *vectors, int startvert, in
 		else
 			ver++;
 		
-		/* now map hocos to screenspace, uses very primitive clip still */
-		if(ver->ho[3]<0.1f) div= 10.0f;
-		else div= 1.0f/ver->ho[3];
-		zco[0]= zmulx*(1.0f+ver->ho[0]*div);
-		zco[1]= zmuly*(1.0f+ver->ho[1]*div);
+		speedvector_project(NULL, zco, ver);
 		
 		zco[0]= vectors[0] - zco[0];
 		zco[1]= vectors[1] - zco[1];
@@ -3373,8 +3421,7 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 {
 	ObjectRen *obren, *obrenlb;
 	VertRen *ver;
-	float zmulx= re->winx/2, zmuly= re->winy/2;
-	float div, *vec;
+	float *vec;
 	int a;
 	
 	for(obren= re->objecttable.first; obren; obren= obren->next) {
@@ -3393,11 +3440,7 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 				else
 					ver++;
 				
-				if(ver->ho[3]<0.1f) div= 10.0f;
-				else div= 1.0f/ver->ho[3];
-				vec[0]= zmulx*(1.0f+ver->ho[0]*div);
-				vec[1]= zmuly*(1.0f+ver->ho[1]*div);
-				
+				speedvector_project(NULL, vec, ver);
 			}
 		}
 	}
@@ -3422,7 +3465,9 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	
 	re->i.infostr= "Calculating previous vectors";
 	re->r.mode |= R_SPEED;
-
+	
+	speedvector_project(re, NULL, NULL);	/* initializes projection code */
+	
 	/* creates entire dbase */
 	database_fromscene_vectors(re, sce, -1);
 	

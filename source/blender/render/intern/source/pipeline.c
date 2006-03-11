@@ -935,7 +935,7 @@ static void render_tile_processor(Render *re, int firsttile)
 
 /* calculus for how much 1 pixel rendered should rotate the 3d geometry */
 /* is not that simple, needs to be corrected for errors of larger viewplane sizes */
-/* called in initrender.c, initparts() */
+/* called in initrender.c, initparts() and convertblender.c, for speedvectors */
 float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
