@@ -1358,9 +1358,11 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			
 			for (i=0; i<evedef->totweight; i++){
 				dg = BLI_findlink (&ob->defbase, evedef->dw[i].def_nr);
-				max+= sprintf(str, "%s %%x%d|", dg->name, evedef->dw[i].def_nr); 
-				if(max<320) strcat(defstr, str);
-				
+				if(dg) {
+					max+= sprintf(str, "%s %%x%d|", dg->name, evedef->dw[i].def_nr); 
+					if(max<320) strcat(defstr, str);
+				}
+				else printf("oh no!\n");
 				if(curdef==evedef->dw[i].def_nr) {
 					init= 0;
 					defweightp= &evedef->dw[i].weight;

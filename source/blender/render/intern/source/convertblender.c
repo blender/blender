@@ -2142,6 +2142,173 @@ static void add_render_lamp(Render *re, Object *ob, int actual_render)
 }
 
 /* ------------------------------------------------------------------------- */
+
+/* returns amount of vertices added for orco */
+static int dl_surf_to_renderdata(Render *re, Object *ob, DispList *dl, Material **matar, float *orco, float mat[4][4])
+{
+	VertRen *v1, *v2, *v3, *v4, *ver;
+	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
+	Curve *cu= ob->data;
+	float *data, n1[3], *orcobase= orco, flen;
+	int u, v, orcoret= 0;
+	int p1, p2, p3, p4, a;
+	int sizeu, nsizeu, sizev, nsizev;
+	int startvert, startvlak;
+	
+	startvert= re->totvert;
+	nsizeu = sizeu = dl->parts; nsizev = sizev = dl->nr; 
+	
+	data= dl->verts;
+	for (u = 0; u < sizeu; u++) {
+		v1 = RE_findOrAddVert(re, re->totvert++); /* save this for possible V wrapping */
+		VECCOPY(v1->co, data); data += 3;
+		if(orco) {
+			v1->orco= orco; orco+= 3; orcoret++;
+		}	
+		MTC_Mat4MulVecfl(mat, v1->co);
+		
+		for (v = 1; v < sizev; v++) {
+			ver= RE_findOrAddVert(re, re->totvert++);
+			VECCOPY(ver->co, data); data += 3;
+			if(orco) {
+				ver->orco= orco; orco+= 3; orcoret++;
+			}	
+			MTC_Mat4MulVecfl(mat, ver->co);
+		}
+		/* if V-cyclic, add extra vertices at end of the row */
+		if (dl->flag & DL_CYCL_U) {
+			ver= RE_findOrAddVert(re, re->totvert++);
+			VECCOPY(ver->co, v1->co);
+			if(orco) {
+				ver->orco= orco; orco+=3; orcoret++; //orcobase + 3*(u*sizev + 0);
+			}
+		}	
+	}	
+	
+	/* Done before next loop to get corner vert */
+	if (dl->flag & DL_CYCL_U) nsizev++;
+	if (dl->flag & DL_CYCL_V) nsizeu++;
+	
+	/* if U cyclic, add extra row at end of column */
+	if (dl->flag & DL_CYCL_V) {
+		for (v = 0; v < nsizev; v++) {
+			v1= RE_findOrAddVert(re, startvert + v);
+			ver= RE_findOrAddVert(re, re->totvert++);
+			VECCOPY(ver->co, v1->co);
+			if(orco) {
+				ver->orco= orco; orco+=3; orcoret++; //ver->orco= orcobase + 3*(0*sizev + v);
+			}
+		}
+	}
+	
+	sizeu = nsizeu;
+	sizev = nsizev;
+	
+	startvlak= re->totvlak;
+	
+	for(u = 0; u < sizeu - 1; u++) {
+		p1 = startvert + u * sizev; /* walk through face list */
+		p2 = p1 + 1;
+		p3 = p2 + sizev;
+		p4 = p3 - 1;
+		
+		for(v = 0; v < sizev - 1; v++) {
+			v1= RE_findOrAddVert(re, p1);
+			v2= RE_findOrAddVert(re, p2);
+			v3= RE_findOrAddVert(re, p3);
+			v4= RE_findOrAddVert(re, p4);
+			
+			vlr= RE_findOrAddVlak(re, re->totvlak++);
+			vlr->ob= ob;
+			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
+			
+			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+			VECCOPY(vlr->n, n1);
+			
+			vlr->lay= ob->lay;
+			vlr->mat= matar[ dl->col];
+			vlr->ec= ME_V1V2+ME_V2V3;
+			vlr->flag= dl->rt;
+			if( (cu->flag & CU_NOPUNOFLIP) ) {
+				vlr->flag |= R_NOPUNOFLIP;
+			}
+			
+			VecAddf(v1->n, v1->n, n1);
+			VecAddf(v2->n, v2->n, n1);
+			VecAddf(v3->n, v3->n, n1);
+			VecAddf(v4->n, v4->n, n1);
+			
+			p1++; p2++; p3++; p4++;
+		}
+	}	
+	/* fix normals for U resp. V cyclic faces */
+	sizeu--; sizev--;  /* dec size for face array */
+	if (dl->flag & DL_CYCL_V) {
+		
+		for (v = 0; v < sizev; v++)
+		{
+			/* optimize! :*/
+			vlr= RE_findOrAddVlak(re, UVTOINDEX(sizeu - 1, v));
+			vlr1= RE_findOrAddVlak(re, UVTOINDEX(0, v));
+			VecAddf(vlr1->v1->n, vlr1->v1->n, vlr->n);
+			VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
+			VecAddf(vlr->v3->n, vlr->v3->n, vlr1->n);
+			VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
+		}
+	}
+	if (dl->flag & DL_CYCL_U) {
+		
+		for (u = 0; u < sizeu; u++)
+		{
+			/* optimize! :*/
+			vlr= RE_findOrAddVlak(re, UVTOINDEX(u, 0));
+			vlr1= RE_findOrAddVlak(re, UVTOINDEX(u, sizev-1));
+			VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
+			VecAddf(vlr1->v3->n, vlr1->v3->n, vlr->n);
+			VecAddf(vlr->v1->n, vlr->v1->n, vlr1->n);
+			VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
+		}
+	}
+	/* last vertex is an extra case: 
+		
+		^	()----()----()----()
+		|	|     |     ||     |
+		u	|     |(0,n)||(0,0)|
+		|     |     ||     |
+		()====()====[]====()
+		|     |     ||     |
+		|     |(m,n)||(m,0)|
+		|     |     ||     |
+		()----()----()----()
+		v ->
+		
+		vertex [] is no longer shared, therefore distribute
+		normals of the surrounding faces to all of the duplicates of []
+		*/
+	
+	if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U))
+	{
+		vlr= RE_findOrAddVlak(re, UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
+		vlr1= RE_findOrAddVlak(re, UVTOINDEX(0,0));  /* (0,0) */
+		VecAddf(n1, vlr->n, vlr1->n);
+		vlr2= RE_findOrAddVlak(re, UVTOINDEX(0, sizev-1)); /* (0,n) */
+		VecAddf(n1, n1, vlr2->n);
+		vlr3= RE_findOrAddVlak(re, UVTOINDEX(sizeu-1, 0)); /* (m,0) */
+		VecAddf(n1, n1, vlr3->n);
+		VECCOPY(vlr->v3->n, n1);
+		VECCOPY(vlr1->v1->n, n1);
+		VECCOPY(vlr2->v2->n, n1);
+		VECCOPY(vlr3->v4->n, n1);
+	}
+	for(a = startvert; a < re->totvert; a++) {
+		ver= RE_findOrAddVert(re, a);
+		Normalise(ver->n);
+	}
+	
+	
+	return orcoret;
+}
+
 static void init_render_surf(Render *re, Object *ob)
 {
 	extern Material defmaterial;	// initrender.c
@@ -2149,15 +2316,9 @@ static void init_render_surf(Render *re, Object *ob)
 	Curve *cu;
 	ListBase displist;
 	DispList *dl;
-	VertRen *ver, *v1, *v2, *v3, *v4;
-	VlakRen *vlr;
 	Material *matar[32];
-	float *data, *orco=NULL, *orcobase=NULL, n1[3], flen, mat[4][4];
-	int a, need_orco=0, startvlak, startvert, p1, p2, p3, p4;
-	int u, v;
-	int sizeu, sizev;
-	VlakRen *vlr1, *vlr2, *vlr3;
-	float  vn[3]; // n2[3],
+	float *orco=NULL, *orcobase=NULL, mat[4][4];
+	int a, need_orco=0;
 
 	cu= ob->data;
 	nu= cu->nurb.first;
@@ -2188,159 +2349,7 @@ static void init_render_surf(Render *re, Object *ob)
 	while(dl) {
 			/* watch out: u ^= y, v ^= x !! */
 		if(dl->type==DL_SURF) {
-			int nsizeu, nsizev;
-
-			startvert= re->totvert;
-			nsizeu = sizeu = dl->parts; nsizev = sizev = dl->nr; 
-
-			data= dl->verts;
-			for (u = 0; u < sizeu; u++) {
-				v1 = RE_findOrAddVert(re, re->totvert++); /* save this for possible V wrapping */
-				VECCOPY(v1->co, data); data += 3;
-				if(orco) {
-					v1->orco= orco; orco+= 3;
-				}	
-				MTC_Mat4MulVecfl(mat, v1->co);
-
-				for (v = 1; v < sizev; v++) {
-					ver= RE_findOrAddVert(re, re->totvert++);
-					VECCOPY(ver->co, data); data += 3;
-					if(orco) {
-						ver->orco= orco; orco+= 3;
-					}	
-					MTC_Mat4MulVecfl(mat, ver->co);
-				}
-				/* if V-cyclic, add extra vertices at end of the row */
-				if (dl->flag & DL_CYCL_U) {
-					ver= RE_findOrAddVert(re, re->totvert++);
-					VECCOPY(ver->co, v1->co);
-					if(orco) {
-						ver->orco= orcobase + 3*(u*sizev + 0);
-					}
-				}	
-			}	
-
-				/* Done before next loop to get corner vert */
-			if (dl->flag & DL_CYCL_U) nsizev++;
-			if (dl->flag & DL_CYCL_V) nsizeu++;
-
-			/* if U cyclic, add extra row at end of column */
-			if (dl->flag & DL_CYCL_V) {
-				for (v = 0; v < nsizev; v++) {
-					v1= RE_findOrAddVert(re, startvert + v);
-					ver= RE_findOrAddVert(re, re->totvert++);
-					VECCOPY(ver->co, v1->co);
-					if(orco) {
-						ver->orco= orcobase + 3*(0*sizev + v);
-					}
-				}
-			}
-			
-			sizeu = nsizeu;
-			sizev = nsizev;
-
-			startvlak= re->totvlak;
-
-			for(u = 0; u < sizeu - 1; u++) {
-				p1 = startvert + u * sizev; /* walk through face list */
-				p2 = p1 + 1;
-				p3 = p2 + sizev;
-				p4 = p3 - 1;
-
-				for(v = 0; v < sizev - 1; v++) {
-					v1= RE_findOrAddVert(re, p1);
-					v2= RE_findOrAddVert(re, p2);
-					v3= RE_findOrAddVert(re, p3);
-					v4= RE_findOrAddVert(re, p4);
-
-					vlr= RE_findOrAddVlak(re, re->totvlak++);
-					vlr->ob= ob;
-					vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
-					
-					flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
-					VECCOPY(vlr->n, n1);
-					
-					vlr->lay= ob->lay;
-					vlr->mat= matar[ dl->col];
-					vlr->ec= ME_V1V2+ME_V2V3;
-					vlr->flag= dl->rt;
-					if( (cu->flag & CU_NOPUNOFLIP) ) {
-						vlr->flag |= R_NOPUNOFLIP;
-					}
-
-					VecAddf(v1->n, v1->n, n1);
-					VecAddf(v2->n, v2->n, n1);
-					VecAddf(v3->n, v3->n, n1);
-					VecAddf(v4->n, v4->n, n1);
-
-					p1++; p2++; p3++; p4++;
-				}
-			}	
-			/* fix normals for U resp. V cyclic faces */
-			sizeu--; sizev--;  /* dec size for face array */
-			if (dl->flag & DL_CYCL_V) {
-
-				for (v = 0; v < sizev; v++)
-				{
-					/* optimize! :*/
-					vlr= RE_findOrAddVlak(re, UVTOINDEX(sizeu - 1, v));
-					vlr1= RE_findOrAddVlak(re, UVTOINDEX(0, v));
-					VecAddf(vlr1->v1->n, vlr1->v1->n, vlr->n);
-					VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
-					VecAddf(vlr->v3->n, vlr->v3->n, vlr1->n);
-					VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
-				}
-			}
-			if (dl->flag & DL_CYCL_U) {
-
-				for (u = 0; u < sizeu; u++)
-				{
-					/* optimize! :*/
-					vlr= RE_findOrAddVlak(re, UVTOINDEX(u, 0));
-					vlr1= RE_findOrAddVlak(re, UVTOINDEX(u, sizev-1));
-					VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
-					VecAddf(vlr1->v3->n, vlr1->v3->n, vlr->n);
-					VecAddf(vlr->v1->n, vlr->v1->n, vlr1->n);
-					VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
-				}
-			}
-			/* last vertex is an extra case: 
-
-			^	()----()----()----()
-			|	|     |     ||     |
-			u	|     |(0,n)||(0,0)|
-				|     |     ||     |
-			 	()====()====[]====()
-			 	|     |     ||     |
-			 	|     |(m,n)||(m,0)|
-				|     |     ||     |
-				()----()----()----()
-				       v ->
-
-			vertex [] is no longer shared, therefore distribute
-			normals of the surrounding faces to all of the duplicates of []
-			*/
-
-			if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U))
-			{
-				vlr= RE_findOrAddVlak(re, UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
-				vlr1= RE_findOrAddVlak(re, UVTOINDEX(0,0));  /* (0,0) */
-				VecAddf(vn, vlr->n, vlr1->n);
-				vlr2= RE_findOrAddVlak(re, UVTOINDEX(0, sizev-1)); /* (0,n) */
-				VecAddf(vn, vn, vlr2->n);
-				vlr3= RE_findOrAddVlak(re, UVTOINDEX(sizeu-1, 0)); /* (m,0) */
-				VecAddf(vn, vn, vlr3->n);
-				VECCOPY(vlr->v3->n, vn);
-				VECCOPY(vlr1->v1->n, vn);
-				VECCOPY(vlr2->v2->n, vn);
-				VECCOPY(vlr3->v4->n, vn);
-			}
-			for(a = startvert; a < re->totvert; a++) {
-				ver= RE_findOrAddVert(re, a);
-				Normalise(ver->n);
-			}
-
-
+			orco+= 3*dl_surf_to_renderdata(re, ob, dl, matar, orco, mat);
 		}
 
 		dl= dl->next;
@@ -2455,97 +2464,103 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 			}
 		}
 		else if (dl->type==DL_SURF) {
-			int p1,p2,p3,p4;
-
-			fp= dl->verts;
-			startvert= re->totvert;
-			nr= dl->nr*dl->parts;
-
-			while(nr--) {
-				ver= RE_findOrAddVert(re, re->totvert++);
-					
-				VECCOPY(ver->co, fp);
-				MTC_Mat4MulVecfl(mat, ver->co);
-				fp+= 3;
-
-				if (orco) {
-					ver->orco = orco;
-					orco += 3;
-				}
+			
+			if (dl->flag & DL_CYCL_U) {
+				orco+= 3*dl_surf_to_renderdata(re, ob, dl, matar, orco, mat);
 			}
+			else {
+				int p1,p2,p3,p4;
 
-			if(dl->bevelSplitFlag || only_verts==0) {
-				startvlak= re->totvlak;
+				fp= dl->verts;
+				startvert= re->totvert;
+				nr= dl->nr*dl->parts;
 
-				for(a=0; a<dl->parts; a++) {
+				while(nr--) {
+					ver= RE_findOrAddVert(re, re->totvert++);
+						
+					VECCOPY(ver->co, fp);
+					MTC_Mat4MulVecfl(mat, ver->co);
+					fp+= 3;
 
-					frontside= (a >= dl->nr/2);
-
-					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-					p1+= startvert;
-					p2+= startvert;
-					p3+= startvert;
-					p4+= startvert;
-
-					for(; b<dl->nr; b++) {
-						vlr= RE_findOrAddVlak(re, re->totvlak++);
-						vlr->ob= ob;
-						vlr->v1= RE_findOrAddVert(re, p2);
-						vlr->v2= RE_findOrAddVert(re, p1);
-						vlr->v3= RE_findOrAddVert(re, p3);
-						vlr->v4= RE_findOrAddVert(re, p4);
-						vlr->ec= ME_V2V3+ME_V3V4;
-						if(a==0) vlr->ec+= ME_V1V2;
-
-						vlr->flag= dl->rt;
-						vlr->lay= ob->lay;
-
-						/* this is not really scientific: the vertices
-							* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
-							* front and backside treated different!!
-							*/
-
-						if(frontside)
-							CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
-						else 
-							CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
-
-						vlr->mat= matar[ dl->col ];
-
-						p4= p3;
-						p3++;
-						p2= p1;
-						p1++;
+					if (orco) {
+						ver->orco = orco;
+						orco += 3;
 					}
 				}
 
-				if (dl->bevelSplitFlag) {
-					for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
-						if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
-							split_v_renderfaces(re, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
-				}
+				if(dl->bevelSplitFlag || only_verts==0) {
+					startvlak= re->totvlak;
 
-				/* vertex normals */
-				for(a= startvlak; a<re->totvlak; a++) {
-					vlr= RE_findOrAddVlak(re, a);
+					for(a=0; a<dl->parts; a++) {
 
-					VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
-					VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
-					VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
-					VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
-				}
-				for(a=startvert; a<re->totvert; a++) {
-					ver= RE_findOrAddVert(re, a);
-					len= Normalise(ver->n);
-					if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
-					else ver->flag= 0;
-				}
-				for(a= startvlak; a<re->totvlak; a++) {
-					vlr= RE_findOrAddVlak(re, a);
-					if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
-					if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
-					if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
-					if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
+						frontside= (a >= dl->nr/2);
+
+						DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+						p1+= startvert;
+						p2+= startvert;
+						p3+= startvert;
+						p4+= startvert;
+
+						for(; b<dl->nr; b++) {
+							vlr= RE_findOrAddVlak(re, re->totvlak++);
+							vlr->ob= ob;
+							vlr->v1= RE_findOrAddVert(re, p2);
+							vlr->v2= RE_findOrAddVert(re, p1);
+							vlr->v3= RE_findOrAddVert(re, p3);
+							vlr->v4= RE_findOrAddVert(re, p4);
+							vlr->ec= ME_V2V3+ME_V3V4;
+							if(a==0) vlr->ec+= ME_V1V2;
+
+							vlr->flag= dl->rt;
+							vlr->lay= ob->lay;
+
+							/* this is not really scientific: the vertices
+								* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
+								* front and backside treated different!!
+								*/
+
+							if(frontside)
+								CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
+							else 
+								CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+
+							vlr->mat= matar[ dl->col ];
+
+							p4= p3;
+							p3++;
+							p2= p1;
+							p1++;
+						}
+					}
+
+					if (dl->bevelSplitFlag) {
+						for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
+							if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
+								split_v_renderfaces(re, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
+					}
+
+					/* vertex normals */
+					for(a= startvlak; a<re->totvlak; a++) {
+						vlr= RE_findOrAddVlak(re, a);
+
+						VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
+						VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
+						VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
+						VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
+					}
+					for(a=startvert; a<re->totvert; a++) {
+						ver= RE_findOrAddVert(re, a);
+						len= Normalise(ver->n);
+						if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
+						else ver->flag= 0;
+					}
+					for(a= startvlak; a<re->totvlak; a++) {
+						vlr= RE_findOrAddVlak(re, a);
+						if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
+						if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
+						if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
+						if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
+					}
 				}
 			}
 		}

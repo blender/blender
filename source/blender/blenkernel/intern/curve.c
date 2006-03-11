@@ -913,30 +913,47 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
 
 float *make_orco_surf(Object *ob)
 {
-	Curve *cu = ob->data;
+	Curve *cu= ob->data;
 	Nurb *nu;
 	int a, b, tot=0;
-	int sizeu, sizev;// ###
-	float *data;
-	float *orco;
-
-		/* first calculate the size of the datablock */
-	for (nu=cu->nurb.first; nu; nu=nu->next) {
-		sizeu = nu->resolu; sizev = nu->resolv;
-		if(nu->pntsv>1) tot+= sizeu * sizev;
+	int sizeu, sizev;
+	float *data, *orco;
+	
+	/* first calculate the size of the datablock */
+	nu= cu->nurb.first;
+	while(nu) {
+		/* as we want to avoid the seam in a cyclic nurbs
+		texture wrapping, reserve extra orco data space to save these extra needed
+		vertex based UV coordinates for the meridian vertices.
+		Vertices on the 0/2pi boundary are not duplicated inside the displist but later in
+		the renderface/vert construction.
+		
+		See also convertblender.c: init_render_surf()
+		*/
+		
+		sizeu = nu->resolu; 
+		sizev = nu->resolv;
+		if (nu->flagu & CU_CYCLIC) sizeu++;
+		if (nu->flagv & CU_CYCLIC) sizev++;
+ 		if(nu->pntsv>1) tot+= sizeu * sizev;
+		
+		nu= nu->next;
 	}
-				/* makeNurbfaces wants zeros */
+	/* makeNurbfaces wants zeros */
 	data= orco= MEM_callocN(3*sizeof(float)*tot, "make_orco");
-
-	for (nu=cu->nurb.first; nu; nu=nu->next) {
+	
+	nu= cu->nurb.first;
+	while(nu) {
 		if(nu->pntsv>1) {
 			sizeu = nu->resolu;
 			sizev = nu->resolv;
+			if (nu->flagu & CU_CYCLIC) sizeu++;
+			if (nu->flagv & CU_CYCLIC) sizev++;
 			
 			if(cu->flag & CU_UV_ORCO) {
 				for(b=0; b< sizeu; b++) {
 					for(a=0; a< sizev; a++) {
-					
+						
 						if(sizev <2) data[0]= 0.0f;
 						else data[0]= -1.0f + 2.0f*((float)a)/(sizev - 1);
 						
@@ -944,14 +961,14 @@ float *make_orco_surf(Object *ob)
 						else data[1]= -1.0f + 2.0f*((float)b)/(sizeu - 1);
 						
 						data[2]= 0.0;
-		
+						
 						data+= 3;
 					}
 				}
 			}
 			else {
 				makeNurbfaces(nu, data, sizeof(*data)*sizev*3);
-
+				
 				for(b=0; b<sizeu; b++) {
 					for(a=0; a<sizev; a++) {
 						data = orco + 3 * (b * sizev + a);
@@ -962,8 +979,9 @@ float *make_orco_surf(Object *ob)
 				}
 			}
 		}
+		nu= nu->next;
 	}
-
+	
 	return orco;
 }
 
@@ -993,6 +1011,8 @@ float *make_orco_curve(Object *ob)
 			numVerts += dl->nr;
 		} else if (dl->type==DL_SURF) {
 			numVerts += dl->parts*dl->nr;
+			if (dl->flag & DL_CYCL_U)
+				numVerts+= dl->parts;
 		}
 	}
 
@@ -1000,8 +1020,8 @@ float *make_orco_curve(Object *ob)
 
 	for (dl=cu->disp.first; dl; dl=dl->next) {
 		if (dl->type==DL_INDEX3) {
-			for (u=0; u<dl->nr; u++,fp+=3) {
-				if (cu->flag&CU_UV_ORCO) {
+			for (u=0; u<dl->nr; u++, fp+=3) {
+				if (cu->flag & CU_UV_ORCO) {
 					fp[0]= 2.0f*u/(dl->nr-1) - 1.0f;
 					fp[1]= 0.0;
 					fp[2]= 0.0;
@@ -1014,14 +1034,21 @@ float *make_orco_curve(Object *ob)
 				}
 			}
 		} else if (dl->type==DL_SURF) {
+			int sizeu= dl->nr;
+			
+			if (dl->flag & DL_CYCL_U)
+				sizeu++;
+				
 			for (u=0; u<dl->parts; u++) {
-				for (v=0; v<dl->nr; v++,fp+=3) {
-					if (cu->flag&CU_UV_ORCO) {
+				for (v=0; v<sizeu; v++,fp+=3) {
+					if (cu->flag & CU_UV_ORCO) {
 						fp[0]= 2.0f*u/(dl->parts-1) - 1.0f;
 						fp[1]= 2.0f*v/(dl->nr-1) - 1.0f;
 						fp[2]= 0.0;
 					} else {
-						VECCOPY(fp, &dl->verts[(dl->nr*u + v)*3]);
+						int realv= v % dl->nr;
+
+						VECCOPY(fp, &dl->verts[(dl->nr*u + realv)*3]);
 
 						fp[0]= (fp[0]-cu->loc[0])/cu->size[0];
 						fp[1]= (fp[1]-cu->loc[1])/cu->size[1];
