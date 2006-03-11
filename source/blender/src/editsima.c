@@ -446,12 +446,12 @@ void select_swap_tface_uv(void)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-static int msel_hit(float *limit, unsigned int *hitarray, unsigned int vertexid, float **uv, float *uv2)
+static int msel_hit(float *limit, unsigned int *hitarray, unsigned int vertexid, float **uv, float *uv2, int sticky)
 {
 	int i;
 	for(i=0; i< 4; i++) {
 		if(hitarray[i] == vertexid) {
-			if(G.sima->flag & SI_LOCALSTICKY) {
+			if(sticky == 2) {
 				if(fabs(uv[i][0]-uv2[0]) < limit[0] &&
 			    fabs(uv[i][1]-uv2[1]) < limit[1])
 					return 1;
@@ -593,8 +593,16 @@ void mouse_select_sima(void)
 
 	get_connected_limit_tface_uv(limit);
 	actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
-	sticky= (G.qual & LR_CTRLKEY || G.sima->flag & SI_STICKYUVS ||
-	         G.sima->flag & SI_LOCALSTICKY);
+
+	if(G.qual & LR_CTRLKEY) {
+		if(G.sima->flag & SI_STICKYUVS) sticky= 0;
+		else sticky= 1;
+	}
+	else {
+		if(G.sima->flag & SI_STICKYUVS) sticky= 1;
+		else if(G.sima->flag & SI_LOCALSTICKY) sticky= 2;
+		else sticky= 0;
+	}
 
 	if(actface) {
 		find_nearest_tface(&nearesttf, &nearestmf);
@@ -660,14 +668,14 @@ void mouse_select_sima(void)
 					if(nearesttf && tf!=nearesttf) tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
 
-					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0]))
+					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0], sticky))
 						tf->flag &= ~TF_SEL1;
-					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1]))
+					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1], sticky))
 						tf->flag &= ~TF_SEL2;
-					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2]))
+					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2], sticky))
 						tf->flag &= ~TF_SEL3;
 					if (mf->v4)
-						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3]))
+						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3], sticky))
 							tf->flag &= ~TF_SEL4;
 				}
 			}
@@ -679,14 +687,14 @@ void mouse_select_sima(void)
 						tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
 
-					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0]))
+					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0], sticky))
 						tf->flag |= TF_SEL1;
-					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1]))
+					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1], sticky))
 						tf->flag |= TF_SEL2;
-					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2]))
+					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2], sticky))
 						tf->flag |= TF_SEL3;
 					if (mf->v4)
-						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3]))
+						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3], sticky))
 							tf->flag |= TF_SEL4;
 				}
 			}
@@ -714,14 +722,14 @@ void mouse_select_sima(void)
 				if(!actface) tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				if(!sticky) continue;
 
-				if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0]))
+				if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0], sticky))
 					tf->flag |= TF_SEL1;
-				if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1]))
+				if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1], sticky))
 					tf->flag |= TF_SEL2;
-				if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2]))
+				if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2], sticky))
 					tf->flag |= TF_SEL3;
 				if(mf->v4)
-					if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3]))
+					if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3], sticky))
 						tf->flag |= TF_SEL4;
 			}
 		}
