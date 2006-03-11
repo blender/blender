@@ -61,7 +61,7 @@ BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE='true'
-WITH_BF_PLAYER='false'
+WITH_BF_PLAYER='true'
 
 WITH_BF_ODE = 'false'
 BF_ODE = LCGDIR + '/ode'
@@ -100,7 +100,7 @@ BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = 'true' # -DWITH_QUICKTIME
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = 'true'
@@ -116,9 +116,10 @@ BF_OPENGL_LINKFLAGS = '-framework OpenGL'
 
 CFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
-CPPFLAGS = ['-DXP_UNIX']
+CPPFLAGS = []
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-PLATFORM_LINKFLAGS = '-framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
+CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
+PLATFORM_LINKFLAGS = '-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']
 ##BF_DEPEND = 'true'
