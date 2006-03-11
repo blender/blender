@@ -818,9 +818,10 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 	/* is the object really in the scene? */
 	base = EXPP_Scene_getObjectBase( scene, object );
 
-	if( base ) {		/* if it is, remove it: */
+	if( base ) {		/* if it is, remove it */
+		((ID *)object->data)->us--;
 		BLI_remlink( &scene->base, base );
-		object->id.us -= 1;
+		object->id.us--;
 		MEM_freeN( base );
 		scene->basact = 0;	/* in case the object was selected */
 		retval = 1;
