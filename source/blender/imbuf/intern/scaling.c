@@ -610,7 +610,7 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 static struct ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 {
 	uchar *rect,*_newrect,*newrect;
-	float *rectf,*_newrectf,*newrectf;
+	float *rectf,*_newrectf=NULL,*newrectf;
 	float sample,add;
 	float val_a,nval_a,diff_a;
 	float val_b,nval_b,diff_b;
@@ -642,7 +642,7 @@ static struct ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 	rect = (uchar *) ibuf->rect;
 	rectf = (float *) ibuf->rect_float;
 	newrect = _newrect;
-	newrectf = _newrectf = NULL;
+	newrectf = _newrectf;
 
 	for (y = ibuf->y; y>0 ; y--){
 
