@@ -80,6 +80,7 @@
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
 #include "BIF_toets.h"
+#include "BIF_toolbox.h"
 #include "BIF_writeimage.h"
 
 #include "BDR_editobject.h"
@@ -1030,6 +1031,7 @@ static void end_test_break_callback()
    - set callbacks
    - cleanup
 */
+static void error_cb(char *str){error(str);}
 
 static void do_render(int anim)
 {
@@ -1045,6 +1047,7 @@ static void do_render(int anim)
 	RE_display_init_cb(re, renderwin_init_display_cb);
 	RE_display_draw_cb(re, renderwin_progress_display_cb);
 	RE_display_clear_cb(re, renderwin_clear_display_cb);
+	RE_error_cb(re, error_cb);
 	init_test_break_callback();
 	RE_test_break_cb(re, test_break);
 	RE_timecursor_cb(re, set_timecursor);

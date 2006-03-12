@@ -221,7 +221,7 @@ void error(char *fmt, ...)
 	sprintf(nfmt, "%s", fmt);
 	
 	va_start(ap, fmt);
-	if (G.background || !G.curscreen || (G.rendering)) {
+	if (G.background || !G.curscreen) {
 		vprintf(nfmt, ap);
 		printf("\n");
 	} else {

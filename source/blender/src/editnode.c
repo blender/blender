@@ -333,7 +333,7 @@ void node_shader_default(Material *ma)
 /* called from shading buttons or header */
 void node_composit_default(Scene *sce)
 {
-	bNode *in, *out;
+	bNode *in, *out1, *out2;
 	bNodeSocket *fromsock, *tosock;
 	
 	/* but lets check it anyway */
@@ -344,27 +344,31 @@ void node_composit_default(Scene *sce)
 	
 	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
 	
-	out= nodeAddNodeType(sce->nodetree, CMP_NODE_VIEWER, NULL);
-	out->locx= 300.0f; out->locy= 300.0f;
+	out1= nodeAddNodeType(sce->nodetree, CMP_NODE_VIEWER, NULL);
+	out1->locx= 300.0f; out1->locy= 200.0f;
+	out2= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL);
+	out2->locx= 300.0f; out2->locy= 500.0f;
 	
 	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_RESULT, NULL);
-	in->locx= 10.0f; in->locy= 300.0f;
+	in->locx= 10.0f; in->locy= 400.0f;
 	nodeSetActive(sce->nodetree, in);
 	
-	/* only a link from color to color */
+	/* links from color to color */
 	fromsock= in->outputs.first;
-	tosock= out->inputs.first;
-	nodeAddLink(sce->nodetree, in, fromsock, out, tosock);
+	tosock= out1->inputs.first;
+	nodeAddLink(sce->nodetree, in, fromsock, out1, tosock);
+	tosock= out2->inputs.first;
+	nodeAddLink(sce->nodetree, in, fromsock, out2, tosock);
 	
 	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
 	
-	out->id= find_id("IM", "Compositor");
-	if(out->id==NULL) {
+	out1->id= find_id("IM", "Compositor");
+	if(out1->id==NULL) {
 		Image *ima= alloc_libblock(&G.main->image, ID_IM, "Compositor");
 		strcpy(ima->name, "Compositor");
 		ima->ok= 1;
 		ima->xrep= ima->yrep= 1;
-		out->id= &ima->id;
+		out1->id= &ima->id;
 	}
 }
 

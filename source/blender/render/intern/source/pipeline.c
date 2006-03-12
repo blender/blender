@@ -120,7 +120,7 @@ static void result_rcti_nothing(RenderResult *rr, volatile struct rcti *rect) {}
 static void stats_nothing(RenderStats *rs) {}
 static void int_nothing(int val) {}
 static int void_nothing(void) {return 0;}
-static void print_error(const char *str) {printf("ERROR: %s\n", str);}
+static void print_error(char *str) {printf("ERROR: %s\n", str);}
 
 static void stats_background(RenderStats *rs)
 {
@@ -842,7 +842,7 @@ void RE_test_return_cb(Render *re, int (*f)(void))
 {
 	re->test_return= f;
 }
-void RE_error_cb(Render *re, void (*f)(const char *str))
+void RE_error_cb(Render *re, void (*f)(char *str))
 {
 	re->error= f;
 }
@@ -1097,6 +1097,10 @@ static void threaded_tile_processor(Render *re)
 		else if(re->r.mode & R_PANORAMA) {
 			if(nextpa==NULL && BLI_available_threads(&threads)==maxthreads)
 				nextpa= find_next_pano_slice(re, &minx, &viewplane);
+			else {
+				PIL_sleep_ms(50);
+				drawtimer++;
+			}
 		}
 		else {
 			PIL_sleep_ms(50);
@@ -1179,6 +1183,7 @@ void render_one_frame(Render *re)
 	RE_Database_Free(re);
 }
 
+#if 0
 /* accumulates osa frames */
 static void do_render_blurred(Render *re, float frame)
 {
@@ -1190,6 +1195,7 @@ static void do_render_fields(Render *re)
 {
 	
 }
+#endif
 
 /* within context of current Render *re, render another scene.
    it uses current render image size and disprect, but doesn't execute composite
@@ -1222,11 +1228,11 @@ void RE_RenderScene(Render *re, Scene *sce, int cfra)
 	resc->stats_draw= re->stats_draw;
 	
 	if(resc->r.mode & R_FIELDS)
-		do_render_fields(resc);
+		printf("No field render yet...\n"); //do_render_fields(resc);
 	else if(resc->r.mode & R_MBLUR)
-		do_render_blurred(resc, resc->r.cfra);
-	else
-		render_one_frame(resc);
+		printf("No mblur render yet...\n"); //do_render_blurred(resc, resc->r.cfra);
+	//else
+	render_one_frame(resc);
 
 }
 
@@ -1316,11 +1322,11 @@ static void do_render_final(Render *re)
 			RE_SetCamera(re, re->scene->camera);
 			
 			if(re->r.mode & R_FIELDS)
-				do_render_fields(re);
+				printf("No field render yet...\n"); //do_render_fields(resc);
 			else if(re->r.mode & R_MBLUR)
-				do_render_blurred(re, re->scene->r.cfra);
-			else
-				render_one_frame(re);
+				printf("No mblur render yet...\n"); //do_render_blurred(resc, resc->r.cfra);
+													//else
+			render_one_frame(re);
 		}
 		
 		/* swap render result */
@@ -1376,6 +1382,27 @@ static int is_rendering_allowed(Render *re)
 		   re->r.border.ymax <= re->r.border.ymin) {
 			re->error("No border area selected.");
 			return 0;
+		}
+	}
+	
+	if(re->r.scemode & R_DOCOMP) {
+		if(re->scene->use_nodes) {
+			bNodeTree *ntree= re->scene->nodetree;
+			bNode *node;
+		
+			if(ntree==NULL) {
+				re->error("No Nodetree in Scene");
+				return 0;
+			}
+		
+			for(node= ntree->nodes.first; node; node= node->next)
+				if(node->type==CMP_NODE_COMPOSITE)
+					break;
+			
+			if(node==NULL) {
+				re->error("No Render Output Node in Scene");
+				return 0;
+			}
 		}
 	}
 	

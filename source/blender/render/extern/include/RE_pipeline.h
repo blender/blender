@@ -175,7 +175,7 @@ void RE_stats_draw_cb	(struct Render *re, void (*f)(RenderStats *rs));
 void RE_timecursor_cb	(struct Render *re, void (*f)(int));
 void RE_test_break_cb	(struct Render *re, int (*f)(void));
 void RE_test_return_cb	(struct Render *re, int (*f)(void));
-void RE_error_cb		(struct Render *re, void (*f)(const char *str));
+void RE_error_cb		(struct Render *re, void (*f)(char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);

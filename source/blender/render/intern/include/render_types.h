@@ -177,7 +177,7 @@ struct Render
 	
 	int (*test_break)(void);
 	int (*test_return)(void);
-	void (*error)(const char *str);
+	void (*error)(char *str);
 	
 	RenderStats i;
 };
