@@ -161,6 +161,7 @@ endif
   ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(OCGDIR)/blender/imbuf/openexr/$(DEBUG_DIR)libopenexr.a
   endif
+  COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
   ifeq ($(WITH_FREETYPE2), true)
     ifeq ($(OS), windows)
       ifeq ($(FREE_WINDOWS), true)
