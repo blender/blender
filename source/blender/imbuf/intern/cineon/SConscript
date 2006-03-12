@@ -1,17 +1,16 @@
 #!/usr/bin/python
 Import ('env')
 
-#source_files = ['cineon_dpx.c', 'cineonlib.c']
 source_files = env.Glob('*.c')
 
 incs = ['.',
-	'../../../blenkernel',
-	'../../',
-	'..',
-	'../../../blenlib',
-	'intern/include',
-	'#/intern/guardedalloc',
-	'../../../makesdna']
+    '../../../blenkernel',
+    '../../',
+    '..',
+    '../../../blenlib',
+    'intern/include',
+    '#/intern/guardedalloc',
+    '../../../makesdna']
 
 defs = []
                  
