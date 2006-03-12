@@ -673,7 +673,6 @@ void borderselect_action(void)
 
 	act=G.saction->action;
 
-
 	if (!act)
 		return;
 
@@ -862,7 +861,8 @@ void transform_actionchannel_keys(int mode, int dummy)
 	char	str[256];
 
 	act=G.saction->action;
-
+	if(act==NULL) return;
+	
 	/* Ensure that partial selections result in beztriple selections */
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		if((chan->flag & ACHAN_HIDDEN)==0) {
