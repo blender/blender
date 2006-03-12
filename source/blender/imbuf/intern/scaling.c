@@ -786,7 +786,7 @@ static struct ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 
 	if (ibuf->rect_float) {
 		do_float = 1;
-		_newrectf = MEM_mallocN(newy * ibuf->y * sizeof(float) * 4, "scaleupyf");
+		_newrectf = MEM_mallocN(newy * ibuf->x * sizeof(float) * 4, "scaleupyf");
 		if (_newrectf==NULL) return(ibuf);
 	}
 	
