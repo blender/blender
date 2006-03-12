@@ -47,6 +47,7 @@
 
 #include "IMB_allocimbuf.h"
 
+#include "IMB_dpxcineon.h"
 #include "IMB_targa.h"
 #include "IMB_jpeg.h"
 #include "IMB_iris.h"
@@ -114,7 +115,13 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 		return imb_save_openexr(ibuf, name, flags);
 	}
 #endif
-
+	if (IS_cineon(ibuf)) {
+		return imb_savecineon(ibuf, name, flags);
+		
+	}
+	if (IS_dpx(ibuf)) {
+		return imb_save_dpx(ibuf, name, flags);
+	}
 	file = open(name, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
 	if (file < 0) return (FALSE);
 

@@ -52,6 +52,7 @@
 #include "IMB_bmp.h"
 #include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
+#include "IMB_dpxcineon.h"
 #include "BKE_global.h"
 
 #ifdef WITH_OPENEXR
@@ -134,6 +135,12 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_loadtarga((uchar *)mem, flags);
 		if (ibuf) return(ibuf);
 
+		ibuf = imb_loaddpx((uchar *)mem, size, flags);
+		if (ibuf) return(ibuf);
+
+		ibuf = imb_loadcineon((uchar *)mem, size, flags);
+		if (ibuf) return(ibuf);
+	
 		if (G.have_libtiff) {
 			ibuf = imb_loadtiff((uchar *)mem, size, flags);
 			if (ibuf) return(ibuf);

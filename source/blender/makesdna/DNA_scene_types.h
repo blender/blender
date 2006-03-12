@@ -477,6 +477,8 @@ typedef struct Scene {
 #define R_OPENEXR	23
 #define R_FFMPEG        24
 #define R_FRAMESERVER   25
+#define R_CINEON	26
+#define R_DPX		27
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1

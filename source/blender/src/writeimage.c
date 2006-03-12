@@ -177,6 +177,12 @@ void save_image_filesel_str(char *str)
 			strcpy(str, "Save OpenEXR");
 			break;
 #endif
+		case R_CINEON:
+			strcpy(str, "Save Cineon");
+			break;
+		case R_DPX:
+			strcpy(str, "Save DPX");
+			break;
 		case R_RAWTGA:
 			strcpy(str, "Save Raw Targa");
 			break;

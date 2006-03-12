@@ -31,21 +31,12 @@
 #
 #
 
-LIBNAME = imbuf
-DIR = $(OCGDIR)/blender/imbuf
-SOURCEDIR = source/blender/imbuf/intern
+LIBNAME = cineon
+DIR = $(OCGDIR)/blender/imbuf/cineon
+SOURCEDIR = source/blender/imbuf/intern/cineon
 
-include nan_subdirs.mk
 include nan_compile.mk
 include nan_definitions.mk
-
-DIRS = cineon
-
-ifeq ($(WITH_OPENEXR), true)
-    DIRS += openexr 
-    CFLAGS += -DWITH_OPENEXR
-endif
-
 
 ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
     CFLAGS += -funsigned-char
@@ -57,27 +48,17 @@ CPPFLAGS += -I$(NAN_JPEG)/include
 CPPFLAGS += -I$(NAN_PNG)/include
 CPPFLAGS += -I$(NAN_ZLIB)/include
 CPPFLAGS += -I$(NAN_TIFF)/include
-CPPFLAGS += -I../../include
-CPPFLAGS += -I../../blenkernel
-CPPFLAGS += -I../../blenlib
-CPPFLAGS += -I../../avi
-CPPFLAGS += -I../../quicktime
+CPPFLAGS += -I../../../include
+CPPFLAGS += -I../../../blenkernel
+CPPFLAGS += -I../../../blenlib
+CPPFLAGS += -I../../../avi
+CPPFLAGS += -I../../../quicktime
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_MEMUTIL)/include
 # This is not really needed, but until /include is cleaned, it must be
 # there for proper compilation.
 # - No, it is also needed in antialias, for listbase (nzc)
-CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../../makesdna
 # external interface of this module
-CPPFLAGS += -I..
-
-ifeq ($(WITH_QUICKTIME), true)
-   CPPFLAGS += -DWITH_QUICKTIME
-endif
-
-ifeq ($(WITH_FFMPEG), true)
-   CPPFLAGS += -DWITH_FFMPEG
-   CPPFLAGS += $(NAN_FFMPEGCFLAGS)
-endif
-
+CPPFLAGS += -I../..

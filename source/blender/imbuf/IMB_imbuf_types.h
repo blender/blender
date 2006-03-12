@@ -163,6 +163,9 @@ typedef enum {
 #define OPENEXR_HALF	(1 << 8 )
 #define OPENEXR_COMPRESS (7)	
 
+#define CINEON			(1 << 21)
+#define DPX				(1 << 20)
+
 #define RAWTGA	        (TGA | 1)
 
 #define JPG_STD	        (JPG | (0 << 8))
@@ -199,6 +202,8 @@ typedef enum {
 #define IS_tga(x)		(x->ftype & TGA)
 #define IS_png(x)		(x->ftype & PNG)
 #define IS_openexr(x)	(x->ftype & OPENEXR)
+#define IS_cineon(x)	(x->ftype & CINEON)
+#define IS_dpx(x)		(x->ftype & DPX)
 #define IS_bmp(x)		(x->ftype & BMP)
 #define IS_tiff(x)		(x->ftype & TIF)
 #define IS_radhdr(x)	(x->ftype & RADHDR)

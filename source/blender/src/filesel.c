@@ -523,6 +523,8 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".pict")
 					||	BLI_testextensie(file->relname, ".pntg") //macpaint
 					||	BLI_testextensie(file->relname, ".qtif")
+					||  BLI_testextensie(file->relname, ".cin")
+					||  BLI_testextensie(file->relname, ".dpx")
 					||	BLI_testextensie(file->relname, ".sgi")) {
 					file->flags |= IMAGEFILE;			
 				}
@@ -544,6 +546,8 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".png")
 					||	BLI_testextensie(file->relname, ".iff")
 					||	BLI_testextensie(file->relname, ".lbm")
+					||  BLI_testextensie(file->relname, ".cin")
+					||  BLI_testextensie(file->relname, ".dpx")
 					||	BLI_testextensie(file->relname, ".sgi")) {
 					file->flags |= IMAGEFILE;			
 				}

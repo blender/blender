@@ -47,6 +47,7 @@
 #include "IMB_bmp.h"
 #include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
+#include "IMB_dpxcineon.h"
 
 #include "IMB_anim.h"
 
@@ -117,7 +118,8 @@ static int IMB_ispic_name(char *name)
 				if (imb_is_a_openexr((uchar *)buf)) return(OPENEXR);
 #endif
 				if (imb_is_a_tiff(buf)) return(TIF);
-
+				if (imb_is_dpx(buf)) return (DPX);
+				if (imb_is_cineon(buf)) return(CINEON);
 				/* radhdr: check if hdr format */
 				if (imb_is_a_hdr(buf)) return(RADHDR);
 
@@ -168,6 +170,7 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".pict")
 				||	BLI_testextensie(filename, ".pntg") //macpaint
 				||	BLI_testextensie(filename, ".qtif")
+				||  BLI_testextensie(filename, ".cin")
 				||	BLI_testextensie(filename, ".sgi")) {
 				return IMB_ispic_name(filename);
 			} else {
@@ -181,6 +184,7 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
 				||	BLI_testextensie(filename, ".png")
+				||  BLI_testextensie(filename, ".cin")
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
 				||	BLI_testextensie(filename, ".sgi")) {

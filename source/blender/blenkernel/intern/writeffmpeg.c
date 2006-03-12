@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>

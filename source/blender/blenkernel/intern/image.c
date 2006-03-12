@@ -357,6 +357,14 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".exr";
 	}
 #endif
+	else if(imtype==R_CINEON){
+		if (!BLI_testextensie(string, ".cin"))
+			extension= ".cin";
+	}
+	else if(imtype==R_DPX){
+		if (!BLI_testextensie(string, ".dpx"))
+			extension= ".dpx";
+	}
 	else {	/* targa default */
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
@@ -396,6 +404,12 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 		
 	}
 #endif
+	else if (imtype==R_CINEON) {
+		ibuf->ftype = CINEON;
+	}
+	else if (imtype==R_DPX) {
+		ibuf->ftype = DPX;
+	}
 	else if (imtype==R_TARGA) {
 		ibuf->ftype= TGA;
 	}

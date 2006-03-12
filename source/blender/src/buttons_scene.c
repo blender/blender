@@ -1101,7 +1101,9 @@ static char *imagetype_pup(void)
 	strcat(formatstring, "|%s %%x%d");	// add space for PNG
 	strcat(formatstring, "|%s %%x%d");	// add space for BMP
 	strcat(formatstring, "|%s %%x%d");	// add space for Radiance HDR
-
+	strcat(formatstring, "|%s %%x%d");	// add space for Cineon
+	strcat(formatstring, "|%s %%x%d");	// add space for DPX
+	
 #ifdef _WIN32
 	strcat(formatstring, "|%s %%x%d");	// add space for AVI Codec
 #endif
@@ -1138,7 +1140,9 @@ static char *imagetype_pup(void)
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
 			"Iris + Zbuffer", R_IRIZ,
-			"Radiance HDR",   R_RADHDR
+			"Radiance HDR",   R_RADHDR,
+			"Cineon",		  R_CINEON,
+			"DPX",			  R_DPX
 #ifdef __sgi
 			,"Movie",          R_MOVIE
 #endif
@@ -1162,7 +1166,9 @@ static char *imagetype_pup(void)
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
 			"Iris + Zbuffer", R_IRIZ,
-			"Radiance HDR",   R_RADHDR
+			"Radiance HDR",   R_RADHDR,
+			"Cineon",		  R_CINEON,
+			"DPX",			  R_DPX
 #ifdef __sgi
 			,"Movie",          R_MOVIE
 #endif
