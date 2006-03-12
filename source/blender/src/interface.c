@@ -2458,8 +2458,8 @@ static int ui_do_but_SLI(uiBut *but)
 
 	ui_check_but(but);
 	ui_draw_but(but);
-	ui_block_flush_back(but->block);
 	uibut_do_func(but);
+	ui_block_flush_back(but->block);
 	
 	return but->retval;
 }
