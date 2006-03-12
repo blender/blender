@@ -1279,7 +1279,7 @@ void free_imbuf_seq()
 	END_SEQ
 }
 
-/* bad levell call... renderer makes a 32 bits rect to put result in */
+/* bad levell call... */
 void do_render_seq(RenderResult *rr, int cfra)
 {
 	ImBuf *ibuf;
@@ -1287,20 +1287,32 @@ void do_render_seq(RenderResult *rr, int cfra)
 	G.f |= G_PLAYANIM;	/* waitcursor patch */
 
 	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0);
-	if(ibuf && rr->rect32) {
-		printf("copied\n");
-		memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
-
-		/* if (ibuf->zbuf) { */
-		/* 	if (R.rectz) freeN(R.rectz); */
-		/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
-		/* } */
-
-		/* Let the cache limitor take care of this (schlaile) */
-		/* no, doesnt seem to work for float buffer? (ton) */
-		free_imbuf_seq_except(cfra);
+	
+	if(ibuf) {
 		
+		if(ibuf->rect_float) {
+			if (!rr->rectf)
+				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
+			
+			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+		}
+		else if(ibuf->rect) {
+			if (!rr->rect32)
+				rr->rect32= MEM_mallocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
+
+			memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
+
+			/* if (ibuf->zbuf) { */
+			/* 	if (R.rectz) freeN(R.rectz); */
+			/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
+			/* } */
+		}
+		
+		/* Let the cache limitor take care of this (schlaile) */
+		/* While render let's keep all memory available for render (ton) */
+		free_imbuf_seq_except(cfra);
 	}
+	
 	G.f &= ~G_PLAYANIM;
 
 }
