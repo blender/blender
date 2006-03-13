@@ -641,6 +641,7 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thr
 }
 
 /* note; autosmooth happens in object space still, after applying autosmooth we rotate */
+/* note2; actually, when original mesh and displist are equal sized, face normals are from original mesh */
 static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak, int degr)
 {
 	ASvert *asv, *asverts, *asvertoffs;
@@ -655,6 +656,9 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 	asvertoffs= asverts-startvert;	 /* se we can use indices */
 	
 	thresh= cos( M_PI*(0.5f+(float)degr)/180.0 );
+	
+	/* step zero: give faces normals of original mesh, if this is provided */
+	
 	
 	/* step one: construct listbase of all vertices and pointers to faces */
 	for(a=startvlak; a<re->totvlak; a++) {
@@ -1562,7 +1566,8 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 	float *orco=0;
 	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, totvlako, totverto, vertofs;
 	int end, do_autosmooth=0, totvert = 0, dm_needsfree;
-	int useFluidmeshNormals = 0; // NT fluidsim, use smoothed normals?
+	int useFluidmeshNormals= 0; // NT fluidsim, use smoothed normals?
+	int use_original_normals= 0;
 	
 	me= ob->data;
 
@@ -1626,6 +1631,10 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 	mvert= dlm->mvert;
 	totvert= dlm->totvert;
 
+	/* attempt to autsmooth on original mesh, only without subsurf */
+	if(do_autosmooth && me->totvert==totvert && me->totface==dlm->totface)
+		use_original_normals= 1;
+	
 	ms = (totvert==me->totvert)?me->msticky:NULL;
 	
 	ma= give_render_material(re, ob, 1);
@@ -1738,10 +1747,21 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 							else vlr->v4= 0;
 
 							/* render normals are inverted in render */
-							if(vlr->v4) 
-								len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-							else 
-								len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+							if(use_original_normals) {
+								MFace *mf= me->mface+a;
+								MVert *mv= me->mvert;
+								
+								if(vlr->v4) 
+									len= CalcNormFloat4( mv[mf->v4].co, mv[mf->v3].co, mv[mf->v2].co, mv[mf->v1].co, vlr->n);
+								else 
+									len= CalcNormFloat(mv[mf->v3].co, mv[mf->v2].co, mv[mf->v1].co, vlr->n);
+							}
+							else {
+								if(vlr->v4) 
+									len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+								else 
+									len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+							}
 
 							vlr->mat= ma;
 							vlr->flag= flag;
