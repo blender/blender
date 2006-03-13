@@ -57,7 +57,6 @@ struct View3D;
 #include "sceneTimeLine.h"
 
 
-static Base *EXPP_Scene_getObjectBase( Scene * scene, Object * object );
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 
 //----------------------------------- Python BPy_Scene defaults------------
@@ -251,6 +250,10 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 {
 	PyObject *attr = Py_None;
 
+	if( !(self->scene) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Scene was deleted!" );
+	
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->scene->id.name + 2 );
 	/* accept both Layer (for compatibility with ob.Layer) and Layers */
@@ -278,9 +281,13 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 //-----------------------setAttr----------------------------------------
 static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
 {
+	if( !(self->scene) )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "Blender Scene was deleted!" );
+	
 	PyObject *valtuple;
 	PyObject *error = NULL;
-
+	
 /* We're playing a trick on the Python API users here.	Even if they use
  * Scene.member = val instead of Scene.setMember(val), we end up using the
  * function anyway, since it already has error checking, clamps to the right
@@ -330,8 +337,11 @@ static int Scene_compare( BPy_Scene * a, BPy_Scene * b )
 //----------------------repr--------------------------------------------
 static PyObject *Scene_repr( BPy_Scene * self )
 {
-	return PyString_FromFormat( "[Scene \"%s\"]",
-				    self->scene->id.name + 2 );
+	if( !(self->scene) )
+		return PyString_FromString( "[Scene Unlinked]");
+	else
+		return PyString_FromFormat( "[Scene \"%s\"]",
+					self->scene->id.name + 2 );
 }
 
 //-----------------------CreatePyObject---------------------------------
@@ -383,21 +393,6 @@ Scene *GetSceneByName( char *name )
 	return ( NULL );
 }
 
-//-----------------------EXPP_Scene_getObjectBase()---------------------
-Base *EXPP_Scene_getObjectBase( Scene * scene, Object * object )
-{
-	Base *base = scene->base.first;
-
-	while( base ) {
-
-		if( object == base->object )
-			return base;	/* found it? */
-
-		base = base->next;
-	}
-
-	return NULL;		/* object isn't linked to this scene */
-}
 
 //-----------------------Scene module function defintions---------------
 //-----------------------Scene.New()------------------------------------
@@ -509,20 +504,27 @@ static PyObject *M_Scene_GetCurrent( PyObject * self )
 static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 {
 	PyObject *pyobj;
+	BPy_Scene *pyscn;
 	Scene *scene;
 
 	if( !PyArg_ParseTuple( args, "O!", &Scene_Type, &pyobj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Scene PyType object" );
-
-	scene = ( ( BPy_Scene * ) pyobj )->scene;
-
+	
+	pyscn = (BPy_Scene *)pyobj;
+	scene = pyscn->scene;
+	
+	if (!(scene))
+		return EXPP_ReturnPyObjError( PyExc_SystemError,
+					      "scene has alredy been removed!" );
+	
 	if( scene == G.scene )
 		return EXPP_ReturnPyObjError( PyExc_SystemError,
 					      "current Scene cannot be removed!" );
 
 	free_libblock( &G.main->scene, scene );
-
+	
+	pyscn->scene=NULL;
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -764,7 +766,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 		 * to the scene.        See DNA_scene_types.h ... */
 
 		/* First, check if the object isn't already in the scene */
-		base = EXPP_Scene_getObjectBase( scene, object );
+		base = object_in_scene( object, scene );
 		/* if base is not NULL ... */
 		if( base )	/* ... the object is already in one of the Scene Bases */
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -816,7 +818,7 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 	object = bpy_obj->object;
 
 	/* is the object really in the scene? */
-	base = EXPP_Scene_getObjectBase( scene, object );
+	base = object_in_scene( object, scene );
 
 	if( base ) {		/* if it is, remove it */
 		((ID *)object->data)->us--;
@@ -1078,8 +1080,12 @@ static PyObject *Scene_play( BPy_Scene * self, PyObject * args )
 
 static PyObject *Scene_getTimeLine( BPy_Scene *self ) 
 {
-	BPy_TimeLine *tm= NULL;
-
+	if( !(self->scene) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender scene was deleted!" );
+	
+	BPy_TimeLine *tm; 
+	
 	tm= (BPy_TimeLine *) PyObject_NEW (BPy_TimeLine, &TimeLine_Type);
 	if (!tm)
 		return EXPP_ReturnPyObjError (PyExc_MemoryError,
