@@ -128,6 +128,8 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
+CC = 'gcc'
+CXX = 'g++'
 C_WARN = ' -Wall  -Wno-long-double'
 
 CC_WARN = ' -Wall  -Wno-long-double'
