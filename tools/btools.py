@@ -260,6 +260,9 @@ def read_opts(cfg, args):
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
 
+        ('CC', 'C compiler to use', ''),
+        ('CXX', 'C++ compiler to use', ''),
+
         (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true'))
 
     ) # end of opts.AddOptions()
