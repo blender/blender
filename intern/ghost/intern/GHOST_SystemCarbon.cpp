@@ -527,7 +527,8 @@ static char g_firstFileBuf[512];
 
 extern "C" int GHOST_HACK_getFirstFile(char buf[512]) { 
 	if (g_hasFirstFile) {
-		strcpy(buf, g_firstFileBuf);
+		strncpy(buf, g_firstFileBuf, sizeof(buf) - 1);
+		buf[sizeof(buf) - 1] = '\0';
 		return 1;
 	} else {
 		return 0; 
