@@ -2455,7 +2455,6 @@ static int ui_do_but_SLI(uiBut *but)
 
 		}
 	}
-
 	ui_check_but(but);
 	ui_draw_but(but);
 	uibut_do_func(but);
@@ -2819,38 +2818,30 @@ static void update_picker_buts_hsv(uiBlock *block, float *hsv, char *poin)
 	update_picker_hex(block, rgb);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->poin == poin) {
-			if(bt->type==HSVCUBE) {
-				VECCOPY(bt->hsv, hsv);
-				ui_set_but_hsv(bt);
-			}
-			else if(bt->str[1]==' ') {
-				if(bt->str[0]=='R') {
-					ui_set_but_val(bt, r);
-					ui_check_but(bt);
-				}
-				else if(bt->str[0]=='G') {
-					ui_set_but_val(bt, g);
-					ui_check_but(bt);
-				}
-				else if(bt->str[0]=='B') {
-					ui_set_but_val(bt, b);
-					ui_check_but(bt);
-				}
-				else if(bt->str[0]=='H') {
-					ui_set_but_val(bt, hsv[0]);
-					ui_check_but(bt);
-				}
-				else if(bt->str[0]=='S') {
-					ui_set_but_val(bt, hsv[1]);
-					ui_check_but(bt);
-				}
-				else if(bt->str[0]=='V') {
-					ui_set_but_val(bt, hsv[2]);
-					ui_check_but(bt);
-				}
-			}
+		if(bt->type==HSVCUBE) {
+			VECCOPY(bt->hsv, hsv);
+			ui_set_but_hsv(bt);
 		}
+		else if(bt->str[1]==' ') {
+			if(bt->str[0]=='R') {
+				ui_set_but_val(bt, r);
+			}
+			else if(bt->str[0]=='G') {
+				ui_set_but_val(bt, g);
+			}
+			else if(bt->str[0]=='B') {
+				ui_set_but_val(bt, b);
+			}
+			else if(bt->str[0]=='H') {
+				ui_set_but_val(bt, hsv[0]);
+			}
+			else if(bt->str[0]=='S') {
+				ui_set_but_val(bt, hsv[1]);
+			}
+			else if(bt->str[0]=='V') {
+				ui_set_but_val(bt, hsv[2]);
+			}
+		}		
 	}
 }
 
@@ -2875,27 +2866,21 @@ static void update_picker_buts_hex(uiBlock *block, char *hexcol)
 		else if(bt->str[1]==' ') {
 			if(bt->str[0]=='R') {
 				ui_set_but_val(bt, r);
-				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='G') {
 				ui_set_but_val(bt, g);
-				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='B') {
 				ui_set_but_val(bt, b);
-				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='H') {
 				ui_set_but_val(bt, h);
-				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='S') {
 				ui_set_but_val(bt, s);
-				ui_check_but(bt);
 			}
 			else if(bt->str[0]=='V') {
 				ui_set_but_val(bt, v);
-				ui_check_but(bt);
 			}
 		}
 	}
@@ -2926,13 +2911,14 @@ static void do_palette_cb(void *bt1, void *col1)
 	update_picker_hex(but1->block, col);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_check_but(but);
 		ui_draw_but(but);
 	}
 	but= but1->block->buttons.first;
 	ui_block_flush_back(but->block);
 }
 
-/* bt1 is num but, col1 is pointer to original color */
+/* bt1 is num but, hsv1 is pointer to original color in hsv space*/
 /* callback to handle changes in num-buts in picker */
 static void do_palette1_cb(void *bt1, void *hsv1)
 {
@@ -2941,18 +2927,47 @@ static void do_palette1_cb(void *bt1, void *hsv1)
 	float *hsv= (float *)hsv1;
 	float *fp= NULL;
 	
-	if(but1->str[0]=='R') fp= (float *)but1->poin;
-	else if(but1->str[0]=='G') fp= ((float *)but1->poin)-1;
-	else if(but1->str[0]=='B') fp= ((float *)but1->poin)-2;
-	
+	if(but1->str[1]==' ') {
+		if(but1->str[0]=='R') fp= (float *)but1->poin;
+		else if(but1->str[0]=='G') fp= ((float *)but1->poin)-1;
+		else if(but1->str[0]=='B') fp= ((float *)but1->poin)-2;
+	}
 	if(fp) {
 		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
-	}
-
+	} 
 	update_picker_buts_hsv(but1->block, hsv, but1->poin);
-	if (fp) update_picker_hex(but1->block, fp);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_check_but(but);
+		ui_draw_but(but);
+	}
+	
+	but= but1->block->buttons.first;
+	ui_block_flush_back(but->block);
+
+}
+
+/* bt1 is num but, col1 is pointer to original color */
+/* callback to handle changes in num-buts in picker */
+static void do_palette2_cb(void *bt1, void *col1)
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiBut *but;
+	float *rgb= (float *)col1;
+	float *fp= NULL;
+	
+	if(but1->str[1]==' ') {
+		if(but1->str[0]=='H') fp= (float *)but1->poin;
+		else if(but1->str[0]=='S') fp= ((float *)but1->poin)-1;
+		else if(but1->str[0]=='V') fp= ((float *)but1->poin)-2;
+	}
+	if(fp) {
+		hsv_to_rgb(fp[0], fp[1], fp[2], rgb, rgb+1, rgb+2);
+	} 
+	update_picker_buts_hsv(but1->block, fp, but1->poin);
+
+	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_check_but(but);
 		ui_draw_but(but);
 	}
 	
@@ -2970,6 +2985,7 @@ static void do_palette_hex_cb(void *bt1, void *hexcl)
 	update_picker_buts_hex(but1->block, hexcol);	
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_check_but(but);
 		ui_draw_but(but);
 	}
 	
@@ -2985,6 +3001,7 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiBut *bt;
 	float h, offs;
 	int a;
+	
 
 	VECCOPY(old, col);	// old color stored there, for palette_cb to work
 	
@@ -3025,20 +3042,20 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiButSetFunc(bt, do_palette_hex_cb, bt, hexcol);
 
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, retval, "R ",	offs, 110, 140,20, col, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "R ",	offs, 110, 140,20, col, 0.0, 1.0, 10, 3, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, retval, "G ",	offs, 90, 140,20, col+1, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "G ",	offs, 90, 140,20, col+1, 0.0, 1.0, 10, 3, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, retval, "B ",	offs, 70, 140,20, col+2, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "B ",	offs, 70, 140,20, col+2, 0.0, 1.0, 10, 3, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, retval, "H ",	offs, 40, 140,20, hsv, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, retval, "S ",	offs, 20, 140,20, hsv+1, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, retval, "V ",	offs, 0, 140,20, hsv+2, 0.0, 1.0, 10, 2, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
+	bt= uiDefButF(block, NUMSLI, retval, "H ",	offs, 40, 140,20, hsv, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette2_cb, bt, col);
+	bt= uiDefButF(block, NUMSLI, retval, "S ",	offs, 20, 140,20, hsv+1, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette2_cb, bt, col);
+	bt= uiDefButF(block, NUMSLI, retval, "V ",	offs, 0, 140,20, hsv+2, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_palette2_cb, bt, col);
 	uiBlockEndAlign(block);
 }
 
