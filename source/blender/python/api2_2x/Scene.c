@@ -281,12 +281,13 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 //-----------------------setAttr----------------------------------------
 static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
 {
+	PyObject *valtuple;
+	PyObject *error = NULL;
+
 	if( !(self->scene) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 					      "Blender Scene was deleted!" );
 	
-	PyObject *valtuple;
-	PyObject *error = NULL;
 	
 /* We're playing a trick on the Python API users here.	Even if they use
  * Scene.member = val instead of Scene.setMember(val), we end up using the
