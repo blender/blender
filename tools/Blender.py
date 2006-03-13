@@ -129,7 +129,7 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_STATICOPENGL']:
         statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
 
-    if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+    if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross'):
         libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
 
     return statlibs, libincs
@@ -155,7 +155,7 @@ def setup_syslibs(lenv):
     syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
         syslibs += Split(lenv['BF_OPENGL_LIB'])
-    if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+    if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross'):
         syslibs += Split(lenv['BF_PTHREADS_LIB'])
 
     syslibs += Split(lenv['LLIBS'])
@@ -327,7 +327,7 @@ class BlenderEnvironment(SConsEnvironment):
         if not self or not libname or not source:
             print bc.FAIL+'Cannot continue.  Missing argument for BlenderRes '+libname+bc.ENDC
             Exit()
-        if self['OURPLATFORM'] not in ('win32-vc','win32-mingw'):
+        if self['OURPLATFORM'] not in ('win32-vc','win32-mingw','linuxcross'):
             print bc.FAIL+'BlenderRes is for windows only!'+bc.END
             Exit()
         

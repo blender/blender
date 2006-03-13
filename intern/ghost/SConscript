@@ -14,7 +14,7 @@ if window_system == 'linux2':
     for f in pf:
         sources.remove('intern' + os.sep + f + 'Win32.cpp')
         sources.remove('intern' + os.sep + f + 'Carbon.cpp')
-elif window_system in ('win32-vc', 'win32-mingw', 'cygwin'):
+elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross'):
     for f in pf:
         sources.remove('intern' + os.sep + f + 'X11.cpp')
         sources.remove('intern' + os.sep + f + 'Carbon.cpp')

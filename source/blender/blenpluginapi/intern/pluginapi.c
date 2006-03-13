@@ -42,7 +42,7 @@
  */
 
 #ifdef WIN32
-#include "blenpluginapi\util.h"
+#include "blenpluginapi/util.h"
 #else
 #include "blenpluginapi/util.h"
 #endif
