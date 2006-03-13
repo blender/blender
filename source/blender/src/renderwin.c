@@ -56,6 +56,7 @@
 #include <limits.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -124,6 +125,9 @@
 /* space for info text */
 #define RW_HEADERY		18
 
+/* header print for window */
+#define RW_MAXTEXT		512
+
 typedef struct {
 	Window *win;
 
@@ -164,7 +168,8 @@ static RenderWin *renderwin_alloc(Window *win)
 	rw->flags= 0;
 	rw->zoomofs[0]= rw->zoomofs[1]= 0;
 	rw->info_text= NULL;
-	rw->render_text= rw->render_text_spare= NULL;
+	rw->render_text= MEM_callocN(RW_MAXTEXT, "rendertext");
+	rw->render_text_spare= MEM_callocN(RW_MAXTEXT, "rendertext spare");
 
 	rw->lmouse[0]= rw->lmouse[1]= 0;
 	rw->mbut[0]= rw->mbut[1]= rw->mbut[2]= 0;
@@ -754,7 +759,8 @@ static void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int
 	/* copy imgw-imgh to a temporal 32 bits rect */
 	if(img_w<1 || img_h<1) return;
 	
-	rc= rect32= MEM_mallocN(img_w*img_h*sizeof(int), "temp 32 bits");
+	/* happens during threaded render... */
+	rc= rect32= MEM_mallocT(img_w*img_h*sizeof(int), "temp 32 bits");
 	
 	for(y=0; y<img_h; y++) {
 		rf= rectf;
@@ -769,7 +775,7 @@ static void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int
 	
 	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
 		
-	MEM_freeN(rect32);
+	MEM_freeT(rect32);
 }
 
 /* XXX, this is not good, we do this without any regard to state
@@ -869,7 +875,7 @@ static void printrenderinfo_cb(RenderStats *rs)
 	extern char info_time_str[32];	// header_info.c
 	extern unsigned long mem_in_use, mmap_in_use;
 	static float megs_used_memory, mmap_used_memory;
-	char str[300], *spos= str;
+	char *spos= render_win->render_text;
 		
 	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
@@ -891,8 +897,10 @@ static void printrenderinfo_cb(RenderStats *rs)
 		if(rs->infostr)
 			spos+= sprintf(spos, " | %s", rs->infostr);
 		
-		if(render_win->render_text) MEM_freeN(render_win->render_text);
-		render_win->render_text= BLI_strdup(str);
+		/* very weak... but 512 characters is quite safe... we cannot malloc during thread render */
+		if(spos >= render_win->render_text+RW_MAXTEXT)
+			printf("WARNING! renderwin text beyond limit \n");
+		
 #ifdef __APPLE__
 #else
 		glDrawBuffer(GL_FRONT);
@@ -910,6 +918,7 @@ static void printrenderinfo_cb(RenderStats *rs)
 
 	/* temporal render debug printing, needed for testing orange renders atm... will be gone soon (or option) */
 	if(G.rt==7 && rs->convertdone) {
+		char str[256];
 		spos= str;
 		spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM)", G.scene->r.cfra, megs_used_memory, mmap_used_memory);
 		
@@ -1137,9 +1146,7 @@ static void renderwin_store_spare(void)
 		window_set_title(render_win->win, renderwin_get_title(1));
 	}
 	
-	if(render_win->render_text_spare) MEM_freeN(render_win->render_text_spare);
-	render_win->render_text_spare= render_win->render_text;
-	render_win->render_text= NULL;
+	BLI_strncpy(render_win->render_text_spare, render_win->render_text, RW_MAXTEXT);
 	
 	if(render_win->rectspare) MEM_freeN(render_win->rectspare);
 	render_win->rectspare= NULL;

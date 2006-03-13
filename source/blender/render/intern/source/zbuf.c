@@ -1572,8 +1572,12 @@ void set_part_zbuf_clipflag(RenderPart *pa)
 	/* supports up to 4 threads this way */
 	clipclear= ~(15 << 4*(pa->thread & 3));
 	
+	/* extra security to prevent access to same data */
+	BLI_lock_thread(LOCK_CUSTOM1);
+	
 	for(v=0; v<R.totvert; v++) {
-		if((v & 255)==0) ver= RE_findOrAddVert(&R, v);
+		if((v & 255)==0)
+			ver= RE_findOrAddVert(&R, v);
 		else ver++;
 		
 		wco= ver->ho[3];
@@ -1606,6 +1610,8 @@ void set_part_zbuf_clipflag(RenderPart *pa)
 				break;
 		}
 	}
+	
+	BLI_unlock_thread(LOCK_CUSTOM1);
 }
 
 void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)

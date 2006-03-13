@@ -84,6 +84,7 @@ A sample loop can look like this (pseudo c);
 
  ************************************************ */
 static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* just a max for security reasons */
 #define RE_MAX_THREAD	8
@@ -183,14 +184,20 @@ void BLI_end_threads(ListBase *threadbase)
 	
 }
 
-void BLI_lock_thread(void)
+void BLI_lock_thread(int type)
 {
-	pthread_mutex_lock(&_malloc_lock);
+	if(type==LOCK_MALLOC)
+		pthread_mutex_lock(&_malloc_lock);
+	else
+		pthread_mutex_lock(&_custom1_lock);
 }
 
-void BLI_unlock_thread(void)
+void BLI_unlock_thread(int type)
 {
-	pthread_mutex_unlock(&_malloc_lock);
+	if(type==LOCK_MALLOC)
+		pthread_mutex_unlock(&_malloc_lock);
+	else
+		pthread_mutex_unlock(&_custom1_lock);
 }
 
 

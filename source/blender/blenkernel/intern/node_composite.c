@@ -779,9 +779,9 @@ static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
 	if(ima->ok==0) return NULL;
 	
 	if(ima->ibuf==NULL) {
-		BLI_lock_thread();
+		BLI_lock_thread(LOCK_MALLOC);
 		load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
-		BLI_unlock_thread();
+		BLI_unlock_thread(LOCK_MALLOC);
 		if(ima->ibuf==NULL) {
 			ima->ok= 0;
 			return NULL;

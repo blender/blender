@@ -105,9 +105,9 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 	}
 	
 	if(ima->ibuf==NULL) {
-		BLI_lock_thread();
+		BLI_lock_thread(LOCK_MALLOC);
 		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-		BLI_unlock_thread();
+		BLI_unlock_thread(LOCK_MALLOC);
 	}
 
 	if (ima->ok) {
@@ -608,18 +608,18 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 	}
 	
 	if(ima->ibuf==NULL) {
-		BLI_lock_thread();
+		BLI_lock_thread(LOCK_MALLOC);
 		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-		BLI_unlock_thread();
+		BLI_unlock_thread(LOCK_MALLOC);
 	}
 	
 	if (ima->ok) {
 	
 		if(tex->imaflag & TEX_MIPMAP) {
 			if(ima->mipmap[0]==NULL) {
-				BLI_lock_thread();
+				BLI_lock_thread(LOCK_MALLOC);
 				if(ima->mipmap[0]==NULL) makemipmap(tex, ima);
-				BLI_unlock_thread();
+				BLI_unlock_thread(LOCK_MALLOC);
 			}
 		}
 	

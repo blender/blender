@@ -595,10 +595,10 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
 			// Now thread safe
-			BLI_lock_thread();
+			BLI_lock_thread(LOCK_MALLOC);
 			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
 			if(env->ima->ok && env->ok==0) envmap_split_ima(env);
-			BLI_unlock_thread();
+			BLI_unlock_thread(LOCK_MALLOC);
 		}
 	}
 
