@@ -1081,11 +1081,12 @@ static PyObject *Scene_play( BPy_Scene * self, PyObject * args )
 
 static PyObject *Scene_getTimeLine( BPy_Scene *self ) 
 {
+	BPy_TimeLine *tm; 
+
 	if( !(self->scene) )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "Blender scene was deleted!" );
-	
-	BPy_TimeLine *tm; 
+
 	
 	tm= (BPy_TimeLine *) PyObject_NEW (BPy_TimeLine, &TimeLine_Type);
 	if (!tm)
