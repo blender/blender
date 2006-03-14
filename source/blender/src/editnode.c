@@ -1860,7 +1860,16 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case HKEY:
 			node_hide(snode);
 			break;
-			
+		case RKEY:
+		{
+			bNode *node= editnode_get_active(snode->edittree);
+			if(node && node->type==CMP_NODE_R_RESULT) {
+				//RE_ReadRenderResult(G.scene, (Scene *)node->id);
+				//ntreeCompositTagRender(snode->edittree);
+				//snode_handle_recalc(snode);
+			}
+		}
+			break;
 		case DELKEY:
 		case XKEY:
 			if(fromlib) fromlib= -1;

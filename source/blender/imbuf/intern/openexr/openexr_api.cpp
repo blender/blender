@@ -381,7 +381,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *channame
 	}
 	else
 		strncpy(echan->name, channame, 2*CHANMAXNAME);
-	printf("added channel %s\n", echan->name);
+	// printf("added channel %s\n", echan->name);
 	BLI_addtail(&data->channels, echan);
 }
 
@@ -491,7 +491,7 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party)
 	}
 	
 	data->tofile->setFrameBuffer (frameBuffer);
-	printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
+	// printf("write tile %d %d\n", partx/data->tilex, party/data->tiley);
 	data->tofile->writeTile (partx/data->tilex, party/data->tiley);	
 	
 }
@@ -522,6 +522,8 @@ void IMB_exr_read_channels(void *handle)
 		if(echan->rect)
 			frameBuffer.insert (echan->name, Slice (FLOAT,  (char *)echan->rect, 
 												echan->xstride*sizeof(float), echan->ystride*sizeof(float)));
+		else 
+			printf("warning, channel with no rect set %s\n", echan->name);
 	}
 	
 	data->ifile->setFrameBuffer (frameBuffer);

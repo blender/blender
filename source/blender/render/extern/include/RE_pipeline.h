@@ -163,9 +163,7 @@ void RE_TileProcessor(struct Render *re, int firsttile);
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);
 void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
 
-/* render a specific scene, with image size and disprect of Render *re */
-/* currently in use to render Composite Nodes */
-void RE_RenderScene(struct Render *re, struct Scene *sce, int cfra);
+void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 
 /* display and event callbacks */
 void RE_display_init_cb	(struct Render *re, void (*f)(RenderResult *rr));

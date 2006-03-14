@@ -466,13 +466,13 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 
 	add = (ibuf->x - 0.001) / newx;
 
-		rect = (uchar *) ibuf->rect;
-		newrect = _newrect;
-		
-		if (do_float) {
-			rectf = ibuf->rect_float;
-			newrectf = _newrectf;
-		}
+	rect = (uchar *) ibuf->rect;
+	newrect = _newrect;
+	
+	if (do_float) {
+		rectf = ibuf->rect_float;
+		newrectf = _newrectf;
+	}
 		
 	for (y = ibuf->y; y>0 ; y--) {
 		sample = 0.0f;
