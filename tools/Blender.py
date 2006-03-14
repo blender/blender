@@ -350,11 +350,11 @@ class BlenderEnvironment(SConsEnvironment):
             if lenv['WITH_BF_GAMEENGINE']:
                     lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
             if lenv['BF_DEBUG']:
-                    lenv.Append(CCFLAGS = lenv['BF_DEBUG_FLAGS'], CXXFLAGS = lenv['BF_DEBUG_FLAGS'])
+                    lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_FLAGS']), CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
             else:
                     lenv.Append(CCFLAGS = lenv['REL_CFLAGS'], CXXFLAGS = lenv['REL_CCFLAGS'])
             if lenv['BF_PROFILE']:
-                    lenv.Append(CCFLAGS = lenv['BF_PROFILE_FLAGS'], CXXFLAGS = lenv['BF_PROFILE_FLAGS'])
+                    lenv.Append(CCFLAGS = Split(lenv['BF_PROFILE_FLAGS']), CXXFLAGS = Split(lenv['BF_PROFILE_FLAGS']))
             if compileflags:
                 lenv.Append(CCFLAGS = compileflags)
                 lenv.Append(CXXFLAGS = compileflags)
