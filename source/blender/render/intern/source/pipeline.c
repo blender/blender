@@ -35,6 +35,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -102,8 +103,6 @@ static struct ListBase RenderList= {NULL, NULL};
 
 /* hardcopy of current render, used while rendering for speed */
 Render R;
-
-//static SDL_mutex *exrtile_lock= NULL;
 
 /* ********* alloc and free ******** */
 
@@ -273,6 +272,19 @@ static char *get_pass_name(int passtype, int channel)
 		else return "Ray.B";
 	}
 	return "Unknown";
+}
+
+static void render_unique_exr_name(Render *re, char *str)
+{
+	char di[FILE_MAXDIR+FILE_MAXFILE], name[FILE_MAXFILE], fi[FILE_MAXFILE];
+	
+	BLI_strncpy(di, G.sce, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_splitdirstring(di, fi);
+	sprintf(name, "%s_%s.exr", fi, re->scene->id.name+2);
+	BLI_make_file_string("/", str, U.tempdir, name);
+	
+	printf("exr file %s\n", str);
+	
 }
 
 static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
@@ -495,7 +507,7 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 	RenderPass *rpassp;
 	int offs, partx, party;
 	
-//	if(exrtile_lock) SDL_mutexP(exrtile_lock);
+	BLI_lock_thread(LOCK_CUSTOM1);
 	
 	for(rlp= rrpart->layers.first; rlp; rlp= rlp->next) {
 		
@@ -529,7 +541,7 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 
 	IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
 
-//	if(exrtile_lock) SDL_mutexV(exrtile_lock);
+	BLI_unlock_thread(LOCK_CUSTOM1);
 
 }
 
@@ -539,11 +551,17 @@ static void read_render_result(Render *re)
 	RenderPass *rpass;
 	void *exrhandle= IMB_exr_get_handle();
 	int rectx, recty;
+	char str[FILE_MAXDIR+FILE_MAXFILE];
 	
 	free_render_result(re->result);
 	re->result= new_render_result(re, &re->disprect, 0);
 
-	IMB_exr_begin_read(exrhandle, "/tmp/render.exr", &rectx, &recty);
+	render_unique_exr_name(re, str);
+	if(IMB_exr_begin_read(exrhandle, str, &rectx, &recty)==0) {
+		printf("cannot read render result\n");
+		return;
+	}
+	
 	if(rectx!=re->result->rectx || recty!=re->result->recty) {
 		printf("error in reading render result\n");
 	}
@@ -567,9 +585,7 @@ static void read_render_result(Render *re)
 			}
 			
 		}
-		printf("before read\n");
 		IMB_exr_read_channels(exrhandle);
-		printf("after read\n");
 	}
 	
 	IMB_exr_close(exrhandle);
@@ -1059,15 +1075,17 @@ static void threaded_tile_processor(Render *re)
 	if(re->test_break())
 		return;
 	
+	initparts(re);
+	
 	if(rr->exrhandle) {
-		IMB_exrtile_begin_write(rr->exrhandle, "/tmp/render.exr", rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
-//		exrtile_lock = SDL_CreateMutex();
+		char str[FILE_MAXDIR+FILE_MAXFILE];
+		render_unique_exr_name(re, str);
+		IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
 	}
 	
 	if(re->r.mode & R_THREADS) maxthreads= 2;
 	else maxthreads= 1;
 	
-	initparts(re);
 	BLI_init_threads(&threads, do_part_thread, maxthreads);
 	
 	/* assuming no new data gets added to dbase... */
@@ -1142,8 +1160,8 @@ static void threaded_tile_processor(Render *re)
 	}
 	
 	if(rr->exrhandle) {
-//		if(exrtile_lock) SDL_DestroyMutex(exrtile_lock); 
 		IMB_exr_close(rr->exrhandle);
+		rr->exrhandle= NULL;
 		read_render_result(re);
 	}
 	
@@ -1200,14 +1218,18 @@ static void do_render_fields(Render *re)
 /* within context of current Render *re, render another scene.
    it uses current render image size and disprect, but doesn't execute composite
 */
-void RE_RenderScene(Render *re, Scene *sce, int cfra)
+static void render_scene(Render *re, Scene *sce, int cfra)
 {
 	Render *resc= RE_NewRender(sce->id.name);
 	
 	sce->r.cfra= cfra;
 	
+	if(G.rt)
+		resc->flag |= R_FILEBUFFER;
+	
 	/* makes render result etc */
 	RE_InitState(resc, &sce->r, re->winx, re->winy, &re->disprect);
+	resc->flag &= ~R_FILEBUFFER;
 	
 	/* this to enable this scene to create speed vectors */
 	resc->r.scemode |= R_DOCOMP;
@@ -1261,7 +1283,7 @@ static void ntree_render_scenes(Render *re)
 		if(node->type==CMP_NODE_R_RESULT) {
 			if(node->id && node->id != (ID *)re->scene) {
 				if(node->id->flag & LIB_DOIT) {
-					RE_RenderScene(re, (Scene *)node->id, cfra);
+					render_scene(re, (Scene *)node->id, cfra);
 					node->id->flag &= ~LIB_DOIT;
 				}
 			}
@@ -1442,7 +1464,15 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 		disprect.ymax= winy;
 	}
 	
-/*	if(G.rt) re->flag |= R_FILEBUFFER; */
+	if(G.rt) {
+		int partx= winx/scene->r.xparts, party= winy/scene->r.yparts;
+		/* stupid exr tiles dont like different sizes */
+		if(winx != partx*scene->r.xparts || winy != party*scene->r.xparts) {
+			re->error("Sorry... exr tile saving only allowed with equally sized parts");
+			return 0;
+		}
+		re->flag |= R_FILEBUFFER;
+	}
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
@@ -1587,6 +1617,42 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		mh->end_movie();
 
 	scene->r.cfra= cfrao;
+}
+
+/* note; repeated win/disprect calc... solve that nicer, also in compo */
+
+void RE_ReadRenderResult(Scene *scene, Scene *scenode)
+{
+	Render *re;
+	int winx, winy;
+	rcti disprect;
+	
+	/* calculate actual render result and display size */
+	winx= (scene->r.size*scene->r.xsch)/100;
+	winy= (scene->r.size*scene->r.ysch)/100;
+	
+	/* only in movie case we render smaller part */
+	if(scene->r.mode & R_BORDER) {
+		disprect.xmin= scene->r.border.xmin*winx;
+		disprect.xmax= scene->r.border.xmax*winx;
+		
+		disprect.ymin= scene->r.border.ymin*winy;
+		disprect.ymax= scene->r.border.ymax*winy;
+	}
+	else {
+		disprect.xmin= disprect.ymin= 0;
+		disprect.xmax= winx;
+		disprect.ymax= winy;
+	}
+	
+	if(scenode)
+		scene= scenode;
+	
+	re= RE_NewRender(scene->id.name);
+	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	re->scene= scene;
+	
+	read_render_result(re);
 }
 
 
