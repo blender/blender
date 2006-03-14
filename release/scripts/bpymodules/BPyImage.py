@@ -40,7 +40,11 @@ def stripFile(path):
 	lastSlash = max(path.rfind('\\'), path.rfind('/'))
 	if lastSlash != -1:
 		path = path[:lastSlash]
-	return '%s%s' % (path, sys.sep)
+		newpath= '%s%s' % (path, sys.sep)
+	else:
+		newpath= path
+	# print 'stripping paths:', path, 'to', newpath
+	return newpath
 
 #==============================================#
 # Strips the slashes from the back of a string #
@@ -73,7 +77,8 @@ def addSlash(path):
 	return path + sys.sep
 
 def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
-	
+	if VERBOSE:
+		print 'img:', imagePath, 'file:', filePath
 	# When we have the file load it with this. try/except niceness.
 	def imageLoad(path):
 		try:
@@ -81,7 +86,11 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 			if VERBOSE: print '\t\tImage loaded "%s"' % path
 			return img
 		except:
-			if VERBOSE: print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
+			raise "Helloo"
+			if sys.exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
+			img= Blender.Image.New(stripPath(path),1,1,24)
+			img.name= path.split('/')[-1].split('\\')[-1][0:21]
+			img.filename= path
 			return Blender.Image.New(stripPath(path),1,1,24) #blank image
 	
 	# Image formats blender can read
@@ -117,8 +126,8 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 	# Attempt to load from obj path.
 	tmpPath = stripFile(filePath) + stripFile(imageFilePath)
 	if sys.exists(tmpPath):
-		if VERBOSE: print '\t\tFile found in obj dir.'
-		return imageLoad(imagePath)
+		if VERBOSE: print '\t\tFile found in path "%s".' % tmpPath
+		return imageLoad(tmpPath)
 	
 	
 	# os needed if we go any further.
@@ -135,13 +144,17 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
 		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
-		
+	else:
+		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
+	
 	tmpPath = imageFilePath
 	if sys.exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
 		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
+	else:
+		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 
 	tmpPath = stripFile(filePath)
 	if sys.exists(tmpPath):
@@ -149,13 +162,17 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
 		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
-	
+	else:
+		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
+
 	tmpPath = addSlash(Blender.Get('texturesdir'))
 	if tmpPath and sys.exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
 		paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
+	else:
+		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 	
 	# Add path if relative image patrh was given.
 	for k in paths.iterkeys():
@@ -164,9 +181,11 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 			paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 			paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
 			paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
+		else:
+			if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 	# DONE
 	
-	
+	print 'PATHs', paths
 	# 
 	for path, files in paths.iteritems():
 		
@@ -179,6 +198,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 		filesLowerNoExt = files[2]
 		
 		# We are going to try in index the file directly, if its not there just keep on
+		
 		index = None
 		try:
 			# Is it just a case mismatch?
