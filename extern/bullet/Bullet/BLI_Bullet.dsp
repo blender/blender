@@ -159,6 +159,14 @@ SOURCE=.\NarrowPhaseCollision\BU_VertexPoly.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\NarrowPhaseCollision\CollisionObject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\NarrowPhaseCollision\CollisionObject.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\NarrowPhaseCollision\ContinuousConvexCollision.cpp
 # End Source File
 # Begin Source File
@@ -280,6 +288,14 @@ SOURCE=.\BroadphaseCollision\CollisionAlgorithm.cpp
 # Begin Source File
 
 SOURCE=.\BroadphaseCollision\CollisionAlgorithm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\BroadphaseCollision\Dispatcher.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BroadphaseCollision\Dispatcher.h
 # End Source File
 # Begin Source File
 
@@ -460,6 +476,66 @@ SOURCE=.\CollisionShapes\TriangleMeshShape.h
 # Begin Source File
 
 SOURCE=.\CollisionShapes\TriangleShape.h
+# End Source File
+# End Group
+# Begin Group "CollisionDispatch"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\CollisionDispatcher.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\CollisionDispatcher.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\CollisionWorld.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\CollisionWorld.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\ConvexConcaveCollisionAlgorithm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\ConvexConcaveCollisionAlgorithm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\ConvexConvexAlgorithm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\ConvexConvexAlgorithm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\EmptyCollisionAlgorithm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\EmptyCollisionAlgorithm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\ManifoldResult.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\ManifoldResult.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\UnionFind.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\UnionFind.h
 # End Source File
 # End Group
 # End Target
