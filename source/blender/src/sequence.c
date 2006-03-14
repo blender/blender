@@ -742,16 +742,12 @@ static void do_build_seq_depend(Sequence * seq, int cfra)
 	if(se && !se->isneeded) {
 		se->isneeded = 1;
 		if(seq->seqbase.first) {
-			Sequence * seqmshown 
-				= get_shown_seq_from_metastrip(seq, cfra);
+			Sequence * seqmshown= get_shown_seq_from_metastrip(seq, cfra);
 			if (seqmshown) {
 				if(cfra< seq->start) 
-					do_build_seq_depend(
-						seqmshown, seq->start);
+					do_build_seq_depend(seqmshown, seq->start);
 				else if(cfra> seq->start+seq->len-1) 
-					do_build_seq_depend(
-						seqmshown, seq->start
-						+ seq->len-1);
+					do_build_seq_depend(seqmshown, seq->start + seq->len-1);
 				else do_build_seq_depend(seqmshown, cfra);
 			}
 		}
@@ -777,17 +773,14 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				se->ibuf= se->se1->ibuf;
 			}
 		}
-		else if(seq->type == SEQ_RAM_SOUND
-			|| seq->type == SEQ_HD_SOUND) {
+		else if(seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
 			se->ok= 2;
 		}
 		else if(seq->type & SEQ_EFFECT) {
 			
 			/* test if image is too small or discarded from cache: reload */
 			if(se->ibuf) {
-				if(se->ibuf->x < seqrectx 
-				   || se->ibuf->y < seqrecty 
-				   || !se->ibuf->rect) {
+				if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !se->ibuf->rect) {
 					IMB_freeImBuf(se->ibuf);
 					se->ibuf= 0;
 				}
@@ -804,28 +797,18 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				se->se3= seq->seq3->curelem;
 				
 				if(se->ibuf==0) {
-					se->ibuf= IMB_allocImBuf(
-						(short)seqrectx, 
-						(short)seqrecty, 
-						32, IB_rect, 0);
+					se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
 				}
 				do_effect(cfra, seq, se);
 			}
 			
 			/* test size */
 			if(se->ibuf) {
-				if(se->ibuf->x != seqrectx 
-				   || se->ibuf->y != seqrecty ) {
+				if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
 					if(G.scene->r.mode & R_OSA) {
-						IMB_scaleImBuf(
-							se->ibuf, 
-							(short)seqrectx, 
-							(short)seqrecty);
+						IMB_scaleImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
 					} else {
-						IMB_scalefastImBuf(
-							se->ibuf, 
-							(short)seqrectx, 
-							(short)seqrecty);
+						IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
 					}
 				}
 			}
@@ -834,9 +817,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 			if(se->ibuf) {
 				/* test if image too small 
 				   or discarded from cache: reload */
-				if(se->ibuf->x < seqrectx 
-				   || se->ibuf->y < seqrecty 
-				   || !se->ibuf->rect) {
+				if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !se->ibuf->rect) {
 					IMB_freeImBuf(se->ibuf);
 					se->ibuf= 0;
 					se->ok= 1;
@@ -850,14 +831,10 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 					if((G.f & G_PLAYANIM)==0) 
 						waitcursor(1);
 					
-					strncpy(name, seq->strip->dir, 
-						FILE_MAXDIR-1);
+					strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
 					strncat(name, se->name, FILE_MAXFILE);
-					BLI_convertstringcode(name, 
-							      G.sce, 
-							      G.scene->r.cfra);
-					se->ibuf= IMB_loadiffname(name,
-								  IB_rect);
+					BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+					se->ibuf= IMB_loadiffname(name, IB_rect);
 					
 					if((G.f & G_PLAYANIM)==0) 
 						waitcursor(0);
@@ -885,9 +862,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 						seq->anim = openanim(name, IB_rect);
 					}
 					if(seq->anim) {
-						IMB_anim_set_preseek(
-							seq->anim,
-							seq->anim_preseek);
+						IMB_anim_set_preseek(seq->anim, seq->anim_preseek);
 						se->ibuf = IMB_anim_absolute(seq->anim, se->nr);
 					}
 					
@@ -980,7 +955,8 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 					
 					if (0) { // G.scene->r.mode & R_FIELDS) {
 						
-						if (seqrecty > 288) IMB_scalefieldImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
+						if (seqrecty > 288) 
+							IMB_scalefieldImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
 						else {
 							IMB_de_interlace(se->ibuf);
 							
@@ -1021,10 +997,8 @@ static void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 		/* set at zero because free_imbuf_seq... */
 		seq->curelem= 0;
 
-		if ((seq->type == SEQ_RAM_SOUND
-		     || seq->type == SEQ_HD_SOUND) && (seq->ipo)
-		    && (seq->startdisp <= cfra+2) 
-		    && (seq->enddisp > cfra)) {
+		if ((seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) && (seq->ipo)
+		    && (seq->startdisp <= cfra+2) && (seq->enddisp > cfra)) {
 			do_seq_ipo(seq);
 		}
 
@@ -1054,22 +1028,17 @@ static void do_build_seq_ibufs(ListBase *seqbase, int cfra)
 		/* set at zero because free_imbuf_seq... */
 		seq->curelem= 0;
 
-		if ((seq->type == SEQ_RAM_SOUND
-		     || seq->type == SEQ_HD_SOUND) && (seq->ipo)
-		    && (seq->startdisp <= cfra+2) 
-		    && (seq->enddisp > cfra)) {
+		if ((seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) && (seq->ipo)
+		    && (seq->startdisp <= cfra+2)  && (seq->enddisp > cfra)) {
 			do_seq_ipo(seq);
 		}
 
 		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
 			if(seq->seqbase.first) {
 				if(cfra< seq->start) 
-					do_build_seq_ibufs(&seq->seqbase, 
-							   seq->start);
+					do_build_seq_ibufs(&seq->seqbase, seq->start);
 				else if(cfra> seq->start+seq->len-1) 
-					do_build_seq_ibufs(&seq->seqbase, 
-							   seq->start
-							   + seq->len-1);
+					do_build_seq_ibufs(&seq->seqbase, seq->start + seq->len-1);
 				else do_build_seq_ibufs(&seq->seqbase, cfra);
 			}
 
@@ -1117,8 +1086,7 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 
 		se= seq->curelem;
 		if((seq->type != SEQ_RAM_SOUND && seq->type != SEQ_HD_SOUND) 
-		   && (se) && 
-		   (chanshown == 0 || seq->machine == chanshown)) {
+			&& (se) && (chanshown == 0 || seq->machine == chanshown)) {
 			if(seq->type==SEQ_META) {
 
 				/* bottom strip! */
