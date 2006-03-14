@@ -429,18 +429,20 @@ int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	
-	data->ifile = new InputFile(filename);
-	if(data->ifile) {
-		Box2i dw = data->ifile->header().dataWindow();
-		data->width= *width  = dw.max.x - dw.min.x + 1;
-		data->height= *height = dw.max.y - dw.min.y + 1;
-		
-		const ChannelList &channels = data->ifile->header().channels();
-		
-		for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
-			IMB_exr_add_channel(data, NULL, i.name());
-		
-		return 1;
+	if(BLI_exists(filename)) {
+		data->ifile = new InputFile(filename);
+		if(data->ifile) {
+			Box2i dw = data->ifile->header().dataWindow();
+			data->width= *width  = dw.max.x - dw.min.x + 1;
+			data->height= *height = dw.max.y - dw.min.y + 1;
+			
+			const ChannelList &channels = data->ifile->header().channels();
+			
+			for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
+				IMB_exr_add_channel(data, NULL, i.name());
+			
+			return 1;
+		}
 	}
 	return 0;
 }

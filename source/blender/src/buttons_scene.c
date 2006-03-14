@@ -1249,6 +1249,8 @@ static void render_panel_output(void)
 			uiDefButBitS(block, TOG, 1<<(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
 	uiBlockEndAlign(block);
 
+	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_NOP, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save the tiles for all RenderLayers and used SceneNodes to files, to save memory");
+	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
 	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
@@ -1264,7 +1266,7 @@ static void render_panel_output(void)
 	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display edge settings");
 	uiBlockEndAlign(block);
-
+	
 	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 170, 68, 140, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
 }
 

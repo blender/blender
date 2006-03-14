@@ -1864,9 +1864,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		{
 			bNode *node= editnode_get_active(snode->edittree);
 			if(node && node->type==CMP_NODE_R_RESULT) {
-				//RE_ReadRenderResult(G.scene, (Scene *)node->id);
-				//ntreeCompositTagRender(snode->edittree);
-				//snode_handle_recalc(snode);
+				RE_ReadRenderResult(G.scene, (Scene *)node->id);
+				ntreeCompositTagRender(snode->edittree);
+				snode_handle_recalc(snode);
 			}
 		}
 			break;
