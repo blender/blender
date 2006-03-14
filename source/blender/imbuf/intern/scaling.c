@@ -444,13 +444,14 @@ struct ImBuf *IMB_halflace(struct ImBuf *ibuf1)
 
 static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 {
-	uchar *rect,*_newrect,*newrect;
-	float *rectf,*_newrectf,*newrectf;
-	float sample, add, val, nval, valf, nvalf;
-	int x, y, i, do_float=0;
+	uchar *rect, *_newrect, *newrect;
+	float *rectf, *_newrectf, *newrectf;
+	float sample, add, val[4], nval[4], valf[4], nvalf[4];
+	int x, y, do_float=0;
 
 	rectf = NULL; _newrectf= NULL; newrectf = NULL; 
-	nval = 0; nvalf = 0;
+	nval[0]=  nval[1]= nval[2]= nval[3]= 0.0f;
+	nvalf[0]=nvalf[1]=nvalf[2]=nvalf[3]= 0.0f;
 	
 	if (ibuf==NULL) return(0);
 	if (ibuf->rect==NULL) return(ibuf);
@@ -465,48 +466,76 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 
 	add = (ibuf->x - 0.001) / newx;
 
-	/* all four components, rgba/abgr */
-	for(i=3 ; i >= 0 ; i--){
 		rect = (uchar *) ibuf->rect;
-		rect += i;
-		newrect = _newrect + i;
+		newrect = _newrect;
+		
 		if (do_float) {
 			rectf = ibuf->rect_float;
-			rectf += i;
-			newrectf = _newrectf + i;
+			newrectf = _newrectf;
 		}
+		
+	for (y = ibuf->y; y>0 ; y--) {
+		sample = 0.0f;
+		val[0]=  val[1]= val[2]= val[3]= 0.0f;
+		valf[0]=valf[1]=valf[2]=valf[3]= 0.0f;
 
-		for (y = ibuf->y; y>0 ; y--){
-			val = sample = valf = 0.0;
-
-			for (x = newx ; x>0 ; x--){
-				nval = - val * sample;
-				if (do_float) nvalf = - valf * sample;
-				sample += add;
-
-				while (sample >= 1.0){
-					sample -= 1.0;
-					nval += *rect;
-					rect += 4;
-					if (do_float) {
-						nvalf += *rectf;
-						rectf += 4;
-					}
-				}
-				val = *rect;
-				rect += 4;
-				nval += sample * val;
-				if (do_float) {
-					valf = *rectf;
-					rectf += 4;
-					nvalf += sample * valf;
-					*newrectf = (nvalf/add) + 0.5;
-					newrectf += 4;
-				}
-				sample -= 1.0;
-				*newrect = (nval/add) + 0.5;
-				newrect += 4;
+		for (x = newx ; x>0 ; x--) {
+			nval[0] = - val[0] * sample;
+			nval[1] = - val[1] * sample;
+			nval[2] = - val[2] * sample;
+			nval[3] = - val[3] * sample;
+			
+			if (do_float) {
+				nvalf[0] = - valf[0] * sample;
+				nvalf[1] = - valf[1] * sample;
+				nvalf[2] = - valf[2] * sample;
+				nvalf[3] = - valf[3] * sample;
 			}
+			
+			sample += add;
+
+			while (sample >= 1.0f){
+				sample -= 1.0f;
+				
+				nval[0] += rect[0];
+				nval[1] += rect[1];
+				nval[2] += rect[2];
+				nval[3] += rect[3];
+				rect += 4;
+				
+				if (do_float) {
+					nvalf[0] += rectf[0];
+					nvalf[1] += rectf[1];
+					nvalf[2] += rectf[2];
+					nvalf[3] += rectf[3];
+					rectf += 4;
+				}
+			}
+			
+			val[0]= rect[0];val[1]= rect[1];val[2]= rect[2];val[3]= rect[3];
+			rect += 4;
+			
+			newrect[0] = ((nval[0] + sample * val[0])/add + 0.5f);
+			newrect[1] = ((nval[1] + sample * val[1])/add + 0.5f);
+			newrect[2] = ((nval[2] + sample * val[2])/add + 0.5f);
+			newrect[3] = ((nval[3] + sample * val[3])/add + 0.5f);
+			
+			newrect += 4;
+			
+			if (do_float) {
+				
+				valf[0]= rectf[0];valf[1]= rectf[1];valf[2]= rectf[2];valf[3]= rectf[3];
+				rectf += 4;
+				
+				newrectf[0] = ((nvalf[0] + sample * valf[0])/add);
+				newrectf[1] = ((nvalf[1] + sample * valf[1])/add);
+				newrectf[2] = ((nvalf[2] + sample * valf[2])/add);
+				newrectf[3] = ((nvalf[3] + sample * valf[3])/add);
+				
+				newrectf += 4;
+			}
+			
+			sample -= 1.0f;
 		}
 	}
 
@@ -529,11 +558,12 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 {
 	uchar *rect, *_newrect, *newrect;
 	float *rectf, *_newrectf, *newrectf;
-	float sample, add, val, nval, valf, nvalf;
-	int x, y, i, skipx, do_float = 0;
+	float sample, add, val[4], nval[4], valf[4], nvalf[4];
+	int x, y, skipx, do_float = 0;
 
 	rectf= NULL; _newrectf = NULL; newrectf = NULL; 
-	nval = 0; nvalf = 0;
+	nval[0]=  nval[1]= nval[2]= nval[3]= 0.0f;
+	nvalf[0]=nvalf[1]=nvalf[2]=nvalf[3]= 0.0f;
 
 	if (ibuf==NULL) return(0);
 	if (ibuf->rect==NULL) return(ibuf);
@@ -550,47 +580,77 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 	add = (ibuf->y - 0.001) / newy;
 	skipx = 4 * ibuf->x;
 
-	/* all four components, rgba/abgr */
-	for(i=3 ; i>=0 ; i--){
-		for (x = skipx - 4; x>=0 ; x-= 4){
-			rect = ((uchar *) ibuf->rect) + i + x;
-			newrect = _newrect + i + x;
-			if (do_float) {
-				rectf = ((float *) ibuf->rect_float) + i + x;
-				newrectf = _newrectf + i + x;
-			}
-			val = sample = 0.0;
-
-			for (y = newy ; y>0 ; y--){
-				nval = - val * sample;
-				if (do_float) nvalf = - val * sample;
-				sample += add;
-
-				while (sample >= 1.0){
-					sample -= 1.0;
-					nval += *rect;
-					rect += skipx;
-					if (do_float) {
-						nvalf += *rectf;
-						rectf += skipx;
-					}
-				}
-				val = *rect;
-				rect += skipx;
-				nval += sample * val;
-				*newrect = (nval/add) + 0.5;
-				newrect += skipx;
-				if (do_float) {
-					valf = *rectf;
-					rectf += skipx;
-					nvalf += sample * valf;
-					*newrectf = (nvalf/add) + 0.5;
-					newrectf += skipx;
-				}
-				sample -= 1.0;
-			}
+	for (x = skipx - 4; x>=0 ; x-= 4) {
+		
+		rect = ((uchar *) ibuf->rect) + x;
+		newrect = _newrect + x;
+		if (do_float) {
+			rectf = ibuf->rect_float + x;
+			newrectf = _newrectf + x;
 		}
-	}
+		
+		sample = 0.0f;
+		val[0]=  val[1]= val[2]= val[3]= 0.0f;
+		valf[0]=valf[1]=valf[2]=valf[3]= 0.0f;
+
+		for (y = newy ; y>0 ; y--) {
+			nval[0] = - val[0] * sample;
+			nval[1] = - val[1] * sample;
+			nval[2] = - val[2] * sample;
+			nval[3] = - val[3] * sample;
+			
+			if (do_float) {
+				nvalf[0] = - valf[0] * sample;
+				nvalf[1] = - valf[1] * sample;
+				nvalf[2] = - valf[2] * sample;
+				nvalf[3] = - valf[3] * sample;
+			}
+			
+			sample += add;
+
+			while (sample >= 1.0) {
+				sample -= 1.0;
+				
+				nval[0] += rect[0];
+				nval[1] += rect[1];
+				nval[2] += rect[2];
+				nval[3] += rect[3];
+				rect += skipx;
+				
+				if (do_float) {
+					nvalf[0] += rectf[0];
+					nvalf[1] += rectf[1];
+					nvalf[2] += rectf[2];
+					nvalf[3] += rectf[3];
+					rectf += skipx;
+				}
+			}
+			val[0]= rect[0];val[1]= rect[1];val[2]= rect[2];val[3]= rect[3];
+			rect += skipx;
+			
+			newrect[0] = ((nval[0] + sample * val[0])/add + 0.5f);
+			newrect[1] = ((nval[1] + sample * val[1])/add + 0.5f);
+			newrect[2] = ((nval[2] + sample * val[2])/add + 0.5f);
+			newrect[3] = ((nval[3] + sample * val[3])/add + 0.5f);
+			
+			newrect += skipx;
+			
+			if (do_float) {
+				
+				valf[0]= rectf[0];valf[1]= rectf[1];valf[2]= rectf[2];valf[3]= rectf[3];
+				rectf += skipx;
+				
+				newrectf[0] = ((nvalf[0] + sample * valf[0])/add);
+				newrectf[1] = ((nvalf[1] + sample * valf[1])/add);
+				newrectf[2] = ((nvalf[2] + sample * valf[2])/add);
+				newrectf[3] = ((nvalf[3] + sample * valf[3])/add);
+				
+				newrectf += skipx;
+			}
+			
+			sample -= 1.0;
+		}
+	}	
 
 	imb_freerectImBuf(ibuf);
 	ibuf->mall |= IB_rect;
