@@ -77,6 +77,7 @@ import Blender
 from Blender import Mesh, Scene, Object, Material, Image, Texture, Lamp, Mathutils
 from Blender.Mathutils import Vector
 import BPyImage
+reload( BPyImage )
 
 import struct
 from struct import calcsize, unpack
@@ -271,7 +272,7 @@ def add_texture_to_material(image, texture, material, mapto):
 		if index>10:
 			print '/tError: Cannot add diffuse map.  Too many textures'
 
-def process_next_chunk(file, filename, previous_chunk, scn):
+def process_next_chunk(file, previous_chunk, scn):
 	#print previous_chunk.bytes_read, 'BYTES READ'
 	contextObName= None
 	contextLamp= [None, None] # object, Data
@@ -393,7 +394,7 @@ def process_next_chunk(file, filename, previous_chunk, scn):
 		elif (new_chunk.ID==OBJECTINFO):
 			#print 'elif (new_chunk.ID==OBJECTINFO):'
 			# print 'found an OBJECTINFO chunk'
-			process_next_chunk(file, filename, new_chunk, scn)
+			process_next_chunk(file, new_chunk, scn)
 			
 			#keep track of how much we read in the main chunk
 			new_chunk.bytes_read+=temp_chunk.bytes_read
@@ -722,7 +723,7 @@ def process_next_chunk(file, filename, previous_chunk, scn):
 		putContextMesh(contextMesh, contextMeshMaterials)
 
 def load_3ds(filename):
-	print '\n\nImporting "%s"' % filename
+	print '\n\nImporting "%s" "%s"' % (filename, Blender.sys.expandpath(filename))
 	
 	scn= Scene.GetCurrent()
 	for ob in scn.getChildren():
@@ -743,7 +744,7 @@ def load_3ds(filename):
 		file.close()
 		return
 
-	process_next_chunk(file, filename, current_chunk, scn)
+	process_next_chunk(file, current_chunk, scn)
 	
 	# Select all new objects.
 	print 'finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1))
