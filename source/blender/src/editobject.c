@@ -2693,7 +2693,7 @@ void copy_attr_menu()
 	}	
 	
 	if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
-	if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19");
+	if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
 	
 	if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
 			strcat(str, "|Curve Resolution%x25");
@@ -2954,7 +2954,7 @@ void copy_attr(short event)
 				else if(event==26) {
 					copy_nlastrips(&base->object->nlastrips, &ob->nlastrips);
 				}
-				else if(event==27) {
+				else if(event==27) {	/* autosmooth */
 					if (base->object->type==OB_MESH) {
 						Mesh *me= ob->data;
 						Mesh *cme= base->object->data;
@@ -2964,6 +2964,17 @@ void copy_attr(short event)
 						else
 							cme->flag &= ~ME_AUTOSMOOTH;
 					}
+				}
+				else if(event==28) { /* UV orco */
+					if ELEM(base->object->type, OB_CURVE, OB_SURF) {
+						cu= ob->data;
+						cu1= base->object->data;
+						
+						if(cu->flag & CU_UV_ORCO)
+							cu1->flag |= CU_UV_ORCO;
+						else
+							cu1->flag &= ~CU_UV_ORCO;
+					}		
 				}
 			}
 		}
