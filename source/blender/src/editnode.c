@@ -510,8 +510,15 @@ static void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 static void node_ungroup(SpaceNode *snode)
 {
 	bNode *gnode;
+
+	/* are we inside of a group? */
+	gnode= snode_get_editgroup(snode);
+	if(gnode)
+		snode_make_group_editable(snode, NULL);
 	
 	gnode= nodeGetActive(snode->edittree);
+	if(gnode==NULL) return;
+	
 	if(gnode->type!=NODE_GROUP)
 		error("Not a group");
 	else {
