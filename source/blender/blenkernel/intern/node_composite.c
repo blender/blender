@@ -925,45 +925,46 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 		
 	if(rr) {
 		SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
-		RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
-
-		if(rl) {
-			CompBuf *stackbuf;
-			
-			/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
-			if(rd->scemode & R_COMP_CROP)
-				stackbuf= get_cropped_compbuf(&rd->disprect, rl->rectf, rr->rectx, rr->recty, CB_RGBA);
-			else {
-				stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
-				stackbuf->rect= rl->rectf;
+		if(srl) {
+			RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
+			if(rl) {
+				CompBuf *stackbuf;
+				
+				/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
+				if(rd->scemode & R_COMP_CROP)
+					stackbuf= get_cropped_compbuf(&rd->disprect, rl->rectf, rr->rectx, rr->recty, CB_RGBA);
+				else {
+					stackbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 0);
+					stackbuf->rect= rl->rectf;
+				}
+				
+				/* put on stack */	
+				out[RRES_OUT_IMAGE]->data= stackbuf;
+				
+				if(out[RRES_OUT_ALPHA]->hasoutput)
+					out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+				if(out[RRES_OUT_Z]->hasoutput)
+					out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_Z);
+				if(out[RRES_OUT_VEC]->hasoutput)
+					out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
+				if(out[RRES_OUT_NOR]->hasoutput)
+					out[RRES_OUT_NOR]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
+	/*			
+				if(out[RRES_OUT_COL]->hasoutput)
+					out[RRES_OUT_COL]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
+				if(out[RRES_OUT_DIFF]->hasoutput)
+					out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_DIFFUSE);
+				if(out[RRES_OUT_SPEC]->hasoutput)
+					out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SPEC);
+				if(out[RRES_OUT_SHAD]->hasoutput)
+					out[RRES_OUT_SHAD]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
+				if(out[RRES_OUT_AO]->hasoutput)
+					out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_AO);
+				if(out[RRES_OUT_RAY]->hasoutput)
+					out[RRES_OUT_RAY]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RAY);
+	*/			
+				generate_preview(node, stackbuf);
 			}
-			
-			/* put on stack */	
-			out[RRES_OUT_IMAGE]->data= stackbuf;
-			
-			if(out[RRES_OUT_ALPHA]->hasoutput)
-				out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
-			if(out[RRES_OUT_Z]->hasoutput)
-				out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_Z);
-			if(out[RRES_OUT_VEC]->hasoutput)
-				out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
-			if(out[RRES_OUT_NOR]->hasoutput)
-				out[RRES_OUT_NOR]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
-/*			
-			if(out[RRES_OUT_COL]->hasoutput)
-				out[RRES_OUT_COL]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
-			if(out[RRES_OUT_DIFF]->hasoutput)
-				out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_DIFFUSE);
-			if(out[RRES_OUT_SPEC]->hasoutput)
-				out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SPEC);
-			if(out[RRES_OUT_SHAD]->hasoutput)
-				out[RRES_OUT_SHAD]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
-			if(out[RRES_OUT_AO]->hasoutput)
-				out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_AO);
-			if(out[RRES_OUT_RAY]->hasoutput)
-				out[RRES_OUT_RAY]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RAY);
-*/			
-			generate_preview(node, stackbuf);
 		}
 	}	
 }
