@@ -2015,6 +2015,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 						shi->dyuv[1]=  shi->dyco[2]*t00- shi->dyco[1]*t01;
 					}
 				}
+				/* u and v are in range -1 to 0, we allow a little bit extra but not too much, screws up speedvectors */
+				CLAMP(u, -2.0f, 1.0f);
+				CLAMP(v, -2.0f, 1.0f);
 			}
 		}	
 	}
