@@ -281,7 +281,10 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 		mmap_in_use += len;
 		return (++memh);
 	}
-	print_error("Mapalloc returns nill: len=%d in %s, total %u\n",len, str, mmap_in_use);
+	else {
+		print_error("Mapalloc returns nill, fallback to regular malloc: len=%d in %s, total %u\n",len, str, mmap_in_use);
+		return MEM_callocN(len, str);
+	}
 	return NULL;
 #endif
 }
