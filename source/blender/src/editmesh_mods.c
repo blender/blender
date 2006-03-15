@@ -2060,7 +2060,7 @@ void editmesh_mark_seam(int clear)
 void Edge_Menu() {
 	short ret;
 
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5|Edge Loop Select%x7|Edge Ring Select%x8");
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5|Edge Loop Select%x7|Edge Ring Select%x8|Loop to Region%x9|Region to Loop%x10");
 
 	switch(ret)
 	{
@@ -2089,6 +2089,12 @@ void Edge_Menu() {
 		break;
 	case 8:
 		loop_multiselect(1);
+		break;
+	case 9:
+		loop_to_region();
+		break;
+	case 10:
+		region_to_loop();
 		break;
 	}
 }

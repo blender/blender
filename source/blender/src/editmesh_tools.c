@@ -6242,13 +6242,195 @@ void pathselect(void)
 			MEM_freeN(cost);
 			MEM_freeN(previous);
 			BLI_heap_free(heap, NULL);
-			
 			EM_select_flush();
-			
+			countall();
 		}
 	}
 	else{
 		error("Path Selection requires that exactly two vertices be selected");
 		return;
 	}
+}
+
+void region_to_loop(void)
+{
+	EditEdge *eed;
+	EditFace *efa;
+	
+	if(G.totfacesel){
+		for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
+		
+		for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+			if(efa->f&SELECT){
+				efa->e1->f1++;
+				efa->e2->f1++;
+				efa->e3->f1++;
+				if(efa->e4)
+					efa->e4->f1++;
+			}
+		}
+		
+		EM_clear_flag_all(SELECT);
+		
+		for(eed=G.editMesh->edges.first; eed; eed=eed->next){
+			if(eed->f1 == 1) EM_select_edge(eed, 1);
+		}
+		
+		G.scene->selectmode = SCE_SELECT_EDGE;
+		EM_selectmode_set();
+		countall();
+		BIF_undo_push("Face Region to Edge Loop");
+
+	}
+}
+
+static int validate_loop(Collection *edgecollection)
+{
+	EditEdge *eed;
+	EditFace *efa;
+	CollectedEdge *curredge;
+	
+	/*1st test*/
+	for(curredge = (CollectedEdge*)edgecollection->collectionbase.first; curredge; curredge=curredge->next){
+		curredge->eed->v1->f1 = 0;
+		curredge->eed->v2->f1 = 0;
+	}
+	for(curredge = (CollectedEdge*)edgecollection->collectionbase.first; curredge; curredge=curredge->next){
+		curredge->eed->v1->f1++;
+		curredge->eed->v2->f1++;
+	}
+	for(curredge = (CollectedEdge*)edgecollection->collectionbase.first; curredge; curredge=curredge->next){
+		if(curredge->eed->v1->f1 > 2) return(0); else
+		if(curredge->eed->v2->f1 > 2) return(0);
+	}
+	
+	/*2nd test*/
+	for(eed = G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
+	for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+		efa->e1->f1++;
+		efa->e2->f1++;
+		efa->e3->f1++;
+		if(efa->e4) efa->e4->f1++;
+	}
+	for(curredge = (CollectedEdge*)edgecollection->collectionbase.first; curredge; curredge=curredge->next){
+		if(curredge->eed->f1 > 2) return(0);
+	}
+	return(1);
+}
+
+static int loop_bisect(Collection *edgecollection){
+	
+	EditFace *efa, *sf1, *sf2;
+	EditEdge *eed, *sed;
+	CollectedEdge *curredge;
+	int totsf1, totsf2, unbalanced,balancededges;
+	
+	for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = eed->f2 = 0;
+	for(efa=G.editMesh->faces.first; efa; efa=efa->next) efa->f1 = 0;	
+	
+	for(curredge = (CollectedEdge*)edgecollection->collectionbase.first; curredge; curredge=curredge->next) curredge->eed->f1 = 1;
+	
+	sf1 = sf2 = NULL;
+	sed = ((CollectedEdge*)edgecollection->collectionbase.first)->eed;
+	
+	for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+		if(sf2) break;
+		else if(sf1){
+			if(efa->e1 == sed || efa->e2 == sed || efa->e3 == sed || ( (efa->e4) ? efa->e4 == sed : 0) ) sf2 = efa;
+		}
+		else{
+			if(efa->e1 == sed || efa->e2 == sed || efa->e3 == sed || ( (efa->e4) ? efa->e4 == sed : 0) ) sf1 = efa;
+		}
+	}
+	
+	if(!(sf1->e1->f1)) sf1->e1->f2 = 1;
+	if(!(sf1->e2->f1)) sf1->e2->f2 = 1;
+	if(!(sf1->e3->f1)) sf1->e3->f2 = 1;
+	if(sf1->e4 && !(sf1->e4->f1)) sf1->e4->f2 = 1;
+	sf1->f1 = 1;
+	totsf1 = 1;
+	
+	if(!(sf2->e1->f1)) sf2->e1->f2 = 2;
+	if(!(sf2->e2->f1)) sf2->e2->f2 = 2;
+	if(!(sf2->e3->f1)) sf2->e3->f2 = 2;
+	if(sf2->e4 && !(sf2->e4->f1)) sf2->e4->f2 = 2;
+	sf2->f1 = 2;
+	totsf2 = 1;
+	
+	/*do sf1*/
+	unbalanced = 1;
+	while(unbalanced){
+		unbalanced = 0;
+		for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+			balancededges = 0;
+			if(efa->f1 == 0){
+				if(efa->e1->f2 == 1 || efa->e2->f2 == 1 || efa->e3->f2 == 1 || ( (efa->e4) ? efa->e4->f2 == 1 : 0) ){
+					balancededges += efa->e1->f2 = (efa->e1->f1) ? 0 : 1;
+					balancededges += efa->e2->f2 = (efa->e2->f1) ? 0 : 1;
+					balancededges += efa->e3->f2 = (efa->e3->f1) ? 0 : 1;
+					if(efa->e4) balancededges += efa->e4->f2 = (efa->e4->f1) ? 0 : 1;
+					if(balancededges){
+						unbalanced = 1;
+						efa->f1 = 1;
+						totsf1++;
+					}
+				}
+			}
+		}
+	}
+	
+	/*do sf2*/
+	unbalanced = 1;
+	while(unbalanced){
+		unbalanced = 0;
+		for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+			balancededges = 0;
+			if(efa->f1 == 0){
+				if(efa->e1->f2 == 2 || efa->e2->f2 == 2 || efa->e3->f2 == 2 || ( (efa->e4) ? efa->e4->f2 == 2 : 0) ){
+					balancededges += efa->e1->f2 = (efa->e1->f1) ? 0 : 2;
+					balancededges += efa->e2->f2 = (efa->e2->f1) ? 0 : 2;
+					balancededges += efa->e3->f2 = (efa->e3->f1) ? 0 : 2;
+					if(efa->e4) balancededges += efa->e4->f2 = (efa->e4->f1) ? 0 : 2;
+					if(balancededges){
+						unbalanced = 1;
+						efa->f1 = 2;
+						totsf2++;
+					}
+				}
+			}
+		}
+	}
+		
+	if(totsf1 < totsf2) return(1);
+	else return(2);
+}
+
+void loop_to_region(void)
+{
+	EditFace *efa;
+	ListBase allcollections={NULL,NULL};
+	Collection *edgecollection;
+	int testflag;
+	
+	build_edgecollection(&allcollections);
+	
+	for(edgecollection = (Collection *)allcollections.first; edgecollection; edgecollection=edgecollection->next){
+		if(validate_loop(edgecollection)){
+			testflag = loop_bisect(edgecollection);
+			for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+				if(efa->f1 == testflag){
+					if(efa->f&SELECT) EM_select_face(efa, 0);
+					else EM_select_face(efa,1);
+				}
+			}
+		}
+	}
+	
+	for(efa=G.editMesh->faces.first; efa; efa=efa->next){ /*fix this*/
+		if(efa->f&SELECT) EM_select_face(efa,1);
+	}
+	
+	countall();
+	freecollections(&allcollections);
+	BIF_undo_push("Edge Loop to Face Region");
 }

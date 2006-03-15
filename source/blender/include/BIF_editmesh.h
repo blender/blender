@@ -209,6 +209,7 @@ int merge_firstlast(int first, int uvmerge);
 int merge_target( int target, int uvmerge);
 
 void pathselect(void);
-
+void loop_to_region(void);
+void region_to_loop(void);
 #endif
 
