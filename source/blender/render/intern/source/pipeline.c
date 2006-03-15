@@ -1162,7 +1162,8 @@ static void threaded_tile_processor(Render *re)
 	if(rr->exrhandle) {
 		IMB_exr_close(rr->exrhandle);
 		rr->exrhandle= NULL;
-		read_render_result(re);
+		if(!re->test_break())
+			read_render_result(re);
 	}
 	
 	/* unset threadsafety */
@@ -1224,7 +1225,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	
 	sce->r.cfra= cfra;
 	
-	if(R_EXR_TILE_FILE)
+	if(re->scene->r.scemode & R_EXR_TILE_FILE)
 		resc->flag |= R_FILEBUFFER;
 	
 	/* makes render result etc */
@@ -1363,11 +1364,13 @@ static void do_render_final(Render *re)
 				
 				if(!re->test_break()) {
 					ntree->stats_draw= render_composit_stats;
+					ntree->test_break= re->test_break;
 					/* in case it was never initialized */
 					R.stats_draw= re->stats_draw;
 					
 					ntreeCompositExecTree(ntree, &re->r, G.background==0);
 					ntree->stats_draw= NULL;
+					ntree->test_break= NULL;
 				}
 			}
 		}
@@ -1464,7 +1467,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 		disprect.ymax= winy;
 	}
 	
-	if(R_EXR_TILE_FILE) {
+	if(scene->r.scemode & R_EXR_TILE_FILE) {
 		int partx= winx/scene->r.xparts, party= winy/scene->r.yparts;
 		/* stupid exr tiles dont like different sizes */
 		if(winx != partx*scene->r.xparts || winy != party*scene->r.xparts) {
