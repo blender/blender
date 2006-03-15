@@ -927,7 +927,7 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 		SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
 		if(srl) {
 			RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
-			if(rl) {
+			if(rl && rl->rectf) {
 				CompBuf *stackbuf;
 				
 				/* we put render rect on stack, cbuf knows rect is from other ibuf when freed! */
