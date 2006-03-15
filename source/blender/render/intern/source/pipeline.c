@@ -281,8 +281,11 @@ static void render_unique_exr_name(Render *re, char *str)
 	BLI_strncpy(di, G.sce, FILE_MAXDIR+FILE_MAXFILE);
 	BLI_splitdirstring(di, fi);
 	sprintf(name, "%s_%s.exr", fi, re->scene->id.name+2);
-	BLI_make_file_string("/", str, U.tempdir, name);
-	
+	if(G.background)
+		BLI_make_file_string("/", str, "/tmp/", name);
+	else
+		BLI_make_file_string("/", str, U.tempdir, name);
+		
 	printf("exr file %s\n", str);
 	
 }
