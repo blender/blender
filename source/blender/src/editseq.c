@@ -1568,7 +1568,8 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 					if (seq->type & SEQ_EFFECT) {
 						struct SeqEffectHandle sh;
 						sh = get_sequence_effect(seq);
-						sh.copy(seq, seqn);
+						if(sh.copy)
+							sh.copy(seq, seqn);
 					}
 
 					seqn->strip= MEM_dupallocN(seq->strip);
