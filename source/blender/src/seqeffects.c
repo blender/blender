@@ -646,9 +646,9 @@ void do_cross_effect_byte(float facf0, float facf1, int x, int y,
 }
 
 void do_cross_effect_float(float facf0, float facf1, int x, int y, 
-			   float*rect1, float *rect2, float *out)
+			   float *rect1, float *rect2, float *out)
 {
-	int fac1, fac2, fac3, fac4;
+	float fac1, fac2, fac3, fac4;
 	int xo;
 	float *rt1, *rt2, *rt;
 

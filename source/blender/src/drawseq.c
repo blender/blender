@@ -588,7 +588,12 @@ static void draw_image_seq(ScrArea *sa)
 			else ibuf= se->ibuf;
 		}
 	}
-	if(ibuf==0 || ibuf->rect==0) return;
+	if(ibuf==NULL) 
+		return;
+	if(ibuf->rect_float && ibuf->rect==NULL)
+		IMB_rect_from_float(ibuf);
+	if(ibuf->rect==NULL) 
+		return;
 
 	if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM) {
 		ibuf = make_waveform_view_from_ibuf(ibuf);

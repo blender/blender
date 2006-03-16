@@ -780,7 +780,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 			
 			/* test if image is too small or discarded from cache: reload */
 			if(se->ibuf) {
-				if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !se->ibuf->rect) {
+				if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !(se->ibuf->rect || se->ibuf->rect_float)) {
 					IMB_freeImBuf(se->ibuf);
 					se->ibuf= 0;
 				}
@@ -796,8 +796,13 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				se->se2= seq->seq2->curelem;
 				se->se3= seq->seq3->curelem;
 				
-				if(se->ibuf==0) {
-					se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
+				if(se->ibuf==NULL) {
+					/* if one of two first inputs are rectfloat, output is float too */
+					if((se->se1->ibuf && se->se1->ibuf->rect_float) ||
+					   (se->se2->ibuf && se->se2->ibuf->rect_float))
+						se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
+					else
+						se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
 				}
 				do_effect(cfra, seq, se);
 			}
@@ -817,7 +822,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 			if(se->ibuf) {
 				/* test if image too small 
 				   or discarded from cache: reload */
-				if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !se->ibuf->rect) {
+				if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !(se->ibuf->rect || se->ibuf->rect_float)) {
 					IMB_freeImBuf(se->ibuf);
 					se->ibuf= 0;
 					se->ok= 1;
