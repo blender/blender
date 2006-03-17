@@ -51,6 +51,7 @@ B = tools.Blender
 ### globals ###
 platform = sys.platform
 quickie = None
+quickdebug = None
 
 ##### BEGIN SETUP #####
 
@@ -88,6 +89,13 @@ btools.print_targets(B.targets, B.bc)
 
 # first check cmdline for toolset and we create env to work on
 quickie = B.arguments.get('BF_QUICK', None)
+quickdebug = B.arguments.get('BF_QUICKDEBUG', None)
+
+if quickdebug:
+	B.quickdebug=string.split(quickdebug, ',')
+else:
+	B.quickdebug=[]
+		
 if quickie:
     B.quickie=string.split(quickie,',')
 else:
@@ -150,6 +158,18 @@ else:
 
 opts = btools.read_opts(optfiles, B.arguments)
 opts.Update(env)
+
+#check for additional debug libnames
+
+if env.has_key('BF_DEBUG_LIBS'):
+	B.quickdebug += env['BF_DEBUG_LIBS']
+
+printdebug = B.arguments.get('BF_LISTDEBUG', 0)
+
+if len(B.quickdebug) > 0 and printdebug != 0:
+	print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC
+	for l in B.quickdebug:
+		print "\t" + l
 
 # check target for blenderplayer. Set WITH_BF_PLAYER if found on cmdline
 if 'blenderplayer' in B.targets:

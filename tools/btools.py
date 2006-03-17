@@ -45,7 +45,7 @@ def validate_arguments(args, bc):
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_DEBUG', 'BF_DEBUG_FLAGS',
-            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX'
+            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', "BF_QUICKDEBUG", "BF_LISTDEBUG"
            ]
 
     all_list = opts_list + arg_list
@@ -110,6 +110,7 @@ def SetupBufferedOutput( env ):
 def read_opts(cfg, args):
     localopts = Options.Options(cfg, args)
     localopts.AddOptions(
+        ('BF_DEBUG_LIBS', 'list of libraries to build with debug symbols'),
         ('BF_PYTHON', 'base path for python', ''),
         ('BF_PYTHON_VERSION', 'Python version to use', ''),
         ('BF_PYTHON_INC', 'include path for Python headers', ''),

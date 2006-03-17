@@ -146,7 +146,7 @@ LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lw
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
 BF_DEBUG = 'false'
-BF_DEBUG_FLAGS= ''
+BF_DEBUG_FLAGS= '-g'
 
 BF_BUILDDIR = '..\\build\\win32-mingw'
 BF_INSTALLDIR='..\\install\\win32-mingw'

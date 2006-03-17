@@ -343,13 +343,16 @@ class BlenderEnvironment(SConsEnvironment):
             print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
             Exit()
         if libname in quickie or len(quickie)==0:
-            print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
+            if libname in quickdebug: 
+                print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname +bc.ENDC+bc.OKBLUE+ " (debug mode)" + bc.ENDC
+            else:
+                print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname + bc.ENDC
             lenv = self.Copy()
             lenv.Append(CPPPATH=includes)
             lenv.Append(CPPDEFINES=defines)
             if lenv['WITH_BF_GAMEENGINE']:
                     lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
-            if lenv['BF_DEBUG']:
+            if lenv['BF_DEBUG'] or (libname in quickdebug):
                     lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_FLAGS']), CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
             else:
                     lenv.Append(CCFLAGS = lenv['REL_CFLAGS'], CXXFLAGS = lenv['REL_CCFLAGS'])
