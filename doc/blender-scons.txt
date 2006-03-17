@@ -118,6 +118,45 @@ $Id$
     included paths are, what defines are given on the command-line,
     what compiler switches are used, etc.
 
+    Compiling Only Some Libraries
+    -----------------------------
+    
+    Scons now has support for specifying a list of libraries that are
+    exclusively compiled, ignoring all other libraries.  This is invoked 
+    with the BF_QUICK arguments; for example:
+    
+        % scons BF_QUICK=src,bf_blenkernel
+    
+    Note that this not the same as passing a list of folders as in the 
+    makefile's "quicky" command.  In Scons, all of Blender's code modules
+    are in their own static library; this corresponds to one-lib-per-folder 
+    in some cases (especially in blender/source/blender).
+    
+    To obtain a list of the libraries, simple fire up scons and CTRL-C out once 
+    it finishes configuring (and printing to the console) the library list.
+    
+    Compiling Libraries With Debug Profiling
+    ----------------------------------------
+    
+    Scons has support for specifying a list of libraries that are compiled
+    with debug profiling enabled.  This is implemented in two commands:
+    BF_QUICKDEBUG which is a command-line argument and BF_DEBUG_LIBS, which goes
+    in your user-config.py
+    
+    BF_QUICKDEBUG is similar to BF_QUICK:
+    
+        % scons BF_QUICKDEBUG=src,bf_blenkernel,some-other-lib
+    
+    To use BF_DEBUG_LIBS, put something like the following in you user-config.py:
+    
+        BF_DEBUG_LIBS = ['bf_blenlib', 'src', 'some_lib']
+        
+    For instructions on how to find the names of the libraries (folders) you 
+    wish to use, see the above section.  Note that the command BF_DEBUG 
+    (see below) will override these settings and compile ALL of Blender with
+    debug symbols.  Also note that BF_QUICKDEBUG and BF_DEBUG_LIBS are combined;
+    for example, setting BF_QUICKDEBUG won't overwrite the contents of BF_DEBUG_LIBS.
+
 
     Supported toolset
     -----------------
