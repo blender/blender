@@ -50,11 +50,13 @@ class vertList:
 	def __init__(self, verts=[]):
 		self.verts = verts
 	
-	# Sorts closest first. - uses the box w/h as a bias,
-	# this makes it so its less likely to have lots of poking out bits
-	# that use too much 
-	# Lambada based sort
 	def sortCorner(self,w,h):
+		'''
+		Sorts closest first. - uses the box w/h as a bias,
+		this makes it so its less likely to have lots of poking out bits
+		that use too much 
+		Lambada based sort
+		'''
 		self.verts.sort(lambda A, B: cmp(max(A.x+w, A.y+h) , max(B.x+w, B.y+h))) # Reverse area sort
 		
 
@@ -72,28 +74,28 @@ class box:
 		
 		# Append 4 new verts
 		# (BL,TR,TL,BR) / 0,1,2,3
-		self.v = [vt(0,0), vt(width,height), vt(0,height), vt(width,0)]
+		self.v=v= [vt(0,0), vt(width,height), vt(0,height), vt(width,0)]
 		
 		# Set the interior quadrents as used.
-		self.v[0].free &= ~TRF
-		self.v[1].free &= ~BLF
-		self.v[2].free &= ~BRF
-		self.v[3].free &= ~TLF
+		v[0].free &= ~TRF
+		v[1].free &= ~BLF
+		v[2].free &= ~BRF
+		v[3].free &= ~TLF
 		
 		#for v in self.v:
 		#	v.users.append(self)
-		self.v[0].trb = self
-		self.v[1].blb = self
-		self.v[2].brb = self
-		self.v[3].tlb = self
+		v[0].trb = self
+		v[1].blb = self
+		v[2].brb = self
+		v[3].tlb = self
 		
 		
-	
-	# Updates verts 3 & 4 from 1 and 2
-	# since 3 and 4 are only there foill need is resizing/ rotating of patterns on the fly while I painr new box placement
-	# but may be merged later with other verts
 	def updateV34(self):
-		
+		'''
+		Updates verts 3 & 4 from 1 and 2
+		since 3 and 4 are only there foill need is resizing/ rotating of patterns on the fly while I painr new box placement
+		but may be merged later with other verts
+		'''	
 		self.v[TL].x = self.v[BL].x
 		self.v[TL].y = self.v[TR].y
 		
@@ -101,23 +103,23 @@ class box:
 		self.v[BR].y = self.v[BL].y 
 		
 
-	def setLeft(self, lft=None):     
+	def setLeft(self, lft):     
 		self.v[TR].x = lft + self.v[TR].x - self.v[BL].x
 		self.v[BL].x = lft
 		# update othere verts
 		self.updateV34()
 
-	def setRight(self, rgt=None):    
+	def setRight(self, rgt):    
 		self.v[BL].x = rgt - (self.v[TR].x - self.v[BL].x)
 		self.v[TR].x = rgt
 		self.updateV34()
 
-	def setBottom(self, btm=None):     
+	def setBottom(self, btm):     
 		self.v[TR].y = btm + self.v[TR].y - self.v[BL].y
 		self.v[BL].y = btm
 		self.updateV34()
 
-	def setTop(self, tp=None):    
+	def setTop(self, tp):    
 		self.v[BL].y = tp - (self.v[TR].y - self.v[BL].y)
 		self.v[TR].y = tp
 		self.updateV34()
@@ -134,11 +136,12 @@ class box:
 	def getTop(self):
 		return self.v[TR].y
 	
-	# Returns none, meaning it didnt overlap any new boxes
 	def overlapAll(self, boxLs, intersectCache): # Flag index lets us know which quadere
-		if self.v[BL].x < 0:
+		''' Returns none, meaning it didnt overlap any new boxes '''
+		v= self.v
+		if v[BL].x < 0:
 			return None
-		elif self.v[BL].y < 0:
+		elif v[BL].y < 0:
 			return None			
 		else:
 			bIdx = len(intersectCache)
@@ -146,19 +149,19 @@ class box:
 				bIdx-=1
 				b = intersectCache[bIdx]
 				if not (self.v[TR].y <= b.v[BL].y or\
-								self.v[BL].y >= b.v[TR].y or\
-								self.v[BL].x >= b.v[TR].x or\
-								self.v[TR].x <= b.v[BL].x ):
+								v[BL].y >= b.v[TR].y or\
+								v[BL].x >= b.v[TR].x or\
+								v[TR].x <= b.v[BL].x ):
 					
 					return None # Intersection with existing box
 			#return 0 # Must keep looking
 			
 			
 			for b in boxLs.boxes:
-				if not (self.v[TR].y <= b.v[BL].y or\
-								self.v[BL].y >= b.v[TR].y or\
-								self.v[BL].x >= b.v[TR].x or\
-								self.v[TR].x <= b.v[BL].x ):
+				if not (v[TR].y <= b.v[BL].y or\
+				v[BL].y >= b.v[TR].y or\
+				v[BL].x >= b.v[TR].x or\
+				v[TR].x <= b.v[BL].x ):
 					
 					return b # Intersection with new box.
 			return 0
@@ -189,80 +192,79 @@ class box:
 		for freeQuad in quadFlagLs:
 			flagIndex +=1
 			#print 'Testing ', self.width
-			if not baseVert.free & freeQuad:
-				continue
-			
-			self.place(baseVert, freeQuad)
-			overlapBox = self.overlapAll(boxes, baseVert.intersectCache[flagIndex])
-			if overlapBox == 0: # There is no overlap
-				baseVert.free &= ~freeQuad # Removes quad
-				# Appends all verts but the one that matches. this removes the need for remove doubles
-				for vIdx in range(4): # (BL,TR,TL,BR): # (BL,TR,TL,BR) / 0,1,2,3
-					self_v = self.v[vIdx] # shortcut
-					if not (self_v.x == baseVert.x and self_v.y == baseVert.y):
-						boxList.packedVerts.verts.append(self_v)
-					else:
-						baseVert.free &= self.v[vIdx].free # make sure the 
-						
-						# Inherit used boxes from old verts
-						if self_v.blb: baseVert.blb = self_v.blb 
-						if self_v.brb: baseVert.brb = self_v.brb #print 'inherit2'
-						if self_v.tlb: baseVert.tlb = self_v.tlb #print 'inherit3'
-						if self_v.trb: baseVert.trb = self_v.trb #print 'inherit4'
-						self.v[vIdx] = baseVert
+			if baseVert.free & freeQuad:
 				
-				
-				# ========================== WHY DOSENT THIS WORK???
-				#~ if baseVert.tlb and baseVert.trb:
-					#~ if self == baseVert.tlb or self == baseVert.trb:
-						
-						#~ if baseVert.tlb.height > baseVert.trb.height:
-							#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-							#~ baseVert.trb.v[TL].free &= ~TLF
-							#~ baseVert.trb.v[TL].free &= ~BLF
-						
-						#~ elif baseVert.tlb.height < baseVert.trb.height:
-							#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-							#~ baseVert.tlb.v[TR].free &= ~TRF
-							#~ baseVert.tlb.v[TR].free &= ~BRF
-						#~ else: # same
-							#~ baseVert.tlb.v[TR].free &= ~BLF
-							#~ baseVert.trb.v[TL].free &= ~BRF						
+				self.place(baseVert, freeQuad)
+				overlapBox = self.overlapAll(boxes, baseVert.intersectCache[flagIndex])
+				if overlapBox is 0: # There is no overlap
+					baseVert.free &= ~freeQuad # Removes quad
+					# Appends all verts but the one that matches. this removes the need for remove doubles
+					for vIdx in (0,1,2,3): # (BL,TR,TL,BR): # (BL,TR,TL,BR) / 0,1,2,3
+						self_v= self.v[vIdx] # shortcut
+						if not (self_v.x == baseVert.x and self_v.y == baseVert.y):
+							boxList.packedVerts.verts.append(self_v)
+						else:
+							baseVert.free &= self_v.free # make sure the 
 							
-				
-				#~ if baseVert.blb and baseVert.brb:
-					#~ if self == baseVert.blb or self == baseVert.brb:
-						
-						#~ if baseVert.blb.height > baseVert.brb.height:
-							#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-							#~ baseVert.brb.v[BL].free &= ~TLF
-							#~ baseVert.brb.v[BL].free &= ~BLF
-						
-						#~ elif baseVert.blb.height < baseVert.brb.height:
-							#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-							#~ baseVert.blb.v[BR].free &= ~TRF
-							#~ baseVert.blb.v[BR].free &= ~BRF
-						#~ else: # same
-							#~ baseVert.blb.v[BR].free &= ~TLF
-							#~ baseVert.brb.v[BL].free &= ~TRF		
+							# Inherit used boxes from old verts
+							if self_v.blb: baseVert.blb = self_v.blb 
+							if self_v.brb: baseVert.brb = self_v.brb #print 'inherit2'
+							if self_v.tlb: baseVert.tlb = self_v.tlb #print 'inherit3'
+							if self_v.trb: baseVert.trb = self_v.trb #print 'inherit4'
+							self.v[vIdx] = baseVert
+					
+					
+					# ========================== WHY DOSENT THIS WORK???
+					#~ if baseVert.tlb and baseVert.trb:
+						#~ if self == baseVert.tlb or self == baseVert.trb:
+							
+							#~ if baseVert.tlb.height > baseVert.trb.height:
+								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
+								#~ baseVert.trb.v[TL].free &= ~TLF
+								#~ baseVert.trb.v[TL].free &= ~BLF
+							
+							#~ elif baseVert.tlb.height < baseVert.trb.height:
+								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
+								#~ baseVert.tlb.v[TR].free &= ~TRF
+								#~ baseVert.tlb.v[TR].free &= ~BRF
+							#~ else: # same
+								#~ baseVert.tlb.v[TR].free &= ~BLF
+								#~ baseVert.trb.v[TL].free &= ~BRF						
+								
+					
+					#~ if baseVert.blb and baseVert.brb:
+						#~ if self == baseVert.blb or self == baseVert.brb:
+							
+							#~ if baseVert.blb.height > baseVert.brb.height:
+								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
+								#~ baseVert.brb.v[BL].free &= ~TLF
+								#~ baseVert.brb.v[BL].free &= ~BLF
+							
+							#~ elif baseVert.blb.height < baseVert.brb.height:
+								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
+								#~ baseVert.blb.v[BR].free &= ~TRF
+								#~ baseVert.blb.v[BR].free &= ~BRF
+							#~ else: # same
+								#~ baseVert.blb.v[BR].free &= ~TLF
+								#~ baseVert.brb.v[BL].free &= ~TRF		
 
-							#~ # print 'Hay', baseVert.tlb.height, baseVert.trb.height
-						
-				
-				
-				return 1 # Working
-				
-			# We have a box that intersects that quadrent.
-			elif overlapBox != None:  # None is used for a box thats alredt in the freq list.
-				
-				# There was an overlap, add this box to the verts list
-				#quadFlagLs = (BLF,BRF,TLF,TRF)
-				baseVert.intersectCache[flagIndex].append(overlapBox)
+								#~ # print 'Hay', baseVert.tlb.height, baseVert.trb.height
+							
+					
+					
+					return 1 # Working
+					
+				# We have a box that intersects that quadrent.
+				elif overlapBox != None:  # None is used for a box thats alredt in the freq list.
+					
+					# There was an overlap, add this box to the verts list
+					#quadFlagLs = (BLF,BRF,TLF,TRF)
+					baseVert.intersectCache[flagIndex].append(overlapBox)
 		return 0
 
 
 class boxList:
-	# Global vert pool, stores used lists
+	#Global vert pool, stores used lists
 	packedVerts = vertList() # will be vertList()
 	
 	def __init__(self, boxes):
@@ -272,7 +274,7 @@ class boxList:
 		# initialize with first box, fixes but where we whwere only packing 1 box
 		self.width = 0
 		self.height = 0
-		if len(boxes) > 0:
+		if boxes:
 			for b in boxes:
 				self.width = max(self.width, b.width)
 				self.height = max(self.height, b.height)
@@ -287,13 +289,11 @@ class boxList:
 	
 	# Just like MyBoxLs.boxes.append(), but sets bounds 
 	def addBoxPack(self, box):
-		# Resize this boxlist bounds for the current box.
+		'''Adds the box to the boxlist and resized the main bounds and adds area. '''
 		self.width = max(self.width, box.getRight())
 		self.height = max(self.height, box.getTop())
 		
 		self.boxArea += box.area
-		
-		
 		
 		# iterate through these
 		#~ quadFlagLs = (1,8,4,2) 
@@ -302,7 +302,7 @@ class boxList:
 		#~ quadFlagLs = (BLF,BRF,TLF,TRF)
 		
 		# Look through all the free vert quads and see if there are some we can remove
-		# buggy but dont know why???, dont use.
+		# buggy but dont know why???, dont use it unless you want to debug it..
 		'''
 		for v in box.v:
 			
@@ -388,7 +388,7 @@ class boxList:
 	def pack(self):
 		self.sortArea()
 		
-		if len(self.boxes) == 0:
+		if not self.boxes:
 			return
 			
 		packedboxes = boxList([self.boxes[0]])
@@ -397,39 +397,36 @@ class boxList:
 		
 		unpackedboxes = boxList(self.boxes[1:])
 		
-		# STart with this box
+		# Start with this box, the biggest box
 		boxList.packedVerts.verts.extend(packedboxes.boxes[0].v)
 		
-		while unpackedboxes.boxes != []:
+		while unpackedboxes.boxes: # != [] - while the list of unpacked boxes is not empty.
 			
 			freeBoxIdx = 0
 			while freeBoxIdx < len(unpackedboxes.boxes):
-				
+				freeBoxContext= unpackedboxes.boxes[freeBoxIdx]
 				# Sort the verts with this boxes dimensions as a bias, so less poky out bits are made.
-				boxList.packedVerts.sortCorner(unpackedboxes.boxes[freeBoxIdx].width, unpackedboxes.boxes[freeBoxIdx].height)
+				boxList.packedVerts.sortCorner(freeBoxContext.width, freeBoxContext.height)
 				
 				vertIdx = 0
 				
-				while vertIdx < len(boxList.packedVerts.verts):
-					baseVert = boxList.packedVerts.verts[vertIdx]
-					
-					if baseVert.free != 0:
+				for baseVert in boxList.packedVerts.verts:
+					if baseVert.free: # != 0
 						# This will lock the box if its possibel
-						if unpackedboxes.boxes[freeBoxIdx].tryVert(packedboxes, baseVert):
-							packedboxes.addBoxPack(unpackedboxes.boxes[freeBoxIdx])
-							unpackedboxes.boxes.pop(freeBoxIdx) 
+						if freeBoxContext.tryVert(packedboxes, baseVert):
+							packedboxes.addBoxPack( unpackedboxes.boxes.pop(freeBoxIdx) ) # same as freeBoxContext. but may as well pop at the same time.
 							freeBoxIdx = -1
 							break
-						
-					vertIdx +=1
+				
 				freeBoxIdx +=1
 				
 		boxList.packedVerts.verts = [] # Free the list, so it dosent use ram between runs.
 		
 		self.width = packedboxes.width
 		self.height = packedboxes.height
-	# All boxes as a list - X/Y/WIDTH/HEIGHT
+	# 
 	def list(self):
+		''' Once packed, return a list of all boxes as a list of tuples - (X/Y/WIDTH/HEIGHT) '''
 		return [(b.id, b.getLeft(), b.getBottom(), b.width, b.height ) for b in self.boxes]
 
 

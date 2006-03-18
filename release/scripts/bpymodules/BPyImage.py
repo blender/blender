@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------
-# BPyImage.py version 0.1
+# BPyImage.py version 0.15
 # --------------------------------------------------------------------------
 # helper functions to be used by other scripts
 # --------------------------------------------------------------------------
@@ -76,9 +76,14 @@ def addSlash(path):
 		return path
 	return path + sys.sep
 
-def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
-	if VERBOSE:
-		print 'img:', imagePath, 'file:', filePath
+def exists(path):
+	if path.endswith('\\') or path.endswith('/'):
+		path= path[0:-1]
+	return sys.exists(path)
+
+
+def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True):
+	if VERBOSE: print 'img:', imagePath, 'file:', filePath
 	# When we have the file load it with this. try/except niceness.
 	def imageLoad(path):
 		try:
@@ -86,13 +91,19 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 			if VERBOSE: print '\t\tImage loaded "%s"' % path
 			return img
 		except:
-			raise "Helloo"
-			if sys.exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
-			img= Blender.Image.New(stripPath(path),1,1,24)
-			img.name= path.split('/')[-1].split('\\')[-1][0:21]
-			img.filename= path
-			return Blender.Image.New(stripPath(path),1,1,24) #blank image
-	
+			#raise "Helloo"
+			if VERBOSE:
+				if exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
+				else: print '\t\tImage not found "%s"' % (path)
+			if newImage:
+				img= Blender.Image.New(stripPath(path),1,1,24)
+				
+				img.setName(path.split('/')[-1].split('\\')[-1][0:21]) #path.split('/')[-1].split('\\')[-1][0:21]
+				img.filename= path
+				return Blender.Image.New(stripPath(path),1,1,24) #blank image
+			else:
+				return None
+			
 	# Image formats blender can read
 	IMAGE_EXT = ['jpg', 'jpeg', 'png', 'tga', 'bmp', 'rgb', 'sgi', 'bw', 'iff', 'lbm', # Blender Internal
 	'gif', 'psd', 'tif', 'tiff', 'pct', 'pict', 'pntg', 'qtif'] # Quacktime, worth a try.
@@ -108,7 +119,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 	
 	
 	if VERBOSE: print '\tAttempting to load "%s"' % imagePath
-	if sys.exists(imagePath):
+	if exists(imagePath):
 		if VERBOSE: print '\t\tFile found where expected.'
 		return imageLoad(imagePath)
 	
@@ -125,7 +136,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 	
 	# Attempt to load from obj path.
 	tmpPath = stripFile(filePath) + stripFile(imageFilePath)
-	if sys.exists(tmpPath):
+	if exists(tmpPath):
 		if VERBOSE: print '\t\tFile found in path "%s".' % tmpPath
 		return imageLoad(tmpPath)
 	
@@ -139,7 +150,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 	# GATHER PATHS.
 	paths = {} # Store possible paths we may use, dict for no doubles.
 	tmpPath = addSlash(sys.expandpath('//')) # Blenders path
-	if sys.exists(tmpPath):
+	if exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -148,7 +159,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 	
 	tmpPath = imageFilePath
-	if sys.exists(tmpPath):
+	if exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -157,7 +168,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 
 	tmpPath = stripFile(filePath)
-	if sys.exists(tmpPath):
+	if exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -166,7 +177,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 
 	tmpPath = addSlash(Blender.Get('texturesdir'))
-	if tmpPath and sys.exists(tmpPath):
+	if tmpPath and exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -177,7 +188,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 	# Add path if relative image patrh was given.
 	for k in paths.iterkeys():
 		tmpPath = k + imageFilePath
-		if sys.exists(tmpPath):
+		if exists(tmpPath):
 			paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 			paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
 			paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
@@ -189,7 +200,7 @@ def comprehensiveImageLoad(imagePath, filePath, VERBOSE=False):
 	# 
 	for path, files in paths.iteritems():
 		
-		if sys.exists(path + imageFileName):
+		if exists(path + imageFileName):
 			return imageLoad(path + imageFileName)
 		
 		# If the files not there then well do a case insensitive seek.
