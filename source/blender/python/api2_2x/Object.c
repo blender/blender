@@ -106,6 +106,7 @@ struct rctf;
 #include "logic.h"
 #include "Effect.h"
 #include "Pose.h"
+#include "Group.h"
 #include "gen_utils.h"
 #include "BIF_editkey.h"
 
@@ -3522,7 +3523,9 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return PyInt_FromLong( obj->object->id.us );
 	if( StringEqual( name, "protectFlags" ) )
 		return PyInt_FromLong( obj->object->protectflag );
-
+	if( StringEqual( name, "dupliGroup" ) )
+		return Group_CreatePyObject( obj->object->dup_group );
+	
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
 }
@@ -3741,7 +3744,23 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		object->protectflag = (short)flag;
 		return 0;
 	}
-
+	if( StringEqual( name, "dupliGroup" ) ) {
+		PyObject *pyob=NULL;
+		BPy_Group *pygrp=NULL;
+		Group *group;
+		if( !PyArg_Parse( value, "O", &pyob) )
+			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+							"expected a group" ) );	
+		if (pyob==Py_None) {
+			object->dup_group= NULL;
+		} else {
+			pygrp= (BPy_Group *)pyob;
+			object->dup_group= pygrp->group;
+		}
+		
+		
+		return 0;
+	}
 
 	/* SECOND, handle all the attributes that passes the value as a tuple to another function */
 

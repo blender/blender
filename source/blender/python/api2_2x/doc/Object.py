@@ -261,6 +261,11 @@ class Object:
        - bit 7: Y size
        - bit 8: Z size
     @type protectFlags: int
+    @ivar dupliGroup: The dupli group that this object is an instance of.
+        This does not enable or disable the dupligroup option, for that use
+        getDupliGroup and setDupliGroup.
+        The dupliGroup is None when this object does not have a dupliGroup.
+    @type dupliGroup: list of integers
   """
 
   def buildParts():
