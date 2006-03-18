@@ -1887,9 +1887,7 @@ void movetolayer(void)
 	}
 	if(islamp && G.vd->drawtype == OB_SHADED) reshadeall_displist();
 	
-	/* to avoid operations on active objects in hidden layers */
-	if (BASACT && !(BASACT->lay & G.vd->lay))
-		BASACT= NULL;
+	/* warning, active object may be hidden now */
 	
 	countall();
 	DAG_scene_sort(G.scene);
