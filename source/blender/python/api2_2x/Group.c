@@ -10,20 +10,11 @@
 #include "BKE_scene.h"
 #include "BKE_group.h"
 
-#include "BSE_edit.h"
-
-#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "BDR_editobject.h"
-#include "BDR_editcurve.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "mydevice.h"
 #include "blendef.h"
 #include "Object.h"
-#include "gen_utils.h"
+
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
@@ -85,14 +76,15 @@ static PyObject *M_Group_getObjects( BPy_Group * self )
 	return (PyObject *)seq;
 }
 
-
+/* only for internal use Blender.Group.Get("MyGroup").objects= []*/
 static int M_Group_setObjects( BPy_Group * self, PyObject * args )
 {
 	int i;
 	Group *group;
-	group= self->group;
 	Object *blen_ob;
 	Base *base;
+	
+	group= self->group;
 	
 	if( PyList_Check( args ) ) {
 		if( EXPP_check_sequence_consistency( args, &Object_Type ) != 1)
@@ -159,11 +151,12 @@ static int Group_setName( BPy_Group * self, PyObject * value )
 
 static PyObject *Group_getName( BPy_Group * self, PyObject * args )
 {
+	PyObject *attr;
 	if( !(self->group) )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "Blender Group was deleted!" );
 	
-	PyObject *attr = PyString_FromString( self->group->id.name + 2 );
+	attr = PyString_FromString( self->group->id.name + 2 );
 
 	if( attr )
 		return attr;
@@ -294,12 +287,13 @@ PyObject *M_Group_New( PyObject * self, PyObject * args )
 	char *name = "Group";
 	char buf[21];
 	BPy_Group *py_group;	/* for Group Data object wrapper in Python */
+	struct Group *bl_group;
 	
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"string expected as argument" );
 	
-	struct Group *bl_group= add_group();
+	bl_group= add_group();
 	
 	if( bl_group )		/* now create the wrapper grp in Python */
 		py_group = ( BPy_Group * ) Group_CreatePyObject( bl_group );
@@ -396,12 +390,13 @@ PyObject *M_Group_Unlink( PyObject * self, PyObject * args )
 {
 	PyObject *pyob=NULL;
 	BPy_Group *pygrp=NULL;
+	Group *group;
 	if( !PyArg_ParseTuple( args, "O!", &Group_Type, &pyob) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected a group" ) );
 	
 	pygrp= (BPy_Group *)pyob;
-	Group *group= pygrp->group;
+	group= pygrp->group;
 	
 	if( !group )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,

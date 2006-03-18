@@ -35,16 +35,16 @@
 
 #include <Python.h>
 
-//-------------------TYPE CHECKS---------------------------------
+/*-------------------TYPE CHECKS-------------------------------*/
 #define BPy_Constant_Check(v) ((v)->ob_type==&constant_Type)
-//-------------------TYPEOBJECT----------------------------------
+/*-------------------TYPEOBJECT--------------------------------*/
 extern PyTypeObject constant_Type;
-//-------------------STRUCT DEFINITION---------------------------
+/*-------------------STRUCT DEFINITION-------------------------*/
 typedef struct {
 	PyObject_HEAD 
 	PyObject * dict;
 } BPy_constant;
-//-------------------VISIBLE PROTOTYPES-------------------------
+/*-------------------VISIBLE PROTOTYPES-----------------------*/
 PyObject *PyConstant_New(void);
 int PyConstant_Insert(BPy_constant *self, char *name, PyObject *value);
 PyObject *PyConstant_NewInt(char *name, int value);
