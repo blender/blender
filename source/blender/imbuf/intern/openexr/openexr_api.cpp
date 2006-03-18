@@ -661,6 +661,9 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 				IMB_rect_from_float(ibuf);
 			}
 		}
+		
+		delete file;
+		
 		return(ibuf);
 				
 	}
