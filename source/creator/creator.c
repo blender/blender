@@ -46,6 +46,8 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
+#include "blendef.h" /* for MAXFRAME */
+
 
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
@@ -150,22 +152,35 @@ static void blender_esc(int sig)
 
 static void print_version(void)
 {
-	printf ("Blender %d.%02d\n", G.version/100, G.version%100);
+	printf ("Blender %d.%02d Build\n", G.version/100, G.version%100);
+	printf ("\tbuild date: %s\n", build_date);
+	printf ("\tbuild time: %s\n", build_time);
+	printf ("\tbuild platform: %s\n", build_platform);
+	printf ("\tbuild type: %s\n", build_type);
 }
 
 static void print_help(void)
 {
 	printf ("Blender V %d.%02d\n", G.version/100, G.version%100);
 	printf ("Usage: blender [options ...] [file]\n");
-				
+	
 	printf ("\nRender options:\n");
 	printf ("  -b <file>\tRender <file> in background\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
 	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
 	printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
-	printf ("    -a\t\tRender animation\n");
-				
+	printf ("    -o <path>\tSet the render path and file name.\n");
+	printf ("      Use // at the start of the path to\n");
+	printf ("        render relative to the blend file.\n");
+	printf ("      Use # in the filename to be replaced with the frame number\n");
+	printf ("      eg: blender -b foobar.blend -o //render_# -F PNG -x 1\n");
+	printf ("    -F <format>\tSet the render format, Valid options are..\n");
+	printf ("    \tTGA IRIS HAMX FTYPE JPEG MOVIE IRIZ RAWTGA\n");
+	printf ("    \tAVIRAW AVIJPEG PNG AVICODEC QUICKTIME BMP\n");
+	printf ("    \tHDR TIFF EXR MPEG FRAMESERVER CINEON DPX\n");
+	printf ("               Use // at the start of the path to\n");
+	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
 	printf ("\nAnimation options:\n");
 	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
@@ -213,7 +228,6 @@ int main(int argc, char **argv)
 	int audio = 0;
 #endif
 	setCallbacks();
-
 #ifdef __APPLE__
 		/* patch to ignore argument finder gives us (pid?) */
 	if (argc==2 && strncmp(argv[1], "-psn_", 5)==0) {
@@ -516,7 +530,6 @@ int main(int argc, char **argv)
 
 						} else
 						{
-
 							SYS_WriteCommandLineInt(syshandle,argv[a],1);
 
 							/* doMipMap */
@@ -537,15 +550,22 @@ int main(int argc, char **argv)
 				}
 			case 'f':
 				a++;
-				if (G.scene && a < argc) {
-					Render *re= RE_NewRender(G.scene->id.name);
-					RE_BlenderAnim(re, G.scene, atoi(argv[a]), atoi(argv[a]));
+				if (G.scene) {
+					if (a < argc) {
+						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
+						Render *re= RE_NewRender(G.scene->id.name);
+						RE_BlenderAnim(re, G.scene, frame, frame);
+					}
+				} else {
+					printf("\nError: no blend loaded. cannot use '-f'.\n");
 				}
 				break;
 			case 'a':
 				if (G.scene) {
 					Render *re= RE_NewRender(G.scene->id.name);
 					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+				} else {
+					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}
 				break;
 			case 'S':
@@ -556,19 +576,89 @@ int main(int argc, char **argv)
 			case 's':
 				a++;
 				if(G.scene) {
-					if (a < argc) (G.scene->r.sfra) = atoi(argv[a]);
+					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
+					if (a < argc) (G.scene->r.sfra) = frame;
+				} else {
+					printf("\nError: no blend loaded. cannot use '-s'.\n");
 				}
 				break;
 			case 'e':
 				a++;
 				if(G.scene) {
-					if (a < argc) (G.scene->r.efra) = atoi(argv[a]);
+					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
+					if (a < argc) (G.scene->r.efra) = frame;
+				} else {
+					printf("\nError: no blend loaded. cannot use '-e'.\n");
 				}
 				break;
 			case 'P':
 				a++;
 				if (a < argc) BPY_run_python_script (argv[a]);
 				else printf("\nError: you must specify a Python script after '-P '.\n");
+				break;
+			case 'o':
+				a++;
+				if (a < argc){
+					if(G.scene) {
+						BLI_strncpy(G.scene->r.pic, argv[a], FILE_MAXDIR);
+					} else {
+						printf("\nError: no blend loaded. cannot use '-o'.\n");
+					}
+				} else {
+					printf("\nError: you must specify a path after '-o '.\n");
+				}
+				break;
+			case 'F':
+				a++;
+				if (a < argc){
+					if(!G.scene) {
+						printf("\nError: no blend loaded. order the arguments so '-F ' is after the blend is loaded.\n");
+					} else {
+						if      (!strcmp(argv[a],"TGA")) G.scene->r.imtype = R_TARGA;
+						else if (!strcmp(argv[a],"IRIS")) G.scene->r.imtype = R_IRIS;
+						else if (!strcmp(argv[a],"HAMX")) G.scene->r.imtype = R_HAMX;
+						else if (!strcmp(argv[a],"FTYPE")) G.scene->r.imtype = R_FTYPE;
+						else if (!strcmp(argv[a],"JPEG")) G.scene->r.imtype = R_JPEG90;
+						else if (!strcmp(argv[a],"MOVIE")) G.scene->r.imtype = R_MOVIE;
+						else if (!strcmp(argv[a],"IRIZ")) G.scene->r.imtype = R_IRIZ;
+						else if (!strcmp(argv[a],"RAWTGA")) G.scene->r.imtype = R_RAWTGA;
+						else if (!strcmp(argv[a],"AVIRAW")) G.scene->r.imtype = R_AVIRAW;
+						else if (!strcmp(argv[a],"AVIJPEG")) G.scene->r.imtype = R_AVIJPEG;
+						else if (!strcmp(argv[a],"PNG")) G.scene->r.imtype = R_PNG;
+						else if (!strcmp(argv[a],"AVICODEC")) G.scene->r.imtype = R_AVICODEC;
+						else if (!strcmp(argv[a],"QUICKTIME")) G.scene->r.imtype = R_QUICKTIME;
+						else if (!strcmp(argv[a],"BMP")) G.scene->r.imtype = R_BMP;
+						else if (!strcmp(argv[a],"HDR")) G.scene->r.imtype = R_RADHDR;
+						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_IRIS;
+						else if (!strcmp(argv[a],"EXR")) G.scene->r.imtype = R_OPENEXR;
+						else if (!strcmp(argv[a],"MPEG")) G.scene->r.imtype = R_FFMPEG;
+						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
+						else if (!strcmp(argv[a],"CINEON")) G.scene->r.imtype = R_CINEON;
+						else if (!strcmp(argv[a],"DPX")) G.scene->r.imtype = R_DPX;
+						else printf("\nError: Format from '-F ' not known.\n");
+					}
+				} else {
+					printf("\nError: no blend loaded. cannot use '-x'.\n");
+				}
+				break;
+				
+			case 'x': /* extension */
+				a++;
+				if (a < argc) {
+					if(G.scene) {
+						if (argv[a][0] == '0') {
+							G.scene->r.scemode &= ~R_EXTENSION;
+						} else if (argv[a][0] == '1') {
+							G.scene->r.scemode |= R_EXTENSION;
+						} else {
+							printf("\nError: Use '-x 1' or '-x 0' To set the extension option.\n");
+						}
+					} else {
+						printf("\nError: no blend loaded. order the arguments so '-o ' is after '-x '.\n");
+					}
+				} else {
+					printf("\nError: you must specify a path after '- '.\n");
+				}
 				break;
 			}
 		}
