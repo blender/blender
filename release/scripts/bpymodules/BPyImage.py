@@ -76,11 +76,6 @@ def addSlash(path):
 		return path
 	return path + sys.sep
 
-def exists(path):
-	if path.endswith('\\') or path.endswith('/'):
-		path= path[0:-1]
-	return sys.exists(path)
-
 
 def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True):
 	if VERBOSE: print 'img:', imagePath, 'file:', filePath
@@ -93,7 +88,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 		except:
 			#raise "Helloo"
 			if VERBOSE:
-				if exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
+				if sys.exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
 				else: print '\t\tImage not found "%s"' % (path)
 			if newImage:
 				img= Blender.Image.New(stripPath(path),1,1,24)
@@ -119,7 +114,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	
 	
 	if VERBOSE: print '\tAttempting to load "%s"' % imagePath
-	if exists(imagePath):
+	if sys.exists(imagePath):
 		if VERBOSE: print '\t\tFile found where expected.'
 		return imageLoad(imagePath)
 	
@@ -136,7 +131,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	
 	# Attempt to load from obj path.
 	tmpPath = stripFile(filePath) + stripFile(imageFilePath)
-	if exists(tmpPath):
+	if sys.exists(tmpPath):
 		if VERBOSE: print '\t\tFile found in path "%s".' % tmpPath
 		return imageLoad(tmpPath)
 	
@@ -150,7 +145,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	# GATHER PATHS.
 	paths = {} # Store possible paths we may use, dict for no doubles.
 	tmpPath = addSlash(sys.expandpath('//')) # Blenders path
-	if exists(tmpPath):
+	if sys.exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -159,7 +154,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 	
 	tmpPath = imageFilePath
-	if exists(tmpPath):
+	if sys.exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -168,7 +163,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 
 	tmpPath = stripFile(filePath)
-	if exists(tmpPath):
+	if sys.exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -177,7 +172,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 
 	tmpPath = addSlash(Blender.Get('texturesdir'))
-	if tmpPath and exists(tmpPath):
+	if tmpPath and sys.exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 		paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
@@ -188,7 +183,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	# Add path if relative image patrh was given.
 	for k in paths.iterkeys():
 		tmpPath = k + imageFilePath
-		if exists(tmpPath):
+		if sys.exists(tmpPath):
 			paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
 			paths[tmpPath].append([f.lower() for f in paths[tmpPath][0]]) # Lower case list.
 			paths[tmpPath].append([stripExt(f) for f in paths[tmpPath][1]]) # Lower case no ext
@@ -200,7 +195,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	# 
 	for path, files in paths.iteritems():
 		
-		if exists(path + imageFileName):
+		if sys.exists(path + imageFileName):
 			return imageLoad(path + imageFileName)
 		
 		# If the files not there then well do a case insensitive seek.
