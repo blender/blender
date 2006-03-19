@@ -2848,9 +2848,10 @@ static void check_non_flat_quads(Render *re)
 				if(flen==0.0) CalcNormFloat(vlr->v4->co, vlr->v2->co, vlr->v1->co, nor);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
-				if(ABS(xn) < 0.99995 ) {	// checked on noisy fractal grid
+
+				if(ABS(xn) < 0.999995 ) {	// checked on noisy fractal grid
 					float d1, d2;
-					
+
 					vlr1= RE_findOrAddVlak(re, re->totvlak++);
 					*vlr1= *vlr;
 					vlr1->flag |= R_FACE_SPLIT;
