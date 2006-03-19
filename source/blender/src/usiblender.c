@@ -38,6 +38,7 @@
 #include <string.h>
 
 #ifdef WIN32
+#include <shlobj.h> /* SHGetSpecialFolderPath, has to be done before BLI_winstuff for some reasons... */
 #include "BLI_winstuff.h"
 #include <process.h> /* getpid */
 #else
@@ -466,6 +467,7 @@ static void readBlog(void)
 	/* Add the drive names to the listing */
 	{
 		__int64 tmp;
+		char folder[MAX_PATH];
 		char tmps[4];
 		int i;
 			
@@ -481,6 +483,13 @@ static void readBlog(void)
 				fsmenu_insert_entry(tmps, 0);
 			}
 		}
+
+		/* Adding Desktop and My Documents */
+		fsmenu_append_seperator();
+		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
+		fsmenu_insert_entry(folder, 0);
+		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
+		fsmenu_insert_entry(folder, 0);
 		
 		fsmenu_append_seperator();
 	}
