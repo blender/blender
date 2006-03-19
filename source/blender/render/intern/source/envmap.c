@@ -121,6 +121,9 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	cuberes = (env->cuberes * re->r.size) / 100;
 	cuberes &= 0xFFFC;
 	
+	/* this flag has R_ZTRA in it for example */
+	envre->flag= re->flag;
+	
 	/* set up renderdata */
 	envre->r= re->r;
 	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
