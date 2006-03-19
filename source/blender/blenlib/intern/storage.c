@@ -104,6 +104,8 @@ struct statfs {
 #include "BLI_util.h"
 #include "BLI_linklist.h"
 
+#include "BKE_utildefines.h"
+
 /* vars: */
 static int totnum,actnum;
 static struct direntry *files;
@@ -459,8 +461,19 @@ int BLI_filesize(int file)
 int BLI_exist(char *name)
 {
 	struct stat st;
-
-	if (stat(name,&st)) return(0);
+#ifdef WIN32
+	/*  in Windows stat doesn't recognize dir ending on a slash 
+		To not break code where the ending slash is expected we
+		don't mess with the argument name directly here - elubie */
+	char tmp[FILE_MAXDIR+FILE_MAXFILE];
+	int len;
+	BLI_strncpy(tmp, name, FILE_MAXDIR+FILE_MAXFILE);
+	len = strlen(tmp);
+	if (len > 3 && ( tmp[len-1]=='\\' || tmp[len-1]=='/') ) tmp[len-1] = '\0';
+	if (stat(tmp,&st)) return(0);
+#else
+	if (stat(name,&st)) return(0);	
+#endif
 	return(st.st_mode);
 }
 

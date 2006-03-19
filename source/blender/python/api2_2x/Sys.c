@@ -388,19 +388,19 @@ static PyObject *M_sys_exists( PyObject * self, PyObject * args )
 {
 	struct stat st;
 	char *fname = NULL;
-	int res = 0, i = -1;
+	int mode = 0, i = -1;
 
 	if( !PyArg_ParseTuple( args, "s", &fname ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string (pathname) argument" );
 
-	res = stat( fname, &st );
-
-	if( res == -1 )
+	mode = BLI_exist(fname);
+	
+	if( mode == 0 )
 		i = 0;
-	else if( S_ISREG( st.st_mode ) )
+	else if( S_ISREG( mode ) )
 		i = 1;
-	else if( S_ISDIR( st.st_mode ) )
+	else if( S_ISDIR( mode ) )
 		i = 2;
 	/* i stays as -1 if path exists but is neither a regular file nor a dir */
 
