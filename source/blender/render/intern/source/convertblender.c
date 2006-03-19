@@ -3001,7 +3001,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	}
 	
 	/* still bad... doing all */
-	init_render_textures();
+	init_render_textures(re);
 	init_render_materials(re->osa, &re->wrld.ambr);
 	set_node_shader_lamp_loop(shade_material_loop);
 

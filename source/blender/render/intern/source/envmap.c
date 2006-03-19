@@ -351,7 +351,7 @@ static void env_set_imats(Render *re)
 
 static void render_envmap(Render *re, EnvMap *env)
 {
-	/* only the cubemap is implemented */
+	/* only the cubemap and planar map is implemented */
 	Render *envre;
 	ImBuf *ibuf;
 	Image *ima;
@@ -374,7 +374,9 @@ static void render_envmap(Render *re, EnvMap *env)
 	MTC_Mat3CpyMat4(env->obimat, tmat);
 
 	for(part=0; part<6; part++) {
-
+		if(env->type==ENV_PLANE && part!=1)
+			continue;
+		
 		re->display_clear(envre->result);
 		
 		MTC_Mat4CpyMat4(tmat, orthmat);
@@ -448,6 +450,9 @@ void make_envmaps(Render *re)
 	trace= (re->r.mode & R_RAYTRACE);
 	re->r.mode &= ~R_RAYTRACE;
 
+	re->i.infostr= "Creating Environment maps";
+	re->stats_draw(&re->i);
+	
 	/* 5 = hardcoded max recursion level */
 	while(depth<5) {
 		tex= G.main->tex.first;
@@ -614,7 +619,10 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	else MTC_Mat4Mul3Vecfl(R.viewinv, vec);
 	
 	face= envcube_isect(vec, sco);
-	ima= env->cube[face];
+	if(env->type==ENV_PLANE)
+		ima= env->cube[1];
+	else
+		ima= env->cube[face];
 	
 	if(osatex) {
 		if(env->object) {
@@ -640,7 +648,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			VecSubf(vec, vec, dxt);
 			
 			if(face!=face1) {
-				ima= env->cube[face1];
+				if(env->type==ENV_CUBE)
+					ima= env->cube[face1];
+				
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, ima, sco, dxts, dyts, &texr1);
 			}
@@ -653,7 +663,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			VecSubf(vec, vec, dyt);
 			
 			if(face!=face1) {
-				ima= env->cube[face1];
+				if(env->type==ENV_CUBE)
+					ima= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, ima, sco, dxts, dyts, &texr2);
 			}

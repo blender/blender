@@ -59,7 +59,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 void do_material_tex(struct ShadeInput *shi);
 void do_lamp_tex(LampRen *la, float *lavec, struct ShadeInput *shi, float *colf);
 
-void init_render_textures(void);
+void init_render_textures(Render *re);
 
 void render_realtime_texture(struct ShadeInput *shi);           
 

@@ -865,10 +865,12 @@ static void texture_panel_envmap(Tex *tex)
 	if(tex->env) {
 		env= tex->env;
 		
+		uiBlockBeginAlign(block);
 		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, 0.0, 0, 0, "Calculates environment map only once");
 		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, 1.0, 0, 0, "Calculates environment map at each rendering");
 		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, 2.0, 0, 0, "Loads saved environment map from disk");
-
+		uiBlockEndAlign(block);
+		
 		if(env->stype==ENV_LOAD) {
 			/* file input */
 			id= (ID *)tex->ima;
@@ -897,15 +899,19 @@ static void texture_panel_envmap(Tex *tex)
 		}
 		else {
 			uiBlockBeginAlign(block);
-			uiDefBut(block, BUT, B_ENV_FREE, "Free Data", 	10,135,100,20, 0, 0, 0, 0, 0, "Releases all images associated with this environment map");
-			uiDefBut(block, BUT, B_ENV_SAVE, "Save EnvMap", 110,135,100,20, 0, 0, 0, 0, 0, "Saves current environment map");
-			uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 210,135,100,20, 0, 0, 0, 0, 0, "Frees all rendered environment maps for all materials");
+			uiDefBut(block, BUT, B_ENV_FREE, "Free Data", 	10,145,100,20, 0, 0, 0, 0, 0, "Releases all images associated with this environment map");
+			uiDefBut(block, BUT, B_ENV_SAVE, "Save EnvMap", 110,145,100,20, 0, 0, 0, 0, 0, "Saves current environment map");
+			uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 210,145,100,20, 0, 0, 0, 0, 0, "Frees all rendered environment maps for all materials");
+			
+			uiBlockBeginAlign(block);
+			uiDefButS(block, ROW, B_REDR, "Cube",			10,120,100,20, &env->type, 3.0f, 0.0f, 0, 0, "Use environment map with six cube sides");
+			uiDefButS(block, ROW, B_REDR, "Plane",			110,120,100,20, &env->type, 3.0f, 1.0f, 0, 0, "Only one side is rendered, with Z axis pointing in direction of image");
 			uiBlockEndAlign(block);
 		}
 
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_ENV_OB, "Ob:",	10,90,150,20, &(env->object), "Displays object to use as viewpoint for environment map: click to change");
 		if(env->stype!=ENV_LOAD) 
-			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 2048.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
+			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 4096.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
 
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),

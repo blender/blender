@@ -132,7 +132,7 @@ int calcimanr(int cfra, Tex *tex)
 	return imanr;
 }
 
-void init_render_texture(Tex *tex)
+void init_render_texture(Render *re, Tex *tex)
 {
 	Image *ima;
 	int imanr;
@@ -185,8 +185,11 @@ void init_render_texture(Tex *tex)
 		tex->extend= TEX_CLIP;
 		
 		if(tex->env) {
+			/* only free envmap when rendermode has set to render envmaps, for previewrender */
 			if(G.rendering) {
-				if(tex->env->stype==ENV_ANIM) BKE_free_envmapdata(tex->env);
+				if (re->r.mode & R_ENVMAP)
+					if(tex->env->stype==ENV_ANIM) 
+						BKE_free_envmapdata(tex->env);
 			}
 		}
 	}
@@ -194,13 +197,13 @@ void init_render_texture(Tex *tex)
 
 /* ------------------------------------------------------------------------- */
 
-void init_render_textures()
+void init_render_textures(Render *re)
 {
 	Tex *tex;
 	
 	tex= G.main->tex.first;
 	while(tex) {
-		if(tex->id.us) init_render_texture(tex);
+		if(tex->id.us) init_render_texture(re, tex);
 		tex= tex->id.next;
 	}
 	
