@@ -386,7 +386,6 @@ static PyObject *M_sys_sleep( PyObject * self, PyObject * args )
 
 static PyObject *M_sys_exists( PyObject * self, PyObject * args )
 {
-	struct stat st;
 	char *fname = NULL;
 	int mode = 0, i = -1;
 

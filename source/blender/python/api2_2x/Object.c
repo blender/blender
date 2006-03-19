@@ -3747,18 +3747,15 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 	if( StringEqual( name, "dupliGroup" ) ) {
 		PyObject *pyob=NULL;
 		BPy_Group *pygrp=NULL;
-		Group *group;
 		if( !PyArg_Parse( value, "O", &pyob) )
-			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-							"expected a group" ) );	
+			return EXPP_ReturnIntError( PyExc_TypeError,
+							"expected a group" );	
 		if (pyob==Py_None) {
 			object->dup_group= NULL;
 		} else {
 			pygrp= (BPy_Group *)pyob;
 			object->dup_group= pygrp->group;
 		}
-		
-		
 		return 0;
 	}
 

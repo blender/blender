@@ -1530,6 +1530,7 @@ PyObject *RenderData_EnableCropping( BPy_RenderData * self, PyObject * args )
 				      &self->renderContext->mode );
 */
 	printf("cropping option is now default, obsolete\n");
+	Py_RETURN_NONE;
 }
 
 //------------------------------------RenderData.SetImageType() ---------
