@@ -116,8 +116,8 @@ struct Render
 	   partx*xparts can be larger than rectx, in that case last part is smaller */
 	int partx, party;
 	
-	/* correction values for pixels or view */
-	float ycor, viewfac;
+	/* values for viewing */
+	float lens, ycor, viewfac;
 	float bluroffsx, bluroffsy;
 	float panophi, panosi, panoco, panodxp, panodxv;
 	

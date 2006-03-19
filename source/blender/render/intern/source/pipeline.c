@@ -1176,10 +1176,10 @@ static void threaded_tile_processor(Render *re)
 	freeparts(re);
 }
 
-/* currently only called by preview renders */
+/* currently only called by preview renders and envmap */
 void RE_TileProcessor(Render *re, int firsttile)
 {
-	if(0) 
+	if(re->r.mode & R_THREADS) 
 		threaded_tile_processor(re);
 	else
 		render_tile_processor(re, firsttile);	

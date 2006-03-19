@@ -904,8 +904,9 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 210,145,100,20, 0, 0, 0, 0, 0, "Frees all rendered environment maps for all materials");
 			
 			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, B_REDR, "Cube",			10,120,100,20, &env->type, 3.0f, 0.0f, 0, 0, "Use environment map with six cube sides");
-			uiDefButS(block, ROW, B_REDR, "Plane",			110,120,100,20, &env->type, 3.0f, 1.0f, 0, 0, "Only one side is rendered, with Z axis pointing in direction of image");
+			uiDefButS(block, ROW, B_NOP, "Cube",			10,120,100,20, &env->type, 3.0f, 0.0f, 0, 0, "Use environment map with six cube sides");
+			uiDefButS(block, ROW, B_NOP, "Plane",			110,120,100,20, &env->type, 3.0f, 1.0f, 0, 0, "Only one side is rendered, with Z axis pointing in direction of image");
+			uiDefButF(block, NUM, B_NOP, "Zoom: ",			210,120,100,20, &env->viewscale, 0.5f, 5.0f, 100, 2, "Zoom factor for planar environment map");
 			uiBlockEndAlign(block);
 		}
 
@@ -2469,7 +2470,7 @@ void do_matbuts(unsigned short event)
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
 		/* same for 'xtreme alpha' which is 'only shadow' */
 		if((ma->mode & MA_HALO)==0) {
-			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV);
+			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV|MA_ENV);
 		}
 		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 0);

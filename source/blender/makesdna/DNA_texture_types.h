@@ -115,6 +115,7 @@ typedef struct EnvMap {
 	float obimat[3][3];
 	short type, stype;
 	float clipsta, clipend;
+	float viewscale, pad;	/* viewscale is for planar envmaps to zoom in or out */
 	unsigned int notlay;
 	short cuberes, depth;
 	short ok, lastframe;

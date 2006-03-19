@@ -185,7 +185,10 @@ void init_render_texture(Render *re, Tex *tex)
 		tex->extend= TEX_CLIP;
 		
 		if(tex->env) {
-			/* only free envmap when rendermode has set to render envmaps, for previewrender */
+			if(tex->env->type==ENV_PLANE)
+				tex->extend= TEX_EXTEND;
+			
+			/* only free envmap when rendermode was set to render envmaps, for previewrender */
 			if(G.rendering) {
 				if (re->r.mode & R_ENVMAP)
 					if(tex->env->stype==ENV_ANIM) 

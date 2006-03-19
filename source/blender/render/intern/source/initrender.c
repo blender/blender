@@ -485,17 +485,22 @@ void RE_SetCamera(Render *re, Object *camera)
 
 		/* phi= acos(fac); */
 		/* lens= 16.0*fac/sin(phi); */
-		lens= 35.0;
+		lens= re->lens;
+		if(lens==0.0f)
+			lens= 35.0;
 		clipsta= 0.1;
 		clipend= 1000.0;
 	}
-	else {	/* envmap exception, can be done better... */
-		lens= 16.0;
+	else {	/* envmap exception... */
+		lens= re->lens;
+		if(lens==0.0f)
+			lens= 16.0;
+		
 		clipsta= re->clipsta;
 		clipend= re->clipend;
 		if(clipsta==0.0f || clipend==0.0f) {
-			clipsta= 0.1;
-			clipend= 1000.0;
+			clipsta= 0.1f;
+			clipend= 1000.0f;
 		}
 	}
 

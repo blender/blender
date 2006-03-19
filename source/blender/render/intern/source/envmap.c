@@ -138,6 +138,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->scene= re->scene;	/* unsure about this... */
 
 	/* view stuff in env render */
+	envre->lens= env->viewscale*16.0f;
 	envre->ycor= 1.0; 
 	envre->clipsta= env->clipsta;	/* render_scene_set_window() respects this for now */
 	envre->clipend= env->clipend;
@@ -512,48 +513,58 @@ void make_envmaps(Render *re)
 
 /* ------------------------------------------------------------------------- */
 
-static int envcube_isect(float *vec, float *answ)
+static int envcube_isect(EnvMap *env, float *vec, float *answ)
 {
 	float labda;
 	int face;
 	
-	/* which face */
-	if( vec[2]<=-fabs(vec[0]) && vec[2]<=-fabs(vec[1]) ) {
-		face= 0;
-		labda= -1.0/vec[2];
-		answ[0]= labda*vec[0];
-		answ[1]= labda*vec[1];
-	}
-	else if( vec[2]>=fabs(vec[0]) && vec[2]>=fabs(vec[1]) ) {
+	if(env->type==ENV_PLANE) {
 		face= 1;
+		
 		labda= 1.0/vec[2];
-		answ[0]= labda*vec[0];
-		answ[1]= -labda*vec[1];
-	}
-	else if( vec[1]>=fabs(vec[0]) ) {
-		face= 2;
-		labda= 1.0/vec[1];
-		answ[0]= labda*vec[0];
-		answ[1]= labda*vec[2];
-	}
-	else if( vec[0]<=-fabs(vec[1]) ) {
-		face= 3;
-		labda= -1.0/vec[0];
-		answ[0]= labda*vec[1];
-		answ[1]= labda*vec[2];
-	}
-	else if( vec[1]<=-fabs(vec[0]) ) {
-		face= 4;
-		labda= -1.0/vec[1];
-		answ[0]= -labda*vec[0];
-		answ[1]= labda*vec[2];
+		answ[0]= env->viewscale*labda*vec[0];
+		answ[1]= -env->viewscale*labda*vec[1];
 	}
 	else {
-		face= 5;
-		labda= 1.0/vec[0];
-		answ[0]= -labda*vec[1];
-		answ[1]= labda*vec[2];
+		/* which face */
+		if( vec[2]<=-fabs(vec[0]) && vec[2]<=-fabs(vec[1]) ) {
+			face= 0;
+			labda= -1.0/vec[2];
+			answ[0]= labda*vec[0];
+			answ[1]= labda*vec[1];
+		}
+		else if( vec[2]>=fabs(vec[0]) && vec[2]>=fabs(vec[1]) ) {
+			face= 1;
+			labda= 1.0/vec[2];
+			answ[0]= labda*vec[0];
+			answ[1]= -labda*vec[1];
+		}
+		else if( vec[1]>=fabs(vec[0]) ) {
+			face= 2;
+			labda= 1.0/vec[1];
+			answ[0]= labda*vec[0];
+			answ[1]= labda*vec[2];
+		}
+		else if( vec[0]<=-fabs(vec[1]) ) {
+			face= 3;
+			labda= -1.0/vec[0];
+			answ[0]= labda*vec[1];
+			answ[1]= labda*vec[2];
+		}
+		else if( vec[1]<=-fabs(vec[0]) ) {
+			face= 4;
+			labda= -1.0/vec[1];
+			answ[0]= -labda*vec[0];
+			answ[1]= labda*vec[2];
+		}
+		else {
+			face= 5;
+			labda= 1.0/vec[0];
+			answ[0]= -labda*vec[1];
+			answ[1]= labda*vec[2];
+		}
 	}
+	
 	answ[0]= 0.5+0.5*answ[0];
 	answ[1]= 0.5+0.5*answ[1];
 	return face;
@@ -621,11 +632,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	if(env->object) MTC_Mat3MulVecfl(env->obimat, vec);
 	else MTC_Mat4Mul3Vecfl(R.viewinv, vec);
 	
-	face= envcube_isect(vec, sco);
-	if(env->type==ENV_PLANE)
-		ima= env->cube[1];
-	else
-		ima= env->cube[face];
+	face= envcube_isect(env, vec, sco);
+	ima= env->cube[face];
 	
 	if(osatex) {
 		if(env->object) {
@@ -647,13 +655,11 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			texr1.nor= texr2.nor= NULL;
 
 			VecAddf(vec, vec, dxt);
-			face1= envcube_isect(vec, sco);
+			face1= envcube_isect(env, vec, sco);
 			VecSubf(vec, vec, dxt);
 			
 			if(face!=face1) {
-				if(env->type==ENV_CUBE)
-					ima= env->cube[face1];
-				
+				ima= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, ima, sco, dxts, dyts, &texr1);
 			}
@@ -662,12 +668,11 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			/* here was the nasty bug! results were not zero-ed. FPE! */
 			
 			VecAddf(vec, vec, dyt);
-			face1= envcube_isect(vec, sco);
+			face1= envcube_isect(env, vec, sco);
 			VecSubf(vec, vec, dyt);
 			
 			if(face!=face1) {
-				if(env->type==ENV_CUBE)
-					ima= env->cube[face1];
+				ima= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
 				imagewraposa(tex, ima, sco, dxts, dyts, &texr2);
 			}

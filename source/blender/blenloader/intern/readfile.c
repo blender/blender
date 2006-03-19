@@ -5293,7 +5293,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	if(main->versionfile <= 241) {
-//		Tex *tex;
+		Tex *tex;
 		Scene *sce;
 		Lamp *la;
 		bArmature *arm;
@@ -5359,9 +5359,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(la->buffers==0)
 				la->buffers= 1;
 		
-//		for(tex= main->tex.first; tex; tex= tex->id.next)
+		for(tex= main->tex.first; tex; tex= tex->id.next) {
+			if(tex->env && tex->env->viewscale==0.0f)
+				tex->env->viewscale= 1.0f;
 //			tex->imaflag |= TEX_GAUSS_MIP;
-
+		}
 		//Object *ob;
 		
 		/* for empty drawsize and drawtype */
