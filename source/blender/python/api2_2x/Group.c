@@ -14,6 +14,7 @@
 
 #include "blendef.h"
 #include "Object.h"
+#include "gen_utils.h"
 
 
 /*****************************************************************************/
@@ -76,38 +77,68 @@ static PyObject *M_Group_getObjects( BPy_Group * self )
 	return (PyObject *)seq;
 }
 
+
+void add_to_group_wraper(Group *group, Object *ob) {
+	Base *base;
+	add_to_group(group, ob);
+	
+	if (!(ob->flag & OB_FROMGROUP)) { /* do this to avoid a listbase lookup */
+		ob->flag |= OB_FROMGROUP;
+		
+		base= object_in_scene(ob, G.scene);
+		if (base)
+			base->flag |= OB_FROMGROUP;
+	}
+}
+
 /* only for internal use Blender.Group.Get("MyGroup").objects= []*/
 static int M_Group_setObjects( BPy_Group * self, PyObject * args )
 {
-	int i;
+	int i, list_size;
 	Group *group;
 	Object *blen_ob;
-	Base *base;
-	
 	group= self->group;
 	
 	if( PyList_Check( args ) ) {
 		if( EXPP_check_sequence_consistency( args, &Object_Type ) != 1)
-			return EXPP_ReturnIntError( PyExc_TypeError, 
-					"expected a list of objects" );
+			return ( EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected a list of objects" ) );
 		
 		/* remove all from the list and add the new items */
 		free_group(group); /* unlink all objects from this group, keep the group */
-		
-		for( i = 0; i < PyList_Size( args ); i++ ) {
+		list_size= PyList_Size( args );
+		for( i = 0; i < list_size; i++ ) {
 			blen_ob= ((BPy_Object *)PyList_GET_ITEM( args, i ))->object;
-			add_to_group(group, blen_ob);
-			
-			if (!(blen_ob->flag & OB_FROMGROUP)) { /* do this to avoid a listbase lookup */
-				blen_ob->flag |= OB_FROMGROUP;
-				
-				base= object_in_scene(blen_ob, G.scene);
-				if (base)
-					base->flag |= OB_FROMGROUP;
-			}
+			add_to_group_wraper(group, blen_ob);
 		}
+	/*
 	} else if( args->ob_type == &MGroupObSeq_Type ) {
+	*/
 		/* todo, handle sequences here */
+	
+	} else if (PyIter_Check(args)) {
+		PyObject *iterator = PyObject_GetIter(args);
+		PyObject *item;
+		if (iterator == NULL) {
+			Py_DECREF(iterator);
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+			"expected a list of objects, This iterator cannot be used." );
+		}
+		free_group(group); /* unlink all objects from this group, keep the group */
+		while ((item = PyIter_Next(iterator))) {
+			if ( PyObject_TypeCheck(item, &Object_Type) ) {
+				blen_ob= ((BPy_Object *)item)->object;
+				add_to_group_wraper(group, blen_ob);
+			}
+			Py_DECREF(item);
+		}
+
+		Py_DECREF(iterator);
+
+		if (PyErr_Occurred()) {
+			return EXPP_ReturnIntError( PyExc_RuntimeError, 
+			"An unknown error occured while adding iterator objects to the group.\nThe group has been modified." );
+		}
 
 	} else
 		return EXPP_ReturnIntError( PyExc_TypeError, 
@@ -153,8 +184,8 @@ static PyObject *Group_getName( BPy_Group * self, PyObject * args )
 {
 	PyObject *attr;
 	if( !(self->group) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" );
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Group was deleted!" ) );
 	
 	attr = PyString_FromString( self->group->id.name + 2 );
 
@@ -361,7 +392,7 @@ PyObject *M_Group_Get( PyObject * self, PyObject * args )
 
 		if( grouplist == NULL )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-							"couldn't create PyList" ) );
+							"couldn't create group list" ) );
 
 		while( group_iter ) {
 			pyobj = Group_CreatePyObject( group_iter );
@@ -369,7 +400,7 @@ PyObject *M_Group_Get( PyObject * self, PyObject * args )
 			if( !pyobj )
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
-					   "couldn't create PyString" ) );
+					   "couldn't create Object" ) );
 
 			PyList_SET_ITEM( grouplist, index, pyobj );
 
@@ -399,8 +430,8 @@ PyObject *M_Group_Unlink( PyObject * self, PyObject * args )
 	group= pygrp->group;
 	
 	if( !group )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" );
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Group was deleted!" ) );
 	
 	pygrp->group= NULL;
 	free_group(group);
@@ -639,13 +670,8 @@ static PyObject *MGroupObSeq_append( BPy_MGroupObSeq * self, PyObject *args )
 	
 	base= object_in_scene(blen_ob, G.scene);
 	
-	add_to_group(self->bpygroup->group, blen_ob); /* this checks so as not to add the object into the group twice*/
+	add_to_group_wraper(self->bpygroup->group, blen_ob); /* this checks so as not to add the object into the group twice*/
 	
-	if (!(blen_ob->flag & OB_FROMGROUP)) { /* do this to avoid a listbase lookup */
-		blen_ob->flag |= OB_FROMGROUP;
-		if (base)
-			base->flag |= OB_FROMGROUP;
-	}
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -658,8 +684,8 @@ static PyObject *MGroupObSeq_remove( BPy_MGroupObSeq * self, PyObject *args )
 	Base *base= NULL;
 	
 	if( !(self->bpygroup->group) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" );
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Group was deleted!" ));
 	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &pyobj ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
