@@ -486,11 +486,11 @@ static void readBlog(void)
 
 		/* Adding Desktop and My Documents */
 		fsmenu_append_seperator();
-		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
+		SHGetFolderPath(0, CSIDL_PERSONAL,NULL, 0, folder);
 		fsmenu_insert_entry(folder, 0);
-		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
+		SHGetFolderPath(0, CSIDL_DESKTOPDIRECTORY,NULL, 0, folder);
 		fsmenu_insert_entry(folder, 0);
-		
+
 		fsmenu_append_seperator();
 	}
 #endif

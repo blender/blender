@@ -134,7 +134,7 @@ ifeq ($(OS),windows)
 	ifeq ($(FREE_WINDOWS),true)
 		MINGWLIB = /usr/lib/w32api
 		LDFLAGS += -mwindows -mno-cygwin -mconsole
-		DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32
+		DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32 -lshfolder
 		DADD += -L/usr/lib/w32api -lwinmm -lwsock32
     else
 	    DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
