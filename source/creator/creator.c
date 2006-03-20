@@ -177,9 +177,9 @@ static void print_help(void)
 	printf ("      eg: blender -b foobar.blend -o //render_# -F PNG -x 1\n");
 	printf ("    -F <format>\tSet the render format, Valid options are..\n");
 	printf ("    \tTGA IRIS HAMX FTYPE JPEG MOVIE IRIZ RAWTGA\n");
-	printf ("    \tAVIRAW AVIJPEG PNG AVICODEC QUICKTIME BMP\n");
-	printf ("    \tHDR TIFF EXR MPEG FRAMESERVER CINEON DPX\n");
-	printf ("               Use // at the start of the path to\n");
+	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
+	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
+	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
 	printf ("\nAnimation options:\n");
 	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
