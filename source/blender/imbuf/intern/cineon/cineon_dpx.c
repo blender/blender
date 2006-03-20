@@ -135,22 +135,22 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	
 	/*note that image is flipped when sent to logImageSetRowBytes (see last passed parameter).*/
 	for (j = 0; j < height; ++j) {
-	fline = &buf->rect_float[width*j*4];
-	for (i=0; i<width; i++) {
-		float *fpix, fpix2[3];
-		/*we have to convert to cinepaint's 16-bit-per-channel here*/
-		pixel = &line[i*depth];
-		fpix = &fline[i*4];
-		memcpy(fpix2, fpix, sizeof(float)*3);
-		
-		if (fpix2[0]>=1) fpix2[0] = 1; 
-		if (fpix2[1]>=1) fpix2[1] = 1; 
-		if (fpix2[2]>=1) fpix2[2] = 1;
-		
-		pixel[0] = (unsigned short)(fpix2[0] * 65535.0f); /*float-float math is faster*/
-		pixel[1] = (unsigned short)(fpix2[1] * 65535.0f);
-		pixel[2] = (unsigned short)(fpix2[2] * 65535.0f);
-	}
+		fline = &buf->rect_float[width*j*4];
+		for (i=0; i<width; i++) {
+			float *fpix, fpix2[3];
+			/*we have to convert to cinepaint's 16-bit-per-channel here*/
+			pixel = &line[i*depth];
+			fpix = &fline[i*4];
+			memcpy(fpix2, fpix, sizeof(float)*3);
+			
+			if (fpix2[0]>=1.0f) fpix2[0] = 1.0f; else if (fpix2[0]<0.0f) fpix2[0]= 0.0f;
+			if (fpix2[1]>=1.0f) fpix2[1] = 1.0f; else if (fpix2[1]<0.0f) fpix2[1]= 0.0f;
+			if (fpix2[2]>=1.0f) fpix2[2] = 1.0f; else if (fpix2[2]<0.0f) fpix2[2]= 0.0f;
+			
+			pixel[0] = (unsigned short)(fpix2[0] * 65535.0f); /*float-float math is faster*/
+			pixel[1] = (unsigned short)(fpix2[1] * 65535.0f);
+			pixel[2] = (unsigned short)(fpix2[2] * 65535.0f);
+		}
 		logImageSetRowBytes(logImage, (const unsigned short*)line, height-1-j);
 	}
 	logImageClose(logImage);
