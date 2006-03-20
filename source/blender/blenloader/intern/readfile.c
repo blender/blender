@@ -2616,7 +2616,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	sce= main->scene.first;
 	while(sce) {
 		if(sce->id.flag & LIB_NEEDLINK) {
-			sce->id.us= 1;
+			
 			sce->camera= newlibadr(fd, sce->id.lib, sce->camera);
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
@@ -2693,6 +2693,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
+	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
+	sce->id.us= 1;
 	
 	link_list(fd, &(sce->base));
 
