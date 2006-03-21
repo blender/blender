@@ -126,7 +126,9 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args)
 	if( !img )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );
-	
+
+	/* reset usage count, since new_image() incremented it */
+	img->id.us--;
 	return Image_CreatePyObject( img );
 }
 
@@ -1086,9 +1088,9 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 	else if( strcmp( name, "filename" ) == 0 )
 		attr = PyString_FromString( self->image->name );
 	else if( strcmp( name, "size" ) == 0 )
-		attr = Image_getSize( self );
+		return Image_getSize( self );
 	else if( strcmp( name, "depth" ) == 0 )
-		attr = Image_getDepth( self );
+		return Image_getDepth( self );
 	else if( strcmp( name, "xrep" ) == 0 )
 		attr = PyInt_FromLong( self->image->xrep );
 	else if( strcmp( name, "yrep" ) == 0 )
