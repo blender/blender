@@ -626,6 +626,13 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 	disable_where_script( 1 );	/* to avoid error popups in the write_* functions */
 
 	if( BLI_testextensie( fname, ".blend" ) ) {
+		
+		/* fix for people who save a new blend in background mode. */
+		if (!G.scene) {
+			Scene *scene;
+			scene= add_scene("Scene");
+		}
+		
 		if( G.fileflags & G_AUTOPACK )
 			packAll(  );
 		if( !BLO_write_file( fname, G.fileflags, &error ) ) {
