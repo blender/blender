@@ -416,7 +416,7 @@ static PyObject *M_sys_expandpath( PyObject * self, PyObject * args )
 			"expected string argument" );
 	if (!G.scene) 
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"error, load a blend before expending the path." )
+			"error, load a blend before expending the path." );
 	
 	BLI_strncpy(expanded, path, FILE_MAXDIR + FILE_MAXFILE);
 	BLI_convertstringcode(expanded, G.sce, G.scene->r.cfra);
