@@ -1300,7 +1300,7 @@ static void ntree_render_scenes(Render *re)
 	
 }
 
-/* helper call to detect if theres a render-result node */
+/* helper call to detect if theres a composite with render-result node */
 int composite_needs_render(Scene *sce)
 {
 	bNodeTree *ntree= sce->nodetree;
@@ -1308,7 +1308,8 @@ int composite_needs_render(Scene *sce)
 	
 	if(ntree==NULL) return 1;
 	if(sce->use_nodes==0) return 1;
-
+	if((sce->r.scemode & R_DOCOMP)==0) return 1;
+		
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==CMP_NODE_R_RESULT)
 			if(node->id==NULL || node->id!=&sce->id)
