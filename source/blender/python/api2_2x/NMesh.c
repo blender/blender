@@ -2550,13 +2550,11 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
  		break;
  	case OB_MESH:
  		{
-			int needsFree;
 			DerivedMesh *dm = mesh_create_derived_render( ob );
 			DispListMesh *dlm = dm->convertToDispListMesh(dm, 1);
-			nmesh = new_NMesh_internal(ob->data, dlm );
+			nmesh = new_NMesh_internal( ob->data, dlm );
 			displistmesh_free(dlm);
-			if (needsFree)
-				dm->release(dm);
+			dm->release(dm);
  		}
  		break;
  	default:
