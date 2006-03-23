@@ -157,7 +157,8 @@ int MEM_check_memory_integrity()
 	
 	err_val = check_memlist(listend);
 
-	return (int)err_val;
+	if (err_val == 0) return 0;
+	return 1;
 }
 
 

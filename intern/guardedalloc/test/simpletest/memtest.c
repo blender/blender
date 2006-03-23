@@ -78,7 +78,7 @@ int main (int argc, char *argv[])
 	/* Round one, do a normal allocation, and free the blocks again.     */
 	/* ----------------------------------------------------------------- */
 	/* flush mem lib output to stderr */
-	MEM_set_error_stream(stderr);
+	MEM_set_error_callback(stderr);
 	
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;
@@ -110,7 +110,7 @@ int main (int argc, char *argv[])
 	/* Round two, do a normal allocation, and corrupt some blocks.       */
 	/* ----------------------------------------------------------------- */
 	/* switch off, because it will complain about some things.           */
-	MEM_set_error_stream(NULL);
+	MEM_set_error_callback(NULL);
 
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;
