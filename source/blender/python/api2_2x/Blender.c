@@ -625,14 +625,7 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 
 	disable_where_script( 1 );	/* to avoid error popups in the write_* functions */
 
-	if( BLI_testextensie( fname, ".blend" ) ) {
-		
-		/* fix for people who save a new blend in background mode. */
-		if (!G.scene) {
-			Scene *scene;
-			scene= add_scene("Scene");
-		}
-		
+	if( BLI_testextensie( fname, ".blend" ) ) {		
 		if( G.fileflags & G_AUTOPACK )
 			packAll(  );
 		if( !BLO_write_file( fname, G.fileflags, &error ) ) {
@@ -816,7 +809,17 @@ void M_Blender_Init(void)
 {
 	PyObject *module;
 	PyObject *dict, *smode, *SpaceHandlers;
-
+	
+	/* G.scene should only aver be NULL if blender is executed in 
+	background mode, not loading a blend file and executing a python script eg.
+	blender -P somescript.py -b
+	The if below solves the segfaults that happen when python runs and
+	G.scene is NULL */
+	if(G.background && G.main->scene.first==0) {
+		Scene *sce= add_scene("1");
+		set_scene(sce);
+	}
+	
 	module = Py_InitModule3("Blender", Blender_methods,
 		"The main Blender module");
 

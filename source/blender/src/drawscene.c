@@ -134,8 +134,10 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 	set_radglobal();
 		
 	/* complete redraw */
-	allqueue(REDRAWALL, 0);
-	allqueue(REDRAWDATASELECT, 0);	/* does a remake */
+	if (!G.background) {
+		allqueue(REDRAWALL, 0);
+		allqueue(REDRAWDATASELECT, 0);	/* does a remake */
+	}
 }
 
 
