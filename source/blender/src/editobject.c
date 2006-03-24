@@ -1734,12 +1734,10 @@ void docentre(int centremode)
 						VECCOPY(cent, give_cursor());
 						Mat4Invert(base->object->imat, base->object->obmat);
 						Mat4MulVecfl(base->object->imat, cent);
-							
-							/* Curves need to be 2d, never offset in
-							 * Z. Is a somewhat arbitrary restriction, 
-							 * would probably be nice to remove.
-							 */
-						cent[2]= 0.0;
+
+						/* don't allow Z change if curve is 2D */
+						if( !( cu->flag & CU_3D ) )
+							cent[2] = 0.0;
 					} else {
 						INIT_MINMAX(min, max);
 	
