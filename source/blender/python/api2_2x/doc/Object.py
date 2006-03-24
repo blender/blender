@@ -247,7 +247,7 @@ class Object:
     @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected. (Selecting makes the object active)
     @ivar effects: The list of particle effects associated with the object.  (Read-only)
     @ivar parentbonename: The string name of the parent bone.
-    @ivar users: The number of users of the object.  Read-only.
+    @ivar users: The number of users of the object.  (Read-only)
     @type users: int
     @ivar protectFlags: The "transform locking" bitfield flags for the object.  
     Setting bits lock the following attributes:
@@ -261,11 +261,61 @@ class Object:
        - bit 7: Y size
        - bit 8: Z size
     @type protectFlags: int
-    @ivar dupliGroup: The dupli group that this object is an instance of.
-        This does not enable or disable the dupligroup option, for that use
+    @ivar DupGroup: The DupliGroup Animation Property.
+        Assign a group to DupGroup to make this object an instance of that group.
+        This does not enable or disable the dupliGroup option, for that use
         getDupliGroup and setDupliGroup.
         The dupliGroup is None when this object does not have a dupliGroup.
-    @type dupliGroup: list of integers
+        (Use with L{enableDupGroup<enableDupGroup>})
+    @type DupGroup: Group or None
+    @ivar DupObjects: The Dupli object instances. Returns of list of tuples for object duplicated
+        by dupliframe, dupliverts dupligroups and other animation properties.
+        The first item is the original object that is duplicated
+        the second is the 4x4 worldspace dupli-matrix.
+        Example::
+         import Blender
+         from Blender import Object, Scene, Mathutils
+
+         ob= Object.Get('Cube')
+         dupe_obs= ob.getDupliObjects()
+         scn= Scene.GetCurrent()
+         for dupe_ob, dupe_matrix in dupe_obs:
+           print dupe_ob.name
+           empty_ob= Object.New('Empty')
+           scn.link(empty_ob)
+           empty_ob.setMatrix(dupe_matrix)
+         Blender.Redraw()
+        (Read-only)
+    @type DupObjects: list of tuples (object, matrix)
+    @ivar enableDupVerts: The DupliVerts status of the object.
+        True/False - does not indicate that this object has any dupliVerts,
+        (as returned by DupObjects) just that dupliVerts are enabled.
+    @type enableDupVerts: bool (True/False)
+    @ivar enableDupFrames: The DupliFrames status of the object.
+        True/False - does not indicate that this object has any dupliFrames,
+        (as returned by DupObjects) just that dupliFrames are enabled.
+    @type enableDupFrames: bool (True/False)
+    @ivar enableDupGroup: The DupliFroup status of the object.
+        True/False - Set DupGroup to a group for this to take effect,
+        Use DupObjects to get the object data from this instance. (Use with L{DupObjects<DupObjects>})
+    @type enableDupGroup: bool (True/False)
+    @ivar enableDupRot: The DupliRot status of the object.
+        True/False - Use with enableDupVerts to rotate each instance
+        by the vertex normal. (Use with L{enableDupVerts<enableDupVerts>})
+    @type enableDupRot: bool (True/False)
+    @ivar enableDupNoSpeed: The DupliNoSpeed status of the object.
+        True/False - Use with enableDupFrames to ignore
+        dupliFrame speed. (Use with L{enableDupFrames<enableDupFrames>})
+    @type enableDupNoSpeed: bool (True/False)
+    @ivar DupSta: The DupliFrame starting frame. (Use with L{enableDupFrames<enableDupFrames>})
+    @type DupSta: int
+    @ivar DupEnd: The DupliFrame end frame. (Use with L{enableDupFrames<enableDupFrames>})
+    @type DupEnd: int
+    @ivar DupOn: The DupliFrames in sucsession between DupOff frames.
+        (Use with L{enableDupFrames<enableDupFrames>} and L{DupOff<DupOff>} > 0)
+    @type DupOn: int
+    @ivar DupOff: The DupliFrame removal of every Nth frame for this object. (Use with L{enableDupFrames<enableDupFrames>})
+    @type DupOff: int
   """
 
   def buildParts():
@@ -515,61 +565,6 @@ class Object:
 
         Blender.Redraw()
     """
-
-  def getDupliVerts():
-    """
-    Get state of DupliVerts animation property
-    @return: a boolean value.
-    """
-
-  def getDupliFrames():
-    """
-    Get state of DupliFrames animation property
-    @return: a boolean value.
-    """
-
-  def getDupliGroup():
-    """
-    Get state of DupliGroup animation property
-    @note: This does not return the group used or that there is a dupli group set for this object. Only that dupliGroup is enabled.
-    @return: a boolean value.
-    """
-    
-  def getDupliRot():
-    """
-    Get state of DupliRot animation property
-    @return: a boolean value.
-    """
-    
-  def getDupliNoSpeed():
-    """
-    Get state of DupliRot animation property
-    @return: a boolean value.
-    """
-    
-  def getDupliObjects():
-    """
-    Returns of list of tuples for object duplicated
-    by dupliframe, dupliverts dupligroups and animation functions.
-    The first item is the original object that is duplicated
-    the second is the 4x4 worldspace dupli-matrix.
-    @rtype: List
-    @return: list of tuples (object, matrix)
-    Example::
-     import Blender
-     from Blender import Object, Scene, Mathutils
-
-     ob= Object.Get('Cube')
-     dupe_obs= ob.getDupliObjects()
-     scn= Scene.GetCurrent()
-     for dupe_ob, dupe_matrix in dupe_obs:
-       print dupe_ob.name
-       empty_ob= Object.New('Empty')
-       scn.link(empty_ob)
-       empty_ob.setMatrix(dupe_matrix)
-     Blender.Redraw()
-    """
-
 
   def insertIpoKey(keytype):
     """
@@ -956,36 +951,6 @@ class Object:
     @type object: Object object
     @param object: Object that will receive the properties.
     """
-
-  def setDupliVerts(data):
-    """
-    Set state of DupliVerts animation property
-    @param data: boolean value True/False, non zero/zero.
-    """
-
-  def setDupliFrames(data):
-    """
-    Set state of DupliFrames animation property
-    @param data: boolean value True/False, non zero/zero.
-    """
-
-  def setDupliGroups(data):
-    """
-    Set state of DupliGroup animation property, this does not set the group used. 
-    @param data: boolean value True/False, non zero/zero.
-    """
-
-  def setDupliRot(data):
-    """
-    Set state of DupliRot animation property
-    @param data: boolean value True/False, non zero/zero.
-    """
-    
-  def setDupliNoSpeed (data):
-    """
-    Set state of DupliNoSpeed animation property
-     @param data: boolean value True/False, non zero/zero.
-     """
 
   def getPIStregth():
     """

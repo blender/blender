@@ -219,7 +219,7 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args );
 static PyObject *Object_materialUsage( void );
-static PyObject *Object_getDupliVerts ( BPy_Object * self );
+static PyObject *Object_getDupliVerts ( BPy_Object * self ); /* */
 static PyObject *Object_getDupliFrames ( BPy_Object * self );
 static PyObject *Object_getDupliGroup ( BPy_Object * self );
 static PyObject *Object_getDupliRot ( BPy_Object * self );
@@ -256,11 +256,11 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject *args );
-static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args );
-static PyObject *Object_setDupliFrames ( BPy_Object * self, PyObject * args );
-static PyObject *Object_setDupliGroup ( BPy_Object * self, PyObject * args );
-static PyObject *Object_setDupliRot ( BPy_Object * self , PyObject * args);
-static PyObject *Object_setDupliNoSpeed ( BPy_Object * self , PyObject * args);
+static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args ); /* removed from API, used by enableDupliVerts */
+static PyObject *Object_setDupliFrames ( BPy_Object * self, PyObject * args ); /* removed from API, used by enableDupliFrames */
+static PyObject *Object_setDupliGroup ( BPy_Object * self, PyObject * args ); /* removed from API, used by enableDupliGroups */
+static PyObject *Object_setDupliRot ( BPy_Object * self , PyObject * args); /* removed from API, used by enableDupliRot */
+static PyObject *Object_setDupliNoSpeed ( BPy_Object * self , PyObject * args); /* removed from API, used by enableDupliNoSpeed */
 static PyObject *Object_getPIStrength( BPy_Object * self );
 static PyObject *Object_setPIStrength( BPy_Object * self, PyObject * args );
 static PyObject *Object_getPIFalloff( BPy_Object * self );
@@ -482,19 +482,9 @@ automatic when the script finishes."},
 	 "Sets SB StiffQuads"},
 	{"getBoundBox", ( PyCFunction ) Object_getBoundBox, METH_NOARGS,
 	 "Returns the object's bounding box"},
-	{"getDupliVerts", ( PyCFunction ) Object_getDupliVerts,
-	 METH_VARARGS, "Returns state of duplicates propertie"},
-	{"getDupliFrames", ( PyCFunction ) Object_getDupliFrames,
-	 METH_NOARGS, "Returns state of Frames duplicates propertie"},
-	{"getDupliGroup", ( PyCFunction ) Object_getDupliGroup,
-	 METH_NOARGS, "Returns state of Group duplicates propertie"},
-	{"getDupliRot", ( PyCFunction ) Object_getDupliRot,
-	 METH_NOARGS, "Returns state of Rot duplicates propertie"},
-	{"getDupliNoSpeed", ( PyCFunction ) Object_getDupliNoSpeed,
-	 METH_NOARGS, "Returns state of Nospeed duplicates propertie"},
-	{"getDupliObjects", ( PyCFunction ) Object_getDupliObjects,
+	/*{"getDupliObjects", ( PyCFunction ) Object_getDupliObjects,
 	 METH_NOARGS, "Returns of list of tuples for object duplicated (object, dupliMatrix)\n\
-	 by dupliframe or dupliverst state "},
+	 by dupliframe or dupliverst state "},*/
 	{"makeDisplayList", ( PyCFunction ) Object_makeDisplayList,
 	 METH_NOARGS,
 	 "Update this object's Display List. Some changes like turning \n\
@@ -619,16 +609,6 @@ works only if self and the object specified are of the same type."},
 	 METH_VARARGS,
 	 "() - Delete all scriptlinks from this object.\n"
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
-	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
-	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
-	{"setDupliFrames", ( PyCFunction ) Object_setDupliFrames,
-	 METH_VARARGS, "- set or reset state of Frames duplicates propertie"},
-	{"setDupliGroup", ( PyCFunction ) Object_setDupliGroup,
-	 METH_VARARGS, "- set or reset state of Group duplicates propertie"},
-	{"setDupliRot", ( PyCFunction ) Object_setDupliRot,
-	 METH_VARARGS, "- set or reset state of Rot duplicates propertie"},
-	{"setDupliNoSpeed", ( PyCFunction ) Object_setDupliNoSpeed,
-	 METH_VARARGS, "- set or reset state of Nospeed duplicates propertie"},
 	{"insertShapeKey", ( PyCFunction ) Object_insertShapeKey,
 	 METH_NOARGS, "() - Insert a Shape Key in the current object"},
 	{NULL, NULL, 0, NULL}
@@ -3523,8 +3503,20 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return PyInt_FromLong( obj->object->id.us );
 	if( StringEqual( name, "protectFlags" ) )
 		return PyInt_FromLong( obj->object->protectflag );
-	if( StringEqual( name, "dupliGroup" ) )
+	if( StringEqual( name, "DupObjects" ) )
+		return Object_getDupliObjects( obj );
+	if( StringEqual( name, "DupGroup" ) )
 		return Group_CreatePyObject( obj->object->dup_group );
+	if( StringEqual( name, "enableDupVerts" ) )
+		return Object_getDupliVerts( obj );
+	if( StringEqual( name, "enableDupFrames" ) )
+		return Object_getDupliFrames( obj );
+	if( StringEqual( name, "enableDupGroup" ) )
+		return Object_getDupliGroup( obj );
+	if( StringEqual( name, "enableDupRot" ) )
+		return Object_getDupliRot( obj );
+	if( StringEqual( name, "enableDupNoSpeed" ) )
+		return Object_getDupliNoSpeed( obj );	
 	
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
@@ -3540,7 +3532,7 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 {
 	PyObject *valtuple, *result=NULL;
 	struct Object *object;
-
+	
 	object = obj->object;
 
 	/* Handle all properties which are Read Only */
@@ -3744,17 +3736,21 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		object->protectflag = (short)flag;
 		return 0;
 	}
-	if( StringEqual( name, "dupliGroup" ) ) {
+	if( StringEqual( name, "DupGroup" ) ) {
 		PyObject *pyob=NULL;
 		BPy_Group *pygrp=NULL;
 		if( !PyArg_Parse( value, "O", &pyob) )
 			return EXPP_ReturnIntError( PyExc_TypeError,
-							"expected a group" );	
-		if (pyob==Py_None) {
-			object->dup_group= NULL;
-		} else {
+							"expected a group or None" );	
+		
+		if ( PyObject_TypeCheck(pyob, &Group_Type) ) {
 			pygrp= (BPy_Group *)pyob;
 			object->dup_group= pygrp->group;
+		} else if (pyob==Py_None) {
+			object->dup_group= NULL;
+		} else {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+							"expected a group or None" );
 		}
 		return 0;
 	}
@@ -3789,6 +3785,20 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 	else if( StringEqual( name, "effects" ) )
 		return EXPP_ReturnIntError( PyExc_AttributeError, 
 				"effects is not writable" );
+	
+	else if( StringEqual( name, "enableDupVerts" ) )
+		result = Object_setDupliVerts( obj, valtuple );
+	else if( StringEqual( name, "enableDupFrames" ) )
+		result = Object_setDupliFrames( obj, valtuple );
+	else if( StringEqual( name, "enableDupGroup" ) )
+		result = Object_setDupliGroup( obj, valtuple );
+	else if( StringEqual( name, "enableDupRot" ) )
+		result = Object_setDupliRot( obj, valtuple );
+	else if( StringEqual( name, "enableDupNoSpeed" ) )
+		result = Object_setDupliNoSpeed( obj, valtuple );	
+	else if( StringEqual( name, "DupObjects" ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError, 
+				"DupObjects is not writable" );
 	else { /* if it turns out here, it's not an attribute*/
 		Py_DECREF(valtuple);
 		return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );
