@@ -817,7 +817,8 @@ void M_Blender_Init(void)
 	G.scene is NULL */
 	if(G.background && G.main->scene.first==0) {
 		Scene *sce= add_scene("1");
-		set_scene(sce);
+		//set_scene(sce); /* causes a crash */
+		G.scene= sce;
 	}
 	
 	module = Py_InitModule3("Blender", Blender_methods,
