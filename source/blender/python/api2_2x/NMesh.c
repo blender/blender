@@ -50,6 +50,7 @@
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
 #include "BIF_editview.h"
+#include "BIF_space.h"
 
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -1255,6 +1256,7 @@ static PyObject *NMesh_insertKey( PyObject * self, PyObject * args )
 					      "update this NMesh first with its .update() method" );
 
 	insert_meshkey( mesh, typenum );
+	allspace(REMAKEIPO, 0);
 
 	if( fra > 0 )
 		G.scene->r.cfra = (short)oldfra;

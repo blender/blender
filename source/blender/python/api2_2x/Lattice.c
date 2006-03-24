@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "BIF_editkey.h"
 #include "BIF_editdeform.h"
+#include "BIF_space.h"
 #include "blendef.h"
 #include "gen_utils.h"
 
@@ -759,6 +760,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 
 	//insert a keybock for the lattice (1=relative)
 	insert_lattkey( lt , 1);
+	allspace(REMAKEIPO, 0);
 
 	if( frame > 0 )
 		G.scene->r.cfra = (short)oldfra;
