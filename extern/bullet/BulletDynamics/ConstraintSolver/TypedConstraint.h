@@ -51,3 +51,4 @@ m_userConstraintType(-1)
 };
 
 #endif //TYPED_CONSTRAINT_H
+

@@ -44,7 +44,7 @@
  */
 void
 addEdges(
-	char * targetbuf,
+	unsigned char * targetbuf,
 	int iw,
 	int ih,
 	int osanr,

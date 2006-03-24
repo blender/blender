@@ -1292,7 +1292,6 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 		const KX_IndexArray & indexarray = (*indexarrays[vt]);
 		numindices = indexarray.size();
 		const unsigned int enabled = polymat->GetEnabled();
-		unsigned int unit;
 
 		if (!numindices)
 			break;

@@ -342,14 +342,14 @@ short imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
 	FILE* file = fopen(name, "wb");
 	float *fp= NULL;
 	int y, width=ibuf->x, height=ibuf->y;
-	char *cp= NULL;
+	unsigned char *cp= NULL;
 	
 	if (file==NULL) return 0;
 
 	writeHeader(file, width, height);
 
 	if(ibuf->rect)
-		cp= (char *)(ibuf->rect + (height-1)*width);
+		cp= (unsigned char *)(ibuf->rect + (height-1)*width);
 	if(ibuf->rect_float)
 		fp= ibuf->rect_float + 4*(height-1)*width;
 	

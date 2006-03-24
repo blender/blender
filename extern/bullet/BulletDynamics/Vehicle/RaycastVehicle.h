@@ -146,3 +146,4 @@ public:
 };
 
 #endif //RAYCASTVEHICLE_H
+

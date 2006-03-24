@@ -1227,3 +1227,4 @@ PHY_IVehicle*	CcdPhysicsEnvironment::getVehicleConstraint(int constraintId)
 }
 
 #endif //NEW_BULLET_VEHICLE_SUPPORT
+

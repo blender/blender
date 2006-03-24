@@ -80,7 +80,7 @@ extern struct Render R;
 static Material** matBuffer;  /* buffer with material indices                */
 static Material* mat_cache;  /* material of the face being buffered          */
 
-static char* colBuffer;      /* buffer with colour correction                */
+static unsigned char* colBuffer;      /* buffer with colour correction                */
 static int *edgeBuffer;      /* buffer with distances                        */
 static int  bufWidth;        /* x-dimension of the buffer                    */
 static int  bufHeight;       /* y-dimension of the buffer                    */
@@ -125,7 +125,7 @@ static void insertInEdgeBuffer(int x, int y, int dist);
  * Renders enhanced edges. Distances from distRect are used to
  * determine a correction on colourRect
  */
-static void renderEdges(char * colourRect);
+static void renderEdges(unsigned char * colourRect);
 
 /**
  * Buffer an edge between these two vertices in the e.r. distance buffer.
@@ -140,7 +140,7 @@ static void fillEdgeRenderFace(struct ZSpan *zspan, int, float *v1, float *v2, f
 /**
  * Compose the edge render colour buffer.
  */
-static void calcEdgeRenderColBuf(char * tarbuf);
+static void calcEdgeRenderColBuf(unsigned char * tarbuf);
 
 /**
  * Loop over all objects that need to be edge rendered. This loop determines
@@ -156,7 +156,7 @@ static void addEdgeOver(unsigned char *dst, unsigned char *src);
 /* ------------------------------------------------------------------------- */
 
 /* this is main call! */
-void addEdges(char * targetbuf, int iw, int ih, int osanr,
+void addEdges(unsigned char * targetbuf, int iw, int ih, int osanr,
 	short int intens, short int intens_redux, int compat, int mode, float r, float g, float b)
 {
 	float rf, gf ,bf;
@@ -192,7 +192,7 @@ void addEdges(char * targetbuf, int iw, int ih, int osanr,
 
 static void initEdgeRenderBuffer()
 {
-	char *ptr;
+	unsigned char *ptr;
 	int i;
 	
 	maskBorder = 1; /* for 3 by 3 mask*/
@@ -207,7 +207,7 @@ static void initEdgeRenderBuffer()
 	}
 	
 	edgeBuffer = MEM_callocN(sizeof(int) * bufWidth * bufHeight, "edgeBuffer");
-	colBuffer  = MEM_callocN(sizeof(char) * 4 * imWidth * imHeight, "colBuffer");
+	colBuffer  = MEM_callocN(sizeof(unsigned char) * 4 * imWidth * imHeight, "colBuffer");
 
 	
 	if ((edgeR != 0) || (edgeG != 0) || (edgeB != 0)) {
@@ -265,7 +265,7 @@ static void insertInEdgeBuffer(int x, int y, int dist)
 
 /* ------------------------------------------------------------------------- */
 /* Modelled after rendercore.c/edge_enhance()                                */
-static void renderEdges(char *colourRect)
+static void renderEdges(unsigned char *colourRect)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int val, y, x, col, *rz, *rz1, *rz2, *rz3;
@@ -276,7 +276,7 @@ static void renderEdges(char *colourRect)
 		     * under the mask are the same, non-0 otherwise*/
 	int *matptr_low = 0, *matptr_cent = 0, *matptr_high = 0;
 	int matdiffac = 0;
-	char *cp;
+	unsigned char *cp;
 
 #ifdef RE_EDGERENDER_NO_CORRECTION
 	return; /* no edge correction */
@@ -513,7 +513,7 @@ static void addEdgeOver(unsigned char *dst, unsigned char *src)
    dst[2] = c;
 }
 
-static void calcEdgeRenderColBuf(char* colTargetBuffer)
+static void calcEdgeRenderColBuf(unsigned char *colTargetBuffer)
 {
     int keepLooping = 1;
 	int sample;
