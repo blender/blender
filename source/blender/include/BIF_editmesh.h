@@ -76,6 +76,8 @@ extern void EM_clear_flag_all(int flag);
 
 extern void EM_select_face(struct EditFace *efa, int sel);
 extern void EM_select_edge(struct EditEdge *eed, int sel);
+extern float EM_face_area(struct EditFace *efa);
+extern float EM_face_perimeter(struct EditFace *efa);
 
 extern void EM_deselect_flush(void);	// vertices to edges/faces (exception!)
 extern void EM_select_flush(void);	// vertices to edges/faces (exception!)
@@ -145,6 +147,7 @@ extern void editmesh_select_by_material(int index);
 extern void editmesh_deselect_by_material(int index);
 
 extern void Edge_Menu(void);
+extern void select_mesh_group_menu(void);
 extern void editmesh_mark_seam(int clear);
 
 

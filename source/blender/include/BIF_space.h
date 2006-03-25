@@ -117,7 +117,7 @@ extern       void newspace(struct ScrArea *sa, int type);
 extern       void set_rects_butspace(struct SpaceButs *buts);
 extern       void test_butspace(void);
 extern       void start_game(void);
-extern		 void select_grouped(short nr);
+extern		 void select_object_grouped(short nr);
 extern		 void join_menu(void);
 
 extern 		void BIF_undo_push(char *str);

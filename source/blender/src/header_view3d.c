@@ -746,7 +746,7 @@ void do_view3d_select_object_groupedmenu(void *arg, int event)
 	case 3: /* Parent */
 	case 4: /* Objects on Shared Layers */
 	case 5: /* Objects in Same Group */
-		select_grouped((short)event);
+		select_object_grouped((short)event);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

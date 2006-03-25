@@ -1573,10 +1573,24 @@ int convex(float *v1, float *v2, float *v3, float *v4)
    - edges having ->fgoni index set (for select)
 */
 
-static float editface_area(EditFace *efa)
+float EM_face_area(EditFace *efa)
 {
 	if(efa->v4) return AreaQ3Dfl(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
 	else return AreaT3Dfl(efa->v1->co, efa->v2->co, efa->v3->co);
+}
+
+float EM_face_perimeter(EditFace *efa)
+{	
+	if(efa->v4) return
+		VecLenf(efa->v1->co, efa->v2->co)+
+		VecLenf(efa->v2->co, efa->v3->co)+
+		VecLenf(efa->v3->co, efa->v4->co)+
+		VecLenf(efa->v4->co, efa->v1->co);
+	
+	else return
+		VecLenf(efa->v1->co, efa->v2->co)+
+		VecLenf(efa->v2->co, efa->v3->co)+
+		VecLenf(efa->v3->co, efa->v1->co);
 }
 
 void EM_fgon_flags(void)
@@ -1616,7 +1630,7 @@ void EM_fgon_flags(void)
 			if(efa->e4 && (efa->e4->h & EM_FGON)) efa->e4->fgoni= curindex;
 			
 			// we search for largest face, to give facedot drawing rights
-			maxsize= editface_area(efa);
+			maxsize= EM_face_area(efa);
 			efamax= efa;
 			
 			// now flush curendex over edges and set faceflags
@@ -1636,7 +1650,7 @@ void EM_fgon_flags(void)
 							if(efan->e3->h & EM_FGON) efan->e3->fgoni= curindex;
 							if(efan->e4 && (efan->e4->h & EM_FGON)) efan->e4->fgoni= curindex;
 							
-							size= editface_area(efan);
+							size= EM_face_area(efan);
 							if(size>maxsize) {
 								efamax= efan;
 								maxsize= size;
@@ -1668,7 +1682,3 @@ void EM_fgon_flags(void)
 	}
 	
 }
-
-
-
-

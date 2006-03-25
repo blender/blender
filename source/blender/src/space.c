@@ -614,7 +614,7 @@ static void select_same_group(Object *ob)	/* Select objects in the same group as
 		}
 }
 
-void select_grouped(short nr)
+void select_object_grouped(short nr)
 {
 	Base *base;
 	
@@ -640,7 +640,7 @@ void select_grouped(short nr)
 	allqueue(REDRAWIPO, 0);
 }
 
-static void select_grouped_menu(void)
+static void select_object_grouped_menu(void)
 {
 	char *str;
 	short nr;
@@ -658,7 +658,7 @@ static void select_grouped_menu(void)
 	nr= pupmenu(str);
 	MEM_freeN(str);
 	
-	select_grouped(nr);
+	select_object_grouped(nr);
 }
 
 void join_menu(void)
@@ -1346,7 +1346,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case GKEY:
 				if(G.qual & LR_CTRLKEY) group_operation_with_menu();
 				else if((G.qual==LR_SHIFTKEY))
-					select_grouped_menu();
+					if(G.obedit) {
+						if(G.obedit->type==OB_MESH)
+							select_mesh_group_menu();
+					} else
+						select_object_grouped_menu();
 				else if(G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');

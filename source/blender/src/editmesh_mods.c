@@ -744,6 +744,121 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 	return (*eve || *eed || *efa);
 }
 
+/* ****************  GROUP SELECTS ************** */
+/* selects new faces/edges/verts based on the
+ existing selection
+ mode 1 is same material
+ mode 2 is same image
+ mode 3: same area
+ mode 4: same perimeter
+ mode 5: same normal
+ mode 6: same co-planer
+*/
+void facegroup_select(short mode)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa, *base_efa;
+	short change=0;
+	float thresh=G.scene->toolsettings->doublimit;
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			base_efa= efa;
+			break;
+		}
+	}
+	
+	if (mode==1) { /* same material */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT) && base_efa->mat_nr == efa->mat_nr) {
+				EM_select_face(efa, 1);
+				change=1;
+			}
+		}
+	} else if (mode==2) { /* same image */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT) && base_efa->tf.tpage == efa->tf.tpage) {
+				EM_select_face(efa, 1);
+				change=1;
+			}
+		}
+	} else if (mode==3) { /* same area */
+		float area, base_area;
+		base_area= EM_face_area(base_efa);
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT)) {
+				area= EM_face_area(efa);
+				if (fabs(area-base_area)<=thresh) {
+					EM_select_face(efa, 1);
+					change=1;
+				}
+			}
+		}
+	} else if (mode==4) { /* same perimeter */
+		float perimeter, base_perimeter;
+		base_perimeter= EM_face_perimeter(base_efa);
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT)) {
+				perimeter= EM_face_perimeter(efa);
+				if (fabs(perimeter-base_perimeter)<=thresh) {
+					EM_select_face(efa, 1);
+					change=1;
+				}
+			}
+		}
+	} else if (mode==5) { /* same normal */
+		float angle;
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT)) {
+				angle= saacos(base_efa->n[0]*efa->n[0] + base_efa->n[1]*efa->n[1] + base_efa->n[2]*efa->n[2]) * 57.2957795131; /*180.0/M_PI*/
+				if (angle<=thresh) {
+					EM_select_face(efa, 1);
+					change=1;
+				}
+			}
+		}
+	} else if (mode==6) { /* same planer */
+		float angle, base_dot, dot;
+		base_dot= base_efa->cent[0]*base_efa->n[0] + base_efa->cent[1]*base_efa->n[1] + base_efa->cent[2]*base_efa->n[2];
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT)) {
+				angle= saacos(base_efa->n[0]*efa->n[0] + base_efa->n[1]*efa->n[1] + base_efa->n[2]*efa->n[2]) * 57.2957795131; /*180.0/M_PI*/
+				if (angle<=thresh) {
+					dot= efa->cent[0]*base_efa->n[0] + efa->cent[1]*base_efa->n[1] + efa->cent[2]*base_efa->n[2];
+					if (fabs(base_dot-dot) <= thresh) {
+						EM_select_face(efa, 1);
+						change=1;
+					}
+				}
+			}
+		}
+	}
+	
+	
+	if (change) {
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Select Grouped Faces");
+	}
+}
+
+void select_mesh_group_menu()
+{
+	short ret;
+	
+	if(G.scene->selectmode & SCE_SELECT_FACE) {
+		ret= pupmenu("Select Grouped Faces (by Same)%t|Material %x1|Image %x2|Area %x3|Perimeter %x4|Normal %x5|Co-Planer %x6");
+		if (ret<1) return;
+		facegroup_select(ret);
+		
+	} else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+		/**/
+	} else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		/**/
+	}
+	
+}
+
+
 /* ****************  LOOP SELECTS *************** */
 
 /* selects quads in loop direction of indicated edge */
