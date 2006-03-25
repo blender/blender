@@ -747,6 +747,8 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 /* ****************  GROUP SELECTS ************** */
 /* selects new faces/edges/verts based on the
  existing selection
+
+FACES GROUP
  mode 1: same material
  mode 2: same image
  mode 3: same area
@@ -758,7 +760,7 @@ void facegroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa, *base_efa=NULL;
-	short selcount=0;
+	unsigned int selcount=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
@@ -846,8 +848,8 @@ void facegroup_select(short mode)
 }
 
 
-/* selects new faces/edges/verts based on the
- existing selection
+/*
+EDGE GROUP
  mode 1: same length
  mode 2: same direction
  mode 3: same number of face users
@@ -856,7 +858,7 @@ void edgegroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed, *base_eed=NULL;
-	short selcount=0;
+	unsigned int selcount=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
 	if (mode==3) { /* set all eed->tmp.l to 0 we use them later.*/
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -922,29 +924,122 @@ void edgegroup_select(short mode)
 	}
 	
 	if (selcount) {
+		//EM_select_flush(); /* dont use because it can end up selecting more edges and is not usefull*/
 		G.totedgesel+=selcount;
 		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Select Grouped Faces");
+		BIF_undo_push("Select Grouped Edges");
 	}
 }
 
 
+/*
+VERT GROUP
+ mode 1: same normal
+ mode 2: same number of face users
+ mode 3: same vertex groups
+*/
+void vertgroup_select(short mode)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve, *base_eve=NULL;
+	
+	unsigned int selcount=0;
+	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
+	
+	if (mode==2) { /* set all eve->tmp.l to 0 we use them later.*/
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if (eve->f & SELECT && !eve->h) {
+				base_eve= eve;
+			}
+			eve->tmp.l=0;
+		}
+	} else {
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if (eve->f & SELECT && !eve->h) {
+				base_eve= eve;
+				break;
+			}
+		}
+	}
+	
+	if (!base_eve)
+		return;
+	
+	if (mode==1) { /* same normal */
+		float angle;
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if (!(eve->f & SELECT) && !eve->h) {
+				angle= VecAngle2(base_eve->no, eve->no);
+				if (angle<=thresh) {
+					eve->f |= SELECT;
+					selcount++;
+				}
+			}
+		}
+	} else if (mode==2) { /* face users */
+		EditFace *efa;
+		
+		/* count how many faces each edge uses use tmp->l */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			efa->v1->tmp.l++;
+			efa->v2->tmp.l++;
+			efa->v3->tmp.l++;
+			if (efa->v4) efa->v4->tmp.l++;
+		}
+		
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if ((!(eve->f & SELECT) && !eve->h) && (base_eve->tmp.l==eve->tmp.l)) {
+				eve->f |= SELECT;
+				selcount++;
+			}
+		}
+	} else if (mode==3) { /* vertex groups */
+		short i,j; /*weight index*/
+		if (!base_eve->totweight)
+			return;
+		
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			if (!(eve->f & SELECT) && !eve->h && eve->totweight) {
+				/* do the extra check for selection in the following if, so were not
+				checking verts that may be alredy selected */
+				for (i=0; base_eve->totweight >i && !(eve->f & SELECT); i++) { 
+					for (j=0; eve->totweight >j; j++) {
+						if (base_eve->dw[i].def_nr==eve->dw[j].def_nr) {
+							eve->f |= SELECT;
+							selcount++;
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+	}
+	if (selcount) {
+		EM_select_flush(); /* so that selected verts, go onto select faces */
+		G.totedgesel+=selcount;
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Select Grouped Verts");
+	}
+}
 
 void select_mesh_group_menu()
 {
 	short ret;
 	
 	if(G.scene->selectmode & SCE_SELECT_FACE) {
-		ret= pupmenu("Select Grouped Faces (by Same)%t|Material %x1|Image %x2|Area %x3|Perimeter %x4|Normal %x5|Co-Planer %x6");
+		ret= pupmenu("Select Grouped Faces %t|Same Material %x1|Same Image %x2|Similar Area %x3|Similar Perimeter %x4|Similar Normal %x5|Similar Co-Planer %x6");
 		if (ret<1) return;
 		facegroup_select(ret);
 		
 	} else if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		ret= pupmenu("Select Grouped Edges (by Same)%t|Length %x1|Direction %x2|Face Users%x3");
+		ret= pupmenu("Select Grouped Edges%t|Similar Length %x1|Similar Direction %x2|Same Face Users%x3");
 		if (ret<1) return;
 		edgegroup_select(ret);
 	} else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-		/**/
+		ret= pupmenu("Select Grouped Verts%t|Similar Normal %x1|Same Face Users %x2|Shared Vertex Groups%x3");
+		if (ret<1) return;
+		vertgroup_select(ret);
 	}
 	
 }
