@@ -1624,17 +1624,19 @@ static void object_panel_anim(Object *ob)
 	
 	uiDefButBitS(block, TOG, OB_DUPLIFRAMES, REDRAWVIEW3D, "DupliFrames",	24,130,89,20, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
 	uiDefButBitS(block, TOG, OB_DUPLIVERTS, REDRAWVIEW3D, "DupliVerts",		114,130,82,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",				200,130,31,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
+	uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",				200,130,31,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to vertnormal");
 	uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",		234,130,82,20, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
 	
-	uiDefButBitS(block, TOG, OB_DUPLIGROUP, REDRAWVIEW3D, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
-	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Duplicate this entire Group"); 
+	uiDefButBitS(block, TOG, OB_DUPLIGROUP, REDRAWVIEW3D, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Enable group instancing");
+	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Instance an existing group");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,85,141,19, &ob->dupsta, 1.0, (MAXFRAMEF - 1.0f), 0, 0, "Specify startframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		170,85,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,65,140,19, &ob->dupend, 1.0, MAXFRAMEF, 0, 0, "Specify endframe for Dupliframes");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		171,65,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
+	/* DupSta and DupEnd are both shorts, so the maxframe is greater then their range
+	just limit the buttons to the max short */
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,85,141,19, &ob->dupsta, 1.0, 32767, 0, 0, "Specify startframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		170,85,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "Specify the number of frames to use between DupOff frames");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,65,140,19, &ob->dupend, 1.0, 32767, 0, 0, "Specify endframe for Dupliframes");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		171,65,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "Specify recurring frames to exclude from the Dupliframes");
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,35,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
 	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,35,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
