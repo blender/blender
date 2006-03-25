@@ -634,6 +634,12 @@ VecAngle3(
 	float *v3
 );
 
+	float
+VecAngle2(
+	float *v1, 
+	float *v2
+);
+
 	void 
 i_lookat(
 	float vx, float vy, 

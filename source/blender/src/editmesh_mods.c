@@ -747,8 +747,8 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 /* ****************  GROUP SELECTS ************** */
 /* selects new faces/edges/verts based on the
  existing selection
- mode 1 is same material
- mode 2 is same image
+ mode 1: same material
+ mode 2: same image
  mode 3: same area
  mode 4: same perimeter
  mode 5: same normal
@@ -757,40 +757,43 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 void facegroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
-	EditFace *efa, *base_efa;
-	short change=0;
-	float thresh=G.scene->toolsettings->doublimit;
+	EditFace *efa, *base_efa=NULL;
+	short selcount=0;
+	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
+		if (efa->f & SELECT && !efa->h) {
 			base_efa= efa;
 			break;
 		}
 	}
 	
+	if (!base_efa)
+		return;
+	
 	if (mode==1) { /* same material */
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && base_efa->mat_nr == efa->mat_nr) {
+			if (!(efa->f & SELECT) && !efa->h && base_efa->mat_nr == efa->mat_nr) {
 				EM_select_face(efa, 1);
-				change=1;
+				selcount++;
 			}
 		}
 	} else if (mode==2) { /* same image */
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && base_efa->tf.tpage == efa->tf.tpage) {
+			if (!(efa->f & SELECT) && !efa->h && base_efa->tf.tpage == efa->tf.tpage) {
 				EM_select_face(efa, 1);
-				change=1;
+				selcount++;
 			}
 		}
 	} else if (mode==3) { /* same area */
 		float area, base_area;
 		base_area= EM_face_area(base_efa);
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT)) {
+			if (!(efa->f & SELECT) && !efa->h) {
 				area= EM_face_area(efa);
 				if (fabs(area-base_area)<=thresh) {
 					EM_select_face(efa, 1);
-					change=1;
+					selcount++;
 				}
 			}
 		}
@@ -798,22 +801,22 @@ void facegroup_select(short mode)
 		float perimeter, base_perimeter;
 		base_perimeter= EM_face_perimeter(base_efa);
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT)) {
+			if (!(efa->f & SELECT) && !efa->h) {
 				perimeter= EM_face_perimeter(efa);
 				if (fabs(perimeter-base_perimeter)<=thresh) {
 					EM_select_face(efa, 1);
-					change=1;
+					selcount++;
 				}
 			}
 		}
 	} else if (mode==5) { /* same normal */
 		float angle;
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT)) {
-				angle= saacos(base_efa->n[0]*efa->n[0] + base_efa->n[1]*efa->n[1] + base_efa->n[2]*efa->n[2]) * 57.2957795131; /*180.0/M_PI*/
+			if (!(efa->f & SELECT) && !efa->h) {
+				angle= VecAngle2(base_efa->n, efa->n);
 				if (angle<=thresh) {
 					EM_select_face(efa, 1);
-					change=1;
+					selcount++;
 				}
 			}
 		}
@@ -821,13 +824,13 @@ void facegroup_select(short mode)
 		float angle, base_dot, dot;
 		base_dot= base_efa->cent[0]*base_efa->n[0] + base_efa->cent[1]*base_efa->n[1] + base_efa->cent[2]*base_efa->n[2];
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT)) {
-				angle= saacos(base_efa->n[0]*efa->n[0] + base_efa->n[1]*efa->n[1] + base_efa->n[2]*efa->n[2]) * 57.2957795131; /*180.0/M_PI*/
+			if (!(efa->f & SELECT) && !efa->h) {
+				angle= VecAngle2(base_efa->n, efa->n);
 				if (angle<=thresh) {
 					dot= efa->cent[0]*base_efa->n[0] + efa->cent[1]*base_efa->n[1] + efa->cent[2]*base_efa->n[2];
 					if (fabs(base_dot-dot) <= thresh) {
 						EM_select_face(efa, 1);
-						change=1;
+						selcount++;
 					}
 				}
 			}
@@ -835,11 +838,97 @@ void facegroup_select(short mode)
 	}
 	
 	
-	if (change) {
+	if (selcount) {
+		G.totfacesel+=selcount;
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Select Grouped Faces");
 	}
 }
+
+
+/* selects new faces/edges/verts based on the
+ existing selection
+ mode 1: same length
+ mode 2: same direction
+ mode 3: same number of face users
+*/
+void edgegroup_select(short mode)
+{
+	EditMesh *em = G.editMesh;
+	EditEdge *eed, *base_eed=NULL;
+	short selcount=0;
+	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
+	if (mode==3) { /* set all eed->tmp.l to 0 we use them later.*/
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if (eed->f & SELECT && !eed->h) {
+				base_eed= eed;
+			}
+			eed->tmp.l=0;
+		}
+	} else {
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if (eed->f & SELECT && !eed->h) {
+				base_eed= eed;
+				break;
+			}
+		}
+	}
+	
+	if (!base_eed)
+		return;
+	
+	if (mode==1) { /* same length */
+		float base_length= VecLenf(base_eed->v1->co, base_eed->v2->co);
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if (!(eed->f & SELECT) && !eed->h && ( fabs(base_length-VecLenf(eed->v1->co, eed->v2->co)) <= thresh ) ) {
+				EM_select_edge(eed, 1);
+				selcount++;
+			}
+		}
+	} else if (mode==2) { /* same direction */
+		float base_dir[3], dir[3], angle;
+		VecSubf(base_dir, base_eed->v1->co, base_eed->v2->co);
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if (!(eed->f & SELECT) && !eed->h) {
+				VecSubf(dir, eed->v1->co, eed->v2->co);
+				angle= VecAngle2(base_dir, dir);
+				
+				if (angle>90) /* use the smallest angle between the edges */
+					angle= fabs(angle-180.0f);
+				
+				if (angle<=thresh) {
+					EM_select_edge(eed, 1);
+					selcount++;
+				}
+			}
+		}
+	} else if (mode==3) { /* face users */
+		EditFace *efa;
+		
+		/* cound how many faces each edge uses use tmp->l */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			efa->e1->tmp.l++;
+			efa->e2->tmp.l++;
+			efa->e3->tmp.l++;
+			if (efa->e4) efa->e4->tmp.l++;
+		}
+		
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if ((!(eed->f & SELECT) && !eed->h) && (base_eed->tmp.l==eed->tmp.l)) {
+				EM_select_edge(eed, 1);
+				selcount++;
+			}
+		}
+	}
+	
+	if (selcount) {
+		G.totedgesel+=selcount;
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Select Grouped Faces");
+	}
+}
+
+
 
 void select_mesh_group_menu()
 {
@@ -851,7 +940,9 @@ void select_mesh_group_menu()
 		facegroup_select(ret);
 		
 	} else if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		/**/
+		ret= pupmenu("Select Grouped Edges (by Same)%t|Length %x1|Direction %x2|Face Users%x3");
+		if (ret<1) return;
+		edgegroup_select(ret);
 	} else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		/**/
 	}
@@ -1447,7 +1538,8 @@ void hide_mesh(int swap)
 			if(eve->f1==1) eve->h= 1;
 		}
 	}
-		
+	
+	G.totedgesel= G.totfacesel= G.totvertsel= 0;
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Hide");

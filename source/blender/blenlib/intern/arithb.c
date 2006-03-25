@@ -2304,7 +2304,7 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	}
 }
 
-/* Return the angle in degrees between vecs 1-2 and 2-3 */
+/* Return the angle in degrees between vecs 1-2 and 2-3 in degrees */
 float VecAngle3( float *v1, float *v2, float *v3)
 {
 	float vec1[3], vec2[3];
@@ -2313,8 +2313,18 @@ float VecAngle3( float *v1, float *v2, float *v3)
 	VecSubf(vec2, v2, v3);
 	Normalise(vec1);
 	Normalise(vec2);
-	/* 180.0/M_PI  is  57.2957795131f*/
-	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 57.2957795131f;
+	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 180.0/M_PI;
+}
+
+/* Return the angle in degrees between vecs 1-2 and 2-3 */
+float VecAngle2( float *v1, float *v2)
+{
+	float vec1[3], vec2[3];
+	VecCopyf(vec1, v1);
+	VecCopyf(vec2, v2);
+	Normalise(vec1);
+	Normalise(vec2);
+	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 180.0/M_PI;
 }
 
 
