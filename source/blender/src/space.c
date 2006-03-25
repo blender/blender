@@ -3979,8 +3979,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if (sima->flag & SI_DRAWTOOL) {
 		switch(event) {
-			case CKEY: 
-				add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
+			case CKEY:
+			       	toggle_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
 				scrarea_queue_winredraw(curarea);
 				break;
 			case LEFTMOUSE:
