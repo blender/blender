@@ -112,27 +112,27 @@ class Image:
 
   def getPixelF(x, y):
     """
-	Get the the colors of the current pixel in the form [r,g,b,a].
-	Returned values are floats normalized to 0.0 - 1.0.
-	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
-	@returns: [ r, g, b, a]
-	@rtype: list of 4 floats
-	@type x: int
-	@type y: int
-	@param x:  the x coordinate of pixel.
-	@param y:  the y coordinate of pixel.  
+    Get the the colors of the current pixel in the form [r,g,b,a].
+    Returned values are floats normalized to 0.0 - 1.0.
+    Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+    @returns: [ r, g, b, a]
+    @rtype: list of 4 floats
+    @type x: int
+    @type y: int
+    @param x:  the x coordinate of pixel.
+    @param y:  the y coordinate of pixel.  
     """
   def getPixelI(x, y):
     """
-	Get the the colors of the current pixel in the form [r,g,b,a].
-	Returned values are ints normalized to 0 - 255.
-	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
-	@returns: [ r, g, b, a]
-	@rtype: list of 4 ints
-	@type x: int
-	@type y: int
-	@param x:  the x coordinate of pixel.
-	@param y:  the y coordinate of pixel.  
+    Get the the colors of the current pixel in the form [r,g,b,a].
+    Returned values are ints normalized to 0 - 255.
+    Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+    @returns: [ r, g, b, a]
+    @rtype: list of 4 ints
+    @type x: int
+    @type y: int
+    @param x:  the x coordinate of pixel.
+    @param y:  the y coordinate of pixel.  
     """
 
   def getMaxXY():
@@ -276,30 +276,30 @@ class Image:
     """
        	Set the the colors of the current pixel in the form [r,g,b,a].
        	Color values must be floats in the range 0.0 - 1.0.
-	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
-	@type x: int
-	@type y: int
-	@type r: float
-	@type g: float
-	@type b: float
-	@type a: float
-	@returns: nothing
-	@rtype: none
+    Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+    @type x: int
+    @type y: int
+    @type r: float
+    @type g: float
+    @type b: float
+    @type a: float
+    @returns: nothing
+    @rtype: none
     """
     
   def setPixelI(x, y, (r, g, b, a)):
     """
        	Set the the colors of the current pixel in the form [r,g,b,a].
        	Color values must be ints in the range 0 - 255.
-	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
-	@type x: int
-	@type y: int
-	@type r: int
-	@type g: int
-	@type b: int
-	@type a: int
-	@returns: nothing
-	@rtype: none
+    Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+    @type x: int
+    @type y: int
+    @type r: int
+    @type g: int
+    @type b: int
+    @type a: int
+    @returns: nothing
+    @rtype: none
     """
     
   def save():
@@ -307,4 +307,22 @@ class Image:
     Saves the current image.
     @returns: nothing
     @rtype: none
+    """
+  
+  def pack():
+    """
+    Packs the image into the current blend file.
+    @note: An error will be raised if the image is alredy packed or the filename path does not exist.
+    @returns: nothing
+    @rtype: none
+    """
+
+  def unpack(mode):
+    """
+    Unpacks the image to the images filename.
+    @param mode: if 0, the existing file located at filename will be used. 1, The file will be overwritten if its different. 2, always overwrite the existing image file.
+    @note: An error will be raised if the image is not packed or the filename path does not exist.
+    @returns: nothing
+    @rtype: none
+    @type mode: int
     """

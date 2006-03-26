@@ -52,7 +52,7 @@ int readPackedFile(struct PackedFile * pf, void * data, int size);
 int countPackedFiles(void);
 void freePackedFile(struct PackedFile * pf);
 void packAll(void);
-int writePackedFile(char * filename, struct PackedFile *pf);
+int writePackedFile(char * filename, struct PackedFile *pf, int guimode);
 int checkPackedFile(char * filename, struct PackedFile * pf);
 char * unpackFile(char * abs_name, char * local_name, struct PackedFile * pf, int how);
 int unpackVFont(struct VFont * vfont, int how);

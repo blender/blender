@@ -43,6 +43,9 @@
 #include "IMB_imbuf_types.h"	/* for the IB_rect define */
 #include "BIF_gl.h"
 #include "gen_utils.h"
+#include "BKE_packedFile.h"
+#include "DNA_packedFile_types.h"
+#include "BKE_icons.h"
 
 /* 
    fixme
@@ -406,7 +409,7 @@ static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 	    || y > ( image->ibuf->y - 1 )
 	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "x or y is out of range" );
+					      "x or y is out of ruange" );
 
 	for( a = 0; a < 4; a++ ) {
 		if( p[a] > 1.0 || p[a] < 0.0 )
@@ -541,6 +544,75 @@ static PyObject *Image_getMinXY( BPy_Image * self )
 }
 
 
+/* unpack
+mode 0; never overwrite
+mode 1; overwrite only if differs packed.
+mode 2; always overwrite.
+*/
+
+
+static PyObject *Image_unpack( BPy_Image * self, PyObject * args )
+{
+	Image *image = self->image;
+	int mode, check, ret=RET_OK;		/* offset into image data */
+	char expandpath[FILE_MAXDIR + FILE_MAXFILE];
+	
+	/*get the absolute path */
+	if( !PyArg_ParseTuple( args, "i", &mode ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected 1 integer" );
+	
+	if (image->packedfile==NULL)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "image not packed" );
+	
+	BLI_strncpy(expandpath, image->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_convertstringcode(expandpath, G.sce, 1);	
+	check= checkPackedFile(expandpath, image->packedfile);
+	
+	if (check==PF_NOFILE) {
+		ret= writePackedFile(expandpath, image->packedfile, 0); /* no guimode */
+	} else if (check==PF_EQUAL){
+		if (mode==2) /*always overwrite */
+			ret= writePackedFile(expandpath, image->packedfile, 0);
+	} else if (check==PF_DIFFERS) {
+		if (mode!=0)
+			ret= writePackedFile(expandpath, image->packedfile, 0); /* no guimode */
+	}
+	
+	if (ret==RET_ERROR)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"internal unpacking error, could not write packed image, image still packed." );
+	
+	/*free packed data*/
+	freePackedFile(image->packedfile);
+	image->packedfile=NULL;
+	
+	/*free icon*/
+	BKE_icon_delete(&image->id);
+	image->id.icon_id = 0;
+	
+	Py_RETURN_NONE;
+}
+
+static PyObject *Image_pack( BPy_Image * self )
+{
+	Image *image = self->image;	
+	char expandpath[FILE_MAXDIR + FILE_MAXFILE];
+	BLI_strncpy(expandpath, image->name, FILE_MAXDIR+FILE_MAXFILE);
+	
+	if (image->packedfile )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "image alredy packed" );
+	if (!BLI_exists(expandpath))
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "image path does not exist" );
+		
+	image->packedfile = newPackedFile(image->name);
+	Py_RETURN_NONE;
+}
+
+
 /* save image to file */
 
 static PyObject *Image_save( BPy_Image * self )
@@ -606,6 +678,8 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args );
 static PyObject *Image_getMaxXY( BPy_Image * self );
 static PyObject *Image_getMinXY( BPy_Image * self );
 static PyObject *Image_save( BPy_Image * self );
+static PyObject *Image_unpack( BPy_Image * self, PyObject * args );
+static PyObject *Image_pack( BPy_Image * self );
 
 
 /*****************************************************************************/
@@ -669,6 +743,10 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(int) - Change Image object animation speed (fps)"},
 	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
 	 "() - Write image buffer to file"},
+	{"unpack", ( PyCFunction ) Image_unpack, METH_VARARGS,
+	 "(int) - Unpack image. [0,1,2], Never overwrite, Overwrite if different, Overwrite all."},
+	{"pack", ( PyCFunction ) Image_pack, METH_NOARGS,
+	 "() Pack the image"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1102,11 +1180,11 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 	else if( strcmp( name, "speed" ) == 0 )
 		attr = PyInt_FromLong( self->image->animspeed );
 	else if( strcmp( name, "packed" ) == 0 ) {
-		if (self->image->packedfile)  {
+		if (self->image->packedfile)
 			attr = EXPP_incr_ret_True();
-		} else {
+		else
 			attr = EXPP_incr_ret_False();
-		}
+	
 	} else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );
 	else if( strcmp( name, "users" ) == 0 )

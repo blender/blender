@@ -278,7 +278,7 @@ char * find_new_name(char * name)
 	
 */
 
-int writePackedFile(char * filename, PackedFile *pf)
+int writePackedFile(char * filename, PackedFile *pf, int guimode)
 {
 	int file, number, remove_tmp = FALSE;
 	int ret_value = RET_OK;
@@ -309,28 +309,28 @@ int writePackedFile(char * filename, PackedFile *pf)
 	file = open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file >= 0) {
 		if (write(file, pf->data, pf->size) != pf->size) {
-			error("Error writing file: %s", name);
+			if(guimode) error("Error writing file: %s", name);
 			ret_value = RET_ERROR;
 		}
 		close(file);
 	} else {
-		error("Error creating file: %s", name);
+		if(guimode) error("Error creating file: %s", name);
 		ret_value = RET_ERROR;
 	}
 	
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
 			if (BLI_rename(tempname, name) == RET_ERROR) {
-				error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
+				if(guimode) error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
 			}
 		} else {
 			if (BLI_delete(tempname, 0, 0) == RET_ERROR) {
-				error("Error deleting '%s' (ignored)");
+				if(guimode) error("Error deleting '%s' (ignored)");
 			}
 		}
 	}
 	
-	waitcursor(0);
+	if(guimode) waitcursor(0);
 
 	return (ret_value);
 }
@@ -468,7 +468,7 @@ char * unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 				}
 				// else fall through and create it
 			case PF_WRITE_LOCAL:
-				if (writePackedFile(local_name, pf) == RET_OK) {
+				if (writePackedFile(local_name, pf, 1) == RET_OK) {
 					temp = local_name;
 				}
 				break;
@@ -480,7 +480,7 @@ char * unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 				}
 				// else fall through and create it
 			case PF_WRITE_ORIGINAL:
-				if (writePackedFile(abs_name, pf) == RET_OK) {
+				if (writePackedFile(abs_name, pf, 1) == RET_OK) {
 					temp = abs_name;
 				}
 				break;
