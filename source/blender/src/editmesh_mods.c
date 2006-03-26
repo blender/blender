@@ -756,26 +756,32 @@ FACES GROUP
  mode 5: same normal
  mode 6: same co-planer
 */
-void facegroup_select(short mode)
+int facegroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa, *base_efa=NULL;
-	unsigned int selcount=0, facecount=0, base_idx=0, idx=0;
+	unsigned int selcount=0; /*count how many new faces we select*/
+	
+	/*deselcount, count how many deselected faces are left, so we can bail out early
+	also means that if there are no deselected faces, we can avoid a lot of looping */
+	unsigned int deselcount=0; 
+	
 	short ok=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
-	float *facearea;  /*store face areas here*/
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT && !efa->h) {
-			efa->f1=1;
-			ok=1;
-		} else {
-			efa->f1=0;
+		if (!efa->h) {
+			if (efa->f & SELECT) {
+				efa->f1=1;
+				ok=1;
+			} else {
+				efa->f1=0;
+				deselcount++; /* a deselected face we may select later */
+			}
 		}
-		facecount++;
 	}
 	
-	if (!ok) /* no data selected */
+	if (!ok || !deselcount) /* no data selected OR no more data to select */
 		return;
 	
 	/*if mode is 3 then record face areas, 4 record perimeter */
@@ -789,7 +795,7 @@ void facegroup_select(short mode)
 		}
 	}
 	
-	for(base_efa= em->faces.first; base_efa; base_efa= base_efa->next, base_idx++) {
+	for(base_efa= em->faces.first; base_efa; base_efa= base_efa->next) {
 		if (base_efa->f1) {
 			if (mode==1) { /* same material */
 				for(efa= em->faces.first; efa; efa= efa->next) {
@@ -800,6 +806,9 @@ void facegroup_select(short mode)
 					) {
 						EM_select_face(efa, 1);
 						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
 					}
 				}
 			} else if (mode==2) { /* same image */
@@ -807,15 +816,20 @@ void facegroup_select(short mode)
 					if (!(efa->f & SELECT) && !efa->h && base_efa->tf.tpage == efa->tf.tpage) {
 						EM_select_face(efa, 1);
 						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
 					}
 				}
 			} else if (mode==3 || mode==4) { /* same area OR same perimeter, both use the same temp var */
-				idx=0;
-				for(efa= em->faces.first; efa; efa= efa->next, idx++) {
+				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
 						if (fabs(efa->tmp.fp-base_efa->tmp.fp)<=thresh) {
 							EM_select_face(efa, 1);
 							selcount++;
+							deselcount--;
+							if (!deselcount) /*have we selected all posible faces?, if so return*/
+								return selcount;
 						}
 					}
 				}
@@ -827,6 +841,9 @@ void facegroup_select(short mode)
 						if (angle<=thresh) {
 							EM_select_face(efa, 1);
 							selcount++;
+							deselcount--;
+							if (!deselcount) /*have we selected all posible faces?, if so return*/
+								return selcount;
 						}
 					}
 				}
@@ -841,6 +858,9 @@ void facegroup_select(short mode)
 							if (fabs(base_dot-dot) <= thresh) {
 								EM_select_face(efa, 1);
 								selcount++;
+								deselcount--;
+								if (!deselcount) /*have we selected all posible faces?, if so return*/
+									return selcount;
 							}
 						}
 					}
@@ -848,12 +868,7 @@ void facegroup_select(short mode)
 			}
 		}
 	} /* end base_efa loop */
-	
-	if (selcount) {
-		G.totfacesel+=selcount;
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Select Grouped Faces");
-	}
+	return selcount;
 }
 
 
@@ -863,27 +878,35 @@ EDGE GROUP
  mode 2: same direction
  mode 3: same number of face users
 */
-void edgegroup_select(short mode)
+int edgegroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed, *base_eed=NULL;
-	unsigned int selcount=0;
+	unsigned int selcount=0; /* count how many new edges we select*/
+	
+	/*count how many visible selected edges there are,
+	so we can return when there are none left */
+	unsigned int deselcount=0;
+	
 	short ok=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
 	
 	for(eed= em->edges.first; eed; eed= eed->next) {
-		if (eed->f & SELECT && !eed->h) {
-			eed->f1=1;
-			ok=1;
-		} else {
-			eed->f1=0;
+		if (!eed->h) {
+			if (eed->f & SELECT) {
+				eed->f1=1;
+				ok=1;
+			} else {
+				eed->f1=0;
+				deselcount++;
+			}
+			/* set all eed->tmp.l to 0 we use it later.
+			for counting face users*/
+			eed->tmp.l=0;
 		}
-		/* set all eed->tmp.l to 0 we use it later.
-		for counting face users*/
-		eed->tmp.l=0;
 	}
 	
-	if (!ok) /* no data selected */
+	if (!ok || !deselcount) /* no data selected OR no more data to select*/
 		return;
 	
 	if (mode==1) { /*store length*/
@@ -912,6 +935,9 @@ void edgegroup_select(short mode)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
 					}
 				}
 			} else if (mode==2) { /* same direction */
@@ -928,6 +954,9 @@ void edgegroup_select(short mode)
 						if (angle<=thresh) {
 							EM_select_edge(eed, 1);
 							selcount++;
+							deselcount--;
+							if (!deselcount) /*have we selected all posible faces?, if so return*/
+								return selcount;
 						}
 					}
 				}
@@ -940,18 +969,15 @@ void edgegroup_select(short mode)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
 					}
 				}
 			}
 		}
 	} 
-	
-	if (selcount) {
-		//EM_select_flush(); /* dont use because it can end up selecting more edges and is not usefull*/
-		G.totedgesel+=selcount;
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Select Grouped Edges");
-	}
+	return selcount;
 }
 
 
@@ -961,27 +987,36 @@ VERT GROUP
  mode 2: same number of face users
  mode 3: same vertex groups
 */
-void vertgroup_select(short mode)
+int vertgroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *base_eve=NULL;
 	
-	unsigned int selcount=0;
+	unsigned int selcount=0; /* count how many new edges we select*/
+	
+	/*count how many visible selected edges there are,
+	so we can return when there are none left */
+	unsigned int deselcount=0;
+	
 	short ok=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
-		if (eve->f & SELECT && !eve->h) {
-			eve->f1=1;
-			ok=1;
-		} else {
-			eve->f1=0;
+		if (!eve->h) {
+			if (eve->f & SELECT) {
+				eve->f1=1;
+				ok=1;
+			} else {
+				eve->f1=0;
+				deselcount++;
+			}
+			/* set all eve->tmp.l to 0 we use them later.*/
+			eve->tmp.l=0;
 		}
-		/* set all eve->tmp.l to 0 we use them later.*/
-		eve->tmp.l=0;
+		
 	}
 	
-	if (!ok)
+	if (!ok || !deselcount) /* no data selected OR no more data to select*/
 		return;
 	
 	
@@ -1009,6 +1044,9 @@ void vertgroup_select(short mode)
 						if (angle<=thresh) {
 							eve->f |= SELECT;
 							selcount++;
+							deselcount--;
+							if (!deselcount) /*have we selected all posible faces?, if so return*/
+								return selcount;
 						}
 					}
 				}
@@ -1021,6 +1059,9 @@ void vertgroup_select(short mode)
 					) {
 						eve->f |= SELECT;
 						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
 					}
 				}
 			} else if (mode==3) { /* vertex groups */
@@ -1041,42 +1082,64 @@ void vertgroup_select(short mode)
 								if (base_eve->dw[i].def_nr==eve->dw[j].def_nr) {
 									eve->f |= SELECT;
 									selcount++;
+									deselcount--;
+									if (!deselcount) /*have we selected all posible faces?, if so return*/
+										return selcount;
 									break;
 								}
 							}
 						}
 					}
 				}
-				
 			}
 		}
 	} /* end basevert loop */
-	
-	if (selcount) {
-		EM_select_flush(); /* so that selected verts, go onto select faces */
-		G.totedgesel+=selcount;
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Select Grouped Verts");
-	}
+	return selcount;
 }
 
+/* EditMode menu triggered from space.c by pressing Shift+G
+handles face/edge vert context and
+facegroup_select/edgegroup_select/vertgroup_select do all the work
+*/
 void select_mesh_group_menu()
 {
 	short ret;
+	int selcount;
 	
 	if(G.scene->selectmode & SCE_SELECT_FACE) {
 		ret= pupmenu("Select Grouped Faces %t|Same Material %x1|Same Image %x2|Similar Area %x3|Similar Perimeter %x4|Similar Normal %x5|Similar Co-Planer %x6");
 		if (ret<1) return;
-		facegroup_select(ret);
+		selcount= facegroup_select(ret);
+		
+		if (selcount) { /* update if data was selected */
+			G.totfacesel+=selcount;
+			allqueue(REDRAWVIEW3D, 0);
+			BIF_undo_push("Select Grouped Faces");
+		}
 		
 	} else if(G.scene->selectmode & SCE_SELECT_EDGE) {
 		ret= pupmenu("Select Grouped Edges%t|Similar Length %x1|Similar Direction %x2|Same Face Users%x3");
 		if (ret<1) return;
-		edgegroup_select(ret);
+		selcount= edgegroup_select(ret);
+		
+		if (selcount) { /* update if data was selected */
+			//EM_select_flush(); /* dont use because it can end up selecting more edges and is not usefull*/
+			G.totedgesel+=selcount;
+			allqueue(REDRAWVIEW3D, 0);
+			BIF_undo_push("Select Grouped Edges");
+		}
+		
 	} else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		ret= pupmenu("Select Grouped Verts%t|Similar Normal %x1|Same Face Users %x2|Shared Vertex Groups%x3");
 		if (ret<1) return;
-		vertgroup_select(ret);
+		selcount= vertgroup_select(ret);
+		
+		if (selcount) { /* update if data was selected */
+			EM_select_flush(); /* so that selected verts, go onto select faces */
+			G.totedgesel+=selcount;
+			allqueue(REDRAWVIEW3D, 0);
+			BIF_undo_push("Select Grouped Verts");
+		}
 	}
 	
 }
