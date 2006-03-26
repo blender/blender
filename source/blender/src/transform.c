@@ -2055,36 +2055,42 @@ void initTranslation(TransInfo *t)
 
 static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	char tvec[60];
+	char distvec[20];
 	float dvec[3];
-
+	float dist;
+	
 	convertVecToDisplayNum(vec, dvec);
 
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
+		dist = VecLength(t->num.val);
 	}
 	else {
+		dist = VecLength(vec);
 		sprintf(&tvec[0], "%.4f", dvec[0]);
 		sprintf(&tvec[20], "%.4f", dvec[1]);
 		sprintf(&tvec[40], "%.4f", dvec[2]);
 	}
 
+	sprintf(distvec, "%.4f", dist);
+
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
 		case 0:
-			sprintf(str, "D: %s%s %s", &tvec[0], t->con.text, t->proptext);
+			sprintf(str, "D: %s (%s)%s %s", &tvec[0], distvec, t->con.text, t->proptext);
 			break;
 		case 1:
-			sprintf(str, "D: %s   D: %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			sprintf(str, "D: %s   D: %s (%s)%s %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext);
 			break;
 		case 2:
-			sprintf(str, "D: %s   D: %s  D: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+			sprintf(str, "D: %s   D: %s  D: %s (%s)%s %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext);
 		}
 	}
 	else {
 		if(t->flag & T_2D_EDIT)
-			sprintf(str, "Dx: %s   Dy: %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			sprintf(str, "Dx: %s   Dy: %s (%s)%s %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext);
 		else
-			sprintf(str, "Dx: %s   Dy: %s  Dz: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+			sprintf(str, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext);
 	}
 }
 
