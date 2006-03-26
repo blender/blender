@@ -1071,6 +1071,7 @@ static void animated_screen(bScreen *sc, short val)
 	}
 	if(val & TIME_ALL_ANIM_WIN) allqueue(REDRAWANIM, 0);
 	if(val & TIME_ALL_BUTS_WIN) allqueue(REDRAWBUTSALL, 0);
+	if(val & TIME_SEQ) allqueue(REDRAWSEQ, 0);
 	
 	allqueue(REDRAWTIME, 0);
 }
@@ -1401,7 +1402,7 @@ void screenmain(void)
 				towin= 0;
 			}
 			else {
-				if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
+				if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT||g_activearea->spacetype==SPACE_SEQ);
 				else if(G.qual==0) {
 					if(val) toolbox_n();
 					towin= 0;

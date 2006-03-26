@@ -632,7 +632,7 @@ static void draw_image_seq(ScrArea *sa)
 
 static void draw_extra_seqinfo(void)
 {
-	extern Sequence *last_seq;
+	Sequence *last_seq = get_last_seq();
 	StripElem *se, *last;
 	float xco, xfac;
 	int sta, end;
@@ -734,7 +734,7 @@ static void draw_extra_seqinfo(void)
 
 void do_seqbuttons(short val)
 {
-	extern Sequence *last_seq;
+	Sequence *last_seq = get_last_seq();
 
 	switch(val) {
 	case SEQ_BUT_PLUGIN:
@@ -756,7 +756,7 @@ void do_seqbuttons(short val)
 
 static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 {
-	extern Sequence *last_seq;
+	Sequence *last_seq = get_last_seq();
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "seq_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
@@ -785,6 +785,13 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 
 			}
 		}
+		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
+			     SEQ_BUT_RELOAD, "IPO Frame locked",
+			     10,-40,150,19, &last_seq->flag,
+			     0.0, 1.0, 0, 0,
+			     "Lock the IPO coordinates to the "
+			     "global frame counter.");
+
 	}
 	else if(last_seq->type==SEQ_IMAGE) {
 
@@ -1065,6 +1072,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 		seq_blockhandlers(sa);
 	}
 
+	view2d_do_locks(curarea, V2D_LOCK_COPY);
 	curarea->win_swap= WIN_BACK_OK;
 }
 

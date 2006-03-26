@@ -484,6 +484,9 @@ static void timeline_force_draw(short val)
 		else if(sa->spacetype==SPACE_BUTS) {
 			if(val & TIME_ALL_BUTS_WIN) dodraw= 1;
 		}
+		else if(sa->spacetype==SPACE_SEQ) {
+			if (val & TIME_SEQ) dodraw = 1;
+		}
 		else if(sa->spacetype==SPACE_TIME) dodraw= 2;
 		
 		if(dodraw) {

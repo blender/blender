@@ -237,7 +237,7 @@ void ipo_default_v2d_cur(int blocktype, rctf *cur)
 		cur->ymax= (float)+1.1;
 	}
 	else if(blocktype==ID_SEQ) {
-		cur->xmin= -5.0+G.scene->r.sfra;
+		cur->xmin= -5.0;
 		cur->xmax= 105.0;
 		cur->ymin= (float)-0.1;
 		cur->ymax= (float)+1.1;

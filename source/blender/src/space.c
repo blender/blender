@@ -3537,16 +3537,16 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	SpaceSeq *sseq= curarea->spacedata.first;
 	View2D *v2d= &sseq->v2d;
-	extern Sequence *last_seq;
+	Sequence *last_seq = get_last_seq();
 	float dx, dy;
 	int doredraw= 0, cfra, first;
 	short mval[2];
+	short nr;
 	short mousebut = L_MOUSE;
 	
 	if(curarea->win==0) return;
 
 	if(val) {
-		
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		
 		/* swap mouse buttons based on user preference */
@@ -3595,8 +3595,6 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case MIDDLEMOUSE:
-		case WHEELUPMOUSE:
-		case WHEELDOWNMOUSE:
 			if(sseq->mainb) break;
 			view2dmove(event);	/* in drawipo.c */
 			break;
@@ -3605,6 +3603,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			mouse_select_seq();
 			break;
 		case PADPLUSKEY:
+		case WHEELUPMOUSE:
 			if(sseq->mainb) {
 				sseq->zoom++;
 				if(sseq->zoom==-1) sseq->zoom= 1;
@@ -3631,6 +3630,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case PADMINUS:
+		case WHEELDOWNMOUSE:
 			if(sseq->mainb) {
 				sseq->zoom--;
 				if(sseq->zoom==0) sseq->zoom= -2;
@@ -3668,6 +3668,15 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else if((G.qual==0))
 				swap_select_seq();
+			break;
+		case SPACEKEY:
+			if (G.qual==0) {
+				if (sseq->mainb) {
+					play_anim(1);
+				} else {
+					add_sequence(-1);
+				}
+			}
 			break;
 		case BKEY:
 			if(sseq->mainb) break;
@@ -3734,10 +3743,18 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if((G.qual==LR_SHIFTKEY))
 				seq_snap_menu();
 			break;
-		case TKEY:
+		case PKEY:
 			if((G.qual==0))
 				touch_seq_files();
 			break;
+		case TKEY: /* popup menu */
+                       nr= pupmenu("Time value%t|Frames %x1|Seconds%x2");
+                       if (nr>0) {
+                               if(nr==1) sseq->flag |= SEQ_DRAWFRAMES;
+                               else sseq->flag &= ~SEQ_DRAWFRAMES;
+                               doredraw= 1;
+                       }
+                       break;
 		case XKEY:
 		case DELKEY:
 			if(G.qual==0) {

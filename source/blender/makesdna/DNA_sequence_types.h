@@ -181,6 +181,7 @@ typedef struct GlowVars {
 #define SEQ_MOVIE		3
 #define SEQ_RAM_SOUND		4
 #define SEQ_HD_SOUND            5
+#define SEQ_MOVIE_AND_HD_SOUND  6 /* helper for add_sequence */
 
 #define SEQ_EFFECT		8
 #define SEQ_CROSS		8

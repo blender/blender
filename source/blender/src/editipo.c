@@ -1020,7 +1020,7 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 		}
 	}
 	else if(blocktype==ID_SEQ) {
-		extern Sequence *last_seq;
+		Sequence *last_seq = get_last_seq();
 		
 		if(last_seq && ((last_seq->type & SEQ_EFFECT)||(last_seq->type == SEQ_HD_SOUND)||(last_seq->type == SEQ_RAM_SOUND))) {
 			*from= (ID *)last_seq;
@@ -1758,6 +1758,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 					if(seq->ipo==NULL) {
 						seq->ipo= add_ipo("SeqIpo", ID_SEQ);
 					}
+					update_seq_ipo_rect(seq);
 					return seq->ipo;
 				}
 			}
@@ -2134,7 +2135,7 @@ void insertkey_editipo(void)
 							}
 						}
 						else if(id && GS(id->name)==ID_SEQ) {
-							extern Sequence *last_seq;	/* editsequence.c */
+							Sequence *last_seq = get_last_seq();	/* editsequence.c */
 							
 							if(last_seq) {
 								cfra= (float)(100.0*(cfra-last_seq->startdisp)/((float)(last_seq->enddisp-last_seq->startdisp)));

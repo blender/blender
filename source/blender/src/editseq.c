@@ -95,7 +95,7 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-Sequence *last_seq=0;
+static Sequence *last_seq=0;
 
 #ifdef WIN32
 char last_imagename[FILE_MAXDIR+FILE_MAXFILE]= "c:\\";
@@ -109,6 +109,17 @@ char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 
 static int test_overlap_seq(Sequence *);
 static void shuffle_seq(Sequence *);
+
+Sequence * get_last_seq()
+{
+	return last_seq;
+}
+
+/* fixme: only needed by free_sequence... */
+void set_last_seq_to_null()
+{
+	last_seq = 0;
+}
 
 static void change_plugin_seq(char *str)	/* called from fileselect */
 {
@@ -215,6 +226,34 @@ Sequence *find_nearest_seq(int *hand)
 		seq= seq->next;
 	}
 	return 0;
+}
+
+void update_seq_ipo_rect(Sequence * seq)
+{
+	float start;
+	float end;
+
+	if (!seq || !seq->ipo) {
+		return;
+	}
+	start =  -5.0;
+	end   =  105.0;
+
+	/* Adjust IPO window to sequence and 
+	   avoid annoying snap-back to startframe 
+	   when Lock Time is on */
+	if (G.v2d->flag & V2D_VIEWLOCK) {
+		if ((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+			start = -5.0 + seq->startdisp;
+			end = 5.0 + seq->enddisp;
+		} else {
+			start = (float)G.scene->r.sfra - 0.1;
+			end = G.scene->r.efra;
+		}
+	}
+
+	seq->ipo->cur.xmin= start;
+	seq->ipo->cur.xmax= end;
 }
 
 void clear_last_seq(void)
@@ -548,7 +587,8 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	/* is it a movie? */
 	anim = openanim(str, IB_rect);
 	if(anim==0) {
-		error("The selected file is not a movie");
+		error("The selected file is not a movie or "
+		      "FFMPEG-support not compiled in!");
 		return;
 	}
 
@@ -678,7 +718,8 @@ static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
 	/* is it a sound file? */
 	hdaudio = sound_open_hdaudio(str);
 	if(hdaudio==0) {
-		error("The selected file is not a sound file");
+		error("The selected file is not a sound file or "
+		      "FFMPEG-support not compiled in!");
 		return;
 	}
 
@@ -814,6 +855,42 @@ static void add_movie_strip(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add movie strip Sequencer");
+	transform_seq('g', 0);
+
+}
+
+static void add_movie_and_hdaudio_strip(char *name)
+{
+	SpaceFile *sfile;
+	float x, y;
+	int cfra, machine;
+	short mval[2];
+
+	deselect_all_seq();
+
+	/* restore windowmatrices */
+	areawinset(curarea->win);
+	drawseqspace(curarea, curarea->spacedata.first);
+
+	/* search sfile */
+	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
+	if(sfile==0) return;
+
+	/* where will it be */
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+	cfra= (int)(x+0.5);
+	machine= (int)(y+0.5);
+
+	waitcursor(1);
+
+	/* read directory itself */
+	sfile_to_hdsnd_sequence(sfile, cfra, machine);
+	sfile_to_mv_sequence(sfile, cfra, machine);
+
+	waitcursor(0);
+
+	BIF_undo_push("Add movie and HD-audio strip Sequencer");
 	transform_seq('g', 0);
 
 }
@@ -1119,6 +1196,9 @@ void add_sequence(int type)
 		case SEQ_HD_SOUND:
 			event = 104;
 			break;
+		case SEQ_MOVIE_AND_HD_SOUND:
+			event = 105;
+			break;
 		case SEQ_PLUGIN:
 			event = 10;
 			break;
@@ -1158,7 +1238,24 @@ void add_sequence(int type)
 		}
 	}
 	else {
-		event= pupmenu("Add Sequence Strip%t|Images%x1|Movie%x102|Audio (RAM)%x103|Audio (HD)%x104|Scene%x101|Plugin%x10|Cross%x2|Gamma Cross%x3|Add%x4|Sub%x5|Mul%x6|Alpha Over%x7|Alpha Under%x8|Alpha Over Drop%x9|Wipe%x13|Glow%x14");
+		event= pupmenu("Add Sequence Strip%t"
+			       "|Images%x1"
+			       "|Movie%x102"
+			       "|Movie + Audio (HD)%x105"
+			       "|Audio (RAM)%x103"
+			       "|Audio (HD)%x104"
+			       "|Scene%x101"
+			       "|Plugin%x10"
+			       "|Cross%x2"
+			       "|Gamma Cross%x3"
+			       "|Add%x4"
+			       "|Sub%x5"
+			       "|Mul%x6"
+			       "|Alpha Over%x7"
+			       "|Alpha Under%x8"
+			       "|Alpha Over Drop%x9"
+			       "|Wipe%x13"
+			       "|Glow%x14");
 	}
 
 	if(event<1) return;
@@ -1173,6 +1270,9 @@ void add_sequence(int type)
 	case 1:
 
 		activate_fileselect(FILE_SPECIAL, "Select Images", last_imagename, add_image_strips);
+		break;
+	case 105:
+		activate_fileselect(FILE_SPECIAL, "Select Movie+Audio", last_imagename, add_movie_and_hdaudio_strip);
 		break;
 	case 102:
 

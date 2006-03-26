@@ -67,11 +67,11 @@
 
 static int viewmovetemp = 0;
 
-extern Sequence *last_seq;
-
 static void do_seq_viewmenu(void *arg, int event)
 {
 	extern int play_anim(int mode);
+	Sequence * last_seq = get_last_seq();
+	SpaceSeq * sseq = curarea->spacedata.first;
 
 	switch(event)
 	{
@@ -92,6 +92,15 @@ static void do_seq_viewmenu(void *arg, int event)
 				update_for_newframe();
 		}
 		break;
+	case 5: /* Lock time */
+		G.v2d->flag ^= V2D_VIEWLOCK;
+		if (G.v2d->flag & V2D_VIEWLOCK) {
+			view2d_do_locks(curarea, 0);
+		}
+		break;
+	case 6: /* Draw time/frames */
+		sseq->flag ^= SEQ_DRAWFRAMES;
+		break;
 	}
 }
 
@@ -99,6 +108,7 @@ static uiBlock *seq_viewmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
+	SpaceSeq * sseq = curarea->spacedata.first;
 
 	block= uiNewBlock(&curarea->uiblocks, "seq_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_viewmenu, NULL);
@@ -113,6 +123,21 @@ static uiBlock *seq_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+
+       /* Lock Time */
+       uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
+			"Lock Time to Other Windows|", 0, yco-=20, 
+			menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+
+       /* Draw time or frames.*/
+       uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+       if(sseq->flag & SEQ_DRAWFRAMES)
+               uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+       else
+               uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+
 
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -256,6 +281,9 @@ static void do_seq_addmenu(void *arg, int event)
 	case 4:
 		add_sequence(SEQ_SCENE);
 		break;
+	case 5:
+		add_sequence(SEQ_MOVIE_AND_HD_SOUND);
+		break;
 	}
 }
 
@@ -276,6 +304,7 @@ static uiBlock *seq_addmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie + Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -341,6 +370,7 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	uiBlock *block;
 	Editing *ed;
 	short yco= 0, menuwidth=120;
+	Sequence * last_seq = get_last_seq();
 
 	ed = G.scene->ed;
 
@@ -414,6 +444,7 @@ void do_seq_buttons(short event)
 	case B_SEQHOME:
 		G.v2d->cur= G.v2d->tot;
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		view2d_do_locks(curarea, V2D_LOCK_COPY);
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_SEQCLEAR:

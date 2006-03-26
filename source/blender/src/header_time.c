@@ -154,6 +154,11 @@ static uiBlock *time_redrawmenu(void *arg_unused)
 	else icon= ICON_CHECKBOX_DEHLT;
 	uiDefIconTextBut(block, BUTM, 1, icon, "Buttons Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_BUTS_WIN, "");
 	
+	/* Add sequencer only redraw*/
+	if(stime->redraws & TIME_SEQ) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "Sequencer Windows",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_SEQ, "");
+
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	sprintf(str, "Set Frames/Sec (%d)", G.scene->r.frs_sec);

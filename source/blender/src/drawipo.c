@@ -76,6 +76,7 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_glutil.h"
+#include "BIF_editseq.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_view.h"
@@ -152,13 +153,27 @@ static void step_to_grid(float *step, int *macht)
 		*step= rem*pow(10.0, (float)*macht);
 		
 		// partial of a frame have no meaning
-		if(curarea->spacetype==SPACE_TIME) {
+		switch(curarea->spacetype) {
+		case SPACE_TIME: {
 			SpaceTime *stime= curarea->spacedata.first;
 			if(stime->flag & TIME_DRAWFRAMES) {
 				rem = 1.0;
 				*step = 1.0;
 			}
+			break;
 		}
+		case SPACE_SEQ: {
+			SpaceTime * sseq= curarea->spacedata.first;
+			if (sseq->flag & SEQ_DRAWFRAMES) {
+				rem = 1.0;
+				*step = 1.0;
+			}
+		}
+		default:
+			break;
+		}
+
+		
 		
 		if(rem==1.0) (*macht)++;	// prevents printing 1.0 2.0 3.0 etc
 	}
@@ -184,12 +199,25 @@ void calc_ipogrid()
 	if(G.v2d==0) return;
 	
 	/* detect of we have seconds or frames, should become argument */
-	if(curarea->spacetype==SPACE_TIME) {
+
+	switch(curarea->spacetype) {
+	case SPACE_TIME: {
 		SpaceTime *stime= curarea->spacedata.first;
 		if(!(stime->flag & TIME_DRAWFRAMES)) {
 			secondgrid= 1;
 			secondiv= 0.01 * (float)G.scene->r.frs_sec;
 		}
+		break;
+	}
+	case SPACE_SEQ: {
+		SpaceSeq * sseq = curarea->spacedata.first;
+		if (!(sseq->flag & SEQ_DRAWFRAMES)) {
+			secondgrid = 1;
+			secondiv = 0.01 * (float)G.scene->r.frs_sec;
+		}
+	}
+	default:
+		break;
 	}
 	
 	space= G.v2d->cur.xmax - G.v2d->cur.xmin;
@@ -311,8 +339,18 @@ void draw_ipogrid(void)
 	/* Limits box */
 	if(curarea->spacetype==SPACE_IPO) {
 		if(G.sipo->blocktype==ID_SEQ) {
+			Sequence * last_seq = get_last_seq();
+			float start = 0.0;
+			float end = 100.0;
+
+			if (last_seq && 
+			    ((last_seq->flag & SEQ_IPO_FRAME_LOCKED) != 0)) {
+				start = last_seq->startdisp;
+				end = last_seq->enddisp;
+			}
+
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
-			glRectf(0.0,  0.0,  100.0,  1.0); 
+			glRectf(start,  0.0,  end,  1.0); 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 		else if(ELEM(G.sipo->blocktype, ID_CU, ID_CO)) {
@@ -396,7 +434,8 @@ static View2D *spacelink_get_view2d(SpaceLink *sl)
 		return &((SpaceNla *)sl)->v2d;
 	if(sl->spacetype==SPACE_TIME) 
 		return &((SpaceTime *)sl)->v2d;
-	
+	if(sl->spacetype==SPACE_SEQ)
+		return &((SpaceSeq *)sl)->v2d;
 	return NULL;
 }
 
@@ -841,10 +880,16 @@ void drawscroll(int disptype)
 			
 			if(curarea->spacetype==SPACE_OOPS);
 			else if(curarea->spacetype==SPACE_SEQ) {
-				fac2= val/(float)G.scene->r.frs_sec;
-				tim= floor(fac2);
-				fac2= fac2-tim;
-				scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+G.scene->r.frs_sec*fac2/100.0, 'h', disptype);
+				SpaceSeq * sseq = curarea->spacedata.first;
+				if (sseq->flag & SEQ_DRAWFRAMES) {
+					ipomachtx = 1;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+				} else {
+					fac2= val/(float)G.scene->r.frs_sec;
+					tim= floor(fac2);
+					fac2= fac2-tim;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+G.scene->r.frs_sec*fac2/100.0, 'h', disptype);
+				}
 			}
 			else if (curarea->spacetype==SPACE_SOUND) {
 				SpaceSound *ssound= curarea->spacedata.first;

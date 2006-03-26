@@ -60,6 +60,7 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_editsound.h"
+#include "BIF_editseq.h"
 
 #include "BSE_sequence.h"
 #include "BSE_seqeffects.h"
@@ -118,7 +119,7 @@ void new_stripdata(Sequence *seq)
 
 void free_sequence(Sequence *seq)
 {
-	extern Sequence *last_seq;
+	Sequence *last_seq = get_last_seq();
 
 	if(seq->strip) free_strip(seq->strip);
 
@@ -131,7 +132,7 @@ void free_sequence(Sequence *seq)
 		sh.free(seq);
 	}
 
-	if(seq==last_seq) last_seq= 0;
+	if(seq==last_seq) set_last_seq_to_null();
 
 	MEM_freeN(seq);
 }

@@ -76,7 +76,7 @@
 #include "BSE_editipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_view.h"
-
+#include "BSE_drawview.h"
 
 #include "BDR_editcurve.h"
 #include "BDR_editface.h"
@@ -437,7 +437,6 @@ static uiBlock *view3d_view_spacehandlers(void *arg_unused)
 static void do_view3d_viewmenu(void *arg, int event)
 {
 	View3D *v3d= curarea->spacedata.first;
-	extern int play_anim(int mode);
 	
 	switch(event) {
 	case 0: /* User */
