@@ -760,85 +760,94 @@ void facegroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa, *base_efa=NULL;
-	unsigned int selcount=0;
+	unsigned int selcount=0, facecount=0, base_idx=0, idx=0;
+	short ok=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
+	float *facearea;  /*store face areas here*/
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if (efa->f & SELECT && !efa->h) {
-			base_efa= efa;
-			break;
+			efa->f1=1;
+			ok=1;
+		} else {
+			efa->f1=0;
+		}
+		facecount++;
+	}
+	
+	if (!ok) /* no data selected */
+		return;
+	
+	/*if mode is 3 then record face areas, 4 record perimeter */
+	if (mode==3) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			efa->tmp.fp= EM_face_area(efa);
+		}
+	} else if (mode==4) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			efa->tmp.fp= EM_face_perimeter(efa);
 		}
 	}
 	
-	if (!base_efa)
-		return;
-	
-	if (mode==1) { /* same material */
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && !efa->h && base_efa->mat_nr == efa->mat_nr) {
-				EM_select_face(efa, 1);
-				selcount++;
-			}
-		}
-	} else if (mode==2) { /* same image */
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && !efa->h && base_efa->tf.tpage == efa->tf.tpage) {
-				EM_select_face(efa, 1);
-				selcount++;
-			}
-		}
-	} else if (mode==3) { /* same area */
-		float area, base_area;
-		base_area= EM_face_area(base_efa);
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && !efa->h) {
-				area= EM_face_area(efa);
-				if (fabs(area-base_area)<=thresh) {
-					EM_select_face(efa, 1);
-					selcount++;
-				}
-			}
-		}
-	} else if (mode==4) { /* same perimeter */
-		float perimeter, base_perimeter;
-		base_perimeter= EM_face_perimeter(base_efa);
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && !efa->h) {
-				perimeter= EM_face_perimeter(efa);
-				if (fabs(perimeter-base_perimeter)<=thresh) {
-					EM_select_face(efa, 1);
-					selcount++;
-				}
-			}
-		}
-	} else if (mode==5) { /* same normal */
-		float angle;
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && !efa->h) {
-				angle= VecAngle2(base_efa->n, efa->n);
-				if (angle<=thresh) {
-					EM_select_face(efa, 1);
-					selcount++;
-				}
-			}
-		}
-	} else if (mode==6) { /* same planer */
-		float angle, base_dot, dot;
-		base_dot= base_efa->cent[0]*base_efa->n[0] + base_efa->cent[1]*base_efa->n[1] + base_efa->cent[2]*base_efa->n[2];
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT) && !efa->h) {
-				angle= VecAngle2(base_efa->n, efa->n);
-				if (angle<=thresh) {
-					dot= efa->cent[0]*base_efa->n[0] + efa->cent[1]*base_efa->n[1] + efa->cent[2]*base_efa->n[2];
-					if (fabs(base_dot-dot) <= thresh) {
+	for(base_efa= em->faces.first; base_efa; base_efa= base_efa->next, base_idx++) {
+		if (base_efa->f1) {
+			if (mode==1) { /* same material */
+				for(efa= em->faces.first; efa; efa= efa->next) {
+					if (
+						!(efa->f & SELECT) &&
+						!efa->h &&
+						base_efa->mat_nr == efa->mat_nr
+					) {
 						EM_select_face(efa, 1);
 						selcount++;
 					}
 				}
+			} else if (mode==2) { /* same image */
+				for(efa= em->faces.first; efa; efa= efa->next) {
+					if (!(efa->f & SELECT) && !efa->h && base_efa->tf.tpage == efa->tf.tpage) {
+						EM_select_face(efa, 1);
+						selcount++;
+					}
+				}
+			} else if (mode==3 || mode==4) { /* same area OR same perimeter, both use the same temp var */
+				idx=0;
+				for(efa= em->faces.first; efa; efa= efa->next, idx++) {
+					if (!(efa->f & SELECT) && !efa->h) {
+						if (fabs(efa->tmp.fp-base_efa->tmp.fp)<=thresh) {
+							EM_select_face(efa, 1);
+							selcount++;
+						}
+					}
+				}
+			} else if (mode==5) { /* same normal */
+				float angle;
+				for(efa= em->faces.first; efa; efa= efa->next) {
+					if (!(efa->f & SELECT) && !efa->h) {
+						angle= VecAngle2(base_efa->n, efa->n);
+						if (angle<=thresh) {
+							EM_select_face(efa, 1);
+							selcount++;
+						}
+					}
+				}
+			} else if (mode==6) { /* same planer */
+				float angle, base_dot, dot;
+				base_dot= Inpf(base_efa->cent, base_efa->n);
+				for(efa= em->faces.first; efa; efa= efa->next) {
+					if (!(efa->f & SELECT) && !efa->h) {
+						angle= VecAngle2(base_efa->n, efa->n);
+						if (angle<=thresh) {
+							dot=Inpf(efa->cent, base_efa->n);
+							if (fabs(base_dot-dot) <= thresh) {
+								EM_select_face(efa, 1);
+								selcount++;
+							}
+						}
+					}
+				}
 			}
 		}
-	}
-	
+	} /* end base_efa loop */
 	
 	if (selcount) {
 		G.totfacesel+=selcount;
@@ -859,54 +868,30 @@ void edgegroup_select(short mode)
 	EditMesh *em = G.editMesh;
 	EditEdge *eed, *base_eed=NULL;
 	unsigned int selcount=0;
+	short ok=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
-	if (mode==3) { /* set all eed->tmp.l to 0 we use them later.*/
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if (eed->f & SELECT && !eed->h) {
-				base_eed= eed;
-			}
-			eed->tmp.l=0;
+	
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if (eed->f & SELECT && !eed->h) {
+			eed->f1=1;
+			ok=1;
+		} else {
+			eed->f1=0;
 		}
-	} else {
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if (eed->f & SELECT && !eed->h) {
-				base_eed= eed;
-				break;
-			}
-		}
+		/* set all eed->tmp.l to 0 we use it later.
+		for counting face users*/
+		eed->tmp.l=0;
 	}
 	
-	if (!base_eed)
+	if (!ok) /* no data selected */
 		return;
 	
-	if (mode==1) { /* same length */
-		float base_length= VecLenf(base_eed->v1->co, base_eed->v2->co);
+	if (mode==1) { /*store length*/
 		for(eed= em->edges.first; eed; eed= eed->next) {
-			if (!(eed->f & SELECT) && !eed->h && ( fabs(base_length-VecLenf(eed->v1->co, eed->v2->co)) <= thresh ) ) {
-				EM_select_edge(eed, 1);
-				selcount++;
-			}
+			eed->tmp.fp= VecLenf(eed->v1->co, eed->v2->co);
 		}
-	} else if (mode==2) { /* same direction */
-		float base_dir[3], dir[3], angle;
-		VecSubf(base_dir, base_eed->v1->co, base_eed->v2->co);
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if (!(eed->f & SELECT) && !eed->h) {
-				VecSubf(dir, eed->v1->co, eed->v2->co);
-				angle= VecAngle2(base_dir, dir);
-				
-				if (angle>90) /* use the smallest angle between the edges */
-					angle= fabs(angle-180.0f);
-				
-				if (angle<=thresh) {
-					EM_select_edge(eed, 1);
-					selcount++;
-				}
-			}
-		}
-	} else if (mode==3) { /* face users */
-		EditFace *efa;
-		
+	} else if (mode==3) { /*store face users*/
+		EditFace *efa;		
 		/* cound how many faces each edge uses use tmp->l */
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			efa->e1->tmp.l++;
@@ -914,14 +899,52 @@ void edgegroup_select(short mode)
 			efa->e3->tmp.l++;
 			if (efa->e4) efa->e4->tmp.l++;
 		}
-		
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if ((!(eed->f & SELECT) && !eed->h) && (base_eed->tmp.l==eed->tmp.l)) {
-				EM_select_edge(eed, 1);
-				selcount++;
+	}
+	
+	for(base_eed= em->edges.first; base_eed; base_eed= base_eed->next) {
+		if (base_eed->f1) {
+			if (mode==1) { /* same length */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						fabs(base_eed->tmp.fp - eed->tmp.fp) <= thresh
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+					}
+				}
+			} else if (mode==2) { /* same direction */
+				float base_dir[3], dir[3], angle;
+				VecSubf(base_dir, base_eed->v1->co, base_eed->v2->co);
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (!(eed->f & SELECT) && !eed->h) {
+						VecSubf(dir, eed->v1->co, eed->v2->co);
+						angle= VecAngle2(base_dir, dir);
+						
+						if (angle>90) /* use the smallest angle between the edges */
+							angle= fabs(angle-180.0f);
+						
+						if (angle<=thresh) {
+							EM_select_edge(eed, 1);
+							selcount++;
+						}
+					}
+				}
+			} else if (mode==3) { /* face users */				
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						base_eed->tmp.l==eed->tmp.l
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+					}
+				}
 			}
 		}
-	}
+	} 
 	
 	if (selcount) {
 		//EM_select_flush(); /* dont use because it can end up selecting more edges and is not usefull*/
@@ -944,39 +967,25 @@ void vertgroup_select(short mode)
 	EditVert *eve, *base_eve=NULL;
 	
 	unsigned int selcount=0;
+	short ok=0;
 	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
 	
-	if (mode==2) { /* set all eve->tmp.l to 0 we use them later.*/
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if (eve->f & SELECT && !eve->h) {
-				base_eve= eve;
-			}
-			eve->tmp.l=0;
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if (eve->f & SELECT && !eve->h) {
+			eve->f1=1;
+			ok=1;
+		} else {
+			eve->f1=0;
 		}
-	} else {
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if (eve->f & SELECT && !eve->h) {
-				base_eve= eve;
-				break;
-			}
-		}
+		/* set all eve->tmp.l to 0 we use them later.*/
+		eve->tmp.l=0;
 	}
 	
-	if (!base_eve)
+	if (!ok)
 		return;
 	
-	if (mode==1) { /* same normal */
-		float angle;
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if (!(eve->f & SELECT) && !eve->h) {
-				angle= VecAngle2(base_eve->no, eve->no);
-				if (angle<=thresh) {
-					eve->f |= SELECT;
-					selcount++;
-				}
-			}
-		}
-	} else if (mode==2) { /* face users */
+	
+	if (mode==2) { /* store face users */
 		EditFace *efa;
 		
 		/* count how many faces each edge uses use tmp->l */
@@ -986,35 +995,63 @@ void vertgroup_select(short mode)
 			efa->v3->tmp.l++;
 			if (efa->v4) efa->v4->tmp.l++;
 		}
-		
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if ((!(eve->f & SELECT) && !eve->h) && (base_eve->tmp.l==eve->tmp.l)) {
-				eve->f |= SELECT;
-				selcount++;
-			}
-		}
-	} else if (mode==3) { /* vertex groups */
-		short i,j; /*weight index*/
-		if (!base_eve->totweight)
-			return;
-		
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if (!(eve->f & SELECT) && !eve->h && eve->totweight) {
-				/* do the extra check for selection in the following if, so were not
-				checking verts that may be alredy selected */
-				for (i=0; base_eve->totweight >i && !(eve->f & SELECT); i++) { 
-					for (j=0; eve->totweight >j; j++) {
-						if (base_eve->dw[i].def_nr==eve->dw[j].def_nr) {
+	}
+	
+	
+	for(base_eve= em->verts.first; base_eve; base_eve= base_eve->next) {
+		if (base_eve->f1) {
+				
+			if (mode==1) { /* same normal */
+				float angle;
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					if (!(eve->f & SELECT) && !eve->h) {
+						angle= VecAngle2(base_eve->no, eve->no);
+						if (angle<=thresh) {
 							eve->f |= SELECT;
 							selcount++;
-							break;
 						}
 					}
 				}
+			} else if (mode==2) { /* face users */
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					if (
+						!(eve->f & SELECT) &&
+						!eve->h &&
+						base_eve->tmp.l==eve->tmp.l
+					) {
+						eve->f |= SELECT;
+						selcount++;
+					}
+				}
+			} else if (mode==3) { /* vertex groups */
+				short i,j; /*weight index*/
+				if (!base_eve->totweight)
+					return;
+				
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					if (
+						!(eve->f & SELECT) &&
+						!eve->h &&
+						eve->totweight
+					) {
+						/* do the extra check for selection in the following if, so were not
+						checking verts that may be alredy selected */
+						for (i=0; base_eve->totweight >i && !(eve->f & SELECT); i++) { 
+							for (j=0; eve->totweight >j; j++) {
+								if (base_eve->dw[i].def_nr==eve->dw[j].def_nr) {
+									eve->f |= SELECT;
+									selcount++;
+									break;
+								}
+							}
+						}
+					}
+				}
+				
 			}
 		}
-		
-	}
+	} /* end basevert loop */
+	
 	if (selcount) {
 		EM_select_flush(); /* so that selected verts, go onto select faces */
 		G.totedgesel+=selcount;

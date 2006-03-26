@@ -114,6 +114,7 @@ void Crossf(float *c, float *a, float *b)
 	c[2] = a[0] * b[1] - a[1] * b[0];
 }
 
+/* Inpf returns the dot product, also called the scalar product and inner product */
 float Inpf( float *v1, float *v2)
 {
 	return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];

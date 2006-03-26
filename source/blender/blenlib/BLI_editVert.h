@@ -55,14 +55,18 @@ typedef struct EditVert
 		void            *p;
 		long             l;
 	} tmp;
-	float no[3];
-	float co[3];
-	short xs, ys;
-	unsigned char f, h, f1, f2;
-	short fast;	/* only 0 or 1, for editmesh_fastmalloc */
-	short	totweight;				/* __NLA */
+	float no[3]; /*vertex normal */
+	float co[3]; /*vertex location */
+	short xs, ys; /* used to store a screenspace 2d projection of the verts */
+	
+	/* f stores selection eg. if (eve->f & SELECT) {...
+	h for hidden. if (!eve->h) {...
+	f1 and f2 can be used for temp data, clear them first*/
+	unsigned char f, h, f1, f2; 
+	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
+	short	totweight; /* __NLA total number of vertex weights for this vertex */
 	int hash;
-	struct MDeformWeight *dw;	/* __NLA */
+	struct MDeformWeight *dw;	/* __NLA a pointer to an array of defirm weights */
 	int keyindex; /* original index #, for restoring  key information */
 } EditVert;
 
@@ -87,6 +91,7 @@ typedef struct EditEdge
 		struct EditFace *f;
 		void            *p;
 		long             l;
+		float			fp;
 	} tmp;
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
 	unsigned char f, h, dir, seam;
@@ -111,6 +116,7 @@ typedef struct EditFace
 		struct EditFace *f;
 		void            *p;
 		long             l;
+		float			fp;
 	} tmp;
 	float n[3], cent[3];
 	struct TFace tf;	/* a copy of original tface. */
