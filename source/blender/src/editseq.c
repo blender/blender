@@ -2199,6 +2199,7 @@ void transform_seq(int mode, int context)
 				case LEFTMOUSE:
 				case RIGHTMOUSE:
 				case SPACEKEY:
+				case RETKEY:
 					afbreek= 1;
 					break;
 				case MIDDLEMOUSE:
