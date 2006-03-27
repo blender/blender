@@ -782,7 +782,7 @@ int facegroup_select(short mode)
 	}
 	
 	if (!ok || !deselcount) /* no data selected OR no more data to select */
-		return;
+		return 0;
 	
 	/*if mode is 3 then record face areas, 4 record perimeter */
 	if (mode==3) {
@@ -877,7 +877,13 @@ EDGE GROUP
  mode 1: same length
  mode 2: same direction
  mode 3: same number of face users
+ mode 4: similar face angles.
 */
+
+/* this function is only used by edgegroup_select's edge angle */
+
+
+
 int edgegroup_select(short mode)
 {
 	EditMesh *em = G.editMesh;
@@ -903,24 +909,62 @@ int edgegroup_select(short mode)
 			/* set all eed->tmp.l to 0 we use it later.
 			for counting face users*/
 			eed->tmp.l=0;
+			eed->f2=0; /* only for mode 4, edge animations */
 		}
 	}
 	
 	if (!ok || !deselcount) /* no data selected OR no more data to select*/
-		return;
+		return 0;
 	
 	if (mode==1) { /*store length*/
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			eed->tmp.fp= VecLenf(eed->v1->co, eed->v2->co);
 		}
 	} else if (mode==3) { /*store face users*/
-		EditFace *efa;		
+		EditFace *efa;
 		/* cound how many faces each edge uses use tmp->l */
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			efa->e1->tmp.l++;
 			efa->e2->tmp.l++;
 			efa->e3->tmp.l++;
 			if (efa->e4) efa->e4->tmp.l++;
+		}
+	} else if (mode==4) { /*store edge angles */
+		EditFace *efa;
+		EditEdge efa_edges[4];
+		int j;
+		/* cound how many faces each edge uses use tmp.l */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			/* here we use the edges temp data to assign a face
+			if a face has alredy been assigned (eed->f2==1)
+			we calculate the angle between the current face and
+			the edges previously found face.
+			store the angle in eed->tmp.fp (loosing the face eed->tmp.f)
+			but tagging eed->f2==2, so we know not to look at it again.
+			This only works for edges that connect to 2 faces. but its good enough
+			*/
+			
+			/* se we can loop through face edges*/
+			j=0;
+			eed= efa->e1;
+			while (j<4) {
+				if (j==1) eed= efa->e2;
+				else if (j==2) eed= efa->e3;
+				else if (j==3) {
+					eed= efa->e4;
+					if (!eed)
+						break;
+				} /* done looping */
+				
+				if (eed->f2==2)
+					break;
+				else if (eed->f2==0) /* first access, assign the face */
+					eed->tmp.f= efa;
+				else if (eed->f2==1) /* second, we assign the angle*/
+					eed->tmp.fp= VecAngle2(eed->tmp.f->n, efa->n);
+				eed->f2++; /* f2==0 no face assigned. f2==1 one face found. f2==2 angle calculated.*/
+				j++;
+			}
 		}
 	}
 	
@@ -974,7 +1018,23 @@ int edgegroup_select(short mode)
 							return selcount;
 					}
 				}
+			} else if (mode==4 && base_eed->f2==2) { /* edge angles, f2==2 means the edge has an angle. */				
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						eed->f2==2 &&
+						(fabs(base_eed->tmp.fp - eed->tmp.fp) <= thresh)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
 			}
+			
 		}
 	} 
 	return selcount;
@@ -1017,7 +1077,7 @@ int vertgroup_select(short mode)
 	}
 	
 	if (!ok || !deselcount) /* no data selected OR no more data to select*/
-		return;
+		return 0;
 	
 	
 	if (mode==2) { /* store face users */
@@ -1118,7 +1178,7 @@ void select_mesh_group_menu()
 		}
 		
 	} else if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		ret= pupmenu("Select Grouped Edges%t|Similar Length %x1|Similar Direction %x2|Same Face Users%x3");
+		ret= pupmenu("Select Grouped Edges%t|Similar Length %x1|Similar Direction %x2|Same Face Users%x3|Similar Adjacent Face Angle");
 		if (ret<1) return;
 		selcount= edgegroup_select(ret);
 		
