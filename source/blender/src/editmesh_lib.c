@@ -250,6 +250,7 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 				VecCopyf(plane, vec);
 		}
 	}
+	Normalise(plane);
 }
 
 
