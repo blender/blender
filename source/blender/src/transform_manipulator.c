@@ -229,45 +229,133 @@ int calc_manipulator_stats(ScrArea *sa)
 		if(G.obedit->type==OB_MESH) {
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
-			float vec[3];
+			float vec[3]= {0,0,0};
 			int no_faces= 1;
 			
-			if(v3d->twmode == V3D_MANIP_NORMAL) {
+			/* USE LAST SELECTE WITH ACTIVE */
+			if (G.vd->around==V3D_ACTIVE && em->selected.last) {
+				/*selection types*/
+				EditSelection *ese;
 				EditFace *efa;
-				
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if(efa->f & SELECT) {
-						no_faces= 0;
-						VECADD(normal, normal, efa->n);
-						VecSubf(vec, efa->v2->co, efa->v1->co);
-						VECADD(plane, plane, vec);
-					}
-				}
-			}
-			
-			/* do vertices for center, and if still no normal found, use vertex normals */
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->f & SELECT) {
-					if(no_faces) VECADD(normal, normal, eve->no);
-					
-					totsel++;
-					calc_tw_center(eve->co);
-				}
-			}
-			/* the edge case... */
-			if(no_faces && v3d->twmode == V3D_MANIP_NORMAL) {
 				EditEdge *eed;
+				/*eve alredy defined*/
+				ese= em->selected.last;
+				if (ese->type==EDITVERT) { /*VERT*/
+					eve= ese->data;
+					calc_tw_center(eve->co);
+					totsel= 1;
+					if (v3d->twmode == V3D_MANIP_NORMAL)
+						VecCopyf(normal, eve->no);
+					
+					/* make a fake  plane thats at rightangles to the normal
+					we cant make a crossvec from a vec thats the same as the vec
+					unlikely but possible, so make sure if the normal is (0,0,1)
+					that vec isnt the same or in the same direction even.*/
+					if (normal[0]<0.5)			vec[0]=1;
+					else if (normal[1]<0.5)		vec[1]=1;
+					else						vec[2]=1;
+					Crossf(plane, normal, vec);
+					
+				} else if (ese->type==EDITEDGE) { /*EDGE*/
+					eed= ese->data;
+					calc_tw_center(eed->v1->co);
+					calc_tw_center(eed->v2->co);
+					totsel= 2;
+					if (v3d->twmode == V3D_MANIP_NORMAL) {
+						VecCopyf(normal, eed->v1->no);
+						VECADD(normal, normal, eed->v2->no);	
+					}
+					/*the plane is simple, it runs allong the edge
+					however selecting different edges can swap the direction of the y axis.
+					this makes it less likely for the y axis of the manipulator
+					(running along the edge).. to flip less often.
+					at least its more pradictable */
+					if (eed->v2->co[1] > eed->v1->co[1]) /*check which to do first */
+						VecSubf(plane, eed->v2->co, eed->v1->co);
+					else
+						VecSubf(plane, eed->v1->co, eed->v2->co);
+					
+					/* the 2 vertex normals will be close but not at rightangles to the edge
+					for rotate about edge we want them to be at right angles, so we need to
+					do some extra colculation to correct the vert normals,
+					we need the plane for this */
+					Crossf(vec, normal, plane);
+					Crossf(normal, plane, vec); 
+					
+				} else if (ese->type==EDITFACE) { /*FACE*/
+					efa= ese->data;
+					calc_tw_center(efa->cent);
+					totsel=1;
+					
+					if (v3d->twmode == V3D_MANIP_NORMAL)
+						VecCopyf(normal, efa->n);
+					
+					if (efa->v4) { /*if its a quad- set the plane along the 2 longest edges.*/
+						float vecA[3], vecB[3];
+						VecSubf(vecA, efa->v4->co, efa->v3->co);
+						VecSubf(vecB, efa->v1->co, efa->v2->co);
+						VecAddf(plane, vecA, vecB);
+						
+						VecSubf(vecA, efa->v1->co, efa->v4->co);
+						VecSubf(vecB, efa->v2->co, efa->v3->co);
+						VecAddf(vec, vecA, vecB);						
+						/*use the biggest edge length*/
+						if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
+							VecCopyf(plane, vec);
+					} else {
+						/*start with v1-2 */
+						VecSubf(plane, efa->v1->co, efa->v2->co);
+						
+						/*test the edge between v2-3, use if longer */
+						VecSubf(vec, efa->v2->co, efa->v3->co);
+						if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
+							VecCopyf(plane, vec);
+						
+						/*test the edge between v1-3, use if longer */
+						VecSubf(vec, efa->v3->co, efa->v1->co);
+						if (plane[0]*plane[0]+plane[1]*plane[1]+plane[2]*plane[2] < vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2])
+							VecCopyf(plane, vec);
+					}
+				}
+			
+			} else {
+				if(v3d->twmode == V3D_MANIP_NORMAL) {
+					EditFace *efa;
+					
+					for(efa= em->faces.first; efa; efa= efa->next) {
+						if(efa->f & SELECT) {
+							no_faces= 0;
+							VECADD(normal, normal, efa->n);
+							VecSubf(vec, efa->v2->co, efa->v1->co);
+							VECADD(plane, plane, vec);
+						}
+					}
+				}
 				
-				for(eed= em->edges.first; eed; eed= eed->next) {
-					if(eed->f & SELECT) {
-						/* ok we got an edge, only use one, and as normal */
-						VECCOPY(plane, normal);
-						VecSubf(normal, eed->v2->co, eed->v1->co);
-						break;
+				/* do vertices for center, and if still no normal found, use vertex normals */
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					if(eve->f & SELECT) {
+						if(no_faces) VECADD(normal, normal, eve->no);
+						
+						totsel++;
+						calc_tw_center(eve->co);
+					}
+				}
+				/* the edge case... */
+				if(no_faces && v3d->twmode == V3D_MANIP_NORMAL) {
+					EditEdge *eed;
+					
+					for(eed= em->edges.first; eed; eed= eed->next) {
+						if(eed->f & SELECT) {
+							/* ok we got an edge, only use one, and as normal */
+							VECCOPY(plane, normal);
+							VecSubf(normal, eed->v2->co, eed->v1->co);
+							break;
+						}
 					}
 				}
 			}
-		}
+		} /* end editmesh */
 		else if (G.obedit->type==OB_ARMATURE){
 			bArmature *arm= G.obedit->data;
 			EditBone *ebo;
