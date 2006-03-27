@@ -42,6 +42,7 @@ struct EditVert;
 struct Mesh;
 struct bDeformGroup;
 struct View3D;
+struct EditSelection;
 
 // edge and face flag both
 #define EM_FGON		2
