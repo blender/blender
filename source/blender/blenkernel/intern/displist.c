@@ -345,8 +345,12 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 	}
 }
 
-static void init_fastshade_for_ob(Object *ob, int *need_orco_r, float mat[4][4], float imat[3][3])
+static void init_fastshade_for_ob(Object *ob, int *need_orco_r, float mat[4][4], float *imat)
 {
+	int x;
+
+	for(x=0;x<9;x++) imat[x] = 0;
+	need_orco_r=0;
 }
 
 void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r, unsigned int **col2_r)
@@ -359,7 +363,7 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 	float *orco, *vnors, imat[3][3], mat[4][4], vec[3];
 	int a, i, need_orco;
 
-	init_fastshade_for_ob(ob, &need_orco, mat, imat);
+	init_fastshade_for_ob(ob, &need_orco, mat, *imat);
 
 	if (need_orco) {
 		orco = mesh_create_orco(ob);
@@ -471,7 +475,7 @@ void shadeDispList(Base *base)
 	float imat[3][3], mat[4][4], vec[3];
 	float *fp, *nor, n1[3];
 	unsigned int *col1;
-	int a;
+	int a, need_orco;
 
 	dl = find_displist(&ob->disp, DL_VERTCOL);
 	if (dl) {
@@ -489,7 +493,7 @@ void shadeDispList(Base *base)
 		return;
 	}
 
-	init_fastshade_for_ob(ob, NULL, mat, imat);
+	init_fastshade_for_ob(ob, &need_orco, mat, *imat);
 	
 	if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 	
