@@ -494,6 +494,7 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 	/* Handle to the output file */
 	AVFormatContext* of;
 	AVOutputFormat* fmt;
+	char name[256];
 
 	ffmpeg_type = rd->ffcodecdata.type;
 	ffmpeg_codec = rd->ffcodecdata.codec;
@@ -509,7 +510,6 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 	do_init_ffmpeg();
 
 	/* Determine the correct filename */
-	char name[256];
 	makeffmpegstring(name);
 	fprintf(stderr, "Starting output to %s(ffmpeg)...\n", name);
 	
