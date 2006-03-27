@@ -274,8 +274,8 @@ class Image:
 
   def setPixelF(x, y, (r, g, b,a )):
     """
-       	Set the the colors of the current pixel in the form [r,g,b,a].
-       	Color values must be floats in the range 0.0 - 1.0.
+    Set the the colors of the current pixel in the form [r,g,b,a].
+    Color values must be floats in the range 0.0 - 1.0.
     Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
     @type x: int
     @type y: int
@@ -289,8 +289,8 @@ class Image:
     
   def setPixelI(x, y, (r, g, b, a)):
     """
-       	Set the the colors of the current pixel in the form [r,g,b,a].
-       	Color values must be ints in the range 0 - 255.
+    Set the the colors of the current pixel in the form [r,g,b,a].
+    Color values must be ints in the range 0 - 255.
     Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
     @type x: int
     @type y: int
