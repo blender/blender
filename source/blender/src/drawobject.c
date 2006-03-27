@@ -1504,7 +1504,21 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 	float v1[3], v2[3], v3[3], v4[3];
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
+	char conv_float[5]; /* Use a float conversion matching the grid size */
 	float area, col[3]; /* area of the face,  colour of the text to draw */
+	
+	/* make the precission of the pronted value proportionate to the gridsize */
+	if ((G.vd->grid) < 0.01)
+		strcpy(conv_float, "%.6f");
+	else if ((G.vd->grid) < 0.1)
+		strcpy(conv_float, "%.5f");
+	else if ((G.vd->grid) < 1.0)
+		strcpy(conv_float, "%.4f");
+	else if ((G.vd->grid) < 10.0)
+		strcpy(conv_float, "%.3f");
+	else
+		strcpy(conv_float, "%.2f");
+	
 	
 	if(G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
@@ -1530,7 +1544,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 					Mat4MulVecfl(ob->obmat, v2);
 				}
 				
-				sprintf(val,"%.3f", VecLenf(v1, v2));
+				sprintf(val, conv_float, VecLenf(v1, v2));
 				BMF_DrawString( G.fonts, val);
 			}
 		}
@@ -1565,7 +1579,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 				else
 					area = AreaT3Dfl(v1, v2, v3);
 
-				sprintf(val,"%.3f", area);
+				sprintf(val, conv_float, area);
 				glRasterPos3fv(efa->cent);
 				BMF_DrawString( G.fonts, val);
 			}
