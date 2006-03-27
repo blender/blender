@@ -1043,12 +1043,12 @@ static void change_idid_adr_fd(FileData *fd, void *old, void *new)
 
 static void change_idid_adr(ListBase *mainlist, FileData *basefd, void *old, void *new)
 {
-	Main *main;
+	Main *mainptr;
 	
-	for(main= mainlist->first; main; main= main->next) {
+	for(mainptr= mainlist->first; mainptr; mainptr= mainptr->next) {
 		FileData *fd;
 		
-		if(main->curlib) fd= main->curlib->filedata;
+		if(mainptr->curlib) fd= mainptr->curlib->filedata;
 		else fd= basefd;
 		
 		if(fd) {
