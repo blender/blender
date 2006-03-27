@@ -1,13 +1,18 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
- *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies.
- * Erwin Coumans makes no representations about the suitability 
- * of this software for any purpose.  
- * It is provided "as is" without express or implied warranty.
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 */
+
 #include "SimpleBroadphase.h"
 #include "BroadphaseCollision/Dispatcher.h"
 #include "BroadphaseCollision/CollisionAlgorithm.h"
@@ -18,14 +23,23 @@
 #include <vector>
 #include "CollisionShapes/CollisionMargin.h"
 
-SimpleBroadphase::SimpleBroadphase()
-:  m_firstFreeProxy(0),
-  m_numProxies(0),
- m_blockedForChanges(false),
- m_NumOverlapBroadphasePair(0)
+SimpleBroadphase::SimpleBroadphase(int maxProxies,int maxOverlap)
+	:m_firstFreeProxy(0),
+	m_numProxies(0),
+	m_blockedForChanges(false),
+	m_NumOverlapBroadphasePair(0),
+	m_maxProxies(maxProxies),
+	m_maxOverlap(maxOverlap)
 {
+
+	m_proxies = new SimpleBroadphaseProxy[maxProxies];
+	m_freeProxies = new int[maxProxies];
+	m_pProxies = new BroadphaseProxy*[maxProxies];
+	m_OverlappingPairs = new BroadphasePair[maxOverlap];
+
+
 	int i;
-	for (i=0;i<SIMPLE_MAX_PROXIES;i++)
+	for (i=0;i<m_maxProxies;i++)
 	{
 		m_freeProxies[i] = i;
 	}
@@ -33,6 +47,11 @@ SimpleBroadphase::SimpleBroadphase()
 
 SimpleBroadphase::~SimpleBroadphase()
 {
+	delete[] m_proxies;
+	delete []m_freeProxies;
+	delete [] m_pProxies;
+	delete [] m_OverlappingPairs;
+
 	/*int i;
 	for (i=m_numProxies-1;i>=0;i--)
 	{
@@ -45,7 +64,7 @@ SimpleBroadphase::~SimpleBroadphase()
 
 BroadphaseProxy*	SimpleBroadphase::CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr)
 {
-	if (m_numProxies >= SIMPLE_MAX_PROXIES)
+	if (m_numProxies >= m_maxProxies)
 	{
 		assert(0);
 		return 0; //should never happen, but don't let the game crash ;-)
@@ -61,6 +80,21 @@ BroadphaseProxy*	SimpleBroadphase::CreateProxy(  const SimdVector3& min,  const 
 
 	return proxy;
 }
+
+void	SimpleBroadphase::RemoveOverlappingPairsContainingProxy(BroadphaseProxy* proxy)
+{
+	int i;
+		for ( i=m_NumOverlapBroadphasePair-1;i>=0;i--)
+		{
+			BroadphasePair& pair = m_OverlappingPairs[i];
+			if (pair.m_pProxy0 == proxy ||
+					pair.m_pProxy1 == proxy)
+			{
+				RemoveOverlappingPair(pair);
+			}
+		}
+}
+
 void	SimpleBroadphase::DestroyProxy(BroadphaseProxy* proxy)
 {
 		
@@ -71,15 +105,8 @@ void	SimpleBroadphase::DestroyProxy(BroadphaseProxy* proxy)
 		int index = proxy - proxy1;
 		m_freeProxies[--m_firstFreeProxy] = index;
 
-		for ( i=m_NumOverlapBroadphasePair-1;i>=0;i--)
-		{
-			BroadphasePair& pair = m_OverlappingPairs[i];
-			if (pair.m_pProxy0 == proxy ||
-					pair.m_pProxy1 == proxy)
-			{
-				RemoveOverlappingPair(pair);
-			}
-		}
+		RemoveOverlappingPairsContainingProxy(proxy);
+
 		
 		for (i=0;i<m_numProxies;i++)
 		{
@@ -152,7 +179,7 @@ void	SimpleBroadphase::AddOverlappingPair(BroadphaseProxy* proxy0,BroadphaseProx
 		m_OverlappingPairs[m_NumOverlapBroadphasePair].m_algorithms[i] = 0;
 	}
 
-	if (m_NumOverlapBroadphasePair >= SIMPLE_MAX_OVERLAP)
+	if (m_NumOverlapBroadphasePair >= m_maxOverlap)
 	{
 		printf("Error: too many overlapping objects: m_NumOverlapBroadphasePair: %d\n",m_NumOverlapBroadphasePair);
 		assert(0);
@@ -161,9 +188,10 @@ void	SimpleBroadphase::AddOverlappingPair(BroadphaseProxy* proxy0,BroadphaseProx
 	m_NumOverlapBroadphasePair++;
 }
 	
-bool	SimpleBroadphase::FindPair(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
+BroadphasePair*	SimpleBroadphase::FindPair(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
 {
-	bool found = false;
+	BroadphasePair* foundPair = 0;
+
 	int i;
 	for (i=m_NumOverlapBroadphasePair-1;i>=0;i--)
 	{
@@ -171,12 +199,12 @@ bool	SimpleBroadphase::FindPair(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
 		if (((pair.m_pProxy0 == proxy0) && (pair.m_pProxy1 == proxy1)) ||
 			((pair.m_pProxy0 == proxy1) && (pair.m_pProxy1 == proxy0)))
 		{
-			found = true;
-			break;
+			foundPair = &pair;
+			return foundPair;
 		}
 	}	
 
-	return found;
+	return foundPair;
 }
 void	SimpleBroadphase::RemoveOverlappingPair(BroadphasePair& pair)
 {
@@ -231,8 +259,7 @@ void	SimpleBroadphase::RefreshOverlappingPairs()
 		}
 	}
 
-	//BroadphasePair	m_OverlappingPairs[SIMPLE_MAX_OVERLAP];
-	//int	m_NumOverlapBroadphasePair;
+	
 
 }
 

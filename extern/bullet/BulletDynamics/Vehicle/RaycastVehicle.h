@@ -143,6 +143,17 @@ public:
 		return m_indexForwardAxis;
 	}
 
+	virtual void	BuildJacobian()
+	{
+		//not yet
+	}
+
+	virtual	void	SolveConstraint(SimdScalar	timeStep)
+	{
+		//not yet
+	}
+
+
 };
 
 #endif //RAYCASTVEHICLE_H

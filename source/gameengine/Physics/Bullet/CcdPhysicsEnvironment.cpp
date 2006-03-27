@@ -6,6 +6,8 @@
 #include "Dynamics/RigidBody.h"
 #include "BroadphaseCollision/BroadphaseInterface.h"
 #include "BroadphaseCollision/SimpleBroadphase.h"
+#include "BroadphaseCollision/AxisSweep3.h"
+
 #include "CollisionDispatch/CollisionWorld.h"
 
 #include "CollisionShapes/ConvexShape.h"
@@ -302,7 +304,16 @@ m_solverType(-1)
 
 	
 	if(!broadphase)
-		broadphase = new SimpleBroadphase();
+	{
+
+		//todo: calculate/let user specify this world sizes
+		SimdVector3 worldMin(-10000,-10000,-10000);
+		SimdVector3 worldMax(10000,10000,10000);
+
+		broadphase = new AxisSweep3(worldMin,worldMax);
+
+		//broadphase = new SimpleBroadphase();
+	}
 		
 	setSolverType(0);
 	

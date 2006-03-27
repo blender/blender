@@ -1,13 +1,18 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
- *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies.
- * Erwin Coumans makes no representations about the suitability 
- * of this software for any purpose.  
- * It is provided "as is" without express or implied warranty.
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 */
+
 #ifndef BROADPHASE_PROXY_H
 #define BROADPHASE_PROXY_H
 
@@ -50,32 +55,13 @@ struct BroadphaseProxy
 	void*	m_clientObject;
 
 
-	BroadphaseProxy() :m_clientObject(0),m_clientObjectType(-1){}
+	BroadphaseProxy() :m_clientObject(0){}
 	BroadphaseProxy(int shapeType,void* userPtr)
-		:m_clientObject(userPtr),
-		m_clientObjectType(shapeType)
+		:m_clientObject(userPtr)
+		//m_clientObjectType(shapeType)
 	{
 	}
-
 	
-	int GetClientObjectType ( ) const { return m_clientObjectType;}
-
-	
-	void	SetClientObjectType( int type ) { 
-		m_clientObjectType = type; 
-	}
-
-	bool IsConvexShape()
-	{
-		return (GetClientObjectType () < TRIANGLE_MESH_SHAPE_PROXYTYPE);
-	}
-	bool IsConcaveShape()
-	{
-		return (GetClientObjectType() > CONCAVE_SHAPES_START_HERE);
-	}
-
-protected:
-	int			 m_clientObjectType;
 };
 
 class CollisionAlgorithm;

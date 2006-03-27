@@ -241,6 +241,7 @@ static void compute_invM_JT (int m, dRealMutablePtr J, dRealMutablePtr iMJ, int 
 	}
 }
 
+#if 0
 static void multiply_invM_JTSpecial (int m, int nb, dRealMutablePtr iMJ, int *jb,
 	dRealMutablePtr in, dRealMutablePtr out,int onlyBody1,int onlyBody2)
 {
@@ -290,10 +291,12 @@ static void multiply_invM_JTSpecial (int m, int nb, dRealMutablePtr iMJ, int *jb
 		
 	}
 }
+#endif
 
 
 // compute out = inv(M)*J'*in.
 
+#if 0
 static void multiply_invM_JT (int m, int nb, dRealMutablePtr iMJ, int *jb,
 	dRealMutablePtr in, dRealMutablePtr out)
 {
@@ -314,6 +317,7 @@ static void multiply_invM_JT (int m, int nb, dRealMutablePtr iMJ, int *jb,
 		iMJ_ptr += 6;
 	}
 }
+#endif
 
 
 // compute out = J*in.

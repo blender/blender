@@ -13,33 +13,43 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef TYPED_CONSTRAINT_H
-#define TYPED_CONSTRAINT_H
+#ifndef HINGECONSTRAINT_H
+#define HINGECONSTRAINT_H
+
+#include "SimdVector3.h"
+
+#include "ConstraintSolver/JacobianEntry.h"
+#include "TypedConstraint.h"
 
 class RigidBody;
-#include "SimdScalar.h"
 
-//TypedConstraint is the baseclass for Bullet constraints and vehicles
-class TypedConstraint
+
+/// hinge constraint between two rigidbodies each with a pivotpoint that descibes the axis location in local space
+/// axis defines the orientation of the hinge axis
+class HingeConstraint : public TypedConstraint
 {
-	int	m_userConstraintType;
-	int	m_userConstraintId;
+	JacobianEntry	m_jac[3]; //3 orthogonal linear constraints
+	JacobianEntry	m_jacAng[2]; //2 orthogonal angular constraints
 
-protected:
-	RigidBody&	m_rbA;
-	RigidBody&	m_rbB;
+	SimdVector3	m_pivotInA;
+	SimdVector3	m_pivotInB;
+	SimdVector3	m_axisInA;
+	SimdVector3	m_axisInB;
 
+	
 public:
 
-	TypedConstraint();
+	HingeConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB,SimdVector3& axisInA,SimdVector3& axisInB);
 
-	TypedConstraint(RigidBody& rbA);
+	HingeConstraint(RigidBody& rbA,const SimdVector3& pivotInA,SimdVector3& axisInA);
 
-	TypedConstraint(RigidBody& rbA,RigidBody& rbB);
+	HingeConstraint();
 
-	virtual void	BuildJacobian() = 0;
+	virtual void	BuildJacobian();
 
-	virtual	void	SolveConstraint(SimdScalar	timeStep) = 0;
+	virtual	void	SolveConstraint(SimdScalar	timeStep);
+
+	void	UpdateRHS(SimdScalar	timeStep);
 
 	const RigidBody& GetRigidBodyA() const
 	{
@@ -50,25 +60,8 @@ public:
 		return m_rbB;
 	}
 
-	int GetUserConstraintType() const
-	{
-		return m_userConstraintType ;
-	}
 
-	void	SetUserConstraintType(int userConstraintType)
-	{
-		m_userConstraintType = userConstraintType;
-	};
 
-	void	SetUserConstraintId(int uid)
-	{
-		m_userConstraintId = uid;
-	}
-	
-	int GetUserConstraintId()
-	{
-		return m_userConstraintId;
-	}
 };
 
-#endif //TYPED_CONSTRAINT_H
+#endif //HINGECONSTRAINT_H

@@ -25,7 +25,7 @@
 				AdditionalIncludeDirectories=".;..\LinearMath"
 				PreprocessorDefinitions="_DEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Debug/Bullet.pch"
 				AssemblerListingLocation=".\Debug/"
@@ -77,7 +77,7 @@
 				AdditionalIncludeDirectories=".;..\LinearMath"
 				PreprocessorDefinitions="NDEBUG;_LIB;WIN32;BUM_INLINED;USE_ALGEBRAIC"
 				StringPooling="TRUE"
-				RuntimeLibrary="0"
+				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Release/Bullet.pch"
@@ -97,20 +97,7 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Copying header files
-IF NOT EXIST ..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\build\msvc_7\extern\bullet\include
-IF NOT EXIST ..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-IF NOT EXIST ..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-IF NOT EXIST ..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
-
-XCOPY /Y ..\LinearMath\*.h ..\..\..\..\build\msvc_7\extern\bullet\include
-XCOPY /Y ..\Bullet\BroadphaseCollision\*.h ..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-XCOPY /Y ..\Bullet\CollisionShapes\*.h ..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-XCOPY /Y ..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
-
-ECHO Done
-"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -211,6 +198,12 @@ ECHO Done
 				RelativePath=".\NarrowPhaseCollision\GjkPairDetector.h">
 			</File>
 			<File
+				RelativePath=".\NarrowPhaseCollision\ManifoldContactAddResult.cpp">
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\ManifoldContactAddResult.h">
+			</File>
+			<File
 				RelativePath=".\NarrowPhaseCollision\ManifoldPoint.h">
 			</File>
 			<File
@@ -260,6 +253,12 @@ ECHO Done
 				RelativePath=".\CollisionShapes\BoxShape.h">
 			</File>
 			<File
+				RelativePath=".\CollisionShapes\BvhTriangleMeshShape.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\BvhTriangleMeshShape.h">
+			</File>
+			<File
 				RelativePath=".\CollisionShapes\CollisionShape.cpp">
 			</File>
 			<File
@@ -284,6 +283,12 @@ ECHO Done
 				RelativePath=".\CollisionShapes\ConvexShape.h">
 			</File>
 			<File
+				RelativePath=".\CollisionShapes\ConvexTriangleCallback.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\ConvexTriangleCallback.h">
+			</File>
+			<File
 				RelativePath=".\CollisionShapes\CylinderShape.cpp">
 			</File>
 			<File
@@ -300,6 +305,12 @@ ECHO Done
 			</File>
 			<File
 				RelativePath=".\CollisionShapes\MultiSphereShape.h">
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\OptimizedBvh.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\OptimizedBvh.h">
 			</File>
 			<File
 				RelativePath=".\CollisionShapes\PolyhedralConvexShape.cpp">
@@ -326,7 +337,16 @@ ECHO Done
 				RelativePath=".\CollisionShapes\StridingMeshInterface.h">
 			</File>
 			<File
+				RelativePath=".\CollisionShapes\TriangleCallback.cpp">
+			</File>
+			<File
 				RelativePath=".\CollisionShapes\TriangleCallback.h">
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\TriangleIndexVertexArray.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionShapes\TriangleIndexVertexArray.h">
 			</File>
 			<File
 				RelativePath=".\CollisionShapes\TriangleMesh.cpp">
@@ -348,6 +368,12 @@ ECHO Done
 			Name="BroadphaseCollision"
 			Filter="">
 			<File
+				RelativePath=".\BroadphaseCollision\AxisSweep3.cpp">
+			</File>
+			<File
+				RelativePath=".\BroadphaseCollision\AxisSweep3.h">
+			</File>
+			<File
 				RelativePath=".\BroadphaseCollision\BroadPhaseInterface.h">
 			</File>
 			<File
@@ -363,10 +389,10 @@ ECHO Done
 				RelativePath=".\BroadphaseCollision\CollisionAlgorithm.h">
 			</File>
 			<File
-				RelativePath=".\BroadphaseCollision\CollisionDispatcher.cpp">
+				RelativePath=".\BroadphaseCollision\Dispatcher.cpp">
 			</File>
 			<File
-				RelativePath=".\BroadphaseCollision\CollisionDispatcher.h">
+				RelativePath=".\BroadphaseCollision\Dispatcher.h">
 			</File>
 			<File
 				RelativePath=".\BroadphaseCollision\SimpleBroadphase.cpp">
@@ -416,6 +442,70 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\LinearMath\SimdVector3.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="CollisionDispatch"
+			Filter="">
+			<File
+				RelativePath=".\CollisionDispatch\CollisionDispatcher.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionDispatcher.h">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionObject.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionObject.h">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionWorld.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionWorld.h">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConcaveCollisionAlgorithm.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConcaveCollisionAlgorithm.h">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConvexAlgorithm.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ConvexConvexAlgorithm.h">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\EmptyCollisionAlgorithm.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\EmptyCollisionAlgorithm.h">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ManifoldResult.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\ManifoldResult.h">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\UnionFind.cpp">
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\UnionFind.h">
 			</File>
 		</Filter>
 		<File

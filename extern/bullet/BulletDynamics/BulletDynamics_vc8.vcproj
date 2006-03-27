@@ -163,6 +163,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ConstraintSolver\HingeConstraint.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ConstraintSolver\HingeConstraint.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ConstraintSolver\JacobianEntry.h"
 				>
 			</File>
@@ -206,52 +214,12 @@
 				RelativePath=".\ConstraintSolver\SorLcp.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Vehicle"
-			>
 			<File
-				RelativePath=".\Vehicle\RaycastVehicle.cpp"
+				RelativePath=".\ConstraintSolver\TypedConstraint.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Vehicle\RaycastVehicle.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\VehicleControl.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\VehicleFrame.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\VehicleInputController.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\VehicleRaycaster.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\VehicleTuning.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\VehicleTuning.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\WheelInfo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\WheelInfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Vehicle\WheelSkidInfo.h"
+				RelativePath=".\ConstraintSolver\TypedConstraint.h"
 				>
 			</File>
 		</Filter>

@@ -43,6 +43,8 @@ class	IDebugDraw
 		DBG_DrawFeaturesText=4,
 		DBG_DrawContactPoints=8,
 		DBG_NoDeactivation=16,
+		DBG_NoHelpText = 32,
+		DBG_DrawWireframe = 64,
 		DBG_MAX_DEBUG_DRAW_MODE
 	};
 

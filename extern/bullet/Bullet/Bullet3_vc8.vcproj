@@ -234,14 +234,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\NarrowPhaseCollision\CollisionObject.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\NarrowPhaseCollision\CollisionObject.h"
-				>
-			</File>
-			<File
 				RelativePath=".\NarrowPhaseCollision\ContinuousConvexCollision.cpp"
 				>
 			</File>
@@ -490,6 +482,14 @@
 			Name="BroadphaseCollision"
 			>
 			<File
+				RelativePath=".\BroadphaseCollision\AxisSweep3.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BroadphaseCollision\AxisSweep3.h"
+				>
+			</File>
+			<File
 				RelativePath=".\BroadphaseCollision\BroadPhaseInterface.h"
 				>
 			</File>
@@ -598,6 +598,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CollisionDispatch\CollisionObject.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CollisionDispatch\CollisionObject.h"
+				>
+			</File>
+			<File
 				RelativePath=".\CollisionDispatch\CollisionWorld.cpp"
 				>
 			</File>
@@ -646,6 +654,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\VTune\Bullet3ContinuousCollision.vpj"
+			>
+		</File>
 		<File
 			RelativePath=".\CollisionShapes\BvhTriangleMeshShape.cpp"
 			>

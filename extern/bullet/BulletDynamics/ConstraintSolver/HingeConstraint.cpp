@@ -14,31 +14,36 @@ subject to the following restrictions:
 */
 
 
-#include "Point2PointConstraint.h"
+#include "HingeConstraint.h"
 #include "Dynamics/RigidBody.h"
 #include "Dynamics/MassProps.h"
 
 
 
-
-Point2PointConstraint::Point2PointConstraint()
+HingeConstraint::HingeConstraint()
 {
 }
 
-Point2PointConstraint::Point2PointConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB)
-:TypedConstraint(rbA,rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB)
+HingeConstraint::HingeConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB,
+								 SimdVector3& axisInA,SimdVector3& axisInB)
+:TypedConstraint(rbA,rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB),
+m_axisInA(m_axisInA),
+m_axisInB(m_axisInB)
 {
 
 }
 
 
-Point2PointConstraint::Point2PointConstraint(RigidBody& rbA,const SimdVector3& pivotInA)
-:TypedConstraint(rbA),m_pivotInA(pivotInA),m_pivotInB(rbA.getCenterOfMassTransform()(pivotInA))
+HingeConstraint::HingeConstraint(RigidBody& rbA,const SimdVector3& pivotInA,SimdVector3& axisInA)
+:TypedConstraint(rbA),m_pivotInA(pivotInA),m_pivotInB(rbA.getCenterOfMassTransform()(pivotInA)),
+m_axisInA(m_axisInA),
+//fixed axis in woeldspace
+m_axisInB(rbA.getCenterOfMassTransform() * m_axisInA)
 {
 	
 }
 
-void	Point2PointConstraint::BuildJacobian()
+void	HingeConstraint::BuildJacobian()
 {
 	SimdVector3	normal(0,0,0);
 
@@ -58,9 +63,29 @@ void	Point2PointConstraint::BuildJacobian()
 		normal[i] = 0;
 	}
 
+	//calculate two perpendicular jointAxis, orthogonal to hingeAxis
+	//these two jointAxis require equal angular velocities for both bodies
+
+
+	SimdVector3 jointAxis0(0,0,1);
+	SimdVector3 jointAxis1(0,1,0);
+	
+	new (&m_jacAng[0])	JacobianEntry(jointAxis0,
+		m_rbA.getCenterOfMassTransform().getBasis().transpose(),
+		m_rbB.getCenterOfMassTransform().getBasis().transpose(),
+		m_rbA.getInvInertiaDiagLocal(),
+		m_rbB.getInvInertiaDiagLocal());
+
+	new (&m_jacAng[1])	JacobianEntry(jointAxis1,
+		m_rbA.getCenterOfMassTransform().getBasis().transpose(),
+		m_rbB.getCenterOfMassTransform().getBasis().transpose(),
+		m_rbA.getInvInertiaDiagLocal(),
+		m_rbB.getInvInertiaDiagLocal());
+
+
 }
 
-void	Point2PointConstraint::SolveConstraint(SimdScalar	timeStep)
+void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 {
 	SimdVector3 pivotAInW = m_rbA.getCenterOfMassTransform()*m_pivotInA;
 	SimdVector3 pivotBInW = m_rbB.getCenterOfMassTransform()*m_pivotInB;
@@ -106,9 +131,11 @@ void	Point2PointConstraint::SolveConstraint(SimdScalar	timeStep)
 		
 		normal[i] = 0;
 	}
+//todo: do angular part
+
 }
 
-void	Point2PointConstraint::UpdateRHS(SimdScalar	timeStep)
+void	HingeConstraint::UpdateRHS(SimdScalar	timeStep)
 {
 
 }

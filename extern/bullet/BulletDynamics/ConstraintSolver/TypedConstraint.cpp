@@ -14,44 +14,38 @@ subject to the following restrictions:
 */
 
 
-#ifndef BU_COLLIDABLE
-#define BU_COLLIDABLE
+#include "TypedConstraint.h"
+#include "Dynamics/RigidBody.h"
+#include "Dynamics/MassProps.h"
 
+static RigidBody s_fixed(MassProps(0,SimdVector3(0.f,0.f,0.f)),0.f,0.f,1.f,1.f);
 
-class PolyhedralConvexShape;
-class BU_MotionStateInterface;
-#include <SimdPoint3.h>
-
-class BU_Collidable
+TypedConstraint::TypedConstraint()
+: m_userConstraintType(-1),
+m_userConstraintId(-1),
+m_rbA(s_fixed),
+m_rbB(s_fixed)
 {
-public:
-	BU_Collidable(BU_MotionStateInterface& motion,PolyhedralConvexShape& shape, void* userPointer);
+	s_fixed.setMassProps(0.f,SimdVector3(0.f,0.f,0.f));
+}
+TypedConstraint::TypedConstraint(RigidBody& rbA)
+: m_userConstraintType(-1),
+m_userConstraintId(-1),
+m_rbA(rbA),
+m_rbB(s_fixed)
+{
+		s_fixed.setMassProps(0.f,SimdVector3(0.f,0.f,0.f));
 
-	void*		GetUserPointer() const
-	{
-		return m_userPointer;
-	}
-
-	BU_MotionStateInterface&	GetMotionState()
-	{
-		return m_motionState;
-	}
-	inline const BU_MotionStateInterface&	GetMotionState() const
-	{
-		return m_motionState;
-	}
-	
-	inline const PolyhedralConvexShape&	GetShape() const
-	{
-		return m_shape;
-	};
+}
 
 
-private:
-	BU_MotionStateInterface& m_motionState;
-	PolyhedralConvexShape&	m_shape;
-	void*		m_userPointer;
+TypedConstraint::TypedConstraint(RigidBody& rbA,RigidBody& rbB)
+: m_userConstraintType(-1),
+m_userConstraintId(-1),
+m_rbA(rbA),
+m_rbB(rbB)
+{
+		s_fixed.setMassProps(0.f,SimdVector3(0.f,0.f,0.f));
 
-};
+}
 
-#endif //BU_COLLIDABLE

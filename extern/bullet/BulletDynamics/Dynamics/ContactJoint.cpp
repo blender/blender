@@ -1,3 +1,17 @@
+/*
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+*/
 #include "ContactJoint.h"
 #include "RigidBody.h"
 #include "NarrowPhaseCollision/PersistentManifold.h"
@@ -88,13 +102,13 @@ void ContactJoint::GetInfo2(Info2 *info)
 	normal[3] = 0;	// @@@ hmmm
 	
 	//	if (GetBody0())
-	SimdVector3 ccc1;
+	SimdVector3 relativePositionA;
 	{
-		ccc1 = point.GetPositionWorldOnA() - m_body0->getCenterOfMassPosition();
+		relativePositionA = point.GetPositionWorldOnA() - m_body0->getCenterOfMassPosition();
 		dVector3 c1;
-		c1[0] = ccc1[0];
-		c1[1] = ccc1[1];
-		c1[2] = ccc1[2];
+		c1[0] = relativePositionA[0];
+		c1[1] = relativePositionA[1];
+		c1[2] = relativePositionA[2];
 		
 		// set jacobian for normal
 		info->J1l[0] = normal[0];
@@ -104,16 +118,16 @@ void ContactJoint::GetInfo2(Info2 *info)
 		
 	}
 	//		if (GetBody1())
-	SimdVector3 ccc2;
+	SimdVector3 relativePositionB;
 	{
 		dVector3 c2;
-		ccc2 = point.GetPositionWorldOnB() - m_body1->getCenterOfMassPosition();
+		relativePositionB = point.GetPositionWorldOnB() - m_body1->getCenterOfMassPosition();
 		
 		//			for (i=0; i<3; i++) c2[i] = j->contact.geom.pos[i] -
 		//					  j->node[1].body->pos[i];
-		c2[0] = ccc2[0];
-		c2[1] = ccc2[1];
-		c2[2] = ccc2[2];
+		c2[0] = relativePositionB[0];
+		c2[1] = relativePositionB[1];
+		c2[2] = relativePositionB[2];
 		
 		info->J2l[0] = -normal[0];
 		info->J2l[1] = -normal[1];
@@ -128,7 +142,7 @@ void ContactJoint::GetInfo2(Info2 *info)
 //		depth = 0.f;
 	
 	info->c[0] = k * depth;
-	float maxvel = .2f;
+	//float maxvel = .2f;
 
 //	if (info->c[0] > maxvel)
 //		info->c[0] = maxvel;
@@ -155,14 +169,14 @@ void ContactJoint::GetInfo2(Info2 *info)
 	dVector3 t1,t2;	// two vectors tangential to normal
 	
 	dVector3 c1;
-	c1[0] = ccc1[0];
-	c1[1] = ccc1[1];
-	c1[2] = ccc1[2];
+	c1[0] = relativePositionA[0];
+	c1[1] = relativePositionA[1];
+	c1[2] = relativePositionA[2];
 	
 	dVector3 c2;
-	c2[0] = ccc2[0];
-	c2[1] = ccc2[1];
-	c2[2] = ccc2[2];
+	c2[0] = relativePositionB[0];
+	c2[1] = relativePositionB[1];
+	c2[2] = relativePositionB[2];
 	
 	
 	float friction = FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();

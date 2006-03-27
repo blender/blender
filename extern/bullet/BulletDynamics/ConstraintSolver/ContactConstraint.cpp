@@ -1,24 +1,30 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
- *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies.
- * Erwin Coumans makes no representations about the suitability 
- * of this software for any purpose.  
- * It is provided "as is" without express or implied warranty.
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 */
+
+
 #include "ContactConstraint.h"
 #include "Dynamics/RigidBody.h"
 #include "SimdVector3.h"
 #include "JacobianEntry.h"
 #include "ContactSolverInfo.h"
 #include "GEN_MinMax.h"
+#include "NarrowPhaseCollision/ManifoldPoint.h"
 
 #define ASSERT2 assert
 
-//some values to find stable penalty method tresholds
-float MAX_FRICTION = 100.f;
+//some values to find stable tresholds
 static SimdScalar ContactThreshold = -10.0f;  
 float useGlobalSettingContacts = false;//true;
 SimdScalar contactDamping = 0.2f;
@@ -27,7 +33,6 @@ SimdScalar contactTau = .02f;//0.02f;//*0.02f;
 
 SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
 {
-//	return 0.f;
 	return restitution * GEN_min(1.0f, rel_vel / ContactThreshold);
 }
 
@@ -35,8 +40,10 @@ SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
 SimdScalar	calculateCombinedFriction(RigidBody& body0,RigidBody& body1)
 {
 	SimdScalar friction = body0.getFriction() * body1.getFriction();
-	if (friction < 0.f)
-		friction = 0.f;
+
+	const SimdScalar MAX_FRICTION  = 1.f;
+	if (friction < -MAX_FRICTION)
+		friction = -MAX_FRICTION;
 	if (friction > MAX_FRICTION)
 		friction = MAX_FRICTION;
 	return friction;
@@ -99,44 +106,26 @@ void resolveSingleBilateral(RigidBody& body1, const SimdVector3& pos1,
 
 //velocity + friction
 //response  between two dynamic objects with friction
-float resolveSingleCollisionWithFriction(
+float resolveSingleCollision(
+	RigidBody& body1,
+	RigidBody& body2,
+	ManifoldPoint& contactPoint,
+	const ContactSolverInfo& solverInfo
 
-		RigidBody& body1, 
-		const SimdVector3& pos1,
-        RigidBody& body2, 
-		const SimdVector3& pos2,
-        SimdScalar distance, 
-		const SimdVector3& normal, 
-
-		const ContactSolverInfo& solverInfo
 		)
 {
-	float normalLenSqr = normal.length2();
-	ASSERT2(fabs(normalLenSqr) < 1.1f);
-	if (normalLenSqr > 1.1f)
-		return 0.f;
+	const SimdVector3& pos1 = contactPoint.GetPositionWorldOnA();
+	const SimdVector3& pos2 = contactPoint.GetPositionWorldOnB();
+    SimdScalar distance = contactPoint.GetDistance();
+	const SimdVector3& normal = contactPoint.m_normalWorldOnB;
 
 	SimdVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
 	SimdVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
-	//this jacobian entry could be re-used for all iterations
 	
-	JacobianEntry jac(body1.getCenterOfMassTransform().getBasis().transpose(),
-		body2.getCenterOfMassTransform().getBasis().transpose(),
-		rel_pos1,rel_pos2,normal,body1.getInvInertiaDiagLocal(),body1.getInvMass(),
-		body2.getInvInertiaDiagLocal(),body2.getInvMass());
-
-	SimdScalar jacDiagAB = jac.getDiagonal();
-	SimdScalar jacDiagABInv = 1.f / jacDiagAB;
 	SimdVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
 	SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
 	SimdVector3 vel = vel1 - vel2;
-SimdScalar rel_vel;
-	/*	rel_vel = jac.getRelativeVelocity(
-		body1.getLinearVelocity(),
-		body1.getTransform().getBasis().transpose() * body1.getAngularVelocity(),
-		body2.getLinearVelocity(),
-		body2.getTransform().getBasis().transpose() * body2.getAngularVelocity()); 
-*/	
+	SimdScalar rel_vel;
 	rel_vel = normal.dot(vel);
 	
 	float combinedRestitution = body1.getRestitution() * body2.getRestitution();
@@ -161,55 +150,92 @@ SimdScalar rel_vel;
 	//jacDiagABInv;
 	SimdScalar velocityError = -(1.0f + restitution) * damping * rel_vel;
 
-	SimdScalar penetrationImpulse = positionalError * jacDiagABInv;
+	SimdScalar penetrationImpulse = positionalError * contactPoint.m_jacDiagABInv;
 
-	SimdScalar	velocityImpulse = velocityError * jacDiagABInv;
+	SimdScalar	velocityImpulse = velocityError * contactPoint.m_jacDiagABInv;
 
-	SimdScalar friction_impulse = 0.f;
+	SimdScalar normalImpulse = penetrationImpulse+velocityImpulse;
+	
+	// See Erin Catto's GDC 2006 paper: Clamp the accumulated impulse
+	float oldNormalImpulse = contactPoint.m_appliedImpulse;
+	float sum = oldNormalImpulse + normalImpulse;
+	contactPoint.m_appliedImpulse = 0.f > sum ? 0.f: sum;
+	normalImpulse = contactPoint.m_appliedImpulse - oldNormalImpulse;
 
-	SimdScalar totalimpulse = penetrationImpulse+velocityImpulse;
+	body1.applyImpulse(normal*(normalImpulse), rel_pos1);
+	body2.applyImpulse(-normal*(normalImpulse), rel_pos2);
+	
+	return normalImpulse;
+}
 
-	if (totalimpulse > 0.f)
+
+float resolveSingleFriction(
+	RigidBody& body1,
+	RigidBody& body2,
+	ManifoldPoint& contactPoint,
+	const ContactSolverInfo& solverInfo
+
+		)
+{
+	const SimdVector3& pos1 = contactPoint.GetPositionWorldOnA();
+	const SimdVector3& pos2 = contactPoint.GetPositionWorldOnB();
+	const SimdVector3& normal = contactPoint.m_normalWorldOnB;
+
+	SimdVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
+	SimdVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
+	
+	//friction
+	if (contactPoint.m_appliedImpulse>0.f)
 	{
-//		SimdVector3 impulse_vector = normal * impulse;
-		body1.applyImpulse(normal*(velocityImpulse+penetrationImpulse), rel_pos1);
+		//apply friction in the 2 tangential directions
 		
-		body2.applyImpulse(-normal*(velocityImpulse+penetrationImpulse), rel_pos2);
-		
-		//friction
-
-		{
-		
-		SimdVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
-		SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
-		SimdVector3 vel = vel1 - vel2;
-		
-		rel_vel = normal.dot(vel);
-
-#define PER_CONTACT_FRICTION
-#ifdef PER_CONTACT_FRICTION
-		SimdVector3 lat_vel = vel - normal * rel_vel;
-		SimdScalar lat_rel_vel = lat_vel.length();
-
 		float combinedFriction = calculateCombinedFriction(body1,body2);
-
-		if (lat_rel_vel > SIMD_EPSILON)
+		SimdScalar limit = contactPoint.m_appliedImpulse * combinedFriction;
+		SimdScalar relaxation = solverInfo.m_damping;
 		{
-			lat_vel /= lat_rel_vel;
-			SimdVector3 temp1 = body1.getInvInertiaTensorWorld() * rel_pos1.cross(lat_vel); 
-			SimdVector3 temp2 = body2.getInvInertiaTensorWorld() * rel_pos2.cross(lat_vel); 
-			 friction_impulse = lat_rel_vel / 
-				(body1.getInvMass() + body2.getInvMass() + lat_vel.dot(temp1.cross(rel_pos1) + temp2.cross(rel_pos2)));
-			SimdScalar normal_impulse = (penetrationImpulse+
-				velocityImpulse) * combinedFriction;
-			GEN_set_min(friction_impulse, normal_impulse);
+			// 1st tangent
+			SimdVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
+			SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
+			SimdVector3 vel = vel1 - vel2;
 			
-			body1.applyImpulse(lat_vel * -friction_impulse, rel_pos1);
-			body2.applyImpulse(lat_vel * friction_impulse, rel_pos2);
-			
+			SimdScalar vrel = contactPoint.m_frictionWorldTangential0.dot(vel);
+			float denom0 = body1.ComputeImpulseDenominator(pos1,contactPoint.m_frictionWorldTangential0);
+			float denom1 = body2.ComputeImpulseDenominator(pos2,contactPoint.m_frictionWorldTangential0);
+			float denom = relaxation/(denom0+denom1);
+
+			// calculate j that moves us to zero relative velocity
+			SimdScalar j = -vrel * denom;//Scalar(contactPoint.pt.m_impulseScales[1]);
+			float total = contactPoint.m_accumulatedTangentImpulse0 + j;
+			GEN_set_min(total, limit);
+			GEN_set_max(total, -limit);
+			j = total - contactPoint.m_accumulatedTangentImpulse0;
+			contactPoint.m_accumulatedTangentImpulse0 = total;
+			body1.applyImpulse(j * contactPoint.m_frictionWorldTangential0, rel_pos1);
+			body2.applyImpulse(j * -contactPoint.m_frictionWorldTangential0, rel_pos2);
 		}
-#endif
+
+				
+		{
+			// 2nd tangent
+			SimdVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
+			SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
+			SimdVector3 vel = vel1 - vel2;
+
+			SimdScalar vrel = contactPoint.m_frictionWorldTangential1.dot(vel);
+			float denom0 = body1.ComputeImpulseDenominator(pos1,contactPoint.m_frictionWorldTangential1);
+			float denom1 = body2.ComputeImpulseDenominator(pos2,contactPoint.m_frictionWorldTangential1);
+			float denom = relaxation/(denom0+denom1);
+
+			// calculate j that moves us to zero relative velocity
+			SimdScalar j = -vrel * denom;//Scalar(contactPoint.pt.m_impulseScales[1]);
+			float total = contactPoint.m_accumulatedTangentImpulse1 + j;
+			GEN_set_min(total, limit);
+			GEN_set_max(total, -limit);
+			j = total - contactPoint.m_accumulatedTangentImpulse1;
+			contactPoint.m_accumulatedTangentImpulse1 = total;
+			body1.applyImpulse(j * contactPoint.m_frictionWorldTangential1, rel_pos1);
+			body2.applyImpulse(j * -contactPoint.m_frictionWorldTangential1, rel_pos2);
 		}
 	} 
-	return velocityImpulse + friction_impulse;
+	return contactPoint.m_appliedImpulse;
 }

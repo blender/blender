@@ -1,19 +1,60 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
- *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies.
- * Erwin Coumans makes no representations about the suitability 
- * of this software for any purpose.  
- * It is provided "as is" without express or implied warranty.
+Copyright (c) 2003-2006 Gino van den Bergen / Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 */
+
 
 #ifndef SIMD_TRANSFORM_UTIL_H
 #define SIMD_TRANSFORM_UTIL_H
 
 #include "SimdTransform.h"
 #define ANGULAR_MOTION_TRESHOLD 0.5f*SIMD_HALF_PI
+
+
+
+#define SIMDSQRT12 SimdScalar(0.7071067811865475244008443621048490)
+
+#define SimdRecipSqrt(x) ((float)(1.0f/SimdSqrt(float(x))))		/* reciprocal square root */
+
+
+inline void SimdPlaneSpace1 (const SimdVector3& n, SimdVector3& p, SimdVector3& q)
+{
+  if (SimdFabs(n[2]) > SIMDSQRT12) {
+    // choose p in y-z plane
+    SimdScalar a = n[1]*n[1] + n[2]*n[2];
+    SimdScalar k = SimdRecipSqrt (a);
+    p[0] = 0;
+    p[1] = -n[2]*k;
+    p[2] = n[1]*k;
+    // set q = n x p
+    q[0] = a*k;
+    q[1] = -n[0]*p[2];
+    q[2] = n[0]*p[1];
+  }
+  else {
+    // choose p in x-y plane
+    SimdScalar a = n[0]*n[0] + n[1]*n[1];
+    SimdScalar k = SimdRecipSqrt (a);
+    p[0] = -n[1]*k;
+    p[1] = n[0]*k;
+    p[2] = 0;
+    // set q = n x p
+    q[0] = -n[2]*p[1];
+    q[1] = n[2]*p[0];
+    q[2] = a*k;
+  }
+}
+
+
 
 /// Utils related to temporal transforms
 class SimdTransformUtil

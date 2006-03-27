@@ -1,13 +1,18 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
- *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies.
- * Erwin Coumans makes no representations about the suitability 
- * of this software for any purpose.  
- * It is provided "as is" without express or implied warranty.
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 */
+
 
 #include "CollisionDispatcher.h"
 
@@ -16,8 +21,8 @@
 #include "CollisionDispatch/ConvexConvexAlgorithm.h"
 #include "CollisionDispatch/EmptyCollisionAlgorithm.h"
 #include "CollisionDispatch/ConvexConcaveCollisionAlgorithm.h"
-
-#include "NarrowPhaseCollision/CollisionObject.h"
+#include "CollisionShapes/CollisionShape.h"
+#include "CollisionDispatch/CollisionObject.h"
 #include <algorithm>
 
 void CollisionDispatcher::FindUnions()
@@ -46,6 +51,7 @@ void CollisionDispatcher::FindUnions()
 	
 CollisionDispatcher::CollisionDispatcher (): 
 	m_useIslands(true),
+		m_defaultManifoldResult(0,0,0),
 		m_count(0)
 {
 	int i;
@@ -95,9 +101,6 @@ void CollisionDispatcher::ReleaseManifold(PersistentManifold* manifold)
 //
 void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* callback)
 {
-	int i;
-
-
 	for (int islandId=0;islandId<numBodies;islandId++)
 	{
 
@@ -107,7 +110,7 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 
 		bool allSleeping = true;
 
-		for (i=0;i<GetNumManifolds();i++)
+		for (int i=0;i<GetNumManifolds();i++)
 		{
 			 PersistentManifold* manifold = this->GetManifoldByIndexInternal(i);
 			if ((((CollisionObject*)manifold->GetBody0()) && ((CollisionObject*)manifold->GetBody0())->m_islandTag1 == (islandId)) ||
@@ -131,7 +134,7 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 		if (allSleeping)
 		{
 			//tag all as 'ISLAND_SLEEPING'
-			for (i=0;i<islandmanifold.size();i++)
+			for (size_t i=0;i<islandmanifold.size();i++)
 			{
 				 PersistentManifold* manifold = islandmanifold[i];
 				if (((CollisionObject*)manifold->GetBody0()))	
@@ -148,7 +151,7 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 		{
 
 			//tag all as 'ISLAND_SLEEPING'
-			for (i=0;i<islandmanifold.size();i++)
+			for (size_t i=0;i<islandmanifold.size();i++)
 			{
 				 PersistentManifold* manifold = islandmanifold[i];
 				 CollisionObject* body0 = (CollisionObject*)manifold->GetBody0();
@@ -182,21 +185,23 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 CollisionAlgorithm* CollisionDispatcher::InternalFindAlgorithm(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1)
 {
 	m_count++;
-	
+	CollisionObject* body0 = (CollisionObject*)proxy0.m_clientObject;
+	CollisionObject* body1 = (CollisionObject*)proxy1.m_clientObject;
+
 	CollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher = this;
 	
-	if (proxy0.IsConvexShape() && proxy1.IsConvexShape() )
+	if (body0->m_collisionShape->IsConvex() && body1->m_collisionShape->IsConvex() )
 	{
 		return new ConvexConvexAlgorithm(0,ci,&proxy0,&proxy1);			
 	}
 
-	if (proxy0.IsConvexShape() && proxy1.IsConcaveShape())
+	if (body0->m_collisionShape->IsConvex() && body1->m_collisionShape->IsConcave())
 	{
 		return new ConvexConcaveCollisionAlgorithm(ci,&proxy0,&proxy1);
 	}
 
-	if (proxy1.IsConvexShape() && proxy0.IsConcaveShape())
+	if (body1->m_collisionShape->IsConvex() && body0->m_collisionShape->IsConcave())
 	{
 		return new ConvexConcaveCollisionAlgorithm(ci,&proxy1,&proxy0);
 	}
@@ -225,5 +230,19 @@ bool	CollisionDispatcher::NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy
 		needsCollision = false;
 	
 	return needsCollision ;
+
+}
+
+///allows the user to get contact point callbacks 
+ManifoldResult*	CollisionDispatcher::GetNewManifoldResult(CollisionObject* obj0,CollisionObject* obj1,PersistentManifold* manifold)
+{
+	//in-place, this prevents parallel dispatching, but just adding a list would fix that.
+	ManifoldResult* manifoldResult = new (&m_defaultManifoldResult)	ManifoldResult(obj0,obj1,manifold);
+	return manifoldResult;
+}
+	
+///allows the user to get contact point callbacks 
+void	CollisionDispatcher::ReleaseManifoldResult(ManifoldResult*)
+{
 
 }

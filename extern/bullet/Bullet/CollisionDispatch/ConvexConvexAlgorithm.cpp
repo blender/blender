@@ -1,19 +1,24 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
- *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies.
- * Erwin Coumans makes no representations about the suitability 
- * of this software for any purpose.  
- * It is provided "as is" without express or implied warranty.
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 */
+
 #include "ConvexConvexAlgorithm.h"
 
 #include <stdio.h>
 #include "NarrowPhaseCollision/DiscreteCollisionDetectorInterface.h"
 #include "BroadphaseCollision/BroadphaseInterface.h"
-#include "NarrowPhaseCollision/CollisionObject.h"
+#include "CollisionDispatch/CollisionObject.h"
 #include "CollisionShapes/ConvexShape.h"
 #include "NarrowPhaseCollision/GjkPairDetector.h"
 #include "BroadphaseCollision/BroadphaseProxy.h"
@@ -66,12 +71,12 @@ bool gDisableConvexCollision = false;
 ConvexConvexAlgorithm::ConvexConvexAlgorithm(PersistentManifold* mf,const CollisionAlgorithmConstructionInfo& ci,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
 : CollisionAlgorithm(ci),
 m_gjkPairDetector(0,0,&m_simplexSolver,0),
+m_useEpa(!gUseEpa),
 m_box0(*proxy0),
 m_box1(*proxy1),
 m_ownManifold (false),
 m_manifoldPtr(mf),
-m_lowLevelOfDetail(false),
-m_useEpa(!gUseEpa)
+m_lowLevelOfDetail(false)
 {
 	CheckPenetrationDepthSolver();
 
@@ -178,7 +183,7 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	CollisionObject*	col0 = static_cast<CollisionObject*>(m_box0.m_clientObject);
 	CollisionObject*	col1 = static_cast<CollisionObject*>(m_box1.m_clientObject);
 	
-	ManifoldResult output(col0,col1,m_manifoldPtr);
+	ManifoldResult* resultOut = m_dispatcher->GetNewManifoldResult(col0,col1,m_manifoldPtr);
 	
 	ConvexShape* min0 = static_cast<ConvexShape*>(col0->m_collisionShape);
 	ConvexShape* min1 = static_cast<ConvexShape*>(col1->m_collisionShape);
@@ -209,8 +214,9 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	input.m_transformA = col0->m_worldTransform;
 	input.m_transformB = col1->m_worldTransform;
     
-	m_gjkPairDetector.GetClosestPoints(input,output);
+	m_gjkPairDetector.GetClosestPoints(input,*resultOut);
 
+	m_dispatcher->ReleaseManifoldResult(resultOut);
 }
 bool disableCcd = false;
 float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount)

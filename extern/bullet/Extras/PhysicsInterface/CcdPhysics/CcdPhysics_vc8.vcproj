@@ -5,7 +5,6 @@
 	Name="CcdPhysics"
 	ProjectGUID="{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}"
 	Keyword="Win32Proj"
-	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -178,6 +177,10 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
+		<File
+			RelativePath=".\VTune\CcdPhysics.vpj"
+			>
+		</File>
 		<File
 			RelativePath=".\ReadMe.txt"
 			>

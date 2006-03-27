@@ -1,16 +1,21 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
- *
- * Permission to use, copy, modify, distribute and sell this software
- * and its documentation for any purpose is hereby granted without fee,
- * provided that the above copyright notice appear in all copies.
- * Erwin Coumans makes no representations about the suitability 
- * of this software for any purpose.  
- * It is provided "as is" without express or implied warranty.
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
 */
 
+
 #include "ConvexConcaveCollisionAlgorithm.h"
-#include "NarrowPhaseCollision/CollisionObject.h"
+#include "CollisionDispatch/CollisionObject.h"
 #include "CollisionShapes/MultiSphereShape.h"
 #include "CollisionShapes/BoxShape.h"
 #include "ConvexConvexAlgorithm.h"
@@ -39,8 +44,6 @@ BoxTriangleCallback::BoxTriangleCallback(Dispatcher*  dispatcher,BroadphaseProxy
 	  m_stepCount(-1),
 	  m_triangleCount(0)
 {
-
-	  m_triangleProxy.SetClientObjectType(TRIANGLE_SHAPE_PROXYTYPE);
 
 	  //
 	  // create the manifold from the dispatcher 'manifold pool'
@@ -80,7 +83,9 @@ void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 
 	
 
-	if (m_boxProxy->IsConvexShape())
+	CollisionObject* colObj = static_cast<CollisionObject*>(m_boxProxy->m_clientObject);
+	
+	if (colObj->m_collisionShape->IsConvex())
 	{
 		TriangleShape tm(triangle[0],triangle[1],triangle[2]);	
 		tm.SetMargin(m_collisionMarginTriangle);
@@ -118,7 +123,7 @@ void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,fl
 	boxInTriangleSpace = triBody->m_worldTransform.inverse() * boxBody->m_worldTransform;
 
 	CollisionShape* boxshape = static_cast<CollisionShape*>(boxBody->m_collisionShape);
-	CollisionShape* triangleShape = static_cast<CollisionShape*>(triBody->m_collisionShape);
+	//CollisionShape* triangleShape = static_cast<CollisionShape*>(triBody->m_collisionShape);
 
 	boxshape->GetAabb(boxInTriangleSpace,m_aabbMin,m_aabbMax);
 
@@ -140,7 +145,10 @@ void ConvexConcaveCollisionAlgorithm::ClearCache()
 void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount,bool useContinuous)
 {
 
-	if (m_concave.GetClientObjectType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
+	CollisionObject* boxBody = static_cast<CollisionObject* >(m_convex.m_clientObject);
+	CollisionObject* triBody = static_cast<CollisionObject* >(m_concave.m_clientObject);
+
+	if (triBody->m_collisionShape->GetShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
 	{
 
 		if (!m_dispatcher->NeedsCollision(m_convex,m_concave))
@@ -151,7 +159,7 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 		CollisionObject*	triOb = static_cast<CollisionObject*>(m_concave.m_clientObject);
 		TriangleMeshShape* triangleMesh = static_cast<TriangleMeshShape*>( triOb->m_collisionShape);
 		
-		if (m_convex.IsConvexShape())
+		if (boxBody->m_collisionShape->IsConvex())
 		{
 			float collisionMarginTriangle = triangleMesh->GetMargin();
 					
@@ -176,6 +184,8 @@ float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,B
 
 	//quick approximation using raycast, todo: use proper continuou collision detection
 	CollisionObject* convexbody = (CollisionObject* )m_convex.m_clientObject;
+	CollisionObject* triBody = static_cast<CollisionObject* >(m_concave.m_clientObject);
+
 	const SimdVector3& from = convexbody->m_worldTransform.getOrigin();
 	
 	SimdVector3 to = convexbody->m_nextPredictedWorldTransform.getOrigin();
@@ -189,7 +199,7 @@ float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,B
 	SimdVector3 aabbMin (-1e30f,-1e30f,-1e30f);
 	SimdVector3 aabbMax (SIMD_INFINITY,SIMD_INFINITY,SIMD_INFINITY);
 
-	if (m_concave.GetClientObjectType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
+	if (triBody->m_collisionShape->GetShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
 	{
 
 		CollisionObject* concavebody = (CollisionObject* )m_concave.m_clientObject;

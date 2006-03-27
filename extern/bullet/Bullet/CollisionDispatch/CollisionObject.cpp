@@ -13,45 +13,22 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-
-#ifndef BU_COLLIDABLE
-#define BU_COLLIDABLE
+#include "CollisionObject.h"
 
 
-class PolyhedralConvexShape;
-class BU_MotionStateInterface;
-#include <SimdPoint3.h>
 
-class BU_Collidable
+void CollisionObject::SetActivationState(int newState) 
+{ 
+	m_activationState1 = newState;
+}
+
+void CollisionObject::activate()
 {
-public:
-	BU_Collidable(BU_MotionStateInterface& motion,PolyhedralConvexShape& shape, void* userPointer);
+		SetActivationState(1);
+		m_deactivationTime = 0.f;
+}
 
-	void*		GetUserPointer() const
-	{
-		return m_userPointer;
-	}
-
-	BU_MotionStateInterface&	GetMotionState()
-	{
-		return m_motionState;
-	}
-	inline const BU_MotionStateInterface&	GetMotionState() const
-	{
-		return m_motionState;
-	}
-	
-	inline const PolyhedralConvexShape&	GetShape() const
-	{
-		return m_shape;
-	};
-
-
-private:
-	BU_MotionStateInterface& m_motionState;
-	PolyhedralConvexShape&	m_shape;
-	void*		m_userPointer;
-
-};
-
-#endif //BU_COLLIDABLE
+bool CollisionObject::mergesSimulationIslands() const
+{
+	return ( !(m_collisionFlags & isStatic));
+}
