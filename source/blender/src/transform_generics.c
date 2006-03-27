@@ -730,27 +730,9 @@ void calculateCenter(TransInfo *t)
 		
 		/* EDIT MODE ACTIVE FACE */
 		if (G.obedit && G.obedit->type == OB_MESH && G.editMesh->selected.last) {
-			EditSelection *ese= G.editMesh->selected.last;
-			EditFace *efa;
-			EditEdge *eed;
-			EditVert *eve;
-			float vec[3]= {0,0,0};
-			if (ese->type==EDITVERT) {
-				eve= ese->data;
-				VecCopyf(vec, eve->co);
-			} else if (ese->type==EDITEDGE) {
-				eed= ese->data;
-				VecAddf(vec, eed->v1->co, eed->v2->co);
-				VecMulf(vec, 0.5);
-			} else if (ese->type==EDITFACE) {
-				efa= ese->data;
-				VecCopyf(vec, efa->cent);
-			}
-			VecCopyf(t->center, vec);
-			projectIntView(t, t->center, t->center2d);
+			EM_editselection_center(t->center, G.editMesh->selected.last);
 			break;
-		}
-		/* END EDIT MODE ACTIVE FACE */
+		} /* END EDIT MODE ACTIVE FACE */
 		
 		calculateCenterMedian(t);
 		if((t->flag & (T_EDIT|T_POSE))==0) {

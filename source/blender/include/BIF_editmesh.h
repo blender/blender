@@ -78,6 +78,9 @@ extern void EM_select_face(struct EditFace *efa, int sel);
 extern void EM_select_edge(struct EditEdge *eed, int sel);
 extern float EM_face_area(struct EditFace *efa);
 extern float EM_face_perimeter(struct EditFace *efa);
+extern void EM_editselection_center(float *center, struct EditSelection *ese);
+extern void EM_editselection_normal(float *normal, struct EditSelection *ese);
+extern void EM_editselection_plane(float *plane, struct EditSelection *ese);
 
 extern void EM_deselect_flush(void);	// vertices to edges/faces (exception!)
 extern void EM_select_flush(void);	// vertices to edges/faces (exception!)
