@@ -1479,27 +1479,33 @@ void mouse_mesh(void)
 		if(efa) {
 			
 			if( (efa->f & SELECT)==0 ) {
+				EM_store_selection(efa, EDITFACE);
 				EM_select_face_fgon(efa, 1);
 			}
 			else if(G.qual & LR_SHIFTKEY) {
+				EM_remove_selection(efa, EDITFACE);
 				EM_select_face_fgon(efa, 0);
 			}
 		}
 		else if(eed) {
 			if((eed->f & SELECT)==0) {
+				EM_store_selection(eed, EDITEDGE);
 				EM_select_edge(eed, 1);
 			}
 			else if(G.qual & LR_SHIFTKEY) {
+				EM_remove_selection(eed, EDITEDGE);
 				EM_select_edge(eed, 0);
 			}
 		}
 		else if(eve) {
 			if((eve->f & SELECT)==0) {
 				eve->f |= SELECT;
-				if((G.qual & LR_SHIFTKEY)==0) G.editMesh->firstvert = eve;
-				else G.editMesh->lastvert = eve;
+				EM_store_selection(eve, EDITVERT);
 			}
-			else if(G.qual & LR_SHIFTKEY) eve->f &= ~SELECT;
+			else if(G.qual & LR_SHIFTKEY){ 
+				EM_remove_selection(eve, EDITVERT);
+				eve->f &= ~SELECT;
+			}
 		}
 		
 		/* frontbuffer draw of last selected only */

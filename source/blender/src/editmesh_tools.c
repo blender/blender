@@ -1071,6 +1071,7 @@ void delete_mesh(void)
 		if(em->verts.first) free_vertlist(&em->verts);
 		if(em->edges.first) free_edgelist(&em->edges);
 		if(em->faces.first) free_facelist(&em->faces);
+		if(em->selected.first) BLI_freelistN(&(em->selected));
 	}
 	else if(event==5) {
 		str= "Erase Only Faces";
@@ -6034,8 +6035,16 @@ int collapseFaces(int uvmerge){
 int merge_firstlast(int first, int uvmerge)
 {
 	EditVert *eve,*mergevert;
-	if(first == 0) mergevert=G.editMesh->lastvert;
-	else mergevert=G.editMesh->firstvert;
+	EditSelection *ese;
+	/* do sanity check in mergemenu in edit.c ?*/
+	if(first == 0){ 
+		ese = G.editMesh->selected.last;
+		mergevert= (EditVert*)ese->data;
+	}
+	else{ 
+		ese = G.editMesh->selected.first;
+		mergevert = (EditVert*)ese->data;
+	}
 	
 	if(mergevert->f&SELECT){
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
@@ -6095,6 +6104,7 @@ void pathselect(void)
 {
 	EditVert *eve, *s, *t;
 	EditEdge *eed;
+	EditSelection *ese;
 	PathEdge *newpe, *currpe;
 	PathNode *currpn;
 	PathNode *Q;
@@ -6108,18 +6118,13 @@ void pathselect(void)
 	
 	countall(); /*paranoid?*/
 	
-				
-	if(G.totvertsel == 2 && G.totedgesel == 0){
+	ese = ((EditSelection*)G.editMesh->selected.last);
+	if(ese && ese->type == EDITVERT && ese->prev && ese->prev->type == EDITVERT){
 		physical= pupmenu("Distance Method? %t|Edge Length%x1|Topological%x0");
-		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
-			if(t) break;
-			else{
-				if(eve->f&SELECT){
-					if(s) t = eve;
-					else s = eve;
-				}
-			}
-		}
+		
+		t = (EditVert*)ese->data;
+		s = (EditVert*)ese->prev->data;
+		
 		/*need to find out if t is actually reachable by s....*/
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){ 
 			eve->f1 = 0;

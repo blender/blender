@@ -147,7 +147,10 @@ EditVert *addvertlist(float *vec)
 void free_editvert (EditVert *eve)
 {
 	if(eve->dw) MEM_freeN(eve->dw);
-	if(eve->fast==0) free(eve);
+	EM_remove_selection(eve, EDITVERT);
+	if(eve->fast==0){ 
+		free(eve);
+	}
 }
 
 
@@ -277,12 +280,18 @@ void remedge(EditEdge *eed)
 
 void free_editedge(EditEdge *eed)
 {
-	if(eed->fast==0) free(eed);
+	EM_remove_selection(eed, EDITEDGE);
+	if(eed->fast==0){ 
+		free(eed);
+	}
 }
 
 void free_editface(EditFace *efa)
 {
-	if(efa->fast==0) free(efa);
+	EM_remove_selection(efa, EDITFACE);
+	if(efa->fast==0){ 
+		free(efa);
+	}
 }
 
 void free_vertlist(ListBase *edve) 
@@ -496,7 +505,7 @@ void free_editMesh(EditMesh *em)
 	if(em->verts.first) free_vertlist(&em->verts);
 	if(em->edges.first) free_edgelist(&em->edges);
 	if(em->faces.first) free_facelist(&em->faces);
-
+	if(em->selected.first) BLI_freelistN(&(em->selected));
 	if(em->derivedFinal) {
 		if (em->derivedFinal!=em->derivedCage) {
 			em->derivedFinal->release(em->derivedFinal);
@@ -1206,9 +1215,7 @@ void load_editMesh(void)
 
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 	
-	em->lastvert = NULL;
-	em->firstvert = NULL;
-
+	BLI_freelistN(&(em->selected)); /*come up with better solution so leaving editmode and not switching meshes will not nuke this...*/
 	waitcursor(0);
 }
 
@@ -1548,6 +1555,7 @@ void separate_mesh_loose(void)
 /* only one 'hack', to save memory it doesn't store the first push, but does a remake editmesh */
 
 /* a compressed version of editmesh data */
+
 typedef struct EditVertC
 {
 	float no[3];
@@ -1572,13 +1580,19 @@ typedef struct EditFaceC
 	short pad1;
 } EditFaceC;
 
+typedef struct EditSelectionC{
+	short type;
+	int index;
+}EditSelectionC;
+
+
 typedef struct UndoMesh {
 	EditVertC *verts;
 	EditEdgeC *edges;
 	EditFaceC *faces;
+	EditSelectionC *selected;
 	TFace *tfaces;
-	int totvert, totedge, totface;
-	int lastvert, firstvert; /*index for last and first selected vert. -1 if no first/last vert exists (nasty)*/
+	int totvert, totedge, totface,totsel;
 	short selectmode;
 } UndoMesh;
 
@@ -1599,6 +1613,7 @@ static void free_undoMesh(void *umv)
 	if(um->edges) MEM_freeN(um->edges);
 	if(um->faces) MEM_freeN(um->faces);
 	if(um->tfaces) MEM_freeN(um->tfaces);
+	if(um->selected) MEM_freeN(um->selected);
 	MEM_freeN(um);
 }
 
@@ -1610,51 +1625,36 @@ static void *editMesh_to_undoMesh(void)
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
+	EditSelection *ese;
 	EditVertC *evec=NULL;
 	EditEdgeC *eedc=NULL;
 	EditFaceC *efac=NULL;
+	EditSelectionC *esec=NULL;
 	TFace *tface= NULL;
-	int i, a=0;
+	int i, a;
 	
 	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
 	
 	um->selectmode = G.scene->selectmode;
-	um->lastvert = -1;
-	um->firstvert = -1;
 	
-	if(em->lastvert){
-		for (i=0,eve=G.editMesh->verts.first; eve; i++,eve=eve->next){
-			if(eve == em->lastvert){
-				um->lastvert = i;
-				break;
-			}
-		}
-	}
-	if(em->firstvert){
-		for (i=0,eve=G.editMesh->verts.first; eve; i++,eve=eve->next){
-			if(eve == em->firstvert){
-				um->firstvert = i;
-				break;
-			}
-		}
-	}
-
 	for(eve=em->verts.first; eve; eve= eve->next) um->totvert++;
 	for(eed=em->edges.first; eed; eed= eed->next) um->totedge++;
 	for(efa=em->faces.first; efa; efa= efa->next) um->totface++;
-
+	for(ese=em->selected.first; ese; ese=ese->next) um->totsel++; 
 	/* malloc blocks */
 	
 	if(um->totvert) evec= um->verts= MEM_callocN(um->totvert*sizeof(EditVertC), "allvertsC");
 	if(um->totedge) eedc= um->edges= MEM_callocN(um->totedge*sizeof(EditEdgeC), "alledgesC");
 	if(um->totface) efac= um->faces= MEM_callocN(um->totface*sizeof(EditFaceC), "allfacesC");
-
+	if(um->totsel) esec= um->selected= MEM_callocN(um->totsel*sizeof(EditSelectionC), "allselections");
+	
 	if(me->tface || me->mcol) tface= um->tfaces= MEM_mallocN(um->totface*sizeof(TFace), "all tfacesC");
 
 		//printf("copy editmesh %d\n", um->totvert*sizeof(EditVert) + um->totedge*sizeof(EditEdge) + um->totface*sizeof(EditFace));
 		//printf("copy undomesh %d\n", um->totvert*sizeof(EditVertC) + um->totedge*sizeof(EditEdgeC) + um->totface*sizeof(EditFaceC));
 	
 	/* now copy vertices */
+	a = 0;
 	for(eve=em->verts.first; eve; eve= eve->next, evec++, a++) {
 		VECCOPY(evec->co, eve->co);
 		VECCOPY(evec->no, eve->no);
@@ -1664,12 +1664,12 @@ static void *editMesh_to_undoMesh(void)
 		evec->keyindex= eve->keyindex;
 		evec->totweight= eve->totweight;
 		evec->dw= MEM_dupallocN(eve->dw);
-		
-		eve->tmp.l = a;
+		eve->tmp.l = a; /*store index*/
 	}
 	
 	/* copy edges */
-	for(eed=em->edges.first; eed; eed= eed->next, eedc++)  {
+	a = 0;
+	for(eed=em->edges.first; eed; eed= eed->next, eedc++, a++)  {
 		eedc->v1= (int)eed->v1->tmp.l;
 		eedc->v2= (int)eed->v2->tmp.l;
 		eedc->f= eed->f;
@@ -1677,10 +1677,12 @@ static void *editMesh_to_undoMesh(void)
 		eedc->seam= eed->seam;
 		eedc->crease= (short)(eed->crease*255.0);
 		eedc->fgoni= eed->fgoni;
+		eed->tmp.l = a; /*store index*/
 	}
 	
 	/* copy faces */
-	for(efa=em->faces.first; efa; efa= efa->next, efac++) {
+	a = 0;
+	for(efa=em->faces.first; efa; efa= efa->next, efac++, a++) {
 		efac->v1= (int)efa->v1->tmp.l;
 		efac->v2= (int)efa->v2->tmp.l;
 		efac->v3= (int)efa->v3->tmp.l;
@@ -1697,6 +1699,15 @@ static void *editMesh_to_undoMesh(void)
 			*tface= efa->tf;
 			tface++;
 		}
+		efa->tmp.l = a; /*store index*/
+	}
+	
+	a = 0;
+	for(ese=em->selected.first; ese; ese=ese->next, esec++){
+		esec->type = ese->type;
+		if(ese->type == EDITVERT) a = esec->index = ((EditVert*)ese->data)->tmp.l; 
+		else if(ese->type == EDITEDGE) a = esec->index = ((EditEdge*)ese->data)->tmp.l; 
+		else if(ese->type == EDITFACE) a = esec->index = ((EditFace*)ese->data)->tmp.l;
 	}
 	
 	return um;
@@ -1709,9 +1720,11 @@ static void undoMesh_to_editMesh(void *umv)
 	EditVert *eve, **evar=NULL;
 	EditEdge *eed;
 	EditFace *efa;
+	EditSelection *ese;
 	EditVertC *evec;
 	EditEdgeC *eedc;
 	EditFaceC *efac;
+	EditSelectionC *esec;
 	TFace *tface;
 	int a=0;
 	
@@ -1774,21 +1787,22 @@ static void undoMesh_to_editMesh(void *umv)
 	end_editmesh_fastmalloc();
 	if(evar) MEM_freeN(evar);
 	
-	/*restore last and first selected vertex pointers*/
-	
-	G.totvert = um->totvert; 
-	if(um->lastvert != -1 || um-> firstvert != -1){ 
-
-		EM_init_index_arrays(1,0,0);
-		if(um->lastvert != -1) em->lastvert = EM_get_vert_for_index(um->lastvert);
-		else em->lastvert = NULL;
-		
-		if(um->firstvert != -1) em->firstvert = EM_get_vert_for_index(um->firstvert);
-		else em->firstvert = NULL;
-		
+	G.totvert = um->totvert;
+	G.totedge = um->totedge;
+	G.totface = um->totface;
+	/*restore stored editselections*/
+	if(um->totsel){
+		EM_init_index_arrays(1,1,1);
+		for(a=0, esec= um->selected; a<um->totsel; a++, esec++){
+			ese = MEM_callocN(sizeof(EditSelection), "Edit Selection");
+			ese->type = esec->type;
+			if(ese->type == EDITVERT) ese->data = EM_get_vert_for_index(esec->index); else
+			if(ese->type == EDITEDGE) ese->data = EM_get_edge_for_index(esec->index); else
+			if(ese->type == EDITFACE) ese->data = EM_get_face_for_index(esec->index);
+			BLI_addtail(&(em->selected),ese);
+		}
 		EM_free_index_arrays();
 	}
-
 }
 
 

@@ -602,16 +602,7 @@ void countall()
 				if(efa->f & SELECT) G.totfacesel++;
 			}
 			
-			/*for keeping track of last & first vertex selected*/
-			/*lastvert and first must be cleared in two circumstances.....*/
-			// 1: if last/first vert exists but is NOT selected, get rid of it.
-			// 2: if totvertsel = 0, get rid of last/first vert
-			
-			if((G.editMesh->lastvert) && ( !(G.editMesh->lastvert->f&SELECT) )) G.editMesh->lastvert = NULL;
-			else if(G.totvertsel == 0) G.editMesh->lastvert = NULL;
-			
-			if((G.editMesh->firstvert) && ( !(G.editMesh->firstvert->f&SELECT) )) G.editMesh->firstvert = NULL;
-			else if(G.totvertsel == 0) G.editMesh->firstvert = NULL;
+			/*add code to strip editselections*/
 		}
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
@@ -1572,9 +1563,13 @@ void mergemenu(void)
 	int remCount = 0;
 	
 	if(G.scene->selectmode == SCE_SELECT_VERTEX)
-		if(G.editMesh->firstvert && G.editMesh->lastvert) event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4");
-		else if (G.editMesh->firstvert) event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4");
-		else if (G.editMesh->lastvert) event = pupmenu("Merge %t|At Last %x1|At Center%x3|At Cursor%x4");
+		if(G.editMesh->selected.first && G.editMesh->selected.last && 
+			((EditSelection*)G.editMesh->selected.first)->type == EDITVERT && ((EditSelection*)G.editMesh->selected.last)->type == EDITVERT) 
+				event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4");
+		else if (G.editMesh->selected.first && ((EditSelection*)G.editMesh->selected.first)->type == EDITVERT) 
+			event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4");
+		else if (G.editMesh->selected.last && ((EditSelection*)G.editMesh->selected.last)->type == EDITVERT) 
+			event = pupmenu("Merge %t|At Last %x1|At Center%x3|At Cursor%x4");
 		else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4");
 		
 	else if(G.scene->selectmode == SCE_SELECT_EDGE)

@@ -67,7 +67,74 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "editmesh.h"
 
 
+//TODO
+//fix undo code. Biggest one.
+//fix issues with EM_selectmode_set()
+//get rid of 'lastvert' and 'firstvert' hacks in EditMesh struct and clean from undo code and 'load_editmesh' code and elsewhere
+//find out if storing  EditSelection(s) in Mesh DNA is 'ok', even if only for runtime(?)
+
 /* ********* Selection ************ */
+static int EM_check_selection(void *data)
+{
+	EditSelection *ese;
+	
+	for(ese = G.editMesh->selected.first; ese; ese = ese->next){
+		if(ese->data == data) return 1;
+		}
+	
+	return 0;
+}
+
+void EM_remove_selection(void *data, int type)
+{
+	EditSelection *ese;
+	for(ese=G.editMesh->selected.first; ese; ese = ese->next){
+		if(ese->data == data){
+			BLI_freelinkN(&(G.editMesh->selected),ese);
+			break;
+		}
+	}
+}
+
+void EM_store_selection(void *data, int type)
+{
+	EditSelection *ese;
+	if(!EM_check_selection(data)){
+		ese = (EditSelection*) MEM_callocN( sizeof(EditSelection), "Edit Selection");
+		ese->type = type;
+		ese->data = data;
+		BLI_addtail(&(G.editMesh->selected),ese);
+	}
+}
+
+static void EM_strip_selections(void)
+{
+	EditSelection *ese, *nextese;
+	if(!(G.scene->selectmode & SCE_SELECT_VERTEX)){
+		ese = G.editMesh->selected.first;
+		while(ese){
+			nextese = ese->next; 
+			if(ese->type == EDITVERT) BLI_freelinkN(&(G.editMesh->selected),ese);
+			ese = nextese;
+		}
+	}
+	if(!(G.scene->selectmode & SCE_SELECT_EDGE)){
+		ese=G.editMesh->selected.first;
+		while(ese){
+			nextese = ese->next;
+			if(ese->type == EDITEDGE) BLI_freelinkN(&(G.editMesh->selected), ese);
+			ese = nextese;
+		}
+	}
+	if(!(G.scene->selectmode & SCE_SELECT_FACE)){
+		ese=G.editMesh->selected.first;
+		while(ese){
+			nextese = ese->next;
+			if(ese->type == EDITFACE) BLI_freelinkN(&(G.editMesh->selected), ese);
+			ese = nextese;
+		}
+	}
+}
 
 void EM_select_face(EditFace *efa, int sel)
 {
@@ -205,6 +272,7 @@ void EM_clear_flag_all(int flag)
 	for (eed= em->edges.first; eed; eed= eed->next) eed->f &= ~flag;
 	for (efa= em->faces.first; efa; efa= efa->next) efa->f &= ~flag;
 	
+	if(flag & SELECT) BLI_freelistN(&(G.editMesh->selected));
 }
 
 void EM_set_flag_all(int flag)
@@ -463,7 +531,8 @@ void EM_selectmode_set(void)
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-
+	
+	EM_strip_selections(); /*strip EditSelections from em->selected that are not relevant to new mode*/
 	if(G.scene->selectmode == SCE_SELECT_VERTEX) {
 		/* vertices -> edges -> faces */
 		for (eed= em->edges.first; eed; eed= eed->next) eed->f &= ~SELECT;
@@ -478,7 +547,6 @@ void EM_selectmode_set(void)
 			if(eed->f & SELECT) EM_select_edge(eed, 1);
 		/* selects faces based on edge status */
 		EM_selectmode_flush();
-		
 	}
 	else if(G.scene->selectmode == SCE_SELECT_FACE) {
 		/* deselect eges, and select again based on face select */

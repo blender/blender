@@ -126,19 +126,30 @@ typedef struct EditFace
 	unsigned char fgonf;		/* flag for fgon options */
 } EditFace;
 
+
+/*selection types*/
+#define EDITVERT 0
+#define EDITEDGE 1
+#define EDITFACE 2
+
+typedef struct EditSelection
+{
+	struct EditSelection *next, *prev;
+	short type;
+	void *data;
+} EditSelection;
+
+
 typedef struct EditMesh
 {
 	ListBase verts, edges, faces;
+	ListBase selected; /*EditSelections. Used to store the order in which things are selected.*/
 	HashEdge *hashedgetab;
 	
 	/* this is for the editmesh_fastmalloc */
 	EditVert *allverts, *curvert;
 	EditEdge *alledges, *curedge;
 	EditFace *allfaces, *curface;
-	
-	/*for improved merge code*/
-	EditVert *lastvert, *firstvert;
-	
 		/* DerivedMesh caches... note that derived cage can be equivalent
 		 * to derived final, care should be taken on release.
 		 */

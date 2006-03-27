@@ -84,6 +84,8 @@ extern void EM_select_flush(void);	// vertices to edges/faces (exception!)
 extern void EM_selectmode_set(void); // when mode changes
 extern void EM_selectmode_flush(void); // when selection changes
 extern void EM_convertsel(short oldmode, short selectmode);
+extern void EM_remove_selection(void *data, int type);
+extern void EM_store_selection(void *data, int type);
 
 extern int EM_nfaces_selected(void);
 extern int EM_nvertices_selected(void);
