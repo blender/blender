@@ -33,7 +33,8 @@ SimdScalar contactTau = .02f;//0.02f;//*0.02f;
 
 SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
 {
-	return restitution * GEN_min(1.0f, rel_vel / ContactThreshold);
+	return 0.f;
+	//return restitution * GEN_min(1.0f, rel_vel / ContactThreshold);
 }
 
 
