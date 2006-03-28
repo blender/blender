@@ -37,7 +37,8 @@ sources = [         'Bullet/BroadphaseCollision/BroadphaseProxy.cpp',
                 'Bullet/BroadphaseCollision/CollisionAlgorithm.cpp',
                 'Bullet/BroadphaseCollision/Dispatcher.cpp',
                 'Bullet/BroadphaseCollision/SimpleBroadphase.cpp',
-                
+               	'Bullet/BroadphaseCollision/AxisSweep3.cpp',
+		
                 'Bullet/CollisionShapes/BoxShape.cpp',
                 'Bullet/CollisionShapes/CollisionShape.cpp',
                 'Bullet/CollisionShapes/ConeShape.cpp',
@@ -82,7 +83,7 @@ sources = [         'Bullet/BroadphaseCollision/BroadphaseProxy.cpp',
                 'Bullet/CollisionDispatch/ManifoldResult.cpp',
                 'Bullet/CollisionDispatch/CollisionDispatcher.cpp',
                 'Bullet/CollisionDispatch/UnionFind.cpp',
-		'Bullet/NarrowPhaseCollision/CollisionObject.cpp',
+		'Bullet/CollisionDispatch/CollisionObject.cpp',
 		'Bullet/CollisionDispatch/CollisionWorld.cpp',
                 'BulletDynamics/Vehicle/RaycastVehicle.cpp',
 		'BulletDynamics/Vehicle/WheelInfo.cpp',
@@ -93,7 +94,8 @@ sources = [         'Bullet/BroadphaseCollision/BroadphaseProxy.cpp',
                 'BulletDynamics/ConstraintSolver/SimpleConstraintSolver.cpp',
                 'BulletDynamics/ConstraintSolver/Solve2LinearConstraint.cpp',
                 'BulletDynamics/ConstraintSolver/SorLcp.cpp',
-                
+                'BulletDynamics/ConstraintSolver/TypedConstraint.cpp',
+		
                 'BulletDynamics/Dynamics/BU_Joint.cpp',
                 'BulletDynamics/Dynamics/ContactJoint.cpp',
                 'BulletDynamics/Dynamics/RigidBody.cpp']
