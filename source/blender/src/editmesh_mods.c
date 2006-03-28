@@ -91,7 +91,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "RE_render_ext.h"  // externtex
+#include "RE_render_ext.h"  /* externtex */
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -121,7 +121,7 @@ void EM_select_mirrored(void)
 
 /* ****************************** SELECTION ROUTINES **************** */
 
-unsigned int em_solidoffs=0, em_wireoffs=0, em_vertoffs=0;	// set in drawobject.c ... for colorindices
+unsigned int em_solidoffs=0, em_wireoffs=0, em_vertoffs=0;	/* set in drawobject.c ... for colorindices */
 
 /* facilities for border select and circle select */
 static char *selbuf= NULL;
@@ -151,7 +151,7 @@ static void draw_triangulated(short mcords[][2], short tot)
 	filldisplist(&lb, &lb);
 
 	/* do the draw */
-	dl= lb.first;	// filldisplist adds in head of list
+	dl= lb.first;	/* filldisplist adds in head of list */
 	if(dl->type==DL_INDEX3) {
 		int *index;
 		
@@ -253,19 +253,19 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	/* yah, opengl doesn't do concave... tsk! */
  	draw_triangulated(mcords, tot);	
 	
-	glBegin(GL_LINE_LOOP);	// for zero sized masks, lines
+	glBegin(GL_LINE_LOOP);	/* for zero sized masks, lines */
 	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
 	glEnd();
 	
 	persp(PERSP_VIEW);
-	glFinish();	// to be sure readpixels sees mask
+	glFinish();	/* to be sure readpixels sees mask */
 	
 	glDrawBuffer(GL_BACK);
 	
 	/* grab mask */
 	bufmask= read_backbuf(xmin, ymin, xmax, ymax);
 	drm = bufmask->rect;
-	if(bufmask==NULL) return 0; // only when mem alloc fails, go crash somewhere else!
+	if(bufmask==NULL) return 0; /* only when mem alloc fails, go crash somewhere else! */
 	
 	/* build selection lookup */
 	selbuf= MEM_callocN(em_vertoffs+1, "selbuf");
@@ -526,12 +526,12 @@ static EditFace *findnearestface(short *dist)
 
 			data.mval[0] = mval[0];
 			data.mval[1] = mval[1];
-			data.dist = 0x7FFF;		// largest short
+			data.dist = 0x7FFF;		/* largest short */
 			data.toFace = efa;
 
 			mesh_foreachScreenFace(findnearestface__getDistance, &data);
 
-			if(G.scene->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	// only faces, no dist check
+			if(G.scene->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	/* only faces, no dist check */
 				*dist= data.dist;
 				return efa;
 			}
@@ -729,7 +729,7 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 	if(G.scene->selectmode & SCE_SELECT_FACE)
 		*efa= findnearestface(&dist);
 
-	dist-= 20;	// since edges select lines, we give dots advantage of 20 pix
+	dist-= 20;	/* since edges select lines, we give dots advantage of 20 pix */
 	if(G.scene->selectmode & SCE_SELECT_EDGE)
 		*eed= findnearestedge(&dist);
 
@@ -931,7 +931,6 @@ int edgegroup_select(short mode)
 		}
 	} else if (mode==4) { /*store edge angles */
 		EditFace *efa;
-		EditEdge efa_edges[4];
 		int j;
 		/* cound how many faces each edge uses use tmp.l */
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -1124,10 +1123,8 @@ int vertgroup_select(short mode)
 							return selcount;
 					}
 				}
-			} else if (mode==3) { /* vertex groups */
+			} else if (mode==3 && base_eve->totweight != 0) { /* vertex groups */
 				short i,j; /*weight index*/
-				if (!base_eve->totweight)
-					return;
 				
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if (
@@ -1183,7 +1180,7 @@ void select_mesh_group_menu()
 		selcount= edgegroup_select(ret);
 		
 		if (selcount) { /* update if data was selected */
-			//EM_select_flush(); /* dont use because it can end up selecting more edges and is not usefull*/
+			/*EM_select_flush();*/ /* dont use because it can end up selecting more edges and is not usefull*/
 			G.totedgesel+=selcount;
 			allqueue(REDRAWVIEW3D, 0);
 			BIF_undo_push("Select Grouped Edges");
@@ -1234,17 +1231,17 @@ void faceloop_select(EditEdge *startedge, int select)
 		}
 	}
 	
-	// tag startedge OK
+	/* tag startedge OK*/
 	startedge->f2= 1;
 	
 	while(looking) {
 		looking= 0;
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e4 && efa->f1==0) {	// not done quad
-				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { // valence ok
+			if(efa->e4 && efa->f1==0) {	/* not done quad */
+				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { /* valence ok */
 
-					// if edge tagged, select opposing edge and mark face ok
+					/* if edge tagged, select opposing edge and mark face ok */
 					if(efa->e1->f2) {
 						efa->e3->f2= 1;
 						efa->f1= 1;
@@ -1287,8 +1284,8 @@ static int edge_not_in_tagged_face(EditEdge *eed)
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(efa->h==0) {
-			if(efa->e1==eed || efa->e2==eed || efa->e3==eed || efa->e4==eed) {	// edge is in face
-				if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2)) {	// face is tagged
+			if(efa->e1==eed || efa->e2==eed || efa->e3==eed || efa->e4==eed) {	/* edge is in face */
+				if(efa->e1->f2 || efa->e2->f2 || efa->e3->f2 || (efa->e4 && efa->e4->f2)) {	/* face is tagged */
 					return 0;
 				}
 			}
@@ -1325,7 +1322,7 @@ static void edgeloop_select(EditEdge *starteed, int select)
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		eed->f1= 0;
 		eed->f2= 0;
-		if((eed->h & 1)==0) {	// fgon edges add to valence too
+		if((eed->h & 1)==0) {	/* fgon edges add to valence too */
 			eed->v1->f1++; eed->v2->f1++;
 		}
 	}
@@ -1351,11 +1348,11 @@ static void edgeloop_select(EditEdge *starteed, int select)
 		
 		/* find correct valence edges which are not tagged yet, but connect to tagged one */
 		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->h==0 && eed->f2==0) { // edge not hidden, not tagged
-				if( (eed->v1->f1<5 && eed->v1->f2) || (eed->v2->f1<5 && eed->v2->f2)) { // valence of vertex OK, and is tagged
+			if(eed->h==0 && eed->f2==0) { /* edge not hidden, not tagged */
+				if( (eed->v1->f1<5 && eed->v1->f2) || (eed->v2->f1<5 && eed->v2->f2)) { /* valence of vertex OK, and is tagged */
 					/* new edge is not allowed to be in face with tagged edge */
 					if(edge_not_in_tagged_face(eed)) {
-						if(eed->f1==starteed->f1) {	// same amount of faces
+						if(eed->f1==starteed->f1) {	/* same amount of faces */
 							looking= 1;
 							eed->f2= 1;
 							if(eed->v2->f1<5) eed->v2->f2= 1;
@@ -1399,17 +1396,17 @@ static void edgering_select(EditEdge *startedge, int select){
 		}
 	}
 	
-	// tag startedge OK
+	/* tag startedge OK */
 	startedge->f2= 1;
 	
 	while(looking) {
 		looking= 0;
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e4 && efa->f1==0) {	// not done quad
-				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { // valence ok
+			if(efa->e4 && efa->f1==0) {	/* not done quad */
+				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { /* valence ok */
 
-					// if edge tagged, select opposing edge and mark face ok
+					/* if edge tagged, select opposing edge and mark face ok */
 					if(efa->e1->f2) {
 						efa->e3->f2= 1;
 						efa->f1= 1;
@@ -1483,7 +1480,7 @@ static void loop_multiselect(int looptype)
 		
 /* ***************** MAIN MOUSE SELECTION ************** */
 
-// just to have the functions nice together
+/* just to have the functions nice together */
 static void mouse_mesh_loop(void)
 {
 	EditEdge *eed;
@@ -1837,7 +1834,7 @@ void reveal_mesh(void)
 		}
 	}
 
-	EM_fgon_flags();	// redo flags and indices for fgons
+	EM_fgon_flags();	/* redo flags and indices for fgons */
 	EM_selectmode_flush();
 	countall();
 
@@ -2596,8 +2593,8 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 	
 	eed= em->edges.first;
 	while(eed) {
-		eed->f2= 0;		// edge direction
-		eed->f1= 0;		// counter
+		eed->f2= 0;		/* edge direction */
+		eed->f1= 0;		/* counter */
 		eed= eed->next;
 	}
 
