@@ -1176,7 +1176,12 @@ inline void LbmFsgrSolver::collideArrays(
 	LbmFloat ux = mux;
 	LbmFloat uy = muy;
 	LbmFloat uz = muz; 
-	for(int l=1; l<this->cDfNum; l++) { 
+	LbmFloat feq[19];
+	LbmFloat omegaNew;
+	LbmFloat Qo = 0.0;
+	int l;
+
+	for(l=1; l<this->cDfNum; l++) { 
 		rho += df[l]; 
 		ux  += (this->dfDvecX[l]*df[l]); 
 		uy  += (this->dfDvecY[l]*df[l]);  
@@ -1184,13 +1189,10 @@ inline void LbmFsgrSolver::collideArrays(
 	}  
 
 	PRECOLLIDE_MODS(rho,ux,uy,uz);
-	LbmFloat feq[19];
-	for(int l=0; l<this->cDfNum; l++) { 
+	for(l=0; l<this->cDfNum; l++) { 
 		feq[l] = getCollideEq(l,rho,ux,uy,uz); 
 	}
 
-	LbmFloat omegaNew;
-	LbmFloat Qo = 0.0;
 	if(csmago>0.0) {
 		Qo = getLesNoneqTensorCoeff(df,feq);
 		omegaNew = getLesOmega(omega,csmago,Qo);
@@ -1200,7 +1202,7 @@ inline void LbmFsgrSolver::collideArrays(
 	if(newOmegaRet) *newOmegaRet = omegaNew; // return value for stats
 	if(newQoRet)    *newQoRet = Qo; // return value of non-eq. stress tensor
 
-	for(int l=0; l<this->cDfNum; l++) { 
+	for(l=0; l<this->cDfNum; l++) { 
 		df[l] = (1.0-omegaNew ) * df[l] + omegaNew * feq[l]; 
 	}  
 	if((i==16)&&(j==10)) DEBUG_CALCPRINTCELL( "2dcoll "<<PRINT_IJK, df);
