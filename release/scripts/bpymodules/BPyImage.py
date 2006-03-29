@@ -81,7 +81,10 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	if VERBOSE: print 'img:', imagePath, 'file:', filePath
 	# When we have the file load it with this. try/except niceness.
 	def imageLoad(path):
+		#if path.endswith('\\') or path.endswith('/'):
+		#	raise 'INVALID PATH'
 		try:
+			
 			img = Blender.Image.Load(path)
 			if VERBOSE: print '\t\tImage loaded "%s"' % path
 			return img
@@ -89,8 +92,8 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 			#raise "Helloo"
 			if VERBOSE:
 				if sys.exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
-				else: print '\t\tImage not found "%s"' % (path)
-			if newImage:
+				else: print '\t\tImage not found, making a place holder "%s"' % (path)
+			if placeHolder:
 				img= Blender.Image.New(stripPath(path),1,1,24)
 				
 				img.setName(path.split('/')[-1].split('\\')[-1][0:21]) #path.split('/')[-1].split('\\')[-1][0:21]
@@ -115,7 +118,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	
 	if VERBOSE: print '\tAttempting to load "%s"' % imagePath
 	if sys.exists(imagePath):
-		if VERBOSE: print '\t\tFile found where expected.'
+		if VERBOSE: print '\t\tFile found where expected "%s".' % imagePath
 		return imageLoad(imagePath)
 	
 	
@@ -130,14 +133,15 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	
 	
 	# Attempt to load from obj path.
-	tmpPath = stripFile(filePath) + stripFile(imageFilePath)
+	tmpPath = stripFile(filePath) + stripPath(imageFileName)
 	if sys.exists(tmpPath):
-		if VERBOSE: print '\t\tFile found in path "%s".' % tmpPath
+		if VERBOSE: print '\t\tFile found in path (1)"%s".' % tmpPath
 		return imageLoad(tmpPath)
 	
 	
 	# os needed if we go any further.
 	if os == None:
+		if VERBOSE: print '\t\tCreating a placeholder with a face path: "%s".' % imagePath
 		return imageLoad(imagePath) # Will jus treturn a placeholder.
 	
 	
@@ -181,7 +185,8 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 	
 	# Add path if relative image patrh was given.
-	for k in paths.iterkeys():
+	tmp_paths= paths.keys()
+	for k in tmp_paths:
 		tmpPath = k + imageFilePath
 		if sys.exists(tmpPath):
 			paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 
@@ -194,8 +199,8 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 	print 'PATHs', paths
 	# 
 	for path, files in paths.iteritems():
-		
 		if sys.exists(path + imageFileName):
+			if VERBOSE: print '\tFound image at path: "%s" file" "%s"' % (path, imageFileName)
 			return imageLoad(path + imageFileName)
 		
 		# If the files not there then well do a case insensitive seek.
@@ -278,5 +283,10 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 			return img
 	
 	# No go.
-	if VERBOSE: print '\t\tImage Not Found "%s"' % imagePath
+	if VERBOSE: print '\t\tImage Not Found after looking everywhere! "%s"' % imagePath
 	return imageLoad(imagePath) # Will jus treturn a placeholder.
+
+
+
+
+
