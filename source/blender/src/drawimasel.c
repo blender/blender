@@ -705,6 +705,7 @@ void select_ima_files(SpaceImaSel *simasel)
 	
 	getmouseco_areawin(mval);
 	oval[0] = mval[0] + 1;
+	oval[1] = 0; /* Just give it a value to stop warnings */
 	
 	while(get_mbut()&R_MOUSE) { 
 		getmouseco_areawin(mval);

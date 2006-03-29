@@ -34,6 +34,8 @@
 #include <fstream>
 
 
+BOP_Mesh::BOP_Mesh() {}
+
 /**
  * Destroys a mesh.
  */
