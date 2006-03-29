@@ -380,9 +380,6 @@ private:
 	bool mSingleFrameMode;
 	//! filename for single frame mode
 	string mSingleFrameFilename;
-
-	/*! Two random number streams for photon generation (one for the directions, the other for russion roulette) */
-	//ntlRandomStream *mpRndDirections, *mpRndRoulette;
 };
 
 

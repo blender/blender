@@ -96,14 +96,19 @@ typedef struct FluidsimSettings {
 
 	/* additional flags depending on the type, lower short contains flags
 	 * to check validity, higher short additional flags */
-	int typeFlags;
+	short typeFlags;
+	char  domainNovecgen,dummyc;
 
 	/* boundary "stickiness" for part slip values */
 	float partSlipValue;
 	/* particle generation - on if >0, then determines amount */
-	float generateParticles, dummy;
+	float generateParticles;
+	/* smooth fluid surface? */
+	float surfaceSmoothing;
 	/* particle display - size scaling, and alpha influence */
 	float particleInfSize, particleInfAlpha;
+	/* testing vars */
+	float farFieldSize,dummyf;
 
 	/* save fluidsurface normals in mvert.no, and surface vertex velocities (if available) in mvert.co */
 	struct MVert *meshSurfNormals;
@@ -119,13 +124,12 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_OUTFLOW     32
 #define OB_FLUIDSIM_PARTICLE    64
 
-#define OB_TYPEFLAG_START       16
+#define OB_TYPEFLAG_START       0
 #define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))
 #define OB_FSBND_NOSLIP         (1<<(OB_TYPEFLAG_START+2))
 #define OB_FSBND_PARTSLIP       (1<<(OB_TYPEFLAG_START+3))
 #define OB_FSBND_FREESLIP       (1<<(OB_TYPEFLAG_START+4))
 #define OB_FSINFLOW_LOCALCOORD  (1<<(OB_TYPEFLAG_START+5))
-#define OB_FSDOMAIN_NOVECGEN      (1<<(OB_TYPEFLAG_START+6))
 
 // guiDisplayMode particle flags
 #define OB_FSDOM_GEOM     1

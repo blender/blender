@@ -16,6 +16,8 @@
 class ntlRenderGlobals;
 class ntlTriangle;
 
+#define DUMP_FULLGEOMETRY 1
+#define DUMP_PARTIAL      2
 
 class ntlGeometryObject : public ntlGeometryClass
 {
@@ -38,7 +40,7 @@ class ntlGeometryObject : public ntlGeometryClass
 				vector<ntlVec3Gfx> *normals, int objectId ) = 0;
 		
 		/*! notify object that dump is in progress (e.g. for particles) */
-		virtual void notifyOfDump(int frameNr,char *frameNrStr,string outfilename);
+		virtual void notifyOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename, double simtime);
 
 		/*! Search the material for this object from the material list */
 		void searchMaterial(vector<ntlMaterial *> *mat);

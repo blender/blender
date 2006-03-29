@@ -34,7 +34,7 @@ LbmSolverInterface::LbmSolverInterface() :
 	mBoundarySouth( (CellFlagType)(CFBnd) ),mBoundaryTop(  (CellFlagType)(CFBnd) ),mBoundaryBottom( (CellFlagType)(CFBnd) ),
   mInitDone( false ),
   mInitDensityGradient( false ),
-	mpAttrs( NULL ), mpParam( NULL ),
+	mpAttrs( NULL ), mpParam( NULL ), mpParticles(NULL),
 	mNumParticlesLost(0), 
 	mNumInvalidDfs(0), mNumFilledCells(0), mNumEmptiedCells(0), mNumUsedCells(0), mMLSUPS(0),
 	mDebugVelScale( 0.01 ), mNodeInfoString("+"),
@@ -53,7 +53,7 @@ LbmSolverInterface::LbmSolverInterface() :
 	mDumpVelocities(false),
 	mMarkedCells(), mMarkedCellIndex(0),
 	mDomainBound("noslip"), mDomainPartSlipValue(0.1),
-	mTForceStrength(0.0)
+	mTForceStrength(0.0), mFarFieldSize(0.), mCppfStage(0)
 {
 #if ELBEEM_PLUGIN==1
 	if(gDebugLevel<=1) mSilent = true;
@@ -242,7 +242,12 @@ void LbmSolverInterface::parseStdAttrList() {
 	
 	// new test vars
 	mTForceStrength = mpAttrs->readFloat("tforcestrength", mTForceStrength,"LbmSolverInterface", "mTForceStrength", false);
+	mFarFieldSize = mpAttrs->readFloat("farfieldsize", mFarFieldSize,"LbmSolverInterface", "mFarFieldSize", false);
+	// old compat
+	float sizeScale = mpAttrs->readFloat("test_scale", 0.,"LbmTestdata", "mSizeScale", false);
+	if((mFarFieldSize<=0.)&&(sizeScale>0.)) { mFarFieldSize=sizeScale; errMsg("LbmTestdata","Warning - using mSizeScale..."); }
 
+	mCppfStage = mpAttrs->readFloat("cppfstage", mCppfStage,"LbmSolverInterface", "mCppfStage", false);
 	mPartGenProb = mpAttrs->readFloat("partgenprob", mPartGenProb,"LbmFsgrSolver", "mPartGenProb", false);
 }
 

@@ -67,6 +67,8 @@ void elbeemResetSettings(elbeemSimulationSettings *set) {
 	set->generateVertexVectors = 0;
 	set->surfaceSmoothing = 1.;
 
+	set->farFieldSize = 0.;
+
 	// init identity
 	for(int i=0; i<16; i++) set->surfaceTrafo[i] = 0.0;
 	for(int i=0; i<4; i++) set->surfaceTrafo[i*4+i] = 1.0;
@@ -85,6 +87,13 @@ int elbeemInit(elbeemSimulationSettings *settings) {
 	ntlBlenderDumper *elbeem = new ntlBlenderDumper(settings);
 	gpWorld = elbeem;
 	return 0;
+}
+
+// error message access
+extern "C" 
+void elbeemGetErrorString(char *buffer) {
+	if(!buffer) return;
+	strncpy(buffer,gElbeemErrorString,256);
 }
 
 // reset elbeemMesh struct with zeroes

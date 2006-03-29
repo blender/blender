@@ -17,102 +17,9 @@
 
 
 
-#if LBM_INCLUDE_TESTSOLVERS!=1
-
 // off for non testing
 #define PRECOLLIDE_MODS(rho,ux,uy,uz) 
 
-#else // LBM_INCLUDE_TESTSOLVERS!=1
-
-#define PRECOLLIDE_GETPOS \
-	LbmVec( \
-			((this->mvGeoEnd[0]-this->mvGeoStart[0])/(LbmFloat)this->mSizex) * (LbmFloat)i + this->mvGeoStart[0], \
-			((this->mvGeoEnd[1]-this->mvGeoStart[1])/(LbmFloat)this->mSizey) * (LbmFloat)j + this->mvGeoStart[1], \
-			((this->mvGeoEnd[2]-this->mvGeoStart[2])/(LbmFloat)this->mSizez) * (LbmFloat)k + this->mvGeoStart[2]  \
-			)
-
-// debug modifications of collide vars (testing)
-#define PRECOLLIDE_MODS(rho,ux,uy,uz) \
-	if( (this->mTForceStrength>0.) && (RFLAG(0,i,j,k, mLevel[0].setCurr)&CFNoBndFluid) ) { \
-		LbmVec pos = PRECOLLIDE_GETPOS; \
-		LbmVec vel(ux,uy,uz); \
-		mpTest->mControlParts.modifyVelocity(pos,vel); /* */\
-		if((i==16)&&(j==10)){ /*debugMarkCell(0,16,10,0);*/ errMsg("FTDEB"," at "<<PRINT_IJK<<" targ:"<<vel<<",len:"<<norm(vel)<<",  org:"<<ntlVec3Gfx(ux,uy,uz) ); }\
-		ux = vel[0]; uy=vel[1]; uz=vel[2]; \
-		/* test acutal values...? */ \
-	}
- 	/* end PRECOLLIDE_MODS */
-
-// debug modifications of collide vars (testing)
-#define _PRECOLLIDE_MODS(rho,ux,uy,uz) \
-	if(this->mTForceStrength>0.) { \
-		LbmVec u(ux,uy,uz); \
-		LbmVec pos = PRECOLLIDE_GETPOS; \
-		LbmVec targv = u; const int lev=0; \
-		mpTest->mControlParts.modifyVelocity(pos,targv); /* */\
-		LbmVec devia = (targv-u); \
-		LbmVec set; \
-		set = u + (devia/this->mOmega) * this->mTForceStrength; /* */\
-		set = u + targv*this->mTForceStrength; /* */\
-		ux = set[0]; uy=set[1]; uz=set[2]; \
-		if(j==10){ errMsg("FTDEB"," at "<<PRINT_IJK<<" targ"<<targv<<","<<norm(targv)<<"  set:"<<set<<","<<norm(set) ); }\
-	}
- 	/* end PRECOLLIDE_MODS */
-
-#endif // LBM_INCLUDE_TESTSOLVERS!=1
-
-/*
-
-	\
-	if((0) && (j>=0.01*this->mSizey) && (j<0.9*this->mSizey)) { \
-		if((1) && (i>=0.5*this->mSizex) && (i<0.6*this->mSizex)) { \
-			LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
-			LbmVec u(ux,uy,uz); LbmVec t(1., 0., 0.); \
-			ux = len*t[0]; uy=len*t[1]; uz=len*t[2]; \
-		} \
-		if((1) && (i>=0.65*this->mSizex) && (i<0.75*this->mSizex)) { \
-			LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
-			LbmVec u(ux,uy,uz); LbmVec t(0., 1., 0.); \
-			ux = len*t[0]; uy=len*t[1]; uz=len*t[2]; \
-		} \
-	} \
-	\
-	if((0) && (j>=0.0*this->mSizey) && (j<1.0 *this->mSizey)) { \
-		if((1) && (i>=0.6 *this->mSizex) && (i<0.7 *this->mSizex)) { \
-			LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
-			LbmVec u(ux,uy,uz); \
-			LbmVec t(0., 1., 0.); \
-			LbmFloat devia = norm(u-t); \
-			// 0.0001-strong, 0.000001-small, 
-			t = u - (devia/this->mOmega) * this->mTForceStrength; \
-			// ux = len*t[0]; uy=len*t[1]; uz=len*t[2]; 
-			ux = t[0]; uy=t[1]; uz=t[2]; \
-			//ux= uy= uz= 0.0; 
-			//errMsg("DDDD"," at "<<PRINT_IJK);  
-		} \
-	} \
-	if(0) { \
-		LbmFloat len = sqrtf(ux*ux + uy*uy + uz*uz); \
-		LbmVec u(ux,uy,uz); \
-		LbmVec p(i/(LbmFloat)this->mSizex, j/(LbmFloat)this->mSizey, k/(LbmFloat)this->mSizez); \
-		LbmVec cp(0.5, 0.5, 0.5); \
-		LbmVec delt = cp - p; \
-		LbmFloat dist = norm(delt); \
-		normalize(delt); \
-		LbmVec tang = cross(delt, LbmVec(0.,0.,1.)); \
-		normalize(tang); \
-		const LbmFloat falloff = 5.0; \
-		LbmVec targv = tang*1.0 * 1.0/(1.0+falloff*dist); \
-		LbmVec devia = (targv-u); \
-		LbmFloat devial = norm(devia); \
-		LbmVec set; \
-		set = u +targv * this->mTForceStrength; \
-		set = u + (devia/this->mOmega) * this->mTForceStrength; \
-		ux = set[0]; uy=set[1]; uz=set[2]; \
-		if(j==10){ errMsg("FTDEB"," at "<<PRINT_IJK<<" dist:"<<delt<<","<<dist<<" targ"<<targv<<","<<norm(targv)<<"  set:"<<set<<","<<norm(set) ); }\
-	} \
-
-*/
 	
 /******************************************************************************
  * normal relaxation
@@ -1152,14 +1059,14 @@ inline LbmFloat LbmFsgrSolver::getLesOmega(LbmFloat omega, LbmFloat csmago, LbmF
 }
 
 #define DEBUG_CALCPRINTCELL(str,df) {\
-		LbmFloat rho=df[0], ux=0., uy=0., uz=0.; \
+		LbmFloat prho=df[0], pux=0., puy=0., puz=0.; \
 		for(int l=1; l<this->cDfNum; l++) { \
-			rho += df[l];  \
-			ux  += (this->dfDvecX[l]*df[l]);  \
-			uy  += (this->dfDvecY[l]*df[l]);  \
-			uz  += (this->dfDvecZ[l]*df[l]);  \
+			prho += df[l];  \
+			pux  += (this->dfDvecX[l]*df[l]);  \
+			puy  += (this->dfDvecY[l]*df[l]);  \
+			puz  += (this->dfDvecZ[l]*df[l]);  \
 		} \
-		errMsg("DEBUG_CALCPRINTCELL",">"<<str<<" rho="<<rho<<" vel="<<ntlVec3Gfx(ux,uy,uz) ); \
+		errMsg("DEBUG_CALCPRINTCELL",">"<<str<<" rho="<<prho<<" vel="<<ntlVec3Gfx(pux,puy,puz) ); \
 	} /* END DEBUG_CALCPRINTCELL */ 
 
 // "normal" collision

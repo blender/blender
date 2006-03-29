@@ -20,6 +20,8 @@
 #include <zlib.h>
 
 
+// particle object id counter
+int ParticleObjectIdCnt = 1;
 
 /******************************************************************************
  * Standard constructor
@@ -34,19 +36,21 @@ ParticleTracer::ParticleTracer() :
 	mPartScale(1.0) , mPartHeadDist( 0.5 ), mPartTailDist( -4.5 ), mPartSegments( 4 ),
 	mValueScale(0),
 	mValueCutoffTop(0.0), mValueCutoffBottom(0.0),
-	mDumpParts(0), mShowOnly(0), mpTrafo(NULL)
+	mDumpParts(0), mDumpText(0), mDumpTextFile(""), mShowOnly(0), 
+	mNumInitialParts(0), mpTrafo(NULL)
 {
 	// check env var
-#ifdef ELBEEM_PLUGIN
-	mDumpParts=1; // default on
-#endif // ELBEEM_PLUGIN
-	if(getenv("ELBEEM_DUMPPARTICLE")) { // DEBUG!
-		int set = atoi( getenv("ELBEEM_DUMPPARTICLE") );
-		if((set>=0)&&(set!=mDumpParts)) {
-			mDumpParts=set;
-			debMsgStd("ParticleTracer::notifyOfDump",DM_NOTIFY,"Using envvar ELBEEM_DUMPPARTICLE to set mDumpParts to "<<set<<","<<mDumpParts,8);
-		}
-	}
+//#ifdef ELBEEM_PLUGIN
+	//mDumpParts=1; // default on
+//#endif // ELBEEM_PLUGIN
+	//if(getenv("ELBEEM_DUMPPARTICLE")) { // DEBUG!
+		//int set = atoi( getenv("ELBEEM_DUMPPARTICLE") );
+		//if((set>=0)&&(set!=mDumpParts)) {
+			//mDumpParts=set;
+			//debMsgStd("ParticleTrace",DM_NOTIFY,"Using envvar ELBEEM_DUMPPARTICLE to set mDumpParts to "<<set<<","<<mDumpParts,8);
+		//}
+	//}
+	debMsgStd("ParticleTracer::ParticleTracer",DM_MSG,"inited",10);
 };
 
 ParticleTracer::~ParticleTracer() {
@@ -60,13 +64,9 @@ void ParticleTracer::parseAttrList(AttributeList *att)
 {
 	AttributeList *tempAtt = mpAttrs; 
 	mpAttrs = att;
-	int mNumParticles =0; // UNUSED
-	int mTrailLength  = 0; // UNUSED
-	int mTrailInterval= 0; // UNUSED
-	mNumParticles = mpAttrs->readInt("particles",mNumParticles, "ParticleTracer","mNumParticles", false);
-	mTrailLength  = mpAttrs->readInt("traillength",mTrailLength, "ParticleTracer","mTrailLength", false);
-	mTrailInterval= mpAttrs->readInt("trailinterval",mTrailInterval, "ParticleTracer","mTrailInterval", false);
 
+	mNumInitialParts = mpAttrs->readInt("particles",mNumInitialParts, "ParticleTracer","mNumInitialParts", false);
+	errMsg(" NUMP"," "<<mNumInitialParts);
 	mPartScale    = mpAttrs->readFloat("part_scale",mPartScale, "ParticleTracer","mPartScale", false);
 	mPartHeadDist = mpAttrs->readFloat("part_headdist",mPartHeadDist, "ParticleTracer","mPartHeadDist", false);
 	mPartTailDist = mpAttrs->readFloat("part_taildist",mPartTailDist, "ParticleTracer","mPartTailDist", false);
@@ -75,18 +75,23 @@ void ParticleTracer::parseAttrList(AttributeList *att)
 	mValueCutoffTop = mpAttrs->readFloat("part_valcutofftop",mValueCutoffTop, "ParticleTracer","mValueCutoffTop", false);
 	mValueCutoffBottom = mpAttrs->readFloat("part_valcutoffbottom",mValueCutoffBottom, "ParticleTracer","mValueCutoffBottom", false);
 
-	mDumpParts    = mpAttrs->readInt  ("part_dump",mDumpParts, "ParticleTracer","mDumpParts", false);
+	mDumpParts   = mpAttrs->readInt  ("part_dump",mDumpParts, "ParticleTracer","mDumpParts", false);
+	mDumpText    = mpAttrs->readInt  ("part_textdump",mDumpText, "ParticleTracer","mDumpText", false);
 	mShowOnly    = mpAttrs->readInt  ("part_showonly",mShowOnly, "ParticleTracer","mShowOnly", false);
+	mDumpTextFile= mpAttrs->readString("part_textdumpfile",mDumpTextFile, "ParticleTracer","mDumpTextFile", false);
 
 	string matPart;
 	matPart = mpAttrs->readString("material_part", "default", "ParticleTracer","material", false);
 	setMaterialName( matPart );
-	// trail length has to be at least one, if anything should be displayed
-	//if((mNumParticles>0)&&(mTrailLength<2)) mTrailLength = 2;
+
+	// unused...
+	int mTrailLength  = 0; // UNUSED
+	int mTrailInterval= 0; // UNUSED
+	mTrailLength  = mpAttrs->readInt("traillength",mTrailLength, "ParticleTracer","mTrailLength", false);
+	mTrailInterval= mpAttrs->readInt("trailinterval",mTrailInterval, "ParticleTracer","mTrailInterval", false);
 
 	// restore old list
 	mpAttrs = tempAtt;
-	//mParts.resize(mTrailLength*mTrailInterval);
 }
 
 /******************************************************************************
@@ -146,7 +151,7 @@ void ParticleTracer::addParticle(float x, float y, float z)
 void ParticleTracer::cleanup() {
 	// cleanup
 	int last = (int)mParts.size()-1;
-	//for(vector<ParticleObject>::iterator pit= getParticlesBegin();pit!= getParticlesEnd(); pit++) {
+	if(mDumpText>0) { errMsg("ParticleTracer::cleanup","Skipping cleanup due to text dump..."); return; }
 
 	for(int i=0; i<=last; i++) {
 		if( mParts[i].getActive()==false ) {
@@ -158,47 +163,18 @@ void ParticleTracer::cleanup() {
 }
 		
 /******************************************************************************
- * save particle positions before adding a new timestep
- * copy "one index up", newest has to remain unmodified, it will be
- * advanced after the next smiulation step
+ *! dump particles if desired 
  *****************************************************************************/
-void ParticleTracer::savePreviousPositions()
-{
-	//debugOut(" PARTS SIZE "<<mParts.size() ,10);
-	/*
-	if(mTrailIntervalCounter==0) {
-	//errMsg("spp"," PARTS SIZE "<<mParts.size() );
-		for(size_t l=mParts.size()-1; l>0; l--) {
-			if( mParts[l].size() != mParts[l-1].size() ) {
-				errFatal("ParticleTracer::savePreviousPositions","Invalid array sizes ["<<l<<"]="<<mParts[l].size()<<
-						" ["<<(l+1)<<"]="<<mParts[l+1].size() <<" , total "<< mParts.size() , SIMWORLD_GENERICERROR);
-				return;
-			}
-
-			for(size_t i=0; i<mParts[l].size(); i++) {
-				mParts[l][i] = mParts[l-1][i];
-			}
-
-		}
-	} 
-	mTrailIntervalCounter++;
-	if(mTrailIntervalCounter>=mTrailInterval) mTrailIntervalCounter = 0;
-	UNUSED!? */
-}
-
-
-/*! dump particles if desired */
-void ParticleTracer::notifyOfDump(int frameNr,char *frameNrStr,string outfilename) {
+void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename, double simtime) {
 	debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"obj:"<<this->getName()<<" frame:"<<frameNrStr, 10); // DEBUG
 
-	if(mDumpParts>0) {
+	if(
+			(dumptype==DUMP_FULLGEOMETRY)&&
+			(mDumpParts>0)) {
 		// dump to binary file
 		std::ostringstream boutfilename("");
-		//boutfilename << ecrpath.str() << glob->getOutFilename() <<"_"<< this->getName() <<"_" << frameNrStr << ".obj";
-		//boutfilename << outfilename <<"_particles_"<< this->getName() <<"_" << frameNrStr<< ".gz";
 		boutfilename << outfilename <<"_particles_" << frameNrStr<< ".gz";
-		debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"B-Dumping: "<< this->getName() 
-				<<", particles:"<<mParts.size()<<" "<< " to "<<boutfilename.str()<<" #"<<frameNr , 7);
+		debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"B-Dumping: "<< this->getName() <<", particles:"<<mParts.size()<<" "<< " to "<<boutfilename.str()<<" #"<<frameNr , 7);
 
 		// output to zipped file
 		gzFile gzf;
@@ -210,21 +186,26 @@ void ParticleTracer::notifyOfDump(int frameNr,char *frameNrStr,string outfilenam
 			numParts = 0;
 			for(size_t i=0; i<mParts.size(); i++) {
 				if(!mParts[i].getActive()) continue;
+				//if(mParts[i].getLifeTime()<30) { continue; } //? CHECK
 				numParts++;
 			}
 			gzwrite(gzf, &numParts, sizeof(numParts));
 			for(size_t i=0; i<mParts.size(); i++) {
 				if(!mParts[i].getActive()) { continue; }
-				if(mParts[i].getLifeTime()<30) { continue; } //? CHECK
+				//if(mParts[i].getLifeTime()<30) { continue; } //? CHECK
 				ParticleObject *p = &mParts[i];
-				int type = p->getType();
+				//int type = p->getType();  // export whole type info
+				int type = p->getFlags(); // debug export whole type & status info
 				ntlVec3Gfx pos = p->getPos();
 				float size = p->getSize();
 
 				if(type&PART_FLOAT) { // WARNING same handling for dump!
 					// add one gridcell offset
 					//pos[2] += 1.0; 
-				}
+				} 
+				// display as drop for now externally
+				//else if(type&PART_TRACER) { type |= PART_DROP; }
+
 				pos = (*mpTrafo) * pos;
 
 				ntlVec3Gfx v = p->getVel();
@@ -240,6 +221,64 @@ void ParticleTracer::notifyOfDump(int frameNr,char *frameNrStr,string outfilenam
 			gzclose( gzf );
 		}
 	} // dump?
+
+	// dfor partial & full dump
+	if(mDumpText>0) {
+		// dump to binary file
+		std::ostringstream boutfilename("");
+		if(mDumpTextFile.length()>1) {   
+			boutfilename << mDumpTextFile <<  ".cpart2"; 
+		} else {                           
+			boutfilename << outfilename <<"_particles" <<  ".cpart2"; 
+		}
+		debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"T-Dumping: "<< this->getName() <<", particles:"<<mParts.size()<<" "<< " to "<<boutfilename.str()<<" #"<<frameNr , 7);
+
+		int numParts = 0;
+		// only dump bubble particles
+		for(size_t i=0; i<mParts.size(); i++) {
+			//if(!mParts[i].getActive()) continue;
+			//if(!(mParts[i].getType()&PART_BUBBLE)) continue;
+			numParts++;
+		}
+
+		// output to text file
+		gzFile gzf;
+		if(frameNr==0) {
+			gzf = gzopen(boutfilename.str().c_str(), "w0");
+
+			gzprintf( gzf, "\n\n# cparts generated by elbeem \n# no. of parts \nN %d \n\n",numParts);
+			// fixed time scale for now
+			gzprintf( gzf, "T %f \n\n", 1.0);
+		} else {
+			gzf = gzopen(boutfilename.str().c_str(), "a+0");
+		}
+
+		// add current set
+		if(gzf) {
+			gzprintf( gzf, "\n\n# new set at frame %d,t%f,p%d --------------------------------- \n\n", frameNr, simtime, numParts );
+			gzprintf( gzf, "S %f \n\n", simtime );
+			
+			for(size_t i=0; i<mParts.size(); i++) {
+				ParticleObject *p = &mParts[i];
+				ntlVec3Gfx pos = p->getPos();
+				float size = p->getSize();
+				if(!mParts[i].getActive()) { size=0.; } // switch "off"
+
+				pos = (*mpTrafo) * pos;
+				ntlVec3Gfx v = p->getVel();
+				v[0] *= mpTrafo->value[0][0];
+				v[1] *= mpTrafo->value[1][1];
+				v[2] *= mpTrafo->value[2][2];
+				
+				gzprintf( gzf, "P %f %f %f \n", pos[0],pos[1],pos[2] );
+				gzprintf( gzf, "s %f \n", size );
+				gzprintf( gzf, "\n", size );
+			}
+
+			gzprintf( gzf, "# %d end  ", frameNr );
+			gzclose( gzf );
+		}
+	}
 }
 
 
@@ -293,6 +332,7 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 			case 2: if(!(type&PART_DROP))   continue; break;
 			case 3: if(!(type&PART_INTER))  continue; break;
 			case 4: if(!(type&PART_FLOAT))  continue; break;
+			case 5: if(!(type&PART_TRACER))  continue; break;
 			}
 		} else {
 			// by default dont display inter

@@ -73,6 +73,10 @@ typedef struct elbeemSimulationSettings {
 
 	/* global transformation to apply to fluidsim mesh */
 	float surfaceTrafo[4*4];
+
+	/* development variables, testing for upcoming releases...*/
+	float farFieldSize;
+
 } elbeemSimulationSettings;
 
 
@@ -122,8 +126,12 @@ extern "C"  {
 // reset elbeemSimulationSettings struct with defaults
 void elbeemResetSettings(struct elbeemSimulationSettings*);
  
-// start fluidsim init
+// start fluidsim init (returns !=0 upon failure)
 int elbeemInit(struct elbeemSimulationSettings*);
+// get failure message during simulation or init
+// if an error occured (the string is copied into buffer,
+// max. length = 256 chars )
+void elbeemGetErrorString(char *buffer);
 
 // reset elbeemMesh struct with zeroes
 void elbeemResetMesh(struct elbeemMesh*);
@@ -135,17 +143,36 @@ int elbeemAddMesh(struct elbeemMesh*);
 int elbeemSimulate(void);
 
 
-// helper function - simplify animation channels
+// helper functions 
+
+// simplify animation channels
 // returns if the channel and its size changed
 int elbeemSimplifyChannelFloat(float *channel, int *size);
 int elbeemSimplifyChannelVec3(float *channel, int *size);
+
+// helper functions implemented in utilities.cpp
+
+/* set elbeem debug output level (0=off to 10=full on) */
+void elbeemSetDebugLevel(int level);
+/* elbeem debug output function, prints if debug level >0 */
+void elbeemDebugOut(char *msg);
+
+/* estimate how much memory a given setup will require */
+double elbeemEstimateMemreq(int res,
+    float sx, float sy, float sz,
+    int refine, char *retstr);
+
+
 
 #ifdef __cplusplus
 }
 #endif // __cplusplus
 
+
+
 /******************************************************************************/
-// internal defines, do not use for setting up simulation
+// internal defines, do not use for initializing elbeemMesh
+// structs, for these use OB_xxx defines above
 
 /*! fluid geometry init types */
 #define FGI_FLAGSTART   16

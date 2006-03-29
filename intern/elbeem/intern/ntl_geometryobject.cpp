@@ -157,9 +157,9 @@ void ntlGeometryObject::initialize(ntlRenderGlobals *glob)
 
 /*! notify object that dump is in progress (e.g. for particles) */
 // default action - do nothing...
-void ntlGeometryObject::notifyOfDump(int frameNr,char *frameNrStr,string outfilename) {
+void ntlGeometryObject::notifyOfDump(int dumtp, int frameNr,char *frameNrStr,string outfilename, double simtime) {
   bool debugOut=false;
-	if(debugOut) debMsgStd("ntlGeometryObject::notifyOfDump",DM_MSG,"obj:"<<this->getName()<<" frame:"<<frameNrStr<<","<<frameNr<<" to "<<outfilename, 10); // DEBUG
+	if(debugOut) debMsgStd("ntlGeometryObject::notifyOfDump",DM_MSG," dt:"<<dumtp<<" obj:"<<this->getName()<<" frame:"<<frameNrStr<<","<<frameNr<<",t"<<simtime<<" to "<<outfilename, 10); // DEBUG
 }
 
 /*****************************************************************************/

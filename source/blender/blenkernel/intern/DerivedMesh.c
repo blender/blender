@@ -2392,7 +2392,7 @@ void readVelgz(char *filename, Object *srcob)
 		 	vverts[i].co[j] = 0.; 
 		} 
 	} 
-	if(srcob->fluidsimSettings->typeFlags&OB_FSDOMAIN_NOVECGEN) return;
+	if(srcob->fluidsimSettings->domainNovecgen>0) return;
 
 	if(len<7) { 
 		//printf("readVelgz Eror: invalid filename '%s'\n",filename); // DEBUG
@@ -2516,6 +2516,18 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 		mesh = readBobjgz(targetFile, srcob->fluidsimSettings->orgMesh, bbSize,bbSize );
 	}
 	if(!mesh) {
+		// switch, abort background rendering when fluidsim mesh is missing
+		const char *strEnvName2 = "BLENDER_ELBEEMBOBJABORT"; // from blendercall.cpp
+		if(G.background==1) {
+			if(getenv(strEnvName2)) {
+				int elevel = atoi(getenv(strEnvName2));
+				if(elevel>0) {
+					printf("Env. var %s set, fluid sim mesh not found, aborting render...\n",strEnvName2);
+					exit(1);
+				}
+			}
+		}
+		
 		// display org. object upon failure
 		srcob->data = srcob->fluidsimSettings->orgMesh;
 		return;

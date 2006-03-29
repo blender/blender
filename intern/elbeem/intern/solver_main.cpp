@@ -108,7 +108,7 @@ void LbmFsgrSolver::stepMain()
 		int avgcls = (int)(mAvgNumUsedCells/(LONGINT)this->mStepCnt);
   	debMsgStd("LbmFsgrSolver::step", DM_MSG, this->mName<<" cnt:"<<this->mStepCnt<<" t:"<<mSimulationTime<<
 		//debMsgDirect( 
-			"mlsups(curr:"<<this->mMLSUPS<<
+			" mlsups(curr:"<<this->mMLSUPS<<
 			" avg:"<<(mAvgMLSUPS/mAvgMLSUPSCnt)<<"), "<< sepStr<<
 			" totcls:"<<(this->mNumUsedCells)<< sepStr<<
 			" avgcls:"<< avgcls<< sepStr<<
@@ -122,9 +122,6 @@ void LbmFsgrSolver::stepMain()
 			" probs:"<<mNumProblems<< sepStr<<
 			" simt:"<<mSimulationTime<< sepStr<<
 			" for '"<<this->mName<<"' " , 10);
-
-		debMsgDirect(std::endl);
-		debMsgDirect(this->mStepCnt<<": dccd="<< mCurrentMass<<"/"<<mCurrentVolume<<"(fix="<<this->mFixMass<<",ini="<<mInitialMass<<") ");
 		debMsgDirect(std::endl);
 
 		// nicer output
@@ -208,6 +205,9 @@ void LbmFsgrSolver::stepMain()
 	if((mUseTestdata)&&(this->mInitDone)) { handleTestdata(); }
 #endif
 
+	// advance positions with current grid
+	advanceParticles();
+
 	// one of the last things to do - adapt timestep
 	// was in fineAdvance before... 
 	if(mTimeAdap) {
@@ -220,6 +220,13 @@ void LbmFsgrSolver::stepMain()
 	if( (!finite(mMxvx)) || (!finite(mMxvy)) || (!finite(mMxvz)) ) { CAUSE_PANIC; }
 	if( (!finite(mCurrentMass)) || (!finite(mCurrentVolume)) ) { CAUSE_PANIC; }
 #endif // WIN32
+
+	// output total step time
+	timeend = getTime();
+	debMsgStd("LbmFsgrSolver::stepMain",DM_MSG,"step:"<<this->mStepCnt
+			<<": dccd="<< mCurrentMass<<"/"<<mCurrentVolume<<"(fix="<<this->mFixMass<<",ini="<<mInitialMass<<"), "
+			<<" totst:"<<getTimeString(timeend-timestart), 3);
+
  //#endif // ELBEEM_PLUGIN!=1
 }
 
@@ -283,11 +290,12 @@ LbmFsgrSolver::mainLoop(int lev)
 	int      calcCellsFilled = this->mNumFilledCells;
 	int      calcCellsEmptied = this->mNumEmptiedCells;
 	int      calcNumUsedCells = this->mNumUsedCells;
+	const int cutMin  = 1;
+	const int cutConst = mCutoff+1;
 
 #	if LBM_INCLUDE_TESTSOLVERS==1
-	if((mUseTestdata)&&(mpTest->mDebugvalue1>0.0)) { 
-		// 3d region off... quit
-		this->mpIso->setIsolevel(-100.0); return; }
+	// 3d region off... quit
+	if((mUseTestdata)&&(mpTest->mDebugvalue1>0.0)) { return; }
 #endif // ELBEEM_PLUGIN!=1
 	//printLbmCell(lev, 6,6,16, mLevel[lev].setCurr ); // DEBUG
 	
@@ -814,13 +822,18 @@ LbmFsgrSolver::mainLoop(int lev)
 		// for inflow no pargen test
 		// NOBUBBB!
 		if((this->mInitDone) //&&(mUseTestdata) 
-				&& (!((oldFlag|newFlag)&CFNoNbEmpty)) 
+				//&& (!((oldFlag|newFlag)&CFNoNbEmpty)) 
 				&& (!((oldFlag|newFlag)&CFNoDelete)) 
 				&& (this->mPartGenProb>0.0)) {
+			bool doAdd = true;
 			bool bndOk=true;
-			if( (i<1+mCutoff)||(i>this->mSizex-1-mCutoff)||
-					(j<1+mCutoff)||(j>this->mSizey-1-mCutoff)||
-					(k<1+mCutoff)||(k>this->mSizez-1-mCutoff) ) { bndOk=false; }
+			//if( (i<1+mCutoff)||(i>this->mSizex-1-mCutoff)||
+					//(j<1+mCutoff)||(j>this->mSizey-1-mCutoff)||
+					//(k<1+mCutoff)||(k>this->mSizez-1-mCutoff) ) { bndOk=false; }
+			if( (i<cutMin)||(i>this->mSizex-cutMin)||
+					(j<cutMin)||(j>this->mSizey-cutMin)||
+					(k<cutMin)||(k>this->mSizez-cutMin) ) { bndOk=false; }
+			if(!bndOk) doAdd=false;
 			
 			LbmFloat realWorldFac = (mLevel[lev].simCellSize / mLevel[lev].timestep);
 			LbmFloat rux = (ux * realWorldFac);
@@ -828,12 +841,19 @@ LbmFsgrSolver::mainLoop(int lev)
 			LbmFloat ruz = (uz * realWorldFac);
 			LbmFloat rl = norm(ntlVec3Gfx(rux,ruy,ruz));
 			// WHMOD
-			const LbmFloat val2fac = 1.0; //? TODO N test? /(this->mPartGenProb); // FIXME remove factor!
-			bool doAdd = true;
 
 			LbmFloat prob = (rand()/(RAND_MAX+1.0));
 			LbmFloat basethresh = this->mPartGenProb*lcsmqo*rl;
-			if( (prob< (basethresh*rl)) && (lcsmqo>0.0095) && (rl>2.5) ) {
+
+			// reduce probability in outer region
+			if( (i<cutConst)||(i>this->mSizex-cutConst) ){ prob *= 0.5; }
+			if( (j<cutConst)||(j>this->mSizey-cutConst) ){ prob *= 0.5; }
+			if( (k<cutConst)||(k>this->mSizez-cutConst) ){ prob *= 0.5; }
+
+//#define RWVEL_THRESH 1.0
+#define RWVEL_THRESH 1.5
+#define RWVEL_WINDTHRESH (RWVEL_THRESH*0.5)
+			if( (prob< (basethresh*rl)) && (lcsmqo>0.0095) && (rl>RWVEL_THRESH) ) {
 				// add
 			} else {
 				doAdd = false; // dont...
@@ -851,12 +871,12 @@ LbmFsgrSolver::mainLoop(int lev)
 
 			// "wind" disturbance
 			// use realworld relative velocity here instead?
-			if( 
-					((rl>1.0) && (lcsmqo<P_LCSMQO)) // normal checks
-					||(k>this->mSizez-SLOWDOWNREGION) ) {
+			if( (doAdd) && (
+					((rl>RWVEL_WINDTHRESH) && (lcsmqo<P_LCSMQO)) // normal checks
+					||(k>this->mSizez-SLOWDOWNREGION)   )) {
 				LbmFloat nuz = uz;
 				LbmFloat jdf; // = 0.05 * (rand()/(RAND_MAX+1.0));
-				if(rl>1.0) jdf *= (rl-1.0);
+				if(rl>RWVEL_WINDTHRESH) jdf *= (rl-RWVEL_WINDTHRESH);
 				if(k>this->mSizez-SLOWDOWNREGION) {
 					// special case
 					LbmFloat zfac = (LbmFloat)( k-(this->mSizez-SLOWDOWNREGION) );
@@ -881,7 +901,6 @@ LbmFsgrSolver::mainLoop(int lev)
 			if(usqr<0.0001) doAdd=false;   // TODO check!?
 			// if outside, and 20% above sea level, delete, TODO really check level?
 			//if((!bndOk)&&((LbmFloat)k>pTest->mFluidHeight*1.5)) { doAdd=true; } // FORCEDISSOLVE
-			//? if(!bndOk) doAdd=false;
 			//if(this->mStepCnt>700) errMsg("DFJITT"," at "<<PRINT_IJK<<"rwl:"<<rl<<"  usqr:"<<usqr <<" qo:"<<lcsmqo<<" add="<<doAdd );
 
 			if( (doAdd)  ) { // ADD DROP
@@ -911,15 +930,14 @@ LbmFsgrSolver::mainLoop(int lev)
 				LbmFloat srcj = j+0.5+jpy; // TEST? + (pv[1]*1.41);
 				LbmFloat srck = k+0.5+jpz; // TEST? + (pv[2]*1.41);
 				int type=0;
-				//if((s%3)!=2) {
-
-					type=PART_DROP;
-					// drop
-					srci += (pv[0]*1.41);
-					srcj += (pv[1]*1.41);
-					srck += (pv[2]*1.41);
-					if(!(RFLAG(lev, (int)(srci),(int)(srcj),(int)(srck),SRCS(lev)) &CFEmpty)) continue; // only add in good direction
-				//} else { type=PART_FLOAT; }
+				//if((s%3)!=2) {} else { type=PART_FLOAT; }
+				//type = PART_DROP;
+				type = PART_INTER;
+				// drop
+				/*srci += (pv[0]*1.41);
+				srcj += (pv[1]*1.41);
+				srck += (pv[2]*1.41);
+				if(!(RFLAG(lev, (int)(srci),(int)(srcj),(int)(srck),SRCS(lev)) &CFEmpty)) continue; // only add in good direction */
 
 				pv *= len;
 				LbmFloat size = 1.0+ 9.0* (rand()/(RAND_MAX+1.0));
@@ -929,18 +947,20 @@ LbmFsgrSolver::mainLoop(int lev)
 				//? mpParticles->getLast()->advanceVel(); // advance a bit outwards
 				mpParticles->getLast()->setStatus(PART_IN);
 				mpParticles->getLast()->setType(type);
-				//mpParticles->getLast()->setType(PART_INTER);
 				//if((s%3)==2) mpParticles->getLast()->setType(PART_FLOAT);
 				mpParticles->getLast()->setSize(size);
 				//errMsg("NEWPART"," at "<<PRINT_IJK<<"   u="<<PRINT_VEC(ux,uy,uz) <<" RWu="<<PRINT_VEC(rux,ruy,ruz)<<" add"<<doAdd<<" pvel="<<pv );
 				//errMsg("NEWPART"," at "<<PRINT_IJK<<"   u="<<norm(LbmVec(ux,uy,uz)) <<" RWu="<<norm(LbmVec(rux,ruy,ruz))<<" add"<<doAdd<<" pvel="<<norm(pv) );
 				//if(!bndOk){ mass -= val2fac*size*0.02; } // FORCEDISSOLVE
-				mass -= val2fac*size*0.0015; // NTEST!
+				//const LbmFloat val2fac = 1.0; //? TODO N test? /(this->mPartGenProb); // FIXME remove factor!
+				//mass -= val2fac*size*0.0015; // NTEST!
 				//mass -= val2fac*size*0.001; // NTEST!
+				mass -= size*0.0020; // NTEST!
 #if LBMDIM==2
 				mpParticles->getLast()->setVel(pv[0],pv[1],0.0);
 				mpParticles->getLast()->setPos(ntlVec3Gfx(srci,srcj,0.5));
 #endif // LBMDIM==2
+    		//errMsg("PIT","NEW pit"<<mpParticles->getLast()->getId()<<" pos:"<< mpParticles->getLast()->getPos()<<" status:"<<convertFlags2String(mpParticles->getLast()->getFlags())<<" vel:"<< mpParticles->getLast()->getVel()  );
 				} // multiple parts
 			} // doAdd
 		} // */
@@ -2487,17 +2507,19 @@ void LbmFsgrSolver::reinitFlags( int workSet ) {
 
 	/* remove empty interface cells that are not allowed to be removed anyway
 	 * this is important, otherwise the dreaded cell-type-flickering can occur! */
-  for( vector<LbmPoint>::iterator iter=mListEmpty.begin();
-       iter != mListEmpty.end(); iter++ ) {
-    int i=iter->x, j=iter->y, k=iter->z;
+  //for( vector<LbmPoint>::iterator iter=mListEmpty.begin(); iter != mListEmpty.end(); iter++ ) {
+  //int i=iter->x, j=iter->y, k=iter->z;
+	//iter = mListEmpty.erase(iter); iter--; // and continue with next...
+  for(int n=0; n<(int)mListEmpty.size(); n++) {
+    int i=mListEmpty[n].x, j=mListEmpty[n].y, k=mListEmpty[n].z;
 		if((RFLAG(workLev,i,j,k, workSet)&(CFInter|CFNoDelete)) == (CFInter|CFNoDelete)) {
-			// remove entry
-			if(debugFlagreinit) errMsg("EMPT REMOVED!!!", PRINT_IJK<<" mss"<<QCELL(workLev, i,j,k, workSet, dMass) <<" rho"<< QCELL(workLev, i,j,k, workSet, 0) ); // DEBUG SYMM
-			iter = mListEmpty.erase(iter); 
-			iter--; // and continue with next...
-
 			// treat as "new inter"
 			addToNewInterList(i,j,k);
+			// remove entry
+			if(debugFlagreinit) errMsg("EMPT REMOVED!!!", PRINT_IJK<<" mss"<<QCELL(workLev, i,j,k, workSet, dMass) <<" rho"<< QCELL(workLev, i,j,k, workSet, 0) ); // DEBUG SYMM
+			if(n<(int)mListEmpty.size()-1) mListEmpty[n] = mListEmpty[mListEmpty.size()-1]; 
+			mListEmpty.pop_back();
+			n--; 
 		}
 	} 
 

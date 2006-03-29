@@ -1578,6 +1578,11 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	return mcache;
 }
 
+/* for fluidsim win32 debug messages */
+#if defined(WIN32) && (!(defined snprintf))
+#define snprintf _snprintf
+#endif
+
 /* main particle building function 
    one day particles should become dynamic (realtime) with the current method as a 'bake' (ton) */
 void build_particle_system(Object *ob)
@@ -1599,7 +1604,7 @@ void build_particle_system(Object *ob)
 	float *volengths= NULL, *folengths= NULL;
 	int deform=0, a, totpart, paf_sta, paf_end;
 	int waitcursor_set= 0, totvert, totface, curface, curvert;
-	int readMask =0, activeParts;
+	int readMask, activeParts, fileParts;
 	
 	/* return conditions */
 	if(ob->type!=OB_MESH) return;
@@ -1617,6 +1622,7 @@ void build_particle_system(Object *ob)
 		char *suffix  = "fluidsurface_particles_#";
 		char *suffix2 = ".gz";
 		char filename[256];
+		char debugStrBuffer[256];
 		int  curFrame = G.scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
 		int  j, numFileParts;
 		gzFile gzf;
@@ -1635,8 +1641,7 @@ void build_particle_system(Object *ob)
 
 		gzf = gzopen(filename, "rb");
 		if (!gzf) {
-			//char debugStrBuffer[256];
-			//define win32... snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s'\n", filename);
+			snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
 			//elbeemDebugOut(debugStrBuffer);
 			paf->totpart = 1;
 			return;
@@ -1648,28 +1653,24 @@ void build_particle_system(Object *ob)
 		paf->totpart= totpart;
 		paf->totkey= 1;
 		/* initialize particles */
-		new_particle(paf);// ?
-		ftime = 0.0;
-		dtime= 0.0f;
+		new_particle(paf); 
+		ftime = 0.0; // unused...
 
 		// set up reading mask
-		//for(j=1; j<=4; j++ ){ if(ob->fluidsimSettings->guiDisplayMode&j) readMask |= (1<<j); }
-		readMask = ob->fluidsimSettings->guiDisplayMode;
+		readMask = ob->fluidsimSettings->typeFlags;
 		activeParts=0;
-		// FIXME only allocate needed ones?
+		fileParts=0;
 		
-		//fprintf(stderr,"FSPARTICLE debug set %s , tot%d mask=%d \n", filename, totpart, readMask	);
-		for(a=0; a<totpart; a++, ftime+=dtime) {
+		for(a=0; a<totpart; a++) {
 			int ptype=0;
 			short shsize=0;
 			float convertSize=0.0;
 			gzread(gzf, &ptype, sizeof( ptype )); 
-			//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d t=%d , mask=%d  , active%d\n", filename, a, ptype, readMask, activeParts	);
 			if(ptype&readMask) {
 				activeParts++;
 				pa= new_particle(paf);
 				pa->time= ftime;
-				pa->lifetime= ftime + G.scene->r.efra +1.0;
+				pa->lifetime= ftime + 10000.; // add large number to make sure they are displayed, G.scene->r.efra +1.0;
 				pa->co[0] = 0.0;
 				pa->co[1] = 
 				pa->co[2] = 1.0*(float)a / (float)totpart;
@@ -1692,18 +1693,20 @@ void build_particle_system(Object *ob)
 					gzread(gzf, &wrf, sizeof( wrf )); 
 					vel[j] = wrf;
 				}
+				//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
 			} else {
 				// skip...
 				for(j=0; j<2*3+1; j++) {
 					float wrf; gzread(gzf, &wrf, sizeof( wrf )); 
 				}
 			}
-			//fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+			fileParts++;
 		}
 		gzclose( gzf );
 
 		totpart = paf->totpart = activeParts;
-		//fprintf(stderr,"PARTOBH debug  %s %d \n", ob->id.name, totpart); // DEBUG
+		snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", paf->totpart,activeParts,fileParts,readMask);
+		elbeemDebugOut(debugStrBuffer);
 		return;
 	}
 	

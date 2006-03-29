@@ -396,8 +396,6 @@ LbmFsgrSolver::LbmFsgrSolver() :
 		mGaussw[n] = mGaussw[n]/totGaussw;
 	}
 
-	mpParticles = NULL;
-	//addDrop(false,0,0);
 }
 
 /*****************************************************************************/
@@ -486,6 +484,8 @@ void LbmFsgrSolver::parseAttrList()
 #else // LBM_INCLUDE_TESTSOLVERS!=1
 	// off by default
 	mUseTestdata = 0;
+	if(mFarFieldSize>=2.) mUseTestdata=1; // equiv. to test solver check
+	if(mUseTestdata) { mMaxRefine=0; } // force fsgr off
 #endif // LBM_INCLUDE_TESTSOLVERS!=1
 }
 
@@ -573,7 +573,14 @@ void LbmFsgrSolver::initLevelOmegas()
  *****************************************************************************/
 bool LbmFsgrSolver::initializeSolver()
 {
-//  debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init start... (Layout:"<<ALSTRING<<") "<<this->mInitDone<<" "<<((int)this),1);
+  debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init start... "<<this->mInitDone<<" "<<(void*)this,1);
+
+	// init cppf stage
+	if(mCppfStage>0) {
+		this->mSizex *= mCppfStage;
+		this->mSizey *= mCppfStage;
+		this->mSizez *= mCppfStage;
+	}
 
 	// size inits to force cubic cells and mult4 level dimensions
 	// and make sure we dont allocate too much...
@@ -584,9 +591,6 @@ bool LbmFsgrSolver::initializeSolver()
 	double sizeReduction = 1.0;
 	double memEstFromFunc = -1.0;
 	string memreqStr("");	
-#if LBM_INCLUDE_TESTSOLVERS==1
-	if(mUseTestdata) { mMaxRefine=0; } // force fsgr off
-#endif
 	while(!memOk) {
 		initGridSizes( this->mSizex, this->mSizey, this->mSizez,
 				this->mvGeoStart, this->mvGeoEnd, mMaxRefine, PARALLEL);
@@ -750,16 +754,25 @@ bool LbmFsgrSolver::initializeSolver()
 	mMaxTimestep = this->mpParam->getTimestep();
 
 	// init isosurf
+	this->mpIso->setIsolevel( this->mIsoValue );
 #if LBM_INCLUDE_TESTSOLVERS==1
 	if(mUseTestdata) {
 		mpTest->setMaterialName( this->mpIso->getMaterialName() );
 		delete this->mpIso;
 		this->mpIso = mpTest;
+		if(mpTest->mDebugvalue1>0.0) { // 3d off
+			mpTest->setIsolevel(-100.0);
+		} else {
+			mpTest->setIsolevel( this->mIsoValue );
+		}
 	}
 #endif // ELBEEM_PLUGIN!=1
-	this->mpIso->setIsolevel( this->mIsoValue );
 	// approximate feature size with mesh resolution
 	float featureSize = mLevel[ mMaxRefine ].nodeSize*0.5;
+	// smooth vars defined in solver_interface, set by simulation object
+	// reset for invalid values...
+	if((this->mSmoothSurface<0.)||(this->mSmoothSurface>50.)) this->mSmoothSurface = 1.;
+	if((this->mSmoothNormals<0.)||(this->mSmoothNormals>50.)) this->mSmoothNormals = 1.;
 	this->mpIso->setSmoothSurface( this->mSmoothSurface * featureSize );
 	this->mpIso->setSmoothNormals( this->mSmoothNormals * featureSize );
 
@@ -984,6 +997,12 @@ bool LbmFsgrSolver::initializeSolver()
 			errMsg("LbmFsgrSolver::init","No preview in 2D allowed!");
 			this->mOutputSurfacePreview = 0; }
 	}
+#if LBM_USE_GUI==1
+	if(this->mOutputSurfacePreview) {
+		errMsg("LbmFsgrSolver::init","No preview in GUI mode... mOutputSurfacePreview=0");
+		this->mOutputSurfacePreview = 0; }
+#endif // LBM_USE_GUI==1
+	
 	if(this->mOutputSurfacePreview) {
 
 		// same as normal one, but use reduced size
@@ -1017,13 +1036,17 @@ bool LbmFsgrSolver::initializeSolver()
 
 
 	// now really done...
-  debugOut("LbmFsgrSolver::initialize : Init done ...",10);
+  debugOut("LbmFsgrSolver::initialize : SurfaceGen: SmsOrg("<<this->mSmoothSurface<<","<<this->mSmoothNormals<<","<<featureSize<<"), Iso("<<this->mpIso->getSmoothSurface()<<","<<this->mpIso->getSmoothNormals()<<") ",10);
+  debugOut("LbmFsgrSolver::initialize : Init done ... ",10);
 	this->mInitDone = 1;
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 	initTestdata();
 #endif // ELBEEM_PLUGIN!=1
+	// not inited? dont use...
+	if(mCutoff<0) mCutoff=0;
 
+	initParticles();
 	return true;
 }
 

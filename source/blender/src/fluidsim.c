@@ -84,6 +84,7 @@
 #include "BSE_headerbuttons.h"
 
 #include "mydevice.h"
+#include "blendef.h"
 #include "SDL.h"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
@@ -109,9 +110,6 @@ void initElbeemMesh(struct Object *ob, int *numVertices, float **vertices, int *
 extern int start_progress_bar(void);
 extern void end_progress_bar(void);
 extern int progress_bar(float done, char *busy_info);
-// global solver state
-extern int gElbeemState;
-extern char gElbeemErrorString[];
 
 double fluidsimViscosityPreset[6] = {
 	-1.0,	/* unused */
@@ -197,9 +195,11 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fluidsimGetAxisAlignedBB(srcob->data, srcob->obmat, fss->bbStart, fss->bbSize, &fss->meshBB);
 	
 	fss->typeFlags = 0;
+	fss->domainNovecgen = 0;
 	fss->partSlipValue = 0.0;
 
 	fss->generateParticles = 0.0;
+	fss->surfaceSmoothing = 1.0;
 	fss->particleInfSize = 0.0;
 	fss->particleInfAlpha = 0.0;
 
@@ -443,6 +443,24 @@ void fluidsimBake(struct Object *ob)
 	if(noFrames<=0) {
 		pupmenu("Fluidsim Bake Error%t|No frames to export - check your animation range settings. Aborted%x0");
 		return;
+	}
+
+	/* no object pointer, find in selected ones.. */
+	if(!ob) {
+		Base *base;
+		for(base=G.scene->base.first; base; base= base->next) {
+			if ( ((base)->flag & SELECT) 
+					// ignore layer setting for now? && ((base)->lay & G.vd->lay) 
+				 ) {
+				if((!ob)&&(base->object->fluidsimFlag & OB_FLUIDSIM_ENABLE)&&(base->object->type==OB_MESH)) {
+					if(base->object->fluidsimSettings->type == OB_FLUIDSIM_DOMAIN) {
+						ob = base->object;
+					}
+				}
+			}
+		}
+		// no domains found?
+		if(!ob) return;
 	}
 
 	/* check if there's another domain... */
@@ -764,6 +782,8 @@ void fluidsimBake(struct Object *ob)
 		fsset.gstar = domainSettings->gstar;
 		fsset.maxRefine = domainSettings->maxRefine; // check <-> gridlevels
 		fsset.generateParticles = domainSettings->generateParticles; 
+		fsset.surfaceSmoothing = domainSettings->surfaceSmoothing; 
+		fsset.farFieldSize = domainSettings->farFieldSize; 
 		strcpy( fsset.outputPath, targetFile);
 
 		// domain channels
@@ -778,8 +798,7 @@ void fluidsimBake(struct Object *ob)
 		else if((domainSettings->typeFlags&OB_FSBND_PARTSLIP)) fsset.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
 		else if((domainSettings->typeFlags&OB_FSBND_FREESLIP)) fsset.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
 		fsset.obstaclePartslip = domainSettings->partSlipValue;
-		fsset.generateVertexVectors = (int)(!(domainSettings->typeFlags&OB_FSDOMAIN_NOVECGEN));
-		// fprintf(stderr," VVV %d %d \n",fsset.generateVertexVectors , (domainSettings->typeFlags&OB_FSDOMAIN_NOVECGEN)); // DEBUG
+		fsset.generateVertexVectors = (domainSettings->domainNovecgen==0);
 
 		// init blender trafo matrix
  		// fprintf(stderr,"elbeemInit - mpTrafo:\n");
@@ -950,8 +969,8 @@ void fluidsimBake(struct Object *ob)
 			"  size = " "%d"            /* gridSize*/ ";  \n" 
 			"  surfacepreview = " "%d"  /* previewSize*/ "; \n" 
 			"  dump_velocities = " "%d"  /* vector dump */ "; \n" 
-			"  smoothsurface = 1.0;  \n"
-			"  smoothnormals = 1.0;  \n"
+			"  smoothsurface = %f;  \n"  /* smoothing */
+			"  smoothnormals = %f;  \n"
 			"  geoinitid = 1;  \n"  "\n" 
 			"  isovalue =  0.4900; \n" 
 			"  isoweightmethod = 1; \n"  "\n" ;
@@ -959,7 +978,7 @@ void fluidsimBake(struct Object *ob)
 			fprintf(fileCfg, simString,
 					(double)domainSettings->realsize, (double)domainSettings->animStart, (double)domainSettings->gstar,
 					gridlevels, (int)domainSettings->resolutionxyz, (int)domainSettings->previewresxyz ,
-					(int)(!(domainSettings->typeFlags&OB_FSDOMAIN_NOVECGEN))
+		      (int)(domainSettings->domainNovecgen==0), domainSettings->surfaceSmoothing
 					);
 
 			if((domainSettings->typeFlags&OB_FSBND_NOSLIP)) bi=0;
@@ -972,6 +991,7 @@ void fluidsimBake(struct Object *ob)
 			fluidsimPrintChannel(fileCfg, channelDomainViscosity,allchannelSize,"p_viscosity",CHANNEL_FLOAT);
 			fluidsimPrintChannel(fileCfg, channelDomainGravity,  allchannelSize,"p_gravity",CHANNEL_VEC);
 
+			fprintf(fileCfg, "  partgenprob = %f; \n", domainSettings->generateParticles); // debug test
 			fprintf(fileCfg,  "\n} \n" );
 		}
 
@@ -1199,17 +1219,16 @@ void fluidsimBake(struct Object *ob)
 
 	if(!simAborted) {
 		char fsmessage[512];
+		char elbeemerr[256];
 		strcpy(fsmessage,"Fluidsim Bake Error: ");
 		// check if some error occurred
 		if(globalBakeState==-2) {
 			strcat(fsmessage,"Failed to initialize [Msg: ");
-#ifndef WIN32
-			// msvc seems to have problem accessing the gElbeemErrorString var
-			strcat(fsmessage,"[Msg: ");
-			strcat(fsmessage,gElbeemErrorString);
-			strcat(fsmessage,"]");
-#endif // WIN32
-			strcat(fsmessage,"|OK%x0");
+
+			elbeemGetErrorString(elbeemerr);
+			strcat(fsmessage,elbeemerr);
+
+			strcat(fsmessage,"] |OK%x0");
 			pupmenu(fsmessage);
 		} // init error
 	}

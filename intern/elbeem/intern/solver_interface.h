@@ -260,7 +260,7 @@ class LbmSolverInterface
 		virtual bool initializeSolver() =0;
 		
 		/*! notify object that dump is in progress (e.g. for field dump) */
-		virtual void notifySolverOfDump(int frameNr,char *frameNrStr,string outfilename) = 0;
+		virtual void notifySolverOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) = 0;
 
 		/*! parse a boundary flag string */
 		CellFlagType readBoundaryFlagInt(string name, int defaultValue, string source,string target, bool needed);
@@ -273,8 +273,8 @@ class LbmSolverInterface
 		virtual void prepareVisualization() { /* by default off */ };
 
 		/*! particle handling */
-		virtual int initParticles(ParticleTracer *partt) = 0;
-		virtual void advanceParticles(ParticleTracer *partt ) = 0;
+		virtual int initParticles() = 0;
+		virtual void advanceParticles() = 0;
 		/*! get surface object (NULL if no surface) */
 		ntlGeometryObject* getSurfaceGeoObj() { return mpIso; }
 
@@ -329,6 +329,9 @@ class LbmSolverInterface
 		inline void setParametrizer(Parametrizer *set) { mpParam = set; }
 		/*! get parametrizer pointer */
 		inline Parametrizer *getParametrizer() { return mpParam; }
+		/*! get/set particle pointer */
+		inline void setParticleTracer(ParticleTracer *set) { mpParticles = set; }
+		inline ParticleTracer *getParticleTracer() { return mpParticles; }
 
 		/*! set density gradient init from e.g. init test cases */
 		inline void setInitDensityGradient(bool set) { mInitDensityGradient = set; }
@@ -379,6 +382,12 @@ class LbmSolverInterface
 		//! set/get dump velocities flag
 		inline void setDomainPartSlip(LbmFloat set)	{ mDomainPartSlipValue = set; }
 		inline LbmFloat getDomainPartSlip() const	{ return mDomainPartSlipValue; }
+		//! set/get far field size
+		inline void setFarFieldSize(LbmFloat set)	{ mFarFieldSize = set; }
+		inline LbmFloat getFarFieldSize() const	{ return mFarFieldSize; }
+		//! set/get cp stage
+		inline void setCpStage(int set)	{ mCppfStage = set; }
+		inline int getCpStage() const	{ return mCppfStage; }
 
 		// cell iterator interface
 		
@@ -474,6 +483,8 @@ class LbmSolverInterface
 
 		/*! get parameters from this parametrize in finishInit */
 		Parametrizer *mpParam;
+		//! store particle tracer
+		ParticleTracer *mpParticles;
 
 		/*! number of particles lost so far */
 		int mNumParticlesLost;
@@ -553,6 +564,10 @@ class LbmSolverInterface
 		//! test vars
 		// strength of applied force
 		LbmFloat mTForceStrength;
+		// 
+		LbmFloat mFarFieldSize;
+		// 
+		int mCppfStage;
 
 };
 

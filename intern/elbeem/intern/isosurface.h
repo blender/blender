@@ -95,6 +95,8 @@ class IsoSurface :
 
 		//! cutoff border area
 		int mCutoff;
+		//! cutoff heigh values
+		int *mCutArray;
 		
 		//! trimesh vars
 		vector<int> flags;
@@ -160,6 +162,8 @@ class IsoSurface :
 		}
 		//! set cut off border
 		inline void setCutoff(int set) { mCutoff = set; };
+		//! set cut off border
+		inline void setCutArray(int *set) { mCutArray = set; };
 
 		//! OpenGL viz "interface"
 		unsigned int getIsoVertexCount() {

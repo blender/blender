@@ -91,7 +91,7 @@ class SimulationObject :
 		virtual int postGeoConstrInit(ntlRenderGlobals *glob) { return initializeLbmSimulation(glob); };
 		virtual int initializeShader() { /* ... */ return true; };
 		/*! notify object that dump is in progress (e.g. for field dump) */
-		virtual void notifyShaderOfDump(int frameNr,char *frameNrStr,string outfilename);
+		virtual void notifyShaderOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename);
 		/*! simluation interface: draw the simulation with OpenGL */
 		virtual void draw( void ) {};
 		virtual vector<ntlGeometryObject *>::iterator getObjectsBegin();

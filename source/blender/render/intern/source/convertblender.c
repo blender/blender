@@ -927,7 +927,7 @@ static void render_particle_system(Render *re, Object *ob, PartEff *paf)
 		if(useFluidsimParticles) {
 			// rescale to 1.0-10.0, then div by 5 afterwards, gives values in range 0.2-2.0
 			double fspsize = ((double)pa->rt / 1000.0f) / 5.0 ; 
-			haloScale = (float)pow(fspsize, (double)ob->fluidsimSettings->particleInfSize);
+			haloScale = 1.0/(float)pow(fspsize, (double)ob->fluidsimSettings->particleInfSize);
 			ma->alpha = iniAlpha / (float)pow( fspsize, (double)ob->fluidsimSettings->particleInfAlpha);
 			if(ma->alpha>1.) ma->alpha = 1.;
 		}

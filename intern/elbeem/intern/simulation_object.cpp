@@ -156,6 +156,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpLbm->setGeoEnd( mGeoEnd );
 	mpLbm->setRenderGlobals( mpGlob );
 	mpLbm->setName( getName() + "_lbm" );
+	mpLbm->setParticleTracer( mpParts );
 	if(mpElbeemSettings) {
 		// set further settings from API struct init
 		mpLbm->setSmoothing(1.0 * mpElbeemSettings->surfaceSmoothing, 1.0 * mpElbeemSettings->surfaceSmoothing);
@@ -173,6 +174,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpLbm->setDomainBound(dinitType);
 		mpLbm->setDomainPartSlip(mpElbeemSettings->obstaclePartslip);
 		mpLbm->setDumpVelocities(mpElbeemSettings->generateVertexVectors);
+		mpLbm->setFarFieldSize(mpElbeemSettings->farFieldSize);
 		debMsgStd("SimulationObject::initialize",DM_MSG,"Added domain bound: "<<dinitType<<" ps="<<mpElbeemSettings->obstaclePartslip<<" vv"<<mpElbeemSettings->generateVertexVectors<<","<<mpLbm->getDumpVelocities(), 9 );
 
 		debMsgStd("SimulationObject::initialize",DM_MSG,"Set ElbeemSettings values "<<mpLbm->getGenerateParticles(),10);
@@ -236,7 +238,6 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpParts->setCastShadows( false );
 	mpParts->setReceiveShadows( false );
 	mpParts->searchMaterial( glob->getMaterials() );
-	mpLbm->initParticles(mpParts);
 
 	// this has to be inited here - before, the values might be unknown
 	ntlGeometryObject *surf = mpLbm->getSurfaceGeoObj();
@@ -288,9 +289,6 @@ void SimulationObject::step( void )
 	if(mpParam->getCurrentAniFrameTime()>0.0) {
 		// dont advance for stopped time
 		mpLbm->step();
-
-		mpParts->savePreviousPositions();
-		mpLbm->advanceParticles(mpParts);
 		mTime += mpParam->getTimestep();
 	}
 	if(mpLbm->getPanic()) mPanic = true;
@@ -399,8 +397,8 @@ void SimulationObject::setMouseClick()
 }
 
 /*! notify object that dump is in progress (e.g. for field dump) */
-void SimulationObject::notifyShaderOfDump(int frameNr,char *frameNrStr,string outfilename) {
+void SimulationObject::notifyShaderOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) {
 	if(!mpLbm) return;
-	mpLbm->notifySolverOfDump(frameNr,frameNrStr,outfilename);
+	mpLbm->notifySolverOfDump(dumptype, frameNr,frameNrStr,outfilename);
 }
 

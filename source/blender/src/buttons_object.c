@@ -2454,25 +2454,31 @@ static void object_panel_fluidsim(Object *ob)
 					uiDefBut(block, LABEL, 0, "Domain boundary type settings:",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
 					yline -= lineHeight;
 					uiBlockBeginAlign(block);
-					uiDefButI(block, ROW, REDRAWBUTSOBJECT ,"Noslip",   00, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects.");
-					uiDefButI(block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!");
-					uiDefButI(block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!");
+					uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Noslip",    0, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects.");
+					uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!");
+					uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!");
 					uiBlockEndAlign(block);
 					yline -= lineHeight;
+
+					uiDefBut(block, LABEL, 0, "PartSlipValue:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
 					if(fss->typeFlags&OB_FSBND_PARTSLIP) {
-						uiDefBut(block, LABEL, 0, "PartSlipValue:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
 						uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->partSlipValue, 0.0, 0.1, 10,0, ".");
-						yline -= lineHeight;
-					}
+					} else { uiDefBut(block, LABEL, 0, "-",	150,yline,150,objHeight, NULL, 0.0, 0, 0, 0, ""); }
+					yline -= lineHeight;
+					// copied from obstacle...
 
 					uiDefBut(block, LABEL, 0, "Generate Particles:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
 					uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->generateParticles, 0.0, 10.0, 10,0, "Amount of particles to generate (0=off, 1=normal, >1=more).");
 					yline -= lineHeight;
 
-					uiDefBut(block, LABEL, 0, "Generate&Use SpeedVecs:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				  uiDefButBitI(block, TOG, OB_FSDOMAIN_NOVECGEN, REDRAWBUTSOBJECT, "Disable",     200, yline,100,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Default is to generate and use fluidsim vertex speed vectors, this option switches calculation off during bake, and disables loading.");
+					uiDefBut(block, LABEL, 0, "Surface Smoothing:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSmoothing, 0.0, 5.0, 10,0, "Amount of surface smoothing (0=off, 1=normal, >1=stronger smoothing).");
 					yline -= lineHeight;
-					// copied from obstacle...
+
+					// use new variable...
+					uiDefBut(block, LABEL, 0, "Generate&Use SpeedVecs:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
+				  uiDefButBitC(block, TOG, 1, REDRAWBUTSOBJECT, "Disable",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Default is to generate and use fluidsim vertex speed vectors, this option switches calculation off during bake, and disables loading.");
+					yline -= lineHeight;
 				}
 			}
 			else if(
@@ -2492,7 +2498,7 @@ static void object_panel_fluidsim(Object *ob)
 
 				if(fss->type == OB_FLUIDSIM_INFLOW) {
 					uiDefBut(block, LABEL, 0, "Local Inflow Coords",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				  uiDefButBitI(block, TOG, OB_FSINFLOW_LOCALCOORD, REDRAWBUTSOBJECT, "Enable",     200, yline,100,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Use local coordinates for inflow (e.g. for rotating objects).");
+				  uiDefButBitS(block, TOG, OB_FSINFLOW_LOCALCOORD, REDRAWBUTSOBJECT, "Enable",     200, yline,100,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Use local coordinates for inflow (e.g. for rotating objects).");
 				  yline -= lineHeight;
 				}
 			}
@@ -2504,31 +2510,26 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= lineHeight + 5;
 
 				uiBlockBeginAlign(block);
-				uiDefButI(block, ROW, REDRAWBUTSOBJECT ,"Noslip",   00, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects.");
-				uiDefButI(block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!");
-				uiDefButI(block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!");
+				uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Noslip",   00, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects.");
+				uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!");
+				uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!");
 				uiBlockEndAlign(block);
 				yline -= lineHeight;
 
+				uiDefBut(block, LABEL, 0, "PartSlipValue:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
 				if(fss->typeFlags&OB_FSBND_PARTSLIP) {
-					uiDefBut(block, LABEL, 0, "PartSlipValue:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
 					uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->partSlipValue, 0.0, 0.1, 10,0, ".");
-					yline -= lineHeight;
-				}
+				} else { uiDefBut(block, LABEL, 0, "-",	150,yline,150,objHeight, NULL, 0.0, 0, 0, 0, ""); }
+				yline -= lineHeight;
 
 				yline -= lineHeight;
 			}
 			else if(fss->type == OB_FLUIDSIM_PARTICLE) {
 
-				if(fss->guiDisplayMode==0) fss->guiDisplayMode=2; // default drops
-				uiDefBut(block, LABEL,   0, "Part.-Type:",		 0,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
-				// TODO make toggle buttons
-				//uiDefButS(block, MENU, B_FLUIDSIM_FORCEREDRAW, "Gui%t|Bubble %x2|Drop %x4|Newparts %x8|Float %x16",	
-						 //100,yline,200,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "Which type of particles to display.");
-				//uiDefButS(block, MENU, B_DIFF, "Render%t|Geometry %x1|Preview %x2|Final %x3",	
-						//195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
-				uiDefBut(block, LABEL,   0, "Drops",	100,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				fss->guiDisplayMode = 4; // fix to drops for now
+				if(fss->typeFlags==0) fss->typeFlags=4; // default drops
+				fss->typeFlags = 4; // fix to drops for now
+				uiDefBut(block, LABEL,   0, "Part.-Type:",    0,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL,   0, "Drops",        100,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
 				yline -= lineHeight;
 
 				uiDefBut(block, LABEL, 0, "Size Influence:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");

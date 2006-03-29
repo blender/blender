@@ -2531,6 +2531,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		ob->fluidsimSettings->orgMesh = NULL; //ob->data;
 		ob->fluidsimSettings->meshSurface = NULL;
 		ob->fluidsimSettings->meshBB = NULL;
+		ob->fluidsimSettings->meshSurfNormals = NULL;
 	}
 	
 	link_list(fd, &ob->prop);

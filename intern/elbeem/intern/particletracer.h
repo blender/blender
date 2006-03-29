@@ -16,11 +16,18 @@ template<class Scalar> class ntlMatrix4x4;
 #define PART_DROP   (1<< 2)
 #define PART_INTER  (1<< 3)
 #define PART_FLOAT  (1<< 4)
+#define PART_TRACER (1<< 5)
 
 // particle state
 #define PART_IN     (1<< 8)
 #define PART_OUT    (1<< 9)
 #define PART_INACTIVE (1<<10)
+
+// defines for particle movement
+#define MOVE_FLOATS 1
+#define FLOAT_JITTER 0.03
+
+extern int ParticleObjectIdCnt;
 
 //! A single particle
 class ParticleObject
@@ -28,12 +35,12 @@ class ParticleObject
 	public:
   	//! Standard constructor
   	inline ParticleObject(ntlVec3Gfx mp) :
-			mPos(mp),mVel(0.0), mSize(1.0), mStatus(0),mLifeTime(0) { };
+			mPos(mp),mVel(0.0), mSize(1.0), mStatus(0),mLifeTime(0) { mId = ParticleObjectIdCnt++; };
   	//! Copy constructor
   	inline ParticleObject(const ParticleObject &a) :
 			mPos(a.mPos), mVel(a.mVel), mSize(a.mSize), 
 			mStatus(a.mStatus),
-			mLifeTime(a.mLifeTime) { };
+			mLifeTime(a.mLifeTime) { mId = ParticleObjectIdCnt++; };
   	//! Destructor
   	inline ~ParticleObject() { /* empty */ };
 
@@ -81,8 +88,12 @@ class ParticleObject
 		//! set type (lower byte)
 		inline void setLifeTime(int set) { mLifeTime = set; }
 		
+		inline int getId() const { return mId; }
+
 	protected:
 
+		/*! only for debugging */
+		int mId;
 		/*! the particle position */
 		ntlVec3Gfx mPos;
 		/*! the particle velocity */
@@ -109,9 +120,6 @@ class ParticleTracer :
 		//! add a particle at this position
 		void addParticle(float x, float y, float z);
 
-		//! save particle positions before adding a new timestep
-		void savePreviousPositions();
-
 		//! draw the particle array
 		void draw();
 		
@@ -125,6 +133,9 @@ class ParticleTracer :
 		
 		//! get the number of particles
 		inline int  getNumParticles() 				{ return mParts.size(); }
+		//! set/get the number of particles
+		inline void setNumInitialParticles(int set) { mNumInitialParts=set; }
+		inline int  getNumInitialParticles() 	      { return mNumInitialParts; }
 
 		//! iterate over all newest particles (for advancing positions)
 		inline vector<ParticleObject>::iterator getParticlesBegin() { return mParts.begin(); }
@@ -149,7 +160,13 @@ class ParticleTracer :
 		
 		/*! set/get dump flag */
 		inline void setDumpParts(bool set) { mDumpParts = set; }
-		inline bool getDumpParts() { return mDumpParts; }
+		inline bool getDumpParts()         { return mDumpParts; }
+		/*! set/get dump flag */
+		inline void setDumpText(bool set) { mDumpText = set; }
+		inline bool getDumpText()         { return mDumpText; }
+		/*! set/get dump text file */
+		inline void setDumpTextFile(std::string set) { mDumpTextFile = set; }
+		inline std::string getDumpTextFile()         { return mDumpTextFile; }
 		
 		//! set the particle scaling factor
 		inline void setPartScale(float set) { mPartScale = set; }
@@ -161,7 +178,7 @@ class ParticleTracer :
 				vector<ntlVec3Gfx> *vertices, 
 				vector<ntlVec3Gfx> *normals, int objectId );
 
-		virtual void notifyOfDump(int frameNr,char *frameNrStr,string outfilename);
+		virtual void notifyOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename,double simtime);
 		// free deleted particles
 		void cleanup();
 
@@ -194,8 +211,14 @@ class ParticleTracer :
 
 		/*! dump particles (or certain types of) to disk? */
 		int mDumpParts;
+		/*! dump particles (or certain types of) to disk? */
+		int mDumpText;
+		/*! text dump output file */
+		std::string mDumpTextFile;
 		/*! show only a certain type (debugging) */
 		int mShowOnly;
+		/*! no. of particles to init */
+		int mNumInitialParts;
 
 		//! transform matrix
 		ntlMatrix4x4<gfxReal> *mpTrafo;

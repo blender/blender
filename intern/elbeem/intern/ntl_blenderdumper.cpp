@@ -91,7 +91,7 @@ int ntlBlenderDumper::renderScene( void )
   vector<ntlTriangle> Triangles;
   vector<ntlVec3Gfx>  Vertices;
   vector<ntlVec3Gfx>  VertNormals;
-	errMsg("ntlBlenderDumper","mpTrafo : "<<(*mpTrafo) );
+	//errMsg("ntlBlenderDumper","mpTrafo : "<<(*mpTrafo) );
 
 	/* init geometry array, first all standard objects */
 	int idCnt = 0;          // give IDs to objects
@@ -107,13 +107,13 @@ int ntlBlenderDumper::renderScene( void )
 		if(tid & GEOCLASSTID_SHADER) {
 			ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter); //dynamic_cast<ntlGeometryShader*>(*iter);
 			hideObjs.push_back( (*iter)->getName() );
-			geoshad->notifyShaderOfDump(glob->getAniCount(),nrStr,glob->getOutFilename());
+			geoshad->notifyShaderOfDump(DUMP_FULLGEOMETRY, glob->getAniCount(),nrStr,glob->getOutFilename());
 			for (vector<ntlGeometryObject*>::iterator siter = geoshad->getObjectsBegin();
 					siter != geoshad->getObjectsEnd();
 					siter++) {
 				if(debugOut) debMsgStd("ntlBlenderDumper::BuildScene",DM_MSG,"added shader geometry "<<(*siter)->getName(), 8);
 
-				(*siter)->notifyOfDump(glob->getAniCount(),nrStr,glob->getOutFilename());
+				(*siter)->notifyOfDump(DUMP_FULLGEOMETRY, glob->getAniCount(),nrStr,glob->getOutFilename(), this->mSimulationTime);
 				bool doDump = false;
 				bool isPreview = false;
 				// only dump final&preview surface meshes

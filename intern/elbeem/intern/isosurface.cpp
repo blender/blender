@@ -37,7 +37,7 @@ IsoSurface::IsoSurface(double iso) :
   mInitDone(false),
 	mSmoothSurface(0.0), mSmoothNormals(0.0),
 	mAcrossEdge(), mAdjacentFaces(),
-	mCutoff(-1), // off by default
+	mCutoff(-1), mCutArray(NULL),// off by default
 	mFlagCnt(1),
 	mSCrad1(0.), mSCrad2(0.), mSCcenter(0.)
 {
@@ -152,6 +152,7 @@ void IsoSurface::triangulate( void )
 	const int cubieOffsetZ[8] = {
 		0,0,0,0,  1,1,1,1 };
 
+	const int coAdd=2;
   // let the cubes march 
 	pz = mStart[2]-gsz*0.5;
 	for(int k=1;k<(mSizez-2);k++) {
@@ -259,12 +260,17 @@ void IsoSurface::triangulate( void )
 
 				}
 
-				const int coAdd=2;
-				if(i<coAdd+mCutoff) continue;
-				if(j<coAdd+mCutoff) continue;
-				if((mCutoff>0) && (k<coAdd)) continue;
-				if(i>mSizex-2-coAdd-mCutoff) continue;
-				if(j>mSizey-2-coAdd-mCutoff) continue;
+				if( (i<coAdd+mCutoff) ||
+				    (j<coAdd+mCutoff) ||
+				    ((mCutoff>0) && (k<coAdd)) ||// bottom layer
+				    (i>mSizex-2-coAdd-mCutoff) ||
+				    (j>mSizey-2-coAdd-mCutoff) ) {
+					if(mCutArray) {
+						if(k < mCutArray[j*this->mSizex+i]) continue;
+					} else {
+						continue;
+					}
+				}
 
 				// Create the triangles... 
 				for(int e=0; mcTriTable[cubeIndex][e]!=-1; e+=3) {

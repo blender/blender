@@ -1216,7 +1216,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_CTRLKEY) {
 					if(okee("Bake all selected")) {
 						extern void softbody_bake(Object *ob);
+						extern void fluidsimBake(Object *ob);
 						softbody_bake(NULL);
+						// also bake first domain of selected objects...
+						fluidsimBake(NULL);
 					}
 				}
 				else if(G.qual==0)

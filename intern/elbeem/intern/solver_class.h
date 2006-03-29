@@ -211,7 +211,7 @@ class LbmFsgrSolver :
 		//! finish the init with config file values (allocate arrays...) 
 		virtual bool initializeSolver(); 
 		//! notify object that dump is in progress (e.g. for field dump) 
-		virtual void notifySolverOfDump(int frameNr,char *frameNrStr,string outfilename);
+		virtual void notifySolverOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename);
 
 #if LBM_USE_GUI==1
 		//! show simulation info (implement LbmSolverInterface pure virtual func)
@@ -267,9 +267,9 @@ class LbmFsgrSolver :
 		/* simulation object interface, just calls stepMain */
 		virtual void step();
 		/*! init particle positions */
-		virtual int initParticles(ParticleTracer *partt);
+		virtual int initParticles();
 		/*! move all particles */
-		virtual void advanceParticles(ParticleTracer *partt );
+		virtual void advanceParticles();
 
 
 		/*! debug object display (used e.g. for preview surface) */
@@ -436,8 +436,6 @@ class LbmFsgrSolver :
 		int mForceTadapRefine;
 		//! border cutoff value
 		int mCutoff;
-		//! store particle tracer
-		ParticleTracer *mpParticles;
 
 		// strict debug interface
 #		if FSGR_STRICT_DEBUG==1
@@ -460,11 +458,10 @@ class LbmFsgrSolver :
 		void initTestdata();
 		void destroyTestdata();
 		void handleTestdata();
-		void exportTestdata();
 		void set3dHeight(int ,int );
 	public:
 		// needed from testdata
-		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat &retux, LbmFloat &retuy);
+		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat *retux, LbmFloat *retuy);
 #endif // LBM_INCLUDE_TESTSOLVERS==1
 
 	public: // former LbmModelLBGK  functions
@@ -700,9 +697,8 @@ class LbmFsgrSolver :
 #define _RFLAG_NB(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set) ]
 #define _RFLAG_NBINV(level,xx,yy,zz,set, dir) mLevel[level].mprsFlags[set][ LBMGI((level),(xx)+this->dfVecX[this->dfInv[dir]],(yy)+this->dfVecY[this->dfInv[dir]],(zz)+this->dfVecZ[this->dfInv[dir]],set) ]
 
-// array data layouts
-// standard array layout  -----------------------------------------------------------------------------------------------
-#define ALSTRING "Standard Array Layout"
+// array handling  -----------------------------------------------------------------------------------------------
+
 //#define _LBMQI(level, ii,ij,ik, is, lunused) ( ((is)*mLevel[level].lOffsz) + (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
 #define _LBMQI(level, ii,ij,ik, is, lunused) ( (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
 #define _QCELL(level,xx,yy,zz,set,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx),(yy),(zz),(set), l)*dTotalNum +(l)])
