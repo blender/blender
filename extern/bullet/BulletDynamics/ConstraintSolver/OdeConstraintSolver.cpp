@@ -54,7 +54,7 @@ class BU_Joint;
 //see below
 
 OdeConstraintSolver::OdeConstraintSolver():
-m_cfm(1e-5f),
+m_cfm(0.f),//1e-5f),
 m_erp(0.4f)
 {
 }

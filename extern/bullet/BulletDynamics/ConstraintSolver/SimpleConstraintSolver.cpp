@@ -46,28 +46,29 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 	//should traverse the contacts random order...
 	for (int i = 0;i<numiter;i++)
 	{
-		for (int j=0;j<numManifolds;j++)
+		int j;
+		for (j=0;j<numManifolds;j++)
 		{
 			int k=j;
-			if (i % 2)
-				k = numManifolds-1-j;
+			if (i&&1)
+				k=numManifolds-j-1;
 
 			Solve(manifoldPtr[k],info,i,debugDrawer);
+		}
+		for (j=0;j<numManifolds;j++)
+		{
+			int k = j;
+			if (i&&1)
+				k=numManifolds-j-1;
+			SolveFriction(manifoldPtr[k],info,i,debugDrawer);
 		}
 	}
 
 	//now solve the friction		
 	for (int i = 0;i<numiter;i++)
 	{
-		for (int j=0;j<numManifolds;j++)
-		{
-			int k = numManifolds-1-j;
-			if (i % 2)
-				k=j;
-			
-
-			SolveFriction(manifoldPtr[k],info,i,debugDrawer);
-		}
+		int j;
+	
 	}
 
 	return 0.f;
@@ -109,18 +110,42 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 				body1->getInvInertiaDiagLocal(),body1->getInvMass());
 
 			SimdScalar jacDiagAB = jac.getDiagonal();
+			
 			cp.m_jacDiagABInv = 1.f / jacDiagAB;
 
-			float relaxation = 0.9f;
+			//for friction
+			cp.m_prevAppliedImpulse = cp.m_appliedImpulse;
+
+			float relaxation = info.m_damping;
 			cp.m_appliedImpulse *= relaxation;
-
-			//apply previous frames impulse on both bodies
-			body0->applyImpulse(cp.m_normalWorldOnB*(cp.m_appliedImpulse), rel_pos1);
-			body1->applyImpulse(cp.m_normalWorldOnB*(-cp.m_appliedImpulse), rel_pos2);
-
+			
 			//re-calculate friction direction every frame, todo: check if this is really needed
 			SimdPlaneSpace1(cp.m_normalWorldOnB,cp.m_frictionWorldTangential0,cp.m_frictionWorldTangential1);
 
+			cp.m_accumulatedTangentImpulse0 = 0.f;
+			cp.m_accumulatedTangentImpulse1 = 0.f;
+
+			float denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential0);
+			float denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential0);
+			float denom = relaxation/(denom0+denom1);
+			cp.m_jacDiagABInvTangent0 = denom;
+
+
+			denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential1);
+			denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential1);
+			denom = relaxation/(denom0+denom1);
+			cp.m_jacDiagABInvTangent1 = denom;
+
+			SimdVector3 totalImpulse = 
+			//	cp.m_frictionWorldTangential0*cp.m_accumulatedTangentImpulse0+
+			//	cp.m_frictionWorldTangential1*cp.m_accumulatedTangentImpulse1+
+				cp.m_normalWorldOnB*cp.m_appliedImpulse;
+
+			//apply previous frames impulse on both bodies
+			body0->applyImpulse(totalImpulse, rel_pos1);
+			body1->applyImpulse(-totalImpulse, rel_pos2);
+
+			
 		}
 	}
 
@@ -148,10 +173,11 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 			{
 
 
-				float actualDist =  cp.GetDistance();
-				#define MAXPENETRATIONPERFRAME -0.2f
-				float dist = actualDist< MAXPENETRATIONPERFRAME? MAXPENETRATIONPERFRAME:actualDist;
+				//float actualDist =  cp.GetDistance();
+				//#define MAXPENETRATIONPERFRAME -0.2f
+				//float dist = actualDist< MAXPENETRATIONPERFRAME? MAXPENETRATIONPERFRAME:actualDist;
 
+				float dist =  cp.GetDistance();
 
 				float impulse = resolveSingleCollision(
 					*body0,*body1,

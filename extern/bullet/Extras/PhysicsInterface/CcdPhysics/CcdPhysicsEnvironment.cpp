@@ -1,18 +1,3 @@
-/*
-Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
-
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-*/
-
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"
 
@@ -21,6 +6,8 @@ subject to the following restrictions:
 #include "Dynamics/RigidBody.h"
 #include "BroadphaseCollision/BroadphaseInterface.h"
 #include "BroadphaseCollision/SimpleBroadphase.h"
+#include "BroadphaseCollision/AxisSweep3.h"
+
 #include "CollisionDispatch/CollisionWorld.h"
 
 #include "CollisionShapes/ConvexShape.h"
@@ -62,9 +49,6 @@ RaycastVehicle::VehicleTuning	gTuning;
 
 #include "ConstraintSolver/ConstraintSolver.h"
 #include "ConstraintSolver/Point2PointConstraint.h"
-#include "ConstraintSolver/HingeConstraint.h"
-
-
 //#include "BroadphaseCollision/QueryDispatcher.h"
 //#include "BroadphaseCollision/QueryBox.h"
 //todo: change this to allow dynamic registration of types!
@@ -133,6 +117,7 @@ public:
 		{
 			WheelInfo& info = m_vehicle->GetWheelInfo(i);
 			PHY_IMotionState* motionState = (PHY_IMotionState*)info.m_clientInfo ;
+			m_vehicle->UpdateWheelTransform(i);
 			SimdTransform trans = m_vehicle->GetWheelTransformWS(i);
 			SimdQuaternion orn = trans.getRotation();
 			const SimdVector3& pos = trans.getOrigin();
@@ -308,10 +293,10 @@ static void DrawAabb(IDebugDraw* debugDrawer,const SimdVector3& from,const SimdV
 
 
 CcdPhysicsEnvironment::CcdPhysicsEnvironment(CollisionDispatcher* dispatcher,BroadphaseInterface* broadphase)
-:m_numIterations(5),
+:m_scalingPropagated(false),
+m_numIterations(10),
 m_ccdMode(0),
-m_solverType(-1),
-m_scalingPropagated(false)
+m_solverType(-1)
 {
 
 	if (!dispatcher)
@@ -319,9 +304,18 @@ m_scalingPropagated(false)
 
 	
 	if(!broadphase)
-		broadphase = new SimpleBroadphase();
+	{
+
+		//todo: calculate/let user specify this world sizes
+		SimdVector3 worldMin(-10000,-10000,-10000);
+		SimdVector3 worldMax(10000,10000,10000);
+
+		broadphase = new AxisSweep3(worldMin,worldMax);
+
+		//broadphase = new SimpleBroadphase();
+	}
 		
-	setSolverType(1);
+	setSolverType(0);
 	
 	m_collisionWorld = new CollisionWorld(dispatcher,broadphase);
 	
@@ -342,7 +336,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 	assert(body->m_broadphaseHandle);
 
-	/*BroadphaseInterface* scene =  */GetBroadphase();
+	BroadphaseInterface* scene =  GetBroadphase();
 
 	
 	CollisionShape* shapeinterface = ctrl->GetCollisionShape();
@@ -398,12 +392,12 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	//also remove constraint
 	
 	{
-		std::vector<TypedConstraint*>::iterator i;
+		std::vector<Point2PointConstraint*>::iterator i;
 		
-		for (i=m_constraints.begin();
-		!(i==m_constraints.end()); i++)
+		for (i=m_p2pConstraints.begin();
+		!(i==m_p2pConstraints.end()); i++)
 		{
-			TypedConstraint* p2p = (*i);
+			Point2PointConstraint* p2p = (*i);
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
@@ -415,12 +409,12 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	}
 	
 	{
-		std::vector<TypedConstraint*>::iterator i;
+		std::vector<Point2PointConstraint*>::iterator i;
 		
-		for (i=m_constraints.begin();
-		!(i==m_constraints.end()); i++)
+		for (i=m_p2pConstraints.begin();
+		!(i==m_p2pConstraints.end()); i++)
 		{
-			TypedConstraint* p2p = (*i);
+			Point2PointConstraint* p2p = (*i);
 			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
 				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
@@ -594,12 +588,12 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		
 		
 		int i;
-		int numPoint2Point = m_constraints.size();
+		int numPoint2Point = m_p2pConstraints.size();
 		
 		//point to point constraints
 		for (i=0;i< numPoint2Point ; i++ )
 		{
-			TypedConstraint* p2p = m_constraints[i];
+			Point2PointConstraint* p2p = m_p2pConstraints[i];
 			
 			p2p->BuildJacobian();
 			p2p->SolveConstraint( timeStep );
@@ -686,6 +680,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 							{
 								break;
 							}
+						case DISABLE_DEACTIVATION:
+							{
+								color.setValue(1,0,1);
+							};
 							
 						};
 
@@ -769,7 +767,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 						body->SetActivationState( WANTS_DEACTIVATION );
 				} else
 				{
-					body->SetActivationState( ACTIVE_TAG );
+					if (body->GetActivationState() != DISABLE_DEACTIVATION)
+						body->SetActivationState( ACTIVE_TAG );
 				}
 
 				if (useIslands)
@@ -803,12 +802,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		for (int i=0;i<numVehicles;i++)
 		{
 			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
-			
-			for (int j=0;j<wrapperVehicle->GetVehicle()->GetNumWheels();j++)
-			{
-				wrapperVehicle->GetVehicle()->UpdateWheelTransform(j);
-			}
-			
+		
 			wrapperVehicle->SyncWheels();
 		}
 #endif //NEW_BULLET_VEHICLE_SUPPORT
@@ -1033,13 +1027,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	ASSERT(rb0);
 	
 	SimdVector3 pivotInA(pivotX,pivotY,pivotZ);
-	SimdVector3 axisInA(axisX,axisY,axisZ);
-	
 	SimdVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
-	SimdVector3 axisInB = rb1 ? rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis()*(axisInA)) : axisInA;
 	
-	
-
 	switch (type)
 	{
 	case PHY_POINT2POINT_CONSTRAINT:
@@ -1057,33 +1046,11 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA);
 			}
 			
-			m_constraints.push_back(p2p);
+			m_p2pConstraints.push_back(p2p);
 			p2p->SetUserConstraintId(gConstraintUid++);
 			p2p->SetUserConstraintType(type);
 			//64 bit systems can't cast pointer to int. could use size_t instead.
 			return p2p->GetUserConstraintId();
-			
-			break;
-		}
-	case PHY_LINEHINGE_CONSTRAINT:
-		{
-		HingeConstraint* hinge= 0;
-			
-			if (rb1)
-			{
-				hinge = new HingeConstraint(*rb0,
-					*rb1,pivotInA,pivotInB,axisInA,axisInB);
-			} else
-			{
-				hinge = new HingeConstraint(*rb0,
-					pivotInA,axisInA);
-			}
-			
-			m_constraints.push_back(hinge);
-			hinge->SetUserConstraintId(gConstraintUid++);
-			hinge->SetUserConstraintType(type);
-			//64 bit systems can't cast pointer to int. could use size_t instead.
-			return hinge->GetUserConstraintId();
 			
 			break;
 		}
@@ -1118,16 +1085,19 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 {
-	std::vector<TypedConstraint*>::iterator i;
+	std::vector<Point2PointConstraint*>::iterator i;
 		
-		for (i=m_constraints.begin();
-		!(i==m_constraints.end()); i++)
+		//std::find(m_p2pConstraints.begin(), m_p2pConstraints.end(), 
+		//		(Point2PointConstraint *)p2p);
+	
+		for (i=m_p2pConstraints.begin();
+		!(i==m_p2pConstraints.end()); i++)
 		{
-			TypedConstraint* p2p = (*i);
+			Point2PointConstraint* p2p = (*i);
 			if (p2p->GetUserConstraintId() == constraintId)
 			{
-				std::swap(*i, m_constraints.back());
-				m_constraints.pop_back();
+				std::swap(*i, m_p2pConstraints.back());
+				m_p2pConstraints.pop_back();
 				break;
 			}
 		}
@@ -1350,3 +1320,4 @@ PHY_IVehicle*	CcdPhysicsEnvironment::getVehicleConstraint(int constraintId)
 }
 
 #endif //NEW_BULLET_VEHICLE_SUPPORT
+

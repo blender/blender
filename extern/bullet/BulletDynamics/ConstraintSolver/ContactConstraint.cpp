@@ -146,10 +146,14 @@ float resolveSingleCollision(
 
 	float Kcor = Kerp *Kfps;
 
+	float allowedPenetration = 0.001f;
 
-	SimdScalar positionalError = Kcor *-distance;
+	float clipDist = distance + allowedPenetration;
+	float dist = (clipDist > 0.f) ? 0.f : clipDist;
+
+	SimdScalar positionalError = Kcor *-dist*damping;
 	//jacDiagABInv;
-	SimdScalar velocityError = -(1.0f + restitution) * damping * rel_vel;
+	SimdScalar velocityError = -(1.0f + restitution) * rel_vel;
 
 	SimdScalar penetrationImpulse = positionalError * contactPoint.m_jacDiagABInv;
 
@@ -161,6 +165,7 @@ float resolveSingleCollision(
 	float oldNormalImpulse = contactPoint.m_appliedImpulse;
 	float sum = oldNormalImpulse + normalImpulse;
 	contactPoint.m_appliedImpulse = 0.f > sum ? 0.f: sum;
+
 	normalImpulse = contactPoint.m_appliedImpulse - oldNormalImpulse;
 
 	body1.applyImpulse(normal*(normalImpulse), rel_pos1);
@@ -184,14 +189,14 @@ float resolveSingleFriction(
 
 	SimdVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
 	SimdVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
+	float combinedFriction = calculateCombinedFriction(body1,body2);
 	
-	//friction
+	SimdScalar limit = contactPoint.m_appliedImpulse * combinedFriction;
 	if (contactPoint.m_appliedImpulse>0.f)
+	//friction
 	{
 		//apply friction in the 2 tangential directions
 		
-		float combinedFriction = calculateCombinedFriction(body1,body2);
-		SimdScalar limit = contactPoint.m_appliedImpulse * combinedFriction;
 		SimdScalar relaxation = solverInfo.m_damping;
 		{
 			// 1st tangent
@@ -200,12 +205,9 @@ float resolveSingleFriction(
 			SimdVector3 vel = vel1 - vel2;
 			
 			SimdScalar vrel = contactPoint.m_frictionWorldTangential0.dot(vel);
-			float denom0 = body1.ComputeImpulseDenominator(pos1,contactPoint.m_frictionWorldTangential0);
-			float denom1 = body2.ComputeImpulseDenominator(pos2,contactPoint.m_frictionWorldTangential0);
-			float denom = relaxation/(denom0+denom1);
 
 			// calculate j that moves us to zero relative velocity
-			SimdScalar j = -vrel * denom;//Scalar(contactPoint.pt.m_impulseScales[1]);
+			SimdScalar j = -vrel * contactPoint.m_jacDiagABInvTangent1;
 			float total = contactPoint.m_accumulatedTangentImpulse0 + j;
 			GEN_set_min(total, limit);
 			GEN_set_max(total, -limit);
@@ -223,12 +225,9 @@ float resolveSingleFriction(
 			SimdVector3 vel = vel1 - vel2;
 
 			SimdScalar vrel = contactPoint.m_frictionWorldTangential1.dot(vel);
-			float denom0 = body1.ComputeImpulseDenominator(pos1,contactPoint.m_frictionWorldTangential1);
-			float denom1 = body2.ComputeImpulseDenominator(pos2,contactPoint.m_frictionWorldTangential1);
-			float denom = relaxation/(denom0+denom1);
-
+			
 			// calculate j that moves us to zero relative velocity
-			SimdScalar j = -vrel * denom;//Scalar(contactPoint.pt.m_impulseScales[1]);
+			SimdScalar j = -vrel * contactPoint.m_jacDiagABInvTangent1;
 			float total = contactPoint.m_accumulatedTangentImpulse1 + j;
 			GEN_set_min(total, limit);
 			GEN_set_max(total, -limit);

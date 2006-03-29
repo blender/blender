@@ -294,7 +294,7 @@ static void DrawAabb(IDebugDraw* debugDrawer,const SimdVector3& from,const SimdV
 
 CcdPhysicsEnvironment::CcdPhysicsEnvironment(CollisionDispatcher* dispatcher,BroadphaseInterface* broadphase)
 :m_scalingPropagated(false),
-m_numIterations(30),
+m_numIterations(10),
 m_ccdMode(0),
 m_solverType(-1)
 {

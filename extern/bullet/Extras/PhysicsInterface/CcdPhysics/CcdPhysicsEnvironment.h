@@ -1,18 +1,3 @@
-/*
-Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
-
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-*/
-
 #ifndef CCDPHYSICSENVIRONMENT
 #define CCDPHYSICSENVIRONMENT
 
@@ -22,15 +7,14 @@ class CcdPhysicsController;
 #include "SimdVector3.h"
 
 
-class PHY_IVehicle;
-class TypedConstraint;
+
+class Point2PointConstraint;
 class CollisionDispatcher;
 class Dispatcher;
 //#include "BroadphaseInterface.h"
 
 //switch on/off new vehicle support
-//vehicles not available yet, under development in Blender CVS branch
-//#define NEW_BULLET_VEHICLE_SUPPORT 1
+#define NEW_BULLET_VEHICLE_SUPPORT 1
 
 #include "ConstraintSolver/ContactSolverInfo.h"
 
@@ -160,7 +144,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		
 		std::vector<CcdPhysicsController*> m_controllers;
 
-		std::vector<TypedConstraint*> m_constraints;
+		std::vector<Point2PointConstraint*> m_p2pConstraints;
 
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 

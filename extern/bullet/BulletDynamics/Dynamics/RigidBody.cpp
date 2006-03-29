@@ -96,6 +96,37 @@ void RigidBody::applyForces(SimdScalar step)
 	
 	m_linearVelocity *= GEN_clamped((1.f - step * gLinearAirDamping * m_linearDamping), 0.0f, 1.0f);
 	m_angularVelocity *= GEN_clamped((1.f - step * m_angularDamping), 0.0f, 1.0f);
+
+//#define FORCE_VELOCITY_DAMPING 1
+#ifdef FORCE_VELOCITY_DAMPING
+	float speed = m_linearVelocity.length();
+	if (speed < m_linearDamping)
+	{
+		float dampVel = 0.005f;
+		if (speed > dampVel)
+		{
+			SimdVector3 dir = m_linearVelocity.normalized();
+			m_linearVelocity -=  dir * dampVel;
+		} else
+		{
+			m_linearVelocity.setValue(0.f,0.f,0.f);
+		}
+	}
+
+	float angSpeed = m_angularVelocity.length();
+	if (angSpeed < m_angularDamping)
+	{
+		float angDampVel = 0.005f;
+		if (angSpeed > angDampVel)
+		{
+			SimdVector3 dir = m_angularVelocity.normalized();
+			m_angularVelocity -=  dir * angDampVel;
+		} else
+		{
+			m_angularVelocity.setValue(0.f,0.f,0.f);
+		}
+	}
+#endif //FORCE_VELOCITY_DAMPING
 	
 }
 

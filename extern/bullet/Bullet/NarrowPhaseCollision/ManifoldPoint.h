@@ -37,6 +37,7 @@ class ManifoldPoint
 					m_normalWorldOnB( normal ), 
 					m_distance1( distance ),
 					m_appliedImpulse(0.f),
+					m_prevAppliedImpulse(0.f),
 					m_accumulatedTangentImpulse0(0.f),
 					m_accumulatedTangentImpulse1(0.f),
 					m_jacDiagABInv(0.f),
@@ -62,16 +63,21 @@ class ManifoldPoint
 			float	m_distance1;
 			/// total applied impulse during most recent frame
 			float	m_appliedImpulse;
+			float	m_prevAppliedImpulse;
 			float	m_accumulatedTangentImpulse0;
 			float	m_accumulatedTangentImpulse1;
 			
 			float	m_jacDiagABInv;
+			float	m_jacDiagABInvTangent0;
+			float	m_jacDiagABInvTangent1;
+
 
 			void	CopyPersistentInformation(const ManifoldPoint& otherPoint)
 			{
 				m_appliedImpulse = otherPoint.m_appliedImpulse;
-				m_accumulatedTangentImpulse0 = 0;//otherPoint.m_accumulatedTangentImpulse0;
-				m_accumulatedTangentImpulse1 = 0;//otherPoint.m_accumulatedTangentImpulse1;
+				m_accumulatedTangentImpulse0 = 0.f;//otherPoint.m_accumulatedTangentImpulse0;
+				m_accumulatedTangentImpulse1 = 0.f;//otherPoint.m_accumulatedTangentImpulse1;
+				m_prevAppliedImpulse = otherPoint.m_prevAppliedImpulse;
 				m_lifeTime = otherPoint.m_lifeTime;
 
 			}
