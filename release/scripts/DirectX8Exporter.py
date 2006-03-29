@@ -44,18 +44,21 @@ from Blender.BGL import *
 import math
 
 global mat_flip,index_list,space,bone_list,mat_dict
-global anim,flip_norm,swap_zy,flip_z,speed,ticks
+global anim,flip_norm,swap_zy,flip_z,speed,ticks,no_light,recalc_norm,Bl_norm
 bone_list =[]
 index_list = []
 mat_dict = {}
 space = 0;flip_z = 1;anim=0;swap_yz=0;flip_norm=0;speed=0;ticks= 25
-
+Bl_norm = 1;recalc_norm = 0;no_light = 0
 
 toggle_val = 0
 toggle1_val = 0
 toggle2_val = 0
 toggle3_val = 1
 toggle4_val = 0
+toggle5_val = 1
+toggle6_val = 0
+toggle7_val = 0
 anim_tick = Draw.Create(25)
 
 
@@ -78,8 +81,8 @@ def event(evt, val):
 			return
 
 def button_event(evt): 
-  	global toggle_val,toggle1_val,toggle2_val,toggle3_val,toggle4_val
-	global flip_z,swap_yz,flip_norm,anim,ticks,speed
+  	global toggle_val,toggle1_val,toggle2_val,toggle3_val,toggle4_val,toggle5_val,toggle6_val,toggle7_val
+	global flip_z,swap_yz,flip_norm,anim,ticks,speed,no_light,Bl_norm,recalc_norm
 	arg = __script__['arg']
   	if evt == 1:
 		toggle_val = 1 - toggle_val
@@ -101,6 +104,42 @@ def button_event(evt):
 		toggle4_val = 1 - toggle4_val
 		speed = toggle4_val
 		Draw.Redraw(1)
+	if evt == 10:
+		toggle5_val = 1 - toggle5_val
+		if toggle5_val==1:
+			toggle6_val = 0
+			toggle7_val = 0
+		else :
+			toggle6_val = 1
+			toggle7_val = 1
+		no_light = toggle7_val
+		recalc_norm = toggle6_val
+		Bl_norm = toggle5_val
+		Draw.Redraw(1)
+	if evt == 11:
+		toggle6_val = 1 - toggle6_val
+		if toggle6_val==1:
+			toggle5_val = 0
+			toggle7_val = 0
+		else :
+			toggle5_val = 1
+			toggle7_val = 1
+		no_light = toggle7_val
+		recalc_norm = toggle6_val
+		Bl_norm = toggle5_val
+		Draw.Redraw(1)
+	if evt == 12:
+		toggle7_val = 1 - toggle7_val
+		if toggle7_val==1:
+			toggle6_val = 0
+			toggle5_val = 0
+		else :
+			toggle6_val = 1
+			toggle5_val = 1
+		no_light = toggle7_val
+		recalc_norm = toggle6_val
+		Bl_norm = toggle5_val
+		Draw.Redraw(1)
 	if evt == 6:
 		ticks = anim_tick.val
 	if evt == 7:
@@ -115,7 +154,7 @@ def button_event(evt):
 	
 def draw():
 		global animsg,flipmsg,swapmsg,anim_tick
-		global flip_z,swap_yz,flip_norm,anim,ticks,speed
+		global flip_z,swap_yz,flip_norm,anim,ticks,speed,recalc_norm,Bl_norm,no_light
 		glClearColor(0.55,0.6,0.6,1)
 		glClear(BGL.GL_COLOR_BUFFER_BIT)
 		#external box
@@ -195,6 +234,18 @@ def draw():
 			spedmsg = ""
 		glRasterPos2i(100,215)
 		Draw.Text(spedmsg)
+		#------Blender Normals toggle----------------------------------------------------------------
+		Draw.Toggle("Bl.normals", 10, 20, 105, 75, 25, toggle5_val,"export normals as in Blender")
+		if toggle5_val :
+			Bl_norm = 1
+		#------Recalculute Normals toggle----------------------------------------------------------------
+		Draw.Toggle("recalc.no", 11, 120, 105, 75, 25, toggle6_val,"export recalculated normals")
+		if toggle6_val :
+			recalc_norm = 1
+		#------Recalculute Normals toggle----------------------------------------------------------------
+		Draw.Toggle("no smooth", 12, 220, 105, 75, 25, toggle7_val,"every vertex has the face normal,no smoothing")
+		if toggle7_val :
+			no_light = 1
 		#------Draw Button export----------------------------------------------------------------
 		exp_butt = Draw.Button("Export All",7,20, 155, 75, 30, "export all the scene objects")
 		sel_butt = Draw.Button("Export Sel",8,120, 155, 75, 30, "export the selected object")
@@ -312,11 +363,10 @@ class xExport:
 					self.writeChildObj(ch_ob)
 					self.closeBrackets()
 					self.file.write(" // End of the Object %s \n" % (ob.name))
-	##################################################################	
-	def SelectObjs(self):
-		global space,chld_obj,ch_list,flip_z,swap_yz,speed
-		print "exporting..."
-		self.writeHeader()
+					
+					
+	def writeRootFrame(self):
+		global flip_z,swap_yz,speed
 		if speed:
 			self.writeAnimTicks()
 		if flip_z:
@@ -326,8 +376,14 @@ class xExport:
 		if swap_yz :
 			mat_rot = RotationMatrix(-90, 4, 'x')
 			mat_flip = mat_rot * mat_flip
+		self.writeArmFrames(mat_flip, "RootFrame")		
 			
-		self.writeArmFrames(mat_flip, "RootFrame")
+	##################################################################	
+	def SelectObjs(self):
+		global space,chld_obj,ch_list,flip_z,swap_yz,speed
+		print "exporting..."
+		self.writeHeader()
+		self.writeRootFrame()
 		obj_list = self.analyzeScene()
 		space += 1
 		ch_list = []
@@ -394,6 +450,7 @@ class xExport:
 	def exportSelMesh(self):
 		print "exporting ..."
 		self.writeHeader()
+		self.writeRootFrame()
 		tex = []
 		obj = Object.GetSelected()[0]
 		mesh = obj.getData()
@@ -404,6 +461,7 @@ class xExport:
 			self.writeMeshNormals(obj, mesh)
 			self.writeMeshTextureCoords(obj, mesh)
 			self.file.write(" }\n")
+			self.file.write("}\n")
 			self.file.write("}\n")
 			ip_list = obj.getIpo()
 			if ip_list != None :
@@ -847,7 +905,8 @@ template SkinWeights {\n\
 	#MESH NORMALS
 	#***********************************************
 	def writeMeshNormals(self,name,mesh):
-		global flip_norm,flip_z
+		global flip_norm,flip_z,no_light,recalc_norm,Bl_norm
+		
 		self.file.write("  MeshNormals {\n")
 		#VERTICES NUMBER
 		numvert = 0
@@ -860,19 +919,14 @@ template SkinWeights {\n\
 		else :
 			fl = 1
 		#VERTICES NORMAL
-		counter = 0
-		for face in mesh.faces:
-			counter += 1  
-			for n in range(len(face.v)):
-				self.file.write("    %f; %f; %f;" % (
-									(round(face.v[n].no[0],6)*fl),(round(face.v[n].no[1],6)*fl),(round(face.v[n].no[2],6)*fl)))
-				if counter == numfaces :
-					if n == len(face.v)-1 :
-						self.file.write(";\n")
-					else :
-						self.file.write(",\n")
-				else :
-					self.file.write(",\n")
+		if Bl_norm:
+			self.writeBlenderNormals(mesh,fl)
+		if recalc_norm:
+			self.writeRecalcNormals(mesh,fl)	
+		if no_light:
+			self.writeNoSmothing(mesh,fl)
+						
+		
 		
 		if flip_z:
 			a3 = 0;b3 = 2;c3 = 1
@@ -902,7 +956,78 @@ template SkinWeights {\n\
 					self.file.write("4; %d, %d, %d, %d;,\n" % (counter + a4, counter + b4, counter + c4, counter + d4))
 					counter += 4
 		self.file.write("}  //End of MeshNormals\n")
-
+		
+	def writeBlenderNormals(self,mesh,fl):
+			numfaces=len(mesh.faces)
+			#VERTICES NORMAL
+			counter = 0
+			for face in mesh.faces:
+				counter += 1  
+				for n in range(len(face.v)):
+					self.file.write("    %f; %f; %f;" % (
+									(round(face.v[n].no[0],6)*fl),(round(face.v[n].no[1],6)*fl),(round(face.v[n].no[2],6)*fl)))
+					if counter == numfaces :
+						if n == len(face.v)-1 :
+							self.file.write(";\n")
+						else :
+							self.file.write(",\n")
+					else :
+						self.file.write(",\n")
+						
+	def writeRecalcNormals(self,mesh,fl):
+		numfaces=len(mesh.faces)
+		normal_list = {}
+		idx = 0
+		for vertex in mesh.verts:
+			v_norm = Vector([0, 0, 0])
+			normal_list[idx] = v_norm
+			idx += 1
+			for face in mesh.faces:
+				for verts in face.v:
+					if verts.index == vertex.index :
+							v_norm[0] += face.no[0]
+							v_norm[1] += face.no[1]
+							v_norm[2] += face.no[2]
+			
+			v_norm.normalize()
+						
+		counter = 0
+		for face in mesh.faces:
+				counter += 1 
+				n = 0 
+				for vert in face.v:
+					n += 1
+					norm = normal_list[vert.index]
+					
+					self.file.write("    %f; %f; %f;" % (
+									(round(norm[0],6)*fl),(round(norm[1],6)*fl),(round(norm[2],6)*fl)))		
+					if counter == numfaces :
+						if n == len(face.v) :
+							self.file.write(";\n")
+						else :
+							self.file.write(",\n")
+					else :
+						self.file.write(",\n")
+						
+	def writeNoSmothing(self,mesh,fl):
+		numfaces=len(mesh.faces)
+		counter = 0
+		for face in mesh.faces:
+				counter += 1 
+				n = 0 
+				for n in range(len(face.v)):
+					n += 1
+					self.file.write("    %f; %f; %f;" % (
+									(round(face.no[0],6)*fl),(round(face.no[1],6)*fl),(round(face.no[2],6)*fl)))
+					
+							
+					if counter == numfaces :
+						if n == len(face.v) :
+							self.file.write(";\n")
+						else :
+							self.file.write(",\n")
+					else :
+						self.file.write(",\n")
 	#***********************************************
 	#MESH TEXTURE COORDS
 	#***********************************************
