@@ -46,6 +46,13 @@
 #define YYLSP_NEEDED 0
 
 /* Substitute the variable and function names.  */
+
+#ifndef yy_parse
+#define yyparse yy_parse
+/* the parse function from bison */
+int yy_parse( void );
+#endif
+
 #define yylex   yy_lex
 #define yyerror yy_error
 #define yylval  yy_lval
@@ -293,9 +300,6 @@ void yy_error(const char *s);
 extern int yy_lex();
 extern int lineCount;
 extern FILE *yy_in;
-
-/* the parse function from bison */
-extern  int yy_parse( void );
 
 // local variables to access objects 
 #include "solver_interface.h"
