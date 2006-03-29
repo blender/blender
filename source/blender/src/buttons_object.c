@@ -134,6 +134,7 @@
 #include "BKE_DerivedMesh.h"
 
 #include "LBM_fluidsim.h"
+#include "elbeem.h"
 
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"

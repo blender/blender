@@ -64,13 +64,17 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
-#include "LBM_fluidsim.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
 #include "BKE_key.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+// headers for fluidsim bobj meshes
+#include <stdlib.h>
+#include "LBM_fluidsim.h"
+#include "elbeem.h"
 
 ///////////////////////////////////
 ///////////////////////////////////
