@@ -266,14 +266,10 @@ static int isffmpeg (char *filename) {
 			break;
 		}
 
-	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
-
-	if(videoStream==-1) {
-		avcodec_close(pCodecCtx);
-		av_close_input_file(pFormatCtx);
+	if(videoStream==-1)
 		return 0;
-	}
 
+	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
 
         /* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
