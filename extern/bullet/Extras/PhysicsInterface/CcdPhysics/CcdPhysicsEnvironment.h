@@ -90,7 +90,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		//complex constraint for vehicles
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId);
 #else
-		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId)
+		virtual class PHY_IVehicle*	getVehicleConstraint(int constraintId)
 		{
 			return 0;
 		}
