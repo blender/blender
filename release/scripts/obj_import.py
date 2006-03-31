@@ -305,7 +305,7 @@ getUniqueName.uniqueNames= []
 #==================================================================================#
 # This loads data from .obj file                                                   #
 #==================================================================================#
-def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGON=1, IMPORT_SMOOTH_GROUPS=0, IMPORT_MTL_SPLIT=0):
+def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGON=1, IMPORT_SMOOTH_GROUPS=0, IMPORT_MTL_SPLIT=0, IMPORT_RELATIVE_VERTS=0):
 	global currentMesh,\
 	currentUsedVertList,\
 	currentUsedVertListSmoothGroup,\
@@ -526,13 +526,26 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	EDGE_FGON_FLAG= NMesh.EdgeFlags['FGON']
 	EDGE_DRAW_FLAG= NMesh.EdgeFlags['EDGEDRAW']
 	
+	if IMPORT_RELATIVE_VERTS:
+		VERT_COUNT= TVERT_COUNT=0
+		# TOT_VERTS= len(vertList) 
+		# len(vertList)  
+		# len(uvMapList)
+	
 	while lIdx < len(fileLines):
 		l= fileLines[lIdx]
 		#for l in fileLines:
 		if len(l) == 0:
 			continue
 		# FACE
-		elif l[0] == 'f' or l[0] == 'fo':
+		elif l[0] == 'v':
+			if IMPORT_RELATIVE_VERTS:
+				VERT_COUNT+=1
+		elif l[0] == 'vt':
+			if IMPORT_RELATIVE_VERTS:
+				TVERT_COUNT+=1
+		
+		elif l[0] == 'f' or l[0] == 'fo': # fo is not standard.
 			# Make a face with the correct material.
 			
 			# Add material to mesh
@@ -580,7 +593,12 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 					index= int(objVert[0])-1
 					# Account for negative indicies.
 					if index < 0:
-						index= len_vertList+index+1
+						if IMPORT_RELATIVE_VERTS: # non standard
+							index= VERT_COUNT+index+1
+						else:
+							index= len_vertList+index+1
+					elif IMPORT_RELATIVE_VERTS:
+						index= VERT_COUNT+index+1 # UNTESTED, POSITIVE RELATIVE VERTS.May be out by 1.
 					
 					vIdxLs.append(index)
 					if fHasUV:
@@ -591,7 +609,12 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 						elif objVert[1]: # != '' # Its possible that theres no texture vert just he vert and normal eg 1//2
 							index= int(objVert[1])-1
 							if index < 0:
-								index= len_uvMapList+index+1
+								if IMPORT_RELATIVE_VERTS: # non standard
+									index= TVERT_COUNT+index+1
+								else:
+									index= len_uvMapList+index+1
+							elif IMPORT_RELATIVE_VERTS: # non standard:
+								index= TVERT_COUNT+index+1 # UNTESTED, POSITIVE RELATIVE VERTS. May be out by 1.
 							
 						if len_uvMapList > index:
 							vtIdxLs.append(index) # Seperate UV coords
@@ -832,7 +855,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	if IMPORT_MTL:
 		for mtl in mtl_fileName:
 			load_mtl(DIR, mtl, meshDict, materialDict)	
-	
+	print 'MTLLLL', mtl_fileName
 	
 	importedObjects= []
 	for mk, me in meshDict.iteritems():
@@ -872,6 +895,7 @@ def load_obj_ui(file):
 	IMPORT_FGON= Draw.Create(1)
 	IMPORT_SMOOTH_GROUPS= Draw.Create(0)
 	IMPORT_MTL_SPLIT= Draw.Create(0)
+	IMPORT_RELATIVE_VERTS= Draw.Create(0)
 	
 	# Get USER Options
 	pup_block= [\
@@ -884,6 +908,7 @@ def load_obj_ui(file):
 	('Create FGons', IMPORT_FGON, 'Import faces with more then 4 verts as fgons.'),\
 	('Smooth Groups', IMPORT_SMOOTH_GROUPS, 'Only Share verts within smooth groups. (Warning, Hogs Memory)'),\
 	('Split by Material', IMPORT_MTL_SPLIT, 'Import each material into a seperate mesh (Avoids >16 meterials per mesh problem)'),\
+	('Relative Verts', IMPORT_RELATIVE_VERTS, 'Import non standard OBJs with relative vertex indicies, try if your mesh imports with scrambled faces.'),\
 	]
 	
 	if not os:
@@ -904,7 +929,7 @@ def load_obj_ui(file):
 	IMPORT_FGON= IMPORT_FGON.val
 	IMPORT_SMOOTH_GROUPS= IMPORT_SMOOTH_GROUPS.val
 	IMPORT_MTL_SPLIT= IMPORT_MTL_SPLIT.val
-	
+	IMPORT_RELATIVE_VERTS= IMPORT_RELATIVE_VERTS.val
 	#orig_scene= Scene.GetCurrent()
 	
 	obj_dir= stripFile(file)
@@ -926,7 +951,7 @@ def load_obj_ui(file):
 			
 			
 			Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (f, count, obj_len))
-			load_obj(d+f, IMPORT_MTL, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT)
+			load_obj(d+f, IMPORT_MTL, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT, IMPORT_RELATIVE_VERTS)
 			
 	
 	#orig_scene.makeCurrent() # We can leave them in there new scene.
