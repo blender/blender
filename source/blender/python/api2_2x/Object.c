@@ -3516,7 +3516,9 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	if( StringEqual( name, "enableDupRot" ) )
 		return Object_getDupliRot( obj );
 	if( StringEqual( name, "enableDupNoSpeed" ) )
-		return Object_getDupliNoSpeed( obj );	
+		return Object_getDupliNoSpeed( obj );
+	if( StringEqual( name, "drawSize" ) )
+		return ( PyFloat_FromDouble( object->empty_drawsize ) );
 	
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
@@ -3799,6 +3801,8 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 	else if( StringEqual( name, "DupObjects" ) )
 		return EXPP_ReturnIntError( PyExc_AttributeError, 
 				"DupObjects is not writable" );
+	else if( StringEqual( name, "drawSize" ) )
+		return ( !PyArg_Parse( value, "f", &( object->empty_drawsize ) ) );
 	else { /* if it turns out here, it's not an attribute*/
 		Py_DECREF(valtuple);
 		return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );

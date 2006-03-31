@@ -316,6 +316,8 @@ class Object:
     @type DupOn: int
     @ivar DupOff: The DupliFrame removal of every Nth frame for this object. (Use with L{enableDupFrames<enableDupFrames>})
     @type DupOff: int
+    @ivar drawSize: The drawsize for empty objects. 1.0. is default.
+    @type drawSize: float
   """
 
   def buildParts():
