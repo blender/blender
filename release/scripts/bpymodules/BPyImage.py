@@ -43,7 +43,6 @@ def stripFile(path):
 		newpath= '%s%s' % (path, sys.sep)
 	else:
 		newpath= path
-	# print 'stripping paths:', path, 'to', newpath
 	return newpath
 
 #==============================================#
@@ -77,7 +76,7 @@ def addSlash(path):
 	return path + sys.sep
 
 
-def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True):
+def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=False):
 	if VERBOSE: print 'img:', imagePath, 'file:', filePath
 	# When we have the file load it with this. try/except niceness.
 	def imageLoad(path):
@@ -195,8 +194,6 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=True)
 		else:
 			if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 	# DONE
-	
-	print 'PATHs', paths
 	# 
 	for path, files in paths.iteritems():
 		if sys.exists(path + imageFileName):
