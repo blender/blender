@@ -948,7 +948,6 @@ static void render_tile_processor(Render *re, int firsttile)
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
-
 	freeparts(re);
 }
 
@@ -1179,9 +1178,13 @@ static void threaded_tile_processor(Render *re)
 /* currently only called by preview renders and envmap */
 void RE_TileProcessor(Render *re, int firsttile)
 {
-	if(re->r.mode & R_THREADS) 
-		threaded_tile_processor(re);
-	else
+	/* the partsdone variable has to be reset to firsttile, to survive esc before it was set to zero */
+	
+	re->i.partsdone= firsttile;
+	
+	//if(re->r.mode & R_THREADS) 
+	//	threaded_tile_processor(re);
+	//else
 		render_tile_processor(re, firsttile);	
 }
 
@@ -1561,7 +1564,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			BKE_add_image_extension(name, R_JPEG90);
 			ibuf->depth= 24; 
 			BKE_write_ibuf(ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
-			printf("Saved: %s", name);
+			printf("\nSaved: %s", name);
 		}
 		
                 /* imbuf knows which rects are not part of ibuf */
