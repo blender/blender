@@ -315,7 +315,8 @@ m_solverType(-1)
 		//broadphase = new SimpleBroadphase();
 	}
 		
-	setSolverType(0);
+
+	setSolverType(1);
 	
 	m_collisionWorld = new CollisionWorld(dispatcher,broadphase);
 	

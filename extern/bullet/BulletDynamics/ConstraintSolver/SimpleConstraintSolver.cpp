@@ -122,9 +122,10 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 			//re-calculate friction direction every frame, todo: check if this is really needed
 			SimdPlaneSpace1(cp.m_normalWorldOnB,cp.m_frictionWorldTangential0,cp.m_frictionWorldTangential1);
 
+#ifdef NO_FRICTION_WARMSTART
 			cp.m_accumulatedTangentImpulse0 = 0.f;
 			cp.m_accumulatedTangentImpulse1 = 0.f;
-
+#endif //NO_FRICTION_WARMSTART
 			float denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential0);
 			float denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential0);
 			float denom = relaxation/(denom0+denom1);
@@ -137,8 +138,10 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 			cp.m_jacDiagABInvTangent1 = denom;
 
 			SimdVector3 totalImpulse = 
-			//	cp.m_frictionWorldTangential0*cp.m_accumulatedTangentImpulse0+
-			//	cp.m_frictionWorldTangential1*cp.m_accumulatedTangentImpulse1+
+#ifndef NO_FRICTION_WARMSTART
+				cp.m_frictionWorldTangential0*cp.m_accumulatedTangentImpulse0+
+				cp.m_frictionWorldTangential1*cp.m_accumulatedTangentImpulse1+
+#endif //NO_FRICTION_WARMSTART
 				cp.m_normalWorldOnB*cp.m_appliedImpulse;
 
 			//apply previous frames impulse on both bodies
@@ -173,12 +176,8 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 			{
 
 
-				//float actualDist =  cp.GetDistance();
-				//#define MAXPENETRATIONPERFRAME -0.2f
-				//float dist = actualDist< MAXPENETRATIONPERFRAME? MAXPENETRATIONPERFRAME:actualDist;
-
-				float dist =  cp.GetDistance();
-
+				//float dist =  cp.GetDistance();
+				//printf("dist(%i)=%f\n",j,dist);
 				float impulse = resolveSingleCollision(
 					*body0,*body1,
 					cp,

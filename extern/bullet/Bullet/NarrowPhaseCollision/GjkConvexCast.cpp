@@ -96,7 +96,7 @@ bool	GjkConvexCast::calcTimeOfImpact(
 		GjkPairDetector::ClosestPointInput input;
 		input.m_transformA = sphereTr;
 		input.m_transformB = identityTrans;
-		gjk.GetClosestPoints(input,pointCollector1);
+		gjk.GetClosestPoints(input,pointCollector1,0);
 
 		hasResult = pointCollector1.m_hasResult;
 		c = pointCollector1.m_pointInWorld;
@@ -133,7 +133,7 @@ bool	GjkConvexCast::calcTimeOfImpact(
 			GjkPairDetector::ClosestPointInput input;
 			input.m_transformA = sphereTr;
 			input.m_transformB = identityTrans;
-			gjk.GetClosestPoints(input,pointCollector);
+			gjk.GetClosestPoints(input,pointCollector,0);
 			if (pointCollector.m_hasResult)
 			{
 				if (pointCollector.m_distance < 0.f)

@@ -104,6 +104,8 @@ public:
 	GetLastCreatedObject(
 	) const ;
 
+	void	InstantAddObject();
+
 	/* 1. setObject */
 	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetObject);
 	/* 2. setTime */
@@ -118,6 +120,8 @@ public:
 	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetLinearVelocity);
 	/* 7. getLastCreatedObject */
 	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetLastCreatedObject);
+	/* 8. instantAddObject*/
+	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,InstantAddObject);
 
 	
 }; /* end of class KX_SCA_AddObjectActuator : public KX_EditObjectActuator */

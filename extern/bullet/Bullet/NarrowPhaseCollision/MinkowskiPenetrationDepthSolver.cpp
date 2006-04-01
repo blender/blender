@@ -41,113 +41,147 @@ struct MyResult : public DiscreteCollisionDetectorInterface::Result
 	}
 };
 
+#define NUM_UNITSPHERE_POINTS 42
+static SimdVector3	sPenetrationDirections[NUM_UNITSPHERE_POINTS] = 
+{
+SimdVector3(0.000000f , -0.000000f,-1.000000f),
+SimdVector3(0.723608f , -0.525725f,-0.447219f),
+SimdVector3(-0.276388f , -0.850649f,-0.447219f),
+SimdVector3(-0.894426f , -0.000000f,-0.447216f),
+SimdVector3(-0.276388f , 0.850649f,-0.447220f),
+SimdVector3(0.723608f , 0.525725f,-0.447219f),
+SimdVector3(0.276388f , -0.850649f,0.447220f),
+SimdVector3(-0.723608f , -0.525725f,0.447219f),
+SimdVector3(-0.723608f , 0.525725f,0.447219f),
+SimdVector3(0.276388f , 0.850649f,0.447219f),
+SimdVector3(0.894426f , 0.000000f,0.447216f),
+SimdVector3(-0.000000f , 0.000000f,1.000000f),
+SimdVector3(0.425323f , -0.309011f,-0.850654f),
+SimdVector3(-0.162456f , -0.499995f,-0.850654f),
+SimdVector3(0.262869f , -0.809012f,-0.525738f),
+SimdVector3(0.425323f , 0.309011f,-0.850654f),
+SimdVector3(0.850648f , -0.000000f,-0.525736f),
+SimdVector3(-0.525730f , -0.000000f,-0.850652f),
+SimdVector3(-0.688190f , -0.499997f,-0.525736f),
+SimdVector3(-0.162456f , 0.499995f,-0.850654f),
+SimdVector3(-0.688190f , 0.499997f,-0.525736f),
+SimdVector3(0.262869f , 0.809012f,-0.525738f),
+SimdVector3(0.951058f , 0.309013f,0.000000f),
+SimdVector3(0.951058f , -0.309013f,0.000000f),
+SimdVector3(0.587786f , -0.809017f,0.000000f),
+SimdVector3(0.000000f , -1.000000f,0.000000f),
+SimdVector3(-0.587786f , -0.809017f,0.000000f),
+SimdVector3(-0.951058f , -0.309013f,-0.000000f),
+SimdVector3(-0.951058f , 0.309013f,-0.000000f),
+SimdVector3(-0.587786f , 0.809017f,-0.000000f),
+SimdVector3(-0.000000f , 1.000000f,-0.000000f),
+SimdVector3(0.587786f , 0.809017f,-0.000000f),
+SimdVector3(0.688190f , -0.499997f,0.525736f),
+SimdVector3(-0.262869f , -0.809012f,0.525738f),
+SimdVector3(-0.850648f , 0.000000f,0.525736f),
+SimdVector3(-0.262869f , 0.809012f,0.525738f),
+SimdVector3(0.688190f , 0.499997f,0.525736f),
+SimdVector3(0.525730f , 0.000000f,0.850652f),
+SimdVector3(0.162456f , -0.499995f,0.850654f),
+SimdVector3(-0.425323f , -0.309011f,0.850654f),
+SimdVector3(-0.425323f , 0.309011f,0.850654f),
+SimdVector3(0.162456f , 0.499995f,0.850654f)
+};
 
 
 bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simplexSolver,
 												   ConvexShape* convexA,ConvexShape* convexB,
 												   const SimdTransform& transA,const SimdTransform& transB,
-												   SimdVector3& v, SimdPoint3& pa, SimdPoint3& pb)
+												   SimdVector3& v, SimdPoint3& pa, SimdPoint3& pb,
+												   class IDebugDraw* debugDraw
+												   )
 {
 
 
 	//just take fixed number of orientation, and sample the penetration depth in that direction
-
-	int N = 3;
 	float minProj = 1e30f;
 	SimdVector3 minNorm;
 	SimdVector3 minVertex;
 	SimdVector3 minA,minB;
-
-	//not so good, lots of directions overlap, better to use gauss map
-	for (int i=-N;i<N;i++)
+	for (int i=0;i<NUM_UNITSPHERE_POINTS;i++)
 	{
-		for (int j = -N;j<N;j++)
+		const SimdVector3& norm = sPenetrationDirections[i];
+	
+		SimdVector3 seperatingAxisInA = (-norm)* transA.getBasis();
+		SimdVector3 seperatingAxisInB = norm* transB.getBasis();
+
+		SimdVector3 pInA = convexA->LocalGetSupportingVertex(seperatingAxisInA);
+		SimdVector3 qInB = convexB->LocalGetSupportingVertex(seperatingAxisInB);
+		SimdPoint3  pWorld = transA(pInA);	
+		SimdPoint3  qWorld = transB(qInB);
+
+		SimdVector3 w	= qWorld - pWorld;
+		float delta = norm.dot(w);
+		//find smallest delta
+
+		if (delta < minProj)
 		{
-			for (int k=-N;k<N;k++)
-			{
-				if (i | j | k)
-				{
-					SimdVector3 norm(i,j,k);
-					norm.normalize();
-
-					{
-						SimdVector3 seperatingAxisInA = (-norm)* transA.getBasis();
-						SimdVector3 seperatingAxisInB = norm* transB.getBasis();
-
-						SimdVector3 pInA = convexA->LocalGetSupportingVertex(seperatingAxisInA);
-						SimdVector3 qInB = convexB->LocalGetSupportingVertex(seperatingAxisInB);
-						SimdPoint3  pWorld = transA(pInA);	
-						SimdPoint3  qWorld = transB(qInB);
-
-						SimdVector3 w	= qWorld - pWorld;
-						float delta = norm.dot(w);
-						//find smallest delta
-
-						if (delta < minProj)
-						{
-							minProj = delta;
-							minNorm = norm;
-							minA = pWorld;
-							minB = qWorld;
-						}
-					}
-
-					{
-						SimdVector3 seperatingAxisInA = (norm)* transA.getBasis();
-						SimdVector3 seperatingAxisInB = -norm* transB.getBasis();
-
-						SimdVector3 pInA = convexA->LocalGetSupportingVertex(seperatingAxisInA);
-						SimdVector3 qInB = convexB->LocalGetSupportingVertex(seperatingAxisInB);
-						SimdPoint3  pWorld = transA(pInA);	
-						SimdPoint3  qWorld = transB(qInB);
-
-						SimdVector3 w	= qWorld - pWorld;
-						float delta = (-norm).dot(w);
-						//find smallest delta
-
-						if (delta < minProj)
-						{
-							minProj = delta ;
-							minNorm = -norm;
-							minA = pWorld;
-							minB = qWorld;
-						}
-					}
-
-
-
-				}
-			}
+			minProj = delta;
+			minNorm = norm;
+			minA = pWorld;
+			minB = qWorld;
+			
 		}
 	}
 
-	SimdTransform ident;
-	ident.setIdentity();
+#ifdef DEBUG_DRAW
+	if (debugDraw)
+	{
+		SimdVector3 color(0,1,0);
+		debugDraw->DrawLine(minA,minB,color);
+		color = SimdVector3 (1,1,1);
+		SimdVector3 vec = minB-minA;
+		float prj2 = minNorm.dot(vec);
+		debugDraw->DrawLine(minA,minA+(minNorm*minProj),color);
+
+	}
+#endif //DEBUG_DRAW
+
+	
 
 	GjkPairDetector gjkdet(convexA,convexB,&simplexSolver,0);
 
-
-	v = minNorm * minProj;
+	SimdScalar offsetDist = (minProj+0.1f);
+	SimdVector3 offset = minNorm * offsetDist;
+	
 
 
 	GjkPairDetector::ClosestPointInput input;
 		
-	SimdVector3 newOrg = transA.getOrigin() + v + v;
+	SimdVector3 newOrg = transA.getOrigin() + offset;
 
 	SimdTransform displacedTrans = transA;
 	displacedTrans.setOrigin(newOrg);
 
 	input.m_transformA = displacedTrans;
 	input.m_transformB = transB;
-	input.m_maximumDistanceSquared = 1e30f;
+	input.m_maximumDistanceSquared = 1e30f;//minProj;
 	
 	MyResult res;
-	gjkdet.GetClosestPoints(input,res);
+	gjkdet.GetClosestPoints(input,res,debugDraw);
+
+	
 
 	if (res.m_hasResult)
 	{
-		pa = res.m_pointInWorld - res.m_normalOnBInWorld*0.1f*res.m_depth;
+
+		pa = res.m_pointInWorld - minNorm * minProj;
 		pb = res.m_pointInWorld;
+		
+#ifdef DEBUG_DRAW
+		if (debugDraw)
+		{
+			SimdVector3 color(1,0,0);
+			debugDraw->DrawLine(pa,pb,color);
+		}
+#endif//DEBUG_DRAW
+
+
 	}
 	return res.m_hasResult;
 }

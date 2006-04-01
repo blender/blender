@@ -33,7 +33,7 @@ m_minkowskiB(objectB)
 {
 }
 
-void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& output)
+void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& output,class IDebugDraw* debugDraw)
 {
 	SimdScalar distance;
 	SimdVector3	normalInB(0.f,0.f,0.f);
@@ -155,7 +155,9 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 					*m_simplexSolver, 
 					m_minkowskiA,m_minkowskiB,
 					input.m_transformA,input.m_transformB,
-					m_cachedSeparatingAxis, pointOnA, pointOnB);
+					m_cachedSeparatingAxis, pointOnA, pointOnB,
+					debugDraw
+					);
 
 				if (isValid)
 				{
@@ -180,6 +182,7 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 			normalInB,
 			pointOnB,
 			distance);
+		//printf("gjk add:%f",distance);
 	} 
 
 

@@ -315,7 +315,7 @@ m_solverType(-1)
 		//broadphase = new SimpleBroadphase();
 	}
 		
-	setSolverType(0);
+	setSolverType(1);
 	
 	m_collisionWorld = new CollisionWorld(dispatcher,broadphase);
 	
@@ -524,6 +524,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	DispatcherInfo dispatchInfo;
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
+	dispatchInfo.m_debugDraw = m_debugDrawer;
 
 	scene->DispatchAllCollisionPairs(*GetDispatcher(),dispatchInfo);///numsubstep,g);
 
@@ -882,7 +883,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			{
 				
 				m_solver = new SimpleConstraintSolver();
-				
+				//printf("Iterative Impulse ConstraintSolver\n");
 				break;
 			}
 		}
@@ -892,6 +893,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			if (m_solverType != solverType)
 			{
 				m_solver = new OdeConstraintSolver();
+				//printf("Quickstep ConstraintSolver\n");
 		
 				break;
 			}

@@ -167,8 +167,9 @@ void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 //
 // box-box collision algorithm, for simplicity also applies resolution-impulse
 //
-void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount, bool useContinuous)
+void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,const DispatcherInfo& dispatchInfo)
 {
+
 	if (!m_manifoldPtr)
 		return;
 
@@ -194,7 +195,7 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	MinkowskiSumShape	expanded0(min0,&sphere);
 	MinkowskiSumShape	expanded1(min1,&sphere);
 
-	if (useContinuous)
+	if (dispatchInfo.m_useContinuous)
 	{
 		m_gjkPairDetector.SetMinkowskiA(&expanded0);
 		m_gjkPairDetector.SetMinkowskiB(&expanded1);
@@ -214,12 +215,12 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	input.m_transformA = col0->m_worldTransform;
 	input.m_transformB = col1->m_worldTransform;
     
-	m_gjkPairDetector.GetClosestPoints(input,*resultOut);
+	m_gjkPairDetector.GetClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
 
 	m_dispatcher->ReleaseManifoldResult(resultOut);
 }
 bool disableCcd = false;
-float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount)
+float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const DispatcherInfo& dispatchInfo)
 {
 
 	CheckPenetrationDepthSolver();

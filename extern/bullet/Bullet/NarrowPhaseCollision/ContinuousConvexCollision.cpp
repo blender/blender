@@ -93,7 +93,7 @@ bool	ContinuousConvexCollision::calcTimeOfImpact(
 		GjkPairDetector::ClosestPointInput input;
 		input.m_transformA = fromA;
 		input.m_transformB = fromB;
-		gjk.GetClosestPoints(input,pointCollector1);
+		gjk.GetClosestPoints(input,pointCollector1,0);
 
 		hasResult = pointCollector1.m_hasResult;
 		c = pointCollector1.m_pointInWorld;
@@ -152,7 +152,7 @@ bool	ContinuousConvexCollision::calcTimeOfImpact(
 			GjkPairDetector::ClosestPointInput input;
 			input.m_transformA = interpolatedTransA;
 			input.m_transformB = interpolatedTransB;
-			gjk.GetClosestPoints(input,pointCollector);
+			gjk.GetClosestPoints(input,pointCollector,0);
 			if (pointCollector.m_hasResult)
 			{
 				if (pointCollector.m_distance < 0.f)

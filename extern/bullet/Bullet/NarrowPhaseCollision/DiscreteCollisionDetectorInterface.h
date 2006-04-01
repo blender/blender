@@ -54,7 +54,7 @@ struct DiscreteCollisionDetectorInterface
 	// give either closest points (distance > 0) or penetration (distance)
 	// the normal always points from B towards A
 	//
-	virtual void	GetClosestPoints(const ClosestPointInput& input,Result& output) = 0;
+	virtual void	GetClosestPoints(const ClosestPointInput& input,Result& output,class IDebugDraw* debugDraw) = 0;
 
 	SimdScalar	getCollisionMargin() { return 0.2f;}
 };

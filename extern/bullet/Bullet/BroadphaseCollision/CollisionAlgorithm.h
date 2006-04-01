@@ -57,9 +57,9 @@ public:
 
 	virtual ~CollisionAlgorithm() {};
 
-	virtual void ProcessCollision (BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount, bool useContinuous) = 0;
+	virtual void ProcessCollision (BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const struct DispatcherInfo& dispatchInfo) = 0;
 
-	virtual float CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount) = 0;
+	virtual float CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const struct DispatcherInfo& dispatchInfo) = 0;
 
 };
 

@@ -44,7 +44,7 @@ public:
 	GjkPairDetector(ConvexShape* objectA,ConvexShape* objectB,SimplexSolverInterface* simplexSolver,ConvexPenetrationDepthSolver*	penetrationDepthSolver);
 	virtual ~GjkPairDetector() {};
 
-	virtual void	GetClosestPoints(const ClosestPointInput& input,Result& output);
+	virtual void	GetClosestPoints(const ClosestPointInput& input,Result& output,class IDebugDraw* debugDraw);
 
 	void SetMinkowskiA(ConvexShape* minkA)
 	{

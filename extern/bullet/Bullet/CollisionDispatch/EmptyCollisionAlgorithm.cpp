@@ -22,12 +22,12 @@ EmptyAlgorithm::EmptyAlgorithm(const CollisionAlgorithmConstructionInfo& ci)
 {
 }
 
-void EmptyAlgorithm::ProcessCollision (BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep, int stepCount,bool useContinuous)
+void EmptyAlgorithm::ProcessCollision (BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const DispatcherInfo& dispatchInfo)
 {
 
 }
 
-float EmptyAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount)
+float EmptyAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const DispatcherInfo& dispatchInfo)
 {
 	return 1.f;
 }

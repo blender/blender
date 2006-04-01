@@ -40,7 +40,8 @@ struct DispatcherInfo
 	DispatcherInfo()
 		:m_dispatchFunc(DISPATCH_DISCRETE),
 		m_timeOfImpact(1.f),
-		m_useContinuous(false)
+		m_useContinuous(false),
+		m_debugDraw(0)
 	{
 
 	}
@@ -49,6 +50,7 @@ struct DispatcherInfo
 	int		m_dispatchFunc;
 	float	m_timeOfImpact;
 	bool	m_useContinuous;
+	class IDebugDraw*	m_debugDraw;
 	
 };
 

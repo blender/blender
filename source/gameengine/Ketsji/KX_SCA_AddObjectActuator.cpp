@@ -85,25 +85,13 @@ bool KX_SCA_AddObjectActuator::Update()
 	RemoveAllEvents();
 	
 	if (bNegativeEvent) return false; // do nothing on negative events
-	if (m_OriginalObject)
-	{
-		// Add an identical object, with properties inherited from the original object	
-		// Now it needs to be added to the current scene.
-		SCA_IObject* replica = m_scene->AddReplicaObject(m_OriginalObject,GetParent(),m_timeProp );
-		KX_GameObject * game_obj = static_cast<KX_GameObject *>(replica);
-		game_obj->setLinearVelocity(m_linear_velocity,m_localFlag);
-		game_obj->ResolveCombinedVelocities(m_linear_velocity, MT_Vector3(0., 0., 0.), m_localFlag, false);
 
-		// keep a copy of the last object, to allow python scripters to change it
-		if (m_lastCreatedObject)
-			m_lastCreatedObject->Release();
-		
-		m_lastCreatedObject = replica;
-		m_lastCreatedObject->AddRef();
-	}
+	InstantAddObject();
 
+	
 	return false;
 }
+
 
 
 
@@ -169,6 +157,8 @@ PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
   {"getLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetLinearVelocity, METH_VARARGS, GetLinearVelocity_doc},
   {"setLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPySetLinearVelocity, METH_VARARGS, SetLinearVelocity_doc},
   {"getLastCreatedObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetLastCreatedObject, METH_VARARGS,"getLastCreatedObject() : get the object handle to the last created object\n"},
+  {"instantAddObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyInstantAddObject, METH_VARARGS,"instantAddObject() : immediately add object without delay\n"},
+  
   {NULL,NULL} //Sentinel
 };
 
@@ -312,6 +302,35 @@ PyObject* KX_SCA_AddObjectActuator::PySetLinearVelocity(PyObject* self,
 		return NULL;
 
 	m_linear_velocity.setValue(vecArg);
+	Py_Return;
+}
+
+void	KX_SCA_AddObjectActuator::InstantAddObject()
+{
+	if (m_OriginalObject)
+	{
+		// Add an identical object, with properties inherited from the original object	
+		// Now it needs to be added to the current scene.
+		SCA_IObject* replica = m_scene->AddReplicaObject(m_OriginalObject,GetParent(),m_timeProp );
+		KX_GameObject * game_obj = static_cast<KX_GameObject *>(replica);
+		game_obj->setLinearVelocity(m_linear_velocity,m_localFlag);
+		game_obj->ResolveCombinedVelocities(m_linear_velocity, MT_Vector3(0., 0., 0.), m_localFlag, false);
+
+		// keep a copy of the last object, to allow python scripters to change it
+		if (m_lastCreatedObject)
+			m_lastCreatedObject->Release();
+		
+		m_lastCreatedObject = replica;
+		m_lastCreatedObject->AddRef();
+	}
+}
+
+PyObject* KX_SCA_AddObjectActuator::PyInstantAddObject(PyObject* self,
+														   PyObject* args,
+														   PyObject* kwds)
+{
+	InstantAddObject();
+
 	Py_Return;
 }
 

@@ -102,7 +102,7 @@ void resolveSingleBilateral(RigidBody& body1, const SimdVector3& pos1,
 #endif
 }
 
-
+float allowedPenetration = 0.0f;
 
 
 //velocity + friction
@@ -115,9 +115,26 @@ float resolveSingleCollision(
 
 		)
 {
+
 	const SimdVector3& pos1 = contactPoint.GetPositionWorldOnA();
 	const SimdVector3& pos2 = contactPoint.GetPositionWorldOnB();
     SimdScalar distance = contactPoint.GetDistance();
+
+	
+//	printf("distance=%f\n",distance);
+
+	if (distance>0.f)
+	{
+		contactPoint.m_appliedImpulse = 0.f;
+		contactPoint.m_accumulatedTangentImpulse0 = 0.f;
+		contactPoint.m_accumulatedTangentImpulse1 = 0.f;
+		
+		return 0.f;
+	} 
+
+#define MAXPENETRATIONPERFRAME -0.05
+	distance = distance < MAXPENETRATIONPERFRAME? MAXPENETRATIONPERFRAME:distance;
+
 	const SimdVector3& normal = contactPoint.m_normalWorldOnB;
 
 	SimdVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
@@ -146,14 +163,14 @@ float resolveSingleCollision(
 
 	float Kcor = Kerp *Kfps;
 
-	float allowedPenetration = 0.001f;
+	//printf("dist=%f\n",distance);
 
 	float clipDist = distance + allowedPenetration;
 	float dist = (clipDist > 0.f) ? 0.f : clipDist;
-
-	SimdScalar positionalError = Kcor *-dist*damping;
+	//distance = 0.f;
+	SimdScalar positionalError = Kcor *-clipDist;
 	//jacDiagABInv;
-	SimdScalar velocityError = -(1.0f + restitution) * rel_vel;
+	SimdScalar velocityError = -(1.0f + restitution) * rel_vel;// * damping;
 
 	SimdScalar penetrationImpulse = positionalError * contactPoint.m_jacDiagABInv;
 

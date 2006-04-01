@@ -18,7 +18,7 @@ subject to the following restrictions:
 
 
 
-struct	DispatcherInfo;
+struct DispatcherInfo;
 class Dispatcher;
 struct BroadphaseProxy;
 #include "SimdVector3.h"

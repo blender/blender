@@ -29,6 +29,7 @@ subject to the following restrictions:
 ConvexConcaveCollisionAlgorithm::ConvexConcaveCollisionAlgorithm( const CollisionAlgorithmConstructionInfo& ci,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
 : CollisionAlgorithm(ci),m_convex(*proxy0),m_concave(*proxy1),
 m_boxTriangleCallback(ci.m_dispatcher,proxy0,proxy1)
+
 {
 }
 
@@ -40,9 +41,7 @@ ConvexConcaveCollisionAlgorithm::~ConvexConcaveCollisionAlgorithm()
 
 BoxTriangleCallback::BoxTriangleCallback(Dispatcher*  dispatcher,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1):
   m_boxProxy(proxy0),m_triangleProxy(*proxy1),m_dispatcher(dispatcher),
-	  m_timeStep(0.f),
-	  m_stepCount(-1),
-	  m_triangleCount(0)
+	m_dispatchInfoPtr(0)
 {
 
 	  //
@@ -96,7 +95,7 @@ void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 		ob->m_collisionShape = &tm;
 		
 		ConvexConvexAlgorithm cvxcvxalgo(m_manifoldPtr,ci,m_boxProxy,&m_triangleProxy);
-		cvxcvxalgo.ProcessCollision(m_boxProxy,&m_triangleProxy,m_timeStep,m_stepCount,m_useContinuous);
+		cvxcvxalgo.ProcessCollision(m_boxProxy,&m_triangleProxy,*m_dispatchInfoPtr);
 		ob->m_collisionShape = tmpShape;
 
 	}
@@ -107,12 +106,9 @@ void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 
 
 
-void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,float collisionMarginTriangle,bool useContinuous)
+void	BoxTriangleCallback::SetTimeStepAndCounters(float collisionMarginTriangle,const DispatcherInfo& dispatchInfo)
 {
-	m_triangleCount = 0;
-	m_timeStep = timeStep;
-	m_stepCount = stepCount;
-	m_useContinuous = useContinuous;
+	m_dispatchInfoPtr = &dispatchInfo;
 	m_collisionMarginTriangle = collisionMarginTriangle;
 
 	//recalc aabbs
@@ -142,7 +138,7 @@ void ConvexConcaveCollisionAlgorithm::ClearCache()
 
 }
 
-void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount,bool useContinuous)
+void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,const DispatcherInfo& dispatchInfo)
 {
 
 	CollisionObject* boxBody = static_cast<CollisionObject* >(m_convex.m_clientObject);
@@ -163,7 +159,7 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 		{
 			float collisionMarginTriangle = triangleMesh->GetMargin();
 					
-			m_boxTriangleCallback.SetTimeStepAndCounters(timeStep,stepCount, collisionMarginTriangle,useContinuous);
+			m_boxTriangleCallback.SetTimeStepAndCounters(collisionMarginTriangle,dispatchInfo);
 #ifdef USE_BOX_TRIANGLE
 			m_boxTriangleCallback.m_manifoldPtr->ClearManifold();
 #endif
@@ -179,7 +175,7 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 }
 
 
-float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount)
+float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,BroadphaseProxy* ,const DispatcherInfo& dispatchInfo)
 {
 
 	//quick approximation using raycast, todo: use proper continuou collision detection

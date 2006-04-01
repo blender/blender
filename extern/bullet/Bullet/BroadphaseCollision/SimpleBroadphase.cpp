@@ -292,10 +292,10 @@ void	SimpleBroadphase::DispatchAllCollisionPairs(Dispatcher&	dispatcher,Dispatch
 			{
 				if (dispatchInfo.m_dispatchFunc == 		DispatcherInfo::DISPATCH_DISCRETE)
 				{
-					pair.m_algorithms[dispatcherId]->ProcessCollision(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo.m_timeStep,dispatchInfo.m_stepCount,dispatchInfo.m_useContinuous);
+					pair.m_algorithms[dispatcherId]->ProcessCollision(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
 				} else
 				{
-					float toi = pair.m_algorithms[dispatcherId]->CalculateTimeOfImpact(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo.m_timeStep,dispatchInfo.m_stepCount);
+					float toi = pair.m_algorithms[dispatcherId]->CalculateTimeOfImpact(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
 					if (dispatchInfo.m_timeOfImpact > toi)
 						dispatchInfo.m_timeOfImpact = toi;
 
@@ -312,10 +312,10 @@ void	SimpleBroadphase::DispatchAllCollisionPairs(Dispatcher&	dispatcher,Dispatch
 				{
 					if (dispatchInfo.m_dispatchFunc == 		DispatcherInfo::DISPATCH_DISCRETE)
 					{
-						algo->ProcessCollision(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo.m_timeStep,dispatchInfo.m_stepCount,dispatchInfo.m_useContinuous);
+						algo->ProcessCollision(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
 					} else
 					{
-						float toi = algo->CalculateTimeOfImpact(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo.m_timeStep,dispatchInfo.m_stepCount);
+						float toi = algo->CalculateTimeOfImpact(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
 						if (dispatchInfo.m_timeOfImpact > toi)
 							dispatchInfo.m_timeOfImpact = toi;
 					}

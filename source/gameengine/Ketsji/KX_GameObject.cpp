@@ -1091,6 +1091,7 @@ PyObject* KX_GameObject::PySetPosition(PyObject* self,
 	if (PyVecArgTo(args, pos))
 	{
 		NodeSetLocalPosition(pos);
+		NodeUpdateGS(0.f,true);
 		Py_Return;
 	}
 	

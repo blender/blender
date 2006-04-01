@@ -35,9 +35,7 @@ class BoxTriangleCallback : public TriangleCallback
 	SimdVector3	m_aabbMax ;
 
 	Dispatcher*	m_dispatcher;
-	float	m_timeStep;
-	int	m_stepCount;
-	bool m_useContinuous;
+	const DispatcherInfo* m_dispatchInfoPtr;
 	float m_collisionMarginTriangle;
 	
 public:
@@ -47,7 +45,7 @@ int	m_triangleCount;
 
 	BoxTriangleCallback(Dispatcher* dispatcher,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1);
 
-	void	SetTimeStepAndCounters(float timeStep,int stepCount, float collisionMarginTriangle,bool useContinuous);
+	void	SetTimeStepAndCounters(float collisionMarginTriangle,const DispatcherInfo& dispatchInfo);
 
 	virtual ~BoxTriangleCallback();
 
@@ -86,9 +84,9 @@ public:
 
 	virtual ~ConvexConcaveCollisionAlgorithm();
 
-	virtual void ProcessCollision (BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount, bool useContinuous);
+	virtual void ProcessCollision (BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const DispatcherInfo& dispatchInfo);
 
-	float	CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount);
+	float	CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const DispatcherInfo& dispatchInfo);
 
 	void	ClearCache();
 
