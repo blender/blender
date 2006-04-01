@@ -1302,7 +1302,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	}
 }
 
-static void texture_panel_preview(int preview)
+static void texture_panel_preview(MTex *mtex, int preview)
 {
 	uiBlock *block;
 	
@@ -1319,6 +1319,10 @@ static void texture_panel_preview(int preview)
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "World",	200,150,80,25, &G.buts->texfrom, 3.0, 1.0, 0, 0, "Displays the textures of the world block");
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Lamp",	200,125,80,25, &G.buts->texfrom, 3.0, 2.0, 0, 0, "Displays the textures of the selected lamp");
 	uiBlockEndAlign(block);
+	
+	if(mtex && mtex->tex)
+		uiDefButBitS(block, TOG, TEX_PRV_ALPHA, B_TEXREDR_PRV, "Alpha", 200,60,80,20, &mtex->tex->flag, 0, 0, 0, 0, "Show alpha in preview");
+	
 	uiDefBut(block, BUT, B_DEFTEXVAR, "Default Vars",200,10,80,20, 0, 0, 0, 0, 0, "Sets all values to defaults");
 
 }
@@ -3415,7 +3419,7 @@ void texture_panels()
 		}
 	}
 	
-	texture_panel_preview(ma || wrld || la || node);	// for 'from' buttons
+	texture_panel_preview(mtex, ma || wrld || la || node);	// for 'from' buttons
 	
 	if(ma || wrld || la || node) {
 		Tex *tex= NULL;

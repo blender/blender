@@ -298,6 +298,15 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 					Material *mat= give_current_material(base->object, base->object->actcol);
 					if(mat && mat->mtex[0]) {
 						mat->mtex[0]->tex= tex;
+						/* show alpha in this case */
+						if(tex==NULL || (tex->flag & TEX_PRV_ALPHA)) {
+							mat->mtex[0]->mapto |= MAP_ALPHA;
+							mat->alpha= 0.0f;
+						}
+						else {
+							mat->mtex[0]->mapto &= ~MAP_ALPHA;
+							mat->alpha= 1.0f;
+						}
 					}
 				}
 			}

@@ -249,6 +249,8 @@ typedef struct TexMapping {
 #define TEX_NEGALPHA		4
 #define TEX_CHECKER_ODD		8
 #define TEX_CHECKER_EVEN	16
+#define TEX_PRV_ALPHA		32
+#define TEX_PRV_NOR			64
 
 /* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1
