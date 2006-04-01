@@ -791,7 +791,8 @@ static void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int
 static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *renrect)
 {
 	rcti win_rct;
-	float *rectf, fullrect[2][2];
+	float *rectf= NULL, fullrect[2][2];
+	unsigned int *rect32= NULL;
 	int ymin, ymax;
 	
 	/* if renrect argument, we only display scanlines */
@@ -821,15 +822,21 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	if(rr->rectf)
 		rectf= rr->rectf;
 	else {
-		if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
-		rectf= rr->renlay->rectf;
+		if(rr->rect32)
+			rect32= rr->rect32;
+		else {
+			if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
+			rectf= rr->renlay->rectf;
+		}
 	}
-	/* if scanline updates... */
-	rectf+= 4*rr->rectx*ymin;
+	if(rectf) {
+		/* if scanline updates... */
+		rectf+= 4*rr->rectx*ymin;
 	
-	/* when rendering more pixels than needed, we crop away cruft */
-	if(rr->crop)
-		rectf+= 4*(rr->crop*rr->rectx + rr->crop);
+		/* when rendering more pixels than needed, we crop away cruft */
+		if(rr->crop)
+			rectf+= 4*(rr->crop*rr->rectx + rr->crop);
+	}
 	
 	/* tilerect defines drawing offset from (0,0) */
 	/* however, tilerect (xmin, ymin) is first pixel */
@@ -844,7 +851,12 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	glDrawBuffer(GL_FRONT);
 #endif
 	glPixelZoom(rw->zoom, rw->zoom);
-	glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
+	
+	if(rect32)
+		glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
+							   GL_RGBA, GL_UNSIGNED_BYTE, rect32);
+	else 
+		glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
 					  GL_RGBA, GL_FLOAT, rectf);
 	glPixelZoom(1.0, 1.0);
 	
