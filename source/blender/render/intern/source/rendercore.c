@@ -1844,8 +1844,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	if(R.wrld.mode & WO_AMB_OCC) {
 		ambient_occlusion(shi, shr);
 		shr->diff[0] += shi->r*shr->ao[0];
-		shr->diff[1] += shi->r*shr->ao[1];
-		shr->diff[2] += shi->r*shr->ao[2];
+		shr->diff[1] += shi->g*shr->ao[1];
+		shr->diff[2] += shi->b*shr->ao[2];
 	}
 	
 	for(go=lights->first; go; go= go->next) {
