@@ -46,7 +46,7 @@ def copy_bone_influences(_from, _to):
 		from_infs= me_from.getVertexInfluences(from_idx)
 		
 		for group, weight in from_infs:
-			me_to.assignVertsToGroup(group, [from_idx], weight, add_)
+			me_to.assignVertsToGroup(group, [i], weight, add_)
 	
 	me_to.update()
 	
