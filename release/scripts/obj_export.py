@@ -92,7 +92,9 @@ def getMeshFromObject(object, name=None, mesh=None):
 		tempMe = Mesh.Get( dataname )
 		mesh.materials = tempMe.materials
 		mesh.degr = tempMe.degr
-		mesh.mode = tempMe.mode
+		try: mesh.mode = tempMe.mode # Mesh module needs fixing.
+		except: pass
+		
 	else:
 		try:
 			# Will only work for curves!!
@@ -245,18 +247,17 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	mtlfilename = '%s.mtl' % '.'.join(filename.split('.')[:-1])
 	file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 	
-	# Get the container mesh.
-	if EXPORT_APPLY_MODIFIERS:
-		containerMesh = meshName = tempMesh = None
-		for meshName in Blender.NMesh.GetNames():
-			if meshName.startswith(temp_mesh_name):
-				tempMesh = Mesh.Get(meshName)
-				if not tempMesh.users:
-					containerMesh = tempMesh
-		if not containerMesh:
-			containerMesh = Mesh.New(temp_mesh_name)
-		del meshName
-		del tempMesh
+	# Get the container mesh. - used for applying modifiers and non mesh objects.
+	containerMesh = meshName = tempMesh = None
+	for meshName in Blender.NMesh.GetNames():
+		if meshName.startswith(temp_mesh_name):
+			tempMesh = Mesh.Get(meshName)
+			if not tempMesh.users:
+				containerMesh = tempMesh
+	if not containerMesh:
+		containerMesh = Mesh.New(temp_mesh_name)
+	del meshName
+	del tempMesh
 	
 	
 	
@@ -388,9 +389,12 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			
 			# MAKE KEY
 			if EXPORT_UV and m.faceUV and f.image: # Object is always true.
-				key = materialNames[f.mat],  f.image.name
+				key = materialNames[min(f.mat,len(materialNames)-1)],  f.image.name
+				#key = materialNames[f.mat],  f.image.name
 			else:
-				key = materialNames[f.mat],  None # No image, use None instead.
+				key = materialNames[min(f.mat,len(materialNames)-1)],  None # No image, use None instead.
+				#key = materialNames[f.mat],  None # No image, use None instead.
+				
 			
 			# CHECK FOR CONTEXT SWITCH
 			if key == contextMat:
