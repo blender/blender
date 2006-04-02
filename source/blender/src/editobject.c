@@ -2722,6 +2722,7 @@ void copy_attr(short event)
 	Curve *cu, *cu1;
 	Nurb *nu;
 	void *poin1, *poin2=0;
+	int do_scene_sort= 0;
 	
 	if(G.scene->id.lib) return;
 
@@ -2938,6 +2939,8 @@ void copy_attr(short event)
 						copy_constraint_channels(&base->object->constraintChannels, &ob->constraintChannels);
 					else
 						clone_constraint_channels (&base->object->constraintChannels, &ob->constraintChannels);
+					
+					do_scene_sort= 1;
 				}
 				else if(event==23) {
 					base->object->softflag= ob->softflag;
@@ -2980,6 +2983,9 @@ void copy_attr(short event)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
+	if(do_scene_sort)
+		DAG_scene_sort(G.scene);
+
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 
 	if(event==20) {
