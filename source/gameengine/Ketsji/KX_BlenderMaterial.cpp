@@ -193,14 +193,16 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 	
 	BL_Texture::ActivateFirst();
 
+	mShader->ApplyShader();
+
 	// for each enabled unit
 	for(i=0; i<mMaterial->num_enabled; i++) {
-		const uSampler *samp = mShader->getSampler(i);
-		BL_Texture *tex = samp->gl_texture;
-		if( samp->loc == -1 || !tex || !tex->Ok() ) 
+		const BL_Sampler *samp = mShader->GetSampler(i);
+		BL_Texture *tex = samp->mTexture;
+		if( samp->mLoc == -1 || !tex || !tex->Ok() ) 
 			continue;
 		tex->ActivateTexture();
-		mShader->SetSampler(samp->loc, i);
+		mShader->SetSampler(samp->mLoc, i);
 	}
 	if(!mUserDefBlend) {
 		setDefaultBlending();
@@ -272,7 +274,7 @@ KX_BlenderMaterial::ActivatShaders(
 	TCachingInfo& cachingInfo)const
 {
 	KX_BlenderMaterial *tmp = const_cast<KX_BlenderMaterial*>(this);
-	
+
 	// reset... 
 	if(tmp->mMaterial->IsShared()) 
 		cachingInfo =0;
@@ -299,44 +301,17 @@ KX_BlenderMaterial::ActivatShaders(
 			rasty->SetCullFace(true);
 
 		if (((mMaterial->ras_mode &WIRE)!=0) || mMaterial->mode & RAS_IRasterizer::KX_LINES)
+		{		
+			if((mMaterial->ras_mode &WIRE)!=0) 
+				rasty->SetCullFace(false);
 			rasty->SetLines(true);
+		}
 		else
 			rasty->SetLines(false);
 	}
-	
-	// shaders have access to the variables set here
-	// via builtin GLSL variables
-	// eg: gl_FrontMaterial.diffuse
-	// --
-	rasty->SetSpecularity(
-		mMaterial->speccolor[0]*mMaterial->spec_f,
-		mMaterial->speccolor[1]*mMaterial->spec_f,
-		mMaterial->speccolor[2]*mMaterial->spec_f,
-		mMaterial->spec_f
-	);
 
-	rasty->SetShinyness( mMaterial->hard );
-
-	rasty->SetDiffuse(
-		mMaterial->matcolor[0]*mMaterial->ref+mMaterial->emit, 
-		mMaterial->matcolor[1]*mMaterial->ref+mMaterial->emit,
-		mMaterial->matcolor[2]*mMaterial->ref+mMaterial->emit,
-		1.0f);
-
-	rasty->SetEmissive(	
-		mMaterial->matcolor[0]*mMaterial->emit,
-		mMaterial->matcolor[1]*mMaterial->emit,
-		mMaterial->matcolor[2]*mMaterial->emit,
-		1.0
-		);
-
-	rasty->SetAmbient(mMaterial->amb);
-
-	if (mMaterial->material)
-		rasty->SetPolygonOffset(-mMaterial->material->zoffs, 0.0);
-
-	tmp->applyTexGen(rasty);
-
+	ActivatGLMaterials(rasty);
+	ActivateTexGen(rasty);
 }
 
 void
@@ -367,37 +342,16 @@ KX_BlenderMaterial::ActivateMat(
 			rasty->SetCullFace(true);
 
 		if (((mMaterial->ras_mode &WIRE)!=0) || mMaterial->mode & RAS_IRasterizer::KX_LINES)
+		{		
+			if((mMaterial->ras_mode &WIRE)!=0) 
+				rasty->SetCullFace(false);
 			rasty->SetLines(true);
+		}
 		else
 			rasty->SetLines(false);
 	}
-		
-	rasty->SetSpecularity(
-		mMaterial->speccolor[0]*mMaterial->spec_f,
-		mMaterial->speccolor[1]*mMaterial->spec_f,
-		mMaterial->speccolor[2]*mMaterial->spec_f,
-		mMaterial->spec_f
-	);
-
-	rasty->SetShinyness( mMaterial->hard );
-
-	rasty->SetDiffuse(
-		mMaterial->matcolor[0]*mMaterial->ref+mMaterial->emit, 
-		mMaterial->matcolor[1]*mMaterial->ref+mMaterial->emit,
-		mMaterial->matcolor[2]*mMaterial->ref+mMaterial->emit,
-		1.0f);
-
-	rasty->SetEmissive(	
-		mMaterial->matcolor[0]*mMaterial->emit,
-		mMaterial->matcolor[1]*mMaterial->emit,
-		mMaterial->matcolor[2]*mMaterial->emit,
-		1.0
-		);
-	rasty->SetAmbient(mMaterial->amb);
-	if (mMaterial->material)
-		rasty->SetPolygonOffset(-mMaterial->material->zoffs, 0.0);
-
-	tmp->applyTexGen(rasty);
+	ActivatGLMaterials(rasty);
+	ActivateTexGen(rasty);
 }
 
 
@@ -443,6 +397,57 @@ void KX_BlenderMaterial::ActivateMeshSlot(const KX_MeshSlot & ms, RAS_IRasterize
 		mShader->Update(ms, rasty);
 }
 
+void KX_BlenderMaterial::ActivatGLMaterials( RAS_IRasterizer* rasty )const
+{
+	rasty->SetSpecularity(
+		mMaterial->speccolor[0]*mMaterial->spec_f,
+		mMaterial->speccolor[1]*mMaterial->spec_f,
+		mMaterial->speccolor[2]*mMaterial->spec_f,
+		mMaterial->spec_f
+	);
+
+	rasty->SetShinyness( mMaterial->hard );
+
+	rasty->SetDiffuse(
+		mMaterial->matcolor[0]*mMaterial->ref+mMaterial->emit, 
+		mMaterial->matcolor[1]*mMaterial->ref+mMaterial->emit,
+		mMaterial->matcolor[2]*mMaterial->ref+mMaterial->emit,
+		1.0f);
+
+	rasty->SetEmissive(	
+		mMaterial->matcolor[0]*mMaterial->emit,
+		mMaterial->matcolor[1]*mMaterial->emit,
+		mMaterial->matcolor[2]*mMaterial->emit,
+		1.0
+		);
+	rasty->SetAmbient(mMaterial->amb);
+	if (mMaterial->material)
+		rasty->SetPolygonOffset(-mMaterial->material->zoffs, 0.0);
+}
+
+void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
+{
+	//if(mShader && RAS_EXT_support._ARB_shader_objects)
+	//	if(mShader->GetAttribute() == BL_Shader::SHD_TANGENT)
+	//		ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT);
+
+	for(int i=0; i<mMaterial->num_enabled; i++) {
+		int mode = mMaterial->mapping[i].mapping;
+		
+		if( mode &(USEREFL|USEOBJ))
+			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_GEN, i);
+		else if(mode &USEORCO)
+			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_ORCO, i);
+		else if(mode &USENORM)
+			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_NORM, i);
+		else if(mode &USEUV)
+			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_UV1, i);
+		else if(mode &USETANG)
+			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXTANGENT, i);
+		else 
+			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_DISABLE, i);
+	}
+}
 
 bool KX_BlenderMaterial::setDefaultBlending()
 {
@@ -543,29 +548,6 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 
 }
 
-void KX_BlenderMaterial::applyTexGen(RAS_IRasterizer *ras)
-{
-	if(mShader && RAS_EXT_support._ARB_shader_objects)
-		if(mShader->GetAttribute() == BL_Shader::SHD_TANGENT)
-			ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT);
-
-	for(int i=0; i<mMaterial->num_enabled; i++) {
-		int mode = mMaterial->mapping[i].mapping;
-		
-		if( mode &(USEREFL|USEOBJ))
-			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_GEN, i);
-		else if(mode &USEORCO)
-			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_ORCO, i);
-		else if(mode &USENORM)
-			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_NORM, i);
-		else if(mode &USEUV)
-			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_UV1, i);
-		else 
-			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_DISABLE, i);
-	}
-}
-
-
 // ------------------------------------
 void KX_BlenderMaterial::UpdateIPO(
 	MT_Vector4 rgba,
@@ -625,7 +607,6 @@ PyParentObject KX_BlenderMaterial::Parents[] = {
 
 PyObject* KX_BlenderMaterial::_getattr(const STR_String& attr)
 {
-	// nodda ?
 	_getattr_up(PyObjectPlus);
 }
 
@@ -672,9 +653,9 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			mShader = new BL_Shader();
 			for(int i= 0; i<mMaterial->num_enabled; i++) {
 				if(mMaterial->mapping[i].mapping & USEENV )
-					mShader->InitializeSampler(SAMP_CUBE, i, 0, &mTextures[i]);
+					mShader->InitializeSampler(i, &mTextures[i]);
 				else
-					mShader->InitializeSampler(SAMP_2D, i, 0, &mTextures[i]);
+					mShader->InitializeSampler(i, &mTextures[i]);
 			}
 			mModified = true;
 		}

@@ -406,7 +406,7 @@ PFNGLGETACTIVEATTRIBARBPROC blGetActiveAttribARB;
 PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
 #endif
 
-
+#if 0 // TODO: GL_ARB_vertex/fragment_program support
 #ifdef GL_ARB_vertex_program
  PFNGLVERTEXATTRIB1FARBPROC blVertexAttrib1fARB;
  PFNGLVERTEXATTRIB1FVARBPROC blVertexAttrib1fvARB;
@@ -421,6 +421,13 @@ PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
  PFNGLGETVERTEXATTRIBFVARBPROC blGetVertexAttribfvARB;
  PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
 #endif
+#endif
+
+#ifdef GL_EXT_compiled_vertex_array
+ PFNGLLOCKARRAYSEXTPROC blLockArraysEXT;
+ PFNGLUNLOCKARRAYSEXTPROC blUnlockArraysEXT;
+#endif
+
 
 } // namespace bgl
 
@@ -605,6 +612,7 @@ static void LinkExtensions()
 	}
 #endif
 
+#if 0 // TODO: GL_ARB_vertex/fragment_program support
 #if defined(GL_ARB_vertex_program)
 	if (QueryExtension("GL_ARB_vertex_program"))
 	{
@@ -629,6 +637,7 @@ static void LinkExtensions()
 		}
 	}
 #endif
+#endif
 
 
 #ifdef GL_ARB_depth_texture
@@ -639,6 +648,22 @@ static void LinkExtensions()
 		if (doDebugMessages)
 		{
 			std::cout << "Detected GL_ARB_depth_texture" << std::endl;
+		}
+	}
+#endif
+
+#ifdef GL_EXT_compiled_vertex_array
+	if (QueryExtension("GL_EXT_compiled_vertex_array"))
+	{
+		blLockArraysEXT = reinterpret_cast<PFNGLLOCKARRAYSEXTPROC>(bglGetProcAddress((const GLubyte *) "glLockArraysEXT"));
+		blUnlockArraysEXT = reinterpret_cast<PFNGLUNLOCKARRAYSEXTPROC>(bglGetProcAddress((const GLubyte *) "glUnlockArraysEXT"));
+		if (blLockArraysEXT && blUnlockArraysEXT) {
+			EnableExtension(_GL_EXT_compiled_vertex_array);
+			RAS_EXT_support._EXT_compiled_vertex_array = 1;
+			if (doDebugMessages)
+				std::cout << "Enabled GL_EXT_compiled_vertex_array" << std::endl;
+		} else {
+			std::cout << "ERROR: GL_EXT_compiled_vertex_array implementation is broken!" << std::endl;
 		}
 	}
 #endif

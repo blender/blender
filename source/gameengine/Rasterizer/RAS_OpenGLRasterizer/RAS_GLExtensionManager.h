@@ -403,7 +403,8 @@ typedef struct BL_EXTInfo
 		_ARB_fragment_shader(0),
 		_EXT_texture3D(0),
 		_ARB_vertex_program(0),
-		_ARB_depth_texture(0)
+		_ARB_depth_texture(0),
+		_EXT_compiled_vertex_array(0)
 	{
 		//
 	}
@@ -417,6 +418,7 @@ typedef struct BL_EXTInfo
 	bool _EXT_texture3D;
 	bool _ARB_vertex_program;
 	bool _ARB_depth_texture;
+	bool _EXT_compiled_vertex_array;
 }BL_EXTInfo;
 
 extern BL_EXTInfo RAS_EXT_support;
@@ -508,6 +510,7 @@ extern PFNGLGETACTIVEATTRIBARBPROC blGetActiveAttribARB;
 extern PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
 #endif
 
+#if 0 // TODO: GL_ARB_vertex/fragment_program support
 #ifdef GL_ARB_vertex_program
 extern PFNGLVERTEXATTRIB1FARBPROC blVertexAttrib1fARB;
 extern PFNGLVERTEXATTRIB1FVARBPROC blVertexAttrib1fvARB;
@@ -522,7 +525,12 @@ extern PFNGLGETVERTEXATTRIBDVARBPROC blGetVertexAttribdvARB;
 extern PFNGLGETVERTEXATTRIBFVARBPROC blGetVertexAttribfvARB;
 extern PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
 #endif
+#endif
 
+#ifdef GL_EXT_compiled_vertex_array
+extern PFNGLLOCKARRAYSEXTPROC blLockArraysEXT;
+extern PFNGLUNLOCKARRAYSEXTPROC blUnlockArraysEXT;
+#endif
 
 } /* namespace bgl */
 

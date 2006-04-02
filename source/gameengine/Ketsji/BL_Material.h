@@ -146,7 +146,8 @@ enum BL_MappingFlag
 	USENORM	=8,
 	USEORCO =16,
 	USEUV	=32,
-	DISABLE =64
+	USETANG	=64,
+	DISABLE =128
 };
 
 // BL_Material::BL_Mapping::projplane

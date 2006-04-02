@@ -70,10 +70,16 @@ RAS_MeshObject::RAS_MeshObject(int lightlayer)
 	: m_bModified(true),
 	m_lightlayer(lightlayer),
 	m_zsort(false),
+	m_MeshMod(true),
 	m_class(0)
 {
 }
 
+
+bool RAS_MeshObject::MeshModified()
+{
+	return m_MeshMod;
+}
 
 	
 RAS_MeshObject::~RAS_MeshObject()
@@ -686,5 +692,7 @@ void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawing
 		}
 
 		m_bModified = false;
+
+		m_MeshMod = true;
 	} 
 }

@@ -59,8 +59,8 @@ BL_Texture::BL_Texture()
 	mOk(0),
 	mNeedsDeleted(0),
 	mType(0),
-	mName(""),
-	mUnit(0)
+	mUnit(0),
+	mEnvState(0)
 {
 	// --
 }
@@ -76,6 +76,16 @@ void BL_Texture::DeleteTex()
 		glDeleteTextures(1, (GLuint*)&mTexture);
 		mNeedsDeleted = 0;
 		mOk = 0;
+	}
+
+	if(mEnvState) {
+		glDeleteLists((GLuint)mEnvState, 1);
+		mEnvState =0;
+	}
+
+	if(mDisableState) {
+		glDeleteLists((GLuint)mDisableState, 1);
+		mDisableState =0;
 	}
 }
 
@@ -98,7 +108,6 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 	}
 	mTexture = img->bindcode;
 
-	mName = img->id.name;
 	mType = GL_TEXTURE_2D;
 	mUnit = unit;
 
@@ -193,7 +202,6 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap )
 	mNeedsDeleted =	1;
 	mType = GL_TEXTURE_CUBE_MAP_ARB;
 	mTexture = 0;
-	mName = CubeMap->ima->id.name;
 	mUnit = unit;
 
 
@@ -263,13 +271,6 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap )
 #endif//GL_ARB_texture_cube_map
 }
 
-
-STR_String BL_Texture::GetName() const
-{
-	return mName;
-}
-
-
 bool BL_Texture::IsValid()
 {
 	return (mTexture!= 0)?glIsTexture(mTexture)!=0:false;
@@ -308,8 +309,12 @@ int BL_Texture::GetMaxUnits()
 void BL_Texture::ActivateFirst()
 {
 #ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture)
+	if(RAS_EXT_support._ARB_multitexture) {
 		bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
+		//if(mVertexArray)
+		//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+
 #endif
 }
 
@@ -318,7 +323,11 @@ void BL_Texture::ActivateUnit(int unit)
 #ifdef GL_ARB_multitexture
 	if(RAS_EXT_support._ARB_multitexture) {
 		if(unit <= MAXTEX)
+		{
 			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+unit);
+			//if(mVertexArray)
+			//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
+		}
 	}
 #endif
 }
@@ -327,8 +336,11 @@ void BL_Texture::ActivateUnit(int unit)
 void BL_Texture::DisableUnit()
 {
 #ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture)
+	if(RAS_EXT_support._ARB_multitexture){
 		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
+		//if(mVertexArray)
+		//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
+	}
 #endif
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
@@ -350,10 +362,23 @@ void BL_Texture::DisableUnit()
 void BL_Texture::DisableAllTextures()
 {
 #ifdef GL_ARB_multitexture
+	if(mDisableState != 0 && glIsList(mDisableState)) {
+		glCallList(mDisableState);
+		return;
+	}
+	if(!mDisableState)
+		mDisableState = glGenLists(1);
+
+	glNewList(mDisableState, GL_COMPILE_AND_EXECUTE);
+
 	glDisable(GL_BLEND);
 	for(int i=0; i<MAXTEX; i++) {
 		if(RAS_EXT_support._ARB_multitexture)
+		{
 			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
+			//if(mVertexArray)
+			//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+i);
+		}
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
@@ -368,6 +393,8 @@ void BL_Texture::DisableAllTextures()
 		glDisable(GL_TEXTURE_GEN_Q);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 	}
+
+	glEndList();
 #endif
 }
 
@@ -376,7 +403,11 @@ void BL_Texture::ActivateTexture()
 {
 #ifdef GL_ARB_multitexture
 	if(RAS_EXT_support._ARB_multitexture)
+	{
 		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
+	//	if(mVertexArray)
+	//		bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
+	}
 #ifdef GL_ARB_texture_cube_map
 	if(mType == GL_TEXTURE_CUBE_MAP_ARB && RAS_EXT_support._ARB_texture_cube_map ) {
 		glDisable(GL_TEXTURE_2D);
@@ -385,7 +416,10 @@ void BL_Texture::ActivateTexture()
 	} else
 #endif
 	{
-		glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+#ifdef GL_ARB_texture_cube_map
+		if(RAS_EXT_support._ARB_texture_cube_map )
+			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+#endif
 		glBindTexture( GL_TEXTURE_2D, mTexture );	
 		glEnable(GL_TEXTURE_2D);
 	}
@@ -442,6 +476,16 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 		return;
 	}
+
+	if(glIsList(mEnvState))
+	{
+		glCallList(mEnvState);
+		return;
+	}
+	if(!mEnvState)
+		mEnvState = glGenLists(1);
+
+	glNewList(mEnvState, GL_COMPILE_AND_EXECUTE);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB );
 
@@ -560,6 +604,8 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 			} break;
 	}
 	glTexEnvf(	GL_TEXTURE_ENV, GL_RGB_SCALE_ARB,	1.0);
+
+	glEndList();
 #endif //!GL_ARB_texture_env_combine
 }
 
@@ -570,6 +616,9 @@ int BL_Texture::GetPow2(int n)
 
 	return n;
 }
+
+
+unsigned int BL_Texture::mDisableState = 0;
 
 extern "C" {
 

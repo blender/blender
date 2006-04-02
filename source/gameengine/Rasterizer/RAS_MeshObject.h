@@ -132,8 +132,9 @@ class RAS_MeshObject
 	vector<class RAS_Polygon*> 	m_Polygons;
 	STR_String					m_name;
 	static STR_String			s_emptyname;
-	bool					m_zsort;
-	
+	bool						m_zsort;
+	bool						m_MeshMod;
+
 	struct polygonSlot;
 	struct backtofront;
 	struct fronttoback;
@@ -255,6 +256,10 @@ public:
 	const vecIndexArrays& GetIndexCache (RAS_IPolyMaterial* mat);
 	void				SetName(STR_String name);
 	const STR_String&	GetName();
+
+	bool				MeshModified();
+	void				SetMeshModified(bool v){m_MeshMod = v;}
+
 };
 
 #endif //__RAS_MESHOBJECT

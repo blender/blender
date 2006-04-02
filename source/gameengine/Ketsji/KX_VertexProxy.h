@@ -40,8 +40,9 @@ class KX_VertexProxy	: public SCA_IObject
 protected:
 
 	class RAS_TexVert*	m_vertex;
+	class KX_MeshProxy*	m_mesh;
 public:
-	KX_VertexProxy(class RAS_TexVert* vertex);
+	KX_VertexProxy(class KX_MeshProxy*mesh, class RAS_TexVert* vertex);
 	virtual ~KX_VertexProxy();
 
 	// stuff for cvalue related things

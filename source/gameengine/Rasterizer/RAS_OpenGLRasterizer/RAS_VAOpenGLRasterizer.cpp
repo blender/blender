@@ -54,8 +54,9 @@
 
 using namespace bgl;
 
-RAS_VAOpenGLRasterizer::RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas)
-:RAS_OpenGLRasterizer(canvas)
+RAS_VAOpenGLRasterizer::RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas, bool lock)
+:	RAS_OpenGLRasterizer(canvas),
+	m_Lock(lock && RAS_EXT_support._EXT_compiled_vertex_array)	
 {
 }
 
@@ -64,8 +65,6 @@ RAS_VAOpenGLRasterizer::RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas)
 RAS_VAOpenGLRasterizer::~RAS_VAOpenGLRasterizer()
 {
 }
-
-
 
 bool RAS_VAOpenGLRasterizer::Init(void)
 {
@@ -138,7 +137,8 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 							class RAS_IPolyMaterial* polymat,
 							class RAS_IRenderTools* rendertools,
 							bool useObjectColor,
-							const MT_Vector4& rgbacolor)
+							const MT_Vector4& rgbacolor,
+							class KX_ListSlot** slot)
 {
 	static const GLsizei vtxstride = sizeof(RAS_TexVert);
 	GLenum drawmode;
@@ -181,13 +181,13 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 	{
 		glColor3d(0,0,0);
 	}
+
 	// use glDrawElements to draw each vertexarray
 	for (vt=0;vt<vertexarrays.size();vt++)
 	{
 		vertexarray = &((*vertexarrays[vt]) [0]);
 		const KX_IndexArray & indexarray = (*indexarrays[vt]);
 		numindices = indexarray.size();
-		// int numverts = vertexarrays[vt]->size();
 
 		if (!numindices)
 			continue;
@@ -196,11 +196,139 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 		glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());
 		glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
 		glNormalPointer(GL_FLOAT,vtxstride,vertexarray->getNormal());
-		//glLockArraysEXT(0,numverts);
+
+		//if(m_Lock)
+		//	local->Begin(vertexarrays[vt]->size());
+
 		// here the actual drawing takes places
 		glDrawElements(drawmode,numindices,GL_UNSIGNED_SHORT,&(indexarray[0]));
-		//glUnlockArraysEXT();
+
+		//if(m_Lock)
+		//	local->End();
+
+
 	}
+}
+
+
+void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti( const vecVertexArray& vertexarrays,
+							const vecIndexArrays & indexarrays,
+							int mode,
+							class RAS_IPolyMaterial* polymat,
+							class RAS_IRenderTools* rendertools,
+							bool useObjectColor,
+							const MT_Vector4& rgbacolor,
+							class KX_ListSlot** slot)
+{
+	static const GLsizei vtxstride = sizeof(RAS_TexVert);
+	GLenum drawmode;
+	switch (mode)
+	{
+	case 0:
+		{
+		drawmode = GL_TRIANGLES;
+		break;
+		}
+	case 2:
+		{
+		drawmode = GL_QUADS;
+		break;
+		}
+	case 1:	//lines
+		{
+		}
+	default:
+		{
+		drawmode = GL_LINES;
+		break;
+		}
+	}
+	const RAS_TexVert* vertexarray;
+	unsigned int numindices, vt;
+	const unsigned int enabled = polymat->GetEnabled();
+
+	if (drawmode != GL_LINES)
+	{
+		if (useObjectColor)
+		{
+			glDisableClientState(GL_COLOR_ARRAY);
+			glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+		} else
+		{
+			glColor4d(0,0,0,1.0);
+			glEnableClientState(GL_COLOR_ARRAY);
+		}
+	}
+	else
+	{
+		glColor3d(0,0,0);
+	}
+
+	// use glDrawElements to draw each vertexarray
+	for (vt=0;vt<vertexarrays.size();vt++)
+	{
+		vertexarray = &((*vertexarrays[vt]) [0]);
+		const KX_IndexArray & indexarray = (*indexarrays[vt]);
+		numindices = indexarray.size();
+
+		if (!numindices)
+			continue;
+		
+		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
+		TexCoordPtr(vertexarray, enabled);
+
+		//glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());
+		glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
+		glNormalPointer(GL_FLOAT,vtxstride,vertexarray->getNormal());
+
+		//if(m_Lock)
+		//	local->Begin(vertexarrays[vt]->size());
+
+		// here the actual drawing takes places
+		glDrawElements(drawmode,numindices,GL_UNSIGNED_SHORT,&(indexarray[0]));
+		
+		//if(m_Lock)
+		//	local->End();
+	}
+}
+
+void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv, int enabled)
+{
+#ifdef GL_ARB_multitexture
+	if(bgl::RAS_EXT_support._ARB_multitexture)
+	{
+		for(int unit=0; unit<enabled; unit++)
+		{
+			bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			if( tv->getFlag() & TV_2NDUV && tv->getUnit() == unit ) {
+				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert), tv->getUV2());
+				continue;
+			}
+			switch(m_texco[unit])
+			{
+			case RAS_TEXCO_DISABLE:
+			case RAS_TEXCO_OBJECT:
+			case RAS_TEXCO_GEN:
+				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				break;
+			case RAS_TEXCO_ORCO:
+			case RAS_TEXCO_GLOB:
+				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getLocalXYZ());
+				break;
+			case RAS_TEXCO_UV1:
+				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV1());
+				break;
+			case RAS_TEXCO_NORM:
+				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getNormal());
+				break;
+			case RAS_TEXTANGENT:
+				glTexCoordPointer(4, GL_FLOAT, sizeof(RAS_TexVert),tv->getTangent());
+			}
+		}
+	}
+#endif
 }
 
 

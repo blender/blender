@@ -82,6 +82,7 @@ extern "C"
 #include "RAS_MeshObject.h"
 #include "RAS_OpenGLRasterizer.h"
 #include "RAS_VAOpenGLRasterizer.h"
+#include "RAS_ListRasterizer.h"
 #include "RAS_GLExtensionManager.h"
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
@@ -494,7 +495,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
-
+		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DIAPLAY_LISTS) != 0);
 #ifdef GL_ARB_multitexture
 		int gameflag =(G.fileflags & G_FILE_GAME_MAT);
 		// ----------------------------------
@@ -521,8 +522,10 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_rendertools = new GPC_RenderTools();
 		if (!m_rendertools)
 			goto initFailed;
-					
-		if (useVertexArrays && bgl::QueryVersion(1, 1))
+		
+		if(useLists)
+			m_rasterizer = new RAS_ListRasterizer(m_canvas);
+		else if (useVertexArrays && bgl::QueryVersion(1, 1))
 			m_rasterizer = new RAS_VAOpenGLRasterizer(m_canvas);
 		else
 			m_rasterizer = new RAS_OpenGLRasterizer(m_canvas);

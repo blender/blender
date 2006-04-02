@@ -1,8 +1,8 @@
 #ifndef __BL_TEXTURE_H__
 #define __BL_TEXTURE_H__
 
-#include <vector>
-#include <map>
+//	#include <vector>
+//	#include <map>
 
 #include "MT_Matrix4x4.h"
 #include "KX_Camera.h"
@@ -11,38 +11,35 @@
 struct Image;
 struct EnvMap;
 class BL_Material;
-class RTData;
 class RAS_Rect;
 class RAS_ICanvas;
+//class RTData;
 
-// --
 #include "STR_String.h"
 
 class BL_Texture
 {
 private:
 	// -----------------------------------
-	unsigned int		mTexture;
-	bool				mError;
-	bool				mOk;
-	bool				mNeedsDeleted;
-	unsigned int		mType;
-	STR_String			mName;
-	int					mUnit;
+	unsigned int		mTexture;		// Bound texture unit data
+	bool				mError;			// Errors
+	bool				mOk;			// ...
+	bool				mNeedsDeleted;	// If generated
+	unsigned int		mType;			// enum TEXTURE_2D | CUBE_MAP 
+	int					mUnit;			// Texture unit associated with mTexture
+	unsigned int		mEnvState;		// cache textureEnv
+	static unsigned int	mDisableState;	// speed up disabling calls
 	// -----------------------------------
+
 	void InitNonPow2Tex(unsigned int *p,int x,int y,bool mipmap );
 	void InitGLTex(unsigned int *p,int x,int y,bool mipmap );
-
 public:
 	BL_Texture();
 	~BL_Texture( );
-	
-	//operator const unsigned int () const;
+
 	bool Ok();
 	int	 GetUnit()			{return mUnit;}
 	void SetUnit(int unit)	{mUnit = unit;}
-
-	STR_String GetName() const;
 
 	unsigned int GetTextureType() const;
 	void DeleteTex();

@@ -1302,10 +1302,12 @@ static uiBlock *info_addmenu(void *arg_unused)
 
 /************************** GAME *****************************/
 
+	
 static void do_info_gamemenu(void *arg, int event)
 {
 	switch (event) {
 	case G_FILE_ENABLE_ALL_FRAMES:
+	case G_FILE_DIAPLAY_LISTS:
 	case G_FILE_SHOW_FRAMERATE:
 	case G_FILE_SHOW_DEBUG_PROPS:
 	case G_FILE_AUTOPLAY:
@@ -1342,6 +1344,12 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	if(G.fileflags & G_FILE_GAME_TO_IPO) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Record Game Physics to IPO",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_TO_IPO, "");
 	} else {
+
+	if(G.fileflags & G_FILE_DIAPLAY_LISTS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Generate Display Lists",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_DIAPLAY_LISTS, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Generate Display Lists",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_DIAPLAY_LISTS, "");
+	}	
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Record Game Physics to IPO",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_GAME_TO_IPO, "");
 	}
 	

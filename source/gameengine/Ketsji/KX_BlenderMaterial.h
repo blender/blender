@@ -93,6 +93,9 @@ private:
 	unsigned int	mBlendFunc[2];
 	bool			mModified;
 
+	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
+	void ActivateTexGen( RAS_IRasterizer *ras ) const;
+
 
 	// message centers
 	void	setTexData( bool enable,RAS_IRasterizer *ras);
@@ -104,7 +107,6 @@ private:
 
 	void	setLightData();
 
-	void	applyTexGen(RAS_IRasterizer *ras);
 	// cleanup stuff
 	void	OnExit();
 

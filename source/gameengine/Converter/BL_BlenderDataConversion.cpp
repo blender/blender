@@ -426,6 +426,8 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 						material->mapping[i].mapping |= USEUV;
 					else if(mttmp->texco &TEXCO_NORM)
 						material->mapping[i].mapping |= USENORM;
+					else if(mttmp->texco &TEXCO_TANGENT)
+						material->mapping[i].mapping |= USETANG;
 					else
 						material->mapping[i].mapping |= DISABLE;
 					

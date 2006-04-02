@@ -61,9 +61,6 @@ void KX_VertexIndex::SetIndex(short loc,unsigned int index)
 	m_indexarray[loc]=index;
 }
 
-
-
-
 bool KX_MeshSlot::Less(const KX_MeshSlot& lhs) const
 {
 	bool result = ((m_mesh < lhs.m_mesh ) ||
@@ -205,8 +202,8 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 	if (!ms.m_bVisible)
 		return;
 	
-	m_material->ActivateMeshSlot(ms, rasty);
 	rendertools->SetClientObject(ms.m_clientObj);
+	m_material->ActivateMeshSlot(ms, rasty);
 
 	/* __NLA Do the deformation */
 	if (ms.m_pDeformer)
@@ -221,6 +218,12 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 
 	rendertools->PushMatrix();
 	rendertools->applyTransform(rasty,ms.m_OpenGLMatrix,m_material->GetDrawingMode());
+
+	if(rasty->QueryLists())
+	{
+		if(ms.m_DisplayList)
+			ms.m_DisplayList->SetModified(ms.m_mesh->MeshModified());
+	}
 
 	// Use the text-specific IndexPrimitives for text faces
 	if (m_material->GetDrawingMode() & RAS_IRasterizer::RAS_RENDER_3DPOLYGON_TEXT)
@@ -246,14 +249,15 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				m_material,
 				rendertools,
 				ms.m_bObjectColor,
-				ms.m_RGBAcolor
+				ms.m_RGBAcolor,
+				&ms.m_DisplayList
 				);
 	}
 
 	// for using glMultiTexCoord on deformer
 	else if(m_material->GetFlag() & RAS_DEFMULTI )
 	{
-		rasty->IndexPrimitivesMulti(
+		rasty->IndexPrimitivesMulti_Ex(
 				ms.m_mesh->GetVertexCache(m_material), 
 				ms.m_mesh->GetIndexCache(m_material), 
 				drawmode,
@@ -287,10 +291,16 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				m_material,
 				rendertools, // needed for textprinting on polys
 				ms.m_bObjectColor,
-				ms.m_RGBAcolor
+				ms.m_RGBAcolor,
+				&ms.m_DisplayList
 				);
 	}
-	
+
+	if(rasty->QueryLists()) {
+		if(ms.m_DisplayList)
+			ms.m_mesh->SetMeshModified(false);
+	}
+
 	rendertools->PopMatrix();
 }
 

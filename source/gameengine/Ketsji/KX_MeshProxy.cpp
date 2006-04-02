@@ -84,6 +84,12 @@ KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
   {NULL,NULL} //Sentinel
 };
 
+void KX_MeshProxy::SetMeshModified(bool v)
+{
+	m_meshobj->SetMeshModified(v);
+}
+
+
 PyObject*
 KX_MeshProxy::_getattr(const STR_String& attr)
 {
@@ -211,7 +217,7 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 		RAS_TexVert* vertex = m_meshobj->GetVertex(matindex,vertexindex);
 		if (vertex)
 		{
-			vertexob = new KX_VertexProxy(vertex);
+			vertexob = new KX_VertexProxy(this, vertex);
 		}
 	}
 

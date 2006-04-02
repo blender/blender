@@ -43,6 +43,8 @@ public:
 	KX_MeshProxy(class RAS_MeshObject* mesh);
 	virtual ~KX_MeshProxy();
 
+	void SetMeshModified(bool v);
+
 	// stuff for cvalue related things
 	virtual CValue*		Calc(VALUE_OPERATOR op, CValue *val) ;
 	virtual CValue*		CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue *val);

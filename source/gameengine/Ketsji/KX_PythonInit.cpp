@@ -773,6 +773,7 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 	KX_MACRO_addTypesToDict(d, VIEWMATRIX_INVERSE, BL_Shader::VIEWMATRIX_INVERSE);
 	KX_MACRO_addTypesToDict(d, VIEWMATRIX_INVERSETRANSPOSE, BL_Shader::VIEWMATRIX_INVERSETRANSPOSE);
 	KX_MACRO_addTypesToDict(d, CAM_POS, BL_Shader::CAM_POS);
+	KX_MACRO_addTypesToDict(d, CONSTANT_TIMER, BL_Shader::CONSTANT_TIMER);
 
 	// Check for errors
 	if (PyErr_Occurred())

@@ -94,8 +94,6 @@ int	KX_BlenderRenderTools::ProcessLighting(int layer)
 	{
 		if (m_clientobject)
 		{
-
-			
 			if (applyLights(layer))
 			{
 				EnableOpenGLLights();
@@ -104,9 +102,7 @@ int	KX_BlenderRenderTools::ProcessLighting(int layer)
 			{
 				DisableOpenGLLights();
 				result = false;
-			}
-
-			
+			}			
 		}
 	}
 	return result;

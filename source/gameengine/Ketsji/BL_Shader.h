@@ -11,53 +11,124 @@
 #include "MT_Tuple3.h"
 #include "MT_Tuple4.h"
 
-// -----------------------------------
-// user state management
-typedef struct uSampler
-{
-	unsigned int	type;
-	int				pass;
-	int				unit;
-	int				loc;
-	BL_Texture*		gl_texture;
-	int				flag;
-}uSampler;
+#define SHADER_ATTRIBMAX 1
 
-#define SAMP_2D		1
-#define SAMP_CUBE	2
-#define ATTRIBMAX	1
-
-// uSampler::flag;
-enum 
+/**
+ * BL_Sampler
+ *  Sampler access 
+ */
+class BL_Sampler
 {
-	OWN=1
+public:
+	BL_Sampler():
+		mLoc(-1),
+		mTexture(0),
+		mOwn(0)
+	{
+	}
+	int				mLoc;		// Sampler location
+	BL_Texture*		mTexture;	// Texture data
+	bool			mOwn;		// True if we own it
 };
 
-// ----------------
+/**
+ * BL_Uniform
+ *  uniform storage 
+ */
+class BL_Uniform 
+{
+private:
+	int			mLoc;		// Uniform location
+	void*		mData;		// Memory allocated for variable
+	bool		mDirty;		// Caching variable  
+	int			mType;		// Enum UniformTypes
+	bool		mTranspose; // Transpose matrices
+	const int	mDataLen;	// Length of our data
+public:
+	BL_Uniform(int data_size);
+	~BL_Uniform();
+	
+
+	void Apply(class BL_Shader *shader);
+	void SetData(int location, int type, bool transpose=false);
+
+	enum UniformTypes {
+		UNI_NONE	=0,
+		UNI_INT,
+		UNI_FLOAT,
+		UNI_INT2,
+		UNI_FLOAT2,
+		UNI_INT3,
+		UNI_FLOAT3,
+		UNI_INT4,
+		UNI_FLOAT4,
+		UNI_MAT3,
+		UNI_MAT4,
+		UNI_MAX
+	};
+
+	int GetLocation()	{ return mLoc; }
+	void* getData()		{ return mData; }
+};
+
+/**
+ * BL_DefUniform
+ * pre defined uniform storage 
+ */
+class BL_DefUniform
+{
+public:
+	BL_DefUniform() :
+		mType(0),
+		mLoc(0),
+		mFlag(0)
+	{
+	}
+	int				mType;
+	int				mLoc;
+	unsigned int	mFlag;
+};
+
+/**
+ * BL_Shader
+ *  shader access
+ */
 class BL_Shader : public PyObjectPlus
 {
 	Py_Header;
 private:
-	unsigned int	mShader;
-	int				mPass;
-	bool			mOk;
-	bool			mUse;
-	uSampler		mSampler[MAXTEX];
-	char*			vertProg;
-	char*			fragProg;
-	bool			mError;
-	
-	int				mAttr;
-	int				mPreDefLoc;
-	int				mPreDefType;
-	bool			mDeleteTexture;
+	typedef std::vector<BL_Uniform*>	BL_UniformVec;
+	typedef std::vector<BL_DefUniform*>	BL_UniformVecDef;
 
-	bool			LinkProgram();
+	unsigned int	mShader;			// Shader object 
+	int				mPass;				// 1.. unused
+	bool			mOk;				// Valid and ok
+	bool			mUse;				// ...
+	BL_Sampler		mSampler[MAXTEX];	// Number of samplers
+	char*			vertProg;			// Vertex program string
+	char*			fragProg;			// Fragment program string
+	bool			mError;				// ...
+	bool			mDirty;				// 
+
+	// Compiles and links the shader
+	bool LinkProgram();
+
+	// Stored uniform variables
+	BL_UniformVec		mUniforms;
+	BL_UniformVecDef	mPreDef;
+
+	// search by location
+	BL_Uniform*		FindUniform(const int location);
+	// clears uniform data
+	void			ClearUniforms();
+
 public:
 	BL_Shader(PyTypeObject *T=&Type);
 	virtual ~BL_Shader();
 
-	enum AttribTypes{
+	// Unused for now tangent is set as 
+	// tex coords
+	enum AttribTypes {
 		SHD_TANGENT =1
 	};
 
@@ -78,46 +149,61 @@ public:
 		VIEWMATRIX_TRANSPOSE,
 		VIEWMATRIX_INVERSE,
 		VIEWMATRIX_INVERSETRANSPOSE,
-		CAM_POS
+
+		// Current camera position 
+		CAM_POS,
+
+		// RAS timer
+		CONSTANT_TIMER
 	};
 
-	char*		GetVertPtr();
-	char*		GetFragPtr();
-	void		SetVertPtr( char *vert );
-	void		SetFragPtr( char *frag );
+	const char* GetVertPtr();
+	const char* GetFragPtr();
+	void SetVertPtr( char *vert );
+	void SetFragPtr( char *frag );
 	
 	// ---
 	int getNumPass()	{return mPass;}
-	bool use()			{return mUse;}
 	bool GetError()		{return mError;}
 	// ---
-	// access
-	const uSampler*		getSampler(int i);
+	const BL_Sampler*	GetSampler(int i);
 	void				SetSampler(int loc, int unit);
 
 	const bool			Ok()const;
 	unsigned int		GetProg();
 	void				SetProg(bool enable);
-	int					GetAttribute(){return mAttr;};
 
-	void InitializeSampler( int type, int unit, int pass, BL_Texture* texture );
+	// -- 
+	// Apply methods : sets colected uniforms
+	void ApplyShader();
+	void UnloadShader();
 
-	void Update( const class KX_MeshSlot & ms, class RAS_IRasterizer* rasty );
+	// Update predefined uniforms each render call
+	void Update(const class KX_MeshSlot & ms, class RAS_IRasterizer* rasty);
 
-	// form tuhopuu2
-	virtual int GetAttribLocation(const STR_String& name);
-	virtual void BindAttribute(const STR_String& attr, int loc);
-	virtual int GetUniformLocation(const STR_String& name);
-	virtual void SetUniform(int uniform, const MT_Tuple2& vec);
-	virtual void SetUniform(int uniform, const MT_Tuple3& vec);
-	virtual void SetUniform(int uniform, const MT_Tuple4& vec);
-	virtual void SetUniform(int uniform, const unsigned int& val);
-	virtual void SetUniform(int uniform, const float& val);
-	virtual void SetUniform(int uniform, const MT_Matrix4x4& vec, bool transpose=false);
-	virtual void SetUniform(int uniform, const MT_Matrix3x3& vec, bool transpose=false);
+	// Set sampler units (copied)
+	void InitializeSampler(int unit, BL_Texture* texture );
 
-	// -----------------------------------
-	// python interface
+
+	void SetUniformfv(int location,int type, float *param, int size,bool transpose=false);
+	void SetUniformiv(int location,int type, int *param, int size,bool transpose=false);
+
+	int GetAttribLocation(const STR_String& name);
+	void BindAttribute(const STR_String& attr, int loc);
+	int GetUniformLocation(const STR_String& name);
+
+	void SetUniform(int uniform, const MT_Tuple2& vec);
+	void SetUniform(int uniform, const MT_Tuple3& vec);
+	void SetUniform(int uniform, const MT_Tuple4& vec);
+	void SetUniform(int uniform, const MT_Matrix4x4& vec, bool transpose=false);
+	void SetUniform(int uniform, const MT_Matrix3x3& vec, bool transpose=false);
+	void SetUniform(int uniform, const float& val);
+	void SetUniform(int uniform, const float* val, int len);
+	void SetUniform(int uniform, const int* val, int len);
+	void SetUniform(int uniform, const unsigned int& val);
+	void SetUniform(int uniform, const int val);
+
+	// Python interface
 	virtual PyObject* _getattr(const STR_String& attr);
 
 	KX_PYMETHOD_DOC( BL_Shader, setSource );
@@ -148,11 +234,9 @@ public:
 
 	KX_PYMETHOD_DOC( BL_Shader, setAttrib );
 
-	// these come from within the material buttons
+	// These come from within the material buttons
 	// sampler2d/samplerCube work
 	KX_PYMETHOD_DOC( BL_Shader, setSampler);
 };
-
-
 
 #endif//__BL_SHADER_H__

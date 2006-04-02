@@ -61,6 +61,7 @@
 
 #include "RAS_OpenGLRasterizer.h"
 #include "RAS_VAOpenGLRasterizer.h"
+#include "RAS_ListRasterizer.h"
 #include "RAS_GLExtensionManager.h"
 
 #include "NG_LoopBackNetworkDeviceInterface.h"
@@ -122,9 +123,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
-		
+		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool usemat = false;
-
+		
 		#ifdef GL_ARB_multitexture
 		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
 			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
@@ -148,8 +149,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
 		bool useVertexArrays = (usevta > 0);
 		
-		if (useVertexArrays && bgl::QueryVersion(1, 1))
-			rasterizer = new RAS_VAOpenGLRasterizer(canvas);
+		bool lock_arrays = (displaylists && useVertexArrays);
+
+		if(displaylists && !useVertexArrays)
+			rasterizer = new RAS_ListRasterizer(canvas);
+		else if (useVertexArrays && bgl::QueryVersion(1, 1))
+			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
 		

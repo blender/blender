@@ -89,13 +89,12 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_focallength;
 	bool			m_setfocallength;
 	int				m_noOfScanlines;
-	TexCoGen		m_texco[RAS_MAX];
-	bool			m_useTang;
-	
 	bool			InterlacedStereo() const;
 
 protected:
 	int				m_drawingmode;
+	TexCoGen		m_texco[RAS_MAX];
+
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
 
@@ -148,7 +147,8 @@ public:
 						class RAS_IPolyMaterial* polymat,
 						class RAS_IRenderTools* rendertools,
 						bool useObjectColor,
-						const MT_Vector4& rgbacolor
+						const MT_Vector4& rgbacolor,
+						class KX_ListSlot** slot
 					);
 
 	virtual void	IndexPrimitives_Ex(
@@ -178,7 +178,8 @@ public:
 						class RAS_IPolyMaterial* polymat,
 						class RAS_IRenderTools* rendertools,
 						bool useObjectColor,
-						const MT_Vector4& rgbacolor);
+						const MT_Vector4& rgbacolor,
+						class KX_ListSlot** slot);
 
 	virtual void IndexPrimitivesMulti_Ex( 
 						const vecVertexArray& vertexarrays,
@@ -284,8 +285,12 @@ public:
 
 	virtual void	SetTexCoords(TexCoGen coords,int enabled);
 	void			TexCoord(const RAS_TexVert &tv, int unit);
-	virtual void	SetAttrib(int type);
 	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const;
+
+	void	Tangent(const RAS_TexVert& v1,
+					const RAS_TexVert& v2,
+					const RAS_TexVert& v3,
+					const MT_Vector3 &no);
 
 };
 

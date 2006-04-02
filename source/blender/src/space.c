@@ -382,6 +382,8 @@ void space_set_commmandline_options(void) {
 
 		a=(G.fileflags & G_FILE_GAME_MAT);
 		SYS_WriteCommandLineInt(syshandle, "blender_material", a);
+		a=(G.fileflags & G_FILE_DIAPLAY_LISTS);
+		SYS_WriteCommandLineInt(syshandle, "displaylists", a);
 
 
 	}
