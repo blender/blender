@@ -116,7 +116,9 @@
 
 /* this weirdo pops up in two places ... */
 #if !defined(WIN32) && !defined(__BeOS)
+#ifndef O_BINARY
 #define O_BINARY 0
+#endif
 #endif
 
 /* INTEGER CODES */

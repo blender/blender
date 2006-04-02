@@ -182,7 +182,7 @@ short imb_save_dpx(struct ImBuf *buf, char *myfile, int flags)
 	return imb_save_dpx_cineon(buf, myfile, 0, flags);
 }
 
-short imb_is_dpx(void *buf)
+int imb_is_dpx(void *buf)
 {
 	return dpxIsMemFileCineon(buf);
 }

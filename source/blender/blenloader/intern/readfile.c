@@ -859,7 +859,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
 
 static FileData *filedata_new(void)
 {
-	extern char DNAstr[];	/* DNA.c */
+	extern unsigned char DNAstr[];	/* DNA.c */
 	extern int DNAlen;
 	FileData *fd = MEM_callocN(sizeof(FileData), "FileData");
 

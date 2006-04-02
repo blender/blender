@@ -146,12 +146,14 @@ typedef struct ImBuf{
 	char	namenull;
 	int	userflags;
 	int	*zbuf;
+	float *zbuf_float;	/**< z buffer data, camera coordinates */
 	void *userdata;
 	unsigned char *encodedbuffer;
 	unsigned int   encodedsize;
 	unsigned int   encodedbuffersize;
 
 	float *rect_float;
+	float dither;			/**< random dither value, for conversion from float -> byte rect */
 
 	struct MEM_CacheLimiterHandle_s * c_handle;
         int refcounter;

@@ -189,7 +189,7 @@ typedef struct {
 
 static WriteData *writedata_new(int file)
 {
-	extern char DNAstr[];	/* DNA.c */
+	extern unsigned char DNAstr[];	/* DNA.c */
 	extern int DNAlen;
 
 	WriteData *wd= MEM_callocN(sizeof(*wd), "writedata");
