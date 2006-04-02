@@ -2339,6 +2339,9 @@ int view2dmove(unsigned short event)
 	
 	/* test where mouse is */
 	getmouseco_areawin(mvalo);
+	/* initialize this too */
+	mval[0]= mvalo[0];
+	mval[1]= mvalo[1];
 	
 	if ELEM7(curarea->spacetype, SPACE_IPO, SPACE_SEQ, SPACE_OOPS, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME) {
 
