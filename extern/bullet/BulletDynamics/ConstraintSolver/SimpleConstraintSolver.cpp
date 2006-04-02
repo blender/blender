@@ -26,13 +26,6 @@ subject to the following restrictions:
 #include "JacobianEntry.h"
 #include "GEN_MinMax.h"
 
-//debugging
-bool doApplyImpulse = true;
-
-
-
-bool useImpulseFriction = true;//true;//false;
-
 
 
 
@@ -97,57 +90,59 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 		for (int i=0;i<numpoints ;i++)
 		{
 			ManifoldPoint& cp = manifoldPtr->GetContactPoint(i);
-			const SimdVector3& pos1 = cp.GetPositionWorldOnA();
-			const SimdVector3& pos2 = cp.GetPositionWorldOnB();
+			if (cp.GetDistance() <= 0.f)
+			{
+				const SimdVector3& pos1 = cp.GetPositionWorldOnA();
+				const SimdVector3& pos2 = cp.GetPositionWorldOnB();
 
-			SimdVector3 rel_pos1 = pos1 - body0->getCenterOfMassPosition(); 
-			SimdVector3 rel_pos2 = pos2 - body1->getCenterOfMassPosition();
-			
-			//this jacobian entry is re-used for all iterations
-			JacobianEntry jac(body0->getCenterOfMassTransform().getBasis().transpose(),
-				body1->getCenterOfMassTransform().getBasis().transpose(),
-				rel_pos1,rel_pos2,cp.m_normalWorldOnB,body0->getInvInertiaDiagLocal(),body0->getInvMass(),
-				body1->getInvInertiaDiagLocal(),body1->getInvMass());
+				SimdVector3 rel_pos1 = pos1 - body0->getCenterOfMassPosition(); 
+				SimdVector3 rel_pos2 = pos2 - body1->getCenterOfMassPosition();
+				
+				//this jacobian entry is re-used for all iterations
+				JacobianEntry jac(body0->getCenterOfMassTransform().getBasis().transpose(),
+					body1->getCenterOfMassTransform().getBasis().transpose(),
+					rel_pos1,rel_pos2,cp.m_normalWorldOnB,body0->getInvInertiaDiagLocal(),body0->getInvMass(),
+					body1->getInvInertiaDiagLocal(),body1->getInvMass());
 
-			SimdScalar jacDiagAB = jac.getDiagonal();
-			
-			cp.m_jacDiagABInv = 1.f / jacDiagAB;
+				SimdScalar jacDiagAB = jac.getDiagonal();
+				
+				cp.m_jacDiagABInv = 1.f / jacDiagAB;
 
-			//for friction
-			cp.m_prevAppliedImpulse = cp.m_appliedImpulse;
+				//for friction
+				cp.m_prevAppliedImpulse = cp.m_appliedImpulse;
 
-			float relaxation = info.m_damping;
-			cp.m_appliedImpulse *= relaxation;
-			
-			//re-calculate friction direction every frame, todo: check if this is really needed
-			SimdPlaneSpace1(cp.m_normalWorldOnB,cp.m_frictionWorldTangential0,cp.m_frictionWorldTangential1);
+				float relaxation = info.m_damping;
+				cp.m_appliedImpulse *= relaxation;
+				
+				//re-calculate friction direction every frame, todo: check if this is really needed
+				SimdPlaneSpace1(cp.m_normalWorldOnB,cp.m_frictionWorldTangential0,cp.m_frictionWorldTangential1);
 
-#ifdef NO_FRICTION_WARMSTART
-			cp.m_accumulatedTangentImpulse0 = 0.f;
-			cp.m_accumulatedTangentImpulse1 = 0.f;
-#endif //NO_FRICTION_WARMSTART
-			float denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential0);
-			float denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential0);
-			float denom = relaxation/(denom0+denom1);
-			cp.m_jacDiagABInvTangent0 = denom;
+	#ifdef NO_FRICTION_WARMSTART
+				cp.m_accumulatedTangentImpulse0 = 0.f;
+				cp.m_accumulatedTangentImpulse1 = 0.f;
+	#endif //NO_FRICTION_WARMSTART
+				float denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential0);
+				float denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential0);
+				float denom = relaxation/(denom0+denom1);
+				cp.m_jacDiagABInvTangent0 = denom;
 
 
-			denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential1);
-			denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential1);
-			denom = relaxation/(denom0+denom1);
-			cp.m_jacDiagABInvTangent1 = denom;
+				denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential1);
+				denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential1);
+				denom = relaxation/(denom0+denom1);
+				cp.m_jacDiagABInvTangent1 = denom;
 
-			SimdVector3 totalImpulse = 
-#ifndef NO_FRICTION_WARMSTART
-				cp.m_frictionWorldTangential0*cp.m_accumulatedTangentImpulse0+
-				cp.m_frictionWorldTangential1*cp.m_accumulatedTangentImpulse1+
-#endif //NO_FRICTION_WARMSTART
-				cp.m_normalWorldOnB*cp.m_appliedImpulse;
+				SimdVector3 totalImpulse = 
+	#ifndef NO_FRICTION_WARMSTART
+					cp.m_frictionWorldTangential0*cp.m_accumulatedTangentImpulse0+
+					cp.m_frictionWorldTangential1*cp.m_accumulatedTangentImpulse1+
+	#endif //NO_FRICTION_WARMSTART
+					cp.m_normalWorldOnB*cp.m_appliedImpulse;
 
-			//apply previous frames impulse on both bodies
-			body0->applyImpulse(totalImpulse, rel_pos1);
-			body1->applyImpulse(-totalImpulse, rel_pos2);
-
+				//apply previous frames impulse on both bodies
+				body0->applyImpulse(totalImpulse, rel_pos1);
+				body1->applyImpulse(-totalImpulse, rel_pos2);
+			}
 			
 		}
 	}
@@ -166,26 +161,29 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 				j=i;
 
 			ManifoldPoint& cp = manifoldPtr->GetContactPoint(j);
-			
-			if (iter == 0)
-			{
-				if (debugDrawer)
-					debugDrawer->DrawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.GetDistance(),cp.GetLifeTime(),color);
-			}
-
+			if (cp.GetDistance() <= 0.f)
 			{
 
+				if (iter == 0)
+				{
+					if (debugDrawer)
+						debugDrawer->DrawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.GetDistance(),cp.GetLifeTime(),color);
+				}
 
-				//float dist =  cp.GetDistance();
-				//printf("dist(%i)=%f\n",j,dist);
-				float impulse = resolveSingleCollision(
-					*body0,*body1,
-					cp,
-					info);
-				
-				if (maxImpulse < impulse)
-					maxImpulse  = impulse;
+				{
 
+
+					//float dist =  cp.GetDistance();
+					//printf("dist(%i)=%f\n",j,dist);
+					float impulse = resolveSingleCollision(
+						*body0,*body1,
+						cp,
+						info);
+					
+					if (maxImpulse < impulse)
+						maxImpulse  = impulse;
+
+				}
 			}
 		}
 	}
@@ -208,7 +206,7 @@ float SimpleConstraintSolver::SolveFriction(PersistentManifold* manifoldPtr, con
 			int j=i;
 
 			ManifoldPoint& cp = manifoldPtr->GetContactPoint(j);
-
+			if (cp.GetDistance() <= 0.f)
 			{
 
 				resolveSingleFriction(

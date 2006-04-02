@@ -23,11 +23,12 @@ struct ContactSolverInfo
 	inline ContactSolverInfo()
 	{
 		m_tau = 0.4f;
-		m_damping = 0.9f;
+		m_damping = 1.0f;
 		m_friction = 0.3f;
 		m_restitution = 0.f;
 		m_maxErrorReduction = 20.f;
 		m_numIterations = 10;
+		m_erp = 0.4f;
 		m_sor = 1.3f;
 	}
 
@@ -39,6 +40,7 @@ struct ContactSolverInfo
 	int		m_numIterations;
 	float	m_maxErrorReduction;
 	float	m_sor;
+	float	m_erp;
 
 };
 

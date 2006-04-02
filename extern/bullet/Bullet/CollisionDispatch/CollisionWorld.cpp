@@ -124,14 +124,16 @@ void	CollisionWorld::RemoveCollisionObject(CollisionObject* collisionObject)
 	//bool removeFromBroadphase = false;
 	
 	{
-		/*BroadphaseInterface* scene = */GetBroadphase();
-		BroadphaseProxy* bp = collisionObject->m_broadphaseHandle;
 		
-		//
-		// only clear the cached algorithms
-		//
-		GetBroadphase()->CleanProxyFromPairs(bp);
-		GetBroadphase()->DestroyProxy(bp);
+		BroadphaseProxy* bp = collisionObject->m_broadphaseHandle;
+		if (bp)
+		{
+			//
+			// only clear the cached algorithms
+			//
+			GetBroadphase()->CleanProxyFromPairs(bp);
+			GetBroadphase()->DestroyProxy(bp);
+		}
 	}
 
 

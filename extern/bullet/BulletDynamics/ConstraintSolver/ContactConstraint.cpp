@@ -123,18 +123,6 @@ float resolveSingleCollision(
 	
 //	printf("distance=%f\n",distance);
 
-	if (distance>0.f)
-	{
-		contactPoint.m_appliedImpulse = 0.f;
-		contactPoint.m_accumulatedTangentImpulse0 = 0.f;
-		contactPoint.m_accumulatedTangentImpulse1 = 0.f;
-		
-		return 0.f;
-	} 
-
-#define MAXPENETRATIONPERFRAME -0.05
-	distance = distance < MAXPENETRATIONPERFRAME? MAXPENETRATIONPERFRAME:distance;
-
 	const SimdVector3& normal = contactPoint.m_normalWorldOnB;
 
 	SimdVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
@@ -153,7 +141,7 @@ float resolveSingleCollision(
 	SimdScalar Kfps = 1.f / solverInfo.m_timeStep ;
 
 	float damping = solverInfo.m_damping ;
-	float Kerp = solverInfo.m_tau;
+	float Kerp = solverInfo.m_erp;
 	
 	if (useGlobalSettingContacts)
 	{
@@ -168,7 +156,7 @@ float resolveSingleCollision(
 	float clipDist = distance + allowedPenetration;
 	float dist = (clipDist > 0.f) ? 0.f : clipDist;
 	//distance = 0.f;
-	SimdScalar positionalError = Kcor *-clipDist;
+	SimdScalar positionalError = Kcor *-dist;
 	//jacDiagABInv;
 	SimdScalar velocityError = -(1.0f + restitution) * rel_vel;// * damping;
 

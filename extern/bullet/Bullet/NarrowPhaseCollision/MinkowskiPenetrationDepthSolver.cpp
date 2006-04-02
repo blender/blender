@@ -128,7 +128,7 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 			
 		}
 	}
-
+//#define DEBUG_DRAW 1
 #ifdef DEBUG_DRAW
 	if (debugDraw)
 	{
@@ -165,7 +165,9 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 	MyResult res;
 	gjkdet.GetClosestPoints(input,res,debugDraw);
 
-	
+	//the penetration depth is over-estimated, relax it
+	float penetration_relaxation= 0.1f;
+	minNorm*=penetration_relaxation;
 
 	if (res.m_hasResult)
 	{
@@ -185,3 +187,6 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 	}
 	return res.m_hasResult;
 }
+
+
+
