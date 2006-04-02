@@ -614,11 +614,38 @@ static void select_same_group(Object *ob)	/* Select objects in the same group as
 		}
 }
 
+
+static void select_same_parent(Object *ob)	/* Select objects woth the same parent as the active (siblings), parent can be NULL also */
+{
+	Base *base;
+	if (!ob)
+		return;
+	
+	for (base= FIRSTBASE; base; base= base->next)
+		if (base->object->parent==ob->parent) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+		}
+}
+
+static void select_same_type(Object *ob)	/* Select objects woth the same parent as the active (siblings), parent can be NULL also */
+{
+	Base *base;
+	if (!ob)
+		return;
+	
+	for (base= FIRSTBASE; base; base= base->next)
+		if (base->object->type==ob->type) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+		}
+}
+
 void select_object_grouped(short nr)
 {
 	Base *base;
 	
-	if(nr==4) {
+	if(nr==6) {
 		base= FIRSTBASE;
 		while(base) {
 			if (base->lay & OBACT->lay) {
@@ -628,10 +655,15 @@ void select_object_grouped(short nr)
 			base= base->next;
 		}
 	}
-	else if(nr==5) select_same_group(OBACT);
-	else if(nr==2) select_children(OBACT, 0);
 	else if(nr==1) select_children(OBACT, 1);
+	else if(nr==2) select_children(OBACT, 0);
 	else if(nr==3) select_parent();
+	else if(nr==4) select_same_parent(OBACT);	
+	else if(nr==5) select_same_type(OBACT);	
+	else if(nr==7) select_same_group(OBACT);
+	
+	
+	
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
@@ -647,11 +679,13 @@ static void select_object_grouped_menu(void)
 
 	/* make menu string */
 	
-	str= MEM_mallocN(160, "groupmenu");
+	str= MEM_mallocN(180, "groupmenu");
 	strcpy(str, "Select Grouped%t|Children%x1|"
 	            "Immediate Children%x2|Parent%x3|"
-	            "Objects on Shared Layers%x4|"
-                "Objects in Same Group%x5|");
+	            "Siblings (Shared Parent)%x4|"
+	            "Objects of Same Type%x5|"
+				"Objects on Shared Layers%x6|"
+                "Objects in Same Group%x7|");
 
 	/* here we go */
 	
