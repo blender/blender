@@ -1684,7 +1684,11 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 	
 	DAG_scene_flush_update(sce, lay);
 	
-	/* and store the info in groubobject */
+	/* hrmf... an exception to look at once, for invisible camera object we do it over */
+	if(sce->camera)
+		dag_object_time_update_flags(sce->camera);
+	
+	/* and store the info in groupobject */
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
