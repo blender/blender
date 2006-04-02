@@ -1720,10 +1720,12 @@ void docentre(int centremode)
 					}
 				}
 				else if ELEM(base->object->type, OB_CURVE, OB_SURF) {
-									
-					if(G.obedit) {
+					
+					/* totally weak code here... (ton) */
+					if(G.obedit==base->object) {
 						extern ListBase editNurb;
 						nu1= editNurb.first;
+						cu= G.obedit->data;
 					}
 					else {
 						cu= base->object->data;
