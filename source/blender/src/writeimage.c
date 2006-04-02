@@ -126,7 +126,7 @@ static void save_rendered_image_cb_real(char *name, int zbuf)
 
 			end = ibuf->x * ibuf->y;
 			for(pixel = 0; pixel < end; pixel++, pixf+=4, pixc+=4) {
-				pixf[0] = pixf[1] = pixf[2] = pixf[3] = 1-rres.rectz[pixel]/100000000000;
+				pixf[0] = pixf[1] = pixf[2] = pixf[3] = 1-rres.rectz[pixel]/100000000000.0;
 				pixc[0] = pixc[1] = pixc[2] = pixc[3] = FTOCHAR(rres.rectz[pixel]);
 			}
 			ibuf->zbuf_float= rres.rectz;
