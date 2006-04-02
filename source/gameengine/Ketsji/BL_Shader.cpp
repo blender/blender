@@ -215,10 +215,10 @@ void BL_Shader::SetUniformfv(int location, int type, float *param,int size, bool
 {
 #ifdef SORT_UNIFORMS
 #ifndef NDEBUG
-	MT_assert(type > UNI_NONE && type < UNI_MAX);
+	MT_assert(type > BL_Uniform::UNI_NONE && type < BL_Uniform::UNI_MAX);
 	MT_assert(location);
 	MT_assert(param);
-	MT_assert(size > 0 && size <= UNIFORM_MAX_LEN);
+	//MT_assert(size > 0 && size <= BL_Uniform::UNIFORM_MAX_LEN);
 #endif
 
 	BL_Uniform *uni= FindUniform(location);
@@ -241,10 +241,10 @@ void BL_Shader::SetUniformiv(int location, int type, int *param,int size, bool t
 {
 #ifdef SORT_UNIFORMS
 #ifndef NDEBUG
-	MT_assert(type > UNI_NONE && type < UNI_MAX);
+	//MT_assert(type > UNI_NONE && type < UNI_MAX);
 	MT_assert(location);
 	MT_assert(param);
-	MT_assert(size > 0 && size <= UNIFORM_MAX_LEN);
+	//MT_assert(size > 0 && size <= UNIFORM_MAX_LEN);
 #endif
 
 	BL_Uniform *uni= FindUniform(location);
