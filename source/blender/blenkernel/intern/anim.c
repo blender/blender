@@ -471,6 +471,10 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 					/* temp copy, to have ipos etc to work OK */
 					copyob= *ob;
 					
+					/* don't want parent animation to apply on past object positions */
+					if(!(paf->flag & PAF_STATIC))
+						ob->parent= NULL;
+					
 					for(a=0, pa= paf->keys, counter=0; a<paf->totpart; a++, pa+=paf->totkey, counter++) {
 						
 						if(paf->flag & PAF_STATIC) {
@@ -516,14 +520,21 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 
 							//if(ctime < pa->time+pa->lifetime) {
 
-							/* to give ipos in object correct offset */
+							/* to give ipos in object correct offset, ob->parent is NULLed */
 							where_is_object_time(ob, ctime-pa->time);
 							
 							where_is_particle(paf, pa, ctime, vec);
 							if(paf->stype==PAF_VECT) {
-								where_is_particle(paf, pa, ctime+1.0f, vec1);
 								
-								VecSubf(vec1, vec1, vec);
+								/* if particle died, we use previous position */
+								if(ctime > pa->time+pa->lifetime) {
+									where_is_particle(paf, pa, pa->time+pa->lifetime-1.0f, vec1);
+									VecSubf(vec1, vec, vec1);
+								}
+								else {
+									where_is_particle(paf, pa, ctime+1.0f, vec1);
+									VecSubf(vec1, vec1, vec);
+								}
 								q2= vectoquat(vec1, ob->trackflag, ob->upflag);
 					
 								QuatToMat3(q2, mat);

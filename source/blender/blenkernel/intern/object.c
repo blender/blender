@@ -1095,7 +1095,7 @@ void object_to_mat4(Object *ob, float mat[][4])
 
 int enable_cu_speed= 1;
 
-void ob_parcurve(Object *ob, Object *par, float mat[][4])
+static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
 	float q[4], vec[4], dir[3], *quat, x1, ctime;
@@ -1165,7 +1165,7 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	}
 }
 
-void ob_parbone(Object *ob, Object *par, float mat[][4])
+static void ob_parbone(Object *ob, Object *par, float mat[][4])
 {	
 	bPoseChannel *pchan;
 	bArmature *arm;
@@ -1194,7 +1194,7 @@ void ob_parbone(Object *ob, Object *par, float mat[][4])
 	VecAddf(mat[3], mat[3], vec);
 }
 
-void give_parvert(Object *par, int nr, float *vec)
+static void give_parvert(Object *par, int nr, float *vec)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -1273,7 +1273,7 @@ void give_parvert(Object *par, int nr, float *vec)
 	else return;
 }
 
-void ob_parvert3(Object *ob, Object *par, float mat[][4])
+static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 {
 	float cmat[3][3], v1[3], v2[3], v3[3], q[4];
 
@@ -1305,12 +1305,6 @@ static int no_parent_ipo=0;
 void set_no_parent_ipo(int val)
 {
 	no_parent_ipo= val;
-}
-
-static float timefac= 1.0;		/* 50 Hz, dtime:2 */
-void set_dtime(int dtime)
-{
-	timefac= ((float)(dtime-1))/2.0f;
 }
 
 static int during_script_flag=0;
@@ -1392,7 +1386,7 @@ void where_is_object_time(Object *ob, float ctime)
 		if(ob->partype & PARSLOW) {
 			// include framerate
 
-			fac1= (float)(timefac/(1.0+ fabs(ob->sf)));
+			fac1= (1.0f/(1.0f+ fabs(ob->sf)));
 			if(fac1>=1.0) return;
 			fac2= 1.0f-fac1;
 			

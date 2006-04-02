@@ -956,7 +956,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 
 		for(i=0, eve= em->verts.first; eve; i++, eve=eve->next) {
 			float *no = emdm->vertexNos[i];
-
+			/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 			if (Normalise(no)==0.0) {
 				VECCOPY(no, vertexCos[i]);
 				Normalise(no);

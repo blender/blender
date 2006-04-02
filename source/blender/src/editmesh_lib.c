@@ -1651,6 +1651,7 @@ void recalc_editnormals(void)
 		VecAddf(efa->v3->no, efa->v3->no, efa->n);
 	}
 
+	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 	for(eve= em->verts.first; eve; eve=eve->next) {
 		if (Normalise(eve->no)==0.0) {
 			VECCOPY(eve->no, eve->co);

@@ -1631,7 +1631,7 @@ static void *editMesh_to_undoMesh(void)
 	EditFaceC *efac=NULL;
 	EditSelectionC *esec=NULL;
 	TFace *tface= NULL;
-	int i, a;
+	int a;
 	
 	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
 	
