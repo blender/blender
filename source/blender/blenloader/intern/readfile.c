@@ -5296,6 +5296,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	if(main->versionfile <= 241) {
+		Object *ob;
 		Tex *tex;
 		Scene *sce;
 		Lamp *la;
@@ -5367,15 +5368,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				tex->env->viewscale= 1.0f;
 //			tex->imaflag |= TEX_GAUSS_MIP;
 		}
-		//Object *ob;
 		
 		/* for empty drawsize and drawtype */
-		/* uncomment before release!  --broken
 		for(ob=main->object.first; ob; ob= ob->id.next) {
-			ob->empty_drawtype = OB_ARROWS;
-			ob->empty_drawsize = 1.0;
+			if(ob->empty_drawsize==0.0f) {
+				ob->empty_drawtype = OB_ARROWS;
+				ob->empty_drawsize = 1.0;
+			}
 		}
-		*/
+		
 	}
 	
 	
