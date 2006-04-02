@@ -1610,8 +1610,10 @@ static void dag_object_time_update_flags(Object *ob)
 					
 					if(eff->type==EFF_WAVE) 
 						ob->recalc |= OB_RECALC_DATA;
-					if(paf && paf->keys==NULL)
+					else if(paf && paf->keys==NULL)
 						ob->recalc |= OB_RECALC_DATA;
+					else if((paf->flag & PAF_STATIC)==0)
+						ob->recalc &= ~OB_RECALC;	/* NOTE! this is because particles are baked... depsgraph doesnt understand it */
 				}
 				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
 					// fluidsimSettings might not be initialized during load...
