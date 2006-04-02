@@ -115,25 +115,25 @@ FTF_TTFont::FTF_TTFont(void)
 
 	strcpy(messagepath, ".blender/locale");
 
-	if (BLI_exist(messagepath) == NULL) {	// locale not in current dir
+	if ( !BLI_exist(messagepath) ) {	// locale not in current dir
 		BLI_make_file_string("/", messagepath, BLI_gethome(), ".blender/locale");
 		
-		if(BLI_exist(messagepath) == NULL) {	// locale not in home dir
+		if( !BLI_exist(messagepath) ) {	// locale not in home dir
 
 #ifdef WIN32 
 			BLI_make_file_string("/", messagepath, BLI_gethome(), "/locale");
-			if(BLI_exist(messagepath) == NULL) {
+			if( !BLI_exist(messagepath) ) {
 #endif
 #ifdef __APPLE__
 			/* message catalogs are stored inside the application bundle */
 			bundlepath = BLI_getbundle();
 			strcpy(messagepath, bundlepath);
 			strcat(messagepath, "/Contents/Resources/locale");
-			if(BLI_exist(messagepath) == NULL) { // locale not in bundle (now that's odd..)
+			if( !BLI_exist(messagepath) ) { // locale not in bundle (now that's odd..)
 #endif
 				strcpy(messagepath, LOCALEDIR);
 
-				if(BLI_exist(messagepath) == NULL) {	// locale not in LOCALEDIR
+				if( !BLI_exist(messagepath) ) {	// locale not in LOCALEDIR
 					strcpy(messagepath, "message");		// old compatibility as last
 				}
 #ifdef WIN32
