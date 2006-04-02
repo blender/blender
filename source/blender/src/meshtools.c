@@ -767,8 +767,6 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 		if(div[0]==0.0f) div[0]= 1.0f;
 		if(div[1]==0.0f) div[1]= 1.0f;
 		if(div[2]==0.0f) div[2]= 1.0f;
-			printvecf("ofs", offs);
-			printvecf("div", div);
 			
 		if(basetable) /* happens when entering this call without ending it */
 			mesh_octree_table(ob, co, 'e');

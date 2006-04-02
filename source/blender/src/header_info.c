@@ -58,6 +58,8 @@
 #include "BDR_editcurve.h"
 #include "BDR_editmball.h"
 #include "BDR_editobject.h"
+#include "BDR_editface.h"
+#include "BDR_vpaint.h"
 
 #include "BIF_editarmature.h"
 #include "BIF_editfont.h"
@@ -478,7 +480,13 @@ void do_info_buttons(unsigned short event)
 		else if(G.scene->id.next) sce= G.scene->id.next;
 		else return;
 		if(okee("Delete current scene")) {
-
+			
+			/* exit modes... could become single call once */
+			exit_editmode(1);
+			if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
+			if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
+			if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
+			
 			/* check all sets */
 			sce1= G.main->scene.first;
 			while(sce1) {
