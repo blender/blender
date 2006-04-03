@@ -70,7 +70,8 @@ def saneFilechars(name):
 def sortPair(a,b):
 	return min(a,b), max(a,b)
 
-def getMeshFromObject(object, name=None, mesh=None):
+def getMeshFromObject(scn, ob, name=None, mesh=None, EXPORT_APPLY_MODIFIERS=True):
+	
 	if mesh:
 		mesh.verts = None # Clear the mesh
 	else:
@@ -80,13 +81,25 @@ def getMeshFromObject(object, name=None, mesh=None):
 			mesh = Mesh.New(name)
 	
 	
-	type = object.getType()
-	dataname = object.getData(1)
+	type = ob.getType()
+	dataname = ob.getData(1)
 	
-	try:
-		mesh.getFromObject(object.name)
-	except:
-		return None
+	if EXPORT_APPLY_MODIFIERS:
+		try:
+			mesh.getFromObject(ob.name)
+		except:
+			return None
+	
+	else:
+		'''
+		Dont apply modifiers, copy the mesh. 
+		So we can transform the data. its easiest just to get a copy of the mesh. 
+		'''
+		tempob= Blender.Object.New('Mesh')
+		tempob.shareFrom(ob)
+		scn.link(tempob)
+		mesh.getFromObject(tempob.name)
+		scn.unlink(tempob)
 	
 	if type == 'Mesh':
 		tempMe = Mesh.Get( dataname )
@@ -102,7 +115,7 @@ def getMeshFromObject(object, name=None, mesh=None):
 			# Surf- no python interface
 			# MBall- no material access in python interface.
 			
-			data = object.getData()
+			data = ob.getData()
 			materials = data.getMaterials()
 			mesh.materials = materials
 			print 'assigning materials for non mesh'
@@ -234,6 +247,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	print 'OBJ Export path: "%s"' % filename
 	global MTL_DICT
 	temp_mesh_name = '~tmp-mesh'
+
 	time1 = sys.time()
 	scn = Scene.GetCurrent()
 
@@ -271,33 +285,32 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	for ob in objects:
 		
 		# Will work for non meshes now! :)
-		if EXPORT_APPLY_MODIFIERS or ob.getType() != 'Mesh':
-			m = getMeshFromObject(ob, temp_mesh_name, containerMesh)
-			if not m:
-				continue
+		m = getMeshFromObject(scn, ob, temp_mesh_name, containerMesh, EXPORT_APPLY_MODIFIERS)
+		if not m:
+			continue
+		
+		# We have a valid mesh
+		if EXPORT_TRI:
+			# Add a dummy object to it.
+			oldmode = Mesh.Mode()
+			Mesh.Mode(Mesh.SelectModes['FACE'])
+			quadcount = 0
+			for f in m.faces:
+				if len(f.v) == 4:
+					f.sel = 1
+					quadcount +=1
 			
-			# We have a valid mesh
-			if m and EXPORT_APPLY_MODIFIERS and EXPORT_TRI:
-				# Add a dummy object to it.
-				oldmode = Mesh.Mode()
-				Mesh.Mode(Mesh.SelectModes['FACE'])
-				quadcount = 0
-				for f in m.faces:
-					if len(f.v) == 4:
-						f.sel = 1
-						quadcount +=1
+			if quadcount:
+				tempob = Blender.Object.New('Mesh')
+				tempob.link(m)
+				scn.link(tempob)
+				m.quadToTriangle(0) # more=0 shortest length
+				oldmode = Mesh.Mode(oldmode)
+				scn.unlink(tempob)
+			Mesh.Mode(oldmode)
 				
-				if quadcount:
-					tempob = Blender.Object.New('Mesh')
-					tempob.link(m)
-					scn.link(tempob)
-					m.quadToTriangle(0) # more=0 shortest length
-					oldmode = Mesh.Mode(oldmode)
-					scn.unlink(tempob)
-				Mesh.Mode(oldmode)
-				
-		else: # We are a mesh. get the data.
-			m = ob.getData(mesh=1)
+
+			
 		
 		faces = [ f for f in m.faces ]
 		if EXPORT_EDGES:
@@ -323,8 +336,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 					materialNames.append(None)
 			# Cant use LC because some materials are None.
 			# materialNames = map(lambda mat: mat.name, materials) # Bug Blender, dosent account for null materials, still broken.	
-		else:
-			materialNames = []
 		
 		# Possible there null materials, will mess up indicies
 		# but at least it will export, wait until Blender gets fixed.
@@ -350,7 +361,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			else: # if EXPORT_GROUP_BY_OB:
 				file.write('g %s\n' % obnamestring)
 			
-		
 		# Vert
 		for v in m.verts:
 			file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
@@ -543,7 +553,7 @@ def write_ui(filename):
 	pup_block = [\
 	('Mesh Options...'),\
 	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object. May break vert order for morph targets.'),\
-	('Triangulate', EXPORT_TRI, 'Triangulate quads (Depends on "Apply Modifiers").'),\
+	('Triangulate', EXPORT_TRI, 'Triangulate quadsModifiers.'),\
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
 	('UVs', EXPORT_UV, 'Export texface UV coords.'),\
