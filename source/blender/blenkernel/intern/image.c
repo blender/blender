@@ -75,7 +75,7 @@
 
 void free_image_buffers(Image *ima)
 {
-	int a;
+	unsigned int a;
 
 	if(ima->ibuf) {
 		if (ima->ibuf->userdata) {
@@ -615,7 +615,8 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 void ima_ibuf_is_nul(Tex *tex, Image *ima)
 {
 	void (*de_interlacefunc)(struct ImBuf *ibuf);
-	int a, fra, dur;
+	unsigned int a;
+	int	fra, dur;
 	char str[FILE_MAXDIR+FILE_MAXFILE], *cp;
 	
 	if(ima==0) return;

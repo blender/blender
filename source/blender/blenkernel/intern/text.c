@@ -1438,7 +1438,7 @@ static void txt_undo_add_op(Text *text, int op)
 
 static void txt_undo_add_block(Text *text, int op, char *buf)
 {
-	unsigned int length;
+	int length;
 	
 	length= strlen(buf);
 	
@@ -1532,8 +1532,8 @@ static void txt_undo_add_charop(Text *text, int op, char c)
 
 void txt_do_undo(Text *text)
 {
-	int op= text->undo_buf[text->undo_pos], i;
-	unsigned int linep;
+	int op= text->undo_buf[text->undo_pos];
+	unsigned int linep, i;
 	unsigned short charp;
 	TextLine *holdl;
 	int holdc, holdln;
@@ -1641,7 +1641,7 @@ void txt_do_undo(Text *text)
 			linep= (linep<<8)+text->undo_buf[text->undo_pos]; text->undo_pos--;
 
 			buf= MEM_mallocN(linep+1, "dblock buffer");
-			for (i=0; i < (int)linep; i++){
+			for (i=0; i < linep; i++){
 				buf[(linep-1)-i]= text->undo_buf[text->undo_pos]; 
 				text->undo_pos--;
 			}
@@ -1753,10 +1753,9 @@ void txt_do_undo(Text *text)
 void txt_do_redo(Text *text)
 {
 	char op;
-	unsigned int linep;
+	unsigned int linep, i;
 	unsigned short charp;
 	char *buf;
-	int i;
 	
 	text->undo_pos++;	
 	op= text->undo_buf[text->undo_pos];

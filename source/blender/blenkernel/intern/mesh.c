@@ -1096,7 +1096,8 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct TFace *tface, unsigned i
 	UvMapVert *buf;
 	MFace *mf;
 	TFace *tf;
-	int a, i, totuv, nverts;
+	unsigned int a;
+	int	i, totuv, nverts;
 
 	totuv = 0;
 

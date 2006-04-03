@@ -817,7 +817,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
 	
 	if(size==0) return 0;
 	
-	if(seek != filedata->seek) {
+	if(seek != (unsigned int)filedata->seek) {
 		chunk= filedata->memfile->chunks.first;
 		seek= 0;
 		

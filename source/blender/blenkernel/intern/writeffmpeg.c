@@ -190,7 +190,7 @@ AVOutputFormat* ffmpeg_get_format(int format)
 /* Get the correct file extension for the requested format */
 void file_extension(int format, char* string) 
 {
-	int i;
+	unsigned int i;
 	AVOutputFormat* f;
 	const char* ext;
 	f= ffmpeg_get_format(format);
