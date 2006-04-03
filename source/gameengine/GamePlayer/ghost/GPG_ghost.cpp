@@ -333,9 +333,11 @@ int main(int argc, char** argv)
 	GEN_init_messaging_system();
  
 	// Parse command line options
+#ifdef WIN32
 #ifndef NDEBUG
 	printf("argv[0] = '%s'\n", argv[0]);
 #endif
+#endif //WIN32
 
 
 #ifdef WIN32
@@ -367,9 +369,11 @@ int main(int argc, char** argv)
 		;)
 
 	{
+#ifdef WIN32
 #ifndef NDEBUG
 		printf("argv[%d] = '%s'   , %i\n", i, argv[i],argc);
 #endif
+#endif //WIN32
 		if (argv[i][0] == '-')
 		{
 			switch (argv[i][1])
@@ -392,9 +396,11 @@ int main(int argc, char** argv)
 								SYS_WriteCommandLineInt(syshandle, paramname, atoi(argv[i]));
 								SYS_WriteCommandLineFloat(syshandle, paramname, atof(argv[i]));
 								SYS_WriteCommandLineString(syshandle, paramname, argv[i]);
+#ifdef WIN32
 #ifndef NDEBUG
 								printf("%s = '%s'\n", paramname, argv[i]);
 #endif
+#endif //WIN32
 								i++;
 							}
 							else

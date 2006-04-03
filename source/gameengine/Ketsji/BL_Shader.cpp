@@ -214,12 +214,14 @@ BL_Uniform  *BL_Shader::FindUniform(const int location)
 void BL_Shader::SetUniformfv(int location, int type, float *param,int size, bool transpose)
 {
 #ifdef SORT_UNIFORMS
+#ifdef WIN32
 #ifndef NDEBUG
 	MT_assert(type > BL_Uniform::UNI_NONE && type < BL_Uniform::UNI_MAX);
 	MT_assert(location);
 	MT_assert(param);
-	//MT_assert(size > 0 && size <= BL_Uniform::UNIFORM_MAX_LEN);
+	//MT_assert(size > 0 && size <= UNIFORM_MAX_LEN);
 #endif
+#endif //WIN32
 
 	BL_Uniform *uni= FindUniform(location);
 	if(uni) {
@@ -240,12 +242,15 @@ void BL_Shader::SetUniformfv(int location, int type, float *param,int size, bool
 void BL_Shader::SetUniformiv(int location, int type, int *param,int size, bool transpose)
 {
 #ifdef SORT_UNIFORMS
+#ifdef WIN32
 #ifndef NDEBUG
-	//MT_assert(type > UNI_NONE && type < UNI_MAX);
+	//MT_assert(type > BL_Uniform::UNI_NONE && type < BL_Uniform::UNI_MAX);
 	MT_assert(location);
 	MT_assert(param);
 	//MT_assert(size > 0 && size <= UNIFORM_MAX_LEN);
 #endif
+#endif //WIN32
+
 
 	BL_Uniform *uni= FindUniform(location);
 	if(uni) {

@@ -18,7 +18,9 @@
 #include "MT_assert.h"
 
 #ifndef NDEBUG
+#ifdef WIN32
 #define spit(x) std::cout << x << std::endl;
+#endif //WIN32
 #else
 #define spit(x)
 #endif
