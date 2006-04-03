@@ -38,7 +38,7 @@ def copy_bone_influences(_from, _to):
 		while _range > 3:
 			half= _range/2
 			z= vecs[upidx-half][1].z
-			if z > seek_vec_z:
+			if z >= seek_vec_z:
 				upidx= upidx-half
 			elif z < seek_vec_z:
 				loidx= loidx+half
@@ -107,7 +107,6 @@ def copy_bone_influences(_from, _to):
 	add_ = Mesh.AssignModes.ADD
 	
 	for i, co in enumerate(world_verts_to):
-		
 		from_idx= getSnapIdx(co, world_verts_from)
 		from_infs= me_from.getVertexInfluences(from_idx)
 		
