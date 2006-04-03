@@ -719,16 +719,20 @@ void make_editMesh()
 	MFace *mface;
 	TFace *tface;
 	MVert *mvert;
+	MSelect *mselect;
 	KeyBlock *actkey;
 	EditVert *eve, **evlist, *eve1, *eve2, *eve3, *eve4;
 	EditFace *efa;
 	EditEdge *eed;
+	EditSelection *ese;
 	int tot, a;
 
 	/* because of reload */
 	free_editMesh(G.editMesh);
 	
 	G.totvert= tot= me->totvert;
+	G.totedge= me->totedge;
+	G.totface= me->totface;
 
 	if(tot==0) {
 		countall();
@@ -848,6 +852,20 @@ void make_editMesh()
 
 	end_editmesh_fastmalloc();	// resets global function pointers
 	
+	if(me->mselect){
+		//restore editselections
+		EM_init_index_arrays(1,1,1);
+		mselect = me->mselect;
+		for(a=0; a<me->totselect; a++, mselect++){
+			ese = MEM_callocN(sizeof(EditSelection), "Edit Selection");
+			ese->type = mselect->type;	
+			if(ese->type == EDITVERT) ese->data = EM_get_vert_for_index(mselect->index); else
+			if(ese->type == EDITEDGE) ese->data = EM_get_edge_for_index(mselect->index); else
+			if(ese->type == EDITFACE) ese->data = EM_get_face_for_index(mselect->index);
+			BLI_addtail(&(G.editMesh->selected),ese);
+		}
+		EM_free_index_arrays();
+	}
 	/* this creates coherent selections. also needed for older files */
 	EM_selectmode_set();
 	/* paranoia check to enforce hide rules */
@@ -869,9 +887,11 @@ void load_editMesh(void)
 	MEdge *medge;
 	MFace *mface;
 	MSticky *ms;
+	MSelect *mselect;
 	EditVert *eve;
 	EditFace *efa;
 	EditEdge *eed;
+	EditSelection *ese;
 	float *fp, *newkey, *oldkey, nor[3];
 	int i, a, ototvert, totedge=0;
 	MDeformVert *dvert;
@@ -966,6 +986,7 @@ void load_editMesh(void)
 	}
 
 	/* the edges */
+	a= 0;
 	eed= em->edges.first;
 	while(eed) {
 		medge->v1= (unsigned int) eed->v1->tmp.l;
@@ -979,12 +1000,15 @@ void load_editMesh(void)
 		if(eed->h & 1) medge->flag |= ME_HIDE;
 		
 		medge->crease= (char)(255.0*eed->crease);
-
+		
+		eed->tmp.l = a++;
+		
 		medge++;
 		eed= eed->next;
 	}
 
 	/* the faces */
+	a = 0;
 	efa= em->faces.first;
 	i = 0;
 	while(efa) {
@@ -1035,7 +1059,8 @@ void load_editMesh(void)
 
 		/* no index '0' at location 3 or 4 */
 		test_index_face(mface, NULL, &efa->tf, efa->v4?4:3);
-			
+		
+		efa->tmp.l = a++;
 		i++;
 		efa= efa->next;
 	}
@@ -1184,11 +1209,40 @@ void load_editMesh(void)
 
 	if(oldverts) MEM_freeN(oldverts);
 	
+	i = 0;
+	for(ese=em->selected.first; ese; ese=ese->next) i++;
+	me->totselect = i;
+	if(i==0) mselect= NULL;
+	else mselect= MEM_callocN(i*sizeof(MSelect), "loadeditMesh selections");
+	
+	if(me->mselect) MEM_freeN(me->mselect);
+	me->mselect= mselect;
+	
+	for(ese=em->selected.first; ese; ese=ese->next){
+		mselect->type = ese->type;
+		if(ese->type == EDITVERT) mselect->index = ((EditVert*)ese->data)->tmp.l;
+		else if(ese->type == EDITEDGE) mselect->index = ((EditEdge*)ese->data)->tmp.l;
+		else if(ese->type == EDITFACE) mselect->index = ((EditFace*)ese->data)->tmp.l;
+		mselect++;
+	}
+	
 	/* to be sure: clear ->tmp.l pointers */
 	eve= em->verts.first;
 	while(eve) {
 		eve->tmp.l = 0;
 		eve= eve->next;
+	}
+	
+	eed= em->edges.first;
+	while(eed) { 
+		eed->tmp.l = 0;
+		eed= eed->next;
+	}
+	
+	efa= em->faces.first;
+	while(efa) {
+		efa->tmp.l = 0;
+		efa= efa->next;
 	}
 	
 	/* remake softbody of all users */
@@ -1214,8 +1268,6 @@ void load_editMesh(void)
 	}
 
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-	
-	BLI_freelistN(&(em->selected)); /*come up with better solution so leaving editmode and not switching meshes will not nuke this...*/
 	waitcursor(0);
 }
 

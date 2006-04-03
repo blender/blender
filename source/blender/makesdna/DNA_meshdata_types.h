@@ -71,6 +71,10 @@ typedef struct MSticky {
 	float co[2];
 } MSticky;
 
+typedef struct MSelect {
+	int index;
+	int type;
+} MSelect;
 /* mvert->flag (1=SELECT) */
 #define ME_SPHERETEST	2
 #define ME_SPHERETEMP	4
@@ -111,3 +115,7 @@ typedef struct MSticky {
 #define ME_FACE_STEPINDEX	(1<<7)
 
 #endif
+/* mselect->type */
+#define ME_VSEl	0
+#define ME_ESEl 1
+#define ME_FSEL 2

@@ -66,13 +66,6 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "editmesh.h"
 
-
-//TODO
-//fix undo code. Biggest one.
-//fix issues with EM_selectmode_set()
-//get rid of 'lastvert' and 'firstvert' hacks in EditMesh struct and clean from undo code and 'load_editmesh' code and elsewhere
-//find out if storing  EditSelection(s) in Mesh DNA is 'ok', even if only for runtime(?)
-
 /* ********* Selection ************ */
 static int EM_check_selection(void *data)
 {

@@ -2209,6 +2209,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->bb= NULL;
 	mesh->oc= 0;
 	mesh->dface= NULL;
+	mesh->mselect= NULL;
 	
 	if (mesh->tface) {
 		TFace *tfaces= mesh->tface;
