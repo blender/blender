@@ -84,7 +84,7 @@ def getMeshFromObject(scn, ob, name=None, mesh=None, EXPORT_APPLY_MODIFIERS=True
 	type = ob.getType()
 	dataname = ob.getData(1)
 	
-	if EXPORT_APPLY_MODIFIERS:
+	if EXPORT_APPLY_MODIFIERS or type != 'Mesh':
 		try:
 			mesh.getFromObject(ob.name)
 		except:
@@ -557,7 +557,7 @@ def write_ui(filename):
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
 	('UVs', EXPORT_UV, 'Export texface UV coords.'),\
-	('Materials', EXPORT_MTL, 'Write a seperate MTL file with the OBJ.'),\
+	('Materials', EXPORT_MTL, 'Write a separate MTL file with the OBJ.'),\
 	('Context...'),\
 	('Selection Only', EXPORT_SEL_ONLY, 'Only export objects in visible selection. Else export whole scene.'),\
 	('All Scenes', EXPORT_ALL_SCENES, 'Each scene as a seperate OBJ file.'),\

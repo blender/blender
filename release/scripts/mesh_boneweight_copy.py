@@ -61,7 +61,12 @@ def copy_bone_influences(_from, _to):
 		upidx= from_vec_idx+1
 		loidx= from_vec_idx-1
 		
-		uselo=useup= True # This means we can keep seeking up/down.
+		# Set uselo/useup. This means we can keep seeking up/down.
+		if upidx >= len_vecs:	useup= False
+		else:					useup= True
+			
+		if loidx < 0:			uselo= False
+		else:					uselo= True
 		
 		# Seek up/down to find the closest v to seek vec.
 		while uselo or useup:
