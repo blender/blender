@@ -109,7 +109,10 @@
 #include "BIF_fsmenu.h"  /* include ourselves */
 
 #if defined WIN32 || defined __BeOS
-	int fnmatch(){return 0;}
+int fnmatch(const char *pattern, const char *string, int flags)
+{
+	return 0;
+}
 #else
 	#include <fnmatch.h>
 #endif
