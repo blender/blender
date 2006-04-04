@@ -76,6 +76,8 @@ struct	CollisionObject
 	
 	void SetActivationState(int newState);
 
+	void ForceActivationState(int newState);
+
 	void	activate();
 
 

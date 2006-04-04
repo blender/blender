@@ -163,14 +163,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ConstraintSolver\HingeConstraint.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\ConstraintSolver\HingeConstraint.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ConstraintSolver\JacobianEntry.h"
 				>
 			</File>

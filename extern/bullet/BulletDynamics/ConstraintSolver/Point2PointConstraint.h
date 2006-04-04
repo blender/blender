@@ -23,6 +23,16 @@ subject to the following restrictions:
 
 class RigidBody;
 
+struct	ConstraintSetting
+{
+	ConstraintSetting()	:
+		m_tau(0.3f),
+		m_damping(1.f)
+	{
+	}
+	float		m_tau;
+	float		m_damping;
+};
 
 /// point to point constraint between two rigidbodies each with a pivotpoint that descibes the 'ballsocket' location in local space
 class Point2PointConstraint : public TypedConstraint
@@ -33,7 +43,10 @@ class Point2PointConstraint : public TypedConstraint
 	SimdVector3	m_pivotInB;
 	
 	
+	
 public:
+
+	ConstraintSetting	m_setting;
 
 	Point2PointConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB);
 
@@ -48,7 +61,15 @@ public:
 
 	void	UpdateRHS(SimdScalar	timeStep);
 
-	
+	void	SetPivotA(const SimdVector3& pivotA)
+	{
+		m_pivotInA = pivotA;
+	}
+
+	void	SetPivotB(const SimdVector3& pivotB)
+	{
+		m_pivotInB = pivotB;
+	}
 
 
 

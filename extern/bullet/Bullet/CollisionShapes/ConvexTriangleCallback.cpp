@@ -74,7 +74,7 @@ void ConvexTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 	input.m_maximumDistanceSquared = 1e30f;//?
 	
 		
-	gjkDetector.GetClosestPoints(input,output,0);
+	gjkDetector.GetClosestPoints(input,output);
 
 
 }

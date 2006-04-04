@@ -452,9 +452,12 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 	if (!SimdFuzzyZero(timeStep))
 	{
-		//Blender runs 30hertz, so subdivide so we get 60 hertz
+#ifdef SPLIT_TIMESTEP
 		proceedDeltaTimeOneStep(0.5f*timeStep);
 		proceedDeltaTimeOneStep(0.5f*timeStep);
+#else		
+		proceedDeltaTimeOneStep(timeStep);
+#endif
 	} else
 	{
 		//todo: interpolate
@@ -542,7 +545,48 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	//contacts
 
 	
-	struct InplaceSolverIslandCallback : public CollisionDispatcher::IslandCallback
+	//solve the regular constraints (point 2 point, hinge, etc)
+
+	for (int g=0;g<numsubstep;g++)
+	{
+		//
+		// constraint solving
+		//
+		
+		
+		int i;
+		int numPoint2Point = m_p2pConstraints.size();
+		
+		//point to point constraints
+		for (i=0;i< numPoint2Point ; i++ )
+		{
+			Point2PointConstraint* p2p = m_p2pConstraints[i];
+			
+			p2p->BuildJacobian();
+			p2p->SolveConstraint( timeStep );
+			
+		}
+
+
+		
+		
+	}
+	
+	//solve the vehicles
+
+	#ifdef NEW_BULLET_VEHICLE_SUPPORT
+		//vehicles
+		int numVehicles = m_wrapperVehicles.size();
+		for (int i=0;i<numVehicles;i++)
+		{
+			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
+			RaycastVehicle* vehicle = wrapperVehicle->GetVehicle();
+			vehicle->UpdateVehicle( timeStep);
+		}
+#endif //NEW_BULLET_VEHICLE_SUPPORT
+
+	
+		struct InplaceSolverIslandCallback : public CollisionDispatcher::IslandCallback
 	{
 
 		ContactSolverInfo& m_solverInfo;
@@ -578,47 +622,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			m_solver,
 			m_debugDrawer);
 
+	/// solve all the contact points and contact friction
 	GetDispatcher()->BuildAndProcessIslands(numRigidBodies,&solverCallback);
 
 
-	for (int g=0;g<numsubstep;g++)
-	{
-		//
-		// constraint solving
-		//
-		
-		
-		int i;
-		int numPoint2Point = m_p2pConstraints.size();
-		
-		//point to point constraints
-		for (i=0;i< numPoint2Point ; i++ )
-		{
-			Point2PointConstraint* p2p = m_p2pConstraints[i];
-			
-			p2p->BuildJacobian();
-			p2p->SolveConstraint( timeStep );
-			
-		}
-
-
-		
-		
-	}
-	
-
-	#ifdef NEW_BULLET_VEHICLE_SUPPORT
-		//vehicles
-		int numVehicles = m_wrapperVehicles.size();
-		for (int i=0;i<numVehicles;i++)
-		{
-			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
-			RaycastVehicle* vehicle = wrapperVehicle->GetVehicle();
-			vehicle->UpdateVehicle( timeStep);
-		}
-#endif //NEW_BULLET_VEHICLE_SUPPORT
-
-		
 
 
 	{
@@ -943,13 +950,13 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 
-class BlenderVehicleRaycaster : public VehicleRaycaster
+class DefaultVehicleRaycaster : public VehicleRaycaster
 {
 	CcdPhysicsEnvironment* m_physEnv;
 	PHY_IPhysicsController*	m_chassis;
 
 public:
-	BlenderVehicleRaycaster(CcdPhysicsEnvironment* physEnv,PHY_IPhysicsController* chassis):
+	DefaultVehicleRaycaster(CcdPhysicsEnvironment* physEnv,PHY_IPhysicsController* chassis):
 	m_physEnv(physEnv),
 		m_chassis(chassis)
 	{
@@ -1061,7 +1068,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		{
 			RaycastVehicle::VehicleTuning* tuning = new RaycastVehicle::VehicleTuning();
 			RigidBody* chassis = rb0;
-			BlenderVehicleRaycaster* raycaster = new BlenderVehicleRaycaster(this,ctrl0);
+			DefaultVehicleRaycaster* raycaster = new DefaultVehicleRaycaster(this,ctrl0);
 			RaycastVehicle* vehicle = new RaycastVehicle(*tuning,chassis,raycaster);
 			WrapperVehicle* wrapperVehicle = new WrapperVehicle(vehicle,ctrl0);
 			m_wrapperVehicles.push_back(wrapperVehicle);
@@ -1300,6 +1307,20 @@ const PersistentManifold*	CcdPhysicsEnvironment::GetManifold(int index) const
 	return GetDispatcher()->GetManifoldByIndexInternal(index);
 }
 
+Point2PointConstraint*	CcdPhysicsEnvironment::getPoint2PointConstraint(int constraintId)
+{
+	int nump2p = m_p2pConstraints.size();
+	int i;
+	for (i=0;i<nump2p;i++)
+	{
+		Point2PointConstraint* p2p = m_p2pConstraints[i];
+		if (p2p->GetUserConstraintId()==constraintId)
+		{
+			return p2p;
+		}
+	}
+	return 0;
+}
 
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT

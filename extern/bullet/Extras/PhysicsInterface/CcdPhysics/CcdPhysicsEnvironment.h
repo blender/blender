@@ -14,7 +14,7 @@ class Dispatcher;
 //#include "BroadphaseInterface.h"
 
 //switch on/off new vehicle support
-#define NEW_BULLET_VEHICLE_SUPPORT 1
+//#define NEW_BULLET_VEHICLE_SUPPORT 1
 
 #include "ConstraintSolver/ContactSolverInfo.h"
 
@@ -95,6 +95,8 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 			return 0;
 		}
 #endif //NEW_BULLET_VEHICLE_SUPPORT
+
+		Point2PointConstraint*	getPoint2PointConstraint(int constraintId);
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);

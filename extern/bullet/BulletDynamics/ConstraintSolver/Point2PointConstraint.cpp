@@ -67,8 +67,7 @@ void	Point2PointConstraint::SolveConstraint(SimdScalar	timeStep)
 
 
 	SimdVector3 normal(0,0,0);
-	SimdScalar tau = 0.3f;
-	SimdScalar damping = 1.f;
+	
 
 //	SimdVector3 angvelA = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
 //	SimdVector3 angvelB = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
@@ -98,7 +97,7 @@ void	Point2PointConstraint::SolveConstraint(SimdScalar	timeStep)
 		//positional error (zeroth order error)
 		SimdScalar depth = -(pivotAInW - pivotBInW).dot(normal); //this is the error projected on the normal
 		
-		SimdScalar impulse = depth*tau/timeStep  * jacDiagABInv -  damping * rel_vel * jacDiagABInv * damping;
+		SimdScalar impulse = depth*m_setting.m_tau/timeStep  * jacDiagABInv -  m_setting.m_damping * rel_vel * jacDiagABInv;
 
 		SimdVector3 impulse_vector = normal * impulse;
 		m_rbA.applyImpulse(impulse_vector, pivotAInW - m_rbA.getCenterOfMassPosition());

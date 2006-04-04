@@ -21,7 +21,7 @@ subject to the following restrictions:
 #include "SimdTransform.h"
 #include "SimdMatrix3x3.h"
 #include <vector>
-#include "CollisionShapes/CollisionMargin.h"
+
 
 SimpleBroadphase::SimpleBroadphase(int maxProxies,int maxOverlap)
 	:m_firstFreeProxy(0),

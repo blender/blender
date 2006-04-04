@@ -378,14 +378,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\CollisionShapes\ConvexTriangleCallback.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CollisionShapes\ConvexTriangleCallback.h"
-				>
-			</File>
-			<File
 				RelativePath=".\CollisionShapes\CylinderShape.cpp"
 				>
 			</File>
@@ -654,10 +646,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\VTune\Bullet3ContinuousCollision.vpj"
-			>
-		</File>
 		<File
 			RelativePath=".\CollisionShapes\BvhTriangleMeshShape.cpp"
 			>

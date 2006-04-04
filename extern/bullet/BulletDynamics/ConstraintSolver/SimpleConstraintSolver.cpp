@@ -43,25 +43,25 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 		for (j=0;j<numManifolds;j++)
 		{
 			int k=j;
-			if (i&&1)
+			if (i&1)
 				k=numManifolds-j-1;
 
 			Solve(manifoldPtr[k],info,i,debugDrawer);
 		}
-		for (j=0;j<numManifolds;j++)
-		{
-			int k = j;
-			if (i&&1)
-				k=numManifolds-j-1;
-			SolveFriction(manifoldPtr[k],info,i,debugDrawer);
-		}
+		
 	}
 
 	//now solve the friction		
 	for (int i = 0;i<numiter;i++)
 	{
 		int j;
-	
+	for (j=0;j<numManifolds;j++)
+		{
+			int k = j;
+			if (i&1)
+				k=numManifolds-j-1;
+			SolveFriction(manifoldPtr[k],info,i,debugDrawer);
+		}
 	}
 
 	return 0.f;
@@ -108,14 +108,16 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 				
 				cp.m_jacDiagABInv = 1.f / jacDiagAB;
 
-				//for friction
-				cp.m_prevAppliedImpulse = cp.m_appliedImpulse;
+				
 
 				float relaxation = info.m_damping;
 				cp.m_appliedImpulse *= relaxation;
+				//for friction
+				cp.m_prevAppliedImpulse = cp.m_appliedImpulse;
 				
 				//re-calculate friction direction every frame, todo: check if this is really needed
 				SimdPlaneSpace1(cp.m_normalWorldOnB,cp.m_frictionWorldTangential0,cp.m_frictionWorldTangential1);
+#define NO_FRICTION_WARMSTART 1
 
 	#ifdef NO_FRICTION_WARMSTART
 				cp.m_accumulatedTangentImpulse0 = 0.f;
@@ -161,7 +163,7 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 				j=i;
 
 			ManifoldPoint& cp = manifoldPtr->GetContactPoint(j);
-			if (cp.GetDistance() <= 0.f)
+				if (cp.GetDistance() <= 0.f)
 			{
 
 				if (iter == 0)
@@ -204,9 +206,11 @@ float SimpleConstraintSolver::SolveFriction(PersistentManifold* manifoldPtr, con
 		{
 
 			int j=i;
+			//if (iter % 2)
+			//	j = numpoints-1-i;
 
 			ManifoldPoint& cp = manifoldPtr->GetContactPoint(j);
-			if (cp.GetDistance() <= 0.f)
+				if (cp.GetDistance() <= 0.f)
 			{
 
 				resolveSingleFriction(

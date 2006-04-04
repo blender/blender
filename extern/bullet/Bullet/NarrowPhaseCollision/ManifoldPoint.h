@@ -75,8 +75,8 @@ class ManifoldPoint
 			void	CopyPersistentInformation(const ManifoldPoint& otherPoint)
 			{
 				m_appliedImpulse = otherPoint.m_appliedImpulse;
-				m_accumulatedTangentImpulse0 = 0.f;//otherPoint.m_accumulatedTangentImpulse0;
-				m_accumulatedTangentImpulse1 = 0.f;//otherPoint.m_accumulatedTangentImpulse1;
+				m_accumulatedTangentImpulse0 = otherPoint.m_accumulatedTangentImpulse0;
+				m_accumulatedTangentImpulse1 = otherPoint.m_accumulatedTangentImpulse1;
 				m_prevAppliedImpulse = otherPoint.m_prevAppliedImpulse;
 				m_lifeTime = otherPoint.m_lifeTime;
 

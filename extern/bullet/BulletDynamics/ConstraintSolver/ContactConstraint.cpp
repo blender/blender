@@ -42,7 +42,7 @@ SimdScalar	calculateCombinedFriction(RigidBody& body0,RigidBody& body1)
 {
 	SimdScalar friction = body0.getFriction() * body1.getFriction();
 
-	const SimdScalar MAX_FRICTION  = 1.f;
+	const SimdScalar MAX_FRICTION  = 10.f;
 	if (friction < -MAX_FRICTION)
 		friction = -MAX_FRICTION;
 	if (friction > MAX_FRICTION)
@@ -102,7 +102,7 @@ void resolveSingleBilateral(RigidBody& body1, const SimdVector3& pos1,
 #endif
 }
 
-float allowedPenetration = 0.0f;
+
 
 
 //velocity + friction
@@ -153,10 +153,9 @@ float resolveSingleCollision(
 
 	//printf("dist=%f\n",distance);
 
-	float clipDist = distance + allowedPenetration;
-	float dist = (clipDist > 0.f) ? 0.f : clipDist;
+
 	//distance = 0.f;
-	SimdScalar positionalError = Kcor *-dist;
+	SimdScalar positionalError = Kcor *-distance;
 	//jacDiagABInv;
 	SimdScalar velocityError = -(1.0f + restitution) * rel_vel;// * damping;
 
@@ -197,7 +196,7 @@ float resolveSingleFriction(
 	float combinedFriction = calculateCombinedFriction(body1,body2);
 	
 	SimdScalar limit = contactPoint.m_appliedImpulse * combinedFriction;
-	if (contactPoint.m_appliedImpulse>0.f)
+	//if (contactPoint.m_appliedImpulse>0.f)
 	//friction
 	{
 		//apply friction in the 2 tangential directions

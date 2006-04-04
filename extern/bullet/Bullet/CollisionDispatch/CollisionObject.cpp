@@ -23,6 +23,11 @@ void CollisionObject::SetActivationState(int newState)
 		m_activationState1 = newState;
 }
 
+void CollisionObject::ForceActivationState(int newState)
+{
+	m_activationState1 = newState;
+}
+
 void CollisionObject::activate()
 {
 		SetActivationState(1);
