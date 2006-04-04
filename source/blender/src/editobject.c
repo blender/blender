@@ -2245,6 +2245,7 @@ void convertmenu(void)
 	Base *base, *basen, *basact, *basedel=NULL;
 	Object *obact, *ob, *ob1;
 	Curve *cu;
+	Nurb *nu;
 	MetaBall *mb;
 	Mesh *me;
 	DispList *dl;
@@ -2260,7 +2261,7 @@ void convertmenu(void)
 	basact= BASACT;	/* will be restored */
 		
 	if(obact->type==OB_FONT) {
-		nr= pupmenu("Convert Font to%t|Curve");
+		nr= pupmenu("Convert Font to%t|Curve%x1|Curve (Single filling group)%x2");
 		if(nr>0) ok= 1;
 	}
 	else if(obact->type==OB_MBALL) {
@@ -2340,40 +2341,44 @@ void convertmenu(void)
 				}
 			}
 			else if(ob->type==OB_FONT) {
-				if(nr==1) {
-				
-					ob->flag |= OB_DONE;
-				
-					ob->type= OB_CURVE;
-					cu= ob->data;
-					
-					if(cu->vfont) {
-						cu->vfont->id.us--;
-						cu->vfont= 0;
-					}
-					if(cu->vfontb) {
-						cu->vfontb->id.us--;
-						cu->vfontb= 0;
-					}
-					if(cu->vfonti) {
-						cu->vfonti->id.us--;
-						cu->vfonti= 0;
-					}
-					if(cu->vfontbi) {
-						cu->vfontbi->id.us--;
-						cu->vfontbi= 0;
-					}					
-					/* other users */
-					if(cu->id.us>1) {
-						ob1= G.main->object.first;
-						while(ob1) {
-							if(ob1->data==cu) {
-								ob1->type= OB_CURVE;
-								ob1->recalc |= OB_RECALC;
-							}
-							ob1= ob1->id.next;
+				ob->flag |= OB_DONE;
+
+				ob->type= OB_CURVE;
+				cu= ob->data;
+
+				if(cu->vfont) {
+					cu->vfont->id.us--;
+					cu->vfont= 0;
+				}
+				if(cu->vfontb) {
+					cu->vfontb->id.us--;
+					cu->vfontb= 0;
+				}
+				if(cu->vfonti) {
+					cu->vfonti->id.us--;
+					cu->vfonti= 0;
+				}
+				if(cu->vfontbi) {
+					cu->vfontbi->id.us--;
+					cu->vfontbi= 0;
+				}					
+				/* other users */
+				if(cu->id.us>1) {
+					ob1= G.main->object.first;
+					while(ob1) {
+						if(ob1->data==cu) {
+							ob1->type= OB_CURVE;
+							ob1->recalc |= OB_RECALC;
 						}
+						ob1= ob1->id.next;
 					}
+				}
+				if (nr==2) {
+					nu= cu->nurb.first;
+					while(nu) {
+						nu->charidx= 0;
+						nu= nu->next;
+					}					
 				}
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
