@@ -360,6 +360,10 @@ void playanim(int argc, char **argv)
 #ifdef WITH_QUICKTIME
 #if defined (_WIN32) || defined (__APPLE__)
 	/* Initialize QuickTime */
+#ifndef noErr
+#define noErr 0
+#endif
+
 #ifdef _WIN32	
 	if (InitializeQTML(0) != noErr)
 		G.have_quicktime = FALSE;

@@ -269,7 +269,7 @@ static void QT_CreateMyVideoTrack(int rectx, int recty)
 	qtexport->theTrack = NewMovieTrack (qtexport->theMovie, 
 							FixRatio(trackFrame.right,1),
 							FixRatio(trackFrame.bottom,1), 
-							kNoVolume);
+							0);
 	CheckError( GetMoviesError(), "NewMovieTrack error" );
 
 //	SetIdentityMatrix(&myMatrix);
