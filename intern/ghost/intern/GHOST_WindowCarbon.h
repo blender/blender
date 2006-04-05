@@ -43,6 +43,7 @@
 #include "GHOST_Window.h"
 #include "STR_String.h"
 
+#define __CARBONSOUND__
 #include <Carbon/Carbon.h>
 
 #include <AGL/agl.h>

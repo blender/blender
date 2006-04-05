@@ -40,6 +40,7 @@
 #error Apple OSX only!
 #endif // __APPLE__
 
+#define __CARBONSOUND__
 #include <Carbon/Carbon.h>
 
 #include "GHOST_System.h"

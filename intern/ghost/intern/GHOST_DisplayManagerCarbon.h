@@ -42,6 +42,7 @@
 
 #include "GHOST_DisplayManager.h"
 
+#define __CARBONSOUND__
 #include <Carbon/Carbon.h>
 
 /**
