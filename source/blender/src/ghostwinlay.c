@@ -62,6 +62,7 @@
 
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
+#define __CARBONSOUND__
 #include <Carbon/Carbon.h>
 
 /*declarations*/

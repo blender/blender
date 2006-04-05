@@ -49,6 +49,7 @@
 #ifdef _WIN32
 #include <Movies.h>
 #elif defined(__APPLE__)
+#define __CARBONSOUND__
 #import <Carbon/Carbon.h>
 #include <QuickTime/Movies.h>
 #endif
