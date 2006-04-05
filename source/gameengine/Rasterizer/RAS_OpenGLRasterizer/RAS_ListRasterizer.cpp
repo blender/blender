@@ -17,13 +17,13 @@
 #include "RAS_GLExtensionManager.h"
 #include "MT_assert.h"
 
-#ifndef NDEBUG
-#ifdef WIN32
-#define spit(x) std::cout << x << std::endl;
-#endif //WIN32
-#else
+//#ifndef NDEBUG
+//#ifdef WIN32
+//#define spit(x) std::cout << x << std::endl;
+//#endif //WIN32
+//#else
 #define spit(x)
-#endif
+//#endif
 
 RAS_ListSlot::RAS_ListSlot()
 :	KX_ListSlot(),
