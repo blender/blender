@@ -13,7 +13,7 @@ import Blender
 from Blender import Armature, Object, Mathutils, Window, Mesh
 Vector= Mathutils.Vector
 
-def copy_bone_influences(_from, _to):
+def copy_bone_influences(_from, _to, PREF_SEL_ONLY):
 	ob_from, me_from, world_verts_from, from_groups=  _from
 	ob_to, me_to, world_verts_to, dummy=  _to	
 	del dummy
@@ -104,19 +104,35 @@ def copy_bone_influences(_from, _to):
 					loidx-=1
 				
 		return close_idx
-		
+	
+	
+	to_groups= me_to.getVertGroupNames() # if not PREF_SEL_ONLY will always be []
 	from_groups= me_from.getVertGroupNames()
-	for group in from_groups:
-		me_to.addVertGroup(group)
+	
+	if PREF_SEL_ONLY: # remove selected verts from all groups.
+		vsel= [v.index for v in me_to.verts if v.sel]
+		for group in to_groups:
+			me_to.removeVertsFromGroup(group, vsel)  
+	else: # Add all groups.
+		for group in from_groups:
+			me_to.addVertGroup(group)
+		
 	
 	add_ = Mesh.AssignModes.ADD
 	
 	for i, co in enumerate(world_verts_to):
-		from_idx= getSnapIdx(co, world_verts_from)
-		from_infs= me_from.getVertexInfluences(from_idx)
-		
-		for group, weight in from_infs:
-			me_to.assignVertsToGroup(group, [i], weight, add_)
+		if (not PREF_SEL_ONLY) or (PREF_SEL_ONLY and me_to.verts[i].sel):
+			from_idx= getSnapIdx(co, world_verts_from)
+			from_infs= me_from.getVertexInfluences(from_idx)
+			
+			for group, weight in from_infs:
+				
+				# Add where needed.
+				if PREF_SEL_ONLY and group not in to_groups:
+					me_to.addVertGroup(group)
+					to_groups.append(group)
+					
+				me_to.assignVertsToGroup(group, [i], weight, add_)
 	
 	me_to.update()
 	
@@ -146,36 +162,99 @@ def worldspace_verts(me, ob):
 		return vec
 	return [ worldvert(v.co) for v in me.verts ]
 	
+def subdivMesh(me, subdivs):
+	oldmode = Mesh.Mode()
+	Mesh.Mode(Mesh.SelectModes['FACE'])
+	for f in me.faces: f.sel = 1
+	
+	for i in xrange(subdivs):
+		me.subdivide(0)
+	Mesh.Mode(oldmode)
+
 
 def main():
 	print '\nStarting BoneWeight Copy...'
+	scn= Blender.Scene.GetCurrent()
+	contextSel= Object.GetSelected()
+	
+	
+	PREF_QUALITY= Blender.Draw.Create(3)
+	PREF_SEL_ONLY= Blender.Draw.Create(0)
+	pup_block = [\
+	('Quality:', PREF_QUALITY, 0, 4, 'Generate interpolated verts so closer vert weights can be copied.'),\
+	('Copy to Selected', PREF_SEL_ONLY, 'Over wright vertex weights to selected verts on the target mesh. (use active ob as source)'),\
+	]
+	
+	
+	if not Blender.Draw.PupBlock("Copy Weights for %i Meshs" % len(contextSel), pup_block):
+		return
+	
+	PREF_SEL_ONLY= PREF_SEL_ONLY.val
+	quality=  PREF_QUALITY.val
+	
+	act_ob= scn.getActiveObject()
+	if PREF_SEL_ONLY and act_ob==None:
+		Blender.Draw.PupMenu('Error%t|When dealing with 2 or more meshes with vgroups|There must be an active object|to be used as a source|aborting.')
+		return
+	
+	'''
+	quality= Blender.Draw.PupIntInput('Quality: ', 2, 0, 4)
+	if quality==None:
+		return
+	'''
+	
+
 	sel=[]
 	from_data= None
-	for ob in Object.GetSelected():
+	act_ob= scn.getActiveObject()
+	for ob in contextSel:
+		
 		if ob.getType()=='Mesh':
 			me= ob.getData(mesh=1)
 			groups= me.getVertGroupNames()
-			if groups:
+			
+			# If this is the only mesh with a group OR if its one of many, but its active.
+			if groups and ((ob==act_ob and PREF_SEL_ONLY) or (not PREF_SEL_ONLY)):
 				if from_data:
 					Blender.Draw.PupMenu('More then 1 mesh has vertex weights, only select 1 mesh with weights. aborting.')
 					return
 				else:
 					# This uses worldspace_verts_idx which gets (idx,co) pairs, then zsorts.
-					data= (ob, me, worldspace_verts_idx(me, ob), groups)
-					from_data= data
+					if quality:
+						for _ob in contextSel:
+							_ob.sel=0
+						ob.sel=1
+						Object.Duplicate(mesh=1)
+						ob= scn.getActiveObject()
+						me= ob.getData(mesh=1)
+						# groups will be the same
+						print '\tGenerating higher %ix quality weights.' % quality
+						subdivMesh(me, quality)
+						scn.unlink(ob)
+					from_data= (ob, me, worldspace_verts_idx(me, ob), groups)
+					
 			else:
 				data= (ob, me, worldspace_verts(me, ob), groups)
 				sel.append(data)
-	
+		
 	if not sel or from_data==None:
 		Blender.Draw.PupMenu('Select 2 or more mesh objects, aborting.')
+		if not sel and quality:
+			from_data[1].verts= None
 		return
 	t= Blender.sys.time()
 	Window.WaitCursor(1)
+	
+	
 	# Now do the copy.
 	print '\tCopying from "%s" to %i other meshe(s).' % (from_data[0].name, len(sel))
 	for data in sel:
-		copy_bone_influences(from_data, data)
+		copy_bone_influences(from_data, data, PREF_SEL_ONLY)
+	
+	# We cant unlink the mesh, but at least remove its data.
+	if quality:
+		from_data[1].verts= None
+	
 	print 'Copy Compleate in %.6f sec' % (Blender.sys.time()-t)
 	Window.WaitCursor(0)
 
