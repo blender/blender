@@ -823,7 +823,7 @@ static void texture_panel_voronoi(Tex *tex)
 
 	/* distance metric */
 	sprintf(dm_menu, "Distance Metric %%t|Actual Distance %%x%d|Distance Squared %%x%d|Manhattan %%x%d|Chebychev %%x%d|Minkovsky 1/2 %%x%d|Minkovsky 4 %%x%d|Minkovsky %%x%d", TEX_DISTANCE, TEX_DISTANCE_SQUARED, TEX_MANHATTAN, TEX_CHEBYCHEV, TEX_MINKOVSKY_HALF, TEX_MINKOVSKY_FOUR, TEX_MINKOVSKY);
-	uiDefBut(block, LABEL, 0, "Distance Metric", 10, 160, 150, 19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, B_TEXPRV, "Distance Metric", 10, 160, 150, 19, 0, 0, 0, 0, 0, "");
 	uiDefButS(block, MENU, B_TEXPRV, dm_menu, 10, 140, 150, 19, &tex->vn_distm, 0,0,0,0, "Sets the distance metric to be used");
 
 	if (tex->vn_distm==TEX_MINKOVSKY)
