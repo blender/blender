@@ -1808,7 +1808,6 @@ static void unlink_group_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem 
 	}
 	else {
 		unlink_group(group);
-		group->id.us= 0;
 	}
 }
 
