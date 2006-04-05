@@ -185,7 +185,7 @@ static char M_NMesh_Face_doc[] =
 static char NMFace_append_doc[] =
 	"(vert) - appends Vertex 'vert' to face vertex list";
 
-static char M_NMesh_Vert_doc[] = "([x, y, z]) - Get a new vertice\n\n\
+static char M_NMesh_Vert_doc[] = "([x, y, z]) - Get a new vertex\n\n\
 [x, y, z] Specify new coordinates";
 
 static char NMesh_getMaterials_doc[] =
