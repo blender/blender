@@ -60,6 +60,9 @@ PVERS=`echo $NAN_PYTHON_VERSION | sed 's/\.//'`
 cp -f $NAN_PYTHON/lib/python$PVERS.dll $DISTDIR/python$PVERS.dll
 chmod +x $DISTDIR/python$PVERS.dll
 
+#Add pthreads dll to package
+cp -f $NAN_PTHREADS/lib/pthreadGC2.dll $DISTDIR/pthreadGC2.dll
+
 # Add fmod DLL to package
 # cp -f $NAN_FMOD/lib/fmod.dll $DISTDIR/fmod.dll
 # chmod +x $DISTDIR/fmod.dll
