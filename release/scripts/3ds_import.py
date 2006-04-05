@@ -84,6 +84,11 @@ from struct import calcsize, unpack
 
 import os
 
+# If python version is less than 2.4, try to get set stuff from module
+import sys
+if ( (sys.version_info[0] <= 2) and (sys.version_info[1] < 4) ):
+	from sets import Set as set
+
 #this script imports uvcoords as sticky vertex coords
 #this parameter enables copying these to face uv coords
 #which shold be more useful.
