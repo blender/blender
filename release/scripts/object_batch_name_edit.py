@@ -102,15 +102,17 @@ def main():
 		REPLACE_STRING = Draw.Create('')
 		WITH_STRING = Draw.Create('')
 		RENAME_LINKED = Draw.Create(0)
+		RENAME_VGROUP = Draw.Create(0)
 		
 		pup_block = [\
 		('Replace: ', REPLACE_STRING, 19, 19, 'Text to find'),\
 		('With:', WITH_STRING, 19, 19, 'Text to replace with'),\
-		('Rename ObData', RENAME_LINKED, 'Renames objects data to match the obname'),\
+		('Rename ObData from Ob', RENAME_LINKED, 'Renames objects data to match the obname'),\
+		('Replace VGroup Names', RENAME_VGROUP, 'Renames mesh objects vertex group names'),\
 		]
 		
 		if not Draw.PupBlock('Replace in name...', pup_block) or\
-		((not REPLACE_STRING.val) and (not WITH_STRING)):
+		(not REPLACE_STRING.val+WITH_STRING.val):
 			return 0
 		
 		REPLACE_STRING = REPLACE_STRING.val
@@ -122,6 +124,14 @@ def main():
 			if ob.name != newname:
 				ob.name = newname
 				renameCount+=1
+			if RENAME_VGROUP.val:
+				if ob.getType() == 'Mesh':
+					me= ob.getData(mesh=1)
+					for group in me.getVertGroupNames():
+						newname= group.replace(REPLACE_STRING, WITH_STRING)
+						if newname != group:
+							me.renameVertGroup(group, newname) 
+							renameCount+=1
 		return RENAME_LINKED.val
 			
 	
