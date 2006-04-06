@@ -21,7 +21,7 @@ BF_FMOD = LCGDIR + '/fmod'
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = '/usr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
-BF_OPENEXR_LIB = ' Iex Half IlmImf Imath '
+BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '
 
 WITH_BF_JPEG = 'true'
 BF_JPEG = '/usr'
