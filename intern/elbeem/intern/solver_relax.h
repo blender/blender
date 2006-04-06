@@ -1060,11 +1060,11 @@ inline LbmFloat LbmFsgrSolver::getLesOmega(LbmFloat omega, LbmFloat csmago, LbmF
 
 #define DEBUG_CALCPRINTCELL(str,df) {\
 		LbmFloat prho=df[0], pux=0., puy=0., puz=0.; \
-		for(int l=1; l<this->cDfNum; l++) { \
-			prho += df[l];  \
-			pux  += (this->dfDvecX[l]*df[l]);  \
-			puy  += (this->dfDvecY[l]*df[l]);  \
-			puz  += (this->dfDvecZ[l]*df[l]);  \
+		for(int ll=1; ll<this->cDfNum; ll++) { \
+			prho += df[ll];  \
+			pux  += (this->dfDvecX[ll]*df[ll]);  \
+			puy  += (this->dfDvecY[ll]*df[ll]);  \
+			puz  += (this->dfDvecZ[ll]*df[ll]);  \
 		} \
 		errMsg("DEBUG_CALCPRINTCELL",">"<<str<<" rho="<<prho<<" vel="<<ntlVec3Gfx(pux,puy,puz) ); \
 	} /* END DEBUG_CALCPRINTCELL */ 

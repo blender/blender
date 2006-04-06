@@ -598,8 +598,8 @@ void LbmFsgrSolver::advanceParticles() {
 						//if(p->getLifeTime()>50) { 
 						P_CHANGETYPE(p, PART_FLOAT ); continue; 
 						// jitter in cell to prevent stacking when hitting a steep surface
-						LbmVec pos = p->getPos(); pos[0] += (rand()/(RAND_MAX+1.0))-0.5;
-						pos[1] += (rand()/(RAND_MAX+1.0))-0.5; p->setPos(pos);
+						LbmVec posi = p->getPos(); posi[0] += (rand()/(RAND_MAX+1.0))-0.5;
+						posi[1] += (rand()/(RAND_MAX+1.0))-0.5; p->setPos(posi);
 						//} else DEL_PART;
 					} else {
 						DEL_PART;
