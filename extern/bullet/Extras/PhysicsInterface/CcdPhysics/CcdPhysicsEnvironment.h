@@ -8,13 +8,14 @@ class CcdPhysicsController;
 
 
 
-class Point2PointConstraint;
+class TypedConstraint;
+
 class CollisionDispatcher;
 class Dispatcher;
 //#include "BroadphaseInterface.h"
 
 //switch on/off new vehicle support
-//#define NEW_BULLET_VEHICLE_SUPPORT 1
+#define NEW_BULLET_VEHICLE_SUPPORT 1
 
 #include "ConstraintSolver/ContactSolverInfo.h"
 
@@ -96,7 +97,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		}
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
-		Point2PointConstraint*	getPoint2PointConstraint(int constraintId);
+		TypedConstraint*	getConstraintById(int constraintId);
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
@@ -139,6 +140,8 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		const PersistentManifold*	GetManifold(int index) const;
 
+		std::vector<TypedConstraint*> m_constraints;
+
 	private:
 		
 		
@@ -146,7 +149,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		
 		std::vector<CcdPhysicsController*> m_controllers;
 
-		std::vector<Point2PointConstraint*> m_p2pConstraints;
+		
 
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 

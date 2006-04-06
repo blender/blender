@@ -17,7 +17,7 @@ subject to the following restrictions:
 #include "HingeConstraint.h"
 #include "Dynamics/RigidBody.h"
 #include "Dynamics/MassProps.h"
-
+#include "SimdTransformUtil.h"
 
 
 HingeConstraint::HingeConstraint()
@@ -27,8 +27,8 @@ HingeConstraint::HingeConstraint()
 HingeConstraint::HingeConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB,
 								 SimdVector3& axisInA,SimdVector3& axisInB)
 :TypedConstraint(rbA,rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB),
-m_axisInA(m_axisInA),
-m_axisInB(m_axisInB)
+m_axisInA(axisInA),
+m_axisInB(axisInB)
 {
 
 }
@@ -36,9 +36,9 @@ m_axisInB(m_axisInB)
 
 HingeConstraint::HingeConstraint(RigidBody& rbA,const SimdVector3& pivotInA,SimdVector3& axisInA)
 :TypedConstraint(rbA),m_pivotInA(pivotInA),m_pivotInB(rbA.getCenterOfMassTransform()(pivotInA)),
-m_axisInA(m_axisInA),
-//fixed axis in woeldspace
-m_axisInB(rbA.getCenterOfMassTransform() * m_axisInA)
+m_axisInA(axisInA),
+//fixed axis in worldspace
+m_axisInB(rbA.getCenterOfMassTransform().getBasis() * -axisInA)
 {
 	
 }
@@ -66,9 +66,11 @@ void	HingeConstraint::BuildJacobian()
 	//calculate two perpendicular jointAxis, orthogonal to hingeAxis
 	//these two jointAxis require equal angular velocities for both bodies
 
-
-	SimdVector3 jointAxis0(0,0,1);
-	SimdVector3 jointAxis1(0,1,0);
+	//this is ununsed for now, it's a todo
+	SimdVector3 axisWorldA = GetRigidBodyA().getCenterOfMassTransform().getBasis() * m_axisInA;
+	SimdVector3 jointAxis0;
+	SimdVector3 jointAxis1;
+	SimdPlaneSpace1(axisWorldA,jointAxis0,jointAxis1);
 	
 	new (&m_jacAng[0])	JacobianEntry(jointAxis0,
 		m_rbA.getCenterOfMassTransform().getBasis().transpose(),
@@ -87,16 +89,13 @@ void	HingeConstraint::BuildJacobian()
 
 void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 {
+
 	SimdVector3 pivotAInW = m_rbA.getCenterOfMassTransform()*m_pivotInA;
 	SimdVector3 pivotBInW = m_rbB.getCenterOfMassTransform()*m_pivotInB;
-
 
 	SimdVector3 normal(0,0,0);
 	SimdScalar tau = 0.3f;
 	SimdScalar damping = 1.f;
-
-//	SimdVector3 angvelA = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
-//	SimdVector3 angvelB = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
 
 	for (int i=0;i<3;i++)
 	{		
@@ -105,24 +104,14 @@ void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 
 		SimdVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition(); 
 		SimdVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
-		//this jacobian entry could be re-used for all iterations
 		
 		SimdVector3 vel1 = m_rbA.getVelocityInLocalPoint(rel_pos1);
 		SimdVector3 vel2 = m_rbB.getVelocityInLocalPoint(rel_pos2);
 		SimdVector3 vel = vel1 - vel2;
-		
 		SimdScalar rel_vel;
 		rel_vel = normal.dot(vel);
-
-	/*
-		//velocity error (first order error)
-		SimdScalar rel_vel = m_jac[i].getRelativeVelocity(m_rbA.getLinearVelocity(),angvelA,
-														m_rbB.getLinearVelocity(),angvelB);
-	*/
-	
 		//positional error (zeroth order error)
 		SimdScalar depth = -(pivotAInW - pivotBInW).dot(normal); //this is the error projected on the normal
-		
 		SimdScalar impulse = depth*tau/timeStep  * jacDiagABInv -  damping * rel_vel * jacDiagABInv * damping;
 
 		SimdVector3 impulse_vector = normal * impulse;
@@ -131,7 +120,44 @@ void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 		
 		normal[i] = 0;
 	}
-//todo: do angular part
+
+	///solve angular part
+
+	// get axes in world space
+	SimdVector3 axisA = GetRigidBodyA().getCenterOfMassTransform().getBasis() * m_axisInA;
+	SimdVector3 axisB = GetRigidBodyB().getCenterOfMassTransform().getBasis() * m_axisInB;
+
+	const SimdVector3& angVelA = GetRigidBodyA().getAngularVelocity();
+	const SimdVector3& angVelB = GetRigidBodyB().getAngularVelocity();
+	SimdVector3 angA = angVelA - axisA * axisA.dot(angVelA);
+	SimdVector3 angB = angVelB - axisB * axisB.dot(angVelB);
+	SimdVector3 velrel = angA-angB;
+
+	//solve angular velocity correction
+	float relaxation = 1.f;
+	float len = velrel.length();
+	if (len > 0.00001f)
+	{
+		SimdVector3 normal = velrel.normalized();
+		float denom = GetRigidBodyA().ComputeAngularImpulseDenominator(normal) +
+			GetRigidBodyB().ComputeAngularImpulseDenominator(normal);
+		// scale for mass and relaxation
+		velrel *= (1.f/denom) * 0.9;
+	}
+
+	//solve angular positional correction
+	SimdVector3 angularError = -axisA.cross(axisB) *(1.f/timeStep);
+	float len2 = angularError.length();
+	if (len2>0.00001f)
+	{
+		SimdVector3 normal2 = angularError.normalized();
+		float denom2 = GetRigidBodyA().ComputeAngularImpulseDenominator(normal2) +
+				GetRigidBodyB().ComputeAngularImpulseDenominator(normal2);
+		angularError *= (1.f/denom2) * relaxation;
+	}
+
+	m_rbA.applyTorqueImpulse(-velrel+angularError);
+	m_rbB.applyTorqueImpulse(velrel-angularError);
 
 }
 

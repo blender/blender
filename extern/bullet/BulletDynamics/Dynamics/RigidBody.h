@@ -180,6 +180,13 @@ public:
 
 	}
 
+	inline float ComputeAngularImpulseDenominator(const SimdVector3& axis) const
+	{
+		SimdVector3 vec = axis * getInvInertiaTensorWorld();
+		return axis.dot(vec);
+	}
+
+
 
 private:
 	

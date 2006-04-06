@@ -49,6 +49,9 @@ RaycastVehicle::VehicleTuning	gTuning;
 
 #include "ConstraintSolver/ConstraintSolver.h"
 #include "ConstraintSolver/Point2PointConstraint.h"
+#include "ConstraintSolver/HingeConstraint.h"
+
+
 //#include "BroadphaseCollision/QueryDispatcher.h"
 //#include "BroadphaseCollision/QueryBox.h"
 //todo: change this to allow dynamic registration of types!
@@ -315,6 +318,7 @@ m_solverType(-1)
 		//broadphase = new SimpleBroadphase();
 	}
 		
+
 	setSolverType(1);
 	
 	m_collisionWorld = new CollisionWorld(dispatcher,broadphase);
@@ -392,16 +396,16 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	//also remove constraint
 	
 	{
-		std::vector<Point2PointConstraint*>::iterator i;
+		std::vector<TypedConstraint*>::iterator i;
 		
-		for (i=m_p2pConstraints.begin();
-		!(i==m_p2pConstraints.end()); i++)
+		for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
 		{
-			Point2PointConstraint* p2p = (*i);
-			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
-				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
+			TypedConstraint* constraint = (*i);
+			if  ((&constraint->GetRigidBodyA() == ctrl->GetRigidBody() ||
+				(&constraint->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				 removeConstraint(p2p->GetUserConstraintId());
+				 removeConstraint(constraint->GetUserConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -409,16 +413,16 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	}
 	
 	{
-		std::vector<Point2PointConstraint*>::iterator i;
+		std::vector<TypedConstraint*>::iterator i;
 		
-		for (i=m_p2pConstraints.begin();
-		!(i==m_p2pConstraints.end()); i++)
+		for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
 		{
-			Point2PointConstraint* p2p = (*i);
-			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
-				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
+			TypedConstraint* constraint = (*i);
+			if  ((&constraint->GetRigidBodyA() == ctrl->GetRigidBody() ||
+				(&constraint->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				removeConstraint(p2p->GetUserConstraintId());
+				removeConstraint(constraint->GetUserConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -451,9 +455,14 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 	if (!SimdFuzzyZero(timeStep))
 	{
-		//Blender runs 30hertz, so subdivide so we get 60 hertz
+
+#define SPLIT_TIMESTEP 1
+#ifdef SPLIT_TIMESTEP
 		proceedDeltaTimeOneStep(0.5f*timeStep);
 		proceedDeltaTimeOneStep(0.5f*timeStep);
+#else		
+		proceedDeltaTimeOneStep(timeStep);
+#endif
 	} else
 	{
 		//todo: interpolate
@@ -524,7 +533,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	DispatcherInfo dispatchInfo;
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
-	dispatchInfo.m_debugDraw = m_debugDrawer;
 
 	scene->DispatchAllCollisionPairs(*GetDispatcher(),dispatchInfo);///numsubstep,g);
 
@@ -542,7 +550,46 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	//contacts
 
 	
-	struct InplaceSolverIslandCallback : public CollisionDispatcher::IslandCallback
+	//solve the regular constraints (point 2 point, hinge, etc)
+
+	for (int g=0;g<numsubstep;g++)
+	{
+		//
+		// constraint solving
+		//
+		
+		
+		int i;
+		int numConstraints = m_constraints.size();
+		
+		//point to point constraints
+		for (i=0;i< numConstraints ; i++ )
+		{
+			TypedConstraint* constraint = m_constraints[i];
+			
+			constraint->BuildJacobian();
+			constraint->SolveConstraint( timeStep );
+			
+		}
+		
+		
+	}
+	
+	//solve the vehicles
+
+	#ifdef NEW_BULLET_VEHICLE_SUPPORT
+		//vehicles
+		int numVehicles = m_wrapperVehicles.size();
+		for (int i=0;i<numVehicles;i++)
+		{
+			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
+			RaycastVehicle* vehicle = wrapperVehicle->GetVehicle();
+			vehicle->UpdateVehicle( timeStep);
+		}
+#endif //NEW_BULLET_VEHICLE_SUPPORT
+
+	
+		struct InplaceSolverIslandCallback : public CollisionDispatcher::IslandCallback
 	{
 
 		ContactSolverInfo& m_solverInfo;
@@ -578,47 +625,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			m_solver,
 			m_debugDrawer);
 
+	/// solve all the contact points and contact friction
 	GetDispatcher()->BuildAndProcessIslands(numRigidBodies,&solverCallback);
 
 
-	for (int g=0;g<numsubstep;g++)
-	{
-		//
-		// constraint solving
-		//
-		
-		
-		int i;
-		int numPoint2Point = m_p2pConstraints.size();
-		
-		//point to point constraints
-		for (i=0;i< numPoint2Point ; i++ )
-		{
-			Point2PointConstraint* p2p = m_p2pConstraints[i];
-			
-			p2p->BuildJacobian();
-			p2p->SolveConstraint( timeStep );
-			
-		}
-
-
-		
-		
-	}
-	
-
-	#ifdef NEW_BULLET_VEHICLE_SUPPORT
-		//vehicles
-		int numVehicles = m_wrapperVehicles.size();
-		for (int i=0;i<numVehicles;i++)
-		{
-			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
-			RaycastVehicle* vehicle = wrapperVehicle->GetVehicle();
-			vehicle->UpdateVehicle( timeStep);
-		}
-#endif //NEW_BULLET_VEHICLE_SUPPORT
-
-		
 
 
 	{
@@ -883,7 +893,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			{
 				
 				m_solver = new SimpleConstraintSolver();
-				//printf("Iterative Impulse ConstraintSolver\n");
+				
 				break;
 			}
 		}
@@ -893,7 +903,6 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			if (m_solverType != solverType)
 			{
 				m_solver = new OdeConstraintSolver();
-				//printf("Quickstep ConstraintSolver\n");
 		
 				break;
 			}
@@ -944,13 +953,13 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 
-class BlenderVehicleRaycaster : public VehicleRaycaster
+class DefaultVehicleRaycaster : public VehicleRaycaster
 {
 	CcdPhysicsEnvironment* m_physEnv;
 	PHY_IPhysicsController*	m_chassis;
 
 public:
-	BlenderVehicleRaycaster(CcdPhysicsEnvironment* physEnv,PHY_IPhysicsController* chassis):
+	DefaultVehicleRaycaster(CcdPhysicsEnvironment* physEnv,PHY_IPhysicsController* chassis):
 	m_physEnv(physEnv),
 		m_chassis(chassis)
 	{
@@ -1030,7 +1039,11 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	
 	SimdVector3 pivotInA(pivotX,pivotY,pivotZ);
 	SimdVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
-	
+	SimdVector3 axisInA(axisX,axisY,axisZ);
+	SimdVector3 axisInB = rb1 ? 
+		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * -axisInA)) : 
+	rb0->getCenterOfMassTransform().getBasis() * -axisInA;
+
 	switch (type)
 	{
 	case PHY_POINT2POINT_CONSTRAINT:
@@ -1048,12 +1061,38 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA);
 			}
 			
-			m_p2pConstraints.push_back(p2p);
+			m_constraints.push_back(p2p);
 			p2p->SetUserConstraintId(gConstraintUid++);
 			p2p->SetUserConstraintType(type);
 			//64 bit systems can't cast pointer to int. could use size_t instead.
 			return p2p->GetUserConstraintId();
 			
+			break;
+		}
+
+	case PHY_LINEHINGE_CONSTRAINT:
+		{
+			HingeConstraint* hinge = 0;
+			
+			if (rb1)
+			{
+				hinge = new HingeConstraint(
+					*rb0,
+					*rb1,pivotInA,pivotInB,axisInA,axisInB);
+
+
+			} else
+			{
+				hinge = new HingeConstraint(*rb0,
+					pivotInA,axisInA);
+
+			}
+			
+			m_constraints.push_back(hinge);
+			hinge->SetUserConstraintId(gConstraintUid++);
+			hinge->SetUserConstraintType(type);
+			//64 bit systems can't cast pointer to int. could use size_t instead.
+			return hinge->GetUserConstraintId();
 			break;
 		}
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
@@ -1062,7 +1101,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		{
 			RaycastVehicle::VehicleTuning* tuning = new RaycastVehicle::VehicleTuning();
 			RigidBody* chassis = rb0;
-			BlenderVehicleRaycaster* raycaster = new BlenderVehicleRaycaster(this,ctrl0);
+			DefaultVehicleRaycaster* raycaster = new DefaultVehicleRaycaster(this,ctrl0);
 			RaycastVehicle* vehicle = new RaycastVehicle(*tuning,chassis,raycaster);
 			WrapperVehicle* wrapperVehicle = new WrapperVehicle(vehicle,ctrl0);
 			m_wrapperVehicles.push_back(wrapperVehicle);
@@ -1087,19 +1126,16 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 {
-	std::vector<Point2PointConstraint*>::iterator i;
-		
-		//std::find(m_p2pConstraints.begin(), m_p2pConstraints.end(), 
-		//		(Point2PointConstraint *)p2p);
+	std::vector<TypedConstraint*>::iterator i;
 	
-		for (i=m_p2pConstraints.begin();
-		!(i==m_p2pConstraints.end()); i++)
+		for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
 		{
-			Point2PointConstraint* p2p = (*i);
-			if (p2p->GetUserConstraintId() == constraintId)
+			TypedConstraint* constraint = (*i);
+			if (constraint->GetUserConstraintId() == constraintId)
 			{
-				std::swap(*i, m_p2pConstraints.back());
-				m_p2pConstraints.pop_back();
+				std::swap(*i, m_constraints.back());
+				m_constraints.pop_back();
 				break;
 			}
 		}
@@ -1301,6 +1337,20 @@ const PersistentManifold*	CcdPhysicsEnvironment::GetManifold(int index) const
 	return GetDispatcher()->GetManifoldByIndexInternal(index);
 }
 
+TypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
+{
+	int numConstraint = m_constraints.size();
+	int i;
+	for (i=0;i<numConstraint;i++)
+	{
+		TypedConstraint* constraint = m_constraints[i];
+		if (constraint->GetUserConstraintId()==constraintId)
+		{
+			return constraint;
+		}
+	}
+	return 0;
+}
 
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT

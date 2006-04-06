@@ -49,6 +49,9 @@ RaycastVehicle::VehicleTuning	gTuning;
 
 #include "ConstraintSolver/ConstraintSolver.h"
 #include "ConstraintSolver/Point2PointConstraint.h"
+#include "ConstraintSolver/HingeConstraint.h"
+
+
 //#include "BroadphaseCollision/QueryDispatcher.h"
 //#include "BroadphaseCollision/QueryBox.h"
 //todo: change this to allow dynamic registration of types!
@@ -393,16 +396,16 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	//also remove constraint
 	
 	{
-		std::vector<Point2PointConstraint*>::iterator i;
+		std::vector<TypedConstraint*>::iterator i;
 		
-		for (i=m_p2pConstraints.begin();
-		!(i==m_p2pConstraints.end()); i++)
+		for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
 		{
-			Point2PointConstraint* p2p = (*i);
-			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
-				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
+			TypedConstraint* constraint = (*i);
+			if  ((&constraint->GetRigidBodyA() == ctrl->GetRigidBody() ||
+				(&constraint->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				 removeConstraint(p2p->GetUserConstraintId());
+				 removeConstraint(constraint->GetUserConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -410,16 +413,16 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 	}
 	
 	{
-		std::vector<Point2PointConstraint*>::iterator i;
+		std::vector<TypedConstraint*>::iterator i;
 		
-		for (i=m_p2pConstraints.begin();
-		!(i==m_p2pConstraints.end()); i++)
+		for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
 		{
-			Point2PointConstraint* p2p = (*i);
-			if  ((&p2p->GetRigidBodyA() == ctrl->GetRigidBody() ||
-				(&p2p->GetRigidBodyB() == ctrl->GetRigidBody())))
+			TypedConstraint* constraint = (*i);
+			if  ((&constraint->GetRigidBodyA() == ctrl->GetRigidBody() ||
+				(&constraint->GetRigidBodyB() == ctrl->GetRigidBody())))
 			{
-				removeConstraint(p2p->GetUserConstraintId());
+				removeConstraint(constraint->GetUserConstraintId());
 				//only 1 constraint per constroller
 				break;
 			}
@@ -452,6 +455,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 	if (!SimdFuzzyZero(timeStep))
 	{
+
+#define SPLIT_TIMESTEP 1
 #ifdef SPLIT_TIMESTEP
 		proceedDeltaTimeOneStep(0.5f*timeStep);
 		proceedDeltaTimeOneStep(0.5f*timeStep);
@@ -555,19 +560,17 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		
 		
 		int i;
-		int numPoint2Point = m_p2pConstraints.size();
+		int numConstraints = m_constraints.size();
 		
 		//point to point constraints
-		for (i=0;i< numPoint2Point ; i++ )
+		for (i=0;i< numConstraints ; i++ )
 		{
-			Point2PointConstraint* p2p = m_p2pConstraints[i];
+			TypedConstraint* constraint = m_constraints[i];
 			
-			p2p->BuildJacobian();
-			p2p->SolveConstraint( timeStep );
+			constraint->BuildJacobian();
+			constraint->SolveConstraint( timeStep );
 			
 		}
-
-
 		
 		
 	}
@@ -1036,7 +1039,11 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	
 	SimdVector3 pivotInA(pivotX,pivotY,pivotZ);
 	SimdVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
-	
+	SimdVector3 axisInA(axisX,axisY,axisZ);
+	SimdVector3 axisInB = rb1 ? 
+		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * -axisInA)) : 
+	rb0->getCenterOfMassTransform().getBasis() * -axisInA;
+
 	switch (type)
 	{
 	case PHY_POINT2POINT_CONSTRAINT:
@@ -1054,12 +1061,38 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA);
 			}
 			
-			m_p2pConstraints.push_back(p2p);
+			m_constraints.push_back(p2p);
 			p2p->SetUserConstraintId(gConstraintUid++);
 			p2p->SetUserConstraintType(type);
 			//64 bit systems can't cast pointer to int. could use size_t instead.
 			return p2p->GetUserConstraintId();
 			
+			break;
+		}
+
+	case PHY_LINEHINGE_CONSTRAINT:
+		{
+			HingeConstraint* hinge = 0;
+			
+			if (rb1)
+			{
+				hinge = new HingeConstraint(
+					*rb0,
+					*rb1,pivotInA,pivotInB,axisInA,axisInB);
+
+
+			} else
+			{
+				hinge = new HingeConstraint(*rb0,
+					pivotInA,axisInA);
+
+			}
+			
+			m_constraints.push_back(hinge);
+			hinge->SetUserConstraintId(gConstraintUid++);
+			hinge->SetUserConstraintType(type);
+			//64 bit systems can't cast pointer to int. could use size_t instead.
+			return hinge->GetUserConstraintId();
 			break;
 		}
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
@@ -1093,19 +1126,16 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 {
-	std::vector<Point2PointConstraint*>::iterator i;
-		
-		//std::find(m_p2pConstraints.begin(), m_p2pConstraints.end(), 
-		//		(Point2PointConstraint *)p2p);
+	std::vector<TypedConstraint*>::iterator i;
 	
-		for (i=m_p2pConstraints.begin();
-		!(i==m_p2pConstraints.end()); i++)
+		for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
 		{
-			Point2PointConstraint* p2p = (*i);
-			if (p2p->GetUserConstraintId() == constraintId)
+			TypedConstraint* constraint = (*i);
+			if (constraint->GetUserConstraintId() == constraintId)
 			{
-				std::swap(*i, m_p2pConstraints.back());
-				m_p2pConstraints.pop_back();
+				std::swap(*i, m_constraints.back());
+				m_constraints.pop_back();
 				break;
 			}
 		}
@@ -1307,16 +1337,16 @@ const PersistentManifold*	CcdPhysicsEnvironment::GetManifold(int index) const
 	return GetDispatcher()->GetManifoldByIndexInternal(index);
 }
 
-Point2PointConstraint*	CcdPhysicsEnvironment::getPoint2PointConstraint(int constraintId)
+TypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 {
-	int nump2p = m_p2pConstraints.size();
+	int numConstraint = m_constraints.size();
 	int i;
-	for (i=0;i<nump2p;i++)
+	for (i=0;i<numConstraint;i++)
 	{
-		Point2PointConstraint* p2p = m_p2pConstraints[i];
-		if (p2p->GetUserConstraintId()==constraintId)
+		TypedConstraint* constraint = m_constraints[i];
+		if (constraint->GetUserConstraintId()==constraintId)
 		{
-			return p2p;
+			return constraint;
 		}
 	}
 	return 0;
