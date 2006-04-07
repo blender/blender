@@ -695,6 +695,91 @@ static unsigned int make_vertex_table( unsigned int *vert_table, int count )
 	return to_delete;
 }
 
+void recalc_selected_edges( Mesh *mesh, MEdge *edge );
+void recalc_selected_faces( Mesh *mesh, MFace *face );
+
+/*
+ * select or deselect vert based on face select setting
+ */
+
+void faceselect( MVert *mvert, MFace *face )
+{
+	if( face->flag & ME_FACE_SEL ) {
+		mvert[face->v1].flag |= SELECT;
+		mvert[face->v2].flag |= SELECT;
+		mvert[face->v3].flag |= SELECT;
+		if ( face->v4 )
+			mvert[face->v4].flag |= SELECT;
+	} else {
+		mvert[face->v1].flag &= ~SELECT;
+		mvert[face->v2].flag &= ~SELECT;
+		mvert[face->v3].flag &= ~SELECT;
+		if ( face->v4 )
+			mvert[face->v4].flag &= ~SELECT;
+	}
+}
+
+/*
+ * determine all selected faces based on change in one face
+ */
+
+void recalc_selected_faces( Mesh *mesh, MFace *face )
+{
+	int i;
+
+	if( face ) {
+		/* set/clear face's verts */
+		faceselect( mesh->mvert, face );
+		/* set edges based on selected verts */
+		recalc_selected_edges( mesh, NULL );
+	}
+
+	/* set vert selection based on selected faces */
+	for( face = mesh->mface, i = 0; i < mesh->totface; ++i, ++face ) {
+		int flag = mesh->mvert[face->v1].flag;
+		flag &= mesh->mvert[face->v2].flag;
+		flag &= mesh->mvert[face->v3].flag;
+		if ( face->v4 )
+			flag &= mesh->mvert[face->v4].flag;
+		if( flag & SELECT )
+			face->flag |= ME_FACE_SEL;
+		else
+			face->flag &= ~ME_FACE_SEL;
+	}
+}
+
+/*
+ * determine all selected edges based on change in one edge
+ */
+
+void recalc_selected_edges( Mesh *mesh, MEdge *edge )
+{
+	int i;
+
+	if( edge ) {
+		/* clear selection on all vertices */
+		if( edge->flag & SELECT ) {
+			mesh->mvert[edge->v1].flag |= SELECT;
+			mesh->mvert[edge->v2].flag |= SELECT;
+		} else {
+			mesh->mvert[edge->v1].flag &= ~SELECT;
+			mesh->mvert[edge->v2].flag &= ~SELECT;
+		}
+
+		recalc_selected_faces( mesh, NULL );
+	}
+
+	/* set edges based on selected verts */
+	for( edge = mesh->medge, i = 0; i < mesh->totedge; ++i, ++edge ) {
+		if( mesh->mvert[edge->v1].flag &
+					mesh->mvert[edge->v2].flag & SELECT )
+			edge->flag |= SELECT;
+		else
+			edge->flag &= ~SELECT;
+	}
+}
+
+
 /************************************************************************
  *
  * Color attributes
@@ -1033,13 +1118,24 @@ static PyObject *MVert_getSel( BPy_MVert *self )
 
 static int MVert_setSel( BPy_MVert *self, PyObject *value )
 {
-	MVert *v;
+	MVert *v = MVert_get_pointer( self );
+	Mesh *me = (Mesh *)self->data;
 
-	v = MVert_get_pointer( self );
-	if( !v )
-		return -1;
+	/* 
+	 * if vertex exists and setting status is OK, update the select states
+	 * of the edges and faces as well
+	 */
 
-	return EXPP_setBitfield( value, &v->flag, SELECT, 'b' );
+	if( v && !EXPP_setBitfield( value, &v->flag, SELECT, 'b' ) ) {
+		recalc_selected_edges( me, NULL );
+		recalc_selected_faces( me, NULL );
+		if( me->mselect ) {
+			MEM_freeN( me->mselect );
+			me->mselect = NULL;
+		}
+		return 0;
+	}
+	return -1;
 }
 
 /*
@@ -2125,7 +2221,7 @@ static PyObject *MEdge_getFlag( BPy_MEdge * self )
 static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 {
 	short param;
-	static short bitmask = 1 		/* 1=select */
+	static short bitmask = SELECT
 				| ME_EDGEDRAW
 				| ME_EDGERENDER
 				| ME_SEAM
@@ -2147,6 +2243,8 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 						"invalid bit(s) set in mask" );
 
 	edge->flag = param;
+
+	recalc_selected_edges( self->mesh, edge );
 
 	return 0;
 }
@@ -2214,7 +2312,7 @@ static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 }
 
 /*
- * get an edges's index
+ * get an edge's index
  */
 
 static PyObject *MEdge_getIndex( BPy_MEdge * self )
@@ -2231,6 +2329,51 @@ static PyObject *MEdge_getIndex( BPy_MEdge * self )
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"PyInt_FromLong() failed" );
+}
+
+/*
+ * get an edge's select state
+ */
+
+static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
+{
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return NULL;
+
+	return EXPP_getBitfield( &edge->flag, (int)((long)type & 0xff), 'b' );
+}
+
+/*
+ * set an edge's select state
+ */
+
+static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
+		void * type )
+{
+	MEdge *edge = MEdge_get_pointer( self );
+	int param = PyObject_IsTrue( value );
+
+	if( !edge )
+		return -1;
+
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected true/false argument" );
+
+	if( param )
+		edge->flag |= SELECT;
+	else 
+		edge->flag &= ~SELECT;
+
+	recalc_selected_edges( self->mesh, edge );
+	if( self->mesh->mselect ) {
+		MEM_freeN( self->mesh->mselect );
+		self->mesh->mselect = NULL;
+	}
+
+	return 0;
 }
 
 /************************************************************************
@@ -2260,6 +2403,10 @@ static PyGetSetDef BPy_MEdge_getseters[] = {
 	 (getter)MEdge_getIndex, (setter)NULL,
 	 "edge's index",
 	 NULL},
+	{"sel",
+	 (getter)MEdge_getMFlagBits, (setter)MEdge_setSel,
+     "edge selected in edit mode",
+     (void *)SELECT},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -3279,7 +3426,36 @@ static int MFace_setMFlagBits( BPy_MFace * self, PyObject * value,
 	if( !face )
 		return -1;
 
-	return EXPP_setBitfield( value, &face->flag, (int)((long)type & 0xff), 'b' );
+	return EXPP_setBitfield( value, &face->flag, 
+			(int)((long)type & 0xff), 'b' );
+}
+
+static int MFace_setSelect( BPy_MFace * self, PyObject * value,
+		void * type )
+{
+	MFace *face = MFace_get_pointer( self );
+	int param = PyObject_IsTrue( value );
+
+	if( !face )
+		return -1;
+
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected true/false argument" );
+
+	if( param )
+		face->flag |= ME_FACE_SEL;
+	else 
+		face->flag &= ~ME_FACE_SEL;
+
+	recalc_selected_faces( self->mesh, face );
+	if( self->mesh->mselect ) {
+		MEM_freeN( self->mesh->mselect );
+		self->mesh->mselect = NULL;
+	}
+
+	return 0;
+
 }
 
 /*
@@ -3802,7 +3978,7 @@ static PyGetSetDef BPy_MFace_getseters[] = {
      "face hidden in edit mode",
      (void *)ME_HIDE},
     {"sel",
-     (getter)MFace_getMFlagBits, (setter)MFace_setMFlagBits,
+     (getter)MFace_getMFlagBits, (setter)MFace_setSelect,
      "face selected in edit mode",
      (void *)ME_FACE_SEL},
     {"smooth",

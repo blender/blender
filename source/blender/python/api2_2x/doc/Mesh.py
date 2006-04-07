@@ -89,8 +89,9 @@ done once.
     - ALPHA - draw with transparency.
     - SUB - subtract from background.
 @var EdgeFlags: The available edge flags.
-    - SELECT - selected.
+    - SELECT - selected (B{deprecated}).  Use edge.sel attribute instead.
     - EDGEDRAW - edge is drawn out of edition mode.
+#    - EDGERENDER - edge is drawn out of edition mode.
     - SEAM - edge is a seam for UV unwrapping
     - FGON - edge is part of a F-Gon.
 @type AssignModes: readonly dictionary.
@@ -327,6 +328,8 @@ class MEdge:
   @type flag: int
   @ivar index: The edge's index within the mesh.  Read-only.
   @type index: int
+  @ivar sel: The edge's B{edit mode} selection state (selected=1).
+  @type sel: int
   """
 
   def __iter__():
