@@ -6,19 +6,20 @@ def meshWeight2Dict(me):
 	These 2 lists can be modified and then used with dict2MeshWeight to apply the changes.
 	'''
 	
-	vWeightDicts= [dict() for i in xrange(len(me.verts))] # Sync with vertlist.
+	vWeightDict= [dict() for i in xrange(len(me.verts))] # Sync with vertlist.
 	
 	# Clear the vert group.
 	groupNames= me.getVertGroupNames()
 		
 	for group in groupNames:
 		for index, weight in me.getVertsFromGroup(group, 1): # (i,w)  tuples.
-			vWeightDicts[index][group]= weight
-		
-	for group in groupNames:
-		me.removeVertGroup(group)
+			vWeightDict[index][group]= weight
 	
-	return groupNames, vWeightDicts
+	# removed this because me may be copying teh vertex groups.
+	#for group in groupNames:
+	#	me.removeVertGroup(group)
+	
+	return groupNames, vWeightDict
 
 
 def dict2MeshWeight(me, groupNames, vWeightDict):
@@ -49,98 +50,79 @@ def dict2MeshWeight(me, groupNames, vWeightDict):
 				pass # vert group is not used anymore.
 	
 	me.update()
-	
 
 
-#~ # Test normalize. 
-#~ if __name__ == '__main__':
-	#~ ob= Blender.Scene.GetCurrent().getActiveObject()
-	#~ me= ob.getData(mesh=1)
+
+def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None):
+	'''
+	ob - the object that you want to get the mesh from
+	container_mesh - a Blender.Mesh type mesh that is reused to avoid a new datablock per call to getMeshFromObject
+	apply_modifiers - if enabled, subsurf bones etc. will be applied to the returned mesh. disable to get a copy of the mesh.
+	vgroup - For mesh objects only, apply the vgroup to the the copied mesh. (slower)
+	scn - Scene type. avoids getting the current scene each time getMeshFromObject is called.
 	
-	#~ wdct= meshWeight2Dict(me)
-	#~ wdct_new= [w.copy() for w in wdct] # Make a copy for the new data. so verts dont get blured unevenly.
+	Returns Mesh or None
+	'''
 	
-	#~ '''
-	#~ for wv in wdct: # Weight verts.
-		#~ for key,val in wv.iteritems():
-			#~ wv[key]= val*0.5
-	#~ '''
-	#~ # Normalize between bones.
-	#~ '''
-	#~ for wv in wdct: # Weight verts.
-		#~ no=0.0
-		#~ for val in wv.itervalues():
-			#~ no+=val
+	if not scn:
+		scn= Blender.Scene.GetCurrent()
+	if not container_mesh:
+		mesh = Blender.Mesh.New()	
+	else:
+		mesh= container_mesh
+		mesh.verts= None
+	
+	
+	type = ob.getType()
+	dataname = ob.getData(1)
+	tempob= None
+	if apply_modifiers or type != 'Mesh':
+		try:
+			mesh.getFromObject(ob.name)
+		except:
+			return None
+	
+	else:
+		'''
+		Dont apply modifiers, copy the mesh. 
+		So we can transform the data. its easiest just to get a copy of the mesh. 
+		'''
+		tempob= Blender.Object.New('Mesh')
+		tempob.shareFrom(ob)
+		scn.link(tempob)
+		mesh.getFromObject(tempob.name)
+		scn.unlink(tempob)
+	
+	if type == 'Mesh':
+		tempMe = ob.getData(mesh=1)
+		mesh.materials = tempMe.materials
+		mesh.degr = tempMe.degr
+		try: mesh.mode = tempMe.mode # Mesh module needs fixing.
+		except: pass
+		if vgroups:
+			if tempob==None:
+				tempob= Blender.Object.New('Mesh')
+			tempob.link(mesh)
+			try:
+				# Copy the influences if possible.
+				groupNames, vWeightDict= meshWeight2Dict(tempMe)
+				dict2MeshWeight(mesh, groupNames, vWeightDict)
+			except:
+				# if the modifier changes the vert count then it messes it up for us.
+				pass
 		
-		#~ if no>0:
-			#~ for key,val in wv.iteritems():
-				#~ wv[key]/=no
-	#~ '''
-	
-	#~ # remove 
-	
-	
-	
-	
-	#~ '''
-	#~ radius= 0.1
-	#~ strength=0.5
-	#~ # Distance based radial blur,
-	#~ vertEdgeUsers= [list() for i in xrange(len(me.verts))]
-	
-	#~ # Build edge lengths and face users for this data.
-	#~ edgeLengths= [(ed.v1.co-ed.v2.co).length for ed in me.edges\
-	#~ if vertEdgeUsers[ed.v1.index].append(ed)== None and\
-	   #~ vertEdgeUsers[ed.v2.index].append(ed) == None  ]
-	
-		
-		
-	#~ for i, vertShared, in enumerate(vertEdgeUsers):
-		#~ vert_hub= me.verts[i]
-		#~ dummy_weight= {}
-		#~ for cnctEd in vertShared:
-			#~ if cnctEd.v1==vert_hub:
-				#~ cnctVt= cnctEd.v2
-			#~ else:
-				#~ cnctVt= cnctEd.v1
+	else:
+		try:
+			# Will only work for curves!!
+			# Text- no material access in python interface.
+			# Surf- no python interface
+			# MBall- no material access in python interface.
 			
-			
-			#~ cnct_weight= wdct[cnctVt.index] # copy from, old var
-			
-			#~ for group, weight in cnct_weight.iteritems():
-				#~ w= weight / len(vertShared) # Scale the weight...
-				#~ try:
-					#~ dummy_weight[group] += w
-				#~ except:
-					#~ dummy_weight[group] = w
-		
-		#~ # New add the collected dumy weight to the vertex.
-		
-		
-		#~ length= edgeLengths[cnctEd.index]
-		
-		#~ if length != 0 and length < radius:
-			#~ factor= strength #length/radius # < 1
-			#~ factor_inv= 1.0-factor 
-			
-			#~ # Add the cnctVt's weight to the vert_hub's.
-			#~ hub_weight= wdct_new[i] # copy to new var
-			#~ cnct_weight= wdct[cnctVt.index] # copy from, old var
-			
-			#~ for group, weight in dummy_weight.iteritems():
-				#~ try:
-					#~ hub_weight[group]= ((hub_weight[group]*factor) + (weight*factor_inv)) * 0.9
-				#~ except:
-					#~ hub_weight[group]= (weight*factor_inv)* 0.9
-			
-			#~ for group, weight in hub_weight.iteritems():
-				#~ try:
-					#~ dummy_weight[group]
-				#~ except:
-					#~ hub_weight[group]= weight*factor
-	#~ '''
-	#~ dict2MeshWeight(me, wdct_new)
+			data = ob.getData()
+			materials = data.getMaterials()
+			mesh.materials = materials
+			print 'assigning materials for non mesh'
+		except:
+			print 'Cant assign materials to', type
 	
-	
-	
-	
+	return mesh

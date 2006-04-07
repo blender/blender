@@ -45,6 +45,7 @@ Run this script from "File->Export" menu to export all meshes.
 
 import Blender
 from Blender import Mesh, Scene, Window, sys, Image, Draw
+import BPyMesh
 
 # Returns a tuple - path,extension.
 # 'hello.obj' >  ('hello', '.obj')
@@ -70,60 +71,6 @@ def saneFilechars(name):
 def sortPair(a,b):
 	return min(a,b), max(a,b)
 
-def getMeshFromObject(scn, ob, name=None, mesh=None, EXPORT_APPLY_MODIFIERS=True):
-	
-	if mesh:
-		mesh.verts = None # Clear the mesh
-	else:
-		if not name:
-			mesh = Mesh.New()
-		else:
-			mesh = Mesh.New(name)
-	
-	
-	type = ob.getType()
-	dataname = ob.getData(1)
-	
-	if EXPORT_APPLY_MODIFIERS or type != 'Mesh':
-		try:
-			mesh.getFromObject(ob.name)
-		except:
-			return None
-	
-	else:
-		'''
-		Dont apply modifiers, copy the mesh. 
-		So we can transform the data. its easiest just to get a copy of the mesh. 
-		'''
-		tempob= Blender.Object.New('Mesh')
-		tempob.shareFrom(ob)
-		scn.link(tempob)
-		mesh.getFromObject(tempob.name)
-		scn.unlink(tempob)
-	
-	if type == 'Mesh':
-		tempMe = Mesh.Get( dataname )
-		mesh.materials = tempMe.materials
-		mesh.degr = tempMe.degr
-		try: mesh.mode = tempMe.mode # Mesh module needs fixing.
-		except: pass
-		
-	else:
-		try:
-			# Will only work for curves!!
-			# Text- no material access in python interface.
-			# Surf- no python interface
-			# MBall- no material access in python interface.
-			
-			data = ob.getData()
-			materials = data.getMaterials()
-			mesh.materials = materials
-			print 'assigning materials for non mesh'
-		except:
-			print 'Cant assign materials to', type
-	
-	return mesh
-
 global MTL_DICT
 
 # A Dict of Materials
@@ -140,7 +87,7 @@ def write_mtl(filename):
 		worldAmb = (0,0,0) # Default value
 	
 	file = open(filename, "w")
-	file.write('# Blender MTL File: %s\n' % Blender.Get('filename').split('\\')[-1].split('/')[-1])
+	file.write('# Blender3D MTL File: %s\n' % Blender.Get('filename').split('\\')[-1].split('/')[-1])
 	file.write('# Material Count: %i\n' % len(MTL_DICT))
 	# Write material/image combinations we have used.
 	for key, mtl_mat_name in MTL_DICT.iteritems():
@@ -153,20 +100,19 @@ def write_mtl(filename):
 		if key[0] == None:
 			#write a dummy material here?
 			file.write('Ns 0\n')
-			file.write('Ka %s %s %s\n' %  tuple([round(c, 6) for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c for c in worldAmb])  ) # Ambient, uses mirror colour,
 			file.write('Kd 0.8 0.8 0.8\n')
 			file.write('Ks 0.8 0.8 0.8\n')
 			file.write('d 1\n') # No alpha
 			file.write('illum 2\n') # light normaly	
-			
 		else:
 			mat = Blender.Material.Get(key[0])
-			file.write('Ns %s\n' % round((mat.getHardness()-1) * 1.9607843137254901 ) ) # Hardness, convert blenders 1-511 to MTL's 
-			file.write('Ka %s %s %s\n' %  tuple([round(c*mat.getAmb(), 6) for c in worldAmb])  ) # Ambient, uses mirror colour,
-			file.write('Kd %s %s %s\n' % tuple([round(c*mat.getRef(), 6) for c in mat.getRGBCol()]) ) # Diffuse
-			file.write('Ks %s %s %s\n' % tuple([round(c*mat.getSpec(), 6) for c in mat.getSpecCol()]) ) # Specular
-			file.write('Ni %s\n' % round(mat.getIOR(), 6)) # Refraction index
-			file.write('d %s\n' % round(mat.getAlpha(), 6)) # Alpha (obj uses 'd' for dissolve)
+			file.write('Ns %.6f\n' % ((mat.getHardness()-1) * 1.9607843137254901) ) # Hardness, convert blenders 1-511 to MTL's 
+			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c*mat.getAmb() for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.getRef() for c in mat.getRGBCol()]) ) # Diffuse
+			file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.getSpec() for c in mat.getSpecCol()]) ) # Specular
+			file.write('Ni %.6f\n' % mat.getIOR()) # Refraction index
+			file.write('d %.6f\n' % mat.getAlpha()) # Alpha (obj uses 'd' for dissolve)
 			
 			# 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
 			if mat.getMode() & Blender.Material.Modes['SHADELESS']:
@@ -214,8 +160,19 @@ def copy_images(dest_dir):
 	# Get unique image names
 	uniqueImages = {}
 	for matname, imagename in MTL_DICT.iterkeys(): # Only use image name
+		# Get Texface images
 		if imagename != None:
 			uniqueImages[imagename] = None # Should use sets here. wait until Python 2.4 is default.
+		
+		# Get MTex images
+		if matname != None:
+			mat= Material.Get(matname)
+				for mtex in mat.getTextures():
+					if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
+						try:
+							uniqueImages[mtex.tex.image.name] = None
+						except:
+							pass
 	
 	# Now copy images
 	copyCount = 0
@@ -271,9 +228,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	if not containerMesh:
 		containerMesh = Mesh.New(temp_mesh_name)
 	del meshName
-	del tempMesh
-	
-	
+	del tempMesh	
 	
 	# Initialize totals, these are updated each object
 	totverts = totuvco = totno = 1
@@ -285,7 +240,9 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	for ob in objects:
 		
 		# Will work for non meshes now! :)
-		m = getMeshFromObject(scn, ob, temp_mesh_name, containerMesh, EXPORT_APPLY_MODIFIERS)
+		# getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None)
+		m= BPyMesh.getMeshFromObject(ob, containerMesh, True, False, scn)
+		
 		if not m:
 			continue
 		
@@ -308,9 +265,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 				oldmode = Mesh.Mode(oldmode)
 				scn.unlink(tempob)
 			Mesh.Mode(oldmode)
-				
-
-			
 		
 		faces = [ f for f in m.faces ]
 		if EXPORT_EDGES:
