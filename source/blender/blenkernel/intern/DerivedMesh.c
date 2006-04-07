@@ -1531,13 +1531,15 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	*final_r = NULL;
 
 	/* replace original mesh by fluidsim surface mesh for fluidsim domain objects */
-	if((G.obedit!=ob) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
-		if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
-			loadFluidsimMesh(ob,useRenderParams);
-			fluidsimMeshUsed = 1;
-			/* might have changed... */
-			me = ob->data;
-			numVerts = me->totvert;
+	if((G.obedit!=ob) && !needMapping) {
+		if (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
+			if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
+				loadFluidsimMesh(ob,useRenderParams);
+				fluidsimMeshUsed = 1;
+				/* might have changed... */
+				me = ob->data;
+				numVerts = me->totvert;
+			}
 		}
 	}
 

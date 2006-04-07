@@ -93,8 +93,6 @@
 
 #include "BDR_unwrapper.h"
 
-#include "DNA_object_fluidsim.h" /* for OB_FLUIDSIM_DOMAIN */
-
 /* returns 0 if not found, otherwise 1 */
 static int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 {
@@ -1428,11 +1426,6 @@ void set_faceselect()	/* toggle */
 	if(ob==NULL) return;
 	if(ob->id.lib) {
 		error("Can't edit library data");
-		return;
-	}
-	
-	if (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE && ob->fluidsimSettings && ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
-		error("Can't edit fluidsim enabled data");
 		return;
 	}
 	
