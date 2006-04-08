@@ -992,7 +992,7 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 {
 	static VertRen *v1= NULL, *v2= NULL;
 	VlakRen *vlr;
-	float nor[3], cross[3], w, dx, dy;
+	float nor[3], cross[3], w, dx, dy, width;
 	int flag;
 	
 	VecSubf(nor, vec, vec1);
@@ -1014,13 +1014,19 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 		}
 		else fac= ctime;
 		
-		VecMulf(cross, ((1.0f-fac)*ma->strand_sta + (fac)*ma->strand_end)/w);
+		width= ((1.0f-fac)*ma->strand_sta + (fac)*ma->strand_end)/w;
+		VecMulf(cross, width);
 	}
+	else width= 1.0f;
 	
 	if(ma->mode & MA_TANGENT_STR)
-		flag= R_SMOOTH|R_NOPUNOFLIP|R_STRAND|R_TANGENT;
+		flag= R_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
 	else
-		flag= R_SMOOTH|R_STRAND;
+		flag= R_SMOOTH;
+	
+	/* only 1 pixel wide strands filled in as quads now, otherwise zbuf errors */
+	if(width==1.0f)
+		flag |= R_STRAND;
 	
 	/* first two vertices */
 	if(first) {
