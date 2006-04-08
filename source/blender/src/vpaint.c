@@ -361,6 +361,7 @@ void clear_vpaint_selectedfaces()
 }
 
 
+/* fills in the selected faces with the current weight and vertex group */
 void clear_wpaint_selectedfaces()
 {
 	extern float editbutvweight;
@@ -371,67 +372,87 @@ void clear_wpaint_selectedfaces()
 	Object *ob;
 	int index, vgroup;
 	MDeformWeight *dw, *uw;
+	unsigned int faceverts[5]={NULL,NULL,NULL,NULL,NULL};
+	unsigned char i;
+	int vgroup_mirror= -1;
 	
 	ob= OBACT;
 	me= ob->data;
 	if(me==0 || me->totface==0 || me->dvert==0 || !me->tface) return;
 	
 	if(indexar==NULL) init_vertexpaint();
-	for(index=0, tface=me->tface; index<me->totface; index++) {
-		if((tface->flag & TF_SELECT)==0) {
+	for(index=0, tface=me->tface; index<me->totface; index++, tface++) {
+		if((tface->flag & TF_SELECT)==0)
 			indexar[index]= 0;
-		} else {
+		else
 			indexar[index]= index+1;
-		}
-		tface++;
 	}
 	
 	copy_wpaint_undo(me->dvert, me->totvert);
 	vgroup= ob->actdef-1;
 	
+	/* directly copied from weight_paint, should probaby split into a seperate function */
+	/* if mirror painting, find the other group */		
+	if(Gwp.flag & VP_MIRROR_X) {
+		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
+		if(defgroup) {
+			bDeformGroup *curdef;
+			int actdef= 0;
+			char name[32];
+
+			BLI_strncpy(name, defgroup->name, 32);
+			bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+			
+			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
+				if (!strcmp(curdef->name, name))
+					break;
+			if(curdef==NULL) {
+				int olddef= ob->actdef;	/* tsk, add_defgroup sets the active defgroup */
+				curdef= add_defgroup_name (ob, name);
+				ob->actdef= olddef;
+			}
+			
+			if(curdef && curdef!=defgroup)
+				vgroup_mirror= actdef;
+		}
+	}
+	/* end copy from weight_paint*/
+	
+	
 	for(index=0; index<me->totface; index++) {
 		if(indexar[index] && indexar[index]<=me->totface) {
 			mface= me->mface + (indexar[index]-1);
-			if(!((me->dvert+mface->v1)->flag)) {
-				dw= verify_defweight(me->dvert+mface->v1, vgroup);
-				if(dw) {
-					uw= verify_defweight(wpaintundobuf+mface->v1, vgroup);
-					uw->weight= dw->weight;
-					dw->weight= paintweight;
-				}
-				(me->dvert+mface->v1)->flag= 1;
-			}
-			
-			if(!((me->dvert+mface->v2)->flag)) {
-				dw= verify_defweight(me->dvert+mface->v2, vgroup);
-				if(dw) {
-					uw= verify_defweight(wpaintundobuf+mface->v2, vgroup);
-					uw->weight= dw->weight;
-					dw->weight= paintweight;
-				}
-				(me->dvert+mface->v2)->flag= 1;
-			}
-			
-			if(!((me->dvert+mface->v3)->flag)) {
-				dw= verify_defweight(me->dvert+mface->v3, vgroup);
-				if(dw) {
-					uw= verify_defweight(wpaintundobuf+mface->v3, vgroup);
-					uw->weight= dw->weight;
-					dw->weight= paintweight;
-				}
-				(me->dvert+mface->v3)->flag= 1;
-			}
-			
-			if(mface->v4) {
-				if(!((me->dvert+mface->v4)->flag)) {
-					dw= verify_defweight(me->dvert+mface->v4, vgroup);
+			/* just so we can loop through the verts */
+			faceverts[0]= mface->v1;
+			faceverts[1]= mface->v2;
+			faceverts[2]= mface->v3;
+			faceverts[3]= mface->v4;
+			for (i=0; faceverts[i]; i++) {
+				if(!((me->dvert+faceverts[i])->flag)) {
+					dw= verify_defweight(me->dvert+faceverts[i], vgroup);
 					if(dw) {
-						uw= verify_defweight(wpaintundobuf+mface->v4, vgroup);
-						uw->weight= dw->weight;
+						uw= verify_defweight(wpaintundobuf+faceverts[i], vgroup);
+						uw->weight= dw->weight; /* set the undio weight */
 						dw->weight= paintweight;
+						
+						if(Gwp.flag & VP_MIRROR_X) {	/* x mirror painting */
+							int j= mesh_get_x_mirror_vert(ob, faceverts[i]);
+							if(j>=0) {
+								/* copy, not paint again */
+								if(vgroup_mirror != -1) {
+									dw= verify_defweight(me->dvert+j, vgroup_mirror);
+									uw= verify_defweight(wpaintundobuf+j, vgroup_mirror);
+								} else {
+									dw= verify_defweight(me->dvert+j, vgroup);
+									uw= verify_defweight(wpaintundobuf+j, vgroup);
+								}
+								uw->weight= dw->weight; /* set the undo weight */
+								dw->weight= paintweight;
+							}
+						}
 					}
+					(me->dvert+faceverts[i])->flag= 1;
 				}
-				(me->dvert+mface->v4)->flag= 1;
 			}
 		}
 	}
@@ -1220,7 +1241,7 @@ void weight_paint(void)
 	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
 	else mousebut = L_MOUSE;
 	
-	/* if mirror painting, find the other group */			
+	/* if mirror painting, find the other group */
 	if(Gwp.flag & VP_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
 		if(defgroup) {
