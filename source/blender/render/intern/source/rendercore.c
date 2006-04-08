@@ -2965,7 +2965,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 							add_filt_fmask(1<<samp, fcol, rf, pa->rectx);
 							
 							if(addpassflag)
-								add_filt_passes(rl, curmask, pa->rectx, od, &shpi.shr);
+								add_filt_passes(rl, 1<<samp, pa->rectx, od, &shpi.shr);
 						}
 					}
 				}
