@@ -132,11 +132,15 @@ static void draw_bounding_volume(Object *ob);
 // Materials start counting at # one....
 #define MAXMATBUF (MAXMAT + 1)
 static float matbuf[MAXMATBUF][2][4];
+static int totmat_gl= 0;
 
 static int set_gl_material(int nr)
 {
 	static int last_gl_matnr= -1;
 	static int last_ret_val= 1;
+	
+	/* prevent index to use un-initialized array items */
+	if(nr>totmat_gl) nr= totmat_gl;
 	
 	if(nr<0) {
 		last_gl_matnr= -1;
@@ -215,6 +219,7 @@ static int init_gl_materials(Object *ob, int check_alpha)
 		}
 	}
 
+	totmat_gl= ob->totcol;
 	set_gl_material(-1);		// signal for static variable
 	return has_alpha;
 }

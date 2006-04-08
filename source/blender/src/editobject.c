@@ -3185,7 +3185,7 @@ void make_links(short event)
 							matar2= MEM_dupallocN(*obmatarar);
 						}
 						else {
-							matar1= matar2= 0;
+							matar1= matar2= NULL;
 						}
 						
 						/* remove links from obt */
