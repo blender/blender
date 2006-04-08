@@ -69,6 +69,7 @@
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
@@ -1525,7 +1526,8 @@ typedef struct pMatrixCache {
 static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 {
 	pMatrixCache *mcache, *mc;
-	Object *par, ob_store;
+	Object ob_store;
+	Base *base;
 	float framelenold, cfrao;
 	
 	mcache= mc= MEM_mallocN( (end-start+1)*sizeof(pMatrixCache), "ob matrix cache");
@@ -1536,20 +1538,35 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	ob_store= *ob;	/* quick copy of all settings */
 	ob->sf= 0.0f;
 	
+	/* all objects get tagged recalc that influence this object */
+	DAG_object_update_flags(G.scene, ob, G.scene->lay);
+	
 	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
-		
-		par= ob;
-		while(par) {
-			par->ctime= -1234567.0;		/* hrms? */
-			do_ob_key(par);
-			if(par->type==OB_ARMATURE) {
-				do_all_pose_actions(par);	// only does this object actions
-				where_is_pose(par);
+		for(base= G.scene->base.first; base; base= base->next) {
+			if(base->object->recalc) {
+				where_is_object(base->object);
+				
+				do_ob_key(base->object);
+				if(base->object->type==OB_ARMATURE) {
+					do_all_pose_actions(base->object);	// only does this object actions
+					where_is_pose(base->object);
+				}
 			}
-			par= par->parent;
 		}
-
-		where_is_object(ob);
+		
+//		par= ob;
+//		while(par) {
+//			par->ctime= -1234567.0;		/* hrms? */
+//			do_ob_key(par);
+//			if(par->type==OB_ARMATURE) {
+//				do_all_pose_actions(par);	// only does this object actions
+//				where_is_pose(par);
+//			}
+//			par= par->parent;
+//		}
+		
+//		where_is_object(ob);
+		
 		Mat4CpyMat4(mc->obmat, ob->obmat);
 		Mat4Invert(ob->imat, ob->obmat);
 		Mat3CpyMat4(mc->imat, ob->imat);
@@ -1561,19 +1578,31 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	G.scene->r.cfra= cfrao;
 	G.scene->r.framelen= framelenold;
 	*ob= ob_store;
+
+	for(base= G.scene->base.first; base; base= base->next) {
+		where_is_object(base->object);
+		if(base->object->recalc) {
+			do_ob_key(base->object);
+			if(base->object->type==OB_ARMATURE) {
+				do_all_pose_actions(base->object);	// only does this object actions
+				where_is_pose(base->object);
+			}
+		}
+	}
+	
 	
 	/* restore hierarchy, weak code destroying potential depgraph stuff... */
-	par= ob;
-	while(par) {
+//	par= ob;
+//	while(par) {
 		/* do not do ob->ipo: keep insertkey */
-		do_ob_key(par);
+//		do_ob_key(par);
 		
-		if(par->type==OB_ARMATURE) {
-			do_all_pose_actions(par);	// only does this object actions
-			where_is_pose(par);
-		}
-		par= par->parent;
-	}
+//		if(par->type==OB_ARMATURE) {
+//			do_all_pose_actions(par);	// only does this object actions
+//			where_is_pose(par);
+//		}
+//		par= par->parent;
+//	}
 	
 	return mcache;
 }
