@@ -291,7 +291,7 @@ bool BU_EdgeEdge::GetTimeOfImpactGeneralCase(
 {
 	bool hit = false;
 	
-	SimdScalar coefs[4];
+	SimdScalar coefs[4]={0.f,0.f,0.f,0.f};
 	BU_Polynomial polynomialSolver;
 	int numroots = 0;
 	

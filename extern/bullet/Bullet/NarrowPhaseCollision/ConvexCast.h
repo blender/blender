@@ -46,6 +46,9 @@ public:
 		{
 		}
 
+
+		virtual ~CastResult() {};
+
 		SimdVector3	m_normal;
 		SimdScalar	m_fraction;
 		SimdTransform	m_hitTransformA;

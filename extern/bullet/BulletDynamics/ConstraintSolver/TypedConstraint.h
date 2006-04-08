@@ -32,7 +32,7 @@ protected:
 public:
 
 	TypedConstraint();
-
+	virtual ~TypedConstraint() {};
 	TypedConstraint(RigidBody& rbA);
 
 	TypedConstraint(RigidBody& rbA,RigidBody& rbB);

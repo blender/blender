@@ -35,7 +35,7 @@ m_minkowskiB(objectB)
 
 void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& output,class IDebugDraw* debugDraw)
 {
-	SimdScalar distance;
+	SimdScalar distance=0.f;
 	SimdVector3	normalInB(0.f,0.f,0.f);
 	SimdVector3 pointOnA,pointOnB;
 

@@ -94,6 +94,8 @@ public:
 
 	SIMD_FORCE_INLINE SimdVector3 normalized() const;
 
+	SIMD_FORCE_INLINE SimdVector3 rotate( const SimdVector3& wAxis, const SimdScalar angle );
+
 	SIMD_FORCE_INLINE SimdScalar angle(const SimdVector3& v) const 
 	{
 		SimdScalar s = SimdSqrt(length2() * v.length2());
@@ -287,6 +289,19 @@ SIMD_FORCE_INLINE SimdVector3 SimdVector3::normalized() const
 	return *this / length();
 } 
 
+SIMD_FORCE_INLINE SimdVector3 SimdVector3::rotate( const SimdVector3& wAxis, const SimdScalar angle )
+{
+	// wAxis must be a unit lenght vector
+
+	SimdVector3 o = wAxis * wAxis.dot( *this );
+	SimdVector3 x = *this - o;
+	SimdVector3 y;
+
+	y = wAxis.cross( *this );
+
+	return ( o + x * cos( angle ) + y * sin( angle ) );
+}
+
 class SimdVector4 : public SimdVector3
 {
 public:
@@ -382,8 +397,6 @@ public:
 	{
 		return absolute4().maxAxis4();
 	}
-
-
 
 };
 

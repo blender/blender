@@ -27,7 +27,8 @@ class SimdTransform;
 class ConvexPenetrationDepthSolver
 {
 public:	
-
+	
+	virtual ~ConvexPenetrationDepthSolver() {};
 	virtual bool CalcPenDepth( SimplexSolverInterface& simplexSolver,
 		ConvexShape* convexA,ConvexShape* convexB,
 					const SimdTransform& transA,const SimdTransform& transB,

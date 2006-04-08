@@ -88,7 +88,7 @@ private:
 
 public:
 	AxisSweep3(const SimdPoint3& worldAabbMin,const SimdPoint3& worldAabbMax, int maxHandles = 1024, int maxOverlaps = 8192);
-	~AxisSweep3();
+	virtual	~AxisSweep3();
 
 	virtual void	RefreshOverlappingPairs()
 	{

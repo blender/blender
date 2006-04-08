@@ -37,6 +37,8 @@ struct CollisionAlgorithmCreateFunc
 		:m_swapped(false)
 	{
 	}
+	virtual ~CollisionAlgorithmCreateFunc(){};
+
 	virtual	CollisionAlgorithm* CreateCollisionAlgorithm(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1)
 	{
 		return 0;
@@ -65,6 +67,8 @@ public:
 
 	struct	IslandCallback
 	{
+		virtual ~IslandCallback() {};
+
 		virtual	void	ProcessIsland(PersistentManifold**	manifolds,int numManifolds) = 0;
 	};
 
@@ -95,6 +99,7 @@ public:
 	int m_count;
 	
 	CollisionDispatcher ();
+	virtual ~CollisionDispatcher() {};
 
 	virtual PersistentManifold*	GetNewManifold(void* b0,void* b1);
 	

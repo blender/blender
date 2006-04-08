@@ -32,6 +32,7 @@ public:
 
 	ManifoldResult(CollisionObject* body0,CollisionObject* body1,PersistentManifold* manifoldPtr);
 
+	virtual ~ManifoldResult() {};
 
 	virtual void AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth);
 

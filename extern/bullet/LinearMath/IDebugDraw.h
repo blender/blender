@@ -48,6 +48,8 @@ class	IDebugDraw
 		DBG_MAX_DEBUG_DRAW_MODE
 	};
 
+	virtual ~IDebugDraw() {};
+
 	virtual void	DrawLine(const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)=0;
 
 	virtual void	DrawContactPoint(const SimdVector3& PointOnB,const SimdVector3& normalOnB,float distance,int lifeTime,const SimdVector3& color)=0;

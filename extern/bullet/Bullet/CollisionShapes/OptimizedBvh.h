@@ -47,6 +47,8 @@ struct OptimizedBvhNode
 class NodeOverlapCallback
 {
 public:
+	virtual ~NodeOverlapCallback() {};
+
 	virtual void ProcessNode(const OptimizedBvhNode* node) = 0;
 };
 
@@ -67,6 +69,7 @@ class OptimizedBvh
 
 public:
 	OptimizedBvh() :m_rootNode1(0), m_numNodes(0) { }
+	virtual ~OptimizedBvh() {};
 	
 	void	Build(StridingMeshInterface* triangles);
 

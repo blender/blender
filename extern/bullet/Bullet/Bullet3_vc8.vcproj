@@ -258,6 +258,46 @@
 				>
 			</File>
 			<File
+				RelativePath=".\NarrowPhaseCollision\Epa.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\Epa.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaFace.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaFace.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaHalfEdge.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaPenetrationDepthSolver.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaPenetrationDepthSolver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaPolyhedron.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaPolyhedron.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\EpaVertex.h"
+				>
+			</File>
+			<File
 				RelativePath=".\NarrowPhaseCollision\GjkConvexCast.cpp"
 				>
 			</File>

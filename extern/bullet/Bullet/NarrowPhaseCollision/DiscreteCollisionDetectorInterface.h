@@ -32,7 +32,8 @@ struct DiscreteCollisionDetectorInterface
 	struct Result
 	{
 		void operator delete(void* ptr) {};
-		
+	
+		virtual ~Result(){}	
 		virtual void AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)=0;
 	};
 
@@ -69,6 +70,7 @@ struct StorageResult : public DiscreteCollisionDetectorInterface::Result
 		{
 
 		}
+		virtual ~StorageResult() {};
 
 		virtual void AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)
 		{
