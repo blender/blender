@@ -863,6 +863,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		if(last_seq->type==SEQ_WIPE){
 			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
 			char formatstring[256];
+			
 			strncpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5", 255);
 			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,65,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
 			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,40,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
@@ -879,11 +880,12 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		else if(last_seq->type==SEQ_GLOW){
 			GlowVars *glow = (GlowVars *)last_seq->effectdata;
 
+			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,70,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:", 	10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:",			10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,30,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,10,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
-			uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, -15.0, 0, 0, "Accuracy of the blur effect");
+			uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
 			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
 		}
 
