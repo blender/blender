@@ -2538,8 +2538,11 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 	}
 	
 	myloadmatrix(G.vd->viewmat);
-	Mat4MulMat4(mat, paf->imat, ob->obmat);
-	mymultmatrix(mat);
+	/* flag abuse... but I need working code too now. This feature doesnt work for per frame animated objects */
+	if(ob->flag & OB_FROMGROUP) {
+		Mat4MulMat4(mat, paf->imat, ob->obmat);
+		mymultmatrix(mat);
+	}
 	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
