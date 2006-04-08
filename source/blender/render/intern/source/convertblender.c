@@ -663,12 +663,14 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 	/* step one: construct listbase of all vertices and pointers to faces */
 	for(a=startvlak; a<re->totvlak; a++) {
 		vlr= RE_findOrAddVlak(re, a);
-		
-		as_addvert(asvertoffs+vlr->v1->index, vlr->v1, vlr);
-		as_addvert(asvertoffs+vlr->v2->index, vlr->v2, vlr);
-		as_addvert(asvertoffs+vlr->v3->index, vlr->v3, vlr);
-		if(vlr->v4) 
-			as_addvert(asvertoffs+vlr->v4->index, vlr->v4, vlr);
+		/* skip wire faces */
+		if(vlr->v2 != vlr->v3) {
+			as_addvert(asvertoffs+vlr->v1->index, vlr->v1, vlr);
+			as_addvert(asvertoffs+vlr->v2->index, vlr->v2, vlr);
+			as_addvert(asvertoffs+vlr->v3->index, vlr->v3, vlr);
+			if(vlr->v4) 
+				as_addvert(asvertoffs+vlr->v4->index, vlr->v4, vlr);
+		}
 	}
 	
 	/* we now test all vertices, when faces have a normal too much different: they get a new vertex */
@@ -716,10 +718,14 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 	}
 	for(a=startvlak; a<re->totvlak; a++) {
 		vlr= RE_findOrAddVlak(re, a);
-		if(vlr->v4) 
-			CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-		else 
-			CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+		
+		/* skip wire faces */
+		if(vlr->v2 != vlr->v3) {
+			if(vlr->v4) 
+				CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+			else 
+				CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+		}
 	}		
 }
 
