@@ -453,6 +453,9 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			node2 = dag_get_node(dag, cu->taperobj);
 			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
 		}
+		if(cu->ipo)
+			dag_add_driver_relation(cu->ipo, dag, node, 1);
+
 	}
 	else if(ob->type==OB_FONT) {
 		Curve *cu= ob->data;
