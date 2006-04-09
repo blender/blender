@@ -725,7 +725,7 @@ void make_editMesh()
 	EditFace *efa;
 	EditEdge *eed;
 	EditSelection *ese;
-	int tot, a;
+	int tot, a, eekadoodle= 0;
 
 	/* because of reload */
 	free_editMesh(G.editMesh);
@@ -813,7 +813,7 @@ void make_editMesh()
 		for(a=0; a<me->totface; a++, mface++) {
 			eve1= evlist[mface->v1];
 			eve2= evlist[mface->v2];
-			if(!mface->v3) error("Eeekadoodle! An MFACE-EDGE! Tell Zr!!!!");
+			if(!mface->v3) eekadoodle= 1;
 			eve3= evlist[mface->v3];
 			if(mface->v4) eve4= evlist[mface->v4]; else eve4= NULL;
 			
@@ -850,6 +850,9 @@ void make_editMesh()
 			if(mcol) mcol+=4;
 		}
 	}
+	
+	if(eekadoodle)
+		error("This Mesh has old style edgecodes, please put it in the bugtracker!");
 	
 	MEM_freeN(evlist);
 
