@@ -792,14 +792,17 @@ void make_editMesh()
 		/* make edges */
 		for(a=0; a<me->totedge; a++, medge++) {
 			eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
-			eed->crease= ((float)medge->crease)/255.0;
-			
-			if(medge->flag & ME_SEAM) eed->seam= 1;
-			if(medge->flag & SELECT) eed->f |= SELECT;
-			if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
-			if(medge->flag & ME_HIDE) eed->h |= 1;
-			if(G.scene->selectmode==SCE_SELECT_EDGE) 
-				EM_select_edge(eed, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
+			/* eed can be zero when v1 and v2 are identical, dxf import does this... */
+			if(eed) {
+				eed->crease= ((float)medge->crease)/255.0;
+				
+				if(medge->flag & ME_SEAM) eed->seam= 1;
+				if(medge->flag & SELECT) eed->f |= SELECT;
+				if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
+				if(medge->flag & ME_HIDE) eed->h |= 1;
+				if(G.scene->selectmode==SCE_SELECT_EDGE) 
+					EM_select_edge(eed, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
+			}
 		}
 		
 		/* make faces */
