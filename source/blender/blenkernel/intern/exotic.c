@@ -229,6 +229,7 @@ static void mesh_add_normals_flags(Mesh *me)
 		if(mface->v4) {
 			simple_vertex_normal_blend(v4->no, sno);
 		}
+		mface->edcode= ME_V1V2|ME_V2V3;
 	}	
 }
 
@@ -2418,7 +2419,7 @@ int BKE_read_exotic(char *name)
 						error("Unknown file type or error, check console");
 					}	
 				
-				}	
+				}
 				waitcursor(0);
 			}
 		}
@@ -3607,7 +3608,7 @@ static void dxf_get_mesh(Mesh** m, Object** o, int noob)
 	if (!noob) {
 		*o = add_object(OB_MESH);
 		ob = *o;
-
+		
 		if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
 		else if (strlen(layname)) new_id(&G.main->object, (ID *)ob,  layname);
 
@@ -4880,7 +4881,8 @@ static void dxf_read(char *filename)
 	
 						ob->dupon= 1; ob->dupoff= 0;
 						ob->dupsta= 1; ob->dupend= 100;
-		
+						ob->recalc= OB_RECALC;	/* needed because of weird way of adding libdata directly */
+						
 						G.totobj++;
 
 						ob->data= obdata;
