@@ -711,7 +711,11 @@ void add_constraint(int only_IK)
 		else if(nr==3) con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
 		else if(nr==4) con = add_new_constraint(CONSTRAINT_TYPE_MINMAX);
 		else if(nr==5) con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
-		else if(nr==6) con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
+		else if(nr==6) {
+			Curve *cu= obsel->data;
+			cu->flag |= CU_PATH;
+			con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
+		}
 		else if(nr==7) con = add_new_constraint(CONSTRAINT_TYPE_STRETCHTO);
 		else if(nr==8) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIKE);
 		
