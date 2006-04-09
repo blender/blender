@@ -2830,7 +2830,7 @@ static void material_panel_tramir(Material *ma)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, MA_NOMIST, 0,	"No Mist",	10,10,150,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
-	uiDefButBitI(block, TOG, MA_ENV, 0,	"Env",			160,10,150,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through");
+	uiDefButBitI(block, TOG, MA_ENV, 0,	"Env",			160,10,150,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
 	uiBlockEndAlign(block);
 
 

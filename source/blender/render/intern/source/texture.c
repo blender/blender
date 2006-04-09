@@ -132,6 +132,7 @@ int calcimanr(int cfra, Tex *tex)
 	return imanr;
 }
 
+/* note; this function is called in src/drawview.c for animated background image, option should move to kernel */
 void init_render_texture(Render *re, Tex *tex)
 {
 	Image *ima;

@@ -125,6 +125,8 @@
 
 #include "BPY_extern.h"
 
+#include "RE_render_ext.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "butspace.h"  // event codes
@@ -339,7 +341,9 @@ static void draw_bgpic(void)
 	if(bgpic==0) return;
 	
 	if(bgpic->tex) {
-//		init_render_texture(bgpic->tex);
+		extern void init_render_texture(struct Render *re, Tex *tex);
+		/* note; bad call, this has to be recoded to move to blenkernel */
+		init_render_texture(NULL, bgpic->tex);
 		free_unused_animimages();
 		ima= bgpic->tex->ima;
 	}
