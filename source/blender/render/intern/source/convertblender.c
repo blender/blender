@@ -1843,9 +1843,9 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 							use_mesh_edge_lookup(re, me, dlm, medge, vlr, edgetable, totedge);
 						}
 						
-						xn= (v0->no[0]+v1->no[0]);
-						yn= (v0->no[1]+v1->no[1]);
-						zn= (v0->no[2]+v1->no[2]);
+						xn= -(v0->no[0]+v1->no[0]);
+						yn= -(v0->no[1]+v1->no[1]);
+						zn= -(v0->no[2]+v1->no[2]);
 						/* transpose ! */
 						vlr->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 						vlr->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
