@@ -254,7 +254,7 @@ void copy_vpaint_undo(unsigned int *mcol, int tot)
 {
 	if(vpaintundobuf) MEM_freeN(vpaintundobuf);
 	vpaintundobuf= 0;
-	totvpaintundo= tot;	// because of return, it is used by weightpaint
+	totvpaintundo= tot;	/* because of return, it is used by weightpaint */
 	
 	if(mcol==0 || tot==0) return;
 	
@@ -401,7 +401,7 @@ void clear_wpaint_selectedfaces()
 			char name[32];
 
 			BLI_strncpy(name, defgroup->name, 32);
-			bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+			bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
 			
 			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
 				if (!strcmp(curdef->name, name))
@@ -427,7 +427,7 @@ void clear_wpaint_selectedfaces()
 			faceverts[1]= mface->v2;
 			faceverts[2]= mface->v3;
 			faceverts[3]= mface->v4;
-			for (i=0; faceverts[i]; i++) {
+			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!((me->dvert+faceverts[i])->flag)) {
 					dw= verify_defweight(me->dvert+faceverts[i], vgroup);
 					if(dw) {
@@ -549,7 +549,7 @@ void sample_vpaint()	/* frontbuf */
 	Gvp.b /= 255.0;
 
 	allqueue(REDRAWBUTSEDIT, 0);
-	addqueue(curarea->win, REDRAW, 1); // needed for when panel is open...
+	addqueue(curarea->win, REDRAW, 1); /* needed for when panel is open... */
 }
 
 void init_vertexpaint()
@@ -1203,7 +1203,7 @@ void weight_paint(void)
 			if(pchan) {
 				bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
 				if(dg==NULL)
-					dg= add_defgroup_name(ob, pchan->name);	// sets actdef
+					dg= add_defgroup_name(ob, pchan->name);	/* sets actdef */
 				else
 					ob->actdef= get_defgroup_num(ob, dg);
 				allqueue(REDRAWBUTSEDIT, 0);
@@ -1250,7 +1250,7 @@ void weight_paint(void)
 			char name[32];
 
 			BLI_strncpy(name, defgroup->name, 32);
-			bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+			bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
 			
 			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
 				if (!strcmp(curdef->name, name))
@@ -1420,7 +1420,7 @@ void weight_paint(void)
 		MEM_freeN(vertexcosnos);
 	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	// this flag is event for softbody to refresh weightpaint values
+	/* this flag is event for softbody to refresh weightpaint values */
 	if(ob->soft) ob->softflag |= OB_SB_REDO;
 	
 	allqueue(REDRAWVIEW3D, 0);
