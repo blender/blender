@@ -179,13 +179,12 @@ def main():
 	if is_editmode and (not actob.sel):
 		obsel.append(actob)
 	
-	meshes= [ob.getData(mesh=1) for ob in obsel if ob.getType() == 'Mesh']
-	
 	
 	#====================================#
 	# Popup menu to select the functions #
 	#====================================#
 	
+	CLEAN_ALL_DATA= Draw.Create(0)
 	CLEAN_VERTS_FREE= Draw.Create(1)
 	CLEAN_EDGE_NOFACE= Draw.Create(0)
 	CLEAN_EDGE_SMALL= Draw.Create(0)
@@ -213,12 +212,12 @@ def main():
 	('Weight Normalize', CLEAN_WEIGHT_NORMALIZE, 'Make the sum total of vertex weights accross vgroups 1.0 for each vertex.'),\
 	'',\
 	('limit: ', limit, 0.001, 1.0, 'Limit used for the area and length tests above (a higher limit will remove more data).'),\
+	'',\
+	('All Mesh Data', CLEAN_ALL_DATA, 'Warning! Operate on ALL mesh objects in your Blend file. Use with care'),\
 	]
-	
 	
 	if not Draw.PupBlock('Clean Selected Meshes...', pup_block):
 		return
-	
 	
 	CLEAN_VERTS_FREE= CLEAN_VERTS_FREE.val
 	CLEAN_EDGE_NOFACE= CLEAN_EDGE_NOFACE.val
@@ -230,8 +229,18 @@ def main():
 	CLEAN_VWEIGHT= CLEAN_VWEIGHT.val
 	CLEAN_WEIGHT_NORMALIZE= CLEAN_WEIGHT_NORMALIZE.val
 	limit= limit.val
+	CLEAN_ALL_DATA= CLEAN_ALL_DATA.val
 	
 	if is_editmode: Window.EditMode(0)
+	
+	if CLEAN_ALL_DATA:
+		if CLEAN_GROUP or CLEAN_VWEIGHT or CLEAN_WEIGHT_NORMALIZE:
+			# For groups we need the objects linked to the mesh
+			meshes= [ob.getData(mesh=1) for ob in Object.Get() if ob.getType() == 'Mesh']
+		else:
+			meshes= Mesh.Get()
+	else:
+		meshes= [ob.getData(mesh=1) for ob in obsel if ob.getType() == 'Mesh']
 	
 	rem_face_count= rem_edge_count= rem_vert_count= rem_material_count= rem_group_count= rem_vweight_count= 0
 	

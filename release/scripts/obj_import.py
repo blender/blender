@@ -73,91 +73,7 @@ def stripExt(name): # name is a string
 from Blender import *
 import BPyImage
 reload(BPyImage)
-
-# takes a polyline of indicies (fgon)
-# and returns a list of face indicie lists.
-def ngon(from_mesh, indicies):
-	if len(indicies) < 4:
-		return [indicies]
-	temp_mesh_name= '~NGON_TEMP~'
-	is_editmode= Window.EditMode()
-	if is_editmode:
-		Window.EditMode(0)
-	try:
-		temp_mesh = Mesh.Get(temp_mesh_name)
-		if temp_mesh.users!=0:
-			temp_mesh = Mesh.New(temp_mesh_name)
-	except:
-		temp_mesh = Mesh.New(temp_mesh_name)
-		
-	
-	temp_mesh.verts.extend( [from_mesh.verts[i].co for i in indicies] )
-	temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
-	
-	oldmode = Mesh.Mode()
-	Mesh.Mode(Mesh.SelectModes['VERTEX'])
-	for v in temp_mesh.verts:
-		v.sel= 1
-	
-	# Must link to scene
-	scn= Scene.GetCurrent()
-	temp_ob= Object.New('Mesh')
-	temp_ob.link(temp_mesh)
-	scn.link(temp_ob)
-	temp_mesh.fill()
-	scn.unlink(temp_ob)
-	Mesh.Mode(oldmode)
-	
-	new_indicies= [ [v.index for v in f.v]  for f in temp_mesh.faces ]
-	
-	if not new_indicies: # JUST DO A FAN, Cant Scanfill
-		print 'Warning Cannot scanfill!- Fallback on a triangle fan.'
-		new_indicies = [ [indicies[0], indicies[i-1], indicies[i]] for i in xrange(2, len(indicies)) ]
-	else:
-		# Use real scanfill.
-		# See if its flipped the wrong way.
-		flip= None
-		for fi in new_indicies:
-			if flip != None:
-				break
-			for i, vi in enumerate(fi):
-				if vi==0 and fi[i-1]==1:
-					flip= False
-					break
-				elif vi==1 and fi[i-1]==0:
-					flip= True
-					break
-		
-		if not flip:
-			for fi in new_indicies:
-				fi.reverse()
-	
-	if is_editmode:
-		Window.EditMode(1)
-		
-	# Save some memory and forget about the verts.
-	# since we cant unlink the mesh.
-	temp_mesh.verts= None 
-	
-	return new_indicies
-	
-
-
-# EG
-'''
-scn= Scene.GetCurrent()
-me = scn.getActiveObject().getData(mesh=1)
-ind= [v.index for v in me.verts if v.sel] # Get indicies
-
-indicies = ngon(me, ind) # fill the ngon.
-
-# Extand the faces to show what the scanfill looked like.
-print len(indicies)
-me.faces.extend([[me.verts[ii] for ii in i] for i in indicies])
-'''
-
-
-
+import BPyMesh
 
 try:
 	import os
@@ -416,12 +332,12 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 		materialDict[k]= Material.New(k)
 	
 	
-	# Make a list of all unused vert indicies that we can copy from
+	# Make a list of all unused vert indices that we can copy from
 	VERT_USED_LIST= [-1]*len_vertList
 	
 	# Here we store a boolean list of which verts are used or not
 	# no we know weather to add them to the current mesh
-	# This is an issue with global vertex indicies being translated to per mesh indicies
+	# This is an issue with global vertex indices being translated to per mesh indices
 	# like blenders, we start with a dummy just like the vert.
 	# -1 means unused, any other value refers to the local mesh index of the vert.
 
@@ -435,7 +351,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	#meshDict= {} # The 3 variables below are stored in a tuple within this dict for each mesh
 	currentMesh= NMesh.GetRaw() # The NMesh representation of the OBJ group/Object
 	#currentUsedVertList= {} # A Dict of smooth groups, each smooth group has a list of used verts and they are generated on demand so as to save memory.
-	currentMaterialMeshMapping= {} # Used to store material indicies so we dont have to search the mesh for materials every time.
+	currentMaterialMeshMapping= {} # Used to store material indices so we dont have to search the mesh for materials every time.
 	
 	# Every mesh has a null smooth group, this is used if there are no smooth groups in the OBJ file.
 	# and when for faces where no smooth group is used.
@@ -456,7 +372,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	badObjFaceTexCo= 0
 	
 	
-	#currentMesh.verts.append(vertList[0]) # So we can sync with OBJ indicies where 1 is the first item.
+	#currentMesh.verts.append(vertList[0]) # So we can sync with OBJ indices where 1 is the first item.
 	if len_uvMapList > 1:
 		currentMesh.hasFaceUV(1) # Turn UV's on if we have ANY texture coords in this obj file.
 	
@@ -591,7 +507,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 					
 					# Vert Index - OBJ supports negative index assignment (like python)
 					index= int(objVert[0])-1
-					# Account for negative indicies.
+					# Account for negative indices.
 					if index < 0:
 						if IMPORT_RELATIVE_VERTS: # non standard
 							index= VERT_COUNT+index+1
@@ -713,16 +629,17 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 						currentMesh.faces.append(f) # move the face onto the mesh
 			
 			elif face_vert_count > 4: # NGons.
-				# we need to map indicies to uv coords.
+				# we need to map indices to uv coords.
 				currentMeshRelativeIdxs= [currentUsedVertListSmoothGroup[i] for i in vIdxLs]
 				
 				if fHasUV:
 					vert2UvMapping=dict( [ (currentMeshRelativeIdxs[i],vtIdxLs[i]) for i in xrange(face_vert_count)] )
 				
-				ngon_face_indicies= ngon(currentMesh, currentMeshRelativeIdxs)
+				ngon_face_indices= BPyMesh.ngon(currentMesh, currentMeshRelativeIdxs)
+				
 				
 				# At the moment scanfill always makes tri's but dont count on it
-				for fillFace in ngon_face_indicies:
+				for fillFace in ngon_face_indices:
 					f= NMesh.Face([currentMesh.verts[currentMeshRelativeIdxs[i]] for i in fillFace])
 					
 					if fHasUV:
@@ -739,7 +656,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 				# Set fgon flag.
 				if IMPORT_FGON:
 					edgeUsers={}
-					for fillFace in ngon_face_indicies:
+					for fillFace in ngon_face_indices:
 						for i in xrange(len(fillFace)): # Should always be 3
 							i1= currentMeshRelativeIdxs[fillFace[i]]
 							i2= currentMeshRelativeIdxs[fillFace[i-1]]
@@ -908,7 +825,7 @@ def load_obj_ui(file):
 	('Create FGons', IMPORT_FGON, 'Import faces with more then 4 verts as fgons.'),\
 	('Smooth Groups', IMPORT_SMOOTH_GROUPS, 'Only Share verts within smooth groups. (Warning, Hogs Memory)'),\
 	('Split by Material', IMPORT_MTL_SPLIT, 'Import each material into a seperate mesh (Avoids >16 meterials per mesh problem)'),\
-	('Relative Verts', IMPORT_RELATIVE_VERTS, 'Import non standard OBJs with relative vertex indicies, try if your mesh imports with scrambled faces.'),\
+	('Relative Verts', IMPORT_RELATIVE_VERTS, 'Import non standard OBJs with relative vertex indices, try if your mesh imports with scrambled faces.'),\
 	]
 	
 	if not os:

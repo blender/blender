@@ -32,11 +32,16 @@ def dict2MeshWeight(me, groupNames, vWeightDict):
 	# Clear the vert group.
 	currentGroupNames= me.getVertGroupNames()
 	for group in currentGroupNames:
-		me.removeVertGroup(group)
+		if group not in groupNames:
+			me.removeVertGroup(group) # messes up the active group.
+		else:
+			me.removeVertsFromGroup(group)
 	
 	# Add clean unused vert groupNames back
+	currentGroupNames= me.getVertGroupNames()
 	for group in groupNames:
-		me.addVertGroup(group)	
+		if group not in currentGroupNames:
+			me.addVertGroup(group)
 	
 	add_ = Blender.Mesh.AssignModes.ADD
 	
@@ -45,7 +50,7 @@ def dict2MeshWeight(me, groupNames, vWeightDict):
 		vertList[0]= i
 		for group, weight in vWeightDict[i].iteritems():
 			try:
-				me.assignVertsToGroup(group, vertList, weight, add_)
+				me.assignVertsToGroup(group, vertList, min(1, max(0, weight)), add_)
 			except:
 				pass # vert group is not used anymore.
 	
@@ -126,3 +131,235 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 			print 'Cant assign materials to', type
 	
 	return mesh
+
+type_tuple= type( (0,) )
+type_list= type( [] )
+def ngon(from_data, indices):
+	'''
+	takes a polyline of indices (fgon)
+	and returns a list of face indicie lists.
+	Designed to be used for importers that need indices for an fgon to create from existing verts.
+	
+	from_data is either a mesh, or a list/tuple of vectors.
+	'''
+	Mesh= Blender.Mesh
+	Window= Blender.Window
+	Scene= Blender.Scene
+	Object= Blender.Object
+	
+	if len(indices) < 4:
+		return [indices]
+	temp_mesh_name= '~NGON_TEMP~'
+	is_editmode= Window.EditMode()
+	if is_editmode:
+		Window.EditMode(0)
+	try:
+		temp_mesh = Mesh.Get(temp_mesh_name)
+		if temp_mesh.users!=0:
+			temp_mesh = Mesh.New(temp_mesh_name)
+	except:
+		temp_mesh = Mesh.New(temp_mesh_name)
+		
+	if type(from_data) in (type_tuple, type_list):
+		# From a list/tuple of vectors
+		temp_mesh.verts.extend( [from_data[i] for i in indices] )
+		temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
+	else:
+		# From a mesh
+		temp_mesh.verts.extend( [from_data.verts[i].co for i in indices] )
+		temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
+	
+	
+	oldmode = Mesh.Mode()
+	Mesh.Mode(Mesh.SelectModes['VERTEX'])
+	for v in temp_mesh.verts:
+		v.sel= 1
+	
+	# Must link to scene
+	scn= Scene.GetCurrent()
+	temp_ob= Object.New('Mesh')
+	temp_ob.link(temp_mesh)
+	scn.link(temp_ob)
+	temp_mesh.fill()
+	scn.unlink(temp_ob)
+	Mesh.Mode(oldmode)
+	
+	new_indices= [ [v.index for v in f.v]  for f in temp_mesh.faces ]
+	
+	if not new_indices: # JUST DO A FAN, Cant Scanfill
+		print 'Warning Cannot scanfill!- Fallback on a triangle fan.'
+		new_indices = [ [indices[0], indices[i-1], indices[i]] for i in xrange(2, len(indices)) ]
+	else:
+		# Use real scanfill.
+		# See if its flipped the wrong way.
+		flip= None
+		for fi in new_indices:
+			if flip != None:
+				break
+			for i, vi in enumerate(fi):
+				if vi==0 and fi[i-1]==1:
+					flip= False
+					break
+				elif vi==1 and fi[i-1]==0:
+					flip= True
+					break
+		
+		if not flip:
+			for fi in new_indices:
+				fi.reverse()
+	
+	if is_editmode:
+		Window.EditMode(1)
+		
+	# Save some memory and forget about the verts.
+	# since we cant unlink the mesh.
+	temp_mesh.verts= None 
+	
+	return new_indices
+	
+
+
+# EG
+'''
+scn= Scene.GetCurrent()
+me = scn.getActiveObject().getData(mesh=1)
+ind= [v.index for v in me.verts if v.sel] # Get indices
+
+indices = ngon(me, ind) # fill the ngon.
+
+# Extand the faces to show what the scanfill looked like.
+print len(indices)
+me.faces.extend([[me.verts[ii] for ii in i] for i in indices])
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# NMesh wrapper
+Vector= Blender.Mathutils.Vector
+class NMesh(object):
+	__slots__= 'verts', 'faces', 'edges', 'faceUV', 'materials', 'realmesh'
+	def __init__(self, mesh):
+		'''
+		This is an NMesh wrapper that
+		mesh is an Mesh as returned by Blender.Mesh.New()
+		This class wraps NMesh like access into Mesh
+		
+		Running NMesh.update() - with this wrapper,
+		Will update the realmesh.
+		'''
+		self.verts= []
+		self.faces= []
+		self.edges= []
+		self.faceUV= False
+		self.materials= []
+		self.realmesh= mesh
+	
+	def addFace(self, nmf):
+		self.faces.append(nmf)
+	
+	def Face(self, v=[]):
+		return NMFace(v)
+	def Vert(self, x,y,z):
+		return NMVert(x,y,z)
+	
+	def hasFaceUV(self, flag):
+		if flag:
+			self.faceUV= True
+		else:
+			self.faceUV= False
+	
+	def addMaterial(self, mat):
+		self.materials.append(mat)
+	
+	def update(self, recalc_normals=False): # recalc_normals is dummy
+		mesh= self.realmesh
+		mesh.verts= None # Clears the 
+		
+		# Add in any verts from faces we may have not added.
+		for nmf in self.faces:
+			for nmv in nmf.v:
+				if nmv.index==-1:
+					nmv.index= len(self.verts)
+					self.verts.append(nmv)
+					
+		
+		mesh.verts.extend([nmv.co for nmv in self.verts])
+		for i, nmv in enumerate(self.verts):
+			nmv.index= i
+			mv= mesh.verts[i]
+			mv.sel= nmv.sel
+		
+		good_faces= [nmf for nmf in self.faces if len(nmf.v) in (3,4)]
+		#print len(good_faces), 'AAA'
+		
+		
+		#mesh.faces.extend([nmf.v for nmf in self.faces])
+		mesh.faces.extend([[mesh.verts[nmv.index] for nmv in nmf.v] for nmf in good_faces])
+		if len(mesh.faces):
+			if self.faceUV:
+				mesh.faceUV= 1
+			
+			#for i, nmf in enumerate(self.faces):
+			for i, nmf in enumerate(good_faces):
+				mf= mesh.faces[i]
+				if self.faceUV:
+					if len(nmf.uv) == len(mf.v):
+						mf.uv= [Vector(uv[0], uv[1]) for uv in nmf.uv]
+					if len(nmf.col) == len(mf.v):
+						for c, i in enumerate(mf.col):
+							c.r, c.g, c.b= nmf.col[i].r, nmf.col[i].g, nmf.col[i].b
+					if nmf.image:
+						mf.image= nmf.image
+		
+		mesh.materials= self.materials[:16]
+
+class NMVert(object):
+	__slots__= 'co', 'index', 'no', 'sel', 'uvco'
+	def __init__(self, x,y,z):
+		self.co= Vector(x,y,z)
+		self.index= None # set on appending.
+		self.no= Vector(0,0,1) # dummy
+		self.sel= 0
+		self.uvco= None
+class NMFace(object):
+	__slots__= 'col', 'flag', 'hide', 'image', 'mat', 'materialIndex', 'mode', 'normal',\
+	'sel', 'smooth', 'transp', 'uv', 'v'
+	
+	def __init__(self, v=[]):
+		self.col= []
+		self.flag= 0
+		self.hide= 0
+		self.image= None
+		self.mat= 0 # materialIndex needs support too.
+		self.mode= 0
+		self.normal= Vector(0,0,1)
+		self.uv= []
+		self.sel= 0
+		self.smooth= 0
+		self.transp= 0
+		self.uv= []
+		self.v= [] # a list of nmverts.
+	
+class NMCol(object):
+	__slots__ = 'r', 'g', 'b', 'a'
+	def __init__(self):
+		self.r= 255
+		self.g= 255
+		self.b= 255
+		self.a= 255

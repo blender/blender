@@ -167,12 +167,12 @@ def copy_images(dest_dir):
 		# Get MTex images
 		if matname != None:
 			mat= Material.Get(matname)
-				for mtex in mat.getTextures():
-					if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
-						try:
-							uniqueImages[mtex.tex.image.name] = None
-						except:
-							pass
+			for mtex in mat.getTextures():
+				if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
+					try:
+						uniqueImages[mtex.tex.image.name] = None
+					except:
+						pass
 	
 	# Now copy images
 	copyCount = 0
@@ -463,6 +463,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 		
 		# Make the indicies global rather then per mesh
 		totverts += len(m.verts)
+		m.verts= None
 	file.close()
 	
 	
