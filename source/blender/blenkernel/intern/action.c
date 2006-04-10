@@ -942,7 +942,8 @@ static void do_nla(Object *ob, int blocktype)
 									ctime= bsystem_time(ob, parent, scene_cfra, 0.0);
 									
 									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
-										ctime /= cu->pathlen;
+										/* correct for actions not starting on zero */
+										ctime= (ctime - strip->actstart)/cu->pathlen;
 										CLAMP(ctime, 0.0, 1.0);
 									}
 									pdist = ctime*cu->path->totdist;
