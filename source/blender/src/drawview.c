@@ -338,7 +338,7 @@ static void draw_bgpic(void)
 	float x1, y1, x2, y2, cx, cy;
 	
 	bgpic= G.vd->bgpic;
-	if(bgpic==0) return;
+	if(bgpic==NULL) return;
 	
 	if(bgpic->tex) {
 		extern void init_render_texture(struct Render *re, Tex *tex);
@@ -351,16 +351,16 @@ static void draw_bgpic(void)
 		ima= bgpic->ima;
 	}
 	
-	if(ima==0) return;
+	if(ima==NULL) return;
 	if(ima->ok==0) return;
 
 	tag_image_time(ima);
 	
 	/* test for image */
-	if(ima->ibuf==0) {
+	if(ima->ibuf==NULL) {
 	
 		if(bgpic->rect) MEM_freeN(bgpic->rect);
-		bgpic->rect= 0;
+		bgpic->rect= NULL;
 		
 		if(bgpic->tex) {
 			ima_ibuf_is_nul(bgpic->tex, bgpic->tex->ima);
@@ -370,13 +370,20 @@ static void draw_bgpic(void)
 			load_image(ima, IB_rect, G.sce, G.scene->r.cfra);
 			waitcursor(0);
 		}
-		if(ima->ibuf==0) {
+		if(ima->ibuf==NULL) {
 			ima->ok= 0;
 			return;
 		}
 	}
-
-	if(bgpic->rect==0) {
+	
+	/* this ensures that when ibuf changed (reloaded) the backbuf changes too */
+	if(bgpic->ibuf!=ima->ibuf) {
+		if(bgpic->rect) MEM_freeN(bgpic->rect);
+		bgpic->rect= NULL;
+	}
+	bgpic->ibuf= ima->ibuf;
+	
+	if(bgpic->rect==NULL) {
 		
 		bgpic->rect= MEM_dupallocN(ima->ibuf->rect);
 		bgpic->xim= ima->ibuf->x;

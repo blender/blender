@@ -58,6 +58,7 @@ struct RenderInfo;
 
 typedef struct BGpic {
     struct Image *ima;
+	struct ImBuf *ibuf;
 	struct Tex *tex;
     float xof, yof, size, zoom, blend;
     short xim, yim;

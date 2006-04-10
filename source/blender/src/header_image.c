@@ -749,6 +749,7 @@ static void do_image_imagemenu(void *arg, int event)
 		}
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
+		BIF_preview_changed(ID_TE);
 		break;
 	case 7: /* New Image */
 		{
