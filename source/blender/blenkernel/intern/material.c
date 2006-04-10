@@ -574,6 +574,10 @@ static void do_init_render_material(Material *ma, int osa, float *amb)
 	ma->texco= 0;
 	ma->mapto= 0;
 	for(a=0; a<MAX_MTEX; a++) {
+		
+		/* separate tex switching */
+		if(ma->septex & (1<<a)) continue;
+
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
 			
