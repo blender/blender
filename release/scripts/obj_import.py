@@ -772,7 +772,6 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	if IMPORT_MTL:
 		for mtl in mtl_fileName:
 			load_mtl(DIR, mtl, meshDict, materialDict)	
-	print 'MTLLLL', mtl_fileName
 	
 	importedObjects= []
 	for mk, me in meshDict.iteritems():
