@@ -24,6 +24,7 @@
 BroadphaseProxy*	AxisSweep3::CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr )
 {
 		unsigned short handleId = AddHandle(min,max, userPtr);
+		
 		Handle* handle = GetHandle(handleId);
 		return handle;
 }
@@ -204,26 +205,33 @@ void AxisSweep3::RemoveHandle(unsigned short handle)
 
 	RemoveOverlappingPairsContainingProxy(pHandle);
 
-	
 
-//	assert(false);	// TODO
 	// compute current limit of edge arrays
-/*	int limit = m_numHandles * 2;
-
+	int limit = m_numHandles * 2;
+	
 	// remove the edges by sorting them up to the end of the list
 	for (int axis = 0; axis < 3; axis++)
 	{
 		Edge* pEdges = m_pEdges[axis];
-
-		int i = pHandle->m_minEdges[axis];
 		int max = pHandle->m_maxEdges[axis];
+		pEdges[max].m_pos = 0xffff;
 
-		while (i < max)
-			pEdges[i - 1]
+		SortMaxUp(axis,max,false);
+		
+		int i = pHandle->m_minEdges[axis];
+		pEdges[i].m_pos = 0xffff;
+
+		SortMinUp(axis,i,false);
+
+		pEdges[limit-1].m_handle = 0;
+		pEdges[limit-1].m_pos = 0xffff;
+
 	}
-*/
+
 	// free the handle
 	FreeHandle(handle);
+
+	
 }
 
 bool AxisSweep3::TestOverlap(int ignoreAxis,const Handle* pHandleA, const Handle* pHandleB)
