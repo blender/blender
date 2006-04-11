@@ -4121,7 +4121,11 @@ void transform_ipo(int mode)
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_KE) {
-					DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+					Object *ob= OBACT;
+					if(ob) {
+						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+					}
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_PO) {
