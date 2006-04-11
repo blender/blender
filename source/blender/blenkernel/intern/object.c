@@ -1228,9 +1228,11 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedDeform; //mesh_get_derived_deform(par, &needsFree);
 			
 			if(dm) {
-				if(nr >= dm->getNumVerts(dm)) nr= 0;
-
-				dm->getVertCo(dm, nr, vec);
+				int tot= dm->getNumVerts(dm);
+				if(tot) {
+					if(nr >= tot) nr= 0;
+					dm->getVertCo(dm, nr, vec);
+				}
 			}
 		}
 	}
