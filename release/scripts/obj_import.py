@@ -294,8 +294,18 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	# Ignore normals and comments.
 	fileLines= [lsplit for l in fileLines if not l.startswith('vn') if not l.startswith('#') for lsplit in (l.split(),) if lsplit]
 	Vert= NMesh.Vert
-	vertList= [Vert(float(l[1]), float(l[2]), float(l[3]) ) for l in fileLines if l[0] == 'v']
-	uvMapList= [(float(l[1]), float(l[2])) for l in fileLines if l[0] == 'vt']
+	try:
+		vertList= [Vert(float(l[1]), float(l[2]), float(l[3]) ) for l in fileLines if l[0] == 'v']
+	except ValueError:
+		# What??? Maya 7 uses "6,45" instead of "6.45"
+		vertList= [Vert(float(l[1].replace(',', '.')), float(l[2].replace(',', '.')), float(l[3].replace(',', '.')) ) for l in fileLines if l[0] == 'v']
+		
+	try:
+		uvMapList= [(float(l[1]), float(l[2])) for l in fileLines if l[0] == 'vt']
+	except ValueError:
+		# Same amazement as above. call that a float?
+		uvMapList= [(float(l[1].replace(',', '.')), float(l[2].replace(',', '.'))) for l in fileLines if l[0] == 'vt']
+		
 	if IMPORT_SMOOTH_GROUPS:
 		smoothingGroups=  dict([('_'.join(l[1:]), None) for l in fileLines if l[0] == 's' ])
 	else:
