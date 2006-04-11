@@ -21,14 +21,10 @@ class BL_Sampler
 {
 public:
 	BL_Sampler():
-		mLoc(-1),
-		mTexture(0),
-		mOwn(0)
+		mLoc(-1)
 	{
 	}
 	int				mLoc;		// Sampler location
-	BL_Texture*		mTexture;	// Texture data
-	bool			mOwn;		// True if we own it
 };
 
 /**
@@ -104,7 +100,8 @@ private:
 	int				mPass;				// 1.. unused
 	bool			mOk;				// Valid and ok
 	bool			mUse;				// ...
-	BL_Sampler		mSampler[MAXTEX];	// Number of samplers
+//BL_Sampler		mSampler[MAXTEX];	// Number of samplers
+	int				mAttr;				// Tangent attribute
 	char*			vertProg;			// Vertex program string
 	char*			fragProg;			// Fragment program string
 	bool			mError;				// ...
@@ -166,12 +163,13 @@ public:
 	int getNumPass()	{return mPass;}
 	bool GetError()		{return mError;}
 	// ---
-	const BL_Sampler*	GetSampler(int i);
+	//const BL_Sampler*	GetSampler(int i);
 	void				SetSampler(int loc, int unit);
 
 	const bool			Ok()const;
 	unsigned int		GetProg();
 	void				SetProg(bool enable);
+	int					GetAttribute(){return mAttr;};
 
 	// -- 
 	// Apply methods : sets colected uniforms
@@ -181,8 +179,8 @@ public:
 	// Update predefined uniforms each render call
 	void Update(const class KX_MeshSlot & ms, class RAS_IRasterizer* rasty);
 
-	// Set sampler units (copied)
-	void InitializeSampler(int unit, BL_Texture* texture );
+	//// Set sampler units (copied)
+	//void InitializeSampler(int unit, BL_Texture* texture );
 
 
 	void SetUniformfv(int location,int type, float *param, int size,bool transpose=false);
@@ -206,15 +204,16 @@ public:
 	// Python interface
 	virtual PyObject* _getattr(const STR_String& attr);
 
+	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setSource );
 	KX_PYMETHOD_DOC( BL_Shader, delSource );
 	KX_PYMETHOD_DOC( BL_Shader, getVertexProg );
 	KX_PYMETHOD_DOC( BL_Shader, getFragmentProg );
 	KX_PYMETHOD_DOC( BL_Shader, setNumberOfPasses );
-
-	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, isValid);
 	KX_PYMETHOD_DOC( BL_Shader, validate);
+
+	// -----------------------------------
 	KX_PYMETHOD_DOC( BL_Shader, setUniform4f );
 	KX_PYMETHOD_DOC( BL_Shader, setUniform3f );
 	KX_PYMETHOD_DOC( BL_Shader, setUniform2f );
@@ -223,19 +222,12 @@ public:
 	KX_PYMETHOD_DOC( BL_Shader, setUniform3i );
 	KX_PYMETHOD_DOC( BL_Shader, setUniform2i );
 	KX_PYMETHOD_DOC( BL_Shader, setUniform1i );
-
 	KX_PYMETHOD_DOC( BL_Shader, setUniformfv );
 	KX_PYMETHOD_DOC( BL_Shader, setUniformiv );
-
 	KX_PYMETHOD_DOC( BL_Shader, setUniformMatrix4 );
 	KX_PYMETHOD_DOC( BL_Shader, setUniformMatrix3 );
-
 	KX_PYMETHOD_DOC( BL_Shader, setUniformDef );
-
 	KX_PYMETHOD_DOC( BL_Shader, setAttrib );
-
-	// These come from within the material buttons
-	// sampler2d/samplerCube work
 	KX_PYMETHOD_DOC( BL_Shader, setSampler);
 };
 

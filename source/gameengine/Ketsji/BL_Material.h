@@ -120,7 +120,8 @@ enum BL_flag
 	TEXALPHA=8,		// use alpha combiner functions
 	TEXNEG=16,		// negate blending
 	HASIPO=32,
-	USENEGALPHA=64
+	USENEGALPHA=64,
+	ALPHA_TEST=128
 };
 
 // BL_Material::ras_mode

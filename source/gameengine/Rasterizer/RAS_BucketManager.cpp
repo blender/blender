@@ -142,7 +142,8 @@ void RAS_BucketManager::Renderbuckets(
 	
 	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); ++bucket)
 	{
-		if((*bucket)->GetPolyMaterial()->IsZSort())
+		RAS_IPolyMaterial *tmp = (*bucket)->GetPolyMaterial();
+		if(tmp->IsZSort() || tmp->GetFlag() &RAS_FORCEALPHA )
 			rasty->SetAlphaTest(true);
 		else
 			rasty->SetAlphaTest(false);

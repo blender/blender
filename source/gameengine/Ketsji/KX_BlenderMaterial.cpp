@@ -82,14 +82,13 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 	mPass(0)
 
 {
-	///RAS_EXT_support._ARB_multitexture == true if were here
-
 	// --------------------------------
 	// RAS_IPolyMaterial variables... 
 	m_flag |=RAS_BLENDERMAT;
 	m_flag |=(mMaterial->IdMode>=ONETEX)?RAS_MULTITEX:0;
 	m_flag |=(mMaterial->ras_mode & USE_LIGHT)!=0?RAS_MULTILIGHT:0;
-	
+	m_flag |=(mMaterial->ras_mode &ALPHA_TEST)!=0?RAS_FORCEALPHA:0;
+
 	// figure max
 	int enabled = mMaterial->num_enabled;
 	int max = BL_Texture::GetMaxUnits();
@@ -197,17 +196,15 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 
 	// for each enabled unit
 	for(i=0; i<mMaterial->num_enabled; i++) {
-		const BL_Sampler *samp = mShader->GetSampler(i);
-		BL_Texture *tex = samp->mTexture;
-		if( samp->mLoc == -1 || !tex || !tex->Ok() ) 
-			continue;
-		tex->ActivateTexture();
-		mShader->SetSampler(samp->mLoc, i);
+		if(!mTextures[i].Ok()) continue;
+		mTextures[i].ActivateTexture();
+		mTextures[0].SetMapping(mMaterial->mapping[i].mapping);
 	}
+
 	if(!mUserDefBlend) {
 		setDefaultBlending();
-	}else
-	{
+	}
+	else {
 		// tested to be valid enums
 		glEnable(GL_BLEND);
 		glBlendFunc(mBlendFunc[0], mBlendFunc[1]);
@@ -418,18 +415,19 @@ void KX_BlenderMaterial::ActivatGLMaterials( RAS_IRasterizer* rasty )const
 		mMaterial->matcolor[0]*mMaterial->emit,
 		mMaterial->matcolor[1]*mMaterial->emit,
 		mMaterial->matcolor[2]*mMaterial->emit,
-		1.0
-		);
+		1.0 );
+
 	rasty->SetAmbient(mMaterial->amb);
 	if (mMaterial->material)
 		rasty->SetPolygonOffset(-mMaterial->material->zoffs, 0.0);
 }
 
+
 void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 {
-	//if(mShader && RAS_EXT_support._ARB_shader_objects)
-	//	if(mShader->GetAttribute() == BL_Shader::SHD_TANGENT)
-	//		ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT);
+	if(mShader && RAS_EXT_support._ARB_shader_objects)
+		if(mShader->GetAttribute() == BL_Shader::SHD_TANGENT)
+			ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT);
 
 	for(int i=0; i<mMaterial->num_enabled; i++) {
 		int mode = mMaterial->mapping[i].mapping;
@@ -651,12 +649,6 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 
 		if(!mShader && !mModified) {
 			mShader = new BL_Shader();
-			for(int i= 0; i<mMaterial->num_enabled; i++) {
-				if(mMaterial->mapping[i].mapping & USEENV )
-					mShader->InitializeSampler(i, &mTextures[i]);
-				else
-					mShader->InitializeSampler(i, &mTextures[i]);
-			}
 			mModified = true;
 		}
 

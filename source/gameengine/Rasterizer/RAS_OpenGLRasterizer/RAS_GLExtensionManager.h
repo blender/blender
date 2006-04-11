@@ -510,7 +510,6 @@ extern PFNGLGETACTIVEATTRIBARBPROC blGetActiveAttribARB;
 extern PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
 #endif
 
-#if 0 // TODO: GL_ARB_vertex/fragment_program support
 #ifdef GL_ARB_vertex_program
 extern PFNGLVERTEXATTRIB1FARBPROC blVertexAttrib1fARB;
 extern PFNGLVERTEXATTRIB1FVARBPROC blVertexAttrib1fvARB;
@@ -524,7 +523,6 @@ extern PFNGLGETPROGRAMSTRINGARBPROC blGetProgramStringARB;
 extern PFNGLGETVERTEXATTRIBDVARBPROC blGetVertexAttribdvARB;
 extern PFNGLGETVERTEXATTRIBFVARBPROC blGetVertexAttribfvARB;
 extern PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
-#endif
 #endif
 
 #ifdef GL_EXT_compiled_vertex_array

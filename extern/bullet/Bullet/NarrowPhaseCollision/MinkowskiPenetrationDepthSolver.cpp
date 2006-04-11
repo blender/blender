@@ -97,25 +97,27 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 												   )
 {
 
-
 	//just take fixed number of orientation, and sample the penetration depth in that direction
 	float minProj = 1e30f;
 	SimdVector3 minNorm;
 	SimdVector3 minVertex;
 	SimdVector3 minA,minB;
+	SimdVector3 seperatingAxisInA,seperatingAxisInB;
+	SimdVector3 pInA,qInB,pWorld,qWorld,w;
+
 	for (int i=0;i<NUM_UNITSPHERE_POINTS;i++)
 	{
 		const SimdVector3& norm = sPenetrationDirections[i];
 	
-		SimdVector3 seperatingAxisInA = (-norm)* transA.getBasis();
-		SimdVector3 seperatingAxisInB = norm* transB.getBasis();
+		seperatingAxisInA = (-norm)* transA.getBasis();
+		seperatingAxisInB = norm* transB.getBasis();
 
-		SimdVector3 pInA = convexA->LocalGetSupportingVertex(seperatingAxisInA);
-		SimdVector3 qInB = convexB->LocalGetSupportingVertex(seperatingAxisInB);
-		SimdPoint3  pWorld = transA(pInA);	
-		SimdPoint3  qWorld = transB(qInB);
+		pInA = convexA->LocalGetSupportingVertexWithoutMargin(seperatingAxisInA);
+		qInB = convexB->LocalGetSupportingVertexWithoutMargin(seperatingAxisInB);
+		pWorld = transA(pInA);	
+		qWorld = transB(qInB);
 
-		SimdVector3 w	= qWorld - pWorld;
+		w	= qWorld - pWorld;
 		float delta = norm.dot(w);
 		//find smallest delta
 
@@ -128,6 +130,16 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 			
 		}
 	}
+	
+	//add the margins
+
+	minA += minNorm*convexA->GetMargin();
+	minB -= minNorm*convexB->GetMargin();
+	minProj += (convexA->GetMargin() + convexB->GetMargin());
+
+
+	
+
 //#define DEBUG_DRAW 1
 #ifdef DEBUG_DRAW
 	if (debugDraw)

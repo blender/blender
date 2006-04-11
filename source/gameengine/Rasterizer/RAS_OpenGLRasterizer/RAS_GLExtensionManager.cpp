@@ -406,7 +406,6 @@ PFNGLGETACTIVEATTRIBARBPROC blGetActiveAttribARB;
 PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
 #endif
 
-#if 0 // TODO: GL_ARB_vertex/fragment_program support
 #ifdef GL_ARB_vertex_program
  PFNGLVERTEXATTRIB1FARBPROC blVertexAttrib1fARB;
  PFNGLVERTEXATTRIB1FVARBPROC blVertexAttrib1fvARB;
@@ -420,7 +419,6 @@ PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
  PFNGLGETVERTEXATTRIBDVARBPROC blGetVertexAttribdvARB;
  PFNGLGETVERTEXATTRIBFVARBPROC blGetVertexAttribfvARB;
  PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
-#endif
 #endif
 
 #ifdef GL_EXT_compiled_vertex_array
@@ -612,7 +610,6 @@ static void LinkExtensions()
 	}
 #endif
 
-#if 0 // TODO: GL_ARB_vertex/fragment_program support
 #if defined(GL_ARB_vertex_program)
 	if (QueryExtension("GL_ARB_vertex_program"))
 	{
@@ -636,7 +633,6 @@ static void LinkExtensions()
 			std::cout << "ERROR: GL_ARB_vertex_program implementation is broken!" << std::endl;
 		}
 	}
-#endif
 #endif
 
 

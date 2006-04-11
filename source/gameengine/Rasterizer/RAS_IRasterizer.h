@@ -392,6 +392,7 @@ public:
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
 
 	virtual void	SetTexCoords(TexCoGen coords, int unit) = 0;
+	virtual void	SetAttrib(int type) = 0;
 	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const = 0;
 
 	virtual bool	QueryLists(){return false;}

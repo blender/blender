@@ -28,19 +28,7 @@
 //using namespace bgl;
 #define spit(x) std::cout << x << std::endl;
 
-/* ----
-	testing for a faster solution!
-	...  just compile out
-	The idea is to install a shader in other 
-	areas if code, find the shader via the scene and,
-	install it with ...
-
-	shader->ApplyShader()
-	...
-	shader->UnloadShader()
-*/
 #define SORT_UNIFORMS 1
-
 #define UNIFORM_MAX_LEN sizeof(float)*16
 
 BL_Uniform::BL_Uniform(int data_size)
@@ -143,15 +131,16 @@ BL_Shader::BL_Shader(PyTypeObject *T)
 	mPass(1),
 	mOk(0),
 	mUse(0),
+	mAttr(0),
 	vertProg(""),
 	fragProg(""),
 	mError(0),
 	mDirty(true)
 {
 	// if !RAS_EXT_support._ARB_shader_objects this class will not be used
-	for (int i=0; i<MAXTEX; i++) {
-		mSampler[i] = BL_Sampler();
-	}
+	//for (int i=0; i<MAXTEX; i++) {
+	//	mSampler[i] = BL_Sampler();
+	//}
 }
 
 using namespace bgl;
@@ -159,12 +148,12 @@ using namespace bgl;
 BL_Shader::~BL_Shader()
 {
 #ifdef GL_ARB_shader_objects
-	for (int i=0; i<MAXTEX; i++){
-		if(mSampler[i].mOwn) {
-			if(mSampler[i].mTexture)
-				mSampler[i].mTexture->DeleteTex();
-		}
-	}
+	//for (int i=0; i<MAXTEX; i++){
+	//	if(mSampler[i].mOwn) {
+	//		if(mSampler[i].mTexture)
+	//			mSampler[i].mTexture->DeleteTex();
+	//	}
+	//}
 	ClearUniforms();
 
 	if( mShader ) {
@@ -214,15 +203,6 @@ BL_Uniform  *BL_Shader::FindUniform(const int location)
 void BL_Shader::SetUniformfv(int location, int type, float *param,int size, bool transpose)
 {
 #ifdef SORT_UNIFORMS
-#ifdef WIN32
-#ifndef NDEBUG
-	MT_assert(type > BL_Uniform::UNI_NONE && type < BL_Uniform::UNI_MAX);
-	MT_assert(location);
-	MT_assert(param);
-	//MT_assert(size > 0 && size <= UNIFORM_MAX_LEN);
-#endif
-#endif //WIN32
-
 	BL_Uniform *uni= FindUniform(location);
 	if(uni) {
 		memcpy(uni->getData(), param, size);
@@ -242,16 +222,6 @@ void BL_Shader::SetUniformfv(int location, int type, float *param,int size, bool
 void BL_Shader::SetUniformiv(int location, int type, int *param,int size, bool transpose)
 {
 #ifdef SORT_UNIFORMS
-#ifdef WIN32
-#ifndef NDEBUG
-	//MT_assert(type > BL_Uniform::UNI_NONE && type < BL_Uniform::UNI_MAX);
-	MT_assert(location);
-	MT_assert(param);
-	//MT_assert(size > 0 && size <= UNIFORM_MAX_LEN);
-#endif
-#endif //WIN32
-
-
 	BL_Uniform *uni= FindUniform(location);
 	if(uni) {
 		memcpy(uni->getData(), param, size);
@@ -438,12 +408,12 @@ unsigned int BL_Shader::GetProg()
 { 
 	return mShader;
 }
-
-const BL_Sampler* BL_Shader::GetSampler(int i)
-{
-	MT_assert(i<=MAXTEX);
-	return &mSampler[i];
-}
+//
+//const BL_Sampler* BL_Shader::GetSampler(int i)
+//{
+//	MT_assert(i<=MAXTEX);
+//	return &mSampler[i];
+//}
 
 void BL_Shader::SetSampler(int loc, int unit)
 {
@@ -457,14 +427,14 @@ void BL_Shader::SetSampler(int loc, int unit)
 	}
 #endif
 }
-
-void BL_Shader::InitializeSampler(int unit, BL_Texture* texture)
-{
-	MT_assert(unit<=MAXTEX);
-	mSampler[unit].mTexture = texture;
-	mSampler[unit].mLoc =-1;
-	mSampler[unit].mOwn = 0;
-}
+//
+//void BL_Shader::InitializeSampler(int unit, BL_Texture* texture)
+//{
+//	MT_assert(unit<=MAXTEX);
+//	mSampler[unit].mTexture = texture;
+//	mSampler[unit].mLoc =-1;
+//	mSampler[unit].mOwn = 0;
+//}
 
 void BL_Shader::SetProg(bool enable)
 {
@@ -504,7 +474,7 @@ void BL_Shader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 		for(it = mPreDef.begin(); it!= mPreDef.end(); it++)
 		{
 			BL_DefUniform *uni = (*it);
-			if(!uni->mLoc) continue;
+			if(uni->mLoc == -1) continue;
 
 			switch (uni->mType)
 			{
@@ -826,8 +796,7 @@ PyMethodDef BL_Shader::Methods[] =
 	KX_PYMETHODTABLE( BL_Shader, setUniform2i ),
 	KX_PYMETHODTABLE( BL_Shader, setUniform3i ),
 	KX_PYMETHODTABLE( BL_Shader, setUniform4i ),
-// TODO: GL_ARB_vertex/fragment_program support
-//	KX_PYMETHODTABLE( BL_Shader, setAttrib ),
+	KX_PYMETHODTABLE( BL_Shader, setAttrib ),
 
 	KX_PYMETHODTABLE( BL_Shader, setUniformfv ),
 	KX_PYMETHODTABLE( BL_Shader, setUniformiv ),
@@ -967,10 +936,18 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSampler, "setSampler(name, index)" )
 	{
 		int loc = GetUniformLocation(uniform);
 		if(loc != -1) {
-			if(index <= MAXTEX)
-				mSampler[index].mLoc = loc;
-			else
+			if(index >= MAXTEX &&  index < 0)
 				spit("Invalid texture sample index: " << index);
+
+#ifdef SORT_UNIFORMS
+			SetUniformiv(loc, BL_Uniform::UNI_INT, &index, (sizeof(int)) );
+#else
+			SetUniform(loc, index);
+#endif
+			//if(index <= MAXTEX)
+			//	mSampler[index].mLoc = loc;
+			//else
+			//	spit("Invalid texture sample index: " << index);
 		}
 		Py_Return;
 	}
@@ -1418,7 +1395,24 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 
 KX_PYMETHODDEF_DOC( BL_Shader, setAttrib, "setAttrib(enum)" )
 {
-	Py_Return;
+#ifdef GL_ARB_shader_objects
+	if(mError) {
+		Py_INCREF(Py_None);
+		return Py_None;
+	}
+	int attr=0;
+	if(PyArg_ParseTuple(args, "i", &attr )) {
+		if(mShader==0) {
+			PyErr_Format(PyExc_ValueError, "invalid shader object");
+			return NULL;
+		}
+		mAttr=SHD_TANGENT;
+		bgl::blUseProgramObjectARB(mShader);
+		bgl::blBindAttribLocationARB(mShader, mAttr, "Tangent");
+		Py_Return;
+	}
+	return NULL;
+#endif
 }
 
 

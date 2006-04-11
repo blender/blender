@@ -81,6 +81,7 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_focallength(0.0),
 	m_setfocallength(false),
 	m_noOfScanlines(32),
+	m_useTang(false),
 	m_materialCachingInfo(0)
 {
 	m_viewmatrix.Identity();
@@ -1208,6 +1209,10 @@ void RAS_OpenGLRasterizer::SetTexCoords(TexCoGen coords,int unit)
 		m_texco[unit] = coords;
 }
 
+void RAS_OpenGLRasterizer::SetAttrib(int type)
+{
+	if(type == RAS_TEXTANGENT) m_useTang=true;
+}
 
 void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv, int enabled)
 {
@@ -1242,6 +1247,12 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv, int enabled)
 		}
 	}
 #endif
+
+#ifdef GL_ARB_vertex_program
+	if(m_useTang && bgl::RAS_EXT_support._ARB_vertex_program)
+		bgl::blVertexAttrib4fvARB(1/*tangent*/, tv.getTangent());
+#endif
+
 }
 void RAS_OpenGLRasterizer::Tangent(	const RAS_TexVert& v1,
 									const RAS_TexVert& v2,

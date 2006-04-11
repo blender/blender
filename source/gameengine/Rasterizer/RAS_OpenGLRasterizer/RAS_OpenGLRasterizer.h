@@ -94,6 +94,7 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 protected:
 	int				m_drawingmode;
 	TexCoGen		m_texco[RAS_MAX];
+	bool			m_useTang;
 
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
@@ -284,6 +285,7 @@ public:
 	std::vector <OglDebugLine>	m_debugLines;
 
 	virtual void	SetTexCoords(TexCoGen coords,int enabled);
+	virtual void	SetAttrib(int type);
 	void			TexCoord(const RAS_TexVert &tv, int unit);
 	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const;
 

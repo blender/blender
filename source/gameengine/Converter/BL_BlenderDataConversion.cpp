@@ -494,7 +494,17 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 		material->spec_f		= mat->spec;
 		material->ref			= mat->ref;
 		material->amb			= mat->amb;
-		material->ras_mode |= ((mat->mode & MA_ZTRA) != 0)?ZSORT:0;
+
+		// set alpha testing without z-sorting
+		if( ((mesh->tface && tface ) && (!tface->transp)) && mat->mode & MA_ZTRA) {
+			// sets the RAS_IPolyMaterial::m_flag |RAS_FORCEALPHA
+			// this is so we don't have the overhead of the z-sorting code
+			material->ras_mode|=ALPHA_TEST;
+		}
+		else{
+			// use regular z-sorting
+			material->ras_mode |= ((mat->mode & MA_ZTRA) != 0)?ZSORT:0;
+		}
 		material->ras_mode |= ((mat->mode & MA_WIRE) != 0)?WIRE:0;
 	}
 	else {
