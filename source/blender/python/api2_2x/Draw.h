@@ -67,10 +67,6 @@ typedef struct _Button {
 /* 
  * these are declared in ../BPY_extern.h 
 */
-void BPY_spacescript_do_pywin_draw( SpaceScript * sc );
-void BPY_spacescript_do_pywin_event( SpaceScript * sc,
-				     unsigned short event, short val, char ascii );
-void BPY_free_compiled_text( Text * text );
 
 PyObject *M_Draw_Init( void );
 PyObject *Draw_Init( void );

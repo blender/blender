@@ -108,7 +108,7 @@ void init_ourImport( void );
 void init_ourReload( void );
 PyObject *blender_import( PyObject * self, PyObject * args );
 
-int BPY_txt_do_python_Text( struct Text *text );
+
 void BPY_Err_Handle( char *script_name );
 PyObject *traceback_getFilename( PyObject * tb );
 
@@ -143,7 +143,7 @@ void BPY_start_python( int argc, char **argv )
 	 * rest of our init msgs.
 	 */
 	// Py_GetVersion() returns a ptr to astatic string
-	printf( "Using Python version %.3s\n", Py_GetVersion() );
+	printf( "Looking for installed Python version %.3s\n", Py_GetVersion() );
 
 	//Initialize the TOP-LEVEL modules
 	PyImport_ExtendInittab(BPy_Inittab_Modules);
@@ -230,14 +230,6 @@ void init_syspath( int first_time )
 
 	progname = BLI_last_slash( bprogname );	/* looks for the last dir separator */
 
-#ifdef SETSYSPATH
-	{
-		char *c; 
-		c = Py_GetPath(  );	/* get python system path */
-		PySys_SetPath( c );	/* initialize */
-	}
-#endif
-
 	n = progname - bprogname;
 	if( n > 0 ) {
 		strncpy( execdir, bprogname, n );
@@ -246,42 +238,18 @@ void init_syspath( int first_time )
 		execdir[n] = '\0';
 
 		syspath_append( execdir );	/* append to module search path */
-
-		/* set Blender.sys.progname */
 	} else
 		printf( "Warning: could not determine argv[0] path\n" );
 
-#ifdef SETSYSPATH
 	/* 
-	 * bring in the site module so we can add 
-	 * site-package dirs to sys.path 
-	 */
+	   attempt to import 'site' module as a check for valid
+	   python install found.
+	*/
 
 	mod = PyImport_ImportModule( "site" );	/* new ref */
 
 	if( mod ) {
-		PyObject *item;
-		int size = 0;
-		int index;
-		PyObject *p;
-
-		/* get the value of 'sitedirs' from the module */
-
-		/* the ref man says GetDict() never fails!!! */
-		d = PyModule_GetDict( mod );	/* borrowed ref */
-		p = PyDict_GetItemString( d, "sitedirs" );	/* borrowed ref */
-
-		if( p ) {	/* we got our string */
-			/* append each item in sitedirs list to path */
-			size = PyList_Size( p );
-
-			for( index = 0; index < size; index++ ) {
-				item = PySequence_GetItem( p, index );	/* new ref */
-				if( item )
-					syspath_append( PyString_AsString
-							( item ) );
-			}
-		}
+		printf("Got it!\n");  /* appears after msg Looking for Python...  */
 		Py_DECREF( mod );
 	} else {		/* import 'site' failed */
 		PyErr_Clear(  );
@@ -291,7 +259,7 @@ void init_syspath( int first_time )
 			printf( "Continuing happily.\n" );
 		}
 	}
-#endif
+
 
 	/* 
 	 * initialize the sys module
@@ -305,6 +273,8 @@ void init_syspath( int first_time )
 		EXPP_dict_set_item_str( d, "executable",
 				      Py_BuildValue( "s", bprogname ) );
 		Py_DECREF( mod );
+	} else{
+		printf("import of sys module failed\n");
 	}
 }
 
