@@ -231,7 +231,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 void editbones_to_armature (ListBase *list, Object *ob)
 {
 	bArmature *arm;
-	EditBone *eBone;
+	EditBone *eBone, *neBone;
 	Bone	*newBone;
 	Object *obt;
 	
@@ -242,8 +242,25 @@ void editbones_to_armature (ListBase *list, Object *ob)
 	/* armature bones */
 	free_bones(arm);
 	
+	/* remove zero sized bones, this gives instable restposes */
+	for (eBone=list->first; eBone; eBone= neBone) {
+		float len= VecLenf(eBone->head, eBone->tail);
+		neBone= eBone->next;
+		if(len <= FLT_EPSILON) {
+			EditBone *fBone;
+			
+			/*	Find any bones that refer to this bone	*/
+			for (fBone=list->first; fBone; fBone= fBone->next){
+				if (fBone->parent==eBone)
+					fBone->parent= eBone->parent;
+			}
+			printf("Warning; removed zero sized bone: %s\n", eBone->name);
+			BLI_freelinkN (list, eBone);
+		}
+	}
+	
 	/*	Copy the bones from the editData into the armature */
-	for (eBone=list->first;eBone;eBone=eBone->next){
+	for (eBone=list->first; eBone; eBone=eBone->next){
 		newBone= MEM_callocN (sizeof(Bone), "bone");
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
