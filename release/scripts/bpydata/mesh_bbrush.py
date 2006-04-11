@@ -61,12 +61,13 @@ def getPickRay(screen_x, screen_y, localMatrix=None, useMid = False):
 				ortho_d.w = 0
 				
 				# all rays are parallel in ortho mode - so the direction vector is simply the viewing direction
-				hms.x, hms.y, hms.z, hms.w = (screen_x-win_mid_x) /win_size_x, (screen_y-win_mid_y) / win_size_y, 0.0, 1.0
+				#hms.x, hms.y, hms.z, hms.w = (screen_x-win_mid_x) /win_size_x, (screen_y-win_mid_y) / win_size_y, 0.0, 1.0
+				hms[:] = (screen_x-win_mid_x) /win_size_x, (screen_y-win_mid_y) / win_size_y, 0.0, 1.0
 				
 				# these are the homogenious screencoords of the point (screen_x, screen_y) ranging from -1 to +1
 				p=(hms*pmi) + (1000*ortho_d)
 				p.resize3D()
-				d.x, d.y, d.z = ortho_d.x, ortho_d.y, ortho_d.z
+				d[:] = ortho_d[:3]
 				
 
 			# Finally we shift the position infinitely far away in
@@ -81,7 +82,7 @@ def getPickRay(screen_x, screen_y, localMatrix=None, useMid = False):
 				dx = pm[3][3] * (((screen_x-win_min_x)/win_size_x)-1.0) - pm[3][0]
 				dy = pm[3][3] * (((screen_y-win_min_y)/win_size_y)-1.0) - pm[3][1]
 				
-				fp.x, fp.y, fp.z = \
+				fp[:] = \
 				pmi[0][0]*dx+pmi[1][0]*dy,\
 				pmi[0][1]*dx+pmi[1][1]*dy,\
 				pmi[0][2]*dx+pmi[1][2]*dy
@@ -91,11 +92,11 @@ def getPickRay(screen_x, screen_y, localMatrix=None, useMid = False):
 				# The calculation of dxy and fp are simplified versions of my original code
 				#- so it's almost impossible to explain what's going on geometrically... sorry
 				
-				p.x, p.y, p.z = vmi[3][:3]
+				p[:] = vmi[3][:3]
 				
 				# the camera's location in global 3dcoords can be read directly from the inverted viewmatrix
 				#d.x, d.y, d.z =normalize_v3(sub_v3v3(p, fp))
-				d.x, d.y, d.z = p.x-fp.x, p.y-fp.y, p.z-fp.z
+				d[:] = p.x-fp.x, p.y-fp.y, p.z-fp.z
 				
 				#print 'd', d, 'p', p, 'fp', fp
 				
@@ -165,8 +166,8 @@ def ui_set_preferences(user_interface=1):
 		'Brush Options',\
 		('Adaptive Geometry', ADAPTIVE_GEOMETRY_but, 'Add and remove detail as needed. Uses min/max resolution.'),\
 		('Brush Type: ', BRUSH_MODE_but, 1, 5, 'Push/Pull:1, Grow/Shrink:2, Spin:3, Relax:4, Goo:5'),\
-		('Pressure: ', BRUSH_PRESSURE_but, 0.01, 1.0, 'Pressure of the brush.'),\
-		('Size: ', BRUSH_RADIUS_but, 0.02, 2.0, 'Size of the brush.'),\
+		('Pressure: ', BRUSH_PRESSURE_but, 0.0, 1.0, 'Pressure of the brush.'),\
+		('Size: ', BRUSH_RADIUS_but, 0.01, 2.0, 'Size of the brush.'),\
 		('Geometry Res: ', RESOLUTION_MIN_but, 0.01, 0.5, 'Size of the brush & Adaptive Subdivision.'),\
 		('Displace Vector: ', DISPLACE_NORMAL_MODE_but, 1, 4, 'Vertex Normal:1, Median Normal:2, Face Normal:3, View Normal:4'),\
 		('Static Normal', STATIC_NORMAL_but, 'Use the initial normal only.'),\
@@ -536,7 +537,7 @@ def event_main():
 			else:
 				BRUSH_PRESSURE =  BRUSH_PRESSURE_ORIG
 			
-			brush_verts = [(v,le) for v in me.verts for le in ((v.co-best_isect).length,) if le < BRUSH_RADIUS]
+			brush_verts = [(v,le) for v in me.verts for le in ((v.co-best_isect).length,) if le <= BRUSH_RADIUS]
 			
 			# SETUP ONCE ONLY VARIABLES
 			if STATIC_NORMAL: # Only set the normal once.
@@ -548,11 +549,13 @@ def event_main():
 			
 			
 			if DISPLACE_NORMAL_MODE == 2: # MEDIAN NORMAL
-				if (STATIC_NORMAL and medainNormal == None) or not STATIC_NORMAL:
+				if (STATIC_NORMAL and medainNormal == None) or not STATIC_NORMAL or str(medainNormal.x) == 'nan':
 					medainNormal = Vector(0,0,0)
-					for v, l in brush_verts:
-						medainNormal += v.no*(BRUSH_RADIUS-l)
-					medainNormal.normalize()
+					if brush_verts:
+						for v, l in brush_verts:
+							medainNormal += v.no*(BRUSH_RADIUS-l)
+						medainNormal.normalize()
+					
 			
 			
 			# ================================================================#
@@ -566,24 +569,23 @@ def event_main():
 							
 					
 					v.sel = 1 # MARK THE VERT AS DIRTY.
-					falloff = (BRUSH_RADIUS-l) / BRUSH_RADIUS # falloff between 0 and 1
-					
+					falloff = BRUSH_PRESSURE * ((BRUSH_RADIUS-l) / BRUSH_RADIUS) # falloff between 0 and 1
 					if DISPLACE_NORMAL_MODE == 1: # VERTEX NORMAL
 						if STATIC_NORMAL:
 							try:
 								no = vert_orig_normals[v]
 							except:
 								no = vert_orig_normals[v] = v.no
-							v.co += (no * BRUSH_PRESSURE) * falloff
+							v.co += no * falloff
 						else:
-							v.co += (v.no * BRUSH_PRESSURE) * falloff
+							v.co += no * falloff
 					elif DISPLACE_NORMAL_MODE == 2: # MEDIAN NORMAL # FIXME
-						v.co += (medainNormal * BRUSH_PRESSURE) * falloff
+						v.co += medainNormal * falloff
+						
 					elif DISPLACE_NORMAL_MODE == 3: # FACE NORMAL
-						v.co += (iFaceNormal * BRUSH_PRESSURE) * falloff
+						v.co += iFaceNormal * falloff
 					elif DISPLACE_NORMAL_MODE == 4: # VIEW NORMAL
-						v.co += (Direction * BRUSH_PRESSURE) * falloff
-					
+						v.co += Direction * falloff
 					# Clamp back to original x if needs be.
 					if XPLANE_CLIP and origx:
 						v.co.x = 0
@@ -602,7 +604,7 @@ def event_main():
 					vert_scale_vec.normalize()
 					# falloff needs to be scaled for this tool
 					falloff = falloff / 10
-					v.co += (vert_scale_vec * BRUSH_PRESSURE) * falloff # FLAT BRUSH
+					v.co += vert_scale_vec * (BRUSH_PRESSURE * falloff)# FLAT BRUSH
 					
 					# Clamp back to original x if needs be.
 					if XPLANE_CLIP and origx:
@@ -857,9 +859,10 @@ def event_main():
 						if l < RESOLUTION_MIN:
 							ed.v1.sel = ed.v2.sel = 1
 							newco = (ed.v1.co + ed.v2.co)*0.5
-							ed.v1.co.x = ed.v2.co.x = newco.x
-							ed.v1.co.y = ed.v2.co.y = newco.y
-							ed.v1.co.z = ed.v2.co.z = newco.z
+							#ed.v1.co.x = ed.v2.co.x = newco.x
+							#ed.v1.co.y = ed.v2.co.y = newco.y
+							#ed.v1.co.z = ed.v2.co.z = newco.z
+							ed.v1.co[:]= ed.v2.co[:]= newco
 							remdoubles = True
 				
 				#if remdoubles:
@@ -914,6 +917,7 @@ def event_main():
 		if not is_editmode: # User was in edit mode, so stay there.
 			Window.EditMode(0)
 		print '100 draws in %.6f' % (((Blender.sys.time()-time) / float(i))*100)
+	Blender.event = None
 
 if __name__ == '__main__':
 	event_main()
