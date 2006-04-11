@@ -317,12 +317,11 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 {
 	float color[4];
 	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
-	int len=0;
   
+	/* note; this utf8towchar() function I totally don't understand... without using translations it 
+	   removes special characters completely. So, for now we just skip that then. (ton) */
 	if (FTF_USE_GETTEXT & flag) 
-		len=utf8towchar(wstr,gettext(str));
-	else 
-		len=utf8towchar(wstr,str);
+		utf8towchar(wstr, gettext(str));
 
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	
@@ -332,7 +331,10 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 		glPixelTransferf(GL_GREEN_SCALE, color[1]);
 		glPixelTransferf(GL_BLUE_SCALE, color[2]);
 
-		font->Render(wstr);
+		if (FTF_USE_GETTEXT & flag) 
+			font->Render(wstr);
+		else
+			font->Render(str);
 		
 		glPixelTransferf(GL_RED_SCALE, 1.0);
 		glPixelTransferf(GL_GREEN_SCALE, 1.0);
@@ -347,14 +349,21 @@ float FTF_TTFont::DrawString(char* str, unsigned int flag)
 		glTranslatef(pen_x, pen_y, 0.0);
 		glScalef(fsize, fsize, 1.0);
 
-		font->Render(wstr);
+		if (FTF_USE_GETTEXT & flag) 
+			font->Render(wstr);
+		else
+			font->Render(str);
+		
 		glPopMatrix();
   
 		glDisable(GL_BLEND);
 		glDisable(GL_TEXTURE_2D);
 	}
 
-	return font->Advance(wstr);
+	if (FTF_USE_GETTEXT & flag) 
+		return font->Advance(wstr);
+	else
+		return font->Advance(str);
 }
 
 
@@ -363,16 +372,26 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
 	int len=0;
 
-	if (FTF_USE_GETTEXT & flag) 
-		len=utf8towchar(wstr,gettext(str));
-	else 
-		len=utf8towchar(wstr,str);
+	/* note; this utf8towchar() function I totally don't understand... without using translations it 
+		removes special characters completely. So, for now we just skip that then. (ton) */
 
-	if(mode == FTF_PIXMAPFONT) {
-		return font->Advance(wstr);
-	} else if(mode == FTF_TEXTUREFONT) {
-		return font->Advance(wstr);// * fsize;
+	if (FTF_USE_GETTEXT & flag) {
+		len=utf8towchar(wstr, gettext(str));
+
+		if(mode == FTF_PIXMAPFONT) {
+			return font->Advance(wstr);
+		} else if(mode == FTF_TEXTUREFONT) {
+			return font->Advance(wstr);// * fsize;
+		}
 	}
+	else {
+		if(mode == FTF_PIXMAPFONT) {
+			return font->Advance(str);
+		} else if(mode == FTF_TEXTUREFONT) {
+			return font->Advance(str);// * fsize;
+		}
+	}
+	
 	return 0.0;
 }
 
