@@ -56,6 +56,39 @@ SimdVector3	ConvexHullShape::LocalGetSupportingVertexWithoutMargin(const SimdVec
 	return supVec;
 }
 
+void	ConvexHullShape::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	SimdScalar newDot;
+	//use 'w' component of supportVerticesOut?
+	{
+		for (int i=0;i<numVectors;i++)
+		{
+			supportVerticesOut[i][3] = -1e30f;
+		}
+	}
+	for (size_t i=0;i<m_points.size();i++)
+	{
+		SimdPoint3 vtx = m_points[i] * m_localScaling;
+
+		for (int j=0;j<numVectors;j++)
+		{
+			const SimdVector3& vec = vectors[j];
+			
+			newDot = vec.dot(vtx);
+			if (newDot > supportVerticesOut[j][3])
+			{
+				//WARNING: don't swap next lines, the w component would get overwritten!
+				supportVerticesOut[j] = vtx;
+				supportVerticesOut[j][3] = newDot;
+			}
+		}
+	}
+
+
+
+}
+	
+
 
 SimdVector3	ConvexHullShape::LocalGetSupportingVertex(const SimdVector3& vec)const
 {

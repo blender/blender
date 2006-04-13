@@ -71,6 +71,16 @@ SimdVector3	ConeShape::LocalGetSupportingVertexWithoutMargin(const SimdVector3& 
 		return ConeLocalSupport(vec);
 }
 
+void	ConeShape::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	for (int i=0;i<numVectors;i++)
+	{
+		const SimdVector3& vec = vectors[i];
+		supportVerticesOut[i] = ConeLocalSupport(vec);
+	}
+}
+
+
 SimdVector3	ConeShape::LocalGetSupportingVertex(const SimdVector3& vec)  const
 {
 	SimdVector3 supVertex = ConeLocalSupport(vec);

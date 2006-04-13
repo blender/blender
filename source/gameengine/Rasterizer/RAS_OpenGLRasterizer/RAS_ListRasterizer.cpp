@@ -84,7 +84,7 @@ void RAS_ListSlot::SetModified(bool mod)
 	if(mod && !(m_flag & LIST_MODIFY)) {
 		spit("Modifying list (" << m_list << ")");
 		m_flag = m_flag &~ LIST_END;
-		m_flag |= LIST_MODIFY;
+		m_flag |= LIST_STREAM;
 	}
 }
 

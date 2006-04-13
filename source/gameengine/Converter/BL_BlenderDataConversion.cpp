@@ -309,12 +309,13 @@ static void GetRGB(short type,
 // ------------------------------------
 BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* mface, MCol* mmcol, int lightlayer, Object* blenderobj )
 {
+	//this needs some type of manager
 	BL_Material *material = new BL_Material();
-	//initBL_Material(material);
+
 	int numchan =	-1;
 	bool validmat	= (mat!=0);
-	bool using_facetexture = false;
-
+	bool validface	= (mesh->tface && tface);
+	
 	short type = 0;
 	if( validmat )
 		type = 1; // material color 
@@ -336,10 +337,21 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 		numchan = getNumTexChannels(mat);
 		int valid_index = 0;
 		
-		bool facetex = ((mat->mode & MA_FACETEXTURE) &&  (mesh->tface && tface) );
-		
-		numchan = numchan>MAXTEX?MAXTEX:(numchan>=0&& facetex)?numchan+1:numchan;
-		
+		// use the face texture if
+		// 1) it is set in the buttons
+		// 2) we have a face texture and a material but no valid texture in slot 1
+		bool facetex = false;
+		if(validface && mat->mode &MA_FACETEXTURE) 
+			facetex = true;
+		if(validface && !mat->mtex[0])
+			facetex = true;
+		if(validface && mat->mtex[0]) {
+			MTex *tmp = mat->mtex[0];
+			if(!tmp->tex || tmp->tex && !tmp->tex->ima )
+				facetex = true;
+		}
+		numchan = numchan>MAXTEX?MAXTEX:numchan;
+	
 		// foreach MTex
 		for(int i=0; i<numchan; i++) {
 			// use face tex
@@ -355,9 +367,18 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 						material->mapping[i].mapping |= USEREFL;
 					else
 						material->mapping[i].mapping |= USEUV;
-					i++;
+					if(material->ras_mode & USE_LIGHT)
+						material->ras_mode &= ~USE_LIGHT;
+					if(tface->mode & TF_LIGHT)
+						material->ras_mode |= USE_LIGHT;
+
 					valid_index++;
 				}
+				else {
+					material->img[i] = 0;
+					material->texname[i] = "";
+				}
+				continue;
 			}
 
 			mttmp = getImageFromMaterial( mat, i );
@@ -496,7 +517,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 		material->amb			= mat->amb;
 
 		// set alpha testing without z-sorting
-		if( ((mesh->tface && tface ) && (!tface->transp)) && mat->mode & MA_ZTRA) {
+		if( ( validface && (!tface->transp)) && mat->mode & MA_ZTRA) {
 			// sets the RAS_IPolyMaterial::m_flag |RAS_FORCEALPHA
 			// this is so we don't have the overhead of the z-sorting code
 			material->ras_mode|=ALPHA_TEST;
@@ -510,7 +531,11 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 	else {
 		int valid = 0;
 		// check for tface tex to fallback on
-		if( mesh->tface && tface ){
+		if( validface ){
+
+			// no light bugfix
+			if(tface->mode) material->ras_mode |= USE_LIGHT;
+
 			material->img[0] = (Image*)(tface->tpage);
 			// ------------------------
 			if(material->img[0]) {
@@ -537,7 +562,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 	}
 	MT_Point2 uv[4];
 
-	if( mesh->tface &&  tface ) {
+	if( validface ) {
 
 		material->ras_mode |= !( 
 			(tface->flag & TF_HIDE)	||

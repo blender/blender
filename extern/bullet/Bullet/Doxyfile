@@ -15,7 +15,7 @@
 
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded 
 # by quotes) that should identify the project. 
-PROJECT_NAME           = Continuous Collision Detection Library
+PROJECT_NAME           = "Bullet Continuous Collision Detection Library"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. 
 # This could be handy for archiving the generated documentation or 

@@ -41,7 +41,8 @@ struct DispatcherInfo
 		:m_dispatchFunc(DISPATCH_DISCRETE),
 		m_timeOfImpact(1.f),
 		m_useContinuous(false),
-		m_debugDraw(0)
+		m_debugDraw(0),
+		m_enableSatConvex(false)
 	{
 
 	}
@@ -51,6 +52,7 @@ struct DispatcherInfo
 	float	m_timeOfImpact;
 	bool	m_useContinuous;
 	class IDebugDraw*	m_debugDraw;
+	bool	m_enableSatConvex;
 	
 };
 

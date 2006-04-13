@@ -71,14 +71,17 @@ AxisSweep3::AxisSweep3(const SimdPoint3& worldAabbMin,const SimdPoint3& worldAab
 
 	// handle 0 is reserved as the null index, and is also used as the sentinel
 	m_firstFreeHandle = 1;
-	for (int i = m_firstFreeHandle; i < maxHandles; i++)
-		m_pHandles[i].SetNextFree(i + 1);
-	m_pHandles[maxHandles - 1].SetNextFree(0);
+	{
+		for (int i = m_firstFreeHandle; i < maxHandles; i++)
+			m_pHandles[i].SetNextFree(i + 1);
+		m_pHandles[maxHandles - 1].SetNextFree(0);
+	}
 
+	{
 	// allocate edge buffers
 	for (int i = 0; i < 3; i++)
 		m_pEdges[i] = new Edge[maxHandles * 2];
-
+	}
 	//removed overlap management
 
 	// make boundary sentinels

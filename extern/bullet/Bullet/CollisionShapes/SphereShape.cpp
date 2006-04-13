@@ -29,6 +29,15 @@ SimdVector3	SphereShape::LocalGetSupportingVertexWithoutMargin(const SimdVector3
 	return SimdVector3(0.f,0.f,0.f);
 }
 
+void	SphereShape::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	for (int i=0;i<numVectors;i++)
+	{
+		supportVerticesOut[i].setValue(0.f,0.f,0.f);
+	}
+}
+
+
 SimdVector3	SphereShape::LocalGetSupportingVertex(const SimdVector3& vec)const
 {
 	SimdVector3 supVertex;

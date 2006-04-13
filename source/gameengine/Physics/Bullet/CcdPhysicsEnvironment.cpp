@@ -17,6 +17,10 @@
 #include "ConstraintSolver/OdeConstraintSolver.h"
 #include "ConstraintSolver/SimpleConstraintSolver.h"
 
+#ifdef USE_PROFILE
+//profiling/timings
+#include "quickprof.h"
+#endif //USE_PROFILE
 
 #include "IDebugDraw.h"
 
@@ -299,7 +303,9 @@ CcdPhysicsEnvironment::CcdPhysicsEnvironment(CollisionDispatcher* dispatcher,Bro
 :m_scalingPropagated(false),
 m_numIterations(10),
 m_ccdMode(0),
-m_solverType(-1)
+m_solverType(-1),
+m_profileTimings(0),
+m_enableSatCollisionDetection(false)
 {
 
 	if (!dispatcher)
@@ -450,13 +456,43 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 }
 
+
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
+
+#ifdef USE_PROFILE
+	//toggle Profiler
+	if ( m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_ProfileTimings)
+	{
+		if (!m_profileTimings)
+		{
+			m_profileTimings = 1;
+			// To disable profiling, simply comment out the following line.
+			static int counter = 0;
+
+			char filename[128];
+			sprintf(filename,"quickprof_bullet_timings%i.csv",counter++);
+			Profiler::init(filename, Profiler::BLOCK_CYCLE_SECONDS);//BLOCK_TOTAL_MICROSECONDS
+
+		}
+	} else
+	{
+		if (m_profileTimings)
+		{
+			m_profileTimings = 0;
+			Profiler::destroy();
+		}
+	}
+#endif //USE_PROFILE
+
+
 
 	if (!SimdFuzzyZero(timeStep))
 	{
 
-#define SPLIT_TIMESTEP 1
+// define this in blender, the stepsize is 30 hertz, 60 hertz works much better 
+ #define SPLIT_TIMESTEP 1
+
 #ifdef SPLIT_TIMESTEP
 		proceedDeltaTimeOneStep(0.5f*timeStep);
 		proceedDeltaTimeOneStep(0.5f*timeStep);
@@ -467,6 +503,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	{
 		//todo: interpolate
 	}
+
 	return true;
 }
 /// Perform an integration step of duration 'timeStep'.
@@ -485,6 +522,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	}
 
 
+#ifdef USE_PROFILE
+	Profiler::beginBlock("SyncMotionStates");
+#endif //USE_PROFILE
 
 	
 	//this is needed because scaling is not known in advance, and scaling has to propagate to the shape
@@ -494,7 +534,11 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		m_scalingPropagated = true;
 	}
 
+#ifdef USE_PROFILE
+	Profiler::endBlock("SyncMotionStates");
 
+	Profiler::beginBlock("predictIntegratedTransform");
+#endif //USE_PROFILE
 
 	{
 //		std::vector<CcdPhysicsController*>::iterator i;
@@ -516,6 +560,11 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			
 		}
 	}
+
+#ifdef USE_PROFILE
+	Profiler::endBlock("predictIntegratedTransform");
+#endif //USE_PROFILE
+
 	BroadphaseInterface*	scene = GetBroadphase();
 	
 	
@@ -524,8 +573,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	//
 	
 	
-	
-	
+#ifdef USE_PROFILE
+	Profiler::beginBlock("DispatchAllCollisionPairs");
+#endif //USE_PROFILE
+
 	
 	int numsubstep = m_numIterations;
 	
@@ -533,14 +584,16 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	DispatcherInfo dispatchInfo;
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
+	dispatchInfo.m_enableSatConvex = m_enableSatCollisionDetection;
 
 	scene->DispatchAllCollisionPairs(*GetDispatcher(),dispatchInfo);///numsubstep,g);
 
 
+#ifdef USE_PROFILE
+	Profiler::endBlock("DispatchAllCollisionPairs");
+#endif //USE_PROFILE
 
-	
 		
-	
 	int numRigidBodies = m_controllers.size();
 	
 	m_collisionWorld->UpdateActivationState();
@@ -548,6 +601,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	
 
 	//contacts
+#ifdef USE_PROFILE
+	Profiler::beginBlock("SolveConstraint");
+#endif //USE_PROFILE
 
 	
 	//solve the regular constraints (point 2 point, hinge, etc)
@@ -557,7 +613,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		//
 		// constraint solving
 		//
-		
+				
 		
 		int i;
 		int numConstraints = m_constraints.size();
@@ -574,6 +630,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		
 		
 	}
+
+#ifdef USE_PROFILE
+	Profiler::endBlock("SolveConstraint");
+#endif //USE_PROFILE
 	
 	//solve the vehicles
 
@@ -625,12 +685,18 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			m_solver,
 			m_debugDrawer);
 
+#ifdef USE_PROFILE
+	Profiler::beginBlock("BuildAndProcessIslands");
+#endif //USE_PROFILE
+
 	/// solve all the contact points and contact friction
 	GetDispatcher()->BuildAndProcessIslands(numRigidBodies,&solverCallback);
 
+#ifdef USE_PROFILE
+	Profiler::endBlock("BuildAndProcessIslands");
+	Profiler::beginBlock("proceedToTransform");
 
-
-
+#endif //USE_PROFILE
 	{
 		
 		
@@ -803,8 +869,19 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	}
 	
 
+#ifdef USE_PROFILE
+	Profiler::endBlock("proceedToTransform");
+
+	Profiler::beginBlock("SyncMotionStates");
+#endif //USE_PROFILE
 
 	SyncMotionStates(timeStep);
+
+#ifdef USE_PROFILE
+	Profiler::endBlock("SyncMotionStates");
+
+	Profiler::endProfilingCycle();
+#endif //USE_PROFILE
 
 	
 #ifdef NEW_BULLET_VEHICLE_SUPPORT

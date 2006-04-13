@@ -46,6 +46,8 @@ public:
 	/// ConvexShape Interface
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
+	
 
 	virtual int	GetShapeType() const { return MULTI_SPHERE_SHAPE_PROXYTYPE; }
 

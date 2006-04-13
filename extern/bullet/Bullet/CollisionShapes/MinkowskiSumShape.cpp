@@ -31,6 +31,18 @@ SimdVector3 MinkowskiSumShape::LocalGetSupportingVertexWithoutMargin(const SimdV
 	return supVertexA + supVertexB;
 }
 
+void	MinkowskiSumShape::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	//todo: could make recursive use of batching. probably this shape is not used frequently.
+	for (int i=0;i<numVectors;i++)
+	{
+		supportVerticesOut[i] = LocalGetSupportingVertexWithoutMargin(vectors[i]);
+	}
+
+}
+
+
+
 float	MinkowskiSumShape::GetMargin() const
 {
 	return m_shapeA->GetMargin() + m_shapeB->GetMargin();

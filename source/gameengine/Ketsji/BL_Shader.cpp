@@ -470,6 +470,9 @@ void BL_Shader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 		MT_Matrix4x4 view;
 		rasty->GetViewMatrix(view);
 
+		if(mAttr==SHD_TANGENT)
+			 ms.m_mesh->SetMeshModified(true);
+
 		BL_UniformVecDef::iterator it;
 		for(it = mPreDef.begin(); it!= mPreDef.end(); it++)
 		{

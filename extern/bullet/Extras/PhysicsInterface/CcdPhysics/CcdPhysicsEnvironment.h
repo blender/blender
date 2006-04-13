@@ -35,8 +35,11 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 	int	m_numIterations;
 	int	m_ccdMode;
 	int	m_solverType;
-	
+	int	m_profileTimings;
+	bool m_enableSatCollisionDetection;
+
 	ContactSolverInfo	m_solverInfo;
+	
 
 	public:
 		CcdPhysicsEnvironment(CollisionDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
@@ -131,6 +134,15 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		
 		const CollisionDispatcher* GetDispatcher() const;
 
+		bool	IsSatCollisionDetectionEnabled() const
+		{
+			return m_enableSatCollisionDetection;
+		}
+
+		void	EnableSatCollisionDetection(bool enableSat)
+		{
+			m_enableSatCollisionDetection = enableSat;
+		}
 
 		int	GetNumControllers();
 

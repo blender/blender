@@ -26,8 +26,9 @@ subject to the following restrictions:
 #include "JacobianEntry.h"
 #include "GEN_MinMax.h"
 
-
-
+#ifdef USE_PROFILE
+#include "quickprof.h"
+#endif //USE_PROFILE
 
 //iterative lcp and penalty method
 float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal,IDebugDraw* debugDrawer)
@@ -35,9 +36,13 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 	ContactSolverInfo info = infoGlobal;
 
 	int numiter = infoGlobal.m_numIterations;
+#ifdef USE_PROFILE
+	Profiler::beginBlock("Solve");
+#endif //USE_PROFILE
 
 	//should traverse the contacts random order...
-	for (int i = 0;i<numiter;i++)
+	int i;
+	for ( i = 0;i<numiter;i++)
 	{
 		int j;
 		for (j=0;j<numManifolds;j++)
@@ -50,9 +55,14 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 		}
 		
 	}
+#ifdef USE_PROFILE
+	Profiler::endBlock("Solve");
+
+	Profiler::beginBlock("SolveFriction");
+#endif //USE_PROFILE
 
 	//now solve the friction		
-	for (int i = 0;i<numiter;i++)
+	for (i = 0;i<numiter;i++)
 	{
 		int j;
 	for (j=0;j<numManifolds;j++)
@@ -63,6 +73,9 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 			SolveFriction(manifoldPtr[k],info,i,debugDrawer);
 		}
 	}
+#ifdef USE_PROFILE
+	Profiler::endBlock("SolveFriction");
+#endif //USE_PROFILE
 
 	return 0.f;
 }

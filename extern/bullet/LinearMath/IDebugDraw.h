@@ -45,6 +45,9 @@ class	IDebugDraw
 		DBG_NoDeactivation=16,
 		DBG_NoHelpText = 32,
 		DBG_DrawWireframe = 64,
+		DBG_ProfileTimings = 128,
+		DBG_EnableSatComparison = 256,
+		DBG_DisableBulletLCP = 512,
 		DBG_MAX_DEBUG_DRAW_MODE
 	};
 

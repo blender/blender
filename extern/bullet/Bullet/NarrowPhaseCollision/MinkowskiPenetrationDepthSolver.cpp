@@ -105,32 +105,68 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 	SimdVector3 seperatingAxisInA,seperatingAxisInB;
 	SimdVector3 pInA,qInB,pWorld,qWorld,w;
 
-	for (int i=0;i<NUM_UNITSPHERE_POINTS;i++)
+#define USE_BATCHED_SUPPORT 1
+#ifdef USE_BATCHED_SUPPORT
+	SimdVector3	supportVerticesABatch[NUM_UNITSPHERE_POINTS];
+	SimdVector3	supportVerticesBBatch[NUM_UNITSPHERE_POINTS];
+	SimdVector3	seperatingAxisInABatch[NUM_UNITSPHERE_POINTS];
+	SimdVector3	seperatingAxisInBBatch[NUM_UNITSPHERE_POINTS];
+	int i;
+
+	for (i=0;i<NUM_UNITSPHERE_POINTS;i++)
 	{
 		const SimdVector3& norm = sPenetrationDirections[i];
-	
-		seperatingAxisInA = (-norm)* transA.getBasis();
-		seperatingAxisInB = norm* transB.getBasis();
+		seperatingAxisInABatch[i] = (-norm)* transA.getBasis();
+		seperatingAxisInBBatch[i] = norm * transB.getBasis();
+	}
 
-		pInA = convexA->LocalGetSupportingVertexWithoutMargin(seperatingAxisInA);
-		qInB = convexB->LocalGetSupportingVertexWithoutMargin(seperatingAxisInB);
+	convexA->BatchedUnitVectorGetSupportingVertexWithoutMargin(seperatingAxisInABatch,supportVerticesABatch,NUM_UNITSPHERE_POINTS);
+	convexB->BatchedUnitVectorGetSupportingVertexWithoutMargin(seperatingAxisInBBatch,supportVerticesBBatch,NUM_UNITSPHERE_POINTS);
+	for (i=0;i<NUM_UNITSPHERE_POINTS;i++)
+	{
+		const SimdVector3& norm = sPenetrationDirections[i];
+		seperatingAxisInA = seperatingAxisInABatch[i];
+		seperatingAxisInB = seperatingAxisInBBatch[i];
+
+		pInA = supportVerticesABatch[i];
+		qInB = supportVerticesBBatch[i];
+
 		pWorld = transA(pInA);	
 		qWorld = transB(qInB);
-
 		w	= qWorld - pWorld;
 		float delta = norm.dot(w);
 		//find smallest delta
-
 		if (delta < minProj)
 		{
 			minProj = delta;
 			minNorm = norm;
 			minA = pWorld;
 			minB = qWorld;
-			
+		}
+	}	
+#else
+	for (int i=0;i<NUM_UNITSPHERE_POINTS;i++)
+	{
+		const SimdVector3& norm = sPenetrationDirections[i];
+		seperatingAxisInA = (-norm)* transA.getBasis();
+		seperatingAxisInB = norm* transB.getBasis();
+		pInA = convexA->LocalGetSupportingVertexWithoutMargin(seperatingAxisInA);
+		qInB = convexB->LocalGetSupportingVertexWithoutMargin(seperatingAxisInB);
+		pWorld = transA(pInA);	
+		qWorld = transB(qInB);
+		w	= qWorld - pWorld;
+		float delta = norm.dot(w);
+		//find smallest delta
+		if (delta < minProj)
+		{
+			minProj = delta;
+			minNorm = norm;
+			minA = pWorld;
+			minB = qWorld;
 		}
 	}
-	
+#endif //USE_BATCHED_SUPPORT
+
 	//add the margins
 
 	minA += minNorm*convexA->GetMargin();
@@ -158,7 +194,7 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 
 	GjkPairDetector gjkdet(convexA,convexB,&simplexSolver,0);
 
-	SimdScalar offsetDist = (minProj+0.1f);
+	SimdScalar offsetDist = minProj;
 	SimdVector3 offset = minNorm * offsetDist;
 	
 
@@ -177,14 +213,17 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 	MyResult res;
 	gjkdet.GetClosestPoints(input,res,debugDraw);
 
+	float correctedMinNorm = minProj - res.m_depth;
+
+
 	//the penetration depth is over-estimated, relax it
-	float penetration_relaxation= 0.1f;
+	float penetration_relaxation= 1.f;
 	minNorm*=penetration_relaxation;
 
 	if (res.m_hasResult)
 	{
 
-		pa = res.m_pointInWorld - minNorm * minProj;
+		pa = res.m_pointInWorld - minNorm * correctedMinNorm;
 		pb = res.m_pointInWorld;
 		
 #ifdef DEBUG_DRAW

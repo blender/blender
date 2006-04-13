@@ -38,9 +38,26 @@ subject to the following restrictions:
 #include "CollisionShapes/SphereShape.h"
 
 #include "NarrowPhaseCollision/MinkowskiPenetrationDepthSolver.h"
-#ifdef USE_EPA
+
 #include "NarrowPhaseCollision/EpaPenetrationDepthSolver.h"
-#endif
+
+#ifdef WIN32
+#if _MSC_VER >= 1310
+//only use SIMD Hull code under Win32
+#ifdef TEST_HULL
+#define USE_HULL 1
+#endif //TEST_HULL
+#endif //_MSC_VER 
+#endif //WIN32
+
+
+#ifdef USE_HULL
+
+#include "NarrowPhaseCollision/Hull.h"
+#include "NarrowPhaseCollision/HullContactCollector.h"
+
+
+#endif //USE_HULL
 
 bool gUseEpa = false;
 
@@ -134,11 +151,10 @@ public:
 
 static MinkowskiPenetrationDepthSolver	gPenetrationDepthSolver;
 
+static EpaPenetrationDepthSolver	gEpaPenetrationDepthSolver;
 
 #ifdef USE_EPA
 Solid3EpaPenetrationDepth	gSolidEpaPenetrationSolver;
-static EpaPenetrationDepthSolver        gEpaPenetrationDepthSolver;
-
 #endif //USE_EPA
 
 void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
@@ -148,10 +164,10 @@ void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 		m_useEpa  = gUseEpa;
 		if (m_useEpa)
 		{
-#ifdef USE_EPA			
+			
 			m_gjkPairDetector.SetPenetrationDepthSolver(&gEpaPenetrationDepthSolver);
 						
-#endif		
+			
 		} else
 		{
 			m_gjkPairDetector.SetPenetrationDepthSolver(&gPenetrationDepthSolver);
@@ -159,6 +175,70 @@ void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 	}
 	
 }
+
+#ifdef USE_HULL
+
+Transform	GetTransformFromSimdTransform(const SimdTransform& trans)
+{
+			//const SimdVector3& rowA0 = trans.getBasis().getRow(0);
+			////const SimdVector3& rowA1 = trans.getBasis().getRow(1);
+			//const SimdVector3& rowA2 = trans.getBasis().getRow(2);
+
+			SimdVector3 rowA0 = trans.getBasis().getColumn(0);
+			SimdVector3 rowA1 = trans.getBasis().getColumn(1);
+			SimdVector3 rowA2 = trans.getBasis().getColumn(2);
+
+
+			Vector3	x(rowA0.getX(),rowA0.getY(),rowA0.getZ());
+			Vector3	y(rowA1.getX(),rowA1.getY(),rowA1.getZ());
+			Vector3	z(rowA2.getX(),rowA2.getY(),rowA2.getZ());
+			
+			Matrix33 ornA(x,y,z);
+	
+			Point3 transA(
+				trans.getOrigin().getX(),
+				trans.getOrigin().getY(),
+				trans.getOrigin().getZ());
+
+			return Transform(ornA,transA);
+}
+
+class ManifoldResultCollector : public HullContactCollector
+{
+public:
+	ManifoldResult& m_manifoldResult;
+
+	ManifoldResultCollector(ManifoldResult& manifoldResult)
+		:m_manifoldResult(manifoldResult)
+	{
+
+	}
+	
+
+	virtual ~ManifoldResultCollector() {};
+
+	virtual int	BatchAddContactGroup(const Separation& sep,int numContacts,const Vector3& normalWorld,const Vector3& tangent,const Point3* positionsWorld,const float* depths)
+	{
+		for (int i=0;i<numContacts;i++)
+		{
+			//printf("numContacts = %i\n",numContacts);
+			SimdVector3 normalOnBInWorld(sep.m_axis.GetX(),sep.m_axis.GetY(),sep.m_axis.GetZ());
+			//normalOnBInWorld.normalize();
+			SimdVector3 pointInWorld(positionsWorld[i].GetX(),positionsWorld[i].GetY(),positionsWorld[i].GetZ());
+			float depth = -depths[i];
+			m_manifoldResult.AddContactPoint(normalOnBInWorld,pointInWorld,depth);
+
+		}
+		return 0;
+	}
+
+	virtual int		GetMaxNumContacts() const
+	{
+		return 4;
+	}
+
+};
+#endif //USE_HULL
 
 //
 // box-box collision algorithm, for simplicity also applies resolution-impulse
@@ -179,6 +259,53 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	
 	CollisionObject*	col0 = static_cast<CollisionObject*>(m_box0.m_clientObject);
 	CollisionObject*	col1 = static_cast<CollisionObject*>(m_box1.m_clientObject);
+
+#ifdef USE_HULL
+
+
+	if (dispatchInfo.m_enableSatConvex)
+	{
+		if ((col0->m_collisionShape->IsPolyhedral()) &&
+			(col1->m_collisionShape->IsPolyhedral()))
+		{
+		
+			
+			PolyhedralConvexShape* polyhedron0 = static_cast<PolyhedralConvexShape*>(col0->m_collisionShape);
+			PolyhedralConvexShape* polyhedron1 = static_cast<PolyhedralConvexShape*>(col1->m_collisionShape);
+			if (polyhedron0->m_optionalHull && polyhedron1->m_optionalHull)
+			{
+				//printf("Hull-Hull");
+
+				//todo: cache this information, rather then initialize
+				Separation sep;
+				sep.m_featureA = 0;
+				sep.m_featureB = 0;
+				sep.m_contact = -1;
+				sep.m_separator = 0;
+
+				//convert from SimdTransform to Transform
+				
+				Transform trA = GetTransformFromSimdTransform(col0->m_worldTransform);
+				Transform trB = GetTransformFromSimdTransform(col1->m_worldTransform);
+
+				//either use persistent manifold or clear it every time
+				m_manifoldPtr->ClearManifold();
+				ManifoldResult* resultOut = m_dispatcher->GetNewManifoldResult(col0,col1,m_manifoldPtr);
+
+				ManifoldResultCollector hullContactCollector(*resultOut);
+				
+				Hull::ProcessHullHull(sep,*polyhedron0->m_optionalHull,*polyhedron1->m_optionalHull,
+					trA,trB,&hullContactCollector);
+
+				
+				//user provided hull's, so we use SAT Hull collision detection
+				return;
+			}
+		}
+	}
+
+#endif //USE_HULL
+
 	
 	ManifoldResult* resultOut = m_dispatcher->GetNewManifoldResult(col0,col1,m_manifoldPtr);
 	

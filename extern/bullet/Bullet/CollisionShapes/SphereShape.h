@@ -31,6 +31,8 @@ public:
 	
 	virtual SimdVector3	LocalGetSupportingVertex(const SimdVector3& vec)const;
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
+	//notice that the vectors should be unit length
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
 
 
 	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);

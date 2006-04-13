@@ -70,6 +70,18 @@ public:
 
 	}
 
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+	{
+		for (int i=0;i<numVectors;i++)
+		{
+			const SimdVector3& dir = vectors[i];
+			SimdVector3 dots(dir.dot(m_vertices1[0]), dir.dot(m_vertices1[1]), dir.dot(m_vertices1[2]));
+  			supportVerticesOut[i] = m_vertices1[dots.maxAxis()];
+		}
+
+	}
+
+
 
 	TriangleShape(const SimdVector3& p0,const SimdVector3& p1,const SimdVector3& p2)
 	{

@@ -676,6 +676,16 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 #include "CollisionShapes/TriangleMeshShape.h"
 #include "CollisionShapes/BvhTriangleMeshShape.h"
 
+							#ifdef WIN32
+#if _MSC_VER >= 1310
+//only use SIMD Hull code under Win32
+#define USE_HULL 1
+
+#include "NarrowPhaseCollision/Hull.h"
+
+#endif //_MSC_VER 
+#endif //WIN32
+
 
 static GEN_Map<GEN_HashedPtr,CollisionShape*>	map_gamemesh_to_bulletshape;
 
@@ -1009,6 +1019,33 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		return;
 
 	bm->SetMargin(0.06);
+
+#ifdef TEST_SIMD_HULL
+	if (bm->IsPolyhedral())
+	{
+		PolyhedralConvexShape* polyhedron = static_cast<PolyhedralConvexShape*>(bm);
+		if (!polyhedron->m_optionalHull)
+		{
+			//first convert vertices in 'Point3' format
+			int numPoints = polyhedron->GetNumVertices();
+			Point3* points = new Point3[numPoints+1];
+			//first 4 points should not be co-planar, so add central point to satisfy MakeHull
+			points[0] = Point3(0.f,0.f,0.f);
+			
+			SimdVector3 vertex;
+			for (int p=0;p<numPoints;p++)
+			{
+				polyhedron->GetVertex(p,vertex);
+				points[p+1] = Point3(vertex.getX(),vertex.getY(),vertex.getZ());
+			}
+
+			Hull* hull = Hull::MakeHull(numPoints+1,points);
+			polyhedron->m_optionalHull = hull;
+		}
+
+	}
+#endif //TEST_SIMD_HULL
+
 
 	ci.m_collisionShape = bm;
 

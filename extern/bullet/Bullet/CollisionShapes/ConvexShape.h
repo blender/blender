@@ -40,6 +40,9 @@ public:
 
 	virtual SimdVector3	LocalGetSupportingVertex(const SimdVector3& vec)const;
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec) const= 0;
+	
+	//notice that the vectors should be unit length
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const= 0;
 
 	// testing for hullnode code
 

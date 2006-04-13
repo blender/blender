@@ -79,7 +79,35 @@ MultiSphereShape::MultiSphereShape (const SimdVector3& inertiaHalfExtents,const 
 
 }
 
+ void	MultiSphereShape::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
 
+	for (int j=0;j<numVectors;j++)
+	{
+		SimdScalar maxDot(-1e30f);
+
+		const SimdVector3& vec = vectors[j];
+
+		SimdVector3 vtx;
+		SimdScalar newDot;
+
+		const SimdVector3* pos = &m_localPositions[0];
+		const SimdScalar* rad = &m_radi[0];
+
+		for (int i=0;i<m_numSpheres;i++)
+		{
+			vtx = (*pos) +vec*((*rad)-m_minRadius);
+			pos++;
+			rad++;
+			newDot = vec.dot(vtx);
+			if (newDot > maxDot)
+			{
+				maxDot = newDot;
+				supportVerticesOut[j] = vtx;
+			}
+		}
+	}
+}
 
 
 

@@ -31,8 +31,9 @@ public:
 	
 	//brute force implementations
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
-
-		virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
+	
+	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
 
 
 
@@ -46,6 +47,9 @@ public:
 
 	virtual	bool IsInside(const SimdPoint3& pt,SimdScalar tolerance) const = 0;
 	
+	/// optional Hull is for optional Separating Axis Test Hull collision detection, see Hull.cpp
+	class	Hull*	m_optionalHull;
+
 };
 
 #endif //BU_SHAPE

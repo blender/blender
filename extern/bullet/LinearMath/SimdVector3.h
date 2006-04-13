@@ -299,7 +299,7 @@ SIMD_FORCE_INLINE SimdVector3 SimdVector3::rotate( const SimdVector3& wAxis, con
 
 	y = wAxis.cross( *this );
 
-	return ( o + x * cos( angle ) + y * sin( angle ) );
+	return ( o + x * SimdCos( angle ) + y * SimdSin( angle ) );
 }
 
 class SimdVector4 : public SimdVector3

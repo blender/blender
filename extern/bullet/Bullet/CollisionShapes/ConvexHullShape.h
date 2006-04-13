@@ -38,7 +38,8 @@ public:
 	}
 	virtual SimdVector3	LocalGetSupportingVertex(const SimdVector3& vec)const;
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
-
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
+	
 
 	virtual int	GetShapeType()const { return CONVEX_HULL_SHAPE_PROXYTYPE; }
 

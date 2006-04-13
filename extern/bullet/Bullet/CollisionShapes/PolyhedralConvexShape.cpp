@@ -16,9 +16,12 @@ subject to the following restrictions:
 #include <CollisionShapes/PolyhedralConvexShape.h>
 
 PolyhedralConvexShape::PolyhedralConvexShape()
-
+:m_optionalHull(0)
 {
+
 }
+
+
 
 SimdVector3	PolyhedralConvexShape::LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec0)const
 {
@@ -55,6 +58,34 @@ SimdVector3	PolyhedralConvexShape::LocalGetSupportingVertexWithoutMargin(const S
 	return supVec;
 
 }
+
+void	PolyhedralConvexShape::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	int i;
+
+	SimdVector3 vtx;
+	SimdScalar newDot;
+
+	for (int j=0;j<numVectors;j++)
+	{
+		SimdScalar maxDot(-1e30f);
+
+		const SimdVector3& vec = vectors[j];
+
+		for (i=0;i<GetNumVertices();i++)
+		{
+			GetVertex(i,vtx);
+			newDot = vec.dot(vtx);
+			if (newDot > maxDot)
+			{
+				maxDot = newDot;
+				supportVerticesOut[i] = vtx;
+			}
+		}
+	}
+}
+
+
 
 void	PolyhedralConvexShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
 {

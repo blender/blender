@@ -69,8 +69,7 @@ public:
 		return supVertex;
 	}
 
-
-	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const
+	virtual inline SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const
 	{
 		SimdVector3 halfExtents = GetHalfExtents();
 		SimdVector3 margin(GetMargin(),GetMargin(),GetMargin());
@@ -79,6 +78,23 @@ public:
 		return SimdVector3(vec.x() < SimdScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
                     vec.y() < SimdScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
                     vec.z() < SimdScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
+	}
+
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+	{
+		SimdVector3 halfExtents = GetHalfExtents();
+		SimdVector3 margin(GetMargin(),GetMargin(),GetMargin());
+		halfExtents -= margin;
+
+
+		for (int i=0;i<numVectors;i++)
+		{
+			const SimdVector3& vec = vectors[i];
+			supportVerticesOut[i].setValue(vec.x() < SimdScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
+                    vec.y() < SimdScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
+                    vec.z() < SimdScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
+		}
+
 	}
 
 
