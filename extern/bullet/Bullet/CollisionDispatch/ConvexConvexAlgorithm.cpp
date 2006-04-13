@@ -151,7 +151,7 @@ public:
 
 static MinkowskiPenetrationDepthSolver	gPenetrationDepthSolver;
 
-static EpaPenetrationDepthSolver	gEpaPenetrationDepthSolver;
+//static EpaPenetrationDepthSolver	gEpaPenetrationDepthSolver;
 
 #ifdef USE_EPA
 Solid3EpaPenetrationDepth	gSolidEpaPenetrationSolver;
@@ -165,7 +165,7 @@ void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 		if (m_useEpa)
 		{
 			
-			m_gjkPairDetector.SetPenetrationDepthSolver(&gEpaPenetrationDepthSolver);
+		//	m_gjkPairDetector.SetPenetrationDepthSolver(&gEpaPenetrationDepthSolver);
 						
 			
 		} else
