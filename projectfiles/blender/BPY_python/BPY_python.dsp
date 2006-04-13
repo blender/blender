@@ -40,8 +40,8 @@ RSC=rc.exe
 # PROP Output_Dir "..\..\..\obj\windows\blender\bpython"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\bpython"
 # PROP Target_Dir ""
-MTL=midl.exe
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.4" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\source\blender\bpython\include" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\blender\radiosity\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /I "..\..\source\blender\python" /I "../../../../lib/windows/bsp/include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\bpython\include" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /I "..\..\..\source\blender\python" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -65,8 +65,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\bpython\debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\bpython\debug"
 # PROP Target_Dir ""
-MTL=midl.exe
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /w /W0 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\python\include\python2.4" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\img" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\source\blender\misc" /I "..\..\..\lib\windows\guardedalloc\include" /I "..\..\source\blender\blenlib" /I "..\..\source\kernel\gen_messaging" /I "..\..\source\blender\include" /I "..\..\source\blender" /I "..\..\source\blender\makesdna" /I "..\..\source\blender\blenkernel" /I "..\..\source\blender\blenloader" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\source\blender\bpython\include" /I "..\..\source\blender\imbuf" /I "..\..\source\blender\render\extern\include" /I "..\..\source\kernel\gen_system" /I "..\..\source\blender\renderconverter\\" /I "..\..\source\blender\renderui\\" /I "..\..\source\blender\python" /I "../../../../lib/windows/bsp/include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender" /I "..\..\..\source\blender\bpython\include" /I "../../../source/gameengine\SoundSystem\\" /I "../../../../lib/windows/iksolver/include" /I "..\..\..\source\blender\python" /D "WIN32" /D "_MBCS" /D "_LIB" /U "_DEBUG" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -158,6 +158,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Font.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\gen_utils.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Group.c
 # End Source File
 # Begin Source File
 
@@ -390,6 +394,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Font.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\gen_utils.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Group.h
 # End Source File
 # Begin Source File
 
