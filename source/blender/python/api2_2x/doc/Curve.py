@@ -558,7 +558,7 @@ class CurNurb:
       @return:  0 - Poly, 1 - Bezier, 4 - NURBS
       """
 
-    def getType( value ):
+    def setType( value ):
       """
       Set the type of the curve and converts the curve to its new type if needed
       @type value: integer
