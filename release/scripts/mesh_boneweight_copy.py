@@ -5,15 +5,12 @@ Blender: 241
 Group: 'Object'
 Tooltip: 'Copy Bone Weights from 1 weighted mesh, to other unweighted meshes.'
 """
-# 37.314122 sec
-# 8.9 sec sec
-
 
 import Blender
 from Blender import Armature, Object, Mathutils, Window, Mesh
 Vector= Mathutils.Vector
 
-def copy_bone_influences(_from, _to, PREF_SEL_ONLY):
+def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 	ob_from, me_from, world_verts_from, from_groups=  _from
 	ob_to, me_to, world_verts_to, dummy=  _to	
 	del dummy
@@ -71,36 +68,38 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY):
 		# Seek up/down to find the closest v to seek vec.
 		while uselo or useup:
 			if useup:
-				
 				if upidx >= len_vecs:
 					useup= False
 				else:
 					i,v= vecs[upidx]
-					if v.z-seek_vec_z > close_dist:
-						# the verticle distance is greater then the best distance sofar. we can stop looking up.
-						useup= False
-					elif abs(seek_vec_y-v.y) < close_dist and abs(seek_vec_x-v.x) < close_dist:
-						# This is in the limit measure it.
-						l= (seek_vec-v).length
-						if l<close_dist:
-							close_dist= l
-							close_idx= i
+					if (not PREF_NO_XCROSS) or ((v.x >0 and seek_vec_x >0) or (v.x <0 and seek_vec_x <0)): # enfoce  xcrossing
+						if v.z-seek_vec_z > close_dist:
+							# the verticle distance is greater then the best distance sofar. we can stop looking up.
+							useup= False
+						elif abs(seek_vec_y-v.y) < close_dist and abs(seek_vec_x-v.x) < close_dist:
+							# This is in the limit measure it.
+							l= (seek_vec-v).length
+							if l<close_dist:
+								close_dist= l
+								close_idx= i
 					upidx+=1
 			
 			if uselo:
+				
 				if loidx == 0:
 					uselo= False
 				else:
 					i,v= vecs[loidx]
-					if seek_vec_z-v.z > close_dist:
-						# the verticle distance is greater then the best distance sofar. we can stop looking up.
-						uselo= False
-					elif abs(seek_vec_y-v.y) < close_dist and abs(seek_vec_x-v.x) < close_dist:
-						# This is in the limit measure it.
-						l= (seek_vec-v).length
-						if l<close_dist:
-							close_dist= l
-							close_idx= i
+					if (not PREF_NO_XCROSS) or ((v.x >0 and seek_vec_x >0) or (v.x <0 and seek_vec_x <0)): # enfoce  xcrossing
+						if seek_vec_z-v.z > close_dist:
+							# the verticle distance is greater then the best distance sofar. we can stop looking up.
+							uselo= False
+						elif abs(seek_vec_y-v.y) < close_dist and abs(seek_vec_x-v.x) < close_dist:
+							# This is in the limit measure it.
+							l= (seek_vec-v).length
+							if l<close_dist:
+								close_dist= l
+								close_idx= i
 					loidx-=1
 				
 		return close_idx
@@ -122,6 +121,9 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY):
 	
 	for i, co in enumerate(world_verts_to):
 		if (not PREF_SEL_ONLY) or (PREF_SEL_ONLY and me_to.verts[i].sel):
+			
+			Window.DrawProgressBar(0.99 * (i/float(len(world_verts_to))), 'Copy "%s" -> "%s" ' % (ob_from.name, ob_to.name))
+			
 			from_idx= getSnapIdx(co, world_verts_from)
 			from_infs= me_from.getVertexInfluences(from_idx)
 			
@@ -179,9 +181,12 @@ def main():
 	
 	
 	PREF_QUALITY= Blender.Draw.Create(3)
+	PREF_NO_XCROSS= Blender.Draw.Create(0)
 	PREF_SEL_ONLY= Blender.Draw.Create(0)
+	
 	pup_block = [\
 	('Quality:', PREF_QUALITY, 0, 4, 'Generate interpolated verts so closer vert weights can be copied.'),\
+	('No X Crossing', PREF_NO_XCROSS, 'Do not snap accross the zero X axis'),\
 	('Copy to Selected', PREF_SEL_ONLY, 'Over wright vertex weights to selected verts on the target mesh. (use active ob as source)'),\
 	]
 	
@@ -190,6 +195,7 @@ def main():
 		return
 	
 	PREF_SEL_ONLY= PREF_SEL_ONLY.val
+	PREF_NO_XCROSS= PREF_NO_XCROSS.val
 	quality=  PREF_QUALITY.val
 	
 	act_ob= scn.getActiveObject()
@@ -202,7 +208,6 @@ def main():
 	if quality==None:
 		return
 	'''
-	
 
 	sel=[]
 	from_data= None
@@ -249,13 +254,14 @@ def main():
 	# Now do the copy.
 	print '\tCopying from "%s" to %i other meshe(s).' % (from_data[0].name, len(sel))
 	for data in sel:
-		copy_bone_influences(from_data, data, PREF_SEL_ONLY)
+		copy_bone_influences(from_data, data, PREF_SEL_ONLY, PREF_NO_XCROSS)
 	
 	# We cant unlink the mesh, but at least remove its data.
 	if quality:
 		from_data[1].verts= None
 	
 	print 'Copy Compleate in %.6f sec' % (Blender.sys.time()-t)
+	Window.DrawProgressBar(1.0, '')
 	Window.WaitCursor(0)
 
 if __name__ == '__main__':
