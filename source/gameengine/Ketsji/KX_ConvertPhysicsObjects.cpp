@@ -679,9 +679,11 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 							#ifdef WIN32
 #if _MSC_VER >= 1310
 //only use SIMD Hull code under Win32
+#ifdef TEST_HULL
 #define USE_HULL 1
 
 #include "NarrowPhaseCollision/Hull.h"
+#endif //#ifdef TEST_HULL
 
 #endif //_MSC_VER 
 #endif //WIN32
