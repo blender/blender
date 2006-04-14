@@ -6,7 +6,7 @@
 #include "BroadphaseCollision/BroadphaseInterface.h"
 #include "CollisionShapes/ConvexShape.h"
 #include "CcdPhysicsEnvironment.h"
-
+#include "SimdTransformUtil.h"
 
 class BP_Proxy;
 
@@ -93,20 +93,44 @@ CcdPhysicsController::~CcdPhysicsController()
 		*/
 bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
-	const SimdVector3& worldPos = m_body->getCenterOfMassPosition();
-	m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
-	
-	const SimdQuaternion& worldquat = m_body->getOrientation();
-	m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
+	//don't sync non-dynamic...
 
-	m_MotionState->calculateWorldTransformations();
+	if (m_body->getInvMass() != 0.f)
+	{
+		const SimdVector3& worldPos = m_body->getCenterOfMassPosition();
+		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		
+		const SimdQuaternion& worldquat = m_body->getOrientation();
+		m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 
-	float scale[3];
-	m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
-	SimdVector3 scaling(scale[0],scale[1],scale[2]);
-	GetCollisionShape()->setLocalScaling(scaling);
+		m_MotionState->calculateWorldTransformations();
 
+		float scale[3];
+		m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
+		SimdVector3 scaling(scale[0],scale[1],scale[2]);
+		GetCollisionShape()->setLocalScaling(scaling);
+	} else
+	{
+		SimdVector3 worldPos;
+		SimdQuaternion worldquat;
+
+		m_MotionState->getWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		m_MotionState->getWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
+		SimdTransform oldTrans = m_body->getCenterOfMassTransform();
+		SimdTransform newTrans(worldquat,worldPos);
+		
+		m_body->setCenterOfMassTransform(newTrans);
+		//need to keep track of previous position for friction effects...
+		
+		m_MotionState->calculateWorldTransformations();
+
+		float scale[3];
+		m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
+		SimdVector3 scaling(scale[0],scale[1],scale[2]);
+		GetCollisionShape()->setLocalScaling(scaling);
+	}
 	return true;
+
 }
 
 		/**
