@@ -177,8 +177,8 @@ void swap_visible_editipo(void)
 				ei->flag |= IPO_SELECT;
 			}
 		}
-		else ei->flag &= ~IPO_VISIBLE;
-	printf("FSISWAP %d, icu%d %d|%d\n", ei->flag, (int)ei->icu, IPO_VISIBLE,IPO_SELECT);
+		else 
+			ei->flag &= ~IPO_VISIBLE;
 		ei++;
 	}
 	

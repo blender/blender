@@ -506,12 +506,14 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	if(v2d->scroll & L_SCROLL) winx-= SCROLLB;
 	if(v2d->scroll & B_SCROLL) winy-= SCROLLH;
 	
+	/* header completely closed window */
+	if(winy<=0) return;
+	
 	cur= &v2d->cur;
 	tot= &v2d->tot;
 	
 	dx= cur->xmax-cur->xmin;
 	dy= cur->ymax-cur->ymin;
-
 
 	/* Reevan's test */
 	if (v2d->keepzoom & V2D_LOCKZOOM_Y)

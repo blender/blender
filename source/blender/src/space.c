@@ -3854,7 +3854,7 @@ static void changeactionspace(ScrArea *sa, void *spacedata)
 	if(G.v2d==0) return;
 
 	/* this sets the sub-areas correct, for scrollbars */
-	test_view2d(G.v2d, curarea->winx, curarea->winy);
+	test_view2d(G.v2d, sa->winx, sa->winy);
 	
 	/* action space uses weird matrices... local calculated in a function */
 	// myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
