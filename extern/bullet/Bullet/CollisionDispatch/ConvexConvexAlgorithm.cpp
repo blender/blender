@@ -39,7 +39,7 @@ subject to the following restrictions:
 
 #include "NarrowPhaseCollision/MinkowskiPenetrationDepthSolver.h"
 
-#include "NarrowPhaseCollision/EpaPenetrationDepthSolver.h"
+//#include "NarrowPhaseCollision/EpaPenetrationDepthSolver.h"
 
 #ifdef WIN32
 #if _MSC_VER >= 1310
