@@ -73,16 +73,11 @@ static PyObject *M_Curve_Get( PyObject * self, PyObject * args );
 /*  Python BPy_Curve instance methods declarations:                          */
 /*****************************************************************************/
 
-PyObject *Curve_getName( BPy_Curve * self );
-PyObject *Curve_setName( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getPathLen( BPy_Curve * self );
 static PyObject *Curve_setPathLen( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getTotcol( BPy_Curve * self );
 static PyObject *Curve_setTotcol( BPy_Curve * self, PyObject * args );
-PyObject *Curve_getMode( BPy_Curve * self );
-PyObject *Curve_setMode( BPy_Curve * self, PyObject * args );
-PyObject *Curve_getBevresol( BPy_Curve * self );
-PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args );
+#if 0
 PyObject *Curve_getResolu( BPy_Curve * self );
 PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args );
 PyObject *Curve_getResolv( BPy_Curve * self );
@@ -93,6 +88,7 @@ PyObject *Curve_getExt1( BPy_Curve * self );
 PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args );
 PyObject *Curve_getExt2( BPy_Curve * self );
 PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args );
+#endif
 static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getLoc( BPy_Curve * self );
@@ -105,7 +101,6 @@ static PyObject *Curve_getNumCurves( BPy_Curve * self );
 static PyObject *Curve_getKey( BPy_Curve * self );
 static PyObject *Curve_isNurb( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args);
-static PyObject *Curve_getNumPoints( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getNumPoints( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args );
@@ -243,10 +238,6 @@ static void CurveDeAlloc( BPy_Curve * msh );
 static int CurveSetAttr( BPy_Curve * msh, char *name, PyObject * v );
 static PyObject *CurveGetAttr( BPy_Curve * msh, char *name );
 static PyObject *CurveRepr( BPy_Curve * msh );
-
-PyObject *Curve_CreatePyObject( struct Curve *curve );
-int Curve_CheckPyObject( PyObject * py_obj );
-struct Curve *Curve_FromPyObject( PyObject * py_obj );
 
 static PySequenceMethods Curve_as_sequence = {
 	( inquiry ) Curve_length,	/* sq_length   */

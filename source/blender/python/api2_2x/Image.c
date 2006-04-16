@@ -46,13 +46,8 @@
 #include "BKE_packedFile.h"
 #include "DNA_packedFile_types.h"
 #include "BKE_icons.h"
+#include "IMB_imbuf.h"
 
-/* 
-   fixme
-   this belongs in a header
-   sswaney 10-aug-2005
-*/
-short IMB_saveiff( struct ImBuf *ibuf, char *naam, int flags );
 
 /*****************************************************************************/
 /* Python BPy_Image defaults:																								 */
@@ -73,6 +68,110 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args );
 static PyObject *M_Image_Get( PyObject * self, PyObject * args );
 static PyObject *M_Image_GetCurrent( PyObject * self );
 static PyObject *M_Image_Load( PyObject * self, PyObject * args );
+
+
+/*****************************************************************************/
+/* Python BPy_Image methods declarations:	 */
+/*****************************************************************************/
+static PyObject *Image_getName( BPy_Image * self );
+static PyObject *Image_getFilename( BPy_Image * self );
+static PyObject *Image_getSize( BPy_Image * self );
+static PyObject *Image_getDepth( BPy_Image * self );
+static PyObject *Image_getXRep( BPy_Image * self );
+static PyObject *Image_getYRep( BPy_Image * self );
+static PyObject *Image_getBindCode( BPy_Image * self );
+static PyObject *Image_getStart( BPy_Image * self );
+static PyObject *Image_getEnd( BPy_Image * self );
+static PyObject *Image_getSpeed( BPy_Image * self );
+static PyObject *Image_setName( BPy_Image * self, PyObject * args );
+static PyObject *Image_setFilename( BPy_Image * self, PyObject * args );
+static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
+static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
+static PyObject *Image_setStart( BPy_Image * self, PyObject * args );
+static PyObject *Image_setEnd( BPy_Image * self, PyObject * args );
+static PyObject *Image_setSpeed( BPy_Image * self, PyObject * args );
+static PyObject *Image_reload( BPy_Image * self );
+static PyObject *Image_glLoad( BPy_Image * self );
+static PyObject *Image_glFree( BPy_Image * self );
+static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args );
+static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args );
+static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args );
+static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args );
+static PyObject *Image_getMaxXY( BPy_Image * self );
+static PyObject *Image_getMinXY( BPy_Image * self );
+static PyObject *Image_save( BPy_Image * self );
+static PyObject *Image_unpack( BPy_Image * self, PyObject * args );
+static PyObject *Image_pack( BPy_Image * self );
+
+
+/*****************************************************************************/
+/* Python BPy_Image methods table:	 */
+/*****************************************************************************/
+static PyMethodDef BPy_Image_methods[] = {
+	/* name, method, flags, doc */
+	{"getPixelF", ( PyCFunction ) Image_getPixelF, METH_VARARGS,
+	 "(int, int) - Get pixel color as floats 0.0-1.0 returns [r,g,b,a]"},
+	{"getPixelI", ( PyCFunction ) Image_getPixelI, METH_VARARGS,
+	 "(int, int) - Get pixel color as ints 0-255 returns [r,g,b,a]"},
+	{"setPixelF", ( PyCFunction ) Image_setPixelF, METH_VARARGS,
+	 "(int, int, [f r,f g,f b,f a]) - Set pixel color using floats 0.0-1.0"},
+	{"setPixelI", ( PyCFunction ) Image_setPixelI, METH_VARARGS,
+	 "(int, int, [i r, i g, i b, i a]) - Set pixel color using ints 0-255"},
+	{"getMaxXY", ( PyCFunction ) Image_getMaxXY, METH_NOARGS,
+	 "() - Get maximum x & y coordinates of current image as [x, y]"},
+	{"getMinXY", ( PyCFunction ) Image_getMinXY, METH_NOARGS,
+	 "() - Get minimun x & y coordinates of image as [x, y]"},
+	{"getName", ( PyCFunction ) Image_getName, METH_NOARGS,
+	 "() - Return Image object name"},
+	{"getFilename", ( PyCFunction ) Image_getFilename, METH_NOARGS,
+	 "() - Return Image object filename"},
+	{"getSize", ( PyCFunction ) Image_getSize, METH_NOARGS,
+	 "() - Return Image object [width, height] dimension in pixels"},
+	{"getDepth", ( PyCFunction ) Image_getDepth, METH_NOARGS,
+	 "() - Return Image object pixel depth"},
+	{"getXRep", ( PyCFunction ) Image_getXRep, METH_NOARGS,
+	 "() - Return Image object x repetition value"},
+	{"getYRep", ( PyCFunction ) Image_getYRep, METH_NOARGS,
+	 "() - Return Image object y repetition value"},
+	{"getStart", ( PyCFunction ) Image_getStart, METH_NOARGS,
+	 "() - Return Image object start frame."},
+	{"getEnd", ( PyCFunction ) Image_getEnd, METH_NOARGS,
+	 "() - Return Image object end frame."},
+	{"getSpeed", ( PyCFunction ) Image_getSpeed, METH_NOARGS,
+	 "() - Return Image object speed (fps)."},
+	{"getBindCode", ( PyCFunction ) Image_getBindCode, METH_NOARGS,
+	 "() - Return Image object's bind code value"},
+	{"reload", ( PyCFunction ) Image_reload, METH_NOARGS,
+	 "() - Reload the image from the filesystem"},
+	{"glLoad", ( PyCFunction ) Image_glLoad, METH_NOARGS,
+	 "() - Load the image data in OpenGL texture memory.\n\
+	The bindcode (int) is returned."},
+	{"glFree", ( PyCFunction ) Image_glFree, METH_NOARGS,
+	 "() - Free the image data from OpenGL texture memory only,\n\
+		see also image.glLoad()."},
+	{"setName", ( PyCFunction ) Image_setName, METH_VARARGS,
+	 "(str) - Change Image object name"},
+	{"setFilename", ( PyCFunction ) Image_setFilename, METH_VARARGS,
+	 "(str) - Change Image file name"},
+	{"setXRep", ( PyCFunction ) Image_setXRep, METH_VARARGS,
+	 "(int) - Change Image object x repetition value"},
+	{"setYRep", ( PyCFunction ) Image_setYRep, METH_VARARGS,
+	 "(int) - Change Image object y repetition value"},
+	{"setStart", ( PyCFunction ) Image_setStart, METH_VARARGS,
+	 "(int) - Change Image object animation start value"},
+	{"setEnd", ( PyCFunction ) Image_setEnd, METH_VARARGS,
+	 "(int) - Change Image object animation end value"},
+	{"setSpeed", ( PyCFunction ) Image_setSpeed, METH_VARARGS,
+	 "(int) - Change Image object animation speed (fps)"},
+	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
+	 "() - Write image buffer to file"},
+	{"unpack", ( PyCFunction ) Image_unpack, METH_VARARGS,
+	 "(int) - Unpack image. [0,1,2], Never overwrite, Overwrite if different, Overwrite all."},
+	{"pack", ( PyCFunction ) Image_pack, METH_NOARGS,
+	 "() Pack the image"},
+	{NULL, NULL, 0, NULL}
+};
+
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
@@ -643,112 +742,6 @@ PyObject *Image_Init( void )
 
 	return ( submodule );
 }
-
-/************************/
-/*** The Image PyType ***/
-/************************/
-
-/*****************************************************************************/
-/* Python BPy_Image methods declarations:	 */
-/*****************************************************************************/
-static PyObject *Image_getName( BPy_Image * self );
-static PyObject *Image_getFilename( BPy_Image * self );
-static PyObject *Image_getSize( BPy_Image * self );
-static PyObject *Image_getDepth( BPy_Image * self );
-static PyObject *Image_getXRep( BPy_Image * self );
-static PyObject *Image_getYRep( BPy_Image * self );
-static PyObject *Image_getBindCode( BPy_Image * self );
-static PyObject *Image_getStart( BPy_Image * self );
-static PyObject *Image_getEnd( BPy_Image * self );
-static PyObject *Image_getSpeed( BPy_Image * self );
-static PyObject *Image_setName( BPy_Image * self, PyObject * args );
-static PyObject *Image_setFilename( BPy_Image * self, PyObject * args );
-static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
-static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
-static PyObject *Image_setStart( BPy_Image * self, PyObject * args );
-static PyObject *Image_setEnd( BPy_Image * self, PyObject * args );
-static PyObject *Image_setSpeed( BPy_Image * self, PyObject * args );
-static PyObject *Image_reload( BPy_Image * self );
-static PyObject *Image_glLoad( BPy_Image * self );
-static PyObject *Image_glFree( BPy_Image * self );
-static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args );
-static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args );
-static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args );
-static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args );
-static PyObject *Image_getMaxXY( BPy_Image * self );
-static PyObject *Image_getMinXY( BPy_Image * self );
-static PyObject *Image_save( BPy_Image * self );
-static PyObject *Image_unpack( BPy_Image * self, PyObject * args );
-static PyObject *Image_pack( BPy_Image * self );
-
-
-/*****************************************************************************/
-/* Python BPy_Image methods table:	 */
-/*****************************************************************************/
-static PyMethodDef BPy_Image_methods[] = {
-	/* name, method, flags, doc */
-	{"getPixelF", ( PyCFunction ) Image_getPixelF, METH_VARARGS,
-	 "(int, int) - Get pixel color as floats 0.0-1.0 returns [r,g,b,a]"},
-	{"getPixelI", ( PyCFunction ) Image_getPixelI, METH_VARARGS,
-	 "(int, int) - Get pixel color as ints 0-255 returns [r,g,b,a]"},
-	{"setPixelF", ( PyCFunction ) Image_setPixelF, METH_VARARGS,
-	 "(int, int, [f r,f g,f b,f a]) - Set pixel color using floats 0.0-1.0"},
-	{"setPixelI", ( PyCFunction ) Image_setPixelI, METH_VARARGS,
-	 "(int, int, [i r, i g, i b, i a]) - Set pixel color using ints 0-255"},
-	{"getMaxXY", ( PyCFunction ) Image_getMaxXY, METH_NOARGS,
-	 "() - Get maximum x & y coordinates of current image as [x, y]"},
-	{"getMinXY", ( PyCFunction ) Image_getMinXY, METH_NOARGS,
-	 "() - Get minimun x & y coordinates of image as [x, y]"},
-	{"getName", ( PyCFunction ) Image_getName, METH_NOARGS,
-	 "() - Return Image object name"},
-	{"getFilename", ( PyCFunction ) Image_getFilename, METH_NOARGS,
-	 "() - Return Image object filename"},
-	{"getSize", ( PyCFunction ) Image_getSize, METH_NOARGS,
-	 "() - Return Image object [width, height] dimension in pixels"},
-	{"getDepth", ( PyCFunction ) Image_getDepth, METH_NOARGS,
-	 "() - Return Image object pixel depth"},
-	{"getXRep", ( PyCFunction ) Image_getXRep, METH_NOARGS,
-	 "() - Return Image object x repetition value"},
-	{"getYRep", ( PyCFunction ) Image_getYRep, METH_NOARGS,
-	 "() - Return Image object y repetition value"},
-	{"getStart", ( PyCFunction ) Image_getStart, METH_NOARGS,
-	 "() - Return Image object start frame."},
-	{"getEnd", ( PyCFunction ) Image_getEnd, METH_NOARGS,
-	 "() - Return Image object end frame."},
-	{"getSpeed", ( PyCFunction ) Image_getSpeed, METH_NOARGS,
-	 "() - Return Image object speed (fps)."},
-	{"getBindCode", ( PyCFunction ) Image_getBindCode, METH_NOARGS,
-	 "() - Return Image object's bind code value"},
-	{"reload", ( PyCFunction ) Image_reload, METH_NOARGS,
-	 "() - Reload the image from the filesystem"},
-	{"glLoad", ( PyCFunction ) Image_glLoad, METH_NOARGS,
-	 "() - Load the image data in OpenGL texture memory.\n\
-	The bindcode (int) is returned."},
-	{"glFree", ( PyCFunction ) Image_glFree, METH_NOARGS,
-	 "() - Free the image data from OpenGL texture memory only,\n\
-		see also image.glLoad()."},
-	{"setName", ( PyCFunction ) Image_setName, METH_VARARGS,
-	 "(str) - Change Image object name"},
-	{"setFilename", ( PyCFunction ) Image_setFilename, METH_VARARGS,
-	 "(str) - Change Image file name"},
-	{"setXRep", ( PyCFunction ) Image_setXRep, METH_VARARGS,
-	 "(int) - Change Image object x repetition value"},
-	{"setYRep", ( PyCFunction ) Image_setYRep, METH_VARARGS,
-	 "(int) - Change Image object y repetition value"},
-	{"setStart", ( PyCFunction ) Image_setStart, METH_VARARGS,
-	 "(int) - Change Image object animation start value"},
-	{"setEnd", ( PyCFunction ) Image_setEnd, METH_VARARGS,
-	 "(int) - Change Image object animation end value"},
-	{"setSpeed", ( PyCFunction ) Image_setSpeed, METH_VARARGS,
-	 "(int) - Change Image object animation speed (fps)"},
-	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
-	 "() - Write image buffer to file"},
-	{"unpack", ( PyCFunction ) Image_unpack, METH_VARARGS,
-	 "(int) - Unpack image. [0,1,2], Never overwrite, Overwrite if different, Overwrite all."},
-	{"pack", ( PyCFunction ) Image_pack, METH_NOARGS,
-	 "() Pack the image"},
-	{NULL, NULL, 0, NULL}
-};
 
 /*****************************************************************************/
 /* Python Image_Type callback function prototypes:	 */

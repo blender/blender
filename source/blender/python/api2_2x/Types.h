@@ -35,29 +35,6 @@
 
 #include <Python.h>
 
-extern PyTypeObject Action_Type, Armature_Type;
-extern PyTypeObject Pose_Type;
-extern PyTypeObject BezTriple_Type, Bone_Type, Button_Type;
-extern PyTypeObject Camera_Type;
-extern PyTypeObject CurNurb_Type;
-extern PyTypeObject Curve_Type;
-extern PyTypeObject Effect_Type, Font_Type;
-extern PyTypeObject Image_Type, Ipo_Type, IpoCurve_Type;
-extern PyTypeObject Lamp_Type, Lattice_Type;
-extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
-extern PyTypeObject NMFace_Type, NMVert_Type, NMCol_Type, NMesh_Type;
-extern PyTypeObject MFace_Type, MVert_Type, PVert_Type, MEdge_Type, MCol_Type,
-	   Mesh_Type;
-extern PyTypeObject Object_Type;
-extern PyTypeObject Particle_Type;
-extern PyTypeObject Scene_Type, RenderData_Type;
-extern PyTypeObject Text_Type, Text3d_Type, Texture_Type;
-extern PyTypeObject World_Type;
-extern PyTypeObject property_Type;
-extern PyTypeObject buffer_Type, constant_Type, euler_Type;
-extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
-extern PyTypeObject point_Type;
-
 PyObject *Types_Init( void );
 void types_InitAll( void );
 

@@ -86,12 +86,11 @@ struct ID; /*keep me up here */
 #include "Texture.h"
 #include "Window.h"
 #include "World.h"
+#include "Types.h"
 
 //for the removefakeuser hack
 #include "NLA.h" /*This must come first*/
 #include "BKE_action.h"
-
-extern PyObject *bpy_registryDict; /* defined in ../BPY_interface.c */
 
 
 /**********************************************************/

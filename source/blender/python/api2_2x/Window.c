@@ -989,7 +989,6 @@ static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args )
 static PyObject *M_Window_CameraView( PyObject * self, PyObject * args )
 {
 	short camtov3d = 0;
-	void setcameratoview3d( void );	/* view.c, used in toets.c */
 
 	if( !PyArg_ParseTuple( args, "|i", &camtov3d ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,

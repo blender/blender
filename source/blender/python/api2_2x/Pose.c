@@ -72,19 +72,19 @@ static const char sPoseBonesDictError[] = "PoseBone - Error: ";
 //------------------METHOD IMPLEMENTATIONS-----------------------------
 //------------------------Pose.bones.items()
 //Returns a list of key:value pairs like dict.items()
-PyObject* PoseBonesDict_items(BPy_PoseBonesDict *self)
+static PyObject* PoseBonesDict_items(BPy_PoseBonesDict *self)
 {
 	return PyDict_Items(self->bonesMap); 
 }
 //------------------------Pose.bones.keys()
 //Returns a list of keys like dict.keys()
-PyObject* PoseBonesDict_keys(BPy_PoseBonesDict *self)
+static PyObject* PoseBonesDict_keys(BPy_PoseBonesDict *self)
 {
 	return PyDict_Keys(self->bonesMap);
 }
 //------------------------Armature.bones.values()
 //Returns a list of values like dict.values()
-PyObject* PoseBonesDict_values(BPy_PoseBonesDict *self)
+static PyObject* PoseBonesDict_values(BPy_PoseBonesDict *self)
 {
 	return PyDict_Values(self->bonesMap);
 }
@@ -165,13 +165,13 @@ static void PoseBonesDict_dealloc(BPy_PoseBonesDict * self)
 }
 //------------------------mp_length
 //This gets the size of the dictionary
-int PoseBonesDict_len(BPy_PoseBonesDict *self)
+static int PoseBonesDict_len(BPy_PoseBonesDict *self)
 {
 	return BLI_countlist(self->bones);
 }
 //-----------------------mp_subscript
 //This defines getting a bone from the dictionary - x = Bones['key']
-PyObject *PoseBonesDict_GetItem(BPy_PoseBonesDict *self, PyObject* key)
+static PyObject *PoseBonesDict_GetItem(BPy_PoseBonesDict *self, PyObject* key)
 { 
 	PyObject *value = NULL;
 

@@ -36,6 +36,8 @@
 
 #include <Python.h>
 
+extern PyTypeObject euler_Type;
+
 #define EulerObject_Check(v) ((v)->ob_type == &euler_Type)
 
 typedef struct {

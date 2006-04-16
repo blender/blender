@@ -78,7 +78,7 @@ static PyObject *M_Group_getObjects( BPy_Group * self )
 }
 
 
-void add_to_group_wraper(Group *group, Object *ob) {
+static void add_to_group_wraper(Group *group, Object *ob) {
 	Base *base;
 	add_to_group(group, ob);
 	

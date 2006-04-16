@@ -45,7 +45,6 @@
 #include "BIF_editarmature.h"
 
 //------------------EXTERNAL PROTOTYPES--------------------
-extern void free_editArmature(void);
 extern void make_boneList(ListBase* list, ListBase *bones, EditBone *parent);
 extern void editbones_to_armature (ListBase *list, Object *ob);
 
@@ -67,7 +66,7 @@ static const char sModuleBadArgs[] = "Blender.Armature - Bad Arguments: ";
 //------------------METHOD IMPLEMENTATIONS-----------------------------
 //------------------------Armature.bones.items()
 //Returns a list of key:value pairs like dict.items()
-PyObject* BonesDict_items(BPy_BonesDict *self)
+static PyObject* BonesDict_items(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
 		return PyDict_Items(self->editbonesMap); 
@@ -77,7 +76,7 @@ PyObject* BonesDict_items(BPy_BonesDict *self)
 }
 //------------------------Armature.bones.keys()
 //Returns a list of keys like dict.keys()
-PyObject* BonesDict_keys(BPy_BonesDict *self)
+static PyObject* BonesDict_keys(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
 		return PyDict_Keys(self->editbonesMap);
@@ -87,7 +86,7 @@ PyObject* BonesDict_keys(BPy_BonesDict *self)
 }
 //------------------------Armature.bones.values()
 //Returns a list of values like dict.values()
-PyObject* BonesDict_values(BPy_BonesDict *self)
+static PyObject* BonesDict_values(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
 		return PyDict_Values(self->editbonesMap);
@@ -205,7 +204,7 @@ static void BonesDict_dealloc(BPy_BonesDict * self)
 }
 //------------------------mp_length
 //This gets the size of the dictionary
-int BonesDict_len(BPy_BonesDict *self)
+static int BonesDict_len(BPy_BonesDict *self)
 {
 	if (self->editmode_flag){
 		return BLI_countlist(&self->editbones);
@@ -215,7 +214,7 @@ int BonesDict_len(BPy_BonesDict *self)
 }
 //-----------------------mp_subscript
 //This defines getting a bone from the dictionary - x = Bones['key']
-PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
+static PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 { 
 	PyObject *value = NULL;
 
@@ -241,7 +240,7 @@ PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 }
 //-----------------------mp_ass_subscript
 //This does dict assignment - Bones['key'] = value
-int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value)
+static int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value)
 {
 	BPy_EditBone *editbone_for_deletion;
 	struct EditBone *editbone = NULL;
@@ -974,7 +973,7 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Adds temporal IK chains while grabbing bones", NULL},
 	{"layers", (getter)Armature_getLayers, (setter)Armature_setLayers, 
 		"List of layers for the armature", NULL},
-	{NULL}
+	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_new
 //This methods creates a new object (note it does not initialize it - only the building)
@@ -1222,7 +1221,6 @@ AttributeError:
 }
 
 //-------------------MODULE METHODS DEFINITION-----------------------------
-static PyObject *M_Armature_Get( PyObject * self, PyObject * args );
 
 static char M_Armature_Get_doc[] = "(name) - return the armature with the name 'name', \
   returns None if not found.\n If 'name' is not specified, it returns a list of all \

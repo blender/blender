@@ -35,6 +35,8 @@
 
 #include <Python.h>
 
+extern PyTypeObject matrix_Type;
+
 #define MatrixObject_Check(v) ((v)->ob_type == &matrix_Type)
 
 typedef float **ptRow;

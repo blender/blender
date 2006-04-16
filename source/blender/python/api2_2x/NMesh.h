@@ -60,7 +60,6 @@ struct BPy_Object;
 /* These are from blender/src/editdeform.c, should be declared elsewhere,
  * maybe in BIF_editdeform.h, after proper testing of vgrouping methods XXX */
 
-extern void create_dverts( Mesh * me );
 extern void add_vert_defnr( Object * ob, int def_nr, int vertnum, float weight,
 		     int assignmode );
 extern void remove_vert_def_nr( Object * ob, int def_nr, int vertnum );
@@ -135,7 +134,6 @@ typedef struct {
 } BPy_NMesh;
 
 /* PROTOS */
-extern void test_object_materials( ID * id );	/* declared in BKE_material.h */
 
 PyObject *NMesh_Init( void );
 PyObject *NMesh_CreatePyObject( Mesh * me, Object * ob );

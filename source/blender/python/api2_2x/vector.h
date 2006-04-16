@@ -35,6 +35,8 @@
 
 #include <Python.h>
 
+extern PyTypeObject vector_Type;
+
 #define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
 
 typedef struct {

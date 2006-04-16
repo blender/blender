@@ -36,6 +36,8 @@
 #include <Python.h>
 #include "DNA_property_types.h"
 
+extern PyTypeObject property_Type;
+
 //--------------------------Python BPy_Property structure definition.----
 typedef struct {
 	PyObject_HEAD

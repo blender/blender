@@ -35,6 +35,8 @@
 
 #include <Python.h>
 
+extern PyTypeObject point_Type;
+
 #define PointObject_Check(v) ((v)->ob_type == &point_Type)
 
 typedef struct {

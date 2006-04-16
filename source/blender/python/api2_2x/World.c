@@ -274,8 +274,6 @@ PyTypeObject World_Type = {
 static PyObject *M_World_New( PyObject * self, PyObject * args,
 			      PyObject * kwords )
 {
-
-	World *add_world( char *name );
 	char *name = NULL;
 	BPy_World *pyworld;
 	World *blworld;

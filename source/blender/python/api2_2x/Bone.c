@@ -29,6 +29,8 @@
 */
 
 #include "Bone.h"
+#include "vector.h"
+#include "matrix.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -42,9 +44,6 @@
 #include "DNA_object_types.h" //1
 #include "BIF_editarmature.h"   //2
 
-//------------------UNDECLARED EXTERNAL PROTOTYPES--------------------
-extern void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
-
 //------------------------ERROR CODES---------------------------------
 //This is here just to make me happy and to have more consistant error strings :)
 static const char sEditBoneError[] = "EditBone - Error: ";
@@ -55,7 +54,7 @@ static const char sBoneError[] = "Bone - Error: ";
 //----------------------(internal)
 //gets the bone->roll (which is a localspace roll) and puts it in parentspace
 //(which is the 'roll' value the user sees)
-double boneRoll_ToArmatureSpace(struct Bone *bone)
+static double boneRoll_ToArmatureSpace(struct Bone *bone)
 {
 	float head[3], tail[3], delta[3];
 	float premat[3][3], postmat[3][3];
@@ -85,7 +84,7 @@ double boneRoll_ToArmatureSpace(struct Bone *bone)
 
 //------------------METHOD IMPLEMENTATIONS-----------------------------
 //-------------------------EditBone.hasParent()
-PyObject *EditBone_hasParent(BPy_EditBone *self)
+static PyObject *EditBone_hasParent(BPy_EditBone *self)
 {
 	if (self->editbone){
 		if (self->editbone->parent)
@@ -101,7 +100,7 @@ AttributeError:
 		sEditBoneError, ".hasParent: ", "EditBone must be added to the armature first");
 }
 //-------------------------EditBone.clearParent()
-PyObject *EditBone_clearParent(BPy_EditBone *self)
+static PyObject *EditBone_clearParent(BPy_EditBone *self)
 {
 	if (self->editbone){
 		if (self->editbone->parent)
@@ -819,7 +818,7 @@ RuntimeError:
 		sBoneError, "Internal error trying to wrap blender bones!");
 }
 //-------------------------Bone.hasParent()
-PyObject *Bone_hasParent(BPy_Bone *self)
+static PyObject *Bone_hasParent(BPy_Bone *self)
 {
 	if (self->bone->parent)
 		return EXPP_incr_ret(Py_True);
@@ -827,7 +826,7 @@ PyObject *Bone_hasParent(BPy_Bone *self)
 		return EXPP_incr_ret(Py_False);
 }
 //-------------------------Bone.hasChildren()
-PyObject *Bone_hasChildren(BPy_Bone *self)
+static PyObject *Bone_hasChildren(BPy_Bone *self)
 {
 	if (self->bone->childbase.first)
 		return EXPP_incr_ret(Py_True);
@@ -835,7 +834,7 @@ PyObject *Bone_hasChildren(BPy_Bone *self)
 		return EXPP_incr_ret(Py_False);
 }
 //-------------------------Bone.getAllChildren()
-PyObject *Bone_getAllChildren(BPy_Bone *self)
+static PyObject *Bone_getAllChildren(BPy_Bone *self)
 {
 	PyObject *list = NULL;
 

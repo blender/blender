@@ -36,6 +36,8 @@
 #include <Python.h>
 #include "DNA_vfont_types.h"
 
+extern PyTypeObject Font_Type;
+
 typedef struct {
 	PyObject_HEAD		/* required py macro */
 	VFont * font;

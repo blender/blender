@@ -57,6 +57,7 @@
 #include "mydevice.h"		/*@ for all the event constants */
 #include "gen_utils.h"
 #include "Window.h"
+#include "../BPY_extern.h"
 
 /* these delimit the free range for button events */
 #define EXPP_BUTTON_EVENTS_OFFSET 1001

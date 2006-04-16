@@ -65,6 +65,7 @@ struct rctf;
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_nla.h"
+#include "BKE_material.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -953,7 +954,6 @@ PyObject *Object_Init( void )
 
 static PyObject *Object_buildParts( BPy_Object * self )
 {
-	void build_particle_system( Object * ob );
 	struct Object *obj = self->object;
 
 	build_particle_system( obj );

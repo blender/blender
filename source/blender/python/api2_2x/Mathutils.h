@@ -40,7 +40,6 @@
 #include "quat.h"
 #include "euler.h"
 #include "point.h"
-#include "Types.h"
 
 PyObject *Mathutils_Init( void );
 PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);

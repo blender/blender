@@ -42,8 +42,6 @@
 
 static int type_size( int type );
 static Buffer *make_buffer( int type, int ndimensions, int *dimensions );
-static int Buffer_ass_slice( PyObject * self, int begin, int end,
-			     PyObject * seq );
 
 static char Method_Buffer_doc[] =
 	"(type, dimensions, [template]) - Create a new Buffer object\n\n\

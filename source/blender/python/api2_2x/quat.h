@@ -36,6 +36,8 @@
 
 #include <Python.h>
 
+extern PyTypeObject quaternion_Type;
+
 #define QuaternionObject_Check(v) ((v)->ob_type == &quaternion_Type)
 
 typedef struct {

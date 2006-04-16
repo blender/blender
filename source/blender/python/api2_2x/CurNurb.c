@@ -44,7 +44,6 @@
 
 
 static PyObject *M_CurNurb_New( PyObject * self, PyObject * args );
-PyObject *CurNurb_CreatePyObject( Nurb * blen_nurb );
 static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self );
 static PyObject *CurNurb_getFlagU( BPy_CurNurb * self );
@@ -54,13 +53,12 @@ static PyObject *CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getType( BPy_CurNurb * self );
 static PyObject *CurNurb_setType( BPy_CurNurb * self, PyObject * args );
 /* static PyObject* CurNurb_setXXX( BPy_CurNurb* self, PyObject* args ); */
-PyObject *CurNurb_getPoint( BPy_CurNurb * self, int index );
 static int CurNurb_setPoint( BPy_CurNurb * self, int index, PyObject * ob );
 static int CurNurb_length( PyInstanceObject * inst );
 static PyObject *CurNurb_getIter( BPy_CurNurb * self );
 static PyObject *CurNurb_iterNext( BPy_CurNurb * self );
 PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * args );
-PyObject *CurNurb_pointAtIndex( Nurb * nurb, int index );
+
 static PyObject *CurNurb_isNurb( BPy_CurNurb * self );
 static PyObject *CurNurb_isCyclic( BPy_CurNurb * self );
 static PyObject *CurNurb_dump( BPy_CurNurb * self );

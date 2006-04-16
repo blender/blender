@@ -42,7 +42,6 @@
 #include "BIF_editfont.h"	/* do_textedit() */
 #include "Curve.h"
 #include "constant.h"
-#include "Types.h"
 #include "Font.h"
 #include "gen_utils.h"
 
