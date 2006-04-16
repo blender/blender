@@ -544,11 +544,11 @@ int blenderqread(unsigned short event, short val)
 				if (G.qual==LR_ALTKEY)
 					mainwindow_toggle_fullscreen(0);
 				else if(G.qual==0)
-					CFRA-= 10;
+					CFRA-= G.scene->jumpframe;
 			}
 #else
 			if((event==DOWNARROWKEY)&&(G.qual==0))
-				CFRA-= 10;
+				CFRA-= G.scene->jumpframe;
 #endif
 			else if((event==LEFTARROWKEY)&&(G.qual==0))
 				CFRA--;
@@ -572,11 +572,11 @@ int blenderqread(unsigned short event, short val)
 				if(G.qual==LR_ALTKEY)
 					mainwindow_toggle_fullscreen(1);
 				else if(G.qual==0)
-					CFRA+= 10;
+					CFRA+= G.scene->jumpframe;
 			}
 #else
 			if((event==UPARROWKEY)&&(G.qual==0))
-				CFRA+= 10;
+				CFRA+= G.scene->jumpframe;
 #endif
 			else if((event==RIGHTARROWKEY)&&(G.qual==0))
 				CFRA++;

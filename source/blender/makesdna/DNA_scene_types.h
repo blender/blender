@@ -381,6 +381,9 @@ typedef struct Scene {
 	
 	ListBase markers;
 	
+	short jumpframe;
+	short pad1, pad2, pad3;
+	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;

@@ -5311,6 +5311,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			bScreen *sc;
+			
+			if(sce->jumpframe==0) sce->jumpframe= 10;
 
 			if(sce->r.xparts<2) sce->r.xparts= 4;
 			if(sce->r.yparts<2) sce->r.yparts= 4;

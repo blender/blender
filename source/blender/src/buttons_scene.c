@@ -1944,9 +1944,11 @@ void anim_panels()
 	uiDefButBitS(block, TOG, AUDIO_SYNC, B_SOUND_CHANGED, "Sync",160,130,150,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 	
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",	10,100,150,20,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
-	uiDefButI(block, NUM,REDRAWSEQ,"End:",	160,100,150,20,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
+	uiDefButI(block, NUM,REDRAWALL,"Sta:",	10,100,150,20,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
+	uiDefButI(block, NUM,REDRAWALL,"End:",	160,100,150,20,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
 
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUMSLI, REDRAWTIME, "Steps:",10, 70, 300, 20,&(G.scene->jumpframe), 1, 100, 1, 100, "Set spacing between frames changes with up and down arrow keys");
 
 
 }

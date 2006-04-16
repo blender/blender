@@ -223,6 +223,8 @@ Scene *add_scene(char *name)
 	sce->toolsettings->uvcalc_cubesize = 1.0f;
 	sce->toolsettings->uvcalc_mapdir = 1;
 	sce->toolsettings->uvcalc_mapalign = 1;
+	
+	sce->jumpframe = 10;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
