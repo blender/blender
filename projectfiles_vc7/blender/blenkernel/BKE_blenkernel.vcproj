@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="BKE_blenkernel"
 	SccProjectName=""
 	SccLocalPath="">
@@ -323,7 +323,8 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -345,6 +346,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\colortools.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\constraint.c">
@@ -377,6 +381,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\group.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\icons.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\image.c">
 			</File>
 			<File
@@ -405,6 +412,15 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\nla.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\node.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\node_composite.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\node_shaders.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\object.c">
@@ -448,6 +464,12 @@
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\writeavi.c">
 			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\writeffmpeg.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\writeframeserver.c">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -478,6 +500,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_booleanops_mesh.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_colortools.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_constraint.h">
@@ -516,6 +541,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_group.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_icons.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_image.h">
 			</File>
 			<File
@@ -547,6 +575,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_nla.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_node.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_object.h">
@@ -598,6 +629,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_writeavi.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_writeffmpeg.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_writeframeserver.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.h">

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="solid"
 	ProjectGUID="{D696C86B-0B53-4471-A50D-5B983A6FA4AD}"
 	SccProjectName=""
@@ -242,7 +242,8 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"

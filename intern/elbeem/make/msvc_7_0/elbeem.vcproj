@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="elbeem"
 	ProjectGUID="{A90C4918-4B21-4277-93BD-AF65F30951D9}"
 	Keyword="Win32Proj">
@@ -225,7 +225,8 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -233,18 +234,6 @@ ECHO Done
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
 				RelativePath="..\..\intern\attributes.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\blendercall.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\blenderdummy.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\cfglexer.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\cfgparser.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\elbeem.cpp">
@@ -265,13 +254,13 @@ ECHO Done
 				RelativePath="..\..\intern\ntl_geometryobject.cpp">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_lightobject.cpp">
+				RelativePath="..\..\intern\ntl_lighting.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_ray.cpp">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_scene.cpp">
+				RelativePath="..\..\intern\ntl_world.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\parametrizer.cpp">
@@ -281,6 +270,18 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\simulation_object.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_init.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_interface.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_main.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_util.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\utilities.cpp">
@@ -294,10 +295,7 @@ ECHO Done
 				RelativePath="..\..\intern\attributes.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\cfgparser.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\globals.h">
+				RelativePath="..\..\intern\elbeem.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\isosurface.h">
@@ -324,10 +322,7 @@ ECHO Done
 				RelativePath="..\..\intern\ntl_geometryshader.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_lightobject.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_material.h">
+				RelativePath="..\..\intern\ntl_lighting.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_matrices.h">
@@ -336,19 +331,10 @@ ECHO Done
 				RelativePath="..\..\intern\ntl_ray.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_renderglobals.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_rndstream.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_scene.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_triangle.h">
-			</File>
-			<File
 				RelativePath="..\..\intern\ntl_vector3dim.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\ntl_world.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\parametrizer.h">
@@ -358,6 +344,15 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\simulation_object.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_class.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_interface.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_relax.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\utilities.h">

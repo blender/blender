@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="RAS_openglrasterizer"
 	SccProjectName=""
 	SccLocalPath="">
@@ -323,13 +323,17 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_GLExtensionManager.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_ListRasterizer.cpp">
 			</File>
 			<File
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_OpenGLRasterizer.cpp">
@@ -342,10 +346,19 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\ARB_multitexture.h">
+			</File>
+			<File
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\EXT_separate_specular_color.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\glext.h">
+			</File>
+			<File
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_GLExtensionManager.h">
+			</File>
+			<File
+				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_ListRasterizer.h">
 			</File>
 			<File
 				RelativePath="..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_OpenGLRasterizer.h">

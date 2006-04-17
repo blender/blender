@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="BLI_blenlib"
 	SccProjectName=""
 	SccLocalPath="">
@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -127,7 +127,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -180,7 +180,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -232,7 +232,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -285,7 +285,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -328,7 +328,8 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -341,6 +342,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_ghash.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_heap.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_linklist.c">
@@ -364,6 +368,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\gsqueue.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\jitter.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\matrixops.c">
 			</File>
 			<File
@@ -383,6 +390,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\storage.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\threads.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\time.c">
@@ -422,6 +432,12 @@
 				RelativePath="..\..\..\source\blender\blenlib\BLI_ghash.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_heap.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_jitter.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_linklist.h">
 			</File>
 			<File
@@ -435,6 +451,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_storage_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_threads.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_util.h">

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="BL_avi"
 	SccProjectName=""
 	SccLocalPath="">
@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern\openexr"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern\openexr"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -125,7 +125,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern\openexr"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -177,7 +177,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern\openexr"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -229,7 +229,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern\openexr"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -281,7 +281,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\jpeg\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender\avi;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\imbuf\intern\openexr"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,DWORDS_LITTLEENDIAN"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -323,7 +323,8 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"

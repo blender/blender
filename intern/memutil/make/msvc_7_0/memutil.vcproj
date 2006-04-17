@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="memutil"
 	SccProjectName=""
 	SccLocalPath="">
@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\.."
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -79,7 +79,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\.."
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -136,7 +136,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\.."
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -193,7 +193,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\.."
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -241,11 +241,15 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\intern\MEM_CacheLimiterC-Api.cpp">
+			</File>
 			<File
 				RelativePath="..\..\intern\MEM_RefCountedC-Api.cpp">
 			</File>
@@ -253,6 +257,15 @@ ECHO Done
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\MEM_Allocator.h">
+			</File>
+			<File
+				RelativePath="..\..\MEM_CacheLimiter.h">
+			</File>
+			<File
+				RelativePath="..\..\MEM_CacheLimiterC-Api.h">
+			</File>
 			<Filter
 				Name="extern"
 				Filter="">

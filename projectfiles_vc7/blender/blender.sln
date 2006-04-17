@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 7.00
+Microsoft Visual Studio Solution File, Format Version 8.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blender", "blender.vcproj", "{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F} = {E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}
@@ -8,7 +8,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blender", "blender.vcproj",
 		{9625642D-6F20-4FB6-A089-BE7441B223E3} = {9625642D-6F20-4FB6-A089-BE7441B223E3}
 		{E645CC32-4823-463E-82F0-46ADDE664018} = {E645CC32-4823-463E-82F0-46ADDE664018}
 		{51FB3D48-2467-4BFA-A321-D848252B437E} = {51FB3D48-2467-4BFA-A321-D848252B437E}
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF} = {5B1C904C-BBBD-44A0-843A-447CBD6176AF}
 		{31628053-825D-4C06-8A21-D13883489718} = {31628053-825D-4C06-8A21-D13883489718}
 		{EADC3C5A-6C51-4F03-8038-1553E7D7F740} = {EADC3C5A-6C51-4F03-8038-1553E7D7F740}
 		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D} = {DB6BE55D-B6D9-494D-856A-8764FF7BA91D}
@@ -82,10 +81,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BRA_radiosity", "radiosity\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BRE_render", "render\BRE_render.vcproj", "{106AE171-0083-41D6-A949-20DB0E8DC251}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BRE_renderconverter", "renderconverter\BRE_renderconverter.vcproj", "{5B1C904C-BBBD-44A0-843A-447CBD6176AF}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -383,14 +378,6 @@ Global
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.Blender Release.Build.0 = Blender Release|Win32
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.3D Plugin Release.ActiveCfg = Blender Release|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Blender Debug.ActiveCfg = Blender Debug|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Blender Debug.Build.0 = Blender Debug|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Blender Release.ActiveCfg = Blender Release|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Blender Release.Build.0 = Blender Release|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32

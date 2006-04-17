@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="BPY_python"
 	SccProjectName=""
 	SccLocalPath="">
@@ -119,7 +119,8 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -147,6 +148,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Effect.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Group.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Image.c">
@@ -189,6 +193,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Object.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Pose.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Registry.c">
@@ -322,6 +329,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Effect.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Group.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Image.h">
 			</File>
 			<File
@@ -356,6 +366,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Object.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Pose.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Registry.h">

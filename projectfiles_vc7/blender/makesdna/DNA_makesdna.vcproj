@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="DNA_makesdna"
 	SccProjectName=""
 	SccLocalPath="">
@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -88,7 +88,7 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -154,7 +154,7 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -220,7 +220,7 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -290,7 +290,7 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -360,7 +360,7 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -416,7 +416,8 @@ DNA_makesdna.exe dna.c
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -439,6 +440,9 @@ DNA_makesdna.exe dna.c
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_camera_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_color_types.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_constraint_types.h">
@@ -496,6 +500,9 @@ DNA_makesdna.exe dna.c
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_nla_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_node_types.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_object_fluidsim.h">
