@@ -878,7 +878,9 @@ Object *copy_object(Object *ob)
 	
 	if(ob->pose) {
 		copy_pose(&obn->pose, ob->pose, 1);
-		armature_rebuild_pose(obn, obn->data);
+		/* backwards compat... non-armatures can get poses in older files? */
+		if(ob->type==OB_ARMATURE)
+			armature_rebuild_pose(obn, obn->data);
 	}
 	copy_defgroups(&obn->defbase, &ob->defbase);
 	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
