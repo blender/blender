@@ -1004,15 +1004,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	return meshobj;
 }
 
-static PHY_MaterialProps g_materialProps = {
-	1.0,    // restitution
-	2.0,    // friction 
-	0.0,    // fh spring constant
-	0.0,    // fh damping
-	0.0,    // fh distance
-	false   // sliding material?
-};
-
 	
 	
 static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blenderobject,
@@ -1036,7 +1027,14 @@ static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blender
 		materialProps->m_fh_normal = (blendermat->dynamode & MA_FH_NOR) != 0;
 	}
 	else {
-		*materialProps = g_materialProps;
+		//give some defaults
+		materialProps->m_restitution = 0.f;
+		materialProps->m_friction = 0.5;
+		materialProps->m_fh_spring = 0.f;
+		materialProps->m_fh_damping = 0.f;
+		materialProps->m_fh_distance = 0.f;
+		materialProps->m_fh_normal = false;
+
 	}
 	
 	return materialProps;

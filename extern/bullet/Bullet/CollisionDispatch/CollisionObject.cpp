@@ -15,6 +15,16 @@ subject to the following restrictions:
 
 #include "CollisionObject.h"
 
+CollisionObject::CollisionObject()
+	:	m_collisionFlags(0),
+		m_activationState1(1),
+		m_deactivationTime(0.f),
+		m_broadphaseHandle(0),
+		m_collisionShape(0),
+		m_hitFraction(1.f)
+{
+
+}
 
 
 void CollisionObject::SetActivationState(int newState) 

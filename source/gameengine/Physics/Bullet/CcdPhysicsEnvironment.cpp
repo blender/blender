@@ -308,6 +308,10 @@ m_profileTimings(0),
 m_enableSatCollisionDetection(false)
 {
 
+	for (int i=0;i<PHY_NUM_RESPONSE;i++)
+	{
+		m_triggerCallbacks[i] = 0;
+	}
 	if (!dispatcher)
 		dispatcher = new CollisionDispatcher();
 
@@ -338,6 +342,9 @@ m_enableSatCollisionDetection(false)
 void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	RigidBody* body = ctrl->GetRigidBody();
+	
+	//this m_userPointer is just used for triggers, see CallbackTriggers
+	body->m_userPointer = ctrl;
 
 	body->setGravity( m_gravity );
 	m_controllers.push_back(ctrl);
@@ -448,6 +455,19 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			m_controllers.pop_back();
 		}
 	}
+
+	//remove it from the triggers
+	{
+		std::vector<CcdPhysicsController*>::iterator i =
+			std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl);
+		if (!(i == m_triggerControllers.end()))
+		{
+			std::swap(*i, m_triggerControllers.back());
+			m_triggerControllers.pop_back();
+		}
+	}
+	
+
 }
 
 
@@ -694,6 +714,16 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 
 #ifdef USE_PROFILE
 	Profiler::endBlock("BuildAndProcessIslands");
+
+	Profiler::beginBlock("CallbackTriggers");
+#endif //USE_PROFILE
+
+	CallbackTriggers();
+
+#ifdef USE_PROFILE
+	Profiler::endBlock("CallbackTriggers");
+
+
 	Profiler::beginBlock("proceedToTransform");
 
 #endif //USE_PROFILE
@@ -1428,6 +1458,101 @@ TypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 	}
 	return 0;
 }
+
+
+void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
+{
+	printf("addSensor\n");
+}
+void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
+{
+	printf("removeSensor\n");
+}
+void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
+{
+	printf("addTouchCallback\n(response class = %i)\n",response_class);
+
+	//map PHY_ convention into SM_ convention
+	switch (response_class)
+	{
+	case	PHY_FH_RESPONSE:
+		printf("PHY_FH_RESPONSE\n");
+		break;
+	case PHY_SENSOR_RESPONSE:
+		printf("PHY_SENSOR_RESPONSE\n");
+		break;
+	case PHY_CAMERA_RESPONSE:
+		printf("PHY_CAMERA_RESPONSE\n");
+		break;
+	case PHY_OBJECT_RESPONSE:
+		printf("PHY_OBJECT_RESPONSE\n");
+		break;
+	case PHY_STATIC_RESPONSE:
+		printf("PHY_STATIC_RESPONSE\n");
+		break;
+	default:
+		assert(0);
+		return;
+	}
+
+	m_triggerCallbacks[response_class] = callback;
+	m_triggerCallbacksUserPtrs[response_class] = user;
+
+}
+void CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctrl)
+{
+	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
+
+	printf("requestCollisionCallback\n");
+	m_triggerControllers.push_back(ccdCtrl);
+}
+
+
+void	CcdPhysicsEnvironment::CallbackTriggers()
+{
+	CcdPhysicsController* ctrl0=0,*ctrl1=0;
+
+	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE])
+	{
+
+		int numManifolds = m_collisionWorld->GetDispatcher()->GetNumManifolds();
+		for (int i=0;i<numManifolds;i++)
+		{
+			PersistentManifold* manifold = m_collisionWorld->GetDispatcher()->GetManifoldByIndexInternal(i);
+			int numContacts = manifold->GetNumContacts();
+			if (numContacts)
+			{
+				RigidBody* obj0 = static_cast<RigidBody* >(manifold->GetBody0());
+				RigidBody* obj1 = static_cast<RigidBody* >(manifold->GetBody1());
+				
+				//m_userPointer is set in 'addPhysicsController
+				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->m_userPointer);
+				CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(obj1->m_userPointer);
+
+				std::vector<CcdPhysicsController*>::iterator i =
+				std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl0);
+				if (i == m_triggerControllers.end())
+				{
+					i = std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl1);
+				}
+
+				if (!(i == m_triggerControllers.end()))
+				{
+					m_triggerCallbacks[PHY_OBJECT_RESPONSE](m_triggerCallbacksUserPtrs[PHY_OBJECT_RESPONSE],
+						ctrl0,ctrl1,0);
+				}
+			}
+		}
+
+		
+
+	}
+	//walk over all overlapping pairs, and if
+}
+
+
+
+
 
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT

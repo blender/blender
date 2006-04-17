@@ -90,6 +90,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 			float axisX,float axisY,float axisZ);
 	    virtual void		removeConstraint(int	constraintid);
 
+
+		virtual void	CallbackTriggers();
+
+
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 		//complex constraint for vehicles
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId);
@@ -107,11 +111,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 
 		//Methods for gamelogic collision/physics callbacks
-		//todo:
-		virtual void addSensor(PHY_IPhysicsController* ctrl) {};
-		virtual void removeSensor(PHY_IPhysicsController* ctrl){};
-		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user){};
-		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl){};
+		virtual void addSensor(PHY_IPhysicsController* ctrl);
+		virtual void removeSensor(PHY_IPhysicsController* ctrl);
+		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
+		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;};
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight){ return 0;};
 	
@@ -160,9 +163,12 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		void	SyncMotionStates(float timeStep);
 		
 		std::vector<CcdPhysicsController*> m_controllers;
-
 		
+		std::vector<CcdPhysicsController*> m_triggerControllers;
 
+		PHY_ResponseCallback	m_triggerCallbacks[PHY_NUM_RESPONSE];
+		void*			m_triggerCallbacksUserPtrs[PHY_NUM_RESPONSE];
+		
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
 		class CollisionWorld*	m_collisionWorld;

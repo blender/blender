@@ -113,37 +113,50 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 		for (int i=0;i<GetNumManifolds();i++)
 		{
 			 PersistentManifold* manifold = this->GetManifoldByIndexInternal(i);
-			if ((((CollisionObject*)manifold->GetBody0()) && ((CollisionObject*)manifold->GetBody0())->m_islandTag1 == (islandId)) ||
-				(((CollisionObject*)manifold->GetBody1()) && ((CollisionObject*)manifold->GetBody1())->m_islandTag1 == (islandId)))
-			{
+			 
+			 //filtering for response
 
-				if ((((CollisionObject*)manifold->GetBody0()) && ((CollisionObject*)manifold->GetBody0())->GetActivationState()== ACTIVE_TAG) ||
-					(((CollisionObject*)manifold->GetBody1()) && ((CollisionObject*)manifold->GetBody1())->GetActivationState() == ACTIVE_TAG))
-				{
-					allSleeping = false;
-				}
-				if ((((CollisionObject*)manifold->GetBody0()) && ((CollisionObject*)manifold->GetBody0())->GetActivationState()== DISABLE_DEACTIVATION) ||
-					(((CollisionObject*)manifold->GetBody1()) && ((CollisionObject*)manifold->GetBody1())->GetActivationState() == DISABLE_DEACTIVATION))
-				{
-					allSleeping = false;
-				}
+			 CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
+			 CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
 
-				islandmanifold.push_back(manifold);
-			}
+			 if (NeedsResponse(*colObj0,*colObj1))
+			 {
+				if (((colObj0) && (colObj0)->m_islandTag1 == (islandId)) ||
+					((colObj1) && (colObj1)->m_islandTag1 == (islandId)))
+				{
+
+					if (((colObj0) && (colObj0)->GetActivationState()== ACTIVE_TAG) ||
+						((colObj1) && (colObj1)->GetActivationState() == ACTIVE_TAG))
+					{
+						allSleeping = false;
+					}
+					if (((colObj0) && (colObj0)->GetActivationState()== DISABLE_DEACTIVATION) ||
+						((colObj1) && (colObj1)->GetActivationState() == DISABLE_DEACTIVATION))
+					{
+						allSleeping = false;
+					}
+
+					islandmanifold.push_back(manifold);
+				}
+			 }
 		}
 		if (allSleeping)
 		{
 			//tag all as 'ISLAND_SLEEPING'
 			for (size_t i=0;i<islandmanifold.size();i++)
 			{
-				 PersistentManifold* manifold = islandmanifold[i];
-				if (((CollisionObject*)manifold->GetBody0()))	
+				PersistentManifold* manifold = islandmanifold[i];
+
+				CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
+				CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
+
+				if ((colObj0))	
 				{
-					((CollisionObject*)manifold->GetBody0())->SetActivationState( ISLAND_SLEEPING );
+					(colObj0)->SetActivationState( ISLAND_SLEEPING );
 				}
-				if (((CollisionObject*)manifold->GetBody1()))	
+				if ((colObj1))	
 				{
-					((CollisionObject*)manifold->GetBody1())->SetActivationState( ISLAND_SLEEPING);
+					(colObj1)->SetActivationState( ISLAND_SLEEPING);
 				}
 
 			}
@@ -209,6 +222,15 @@ CollisionAlgorithm* CollisionDispatcher::InternalFindAlgorithm(BroadphaseProxy& 
 	//failed to find an algorithm
 	return new EmptyAlgorithm(ci);
 	
+}
+
+bool	CollisionDispatcher::NeedsResponse(CollisionObject& colObj0,CollisionObject& colObj1)
+{
+	//here you can do filtering
+	bool hasResponse = 
+		(!(colObj0.m_collisionFlags & CollisionObject::noContactResponse)) &
+		(!(colObj1.m_collisionFlags & CollisionObject::noContactResponse));
+	return hasResponse;
 }
 
 bool	CollisionDispatcher::NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1)

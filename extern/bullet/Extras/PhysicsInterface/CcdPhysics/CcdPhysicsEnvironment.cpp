@@ -17,8 +17,10 @@
 #include "ConstraintSolver/OdeConstraintSolver.h"
 #include "ConstraintSolver/SimpleConstraintSolver.h"
 
+#ifdef USE_PROFILE
 //profiling/timings
 #include "quickprof.h"
+#endif //USE_PROFILE
 
 #include "IDebugDraw.h"
 
@@ -306,6 +308,10 @@ m_profileTimings(0),
 m_enableSatCollisionDetection(false)
 {
 
+	for (int i=0;i<PHY_NUM_RESPONSE;i++)
+	{
+		m_triggerCallbacks[i] = 0;
+	}
 	if (!dispatcher)
 		dispatcher = new CollisionDispatcher();
 
@@ -336,6 +342,9 @@ m_enableSatCollisionDetection(false)
 void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	RigidBody* body = ctrl->GetRigidBody();
+	
+	//this m_userPointer is just used for triggers, see CallbackTriggers
+	body->m_userPointer = ctrl;
 
 	body->setGravity( m_gravity );
 	m_controllers.push_back(ctrl);
@@ -446,6 +455,19 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			m_controllers.pop_back();
 		}
 	}
+
+	//remove it from the triggers
+	{
+		std::vector<CcdPhysicsController*>::iterator i =
+			std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl);
+		if (!(i == m_triggerControllers.end()))
+		{
+			std::swap(*i, m_triggerControllers.back());
+			m_triggerControllers.pop_back();
+		}
+	}
+	
+
 }
 
 
@@ -454,9 +476,11 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 }
 
+
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
 
+#ifdef USE_PROFILE
 	//toggle Profiler
 	if ( m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_ProfileTimings)
 	{
@@ -469,6 +493,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 			char filename[128];
 			sprintf(filename,"quickprof_bullet_timings%i.csv",counter++);
 			Profiler::init(filename, Profiler::BLOCK_CYCLE_SECONDS);//BLOCK_TOTAL_MICROSECONDS
+
 		}
 	} else
 	{
@@ -478,6 +503,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 			Profiler::destroy();
 		}
 	}
+#endif //USE_PROFILE
 
 
 
@@ -516,7 +542,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	}
 
 
+#ifdef USE_PROFILE
 	Profiler::beginBlock("SyncMotionStates");
+#endif //USE_PROFILE
 
 	
 	//this is needed because scaling is not known in advance, and scaling has to propagate to the shape
@@ -526,9 +554,11 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		m_scalingPropagated = true;
 	}
 
+#ifdef USE_PROFILE
 	Profiler::endBlock("SyncMotionStates");
 
 	Profiler::beginBlock("predictIntegratedTransform");
+#endif //USE_PROFILE
 
 	{
 //		std::vector<CcdPhysicsController*>::iterator i;
@@ -551,7 +581,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		}
 	}
 
+#ifdef USE_PROFILE
 	Profiler::endBlock("predictIntegratedTransform");
+#endif //USE_PROFILE
 
 	BroadphaseInterface*	scene = GetBroadphase();
 	
@@ -561,8 +593,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	//
 	
 	
-	
+#ifdef USE_PROFILE
 	Profiler::beginBlock("DispatchAllCollisionPairs");
+#endif //USE_PROFILE
 
 	
 	int numsubstep = m_numIterations;
@@ -576,7 +609,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	scene->DispatchAllCollisionPairs(*GetDispatcher(),dispatchInfo);///numsubstep,g);
 
 
+#ifdef USE_PROFILE
 	Profiler::endBlock("DispatchAllCollisionPairs");
+#endif //USE_PROFILE
 
 		
 	int numRigidBodies = m_controllers.size();
@@ -586,8 +621,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	
 
 	//contacts
-
+#ifdef USE_PROFILE
 	Profiler::beginBlock("SolveConstraint");
+#endif //USE_PROFILE
 
 	
 	//solve the regular constraints (point 2 point, hinge, etc)
@@ -597,9 +633,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		//
 		// constraint solving
 		//
-		Profiler::beginBlock("Solve1Constraint");
-
-		
+				
 		
 		int i;
 		int numConstraints = m_constraints.size();
@@ -613,13 +647,13 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			constraint->SolveConstraint( timeStep );
 			
 		}
-		Profiler::beginBlock("Solve1Constraint");
 		
 		
 	}
 
+#ifdef USE_PROFILE
 	Profiler::endBlock("SolveConstraint");
-
+#endif //USE_PROFILE
 	
 	//solve the vehicles
 
@@ -671,18 +705,28 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			m_solver,
 			m_debugDrawer);
 
+#ifdef USE_PROFILE
 	Profiler::beginBlock("BuildAndProcessIslands");
+#endif //USE_PROFILE
 
 	/// solve all the contact points and contact friction
 	GetDispatcher()->BuildAndProcessIslands(numRigidBodies,&solverCallback);
 
+#ifdef USE_PROFILE
 	Profiler::endBlock("BuildAndProcessIslands");
 
+	Profiler::beginBlock("CallbackTriggers");
+#endif //USE_PROFILE
 
+	CallbackTriggers();
+
+#ifdef USE_PROFILE
+	Profiler::endBlock("CallbackTriggers");
 
 
 	Profiler::beginBlock("proceedToTransform");
 
+#endif //USE_PROFILE
 	{
 		
 		
@@ -855,17 +899,20 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	}
 	
 
+#ifdef USE_PROFILE
 	Profiler::endBlock("proceedToTransform");
 
-
 	Profiler::beginBlock("SyncMotionStates");
+#endif //USE_PROFILE
 
 	SyncMotionStates(timeStep);
 
+#ifdef USE_PROFILE
 	Profiler::endBlock("SyncMotionStates");
 
 	Profiler::endProfilingCycle();
-		
+#endif //USE_PROFILE
+
 	
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 		//sync wheels for vehicles
@@ -1411,6 +1458,101 @@ TypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 	}
 	return 0;
 }
+
+
+void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
+{
+	printf("addSensor\n");
+}
+void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
+{
+	printf("removeSensor\n");
+}
+void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
+{
+	printf("addTouchCallback\n(response class = %i)\n",response_class);
+
+	//map PHY_ convention into SM_ convention
+	switch (response_class)
+	{
+	case	PHY_FH_RESPONSE:
+		printf("PHY_FH_RESPONSE\n");
+		break;
+	case PHY_SENSOR_RESPONSE:
+		printf("PHY_SENSOR_RESPONSE\n");
+		break;
+	case PHY_CAMERA_RESPONSE:
+		printf("PHY_CAMERA_RESPONSE\n");
+		break;
+	case PHY_OBJECT_RESPONSE:
+		printf("PHY_OBJECT_RESPONSE\n");
+		break;
+	case PHY_STATIC_RESPONSE:
+		printf("PHY_STATIC_RESPONSE\n");
+		break;
+	default:
+		assert(0);
+		return;
+	}
+
+	m_triggerCallbacks[response_class] = callback;
+	m_triggerCallbacksUserPtrs[response_class] = user;
+
+}
+void CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctrl)
+{
+	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
+
+	printf("requestCollisionCallback\n");
+	m_triggerControllers.push_back(ccdCtrl);
+}
+
+
+void	CcdPhysicsEnvironment::CallbackTriggers()
+{
+	CcdPhysicsController* ctrl0=0,*ctrl1=0;
+
+	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE])
+	{
+
+		int numManifolds = m_collisionWorld->GetDispatcher()->GetNumManifolds();
+		for (int i=0;i<numManifolds;i++)
+		{
+			PersistentManifold* manifold = m_collisionWorld->GetDispatcher()->GetManifoldByIndexInternal(i);
+			int numContacts = manifold->GetNumContacts();
+			if (numContacts)
+			{
+				RigidBody* obj0 = static_cast<RigidBody* >(manifold->GetBody0());
+				RigidBody* obj1 = static_cast<RigidBody* >(manifold->GetBody1());
+				
+				//m_userPointer is set in 'addPhysicsController
+				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->m_userPointer);
+				CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(obj1->m_userPointer);
+
+				std::vector<CcdPhysicsController*>::iterator i =
+				std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl0);
+				if (i == m_triggerControllers.end())
+				{
+					i = std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl1);
+				}
+
+				if (!(i == m_triggerControllers.end()))
+				{
+					m_triggerCallbacks[PHY_OBJECT_RESPONSE](m_triggerCallbacksUserPtrs[PHY_OBJECT_RESPONSE],
+						ctrl0,ctrl1,0);
+				}
+			}
+		}
+
+		
+
+	}
+	//walk over all overlapping pairs, and if
+}
+
+
+
+
 
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT

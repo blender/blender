@@ -123,7 +123,8 @@ public:
 	CollisionAlgorithm* InternalFindAlgorithm(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1);
 	
 	virtual bool	NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1);
-
+	
+	virtual bool	NeedsResponse(CollisionObject& colObj0,CollisionObject& colObj1);
 
 	virtual int GetUniqueId() { return RIGIDBODY_DISPATCHER;}
 	

@@ -73,6 +73,9 @@ void CcdPhysicsController::CreateRigidbody()
 	//
 	
 	m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+	//setMassProps this also sets collisionFlags
+	m_body->m_collisionFlags = m_cci.m_collisionFlags;
+	
 	m_body->setGravity( m_cci.m_gravity);
 	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
 	m_body->setCenterOfMassTransform( trans );
@@ -93,9 +96,9 @@ CcdPhysicsController::~CcdPhysicsController()
 		*/
 bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
-	//don't sync non-dynamic...
+	//sync non-static to motionstate, and static from motionstate (todo: add kinematic etc.)
 
-	if (m_body->getInvMass() != 0.f)
+	if (!m_body->IsStatic())
 	{
 		const SimdVector3& worldPos = m_body->getCenterOfMassPosition();
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
@@ -383,6 +386,14 @@ void		CcdPhysicsController::getReactionForce(float& forceX,float& forceY,float& 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 void		CcdPhysicsController::setRigidBody(bool rigid)
 {
+	if (!rigid)
+	{
+		//fake it for now
+		SimdVector3 inertia = m_body->getInvInertiaDiagLocal();
+		inertia[1] = 0.f;
+		m_body->setInvInertiaDiagLocal(inertia);
+		m_body->updateInertiaTensor();
+	}
 }
 
 		// clientinfo for raycasts for example

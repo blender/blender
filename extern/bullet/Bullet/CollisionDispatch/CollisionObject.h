@@ -37,6 +37,8 @@ struct	CollisionObject
 	enum CollisionFlags
 	{
 		isStatic = 1,
+		noContactResponse = 2,
+
 	};
 
 	int				m_collisionFlags;
@@ -55,16 +57,18 @@ struct	CollisionObject
 
 	bool			mergesSimulationIslands() const;
 
-
-	CollisionObject()
-	:	m_collisionFlags(0),
-		m_activationState1(1),
-		m_deactivationTime(0.f),
-		m_broadphaseHandle(0),
-		m_collisionShape(0),
-		m_hitFraction(1.f)
-	{
+	inline bool		IsStatic() {
+		return m_collisionFlags & isStatic;
 	}
+
+	inline bool		HasContactResponse() {
+		return !(m_collisionFlags & noContactResponse);
+	}
+
+	
+
+
+	CollisionObject();
 
 
 	void	SetCollisionShape(CollisionShape* collisionShape)

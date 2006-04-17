@@ -896,12 +896,22 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	CcdConstructionInfo ci;
 	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
 
+	if (objprop->m_ghost)
+	{
+		ci.m_collisionFlags |= CollisionObject::noContactResponse;
+	}
+
+	if (!objprop->m_dyna)
+	{
+		ci.m_collisionFlags |= CollisionObject::isStatic;
+	}
+
 	ci.m_MotionState = motionstate;
 	ci.m_gravity = SimdVector3(0,0,0);
 	ci.m_localInertiaTensor =SimdVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
 	isbulletdyna = objprop->m_dyna;
-
+	
 	ci.m_localInertiaTensor = SimdVector3(ci.m_mass/3.f,ci.m_mass/3.f,ci.m_mass/3.f);
 	
 	SimdTransform trans;
@@ -1079,8 +1089,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
 	// store materialname in auxinfo, needed for touchsensors
-	//gameobj->getClientInfo()->m_auxilary_info = 0;//(matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
-	//gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
+	const STR_String& matname=meshobj->GetMaterialName(0);
+	gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
+	
 
 
 	gameobj->GetSGNode()->AddSGController(physicscontroller);

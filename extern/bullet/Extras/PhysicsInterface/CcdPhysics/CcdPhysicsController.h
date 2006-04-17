@@ -34,7 +34,8 @@ struct CcdConstructionInfo
 		m_MotionState(0),
 		m_physicsEnv(0),
 		m_inertiaFactor(1.f),
-		m_scaling(1.f,1.f,1.f)
+		m_scaling(1.f,1.f,1.f),
+		m_collisionFlags(0)
 	{
 	}
 
@@ -46,6 +47,7 @@ struct CcdConstructionInfo
 	SimdScalar	m_friction;
 	SimdScalar	m_linearDamping;
 	SimdScalar	m_angularDamping;
+	int			m_collisionFlags;
 
 	CollisionShape*			m_collisionShape;
 	class	PHY_IMotionState*			m_MotionState;
