@@ -1469,30 +1469,31 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 }
 
-static void refraction(float *refract, float *n, float *view, float index)
+static int refraction(float *refract, float *n, float *view, float index)
 {
 	float dot, fac;
 
 	VECCOPY(refract, view);
-	index= 1.0/index;
 	
 	dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
 
 	if(dot>0.0) {
+		index = 1.0/index;
 		fac= 1.0 - (1.0 - dot*dot)*index*index;
-		if(fac<= 0.0) return;
+		if(fac<= 0.0) return 0;
 		fac= -dot*index + sqrt(fac);
 	}
 	else {
-		index = 1.0/index;
 		fac= 1.0 - (1.0 - dot*dot)*index*index;
-		if(fac<= 0.0) return;
+		if(fac<= 0.0) return 0;
 		fac= -dot*index - sqrt(fac);
 	}
 
 	refract[0]= index*view[0] + fac*n[0];
 	refract[1]= index*view[1] + fac*n[1];
 	refract[2]= index*view[2] + fac*n[2];
+
+	return 1;
 }
 
 /* orn = original face normal */
@@ -1539,6 +1540,25 @@ static void color_combine(float *result, float fac1, float fac2, float *col1, fl
 }
 #endif
 
+static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
+{
+	float dx, dy, dz, d;
+
+	if (0 == (shi->mat->mode & (MA_RAYTRANSP|MA_ZTRA)))
+		return -1;
+	   
+	/* shi.co[] calculated by shade_ray() */
+	dx= shi->co[0] - is->start[0];
+	dy= shi->co[1] - is->start[1];
+	dz= shi->co[2] - is->start[2];
+	d= sqrt(dx*dx+dy*dy+dz*dz);
+
+	shr->alpha *= d;
+	if (shr->alpha > 1.0) shr->alpha= 1.0;
+
+	return d;
+}
+
 /* the main recursive tracer itself */
 static void traceray(ShadeInput *origshi, short depth, float *start, float *vec, float *col, VlakRen *vlr, int traflag)
 {
@@ -1556,6 +1576,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 	isec.vlrorig= vlr;
 
 	if( d3dda(&isec) ) {
+		float d= 1.0;
 		
 		shi.mask= origshi->mask;
 		shi.osatex= origshi->osatex;
@@ -1567,12 +1588,17 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		shi.do_preview= 0;
 		
 		shade_ray(&isec, &shi, &shr);
+		if (traflag & RAY_TRA)
+			d= shade_by_transmission(&isec, &shi, &shr);
 		
 		if(depth>0) {
 
-			if(shi.mat->mode & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha!=1.0) {
-				float f, f1, refract[3], tracol[4];
+			if(shi.mat->mode & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha < 1.0) {
+				float nf, f, f1, refract[3], tracol[4];
 				
+				tracol[0]= shi.r;
+				tracol[1]= shi.g;
+				tracol[2]= shi.b;
 				tracol[3]= col[3];	// we pass on and accumulate alpha
 				
 				if(shi.mat->mode & MA_RAYTRANSP) {
@@ -1582,10 +1608,12 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 						norm[0]= - shi.vn[0];
 						norm[1]= - shi.vn[1];
 						norm[2]= - shi.vn[2];
-						refraction(refract, norm, shi.view, shi.ang);
+						if (!refraction(refract, norm, shi.view, shi.ang))
+							reflection(refract, norm, shi.view, shi.vn);
 					}
 					else {
-						refraction(refract, shi.vn, shi.view, shi.ang);
+						if (!refraction(refract, shi.vn, shi.view, shi.ang))
+							reflection(refract, shi.vn, shi.view, shi.vn);
 					}
 					traflag |= RAY_TRA;
 					traceray(origshi, depth-1, shi.co, refract, tracol, shi.vlr, traflag ^ RAY_TRAFLIP);
@@ -1594,9 +1622,10 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 					traceray(origshi, depth-1, shi.co, shi.view, tracol, shi.vlr, 0);
 				
 				f= shr.alpha; f1= 1.0-f;
-				fr= 1.0+ shi.mat->filter*(shi.r-1.0);
-				fg= 1.0+ shi.mat->filter*(shi.g-1.0);
-				fb= 1.0+ shi.mat->filter*(shi.b-1.0);
+				nf= d * shi.mat->filter;
+				fr= 1.0+ nf*(shi.r-1.0);
+				fg= 1.0+ nf*(shi.g-1.0);
+				fb= 1.0+ nf*(shi.b-1.0);
 				shr.diff[0]= f*shr.diff[0] + f1*fr*tracol[0];
 				shr.diff[1]= f*shr.diff[1] + f1*fg*tracol[1];
 				shr.diff[2]= f*shr.diff[2] + f1*fb*tracol[2];
@@ -1856,7 +1885,7 @@ static void addAlphaLight(float *shadfac, float *col, float alpha, float filter)
 	shadfac[3]= (1.0-alpha)*shadfac[3];
 }
 
-static void ray_trace_shadow_tra(Isect *is, int depth)
+static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 {
 	/* ray to lamp, find first face that intersects, check alpha properties,
 	   if it has col[3]>0.0  continue. so exit when alpha is full */
@@ -1864,6 +1893,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 	ShadeResult shr;
 
 	if( d3dda(is)) {
+		float d= 1.0;
 		/* we got a face */
 		
 		shi.mask= 1;
@@ -1871,9 +1901,11 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 		shi.depth= 1;	// only now to indicate tracing
 		
 		shade_ray(is, &shi, &shr);
+		if (traflag & RAY_TRA)
+			d= shade_by_transmission(is, &shi, &shr);
 		
 		/* mix colors based on shadfac (rgb + amount of light factor) */
-		addAlphaLight(is->col, shr.diff, shr.alpha, shi.mat->filter);
+		addAlphaLight(is->col, shr.diff, shr.alpha, d*shi.mat->filter);
 		
 		if(depth>0 && is->col[3]>0.0) {
 			
@@ -1881,7 +1913,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth)
 			VECCOPY(is->start, shi.co);
 			is->vlrorig= shi.vlr;
 
-			ray_trace_shadow_tra(is, depth-1);
+			ray_trace_shadow_tra(is, depth-1, traflag | RAY_TRA);
 		}
 	}
 }
@@ -2216,7 +2248,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
 			isec.col[3]= 1.0;
 
-			ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA);
+			ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA, 0);
 			QUATCOPY(shadfac, isec.col);
 			//printf("shadfac %f %f %f %f\n", shadfac[0], shadfac[1], shadfac[2], shadfac[3]);
 		}
@@ -2272,7 +2304,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 				isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
 				isec.col[3]= 1.0;
 				
-				ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA);
+				ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA, 0);
 				shadfac[0] += isec.col[0];
 				shadfac[1] += isec.col[1];
 				shadfac[2] += isec.col[2];
