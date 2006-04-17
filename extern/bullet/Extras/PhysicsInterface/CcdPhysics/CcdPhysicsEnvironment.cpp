@@ -1462,15 +1462,15 @@ TypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 
 void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 {
-	printf("addSensor\n");
+	//printf("addSensor\n");
 }
 void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
 {
-	printf("removeSensor\n");
+	//printf("removeSensor\n");
 }
 void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
 {
-	printf("addTouchCallback\n(response class = %i)\n",response_class);
+/*	printf("addTouchCallback\n(response class = %i)\n",response_class);
 
 	//map PHY_ convention into SM_ convention
 	switch (response_class)
@@ -1494,6 +1494,7 @@ void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCal
 		assert(0);
 		return;
 	}
+*/
 
 	m_triggerCallbacks[response_class] = callback;
 	m_triggerCallbacksUserPtrs[response_class] = user;
@@ -1503,7 +1504,7 @@ void CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctr
 {
 	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
 
-	printf("requestCollisionCallback\n");
+	//printf("requestCollisionCallback\n");
 	m_triggerControllers.push_back(ccdCtrl);
 }
 
@@ -1514,7 +1515,7 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 
 	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE])
 	{
-
+		//walk over all overlapping pairs, and if one of the involved bodies is registered for trigger callback, perform callback
 		int numManifolds = m_collisionWorld->GetDispatcher()->GetNumManifolds();
 		for (int i=0;i<numManifolds;i++)
 		{
@@ -1547,7 +1548,7 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 		
 
 	}
-	//walk over all overlapping pairs, and if
+
 }
 
 

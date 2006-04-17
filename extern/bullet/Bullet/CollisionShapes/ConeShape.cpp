@@ -87,7 +87,7 @@ SimdVector3	ConeShape::LocalGetSupportingVertex(const SimdVector3& vec)  const
 	if ( GetMargin()!=0.f )
 	{
 		SimdVector3 vecnorm = vec;
-		if (vecnorm .length2() == 0.f)
+		if (vecnorm .length2() < (SIMD_EPSILON*SIMD_EPSILON))
 		{
 			vecnorm.setValue(-1.f,-1.f,-1.f);
 		} 

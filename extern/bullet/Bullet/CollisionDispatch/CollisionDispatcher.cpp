@@ -33,13 +33,20 @@ void CollisionDispatcher::FindUnions()
 		{
 			const PersistentManifold* manifold = this->GetManifoldByIndexInternal(i);
 			//static objects (invmass 0.f) don't merge !
-			if ((((CollisionObject*)manifold->GetBody0()) && (((CollisionObject*)manifold->GetBody0())->mergesSimulationIslands())) &&
-				(((CollisionObject*)manifold->GetBody1()) && (((CollisionObject*)manifold->GetBody1())->mergesSimulationIslands())))
-			{
 
-				m_unionFind.unite(((CollisionObject*)manifold->GetBody0())->m_islandTag1,
-					((CollisionObject*)manifold->GetBody1())->m_islandTag1);
-			}
+			 const  CollisionObject* colObj0 = static_cast<const CollisionObject*>(manifold->GetBody0());
+			 const  CollisionObject* colObj1 = static_cast<const CollisionObject*>(manifold->GetBody1());
+
+			 if (colObj0 && colObj1 && NeedsResponse(*colObj0,*colObj1))
+			 {
+				if (((colObj0) && ((colObj0)->mergesSimulationIslands())) &&
+					((colObj1) && ((colObj1)->mergesSimulationIslands())))
+				{
+
+					m_unionFind.unite((colObj0)->m_islandTag1,
+						(colObj1)->m_islandTag1);
+				}
+			 }
 			
 			
 		}
@@ -119,7 +126,7 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 			 CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
 			 CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
 
-			 if (NeedsResponse(*colObj0,*colObj1))
+			 
 			 {
 				if (((colObj0) && (colObj0)->m_islandTag1 == (islandId)) ||
 					((colObj1) && (colObj1)->m_islandTag1 == (islandId)))
@@ -224,11 +231,11 @@ CollisionAlgorithm* CollisionDispatcher::InternalFindAlgorithm(BroadphaseProxy& 
 	
 }
 
-bool	CollisionDispatcher::NeedsResponse(CollisionObject& colObj0,CollisionObject& colObj1)
+bool	CollisionDispatcher::NeedsResponse(const  CollisionObject& colObj0,const CollisionObject& colObj1)
 {
 	//here you can do filtering
 	bool hasResponse = 
-		(!(colObj0.m_collisionFlags & CollisionObject::noContactResponse)) &
+		(!(colObj0.m_collisionFlags & CollisionObject::noContactResponse)) &&
 		(!(colObj1.m_collisionFlags & CollisionObject::noContactResponse));
 	return hasResponse;
 }

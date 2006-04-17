@@ -40,8 +40,11 @@ void CollisionObject::ForceActivationState(int newState)
 
 void CollisionObject::activate()
 {
+	if (!(m_collisionFlags & isStatic))
+	{
 		SetActivationState(1);
 		m_deactivationTime = 0.f;
+	}
 }
 
 bool CollisionObject::mergesSimulationIslands() const

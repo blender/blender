@@ -124,7 +124,7 @@ public:
 	
 	virtual bool	NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1);
 	
-	virtual bool	NeedsResponse(CollisionObject& colObj0,CollisionObject& colObj1);
+	virtual bool	NeedsResponse(const CollisionObject& colObj0,const CollisionObject& colObj1);
 
 	virtual int GetUniqueId() { return RIGIDBODY_DISPATCHER;}
 	

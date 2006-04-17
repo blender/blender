@@ -195,16 +195,21 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		// kinematic methods
 void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)
 {
-	SimdVector3 dloc(dlocX,dlocY,dlocZ);
-	SimdTransform xform = m_body->getCenterOfMassTransform();
-
-	if (local)
+	if (m_body)
 	{
-		dloc = xform.getBasis()*dloc;
-	}
+		m_body->activate();
 
-	xform.setOrigin(xform.getOrigin() + dloc);
-	this->m_body->setCenterOfMassTransform(xform);
+		SimdVector3 dloc(dlocX,dlocY,dlocZ);
+		SimdTransform xform = m_body->getCenterOfMassTransform();
+
+		if (local)
+		{
+			dloc = xform.getBasis()*dloc;
+		}
+
+		xform.setOrigin(xform.getOrigin() + dloc);
+		m_body->setCenterOfMassTransform(xform);
+	}
 
 }
 
@@ -212,6 +217,8 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 {
 	if (m_body )
 	{
+		m_body->activate();
+
 		SimdMatrix3x3 drotmat(	rotval[0],rotval[1],rotval[2],
 								rotval[4],rotval[5],rotval[6],
 								rotval[8],rotval[9],rotval[10]);
@@ -319,34 +326,47 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)
 {
 	SimdVector3 angvel(ang_velX,ang_velY,ang_velZ);
-	SimdTransform xform = m_body->getCenterOfMassTransform();
-	if (local)
+	if (angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		angvel	= xform.getBasis()*angvel;
-	}
+		SimdTransform xform = m_body->getCenterOfMassTransform();
+		if (local)
+		{
+			angvel	= xform.getBasis()*angvel;
+		}
 
-	m_body->setAngularVelocity(angvel);
+		m_body->setAngularVelocity(angvel);
+	}
 
 }
 void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local)
 {
+
 	SimdVector3 linVel(lin_velX,lin_velY,lin_velZ);
-	SimdTransform xform = m_body->getCenterOfMassTransform();
-	if (local)
+	if (linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		linVel	= xform.getBasis()*linVel;
+		m_body->activate();
+		SimdTransform xform = m_body->getCenterOfMassTransform();
+		if (local)
+		{
+			linVel	= xform.getBasis()*linVel;
+		}
+		m_body->setLinearVelocity(linVel);
 	}
-	m_body->setLinearVelocity(linVel);
 }
 void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
 {
-	
 	SimdVector3 impulse(impulseX,impulseY,impulseZ);
-	SimdVector3 pos(attachX,attachY,attachZ);
 
-	m_body->activate();
+	if (impulse.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	{
+		m_body->activate();
+		
+		SimdVector3 pos(attachX,attachY,attachZ);
 
-	m_body->applyImpulse(impulse,pos);
+		m_body->activate();
+
+		m_body->applyImpulse(impulse,pos);
+	}
 
 }
 void		CcdPhysicsController::SetActive(bool active)

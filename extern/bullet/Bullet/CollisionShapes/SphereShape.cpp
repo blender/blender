@@ -44,7 +44,7 @@ SimdVector3	SphereShape::LocalGetSupportingVertex(const SimdVector3& vec)const
 	supVertex = LocalGetSupportingVertexWithoutMargin(vec);
 
 	SimdVector3 vecnorm = vec;
-	if (SimdFuzzyZero(vecnorm .length2()))
+	if (vecnorm .length2() < (SIMD_EPSILON*SIMD_EPSILON))
 	{
 		vecnorm.setValue(-1.f,-1.f,-1.f);
 	} 
