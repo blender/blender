@@ -97,10 +97,12 @@
 #endif
 
 // from buildinfo.c
+#ifdef BUILD_DATE
 extern char * build_date;
 extern char * build_time;
 extern char * build_platform;
 extern char * build_type;
+#endif
 
 /*	Local Function prototypes */
 static void print_help();
@@ -152,11 +154,15 @@ static void blender_esc(int sig)
 
 static void print_version(void)
 {
+#ifdef BUILD_DATE
 	printf ("Blender %d.%02d Build\n", G.version/100, G.version%100);
 	printf ("\tbuild date: %s\n", build_date);
 	printf ("\tbuild time: %s\n", build_time);
 	printf ("\tbuild platform: %s\n", build_platform);
 	printf ("\tbuild type: %s\n", build_type);
+#else
+	printf ("Blender %d.%02d\n", G.version/100, G.version%100);
+#endif
 }
 
 static void print_help(void)
