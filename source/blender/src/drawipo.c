@@ -93,7 +93,6 @@
 #define ISPOIN3(a, b, c, d)           ( (a->b) && (a->c) && (a->d) )
 #define ISPOIN4(a, b, c, d, e)        ( (a->b) && (a->c) && (a->d) && (a->e) )   
 
-#define IPOBUTX	65
 		/* minimum pixels per gridstep */
 #define IPOSTEP 35
 
@@ -685,6 +684,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	}
 }
 
+#define IPOBUTX 65
 static int calc_ipobuttonswidth(ScrArea *sa)
 {
 	SpaceIpo *sipo= sa->spacedata.first;
@@ -692,13 +692,15 @@ static int calc_ipobuttonswidth(ScrArea *sa)
 	int ipowidth = IPOBUTX;
 	int a;
 	
+	/* default width when no space ipo or no channels */
 	if (sipo == NULL) return IPOBUTX;
-	if ((sipo->totipo==0) || (sipo->editipo==0)) return IPOBUTX;
-	
+	if ((sipo->totipo==0) || (sipo->editipo==NULL)) return IPOBUTX;
+
 	ei= sipo->editipo;
 	
 	for(a=0; a<sipo->totipo; a++, ei++) {
-		if (BMF_GetStringWidth(G.font, ei->name) + 18 > ipowidth) ipowidth = BMF_GetStringWidth(G.font, ei->name) + 18;
+		if (BMF_GetStringWidth(G.font, ei->name) + 18 > ipowidth) 
+			ipowidth = BMF_GetStringWidth(G.font, ei->name) + 18;
 	}
 	return ipowidth;
 
@@ -2016,6 +2018,8 @@ void drawipospace(ScrArea *sa, void *spacedata)
 	
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);	/* for panel handler to work */
 	
+	test_editipo(0);	/* test if current editipo is correct, make_editipo sets v2d->cur, call here because of calc_ipobuttonswidth() */
+	
 	v2d->hor.xmax+=calc_ipobuttonswidth(sa);
 	calc_scrollrcts(sa, G.v2d, sa->winx, sa->winy);
 
@@ -2037,8 +2041,6 @@ void drawipospace(ScrArea *sa, void *spacedata)
 			glScissor(ofsx+v2d->mask.xmin,  ofsy+v2d->mask.ymin, ( ofsx+v2d->mask.xmax-1)-(ofsx+v2d->mask.xmin)+1, ( ofsy+v2d->mask.ymax-1)-( ofsy+v2d->mask.ymin)+1);
 		} 
 	}
-
-	test_editipo(0);	/* test if current editipo is correct, make_editipo sets v2d->cur */
 
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
  

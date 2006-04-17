@@ -208,6 +208,8 @@ void sort_keys(Key *key)
 		}	
 	}
 
+	/* new rule; first key is refkey, this to match drawing channels... */
+	key->refkey= key->block.first;
 }
 
 /**************** do the key ****************/

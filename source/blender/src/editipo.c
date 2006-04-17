@@ -527,18 +527,8 @@ static void make_key_editipo(SpaceIpo *si)
 	si->totipo= BLI_countlist(&key->block);
 	ei= si->editipo= MEM_callocN(si->totipo*sizeof(EditIpo), "editipo");
 	
-	for(a=0; a<si->totipo; a++, ei++) {
-		/* we put refkey first, the rest in order of list */
-		if(a==0) kb= key->refkey;
-		else {
-			if(a==1) 
-				kb= key->block.first;
-			else 
-				kb= kb->next;
-			if(kb==key->refkey)
-				kb= kb->next;
-		}
-
+	for(a=0, kb= key->block.first; a<si->totipo; a++, ei++, kb= kb->next) {
+		
 		if(kb->name[0] != 0) strncpy(ei->name, kb->name, 31);	// length both same
 		ei->adrcode= kb->adrcode;
 		
