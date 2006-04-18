@@ -2466,8 +2466,10 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				}
 			}
 			/* or is there an armature deforming object */
+			/* this is a bit sloppy, what if we have more then 1 armature deforming a mesh?
+			TODO: Should have a function modifiers_isUsingArmature(ob, arm) - Campbell */
 			modob = modifiers_isDeformedByArmature(ob);
-			if(modob) {
+			if(modob && modob->data==arm) { 
 				bDeformGroup *dg;
 				/* bone name in defgroup */
 				for (dg=ob->defbase.first; dg; dg=dg->next) {
