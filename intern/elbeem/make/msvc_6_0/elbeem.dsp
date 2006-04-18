@@ -99,14 +99,6 @@ SOURCE=..\..\intern\attributes.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\cfglexer.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\cfgparser.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\intern\elbeem.cpp
 # End Source File
 # Begin Source File
@@ -180,14 +172,6 @@ SOURCE=..\..\intern\utilities.cpp
 # Begin Source File
 
 SOURCE=..\..\intern\attributes.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\cfgparser.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\globals.h
 # End Source File
 # Begin Source File
 
