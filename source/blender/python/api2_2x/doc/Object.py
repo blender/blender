@@ -277,7 +277,7 @@ class Object:
          from Blender import Object, Scene, Mathutils
 
          ob= Object.Get('Cube')
-         dupe_obs= ob.getDupliObjects()
+         dupe_obs= ob.DupObjects
          scn= Scene.GetCurrent()
          for dupe_ob, dupe_matrix in dupe_obs:
            print dupe_ob.name

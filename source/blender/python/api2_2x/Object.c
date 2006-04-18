@@ -3192,7 +3192,7 @@ static PyObject *Object_getDupliObjects ( BPy_Object * self  )
 		}
 		if(ob->type!=OB_MBALL) {
 			lb= object_duplilist(sce, ob);
-			dupli_objects_list= PyList_New( BLI_countlist(lb)-1 );
+			dupli_objects_list= PyList_New( BLI_countlist(&lb) );
 			if( !dupli_objects_list )
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"PyList_New() failed" );
