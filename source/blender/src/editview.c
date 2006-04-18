@@ -867,16 +867,23 @@ void mouse_cursor(void)
 void deselectall(void)	/* is toggle */
 {
 	Base *base;
-	int a=0;
+	int a=0, ok=0; 
 
 	base= FIRSTBASE;
 	while(base) {
+		/* is there a visible selected object */
 		if TESTBASE(base) {
-			a= 1;
+			ok= a= 1;
 			break;
 		}
+		/* are there any objects in the view*/
+		if(base->lay & G.vd->lay)
+			ok=1;
+		
 		base= base->next;
 	}
+	
+	if (!ok) return;
 	
 	base= FIRSTBASE;
 	while(base) {
