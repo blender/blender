@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'DirectX(.x)...'
-Blender: 241
+Blender: 242
 Group: 'Export'
 Tip: 'Export to DirectX text file format format.'
 """
@@ -452,25 +452,27 @@ class xExport:
 		self.writeHeader()
 		self.writeRootFrame()
 		tex = []
-		obj = Object.GetSelected()[0]
-		mesh = obj.getData()
-		if type(mesh) == Types.NMeshType :
-			self.writeTextures(obj, tex)		
-			self.writeMeshcoordArm(obj, arm_ob = None)
-			self.writeMeshMaterialList(obj, mesh, tex)
-			self.writeMeshNormals(obj, mesh)
-			self.writeMeshTextureCoords(obj, mesh)
-			self.file.write(" }\n")
-			self.file.write("}\n")
-			self.file.write("}\n")
-			ip_list = obj.getIpo()
-			if ip_list != None :
-				self.file.write("AnimationSet {\n")
-				self.writeAnimationObj(obj)
+		objs = Object.GetSelected()
+		for obj in objs:
+			mesh = obj.getData()
+			if type(mesh) == Types.NMeshType :
+				self.writeTextures(obj, tex)		
+				self.writeMeshcoordArm(obj, arm_ob = None)
+				self.writeMeshMaterialList(obj, mesh, tex)
+				self.writeMeshNormals(obj, mesh)
+				self.writeMeshTextureCoords(obj, mesh)
+				self.file.write(" }\n")
 				self.file.write("}\n")
-			print "exporting ..."
-		else :
-			print "The selected object is not a mesh"
+				ind = objs.index(obj)
+				if ind == len(objs)-1:
+					self.file.write("}\n")
+				ip_list = obj.getIpo()
+				if ip_list != None :
+					self.file.write("AnimationSet {\n")
+					self.writeAnimationObj(obj)
+					self.file.write("}\n")
+			else :
+				print "The selected object is not a mesh"
 		print "...finished"
 	#***********************************************
 	#Export Mesh with Armature
@@ -779,6 +781,7 @@ template SkinWeights {\n\
 		#TransformMatrix
 		mat = self.getLocMat(obj)
 		name_f = obj.name.replace(".","")
+		name_f = name_f.replace(" ","")
 		self.writeArmFrames(mat, name_f)
 		mesh = NMesh.GetRawFromObject(obj.name)
 		self.file.write("Mesh {\n")    
