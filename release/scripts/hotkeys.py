@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'HotKey and MouseAction Reference'
-Blender: 237
+Blender: 241
 Group: 'Help'
 Tip: 'All the hotkeys/short keys'
 """ 
@@ -126,9 +126,9 @@ hotkeys={
 ['Shift-F1', 'Library Data Select'],
 ['F2', 'Save File'],
 ['Shift-F2', 'Export DXF'],
-['Ctrl-F2', 'Save/export in vrml 1.0 format' ],
+['Ctrl-F2', 'Save/export in VRML 1.0 format' ],
 ['F3', 'Save image'],
-['Ctrl-F3', 'Save image : dump 3d view'],
+['Ctrl-F3', 'Save image : dump 3D view'],
 ['Ctrl-Shift-F3', 'Save image : dump screen'],
 ['F4', 'Logic Window (may change)'],
 ['Shift-F4', 'Object manager Data Select '],
@@ -159,7 +159,8 @@ hotkeys={
 ['1..2..0-=', 'Show layer 1..2..12'],
 ['1..2..0-=', 'Edit Mode with Size, Grab, rotate tools : enter value'],
 ['Alt-1..2..0', 'Show layer 11..12..20'],
-['Shift-1..2..0-=', 'Toggle layer 1..2..12'],
+['Shift-1..2..0', 'Toggle layer 1..2..12'],
+['Ctrl-1..4', 'Object/Edit Mode : change subsurf level to the selected value'],
 ['Shift-ALT-...', 'Toggle layer 11..12..20'],
 ['Crtl-Shift-ALT-3', 'Edit Mode & Face Mode : Triangle faces'],
 ['Crtl-Shift-ALT-4', 'Edit Mode & Face Mode : Quad faces'],
@@ -244,7 +245,7 @@ hotkeys={
 "B":[ 
 ['B', 'Border select'],
 ['BB', 'Circle select'],
-['Alt+B', 'Edit Mode: Select Vertex Loop'],
+['Alt+B', 'Object Mode: Select visible view section in 3D space'],
 ['Shift-B', 'Set render border (in active camera view)']
 ],
 
@@ -381,13 +382,15 @@ hotkeys={
 ['O', 'Edit Mode/UV Image Editor: Toggle proportional vertex editing'],
 ['Alt-O', 'Clear object origin'],
 ['Ctrl-O', 'Revert current file to last saved'],
-['Shift-O', 'Proportional vertex Edit Mode: Toggle smooth/steep falloff']
+['Shift-O', 'Proportional vertex Edit Mode: Toggle smooth/steep falloff'],
+['Shift-O', 'Object Mode: Add a subsurf modifier to the selected mesh'],
 ],
 
 "P":[ 
 ['P', 'Object Mode: Start realtime engine'],
 ['P', 'Edit mode: Seperate vertices to new object'],
 ['shift-P', 'Edit mode: Push-Pull'],
+['shift-P', 'Object mode: Add a preview window in the 3D window'],
 ['P', 'UV Image Editor: Pin UVs'],
 ['Alt-P', 'Clear parent relationship'],
 ['Alt-P', 'UV Image Editor: Unpin UVs'],
