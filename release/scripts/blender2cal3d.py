@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'Cal3D v0.9'
+Name: 'Cal3D'
 Blender: 235
 Group: 'Export'
 Tip: 'Export armature/bone/mesh/action data to the Cal3D format.'
@@ -26,64 +26,77 @@ Tip: 'Export armature/bone/mesh/action data to the Cal3D format.'
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-__version__ = "0.11"
+__version__ = "0.13"
 __author__  = "Jean-Baptiste 'Jiba' Lamy"
-__email__   = ["Author's email, jibalamy:free*fr"]
-__url__     = ["Soya3d's homepage, http://home.gna.org/oomadness/en/soya/",
-	"Cal3d, http://cal3d.sourceforge.net"]
-__bpydoc__  = """\
-This script is a Blender => Cal3D converter.
+__email__   = "jibalamy@free.fr"
+__url__     = "Soya3d's homepage http://home.gna.org/oomadness/en/soya/"
+__bpydoc__  = """This script is a Blender => Cal3D converter.
 (See http://blender.org and http://cal3d.sourceforge.net)
 
-USAGE:
+USAGE
 
 To install it, place the script in your $HOME/.blender/scripts directory.
-
-Then open the File->Export->Cal3d v0.9 menu. And select the filename of the .cfg file.
+Then open the File->Export->Cal3d menu. And select the filename of the .cfg file.
 The exporter will create a set of other files with same prefix (ie. bla.cfg, bla.xsf,
 bla_Action1.xaf, bla_Action2.xaf, ...).
-
 You should be able to open the .cfg file in cal3d_miniviewer.
 
 
-NOT (YET) SUPPORTED:
+NOT (YET) SUPPORTED
 
   - Rotation, translation, or stretching Blender objects is still quite
-buggy, so AVOID MOVING / ROTATING / RESIZE OBJECTS (either mesh or armature) !
-Instead, edit the object (with tab), select all points / bones (with "a"),
-and move / rotate / resize them.<br>
-  - no support for exporting springs yet<br>
+    buggy, so AVOID MOVING / ROTATING / RESIZE OBJECTS (either mesh or armature) !
+    Instead, edit the object (with tab), select all points / bones (with "a"),
+    and move / rotate / resize them.
+  - no support for exporting springs yet
   - no support for exporting material colors (most games should only use images
-I think...)
+    I think...)
 
 
-KNOWN ISSUES:
+KNOWN ISSUES
 
   - Cal3D versions <=0.9.1 have a bug where animations aren't played when the root bone
-is not animated;<br>
+    is not animated
   - Cal3D versions <=0.9.1 have a bug where objects that aren't influenced by any bones
-are not drawn (fixed in Cal3D CVS).
+    are not drawn (fixed in Cal3D CVS)
 
 
-NOTES:
+NOTES
 
-It requires a very recent version of Blender (>= 2.35).
+It requires a very recent version of Blender (tested with 2.41).
 
-Build a model following a few rules:<br>
-  - Use only a single armature;<br>
-  - Use only a single rootbone (Cal3D doesn't support floating bones);<br>
-  - Use only locrot keys (Cal3D doesn't support bone's size change);<br>
+Build a model follows a few rules:
+  - Use only a single armature
+  - Use only a single rootbone (Cal3D doesn't support floating bones)
+  - Use only locrot keys (Cal3D doesn't support bone's size change)
   - Don't try to create child/parent constructs in blender object, that gets exported
-incorrectly at the moment;<br>
-  - Don't put "." in action or bone names, and do not start these names by a figure;<br>
-  - Objects or animations whose names start by "_" are not exported (hidden object).
+    incorrectly at the moment
+  - Objects or animations whose names start by "_" are not exported (hidden object)
 
-It can be run in batch mode, as following :<br>
+It can be run in batch mode, as following :
     blender model.blend -P blender2cal3d.py --blender2cal3d FILENAME=model.cfg EXPORT_FOR_SOYA=1
-
 You can pass as many parameters as you want at the end, "EXPORT_FOR_SOYA=1" is just an
-example. The parameters are the same as below.
+exemple. The parameters are the same than below.
+
+
+Logging is sent through python logger instance. you can control verbosity by changing
+log.set_level(DEBUG|WARNING|ERROR|CRITICAL). to print to it use log.debug(),
+log.warning(), log.error() and log.critical(). the logger breaks normal operation
+by printing _all_ info messages. ( log.info() ). Output is sent to stdout and to
+a blender text.
+
+Psyco support, turned off by default. can speed up export by 25% on my tests.
+Turned off by default.
+
+hotshot_export function to see profile. just replace export with hotshot export 
+to see.
+
+Any vertices found without influence are placed into a vertex group called 
+"_no_inf". [FIXME] i need to stop this for batch more 
+running under gui mode the last export dir is saved into the blender registry
+and called back again.
 """
+
 
 # Parameters :
 
@@ -109,6 +122,12 @@ PREFIX_FILE_WITH_MODEL_NAME = 0
 # Set to 0 to use Cal3D binary format
 XML = 1
 
+# Configuration text buffer
+CONFIG_TEXT = ""
+
+# Allows to replace a material by another
+MATERIAL_MAP = {}
+
 
 MESSAGES = ""
 
@@ -121,12 +140,112 @@ MESSAGES = ""
 # Most of the hell of it is to deal with Blender's head-tail-roll bone's definition.
 
 import sys, os, os.path, struct, math, string
+
+try:
+  import psyco
+  psyco.full()
+except:
+  print "* Blender2Cal3D * (Psyco not found)"
+  
 import Blender
+from Blender import Registry
+from Blender.Window import DrawProgressBar
+from Blender import Draw, BGL
+
+import logging 
+reload(logging)
+
+import types
+
+import textwrap
 
 # HACK -- it seems that some Blender versions don't define sys.argv,
 # which may crash Python if a warning occurs.
 if not hasattr(sys, "argv"): sys.argv = ["???"]
 
+# our own logger class. it works just the same as a normal logger except
+# all info messages get show. 
+class Logger(logging.Logger):
+  def __init__(self,name,level=logging.NOTSET):
+    logging.Logger.__init__(self,name,level)
+
+    self.has_warnings=False
+    self.has_errors=False
+    self.has_critical=False
+  
+  def info(self,msg,*args,**kwargs):
+    apply(self._log,(logging.INFO,msg,args),kwargs)
+
+  def warning(self,msg,*args,**kwargs):
+    logging.Logger.warning(self,msg,*args,**kwargs)
+    self.has_warnings=True
+  
+  def error(self,msg,*args,**kwargs):
+    logging.Logger.error(self,msg,*args,**kwargs)
+    self.has_errors=True
+  
+  def critical(self,msg,*args,**kwargs):
+    logging.Logger.critical(self,msg,*args,**kwargs)
+    self.has_errors=True
+
+  
+# should be able to make this print to stdout in realtime and save MESSAGES
+# as well. perhaps also have a log to file option
+class LogHandler(logging.StreamHandler):
+  def __init__(self):
+    logging.StreamHandler.__init__(self,sys.stdout)
+    
+    if "blender2cal3d_log" not in Blender.Text.Get():
+      self.outtext=Blender.Text.New("blender2cal3d_log")
+    else:
+      self.outtext=Blender.Text.Get('blender2cal3d_log')
+      self.outtext.clear()
+
+    self.lastmsg=''
+
+  def emit(self,record):
+    # print to stdout and  to a new blender text object
+
+    msg=self.format(record)
+
+    if msg==self.lastmsg:
+      return 
+
+    self.lastmsg=msg
+  
+    self.outtext.write("%s\n" %msg)
+
+    logging.StreamHandler.emit(self,record)
+  
+    """
+    try:
+      msg=self.format(record)
+      if not hasattr(types,"UnicodeType"):
+        self.stream.write("%s\n" % msg)
+      else:
+        try:
+          self.stream.write("%s\n" % msg)
+        except UnicodeError:
+          self.stream.write("%s\n" % msg.encode("UTF-8"))
+
+        self.flush()
+    except:
+      self.handleError(record)
+    """ 
+logging.setLoggerClass(Logger)
+log=logging.getLogger('blender2cal3d')
+
+handler=LogHandler()
+formatter=logging.Formatter('%(levelname)s %(message)s')
+handler.setFormatter(formatter)
+
+log.addHandler(handler)
+# set this to minimum output level. eg. logging.DEBUG, logging.WARNING, logging.ERROR
+# logging.CRITICAL. logging.INFO will make little difference as these always get 
+# output'd
+log.setLevel(logging.WARNING)
+
+log.info("Starting...")
 
 # transforms a blender to a cal3d quaternion notation (x,y,z,w)
 def blender2cal3dquat(q):
@@ -147,21 +266,57 @@ def quaternion2matrix(q):
           [      2.0 * (xz + wy),       2.0 * (yz - wx), 1.0 - 2.0 * (xx + yy), 0.0],
           [0.0                  , 0.0                  , 0.0                  , 1.0]]
 
+# def matrix2quaternion(m):
+#   s = math.sqrt(abs(m[0][0] + m[1][1] + m[2][2] + m[3][3]))
+#   if s == 0.0:
+#     x = abs(m[2][1] - m[1][2])
+#     y = abs(m[0][2] - m[2][0])
+#     z = abs(m[1][0] - m[0][1])
+#     if   (x >= y) and (x >= z): return 1.0, 0.0, 0.0, 0.0
+#     elif (y >= x) and (y >= z): return 0.0, 1.0, 0.0, 0.0
+#     else:                       return 0.0, 0.0, 1.0, 0.0
+#   return quaternion_normalize([
+#     -(m[2][1] - m[1][2]) / (2.0 * s),
+#     -(m[0][2] - m[2][0]) / (2.0 * s),
+#     -(m[1][0] - m[0][1]) / (2.0 * s),
+#     0.5 * s,
+#     ])
+
 def matrix2quaternion(m):
-  s = math.sqrt(abs(m[0][0] + m[1][1] + m[2][2] + m[3][3]))
-  if s == 0.0:
-    x = abs(m[2][1] - m[1][2])
-    y = abs(m[0][2] - m[2][0])
-    z = abs(m[1][0] - m[0][1])
-    if   (x >= y) and (x >= z): return 1.0, 0.0, 0.0, 0.0
-    elif (y >= x) and (y >= z): return 0.0, 1.0, 0.0, 0.0
-    else:                       return 0.0, 0.0, 1.0, 0.0
-  return quaternion_normalize([
-    -(m[2][1] - m[1][2]) / (2.0 * s),
-    -(m[0][2] - m[2][0]) / (2.0 * s),
-    -(m[1][0] - m[0][1]) / (2.0 * s),
-    0.5 * s,
+  t = m[0][0] + m[1][1] + m[2][2] + m[3][3]
+  if t > 0.00000001:
+    s = math.sqrt(t) * 2
+    return quaternion_normalize([
+      -(m[2][1] - m[1][2]) / s,
+      -(m[0][2] - m[2][0]) / s,
+      -(m[1][0] - m[0][1]) / s,
+      0.25 * s,
     ])
+  else:
+    if (m[0][0] > m[1][1]) and (m[0][0] > m[2][2]):
+      s = math.sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2
+      return quaternion_normalize([
+        0.25 * s,
+        -(m[1][0] + m[0][1]) / s,
+        -(m[0][2] + m[2][0]) / s,
+        -(m[2][1] - m[1][2]) / s,
+        ])
+    elif m[1][1] > m[2][2]:
+      s = math.sqrt(1.0 + m[1][1] - m[0][0] - m[2][2]) * 2
+      return quaternion_normalize([
+        -(m[1][0] + m[0][1]) / s,
+        0.25 * s,
+        -(m[2][1] + m[1][2]) / s,
+        -(m[0][2] - m[2][0]) / s,
+        ])
+    else:
+      s = math.sqrt(1.0 + m[2][2] - m[0][0] - m[1][1]) * 2
+      return quaternion_normalize([
+        -(m[0][2] + m[2][0]) / s,
+        -(m[2][1] + m[1][2]) / s,
+        0.25 * s,
+        -(m[1][0] - m[0][1]) / s,
+        ])
 
 def quaternion_normalize(q):
   l = math.sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3])
@@ -314,7 +469,8 @@ def vector_length(v):
 
 def vector_normalize(v):
   l = math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
-  return v[0] / l, v[1] / l, v[2] / l
+  if l: return v[0] / l, v[1] / l, v[2] / l
+  else: return v
 
 def vector_dotproduct(v1, v2):
   return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
@@ -391,6 +547,9 @@ class Material:
     self.specular_b = 255
     self.specular_a = 255
     self.shininess = 1.0
+
+    log.debug("Material with name %s",map_filename)
+    
     if map_filename: self.maps_filenames = [map_filename]
     else:            self.maps_filenames = []
     
@@ -417,6 +576,7 @@ class Material:
     s += "  <DIFFUSE>" + str(self.diffuse_r) + " " + str(self.diffuse_g) + " " + str(self.diffuse_b) + " " + str(self.diffuse_a) + "</DIFFUSE>\n";
     s += "  <SPECULAR>" + str(self.specular_r) + " " + str(self.specular_g) + " " + str(self.specular_b) + " " + str(self.specular_a) + "</SPECULAR>\n";
     s += "  <SHININESS>" + str(self.shininess) + "</SHININESS>\n";
+
     for map_filename in self.maps_filenames:
       s += "  <MAP>" + map_filename + "</MAP>\n";
       
@@ -428,6 +588,7 @@ MATERIALS = {}
 
 class Mesh:
   def __init__(self, name):
+    name=string.replace(name,'.','_')
     self.name      = name
     self.submeshes = []
     
@@ -464,7 +625,8 @@ class SubMesh:
   def compute_lods(self):
     """Computes LODs info for Cal3D (there's no Blender related stuff here)."""
     
-    print "Start LODs computation..."
+    log.info("Start LODs computation...")
+
     vertex2faces = {}
     for face in self.faces:
       for vertex in (face.vertex1, face.vertex2, face.vertex3):
@@ -555,7 +717,7 @@ class SubMesh:
     new_faces.reverse() # Cal3D want LODed faces at the end
     self.faces = new_faces
     
-    print "LODs computed : %s vertices can be removed (from a total of %s)." % (self.nb_lodsteps, len(self.vertices))
+    log.info("LODs computed : %s vertices can be removed (from a total of %s)." % (self.nb_lodsteps, len(self.vertices)))
     
   def rename_vertices(self, new_vertices):
     """Rename (change ID) of all vertices, such as self.vertices == new_vertices."""
@@ -608,7 +770,7 @@ class Vertex:
     s += "".join(map(Influence.to_cal3d, self.influences))
     if not self.weight is None: s += struct.pack("f", len(self.weight))
     return s
-
+  
   def to_cal3d_xml(self):
     if self.collapse_to:
       collapse_id = self.collapse_to.id
@@ -710,12 +872,14 @@ BONES = {}
 class Bone:
   def __init__(self, skeleton, parent, name, loc, rot):
     self.parent = parent
+    name=string.replace(name,'.','_')
     self.name   = name
     self.loc = loc
     self.rot = rot
     self.children = []
     
-    self.matrix = matrix_translate(quaternion2matrix(rot), loc)
+    self.matrix = self.local_matrix = matrix_translate(quaternion2matrix(rot), loc)
+    
     if parent:
       self.matrix = matrix_multiply(parent.matrix, self.matrix)
       parent.children.append(self)
@@ -767,6 +931,7 @@ class Bone:
 
 class Animation:
   def __init__(self, name, duration = 0.0):
+    name=string.replace(name,'.','_')
     self.name     = name
     self.duration = duration
     self.tracks   = {} # Map bone names to tracks
@@ -817,7 +982,7 @@ class KeyFrame:
   def to_cal3d(self):
     # We need to negate quaternion W value, but why ?
     return struct.pack("ffffffff", self.time, self.loc[0], self.loc[1], self.loc[2], self.rot[0], self.rot[1], self.rot[2], -self.rot[3])
-
+  
   def to_cal3d_xml(self):
     s = "    <KEYFRAME TIME=\"%f\">\n" % self.time
     s += "      <TRANSLATION>%f %f %f</TRANSLATION>\n" % \
@@ -827,7 +992,7 @@ class KeyFrame:
          (self.rot[0], self.rot[1], self.rot[2], -self.rot[3])
     s += "    </KEYFRAME>\n"
     return s                                                      
-
+  
 def export(filename):
   global MESSAGES
   
@@ -839,9 +1004,11 @@ def export(filename):
   scene = Blender.Scene.getCurrent()
   
   # ---- Export skeleton (=armature) ----------------------------------------
+  
+  if Blender.mode == 'interactive': DrawProgressBar(0.0,'Exporting skeleton...')
 
   skeleton = Skeleton()
-  
+
   foundarmature = False
   for obj in Blender.Object.Get():
     data = obj.getData()
@@ -849,7 +1016,7 @@ def export(filename):
       continue
     
     if foundarmature == True:
-      MESSAGES += "Found multiple armatures! '" + obj.getName() + "' ignored.\n"
+      log.error("Found multiple armatures! '" + obj.getName() + "' ignored.\n")
       continue
 
     foundarmature = True
@@ -858,11 +1025,11 @@ def export(filename):
       matrix = matrix_multiply(BASE_MATRIX, matrix)
     
     def treat_bone(b, parent = None):
-      head = b.getHead()
-      tail = b.getTail()
+      head = b.head["BONESPACE"]
+      tail = b.tail["BONESPACE"]
       
       # Turns the Blender's head-tail-roll notation into a quaternion
-      quat = matrix2quaternion(blender_bone2matrix(head, tail, b.getRoll()))
+      quat = matrix2quaternion(blender_bone2matrix(head, tail, b.roll["BONESPACE"]))
       
       if parent:
         # Compute the translation from the parent bone's head to the child
@@ -874,8 +1041,10 @@ def export(filename):
         parent_invert_transform = matrix_invert(quaternion2matrix(parent.rot))
         parent_head = vector_by_matrix(parent.head, parent_invert_transform)
         parent_tail = vector_by_matrix(parent.tail, parent_invert_transform)
-
-        ploc = vector_add(head, b.getLoc())
+        
+        
+        
+        #ploc = vector_add(head, b.getLoc())
         parentheadtotail = vector_sub(parent_tail, parent_head)
         # hmm this should be handled by the IPos, but isn't for non-animated
         # bones which are transformed in the pose mode...
@@ -884,7 +1053,9 @@ def export(filename):
         loc = parentheadtotail
         rot = quat
         
-        bone = Bone(skeleton, parent, b.getName(), loc, rot)
+        log.debug("Parented Bone: %s",b.name)
+        
+        bone = Bone(skeleton, parent, b.name, loc, rot)
       else:
         # Apply the armature's matrix to the root bones
         head = point_by_matrix(head, matrix)
@@ -896,29 +1067,34 @@ def export(filename):
         loc = head
         rot = quat
         
+        log.debug("Non Parented Bone: %s",b.name)
+
         # Here, the translation is simply the head vector
-        bone = Bone(skeleton, None, b.getName(), loc, rot)
+        bone = Bone(skeleton, None, b.name, loc, rot)
         
       bone.head = head
       bone.tail = tail
       
-      for child in b.getChildren():
-        treat_bone(child, bone)
-     
+      if b.hasChildren():
+        for child in b.children:
+          treat_bone(child, bone)
+          
     foundroot = False
-    for b in data.getBones():
+    for b in data.bones.values():
       # child bones are handled in treat_bone
-      if b.getParent() != None:
+      if b.parent != None:
         continue
       if foundroot == True:
-        print "Warning: Found multiple root-bones, this may not be supported in cal3d."
-        #print "Ignoring bone '" + b.getName() + "' and it's childs."
+        log.warning("Warning: Found multiple root-bones, this may not be supported in cal3d.")
+        #print "Ignoring bone '" + b.name + "' and it's childs."
         #continue
         
       treat_bone(b)
       foundroot = True
 
   # ---- Export Mesh data ---------------------------------------------------
+
+  if Blender.mode == 'interactive': DrawProgressBar(0.3,'Exporting meshes...')
   
   meshes = []
   
@@ -926,6 +1102,10 @@ def export(filename):
     data = obj.getData()
     if (type(data) is Blender.Types.NMeshType) and data.faces:
       mesh_name = obj.getName()
+      if mesh_name[0]=='_': continue
+      
+      log.debug("Mesh: %s",mesh_name)
+      
       mesh = Mesh(mesh_name)
       meshes.append(mesh)
       
@@ -937,7 +1117,13 @@ def export(filename):
       while faces:
         image          = faces[0].image
         image_filename = image and image.filename
-        material       = MATERIALS.get(image_filename) or Material(image_filename)
+        image_name     = os.path.splitext(os.path.basename(image_filename))[0]
+        #print "MATERIAL", image_filename, image_name
+        if MATERIAL_MAP.has_key(image_name):
+          image_filename2 = os.path.join(os.path.dirname(image_filename), MATERIAL_MAP[image_name] + os.path.splitext(image_filename)[1])
+          #print "=>", image_filename
+        else: image_filename2 = image_filename
+        material       = MATERIALS.get(image_filename2) or Material(image_filename2)
         outputuv       = len(material.maps_filenames) > 0
         
         # TODO add material color support here
@@ -949,9 +1135,14 @@ def export(filename):
             faces.remove(face)
             
             if not face.smooth:
-              p1 = face.v[0].co
-              p2 = face.v[1].co
-              p3 = face.v[2].co
+              try:
+                p1 = face.v[0].co
+                p2 = face.v[1].co
+                p3 = face.v[2].co
+              except IndexError:
+                log.error("You have faces with less that three verticies!")
+                continue
+
               normal = vector_normalize(vector_by_matrix(vector_crossproduct(
                 [p3[0] - p2[0], p3[1] - p2[1], p3[2] - p2[2]],
                 [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]],
@@ -961,11 +1152,11 @@ def export(filename):
             for i in range(len(face.v)):
               vertex = vertices.get(face.v[i].index)
               if not vertex:
-                coord  = point_by_matrix (face.v[i].co, matrix)
+                coord    = point_by_matrix (face.v[i].co, matrix)
                 if face.smooth:
                   normal = vector_normalize(vector_by_matrix(face.v[i].no, matrix))
-                vertex  = vertices[face.v[i].index] = Vertex(submesh, coord, normal)
-
+                vertex   = vertices[face.v[i].index] = Vertex(submesh, coord, normal)
+                
                 influences = data.getVertexInfluences(face.v[i].index)
                 # should this really be a warning? (well currently enabled,
                 # because blender has some bugs where it doesn't return
@@ -973,8 +1164,11 @@ def export(filename):
                 # cal3d<=0.9.1 had bugs where objects without influences
                 # aren't drawn.
                 if not influences:
-                  MESSAGES += "A vertex of object '%s' has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)\n" \
-                              % obj.getName()
+                  log.error("A vertex of object '%s' has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)\n. The vertex has been added to a vertex group called _no_inf" % obj.getName())
+                  if '_no_inf' not in data.getVertGroupNames():
+                    data.addVertGroup('_no_inf')
+
+                  data.assignVertsToGroup('_no_inf',[face.v[i].index],0.5,'add')
                 
                 # sum of influences is not always 1.0 in Blender ?!?!
                 sum = 0.0
@@ -982,9 +1176,12 @@ def export(filename):
                   sum += weight
                 
                 for bone_name, weight in influences:
+                  bone_name=string.replace(bone_name,'.','_')
+                  if bone_name=='':
+                    log.critical('Found bone with no name which influences %s' % obj.getName())
+                    continue
                   if bone_name not in BONES:
-                    MESSAGES += "Couldn't find bone '%s' which influences" \
-                                "object '%s'.\n" % (bone_name, obj.getName())
+                    log.error("Couldn't find bone '%s' which influences object '%s'.\n" % (bone_name, obj.getName()))
                     continue
                   vertex.influences.append(Influence(BONES[bone_name], weight / sum))
                   
@@ -1032,18 +1229,23 @@ def export(filename):
           submesh.compute_lods()
         
   # ---- Export animations --------------------------------------------------
+
+  if Blender.mode == 'interactive': DrawProgressBar(0.7,'Exporting animations...')
+
   ANIMATIONS = {}
 
   for a in Blender.Armature.NLA.GetActions().iteritems():
     animation_name = a[0]
+    
+    log.debug( "Animation: %s",animation_name)
+    
     animation = Animation(animation_name)
     animation.duration = 0.0
 
     for b in a[1].getAllChannelIpos().iteritems():
-      bone_name = b[0]
+      bone_name = string.replace(b[0],'.','_')
       if bone_name not in BONES:
-        MESSAGES += "No Bone '" + bone_name + "' defined (from Animation '" \
-            + animation_name + "' ?!?\n"
+        log.error("No Bone '" + bone_name + "' defined (from Animation '" + animation_name + "' ?!?\n")
         continue                                            
 
       bone = BONES[bone_name]
@@ -1066,8 +1268,8 @@ def export(filename):
         curve_name = curve.getName()
 
         if curve_name not in ["QuatW", "QuatX", "QuatY", "QuatZ", "LocX", "LocY", "LocZ"]:
-          MESSAGES += "Curve type %s not supported in Action '%s' Bone '%s'.\n"\
-                    % (curve_name, animation_name, bone_name)
+          log.error("Curve type %s not supported in Action '%s' Bone '%s'.\n"\
+                    % (curve_name, animation_name, bone_name))
         
         for p in curve.getPoints():
           time = p.getPoints() [0]
@@ -1093,17 +1295,28 @@ def export(filename):
           if curve.getName() == "QuatX": quat[0] = val
           if curve.getName() == "QuatY": quat[1] = val
           if curve.getName() == "QuatZ": quat[2] = val
+          log.debug('Curve: %s' % curve.getName())
+
+        if quat==[0,0,0,0]:
+          log.critical('You are using just Loc keys. You must use LocRot keys instead.')
+          continue
+        
+        transt = vector_by_matrix(trans, bone.local_matrix)
           
-        transt = vector_by_matrix(trans, bone.matrix)
         loc = vector_add(bone.loc, transt)
         rot = quaternion_multiply(quat, bone.rot)
-        rot = quaternion_normalize(rot)
         
+        try:
+          rot = quaternion_normalize(rot)
+        except:
+          import traceback
+          log.error('quaternion_normalize failed')
+
         KeyFrame(track, cal3dtime, loc, rot)
         
     if animation.duration <= 0:
-      MESSAGES += "Ignoring Animation '" + animation_name + \
-                  "': duration is 0.\n"
+      log.warning("Ignoring Animation '" + animation_name + \
+                  "': duration is 0.")
       continue
     ANIMATIONS[animation_name] = animation
     
@@ -1112,11 +1325,15 @@ def export(filename):
     filename = os.path.splitext(filename)[0]
   BASENAME = os.path.basename(filename)         
   DIRNAME  = os.path.dirname(filename)
+
+  try: os.makedirs(DIRNAME)
+  except: pass
+  
   if PREFIX_FILE_WITH_MODEL_NAME: PREFIX = BASENAME + "_"
   else:                           PREFIX = ""
   if XML: FORMAT_PREFIX = "x"; encode = lambda x: x.to_cal3d_xml()
   else:   FORMAT_PREFIX = "c"; encode = lambda x: x.to_cal3d()
-  print DIRNAME + " - " + BASENAME
+  #print DIRNAME + " - " + BASENAME
   
   cfg = open(os.path.join(DIRNAME, BASENAME + ".cfg"), "wb")
   print >> cfg, "# Cal3D model exported from Blender with blender2cal3d.py"
@@ -1158,42 +1375,106 @@ def export(filename):
     print >> cfg, "material=%s" % filename
   print >> cfg
   
-  MESSAGES += "Saved to '%s.cfg'\n" % BASENAME
-  MESSAGES += "Done."
+  try:
+    glob_params = Blender.Text.get("soya_params").asLines()
+    for glob_param in glob_params:
+      print >> cfg, glob_param
+  except: pass
   
-  # show messages
-  print MESSAGES
+  if CONFIG_TEXT:
+    for line in Blender.Text.get(CONFIG_TEXT).asLines():
+      if not line.startswith("material_"):
+        print >> cfg, line
+        
+        
+  # Remove soya cached data -- they need to be re-computed, since the model have changed
+  for filename in os.listdir(DIRNAME):
+    if filename.startswith("neighbors"):
+      os.remove(os.path.join(DIRNAME, filename))
+      
+  log.info("Saved to '%s.cfg'" % BASENAME)
+  log.info("Done.")
+  
+  if Blender.mode == 'interactive': DrawProgressBar(1.0,'Done!')
+  
+class BlenderGui:
+  def __init__(self):
+    text="""A log has been written to a blender text window. Change this window type to 
+a text window and you will be able to select the file."""
 
-# some (ugly) gui to show the error messages - no scrollbar or other luxury,
-# please improve this if you know how
-def gui():
-  global MESSAGES
-  button = Blender.Draw.Button("Ok", 1, 0, 0, 50, 20, "Close Window")
+    text=textwrap.wrap(text,40)
+
+    text+=['']
     
-  lines = MESSAGES.split("\n")
-  if len(lines) > 15:
-    lines.append("Please also take a look at your console")
-  pos = len(lines) * 15 + 20
-  for line in lines:
-    Blender.BGL.glRasterPos2i(0, pos)
-    Blender.Draw.Text(line)
-    pos -= 15
+    if log.has_critical:
+      text+=['There were critical errors!!!!']
 
-def event(evt, val):
-  if evt == Blender.Draw.ESCKEY:
-    Blender.Draw.Exit()
-    return
+    elif log.has_errors:
+      text+=['There were errors!']
 
-def button_event(evt):
-  if evt == 1:
-    Blender.Draw.Exit()
-    return
+    elif log.has_warnings:
+      text+=['There were warnings']
+    
+    # add any more text before here
+    text.reverse()
+
+    self.msg=text
+
+    Blender.Draw.Register(self.gui, self.event, self.button_event)
+  
+  def gui(self,):
+    quitbutton = Blender.Draw.Button("Exit", 1, 0, 0, 100, 20, "Close Window")
+    
+    y=35
+
+    for line in self.msg:
+      BGL.glRasterPos2i(10,y)
+      Blender.Draw.Text(line)
+      y+=15
+    
+  def event(self,evt, val):
+    if evt == Blender.Draw.ESCKEY:
+      Blender.Draw.Exit()
+      return
+
+  def button_event(self,evt):
+    if evt == 1:
+      Blender.Draw.Exit()
+      return
+
+def hotshot_export(filename):
+  import hotshot,hotshot.stats
+  prof=hotshot.Profile('blender2cal3d.prof')
+  print prof.runcall(export,filename)
+  prof.close()
+  stats=hotshot.stats.load('blender2cal3d.prof')
+  stats.strip_dirs()
+  stats.sort_stats('time','calls')
+  stats.print_stats()
 
 # Main script
 def fs_callback(filename):
+  save_to_registry(filename)
+  #hotshot_export(filename)
   export(filename)
-  Blender.Draw.Register(gui, event, button_event)
+  BlenderGui()
 
+def save_to_registry(filename):
+  dir,name=os.path.split(filename)
+  d={'default_path':dir,
+    }
+  
+  log.info('storing %s to registry' % str(d))
+
+  Registry.SetKey('blender2cal3d',d)
+
+def get_from_registry():
+  d=Registry.GetKey('blender2cal3d')
+  if d:
+    log.info('got %s from registry' % str(d))
+    return d['default_path']
+  else:
+    return ''
 
 # Check for batch mode
 if "--blender2cal3d" in sys.argv:
@@ -1205,6 +1486,14 @@ if "--blender2cal3d" in sys.argv:
       try: val = float(val)
       except: pass
     globals()[attr] = val
+    
+  if CONFIG_TEXT:
+    for line in Blender.Text.get(CONFIG_TEXT).asLines():
+      if line.startswith("material_"):
+        old, new = line[9:].split("=")
+        MATERIAL_MAP[old] = new
+        log.info("Maps material %s to %s" % (old, new))
+        
   export(FILENAME)
   Blender.Quit()
   
@@ -1212,8 +1501,15 @@ else:
   if FILENAME: fs_callback(FILENAME)
   else:
     defaultname = Blender.Get("filename")
+    
     if defaultname.endswith(".blend"):
       defaultname = defaultname[0:len(defaultname)-len(".blend")] + ".cfg"
+   
+    dir,name=os.path.split(defaultname)
+   
+    lastpath=get_from_registry()
+    defaultname=os.path.join(lastpath,name)
+
     Blender.Window.FileSelector(fs_callback, "Cal3D Export", defaultname)
 
 
