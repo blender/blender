@@ -3177,10 +3177,9 @@ static PyObject *Object_getDupliObjects ( BPy_Object * self  )
 	{
 	PyObject *dupli_objects_list= PyList_New( 0 );
 	Object *ob= self->object;
-	Scene *sce= G.scene;
-	DupliObject *dob;
-	ListBase *lb;
-	int index=0;
+	DupliObject *dupob;
+	ListBase *duplilist= NULL;
+	int index;
 	
 	if(ob->transflag & OB_DUPLI) {
 		/* before make duplis, update particle for current frame */
@@ -3191,25 +3190,23 @@ static PyObject *Object_getDupliObjects ( BPy_Object * self  )
 			}
 		}
 		if(ob->type!=OB_MBALL) {
-			lb= object_duplilist(sce, ob);
-			dupli_objects_list= PyList_New( BLI_countlist(&lb) );
+			/* Not sure why but the BLI_countlist(&duplilist) is always 1
+			greater then the size of the python list needs to be,
+			tested and is correct with DupFrames/Verts/Group - Campbell*/
+			duplilist= object_duplilist(G.scene, ob);
+			dupli_objects_list= PyList_New( BLI_countlist(&duplilist)-1 );
 			if( !dupli_objects_list )
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"PyList_New() failed" );
 			
-			dob = lb->first;
-			while(dob) {
-					
+			for(dupob= duplilist->first, index=0; dupob; dupob= dupob->next, index++)
 				PyList_SetItem( dupli_objects_list, index,
 				  Py_BuildValue( "(OO)",
-				  Object_CreatePyObject(dob->ob),
-				  newMatrixObject((float*)dob->mat,4,4,Py_NEW) )
+				  Object_CreatePyObject(dupob->ob),
+				  newMatrixObject((float*)dupob->mat,4,4,Py_NEW) )
 				);
-				index++;
-				dob= dob->next;
-				
-			}
-			free_object_duplilist(lb);
+			
+			free_object_duplilist(duplilist);
 			
 		}
 	}
