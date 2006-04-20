@@ -27,6 +27,7 @@ Example::
 
 @var ObjectType: Blender Object. The base object, linked to its specific data
      at its .data member variable.
+@var GroupType: Blender Group. A Group that references a list of objects that are a part of this group.
 @var NMeshType: Blender NMesh. The mesh structure.
 @var NMFaceType: Blender NMFace. A mesh face, with one (a point), two (an edge),
      three (a triangular face) or four (a quad face) vertices.

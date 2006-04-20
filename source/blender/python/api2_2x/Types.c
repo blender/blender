@@ -50,6 +50,7 @@ extern PyTypeObject NMFace_Type, NMVert_Type, NMCol_Type, NMesh_Type;
 extern PyTypeObject MFace_Type, MVert_Type, PVert_Type, MEdge_Type, MCol_Type,
 	   Mesh_Type;
 extern PyTypeObject Object_Type;
+extern PyTypeObject Group_Type;
 extern PyTypeObject Particle_Type;
 extern PyTypeObject Scene_Type, RenderData_Type;
 extern PyTypeObject Text_Type, Text3d_Type, Texture_Type;
@@ -104,6 +105,7 @@ void types_InitAll( void )
    	MCol_Type.ob_type = &PyType_Type;
    	Mesh_Type.ob_type = &PyType_Type;
 	Object_Type.ob_type = &PyType_Type;
+	Group_Type.ob_type = &PyType_Type;
 	RenderData_Type.ob_type = &PyType_Type;
 	Scene_Type.ob_type = &PyType_Type;
 	Text_Type.ob_type = &PyType_Type;
@@ -139,6 +141,9 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &Object_Type );
 
 	/* Blender Object Data Types */
+
+	PyDict_SetItemString( dict, "GroupType",
+			      ( PyObject * ) &Group_Type );
 
 	PyDict_SetItemString( dict, "SceneType", ( PyObject * ) &Scene_Type );
 	PyDict_SetItemString( dict, "RenderDataType",

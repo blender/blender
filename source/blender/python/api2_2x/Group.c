@@ -322,7 +322,7 @@ PyObject *M_Group_New( PyObject * self, PyObject * args )
 	
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"string expected as argument" );
+				"string expected as argument or nothing" );
 	
 	bl_group= add_group();
 	
