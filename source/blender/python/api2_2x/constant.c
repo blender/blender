@@ -122,12 +122,44 @@ static PyObject *constant_getAttr(BPy_constant * self, char *name)
 		if(!strcmp(name, "__members__"))
 			return PyDict_Keys(self->dict);
 
+		if(!strcmp(name, "__methods__")) {
+			PyObject *value = PyString_FromString ( name );
+			v = PyObject_GenericGetAttr( (PyObject *)self, value );
+			Py_DECREF( value);
+			return v;
+		}
+
 		v = PyDict_GetItemString(self->dict, name);
 		if(v) {
 			return EXPP_incr_ret(v); /* was a borrowed ref */
 		}
 		return (EXPP_ReturnPyObjError(PyExc_AttributeError,
 						"attribute not found"));
+	}
+	return (EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"constant object lacks a dictionary"));
+}
+
+static PyObject *constant_getAttro(BPy_constant * self, PyObject *value)
+{
+	if(self->dict) {
+		PyObject *v;
+		char *name = PyString_AS_STRING( value );
+
+		if(!strcmp(name, "__members__"))
+			return PyDict_Keys(self->dict);
+
+#if 0
+		if(!strcmp(name, "__methods__") || !strcmp(name, "__dict__")) {
+			return PyObject_GenericGetAttr( (PyObject *)self, value );
+		}
+#endif
+
+		v = PyDict_GetItemString(self->dict, name);
+		if(v) {
+			return EXPP_incr_ret(v); /* was a borrowed ref */
+		}
+		return PyObject_GenericGetAttr( (PyObject *)self, value );
 	}
 	return (EXPP_ReturnPyObjError(PyExc_RuntimeError,
 					"constant object lacks a dictionary"));
@@ -180,7 +212,8 @@ PyTypeObject constant_Type = {
 	0,								//tp_itemsize
 	(destructor)constant_dealloc,	//tp_dealloc
 	0,								//tp_print
-	(getattrfunc)constant_getAttr,	//tp_getattr
+	// (getattrfunc)constant_getAttr,	//tp_getattr
+	0,		//tp_getattr
 	0,								//tp_setattr
 	0,								//tp_compare
 	(reprfunc) constant_repr,		//tp_repr
@@ -190,7 +223,7 @@ PyTypeObject constant_Type = {
 	0,								//tp_hash
 	0,								//tp_call
 	0,								//tp_str
-	0,								//tp_getattro
+	(getattrofunc)constant_getAttro,	//tp_getattro
 	0,								//tp_setattro
 	0,								//tp_as_buffer
 	Py_TPFLAGS_DEFAULT,				//tp_flags
@@ -230,6 +263,7 @@ PyObject *PyConstant_New(void)
 //Inserts a key:value pair into the constant and then returns 0/1
 int PyConstant_Insert(BPy_constant *self, char *name, PyObject *value)
 {
+	PyType_Ready( &constant_Type );
 	return EXPP_dict_set_item_str(self->dict, name, value);
 }
 //This is a helper function for generating constants......
