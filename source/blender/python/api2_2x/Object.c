@@ -3178,7 +3178,7 @@ static PyObject *Object_getDupliObjects ( BPy_Object * self  )
 	PyObject *dupli_objects_list= PyList_New( 0 );
 	Object *ob= self->object;
 	DupliObject *dupob;
-	ListBase *duplilist= NULL;
+	ListBase *duplilist;
 	int index;
 	
 	if(ob->transflag & OB_DUPLI) {
@@ -3190,11 +3190,8 @@ static PyObject *Object_getDupliObjects ( BPy_Object * self  )
 			}
 		}
 		if(ob->type!=OB_MBALL) {
-			/* Not sure why but the BLI_countlist(&duplilist) is always 1
-			greater then the size of the python list needs to be,
-			tested and is correct with DupFrames/Verts/Group - Campbell*/
 			duplilist= object_duplilist(G.scene, ob);
-			dupli_objects_list= PyList_New( BLI_countlist(&duplilist)-1 );
+			dupli_objects_list= PyList_New( BLI_countlist(duplilist) );
 			if( !dupli_objects_list )
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"PyList_New() failed" );
