@@ -281,22 +281,26 @@ static PyObject *Action_setActive( BPy_Action * self, PyObject * args )
 	BPy_Object *object;
 
 	if( !self->action )
-		( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					 "couldn't get attribute from a NULL action" ) );
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					 "couldn't get attribute from a NULL action" );
 
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &object ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected python object argument" ) );
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected python object argument" );
 
-	if( object->object->type != OB_ARMATURE ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"object not of type armature" ) );
-	}
-	//set the active action to object
+	if( object->object->type != OB_ARMATURE )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"object not of type armature" );
+
+	/* if object is already attached to an action, decrement user count */
+	if( object->object->action )
+		--object->object->action->id.us;
+
+	/* set the active action to object */
 	object->object->action = self->action;
+	++object->object->action->id.us;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args )
@@ -304,19 +308,19 @@ static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args )
 	char *chanName;
 	bActionChannel *chan;
 
-	if( !PyArg_ParseTuple( args, "s", &chanName ) ) {
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
+	if( !PyArg_ParseTuple( args, "s", &chanName ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				       "string expected" );
-		return NULL;
-	}
 
 	chan = get_action_channel( self->action, chanName );
-	if( chan == NULL ) {
-		EXPP_ReturnPyObjError( PyExc_AttributeError,
-				       "no channel with that name..." );
-		return NULL;
+	if( !chan )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				       "no channel with that name" );
+	
+	if( !chan->ipo ) {
+		Py_RETURN_NONE;
 	}
-	//return IPO
+
 	return Ipo_CreatePyObject( chan->ipo );
 }
 
@@ -375,7 +379,13 @@ static PyObject *Action_getAllChannelIpos( BPy_Action * self )
 	bActionChannel *chan = NULL;
 
 	for( chan = self->action->chanbase.first; chan; chan = chan->next ) {
-		PyObject *ipo_attr = Ipo_CreatePyObject( chan->ipo );
+		PyObject *ipo_attr;
+	   	if( chan->ipo )
+			ipo_attr = Ipo_CreatePyObject( chan->ipo );
+		else {
+			ipo_attr = Py_None;
+			Py_INCREF( ipo_attr );
+		}
 		if( ipo_attr ) {
 			// Insert dict entry using the bone name as key
 			if( PyDict_SetItemString( dict, chan->name, ipo_attr )
