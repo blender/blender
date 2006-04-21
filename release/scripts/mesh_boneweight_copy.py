@@ -9,7 +9,7 @@ Tooltip: 'Copy Bone Weights from 1 weighted mesh, to other unweighted meshes.'
 import Blender
 from Blender import Armature, Object, Mathutils, Window, Mesh
 Vector= Mathutils.Vector
-
+SMALL_NUM= 0.000001
 def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 	ob_from, me_from, world_verts_from, from_groups=  _from
 	ob_to, me_to, world_verts_to, dummy=  _to	
@@ -72,7 +72,7 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 					useup= False
 				else:
 					i,v= vecs[upidx]
-					if (not PREF_NO_XCROSS) or ((v.x >0 and seek_vec_x >0) or (v.x <0 and seek_vec_x <0)): # enfoce  xcrossing
+					if (not PREF_NO_XCROSS) or ((v.x >= -SMALL_NUM and seek_vec_x >= -SMALL_NUM) or (v.x <= SMALL_NUM and seek_vec_x <= SMALL_NUM)): # enfoce  xcrossing
 						if v.z-seek_vec_z > close_dist:
 							# the verticle distance is greater then the best distance sofar. we can stop looking up.
 							useup= False
@@ -90,7 +90,7 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 					uselo= False
 				else:
 					i,v= vecs[loidx]
-					if (not PREF_NO_XCROSS) or ((v.x >0 and seek_vec_x >0) or (v.x <0 and seek_vec_x <0)): # enfoce  xcrossing
+					if (not PREF_NO_XCROSS) or ((v.x >= -SMALL_NUM and seek_vec_x >= -SMALL_NUM) or (v.x <= SMALL_NUM and seek_vec_x  <= SMALL_NUM)): # enfoce  xcrossing
 						if seek_vec_z-v.z > close_dist:
 							# the verticle distance is greater then the best distance sofar. we can stop looking up.
 							uselo= False
