@@ -113,7 +113,7 @@ class Action:
     Get the Ipo for the named channel in this action
     @type channel: string
     @param channel: The name of a channel in this action
-    @rtype: PyIpo
+    @rtype: PyIpo or None
     @return: the Ipo for the channel
     """
     
@@ -127,6 +127,6 @@ class Action:
   def getAllChannelIpos():
     """
     Get the all the Ipos for this action
-    @rtype: Dictionary [channel : PyIpo]
+    @rtype: Dictionary [channel : PyIpo or None]
     @return: the Ipos for all the channels in the action
     """

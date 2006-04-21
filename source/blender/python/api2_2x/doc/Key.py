@@ -11,7 +11,7 @@ data blocks.
     - MESH - the key is a Mesh key; data blocks contain
     L{NMVert<NMesh.NMVert>} vertices.
     - CURVE - the key is a Curve key; data blocks contains either
-    L{BezTriples<Ipo.BezTriple>} or points (represented by a list of
+    L{BezTriples<BezTriple.BezTriple>} or points (represented by a list of
     3 floating point numbers).
     - LATTICE - the key is a Lattice key; data blocks contain
     BPoints, each point represented by a list of 3 floating point numbers.
@@ -97,7 +97,7 @@ class KeyBlock:
       don't have corresponding Python objects yet, so each BPoint is
       represented using a list of three floating-point numbers (the
       coordinate for each lattice vertex).
-      - Curve keys return either a list of L{BezTriple<Ipo.BezTriple>}
+      - Curve keys return either a list of L{BezTriple<BezTriple.BezTriple>}
       objects in the data if the curve is a Bezier curve, otherwise it 
       returns lists of three floats for each NURB or poly coordinate.
     """
