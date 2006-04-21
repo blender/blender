@@ -40,7 +40,7 @@
 extern PyTypeObject Group_Type;
 extern PyTypeObject MGroupObSeq_Type;
 
-#define BPy_Group_Check(v)       ((v)->ob_type == &Mesh_Type)
+#define BPy_Group_Check(v)       ((v)->ob_type == &Group_Type)
 #define BPy_MGroupObSeq_Check(v)      ((v)->ob_type == &MGroupObSeq_Type)
 
 /*****************************************************************************/
