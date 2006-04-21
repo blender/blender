@@ -41,9 +41,23 @@
 #include "BIF_space.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"
+#include "DNA_key_types.h"
 #include "mydevice.h"
 #include "Ipocurve.h"
 #include "gen_utils.h"
+
+extern int ob_ar[];
+extern int la_ar[];
+extern int ma_ar[];
+extern int ac_ar[];
+extern int cam_ar[];
+extern int co_ar[];
+extern int cu_ar[];
+extern int seq_ar[];
+extern int te_ar[];
+extern int wo_ar[];
+
+PyObject *submodule;
 
 /*****************************************************************************/
 /* Python API function prototypes for the Ipo module.                        */
@@ -60,7 +74,6 @@ static PyObject *M_Ipo_Recalc( PyObject * self, PyObject * args );
 char M_Ipo_doc[] = "";
 char M_Ipo_New_doc[] = "";
 char M_Ipo_Get_doc[] = "";
-
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Ipo module:             */
@@ -83,10 +96,12 @@ static PyObject *Ipo_setName( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self );
 static PyObject *Ipo_setBlocktype( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getRctf( BPy_Ipo * self );
-static PyObject *Ipo_setRctf( BPy_Ipo * self, PyObject * args );
+static PyObject *Ipo_oldsetRctf( BPy_Ipo * self, PyObject * args );
+static int Ipo_setRctf( BPy_Ipo * self, PyObject * args );
 
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurves( BPy_Ipo * self );
+static PyObject *Ipo_getCurveNames( BPy_Ipo * self );
 static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getNcurves( BPy_Ipo * self );
@@ -96,9 +111,17 @@ static PyObject *Ipo_getCurveBP( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_EvaluateCurveOn( BPy_Ipo * self, PyObject * args );
 
-
 static PyObject *Ipo_setCurveBeztriple( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args );
+
+static PyObject *Ipo_getChannel( BPy_Ipo * self );
+static int Ipo_setChannel( BPy_Ipo * self, PyObject * args );
+
+static int Ipo_length( BPy_Ipo * inst );
+static PyObject *Ipo_getIpoCurveByName( BPy_Ipo * self, PyObject * key );
+static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key, 
+		PyObject * value );
+static int Ipo_contains( BPy_Ipo * self, PyObject * key );
 
 /*****************************************************************************/
 /* Python BPy_Ipo methods table:                                            */
@@ -115,7 +138,7 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	 "(str) - Change Ipo blocktype"},
 	{"getRctf", ( PyCFunction ) Ipo_getRctf, METH_NOARGS,
 	 "() - Return Ipo rctf"},
-	{"setRctf", ( PyCFunction ) Ipo_setRctf, METH_VARARGS,
+	{"setRctf", ( PyCFunction ) Ipo_oldsetRctf, METH_VARARGS,
 	 "(flt,flt,flt,flt) - Change Ipo rctf"},
 	{"addCurve", ( PyCFunction ) Ipo_addCurve, METH_VARARGS,
 	 "() - Add a curve to Ipo"},
@@ -123,6 +146,10 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	 "(str) - Delete curve from Ipo"},
 	{"getNcurves", ( PyCFunction ) Ipo_getNcurves, METH_NOARGS,
 	 "() - Return number of Ipo curves"},
+	{"getCurves", ( PyCFunction ) Ipo_getCurves, METH_NOARGS,
+	 "() - Return list of all defined Ipo curves"},
+	{"getCurve", ( PyCFunction ) Ipo_getCurve, METH_VARARGS,
+	 "(str|int) - Returns specified Ipo curve"},
 	{"getNBezPoints", ( PyCFunction ) Ipo_getNBezPoints, METH_VARARGS,
 	 "(int) - Return number of Bez points on an Ipo curve"},
 	{"delBezPoint", ( PyCFunction ) Ipo_DeleteBezPoints, METH_VARARGS,
@@ -137,93 +164,544 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	 "(int,int) - deprecated: see ipocurve.bezierPoints[]"},
 	{"setCurveBeztriple", ( PyCFunction ) Ipo_setCurveBeztriple, METH_VARARGS,
 	 "(int,int,list) - set a BezTriple"},
-	{"getCurves", ( PyCFunction ) Ipo_getCurves, METH_NOARGS,
-	 "() - Return list of all defined Ipo curves"},
-	{"getCurve", ( PyCFunction ) Ipo_getCurve, METH_VARARGS,
-	 "(str|int) - Returns specified Ipo curve"},
 	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
-/* Python Ipo_Type callback function prototypes:                          */
+/* Python BPy_Ipo attributes get/set structure:                              */
 /*****************************************************************************/
-static void IpoDeAlloc( BPy_Ipo * self );
-//static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);
-static int IpoSetAttr( BPy_Ipo * self, char *name, PyObject * v );
-static PyObject *IpoGetAttr( BPy_Ipo * self, char *name );
-static PyObject *IpoRepr( BPy_Ipo * self );
+static PyGetSetDef BPy_Ipo_getseters[] = {
+	{"name",
+	 (getter)Ipo_getName, (setter)Ipo_setName,
+	 "Ipo data name",
+	 NULL},
+	{"curves",
+	 (getter)Ipo_getCurves, (setter)NULL,
+	 "Ipo curves",
+	 NULL},
+	{"curveConsts",
+	 (getter)Ipo_getCurveNames, (setter)NULL,
+	 "Ipo curve constants (values depend on Ipo type)",
+	 NULL},
+	{"channel",
+	 (getter)Ipo_getChannel, (setter)Ipo_setChannel,
+	 "Ipo texture channel (world, lamp, material Ipos only)",
+	 NULL},
+
+	{"blocktype",
+	 (getter)Ipo_getBlocktype, (setter)NULL,
+	 "Ipo block type",
+	 NULL},
+	{"rcft",
+	 (getter)Ipo_getRctf, (setter)Ipo_setRctf,
+	 "Ipo type",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
 
 /*****************************************************************************/
-/* Python Ipo_Type structure definition:                                  */
+/* Python Ipo_Type Mapping Methods table:                                    */
+/*****************************************************************************/
+static PyMappingMethods Ipo_as_mapping = {
+	( inquiry ) Ipo_length,	/* mp_length        */
+	( binaryfunc ) Ipo_getIpoCurveByName,	/* mp_subscript     */
+	( objobjargproc ) Ipo_setIpoCurveByName,	/* mp_ass_subscript */
+};
+
+static PySequenceMethods Ipo_as_sequence = {
+	( inquiry ) 0,	/* sq_length */
+	( binaryfunc ) 0,	/* sq_concat */
+	( intargfunc ) 0,	/* sq_repeat */
+	( intargfunc ) 0,	/* sq_item */
+	( intintargfunc ) 0,	/* sq_slice */
+	( intobjargproc ) 0,	/* sq_ass_item */
+	( intintobjargproc ) 0,	/* sq_ass_slice */
+	( objobjproc ) Ipo_contains,	/* sq_contains */
+	( binaryfunc ) 0,		/* sq_inplace_concat */
+	( intargfunc ) 0,		/* sq_inplace_repeat */
+};
+
+/*****************************************************************************/
+/* Python Ipo_Type callback function prototypes:                             */
+/*****************************************************************************/
+static void Ipo_dealloc( BPy_Ipo * self );
+//static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);
+static PyObject *Ipo_repr( BPy_Ipo * self );
+static PyObject *Ipo_getIter( BPy_Ipo * self );
+static PyObject *Ipo_nextIter( BPy_Ipo * self );
+
+/* #define CURVEATTRS */ /* uncomment to enable curves as Ipo attributes */ 
+
+#ifdef CURVEATTRS
+static PyGetSetDef BPy_Ipocurve_getseter = {
+	"noname",
+	 (getter)NULL, (setter)NULL,
+	 "Ipo curve name",
+	 NULL
+};
+
+void generate_curveattrs( PyObject* dict, int blocktype )
+{
+	typedef char * (*namefunc)(int, ... );
+	namefunc lookup_name;
+	int size;
+	int *vals = NULL;
+	char name[32];
+	PyObject*desc;
+
+	switch ( blocktype ) {
+	case ID_OB:
+		lookup_name = (namefunc)getname_ob_ei;
+		vals = ob_ar;
+		size = OB_TOTIPO;
+		break;
+	case ID_MA:
+		lookup_name = (namefunc)getname_mat_ei;
+		vals = ma_ar;
+		size = MA_TOTIPO;
+		break;
+	case ID_CA:
+		lookup_name = (namefunc)getname_cam_ei;
+		vals = cam_ar;
+		size = CAM_TOTIPO;
+		break;
+	case ID_LA:
+		lookup_name = (namefunc)getname_la_ei;
+		vals = la_ar;
+		size = LA_TOTIPO;
+		break;
+	case ID_TE:
+		lookup_name = (namefunc)getname_tex_ei;
+		vals = te_ar;
+		size = TE_TOTIPO;
+		break;
+	case ID_WO:
+		lookup_name = (namefunc)getname_world_ei;
+		vals = wo_ar;
+		size = WO_TOTIPO;
+		break;
+	case ID_PO:
+		lookup_name = (namefunc)getname_ac_ei;
+		vals = ac_ar;
+		size = AC_TOTIPO;
+		break;
+	case ID_CO:
+		lookup_name = (namefunc)getname_co_ei;
+		vals = co_ar;
+		size = CO_TOTIPO;
+		break;
+	case ID_CU:
+		lookup_name = (namefunc)getname_cu_ei;
+		vals = cu_ar;
+		size = CU_TOTIPO;
+		break;
+	case ID_SEQ:
+		lookup_name = (namefunc)getname_seq_ei;
+		vals = seq_ar;
+		size = SEQ_TOTIPO;
+		break;
+	}
+
+	desc = PyDescr_NewGetSet( &Ipo_Type, &BPy_Ipocurve_getseter );
+	while( size-- ) {
+		strcpy( name, lookup_name( *vals ) ); 
+		*name = tolower( *name );
+		PyDict_SetItemString( dict, name, desc );
+		++vals;
+	}
+	Py_DECREF( desc );
+}
+
+static short lookup_curve_name( char *, int , int );
+
+static PyObject *getattro( PyObject *self, PyObject *value )
+{
+	char *name = PyString_AS_STRING( value );
+	Ipo *ipo = ((BPy_Ipo *)self)->ipo;
+	int adrcode;
+	IpoCurve *icu;
+
+	if( !strcmp(name, "__class__") )
+		return PyObject_GenericGetAttr( self, value );
+
+	if( !strcmp(name, "__dict__") ) /* no effect */
+	{
+		PyObject *dict;
+		dict = PyDict_Copy( self->ob_type->tp_dict );
+		generate_curveattrs( dict, ipo->blocktype );
+		return dict;
+	}
+
+	adrcode = lookup_curve_name( name, ipo->blocktype, 
+			((BPy_Ipo *)self)->mtex );
+
+	if( adrcode != -1 ) {
+		for( icu = ipo->curve.first; icu; icu = icu->next )
+			if( icu->adrcode == adrcode )
+				return IpoCurve_CreatePyObject( icu );
+		Py_RETURN_NONE;
+	}
+
+	return PyObject_GenericGetAttr( self, value );
+}
+#endif
+
+/*****************************************************************************/
+/* Python Ipo_Type structure definition:                                     */
 /*****************************************************************************/
 PyTypeObject Ipo_Type = {
-	PyObject_HEAD_INIT( NULL ) /* required macro */ 0,	/* ob_size */
-	"Ipo",			/* tp_name */
-	sizeof( BPy_Ipo ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) IpoDeAlloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) IpoGetAttr,	/* tp_getattr */
-	( setattrfunc ) IpoSetAttr,	/* tp_setattr */
-	0,			/* tp_compare */
-	( reprfunc ) IpoRepr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Ipo_methods,	/* tp_methods */
-	0,			/* tp_members */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender Ipo",              /* char *tp_name; */
+	sizeof( BPy_Ipo ),          /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) Ipo_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	( reprfunc ) Ipo_repr,     /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	&Ipo_as_sequence,           /* PySequenceMethods *tp_as_sequence; */
+	&Ipo_as_mapping, 	        /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+#ifdef CURVEATTRS
+	(getattrofunc)getattro,
+#else
+	NULL,                       /* getattrofunc tp_getattro; */
+#endif
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	( getiterfunc) Ipo_getIter, /* getiterfunc tp_iter; */
+	( iternextfunc ) Ipo_nextIter, /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Ipo_methods,            /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Ipo_getseters,          /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
+
+/*****************************************************************************/
+/* internal utility routines                                                 */
+/*****************************************************************************/
+
+/*
+ * Search through list of known Ipocurves for a particular name.
+ *
+ * str: name of curve we are searching for
+ * blocktype: type of Ipo
+ * channel: texture channel number, for World/Lamp/Material curves
+ *
+ * returns the adrcode for the named curve if it exists, -1 otherwise
+ */
+
+/* this is needed since getname_ob_ei() is different from the rest */
+
+typedef char * (*namefunc)(int, ... );
+
+static short lookup_curve_name( char *str, int blocktype, int channel )
+{
+	namefunc lookup_name;
+	int *adrcodes = NULL;
+	int size = 0;
+
+	/* make sure channel type is ignored when it should be */
+	if( blocktype != ID_WO && blocktype != ID_LA && blocktype != ID_MA )
+		channel = -1;
+
+	switch ( blocktype ) {
+	case ID_OB:
+		lookup_name = (namefunc)getname_ob_ei;
+		adrcodes = ob_ar;
+		size = OB_TOTIPO;
+		break;
+	case ID_MA:
+		lookup_name = (namefunc)getname_mat_ei;
+		adrcodes = ma_ar;
+		size = MA_TOTIPO;
+		break;
+	case ID_CA:
+		lookup_name = (namefunc)getname_cam_ei;
+		adrcodes = cam_ar;
+		size = CAM_TOTIPO;
+		break;
+	case ID_LA:
+		lookup_name = (namefunc)getname_la_ei;
+		adrcodes = la_ar;
+		size = LA_TOTIPO;
+		break;
+	case ID_TE:
+		lookup_name = (namefunc)getname_tex_ei;
+		adrcodes = te_ar;
+		size = TE_TOTIPO;
+		break;
+	case ID_WO:
+		lookup_name = (namefunc)getname_world_ei;
+		adrcodes = wo_ar;
+		size = WO_TOTIPO;
+		break;
+	case ID_PO:
+		lookup_name = (namefunc)getname_ac_ei;
+		adrcodes = ac_ar;
+		size = AC_TOTIPO;
+		break;
+	case ID_CO:
+		lookup_name = (namefunc)getname_co_ei;
+		adrcodes = co_ar;
+		size = CO_TOTIPO;
+		break;
+	case ID_CU:
+		lookup_name = (namefunc)getname_cu_ei;
+		adrcodes = cu_ar;
+		size = CU_TOTIPO;
+		break;
+	case ID_SEQ:
+		lookup_name = (namefunc)getname_seq_ei;
+		adrcodes = seq_ar;
+		size = SEQ_TOTIPO;
+		break;
+	case ID_KE:	/* shouldn't happen */
+	default:
+		return -1;
+	}
+
+	while ( size-- ) {
+		char *name = lookup_name ( *adrcodes );
+
+		/* if not a texture channel, just return the adrcode */
+		if( !strncmp( str, name, strlen( name ) ) ) {
+			if( channel == -1 || *adrcodes < MA_MAP1 )
+				return (short)*adrcodes;
+
+		/* otherwise adjust adrcode to include current channel */
+			else {
+				int param = (short)*adrcodes & ~MA_MAP1;
+				param |= texchannel_to_adrcode( channel );
+				return param;
+			}
+		}
+		++adrcodes;
+	}
+	return -1;
+}
+
+static short lookup_curve_key( char *str, Ipo *ipo )
+{
+	Key *keyiter;
+
+	/* find the ipo in the keylist */
+	for( keyiter = G.main->key.first; keyiter; keyiter = keyiter->id.next ) {
+		if( keyiter->ipo == ipo ) {
+			KeyBlock *block = keyiter->block.first;
+
+			/* look for a matching string, get the adrcode */
+			for( block = keyiter->block.first; block; block = block->next )
+				if( !strncmp( str, block->name, strlen( block->name) ) )
+					return block->adrcode;
+
+			/* no match; no addr code */
+			return -1;
+		}
+	}
+
+	/* error if the ipo isn't in the list */
+	return -2;
+}
+
+/*
+ * Search through list of known Ipocurves for a particular adrcode.
+ *
+ * code: adrcode of curve we are searching for
+ * blocktype: type of Ipo
+ * channel: texture channel number, for World/Lamp/Material curves
+ *
+ * returns the adrcode for the named curve if it exists, -1 otherwise
+ */
+
+static short lookup_curve_adrcode( int code, int blocktype, int channel )
+{
+	int *adrcodes = NULL;
+	int size = 0;
+
+	switch ( blocktype ) {
+	case ID_OB:
+		adrcodes = ob_ar;
+		size = OB_TOTIPO;
+		break;
+	case ID_MA:
+		adrcodes = ma_ar;
+		size = MA_TOTIPO;
+		break;
+	case ID_CA:
+		adrcodes = cam_ar;
+		size = CAM_TOTIPO;
+		break;
+	case ID_LA:
+		adrcodes = la_ar;
+		size = LA_TOTIPO;
+		break;
+	case ID_TE:
+		adrcodes = te_ar;
+		size = TE_TOTIPO;
+		break;
+	case ID_WO:
+		adrcodes = wo_ar;
+		size = WO_TOTIPO;
+		break;
+	case ID_PO:
+		adrcodes = ac_ar;
+		size = AC_TOTIPO;
+		break;
+	case ID_CO:
+		adrcodes = co_ar;
+		size = CO_TOTIPO;
+		break;
+	case ID_CU:
+		adrcodes = cu_ar;
+		size = CU_TOTIPO;
+		break;
+	case ID_SEQ:
+		adrcodes = seq_ar;
+		size = SEQ_TOTIPO;
+		break;
+	case ID_KE:
+	default:
+		return -1;
+	}
+
+	while ( size-- ) {
+		if( *adrcodes == code ) {
+
+		/* if not a texture channel, just return the adrcode */
+			if( channel == -1 || *adrcodes < MA_MAP1 )
+				return *adrcodes;
+
+		/* otherwise adjust adrcode to include current channel */
+			else {
+				int param = *adrcodes & ~MA_MAP1;
+				param |= texchannel_to_adrcode( channel );
+				return param;
+			}
+		}
+		++adrcodes;
+	}
+	return -1;
+}
+
+/*
+ * Delete an IpoCurve from an Ipo
+ */
+
+static void del_ipocurve( Ipo * ipo, IpoCurve * icu ) {
+	BLI_remlink( &( ipo->curve ), icu );
+	if( icu->bezt )
+		MEM_freeN( icu->bezt );
+	if( icu->driver )
+		MEM_freeN( icu->driver );
+	MEM_freeN( icu );
+
+	/* have to do this to avoid crashes in the IPO window */
+	allspace( REMAKEIPO, 0 );
+	EXPP_allqueue( REDRAWIPO, 0 );
+}
+
+/*****************************************************************************/
+/* Python BPy_Ipo functions:                                                 */
+/*****************************************************************************/
 
 /*****************************************************************************/
 /* Function:              M_Ipo_New                                          */
 /* Python equivalent:     Blender.Ipo.New                                    */
 /*****************************************************************************/
 
-static PyObject *M_Ipo_New( PyObject * self, PyObject * args )
+static PyObject *M_Ipo_New( PyObject * self_unused, PyObject * args )
 {
-	Ipo *add_ipo( char *name, int idcode );
 	char *name = NULL, *code = NULL;
 	int idcode = -1;
-	BPy_Ipo *pyipo;
 	Ipo *blipo;
 
 	if( !PyArg_ParseTuple( args, "ss", &code, &name ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError,
-			   "expected string string arguments" ) );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected two string arguments" );
 
 	if( !strcmp( code, "Object" ) )
 		idcode = ID_OB;
-	if( !strcmp( code, "Camera" ) )
+	else if( !strcmp( code, "Camera" ) )
 		idcode = ID_CA;
-	if( !strcmp( code, "World" ) )
+	else if( !strcmp( code, "World" ) )
 		idcode = ID_WO;
-	if( !strcmp( code, "Material" ) )
+	else if( !strcmp( code, "Material" ) )
 		idcode = ID_MA;
-	if( !strcmp( code, "Texture" ) )
+	else if( !strcmp( code, "Texture" ) )
 		idcode = ID_TE;
-	if( !strcmp( code, "Lamp" ) )
+	else if( !strcmp( code, "Lamp" ) )
 		idcode = ID_LA;
-	if( !strcmp( code, "Action" ) )
+	else if( !strcmp( code, "Action" ) )
 		idcode = ID_PO;
-	if( !strcmp( code, "Constraint" ) )
+	else if( !strcmp( code, "Constraint" ) )
 		idcode = ID_CO;
-	if( !strcmp( code, "Sequence" ) )
+	else if( !strcmp( code, "Sequence" ) )
 		idcode = ID_SEQ;
-	if( !strcmp( code, "Curve" ) )
+	else if( !strcmp( code, "Curve" ) )
 		idcode = ID_CU;
-	if( !strcmp( code, "Key" ) )
+	else if( !strcmp( code, "Key" ) )
 		idcode = ID_KE;
-
-	if( idcode == -1 )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "Bad code" ) );
-
+	else return EXPP_ReturnPyObjError( PyExc_ValueError,
+			"unknown Ipo code" );
 
 	blipo = add_ipo( name, idcode );
 
@@ -231,18 +709,10 @@ static PyObject *M_Ipo_New( PyObject * self, PyObject * args )
 		/* return user count to zero because add_ipo() inc'd it */
 		blipo->id.us = 0;
 		/* create python wrapper obj */
-		pyipo = ( BPy_Ipo * ) PyObject_NEW( BPy_Ipo, &Ipo_Type );
+		return Ipo_CreatePyObject( blipo );
 	} else
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"couldn't create Ipo Data in Blender" ) );
-
-	if( pyipo == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create Ipo Data object" ) );
-
-	pyipo->ipo = blipo;
-
-	return ( PyObject * ) pyipo;
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"couldn't create Ipo Data in Blender" );
 }
 
 /*****************************************************************************/
@@ -253,12 +723,11 @@ static PyObject *M_Ipo_New( PyObject * self, PyObject * args )
 /*                        passed in, a list of all ipo data names in the  */
 /*                        current scene is returned.                         */
 /*****************************************************************************/
-static PyObject *M_Ipo_Get( PyObject * self, PyObject * args )
+static PyObject *M_Ipo_Get( PyObject * self_unused, PyObject * args )
 {
 	char *name = NULL;
 	Ipo *ipo_iter;
 	PyObject *ipolist, *pyobj;
-	BPy_Ipo *wanted_ipo = NULL;
 	char error_msg[64];
 
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
@@ -268,25 +737,16 @@ static PyObject *M_Ipo_Get( PyObject * self, PyObject * args )
 	ipo_iter = G.main->ipo.first;
 
 	if( name ) {		/* (name) - Search ipo by name */
-		while( ( ipo_iter ) && ( wanted_ipo == NULL ) ) {
-			if( strcmp( name, ipo_iter->id.name + 2 ) == 0 ) {
-				wanted_ipo =
-					( BPy_Ipo * ) PyObject_NEW( BPy_Ipo,
-								    &Ipo_Type );
-				if( wanted_ipo )
-					wanted_ipo->ipo = ipo_iter;
+		while( ipo_iter ) {
+			if( !strcmp( name, ipo_iter->id.name + 2 ) ) {
+				return Ipo_CreatePyObject( ipo_iter );
 			}
 			ipo_iter = ipo_iter->id.next;
 		}
 
-		if( wanted_ipo == NULL ) {	/* Requested ipo doesn't exist */
-			PyOS_snprintf( error_msg, sizeof( error_msg ),
-				       "Ipo \"%s\" not found", name );
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_NameError, error_msg ) );
-		}
-
-		return ( PyObject * ) wanted_ipo;
+		PyOS_snprintf( error_msg, sizeof( error_msg ),
+				   "Ipo \"%s\" not found", name );
+		return EXPP_ReturnPyObjError( PyExc_NameError, error_msg );
 	}
 
 	else {			/* () - return a list with all ipos in the scene */
@@ -294,17 +754,15 @@ static PyObject *M_Ipo_Get( PyObject * self, PyObject * args )
 
 		ipolist = PyList_New( BLI_countlist( &( G.main->ipo ) ) );
 
-		if( ipolist == NULL )
-			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-							"couldn't create PyList" ) );
+		if( !ipolist )
+			return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					"couldn't create PyList" );
 
 		while( ipo_iter ) {
 			pyobj = Ipo_CreatePyObject( ipo_iter );
 
 			if( !pyobj )
-				return ( EXPP_ReturnPyObjError
-					 ( PyExc_MemoryError,
-					   "couldn't create PyString" ) );
+				return NULL;
 
 			PyList_SET_ITEM( ipolist, index, pyobj );
 
@@ -312,55 +770,48 @@ static PyObject *M_Ipo_Get( PyObject * self, PyObject * args )
 			index++;
 		}
 
-		return ( ipolist );
+		return ipolist;
 	}
 }
 
+/*
+ * This should probably be deprecated too?  Or else documented in epydocs.
+ * Seems very similar to Ipocurve.recalc().
+ */
 
-static PyObject *M_Ipo_Recalc( PyObject * self, PyObject * args )
+/*****************************************************************************/
+/* Function:              M_Ipo_Recalc                                       */
+/* Python equivalent:     Blender.Ipo.Recalc                                 */
+/* Description:           Receives (presumably) an IpoCurve object and       */
+/*                        updates the curve after changes to control points. */
+/*****************************************************************************/
+static PyObject *M_Ipo_Recalc( PyObject * self_unused, PyObject * args )
 {
-	PyObject *obj;
-	IpoCurve *icu;
+	PyObject *pyobj;
 
-	if( !PyArg_ParseTuple( args, "O!", &IpoCurve_Type, &obj ) )
+	if( !PyArg_ParseTuple( args, "O!", &IpoCurve_Type, &pyobj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected Ipo curve argument" );
 
-	icu = IpoCurve_FromPyObject( obj );
-	testhandles_ipocurve( icu );
+	testhandles_ipocurve( IpoCurve_FromPyObject( pyobj ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
-
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
-/* Function:              Ipo_Init                                           */
+/* Python BPy_Ipo methods:                                                   */
 /*****************************************************************************/
-PyObject *Ipo_Init( void )
-{
-	PyObject *submodule;
 
-	Ipo_Type.ob_type = &PyType_Type;
-
-	submodule = Py_InitModule3( "Blender.Ipo", M_Ipo_methods, M_Ipo_doc );
-
-	return ( submodule );
-}
-
-/*****************************************************************************/
-/* Python BPy_Ipo methods:                                                  */
-/*****************************************************************************/
 static PyObject *Ipo_getName( BPy_Ipo * self )
 {
 	PyObject *attr = PyString_FromString( self->ipo->id.name + 2 );
 
 	if( attr )
 		return attr;
-	Py_INCREF( Py_None );
-	return Py_None;
-}
 
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Ipo.name attribute" );
+}
 
 static PyObject *Ipo_setName( BPy_Ipo * self, PyObject * args )
 {
@@ -368,42 +819,39 @@ static PyObject *Ipo_setName( BPy_Ipo * self, PyObject * args )
 	char buf[21];
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected string argument" ) );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected string argument" );
 
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 
 	rename_id( &self->ipo->id, buf );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
 {
 	PyObject *attr = PyInt_FromLong( self->ipo->blocktype );
+
 	if( attr )
 		return attr;
-	return ( EXPP_ReturnPyObjError
-		 ( PyExc_RuntimeError,
-		   "couldn't get Ipo.blocktype attribute" ) );
-}
 
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		   "couldn't get Ipo.blocktype attribute" );
+}
 
 static PyObject *Ipo_setBlocktype( BPy_Ipo * self, PyObject * args )
 {
-	int blocktype = 0;
+	short blocktype = 0;
 
-	if( !PyArg_ParseTuple( args, "i", &blocktype ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected string argument" ) );
+	if( !PyArg_ParseTuple( args, "h", &blocktype ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected int argument" );
 
-	self->ipo->blocktype = ( short ) blocktype;
+	self->ipo->blocktype = blocktype;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
-
 
 static PyObject *Ipo_getRctf( BPy_Ipo * self )
 {
@@ -413,135 +861,43 @@ static PyObject *Ipo_getRctf( BPy_Ipo * self )
 	PyList_Append( l, PyFloat_FromDouble( self->ipo->cur.ymin ) );
 	PyList_Append( l, PyFloat_FromDouble( self->ipo->cur.ymax ) );
 	return l;
-
 }
 
-
-static PyObject *Ipo_setRctf( BPy_Ipo * self, PyObject * args )
+static int Ipo_setRctf( BPy_Ipo * self, PyObject * args )
 {
 	float v[4];
+
 	if( !PyArg_ParseTuple( args, "ffff", v, v + 1, v + 2, v + 3 ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected 4 float argument" ) );
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a tuple of 4 floats" );
 
 	self->ipo->cur.xmin = v[0];
 	self->ipo->cur.xmax = v[1];
 	self->ipo->cur.ymin = v[2];
 	self->ipo->cur.ymax = v[3];
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	return 0;
 }
+
+/*
+ * Get total number of Ipo curves for this Ipo.  NOTE:  this function
+ * returns all curves for Ipos which have texture channels, unlike
+ * Ipo_length().
+ */
 
 static PyObject *Ipo_getNcurves( BPy_Ipo * self )
 {
+	IpoCurve *icu;
 	int i = 0;
 
-	IpoCurve *icu;
 	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
 		i++;
 	}
 
-	return ( PyInt_FromLong( i ) );
+	return PyInt_FromLong( (long)i );
 }
 
-
-/*
-  Lamp ipo Name to Channel
-*/
-
-static int Ipo_laIcuName( char *s, int *param )
-{
-	extern int la_ar[];
-
-	int not_ok = 0;
-	int i;
-	char *lamp_names[LA_TOTIPO] =
-		{ "Energ", "R", "G", "B", "Dist", "SpoSi",
-		"SpoBl", "Quad1", "Quad2", "HaInt",
-		/* lamp texture names */
-		"OfsX", "OfsY", "OfsZ", "SizeX", "SizeY",
-		"SizeZ", "texR", "texG", "texB", "DefVar",
-		"Col"
-	};
-
-	for( i = 0; i < LA_TOTIPO; i++ ) {
-		if( !strcmp( s, lamp_names[i] ) ) {	/* found it! */
-			*param = la_ar[i];
-			return 1;
-		}
-	}
-
-	return not_ok;
-}
-
-
-/* 
- World Ipo Name to Channel
-*/
-
-static int Ipo_woIcuName( char *s, int *param )
-{
-	extern int wo_ar[];	/* channel values from ipo.c */
-	int not_ok = 0;
-	int i;
-	char *world_names[WO_TOTIPO] = { "HorR", "HorG", "HorB",
-		"ZenR", "ZenG", "ZenB",
-		"Expos",
-		"Misi", "MisDi", "MisSta", "MisHi",
-		"StarR", "StarB", "StarG",
-		"StarDi", "StarSi",
-		/* world textures names */
-		"OfsX", "OfsY", "OfsZ",
-		"SizeX", "SizeY", "SizeZ",
-		"texR", "texG", "texB",
-		"DefVar", "Col", "Nor", "Var",
-	};
-
-	for( i = 0; i < WO_TOTIPO; i++ ) {
-		if( !strcmp( s, world_names[i] ) ) {	/* found it! */
-			*param = wo_ar[i];
-			return 1;
-		}
-	}
-
-	return not_ok;
-}
-
-static int Ipo_maIcuName( char *s, int *param )
-{
-	extern int ma_ar[];
-
-	int not_ok = 0;
-	int i;
-
-	char *material_names[MA_TOTIPO] = { "R", "G", "B",
-		"SpecR", "SpecG", "SpecB",
-		"MirR", "MirG", "MirB", "Ref", "Alpha",
-		"Emit", "Amb", "Spec",
-		"Hard", "SpTra", "Ior", "Mode",
-		"HaSize", "Translu",
-		"RayMir", "FresMir", "FresMirI",
-		"FresTra", "FresTraI",
-		"TraGlow",
-		"OfsX", "OfsY", "OfsZ",
-		"SizeX", "SizeY", "SizeZ",
-		"texR", "texG", "texB",
-		"DefVar", "Col", "Nor", "Var",
-		"Disp"
-	};
-
-
-	for( i = 0; i < MA_TOTIPO; i++ ) {
-		if( !strcmp( s, material_names[i] ) ) {	/* found it! */
-			*param = ma_ar[i];
-			return 1;
-		}
-	}
-
-	return not_ok;
-}
-
+#if 0
 static int Ipo_keIcuName( char *s, int *param )
 {
 	char key[10];
@@ -562,263 +918,7 @@ static int Ipo_keIcuName( char *s, int *param )
 
 	return ok;
 }
-
-static int Ipo_seqIcuName( char *s, int *param )
-{
-	int ok = 0;
-	if( !strcmp( s, "Fac" ) ) {
-		*param = SEQ_FAC1;
-		ok = 1;
-	}
-
-	return ok;
-}
-
-static int Ipo_cuIcuName( char *s, int *param )
-{
-	int ok = 0;
-	if( !strcmp( s, "Speed" ) ) {
-		*param = CU_SPEED;
-		ok = 1;
-	}
-
-	return ok;
-}
-
-static int Ipo_coIcuName( char *s, int *param )
-{
-	int ok = 0;
-	if( !strcmp( s, "Inf" ) ) {
-		*param = CO_ENFORCE;
-		ok = 1;
-	}
-
-	return ok;
-}
-
-static int Ipo_acIcuName( char *s, int *param )
-{
-	int ok = 0;
-	if( !strcmp( s, "LocX" ) ) {
-		*param = AC_LOC_X;
-		return 1;
-	}
-	if( !strcmp( s, "LocY" ) ) {
-		*param = AC_LOC_Y;
-		return 1;
-	}
-	if( !strcmp( s, "LocZ" ) ) {
-		*param = AC_LOC_Z;
-		return 1;
-	}
-	if( !strcmp( s, "SizeX" ) ) {
-		*param = AC_SIZE_X;
-		return 1;
-	}
-	if( !strcmp( s, "SizeY" ) ) {
-		*param = AC_SIZE_Y;
-		return 1;
-	}
-	if( !strcmp( s, "SizeZ" ) ) {
-		*param = AC_SIZE_Z;
-		return 1;
-	}
-	if( !strcmp( s, "QuatX" ) ) {
-		*param = AC_QUAT_X;
-		return 1;
-	}
-	if( !strcmp( s, "QuatY" ) ) {
-		*param = AC_QUAT_Y;
-		return 1;
-	}
-	if( !strcmp( s, "QuatZ" ) ) {
-		*param = AC_QUAT_Z;
-		return 1;
-	}
-	if( !strcmp( s, "QuatW" ) ) {
-		*param = AC_QUAT_W;
-		return 1;
-	}
-	return ok;
-}
-
-
-/*
-  Camera ipo name to channel
-*/
-
-static int Ipo_caIcuName( char *s, int *param )
-{
-	/* for Camera ipos CAM_TOTNAM == CAM_TOTIPO 
-	   and cam_ic_names[] holds the complete set of names, so we use that.
-	 */
-	extern int cam_ar[];
-	extern char *cam_ic_names[];
-
-	int not_ok = 0;
-	int i;
-
-	for( i = 0; i < CAM_TOTIPO; i++ ) {
-		if( !strcmp( s, cam_ic_names[i] ) ) {	/* found it! */
-			*param = cam_ar[i];
-			return 1;
-		}
-	}
-
-	return not_ok;
-}
-
-
-/*
-  texture ipo name to channel
-*/
-
-static int Ipo_texIcuName( char *s, int *param )
-{
-	/* this is another case where TE_TOTIPO == TE_TOTNAM.
-	   te_ic_names[] has all our names so use that.
-	*/
-	extern int te_ar[];
-	extern char *tex_ic_names[];
-	int not_ok = 0;
-	int i;
-
-	for( i = 0; i < TE_TOTIPO; i++){
-		if( !strcmp( s, tex_ic_names[i] ) ){
-			*param = te_ar[i];
-			return 1;
-		}
-	}
-
-	return not_ok;
-}
-
-static int Ipo_obIcuName( char *s, int *param )
-{
-	int ok = 0;
-	if( !strcmp( s, "LocX" ) ) {
-		*param = OB_LOC_X;
-		return 1;
-	}
-	if( !strcmp( s, "LocY" ) ) {
-		*param = OB_LOC_Y;
-		return 1;
-	}
-	if( !strcmp( s, "LocZ" ) ) {
-		*param = OB_LOC_Z;
-		return 1;
-	}
-	if( !strcmp( s, "RotX" ) ) {
-		*param = OB_ROT_X;
-		return 1;
-	}
-	if( !strcmp( s, "RotY" ) ) {
-		*param = OB_ROT_Y;
-		return 1;
-	}
-	if( !strcmp( s, "RotZ" ) ) {
-		*param = OB_ROT_Z;
-		return 1;
-	}
-	if( !strcmp( s, "SizeX" ) ) {
-		*param = OB_SIZE_X;
-		return 1;
-	}
-	if( !strcmp( s, "SizeY" ) ) {
-		*param = OB_SIZE_Y;
-		return 1;
-	}
-	if( !strcmp( s, "SizeZ" ) ) {
-		*param = OB_SIZE_Z;
-		return 1;
-	}
-
-	if( !strcmp( s, "dLocX" ) ) {
-		*param = OB_DLOC_X;
-		return 1;
-	}
-	if( !strcmp( s, "dLocY" ) ) {
-		*param = OB_DLOC_Y;
-		return 1;
-	}
-	if( !strcmp( s, "dLocZ" ) ) {
-		*param = OB_DLOC_Z;
-		return 1;
-	}
-	if( !strcmp( s, "dRotX" ) ) {
-		*param = OB_DROT_X;
-		return 1;
-	}
-	if( !strcmp( s, "dRotY" ) ) {
-		*param = OB_DROT_Y;
-		return 1;
-	}
-	if( !strcmp( s, "dRotZ" ) ) {
-		*param = OB_DROT_Z;
-		return 1;
-	}
-	if( !strcmp( s, "dSizeX" ) ) {
-		*param = OB_DSIZE_X;
-		return 1;
-	}
-	if( !strcmp( s, "dSizeY" ) ) {
-		*param = OB_DSIZE_Y;
-		return 1;
-	}
-	if( !strcmp( s, "dSizeZ" ) ) {
-		*param = OB_DSIZE_Z;
-		return 1;
-	}
-
-	if( !strcmp( s, "Layer" ) ) {
-		*param = OB_LAY;
-		return 1;
-	}
-	if( !strcmp( s, "Time" ) ) {
-		*param = OB_TIME;
-		return 1;
-	}
-
-	if( !strcmp( s, "ColR" ) ) {
-		*param = OB_COL_R;
-		return 1;
-	}
-	if( !strcmp( s, "ColG" ) ) {
-		*param = OB_COL_G;
-		return 1;
-	}
-	if( !strcmp( s, "ColB" ) ) {
-		*param = OB_COL_B;
-		return 1;
-	}
-	if( !strcmp( s, "ColA" ) ) {
-		*param = OB_COL_A;
-		return 1;
-	}
-	if( !strcmp( s, "FStreng" ) ) {
-		*param = OB_PD_FSTR;
-		return 1;
-	}
-	if( !strcmp( s, "FFall" ) ) {
-		*param = OB_PD_FFALL;
-		return 1;
-	}
-	if( !strcmp( s, "Damping" ) ) {
-		*param = OB_PD_SDAMP;
-		return 1;
-	}
-	if( !strcmp( s, "RDamp" ) ) {
-		*param = OB_PD_RDAMP;
-		return 1;
-	}
-	if( !strcmp( s, "Perm" ) ) {
-		*param = OB_PD_PERM;
-		return 1;
-	}
-
-	return ok;
-}
-
+#endif
 
 /* 
    Function:  Ipo_addCurve
@@ -832,8 +932,7 @@ static int Ipo_obIcuName( char *s, int *param )
 
 static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 {
-	int param = 0;		/* numeric curve name constant */
-	int ok;
+	short param;		/* numeric curve name constant */
 	char *cur_name = 0;	/* input arg: curve name */
 	Ipo *ipo = 0;
 	IpoCurve *icu = 0;
@@ -859,51 +958,16 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 				( PyExc_RuntimeError, "Ipo not found" );
 
 	/*
-	   depending on the block type, 
-	   check if the input arg curve name is valid 
-	   and set param to numeric value.
+	 * Check if the input arg curve name is valid depending on the block
+	 * type, and set param to numeric value.  Invalid names will return
+	 * param = -1.
 	 */
-	switch ( ipo->blocktype ) {
-	case ID_OB:
-		ok = Ipo_obIcuName( cur_name, &param );
-		break;
-	case ID_CA:
-		ok = Ipo_caIcuName( cur_name, &param );
-		break;
-	case ID_LA:
-		ok = Ipo_laIcuName( cur_name, &param );
-		break;
-	case ID_TE:
-		ok = Ipo_texIcuName( cur_name, &param );
-		break;
-	case ID_WO:
-		ok = Ipo_woIcuName( cur_name, &param );
-		break;
-	case ID_MA:
-		ok = Ipo_maIcuName( cur_name, &param );
-		break;
-	case ID_PO:
-		ok = Ipo_acIcuName( cur_name, &param );
-		break;
-	case ID_CO:
-		ok = Ipo_coIcuName( cur_name, &param );
-		break;
-	case ID_CU:
-		ok = Ipo_cuIcuName( cur_name, &param );
-		break;
-	case ID_KE:
-		ok = Ipo_keIcuName( cur_name, &param );
-		break;
-	case ID_SEQ:
-		ok = Ipo_seqIcuName( cur_name, &param );
-		break;
-	default:
-		ok = 0;
-	}
 
-	if( !ok )		/* curve type was invalid */
-		return EXPP_ReturnPyObjError
-			( PyExc_NameError, "curve name was invalid" );
+	param = lookup_curve_name( cur_name, ipo->blocktype, self->mtex );
+
+	if( param == -1 )
+		return EXPP_ReturnPyObjError( PyExc_NameError,
+				"curve name is not valid" );
 
 	/* see if the curve already exists */
 	for( icu = ipo->curve.first; icu; icu = icu->next )
@@ -912,13 +976,13 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 					"Ipo curve already exists" );
 
 	/* create the new ipo curve */
-	icu = MEM_callocN(sizeof(IpoCurve), "Python added ipocurve");
-	icu->blocktype= ipo->blocktype;
-	icu->adrcode= (short)param;
+	icu = MEM_callocN( sizeof(IpoCurve), "Python added ipocurve");
+	icu->blocktype = ipo->blocktype;
+	icu->adrcode = param;
 	icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 	set_icu_vars( icu );
 	BLI_addtail( &(ipo->curve), icu);
-	
+
 	allspace( REMAKEIPO, 0 );
 	EXPP_allqueue( REDRAWIPO, 0 );
 
@@ -942,92 +1006,713 @@ static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args )
 	char *strname;
 
 	if( !PyArg_ParseTuple( args, "s", &strname ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "string argument" ) );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected string argument" );
 
 	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
-		char *str1 = getIpoCurveName( icu );
-		if( !strcmp( str1, strname ) ) {
-			BLI_remlink( &( self->ipo->curve ), icu );
-			if( icu->bezt )
-				MEM_freeN( icu->bezt );
-			MEM_freeN( icu );
-
-			allspace( REMAKEIPO, 0 );
-			EXPP_allqueue( REDRAWIPO, 0 );
-
-			Py_INCREF( Py_None );
-			return Py_None;
+		if( !strcmp( strname, getIpoCurveName( icu ) ) ) {
+			del_ipocurve( self->ipo, icu );
+    		Py_RETURN_NONE;
 		}
 	}
 
-	return ( EXPP_ReturnPyObjError
-		 ( PyExc_RuntimeError, "IpoCurve not found" ) );
+	return EXPP_ReturnPyObjError( PyExc_ValueError, "IpoCurve not found" );
 }
-
-
+/*
+ */
 
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args )
 {
-    char *str, *str1;
     IpoCurve *icu = NULL;
-    int adrcode;
-    PyObject *thing;
+    short adrcode;
+    PyObject *value = NULL;
+
+    if( !PyArg_ParseTuple( args, "|O", &value ) )
+		goto typeError;
  
-    if( !PyArg_ParseTuple( args, "O", &thing ) )
-        return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			   				"expected string or int argument" );
- 
-    if(PyString_Check(thing)){
-        str = PyString_AsString(thing);
+    /* if no name give, get all the Ipocurves */
+	if( !value )
+		return Ipo_getCurves( self );
+
+	/* if arg is a string or int, look up the adrcode */
+    if( PyString_Check( value ) ) {
+		char *str = PyString_AsString( value );
         for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
-            str1 = getIpoCurveName( icu );
-            if( !strcmp( str1, str ) )
+            if( !strcmp( str, getIpoCurveName( icu ) ) )
                 return IpoCurve_CreatePyObject( icu );
         }
-    } else if (PyInt_Check(thing)){
-        adrcode = (short)PyInt_AsLong(thing);
+    	Py_RETURN_NONE;
+	}
+    else if( PyInt_Check( value ) ) {
+        adrcode = ( short )PyInt_AsLong( value );
         for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
-            if(icu->adrcode == adrcode)
+            if( icu->adrcode == adrcode )
                  return IpoCurve_CreatePyObject( icu );
-        }
-    } else
-        return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			   				"expected string or int argument" );
-    Py_INCREF( Py_None );
-    return Py_None;
+		}
+    	Py_RETURN_NONE;
+	}
+
+typeError:
+	return EXPP_ReturnPyObjError(PyExc_TypeError,
+			"expected string or int argument" );
 } 
 
 static PyObject *Ipo_getCurves( BPy_Ipo * self )
 {
 	PyObject *attr = PyList_New( 0 );
 	IpoCurve *icu;
-	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+
+	for( icu = self->ipo->curve.first; icu; icu = icu->next )
 		PyList_Append( attr, IpoCurve_CreatePyObject( icu ) );
-	}
+
 	return attr;
 }
 
+/*
+ * return a list of valid curve name constants for the Ipo
+ */
+
+static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
+{
+	namefunc lookup_name;
+	int size;
+	PyObject *dict;
+	int *vals = NULL;
+	char name[32];
+	PyObject *attr;
+
+	/* determine what type of Ipo we are */
+
+	switch ( self->ipo->blocktype ) {
+	case ID_OB:
+		lookup_name = (namefunc)getname_ob_ei;
+		vals = ob_ar;
+		size = OB_TOTIPO;
+		strcpy( name, "OB_" );
+		break;
+	case ID_MA:
+		lookup_name = (namefunc)getname_mat_ei;
+		vals = ma_ar;
+		size = MA_TOTIPO;
+		strcpy( name, "MA_" );
+		break;
+	case ID_CA:
+		lookup_name = (namefunc)getname_cam_ei;
+		vals = cam_ar;
+		size = CAM_TOTIPO;
+		strcpy( name, "CA_" );
+		break;
+	case ID_LA:
+		lookup_name = (namefunc)getname_la_ei;
+		vals = la_ar;
+		size = LA_TOTIPO;
+		strcpy( name, "LA_" );
+		break;
+	case ID_TE:
+		lookup_name = (namefunc)getname_tex_ei;
+		vals = te_ar;
+		size = TE_TOTIPO;
+		strcpy( name, "TE_" );
+		break;
+	case ID_WO:
+		lookup_name = (namefunc)getname_world_ei;
+		vals = wo_ar;
+		size = WO_TOTIPO;
+		strcpy( name, "WO_" );
+		break;
+	case ID_PO:
+		lookup_name = (namefunc)getname_ac_ei;
+		vals = ac_ar;
+		size = AC_TOTIPO;
+		strcpy( name, "PO_" );
+		break;
+	case ID_CO:
+		lookup_name = (namefunc)getname_co_ei;
+		vals = co_ar;
+		size = CO_TOTIPO;
+		strcpy( name, "CO_" );
+		break;
+	case ID_CU:
+		lookup_name = (namefunc)getname_cu_ei;
+		vals = cu_ar;
+		size = CU_TOTIPO;
+		strcpy( name, "CU_" );
+		break;
+	case ID_SEQ:
+		lookup_name = (namefunc)getname_seq_ei;
+		vals = seq_ar;
+		size = SEQ_TOTIPO;
+		strcpy( name, "SQ_" );
+		break;
+	case ID_KE:
+		{
+			Key *key;
+
+			/* find the ipo in the keylist */
+			for( key = G.main->key.first; key; key = key->id.next ) {
+				if( key->ipo == self->ipo ) {
+					KeyBlock *block = key->block.first;
+					attr = PyList_New( 0 );
+
+					/* add each name to the list */
+					for( block = key->block.first; block; block = block->next )
+						PyList_Append( attr,
+								PyString_FromString( block->name ) );
+
+					return attr;
+				}
+			}
+
+			/* error if the ipo isn't in the list */
+        	return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
+					"unable to find matching key data for Ipo" );
+		}
+	default:
+		Py_DECREF( attr );
+        return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
+			   				"unknown Ipo type" );
+	}
+
+	/*
+	 * go through the list of adrcodes to find names, then add to dictionary
+	 * with string as key and adrcode as value
+	 */
+
+	dict = PyModule_GetDict( submodule );
+
+#if 0
+	attr = PyList_New( );
+
+	while( size-- ) {
+		PyObject *value;
+		char *ptr = name+3;
+		strcpy( name+3, lookup_name( *vals ) ); 
+		while( *ptr ) {
+			*ptr = toupper( *ptr );
+			++ptr;
+		}
+		value = PyDict_GetItemString( dict, name );
+		Py_INCREF( value );
+		PyList_Append( attr, value );
+		++vals;
+	}
+#endif 
+#if 0
+	attr = PyDict_New( );
+
+	size = 0;
+
+	{
+		PyObject *key, *value;
+		while( PyDict_Next( dict, &size, &key, &value ) ) {
+			if( !strncmp( name, PyString_AS_STRING( key ), 3 ) )
+				PyDict_SetItem( attr, key, value );
+		}
+	}
+#endif
+#if 0
+	attr = PyConstant_New();
+	size = 0;
+
+	{
+		PyObject *key, *value;
+		while( PyDict_Next( dict, &size, &key, &value ) ) {
+			char *keyname = PyString_AS_STRING( key );
+			if( !strncmp( name, keyname, 3 ) ) {
+				Py_INCREF( value );
+				PyConstant_Insert( (BPy_constant *)attr, keyname, value );
+			}
+		}
+	}
+#endif
+#if 1
+	attr = PyConstant_New();
+
+	while( size-- ) {
+		char *ptr = name+3;
+		strcpy( name+3, lookup_name( *vals ) ); 
+		while( *ptr ) {
+			*ptr = toupper( *ptr );
+			++ptr;
+		}
+		PyConstant_Insert( (BPy_constant *)attr, name, 
+				PyInt_FromLong( *vals ) );
+		++vals;
+	}
+#endif
+	return attr;
+}
+
+void generate_curveconsts( PyObject* module )
+{
+	namefunc lookup_name;
+	int size;
+	int *vals = NULL;
+	char name[32];
+
+	unsigned int i = 0;
+	static short curvelist[] = {
+		ID_OB, ID_MA, ID_CA, ID_LA, ID_TE, ID_WO, ID_PO, ID_CO, ID_CU, ID_SEQ
+	};
+
+	for( i = 0; i < sizeof(curvelist)/sizeof(short); ++i ) {
+		switch ( curvelist[i] ) {
+		case ID_OB:
+			lookup_name = (namefunc)getname_ob_ei;
+			vals = ob_ar;
+			size = OB_TOTIPO;
+			strcpy( name, "OB_" );
+			break;
+		case ID_MA:
+			lookup_name = (namefunc)getname_mat_ei;
+			vals = ma_ar;
+			size = MA_TOTIPO;
+			strcpy( name, "MA_" );
+			break;
+		case ID_CA:
+			lookup_name = (namefunc)getname_cam_ei;
+			vals = cam_ar;
+			size = CAM_TOTIPO;
+			strcpy( name, "CA_" );
+			break;
+		case ID_LA:
+			lookup_name = (namefunc)getname_la_ei;
+			vals = la_ar;
+			size = LA_TOTIPO;
+			strcpy( name, "LA_" );
+			break;
+		case ID_TE:
+			lookup_name = (namefunc)getname_tex_ei;
+			vals = te_ar;
+			size = TE_TOTIPO;
+			strcpy( name, "TE_" );
+			break;
+		case ID_WO:
+			lookup_name = (namefunc)getname_world_ei;
+			vals = wo_ar;
+			size = WO_TOTIPO;
+			strcpy( name, "WO_" );
+			break;
+		case ID_PO:
+			lookup_name = (namefunc)getname_ac_ei;
+			vals = ac_ar;
+			size = AC_TOTIPO;
+			strcpy( name, "PO_" );
+			break;
+		case ID_CO:
+			lookup_name = (namefunc)getname_co_ei;
+			vals = co_ar;
+			size = CO_TOTIPO;
+			strcpy( name, "CO_" );
+			break;
+		case ID_CU:
+			lookup_name = (namefunc)getname_cu_ei;
+			vals = cu_ar;
+			size = CU_TOTIPO;
+			strcpy( name, "CU_" );
+			break;
+		case ID_SEQ:
+			lookup_name = (namefunc)getname_seq_ei;
+			vals = seq_ar;
+			size = SEQ_TOTIPO;
+			strcpy( name, "SQ_" );
+			break;
+		}
+
+		while( size-- ) {
+			char *ptr = name+3;
+			strcpy( name+3, lookup_name( *vals ) ); 
+			while( *ptr ) {
+				*ptr = toupper( *ptr );
+				++ptr;
+			}
+			PyModule_AddIntConstant( module, name, *vals );
+			++vals;
+		}
+	}
+}
+
+
+/*
+ * get the current texture channel number, if defined
+ */
+
+static PyObject *Ipo_getChannel( BPy_Ipo * self )
+{
+	if( self->mtex != -1 )
+		return Py_BuildValue( "h", self->mtex );
+	Py_RETURN_NONE;
+}
+
+/*
+ * set the current texture channel number, if defined
+ */
+
+static int Ipo_setChannel( BPy_Ipo * self, PyObject * value )
+{
+	if( self->mtex != -1 )
+		return EXPP_setIValueRange( value, &self->mtex, 0, 9, 'h' );
+	return 0;
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_dealloc                                                  */
+/* Description: This is a callback function for the BPy_Ipo type. It is      */
+/*              the destructor function.                                     */
+/*****************************************************************************/
+static void Ipo_dealloc( BPy_Ipo * self )
+{
+	PyObject_DEL( self );
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_repr                                                     */
+/* Description: This is a callback function for the BPy_Ipo type. It         */
+/*              builds a meaningful string to represent ipo objects.         */
+/*****************************************************************************/
+static PyObject *Ipo_repr( BPy_Ipo * self )
+{
+	char *param;
+
+	switch ( self->ipo->blocktype ) {
+	case ID_OB:
+		param = "Object"; break;
+	case ID_CA:
+		param = "Camera"; break;
+	case ID_LA:
+		param = "Lamp"; break;
+	case ID_TE:
+		param = "Texture"; break;
+	case ID_WO:
+		param = "World"; break;
+	case ID_MA:
+		param = "Material"; break;
+	case ID_PO:
+		param = "Action"; break;
+	case ID_CO:
+		param = "Constriant"; break;
+	case ID_CU:
+		param = "Curve"; break;
+	case ID_SEQ:
+		param = "Sequence"; break;
+	case ID_KE:
+		param = "Key"; break;
+	default:
+        return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
+			   				"unknown Ipo type" );
+	}
+	return PyString_FromFormat( "[Ipo \"%s\" (%s)]", self->ipo->id.name + 2,
+				    param );
+}
+
+/* Three Python Ipo_Type helper functions needed by the Object module: */
+
+/*****************************************************************************/
+/* Function:    Ipo_CreatePyObject                                           */
+/* Description: This function will create a new BPy_Ipo from an existing     */
+/*              Blender ipo structure.                                       */
+/*****************************************************************************/
+PyObject *Ipo_CreatePyObject( Ipo * ipo )
+{
+	BPy_Ipo *pyipo;
+	pyipo = ( BPy_Ipo * ) PyObject_NEW( BPy_Ipo, &Ipo_Type );
+	if( !pyipo )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create BPy_Ipo object" );
+	pyipo->ipo = ipo;
+	pyipo->iter = 0;
+	if( pyipo->ipo->blocktype == ID_WO || pyipo->ipo->blocktype == ID_LA ||
+			pyipo->ipo->blocktype == ID_MA )
+		pyipo->mtex = 0;
+	else
+		pyipo->mtex = -1;
+	return ( PyObject * ) pyipo;
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_CheckPyObject                                            */
+/* Description: This function returns true when the given PyObject is of the */
+/*              type Ipo. Otherwise it will return false.                    */
+/*****************************************************************************/
+int Ipo_CheckPyObject( PyObject * pyobj )
+{
+	return ( pyobj->ob_type == &Ipo_Type );
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_FromPyObject                                             */
+/* Description: This function returns the Blender ipo from the given         */
+/*              PyObject.                                                    */
+/*****************************************************************************/
+Ipo *Ipo_FromPyObject( PyObject * pyobj )
+{
+	return ( ( BPy_Ipo * ) pyobj )->ipo;
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_length                                                   */
+/* Description: This function counts the number of curves accessible for the */
+/*              PyObject.                                                    */
+/*****************************************************************************/
+static int Ipo_length( BPy_Ipo * self )
+{
+	IpoCurve *icu;
+	int len = 0;
+
+	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+		if( self->mtex == -1 || icu->adrcode < MA_MAP1 ||
+				icu->adrcode & texchannel_to_adrcode( self->mtex ) )
+			++len;
+	}
+	return len;
+}
+
+static PyObject *Ipo_getIpoCurveByName( BPy_Ipo * self, PyObject * key )
+{
+    IpoCurve *icu = NULL;
+    int adrcode;
+ 
+	/* if arg is a string or int, look up the adrcode */
+#if 0
+    if( PyString_Check( key ) )
+		adrcode = lookup_curve_name( PyString_AsString( key ),
+				self->ipo->blocktype, self->mtex );
+    else 
+#endif
+	if( self->ipo->blocktype != ID_KE && PyNumber_Check( key ) )
+		adrcode = lookup_curve_adrcode( PyInt_AsLong( key ),
+				self->ipo->blocktype, self->mtex );
+	else if( self->ipo->blocktype == ID_KE && PyString_Check( key ) ) {
+		adrcode = lookup_curve_key( PyString_AS_STRING( key ), self->ipo );
+		if( adrcode == -2 )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
+					"unable to find matching key data for Ipo" );
+	}
+	else
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected int or string key" );
+
+	/* if no adrcode found, value error */
+	if( adrcode == -1 )
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "invalid curve key" );
+
+	/* search for a matching adrcode */
+	for( icu = self->ipo->curve.first; icu; icu = icu->next )
+		if( icu->adrcode == adrcode )
+			return IpoCurve_CreatePyObject( icu );
+
+	/* no curve found */
+    Py_RETURN_NONE;
+}
+
+static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key, 
+		PyObject * arg )
+{
+	IpoCurve *icu;
+	Ipo *ipo = self->ipo;
+	short adrcode;
+
+	if( !arg )
+		return EXPP_ReturnIntError( PyExc_NotImplementedError,
+				"del operator not supported" );
+
+	if( PyNumber_Check( key ) )
+		adrcode = lookup_curve_adrcode( PyInt_AsLong( key ),
+			self->ipo->blocktype, self->mtex );
+	else
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected string key" );
+
+	if( adrcode == -1 )
+		return EXPP_ReturnIntError( PyExc_KeyError,
+				"invalid curve specified" );
+
+	/* if arg is None, delete the curve */
+	if( arg == Py_None ) {
+		for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+			if( icu->adrcode == adrcode ) {
+				del_ipocurve( ipo, icu );
+				return 0;
+			}
+		}
+
+		return EXPP_ReturnIntError( PyExc_ValueError, "IpoCurve not found" );
+	} else {
+
+	/* create the new ipo curve */
+		float time, curval;
+		PyObject *tmp, *flt=NULL, *val=NULL;
+
+		/* error if not a sequence or sequence with other than 2 values */
+		if( PySequence_Size( arg ) != 2 )
+			goto AttrError;
+
+		/* get the time and curval */
+		tmp = PySequence_ITEM( arg, 0 );
+		flt = PyNumber_Float( tmp );
+		Py_DECREF( tmp );
+		tmp = PySequence_ITEM( arg, 1 );
+		val = PyNumber_Float( tmp );
+		Py_DECREF( tmp );
+
+		if( !flt || !val )
+			goto AttrError;
+
+		time = PyFloat_AS_DOUBLE( flt );
+		curval = PyFloat_AS_DOUBLE( val );
+		Py_DECREF( flt );
+		Py_DECREF( val );
+
+		/* if curve already exist, delete the original */
+		for( icu = ipo->curve.first; icu; icu = icu->next )
+			if( icu->adrcode == adrcode ) {
+				del_ipocurve( ipo, icu );
+				break;
+			}
+
+		/* create the new curve, then add the key */
+		icu = MEM_callocN( sizeof(IpoCurve), "Python added ipocurve");
+		icu->blocktype = ipo->blocktype;
+		icu->adrcode = adrcode;
+		icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
+		set_icu_vars( icu );
+		BLI_addtail( &(ipo->curve), icu);
+		insert_vert_ipo( icu, time, curval );
+
+		allspace( REMAKEIPO, 0 );
+		EXPP_allqueue( REDRAWIPO, 0 );
+
+		return 0; 
+
+AttrError:
+		Py_XDECREF( val );
+		Py_XDECREF( flt );
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				"expected sequence of two floats" );
+	}
+} 
+
+/*
+ * sequence __contains__ method (implements "x in ipo")
+ */
+
+static int Ipo_contains( BPy_Ipo *self, PyObject *key )
+{
+    IpoCurve *icu = NULL;
+    int adrcode;
+
+	/* take a Ipo curve name: key must be a int */ 
+
+	if( self->ipo->blocktype != ID_KE && PyNumber_Check( key ) ) {
+		adrcode = lookup_curve_adrcode( PyInt_AsLong( key ),
+			self->ipo->blocktype, self->mtex );
+
+		/* if we found an adrcode for the key, search the ipo's curve */
+		if( adrcode != -1 ) {
+			for( icu = self->ipo->curve.first; icu; icu = icu->next )
+				if( icu->adrcode == adrcode )
+					return 1;
+		}
+	} else if( self->ipo->blocktype == ID_KE && PyString_Check( key ) ) {
+		adrcode = lookup_curve_key( PyString_AS_STRING( key ), self->ipo );
+
+		/* if we found an adrcode for the key, search the ipo's curve */
+		if( adrcode >= 0 ) {
+			for( icu = self->ipo->curve.first; icu; icu = icu->next )
+				if( icu->adrcode == adrcode )
+					return 1;
+		}
+	} 
+
+	/* no curve found */
+    return 0;
+}
+
+/*
+ * Initialize the interator index
+ */
+
+static PyObject *Ipo_getIter( BPy_Ipo * self )
+{
+	self->iter = 0;
+	return EXPP_incr_ret ( (PyObject *) self );
+}
+
+/*
+ * Get the next Ipo curve
+ */
+
+static PyObject *Ipo_nextIter( BPy_Ipo * self )
+{
+	int i;
+	IpoCurve *icu = self->ipo->curve.first;
+
+	++self->iter;
+
+		/*
+		 * count curves only if 
+		 * (a) Ipo has no texture channels
+		 * (b) Ipo has texture channels, but curve is not that type
+		 * (c) Ipo has texture channels, and curve is that type, and it is
+		 *    in the active texture channel
+		 */
+	for( i = 0; icu; icu = icu->next ) {
+		if( self->mtex == -1 || icu->adrcode < MA_MAP1 ||
+				icu->adrcode & texchannel_to_adrcode( self->mtex ) ) {
+			++i;
+
+			/* if indices match, return the curve */
+			if( i == self->iter )
+				return IpoCurve_CreatePyObject( icu );
+		}
+	}
+
+	/* ran out of curves */
+	return EXPP_ReturnPyObjError( PyExc_StopIteration,
+			"iterator at end" );
+}
+
+/*****************************************************************************/
+/* Function:              Ipo_Init                                           */
+/*****************************************************************************/
+PyObject *Ipo_Init( void )
+{
+	// PyObject *submodule;
+
+	if( PyType_Ready( &Ipo_Type ) < 0 )
+		return NULL;
+
+	submodule = Py_InitModule3( "Blender.Ipo", M_Ipo_methods, M_Ipo_doc );
+	generate_curveconsts( submodule );
+
+	return submodule;
+}
+
+/*
+ * The following methods should be deprecated when there are equivalent
+ * methods in Ipocurve (if there aren't already).
+ */
 
 static PyObject *Ipo_getNBezPoints( BPy_Ipo * self, PyObject * args )
 {
-	int num = 0, i = 0;
-	IpoCurve *icu = 0;
-	if( !PyArg_ParseTuple( args, "i", &num ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected int argument" ) );
-	icu = self->ipo->curve.first;
-	if( !icu )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "No IPO curve" ) );
-	for( i = 0; i < num; i++ ) {
-		if( !icu )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_TypeError, "Bad curve number" ) );
-		icu = icu->next;
+	int num = 0;
+	IpoCurve *icu = NULL;
 
+	if( !PyArg_ParseTuple( args, "i", &num ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected int argument" );
+
+	icu = self->ipo->curve.first;
+	while( icu && num > 0 ) {
+		icu = icu->next;
+		--num;
 	}
-	return ( PyInt_FromLong( icu->totvert ) );
+
+	if( num < 0 && !icu )
+		return EXPP_ReturnPyObjError( PyExc_IndexError,
+				"index out of range" );
+
+	return PyInt_FromLong( icu->totvert );
 }
 
 static PyObject *Ipo_DeleteBezPoints( BPy_Ipo * self, PyObject * args )
@@ -1052,7 +1737,6 @@ static PyObject *Ipo_DeleteBezPoints( BPy_Ipo * self, PyObject * args )
 	return ( PyInt_FromLong( icu->totvert ) );
 }
 
-
 /*
  * Ipo_getCurveBP()
  * this method is UNSUPPORTED.
@@ -1063,44 +1747,10 @@ static PyObject *Ipo_DeleteBezPoints( BPy_Ipo * self, PyObject * args )
  * implemented.
  */
 
-static PyObject *Ipo_getCurveBP( BPy_Ipo * self, PyObject * args )
+static PyObject *Ipo_getCurveBP( BPy_Ipo * self_unused, PyObject * args_unused )
 {
-
-	/* unsupported method */
 	return EXPP_ReturnPyObjError( PyExc_NotImplementedError,
 				      "bpoint ipos are not supported" );
-
-#if 0
-
-	struct BPoint *ptrbpoint;
-	int num = 0, i;
-	IpoCurve *icu;
-	PyObject *l;
-
-	if( !PyArg_ParseTuple( args, "i", &num ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected int argument" ) );
-	icu = self->ipo->curve.first;
-	if( !icu )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "No IPO curve" ) );
-	for( i = 0; i < num; i++ ) {
-		if( !icu )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_TypeError, "Bad curve number" ) );
-		icu = icu->next;
-
-	}
-	ptrbpoint = icu->bp;
-	if( !ptrbpoint )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "No base point" );
-
-	l = PyList_New( 0 );
-	for( i = 0; i < 4; i++ )
-		PyList_Append( l, PyFloat_FromDouble( ptrbpoint->vec[i] ) );
-	return l;
-#endif
 }
 
 static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args )
@@ -1139,7 +1789,6 @@ static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args )
 							   vec[i][j] ) );
 	return l;
 }
-
 
 static PyObject *Ipo_setCurveBeztriple( BPy_Ipo * self, PyObject * args )
 {
@@ -1183,11 +1832,8 @@ static PyObject *Ipo_setCurveBeztriple( BPy_Ipo * self, PyObject * args )
 	return Py_None;
 }
 
-
 static PyObject *Ipo_EvaluateCurveOn( BPy_Ipo * self, PyObject * args )
 {
-	float eval_icu( IpoCurve * icu, float ipotime );
-
 	int num = 0, i;
 	IpoCurve *icu;
 	float time = 0;
@@ -1211,7 +1857,6 @@ static PyObject *Ipo_EvaluateCurveOn( BPy_Ipo * self, PyObject * args )
 	return PyFloat_FromDouble( eval_icu( icu, time ) );
 }
 
-
 static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args )
 {
 	int numcurve = 0, i;
@@ -1223,7 +1868,7 @@ static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "No IPO curve" ) );
 
-	if( PyNumber_Check( PySequence_GetItem( args, 0 ) ) )	// args is an integer
+	if( PyNumber_Check( PyTuple_GetItem( args, 0 ) ) )	// args is an integer
 	{
 		if( !PyArg_ParseTuple( args, "i", &numcurve ) )
 			return ( EXPP_ReturnPyObjError
@@ -1258,85 +1903,12 @@ static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args )
 	return Py_None;
 }
 
+/*
+ * The following methods should be deprecated when methods are pruned out.
+ */
 
-/*****************************************************************************/
-/* Function:    IpoDeAlloc                                                   */
-/* Description: This is a callback function for the BPy_Ipo type. It is        */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void IpoDeAlloc( BPy_Ipo * self )
+static PyObject *Ipo_oldsetRctf( BPy_Ipo * self, PyObject * args )
 {
-	PyObject_DEL( self );
-}
-
-/*****************************************************************************/
-/* Function:    IpoGetAttr                                                   */
-/* Description: This is a callback function for the BPy_Ipo type. It is        */
-/*              the function that accesses BPy_Ipo "member variables" and      */
-/*              methods.                                                     */
-/*****************************************************************************/
-static PyObject *IpoGetAttr( BPy_Ipo * self, char *name )
-{
-	if( strcmp( name, "curves" ) == 0 )
-		return Ipo_getCurves( self );
-	return Py_FindMethod( BPy_Ipo_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************/
-/* Function:    IpoSetAttr                                                */
-/* Description: This is a callback function for the BPy_Ipo type. It is the */
-/*              function that sets Ipo Data attributes (member variables).*/
-/*****************************************************************************/
-static int IpoSetAttr( BPy_Ipo * self, char *name, PyObject * value )
-{
-	return 0;		/* normal exit */
-}
-
-/*****************************************************************************/
-/* Function:    IpoRepr                                                      */
-/* Description: This is a callback function for the BPy_Ipo type. It           */
-/*              builds a meaninful string to represent ipo objects.          */
-/*****************************************************************************/
-static PyObject *IpoRepr( BPy_Ipo * self )
-{
-	return PyString_FromFormat( "[Ipo \"%s\" %d]", self->ipo->id.name + 2,
-				    self->ipo->blocktype );
-}
-
-/* Three Python Ipo_Type helper functions needed by the Object module: */
-
-/*****************************************************************************/
-/* Function:    Ipo_CreatePyObject                                           */
-/* Description: This function will create a new BPy_Ipo from an existing       */
-/*              Blender ipo structure.                                       */
-/*****************************************************************************/
-PyObject *Ipo_CreatePyObject( Ipo * ipo )
-{
-	BPy_Ipo *pyipo;
-	pyipo = ( BPy_Ipo * ) PyObject_NEW( BPy_Ipo, &Ipo_Type );
-	if( !pyipo )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create BPy_Ipo object" );
-	pyipo->ipo = ipo;
-	return ( PyObject * ) pyipo;
-}
-
-/*****************************************************************************/
-/* Function:    Ipo_CheckPyObject                                            */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Ipo. Otherwise it will return false.                    */
-/*****************************************************************************/
-int Ipo_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Ipo_Type );
-}
-
-/*****************************************************************************/
-/* Function:    Ipo_FromPyObject                                             */
-/* Description: This function returns the Blender ipo from the given         */
-/*              PyObject.                                                    */
-/*****************************************************************************/
-Ipo *Ipo_FromPyObject( PyObject * pyobj )
-{
-	return ( ( BPy_Ipo * ) pyobj )->ipo;
+	return EXPP_setterWrapperTuple( (void *)self, args,
+			(setter)Ipo_setRctf );
 }

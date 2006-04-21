@@ -42,6 +42,8 @@
 typedef struct {
 	PyObject_HEAD		/* required macro */
 	Ipo * ipo;
+	short iter;
+	short mtex; 
 } BPy_Ipo;
 
 extern PyTypeObject Ipo_Type;

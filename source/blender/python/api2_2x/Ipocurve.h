@@ -42,6 +42,7 @@
 typedef struct {
 	PyObject_HEAD		/* required macro */
 	IpoCurve * ipocurve;
+	char wrapped;
 } C_IpoCurve;
 
 extern PyTypeObject IpoCurve_Type;
