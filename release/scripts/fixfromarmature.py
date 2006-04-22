@@ -1,33 +1,40 @@
 #!BPY
 
 """ Registration info for Blender menus: <- these words are ignored
-Name: 'Fix From Everything'
-Blender: 236
+Name: 'Fix From Armature'
+Blender: 240
 Group: 'Mesh'
-Tip: 'Fix armature/lattice/RVK/curve deform and taper/soft body deformation (without bake)'
+Tip: 'Fix armature/lattice/RVK/curve deform and taper/softBodies deformation (without bake)'
 """
 
 __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
-"Script's homepage, http://jmsoler.free.fr/util/blenderfile/py/fixfromarmature.py",
+"Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_rawfromobject_en.htm#softbodiesveretxgroups",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "06/2005"
+__version__ = "04/2006"
 
 __bpydoc__ = """\
-This script creates a copy of the active mesh with deformations fixed.
+This script creates a copy of the active mesh
+with armature, lattice, shape key or curve deformation
+fixed in the modified state . It can also create a mesh
+copy of any other object, curve, surface nurbs, text,
+deformed, or not, by a shape key or an absolute key . 
 
 Usage:
 
-Select the deformed mesh and run this script.  A fixed copy of it will be created.
+Select the mesh, or anything else (take care of selecting
+the main metaball if you try the  script on blobby object),
+and run this script.
+
 """
 
 # $Id$
 #
 #----------------------------------------------
-# jm soler  05/2004-->04/2005 :   'FixfromArmature'
+# jm soler  05/2004-->04/2006 :   'FixfromArmature'
 #----------------------------------------------
 # Official Page :
-#   http://jmsoler.free.fr/util/blenderfile/py/fixfromarmature.py
+#   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_rawfromobject_en.htm#softbodiesveretxgroups
 # Communicate problems and errors on:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #---------------------------------------------
@@ -64,51 +71,41 @@ Select the deformed mesh and run this script.  A fixed copy of it will be create
 # --------------------------------------------------------------------------
 
 import Blender
+try:
+ softbodies=0
+ softbodies=Blender.Draw.PupMenu("Is this mesh a soft bodies ?%t|Not %x1|Yes %x2")
+ if softbodies==2:
+     softbodies=Blender.Draw.PupMenu("Softbodies can be fixed but we need to play anim upto the current frame ?%t|Not %x1 |Yes %x2")
+     if softbodies==2:
+        curframe=Blender.Get('curframe')
+        for f in range(curframe):
+               Blender.Set('curframe',f+1)
+               Blender.Window.RedrawAll()
 
-def fix_mesh(nomdelobjet):
-	Mesh=Blender.NMesh.GetRawFromObject(nomdelobjet)
-	Obis = Blender.Object.New ('Mesh')
-	Obis.link(Mesh)
-	Obis.setMatrix(Ozero.getMatrix())
-	scene = Blender.Scene.getCurrent()
-	scene.link (Obis)
-	try :
-		Mesh2=Obis.getData()
-		Mesh1=Ozero.getData()
-		if len(Mesh2.verts)==len(Mesh1.verts): 
-			for VertGroupName in Mesh1.getVertGroupNames():
-				VertexList = Mesh1.getVertsFromGroup(VertGroupName, True)
-				Mesh2.addVertGroup(VertGroupName)
-				for Vertex in VertexList:
-					Mesh2.assignVertsToGroup(VertGroupName, [Vertex[0]], Vertex[1], 'add')
-		else:
-			for vgroupname in Mesh1.getVertGroupNames():
-				Mesh2.addVertGroup(vgroupname)
-		Mesh2.update()
-	except:
-		print "mesh has no vertex group "
+               
+ Ozero=Blender.Object.GetSelected()[0]
+ nomdelobjet=Ozero.getName()
+ Mesh=Blender.NMesh.GetRawFromObject(nomdelobjet)
+ Obis = Blender.Object.New ('Mesh')
+ Obis.link(Mesh)
+ Obis.setMatrix(Ozero.getMatrix())
+ scene = Blender.Scene.getCurrent()
+ scene.link (Obis)
 
-Ozero=Blender.Object.GetSelected()[0]
+ Mesh2=Obis.getData()
+ Mesh1=Ozero.getData()
+ 
+ if Ozero.getType()=='Mesh' :
+    if len(Mesh2.verts)==len(Mesh1.verts): 
+       for VertGroupName in Mesh1.getVertGroupNames():
+         VertexList = Mesh1.getVertsFromGroup(VertGroupName, True)
+         Mesh2.addVertGroup(VertGroupName)
+         for Vertex in VertexList:
+             Mesh2.assignVertsToGroup(VertGroupName, [Vertex[0]], Vertex[1], 'add')
+    else:
+      for vgroupname in Mesh1.getVertGroupNames():
+        Mesh2.addVertGroup(vgroupname)
+ Mesh2.update()
 
-errormsg = ''
-
-if not Ozero:
-	errormsg = "no mesh object selected"
-elif Ozero.getType() != "Mesh":
-	errormsg = "selected (active) object must be a mesh"
-
-if errormsg:
-	Blender.Draw.PupMenu("ERROR: %s" % errormsg)
-
-else:
-	fix = 1
-	curframe = Blender.Get('curframe')
-	if Ozero.isSB() and curframe != 1:
-		softbodies=Blender.Draw.PupMenu("Soft Body: play anim up to the current frame to fix it?%t|Yes%x1|No %x2|Cancel %x3")
-		if softbodies==3:
-			fix = 0
-		elif softbodies==1:
-			for f in range(1, curframe + 1):
-				Blender.Set('curframe',f)
-				Blender.Window.RedrawAll()
-	if fix: fix_mesh(Ozero.getName())
+except:
+ Blender.Draw.PupMenu("Error%t|Not the main metaball or no object selected ")
