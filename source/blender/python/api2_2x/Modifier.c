@@ -249,6 +249,10 @@ PyTypeObject Modifier_Type = {
 
 static PyObject *Modifier_getName( BPy_Modifier * self )
 {
+	if (self->md==NULL)
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has been removed!" ));
+	
 	return PyString_FromString( self->md->name );
 }
 
@@ -262,6 +266,10 @@ static int Modifier_setName( BPy_Modifier * self, PyObject * attr )
 	if( !name )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
 
+	if (self->md==NULL)
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has been removed!" ));
+	
 	BLI_strncpy( self->md->name, name, sizeof( self->md->name ) );
 
 	return 0;
@@ -273,6 +281,10 @@ static int Modifier_setName( BPy_Modifier * self, PyObject * attr )
 
 static PyObject *Modifier_moveUp( BPy_Modifier * self )
 {
+	if (self->md==NULL)
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has been removed!" ));
+	
 	if( mod_moveUp( self->obj, self->md ) )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"cannot move above a modifier requiring original data" );
@@ -286,6 +298,10 @@ static PyObject *Modifier_moveUp( BPy_Modifier * self )
 
 static PyObject *Modifier_moveDown( BPy_Modifier * self )
 {
+	if (self->md==NULL)
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has been removed!" ));
+	
 	if( mod_moveDown( self->obj, self->md ) )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"cannot move beyond a non-deforming modifier" );
@@ -886,8 +902,12 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 /*****************************************************************************/
 static PyObject *Modifier_repr( BPy_Modifier * self )
 {
-	ModifierTypeInfo *mti = modifierType_getInfo(self->md->type);
-	return PyString_FromFormat( "[Modifier \"%s\"]", mti->name );
+	ModifierTypeInfo *mti;
+	if (self->md==NULL)
+		return PyString_FromString( "[Modifier - Removed");
+	
+	mti= modifierType_getInfo(self->md->type);
+	return PyString_FromFormat( "[Modifier \"%s\", Type \"%s\"]", self->md->name, mti->name );
 }
 
 /* Three Python Modifier_Type helper functions needed by the Object module: */
@@ -1016,6 +1036,39 @@ static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
 	return Modifier_CreatePyObject( self->obj, self->obj->modifiers.last );
 }
 
+/* remove an existing modifier a new modifier at the end of the list */
+static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
+{
+	PyObject *pyobj;
+	Object *obj;
+	ModifierData *md_v, *md;
+	if( !PyArg_ParseTuple( args, "O!", &Modifier_Type, &pyobj ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError, "expected a modifier as an argument" ) );
+	}
+	obj = ( ( BPy_Modifier * ) pyobj )->obj;
+	md_v = ( ( BPy_Modifier * ) pyobj )->md;
+	
+	
+	if (md_v==NULL)
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "This modifier has alredy been removed!" ));
+	
+	for (md=obj->modifiers.first; md; md=md->next)
+		if (md==md_v)
+			break;
+	
+	if (!md)
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "This modifier is not in its object list, this should never happen!" ));
+	
+	BLI_remlink(&(obj->modifiers), md_v);
+	modifier_free(md_v);
+	( ( BPy_Modifier * ) pyobj )->md= NULL;
+	return EXPP_incr_ret( Py_None );
+}
+
+
+
 /*
  * simple method to implement pseudo module constants
  */
@@ -1049,6 +1102,7 @@ static PyGetSetDef BPy_ModSeq_getseters[] = {
 	 NULL, (void *)eModifierType_Mirror},
 	{"DECIMATE",
 	 (getter)ModSeq_typeConst, (setter)NULL,
+	 (getter)ModSeq_typeConst, (setter)NULL,
 	 NULL, (void *)eModifierType_Decimate},
 	{"WAVE",
 	 (getter)ModSeq_typeConst, (setter)NULL,
@@ -1065,7 +1119,9 @@ static PyGetSetDef BPy_ModSeq_getseters[] = {
 static PyMethodDef BPy_ModSeq_methods[] = {
 	/* name, method, flags, doc */
 	{"append", ( PyCFunction ) ModSeq_append, METH_VARARGS,
-	 "add a new modifier"},
+	 "(type) - add a new modifier, where type is the type of modifier"},
+	{"remove", ( PyCFunction ) ModSeq_remove, METH_VARARGS,
+	 "(modifier) - remove an existing modifier, where modifier is a modifier from this object."},
 	{NULL, NULL, 0, NULL}
 };
 

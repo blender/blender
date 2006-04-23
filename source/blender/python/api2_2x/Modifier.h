@@ -44,7 +44,9 @@
 typedef struct {
 	PyObject_HEAD		/* required macro */
 	Object *obj;
-	ModifierData *md;
+	/* if md this is null, the modifier has been removed and we need to raise
+	an error when its data is accessed */
+	ModifierData *md; 
 } BPy_Modifier;
 
 extern PyTypeObject Modifier_Type;

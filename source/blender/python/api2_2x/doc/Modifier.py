@@ -56,7 +56,8 @@ class Modifier:
   The Modifier object
   ===================
   This object provides access to a modifier for a particular object.
-  """
+  @ivar name: The name of this modifier. 31 chars max.
+  """  
 
   def __getitem__(key):
     """
