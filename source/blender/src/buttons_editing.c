@@ -812,7 +812,7 @@ static void modifiers_del(void *ob_v, void *md_v)
 	BIF_undo_push("Del modifier");
 }
 
-static void modifiers_moveUp(void *ob_v, void *md_v)
+int mod_moveUp(void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
 	ModifierData *md = md_v;
@@ -823,20 +823,26 @@ static void modifiers_moveUp(void *ob_v, void *md_v)
 		if (mti->type!=eModifierTypeType_OnlyDeform) {
 			ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
 
-			if (nmti->flags&eModifierTypeFlag_RequiresOriginalData) {
-				error("Cannot move above a modifier requiring original data.");
-				return;
-			}
+			if (nmti->flags&eModifierTypeFlag_RequiresOriginalData)
+				return -1;
 		}
 
 		BLI_remlink(&ob->modifiers, md);
 		BLI_insertlink(&ob->modifiers, md->prev->prev, md);
 	}
 
-	BIF_undo_push("Move modifier");
+	return 0;
 }
 
-static void modifiers_moveDown(void *ob_v, void *md_v)
+static void modifiers_moveUp(void *ob_v, void *md_v)
+{
+	if( mod_moveUp( ob_v, md_v ) )
+		error("Cannot move above a modifier requiring original data.");
+	else
+		BIF_undo_push("Move modifier");
+}
+
+int mod_moveDown(void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
 	ModifierData *md = md_v;
@@ -847,17 +853,23 @@ static void modifiers_moveDown(void *ob_v, void *md_v)
 		if (mti->flags&eModifierTypeFlag_RequiresOriginalData) {
 			ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
 
-			if (nmti->type!=eModifierTypeType_OnlyDeform) {
-				error("Cannot move beyond a non-deforming modifier.");
-				return;
-			}
+			if (nmti->type!=eModifierTypeType_OnlyDeform)
+				return -1;
 		}
 
 		BLI_remlink(&ob->modifiers, md);
 		BLI_insertlink(&ob->modifiers, md->next, md);
 	}
 
-	BIF_undo_push("Move modifier");
+	return 0;
+}
+
+static void modifiers_moveDown(void *ob_v, void *md_v)
+{
+	if( mod_moveDown( ob_v, md_v ) )
+		error("Cannot move beyond a non-deforming modifier.");
+	else
+		BIF_undo_push("Move modifier");
 }
 
 static void modifier_testLatticeObj(char *name, ID **idpp)

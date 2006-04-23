@@ -75,6 +75,10 @@ extern void autocomplete_vgroup(char *str, void *arg_v);
 extern void effects_panels(void);
 extern void do_effects_panels(unsigned short event);
 
+/* modifiers */
+extern int mod_moveUp(void *ob_v, void *md_v);
+extern int mod_moveDown(void *ob_v, void *md_v);
+
 /* editing */
 extern void editing_panels(void);
 extern void do_common_editbuts(unsigned short event);

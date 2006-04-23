@@ -15,7 +15,7 @@ The Blender Python API Reference
  -----------
   - L{Armature}
      - L{NLA}
-  - L{BezTriple}
+  - L{BezTriple} (*)
   - L{BGL}
   - L{Camera}
   - L{Curve}
@@ -23,8 +23,8 @@ The Blender Python API Reference
   - L{Effect}
   - L{Group} (*)
   - L{Image}
-  - L{Ipo}
-  - L{IpoCurve}
+  - L{Ipo} (*)
+    - L{IpoCurve} (*)
   - L{Key} (*)
   - L{Lamp}
   - L{Lattice}
@@ -33,6 +33,7 @@ The Blender Python API Reference
   - L{Mathutils} (*)
   - L{Mesh} (*)
   - L{Metaball}
+  - L{Modifier} (*)
   - L{NMesh} (*)
   - L{Noise}
   - L{Object} (*)
