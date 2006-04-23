@@ -701,32 +701,14 @@ void adduplicate_mesh(void)
 	Transform();
 }
 
-
-
-void add_primitiveMesh(int type)
+/* check whether an object to add mesh to exists, if not, create one
+* returns 1 if new object created, else 0 */
+int confirm_objectExists( Mesh **me, float mat[][3] )
 {
-	EditMesh *em = G.editMesh;
-	Mesh *me;
-	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
-	float *curs, d, dia, phi, phid, cent[3], vec[3], imat[3][3], mat[3][3];
-	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
-	static short tot=32, seg=32, subdiv=2;
-	short a, b, ext=0, fill=0, totoud, newob=0;
-	char *undostr="Add Primitive";
+	int newob = 0;
 	
-	if(G.scene->id.lib) return;
-
-	/* this function also comes from an info window */
-	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
-	if(G.vd==0) return;
-
-	/* if editmode exists for other type, it exits */
-	check_editmode(OB_MESH);
-	
-	if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT)) {
-		G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT);
-		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
-	}
+	/* deselectall */
+	EM_clear_flag_all(SELECT);
 	
 	/* if no obedit: new object and enter editmode */
 	if(G.obedit==NULL) {
@@ -744,22 +726,135 @@ void add_primitiveMesh(int type)
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 		newob= 1;
 	}
-	me= G.obedit->data;
-	
-	/* deselectall */
-	EM_clear_flag_all(SELECT);
-
-	totoud= tot; /* store, and restore when cube/plane */
+	*me = G.obedit->data;
 	
 	/* imat and centre and size */
 	Mat3CpyMat4(mat, G.obedit->obmat);
+	
+	return newob;
+}
+
+void add_primitiveMesh(int type)
+{
+	EditMesh *em = G.editMesh;
+	Mesh *me;
+	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
+	float *curs, d, dia, phi, phid, cent[3], vec[3], imat[3][3], mat[3][3];
+	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
+	static short tot=32, seg=32, subdiv=2;
+	short a, b, ext=0, fill=0, totoud, newob=0;
+	char *undostr="Add Primitive";
+	char *name=NULL;
+	
+	if(G.scene->id.lib) return;
+
+	/* this function also comes from an info window */
+	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
+	if(G.vd==0) return;
+
+	/* if editmode exists for other type, it exits */
+	check_editmode(OB_MESH);
+	
+	if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT)) {
+		G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT);
+		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+	}
+
+	totoud= tot; /* store, and restore when cube/plane */
+	
+	/* ext==extrudeflag, tot==amount of vertices in basis */
+
+	switch(type) {
+	case 0:		/* plane */
+		tot= 4;
+		ext= 0;
+		fill= 1;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Plane";
+		undostr="Add Plane";
+		break;
+	case 1:		/* cube  */
+		tot= 4;
+		ext= 1;
+		fill= 1;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Cube";
+		undostr="Add Cube";
+		break;
+	case 4:		/* circle  */
+		if(button(&tot,3,100,"Vertices:")==0) return;
+		ext= 0;
+		fill= 0;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Circle";
+		undostr="Add Circle";
+		break;
+	case 5:		/* cylinder  */
+		if(button(&tot,3,100,"Vertices:")==0) return;
+		ext= 1;
+		fill= 1;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Cylinder";
+		undostr="Add Cylinder";
+		break;
+	case 6:		/* tube  */
+		if(button(&tot,3,100,"Vertices:")==0) return;
+		ext= 1;
+		fill= 0;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Tube";
+		undostr="Add Tube";
+		break;
+	case 7:		/* cone  */
+		if(button(&tot,3,100,"Vertices:")==0) return;
+		ext= 0;
+		fill= 1;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Cone";
+		undostr="Add Cone";
+		break;
+	case 10:	/* grid */
+		if(button(&tot,2,100,"X res:")==0) return;
+		if(button(&seg,2,100,"Y res:")==0) return;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Grid";
+		undostr="Add Grid";
+		break;
+	case 11:	/* UVsphere */
+		if(button(&seg,3,100,"Segments:")==0) return;
+		if(button(&tot,3,100,"Rings:")==0) return;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Sphere";
+		undostr="Add UV Sphere";
+		break;
+	case 12:	/* Icosphere */
+		if(button(&subdiv,1,5,"Subdivision:")==0) return;
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Sphere";
+		undostr="Add Ico Sphere";
+		break;
+	case 13:	/* Monkey */
+		newob = confirm_objectExists( &me, mat );
+		if(newob) name = "Suzanne";
+		undostr="Add Monkey";
+		break;
+	default:
+		newob = confirm_objectExists( &me, mat );
+		break;
+	}
+
+	if( name!=NULL ) {
+		rename_id((ID *)G.obedit, name );
+		rename_id((ID *)me, name );
+	}
 
 	curs= give_cursor();
 	VECCOPY(cent, curs);
 	cent[0]-= G.obedit->obmat[3][0];
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
-
+	
+	/* 31 is a prime number */
 	if(type!= 31) {
 		Mat3CpyMat4(imat, G.vd->viewmat);
 		Mat3MulVecfl(imat, cent);
@@ -769,89 +864,10 @@ void add_primitiveMesh(int type)
 		Mat3Inv(imat, mat);
 	}
 	
-	/* ext==extrudeflag, tot==amount of vertices in basis */
-
-	switch(type) {
-	case 0:		/* plane */
-		tot= 4;
-		ext= 0;
-		fill= 1;
-		if(newob) rename_id((ID *)G.obedit, "Plane");
-		if(newob) rename_id((ID *)me, "Plane");
-		undostr="Add Plane";
-		break;
-	case 1:		/* cube  */
-		tot= 4;
-		ext= 1;
-		fill= 1;
-		if(newob) rename_id((ID *)G.obedit, "Cube");
-		if(newob) rename_id((ID *)me, "Cube");
-		undostr="Add Cube";
-		break;
-	case 4:		/* circle  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
-		ext= 0;
-		fill= 0;
-		if(newob) rename_id((ID *)G.obedit, "Circle");
-		if(newob) rename_id((ID *)me, "Circle");
-		undostr="Add Circle";
-		break;
-	case 5:		/* cylinder  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
-		ext= 1;
-		fill= 1;
-		if(newob) rename_id((ID *)G.obedit, "Cylinder");
-		if(newob) rename_id((ID *)me, "Cylinder");
-		undostr="Add Cylinder";
-		break;
-	case 6:		/* tube  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
-		ext= 1;
-		fill= 0;
-		if(newob) rename_id((ID *)G.obedit, "Tube");
-		if(newob) rename_id((ID *)me, "Tube");
-		undostr="Add Tube";
-		break;
-	case 7:		/* cone  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
-		ext= 0;
-		fill= 1;
-		if(newob) rename_id((ID *)G.obedit, "Cone");
-		if(newob) rename_id((ID *)me, "Cone");
-		undostr="Add Cone";
-		break;
-	case 10:	/* grid */
-		if(button(&tot,2,100,"X res:")==0) return;
-		if(button(&seg,2,100,"Y res:")==0) return;
-		if(newob) rename_id((ID *)G.obedit, "Grid");
-		if(newob) rename_id((ID *)me, "Grid");
-		undostr="Add Grid";
-		break;
-	case 11:	/* UVsphere */
-		if(button(&seg,3,100,"Segments:")==0) return;
-		if(button(&tot,3,100,"Rings:")==0) return;
-		if(newob) rename_id((ID *)G.obedit, "Sphere");
-		if(newob) rename_id((ID *)me, "Sphere");
-		undostr="Add UV Sphere";
-		break;
-	case 12:	/* Icosphere */
-		if(button(&subdiv,1,5,"Subdivision:")==0) return;
-		if(newob) rename_id((ID *)G.obedit, "Sphere");
-		if(newob) rename_id((ID *)me, "Sphere");
-		undostr="Add Ico Sphere";
-		break;
-	case 13:	/* Monkey */
-		if(newob) rename_id((ID *)G.obedit, "Suzanne");
-		if(newob) rename_id((ID *)me, "Suzanne");
-		undostr="Add Monkey";
-		break;
-	}
-
 	dia= sqrt(2.0)*G.vd->grid;
 	d= -G.vd->grid;
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
-
 
 	if(type<10) {	/* all types except grid, sphere... */
 		if(ext==0 && type!=7) d= 0;
