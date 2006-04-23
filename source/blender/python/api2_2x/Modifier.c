@@ -156,6 +156,7 @@ static PyMappingMethods Modifier_as_mapping = {
 /*****************************************************************************/
 /* Python Modifier_Type callback function prototypes:                        */
 /*****************************************************************************/
+static void Modifier_dealloc( BPy_Modifier * self );
 static PyObject *Modifier_repr( BPy_Modifier * self );
 
 /*****************************************************************************/
@@ -171,7 +172,7 @@ PyTypeObject Modifier_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) PyObject_Del,/* destructor tp_dealloc; */
+	( destructor ) Modifier_dealloc,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -882,6 +883,16 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 }
 
 /*****************************************************************************/
+/* Function:    Modifier_dealloc                                             */
+/* Description: This is a callback function for the BPy_Modifier type. It    */
+/*              destroys data when the object is deleted.                    */
+/*****************************************************************************/
+static void Modifier_dealloc( BPy_Modifier * self )
+{
+	PyObject_DEL( self );
+}
+
+/*****************************************************************************/
 /* Function:    Modifier_repr                                                */
 /* Description: This is a callback function for the BPy_Modifier type. It    */
 /*              builds a meaningful string to represent modifier objects.    */
@@ -1067,6 +1078,16 @@ static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
 }
 
 /*****************************************************************************/
+/* Function:    ModSeq_dealloc                                               */
+/* Description: This is a callback function for the BPy_Modifier type. It    */
+/*              destroys data when the object is deleted.                    */
+/*****************************************************************************/
+static void ModSeq_dealloc( BPy_Modifier * self )
+{
+	PyObject_DEL( self );
+}
+
+/*****************************************************************************/
 /* Python BPy_ModSeq methods table:                                          */
 /*****************************************************************************/
 static PyMethodDef BPy_ModSeq_methods[] = {
@@ -1091,7 +1112,7 @@ PyTypeObject ModSeq_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) PyObject_Del,/* destructor tp_dealloc; */
+	( destructor ) ModSeq_dealloc,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
