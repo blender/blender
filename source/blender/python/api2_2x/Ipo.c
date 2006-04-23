@@ -897,29 +897,6 @@ static PyObject *Ipo_getNcurves( BPy_Ipo * self )
 	return PyInt_FromLong( (long)i );
 }
 
-#if 0
-static int Ipo_keIcuName( char *s, int *param )
-{
-	char key[10];
-	int ok = 0;
-	int nr = 0;
-	if( !strcmp( s, "Speed" ) ) {
-		*param = KEY_SPEED;
-		ok = 1;
-	}
-	for( nr = 1; nr < 64; nr++ ) {
-		sprintf( key, "Key %d", nr );
-		if( !strcmp( s, key ) ) {
-			*param = nr;
-			ok = 1;
-			break;
-		}
-	}
-
-	return ok;
-}
-#endif
-
 /* 
    Function:  Ipo_addCurve
    Bpy:       Blender.Ipo.addCurve( 'curname')
@@ -1179,53 +1156,6 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 	 */
 
 	dict = PyModule_GetDict( submodule );
-
-#if 0
-	attr = PyList_New( );
-
-	while( size-- ) {
-		PyObject *value;
-		char *ptr = name+3;
-		strcpy( name+3, lookup_name( *vals ) ); 
-		while( *ptr ) {
-			*ptr = toupper( *ptr );
-			++ptr;
-		}
-		value = PyDict_GetItemString( dict, name );
-		Py_INCREF( value );
-		PyList_Append( attr, value );
-		++vals;
-	}
-#endif 
-#if 0
-	attr = PyDict_New( );
-
-	size = 0;
-
-	{
-		PyObject *key, *value;
-		while( PyDict_Next( dict, &size, &key, &value ) ) {
-			if( !strncmp( name, PyString_AS_STRING( key ), 3 ) )
-				PyDict_SetItem( attr, key, value );
-		}
-	}
-#endif
-#if 0
-	attr = PyConstant_New();
-	size = 0;
-
-	{
-		PyObject *key, *value;
-		while( PyDict_Next( dict, &size, &key, &value ) ) {
-			char *keyname = PyString_AS_STRING( key );
-			if( !strncmp( name, keyname, 3 ) ) {
-				Py_INCREF( value );
-				PyConstant_Insert( (BPy_constant *)attr, keyname, value );
-			}
-		}
-	}
-#endif
-#if 1
 	attr = PyConstant_New();
 
 	while( size-- ) {
@@ -1239,7 +1169,6 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 				PyInt_FromLong( *vals ) );
 		++vals;
 	}
-#endif
 	return attr;
 }
 
@@ -1467,21 +1396,20 @@ static int Ipo_length( BPy_Ipo * self )
 	return len;
 }
 
+/*
+ * "mapping" operator getter: return an IpoCurve it we can find it
+ */
+
 static PyObject *Ipo_getIpoCurveByName( BPy_Ipo * self, PyObject * key )
 {
     IpoCurve *icu = NULL;
     int adrcode;
  
-	/* if arg is a string or int, look up the adrcode */
-#if 0
-    if( PyString_Check( key ) )
-		adrcode = lookup_curve_name( PyString_AsString( key ),
-				self->ipo->blocktype, self->mtex );
-    else 
-#endif
+	/* if Ipo is not ShapeKey and arg is an int, look up the adrcode */
 	if( self->ipo->blocktype != ID_KE && PyNumber_Check( key ) )
 		adrcode = lookup_curve_adrcode( PyInt_AsLong( key ),
 				self->ipo->blocktype, self->mtex );
+	/* if Ipo is ShapeKey and arg is string, look up the adrcode */
 	else if( self->ipo->blocktype == ID_KE && PyString_Check( key ) ) {
 		adrcode = lookup_curve_key( PyString_AS_STRING( key ), self->ipo );
 		if( adrcode == -2 )
@@ -1505,6 +1433,10 @@ static PyObject *Ipo_getIpoCurveByName( BPy_Ipo * self, PyObject * key )
     Py_RETURN_NONE;
 }
 
+/*
+ * "mapping" operator setter: create or delete an IpoCurve it we can find it
+ */
+
 static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key, 
 		PyObject * arg )
 {
@@ -1512,16 +1444,23 @@ static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key,
 	Ipo *ipo = self->ipo;
 	short adrcode;
 
+	/* "del ipo[const]" will send NULL here; give an error */
 	if( !arg )
 		return EXPP_ReturnIntError( PyExc_NotImplementedError,
 				"del operator not supported" );
 
-	if( PyNumber_Check( key ) )
-		adrcode = lookup_curve_adrcode( PyInt_AsLong( key ),
-			self->ipo->blocktype, self->mtex );
-	else
+	/* "del ipo[const]" will send NULL here; give an error */
+	if( self->ipo->blocktype == ID_KE )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected string key" );
+				"creation or deletion of Shape Keys not supported" );
+
+	/* check for int argument */
+	if( !PyNumber_Check( key ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int key" );
+
+	/* look up the key, return error if not found */
+	adrcode = lookup_curve_adrcode( PyInt_AsLong( key ),
+			self->ipo->blocktype, self->mtex );
 
 	if( adrcode == -1 )
 		return EXPP_ReturnIntError( PyExc_KeyError,
