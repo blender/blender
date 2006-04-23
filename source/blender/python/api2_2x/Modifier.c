@@ -267,7 +267,7 @@ static int Modifier_setName( BPy_Modifier * self, PyObject * attr )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
 
 	if (self->md==NULL)
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		return (EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This modifier has been removed!" ));
 	
 	BLI_strncpy( self->md->name, name, sizeof( self->md->name ) );
@@ -1101,7 +1101,6 @@ static PyGetSetDef BPy_ModSeq_getseters[] = {
 	 (getter)ModSeq_typeConst, (setter)NULL,
 	 NULL, (void *)eModifierType_Mirror},
 	{"DECIMATE",
-	 (getter)ModSeq_typeConst, (setter)NULL,
 	 (getter)ModSeq_typeConst, (setter)NULL,
 	 NULL, (void *)eModifierType_Decimate},
 	{"WAVE",
