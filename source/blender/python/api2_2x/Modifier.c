@@ -107,6 +107,7 @@ enum mod_constants {
 /*****************************************************************************/
 static PyObject *Modifier_getName( BPy_Modifier * self );
 static int Modifier_setName( BPy_Modifier * self, PyObject *arg );
+static PyObject *Modifier_getType( BPy_Modifier * self );
 
 static PyObject *Modifier_getKeys( BPy_Modifier * self );
 static PyObject *Modifier_moveUp( BPy_Modifier * self );
@@ -137,6 +138,9 @@ static PyGetSetDef BPy_Modifier_getseters[] = {
 	{"name",
 	(getter)Modifier_getName, (setter)Modifier_setName,
 	 "Modifier name", NULL},
+	{"type",
+	(getter)Modifier_getType, (setter)NULL,
+	 "Modifier type", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -274,6 +278,20 @@ static int Modifier_setName( BPy_Modifier * self, PyObject * attr )
 
 	return 0;
 }
+
+/*
+ * return the type of this modifier
+ */
+
+static PyObject *Modifier_getType( BPy_Modifier * self )
+{
+	if (self->md==NULL )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has been removed!" );
+	
+	return PyInt_FromLong( self->md->type );
+}
+
 
 /*
  * move the modifier up in the stack
@@ -771,35 +789,9 @@ static int boolean_setter( ModifierData *ptr, int type, PyObject *value )
 	return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 }
 
-static PyObject *hook_getter( ModifierData *ptr, int type )
-{
-	Py_RETURN_NONE;
-}
-
-static int hook_setter( ModifierData *ptr, int type, PyObject *value )
-{
-	return 0;
-}
-
-static PyObject *softbody_getter( ModifierData *ptr, int type )
-{
-	Py_RETURN_NONE;
-}
-
-static int softbody_setter( ModifierData *ptr, int type, PyObject *value )
-{
-	return 0;
-}
-
-static PyObject *array_getter( ModifierData *ptr, int type )
-{
-	Py_RETURN_NONE;
-}
-
-static int array_setter( ModifierData *ptr, int type, PyObject *value )
-{
-	return 0;
-}
+/*
+ * get data from a modifier
+ */
 
 static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 {
@@ -837,14 +829,11 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 				return decimate_getter( self->md, type );
 			case eModifierType_Wave:
 				return wave_getter( self->md, type );
-			case eModifierType_Hook:
-				return hook_getter( self->md, type );
-			case eModifierType_Softbody:
-				return softbody_getter( self->md, type );
 			case eModifierType_Boolean:
 				return boolean_getter( self->md, type );
+			case eModifierType_Hook:
+			case eModifierType_Softbody:
 			case eModifierType_Array:
-				return array_getter( self->md, type );
 			case eModifierType_None:
 				Py_RETURN_NONE;
 		}
@@ -880,20 +869,17 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return decimate_setter( self->md, type, arg );
 		case eModifierType_Wave:
 			return wave_setter( self->md, type, arg );
-		case eModifierType_Hook:
-			return hook_setter( self->md, type, arg );
-		case eModifierType_Softbody:
-			return softbody_setter( self->md, type, arg );
 		case eModifierType_Boolean:
 			return boolean_setter( self->md, type, arg );
+		case eModifierType_Hook:
+		case eModifierType_Softbody:
 		case eModifierType_Array:
-			return array_setter( self->md, type, arg );
 		case eModifierType_None:
 			return 0;
 	}
 	return EXPP_ReturnIntError( PyExc_RuntimeError,
 			"unsupported modifier type" );
-} 
+}
 
 /*****************************************************************************/
 /* Function:    Modifier_repr                                                */
@@ -1032,85 +1018,53 @@ static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
 	if( !PyArg_ParseTuple( args, "i", &type ) )
 		EXPP_ReturnPyObjError( PyExc_TypeError, "expected int argument" );
 	
-	BLI_addtail(&self->obj->modifiers, modifier_new(type));
+	BLI_addtail( &self->obj->modifiers, modifier_new( type ) );
 	return Modifier_CreatePyObject( self->obj, self->obj->modifiers.last );
 }
 
-/* remove an existing modifier a new modifier at the end of the list */
+/* remove an existing modifier */
+
 static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *obj;
 	ModifierData *md_v, *md;
-	if( !PyArg_ParseTuple( args, "O!", &Modifier_Type, &pyobj ) ) {
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError, "expected a modifier as an argument" ) );
-	}
-	obj = ( ( BPy_Modifier * ) pyobj )->obj;
+
+	/* check that argument is a modifier */
+	if( !PyArg_ParseTuple( args, "O!", &Modifier_Type, &pyobj ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected a modifier as an argument" );
+
+	/* 
+	 * check that modseq and modifier refer to the same object (this is
+	 * more for user sanity than anything else)
+	 */
+
+	if( self->obj != ( ( BPy_Modifier * ) pyobj )->obj )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"modifier does not belong to this object" );
+
 	md_v = ( ( BPy_Modifier * ) pyobj )->md;
-	
-	
+
 	if (md_v==NULL)
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "This modifier has alredy been removed!" ));
-	
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has already been removed!" );
+
+	/* verify the modifier is still in the object's modifier */
+	obj = self->obj;
 	for (md=obj->modifiers.first; md; md=md->next)
 		if (md==md_v)
 			break;
-	
 	if (!md)
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "This modifier is not in its object list, this should never happen!" ));
-	
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier is no longer in the object's stack" );
+
+	/* do the actual removal */
 	BLI_remlink(&(obj->modifiers), md_v);
 	modifier_free(md_v);
 	( ( BPy_Modifier * ) pyobj )->md= NULL;
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
-
-
-
-/*
- * simple method to implement pseudo module constants
- */
-
-static PyObject *ModSeq_typeConst( BPy_Modifier *self_unused, void *type )
-{
-	return PyInt_FromLong( (long)type );
-}
-
-/*****************************************************************************/
-/* Python BPy_ModSeq attributes get/set structure:                           */
-/*****************************************************************************/
-static PyGetSetDef BPy_ModSeq_getseters[] = {
-	{"SUBSURF",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Subsurf},
-	{"ARMATURE",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Armature},
-	{"LATTICE",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Lattice},
-	{"CURVE",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Curve},
-	{"BUILD",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Build},
-	{"MIRROR",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Mirror},
-	{"DECIMATE",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Decimate},
-	{"WAVE",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Wave},
-	{"BOOLEAN",
-	 (getter)ModSeq_typeConst, (setter)NULL,
-	 NULL, (void *)eModifierType_Boolean},
-	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
-};
 
 /*****************************************************************************/
 /* Python BPy_ModSeq methods table:                                          */
@@ -1187,7 +1141,7 @@ PyTypeObject ModSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_ModSeq_methods,         /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	BPy_ModSeq_getseters,       /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -1223,4 +1177,52 @@ PyObject *ModSeq_CreatePyObject( Object *obj )
 					      "couldn't create BPy_ModSeq object" );
 	pymod->obj = obj;
 	return ( PyObject * ) pymod;
+}
+
+static PyObject *M_Modifier_SettingsDict( void )
+{
+	PyObject *S = PyConstant_New(  );
+
+	if( S ) {
+		BPy_constant *d = ( BPy_constant * ) S;
+
+		PyConstant_Insert( d, "SUBSURF", 
+				PyInt_FromLong( eModifierType_Subsurf ) );
+		PyConstant_Insert( d, "ARMATURE",
+				PyInt_FromLong( eModifierType_Armature ) );
+		PyConstant_Insert( d, "LATTICE",
+				PyInt_FromLong( eModifierType_Lattice ) );
+		PyConstant_Insert( d, "CURVE",
+				PyInt_FromLong( eModifierType_Curve ) );
+		PyConstant_Insert( d, "BUILD",
+				PyInt_FromLong( eModifierType_Build ) );
+		PyConstant_Insert( d, "MIRROR",
+				PyInt_FromLong( eModifierType_Mirror ) );
+		PyConstant_Insert( d, "DECIMATE",
+				PyInt_FromLong( eModifierType_Decimate ) );
+		PyConstant_Insert( d, "WAVE",
+				PyInt_FromLong( eModifierType_Wave ) );
+		PyConstant_Insert( d, "BOOLEAN",
+				PyInt_FromLong( eModifierType_Boolean ) );
+	}
+	return S;
+}
+
+/*****************************************************************************/
+/* Function:              Modifier_Init                                      */
+/*****************************************************************************/
+PyObject *Modifier_Init( void )
+{
+	PyObject *submodule;
+	PyObject *SettingsTypes = M_Modifier_SettingsDict( );
+
+	if( PyType_Ready( &ModSeq_Type ) < 0 || PyType_Ready( &Modifier_Type ) < 0 )
+		return NULL;
+
+	submodule = Py_InitModule3( "Blender.Modifier", NULL, "Modifer module" );
+
+	if( SettingsTypes )
+		PyModule_AddObject( submodule, "Settings", SettingsTypes );
+
+	return submodule;
 }

@@ -57,6 +57,7 @@ extern PyTypeObject Modifier_Type;
  *   prototypes
  */
 
+PyObject *Modifier_Init( void );
 PyObject *Modifier_CreatePyObject( Object *obj, ModifierData *md );
 ModifierData *Modifier_FromPyObject( PyObject * py_obj );
 int Modifier_CheckPyObject( PyObject * py_obj );

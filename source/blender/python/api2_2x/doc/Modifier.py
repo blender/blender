@@ -15,10 +15,21 @@ Example::
   mods = ob.modifiers            # get the object's modifiers
   for mod in mods:
     print mod,mod.name           # print each modifier and its name
-  mod = mods.append(mod.SUBSURF) # add a new subsurf modifier
+  mod = mods.append(Modifier.Settings.SUBSURF) # add a new subsurf modifier
   mod[mod.keys().LEVELS] = 3     # set subsurf subdivision levels to 3
-"""
+  
+@type Settings: readonly dictionary
+@var Settings: Various constants used by Modifier objects:
+    - ARMATURE - type value for Armature modifiers
+    - BOOLEAN - type value for Boolean modifiers
+    - BUILD - type value for Build modifiers
+    - CURVE - type value for Curve modifiers
+    - DECIMATE - type value for Decimate modifiers
+    - LATTICE - type value for Lattice modifiers
+    - SUBSURF - type value for Subsurf modifiers
+    - WAVE - type value for Wave modifiers
 
+"""
 
 class ModSeq:
   """
@@ -57,6 +68,10 @@ class Modifier:
   ===================
   This object provides access to a modifier for a particular object.
   @ivar name: The name of this modifier. 31 chars max.
+  @type name: string
+  @ivar type: The type of this modifier. Read-only.  The returned value
+  matches the types in L{Settings}.
+  @type type: int
   """  
 
   def __getitem__(key):
