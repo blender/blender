@@ -140,7 +140,7 @@ def mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_MAX_DIST, PREF_MODE, PREF_NOR_WEI
 		
 		# Now we can merge the weights
 		if PREF_MODE==0: # Middle
-			newVWeightDict= [{} for i in xrange(len(me.verts))] # Have empty dicts just incase
+			newVWeightDict= [vWeightDict[i] for i in xrange(len(me.verts))] # Have empty dicts just incase
 			for pair_ls in (mirror_pairs_l2r, mirror_pairs_r2l):
 				if PREF_FLIP_NAMES:
 					for i1, i2 in pair_ls:

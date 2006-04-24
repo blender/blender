@@ -128,7 +128,6 @@ def dictWeightFlipGroups(dict_weight, groupNames, createNewGroups):
 	new_wdict = {}
 	for group, weight in dict_weight.iteritems():
 		flipname= flipName(group)
-		print flipname, group
 		new_wdict[flipname]= weight
 	
 	return new_wdict, groupNames
