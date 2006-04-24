@@ -508,6 +508,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 
 
+
 	if (!SimdFuzzyZero(timeStep))
 	{
 
@@ -1300,9 +1301,9 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 
 				ConvexShape* convexShape = (ConvexShape*) body->GetCollisionShape();
 				VoronoiSimplexSolver	simplexSolver;
-				//SubsimplexConvexCast convexCaster(&pointShape,convexShape,&simplexSolver);
+				SubsimplexConvexCast convexCaster(&pointShape,convexShape,&simplexSolver);
 				//GjkConvexCast	convexCaster(&pointShape,convexShape,&simplexSolver);
-				ContinuousConvexCollision convexCaster(&pointShape,convexShape,&simplexSolver,0);
+				//ContinuousConvexCollision convexCaster(&pointShape,convexShape,&simplexSolver,0);
 				
 				if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,body->getCenterOfMassTransform(),body->getCenterOfMassTransform(),rayResult))
 				{

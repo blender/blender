@@ -54,8 +54,11 @@ bool	SubsimplexConvexCast::calcTimeOfImpact(
 	//float radius = 0.01f;
 
 	SimdScalar lambda = 0.f;
-	SimdVector3 s = rayFromLocalA.getOrigin();
-	SimdVector3 r = rayToLocalA.getOrigin()-rayFromLocalA.getOrigin();
+	//todo: need to verify this:
+	//because of minkowski difference, we need the inverse direction
+	
+	SimdVector3 s = -rayFromLocalA.getOrigin();
+	SimdVector3 r = -(rayToLocalA.getOrigin()-rayFromLocalA.getOrigin());
 	SimdVector3 x = s;
 	SimdVector3 v;
 	SimdVector3 arbitraryPoint = convex->LocalGetSupportingVertex(r);
@@ -120,7 +123,7 @@ bool	SubsimplexConvexCast::calcTimeOfImpact(
 	//int numiter = MAX_ITERATIONS - maxIter;
 //	printf("number of iterations: %d", numiter);
 	result.m_fraction = lambda;
-	result.m_normal = -n;
+	result.m_normal = n;
 
 	return true;
 }
