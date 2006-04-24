@@ -87,6 +87,15 @@ class RenderData:
   =====================
     This object gives access to Scene rendering contexts in Blender.
   """
+
+  def currentFrame(frame = None):
+    """
+    Get/set the current frame.
+    @type frame: int (optional)
+    @param frame: must be between 1 - 30000
+    @rtype: int (if prototype is empty)
+    @return: Current frame for the scene.
+    """
  
   def render():
     """
