@@ -10,7 +10,7 @@ def meshWeight2Dict(me):
 	
 	# Clear the vert group.
 	groupNames= me.getVertGroupNames()
-		
+	
 	for group in groupNames:
 		for index, weight in me.getVertsFromGroup(group, 1): # (i,w)  tuples.
 			vWeightDict[index][group]= weight
@@ -56,7 +56,83 @@ def dict2MeshWeight(me, groupNames, vWeightDict):
 	
 	me.update()
 
+def dictWeightMerge(dict_weights):
+	'''
+	Takes dict weight list and merges into 1 weight dict item and returns it
+	'''
+	
+	if not dict_weights:
+		return {}
+	
+	keys= []
+	for weight in dict_weights:
+		keys.extend([ (k, 0.0) for k in weight.iterkeys() ])
+	
+	new_wdict = dict(keys)
+	
+	len_dict_weights= len(dict_weights)
+	
+	for weight in dict_weights:
+		for group, value in weight.iteritems():
+			new_wdict[group] += value/len_dict_weights
+	
+	return new_wdict
 
+
+FLIPNAMES=[\
+('Left','Right'),\
+('_L','_R'),\
+('-L','-R'),\
+('.L','.R'),\
+]
+
+def dictWeightFlipGroups(dict_weight, groupNames, createNewGroups):
+	'''
+	Returns a weight with flip names
+	dict_weight - 1 vert weight.
+	groupNames - because we may need to add new group names.
+	dict_weight - Weather to make new groups where needed.
+	'''
+	
+	def flipName(name):
+		for n1,n2 in FLIPNAMES:
+			for nA, nB in ( (n1,n2), (n1.lower(),n2.lower()), (n1.upper(),n2.upper()) ):
+				if createNewGroups:
+					newName= name.replace(nA,nB)
+					if newName!=name:
+						if newName not in groupNames:
+							groupNames.append(newName)
+						return newName
+					
+					newName= name.replace(nB,nA)
+					if newName!=name:
+						if newName not in groupNames:
+							groupNames.append(newName)
+						return newName
+				
+				else:
+					newName= name.replace(nA,nB)
+					if newName!=name and newName in groupNames:
+						return newName
+					
+					newName= name.replace(nB,nA)
+					if newName!=name and newName in groupNames:
+						return newName
+		
+		return name
+		
+	if not dict_weight:
+		return dict_weight, groupNames
+	
+	
+	new_wdict = {}
+	for group, weight in dict_weight.iteritems():
+		flipname= flipName(group)
+		print flipname, group
+		new_wdict[flipname]= weight
+	
+	return new_wdict, groupNames
+	
 
 def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None):
 	'''
@@ -234,6 +310,75 @@ me.faces.extend([[me.verts[ii] for ii in i] for i in indices])
 
 
 
+
+
+
+
+
+from Blender import *
+
+def pointInsideMesh(ob, pt):
+	Intersect = Mathutils.Intersect # 2 less dict lookups.
+	Vector = Mathutils.Vector
+	
+	def ptInFaceXYBounds(f, pt):
+			
+		co= f.v[0].co
+		xmax= xmin= co.x
+		ymax= ymin= co.y
+		
+		co= f.v[1].co
+		xmax= max(xmax, co.x)
+		xmin= min(xmin, co.x)
+		ymax= max(ymax, co.y)
+		ymin= min(ymin, co.y)
+		
+		co= f.v[2].co
+		xmax= max(xmax, co.x)
+		xmin= min(xmin, co.x)
+		ymax= max(ymax, co.y)
+		ymin= min(ymin, co.y)
+		
+		if len(f.v)==4: 
+			co= f.v[3].co
+			xmax= max(xmax, co.x)
+			xmin= min(xmin, co.x)
+			ymax= max(ymax, co.y)
+			ymin= min(ymin, co.y)
+		
+		# Now we have the bounds, see if the point is in it.
+		if\
+		pt.x < xmin or\
+		pt.y < ymin or\
+		pt.x > xmax or\
+		pt.y > ymax:
+			return False # point is outside face bounds
+		else:
+			return True # point inside.
+		#return xmax, ymax, xmin, ymin
+	
+	def faceIntersect(f):
+		isect = Intersect(f.v[0].co, f.v[1].co, f.v[2].co, ray, obSpacePt, 1) # Clipped.
+		if not isect and len(f.v) == 4:
+			isect = Intersect(f.v[0].co, f.v[2].co, f.v[3].co, ray, obSpacePt, 1) # Clipped.
+				
+		if isect and isect.z > obSpacePt.z: # This is so the ray only counts if its above the point. 
+			return True
+		else:
+			return False
+	
+	
+	obImvMat = Mathutils.Matrix(ob.matrixWorld)
+	obImvMat.invert()
+	pt.resize4D()
+	obSpacePt = pt* obImvMat
+	pt.resize3D()
+	obSpacePt.resize3D()
+	ray = Vector(0,0,-1)
+	me= ob.getData(mesh=1)
+	
+	# Here we find the number on intersecting faces, return true if an odd number (inside), false (outside) if its true.
+	return len([None for f in me.faces if ptInFaceXYBounds(f, obSpacePt) if faceIntersect(f)]) % 2
 
 
 
