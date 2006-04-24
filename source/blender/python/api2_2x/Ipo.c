@@ -92,9 +92,11 @@ struct PyMethodDef M_Ipo_methods[] = {
 /* Python BPy_Ipo methods declarations:                                     */
 /*****************************************************************************/
 static PyObject *Ipo_getName( BPy_Ipo * self );
-static PyObject *Ipo_setName( BPy_Ipo * self, PyObject * args );
+static PyObject *Ipo_oldsetName( BPy_Ipo * self, PyObject * args );
+static int Ipo_setName( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self );
-static PyObject *Ipo_setBlocktype( BPy_Ipo * self, PyObject * args );
+static PyObject *Ipo_oldsetBlocktype( BPy_Ipo * self, PyObject * args );
+static int Ipo_setBlocktype( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getRctf( BPy_Ipo * self );
 static PyObject *Ipo_oldsetRctf( BPy_Ipo * self, PyObject * args );
 static int Ipo_setRctf( BPy_Ipo * self, PyObject * args );
@@ -130,11 +132,11 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	/* name, method, flags, doc */
 	{"getName", ( PyCFunction ) Ipo_getName, METH_NOARGS,
 	 "() - Return Ipo Data name"},
-	{"setName", ( PyCFunction ) Ipo_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) Ipo_oldsetName, METH_VARARGS,
 	 "(str) - Change Ipo Data name"},
 	{"getBlocktype", ( PyCFunction ) Ipo_getBlocktype, METH_NOARGS,
 	 "() - Return Ipo blocktype"},
-	{"setBlocktype", ( PyCFunction ) Ipo_setBlocktype, METH_VARARGS,
+	{"setBlocktype", ( PyCFunction ) Ipo_oldsetBlocktype, METH_VARARGS,
 	 "(str) - Change Ipo blocktype"},
 	{"getRctf", ( PyCFunction ) Ipo_getRctf, METH_NOARGS,
 	 "() - Return Ipo rctf"},
@@ -813,20 +815,21 @@ static PyObject *Ipo_getName( BPy_Ipo * self )
 			"couldn't get Ipo.name attribute" );
 }
 
-static PyObject *Ipo_setName( BPy_Ipo * self, PyObject * args )
+static int Ipo_setName( BPy_Ipo * self, PyObject * args )
 {
 	char *name;
 	char buf[21];
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
+	name = PyString_AsString( args );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected string argument" );
 
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 
 	rename_id( &self->ipo->id, buf );
 
-	Py_RETURN_NONE;
+	return 0;
 }
 
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
@@ -840,17 +843,15 @@ static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
 		   "couldn't get Ipo.blocktype attribute" );
 }
 
-static PyObject *Ipo_setBlocktype( BPy_Ipo * self, PyObject * args )
+static int Ipo_setBlocktype( BPy_Ipo * self, PyObject * args )
 {
-	short blocktype = 0;
-
-	if( !PyArg_ParseTuple( args, "h", &blocktype ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
+	if( !PyInt_CheckExact( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 
-	self->ipo->blocktype = blocktype;
+	self->ipo->blocktype = (short)PyInt_AS_LONG( args );
 
-	Py_RETURN_NONE;
+	return 0;
 }
 
 static PyObject *Ipo_getRctf( BPy_Ipo * self )
@@ -1850,4 +1851,16 @@ static PyObject *Ipo_oldsetRctf( BPy_Ipo * self, PyObject * args )
 {
 	return EXPP_setterWrapperTuple( (void *)self, args,
 			(setter)Ipo_setRctf );
+}
+
+static PyObject *Ipo_oldsetName( BPy_Ipo * self, PyObject * args )
+{
+	return EXPP_setterWrapperTuple( (void *)self, args,
+			(setter)Ipo_setName );
+}
+
+static PyObject *Ipo_oldsetBlocktype( BPy_Ipo * self, PyObject * args )
+{
+	return EXPP_setterWrapperTuple( (void *)self, args,
+			(setter)Ipo_setBlocktype );
 }
