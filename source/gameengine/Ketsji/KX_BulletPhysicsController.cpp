@@ -53,7 +53,7 @@ void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 
 	KX_GameObject* gameobj = (KX_GameObject*)	object->GetSGClientObject();
 	gameobj->SetPhysicsController(this,gameobj->IsDynamic());
-	//GetSumoObject()->setClientObject(gameobj->getClientInfo());
+	CcdPhysicsController::setNewClientInfo(gameobj->getClientInfo());
 
 
 }
