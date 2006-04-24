@@ -6828,7 +6828,7 @@ static PyObject *M_Mesh_Modes( PyObject * self, PyObject * args )
 					      "value out of range" );
 
 	if( modes > 0 )
-		G.scene->selectmode = modes;
+		G.scene->selectmode = (short)modes;
 	
 	return PyInt_FromLong( G.scene->selectmode );
 }

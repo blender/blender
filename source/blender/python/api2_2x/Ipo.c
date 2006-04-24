@@ -533,7 +533,7 @@ static short lookup_curve_name( char *str, int blocktype, int channel )
 			else {
 				int param = (short)*adrcodes & ~MA_MAP1;
 				param |= texchannel_to_adrcode( channel );
-				return param;
+				return (short)param;
 			}
 		}
 		++adrcodes;
@@ -630,13 +630,13 @@ static short lookup_curve_adrcode( int code, int blocktype, int channel )
 
 		/* if not a texture channel, just return the adrcode */
 			if( channel == -1 || *adrcodes < MA_MAP1 )
-				return *adrcodes;
+				return (short)*adrcodes;
 
 		/* otherwise adjust adrcode to include current channel */
 			else {
 				int param = *adrcodes & ~MA_MAP1;
 				param |= texchannel_to_adrcode( channel );
-				return param;
+				return (short)param;
 			}
 		}
 		++adrcodes;
@@ -1057,7 +1057,7 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 	PyObject *dict;
 	int *vals = NULL;
 	char name[32];
-	PyObject *attr;
+	PyObject *attr = Py_None;
 
 	/* determine what type of Ipo we are */
 
@@ -1163,7 +1163,7 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 		char *ptr = name+3;
 		strcpy( name+3, lookup_name( *vals ) ); 
 		while( *ptr ) {
-			*ptr = toupper( *ptr );
+			*ptr = (char)toupper( *ptr );
 			++ptr;
 		}
 		PyConstant_Insert( (BPy_constant *)attr, name, 
@@ -1175,8 +1175,8 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 
 void generate_curveconsts( PyObject* module )
 {
-	namefunc lookup_name;
-	int size;
+	namefunc lookup_name = NULL;
+	int size = 0;
 	int *vals = NULL;
 	char name[32];
 
@@ -1253,7 +1253,7 @@ void generate_curveconsts( PyObject* module )
 			char *ptr = name+3;
 			strcpy( name+3, lookup_name( *vals ) ); 
 			while( *ptr ) {
-				*ptr = toupper( *ptr );
+				*ptr = (char)toupper( *ptr );
 				++ptr;
 			}
 			PyModule_AddIntConstant( module, name, *vals );
@@ -1498,8 +1498,8 @@ static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key,
 		if( !flt || !val )
 			goto AttrError;
 
-		time = PyFloat_AS_DOUBLE( flt );
-		curval = PyFloat_AS_DOUBLE( val );
+		time = (float)PyFloat_AS_DOUBLE( flt );
+		curval = (float)PyFloat_AS_DOUBLE( val );
 		Py_DECREF( flt );
 		Py_DECREF( val );
 

@@ -125,12 +125,14 @@ static int M_Group_setObjects( BPy_Group * self, PyObject * args )
 			"expected a list of objects, This iterator cannot be used." );
 		}
 		free_group(group); /* unlink all objects from this group, keep the group */
-		while ((item = PyIter_Next(iterator))) {
+		item = PyIter_Next(iterator);
+		while (item) {
 			if ( PyObject_TypeCheck(item, &Object_Type) ) {
 				blen_ob= ((BPy_Object *)item)->object;
 				add_to_group_wraper(group, blen_ob);
 			}
 			Py_DECREF(item);
+			item = PyIter_Next(iterator);
 		}
 
 		Py_DECREF(iterator);

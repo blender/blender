@@ -570,7 +570,7 @@ static int Armature_setLayers(BPy_Armature *self, PyObject *value, void *closure
 			}
 
 			/* update any bases pointing to our object */
-			self->armature->layer = layers;
+			self->armature->layer = (short)layers;
 
 			return 0;
 		}

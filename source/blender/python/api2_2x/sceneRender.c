@@ -917,10 +917,10 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
 	
-	if(0) {//!R.rectot) {
-		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-			"No image rendered");
-	} else {
+	//if(0) {//!R.rectot) {
+	//	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+	//		"No image rendered");
+	//} else {
 		if(G.ima[0]==0) {
 			strcpy(dir, G.sce);
 			BLI_splitdirstring(dir, str);
@@ -942,7 +942,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 //		schrijfplaatje(strn);
 		strcpy(G.ima, filepath);
 		waitcursor(0);
-	}
+	//}
 
 	return EXPP_incr_ret(Py_None);
 }

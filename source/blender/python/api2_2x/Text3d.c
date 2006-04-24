@@ -972,7 +972,8 @@ PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
 	if( file || !strcmp (fontfile, "<builtin>") ) {
 		load_vfont( fontfile );
 		if(file) fclose( file );
-		if( (vf = exist_vfont( fontfile )) )
+		vf = exist_vfont( fontfile );
+		if(vf)
 			return Font_CreatePyObject( vf );
 		return EXPP_incr_ret( Py_None );
 	}

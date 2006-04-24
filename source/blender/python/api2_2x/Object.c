@@ -2366,7 +2366,7 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	printf("%s\n", ob->action->id.name);
 	
 	/*  */
-	extract_pose_from_action(ob->pose, sourceact->action, actframe);
+	extract_pose_from_action(ob->pose, sourceact->action, (float)actframe);
 
 	oldframe = G.scene->r.cfra;
 	G.scene->r.cfra = curframe;
@@ -2458,7 +2458,7 @@ static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args
   EXPP_allqueue(REDRAWNLA, 0);
 
   /* restore */
-  extract_pose_from_action(ob->pose, ob->action, G.scene->r.cfra);
+  extract_pose_from_action(ob->pose, ob->action, (float)G.scene->r.cfra);
   where_is_pose(ob);
 	
   allqueue(REDRAWACTION, 1);
@@ -2519,7 +2519,7 @@ static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args )
 	G.scene->r.cfra = oldframe;
 
 	/* restore, but now with the new action in place */
-	extract_pose_from_action(ob->pose, ob->action, G.scene->r.cfra);
+	extract_pose_from_action(ob->pose, ob->action, (float)G.scene->r.cfra);
 	where_is_pose(ob);
 	
 	allqueue(REDRAWACTION, 1);
@@ -2557,7 +2557,7 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self, PyObje
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError, "expects: bonename, constraintname, influenceval" ) );
 	
 	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName, CO_ENFORCE);
-	insert_vert_ipo(icu, CFRA, influence);
+	insert_vert_ipo(icu, (float)CFRA, influence);
 
 	Py_INCREF( Py_None );
 	return ( Py_None );
