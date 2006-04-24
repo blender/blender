@@ -64,7 +64,7 @@ XCOPY /Y ..\..\..\lib\windows\python\lib\python24.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin
-XCOPY /Y ..\..\..\lib\windows\pthreads\lib\*.dll ..\..\bin
+XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin
 ECHO Copying language folder
 ECHO Copying python scripts
 IF NOT EXIST ..\..\bin\.blender\scripts MKDIR ..\..\bin\.blender\scripts
