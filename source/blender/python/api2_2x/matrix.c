@@ -113,7 +113,7 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 			"matrix.resize4x4(): problem allocating pointer space\n\n");
 	}
 	self->contigPtr = self->data.py_data;  //force
-	self->matrix = PyMem_Realloc(self->matrix, (sizeof(float) * 4));
+	self->matrix = PyMem_Realloc(self->matrix, (sizeof(float *) * 4));
 	if(self->matrix == NULL) {
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"matrix.resize4x4(): problem allocating pointer space\n\n");
