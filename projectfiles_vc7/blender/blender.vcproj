@@ -66,6 +66,11 @@ XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\pthreads\lib\*.dll ..\..\bin
 ECHO Copying language folder
+ECHO Copying python scripts
+IF NOT EXIST ..\..\bin\.blender\scripts MKDIR ..\..\bin\.blender\scripts
+XCOPY /Y ..\..\release\scripts ..\..\bin\.blender\scripts /E
+ECHO Copying manuals/text
+XCOPY/Y ..\..\release\text ..\..\bin /E
 ECHO Done
 "/>
 			<Tool
@@ -143,10 +148,15 @@ XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\python\lib\python24_d.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin\debug
-XCOPY /Y ..\..\..\lib\windows\pthreads\lib\*.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin\debug
 ECHO Copying language folder
 IF NOT EXIST ..\..\bin\debug\.blender MKDIR ..\..\bin\debug\.blender
 XCOPY /Y ..\..\bin\.blender ..\..\bin\debug\.blender /E
+ECHO Copying python scripts
+IF NOT EXIST ..\..\bin\debug\.blender\scripts MKDIR ..\..\bin\debug\.blender\scripts
+XCOPY /Y ..\..\release\scripts ..\..\bin\debug\.blender\scripts /E
+ECHO Copying manuals/text
+XCOPY/Y ..\..\release\text ..\..\bin\debug /E
 ECHO Done
 "/>
 			<Tool
