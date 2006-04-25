@@ -50,56 +50,58 @@
 #include "gen_utils.h"
 
 enum mod_constants {
+	/*Apply to all modifiers*/
 	EXPP_MOD_RENDER = 0,
 	EXPP_MOD_REALTIME,
 	EXPP_MOD_EDITMODE,
 	EXPP_MOD_ONCAGE,
+	
+	/*GENERIC*/
+	EXPP_MOD_OBJECT, /*ARMATURE, LATTICE, CURVE, BOOLEAN, ARRAY*/
+	EXPP_MOD_VERTGROUP, /*ARMATURE, LATTICE, CURVE*/
+	EXPP_MOD_LIMIT, /*ARRAY, MIRROR*/
+	EXPP_MOD_FLAG, /*MIRROR, WAVE*/
+	EXPP_MOD_COUNT, /*DECIMATOR, ARRAY*/
+	
+	/*SUBSURF SPESIFIC*/
+	EXPP_MOD_TYPES,
+	EXPP_MOD_LEVELS,
+	EXPP_MOD_RENDLEVELS,
+	EXPP_MOD_OPTIMAL,
+	EXPP_MOD_UV,
+	
+	/*ARMATURE SPESIFIC*/
+	EXPP_MOD_ENVELOPES,
+	
+	/*BUILD SPESIFIC*/
+	EXPP_MOD_START,
+	EXPP_MOD_LENGTH,
+	EXPP_MOD_SEED,
+	EXPP_MOD_RANDOMIZE,
 
-	EXPP_MOD_SUBSURF_TYPES,
-	EXPP_MOD_SUBSURF_LEVELS,
-	EXPP_MOD_SUBSURF_RENDLEVELS,
-	EXPP_MOD_SUBSURF_OPTIMAL,
-	EXPP_MOD_SUBSURF_UV,
+	/*MIRROR SPESIFIC*/
+	EXPP_MOD_AXIS,
 
-	EXPP_MOD_ARMATURE_OBJECT,
-	EXPP_MOD_ARMATURE_VERTGROUPS,
-	EXPP_MOD_ARMATURE_ENVELOPES,
+	/*DECIMATE SPESIFIC*/
+	EXPP_MOD_RATIO,
 
-	EXPP_MOD_LATTICE_OBJECT,
-	EXPP_MOD_LATTICE_VERTGROUP,
-
-	EXPP_MOD_CURVE_OBJECT,
-	EXPP_MOD_CURVE_VERTGROUP,
-
-	EXPP_MOD_BUILD_START,
-	EXPP_MOD_BUILD_LENGTH,
-	EXPP_MOD_BUILD_SEED,
-	EXPP_MOD_BUILD_RANDOMIZE,
-
-	EXPP_MOD_MIRROR_LIMIT,
-	EXPP_MOD_MIRROR_FLAG,
-	EXPP_MOD_MIRROR_AXIS,
-
-	EXPP_MOD_DECIMATE_RATIO,
-	EXPP_MOD_DECIMATE_COUNT,
-
-	EXPP_MOD_WAVE_STARTX,
-	EXPP_MOD_WAVE_STARTY,
-	EXPP_MOD_WAVE_HEIGHT,
-	EXPP_MOD_WAVE_WIDTH,
-	EXPP_MOD_WAVE_NARROW,
-	EXPP_MOD_WAVE_SPEED,
-	EXPP_MOD_WAVE_DAMP,
-	EXPP_MOD_WAVE_LIFETIME,
-	EXPP_MOD_WAVE_TIMEOFFS,
-	EXPP_MOD_WAVE_FLAG,
-
-	EXPP_MOD_BOOLEAN_OPERATION,
-	EXPP_MOD_BOOLEAN_OBJECT,
+	/*WAVE SPESIFIC*/
+	EXPP_MOD_STARTX,
+	EXPP_MOD_STARTY,
+	EXPP_MOD_HEIGHT,
+	EXPP_MOD_WIDTH,
+	EXPP_MOD_NARROW,
+	EXPP_MOD_SPEED,
+	EXPP_MOD_DAMP,
+	EXPP_MOD_LIFETIME,
+	EXPP_MOD_TIMEOFFS,
+	
+	/*BOOLEAN SPESIFIC*/
+	EXPP_MOD_OPERATION
 
 	/* yet to be implemented */
-	/* EXPP_MOD_HOOK_,
-	EXPP_MOD_ARRAY_, */
+	/* EXPP_MOD_HOOK_,*/
+	/* EXPP_MOD_ARRAY_, */
 };
 
 /*****************************************************************************/
@@ -109,7 +111,6 @@ static PyObject *Modifier_getName( BPy_Modifier * self );
 static int Modifier_setName( BPy_Modifier * self, PyObject *arg );
 static PyObject *Modifier_getType( BPy_Modifier * self );
 
-static PyObject *Modifier_getKeys( BPy_Modifier * self );
 static PyObject *Modifier_moveUp( BPy_Modifier * self );
 static PyObject *Modifier_moveDown( BPy_Modifier * self );
 
@@ -126,8 +127,6 @@ static PyMethodDef BPy_Modifier_methods[] = {
 	 "Move modifier up in stack"},
 	{"down", ( PyCFunction ) Modifier_moveDown, METH_NOARGS,
 	 "Move modifier down in stack"},
-	{"keys", ( PyCFunction )Modifier_getKeys, METH_NOARGS,
-	 "Modifier keys"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -140,7 +139,7 @@ static PyGetSetDef BPy_Modifier_getseters[] = {
 	 "Modifier name", NULL},
 	{"type",
 	(getter)Modifier_getType, (setter)NULL,
-	 "Modifier type", NULL},
+	 "Modifier type (read only)", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -328,134 +327,21 @@ static PyObject *Modifier_moveDown( BPy_Modifier * self )
 	Py_RETURN_NONE;
 }
 
-/*
- * return a constant object which contains all the data attributes which
- * can be accessed for each modifier type
- */
-
-static PyObject *Modifier_getKeys( BPy_Modifier * self )
+static PyObject *subsurf_getter( BPy_Modifier * self, int type )
 {
-	BPy_constant *attr = (BPy_constant *)PyConstant_New();
-
-	PyConstant_Insert( attr, "RENDER", PyInt_FromLong( EXPP_MOD_RENDER ) );
-	PyConstant_Insert( attr, "REALTIME", PyInt_FromLong( EXPP_MOD_REALTIME ) );
-	PyConstant_Insert( attr, "EDITMODE", PyInt_FromLong( EXPP_MOD_EDITMODE ) );
-	PyConstant_Insert( attr, "ONCAGE", PyInt_FromLong( EXPP_MOD_ONCAGE ) );
-	switch( self->md->type ) {
-    	case eModifierType_Subsurf:
-			PyConstant_Insert( attr, "TYPE",
-					PyInt_FromLong( EXPP_MOD_SUBSURF_TYPES ) );
-			PyConstant_Insert( attr, "LEVELS",
-					PyInt_FromLong( EXPP_MOD_SUBSURF_LEVELS ) );
-			PyConstant_Insert( attr, "RENDER_LEVELS",
-					PyInt_FromLong( EXPP_MOD_SUBSURF_RENDLEVELS ) );
-			PyConstant_Insert( attr, "OPTIMAL",
-					PyInt_FromLong( EXPP_MOD_SUBSURF_OPTIMAL ) );
-			PyConstant_Insert( attr, "UV",
-					PyInt_FromLong( EXPP_MOD_SUBSURF_UV ) );
-			break;
-
-    	case eModifierType_Armature:
-			PyConstant_Insert( attr, "OBJECT",
-					PyInt_FromLong( EXPP_MOD_ARMATURE_OBJECT ) );
-			PyConstant_Insert( attr, "VERTGROUPS",
-					PyInt_FromLong( EXPP_MOD_ARMATURE_VERTGROUPS ) );
-			PyConstant_Insert( attr, "ENVELOPES",
-					PyInt_FromLong( EXPP_MOD_ARMATURE_ENVELOPES ) );
-			break;
-
-    	case eModifierType_Lattice:
-			PyConstant_Insert( attr, "OBJECT",
-					PyInt_FromLong( EXPP_MOD_LATTICE_OBJECT) );
-			PyConstant_Insert( attr, "VERTGROUP",
-					PyInt_FromLong( EXPP_MOD_LATTICE_VERTGROUP) );
-			break;
-
-    	case eModifierType_Curve:
-			PyConstant_Insert( attr, "OBJECT",
-					PyInt_FromLong( EXPP_MOD_CURVE_OBJECT ) );
-			PyConstant_Insert( attr, "VERTGROUP",
-					PyInt_FromLong( EXPP_MOD_CURVE_VERTGROUP ) );
-			break;
-
-    	case eModifierType_Build:
-			PyConstant_Insert( attr, "START",
-					PyInt_FromLong( EXPP_MOD_BUILD_START ) );
-			PyConstant_Insert( attr, "LENGTH",
-					PyInt_FromLong( EXPP_MOD_BUILD_LENGTH ) );
-			PyConstant_Insert( attr, "SEED",
-					PyInt_FromLong( EXPP_MOD_BUILD_SEED ) );
-			PyConstant_Insert( attr, "RANDOMIZE",
-					PyInt_FromLong( EXPP_MOD_BUILD_RANDOMIZE ) );
-			break;
-
-    	case eModifierType_Mirror:
-			PyConstant_Insert( attr, "LIMIT",
-					PyInt_FromLong( EXPP_MOD_MIRROR_LIMIT ) );
-			PyConstant_Insert( attr, "FLAG",
-					PyInt_FromLong( EXPP_MOD_MIRROR_FLAG ) );
-			PyConstant_Insert( attr, "AXIS",
-					PyInt_FromLong( EXPP_MOD_MIRROR_AXIS ) );
-			break;
-
-    	case eModifierType_Decimate:
-			PyConstant_Insert( attr, "RATIO",
-					PyInt_FromLong( EXPP_MOD_DECIMATE_RATIO ) );
-			PyConstant_Insert( attr, "FACE_COUNT",
-					PyInt_FromLong( EXPP_MOD_DECIMATE_COUNT ) );
-			break;
-
-    	case eModifierType_Wave:
-			PyConstant_Insert( attr, "START_X",
-					PyInt_FromLong( EXPP_MOD_WAVE_STARTX ) );
-			PyConstant_Insert( attr, "START_Y",
-					PyInt_FromLong( EXPP_MOD_WAVE_STARTY ) );
-			PyConstant_Insert( attr, "HEIGHT",
-					PyInt_FromLong( EXPP_MOD_WAVE_HEIGHT ) );
-			PyConstant_Insert( attr, "WIDTH",
-					PyInt_FromLong( EXPP_MOD_WAVE_WIDTH ) );
-			PyConstant_Insert( attr, "NARROW",
-					PyInt_FromLong( EXPP_MOD_WAVE_NARROW ) );
-			PyConstant_Insert( attr, "SPEED",
-					PyInt_FromLong( EXPP_MOD_WAVE_SPEED ) );
-			PyConstant_Insert( attr, "DAMP",
-					PyInt_FromLong( EXPP_MOD_WAVE_DAMP ) );
-			PyConstant_Insert( attr, "LIFETIME",
-					PyInt_FromLong( EXPP_MOD_WAVE_LIFETIME ) );
-			PyConstant_Insert( attr, "TIME_OFFS",
-					PyInt_FromLong( EXPP_MOD_WAVE_TIMEOFFS ) );
-			PyConstant_Insert( attr, "FLAG",
-					PyInt_FromLong( EXPP_MOD_WAVE_FLAG ) );
-			break;
-
-    	case eModifierType_Boolean:
-			PyConstant_Insert( attr, "OPERATION",
-					PyInt_FromLong( EXPP_MOD_BOOLEAN_OPERATION ) );
-			PyConstant_Insert( attr, "OBJECT",
-					PyInt_FromLong( EXPP_MOD_BOOLEAN_OBJECT ) );
-
-		default:
-			break;
-	}
-
-	return (PyObject *)attr;
-}
-
-static PyObject *subsurf_getter( ModifierData *ptr, int type )
-{
-	SubsurfModifierData *md = ( SubsurfModifierData *)ptr;
+	SubsurfModifierData *md = ( SubsurfModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_SUBSURF_TYPES:
+	case EXPP_MOD_TYPES:
 		return PyInt_FromLong( ( long )md->subdivType );
-	case EXPP_MOD_SUBSURF_LEVELS:
+	case EXPP_MOD_LEVELS:
 		return PyInt_FromLong( ( long )md->levels );
-	case EXPP_MOD_SUBSURF_RENDLEVELS:
+	case EXPP_MOD_RENDLEVELS:
 		return PyInt_FromLong( ( long )md->renderLevels );
-	case EXPP_MOD_SUBSURF_OPTIMAL:
+	case EXPP_MOD_OPTIMAL:
 		return PyBool_FromLong( ( long ) 
 				( md->flags & eSubsurfModifierFlag_ControlEdges ) ) ;
-	case EXPP_MOD_SUBSURF_UV:
+	case EXPP_MOD_UV:
 		return PyBool_FromLong( ( long ) 
 				( md->flags & eSubsurfModifierFlag_SubsurfUv ) ) ;
 	default:
@@ -464,22 +350,22 @@ static PyObject *subsurf_getter( ModifierData *ptr, int type )
 	}
 }
 
-static int subsurf_setter( ModifierData *ptr, int type,
+static int subsurf_setter( BPy_Modifier * self, int type,
 		PyObject *value )
 {
-	SubsurfModifierData *md = (SubsurfModifierData *)ptr;
+	SubsurfModifierData *md = (SubsurfModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_SUBSURF_TYPES:
+	case EXPP_MOD_TYPES:
 		return EXPP_setIValueRange( value, &md->subdivType, 0, 1, 'h' );
-	case EXPP_MOD_SUBSURF_LEVELS:
+	case EXPP_MOD_LEVELS:
 		return EXPP_setIValueClamped( value, &md->levels, 1, 6, 'h' );
-	case EXPP_MOD_SUBSURF_RENDLEVELS:
+	case EXPP_MOD_RENDLEVELS:
 		return EXPP_setIValueClamped( value, &md->renderLevels, 1, 6, 'h' );
-	case EXPP_MOD_SUBSURF_OPTIMAL:
+	case EXPP_MOD_OPTIMAL:
 		return EXPP_setBitfield( value, &md->flags,
 				eSubsurfModifierFlag_ControlEdges, 'h' );
-	case EXPP_MOD_SUBSURF_UV:
+	case EXPP_MOD_UV:
 		return EXPP_setBitfield( value, &md->flags,
 				eSubsurfModifierFlag_SubsurfUv, 'h' );
 	default:
@@ -487,72 +373,78 @@ static int subsurf_setter( ModifierData *ptr, int type,
 	}
 }
 
-static PyObject *armature_getter( ModifierData *ptr, int type )
+static PyObject *armature_getter( BPy_Modifier * self, int type )
 {
-	ArmatureModifierData *md = (ArmatureModifierData *)ptr;
+	ArmatureModifierData *md = (ArmatureModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_ARMATURE_OBJECT:
+	case EXPP_MOD_OBJECT:
 		return Object_CreatePyObject( md->object );
-	case EXPP_MOD_ARMATURE_VERTGROUPS:
+	case EXPP_MOD_VERTGROUP:
 		return PyBool_FromLong( ( long )( md->deformflag & 1 ) ) ;
-	case EXPP_MOD_ARMATURE_ENVELOPES:
+	case EXPP_MOD_ENVELOPES:
 		return PyBool_FromLong( ( long )( md->deformflag & 2 ) ) ;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static int armature_setter( ModifierData *ptr, int type, PyObject *value )
+static int armature_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	ArmatureModifierData *md = (ArmatureModifierData *)ptr;
+	ArmatureModifierData *md = (ArmatureModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_ARMATURE_OBJECT: {
+	case EXPP_MOD_OBJECT: {
 		Object *obj = (( BPy_Object * )value)->object;
 		if( !BPy_Object_Check( value ) || obj->type != OB_ARMATURE )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected BPy armature object argument" );
+		if(obj == self->obj )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot lattice deform an object with its self" );
 		md->object = obj;
 		return 0;
 		}
-	case EXPP_MOD_ARMATURE_VERTGROUPS:
+	case EXPP_MOD_VERTGROUP:
 		return EXPP_setBitfield( value, &md->deformflag, 1, 'h' );
-	case EXPP_MOD_ARMATURE_ENVELOPES:
+	case EXPP_MOD_ENVELOPES:
 		return EXPP_setBitfield( value, &md->deformflag, 2, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static PyObject *lattice_getter( ModifierData *ptr, int type )
+static PyObject *lattice_getter( BPy_Modifier * self, int type )
 {
-	LatticeModifierData *md = (LatticeModifierData *)ptr;
+	LatticeModifierData *md = (LatticeModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_LATTICE_OBJECT:
+	case EXPP_MOD_OBJECT:
 		return Object_CreatePyObject( md->object );
-	case EXPP_MOD_LATTICE_VERTGROUP:
+	case EXPP_MOD_VERTGROUP:
 		return PyString_FromString( md->name ) ;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static int lattice_setter( ModifierData *ptr, int type, PyObject *value )
+static int lattice_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	LatticeModifierData *md = (LatticeModifierData *)ptr;
+	LatticeModifierData *md = (LatticeModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_LATTICE_OBJECT: {
+	case EXPP_MOD_OBJECT: {
 		Object *obj = (( BPy_Object * )value)->object;
 		if( !BPy_Object_Check( value ) || obj->type != OB_LATTICE )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected BPy lattice object argument" );
+		if(obj == self->obj )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot curve deform an object with its self" );
 		md->object = obj;
 		break;
 		}
-	case EXPP_MOD_LATTICE_VERTGROUP: {
+	case EXPP_MOD_VERTGROUP: {
 		char *name = PyString_AsString( value );
 		if( !name )
 			return EXPP_ReturnIntError( PyExc_TypeError,
@@ -566,34 +458,37 @@ static int lattice_setter( ModifierData *ptr, int type, PyObject *value )
 	return 0;
 }
 
-static PyObject *curve_getter( ModifierData *ptr, int type )
+static PyObject *curve_getter( BPy_Modifier * self, int type )
 {
-	CurveModifierData *md = (CurveModifierData *)ptr;
+	CurveModifierData *md = (CurveModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_CURVE_OBJECT:
+	case EXPP_MOD_OBJECT:
 		return Object_CreatePyObject( md->object );
-	case EXPP_MOD_CURVE_VERTGROUP:
+	case EXPP_MOD_VERTGROUP:
 		return PyString_FromString( md->name ) ;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static int curve_setter( ModifierData *ptr, int type, PyObject *value )
+static int curve_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	CurveModifierData *md = (CurveModifierData *)ptr;
+	CurveModifierData *md = (CurveModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_CURVE_OBJECT: {
+	case EXPP_MOD_OBJECT: {
 		Object *obj = (( BPy_Object * )value)->object;
 		if( !BPy_Object_Check( value ) || obj->type != OB_CURVE )
 			return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected BPy lattice object argument" );
+		if(obj == self->obj )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot curve deform an object with its self" );
 		md->object = obj;
 		break;
 		}
-	case EXPP_MOD_CURVE_VERTGROUP: {
+	case EXPP_MOD_VERTGROUP: {
 		char *name = PyString_AsString( value );
 		if( !name )
 			return EXPP_ReturnIntError( PyExc_TypeError,
@@ -607,151 +502,151 @@ static int curve_setter( ModifierData *ptr, int type, PyObject *value )
 	return 0;
 }
 
-static PyObject *build_getter( ModifierData *ptr, int type )
+static PyObject *build_getter( BPy_Modifier * self, int type )
 {
-	BuildModifierData *md = (BuildModifierData *)ptr;
+	BuildModifierData *md = (BuildModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_BUILD_START:
+	case EXPP_MOD_START:
 		return PyFloat_FromDouble( ( float )md->start );
-	case EXPP_MOD_BUILD_LENGTH:
+	case EXPP_MOD_LENGTH:
 		return PyFloat_FromDouble( ( float )md->length );
-	case EXPP_MOD_BUILD_SEED:
+	case EXPP_MOD_SEED:
 		return PyInt_FromLong( ( long )md->seed );
-	case EXPP_MOD_BUILD_RANDOMIZE:
+	case EXPP_MOD_RANDOMIZE:
 		return PyBool_FromLong( ( long )md->randomize ) ;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static int build_setter( ModifierData *ptr, int type, PyObject *value )
+static int build_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	BuildModifierData *md = (BuildModifierData *)ptr;
+	BuildModifierData *md = (BuildModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_BUILD_START:
+	case EXPP_MOD_START:
 		return EXPP_setFloatClamped( value, &md->start, 1.0, MAXFRAMEF );
-	case EXPP_MOD_BUILD_LENGTH:
+	case EXPP_MOD_LENGTH:
 		return EXPP_setFloatClamped( value, &md->length, 1.0, MAXFRAMEF );
-	case EXPP_MOD_BUILD_SEED:
+	case EXPP_MOD_SEED:
 		return EXPP_setIValueClamped( value, &md->seed, 1, MAXFRAME, 'i' );
-	case EXPP_MOD_BUILD_RANDOMIZE:
+	case EXPP_MOD_RANDOMIZE:
 		return EXPP_setBitfield( value, &md->randomize, 1, 'i' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static PyObject *mirror_getter( ModifierData *ptr, int type )
+static PyObject *mirror_getter( BPy_Modifier * self, int type )
 {
-	MirrorModifierData *md = (MirrorModifierData *)ptr;
+	MirrorModifierData *md = (MirrorModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_MIRROR_LIMIT:
+	case EXPP_MOD_LIMIT:
 		return PyFloat_FromDouble( (double)md->tolerance );
-	case EXPP_MOD_MIRROR_FLAG:
+	case EXPP_MOD_FLAG:
 		return PyBool_FromLong( (long)( md->flag & MOD_MIR_CLIPPING ) ) ;
-	case EXPP_MOD_MIRROR_AXIS:
+	case EXPP_MOD_AXIS:
 		return PyInt_FromLong( (long)md->axis );
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static int mirror_setter( ModifierData *ptr, int type, PyObject *value )
+static int mirror_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	MirrorModifierData *md = (MirrorModifierData *)ptr;
+	MirrorModifierData *md = (MirrorModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_MIRROR_LIMIT:
+	case EXPP_MOD_LIMIT:
 		return EXPP_setFloatClamped( value, &md->tolerance, 0.0, 1.0 );
-	case EXPP_MOD_MIRROR_FLAG:
+	case EXPP_MOD_FLAG:
 		return EXPP_setBitfield( value, &md->flag, MOD_MIR_CLIPPING, 'i' );
-	case EXPP_MOD_MIRROR_AXIS:
+	case EXPP_MOD_AXIS:
 		return EXPP_setIValueRange( value, &md->axis, 0, 2, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static PyObject *decimate_getter( ModifierData *ptr, int type )
+static PyObject *decimate_getter( BPy_Modifier * self, int type )
 {
-	DecimateModifierData *md = (DecimateModifierData *)ptr;
+	DecimateModifierData *md = (DecimateModifierData *)(self->md);
 
-	if( type == EXPP_MOD_DECIMATE_RATIO )
+	if( type == EXPP_MOD_RATIO )
 		return PyFloat_FromDouble( (double)md->percent );
-	else if( type == EXPP_MOD_DECIMATE_COUNT )
+	else if( type == EXPP_MOD_COUNT )
 		return PyInt_FromLong( (long)md->faceCount );
 	return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 }
 
-static int decimate_setter( ModifierData *ptr, int type, PyObject *value )
+static int decimate_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	DecimateModifierData *md = (DecimateModifierData *)ptr;
+	DecimateModifierData *md = (DecimateModifierData *)(self->md);
 
-	if( type == EXPP_MOD_DECIMATE_RATIO )
+	if( type == EXPP_MOD_RATIO )
 		return EXPP_setFloatClamped( value, &md->percent, 0.0, 1.0 );
-	else if( type == EXPP_MOD_DECIMATE_COUNT )
+	else if( type == EXPP_MOD_COUNT )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 				"value is read-only" );
 	return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 }
 
-static PyObject *wave_getter( ModifierData *ptr, int type )
+static PyObject *wave_getter( BPy_Modifier * self, int type )
 {
-	WaveModifierData *md = (WaveModifierData *)ptr;
+	WaveModifierData *md = (WaveModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_WAVE_STARTX:
+	case EXPP_MOD_STARTX:
 		return PyFloat_FromDouble( (double)md->startx );
-	case EXPP_MOD_WAVE_STARTY:
+	case EXPP_MOD_STARTY:
 		return PyFloat_FromDouble( (double)md->starty );
-	case EXPP_MOD_WAVE_HEIGHT:
+	case EXPP_MOD_HEIGHT:
 		return PyFloat_FromDouble( (double)md->height );
-	case EXPP_MOD_WAVE_WIDTH:
+	case EXPP_MOD_WIDTH:
 		return PyFloat_FromDouble( (double)md->width );
-	case EXPP_MOD_WAVE_NARROW:
+	case EXPP_MOD_NARROW:
 		return PyFloat_FromDouble( (double)md->narrow );
-	case EXPP_MOD_WAVE_SPEED:
+	case EXPP_MOD_SPEED:
 		return PyFloat_FromDouble( (double)md->speed );
-	case EXPP_MOD_WAVE_DAMP:
+	case EXPP_MOD_DAMP:
 		return PyFloat_FromDouble( (double)md->damp );
-	case EXPP_MOD_WAVE_LIFETIME:
+	case EXPP_MOD_LIFETIME:
 		return PyFloat_FromDouble( (double)md->lifetime );
-	case EXPP_MOD_WAVE_TIMEOFFS:
+	case EXPP_MOD_TIMEOFFS:
 		return PyFloat_FromDouble( (double)md->timeoffs );
-	case EXPP_MOD_WAVE_FLAG:
+	case EXPP_MOD_FLAG:
 		return PyInt_FromLong( (long)md->flag );
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
 }
 
-static int wave_setter( ModifierData *ptr, int type, PyObject *value )
+static int wave_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	WaveModifierData *md = (WaveModifierData *)ptr;
+	WaveModifierData *md = (WaveModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_WAVE_STARTX:
+	case EXPP_MOD_STARTX:
 		return EXPP_setFloatClamped( value, &md->startx, -100.0, 100.0 );
-	case EXPP_MOD_WAVE_STARTY:
+	case EXPP_MOD_STARTY:
 		return EXPP_setFloatClamped( value, &md->starty, -100.0, 100.0 );
-	case EXPP_MOD_WAVE_HEIGHT:
+	case EXPP_MOD_HEIGHT:
 		return EXPP_setFloatClamped( value, &md->height, -2.0, 2.0 );
-	case EXPP_MOD_WAVE_WIDTH:
+	case EXPP_MOD_WIDTH:
 		return EXPP_setFloatClamped( value, &md->width, 0.0, 5.0 );
-	case EXPP_MOD_WAVE_NARROW:
+	case EXPP_MOD_NARROW:
 		return EXPP_setFloatClamped( value, &md->width, 0.0, 5.0 );
-	case EXPP_MOD_WAVE_SPEED:
+	case EXPP_MOD_SPEED:
 		return EXPP_setFloatClamped( value, &md->speed, -2.0, 2.0 );
-	case EXPP_MOD_WAVE_DAMP:
+	case EXPP_MOD_DAMP:
 		return EXPP_setFloatClamped( value, &md->damp, -1000.0, 1000.0 );
-	case EXPP_MOD_WAVE_LIFETIME:
+	case EXPP_MOD_LIFETIME:
 		return EXPP_setFloatClamped( value, &md->lifetime, -1000.0, 1000.0 );
-	case EXPP_MOD_WAVE_TIMEOFFS:
+	case EXPP_MOD_TIMEOFFS:
 		return EXPP_setFloatClamped( value, &md->timeoffs, -1000.0, 1000.0 );
-	case EXPP_MOD_WAVE_FLAG:
+	case EXPP_MOD_FLAG:
 		return EXPP_setIValueRange( value, &md->flag, 0, 
 				WAV_X+WAV_Y+WAV_CYCL, 'h' );
 	default:
@@ -759,30 +654,33 @@ static int wave_setter( ModifierData *ptr, int type, PyObject *value )
 	}
 }
 
-static PyObject *boolean_getter( ModifierData *ptr, int type )
+static PyObject *boolean_getter( BPy_Modifier * self, int type )
 {
-	BooleanModifierData *md = (BooleanModifierData *)ptr;
+	BooleanModifierData *md = (BooleanModifierData *)(self->md);
 
-	if( type == EXPP_MOD_BOOLEAN_OBJECT )
+	if( type == EXPP_MOD_OBJECT )
 		return Object_CreatePyObject( md->object );
-	else if( type == EXPP_MOD_BOOLEAN_OPERATION )
+	else if( type == EXPP_MOD_OPERATION )
 		return PyInt_FromLong( ( long )md->operation ) ;
 
 	return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 }
 
-static int boolean_setter( ModifierData *ptr, int type, PyObject *value )
+static int boolean_setter( BPy_Modifier *self, int type, PyObject *value )
 {
-	BooleanModifierData *md = (BooleanModifierData *)ptr;
+	BooleanModifierData *md = (BooleanModifierData *)(self->md);
 
-	if( type == EXPP_MOD_BOOLEAN_OBJECT ) {
+	if( type == EXPP_MOD_OBJECT ) {
 		Object *obj = (( BPy_Object * )value)->object;
 		if( !BPy_Object_Check( value ) || obj->type != OB_MESH )
 			return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected BPy mesh object argument" );
+		if(obj == self->obj )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot boolean an object with its self" );
 		md->object = obj;
 		return 0;
-	} else if( type == EXPP_MOD_BOOLEAN_OPERATION )
+	} else if( type == EXPP_MOD_OPERATION )
 		return EXPP_setIValueRange( value, &md->operation, 
 				eBooleanModifierOp_Intersect, eBooleanModifierOp_Difference,
 				'h' );
@@ -796,14 +694,18 @@ static int boolean_setter( ModifierData *ptr, int type, PyObject *value )
 
 static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 {
-	int type;
+	int setting;
 
 	if( !PyInt_CheckExact( key ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected string arg" );
+				"expected an int arg as stored in Blender.Modifier.Settings" );
 
-	type = PyInt_AsLong( key );
-	switch( type ) {
+	if (self->md==NULL )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has been removed!" );
+	
+	setting = PyInt_AsLong( key );
+	switch( setting ) {
 	case EXPP_MOD_RENDER:
 		return EXPP_getBitfield( &self->md->mode, eModifierMode_Render, 'h' );
 	case EXPP_MOD_REALTIME:
@@ -815,23 +717,23 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 	default:
 		switch( self->md->type ) {
 			case eModifierType_Subsurf:
-				return subsurf_getter( self->md, type );
+				return subsurf_getter( self, setting );
 			case eModifierType_Armature:
-				return armature_getter( self->md, type );
+				return armature_getter( self, setting );
 			case eModifierType_Lattice:
-				return lattice_getter( self->md, type );
+				return lattice_getter( self, setting );
 			case eModifierType_Curve:
-				return curve_getter( self->md, type );
+				return curve_getter( self, setting );
 			case eModifierType_Build:
-				return build_getter( self->md, type );
+				return build_getter( self, setting );
 			case eModifierType_Mirror:
-				return mirror_getter( self->md, type );
+				return mirror_getter( self, setting );
 			case eModifierType_Decimate:
-				return decimate_getter( self->md, type );
+				return decimate_getter( self, setting );
 			case eModifierType_Wave:
-				return wave_getter( self->md, type );
+				return wave_getter( self, setting );
 			case eModifierType_Boolean:
-				return boolean_getter( self->md, type );
+				return boolean_getter( self, setting );
 			case eModifierType_Hook:
 			case eModifierType_Softbody:
 			case eModifierType_Array:
@@ -846,32 +748,36 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 static int Modifier_setData( BPy_Modifier * self, PyObject * key, 
 		PyObject * arg )
 {
-	int type;
+	int key_int;
 
 	if( !PyNumber_Check( key ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected string arg" );
-
-	type = PyInt_AsLong( key );
+				"expected an int arg as stored in Blender.Modifier.Settings" );
+	
+	if (self->md==NULL )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This modifier has been removed!" );
+	
+	key_int = PyInt_AsLong( key );
 	switch( self->md->type ) {
     	case eModifierType_Subsurf:
-			return subsurf_setter( self->md, type, arg );
+			return subsurf_setter( self, key_int, arg );
     	case eModifierType_Armature:
-			return armature_setter( self->md, type, arg );
+			return armature_setter( self, key_int, arg );
     	case eModifierType_Lattice:
-			return lattice_setter( self->md, type, arg );
+			return lattice_setter( self, key_int, arg );
     	case eModifierType_Curve:
-			return curve_setter( self->md, type, arg );
+			return curve_setter( self, key_int, arg );
     	case eModifierType_Build:
-			return build_setter( self->md, type, arg );
+			return build_setter( self, key_int, arg );
     	case eModifierType_Mirror:
-			return mirror_setter( self->md, type, arg );
+			return mirror_setter( self, key_int, arg );
 		case eModifierType_Decimate:
-			return decimate_setter( self->md, type, arg );
+			return decimate_setter( self, key_int, arg );
 		case eModifierType_Wave:
-			return wave_setter( self->md, type, arg );
+			return wave_setter( self, key_int, arg );
 		case eModifierType_Boolean:
-			return boolean_setter( self->md, type, arg );
+			return boolean_setter( self, key_int, arg );
 		case eModifierType_Hook:
 		case eModifierType_Softbody:
 		case eModifierType_Array:
@@ -879,7 +785,7 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return 0;
 	}
 	return EXPP_ReturnIntError( PyExc_RuntimeError,
-			"unsupported modifier type" );
+			"unsupported modifier setting" );
 }
 
 /*****************************************************************************/
@@ -1028,6 +934,8 @@ static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
 
 	if( !PyArg_ParseTuple( args, "i", &type ) )
 		EXPP_ReturnPyObjError( PyExc_TypeError, "expected int argument" );
+	if (type==0 || type >= NUM_MODIFIER_TYPES) /* type 0 is eModifierType_None, should we be able to add one of these? */
+		EXPP_ReturnPyObjError( PyExc_TypeError, "int argument out of range, expected an int from Blender.Modifier.Type" );
 	
 	BLI_addtail( &self->obj->modifiers, modifier_new( type ) );
 	return Modifier_CreatePyObject( self->obj, self->obj->modifiers.last );
@@ -1200,7 +1108,7 @@ PyObject *ModSeq_CreatePyObject( Object *obj )
 	return ( PyObject * ) pymod;
 }
 
-static PyObject *M_Modifier_SettingsDict( void )
+static PyObject *M_Modifier_TypeDict( void )
 {
 	PyObject *S = PyConstant_New(  );
 
@@ -1229,21 +1137,127 @@ static PyObject *M_Modifier_SettingsDict( void )
 	return S;
 }
 
+static PyObject *M_Modifier_SettingsDict( void )
+{
+	PyObject *S = PyConstant_New(  );
+	
+	if( S ) {
+		BPy_constant *d = ( BPy_constant * ) S;
+
+/*
+# The lines below are a python script that uses the enum variables to create 
+# the lines below
+# START PYSCRIPT
+st='''
+	EXPP_MOD_RENDER = 0,
+	EXPP_MOD_REALTIME,
+	EXPP_MOD_EDITMODE,
+	........ and so on, copy from above
+'''
+
+base= '''
+			PyConstant_Insert( d, "%s", 
+				PyInt_FromLong( EXPP_MOD_%s ) );
+'''
+for var in st.replace(',','').split('\n'):
+	
+	var= var.split()
+	if not var: continue
+	var= var[0]
+	if (not var) or var.startswith('/'): continue
+	
+	var=var.split('_')[-1]
+	print base % (var, var),
+# END PYSCRIPT
+*/
+			
+			/*Auto generated from the above script*/
+			PyConstant_Insert( d, "RENDER", 
+				PyInt_FromLong( EXPP_MOD_RENDER ) );
+			PyConstant_Insert( d, "REALTIME", 
+				PyInt_FromLong( EXPP_MOD_REALTIME ) );
+			PyConstant_Insert( d, "EDITMODE", 
+				PyInt_FromLong( EXPP_MOD_EDITMODE ) );
+			PyConstant_Insert( d, "ONCAGE", 
+				PyInt_FromLong( EXPP_MOD_ONCAGE ) );
+			PyConstant_Insert( d, "OBJECT", 
+				PyInt_FromLong( EXPP_MOD_OBJECT ) );
+			PyConstant_Insert( d, "VERTGROUP", 
+				PyInt_FromLong( EXPP_MOD_VERTGROUP ) );
+			PyConstant_Insert( d, "LIMIT", 
+				PyInt_FromLong( EXPP_MOD_LIMIT ) );
+			PyConstant_Insert( d, "FLAG", 
+				PyInt_FromLong( EXPP_MOD_FLAG ) );
+			PyConstant_Insert( d, "COUNT", 
+				PyInt_FromLong( EXPP_MOD_COUNT ) );
+			PyConstant_Insert( d, "TYPES", 
+				PyInt_FromLong( EXPP_MOD_TYPES ) );
+			PyConstant_Insert( d, "LEVELS", 
+				PyInt_FromLong( EXPP_MOD_LEVELS ) );
+			PyConstant_Insert( d, "RENDLEVELS", 
+				PyInt_FromLong( EXPP_MOD_RENDLEVELS ) );
+			PyConstant_Insert( d, "OPTIMAL", 
+				PyInt_FromLong( EXPP_MOD_OPTIMAL ) );
+			PyConstant_Insert( d, "UV", 
+				PyInt_FromLong( EXPP_MOD_UV ) );
+			PyConstant_Insert( d, "ENVELOPES", 
+				PyInt_FromLong( EXPP_MOD_ENVELOPES ) );
+			PyConstant_Insert( d, "START", 
+				PyInt_FromLong( EXPP_MOD_START ) );
+			PyConstant_Insert( d, "LENGTH", 
+				PyInt_FromLong( EXPP_MOD_LENGTH ) );
+			PyConstant_Insert( d, "SEED", 
+				PyInt_FromLong( EXPP_MOD_SEED ) );
+			PyConstant_Insert( d, "RANDOMIZE", 
+				PyInt_FromLong( EXPP_MOD_RANDOMIZE ) );
+			PyConstant_Insert( d, "AXIS", 
+				PyInt_FromLong( EXPP_MOD_AXIS ) );
+			PyConstant_Insert( d, "RATIO", 
+				PyInt_FromLong( EXPP_MOD_RATIO ) );
+			PyConstant_Insert( d, "STARTX", 
+				PyInt_FromLong( EXPP_MOD_STARTX ) );
+			PyConstant_Insert( d, "STARTY", 
+				PyInt_FromLong( EXPP_MOD_STARTY ) );
+			PyConstant_Insert( d, "HEIGHT", 
+				PyInt_FromLong( EXPP_MOD_HEIGHT ) );
+			PyConstant_Insert( d, "WIDTH", 
+				PyInt_FromLong( EXPP_MOD_WIDTH ) );
+			PyConstant_Insert( d, "NARROW", 
+				PyInt_FromLong( EXPP_MOD_NARROW ) );
+			PyConstant_Insert( d, "SPEED", 
+				PyInt_FromLong( EXPP_MOD_SPEED ) );
+			PyConstant_Insert( d, "DAMP", 
+				PyInt_FromLong( EXPP_MOD_DAMP ) );
+			PyConstant_Insert( d, "LIFETIME", 
+				PyInt_FromLong( EXPP_MOD_LIFETIME ) );
+			PyConstant_Insert( d, "TIMEOFFS", 
+				PyInt_FromLong( EXPP_MOD_TIMEOFFS ) );
+			PyConstant_Insert( d, "OPERATION", 
+				PyInt_FromLong( EXPP_MOD_OPERATION ) );
+			/*End Auto generated code*/
+	}
+	return S;
+}
+
 /*****************************************************************************/
 /* Function:              Modifier_Init                                      */
 /*****************************************************************************/
 PyObject *Modifier_Init( void )
 {
 	PyObject *submodule;
-	PyObject *SettingsTypes = M_Modifier_SettingsDict( );
+	PyObject *TypeDict = M_Modifier_TypeDict( );
+	PyObject *SettingsDict = M_Modifier_SettingsDict( );
 
 	if( PyType_Ready( &ModSeq_Type ) < 0 || PyType_Ready( &Modifier_Type ) < 0 )
 		return NULL;
 
-	submodule = Py_InitModule3( "Blender.Modifier", NULL, "Modifer module" );
+	submodule = Py_InitModule3( "Blender.Modifier", NULL, "Modifer module for accessing and creating object modifier data" );
 
-	if( SettingsTypes )
-		PyModule_AddObject( submodule, "Settings", SettingsTypes );
-
+	if( TypeDict )
+		PyModule_AddObject( submodule, "Type", TypeDict );
+	
+	if( SettingsDict )
+		PyModule_AddObject( submodule, "Settings", SettingsDict );
+	
 	return submodule;
 }

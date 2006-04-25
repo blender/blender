@@ -242,7 +242,7 @@ class Object:
         2 - wire, 3 - Solid, 4- Shaded, 5 - Textured.
     @ivar drawMode: The object's drawing mode used. The value can be a sum
         of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
-        32 - drawwire.
+        32 - drawwire, 64 - xray.
     @ivar name: The name of the object.
     @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected. (Selecting makes the object active)
     @ivar effects: The list of particle effects associated with the object.  (Read-only)
@@ -318,6 +318,8 @@ class Object:
     @type DupOff: int
     @ivar drawSize: The drawsize for empty objects. 1.0. is default.
     @type drawSize: float
+    @ivar modifiers: The modifiers for this object.
+    @type modifiers: ModSeq L{Modifier.ModSeq}
   """
 
   def buildParts():
@@ -397,6 +399,7 @@ class Object:
         - 8  - drawname
         - 16 - drawimage
         - 32 - drawwire
+        - 64 - xray
     """
 
   def getDrawType():
@@ -698,6 +701,7 @@ class Object:
         - 8  - drawname
         - 16 - drawimage
         - 32 - drawwire
+        - 64 - xray
     """
 
   def setDrawType(drawtype):

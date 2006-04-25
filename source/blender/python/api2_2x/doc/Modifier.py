@@ -15,11 +15,11 @@ Example::
   mods = ob.modifiers            # get the object's modifiers
   for mod in mods:
     print mod,mod.name           # print each modifier and its name
-  mod = mods.append(Modifier.Settings.SUBSURF) # add a new subsurf modifier
-  mod[mod.keys().LEVELS] = 3     # set subsurf subdivision levels to 3
+  mod = mods.append(Modifier.Type.SUBSURF) # add a new subsurf modifier
+  mod[Modifier.Settings.LEVELS] = 3     # set subsurf subdivision levels to 3
   
-@type Settings: readonly dictionary
-@var Settings: Various constants used by Modifier objects:
+@type Type: readonly dictionary
+@var Type: Constant Modifier dict used for  L{ModSeq.append()} to a modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
     - BOOLEAN - type value for Boolean modifiers
     - BUILD - type value for Build modifiers
@@ -29,13 +29,55 @@ Example::
     - SUBSURF - type value for Subsurf modifiers
     - WAVE - type value for Wave modifiers
 
+@type Settings: readonly dictionary
+@var Settings: Constant Modifier dict used for changing modifier settings.
+	- EXPP_MOD_RENDER - Used for all modifiers
+	- EXPP_MOD_REALTIME - Used for all modifiers
+	- EXPP_MOD_EDITMODE - Used for all modifiers
+	- EXPP_MOD_ONCAGE - Used for all modifiers
+
+	- EXPP_MOD_OBJECT - Used for Armature, Lattice, Curve, Boolean and Array
+	- EXPP_MOD_VERTGROUP - Used for Armature, Lattice and Curve
+	- EXPP_MOD_LIMIT - Array and Mirror
+	- EXPP_MOD_FLAG - Mirror and Wave
+	- EXPP_MOD_COUNT - Decimator and Array
+	
+	- EXPP_MOD_TYPES - Used for Subsurf only
+	- EXPP_MOD_LEVELS - Used for Subsurf only 
+	- EXPP_MOD_RENDLEVELS - Used for Subsurf only
+	- EXPP_MOD_OPTIMAL - Used for Subsurf only
+	- EXPP_MOD_UV - Used for Subsurf only
+
+
+	- EXPP_MOD_ENVELOPES - Used for Armature only
+	
+	- EXPP_MOD_START - Used for Build only
+	- EXPP_MOD_LENGTH - Used for Build only
+	- EXPP_MOD_SEED - Used for Build only
+	- EXPP_MOD_RANDOMIZE - Used for Build only
+
+	- EXPP_MOD_AXIS - Used for Mirror only
+
+	- EXPP_MOD_RATIO - Used for Decimate only
+	
+	- EXPP_MOD_STARTX - Used for Wave only
+	- EXPP_MOD_STARTY - Used for Wave only
+	- EXPP_MOD_HEIGHT - Used for Wave only
+	- EXPP_MOD_WIDTH - Used for Wave only
+	- EXPP_MOD_NARROW - Used for Wave only
+	- EXPP_MOD_SPEED - Used for Wave only
+	- EXPP_MOD_DAMP - Used for Wave only
+	- EXPP_MOD_LIFETIME - Used for Wave only
+	- EXPP_MOD_TIMEOFFS - Used for Wave only
+	- EXPP_MOD_OPERATION - Used for Wave only
 """
 
 class ModSeq:
   """
   The ModSeq object
   =================
-  This object provides access to list of modifiers for a particular object.
+  This object provides access to list of L{modifiers<Modifier.Modifier>} for a particular object.
+  Only accessed from L{Object.Object.modifiers}.
   """
 
   def __getitem__(index):
@@ -57,27 +99,34 @@ class ModSeq:
   def append(type):
     """
     Appends a new modifier to the end of the object's modifier stack.
-    @type type: a constant specifying the type of modifier to create
+    @type type: a constant specifying the type of modifier to create. as from L{Type}
     @rtype: Modifier
     @return: the new Modifier
+    """
+
+  def remove(modifier):
+    """
+    Remove a modifier from this objects modifier sequence.
+    @type modifier: a modifier from this sequence to remove.
+    @note: Accessing attributes of the modifier after removing will raise an error.
     """
 
 class Modifier:
   """
   The Modifier object
   ===================
-  This object provides access to a modifier for a particular object.
+  This object provides access to a modifier for a particular object accessed from L{ModSeq}.
   @ivar name: The name of this modifier. 31 chars max.
   @type name: string
   @ivar type: The type of this modifier. Read-only.  The returned value
-  matches the types in L{Settings}.
+  matches the types in L{Type}.
   @type type: int
   """  
 
   def __getitem__(key):
     """
     This operator returns one of the modifier's data attributes.
-    @type key: value from modifier's L{key()} constant
+    @type key: value from modifier's L{Modifier.Settings} constant
     @return: the requested data
     @rtype: varies
     @raise KeyError: the key does not exist for the modifier
@@ -86,7 +135,7 @@ class Modifier:
   def __setitem__(key):
     """
     This operator modifiers one of the modifier's data attributes.
-    @type key: value from modifier's L{key()} constant
+    @type key: value from modifier's L{Modifier.Settings} constant
     @raise KeyError: the key does not exist for the modifier
     """
 
@@ -106,33 +155,4 @@ class Modifier:
     modifier
     """
 
-  def keys():
-    """
-    Get the sequence of keys for the modifier.
-    For example, a subsurf modifier can be accessed by::
-       from Blender import *
-
-       ob = Object.Get('Cube')        # retrieve an object
-       mod = ob.modifiers[0]          # get the object's modifiers
-       mod[mod.keys().LEVELS] = 3     # set subsurf subdivision levels to 3
-
-    The valid keys are:
-      - Common keys (all modifiers contain these keys): RENDER, REALTIME,
-        EDITMODE, ONCAGE
-      - Armature keys: ENVELOPES, OBJECT, VERTGROUPS
-      - Boolean keys: OBJECT, OPERATION 
-      - Build keys: START, LENGTH, SEED, RANDOMIZE
-      - Curve keys: OBJECT, VERTGROUP
-      - Decimate keys: RATIO, FACE_COUNT
-      - Lattice keys: OBJECT, VERTGROUP
-      - Mirror keys: LIMIT, FLAG, AXIS
-      - Subsurf keys: TYPE, LEVELS, RENDER_LEVELS, OPTIMAL, UV
-      - Wave keys: START_X, START_Y, HEIGHT, WIDTH, NARROW, SPEED, DAMP,
-        LIFETIME, TIME_OFFS, FLAG
-
-    @rtype: PyConstant
-    @return: the keys for the modifier
-    @raise RuntimeError: request to move modifier beyond a non-deforming
-    modifier
-    """
 
