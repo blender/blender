@@ -1217,6 +1217,7 @@ void drawname(Object *ob)
 static void draw_selected_name(Object *ob)
 {
 	char info[128];
+	short offset=30;
 
 	if(ob->type==OB_ARMATURE) {
 		bArmature *arm= ob->data;
@@ -1248,11 +1249,93 @@ static void draw_selected_name(Object *ob)
 	else sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
 
 	BIF_ThemeColor(TH_TEXT_HI);
-	glRasterPos2i(30,  10);
+	if (U.uiflag & USER_SHOW_ROTVIEWICON)
+		offset = 14 + (U.rvisize * 2);
+
+	glRasterPos2i(offset,  10);
 	BMF_DrawString(G.fonts, info);
 }
 
 
+/* Draw a live substitute of the view icon, which is always shown */
+static void draw_view_axis(void)
+{
+	const float k = U.rvisize;   /* axis size */
+	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
+	const float start = k + 1.0; /* axis center in screen coordinates, x=y */
+	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
+	
+	/* rvibright ranges approx. from original axis icon color to gizmo color */
+	const unsigned char bright = U.rvibright * 5;
+	
+	unsigned char col[3];
+	unsigned char gridcol[3];
+	
+	float vec[4];
+	float dx, dy;
+	float h, s, v;
+	
+	BIF_GetThemeColor3ubv(TH_GRID, gridcol);
+	
+	/* X */
+	vec[0] = vec[3] = 1;
+	vec[1] = vec[2] = 0;
+	QuatMulVecf(G.vd->viewquat, vec);
+	
+	make_axis_color(gridcol, col, 'x');
+	col[0] = col[0]>255-(4*bright)?255:col[0]+4*bright;
+	col[1] = col[1]>255-(bright)?255:col[1]+bright;
+	col[2] = col[2]>255-(bright)?255:col[2]+bright;
+	glColor3ubv(col);
+		
+	dx = vec[0] * k;
+	dy = vec[1] * k;
+	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
+	if (fabs(dx) > toll || fabs(dy) > toll) {
+		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
+		BMF_DrawString(G.fonts, "x");
+	}
+	
+	/* Y */
+	vec[1] = vec[3] = 1;
+	vec[0] = vec[2] = 0;
+	QuatMulVecf(G.vd->viewquat, vec);
+	
+	make_axis_color(gridcol, col, 'y');
+	col[0] = col[0]>255-(bright)?255:col[0]+bright;
+	col[1] = col[1]>255-(4*bright)?255:col[1]+4*bright;
+	col[2] = col[2]>255-(bright)?255:col[2]+bright;
+	glColor3ubv(col);
+	
+	dx = vec[0] * k;
+	dy = vec[1] * k;
+	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
+	if (fabs(dx) > toll || fabs(dy) > toll) {
+		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
+		BMF_DrawString(G.fonts, "y");
+	}
+	
+	/* Z */
+	vec[2] = vec[3] = 1;
+	vec[1] = vec[0] = 0;
+	QuatMulVecf(G.vd->viewquat, vec);
+	
+	make_axis_color(gridcol, col, 'z');
+	col[0] = col[0]>255-(bright)?255:col[0]+bright;
+	col[1] = col[1]>255-(bright)?255:col[1]+bright;
+	col[2] = col[2]>255-(4*bright)?255:col[2]+4*bright;
+	glColor3ubv(col);
+	
+	dx = vec[0] * k;
+	dy = vec[1] * k;
+	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
+	if (fabs(dx) > toll || fabs(dy) > toll) {
+		glRasterPos2i(start + dx + 2, start + dy + ydisp + 2);
+		BMF_DrawString(G.fonts, "z");
+	}
+}
+
+ 	
 static void draw_view_icon(void)
 {
 	BIFIconID icon;
@@ -1269,6 +1352,31 @@ static void draw_view_icon(void)
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
+}
+
+static void draw_viewport_name(ScrArea *sa)
+{
+	char *name = NULL;
+	
+	switch(G.vd->view) {
+		case 1:
+			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back" : "Front";
+			break;
+		case 3:
+			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left" : "Right";
+			break;
+		case 7:
+			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom" : "Top";
+			break;
+		default:
+			name = G.vd->persp==V3D_PERSP_USE_THE_CAMERA ? "Camera" : "User";
+	}
+
+	if (name) {
+		BIF_ThemeColor(TH_TEXT_HI);
+		glRasterPos2i(10,  sa->winy-20);
+		BMF_DrawString(G.fonts, name);
+	}
 }
 
 /* ******************* view3d space & buttons ************** */
@@ -2522,7 +2630,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	
 	if(v3d->persp>1) drawviewborder();
 	if(!(G.f & G_PLAYANIM)) drawcursor(v3d);
-	draw_view_icon();
+	if(U.uiflag & USER_SHOW_ROTVIEWICON)
+		draw_view_axis();
+	else	
+		draw_view_icon();
+	if(U.uiflag & USER_SHOW_VIEWPORTNAME)
+		draw_viewport_name(sa);
 
 	ob= OBACT;
 	if(ob && (U.uiflag & USER_DRAWVIEWINFO)) 

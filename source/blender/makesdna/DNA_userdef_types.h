@@ -166,7 +166,10 @@ typedef struct UserDef {
         int memcachelimit;
         short frameserverport;
 	short pad;
-	short obcenter_dia, pad1, pad2, pad3;
+	short obcenter_dia;
+	short rvisize;		/* rotating view icon size */
+	short rvibright;	/* rotating view icon brightness */
+	short pad1;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
@@ -215,6 +218,8 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ORBIT_SELECTION	16384
 #define USER_KEYINSERTAVAI		32768
 #define USER_HIDE_DOT			65536
+#define USER_SHOW_ROTVIEWICON	131072
+#define USER_SHOW_VIEWPORTNAME	262144
 
 /* transopts */
 

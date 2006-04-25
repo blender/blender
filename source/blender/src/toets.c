@@ -138,6 +138,10 @@ void persptoetsen(unsigned short event)
 		}
 	}
 	else if((G.qual & (LR_SHIFTKEY | LR_CTRLKEY)) && (event != PAD0)) {
+		
+		/* indicate that this view is inverted */
+		G.vd->flag2 |= V3D_OPP_DIRECTION_NAME;
+		
 		if(event==PAD0) {
 			/* G.vd->persp= 3; */
 		}
@@ -197,6 +201,8 @@ void persptoetsen(unsigned short event)
 		}
 	}
 	else {
+		/* indicate that this view is not inverted */
+		G.vd->flag2 &= ~V3D_OPP_DIRECTION_NAME;
 
 		if(event==PAD7) {
 			G.vd->viewquat[0]= 1.0;

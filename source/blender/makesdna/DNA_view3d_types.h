@@ -102,7 +102,9 @@ typedef struct View3D {
 	short drawtype;
 	short localview;
 	int lay, layact;
-	short scenelock, around, camzoom, flag;
+	short scenelock, around, camzoom;
+	
+	short pad1;
 	
 	float lens, grid, gridview, pixsize, near, far;
 	float camdx, camdy;		/* camera view offsets, 1.0 = viewplane moves entire width/height */
@@ -118,12 +120,18 @@ typedef struct View3D {
 	
 	/* user defined clipping planes */
 	float clip[4][4];
+	
 	struct BoundBox *clipbb;
 	
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw;
 	/* drawflags, denoting state */
-	short zbuf, transp, xray, pad2;
+	short zbuf, transp, xray;
+
+	short flag, flag2;
+	
+	short pad2[3];
+
 } View3D;
 
 /* View3D->flag (short) */
@@ -144,6 +152,9 @@ typedef struct View3D {
 #define V3D_GLOBAL_STATS	8192
 #define V3D_CLIPPING		16384
 #define V3D_DRAW_CENTERS	32768
+
+/* View3d->flag2 (short) */
+#define V3D_OPP_DIRECTION_NAME	1
 
 /* View3D->around */
 #define V3D_CENTRE		 0

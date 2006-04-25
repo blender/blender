@@ -2553,7 +2553,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			xpos,y6label,spref,buth,
 			0, 0, 0, 0, 0, "");	
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, USER_TOOLTIPS, 0, "ToolTips",
+		uiDefButBitI(block, TOG, USER_TOOLTIPS, 0, "Tool Tips",
 			(xpos+edgsp),y5,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Display tooltips (help tags) over buttons");
@@ -2573,10 +2573,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 #else 
 		U.curssize=0; /*Small Cursor always for OS X for now */
 #endif
-		uiDefButBitI(block, TOG, USER_PLAINMENUS, B_PLAINMENUS, "Plain menus",
+		uiDefButBitI(block, TOG, USER_SHOW_VIEWPORTNAME, B_DRAWINFO, "View Name",
 			(xpos+edgsp),y1,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
-			"Use column layout for toolbox and do not flip contents in any menu");
+			"Show the name of the view's direction in each 3D View");
 		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Menus:",
@@ -2615,11 +2615,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+spref+midsp),y1,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Make floating panels invoked by a hotkey (eg. N Key) open at the previous location");
-		
-		uiDefButBitI(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
-			(xpos+edgsp+spref+midsp+(mpref/2)),y1,(mpref/2),buth,
+		uiDefButBitI(block, TOG, USER_PLAINMENUS, B_PLAINMENUS, "Plain Menus",
+			(xpos+edgsp+(2*spref)+(2*midsp)),y1,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
-			"Lock the same rotation/scaling pivot in all 3D Views");	
+			"Use a column layout for toolbox and do not flip the contents of any menu");
+		uiBlockEndAlign(block);
 		
 		uiDefBut(block, LABEL,0,"Snap to grid:",
 			(xpos+(2*edgsp)+spref+midsp+mpref),y6label,mpref,buth,
@@ -2638,6 +2638,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0,
 			"Snap objects and sub-objects to grid units when scaling");
 		uiBlockEndAlign(block);
+		
+		uiDefButBitI(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
+			(xpos+edgsp+mpref+spref+(2*midsp)),y1,spref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Lock the same rotation/scaling pivot in all 3D Views");	
 		
 		uiDefBut(block, LABEL,0,"View zoom:",
 			(xpos+(2*edgsp)+mpref+(2*spref)+(2*midsp)),y6label,mpref,buth,
@@ -2682,6 +2687,23 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.uiflag), 0, 0, 0, 0,
 			"Keep the active object in place when orbiting the views (Object Mode)");
 		uiBlockEndAlign(block);
+		
+
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_SHOW_ROTVIEWICON, B_DRAWINFO, "Mini Axis",
+			 (xpos+edgsp+(2*mpref)+(2*midsp)),y1,(mpref/3),buth,
+			 &(U.uiflag), 0, 0, 0, 0,
+			 "Show a small rotating 3D axis in the bottom left corner of the 3D View");
+		uiDefButS(block, NUM, B_DRAWINFO, "Size:",
+			(xpos+edgsp+(2*mpref)+(2*midsp)+(mpref/3)),y1,(mpref/3),buth,
+			&U.rvisize, 10, 64, 0, 0,
+			"The axis icon's size");
+		uiDefButS(block, NUM, B_DRAWINFO, "Bright:",
+			(xpos+edgsp+(2*mpref)+(2*midsp)+2*(mpref/3)),y1,(mpref/3),buth,
+			&U.rvibright, 0, 10, 0, 0,
+			"The brightness of the icon");
+		uiBlockEndAlign(block);
+		
 
 		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
@@ -2762,15 +2784,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				  &(U.tw_hotspot), 4, 40, 0, 0, "Hotspot in pixels for clicking widget handles");
 		uiBlockEndAlign(block);
 		
-		
-		uiDefBut(block, LABEL,0,"Object center diameter",
-				 (xpos+(2*edgsp)+(5*mpref)+(5*midsp)),y3label,mpref,buth,
-				 0, 0, 0, 0, 0, "");
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_REDRCURW3D, "Size",
-				  (xpos+(2*edgsp)+(5*mpref)+(5*midsp)),y2,mpref,buth,
+		uiDefButS(block, NUM, B_REDRCURW3D, "Object Center Size: ",
+				   (xpos+edgsp+(5*mpref)+(6*midsp)),y3,mpref,buth,
 				  &(U.obcenter_dia), 4, 10, 0, 0,
-				  "Diameter in Pixels for Object/Lamp center drawing");
+				  "Diameter in Pixels for Object/Lamp center display");
 		
 		
 	} else if (U.userpref == 1) { /* edit methods */
@@ -2793,11 +2810,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps:",
+		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps: ",
 			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
 			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available (smaller values conserve memory)");
 
-		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global undo",
+		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global Undo",
 			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
 			&(U.uiflag), 2, 64, 0, 0, "Global undo works by keeping a full copy of the file itself in memory, so takes extra memory");
 		uiBlockEndAlign(block);

@@ -292,6 +292,15 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
 			}
 		}
+		
+		/* set defaults for 3D View rotating axis indicator */ 
+		/* since size can't be set to 0, this indicates it's not saved in .B.blend */
+		if (U.rvisize == 0) {
+			U.rvisize = 18;
+			U.rvibright = 2;
+			U.uiflag |= USER_SHOW_ROTVIEWICON;
+		}
+		
 	}
 	
 	if (U.undosteps==0) U.undosteps=32;

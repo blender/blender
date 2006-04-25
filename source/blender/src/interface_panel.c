@@ -544,7 +544,6 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	if(pnl_control & UI_PNL_UNSTOW) {
 		if(pa->flag & PNL_CLOSEDY) {
 			pa->flag &= ~PNL_CLOSED;
-			stow_unstow(block); // toggles!
 		}
 	}
 	
@@ -1735,6 +1734,7 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	
 }
 
+/* disabled /deprecated now, panels minimise in place */
 static void stow_unstow(uiBlock *block)
 {
 	SpaceLink *sl= curarea->spacedata.first;
@@ -1832,11 +1832,6 @@ void ui_do_panel(uiBlock *block, uiEvent *uevent)
 						else pa->flag &= ~PNL_CLOSED;
 					}
 				}
-				// extra, for non-butspace: open/collapse at window header
-				if(curarea->spacetype!=SPACE_BUTS)
-					stow_unstow(block);
-
-				
 			}
 			if(align==0) addqueue(block->win, REDRAW, 1);
 			else ui_animate_panels(curarea);
