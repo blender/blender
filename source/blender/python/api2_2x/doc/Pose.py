@@ -6,7 +6,7 @@ The Blender.Object.Pose submodule.
 Pose
 ====
 
-This module provides access to B{Pose} objects in Blender.  These Pose is the 
+This module provides access to B{Pose} objects in Blender.  This Pose is the 
 current object-level (as opposed to armature-data level) transformation.
 
 Example::
@@ -39,27 +39,27 @@ class PoseBonesDict:
   """
   The PoseBonesDict object
   ========================
-    This object gives gives dictionary like access to the PoseBones in a Pose. 
+    This object gives dictionary like access to the PoseBones in a Pose. 
     It is internal to blender but is called as 'Pose.bones'
   """
 
   def items():
     """
-    Retun the key, value pairs in this dictionary
+    Return the key, value pairs in this dictionary
     @rtype: string, PosePoseBone
     @return: All strings, and PosePoseBones in the Pose (in that order)
     """
 
   def keys():
     """
-    Retun the keys in this dictionary
+    Return the keys in this dictionary
     @rtype: string
     @return: All strings representing the PosePoseBone names
     """
 
   def values():
     """
-    Retun the values in this dictionary
+    Return the values in this dictionary
     @rtype: BPy_PoseBone
     @return: All PosePoseBones in this dictionary
     """
@@ -73,7 +73,7 @@ class PoseBone:
   @type name: String
   @ivar loc: The change in location for this PoseBone.
   @type loc: Vector object
-  @ivar size: The change in size for this PoseBone (no chane is 1,1,1)
+  @ivar size: The change in size for this PoseBone (no change is 1,1,1)
   @type size: Vector object
   @ivar quat: The change in rotation for this PoseBone.
   @type quat: Quaternion object
