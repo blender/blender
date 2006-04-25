@@ -1,0 +1,154 @@
+#!BPY
+
+""" Registration info for Blender menus: <- these words are ignored
+Name: 'Lightwave Motion (.mot)...'
+Blender: 241
+Group: 'Export'
+Tip: 'Export Loc Rot Size chanels to a Lightwave .mot file'
+"""
+
+__author__ = "Daniel Salazar (ZanQdo)"
+__url__ = ("blender", "elysiun",
+"e-mail: zanqdo@gmail.com")
+__version__ = "24/03/06"
+
+__bpydoc__ = """\
+This script exports the selected object's motion channels to a Lightwave
+motion file (.mot).
+
+Usage:
+Run the script with one or more objects selected (any kind), frames exported
+are between Start and End frames in Render buttons.
+
+"""
+
+# $Id$
+# --------------------------------------------------------------------------
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Copyright (C) 2003, 2004: A Vanpoucke
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+# --------------------------------------------------------------------------
+import Blender as B
+#------------------------------------
+#Declarados:
+TotalCanales = 9
+#------------------------------------
+
+# Change the extension of the file path
+def NuevoNombre(ext):
+	return B.Get('filename')[: -len(B.Get('filename').split('.', -1)[-1]) -1 ] + ext
+
+ObjSelect = B.Object.GetSelected()
+
+def FuncionPrincipal (Dir):
+	B.Window.WaitCursor(1)
+	for O in ObjSelect:
+		origName= NombreObjeto= O.name
+		print '----\nExporting Object "%s" motion file...' % origName
+
+		SC = B.Scene.getCurrent()
+		SCR = SC.getRenderingContext()
+
+		FrameA = B.Get('curframe')
+		FrameP = B.Get('staframe')
+		FrameF = B.Get('endframe')
+
+		FrameRate = float(SCR.framesPerSec())
+
+		#---------------------------------------------
+
+		# Replace danger characters by '_'
+		for ch in ' /\\~!@#$%^&*()+=[];\':",./<>?\t\r\n':
+			NombreObjeto = NombreObjeto.replace(ch, '_')
+
+		# Check for file path extension
+		if Dir.lower().endswith('.mot'):
+			DirN= '%s_%s.mot' % (Dir[:-4], NombreObjeto)
+		else:
+			DirN= '%s_%s.mot' % (Dir, NombreObjeto)
+
+		# Open the file
+		File = open(DirN,'w')
+		File.write ('LWMO\n3\n\n') # 3 is the version number.
+
+		# number of channels
+		File.write ('NumChannels %i\n' % TotalCanales)
+
+		# ----------------------------
+		# Main Cycle
+
+		def CicloPrimario(NumCanal):
+			B.Set('curframe', FrameP)
+
+			File.write ('Channel %i\n{ Envelope\n %i\n' % (NumCanal, (FrameF - FrameP + 1)))
+
+			FrameA = FrameP
+			while FrameA < (FrameF + 1):
+
+				B.Set('curframe', FrameA)
+
+				if NumCanal == 0:
+					Val = O.LocX
+				elif NumCanal == 1:
+					Val = O.LocZ
+				elif NumCanal == 2:
+					Val = O.LocY
+				elif NumCanal == 3:
+					Val = -O.RotZ
+				elif NumCanal == 4:
+					Val = -O.RotX
+				elif NumCanal == 5:
+					Val = -O.RotY
+				elif NumCanal == 6:
+					Val = O.SizeX
+				elif NumCanal == 7:
+					Val = O.SizeZ
+				elif NumCanal == 8:
+					Val = O.SizeY
+
+				File.write (' Key %f %f 3 0 0 0 0 0 0\n' % (Val, (FrameA/FrameRate)))
+
+				FrameA += 1
+			# Ending Stuff
+			File.write ('  Behaviors 1 1\n}\n')
+
+		NumObjetoActual = len(ObjSelect)
+		Iteraciones = 0
+		ProgBarVal = 0.0
+		while Iteraciones < TotalCanales:
+			CicloPrimario(Iteraciones)
+
+			# Start Progress Bar
+			B.Window.DrawProgressBar(ProgBarVal, origName)
+			ProgBarVal = (float(Iteraciones) / TotalCanales) * 0.98
+			Iteraciones += 1
+			
+		B.Window.DrawProgressBar(1.0, '') # Done
+		print '\nDone, %s motion file location is:\n%s\n' % (origName, DirN)
+
+# Check if there are selected objects
+def main():
+	if len(ObjSelect) == 0:
+		B.Draw.PupMenu('Select 1 or more objects, aborting.')
+	else:
+		# Call File Selector
+		B.Window.FileSelector(FuncionPrincipal, "Write .mot File", NuevoNombre('.mot'))
+
+if __name__=='__main__':
+	main()
