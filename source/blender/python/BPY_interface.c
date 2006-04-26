@@ -1247,9 +1247,9 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 {
 	ScriptLink *scriptlink;
 	int retval = 0;
-
-	if (!sa) return 0;
-
+	
+	if (!sa || !(G.f & G_DOSCRIPTLINKS)) return 0;
+	
 	scriptlink = &sa->scriptlink;
 
 	if (scriptlink->totscript > 0) {

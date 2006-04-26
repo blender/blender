@@ -322,7 +322,7 @@ static void  script_panel_scriptlink(void)
 
 	uiDefButBitI(block, TOG, G_DOSCRIPTLINKS, REDRAWBUTSSCRIPT,
 			"Enable Script Links", xco, 200, 150, 20, &G.f, 0, 0, 0, 0,
-			"Enable execution of all assigned Script links");
+			"Enable execution of all assigned Script links amd Space Handelers");
 	/* for proper alignment: */
 	uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");
 	
