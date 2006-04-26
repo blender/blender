@@ -296,8 +296,8 @@ static void init_userdef_file(void)
 		/* set defaults for 3D View rotating axis indicator */ 
 		/* since size can't be set to 0, this indicates it's not saved in .B.blend */
 		if (U.rvisize == 0) {
-			U.rvisize = 18;
-			U.rvibright = 2;
+			U.rvisize = 15;
+			U.rvibright = 8;
 			U.uiflag |= USER_SHOW_ROTVIEWICON;
 		}
 		

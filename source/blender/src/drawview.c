@@ -1266,10 +1266,11 @@ static void draw_view_axis(void)
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
 	
 	/* rvibright ranges approx. from original axis icon color to gizmo color */
-	const unsigned char bright = U.rvibright * 5;
+	float bright = U.rvibright / 15.0f;
 	
 	unsigned char col[3];
 	unsigned char gridcol[3];
+	float colf[3];
 	
 	float vec[4];
 	float dx, dy;
@@ -1283,11 +1284,13 @@ static void draw_view_axis(void)
 	QuatMulVecf(G.vd->viewquat, vec);
 	
 	make_axis_color(gridcol, col, 'x');
-	col[0] = col[0]>255-(4*bright)?255:col[0]+4*bright;
-	col[1] = col[1]>255-(bright)?255:col[1]+bright;
-	col[2] = col[2]>255-(bright)?255:col[2]+bright;
-	glColor3ubv(col);
-		
+	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
+	s = s<0.5 ? s+0.5 : 1.0;
+	v = 0.3;
+	v = (v<1.0-(bright) ? v+bright : 1.0);
+	hsv_to_rgb(h, s, v, colf, colf+1, colf+2);
+	glColor3fv(colf);
+	
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 	fdrawline(start, start + ydisp, start + dx, start + dy + ydisp);
@@ -1302,10 +1305,12 @@ static void draw_view_axis(void)
 	QuatMulVecf(G.vd->viewquat, vec);
 	
 	make_axis_color(gridcol, col, 'y');
-	col[0] = col[0]>255-(bright)?255:col[0]+bright;
-	col[1] = col[1]>255-(4*bright)?255:col[1]+4*bright;
-	col[2] = col[2]>255-(bright)?255:col[2]+bright;
-	glColor3ubv(col);
+	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
+	s = s<0.5 ? s+0.5 : 1.0;
+	v = 0.3;
+	v = (v<1.0-(bright) ? v+bright : 1.0);
+	hsv_to_rgb(h, s, v, colf, colf+1, colf+2);
+	glColor3fv(colf);
 	
 	dx = vec[0] * k;
 	dy = vec[1] * k;
@@ -1321,10 +1326,12 @@ static void draw_view_axis(void)
 	QuatMulVecf(G.vd->viewquat, vec);
 	
 	make_axis_color(gridcol, col, 'z');
-	col[0] = col[0]>255-(bright)?255:col[0]+bright;
-	col[1] = col[1]>255-(bright)?255:col[1]+bright;
-	col[2] = col[2]>255-(4*bright)?255:col[2]+4*bright;
-	glColor3ubv(col);
+	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
+	s = s<0.5 ? s+0.5 : 1.0;
+	v = 0.5;
+	v = (v<1.0-(bright) ? v+bright : 1.0);
+	hsv_to_rgb(h, s, v, colf, colf+1, colf+2);
+	glColor3fv(colf);
 	
 	dx = vec[0] * k;
 	dy = vec[1] * k;
