@@ -36,6 +36,7 @@ class HingeConstraint : public TypedConstraint
 	SimdVector3	m_axisInA;
 	SimdVector3	m_axisInB;
 
+	bool	m_angularOnly;
 	
 public:
 
@@ -58,6 +59,11 @@ public:
 	const RigidBody& GetRigidBodyB() const
 	{
 		return m_rbB;
+	}
+
+	void	setAngularOnly(bool angularOnly)
+	{
+		m_angularOnly = angularOnly;
 	}
 
 

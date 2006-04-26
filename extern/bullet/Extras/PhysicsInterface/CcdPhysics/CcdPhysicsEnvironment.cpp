@@ -508,7 +508,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 
 
-
 	if (!SimdFuzzyZero(timeStep))
 	{
 
@@ -1153,6 +1152,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * -axisInA)) : 
 	rb0->getCenterOfMassTransform().getBasis() * -axisInA;
 
+	bool hingeAngularOnly = false;
+
 	switch (type)
 	{
 	case PHY_POINT2POINT_CONSTRAINT:
@@ -1179,6 +1180,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			break;
 		}
 
+	case PHY_ANGULAR_CONSTRAINT:
+			hingeAngularOnly = true;
 	case PHY_LINEHINGE_CONSTRAINT:
 		{
 			HingeConstraint* hinge = 0;
@@ -1196,7 +1199,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA,axisInA);
 
 			}
-			
+			hinge->setAngularOnly( hingeAngularOnly );
 			m_constraints.push_back(hinge);
 			hinge->SetUserConstraintId(gConstraintUid++);
 			hinge->SetUserConstraintType(type);

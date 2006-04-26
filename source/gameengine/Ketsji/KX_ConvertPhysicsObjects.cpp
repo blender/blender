@@ -1062,6 +1062,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 
 	ci.m_collisionShape = bm;
+	
 
 	
 	ci.m_friction = smmaterial->m_friction;//tweak the friction a bit, so the default 0.5 works nice
@@ -1088,6 +1089,25 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (objprop->m_disableSleeping)
 		physicscontroller->GetRigidBody()->SetActivationState(DISABLE_DEACTIVATION);
 	
+	if (!objprop->m_angular_rigidbody)
+	{
+		/*
+		//setting the inertia could achieve similar results to constraint the up
+		//but it is prone to instability, so use special 'Angular' constraint
+		SimdVector3 inertia = physicscontroller->GetRigidBody()->getInvInertiaDiagLocal();
+		inertia.setX(0.f);
+		inertia.setZ(0.f);
+
+		physicscontroller->GetRigidBody()->setInvInertiaDiagLocal(inertia);
+		physicscontroller->GetRigidBody()->updateInertiaTensor();
+		*/
+
+		env->createConstraint(physicscontroller,0,PHY_ANGULAR_CONSTRAINT,0,0,0,0,0,1);
+		
+
+
+	}
+
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
 	// store materialname in auxinfo, needed for touchsensors

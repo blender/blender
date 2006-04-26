@@ -28,7 +28,8 @@ HingeConstraint::HingeConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector
 								 SimdVector3& axisInA,SimdVector3& axisInB)
 :TypedConstraint(rbA,rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB),
 m_axisInA(axisInA),
-m_axisInB(axisInB)
+m_axisInB(axisInB),
+m_angularOnly(false)
 {
 
 }
@@ -38,7 +39,8 @@ HingeConstraint::HingeConstraint(RigidBody& rbA,const SimdVector3& pivotInA,Simd
 :TypedConstraint(rbA),m_pivotInA(pivotInA),m_pivotInB(rbA.getCenterOfMassTransform()(pivotInA)),
 m_axisInA(axisInA),
 //fixed axis in worldspace
-m_axisInB(rbA.getCenterOfMassTransform().getBasis() * -axisInA)
+m_axisInB(rbA.getCenterOfMassTransform().getBasis() * -axisInA),
+m_angularOnly(false)
 {
 	
 }
@@ -47,20 +49,23 @@ void	HingeConstraint::BuildJacobian()
 {
 	SimdVector3	normal(0,0,0);
 
-	for (int i=0;i<3;i++)
+	if (!m_angularOnly)
 	{
-		normal[i] = 1;
-		new (&m_jac[i]) JacobianEntry(
-			m_rbA.getCenterOfMassTransform().getBasis().transpose(),
-			m_rbB.getCenterOfMassTransform().getBasis().transpose(),
-			m_rbA.getCenterOfMassTransform()*m_pivotInA - m_rbA.getCenterOfMassPosition(),
-			m_rbB.getCenterOfMassTransform()*m_pivotInB - m_rbB.getCenterOfMassPosition(),
-			normal,
-			m_rbA.getInvInertiaDiagLocal(),
-			m_rbA.getInvMass(),
-			m_rbB.getInvInertiaDiagLocal(),
-			m_rbB.getInvMass());
-		normal[i] = 0;
+		for (int i=0;i<3;i++)
+		{
+			normal[i] = 1;
+			new (&m_jac[i]) JacobianEntry(
+				m_rbA.getCenterOfMassTransform().getBasis().transpose(),
+				m_rbB.getCenterOfMassTransform().getBasis().transpose(),
+				m_rbA.getCenterOfMassTransform()*m_pivotInA - m_rbA.getCenterOfMassPosition(),
+				m_rbB.getCenterOfMassTransform()*m_pivotInB - m_rbB.getCenterOfMassPosition(),
+				normal,
+				m_rbA.getInvInertiaDiagLocal(),
+				m_rbA.getInvMass(),
+				m_rbB.getInvInertiaDiagLocal(),
+				m_rbB.getInvMass());
+			normal[i] = 0;
+		}
 	}
 
 	//calculate two perpendicular jointAxis, orthogonal to hingeAxis
@@ -97,28 +102,31 @@ void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 	SimdScalar tau = 0.3f;
 	SimdScalar damping = 1.f;
 
-	for (int i=0;i<3;i++)
-	{		
-		normal[i] = 1;
-		SimdScalar jacDiagABInv = 1.f / m_jac[i].getDiagonal();
+	if (!m_angularOnly)
+	{
+		for (int i=0;i<3;i++)
+		{		
+			normal[i] = 1;
+			SimdScalar jacDiagABInv = 1.f / m_jac[i].getDiagonal();
 
-		SimdVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition(); 
-		SimdVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
-		
-		SimdVector3 vel1 = m_rbA.getVelocityInLocalPoint(rel_pos1);
-		SimdVector3 vel2 = m_rbB.getVelocityInLocalPoint(rel_pos2);
-		SimdVector3 vel = vel1 - vel2;
-		SimdScalar rel_vel;
-		rel_vel = normal.dot(vel);
-		//positional error (zeroth order error)
-		SimdScalar depth = -(pivotAInW - pivotBInW).dot(normal); //this is the error projected on the normal
-		SimdScalar impulse = depth*tau/timeStep  * jacDiagABInv -  damping * rel_vel * jacDiagABInv * damping;
+			SimdVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition(); 
+			SimdVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
+			
+			SimdVector3 vel1 = m_rbA.getVelocityInLocalPoint(rel_pos1);
+			SimdVector3 vel2 = m_rbB.getVelocityInLocalPoint(rel_pos2);
+			SimdVector3 vel = vel1 - vel2;
+			SimdScalar rel_vel;
+			rel_vel = normal.dot(vel);
+			//positional error (zeroth order error)
+			SimdScalar depth = -(pivotAInW - pivotBInW).dot(normal); //this is the error projected on the normal
+			SimdScalar impulse = depth*tau/timeStep  * jacDiagABInv -  damping * rel_vel * jacDiagABInv * damping;
 
-		SimdVector3 impulse_vector = normal * impulse;
-		m_rbA.applyImpulse(impulse_vector, pivotAInW - m_rbA.getCenterOfMassPosition());
-		m_rbB.applyImpulse(-impulse_vector, pivotBInW - m_rbB.getCenterOfMassPosition());
-		
-		normal[i] = 0;
+			SimdVector3 impulse_vector = normal * impulse;
+			m_rbA.applyImpulse(impulse_vector, pivotAInW - m_rbA.getCenterOfMassPosition());
+			m_rbB.applyImpulse(-impulse_vector, pivotBInW - m_rbB.getCenterOfMassPosition());
+			
+			normal[i] = 0;
+		}
 	}
 
 	///solve angular part
