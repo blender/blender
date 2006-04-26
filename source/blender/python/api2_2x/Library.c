@@ -51,8 +51,8 @@
 /**
  * Global variables.
  */
-static BlendHandle *bpy_openlib;	/* ptr to the open .blend file */
-static char *bpy_openlibname;	/* its pathname */
+static BlendHandle *bpy_openlib = NULL;	/* ptr to the open .blend file */
+static char *bpy_openlibname = NULL;	/* its pathname */
 
 /**
  * Function prototypes for the Library submodule.
