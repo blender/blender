@@ -92,8 +92,6 @@
 // globals
 extern float UIwinmat[4][4];
 
-// internal prototypes
-static void stow_unstow(uiBlock *block);
 
 
 /* --------- generic helper drawng calls ---------------- */
@@ -1401,25 +1399,73 @@ void uiDrawBlocksPanels(ScrArea *sa, int re_align)
 	/* re-align */
 	if(re_align) uiAlignPanelStep(sa, 1.0);
 	
-	/* clip panels (headers) for non-butspace situations (maybe make optimized event later) */
 	if(sa->spacetype!=SPACE_BUTS) {
 		SpaceLink *sl= sa->spacedata.first;
 		for(block= sa->uiblocks.first; block; block= block->next) {
 			if(block->panel && block->panel->active && block->panel->paneltab == NULL) {
-				float dx=0.0, dy=0.0, minx, miny, maxx, maxy;
+				float dx=0.0, dy=0.0, minx, miny, maxx, maxy, miny_panel;
 				
 				minx= sl->blockscale*block->panel->ofsx;
 				maxx= sl->blockscale*(block->panel->ofsx+block->panel->sizex);
 				miny= sl->blockscale*(block->panel->ofsy+block->panel->sizey);
 				maxy= sl->blockscale*(block->panel->ofsy+block->panel->sizey+PNL_HEADER);
+				miny_panel= sl->blockscale*(block->panel->ofsy);
 				
-				if(minx<0.0) dx= -minx;
-				else if(maxx > (float)sa->winx) dx= sa->winx-maxx;
-				if( minx + dx < 0.0) dx= -minx; // when panel cant fit, put it fixed here
+				/* check to see if snapped panels have been left out in the open by resizing a window
+				 * and if so, offset them back to where they belong */
+				if (block->panel->snap) {
+					if (((block->panel->snap) & PNL_SNAP_RIGHT) &&
+						(maxx < (float)sa->winx)) {
+						
+						dx = sa->winx-maxx;
+						block->panel->ofsx+= dx/sl->blockscale;
+					}
+					if (((block->panel->snap) & PNL_SNAP_TOP) &&
+						(maxy < (float)sa->winy)) {
+						
+						dy = sa->winy-maxy;
+						block->panel->ofsy+= dy/sl->blockscale;
+					}
 					
-				if(miny<0.0) dy= -miny;
-				else if(maxy > (float)sa->winy) dy= sa->winy-maxy;
+					/* reset these vars with updated panel offset distances */
+					minx= sl->blockscale*block->panel->ofsx;
+					maxx= sl->blockscale*(block->panel->ofsx+block->panel->sizex);
+					miny= sl->blockscale*(block->panel->ofsy+block->panel->sizey);
+					maxy= sl->blockscale*(block->panel->ofsy+block->panel->sizey+PNL_HEADER);
+					miny_panel= sl->blockscale*(block->panel->ofsy);
+				} else
+					/* reset to no snapping */
+					block->panel->snap = PNL_SNAP_NONE;
+	
+
+				/* clip panels (headers) for non-butspace situations (maybe make optimized event later) */
+				
+				/* check left and right edges */
+				if (minx < PNL_SNAP_DIST) {
+					dx = -minx;
+					block->panel->snap |= PNL_SNAP_LEFT;
+				}
+				else if (maxx > ((float)sa->winx - PNL_SNAP_DIST)) {
+					dx= sa->winx-maxx;
+					block->panel->snap |= PNL_SNAP_RIGHT;
+				}				
+				if( minx + dx < 0.0) dx= -minx; // when panel cant fit, put it fixed here
+				
+				/* check top and bottom edges */
+				if ((miny_panel < PNL_SNAP_DIST) && (miny_panel > -PNL_SNAP_DIST)) {
+					dy= -miny_panel;
+					block->panel->snap |= PNL_SNAP_BOTTOM;
+				}
+				if(miny < PNL_SNAP_DIST)  {
+					dy= -miny;
+					block->panel->snap |= PNL_SNAP_BOTTOM;
+				}
+				else if(maxy > ((float)sa->winy - PNL_SNAP_DIST)) {
+					dy= sa->winy-maxy;
+					block->panel->snap |= PNL_SNAP_TOP;
+				}
 				if( miny + dy < 0.0) dy= -miny; // when panel cant fit, put it fixed here
+
 				
 				block->panel->ofsx+= dx/sl->blockscale;
 				block->panel->ofsy+= dy/sl->blockscale;
@@ -1582,6 +1628,9 @@ static void ui_drag_panel(uiBlock *block, int doscale)
 
 			}
 			else {
+				/* reset the panel snapping, to allow dragging away from snapped edges */
+				panel->snap = PNL_SNAP_NONE;
+				
 				panel->ofsx = ofsx+dx;
 				panel->ofsy = ofsy+dy;
 				check_panel_overlap(curarea, panel);
@@ -1735,6 +1784,7 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 }
 
 /* disabled /deprecated now, panels minimise in place */
+#if 0
 static void stow_unstow(uiBlock *block)
 {
 	SpaceLink *sl= curarea->spacedata.first;
@@ -1783,6 +1833,7 @@ static void stow_unstow(uiBlock *block)
 	}
 
 }
+#endif
 
 
 /* this function is supposed to call general window drawing too */
@@ -1820,11 +1871,21 @@ void ui_do_panel(uiBlock *block, uiEvent *uevent)
 				rem_blockhandler(curarea, block->handler);
 				addqueue(curarea->win, REDRAW, 1);
 			}
-			else {
+			else {	// collapse
 		
-				if(block->panel->flag & PNL_CLOSED) block->panel->flag &= ~PNL_CLOSED;
+				if(block->panel->flag & PNL_CLOSED) {
+					block->panel->flag &= ~PNL_CLOSED;
+					/* snap back up so full panel aligns with screen edge */
+					if (block->panel->snap & PNL_SNAP_BOTTOM) 
+						block->panel->ofsy= 0;
+				}
 				else if(align==BUT_HORIZONTAL) block->panel->flag |= PNL_CLOSEDX;
-				else block->panel->flag |= PNL_CLOSEDY;
+				else {
+					/* snap down to bottom screen edge*/
+					block->panel->flag |= PNL_CLOSEDY;
+					if (block->panel->snap & PNL_SNAP_BOTTOM) 
+						block->panel->ofsy= -block->panel->sizey;
+				}
 				
 				for(pa= curarea->panels.first; pa; pa= pa->next) {
 					if(pa->paneltab==block->panel) {

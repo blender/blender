@@ -85,7 +85,8 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	short ofsx, ofsy, sizex, sizey;
 	short flag, active;					/* active= used currently by a uiBlock */
-	short control, pad;
+	short control;
+	short snap;
 	short old_ofsx, old_ofsy;		/* for stow */
 	int sortcounter;			/* when sorting panels, it uses this to put new ones in right place */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
@@ -146,6 +147,15 @@ typedef struct ScrArea {
 #define T_SCROLL 4
 #define B_SCROLL 8
 #define HOR_SCROLL 12
+
+/* Panel->snap - for snapping to screen edges */
+#define PNL_SNAP_NONE		0
+#define PNL_SNAP_TOP		1
+#define PNL_SNAP_RIGHT		2
+#define PNL_SNAP_BOTTOM	4
+#define PNL_SNAP_LEFT		8
+
+#define PNL_SNAP_DIST		9.0
 
 /* screen handlers */
 #define SCREEN_MAXHANDLER		8
