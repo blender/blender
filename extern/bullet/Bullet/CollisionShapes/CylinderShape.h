@@ -36,6 +36,8 @@ public:
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
+
 	virtual SimdVector3	LocalGetSupportingVertex(const SimdVector3& vec) const
 	{
 
@@ -74,6 +76,7 @@ public:
 	CylinderShapeX (const SimdVector3& halfExtents);
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
 };
 
 class CylinderShapeZ : public CylinderShape
@@ -82,6 +85,7 @@ public:
 	CylinderShapeZ (const SimdVector3& halfExtents);
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
+	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
 
 };
 

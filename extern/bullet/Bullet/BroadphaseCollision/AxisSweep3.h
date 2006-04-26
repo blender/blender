@@ -43,6 +43,7 @@ public:
 	class Handle : public BroadphaseProxy
 	{
 	public:
+		
 		// indexes into the edge arrays
 		unsigned short m_minEdges[3], m_maxEdges[3];		// 6 * 2 = 12
 		unsigned short m_handleId;

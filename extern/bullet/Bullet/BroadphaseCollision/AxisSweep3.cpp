@@ -125,9 +125,10 @@ void AxisSweep3::Quantize(unsigned short* out, const SimdPoint3& point, int isMa
 	clampedPoint.setMin(m_worldAabbMax);
 
 	SimdVector3 v = (clampedPoint - m_worldAabbMin) * m_quantize;
-	out[0] = (unsigned short)(((int)v.getX() & 0xfffe) | isMax);
-	out[1] = (unsigned short)(((int)v.getY() & 0xfffe) | isMax);
-	out[2] = (unsigned short)(((int)v.getZ() & 0xfffe) | isMax);
+	out[0] = (unsigned short)(((int)v.getX() & 0xfffc) | isMax);
+	out[1] = (unsigned short)(((int)v.getY() & 0xfffc) | isMax);
+	out[2] = (unsigned short)(((int)v.getZ() & 0xfffc) | isMax);
+	
 }
 
 
@@ -164,7 +165,11 @@ unsigned short AxisSweep3::AddHandle(const SimdPoint3& aabbMin,const SimdPoint3&
 
 	// allocate a handle
 	unsigned short handle = AllocHandle();
+	assert(handle!= 0xcdcd);
+
 	Handle* pHandle = GetHandle(handle);
+	
+
 	pHandle->m_handleId = handle;
 	//pHandle->m_pOverlaps = 0;
 	pHandle->m_clientObject = pOwner;
@@ -202,6 +207,7 @@ unsigned short AxisSweep3::AddHandle(const SimdPoint3& aabbMin,const SimdPoint3&
 	return handle;
 }
 
+
 void AxisSweep3::RemoveHandle(unsigned short handle)
 {
 	Handle* pHandle = GetHandle(handle);
@@ -211,9 +217,19 @@ void AxisSweep3::RemoveHandle(unsigned short handle)
 
 	// compute current limit of edge arrays
 	int limit = m_numHandles * 2;
-	
+	int axis;
+
+	for (axis = 0;axis<3;axis++)
+	{
+		Edge* pEdges = m_pEdges[axis];
+		int maxEdge= pHandle->m_maxEdges[axis];
+		pEdges[maxEdge].m_pos = 0xffff;
+		int minEdge = pHandle->m_minEdges[axis];
+		pEdges[minEdge].m_pos = 0xffff;
+	}
+
 	// remove the edges by sorting them up to the end of the list
-	for (int axis = 0; axis < 3; axis++)
+	for ( axis = 0; axis < 3; axis++)
 	{
 		Edge* pEdges = m_pEdges[axis];
 		int max = pHandle->m_maxEdges[axis];

@@ -23,6 +23,18 @@ subject to the following restrictions:
 #include <vector>
 
 
+void	SimpleBroadphase::validate()
+{
+	for (int i=0;i<m_numProxies;i++)
+	{
+		for (int j=i+1;j<m_numProxies;j++)
+		{
+			assert(m_pProxies[i] != m_pProxies[j]);
+		}
+	}
+	
+}
+
 SimpleBroadphase::SimpleBroadphase(int maxProxies,int maxOverlap)
 	:m_firstFreeProxy(0),
 	m_numProxies(0),
@@ -34,7 +46,7 @@ SimpleBroadphase::SimpleBroadphase(int maxProxies,int maxOverlap)
 
 	m_proxies = new SimpleBroadphaseProxy[maxProxies];
 	m_freeProxies = new int[maxProxies];
-	m_pProxies = new BroadphaseProxy*[maxProxies];
+	m_pProxies = new SimpleBroadphaseProxy*[maxProxies];
 	m_OverlappingPairs = new BroadphasePair[maxOverlap];
 
 
@@ -72,11 +84,17 @@ BroadphaseProxy*	SimpleBroadphase::CreateProxy(  const SimdVector3& min,  const 
 	assert(min[0]<= max[0] && min[1]<= max[1] && min[2]<= max[2]);
 
 	int freeIndex= m_freeProxies[m_firstFreeProxy];
-	BroadphaseProxy* proxy = new (&m_proxies[freeIndex])SimpleBroadphaseProxy(min,max,shapeType,userPtr);
+	SimpleBroadphaseProxy* proxy = new (&m_proxies[freeIndex])SimpleBroadphaseProxy(min,max,shapeType,userPtr);
 	m_firstFreeProxy++;
+
+	SimpleBroadphaseProxy* proxy1 = &m_proxies[0];
+		
+	int index = proxy - proxy1;
+	assert(index == freeIndex);
 
 	m_pProxies[m_numProxies] = proxy;
 	m_numProxies++;
+	//validate();
 
 	return proxy;
 }
@@ -95,41 +113,34 @@ void	SimpleBroadphase::RemoveOverlappingPairsContainingProxy(BroadphaseProxy* pr
 		}
 }
 
-void	SimpleBroadphase::DestroyProxy(BroadphaseProxy* proxy)
+void	SimpleBroadphase::DestroyProxy(BroadphaseProxy* proxyOrg)
 {
 		
 		int i;
 		
-		BroadphaseProxy* proxy1 = &m_proxies[0];
+		SimpleBroadphaseProxy* proxy0 = static_cast<SimpleBroadphaseProxy*>(proxyOrg);
+		SimpleBroadphaseProxy* proxy1 = &m_proxies[0];
 	
-		int index = proxy - proxy1;
+		int index = proxy0 - proxy1;
+		assert (index < m_maxProxies);
 		m_freeProxies[--m_firstFreeProxy] = index;
 
-		RemoveOverlappingPairsContainingProxy(proxy);
+		RemoveOverlappingPairsContainingProxy(proxyOrg);
 
 		
 		for (i=0;i<m_numProxies;i++)
 		{
-			if (m_pProxies[i] == proxy)
+			if (m_pProxies[i] == proxyOrg)
 			{
-				m_proxies[i] = m_proxies[m_numProxies-1];
+				m_pProxies[i] = m_pProxies[m_numProxies-1];
 				break;
 			}
 		}
 		m_numProxies--;
+		//validate();
 		
 }
 
-SimpleBroadphaseProxy*	SimpleBroadphase::GetSimpleProxyFromProxy(BroadphaseProxy* proxy)
-{
-	SimpleBroadphaseProxy* proxy0 = static_cast<SimpleBroadphaseProxy*>(proxy);
-
-	int index = proxy0 - &m_proxies[0];
-	//assert(index < m_numProxies);
-
-	SimpleBroadphaseProxy* sbp = &m_proxies[index];
-	return sbp;
-}
 void	SimpleBroadphase::SetAabb(BroadphaseProxy* proxy,const SimdVector3& aabbMin,const SimdVector3& aabbMax)
 {
 	SimpleBroadphaseProxy* sbp = GetSimpleProxyFromProxy(proxy);
@@ -167,7 +178,8 @@ void	SimpleBroadphase::CleanProxyFromPairs(BroadphaseProxy* proxy)
 
 void	SimpleBroadphase::AddOverlappingPair(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
 {
-	
+	//don't add overlap with own
+	assert(proxy0 != proxy1);
 
 	BroadphasePair pair(*proxy0,*proxy1);
 	m_OverlappingPairs[m_NumOverlapBroadphasePair] = pair;
@@ -181,11 +193,14 @@ void	SimpleBroadphase::AddOverlappingPair(BroadphaseProxy* proxy0,BroadphaseProx
 
 	if (m_NumOverlapBroadphasePair >= m_maxOverlap)
 	{
-		printf("Error: too many overlapping objects: m_NumOverlapBroadphasePair: %d\n",m_NumOverlapBroadphasePair);
+		//printf("Error: too many overlapping objects: m_NumOverlapBroadphasePair: %d\n",m_NumOverlapBroadphasePair);
 		assert(0);
+	} else
+	{
+		m_NumOverlapBroadphasePair++;
 	}
 
-	m_NumOverlapBroadphasePair++;
+	
 }
 	
 BroadphasePair*	SimpleBroadphase::FindPair(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)

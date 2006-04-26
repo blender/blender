@@ -19,7 +19,9 @@ subject to the following restrictions:
 #include "ConstraintSolver.h"
 class IDebugDraw;
 
-/// SimpleConstraintSolver uses a Propagation Method
+/// SimpleConstraintSolver uses a Propagation Method and Sequentially applies impulses
+/// The approach is the 3D version of Erin Catto's GDC 2006 tutorial. See http://www.gphysics.com
+/// Although Sequential Impulse is more intuitive, it is mathematically equivalent to Projected Successive Overrelaxation (iterative LCP)
 /// Applies impulses for combined restitution and penetration recovery and to simulate friction
 class SimpleConstraintSolver : public ConstraintSolver
 {

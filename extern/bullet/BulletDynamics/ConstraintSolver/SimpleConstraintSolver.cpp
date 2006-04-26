@@ -30,7 +30,7 @@ subject to the following restrictions:
 #include "quickprof.h"
 #endif //USE_PROFILE
 
-//iterative lcp and penalty method
+/// SimpleConstraintSolver Sequentially applies impulses
 float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal,IDebugDraw* debugDrawer)
 {
 	ContactSolverInfo info = infoGlobal;

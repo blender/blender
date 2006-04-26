@@ -27,7 +27,7 @@ ManifoldContactAddResult::ManifoldContactAddResult(SimdTransform transA,SimdTran
 
 void ManifoldContactAddResult::AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)
 {
-	if (depth > m_manifoldPtr->GetManifoldMargin())
+	if (depth > m_manifoldPtr->GetContactBreakingTreshold())
 		return;
 
 

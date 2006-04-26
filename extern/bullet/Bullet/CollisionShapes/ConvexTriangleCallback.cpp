@@ -68,7 +68,7 @@ void ConvexTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 
 	gjkDetector.SetMinkowskiA(&tm);
 	gjkDetector.SetMinkowskiB(m_convexShape);
-	input.m_maximumDistanceSquared = tm.GetMargin()+ m_convexShape->GetMargin() + m_manifoldPtr->GetManifoldMargin();
+	input.m_maximumDistanceSquared = tm.GetMargin()+ m_convexShape->GetMargin() + m_manifoldPtr->GetContactBreakingTreshold();
 	input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 
 	input.m_maximumDistanceSquared = 1e30f;//?

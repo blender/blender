@@ -97,6 +97,8 @@ void CollisionDispatcher::ReleaseManifold(PersistentManifold* manifold)
 	{
 		std::swap(*i, m_manifoldsPtr.back());
 		m_manifoldsPtr.pop_back();
+		delete manifold;
+
 	}
 	
 	

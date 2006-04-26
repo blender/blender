@@ -86,7 +86,7 @@ public:
 	}
 
 	/// todo: get this margin from the current physics / collision environment
-	float	GetManifoldMargin() const;
+	float	GetContactBreakingTreshold() const;
 	
 	int GetCacheEntry(const ManifoldPoint& newPoint) const;
 
@@ -105,14 +105,13 @@ public:
 
 	bool ValidContactDistance(const ManifoldPoint& pt) const
 	{
-		return pt.m_distance1 <= GetManifoldMargin();
+		return pt.m_distance1 <= GetContactBreakingTreshold();
 	}
 	/// calculated new worldspace coordinates and depth, and reject points that exceed the collision margin
 	void	RefreshContactPoints(  const SimdTransform& trA,const SimdTransform& trB);
 
 	void	ClearManifold();
 
-	float	GetCollisionImpulse() const;
 
 
 };

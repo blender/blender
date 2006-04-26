@@ -55,7 +55,7 @@ public:
 
 	void	SetLowLevelOfDetail(bool useLowLevel);
 
-	float	GetCollisionImpulse() const;
+	
 
 	const PersistentManifold*	GetManifold()
 	{

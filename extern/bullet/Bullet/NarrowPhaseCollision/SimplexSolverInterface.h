@@ -21,7 +21,7 @@ subject to the following restrictions:
 #include "SimdVector3.h"
 #include "SimdPoint3.h"
 
-#define NO_VIRTUAL_INTERFACE
+#define NO_VIRTUAL_INTERFACE 1
 #ifdef NO_VIRTUAL_INTERFACE
 #include "VoronoiSimplexSolver.h"
 #define SimplexSolverInterface VoronoiSimplexSolver

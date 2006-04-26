@@ -82,7 +82,7 @@ int PersistentManifold::SortCachedPoints(const ManifoldPoint& pt)
 
 int PersistentManifold::GetCacheEntry(const ManifoldPoint& newPoint) const
 {
-	SimdScalar shortestDist =  GetManifoldMargin() * GetManifoldMargin();
+	SimdScalar shortestDist =  GetContactBreakingTreshold() * GetContactBreakingTreshold();
 	int size = GetNumContacts();
 	int nearestPoint = -1;
 	for( int i = 0; i < size; i++ )
@@ -121,7 +121,7 @@ void PersistentManifold::AddManifoldPoint(const ManifoldPoint& newPoint)
 	ReplaceContactPoint(newPoint,insertIndex);
 }
 
-float	PersistentManifold::GetManifoldMargin() const
+float	PersistentManifold::GetContactBreakingTreshold() const
 {
 	return gContactBreakingTreshold;
 }
@@ -157,7 +157,7 @@ void PersistentManifold::RefreshContactPoints(const SimdTransform& trA,const Sim
 			projectedPoint = manifoldPoint.m_positionWorldOnA - manifoldPoint.m_normalWorldOnB * manifoldPoint.m_distance1;
 			projectedDifference = manifoldPoint.m_positionWorldOnB - projectedPoint;
 			distance2d = projectedDifference.dot(projectedDifference);
-			if (distance2d  > GetManifoldMargin()*GetManifoldMargin() )
+			if (distance2d  > GetContactBreakingTreshold()*GetContactBreakingTreshold() )
 			{
 				RemoveContactPoint(i);
 			}
@@ -166,32 +166,6 @@ void PersistentManifold::RefreshContactPoints(const SimdTransform& trA,const Sim
 }
 
 
-//todo: remove this treshold
-float gPenetrationDistanceCheck = -0.05f;
 
-float	PersistentManifold::GetCollisionImpulse() const
-{
-	float averageImpulse = 0.f;
-	if (GetNumContacts() > 0)
-	{
-		float totalImpulse = 0.f;
-
-		//return the sum of the applied impulses on the box
-		for (int i=0;i<GetNumContacts();i++)
-		{
-			const ManifoldPoint& cp = GetContactPoint(i);
-			//avoid conflic noice
-			if ( cp.GetDistance() <gPenetrationDistanceCheck)
-				return 0.f;
-
-			totalImpulse += cp.m_appliedImpulse;
-
-		}
-		averageImpulse = totalImpulse / ((float)GetNumContacts());
-
-	}
-	return averageImpulse;
-
-}
 
 

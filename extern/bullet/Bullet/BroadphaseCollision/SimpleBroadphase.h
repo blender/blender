@@ -47,7 +47,7 @@ class SimpleBroadphase : public BroadphaseInterface
 	int*				m_freeProxies;
 	int				m_firstFreeProxy;
 
-	BroadphaseProxy** m_pProxies;
+	SimpleBroadphaseProxy** m_pProxies;
 	int				m_numProxies;
 
 	//during the dispatch, check that user doesn't destroy/create proxy
@@ -59,9 +59,15 @@ class SimpleBroadphase : public BroadphaseInterface
 	int m_maxProxies;
 	int m_maxOverlap;
 	
-	SimpleBroadphaseProxy*	GetSimpleProxyFromProxy(BroadphaseProxy* proxy);
+	inline SimpleBroadphaseProxy*	GetSimpleProxyFromProxy(BroadphaseProxy* proxy)
+	{
+		SimpleBroadphaseProxy* proxy0 = static_cast<SimpleBroadphaseProxy*>(proxy);
+		return proxy0;
+	}
 
 	bool	AabbOverlap(SimpleBroadphaseProxy* proxy0,SimpleBroadphaseProxy* proxy1);
+
+	void	validate();
 
 protected:
 	void	RemoveOverlappingPair(BroadphasePair& pair);

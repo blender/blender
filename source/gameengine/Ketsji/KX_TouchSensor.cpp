@@ -142,6 +142,7 @@ void	KX_TouchSensor::ReParent(SCA_IObject* parent)
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
 	client_info->m_gameobject = gameobj;
 	client_info->m_auxilary_info = NULL;
+	
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
 }

@@ -27,7 +27,7 @@ ManifoldResult::ManifoldResult(CollisionObject* body0,CollisionObject* body1,Per
 
 void ManifoldResult::AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)
 {
-	if (depth > m_manifoldPtr->GetManifoldMargin())
+	if (depth > m_manifoldPtr->GetContactBreakingTreshold())
 		return;
 
 	SimdTransform transAInv = m_body0->m_worldTransform.inverse();

@@ -35,7 +35,7 @@ CylinderShapeZ::CylinderShapeZ (const SimdVector3& halfExtents)
 
 
 
-SimdVector3 CylinderLocalSupportX(const SimdVector3& halfExtents,const SimdVector3& v) 
+inline SimdVector3 CylinderLocalSupportX(const SimdVector3& halfExtents,const SimdVector3& v) 
 {
 const int cylinderUpAxis = 0;
 const int XX = 1;
@@ -78,7 +78,7 @@ const int ZZ = 2;
 
 
 
-SimdVector3 CylinderLocalSupportY(const SimdVector3& halfExtents,const SimdVector3& v) 
+inline  SimdVector3 CylinderLocalSupportY(const SimdVector3& halfExtents,const SimdVector3& v) 
 {
 
 const int cylinderUpAxis = 1;
@@ -113,7 +113,7 @@ const int ZZ = 2;
 
 }
 
-SimdVector3 CylinderLocalSupportZ(const SimdVector3& halfExtents,const SimdVector3& v) 
+inline SimdVector3 CylinderLocalSupportZ(const SimdVector3& halfExtents,const SimdVector3& v) 
 {
 const int cylinderUpAxis = 2;
 const int XX = 0;
@@ -155,6 +155,8 @@ SimdVector3	CylinderShapeX::LocalGetSupportingVertexWithoutMargin(const SimdVect
 {
 	return CylinderLocalSupportX(GetHalfExtents(),vec);
 }
+
+
 SimdVector3	CylinderShapeZ::LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const
 {
 	return CylinderLocalSupportZ(GetHalfExtents(),vec);
@@ -164,9 +166,31 @@ SimdVector3	CylinderShape::LocalGetSupportingVertexWithoutMargin(const SimdVecto
 	return CylinderLocalSupportY(GetHalfExtents(),vec);
 }
 
+void	CylinderShape::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	for (int i=0;i<numVectors;i++)
+	{
+		supportVerticesOut[i] = CylinderLocalSupportY(GetHalfExtents(),vectors[i]);
+	}
+}
+
+void	CylinderShapeZ::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	for (int i=0;i<numVectors;i++)
+	{
+		supportVerticesOut[i] = CylinderLocalSupportZ(GetHalfExtents(),vectors[i]);
+	}
+}
 
 
 
 
+void	CylinderShapeX::BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const
+{
+	for (int i=0;i<numVectors;i++)
+	{
+		supportVerticesOut[i] = CylinderLocalSupportX(GetHalfExtents(),vectors[i]);
+	}
+}
 
 

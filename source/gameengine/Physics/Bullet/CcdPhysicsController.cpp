@@ -328,6 +328,10 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 	SimdVector3 angvel(ang_velX,ang_velY,ang_velZ);
 	if (angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
+		m_body->activate();
+	}
+
+	{
 		SimdTransform xform = m_body->getCenterOfMassTransform();
 		if (local)
 		{
@@ -345,6 +349,9 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 	if (linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
 		m_body->activate();
+	}
+	
+	{
 		SimdTransform xform = m_body->getCenterOfMassTransform();
 		if (local)
 		{

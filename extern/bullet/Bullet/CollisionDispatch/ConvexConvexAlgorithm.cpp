@@ -119,13 +119,6 @@ void	ConvexConvexAlgorithm ::SetLowLevelOfDetail(bool useLowLevel)
 	m_lowLevelOfDetail = useLowLevel;
 }
 
-float	ConvexConvexAlgorithm::GetCollisionImpulse() const
-{
-	if (m_manifoldPtr)
-		return m_manifoldPtr->GetCollisionImpulse();
-	
-	return 0.f;
-}
 
 
 class FlippedContactResult : public DiscreteCollisionDetectorInterface::Result
@@ -329,7 +322,7 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	{
 		m_gjkPairDetector.SetMinkowskiA(min0);
 		m_gjkPairDetector.SetMinkowskiB(min1);
-		input.m_maximumDistanceSquared = min0->GetMargin() + min1->GetMargin() + m_manifoldPtr->GetManifoldMargin();
+		input.m_maximumDistanceSquared = min0->GetMargin() + min1->GetMargin() + m_manifoldPtr->GetContactBreakingTreshold();
 		input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 	}
 
