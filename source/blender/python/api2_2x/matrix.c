@@ -35,7 +35,7 @@
 #include "BLI_blenlib.h"
 #include "gen_utils.h"
 
-//-------------------------DOC STRINGS ---------------------------
+/*-------------------------DOC STRINGS ---------------------------*/
 char Matrix_Zero_doc[] = "() - set all values in the matrix to 0";
 char Matrix_Identity_doc[] = "() - set the square matrix to it's identity matrix";
 char Matrix_Transpose_doc[] = "() - set the matrix to it's transpose";
@@ -43,10 +43,11 @@ char Matrix_Determinant_doc[] = "() - return the determinant of the matrix";
 char Matrix_Invert_doc[] =  "() - set the matrix to it's inverse if an inverse is possible";
 char Matrix_TranslationPart_doc[] = "() - return a vector encompassing the translation of the matrix";
 char Matrix_RotationPart_doc[] = "() - return a vector encompassing the rotation of the matrix";
+char Matrix_scalePart_doc[] = "() - convert matrix to a 3D vector";
 char Matrix_Resize4x4_doc[] = "() - resize the matrix to a 4x4 square matrix";
 char Matrix_toEuler_doc[] = "() - convert matrix to a euler angle rotation";
 char Matrix_toQuat_doc[] = "() - convert matrix to a quaternion rotation";
-//-----------------------METHOD DEFINITIONS ----------------------
+/*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef Matrix_methods[] = {
 	{"zero", (PyCFunction) Matrix_Zero, METH_NOARGS, Matrix_Zero_doc},
 	{"identity", (PyCFunction) Matrix_Identity, METH_NOARGS, Matrix_Identity_doc},
@@ -55,18 +56,19 @@ struct PyMethodDef Matrix_methods[] = {
 	{"invert", (PyCFunction) Matrix_Invert, METH_NOARGS, Matrix_Invert_doc},
 	{"translationPart", (PyCFunction) Matrix_TranslationPart, METH_NOARGS, Matrix_TranslationPart_doc},
 	{"rotationPart", (PyCFunction) Matrix_RotationPart, METH_NOARGS, Matrix_RotationPart_doc},
+	{"scalePart", (PyCFunction) Matrix_scalePart, METH_NOARGS, Matrix_scalePart_doc},
 	{"resize4x4", (PyCFunction) Matrix_Resize4x4, METH_NOARGS, Matrix_Resize4x4_doc},
 	{"toEuler", (PyCFunction) Matrix_toEuler, METH_NOARGS, Matrix_toEuler_doc},
 	{"toQuat", (PyCFunction) Matrix_toQuat, METH_NOARGS, Matrix_toQuat_doc},
 	{NULL, NULL, 0, NULL}
 };
-//-----------------------------METHODS----------------------------
-//---------------------------Matrix.toQuat() ---------------------
+/*-----------------------------METHODS----------------------------*/
+/*---------------------------Matrix.toQuat() ---------------------*/
 PyObject *Matrix_toQuat(MatrixObject * self)
 {
 	float quat[4];
 
-	//must be 3-4 cols, 3-4 rows, square matrix
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize < 3 || self->rowSize < 3 || (self->colSize != self->rowSize)) {
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Matrix.toQuat(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
@@ -79,25 +81,31 @@ PyObject *Matrix_toQuat(MatrixObject * self)
 	
 	return newQuaternionObject(quat, Py_NEW);
 }
-//---------------------------Matrix.toEuler() --------------------
+/*---------------------------Matrix.toEuler() --------------------*/
 PyObject *Matrix_toEuler(MatrixObject * self)
 {
 	float eul[3];
+	
 	int x;
 
-	//must be 3-4 cols, 3-4 rows, square matrix
-	if(self->colSize !=3 || self->rowSize != 3) {
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
+	if(self->colSize ==3 && self->rowSize ==3) {
+		Mat3ToEul((float (*)[3])*self->matrix, eul);
+	}else if (self->colSize ==4 && self->rowSize ==4) {
+		float tempmat3[3][3];
+		Mat3CpyMat4(tempmat3, (float (*)[4])*self->matrix);
+		Mat3ToEul(tempmat3, eul);
+	}else
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Matrix.toEuler(): inappropriate matrix size - expects 3x3 matrix\n");
-	} 
-    Mat3ToEul((float (*)[3])*self->matrix, eul);
-	//have to convert to degrees
+			"Matrix.toEuler(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
+	
+	/*have to convert to degrees*/
 	for(x = 0; x < 3; x++) {
 		eul[x] *= (float) (180 / Py_PI);
 	}
 	return newEulerObject(eul, Py_NEW);
 }
-//---------------------------Matrix.resize4x4() ------------------
+/*---------------------------Matrix.resize4x4() ------------------*/
 PyObject *Matrix_Resize4x4(MatrixObject * self)
 {
 	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows, index;
@@ -112,17 +120,17 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"matrix.resize4x4(): problem allocating pointer space\n\n");
 	}
-	self->contigPtr = self->data.py_data;  //force
+	self->contigPtr = self->data.py_data;  /*force*/
 	self->matrix = PyMem_Realloc(self->matrix, (sizeof(float *) * 4));
 	if(self->matrix == NULL) {
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"matrix.resize4x4(): problem allocating pointer space\n\n");
 	}
-	//set row pointers
+	/*set row pointers*/
 	for(x = 0; x < 4; x++) {
 		self->matrix[x] = self->contigPtr + (x * 4);
 	}
-	//move data to new spot in array + clean
+	/*move data to new spot in array + clean*/
 	for(blank_rows = (4 - self->rowSize); blank_rows > 0; blank_rows--){
 		for(x = 0; x < 4; x++){
 			index = (4 * (self->rowSize + (blank_rows - 1))) + x;
@@ -149,7 +157,7 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 	self->colSize = 4;
 	return EXPP_incr_ret((PyObject*)self);
 }
-//---------------------------Matrix.translationPart() ------------
+/*---------------------------Matrix.translationPart() ------------*/
 PyObject *Matrix_TranslationPart(MatrixObject * self)
 {
 	float vec[4];
@@ -165,7 +173,7 @@ PyObject *Matrix_TranslationPart(MatrixObject * self)
 
 	return newVectorObject(vec, 3, Py_NEW);
 }
-//---------------------------Matrix.rotationPart() ---------------
+/*---------------------------Matrix.rotationPart() ---------------*/
 PyObject *Matrix_RotationPart(MatrixObject * self)
 {
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -188,7 +196,22 @@ PyObject *Matrix_RotationPart(MatrixObject * self)
 
 	return newMatrixObject(mat, 3, 3, Py_NEW);
 }
-//---------------------------Matrix.invert() ---------------------
+/*---------------------------Matrix.scalePart() --------------------*/
+PyObject *Matrix_scalePart(MatrixObject * self)
+{
+	float scale[3];
+	
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
+	if(self->colSize == 4 && self->rowSize == 4)
+		Mat4ToSize((float (*)[4])*self->matrix, scale);
+	else if(self->colSize == 3 && self->rowSize == 3)
+		Mat3ToSize((float (*)[3])*self->matrix, scale);
+	else
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"Matrix.scalePart(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
+	return newVectorObject(scale, 3, Py_NEW);
+}
+/*---------------------------Matrix.invert() ---------------------*/
 PyObject *Matrix_Invert(MatrixObject * self)
 {
 	
@@ -203,12 +226,12 @@ PyObject *Matrix_Invert(MatrixObject * self)
 			"Matrix.invert: only square matrices are supported\n");
 	}
 
-	//calculate the determinant
+	/*calculate the determinant*/
 	f = Matrix_Determinant(self);
 	det = (float)PyFloat_AS_DOUBLE(f);
 
 	if(det != 0) {
-		//calculate the classical adjoint
+		/*calculate the classical adjoint*/
 		if(self->rowSize == 2) {
 			mat[0] = self->matrix[1][1];
 			mat[1] = -self->matrix[1][0];
@@ -219,26 +242,26 @@ PyObject *Matrix_Invert(MatrixObject * self)
 		} else if(self->rowSize == 4) {
 			Mat4Adj((float (*)[4]) mat, (float (*)[4]) *self->matrix);
 		}
-		//divide by determinate
+		/*divide by determinate*/
 		for(x = 0; x < (self->rowSize * self->colSize); x++) {
 			mat[x] /= det;
 		}
-		//set values
+		/*set values*/
 		for(x = 0; x < self->rowSize; x++) {
 			for(y = 0; y < self->colSize; y++) {
 				self->matrix[x][y] = mat[z];
 				z++;
 			}
 		}
-		//transpose
-		//Matrix_Transpose(self);
+		/*transpose
+		Matrix_Transpose(self);*/
 	} else {
 		return EXPP_ReturnPyObjError(PyExc_ValueError,
 				"matrix does not have an inverse");
 	}
 	return EXPP_incr_ret((PyObject*)self);
 }
-//---------------------------Matrix.determinant() ----------------
+/*---------------------------Matrix.determinant() ----------------*/
 PyObject *Matrix_Determinant(MatrixObject * self)
 {
 	float det = 0.0f;
@@ -263,7 +286,7 @@ PyObject *Matrix_Determinant(MatrixObject * self)
 
 	return PyFloat_FromDouble( (double) det );
 }
-//---------------------------Matrix.transpose() ------------------
+/*---------------------------Matrix.transpose() ------------------*/
 PyObject *Matrix_Transpose(MatrixObject * self)
 {
 	float t = 0.0f;
@@ -285,7 +308,7 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 
 	return EXPP_incr_ret((PyObject*)self);
 }
-//---------------------------Matrix.zero() -----------------------
+/*---------------------------Matrix.zero() -----------------------*/
 PyObject *Matrix_Zero(MatrixObject * self)
 {
 	int row, col;
@@ -297,7 +320,7 @@ PyObject *Matrix_Zero(MatrixObject * self)
 	}
 	return EXPP_incr_ret((PyObject*)self);
 }
-//---------------------------Matrix.identity(() ------------------
+/*---------------------------Matrix.identity(() ------------------*/
 PyObject *Matrix_Identity(MatrixObject * self)
 {
 	if(self->rowSize != self->colSize){
@@ -318,20 +341,20 @@ PyObject *Matrix_Identity(MatrixObject * self)
 
 	return EXPP_incr_ret((PyObject*)self);
 }
-//----------------------------dealloc()(internal) ----------------
-//free the py_object
+/*----------------------------dealloc()(internal) ----------------*/
+/*free the py_object*/
 static void Matrix_dealloc(MatrixObject * self)
 {
 	Py_XDECREF(self->coerced_object);
 	PyMem_Free(self->matrix);
-	//only free py_data
+	/*only free py_data*/
 	if(self->data.py_data){
 		PyMem_Free(self->data.py_data);
 	}
 	PyObject_DEL(self);
 }
-//----------------------------getattr()(internal) ----------------
-//object.attribute access (get)
+/*----------------------------getattr()(internal) ----------------*/
+/*object.attribute access (get)*/
 static PyObject *Matrix_getattr(MatrixObject * self, char *name)
 {
 	if(STREQ(name, "rowSize")) {
@@ -347,15 +370,15 @@ static PyObject *Matrix_getattr(MatrixObject * self, char *name)
 	}
 	return Py_FindMethod(Matrix_methods, (PyObject *) self, name);
 }
-//----------------------------setattr()(internal) ----------------
-//object.attribute access (set)
+/*----------------------------setattr()(internal) ----------------*/
+/*object.attribute access (set)*/
 static int Matrix_setattr(MatrixObject * self, char *name, PyObject * v)
 {
 	/* This is not supported. */
 	return (-1);
 }
-//----------------------------print object (internal)-------------
-//print the object to screen
+/*----------------------------print object (internal)-------------*/
+/*print the object to screen*/
 static PyObject *Matrix_repr(MatrixObject * self)
 {
 	int x, y;
@@ -380,8 +403,8 @@ static PyObject *Matrix_repr(MatrixObject * self)
 
 	return PyString_FromString(str);
 }
-//------------------------tp_richcmpr
-//returns -1 execption, 0 false, 1 true
+/*------------------------tp_richcmpr*/
+/*returns -1 execption, 0 false, 1 true*/
 static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
 {
 	MatrixObject *matA = NULL, *matB = NULL;
@@ -407,7 +430,7 @@ static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
 	switch (comparison_type){
 		case Py_EQ:
-			//contigPtr is basically a really long vector
+			/*contigPtr is basically a really long vector*/
 			result = EXPP_VectorsAreEqual(matA->contigPtr, matB->contigPtr,
 				(matA->rowSize * matA->colSize), 1);
 			break;
@@ -430,18 +453,18 @@ static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 		return EXPP_incr_ret(Py_False);
 	}
 }
-//------------------------tp_doc
+/*------------------------tp_doc*/
 static char MatrixObject_doc[] = "This is a wrapper for matrix objects.";
-//---------------------SEQUENCE PROTOCOLS------------------------
-//----------------------------len(object)------------------------
-//sequence length
+/*---------------------SEQUENCE PROTOCOLS------------------------
+  ----------------------------len(object)------------------------
+  sequence length*/
 static int Matrix_len(MatrixObject * self)
 {
 	return (self->colSize * self->rowSize);
 }
-//----------------------------object[]---------------------------
-//sequence accessor (get)
-//the wrapped vector gives direct access to the matrix data
+/*----------------------------object[]---------------------------
+  sequence accessor (get)
+  the wrapped vector gives direct access to the matrix data*/
 static PyObject *Matrix_item(MatrixObject * self, int i)
 {
 	if(i < 0 || i >= self->rowSize)
@@ -450,8 +473,8 @@ static PyObject *Matrix_item(MatrixObject * self, int i)
 
 	return newVectorObject(self->matrix[i], self->colSize, Py_WRAP);
 }
-//----------------------------object[]-------------------------
-//sequence accessor (set)
+/*----------------------------object[]-------------------------
+  sequence accessor (set)*/
 static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 {
 	int y, x, size = 0;
@@ -471,13 +494,13 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 		}
 		for (x = 0; x < size; x++) {
 			m = PySequence_GetItem(ob, x);
-			if (m == NULL) { // Failed to read sequence
+			if (m == NULL) { /*Failed to read sequence*/
 				return EXPP_ReturnIntError(PyExc_RuntimeError, 
 					"matrix[attribute] = x: unable to read sequence\n");
 			}
 
 			f = PyNumber_Float(m);
-			if(f == NULL) { // parsed item not a number
+			if(f == NULL) { /*parsed item not a number*/
 				Py_DECREF(m);
 				return EXPP_ReturnIntError(PyExc_TypeError, 
 					"matrix[attribute] = x: sequence argument not a number\n");
@@ -486,7 +509,7 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 			vec[x] = (float)PyFloat_AS_DOUBLE(f);
 			EXPP_decr2(m, f);
 		}
-		//parsed well - now set in matrix
+		/*parsed well - now set in matrix*/
 		for(y = 0; y < size; y++){
 			self->matrix[i][y] = vec[y];
 		}
@@ -496,8 +519,8 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 			"matrix[attribute] = x: expects a sequence of column size\n");
 	}
 }
-//----------------------------object[z:y]------------------------
-//sequence slice (get)
+/*----------------------------object[z:y]------------------------
+  sequence slice (get)*/
 static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 {
 
@@ -516,8 +539,8 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 
 	return list;
 }
-//----------------------------object[z:y]------------------------
-//sequence slice (set)
+/*----------------------------object[z:y]------------------------
+  sequence slice (set)*/
 static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 			     PyObject * seq)
 {
@@ -536,17 +559,17 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 			return EXPP_ReturnIntError(PyExc_TypeError,
 				"matrix[begin:end] = []: size mismatch in slice assignment\n");
 		}
-		//parse sub items
+		/*parse sub items*/
 		for (i = 0; i < size; i++) {
-			//parse each sub sequence
+			/*parse each sub sequence*/
 			subseq = PySequence_GetItem(seq, i);
-			if (subseq == NULL) { // Failed to read sequence
+			if (subseq == NULL) { /*Failed to read sequence*/
 				return EXPP_ReturnIntError(PyExc_RuntimeError, 
 					"matrix[begin:end] = []: unable to read sequence\n");
 			}
 
 			if(PySequence_Check(subseq)){
-				//subsequence is also a sequence
+				/*subsequence is also a sequence*/
 				sub_size = PySequence_Length(subseq);
 				if(sub_size != self->colSize){
 					Py_DECREF(subseq);
@@ -555,14 +578,14 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 				}
 				for (y = 0; y < sub_size; y++) {
 					m = PySequence_GetItem(subseq, y);
-					if (m == NULL) { // Failed to read sequence
+					if (m == NULL) { /*Failed to read sequence*/
 						Py_DECREF(subseq);
 						return EXPP_ReturnIntError(PyExc_RuntimeError, 
 							"matrix[begin:end] = []: unable to read sequence\n");
 					}
 
 					f = PyNumber_Float(m);
-					if(f == NULL) { // parsed item not a number
+					if(f == NULL) { /*parsed item not a number*/
 						EXPP_decr2(m, subseq);
 						return EXPP_ReturnIntError(PyExc_TypeError, 
 							"matrix[begin:end] = []: sequence argument not a number\n");
@@ -578,7 +601,7 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 			}
 			Py_DECREF(subseq);
 		}
-		//parsed well - now set in matrix
+		/*parsed well - now set in matrix*/
 		for(x = 0; x < (size * sub_size); x++){
 			self->matrix[begin + (int)floor(x / self->colSize)][x % self->colSize] = mat[x];
 		}
@@ -588,8 +611,8 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 			"matrix[begin:end] = []: illegal argument type for built-in operation\n");
 	}
 }
-//------------------------NUMERIC PROTOCOLS----------------------
-//------------------------obj + obj------------------------------
+/*------------------------NUMERIC PROTOCOLS----------------------
+  ------------------------obj + obj------------------------------*/
 static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 {
 	int x, y;
@@ -617,8 +640,8 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 
 	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW);
 }
-//------------------------obj - obj------------------------------
-//subtraction
+/*------------------------obj - obj------------------------------
+  subtraction*/
 static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 {
 	int x, y;
@@ -646,8 +669,8 @@ static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 
 	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW);
 }
-//------------------------obj * obj------------------------------
-//mulplication
+/*------------------------obj * obj------------------------------
+  mulplication*/
 static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 {
 	int x, y, z;
@@ -665,9 +688,9 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 
 	if(mat1->coerced_object){
 		if (PyFloat_Check(mat1->coerced_object) || 
-			PyInt_Check(mat1->coerced_object)){	// FLOAT/INT * MATRIX
+			PyInt_Check(mat1->coerced_object)){	/*FLOAT/INT * MATRIX*/
 			f = PyNumber_Float(mat1->coerced_object);
-			if(f == NULL) { // parsed item not a number
+			if(f == NULL) { /*parsed item not a number*/
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Matrix multiplication: arguments not acceptable for this operation\n");
 			}
@@ -682,16 +705,16 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		}
 	}else{
 		if(mat2->coerced_object){
-			if(VectorObject_Check(mat2->coerced_object)){ //MATRIX * VECTOR
+			if(VectorObject_Check(mat2->coerced_object)){ /*MATRIX * VECTOR*/
 				vec = (VectorObject*)mat2->coerced_object;
 				return column_vector_multiplication(mat1, vec);
-			}else if(PointObject_Check(mat2->coerced_object)){ //MATRIX * POINT
+			}else if(PointObject_Check(mat2->coerced_object)){ /*MATRIX * POINT*/
 				pt = (PointObject*)mat2->coerced_object;
 				return column_point_multiplication(mat1, pt);
 			}else if (PyFloat_Check(mat2->coerced_object) || 
-				PyInt_Check(mat2->coerced_object)){	// MATRIX * FLOAT/INT
+				PyInt_Check(mat2->coerced_object)){	/*MATRIX * FLOAT/INT*/
 				f = PyNumber_Float(mat2->coerced_object);
-				if(f == NULL) { // parsed item not a number
+				if(f == NULL) { /*parsed item not a number*/
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Matrix multiplication: arguments not acceptable for this operation\n");
 				}
@@ -704,7 +727,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 				}
 				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW);
 			}
-		}else{  //MATRIX * MATRIX
+		}else{  /*MATRIX * MATRIX*/
 			if(mat1->colSize != mat2->rowSize){
 				return EXPP_ReturnPyObjError(PyExc_AttributeError,
 					"Matrix multiplication: matrix A rowsize must equal matrix B colsize\n");
@@ -729,9 +752,10 @@ PyObject* Matrix_inv(MatrixObject *self)
 {
 	return Matrix_Invert(self);
 }
-//------------------------coerce(obj, obj)-----------------------
-//coercion of unknown types to type MatrixObject for numeric protocols
-/*Coercion() is called whenever a math operation has 2 operands that
+/*------------------------coerce(obj, obj)-----------------------
+  coercion of unknown types to type MatrixObject for numeric protocols.
+
+  Coercion() is called whenever a math operation has 2 operands that
  it doesn't understand how to evaluate. 2+Matrix for example. We want to 
  evaluate some of these operations like: (vector * 2), however, for math
  to proceed, the unknown operand must be cast to a type that python math will
@@ -751,7 +775,7 @@ static int Matrix_coerce(PyObject ** m1, PyObject ** m2)
 	return EXPP_ReturnIntError(PyExc_TypeError, 
 		"matrix.coerce(): unknown operand - can't coerce for numeric protocols");
 }
-//-----------------PROTOCOL DECLARATIONS--------------------------
+/*-----------------PROTOCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Matrix_SeqMethods = {
 	(inquiry) Matrix_len,					/* sq_length */
 	(binaryfunc) 0,							/* sq_concat */
@@ -786,67 +810,69 @@ static PyNumberMethods Matrix_NumMethods = {
 	(unaryfunc) 0,							/* __oct__ */
 	(unaryfunc) 0,							/* __hex__ */
 };
-//------------------PY_OBECT DEFINITION--------------------------
+/*------------------PY_OBECT DEFINITION--------------------------*/
 PyTypeObject matrix_Type = {
-	PyObject_HEAD_INIT(NULL)		//tp_head
-	0,								//tp_internal
-	"matrix",						//tp_name
-	sizeof(MatrixObject),			//tp_basicsize
-	0,								//tp_itemsize
-	(destructor)Matrix_dealloc,		//tp_dealloc
-	0,								//tp_print
-	(getattrfunc)Matrix_getattr,	//tp_getattr
-	(setattrfunc) Matrix_setattr,	//tp_setattr
-	0,								//tp_compare
-	(reprfunc) Matrix_repr,			//tp_repr
-	&Matrix_NumMethods,				//tp_as_number
-	&Matrix_SeqMethods,				//tp_as_sequence
-	0,								//tp_as_mapping
-	0,								//tp_hash
-	0,								//tp_call
-	0,								//tp_str
-	0,								//tp_getattro
-	0,								//tp_setattro
-	0,								//tp_as_buffer
-	Py_TPFLAGS_DEFAULT,				//tp_flags
-	MatrixObject_doc,				//tp_doc
-	0,								//tp_traverse
-	0,								//tp_clear
-	(richcmpfunc)Matrix_richcmpr,	//tp_richcompare
-	0,								//tp_weaklistoffset
-	0,								//tp_iter
-	0,								//tp_iternext
-	0,								//tp_methods
-	0,								//tp_members
-	0,								//tp_getset
-	0,								//tp_base
-	0,								//tp_dict
-	0,								//tp_descr_get
-	0,								//tp_descr_set
-	0,								//tp_dictoffset
-	0,								//tp_init
-	0,								//tp_alloc
-	0,								//tp_new
-	0,								//tp_free
-	0,								//tp_is_gc
-	0,								//tp_bases
-	0,								//tp_mro
-	0,								//tp_cache
-	0,								//tp_subclasses
-	0,								//tp_weaklist
-	0								//tp_del
+	PyObject_HEAD_INIT(NULL)		/*tp_head*/
+	0,								/*tp_internal*/
+	"matrix",						/*tp_name*/
+	sizeof(MatrixObject),			/*tp_basicsize*/
+	0,								/*tp_itemsize*/
+	(destructor)Matrix_dealloc,		/*tp_dealloc*/
+	0,								/*tp_print*/
+	(getattrfunc)Matrix_getattr,	/*tp_getattr*/
+	(setattrfunc) Matrix_setattr,	/*tp_setattr*/
+	0,								/*tp_compare*/
+	(reprfunc) Matrix_repr,			/*tp_repr*/
+	&Matrix_NumMethods,				/*tp_as_number*/
+	&Matrix_SeqMethods,				/*tp_as_sequence*/
+	0,								/*tp_as_mapping*/
+	0,								/*tp_hash*/
+	0,								/*tp_call*/
+	0,								/*tp_str*/
+	0,								/*tp_getattro*/
+	0,								/*tp_setattro*/
+	0,								/*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,				/*tp_flags*/
+	MatrixObject_doc,				/*tp_doc*/
+	0,								/*tp_traverse*/
+	0,								/*tp_clear*/
+	(richcmpfunc)Matrix_richcmpr,	/*tp_richcompare*/
+	0,								/*tp_weaklistoffset*/
+	0,								/*tp_iter*/
+	0,								/*tp_iternext*/
+	0,								/*tp_methods*/
+	0,								/*tp_members*/
+	0,								/*tp_getset*/
+	0,								/*tp_base*/
+	0,								/*tp_dict*/
+	0,								/*tp_descr_get*/
+	0,								/*tp_descr_set*/
+	0,								/*tp_dictoffset*/
+	0,								/*tp_init*/
+	0,								/*tp_alloc*/
+	0,								/*tp_new*/
+	0,								/*tp_free*/
+	0,								/*tp_is_gc*/
+	0,								/*tp_bases*/
+	0,								/*tp_mro*/
+	0,								/*tp_cache*/
+	0,								/*tp_subclasses*/
+	0,								/*tp_weaklist*/
+	0								/*tp_del*/
 };
-//------------------------newMatrixObject (internal)-------------
-//creates a new matrix object
-//self->matrix     self->contiguous_ptr (reference to data.xxx)
-//       [0]------------->[0]
-//                        [1]
-//                        [2]
-//       [1]------------->[3]
-//                        [4]
-//                        [5]
-//	             ....
-//self->matrix[1][1] = self->contiguous_ptr[4] = self->data.xxx_data[4]
+
+/*------------------------newMatrixObject (internal)-------------
+creates a new matrix object
+self->matrix     self->contiguous_ptr (reference to data.xxx)
+       [0]------------->[0]
+                        [1]
+                        [2]
+       [1]------------->[3]
+                        [4]
+                        [5]
+	             ....
+self->matrix[1][1] = self->contiguous_ptr[4] = self->data.xxx_data[4]*/
+
 /*pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
  (i.e. it was allocated elsewhere by MEM_mallocN())
   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
@@ -856,7 +882,7 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 	MatrixObject *self;
 	int x, row, col;
 
-	//matrix objects can be any 2-4row x 2-4col matrix
+	/*matrix objects can be any 2-4row x 2-4col matrix*/
 	if(rowSize < 2 || rowSize > 4 || colSize < 2 || colSize > 4){
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 			"matrix(): row and column sizes must be between 2 and 4\n");
@@ -873,48 +899,48 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 	if(type == Py_WRAP){
 		self->data.blend_data = mat;
 		self->contigPtr = self->data.blend_data;
-		//create pointer array
+		/*create pointer array*/
 		self->matrix = PyMem_Malloc(rowSize * sizeof(float *));
-		if(self->matrix == NULL) { //allocation failure
+		if(self->matrix == NULL) { /*allocation failure*/
 			return EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"matrix(): problem allocating pointer space\n");
 		}
-		//pointer array points to contigous memory
+		/*pointer array points to contigous memory*/
 		for(x = 0; x < rowSize; x++) {
 			self->matrix[x] = self->contigPtr + (x * colSize);
 		}
 		self->wrapped = Py_WRAP;
 	}else if (type == Py_NEW){
 		self->data.py_data = PyMem_Malloc(rowSize * colSize * sizeof(float));
-		if(self->data.py_data == NULL) { //allocation failure
+		if(self->data.py_data == NULL) { /*allocation failure*/
 			return EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"matrix(): problem allocating pointer space\n");
 		}
 		self->contigPtr = self->data.py_data;
-		//create pointer array
+		/*create pointer array*/
 		self->matrix = PyMem_Malloc(rowSize * sizeof(float *));
-		if(self->matrix == NULL) { //allocation failure
+		if(self->matrix == NULL) { /*allocation failure*/
 			PyMem_Free(self->data.py_data);
 			return EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"matrix(): problem allocating pointer space\n");
 		}
-		//pointer array points to contigous memory
+		/*pointer array points to contigous memory*/
 		for(x = 0; x < rowSize; x++) {
 			self->matrix[x] = self->contigPtr + (x * colSize);
 		}
-		//parse
-		if(mat) {	//if a float array passed
+		/*parse*/
+		if(mat) {	/*if a float array passed*/
 			for(row = 0; row < rowSize; row++) {
 				for(col = 0; col < colSize; col++) {
 					self->matrix[row][col] = mat[(row * colSize) + col];
 				}
 			}
-		} else { //or if no arguments are passed return identity matrix
+		} else { /*or if no arguments are passed return identity matrix*/
 			Matrix_Identity(self);
 			Py_DECREF(self);
 		}
 		self->wrapped = Py_NEW;
-	}else{ //bad type
+	}else{ /*bad type*/
 		return NULL;
 	}
 	return (PyObject *) self;

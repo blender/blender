@@ -70,6 +70,7 @@ PyObject *Matrix_Determinant( MatrixObject * self );
 PyObject *Matrix_Invert( MatrixObject * self );
 PyObject *Matrix_TranslationPart( MatrixObject * self );
 PyObject *Matrix_RotationPart( MatrixObject * self );
+PyObject *Matrix_scalePart( MatrixObject * self );
 PyObject *Matrix_Resize4x4( MatrixObject * self );
 PyObject *Matrix_toEuler( MatrixObject * self );
 PyObject *Matrix_toQuat( MatrixObject * self );

@@ -804,6 +804,13 @@ class Matrix:
     @return: Return a the translation of a matrix.
     """
 
+  def scalePart():
+    """
+    Return a the scale part of a 3x3 or 4x4 matrix.
+    @rtype: Vector object.
+    @return: Return a the scale of a matrix.
+    """
+
   def resize4x4():
     """
     Resize the matrix to by 4x4
@@ -812,7 +819,7 @@ class Matrix:
   
   def toEuler():
     """
-    Return an Euler representation of the rotation matrix.
+    Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).
     @rtype: Euler object
     @return: Euler representation of the rotation matrix.
     """

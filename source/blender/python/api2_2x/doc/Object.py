@@ -15,6 +15,7 @@ B{New}:
     added the easier L{layers<Object.Object.layers>}.  The old form "Layer"
     will continue to work.
 
+
 Object
 ======
 
@@ -164,8 +165,25 @@ class Object:
   """
   The Object object
   =================
-    This object gives access to generic data from all objects in Blender.
- 
+    This object gives access to generic data from all objects in Blender. 
+
+    B{Note}:
+    When dealing with properties and functions such as LocX/RotY/getLocation(), getSize() and getEuler() 
+    Keep in mind that these transformation properties are relative to the objects parent (if any).
+
+    To get these values in worldspace (taking into acount vertex parents, constraints etc)
+    use the matrix property that defaults to worldspace. There is currently no simple way to set an objects loc/size/rot in worldspace when it has a parent.
+
+    B{Example}::
+      import Blender
+      scn = Blender.Scene.GetCurrent()
+      ob = scn.getActiveObject()
+      if ob:
+        mat= ob.mat # Same as martixWorld
+        print 'Location", mat.translationPart() # 3D Vector
+        print 'Size", mat.scalePart() # 3D Vector
+        print 'Rotation", mat.toEuler() # Euler object
+
     @ivar LocX: The X location coordinate of the object.
     @ivar LocY: The Y location coordinate of the object.
     @ivar LocZ: The Z location coordinate of the object.
