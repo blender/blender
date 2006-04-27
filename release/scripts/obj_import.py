@@ -221,7 +221,7 @@ getUniqueName.uniqueNames= []
 #==================================================================================#
 # This loads data from .obj file                                                   #
 #==================================================================================#
-def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGON=1, IMPORT_SMOOTH_GROUPS=0, IMPORT_MTL_SPLIT=0, IMPORT_RELATIVE_VERTS=0):
+def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGON=1, IMPORT_SMOOTH_GROUPS=0, IMPORT_MTL_SPLIT=0):
 	global currentMesh,\
 	currentUsedVertList,\
 	currentUsedVertListSmoothGroup,\
@@ -452,11 +452,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	EDGE_FGON_FLAG= NMesh.EdgeFlags['FGON']
 	EDGE_DRAW_FLAG= NMesh.EdgeFlags['EDGEDRAW']
 	
-	if IMPORT_RELATIVE_VERTS:
-		VERT_COUNT= TVERT_COUNT=0
-		# TOT_VERTS= len(vertList) 
-		# len(vertList)  
-		# len(uvMapList)
+	REL_VERT_COUNT= REL_TVERT_COUNT=0
 	
 	while lIdx < len(fileLines):
 		l= fileLines[lIdx]
@@ -465,13 +461,11 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 			continue
 		# FACE
 		elif l[0] == 'v':
-			if IMPORT_RELATIVE_VERTS:
-				VERT_COUNT+=1
+			REL_VERT_COUNT+=1
 		elif l[0] == 'vt':
-			if IMPORT_RELATIVE_VERTS:
-				TVERT_COUNT+=1
+			REL_TVERT_COUNT+=1
 		
-		elif l[0] == 'f' or l[0] == 'fo': # fo is not standard.
+		elif l[0] == 'f' or l[0] == 'fo': # fo is not standard. saw it used once.
 			# Make a face with the correct material.
 			
 			# Add material to mesh
@@ -519,12 +513,8 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 					index= int(objVert[0])-1
 					# Account for negative indices.
 					if index < 0:
-						if IMPORT_RELATIVE_VERTS: # non standard
-							index= VERT_COUNT+index+1
-						else:
-							index= len_vertList+index+1
-					elif IMPORT_RELATIVE_VERTS:
-						index= VERT_COUNT+index+1 # UNTESTED, POSITIVE RELATIVE VERTS.May be out by 1.
+						# Assume negative verts are relative.
+						index= REL_VERT_COUNT+index+1
 					
 					vIdxLs.append(index)
 					if fHasUV:
@@ -535,12 +525,8 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 						elif objVert[1]: # != '' # Its possible that theres no texture vert just he vert and normal eg 1//2
 							index= int(objVert[1])-1
 							if index < 0:
-								if IMPORT_RELATIVE_VERTS: # non standard
-									index= TVERT_COUNT+index+1
-								else:
-									index= len_uvMapList+index+1
-							elif IMPORT_RELATIVE_VERTS: # non standard:
-								index= TVERT_COUNT+index+1 # UNTESTED, POSITIVE RELATIVE VERTS. May be out by 1.
+								# Assume negative verts are relative
+								index= REL_TVERT_COUNT+index+1
 							
 						if len_uvMapList > index:
 							vtIdxLs.append(index) # Seperate UV coords
@@ -751,7 +737,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 			
 			# Check if we are splitting by material.
 			if IMPORT_MTL_SPLIT:
-				currentObjectName= currentObjectName_real+'_'+currentMat.name
+				currentObjectName= '%s_%s' % (currentObjectName_real, currentMat.name)
 				obj_getmesh(True)
 			
 			
@@ -821,7 +807,6 @@ def load_obj_ui(file):
 	IMPORT_FGON= Draw.Create(1)
 	IMPORT_SMOOTH_GROUPS= Draw.Create(0)
 	IMPORT_MTL_SPLIT= Draw.Create(0)
-	IMPORT_RELATIVE_VERTS= Draw.Create(0)
 	
 	# Get USER Options
 	pup_block= [\
@@ -834,13 +819,12 @@ def load_obj_ui(file):
 	('Create FGons', IMPORT_FGON, 'Import faces with more then 4 verts as fgons.'),\
 	('Smooth Groups', IMPORT_SMOOTH_GROUPS, 'Only Share verts within smooth groups. (Warning, Hogs Memory)'),\
 	('Split by Material', IMPORT_MTL_SPLIT, 'Import each material into a seperate mesh (Avoids >16 meterials per mesh problem)'),\
-	('Relative Verts', IMPORT_RELATIVE_VERTS, 'Import non standard OBJs with relative vertex indices, try if your mesh imports with scrambled faces.'),\
 	]
 	
 	if not os:
 		pup_block.pop(2) # Make sure this is the IMPORT_DIR option that requires OS
 	
-	if not Draw.PupBlock('Import...', pup_block):
+	if not Draw.PupBlock('Import OBJ...', pup_block):
 		return
 	
 	Window.WaitCursor(1)
@@ -855,8 +839,7 @@ def load_obj_ui(file):
 	IMPORT_FGON= IMPORT_FGON.val
 	IMPORT_SMOOTH_GROUPS= IMPORT_SMOOTH_GROUPS.val
 	IMPORT_MTL_SPLIT= IMPORT_MTL_SPLIT.val
-	IMPORT_RELATIVE_VERTS= IMPORT_RELATIVE_VERTS.val
-	#orig_scene= Scene.GetCurrent()
+	orig_scene= Scene.GetCurrent()
 	
 	obj_dir= stripFile(file)
 	if IMPORT_DIR:
@@ -875,24 +858,19 @@ def load_obj_ui(file):
 				scn= Scene.New('.'.join(f.split('.')[0:-1]))
 				scn.makeCurrent()
 			
-			
 			Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (f, count, obj_len))
-			load_obj(d+f, IMPORT_MTL, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT, IMPORT_RELATIVE_VERTS)
+			load_obj(d+f, IMPORT_MTL, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT)
 			
 	
-	#orig_scene.makeCurrent() # We can leave them in there new scene.
+	orig_scene.makeCurrent() # We can leave them in there new scene.
 	Window.DrawProgressBar(1, '')
 	Window.WaitCursor(0)
 	
-	if count > 1:
-		print 'Total obj import "%s" dir: %.2f' % (obj_dir, sys.time() - time)
+	print 'Total obj import "%s" dir: %.2f' % (obj_dir, sys.time() - time)
 
 
 def main():
-	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ')
+	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
 
 if __name__ == '__main__':
 	main()
-	pass
-
-#load_obj('/1test.obj')
