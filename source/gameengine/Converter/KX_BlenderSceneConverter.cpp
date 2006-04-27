@@ -254,7 +254,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 	//find out which physics engine
 	Scene *blenderscene = GetSceneForName2(m_maggie, scenename);
 
-	e_PhysicsEngine physics_engine = UseSumo;
+	e_PhysicsEngine physics_engine = UseBullet;
 
 	if (blenderscene)
 	{
