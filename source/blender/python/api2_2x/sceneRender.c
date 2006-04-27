@@ -147,6 +147,7 @@ static PyObject *RenderData_EnableRayTracing( BPy_RenderData * self,
 					      PyObject * args );
 static PyObject *RenderData_EnableRadiosityRender( BPy_RenderData * self,
 						   PyObject * args );
+static PyObject *RenderData_GetRenderWinSize( BPy_RenderData * self );
 static PyObject *RenderData_SetRenderWinSize( BPy_RenderData * self,
 					      PyObject * args );
 static PyObject *RenderData_EnableFieldRendering( BPy_RenderData * self,
@@ -351,9 +352,12 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"enableRadiosityRender",
 	 ( PyCFunction ) RenderData_EnableRadiosityRender, METH_VARARGS,
 	 "(bool) - enable/disable radiosity rendering\n"},
+	{"getRenderWinSize", ( PyCFunction ) RenderData_GetRenderWinSize,
+	 METH_NOARGS,
+	 "() - get the size of the render window\n"},
 	{"setRenderWinSize", ( PyCFunction ) RenderData_SetRenderWinSize,
 	 METH_VARARGS,
-	 "(enum) - get/set the size of the render window\n"},
+	 "(int) - set the size of the render window\n"},
 	{"enableFieldRendering",
 	 ( PyCFunction ) RenderData_EnableFieldRendering, METH_VARARGS,
 	 "(bool) - enable/disable field rendering\n"},
@@ -1349,6 +1353,12 @@ PyObject *RenderData_SetRenderWinSize( BPy_RenderData * self, PyObject * args )
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
+}
+//
+//------------------------------------RenderData.GetRenderWinSize() -----
+PyObject *RenderData_GetRenderWinSize( BPy_RenderData * self )
+{
+	return PyInt_FromLong( (long) self->renderContext->size );
 }
 
 //------------------------------------RenderData.EnableFieldRendering() -

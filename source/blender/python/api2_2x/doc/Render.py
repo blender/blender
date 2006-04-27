@@ -349,6 +349,13 @@ class RenderData:
     @param size: can be 25, 50, 75 or 100 (percent).
     """
 
+  def getRenderWinSize():
+    """
+    Get the size of the render window.
+    @rtype: int
+    @return: window size; can be 25, 50, 75 or 100 (percent).
+    """
+
   def enableFieldRendering(toggle):
     """
     Enable/disable field rendering
