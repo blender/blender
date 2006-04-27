@@ -58,8 +58,8 @@ ObjSelect = B.Object.GetSelected()
 
 def FuncionPrincipal (Dir):
 	B.Window.WaitCursor(1)
-	for O in ObjSelect:
-		origName= NombreObjeto= O.name
+	for ob in ObjSelect:
+		origName= NombreObjeto= ob.name
 		print '----\nExporting Object "%s" motion file...' % origName
 
 		SC = B.Scene.getCurrent()
@@ -102,25 +102,27 @@ def FuncionPrincipal (Dir):
 			while FrameA < (FrameF + 1):
 
 				B.Set('curframe', FrameA)
-
+				
+				mat= ob.mat # Worldspace matrix
+				
 				if NumCanal == 0:
-					Val = O.LocX
+					Val = mat.translationPart().x
 				elif NumCanal == 1:
-					Val = O.LocZ
+					Val = mat.translationPart().z
 				elif NumCanal == 2:
-					Val = O.LocY
+					Val = mat.translationPart().y
 				elif NumCanal == 3:
-					Val = -O.RotZ
+					Val = -mat.toEuler().z
 				elif NumCanal == 4:
-					Val = -O.RotX
+					Val = -mat.toEuler().x
 				elif NumCanal == 5:
-					Val = -O.RotY
+					Val = -mat.toEuler().y
 				elif NumCanal == 6:
-					Val = O.SizeX
+					Val = mat.scalePart().x
 				elif NumCanal == 7:
-					Val = O.SizeZ
+					Val = mat.scalePart().z
 				elif NumCanal == 8:
-					Val = O.SizeY
+					Val = mat.scalePart().y
 
 				File.write (' Key %f %f 3 0 0 0 0 0 0\n' % (Val, (FrameA/FrameRate)))
 
