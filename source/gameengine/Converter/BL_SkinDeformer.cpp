@@ -164,28 +164,18 @@ void BL_SkinDeformer::Update(void)
 		
 		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
 		/* but it requires the blender object pointer... */
-		//void where_is_pose (Object *ob);
-//		where_is_pose (m_blenderArmatureObj);
-		
-		/* store verts locally */
-//		for (int v =0; v<m_bmesh->totvert; v++){
-			/* XXX note, dunno about this line */
-//			m_transverts[v]=MT_Point3(m_bmesh->mvert[v].co);
-//		}
-		
-//		float	test[1000][3];
-
-//		armature_deform_verts(m_blenderArmatureObj,m_blenderMeshObject,test,m_bmesh->totvert,ARM_DEF_VGROUP);
-
 
 		Object* par_arma = m_armobj->GetArmatureObject();
 		where_is_pose( par_arma ); 
+
 		/* store verts locally */
 		VerifyStorage();
+	
+		/* duplicate */
 		for (int v =0; v<m_bmesh->totvert; v++)
 			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
 
-		armature_deform_verts( par_arma, m_objMesh,m_transverts, m_bmesh->totvert, ARM_DEF_VGROUP );
+		armature_deform_verts( par_arma, m_objMesh, m_transverts, m_bmesh->totvert, ARM_DEF_VGROUP );
 		RecalcNormals();
 
 		/* Update the current frame */
@@ -196,7 +186,6 @@ void BL_SkinDeformer::Update(void)
 /* XXX note: I propose to drop this function */
 void BL_SkinDeformer::SetArmature(BL_ArmatureObject *armobj)
 {
-	// --
 	// only used to set the object now
 	m_armobj = armobj;
 }

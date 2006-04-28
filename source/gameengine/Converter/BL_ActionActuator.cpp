@@ -58,8 +58,7 @@
 
 BL_ActionActuator::~BL_ActionActuator()
 {
-	//todo Charlie, can you look into this?
-	/*
+
 	if (m_pose) {
 		free_pose_channels(m_pose);
 		MEM_freeN(m_pose);
@@ -76,8 +75,6 @@ BL_ActionActuator::~BL_ActionActuator()
 		MEM_freeN(m_blendpose);
 		m_blendpose = NULL;
 	};
-	*/
-
 	
 }
 

@@ -890,7 +890,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	struct	KX_ObjectProperties*	objprop)
 {
 
-		CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
+	CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
 	assert(env);
 	
 
@@ -900,7 +900,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	if (objprop->m_ghost)
 	{
+		
 		ci.m_collisionFlags |= CollisionObject::noContactResponse;
+	
 	}
 
 	if (!objprop->m_dyna)
@@ -1111,9 +1113,14 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
 	// store materialname in auxinfo, needed for touchsensors
-	const STR_String& matname=meshobj->GetMaterialName(0);
-	gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
-	
+	if (meshobj)
+	{
+		const STR_String& matname=meshobj->GetMaterialName(0);
+		gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
+	} else
+	{
+		gameobj->getClientInfo()->m_auxilary_info = 0;
+	}
 
 
 	gameobj->GetSGNode()->AddSGController(physicscontroller);

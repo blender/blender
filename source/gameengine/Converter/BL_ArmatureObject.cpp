@@ -146,8 +146,16 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 {
 	/* If the caller supplies a null pose, create a new one. */
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
-	if (!*pose)
-		copy_pose(pose, m_pose, 0);
+
+	if (!*pose) {
+		/*	probably not to good of an idea to
+			duplicate everying, but it clears up 
+			a crash and memory leakage when 
+			&BL_ActionActuator::m_pose is freed
+		*/
+		int copy_constraint_channels_hack = 1;
+		copy_pose(pose, m_pose, copy_constraint_channels_hack);
+	}
 	else
 		extract_pose_from_pose(*pose, m_pose);
 
