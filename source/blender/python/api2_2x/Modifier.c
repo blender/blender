@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Ken Hughes
+ * Contributor(s): Ken Hughes, Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -934,8 +934,8 @@ static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
 
 	if( !PyArg_ParseTuple( args, "i", &type ) )
 		EXPP_ReturnPyObjError( PyExc_TypeError, "expected int argument" );
-	if (type==0 || type >= NUM_MODIFIER_TYPES) /* type 0 is eModifierType_None, should we be able to add one of these? */
-		EXPP_ReturnPyObjError( PyExc_TypeError, "int argument out of range, expected an int from Blender.Modifier.Type" );
+	if (type<=0 || type >= NUM_MODIFIER_TYPES) /* type 0 is eModifierType_None, should we be able to add one of these? */
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "int argument out of range, expected an int from Blender.Modifier.Type" );
 	
 	BLI_addtail( &self->obj->modifiers, modifier_new( type ) );
 	return Modifier_CreatePyObject( self->obj, self->obj->modifiers.last );
