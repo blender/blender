@@ -1,3 +1,21 @@
+/*
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+*/
+
+
+
+
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"
 
@@ -17,10 +35,10 @@
 #include "ConstraintSolver/OdeConstraintSolver.h"
 #include "ConstraintSolver/SimpleConstraintSolver.h"
 
-#ifdef USE_PROFILE
+
 //profiling/timings
 #include "quickprof.h"
-#endif //USE_PROFILE
+
 
 #include "IDebugDraw.h"
 
@@ -36,7 +54,7 @@
 #include "CollisionDispatch/EmptyCollisionAlgorithm.h"
 #include "CollisionDispatch/UnionFind.h"
 
-#include "NarrowPhaseCollision/RaycastCallback.h"
+
 #include "CollisionShapes/SphereShape.h"
 
 bool useIslands = true;
@@ -77,7 +95,7 @@ class WrapperVehicle : public PHY_IVehicle
 
 	RaycastVehicle*	m_vehicle;
 	PHY_IPhysicsController*	m_chassis;
-		
+
 public:
 
 	WrapperVehicle(RaycastVehicle* vehicle,PHY_IPhysicsController* chassis)
@@ -97,24 +115,24 @@ public:
 	}
 
 	virtual void	AddWheel(
-			PHY_IMotionState*	motionState,
-			PHY__Vector3	connectionPoint,
-			PHY__Vector3	downDirection,
-			PHY__Vector3	axleDirection,
-			float	suspensionRestLength,
-			float wheelRadius,
-			bool hasSteering
+		PHY_IMotionState*	motionState,
+		PHY__Vector3	connectionPoint,
+		PHY__Vector3	downDirection,
+		PHY__Vector3	axleDirection,
+		float	suspensionRestLength,
+		float wheelRadius,
+		bool hasSteering
 		)
 	{
 		SimdVector3 connectionPointCS0(connectionPoint[0],connectionPoint[1],connectionPoint[2]);
 		SimdVector3 wheelDirectionCS0(downDirection[0],downDirection[1],downDirection[2]);
 		SimdVector3 wheelAxle(axleDirection[0],axleDirection[1],axleDirection[2]);
-		
+
 
 		WheelInfo& info = m_vehicle->AddWheel(connectionPointCS0,wheelDirectionCS0,wheelAxle,
 			suspensionRestLength,wheelRadius,gTuning,hasSteering);
 		info.m_clientInfo = motionState;
-		
+
 	}
 
 	void	SyncWheels()
@@ -139,7 +157,7 @@ public:
 	{
 		return m_vehicle->GetNumWheels();
 	}
-	
+
 	virtual void	GetWheelPosition(int wheelIndex,float& posX,float& posY,float& posZ) const
 	{
 		SimdTransform	trans = m_vehicle->GetWheelTransformWS(wheelIndex);
@@ -157,7 +175,7 @@ public:
 		quatY = trans.getRotation().y();
 		quatZ = trans.getRotation().z();
 		quatW = trans.getRotation()[3];
-		
+
 
 		//printf("test");
 
@@ -178,7 +196,7 @@ public:
 	}
 
 
-	
+
 	virtual int	GetUserConstraintId() const
 	{
 		return m_vehicle->GetUserConstraintId();
@@ -217,7 +235,7 @@ public:
 		}
 
 	}
-	
+
 	virtual	void	SetSuspensionStiffness(float suspensionStiffness,int wheelIndex)
 	{
 		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
@@ -247,7 +265,7 @@ public:
 	}
 
 
-	
+
 	virtual	void	SetRollInfluence(float rollInfluence,int wheelIndex)
 	{
 		if ((wheelIndex>=0) && (wheelIndex< m_vehicle->GetNumWheels()))
@@ -278,13 +296,13 @@ static void DrawAabb(IDebugDraw* debugDrawer,const SimdVector3& from,const SimdV
 			pa = SimdVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],		
 				edgecoord[2]*halfExtents[2]);
 			pa+=center;
-			
+
 			int othercoord = j%3;
 			edgecoord[othercoord]*=-1.f;
 			pb = SimdVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],	
 				edgecoord[2]*halfExtents[2]);
 			pb+=center;
-			
+
 			debugDrawer->DrawLine(pa,pb,color);
 		}
 		edgecoord = SimdVector3(-1.f,-1.f,-1.f);
@@ -316,7 +334,7 @@ m_enableSatCollisionDetection(false)
 	if (!dispatcher)
 		dispatcher = new CollisionDispatcher();
 
-	
+
 	if(!broadphase)
 	{
 
@@ -324,57 +342,57 @@ m_enableSatCollisionDetection(false)
 		SimdVector3 worldMin(-10000,-10000,-10000);
 		SimdVector3 worldMax(10000,10000,10000);
 
-		broadphase = new AxisSweep3(worldMin,worldMax);
+		//broadphase = new AxisSweep3(worldMin,worldMax);
 
-		//broadphase = new SimpleBroadphase();
+		broadphase = new SimpleBroadphase();
 	}
-		
+
 
 	setSolverType(1);
-	
+
 	m_collisionWorld = new CollisionWorld(dispatcher,broadphase);
-	
+
 	m_debugDrawer = 0;
 	m_gravity = SimdVector3(0.f,-10.f,0.f);
-	
+
 
 }
 
 void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	RigidBody* body = ctrl->GetRigidBody();
-	
+
 	//this m_userPointer is just used for triggers, see CallbackTriggers
 	body->m_userPointer = ctrl;
 
 	body->setGravity( m_gravity );
 	m_controllers.push_back(ctrl);
-	
+
 	m_collisionWorld->AddCollisionObject(body);
 
 	assert(body->m_broadphaseHandle);
 
 	BroadphaseInterface* scene =  GetBroadphase();
 
-	
+
 	CollisionShape* shapeinterface = ctrl->GetCollisionShape();
-	
+
 	assert(shapeinterface);
-	
+
 	const SimdTransform& t = ctrl->GetRigidBody()->getCenterOfMassTransform();
-	
-	
+
+
 	SimdPoint3 minAabb,maxAabb;
-	
+
 	shapeinterface->GetAabb(t,minAabb,maxAabb);
-	
+
 	float timeStep = 0.02f;
-	
-	
+
+
 	//extent it with the motion
-	
+
 	SimdVector3 linMotion = body->getLinearVelocity()*timeStep;
-	
+
 	float maxAabbx = maxAabb.getX();
 	float maxAabby = maxAabb.getY();
 	float maxAabbz = maxAabb.getZ();
@@ -394,43 +412,26 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 		maxAabbz += linMotion.z(); 
 	else
 		minAabbz += linMotion.z();
-	
+
 
 	minAabb = SimdVector3(minAabbx,minAabby,minAabbz);
 	maxAabb = SimdVector3(maxAabbx,maxAabby,maxAabbz);
-	
-	
-	
-	
+
+
+
+
 }
 
 void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
 {
-	
+
 	//also remove constraint
-	
+
 	{
 		std::vector<TypedConstraint*>::iterator i;
-		
+
 		for (i=m_constraints.begin();
-		!(i==m_constraints.end()); i++)
-		{
-			TypedConstraint* constraint = (*i);
-			if  ((&constraint->GetRigidBodyA() == ctrl->GetRigidBody() ||
-				(&constraint->GetRigidBodyB() == ctrl->GetRigidBody())))
-			{
-				 removeConstraint(constraint->GetUserConstraintId());
-				//only 1 constraint per constroller
-				break;
-			}
-		}
-	}
-	
-	{
-		std::vector<TypedConstraint*>::iterator i;
-		
-		for (i=m_constraints.begin();
-		!(i==m_constraints.end()); i++)
+			!(i==m_constraints.end()); i++)
 		{
 			TypedConstraint* constraint = (*i);
 			if  ((&constraint->GetRigidBodyA() == ctrl->GetRigidBody() ||
@@ -442,11 +443,28 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			}
 		}
 	}
-	
-	
+
+	{
+		std::vector<TypedConstraint*>::iterator i;
+
+		for (i=m_constraints.begin();
+			!(i==m_constraints.end()); i++)
+		{
+			TypedConstraint* constraint = (*i);
+			if  ((&constraint->GetRigidBodyA() == ctrl->GetRigidBody() ||
+				(&constraint->GetRigidBodyB() == ctrl->GetRigidBody())))
+			{
+				removeConstraint(constraint->GetUserConstraintId());
+				//only 1 constraint per constroller
+				break;
+			}
+		}
+	}
+
+
 	m_collisionWorld->RemoveCollisionObject(ctrl->GetRigidBody());
 
-	
+
 	{
 		std::vector<CcdPhysicsController*>::iterator i =
 			std::find(m_controllers.begin(), m_controllers.end(), ctrl);
@@ -467,7 +485,7 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 			m_triggerControllers.pop_back();
 		}
 	}
-	
+
 
 }
 
@@ -481,7 +499,7 @@ void	CcdPhysicsEnvironment::beginFrame()
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	//toggle Profiler
 	if ( m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_ProfileTimings)
 	{
@@ -504,15 +522,15 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 			Profiler::destroy();
 		}
 	}
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
 
 
 	if (!SimdFuzzyZero(timeStep))
 	{
 
-// define this in blender, the stepsize is 30 hertz, 60 hertz works much better 
- #define SPLIT_TIMESTEP 1
+		// define this in blender, the stepsize is 30 hertz, 60 hertz works much better 
+#define SPLIT_TIMESTEP 1
 
 #ifdef SPLIT_TIMESTEP
 		proceedDeltaTimeOneStep(0.5f*timeStep);
@@ -527,13 +545,26 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 	return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 /// Perform an integration step of duration 'timeStep'.
 bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 {
-	
-	
-//	printf("CcdPhysicsEnvironment::proceedDeltaTime\n");
-	
+
+
+	//	printf("CcdPhysicsEnvironment::proceedDeltaTime\n");
+
 	if (SimdFuzzyZero(timeStep))
 		return true;
 
@@ -543,11 +574,11 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	}
 
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::beginBlock("SyncMotionStates");
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
-	
+
 	//this is needed because scaling is not known in advance, and scaling has to propagate to the shape
 	if (!m_scalingPropagated)
 	{
@@ -555,17 +586,17 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		m_scalingPropagated = true;
 	}
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::endBlock("SyncMotionStates");
 
 	Profiler::beginBlock("predictIntegratedTransform");
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
 	{
-//		std::vector<CcdPhysicsController*>::iterator i;
-		
-		
-		
+		//		std::vector<CcdPhysicsController*>::iterator i;
+
+
+
 		int k;
 		for (k=0;k<GetNumControllers();k++)
 		{
@@ -578,30 +609,30 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 				body->integrateVelocities( timeStep);
 				body->predictIntegratedTransform(timeStep,body->m_nextPredictedWorldTransform);
 			}
-			
+
 		}
 	}
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::endBlock("predictIntegratedTransform");
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
 	BroadphaseInterface*	scene = GetBroadphase();
-	
-	
+
+
 	//
 	// collision detection (?)
 	//
-	
-	
-#ifdef USE_PROFILE
-	Profiler::beginBlock("DispatchAllCollisionPairs");
-#endif //USE_PROFILE
 
-	
+
+#ifdef USE_QUICKPROF
+	Profiler::beginBlock("DispatchAllCollisionPairs");
+#endif //USE_QUICKPROF
+
+
 	int numsubstep = m_numIterations;
-	
-	
+
+
 	DispatcherInfo dispatchInfo;
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
@@ -610,23 +641,23 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	scene->DispatchAllCollisionPairs(*GetDispatcher(),dispatchInfo);///numsubstep,g);
 
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::endBlock("DispatchAllCollisionPairs");
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
-		
+
 	int numRigidBodies = m_controllers.size();
-	
+
 	m_collisionWorld->UpdateActivationState();
 
-	
+
 
 	//contacts
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::beginBlock("SolveConstraint");
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
-	
+
 	//solve the regular constraints (point 2 point, hinge, etc)
 
 	for (int g=0;g<numsubstep;g++)
@@ -634,49 +665,49 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		//
 		// constraint solving
 		//
-				
-		
+
+
 		int i;
 		int numConstraints = m_constraints.size();
-		
+
 		//point to point constraints
 		for (i=0;i< numConstraints ; i++ )
 		{
 			TypedConstraint* constraint = m_constraints[i];
-			
+
 			constraint->BuildJacobian();
 			constraint->SolveConstraint( timeStep );
-			
+
 		}
-		
-		
+
+
 	}
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::endBlock("SolveConstraint");
-#endif //USE_PROFILE
-	
+#endif //USE_QUICKPROF
+
 	//solve the vehicles
 
-	#ifdef NEW_BULLET_VEHICLE_SUPPORT
-		//vehicles
-		int numVehicles = m_wrapperVehicles.size();
-		for (int i=0;i<numVehicles;i++)
-		{
-			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
-			RaycastVehicle* vehicle = wrapperVehicle->GetVehicle();
-			vehicle->UpdateVehicle( timeStep);
-		}
+#ifdef NEW_BULLET_VEHICLE_SUPPORT
+	//vehicles
+	int numVehicles = m_wrapperVehicles.size();
+	for (int i=0;i<numVehicles;i++)
+	{
+		WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
+		RaycastVehicle* vehicle = wrapperVehicle->GetVehicle();
+		vehicle->UpdateVehicle( timeStep);
+	}
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
-	
-		struct InplaceSolverIslandCallback : public CollisionDispatcher::IslandCallback
+
+	struct InplaceSolverIslandCallback : public CollisionDispatcher::IslandCallback
 	{
 
 		ContactSolverInfo& m_solverInfo;
 		ConstraintSolver*	m_solver;
 		IDebugDraw*	m_debugDrawer;
-		
+
 		InplaceSolverIslandCallback(
 			ContactSolverInfo& solverInfo,
 			ConstraintSolver*	solver,
@@ -685,14 +716,14 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			m_solver(solver),
 			m_debugDrawer(debugDrawer)
 		{
-			
+
 		}
-		
+
 		virtual	void	ProcessIsland(PersistentManifold**	manifolds,int numManifolds)
 		{
 			m_solver->SolveGroup( manifolds, numManifolds,m_solverInfo,m_debugDrawer);
 		}
-		
+
 	};
 
 
@@ -702,141 +733,75 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	m_solverInfo.m_restitution = 0.f;//m_restitution;
 
 	InplaceSolverIslandCallback	solverCallback(
-			m_solverInfo,
-			m_solver,
-			m_debugDrawer);
+		m_solverInfo,
+		m_solver,
+		m_debugDrawer);
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::beginBlock("BuildAndProcessIslands");
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
 	/// solve all the contact points and contact friction
 	GetDispatcher()->BuildAndProcessIslands(numRigidBodies,&solverCallback);
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::endBlock("BuildAndProcessIslands");
 
 	Profiler::beginBlock("CallbackTriggers");
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 
 	CallbackTriggers();
 
-#ifdef USE_PROFILE
+#ifdef USE_QUICKPROF
 	Profiler::endBlock("CallbackTriggers");
 
 
 	Profiler::beginBlock("proceedToTransform");
 
-#endif //USE_PROFILE
+#endif //USE_QUICKPROF
 	{
-		
-		
-		
+
+
+
 		{
+
 			
-			std::vector<CcdPhysicsController*>::iterator i;
 			
-			//
-			// update aabbs, only for moving objects (!)
-			//
-			for (i=m_controllers.begin();
-			!(i==m_controllers.end()); i++)
-			{
-				CcdPhysicsController* ctrl = (*i);
-				RigidBody* body = ctrl->GetRigidBody();
-				
-				
-				SimdPoint3 minAabb,maxAabb;
-				CollisionShape* shapeinterface = ctrl->GetCollisionShape();
+			UpdateAabbs(timeStep);
 
 
-
-				shapeinterface->CalculateTemporalAabb(body->getCenterOfMassTransform(),
-					body->getLinearVelocity(),body->getAngularVelocity(),
-					timeStep,minAabb,maxAabb);
-
-				shapeinterface->GetAabb(body->getCenterOfMassTransform(),
-					minAabb,maxAabb);
-
-				SimdVector3 manifoldExtraExtents(gContactBreakingTreshold,gContactBreakingTreshold,gContactBreakingTreshold);
-				minAabb -= manifoldExtraExtents;
-				maxAabb += manifoldExtraExtents;
-				
-				BroadphaseProxy* bp = body->m_broadphaseHandle;
-				if (bp)
-				{
-					
-#ifdef WIN32
-					SimdVector3 color (1,1,0);
-					
-					if (m_debugDrawer)
-					{	
-						//draw aabb
-						switch (body->GetActivationState())
-						{
-						case ISLAND_SLEEPING:
-							{
-								color.setValue(1,1,1);
-								break;
-							}
-						case WANTS_DEACTIVATION:
-							{
-								color.setValue(0,0,1);
-								break;
-							}
-						case ACTIVE_TAG:
-							{
-								break;
-							}
-						case DISABLE_DEACTIVATION:
-							{
-								color.setValue(1,0,1);
-							};
-							
-						};
-
-						if (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawAabb)
-						{
-							DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
-						}
-					}
-#endif
-
-					scene->SetAabb(bp,minAabb,maxAabb);
-
-
-					
-				}
-			}
-			
 			float toi = 1.f;
 
 
-			
+
 			if (m_ccdMode == 3)
 			{
 				DispatcherInfo dispatchInfo;
 				dispatchInfo.m_timeStep = timeStep;
 				dispatchInfo.m_stepCount = 0;
 				dispatchInfo.m_dispatchFunc = DispatcherInfo::DISPATCH_CONTINUOUS;
-				
+
 				scene->DispatchAllCollisionPairs( *GetDispatcher(),dispatchInfo);///numsubstep,g);
 				toi = dispatchInfo.m_timeOfImpact;
+
 			}
+
 			
+
 			//
 			// integrating solution
 			//
-			
+
 			{
-				std::vector<CcdPhysicsController*>::iterator i;
 				
+				std::vector<CcdPhysicsController*>::iterator i;
+
 				for (i=m_controllers.begin();
-				!(i==m_controllers.end()); i++)
+					!(i==m_controllers.end()); i++)
 				{
-					
+
 					CcdPhysicsController* ctrl = *i;
-					
+
 					SimdTransform predictedTrans;
 					RigidBody* body = ctrl->GetRigidBody();
 					if (body->GetActivationState() != ISLAND_SLEEPING)
@@ -844,31 +809,33 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 
 						body->predictIntegratedTransform(timeStep*	toi, predictedTrans);
 						body->proceedToTransform( predictedTrans);
-			
+
 					}
 				}
-				
+
 			}
-			
-			
-			
-			
-			
+
+
+
+
+
 			//
 			// disable sleeping physics objects
 			//
-			
+
 			std::vector<CcdPhysicsController*> m_sleepingControllers;
-			
+
+			std::vector<CcdPhysicsController*>::iterator i;
+
 			for (i=m_controllers.begin();
-			!(i==m_controllers.end()); i++)
+				!(i==m_controllers.end()); i++)
 			{
 				CcdPhysicsController* ctrl = (*i);
 				RigidBody* body = ctrl->GetRigidBody();
 
 				ctrl->UpdateDeactivation(timeStep);
 
-				
+
 				if (ctrl->wantsSleeping())
 				{
 					if (body->GetActivationState() == ACTIVE_TAG)
@@ -893,35 +860,35 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 					}
 				}
 			}
-			
-	
-			
-			
-	}
-	
 
-#ifdef USE_PROFILE
-	Profiler::endBlock("proceedToTransform");
 
-	Profiler::beginBlock("SyncMotionStates");
-#endif //USE_PROFILE
 
-	SyncMotionStates(timeStep);
 
-#ifdef USE_PROFILE
-	Profiler::endBlock("SyncMotionStates");
+		}
 
-	Profiler::endProfilingCycle();
-#endif //USE_PROFILE
 
-	
+#ifdef USE_QUICKPROF
+		Profiler::endBlock("proceedToTransform");
+
+		Profiler::beginBlock("SyncMotionStates");
+#endif //USE_QUICKPROF
+
+		SyncMotionStates(timeStep);
+
+#ifdef USE_QUICKPROF
+		Profiler::endBlock("SyncMotionStates");
+
+		Profiler::endProfilingCycle();
+#endif //USE_QUICKPROF
+
+
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 		//sync wheels for vehicles
 		int numVehicles = m_wrapperVehicles.size();
 		for (int i=0;i<numVehicles;i++)
 		{
 			WrapperVehicle* wrapperVehicle = m_wrapperVehicles[i];
-		
+
 			wrapperVehicle->SyncWheels();
 		}
 #endif //NEW_BULLET_VEHICLE_SUPPORT
@@ -955,7 +922,7 @@ void		CcdPhysicsEnvironment::setDeactivationAngularTreshold(float angTresh)
 void		CcdPhysicsEnvironment::setContactBreakingTreshold(float contactBreakingTreshold)
 {
 	gContactBreakingTreshold = contactBreakingTreshold;
-	
+
 }
 
 
@@ -999,24 +966,24 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 		{
 			if (m_solverType != solverType)
 			{
-				
+
 				m_solver = new SimpleConstraintSolver();
-				
+
 				break;
 			}
 		}
-	
+
 	case 0:
 	default:
-			if (m_solverType != solverType)
-			{
-				m_solver = new OdeConstraintSolver();
-		
-				break;
-			}
+		if (m_solverType != solverType)
+		{
+			m_solver = new OdeConstraintSolver();
+
+			break;
+		}
 
 	};
-	
+
 	m_solverType = solverType ;
 }
 
@@ -1033,11 +1000,11 @@ void	CcdPhysicsEnvironment::SyncMotionStates(float timeStep)
 	//
 
 	for (i=m_controllers.begin();
-	!(i==m_controllers.end()); i++)
+		!(i==m_controllers.end()); i++)
 	{
 		CcdPhysicsController* ctrl = (*i);
 		ctrl->SynchronizeMotionStates(timeStep);
-		
+
 	}
 
 }
@@ -1049,7 +1016,7 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 
 	//todo: review this gravity stuff
 	for (i=m_controllers.begin();
-	!(i==m_controllers.end()); i++)
+		!(i==m_controllers.end()); i++)
 	{
 
 		CcdPhysicsController* ctrl = (*i);
@@ -1068,83 +1035,83 @@ class DefaultVehicleRaycaster : public VehicleRaycaster
 
 public:
 	DefaultVehicleRaycaster(CcdPhysicsEnvironment* physEnv,PHY_IPhysicsController* chassis):
-	m_physEnv(physEnv),
-		m_chassis(chassis)
-	{
-	}
+	  m_physEnv(physEnv),
+		  m_chassis(chassis)
+	  {
+	  }
 
-	/*	struct VehicleRaycasterResult
-	{
-		VehicleRaycasterResult() :m_distFraction(-1.f){};
-		SimdVector3	m_hitPointInWorld;
-		SimdVector3	m_hitNormalInWorld;
-		SimdScalar	m_distFraction;
-	};
-*/
-	virtual void* CastRay(const SimdVector3& from,const SimdVector3& to, VehicleRaycasterResult& result)
-	{
-		
-		
-		float hit[3];
-		float normal[3];
+	  /*	struct VehicleRaycasterResult
+	  {
+	  VehicleRaycasterResult() :m_distFraction(-1.f){};
+	  SimdVector3	m_hitPointInWorld;
+	  SimdVector3	m_hitNormalInWorld;
+	  SimdScalar	m_distFraction;
+	  };
+	  */
+	  virtual void* CastRay(const SimdVector3& from,const SimdVector3& to, VehicleRaycasterResult& result)
+	  {
 
-		PHY_IPhysicsController*	ignore = m_chassis;
-		void* hitObject = m_physEnv->rayTest(ignore,from.x(),from.y(),from.z(),to.x(),to.y(),to.z(),hit[0],hit[1],hit[2],normal[0],normal[1],normal[2]);
-		if (hitObject)
-		{
-			result.m_hitPointInWorld[0] = hit[0];
-			result.m_hitPointInWorld[1] = hit[1];
-			result.m_hitPointInWorld[2] = hit[2];
-			result.m_hitNormalInWorld[0] = normal[0];
-			result.m_hitNormalInWorld[1] = normal[1];
-			result.m_hitNormalInWorld[2] = normal[2];
-			result.m_hitNormalInWorld.normalize();
-			//calc fraction? or put it in the interface?
-			//calc for now
-			
-			result.m_distFraction = (result.m_hitPointInWorld-from).length() / (to-from).length();
-			//some safety for 'explosion' due to sudden penetration of the full 'ray'
-/*			if (result.m_distFraction<0.1)
-			{
-				printf("Vehicle Raycast: avoided instability due to penetration. Consider moving the connection points deeper inside vehicle chassis");
-				result.m_distFraction = 1.f;
-				hitObject = 0;
-			}
-			*/
 
-/*			if (result.m_distFraction>1.)
-			{
-				printf("Vehicle Raycast: avoided instability 1Consider moving the connection points deeper inside vehicle chassis");				
-				result.m_distFraction = 1.f;
-				hitObject = 0;
-			}
-			*/
+		  float hit[3];
+		  float normal[3];
 
-				
-			
-		}
-		//?
-		return hitObject;
-	}
+		  PHY_IPhysicsController*	ignore = m_chassis;
+		  void* hitObject = m_physEnv->rayTest(ignore,from.x(),from.y(),from.z(),to.x(),to.y(),to.z(),hit[0],hit[1],hit[2],normal[0],normal[1],normal[2]);
+		  if (hitObject)
+		  {
+			  result.m_hitPointInWorld[0] = hit[0];
+			  result.m_hitPointInWorld[1] = hit[1];
+			  result.m_hitPointInWorld[2] = hit[2];
+			  result.m_hitNormalInWorld[0] = normal[0];
+			  result.m_hitNormalInWorld[1] = normal[1];
+			  result.m_hitNormalInWorld[2] = normal[2];
+			  result.m_hitNormalInWorld.normalize();
+			  //calc fraction? or put it in the interface?
+			  //calc for now
+
+			  result.m_distFraction = (result.m_hitPointInWorld-from).length() / (to-from).length();
+			  //some safety for 'explosion' due to sudden penetration of the full 'ray'
+			  /*			if (result.m_distFraction<0.1)
+			  {
+			  printf("Vehicle Raycast: avoided instability due to penetration. Consider moving the connection points deeper inside vehicle chassis");
+			  result.m_distFraction = 1.f;
+			  hitObject = 0;
+			  }
+			  */
+
+			  /*			if (result.m_distFraction>1.)
+			  {
+			  printf("Vehicle Raycast: avoided instability 1Consider moving the connection points deeper inside vehicle chassis");				
+			  result.m_distFraction = 1.f;
+			  hitObject = 0;
+			  }
+			  */
+
+
+
+		  }
+		  //?
+		  return hitObject;
+	  }
 };
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
 static int gConstraintUid = 1;
 
 int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
-														float pivotX,float pivotY,float pivotZ,
-														float axisX,float axisY,float axisZ)
+													float pivotX,float pivotY,float pivotZ,
+													float axisX,float axisY,float axisZ)
 {
-	
-	
+
+
 	CcdPhysicsController* c0 = (CcdPhysicsController*)ctrl0;
 	CcdPhysicsController* c1 = (CcdPhysicsController*)ctrl1;
-	
+
 	RigidBody* rb0 = c0 ? c0->GetRigidBody() : 0;
 	RigidBody* rb1 = c1 ? c1->GetRigidBody() : 0;
-	
+
 	ASSERT(rb0);
-	
+
 	SimdVector3 pivotInA(pivotX,pivotY,pivotZ);
 	SimdVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
 	SimdVector3 axisInA(axisX,axisY,axisZ);
@@ -1152,15 +1119,15 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * -axisInA)) : 
 	rb0->getCenterOfMassTransform().getBasis() * -axisInA;
 
-	bool hingeAngularOnly = false;
+	bool angularOnly = false;
 
 	switch (type)
 	{
 	case PHY_POINT2POINT_CONSTRAINT:
 		{
-			
+
 			Point2PointConstraint* p2p = 0;
-			
+
 			if (rb1)
 			{
 				p2p = new Point2PointConstraint(*rb0,
@@ -1170,22 +1137,23 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				p2p = new Point2PointConstraint(*rb0,
 					pivotInA);
 			}
-			
+
 			m_constraints.push_back(p2p);
 			p2p->SetUserConstraintId(gConstraintUid++);
 			p2p->SetUserConstraintType(type);
 			//64 bit systems can't cast pointer to int. could use size_t instead.
 			return p2p->GetUserConstraintId();
-			
+
 			break;
 		}
 
 	case PHY_ANGULAR_CONSTRAINT:
-			hingeAngularOnly = true;
+		angularOnly = true;
+
 	case PHY_LINEHINGE_CONSTRAINT:
 		{
 			HingeConstraint* hinge = 0;
-			
+
 			if (rb1)
 			{
 				hinge = new HingeConstraint(
@@ -1199,7 +1167,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA,axisInA);
 
 			}
-			hinge->setAngularOnly( hingeAngularOnly );
+			hinge->setAngularOnly(angularOnly);
+
 			m_constraints.push_back(hinge);
 			hinge->SetUserConstraintId(gConstraintUid++);
 			hinge->SetUserConstraintType(type);
@@ -1229,152 +1198,86 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		{
 		}
 	};
-	
+
 	//RigidBody& rbA,RigidBody& rbB, const SimdVector3& pivotInA,const SimdVector3& pivotInB
-	
+
 	return 0;
-	
+
 }
 
 void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 {
 	std::vector<TypedConstraint*>::iterator i;
-	
-		for (i=m_constraints.begin();
+
+	for (i=m_constraints.begin();
 		!(i==m_constraints.end()); i++)
+	{
+		TypedConstraint* constraint = (*i);
+		if (constraint->GetUserConstraintId() == constraintId)
 		{
-			TypedConstraint* constraint = (*i);
-			if (constraint->GetUserConstraintId() == constraintId)
-			{
-				std::swap(*i, m_constraints.back());
-				m_constraints.pop_back();
-				break;
-			}
+			std::swap(*i, m_constraints.back());
+			m_constraints.pop_back();
+			break;
 		}
-	
+	}
+
 }
 PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-								float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+													   float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
+
 
 	float minFraction = 1.f;
 
-	SimdTransform	rayFromTrans,rayToTrans;
-	rayFromTrans.setIdentity();
-
 	SimdVector3 rayFrom(fromX,fromY,fromZ);
-
-	rayFromTrans.setOrigin(rayFrom);
-	rayToTrans.setIdentity();
 	SimdVector3 rayTo(toX,toY,toZ);
-	rayToTrans.setOrigin(rayTo);
 
-	//do culling based on aabb (rayFrom/rayTo)
-	SimdVector3 rayAabbMin = rayFrom;
-	SimdVector3 rayAabbMax = rayFrom;
-	rayAabbMin.setMin(rayTo);
-	rayAabbMax.setMax(rayTo);
+	SimdVector3	hitPointWorld,normalWorld;
 
-	
-	CcdPhysicsController* nearestHit = 0;
-	
-	std::vector<CcdPhysicsController*>::iterator i;
-	SphereShape pointShape(0.0f);
+	CollisionWorld::ClosestRayResultCallback rayCallback(rayFrom,rayTo);
 
-	/// brute force go over all objects. Once there is a broadphase, use that, or
-	/// add a raycast against aabb first.
-	for (i=m_controllers.begin();
-	!(i==m_controllers.end()); i++)
+
+	struct	FilterClosestRayResultCallback : CollisionWorld::ClosestRayResultCallback
 	{
-		CcdPhysicsController* ctrl = (*i);
-		if (ctrl == ignoreClient)
-			continue;
-		RigidBody* body = ctrl->GetRigidBody();
-		SimdVector3 bodyAabbMin,bodyAabbMax;
-		body->getAabb(bodyAabbMin,bodyAabbMax);
+		PHY_IPhysicsController*	m_ignoreClient;
 
-		//check aabb overlap
-
-		if (TestAabbAgainstAabb2(rayAabbMin,rayAabbMax,bodyAabbMin,bodyAabbMax))
+		FilterClosestRayResultCallback (PHY_IPhysicsController* ignoreClient,const SimdVector3& rayFrom,const SimdVector3& rayTo)
+			: CollisionWorld::ClosestRayResultCallback(rayFrom,rayTo),
+			m_ignoreClient(ignoreClient)
 		{
-			if (body->GetCollisionShape()->IsConvex())
-			{
-				ConvexCast::CastResult rayResult;
-				rayResult.m_fraction = 1.f;
 
-				ConvexShape* convexShape = (ConvexShape*) body->GetCollisionShape();
-				VoronoiSimplexSolver	simplexSolver;
-				SubsimplexConvexCast convexCaster(&pointShape,convexShape,&simplexSolver);
-				//GjkConvexCast	convexCaster(&pointShape,convexShape,&simplexSolver);
-				//ContinuousConvexCollision convexCaster(&pointShape,convexShape,&simplexSolver,0);
-				
-				if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,body->getCenterOfMassTransform(),body->getCenterOfMassTransform(),rayResult))
-				{
-					//add hit
-					if (rayResult.m_normal.length2() > 0.0001f)
-					{
-						rayResult.m_normal.normalize();
-						if (rayResult.m_fraction < minFraction)
-						{
+		}
 
-
-							minFraction = rayResult.m_fraction;
-							nearestHit = ctrl;
-							normalX = rayResult.m_normal.getX();
-							normalY = rayResult.m_normal.getY();
-							normalZ = rayResult.m_normal.getZ();
-							SimdVector3 hitWorld;
-							hitWorld.setInterpolate3(rayFromTrans.getOrigin(),rayToTrans.getOrigin(),rayResult.m_fraction);
-							hitX = hitWorld.getX();
-							hitY = hitWorld.getY();
-							hitZ = hitWorld.getZ();
-
-						}
-					}
-				}
-			}
-			else
-			{
-					if (body->GetCollisionShape()->IsConcave())
-					{
-
-						TriangleMeshShape* triangleMesh = (TriangleMeshShape*)body->GetCollisionShape();
-						
-						SimdTransform worldToBody = body->getCenterOfMassTransform().inverse();
-
-						SimdVector3 rayFromLocal = worldToBody * rayFromTrans.getOrigin();
-						SimdVector3 rayToLocal = worldToBody * rayToTrans.getOrigin();
-
-						RaycastCallback	rcb(rayFromLocal,rayToLocal);
-						rcb.m_hitFraction = minFraction;
-
-						SimdVector3 rayAabbMinLocal = rayFromLocal;
-						rayAabbMinLocal.setMin(rayToLocal);
-						SimdVector3 rayAabbMaxLocal = rayFromLocal;
-						rayAabbMaxLocal.setMax(rayToLocal);
-
-						triangleMesh->ProcessAllTriangles(&rcb,rayAabbMinLocal,rayAabbMaxLocal);
-						if (rcb.m_hitFound)
-						{
-							nearestHit = ctrl;
-							minFraction = rcb.m_hitFraction;
-							SimdVector3 hitNormalWorld = body->getCenterOfMassTransform().getBasis()*rcb.m_hitNormalLocal;
-							hitNormalWorld.normalize();
-
-							normalX = hitNormalWorld.getX();
-							normalY = hitNormalWorld.getY();
-							normalZ = hitNormalWorld.getZ();
-							SimdVector3 hitWorld;
-							hitWorld.setInterpolate3(rayFromTrans.getOrigin(),rayToTrans.getOrigin(),rcb.m_hitFraction);
-							hitX = hitWorld.getX();
-							hitY = hitWorld.getY();
-							hitZ = hitWorld.getZ();
-							
-						}
-					}
+		virtual	float	AddSingleResult(const CollisionWorld::LocalRayResult& rayResult)
+		{
+			CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->m_userPointer);
+			//ignore client...
+			if (curHit != m_ignoreClient)
+			{		
+				//if valid
+				return CollisionWorld::ClosestRayResultCallback::AddSingleResult(rayResult);
 			}
 		}
-	}
+
+	};
+
+
+	PHY_IPhysicsController* nearestHit = 0;
+
+	m_collisionWorld->RayTest(rayFrom,rayTo,rayCallback);
+	if (rayCallback.HasHit())
+	{
+		nearestHit = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->m_userPointer);
+		hitX = 	rayCallback.m_hitPointWorld.getX();
+		hitY = 	rayCallback.m_hitPointWorld.getY();
+		hitZ = 	rayCallback.m_hitPointWorld.getZ();
+
+		normalX = rayCallback.m_hitNormalWorld.getX();
+		normalY = rayCallback.m_hitNormalWorld.getY();
+		normalZ = rayCallback.m_hitNormalWorld.getZ();
+
+	}	
+
 
 	return nearestHit;
 }
@@ -1388,7 +1291,7 @@ int	CcdPhysicsEnvironment::getNumContactPoints()
 
 void CcdPhysicsEnvironment::getContactPoint(int i,float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
-	
+
 }
 
 
@@ -1413,18 +1316,18 @@ CollisionDispatcher* CcdPhysicsEnvironment::GetDispatcher()
 
 CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 {
-	
+
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 	m_wrapperVehicles.clear();
 #endif //NEW_BULLET_VEHICLE_SUPPORT
-	
+
 	//m_broadphase->DestroyScene();
 	//delete broadphase ? release reference on broadphase ?
-	
+
 	//first delete scene, then dispatcher, because pairs have to release manifolds on the dispatcher
 	//delete m_dispatcher;
 	delete m_collisionWorld;
-	
+
 }
 
 
@@ -1476,31 +1379,31 @@ void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
 }
 void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
 {
-/*	printf("addTouchCallback\n(response class = %i)\n",response_class);
+	/*	printf("addTouchCallback\n(response class = %i)\n",response_class);
 
 	//map PHY_ convention into SM_ convention
 	switch (response_class)
 	{
 	case	PHY_FH_RESPONSE:
-		printf("PHY_FH_RESPONSE\n");
-		break;
+	printf("PHY_FH_RESPONSE\n");
+	break;
 	case PHY_SENSOR_RESPONSE:
-		printf("PHY_SENSOR_RESPONSE\n");
-		break;
+	printf("PHY_SENSOR_RESPONSE\n");
+	break;
 	case PHY_CAMERA_RESPONSE:
-		printf("PHY_CAMERA_RESPONSE\n");
-		break;
+	printf("PHY_CAMERA_RESPONSE\n");
+	break;
 	case PHY_OBJECT_RESPONSE:
-		printf("PHY_OBJECT_RESPONSE\n");
-		break;
+	printf("PHY_OBJECT_RESPONSE\n");
+	break;
 	case PHY_STATIC_RESPONSE:
-		printf("PHY_STATIC_RESPONSE\n");
-		break;
+	printf("PHY_STATIC_RESPONSE\n");
+	break;
 	default:
-		assert(0);
-		return;
+	assert(0);
+	return;
 	}
-*/
+	*/
 
 	m_triggerCallbacks[response_class] = callback;
 	m_triggerCallbacksUserPtrs[response_class] = user;
@@ -1531,13 +1434,13 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 			{
 				RigidBody* obj0 = static_cast<RigidBody* >(manifold->GetBody0());
 				RigidBody* obj1 = static_cast<RigidBody* >(manifold->GetBody1());
-				
+
 				//m_userPointer is set in 'addPhysicsController
 				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->m_userPointer);
 				CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(obj1->m_userPointer);
 
 				std::vector<CcdPhysicsController*>::iterator i =
-				std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl0);
+					std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl0);
 				if (i == m_triggerControllers.end())
 				{
 					i = std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl1);
@@ -1551,7 +1454,7 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 			}
 		}
 
-		
+
 
 	}
 
@@ -1582,3 +1485,81 @@ PHY_IVehicle*	CcdPhysicsEnvironment::getVehicleConstraint(int constraintId)
 
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
+
+
+void	CcdPhysicsEnvironment::UpdateAabbs(float	timeStep)
+{
+	std::vector<CcdPhysicsController*>::iterator i;
+	BroadphaseInterface* scene =  GetBroadphase();
+
+	//
+			// update aabbs, only for moving objects (!)
+			//
+			for (i=m_controllers.begin();
+				!(i==m_controllers.end()); i++)
+			{
+				CcdPhysicsController* ctrl = (*i);
+				RigidBody* body = ctrl->GetRigidBody();
+
+
+				SimdPoint3 minAabb,maxAabb;
+				CollisionShape* shapeinterface = ctrl->GetCollisionShape();
+
+
+
+				shapeinterface->CalculateTemporalAabb(body->getCenterOfMassTransform(),
+					body->getLinearVelocity(),body->getAngularVelocity(),
+					timeStep,minAabb,maxAabb);
+
+
+				SimdVector3 manifoldExtraExtents(gContactBreakingTreshold,gContactBreakingTreshold,gContactBreakingTreshold);
+				minAabb -= manifoldExtraExtents;
+				maxAabb += manifoldExtraExtents;
+
+				BroadphaseProxy* bp = body->m_broadphaseHandle;
+				if (bp)
+				{
+
+#ifdef WIN32
+					SimdVector3 color (1,1,0);
+
+					if (m_debugDrawer)
+					{	
+						//draw aabb
+						switch (body->GetActivationState())
+						{
+						case ISLAND_SLEEPING:
+							{
+								color.setValue(1,1,1);
+								break;
+							}
+						case WANTS_DEACTIVATION:
+							{
+								color.setValue(0,0,1);
+								break;
+							}
+						case ACTIVE_TAG:
+							{
+								break;
+							}
+						case DISABLE_DEACTIVATION:
+							{
+								color.setValue(1,0,1);
+							};
+
+						};
+
+						if (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawAabb)
+						{
+							DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
+						}
+					}
+#endif
+
+					scene->SetAabb(bp,minAabb,maxAabb);
+
+
+
+				}
+			}
+}

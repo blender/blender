@@ -48,6 +48,7 @@ class	IDebugDraw
 		DBG_ProfileTimings = 128,
 		DBG_EnableSatComparison = 256,
 		DBG_DisableBulletLCP = 512,
+		DBG_EnableCCD = 1024,
 		DBG_MAX_DEBUG_DRAW_MODE
 	};
 

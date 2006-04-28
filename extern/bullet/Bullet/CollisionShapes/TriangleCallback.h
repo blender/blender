@@ -24,7 +24,7 @@ class TriangleCallback
 public:
 
 	virtual ~TriangleCallback();
-	virtual void ProcessTriangle(SimdVector3* triangle) = 0;
+	virtual void ProcessTriangle(SimdVector3* triangle, int partId, int triangleIndex) = 0;
 };
 
 class InternalTriangleIndexCallback

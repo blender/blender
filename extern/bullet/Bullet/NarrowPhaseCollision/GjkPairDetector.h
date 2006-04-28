@@ -38,6 +38,7 @@ class GjkPairDetector : public DiscreteCollisionDetectorInterface
 	SimplexSolverInterface* m_simplexSolver;
 	ConvexShape* m_minkowskiA;
 	ConvexShape* m_minkowskiB;
+	bool		m_ignoreMargin;
 
 public:
 
@@ -64,6 +65,12 @@ public:
 	{
 		m_penetrationDepthSolver = penetrationDepthSolver;
 	}
+
+	void	SetIgnoreMargin(bool ignoreMargin)
+	{
+		m_ignoreMargin = ignoreMargin;
+	}
+
 };
 
 #endif //GJK_PAIR_DETECTOR_H

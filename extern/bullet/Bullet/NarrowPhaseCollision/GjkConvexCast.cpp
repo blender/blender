@@ -103,11 +103,17 @@ bool	GjkConvexCast::calcTimeOfImpact(
 		n = pointCollector1.m_normalOnBInWorld;
 	}
 
+	
+
 	if (hasResult)
 	{
 		SimdScalar dist;
 		dist = (c-x).length();
-		
+		if (dist < radius)
+		{
+			//penetration
+			lastLambda = 1.f;
+		}
 
 		//not close enough
 		while (dist > radius)
@@ -153,9 +159,13 @@ bool	GjkConvexCast::calcTimeOfImpact(
 
 		}
 
-		result.m_fraction = lambda;
-		result.m_normal = n;
-		return true;
+		if (lastLambda < 1.f)
+		{
+		
+			result.m_fraction = lastLambda;
+			result.m_normal = n;
+			return true;
+		}
 	}
 
 	return false;

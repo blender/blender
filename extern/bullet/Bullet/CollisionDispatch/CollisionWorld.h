@@ -16,9 +16,13 @@ subject to the following restrictions:
 #ifndef COLLISION_WORLD_H
 #define COLLISION_WORLD_H
 
-struct CollisionObject;
+
+class CollisionShape;
 class CollisionDispatcher;
 class BroadphaseInterface;
+#include "SimdVector3.h"
+#include "SimdTransform.h"
+#include "CollisionObject.h"
 
 #include <vector>
 
@@ -26,13 +30,15 @@ class BroadphaseInterface;
 class CollisionWorld
 {
 
+	
+
 	std::vector<CollisionObject*>	m_collisionObjects;
 	
 	CollisionDispatcher*	m_dispatcher;
 
 	BroadphaseInterface*	m_broadphase;
 
-	public:
+public:
 
 	CollisionWorld(CollisionDispatcher* dispatcher,BroadphaseInterface* broadphase)
 		:m_dispatcher(dispatcher),
@@ -54,10 +60,92 @@ class CollisionWorld
 		return m_dispatcher;
 	}
 
+	///LocalShapeInfo gives extra information for complex shapes
+	///Currently, only TriangleMeshShape is available, so it just contains triangleIndex and subpart
+	struct	LocalShapeInfo
+	{
+		int	m_shapePart;
+		int	m_triangleIndex;
+		
+		//const CollisionShape*	m_shapeTemp;
+		//const SimdTransform*	m_shapeLocalTransform;
+	};
+
+	struct	LocalRayResult
+	{
+		LocalRayResult(const CollisionObject*	collisionObject, 
+			LocalShapeInfo*	localShapeInfo,
+			const SimdVector3&		hitNormalLocal,
+			float hitFraction)
+		:m_collisionObject(collisionObject),
+		m_localShapeInfo(m_localShapeInfo),
+		m_hitNormalLocal(hitNormalLocal),
+		m_hitFraction(hitFraction)
+		{
+		}
+
+		const CollisionObject*	m_collisionObject;
+		LocalShapeInfo*			m_localShapeInfo;
+		const SimdVector3&		m_hitNormalLocal;
+		float					m_hitFraction;
+
+	};
+
+	///RayResultCallback is used to report new raycast results
+	struct	RayResultCallback
+	{
+		float	m_closestHitFraction;
+		bool	HasHit()
+		{
+			return (m_closestHitFraction < 1.f);
+		}
+
+		RayResultCallback()
+			:m_closestHitFraction(1.f)
+		{
+		}
+		virtual	float	AddSingleResult(const LocalRayResult& rayResult) = 0;
+	};
+
+	struct	ClosestRayResultCallback : public RayResultCallback
+	{
+		ClosestRayResultCallback(SimdVector3	rayFromWorld,SimdVector3	rayToWorld)
+		:m_rayFromWorld(rayFromWorld),
+		m_rayToWorld(rayToWorld),
+		m_collisionObject(0)
+		{
+		}
+
+		SimdVector3	m_rayFromWorld;//used to calculate hitPointWorld from hitFraction
+		SimdVector3	m_rayToWorld;
+
+		SimdVector3	m_hitNormalWorld;
+		SimdVector3	m_hitPointWorld;
+		const CollisionObject*	m_collisionObject;
+		
+		virtual	float	AddSingleResult(const LocalRayResult& rayResult)
+		{
+			//caller already does the filter on the m_closestHitFraction
+			assert(rayResult.m_hitFraction < m_closestHitFraction);
+
+			m_closestHitFraction = rayResult.m_hitFraction;
+			m_collisionObject = rayResult.m_collisionObject;
+			m_hitNormalWorld = m_collisionObject->m_worldTransform.getBasis()*rayResult.m_hitNormalLocal;
+			m_hitPointWorld.setInterpolate3(m_rayFromWorld,m_rayToWorld,rayResult.m_hitFraction);
+			return rayResult.m_hitFraction;
+		}
+	};
+
+
+	
+
 	int	GetNumCollisionObjects() const
 	{
 		return m_collisionObjects.size();
 	}
+
+	void	RayTest(const SimdVector3& rayFromWorld, const SimdVector3& rayToWorld, RayResultCallback& resultCallback);
+
 
 	void	AddCollisionObject(CollisionObject* collisionObject);
 

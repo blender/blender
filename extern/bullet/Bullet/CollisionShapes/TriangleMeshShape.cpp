@@ -92,7 +92,7 @@ public:
 		m_supportVecLocal = supportVecWorld * m_worldTrans.getBasis();
 	}
 
-	virtual void ProcessTriangle( SimdVector3* triangle)
+	virtual void ProcessTriangle( SimdVector3* triangle,int partId, int triangleIndex)
 	{
 		for (int i=0;i<3;i++)
 		{
@@ -158,7 +158,7 @@ void	TriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const Sim
 			if (TestTriangleAgainstAabb2(&triangle[0],m_aabbMin,m_aabbMax))
 			{
 				//check aabb in triangle-space, before doing this
-				m_callback->ProcessTriangle(triangle);
+				m_callback->ProcessTriangle(triangle,partId,triangleIndex);
 			}
 			
 		}

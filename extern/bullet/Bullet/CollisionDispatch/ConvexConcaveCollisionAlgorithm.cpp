@@ -68,7 +68,7 @@ void	BoxTriangleCallback::ClearCache()
 
 
 
-void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
+void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle,int partId, int triangleIndex)
 {
  
 	//just for debugging purposes
@@ -178,17 +178,30 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,BroadphaseProxy* ,const DispatcherInfo& dispatchInfo)
 {
 
-	//quick approximation using raycast, todo: use proper continuou collision detection
+	//quick approximation using raycast, todo: hook up to the continuous collision detection (one of the ConvexCast)
 	CollisionObject* convexbody = (CollisionObject* )m_convex.m_clientObject;
 	CollisionObject* triBody = static_cast<CollisionObject* >(m_concave.m_clientObject);
 
 	const SimdVector3& from = convexbody->m_worldTransform.getOrigin();
 	
 	SimdVector3 to = convexbody->m_nextPredictedWorldTransform.getOrigin();
-	//only do if the motion exceeds the 'radius'
+	//todo: only do if the motion exceeds the 'radius'
+
+	struct LocalTriangleRaycastCallback	: public TriangleRaycastCallback
+	{
+		LocalTriangleRaycastCallback(const SimdVector3& from,const SimdVector3& to)
+			:TriangleRaycastCallback(from,to)
+		{
+		}
+		
+		virtual void ReportHit(const SimdVector3& hitNormalLocal, float hitFraction, int partId, int triangleIndex )
+		{
+
+		}
+	};
 
 
-	RaycastCallback raycastCallback(from,to);
+	LocalTriangleRaycastCallback raycastCallback(from,to);
 
 	raycastCallback.m_hitFraction = convexbody->m_hitFraction;
 

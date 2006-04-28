@@ -79,8 +79,10 @@ typedef enum PHY_PhysicsType {
 /// PHY_ConstraintType enumerates all supported Constraint Types
 typedef enum PHY_ConstraintType {
 	PHY_POINT2POINT_CONSTRAINT=1,
-	PHY_LINEHINGE_CONSTRAINT,
-	PHY_VEHICLE_CONSTRAINT
+	PHY_LINEHINGE_CONSTRAINT=2,
+	PHY_ANGULAR_CONSTRAINT = 3,//hinge without ball socket
+	PHY_VEHICLE_CONSTRAINT=11,//complex 'constraint' that turns a rigidbody into a vehicle
+
 
 } PHY_ConstraintType;
 

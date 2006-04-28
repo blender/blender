@@ -341,6 +341,11 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 
 	CheckPenetrationDepthSolver();
 
+	//An adhoc way of testing the Continuous Collision Detection algorithms
+	//One object is approximated as a point, to simplify things
+	//Starting in penetration should report no time of impact
+	//For proper CCD, better accuracy and handling of 'allowed' penetration should be added
+	//also the mainloop of the physics should have a kind of toi queue (something like Brian Mirtich's application of Timewarp for Rigidbodies)
 
 	bool needsCollision = m_dispatcher->NeedsCollision(m_box0,m_box1);
 
@@ -351,21 +356,25 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 	CollisionObject* col0 = static_cast<CollisionObject*>(m_box0.m_clientObject);
 	CollisionObject* col1 = static_cast<CollisionObject*>(m_box1.m_clientObject);
 	
+	SphereShape	sphere(0.f);
+
 	ConvexShape* min0 = static_cast<ConvexShape*>(col0->m_collisionShape);
 	ConvexShape* min1 = static_cast<ConvexShape*>(col1->m_collisionShape);
 	
 	ConvexCast::CastResult result;
 
+
 	VoronoiSimplexSolver voronoiSimplex;
-	//SubsimplexConvexCast ccd(&voronoiSimplex);
-	//GjkConvexCast ccd(&voronoiSimplex);
-	
-	ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,m_penetrationDepthSolver);
+	SubsimplexConvexCast ccd0(&sphere,min1,&voronoiSimplex);
+
+	///Simplification, one object is simplified as a sphere
+	GjkConvexCast ccd1(&sphere,min0,&voronoiSimplex);
+	//ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
 
 	if (disableCcd)
 		return 1.f;
 
-	if (ccd.calcTimeOfImpact(col0->m_worldTransform,col0->m_nextPredictedWorldTransform,
+	if (ccd1.calcTimeOfImpact(col0->m_worldTransform,col0->m_nextPredictedWorldTransform,
 		col1->m_worldTransform,col1->m_nextPredictedWorldTransform,result))
 	{
 	
@@ -381,7 +390,9 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 	}
 
 
-	return 1.f;
+	
 
+
+	return 1.f;
 
 }

@@ -29,7 +29,8 @@ GjkPairDetector::GjkPairDetector(ConvexShape* objectA,ConvexShape* objectB,Simpl
 m_penetrationDepthSolver(penetrationDepthSolver),
 m_simplexSolver(simplexSolver),
 m_minkowskiA(objectA),
-m_minkowskiB(objectB)
+m_minkowskiB(objectB),
+m_ignoreMargin(false)
 {
 }
 
@@ -41,6 +42,13 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 
 	float marginA = m_minkowskiA->GetMargin();
 	float marginB = m_minkowskiB->GetMargin();
+
+	//for CCD we don't use margins
+	if (m_ignoreMargin)
+	{
+		marginA = 0.f;
+		marginB = 0.f;
+	}
 
 	bool isValid = false;
 	bool checkSimplex = false;

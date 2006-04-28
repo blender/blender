@@ -91,6 +91,10 @@ bool	ContinuousConvexCollision::calcTimeOfImpact(
 		
 		GjkPairDetector gjk(m_convexA,m_convexB,m_simplexSolver,m_penetrationDepthSolver);		
 		GjkPairDetector::ClosestPointInput input;
+	
+		//we don't use margins during CCD
+		gjk.SetIgnoreMargin(true);
+
 		input.m_transformA = fromA;
 		input.m_transformB = fromB;
 		gjk.GetClosestPoints(input,pointCollector1,0);

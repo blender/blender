@@ -49,7 +49,7 @@ int	m_triangleCount;
 
 	virtual ~BoxTriangleCallback();
 
-	virtual void ProcessTriangle(SimdVector3* triangle);
+	virtual void ProcessTriangle(SimdVector3* triangle, int partId, int triangleIndex);
 	
 	void ClearCache();
 

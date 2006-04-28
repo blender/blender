@@ -108,7 +108,7 @@ void	BvhTriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const 
 #endif //DEBUG_TRIANGLE_MESH
 			}
 
-			m_callback->ProcessTriangle(m_triangle);
+			m_callback->ProcessTriangle(m_triangle,node->m_subPart,node->m_triangleIndex);
 			m_meshInterface->unLockReadOnlyVertexBase(node->m_subPart);
 		}
 

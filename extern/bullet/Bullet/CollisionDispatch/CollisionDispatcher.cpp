@@ -128,6 +128,7 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 			 CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
 			 CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
 
+
 			 
 			 {
 				if (((colObj0) && (colObj0)->m_islandTag1 == (islandId)) ||
@@ -145,7 +146,8 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 						allSleeping = false;
 					}
 
-					islandmanifold.push_back(manifold);
+					if (NeedsResponse(*colObj0,*colObj1))
+						islandmanifold.push_back(manifold);
 				}
 			 }
 		}
@@ -196,7 +198,10 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 
 			}
 
-			callback->ProcessIsland(&islandmanifold[0],islandmanifold.size());
+			if (islandmanifold.size())
+			{
+				callback->ProcessIsland(&islandmanifold[0],islandmanifold.size());
+			}
 
 		}
 	}

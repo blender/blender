@@ -27,7 +27,7 @@ class ConvexPenetrationDepthSolver;
 ///ConvexConvexAlgorithm collision algorithm implements time of impact, convex closest points and penetration depth calculations.
 class ConvexConvexAlgorithm : public CollisionAlgorithm
 {
-	ConvexPenetrationDepthSolver*	m_penetrationDepthSolver;
+	//ConvexPenetrationDepthSolver*	m_penetrationDepthSolver;
 	VoronoiSimplexSolver	m_simplexSolver;
 	GjkPairDetector m_gjkPairDetector;
 	bool	m_useEpa;

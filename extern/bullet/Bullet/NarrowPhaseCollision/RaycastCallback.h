@@ -20,26 +20,22 @@ subject to the following restrictions:
 struct BroadphaseProxy;
 
 
-class  RaycastCallback: public TriangleCallback
+class  TriangleRaycastCallback: public TriangleCallback
 {
 public:
 
 		//input
 	SimdVector3 m_from;
 	SimdVector3 m_to;
-	//input / output
-	SimdScalar			m_hitFraction;
-	BroadphaseProxy*	m_hitProxy;
 
-	//output
-	SimdVector3			m_hitNormalLocal;
-	bool				m_hitFound;
+	float	m_hitFraction;
 
-
-	RaycastCallback(const SimdVector3& from,const SimdVector3& to);
-
+	TriangleRaycastCallback(const SimdVector3& from,const SimdVector3& to);
 	
-	virtual void ProcessTriangle(SimdVector3* triangle);
+	virtual void ProcessTriangle(SimdVector3* triangle, int partId, int triangleIndex);
+
+	virtual void ReportHit(const SimdVector3& hitNormalLocal, float hitFraction, int partId, int triangleIndex ) = 0;
+	
 };
 
 #endif //RAYCAST_TRI_CALLBACK_H

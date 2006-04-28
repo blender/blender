@@ -16,20 +16,18 @@ subject to the following restrictions:
 
 #include "RaycastCallback.h"
 
-RaycastCallback::RaycastCallback(const SimdVector3& from,const SimdVector3& to)
+TriangleRaycastCallback::TriangleRaycastCallback(const SimdVector3& from,const SimdVector3& to)
 	:
 	m_from(from),
 	m_to(to),
-	m_hitFraction(1.f),
-	m_hitProxy(0),
-	m_hitFound(false)
+	m_hitFraction(1.f)
 {
 
 }
 
 
 
-void RaycastCallback::ProcessTriangle(SimdVector3* triangle)
+void TriangleRaycastCallback::ProcessTriangle(SimdVector3* triangle,int partId, int triangleIndex)
 {
 	
 
@@ -86,17 +84,15 @@ void RaycastCallback::ProcessTriangle(SimdVector3* triangle)
 					
 					if ( (float)(cp2.dot(triangleNormal)) >=edge_tolerance) 
 					{
-						m_hitFraction = distance;
+
 						if ( dist_a > 0 )
 						{
-							m_hitNormalLocal = triangleNormal;
+							ReportHit(triangleNormal,distance,partId,triangleIndex);
 						}
 						else
 						{
-							m_hitNormalLocal = -triangleNormal;
+							ReportHit(-triangleNormal,distance,partId,triangleIndex);
 						}
-						
-						m_hitFound= true;
 					}
 				}
 			}
