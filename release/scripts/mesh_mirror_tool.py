@@ -6,11 +6,11 @@ Group: 'Mesh'
 Tooltip: 'Move verts so they snap to their mirrored locations.'
 """
 
-from Blender import Draw, Window, Scene, Mesh, Mathutils, sys
+from Blender import Draw, Window, Scene, Mesh, Mathutils, sys, Object
 import BPyMesh
 reload(BPyMesh)
 
-def mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_MAX_DIST, PREF_MODE, PREF_NOR_WEIGHT, PREF_SEL_ONLY, PREF_EDGE_USERS, PREF_MIRROR_WEIGHTS, PREF_FLIP_NAMES, PREF_CREATE_FLIP_NAMES):
+def mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_XSNAP, PREF_MAX_DIST, PREF_XZERO_THRESH, PREF_MODE, PREF_NOR_WEIGHT, PREF_SEL_ONLY, PREF_EDGE_USERS, PREF_MIRROR_WEIGHTS, PREF_FLIP_NAMES, PREF_CREATE_FLIP_NAMES):
 	'''
 	PREF_MAX_DIST, Maximum distance to test snapping verts.
 	PREF_MODE, 0:middle, 1: Left. 2:Right.
@@ -20,10 +20,6 @@ def mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_MAX_DIST, PREF_MODE, PREF_NOR_WEI
 	PREF_MIRROR_LOCATION, 
 	'''
 	
-	is_editmode = Window.EditMode() # Exit Editmode.
-	if is_editmode: Window.EditMode(0)
-	Window.WaitCursor(1)
-	Mesh.Mode(Mesh.SelectModes['VERTEX'])
 	
 	# Operate on all verts
 	if not PREF_SEL_ONLY:
@@ -38,8 +34,20 @@ def mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_MAX_DIST, PREF_MODE, PREF_NOR_WEI
 			edge_users[ed.v2.index]+=1
 	
 	
-	neg_vts = [v for v in me.verts if v.sel and v.co.x >  0.000001]
-	pos_vts = [v for v in me.verts if v.sel and v.co.x < -0.000001]
+	if PREF_XSNAP:
+		for v in me.verts:
+			if v.sel:
+				if abs(v.co.x) <= PREF_XZERO_THRESH:
+					v.co.x= 0
+					v.sel= 0
+		
+		# alredy de-selected verts.
+		neg_vts = [v for v in me.verts if v.sel]
+		pos_vts = [v for v in me.verts if v.sel]
+	else:
+		neg_vts = [v for v in me.verts if v.sel if v.co.x >  PREF_XZERO_THRESH]
+		pos_vts = [v for v in me.verts if v.sel if v.co.x < -PREF_XZERO_THRESH]
+	
 	
 	
 	#*Mirror Location*********************************************************#
@@ -172,22 +180,23 @@ def mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_MAX_DIST, PREF_MODE, PREF_NOR_WEI
 	
 	me.update()
 	
-	if is_editmode: Window.EditMode(1)
-	Window.WaitCursor(0)
-	Window.DrawProgressBar(1.0, '')
-	Window.RedrawAll()
-	
 def main():
-	try:
-		scn = Scene.GetCurrent()
-		ob= scn.getActiveObject()
-		me= ob.getData(mesh=1)
-	except:
+	scn = Scene.GetCurrent()
+	act_ob= scn.getActiveObject()
+	if act_ob.getType()!='Mesh':
+		act_ob= None
+	
+	sel= [ob for ob in Object.GetSelected() if ob.getType()=='Mesh' if ob != act_ob]
+	if not sel and not act_ob:
 		Draw.PupMenu('Error, select a mesh as your active object')
+		return
 	
 	# Defaults
+	PREF_EDITMESH_ONLY= Draw.Create(1)
 	PREF_MIRROR_LOCATION= Draw.Create(1)
-	PREF_MAX_DIST= Draw.Create(0.2)
+	PREF_XSNAP= Draw.Create(1)
+	PREF_MAX_DIST= Draw.Create(0.02)
+	PREF_XZERO_THRESH= Draw.Create(0.002)
 	PREF_MODE= Draw.Create(0)
 	PREF_NOR_WEIGHT= Draw.Create(0.0)
 	PREF_SEL_ONLY= Draw.Create(1)
@@ -198,24 +207,31 @@ def main():
 	PREF_CREATE_FLIP_NAMES= Draw.Create(1)
 	
 	pup_block = [\
+	('EditMesh Only', PREF_EDITMESH_ONLY, 'If disabled, will mirror all selected meshes.'),\
+	'',\
 	('MaxDist:', PREF_MAX_DIST, 0.0, 1.0, 'Generate interpolated verts so closer vert weights can be copied.'),\
+	('XZero limit:', PREF_XZERO_THRESH, 0.0, 1.0, 'Tolerence for excluding verts from mirror and locking to X Zero.'),\
 	('Mode:', PREF_MODE, 0, 2, 'New Location/Weight (0:AverageL/R, 1:Left>Right 2:Right>Left)'),\
 	('NorWeight:', PREF_NOR_WEIGHT, 0.0, 1.0, 'Generate interpolated verts so closer vert weights can be copied.'),\
-	('Sel Only', PREF_SEL_ONLY, 'Only mirror selected verts. Else try and mirror all'),\
+	('Sel Verts Only', PREF_SEL_ONLY, 'Only mirror selected verts. Else try and mirror all'),\
 	('Edge Users', PREF_EDGE_USERS, 'Only match up verts that have the same number of edge users.'),\
 	'Locations',\
 	('Mirror Location', PREF_MIRROR_LOCATION, 'Mirror vertex locations.'),\
+	('XMidSnap Verts', PREF_XSNAP, 'Snap middle verts to X Zero (uses XZero limit)'),\
 	'Weights',\
 	('Mirror Weights', PREF_MIRROR_WEIGHTS, 'Mirror vertex locations.'),\
 	('Flip Groups', PREF_FLIP_NAMES, 'Mirror flip names.'),\
 	('New Flip Groups', PREF_CREATE_FLIP_NAMES, 'Make new groups for flipped names.'),\
 	]
 	
-	if not Draw.PupBlock("Mirror mesh tool", pup_block):
+	if not Draw.PupBlock("X Mirror mesh tool", pup_block):
 		return
 	
+	PREF_EDITMESH_ONLY= PREF_EDITMESH_ONLY.val
 	PREF_MIRROR_LOCATION= PREF_MIRROR_LOCATION.val
+	PREF_XSNAP= PREF_XSNAP.val
 	PREF_MAX_DIST= PREF_MAX_DIST.val
+	PREF_XZERO_THRESH= PREF_XZERO_THRESH.val
 	PREF_MODE= PREF_MODE.val
 	PREF_NOR_WEIGHT= PREF_NOR_WEIGHT.val
 	PREF_SEL_ONLY= PREF_SEL_ONLY.val
@@ -226,7 +242,24 @@ def main():
 	PREF_CREATE_FLIP_NAMES= PREF_CREATE_FLIP_NAMES.val
 	
 	t= sys.time()
-	mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_MAX_DIST, PREF_MODE, PREF_NOR_WEIGHT, PREF_SEL_ONLY, PREF_EDGE_USERS, PREF_MIRROR_WEIGHTS, PREF_FLIP_NAMES, PREF_CREATE_FLIP_NAMES)
+	
+	is_editmode = Window.EditMode() # Exit Editmode.
+	if is_editmode: Window.EditMode(0)
+	Mesh.Mode(Mesh.SelectModes['VERTEX'])
+	Window.WaitCursor(1)
+	
+	
+	if act_ob:
+		mesh_mirror(act_ob.getData(mesh=1), PREF_MIRROR_LOCATION, PREF_XSNAP, PREF_MAX_DIST, PREF_XZERO_THRESH, PREF_MODE, PREF_NOR_WEIGHT, PREF_SEL_ONLY, PREF_EDGE_USERS, PREF_MIRROR_WEIGHTS, PREF_FLIP_NAMES, PREF_CREATE_FLIP_NAMES)
+	if (not PREF_EDITMESH_ONLY) and sel:
+		for ob in sel:
+			mesh_mirror(ob.getData(mesh=1), PREF_MIRROR_LOCATION, PREF_XSNAP, PREF_MAX_DIST, PREF_XZERO_THRESH, PREF_MODE, PREF_NOR_WEIGHT, PREF_SEL_ONLY, PREF_EDGE_USERS, PREF_MIRROR_WEIGHTS, PREF_FLIP_NAMES, PREF_CREATE_FLIP_NAMES)
+	
+	if is_editmode: Window.EditMode(1)
+	Window.WaitCursor(0)
+	Window.DrawProgressBar(1.0, '')
+	Window.RedrawAll()
+	
 	print 'Mirror done in %.6f sec.' % (sys.time()-t)
 
 if __name__ == '__main__':
