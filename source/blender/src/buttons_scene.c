@@ -473,17 +473,20 @@ static void ftype_pic(char *name)
 	allqueue(REDRAWBUTSSCENE, 0);
 }
 
-static void scene_chain_cleanup(Scene *sc) {
+static void scene_chain_cleanup(Scene *sc) 
+{
 	while(sc) {
 		sc->dirty = SCE_CLEAN;
 		sc = sc->set;
     }
 }
 
-static void scene_change_set(Scene *sc, Scene *set) {
+static void scene_change_set(Scene *sc, Scene *set) 
+{
 	Scene *scene = G.main->scene.first;
 	int clean = SCE_CLEAN;
 	int breakout = 0;
+	
 	if (sc->set!=set) {
 		sc->set= set;
 		while(breakout==0 && scene) {
@@ -520,13 +523,15 @@ static void scene_change_set(Scene *sc, Scene *set) {
 	}
 }
 
-static void run_playanim(char *file) {
+static void run_playanim(char *file) 
+{
 	extern char bprogname[];	/* usiblender.c */
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	int pos[2], size[2];
 
-	/* image size not so relevant for now */
-	calc_renderwin_rectangle(640, 480, G.winpos, pos, size);
+	/* use current settings for defining position of window. it actually should test image size */
+	calc_renderwin_rectangle((G.scene->r.xsch*G.scene->r.size)/100, 
+							 (G.scene->r.ysch*G.scene->r.size)/100, G.winpos, pos, size);
 
 	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
 	system(str);
