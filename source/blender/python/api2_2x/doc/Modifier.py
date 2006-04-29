@@ -31,45 +31,45 @@ Example::
 
 @type Settings: readonly dictionary
 @var Settings: Constant Modifier dict used for changing modifier settings.
-	- EXPP_MOD_RENDER - Used for all modifiers
-	- EXPP_MOD_REALTIME - Used for all modifiers
-	- EXPP_MOD_EDITMODE - Used for all modifiers
-	- EXPP_MOD_ONCAGE - Used for all modifiers
+	- RENDER - Used for all modifiers
+	- REALTIME - Used for all modifiers
+	- EDITMODE - Used for all modifiers
+	- ONCAGE - Used for all modifiers
 
-	- EXPP_MOD_OBJECT - Used for Armature, Lattice, Curve, Boolean and Array
-	- EXPP_MOD_VERTGROUP - Used for Armature, Lattice and Curve
-	- EXPP_MOD_LIMIT - Array and Mirror
-	- EXPP_MOD_FLAG - Mirror and Wave
-	- EXPP_MOD_COUNT - Decimator and Array
+	- OBJECT - Used for Armature, Lattice, Curve, Boolean and Array
+	- VERTGROUP - Used for Armature, Lattice and Curve
+	- LIMIT - Array and Mirror
+	- FLAG - Mirror and Wave
+	- COUNT - Decimator and Array
 	
-	- EXPP_MOD_TYPES - Used for Subsurf only
-	- EXPP_MOD_LEVELS - Used for Subsurf only 
-	- EXPP_MOD_RENDLEVELS - Used for Subsurf only
-	- EXPP_MOD_OPTIMAL - Used for Subsurf only
-	- EXPP_MOD_UV - Used for Subsurf only
+	- TYPES - Used for Subsurf only
+	- LEVELS - Used for Subsurf only 
+	- RENDLEVELS - Used for Subsurf only
+	- OPTIMAL - Used for Subsurf only
+	- UV - Used for Subsurf only
 
 
-	- EXPP_MOD_ENVELOPES - Used for Armature only
+	- ENVELOPES - Used for Armature only
 	
-	- EXPP_MOD_START - Used for Build only
-	- EXPP_MOD_LENGTH - Used for Build only
-	- EXPP_MOD_SEED - Used for Build only
-	- EXPP_MOD_RANDOMIZE - Used for Build only
+	- START - Used for Build only
+	- LENGTH - Used for Build only
+	- SEED - Used for Build only
+	- RANDOMIZE - Used for Build only
 
-	- EXPP_MOD_AXIS - Used for Mirror only
+	- AXIS - Used for Mirror only
 
-	- EXPP_MOD_RATIO - Used for Decimate only
+	- RATIO - Used for Decimate only
 	
-	- EXPP_MOD_STARTX - Used for Wave only
-	- EXPP_MOD_STARTY - Used for Wave only
-	- EXPP_MOD_HEIGHT - Used for Wave only
-	- EXPP_MOD_WIDTH - Used for Wave only
-	- EXPP_MOD_NARROW - Used for Wave only
-	- EXPP_MOD_SPEED - Used for Wave only
-	- EXPP_MOD_DAMP - Used for Wave only
-	- EXPP_MOD_LIFETIME - Used for Wave only
-	- EXPP_MOD_TIMEOFFS - Used for Wave only
-	- EXPP_MOD_OPERATION - Used for Wave only
+	- STARTX - Used for Wave only
+	- STARTY - Used for Wave only
+	- HEIGHT - Used for Wave only
+	- WIDTH - Used for Wave only
+	- NARROW - Used for Wave only
+	- SPEED - Used for Wave only
+	- DAMP - Used for Wave only
+	- LIFETIME - Used for Wave only
+	- TIMEOFFS - Used for Wave only
+	- OPERATION - Used for Wave only
 """
 
 class ModSeq:
