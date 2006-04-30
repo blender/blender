@@ -81,6 +81,7 @@ extern "C" {
 	int BPY_do_spacehandlers(struct ScrArea *sa, unsigned short event,
 		unsigned short space_event);
 
+	void BPY_pydriver_update(void);
 	float BPY_pydriver_eval(struct IpoDriver *driver);
 	struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
 

@@ -109,6 +109,7 @@ void BPY_do_pyscript(ID *id, short int event){}
 void BPY_clear_script(Script *script){}
 void BPY_free_compiled_text(struct Text *text){}
 void BPY_free_screen_spacehandlers (struct bScreen *sc){}
+void BPY_pydriver_update(void){}
 float BPY_pydriver_eval(struct IpoDriver *driver)
 {
 	return 0;

@@ -1759,7 +1759,10 @@ void do_ipobuts(unsigned short event)
 		if(ei) {
 			if(ei->icu->driver) {
 				if (ei->icu->driver->type == IPO_DRIVER_TYPE_PYTHON) {
-					/* eval user's expression once for validity */
+ 					/* first del pydriver's global dict, just in case
+					 * an available pydrivers.py module needs to be reloaded */
+					BPY_pydriver_update();
+					/* eval user's expression once for validity; update DAG */
 					BPY_pydriver_eval(ei->icu->driver);
 					DAG_scene_sort(G.scene);
 				}

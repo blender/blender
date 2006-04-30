@@ -1021,6 +1021,7 @@ static float pydriver_error(IpoDriver *driver) {
 		bpy_pydriver_freeList();
 
 	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
+		PyDict_Clear(bpy_pydriver_Dict);
 		Py_DECREF(bpy_pydriver_Dict);
 		bpy_pydriver_Dict = NULL;
 	}
@@ -1032,6 +1033,21 @@ static float pydriver_error(IpoDriver *driver) {
 	PyErr_Print();
 
 	return 0.0f;
+}
+
+/* Update function, it gets rid of pydrivers global dictionary, forcing
+ * BPY_pydriver_eval to recreate it. This function is used to force
+ * reloading the Blender text module "pydrivers.py", if available, so
+ * updates in it reach pydriver evaluation. */
+void BPY_pydriver_update(void)
+{
+	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
+		PyDict_Clear(bpy_pydriver_Dict);
+		Py_DECREF(bpy_pydriver_Dict);
+		bpy_pydriver_Dict = NULL;
+	}
+
+	return;
 }
 
 /* for depsgraph.c, runs py expr once to collect all refs. made
