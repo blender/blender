@@ -75,7 +75,8 @@
 #include "MEM_guardedalloc.h"
 #include "blendef.h"
 
- 
+#include "BPY_extern.h"
+
  #include "depsgraph_private.h"
  
 /* Queue and stack operations for dag traversal 
@@ -302,12 +303,41 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 	DagNode *node1;
 	
 	for(icu= ipo->curve.first; icu; icu= icu->next) {
-		if(icu->driver && icu->driver->ob) {
-			node1 = dag_get_node(dag, icu->driver->ob);
-			if(icu->driver->blocktype==ID_AR)
-				dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB);
-			else
-				dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB);
+		if(icu->driver) {
+
+			if (icu->driver->type == IPO_DRIVER_TYPE_PYTHON) {
+
+				if ((icu->driver->flag & IPO_DRIVER_FLAG_INVALID) || (icu->driver->name[0] == '\0'))
+					continue; /* empty or invalid expression */
+				else {
+					/* now we need refs to all objects mentioned in this
+					 * pydriver expression, to call 'dag_add_relation'
+					 * for each of them */
+					Object **obarray = BPY_pydriver_get_objects(icu->driver);
+					if (obarray) {
+						Object *ob, **oba = obarray;
+
+						while (*oba) {
+							ob = *oba;
+							node1 = dag_get_node(dag, ob);
+							if (ob->type == OB_ARMATURE)
+								dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB);
+							else
+								dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB);
+							oba++;
+						}
+
+						MEM_freeN(obarray);
+					}
+				}
+			}
+			else if (icu->driver->ob) {
+				node1 = dag_get_node(dag, icu->driver->ob);
+				if(icu->driver->blocktype==ID_AR)
+					dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB);
+				else
+					dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB);
+			}
 		}
 	}
 }

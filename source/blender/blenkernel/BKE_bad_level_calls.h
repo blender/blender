@@ -57,13 +57,20 @@ struct Sequence;
 struct ListBase;
 void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq);
 
+/* BPython API */
 struct ID;
 struct Script;
 struct Text;
+struct IpoDriver; /* DNA_curve_types.h */
+struct Object;
 void BPY_do_pyscript (struct ID *id, short int event);
 void BPY_clear_script (struct Script *script);
 void BPY_free_compiled_text (struct Text *text);
 void BPY_free_screen_spacehandlers (struct bScreen *sc);
+/* ipo.c: */
+float BPY_pydriver_eval(struct IpoDriver *driver);
+/* depsgraph.c: */
+struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
 
 /* writefile.c */
 struct Oops;

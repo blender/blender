@@ -254,9 +254,13 @@ typedef struct IpoCurve {
 
 /* *************** driver ****************** */
 
-/* driver->flag */
-#define	IPO_DRIVER_PYTHON	1
+/* driver->type */
+#define	IPO_DRIVER_TYPE_NORMAL 0
+#define	IPO_DRIVER_TYPE_PYTHON 1
 
+/* driver->flag */
+/* invalid flag: currently only used for buggy pydriver expressions: */
+#define IPO_DRIVER_FLAG_INVALID 1
 
 #endif
 

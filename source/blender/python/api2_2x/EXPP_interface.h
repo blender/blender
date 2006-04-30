@@ -33,11 +33,24 @@
 #ifndef EXPP_INTERFACE_H
 #define EXPP_INTERFACE_H
 
+struct Object;
 struct Script;
+struct LinkNode;
+
+extern struct LinkNode *bpy_pydriver_oblist;
 
 void initBlenderApi2_2x( void );
 char *bpy_gethome( int append_scriptsdir );
 void discardFromBDict( char *key );
 void EXPP_Library_Close( void );   /* in Library.c, used by BPY_end_python */
+
+/* PyDrivers */
+
+void bpy_pydriver_freeList(void);
+void bpy_pydriver_appendToList(struct Object *ob);
+struct Object **bpy_pydriver_obArrayFromList(void);
+
+int bpy_during_pydriver(void);
+void bpy_pydriver_running(int state);
 
 #endif /* EXPP_INTERFACE_H */

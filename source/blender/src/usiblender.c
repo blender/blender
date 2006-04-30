@@ -758,6 +758,10 @@ void exit_usiblender(void)
 	free_editArmature();
 	free_posebuf();
 
+	/* before free_blender so py's gc happens while library still exists */
+	/* needed at least for a rare sigsegv that can happen in pydrivers */
+	BPY_end_python();
+
 	free_blender();	/* blender.c, does entire library */
 	free_matcopybuf();
 	free_ipocopybuf();
@@ -784,8 +788,6 @@ void exit_usiblender(void)
 #ifdef WITH_QUICKTIME
 	quicktime_exit();
 #endif
-		
-	BPY_end_python();
 
 	if (!G.background) {
 		BIF_resources_free();

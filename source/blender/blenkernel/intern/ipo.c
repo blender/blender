@@ -75,6 +75,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BPY_extern.h" /* for BPY_pydriver_eval() */
 
 #define SMALL -1.0e-10
 
@@ -739,12 +740,18 @@ void berekenx(float *f, float *o, int b)
 static float eval_driver(IpoDriver *driver)
 {
 	
-	if(driver->flag & IPO_DRIVER_PYTHON) {
-		printf("Execute %s\n", driver->name);
+	if(driver->type == IPO_DRIVER_TYPE_PYTHON) {
+		/* check for empty or invalid expression */
+		if ((driver->name[0] == '\0') ||
+			(driver->flag & IPO_DRIVER_FLAG_INVALID))
+			return 0.0f;
+		/* this evals the expression and returns its result:
+		 * (on errors it reports, then returns 0.0f) */
+		return BPY_pydriver_eval(driver);
 	}
 	else {
 		Object *ob= driver->ob;
-		
+
 		if(ob==NULL) return 0.0f;
 		
 		if(driver->blocktype==ID_OB) {

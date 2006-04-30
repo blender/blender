@@ -43,6 +43,7 @@
 #include "BKE_library.h"
 #include "BKE_object.h"		/* during_scriptlink() */
 #include "BKE_text.h"
+#include "DNA_curve_types.h" /* for struct IpoDriver */
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"	/* for U.pythondir */
 #include "MEM_guardedalloc.h"
@@ -72,6 +73,9 @@
  * restored next time the script is used.  Check the Blender.Registry module. 
  */
 //#include "api2_2x/Registry.h"
+
+/* for pydrivers (ipo drivers defined by one-line Python expressions) */
+PyObject *bpy_pydriver_Dict = NULL;
 
 /*Declares the modules and their initialization functions
 *These are TOP-LEVEL modules e.g. import `module` - there is no
@@ -173,6 +177,11 @@ void BPY_end_python( void )
 	if( bpy_registryDict ) {
 		Py_DECREF( bpy_registryDict );
 		bpy_registryDict = NULL;
+	}
+
+	if( bpy_pydriver_Dict ) {
+		Py_DECREF( bpy_pydriver_Dict );
+		bpy_pydriver_Dict = NULL;
 	}
 
 	Py_Finalize(  );
@@ -917,6 +926,187 @@ void BPY_clear_script( Script * script )
 	}
 
 	unlink_script( script );
+}
+
+/* PyDrivers */
+
+/* PyDrivers are Ipo Drivers governed by expressions written in Python.
+ * Expressions here are one-liners that evaluate to a float value. */
+
+/* For faster execution we keep a special dictionary for pydrivers, with
+ * the needed modules and aliases. */
+static int bpy_pydriver_create_dict(void)
+{
+	PyObject *d, *mod;
+
+	if (bpy_pydriver_Dict) return -1;
+
+	d = PyDict_New();
+	if (!d) return -1;
+
+	bpy_pydriver_Dict = d;
+
+	/* import some modules: builtins, Blender, math, Blender.noise */
+
+	PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
+
+	mod = PyImport_ImportModule("Blender");
+	if (mod) {
+		PyDict_SetItemString(d, "Blender", mod);
+		PyDict_SetItemString(d, "b", mod);
+		Py_DECREF(mod);
+	}
+
+	mod = PyImport_ImportModule("math");
+	if (mod) {
+		PyDict_SetItemString(d, "math", mod);
+		PyDict_SetItemString(d, "m", mod);
+		Py_DECREF(mod);
+	}
+
+	mod = PyImport_ImportModule("Blender.Noise");
+	if (mod) {
+		PyDict_SetItemString(d, "noise", mod);
+		PyDict_SetItemString(d, "n", mod);
+		Py_DECREF(mod);
+	}
+
+	/* If there's a Blender text called pydrivers.py, import it.
+	 * Users can add their own functions to this module. */
+	mod = importText("pydrivers"); /* can also use PyImport_Import() */
+	if (mod) {
+		PyDict_SetItemString(d, "pydrivers", mod);
+		PyDict_SetItemString(d, "p", mod);
+		Py_DECREF(mod);
+	}
+	else
+		PyErr_Clear();
+
+	/* short aliases for some Get() functions: */
+
+	/* ob(obname) == Blender.Object.Get(obname) */
+	mod = PyImport_ImportModule("Blender.Object");
+	if (mod) {
+		PyObject *fcn = PyObject_GetAttrString(mod, "Get");
+		Py_DECREF(mod);
+		if (fcn)
+			PyDict_SetItemString(d, "ob", fcn);
+	}
+
+	/* me(meshname) == Blender.Mesh.Get(meshname) */
+	mod = PyImport_ImportModule("Blender.Mesh");
+	if (mod) {
+		PyObject *fcn = PyObject_GetAttrString(mod, "Get");
+		Py_DECREF(mod);
+		if (fcn)
+			PyDict_SetItemString(d, "me", fcn);
+	}
+
+	/* ma(matname) == Blender.Material.Get(matname) */
+	mod = PyImport_ImportModule("Blender.Material");
+	if (mod) {
+		PyObject *fcn = PyObject_GetAttrString(mod, "Get");
+		Py_DECREF(mod);
+		if (fcn)
+			PyDict_SetItemString(d, "ma", fcn);
+	}
+
+	return 0;
+}
+
+/* error return function for BPY_eval_pydriver */
+static float pydriver_error(IpoDriver *driver) {
+
+	if (bpy_pydriver_oblist)
+		bpy_pydriver_freeList();
+
+	if (bpy_pydriver_Dict) { /* free the global dict used by pydrivers */
+		Py_DECREF(bpy_pydriver_Dict);
+		bpy_pydriver_Dict = NULL;
+	}
+
+	driver->flag |= IPO_DRIVER_FLAG_INVALID; /* py expression failed */
+
+	fprintf(stderr, "\nError in Ipo Driver: Object %s\nThis is the failed Python expression:\n'%s'\n\n", driver->ob->id.name+2, driver->name);
+
+	PyErr_Print();
+
+	return 0.0f;
+}
+
+/* for depsgraph.c, runs py expr once to collect all refs. made
+ * to objects (self refs. to the object that owns the py driver
+ * are not allowed). */
+struct Object **BPY_pydriver_get_objects(IpoDriver *driver)
+{
+	/*if (!driver || !driver->ob || driver->name[0] == '\0')
+		return NULL;*/
+
+	/*PyErr_Clear();*/
+
+	/* clear the flag that marks invalid python expressions */
+	driver->flag &= ~IPO_DRIVER_FLAG_INVALID;
+
+	/* tell we're running a pydriver, so Get() functions know they need
+	 * to add the requested obj to our list */
+	bpy_pydriver_running(1);
+
+	/* append driver owner object as the 1st ob in the list;
+	 * we put it there to make sure it is not itself referenced in
+	 * its pydriver expression */
+	bpy_pydriver_appendToList(driver->ob);
+
+	/* this will append any other ob referenced in expr (driver->name)
+	 * or set the driver's error flag if driver's py expression fails */
+	BPY_pydriver_eval(driver);
+
+	bpy_pydriver_running(0); /* ok, we're done */
+
+	return bpy_pydriver_obArrayFromList(); /* NULL if eval failed */
+}
+
+/* This evals py driver expressions, 'expr' is a Python expression that
+ * should evaluate to a float number, which is returned. */
+float BPY_pydriver_eval(IpoDriver *driver)
+{
+	char *expr = NULL;
+	PyObject *retval, *floatval;
+	float result = 0.0f; /* default return */
+
+	if (!driver) return result;
+
+	expr = driver->name; /* the py expression to be evaluated */
+	if (!expr || expr[0]=='\0') return result;
+
+	if (!bpy_pydriver_Dict) {
+		if (bpy_pydriver_create_dict() != 0) {
+			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
+			return result;
+		}
+	}
+
+	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict,
+		bpy_pydriver_Dict);
+
+	if (retval == NULL) {
+		return pydriver_error(driver);
+	}
+	else {
+		floatval = PyNumber_Float(retval);
+		Py_DECREF(retval);
+	}
+
+	if (floatval == NULL) 
+		return pydriver_error(driver);
+	else {
+		result = (float)PyFloat_AsDouble(floatval);
+		Py_DECREF(floatval);
+	}
+
+	/* all fine, make sure the "invalid expression" flag is cleared */
+	driver->flag &= ~IPO_DRIVER_FLAG_INVALID;
+
+	return result;
 }
 
 /*****************************************************************************/

@@ -110,6 +110,7 @@ struct rctf;
 #include "Group.h"
 #include "Modifier.h"
 #include "gen_utils.h"
+#include "EXPP_interface.h"
 #include "BIF_editkey.h"
 
 /* Defines for insertIpoKey */
@@ -787,6 +788,10 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 										  buffer );
 		}
 
+		/* objects used in pydriver expressions need this */
+		if (bpy_during_pydriver())
+			bpy_pydriver_appendToList(object);
+ 
 		return Object_CreatePyObject( object );
 	} else {
 		/* No argument has been given. Return a list of all objects. */
@@ -794,11 +799,17 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 		Link *link;
 		int index;
 
+		/* do not allow Get() (w/o arguments) inside pydriver, otherwise
+		 * we'd have to update all objects in the DAG */
+		if (bpy_during_pydriver())
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"Object.Get requires an argument when used in pydrivers" );
+
 		obj_list = PyList_New( BLI_countlist( &( G.main->object ) ) );
 
 		if( !obj_list )
 			return EXPP_ReturnPyObjError( PyExc_SystemError,
-							"List creation failed." );
+				"List creation failed." );
 
 		link = G.main->object.first;
 		index = 0;

@@ -37,6 +37,8 @@ extern char bprogname[];	/* holds a copy of argv[0], from creator.c */
 
 struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
+struct Object; /* DNA_object_types.h */
+struct IpoDriver; /* DNA_curve_types.h */
 struct ScriptLink; /* DNA_scriptlink_types.h */
 struct ListBase; /* DNA_listBase.h */
 struct SpaceText; /* DNA_space_types.h */
@@ -78,6 +80,9 @@ extern "C" {
 	void BPY_screen_free_spacehandlers(struct bScreen *sc);
 	int BPY_do_spacehandlers(struct ScrArea *sa, unsigned short event,
 		unsigned short space_event);
+
+	float BPY_pydriver_eval(struct IpoDriver *driver);
+	struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
 
 /* format importer hook */
 	int BPY_call_importloader( char *name );

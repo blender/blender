@@ -84,6 +84,8 @@
 #include "BSE_editipo_types.h"
 #include "BSE_editnla_types.h"
 
+#include "BPY_extern.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"	// shouldnt be...
@@ -1561,6 +1563,7 @@ static void draw_key(SpaceIpo *sipo, int visible)
 #define B_IPO_DRIVER	3405
 #define B_IPO_REDR		3406
 #define B_IPO_DEPCHANGE	3407
+#define B_IPO_DRIVERTYPE 3408
 
 static float hspeed= 0;
 
@@ -1755,7 +1758,12 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu->driver) {
-				if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
+				if (ei->icu->driver->type == IPO_DRIVER_TYPE_PYTHON) {
+					/* eval user's expression once for validity */
+					BPY_pydriver_eval(ei->icu->driver);
+					DAG_scene_sort(G.scene);
+				}
+				else if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				else
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
@@ -1814,14 +1822,39 @@ void do_ipobuts(unsigned short event)
 			BIF_undo_push("Add/Remove Ipo driver");
 		}
 		break;
+	case B_IPO_DRIVERTYPE:
+		ei= get_active_editipo();
+		if(ei) {
+			if(ei->icu->driver) {
+				IpoDriver *driver= ei->icu->driver;
+
+				if(driver->type == IPO_DRIVER_TYPE_PYTHON) {
+					/* pydriver expression shouldn't reference own ob,
+					 * so we need to store ob ptr to check against it */
+					driver->ob= ob;
+				}
+				else {
+					driver->ob= NULL;
+					driver->blocktype= ID_OB;
+					driver->adrcode= OB_LOC_X;
+					driver->flag &= ~IPO_DRIVER_FLAG_INVALID;
+				}
+			}
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			DAG_scene_sort(G.scene);
+	
+			BIF_undo_push("Change Ipo driver type");
+		}
+		break;
 	case B_IPO_DEPCHANGE:
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu->driver) {
 				IpoDriver *driver= ei->icu->driver;
 				
-				if(driver->flag & IPO_DRIVER_PYTHON) {
-					driver->ob= NULL;
+				if(driver->type == IPO_DRIVER_TYPE_PYTHON) {
 				}
 				else {
 					if(driver->ob) {
@@ -1918,14 +1951,18 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 		
 		if(ei->icu && ei->icu->driver) {
 			IpoDriver *driver= ei->icu->driver;
-			
+
 			uiDefBut(block, BUT, B_IPO_DRIVER, "Remove",				210,265,100,20, NULL, 0.0f, 0.0f, 0, 0, "Remove Driver for this Ipo Channel");
 			
 			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, TOG, IPO_DRIVER_PYTHON, B_IPO_DEPCHANGE, ICON_PYTHON, 10,240,25,20, &driver->flag, 0, 0, 0, 0, "Use a one-line Python Expression as Driver");
-			
-			if(driver->flag & IPO_DRIVER_PYTHON) {
+			uiDefIconButS(block, TOG, B_IPO_DRIVERTYPE, ICON_PYTHON, 10,240,25,20, &driver->type, (float)IPO_DRIVER_TYPE_NORMAL, (float)IPO_DRIVER_TYPE_PYTHON, 0, 0, "Use a one-line Python Expression as Driver");
+
+			if(driver->type == IPO_DRIVER_TYPE_PYTHON) {
 				uiDefBut(block, TEX, B_IPO_REDR, "",				35,240,275,20, driver->name, 0, 127, 0, 0, "Python Expression");
+	 			if(driver->flag & IPO_DRIVER_FLAG_INVALID) {
+					uiDefBut(block, LABEL, 0, "Error: invalid Python expression",
+							5,215,230,19, NULL, 0, 0, 0, 0, "");
+				}
 				uiBlockEndAlign(block);
 			}
 			else {
