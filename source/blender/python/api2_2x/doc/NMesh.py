@@ -49,8 +49,6 @@ Example::
     - NOVNORMALSFLIP - no flipping of vertex normals during render.
     - TWOSIDED - double sided mesh.
     - AUTOSMOOTH - turn auto smoothing of faces "on".
-    - SUBSURF - turn Catmull-Clark subdivision of surfaces "on".
-    - OPTIMAL - optimal drawing of edges when "SubSurf" is "on".
 @var FaceFlags: The available *texture face* (uv face select mode) selection
   flags.  Note: these refer to TexFace faces, available if nmesh.hasFaceUV()
   returns true.
@@ -657,19 +655,17 @@ class NMesh:
     @return: Or'ed value.  See L{Modes}.
     """
 
-  def setMode(m = None, m1=None, m2=None, m3=None):
+  def setMode(m=None, m1=None, m2=None):
     """
     Set the mode flags for this mesh.  Given mode strings turn the mode "on".
     Modes not passed in are turned "off", so setMode() (without arguments)
     unsets all mode flags.
     @type m: string or int (bitflag)
-    @param m: mode string or int.  An int (see L{Modes}) or from none to 5
+    @param m: mode string or int.  An int (see L{Modes}) or from none to 3
       strings can be given:
        - "NoVNormalsFlip"
        - "TwoSided"
        - "AutoSmooth"
-       - "SubSurf"
-       - "Optimal"
     """
 
   def addVertGroup(group):
