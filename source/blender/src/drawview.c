@@ -2318,7 +2318,11 @@ static void view3d_blockhandlers(ScrArea *sa)
 	
 	/* warning; blocks need to be freed each time, handlers dont remove */
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
-
+	
+	/*uv face-sel and wp mode when mixed with wire leave depth enabled causing
+	models to draw over the UI */
+	glDisable(GL_DEPTH_TEST); 
+	
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 	
 		switch(v3d->blockhandler[a]) {
