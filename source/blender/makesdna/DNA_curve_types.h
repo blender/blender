@@ -49,6 +49,7 @@ struct Key;
 struct Material;
 struct VFont;
 
+/* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
 typedef struct Path {
@@ -57,6 +58,7 @@ typedef struct Path {
 	float totdist;
 } Path;
 
+/* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
 typedef struct BevList {
@@ -65,6 +67,7 @@ typedef struct BevList {
 	short poly, gat;
 } BevList;
 
+/* These two Lines with # tell makesdna this struct can be excluded. */
 #
 #
 typedef struct BevPoint {
@@ -73,6 +76,17 @@ typedef struct BevPoint {
 } BevPoint;
 
 /* note; alfa location in struct is abused by Key system */
+/* vec in BezTriple looks like this:
+	vec[0][0]=x location of handle 1
+	vec[0][1]=y location of handle 1
+	vec[0][2]=z location of handle 1 (not used for IpoCurve Points(2d))
+	vec[1][0]=x location of control point
+	vec[1][1]=y location of control point
+	vec[1][2]=z location of control point
+	vec[2][0]=x location of handle 2
+	vec[2][1]=y location of handle 2
+	vec[2][2]=z location of handle 2 (not used for IpoCurve Points(2d))
+*/
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, pad;
