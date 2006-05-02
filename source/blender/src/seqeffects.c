@@ -2406,6 +2406,15 @@ static int early_out_fade(struct Sequence *seq,
 	return 0;
 }
 
+static int early_out_mul_input2(struct Sequence *seq,
+				float facf0, float facf1)
+{
+	if (facf0 == 0.0 && facf1 == 0.0) {
+		return 1;
+	}
+	return 0;
+}
+
 static void get_default_fac_noop(struct Sequence *seq, int cfra,
 				 float * facf0, float * facf1)
 {
@@ -2463,12 +2472,15 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 		break;
 	case SEQ_ADD:
 		rval.execute = do_add_effect;
+		rval.early_out = early_out_mul_input2;
 		break;
 	case SEQ_SUB:
 		rval.execute = do_sub_effect;
+		rval.early_out = early_out_mul_input2;
 		break;
 	case SEQ_MUL:
 		rval.execute = do_mul_effect;
+		rval.early_out = early_out_mul_input2;
 		break;
 	case SEQ_ALPHAOVER:
 		rval.init = init_alpha_over_or_under;

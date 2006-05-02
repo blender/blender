@@ -113,12 +113,28 @@ void makewavstring (char *string)
 	}
 }
 
+static void do_sound_ipos(Sequence * seq)
+{
+	while(seq) {
+		if (seq->type == SEQ_META) {
+			do_sound_ipos(seq->seqbase.first);
+		}
+		if ((seq->type == SEQ_RAM_SOUND
+		     || seq->type == SEQ_HD_SOUND) 
+		    && (seq->ipo)
+		    && (seq->startdisp<=G.scene->r.cfra+2) 
+		    && (seq->enddisp>G.scene->r.cfra)) {
+			do_seq_ipo(seq);
+		}
+		seq = seq->next;
+	}
+}
+
 void audio_mixdown()
 {
 	int file, c, totlen, totframe, i, oldcfra, cfra2=0;
 	char *buf;
 	Editing *ed;
-	Sequence *seq;
 
 	buf = MEM_mallocN(65536, "audio_mixdown");
 	makewavstring(buf);
@@ -176,17 +192,7 @@ void audio_mixdown()
 		memset(buf+i, 0, 64);
 		ed= G.scene->ed;
 		if (ed) {
-			seq= ed->seqbasep->first;
-			while(seq) {
-				if ((seq->type == SEQ_RAM_SOUND
-				     || seq->type == SEQ_HD_SOUND) 
-				    && (seq->ipo)
-				    && (seq->startdisp<=G.scene->r.cfra+2) 
-				    && (seq->enddisp>G.scene->r.cfra)) {
-					do_seq_ipo(seq);
-				}
-				seq = seq->next;
-			}
+			do_sound_ipos(ed->seqbasep->first);
 		}		
 		audio_fill(buf+i, NULL, 64);
 		if (G.order == B_ENDIAN) {
@@ -210,7 +216,6 @@ void audiostream_fill(Uint8 *mixdown, int len)
 {    
 	int oldcfra = CFRA;
 	Editing *ed;
-	Sequence *seq;
 	int i;
 
 	memset(mixdown, 0, len);
@@ -222,17 +227,7 @@ void audiostream_fill(Uint8 *mixdown, int len)
 
 		ed = G.scene->ed;
 		if (ed) {
-			seq = ed->seqbasep->first;
-			while(seq) {
-				if ((seq->type == SEQ_RAM_SOUND
-				     || seq->type == SEQ_HD_SOUND) 
-				    && (seq->ipo)
-				    && (seq->startdisp <= G.scene->r.cfra + 2) 
-				    && (seq->enddisp > G.scene->r.cfra)) {
-					do_seq_ipo(seq);
-				}
-				seq = seq->next;
-			}
+			do_sound_ipos(ed->seqbasep->first);
 		}		
 	
 		audio_fill(mixdown + i, NULL, 

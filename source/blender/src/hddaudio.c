@@ -339,7 +339,7 @@ static void sound_hdaudio_extract_small_block(
 		double time_base = 
 			av_q2d(hdaudio->pFormatCtx
 			       ->streams[hdaudio->audioStream]->time_base);
-		long long pos = frame_position * AV_TIME_BASE
+		long long pos = (long long) frame_position * AV_TIME_BASE
 			* hdaudio->frame_duration / AV_TIME_BASE;
 
 		hdaudio->frame_position = frame_position;
@@ -350,8 +350,16 @@ static void sound_hdaudio_extract_small_block(
 
 		pos += st_time * AV_TIME_BASE * time_base;
 
+		/* seek a little bit before the target position,
+		   (ffmpeg seek algorithm doesn't seem to work always as
+		   specified...)
+		*/
+
 		av_seek_frame(hdaudio->pFormatCtx, -1, 
-			      pos, 
+			      pos 
+			      - (AV_TIME_BASE
+				 * hdaudio->frame_duration 
+				 / AV_TIME_BASE / 10), 
 			      AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
 		avcodec_flush_buffers(hdaudio->pCodecCtx);
 
@@ -392,8 +400,9 @@ static void sound_hdaudio_extract_small_block(
 							"hdaudio: "
 							"negative seek: "
 							"%lld < %lld "
+							"(pos=%lld) "
 							"audio distortion!!\n",
-							spts, pts);
+							spts, pts, pos);
 						diff = 0;
 					}
 				}
