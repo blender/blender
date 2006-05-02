@@ -1333,6 +1333,8 @@ void separate_mesh(void)
 		return;
 	}
 	
+	if(em->selected.first) BLI_freelistN(&(em->selected)); /* clear the selection order */
+		
 	EM_selectmode_set();	// enforce full consistant selection flags 
 	
 	/* we are going to abuse the system as follows:
