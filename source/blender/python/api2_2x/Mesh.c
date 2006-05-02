@@ -6530,6 +6530,49 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 	return 0;
 }
 
+static PyObject *Mesh_getActiveGroup( BPy_Mesh * self )
+{
+	bDeformGroup *defGroup;
+	Object *object = self->object;
+
+	if( !object )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This mesh must be linked to an object" ); 
+
+	if( object->actdef ) {
+		defGroup = BLI_findlink( &object->defbase, object->actdef-1 );
+		return PyString_FromString( defGroup->name );
+	}
+
+	Py_RETURN_NONE;
+}
+
+static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
+{
+	char *name;
+	int tmp;
+	Object *object = self->object;
+
+	if( !object )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This mesh must be linked to an object" ); 
+
+	if( !PyString_Check( arg ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				"expected a string argument" );
+
+	name = PyString_AsString( arg );
+	tmp = object->actdef;
+	vertexgroup_select_by_name( object, name );
+	if( !object->actdef ) {
+		object->actdef = tmp;
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"vertex group not found" );
+	}
+
+	return 0;
+}
+
 /************************************************************************
  *
  * Python Mesh_Type standard operations
@@ -6606,6 +6649,10 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"users",
 	 (getter)Mesh_getUsers, (setter)NULL,
 	 "Number of users of the mesh",
+	 NULL},
+	{"activeGroup",
+	 (getter)Mesh_getActiveGroup, (setter)Mesh_setActiveGroup,
+	 "Active group for the mesh",
 	 NULL},
 
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */

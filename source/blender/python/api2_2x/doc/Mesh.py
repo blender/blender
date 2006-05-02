@@ -139,7 +139,7 @@ def Mode(mode=0):
   Get and/or set the selection modes for mesh editing.  These are the modes
   visible in the 3D window when a mesh is in Edit Mode.
   @type mode: int
-  @param mode: The name of the mesh data object.  See L{SelectModes} for values.
+  @param mode: The desired selection mode.  See L{SelectModes} for values.
   Modes can be combined.  If omitted, the selection mode is not changed.
   @rtype: int
   @return: the current selection mode.
@@ -643,6 +643,9 @@ class Mesh:
     Will throw an exception if the mesh does not have UV faces; use
     L{faceUV} to test.
   @type activeFace: int
+  @ivar activeGroup: The mesh's active vertex group.  The mesh must be
+    linked to an object (read the comment in L{addVertGroup} for more info).
+  @type activeGroup: string
   """
 
   def getFromObject(name,cage=0):
@@ -741,7 +744,7 @@ class Mesh:
 
   def addVertGroup(group):
     """
-    Add a named and empty vertex (deform) group to the object this nmesh is
+    Add a named and empty vertex (deform) group to the object this mesh is
     linked to.  The mesh must first be linked to an object (with object.link()
     or object.getData() ) so the method knows which object to update.  
     This is because vertex groups in Blender are stored in I{the object} --
