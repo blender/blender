@@ -54,6 +54,9 @@
 #endif
 */
 
+/* XXX this function and so also the file should not be needed anymore,
+ * since we have to force clearing all Python related data before freeing
+ * Blender's library. Still testing, will decide later (Willian). */
 void free_script (Script *script)
 {
 	if (!script) return;

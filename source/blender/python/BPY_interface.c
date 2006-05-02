@@ -174,6 +174,8 @@ void BPY_start_python( int argc, char **argv )
 /*****************************************************************************/
 void BPY_end_python( void )
 {
+	Script *script = NULL;
+
 	if( bpy_registryDict ) {
 		Py_DECREF( bpy_registryDict );
 		bpy_registryDict = NULL;
@@ -182,6 +184,13 @@ void BPY_end_python( void )
 	if( bpy_pydriver_Dict ) {
 		Py_DECREF( bpy_pydriver_Dict );
 		bpy_pydriver_Dict = NULL;
+	}
+
+	/* Freeing all scripts here prevents problems with the order in which
+	 * Python is finalized and G.main is freed in exit_usiblender() */
+	for (script = G.main->script.first; script; script = script->id.next) {
+		BPY_clear_script(script);
+		free_libblock( &G.main->script, script );
 	}
 
 	Py_Finalize(  );
@@ -912,10 +921,20 @@ void BPY_clear_script( Script * script )
 	if( !script )
 		return;
 
+	if (!Py_IsInitialized()) {
+		printf("\nError: trying to free script data after finalizing Python!");
+		printf("\nScript name: %s\n", script->id.name+2);
+		return;
+	}
+
 	Py_XDECREF( ( PyObject * ) script->py_draw );
 	Py_XDECREF( ( PyObject * ) script->py_event );
 	Py_XDECREF( ( PyObject * ) script->py_button );
 	Py_XDECREF( ( PyObject * ) script->py_browsercallback );
+	script->py_draw = NULL;
+	script->py_event = NULL;
+	script->py_button = NULL;
+	script->py_browsercallback = NULL;
 
 	dict = script->py_globaldict;
 
