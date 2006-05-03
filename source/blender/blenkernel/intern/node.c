@@ -1378,9 +1378,9 @@ void ntreeSolveOrder(bNodeTree *ntree)
 				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
 					if(tnode->type==node->type) {
 						if(tnode->flag & NODE_DO_OUTPUT) {
+							output++;
 							if(output>1)
 								tnode->flag &= ~NODE_DO_OUTPUT;
-							output++;
 						}
 					}
 				}
