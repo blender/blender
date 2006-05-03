@@ -822,7 +822,13 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 	base = object_in_scene( object, scene );
 
 	if( base ) {		/* if it is, remove it */
-		((ID *)object->data)->us--;
+		/* check that there is a data block before decrementing refcount */
+		if( (ID *)object->data )
+			((ID *)object->data)->us--;
+		else if( object->type != OB_EMPTY )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Object has no data!" );
+
 		BLI_remlink( &scene->base, base );
 		object->id.us--;
 		MEM_freeN( base );
