@@ -2125,6 +2125,21 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	return NULL;
 }
 
+int modifiers_usesArmature(Object *ob, bArmature *arm)
+{
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+			if (amd->object->data==arm) 
+				return 1;
+		}
+	}
+
+	return NULL;
+}
+
 int modifiers_isDeformed(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);

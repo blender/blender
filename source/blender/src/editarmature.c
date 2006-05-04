@@ -2383,7 +2383,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 /* seems messy, but thats what you get with not using pointers but channel names :) */
 void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 {
-	Object *ob, *modob;
+	Object *ob;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -2465,11 +2465,8 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 						BLI_strncpy(ob->parsubstr, newname, MAXBONENAME);
 				}
 			}
-			/* or is there an armature deforming object */
-			/* this is a bit sloppy, what if we have more then 1 armature deforming a mesh?
-			TODO: Should have a function modifiers_isUsingArmature(ob, arm) - Campbell */
-			modob = modifiers_isDeformedByArmature(ob);
-			if(modob && modob->data==arm) { 
+			
+			if(modifiers_usesArmature(ob, arm)) { 
 				bDeformGroup *dg;
 				/* bone name in defgroup */
 				for (dg=ob->defbase.first; dg; dg=dg->next) {
