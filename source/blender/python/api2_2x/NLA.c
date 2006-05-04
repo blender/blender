@@ -260,6 +260,7 @@ static PyObject *Action_getName( BPy_Action * self )
 static PyObject *Action_setName( BPy_Action * self, PyObject * args )
 {
 	char *name;
+	char buf[21];
 
 	if( !self->action )
 		( EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -270,10 +271,10 @@ static PyObject *Action_setName( BPy_Action * self, PyObject * args )
 						"expected string argument" ) );
 
 	//change name
-	strcpy( self->action->id.name + 2, name );
+	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+	rename_id( &self->action->id, buf);
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Action_setActive( BPy_Action * self, PyObject * args )
