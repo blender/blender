@@ -3539,47 +3539,117 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	return block;
 }
 
-
-static void do_view3d_paintmenu(void *arg, int event)
+/* vertex paint menu */
+static void do_view3d_vpaintmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* undo vertex painting */
 		vpaint_undo();
 		break;
-	case 1: /* undo weight painting */
-		wpaint_undo();
-		break;
-	case 2: /* set vertex colors/weight */
+	case 1: /* set vertex colors/weight */
 		if(G.f & G_FACESELECT)
 			clear_vpaint_selectedfaces();
 		else /* we know were in vertex paint mode */
 			clear_vpaint();
 		break;
-	case 3: /* set vertex colors/weight */
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+
+static uiBlock *view3d_vpaintmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_view3d_vpaintmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
+
+/* texture paint menu (placeholder, no items yet??) */
+static void do_view3d_tpaintmenu(void *arg, int event)
+{
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_tpaintmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_view3d_tpaintmenu, NULL);
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
+
+static void do_view3d_wpaintmenu(void *arg, int event)
+{
+	
+	/* events >= 2 are registered bpython scripts */
+	if (event >= 2) BPY_menu_do_python(PYMENU_WEIGHTPAINT, event - 2);
+	
+	switch(event) {
+	case 0: /* undo weight painting */
+		wpaint_undo();
+		break;
+	case 1: /* set vertex colors/weight */
 		clear_wpaint_selectedfaces();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-static uiBlock *view3d_paintmenu(void *arg_unused)
+static uiBlock *view3d_wpaintmenu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco= 0, menuwidth=120;
+	short yco= 0, menuwidth=120, menunr=1;
+	BPyMenu *pym;
+	int i=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
-	uiBlockSetButmFunc(block, do_view3d_paintmenu, NULL);
+	uiBlockSetButmFunc(block, do_view3d_wpaintmenu, NULL);
 	
-	if (G.f & G_VERTEXPAINT) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	if (G.f & G_WEIGHTPAINT) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Weight Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	if (G.f & G_TEXTUREPAINT) uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Weight Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	if (G.f & G_FACESELECT) {
+		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Weight|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+		menunr++;
+	}
 	
-	if (G.f & G_VERTEXPAINT) {
-		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	} else if (G.f & G_WEIGHTPAINT && G.f & G_FACESELECT) {
-		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Weight|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	/* note that we account for the 2 previous entries with i+2:
+	even if the last item isnt displayed, it dosent matter */
+	for (pym = BPyMenuTable[PYMENU_WEIGHTPAINT]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 1, i+2,
+			pym->tooltip?pym->tooltip:pym->filename);
 	}
 	
 	if(curarea->headertype==HEADERTOP) {
@@ -3593,6 +3663,7 @@ static uiBlock *view3d_paintmenu(void *arg_unused)
 	uiTextBoundsBlock(block, 50);
 	return block;
 }
+
 
 static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 {
@@ -4277,11 +4348,22 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 			xco+= xmax;
 		}
 	}
-	else if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
+	
+	else if (G.f & G_VERTEXPAINT) {
 		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_paintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
+		uiDefPulldownBut(block, view3d_vpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
 		xco+= xmax;
 	} 
+	else if (G.f & G_TEXTUREPAINT) {
+		xmax= GetButStringLength("Paint");
+		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
+		xco+= xmax;
+	}	
+	else if (G.f & G_WEIGHTPAINT) {
+		xmax= GetButStringLength("Paint");
+		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
+		xco+= xmax;
+	}
 	else if (G.f & G_FACESELECT) {
 		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Face");

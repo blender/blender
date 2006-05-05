@@ -49,8 +49,8 @@ Introduction:
  -------------------
 
  To pass parameters to the script you can:
-	- write them to a file before running Blender, then make your script parse that file;
-	- set environment variables and access them with the 'os' module:
+    - write them to a file before running Blender, then make your script parse that file;
+    - set environment variables and access them with the 'os' module:
 
  Examples with parameters being passed to the script via command line::
 

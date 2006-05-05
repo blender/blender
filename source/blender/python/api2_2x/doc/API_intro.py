@@ -217,8 +217,8 @@ A note to newbie script writers:
  to get an idea of what can be done, you may be surprised.
 
 @author: The Blender Python Team
-@requires: Blender 2.37 or newer.
-@version: 2.37
+@requires: Blender 2.42 or newer.
+@version: 2.42
 @see: U{www.blender3d.org<http://www.blender3d.org>}: main site
 @see: U{www.blender.org<http://www.blender.org>}: documentation and forum
 @see: U{www.elysiun.com<http://www.elysiun.com>}: user forum
