@@ -53,6 +53,21 @@ from Blender import *
 global renameCount
 renameCount = 0
 
+def setDataNameWrapper(ob, newname):
+	if ob.getData(name_only=1) == newname:
+		return False
+	type= ob.getType()
+	data= None
+	if type=='Mesh' or type=='Empty':
+		data= ob.getData(mesh=1)
+	else:
+		data= ob.getData()
+	
+	if data:
+		data.name= newname
+		return True
+	return False
+
 def main():
 	global renameCount
 	# Rename the datablocks that are used by the object.
@@ -102,17 +117,15 @@ def main():
 		REPLACE_STRING = Draw.Create('')
 		WITH_STRING = Draw.Create('')
 		RENAME_LINKED = Draw.Create(0)
-		RENAME_VGROUP = Draw.Create(0)
 		
 		pup_block = [\
 		('Replace: ', REPLACE_STRING, 19, 19, 'Text to find'),\
 		('With:', WITH_STRING, 19, 19, 'Text to replace with'),\
-		('Rename ObData from Ob', RENAME_LINKED, 'Renames objects data to match the obname'),\
-		('Replace VGroup Names', RENAME_VGROUP, 'Renames mesh objects vertex group names'),\
+		('Rename ObData', RENAME_LINKED, 'Renames objects data to match the obname'),\
 		]
 		
 		if not Draw.PupBlock('Replace in name...', pup_block) or\
-		(not REPLACE_STRING.val+WITH_STRING.val):
+		((not REPLACE_STRING.val) and (not WITH_STRING)):
 			return 0
 		
 		REPLACE_STRING = REPLACE_STRING.val
@@ -124,14 +137,6 @@ def main():
 			if ob.name != newname:
 				ob.name = newname
 				renameCount+=1
-			if RENAME_VGROUP.val:
-				if ob.getType() == 'Mesh':
-					me= ob.getData(mesh=1)
-					for group in me.getVertGroupNames():
-						newname= group.replace(REPLACE_STRING, WITH_STRING)
-						if newname != group:
-							me.renameVertGroup(group, newname) 
-							renameCount+=1
 		return RENAME_LINKED.val
 			
 	
@@ -237,8 +242,18 @@ def main():
 				renameCount+=1
 		return 0
 		
+		
+	def renameLinkedDataFromObject():
+		global renameCount
+		Window.WaitCursor(1)
+
+		for ob in Object.GetSelected():
+			if setDataNameWrapper(ob, ob.name):
+				renameCount+=1
+		return 0
 	
-	name = "Selected Object Names%t|New Name|Replace Text|Add Prefix|Add Suffix|Truncate Start|Truncate End|Rename Objects to Data Names"
+	
+	name = "Selected Object Names%t|New Name|Replace Text|Add Prefix|Add Suffix|Truncate Start|Truncate End|Rename Objects to Data Names|Rename Data to Object Names"
 	result = Draw.PupMenu(name)
 	
 	renLinked = 0 # Rename linked data to the object name?
@@ -252,6 +267,7 @@ def main():
 	elif result == 5: renLinked= truncate_start()
 	elif result == 6: renLinked= truncate_end()
 	elif result == 7: renameObjectFromLinkedData()
+	elif result == 8: renameLinkedDataFromObject()
 	
 	if renLinked:
 		renameLinkedDataFromObject()
