@@ -702,14 +702,14 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 			short width= (short)(butr->xmax-butr->xmin)/2;
 			
 			dy-= 19;
-			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Frs:",
+			uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "Frs:",
 					  butr->xmin, dy, width, 19, 
 					  &nia->frames, 0.0, 10000.0, 0, 0, "Amount of images used in animation");
-			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "SFra:",
+			uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "SFra:",
 					  butr->xmin+width, dy, width, 19, 
 					  &nia->sfra, 1.0, 10000.0, 0, 0, "Start frame of animation");
 			dy-= 19;
-			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "First:",
+			uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "First:",
 					  butr->xmin, dy, width, 19, 
 					  &nia->nr, 0.0, 10000.0, 0, 0, "Number in image name, used as first in animation");
 			uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Cycl",

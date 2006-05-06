@@ -1941,8 +1941,8 @@ void anim_panels()
 	if(uiNewPanel(curarea, block, "Anim", "Anim", 0, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	10,160,150,20,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old mapping value in frames");
-	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	160,160,150,20,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
+	uiDefButI(block, NUM,B_FRAMEMAP,"Map Old:",	10,160,150,20,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old mapping value in frames");
+	uiDefButI(block, NUM,B_FRAMEMAP,"Map New:",	160,160,150,20,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",  10,130,150,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");

@@ -116,10 +116,11 @@ typedef struct bActionConstraint{
 	Object		*tar;
 	short		type;
 	short		local;
-	short		start;
-	short		end;
+	int		start;
+	int		end;
 	float		min;
 	float		max;
+	int             pad;
 	struct bAction	*act;
 	char		subtarget[32];
 } bActionConstraint;

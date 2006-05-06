@@ -181,8 +181,9 @@ typedef struct bNodeTree {
 /* data structs, for node->storage */
 
 typedef struct NodeImageAnim {
-	short frames, sfra, nr;
+	int frames, sfra, nr;
 	char cyclic, movie;
+	short pad;
 } NodeImageAnim;
 
 typedef struct NodeBlurData {

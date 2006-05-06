@@ -50,28 +50,26 @@ typedef struct bAddObjectActuator {
 typedef struct bActionActuator {								
 	struct bAction *act;	/* Pointer to action */				
 	short	type, flag;		/* Playback type */					
-	short	sta, end;		/* Start & End frames */			
+	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
-	short	blendin;		/* Number of frames of blending */	
+	int	blendin;		/* Number of frames of blending */	
 	short	priority;		/* Execution priority */			
-	float	stridelength;	/* Displacement incurred by cycle */
 	short	strideaxis;		/* Displacement axis */
-	short	reserved1;		/* Padding */					
-	short	reserved2;		/* Padding */						
-	short	reserved3;		/* Padding */						
+	float	stridelength;	/* Displacement incurred by cycle */
 } bActionActuator;												
 
 typedef struct bSoundActuator {
 	short flag, sndnr;
-	short sta, end;
+	int sta, end;
+	short pad1[2];
 	struct bSound *sound;
 	short type, makecopy;
-	short copymade, pad[1];
+	short copymade, pad2[1];
 } bSoundActuator;
 
 typedef struct bCDActuator {
 	short flag, sndnr;
-	short sta, end;
+	int sta, end;
 	short type, track;
 	float volume;
 } bCDActuator;
@@ -112,7 +110,7 @@ typedef struct bObjectActuator {
 
 typedef struct bIpoActuator {
 	short flag, type;
-	short sta, end;
+	int sta, end;
 	char name[32];
 	
 	short pad1, cur, butsta, butend;
@@ -136,10 +134,10 @@ typedef struct bConstraintActuator {
 
 typedef struct bGroupActuator {
 	short flag, type;
-	short sta, end;
+	int sta, end;
 	char name[32];		/* property or groupkey */
 	
-	short pad1, cur, butsta, butend;
+	short pad[3], cur, butsta, butend;/* not referenced, can remove? */
 	struct Group *group;		/* only during game */
 	
 } bGroupActuator;
@@ -185,7 +183,7 @@ typedef struct bMessageActuator {
 
 typedef struct bGameActuator {
 	short flag, type;
-	short sta, end;
+	int sta, end;
 	char filename[64];
 	char loadaniname[64];
 } bGameActuator;

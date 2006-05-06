@@ -1568,13 +1568,13 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			}
 			else
 			{
-				uiDefButS(block, NUM, 0, "Sta: ",xco+30, yco-64, (width-60)/2, 19, &aa->sta, 0.0, MAXFRAMEF, 0, 0, "Start frame");
-				uiDefButS(block, NUM, 0, "End: ",xco+30+(width-60)/2, yco-64, (width-60)/2, 19, &aa->end, 0.0, MAXFRAMEF, 0, 0, "End frame");
+				uiDefButI(block, NUM, 0, "Sta: ",xco+30, yco-64, (width-60)/2, 19, &aa->sta, 0.0, MAXFRAMEF, 0, 0, "Start frame");
+				uiDefButI(block, NUM, 0, "End: ",xco+30+(width-60)/2, yco-64, (width-60)/2, 19, &aa->end, 0.0, MAXFRAMEF, 0, 0, "End frame");
 			}
 			
 			
 			
-			uiDefButS(block, NUM, 0, "Blendin: ", xco+30, yco-84, (width-60)/2, 19, &aa->blendin, 0.0, MAXFRAMEF, 0.0, 0.0, "Number of frames of motion blending");
+			uiDefButI(block, NUM, 0, "Blendin: ", xco+30, yco-84, (width-60)/2, 19, &aa->blendin, 0.0, MAXFRAMEF, 0.0, 0.0, "Number of frames of motion blending");
 			uiDefButS(block, NUM, 0, "Priority: ", xco+30+(width-60)/2, yco-84, (width-60)/2, 19, &aa->priority, 0.0, 100.0, 0.0, 0.0, "Execution priority - lower numbers will override actions with higher numbers");
 			
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
@@ -1611,11 +1611,11 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 					"Use this property to define the Ipo position");
 			}
 			else {
-				uiDefButS(block, NUM, 0, 
+				uiDefButI(block, NUM, 0, 
 					"Sta",		xco+20, yco-44, (width-100)/2, 19, 
 					&ia->sta, 0.0, MAXFRAMEF, 0, 0, 
 					"Start frame");
-				uiDefButS(block, NUM, 0, 
+				uiDefButI(block, NUM, 0, 
 					"End",		xco+18+(width-90)/2, yco-44, (width-100)/2, 19, 
 					&ia->end, 0.0, MAXFRAMEF, 0, 0, 
 					"End frame");
@@ -1970,14 +1970,14 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		uiDefButS(block, MENU, 1, str,			xco+20, yco-24, width-40, 19, &ga->type, 0, 0, 0, 0, "");
 		if(ga->type==ACT_GROUP_SET) {
 			uiDefBut(block, TEX, 0, "Key: ",		xco+20, yco-44, (width-10)/2, 19, ga->name, 0.0, 31.0, 0, 0, "This name defines groupkey to be set");
-			uiDefButS(block, NUM, 0, "Frame:",	xco+20+(width-10)/2, yco-44, (width-70)/2, 19, &ga->sta, 0.0, 2500.0, 0, 0, "Set this frame");
+			uiDefButI(block, NUM, 0, "Frame:",	xco+20+(width-10)/2, yco-44, (width-70)/2, 19, &ga->sta, 0.0, 2500.0, 0, 0, "Set this frame");
 		}
 		else if(ga->type==ACT_GROUP_FROM_PROP) {
 			uiDefBut(block, TEX, 0, "Prop: ",		xco+20, yco-44, width-40, 19, ga->name, 0.0, 31.0, 0, 0, "Use this property to define the Group position");
 		}
 		else {
-			uiDefButS(block, NUM, 0, "Sta",		xco+20, yco-44, (width-40)/2, 19, &ga->sta, 0.0, 2500.0, 0, 0, "Start frame");
-			uiDefButS(block, NUM, 0, "End",		xco+20+(width-40)/2, yco-44, (width-40)/2, 19, &ga->end, 0.0, 2500.0, 0, 0, "End frame");
+			uiDefButI(block, NUM, 0, "Sta",		xco+20, yco-44, (width-40)/2, 19, &ga->sta, 0.0, 2500.0, 0, 0, "Start frame");
+			uiDefButI(block, NUM, 0, "End",		xco+20+(width-40)/2, yco-44, (width-40)/2, 19, &ga->end, 0.0, 2500.0, 0, 0, "End frame");
 		}
 		yco-= ysize;
 		break;

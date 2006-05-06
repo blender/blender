@@ -115,10 +115,10 @@ typedef struct EnvMap {
 	float obimat[3][3];
 	short type, stype;
 	float clipsta, clipend;
-	float viewscale, pad;	/* viewscale is for planar envmaps to zoom in or out */
+	float viewscale;	/* viewscale is for planar envmaps to zoom in or out */
 	unsigned int notlay;
 	short cuberes, depth;
-	short ok, lastframe;
+	int ok, lastframe;
 	short recalc, lastsize;
 } EnvMap;
 
@@ -149,9 +149,11 @@ typedef struct Tex {
 	
 	float cropxmin, cropymin, cropxmax, cropymax;
 	short xrepeat, yrepeat;
-	short extend, len;
+	short extend;
+	short fie_ima;
+	int len;
 	float checkerdist, nabla;
-	short frames, offset, sfra, fie_ima;
+	int frames, offset, sfra;
 	float norfac;
 	
 	struct Ipo *ipo;
@@ -160,7 +162,7 @@ typedef struct Tex {
 	struct ColorBand *coba;
 	struct EnvMap *env;
 	
-	short fradur[4][2];
+	int fradur[4][2];
 	
 } Tex;
 

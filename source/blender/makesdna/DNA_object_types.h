@@ -123,7 +123,7 @@ typedef struct Object {
 	short ipowin, scaflag;		/* ipowin: blocktype last ipowindow */
 	short scavisflag, boundtype;
 	
-	short dupon, dupoff, dupsta, dupend;
+	int dupon, dupoff, dupsta, dupend;
 
 	float sf, ctime;
 	
