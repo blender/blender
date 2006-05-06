@@ -54,6 +54,7 @@ struct ID; /*keep me up here */
 #include "BSE_headerbuttons.h"
 #include "DNA_screen_types.h"	/* for SPACE_VIEW3D */
 #include "DNA_userdef_types.h"
+#include "DNA_packedFile_types.h"
 #include "EXPP_interface.h" /* for bpy_gethome() */
 #include "gen_utils.h"
 #include "modules.h"
@@ -107,6 +108,9 @@ static PyObject *Blender_Run( PyObject * self, PyObject * args );
 static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args);
 static PyObject *Blender_ShowHelp( PyObject * self, PyObject * args );
 static PyObject *Blender_UpdateMenus( PyObject * self);
+static PyObject *Blender_PackAll( PyObject * self);
+static PyObject *Blender_UnpackAll( PyObject * self, PyObject * args);
+static PyObject *Blender_CountPackedFiles( PyObject * self );
 
 extern PyObject *Text3d_Init( void ); /* missing in some include */
 
@@ -184,6 +188,17 @@ static char Blender_UpdateMenus_doc[] =
 	"() - Update the menus where scripts are registered.  Only needed for\n\
 scripts that save other new scripts in the default or user defined folders.";
 
+static char Blender_PackAll_doc[] =
+"() - Pack all files.\n\
+All files will packed into the blend file.";
+static char Blender_UnpackAll_doc[] =
+"(mode) - Unpack files.\n\
+All files will be unpacked using specified mode.\n\n\
+(mode) - the unpack mode.";
+
+static char Blender_CountPackedFiles_doc[] =
+"() - Returns the number of packed files.";
+
 /*****************************************************************************/
 /* Python method structure definition.		 */
 /*****************************************************************************/
@@ -197,6 +212,9 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Run", Blender_Run, METH_VARARGS, Blender_Run_doc},
 	{"RemoveFakeuser", Blender_RemoveFakeuser, METH_VARARGS, Blender_RemoveFakeuser_doc},
 	{"ShowHelp", Blender_ShowHelp, METH_VARARGS, Blender_ShowHelp_doc},
+	{"CountPackedFiles", ( PyCFunction ) Blender_CountPackedFiles, METH_NOARGS, Blender_CountPackedFiles_doc},
+	{"PackAll", ( PyCFunction ) Blender_PackAll, METH_NOARGS, Blender_PackAll_doc},
+	{"UnpackAll", Blender_UnpackAll, METH_VARARGS, Blender_UnpackAll_doc},
 	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
 	 Blender_UpdateMenus_doc},
 	{NULL, NULL, 0, NULL}
@@ -801,7 +819,55 @@ static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+/*****************************************************************************/
+/* Function:		Blender_PackAll		 */
+/* Python equivalent:	Blender.PackAll			 */
+/*****************************************************************************/
+static PyObject *Blender_PackAll( PyObject * self)
+{
+	packAll();
+	Py_RETURN_NONE;
+}
 
+/*****************************************************************************/
+/* Function:		Blender_UnpackAll		 */
+/* Python equivalent:	Blender.UnpackAll			 */
+/*****************************************************************************/
+static PyObject *Blender_UnpackAll( PyObject * self, PyObject *args)
+{
+	int mode;
+	PyArg_ParseTuple( args, "i", &mode );
+	unpackAll(mode);
+	Py_RETURN_NONE;
+}
+ 
+/*****************************************************************************/
+/* Function:		Blender_CountPackedFiles		 */
+/* Python equivalent:	Blender.CountPackedFiles			 */
+/*****************************************************************************/
+static PyObject *Blender_CountPackedFiles( PyObject * self )
+{
+	int nfiles = countPackedFiles();
+	return PyInt_FromLong( nfiles );
+}
+static PyObject *Blender_UnpackModesDict( void )
+{
+	PyObject *UnpackModes = PyConstant_New(  );
+	if( UnpackModes ) {
+		BPy_constant *d = ( BPy_constant * ) UnpackModes;
+		PyConstant_Insert( d, "EQUAL", PyInt_FromLong((long)PF_EQUAL) );
+		PyConstant_Insert( d, "DIFFERS",PyInt_FromLong((long)PF_DIFFERS) );
+		PyConstant_Insert( d, "NOFILE", PyInt_FromLong((long)PF_NOFILE) );
+		PyConstant_Insert( d, "WRITE_ORIGINAL", PyInt_FromLong((long)PF_WRITE_ORIGINAL) );
+		PyConstant_Insert( d, "WRITE_LOCAL", PyInt_FromLong((long)PF_WRITE_LOCAL) );
+		PyConstant_Insert( d, "USE_LOCAL", PyInt_FromLong((long)PF_USE_LOCAL) );
+		PyConstant_Insert( d, "USE_ORIGINAL", PyInt_FromLong((long)PF_USE_ORIGINAL) );
+		PyConstant_Insert( d, "KEEP", PyInt_FromLong((long)PF_KEEP) );
+		PyConstant_Insert( d, "NOOP", PyInt_FromLong((long)PF_NOOP) );
+		PyConstant_Insert( d, "ASK", PyInt_FromLong((long)PF_EQUAL) );
+	}
+	return UnpackModes;
+}
 
 /*****************************************************************************/
 /* Function:		initBlender		 */
@@ -809,7 +875,7 @@ static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args)
 void M_Blender_Init(void)
 {
 	PyObject *module;
-	PyObject *dict, *smode, *SpaceHandlers;
+	PyObject *dict, *smode, *SpaceHandlers, *UnpackModes;
 	
 	/* G.scene should only aver be NULL if blender is executed in 
 	background mode, not loading a blend file and executing a python script eg.
@@ -827,6 +893,11 @@ void M_Blender_Init(void)
 
 	types_InitAll();	/* set all our pytypes to &PyType_Type */
 
+	// constants for packed files
+	UnpackModes = Blender_UnpackModesDict(  );
+	if( UnpackModes )
+		PyModule_AddObject( module, "UnpackModes", UnpackModes );
+ 
 	SpaceHandlers = PyConstant_New();
 	if (SpaceHandlers) {
 		BPy_constant *d = (BPy_constant *)SpaceHandlers;

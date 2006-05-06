@@ -50,6 +50,7 @@ class Sound:
     This object gives access to Sounds in Blender.
   @ivar name: The name of this Sound object.
   @ivar filename: The filename (path) to the sound file loaded into this Sound
+  @ivar packed: Boolean, True when the sample is packed (readonly).
      object.
   """
 
@@ -112,5 +113,23 @@ class Sound:
     Set this sound's pitch.
     @type f: float
     @param f: the new pitch value in the range [-12.0, 12.0].    
+    """
+
+  def pack():
+    """
+    Packs the sound into the current blend file.
+    @note: An error will be raised if the sound is alredy packed or the filename path does not exist.
+    @returns: nothing
+    @rtype: none
+    """
+
+  def unpack(mode):
+    """
+    Unpacks the sound to the samples filename.
+    @param mode: One of the values in Blender.Unpackmodes dict.
+    @note: An error will be raised if the sound is not packed or the filename path does not exist.
+    @returns: nothing
+    @rtype: none
+    @type mode: int
     """
 

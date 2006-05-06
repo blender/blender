@@ -35,7 +35,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BLI_blenlib.h"
+#include "BKE_sound.h"
 #include "BIF_editsound.h"
+#include "BKE_packedFile.h"
 #include "mydevice.h"		/* redraw defines */
 #include "gen_utils.h"
 
@@ -123,6 +125,8 @@ static PyObject *Sound_getName( BPy_Sound * self );
 static PyObject *Sound_getFilename( BPy_Sound * self );
 static PyObject *Sound_play( BPy_Sound * self );
 static PyObject *Sound_setCurrent( BPy_Sound * self );
+static PyObject *Sound_unpack( BPy_Sound * self, PyObject * args);
+static PyObject *Sound_pack( BPy_Sound * self );
 //static PyObject *Sound_reload ( BPy_Sound * self );
 SOUND_FLOAT_METHODS( Volume, volume )
 SOUND_FLOAT_METHODS( Attenuation, attenuation )
@@ -148,7 +152,10 @@ static PyMethodDef BPy_Sound_methods[] = {
 	 "() - play this sound"},
 	{"setCurrent", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
 	 "() - make this the active sound in the sound buttons win (also redraws)"},
-
+	{"unpack", ( PyCFunction ) Sound_unpack, METH_VARARGS,
+		         "(int) - Unpack sound. Uses one of the values defined in Blender.UnpackModes."},
+	{"pack", ( PyCFunction ) Sound_pack, METH_NOARGS,
+		         "() Pack the sound"},
 /*
 	{"reload", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
 	 "() - reload this Sound object's sample.\n\
@@ -428,6 +435,57 @@ static PyObject *Sound_setCurrent( BPy_Sound * self )
 	Py_INCREF( Py_None );
 	return Py_None;
 }
+
+/* unpack sound */
+
+static PyObject *Sound_unpack( BPy_Sound * self, PyObject * args )
+{
+	bSound *sound = self->sound;
+	int mode;
+	if( !PyArg_ParseTuple( args, "i", &mode ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+							"expected 1 integer" );
+
+	if (!sound_sample_is_null(sound))
+	{
+	    bSample *sample = sound_find_sample(sound);
+	    if (sample->packedfile==NULL)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"sound not packed" );
+	    if (unpackSample(sample, mode) == RET_ERROR)
+                return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+                                "error unpacking sound" );
+	}
+	else
+	{
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"sound has no samples" );
+	}
+	Py_RETURN_NONE;
+	 
+}
+
+/* pack sound */
+
+static PyObject *Sound_pack( BPy_Sound * self )
+{
+	bSound *sound = self->sound;
+	if (!sound_sample_is_null(sound))
+	{
+		bSample *sample = sound_find_sample(sound);
+		if (sample->packedfile )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"sound alredy packed" );
+		sound_set_packedfile(sample, newPackedFile(sample->name));
+	}
+	else
+	{
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"sound has no samples" );
+	}
+	Py_RETURN_NONE;
+}
+
 /*
 static PyObject *Sound_reload( BPy_Sound * self)
 {
@@ -459,7 +517,19 @@ static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
 
 	else if( strcmp( name, "__members__" ) == 0 )
 		attr = Py_BuildValue( "[s,s]", "name", "filename" );
-
+	else if( strcmp( name, "packed" ) == 0 ) {
+		if (!sound_sample_is_null(self->sound))
+		{
+			bSample *sample = sound_find_sample(self->sound);
+			if (sample->packedfile)
+				attr = EXPP_incr_ret_True();
+			else
+				attr = EXPP_incr_ret_False();
+		}
+		else
+			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"Sound has no sample to unpack!" ) );
+	}
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject" ) );
@@ -538,3 +608,5 @@ static PyObject *Sound_repr( BPy_Sound * self )
 	return PyString_FromFormat( "[Sound \"%s\"]",
 				    self->sound->id.name + 2 );
 }
+
+

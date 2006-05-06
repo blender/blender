@@ -166,7 +166,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
 	 "() - Write image buffer to file"},
 	{"unpack", ( PyCFunction ) Image_unpack, METH_VARARGS,
-	 "(int) - Unpack image. [0,1,2], Never overwrite, Overwrite if different, Overwrite all."},
+	 "(int) - Unpack image. Uses the values defined in Blender.UnpackModes."},
 	{"pack", ( PyCFunction ) Image_pack, METH_NOARGS,
 	 "() Pack the image"},
 	{NULL, NULL, 0, NULL}
@@ -642,19 +642,12 @@ static PyObject *Image_getMinXY( BPy_Image * self )
 				      "could not determine min x or y" );
 }
 
-
-/* unpack
-mode 0; never overwrite
-mode 1; overwrite only if differs packed.
-mode 2; always overwrite.
-*/
-
+/* unpack image */
 
 static PyObject *Image_unpack( BPy_Image * self, PyObject * args )
 {
 	Image *image = self->image;
-	int mode, check, ret=RET_OK;		/* offset into image data */
-	char expandpath[FILE_MAXDIR + FILE_MAXFILE];
+	int mode;
 	
 	/*get the absolute path */
 	if( !PyArg_ParseTuple( args, "i", &mode ) )
@@ -665,41 +658,21 @@ static PyObject *Image_unpack( BPy_Image * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "image not packed" );
 	
-	BLI_strncpy(expandpath, image->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(expandpath, G.sce, 1);	
-	check= checkPackedFile(expandpath, image->packedfile);
-	
-	if (check==PF_NOFILE) {
-		ret= writePackedFile(expandpath, image->packedfile, 0); /* no guimode */
-	} else if (check==PF_EQUAL){
-		if (mode==2) /*always overwrite */
-			ret= writePackedFile(expandpath, image->packedfile, 0);
-	} else if (check==PF_DIFFERS) {
-		if (mode!=0)
-			ret= writePackedFile(expandpath, image->packedfile, 0); /* no guimode */
-	}
-	
-	if (ret==RET_ERROR)
+	if (unpackImage(image, mode) == RET_ERROR)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"internal unpacking error, could not write packed image, image still packed." );
-	
-	/*free packed data*/
-	freePackedFile(image->packedfile);
-	image->packedfile=NULL;
-	
-	/*free icon*/
-	BKE_icon_delete(&image->id);
-	image->id.icon_id = 0;
-	
+						"error unpacking image" );
 	Py_RETURN_NONE;
 }
+
+/* pack image */
 
 static PyObject *Image_pack( BPy_Image * self )
 {
 	Image *image = self->image;	
 	char expandpath[FILE_MAXDIR + FILE_MAXFILE];
 	BLI_strncpy(expandpath, image->name, FILE_MAXDIR+FILE_MAXFILE);
-	
+	BLI_convertstringcode(expandpath, G.sce, 1);
+
 	if (image->packedfile )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "image alredy packed" );

@@ -12,6 +12,7 @@ The main Blender module.
 
 B{New}: L{Run}, L{UpdateMenus}, new options to L{Get}, L{ShowHelp},
 L{SpaceHandlers} dictionary.
+L{UnpackModes} dictionary.
 
 Blender
 =======
@@ -41,6 +42,12 @@ Blender
       will exit as soon as it finishes rendering or executing a script
       (ex: 'C{blender -b <blender file> -P <script>}').  Try 'C{blender -h}'
       for more detailed informations.
+@type UnpackModes: constant dictionary
+@var UnpackModes: dictionary with available unpack modes.
+    - USE_LOCAL - use files in current directory (create when necessary)
+    - WRITE_LOCAL - write files in current directory (overwrite when necessary)
+    - USE_ORIGINAL - use files in original location (create when necessary)
+    - WRITE_ORIGINAL - write files in original location (overwrite when necessary)
 @type SpaceHandlers: constant dictionary
 @var SpaceHandlers: dictionary with space handler types.
     - VIEW3D_EVENT;
@@ -192,6 +199,22 @@ def UpdateMenus ():
   data and will make them accessible via menus.
   @note: only scripts that save other new scripts in the default or user
     defined folders need to call this function.
+  """
+def UnpackAll (mode):
+  """
+  Unpack all files with specified mode.
+  @param mode: The Mode for unpacking. Must be one of the modes in 
+  Blender.UnpackModes dictionary.
+  @type mode: int
+  """
+def PackAll ():
+  """
+  Pack all files.
+  """
+
+def Blender_CountPackedFiles():
+  """
+  Returns the number of packed files.
   """
 
 def Quit ():

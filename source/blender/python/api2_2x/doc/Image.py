@@ -82,7 +82,7 @@ class Image:
   @ivar start: Texture's animation start frame [0, 128].
   @ivar end: Texture's animation end frame [0, 128].
   @ivar speed: Texture's animation speed [1, 100].
-  @ivar packed: Boolean, True whe the Texture is packed (readonly).
+  @ivar packed: Boolean, True when the Texture is packed (readonly).
   @ivar bindcode: Texture's bind code (readonly).
   """
 
@@ -320,7 +320,7 @@ class Image:
   def unpack(mode):
     """
     Unpacks the image to the images filename.
-    @param mode: if 0, the existing file located at filename will be used. 1, The file will be overwritten if its different. 2, always overwrite the existing image file.
+    @param mode: One of the values in Blender.Unpackmodes dict.
     @note: An error will be raised if the image is not packed or the filename path does not exist.
     @returns: nothing
     @rtype: none
