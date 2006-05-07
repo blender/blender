@@ -172,17 +172,7 @@ class Object:
     Keep in mind that these transformation properties are relative to the objects parent (if any).
 
     To get these values in worldspace (taking into acount vertex parents, constraints etc)
-    use the matrix property that defaults to worldspace. There is currently no simple way to set an objects loc/size/rot in worldspace when it has a parent.
-
-    B{Example}::
-      import Blender
-      scn = Blender.Scene.GetCurrent()
-      ob = scn.getActiveObject()
-      if ob:
-        mat= ob.mat # Same as martixWorld
-        print 'Location", mat.translationPart() # 3D Vector
-        print 'Size", mat.scalePart() # 3D Vector
-        print 'Rotation", mat.toEuler() # Euler object
+    pass the argument 'worldspace' to these functions.
 
     @ivar LocX: The X location coordinate of the object.
     @ivar LocY: The Y location coordinate of the object.
@@ -432,10 +422,15 @@ class Object:
         - 5 - Textured
     """
 
-  def getEuler():
+  def getEuler(space):
     """
+    @type space: string
+    @param space: The desired space for the size:
+      - localspace: (default) relative to the object's parent;
+      - worldspace: absolute, taking vertex parents, tracking and
+          Ipo's into account;
     Returns the object's localspace rotation as Euler rotation vector (rotX, rotY, rotZ).  Angles are in radians.
-    @rtype: Py_Euler (WRAPPED DATA)
+    @rtype: Py_Euler
     @return: A python Euler. Data is wrapped when euler is present.
     """
 
@@ -459,8 +454,13 @@ class Object:
     @return: Selection state as True or False
     """
   
-  def getLocation():
+  def getLocation(space):
     """
+    @type space: string
+    @param space: The desired space for the location:
+      - localspace: (default) relative to the object's parent;
+      - worldspace: absolute, taking vertex parents, tracking and
+          Ipo's into account;
     Returns the object's location (x, y, z).
     @return: (x, y, z)
 
@@ -475,6 +475,7 @@ class Object:
       for obj in objects:
           print obj.getName()
           print obj.getLocation()
+    @note: the worldspace location is the same as ob.matrixWorld[3][0:3]
     """
 
   def getAction():
@@ -535,10 +536,16 @@ class Object:
     returned.
     """
 
-  def getSize():
+  def getSize(space):
     """
+    @type space: string
+    @param space: The desired space for the size:
+      - localspace: (default) relative to the object's parent;
+      - worldspace: absolute, taking vertex parents, tracking and
+          Ipo's into account;
     Returns the object's size.
     @return: (SizeX, SizeY, SizeZ)
+    @note: the worldspace size will not return negative (flipped) scale values.
     """
 
   def getParentBoneName():

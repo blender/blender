@@ -198,16 +198,16 @@ static PyObject *Object_getData(BPy_Object *self, PyObject *args, PyObject *kwd)
 static PyObject *Object_getDeltaLocation( BPy_Object * self );
 static PyObject *Object_getDrawMode( BPy_Object * self );
 static PyObject *Object_getDrawType( BPy_Object * self );
-static PyObject *Object_getEuler( BPy_Object * self );
+static PyObject *Object_getEuler( BPy_Object * self, PyObject * args );
 static PyObject *Object_getInverseMatrix( BPy_Object * self );
 static PyObject *Object_getIpo( BPy_Object * self );
-static PyObject *Object_getLocation( BPy_Object * self );
+static PyObject *Object_getLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_getName( BPy_Object * self );
 static PyObject *Object_getParent( BPy_Object * self );
 static PyObject *Object_getParentBoneName( BPy_Object * self );
-static PyObject *Object_getSize( BPy_Object * self );
+static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
 static PyObject *Object_getType( BPy_Object * self );
@@ -350,20 +350,21 @@ If 'name_only' is nonzero or True, only the name of the datablock is returned"},
 	"() - returns the pose from an object if it exists, else None"},
 	{"isSelected", ( PyCFunction ) Object_isSelected, METH_NOARGS,
 	 "Return a 1 or 0 depending on whether the object is selected"},
-	{"getEuler", ( PyCFunction ) Object_getEuler, METH_NOARGS,
-	 "Returns the object's rotation as Euler rotation vector\n\
+	{"getEuler", ( PyCFunction ) Object_getEuler, METH_VARARGS,
+	 "(space = 'localspace' / 'worldspace') - Returns the object's rotation as Euler rotation vector\n\
 (rotX, rotY, rotZ)"},
 	{"getInverseMatrix", ( PyCFunction ) Object_getInverseMatrix,
 	 METH_NOARGS,
 	 "Returns the object's inverse matrix"},
-	{"getLocation", ( PyCFunction ) Object_getLocation, METH_NOARGS,
-	 "Returns the object's location (x, y, z)"},
+	{"getLocation", ( PyCFunction ) Object_getLocation, METH_VARARGS,
+	 "(space = 'localspace' / 'worldspace') - Returns the object's location (x, y, z)\n\
+"},
 	{"getMaterials", ( PyCFunction ) Object_getMaterials, METH_VARARGS,
 	 "(i = 0) - Returns list of materials assigned to the object.\n\
 if i is nonzero, empty slots are not ignored: they are returned as None's."},
 	{"getMatrix", ( PyCFunction ) Object_getMatrix, METH_VARARGS,
 	 "(str = 'worldspace') - Returns the object matrix.\n\
-(str = 'worldspace') - the wanted matrix: worldspace (default), localspace\n\
+(str = 'worldspace') - the desired matrix: worldspace (default), localspace\n\
 or old_worldspace.\n\
 \n\
 'old_worldspace' was the only behavior before Blender 2.34.  With it the\n\
@@ -376,8 +377,8 @@ automatic when the script finishes."},
 	 "Returns the object's parent object"},
 	{"getParentBoneName", ( PyCFunction ) Object_getParentBoneName, METH_NOARGS,
 	 "Returns None, or the 'sub-name' of the parent (eg. Bone name)"},
-	{"getSize", ( PyCFunction ) Object_getSize, METH_NOARGS,
-	 "Returns the object's size (x, y, z)"},
+	{"getSize", ( PyCFunction ) Object_getSize, METH_VARARGS,
+	 "(space = 'localspace' / 'worldspace') - Returns the object's size (x, y, z)"},
 	{"getTimeOffset", ( PyCFunction ) Object_getTimeOffset, METH_NOARGS,
 	 "Returns the object's time offset"},
 	{"getTracked", ( PyCFunction ) Object_getTracked, METH_NOARGS,
@@ -710,13 +711,13 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 	QuatOne( object->quat );
 	QuatOne( object->dquat );
 
-	object->col[3] = 1.0;	// alpha 
+	object->col[3] = 1.0;	/* alpha */
 
 	object->size[0] = object->size[1] = object->size[2] = 1.0;
 	object->loc[0] = object->loc[1] = object->loc[2] = 0.0;
 	Mat4One( object->parentinv );
 	Mat4One( object->obmat );
-	object->dt = OB_SHADED;	// drawtype
+	object->dt = OB_SHADED;	/* drawtype*/
 	object->empty_drawsize= 1.0;
 	object->empty_drawtype= OB_ARROWS;
 	
@@ -752,7 +753,7 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 	object->anisotropicFriction[2] = 1.0;
 	object->gameflag = OB_PROP;
 
-	object->lay = 1;	// Layer, by default visible
+	object->lay = 1;	/* Layer, by default visible*/
 	G.totobj++;
 
 	object->data = NULL;
@@ -952,10 +953,10 @@ PyObject *Object_Init( void )
 	PyModule_AddIntConstant( module, "MAGNET",PFIELD_MAGNET );
 	PyModule_AddIntConstant( module, "WIND",PFIELD_WIND );
 
-		//Add SUBMODULES to the module
-	dict = PyModule_GetDict( module ); //borrowed
-	PyDict_SetItemString(dict, "Pose", Pose_Init()); //creates a *new* module
-	//PyDict_SetItemString(dict, "Constraint", Constraint_Init()); //creates a *new* module
+		/*Add SUBMODULES to the module*/
+	dict = PyModule_GetDict( module ); /*borrowed*/
+	PyDict_SetItemString(dict, "Pose", Pose_Init()); /*creates a *new* module*/
+	/*PyDict_SetItemString(dict, "Constraint", Constraint_Init()); */ /*creates a *new* module*/
 
 	return ( module );
 }
@@ -1243,7 +1244,7 @@ static PyObject *Object_getPose( BPy_Object * self )
 
 static PyObject * Object_getPose(BPy_Object *self)
 {
-	//if there is no pose will return PyNone
+	/*if there is no pose will return PyNone*/
 	return PyPose_FromPose(self->object->pose, self->object->id.name+2);
 }
 
@@ -1266,7 +1267,6 @@ static PyObject *Object_isSelected( BPy_Object * self )
 					"Internal error: could not find objects selection state" ) );
 }
 
-
 static PyObject *Object_getDrawType( BPy_Object * self )
 {
 	PyObject *attr = Py_BuildValue( "b", self->object->dt );
@@ -1278,16 +1278,34 @@ static PyObject *Object_getDrawType( BPy_Object * self )
 					"couldn't get Object.drawType attribute" ) );
 }
 
-static PyObject *Object_getEuler( BPy_Object * self )
+static PyObject *Object_getEuler( BPy_Object * self, PyObject * args )
 {
+	char *space = "localspace";	/* default to local */
 	float eul[3];
-
-	eul[0] = self->object->rot[0];
-	eul[1] = self->object->rot[1];
-	eul[2] = self->object->rot[2];
+	
+	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a string or nothing" ) );
+	}
+	
+	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
+		float mat3[3][3];
+		disable_where_script( 1 );
+		where_is_object( self->object );
+		Mat3CpyMat4(mat3, self->object->obmat);
+		Mat3ToEul(mat3, eul);
+		disable_where_script( 0 );
+	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
+		eul[0] = self->object->rot[0];
+		eul[1] = self->object->rot[1];
+		eul[2] = self->object->rot[2];
+	} else {
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"wrong parameter, expected nothing or either 'localspace' (default),\n\
+'worldspace'" ) );
+	}
 
 	return ( PyObject * ) newEulerObject( eul, Py_NEW );
-
 }
 
 static PyObject *Object_getInverseMatrix( BPy_Object * self )
@@ -1311,12 +1329,36 @@ static PyObject *Object_getIpo( BPy_Object * self )
 	return Ipo_CreatePyObject( ipo );
 }
 
-static PyObject *Object_getLocation( BPy_Object * self )
+static PyObject *Object_getLocation( BPy_Object * self, PyObject * args )
 {
-	PyObject *attr = Py_BuildValue( "fff",
+	char *space = "localspace";	/* default to local */
+	PyObject *attr;
+	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a string or nothing" ) );
+	}
+	
+	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
+		disable_where_script( 1 );
+		where_is_object( self->object );
+		
+		attr = Py_BuildValue( "fff",
+					self->object->obmat[3][0],
+					self->object->obmat[3][1],
+					self->object->obmat[3][2] );
+		
+		disable_where_script( 0 );
+		
+	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
+		attr = Py_BuildValue( "fff",
 					self->object->loc[0],
 					self->object->loc[1],
 					self->object->loc[2] );
+		} else {
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"wrong parameter, expected nothing or either 'localspace' (default),\n\
+'worldspace'" ) );
+		}
 
 	if( attr )
 		return ( attr );
@@ -1411,12 +1453,36 @@ static PyObject *Object_getParentBoneName( BPy_Object * self )
 					"Failed to get parent bone name" ) );
 }
 
-static PyObject *Object_getSize( BPy_Object * self )
+static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 {
-	PyObject *attr = Py_BuildValue( "fff",
+	PyObject *attr;
+	char *space = "localspace";	/* default to local */
+	
+	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a string or nothing" ) );
+	}
+	
+	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
+		float scale[3];
+		disable_where_script( 1 );
+		where_is_object( self->object );
+		Mat4ToSize(self->object->obmat, scale);
+		attr = Py_BuildValue( "fff",
 					self->object->size[0],
 					self->object->size[1],
 					self->object->size[2] );
+		disable_where_script( 0 );
+	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
+		attr = Py_BuildValue( "fff",
+					self->object->size[0],
+					self->object->size[1],
+					self->object->size[2] );
+	} else {
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"wrong parameter, expected nothing or either 'localspace' (default),\n\
+'worldspace'" ) );
+	}
 
 	if( attr )
 		return ( attr );
@@ -2064,7 +2130,7 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 	}
 
 	child->parent = parent;
-	//py_obj_child = (BPy_Object *) py_child;
+	/* py_obj_child = (BPy_Object *) py_child; */
 	if( noninverse == 1 ) {
 		Mat4One(child->parentinv);
 		/* Parent inverse = unity */
@@ -2169,7 +2235,7 @@ static PyObject *Object_setEuler( BPy_Object * self, PyObject * args )
 	/* do we have 3 floats? */
 	if( PyObject_Length( args ) == 3 ) {
 		status = PyArg_ParseTuple( args, "fff", &rot1, &rot2, &rot3 );
-	} else {		//test to see if it's a list or a euler
+	} else {		/*test to see if it's a list or a euler*/
 		if( PyArg_ParseTuple( args, "O", &ob ) ) {
 			if( EulerObject_Check( ob ) ) {
 				rot1 = ( ( EulerObject * ) ob )->eul[0];
@@ -2362,7 +2428,7 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	char *chanName;
 	int actframe;
 
-	//for debug prints
+	/*for debug prints*/
 	bActionChannel *achan;
 	bPoseChannel *pchan;
 
@@ -2382,7 +2448,7 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	oldframe = G.scene->r.cfra;
 	G.scene->r.cfra = curframe;
 	
-	//debug
+	/*debug*/
 	pchan = get_pose_channel(ob->pose, chanName);
 	printquat(pchan->name, pchan->quat);
 
@@ -2425,8 +2491,8 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	EXPP_allqueue(REDRAWNLA, 0);
 
 	/* restore, but now with the new action in place */
-	//extract_pose_from_action(ob->pose, ob->action, G.scene->r.cfra);
-	//where_is_pose(ob);
+	/*extract_pose_from_action(ob->pose, ob->action, G.scene->r.cfra);
+	where_is_pose(ob);*/
 	
 	allqueue(REDRAWACTION, 1);
 
@@ -2436,7 +2502,7 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args )
 {
   Object *ob= self->object;
-  //bPoseChannel *pchan; //for iterating over all channels in object->pose
+  /*bPoseChannel *pchan;*/ /*for iterating over all channels in object->pose*/
   char *chanName;
 
   /* for doing the time trick, similar to editaction bake_action_with_client() */
@@ -2490,7 +2556,7 @@ static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args )
 	float localQuat[4];
 	float tmat[4][4], startpos[4][4];
 
-	//to get the matrix
+	/*to get the matrix*/
 	bArmature *arm;
 	Bone      *bone;
 	        
@@ -2500,11 +2566,11 @@ static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args )
 	oldframe = G.scene->r.cfra;
 	G.scene->r.cfra = curframe;
 
-	//just to get the armaturespace mat
+	/*just to get the armaturespace mat*/
 	arm = get_armature(ob);
 	for (bone = arm->bonebase.first; bone; bone=bone->next)
 	  if (bone->name == chanName) break;
-	  //XXX does not check for if-not-found
+	  /*XXX does not check for if-not-found*/
 
 	where_is_object(ob);
 	world2bonespace(tmat, ob->obmat, bone->arm_mat, startpos);
@@ -2517,10 +2583,11 @@ static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args )
 	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, localQuat[1]);
 	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, localQuat[2]);
 	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, localQuat[3]);
-	//insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, );
-	//insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y);
-	//insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z);
-	
+	/*
+	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, );
+	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y);
+	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z);
+	*/
 	allspace(REMAKEIPO, 0);
 	EXPP_allqueue(REDRAWIPO, 0);
 	EXPP_allqueue(REDRAWVIEW3D, 0);
@@ -2542,18 +2609,19 @@ static PyObject *Object_bake_to_action( BPy_Object * self, PyObject * args )
 {
 
 	/* for doing the time trick, similar to editaction bake_action_with_client() */
-	//int oldframe;
-	//int curframe;
+	/*
+	int oldframe;
+	int curframe;
 
-	//if( !PyArg_ParseTuple( args, "i", &curframe ) )
-	//  return ( EXPP_ReturnPyObjError( PyExc_AttributeError, "expects an int for the frame where to put the new key" ) );
+	if( !PyArg_ParseTuple( args, "i", &curframe ) )
+	  return ( EXPP_ReturnPyObjError( PyExc_AttributeError, "expects an int for the frame where to put the new key" ) );
 	
-	//oldframe = G.scene->r.cfra;
-	//G.scene->r.cfra = curframe;
+	oldframe = G.scene->r.cfra;
+	G.scene->r.cfra = curframe;
+	*/
+	bake_all_to_action(); /*ob);*/
 
-	bake_all_to_action(); //ob);
-
-	//G.scene->r.cfra = oldframe;
+	/*G.scene->r.cfra = oldframe;*/
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -2586,9 +2654,9 @@ static PyObject *Object_copyNLA( BPy_Object * self, PyObject * args ) {
 }
 
 static PyObject *Object_convertActionToStrip( BPy_Object * self ) {
-	//when BPY gets a Strip type, make this to return the created strip.
+	/*when BPY gets a Strip type, make this to return the created strip.*/
 	convert_action_to_strip(self->object);
-	return EXPP_incr_ret_True (); //figured that True is closer to a Strip than None..
+	return EXPP_incr_ret_True (); /*figured that True is closer to a Strip than None..*/
 }
 
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args )
@@ -2917,7 +2985,7 @@ static PyObject *Object_addProperty( BPy_Object * self, PyObject * args )
 						"expected 1,2 or 3 arguments" ) );
 	}
 
-	//parse property type
+	/*parse property type*/
 	if( !py_prop ) {
 		if( prop_type ) {
 			if( BLI_streq( prop_type, "BOOL" ) )
@@ -2935,7 +3003,7 @@ static PyObject *Object_addProperty( BPy_Object * self, PyObject * args )
 					 ( PyExc_RuntimeError,
 					   "BOOL, INT, FLOAT, TIME or STRING expected" ) );
 		} else {
-			//use the default
+			/*use the default*/
 			if( PyInt_Check( prop_data ) )
 				type = PROP_INT;
 			else if( PyFloat_Check( prop_data ) )
@@ -2947,10 +3015,10 @@ static PyObject *Object_addProperty( BPy_Object * self, PyObject * args )
 		type = py_prop->type;
 	}
 
-	//initialize a new bProperty of the specified type
+	/*initialize a new bProperty of the specified type*/
 	prop = new_property( type );
 
-	//parse data
+	/*parse data*/
 	if( !py_prop ) {
 		BLI_strncpy( prop->name, prop_name, 32 );
 		if( PyInt_Check( prop_data ) ) {
@@ -2972,7 +3040,7 @@ static PyObject *Object_addProperty( BPy_Object * self, PyObject * args )
 		}
 	}
 
-	//add to property listbase for the object
+	/*add to property listbase for the object*/
 	BLI_addtail( &self->object->prop, prop );
 
 	return EXPP_incr_ret( Py_None );
@@ -2984,14 +3052,14 @@ static PyObject *Object_removeProperty( BPy_Object * self, PyObject * args )
 	BPy_Property *py_prop = NULL;
 	bProperty *prop = NULL;
 
-	// we have property and no optional arg
+	/* we have property and no optional arg*/
 	if( !PyArg_ParseTuple( args, "O!", &property_Type, &py_prop ) ) {
 		if( !PyArg_ParseTuple( args, "s", &prop_name ) ) {
 			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 							"expected a Property or a string" ) );
 		}
 	}
-	//remove the link, free the data, and update the py struct
+	/*remove the link, free the data, and update the py struct*/
 	if( py_prop ) {
 		BLI_remlink( &self->object->prop, py_prop->property );
 		if( updatePyProperty( py_prop ) ) {
@@ -3025,7 +3093,7 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected an Object" ) );
 	}
-	//make a copy of all it's properties
+	/*make a copy of all it's properties*/
 	prop = self->object->prop.first;
 	while( prop ) {
 		propn = copy_property( prop );
