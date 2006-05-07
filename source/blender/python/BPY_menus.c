@@ -99,6 +99,8 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_FACESELECT;
 	else if( !strcmp( str, "WeightPaint" ) )
 		return PYMENU_WEIGHTPAINT;
+	else if( !strcmp( str, "VertexPaint" ) )
+		return PYMENU_VERTEXPAINT;
 	/* "Misc" or an inexistent group name: use misc */
 	else
 		return PYMENU_MISC;
@@ -157,6 +159,9 @@ char *BPyMenu_group_itoa( short menugroup )
 		break;
 	case PYMENU_WEIGHTPAINT:
 		return "WeightPaint";
+		break;
+	case PYMENU_VERTEXPAINT:
+		return "VertexPaint";
 		break;
 	case PYMENU_MISC:
 		return "Misc";

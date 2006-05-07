@@ -3542,6 +3542,9 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 /* vertex paint menu */
 static void do_view3d_vpaintmenu(void *arg, int event)
 {
+	/* events >= 2 are registered bpython scripts */
+	if (event >= 2) BPY_menu_do_python(PYMENU_VERTEXPAINT, event - 2);
+	
 	switch(event) {
 	case 0: /* undo vertex painting */
 		vpaint_undo();
@@ -3561,12 +3564,22 @@ static uiBlock *view3d_vpaintmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
+	BPyMenu *pym;
+	int i=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_vpaintmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	
+	/* note that we account for the 2 previous entries with i+2:
+	even if the last item isnt displayed, it dosent matter */
+	for (pym = BPyMenuTable[PYMENU_VERTEXPAINT]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 1, i+2,
+			pym->tooltip?pym->tooltip:pym->filename);
+	}
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

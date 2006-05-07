@@ -97,6 +97,7 @@ typedef enum {
 
 	PYMENU_FACESELECT,
 	PYMENU_WEIGHTPAINT,
+	PYMENU_VERTEXPAINT,
 	PYMENU_HELP,/*Main Help menu items - prob best to leave for 'official' ones*/
 	PYMENU_HELPSYSTEM,/* Resources, troubleshooting, system tools */
 	PYMENU_HELPWEBSITES,/* Help -> Websites submenu */
