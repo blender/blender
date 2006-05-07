@@ -44,7 +44,7 @@ reload(BPyMesh)
 
 
 def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY):
-	
+	Window.WaitCursor(1)
 	V=Mathutils.Vector
 	M=Mathutils.Matrix
 	Ang= Mathutils.AngleBetweenVecs
@@ -74,18 +74,12 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY):
 				vert_tone_list[v.index].append(0)
 				continue # look at the next vert
 				
-			elif l1<l2: # face is facing away from the vert normal
-				convex=1
-				#if v.sel: print "convex"
-				a= Ang(vno, fno)
-			else: # l1>l2
-				convex=-1# concave, darken.
-				#if v.sel: print "concave"
-				a= -Ang(vno, fno)
+			try: a= Ang(vno, fno)
+			except: a=0
 			
-			#a= Ang(vno, fno) * convex
+			# Concave
+			if l1>l2: a=-a
 			
-			#vert_tone[v.index] += a
 			vert_tone_list[v.index].append(a)
 
 
@@ -132,8 +126,10 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY):
 				tone= (tone/tone_range)
 				
 				tone= int(tone*255)
+				tone=min( max(tone, 0), 255)
 				f.col[i].r= f.col[i].g= f.col[i].b= tone
-
+	
+	Window.WaitCursor(0)
 
 def main():
 	scn= Scene.GetCurrent()
