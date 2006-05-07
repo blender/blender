@@ -308,17 +308,72 @@ me.faces.extend([[me.verts[ii] for ii in i] for i in indices])
 '''
 
 
+def meshPrettyNormals(me):
+	'''
+	takes a mesh and returns very high quality normals 1 normal per vertex.
+	The normals should be correct, indipendant of topology
+	'''
+	Ang= Blender.Mathutils.AngleBetweenVecs
+	Vector= Blender.Mathutils.Vector
+	SMALL_NUM=0.000001
+	# Weight the edge normals by total angle difference
+	# EDGE METHOD
+	
+	vertNormals= [ Vector() for v in xrange(len(me.verts)) ]
+	edges={}
+	for f in me.faces:
+		for i in xrange(len(f.v)):
+			i1, i2= f.v[i].index, f.v[i-1].index
+			if i1<i2:
+				i1,i2= i2,i1
+				
+			try:
+				edges[i1, i2].append(f.no)
+			except:
+				edges[i1, i2]= [f.no]
+				
+	# Weight the edge normals by total angle difference
+	for fnos in edges.itervalues():
+		
+		len_fnos= len(fnos)
+		if len_fnos>1:
+			totAngDiff=0
+			for j in reversed(xrange(len_fnos)):
+				for k in reversed(xrange(j)):
+					#print j,k
+					try:
+						totAngDiff+= (Ang(fnos[j], fnos[k])) # /180 isnt needed, just to keeop the vert small.
+					except:
+						pass # Zero length face
+			
+			# print totAngDiff
+			if totAngDiff > SMALL_NUM:
+				
+				'''
+				average_no= Vector()
+				for no in fnos:
+					average_no+=no
+				'''
+				average_no= reduce(lambda a,b: a+b, fnos, Vector())
+				fnos.append(average_no*totAngDiff) # average no * total angle diff
+			else:
+				fnos[0]
+		else: 
+			fnos.append(fnos[0])
+	
+	for ed, v in edges.iteritems():
+		vertNormals[ed[0]]+= v[-1]
+		vertNormals[ed[1]]+= v[-1]
+	for v in vertNormals:
+		v.normalize()
+	return vertNormals
 
 
 
-
-
-
-from Blender import *
 
 def pointInsideMesh(ob, pt):
-	Intersect = Mathutils.Intersect # 2 less dict lookups.
-	Vector = Mathutils.Vector
+	Intersect = Blender.Mathutils.Intersect # 2 less dict lookups.
+	Vector = Blender.Mathutils.Vector
 	
 	def ptInFaceXYBounds(f, pt):
 			
@@ -367,7 +422,7 @@ def pointInsideMesh(ob, pt):
 			return False
 	
 	
-	obImvMat = Mathutils.Matrix(ob.matrixWorld)
+	obImvMat = Blender.Mathutils.Matrix(ob.matrixWorld)
 	obImvMat.invert()
 	pt.resize4D()
 	obSpacePt = pt* obImvMat
@@ -380,19 +435,14 @@ def pointInsideMesh(ob, pt):
 	return len([None for f in me.faces if ptInFaceXYBounds(f, obSpacePt) if faceIntersect(f)]) % 2
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Get face center
+def faceCent(f):
+	cent= Blender.Mathutils.Vector()	
+	l= len(f.v)
+	for v in f.v:
+		cent+=v.co
+	return cent*(1.0/l)
+	
 
 # NMesh wrapper
 Vector= Blender.Mathutils.Vector
