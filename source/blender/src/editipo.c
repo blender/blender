@@ -4642,7 +4642,7 @@ void move_to_frame(void)
 									cfra+= ob->sf/G.scene->r.framelen;
 								}
 							}
-							CFRA= (short)floor(cfra+0.5);
+							CFRA= (int)floor(cfra+0.5);
 							
 							if(CFRA < 1) CFRA= 1;
 							update_for_newframe();

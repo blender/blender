@@ -463,7 +463,7 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 
 	//set the frame we want insertion on
 	oldframe = G.scene->r.cfra;
-	G.scene->r.cfra = (short)frame;
+	G.scene->r.cfra = frame;
 
 	//add the action channel if it's not there
 	verify_action_channel(((BPy_Object*)parent_object)->object->action, 
@@ -498,7 +498,7 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 	}
 
 	//flip the frame back
-	G.scene->r.cfra = (short)oldframe;
+	G.scene->r.cfra = oldframe;
 
 	//update the IPOs
 	remake_action_ipos (((BPy_Object*)parent_object)->object->action);

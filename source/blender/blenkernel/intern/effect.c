@@ -475,7 +475,7 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 	float *obloc;
 	float distance, force_val, ffall_val;
 	float guidecollect[3], guidedist= 0.0f;
-	short cur_frame;
+	int cur_frame;
 	
 	guidecollect[0]= guidecollect[1]= guidecollect[2]=0.0f;
 
@@ -501,7 +501,7 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		/* Need to set r.cfra for paths (investigate, ton) (uses ob->ctime now, ton) */
 		if(ob->ctime!=cur_time) {
 			cur_frame = G.scene->r.cfra;
-			G.scene->r.cfra = (short)cur_time;
+			G.scene->r.cfra = (int)cur_time;
 			where_is_object_time(ob, cur_time);
 			G.scene->r.cfra = cur_frame;
 		}
@@ -702,7 +702,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 	int a, deflected=0, deflected_now=0;
 	float t,t2, min_t;
 	float mat[3][3], obloc[3];
-	short cur_frame;
+	int cur_frame;
 	float time_before, time_after;
 	float force_mag_norm;
 	int d_object=0, d_face=0, ds_object=0, ds_face=0;
@@ -734,7 +734,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 				else {
 					/*Find out where the object is at this time*/
 					cur_frame = G.scene->r.cfra;
-					G.scene->r.cfra = (short)cur_time;
+					G.scene->r.cfra = (int)cur_time;
 					where_is_object_time(ob, cur_time);
 					G.scene->r.cfra = cur_frame;
 					

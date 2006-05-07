@@ -1248,7 +1248,7 @@ static PyObject *NMesh_insertKey( PyObject * self, PyObject * args )
 	if( fra > 0 ) {
 		fra = EXPP_ClampInt( fra, 1, NMESH_FRAME_MAX );
 		oldfra = G.scene->r.cfra;
-		G.scene->r.cfra = (short)fra;
+		G.scene->r.cfra = (int)fra;
 	}
 
 	if( !mesh )
@@ -1259,7 +1259,7 @@ static PyObject *NMesh_insertKey( PyObject * self, PyObject * args )
 	allspace(REMAKEIPO, 0);
 
 	if( fra > 0 )
-		G.scene->r.cfra = (short)oldfra;
+		G.scene->r.cfra = (int)oldfra;
 
 	return EXPP_incr_ret( Py_None );
 }

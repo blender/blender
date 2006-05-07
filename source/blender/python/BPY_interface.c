@@ -1325,6 +1325,7 @@ void BPY_do_pyscript( ID * id, short event )
 	}
 }
 
+
 /* SPACE HANDLERS */
 
 /* These are special script links that can be assigned to ScrArea's to

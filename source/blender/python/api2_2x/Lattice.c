@@ -752,7 +752,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 	if( frame > 0 ) {
 		frame = EXPP_ClampInt( frame, 1, MAXFRAME );
 		oldfra = G.scene->r.cfra;
-		G.scene->r.cfra = (short)frame;
+		G.scene->r.cfra = (int)frame;
 	}
 //      else just use current frame, then
 //              return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
@@ -763,7 +763,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 	allspace(REMAKEIPO, 0);
 
 	if( frame > 0 )
-		G.scene->r.cfra = (short)oldfra;
+		G.scene->r.cfra = (int)oldfra;
 
 	Py_INCREF( Py_None );
 	return Py_None;

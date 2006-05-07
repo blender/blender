@@ -2340,7 +2340,7 @@ static void createTransObject(TransInfo *t)
 				popfirst(&elems);	// bring back pushed listbase
 				
 				if(elems.first) {
-					float cfraont;
+					int cfraont;
 					int ipoflag;
 					
 					base->flag |= BA_DO_IPO+BA_WAS_SEL;
@@ -2356,7 +2356,7 @@ static void createTransObject(TransInfo *t)
 					for(ik= elems.first; ik; ik= ik->next) {
 						
 						/* weak... this doesn't correct for floating values, giving small errors */
-						CFRA= (short)(ik->val/G.scene->r.framelen);
+						CFRA= (int)(ik->val/G.scene->r.framelen);
 						
 						do_ob_ipo(ob);
 						ObjectToTransData(td, ob);	// does where_is_object()
@@ -2376,7 +2376,7 @@ static void createTransObject(TransInfo *t)
 					poplast(ob->loc);
 					set_no_parent_ipo(0);
 					
-					CFRA= (short)cfraont;
+					CFRA= cfraont;
 					ob->ipoflag= ipoflag;
 					
 					where_is_object(ob);	// restore 
