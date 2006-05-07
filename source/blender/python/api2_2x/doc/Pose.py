@@ -85,6 +85,9 @@ class PoseBone:
   @type localMatrix: Matrix object
   @ivar poseMatrix: The total transformation of this PoseBone including constraints. (not settable)
   @type poseMatrix: Matrix object
+  @type constraints: BPy_ConstraintSeq
+  @ivar constraints: a sequence of constraints for the object
+
   """
 
   def insertKey(parentObject, frameNumber, type):

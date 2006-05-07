@@ -64,6 +64,7 @@ struct ID; /*keep me up here */
 #include "Armature.h"
 #include "BezTriple.h"
 #include "Camera.h"
+#include "Constraint.h"
 #include "Curve.h"
 #include "CurNurb.h"
 #include "Draw.h"
@@ -928,6 +929,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "BezTriple", BezTriple_Init());
 	PyDict_SetItemString(dict, "BGL", BGL_Init());
 	PyDict_SetItemString(dict, "CurNurb", CurNurb_Init());
+	PyDict_SetItemString(dict, "Constraint", Constraint_Init());
 	PyDict_SetItemString(dict, "Curve", Curve_Init());
 	PyDict_SetItemString(dict, "Camera", Camera_Init());
 	PyDict_SetItemString(dict, "Draw", Draw_Init());

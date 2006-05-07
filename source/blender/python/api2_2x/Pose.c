@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "Mathutils.h"
 #include "Object.h"
+#include "Constraint.h"
 #include "NLA.h"
 #include "gen_utils.h"
 
@@ -705,30 +706,12 @@ static int PoseBone_setPoseMatrix(BPy_PoseBone *self, PyObject *value, void *clo
 	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
 		sPoseBoneError, ".poseMatrix: ", "not able to set this property");
 }
-////------------------------PoseBone.constraints (getter)
-////Gets the constraints list
-//static PyObject *PoseBone_getConstraints(BPy_PoseBone *self, void *closure)
-//{
-//	PyObject *list = NULL, *py_constraint = NULL;
-//	bConstraint *constraint = NULL;
-//
-//	list = PyList_New(0);
-//	for (constraint = self->posechannel->constraints.first; constraint; constraint = constraint->next){
-//		py_constraint = PyConstraint_FromConstraint(constraint);
-//		if (!py_constraint)
-//			return NULL;
-//		if (PyList_Append(list, py_constraint) == -1){
-//			Py_DECREF(py_constraint);
-//			goto RuntimeError;
-//		}
-//		Py_DECREF(py_constraint);
-//	}
-//	return list;
-//
-//RuntimeError:
-//	return EXPP_objError(PyExc_RuntimeError, "%s%s%s",
-//		sPoseBoneError, ".constraints: ", "unable to build constraint list");
-//}
+//------------------------PoseBone.constraints (getter)
+//Gets the constraints sequence
+static PyObject *PoseBone_getConstraints(BPy_PoseBone *self, void *closure)
+{
+	return PoseConstraintSeq_CreatePyObject( self->posechannel );
+}
 ////------------------------PoseBone.constraints (setter)
 ////Sets the constraints list
 //static int PoseBone_setConstraints(BPy_PoseBone *self, PyObject *value, void *closure)
@@ -782,8 +765,8 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"The pose bone's head positon", NULL},
 	{"tail", (getter)PoseBone_getTail, (setter)PoseBone_setTail, 
 		"The pose bone's tail positon", NULL},
-	//{"constraints", (getter)PoseBone_getConstraints, (setter)PoseBone_setConstraints, 
-	//	"The list of contraints that pertain to this pose bone", NULL},
+	{"constraints", (getter)PoseBone_getConstraints, (setter)NULL, 
+		"The list of contraints that pertain to this pose bone", NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc

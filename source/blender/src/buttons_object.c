@@ -197,8 +197,9 @@ static void add_constraint_to_active(Object *ob, bConstraint *con)
 
 /* returns base ID for Ipo, sets actname to channel if appropriate */
 /* should not make action... */
-static void get_constraint_ipo_context(Object *ob, char *actname)
+void get_constraint_ipo_context(void *ob_v, char *actname)
 {
+	Object *ob= ob_v;
 	
 	/* todo; check object if it has ob-level action ipo */
 	
@@ -268,8 +269,7 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 	BIF_undo_push("Insert Influence Key");
 }
 
-
-static void del_constraint_func (void *ob_v, void *con_v)
+void del_constr_func (void *ob_v, void *con_v)
 {
 	bConstraint *con= con_v;
 	bConstraintChannel *chan;
@@ -290,11 +290,14 @@ static void del_constraint_func (void *ob_v, void *con_v)
 	BLI_freelinkN(lb, con);
 	
 	constraint_active_func(ob_v, NULL);
+}
 
+static void del_constraint_func (void *ob_v, void *con_v)
+{
+	del_constr_func (ob_v, con_v);
 	BIF_undo_push("Delete constraint");
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWIPO, 0); 
-
 }
 
 static void verify_constraint_name_func (void *ob_v, void *con_v)
@@ -311,8 +314,10 @@ static void verify_constraint_name_func (void *ob_v, void *con_v)
 
 }
 
-static void get_constraint_typestring (char *str, bConstraint *con)
+void get_constraint_typestring (char *str, void *con_v)
 {
+	bConstraint *con= con_v;
+
 	switch (con->type){
 	case CONSTRAINT_TYPE_CHILDOF:
 		strcpy (str, "Child Of");
@@ -386,7 +391,7 @@ static int get_constraint_col(bConstraint *con)
 	}
 }
 
-static void constraint_moveUp(void *ob_v, void *con_v)
+void const_moveUp(void *ob_v, void *con_v)
 {
 	bConstraint *con, *constr= con_v;
 	ListBase *conlist;
@@ -401,10 +406,15 @@ static void constraint_moveUp(void *ob_v, void *con_v)
 			}
 		}
 	}
+}
+
+static void constraint_moveUp(void *ob_v, void *con_v)
+{
+	const_moveUp(ob_v, con_v);
 	BIF_undo_push("Move constraint");
 }
 
-static void constraint_moveDown(void *ob_v, void *con_v)
+void const_moveDown(void *ob_v, void *con_v)
 {
 	bConstraint *con, *constr= con_v;
 	ListBase *conlist;
@@ -419,6 +429,11 @@ static void constraint_moveDown(void *ob_v, void *con_v)
 			}
 		}
 	}
+}
+
+static void constraint_moveDown(void *ob_v, void *con_v)
+{
+	const_moveDown(ob_v, con_v);
 	BIF_undo_push("Move constraint");
 }
 
@@ -948,8 +963,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				
 				uiBlockBeginAlign(block);
-				uiDefButF(block,BUTM,B_CONSTRAINT_TEST,"R",*xco, *yco-60,20,18,&(data->orglength),0.0,0,0,0,"Recalculate RLenght");
-				uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Rest Length:",*xco+18, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Lenght at Rest Position");
+				uiDefButF(block,BUTM,B_CONSTRAINT_TEST,"R",*xco, *yco-60,20,18,&(data->orglength),0.0,0,0,0,"Recalculate RLength");
+				uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Rest Length:",*xco+18, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Length at Rest Position");
 				uiBlockEndAlign(block);
 
 				uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Volume Variation:",*xco+18, *yco-82,237,18,&(data->bulge),0.0,100,0.5,0.5,"Factor between volume variation and stretching");

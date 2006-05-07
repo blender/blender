@@ -38,6 +38,7 @@ The Blender Python API Reference
   - L{Noise}
   - L{Object} (*)
      - L{Pose}
+     - L{Constraint} (*)
   - L{Registry}
   - L{Scene}
      - L{Radio}

@@ -138,7 +138,6 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
   @param texture: When non-zero, texture data used by the object's materials will be duplicated with the objects.
   @type ipo: bool
   @param ipo: When non-zero, Ipo data linked to the object will be duplicated with the objects.
-  @return: None
 
   I{B{Example:}}
 
@@ -328,6 +327,9 @@ class Object:
     @type drawSize: float
     @ivar modifiers: The modifiers for this object.
     @type modifiers: ModSeq L{Modifier.ModSeq}
+    @type constraints: BPy_ConstraintSeq
+    @ivar constraints: a L{sequence<Constraint.ConstraintSeq>} of
+    L{constraints<Constraint.Constraint>} for the object.
   """
 
   def buildParts():

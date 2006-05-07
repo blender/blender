@@ -109,6 +109,7 @@ struct rctf;
 #include "Pose.h"
 #include "Group.h"
 #include "Modifier.h"
+#include "Constraint.h"
 #include "gen_utils.h"
 #include "EXPP_interface.h"
 #include "BIF_editkey.h"
@@ -3594,7 +3595,9 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	if( StringEqual( name, "drawSize" ) )
 		return ( PyFloat_FromDouble( object->empty_drawsize ) );
 	if( StringEqual( name, "modifiers" ) )
-		return ModSeq_CreatePyObject( obj->object );
+		return ModSeq_CreatePyObject( object );
+	if( StringEqual( name, "constraints" ) )
+		return ObConstraintSeq_CreatePyObject( object );
 	
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
