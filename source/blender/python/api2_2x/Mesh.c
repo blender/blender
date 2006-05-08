@@ -51,6 +51,7 @@
 #include "BIF_editkey.h"	/* insert_meshkey */
 #include "BIF_editview.h"
 #include "BIF_editmesh.h"
+#include "BIF_meshtools.h"
 
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -2350,7 +2351,7 @@ static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
  */
 
 static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
-		void * type )
+		void * type_unused )
 {
 	MEdge *edge = MEdge_get_pointer( self );
 	int param = PyObject_IsTrue( value );
@@ -3431,7 +3432,7 @@ static int MFace_setMFlagBits( BPy_MFace * self, PyObject * value,
 }
 
 static int MFace_setSelect( BPy_MFace * self, PyObject * value,
-		void * type )
+		void * type_unused )
 {
 	MFace *face = MFace_get_pointer( self );
 	int param = PyObject_IsTrue( value );
@@ -5611,8 +5612,9 @@ static PyObject *Mesh_removeVertsFromGroup( BPy_Mesh * self, PyObject * args )
 					      "no deform groups assigned to mesh" );
 
 	/* get out of edit mode */
-	G.obedit = 0;
-	exit_editmode( 1 );
+	G.obedit = NULL;
+	load_editMesh();
+	free_editMesh(G.editMesh);
 
 	if( !listObject ) /* no list given */
 		for( i = 0; i < mesh->totvert; i++ )
@@ -5865,7 +5867,7 @@ static PyObject *Mesh_getVertexInfluences( BPy_Mesh * self, PyObject * args )
 
 static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
-	Base *base, *basact;
+	Base *base;
 	int result;
 	Object *object = NULL; 
 	PyObject *attr = NULL;
@@ -5891,12 +5893,11 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 						"Object specified is not a mesh." );
 
-	/* save active object for later, make mesh's object active */
-	basact = BASACT;
-	BASACT = base;
+	/* make mesh's object active, enter mesh edit mode */
+	G.obedit = object;
+	make_editMesh();
 
-	/* enter mesh edit mode, apply subdivide, then exit edit mode */
-	enter_editmode( );
+	/* apply operation, then exit edit mode */
 	switch( type ) {
 	case MESH_TOOL_TOSPHERE:
 		vertices_to_sphere();
@@ -5933,8 +5934,17 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 		convert_to_triface( *((int *)args[0]) );
 		break;
 	}
-	exit_editmode( 1 );
-	BASACT = basact;
+
+	/* exit edit mode, free edit mesh */
+	load_editMesh();
+	free_editMesh(G.editMesh);
+
+	if(G.f & G_FACESELECT)
+		EXPP_allqueue( REDRAWIMAGE, 0 );
+	if(G.f & G_WEIGHTPAINT)
+		mesh_octree_table(G.obedit, NULL, 'e');
+	G.obedit = NULL;
+
 	if( attr )
 		return attr;
 
@@ -6747,7 +6757,7 @@ PyTypeObject Mesh_Type = {
  * get one or all mesh data objects
  */
 
-static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
+static PyObject *M_Mesh_Get( PyObject * self_unused, PyObject * args )
 {
 	char *name = NULL;
 	Mesh *mesh = NULL;
@@ -6791,7 +6801,7 @@ static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
  * create a new mesh data object
  */
 
-static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
+static PyObject *M_Mesh_New( PyObject * self_unused, PyObject * args )
 {
 	char *name = "Mesh";
 	Mesh *mesh;
@@ -6830,7 +6840,7 @@ static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
  * creates a new MVert for users to manipulate
  */
 
-static PyObject *M_Mesh_MVert( PyObject * self, PyObject * args )
+static PyObject *M_Mesh_MVert( PyObject * self_unused, PyObject * args )
 {
 	int i;
 	MVert vert;
@@ -6858,7 +6868,7 @@ static PyObject *M_Mesh_MVert( PyObject * self, PyObject * args )
 	return PVert_CreatePyObject( &vert );
 }
 
-static PyObject *M_Mesh_Modes( PyObject * self, PyObject * args )
+static PyObject *M_Mesh_Modes( PyObject * self_unused, PyObject * args )
 {
 	int modes = 0;
 
