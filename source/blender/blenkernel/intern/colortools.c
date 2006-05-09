@@ -285,7 +285,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 {
 	CurveMapPoint *cmp= cuma->curve;
 	BezTriple *bezt;
-	float *fp, *allpoints, curf, range;
+	float *fp, *allpoints, *lastpoint, curf, range;
 	int a, totpoint;
 	
 	if(cuma->curve==NULL) return;
@@ -373,6 +373,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	
 	/* now make a table with CM_TABLE equal x distances */
 	fp= allpoints;
+	lastpoint= allpoints + 2*(totpoint-1);
 	cmp= MEM_callocT((CM_TABLE+1)*sizeof(CurveMapPoint), "dist table");
 	cmp[0].x= cuma->mintable;
 	cmp[0].y= allpoints[1];
@@ -382,10 +383,10 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 		cmp[a].x= curf;
 		
 		/* get the first x coordinate larger than curf */
-		while(curf >= fp[0] && fp!=allpoints-2) {
+		while(curf >= fp[0] && fp!=lastpoint) {
 			fp+=2;
 		}
-		if(fp==allpoints-2)
+		if(fp==lastpoint)
 			cmp[a].y= fp[1];
 		else {
 			float fac1= fp[0] - fp[-2];
