@@ -348,7 +348,7 @@ m_enableSatCollisionDetection(false)
 	}
 
 
-	setSolverType(1);
+	setSolverType(1);//issues with quickstep and memory allocations
 
 	m_collisionWorld = new CollisionWorld(dispatcher,broadphase);
 
@@ -1222,6 +1222,37 @@ void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 	}
 
 }
+
+
+	struct	FilterClosestRayResultCallback : public CollisionWorld::ClosestRayResultCallback
+	{
+		PHY_IPhysicsController*	m_ignoreClient;
+
+		FilterClosestRayResultCallback (PHY_IPhysicsController* ignoreClient,const SimdVector3& rayFrom,const SimdVector3& rayTo)
+			: CollisionWorld::ClosestRayResultCallback(rayFrom,rayTo),
+			m_ignoreClient(ignoreClient)
+		{
+
+		}
+
+		virtual ~FilterClosestRayResultCallback()
+		{
+		}
+
+		virtual	float	AddSingleResult(const CollisionWorld::LocalRayResult& rayResult)
+		{
+			CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->m_userPointer);
+			//ignore client...
+			if (curHit != m_ignoreClient)
+			{		
+				//if valid
+				return ClosestRayResultCallback::AddSingleResult(rayResult);
+			}
+			return m_closestHitFraction;
+		}
+
+	};
+
 PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 													   float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
@@ -1234,32 +1265,10 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 
 	SimdVector3	hitPointWorld,normalWorld;
 
-	CollisionWorld::ClosestRayResultCallback rayCallback(rayFrom,rayTo);
+	//Either Ray Cast with or without filtering
 
-
-	struct	FilterClosestRayResultCallback : CollisionWorld::ClosestRayResultCallback
-	{
-		PHY_IPhysicsController*	m_ignoreClient;
-
-		FilterClosestRayResultCallback (PHY_IPhysicsController* ignoreClient,const SimdVector3& rayFrom,const SimdVector3& rayTo)
-			: CollisionWorld::ClosestRayResultCallback(rayFrom,rayTo),
-			m_ignoreClient(ignoreClient)
-		{
-
-		}
-
-		virtual	float	AddSingleResult(const CollisionWorld::LocalRayResult& rayResult)
-		{
-			CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->m_userPointer);
-			//ignore client...
-			if (curHit != m_ignoreClient)
-			{		
-				//if valid
-				return CollisionWorld::ClosestRayResultCallback::AddSingleResult(rayResult);
-			}
-		}
-
-	};
+	//CollisionWorld::ClosestRayResultCallback rayCallback(rayFrom,rayTo);
+	FilterClosestRayResultCallback	 rayCallback(ignoreClient,rayFrom,rayTo);
 
 
 	PHY_IPhysicsController* nearestHit = 0;
@@ -1520,7 +1529,6 @@ void	CcdPhysicsEnvironment::UpdateAabbs(float	timeStep)
 				if (bp)
 				{
 
-#ifdef WIN32
 					SimdVector3 color (1,1,0);
 
 					if (m_debugDrawer)
@@ -1554,7 +1562,6 @@ void	CcdPhysicsEnvironment::UpdateAabbs(float	timeStep)
 							DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
 						}
 					}
-#endif
 
 					scene->SetAabb(bp,minAabb,maxAabb);
 
