@@ -43,7 +43,7 @@ import BPyMesh
 reload(BPyMesh)
 
 
-def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY):
+def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
 	Window.WaitCursor(1)
 	V=Mathutils.Vector
 	M=Mathutils.Matrix
@@ -72,18 +72,26 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY):
 			
 			if abs(l1-l2) < 0.0000001:
 				vert_tone_list[v.index].append(0)
-				continue # look at the next vert
+			else:
+				try: a= Ang(vno, fno)
+				except: a=0
 				
-			try: a= Ang(vno, fno)
-			except: a=0
-			
-			# Concave
-			if l1>l2: a=-a
-			
-			vert_tone_list[v.index].append(a)
+				# Convex
+				if l1<l2:
+					a= min(PREF_CLAMP_CONVEX, a)
+					if PREF_SHADOW_ONLY:
+						vert_tone_list[v.index].append(0)
+					else:
+						vert_tone_list[v.index].append(a)
+				else:
+					a= min(PREF_CLAMP_CONCAVE, a)
+					vert_tone_list[v.index].append(-a)
+					
+				
+				
 
 
-	# average vert_tone_list into vert_tone
+	# average vert_tone_list into vert_tonef
 	for i, tones in enumerate(vert_tone_list):
 		if tones:
 			tone= 0.0
@@ -96,7 +104,7 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY):
 
 
 	# BLUR TONE
-	edge_lengths= [ ((ed.v1.co-ed.v2.co).length + 1) * PREF_BLUR_SCALE for ed in me.edges]
+	edge_lengths= [ ((ed.v1.co-ed.v2.co).length + 1) / PREF_BLUR_SCALE for ed in me.edges]
 	
 	for i in xrange(PREF_BLUR_ITERATIONS):
 		orig_vert_tone= list(vert_tone)
@@ -105,14 +113,18 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY):
 			i2= ed.v2.index
 			l= edge_lengths[ii]
 			
-			vert_tone[i1]+= (orig_vert_tone[i2]/len(vert_tone_list[i1]))/ l
-			vert_tone[i2]+= (orig_vert_tone[i1]/len(vert_tone_list[i2]))/ l
+			len_vert_tone_list_i1 = len(vert_tone_list[i1])
+			len_vert_tone_list_i2 = len(vert_tone_list[i2])
+			
+			if not len_vert_tone_list_i1: len_vert_tone_list_i1=1
+			if not len_vert_tone_list_i2: len_vert_tone_list_i2=1
+			
+			vert_tone[i1]+= (orig_vert_tone[i2]/len_vert_tone_list_i1)/ l
+			vert_tone[i2]+= (orig_vert_tone[i1]/len_vert_tone_list_i2)/ l
 			
 
 	min_tone= min(vert_tone)
 	max_tone= max(vert_tone)
-
-	#print 'min', min_tone, 'max', max_tone
 	
 	tone_range= max_tone-min_tone
 	if max_tone==min_tone:
@@ -147,11 +159,17 @@ def main():
 	
 	PREF_BLUR_ITERATIONS= Draw.Create(0)
 	PREF_BLUR_SCALE= Draw.Create(1.0)	
+	PREF_SHADOW_ONLY= Draw.Create(0)	
+	PREF_CLAMP_CONCAVE= Draw.Create(180)
+	PREF_CLAMP_CONVEX= Draw.Create(180)
 	PREF_SEL_ONLY= Draw.Create(1)	
 	pup_block= [\
 	'Post AO Blur',\
 	('  Iterations:', PREF_BLUR_ITERATIONS, 1, 40, 'Number times to blur the colors. (higher blurs more)'),\
 	('  Blur Radius:', PREF_BLUR_SCALE, 0.1, 10.0, 'How much distance effects blur transfur (higher blurs more).'),\
+	'Angle Clipping',\
+	('Highlight Angle:', PREF_CLAMP_CONVEX, 0, 180, ''),\
+	('Shadow Angle:', PREF_CLAMP_CONCAVE, 0, 180, ''),\
 	('Sel Faces Only', PREF_SEL_ONLY, 'Only apply to UV/Face selected faces (mix vpain/uvface select).'),\
 	]
 	
@@ -160,9 +178,12 @@ def main():
 	
 	PREF_BLUR_ITERATIONS= PREF_BLUR_ITERATIONS.val
 	PREF_BLUR_SCALE= PREF_BLUR_SCALE.val
+	PREF_CLAMP_CONCAVE= PREF_CLAMP_CONCAVE.val
+	PREF_CLAMP_CONVEX= PREF_CLAMP_CONVEX.val
+	PREF_SHADOW_ONLY= PREF_SHADOW_ONLY.val
 	PREF_SEL_ONLY= PREF_SEL_ONLY.val
 	
-	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_SEL_ONLY)
+	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
 	
 if __name__=='__main__':
 	main()
