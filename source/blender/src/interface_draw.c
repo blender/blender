@@ -2168,13 +2168,13 @@ static void ui_draw_but_CURVE(uiBut *but)
 	}
 	
 	/* grid, every .25 step */
-	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.06f);
+	BIF_ThemeColorShade(TH_BUT_NEUTRAL, -16);
 	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 0.25f);
 	/* grid, every 1.0 step */
-	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.12f);
+	BIF_ThemeColorShade(TH_BUT_NEUTRAL, -24);
 	ui_draw_but_curve_grid(but, zoomx, zoomy, offsx, offsy, 1.0f);
 	/* axes */
-	BIF_ThemeColorBlend(TH_BUT_NEUTRAL, TH_BUT_OUTLINE, 0.25f);
+	BIF_ThemeColorShade(TH_BUT_NEUTRAL, -50);
 	glBegin(GL_LINES);
 	glVertex2f(but->x1, but->y1 + zoomy*(-offsy));
 	glVertex2f(but->x2, but->y1 + zoomy*(-offsy));
