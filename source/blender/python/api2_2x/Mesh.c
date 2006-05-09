@@ -5612,9 +5612,12 @@ static PyObject *Mesh_removeVertsFromGroup( BPy_Mesh * self, PyObject * args )
 					      "no deform groups assigned to mesh" );
 
 	/* get out of edit mode */
-	G.obedit = NULL;
-	load_editMesh();
-	free_editMesh(G.editMesh);
+
+	if( G.obedit ) {
+		load_editMesh();
+		free_editMesh(G.editMesh);
+		G.obedit = NULL;
+	}
 
 	if( !listObject ) /* no list given */
 		for( i = 0; i < mesh->totvert; i++ )
