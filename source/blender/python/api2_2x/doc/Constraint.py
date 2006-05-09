@@ -21,10 +21,11 @@ Or to print all the constraints attached to each bone in a pose::
   from Blender import *
   
   ob = Object.Get('Armature')
+  pose = ob.getPose()
   for bonename in pose.bones.keys():
     bone = pose.bones[bonename]
     for const in bone.constraints:
-      print bone.name,'=>'const
+      print bone.name,'=>',const
 
 @type Type: readonly dictionary
 @var Type: Constant Constraint dict used by L{ConstraintSeq.append()} and 
