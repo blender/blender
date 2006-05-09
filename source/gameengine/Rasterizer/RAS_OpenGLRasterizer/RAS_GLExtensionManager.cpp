@@ -421,11 +421,12 @@ PFNGLGETATTRIBLOCATIONARBPROC blGetAttribLocationARB;
  PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
 #endif
 
+ /*
 #ifdef GL_EXT_compiled_vertex_array
  PFNGLLOCKARRAYSEXTPROC blLockArraysEXT;
  PFNGLUNLOCKARRAYSEXTPROC blUnlockArraysEXT;
 #endif
-
+*/
 
 } // namespace bgl
 
@@ -647,7 +648,7 @@ static void LinkExtensions()
 		}
 	}
 #endif
-
+/*
 #ifdef GL_EXT_compiled_vertex_array
 	if (QueryExtension("GL_EXT_compiled_vertex_array"))
 	{
@@ -663,7 +664,7 @@ static void LinkExtensions()
 		}
 	}
 #endif
-
+*/
 	if (QueryExtension("GL_EXT_separate_specular_color"))
 	{
 			EnableExtension(_GL_EXT_separate_specular_color);

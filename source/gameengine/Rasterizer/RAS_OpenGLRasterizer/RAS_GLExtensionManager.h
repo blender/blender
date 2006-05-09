@@ -525,11 +525,12 @@ extern PFNGLGETVERTEXATTRIBFVARBPROC blGetVertexAttribfvARB;
 extern PFNGLGETVERTEXATTRIBIVARBPROC blGetVertexAttribivARB;
 #endif
 
+/*
 #ifdef GL_EXT_compiled_vertex_array
 extern PFNGLLOCKARRAYSEXTPROC blLockArraysEXT;
 extern PFNGLUNLOCKARRAYSEXTPROC blUnlockArraysEXT;
 #endif
-
+*/
 } /* namespace bgl */
 
 
