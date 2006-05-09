@@ -149,7 +149,10 @@ bool KX_NetworkMessageSensor::Evaluate(CValue* event)
 bool KX_NetworkMessageSensor::IsPositiveTrigger()
 {
 //	printf("KX_NetworkMessageSensor IsPositiveTrigger\n");
-	return m_IsUp;
+	//attempt to fix [ #3809 ] IPO Actuator does not work with some Sensors
+	//a better solution is to properly introduce separate Edge and Level triggering concept
+
+	return true;//m_IsUp;
 }
 
 /* --------------------------------------------------------------------- */

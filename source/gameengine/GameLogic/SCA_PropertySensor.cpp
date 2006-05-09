@@ -260,7 +260,16 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 	default:
 		; /* error */
 	}
-	m_recentresult=result;
+
+	//the concept of Edge and Level triggering has unwanted effect for KX_PROPSENSOR_CHANGED
+	//see Game Engine bugtracker [ #3809 ]
+	if (m_checktype != KX_PROPSENSOR_CHANGED)
+	{
+		m_recentresult=result;
+	} else
+	{
+		m_recentresult=true;
+	}
 	return result;
 }
 
