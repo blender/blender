@@ -71,9 +71,8 @@ def stripExt(name): # name is a string
 
 
 from Blender import *
-import BPyImage
-reload(BPyImage)
-import BPyMesh
+import BPyImage # use for comprehensiveImageLoad
+import BPyMesh # use for ngon
 
 try:
 	import os
@@ -124,27 +123,29 @@ def loadMaterialImage(mat, img_fileName, type, meshDict, dir):
 		mat.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)				
 	elif type == 'refl':
 		mat.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)				
+
+
+#===============================================================================#
+# This gets a mat or creates one of the requested name if none exist.           #
+#===============================================================================#
+def getMat(matName, materialDict):
+	# Make a new mat
+	try: return materialDict[matName]
+	except: pass # Better do any exception
 	
+	try: return materialDict[matName.lower()]
+	except: pass
+		
+	# Do we realy need to keep the dict up to date?, not realy but keeps consuistant.
+	mat= materialDict[matName]= Material.New(matName)
+	return mat
+
 
 #==================================================================================#
 # This function loads materials from .mtl file (have to be defined in obj file)    #
 #==================================================================================#
-def load_mtl(dir, mtl_file, meshDict, materialDict):
+def load_mtl(dir, IMPORT_USE_EXISTING_MTL, mtl_file, meshDict, materialDict):
 	
-	#===============================================================================#
-	# This gets a mat or creates one of the requested name if none exist.           #
-	#===============================================================================#
-	def getMat(matName, materialDict):
-		# Make a new mat
-		try:
-			return materialDict[matName]
-		#except NameError or KeyError:
-		except: # Better do any exception
-			# Do we realy need to keep the dict up to date?, not realy but keeps consuistant.
-			mat= materialDict[matName]= Material.New(matName)
-			return mat
-		
-			
 	mtl_file= stripPath(mtl_file)
 	mtl_fileName= dir + mtl_file
 	
@@ -221,7 +222,7 @@ getUniqueName.uniqueNames= []
 #==================================================================================#
 # This loads data from .obj file                                                   #
 #==================================================================================#
-def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGON=1, IMPORT_SMOOTH_GROUPS=0, IMPORT_MTL_SPLIT=0):
+def load_obj(file, IMPORT_MTL=1, IMPORT_USE_EXISTING_MTL=0, IMPORT_CONSTRAIN_BOUNDS=0.0, IMPORT_ROTATE_X90=0, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGON=1, IMPORT_SMOOTH_GROUPS=0, IMPORT_MTL_SPLIT=0):
 	global currentMesh,\
 	currentUsedVertList,\
 	currentUsedVertListSmoothGroup,\
@@ -242,6 +243,10 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 		ob.sel= 0
 	
 	TEX_OFF_FLAG= ~NMesh.FaceModes['TEX']
+	
+	# Used for bounds scaling
+	global BOUNDS
+	BOUNDS= 0.0
 	
 	# Get the file name with no path or .obj
 	fileName= stripExt( stripPath(file) )
@@ -268,10 +273,7 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	# if the mesh does not have the material then set -1
 	contextMeshMatIdx= -1
 	
-	# Keep this out of the dict for easy accsess.
-	nullMat= Material.New('(null)')
 	
-	currentMat= nullMat # Use this mat.
 	currentImg= None # Null image is a string, otherwise this should be set to an image object.\
 	if IMPORT_SMOOTH_ALL:
 		currentSmooth= True
@@ -293,13 +295,35 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	print '\tfile length: %d' % len(fileLines)
 	# Ignore normals and comments.
 	fileLines= [lsplit for l in fileLines if not l.startswith('vn') if not l.startswith('#') for lsplit in (l.split(),) if lsplit]
-	Vert= NMesh.Vert
+	
+	
+	
+	if IMPORT_CONSTRAIN_BOUNDS == 0.0:
+		if IMPORT_ROTATE_X90:
+			def Vert(x,y,z):
+				return NMesh.Vert(x,-z,y) # rotate 90 about the x axis.
+		else:
+			Vert= NMesh.Vert
+	else:
+		# Adding a vert also sets the bounds.
+		if IMPORT_ROTATE_X90:
+			def Vert(x,y,z):
+				global BOUNDS
+				BOUNDS= max(BOUNDS, x,y,z)
+				return NMesh.Vert(x,-z,y) # Rotate X90 Deg.
+		else:
+			def Vert(x,y,z):
+				global BOUNDS
+				BOUNDS= max(BOUNDS, x,y,z)
+				return NMesh.Vert(x,y,z)
+	
 	try:
 		vertList= [Vert(float(l[1]), float(l[2]), float(l[3]) ) for l in fileLines if l[0] == 'v']
 	except ValueError:
 		# What??? Maya 7 uses "6,45" instead of "6.45"
 		vertList= [Vert(float(l[1].replace(',', '.')), float(l[2].replace(',', '.')), float(l[3].replace(',', '.')) ) for l in fileLines if l[0] == 'v']
-		
+	
+
 	try:
 		uvMapList= [(float(l[1]), float(l[2])) for l in fileLines if l[0] == 'vt']
 	except ValueError:
@@ -310,8 +334,8 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 		smoothingGroups=  dict([('_'.join(l[1:]), None) for l in fileLines if l[0] == 's' ])
 	else:
 		smoothingGroups= {}
-	materialDict=     dict([('_'.join(l[1:]), None) for l in fileLines if l[0] == 'usemtl']) # Store all imported materials as unique dict, names are key
-	print '\tvert:%i  texverts:%i  smoothgroups:%i  materials:%s' % (len(vertList), len(uvMapList), len(smoothingGroups), len(materialDict))
+	
+	print '\tvert:%i  texverts:%i  smoothgroups:%i' % (len(vertList), len(uvMapList), len(smoothingGroups))
 	
 	# Replace filelines, Excluding v excludes "v ", "vn " and "vt "
 	# Remove any variables we may have created.
@@ -335,11 +359,31 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	#  Only want unique keys anyway
 	smoothingGroups['(null)']= None # Make sure we have at least 1.
 	smoothingGroups= smoothingGroups.keys()
-	print '\tfound %d smoothing groups.' % (len(smoothingGroups) -1)
+	
 	
 	# Add materials to Blender for later is in teh OBJ
-	for k in materialDict.iterkeys():
-		materialDict[k]= Material.New(k)
+	
+	# Keep this out of the dict for easy accsess.
+	if IMPORT_MTL:
+		materialDict= {}
+		
+		if IMPORT_USE_EXISTING_MTL:
+			# Add existing materials to the dict./
+			for mat in Material.Get():
+				mat_name= mat.name.lower()
+				
+				# Try add the name without the .001
+				if\
+				len(mat_name)>4 and\
+				mat_name[-4]=='.' and\
+				mat_name[-3:].isdigit():
+					materialDict[mat_name[-4:]]= mat
+				
+				# Add the lower name
+				materialDict[mat_name]= mat
+		
+		currentMat= nullMat= getMat('(null)', materialDict)
+		# Add all new materials allong the way...
 	
 	
 	# Make a list of all unused vert indices that we can copy from
@@ -427,10 +471,11 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 			currentMesh, currentUsedVertList, currentMaterialMeshMapping= meshDict[currentObjectName]
 			#getMeshMaterialIndex(currentMesh, currentMat)
 			
-			try:
-				contextMeshMatIdx= currentMaterialMeshMapping[currentMat.name] #getMeshMaterialIndex(currentMesh, currentMat)
-			except KeyError:
-				contextMeshMatIdx -1
+			if IMPORT_MTL:
+				try:
+					contextMeshMatIdx= currentMaterialMeshMapping[currentMat.name] #getMeshMaterialIndex(currentMesh, currentMat)
+				except KeyError:
+					contextMeshMatIdx -1
 			
 			# For new meshes switch smoothing groups to null
 			########currentSmoothGroup= '(null)'  # From examplesm changing the g/o shouldent change the smooth group.
@@ -439,9 +484,6 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 			except:
 				currentUsedVertList[currentSmoothGroup]= currentUsedVertListSmoothGroup= VERT_USED_LIST[:]						
 		
-	
-	
-	
 	
 	
 	
@@ -467,25 +509,23 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 		
 		elif l[0] == 'f' or l[0] == 'fo': # fo is not standard. saw it used once.
 			# Make a face with the correct material.
-			
 			# Add material to mesh
-			if contextMeshMatIdx == -1:
-				tmpMatLs= currentMesh.materials
-				
-				if len(tmpMatLs) == 16:
-					contextMeshMatIdx= 0 # Use first material
-					print 'material overflow, attempting to use > 16 materials. defaulting to first.'
-				else:
-					contextMeshMatIdx= len(tmpMatLs)
-					currentMaterialMeshMapping[currentMat.name]= contextMeshMatIdx
-					currentMesh.addMaterial(currentMat)
-			
+			if IMPORT_MTL:
+				if contextMeshMatIdx == -1:
+					tmpMatLs= currentMesh.materials					
+					if len(tmpMatLs) == 16:
+						contextMeshMatIdx= 0 # Use first material
+						print 'material overflow, attempting to use > 16 materials. defaulting to first.'
+					else:
+						contextMeshMatIdx= len(tmpMatLs)
+						currentMaterialMeshMapping[currentMat.name]= contextMeshMatIdx
+						currentMesh.addMaterial(currentMat)
+		
 			# Set up vIdxLs : Verts
 			# Set up vtIdxLs : UV
 			# Start with a dummy objects so python accepts OBJs 1 is the first index.
 			vIdxLs= []
 			vtIdxLs= []
-			
 			
 			fHasUV= len_uvMapList # Assume the face has a UV until it sho it dosent, if there are no UV coords then this will start as 0.
 			
@@ -503,14 +543,16 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 				l.extend(fileLines[lIdx])
 			# Done supporting crappy obj faces over multiple lines.
 			
+			
 			for v in l:
-				if v is not 'f': # Only the first v will be f, any better ways to skip it?
+				if not v.startswith('f'): # Only the first v will be f, any better ways to skip it?
 					# OBJ files can have // or / to seperate vert/texVert/normal
 					# this is a bit of a pain but we must deal with it.
 					objVert= v.split('/')
 					
 					# Vert Index - OBJ supports negative index assignment (like python)
 					index= int(objVert[0])-1
+					
 					# Account for negative indices.
 					if index < 0:
 						# Assume negative verts are relative.
@@ -595,8 +637,8 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 							f.image= currentImg
 						else:
 							f.mode &= TEX_OFF_FLAG
-					
-					f.mat= contextMeshMatIdx
+					if IMPORT_MTL:
+						f.mat= contextMeshMatIdx
 					f.smooth= currentSmooth
 					currentMesh.faces.append(f) # move the face onto the mesh
 			
@@ -619,8 +661,8 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 								f.image= currentImg
 							else:
 								f.mode &= TEX_OFF_FLAG
-						
-						f.mat= contextMeshMatIdx
+						if IMPORT_MTL:
+							f.mat= contextMeshMatIdx
 						f.smooth= currentSmooth
 						currentMesh.faces.append(f) # move the face onto the mesh
 			
@@ -644,8 +686,8 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 							f.image= currentImg
 						else:
 							f.mode &= TEX_OFF_FLAG
-					
-					f.mat= contextMeshMatIdx
+					if IMPORT_MTL:
+						f.mat= contextMeshMatIdx
 					f.smooth= currentSmooth
 					currentMesh.faces.append(f) # move the face onto the mesh
 				
@@ -725,11 +767,11 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 				
 		
 		# MATERIAL
-		elif l[0] == 'usemtl':
+		elif l[0] == 'usemtl' and IMPORT_MTL:
 			if len(l) == 1 or l[1] == '(null)':
 				currentMat= nullMat # We know we have a null mat.
 			else:
-				currentMat= materialDict['_'.join(l[1:])]
+				currentMat= getMat('_'.join(l[1:]), materialDict)
 				try:
 					contextMeshMatIdx= currentMaterialMeshMapping[currentMat.name]
 				except KeyError:
@@ -767,7 +809,13 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 	# Applies material properties to materials alredy on the mesh as well as Textures.
 	if IMPORT_MTL:
 		for mtl in mtl_fileName:
-			load_mtl(DIR, mtl, meshDict, materialDict)	
+			load_mtl(DIR, IMPORT_USE_EXISTING_MTL, mtl, meshDict, materialDict)	
+	
+	# Get a new scale factor if set as an option
+	SCALE=1.0
+	if IMPORT_CONSTRAIN_BOUNDS != 0.0:
+		while (BOUNDS*SCALE) > IMPORT_CONSTRAIN_BOUNDS:
+			SCALE/=10
 	
 	importedObjects= []
 	for mk, me in meshDict.iteritems():
@@ -779,8 +827,10 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 		name= getUniqueName(mk)
 		ob= NMesh.PutRaw(nme, name)
 		ob.name= name
-		
 		importedObjects.append(ob)
+		
+		ob.setSize(SCALE, SCALE, SCALE)
+		
 	
 	# Select all imported objects.
 	for ob in importedObjects:
@@ -799,9 +849,13 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGO
 
 def load_obj_ui(file):
 	
-	IMPORT_MTL= Draw.Create(1)
 	IMPORT_DIR= Draw.Create(0)
 	IMPORT_NEW_SCENE= Draw.Create(0)
+	IMPORT_MTL= Draw.Create(1)
+	IMPORT_USE_EXISTING_MTL= Draw.Create(1)
+	
+	IMPORT_CONSTRAIN_BOUNDS= Draw.Create(10.0)
+	IMPORT_ROTATE_X90= Draw.Create(1)
 	IMPORT_EDGES= Draw.Create(1)
 	IMPORT_SMOOTH_ALL= Draw.Create(1)
 	IMPORT_FGON= Draw.Create(1)
@@ -810,10 +864,14 @@ def load_obj_ui(file):
 	
 	# Get USER Options
 	pup_block= [\
-	('Material (*.mtl)', IMPORT_MTL, 'Imports material settings and images from the obj\'s .mtl file'),\
 	('All *.obj\'s in dir', IMPORT_DIR, 'Import all obj files in this dir (avoid overlapping data with "Create scene")'),\
-	('Create scene', IMPORT_NEW_SCENE, 'Imports each obj into its own scene, named from the file'),\
+	('Create Scene', IMPORT_NEW_SCENE, 'Imports each obj into its own scene, named from the file'),\
+	'Materials...',\
+	('Import (*.mtl)', IMPORT_MTL, 'Imports material settings and images from the obj\'s .mtl file'),\
+	('Re-Use Existing', IMPORT_USE_EXISTING_MTL, 'Use materials from the current blend where names match.'),\
 	'Geometry...',\
+	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by factors of 10 until it reacehs the size constraint.'),\
+	('Rotate X90', IMPORT_ROTATE_X90, 'Rotate X-Up to Blenders Z-Up'),\
 	('Edges', IMPORT_EDGES, 'Import faces with 2 verts as in edge'),\
 	('Smooths all faces', IMPORT_SMOOTH_ALL, 'Smooth all faces even if they are not in a smoothing group'),\
 	('Create FGons', IMPORT_FGON, 'Import faces with more then 4 verts as fgons.'),\
@@ -822,7 +880,7 @@ def load_obj_ui(file):
 	]
 	
 	if not os:
-		pup_block.pop(2) # Make sure this is the IMPORT_DIR option that requires OS
+		pup_block.pop(0) # Make sure this is the IMPORT_DIR option that requires OS
 	
 	if not Draw.PupBlock('Import OBJ...', pup_block):
 		return
@@ -831,15 +889,24 @@ def load_obj_ui(file):
 	Window.DrawProgressBar(0, '')
 	time= sys.time()
 	
-	IMPORT_MTL= IMPORT_MTL.val
 	IMPORT_DIR= IMPORT_DIR.val
 	IMPORT_NEW_SCENE= IMPORT_NEW_SCENE.val
+	IMPORT_MTL= IMPORT_MTL.val
+	IMPORT_USE_EXISTING_MTL= IMPORT_USE_EXISTING_MTL.val
+	
+	IMPORT_CONSTRAIN_BOUNDS= IMPORT_CONSTRAIN_BOUNDS.val
+	IMPORT_ROTATE_X90= IMPORT_ROTATE_X90.val
 	IMPORT_EDGES= IMPORT_EDGES.val
 	IMPORT_SMOOTH_ALL= IMPORT_SMOOTH_ALL.val
 	IMPORT_FGON= IMPORT_FGON.val
 	IMPORT_SMOOTH_GROUPS= IMPORT_SMOOTH_GROUPS.val
 	IMPORT_MTL_SPLIT= IMPORT_MTL_SPLIT.val
 	orig_scene= Scene.GetCurrent()
+	
+	# Dont do material split if we dont import material
+	if not IMPORT_MTL:
+		IMPORT_MTL_SPLIT=0
+	
 	
 	obj_dir= stripFile(file)
 	if IMPORT_DIR:
@@ -859,7 +926,7 @@ def load_obj_ui(file):
 				scn.makeCurrent()
 			
 			Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (f, count, obj_len))
-			load_obj(d+f, IMPORT_MTL, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT)
+			load_obj(d+f, IMPORT_MTL, IMPORT_USE_EXISTING_MTL, IMPORT_CONSTRAIN_BOUNDS, IMPORT_ROTATE_X90, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT)
 			
 	
 	orig_scene.makeCurrent() # We can leave them in there new scene.
