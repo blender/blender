@@ -45,7 +45,7 @@ public:
 		:m_jointAxis(jointAxis)
 	{
 		m_aJ = world2A*(rel_pos1.cross(m_jointAxis));
-		m_bJ = world2B*(rel_pos2.cross(m_jointAxis));
+		m_bJ = world2B*(rel_pos2.cross(-m_jointAxis));
 		m_0MinvJt	= inertiaInvA * m_aJ;
 		m_1MinvJt = inertiaInvB * m_bJ;
 		m_Adiag = massInvA + m_0MinvJt.dot(m_aJ) + massInvB + m_1MinvJt.dot(m_bJ);
@@ -76,7 +76,7 @@ public:
 		:m_jointAxis(jointAxis)
 	{
 		m_aJ= world2A*(rel_pos1.cross(m_jointAxis));
-		m_bJ = world2A*(rel_pos2.cross(m_jointAxis));
+		m_bJ = world2A*(rel_pos2.cross(-m_jointAxis));
 		m_0MinvJt	= inertiaInvA * m_aJ;
 		m_1MinvJt = SimdVector3(0.f,0.f,0.f);
 		m_Adiag = massInvA + m_0MinvJt.dot(m_aJ);

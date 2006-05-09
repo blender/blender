@@ -211,7 +211,7 @@ float resolveSingleFriction(
 			SimdScalar vrel = contactPoint.m_frictionWorldTangential0.dot(vel);
 
 			// calculate j that moves us to zero relative velocity
-			SimdScalar j = -vrel * contactPoint.m_jacDiagABInvTangent1;
+			SimdScalar j = -vrel * contactPoint.m_jacDiagABInvTangent0;
 			float total = contactPoint.m_accumulatedTangentImpulse0 + j;
 			GEN_set_min(total, limit);
 			GEN_set_max(total, -limit);
