@@ -281,7 +281,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 				}
 				case WOPHY_SUMO:
 				{
-					physics_engine = UseSumo;
+					physics_engine = UseBullet;//UseSumo; //disable Sumo, just use Bullet for now (unless too many people complain)
 					break;
 				}
 				case WOPHY_NONE:
