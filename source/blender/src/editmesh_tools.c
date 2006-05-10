@@ -282,8 +282,8 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 			
 				v1 = eve->tmp.v;
 				
+								
 				if(v1->dw && eve->dw){
-				
 					for(doubweight=0; doubweight < eve->totweight; doubweight++){
 						targetweight = -1;
 						for(currweight = 0; currweight < v1->totweight; currweight++){
@@ -298,7 +298,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 						}
 						else{	/*append*/
 							newdw = MEM_callocN(sizeof(MDeformWeight)*(v1->totweight+1), "MDeformWeight Append");
-							memcpy(newdw, v1->dw, sizeof(MDeformVert)*v1->totweight);
+							memcpy(newdw, v1->dw, sizeof(MDeformWeight)*v1->totweight);
 							MEM_freeN(v1->dw);
 							
 							v1->dw= newdw;
