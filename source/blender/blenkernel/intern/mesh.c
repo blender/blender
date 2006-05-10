@@ -228,7 +228,7 @@ Mesh *copy_mesh(Mesh *me)
 
 	men->mcol= MEM_dupallocN(me->mcol);
 	men->msticky= MEM_dupallocN(me->msticky);
-	men->texcomesh= NULL;
+
 	men->bb= MEM_dupallocN(men->bb);
 	
 	men->key= copy_key(me->key);
