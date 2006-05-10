@@ -263,11 +263,11 @@ void KX_KetsjiEngine::StartEngine()
 	m_firstframe = true;
 	m_bInitialized = true;
 	m_ticrate = DEFAULT_LOGIC_TIC_RATE;
-	m_currentFrame = 0;
-
+	
 	if (m_game2ipo)
 	{
 		m_sceneconverter->ResetPhysicsObjectsAnimationIpo();
+		m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame);
 	}
 
 }
@@ -438,7 +438,7 @@ void KX_KetsjiEngine::NextFrame()
 			
 				if (m_game2ipo)
 				{
-					m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame++);
+					m_sceneconverter->WritePhysicsObjectToAnimationIpo(++m_currentFrame);
 				}
 
 				scene->setSuspendedTime(0.0);
