@@ -1619,7 +1619,7 @@ static int MVertSeq_assign_item( BPy_MVertSeq * self, int i,
 		src = (MVert *)v->data;
 
 	memcpy( dst, src, sizeof(MVert) );
-	// mesh_update( self->mesh );
+	/* mesh_update( self->mesh );*/
 	return 0;
 }
 
@@ -1675,7 +1675,7 @@ static int MVertSeq_assign_slice( BPy_MVertSeq *self, int low, int high,
 
 		memcpy( dst, src, sizeof(MVert) );
 	}
-	// mesh_update( self->mesh );
+	/* mesh_update( self->mesh );*/
 	return 0;
 }
 
@@ -5279,7 +5279,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		tmpobj= copy_object( ob );
 		tmpmesh = tmpobj->data;
 		tmpmesh->id.us--;
-
+		
 		/* copies the data */
 		tmpobj->data = copy_mesh( tmpmesh );
 		G.totmesh++;
@@ -5324,9 +5324,17 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		/* free old material list (if it exists) and adjust user counts */
 		if( tmpcu->mat ) {
 			for( i = tmpcu->totcol; i-- > 0; ) {
-				self->mesh->mat[i] = tmpcu->mat[i];
-				if (self->mesh->mat[i]) {
-					tmpmesh->mat[i]->id.us++;
+				
+				/* are we an object material or data based? */
+				if (ob->colbits & 1<<i) {
+					self->mesh->mat[i] = ob->mat[i];
+					ob->mat[i]->id.us++;
+					tmpmesh->mat[i]->id.us--;
+				} else {
+					self->mesh->mat[i] = tmpcu->mat[i];
+					if (self->mesh->mat[i]) {
+						tmpmesh->mat[i]->id.us++;
+					}
 				}
 			}
 		}
@@ -5354,7 +5362,13 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		self->mesh->totcol = tmpmesh->totcol;		
 		if( tmpmesh->mat ) {
 			for( i = tmpmesh->totcol; i-- > 0; ) {
-				self->mesh->mat[i] = tmpmesh->mat[i];
+				/* are we an object material or data based? */
+				if (ob->colbits & 1<<i) {
+					self->mesh->mat[i] = ob->mat[i];
+					ob->mat[i]->id.us++;
+					tmpmesh->mat[i]->id.us--;
+				} else
+					self->mesh->mat[i] = tmpmesh->mat[i];
 				/* user count dosent need to change */
 			}
 		}
@@ -5455,7 +5469,7 @@ static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
 
 	object = ( ( BPy_Mesh * ) self )->object;
 
-	//get clamped name
+	/*get clamped name*/
 	tempStr = PyString_FromStringAndSize( groupStr, 32 );
 	groupStr = PyString_AsString( tempStr );
 
@@ -6624,7 +6638,7 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 "List of the mesh's materials",
 	 NULL},
 	{"degr",
-	 (getter)Mesh_getMaxSmoothAngle, (setter)Mesh_setMaxSmoothAngle,
+	 (getter)Mesh_getMaxSmoothAngle, (setter)Mesh_setMaxSmoothAngleMesh_setMaxSmoothAngle,
 	 "The max angle for auto smoothing",
 	 NULL},
 	{"maxSmoothAngle",

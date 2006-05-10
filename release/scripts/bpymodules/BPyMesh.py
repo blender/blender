@@ -174,11 +174,6 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 		scn.unlink(tempob)
 	
 	if type == 'Mesh':
-		tempMe = ob.getData(mesh=1)
-		mesh.materials = tempMe.materials
-		mesh.degr = tempMe.degr
-		try: mesh.mode = tempMe.mode # Mesh module needs fixing.
-		except: pass
 		if vgroups:
 			if tempob==None:
 				tempob= Blender.Object.New('Mesh')
@@ -190,20 +185,6 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 			except:
 				# if the modifier changes the vert count then it messes it up for us.
 				pass
-		
-	else:
-		try:
-			# Will only work for curves!!
-			# Text- no material access in python interface.
-			# Surf- no python interface
-			# MBall- no material access in python interface.
-			
-			data = ob.getData()
-			materials = data.getMaterials()
-			mesh.materials = materials
-			print 'assigning materials for non mesh'
-		except:
-			print 'Cant assign materials to', type
 	
 	return mesh
 
