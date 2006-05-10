@@ -530,7 +530,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	{
 
 		// define this in blender, the stepsize is 30 hertz, 60 hertz works much better 
-#define SPLIT_TIMESTEP 1
+//#define SPLIT_TIMESTEP 1
 
 #ifdef SPLIT_TIMESTEP
 		proceedDeltaTimeOneStep(0.5f*timeStep);
