@@ -29,7 +29,8 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 		
 		upidx= len_vecs-1
 		loidx= 0
-		
+		'''
+		# A lot faster bit can eternal loop
 		_range=upidx-loidx 
 		# Guess the right index, keep re-adjusting the high and the low.
 		while _range > 3:
@@ -43,7 +44,7 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 			_range=upidx-loidx 
 		
 		from_vec_idx= loidx
-		
+		'''
 		# Seek the rest of the way. should only need to seek 2 or 3 items at the most.
 		while from_vec_idx < len_vecs and vecs[from_vec_idx][1].z < seek_vec_z:
 			from_vec_idx+=1
