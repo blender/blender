@@ -6638,7 +6638,7 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 "List of the mesh's materials",
 	 NULL},
 	{"degr",
-	 (getter)Mesh_getMaxSmoothAngle, (setter)Mesh_setMaxSmoothAngleMesh_setMaxSmoothAngle,
+	 (getter)Mesh_getMaxSmoothAngle, (setter)Mesh_setMaxSmoothAngle,
 	 "The max angle for auto smoothing",
 	 NULL},
 	{"maxSmoothAngle",
