@@ -1099,6 +1099,37 @@ static PyObject *MVert_getNormal( BPy_MVert * self )
 }
 
 /*
+ * set a vertex's normal
+ */
+
+static int MVert_setNormal( BPy_MVert * self, VectorObject * value )
+{
+	int i;
+	MVert *v;
+	float normal[3];
+	
+	v = MVert_get_pointer( self );
+	if( !v )
+		return -1;
+
+	if( !VectorObject_Check( value ) || value->size != 3 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected vector argument of size 3" );
+	
+	
+	for( i=0; i<3 ; ++i)
+		normal[i] = value->vec[i];
+	
+	Normalise(normal);
+	
+	for( i=0; i<3 ; ++i)
+		v->no[i] = (short)(normal[i]*32767.0);
+	
+	return 0;
+}
+
+
+/*
  * get a vertex's select status
  */
 
@@ -1218,7 +1249,7 @@ static PyGetSetDef BPy_MVert_getseters[] = {
 	 "vertex's index",
 	 NULL},
 	{"no",
-	 (getter)MVert_getNormal, (setter)NULL,
+	 (getter)MVert_getNormal, (setter)MVert_setNormal,
 	 "vertex's normal",
 	 NULL},
 	{"sel",
@@ -1238,7 +1269,7 @@ static PyGetSetDef BPy_PVert_getseters[] = {
 	 "vertex's coordinate",
 	 NULL},
 	{"no",
-	 (getter)MVert_getNormal, (setter)NULL,
+	 (getter)MVert_getNormal, (setter)MVert_setNormal,
 	 "vertex's normal",
 	 NULL},
 	{"sel",
@@ -3101,6 +3132,189 @@ static PyObject *MEdgeSeq_delete( BPy_MEdgeSeq * self, PyObject *args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *MEdgeSeq_collapse( BPy_MEdgeSeq * self, PyObject *args )
+{
+	MEdge *srcedge;
+	unsigned int *edge_table;
+	float (*vert_list)[3];
+	int i, len;
+	Base *base, *basact;
+	Mesh *mesh = self->mesh;
+	Object *object = NULL; 
+	PyObject *tmp;
+
+	/*
+	 * when using removedoublesflag(), we need to switch to editmode, so
+	 * nobody else can be using it
+	 */
+
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"can't use collapse() while in edit mode" );
+
+	/* make sure we get a tuple of sequences of something */
+	switch( PySequence_Size( args ) ) {
+	case 1:
+		/* if a sequence... */
+		tmp = PyTuple_GET_ITEM( args, 0 );
+		if( PySequence_Check( tmp ) ) {
+			PyObject *tmp2;
+
+			/* ignore empty sequences */
+			if( !PySequence_Size( tmp ) ) {
+				Py_RETURN_NONE;
+			}
+
+			/* if another sequence, use it */
+			tmp2 = PySequence_ITEM( tmp, 0 );
+			if( PySequence_Check( tmp2 ) )
+				args = tmp;
+			Py_INCREF( args );
+			Py_DECREF( tmp2 );
+		} else
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of sequence pairs" );
+		break;
+	case 2:	/* two args may be individual edges/verts */
+		tmp = PyTuple_GET_ITEM( args, 0 );
+		/*
+		 * if first item isn't a sequence, then assume it's a bunch of MVerts
+		 * and wrap inside a tuple
+		 */
+		if( !PySequence_Check( tmp ) ) {
+			args = Py_BuildValue( "(O)", args );
+			if( !args )
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"Py_BuildValue() failed" );
+		/*
+		 * otherwise, assume it already a bunch of sequences so use as-is
+		 */
+		} else { 
+			Py_INCREF( args );		/* so we can safely DECREF later */
+		}
+		break;
+	default:	/* anything else is definitely wrong */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected a sequence of sequence pairs" );
+	}
+
+	/* if sequence is empty, do nothing */
+	len = PySequence_Size( args );
+	if( len == 0 ) {
+		Py_RETURN_NONE;
+	}
+
+	/* allocate table of edge indices and new vertex values */
+
+	edge_table = (unsigned int *)MEM_callocN( len*sizeof( unsigned int ),
+			"edge_table" );
+	vert_list = (float (*)[3])MEM_callocN( 3*len*sizeof( float ),
+			"vert_list" );
+
+	/* get the indices of edges to be collapsed and new vert locations */
+	for( i = len; i--; ) {
+		PyObject *tmp1;
+		PyObject *tmp2;
+
+		tmp = PySequence_GetItem( args, i );
+
+		/* if item isn't sequence of size 2, error */
+		if( !PySequence_Check( tmp ) || PySequence_Size( tmp ) != 2 ) {
+			MEM_freeN( edge_table );
+			MEM_freeN( vert_list );
+			Py_DECREF( tmp );
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of (MEdges, vector)" );
+		}
+
+		/* if items aren't a MEdge/int and vector, error */
+		tmp1 = PySequence_GetItem( tmp, 0 );
+		tmp2 = PySequence_GetItem( tmp, 1 );
+		Py_DECREF( tmp );
+		if( !(BPy_MEdge_Check( tmp1 ) || PyInt_CheckExact( tmp1 )) ||
+				!VectorObject_Check ( tmp2 ) ) {
+			MEM_freeN( edge_table );
+			MEM_freeN( vert_list );
+			Py_DECREF( tmp1 );
+			Py_DECREF( tmp2 );
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of (MEdges, vector)" );
+		}
+
+		/* store edge index, new vertex location */
+		if( PyInt_CheckExact( tmp1 ) )
+			edge_table[i] = PyInt_AsLong ( tmp1 );
+		else
+			edge_table[i] = ((BPy_MEdge *)tmp1)->index;
+		memcpy( vert_list[i], ((VectorObject *)tmp2)->vec,
+				3*sizeof( float ) );
+		Py_DECREF( tmp1 );
+		Py_DECREF( tmp2 );
+
+		/* if index out-of-range, throw exception */
+		if( edge_table[i] >= (unsigned int)mesh->totedge ) {
+			MEM_freeN( edge_table );
+			MEM_freeN( vert_list );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"edge index out of range" );
+		}
+	}
+
+	/*
+	 * simple algorithm:
+	 * (1) deselect all verts
+	 * (2) for each edge
+	 *   (2a) replace both verts with the new vert
+	 *   (2b) select both verts
+	 * (3) call removedoublesflag()
+	 */
+
+	/* (1) deselect all verts */
+	for( i = mesh->totvert; i--; )
+		mesh->mvert[i].flag &= ~SELECT;
+
+	/* (2) replace edge's verts and select them */
+	for( i = len; i--; ) {
+		srcedge = &mesh->medge[edge_table[i]];
+		memcpy( &mesh->mvert[srcedge->v1].co, vert_list[i], 3*sizeof( float ) );
+		memcpy( &mesh->mvert[srcedge->v2].co, vert_list[i], 3*sizeof( float ) );
+		mesh->mvert[srcedge->v1].flag |= SELECT;
+		mesh->mvert[srcedge->v2].flag |= SELECT;
+	}
+
+	/* (3) call removedoublesflag() */
+	for( base = FIRSTBASE; base; base = base->next ) {
+		if( base->object->type == OB_MESH && 
+				base->object->data == self->mesh ) {
+			object = base->object;
+			break;
+		}
+	}
+
+	basact = BASACT;
+	BASACT = base;
+	
+	removedoublesflag( 1, 0.0 );
+	/* make mesh's object active, enter mesh edit mode */
+	G.obedit = object;
+	
+	/* exit edit mode, free edit mesh */
+	load_editMesh();
+	free_editMesh(G.editMesh);
+	
+	BASACT = basact;
+
+	/* clean up and exit */
+	Py_DECREF( args );
+	MEM_freeN( vert_list );
+	MEM_freeN( edge_table );
+	mesh_update ( mesh );
+	Py_RETURN_NONE;
+}
+
+
 static PyObject *MEdgeSeq_selected( BPy_MEdgeSeq * self )
 {
 	int i, count;
@@ -3147,6 +3361,8 @@ static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 		"delete edges from mesh"},
 	{"selected", (PyCFunction)MEdgeSeq_selected, METH_NOARGS,
 		"returns a list containing indices of selected edges"},
+	{"collapse", (PyCFunction)MEdgeSeq_collapse, METH_VARARGS,
+		"collapse one or more edges to a vertex"},
 	{NULL, NULL, 0, NULL}
 };
 

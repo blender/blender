@@ -288,8 +288,7 @@ print len(indices)
 me.faces.extend([[me.verts[ii] for ii in i] for i in indices])
 '''
 
-
-def meshPrettyNormals(me):
+def meshCalcNormals(me):
 	'''
 	takes a mesh and returns very high quality normals 1 normal per vertex.
 	The normals should be correct, indipendant of topology
@@ -329,7 +328,6 @@ def meshPrettyNormals(me):
 			
 			# print totAngDiff
 			if totAngDiff > SMALL_NUM:
-				
 				'''
 				average_no= Vector()
 				for no in fnos:
@@ -337,17 +335,16 @@ def meshPrettyNormals(me):
 				'''
 				average_no= reduce(lambda a,b: a+b, fnos, Vector())
 				fnos.append(average_no*totAngDiff) # average no * total angle diff
-			else:
-				fnos[0]
-		else: 
+			#else:
+			#	fnos[0]
+		else:
 			fnos.append(fnos[0])
 	
 	for ed, v in edges.iteritems():
 		vertNormals[ed[0]]+= v[-1]
 		vertNormals[ed[1]]+= v[-1]
-	for v in vertNormals:
-		v.normalize()
-	return vertNormals
+	for i, v in enumerate(vertNormals):
+		me.verts[i].no= v
 
 
 

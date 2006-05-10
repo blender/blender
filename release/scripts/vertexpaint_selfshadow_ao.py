@@ -40,7 +40,7 @@ It removes very low weighted verts from the current group with a weight option.
 
 from Blender import *
 import BPyMesh
-reload(BPyMesh)
+# reload(BPyMesh)
 
 
 def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
@@ -48,11 +48,13 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, 
 	V=Mathutils.Vector
 	M=Mathutils.Matrix
 	Ang= Mathutils.AngleBetweenVecs
-
-	nos= BPyMesh.meshPrettyNormals(me)
+	
+	BPyMesh.meshCalcNormals(me)
+		
 
 	vert_tone= [0.0] * len(me.verts)
-	vert_tone_list= [ [] for i in xrange(len(me.verts)) ]
+	vert_tone_count= [0] * len(me.verts)
+	
 	ed_face_users = [ [] for i in xrange(len(me.edges)) ]
 
 	fcent= [BPyMesh.faceCent(f) for f in me.faces]
@@ -64,42 +66,36 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, 
 		c= fcent[i]
 		fno = f.no*0.0001
 		for v in f.v:
-			#vno=v.no # ugly normal
-			vno= nos[v.index]*0.0001 # pretty notrmal 
+			#vno=v.no*0.001 # get a scaled down normal.
+			vno=v.no # get a scaled down normal.
 			
-			l1= (c-v.co).length
-			l2= ((c+fno) - (v.co+vno)).length
+			l1= (c-(v.co-vno)).length
+			l2= (c-(v.co+vno)).length
 			
+			#l2= ((c+fno) - (v.co+vno)).length
+			vert_tone_count[v.index]+=1
 			if abs(l1-l2) < 0.0000001:
-				vert_tone_list[v.index].append(0)
+				pass
 			else:
-				try: a= Ang(vno, fno)
-				except: a=0
+				try:
+					a= Ang(vno, fno)
+				except:
+					continue
+					
 				
 				# Convex
 				if l1<l2:
 					a= min(PREF_CLAMP_CONVEX, a)
-					if PREF_SHADOW_ONLY:
-						vert_tone_list[v.index].append(0)
-					else:
-						vert_tone_list[v.index].append(a)
+					if not PREF_SHADOW_ONLY:
+						vert_tone[v.index] += a
 				else:
 					a= min(PREF_CLAMP_CONCAVE, a)
-					vert_tone_list[v.index].append(-a)
-					
-				
-				
-
-
+					vert_tone[v.index] -= a
+	
+	
 	# average vert_tone_list into vert_tonef
-	for i, tones in enumerate(vert_tone_list):
-		if tones:
-			tone= 0.0
-			for t in tones:
-				tone+=t
-			tone= tone/len(tones)
-			
-			vert_tone[i]= tone
+	for i, tones in enumerate(vert_tone):
+		vert_tone[i] = vert_tone[i] / vert_tone_count[i]
 
 
 
@@ -113,8 +109,8 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, 
 			i2= ed.v2.index
 			l= edge_lengths[ii]
 			
-			len_vert_tone_list_i1 = len(vert_tone_list[i1])
-			len_vert_tone_list_i2 = len(vert_tone_list[i2])
+			len_vert_tone_list_i1 = vert_tone_count[i1]
+			len_vert_tone_list_i2 = vert_tone_count[i2]
 			
 			if not len_vert_tone_list_i1: len_vert_tone_list_i1=1
 			if not len_vert_tone_list_i2: len_vert_tone_list_i2=1
@@ -135,11 +131,8 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, 
 			for i, v in enumerate(f.v):
 				tone= vert_tone[v.index]
 				tone= tone-min_tone
-				tone= (tone/tone_range)
 				
-				tone= int(tone*255)
-				tone=min( max(tone, 0), 255)
-				f.col[i].r= f.col[i].g= f.col[i].b= tone
+				f.col[i].r= f.col[i].g= f.col[i].b= int((tone/tone_range)*255)
 	
 	Window.WaitCursor(0)
 
@@ -159,17 +152,18 @@ def main():
 	
 	PREF_BLUR_ITERATIONS= Draw.Create(0)
 	PREF_BLUR_SCALE= Draw.Create(1.0)	
-	PREF_SHADOW_ONLY= Draw.Create(0)	
 	PREF_CLAMP_CONCAVE= Draw.Create(180)
 	PREF_CLAMP_CONVEX= Draw.Create(180)
-	PREF_SEL_ONLY= Draw.Create(1)	
+	PREF_SHADOW_ONLY= Draw.Create(0)
+	PREF_SEL_ONLY= Draw.Create(0)	
 	pup_block= [\
 	'Post AO Blur',\
 	('  Iterations:', PREF_BLUR_ITERATIONS, 1, 40, 'Number times to blur the colors. (higher blurs more)'),\
 	('  Blur Radius:', PREF_BLUR_SCALE, 0.1, 10.0, 'How much distance effects blur transfur (higher blurs more).'),\
 	'Angle Clipping',\
-	('Highlight Angle:', PREF_CLAMP_CONVEX, 0, 180, ''),\
-	('Shadow Angle:', PREF_CLAMP_CONCAVE, 0, 180, ''),\
+	('  Highlight Angle:', PREF_CLAMP_CONVEX, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
+	('  Shadow Angle:', PREF_CLAMP_CONCAVE, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
+	('Shadow Only', PREF_SHADOW_ONLY, 'Dont calculate highlights for convex areas.'),\
 	('Sel Faces Only', PREF_SEL_ONLY, 'Only apply to UV/Face selected faces (mix vpain/uvface select).'),\
 	]
 	
@@ -183,8 +177,9 @@ def main():
 	PREF_SHADOW_ONLY= PREF_SHADOW_ONLY.val
 	PREF_SEL_ONLY= PREF_SEL_ONLY.val
 	
+	#t= sys.time()
 	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
-	
+	#print 'done in %.6f' % (sys.time()-t)
 if __name__=='__main__':
 	main()
 
