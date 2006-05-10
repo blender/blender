@@ -150,6 +150,7 @@ void free_mesh(Mesh *me)
 	if(me->mat) MEM_freeN(me->mat);
 	
 	if(me->bb) MEM_freeN(me->bb);
+	if(me->mselect) MEM_freeN(me->mselect);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
