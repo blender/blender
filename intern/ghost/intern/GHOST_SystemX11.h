@@ -236,7 +236,7 @@ private :
  
 		GHOST_TKey
 	convertXKey(
-		unsigned int key
+		KeySym key
 	);
 
 };

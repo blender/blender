@@ -723,7 +723,7 @@ generateWindowExposeEvents(
 	GHOST_TKey
 GHOST_SystemX11::
 convertXKey(
-	unsigned int key
+	KeySym key
 ){
 	GHOST_TKey type;
 
@@ -735,6 +735,24 @@ convertXKey(
 		type = GHOST_TKey(key - XK_0 + int(GHOST_kKey0));
 	} else if ((key >= XK_F1) && (key <= XK_F24)) {
 		type = GHOST_TKey(key - XK_F1 + int(GHOST_kKeyF1));
+#if defined(__sun) || defined(__sun__) 
+		/* This is a bit of a hack, but it looks like sun
+		   Used F11 and friends for its special keys Stop,again etc..
+		   So this little patch enables F11 and F12 to work as expected
+		   following link has documentation on it: 
+		   http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4734408
+		   also from /usr/include/X11/Sunkeysym.h 
+#define SunXK_F36               0x1005FF10      // Labeled F11
+#define SunXK_F37               0x1005FF11      // Labeled F12 
+
+				mein@cs.umn.edu
+		 */
+		
+	} else if (key == 268828432) {
+		type = GHOST_kKeyF11;
+	} else if (key == 268828433) {
+		type = GHOST_kKeyF12;
+#endif
 	} else {
 		switch(key) {
 			GXMAP(type,XK_BackSpace,	GHOST_kKeyBackSpace);

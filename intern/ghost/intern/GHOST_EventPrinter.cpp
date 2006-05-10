@@ -133,20 +133,25 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, STR_String& str) const
 {
 	if ((key >= GHOST_kKeyComma) && (key <= GHOST_kKeyRightBracket)) {
 		str = ((char)key);
-	}
-	else if ((key >= GHOST_kKeyNumpad0) && (key <= GHOST_kKeyNumpad9)) {
+	} else if ((key >= GHOST_kKeyNumpad0) && (key <= GHOST_kKeyNumpad9)) {
 		int number = key - GHOST_kKeyNumpad0;
 		STR_String numberStr (number);
 		str = "Numpad";
 		str += numberStr;
-	}
-	else if ((key >= GHOST_kKeyF1) && (key <= GHOST_kKeyF24)) {
+#if defined(__sun__) || defined(__sun)
+	} else if (key == 268828432) { /* solaris keyboards are messed up */
+		 /* This should really test XK_F11 but that doesn't work */
+		str = "F11";
+	} else if (key == 268828433) { /* solaris keyboards are messed up */
+		 /* This should really test XK_F12 but that doesn't work */
+		str = "F12";
+#endif
+	} else if ((key >= GHOST_kKeyF1) && (key <= GHOST_kKeyF24)) {
 		int number = key - GHOST_kKeyF1 + 1;
 		STR_String numberStr (number);
 		str = "F";
 		str += numberStr;
-	}
-	else {
+	} else {
 		switch (key)
 		{
 		case GHOST_kKeyBackSpace:
