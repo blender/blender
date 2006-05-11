@@ -470,11 +470,25 @@ void KX_BlenderMaterial::setTexMatrixData(int i)
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 
-	glScalef( 
-		mMaterial->mapping[i].scale[0], 
-		mMaterial->mapping[i].scale[1], 
-		mMaterial->mapping[i].scale[2]
-	);
+#ifdef GL_ARB_texture_cube_map
+	if( RAS_EXT_support._ARB_texture_cube_map && 
+		mTextures[i].GetTextureType() == GL_TEXTURE_CUBE_MAP_ARB && 
+		mMaterial->mapping[i].mapping & USEREFL) {
+		glScalef( 
+			mMaterial->mapping[i].scale[0], 
+			-mMaterial->mapping[i].scale[1], 
+			-mMaterial->mapping[i].scale[2]
+		);
+	}
+	else
+#endif
+	{
+		glScalef( 
+			mMaterial->mapping[i].scale[0], 
+			mMaterial->mapping[i].scale[1], 
+			mMaterial->mapping[i].scale[2]
+		);
+	}
 	glTranslatef(
 		mMaterial->mapping[i].offsets[0],
 		mMaterial->mapping[i].offsets[1], 
