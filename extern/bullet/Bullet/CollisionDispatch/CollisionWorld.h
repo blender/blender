@@ -125,9 +125,10 @@ public:
 		
 		virtual	float	AddSingleResult(const LocalRayResult& rayResult)
 		{
-			//caller already does the filter on the m_closestHitFraction
-			assert(rayResult.m_hitFraction < m_closestHitFraction);
 
+//caller already does the filter on the m_closestHitFraction
+			assert(rayResult.m_hitFraction <= m_closestHitFraction);
+			
 			m_closestHitFraction = rayResult.m_hitFraction;
 			m_collisionObject = rayResult.m_collisionObject;
 			m_hitNormalWorld = m_collisionObject->m_worldTransform.getBasis()*rayResult.m_hitNormalLocal;
