@@ -66,7 +66,7 @@ void BIF_save_envmap(EnvMap *env, char *str)
 	int dx;
 	
 	/* all interactive stuff is handled in buttons.c */
-	if(env->cube[0]->ibuf==NULL) return;
+	if(env->cube[0]==NULL || env->cube[0]->ibuf==NULL) return;
 		
 	dx= env->cube[0]->ibuf->x;
 	ibuf= IMB_allocImBuf(3*dx, 2*dx, 24, IB_rect, 0);
