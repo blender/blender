@@ -34,7 +34,7 @@ public:
 	
 	virtual void ProcessTriangle(SimdVector3* triangle, int partId, int triangleIndex);
 
-	virtual void ReportHit(const SimdVector3& hitNormalLocal, float hitFraction, int partId, int triangleIndex ) = 0;
+	virtual float ReportHit(const SimdVector3& hitNormalLocal, float hitFraction, int partId, int triangleIndex ) = 0;
 	
 };
 

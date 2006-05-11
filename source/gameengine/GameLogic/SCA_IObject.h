@@ -116,7 +116,13 @@ public:
 	
 	// here come the python forwarded methods
 	virtual PyObject* _getattr(const STR_String& attr);
+
+	virtual int GetGameObjectType() {return -1;}
 	
+	typedef enum ObjectTypes {
+		OBJ_ARMATURE=0
+	}ObjectTypes;
+
 };
 
 #endif //SCA_IOBJECT_H

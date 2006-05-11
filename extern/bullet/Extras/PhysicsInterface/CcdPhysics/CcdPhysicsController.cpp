@@ -31,7 +31,7 @@ class BP_Proxy;
 float	gDeactivationTime = 2.f;
 bool	gDisableDeactivation = false;
 
-float gLinearSleepingTreshold = 0.4f;
+float gLinearSleepingTreshold = 0.8f;
 float gAngularSleepingTreshold = 1.0f;
 
 #include "Dynamics/MassProps.h"

@@ -77,6 +77,7 @@ public:
 	/// Returns the bone length.  The end of the bone is in the local y direction.
 	float GetBoneLength(Bone* bone) const;
 
+	virtual int GetGameObjectType() { return OBJ_ARMATURE; }
 protected:
 	Object				*m_objArma;
 	struct bArmature	*m_armature;

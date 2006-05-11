@@ -1529,7 +1529,9 @@ void	CcdPhysicsEnvironment::UpdateAabbs(float	timeStep)
 
 
 				shapeinterface->CalculateTemporalAabb(body->getCenterOfMassTransform(),
-					body->getLinearVelocity(),body->getAngularVelocity(),
+					body->getLinearVelocity(),
+					//body->getAngularVelocity(),
+					SimdVector3(0.f,0.f,0.f),//no angular effect for now //body->getAngularVelocity(),
 					timeStep,minAabb,maxAabb);
 
 

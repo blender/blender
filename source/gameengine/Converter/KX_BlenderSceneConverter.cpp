@@ -300,6 +300,9 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 			{
 				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment();
 				ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
+				ccdPhysEnv->setDeactivationLinearTreshold(0.8f); // default, can be overridden by Python
+				ccdPhysEnv->setDeactivationAngularTreshold(1.0f); // default, can be overridden by Python
+
 				//todo: get a button in blender ?
 				//disable / enable debug drawing (contact points, aabb's etc)	
 				//ccdPhysEnv->setDebugMode(1);

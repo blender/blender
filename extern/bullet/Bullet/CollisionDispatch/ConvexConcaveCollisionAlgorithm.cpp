@@ -194,8 +194,10 @@ float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,B
 		{
 		}
 		
-		virtual void ReportHit(const SimdVector3& hitNormalLocal, float hitFraction, int partId, int triangleIndex )
+		virtual float ReportHit(const SimdVector3& hitNormalLocal, float hitFraction, int partId, int triangleIndex )
 		{
+			//todo: handle ccd here
+			return 0.f;
 
 		}
 	};

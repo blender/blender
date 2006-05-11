@@ -94,6 +94,9 @@ public:
 	///RayResultCallback is used to report new raycast results
 	struct	RayResultCallback
 	{
+		virtual ~RayResultCallback()
+		{
+		}
 		float	m_closestHitFraction;
 		bool	HasHit()
 		{

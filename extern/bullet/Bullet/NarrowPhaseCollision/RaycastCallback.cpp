@@ -87,11 +87,11 @@ void TriangleRaycastCallback::ProcessTriangle(SimdVector3* triangle,int partId, 
 
 						if ( dist_a > 0 )
 						{
-							ReportHit(triangleNormal,distance,partId,triangleIndex);
+							m_hitFraction = ReportHit(triangleNormal,distance,partId,triangleIndex);
 						}
 						else
 						{
-							ReportHit(-triangleNormal,distance,partId,triangleIndex);
+							m_hitFraction = ReportHit(-triangleNormal,distance,partId,triangleIndex);
 						}
 					}
 				}
