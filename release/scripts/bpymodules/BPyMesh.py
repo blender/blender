@@ -1,5 +1,11 @@
 import Blender
+import BPyMesh_redux
 
+def redux(ob, factor=0.5):
+	if factor<0 or factor>1.0:
+		raise 'Error, factor must be between 0 and 1.0'
+	BPyMesh_redux.redux(ob, factor)
+	
 def meshWeight2Dict(me):
 	''' Takes a mesh and return its group names and a list of dicts, one dict per vertex.
 	using the group as a key and a float value for the weight.
