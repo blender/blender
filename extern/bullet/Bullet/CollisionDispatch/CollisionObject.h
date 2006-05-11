@@ -31,8 +31,9 @@ struct	CollisionObject
 {
 	SimdTransform	m_worldTransform;
 	
-	//m_nextPredictedWorldTransform is used for CCD and interpolation
-	SimdTransform	m_nextPredictedWorldTransform;
+	//m_interpolationWorldTransform is used for CCD and interpolation
+	//it can be either previous or future (predicted) transform
+	SimdTransform	m_interpolationWorldTransform;
 	
 	enum CollisionFlags
 	{
@@ -57,7 +58,7 @@ struct	CollisionObject
 
 	bool			mergesSimulationIslands() const;
 
-	inline bool		IsStatic() {
+	inline bool		IsStatic() const {
 		return m_collisionFlags & isStatic;
 	}
 

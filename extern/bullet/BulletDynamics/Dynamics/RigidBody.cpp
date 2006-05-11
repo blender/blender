@@ -33,7 +33,8 @@ RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdSc
 	m_linearDamping(0.f),
 	m_angularDamping(0.5f),
 	m_friction(friction),
-	m_restitution(restitution)
+	m_restitution(restitution),
+	m_kinematicTimeStep(0.f)
 {
 	m_debugBodyId = uniqueId++;
 	
@@ -57,11 +58,27 @@ void RigidBody::predictIntegratedTransform(SimdScalar timeStep,SimdTransform& pr
 	SimdTransformUtil::IntegrateTransform(m_worldTransform,m_linearVelocity,m_angularVelocity,timeStep,predictedTransform);
 }
 
+void			RigidBody::saveKinematicState(SimdScalar timeStep)
+{
+	
+	if (m_kinematicTimeStep)
+	{
+		SimdVector3 linVel,angVel;
+		SimdTransformUtil::CalculateVelocity(m_interpolationWorldTransform,m_worldTransform,m_kinematicTimeStep,m_linearVelocity,m_angularVelocity);
+		//printf("angular = %f %f %f\n",m_angularVelocity.getX(),m_angularVelocity.getY(),m_angularVelocity.getZ());
+	}
+	
+
+	m_interpolationWorldTransform = m_worldTransform;
+	
+	m_kinematicTimeStep = timeStep;
+}
 	
 void	RigidBody::getAabb(SimdVector3& aabbMin,SimdVector3& aabbMax) const
 {
 	GetCollisionShape()->GetAabb(m_worldTransform,aabbMin,aabbMax);
 }
+
 
 
 
@@ -91,6 +108,9 @@ void RigidBody::setDamping(SimdScalar lin_damping, SimdScalar ang_damping)
 
 void RigidBody::applyForces(SimdScalar step)
 {
+	if (IsStatic())
+		return;
+
 	
 	applyCentralForce(m_gravity);	
 	
@@ -165,6 +185,9 @@ void RigidBody::updateInertiaTensor()
 
 void RigidBody::integrateVelocities(SimdScalar step) 
 {
+	if (IsStatic())
+		return;
+
 	m_linearVelocity += m_totalForce * (m_inverseMass * step);
 	m_angularVelocity += m_invInertiaTensorWorld * m_totalTorque * step;
 

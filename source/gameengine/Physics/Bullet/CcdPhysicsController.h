@@ -171,6 +171,17 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		void	SetAabb(const SimdVector3& aabbMin,const SimdVector3& aabbMax);
 
 
+		class	PHY_IMotionState*			GetMotionState()
+		{
+			return m_MotionState;
+		}
+
+		const class	PHY_IMotionState*			GetMotionState() const
+		{
+			return m_MotionState;
+		}
+
+
 };
 
 #endif //BULLET2_PHYSICSCONTROLLER_H

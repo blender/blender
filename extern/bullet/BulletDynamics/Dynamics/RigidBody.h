@@ -48,6 +48,9 @@ public:
 	/// continuous collision detection needs prediction
 	void			predictIntegratedTransform(SimdScalar step, SimdTransform& predictedTransform) const;
 	
+	void			saveKinematicState(SimdScalar step);
+	
+
 	void			applyForces(SimdScalar step);
 	
 	void			setGravity(const SimdVector3& acceleration);  
@@ -65,7 +68,9 @@ public:
 	void			setMassProps(SimdScalar mass, const SimdVector3& inertia);
 	
 	SimdScalar		getInvMass() const { return m_inverseMass; }
-	const SimdMatrix3x3& getInvInertiaTensorWorld() const { return m_invInertiaTensorWorld; }
+	const SimdMatrix3x3& getInvInertiaTensorWorld() const { 
+		return m_invInertiaTensorWorld; 
+	}
 		
 	void			integrateVelocities(SimdScalar step);
 
@@ -104,7 +109,8 @@ public:
 	
   	void applyTorqueImpulse(const SimdVector3& torque)
 	{
-		m_angularVelocity += m_invInertiaTensorWorld * torque;
+		if (!IsStatic())
+			m_angularVelocity += m_invInertiaTensorWorld * torque;
 
 	}
 	
@@ -125,20 +131,37 @@ public:
 	
 	void updateInertiaTensor();    
 	
-	const SimdPoint3&     getCenterOfMassPosition() const { return m_worldTransform.getOrigin(); }
+	const SimdPoint3&     getCenterOfMassPosition() const { 
+		return m_worldTransform.getOrigin(); 
+	}
 	SimdQuaternion getOrientation() const;
 	
-	const SimdTransform&  getCenterOfMassTransform() const { return m_worldTransform; }
-	const SimdVector3&   getLinearVelocity() const { return m_linearVelocity; }
-	const SimdVector3&    getAngularVelocity() const { return m_angularVelocity; }
+	const SimdTransform&  getCenterOfMassTransform() const { 
+		return m_worldTransform; 
+	}
+	const SimdVector3&   getLinearVelocity() const { 
+		return m_linearVelocity; 
+	}
+	const SimdVector3&    getAngularVelocity() const { 
+		return m_angularVelocity; 
+	}
 	
 
 	void setLinearVelocity(const SimdVector3& lin_vel);
-	void setAngularVelocity(const SimdVector3& ang_vel) { m_angularVelocity = ang_vel; }
+	void setAngularVelocity(const SimdVector3& ang_vel) { 
+		if (!IsStatic())
+		{
+			m_angularVelocity = ang_vel; 
+		}
+	}
 
 	SimdVector3 getVelocityInLocalPoint(const SimdVector3& rel_pos) const
 	{
+		//we also calculate lin/ang velocity for kinematic objects
 		return m_linearVelocity + m_angularVelocity.cross(rel_pos);
+
+		//for kinematic objects, we could also use use:
+		//		return 	(m_worldTransform(rel_pos) - m_interpolationWorldTransform(rel_pos)) / m_kinematicTimeStep;
 	}
 
 	void translate(const SimdVector3& v) 
@@ -208,8 +231,12 @@ private:
 	SimdScalar		m_friction;
 	SimdScalar		m_restitution;
 
+	SimdScalar		m_kinematicTimeStep;
+
 	BroadphaseProxy*	m_broadphaseProxy;
 
+
+	
 
 
 	

@@ -4440,14 +4440,30 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 	}
+
+
 	if(main->versionfile <= 225) {
 		World *wo;
 		/* Use Sumo for old games */
 		for (wo = main->world.first; wo; wo= wo->id.next) {
 			wo->physicsEngine = 2;
 		}
+	} else
+	{
+		if(main->versionfile <= 241) {
+			World *wo;
+			/* Migrate to Bullet for recent games */
+			/* People can still explicitely choose for Sumo */
+			for (wo = main->world.first; wo; wo= wo->id.next) {
+				wo->physicsEngine = 5;
+			}
+
+		}
 
 	}
+
+
+
 	if(main->versionfile <= 227) {
 		Scene *sce;
 		Material *ma;
@@ -4891,6 +4907,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+
+
+	
+
 	if(main->versionfile <= 234) {
 		Scene *sce;
 		World *wo;

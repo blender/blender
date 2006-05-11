@@ -31,7 +31,7 @@ class BP_Proxy;
 float	gDeactivationTime = 2.f;
 bool	gDisableDeactivation = false;
 
-float gLinearSleepingTreshold = 0.8f;
+float gLinearSleepingTreshold = 0.4f;
 float gAngularSleepingTreshold = 1.0f;
 
 #include "Dynamics/MassProps.h"
@@ -136,7 +136,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		m_MotionState->getWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 		SimdTransform oldTrans = m_body->getCenterOfMassTransform();
 		SimdTransform newTrans(worldquat,worldPos);
-		
+				
 		m_body->setCenterOfMassTransform(newTrans);
 		//need to keep track of previous position for friction effects...
 		

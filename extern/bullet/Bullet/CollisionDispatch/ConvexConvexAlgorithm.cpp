@@ -374,8 +374,8 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 	if (disableCcd)
 		return 1.f;
 
-	if (ccd1.calcTimeOfImpact(col0->m_worldTransform,col0->m_nextPredictedWorldTransform,
-		col1->m_worldTransform,col1->m_nextPredictedWorldTransform,result))
+	if (ccd1.calcTimeOfImpact(col0->m_worldTransform,col0->m_interpolationWorldTransform,
+		col1->m_worldTransform,col1->m_interpolationWorldTransform,result))
 	{
 	
 		//store result.m_fraction in both bodies

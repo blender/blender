@@ -586,6 +586,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		m_scalingPropagated = true;
 	}
 
+
 #ifdef USE_QUICKPROF
 	Profiler::endBlock("SyncMotionStates");
 
@@ -605,9 +606,12 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			RigidBody* body = ctrl->GetRigidBody();
 			if (body->GetActivationState() != ISLAND_SLEEPING)
 			{
-				body->applyForces( timeStep);
-				body->integrateVelocities( timeStep);
-				body->predictIntegratedTransform(timeStep,body->m_nextPredictedWorldTransform);
+				if (!body->IsStatic())
+				{
+					body->applyForces( timeStep);
+					body->integrateVelocities( timeStep);
+					body->predictIntegratedTransform(timeStep,body->m_interpolationWorldTransform);
+				}
 			}
 
 		}
@@ -807,8 +811,15 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 					if (body->GetActivationState() != ISLAND_SLEEPING)
 					{
 
-						body->predictIntegratedTransform(timeStep*	toi, predictedTrans);
-						body->proceedToTransform( predictedTrans);
+						if (body->IsStatic())
+						{
+							//to calculate velocities next frame
+							body->saveKinematicState(timeStep);
+						} else
+						{
+							body->predictIntegratedTransform(timeStep*	toi, predictedTrans);
+							body->proceedToTransform( predictedTrans);
+						}
 
 					}
 				}
@@ -893,6 +904,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		}
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 	}
+
 	return true;
 }
 

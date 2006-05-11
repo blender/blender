@@ -119,7 +119,7 @@ public:
 		axis[3] = 0.f;
 		//check for axis length
 		SimdScalar len = axis.length2();
-		if (len < 0.001f)
+		if (len < SIMD_EPSILON*SIMD_EPSILON)
 			axis = SimdVector3(1.f,0.f,0.f);
 		else
 			axis /= SimdSqrt(len);

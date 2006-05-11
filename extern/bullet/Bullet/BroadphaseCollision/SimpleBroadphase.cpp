@@ -194,7 +194,9 @@ void	SimpleBroadphase::AddOverlappingPair(BroadphaseProxy* proxy0,BroadphaseProx
 	if (m_NumOverlapBroadphasePair >= m_maxOverlap)
 	{
 		//printf("Error: too many overlapping objects: m_NumOverlapBroadphasePair: %d\n",m_NumOverlapBroadphasePair);
+#ifdef DEBUG
 		assert(0);
+#endif 
 	} else
 	{
 		m_NumOverlapBroadphasePair++;

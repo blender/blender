@@ -184,7 +184,7 @@ float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,B
 
 	const SimdVector3& from = convexbody->m_worldTransform.getOrigin();
 	
-	SimdVector3 to = convexbody->m_nextPredictedWorldTransform.getOrigin();
+	SimdVector3 to = convexbody->m_interpolationWorldTransform.getOrigin();
 	//todo: only do if the motion exceeds the 'radius'
 
 	struct LocalTriangleRaycastCallback	: public TriangleRaycastCallback
