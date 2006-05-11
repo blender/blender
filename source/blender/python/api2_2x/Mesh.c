@@ -2378,6 +2378,32 @@ static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
 }
 
 /*
+ * get an edge's select state
+ */
+
+static PyObject *MEdge_getLength( BPy_MEdge * self, void * type )
+{
+	MEdge *edge = MEdge_get_pointer( self );
+	double dot = 0.0f;
+	float tmpf;
+	int i;
+	float *v1, *v2;
+	
+	/* get the 2 edges vert locations */
+	v1= (&((Mesh *)self->mesh)->mvert[edge->v1])->co;
+	v2= (&((Mesh *)self->mesh)->mvert[edge->v2])->co;
+	
+	if( !edge )
+		return NULL;
+	
+	for(i = 0; i < 3; i++){
+		tmpf= v1[i] - v2[i];
+		dot += tmpf*tmpf;
+	}
+	return PyFloat_FromDouble(sqrt(dot));
+}
+
+/*
  * set an edge's select state
  */
 
@@ -2439,6 +2465,10 @@ static PyGetSetDef BPy_MEdge_getseters[] = {
 	 (getter)MEdge_getMFlagBits, (setter)MEdge_setSel,
      "edge selected in edit mode",
      (void *)SELECT},
+	{"length",
+	 (getter)MEdge_getLength, (setter)NULL,
+     "edge's length, read only",
+     NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -3608,13 +3638,83 @@ static PyObject *MFace_getNormal( BPy_MFace * self )
 	vert[0] = self->mesh->mvert[face->v1].co;
 	vert[1] = self->mesh->mvert[face->v2].co;
 	vert[2] = self->mesh->mvert[face->v3].co;
-	vert[3] = self->mesh->mvert[face->v4].co;
-	if( face->v4 )
+	if( face->v4 ) {
+		vert[3] = self->mesh->mvert[face->v4].co;
 		CalcNormFloat4( vert[0], vert[1], vert[2], vert[3], no );
-	else
+	} else
 		CalcNormFloat( vert[0], vert[1], vert[2], no );
 
 	return newVectorObject( no, 3, Py_NEW );
+}
+
+/*
+ * get face's center location
+ */
+
+static PyObject *MFace_getCent( BPy_MFace * self )
+{
+	float *vert[4];
+	float cent[3]= {0,0,0};
+	int i=3, j, k;
+	MFace *face = MFace_get_pointer( self );
+	
+	if( !face )
+		return NULL;
+
+	if( (int)face->v1 >= self->mesh->totvert ||
+			(int)face->v2 >= self->mesh->totvert ||
+			(int)face->v3 >= self->mesh->totvert ||
+			(int)face->v4 >= self->mesh->totvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"one or more MFace vertices are no longer valid" );
+
+	vert[0] = self->mesh->mvert[face->v1].co;
+	vert[1] = self->mesh->mvert[face->v2].co;
+	vert[2] = self->mesh->mvert[face->v3].co;
+	if( face->v4 ) {
+		vert[3] = self->mesh->mvert[face->v4].co;
+		i=4;
+	} 
+	
+	for (j=0;j<i;j++) {
+		for (k=0;k<3;k++) {
+			cent[k]+=vert[j][k];
+		}
+	}
+	
+	for (j=0;j<3;j++) {
+		cent[j]=cent[j]/i;
+	}
+	return newVectorObject( cent, 3, Py_NEW );
+}
+
+/*
+ * get face's area
+ */
+static PyObject *MFace_getArea( BPy_MFace * self )
+{
+	float *v1,*v2,*v3,*v4;
+	MFace *face = MFace_get_pointer( self );
+	
+	if( !face )
+		return NULL;
+
+	if( (int)face->v1 >= self->mesh->totvert ||
+			(int)face->v2 >= self->mesh->totvert ||
+			(int)face->v3 >= self->mesh->totvert ||
+			(int)face->v4 >= self->mesh->totvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"one or more MFace vertices are no longer valid" );
+
+	v1 = self->mesh->mvert[face->v1].co;
+	v2 = self->mesh->mvert[face->v2].co;
+	v3 = self->mesh->mvert[face->v3].co;
+	
+	if( face->v4 ) {
+		v4 = self->mesh->mvert[face->v4].co;
+		return PyFloat_FromDouble( AreaQ3Dfl(v1, v2, v3, v4));
+	} else
+		return PyFloat_FromDouble( AreaT3Dfl(v1, v2, v3));
 }
 
 /*
@@ -4188,6 +4288,14 @@ static PyGetSetDef BPy_MFace_getseters[] = {
     {"no",
      (getter)MFace_getNormal, (setter)NULL,
      "face's normal",
+     NULL},
+    {"cent",
+     (getter)MFace_getCent, (setter)NULL,
+     "face's center",
+     NULL},
+    {"area",
+     (getter)MFace_getArea, (setter)NULL,
+     "face's 3D area",
      NULL},
 
     {"hide",

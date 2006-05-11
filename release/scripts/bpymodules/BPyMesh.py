@@ -413,15 +413,6 @@ def pointInsideMesh(ob, pt):
 	return len([None for f in me.faces if ptInFaceXYBounds(f, obSpacePt) if faceIntersect(f)]) % 2
 
 
-# Get face center
-def faceCent(f):
-	cent= Blender.Mathutils.Vector()	
-	l= len(f.v)
-	for v in f.v:
-		cent+=v.co
-	return cent*(1.0/l)
-	
-
 # NMesh wrapper
 Vector= Blender.Mathutils.Vector
 class NMesh(object):

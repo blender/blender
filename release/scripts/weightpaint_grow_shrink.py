@@ -68,7 +68,7 @@ def actWeightNormalize(me, PREF_MODE, PREF_MAX_DIST, PREF_STRENGTH, PREF_ITERATI
 			op= min
 		
 		for ed in me.edges:
-			if not PREF_MAX_DIST or (ed.v1.co-ed.v2.co).length < PREF_MAX_DIST:
+			if not PREF_MAX_DIST or ed.length < PREF_MAX_DIST:
 			
 				i1= ed.v1.index
 				i2= ed.v2.index

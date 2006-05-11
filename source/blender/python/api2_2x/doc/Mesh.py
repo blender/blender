@@ -169,9 +169,22 @@ class MVert:
     This object holds mesh vertex data.
   @ivar co: The vertex coordinates (x, y, z).
   @type co: vector (WRAPPED DATA)
-  @ivar no: The vertex's unit normal vector (x, y, z).  Read-only.  B{Note}:
-    if vertex coordinates are changed, it may be necessary to use
+  @ivar no: The vertex's unit normal vector (x, y, z).
+    B{Note}: if vertex coordinates are changed, it may be necessary to use
     L{Mesh.calcNormals()} to update the vertex normals.
+    B{Note}: Vertex normals can be set, but arnt wrapped so modifying a normal
+    vector will not effect the verts normal. The result is only visible
+    when faces have the smooth option enabled.
+    Example::
+      # This wont work.
+      for v in me.verts:
+        v.no.x= 0
+        v.no.y= 0
+        v.no.z= 1
+      # This will work
+      no= Blender.Mathutils.Vector(0,0,1)
+      for v in me.verts:
+        v.no= no
   @type no: vector
   @ivar uvco: (MVerts only). The vertex texture "sticky" coordinates (x, y),
     if present. 
@@ -322,6 +335,8 @@ class MEdge:
   @type v1: MVert
   @ivar v2: The second vertex of the edge.
   @type v2: MVert
+  @ivar length: The length of the edge, same as (ed.v1.co-ed.v2.co).length where "ed" is an MEdge.
+  @type length: float
   @ivar crease: The crease value of the edge. It is in the range [0,255].
   @type crease: int
   @ivar flag: The bitfield describing edge properties. See L{EdgeFlags}.
@@ -501,9 +516,13 @@ class MFace:
       Setting this attribute will create UV faces if they do not exist.
       Getting this attribute throw an exception if the mesh does not have 
       UV faces; use L{Mesh.faceUV} to test.  
-  @type uvSel: list of ints
+  @type uvSel: tuple of ints
   @ivar no: The face's normal vector (x, y, z).  Read-only.
   @type no: vector
+  @ivar cent: The center of the face. Read-only.
+  @type cent: vector
+  @ivar area: The area of the face. Read-only.
+  @type area: float
   @note: there are regular faces and textured faces in Blender, both currently
     with their own selection and visibility states, due to a mix of old and new
     code.  To (un)select or (un)hide regular faces (visible in EditMode), use

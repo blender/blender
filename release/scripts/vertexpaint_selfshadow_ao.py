@@ -57,22 +57,20 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_SCALE, PREF_CLAMP_CONCAVE, 
 	
 	ed_face_users = [ [] for i in xrange(len(me.edges)) ]
 
-	fcent= [BPyMesh.faceCent(f) for f in me.faces]
+	fcent= [f.cent for f in me.faces]
 
 	min_tone=0
 	max_tone=0
 
 	for i, f in enumerate(me.faces):
 		c= fcent[i]
-		fno = f.no*0.0001
+		fno = f.no
 		for v in f.v:
-			#vno=v.no*0.001 # get a scaled down normal.
 			vno=v.no # get a scaled down normal.
 			
 			l1= (c-(v.co-vno)).length
 			l2= (c-(v.co+vno)).length
 			
-			#l2= ((c+fno) - (v.co+vno)).length
 			vert_tone_count[v.index]+=1
 			if abs(l1-l2) < 0.0000001:
 				pass
