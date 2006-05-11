@@ -5,6 +5,9 @@ LineIntersect= Blender.Mathutils.LineIntersect
 import BPyMesh
 
 
+#import psyco
+#psyco.full()
+
 def uv_key(uv):
 	return round(uv.x, 5), round(uv.y, 5)
 	
@@ -26,6 +29,10 @@ def redux(ob, factor=0.5):
 	target_face_count= int(len(me.faces) * factor)
 	# % of the collapseable faces to collapse per pass.
 	collapse_per_pass= 0.333 # between 0.1 - lots of small nibbles, slow but high q. and 0.9 - big passes and faster.
+	
+	
+	for v in me.verts:
+		v.hide=0
 	
 	while target_face_count <= len(me.faces):
 		BPyMesh.meshCalcNormals(me)
@@ -269,11 +276,14 @@ def redux(ob, factor=0.5):
 				v2= ed.v2
 				v1.co= v2.co=  loc
 		
-		me.remDoubles(0.0001) 
+		doubles= me.remDoubles(0.0001) 
+		# print 'doubles', doubles
 		me= ob.getData(mesh=1)
+		if doubles==0:
+			break
 	
 	# Cleanup.
-	
+	'''
 	vert_face_user_count= [0]*len(me.verts)
 	for f in me.faces:
 		for v in f.v:
@@ -281,6 +291,7 @@ def redux(ob, factor=0.5):
 	
 	del_verts= [i for i in xrange(len(me.verts)) if not vert_face_user_count[i]]
 	me.verts.delete( del_verts )
+	'''
 	me.update()
 	Blender.Mesh.Mode(OLD_MESH_MODE)
 

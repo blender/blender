@@ -201,6 +201,8 @@ class MVert:
    was last exited. A Python script operating in EditMode must exit EditMode 
    before getting the current selection state of the mesh.
   @type sel: int
+  @ivar hide: The face's B{edit mode} visibility state (hidden=1).
+  @type hide: int
   @warn:  There are two kinds of UV texture coordinates in Blender: per vertex
      ("sticky") and per face vertex (UV in L{MFace}).  In the first, there's
      only one UV pair of coordinates for each vertex in the mesh.  In the

@@ -1079,6 +1079,45 @@ static PyObject *MVert_getIndex( BPy_MVert * self )
 			"PyInt_FromLong() failed" );
 }
 
+
+/*
+ * get a verts's hidden state
+ */
+
+static PyObject *MVert_getMFlagBits( BPy_MVert * self, void * type )
+{
+	MVert *v;
+
+	v = MVert_get_pointer( self );
+	
+	if( self->index >= ((Mesh *)self->data)->totvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"MVert is no longer valid" );
+
+	return EXPP_getBitfield( &v->flag, (int)((long)type & 0xff), 'b' );
+}
+
+
+/*
+ * set a verts's hidden state
+ */
+
+static int MVert_setMFlagBits( BPy_MVert * self, PyObject * value,
+		void * type )
+{
+	MVert *v;
+
+	v = MVert_get_pointer( self );
+	
+	if( self->index >= ((Mesh *)self->data)->totvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"MVert is no longer valid" );
+
+	return EXPP_setBitfield( value, &v->flag, 
+			(int)((long)type & 0xff), 'b' );
+}
+
+
 /*
  * get a vertex's normal
  */
@@ -1256,6 +1295,10 @@ static PyGetSetDef BPy_MVert_getseters[] = {
 	 (getter)MVert_getSel, (setter)MVert_setSel,
 	 "vertex's select status",
 	 NULL},
+    {"hide",
+     (getter)MVert_getMFlagBits, (setter)MVert_setMFlagBits,
+     "vert hidden in edit mode",
+     (void *)ME_HIDE},
 	{"uvco",
 	 (getter)MVert_getUVco, (setter)MVert_setUVco,
 	 "vertex's UV coordinates",
