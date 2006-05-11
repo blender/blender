@@ -138,8 +138,10 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->scene= re->scene;	/* unsure about this... */
 
 	/* view stuff in env render */
-	envre->lens= env->viewscale*16.0f;
-	envre->ycor= 1.0; 
+	envre->lens= 16.0f;
+	if(env->type==ENV_PLANE)
+		envre->lens*= env->viewscale;
+	envre->ycor= 1.0f; 
 	envre->clipsta= env->clipsta;	/* render_scene_set_window() respects this for now */
 	envre->clipend= env->clipend;
 	
@@ -315,10 +317,21 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	VlakRen *vlr = NULL;
 	int a;
 	
+	/* invert notlay, so if face is in multiple layers it will still be visible,
+	   unless all 'notlay' bits match the face bits.
+	   face: 0110
+	   not:  0100
+	   ~not: 1011
+	   now (face & ~not) is true
+	*/
+	
+	notlay= ~notlay;
+	
 	for(a=0; a<re->totvlak; a++) {
 		if((a & 255)==0) vlr= re->blovl[a>>8];
 		else vlr++;
-		if(vlr->lay & notlay) vlr->flag &= ~R_VISIBLE;
+		if((vlr->lay & notlay)==0)
+			vlr->flag &= ~R_VISIBLE;
 	}
 }
 
