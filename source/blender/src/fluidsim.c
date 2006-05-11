@@ -350,7 +350,7 @@ static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, i
 
 	channel = MEM_callocN( mallsize* sizeof(float), "fluidsim_meshchannel" );
 
-	fprintf(stderr,"\n\nfluidsimInitMeshChannel size%d verts%d mallsize%d \n\n\n",size,vertices,mallsize);
+	//fprintf(stderr,"\n\nfluidsimInitMeshChannel size%d verts%d mallsize%d \n\n\n",size,vertices,mallsize);
 	for(frame=1; frame<=size; frame++) {
 		float *verts=NULL;
 		int *tris=NULL;
