@@ -36,7 +36,8 @@ ntlWorld *gpWorld = NULL;
 extern "C" 
 void elbeemResetSettings(elbeemSimulationSettings *set) {
 	if(!set) return;
-  set->version = 2;
+  set->version = 3;
+  set->domainId = 0;
 	for(int i=0 ; i<3; i++) set->geoStart[i] = 0.0;
  	for(int i=0 ; i<3; i++) set->geoSize[i] = 1.0;
   set->resolutionxyz = 64;
@@ -52,7 +53,8 @@ void elbeemResetSettings(elbeemSimulationSettings *set) {
 	set->noOfFrames = 10;
   set->gstar = 0.005;
   set->maxRefine = -1;
-  set->generateParticles = 1.0;
+  set->generateParticles = 0.0;
+  set->numTracerParticles = 0;
   strcpy(set->outputPath,"./elbeemdata_");
 
 	set->channelSizeFrameTime=0;
@@ -68,6 +70,8 @@ void elbeemResetSettings(elbeemSimulationSettings *set) {
 	set->surfaceSmoothing = 1.;
 
 	set->farFieldSize = 0.;
+	set->runsimCallback = NULL;
+	set->runsimUserData = NULL;
 
 	// init identity
 	for(int i=0; i<16; i++) set->surfaceTrafo[i] = 0.0;
@@ -76,16 +80,27 @@ void elbeemResetSettings(elbeemSimulationSettings *set) {
 
 // start fluidsim init
 extern "C" 
-int elbeemInit(elbeemSimulationSettings *settings) {
-	gElbeemState = SIMWORLD_INVALID;
-	strcpy(gElbeemErrorString,"[none]");
+int elbeemInit() {
+	setElbeemState( SIMWORLD_INITIALIZING );
+	setElbeemErrorString("[none]");
 
 	elbeemCheckDebugEnv();
 	debMsgStd("performElbeemSimulation",DM_NOTIFY,"El'Beem Simulation Init Start as Plugin, debugLevel:"<<gDebugLevel<<" ...\n", 2);
 	
 	// create world object with initial settings
-	ntlBlenderDumper *elbeem = new ntlBlenderDumper(settings);
+	ntlBlenderDumper *elbeem = new ntlBlenderDumper(); 
 	gpWorld = elbeem;
+	return 0;
+}
+
+// start fluidsim init
+extern "C" 
+int elbeemAddDomain(elbeemSimulationSettings *settings) {
+	// has to be inited...
+	if((getElbeemState() == SIMWORLD_INVALID) && (!gpWorld)) { elbeemInit(); }
+	if(getElbeemState() != SIMWORLD_INITIALIZING) { errFatal("elbeemAddDomain","Unable to init simulation world",SIMWORLD_INITERROR); }
+	// create domain with given settings
+	gpWorld->addDomain(settings);
 	return 0;
 }
 
@@ -93,7 +108,7 @@ int elbeemInit(elbeemSimulationSettings *settings) {
 extern "C" 
 void elbeemGetErrorString(char *buffer) {
 	if(!buffer) return;
-	strncpy(buffer,gElbeemErrorString,256);
+	strncpy(buffer,getElbeemErrorString(),256);
 }
 
 // reset elbeemMesh struct with zeroes
@@ -105,6 +120,7 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 	mesh->vertices = NULL;
 	mesh->numTriangles = 0;
   mesh->triangles = NULL;
+
 	mesh->channelSizeTranslation = 0;
 	mesh->channelTranslation = NULL;
 	mesh->channelSizeRotation = 0;
@@ -116,15 +132,24 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 	mesh->channelSizeInitialVel = 0;
 	mesh->channelInitialVel = NULL;
 	mesh->localInivelCoords = 0;
+
 	mesh->obstacleType= FLUIDSIM_OBSTACLE_NOSLIP;
+	mesh->volumeInitType= OB_VOLUMEINIT_VOLUME;
 	mesh->obstaclePartslip= 0.;
+
+	mesh->channelSizeVertices = 0;
+	mesh->channelVertices = NULL;
+
 	mesh->name = "[unnamed]";
 }
 
+int globalMeshCounter = 1;
 // add mesh as fluidsim object
 extern "C" 
 int elbeemAddMesh(elbeemMesh *mesh) {
 	int initType = -1;
+	if(getElbeemState() != SIMWORLD_INITIALIZING) { errFatal("elbeemAddMesh","World and domain not initialized, call elbeemInit and elbeemAddDomain before...", SIMWORLD_INITERROR); }
+
 	switch(mesh->type) {
 		case OB_FLUIDSIM_OBSTACLE: 
 			if     (mesh->obstacleType==FLUIDSIM_OBSTACLE_PARTSLIP) initType = FGI_BNDPART; 
@@ -140,13 +165,22 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	
 	ntlGeometryObjModel *obj = new ntlGeometryObjModel( );
 	gpWorld->getRenderGlobals()->getSimScene()->addGeoClass( obj );
-	obj->initModel(mesh->numVertices, mesh->vertices, mesh->numTriangles, mesh->triangles);
-	if(mesh->name) obj->setName(std::string(mesh->name));
-	else obj->setName(std::string("[unnamed]"));
-	obj->setGeoInitId(1);
+	obj->initModel(
+			mesh->numVertices, mesh->vertices, mesh->numTriangles, mesh->triangles,
+			mesh->channelSizeVertices, mesh->channelVertices );
+	if(mesh->name) obj->setName(string(mesh->name));
+	else {
+		char meshname[100];
+		snprintf(meshname,100,"mesh%04d",globalMeshCounter);
+		obj->setName(string(meshname));
+	}
+	globalMeshCounter++;
+	obj->setGeoInitId( mesh->parentDomainId+1 );
 	obj->setGeoInitIntersect(true);
 	obj->setGeoInitType(initType);
 	obj->setGeoPartSlipValue(mesh->obstaclePartslip);
+	if((mesh->volumeInitType<VOLUMEINIT_VOLUME)||(mesh->volumeInitType>VOLUMEINIT_BOTH)) mesh->volumeInitType = VOLUMEINIT_VOLUME;
+	obj->setVolumeInit(mesh->volumeInitType);
 	// use channel instead, obj->setInitialVelocity( ntlVec3Gfx(mesh->iniVelocity[0], mesh->iniVelocity[1], mesh->iniVelocity[2]) );
 	obj->initChannels(
 			mesh->channelSizeTranslation, mesh->channelTranslation, 
@@ -167,23 +201,51 @@ int elbeemSimulate(void) {
 	if(!gpWorld) return 1;
 
 	gpWorld->finishWorldInit();
-	
-	if(SIMWORLD_OK()) {
-		gElbeemState = SIMWORLD_INITED;
+	if( isSimworldOk() ) {
 		myTime_t timestart = getTime();
 		gpWorld->renderAnimation();
 		myTime_t timeend = getTime();
-		debMsgStd("elbeemSimulate",DM_NOTIFY, "El'Beem simulation done, time: "<<getTimeString(timeend-timestart)<<".\n", 2 ); 
 
-		// ok, we're done...
-		delete gpWorld;
-		gpWorld = NULL;
+		if(getElbeemState() != SIMWORLD_STOP) {
+			// ok, we're done...
+			delete gpWorld;
+			gpWorld = NULL;
+			debMsgStd("elbeemSimulate",DM_NOTIFY, "El'Beem simulation done, time: "<<getTimeString(timeend-timestart)<<".\n", 2 ); 
+		} else {
+			debMsgStd("elbeemSimulate",DM_NOTIFY, "El'Beem simulation stopped, time so far: "<<getTimeString(timeend-timestart)<<".", 2 ); 
+		}
 		return 0;
 	} 
 
 	// failure...
 	return 1;
 }
+
+
+// continue a previously stopped simulation
+extern "C" 
+int elbeemContinueSimulation(void) {
+
+	if(getElbeemState() != SIMWORLD_STOP) {
+		errMsg("elbeemContinueSimulation","No running simulation found! Aborting...");
+		if(gpWorld) delete gpWorld;
+		return 1;
+	}
+
+	myTime_t timestart = getTime();
+	gpWorld->renderAnimation();
+	myTime_t timeend = getTime();
+
+	if(getElbeemState() != SIMWORLD_STOP) {
+		// ok, we're done...
+		delete gpWorld;
+		gpWorld = NULL;
+		debMsgStd("elbeemContinueSimulation",DM_NOTIFY, "El'Beem simulation done, time: "<<getTimeString(timeend-timestart)<<".\n", 2 ); 
+	} else {
+		debMsgStd("elbeemContinueSimulation",DM_NOTIFY, "El'Beem simulation stopped, time so far: "<<getTimeString(timeend-timestart)<<".", 2 ); 
+	}
+	return 0;
+} 
 
 
 // global vector to flag values to remove

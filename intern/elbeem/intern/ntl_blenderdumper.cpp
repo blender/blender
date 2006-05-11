@@ -24,23 +24,14 @@
 /******************************************************************************
  * Constructor
  *****************************************************************************/
-ntlBlenderDumper::ntlBlenderDumper(string filename, bool commandlineMode) :
-	ntlWorld(filename,commandlineMode),
-	mpTrafo(NULL)
-{
-  ntlRenderGlobals *glob = mpGlob;
-	AttributeList *pAttrs = glob->getBlenderAttributes();
-	mpTrafo = new ntlMat4Gfx(0.0);
-	mpTrafo->initId();
-	pAttrs->readMat4Gfx("transform" , (*mpTrafo), "ntlBlenderDumper","mpTrafo", false, mpTrafo ); 
-}
-ntlBlenderDumper::ntlBlenderDumper(elbeemSimulationSettings *settings) :
-	ntlWorld(settings), mpTrafo(NULL)
+ntlBlenderDumper::ntlBlenderDumper() : ntlWorld()
 {
 	// same as normal constructor here
-	mpTrafo = new ntlMat4Gfx(0.0);
-	mpTrafo->initArrayCheck(settings->surfaceTrafo);
-	//errMsg("ntlBlenderDumper","mpTrafo inited: "<<(*mpTrafo) );
+}
+ntlBlenderDumper::ntlBlenderDumper(string filename, bool commandlineMode) :
+	ntlWorld(filename,commandlineMode)
+{
+	// init world
 }
 
 
@@ -50,7 +41,6 @@ ntlBlenderDumper::ntlBlenderDumper(elbeemSimulationSettings *settings) :
  *****************************************************************************/
 ntlBlenderDumper::~ntlBlenderDumper()
 {
-	delete mpTrafo;
 	debMsgStd("ntlBlenderDumper",DM_NOTIFY, "ntlBlenderDumper done", 10);
 }
 
@@ -67,16 +57,6 @@ int ntlBlenderDumper::renderScene( void )
 	debugOut = false;
 #endif // ELBEEM_PLUGIN==1
 
-	// output path
-	/*std::ostringstream ecrpath("");
-	ecrpath << "/tmp/ecr_" << getpid() <<"/";
-	// make sure the dir exists
-	std::ostringstream ecrpath_create("");
-	ecrpath_create << "mkdir " << ecrpath.str();
-	system( ecrpath_create.str().c_str() );
-	// */
-
-	vector<string> hideObjs; // geom shaders to hide 
 	vector<string> gmName; 	 // gm names
 	vector<string> gmMat;    // materials for gm
 	int numGMs = 0;					 // no. of .obj models created
@@ -91,7 +71,6 @@ int ntlBlenderDumper::renderScene( void )
   vector<ntlTriangle> Triangles;
   vector<ntlVec3Gfx>  Vertices;
   vector<ntlVec3Gfx>  VertNormals;
-	//errMsg("ntlBlenderDumper","mpTrafo : "<<(*mpTrafo) );
 
 	/* init geometry array, first all standard objects */
 	int idCnt = 0;          // give IDs to objects
@@ -106,14 +85,16 @@ int ntlBlenderDumper::renderScene( void )
 		}
 		if(tid & GEOCLASSTID_SHADER) {
 			ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter); //dynamic_cast<ntlGeometryShader*>(*iter);
-			hideObjs.push_back( (*iter)->getName() );
-			geoshad->notifyShaderOfDump(DUMP_FULLGEOMETRY, glob->getAniCount(),nrStr,glob->getOutFilename());
+			std::string outname = geoshad->getOutFilename();
+			if(outname.length()<1) outname = mpGlob->getOutFilename();
+			geoshad->notifyShaderOfDump(DUMP_FULLGEOMETRY, glob->getAniCount(),nrStr,outname);
+
 			for (vector<ntlGeometryObject*>::iterator siter = geoshad->getObjectsBegin();
 					siter != geoshad->getObjectsEnd();
 					siter++) {
 				if(debugOut) debMsgStd("ntlBlenderDumper::BuildScene",DM_MSG,"added shader geometry "<<(*siter)->getName(), 8);
 
-				(*siter)->notifyOfDump(DUMP_FULLGEOMETRY, glob->getAniCount(),nrStr,glob->getOutFilename(), this->mSimulationTime);
+				(*siter)->notifyOfDump(DUMP_FULLGEOMETRY, glob->getAniCount(),nrStr,outname, this->mSimulationTime);
 				bool doDump = false;
 				bool isPreview = false;
 				// only dump final&preview surface meshes
@@ -130,8 +111,7 @@ int ntlBlenderDumper::renderScene( void )
 				Vertices.clear();
 				VertNormals.clear();
 				(*siter)->initialize( mpGlob );
-				//int vstart = mVertNormals.size()-1;
-				(*siter)->getTriangles(&Triangles, &Vertices, &VertNormals, idCnt);
+				(*siter)->getTriangles(this->mSimulationTime, &Triangles, &Vertices, &VertNormals, idCnt);
 
 				idCnt ++;
 
@@ -139,8 +119,8 @@ int ntlBlenderDumper::renderScene( void )
 
 				// dump to binary file
 				std::ostringstream boutfilename("");
-				//boutfilename << ecrpath.str() << glob->getOutFilename() <<"_"<< (*siter)->getName() <<"_" << nrStr << ".obj";
-				boutfilename << glob->getOutFilename() <<"_"<< (*siter)->getName() <<"_" << nrStr;
+				//boutfilename << ecrpath.str() << outname <<"_"<< (*siter)->getName() <<"_" << nrStr << ".obj";
+				boutfilename << outname <<"_"<< (*siter)->getName() <<"_" << nrStr;
 				if(debugOut) debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"B-Dumping: "<< (*siter)->getName() 
 						<<", triangles:"<<Triangles.size()<<", vertices:"<<Vertices.size()<<
 						" to "<<boutfilename.str() , 7);
@@ -164,7 +144,6 @@ int ntlBlenderDumper::renderScene( void )
 							// returns smoothed velocity, scaled by frame time
 							ntlVec3Gfx v = lbm->getVelocityAt( Vertices[i][0], Vertices[i][1], Vertices[i][2] );
 							// translation not necessary, test rotation & scaling?
-							//? v = (*mpTrafo) * v;
 							for(int j=0; j<3; j++) {
 								float vertp = v[j];
 								//if(i<20) errMsg("ntlBlenderDumper","DUMP_VEL final "<<i<<" = "<<v);
@@ -182,10 +161,18 @@ int ntlBlenderDumper::renderScene( void )
 					errMsg("ntlBlenderDumper::renderScene","Unable to open output '"<<boutfilename<<"' ");
 					return 1; }
 				
-				// transform into source space
-				for(size_t i=0; i<Vertices.size(); i++) {
-					Vertices[i] = (*mpTrafo) * Vertices[i];
+				//! current transform matrix
+				ntlMatrix4x4<gfxReal> *trafo;
+				trafo = lbm->getDomainTrafo();
+				if(trafo) {
+					//trafo->initArrayCheck(ettings->surfaceTrafo);
+					//errMsg("ntlBlenderDumper","mpTrafo : "<<(*mpTrafo) );
+					// transform into source space
+					for(size_t i=0; i<Vertices.size(); i++) {
+						Vertices[i] = (*trafo) * Vertices[i];
+					}
 				}
+
 				// write to file
 				int numVerts;
 				if(sizeof(numVerts)!=4) { errMsg("ntlBlenderDumper::renderScene","Invalid int size"); return 1; }

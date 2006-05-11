@@ -34,6 +34,11 @@ void setPointers( ntlRenderGlobals *setglob);
 /******************************************************************************
  * Constructor
  *****************************************************************************/
+
+ntlWorld::ntlWorld() {
+	initDefaults();
+}
+
 ntlWorld::ntlWorld(string filename, bool commandlineMode) 
 {
 #ifndef ELBEEM_PLUGIN
@@ -60,12 +65,18 @@ ntlWorld::ntlWorld(string filename, bool commandlineMode)
 #endif // ELBEEM_PLUGIN
 }
 
-ntlWorld::ntlWorld(elbeemSimulationSettings *settings)
+
+int globalDomainCounter = 1;
+int ntlWorld::addDomain(elbeemSimulationSettings *settings)
 {
-	initDefaults();
-	// todo init settings
+	// create domain obj
 	SimulationObject *sim = new SimulationObject();
+	char simname[100];
+	snprintf(simname,100,"domain%04d",globalDomainCounter);
+	globalDomainCounter++;
+	sim->setName(std::string(simname));
 	mpGlob->getSims()->push_back( sim );
+
 	// important - add to both, only render scene objects are free'd 
 	mpGlob->getRenderScene()->addGeoClass( sim );
 	mpGlob->getSimScene()->addGeoClass( sim );
@@ -80,10 +91,7 @@ ntlWorld::ntlWorld(elbeemSimulationSettings *settings)
 	Parametrizer *param = sim->getParametrizer();
 	param->setSize( settings->resolutionxyz );
 	param->setDomainSize( settings->realsize );
-	param->setViscosity( settings->viscosity );
-	param->setGravity( ParamVec(settings->gravity[0], settings->gravity[1], settings->gravity[2]) );
 	param->setAniStart( settings->animStart );
-	param->setAniFrameTimeChannel( settings->aniFrameTime );
 	param->setNormalizedGStar( settings->gstar );
 
 	// init domain channels
@@ -98,21 +106,30 @@ ntlWorld::ntlWorld(elbeemSimulationSettings *settings)
 	valv.clear(); time.clear(); elbeemSimplifyChannelVec3(channel,&size); \
 	for(int i=0; i<size; i++) { valv.push_back( ParamVec(channel[4*i+0],channel[4*i+1],channel[4*i+2]) ); time.push_back( channel[4*i+3] ); } 
 
-	INIT_CHANNEL_FLOAT(settings->channelViscosity, settings->channelSizeViscosity);
-	param->initViscosityChannel(valf,time);
+	param->setViscosity( settings->viscosity );
+	if((settings->channelViscosity)&&(settings->channelSizeViscosity>0)) {
+		INIT_CHANNEL_FLOAT(settings->channelViscosity, settings->channelSizeViscosity);
+		param->initViscosityChannel(valf,time); }
 
-	INIT_CHANNEL_VEC(settings->channelGravity, settings->channelSizeGravity);
-	param->initGravityChannel(valv,time);
+	param->setGravity( ParamVec(settings->gravity[0], settings->gravity[1], settings->gravity[2]) );
+	if((settings->channelGravity)&&(settings->channelSizeGravity>0)) {
+		INIT_CHANNEL_VEC(settings->channelGravity, settings->channelSizeGravity);
+		param->initGravityChannel(valv,time); }
 
-	INIT_CHANNEL_FLOAT(settings->channelFrameTime, settings->channelSizeFrameTime);
-	param->initAniFrameTimeChannel(valf,time);
+	param->setAniFrameTimeChannel( settings->aniFrameTime );
+	if((settings->channelFrameTime)&&(settings->channelSizeFrameTime>0)) {
+		INIT_CHANNEL_FLOAT(settings->channelFrameTime, settings->channelSizeFrameTime);
+		param->initAniFrameTimeChannel(valf,time); }
 
 #undef INIT_CHANNEL_FLOAT
 #undef INIT_CHANNEL_VEC
 	
-	mpGlob->setAniFrames( settings->noOfFrames );
+	// might be set by previous domain
+	if(mpGlob->getAniFrames() < settings->noOfFrames)	mpGlob->setAniFrames( settings->noOfFrames );
+	// set additionally to SimulationObject->mOutFilename
 	mpGlob->setOutFilename( settings->outputPath );
-	// further init in postGeoConstrInit/initializeLbmSimulation of SimulationObject
+
+	return 0;
 }
 
 void ntlWorld::initDefaults()
@@ -149,18 +166,19 @@ void ntlWorld::initDefaults()
 
 void ntlWorld::finishWorldInit()
 {
-	if(!SIMWORLD_OK()) return;
+	if(! isSimworldOk() ) return;
 
 	// init the scene for the first time
   long sstartTime = getTime();
 
 	// first init sim scene for geo setup
 	mpGlob->getSimScene()->buildScene(0.0, true);
+	if(! isSimworldOk() ) return;
 	mpGlob->getRenderScene()->buildScene(0.0, true);
+	if(! isSimworldOk() ) return;
 	long sstopTime = getTime();
 	debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Scene build time: "<< getTimeString(sstopTime-sstartTime) <<" ", 10);
 
-	if(!SIMWORLD_OK()) return;
 	// TODO check simulations, run first steps
 	mFirstSim = -1;
 	if(mpSims->size() > 0) {
@@ -204,6 +222,9 @@ void ntlWorld::finishWorldInit()
 			if(!mpGlob->getSingleFrameMode()) debMsgStd("ntlWorld::ntlWorld",DM_WARNING,"No active simulations!", 1);
 		}
 	}
+
+	if(! isSimworldOk() ) return;
+	setElbeemState( SIMWORLD_INITED );
 }
 
 
@@ -237,11 +258,9 @@ void ntlWorld::setSingleFrameOut(string singleframeFilename) {
  *****************************************************************************/
 
 // blender interface
-#if ELBEEM_BLENDER==1
-extern "C" {
-	void simulateThreadIncreaseFrame(void);
-}
-#endif // ELBEEM_BLENDER==1
+//#if ELBEEM_BLENDER==1
+//extern "C" { void simulateThreadIncreaseFrame(void); }
+//#endif // ELBEEM_BLENDER==1
 
 int ntlWorld::renderAnimation( void )
 {
@@ -258,20 +277,32 @@ int ntlWorld::renderAnimation( void )
 	} 
 
 	mThreadRunning = true; // not threaded, but still use the same flags
-	renderScene();
+	if(getElbeemState() == SIMWORLD_INITED) {
+		renderScene();
+	} else if(getElbeemState() == SIMWORLD_STOP) {
+		// dont render now, just continue
+		setElbeemState( SIMWORLD_INITED );
+		mFrameCnt--; // counted one too many from last abort...
+	} else {
+		debMsgStd("ntlWorld::renderAnimation",DM_NOTIFY,"Not properly inited, stopping...",1);
+		return 1;
+	}
+	
 	if(mpSims->size() <= 0) {
 		debMsgStd("ntlWorld::renderAnimation",DM_NOTIFY,"No simulations found, stopping...",1);
 		return 1;
 	}
 
-	for(mFrameCnt=0; ((mFrameCnt<mpGlob->getAniFrames()) && (!getStopRenderVisualization() )); mFrameCnt++) {
+	bool simok = true;
+	for( ; ((mFrameCnt<mpGlob->getAniFrames()) && (!getStopRenderVisualization() ) && (simok)); mFrameCnt++) {
 		if(!advanceSims(mFrameCnt)) {
 			renderScene();
-#if ELBEEM_BLENDER==1
+//#if ELBEEM_BLENDER==1
 			// update Blender gui display after each frame
-			simulateThreadIncreaseFrame();
-#endif // ELBEEM_BLENDER==1
+			//simulateThreadIncreaseFrame();
+//#endif // ELBEEM_BLENDER==1
 		} // else means sim panicked, so dont render...
+		else { simok=false; }
 	}
 	mThreadRunning = false;
 	return 0;
@@ -285,8 +316,10 @@ int ntlWorld::renderAnimation( void )
 int ntlWorld::renderVisualization( bool multiThreaded ) 
 {
 #ifndef NOGUI
-	//gfxReal deltat = 0.0015;
+	if(getElbeemState() != SIMWORLD_INITED) { return 0; }
+
 	if(multiThreaded) mThreadRunning = true;
+	// TODO, check global state?
 	while(!getStopRenderVisualization()) {
 
 		if(mpSims->size() <= 0) {
@@ -315,7 +348,7 @@ int ntlWorld::renderVisualization( bool multiThreaded )
 				warnMsg("ntlWorld::advanceSims","All sims panicked... stopping thread" );
 				setStopRenderVisualization( true );
 			}
-			if(!SIMWORLD_OK()) {
+			if(! isSimworldOk() ) {
 				warnMsg("ntlWorld::advanceSims","World state error... stopping" );
 				setStopRenderVisualization( true );
 			}
@@ -368,7 +401,11 @@ int ntlWorld::advanceSims(int framenum)
 {
 	bool done = false;
 	bool allPanic = true;
-	//debMsgStd("ntlWorld::advanceSims",DM_MSG,"Advancing sims to "<<targetTime, 10 ); // timedebug
+
+	// stop/quit, dont display/render
+	if(getElbeemState()==SIMWORLD_STOP) { 
+		return 1;
+	}
 
 	for(size_t i=0;i<mpSims->size();i++) { (*mpSims)[i]->setFrameNum(framenum); }
 	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime(framenum);
@@ -378,16 +415,15 @@ int ntlWorld::advanceSims(int framenum)
 		done=true; allPanic=false; 
 	}
 
-#if ELBEEM_BLENDER==1
+	int gstate = 0;
+//#if ELBEEM_BLENDER==1
 	// same as solver_main check, but no mutex check here
-	if(getGlobalBakeState()<0) {
-		// this means abort... cause panic
-		allPanic = true; done = true;
-	}
-#endif // ELBEEM_BLENDER==1
+	//gstate = getGlobalBakeState();
+	//if(gstate<0) { allPanic = true; done = true; } // this means abort... cause panic
+//#endif // ELBEEM_BLENDER==1
 
 	// step all the sims, and check for panic
-	debMsgStd("ntlWorld::advanceSims",DM_MSG, " sims "<<mpSims->size()<<" t"<<targetTime<<" done:"<<done<<" panic:"<<allPanic, 10); // debug // timedebug
+	debMsgStd("ntlWorld::advanceSims",DM_MSG, " sims "<<mpSims->size()<<" t"<<targetTime<<" done:"<<done<<" panic:"<<allPanic<<" gstate:"<<gstate, 10); // debug // timedebug
 	while(!done) {
 		double nextTargetTime = (*mpSims)[mFirstSim]->getCurrentTime() + (*mpSims)[mFirstSim]->getTimestep();
 		singleStepSims(nextTargetTime);
@@ -395,7 +431,7 @@ int ntlWorld::advanceSims(int framenum)
 		// check target times
 		done = true;
 		allPanic = false;
-		//if((framenum>0) && (nextTargetTime<=(*mpSims)[mFirstSim]->getCurrentTime()) ) { 
+		
 		if((*mpSims)[mFirstSim]->getTimestep() <1e-9 ) { 
 			// safety check, avoid timesteps that are too small
 			errMsg("ntlWorld::advanceSims","Invalid time step, causing panic! curr:"<<(*mpSims)[mFirstSim]->getCurrentTime()<<" next:"<<nextTargetTime<<", stept:"<< (*mpSims)[mFirstSim]->getTimestep() );
@@ -468,12 +504,11 @@ void ntlWorld::singleStepSims(double targetTime) {
 int ntlWorld::renderScene( void )
 {
 #ifndef ELBEEM_PLUGIN
-	char nrStr[5];														/* nr conversion */
-	//std::ostringstream outfilename(""); 					  /* ppm file */
-	std::ostringstream outfn_conv("");  						/* converted ppm with other suffix */
-  ntlRenderGlobals *glob;                  	/* storage for global rendering parameters */
-  myTime_t timeStart,totalStart,timeEnd; 		/* measure user running time */
-  myTime_t rendStart,rendEnd;            		/* measure user rendering time */
+	char nrStr[5];														// nr conversion 
+	std::ostringstream outfn_conv("");  			// converted ppm with other suffix 
+  ntlRenderGlobals *glob;                  	// storage for global rendering parameters 
+  myTime_t timeStart,totalStart,timeEnd; 		// measure user running time 
+  myTime_t rendStart,rendEnd;            		// measure user rendering time 
   glob = mpGlob;
 
 	/* check if picture already exists... */

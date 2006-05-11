@@ -32,11 +32,10 @@ LbmSolverInterface* createSolver();
 SimulationObject::SimulationObject() :
 	ntlGeometryShader(),
 	mGeoStart(-100.0), mGeoEnd(100.0),
-	mGeoInitId(-1), mpGiTree(NULL), mpGiObjects(NULL),
+	mpGiTree(NULL), mpGiObjects(NULL),
 	mpGlob(NULL),
 	mPanic( false ),
 	mDebugType( 1 /* =FLUIDDISPNothing*/ ),
-	mStepsPerFrame( 10 ),
 	mpLbm(NULL), mpParam( NULL ),
 	mShowSurface(true), mShowParticles(false),
 	mSelectedCid( NULL ),
@@ -48,7 +47,6 @@ SimulationObject::SimulationObject() :
 
 	// reset time
 	mTime 						= 0.0;
-	mDisplayTime 			= 0.0;
 }
 
 
@@ -69,12 +67,11 @@ SimulationObject::~SimulationObject()
 /*****************************************************************************/
 /*! init tree for certain geometry init */
 /*****************************************************************************/
-void SimulationObject::initGeoTree(int id) {
+void SimulationObject::initGeoTree() {
 	if(mpGlob == NULL) { 
 		errFatal("SimulationObject::initGeoTree error","Requires globals!", SIMWORLD_INITERROR); 
 		return;
 	}
-	mGeoInitId = id;
 	ntlScene *scene = mpGlob->getSimScene();
 	mpGiObjects = scene->getObjects();
 
@@ -97,6 +94,8 @@ void SimulationObject::freeGeoTree() {
 void SimulationObject::copyElbeemSettings(elbeemSimulationSettings *settings) {
 	mpElbeemSettings = new elbeemSimulationSettings;
 	*mpElbeemSettings = *settings;
+
+	mGeoInitId = settings->domainId+1;
 }
 
 /******************************************************************************
@@ -104,7 +103,7 @@ void SimulationObject::copyElbeemSettings(elbeemSimulationSettings *settings) {
  *****************************************************************************/
 int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 {
-	if(!SIMWORLD_OK()) return 1;
+	if(! isSimworldOk() ) return 1;
 	
 	// already inited?
 	if(mpLbm) return 0;
@@ -116,16 +115,16 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 
 
+	this->mGeoInitId = mpAttrs->readInt("geoinitid", this->mGeoInitId,"LbmSolverInterface", "mGeoInitId", false);
 	//mDimension, mSolverType are deprecated
 	string mSolverType(""); 
 	mSolverType = mpAttrs->readString("solver", mSolverType, "SimulationObject","mSolverType", false ); 
-	//errFatal("SimulationObject::initializeLbmSimulation","Invalid solver type - note that mDimension is deprecated, use the 'solver' keyword instead", SIMWORLD_INITERROR); return 1;
 
 	mpLbm = createSolver(); 
   /* check lbm pointer */
 	if(mpLbm == NULL) {
 		errFatal("SimulationObject::initializeLbmSimulation","Unable to init LBM solver! ", SIMWORLD_INITERROR);
-		return 1;
+		return 2;
 	}
 	debMsgStd("SimulationObject::initialized",DM_MSG,"IdStr:"<<mpLbm->getIdString() <<" LBM solver! ", 2);
 
@@ -140,10 +139,10 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpParts = new ParticleTracer();
 	mpParts->parseAttrList( getAttributeList() );
 
-	if(!SIMWORLD_OK()) return 1;
+	if(! isSimworldOk() ) return 3;
 	mpParts->setName( getName() + "_part" );
 	mpParts->initialize( glob );
-	if(!SIMWORLD_OK()) return 1;
+	if(! isSimworldOk() ) return 4;
 	
 	// init material settings
 	string matMc("default");
@@ -152,6 +151,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mShowParticles = mpAttrs->readInt("showparticles", mShowParticles, "SimulationObject","mShowParticles", false ); 
 
 	checkBoundingBox( mGeoStart, mGeoEnd, "SimulationObject::initializeSimulation" );
+	mpLbm->setLbmInitId( mGeoInitId );
 	mpLbm->setGeoStart( mGeoStart );
 	mpLbm->setGeoEnd( mGeoEnd );
 	mpLbm->setRenderGlobals( mpGlob );
@@ -159,6 +159,8 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpLbm->setParticleTracer( mpParts );
 	if(mpElbeemSettings) {
 		// set further settings from API struct init
+		if(mpElbeemSettings->outputPath) this->mOutFilename = string(mpElbeemSettings->outputPath);
+		mpLbm->initDomainTrafo( mpElbeemSettings->surfaceTrafo );
 		mpLbm->setSmoothing(1.0 * mpElbeemSettings->surfaceSmoothing, 1.0 * mpElbeemSettings->surfaceSmoothing);
 		mpLbm->setSizeX(mpElbeemSettings->resolutionxyz);
 		mpLbm->setSizeY(mpElbeemSettings->resolutionxyz);
@@ -166,11 +168,13 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpLbm->setPreviewSize(mpElbeemSettings->previewresxyz);
 		mpLbm->setRefinementDesired(mpElbeemSettings->maxRefine);
 		mpLbm->setGenerateParticles(mpElbeemSettings->generateParticles);
+		// set initial particles
+		mpParts->setNumInitialParticles(mpElbeemSettings->numTracerParticles);
 
-		string dinitType = std::string("no");
-		if     (mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_PARTSLIP) dinitType = std::string("part"); 
-		else if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_FREESLIP) dinitType = std::string("free"); 
-		else /*if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_NOSLIP)*/ dinitType = std::string("no"); 
+		string dinitType = string("no");
+		if     (mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_PARTSLIP) dinitType = string("part"); 
+		else if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_FREESLIP) dinitType = string("free"); 
+		else /*if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_NOSLIP)*/ dinitType = string("no"); 
 		mpLbm->setDomainBound(dinitType);
 		mpLbm->setDomainPartSlip(mpElbeemSettings->obstaclePartslip);
 		mpLbm->setDumpVelocities(mpElbeemSettings->generateVertexVectors);
@@ -179,7 +183,13 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 
 		debMsgStd("SimulationObject::initialize",DM_MSG,"Set ElbeemSettings values "<<mpLbm->getGenerateParticles(),10);
 	}
-	mpLbm->initializeSolver();
+
+	if(! mpLbm->initializeSolverMemory()   )         { errMsg("SimulationObject::initialize","initializeSolverMemory failed"); mPanic=true; return 10; }
+	if(checkCallerStatus(FLUIDSIM_CBSTATUS_STEP, 0)) { errMsg("SimulationObject::initialize","initializeSolverMemory status"); mPanic=true; return 11; } 
+	if(! mpLbm->initializeSolverGrids()    )         { errMsg("SimulationObject::initialize","initializeSolverGrids  failed"); mPanic=true; return 12; }
+	if(checkCallerStatus(FLUIDSIM_CBSTATUS_STEP, 0)) { errMsg("SimulationObject::initialize","initializeSolverGrids  status"); mPanic=true; return 13; } 
+	if(! mpLbm->initializeSolverPostinit() )         { errMsg("SimulationObject::initialize","initializeSolverPostin failed"); mPanic=true; return 14; }
+	if(checkCallerStatus(FLUIDSIM_CBSTATUS_STEP, 0)) { errMsg("SimulationObject::initialize","initializeSolverPostin status"); mPanic=true; return 15; } 
 
 	// print cell type stats
 	const int jmax = sizeof(CellFlagType)*8;
@@ -202,7 +212,6 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 	mpLbm->deleteCellIterator( &cid );
 
-#if ELBEEM_PLUGIN!=1
 	char charNl = '\n';
 	debugOutNnl("SimulationObject::initializeLbmSimulation celltype stats: " <<charNl, 5);
 	debugOutNnl("no. of cells = "<<totalCells<<", "<<charNl ,5);
@@ -215,7 +224,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 	// compute dist. of empty/bnd - fluid - if
 	// cfEmpty   = (1<<0), cfBnd  = (1<< 2), cfFluid   = (1<<10), cfInter   = (1<<11),
-	{
+	if(1){
 		std::ostringstream out;
 		out.precision(2); out.width(4);
 		int totNum = flagCount[1]+flagCount[2]+flagCount[7]+flagCount[8];
@@ -226,11 +235,10 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		out<<"\tFractions: [empty/bnd - fluid - interface - ext. if]  =  [" << ebFrac<<" - " << flFrac<<" - " << ifFrac<<"] "<< charNl;
 
 		if(diffInits > 0) {
-			debMsgStd("SimulationObject::initializeLbmSimulation",DM_MSG,"celltype Warning: Diffinits="<<diffInits<<" !!!!!!!!!" , 5);
+			debMsgStd("SimulationObject::initializeLbmSimulation",DM_MSG,"celltype Warning: Diffinits="<<diffInits<<"!" , 5);
 		}
 		debugOutNnl(out.str(), 5);
 	}
-#endif // ELBEEM_PLUGIN==1
 
 	// might be modified by mpLbm
 	mpParts->setStart( mGeoStart );
@@ -253,8 +261,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 #ifdef ELBEEM_PLUGIN
 	mShowParticles=1;
 #endif // ELBEEM_PLUGIN
-	//if(getenv("ELBEEM_DUMPPARTICLE")) {   // DEBUG ENABLE!!!!!!!!!!
-	if(mpLbm->getGenerateParticles()>0.0) {
+	if((mpLbm->getGenerateParticles()>0.0)||(mpParts->getNumInitialParticles()>0)) {
 		mShowParticles=1;
 		mpParts->setDumpParts(true);
 	}
@@ -293,6 +300,11 @@ void SimulationObject::step( void )
 	}
 	if(mpLbm->getPanic()) mPanic = true;
 
+	checkCallerStatus(FLUIDSIM_CBSTATUS_STEP, 0);
+	//if((mpElbeemSettings)&&(mpElbeemSettings->runsimCallback)) {
+		//int ret = (mpElbeemSettings->runsimCallback)(mpElbeemSettings->runsimUserData, FLUIDSIM_CBSTATUS_STEP, 0);
+		//errMsg("runSimulationCallback cbtest1"," "<<this->getName()<<" ret="<<ret);
+	//}
   //debMsgStd("SimulationObject::step",DM_MSG," Sim '"<<mName<<"' stepped to "<<mTime<<" (stept="<<(mpParam->getTimestep())<<", framet="<<getFrameTime()<<") ", 10);
 }
 /*! prepare visualization of simulation for e.g. raytracing */
@@ -399,6 +411,34 @@ void SimulationObject::setMouseClick()
 /*! notify object that dump is in progress (e.g. for field dump) */
 void SimulationObject::notifyShaderOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) {
 	if(!mpLbm) return;
+
 	mpLbm->notifySolverOfDump(dumptype, frameNr,frameNrStr,outfilename);
+	checkCallerStatus(FLUIDSIM_CBSTATUS_NEWFRAME, frameNr);
+}
+
+/*! check status (e.g. stop/abort) from calling program, returns !=0 if sth. happened... */
+int SimulationObject::checkCallerStatus(int status, int frame) {
+	//return 0; // DEBUG
+	int ret = 0;
+	if((mpElbeemSettings)&&(mpElbeemSettings->runsimCallback)) {
+		ret = (mpElbeemSettings->runsimCallback)(mpElbeemSettings->runsimUserData, status,frame);
+		if(ret!=FLUIDSIM_CBRET_CONTINUE) {
+			if(ret==FLUIDSIM_CBRET_STOP) {
+				debMsgStd("SimulationObject::notifySolverOfDump",DM_NOTIFY,"Got stop signal from caller",1);
+				setElbeemState( SIMWORLD_STOP );
+			}
+			else if(ret==FLUIDSIM_CBRET_ABORT) {
+				errFatal("SimulationObject::notifySolverOfDump","Got abort signal from caller, aborting...", SIMWORLD_GENERICERROR );
+				mPanic = 1;
+			}
+			else {
+				errMsg("SimulationObject::notifySolverOfDump","Invalid callback return value: "<<ret<<", ignoring... ");
+			}
+		}
+	}
+
+	errMsg("SimulationObject::checkCallerStatus","s="<<status<<",f="<<frame<<" "<<this->getName()<<" ret="<<ret);
+	if(isSimworldOk()) return 0;
+	return 1;
 }
 

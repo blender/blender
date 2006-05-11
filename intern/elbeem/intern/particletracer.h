@@ -22,10 +22,12 @@ template<class Scalar> class ntlMatrix4x4;
 #define PART_IN     (1<< 8)
 #define PART_OUT    (1<< 9)
 #define PART_INACTIVE (1<<10)
+#define PART_OUTFLUID  (1<<11)
 
 // defines for particle movement
 #define MOVE_FLOATS 1
 #define FLOAT_JITTER 0.03
+//#define FLOAT_JITTER 0.0
 
 extern int ParticleObjectIdCnt;
 
@@ -47,6 +49,8 @@ class ParticleObject
 		//! add vector to position
 		inline void advance(float vx, float vy, float vz) {
 			mPos[0] += vx; mPos[1] += vy; mPos[2] += vz; }
+		inline void advanceVec(ntlVec3Gfx v) {
+			mPos[0] += v[0]; mPos[1] += v[1]; mPos[2] += v[2]; }
 		//! advance with own velocity
 		inline void advanceVel() { mPos += mVel; }
 		//! add acceleration to velocity
@@ -83,10 +87,17 @@ class ParticleObject
 			if(set) mStatus &= (~PART_INACTIVE);	
 			else mStatus |= PART_INACTIVE;
 		}
+		//! get influid flag
+		inline bool getInFluid() const { return ((mStatus&PART_OUTFLUID)==0); }
+		//! set influid flag
+		inline void setInFluid(bool set) { 
+			if(set) mStatus &= (~PART_OUTFLUID);	
+			else mStatus |= PART_OUTFLUID;
+		}
 		//! get/set lifetime
-		inline int getLifeTime() const { return mLifeTime; }
+		inline float getLifeTime() const { return mLifeTime; }
 		//! set type (lower byte)
-		inline void setLifeTime(int set) { mLifeTime = set; }
+		inline void setLifeTime(float set) { mLifeTime = set; }
 		
 		inline int getId() const { return mId; }
 
@@ -103,7 +114,7 @@ class ParticleObject
 		/*! particle status */
 		int mStatus;
 		/*! count survived time steps */
-		int mLifeTime;
+		float mLifeTime;
 };
 
 
@@ -161,24 +172,34 @@ class ParticleTracer :
 		/*! set/get dump flag */
 		inline void setDumpParts(bool set) { mDumpParts = set; }
 		inline bool getDumpParts()         { return mDumpParts; }
-		/*! set/get dump flag */
-		inline void setDumpText(bool set) { mDumpText = set; }
-		inline bool getDumpText()         { return mDumpText; }
 		/*! set/get dump text file */
-		inline void setDumpTextFile(std::string set) { mDumpTextFile = set; }
-		inline std::string getDumpTextFile()         { return mDumpTextFile; }
+		inline void setDumpTextFile(string set) { mDumpTextFile = set; }
+		inline string getDumpTextFile()         { return mDumpTextFile; }
+		/*! set/get dump text interval */
+		inline void setDumpTextInterval(float set) { mDumpTextInterval = set; }
+		inline float getDumpTextInterval()         { return mDumpTextInterval; }
+		/*! set/get init times */
+		inline void setInitStart(float set) { mInitStart = set; }
+		inline float getInitStart()         { return mInitStart; }
+		inline void setInitEnd(float set)   { mInitEnd = set; }
+		inline float getInitEnd()           { return mInitEnd; }
 		
 		//! set the particle scaling factor
 		inline void setPartScale(float set) { mPartScale = set; }
 
+		//! called after each frame to check if positions should be dumped
+		void checkDumpTextPositions(double simtime);
 
 		// NTL geometry implementation
 		/*! Get the triangles from this object */
-		virtual void getTriangles( vector<ntlTriangle> *triangles, 
+		virtual void getTriangles(double t, vector<ntlTriangle> *triangles, 
 				vector<ntlVec3Gfx> *vertices, 
 				vector<ntlVec3Gfx> *normals, int objectId );
 
 		virtual void notifyOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename,double simtime);
+
+		// notify of next step for trails
+		void checkTrails(double time);
 		// free deleted particles
 		void cleanup();
 
@@ -211,10 +232,12 @@ class ParticleTracer :
 
 		/*! dump particles (or certain types of) to disk? */
 		int mDumpParts;
-		/*! dump particles (or certain types of) to disk? */
-		int mDumpText;
 		/*! text dump output file */
-		std::string mDumpTextFile;
+		string mDumpTextFile;
+		/*! text dump interval, start at t=0, dumping active if >0 */
+		float mDumpTextInterval;
+		float mDumpTextLastTime;
+		int mDumpTextCount;
 		/*! show only a certain type (debugging) */
 		int mShowOnly;
 		/*! no. of particles to init */
@@ -222,9 +245,17 @@ class ParticleTracer :
 
 		//! transform matrix
 		ntlMatrix4x4<gfxReal> *mpTrafo;
-
 		/*! init sim/pos transformation */
 		void initTrafoMatrix();
+
+		//! init time distribution start/end
+		float mInitStart, mInitEnd;
+
+		/*! the particle array (for multiple timesteps) */
+		vector< vector<ParticleObject> > mPrevs;
+		/* prev pos save interval */
+		float mTrailTimeLast, mTrailInterval;
+		int mTrailLength;
 };
 
 #define NTL_PARTICLETRACER_H

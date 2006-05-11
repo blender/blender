@@ -149,8 +149,6 @@ private:
 /*! Triangle flag defines */
 #define TRI_GEOMETRY      (1<<0)
 #define TRI_CASTSHADOWS   (1<<1)
-#define TRI_MAKECAUSTICS  (1<<2)
-#define TRI_NOCAUSTICS    (1<<3)
 
 
 class ntlTriangle
@@ -217,7 +215,7 @@ private:
 	//int mNormalIndex; ??
 	ntlVec3Gfx mNormal;
 
-	/*! Flags for object attributes cast shadows, make caustics etc. */
+	/*! Flags for object attributes cast shadows */
 	int mFlags;
 
 	/*! ID of last ray that an intersection was calculated for */

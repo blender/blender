@@ -803,7 +803,7 @@ void ntlScene::buildScene(double time,bool firstInit)
 
 		int vstart = mVertNormals.size();
 		(*iter)->setObjectId(idCnt);
-		(*iter)->getTriangles(&mTriangles, &mVertices, &mVertNormals, idCnt);
+		(*iter)->getTriangles(time, &mTriangles, &mVertices, &mVertNormals, idCnt);
 		(*iter)->applyTransformation(time, &mVertices, &mVertNormals, vstart, mVertices.size(), false );
 
 		if(debugTriCollect) debMsgStd("ntlScene::buildScene",DM_MSG,"Done with "<<(*iter)->getName()<<" totTris:"<<mTriangles.size()<<" totVerts:"<<mVertices.size()<<" totNorms:"<<mVertNormals.size(), 4 );
@@ -837,7 +837,10 @@ void ntlScene::buildScene(double time,bool firstInit)
 				iter != mGeos.end(); iter++) {
 			if( (*iter)->getTypeId() & GEOCLASSTID_SHADER ) {
 				ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter);
-				geoshad->postGeoConstrInit( mpGlob );
+				if(geoshad->postGeoConstrInit( mpGlob )) {
+					errFatal("ntlScene::buildScene","Init failed for object '"<< (*iter)->getName() <<"' !", SIMWORLD_INITERROR );
+					return;
+				}
 			}
 		}
 		mFirstInitDone = true;

@@ -28,8 +28,7 @@ class ntlGeometryClass
 		//! Default constructor
 		inline ntlGeometryClass() :
 			mVisible( 1 ), mName( "[ObjNameUndef]" ),
-			mObjectId(-1),
-			mpAttrs( NULL ) 
+			mObjectId(-1), mpAttrs( NULL ), mGeoInitId(-1) 
 		{ 
 				mpAttrs = new AttributeList("objAttrs"); 
 		};
@@ -76,6 +75,11 @@ class ntlGeometryClass
 		/*! GUI - notify object that mouse was clicked at last pos */
 		virtual void setMouseClick() { /* do nothing by default */ }
 
+		/*! Returns the geo init id */
+		inline void setGeoInitId(int set) { mGeoInitId=set; }
+		/*! Returns the geo init id */
+		inline int getGeoInitId() const { return mGeoInitId; }
+
 	protected:
 
 		/*! Object visible on/off */
@@ -89,6 +93,10 @@ class ntlGeometryClass
 
 		/*! configuration attributes */
 		AttributeList *mpAttrs;
+
+		/* fluid init data */
+		/*! id of fluid init (is used in solver initialization), additional data stored only for objects */
+		int mGeoInitId;
 
 	private:
 

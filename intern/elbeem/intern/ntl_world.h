@@ -23,16 +23,18 @@ class ntlRandomStream;
 class ntlWorld
 {
 	public:
+		/*! Constructor for API init */
+		ntlWorld();
 		/*! Constructor */
 		ntlWorld(string filename, bool commandlineMode);
-		/*! Constructor for API init */
-		ntlWorld(elbeemSimulationSettings *simSettings);
 		/*! Destructor */
 		virtual ~ntlWorld( void );
 		/*! default init for all contructors */
 		void initDefaults();
 		/*! common world contruction stuff once the scene is set up */
 		void finishWorldInit();
+		/*! add domain for API init */
+		int addDomain(elbeemSimulationSettings *simSettings);
 
 		/*! render a whole animation (command line mode) */
 		int renderAnimation( void );

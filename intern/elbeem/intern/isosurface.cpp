@@ -303,7 +303,7 @@ void IsoSurface::triangulate( void )
 /******************************************************************************
  * Get triangles for rendering
  *****************************************************************************/
-void IsoSurface::getTriangles( vector<ntlTriangle> *triangles, 
+void IsoSurface::getTriangles(double t, vector<ntlTriangle> *triangles, 
 													 vector<ntlVec3Gfx> *vertices, 
 													 vector<ntlVec3Gfx> *normals, int objectId )
 {
@@ -311,6 +311,7 @@ void IsoSurface::getTriangles( vector<ntlTriangle> *triangles,
 		debugOut("IsoSurface::getTriangles warning: Not initialized! ", 10);
 		return;
 	}
+	t = 0.;
 	//return; // DEBUG
 
   /* triangulate field */
@@ -355,12 +356,6 @@ void IsoSurface::getTriangles( vector<ntlTriangle> *triangles,
 		if(getVisible()){ flag |= TRI_GEOMETRY; }
 		if(getCastShadows() ) { 
 			flag |= TRI_CASTSHADOWS; } 
-		if( (getMaterial()->getMirror()>0.0) ||  
-				(getMaterial()->getTransparence()>0.0) ||  
-				(getMaterial()->getFresnel()>0.0) ) { 
-			flag |= TRI_MAKECAUSTICS; } 
-		else { 
-			flag |= TRI_NOCAUSTICS; } 
 
 		/* init geo init id */
 		int geoiId = getGeoInitId(); 

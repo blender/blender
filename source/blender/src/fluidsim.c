@@ -53,6 +53,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h" 
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -104,7 +105,7 @@
 #endif
 
 // from DerivedMesh.c
-void initElbeemMesh(struct Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles);
+void initElbeemMesh(struct Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles, int useGlobalCoords);
 
 /* from header info.c */
 extern int start_progress_bar(void);
@@ -196,8 +197,10 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	
 	fss->typeFlags = 0;
 	fss->domainNovecgen = 0;
+	fss->volumeInitType = 1; // volume
 	fss->partSlipValue = 0.0;
 
+	fss->generateTracers = 0;
 	fss->generateParticles = 0.0;
 	fss->surfaceSmoothing = 1.0;
 	fss->particleInfSize = 0.0;
@@ -283,9 +286,9 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 		// invalid, cant happen?
 	}
 
-	fprintf(file, "    CHANNEL %s = \n", str); 
+	fprintf(file, "      CHANNEL %s = \n", str); 
 	for(i=0; i<channelSize;i++) { 
-		fprintf(file,"      ");  
+		fprintf(file,"        ");  
 		for(j=0;j<=entries;j++) {  // also print time value
 			fprintf(file," %f ", channel[i*(entries+1)+j] ); 
 			if(j==entries-1){ fprintf(file,"  "); }
@@ -293,7 +296,7 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 		fprintf(file," \n");  
 	} 
 
-	fprintf(file,  "    ; \n" ); 
+	fprintf(file,  "      ; \n" ); 
 }
 
 
@@ -314,9 +317,9 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	channel = MEM_callocN( size* (entries+1)* sizeof(float), cstr );
 	
 	if(ipo) {
-		for(i=0; i<entries; i++) icus[i]  = find_ipocurve(ipo, icuIds[i] );
+		for(j=0; j<entries; j++) icus[j]  = find_ipocurve(ipo, icuIds[j] );
 	} else {
-		for(i=0; i<entries; i++) icus[i]  = NULL; 
+		for(j=0; j<entries; j++) icus[j]  = NULL; 
 	}
 	
 	for(j=0; j<entries; j++) {
@@ -328,6 +331,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 		}  else {
 			for(i=1; i<=size; i++) { channel[(i-1)*(entries+1) + j] = defaults[j]; }
 		}
+		//printf("fluidsimInitChannel entry:%d , ",j); for(i=1; i<=size; i++) { printf(" val%d:%f ",i, channel[(i-1)*(entries+1) + j] ); } printf(" \n"); // DEBUG
 	}
 	// set time values
 	for(i=1; i<=size; i++) {
@@ -337,6 +341,36 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	*setchannel = channel;
 }
 
+static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, int vertices, float *time) {
+	float *channel = NULL;
+	int mallsize = size* (3*vertices+1);
+	int frame,i;
+	int numVerts=0, numTris=0;
+	int setsize = 3*vertices+1;
+
+	channel = MEM_callocN( mallsize* sizeof(float), "fluidsim_meshchannel" );
+
+	fprintf(stderr,"\n\nfluidsimInitMeshChannel size%d verts%d mallsize%d \n\n\n",size,vertices,mallsize);
+	for(frame=1; frame<=size; frame++) {
+		float *verts=NULL;
+		int *tris=NULL;
+		G.scene->r.cfra = frame;
+		scene_update_for_newframe(G.scene, G.scene->lay);
+
+		initElbeemMesh(obm, &numVerts, &verts, &numTris, &tris, 1);
+		//fprintf(stderr,"\nfluidsimInitMeshChannel frame%d verts%d/%d \n\n",frame,vertices,numVerts);
+		for(i=0; i<3*vertices;i++) {
+			channel[(frame-1)*setsize + i] = verts[i];
+			//fprintf(stdout," frame%d vert%d=%f \n",frame,i,verts[i]);
+			//if(i%3==2) fprintf(stdout,"\n");
+		}
+		channel[(frame-1)*setsize + setsize-1] = time[frame];
+
+		MEM_freeN(verts);
+		MEM_freeN(tris);
+	}
+	*setchannel = channel;
+}
 
 
 /* ******************************************************************************** */
@@ -344,7 +378,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 /* ******************************************************************************** */
 
 SDL_mutex	*globalBakeLock=NULL;
-int			globalBakeState = 0; // 0 everything ok, -1 abort simulation, 1 sim done
+int			globalBakeState = 0; // 0 everything ok, -1 abort simulation, -2 sim error, 1 sim done
 int			globalBakeFrame = 0;
 
 // run simulation in seperate thread
@@ -352,23 +386,50 @@ int fluidsimSimulateThread(void) { // *ptr) {
 	//char* fnameCfgPath = (char*)(ptr);
 	int ret=0;
 	
- ret = elbeemSimulate();
+	ret = elbeemSimulate();
 	SDL_mutexP(globalBakeLock);
 	if(globalBakeState==0) {
-		// if no error, set to normal exit
-		globalBakeState = 1;
+		if(ret==0) {
+			// if no error, set to normal exit
+			globalBakeState = 1;
+		} else {
+			// simulation failed, display error
+			globalBakeState = -2;
+		}
 	}
 	SDL_mutexV(globalBakeLock);
 	return ret;
 }
 
 // called by simulation to set frame no.
+// TODO deprecate...
 void simulateThreadIncreaseFrame(void) {
-	if(!globalBakeLock) return;
+	/*if(!globalBakeLock) return;
 	if(globalBakeState!=0) return; // this means abort...
 	SDL_mutexP(globalBakeLock);
 	globalBakeFrame++;
+	SDL_mutexV(globalBakeLock);*/
+}
+
+int runSimulationCallback(void *data, int status, int frame) {
+	//elbeemSimulationSettings *settings = (elbeemSimulationSettings*)data;
+	//printf("elbeem blender cb s%d, f%d, domainid:%d \n", status,frame, settings->domainId ); // DEBUG
+	
+	if(!globalBakeLock) return FLUIDSIM_CBRET_ABORT;
+	if(status==FLUIDSIM_CBSTATUS_NEWFRAME) {
+		SDL_mutexP(globalBakeLock);
+		globalBakeFrame = frame-1;
+		SDL_mutexV(globalBakeLock);
+	}
+	
+	//if((frameCounter==3) && (!frameStop)) { frameStop=1; return 1; }
+		
+	SDL_mutexP(globalBakeLock);
+	if(globalBakeState!=0) {
+		return FLUIDSIM_CBRET_ABORT;
+	}
 	SDL_mutexV(globalBakeLock);
+	return FLUIDSIM_CBRET_CONTINUE;
 }
 
 
@@ -475,9 +536,11 @@ void fluidsimBake(struct Object *ob)
 			}
 		}
 	}
-	/* these both have to be valid, otherwise we wouldnt be here...*/
+	/* these both have to be valid, otherwise we wouldnt be here */
+	/* dont use ob here after...*/
 	fsDomain = ob;
 	domainSettings = ob->fluidsimSettings;
+	ob = NULL;
 	/* rough check of settings... */
 	if(domainSettings->previewresxyz > domainSettings->resolutionxyz) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz); 
@@ -659,6 +722,7 @@ void fluidsimBake(struct Object *ob)
 			//  cant use fluidsimInitChannel for obj channels right now, due
 			//  to the special DXXX channels, and the rotation specialities
 			IpoCurve *icuex[3][3];
+			//IpoCurve *par_icuex[3][3];
 			int icuIds[3][3] = { 
 				{OB_LOC_X,  OB_LOC_Y,  OB_LOC_Z},
 				{OB_ROT_X,  OB_ROT_Y,  OB_ROT_Z},
@@ -666,6 +730,7 @@ void fluidsimBake(struct Object *ob)
 			};
 			// relative ipos
 			IpoCurve *icudex[3][3];
+			//IpoCurve *par_icudex[3][3];
 			int icudIds[3][3] = { 
 				{OB_DLOC_X,  OB_DLOC_Y,  OB_DLOC_Z},
 				{OB_DROT_X,  OB_DROT_Y,  OB_DROT_Z},
@@ -688,6 +753,10 @@ void fluidsimBake(struct Object *ob)
 				for(k=0; k<3; k++) {
 					icuex[j][k]  = find_ipocurve(obit->ipo, icuIds[j][k] );
 					icudex[j][k] = find_ipocurve(obit->ipo, icudIds[j][k] );
+					//if(obit->parent) {
+						//par_icuex[j][k]  = find_ipocurve(obit->parent->ipo, icuIds[j][k] );
+						//par_icudex[j][k] = find_ipocurve(obit->parent->ipo, icudIds[j][k] );
+					//}
 				}
 			}
 
@@ -697,18 +766,42 @@ void fluidsimBake(struct Object *ob)
 
 					for(k=0; k<3; k++) {
 						if(icuex[j][k]) { 
+							// IPO exists, use it ...
 							calc_icu(icuex[j][k], aniFrlen*((float)i) );
 							vals[k] = icuex[j][k]->curval; 
-						}  else {
+							if(obit->parent) {
+								// add parent transform, multiply scaling, add trafo&rot
+								//calc_icu(par_icuex[j][k], aniFrlen*((float)i) );
+								//if(j==2) { vals[k] *= par_icuex[j][k]->curval; }
+								//else { vals[k] += par_icuex[j][k]->curval; }
+							}
+						} else {
+							// use defaults from static values
 							float setval=0.0;
-							if(j==0) { setval = obit->loc[k];
-							} else if(j==1) { setval = ( 180.0*obit->rot[k] )/( 10.0*M_PI );
-							} else { setval = obit->size[k]; }
+							if(j==0) { 
+								setval = obit->loc[k];
+								if(obit->parent){ setval += obit->parent->loc[k]; }
+							} else if(j==1) { 
+								setval = ( 180.0*obit->rot[k] )/( 10.0*M_PI );
+								if(obit->parent){ setval = ( 180.0*(obit->rot[k]+obit->parent->rot[k]) )/( 10.0*M_PI ); }
+							} else { 
+								setval = obit->size[k]; 
+								if(obit->parent){ setval *= obit->parent->size[k]; }
+							}
 							vals[k] = setval;
 						}
 						if(icudex[j][k]) { 
 							calc_icu(icudex[j][k], aniFrlen*((float)i) );
-							vals[k] += icudex[j][k]->curval; 
+							//vals[k] += icudex[j][k]->curval; 
+							// add transform, multiply scaling, add trafo&rot
+							if(j==2) { vals[k] *= icudex[j][k]->curval; }
+							else { vals[k] += icudex[j][k]->curval; }
+							if(obit->parent) {
+								// add parent transform, multiply scaling, add trafo&rot
+								//calc_icu(par_icuex[j][k], aniFrlen*((float)i) );
+								//if(j==2) { vals[k] *= par_icudex[j][k]->curval; }
+								//else { vals[k] += par_icudex[j][k]->curval; }
+							}
 						} 
 					} // k
 
@@ -717,7 +810,7 @@ void fluidsimBake(struct Object *ob)
 						if(j==1) { // rot is downscaled by 10 for ipo !?
 							set = 360.0 - (10.0*set);
 						}
-						channelObjMove[o][j][(i-1)*4 + k] = set; // - obit->loc[k];
+						channelObjMove[o][j][(i-1)*4 + k] = set;
 					} // k
 					channelObjMove[o][j][(i-1)*4 + 3] = timeAtFrame[i];
 				}
@@ -754,6 +847,7 @@ void fluidsimBake(struct Object *ob)
 
 	if(!doExportOnly) {
 		SDL_Thread *simthr = NULL;
+		//fsDomain->fluidsimFlag = 0; // disable during bake 
 
 		// perform simulation with El'Beem api and SDL threads
 		elbeemSimulationSettings fsset;
@@ -782,6 +876,7 @@ void fluidsimBake(struct Object *ob)
 		fsset.gstar = domainSettings->gstar;
 		fsset.maxRefine = domainSettings->maxRefine; // check <-> gridlevels
 		fsset.generateParticles = domainSettings->generateParticles; 
+		fsset.numTracerParticles = domainSettings->generateTracers; 
 		fsset.surfaceSmoothing = domainSettings->surfaceSmoothing; 
 		fsset.farFieldSize = domainSettings->farFieldSize; 
 		strcpy( fsset.outputPath, targetFile);
@@ -793,6 +888,9 @@ void fluidsimBake(struct Object *ob)
 		fsset.channelFrameTime = channelDomainTime;
 		fsset.channelViscosity = channelDomainViscosity;
 		fsset.channelGravity = channelDomainGravity;
+
+		fsset.runsimCallback = &runSimulationCallback;
+		fsset.runsimUserData = &fsset;
 
 		if(     (domainSettings->typeFlags&OB_FSBND_NOSLIP))   fsset.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
 		else if((domainSettings->typeFlags&OB_FSBND_PARTSLIP)) fsset.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
@@ -811,7 +909,8 @@ void fluidsimBake(struct Object *ob)
 		} }
 
 	  // init solver with settings
-		elbeemInit(&fsset);
+		elbeemInit();
+		elbeemAddDomain(&fsset);
 		
 		// init objects
 		channelObjCount = 0;
@@ -826,13 +925,16 @@ void fluidsimBake(struct Object *ob)
 				int *tris=NULL;
 				int numVerts=0, numTris=0;
 				int o = channelObjCount;
+				//Key *shapekey= ob_get_key(obit);
+				int	deform; // = (shapekey && BLI_countlist(&shapekey->block) >0)||(obit->parent && obit->partype==PARSKEL);
+				deform = (obit->fluidsimSettings->domainNovecgen);
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
 				fsmesh.type = obit->fluidsimSettings->type;;
 				// get name of object for debugging solver
 				fsmesh.name = obit->id.name; 
 
-				initElbeemMesh(obit, &numVerts, &verts, &numTris, &tris);
+				initElbeemMesh(obit, &numVerts, &verts, &numTris, &tris, 0);
 				fsmesh.numVertices   = numVerts;
 				fsmesh.numTriangles  = numTris;
 				fsmesh.vertices      = verts;
@@ -858,14 +960,30 @@ void fluidsimBake(struct Object *ob)
 				else if((obit->fluidsimSettings->typeFlags&OB_FSBND_PARTSLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
 				else if((obit->fluidsimSettings->typeFlags&OB_FSBND_FREESLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
 				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
+				fsmesh.volumeInitType = obit->fluidsimSettings->volumeInitType;
+
+				// animated meshes
+				if(deform) {
+					fsmesh.channelSizeVertices = allchannelSize;
+					fluidsimInitMeshChannel( &fsmesh.channelVertices, allchannelSize, obit, numVerts, timeAtFrame);
+					G.scene->r.cfra = startFrame;
+					scene_update_for_newframe(G.scene, G.scene->lay);
+					// remove channels
+					fsmesh.channelTranslation      = 
+					fsmesh.channelRotation         = 
+					fsmesh.channelScale            = NULL; 
+				} 
 
 				elbeemAddMesh(&fsmesh);
 
 				if(verts) MEM_freeN(verts);
 				if(tris) MEM_freeN(tris);
+				if(fsmesh.channelVertices) MEM_freeN(fsmesh.channelVertices);
 				channelObjCount++;
 			} // valid mesh
 		} // objects
+		//domainSettings->type = OB_FLUIDSIM_DOMAIN; // enable for bake display again
+		//fsDomain->fluidsimFlag = OB_FLUIDSIM_ENABLE; // disable during bake
 		
 		globalBakeLock = SDL_CreateMutex();
 		// set to neutral, -1 means user abort, -2 means init error
@@ -970,6 +1088,10 @@ void fluidsimBake(struct Object *ob)
 			"  surfacepreview = " "%d"  /* previewSize*/ "; \n" 
 			"  dump_velocities = " "%d"  /* vector dump */ "; \n" 
 			"  smoothsurface = %f;  \n"  /* smoothing */
+			"  domain_trafo = %f %f %f %f   " /* remove blender object trafo */
+									  "   %f %f %f %f   "
+									  "   %f %f %f %f   "
+			              "   %f %f %f %f ;\n"
 			"  smoothnormals = %f;  \n"
 			"  geoinitid = 1;  \n"  "\n" 
 			"  isovalue =  0.4900; \n" 
@@ -978,7 +1100,11 @@ void fluidsimBake(struct Object *ob)
 			fprintf(fileCfg, simString,
 					(double)domainSettings->realsize, (double)domainSettings->animStart, (double)domainSettings->gstar,
 					gridlevels, (int)domainSettings->resolutionxyz, (int)domainSettings->previewresxyz ,
-		      (int)(domainSettings->domainNovecgen==0), domainSettings->surfaceSmoothing
+		      (int)(domainSettings->domainNovecgen==0), domainSettings->surfaceSmoothing,
+					invDomMat[0][0],invDomMat[1][0],invDomMat[2][0],invDomMat[3][0], 
+					invDomMat[0][1],invDomMat[1][1],invDomMat[2][1],invDomMat[3][1], 
+					invDomMat[0][2],invDomMat[1][2],invDomMat[2][2],invDomMat[3][2], 
+					invDomMat[0][3],invDomMat[1][3],invDomMat[2][3],invDomMat[3][3] 
 					);
 
 			if((domainSettings->typeFlags&OB_FSBND_NOSLIP)) bi=0;
@@ -992,26 +1118,9 @@ void fluidsimBake(struct Object *ob)
 			fluidsimPrintChannel(fileCfg, channelDomainGravity,  allchannelSize,"p_gravity",CHANNEL_VEC);
 
 			fprintf(fileCfg, "  partgenprob = %f; \n", domainSettings->generateParticles); // debug test
+			fprintf(fileCfg, "  particles = %d; \n", domainSettings->generateTracers); // debug test
 			fprintf(fileCfg,  "\n} \n" );
 		}
-
-		// output blender object transformation
-		{
-			char* blendattrString = "\n" 
-				"attribute \"btrafoattr\" { \n"
-				"  transform = %f %f %f %f   "
-									 "   %f %f %f %f   "
-									 "   %f %f %f %f   "
-									 "   %f %f %f %f ;\n"
-				"} \n";
-
-			fprintf(fileCfg, blendattrString,
-					invDomMat[0][0],invDomMat[1][0],invDomMat[2][0],invDomMat[3][0], 
-					invDomMat[0][1],invDomMat[1][1],invDomMat[2][1],invDomMat[3][1], 
-					invDomMat[0][2],invDomMat[1][2],invDomMat[2][2],invDomMat[3][2], 
-					invDomMat[0][3],invDomMat[1][3],invDomMat[2][3],invDomMat[3][3] );
-		}
-
 
 
 		fprintf(fileCfg, "raytracing {\n");
@@ -1035,7 +1144,7 @@ void fluidsimBake(struct Object *ob)
 				"  lookat= (" "%f %f %f"/*7,8,9 lookatp*/ "); #cfgset  \n" 
 				"  upvec= (0 0 1);  \n" 
 				"  fovy=  " "%f" /*blendFov*/ "; #cfgset \n" 
-				"  blenderattr= \"btrafoattr\"; \n"
+				//"  blenderattr= \"btrafoattr\"; \n"
 				"\n\n";
 
 			char *lightString = "\n" 
@@ -1108,8 +1217,7 @@ void fluidsimBake(struct Object *ob)
 				"  geometry { \n" 
 				"    type= objmodel; \n" 
 				"    name = \""   "%s" /* name */   "\"; #cfgset \n" 
-				// DEBUG , also obs invisible?
-				"    visible=  0; \n" 
+				"    visible=  1; \n" // DEBUG , also obs invisible?
 				"    define { \n" ;
 			char *outflowString = 
 				"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
@@ -1117,16 +1225,16 @@ void fluidsimBake(struct Object *ob)
 			char *obstacleString = 
 				"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
 				"      geoinit_partslip = \"" "%f" /* partslip */  "\"; #cfgset \n" 
+				"      geoinit_volumeinit = \"" "%d" /* volumeinit */  "\"; #cfgset \n" 
 				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
 			char *fluidString = 
 				"      geoinittype= \"" "%s" /* type */  "\"; \n" 
+				"      geoinit_volumeinit = \"" "%d" /* volumeinit */  "\"; #cfgset \n" 
 				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
-				//"      initial_velocity= "   "%f %f %f" /* vel vector */  "; #cfgset \n" ;
 			char *inflowString = 
 				"      geoinittype= \"" "%s" /* type */  "\"; \n" 
-				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" 
-				//"      initial_velocity= "   "%f %f %f" /* vel vector */  "; #cfgset \n" 
-				"      geoinit_localinivel = "   "%d" /* local coords */  "; #cfgset \n" ;
+				"      geoinit_localinivel = "   "%d" /* local coords */  "; #cfgset \n" 
+				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n"  ;
 			char *objectStringEnd = 
 				"      geoinit_intersect = 1; \n"  /* always use accurate init here */
 				"      geoinitid= 1; \n" 
@@ -1142,21 +1250,24 @@ void fluidsimBake(struct Object *ob)
 						(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&
 						(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE)
 					) {
+					//Key *shapekey= ob_get_key(obit); 
+					// armature check from effect.c
+					int deform; //= (shapekey && BLI_countlist(&shapekey->block) >0)||(obit->parent && obit->partype==PARSKEL);
+					deform = (obit->fluidsimSettings->domainNovecgen);
 
 					fluidsimGetGeometryObjFilename(obit, fnameObjdat);
 					strcpy(targetFile, targetDir);
 					strcat(targetFile, fnameObjdat);
 					fprintf(fileCfg, objectStringStart, obit->id.name ); // abs path
+					// object type params
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) {
-						fprintf(fileCfg, fluidString, "fluid", targetFile // do use absolute paths?
-								//,(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz 
-								);
+						fprintf(fileCfg, fluidString, "fluid", 
+								(int)obit->fluidsimSettings->volumeInitType, targetFile );
 					}
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) {
 				 		int locc = ((obit->fluidsimSettings->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
-						fprintf(fileCfg, inflowString, "inflow", targetFile // do use absolute paths?
-								//,(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz
-							  ,locc );
+						fprintf(fileCfg, inflowString, "inflow" ,locc 
+								, targetFile );
 					}
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OBSTACLE) {
 						char *btype[3] = { "bnd_no", "bnd_part", "bnd_free" };
@@ -1164,15 +1275,18 @@ void fluidsimBake(struct Object *ob)
 				 		if((obit->fluidsimSettings->typeFlags&OB_FSBND_NOSLIP)) bi=0;
 						else if((obit->fluidsimSettings->typeFlags&OB_FSBND_PARTSLIP)) bi=1;
 						else if((obit->fluidsimSettings->typeFlags&OB_FSBND_FREESLIP)) bi=2;
-						fprintf(fileCfg, obstacleString, btype[bi], pslip, targetFile); // abs path
+						fprintf(fileCfg, obstacleString, btype[bi], pslip, 
+								(int)obit->fluidsimSettings->volumeInitType, targetFile); // abs path
 					}
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OUTFLOW) {
 						fprintf(fileCfg, outflowString, "outflow" , targetFile); // abs path
 					}
 
-					fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][0],allchannelSize, "translation", CHANNEL_VEC);
-					fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][1],allchannelSize, "rotation"   , CHANNEL_VEC);
-					fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][2],allchannelSize, "scale"      , CHANNEL_VEC);
+					if(!deform) {
+						fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][0],allchannelSize, "translation", CHANNEL_VEC);
+						fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][1],allchannelSize, "rotation"   , CHANNEL_VEC);
+						fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][2],allchannelSize, "scale"      , CHANNEL_VEC);
+					}
 					fluidsimPrintChannel(fileCfg, channelObjActive[channelObjCount] ,allchannelSize, "geoactive"  , CHANNEL_FLOAT);
 					if( (obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) ||
 							(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) ) {
@@ -1181,7 +1295,30 @@ void fluidsimBake(struct Object *ob)
 					channelObjCount++;
 
 					fprintf(fileCfg, objectStringEnd ); // abs path
-					writeBobjgz(targetFile, obit);
+
+					// check shape key animation
+					//fprintf(stderr,"\n%d %d\n\n",(int)obit->parent,obit->partype); // DEBUG
+					if(deform) {
+						int frame;
+						// use global  coordinates for deforming/parented objects
+						writeBobjgz(targetFile, obit, 1,0,0.);
+						//for(int frame=0; frame<=G.scene->r.efra; frame++) {
+						for(frame=0; frame<=allchannelSize; frame++) {
+							G.scene->r.cfra = frame;
+							scene_update_for_newframe(G.scene, G.scene->lay);
+							writeBobjgz(targetFile, obit, 1,1, timeAtFrame[frame] ); // only append!
+
+							//if(shapekey) snprintf(debugStrBuffer,256,"Shape frames: %d/%d, shapeKeys:%d",frame,allchannelSize,BLI_countlist(&shapekey->block));
+							//else snprintf(debugStrBuffer,256,"Deform frames: %d/%d",frame,allchannelSize);
+							//elbeemDebugOut(debugStrBuffer);
+						}
+						G.scene->r.cfra = startFrame;
+						scene_update_for_newframe(G.scene, G.scene->lay);
+					} else {
+						// use normal trafos & non animated mesh
+						writeBobjgz(targetFile, obit, 0,0,0.);
+					}
+
 				}
 			}
 		}

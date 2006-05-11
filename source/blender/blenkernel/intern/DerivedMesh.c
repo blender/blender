@@ -2093,10 +2093,10 @@ float *mesh_get_mapped_verts_nors(Object *ob)
 #endif
 #endif
 
+
 /* write .bobj.gz file for a mesh object */
-void writeBobjgz(char *filename, struct Object *ob) 
+void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int append, float time) 
 {
-	// const int debugBobjWrite = 0; // now handled by global debug level
 	char debugStrBuffer[256];
 	int wri,i,j;
 	float wrf;
@@ -2106,6 +2106,7 @@ void writeBobjgz(char *filename, struct Object *ob)
 	float vec[3];
 	float rotmat[3][3];
 	MFace *mface = NULL;
+	//if(append)return; // DEBUG
 
 	if(!ob->data || (ob->type!=OB_MESH)) {
 		snprintf(debugStrBuffer,256,"Writing GZ_BOBJ Invalid object %s ...\n", ob->id.name); 
@@ -2118,7 +2119,8 @@ void writeBobjgz(char *filename, struct Object *ob)
 	}
 
 	snprintf(debugStrBuffer,256,"Writing GZ_BOBJ '%s' ... ",filename); elbeemDebugOut(debugStrBuffer); 
-	gzf = gzopen(filename, "wb9");
+	if(append) gzf = gzopen(filename, "a+b9");
+	else       gzf = gzopen(filename, "wb9");
 	if (!gzf) {
 		snprintf(debugStrBuffer,256,"writeBobjgz::error - Unable to open file for writing '%s'\n", filename);
 		elbeemDebugOut(debugStrBuffer);
@@ -2126,16 +2128,22 @@ void writeBobjgz(char *filename, struct Object *ob)
 	}
 
 	dm = mesh_create_derived_render(ob);
+	//dm = mesh_create_derived_no_deform(ob,NULL);
 	dlm = dm->convertToDispListMesh(dm, 1);
 	mface = dlm->mface;
 
+	// write time value for appended anim mesh
+	if(append) {
+		gzwrite(gzf, &time, sizeof(time));
+	}
+
+	// continue with verts/norms
 	if(sizeof(wri)!=4) { snprintf(debugStrBuffer,256,"Writing GZ_BOBJ, Invalid int size %d...\n", wri); elbeemDebugOut(debugStrBuffer); return; } // paranoia check
 	wri = dlm->totvert;
 	gzwrite(gzf, &wri, sizeof(wri));
 	for(i=0; i<wri;i++) {
 		VECCOPY(vec, dlm->mvert[i].co);
-	//VECCOPY(vec, dlm->mvert[i].co); /* get transformed point */
-	//Mat4MulVecfl(ob->obmat, vec);
+		if(useGlobalCoords) { Mat4MulVecfl(ob->obmat, vec); }
 		for(j=0; j<3; j++) {
 			wrf = vec[j]; 
 			gzwrite(gzf, &wrf, sizeof( wrf )); 
@@ -2148,40 +2156,55 @@ void writeBobjgz(char *filename, struct Object *ob)
 	EulToMat3(ob->rot, rotmat);
 	for(i=0; i<wri;i++) {
 		VECCOPY(vec, dlm->mvert[i].no);
-		// FIXME divide? mv->no[0]= (short)(no[0]*32767.0);
-	//VECCOPY(vec, dlm->mvert[i].no);
-	//Mat3MulVecfl(rotmat, vec); 
 		Normalise(vec);
+		if(useGlobalCoords) { Mat3MulVecfl(rotmat, vec); }
 		for(j=0; j<3; j++) {
 			wrf = vec[j];
 			gzwrite(gzf, &wrf, sizeof( wrf )); 
 		}
 	}
 
+	// append only writes verts&norms 
+	if(!append) {
+		//float side1[3],side2[3],norm1[3],norm2[3];
+		//float inpf;
 	
-	/* compute no. of triangles */
-	wri = 0;
-	for(i=0; i<dlm->totface; i++) {
-		wri++;
-		if(mface[i].v4) { wri++; }
-	}
-	gzwrite(gzf, &wri, sizeof(wri));
-	for(i=0; i<dlm->totface; i++) {
+		// compute no. of triangles 
+		wri = 0;
+		for(i=0; i<dlm->totface; i++) {
+			wri++;
+			if(mface[i].v4) { wri++; }
+		}
+		gzwrite(gzf, &wri, sizeof(wri));
+		for(i=0; i<dlm->totface; i++) {
 
-		int face[4];
-		face[0] = mface[i].v1;
-		face[1] = mface[i].v2;
-		face[2] = mface[i].v3;
-		face[3] = mface[i].v4;
-		//snprintf(debugStrBuffer,256,"F %s %d = %d,%d,%d,%d \n",ob->id.name, i, face[0],face[1],face[2],face[3] ); elbeemDebugOut(debugStrBuffer);
-
-		gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
-		gzwrite(gzf, &(face[1]), sizeof( face[1] )); 
-		gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
-		if(face[3]) { 
+			int face[4];
+			face[0] = mface[i].v1;
+			face[1] = mface[i].v2;
+			face[2] = mface[i].v3;
+			face[3] = mface[i].v4;
+			//snprintf(debugStrBuffer,256,"F %s %d = %d,%d,%d,%d \n",ob->id.name, i, face[0],face[1],face[2],face[3] ); elbeemDebugOut(debugStrBuffer);
+			//VecSubf(side1, dlm->mvert[face[1]].co,dlm->mvert[face[0]].co);
+			//VecSubf(side2, dlm->mvert[face[2]].co,dlm->mvert[face[0]].co);
+			//Crossf(norm1,side1,side2);
 			gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
+			gzwrite(gzf, &(face[1]), sizeof( face[1] )); 
 			gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
-			gzwrite(gzf, &(face[3]), sizeof( face[3] )); 
+			if(face[3]) { 
+				//VecSubf(side1, dlm->mvert[face[2]].co,dlm->mvert[face[0]].co);
+				//VecSubf(side2, dlm->mvert[face[3]].co,dlm->mvert[face[0]].co);
+				//Crossf(norm2,side1,side2);
+				//inpf = Inpf(norm1,norm2);
+				//if(inpf>0.) {
+				gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
+				gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
+				gzwrite(gzf, &(face[3]), sizeof( face[3] )); 
+				//} else {
+					//gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
+					//gzwrite(gzf, &(face[3]), sizeof( face[3] )); 
+					//gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
+				//}
+			} // quad
 		}
 	}
 
@@ -2195,7 +2218,8 @@ void writeBobjgz(char *filename, struct Object *ob)
 
 void initElbeemMesh(struct Object *ob, 
 		int *numVertices, float **vertices, 
-		int *numTriangles, int **triangles) 
+		int *numTriangles, int **triangles,
+		int useGlobalCoords) 
 {
 	DispListMesh *dlm = NULL;
 	DerivedMesh *dm = NULL;
@@ -2205,6 +2229,7 @@ void initElbeemMesh(struct Object *ob,
 	int *tris;
 
 	dm = mesh_create_derived_render(ob);
+	//dm = mesh_create_derived_no_deform(ob,NULL);
 	if(!dm) { *numVertices = *numTriangles = 0; *triangles=NULL; *vertices=NULL; }
 	dlm = dm->convertToDispListMesh(dm, 1);
 	if(!dlm) { dm->release(dm); *numVertices = *numTriangles = 0; *triangles=NULL; *vertices=NULL; }
@@ -2214,6 +2239,7 @@ void initElbeemMesh(struct Object *ob,
 	verts = MEM_callocN( dlm->totvert*3*sizeof(float), "elbeemmesh_vertices");
 	for(i=0; i<dlm->totvert; i++) {
 		VECCOPY( &verts[i*3], dlm->mvert[i].co);
+		if(useGlobalCoords) { Mat4MulVecfl(ob->obmat, &verts[i*3]); }
 	}
 	*vertices = verts;
 
@@ -2528,7 +2554,7 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 			if(getenv(strEnvName2)) {
 				int elevel = atoi(getenv(strEnvName2));
 				if(elevel>0) {
-					printf("Env. var %s set, fluid sim mesh not found, aborting render...\n",strEnvName2);
+					printf("Env. var %s set, fluid sim mesh '%s' not found, aborting render...\n",strEnvName2, targetFile);
 					exit(1);
 				}
 			}

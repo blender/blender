@@ -119,21 +119,24 @@ class Parametrizer {
 		/*! calculate real world [m/s] velocity from lattice value */
 		ParamVec calculateRwVelocityFromLatt( ParamVec ivel );
 
-
-		/*! set kinematic viscosity */
-		void setViscosity(ParamFloat set) { mcViscosity = AnimChannel<ParamFloat>(set); seenThis( PARAM_VISCOSITY ); }
-		void initViscosityChannel(vector<ParamFloat> val, vector<double> time) { mcViscosity = AnimChannel<ParamFloat>(val,time); }
-
 		/*! set speed of sound */
 		void setSoundSpeed(ParamFloat set) { mSoundSpeed = set; seenThis( PARAM_SOUNDSPEED ); }
 		/*! get speed of sound */
 		ParamFloat getSoundSpeed( void )   { return mSoundSpeed; }
 
+		/*! set kinematic viscosity */
+		void setViscosity(ParamFloat set);
+		void initViscosityChannel(vector<ParamFloat> val, vector<double> time);
+
 		/*! set the external force */
-		void setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { mcGravity = AnimChannel<ParamVec>(ParamVec(setx,sety,setz)); seenThis( PARAM_GRAVITY ); }
-		void setGravity(ParamVec set) { mcGravity = AnimChannel<ParamVec>(set); seenThis( PARAM_GRAVITY ); }
-		void initGravityChannel(vector<ParamVec> val, vector<double> time) { mcGravity = AnimChannel<ParamVec>(val,time); }
+		void setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz);
+		void setGravity(ParamVec set);
+		void initGravityChannel(vector<ParamVec> val, vector<double> time);
 		ParamVec getGravity(double time) { return mcGravity.get( time ); }
+
+		/*! set time of an animation frame (renderer)  */
+		void setAniFrameTimeChannel(ParamFloat set);
+		void initAniFrameTimeChannel(vector<ParamFloat> val, vector<double> time);
 
 		/*! set the length of a single time step */
 		void setTimestep(ParamFloat set) { mTimestep = set; seenThis( PARAM_STEPTIME ); }
@@ -154,11 +157,6 @@ class Parametrizer {
 		/*! init domain resoultion */
 		void setSize(int ijk)            { mSizex = ijk; mSizey = ijk; mSizez = ijk; seenThis( PARAM_SIZE ); }
 		void setSize(int i,int j, int k) { mSizex = i; mSizey = j; mSizez = k; seenThis( PARAM_SIZE ); }
-
-		/*! set time of an animation frame (renderer)  */
-		//void setAniFrameTime(ParamFloat set) { mAniFrameTime = set; seenThis( PARAM_ANIFRAMETIME ); }
-		void setAniFrameTimeChannel(ParamFloat set) { mcAniFrameTime = AnimChannel<ParamFloat>(set); seenThis( PARAM_ANIFRAMETIME ); }
-		void initAniFrameTimeChannel(vector<ParamFloat> val, vector<double> time) { mcAniFrameTime = AnimChannel<ParamFloat>(val,time); seenThis( PARAM_ANIFRAMETIME ); }
 
 		/*! set starting time of the animation (renderer) */
 		void setAniStart(ParamFloat set) { mAniStart = set; seenThis( PARAM_ANISTART ); }
@@ -266,8 +264,6 @@ class Parametrizer {
 
 		/*! for renderer - length of an animation step [s] */
 		AnimChannel<ParamFloat> mcAniFrameTime;
-		/*! current value for next frame */
-		ParamFloat mAniFrameTime;
 		/*! time step scaling factor for testing/debugging */
 		ParamFloat mTimeStepScale;
 

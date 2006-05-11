@@ -55,7 +55,6 @@ Parametrizer::Parametrizer( void ) :
 	mSizex(50), mSizey(50), mSizez(50),
 	mTimeFactor( 1.0 ),
 	mcAniFrameTime(0.0001),
-	mAniFrameTime(0.0001), 
 	mTimeStepScale(1.0),
 	mAniStart(0.0),
 	mExtent(1.0, 1.0, 1.0), //mSurfaceTension( 0.0 ),
@@ -149,17 +148,11 @@ void Parametrizer::parseAttrList()
  *! advance to next render/output frame 
  *****************************************************************************/
 void Parametrizer::setFrameNum(int frame) {
-	//double oldval = mAniFrameTime;
-	//mAniFrameTime = mcAniFrameTime.get(frametime);
-	//if(mAniFrameTime<0.0) {
-		//errMsg("Parametrizer::setFrameNum","Invalid frame time:"<<mAniFrameTime<<" at frame "<<frame<<", resetting to "<<oldval);
-		//mAniFrameTime = oldval; }
-	//errMsg("ChannelAnimDebug","anim: anif"<<mAniFrameTime<<" at "<<frame<<" ");
-	// debug getAttributeList()->find("p_aniframetime")->print();
 	mFrameNum = frame;
 	if(DEBUG_PARAMCHANNELS) errMsg("DEBUG_PARAMCHANNELS","setFrameNum frame-num="<<mFrameNum);
 }
 /*! get time of an animation frame (renderer)  */
+// also used by: mpParam->getCurrentAniFrameTime() , e.g. for velocity dump
 ParamFloat Parametrizer::getAniFrameTime( int frame )   { 
 	double frametime = (double)frame;
 	ParamFloat anift = mcAniFrameTime.get(frametime);
@@ -168,7 +161,7 @@ ParamFloat Parametrizer::getAniFrameTime( int frame )   {
 		errMsg("Parametrizer::setFrameNum","Invalid frame time:"<<anift<<" at frame "<<frame<<", resetting to "<<resetv);
 		anift = resetv; 
 	}
-	if(DEBUG_PARAMCHANNELS) errMsg("DEBUG_PARAMCHANNELS","getAniFrameTime frame="<<frame<<", frametime="<<anift<<" ");
+	if((0)|| (DEBUG_PARAMCHANNELS)) errMsg("DEBUG_PARAMCHANNELS","getAniFrameTime frame="<<frame<<", frametime="<<anift<<" ");
 	return anift; 
 }
 
@@ -247,7 +240,7 @@ int Parametrizer::calculateAniStepsPerFrame(int frame)   {
 	}
 	int value = (int)(getAniFrameTime(frame)/mTimestep); 
 	if((value<0) || (value>1000000)) {
-		errFatal("Parametrizer::calculateAniStepsPerFrame", "Invalid step-time (="<<mAniFrameTime<<") <> ani-frame-time ("<<mTimestep<<") settings, aborting...", SIMWORLD_INITERROR);
+		errFatal("Parametrizer::calculateAniStepsPerFrame", "Invalid step-time (="<<value<<") <> ani-frame-time ("<<mTimestep<<") settings, aborting...", SIMWORLD_INITERROR);
 		return 1;
 	}
 	return value;
@@ -373,7 +366,7 @@ errMsg("Warning","Used z-dir for gstar!");
 			maxDeltaT = sqrt( gStar*mCellSize *mTimeStepScale /forceStrength );
 		} else {
 			// use 1 lbm setp = 1 anim step as max
-			maxDeltaT = mAniFrameTime;
+			maxDeltaT = getAniFrameTime(0);
 		}
 
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," targeted step time = "<<maxDeltaT, 10);
@@ -436,16 +429,16 @@ errMsg("Warning","Used z-dir for gstar!");
 		
 		if(!checkSeenValues(PARAM_ANIFRAMETIME)) {
 			errFatal("Parametrizer::calculateAllMissingValues"," Warning no ani frame time given!", SIMWORLD_INITERROR);
-			mAniFrameTime = mTimestep;
+			setAniFrameTimeChannel( mTimestep );
 		} 
-		//mAniFrameTime = mAniFrames * mTimestep;
+
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," ani frame steps = "<<calculateAniStepsPerFrame(mFrameNum)<<" for frame "<<mFrameNum, 1);
 
 		if((checkSeenValues(PARAM_ANISTART))&&(calculateAniStart()>0)) {
 			if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," ani start steps = "<<calculateAniStart()<<" ",1); 
 		}
 			
-		if(!SIMWORLD_OK()) return false;
+		if(! isSimworldOk() ) return false;
 		// everything ok
 		return true;
 	}
@@ -471,6 +464,51 @@ errMsg("Warning","Used z-dir for gstar!");
 }
 
 
+/******************************************************************************
+ * init debug functions
+ *****************************************************************************/
+
+
+/*! set kinematic viscosity */
+void Parametrizer::setViscosity(ParamFloat set) { 
+	mcViscosity = AnimChannel<ParamFloat>(set); 
+	seenThis( PARAM_VISCOSITY ); 
+	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcViscosity set = "<< mcViscosity.printChannel() ); }
+}
+void Parametrizer::initViscosityChannel(vector<ParamFloat> val, vector<double> time) { 
+	mcViscosity = AnimChannel<ParamFloat>(val,time); 
+	seenThis( PARAM_VISCOSITY ); 
+	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcViscosity initc = "<< mcViscosity.printChannel() ); }
+}
+
+/*! set the external force */
+void Parametrizer::setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { 
+	mcGravity = AnimChannel<ParamVec>(ParamVec(setx,sety,setz)); 
+	seenThis( PARAM_GRAVITY ); 
+	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcGravity set = "<< mcGravity.printChannel() ); }
+}
+void Parametrizer::setGravity(ParamVec set) { 
+	mcGravity = AnimChannel<ParamVec>(set); 
+	seenThis( PARAM_GRAVITY ); 
+	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcGravity set = "<< mcGravity.printChannel() ); }
+}
+void Parametrizer::initGravityChannel(vector<ParamVec> val, vector<double> time) { 
+	mcGravity = AnimChannel<ParamVec>(val,time); 
+	seenThis( PARAM_GRAVITY ); 
+	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcGravity initc = "<< mcGravity.printChannel() ); }
+}
+
+/*! set time of an animation frame (renderer)  */
+void Parametrizer::setAniFrameTimeChannel(ParamFloat set) { 
+	mcAniFrameTime = AnimChannel<ParamFloat>(set); 
+	seenThis( PARAM_ANIFRAMETIME ); 
+	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcAniFrameTime set = "<< mcAniFrameTime.printChannel() ); }
+}
+void Parametrizer::initAniFrameTimeChannel(vector<ParamFloat> val, vector<double> time) { 
+	mcAniFrameTime = AnimChannel<ParamFloat>(val,time); 
+	seenThis( PARAM_ANIFRAMETIME ); 
+	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcAniFrameTime initc = "<< mcAniFrameTime.printChannel() ); }
+}
 
 // OLD interface stuff
 // reactivate at some point?

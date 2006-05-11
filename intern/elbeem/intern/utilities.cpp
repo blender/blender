@@ -19,20 +19,6 @@
 #include <sys/times.h>
 #endif
 
-// blender interface
-#if ELBEEM_BLENDER==1
-// warning - for MSVC this has to be included
-// _before_ ntl_vector3dim
-#include "SDL.h"
-#include "SDL_thread.h"
-#include "SDL_mutex.h"
-extern "C" void simulateThreadIncreaseFrame(void);
-extern "C" SDL_mutex *globalBakeLock;
-// global state variables
-extern "C" int globalBakeState;
-//extern "C" int globalBakeFrame; not needed...?
-#endif // ELBEEM_PLUGIN==1
-
 #include "utilities.h"
 
 #ifndef NOPNG
@@ -50,10 +36,28 @@ int gDebugLevel = DEBUG;
 int gDebugLevel = 0;
 #endif // DEBUG 
 
-// global world state
+// global world state, acces with get/setElbeemState
 int gElbeemState = SIMWORLD_INVALID;
-// last error as string
+
+// access global state of elbeem simulator
+void setElbeemState(int set) {
+	gElbeemState = set;
+}
+int  getElbeemState(void) { 
+	return gElbeemState;
+}
+int  isSimworldOk(void) {
+	return (getElbeemState>=0);
+}
+
+// last error as string, acces with get/setElbeemErrorString
 char gElbeemErrorString[256] = {'-','\0' };
+
+// access elbeem simulator error string
+void setElbeemErrorString(char* set) {
+	strncpy(gElbeemErrorString, set, 256);
+}
+char* getElbeemErrorString(void) { return gElbeemErrorString; }
 
 
 //! for interval debugging output
@@ -65,6 +69,9 @@ int globalColorSetting = 0;
 int globalColorSetting = 1;
 #endif // WIN32
 int globalFirstEnvCheck = 0;
+
+// global string for formatting vector output, TODO test!?
+char *globVecFormatStr = "V[%f,%f,%f]";
 
 
 //-----------------------------------------------------------------------------
@@ -369,25 +376,6 @@ double elbeemEstimateMemreq(int res,
 	}
 	return memreq;
 }
-
-//-----------------------------------------------------------------------------
-// bake state mutex handling
-
-
-#if ELBEEM_BLENDER==1
-// Blender state sync
-void setGlobalBakeState(int set) {
-	SDL_mutexP(globalBakeLock);
-	globalBakeState = set;
-	SDL_mutexV(globalBakeLock);
-}
-int  getGlobalBakeState(void) {
-	SDL_mutexP(globalBakeLock);
-	int ret = globalBakeState;
-	SDL_mutexV(globalBakeLock);
-	return ret;
-}
-#endif // ELBEEM_BLENDER==1
 
 
 

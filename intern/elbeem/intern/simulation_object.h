@@ -55,7 +55,7 @@ class SimulationObject :
 
 
 		/*! init tree for certain geometry init */
-		void initGeoTree(int id);
+		void initGeoTree();
 		/*! destroy tree etc. when geometry init done */
 		void freeGeoTree();
 		/*! get fluid init type at certain position */
@@ -67,10 +67,6 @@ class SimulationObject :
 
 		/*! get current (max) simulation time */
 		double getCurrentTime( void ) { return mTime; }
-
-		/*! set time to display */
-		void setDisplayTime(double set) { mDisplayTime = set; }
-
 		/*! set geometry generation start point */
 		virtual void setGeoStart(ntlVec3Gfx set) { mGeoStart = set; }
 		/*! set geometry generation end point */
@@ -126,14 +122,11 @@ class SimulationObject :
 		/*! current time in the simulation */
 		double mTime;
 
-		/*! time to display in the visualizer */
-		double mDisplayTime;
-
 		/*! for display - start and end vectors for geometry */
 		ntlVec3Gfx mGeoStart, mGeoEnd;
 
 		/*! geometry init id */
-		int mGeoInitId;
+		//? int mGeoInitId;
 		/*! tree object for geomerty initialization */
 		ntlTree *mpGiTree;
 		/*! object vector for geo init */
@@ -147,17 +140,8 @@ class SimulationObject :
 		/*! debug info to display */
 		int mDebugType;
 
-		//! dimension of the simulation - now given by LBM-DIM define globally
-		//! solver type
-
-		/*! when no parametrizer, use this as no. of steps per frame */
-		int mStepsPerFrame;
-
 		/*! pointer to the lbm solver */
 		LbmSolverInterface *mpLbm;
-
-		/*! marching cubes object */
-		//mCubes *mpMC;
 
 		/*! parametrizer for lbm solver */
 		Parametrizer *mpParam;
@@ -193,8 +177,9 @@ class SimulationObject :
 		/*! init parametrizer for anim step length */
 		Parametrizer *getParametrizer() { return mpParam; }
 
-		/*! Access marching cubes object */
-		//mCubes *getMCubes( void ) { return mpMC; }
+		/*! check status (e.g. stop/abort) from calling program, returns !=0 if sth. happened... */
+		// parameters same as elbeem runsimCallback
+		int checkCallerStatus(int status, int frame);
 
 		/*! get bounding box of fluid for GUI */
 		virtual inline ntlVec3Gfx *getBBStart() 	{ return &mGeoStart; }

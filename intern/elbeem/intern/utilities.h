@@ -9,50 +9,45 @@
 #ifndef UTILITIES_H
 #include "ntl_vector3dim.h"
 
-typedef unsigned long myTime_t;
-
-//! helper function that converts a string to integer
-int convertString2Int(const char *str, int alt);
-
-//! helper function that converts a flag field to a readable integer
-string convertFlags2String(int flags);
-
-//! get the current system time
-myTime_t getTime();
-//! convert time to readable string
-string getTimeString(myTime_t usecs);
-
-//! helper to check if a bounding box was specified in the right way
-bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker);
-
 
 /* debugging outputs , debug level 0 (off) to 10 (max) */
 #ifdef ELBEEM_PLUGIN
 #define DEBUG 0
-void setGlobalBakeState(int set);
-int  getGlobalBakeState(void);
 #else // ELBEEM_PLUGIN
 #define DEBUG 10
 #endif // ELBEEM_PLUGIN
 extern "C" int gDebugLevel;
 
+
+// time measurements
+typedef unsigned long myTime_t;
+
+
 // state of the simulation world
 // default
-#define SIMWORLD_INVALID   0
+#define SIMWORLD_INVALID       0
+// performing init
+#define SIMWORLD_INITIALIZING  1
 // after init, before starting simulation
-#define SIMWORLD_INITED    1
+#define SIMWORLD_INITED        2
+// stop of the simulation run, can be continued later
+#define SIMWORLD_STOP          3
 // error during init
 #define SIMWORLD_INITERROR    -1
 // error during simulation
 #define SIMWORLD_PANIC        -2
 // general error 
 #define SIMWORLD_GENERICERROR -3
-// global world state
-extern "C" int gElbeemState;
-// last error as string
-extern "C" char gElbeemErrorString[];
-// check world status macro
-#define SIMWORLD_OK()     (gElbeemState>=0)
+
+// access global state of elbeem simulator
+void setElbeemState(int set);
+int  getElbeemState(void);
+int  isSimworldOk(void);
+
+// access elbeem simulator error string
+void setElbeemErrorString(char* set);
+char* getElbeemErrorString(void);
+
 
 /* debug output function */
 #define DM_MSG        1
@@ -100,10 +95,27 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval);
 
 // fatal errors - have to be handled 
 #define errFatal(from,mStr,errCode) { \
-	gElbeemState = errCode; \
+	setElbeemState(errCode); \
 	MSGSTREAM; msg << mStr; \
 	messageOutputFunc(from, DM_FATAL, msg.str(), 0); \
 }
+
+
+//! helper function that converts a string to integer
+int convertString2Int(const char *str, int alt);
+
+//! helper function that converts a flag field to a readable integer
+string convertFlags2String(int flags);
+
+//! get the current system time
+myTime_t getTime();
+//! convert time to readable string
+string getTimeString(myTime_t usecs);
+
+//! helper to check if a bounding box was specified in the right way
+bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker);
+
+
 
 /*! print some vector from 3 values e.g. for ux,uy,uz */
 #define PRINT_VEC(x,y,z) " ["<<(x)<<","<<(y)<<","<<(z)<<"] "

@@ -28,16 +28,24 @@ class ntlGeometryObjModel : public ntlGeometryObject
 		/*! Filename setting etc. */
 		virtual void initialize(ntlRenderGlobals *glob);
 
+		/*! is the mesh animated? */
+		virtual bool getMeshAnimated();
 
 		/* create triangles from obj */
-		virtual void getTriangles( vector<ntlTriangle> *triangles, 
+		virtual void getTriangles(double t,  vector<ntlTriangle> *triangles, 
 				vector<ntlVec3Gfx> *vertices, 
 				vector<ntlVec3Gfx> *normals, int objectId );
 
 		/*! load model from .bobj file, returns !=0 upon error */
 		int loadBobjModel(string filename);
 		/*! init model from given vertex and triangle arrays */
-		int initModel(int numVertices, float *vertices, int numTriangles, int *triangles);
+		int initModel(int numVertices, float *vertices, int numTriangles, int *triangles,
+				int channelSize, float *channelVertices);
+		/*! init triangle divisions */
+		virtual void calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntlTriangle> &tris, gfxReal fsTri);
+
+		/*! do ani mesh CPS */
+		void calculateCPS(string filename);
 
 	private:
 
@@ -54,6 +62,20 @@ class ntlGeometryObjModel : public ntlGeometryObject
 		vector<int> mTriangles;
 		vector<ntlVec3Gfx> mVertices;
 		vector<ntlVec3Gfx> mNormals;
+
+		/*! animated channels for vertices, if given will override getris by default */
+		AnimChannel<ntlSetVec3f> mcAniVerts;
+		AnimChannel<ntlSetVec3f> mcAniNorms;
+		/*! map entrie of anim mesh to sim times */
+		AnimChannel<double> mcAniTimes;
+		/*! timing mapping & offset for config files */
+		double mAniTimeScale, mAniTimeOffset;
+
+		/*! ani mesh cps params */
+		ntlVec3Gfx mvCPSStart, mvCPSEnd;
+		string mCPSFilename;
+		gfxReal mCPSWidth, mCPSTimestep;
+
 
 	public:
 

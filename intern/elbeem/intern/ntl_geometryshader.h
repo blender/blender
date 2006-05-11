@@ -21,7 +21,8 @@ class ntlGeometryShader :
 
 		//! Default constructor
 		inline ntlGeometryShader() :
-			ntlGeometryClass() {};
+			ntlGeometryClass(), mOutFilename("")
+			{};
 		//! Default destructor
 		virtual ~ntlGeometryShader() {};
 
@@ -42,11 +43,17 @@ class ntlGeometryShader :
 		/*! notify object that dump is in progress (e.g. for field dump) */
 		virtual void notifyShaderOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) = 0;
 
+		/*! get ouput filename, returns global render outfile if empty */
+		std::string getOutFilename( void ) { return mOutFilename; }
+
 	protected:
 
 		//! vector for the objects
 		vector<ntlGeometryObject *> mObjects;
 
+
+		/*! surface output name for this simulation */
+		std::string mOutFilename; 
 };
 
 #endif

@@ -11,22 +11,28 @@
 #define ELBEEM_API_H
 
 
-/*! blender types for mesh->type */
-//#define OB_FLUIDSIM_DOMAIN      2
-#define OB_FLUIDSIM_FLUID       4
-#define OB_FLUIDSIM_OBSTACLE    8
-#define OB_FLUIDSIM_INFLOW      16
-#define OB_FLUIDSIM_OUTFLOW     32
-
-#define FLUIDSIM_OBSTACLE_NOSLIP     1
-#define FLUIDSIM_OBSTACLE_PARTSLIP   2
-#define FLUIDSIM_OBSTACLE_FREESLIP   3
+// simulation run callback function type (elbeemSimulationSettings->runsimCallback)
+// best use with FLUIDSIM_CBxxx defines below.
+// >parameters
+// return values: 0=continue, 1=stop, 2=abort
+// data pointer: user data pointer from elbeemSimulationSettings->runsimUserData
+// status integer: 1=running simulation, 2=new frame saved
+// frame integer: if status is 1, contains current frame number
+typedef int (*elbeemRunSimulationCallback)(void *data, int status, int frame);
+#define FLUIDSIM_CBRET_CONTINUE    0
+#define FLUIDSIM_CBRET_STOP        1
+#define FLUIDSIM_CBRET_ABORT       2 
+#define FLUIDSIM_CBSTATUS_STEP     1 
+#define FLUIDSIM_CBSTATUS_NEWFRAME 2 
 
 
 // global settings for the simulation
 typedef struct elbeemSimulationSettings {
   /* version number */
   short version;
+	/* id number of simulation domain, needed if more than a
+	 * single domain should be simulated */
+	short domainId;
 
 	/* geometrical extent */
 	float geoStart[3], geoSize[3];
@@ -49,8 +55,10 @@ typedef struct elbeemSimulationSettings {
   float gstar;
   /* activate refinement? */
   short maxRefine;
-  /* amount of particles to generate (0=off) */
+  /* probability for surface particle generation (0.0=off) */
   float generateParticles;
+  /* amount of tracer particles to generate (0=off) */
+  int numTracerParticles;
 
   /* store output path, and file prefix for baked fluid surface */
   char outputPath[160+80];
@@ -77,17 +85,43 @@ typedef struct elbeemSimulationSettings {
 	/* development variables, testing for upcoming releases...*/
 	float farFieldSize;
 
+	/* callback function to notify calling program of performed simulation steps
+	 * or newly available frame data, if NULL it is ignored */
+	elbeemRunSimulationCallback runsimCallback;
+	/* pointer passed to runsimCallback for user data storage */
+	void* runsimUserData;
+
 } elbeemSimulationSettings;
 
+
+// defines for elbeemMesh->type below
+#define OB_FLUIDSIM_FLUID       4
+#define OB_FLUIDSIM_OBSTACLE    8
+#define OB_FLUIDSIM_INFLOW      16
+#define OB_FLUIDSIM_OUTFLOW     32
+
+// defines for elbeemMesh->obstacleType below
+#define FLUIDSIM_OBSTACLE_NOSLIP     1
+#define FLUIDSIM_OBSTACLE_PARTSLIP   2
+#define FLUIDSIM_OBSTACLE_FREESLIP   3
+
+#define OB_VOLUMEINIT_VOLUME 1
+#define OB_VOLUMEINIT_SHELL  2
+#define OB_VOLUMEINIT_BOTH   (OB_VOLUMEINIT_SHELL|OB_VOLUMEINIT_VOLUME)
 
 // a single mesh object
 typedef struct elbeemMesh {
   /* obstacle,fluid or inflow... */
   short type;
+	/* id of simulation domain it belongs to */
+	short parentDomainId;
 
 	/* vertices */
   int numVertices;
-	float *vertices; // = float[][3];
+	float *vertices; // = float[n][3];
+	/* animated vertices */
+  int channelSizeVertices;
+	float *channelVertices; // = float[channelSizeVertices* (n*3+1) ];
 
 	/* triangles */
 	int   numTriangles;
@@ -112,6 +146,8 @@ typedef struct elbeemMesh {
 	/* boundary types and settings */
 	short obstacleType;
 	float obstaclePartslip;
+	/* init volume, shell or both? use OB_VOLUMEINIT_xxx defines above */
+	short volumeInitType;
 
 	/* name of the mesh, mostly for debugging */
 	char *name;
@@ -123,11 +159,16 @@ typedef struct elbeemMesh {
 extern "C"  {
 #endif // __cplusplus
  
+
 // reset elbeemSimulationSettings struct with defaults
 void elbeemResetSettings(struct elbeemSimulationSettings*);
  
 // start fluidsim init (returns !=0 upon failure)
-int elbeemInit(struct elbeemSimulationSettings*);
+int elbeemInit(void);
+
+// start fluidsim init (returns !=0 upon failure)
+int elbeemAddDomain(struct elbeemSimulationSettings*);
+
 // get failure message during simulation or init
 // if an error occured (the string is copied into buffer,
 // max. length = 256 chars )
@@ -141,6 +182,9 @@ int elbeemAddMesh(struct elbeemMesh*);
 
 // do the actual simulation
 int elbeemSimulate(void);
+
+// continue a previously stopped simulation
+int elbeemContinueSimulation(void);
 
 
 // helper functions 
@@ -184,8 +228,6 @@ double elbeemEstimateMemreq(int res,
 #define FGI_NO_BND		  (1<<(FGI_FLAGSTART+ 5))
 #define FGI_MBNDINFLOW	(1<<(FGI_FLAGSTART+ 6))
 #define FGI_MBNDOUTFLOW	(1<<(FGI_FLAGSTART+ 7))
-
-#define FGI_ALLBOUNDS ( FGI_BNDNO | FGI_BNDFREE | FGI_BNDPART | FGI_MBNDINFLOW | FGI_MBNDOUTFLOW )
 
 
 #endif // ELBEEM_API_H

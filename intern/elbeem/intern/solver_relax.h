@@ -17,8 +17,19 @@
 
 
 
+#if LBM_INCLUDE_TESTSOLVERS!=1
+
 // off for non testing
-#define PRECOLLIDE_MODS(rho,ux,uy,uz) 
+#define PRECOLLIDE_MODS(rho,ux,uy,uz, grav) \
+	ux += (grav)[0]; \
+	uy += (grav)[1]; \
+	uz += (grav)[2]; \
+
+#else // LBM_INCLUDE_TESTSOLVERS!=1
+
+// defined in test.h
+
+#endif // LBM_INCLUDE_TESTSOLVERS!=1
 
 	
 /******************************************************************************
@@ -269,7 +280,6 @@
 				if(nbf & CFBndNoslip) { \
 					/* no slip, default */ \
 					m[l] = RAC(ccel, this->dfInv[l] ); /* noslip */ \
-					if(nbf&CFBndMoving) m[l]+=QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); /* obs. speed*/ \
 					STREAMCHECK(2, i,j,k, l); \
 				} else if(nbf & (CFBndFreeslip|CFBndPartslip)) { \
 					/* free slip */ \
@@ -284,6 +294,7 @@
 				else {\
 					errMsg("LbmFsgrSolver","Invalid Bnd type at "<<PRINT_IJK<<" f"<<convertCellFlagType2String(nbf)<<",nbdir"<<this->dfInv[l] ); \
 				} \
+				if(nbf&CFBndMoving) m[l]+=QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); /* obs. speed*/ \
 			} else { \
 				m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); \
 				STREAMCHECK(4, i+this->dfVecX[this->dfInv[l]], j+this->dfVecY[this->dfInv[l]],k+this->dfVecZ[this->dfInv[l]], l); \
@@ -292,8 +303,8 @@
 
 
 // careful ux,uy,uz need to be inited before!
-#define DEFAULT_COLLIDE \
-			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago, &mDebugOmegaRet, &lcsmqo ); \
+#define DEFAULT_COLLIDEG(grav) \
+			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), grav, mLevel[lev].lcsmago, &mDebugOmegaRet, &lcsmqo ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; }   \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -307,8 +318,8 @@
 				STREAMCHECK(8, i+this->dfVecX[this->dfInv[l]], j+this->dfVecY[this->dfInv[l]],k+this->dfVecZ[this->dfInv[l]], l); \
 			}   \
 			rho=m[0]; \
-			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
+			/* ux = mLevel[lev].gravity[0]; uy = [1]; uz = mLevel[lev].gravity[2]; */ \
+			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].gravity, mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; } \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -352,18 +363,18 @@
 			if(nbflag[dT ]&CFBnd) { m[dB ] = RAC(ccel,dT ); LBMDS_ADDMOV(dT ,dB ); } else { m[dB ] = CSRC_B ; } \
  			\
 			/* also treat free slip here */ \
-			if(nbflag[dSW]&CFBnd) { if(nbflag[dSW]&CFBndNoslip){ m[dNE] = RAC(ccel,dSW); LBMDS_ADDMOV(dSW,dNE); }else{ DEFAULT_STREAM_FREESLIP(dNE,dSW,nbflag[dSW]);} } else { m[dNE] = CSRC_NE; } \
-			if(nbflag[dSE]&CFBnd) { if(nbflag[dSE]&CFBndNoslip){ m[dNW] = RAC(ccel,dSE); LBMDS_ADDMOV(dSE,dNW); }else{ DEFAULT_STREAM_FREESLIP(dNW,dSE,nbflag[dSE]);} } else { m[dNW] = CSRC_NW; } \
-			if(nbflag[dNW]&CFBnd) { if(nbflag[dNW]&CFBndNoslip){ m[dSE] = RAC(ccel,dNW); LBMDS_ADDMOV(dNW,dSE); }else{ DEFAULT_STREAM_FREESLIP(dSE,dNW,nbflag[dNW]);} } else { m[dSE] = CSRC_SE; } \
-			if(nbflag[dNE]&CFBnd) { if(nbflag[dNE]&CFBndNoslip){ m[dSW] = RAC(ccel,dNE); LBMDS_ADDMOV(dNE,dSW); }else{ DEFAULT_STREAM_FREESLIP(dSW,dNE,nbflag[dNE]);} } else { m[dSW] = CSRC_SW; } \
-			if(nbflag[dSB]&CFBnd) { if(nbflag[dSB]&CFBndNoslip){ m[dNT] = RAC(ccel,dSB); LBMDS_ADDMOV(dSB,dNT); }else{ DEFAULT_STREAM_FREESLIP(dNT,dSB,nbflag[dSB]);} } else { m[dNT] = CSRC_NT; } \
-			if(nbflag[dST]&CFBnd) { if(nbflag[dST]&CFBndNoslip){ m[dNB] = RAC(ccel,dST); LBMDS_ADDMOV(dST,dNB); }else{ DEFAULT_STREAM_FREESLIP(dNB,dST,nbflag[dST]);} } else { m[dNB] = CSRC_NB; } \
-			if(nbflag[dNB]&CFBnd) { if(nbflag[dNB]&CFBndNoslip){ m[dST] = RAC(ccel,dNB); LBMDS_ADDMOV(dNB,dST); }else{ DEFAULT_STREAM_FREESLIP(dST,dNB,nbflag[dNB]);} } else { m[dST] = CSRC_ST; } \
-			if(nbflag[dNT]&CFBnd) { if(nbflag[dNT]&CFBndNoslip){ m[dSB] = RAC(ccel,dNT); LBMDS_ADDMOV(dNT,dSB); }else{ DEFAULT_STREAM_FREESLIP(dSB,dNT,nbflag[dNT]);} } else { m[dSB] = CSRC_SB; } \
-			if(nbflag[dWB]&CFBnd) { if(nbflag[dWB]&CFBndNoslip){ m[dET] = RAC(ccel,dWB); LBMDS_ADDMOV(dWB,dET); }else{ DEFAULT_STREAM_FREESLIP(dET,dWB,nbflag[dWB]);} } else { m[dET] = CSRC_ET; } \
-			if(nbflag[dWT]&CFBnd) { if(nbflag[dWT]&CFBndNoslip){ m[dEB] = RAC(ccel,dWT); LBMDS_ADDMOV(dWT,dEB); }else{ DEFAULT_STREAM_FREESLIP(dEB,dWT,nbflag[dWT]);} } else { m[dEB] = CSRC_EB; } \
-			if(nbflag[dEB]&CFBnd) { if(nbflag[dEB]&CFBndNoslip){ m[dWT] = RAC(ccel,dEB); LBMDS_ADDMOV(dEB,dWT); }else{ DEFAULT_STREAM_FREESLIP(dWT,dEB,nbflag[dEB]);} } else { m[dWT] = CSRC_WT; } \
-			if(nbflag[dET]&CFBnd) { if(nbflag[dET]&CFBndNoslip){ m[dWB] = RAC(ccel,dET); LBMDS_ADDMOV(dET,dWB); }else{ DEFAULT_STREAM_FREESLIP(dWB,dET,nbflag[dET]);} } else { m[dWB] = CSRC_WB; } \
+			if(nbflag[dSW]&CFBnd) { if(nbflag[dSW]&CFBndNoslip){ m[dNE] = RAC(ccel,dSW); LBMDS_ADDMOV(dSW,dNE); }else{ DEFAULT_STREAM_FREESLIP(dNE,dSW,nbflag[dSW]);} LBMDS_ADDMOV(dSW,dNE); } else { m[dNE] = CSRC_NE; } \
+			if(nbflag[dSE]&CFBnd) { if(nbflag[dSE]&CFBndNoslip){ m[dNW] = RAC(ccel,dSE); LBMDS_ADDMOV(dSE,dNW); }else{ DEFAULT_STREAM_FREESLIP(dNW,dSE,nbflag[dSE]);} LBMDS_ADDMOV(dSE,dNW); } else { m[dNW] = CSRC_NW; } \
+			if(nbflag[dNW]&CFBnd) { if(nbflag[dNW]&CFBndNoslip){ m[dSE] = RAC(ccel,dNW); LBMDS_ADDMOV(dNW,dSE); }else{ DEFAULT_STREAM_FREESLIP(dSE,dNW,nbflag[dNW]);} LBMDS_ADDMOV(dNW,dSE); } else { m[dSE] = CSRC_SE; } \
+			if(nbflag[dNE]&CFBnd) { if(nbflag[dNE]&CFBndNoslip){ m[dSW] = RAC(ccel,dNE); LBMDS_ADDMOV(dNE,dSW); }else{ DEFAULT_STREAM_FREESLIP(dSW,dNE,nbflag[dNE]);} LBMDS_ADDMOV(dNE,dSW); } else { m[dSW] = CSRC_SW; } \
+			if(nbflag[dSB]&CFBnd) { if(nbflag[dSB]&CFBndNoslip){ m[dNT] = RAC(ccel,dSB); LBMDS_ADDMOV(dSB,dNT); }else{ DEFAULT_STREAM_FREESLIP(dNT,dSB,nbflag[dSB]);} LBMDS_ADDMOV(dSB,dNT); } else { m[dNT] = CSRC_NT; } \
+			if(nbflag[dST]&CFBnd) { if(nbflag[dST]&CFBndNoslip){ m[dNB] = RAC(ccel,dST); LBMDS_ADDMOV(dST,dNB); }else{ DEFAULT_STREAM_FREESLIP(dNB,dST,nbflag[dST]);} LBMDS_ADDMOV(dST,dNB); } else { m[dNB] = CSRC_NB; } \
+			if(nbflag[dNB]&CFBnd) { if(nbflag[dNB]&CFBndNoslip){ m[dST] = RAC(ccel,dNB); LBMDS_ADDMOV(dNB,dST); }else{ DEFAULT_STREAM_FREESLIP(dST,dNB,nbflag[dNB]);} LBMDS_ADDMOV(dNB,dST); } else { m[dST] = CSRC_ST; } \
+			if(nbflag[dNT]&CFBnd) { if(nbflag[dNT]&CFBndNoslip){ m[dSB] = RAC(ccel,dNT); LBMDS_ADDMOV(dNT,dSB); }else{ DEFAULT_STREAM_FREESLIP(dSB,dNT,nbflag[dNT]);} LBMDS_ADDMOV(dNT,dSB); } else { m[dSB] = CSRC_SB; } \
+			if(nbflag[dWB]&CFBnd) { if(nbflag[dWB]&CFBndNoslip){ m[dET] = RAC(ccel,dWB); LBMDS_ADDMOV(dWB,dET); }else{ DEFAULT_STREAM_FREESLIP(dET,dWB,nbflag[dWB]);} LBMDS_ADDMOV(dWB,dET); } else { m[dET] = CSRC_ET; } \
+			if(nbflag[dWT]&CFBnd) { if(nbflag[dWT]&CFBndNoslip){ m[dEB] = RAC(ccel,dWT); LBMDS_ADDMOV(dWT,dEB); }else{ DEFAULT_STREAM_FREESLIP(dEB,dWT,nbflag[dWT]);} LBMDS_ADDMOV(dWT,dEB); } else { m[dEB] = CSRC_EB; } \
+			if(nbflag[dEB]&CFBnd) { if(nbflag[dEB]&CFBndNoslip){ m[dWT] = RAC(ccel,dEB); LBMDS_ADDMOV(dEB,dWT); }else{ DEFAULT_STREAM_FREESLIP(dWT,dEB,nbflag[dEB]);} LBMDS_ADDMOV(dEB,dWT); } else { m[dWT] = CSRC_WT; } \
+			if(nbflag[dET]&CFBnd) { if(nbflag[dET]&CFBndNoslip){ m[dWB] = RAC(ccel,dET); LBMDS_ADDMOV(dET,dWB); }else{ DEFAULT_STREAM_FREESLIP(dWB,dET,nbflag[dET]);} LBMDS_ADDMOV(dET,dWB); } else { m[dWB] = CSRC_WB; } \
 		} 
 
 
@@ -437,7 +448,7 @@
 							/ (6.0*mLevel[(csolev)].lcsmago_sqr)) \
 						) +0.5 ); 
 
-#define DEFAULT_COLLIDE_LES \
+#define DEFAULT_COLLIDE_LES(grav) \
 			rho = + MSRC_C  + MSRC_N  \
 				+ MSRC_S  + MSRC_E  \
 				+ MSRC_W  + MSRC_T  \
@@ -449,24 +460,24 @@
 				+ MSRC_EB + MSRC_WT \
 				+ MSRC_WB; \
  			\
-			ux += MSRC_E - MSRC_W \
+			ux = MSRC_E - MSRC_W \
 				+ MSRC_NE - MSRC_NW \
 				+ MSRC_SE - MSRC_SW \
 				+ MSRC_ET + MSRC_EB \
 				- MSRC_WT - MSRC_WB ;  \
  			\
-			uy += MSRC_N - MSRC_S \
+			uy = MSRC_N - MSRC_S \
 				+ MSRC_NE + MSRC_NW \
 				- MSRC_SE - MSRC_SW \
 				+ MSRC_NT + MSRC_NB \
 				- MSRC_ST - MSRC_SB ;  \
  			\
-			uz += MSRC_T - MSRC_B \
+			uz = MSRC_T - MSRC_B \
 				+ MSRC_NT - MSRC_NB \
 				+ MSRC_ST - MSRC_SB \
 				+ MSRC_ET - MSRC_EB \
 				+ MSRC_WT - MSRC_WB ;  \
-			PRECOLLIDE_MODS(rho,ux,uy,uz); \
+			PRECOLLIDE_MODS(rho,ux,uy,uz, grav); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			COLL_CALCULATE_DFEQ(lcsmeq); \
 			COLL_CALCULATE_NONEQTENSOR(lev, MSRC_); \
@@ -495,7 +506,7 @@
 			RAC(tcel,dWT) = (1.0-lcsmomega)*MSRC_WT + lcsmomega*lcsmeq[ dWT]; \
 			RAC(tcel,dWB) = (1.0-lcsmomega)*MSRC_WB + lcsmomega*lcsmeq[ dWB]; 
 
-#define DEFAULT_COLLIDE_NOLES \
+#define DEFAULT_COLLIDE_NOLES(grav) \
 			rho = + MSRC_C  + MSRC_N  \
 				+ MSRC_S  + MSRC_E  \
 				+ MSRC_W  + MSRC_T  \
@@ -507,24 +518,24 @@
 				+ MSRC_EB + MSRC_WT \
 				+ MSRC_WB; \
  			\
-			ux += MSRC_E - MSRC_W \
+			ux = MSRC_E - MSRC_W \
 				+ MSRC_NE - MSRC_NW \
 				+ MSRC_SE - MSRC_SW \
 				+ MSRC_ET + MSRC_EB \
 				- MSRC_WT - MSRC_WB ;  \
  			\
-			uy += MSRC_N - MSRC_S \
+			uy = MSRC_N - MSRC_S \
 				+ MSRC_NE + MSRC_NW \
 				- MSRC_SE - MSRC_SW \
 				+ MSRC_NT + MSRC_NB \
 				- MSRC_ST - MSRC_SB ;  \
  			\
-			uz += MSRC_T - MSRC_B \
+			uz = MSRC_T - MSRC_B \
 				+ MSRC_NT - MSRC_NB \
 				+ MSRC_ST - MSRC_SB \
 				+ MSRC_ET - MSRC_EB \
 				+ MSRC_WT - MSRC_WB ;  \
-			PRECOLLIDE_MODS(rho,ux,uy,uz); \
+			PRECOLLIDE_MODS(rho, ux,uy,uz, grav); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
  			\
 			RAC(tcel,dC ) = (1.0-OMEGA(lev))*MSRC_C  + OMEGA(lev)*EQC ; \
@@ -565,12 +576,12 @@
 				+ MSRC_B  + MSRC_NE + MSRC_NW + MSRC_SE + MSRC_SW + MSRC_NT \
 				+ MSRC_NB + MSRC_ST + MSRC_SB + MSRC_ET + MSRC_EB + MSRC_WT + MSRC_WB; \
 			ux = MSRC_E - MSRC_W + MSRC_NE - MSRC_NW + MSRC_SE - MSRC_SW \
-				+ MSRC_ET + MSRC_EB - MSRC_WT - MSRC_WB + mLevel[lev].gravity[0];  \
+				+ MSRC_ET + MSRC_EB - MSRC_WT - MSRC_WB;  \
 			uy = MSRC_N - MSRC_S + MSRC_NE + MSRC_NW - MSRC_SE - MSRC_SW \
-				+ MSRC_NT + MSRC_NB - MSRC_ST - MSRC_SB + mLevel[lev].gravity[1];  \
+				+ MSRC_NT + MSRC_NB - MSRC_ST - MSRC_SB;  \
 			uz = MSRC_T - MSRC_B + MSRC_NT - MSRC_NB + MSRC_ST - MSRC_SB \
-				+ MSRC_ET - MSRC_EB + MSRC_WT - MSRC_WB + mLevel[lev].gravity[2];  \
-			PRECOLLIDE_MODS(rho,ux,uy,uz); \
+				+ MSRC_ET - MSRC_EB + MSRC_WT - MSRC_WB;  \
+			PRECOLLIDE_MODS(rho, ux,uy,uz, mLevel[lev].gravity); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			COLL_CALCULATE_DFEQ(lcsmeq); \
 			COLL_CALCULATE_NONEQTENSOR(lev, MSRC_) \
@@ -606,12 +617,12 @@
 				+ CSRC_B  + CSRC_NE + CSRC_NW + CSRC_SE + CSRC_SW + CSRC_NT \
 				+ CSRC_NB + CSRC_ST + CSRC_SB + CSRC_ET + CSRC_EB + CSRC_WT + CSRC_WB; \
 			ux = CSRC_E - CSRC_W + CSRC_NE - CSRC_NW + CSRC_SE - CSRC_SW \
-				+ CSRC_ET + CSRC_EB - CSRC_WT - CSRC_WB + mLevel[lev].gravity[0];  \
+				+ CSRC_ET + CSRC_EB - CSRC_WT - CSRC_WB;  \
 			uy = CSRC_N - CSRC_S + CSRC_NE + CSRC_NW - CSRC_SE - CSRC_SW \
-				+ CSRC_NT + CSRC_NB - CSRC_ST - CSRC_SB + mLevel[lev].gravity[1];  \
+				+ CSRC_NT + CSRC_NB - CSRC_ST - CSRC_SB;  \
 			uz = CSRC_T - CSRC_B + CSRC_NT - CSRC_NB + CSRC_ST - CSRC_SB \
-				+ CSRC_ET - CSRC_EB + CSRC_WT - CSRC_WB + mLevel[lev].gravity[2];  \
-			PRECOLLIDE_MODS(rho,ux,uy,uz); \
+				+ CSRC_ET - CSRC_EB + CSRC_WT - CSRC_WB;  \
+			PRECOLLIDE_MODS(rho, ux,uy,uz, mLevel[lev].gravity); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			COLL_CALCULATE_DFEQ(lcsmeq); \
 			COLL_CALCULATE_NONEQTENSOR(lev, CSRC_) \
@@ -646,12 +657,12 @@
 				+ CSRC_B  + CSRC_NE + CSRC_NW + CSRC_SE + CSRC_SW + CSRC_NT \
 				+ CSRC_NB + CSRC_ST + CSRC_SB + CSRC_ET + CSRC_EB + CSRC_WT + CSRC_WB; \
 			ux = CSRC_E - CSRC_W + CSRC_NE - CSRC_NW + CSRC_SE - CSRC_SW \
-				+ CSRC_ET + CSRC_EB - CSRC_WT - CSRC_WB + mLevel[lev].gravity[0];  \
+				+ CSRC_ET + CSRC_EB - CSRC_WT - CSRC_WB;  \
 			uy = CSRC_N - CSRC_S + CSRC_NE + CSRC_NW - CSRC_SE - CSRC_SW \
-				+ CSRC_NT + CSRC_NB - CSRC_ST - CSRC_SB + mLevel[lev].gravity[1];  \
+				+ CSRC_NT + CSRC_NB - CSRC_ST - CSRC_SB;  \
 			uz = CSRC_T - CSRC_B + CSRC_NT - CSRC_NB + CSRC_ST - CSRC_SB \
-				+ CSRC_ET - CSRC_EB + CSRC_WT - CSRC_WB + mLevel[lev].gravity[2];  \
-			PRECOLLIDE_MODS(rho,ux,uy,uz); \
+				+ CSRC_ET - CSRC_EB + CSRC_WT - CSRC_WB;  \
+			PRECOLLIDE_MODS(rho, ux,uy,uz, mLevel[lev].gravity); \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz); \
 			RAC(tcel,dC ) = (1.0-OMEGA(lev))*CSRC_C  + OMEGA(lev)*EQC ; \
 			RAC(tcel,dN ) = (1.0-OMEGA(lev))*CSRC_N  + OMEGA(lev)*EQN ;  \
@@ -687,8 +698,8 @@
 				} else { m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l, l); } \
 				STREAMCHECK(9, i+this->dfVecX[this->dfInv[l]], j+this->dfVecY[this->dfInv[l]],k+this->dfVecZ[this->dfInv[l]], l); \
 			}   \
-			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
+			/* rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; */ \
+			this->collideArrays(i,j,k, m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].gravity, mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; } \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -709,10 +720,10 @@ errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lc
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			*/
 #if USE_LES==1
-#define DEFAULT_COLLIDE DEFAULT_COLLIDE_LES
+#define DEFAULT_COLLIDEG(grav) DEFAULT_COLLIDE_LES(grav)
 #define OPTIMIZED_STREAMCOLLIDE OPTIMIZED_STREAMCOLLIDE_LES
 #else 
-#define DEFAULT_COLLIDE DEFAULT_COLLIDE_NOLES
+#define DEFAULT_COLLIDEG(grav) DEFAULT_COLLIDE_NOLES(grav)
 #define OPTIMIZED_STREAMCOLLIDE OPTIMIZED_STREAMCOLLIDE_NOLES
 #endif
 
@@ -1060,11 +1071,11 @@ inline LbmFloat LbmFsgrSolver::getLesOmega(LbmFloat omega, LbmFloat csmago, LbmF
 
 #define DEBUG_CALCPRINTCELL(str,df) {\
 		LbmFloat prho=df[0], pux=0., puy=0., puz=0.; \
-		for(int ll=1; ll<this->cDfNum; ll++) { \
-			prho += df[ll];  \
-			pux  += (this->dfDvecX[ll]*df[ll]);  \
-			puy  += (this->dfDvecY[ll]*df[ll]);  \
-			puz  += (this->dfDvecZ[ll]*df[ll]);  \
+		for(int dfl=1; dfl<this->cDfNum; dfl++) { \
+			prho += df[dfl];  \
+			pux  += (this->dfDvecX[dfl]*df[dfl]);  \
+			puy  += (this->dfDvecY[dfl]*df[dfl]);  \
+			puz  += (this->dfDvecZ[dfl]*df[dfl]);  \
 		} \
 		errMsg("DEBUG_CALCPRINTCELL",">"<<str<<" rho="<<prho<<" vel="<<ntlVec3Gfx(pux,puy,puz) ); \
 	} /* END DEBUG_CALCPRINTCELL */ 
@@ -1076,17 +1087,19 @@ inline void LbmFsgrSolver::collideArrays(
 		LbmFloat &outrho, // out only!
 		// velocity modifiers (returns actual velocity!)
 		LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, 
-		LbmFloat omega, LbmFloat csmago, 
+		LbmFloat omega, 
+		LbmVec gravity,
+		LbmFloat csmago, 
 		LbmFloat *newOmegaRet, LbmFloat *newQoRet
 	) {
+	int l;
 	LbmFloat rho=df[0]; 
-	LbmFloat ux = mux;
-	LbmFloat uy = muy;
-	LbmFloat uz = muz; 
+	LbmFloat ux = 0; //mux;
+	LbmFloat uy = 0; //muy;
+	LbmFloat uz = 0; //muz; 
 	LbmFloat feq[19];
 	LbmFloat omegaNew;
 	LbmFloat Qo = 0.0;
-	int l;
 
 	for(l=1; l<this->cDfNum; l++) { 
 		rho += df[l]; 
@@ -1095,7 +1108,7 @@ inline void LbmFsgrSolver::collideArrays(
 		uz  += (this->dfDvecZ[l]*df[l]);  
 	}  
 
-	PRECOLLIDE_MODS(rho,ux,uy,uz);
+	PRECOLLIDE_MODS(rho,ux,uy,uz, gravity);
 	for(l=0; l<this->cDfNum; l++) { 
 		feq[l] = getCollideEq(l,rho,ux,uy,uz); 
 	}

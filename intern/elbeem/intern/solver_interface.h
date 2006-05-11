@@ -81,6 +81,8 @@ typedef ntlVec3d LbmVec;
 template<class T> inline LbmVec     vec2L(T v) { return LbmVec(v[0],v[1],v[2]); }
 template<class T> inline ParamVec   vec2P(T v) { return ParamVec(v[0],v[1],v[2]); }
 
+template<class Scalar> class ntlMatrix4x4;
+
 
 // bubble id type
 typedef int BubbleId;
@@ -105,52 +107,28 @@ typedef int BubbleId;
 
 // additional for fluid/interface
 // force symmetry for flag reinit 
-#define CFNoInterpolSrc       (1<< 9) 
-#define CFNoNbFluid           (1<<10)
-#define CFNoNbEmpty           (1<<11)
+#define CFNoInterpolSrc       (1<<13) 
+#define CFNoNbFluid           (1<<14)
+#define CFNoNbEmpty           (1<<15)
 	
 // cell treated normally on coarser grids
-#define CFGrNorm              (1<< 9)
-#define CFGrCoarseInited      (1<<10)
+#define CFGrNorm              (1<<16)
+#define CFGrCoarseInited      (1<<17)
 
 // (the following values shouldnt overlap to ensure
 // proper coarsening)
 // border cells to be interpolated from finer grid
-#define CFGrFromFine          (1<<13)
+#define CFGrFromFine          (1<<18)
 // 32k aux border marker 
-#define CFGrToFine            (1<<14)
+#define CFGrToFine            (1<<19)
 // also needed on finest level
-#define CFGrFromCoarse        (1<<15)
+#define CFGrFromCoarse        (1<<20)
 // additional refinement tags (coarse grids only?)
 // */
 
 // above 24 is used to encode in/outflow object type
 #define CFPersistMask (0xFF000000 | CFMbndInflow | CFMbndOutflow)
 
-/*
-// TEST
-// additional bnd add flags
-#define CFBndNoslip           (1<< 9)
-#define CFBndFreeslip         (1<<10)
-#define CFBndPartslip         (1<<11)
-#define CFBndMoving           (1<<12)
-
-// additional for fluid/interface
-// force symmetry for flag reinit 
-#define CFNoInterpolSrc       (1<<13) 
-#define CFNoNbFluid           (1<<14)
-#define CFNoNbEmpty           (1<<15)
-	
-// additional refinement tags (coarse grids only?)
-// cell treated normally on coarser grids
-#define CFGrNorm              (1<<16)
-// border cells to be interpolated from finer grid
-#define CFGrFromFine          (1<<17)
-#define CFGrFromCoarse        (1<<18)
-#define CFGrCoarseInited      (1<<19)
-// 32k aux border marker 
-#define CFGrToFine            (1<<20)
-// TEST */
 
 // nk
 #define CFInvalid             (CellFlagType)(1<<31)
@@ -172,6 +150,7 @@ typedef int BubbleId;
 // max. no. of cell values for 3d
 #define dTotalNum 22
 
+
 /*****************************************************************************/
 /*! a single lbm cell */
 /*  the template is only needed for 
@@ -191,8 +170,8 @@ class LbmCellContents {
 /* struct for the coordinates of a cell in the grid */
 typedef struct {
   int x,y,z;
+	int flag; // special handling?
 } LbmPoint;
-
 
 /* struct for the coordinates of a cell in the grid */
 typedef struct {
@@ -252,12 +231,17 @@ class LbmSolverInterface
 		//! Constructor 
 		LbmSolverInterface();
 		//! Destructor 
-		virtual ~LbmSolverInterface() { };
+		virtual ~LbmSolverInterface();
 		//! id string of solver
 		virtual string getIdString() = 0;
 
+		// multi step solver init
 		/*! finish the init with config file values (allocate arrays...) */
-		virtual bool initializeSolver() =0;
+		virtual bool initializeSolverMemory() =0;
+		/*! init solver arrays */
+		virtual bool initializeSolverGrids() =0;
+		/*! prepare actual simulation start, setup viz etc */
+		virtual bool initializeSolverPostinit() =0;
 		
 		/*! notify object that dump is in progress (e.g. for field dump) */
 		virtual void notifySolverOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) = 0;
@@ -287,7 +271,7 @@ class LbmSolverInterface
 #endif
 
 		/*! init tree for certain geometry init */
-		void initGeoTree(int id);
+		void initGeoTree();
 		/*! destroy tree etc. when geometry init done */
 		void freeGeoTree();
 		/*! check for a certain flag type at position org (needed for e.g. quadtree refinement) */
@@ -345,8 +329,13 @@ class LbmSolverInterface
 		inline ntlVec3Gfx getGeoEnd() const	{ return mvGeoEnd; }
 
 		/*! access geo init vars */
-		inline void setGeoInitId(int set)	{ mGeoInitId = set; }
-		inline int getGeoInitId() const	{ return mGeoInitId; }
+		inline void setLbmInitId(int set)	{ mLbmInitId = set; }
+		inline int getLbmInitId() const	{ return mLbmInitId; }
+
+		/*! init domain transformation matrix from float array */
+		void initDomainTrafo(float *mat);
+		/*! get domain transformation matrix to have object centered fluid vertices */
+		inline ntlMatrix4x4<gfxReal> *getDomainTrafo() { return mpSimTrafo; }
 
 		/*! access name string */
 		inline void setName(string set)	{ mName = set; }
@@ -377,8 +366,8 @@ class LbmSolverInterface
 		inline LbmFloat getGenerateParticles() const	{ return mPartGenProb; }
 
 		//! set/get dump velocities flag
-		inline void setDomainBound(std::string set)	{ mDomainBound = set; }
-		inline std::string getDomainBound() const	{ return mDomainBound; }
+		inline void setDomainBound(string set)	{ mDomainBound = set; }
+		inline string getDomainBound() const	{ return mDomainBound; }
 		//! set/get dump velocities flag
 		inline void setDomainPartSlip(LbmFloat set)	{ mDomainPartSlipValue = set; }
 		inline LbmFloat getDomainPartSlip() const	{ return mDomainPartSlipValue; }
@@ -506,6 +495,8 @@ class LbmSolverInterface
 
 		/*! for display - start and end vectors for geometry */
 		ntlVec3Gfx mvGeoStart, mvGeoEnd;
+		//! domain vertex trafos
+		ntlMatrix4x4<gfxReal> *mpSimTrafo;
 
 		/*! perform accurate geometry init? */
 		bool mAccurateGeoinit;
@@ -521,8 +512,8 @@ class LbmSolverInterface
 		//! debug output?
 		bool mSilent;
 
-		/*! geometry init id */
-		int mGeoInitId;
+		/*! geometry init id, passed from ntl_geomclass */
+		int mLbmInitId;
 		/*! tree object for geomerty initialization */
 		ntlTree *mpGiTree;
 		/*! object vector for geo init */
@@ -557,7 +548,7 @@ class LbmSolverInterface
 		int mMarkedCellIndex;
 
 		//! domain boundary free/no slip type
-		std::string mDomainBound;
+		string mDomainBound;
 		//! part slip value for domain
 		LbmFloat mDomainPartSlipValue;
 

@@ -13,6 +13,10 @@
 // for geo init FGI_ defines
 #include "elbeem.h"
 
+// all boundary types at once
+#define FGI_ALLBOUNDS ( FGI_BNDNO | FGI_BNDFREE | FGI_BNDPART | FGI_MBNDINFLOW | FGI_MBNDOUTFLOW )
+
+
 /*****************************************************************************/
 //! common variables 
 
@@ -296,7 +300,7 @@ LbmFsgrSolver::LbmFsgrSolver() :
 	mNumProblems(0), 
 	mAvgMLSUPS(0.0), mAvgMLSUPSCnt(0.0),
 	mpPreviewSurface(NULL), 
-	mTimeAdap(true), 
+	mTimeAdap(true), mForceTimeStepReduce(false),
 	mFVHeight(0.0), mFVArea(1.0), mUpdateFVHeight(false),
 	mInitSurfaceSmoothing(0),
 	mTimestepReduceLock(0),
@@ -305,11 +309,13 @@ LbmFsgrSolver::LbmFsgrSolver() :
 	mMinTimestep(0.0), mMaxTimestep(0.0),
 	mMaxNoCells(0), mMinNoCells(0), mAvgNumUsedCells(0),
 	mDropMode(1), mDropSize(0.15), mDropSpeed(0.0),
-	mObjectSpeeds(), mObjectPartslips(),
+	mObjectSpeeds(), mObjectPartslips(), mObjectMassMovnd(),
+	mMOIVertices(), mMOIVerticesOld(),
 	mIsoWeightMethod(1),
 	mMaxRefine(1), 
 	mDfScaleUp(-1.0), mDfScaleDown(-1.0),
-	mInitialCsmago(0.04), mDebugOmegaRet(0.0),
+	mInitialCsmago(0.03), // set to 0.02 for mMaxRefine==0 below
+	mDebugOmegaRet(0.0),
 	mLastOmega(1e10), mLastGravity(1e10),
 	mNumInvIfTotal(0), mNumFsgrChanges(0),
 	mDisableStandingFluidInit(0),
@@ -450,16 +456,6 @@ void LbmFsgrSolver::parseAttrList()
 	this->mSmoothSurface = this->mpAttrs->readFloat("smoothsurface", this->mSmoothSurface, "SimulationLbm","mSmoothSurface", false );
 	this->mSmoothNormals = this->mpAttrs->readFloat("smoothnormals", this->mSmoothNormals, "SimulationLbm","mSmoothNormals", false );
 
-	mInitialCsmago = this->mpAttrs->readFloat("csmago", mInitialCsmago, "SimulationLbm","mInitialCsmago", false );
-	// deprecated!
-	float mInitialCsmagoCoarse = 0.0;
-	mInitialCsmagoCoarse = this->mpAttrs->readFloat("csmago_coarse", mInitialCsmagoCoarse, "SimulationLbm","mInitialCsmagoCoarse", false );
-#if USE_LES==1
-#else // USE_LES==1
-	debMsgStd("LbmFsgrSolver", DM_WARNING, "LES model switched off!",2);
-	mInitialCsmago = 0.0;
-#endif // USE_LES==1
-
 	// refinement
 	mMaxRefine = this->mRefinementDesired;
 	mMaxRefine  = this->mpAttrs->readInt("maxrefine",  mMaxRefine ,"LbmFsgrSolver", "mMaxRefine", false);
@@ -481,12 +477,24 @@ void LbmFsgrSolver::parseAttrList()
 	mUseTestdata=1; // DEBUG
 #endif // ELBEEM_PLUGIN
 	errMsg("LbmFsgrSolver::LBM_INCLUDE_TESTSOLVERS","Active, mUseTestdata:"<<mUseTestdata<<" ");
+
 #else // LBM_INCLUDE_TESTSOLVERS!=1
 	// off by default
 	mUseTestdata = 0;
 	if(mFarFieldSize>=2.) mUseTestdata=1; // equiv. to test solver check
-	if(mUseTestdata) { mMaxRefine=0; } // force fsgr off
 #endif // LBM_INCLUDE_TESTSOLVERS!=1
+	if(mUseTestdata) { mMaxRefine=0; } // force fsgr off
+
+	if(mMaxRefine==0) mInitialCsmago=0.02;
+	mInitialCsmago = this->mpAttrs->readFloat("csmago", mInitialCsmago, "SimulationLbm","mInitialCsmago", false );
+	// deprecated!
+	float mInitialCsmagoCoarse = 0.0;
+	mInitialCsmagoCoarse = this->mpAttrs->readFloat("csmago_coarse", mInitialCsmagoCoarse, "SimulationLbm","mInitialCsmagoCoarse", false );
+#if USE_LES==1
+#else // USE_LES==1
+	debMsgStd("LbmFsgrSolver", DM_WARNING, "LES model switched off!",2);
+	mInitialCsmago = 0.0;
+#endif // USE_LES==1
 }
 
 
@@ -571,7 +579,9 @@ void LbmFsgrSolver::initLevelOmegas()
 /******************************************************************************
  * Init Solver (values should be read from config file)
  *****************************************************************************/
-bool LbmFsgrSolver::initializeSolver()
+
+/*! finish the init with config file values (allocate arrays...) */
+bool LbmFsgrSolver::initializeSolverMemory()
 {
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init start... "<<this->mInitDone<<" "<<(void*)this,1);
 
@@ -597,7 +607,7 @@ bool LbmFsgrSolver::initializeSolver()
 		calculateMemreqEstimate( this->mSizex, this->mSizey, this->mSizez, mMaxRefine, &memEstFromFunc, &memreqStr );
 		
 		double memLimit;
-		if(sizeof(int)==4) {
+		if(sizeof(void*)==4) {
 			// 32bit system, limit to 2GB
 			memLimit = 2.0* 1024.0*1024.0*1024.0;
 		} else {
@@ -619,6 +629,7 @@ bool LbmFsgrSolver::initializeSolver()
 	this->mPreviewFactor = (LbmFloat)this->mOutputSurfacePreview / (LbmFloat)this->mSizex;
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"initGridSizes: Final domain size X:"<<this->mSizex<<" Y:"<<this->mSizey<<" Z:"<<this->mSizez<<
 	  ", Domain: "<<this->mvGeoStart<<":"<<this->mvGeoEnd<<", "<<(this->mvGeoEnd-this->mvGeoStart)<<
+	  ", Intbytes: "<< sizeof(void*) <<
 	  ", est. Mem.Req.: "<<memreqStr	,2);
 	this->mpParam->setSize(this->mSizex, this->mSizey, this->mSizez);
 
@@ -835,10 +846,43 @@ bool LbmFsgrSolver::initializeSolver()
 		}
 	}
 
+	if(LBMDIM==2) {
+		if(this->mOutputSurfacePreview) {
+			errMsg("LbmFsgrSolver::init","No preview in 2D allowed!");
+			this->mOutputSurfacePreview = 0; }
+	}
+#if LBM_USE_GUI==1
+	if(this->mOutputSurfacePreview) {
+		errMsg("LbmFsgrSolver::init","No preview in GUI mode... mOutputSurfacePreview=0");
+		this->mOutputSurfacePreview = 0; }
+#endif // LBM_USE_GUI==1
+	if(this->mOutputSurfacePreview) {
+		// same as normal one, but use reduced size
+		mpPreviewSurface = new IsoSurface( this->mIsoValue );
+		mpPreviewSurface->setMaterialName( mpPreviewSurface->getMaterialName() );
+		mpPreviewSurface->setIsolevel( this->mIsoValue );
+		// usually dont display for rendering
+		mpPreviewSurface->setVisible( false );
+
+		mpPreviewSurface->setStart( vec2G(isostart) );
+		mpPreviewSurface->setEnd(   vec2G(isoend) );
+		LbmVec pisodist = isoend-isostart;
+		LbmFloat pfac = this->mPreviewFactor;
+		mpPreviewSurface->initializeIsosurface( (int)(pfac*this->mSizex)+2, (int)(pfac*this->mSizey)+2, (int)(pfac*this->mSizez)+2, vec2G(pisodist) );
+		//mpPreviewSurface->setName( this->getName() + "preview" );
+		mpPreviewSurface->setName( "preview" );
+	
+		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Preview with sizes "<<(pfac*this->mSizex)<<","<<(pfac*this->mSizey)<<","<<(pfac*this->mSizez)<<" enabled",10);
+	}
+
 	// init defaults
 	mAvgNumUsedCells = 0;
 	this->mFixMass= 0.0;
+	return true;
+}
 
+/*! init solver arrays */
+bool LbmFsgrSolver::initializeSolverGrids() {
   /* init boundaries */
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Boundary init...",10);
 	// init obstacles, and reinit time step size 
@@ -919,6 +963,8 @@ bool LbmFsgrSolver::initializeSolver()
 	}
 	// Symmetry tests */
 
+	//if(getGlobalBakeState()<0) { CAUSE_PANIC; errMsg("LbmFsgrSolver::initialize","Got abort signal1, causing panic, aborting..."); return false; }
+
 	// prepare interface cells
 	initFreeSurfaces();
 	initStandingFluidGradient();
@@ -956,9 +1002,12 @@ bool LbmFsgrSolver::initializeSolver()
 		}
 	}
 #endif // ELBEEM_PLUGIN!=1
-	
+	return true;
+}
 
-	// ----------------------------------------------------------------------
+
+/*! prepare actual simulation start, setup viz etc */
+bool LbmFsgrSolver::initializeSolverPostinit() {
 	// coarsen region
 	myTime_t fsgrtstart = getTime(); 
 	for(int lev=mMaxRefine-1; lev>=0; lev--) {
@@ -991,38 +1040,8 @@ bool LbmFsgrSolver::initializeSolver()
 	} } // first copy flags */
 
 
-	
-	if(LBMDIM==2) {
-		if(this->mOutputSurfacePreview) {
-			errMsg("LbmFsgrSolver::init","No preview in 2D allowed!");
-			this->mOutputSurfacePreview = 0; }
-	}
-#if LBM_USE_GUI==1
-	if(this->mOutputSurfacePreview) {
-		errMsg("LbmFsgrSolver::init","No preview in GUI mode... mOutputSurfacePreview=0");
-		this->mOutputSurfacePreview = 0; }
-#endif // LBM_USE_GUI==1
-	
-	if(this->mOutputSurfacePreview) {
-
-		// same as normal one, but use reduced size
-		mpPreviewSurface = new IsoSurface( this->mIsoValue );
-		mpPreviewSurface->setMaterialName( mpPreviewSurface->getMaterialName() );
-		mpPreviewSurface->setIsolevel( this->mIsoValue );
-		// usually dont display for rendering
-		mpPreviewSurface->setVisible( false );
-
-		mpPreviewSurface->setStart( vec2G(isostart) );
-		mpPreviewSurface->setEnd(   vec2G(isoend) );
-		LbmVec pisodist = isoend-isostart;
-		LbmFloat pfac = this->mPreviewFactor;
-		mpPreviewSurface->initializeIsosurface( (int)(pfac*this->mSizex)+2, (int)(pfac*this->mSizey)+2, (int)(pfac*this->mSizez)+2, vec2G(pisodist) );
-		//mpPreviewSurface->setName( this->getName() + "preview" );
-		mpPreviewSurface->setName( "preview" );
-	
-		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Preview with sizes "<<(pfac*this->mSizex)<<","<<(pfac*this->mSizey)<<","<<(pfac*this->mSizez)<<" enabled",10);
-	}
-
+	// old mpPreviewSurface init
+	//if(getGlobalBakeState()<0) { CAUSE_PANIC; errMsg("LbmFsgrSolver::initialize","Got abort signal2, causing panic, aborting..."); return false; }
 	// make sure fill fracs are right for first surface generation
 	stepMain();
 
@@ -1036,11 +1055,12 @@ bool LbmFsgrSolver::initializeSolver()
 
 
 	// now really done...
-  debugOut("LbmFsgrSolver::initialize : SurfaceGen: SmsOrg("<<this->mSmoothSurface<<","<<this->mSmoothNormals<<","<<featureSize<<"), Iso("<<this->mpIso->getSmoothSurface()<<","<<this->mpIso->getSmoothNormals()<<") ",10);
+  debugOut("LbmFsgrSolver::initialize : SurfaceGen: SmsOrg("<<this->mSmoothSurface<<","<<this->mSmoothNormals<< /*","<<featureSize<<*/ "), Iso("<<this->mpIso->getSmoothSurface()<<","<<this->mpIso->getSmoothNormals()<<") ",10);
   debugOut("LbmFsgrSolver::initialize : Init done ... ",10);
 	this->mInitDone = 1;
 
 #if LBM_INCLUDE_TESTSOLVERS==1
+	initCpdata();
 	initTestdata();
 #endif // ELBEEM_PLUGIN!=1
 	// not inited? dont use...
@@ -1052,14 +1072,54 @@ bool LbmFsgrSolver::initializeSolver()
 
 
 
+// macros for mov obj init
+#if LBMDIM==2
+
+#define POS2GRID_CHECK(vec,n) \
+				monTotal++;\
+				const int i=(int)( ((vec)[n][0]-iniPos[0])/dvec[0] +0.0); \
+				if(i<=0) continue; \
+				if(i>=mLevel[level].lSizex-1) continue; \
+				const int j=(int)( ((vec)[n][1]-iniPos[1])/dvec[1] +0.0); \
+				if(j<=0) continue; \
+				if(j>=mLevel[level].lSizey-1) continue;  \
+				const int k=0; \
+
+#else // LBMDIM -> 3
+#define POS2GRID_CHECK(vec,n) \
+				monTotal++;\
+				const int i=(int)( ((vec)[n][0]-iniPos[0])/dvec[0] +0.0); \
+				if(i<=0) continue; \
+				if(i>=mLevel[level].lSizex-1) continue; \
+				const int j=(int)( ((vec)[n][1]-iniPos[1])/dvec[1] +0.0); \
+				if(j<=0) continue; \
+				if(j>=mLevel[level].lSizey-1) continue; \
+				const int k=(int)( ((vec)[n][2]-iniPos[2])/dvec[2] +0.0); \
+				if(k<=0) continue; \
+				if(k>=mLevel[level].lSizez-1) continue; \
+
+#endif // LBMDIM 
+
+// calculate object velocity from vert arrays in objvel vec
+#define OBJVEL_CALC \
+				LbmVec objvel = vec2L((mMOIVertices[n]-mMOIVerticesOld[n]) /dvec); { \
+				const LbmFloat usqr = (objvel[0]*objvel[0]+objvel[1]*objvel[1]+objvel[2]*objvel[2])*1.5; \
+				USQRMAXCHECK(usqr, objvel[0],objvel[1],objvel[2], mMaxVlen, mMxvx,mMxvy,mMxvz); \
+				if(usqr>maxusqr) { \
+					/* cutoff at maxVelVal */ \
+					for(int jj=0; jj<3; jj++) { \
+						if(objvel[jj]>0.) objvel[jj] =  maxVelVal;  \
+						if(objvel[jj]<0.) objvel[jj] = -maxVelVal; \
+					} \
+				} }
 
 /*****************************************************************************/
 //! init moving obstacles for next sim step sim 
 /*****************************************************************************/
 void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
-
 	myTime_t monstart = getTime();
-	// new test
+
+	// movobj init
 	const int level = mMaxRefine;
 	const int workSet = mLevel[level].setCurr;
 	LbmFloat sourceTime = mSimulationTime; // should be equal to mLastSimTime!
@@ -1071,6 +1131,9 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 	}
 	//debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_WARNING,"time: "<<mSimulationTime<<" lasttt:"<<mLastSimTime,10);
 	//if(mSimulationTime!=mLastSimTime) errMsg("LbmFsgrSolver::initMovingObstacles","time: "<<mSimulationTime<<" lasttt:"<<mLastSimTime);
+
+	const LbmFloat maxVelVal = 0.1666;
+	const LbmFloat maxusqr = maxVelVal*maxVelVal*3. *1.5;
 
 	LbmFloat rhomass = 0.0;
 	CellFlagType otype = CFInvalid; // verify type of last step, might be non moving obs!
@@ -1088,29 +1151,52 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 		//iniPos[2] = this->mvGeoStart[2] + dvec[2]*getForZMin1();
 	}
 	
+	if( (int)mObjectMassMovnd.size() < numobjs) {
+		for(int i=mObjectMassMovnd.size(); i<numobjs; i++) {
+			mObjectMassMovnd.push_back(0.);
+		}
+	}
+	
 	// stats
 	int monPoints=0, monObsts=0, monFluids=0, monTotal=0, monTrafo=0;
-	CellFlagType nbflag[LBM_DFNUM]; 
 	int nbored;
-  vector<ntlVec3Gfx>  vertices;
-  vector<ntlVec3Gfx>  verticesOld;
-	int i,j,k; // grid pos init
-	LbmFloat ux,uy,uz, rho;
 	for(int OId=0; OId<numobjs; OId++) {
 		ntlGeometryObject *obj = (*this->mpGiObjects)[OId];
-		if( (!staticInit) && (!obj->getIsAnimated()) ) continue;
-		if( ( staticInit) && ( obj->getIsAnimated()) ) continue;
+		bool skip = false;
+		if(obj->getGeoInitId() != this->mLbmInitId) skip=true;
+		if( (!staticInit) && (!obj->getIsAnimated()) ) skip=true;
+		if( ( staticInit) && ( obj->getIsAnimated()) ) skip=true;
+		debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG," obj "<<obj->getName()<<" skip:"<<skip<<", static:"<<staticInit<<" anim:"<<obj->getIsAnimated()<<" gid:"<<obj->getGeoInitId()<<" simgid:"<<this->mLbmInitId, 10);
+		if(skip) continue;
 
-		if(obj->getGeoInitType()&FGI_ALLBOUNDS) {
+		if( (obj->getGeoInitType()&FGI_ALLBOUNDS) || 
+				(obj->getGeoInitType()&FGI_FLUID) && staticInit ) {
 
 			otype = ntype = CFInvalid;
 			switch(obj->getGeoInitType()) {
 				case FGI_BNDPART: 
 				case FGI_BNDFREE: 
-					errMsg("LbmFsgrSolver::initMovingObstacles","Warning - moving free/part slip objects NYI "<<obj->getName() );
-				case FGI_BNDNO: 
-					rhomass = BND_FILL;
+					if(!staticInit) {
+						errMsg("LbmFsgrSolver::initMovingObstacles","Warning - moving free/part slip objects NYI "<<obj->getName() );
+						otype = ntype = CFBnd|CFBndNoslip;
+					} else {
+						if(obj->getGeoInitType()==FGI_BNDPART) otype = ntype = CFBnd|CFBndPartslip;
+						if(obj->getGeoInitType()==FGI_BNDFREE) otype = ntype = CFBnd|CFBndFreeslip;
+					}
+					break; 
+					/*
+				case FGI_BNDPART: rhomass = BND_FILL;
+					otype = ntype = CFBnd|CFBndPartslip;
+					break;
+				case FGI_BNDFREE: rhomass = BND_FILL;
+					otype = ntype = CFBnd|CFBndFreeslip;
+					break;
+				// */
+				case FGI_BNDNO:   rhomass = BND_FILL;
 					otype = ntype = CFBnd|CFBndNoslip;
+					break;
+				case FGI_FLUID: 
+					otype = ntype = CFFluid; 
 					break;
 				case FGI_MBNDINFLOW: 
 					otype = ntype = CFMbndInflow; 
@@ -1123,23 +1209,35 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 			int active =    ((obj->getGeoActive(targetTime)>0.)? 1:0);
 			//errMsg("GEOACTT"," obj "<<obj->getName()<<" a:"<<active<<","<<wasActive<<"  s"<<sourceTime<<" t"<<targetTime <<" v"<<mObjectSpeeds[OId] );
 			// skip inactive in/out flows
+			if(ntype==CFInvalid){ errMsg("LbmFsgrSolver::initMovingObstacles","Invalid obj type "<<obj->getGeoInitType()); continue; }
 			if((!active) && (otype&(CFMbndOutflow|CFMbndInflow)) ) continue;
 
 			// copied from  recalculateObjectSpeeds
 			mObjectSpeeds[OId] = vec2L(this->mpParam->calculateLattVelocityFromRw( vec2P( (*this->mpGiObjects)[OId]->getInitialVelocity(mSimulationTime) )));
 			debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG,"id"<<OId<<" "<<obj->getName()<<" inivel set to "<< mObjectSpeeds[OId]<<", unscaled:"<< (*this->mpGiObjects)[OId]->getInitialVelocity(mSimulationTime) ,10 );
 
-			vertices.clear();
-			obj->getMovingPoints(vertices);
-			verticesOld = vertices;
-			// WARNING - assumes mSimulationTime is global!?
-			obj->applyTransformation(targetTime, &vertices,NULL, 0, vertices.size(), false );
-			monTrafo += vertices.size();
+			mMOIVertices.clear();
+			if(obj->getMeshAnimated()) { 
+				// do two full update
+				mMOIVerticesOld.clear();
+				obj->initMovingPointsAnim(sourceTime,mMOIVerticesOld, targetTime, mMOIVertices,  mLevel[mMaxRefine].nodeSize, this->mvGeoStart, this->mvGeoEnd);
+				monTrafo += mMOIVerticesOld.size();
+				obj->applyTransformation(sourceTime, &mMOIVerticesOld,NULL, 0, mMOIVerticesOld.size(), false );
+				monTrafo += mMOIVertices.size();
+				obj->applyTransformation(targetTime, &mMOIVertices,NULL, 0, mMOIVertices.size(), false );
+			} else {
+				// only do transform update
+				obj->getMovingPoints(mMOIVertices);
+				mMOIVerticesOld = mMOIVertices;
+				// WARNING - assumes mSimulationTime is global!?
+				obj->applyTransformation(targetTime, &mMOIVertices,NULL, 0, mMOIVertices.size(), false );
+				monTrafo += mMOIVertices.size();
 
-			// correct flags from last position, but extrapolate
-			// velocity to next timestep
-			obj->applyTransformation(sourceTime, &verticesOld,NULL, 0, verticesOld.size(), false );
-			monTrafo += verticesOld.size();
+				// correct flags from last position, but extrapolate
+				// velocity to next timestep
+				obj->applyTransformation(sourceTime, &mMOIVerticesOld,NULL, 0, mMOIVerticesOld.size(), false );
+				monTrafo += mMOIVerticesOld.size();
+			}
 
 			// object types
 			if(ntype&CFBnd){
@@ -1153,144 +1251,189 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 					ntlVec3Gfx oldobjMaxVel = obj->calculateMaxVel(sourceTime - this->mpParam->getTimestep(),sourceTime);
 					if(normNoSqrt(oldobjMaxVel)>0.0) { otype |= CFBndMoving; }
 				}
-
-#if LBMDIM==2
-#define CHECKIJK \
-				if(i<=0) continue; \
-				if(j<=0) continue; \
-				if(i>=mLevel[level].lSizex-2) continue; \
-				if(j>=mLevel[level].lSizey-2) continue; 
-#define POS2GRID(vec,n) \
-				monTotal++;\
-				i=(int)( ((vec)[n][0]-iniPos[0])/dvec[0] +0.0); \
-				j=(int)( ((vec)[n][1]-iniPos[1])/dvec[1] +0.0); \
-				k=0;
-#else // LBMDIM -> 3
-#define CHECKIJK \
-				if(i<=0) continue; \
-				if(j<=0) continue; \
-				if(k<=0) continue; \
-				if(i>=mLevel[level].lSizex-2) continue; \
-				if(j>=mLevel[level].lSizey-2) continue; \
-				if(k>=mLevel[level].lSizez-2) continue; 
-#define POS2GRID(vec,n) \
-				monTotal++;\
-				i=(int)( ((vec)[n][0]-iniPos[0])/dvec[0] +0.0); \
-				j=(int)( ((vec)[n][1]-iniPos[1])/dvec[1] +0.0); \
-				k=(int)( ((vec)[n][2]-iniPos[2])/dvec[2] +0.0); 
-#endif // LBMDIM 
+				if(obj->getMeshAnimated()) { ntype |= CFBndMoving; otype |= CFBndMoving; }
+				CellFlagType rflagnb[27];
+				LbmFloat massCheck = 0.;
+				int massReinits=0;				
+				bool fillCells = (mObjectMassMovnd[OId]<=-1.);
+				LbmFloat massCScale; //, massCScalePos, massCScaleNeg;
+				//if(mInitialMass>0.) {
+					//massCScale = (mInitialMass-mObjectMassMovnd[OId])/mInitialMass;
+					massCScale = 1.-(mObjectMassMovnd[OId]/(LbmFloat)(mMOIVertices.size()/10) );
+					//massCScalePos = MIN(massCScale,1.);
+					//massCScaleNeg = MAX(massCScale,1.);
+				//} else {
+					//massCScale = massCScalePos = massCScaleNeg = 1.;
+				//}
 
 				// first pass - set new obs. cells
 				if(active) {
-				for(size_t n=0; n<vertices.size(); n++) {
-					//errMsg("AAABB","OId"<<OId<<" n"<<n<<" -> "<<PRINT_IJK);
-					POS2GRID(vertices,n);
-					CHECKIJK;
-					//if(i==30 && j==14) { errMsg("AAABB","OId"<<OId<<" n"<<n<<" -> "<<PRINT_IJK<<" "); }
-					if(QCELL(level, i,j,k, workSet, dFlux)==targetTime) continue;
-					monPoints++;
-					LbmVec u= vec2L((vertices[n]-verticesOld[n]) /dvec); // * timeFac;
-					RFLAG(level, i,j,k, workSet) = ntype;
-					FORDF1 {
-						CellFlagType flag = RFLAG_NB(level, i,j,k,workSet,l);
-						if(flag&(CFFluid|CFInter)) {
-							flag &= (~CFNoBndFluid); // remove CFNoBndFluid flag
-							RFLAG_NB(level, i,j,k,workSet,l) &= flag; 
+					for(size_t n=0; n<mMOIVertices.size(); n++) {
+						//errMsg("AAABB","OId"<<OId<<" n"<<n<<" -> "<<PRINT_IJK);
+						POS2GRID_CHECK(mMOIVertices,n);
+						//if(i==30 && j==14) { errMsg("AAABB","OId"<<OId<<" n"<<n<<" -> "<<PRINT_IJK<<" "); }
+						if(QCELL(level, i,j,k, workSet, dFlux)==targetTime) continue;
+						monPoints++;
+						
+						// check mass
+						if(RFLAG(level, i,j,k, workSet)&(CFFluid)) {
+							FORDF0 {
+								massCheck -= QCELL(level, i,j,k, workSet, l);
+							}
+							massReinits++;
 						}
-					}
-					LbmFloat *dstCell = RACPNT(level, i,j,k,workSet);
-					RAC(dstCell,0) = 0.0;
-					if(ntype&CFBndMoving) {
-						//if(i==30 && j==14) { errMsg("AAABB","OId"<<OId<<" move "<<u); }
-						// movement?
+						if(RFLAG(level, i,j,k, workSet)&(CFInter)) {
+							massCheck -= QCELL(level, i,j,k, workSet, dMass);
+							massReinits++;
+						}
+
+						RFLAG(level, i,j,k, workSet) = ntype;
 						FORDF1 {
-							// TODO optimize, test rho calc necessary?
-							// calculate destination density
-							LbmFloat *dfs = &QCELL_NB(level, i,j,k,workSet,l,dC);
-							rho = RAC(dfs,dC);
-							for(int nl=0; nl<this->cDfNum; nl++) rho += RAC(dfs,nl);
-							//rho = 1.0;
-							const LbmFloat factor = 2.0*this->dfLength[l]*rho* 3.0;
-							ux = this->dfDvecX[l]*u[0];
-							uy = this->dfDvecY[l]*u[1];
-							uz = this->dfDvecZ[l]*u[2];
-							const LbmFloat usqr = (ux*ux+uy*uy+uz*uz)*1.5;
-							USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
-							//ux=uy=uz=0.0; // DEBUG
-							RAC(dstCell,l) = factor*(ux+uy+uz);
+							//CellFlagType flag = RFLAG_NB(level, i,j,k,workSet,l);
+							rflagnb[l] = RFLAG_NB(level, i,j,k,workSet,l);
+							if(rflagnb[l]&(CFFluid|CFInter)) {
+								rflagnb[l] &= (~CFNoBndFluid); // remove CFNoBndFluid flag
+								RFLAG_NB(level, i,j,k,workSet,l) &= rflagnb[l]; 
+							}
 						}
-					} else {
-						FORDF1 { RAC(dstCell,l) = 0.0; }
-					}
-					//errMsg("AAABB","OId"<<OId<<" n"<<n<<" -> "<<PRINT_IJK" u"<<u<<" ul"<<PRINT_VEC(ux,uy,uz) );
-					RAC(dstCell, dFlux) = targetTime;
-					monObsts++;
-				} } // bnd, is active?
+						LbmFloat *dstCell = RACPNT(level, i,j,k,workSet);
+						RAC(dstCell,0) = 0.0;
+						if(ntype&CFBndMoving) {
+							OBJVEL_CALC;
+							//LbmVec objvel = vec2L((mMOIVertices[n]-mMOIVerticesOld[n]) /dvec); // * timeFac;
+							//const LbmFloat usqr = (objvel[0]*objvel[0]+objvel[1]*objvel[1]+objvel[2]*objvel[2])*1.5;
+							//USQRMAXCHECK(usqr, objvel[0],objvel[1],objvel[2], mMaxVlen, mMxvx,mMxvy,mMxvz);
+							//if(usqr>maxusqr) {
+								// cutoff at maxVelVal
+								//for(int jj=0; jj<3; jj++) {
+									//if(objvel[jj]>0.) objvel[jj] =  maxVelVal; 
+									//if(objvel[jj]<0.) objvel[jj] = -maxVelVal;
+								//}
+							//}
+							//objvel[0]=objvel[1]=objvel[2]=0.0; // DEBUG
+							
+							// compute fluid acceleration
+							FORDF1 {
+								if(rflagnb[l]&(CFFluid|CFInter)) { 
+									const LbmFloat ux = this->dfDvecX[l]*objvel[0];
+									const LbmFloat uy = this->dfDvecY[l]*objvel[1];
+									const LbmFloat uz = this->dfDvecZ[l]*objvel[2];
+									LbmFloat factor = 1.2*this->dfLength[l]* 3.0 *(ux+uy+uz); // rhoTest, dont multiply by density...
+									//if(factor>0.) factor *= massCScalePos;
+									//else          factor *= massCScaleNeg;
+									//if(ntype&CFBndFreeslip) { factor=0.; } // FIXME!
+									RAC(dstCell,l) = factor;
+									massCheck += RAC(dstCell,l); 
+								} else {
+									RAC(dstCell,l) = 0.;
+								}
+							}
+						} else {
+							FORDF1 { RAC(dstCell,l) = 0.0; }
+						}
+						//errMsg("AAABB","OId"<<OId<<" n"<<n<<" -> "<<PRINT_IJK" objvel"<<objvel<<" ul"<<PRINT_VEC(ux,uy,uz) );
+						RAC(dstCell, dFlux) = targetTime;
+						monObsts++;
+					} // points
+				} // bnd, is active?
 
 				// second pass, remove old ones
 				if(wasActive) {
-				for(size_t n=0; n<verticesOld.size(); n++) {
-					POS2GRID(verticesOld,n);
-					CHECKIJK;
-					monPoints++;
-					if((RFLAG(level, i,j,k, workSet) == otype) &&
-					   (QCELL(level, i,j,k, workSet, dFlux) != targetTime)) {
-						//? unused ntlVec3Gfx u= (vertices[n]-verticesOld[n]);
-						// from mainloop
-						nbored = 0;
-#if OPT3D==0
-						FORDF1 {
-							nbflag[l] = RFLAG_NB(level, i,j,k,workSet,l);
-							nbored |= nbflag[l];
-						} 
-#else
-						const CellFlagType *pFlagCheck = &RFLAG(level, i,j,k,workSet); // omp
-						nbflag[dSB] = *(pFlagCheck + (-mLevel[level].lOffsy+-mLevel[level].lOffsx)); nbored |= nbflag[dSB];
-						nbflag[dWB] = *(pFlagCheck + (-mLevel[level].lOffsy+-1)); nbored |= nbflag[dWB];
-						nbflag[ dB] = *(pFlagCheck + (-mLevel[level].lOffsy)); nbored |= nbflag[dB];
-						nbflag[dEB] = *(pFlagCheck + (-mLevel[level].lOffsy+ 1)); nbored |= nbflag[dEB];
-						nbflag[dNB] = *(pFlagCheck + (-mLevel[level].lOffsy+ mLevel[level].lOffsx)); nbored |= nbflag[dNB];
+					for(size_t n=0; n<mMOIVerticesOld.size(); n++) {
+						POS2GRID_CHECK(mMOIVerticesOld,n);
+						monPoints++;
+						if((RFLAG(level, i,j,k, workSet) == otype) &&
+							 (QCELL(level, i,j,k, workSet, dFlux) != targetTime)) {
+							//? unused ntlVec3Gfx objvel= (mMOIVertices[n]-mMOIVerticesOld[n]);
+							// from mainloop
+							nbored = 0;
+//#if OPT3D==0
+							FORDF1 {
+								rflagnb[l] = RFLAG_NB(level, i,j,k,workSet,l);
+								nbored |= rflagnb[l];
+							} 
+/*#else
+							const CellFlagType *pFlagCheck = &RFLAG(level, i,j,k,workSet); // omp
+							rflagnb[dSB] = *(pFlagCheck + (-mLevel[level].lOffsy+-mLevel[level].lOffsx)); nbored |= rflagnb[dSB];
+							rflagnb[dWB] = *(pFlagCheck + (-mLevel[level].lOffsy+-1)); nbored |= rflagnb[dWB];
+							rflagnb[ dB] = *(pFlagCheck + (-mLevel[level].lOffsy)); nbored |= rflagnb[dB];
+							rflagnb[dEB] = *(pFlagCheck + (-mLevel[level].lOffsy+ 1)); nbored |= rflagnb[dEB];
+							rflagnb[dNB] = *(pFlagCheck + (-mLevel[level].lOffsy+ mLevel[level].lOffsx)); nbored |= rflagnb[dNB];
 
-						nbflag[dSW] = *(pFlagCheck + (-mLevel[level].lOffsx+-1)); nbored |= nbflag[dSW];
-						nbflag[ dS] = *(pFlagCheck + (-mLevel[level].lOffsx)); nbored |= nbflag[dS];
-						nbflag[dSE] = *(pFlagCheck + (-mLevel[level].lOffsx+ 1)); nbored |= nbflag[dSE];
+							rflagnb[dSW] = *(pFlagCheck + (-mLevel[level].lOffsx+-1)); nbored |= rflagnb[dSW];
+							rflagnb[ dS] = *(pFlagCheck + (-mLevel[level].lOffsx)); nbored |= rflagnb[dS];
+							rflagnb[dSE] = *(pFlagCheck + (-mLevel[level].lOffsx+ 1)); nbored |= rflagnb[dSE];
 
-						nbflag[ dW] = *(pFlagCheck + (-1)); nbored |= nbflag[dW];
-						nbflag[ dE] = *(pFlagCheck + ( 1)); nbored |= nbflag[dE];
+							rflagnb[ dW] = *(pFlagCheck + (-1)); nbored |= rflagnb[dW];
+							rflagnb[ dE] = *(pFlagCheck + ( 1)); nbored |= rflagnb[dE];
 
-						nbflag[dNW] = *(pFlagCheck + ( mLevel[level].lOffsx+-1)); nbored |= nbflag[dNW];
-						nbflag[ dN] = *(pFlagCheck + ( mLevel[level].lOffsx)); nbored |= nbflag[dN];
-						nbflag[dNE] = *(pFlagCheck + ( mLevel[level].lOffsx+ 1)); nbored |= nbflag[dNE];
+							rflagnb[dNW] = *(pFlagCheck + ( mLevel[level].lOffsx+-1)); nbored |= rflagnb[dNW];
+							rflagnb[ dN] = *(pFlagCheck + ( mLevel[level].lOffsx)); nbored |= rflagnb[dN];
+							rflagnb[dNE] = *(pFlagCheck + ( mLevel[level].lOffsx+ 1)); nbored |= rflagnb[dNE];
 
-						nbflag[dST] = *(pFlagCheck + ( mLevel[level].lOffsy+-mLevel[level].lOffsx)); nbored |= nbflag[dST];
-						nbflag[dWT] = *(pFlagCheck + ( mLevel[level].lOffsy+-1)); nbored |= nbflag[dWT];
-						nbflag[ dT] = *(pFlagCheck + ( mLevel[level].lOffsy)); nbored |= nbflag[dT];
-						nbflag[dET] = *(pFlagCheck + ( mLevel[level].lOffsy+ 1)); nbored |= nbflag[dET];
-						nbflag[dNT] = *(pFlagCheck + ( mLevel[level].lOffsy+ mLevel[level].lOffsx)); nbored |= nbflag[dNT];
-						// */
+							rflagnb[dST] = *(pFlagCheck + ( mLevel[level].lOffsy+-mLevel[level].lOffsx)); nbored |= rflagnb[dST];
+							rflagnb[dWT] = *(pFlagCheck + ( mLevel[level].lOffsy+-1)); nbored |= rflagnb[dWT];
+							rflagnb[ dT] = *(pFlagCheck + ( mLevel[level].lOffsy)); nbored |= rflagnb[dT];
+							rflagnb[dET] = *(pFlagCheck + ( mLevel[level].lOffsy+ 1)); nbored |= rflagnb[dET];
+							rflagnb[dNT] = *(pFlagCheck + ( mLevel[level].lOffsy+ mLevel[level].lOffsx)); nbored |= rflagnb[dNT];
 #endif
-						CellFlagType settype = CFInvalid;
-						LbmFloat avgrho=0.0, avgux=0.0, avguy=0.0, avguz=0.0; 
-						if(nbored&CFFluid) {
-							if(nbored&CFInter) {
-								settype = CFInter|CFNoInterpolSrc; rhomass = 0.001;
-								interpolateCellValues(level,i,j,k, workSet, avgrho,avgux,avguy,avguz);
-							} else {
-								// ? dangerous...? settype = CFFluid|CFNoInterpolSrc; rhomass = 1.0;
+							// */
+							CellFlagType settype = CFInvalid;
+							//LbmFloat avgrho=0.0, avgux=0.0, avguy=0.0, avguz=0.0; 
+							if(nbored&CFFluid) {
+								settype = CFInter|CFNoInterpolSrc; 
+								if(fillCells) rhomass = 1.0;
+								else rhomass = 0.;
+
+								//interpolateCellValues(level,i,j,k, workSet, avgrho,avgux,avguy,avguz);
+								//LbmVec speed(avgux,avguy,avguz);
+								//initVelocityCell(level, i,j,k, settype, avgrho, rhomass, speed );
+								OBJVEL_CALC;
+								initVelocityCell(level, i,j,k, settype, 1., rhomass, objvel );
+								massCheck += rhomass;
+							} 
+							/*else if((nbored&CFInter)&&(fillCells)) {
 								settype = CFInter|CFNoInterpolSrc; rhomass = 1.0;
-								interpolateCellValues(level,i,j,k, workSet, avgrho,avgux,avguy,avguz);
+								_interpolateCellValues(level,i,j,k, workSet, avgrho,avgux,avguy,avguz);
+							}  // */
+							else {
+								settype = CFEmpty; rhomass = 0.0;
+								initEmptyCell(level, i,j,k, settype, 1., rhomass );
 							}
-						} else {
-							settype = CFEmpty; rhomass = 0.0;
-						}
-						//settype = CFBnd|CFBndNoslip; rhomass = 0.0;
-						//avgux=avguy=avguz=0.0; avgrho=1.0;
-						LbmVec speed(avgux,avguy,avguz);
-						initVelocityCell(level, i,j,k, settype, avgrho, rhomass, speed );
-						monFluids++;
-					} // flag & simtime
+							//settype = CFBnd|CFBndNoslip; rhomass = 0.0;
+							//avgux=avguy=avguz=0.0; avgrho=1.0;
+							monFluids++;
+							massReinits++;
+						} // flag & simtime
+					}
+				}  // wasactive
+
+				// only compute mass transfer when init is done
+				if(this->mInitDone) {
+					errMsg("initMov","Massd test "<<obj->getName()<<" dccd massCheck="<<massCheck<<" massReinits"<<massReinits<<
+						" fillCells"<<fillCells<<" massmovbnd:"<<mObjectMassMovnd[OId]<<" massCScale"<<massCScale<<" inim:"<<mInitialMass ); 
+					mObjectMassMovnd[OId] += massCheck;
 				}
-			} } // bnd, active
+			} // bnd, active
+
+			else if(ntype&CFFluid){
+				// second static init pass
+				if(staticInit) {
+					//debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG," obj "<<obj->getName()<<" verts"<<mMOIVertices.size() ,9);
+					CellFlagType setflflag = CFFluid; //|(OId<<24);
+					for(size_t n=0; n<mMOIVertices.size(); n++) {
+						POS2GRID_CHECK(mMOIVertices,n);
+						if(RFLAG(level, i,j,k, workSet)&(CFMbndInflow|CFMbndOutflow)){ continue; }
+						if(RFLAG(level, i,j,k, workSet)&(CFEmpty)) {
+							//changeFlag(level, i,j,k, workSet, setflflag);
+							//QCELL(level, i,j,k, workSet,dMass) = 1.; QCELL(level, i,j,k, workSet,dFfrac) = 1.;
+							//initVelocityCell(level, i,j,k, setflflag, 1., 1., speed );
+							initVelocityCell(level, i,j,k, setflflag, 1., 1., mObjectSpeeds[OId] );
+						} 
+						//else if(RFLAG(level, i,j,k, workSet)&(CFFluid|CFInter)) { changeFlag(level, i,j,k, workSet, RFLAG(level, i,j,k, workSet)|set2Flag); }
+					}
+				} // second static inflow pass
+			} // fluid
 
 			else if(ntype&CFMbndInflow){
 				// inflow pass - add new fluid cells
@@ -1301,11 +1444,10 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 				const LbmVec vel(mObjectSpeeds[OId]);
 				const LbmFloat usqr = (vel[0]*vel[0]+vel[1]*vel[1]+vel[2]*vel[2])*1.5;
 				USQRMAXCHECK(usqr,vel[0],vel[1],vel[2], mMaxVlen, mMxvx,mMxvy,mMxvz);
-	errMsg("LbmFsgrSolver::initMovingObstacles","id"<<OId<<" "<<obj->getName()<<" inflow "<<staticInit<<" "<<vertices.size() );
+				//errMsg("LbmFsgrSolver::initMovingObstacles","id"<<OId<<" "<<obj->getName()<<" inflow "<<staticInit<<" "<<mMOIVertices.size() );
 				
-				for(size_t n=0; n<vertices.size(); n++) {
-					POS2GRID(vertices,n);
-					CHECKIJK;
+				for(size_t n=0; n<mMOIVertices.size(); n++) {
+					POS2GRID_CHECK(mMOIVertices,n);
 					// TODO - also reinit interface cells !?
 					if(RFLAG(level, i,j,k, workSet)!=CFEmpty) { 
 						// test prevent particle gen for inflow inter cells
@@ -1325,9 +1467,8 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 				// second static init pass
 				if(staticInit) {
 					CellFlagType set2Flag = CFMbndInflow|(OId<<24);
-					for(size_t n=0; n<vertices.size(); n++) {
-						POS2GRID(vertices,n);
-						CHECKIJK;
+					for(size_t n=0; n<mMOIVertices.size(); n++) {
+						POS2GRID_CHECK(mMOIVertices,n);
 						if(RFLAG(level, i,j,k, workSet)&(CFMbndInflow|CFMbndOutflow)){ continue; }
 						if(RFLAG(level, i,j,k, workSet)&(CFEmpty)) {
 							changeFlag(level, i,j,k, workSet, set2Flag);
@@ -1339,12 +1480,10 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 
 			} // inflow
 
-			//else if(ntype&CFMbndOutflow){
 			else if(ntype&CFMbndOutflow){
 				const LbmFloat iniRho = 0.0;
-				for(size_t n=0; n<vertices.size(); n++) {
-					POS2GRID(vertices,n);
-					CHECKIJK;
+				for(size_t n=0; n<mMOIVertices.size(); n++) {
+					POS2GRID_CHECK(mMOIVertices,n);
 					// FIXME check fluid/inter cells for non-static!?
 					if(!(RFLAG(level, i,j,k, workSet)&(CFFluid|CFInter))) {
 						if((staticInit)&&(RFLAG(level, i,j,k, workSet)==CFEmpty)) {
@@ -1372,9 +1511,8 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 				// second static init pass
 				if(staticInit) {
 					CellFlagType set2Flag = CFMbndOutflow|(OId<<24);
-					for(size_t n=0; n<vertices.size(); n++) {
-						POS2GRID(vertices,n);
-						CHECKIJK;
+					for(size_t n=0; n<mMOIVertices.size(); n++) {
+						POS2GRID_CHECK(mMOIVertices,n);
 						if(RFLAG(level, i,j,k, workSet)&(CFMbndInflow|CFMbndOutflow)){ continue; }
 						if(RFLAG(level, i,j,k, workSet)&(CFEmpty)) {
 							changeFlag(level, i,j,k, workSet, set2Flag);
@@ -1384,10 +1522,9 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 					}
 				} // second static outflow pass
 			} // outflow
-		}
-		//vector<ntlGeometryObject*> *mpGiObjects;
-		//Obj->getGeoInitType() ){
-	}
+
+		} // allbound check
+	} // OId
 
 
 	/* { // DEBUG check
@@ -1401,10 +1538,9 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 		}
 	} // DEBUG */
 	
-#undef CHECKIJK 
-#undef POS2GRID
+#undef POS2GRID_CHECK
 	myTime_t monend = getTime();
-	errMsg("LbmFsgrSolver::initMovingObstacles","Total: "<<monTotal<<" Points :"<<monPoints<<" ObstInits:"<<monObsts<<" FlInits:"<<monFluids<<" Trafos:"<<monTotal<<", took "<<getTimeString(monend-monstart));
+	debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG,"Total: "<<monTotal<<" Points :"<<monPoints<<" ObstInits:"<<monObsts<<" FlInits:"<<monFluids<<" Trafos:"<<monTotal<<", took "<<getTimeString(monend-monstart), 7);
 	mLastSimTime = targetTime;
 }
 
@@ -1417,19 +1553,12 @@ bool LbmFsgrSolver::initGeometryFlags() {
 	int level = mMaxRefine;
 	myTime_t geotimestart = getTime(); 
 	ntlGeometryObject *pObj;
-	// getCellSize (due to forced cubes, use x values)
-	//ntlVec3Gfx dvec; //( (this->mvGeoEnd[0]-this->mvGeoStart[0])/ ((LbmFloat)this->mSizex*2.0));
-	//bool thinHit = false;
-	// real cell size from now on...
-	//dvec *= 2.0; 
-	//ntlVec3Gfx nodesize = ntlVec3Gfx(mLevel[level].nodeSize); //dvec*1.0;
-	//dvec = nodesize;
 	ntlVec3Gfx dvec = ntlVec3Gfx(mLevel[level].nodeSize); //dvec*1.0;
-	debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Performing geometry init ("<< this->mGeoInitId <<") v"<<dvec,3);
+	debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Performing geometry init ("<< this->mLbmInitId <<") v"<<dvec,3);
 	// WARNING - copied to movobj init!
 
 	/* init object velocities, this has always to be called for init */
-	this->initGeoTree(this->mGeoInitId);
+	this->initGeoTree();
 	if(this->mAllfluid) { 
 		this->freeGeoTree();
 		return true; }
@@ -1439,10 +1568,14 @@ bool LbmFsgrSolver::initGeometryFlags() {
 	int numobjs = (int)(this->mpGiObjects->size());
 	for(int o=0; o<numobjs; o++) {
 		ntlGeometryObject *obj = (*this->mpGiObjects)[o];
+		//debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG," obj "<<obj->getName()<<" type "<<obj->getGeoInitType()<<" anim"<<obj->getIsAnimated()<<" "<<obj->getVolumeInit() ,9);
 		if(
 				((obj->getGeoInitType()&FGI_ALLBOUNDS) && (obj->getIsAnimated())) ||
-				(obj->getOnlyThinInit()) ) {
-			obj->initMovingPoints(mLevel[mMaxRefine].nodeSize);
+				(obj->getVolumeInit()&VOLUMEINIT_SHELL) ) {
+			if(!obj->getMeshAnimated()) { 
+				debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG," obj "<<obj->getName()<<" type "<<obj->getGeoInitType()<<" anim"<<obj->getIsAnimated()<<" "<<obj->getVolumeInit() ,9);
+				obj->initMovingPoints(mSimulationTime, mLevel[mMaxRefine].nodeSize);
+			}
 		}
 	}
 
@@ -1459,7 +1592,6 @@ bool LbmFsgrSolver::initGeometryFlags() {
 		debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Performing reparametrization, newdt="<< newdt<<" prevdt="<< this->mpParam->getTimestep() <<" ",5);
 		this->mpParam->setDesiredTimestep( newdt );
 		this->mpParam->calculateAllMissingValues( mSimulationTime, this->mSilent );
-		//maxIniVel = vec2G( this->mpParam->calculateLattVelocityFromRw( vec2P(this->getGeoMaxInitialVelocity()) ));
 		maxMovobjVel = vec2G( this->mpParam->calculateLattVelocityFromRw( vec2P(this->getGeoMaxMovementVelocity(
 		                      mSimulationTime, this->mpParam->getTimestep() )) ));
 		debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"New maximum Velocity from geo init="<< maxMovobjVel,5);
@@ -1499,8 +1631,6 @@ bool LbmFsgrSolver::initGeometryFlags() {
 				ntype = CFInvalid;
 				
 				const bool inside = this->geoInitCheckPointInside( GETPOS(i,j,k) , FGI_ALLBOUNDS, OId, distance);
-				// = this->geoInitCheckPointInside( GETPOS(i,j,k) , ntlVec3Gfx(1.0,0.0,0.0), FGI_ALLBOUNDS, OId, distance, dvec[0]*0.5, thinHit, true);
-				//if(this->geoInitCheckPointInside( GETPOS(i,j,k) , FGI_ALLBOUNDS, OId, distance)) {
 				if(inside) {
 					pObj = (*this->mpGiObjects)[OId];
 					switch( pObj->getGeoInitType() ){
@@ -1626,18 +1756,24 @@ void LbmFsgrSolver::initFreeSurfaces() {
 
 	// set interface cells 
 	FSGR_FORIJK1(mMaxRefine) {
-
 		if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr), CFFluid )) {
-			int initInter = 0; // check for neighboring empty cells 
+			//int initInter = 0; // check for neighboring empty cells 
 			FORDF1 {
-				if( TESTFLAG( RFLAG_NBINV(mMaxRefine, i, j, k,  mLevel[mMaxRefine].setCurr,l), CFEmpty ) ) {
-					initInter = 1;
+				int ni=i+this->dfVecX[l], nj=j+this->dfVecY[l], nk=k+this->dfVecZ[l];
+				if( TESTFLAG( RFLAG(mMaxRefine, ni, nj, nk,  mLevel[mMaxRefine].setCurr), CFEmpty ) ) {
+					LbmFloat arho=0., aux=0., auy=0., auz=0.;
+					interpolateCellValues(mMaxRefine, ni,nj,nk, mLevel[mMaxRefine].setCurr, arho,aux,auy,auz);
+					//errMsg("TINI"," "<<PRINT_VEC(ni,nj,nk)<<" v"<<LbmVec(aux,auy,auz) );
+					initEmptyCell(mMaxRefine, ni,nj,nk, CFInter, arho, interfaceFill);
+					initVelocityCell(mMaxRefine, ni,nj,nk, CFInter, arho, interfaceFill, LbmVec(aux,auy,auz) );
+					//initEmptyCell(level, i,j,k, settype, avgrho, rhomass, speed ); */
+					//initInter = 1;
 				}
 			}
-			if(initInter) {
+			/*if(initInter) {
 				QCELL(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr, dMass) = interfaceFill;
 				RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr) = RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setOther) = CFInter;
-			}
+			} // */
 		}
 	}
 
@@ -1655,11 +1791,9 @@ void LbmFsgrSolver::initFreeSurfaces() {
 				}
 				NBs |= RFLAG_NBINV(mMaxRefine, i, j, k, mLevel[mMaxRefine].setCurr, l);
 			}
-
 			// remove cells with no fluid or interface neighbors
 			if((NBs & CFFluid)==0) { delit = 1; }
 			if((NBs & CFInter)==0) { delit = 1; }
-
 			// remove cells with no empty neighbors
 			if(noEmptyNB) { delit = 2; }
 
@@ -1668,7 +1802,10 @@ void LbmFsgrSolver::initFreeSurfaces() {
 				initEmptyCell(mMaxRefine, i,j,k, CFEmpty, 1.0, 0.0);
 			}
 			if(delit==2) {
-				initEmptyCell(mMaxRefine, i,j,k, CFFluid, 1.0, 1.0);
+				//initEmptyCell(mMaxRefine, i,j,k, CFFluid, 1.0, 1.0);
+				LbmFloat arho=0., aux=0., auy=0., auz=0.;
+				interpolateCellValues(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr, arho,aux,auy,auz);
+				initVelocityCell(mMaxRefine, i,j,k, CFFluid, arho,1., LbmVec(aux,auy,auz) );
 			}
 		} // interface 
 	} // */
@@ -1945,8 +2082,8 @@ void LbmFsgrSolver::initStandingFluidGradient() {
 						nbflag[l] = RFLAG_NB(lev, i,j,k, SRCS(lev),l);
 					} 
 					DEFAULT_STREAM;
-					ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; 
-					DEFAULT_COLLIDE;
+					//ux = [0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; 
+					DEFAULT_COLLIDEG(mLevel[lev].gravity);
 				}
 				for(int l=LBM_DFNUM; l<dTotalNum;l++) { RAC(tcel,l) = RAC(ccel,l); }
 			} } } // GRAVLOOP
@@ -2048,8 +2185,8 @@ LbmFsgrSolver::interpolateCellValues(
 	LbmFloat avgrho = 0.0;
 	LbmFloat avgux = 0.0, avguy = 0.0, avguz = 0.0;
 	LbmFloat cellcnt = 0.0;
-	LbmFloat avgnbdf[LBM_DFNUM];
-	FORDF0M { avgnbdf[m]= 0.0; }
+	//LbmFloat avgnbdf[LBM_DFNUM];
+	//FORDF0M { avgnbdf[m]= 0.0; }
 
 	for(int nbl=1; nbl< this->cDfNum ; ++nbl) {
 		if( (RFLAG_NB(level,ei,ej,ek,workSet,nbl) & CFFluid) || 
@@ -2058,7 +2195,7 @@ LbmFsgrSolver::interpolateCellValues(
 			cellcnt += 1.0;
 			for(int rl=0; rl< this->cDfNum ; ++rl) { 
 				LbmFloat nbdf =  QCELL_NB(level,ei,ej,ek, workSet,nbl, rl);
-				avgnbdf[rl] += nbdf;
+				//avgnbdf[rl] += nbdf;
 				avgux  += (this->dfDvecX[rl]*nbdf); 
 				avguy  += (this->dfDvecY[rl]*nbdf);  
 				avguz  += (this->dfDvecZ[rl]*nbdf);  
@@ -2082,7 +2219,7 @@ LbmFsgrSolver::interpolateCellValues(
 		// init speed
 		avgux /= cellcnt; avguy /= cellcnt; avguz /= cellcnt;
 		avgrho /= cellcnt;
-		FORDF0M { avgnbdf[m] /= cellcnt; } // CHECK FIXME test?
+		//FORDF0M { avgnbdf[m] /= cellcnt; } // CHECK FIXME test?
 	}
 
 	retrho = avgrho;
@@ -2090,5 +2227,13 @@ LbmFsgrSolver::interpolateCellValues(
 	retuy = avguy;
 	retuz = avguz;
 } // interpolateCellValues
+
+
+/******************************************************************************
+ * instantiation
+ *****************************************************************************/
+
+//! lbm factory functions
+LbmSolverInterface* createSolver() { return new LbmFsgrSolver(); }
 
 

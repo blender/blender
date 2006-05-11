@@ -52,7 +52,7 @@ void fluidsimSettingsFree(struct FluidsimSettings* sb);
 void fluidsimBake(struct Object* ob);
 
 /* read & write bobj / bobj.gz files (e.g. for fluid sim surface meshes) */
-void writeBobjgz(char *filename, struct Object *ob);
+void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int append, float time);
 struct Mesh* readBobjgz(char *filename, struct Mesh *orgmesh, float* bbstart, float *bbsize);
 
 /* create derived mesh for fluid sim objects */

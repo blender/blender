@@ -97,18 +97,23 @@ typedef struct FluidsimSettings {
 	/* additional flags depending on the type, lower short contains flags
 	 * to check validity, higher short additional flags */
 	short typeFlags;
-	char  domainNovecgen,dummyc;
+	/* switch off velocity genration, volume init type for fluid/obstacles (volume=1,shell=2,both=3) */
+	char  domainNovecgen,volumeInitType;
 
 	/* boundary "stickiness" for part slip values */
 	float partSlipValue;
-	/* particle generation - on if >0, then determines amount */
+
+	/* number of tracers to generate */
+	int generateTracers;
+	/* particle generation - on if >0, then determines amount (experimental...) */
 	float generateParticles;
 	/* smooth fluid surface? */
 	float surfaceSmoothing;
+
 	/* particle display - size scaling, and alpha influence */
 	float particleInfSize, particleInfAlpha;
 	/* testing vars */
-	float farFieldSize,dummyf;
+	float farFieldSize;
 
 	/* save fluidsurface normals in mvert.no, and surface vertex velocities (if available) in mvert.co */
 	struct MVert *meshSurfNormals;

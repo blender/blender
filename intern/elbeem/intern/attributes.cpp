@@ -119,7 +119,7 @@ int Attribute::getAsInt()
 		errMsg("Attribute::getAsInt", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		errMsg("Attribute::getAsInt", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 #if ELBEEM_PLUGIN!=1
-		gElbeemState = -4; // parse error
+		setElbeemState( -4 ); // parse error
 #endif
 		return 0;
 	}
@@ -159,7 +159,7 @@ double Attribute::getAsFloat()
 		errMsg("Attribute::getAsFloat", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		errMsg("Attribute::getAsFloat", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 #if ELBEEM_PLUGIN!=1
-		gElbeemState = -4; // parse error
+		setElbeemState( -4 ); // parse error
 #endif
 		return 0.0;
 	}
@@ -211,7 +211,7 @@ ntlVec3d Attribute::getAsVec3d()
 		errMsg("Attribute::getAsVec3d", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		errMsg("Attribute::getAsVec3d", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 #if ELBEEM_PLUGIN!=1
-		gElbeemState = -4; // parse error
+		setElbeemState( -4 ); // parse error
 #endif
 		return ntlVec3d(0.0);
 	}
@@ -267,7 +267,7 @@ void Attribute::getAsMat4Gfx(ntlMat4Gfx *mat)
 		errMsg("Attribute::getAsMat4Gfx", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		errMsg("Attribute::getAsMat4Gfx", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 #if ELBEEM_PLUGIN!=1
-		gElbeemState = -4; // parse error
+		setElbeemState( -4 ); // parse error
 #endif
 		*mat = ntlMat4Gfx(0.0);
 		return;
@@ -349,6 +349,30 @@ AnimChannel<ntlVec3d> Attribute::getChannelVec3d() {
 	return AnimChannel<ntlVec3d>(valVec,timeVec);
 }
 
+//! get channel as float vector set
+AnimChannel<ntlSetVec3f> 
+Attribute::getChannelSetVec3f() {
+	vector<double> timeVec;
+	ntlSetVec3f setv;
+	vector< ntlSetVec3f > valVec;
+	
+	if((!initChannel(3)) || (!mIsChannel)) {
+		timeVec.push_back( 0.0 );
+		setv.mVerts.push_back( vec2F( getAsVec3d() ) );
+		valVec.push_back( setv );
+	} else {
+		for(size_t i=0; i<mChannel.size(); i++) {
+			mValue = mChannel[i];
+			ntlVec3f val = vec2F( getAsVec3d() );
+			timeVec.push_back( mTimes[i] );
+			setv.mVerts.push_back( val );
+		}
+		valVec.push_back( setv );
+		valVec.push_back( setv );
+	}
+
+	return AnimChannel<ntlSetVec3f>(valVec,timeVec);
+}
 
 /******************************************************************************
  * check if there were unknown params
@@ -447,29 +471,50 @@ bool AttributeList::ignoreParameter(string name, string source) {
 }
 		
 // read channels
-AnimChannel<double> AttributeList::readChannelFloat(string name) {
-	if(!exists(name)) { return AnimChannel<double>(0.0); } 
-	AnimChannel<double> ret = find(name)->getChannelFloat(); 
-	find(name)->setUsed(true);
-	channelSimplifyd(ret);
-	return ret;
-}
-AnimChannel<int> AttributeList::readChannelInt(string name) {
-	if(!exists(name)) { return AnimChannel<int>(0); } 
+AnimChannel<int> AttributeList::readChannelInt(string name, int defaultValue, string source, string target, bool needed) {
+	if(!exists(name)) { return AnimChannel<int>(defaultValue); } 
 	AnimChannel<int> ret = find(name)->getChannelInt(); 
 	find(name)->setUsed(true);
 	channelSimplifyi(ret);
 	return ret;
 }
-AnimChannel<ntlVec3d> AttributeList::readChannelVec3d(string name) {
-	if(!exists(name)) { return AnimChannel<ntlVec3d>(0.0); } 
+AnimChannel<double> AttributeList::readChannelFloat(string name, double defaultValue, string source, string target, bool needed ) {
+	if(!exists(name)) { return AnimChannel<double>(defaultValue); } 
+	AnimChannel<double> ret = find(name)->getChannelFloat(); 
+	find(name)->setUsed(true);
+	channelSimplifyd(ret);
+	return ret;
+}
+AnimChannel<ntlVec3d> AttributeList::readChannelVec3d(string name, ntlVec3d defaultValue, string source, string target, bool needed ) {
+	if(!exists(name)) { return AnimChannel<ntlVec3d>(defaultValue); } 
 	AnimChannel<ntlVec3d> ret = find(name)->getChannelVec3d(); 
 	find(name)->setUsed(true);
 	channelSimplifyVd(ret);
 	return ret;
 }
-AnimChannel<ntlVec3f> AttributeList::readChannelVec3f(string name) {
-	if(!exists(name)) { return AnimChannel<ntlVec3f>(0.0); } 
+AnimChannel<ntlSetVec3f> AttributeList::readChannelSetVec3f(string name, ntlSetVec3f defaultValue, string source, string target, bool needed) {
+	if(!exists(name)) { return AnimChannel<ntlSetVec3f>(defaultValue); } 
+	AnimChannel<ntlSetVec3f> ret = find(name)->getChannelSetVec3f(); 
+	find(name)->setUsed(true);
+	//channelSimplifyVf(ret);
+	return ret;
+}
+AnimChannel<float> AttributeList::readChannelSinglePrecFloat(string name, float defaultValue, string source, string target, bool needed ) {
+	if(!exists(name)) { return AnimChannel<float>(defaultValue); } 
+	AnimChannel<double> convert = find(name)->getChannelFloat(); 
+	find(name)->setUsed(true);
+	channelSimplifyd(convert);
+	// convert to float vals
+	vector<float> vals;
+	for(size_t i=0; i<convert.accessValues().size(); i++) {
+		vals.push_back( (float)(convert.accessValues()[i]) );
+	}
+	vector<double> times = convert.accessTimes();
+	AnimChannel<float> ret(vals, times);
+	return ret;
+}
+AnimChannel<ntlVec3f> AttributeList::readChannelVec3f(string name, ntlVec3f defaultValue, string source, string target, bool needed) {
+	if(!exists(name)) { return AnimChannel<ntlVec3f>(defaultValue); } 
 
 	AnimChannel<ntlVec3d> convert = find(name)->getChannelVec3d(); 
 	// convert to float
@@ -672,6 +717,7 @@ bool channelSimplifyVd (AnimChannel<ntlVec3d> &channel) {
 	return channelSimplifyVecT<ntlVec3d>(channel);
 }
 
+//! debug function, prints channel as string
 template<class Scalar>
 string AnimChannel<Scalar>::printChannel() {
 	std::ostringstream ostr;
@@ -684,5 +730,65 @@ string AnimChannel<Scalar>::printChannel() {
 	return ostr.str();
 } // */
 
+//! debug function, prints to stdout if DEBUG_CHANNELS flag is enabled, used in constructors
+template<class Scalar>
+void AnimChannel<Scalar>::debugPrintChannel() {
+	if(DEBUG_CHANNELS) { errMsg("channelCons"," : " << this->printChannel() ); }
+}
+
+
+ntlSetVec3f::ntlSetVec3f(double v ) {
+	mVerts.clear();
+	mVerts.push_back( ntlVec3f(v) );
+}
+const ntlSetVec3f& 
+ntlSetVec3f::operator=(double v ) {
+	mVerts.clear();
+	mVerts.push_back( ntlVec3f(v) );
+	return *this;
+}
+
+std::ostream& operator<<( std::ostream& os, const ntlSetVec3f& vs ) {
+	os<< "{";
+	for(int j=0;j<(int)vs.mVerts.size();j++)  os<<vs.mVerts[j];
+	os<< "}";
+  return os;
+}
+
+ntlSetVec3f& 
+ntlSetVec3f::operator+=( double v )
+{
+	for(int j=0;j<(int)(mVerts.size()) ;j++) {
+		mVerts[j] += v;
+	}
+	return *this;
+}
+
+ntlSetVec3f& 
+ntlSetVec3f::operator+=( const ntlSetVec3f &v )
+{
+	for(int j=0;j<(int)MIN(mVerts.size(),v.mVerts.size()) ;j++) {
+		mVerts[j] += v.mVerts[j];
+	}
+	return *this;
+}
+
+ntlSetVec3f& 
+ntlSetVec3f::operator*=( double v )
+{
+	for(int j=0;j<(int)(mVerts.size()) ;j++) {
+		mVerts[j] *= v;
+	}
+	return *this;
+}
+
+ntlSetVec3f& 
+ntlSetVec3f::operator*=( const ntlSetVec3f &v )
+{
+	for(int j=0;j<(int)MIN(mVerts.size(),v.mVerts.size()) ;j++) {
+		mVerts[j] *= v.mVerts[j];
+	}
+	return *this;
+}
 
 

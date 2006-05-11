@@ -123,7 +123,7 @@ class IsoSurface :
 		inline float getSmoothNormals() { return mSmoothNormals; }
 
 		// geometry object functions 
-		virtual void getTriangles( vector<ntlTriangle> *triangles, 
+		virtual void getTriangles(double t, vector<ntlTriangle> *triangles, 
 				vector<ntlVec3Gfx> *vertices, 
 				vector<ntlVec3Gfx> *normals, int objectId );
 

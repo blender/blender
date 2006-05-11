@@ -12,6 +12,9 @@
 
 #include "utilities.h"
 template<class T> class ntlMatrix4x4;
+class ntlSetVec3f;
+std::ostream& operator<<( std::ostream& os, const ntlSetVec3f& i );
+
 
 
 //! An animated attribute channel
@@ -21,15 +24,15 @@ class AnimChannel
 	public:
 		// default constructor
 		AnimChannel() : 
-			mValue(), mTimes() { mInited = false; }
+			mValue(), mTimes() { mInited = false; debugPrintChannel(); }
 
 		// null init constructor
 		AnimChannel(Scalar null) : 
-			mValue(1), mTimes(1) { mValue[0]=null; mTimes[0]=0.0; mInited = true; }
+			mValue(1), mTimes(1) { mValue[0]=null; mTimes[0]=0.0; mInited = true; debugPrintChannel(); }
 
 		// proper init
-		AnimChannel(vector<Scalar> v, vector<double> t) : 
-			mValue(v), mTimes(t) { mInited = true; }
+		AnimChannel(vector<Scalar> &v, vector<double> &t) : 
+			mValue(v), mTimes(t) { mInited = true; debugPrintChannel(); }
 
 		// desctructor, nothing to do
 		~AnimChannel() { };
@@ -45,7 +48,14 @@ class AnimChannel
 					// interpolate
 					double d = mTimes[i+1]-mTimes[i];
 					double f = (t-mTimes[i])/d;
-					return (Scalar)(mValue[i] * (1.0-f) + mValue[i+1] * f);
+					//return (Scalar)(mValue[i] * (1.0-f) + mValue[i+1] * f);
+					Scalar ret,tmp;
+					ret = mValue[i];
+					ret *= 1.-f;
+					tmp = mValue[i+1];
+					tmp *= f;
+					ret += tmp;
+					return ret;
 				}
 			}
 			// whats this...?
@@ -77,6 +87,8 @@ class AnimChannel
 
 		//! debug function, prints channel as string
 		string printChannel();
+		//! debug function, prints to stdout if DEBUG_CHANNELS flag is enabled, used in constructors
+		void debugPrintChannel();
 		//! valid init?
 		bool isInited() { return mInited; }
 
@@ -145,6 +157,8 @@ class Attribute
 		AnimChannel<double> getChannelFloat();
 		//! get channel as double vector
 		AnimChannel<ntlVec3d> getChannelVec3d();
+		//! get channel as float vector set
+		AnimChannel<ntlSetVec3f> getChannelSetVec3f();
 
 		//! get the concatenated string of all value string
 		string getCompleteString();
@@ -180,6 +194,22 @@ class Attribute
 		vector< double > mTimes;
 };
 
+
+// helper class (not templated) for animated meshes
+class ntlSetVec3f {
+	public:
+		ntlSetVec3f(): mVerts() {};
+		ntlSetVec3f(double v);
+		ntlSetVec3f(vector<ntlVec3f> &v) { mVerts = v; };
+
+		const ntlSetVec3f& operator=(double v );
+		ntlSetVec3f& operator+=( double v );
+		ntlSetVec3f& operator+=( const ntlSetVec3f &v );
+		ntlSetVec3f& operator*=( double v );
+		ntlSetVec3f& operator*=( const ntlSetVec3f &v );
+
+		vector<ntlVec3f> mVerts;
+};
 
 //! The list of configuration attributes
 class AttributeList
@@ -230,10 +260,13 @@ class AttributeList
 		ntlVec3d readVec3d(string name, ntlVec3d defaultValue,  string source,string target, bool needed);
 		void readMat4Gfx(string name, ntlMatrix4x4<gfxReal> defaultValue,  string source,string target, bool needed, ntlMatrix4x4<gfxReal> *mat);
 		//! read attributes channels (attribute should be inited before)
-		AnimChannel<int>     readChannelInt(string name);
-		AnimChannel<double>  readChannelFloat(string name);
-		AnimChannel<ntlVec3d> readChannelVec3d(string name);
-		AnimChannel<ntlVec3f> readChannelVec3f(string name);
+		AnimChannel<int>     readChannelInt(         string name, int defaultValue=0, string source=string("src"), string target=string("dst"), bool needed=false );
+		AnimChannel<double>  readChannelFloat(       string name, double defaultValue=0, string source=string("src"), string target=string("dst"), bool needed=false );
+		AnimChannel<ntlVec3d> readChannelVec3d(      string name, ntlVec3d defaultValue=ntlVec3d(0.), string source=string("src"), string target=string("dst"), bool needed=false );
+		AnimChannel<ntlSetVec3f> readChannelSetVec3f(string name, ntlSetVec3f defaultValue=ntlSetVec3f(0.), string source=string("src"), string target=string("dst"), bool needed=false );
+		// channels with conversion
+		AnimChannel<ntlVec3f> readChannelVec3f(           string name, ntlVec3f defaultValue=ntlVec3f(0.), string source=string("src"), string target=string("dst"), bool needed=false );
+		AnimChannel<float>    readChannelSinglePrecFloat( string name, float defaultValue=0., string source=string("src"), string target=string("dst"), bool needed=false );
 
 		//! set that a parameter can be given, and will be ignored...
 		bool ignoreParameter(string name, string source);

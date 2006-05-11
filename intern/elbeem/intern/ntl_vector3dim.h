@@ -201,6 +201,9 @@ private:
 
 
 
+//! global string for formatting vector output in utilities.cpp
+extern char *globVecFormatStr;
+
 /*************************************************************************
   Outputs the object in human readable form using the format
   [x,y,z]
@@ -209,7 +212,10 @@ template<class Scalar>
 std::ostream&
 operator<<( std::ostream& os, const ntlVector3Dim<Scalar>& i )
 {
-  os << '[' << i[0] << ", " << i[1] << ", " << i[2] << ']';
+	char buf[256];
+	snprintf(buf,256,globVecFormatStr,i[0],i[1],i[2]);
+	os << std::string(buf); 
+  //os << '[' << i[0] << ", " << i[1] << ", " << i[2] << ']';
   return os;
 }
 

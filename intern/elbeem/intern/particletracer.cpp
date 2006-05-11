@@ -33,23 +33,17 @@ ParticleTracer::ParticleTracer() :
 	mPartSize(0.01),
 	mStart(-1.0), mEnd(1.0),
 	mSimStart(-1.0), mSimEnd(1.0),
-	mPartScale(1.0) , mPartHeadDist( 0.5 ), mPartTailDist( -4.5 ), mPartSegments( 4 ),
+	mPartScale(0.1) , mPartHeadDist( 0.1 ), mPartTailDist( -0.1 ), mPartSegments( 4 ),
 	mValueScale(0),
 	mValueCutoffTop(0.0), mValueCutoffBottom(0.0),
-	mDumpParts(0), mDumpText(0), mDumpTextFile(""), mShowOnly(0), 
-	mNumInitialParts(0), mpTrafo(NULL)
+	mDumpParts(0), //mDumpText(0), 
+	mDumpTextFile(""), 
+	mDumpTextInterval(0.), mDumpTextLastTime(0.), mDumpTextCount(0),
+	mShowOnly(0), 
+	mNumInitialParts(0), mpTrafo(NULL),
+	mInitStart(-1.), mInitEnd(-1.),
+	mPrevs(), mTrailTimeLast(0.), mTrailInterval(-1.), mTrailLength(0)
 {
-	// check env var
-//#ifdef ELBEEM_PLUGIN
-	//mDumpParts=1; // default on
-//#endif // ELBEEM_PLUGIN
-	//if(getenv("ELBEEM_DUMPPARTICLE")) { // DEBUG!
-		//int set = atoi( getenv("ELBEEM_DUMPPARTICLE") );
-		//if((set>=0)&&(set!=mDumpParts)) {
-			//mDumpParts=set;
-			//debMsgStd("ParticleTrace",DM_NOTIFY,"Using envvar ELBEEM_DUMPPARTICLE to set mDumpParts to "<<set<<","<<mDumpParts,8);
-		//}
-	//}
 	debMsgStd("ParticleTracer::ParticleTracer",DM_MSG,"inited",10);
 };
 
@@ -66,7 +60,7 @@ void ParticleTracer::parseAttrList(AttributeList *att)
 	mpAttrs = att;
 
 	mNumInitialParts = mpAttrs->readInt("particles",mNumInitialParts, "ParticleTracer","mNumInitialParts", false);
-	errMsg(" NUMP"," "<<mNumInitialParts);
+	//errMsg(" NUMP"," "<<mNumInitialParts);
 	mPartScale    = mpAttrs->readFloat("part_scale",mPartScale, "ParticleTracer","mPartScale", false);
 	mPartHeadDist = mpAttrs->readFloat("part_headdist",mPartHeadDist, "ParticleTracer","mPartHeadDist", false);
 	mPartTailDist = mpAttrs->readFloat("part_taildist",mPartTailDist, "ParticleTracer","mPartTailDist", false);
@@ -76,19 +70,23 @@ void ParticleTracer::parseAttrList(AttributeList *att)
 	mValueCutoffBottom = mpAttrs->readFloat("part_valcutoffbottom",mValueCutoffBottom, "ParticleTracer","mValueCutoffBottom", false);
 
 	mDumpParts   = mpAttrs->readInt  ("part_dump",mDumpParts, "ParticleTracer","mDumpParts", false);
-	mDumpText    = mpAttrs->readInt  ("part_textdump",mDumpText, "ParticleTracer","mDumpText", false);
+	// mDumpText deprecatd, use mDumpTextInterval>0. instead
 	mShowOnly    = mpAttrs->readInt  ("part_showonly",mShowOnly, "ParticleTracer","mShowOnly", false);
 	mDumpTextFile= mpAttrs->readString("part_textdumpfile",mDumpTextFile, "ParticleTracer","mDumpTextFile", false);
+	mDumpTextInterval= mpAttrs->readFloat("part_textdumpinterval",mDumpTextInterval, "ParticleTracer","mDumpTextInterval", false);
 
 	string matPart;
 	matPart = mpAttrs->readString("material_part", "default", "ParticleTracer","material", false);
 	setMaterialName( matPart );
 
+	mInitStart = mpAttrs->readFloat("part_initstart",mInitStart, "ParticleTracer","mInitStart", false);
+	mInitEnd   = mpAttrs->readFloat("part_initend",  mInitEnd, "ParticleTracer","mInitEnd", false);
+
 	// unused...
-	int mTrailLength  = 0; // UNUSED
-	int mTrailInterval= 0; // UNUSED
+	//int mTrailLength  = 0; // UNUSED
+	//int mTrailInterval= 0; // UNUSED
 	mTrailLength  = mpAttrs->readInt("traillength",mTrailLength, "ParticleTracer","mTrailLength", false);
-	mTrailInterval= mpAttrs->readInt("trailinterval",mTrailInterval, "ParticleTracer","mTrailInterval", false);
+	mTrailInterval= mpAttrs->readFloat("trailinterval",mTrailInterval, "ParticleTracer","mTrailInterval", false);
 
 	// restore old list
 	mpAttrs = tempAtt;
@@ -134,24 +132,14 @@ void ParticleTracer::addParticle(float x, float y, float z)
 {
 	ntlVec3Gfx p(x,y,z);
 	ParticleObject part( p );
-	//mParts.push_back( part );
-	// TODO handle other arrays?
-	//part.setActive( false );
 	mParts.push_back( part );
-	//for(size_t l=0; l<mParts.size(); l++) {
-		// add deactivated particles to other arrays
-		// deactivate further particles
-		//if(l>1) {
-			//mParts[l][ mParts.size()-1 ].setActive( false );
-		//}
-	//}
 }
 
 
 void ParticleTracer::cleanup() {
 	// cleanup
 	int last = (int)mParts.size()-1;
-	if(mDumpText>0) { errMsg("ParticleTracer::cleanup","Skipping cleanup due to text dump..."); return; }
+	if(mDumpTextInterval>0.) { errMsg("ParticleTracer::cleanup","Skipping cleanup due to text dump..."); return; }
 
 	for(int i=0; i<=last; i++) {
 		if( mParts[i].getActive()==false ) {
@@ -166,7 +154,7 @@ void ParticleTracer::cleanup() {
  *! dump particles if desired 
  *****************************************************************************/
 void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename, double simtime) {
-	debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"obj:"<<this->getName()<<" frame:"<<frameNrStr, 10); // DEBUG
+	debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"obj:"<<this->getName()<<" frame:"<<frameNrStr<<" dumpp"<<mDumpParts, 10); // DEBUG
 
 	if(
 			(dumptype==DUMP_FULLGEOMETRY)&&
@@ -186,13 +174,11 @@ void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,str
 			numParts = 0;
 			for(size_t i=0; i<mParts.size(); i++) {
 				if(!mParts[i].getActive()) continue;
-				//if(mParts[i].getLifeTime()<30) { continue; } //? CHECK
 				numParts++;
 			}
 			gzwrite(gzf, &numParts, sizeof(numParts));
 			for(size_t i=0; i<mParts.size(); i++) {
 				if(!mParts[i].getActive()) { continue; }
-				//if(mParts[i].getLifeTime()<30) { continue; } //? CHECK
 				ParticleObject *p = &mParts[i];
 				//int type = p->getType();  // export whole type info
 				int type = p->getFlags(); // debug export whole type & status info
@@ -221,17 +207,21 @@ void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,str
 			gzclose( gzf );
 		}
 	} // dump?
+}
 
+void ParticleTracer::checkDumpTextPositions(double simtime) {
 	// dfor partial & full dump
-	if(mDumpText>0) {
+	errMsg("ParticleTracer::checkDumpTextPositions","t="<<simtime<<" last:"<<mDumpTextLastTime<<" inter:"<<mDumpTextInterval);
+
+	if((mDumpTextInterval>0.) && (simtime>mDumpTextLastTime+mDumpTextInterval)) {
 		// dump to binary file
 		std::ostringstream boutfilename("");
 		if(mDumpTextFile.length()>1) {   
 			boutfilename << mDumpTextFile <<  ".cpart2"; 
 		} else {                           
-			boutfilename << outfilename <<"_particles" <<  ".cpart2"; 
+			boutfilename << boutfilename <<"_particles" <<  ".cpart2"; 
 		}
-		debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"T-Dumping: "<< this->getName() <<", particles:"<<mParts.size()<<" "<< " to "<<boutfilename.str()<<" #"<<frameNr , 7);
+		debMsgStd("ParticleTracer::checkDumpTextPositions",DM_MSG,"T-Dumping: "<< this->getName() <<", particles:"<<mParts.size()<<" "<< " to "<<boutfilename.str()<<" " , 7);
 
 		int numParts = 0;
 		// only dump bubble particles
@@ -242,27 +232,34 @@ void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,str
 		}
 
 		// output to text file
-		gzFile gzf;
-		if(frameNr==0) {
-			gzf = gzopen(boutfilename.str().c_str(), "w0");
+		//gzFile gzf;
+		FILE *stf;
+		if(mDumpTextCount==0) {
+			//gzf = gzopen(boutfilename.str().c_str(), "w0");
+			stf = fopen(boutfilename.str().c_str(), "w");
 
-			gzprintf( gzf, "\n\n# cparts generated by elbeem \n# no. of parts \nN %d \n\n",numParts);
+			fprintf( stf, "\n\n# cparts generated by elbeem \n# no. of parts \nN %d \n\n",numParts);
 			// fixed time scale for now
-			gzprintf( gzf, "T %f \n\n", 1.0);
+			fprintf( stf, "T %f \n\n", 1.0);
 		} else {
-			gzf = gzopen(boutfilename.str().c_str(), "a+0");
+			//gzf = gzopen(boutfilename.str().c_str(), "a+0");
+			stf = fopen(boutfilename.str().c_str(), "a+");
 		}
 
 		// add current set
-		if(gzf) {
-			gzprintf( gzf, "\n\n# new set at frame %d,t%f,p%d --------------------------------- \n\n", frameNr, simtime, numParts );
-			gzprintf( gzf, "S %f \n\n", simtime );
+		if(stf) {
+			fprintf( stf, "\n\n# new set at frame %d,t%f,p%d --------------------------------- \n\n", mDumpTextCount, simtime, numParts );
+			fprintf( stf, "S %f \n\n", simtime );
 			
 			for(size_t i=0; i<mParts.size(); i++) {
 				ParticleObject *p = &mParts[i];
 				ntlVec3Gfx pos = p->getPos();
 				float size = p->getSize();
-				if(!mParts[i].getActive()) { size=0.; } // switch "off"
+				float infl = 1.;
+				//if(!mParts[i].getActive()) { size=0.; } // switch "off"
+				if(!mParts[i].getActive()) { infl=0.; } // switch "off"
+				if(!mParts[i].getInFluid()) { infl=0.; } // switch "off"
+				if(mParts[i].getLifeTime()<0.) { infl=0.; } // not yet active...
 
 				pos = (*mpTrafo) * pos;
 				ntlVec3Gfx v = p->getVel();
@@ -270,23 +267,45 @@ void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,str
 				v[1] *= mpTrafo->value[1][1];
 				v[2] *= mpTrafo->value[2][2];
 				
-				gzprintf( gzf, "P %f %f %f \n", pos[0],pos[1],pos[2] );
-				gzprintf( gzf, "s %f \n", size );
-				gzprintf( gzf, "\n", size );
+				fprintf( stf, "P %f %f %f \n", pos[0],pos[1],pos[2] );
+				if(size!=1.0) fprintf( stf, "s %f \n", size );
+				if(infl!=1.0) fprintf( stf, "i %f \n", infl );
+				fprintf( stf, "\n" );
 			}
 
-			gzprintf( gzf, "# %d end  ", frameNr );
-			gzclose( gzf );
+			fprintf( stf, "# %d end  ", mDumpTextCount );
+			//gzclose( gzf );
+			fclose( stf );
+
+			mDumpTextCount++;
 		}
+
+		mDumpTextLastTime += mDumpTextInterval;
 	}
+
 }
 
+
+void ParticleTracer::checkTrails(double time) {
+	if(mTrailLength<1) return;
+	if(time-mTrailTimeLast > mTrailInterval) {
+
+		if( (int)mPrevs.size() < mTrailLength) mPrevs.resize( mTrailLength );
+		for(int i=mPrevs.size()-1; i>0; i--) {
+			mPrevs[i] = mPrevs[i-1];
+			//errMsg("TRAIL"," from "<<i<<" to "<<(i-1) );
+		}
+		mPrevs[0] = mParts;
+
+		mTrailTimeLast += mTrailInterval;
+	}
+}
 
 
 /******************************************************************************
  * Get triangles for rendering
  *****************************************************************************/
-void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles, 
+void ParticleTracer::getTriangles(double t, vector<ntlTriangle> *triangles, 
 													 vector<ntlVec3Gfx> *vertices, 
 													 vector<ntlVec3Gfx> *normals, int objectId )
 {
@@ -295,6 +314,7 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 	vertices = NULL; triangles = NULL;
 	normals = NULL; objectId = 0;
 #else // ELBEEM_PLUGIN
+	int pcnt = 0;
 	// currently not used in blender
 	objectId = 0; // remove, deprecated
 	if(mDumpParts>1) { 
@@ -303,21 +323,28 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 
 	const bool debugParts = false;
 	int tris = 0;
-	gfxReal partNormSize = 0.01 * mPartScale;
 	int segments = mPartSegments;
-
-	//int lnewst = mTrailLength-1;
-	// TODO get rid of mPart[X] array
-	//? int loldst = mTrailLength-2;
-	// trails gehen nicht so richtig mit der
-	// richtung der partikel...
-
 	ntlVec3Gfx scale = ntlVec3Gfx( (mEnd[0]-mStart[0])/(mSimEnd[0]-mSimStart[0]), (mEnd[1]-mStart[1])/(mSimEnd[1]-mSimStart[1]), (mEnd[2]-mStart[2])/(mSimEnd[2]-mSimStart[2]));
 	ntlVec3Gfx trans = mStart;
+	t = 0.; // doesnt matter
 
-	for(size_t i=0; i<mParts.size(); i++) {
-		//mParts[0][i].setActive(true);
-		ParticleObject *p = &mParts[i];
+	for(size_t t=0; t<mPrevs.size()+1; t++) {
+		vector<ParticleObject> *dparts;
+		if(t==0) {
+			dparts = &mParts;
+		} else {
+			dparts = &mPrevs[t-1];
+		}
+		//errMsg("TRAILT","prevs"<<t<<"/"<<mPrevs.size()<<" parts:"<<dparts->size() );
+
+	gfxReal partscale = mPartScale;
+	if(t>1) { 
+		partscale *= (gfxReal)(mPrevs.size()+1-t) / (gfxReal)(mPrevs.size()+1); 
+	}
+	gfxReal partNormSize = 0.01 * partscale;
+	//for(size_t i=0; i<mParts.size(); i++) {
+	for(size_t i=0; i<dparts->size(); i++) {
+		ParticleObject *p = &( (*dparts)[i] ); //  mParts[i];
 
 		if(mShowOnly!=10) {
 			// 10=show only deleted
@@ -339,34 +366,36 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 			if(type&PART_INTER) continue;
 		}
 
+		pcnt++;
 		ntlVec3Gfx pnew = p->getPos();
 		if(type&PART_FLOAT) { // WARNING same handling for dump!
+			if(p->getStatus()&PART_IN) { pnew[2] += 0.8; } // offset for display
 			// add one gridcell offset
 			//pnew[2] += 1.0; 
 		}
+#if LBMDIM==2
+		pnew[2] += 0.001; // DEBUG
+		pnew[2] += 0.009; // DEBUG
+#endif 
 
 		ntlVec3Gfx pdir = p->getVel();
 		gfxReal plen = normalize( pdir );
 		if( plen < 1e-05) pdir = ntlVec3Gfx(-1.0 ,0.0 ,0.0);
 		ntlVec3Gfx pos = (*mpTrafo) * pnew;
-		//ntlVec3Gfx pos = pnew; // T
-		//pos[0] = pos[0]*scale[0]+trans[0]; // T
-		//pos[1] = pos[1]*scale[1]+trans[1]; // T
-		//pos[2] = pos[2]*scale[2]+trans[2]; // T
 		gfxReal partsize = 0.0;
 		if(debugParts) errMsg("DebugParts"," i"<<i<<" new"<<pnew<<" vel"<<pdir<<"   pos="<<pos );
 		//if(i==0 &&(debugParts)) errMsg("DebugParts"," i"<<i<<" new"<<pnew[0]<<" pos="<<pos[0]<<" scale="<<scale[0]<<"  t="<<trans[0] );
 		
 		// value length scaling?
 		if(mValueScale==1) {
-			partsize = mPartScale * plen;
+			partsize = partscale * plen;
 		} else if(mValueScale==2) {
 			// cut off scaling
 			if(plen > mValueCutoffTop) continue;
 			if(plen < mValueCutoffBottom) continue;
-			partsize = mPartScale * plen;
+			partsize = partscale * plen;
 		} else {
-			partsize = mPartScale; // no length scaling
+			partsize = partscale; // no length scaling
 		}
 		//if(type&(PART_DROP|PART_BUBBLE)) 
 		partsize *= p->getSize()/5.0;
@@ -382,11 +411,7 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 		ntlVec3Gfx cv1 = pdir;
 		ntlVec3Gfx cv2 = ntlVec3Gfx(pdir[1], -pdir[0], 0.0);
 		ntlVec3Gfx cv3 = cross( cv1, cv2);
-		for(int l=0; l<3; l++) {
-			//? cvmat.value[l][0] = cv1[l];
-			//? cvmat.value[l][1] = cv2[l];
-			//? cvmat.value[l][2] = cv3[l];
-		}
+		//? for(int l=0; l<3; l++) { cvmat.value[l][0] = cv1[l]; cvmat.value[l][1] = cv2[l]; cvmat.value[l][2] = cv3[l]; }
 		pstart = (cvmat * pstart);
 		pend = (cvmat * pend);
 
@@ -417,7 +442,9 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 		}
 	}
 
-	//} // trail
+	} // t
+
+	debMsgStd("ParticleTracer::getTriangles",DM_MSG,"Dumped "<<pcnt<<"/"<<mParts.size()<<" parts, tris:"<<tris<<", showonly:"<<mShowOnly,10);
 	return; // DEBUG
 
 #endif // ELBEEM_PLUGIN

@@ -208,8 +208,15 @@ class LbmFsgrSolver :
 		virtual void parseAttrList();
 		//! Initialize omegas and forces on all levels (for init/timestep change)
 		void initLevelOmegas();
-		//! finish the init with config file values (allocate arrays...) 
-		virtual bool initializeSolver(); 
+
+		// multi step solver init
+		/*! finish the init with config file values (allocate arrays...) */
+		virtual bool initializeSolverMemory();
+		/*! init solver arrays */
+		virtual bool initializeSolverGrids();
+		/*! prepare actual simulation start, setup viz etc */
+		virtual bool initializeSolverPostinit();
+
 		//! notify object that dump is in progress (e.g. for field dump) 
 		virtual void notifySolverOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename);
 
@@ -338,6 +345,8 @@ class LbmFsgrSolver :
 		
 		//! use time adaptivity? 
 		bool mTimeAdap;
+		//! force smaller timestep for next LBM step? (eg for mov obj)
+		bool mForceTimeStepReduce;
 
 		//! fluid vol height
 		LbmFloat mFVHeight;
@@ -395,6 +404,12 @@ class LbmFsgrSolver :
 		vector<LbmVec> mObjectSpeeds;
 		//! partslip bc. values for obstacle boundary conditions
 		vector<LbmFloat> mObjectPartslips;
+		//! moving object mass boundary condition values
+		vector<LbmFloat> mObjectMassMovnd;
+
+		//! permanent movobj vert storage
+	  vector<ntlVec3Gfx>  mMOIVertices;
+  	vector<ntlVec3Gfx>  mMOIVerticesOld;
 
 		//! get isofield weights
 		int mIsoWeightMethod;
@@ -459,9 +474,12 @@ class LbmFsgrSolver :
 		void destroyTestdata();
 		void handleTestdata();
 		void set3dHeight(int ,int );
+
+		void initCpdata();
+		void handleCpdata();
 	public:
-		// needed from testdata
-		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat *retux, LbmFloat *retuy);
+		// needed for testdata
+		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat *retux, LbmFloat *retuy, LbmFloat *retuz);
 #endif // LBM_INCLUDE_TESTSOLVERS==1
 
 	public: // former LbmModelLBGK  functions
@@ -473,7 +491,9 @@ class LbmFsgrSolver :
 		inline void collideArrays( int i, int j, int k, // position - more for debugging
 				LbmFloat df[], LbmFloat &outrho, // out only!
 				// velocity modifiers (returns actual velocity!)
-				LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, LbmFloat omega, LbmFloat csmago, LbmFloat *newOmegaRet, LbmFloat *newQoRet);
+				LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, 
+				LbmFloat omega, LbmVec gravity, LbmFloat csmago, 
+				LbmFloat *newOmegaRet, LbmFloat *newQoRet);
 
 
 		// former LBM models

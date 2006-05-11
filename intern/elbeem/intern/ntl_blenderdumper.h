@@ -9,15 +9,13 @@
 #ifndef NTL_BLENDERDUMPER_H
 #include "ntl_world.h"
 
-template<class Scalar> class ntlMatrix4x4;
-
 class ntlBlenderDumper :
 	public ntlWorld
 {
 public:
   /*! Constructor */
+  ntlBlenderDumper();
   ntlBlenderDumper(string filename, bool commandlineMode);
-  ntlBlenderDumper(elbeemSimulationSettings *);
   /*! Destructor */
   virtual ~ntlBlenderDumper( void );
 
@@ -26,8 +24,6 @@ public:
 
 protected:
 
-	//! transform matrix
-	ntlMatrix4x4<gfxReal> *mpTrafo;
 };
 
 #define NTL_BLENDERDUMPER_H

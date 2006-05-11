@@ -19,6 +19,10 @@ class ntlTriangle;
 #define DUMP_FULLGEOMETRY 1
 #define DUMP_PARTIAL      2
 
+#define VOLUMEINIT_VOLUME 1
+#define VOLUMEINIT_SHELL  2
+#define VOLUMEINIT_BOTH   (VOLUMEINIT_SHELL|VOLUMEINIT_VOLUME)
+
 class ntlGeometryObject : public ntlGeometryClass
 {
 
@@ -35,7 +39,7 @@ class ntlGeometryObject : public ntlGeometryClass
 		virtual void initialize(ntlRenderGlobals *glob);
 
 		/*! Get the triangles from this object */
-		virtual void getTriangles( vector<ntlTriangle> *triangles, 
+		virtual void getTriangles(double t, vector<ntlTriangle> *triangles, 
 				vector<ntlVec3Gfx> *vertices, 
 				vector<ntlVec3Gfx> *normals, int objectId ) = 0;
 		
@@ -65,12 +69,8 @@ class ntlGeometryObject : public ntlGeometryClass
 		/*! Returns the cast shadows attribute */
 		inline int getCastShadows() const { return mCastShadows; }
 
-		/*! Returns the geo init id */
-		inline void setGeoInitId(int set) { mGeoInitId=set; }
 		/*! Returns the geo init typ */
 		inline void setGeoInitType(int set) { mGeoInitType=set; }
-		/*! Returns the geo init id */
-		inline int getGeoInitId() const { return mGeoInitId; }
 		/*! Returns the geo init typ */
 		inline int getGeoInitType() const { return mGeoInitType; }
 
@@ -83,8 +83,8 @@ class ntlGeometryObject : public ntlGeometryClass
 		inline void setGeoPartSlipValue(float set) { mGeoPartSlipValue=set; }
 
 		/*! Set/get the part slip value*/
-		inline bool getOnlyThinInit() const { return mOnlyThinInit; }
-		inline void setOnlyThinInit(float set) { mOnlyThinInit=set; }
+		inline int getVolumeInit() const { return mVolumeInit; }
+		inline void setVolumeInit(int set) { mVolumeInit=set; }
 
 		/*! Set/get the cast initial veocity attribute */
 		void setInitialVelocity(ntlVec3Gfx set);
@@ -102,12 +102,23 @@ class ntlGeometryObject : public ntlGeometryClass
 
 		/*! is the object animated? */
 		inline bool getIsAnimated() const { return mIsAnimated; }
+		/*! init object anim flag */
+		bool checkIsAnimated();
+		/*! is the mesh animated? */
+		virtual bool getMeshAnimated();
+		/*! init triangle divisions */
+		virtual void calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntlTriangle> &tris, gfxReal fsTri);
 
 		/*! apply object translation at time t*/
 		void applyTransformation(double t, vector<ntlVec3Gfx> *verts, vector<ntlVec3Gfx> *norms, int vstart, int vend, int forceTrafo);
 
 		/*! Prepare points for moving objects */
-		void initMovingPoints(gfxReal featureSize);
+		void initMovingPoints(double time, gfxReal featureSize);
+		/*! Prepare points for animated objects */
+		void initMovingPointsAnim(
+		 double srctime, vector<ntlVec3Gfx> &srcpoints,
+		 double dsttime, vector<ntlVec3Gfx> &dstpoints,
+		 gfxReal featureSize, ntlVec3Gfx geostart, ntlVec3Gfx geoend );
 		/*! Prepare points for moving objects (copy into ret) */
 		void getMovingPoints(vector<ntlVec3Gfx> &ret, vector<ntlVec3Gfx> *norms = NULL);
 		/*! Calculate max. velocity on object from t1 to t2 */
@@ -126,6 +137,9 @@ class ntlGeometryObject : public ntlGeometryClass
 				vector<ntlTriangle> *triangles,
 				vector<ntlVec3Gfx>  *vertices,
 				vector<ntlVec3Gfx>  *vertNormals);
+		void sceneAddTriangleNoVert(int *trips,
+				ntlVec3Gfx trin, bool smooth,
+				vector<ntlTriangle> *triangles);
 
 	protected:
 
@@ -144,8 +158,6 @@ class ntlGeometryObject : public ntlGeometryClass
 		int mReceiveShadows;
 
 		/* fluid init data */
-		/*! id of fluid init (is used in solver initialization) */
-		int mGeoInitId;
 		/*! fluid object type (fluid, obstacle, accelerator etc.) */
 		int mGeoInitType;
 		/*! initial velocity for fluid objects */
@@ -158,7 +170,7 @@ class ntlGeometryObject : public ntlGeometryClass
 		/*! part slip bc value */
 		float mGeoPartSlipValue;
 		/*! only init as thin object, dont fill? */
-		bool mOnlyThinInit;
+		int mVolumeInit;
 
 		/*! initial offset for rot/scale */
 		ntlVec3Gfx mInitialPos;
@@ -169,11 +181,13 @@ class ntlGeometryObject : public ntlGeometryClass
 		
 		/*! moving point/normal storage */
 		vector<ntlVec3Gfx> mMovPoints;
-		vector<ntlVec3Gfx> mMovNormals;
+		// unused vector<ntlVec3Gfx> mMovNormals;
 		/*! cached points for non moving objects/timeslots */
 		bool mHaveCachedMov;
 		vector<ntlVec3Gfx> mCachedMovPoints;
-		vector<ntlVec3Gfx> mCachedMovNormals;
+		// unused vector<ntlVec3Gfx> mCachedMovNormals;
+		/*! precomputed triangle divisions */
+		vector<int> mTriangleDivs1,mTriangleDivs2,mTriangleDivs3;
 		/*! inited? */
 		float mMovPntsInited;
 		/*! point with max. distance from center */

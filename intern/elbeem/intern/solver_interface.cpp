@@ -11,6 +11,7 @@
  *****************************************************************************/
 
 /* LBM Files */ 
+#include "ntl_matrices.h"
 #include "solver_interface.h" 
 #include "ntl_ray.h"
 #include "ntl_world.h"
@@ -38,12 +39,11 @@ LbmSolverInterface::LbmSolverInterface() :
 	mNumParticlesLost(0), 
 	mNumInvalidDfs(0), mNumFilledCells(0), mNumEmptiedCells(0), mNumUsedCells(0), mMLSUPS(0),
 	mDebugVelScale( 0.01 ), mNodeInfoString("+"),
-	mvGeoStart(-1.0), mvGeoEnd(1.0),
+	mvGeoStart(-1.0), mvGeoEnd(1.0), mpSimTrafo(NULL),
 	mAccurateGeoinit(0),
 	mName("lbm_default") ,
 	mpIso( NULL ), mIsoValue(0.499),
 	mSilent(false) , 
-	mGeoInitId( 1 ),
 	mpGiTree( NULL ),
 	mpGiObjects( NULL ), mGiObjInside(), mpGlob( NULL ),
 	mRefinementDesired(0),
@@ -58,8 +58,14 @@ LbmSolverInterface::LbmSolverInterface() :
 #if ELBEEM_PLUGIN==1
 	if(gDebugLevel<=1) mSilent = true;
 #endif
+	mpSimTrafo = new ntlMat4Gfx(0.0); 
+	mpSimTrafo->initId();
 }
 
+LbmSolverInterface::~LbmSolverInterface() 
+{ 
+	if(mpSimTrafo) delete mpSimTrafo;
+}
 
 
 /******************************************************************************
@@ -173,6 +179,9 @@ void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
 	//debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Required Grid memory: "<< memd <<" "<< sizeStr<<" ",4);
 }
 
+void LbmSolverInterface::initDomainTrafo(float *mat) { 
+	mpSimTrafo->initArrayCheck(mat); 
+}
 
 /*******************************************************************************/
 /*! parse a boundary flag string */
@@ -215,6 +224,8 @@ void LbmSolverInterface::parseStdAttrList() {
 	mBoundaryTop   = readBoundaryFlagInt("boundary_top",   mBoundaryTop,"LbmSolverInterface", "mBoundaryTop", false);
 	mBoundaryBottom= readBoundaryFlagInt("boundary_bottom", mBoundaryBottom,"LbmSolverInterface", "mBoundaryBottom", false);
 
+	mpAttrs->readMat4Gfx("domain_trafo" , (*mpSimTrafo), "ntlBlenderDumper","mpSimTrafo", false, mpSimTrafo ); 
+
 	LbmVec sizeVec(mSizex,mSizey,mSizez);
 	sizeVec = vec2L( mpAttrs->readVec3d("size",  vec2P(sizeVec), "LbmSolverInterface", "sizeVec", false) );
 	mSizex = (int)sizeVec[0]; 
@@ -225,7 +236,6 @@ void LbmSolverInterface::parseStdAttrList() {
 	if(mpParam) mpParam->setSize(mSizex, mSizey, mSizez ); 
 
 	mInitDensityGradient = mpAttrs->readBool("initdensitygradient", mInitDensityGradient,"LbmSolverInterface", "mInitDensityGradient", false);
-	mGeoInitId = mpAttrs->readInt("geoinitid", mGeoInitId,"LbmSolverInterface", "mGeoInitId", false);
 	mIsoValue = mpAttrs->readFloat("isovalue", mIsoValue, "LbmOptSolver","mIsoValue", false );
 
 	mDebugVelScale = mpAttrs->readFloat("debugvelscale", mDebugVelScale,"LbmSolverInterface", "mDebugVelScale", false);
@@ -241,13 +251,13 @@ void LbmSolverInterface::parseStdAttrList() {
 	}
 	
 	// new test vars
-	mTForceStrength = mpAttrs->readFloat("tforcestrength", mTForceStrength,"LbmSolverInterface", "mTForceStrength", false);
+	mTForceStrength = 0.; // set from test solver mpAttrs->readFloat("tforcestrength", mTForceStrength,"LbmSolverInterface", "mTForceStrength", false);
 	mFarFieldSize = mpAttrs->readFloat("farfieldsize", mFarFieldSize,"LbmSolverInterface", "mFarFieldSize", false);
 	// old compat
 	float sizeScale = mpAttrs->readFloat("test_scale", 0.,"LbmTestdata", "mSizeScale", false);
 	if((mFarFieldSize<=0.)&&(sizeScale>0.)) { mFarFieldSize=sizeScale; errMsg("LbmTestdata","Warning - using mSizeScale..."); }
 
-	mCppfStage = mpAttrs->readFloat("cppfstage", mCppfStage,"LbmSolverInterface", "mCppfStage", false);
+	mCppfStage = mpAttrs->readInt("cppfstage", mCppfStage,"LbmSolverInterface", "mCppfStage", false);
 	mPartGenProb = mpAttrs->readFloat("partgenprob", mPartGenProb,"LbmFsgrSolver", "mPartGenProb", false);
 }
 
@@ -258,9 +268,8 @@ void LbmSolverInterface::parseStdAttrList() {
 
 /*****************************************************************************/
 /*! init tree for certain geometry init */
-void LbmSolverInterface::initGeoTree(int id) {
+void LbmSolverInterface::initGeoTree() {
 	if(mpGlob == NULL) { errFatal("LbmSolverInterface::initGeoTree","Requires globals!",SIMWORLD_INITERROR); return; }
-	mGeoInitId = id;
 	ntlScene *scene = mpGlob->getSimScene();
 	mpGiObjects = scene->getObjects();
 	mGiObjInside.resize( mpGiObjects->size() );
@@ -268,11 +277,12 @@ void LbmSolverInterface::initGeoTree(int id) {
 	mGiObjSecondDist.resize( mpGiObjects->size() );
 	for(size_t i=0; i<mpGiObjects->size(); i++) { 
 		if((*mpGiObjects)[i]->getGeoInitIntersect()) mAccurateGeoinit=true;
+		debMsgStd("LbmSolverInterface::initGeoTree",DM_MSG,"id:"<<mLbmInitId<<" obj:"<< (*mpGiObjects)[i]->getName() <<" gid:"<<(*mpGiObjects)[i]->getGeoInitId(), 9 );
 	}
 	debMsgStd("LbmSolverInterface::initGeoTree",DM_MSG,"Accurate geo init: "<<mAccurateGeoinit, 9)
 
 	if(mpGiTree != NULL) delete mpGiTree;
-	char treeFlag = (1<<(mGeoInitId+4));
+	char treeFlag = (1<<(this->mLbmInitId+4));
 	mpGiTree = new ntlTree( 
 			15, 8,  // warning - fixed values for depth & maxtriangles here...
 			scene, treeFlag );
@@ -548,7 +558,7 @@ ntlVec3Gfx LbmSolverInterface::getGeoMaxMovementVelocity(LbmFloat simtime, LbmFl
 	// mpGiObjects has to be inited here...
 	
 	for(int i=0; i< (int)mpGiObjects->size(); i++) {
-		errMsg("MVT","i"<<i<<" "<< (*mpGiObjects)[i]->getName() ); // DEBUG
+		//errMsg("LbmSolverInterface::getGeoMaxMovementVelocity","i="<<i<<" "<< (*mpGiObjects)[i]->getName() ); // DEBUG
 		if( (*mpGiObjects)[i]->getGeoInitType() & (FGI_FLUID|FGI_MBNDINFLOW) ){
 			//ntlVec3Gfx objMaxVel = obj->calculateMaxVel(sourceTime,targetTime);
 			ntlVec3Gfx orgvel = (*mpGiObjects)[i]->calculateMaxVel( simtime, simtime+stepsize );
@@ -559,7 +569,7 @@ ntlVec3Gfx LbmSolverInterface::getGeoMaxMovementVelocity(LbmFloat simtime, LbmFl
 			if( normNoSqrt(inivel) > normNoSqrt(max) ) { max = inivel; } 
 		}
 	}
-	errMsg("MVT","max "<<" "<< max ); // DEBUG
+	errMsg("LbmSolverInterface::getGeoMaxMovementVelocity", "max="<< max ); // DEBUG
 	return max;
 }
 
