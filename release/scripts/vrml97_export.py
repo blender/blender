@@ -413,26 +413,26 @@ class VRML2Export:
 		issmooth=0
 
 		if len(maters) > 0 or mesh.hasFaceUV():
-		  self.writeIndented("appearance Appearance {\n", 1)
-		  # right now this script can only handle a single material per mesh.
-		  if len(maters) >= 1:
-			mat=Blender.Material.Get(maters[0].name)
-			matFlags = mat.getMode()
-			if not matFlags & Blender.Material.Modes['TEXFACE']:
-			  self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
-			  if len(maters) > 1:
-				print "Warning: mesh named %s has multiple materials" % meshName
-				print "Warning: only one material per object handled"
-		
-			#-- textures
-			if mesh.hasFaceUV():
-				for face in mesh.faces:
-					if (hasImageTexture == 0) and (face.image):
-						self.writeImageTexture(face.image.name, face.image.filename)
-						hasImageTexture=1  # keep track of face texture
-			if self.tilenode == 1:
-				self.writeIndented("textureTransform TextureTransform	{ scale %s %s }\n" % (face.image.xrep, face.image.yrep))
-				self.tilenode = 0
+			self.writeIndented("appearance Appearance {\n", 1)
+			# right now this script can only handle a single material per mesh.
+			if len(maters) >= 1:
+				mat=Blender.Material.Get(maters[0].name)
+				matFlags = mat.getMode()
+				if not matFlags & Blender.Material.Modes['TEXFACE']:
+					self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
+					if len(maters) > 1:
+						print "Warning: mesh named %s has multiple materials" % meshName
+						print "Warning: only one material per object handled"
+
+				#-- textures
+				if mesh.hasFaceUV():
+					for face in mesh.faces:
+						if (hasImageTexture == 0) and (face.image):
+							self.writeImageTexture(face.image.name, face.image.filename)
+							hasImageTexture=1  # keep track of face texture
+				if self.tilenode == 1:
+					self.writeIndented("textureTransform TextureTransform	{ scale %s %s }\n" % (face.image.xrep, face.image.yrep))
+					self.tilenode = 0
 			self.writeIndented("}\n", -1)
 
 		#-- IndexedFaceSet or IndexedLineSet
