@@ -591,13 +591,19 @@ class VRML2Export:
 		self.writeIndented("color Color {\n",1)
 		self.writeIndented("color [\n\t\t\t\t\t\t", 1)
 
-		for i in range(len(mesh.verts)):
-			c=self.getVertexColorByIndx(mesh,i)
-			if self.verbose > 2:
-				print "Debug: vertex[%d].col r=%d g=%d b=%d" % (i, c.r, c.g, c.b)
+		cols = [None] * len(mesh.verts)
 
-			aColor = self.rgbToFS(c)
+		for face in mesh.faces:
+			for vind in range(len(face.v)):
+				vertex = face.v[vind]
+				i = vertex.index
+				if cols[i] == None:
+					cols[i] = face.col[vind]
+					
+		for i in range(len(mesh.verts)):
+			aColor = self.rgbToFS(cols[i])
 			self.file.write("%s, " % aColor)
+
 		self.writeIndented("\n", 0)
 		self.writeIndented("]\n",-1)
 		self.writeIndented("}\n",-1)
@@ -869,15 +875,6 @@ class VRML2Export:
 		if face.image:
 			print "Debug: face.image=%s" % face.image.name
 		print "Debug: face.materialIndex=%d" % face.materialIndex 
-
-	def getVertexColorByIndx(self, mesh, indx):
-		for face in mesh.faces:
-			j=0
-			for vertex in face.v:
-				if vertex.index == indx:
-					c=face.col[j]
-				j=j+1
-		return c
 
 	def meshToString(self,mesh):
 		print "Debug: mesh.hasVertexUV=%d" % mesh.hasVertexUV()
