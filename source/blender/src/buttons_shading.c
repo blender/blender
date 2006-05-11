@@ -512,10 +512,15 @@ void do_texbuts(unsigned short event)
 		break;
 	case B_ENV_SAVE:
 		if(tex->env && tex->env->ok) {
-			sa= closest_bigger_area();
-			areawinset(sa->win);
-			save_image_filesel_str(str);
-			activate_fileselect(FILE_SPECIAL, str, G.ima, save_env);
+			if(tex->env->type==ENV_PLANE) {
+				notice("Sorry, not implemented yet");
+			}
+			else {
+				sa= closest_bigger_area();
+				areawinset(sa->win);
+				save_image_filesel_str(str);
+				activate_fileselect(FILE_SPECIAL, str, G.ima, save_env);
+			}
 		}
 		break;	
 	case B_ENV_OB:
