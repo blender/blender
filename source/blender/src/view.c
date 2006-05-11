@@ -1239,6 +1239,22 @@ void centreview()	/* like a localview without local! */
 	min[0]= min[1]= min[2]= 1.0e10;
 	max[0]= max[1]= max[2]= -1.0e10;
 
+	if (G.f & G_WEIGHTPAINT) {
+		/* hardcoded exception, we look for the one selected armature */
+		/* this is weak code this way, we should make a generic active/selection callback interface once... */
+		Base *base;
+		for(base=FIRSTBASE; base; base= base->next) {
+			if(TESTBASELIB(base)) {
+				if(base->object->type==OB_ARMATURE)
+					if(base->object->flag & OB_POSEMODE)
+						break;
+			}
+		}
+		if(base)
+			ob= base->object;
+	}
+	
+	
 	if(G.obedit) {
 		minmax_verts(min, max);	// ony selected
 		ok= 1;
