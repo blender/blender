@@ -2303,14 +2303,14 @@ void convertmenu(void)
 			else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 				DispListMesh *dlm;
 				DerivedMesh *dm;
-
+				int needsfree=0;
+				
 				basedel = base;
 
 				ob->flag |= OB_DONE;
 
 				ob1= copy_object(ob);
 				ob1->recalc |= OB_RECALC;
-				object_free_modifiers(ob1);
 
 				basen= MEM_mallocN(sizeof(Base), "duplibase");
 				*basen= *base;
@@ -2329,10 +2329,13 @@ void convertmenu(void)
 				G.totmesh++;
 
 				/* make new mesh data from the original copy */
-				dm= mesh_create_derived_no_deform(ob, NULL);
+				dm= mesh_get_derived_final(ob1, &needsfree);
+				//dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton)
+				
 				dlm= dm->convertToDispListMesh(dm, 0);
 				displistmesh_to_mesh(dlm, ob1->data);
-				dm->release(dm);
+				if(needsfree) dm->release(dm);
+				object_free_modifiers(ob1);	/* after derivedmesh calls! */
 				
 				/* If the original object is active then make this object active */
 				if (ob == obact) {
