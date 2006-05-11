@@ -900,8 +900,8 @@ LbmFsgrSolver::mainLoop(int lev)
 					((rl>RWVEL_WINDTHRESH) && (lcsmqo<P_LCSMQO)) )// normal checks
 					||(k>this->mSizez-SLOWDOWNREGION)   ) {
 				LbmFloat nuz = uz;
-				LbmFloat jdf; // = 0.05 * (rand()/(RAND_MAX+1.0));
-				if(rl>RWVEL_WINDTHRESH) jdf *= (rl-RWVEL_WINDTHRESH);
+				//? LbmFloat jdf; // = 0.05 * (rand()/(RAND_MAX+1.0));
+				//? if(rl>RWVEL_WINDTHRESH) jdf *= (rl-RWVEL_WINDTHRESH);
 				if(k>this->mSizez-SLOWDOWNREGION) {
 					// special case
 					LbmFloat zfac = (LbmFloat)( k-(this->mSizez-SLOWDOWNREGION) );
@@ -910,11 +910,11 @@ LbmFsgrSolver::mainLoop(int lev)
 					//errMsg("TOPT"," at "<<PRINT_IJK<<" zfac"<<zfac);
 				} else {
 					// normal probability
-					LbmFloat fac = P_LCSMQO-lcsmqo;
-					jdf *= fac;
+					//? LbmFloat fac = P_LCSMQO-lcsmqo;
+					//? jdf *= fac;
 				}
 				FORDF1 {
-					jdf = 0.05 * (rand()/(RAND_MAX+1.0));
+					const LbmFloat jdf = 0.05 * (rand()/(RAND_MAX+1.0));
 					// TODO  use wind velocity?
 					if(jdf>0.025) {
 					const LbmFloat add =  this->dfLength[l]*(-ux*this->dfDvecX[l]-uy*this->dfDvecY[l]-nuz*this->dfDvecZ[l])*jdf;

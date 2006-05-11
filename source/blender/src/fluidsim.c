@@ -71,8 +71,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_ipo.h"
 #include "LBM_fluidsim.h"
-// FIXME move?
-// TODO FIXME DOUBLE elbeem.h! in intern/extern...
+// TODO FIXME double elbeem.h in intern/extern...
 #include "elbeem.h"
 
 #include "BLI_editVert.h"
@@ -925,9 +924,7 @@ void fluidsimBake(struct Object *ob)
 				int *tris=NULL;
 				int numVerts=0, numTris=0;
 				int o = channelObjCount;
-				//Key *shapekey= ob_get_key(obit);
-				int	deform; // = (shapekey && BLI_countlist(&shapekey->block) >0)||(obit->parent && obit->partype==PARSKEL);
-				deform = (obit->fluidsimSettings->domainNovecgen);
+				int	deform = (obit->fluidsimSettings->domainNovecgen);
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
 				fsmesh.type = obit->fluidsimSettings->type;;
@@ -1250,10 +1247,7 @@ void fluidsimBake(struct Object *ob)
 						(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&
 						(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE)
 					) {
-					//Key *shapekey= ob_get_key(obit); 
-					// armature check from effect.c
-					int deform; //= (shapekey && BLI_countlist(&shapekey->block) >0)||(obit->parent && obit->partype==PARSKEL);
-					deform = (obit->fluidsimSettings->domainNovecgen);
+					int deform = (obit->fluidsimSettings->domainNovecgen);
 
 					fluidsimGetGeometryObjFilename(obit, fnameObjdat);
 					strcpy(targetFile, targetDir);

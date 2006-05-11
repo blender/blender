@@ -234,8 +234,8 @@ int ntlGeometryObjModel::loadBobjModel(string filename)
 	vector<ntlSetVec3f> aninorms;
 	vector<double> anitimes;
 
-	const bool debugPrint=true;
-	const bool debugPrintFull=true;
+	const bool debugPrint=false;
+	const bool debugPrintFull=false;
 	gzFile gzf;
 	gzf = gzopen(filename.c_str(), "rb");
 	if (!gzf) {
