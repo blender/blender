@@ -871,6 +871,22 @@ void do_view3d_select_meshmenu(void *arg, int event)
 			select_linked_flat_faces();
 			break;
 
+		case 16: /* path select */
+			pathselect();
+			BIF_undo_push("Path Select");
+			break;
+		case 17: /* edge loop select */
+			loop_multiselect(0);
+			break;
+		case 18: /* edge ring select */
+			loop_multiselect(1);
+			break;
+		case 19: /* loop to region */
+			loop_to_region();
+			break;
+		case 20: /* region to loop */
+			region_to_loop();
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -930,7 +946,13 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Vertices|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-		
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Path Select|W Alt 7",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Loop Select|Ctrl E 6",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Ring Select|Ctrl E 7", 			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Loop to Region|Ctrl E 8",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Region to Loop|Ctrl E 9",			0, yco-=20, menuwidth, 20, NULL, 0.0, 0.0, 1, 20, "");	
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -2253,6 +2275,10 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	case 13: /* Edge Loop Delete */
 		EdgeLoopDelete();
 		break;
+	case 14: /*Collapse Edges*/
+		collapseEdges(0);
+		BIF_undo_push("Collapse Edges");
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2295,7 +2321,7 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Slide Edge |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Edge Loop|X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");	
 
-	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse Edges",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	return block;
@@ -2332,6 +2358,10 @@ void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 		mesh_set_smooth_faces(0);
 		break;
 		
+	case 8: /*Collapse Faces*/
+		collapseFaces(0);
+		BIF_undo_push("Collapse Faces");
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2347,6 +2377,7 @@ static uiBlock *view3d_edit_mesh_facesmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Edge/Face|F",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Fill|Shift F",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Beautify Fill|Alt F",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse Faces|Alt M", 		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

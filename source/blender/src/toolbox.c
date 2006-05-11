@@ -863,6 +863,11 @@ static TBitem tb_mesh_select[]= {
 {	0, "Less|Ctrl NumPad -",            8, NULL},
 {	0, "SEPR",                          0, NULL},
 {	0, "Linked Vertices|Ctrl L",        4, NULL},
+{	0, "Path Select|W Alt 7",		16, NULL},
+{	0, "Edge Loop Select|Ctrl E 6",		17, NULL},
+{	0, "Edge Ring Select|Ctrl E 7",		18, NULL},
+{	0, "Loop to Region|Ctrl E 8",		19, NULL},
+{	0, "Region to Loop|Ctrl E 9",		20, NULL},
 {  -1, "", 			0, do_view3d_select_meshmenu}};
 
 
@@ -934,6 +939,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 
 static TBitem tb_mesh_edit_edge[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
+{	0, "Collapse Edges|Alt M", 14,			NULL},
 {	0, "SEPR",						0, NULL},
 {	0, "Bevel|W, Alt 2", 					6, 		NULL},
 {	0, "Loop Subdivide|Ctrl R", 		4, 		NULL},
@@ -959,6 +965,7 @@ static TBitem tb_mesh_edit_face[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
 {	0, "Fill|Shift F", 				0, 		NULL},
 {	0, "Beautify Fill|Alt F", 			1, 		NULL},
+{	0, "Collapse Faces|Alt M",		8,		NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Convert to Triangles|Ctrl T", 	2, 		NULL},
 {	0, "Convert to Quads|Alt J", 		3, 		NULL},

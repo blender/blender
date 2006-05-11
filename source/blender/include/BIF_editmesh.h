@@ -155,6 +155,7 @@ extern void editmesh_deselect_by_material(int index);
 extern void Edge_Menu(void);
 extern void select_mesh_group_menu(void);
 extern void editmesh_mark_seam(int clear);
+extern void loop_multiselect(int looptype);
 
 
 /* ******************* editmesh_loop.c */

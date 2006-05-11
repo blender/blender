@@ -1438,7 +1438,7 @@ static void edgering_select(EditEdge *startedge, int select){
 	}
 }
 
-static void loop_multiselect(int looptype)
+void loop_multiselect(int looptype)
 {
 	EditEdge *eed;
 	EditEdge **edarray;
