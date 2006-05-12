@@ -129,6 +129,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\constant.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Constraint.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\CurNurb.c
 # End Source File
 # Begin Source File
@@ -366,6 +370,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\charRGBA.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\constant.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Constraint.h
 # End Source File
 # Begin Source File
 

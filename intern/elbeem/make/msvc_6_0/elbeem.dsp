@@ -147,6 +147,10 @@ SOURCE=..\..\intern\simulation_object.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\intern\solver_adap.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\intern\solver_init.cpp
 # End Source File
 # Begin Source File
