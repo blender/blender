@@ -829,7 +829,8 @@ static PyObject *locatelike_getter( BPy_Constraint * self, int type )
 		return PyInt_FromLong( (long)con->flag );
 	case EXPP_CONSTR_LOCAL:
 		if( get_armature( con->tar ) )
-			return PyBool_FromLong( (long)( self->con->flag & CONSTRAINT_LOCAL ) ) ;
+			return PyBool_FromLong( (long)
+					( self->con->flag & CONSTRAINT_LOCAL ) ) ;
 		Py_RETURN_NONE;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
@@ -886,7 +887,8 @@ static PyObject *rotatelike_getter( BPy_Constraint * self, int type )
 		return PyInt_FromLong( (long)con->flag );
 	case EXPP_CONSTR_LOCAL:
 		if( get_armature( con->tar ) )
-			return PyBool_FromLong( (long)( self->con->flag & SELECT ) ) ;
+			return PyBool_FromLong( (long)
+					( self->con->flag & CONSTRAINT_LOCAL ) ) ;
 		Py_RETURN_NONE;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
@@ -923,7 +925,8 @@ static int rotatelike_setter( BPy_Constraint *self, int type, PyObject *value )
 		if( !get_armature( con->tar ) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 					"only armature targets have LOCAL key" );
-		return EXPP_setBitfield( value, &self->con->flag, SELECT, 'h' );
+		return EXPP_setBitfield( value, &self->con->flag,
+				CONSTRAINT_LOCAL, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
@@ -940,10 +943,13 @@ static PyObject *sizelike_getter( BPy_Constraint * self, int type )
 		return PyString_FromString( con->subtarget );
 	case EXPP_CONSTR_COPY:
 		return PyInt_FromLong( (long)con->flag );
+#if 0
 	case EXPP_CONSTR_LOCAL:
 		if( get_armature( con->tar ) )
-			return PyBool_FromLong( (long)( self->con->flag & SELECT ) ) ;
+			return PyBool_FromLong( (long)
+					( self->con->flag & CONSTRAINT_LOCAL ) ) ;
 		Py_RETURN_NONE;
+#endif
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -975,11 +981,14 @@ static int sizelike_setter( BPy_Constraint *self, int type, PyObject *value )
 	case EXPP_CONSTR_COPY:
 		return EXPP_setIValueRange( value, &con->flag,
 				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z, 'i' );
+#if 0
 	case EXPP_CONSTR_LOCAL:
 		if( !get_armature( con->tar ) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 					"only armature targets have LOCAL key" );
-		return EXPP_setBitfield( value, &self->con->flag, SELECT, 'h' );
+		return EXPP_setBitfield( value, &self->con->flag,
+				CONSTRAINT_LOCAL, 'h' );
+#endif
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}

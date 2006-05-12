@@ -79,10 +79,11 @@ Or to print all the constraints attached to each bone in a pose::
     - MINMAX (int): values are MINX, MINY, MINZ, MAXX, MAXY, MAXZ
     - OFFSET (float): clamped to [-100.0,100.0]
     - STICKY (bool)
-  - Used by Copy Location (COPYLOC), Copy Rotation (COPYROT), and Copy Size
-  (COPYSIZE) constraint:
+  - Used by Copy Location (COPYLOC) and Copy Rotation (COPYROT)
     - COPY (bitfield): any combination of COPYX, COPYY and COPYZ
     - LOCAL (bool): Only for constraints which Armature targets.
+  - Used by Copy Size (COPYSIZE) constraint:
+    - COPY (bitfield): any combination of COPYX, COPYY and COPYZ
 
 """
 
