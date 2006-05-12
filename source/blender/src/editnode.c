@@ -1652,6 +1652,30 @@ static void node_border_link_delete(SpaceNode *snode)
 	setcursor_space(SPACE_NODE, CURSOR_STD);
 }
 
+/* goes over all scenes, reads render results */
+static void node_read_renderresults(SpaceNode *snode)
+{
+	Scene *scene;
+	bNode *node;
+
+	/* first tag scenes unread */
+	for(scene= G.main->scene.first; scene; scene= scene->id.next) 
+		scene->id.flag |= LIB_DOIT;
+
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_R_RESULT) {
+			ID *id= node->id;
+			if(id==NULL) id= (ID *)G.scene;
+			if(id->flag & LIB_DOIT) {
+				RE_ReadRenderResult(G.scene, (Scene *)id);
+				id->flag &= ~LIB_DOIT;
+			}
+		}
+	}
+	
+	ntreeCompositTagRender(snode->edittree);
+	snode_handle_recalc(snode);
+}
 
 /* ********************** */
 
@@ -1868,14 +1892,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			node_hide(snode);
 			break;
 		case RKEY:
-		{
-			bNode *node= editnode_get_active(snode->edittree);
-			if(node && node->type==CMP_NODE_R_RESULT) {
-				RE_ReadRenderResult(G.scene, (Scene *)node->id);
-				ntreeCompositTagRender(snode->edittree);
-				snode_handle_recalc(snode);
-			}
-		}
+			if(okee("Read saved Render Results"))
+				node_read_renderresults(snode);
 			break;
 		case DELKEY:
 		case XKEY:

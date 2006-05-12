@@ -184,6 +184,7 @@ static void save_paint(char *name)
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 		
 		if (saveover(str)) {
+			waitcursor(1);
 			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
 				BLI_strncpy(ima->name, name, sizeof(ima->name));
 				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -192,6 +193,7 @@ static void save_paint(char *name)
 			} else {
 				error("Couldn't write image: %s", str);
 			}
+			waitcursor(0);
 		}
 	}
 }
