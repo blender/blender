@@ -60,7 +60,7 @@ for each texture);<br>
 ####################################
 
 import Blender
-from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text, sys, Mathutils
+from Blender import Object, Mesh, Lamp, Draw, BGL, Image, Text, sys, Mathutils
 from Blender.Scene import Render
 try:
 	from os.path import exists, join
@@ -369,23 +369,23 @@ class VRML2Export:
 		if len(mesh.faces) == 0:
 					return
 		for face in mesh.faces:
-			if face.mode & Blender.NMesh.FaceModes['HALO'] and self.halonode == 0:
+			if (face.mode & Mesh.FaceModes['HALO']) and self.halonode == 0:
 				self.writeIndented("Billboard {\n",1)
 				self.writeIndented("axisOfRotation 0 0 0\n")
 				self.writeIndented("children [\n")
 				self.halonode = 1
-			elif face.mode & Blender.NMesh.FaceModes['BILLBOARD'] and self.billnode == 0:
+			elif (face.mode & Mesh.FaceModes['BILLBOARD']) and self.billnode == 0:
 				self.writeIndented("Billboard {\n",1)
 				self.writeIndented("axisOfRotation 0 1 0\n")
 				self.writeIndented("children [\n")
 				self.billnode = 1
-			elif face.mode & Blender.NMesh.FaceModes['OBCOL'] and self.matonly == 0:
+			elif (face.mode & Mesh.FaceModes['OBCOL']) and self.matonly == 0:
 				self.matonly = 1
-			elif face.mode & Blender.NMesh.FaceModes['SHAREDCOL'] and self.share == 0:
+			elif (face.mode & Mesh.FaceModes['SHAREDCOL']) and self.share == 0:
 				self.share = 1
-			elif face.mode & Blender.NMesh.FaceModes['TILES'] and self.tilenode == 0:
+			elif (face.mode & Mesh.FaceModes['TILES']) and self.tilenode == 0:
 				self.tilenode = 1
-			elif not face.mode & Blender.NMesh.FaceModes['DYNAMIC'] and self.collnode == 0:
+			elif not (face.mode & Mesh.FaceModes['DYNAMIC']) and self.collnode == 0:
 				self.writeIndented("Collision {\n",1)
 				self.writeIndented("collide FALSE\n")
 				self.writeIndented("children [\n")
@@ -825,7 +825,7 @@ class VRML2Export:
 		
 		for face in mesh.faces:
 			sidename='';
-			if (face.mode & NMesh.FaceModes.TWOSIDE) == NMesh.FaceModes.TWOSIDE:
+			if (face.mode & Mesh.FaceModes['TWOSIDE']):
 				sidename='two'
 			else:
 				sidename='one'
@@ -861,15 +861,15 @@ class VRML2Export:
 	def faceToString(self,face):
 
 		print "Debug: face.flag=0x%x (bitflags)" % face.flag
-		if face.flag & NMesh.FaceFlags.SELECT == NMesh.FaceFlags.SELECT:
+		if (face.flag & Mesh.FaceFlags['SELECT']):
 			print "Debug: face.flag.SELECT=true"
 
 		print "Debug: face.mode=0x%x (bitflags)" % face.mode
-		if (face.mode & NMesh.FaceModes.TWOSIDE) == NMesh.FaceModes.TWOSIDE:
+		if (face.mode & Mesh.FaceModes['TWOSIDE']):
 			print "Debug: face.mode twosided"
 
 		print "Debug: face.transp=0x%x (enum)" % face.transp
-		if face.transp == NMesh.FaceTranspModes.SOLID:
+		if (face.transp & Mesh.FaceTranspModes['SOLID']):
 			print "Debug: face.transp.SOLID"
 
 		if face.image:
