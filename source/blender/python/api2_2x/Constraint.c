@@ -41,6 +41,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BLI_blenlib.h"
 #include "BIF_editconstraint.h"
 #include "BSE_editipo.h"
@@ -826,6 +827,10 @@ static PyObject *locatelike_getter( BPy_Constraint * self, int type )
 		return PyString_FromString( con->subtarget );
 	case EXPP_CONSTR_COPY:
 		return PyInt_FromLong( (long)con->flag );
+	case EXPP_CONSTR_LOCAL:
+		if( get_armature( con->tar ) )
+			return PyBool_FromLong( (long)( self->con->flag & CONSTRAINT_LOCAL ) ) ;
+		Py_RETURN_NONE;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -857,6 +862,12 @@ static int locatelike_setter( BPy_Constraint *self, int type, PyObject *value )
 	case EXPP_CONSTR_COPY:
 		return EXPP_setIValueRange( value, &con->flag,
 				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z, 'i' );
+	case EXPP_CONSTR_LOCAL:
+		if( !get_armature( con->tar ) )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"only armature targets have LOCAL key" );
+		return EXPP_setBitfield( value, &self->con->flag,
+				CONSTRAINT_LOCAL, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
@@ -873,6 +884,10 @@ static PyObject *rotatelike_getter( BPy_Constraint * self, int type )
 		return PyString_FromString( con->subtarget );
 	case EXPP_CONSTR_COPY:
 		return PyInt_FromLong( (long)con->flag );
+	case EXPP_CONSTR_LOCAL:
+		if( get_armature( con->tar ) )
+			return PyBool_FromLong( (long)( self->con->flag & SELECT ) ) ;
+		Py_RETURN_NONE;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -904,6 +919,11 @@ static int rotatelike_setter( BPy_Constraint *self, int type, PyObject *value )
 	case EXPP_CONSTR_COPY:
 		return EXPP_setIValueRange( value, &con->flag,
 				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z, 'i' );
+	case EXPP_CONSTR_LOCAL:
+		if( !get_armature( con->tar ) )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"only armature targets have LOCAL key" );
+		return EXPP_setBitfield( value, &self->con->flag, SELECT, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
@@ -920,6 +940,10 @@ static PyObject *sizelike_getter( BPy_Constraint * self, int type )
 		return PyString_FromString( con->subtarget );
 	case EXPP_CONSTR_COPY:
 		return PyInt_FromLong( (long)con->flag );
+	case EXPP_CONSTR_LOCAL:
+		if( get_armature( con->tar ) )
+			return PyBool_FromLong( (long)( self->con->flag & SELECT ) ) ;
+		Py_RETURN_NONE;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -951,6 +975,11 @@ static int sizelike_setter( BPy_Constraint *self, int type, PyObject *value )
 	case EXPP_CONSTR_COPY:
 		return EXPP_setIValueRange( value, &con->flag,
 				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z, 'i' );
+	case EXPP_CONSTR_LOCAL:
+		if( !get_armature( con->tar ) )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"only armature targets have LOCAL key" );
+		return EXPP_setBitfield( value, &self->con->flag, SELECT, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
@@ -1052,6 +1081,8 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 	case CONSTRAINT_TYPE_SIZELIKE:
 		result = sizelike_setter( self, key_int, arg );
 		break;
+	case CONSTRAINT_TYPE_NULL:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
 	case CONSTRAINT_TYPE_ROTLIMIT:
 	case CONSTRAINT_TYPE_LOCLIMIT:
@@ -1236,7 +1267,7 @@ static PyObject *ConstraintSeq_append( BPy_ConstraintSeq *self, PyObject *args )
 		EXPP_ReturnPyObjError( PyExc_TypeError, "expected int argument" );
 
 	/* type 0 is CONSTRAINT_TYPE_NULL, should we be able to add one of these? */
-	if( type <= CONSTRAINT_TYPE_NULL || type >= CONSTRAINT_TYPE_MINMAX ) 
+	if( type < CONSTRAINT_TYPE_NULL || type > CONSTRAINT_TYPE_MINMAX ) 
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"int argument out of range" );
 

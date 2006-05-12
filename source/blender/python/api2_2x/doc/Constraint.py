@@ -31,7 +31,7 @@ Or to print all the constraints attached to each bone in a pose::
 @var Type: Constant Constraint dict used by L{ConstraintSeq.append()} and 
   for comparison with L{Constraint.type}.  Values are
   TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
-  LOCKTRACK, STRETCHTO, FLOOR
+  LOCKTRACK, STRETCHTO, FLOOR, NULL
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
@@ -82,6 +82,7 @@ Or to print all the constraints attached to each bone in a pose::
   - Used by Copy Location (COPYLOC), Copy Rotation (COPYROT), and Copy Size
   (COPYSIZE) constraint:
     - COPY (bitfield): any combination of COPYX, COPYY and COPYZ
+    - LOCAL (bool): Only for constraints which Armature targets.
 
 """
 
