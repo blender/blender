@@ -1477,7 +1477,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	if(scene->r.scemode & R_EXR_TILE_FILE) {
 		int partx= winx/scene->r.xparts, party= winy/scene->r.yparts;
 		/* stupid exr tiles dont like different sizes */
-		if(winx != partx*scene->r.xparts || winy != party*scene->r.xparts) {
+		if(winx != partx*scene->r.xparts || winy != party*scene->r.yparts) {
 			re->error("Sorry... exr tile saving only allowed with equally sized parts");
 			return 0;
 		}
