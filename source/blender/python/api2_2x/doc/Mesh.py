@@ -61,13 +61,13 @@ done once.
     - SUBSURF - turn Catmull-Clark subdivision of surfaces "on".
     - OPTIMAL - optimal drawing of edges when "SubSurf" is "on".
 @var FaceFlags: The available *texture face* (uv face select mode) selection
-  flags.  Note: these refer to TexFace faces, available if nmesh.hasFaceUV()
+  flags.  Note: these refer to TexFace faces, available if mesh.faceUV()
   returns true.
     - SELECT - selected.
     - HIDE - hidden.
     - ACTIVE - the active face.
 @var FaceModes: The available *texture face* modes. Note: these are only
-  meaningful if nmesh.hasFaceUV() returns true, since in Blender this info is
+  meaningful if mesh.faceUV() returns true, since in Blender this info is
   stored at the TexFace (TexFace button in Edit Mesh buttons) structure.
     - ALL - set all modes at once.
     - BILLBOARD - always orient after camera.
@@ -145,6 +145,18 @@ def Mode(mode=0):
   @return: the current selection mode.
   @note: The selection mode is an attribute of the current scene.  If the
   scene is changed, the selection mode may not be the same.
+  """
+
+def Unlink(name):
+  """
+  Delete an unused mesh from Blender's database.  The mesh must not have
+  any users (i.e., it must not be linked to any object).  
+  @type name: string
+  @param name: The name of the mesh data object.  
+  @rtype: None
+  @note: This function may be a temporary solution; it may be replaced
+  in the future by a more general unlink function for many datablock types.
+  Hopefully this will be decided prior to the 2.42 release of Blender.
   """
 
 class MCol:
@@ -821,7 +833,7 @@ class Mesh:
 
   def removeVertsFromGroup(group, vertList = None):
     """
-    Remove a list of vertices from the given group.  If this nmesh was newly
+    Remove a list of vertices from the given group.  If this mesh was newly
     created, it must first be linked to an object (check L{addVertGroup}).
     @type group: string
     @param group: the name of a vertex group
