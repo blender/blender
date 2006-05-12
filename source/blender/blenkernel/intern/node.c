@@ -1795,6 +1795,7 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 #define NODE_PROCESSING	1
 #define NODE_READY		2
 #define NODE_FINISHED	4
+#define NODE_FREEBUFS	8
 
 /* not changing info, for thread callback */
 typedef struct ThreadData {
@@ -1890,6 +1891,45 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 	return totnode;
 }
 
+/* while executing tree, free buffers from nodes that are not needed anymore */
+static void freeExecutableNode(bNodeTree *ntree)
+{
+	/* node outputs can be freed when:
+	- not a render result or image node
+	- when node outputs go to nodes all being set NODE_FINISHED
+	*/
+	bNode *node;
+	bNodeSocket *sock;
+	
+	/* set exec flag for finished nodes that might need freed */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type!=CMP_NODE_R_RESULT)
+			if(node->exec & NODE_FINISHED)
+				node->exec |= NODE_FREEBUFS;
+	}
+	/* clear this flag for input links that are not done yet */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if((node->exec & NODE_FINISHED)==0) {
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(sock->link)
+					sock->link->fromnode->exec &= ~NODE_FREEBUFS;
+		}
+	}
+	/* now we can free buffers */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->exec & NODE_FREEBUFS) {
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				bNodeStack *ns= ntree->stack + sock->stack_index;
+				if(ns->data) {
+					free_compbuf(ns->data);
+					ns->data= NULL;
+					// printf("freed buf node %s \n", node->name);
+				}
+			}
+		}
+	}
+}
+
 static bNode *getExecutableNode(bNodeTree *ntree)
 {
 	bNode *node;
@@ -1950,7 +1990,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		if(BLI_available_threads(&threads)) {
 			node= getExecutableNode(ntree);
 			if(node) {
-				
+
 				if(ntree->timecursor)
 					ntree->timecursor(totnode);
 				if(ntree->stats_draw) {
@@ -1983,6 +2023,10 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 				if((node->exec & NODE_FINISHED)==0) {
 					BLI_remove_thread(&threads, node);
 					node->exec |= NODE_FINISHED;
+					
+					/* freeing unused buffers */
+					if(rd->scemode & R_COMP_FREE)
+						freeExecutableNode(ntree);
 				}
 			}
 			else rendering= 1;
