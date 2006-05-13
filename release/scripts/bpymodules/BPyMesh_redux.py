@@ -41,6 +41,7 @@ class collapseEdge(object):
 
 def redux(ob, factor=0.5):
 	me= ob.getData(mesh=1)
+	
 	# BUG MUST REMOVE GROUPS 
 	if factor>1.0 or factor<0.0 or len(me.faces)<4:
 		return
@@ -56,9 +57,11 @@ def redux(ob, factor=0.5):
 	
 	for v in me.verts:
 		v.hide=0
-	
 	while target_face_count <= len(me.faces):
 		BPyMesh.meshCalcNormals(me)
+		
+		for v in me.verts:
+			v.sel= False
 		
 		# Backup colors
 		if me.faceUV:
@@ -283,7 +286,7 @@ def redux(ob, factor=0.5):
 			if not new_location_count or\
 			new_location.x!=new_location.x or\
 			(new_location-between).length > (ced.length/2):
-				new_location= between
+					new_location= between
 			else:
 				new_location= new_location * (1.0/new_location_count)
 				new_location = (new_location + between) * 0.5
@@ -296,7 +299,7 @@ def redux(ob, factor=0.5):
 			# Since the list is ordered we can stop once the first non collapsed edge if sound.
 			if not ced.collapse_loc:
 				break
-			
+			ced.v1.sel= ced.v2.sel= True
 			ced.v1.co= ced.v2.co=  ced.collapse_loc
 		
 		doubles= me.remDoubles(0.0001) 
