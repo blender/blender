@@ -4,9 +4,11 @@ Ang= Blender.Mathutils.AngleBetweenVecs
 LineIntersect= Blender.Mathutils.LineIntersect
 import BPyMesh
 
-
-#import psyco
-#psyco.full()
+try:
+	import psyco
+	psyco.full()
+except:
+	pass
 
 def uv_key(uv):
 	return round(uv.x, 5), round(uv.y, 5)
@@ -42,7 +44,6 @@ def redux(ob, factor=0.5):
 		# Select all verts, de-select as you collapse.
 		for v in me.verts:
 			v.sel=0
-			
 		
 		# Store new locations for collapsed edges here
 		edge_new_locations= [None] * len(me.edges)
@@ -249,21 +250,23 @@ def redux(ob, factor=0.5):
 						ed_between= (ed_user.v1.co+ed_user.v2.co) * 0.5
 						v1_scale= ed_between + ((ed_user.v1.co-ed_between) * 100)
 						v2_scale= ed_between + ((ed_user.v2.co-ed_between) * 100)
-						line1x, line2x= LineIntersect(between-nor, between+nor, v1_scale, v2_scale)
+						line_xs= LineIntersect(between-nor, between+nor, v1_scale, v2_scale)
+						if line_xs: # did we intersect? - None if we didnt
+							new_location_count += 1
+							new_location+= line_xs[0]
 						
-						new_location_count += 1
-						new_location+= line1x
-						
-			if not new_location_count:
+			# Failed to generate a new location or x!=X (NAN)
+			# or, out new location is crazy and further away from the edge center then the edge length.
+			if not new_location_count or\
+			new_location.x!=new_location.x or\
+			(new_location-between).length > (length/2):
 				new_location= between
 			else:
 				new_location= new_location * (1.0/new_location_count)
 				new_location = (new_location + between) * 0.5
-				if new_location.x!=new_location.x:
-					# NAN
-					new_location= between
+				
 			# NEW NEW LOCATUON
-			
+			# print 'loop', len(me.faces)
 			# Store the collapse location to apply later
 			edge_new_locations[i] = new_location
 			
