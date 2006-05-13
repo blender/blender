@@ -169,26 +169,27 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 		 * for this frame
 		 */
 		bezt = get_bezt_icu_time(icu, &cfra, &rvkval);
-	}
 	
-	/* create the bezier triple if one doesn't exist,
-	 * otherwise modify it's value
-	 */
-	if (!bezt) {
-		insert_vert_ipo(icu, cfra, meshslidervals[keynum]);
-	}
-	else {
-		bezt->vec[1][1] = meshslidervals[keynum];
-	}
+		/* create the bezier triple if one doesn't exist,
+		 * otherwise modify it's value
+		 */
+		if (!bezt) {
+			insert_vert_ipo(icu, cfra, meshslidervals[keynum]);
+		}
+		else {
+			bezt->vec[1][1] = meshslidervals[keynum];
+		}
 
-	/* make sure the Ipo's are properly process and
-	 * redraw as necessary
-	 */
-	sort_time_ipocurve(icu);
-	testhandles_ipocurve(icu);
-	
-	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		/* make sure the Ipo's are properly process and
+		 * redraw as necessary
+		 */
+		sort_time_ipocurve(icu);
+		testhandles_ipocurve(icu);
+		
+		ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+	else error("Cannot edit this Shape Key");
 	
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
