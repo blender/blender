@@ -483,8 +483,8 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	}
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,145,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 10,80,145,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,145,19, &strip->blendin, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-in");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 10,80,145,19, &strip->blendout, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-out");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	160,100,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
