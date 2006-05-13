@@ -383,9 +383,12 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 						efa->v2= efa->v3;
 						efa->tf.uv[1][0] = efa->tf.uv[2][0];
 						efa->tf.uv[1][1] = efa->tf.uv[2][1];
+						efa->tf.col[1] = efa->tf.col[2];
+						
 						efa->v3= efa->v4;
 						efa->tf.uv[2][0] = efa->tf.uv[3][0];
 						efa->tf.uv[2][1] = efa->tf.uv[3][1];
+						efa->tf.col[2] = efa->tf.col[3];
 						efa->v4= 0;
 						test= 0;
 					}
