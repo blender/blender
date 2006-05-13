@@ -273,7 +273,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		if( id_code==ID_SCE || id_code==ID_SCR ) uiClearButLock();
 		
 		if(curarea->spacetype==SPACE_BUTS)
-			uiSetButLock(id_code!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, NULL);
+			uiSetButLock(id_code!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, "Cannot perform in EditMode");
 		
 		if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
 
