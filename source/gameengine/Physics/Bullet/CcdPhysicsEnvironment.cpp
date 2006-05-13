@@ -528,6 +528,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 	if (!SimdFuzzyZero(timeStep))
 	{
+		
 
 		// define this in blender, the stepsize is 30 hertz, 60 hertz works much better 
 //#define SPLIT_TIMESTEP 1

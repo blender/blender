@@ -181,7 +181,7 @@ KX_Scene::~KX_Scene()
 
 	if(m_objectlist)
 		m_objectlist->Release();
-	
+
 	if (m_parentlist)
 		m_parentlist->Release();
 	
@@ -210,6 +210,7 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
+
 	//Py_DECREF(m_attrlist);
 }
 

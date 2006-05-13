@@ -278,7 +278,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	Py_DECREF(excdict);*/
 
 
-#if 1
+#if 0
 	PyObject *excdict= PyDict_Copy(m_pythondictionary);
 	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
 		excdict, 
@@ -286,13 +286,13 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		);
 	PyDict_Clear(excdict);
 	Py_DECREF(excdict);
-#endif
+#else
 
-#if 0
 	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
 		m_pythondictionary, 
 		m_pythondictionary
 		);
+
 #endif
 
 	if (resultobj)

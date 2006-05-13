@@ -784,6 +784,15 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 	return d;
 }
 
+void dictionaryClearByHand(PyObject *dict)
+{
+	// Clears the dictionary by hand:
+	// This prevents, extra references to global variables
+	// inside the GameLogic dictionary when the python interpreter is finalized.
+	// which allows the scene to safely delete them :)
+	// see: (space.c)->start_game
+  	if(dict) PyDict_Clear(dict);
+}
 
 
 // Python Sandbox code

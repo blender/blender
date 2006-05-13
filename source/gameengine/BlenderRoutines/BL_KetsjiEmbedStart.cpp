@@ -311,7 +311,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			initGameLogic(startscene);
+			PyObject *gameLogic = initGameLogic(startscene);
 			initGameKeys();
 			initPythonConstraintBinding();
 
@@ -370,11 +370,11 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				exitstring = ketsjiengine->GetExitString();
 				
 				// when exiting the mainloop
+				dictionaryClearByHand(gameLogic);
 				exitGamePythonScripting();
 				ketsjiengine->StopEngine();
 				networkdevice->Disconnect();
 			}
-
 			if (sceneconverter)
 			{
 				delete sceneconverter;

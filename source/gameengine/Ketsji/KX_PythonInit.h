@@ -50,6 +50,8 @@ PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level);
 void		exitGamePythonScripting();
+void		dictionaryClearByHand(PyObject *dict);
+
 void PHY_SetActiveScene(class KX_Scene* scene);
 #include "MT_Vector3.h"
 

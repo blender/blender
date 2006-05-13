@@ -96,12 +96,14 @@ private:
 	int					m_activecam;
 	bool				m_bFixedTime;
 	
+	
 	bool				m_firstframe;
 	int					m_currentFrame;
 
 	double				m_frameTime;//discrete timestamp of the 'game logic frame'
 	double				m_clockTime;//current time
 	double				m_previousClockTime;//previous clock time
+	double				m_remainingTime;
 
 	static double			m_ticrate;
 
