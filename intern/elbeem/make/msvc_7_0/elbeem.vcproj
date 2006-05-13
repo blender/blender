@@ -272,6 +272,9 @@ ECHO Done
 				RelativePath="..\..\intern\simulation_object.cpp">
 			</File>
 			<File
+				RelativePath="..\..\intern\solver_adap.cpp">
+			</File>
+			<File
 				RelativePath="..\..\intern\solver_init.cpp">
 			</File>
 			<File

@@ -1382,6 +1382,9 @@ ECHO Done
 					RelativePath="..\..\LinearMath\GEN_random.h">
 				</File>
 				<File
+					RelativePath="..\..\LinearMath\quickprof.h">
+				</File>
+				<File
 					RelativePath="..\..\LinearMath\SimdMatrix3x3.h">
 				</File>
 				<File
