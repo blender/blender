@@ -99,7 +99,7 @@
 #include "KX_RayCast.h"
 #include "KX_IPhysicsController.h"
 #include "PHY_IPhysicsEnvironment.h"
-
+#include "KX_BlenderMaterial.h"
 
 GPC_RenderTools::GPC_RenderTools()
 {
@@ -253,9 +253,17 @@ void GPC_RenderTools::RenderText(
 {
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
-	KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
-	struct TFace* tface = blenderpoly->GetTFace();
-	
+	const unsigned int flag = polymat->GetFlag();
+	struct TFace* tface = 0;
+
+	if(flag & RAS_BLENDERMAT) {
+		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
+		tface = bl_mat->GetTFace();
+	} else {
+		KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
+		tface = blenderpoly->GetTFace();
+	}
+		
 	BL_RenderText(mode, mytext, mytext.Length(), tface, v1, v2, v3, v4);
 }
 
