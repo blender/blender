@@ -87,6 +87,10 @@ class PoseBone:
   @type poseMatrix: Matrix object
   @type constraints: BPy_ConstraintSeq
   @ivar constraints: a sequence of constraints for the object
+  @type limitmin: A 3-item sequence
+  @ivar limitmin: The x,y,z minimum limits on rotation when part of an IK
+  @type limitmax: A 3-item sequence
+  @ivar limitmax: The x,y,z maximum limits on rotation when part of an IK
 
   """
 
