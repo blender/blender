@@ -1429,7 +1429,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	if (td->ext) {
 		float fsize[3];
 
-		if (t->flag & T_OBJECT) {
+		if (t->flag & (T_OBJECT|T_TEXTURE)) {
 			float obsizemat[3][3];
 			// Reorient the size mat to fit the oriented object.
 			Mat3MulMat3(obsizemat, tmat, td->axismtx);

@@ -284,6 +284,8 @@ static void createTransTexspace(TransInfo *t)
 	td->ob = ob;
 	
 	Mat3CpyMat4(td->mtx, ob->obmat);
+	Mat3CpyMat4(td->axismtx, ob->obmat);
+	Mat3Ortho(td->axismtx);
 	Mat3Inv(td->smtx, td->mtx);
 	
 	if( GS(id->name)==ID_ME) {
