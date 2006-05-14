@@ -2144,7 +2144,7 @@ int modifiers_usesArmature(Object *ob, bArmature *arm)
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 int modifiers_isDeformed(Object *ob)
