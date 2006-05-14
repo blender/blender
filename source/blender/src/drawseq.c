@@ -797,12 +797,15 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 
 		uiDefBut(block, LABEL, 0, "Type: Image", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
 		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
 		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
 		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
+		uiBlockEndAlign(block);
 	}
 	else if(last_seq->type==SEQ_META) {
 
@@ -822,7 +825,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 
 		uiDefBut(block, LABEL, 0, "Type: Movie", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-
+		
+		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Make Premul Alpha ", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
 		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY ",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
@@ -830,14 +834,15 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
 		uiDefButI(block, NUM, SEQ_BUT_RELOAD, "Preseek:",			10,-10,150,19, &last_seq->anim_preseek, 0.0, 50.0, 100, 0, "On MPEG-seeking preseek this many frames");
-
+		uiBlockEndAlign(block);
 	}
 	else if(last_seq->type==SEQ_RAM_SOUND || 
 		last_seq->type==SEQ_HD_SOUND) {
 
 		uiDefBut(block, LABEL, 0, "Type: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-
+		
+		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
 			     SEQ_BUT_RELOAD, "IPO Frame locked",
 			     10,90,150,19, &last_seq->flag, 
@@ -848,18 +853,20 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefButBitS(block, TOG, SEQ_MUTE, B_NOP, "Mute", 10,70,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Pan:", 	10,30,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
+		uiBlockEndAlign(block);
 	}
 	else if(last_seq->type>=SEQ_EFFECT) {
 		uiDefBut(block, LABEL, 0, "Type: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-
+		
 		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
 			     SEQ_BUT_RELOAD, "IPO Frame locked",
 			     10,90,150,19, &last_seq->flag, 
 			     0.0, 1.0, 0, 0, 
 			     "Lock the IPO coordinates to the "
 			     "global frame counter.");
-
+		
+		uiBlockBeginAlign(block);
 		if(last_seq->type==SEQ_WIPE){
 			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
 			char formatstring[256];
@@ -888,10 +895,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
 			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
 		}
-
+		uiBlockEndAlign(block);
 	}
-
-
 }
 
 static void seq_blockhandlers(ScrArea *sa)

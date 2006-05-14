@@ -2974,13 +2974,14 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			xpos+edgsp, y3label, mpref, buth,
 			0, 0, 0, 0, 0, "");
 		
+		uiBlockBeginAlign(block);
 		uiDefButS(block, MENU, B_REDR, "Light1 %x0|Light2 %x1|Light3 %x2",
 			xpos+edgsp, y2, 2*mpref/6, buth, &cur_light, 0.0, 0.0, 0, 0, "");
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButBitI(block, TOG, 1, B_RECALCLIGHT, "On",
 			xpos+edgsp+2*mpref/6, y2, mpref/6, buth, 
 			&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "Enable this OpenGL light in Solid draw mode");
-			
+		
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefButS(block, ROW, B_REDR, "Vec",
 			xpos+edgsp+3*mpref/6, y2, mpref/6, buth, 
@@ -2991,7 +2992,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, ROW, B_REDR, "Spec",
 			xpos+edgsp+5*mpref/6, y2, mpref/6, buth, 
 			&cur_light_var, 123.0, 2.0, 0, 0, "Specular color for OpenGL light");
-
+		uiBlockEndAlign(block);
+		
+		uiBlockBeginAlign(block);
 		if(cur_light_var==1) {
 			uiDefButF(block, NUM, B_RECALCLIGHT, "R ",
 				xpos+edgsp, y1, mpref/3, buth, 
@@ -3025,6 +3028,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				xpos+edgsp+2*mpref/3, y1, mpref/3, buth, 
 				U.light[cur_light].vec+2, -1.0, 1.0, 100, 2, "");
 		}
+		uiBlockEndAlign(block);
 
 /*
 		uiDefButBitS(block, TOG, USER_EVTTOCONSOLE, 0, "Log Events to Console",

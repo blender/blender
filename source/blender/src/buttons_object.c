@@ -2390,10 +2390,12 @@ static void object_panel_fluidsim(Object *ob)
 						ob->fluidsimSettings->bbSize[0],ob->fluidsimSettings->bbSize[1],ob->fluidsimSettings->bbSize[2], fss->maxRefine, memString);
 				
 				//uiDefButBitS(block, TOG, 1, REDRAWBUTSOBJECT, "Advanced>>",	 0,yline, 75,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show advanced domain options.");
+				uiBlockBeginAlign(block);
 				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Std",	 0,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 0, 20.0, 0, "Show standard domain options.");
 				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Adv",	25,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 1, 20.0, 1, "Show advanced domain options.");
 				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Bnd",	50,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 2, 20.0, 2, "Show domain boundary options.");
-			  
+				uiBlockEndAlign(block);
+				
 				uiDefBut(block, BUT, B_FLUIDSIM_BAKE, "BAKE",90, yline,210,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame.");
 				yline -= lineHeight;
 				yline -= 2*separateHeight;
@@ -2403,32 +2405,40 @@ static void object_panel_fluidsim(Object *ob)
 					uiDefBut(block, LABEL,   0, memString,  200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
 					yline -= lineHeight;
 
+					uiBlockBeginAlign(block);
 					uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X,Y and Z direction");
 					uiDefButS(block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X,Y and Z direction");
+					uiBlockEndAlign(block);
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
 
+					uiBlockBeginAlign(block);
 					uiDefButF(block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame.");
 					uiDefButF(block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame.");
+					uiBlockEndAlign(block);
 					yline -= lineHeight;
 					yline -= 2*separateHeight;
 
 					if((fss->guiDisplayMode<1) || (fss->guiDisplayMode>3)){ fss->guiDisplayMode=2; } // can be changed by particle setting
 					uiDefBut(block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiBlockBeginAlign(block);
 					uiDefButS(block, MENU, B_FLUIDSIM_FORCEREDRAW, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
 							 90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the blender gui.");
 					uiDefButS(block, MENU, B_DIFF, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
 							195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
+					uiBlockEndAlign(block);
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
 
+					uiBlockBeginAlign(block);
 					uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  0, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in");
 					uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",	      20, yline, 280, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in");
+					uiBlockEndAlign(block);
 					// FIXME what is the 79.0 above?
 				} else if(fss->show_advancedoptions == 1) {
 					// advanced options
-					uiBlockBeginAlign(block);
 					uiDefBut(block, LABEL, 0, "Gravity:",		0, yline,  90,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiBlockBeginAlign(block);
 					uiDefButF(block, NUM, B_DIFF, "X:",    90, yline,  70,objHeight, &fss->gravx, -1000.1, 1000.1, 10, 0, "Gravity in X direction");
 					uiDefButF(block, NUM, B_DIFF, "Y:",   160, yline,  70,objHeight, &fss->gravy, -1000.1, 1000.1, 10, 0, "Gravity in Y direction");
 					uiDefButF(block, NUM, B_DIFF, "Z:",   230, yline,  70,objHeight, &fss->gravz, -1000.1, 1000.1, 10, 0, "Gravity in Z direction");
@@ -2437,17 +2447,18 @@ static void object_panel_fluidsim(Object *ob)
 					yline -= 1*separateHeight;
 
 					/* viscosity */
-					uiBlockBeginAlign(block);
+					if (fss->viscosityMode==1) /*manual*/
+						uiBlockBeginAlign(block);
 					uiDefButS(block, MENU, REDRAWVIEW3D, "Viscosity%t|Manual %x1|Water %x2|Oil %x3|Honey %x4",	
 							0,yline, 90,objHeight, &fss->viscosityMode, 0, 0, 0, 0, "Set viscosity of the fluid to a preset value, or use manual input.");
 					if(fss->viscosityMode==1) {
 						uiDefButF(block, NUM, B_DIFF, "Value:",     90, yline, 105,objHeight, &fss->viscosityValue,       0.0, 1.0, 10, 0, "Viscosity setting, value that is multiplied by 10 to the power of (exponent*-1).");
 						uiDefButS(block, NUM, B_DIFF, "Neg-Exp.:", 195, yline, 105,objHeight, &fss->viscosityExponent, 0,   10,  10, 0, "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6.");
+						uiBlockEndAlign(block);
 					} else {
 						// display preset values
 						uiDefBut(block, LABEL,   0, fluidsimViscosityPresetString[fss->viscosityMode],  90,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
 					}
-					uiBlockEndAlign(block);
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
 
@@ -2584,8 +2595,10 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= 1*separateHeight;
 
 				// FSPARTICLE also select input files
+				uiBlockBeginAlign(block);
 				uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  0, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select fluid simulation bake directory/prefix to load particles from, same as for domain object.");
 				uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",	      20, yline, 280, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter fluid simulation bake directory/prefix to load particles from, same as for domain object.");
+				uiBlockEndAlign(block);
 				yline -= lineHeight;
 
 

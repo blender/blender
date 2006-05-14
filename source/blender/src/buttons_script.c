@@ -277,25 +277,24 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 			strcat(str, "OnLoad%x 2|");
 			strcat(str, "OnSave%x 8");
 		}
-		
 		uiBlockBeginAlign(block);
 		uiDefButS(block, MENU, 1, str, (short)sx, (short)sy, 140, 19, &script->flag[script->actscript-1], 0, 0, 0, 0, "Script links for this event");
 
 		uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "", (short)(sx+140),(short)sy, 140, 19, &script->scripts[script->actscript-1], "Name of Script to link");
 		uiBlockEndAlign(block);
 	}
-
+	
 	sprintf(str,"%d Scr:", script->totscript);
 	
 	uiDefButS(block, NUM, REDRAWBUTSSCRIPT, str, (short)(sx+140), (short)sy-20,60,19, &script->actscript, 1, script->totscript, 0, 0, "Total / Active Script link (LeftMouse + Drag to change)");
 
 	if (scene) {
+		
 		if (script->totscript<32767) 
 			uiDefBut(block, BUT, B_SSCRIPT_ADD, "New", (short)(sx+240), (short)sy-20, 40, 19, 0, 0, 0, 0, 0, "Add a new Script link");
 		if (script->totscript) 
 			uiDefBut(block, BUT, B_SSCRIPT_DEL, "Del", (short)(sx+200), (short)sy-20, 40, 19, 0, 0, 0, 0, 0, "Delete the current Script link");
 		uiDefBut(block, LABEL, 0, "Scene Script link",	sx,sy-20,140,20, 0, 0, 0, 0, 0, "");
-
 	}
 	else {
 		if (script->totscript<32767) 
@@ -303,6 +302,7 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 		if (script->totscript) 
 			uiDefBut(block, BUT, B_SCRIPT_DEL, "Del", (short)(sx+200), (short)sy-20, 40, 19, 0, 0, 0, 0, 0, "Delete the current Script link");
 		uiDefBut(block, LABEL, 0, "Selected Script link",	sx,sy-20,140,20, 0, 0, 0, 0, 0, "");
+		
 	}
 	
 }
@@ -327,7 +327,7 @@ static void  script_panel_scriptlink(void)
 	uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if (G.f & G_DOSCRIPTLINKS) {
-		uiBlockBeginAlign(block);
+		//uiBlockBeginAlign(block);
 		ob= OBACT;
 		if(ob) 
 			uiDefIconButS(block, ROW, B_REDR, ICON_OBJECT, xco,175,25,20, &G.buts->scriptblock,  2.0, (float)ID_OB, 0, 0, "Displays Object script links");
@@ -343,7 +343,7 @@ static void  script_panel_scriptlink(void)
 
 		if(ob && ob->type==OB_LAMP)
 			uiDefIconButS(block, ROW, B_REDR, ICON_LAMP,	xco+=25,175,25,20, &G.buts->scriptblock, 2.0, (float)ID_LA, 0, 0, "Displays Lamp script links");
-		uiBlockEndAlign(block);
+		//uiBlockEndAlign(block);
 
 		if (ob && G.buts->scriptblock==ID_OB) {
 			script= &ob->scriptlink;
