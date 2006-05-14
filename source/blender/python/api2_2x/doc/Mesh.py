@@ -357,7 +357,9 @@ class MEdge:
   @type flag: int
   @ivar index: The edge's index within the mesh.  Read-only.
   @type index: int
-  @ivar sel: The edge's B{edit mode} selection state (selected=1).
+  @ivar sel: The edge's B{edit mode} selection state (selected=1).  B{Note}:
+  changing the select state of an edge changes the select state of the edge's
+  vertices.
   @type sel: int
   """
 
@@ -468,8 +470,9 @@ class MFace:
   @ivar v: Same as L{verts}.  This attribute is only for compatibility with
       NMesh scripts and will probably be deprecated in the future.
   @ivar sel: The face's B{edit mode} selection state (selected=1).
-      This is not the same as the selection state of
-      the textured faces (see L{flag}).
+      This is not the same as the selection state of the textured faces
+      (see L{flag}). B{Note}: changing the select state of a face changes
+      the select state of the face's vertices.
   @type sel: int
   @ivar hide: The face's B{edit mode} visibility state (hidden=1).
       This is not the same as the visibility state of

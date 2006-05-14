@@ -696,90 +696,6 @@ static unsigned int make_vertex_table( unsigned int *vert_table, int count )
 	return to_delete;
 }
 
-void recalc_selected_edges( Mesh *mesh, MEdge *edge );
-void recalc_selected_faces( Mesh *mesh, MFace *face );
-
-/*
- * select or deselect vert based on face select setting
- */
-
-void faceselect( MVert *mvert, MFace *face )
-{
-	if( face->flag & ME_FACE_SEL ) {
-		mvert[face->v1].flag |= SELECT;
-		mvert[face->v2].flag |= SELECT;
-		mvert[face->v3].flag |= SELECT;
-		if ( face->v4 )
-			mvert[face->v4].flag |= SELECT;
-	} else {
-		mvert[face->v1].flag &= ~SELECT;
-		mvert[face->v2].flag &= ~SELECT;
-		mvert[face->v3].flag &= ~SELECT;
-		if ( face->v4 )
-			mvert[face->v4].flag &= ~SELECT;
-	}
-}
-
-/*
- * determine all selected faces based on change in one face
- */
-
-void recalc_selected_faces( Mesh *mesh, MFace *face )
-{
-	int i;
-
-	if( face ) {
-		/* set/clear face's verts */
-		faceselect( mesh->mvert, face );
-		/* set edges based on selected verts */
-		recalc_selected_edges( mesh, NULL );
-	}
-
-	/* set vert selection based on selected faces */
-	for( face = mesh->mface, i = 0; i < mesh->totface; ++i, ++face ) {
-		int flag = mesh->mvert[face->v1].flag;
-		flag &= mesh->mvert[face->v2].flag;
-		flag &= mesh->mvert[face->v3].flag;
-		if ( face->v4 )
-			flag &= mesh->mvert[face->v4].flag;
-		if( flag & SELECT )
-			face->flag |= ME_FACE_SEL;
-		else
-			face->flag &= ~ME_FACE_SEL;
-	}
-}
-
-/*
- * determine all selected edges based on change in one edge
- */
-
-void recalc_selected_edges( Mesh *mesh, MEdge *edge )
-{
-	int i;
-
-	if( edge ) {
-		/* clear selection on all vertices */
-		if( edge->flag & SELECT ) {
-			mesh->mvert[edge->v1].flag |= SELECT;
-			mesh->mvert[edge->v2].flag |= SELECT;
-		} else {
-			mesh->mvert[edge->v1].flag &= ~SELECT;
-			mesh->mvert[edge->v2].flag &= ~SELECT;
-		}
-
-		recalc_selected_faces( mesh, NULL );
-	}
-
-	/* set edges based on selected verts */
-	for( edge = mesh->medge, i = 0; i < mesh->totedge; ++i, ++edge ) {
-		if( mesh->mvert[edge->v1].flag &
-					mesh->mvert[edge->v2].flag & SELECT )
-			edge->flag |= SELECT;
-		else
-			edge->flag &= ~SELECT;
-	}
-}
-
 
 /************************************************************************
  *
@@ -1108,9 +1024,9 @@ static int MVert_setMFlagBits( BPy_MVert * self, PyObject * value,
 	MVert *v;
 
 	v = MVert_get_pointer( self );
-	
+
 	if( self->index >= ((Mesh *)self->data)->totvert )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"MVert is no longer valid" );
 
 	return EXPP_setBitfield( value, &v->flag, 
@@ -1193,14 +1109,12 @@ static int MVert_setSel( BPy_MVert *self, PyObject *value )
 	Mesh *me = (Mesh *)self->data;
 
 	/* 
-	 * if vertex exists and setting status is OK, update the select states
+	 * if vertex exists and setting status is OK, delete select storage
 	 * of the edges and faces as well
 	 */
 
 	if( v && !EXPP_setBitfield( value, &v->flag, SELECT, 'b' ) ) {
-		recalc_selected_edges( me, NULL );
-		recalc_selected_faces( me, NULL );
-		if( me->mselect ) {
+		if( me && me->mselect ) {
 			MEM_freeN( me->mselect );
 			me->mselect = NULL;
 		}
@@ -2319,8 +2233,6 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 
 	edge->flag = param;
 
-	recalc_selected_edges( self->mesh, edge );
-
 	return 0;
 }
 
@@ -2424,26 +2336,26 @@ static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
  * get an edge's select state
  */
 
-static PyObject *MEdge_getLength( BPy_MEdge * self, void * type )
+static PyObject *MEdge_getLength( BPy_MEdge * self )
 {
 	MEdge *edge = MEdge_get_pointer( self );
 	double dot = 0.0f;
 	float tmpf;
 	int i;
 	float *v1, *v2;
-	
+
 	/* get the 2 edges vert locations */
 	v1= (&((Mesh *)self->mesh)->mvert[edge->v1])->co;
 	v2= (&((Mesh *)self->mesh)->mvert[edge->v2])->co;
-	
+
 	if( !edge )
 		return NULL;
-	
-	for(i = 0; i < 3; i++){
-		tmpf= v1[i] - v2[i];
+
+	for( i = 0; i < 3; i++ ) {
+		tmpf = v1[i] - v2[i];
 		dot += tmpf*tmpf;
 	}
-	return PyFloat_FromDouble(sqrt(dot));
+	return PyFloat_FromDouble( sqrt( dot ) );
 }
 
 /*
@@ -2455,6 +2367,7 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 {
 	MEdge *edge = MEdge_get_pointer( self );
 	int param = PyObject_IsTrue( value );
+	Mesh *me;
 
 	if( !edge )
 		return -1;
@@ -2463,12 +2376,19 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
 
-	if( param )
-		edge->flag |= SELECT;
-	else 
-		edge->flag &= ~SELECT;
+	me = self->mesh;
 
-	recalc_selected_edges( self->mesh, edge );
+	if( param ) {
+		edge->flag |= SELECT;
+		me->mvert[edge->v1].flag |= SELECT;
+		me->mvert[edge->v2].flag |= SELECT;
+	}
+	else {
+		edge->flag &= ~SELECT;
+		me->mvert[edge->v1].flag &= ~SELECT;
+		me->mvert[edge->v2].flag &= ~SELECT;
+	}
+
 	if( self->mesh->mselect ) {
 		MEM_freeN( self->mesh->mselect );
 		self->mesh->mselect = NULL;
@@ -3795,6 +3715,7 @@ static int MFace_setSelect( BPy_MFace * self, PyObject * value,
 {
 	MFace *face = MFace_get_pointer( self );
 	int param = PyObject_IsTrue( value );
+	Mesh *me;
 
 	if( !face )
 		return -1;
@@ -3803,19 +3724,30 @@ static int MFace_setSelect( BPy_MFace * self, PyObject * value,
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
 
-	if( param )
+	me = self->mesh;
+	if( param ) {
 		face->flag |= ME_FACE_SEL;
-	else 
+		me->mvert[face->v1].flag |= SELECT;
+		me->mvert[face->v2].flag |= SELECT;
+		me->mvert[face->v3].flag |= SELECT;
+		if( face->v4 )
+			me->mvert[face->v4].flag |= SELECT;
+	}
+	else {
 		face->flag &= ~ME_FACE_SEL;
+		me->mvert[face->v1].flag &= ~SELECT;
+		me->mvert[face->v2].flag &= ~SELECT;
+		me->mvert[face->v3].flag &= ~SELECT;
+		if( face->v4 )
+			me->mvert[face->v4].flag &= ~SELECT;
+	}
 
-	recalc_selected_faces( self->mesh, face );
 	if( self->mesh->mselect ) {
 		MEM_freeN( self->mesh->mselect );
 		self->mesh->mselect = NULL;
 	}
 
 	return 0;
-
 }
 
 /*
