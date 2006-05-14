@@ -87,6 +87,8 @@ typedef struct Global {
     
 	/* strings: lastsaved */
 	char ima[160], sce[160], lib[160];
+	
+	char recent[10][160];
     
 	/* totals */
 	short totobj, totlamp, totobjsel, totcurve, totmesh;

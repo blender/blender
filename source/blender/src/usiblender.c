@@ -461,14 +461,22 @@ static void readBlog(void)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE], filename[FILE_MAXFILE];
 	LinkNode *l, *lines;
+	char *line;
+	int num;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
 	lines= BLI_read_file_as_lines(name);
 
-	if (lines && !BLI_streq(lines->link, "")) {
-		strcpy(G.sce, lines->link);
-	} else {
-		BLI_make_file_string("/", G.sce, BLI_gethome(), "untitled.blend");
+	for (num= 0; num<10; num++) G.recent[num][0]=0;
+	for (l= lines, num= 0; l && (num<10); l= l->next, num++) {
+		line = l->link;
+		if (!BLI_streq(line, "")) {
+			if (num==0) strcpy(G.sce, line);
+			strcpy(G.recent[num], line);
+		} else {
+//			BLI_make_file_string("/", G.sce, BLI_gethome(), "untitled.blend");
+			G.sce[0] = 0;
+		}
 	}
 
 	BLI_free_file_lines(lines);
@@ -531,12 +539,19 @@ static void writeBlog(void)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	FILE *fp;
+	int i, num;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
 
 	fp= fopen(name, "w");
 	if (fp) {
-		fprintf(fp, G.sce);
+		for (i=0, num=0; (num<10) && (G.recent[i][0]); i++, num++) {
+			if (i==0) {
+				fprintf(fp, "%s\n", G.sce);
+				num++;
+			}
+			if (strcmp(G.recent[i], G.sce)) fprintf(fp, "%s\n", G.recent[i]);
+		}
 		fclose(fp);
 	}
 }

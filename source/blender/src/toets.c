@@ -352,6 +352,32 @@ int untitled(char * name)
 	return(FALSE);
 }
 
+char *recent_filelist(void)
+{
+	int event, i, ofs;
+	char pup[2048], *p;
+
+	p= pup + sprintf(pup, "Open recent%%t");
+	
+	if (G.sce[0]) {
+		p+= sprintf(p, "|%s %%x%d", G.sce, 1);
+		ofs = 1;
+	} else ofs = 0;
+	for (i=0; i<10 && (G.recent[i][0]); i++) {
+		if (strcmp(G.recent[i], G.sce)) {
+			p+= sprintf(p, "|%s %%x%d", G.recent[i], i+ofs+1);
+		}
+	}
+	event= pupmenu(pup);
+	if(event>0) {
+		if (ofs && (event==1))
+			return(G.sce);
+		else 
+			return(G.recent[event-1-ofs]);
+	}
+	else
+		return(NULL);
+}
 
 int blenderqread(unsigned short event, short val)
 {
@@ -365,6 +391,7 @@ int blenderqread(unsigned short event, short val)
 	/* Changed str and dir size to 160, to make sure there is enough
 	 * space for filenames. */
 	char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
+	char *recentfile;
 	
 	if(val==0) return 1;
 	if(event==MOUSEY || event==MOUSEX) return 1;
@@ -720,14 +747,9 @@ int blenderqread(unsigned short event, short val)
 	case OKEY:
 		if(textediting==0) {
 			if(G.qual==LR_CTRLKEY) {
-				/* There seem to be crashes here sometimes.... String
-				 * bound overwrites? I changed dir and str sizes,
-				 * let's see if this reoccurs. */
-				sprintf(str, "Open file: %s", G.sce);
-			
-				if(okee(str)) {
-					strcpy(dir, G.sce);
-					BIF_read_file(dir);
+				recentfile = recent_filelist();
+				if(recentfile) {
+					BIF_read_file(recentfile);
 				}
 				return 0;
 			}
