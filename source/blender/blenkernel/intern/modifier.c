@@ -2110,18 +2110,25 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 
 	return ob->modifiers.first;
 }
-
+/* Takes an object and returns its first selected armature, else just its armature
+   This should work for multiple armatures per object */
 Object *modifiers_isDeformedByArmature(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
-
+	ArmatureModifierData *amd= NULL;
+	
+	/* return the first selected armaturem, this lets us use multiple armatures */
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Armature) {
-			ArmatureModifierData *amd = (ArmatureModifierData*) md;
-			return amd->object;
+			amd = (ArmatureModifierData*) md;
+			if (amd->object->flag & SELECT)
+				return amd->object;
 		}
 	}
-
+	
+	if (amd) /* if were still here then return the last armature */
+		return amd->object;
+	
 	return NULL;
 }
 
