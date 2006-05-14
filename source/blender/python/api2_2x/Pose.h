@@ -33,6 +33,7 @@
 
 #include <Python.h>
 #include "DNA_action_types.h"
+#include "DNA_object_types.h"
 
 //-------------------TYPE CHECKS---------------------------------
 #define PoseObject_Check(v) ((v)->ob_type == &Pose_Type)
@@ -65,4 +66,5 @@ typedef struct {
 PyObject *Pose_Init(void);
 PyObject *PyPose_FromPose(bPose *pose, char *name);
 PyObject *PyPoseBone_FromPosechannel(bPoseChannel *pchan);
+Object *Object_FromPoseChannel(bPoseChannel *curr_pchan);
 #endif

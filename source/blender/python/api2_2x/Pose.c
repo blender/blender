@@ -39,6 +39,7 @@
 #include "BKE_utildefines.h"
 #include "BIF_editaction.h"
 #include "BIF_space.h"
+#include "BIF_poseobject.h"
 #include "BKE_depsgraph.h"
 #include "DNA_object_types.h"
 #include "DNA_ipo_types.h"
@@ -712,13 +713,175 @@ static PyObject *PoseBone_getConstraints(BPy_PoseBone *self, void *closure)
 {
 	return PoseConstraintSeq_CreatePyObject( self->posechannel );
 }
-////------------------------PoseBone.constraints (setter)
-////Sets the constraints list
-//static int PoseBone_setConstraints(BPy_PoseBone *self, PyObject *value, void *closure)
-//{
-//	printf("This is not implemented yet...");
-//	return 1;
-//}
+//------------------------PoseBone.limitmin (getter)
+//Gets the pose bone limitmin value
+static PyObject *PoseBone_getLimitMin(BPy_PoseBone *self, void *closure)
+{
+	float mylimitmin[3];
+	Object *obj = NULL;
+
+	obj = Object_FromPoseChannel(self->posechannel);
+	if (obj==NULL){
+		return EXPP_ReturnPyObjError(PyExc_AttributeError, "Bone data is not found");
+	}
+	mylimitmin[0]=0.0f;
+	mylimitmin[1]=0.0f;
+	mylimitmin[2]=0.0f;
+	if(pose_channel_in_IK_chain(obj, self->posechannel)){
+		if ((self->posechannel->ikflag & BONE_IK_NO_XDOF)==0) {
+			if ((self->posechannel->ikflag & BONE_IK_XLIMIT)) {
+				mylimitmin[0] = self->posechannel->limitmin[0];
+			}
+		}
+		if ((self->posechannel->ikflag & BONE_IK_NO_YDOF)==0) {
+			if ((self->posechannel->ikflag & BONE_IK_YLIMIT)) {
+				mylimitmin[1] = self->posechannel->limitmin[1];
+			}
+		}
+		if ((self->posechannel->ikflag & BONE_IK_NO_ZDOF)==0) {
+			if ((self->posechannel->ikflag & BONE_IK_ZLIMIT)) {
+				mylimitmin[2] = self->posechannel->limitmin[2];
+			}
+		}
+	}
+	return newVectorObject(mylimitmin, 3, Py_NEW);
+}
+//------------------------PoseBone.limitmin (setter)
+//Sets the pose bone limitmin value
+static int PoseBone_setLimitMin(BPy_PoseBone *self, PyObject *value, void *closure)
+{
+	float newlimitmin[3];
+	int x;
+	Object *obj = NULL;
+	if(!PySequence_Check(value)){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Argument is not a sequence");
+	}
+	if (PySequence_Size(value) !=3){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Argument size must be 3");
+	}
+	newlimitmin[0]=0.0f;
+	newlimitmin[1]=0.0f;
+	newlimitmin[2]=0.0f;
+	for (x = 0; x<3;x++){
+		PyObject *item;
+		item = PySequence_GetItem(value, x); //new reference
+		if (PyFloat_Check(item)){
+			newlimitmin[x] = (float)PyFloat_AsDouble(item);
+		}else if (PyInt_Check(item)){
+			newlimitmin[x] = (float)PyInt_AsLong(item);
+		}
+		Py_DECREF(item);
+	}
+	obj = Object_FromPoseChannel(self->posechannel);
+	if (obj==NULL){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Bone data is not found");
+	}
+	if(!pose_channel_in_IK_chain(obj, self->posechannel)){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Bone is not part of an IK chain");
+	}
+	if ((self->posechannel->ikflag & BONE_IK_NO_XDOF)==0) {
+		if ((self->posechannel->ikflag & BONE_IK_XLIMIT)) {
+			self->posechannel->limitmin[0] = EXPP_ClampFloat(newlimitmin[0], -180.0f, 0.0f);
+		}
+	}
+	if ((self->posechannel->ikflag & BONE_IK_NO_YDOF)==0) {
+		if ((self->posechannel->ikflag & BONE_IK_YLIMIT)) {
+			self->posechannel->limitmin[1] = EXPP_ClampFloat(newlimitmin[1], -180.0f, 0.0f);
+		}
+	}
+	if ((self->posechannel->ikflag & BONE_IK_NO_ZDOF)==0) {
+		if ((self->posechannel->ikflag & BONE_IK_ZLIMIT)) {
+			self->posechannel->limitmin[2] = EXPP_ClampFloat(newlimitmin[2], -180.0f, 0.0f);
+		}
+	}
+	DAG_object_flush_update(G.scene, obj, OB_RECALC_DATA);
+	return 0;
+}
+
+//------------------------PoseBone.limitmax (getter)
+//Gets the pose bone limitmax value
+static PyObject *PoseBone_getLimitMax(BPy_PoseBone *self, void *closure)
+{
+	float mylimitmax[3];
+	Object *obj = NULL;
+
+	obj = Object_FromPoseChannel(self->posechannel);
+	if (obj==NULL){
+		return EXPP_ReturnPyObjError(PyExc_AttributeError, "Bone data is not found");
+	}
+	mylimitmax[0]=0.0f;
+	mylimitmax[1]=0.0f;
+	mylimitmax[2]=0.0f;
+	if(pose_channel_in_IK_chain(obj, self->posechannel)){
+		if ((self->posechannel->ikflag & BONE_IK_NO_XDOF)==0) {
+			if ((self->posechannel->ikflag & BONE_IK_XLIMIT)) {
+				mylimitmax[0] = self->posechannel->limitmax[0];
+			}
+		}
+		if ((self->posechannel->ikflag & BONE_IK_NO_YDOF)==0) {
+			if ((self->posechannel->ikflag & BONE_IK_YLIMIT)) {
+				mylimitmax[1] = self->posechannel->limitmax[1];
+			}
+		}
+		if ((self->posechannel->ikflag & BONE_IK_NO_ZDOF)==0) {
+			if ((self->posechannel->ikflag & BONE_IK_ZLIMIT)) {
+				mylimitmax[2] = self->posechannel->limitmax[2];
+			}
+		}
+	}
+	return newVectorObject(mylimitmax, 3, Py_NEW);
+}
+//------------------------PoseBone.limitmax (setter)
+//Sets the pose bone limitmax value
+static int PoseBone_setLimitMax(BPy_PoseBone *self, PyObject *value, void *closure)
+{
+	float newlimitmax[3];
+	int x;
+	Object *obj = NULL;
+	if(!PySequence_Check(value)){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Argument is not a sequence");
+	}
+	if (PySequence_Size(value) !=3){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Argument size must be 3");
+	}
+	newlimitmax[0]=0.0f;
+	newlimitmax[1]=0.0f;
+	newlimitmax[2]=0.0f;
+	for (x = 0; x<3;x++){
+		PyObject *item;
+		item = PySequence_GetItem(value, x); //new reference
+		if (PyFloat_Check(item)){
+			newlimitmax[x] = (float)PyFloat_AsDouble(item);
+		}else if (PyInt_Check(item)){
+			newlimitmax[x] = (float)PyInt_AsLong(item);
+		}
+		Py_DECREF(item);
+	}
+	obj = Object_FromPoseChannel(self->posechannel);
+	if (obj==NULL){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Bone data is not found");
+	}
+	if(!pose_channel_in_IK_chain(obj, self->posechannel)){
+		return EXPP_ReturnIntError(PyExc_AttributeError, "Bone is not part of an IK chain");
+	}
+	if ((self->posechannel->ikflag & BONE_IK_NO_XDOF)==0) {
+		if ((self->posechannel->ikflag & BONE_IK_XLIMIT)) {
+			self->posechannel->limitmax[0] = EXPP_ClampFloat(newlimitmax[0], 0.0f, 180.0f);
+		}
+	}
+	if ((self->posechannel->ikflag & BONE_IK_NO_YDOF)==0) {
+		if ((self->posechannel->ikflag & BONE_IK_YLIMIT)) {
+			self->posechannel->limitmax[1] = EXPP_ClampFloat(newlimitmax[1], 0.0f, 180.0f);
+		}
+	}
+	if ((self->posechannel->ikflag & BONE_IK_NO_ZDOF)==0) {
+		if ((self->posechannel->ikflag & BONE_IK_ZLIMIT)) {
+			self->posechannel->limitmax[2] = EXPP_ClampFloat(newlimitmax[2], 0.0f, 180.0f);
+		}
+	}
+	DAG_object_flush_update(G.scene, obj, OB_RECALC_DATA);
+	return 0;
+}
 //------------------------PoseBone.head (getter)
 //Gets the pose head position
 static PyObject *PoseBone_getHead(BPy_PoseBone *self, void *closure)
@@ -765,6 +928,10 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"The pose bone's head positon", NULL},
 	{"tail", (getter)PoseBone_getTail, (setter)PoseBone_setTail, 
 		"The pose bone's tail positon", NULL},
+    {"limitMin", (getter)PoseBone_getLimitMin, (setter)PoseBone_setLimitMin,
+        "The pose bone dof min", NULL},
+    {"limitMax", (getter)PoseBone_getLimitMax, (setter)PoseBone_setLimitMax,
+        "The pose bone dof max", NULL},
 	{"constraints", (getter)PoseBone_getConstraints, (setter)NULL, 
 		"The list of contraints that pertain to this pose bone", NULL},
 	{NULL, NULL, NULL, NULL, NULL}
@@ -920,4 +1087,25 @@ PyObject *PyPoseBone_FromPosechannel(bPoseChannel *pchan)
 RuntimeError:
 	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
 		sPoseBoneError, "PyPoseBone_FromPosechannel: ", "Internal Error Ocurred");
+}
+//------------------------------Object_FromPoseChannel (internal)
+//An ugly method for determining where the pchan chame from
+Object *Object_FromPoseChannel(bPoseChannel *curr_pchan)
+{
+	int success = 0;
+	Object *obj = NULL;
+	bPoseChannel *pchan = NULL;
+	for(obj = G.main->object.first; obj; obj = obj->id.next){
+		if (obj->pose){
+			for (pchan = obj->pose->chanbase.first; pchan; pchan = pchan->next){
+				if (curr_pchan == pchan){
+					success = 1;
+					break;
+				}
+			}
+			if (success)
+				break;
+		}
+	}
+	return obj;
 }
