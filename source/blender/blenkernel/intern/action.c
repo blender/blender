@@ -771,7 +771,10 @@ static float nla_time(float cfra, float unit)
 	return cfra;
 }
 
-static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
+/* added "sizecorr" here, to allow armatures to be scaled and still have striding.
+   Only works for uniform scaling. In general I'd advise against scaling armatures ever though! (ton)
+*/
+static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
 	bAction *act= strip->act;
 	char *name= strip->stridechannel;
@@ -803,7 +806,7 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 		}
 		
 		if(foundvert && miny!=maxy) {
-			float stridelen= fabs(maxy-miny), striptime;
+			float stridelen= sizecorr*fabs(maxy-miny), striptime;
 			float actiondist, pdist, pdistNewNormalized, offs;
 			float vec1[4], vec2[4], dir[3];
 			
@@ -815,7 +818,7 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 			striptime= pdist/stridelen;
 			
 			/* amount stride bone moves */
-			actiondist= eval_icu(icu, minx + striptime*(maxx-minx)) - miny;
+			actiondist= sizecorr*eval_icu(icu, minx + striptime*(maxx-minx)) - miny;
 			
 			pdist = fabs(actiondist) - pdist;
 			pdistNewNormalized = (pathdist+pdist)/path->totdist;
@@ -949,7 +952,7 @@ static void do_nla(Object *ob, int blocktype)
 									pdist = ctime*cu->path->totdist;
 									
 									if(tpose && strip->stridechannel[0]) {
-										striptime= stridechannel_frame(parent, strip, cu->path, pdist, tpose->stride_offset);
+										striptime= stridechannel_frame(parent, ob->size[0], strip, cu->path, pdist, tpose->stride_offset);
 									}									
 									else {
 										if (strip->stridelen) {
