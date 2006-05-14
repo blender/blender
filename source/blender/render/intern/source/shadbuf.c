@@ -478,20 +478,22 @@ float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float in
 	}
 
 	/* calculate filter size */
-	VECCOPY(co, dxco);
+	co[0]= rco[0]+dxco[0];
+	co[1]= rco[1]+dxco[1];
+	co[2]= rco[2]+dxco[2];
 	co[3]= 1.0;
-	MTC_Mat4Mul3Vecfl(shb->persmat, co);
+	MTC_Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
+	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
+	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
 	
-	dx[0]= co[0]/co[3];
-	dx[1]= co[1]/co[3];
-
-	VECCOPY(co, dyco);
+	co[0]= rco[0]+dyco[0];
+	co[1]= rco[1]+dyco[1];
+	co[2]= rco[2]+dyco[2];
 	co[3]= 1.0;
-	MTC_Mat4Mul3Vecfl(shb->persmat, co);
+	MTC_Mat4MulVec4fl(shb->persmat,co);     /* rational hom co */
+	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
+	dy[1]= ys1- siz*(1.0+co[1]/co[3]);
 	
-	dy[0]= co[0]/co[3];
-	dy[1]= co[1]/co[3];
-
 	xres= fac*( fabs(dx[0])+fabs(dy[0]) );
 	yres= fac*( fabs(dx[1])+fabs(dy[1]) );
 	if(xres<fac) xres= fac;
