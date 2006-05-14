@@ -1,14 +1,16 @@
 import Blender
 Vector= Blender.Mathutils.Vector
-# Ang= Blender.Mathutils.AngleBetweenVecs
 LineIntersect= Blender.Mathutils.LineIntersect
+CrossVecs= Blender.Mathutils.CrossVecs
 import BPyMesh
 
+'''
 try:
 	import psyco
 	psyco.full()
 except:
 	pass
+'''
 
 def uv_key(uv):
 	return round(uv.x, 5), round(uv.y, 5)
@@ -35,7 +37,9 @@ class collapseEdge(object):
 		self.col1= []
 		self.col2= []
 		self.collapse_loc= None # new collapse location.
-		self.collapse_weight= self.length *  (1+ ((ed.v1.no-ed.v2.no).length**2))
+		
+		# Basic weighting.
+		#self.collapse_weight= self.length *  (1+ ((ed.v1.no-ed.v2.no).length**2))
 
 
 
@@ -53,6 +57,7 @@ def redux(ob, factor=0.5):
 	
 	target_face_count= int(len(me.faces) * factor)
 	# % of the collapseable faces to collapse per pass.
+	#collapse_per_pass= 0.333 # between 0.1 - lots of small nibbles, slow but high q. and 0.9 - big passes and faster.
 	collapse_per_pass= 0.333 # between 0.1 - lots of small nibbles, slow but high q. and 0.9 - big passes and faster.
 	
 	for v in me.verts:
@@ -64,12 +69,12 @@ def redux(ob, factor=0.5):
 			v.sel= False
 		
 		# Backup colors
-		if me.faceUV:
+		if faceUV:
 			orig_texface= [[(uv_key(f.uv[i]), col_key(f.col[i])) for i in xrange(len(f.v))] for f in me.faces]
 		
 		collapse_edges= [collapseEdge(ed) for ed in me.edges]
-		collapse_edges_dict= dict( [(ce.key, ce) for ce in collapse_edges] )
-		del ed
+		collapse_edges_dict= dict( [(ced.key, ced) for ced in collapse_edges] )
+		
 		
 		# Store verts edges.
 		vert_ed_users= [[] for i in xrange(len(me.verts))]
@@ -79,6 +84,8 @@ def redux(ob, factor=0.5):
 		
 		# Store face users
 		vert_face_users= [[] for i in xrange(len(me.verts))]
+		
+		#face_perim= [0.0]* len(me.faces)
 		
 		for ii, f in enumerate(me.faces):
 			f_v= f.v
@@ -103,61 +110,65 @@ def redux(ob, factor=0.5):
 					
 					ced.col1.append( tex_keys[i][1] )
 					ced.col2.append( tex_keys[i-1][1] )
+				
+				# PERIMITER
+				#face_perim[ii]+= ced.length
 		
-		'''
+		
 		face_normals= [f.no for f in me.faces]
 		face_areas= [f.area for f in me.faces]
 		
+		
 		# Best method, no quick hacks here, Correction. Should be the best but needs tweaks.
-		def ed_test_collapse_error(ed):
+		def ed_test_collapse_error(ced):
+			Ang= Blender.Mathutils.AngleBetweenVecs
 			
-			i1= ed.v1.index
-			i2= ed.v1.index
+			i1= ced.v1.index
+			i2= ced.v1.index
 			test_faces= set()
-			for i in (i1,i2):
-				test_faces.union( set([f[1].index for f in vert_face_users[i]]) )
 			
-			# 
-			test_faces= test_faces - set( [ f.index for f in edge_faces_and_uvs[ed_key(ed)][0] ] )
+			for i in (i1,i2):
+				for f in vert_face_users[i]:
+					test_faces.add(f[1].index)
+			
+			for f in ced.faces:
+				test_faces.remove(f.index)
+			
+			test_faces= tuple(test_faces) # keep order
 			
 			# test_faces is now faces used by ed.v1 and ed.v2 that will not be removed in the collapse.
+			# orig_nos= [face_normals[i] for i in test_faces]
 			
-			orig_nos= [face_normals.normal for i in test_faces]
+			v1_orig= Vector(ced.v1.co)
+			v2_orig= Vector(ced.v2.co)
 			
-			v1_orig= Vector(ed.v1.co)
-			v2_orig= Vector(ed.v2.co)
+			ced.v1.co= ced.v2.co= (v1_orig+v2_orig) * 0.5
 			
-			ed.v1.co= ed.v2.co= (v1_orig+v2_orig) * 0.5
+			new_nos= [me.faces[i].no for i in test_faces]
 			
-			new_nos= [face_normals.normal for i in test_faces]
-			
-			ed.v1.co= v1_orig
-			ed.v2.co= v2_orig
+			ced.v1.co= v1_orig
+			ced.v2.co= v2_orig
 			
 			# now see how bad the normals are effected
 			angle_diff= 0
 			
-			for i in test_faces:
+			for ii, i in enumerate(test_faces):
 				try:
-					angle_diff+= (Ang(orig_nos[i], new_nos[i])/180) * face_areas[i]
+					# can use perim, but area looks better.
+					angle_diff+= (Ang(face_normals[i], new_nos[ii])/180) * (1+(face_areas[i]/2)) # 4 is how much to influence area
 				except:
 					pass
+			
 			# This is very arbirary, feel free to modify
-			return angle_diff * ((ed.v1.no - ed.v2.no).length * ed.length)
-		'''
+			return angle_diff
 		
-		# Store egde lengths - Used 
-		# edge_lengths= [ed.length for ed in me.edges]
-		
-		# Better method of weighting - edge length * normal difference.
-		# edge_lengths= [ed.length * (1 + ((ed.v1.no-ed.v2.no).length**2) ) for ed in me.edges]
-		
-		# tricky but somehow looks crap!!
-		#edge_lengths= [ed_test_collapse_error(ed) for ed in me.edges]
-		
+		# We can calculate the weights on __init__ but this is higher qualuity.
+		for ced in collapse_edges:
+			ced.collapse_weight = ed_test_collapse_error(ced)
 		
 		# Wont use the function again.
-		#del ed_test_collapse_error
+		del ed_test_collapse_error
+		
 		
 		# BOUNDRY CHECKING AND WEIGHT EDGES. CAN REMOVE
 		# Now we know how many faces link to an edge. lets get all the boundry verts
@@ -247,52 +258,28 @@ def redux(ob, factor=0.5):
 			
 			# Collapse
 			between= (v1.co + v2.co) * 0.5
-			# new_location = between # Replace tricky code below
+			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
 			
-			# Collect edges from the faces that use this edge- dont use these in the new collapsed ver locatioin calc
-			exclude_edges= set()
-			for f in ced.faces:
-				for ii, v in enumerate(f.v):
-					i1= v.index
-					i2= f.v[ii-1].index
-					if i1>i2:
-						i1,i2= i2,i1
-					
-					exclude_edges.add((i1,i2))
+			# Make lines at right angles to the normals- these 2 lines will intersect and be
+			# the point of collapsing.
+			cv1= CrossVecs(v1.no, CrossVecs(v1.no, v1.co-v2.co))
+			cv2= CrossVecs(v2.no, CrossVecs(v2.no, v2.co-v1.co))
+			cv1= cv1* ced.length*2 # Enlarge so we know they intersect.
+			cv2= cv2* ced.length*2
 			
-			# move allong the combine normal of both 
-			# make a normal thats no longer then the edge length
-			nor= v1.no + v2.no
-			nor.normalize()
-			nor= nor*ced.length
-			
-			new_location= Vector()
-			new_location_count =0 
-			
-			# make a line we can do intersection with.
-			for v in (ced.v1, ced.v2):
-				for ed_user in vert_ed_users[v.index]:
-					if ed_user != ced and ed_user.key not in exclude_edges: 
-						ed_between= (ed_user.v1.co+ed_user.v2.co) * 0.5
-						v1_scale= ed_between + ((ed_user.v1.co-ed_between) * 100)
-						v2_scale= ed_between + ((ed_user.v2.co-ed_between) * 100)
-						line_xs= LineIntersect(between-nor, between+nor, v1_scale, v2_scale)
-						if line_xs: # did we intersect? - None if we didnt
-							new_location_count += 1
-							new_location+= line_xs[0]
-						
-			# Failed to generate a new location or x!=X (NAN)
-			# or, out new location is crazy and further away from the edge center then the edge length.
-			if not new_location_count or\
-			new_location.x!=new_location.x or\
-			(new_location-between).length > (ced.length/2):
+			line_xs= LineIntersect(v1.co, v1.co+cv1,  v2.co, v2.co+cv2)
+			if line_xs:
+				new_location = (line_xs[0]+line_xs[1]) * 0.5
+				if new_location.x!=new_location.x or\
+				(new_location-between).length > (ced.length/2):
 					new_location= between
 			else:
-				new_location= new_location * (1.0/new_location_count)
-				new_location = (new_location + between) * 0.5
+				new_location= between
 				
-			# Store the collapse location to apply later
 			ced.collapse_loc = new_location
+			
+			
+			
 		
 		# Execute the collapse
 		for ced in collapse_edges:
