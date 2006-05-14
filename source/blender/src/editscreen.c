@@ -1182,13 +1182,17 @@ static void screen_dispatch_events(void) {
 		if (winqueue_break) break;
 	}
 
-	if (dodrawscreen) {
-		drawscreen();
-		dodrawscreen= 0;
+	/* winqueue_break isnt the best of all solutions... but it is called on switching screens,
+		so drawing should wait for all redraw/init events to be handled */
+	if (winqueue_break==0) {
+		if (dodrawscreen) {
+			drawscreen();
+			dodrawscreen= 0;
+		}
+		
+		screen_swapbuffers();
+		do_screenhandlers(G.curscreen);
 	}
-	
-	screen_swapbuffers();
-	do_screenhandlers(G.curscreen);
 }
 
 static ScrArea *screen_find_area_for_pt(bScreen *sc, short *mval) 
