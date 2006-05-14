@@ -371,8 +371,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				
 				// when exiting the mainloop
 				dictionaryClearByHand(gameLogic);
-				exitGamePythonScripting();
 				ketsjiengine->StopEngine();
+				exitGamePythonScripting();
 				networkdevice->Disconnect();
 			}
 			if (sceneconverter)

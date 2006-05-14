@@ -56,6 +56,20 @@ SCA_PythonController::SCA_PythonController(SCA_IObject* gameobj,
 {
 }
 
+/*
+//debugging
+CValue*		SCA_PythonController::AddRef()
+{
+	//printf("AddRef refcount = %i\n",GetRefCount());
+	return CValue::AddRef();
+}
+int			SCA_PythonController::Release()
+{
+	//printf("Release refcount = %i\n",GetRefCount());
+	return CValue::Release();
+}
+*/
+
 
 
 SCA_PythonController::~SCA_PythonController()
@@ -278,7 +292,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	Py_DECREF(excdict);*/
 
 
-#if 0
+#if 1
 	PyObject *excdict= PyDict_Copy(m_pythondictionary);
 	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
 		excdict, 

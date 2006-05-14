@@ -54,6 +54,10 @@ class SCA_PythonController : public SCA_IController
  public: 
 	static SCA_PythonController* m_sCurrentController; // protected !!!
 
+	//for debugging
+	//virtual	CValue*		AddRef();
+	//virtual int			Release();												// Release a reference to this value (when reference count reaches 0, the value is removed from the heap)
+
 	SCA_PythonController(SCA_IObject* gameobj,PyTypeObject* T = &Type);
 	virtual ~SCA_PythonController();
 
