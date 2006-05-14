@@ -3138,6 +3138,11 @@ void zbufshadeDA_tile(RenderPart *pa)
 				if(!(rl->layflag & SCE_LAY_SOLID))
 					lamphalo_tile(pa, rl->rectf, rl->lay);
 		
+		/* halo before ztra, because ztra fills in zbuffer now */
+		if(R.flag & R_HALO)
+			if(rl->layflag & SCE_LAY_HALO)
+				halo_tile(pa, rl->rectf, rl->lay);
+		
 		/* transp layer */
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
@@ -3164,9 +3169,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 		/* extra layers */
 		if(R.r.mode & R_EDGE) 
 			edge_enhance_add(pa, rl->rectf, edgerect);
-		if(R.flag & R_HALO)
-			if(rl->layflag & SCE_LAY_HALO)
-				halo_tile(pa, rl->rectf, rl->lay);
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
@@ -3251,6 +3253,11 @@ void zbufshade_tile(RenderPart *pa)
 			if(rl->layflag & SCE_LAY_HALO)
 				if(!(rl->layflag & SCE_LAY_SOLID))
 					lamphalo_tile(pa, rl->rectf, rl->lay);
+		/* halo before ztra, because ztra fills in zbuffer now */
+		if(R.flag & R_HALO)
+			if(rl->layflag & SCE_LAY_HALO)
+				halo_tile(pa, rl->rectf, rl->lay);
+		
 		
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
@@ -3281,10 +3288,6 @@ void zbufshade_tile(RenderPart *pa)
 				edge_enhance_add(pa, rl->rectf, (float *)pa->rectp);
 			}
 		}
-		
-		if(R.flag & R_HALO)
-			if(rl->layflag & SCE_LAY_HALO)
-				halo_tile(pa, rl->rectf, rl->lay);
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
