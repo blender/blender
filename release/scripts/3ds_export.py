@@ -9,7 +9,7 @@ Tooltip: 'Export to 3DS file format (.3ds).'
 
 __author__ = ["Campbell Barton", "Bob Holcomb", "Richard Lärkäng", "Damien McGinnes", "Mark Stijnman"]
 __url__ = ("blender", "elysiun", "http://www.gametutorials.com", "http://lib3ds.sourceforge.net/")
-__version__ = "0.90"
+__version__ = "0.90a"
 __bpydoc__ = """\
 
 3ds Exporter
@@ -47,8 +47,10 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 ######################################################
 
 import Blender
-from Blender import NMesh, Scene, Object, Material
+from Blender import Object, Material
+import BPyMesh
 import struct
+
 
 
 ######################################################
@@ -127,6 +129,8 @@ def newFName(ext):
 	"""
 	return Blender.Get('filename')[: -len(Blender.Get('filename').split('.', -1)[-1]) ] + ext
 
+def uv_key(uv):
+	return round(uv.x, 6), round(uv.y, 6)
 
 # size defines:	
 SZ_SHORT = 2
@@ -468,7 +472,7 @@ def make_material_chunk(material):
 	material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
 	return material_chunk
 
-class tri:
+class tri_wrapper:
 	"""Class representing a triangle.
 	
 	Used when converting faces to triangles"""
@@ -478,54 +482,22 @@ class tri:
 	# material index:
 	mat_index=None
 	# uv coordinates (used on blender faces that have face-uv)
-	uvco=None
+	faceuvs=None
 	
-	def __init__(self, vindex=(0,0,0), mat=None, uvco=None):
-		self.vertex_index = vindex
-		self.mat = mat
-		self.uvco = uvco
-
-class UniqueList:
-	"""A list that only allows unique items.
-		
-	Trying to add an item that is not unique will give you the index where the item is already located."""
-	items=[]
-	
-	def __init__(self):
-		self.items=[]
-	
-	def add(self, new_item):
-		"""Add an item to the list and return the index at which it is added.
-		
-		If the item is already in the list, the index of the existing item is returned."""
-		found_index=None
-		for i,item in enumerate(self.items):
-			if (item==new_item):
-				found_index = i
-				break
-		if found_index==None:
-			found_index=len(self.items)
-			self.items.append(new_item)
-		return found_index
-
+	def __init__(self, vindex=(0,0,0), mat=None, faceuvs=None):
+		self.vertex_index= vindex
+		self.mat= mat
+		self.faceuvs= faceuvs
+		self.offset= [0, 0, 0] # offset indicies
 
 def split_into_tri(face, do_uv=False):
-	"""Split a quad face into two triangles.
-		
-	The quad will be split along the shortest of its two diagonals."""
-	if (face[0].co-face[2].co).length < (face[1].co-face[3].co).length:
-		first_tri = tri((face[0].index, face[1].index, face[2].index), face.mat)
-		second_tri = tri((face[2].index, face[3].index, face[0].index), face.mat)
-		if (do_uv):
-			first_tri.uvco = (face.uv[0], face.uv[1], face.uv[2])
-			second_tri.uvco = (face.uv[2], face.uv[3], face.uv[0])
-	else:
-		first_tri = tri((face[0].index, face[1].index, face[3].index), face.mat)
-		second_tri = tri((face[1].index, face[2].index, face[3].index), face.mat)
-		if (do_uv):
-			first_tri.uvco = (face.uv[0], face.uv[1], face.uv[3])
-			second_tri.uvco = (face.uv[1], face.uv[2], face.uv[3])
-	return first_tri, second_tri
+	"""Split a quad face into two triangles"""
+	first_tri = tri_wrapper((face.v[0].index, face.v[1].index, face.v[2].index), face.mat)
+	second_tri = tri_wrapper((face.v[0].index, face.v[2].index, face.v[3].index), face.mat)
+	if (do_uv):
+		first_tri.faceuvs= uv_key(face.uv[0]), uv_key(face.uv[1]), uv_key(face.uv[2])
+		second_tri.faceuvs= uv_key(face.uv[0]), uv_key(face.uv[2]), uv_key(face.uv[3])
+	return [first_tri, second_tri]
 	
 	
 def extract_triangles(mesh):
@@ -533,21 +505,18 @@ def extract_triangles(mesh):
 	
 	If the mesh contains quads, they will be split into triangles."""
 	tri_list = []
-	do_uv = mesh.hasFaceUV()
+	do_uv = mesh.faceUV
 	
 	for face in mesh.faces: 
-		if len(face) > 2:
-			num_fv = len(face)
+			num_fv = len(face.v)
 			if num_fv==3:
-				new_tri = tri((face[0].index, face[1].index, face[2].index), face.mat)
+				new_tri = tri_wrapper((face.v[0].index, face.v[1].index, face.v[2].index), face.mat)
 				if (do_uv):
-					new_tri.uvco = face.uv
+					new_tri.faceuvs= uv_key(face.uv[0]), uv_key(face.uv[1]), uv_key(face.uv[2])
 				tri_list.append(new_tri)
 				
-			elif num_fv==4: #it's a quad
-				first_tri, second_tri = split_into_tri(face, do_uv)
-				tri_list.append(first_tri)
-				tri_list.append(second_tri)
+			else: #it's a quad
+				tri_list.extend( split_into_tri(face, do_uv) )
 		
 	return tri_list
 	
@@ -560,17 +529,23 @@ def remove_face_uv(verts, tri_list):
 	there are multiple uv coordinates per vertex."""
 	
 	# initialize a list of UniqueLists, one per vertex:
-	uv_list = [UniqueList() for i in xrange(len(verts))]
-	
-	offset_list = [ ]
+	#uv_list = [UniqueList() for i in xrange(len(verts))]
+	unique_uvs= [{} for i in xrange(len(verts))]
 	
 	# for each face uv coordinate, add it to the UniqueList of the vertex
 	for tri in tri_list:
-		offset = []
 		for i in xrange(3):
 			# store the index into the UniqueList for future reference:
-			offset.append(uv_list[tri.vertex_index[i]].add(_3ds_point_uv(tri.uvco[i])))
-		offset_list.append(offset)
+			# offset.append(uv_list[tri.vertex_index[i]].add(_3ds_point_uv(tri.faceuvs[i])))
+			context_uv_vert= unique_uvs[tri.vertex_index[i]]
+			uvkey= tri.faceuvs[i]
+			try:
+				offset_index, uv_3ds= context_uv_vert[uvkey]
+			except:
+				offset_index= len(context_uv_vert)
+				context_uv_vert[tri.faceuvs[i]]= offset_index, _3ds_point_uv(uvkey)
+			tri.offset[i]= offset_index
+		
 	# At this point, each vertex has a UniqueList containing every uv coordinate that is associated with it
 	# only once.
 	
@@ -582,18 +557,18 @@ def remove_face_uv(verts, tri_list):
 	index_list=[]
 	for i,vert in enumerate(verts):
 		index_list.append(vert_index)
-		for uv in uv_list[i].items:
+		for ii, uv_3ds in unique_uvs[i].itervalues():
 			# add a vertex duplicate to the vertex_array for every uv associated with this vertex:
-			vert_array.add(_3ds_point_3d(vert))
+			vert_array.add(_3ds_point_3d(vert.co))
 			# add the uv coordinate to the uv array:
-			uv_array.add(uv)
+			uv_array.add(uv_3ds)
 			vert_index+=1
 	
 	# Make sure the triangle vertex indices now refer to the new vertex list:
-	for tri, offset in zip(tri_list, offset_list):
+	for tri in tri_list:
 		for i in xrange(3):
-			offset[i]+=index_list[tri.vertex_index[i]]
-		tri.vertex_index = offset
+			tri.offset[i]+=index_list[tri.vertex_index[i]]
+		tri.vertex_index= tri.offset
 	
 	return vert_array, uv_array, tri_list
 
@@ -644,7 +619,7 @@ def make_mesh_chunk(mesh):
 	# Extract the triangles from the mesh:
 	tri_list = extract_triangles(mesh)
 	
-	if (mesh.hasFaceUV()):
+	if mesh.faceUV:
 		# Remove the face UVs and convert it to vertex UV:
 		vert_array, uv_array, tri_list = remove_face_uv(mesh.verts, tri_list)
 	else:
@@ -653,7 +628,7 @@ def make_mesh_chunk(mesh):
 		for vert in mesh.verts:
 			vert_array.add(_3ds_point_3d(vert.co))
 		# If the mesh has vertex UVs, create an array of UVs:
-		if (mesh.hasVertexUV()):
+		if mesh.vertexUV:
 			uv_array = _3ds_array()
 			for vert in mesh.verts:
 				uv_array.add(_3ds_point_uv(vert.uvco))
@@ -709,16 +684,29 @@ def make_track_chunk(ID, obj):
 	# Next section should be repeated for every keyframe, but for now, animation is not actually supported.
 	track_chunk.add_variable("tcb_frame", _3ds_int(0))
 	track_chunk.add_variable("tcb_flags", _3ds_short())
-	if ID==POS_TRACK_TAG:
-		# position vector:
-		track_chunk.add_variable("position", _3ds_point_3d(obj.getLocation()))
-	elif ID==ROT_TRACK_TAG:
-		# rotation (quaternion, angle first, followed by axis):
-		q = obj.getEuler().toQuat()
-		track_chunk.add_variable("rotation", _3ds_point_4d((q.angle, q.axis[0], q.axis[1], q.axis[2])))
-	elif ID==SCL_TRACK_TAG:
-		# scale vector:
-		track_chunk.add_variable("scale", _3ds_point_3d(obj.getSize()))
+	if obj.getType()=='Empty':
+		if ID==POS_TRACK_TAG:
+			# position vector:
+			track_chunk.add_variable("position", _3ds_point_3d(obj.getLocation()))
+		elif ID==ROT_TRACK_TAG:
+			# rotation (quaternion, angle first, followed by axis):
+			q = obj.getEuler().toQuat()
+			track_chunk.add_variable("rotation", _3ds_point_4d((q.angle, q.axis[0], q.axis[1], q.axis[2])))
+		elif ID==SCL_TRACK_TAG:
+			# scale vector:
+			track_chunk.add_variable("scale", _3ds_point_3d(obj.getSize()))
+	else:
+		# meshes have their transformations applied before 
+		# exporting, so write identity transforms here:
+		if ID==POS_TRACK_TAG:
+			# position vector:
+			track_chunk.add_variable("position", _3ds_point_3d((0.0,0.0,0.0)))
+		elif ID==ROT_TRACK_TAG:
+			# rotation (quaternion, angle first, followed by axis):
+			track_chunk.add_variable("rotation", _3ds_point_4d((0.0, 1.0, 0.0, 0.0)))
+		elif ID==SCL_TRACK_TAG:
+			# scale vector:
+			track_chunk.add_variable("scale", _3ds_point_3d((1.0, 1.0, 1.0)))
 	
 	return track_chunk
 
@@ -786,8 +774,9 @@ def make_kf_obj_node(obj, name_to_id):
 def save_3ds(filename):
 	"""Save the Blender scene to a 3ds file."""
 	# Time the export
-	time1 = Blender.sys.time()
-
+	time1= Blender.sys.time()
+	scn= Blender.Scene.GetCurrent()
+	
 	# Initialize the main chunk (primary):
 	primary = _3ds_chunk(PRIMARY)
 	# Add version chunk:
@@ -801,45 +790,55 @@ def save_3ds(filename):
 	# init main key frame data chunk:
 	kfdata = make_kfdata()
 	
-	# Make chunks for all materials in the scene:
-	for material in Material.Get():
+	# Get all the supported objects selected in this scene:
+	ob_sel= Blender.Object.GetSelected()
+	#getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None):
+	mesh_objects = [ (ob, BPyMesh.getMeshFromObject(ob, None, True, False, scn)) for ob in ob_sel if ob.getType() == 'Mesh' ]
+	empty_objects = [ ob for ob in ob_sel if ob.getType() == 'Empty' ]
+	
+	# Make a list of all materials used in the selected meshes (use a dictionary,
+	# each material is added once):
+	materials = {}
+	for ob, data in mesh_objects:
+		for m in data.materials:
+			try:
+				materials[m.name]
+			except:
+				materials[m.name]= m
+	
+	# Make material chunks for all materials used in the meshes:
+	for material in materials.itervalues():
 		object_info.add_subchunk(make_material_chunk(material))
-	
-	
-	# Get all the supported objects in this scene
-	mesh_objects = [ ob for ob in Blender.Object.Get() if ob.getType() == 'Mesh' ]
-	empty_objects = [ ob for ob in Blender.Object.Get() if ob.getType() == 'Empty' ]
-	
-	all_objects = mesh_objects + empty_objects
 	
 	# Give all objects a unique ID and build a dictionary from object name to object id:
 	name_to_id = {}
-	for i,obj in enumerate(all_objects):
-		name_to_id[obj.getName()] = i
+	for ob, data in mesh_objects:
+		name_to_id[ob.name]= len(name_to_id)
+	for ob in empty_objects:
+		name_to_id[ob.name]= len(name_to_id)
 	
 	# Create object chunks for all meshes:
-	for obj in mesh_objects:
-		#create a new object chunk
+	for ob, blender_mesh in mesh_objects:
+		# create a new object chunk
 		object_chunk = _3ds_chunk(OBJECT)
 		
-		#get the mesh data
-		blender_mesh = obj.getData()
-		blender_mesh.transform(obj.getMatrix())
+		# transform the mesh:
+		blender_mesh.transform(ob.matrixWorld)
 		
-		#set the object name
-		object_chunk.add_variable("name", _3ds_string(obj.getName()))
+		# set the object name
+		object_chunk.add_variable("name", _3ds_string(ob.name))
 		
 		# make a mesh chunk out of the mesh:
 		object_chunk.add_subchunk(make_mesh_chunk(blender_mesh))
 		object_info.add_subchunk(object_chunk)
 		
 		# make a kf object node for the object:
-		kfdata.add_subchunk(make_kf_obj_node(obj, name_to_id))
+		kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
 
 	# Create chunks for all empties:
-	for obj in empty_objects:
+	for ob in empty_objects:
 		# Empties only require a kf object node:
-		kfdata.add_subchunk(make_kf_obj_node(obj, name_to_id))
+		kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
 	
 	# Add main object info chunk to primary chunk:
 	primary.add_subchunk(object_info)
@@ -858,6 +857,11 @@ def save_3ds(filename):
 	
 	# Close the file:
 	file.close()
+	
+	# Free memory
+	for ob, blender_mesh in mesh_objects:
+		blender_mesh.verts= None
+	
 	
 	# Debugging only: report the exporting time:
 	print "3ds export time: %.2f" % (Blender.sys.time() - time1)
