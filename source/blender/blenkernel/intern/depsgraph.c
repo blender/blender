@@ -1332,6 +1332,50 @@ void graph_print_adj_list(void)
 
 /* ************************ API *********************** */
 
+/* groups with objects in this scene need to be put in the right order as well */
+static void scene_sort_groups(Scene *sce)
+{
+	Base *base;
+	Group *group;
+	GroupObject *go;
+	Object *ob;
+	
+	/* test; are group objects all in this scene? */
+	for(ob= G.main->object.first; ob; ob= ob->id.next) {
+		ob->id.flag &= ~LIB_DOIT;
+		ob->id.newid= NULL;	/* newid abuse for GroupObject */
+	}
+	for(base = sce->base.first; base; base= base->next)
+		base->object->id.flag |= LIB_DOIT;
+	
+	for(group= G.main->group.first; group; group= group->id.next) {
+		for(go= group->gobject.first; go; go= go->next) {
+			if((go->ob->id.flag & LIB_DOIT)==0)
+				break;
+		}
+		/* this group is entirely in this scene */
+		if(go==NULL) {
+			ListBase listb= {NULL, NULL};
+			
+			for(go= group->gobject.first; go; go= go->next)
+				go->ob->id.newid= (ID *)go;
+			
+			/* in order of sorted bases we reinsert group objects */
+			for(base = sce->base.first; base; base= base->next) {
+				
+				if(base->object->id.newid) {
+					go= (GroupObject *)base->object->id.newid;
+					base->object->id.newid= NULL;
+					BLI_remlink( &group->gobject, go);
+					BLI_addtail( &listb, go);
+				}
+			}
+			/* copy the newly sorted listbase */
+			group->gobject= listb;
+		}
+	}
+}
+
 /* sort the base list on dependency order */
 void DAG_scene_sort(struct Scene *sce)
 {
@@ -1411,6 +1455,9 @@ void DAG_scene_sort(struct Scene *sce)
 	
 	sce->base = tempbase;
 	queue_delete(nqueue);
+	
+	/* all groups with objects in this scene gets resorted too */
+	scene_sort_groups(sce);
 	
 	if(G.f & G_DEBUG) {
 		printf("\nordered\n");
