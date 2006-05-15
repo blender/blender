@@ -280,8 +280,14 @@ for targetdir,srcfile in zip(dottargetlist, dotblendlist):
     dotblenderinstall.append(env.Install(dir=td, source=srcfile))
 
 #-- .blender/scripts
-scriptlist = glob.glob('release/scripts/*.py')
-scriptinstall = env.Install(dir=env['BF_INSTALLDIR']+'/.blender/scripts', source=scriptlist)
+scriptinstall = []
+scriptpath='release/scripts'
+for dp, dn, df in os.walk(scriptpath):
+    if 'CVS' in dn:
+        dn.remove('CVS')
+    dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
+    source=[dp+os.sep+f for f in df]
+    scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- plugins
 pluglist = []
