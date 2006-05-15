@@ -4448,21 +4448,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (wo = main->world.first; wo; wo= wo->id.next) {
 			wo->physicsEngine = 2;
 		}
-	} else
-	{
-		if(main->versionfile <= 241) {
-			World *wo;
-			/* Migrate to Bullet for recent games */
-			/* People can still explicitely choose for Sumo */
-			for (wo = main->world.first; wo; wo= wo->id.next) {
-				wo->physicsEngine = 5;
-			}
-
-		}
-
 	}
-
-
 
 	if(main->versionfile <= 227) {
 		Scene *sce;
@@ -5320,9 +5306,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		Tex *tex;
 		Scene *sce;
+		World *wo;
 		Lamp *la;
 		bArmature *arm;
 		bNodeTree *ntree;
+		
+		/* Migrate to Bullet for games, except for the NaN versions */
+		/* People can still explicitely choose for Sumo (after 2.42 is out) */
+		if(main->versionfile > 225) {
+			for (wo = main->world.first; wo; wo= wo->id.next)
+				wo->physicsEngine = WOPHY_BULLET;
+		}
 		
 		/* updating layers still */
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
