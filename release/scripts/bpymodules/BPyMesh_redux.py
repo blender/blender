@@ -136,6 +136,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			v1no= ced.v1.co
 			v2no= ced.v2.co
 			length= ced.length
+			between= (v1co + v2co) * 0.5
 			# Collapse
 			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
 			
@@ -152,7 +153,10 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			cv1 = cv1 * length* 0.333
 			cv2 = cv2 * length* 0.333
 			
-			ced.collapse_loc = ((v1co + v2co) * 0.5) + (cv1 + cv2)
+			
+			ced.collapse_loc = between + (cv1 + cv2)
+			if ced.collapse_loc.x != ced.collapse_loc.x: # NAN LOCATION, revert to between
+				ced.collapse_loc= between
 		
 		
 		# Best method, no quick hacks here, Correction. Should be the best but needs tweaks.

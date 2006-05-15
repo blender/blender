@@ -71,7 +71,10 @@ def getExt(name):
 # Adds a slash to the end of a path if its not there #
 #====================================================#
 def addSlash(path):
-	if path.endswith('\\') or path.endswith('/'):
+	if not path:
+		return ''
+	
+	elif path.endswith('\\') or path.endswith('/'):
 		return path
 	return path + sys.sep
 
