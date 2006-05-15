@@ -104,7 +104,8 @@ def _sanitize(o):
 
 def _dict_to_str(name, d):
 	"Return a pretty-print version of the passed dictionary"
-
+	if not d: return 'None' # d can be None if there was no config to pass
+	
 	if name: l = ['%s = {' % name]
 	else: l = ['{']
 	keys = d.keys()
@@ -194,10 +195,11 @@ def LoadConfigData (key = None):
 		f = file(p, 'r')
 		lines = f.readlines()
 		f.close()
-		mainkey = lines[0].split('=')[0].strip()
-		pysrc = "\n".join(lines)
-		exec(pysrc)
-		exec("Registry.SetKey('%s', %s)" % (str(mainkey), mainkey))
+		if lines: # Lines may be blank
+			mainkey = lines[0].split('=')[0].strip()
+			pysrc = "\n".join(lines)
+			exec(pysrc)
+			exec("Registry.SetKey('%s', %s)" % (str(mainkey), mainkey))
 
 
 def RemoveConfigData (key = None):
@@ -249,6 +251,7 @@ def SaveConfigData (key = None):
 		filename = bsys.join(_CFG_DIR, "%s%s" % (mainkey, _EXT))
 		f = file(filename, 'w')
 		output = _dict_to_str(mainkey, _sanitize(cfgdict))
-		f.write(output)
-		f.close()
+		if output!='None':
+			f.write(output)
+			f.close()
 

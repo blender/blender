@@ -4,13 +4,6 @@ LineIntersect= Blender.Mathutils.LineIntersect
 CrossVecs= Blender.Mathutils.CrossVecs
 import BPyMesh
 
-'''
-try:
-	import psyco
-	psyco.full()
-except:
-	pass
-'''
 
 def uv_key(uv):
 	return round(uv.x, 5), round(uv.y, 5)
@@ -24,44 +17,69 @@ def ed_key(ed):
 def col_key(col):
 	return col.r, col.g, col.b
 
-class collapseEdge(object):
-	__slots__ = 'length', 'key', 'faces', 'collapse_loc', 'v1', 'v2','uv1', 'uv2', 'col1', 'col2', 'collapse_weight'
-	def __init__(self, ed):
-		self.key= ed_key(ed)
-		self.length= ed.length
-		self.faces= []
-		self.v1= ed.v1
-		self.v2= ed.v2
-		self.uv1= []
-		self.uv2= []
-		self.col1= []
-		self.col2= []
-		self.collapse_loc= None # new collapse location.
-		
-		# Basic weighting.
-		#self.collapse_weight= self.length *  (1+ ((ed.v1.no-ed.v2.no).length**2))
-
-
-
-def redux(ob, factor=0.5):
+def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGULATE=True):
+	'''
+	BOUNDRY_WEIGHT - 0 is no boundry weighting. 2.0 will make them twice as unlikely to collapse.
+	FACE_AREA_WEIGHT - 0 is no weight. 1 is normal, 2.0 is higher.
+	'''
+	
 	me= ob.getData(mesh=1)
 	
-	# BUG MUST REMOVE GROUPS 
-	if factor>1.0 or factor<0.0 or len(me.faces)<4:
+	if REDUX>1.0 or REDUX<0.0 or len(me.faces)<4:
 		return
+	
+	if FACE_TRIANGULATE:
+		me.quadToTriangle() 
 	
 	OLD_MESH_MODE= Blender.Mesh.Mode()
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes.VERTEX)
 	
 	faceUV= me.faceUV
-	
-	target_face_count= int(len(me.faces) * factor)
+	current_face_count= len(me.faces)
+	target_face_count= int(current_face_count * REDUX)
 	# % of the collapseable faces to collapse per pass.
 	#collapse_per_pass= 0.333 # between 0.1 - lots of small nibbles, slow but high q. and 0.9 - big passes and faster.
 	collapse_per_pass= 0.333 # between 0.1 - lots of small nibbles, slow but high q. and 0.9 - big passes and faster.
 	
+	
+	class collapseEdge(object):
+		__slots__ = 'length', 'key', 'faces', 'collapse_loc', 'v1', 'v2','uv1', 'uv2', 'col1', 'col2', 'collapse_weight'
+		def __init__(self, ed):
+			self.key= ed_key(ed)
+			self.length= ed.length
+			self.faces= []
+			self.v1= ed.v1
+			self.v2= ed.v2
+			if faceUV:
+				self.uv1= []
+				self.uv2= []
+				self.col1= []
+				self.col2= []
+				# self.collapse_loc= None # new collapse location.
+				
+				# Basic weighting.
+				#self.collapse_weight= self.length *  (1+ ((ed.v1.no-ed.v2.no).length**2))
+
+	class collapseFace(object):
+		__slots__ = 'verts', 'normal', 'area', 'index', 'orig_uv', 'orig_col', 'uv', 'col'
+		def __init__(self, f):
+			self.verts= f.v
+			self.normal= f.no
+			self.area= f.area
+			self.index= f.index
+			if faceUV:
+				self.orig_uv= [uv_key(uv) for uv in f.uv]
+				self.orig_col= [col_key(col) for col in f.col]
+				self.uv= f.uv
+				self.col= f.col
+	
+	
+	
 	for v in me.verts:
 		v.hide=0
+	
+	collapse_edges= collapse_faces= None
+	
 	while target_face_count <= len(me.faces):
 		BPyMesh.meshCalcNormals(me)
 		
@@ -72,9 +90,9 @@ def redux(ob, factor=0.5):
 		if faceUV:
 			orig_texface= [[(uv_key(f.uv[i]), col_key(f.col[i])) for i in xrange(len(f.v))] for f in me.faces]
 		
+		collapse_faces= [collapseFace(f) for f in me.faces]
 		collapse_edges= [collapseEdge(ed) for ed in me.edges]
 		collapse_edges_dict= dict( [(ced.key, ced) for ced in collapse_edges] )
-		
 		
 		# Store verts edges.
 		vert_ed_users= [[] for i in xrange(len(me.verts))]
@@ -85,42 +103,60 @@ def redux(ob, factor=0.5):
 		# Store face users
 		vert_face_users= [[] for i in xrange(len(me.verts))]
 		
+		# Have decieded not to use this. area is better.
 		#face_perim= [0.0]* len(me.faces)
 		
-		for ii, f in enumerate(me.faces):
-			f_v= f.v
-			if faceUV:
-				tex_keys= orig_texface[ii]
-
-			for i, v1 in enumerate(f_v):
-				vert_face_users[v1.index].append( (i,f) )
+		for ii, cfa in enumerate(collapse_faces):
+			for i, v1 in enumerate(cfa.verts):
+				vert_face_users[v1.index].append( (i,cfa) )
 				
 				# add the uv coord to the vert
-				v2 = f_v[i-1]
+				v2 = cfa.verts[i-1]
 				i1= v1.index
 				i2= v2.index
 				
 				if i1>i2: ced= collapse_edges_dict[i2,i1]
 				else: ced= collapse_edges_dict[i1,i2]
 				
-				ced.faces.append(f)
+				ced.faces.append(cfa)
 				if faceUV:
-					ced.uv1.append( tex_keys[i][0] )
-					ced.uv2.append( tex_keys[i-1][0] )
+					ced.uv1.append( cfa.orig_uv[i] )
+					ced.uv2.append( cfa.orig_uv[i-1] )
 					
-					ced.col1.append( tex_keys[i][1] )
-					ced.col2.append( tex_keys[i-1][1] )
+					ced.col1.append( cfa.orig_col[i] )
+					ced.col2.append( cfa.orig_col[i-1] )
 				
 				# PERIMITER
 				#face_perim[ii]+= ced.length
 		
 		
-		face_normals= [f.no for f in me.faces]
-		face_areas= [f.area for f in me.faces]
+		def ed_set_collapse_loc(ced):
+			v1co= ced.v1.co
+			v2co= ced.v2.co
+			v1no= ced.v1.co
+			v2no= ced.v2.co
+			length= ced.length
+			# Collapse
+			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
+			
+			# Make lines at right angles to the normals- these 2 lines will intersect and be
+			# the point of collapsing.
+			
+			# Enlarge so we know they intersect:  ced.length*2
+			cv1= CrossVecs(v1no, CrossVecs(v1no, v1co-v2co))
+			cv2= CrossVecs(v2no, CrossVecs(v2no, v2co-v1co))
+			
+			# Scale to be less then the edge lengths.
+			cv1.normalize()
+			cv2.normalize()
+			cv1 = cv1 * length* 0.333
+			cv2 = cv2 * length* 0.333
+			
+			ced.collapse_loc = ((v1co + v2co) * 0.5) + (cv1 + cv2)
 		
 		
 		# Best method, no quick hacks here, Correction. Should be the best but needs tweaks.
-		def ed_test_collapse_error(ced):
+		def ed_set_collapse_error(ced):
 			Ang= Blender.Mathutils.AngleBetweenVecs
 			
 			i1= ced.v1.index
@@ -142,7 +178,7 @@ def redux(ob, factor=0.5):
 			v1_orig= Vector(ced.v1.co)
 			v2_orig= Vector(ced.v2.co)
 			
-			ced.v1.co= ced.v2.co= (v1_orig+v2_orig) * 0.5
+			ced.v1.co= ced.v2.co= ced.collapse_loc
 			
 			new_nos= [me.faces[i].no for i in test_faces]
 			
@@ -150,43 +186,56 @@ def redux(ob, factor=0.5):
 			ced.v2.co= v2_orig
 			
 			# now see how bad the normals are effected
-			angle_diff= 0
+			angle_diff= 1.0
 			
-			for ii, i in enumerate(test_faces):
+			for ii, i in enumerate(test_faces): # local face index, global face index
+				cfa= collapse_faces[i] # this collapse face
 				try:
 					# can use perim, but area looks better.
-					angle_diff+= (Ang(face_normals[i], new_nos[ii])/180) * (1+(face_areas[i]/2)) # 4 is how much to influence area
+					if FACE_AREA_WEIGHT:
+						angle_diff+= (Ang(cfa.normal, new_nos[ii])/180) * (1+(cfa.area * FACE_AREA_WEIGHT)) # 4 is how much to influence area
+					else:
+						angle_diff+= (Ang(cfa.normal, new_nos[ii])/180)
+						
 				except:
 					pass
 			
 			# This is very arbirary, feel free to modify
-			return angle_diff
+			try:
+				no_ang= (Ang(ced.v1.no, ced.v2.no)/180) + 1
+			except:
+				no_ang= 2.0
+			ced.collapse_weight=  (no_ang * ced.length) * (1-(1/angle_diff))# / max(len(test_faces), 1)
 		
 		# We can calculate the weights on __init__ but this is higher qualuity.
 		for ced in collapse_edges:
-			ced.collapse_weight = ed_test_collapse_error(ced)
+			ed_set_collapse_loc(ced)
+			ed_set_collapse_error(ced)
 		
 		# Wont use the function again.
-		del ed_test_collapse_error
+		del ed_set_collapse_error
+		del ed_set_collapse_loc
 		
 		
 		# BOUNDRY CHECKING AND WEIGHT EDGES. CAN REMOVE
 		# Now we know how many faces link to an edge. lets get all the boundry verts
-		verts_boundry= [1]*len(me.verts)
-		#for ed_idxs, faces_and_uvs in edge_faces_and_uvs.iteritems():
-		for ced in collapse_edges:
-			if len(ced.faces) < 2:
-				verts_boundry[ced.key[0]]= 2
-				verts_boundry[ced.key[1]]= 2
-		
-		for ced in collapse_edges:
-			if verts_boundry[ced.v1.index] != verts_boundry[ced.v2.index]:
-				# Edge has 1 boundry and 1 non boundry vert. weight higher
-				ced.collapse_weight*=2
-		
-		
-		vert_collapsed= verts_boundry
-		del verts_boundry
+		if BOUNDRY_WEIGHT > 0:
+			verts_boundry= [1] * len(me.verts)
+			#for ed_idxs, faces_and_uvs in edge_faces_and_uvs.iteritems():
+			for ced in collapse_edges:
+				if len(ced.faces) < 2:
+					verts_boundry[ced.key[0]]= 2
+					verts_boundry[ced.key[1]]= 2
+			
+			for ced in collapse_edges:
+				if verts_boundry[ced.v1.index] != verts_boundry[ced.v2.index]:
+					# Edge has 1 boundry and 1 non boundry vert. weight higher
+					ced.collapse_weight*=BOUNDRY_WEIGHT
+			vert_collapsed= verts_boundry
+			del verts_boundry
+		else:
+			vert_collapsed= [1] * len(me.verts)
+
 		# END BOUNDRY. Can remove
 		
 		# sort by collapse weight
@@ -209,22 +258,26 @@ def redux(ob, factor=0.5):
 		# Get a subset of the entire list- the first "collapse_per_pass", that are best to collapse.
 		if collapse_count > 4:
 			collapse_count = int(collapse_count*collapse_per_pass)
-		
+		else:
+			collapse_count = len(collapse_edges)
 		# We know edge_container_list_collapse can be removed.
 		for ced in collapse_edges:
+			# Chech if we have collapsed our quota.
 			collapse_count-=1
 			if not collapse_count:
+				ced.collapse_loc= None
 				break
-			v1= ced.v1
-			v2= ced.v2
-			
-			#edge_face_list, edge_v2_uvs, edge_v1_uvs= edge_faces_and_uvs[ed_key(ed)]
-			#current_removed_faces += len(edge_face_list) # dosent work for quads.
-			
+				
+			current_face_count -= len(ced.faces)
 			if faceUV:
+				# Handel UV's and vert Colors!
+				v1= ced.v1
+				v2= ced.v2
 				for v, edge_my_uvs, edge_other_uvs, edge_my_cols, edge_other_cols in ((v2, ced.uv1, ced.uv2, ced.col1, ced.col2),(v1, ced.uv2, ced.uv1, ced.col2, ced.col1)):
-					for face_vert_index, f in vert_face_users[v.index]:
-						uvk, colk = orig_texface[f.index][face_vert_index]
+					for face_vert_index, cfa in vert_face_users[v.index]:
+						uvk=  cfa.orig_uv[face_vert_index] 
+						colk= cfa.orig_col[face_vert_index] 
+						
 						# UV COORDS
 						tex_index= None
 						try:
@@ -235,13 +288,11 @@ def redux(ob, factor=0.5):
 						if tex_index != None:
 							# This face uses a uv in the collapsing face. - do a merge
 							other_uv= edge_other_uvs[tex_index]
-							uv_vec= f.uv[face_vert_index]
+							uv_vec= cfa.uv[face_vert_index]
 							uv_vec.x= (uvk[0] + other_uv[0])*0.5
 							uv_vec.y= (uvk[1] + other_uv[1])*0.5
 						
 						# TEXFACE COLOURS
-						#colk = col_key(f.col[face_vert_index])
-						
 						tex_index= None
 						try:
 							tex_index= edge_my_cols.index(colk)
@@ -251,35 +302,17 @@ def redux(ob, factor=0.5):
 						if tex_index != None:
 							# Col
 							other_col= edge_other_cols[tex_index]
-							col_ob= f.col[face_vert_index]
+							# f= me.faces[cfa.index]
+							col_ob= cfa.col[face_vert_index]
+							# col_ob= me.faces[cfa.index].col[face_vert_index]
+							
 							col_ob.r = int((colk[0] + other_col[0])*0.5)
 							col_ob.g = int((colk[1] + other_col[1])*0.5)
 							col_ob.b = int((colk[2] + other_col[2])*0.5)
 			
-			# Collapse
-			between= (v1.co + v2.co) * 0.5
-			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
-			
-			# Make lines at right angles to the normals- these 2 lines will intersect and be
-			# the point of collapsing.
-			cv1= CrossVecs(v1.no, CrossVecs(v1.no, v1.co-v2.co))
-			cv2= CrossVecs(v2.no, CrossVecs(v2.no, v2.co-v1.co))
-			cv1= cv1* ced.length*2 # Enlarge so we know they intersect.
-			cv2= cv2* ced.length*2
-			
-			line_xs= LineIntersect(v1.co, v1.co+cv1,  v2.co, v2.co+cv2)
-			if line_xs:
-				new_location = (line_xs[0]+line_xs[1]) * 0.5
-				if new_location.x!=new_location.x or\
-				(new_location-between).length > (ced.length/2):
-					new_location= between
-			else:
-				new_location= between
-				
-			ced.collapse_loc = new_location
-			
-			
-			
+			if current_face_count <= target_face_count:
+				ced.collapse_loc= None
+				break
 		
 		# Execute the collapse
 		for ced in collapse_edges:
@@ -291,7 +324,12 @@ def redux(ob, factor=0.5):
 		
 		doubles= me.remDoubles(0.0001) 
 		me= ob.getData(mesh=1)
+		current_face_count= len(me.faces)
 		if doubles==0: # should never happen.
+			break
+			
+		if current_face_count <= target_face_count:
+			ced.collapse_loc= None
 			break
 	
 	# Cleanup. BUGGY?
