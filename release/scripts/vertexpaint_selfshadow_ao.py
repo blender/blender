@@ -43,7 +43,7 @@ import BPyMesh
 # reload(BPyMesh)
 
 
-def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
+def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
 	Window.WaitCursor(1)
 	V=Mathutils.Vector
 	M=Mathutils.Matrix
@@ -108,21 +108,23 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_CLAMP_CONCAVE,
 			l= edge_lengths[ii]
 			
 			f=1.0
-			if l < PREF_BLUR_RADIUS:
+			if l > PREF_MIN_EDLEN and l < PREF_BLUR_RADIUS:
 				f= l/PREF_BLUR_RADIUS
-			
-			len_vert_tone_list_i1 = vert_tone_count[i1]
-			len_vert_tone_list_i2 = vert_tone_count[i2]
-			
-			if not len_vert_tone_list_i1: len_vert_tone_list_i1=1
-			if not len_vert_tone_list_i2: len_vert_tone_list_i2=1
-			
-			vert_tone[i1]+= (orig_vert_tone[i2]/len_vert_tone_list_i1)/ f
-			vert_tone[i2]+= (orig_vert_tone[i1]/len_vert_tone_list_i2)/ f
-			
+				
+				len_vert_tone_list_i1 = vert_tone_count[i1]
+				len_vert_tone_list_i2 = vert_tone_count[i2]
+					
+				if not len_vert_tone_list_i1: len_vert_tone_list_i1=1
+				if not len_vert_tone_list_i2: len_vert_tone_list_i2=1
+					
+				vert_tone[i1]+= (orig_vert_tone[i2]/len_vert_tone_list_i1)/ f
+				vert_tone[i2]+= (orig_vert_tone[i1]/len_vert_tone_list_i2)/ f
+				
 
 	min_tone= min(vert_tone)
 	max_tone= max(vert_tone)
+	
+	print min_tone, max_tone
 	
 	tone_range= max_tone-min_tone
 	if max_tone==min_tone:
@@ -154,6 +156,7 @@ def main():
 	
 	PREF_BLUR_ITERATIONS= Draw.Create(1)	
 	PREF_BLUR_RADIUS= Draw.Create(0.05)
+	PREF_MIN_EDLEN= Draw.Create(0.01)
 	PREF_CLAMP_CONCAVE= Draw.Create(180)
 	PREF_CLAMP_CONVEX= Draw.Create(180)
 	PREF_SHADOW_ONLY= Draw.Create(0)
@@ -162,6 +165,7 @@ def main():
 	'Post AO Blur',\
 	('  Iterations:', PREF_BLUR_ITERATIONS, 0, 40, 'Number times to blur the colors. (higher blurs more)'),\
 	('  Blur Radius:', PREF_BLUR_RADIUS, 0.01, 40.0, 'How much distance effects blur transfur (higher blurs more).'),\
+	('  Min EdgeLen:', PREF_MIN_EDLEN, 0.00001, 1.0, 'Minimim edge length to blur (very low values can cause errors).'),\
 	'Angle Clipping',\
 	('  Highlight Angle:', PREF_CLAMP_CONVEX, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
 	('  Shadow Angle:', PREF_CLAMP_CONCAVE, 0, 180, 'Less then 180 limits the angle used in the tonal range.'),\
@@ -174,13 +178,14 @@ def main():
 	
 	PREF_BLUR_ITERATIONS= PREF_BLUR_ITERATIONS.val
 	PREF_BLUR_RADIUS= PREF_BLUR_RADIUS.val
+	PREF_MIN_EDLEN= PREF_MIN_EDLEN.val
 	PREF_CLAMP_CONCAVE= PREF_CLAMP_CONCAVE.val
 	PREF_CLAMP_CONVEX= PREF_CLAMP_CONVEX.val
 	PREF_SHADOW_ONLY= PREF_SHADOW_ONLY.val
 	PREF_SEL_ONLY= PREF_SEL_ONLY.val
 	
 	#t= sys.time()
-	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
+	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
 	#print 'done in %.6f' % (sys.time()-t)
 if __name__=='__main__':
 	main()
