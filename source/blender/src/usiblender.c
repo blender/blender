@@ -467,18 +467,19 @@ static void readBlog(void)
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
 	lines= BLI_read_file_as_lines(name);
 
-	for (num= 0; num<10; num++) G.recent[num][0]=0;
+	for (num= 0; num<10; num++) G.recent[num][0]= 0;
+	
 	for (l= lines, num= 0; l && (num<10); l= l->next, num++) {
 		line = l->link;
 		if (!BLI_streq(line, "")) {
 			if (num==0) strcpy(G.sce, line);
 			strcpy(G.recent[num], line);
-		} else {
-//			BLI_make_file_string("/", G.sce, BLI_gethome(), "untitled.blend");
-			G.sce[0] = 0;
 		}
 	}
 
+	if(G.sce[0] == 0)
+		BLI_make_file_string("/", G.sce, BLI_gethome(), "untitled.blend");
+	
 	BLI_free_file_lines(lines);
 
 #ifdef WIN32
