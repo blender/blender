@@ -473,56 +473,6 @@ static void ftype_pic(char *name)
 	allqueue(REDRAWBUTSSCENE, 0);
 }
 
-static void scene_chain_cleanup(Scene *sc) 
-{
-	while(sc) {
-		sc->dirty = SCE_CLEAN;
-		sc = sc->set;
-    }
-}
-
-static void scene_change_set(Scene *sc, Scene *set) 
-{
-	Scene *scene = G.main->scene.first;
-	int clean = SCE_CLEAN;
-	int breakout = 0;
-	
-	if (sc->set!=set) {
-		sc->set= set;
-		while(breakout==0 && scene) {
-			Scene *setchain = scene;
-			while(breakout==0 && setchain) {
-				clean = setchain->dirty;
-				if(clean == SCE_DIRTY) {
-					/* we have not reached yet end of chain, and we
-					* encountered dirty node - we have a cycle.
-					* sc->set = 0, clean the chain and break out.
-					*/
-					error("Can't change set. It would create a loop!");
-					sc->set = 0;
-					breakout = 1;
-					scene_chain_cleanup(scene);
-					
-				}
-				
-				if(breakout == 0) {
-					setchain->dirty = SCE_DIRTY;
-					setchain = setchain->set;
-				}
-			}
-			
-			if(breakout == 0) {
-				scene_chain_cleanup(scene);
-				scene = scene->id.next;
-			}
-		}
-		
-		allqueue(REDRAWBUTSSCENE, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Change set Scene");
-	}
-}
-
 static void run_playanim(char *file) 
 {
 	extern char bprogname[];	/* usiblender.c */
@@ -833,32 +783,29 @@ void do_render_panels(unsigned short event)
 		
 		if (G.buts->menunr==-2) {
 			 activate_databrowse(id, ID_SCE, 0, B_SETBROWSE, &G.buts->menunr, do_render_panels);
-		} else if (G.buts->menunr>0) {
+		} 
+		else if (G.buts->menunr>0) {
 			Scene *newset= (Scene*) BLI_findlink(&G.main->scene, G.buts->menunr-1);
 			
 			if (newset==G.scene)
 				error("Not allowed");
-			else if (newset)
-				scene_change_set(G.scene, newset);
+			else if (newset) {
+				G.scene->set= newset;
+				if (scene_check_setscene(G.scene)==0)
+					error("This would create a cycle");
+
+				allqueue(REDRAWBUTSSCENE, 0);
+				allqueue(REDRAWVIEW3D, 0);
+				BIF_undo_push("Change Set Scene");
+			}
 		}  
 		break;
 	case B_CLEARSET:
-		scene_change_set(G.scene, NULL);
-		break;
-	case B_FBUF_REDO:
-//		if(R.rectftot) {
-			/* copy is needed... not so nice, but how better? */
-//			R.r.postgamma= G.scene->r.postgamma;
-//			R.r.postigamma= 1.0/R.r.postgamma;
-//			R.r.postadd= G.scene->r.postadd;
-//			R.r.postmul= G.scene->r.postmul;
-//			R.r.posthue= G.scene->r.posthue;
-//			R.r.postsat= G.scene->r.postsat;
-//			R.r.dither_intensity= G.scene->r.dither_intensity;
-			
-//			_floatbuffer_to_output();
-//			BIF_redraw_render_rect();
-//		}
+		G.scene->set= NULL;
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Clear Set Scene");
+		
 		break;
 	case B_SET_EDGE:
 		allqueue(REDRAWBUTSSCENE, 0);

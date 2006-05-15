@@ -91,6 +91,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -2457,7 +2458,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	View3D *v3d= spacedata;
 	Base *base;
 	Object *ob;
-	Scene *setscene;
+	Scene *sce;
 	
 	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
@@ -2540,11 +2541,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		view3d_set_clipping(v3d);
 	
 	/* draw set first */
-	setscene= G.scene->set;
-	if(setscene) { /* if(G.scene->set) { */
-	
-		base= setscene->base.first; /* base= G.scene->set->base.first; */
-		while(base) {
+	if(G.scene->set) {
+		for(SETLOOPER(G.scene->set, base)) {
 			
 			if(v3d->lay & base->lay) {
 
@@ -2556,12 +2554,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				if(base->object->transflag & OB_DUPLI) {
 					draw_dupli_objects(v3d, base);
 				}
-			}
-			
-			base= base->next;
-			if(base==0 && setscene && setscene->set) {
-				setscene= setscene->set;
-				base= setscene->base.first;
 			}
 		}
 
@@ -2691,7 +2683,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 void drawview3d_render(struct View3D *v3d, int winx, int winy)
 {
 	Base *base;
-	Scene *setscene;
+	Scene *sce;
 	float winmat[4][4];
 	
 	update_for_newframe_muted();	/* first, since camera can be animated */
@@ -2731,11 +2723,9 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy)
 	G.f |= G_SIMULATION;
 
 	/* first draw set */
-	setscene= G.scene->set;
-	if(setscene) { /* if(G.scene->set) { */
+	if(G.scene->set) {
 	
-		base= setscene->base.first; /* base= G.scene->set->base.first; */
-		while(base) {
+		for(SETLOOPER(G.scene->set, base)) {
 			if(v3d->lay & base->lay) {
 				if ELEM3(base->object->type, OB_LAMP, OB_CAMERA, OB_LATTICE);
 				else {
@@ -2748,11 +2738,6 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy)
 						draw_dupli_objects(v3d, base);
 					}
 				}
-			}
-			base= base->next;
-			if(base==0 && setscene && setscene->set) {
-				setscene= setscene->set;
-				base= setscene->base.first;
 			}
 		}
 		

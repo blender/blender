@@ -261,6 +261,9 @@ void set_scene_bg(Scene *sce)
 	
 	G.scene= sce;
 	
+	/* check for cyclic sets, for reading old files but also for definite security (py?) */
+	scene_check_setscene(G.scene);
+	
 	/* deselect objects (for dataselect) */
 	ob= G.main->object.first;
 	while(ob) {
@@ -456,6 +459,34 @@ void scene_select_base(Scene *sce, Base *selbase)
 	selbase->object->flag= selbase->flag;
 
 	sce->basact= selbase;
+}
+
+/* checks for cycle, returns 1 if it's all OK */
+int scene_check_setscene(Scene *sce)
+{
+	Scene *scene;
+	
+	if(sce->set==NULL) return 1;
+	
+	/* LIB_DOIT is the free flag to tag library data */
+	for(scene= G.main->scene.first; scene; scene= scene->id.next)
+		scene->id.flag &= ~LIB_DOIT;
+	
+	scene= sce;
+	while(scene->set) {
+		scene->id.flag |= LIB_DOIT;
+		/* when set has flag set, we got a cycle */
+		if(scene->set->id.flag & LIB_DOIT)
+			break;
+		scene= scene->set;
+	}
+	
+	if(scene->set) {
+		/* the tested scene gets zero'ed, that's typically current scene */
+		sce->set= NULL;
+		return 0;
+	}
+	return 1;
 }
 
 /* applies changes right away */

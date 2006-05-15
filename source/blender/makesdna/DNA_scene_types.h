@@ -386,7 +386,7 @@ typedef struct Scene {
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
-	short dirty, recalc;				/* recalc = counterpart of ob->recalc */
+	short pad4, recalc;				/* recalc = counterpart of ob->recalc */
 } Scene;
 
 
@@ -504,10 +504,6 @@ typedef struct Scene {
 #define SCE_SELECT_VERTEX	1
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
-
-/* sce->dirty */
-#define SCE_CLEAN           0
-#define SCE_DIRTY           1
 
 /* sce->recalc (now in use by previewrender) */
 #define SCE_PRV_CHANGED		1

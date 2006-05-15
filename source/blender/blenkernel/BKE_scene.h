@@ -73,6 +73,9 @@ struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);
 void scene_select_base(struct Scene *sce, struct Base *selbase);
 
+/* checks for cycle, returns 1 if it's all OK */
+int scene_check_setscene(struct Scene *sce);
+
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 
 void scene_add_render_layer(struct Scene *sce);
