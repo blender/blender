@@ -62,12 +62,7 @@ for each texture);<br>
 import Blender
 from Blender import Object, Mesh, Lamp, Draw, BGL, Image, Text, sys, Mathutils
 from Blender.Scene import Render
-try:
-	from os.path import exists, join
-	pytinst = 1
-except:
-	print "No Python installed, for full features install Python (http://www.python.org/)."
-	pytinst = 0
+
 import math
 
 ####################################
@@ -75,7 +70,7 @@ import math
 ####################################
 
 scene = Blender.Scene.getCurrent()
-world = Blender.World.Get() 
+world = Blender.World.GetCurrent() 
 worldmat = Blender.Texture.Get()
 filename = Blender.Get('filename')
 _safeOverwrite = True
@@ -211,7 +206,7 @@ class VRML2Export:
 		Qf = self.multiplyQuaternions(Q1, Q[2])
 		angleAxis = self.quaternionToAngleAxis(Qf)
 		self.writeIndented("DEF %s Viewpoint {\n" % (self.cleanStr(thisObj.name)), 1)
-		self.writeIndented("description \"%s\" \n" % (thisObj.name))
+		self.writeIndented('description "%s" \n' % thisObj.name)
 		self.writeIndented("position %3.2f %3.2f %3.2f\n" % (loc[0], loc[1], loc[2]))
 		self.writeIndented("orientation %3.2f %3.2f %3.2f %3.2f\n" % (angleAxis[0], angleAxis[1], -angleAxis[2], angleAxis[3]))
 		self.writeIndented("fieldOfView %.3f\n" % (lens))
@@ -219,17 +214,17 @@ class VRML2Export:
 		self.writeIndented("\n")
 
 	def writeFog(self):
-		if len(world) > 0:
-			mtype = world[0].getMistype()
-			mparam = world[0].getMist()
-			grd = world[0].getHor()
+		if world:
+			mtype = world.getMistype()
+			mparam = world.getMist()
+			grd = world.getHor()
 			grd0, grd1, grd2 = grd[0], grd[1], grd[2]
 		else:
 			return
 		if (mtype == 1 or mtype == 2):
 			self.writeIndented("Fog {\n",1)
-			self.writeIndented("fogType \"%s\"\n" % self.namesFog[mtype])						
-			self.writeIndented("color %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + "\n")
+			self.writeIndented('fogType "%s"\n' % self.namesFog[mtype])						
+			self.writeIndented("color %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
 			self.writeIndented("visibilityRange %s\n" % round(mparam[2],self.cp))  
 			self.writeIndented("}\n",-1)
 			self.writeIndented("\n")   
@@ -248,7 +243,7 @@ class VRML2Export:
 			elif objType == "Lamp":
 				headlight = "FALSE"
 		self.writeIndented("NavigationInfo {\n",1)
-		self.writeIndented("headlight %s" % headlight + "\n")
+		self.writeIndented("headlight %s\n" % headlight)
 		self.writeIndented("visibilityLimit %s\n" % (round(vislimit,self.cp)))
 		self.writeIndented("type [\"EXAMINE\", \"ANY\"]\n")            
 		self.writeIndented("avatarSize [0.25, 1.75, 0.75]\n")
@@ -256,8 +251,8 @@ class VRML2Export:
 		self.writeIndented(" \n")
 
 	def writeSpotLight(self, object, lamp):
-		if len(world) > 0:
-			ambi = world[0].getAmb()
+		if world:
+			ambi = world.getAmb()
 			ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
 		else:
 			ambi = 0
@@ -289,8 +284,8 @@ class VRML2Export:
 		self.writeIndented("\n")
 		
 	def writeDirectionalLight(self, object, lamp):
-		if len(world) > 0:
-			ambi = world[0].getAmb()
+		if world:
+			ambi = world.getAmb()
 			ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
 		else:
 			ambi = 0
@@ -307,8 +302,8 @@ class VRML2Export:
 		self.writeIndented("\n")
 
 	def writePointLight(self, object, lamp):
-		if len(world) > 0:
-			ambi = world[0].getAmb()
+		if world:
+			ambi = world.getAmb()
 			ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
 		else:
 			ambi = 0
@@ -619,8 +614,8 @@ class VRML2Export:
 
 		ambient = mat.amb/3
 		diffuseR, diffuseG, diffuseB = mat.rgbCol[0], mat.rgbCol[1],mat.rgbCol[2]
-		if len(world) > 0:
-			ambi = world[0].getAmb()
+		if world:
+			ambi = world.getAmb()
 			ambi0, ambi1, ambi2 = (ambi[0]*mat.amb)*2, (ambi[1]*mat.amb)*2, (ambi[2]*mat.amb)*2
 		else:
 			ambi0, ambi1, ambi2 = 0, 0, 0
@@ -654,19 +649,19 @@ class VRML2Export:
 			return
 		else:
 			self.writeIndented("texture DEF %s ImageTexture {\n" % self.cleanStr(name), 1)
-			self.writeIndented("url \"%s\"\n" % name.split("\\")[-1].split("/")[-1])
+			self.writeIndented('url "%s"\n' % name.split("\\")[-1].split("/")[-1])
 			self.writeIndented("}\n",-1)
 			self.texNames[name] = 1
 
 	def writeBackground(self):
-		if len(world) > 0:
-			worldname = world[0].getName()
+		if world:
+			worldname = world.getName()
 		else:
 			return
-		blending = world[0].getSkytype()	
-		grd = world[0].getHor()
+		blending = world.getSkytype()	
+		grd = world.getHor()
 		grd0, grd1, grd2 = grd[0], grd[1], grd[2]
-		sky = world[0].getZen()
+		sky = world.getZen()
 		sky0, sky1, sky2 = sky[0], sky[1], sky[2]
 		mix0, mix1, mix2 = grd[0]+sky[0], grd[1]+sky[1], grd[2]+sky[2]
 		mix0, mix1, mix2 = mix0/2, mix1/2, mix2/2
@@ -713,19 +708,22 @@ class VRML2Export:
 		alltexture = len(worldmat)
 		for i in range(alltexture):
 			namemat = worldmat[i].getName()
-			pic = worldmat[i].getImage()	
-			if (namemat == "back") and (pic != None):
-				self.writeIndented("backUrl \"%s\"\n" % str(pic.getName()))
-			elif (namemat == "bottom") and (pic != None):
-				self.writeIndented("bottomUrl \"%s\"\n" % str(pic.getName()))
-			elif (namemat == "front") and (pic != None):
-				self.writeIndented("frontUrl \"%s\"\n" % str(pic.getName()))
-			elif (namemat == "left") and (pic != None):
-				self.writeIndented("leftUrl \"%s\"\n" % str(pic.getName()))
-			elif (namemat == "right") and (pic != None):
-				self.writeIndented("rightUrl \"%s\"\n" % str(pic.getName()))
-			elif (namemat == "top") and (pic != None):
-				self.writeIndented("topUrl \"%s\"\n" % str(pic.getName()))
+			pic = worldmat[i].getImage()
+			if pic:
+				# Stripped path.
+				pic_path= pic.filename.split('\\')[-1].split('/')[-1]
+				if namemat == "back":
+					self.writeIndented('backUrl "%s"\n' % pic_path)
+				elif namemat == "bottom":
+					self.writeIndented('bottomUrl "%s"\n' % pic_path)
+				elif namemat == "front":
+					self.writeIndented('frontUrl "%s"\n' % pic_path)
+				elif namemat == "left":
+					self.writeIndented('leftUrl "%s"\n' % pic_path)
+				elif namemat == "right":
+					self.writeIndented('rightUrl "%s"\n' % pic_path)
+				elif namemat == "top":
+					self.writeIndented('topUrl "%s"\n' % pic_path)
 		self.writeIndented("}",-1)
 		self.writeIndented("\n\n")
 
@@ -803,7 +801,7 @@ class VRML2Export:
 		if newName[0].isdigit():
 			newName='%s%s' % ('_',newName)
 
-		for bad in [' ','"','#',"'",',','.','[','\\',']','{','}']:
+		for bad in (' ','"','#',"'",',','.','[','\\',']','{','}'):
 			newName=newName.replace(bad,'_')
 		return newName
 
@@ -837,26 +835,25 @@ class VRML2Export:
 						if c.r != 255 and c.g != 255 and c.b !=255:
 							vColors['multi']=1
 
-			if sided.has_key(sidename):
+			try:
 				sided[sidename]+=1
-			else:
+			except:
 				sided[sidename]=1
 
 			if face.image:
 				faceName="%s_%s" % (face.image.name, sidename);
 
-				if imageMap.has_key(faceName):
+				try:
 					imageMap[faceName].append(face)
-				else:
-					imageMap[faceName]=[face.image.name,sidename,face]
+				except:
+					imageMap[faceName]= [face.image.name,sidename,face]
 
 		if self.verbose > 2:
-			for faceName in imageMap.keys():
-				ifs=imageMap[faceName]
+			for faceName, ifs in imageMap.iteritems():
 				print "Debug: faceName=%s image=%s, solid=%s facecnt=%d" % \
 					  (faceName, ifs[0], ifs[1], len(ifs)-2)
 
-		return len(imageMap.keys())
+		return len(imageMap)
 	
 	def faceToString(self,face):
 
@@ -984,12 +981,11 @@ class VRML2Export:
 ##########################################################
 
 def select_file(filename):
-	if pytinst == 1:
-		if exists(filename) and _safeOverwrite:
-			result = \
-				Draw.PupMenu("File Already Exists, Overwrite?%t|Yes%x1|No%x0")
-			if(result != 1):
-				return
+	if sys.exists(filename) and _safeOverwrite:
+		result = \
+			Draw.PupMenu("File Already Exists, Overwrite?%t|Yes%x1|No%x0")
+		if(result != 1):
+			return
 
 	if not filename.endswith(extension):
 		filename += extension
@@ -997,16 +993,6 @@ def select_file(filename):
 	wrlexport=VRML2Export(filename)
 	wrlexport.export(scene, world, worldmat)
 
-def createWRLPath():
-	filename = Blender.Get('filename')
-	print filename
-
-	if filename.find('.') != -1:
-		filename = filename.split('.')[0]
-		filename += extension
-		print filename
-
-	return filename
 
 #########################################################
 # main routine
@@ -1027,5 +1013,5 @@ else:
 		from gzip import *
 	else:
 		extension=".wrl"
-	Blender.Window.FileSelector(select_file,"Export VRML97",createWRLPath())
+	Blender.Window.FileSelector(select_file, "Export VRML97", sys.makename(ext=extension))
 
