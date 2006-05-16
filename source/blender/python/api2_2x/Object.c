@@ -285,6 +285,9 @@ static PyObject *Object_setPISurfaceDamp( BPy_Object * self, PyObject * args );
 static PyObject *Object_getPIDeflection( BPy_Object * self );
 static PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args );
 
+static PyObject *Object_getRBMass( BPy_Object * self );
+static PyObject *Object_setRBMass( BPy_Object * self, PyObject * args );
+
 static PyObject *Object_isSB( BPy_Object * self );
 static PyObject *Object_getSBMass( BPy_Object * self );
 static PyObject *Object_setSBMass( BPy_Object * self, PyObject * args );
@@ -429,6 +432,14 @@ automatic when the script finishes."},
 	{"setPIDeflection", ( PyCFunction ) Object_setPIDeflection, METH_VARARGS,
 	 "Sets Particle Interaction Deflection"},  
      
+/* Rigidbody , mass, inertia, shapetype (boundtype), friction, restitution */
+
+	{"getRBMass", ( PyCFunction ) Object_getRBMass, METH_NOARGS,
+	 "Returns RB Mass"},
+	{"setRBMass", ( PyCFunction ) Object_setRBMass, METH_VARARGS,
+	 "Sets RB Mass"},
+
+
 /* Softbody */
 
 	{"isSB", ( PyCFunction ) Object_isSB, METH_NOARGS,
@@ -4298,6 +4309,41 @@ PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args )
 
 	return EXPP_incr_ret( Py_None );
 }
+
+/* RIGIDBODY FUNCTIONS */
+
+PyObject *Object_getRBMass( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    attr = PyFloat_FromDouble( ( double ) self->object->mass );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->mass attribute" ) );
+}
+
+PyObject *Object_setRBMass( BPy_Object * self, PyObject * args )
+{
+    float value;
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected float argument" ) );
+
+	if(value < 0.0f)
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"acceptable values are non-negative, 0.0 or more" ) );
+
+	self->object->mass = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+
+
 
 /*  SOFTBODY FUNCTIONS */
 
