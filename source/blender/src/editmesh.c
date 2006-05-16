@@ -862,13 +862,17 @@ void make_editMesh()
 		//restore editselections
 		EM_init_index_arrays(1,1,1);
 		mselect = me->mselect;
+		
 		for(a=0; a<me->totselect; a++, mselect++){
-			ese = MEM_callocN(sizeof(EditSelection), "Edit Selection");
-			ese->type = mselect->type;	
-			if(ese->type == EDITVERT) ese->data = EM_get_vert_for_index(mselect->index); else
-			if(ese->type == EDITEDGE) ese->data = EM_get_edge_for_index(mselect->index); else
-			if(ese->type == EDITFACE) ese->data = EM_get_face_for_index(mselect->index);
-			BLI_addtail(&(G.editMesh->selected),ese);
+			/*check if recorded selection is still valid, if so copy into editmesh*/
+			if( (mselect->type == EDITVERT && me->mvert[mselect->index].flag & SELECT) || (mselect->type == EDITEDGE && me->medge[mselect->index].flag & SELECT) || (mselect->type == EDITFACE && me->mface[mselect->index].flag & SELECT) ){
+				ese = MEM_callocN(sizeof(EditSelection), "Edit Selection");
+				ese->type = mselect->type;	
+				if(ese->type == EDITVERT) ese->data = EM_get_vert_for_index(mselect->index); else
+				if(ese->type == EDITEDGE) ese->data = EM_get_edge_for_index(mselect->index); else
+				if(ese->type == EDITFACE) ese->data = EM_get_face_for_index(mselect->index);
+				BLI_addtail(&(G.editMesh->selected),ese);
+			}
 		}
 		EM_free_index_arrays();
 	}
@@ -1285,7 +1289,7 @@ void remake_editMesh(void)
 	BIF_undo_push("Undo all changes");
 }
 
-/* *************** SEPARATE (partial exit editmode) *************/
+/* ***************		(partial exit editmode) *************/
 
 
 void separatemenu(void)
