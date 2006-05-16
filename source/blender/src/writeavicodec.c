@@ -708,7 +708,8 @@ void start_avi_codec(RenderData *rd,int rectx, int recty )
 					bmi.biSize +		// format size
 					bmi.biClrUsed * sizeof(RGBQUAD));	// plus size of colormap
 			if (hr != AVIERR_OK) {
-				error("Codec is locked or not supported.");
+			    printf("AVIStreamSetFormat() failed .. may be bad image dimensions? \n");
+				error("Codec refuses format.");
 				G.afbreek = 1;
 			}
 		}
@@ -737,15 +738,21 @@ void append_avi_codec(int frame,int *pixels,int rectx, int recty)
 	HRESULT hr;
 	BITMAPINFOHEADER bmi;
 	RGBTRIPLE *buffer, *to;
-	int x, y;
+	int x, y ,pad;
 	unsigned char *from;
 
 	if (psCompressed) {
 		// initialize the BITMAPINFOHEADER 
 		init_bmi(&bmi, rectx, recty);
 
+		//windows wants bitmap rows 4 byte aligned
+		pad = (rectx*3) - 4*((rectx*3)/4);
+		if (pad) {
+		pad = 4 - pad;
+		}
+
 		// copy pixels
-		buffer = MEM_mallocN(bmi.biSizeImage, "append_win_avi");
+		buffer = MEM_mallocN(bmi.biSizeImage + pad * recty, "append_win_avi");
 		to = buffer;
 		from = (unsigned char *) pixels;
 		for (y = recty; y > 0 ; y--) {
@@ -755,6 +762,7 @@ void append_avi_codec(int frame,int *pixels,int rectx, int recty)
 				to->rgbtBlue  = from[2];
 				to++; from += 4;
 			}
+			(unsigned char *)to += pad;
 		}
 
 		hr = AVIStreamWrite(
@@ -762,7 +770,7 @@ void append_avi_codec(int frame,int *pixels,int rectx, int recty)
 				frame - sframe,	// frame number
 				1,				// number to write
 				(LPBYTE) buffer,// pointer to data
-				bmi.biSizeImage,// size of this frame
+				bmi.biSizeImage + pad * recty, // size of this frame
 				AVIIF_KEYFRAME,	// flags....
 				NULL,
 				NULL);
