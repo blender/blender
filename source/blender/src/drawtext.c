@@ -999,6 +999,8 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
+/* Moves the view to the cursor location,
+  also used to make sure the view isnt outside the file */
 void pop_space_text (SpaceText *st)
 {
 	int i, x;

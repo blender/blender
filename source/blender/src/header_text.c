@@ -132,18 +132,29 @@ void do_text_buttons(unsigned short event)
 			}
 		}
 		break;
-				
+		
 	case B_TEXTDELETE:
 		
 		text= st->text;
 		if (!text) return;
 		
+		/* make the previous text active, if its not there make the next text active */
+		if (st->text->id.prev) {
+			st->text = st->text->id.prev;
+			pop_space_text(st);
+		} else if (st->text->id.next) {
+			st->text = st->text->id.next;
+			pop_space_text(st);
+		}
+			
 		BPY_clear_bad_scriptlinks(text);
 		free_text_controllers(text);
 		
 		unlink_text(text);
 		free_libblock(&G.main->text, text);
 		
+		allqueue(REDRAWTEXT, 0);
+		allqueue(REDRAWHEADERS, 0);
 		break;
 		
 /*
