@@ -2437,7 +2437,9 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 		}
 	}
 
-	if (!(ob->gameflag & OB_GHOST)) {
+	//if (!(ob->gameflag & OB_GHOST)) 
+	//Ghost can be any bound type in Bullet
+	{
 		uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 125, 75, 19,
 				&ob->gameflag, 0, 0,0, 0,
 				"Specify a bounds object for physics");
