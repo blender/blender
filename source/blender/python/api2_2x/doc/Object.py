@@ -351,6 +351,13 @@ class Object:
     @return: the current pose object
     """
 
+  def evaluatePose(framenumber):
+    """
+    Evaluates the Pose based on its currently bound action at a certain frame.
+    @type framenumber: Int
+    @param framenumber: The frame number to evaluate to.
+    """
+
   def clearIpo():
     """
     Unlinks the ipo from this object.

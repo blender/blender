@@ -215,6 +215,7 @@ static PyObject *Object_getType( BPy_Object * self );
 static PyObject *Object_getBoundBox( BPy_Object * self );
 static PyObject *Object_getAction( BPy_Object * self );
 static PyObject *Object_getPose( BPy_Object * self );
+static PyObject *Object_evaluatePose( BPy_Object * self, PyObject *args );
 static PyObject *Object_isSelected( BPy_Object * self );
 static PyObject *Object_makeDisplayList( BPy_Object * self );
 static PyObject *Object_link( BPy_Object * self, PyObject * args );
@@ -347,6 +348,9 @@ If 'name_only' is nonzero or True, only the name of the datablock is returned"},
 	 "Returns the object draw type"},
 	{"getAction", ( PyCFunction ) Object_getAction, METH_NOARGS,
 	 "Returns the active action for this object"},
+    {"evaluatePose", ( PyCFunction ) Object_evaluatePose, METH_VARARGS,
+	"(framenum) - Updates the pose to a certain frame number when the Object is\
+	bound to an Action"},
 	{"getPose", ( PyCFunction ) Object_getPose, METH_NOARGS,
 	"() - returns the pose from an object if it exists, else None"},
 	{"isSelected", ( PyCFunction ) Object_isSelected, METH_NOARGS,
@@ -1242,6 +1246,20 @@ static PyObject *Object_getPose( BPy_Object * self )
 }
 
 #endif
+
+static PyObject *Object_evaluatePose(BPy_Object *self, PyObject *args)
+{
+	int frame = 1;
+	if( !PyArg_ParseTuple( args, "i", &frame ))
+		return EXPP_ReturnPyObjError( PyExc_AttributeError, "expected int argument" );
+
+	frame = EXPP_ClampInt(frame, MINFRAME, MAXFRAME);
+	G.scene->r.cfra = frame;
+	do_all_pose_actions(self->object);
+	where_is_pose (self->object);
+
+	return EXPP_incr_ret(Py_None);
+}
 
 static PyObject * Object_getPose(BPy_Object *self)
 {
