@@ -8,7 +8,7 @@ Tooltip: 'Export to Quake file format (.md2).'
 """
 
 __author__ = 'Bob Holcomb'
-__version__ = '0.17
+__version__ = '0.17'
 __url__ = ["Bob's site, http://bane.servebeer.com",
      "Support forum, http://scourage.servebeer.com/phpbb/", "blender", "elysiun"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
