@@ -287,6 +287,12 @@ static PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args );
 
 static PyObject *Object_getRBMass( BPy_Object * self );
 static PyObject *Object_setRBMass( BPy_Object * self, PyObject * args );
+static PyObject *Object_getRBFlags( BPy_Object * self );
+static PyObject *Object_setRBFlags( BPy_Object * self, PyObject * args );
+static PyObject *Object_getRBShapeBoundType( BPy_Object * self );
+static PyObject *Object_setRBShapeBoundType( BPy_Object * self, PyObject * args );
+
+
 
 static PyObject *Object_isSB( BPy_Object * self );
 static PyObject *Object_getSBMass( BPy_Object * self );
@@ -432,12 +438,23 @@ automatic when the script finishes."},
 	{"setPIDeflection", ( PyCFunction ) Object_setPIDeflection, METH_VARARGS,
 	 "Sets Particle Interaction Deflection"},  
      
-/* Rigidbody , mass, inertia, shapetype (boundtype), friction, restitution */
+/* Rigidbody , mass, inertia, shape type (boundtype), friction, restitution */
 
 	{"getRBMass", ( PyCFunction ) Object_getRBMass, METH_NOARGS,
 	 "Returns RB Mass"},
 	{"setRBMass", ( PyCFunction ) Object_setRBMass, METH_VARARGS,
 	 "Sets RB Mass"},
+
+ 	{"getRBFlags", ( PyCFunction ) Object_getRBFlags, METH_NOARGS,
+	 "Returns RB Flags"},
+	{"setRBFlags", ( PyCFunction ) Object_setRBFlags, METH_VARARGS,
+	 "Sets RB Flags"},
+	
+	 {"getRBShapeBoundType", ( PyCFunction ) Object_getRBShapeBoundType, METH_NOARGS,
+	 "Returns RB Shape Bound Type"},
+	{"setRBShapeBoundType", ( PyCFunction ) Object_setRBShapeBoundType, METH_VARARGS,
+	 "Sets RB Shape Bound Type"},
+
 
 
 /* Softbody */
@@ -4342,7 +4359,64 @@ PyObject *Object_setRBMass( BPy_Object * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
+/* this is too low level, possible to add helper methods */
+PyObject *Object_getRBFlags( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    attr = PyInt_FromLong( self->object->gameflag );
 
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->gameflags attribute" ) );
+}
+
+PyObject *Object_setRBFlags( BPy_Object * self, PyObject * args )
+{
+    int value;
+
+
+	if( !PyArg_ParseTuple( args, "i", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected int argument" ) );
+
+	/* more input validation? */
+
+	self->object->gameflag  = value;
+
+	return EXPP_incr_ret( Py_None );
+}
+
+PyObject *Object_getRBShapeBoundType( BPy_Object * self )
+{
+	PyObject *attr;
+    
+    attr = PyInt_FromLong( self->object->boundtype );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Object->boundtype attribute" ) );
+}
+
+PyObject *Object_setRBShapeBoundType( BPy_Object * self, PyObject * args )
+{
+    int value;
+
+
+	if( !PyArg_ParseTuple( args, "i", &value ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"expected int argument" ) );
+
+	/* more input validation? */
+
+	self->object->boundtype  = value;
+
+	return EXPP_incr_ret( Py_None );
+}
 
 
 /*  SOFTBODY FUNCTIONS */
