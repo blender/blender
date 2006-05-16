@@ -74,7 +74,7 @@ int ntlWorld::addDomain(elbeemSimulationSettings *settings)
 	char simname[100];
 	snprintf(simname,100,"domain%04d",globalDomainCounter);
 	globalDomainCounter++;
-	sim->setName(std::string(simname));
+	sim->setName(string(simname));
 	mpGlob->getSims()->push_back( sim );
 
 	// important - add to both, only render scene objects are free'd 

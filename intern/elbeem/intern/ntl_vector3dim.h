@@ -214,7 +214,7 @@ operator<<( std::ostream& os, const ntlVector3Dim<Scalar>& i )
 {
 	char buf[256];
 	snprintf(buf,256,globVecFormatStr,i[0],i[1],i[2]);
-	os << std::string(buf); 
+	os << string(buf); 
   //os << '[' << i[0] << ", " << i[1] << ", " << i[2] << ']';
   return os;
 }

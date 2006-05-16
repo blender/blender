@@ -85,7 +85,7 @@ int ntlBlenderDumper::renderScene( void )
 		}
 		if(tid & GEOCLASSTID_SHADER) {
 			ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter); //dynamic_cast<ntlGeometryShader*>(*iter);
-			std::string outname = geoshad->getOutFilename();
+			string outname = geoshad->getOutFilename();
 			if(outname.length()<1) outname = mpGlob->getOutFilename();
 			geoshad->notifyShaderOfDump(DUMP_FULLGEOMETRY, glob->getAniCount(),nrStr,outname);
 

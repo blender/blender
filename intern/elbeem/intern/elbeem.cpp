@@ -116,6 +116,7 @@ extern "C"
 void elbeemResetMesh(elbeemMesh *mesh) {
 	if(!mesh) return;
   mesh->type = 0;
+  mesh->parentDomainId = 0;
   mesh->numVertices = 0;
 	mesh->vertices = NULL;
 	mesh->numTriangles = 0;

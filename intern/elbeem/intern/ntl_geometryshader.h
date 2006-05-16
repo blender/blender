@@ -44,7 +44,7 @@ class ntlGeometryShader :
 		virtual void notifyShaderOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) = 0;
 
 		/*! get ouput filename, returns global render outfile if empty */
-		std::string getOutFilename( void ) { return mOutFilename; }
+		string getOutFilename( void ) { return mOutFilename; }
 
 	protected:
 
@@ -53,7 +53,7 @@ class ntlGeometryShader :
 
 
 		/*! surface output name for this simulation */
-		std::string mOutFilename; 
+		string mOutFilename; 
 };
 
 #endif
