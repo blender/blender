@@ -355,11 +355,13 @@ def process_next_chunk(file, previous_chunk, scn):
 					if img:
 						targetFace.image= img
 			
-			ob = Object.New('Mesh', contextMesh.name)
+			tempName= contextObName + '_' + matName
+			bmesh.name= tempName
+			ob = Object.New('Mesh', tempName)
 			ob.link(bmesh)
 			ob.setMatrix(contextMatrix)
-			ob.Layers= scn.Layers
 			scn.link(ob)
+			ob.Layers= scn.Layers
 			ob.sel= 1
 		
 		for matName, faces in myContextMeshMaterials.iteritems():
@@ -406,7 +408,6 @@ def process_next_chunk(file, previous_chunk, scn):
 
 		#is it an object chunk?
 		elif (new_chunk.ID==OBJECT):
-			'elif (new_chunk.ID==OBJECT):'
 			tempName= read_string(file)
 			contextObName= getUniqueName( tempName )
 			new_chunk.bytes_read += len(tempName)+1
