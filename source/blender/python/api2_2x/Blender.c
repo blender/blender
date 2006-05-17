@@ -274,6 +274,8 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 		ret = PyInt_FromLong( G.scene->r.cfra );
 	else if( StringEqual( str, "curtime" ) )
 		ret = PyFloat_FromDouble( frame_to_float( G.scene->r.cfra ) );
+	else if( StringEqual( str, "rt" ) )
+		ret = PyInt_FromLong( frame_to_float( G.rt ) );
 	else if( StringEqual( str, "staframe" ) )
 		ret = PyInt_FromLong( G.scene->r.sfra );
 	else if( StringEqual( str, "endframe" ) )

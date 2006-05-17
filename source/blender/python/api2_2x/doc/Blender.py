@@ -73,6 +73,7 @@ def Get (request):
       - 'curtime' : the current animation time.
       - 'staframe': the start frame of the animation.
       - 'endframe': the end frame of the animation.
+      - 'rt': the value of the 'rt' button for general debugging
       - 'filename': the name of the last file read or written.
       - 'homedir':  Blender's home dir.
       - 'datadir' : the path to the dir where scripts should store and
