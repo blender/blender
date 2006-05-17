@@ -300,8 +300,9 @@ static PyObject *M_sys_splitext( PyObject * self, PyObject * args )
 
 	/* loong extensions are supported -- foolish, but Python's os.path.splitext
 	 * supports them, so ... */
-	if( n > FILE_MAXFILE || ( len - n ) > FILE_MAXFILE )
-		EXPP_ReturnPyObjError( PyExc_RuntimeError, "path too long" );
+	 
+	if( n >= FILE_MAXFILE || ( len - n ) >= FILE_MAXFILE )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, "path too long" );
 
 	BLI_strncpy( ext, dot, n + 1 );
 	BLI_strncpy( path, name, dot - name + 1 );
