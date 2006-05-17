@@ -285,14 +285,9 @@ static PyObject *Object_setPISurfaceDamp( BPy_Object * self, PyObject * args );
 static PyObject *Object_getPIDeflection( BPy_Object * self );
 static PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args );
 
-static PyObject *Object_getRBMass( BPy_Object * self );
-static PyObject *Object_setRBMass( BPy_Object * self, PyObject * args );
-static PyObject *Object_getRBFlags( BPy_Object * self );
-static PyObject *Object_setRBFlags( BPy_Object * self, PyObject * args );
-static PyObject *Object_getRBShapeBoundType( BPy_Object * self );
-static PyObject *Object_setRBShapeBoundType( BPy_Object * self, PyObject * args );
-
-
+static int Object_setRBMass( BPy_Object * self, PyObject * args );
+static int Object_setRBFlags( BPy_Object * self, PyObject * args );
+static int Object_setRBShapeBoundType( BPy_Object * self, PyObject * args );
 
 static PyObject *Object_isSB( BPy_Object * self );
 static PyObject *Object_getSBMass( BPy_Object * self );
@@ -440,6 +435,7 @@ automatic when the script finishes."},
      
 /* Rigidbody , mass, inertia, shape type (boundtype), friction, restitution */
 
+#if 0
 	{"getRBMass", ( PyCFunction ) Object_getRBMass, METH_NOARGS,
 	 "Returns RB Mass"},
 	{"setRBMass", ( PyCFunction ) Object_setRBMass, METH_VARARGS,
@@ -454,6 +450,7 @@ automatic when the script finishes."},
 	 "Returns RB Shape Bound Type"},
 	{"setRBShapeBoundType", ( PyCFunction ) Object_setRBShapeBoundType, METH_VARARGS,
 	 "Sets RB Shape Bound Type"},
+#endif
 
 
 
@@ -692,7 +689,7 @@ PyTypeObject Object_Type = {
 /* Function:			  M_Object_New				 */
 /* Python equivalent:	  Blender.Object.New				 */
 /*****************************************************************************/
-PyObject *M_Object_New( PyObject * self, PyObject * args )
+PyObject *M_Object_New( PyObject * self_unused, PyObject * args )
 {
 	struct Object *object;
 	int type;
@@ -802,7 +799,7 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 /* Function:	  M_Object_Get						*/
 /* Python equivalent:	  Blender.Object.Get				*/
 /*****************************************************************************/
-PyObject *M_Object_Get( PyObject * self, PyObject * args )
+PyObject *M_Object_Get( PyObject * self_unused, PyObject * args )
 {
 	struct Object *object;
 	PyObject *blen_object;
@@ -866,7 +863,7 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 /* Function:	  M_Object_GetSelected				*/
 /* Python equivalent:	  Blender.Object.GetSelected		*/
 /*****************************************************************************/
-static PyObject *M_Object_GetSelected( PyObject * self )
+static PyObject *M_Object_GetSelected( PyObject * self_unused )
 {
 	PyObject *blen_object;
 	PyObject *list;
@@ -915,7 +912,8 @@ static PyObject *M_Object_GetSelected( PyObject * self )
 /* Function:			  M_Object_Duplicate				 */
 /* Python equivalent:	  Blender.Object.Duplicate				 */
 /*****************************************************************************/
-static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd )
+static PyObject *M_Object_Duplicate( PyObject * self_unused,
+		PyObject * args, PyObject *kwd )
 {
 	int dupflag= 0; /* this a flag, passed to adduplicate() and used instead of U.dupflag sp python can set what is duplicated */	
 
@@ -3644,7 +3642,13 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return ModSeq_CreatePyObject( object );
 	if( StringEqual( name, "constraints" ) )
 		return ObConstraintSeq_CreatePyObject( object );
-	
+	if( StringEqual( name, "rbMass" ) )
+		return PyFloat_FromDouble( ( double ) object->mass );
+	if( StringEqual( name, "rbFlags" ) )
+		return PyInt_FromLong( ( long ) object->gameflag );
+	if( StringEqual( name, "rbShapeBoundType" ) )
+		return PyInt_FromLong( ( long ) object->boundtype );
+
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
 }
@@ -3881,6 +3885,12 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		}
 		return 0;
 	}
+	if( StringEqual( name, "rbMass" ) )
+		return Object_setRBMass( obj, value );
+	if( StringEqual( name, "rbFlags" ) )
+		return Object_setRBFlags( obj, value );
+	if( StringEqual( name, "rbShapeBoundType" ) )
+		return Object_setRBShapeBoundType( obj, value );
 
 	/* SECOND, handle all the attributes that passes the value as a tuple to another function */
 
@@ -4329,93 +4339,55 @@ PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args )
 
 /* RIGIDBODY FUNCTIONS */
 
-PyObject *Object_getRBMass( BPy_Object * self )
-{
-	PyObject *attr;
-    
-    attr = PyFloat_FromDouble( ( double ) self->object->mass );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Object->mass attribute" ) );
-}
-
-PyObject *Object_setRBMass( BPy_Object * self, PyObject * args )
+static int Object_setRBMass( BPy_Object * self, PyObject * args )
 {
     float value;
+	PyObject* flt = PyNumber_Float( args );
 
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected float argument" ) );
+	if( !flt )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected float argument" );
+	value = PyFloat_AS_DOUBLE( flt );
 
-	if(value < 0.0f)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"acceptable values are non-negative, 0.0 or more" ) );
+	if( value < 0.0f )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+			"acceptable values are non-negative, 0.0 or more" );
 
 	self->object->mass = value;
 
-	return EXPP_incr_ret( Py_None );
+	return 0;
 }
 
 /* this is too low level, possible to add helper methods */
-PyObject *Object_getRBFlags( BPy_Object * self )
+
+static int Object_setRBFlags( BPy_Object * self, PyObject * args )
 {
-	PyObject *attr;
-    
-    attr = PyInt_FromLong( self->object->gameflag );
+	PyObject* integer = PyNumber_Int( args );
 
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Object->gameflags attribute" ) );
-}
-
-PyObject *Object_setRBFlags( BPy_Object * self, PyObject * args )
-{
-    int value;
-
-
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected int argument" ) );
+	if( !integer )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected integer argument" );
 
 	/* more input validation? */
 
-	self->object->gameflag  = value;
+	self->object->gameflag = ( int )PyInt_AS_LONG( integer );
 
-	return EXPP_incr_ret( Py_None );
+	return 0;
 }
 
-PyObject *Object_getRBShapeBoundType( BPy_Object * self )
+static int Object_setRBShapeBoundType( BPy_Object * self, PyObject * args )
 {
-	PyObject *attr;
-    
-    attr = PyInt_FromLong( self->object->boundtype );
+	PyObject* integer = PyNumber_Int( args );
 
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Object->boundtype attribute" ) );
-}
-
-PyObject *Object_setRBShapeBoundType( BPy_Object * self, PyObject * args )
-{
-    int value;
-
-
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected int argument" ) );
+	if( !integer )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected integer argument" );
 
 	/* more input validation? */
 
-	self->object->boundtype  = value;
+	self->object->boundtype = ( int )PyInt_AS_LONG( integer );
 
-	return EXPP_incr_ret( Py_None );
+	return 0;
 }
 
 

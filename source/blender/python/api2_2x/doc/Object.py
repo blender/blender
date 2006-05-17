@@ -330,6 +330,12 @@ class Object:
     @type constraints: BPy_ConstraintSeq
     @ivar constraints: a L{sequence<Constraint.ConstraintSeq>} of
     L{constraints<Constraint.Constraint>} for the object.
+    @type rbMass: float
+    @ivar rbMass: Rigid body mass.  Must be a positive value.
+    @type rbFlags: int
+    @ivar rbFlags: Rigid body flags.
+    @type rbShapeBoundType: int
+    @ivar rbShapeBoundType: Rigid body shape bound type.
   """
 
   def buildParts():
