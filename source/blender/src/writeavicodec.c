@@ -738,17 +738,17 @@ void append_avi_codec(int frame,int *pixels,int rectx, int recty)
 	HRESULT hr;
 	BITMAPINFOHEADER bmi;
 	RGBTRIPLE *buffer, *to;
-	int x, y ,pad;
+	int x, y ,pad, align =2;
 	unsigned char *from;
 
 	if (psCompressed) {
 		// initialize the BITMAPINFOHEADER 
 		init_bmi(&bmi, rectx, recty);
 
-		//windows wants bitmap rows 4 byte aligned
-		pad = (rectx*3) - 4*((rectx*3)/4);
+		//windows wants bitmap rows  aligned
+		pad = (rectx*3) - align*((rectx*3)/align);
 		if (pad) {
-		pad = 4 - pad;
+		pad = align - pad;
 		}
 
 		// copy pixels
