@@ -473,8 +473,7 @@ class VRML2Export:
 		sided={}      # 'one':cnt , 'two':cnt
 		vColors={}    # 'multi':1
 
-		me = Mesh.New()
-		me.getFromObject(ob.name)
+		me = ob.getData(mesh = 1)
 		self.classifyMesh(me, ob)
 
 		if (self.collnode):
@@ -740,7 +739,7 @@ class VRML2Export:
 					
 		for i in range(len(me.verts)):
 			aColor = self.rgbToFS(cols[i])
-			self.writeUnindented("%s\n, " % aColor)
+			self.writeUnindented("%s\n" % aColor)
 
 		self.writeIndented("\n", 0)
 		self.writeIndented("]\n",-1)
