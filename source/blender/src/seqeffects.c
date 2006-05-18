@@ -2454,7 +2454,8 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 	rval.free = free_noop;
 	rval.early_out = early_out_noop;
 	rval.get_default_fac = get_default_fac_noop;
-	rval.execute = 0;
+	rval.execute = NULL;
+	rval.copy = NULL;
 
 	switch (sequence_type) {
 	case SEQ_CROSS:
