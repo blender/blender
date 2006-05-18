@@ -846,10 +846,10 @@ void fluidsimBake(struct Object *ob)
 
 	if(!doExportOnly) {
 		SDL_Thread *simthr = NULL;
-		//fsDomain->fluidsimFlag = 0; // disable during bake 
 
 		// perform simulation with El'Beem api and SDL threads
 		elbeemSimulationSettings fsset;
+		elbeemResetSettings(&fsset);
 		fsset.version = 1;
 
 		// setup global settings
