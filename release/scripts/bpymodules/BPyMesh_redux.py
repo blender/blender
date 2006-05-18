@@ -106,6 +106,9 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 	class collapseEdge(object):
 		__slots__ = 'length', 'key', 'faces', 'collapse_loc', 'v1', 'v2','uv1', 'uv2', 'col1', 'col2', 'collapse_weight'
 		def __init__(self, ed):
+			self.init_from_edge(ed) # So we can re-use the classes without using more memory.
+		
+		def init_from_edge(self, ed):
 			self.key= ed_key(ed)
 			self.length= ed.length
 			self.faces= []
@@ -125,6 +128,9 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 	class collapseFace(object):
 		__slots__ = 'verts', 'normal', 'area', 'index', 'orig_uv', 'orig_col', 'uv', 'col' # , 'collapse_edge_count'
 		def __init__(self, f):
+			self.init_from_face(f)
+		
+		def init_from_face(self, f):
 			self.verts= f.v
 			self.normal= f.no
 			self.area= f.area
@@ -134,8 +140,6 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 				self.uv= f.uv
 				self.orig_col= [col_key(col) for col in f.col]
 				self.col= f.col
-			
-			#self.collapse_edge_count= 0 # used so we know how many edges of the face are collapsed.
 	
 	for v in me.verts:
 		v.hide=0
@@ -158,13 +162,27 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 		edges= me.edges
 		faces= me.faces
 		
-		DOUBLE_CHECK= [0]*len(verts)
+		# if DEBUG: DOUBLE_CHECK= [0]*len(verts)
 		
 		for v in verts:
 			v.sel= False
 		
-		collapse_faces= [collapseFace(f) for f in faces]
-		collapse_edges= [collapseEdge(ed) for ed in edges]
+		if not collapse_faces: # Initialize the list.
+			collapse_faces= [collapseFace(f) for f in faces]
+			collapse_edges= [collapseEdge(ed) for ed in edges]
+		else:
+			for i, ed in enumerate(edges):
+				collapse_edges[i].init_from_edge(ed)
+			# Faster then slicing
+			for ii in xrange(len(collapse_edges)-(i+1)):
+				collapse_edges.pop()
+				
+			for i, f in enumerate(faces):
+				collapse_faces[i].init_from_face(f)
+			# Faster then slicing
+			for ii in xrange(len(collapse_faces)-(i+1)):
+				collapse_faces.pop()
+			
 		collapse_edges_dict= dict( [(ced.key, ced) for ced in collapse_edges] )
 		
 		# Store verts edges.
@@ -466,7 +484,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 					
 					uvs_mixed=   [ uv_key_mix(edge_my_uvs[iii],   edge_other_uvs[iii],  my_weight, other_weight)  for iii in xrange(len(edge_my_uvs))  ]
 					cols_mixed=  [ col_key_mix(edge_my_cols[iii], edge_other_cols[iii], my_weight, other_weight) for iii in xrange(len(edge_my_cols)) ]
-					#print 'FACE, USWERS', len(vert_face_users[v.index])
+					
 					for face_vert_index, cfa in vert_face_users[v.index]:
 						if len(cfa.verts)==3 and cfa not in ced.faces: # if the face is apart of this edge then dont bother finding the uvs since the face will be removed anyway.
 						
@@ -498,25 +516,14 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 							
 							# DEBUG! if DEBUG: rd()
 				
-				# Execute the collapse
-				ced.v1.sel= ced.v2.sel= True
-				ced.v1.co= ced.v2.co=  ced.collapse_loc
-				
-				# DEBUG! if DEBUG: rd()
-			if current_face_count <= target_face_count:
-				ced.collapse_loc= None
-				break
-				
-		'''
-		# Execute the collapse
-		for ced in collapse_edges:
-			# Since the list is ordered we can stop once the first non collapsed edge if sound.
-			if not ced.collapse_loc:
-				break
-			ced.v1.sel= ced.v2.sel= True
+			# Execute the collapse
+			ced.v1.sel= ced.v2.sel= True # Select so remove doubles removed the edges and faces that use it
 			ced.v1.co= ced.v2.co=  ced.collapse_loc
-		'''
-			
+				
+			# DEBUG! if DEBUG: rd()
+			if current_face_count <= target_face_count:
+				break
+		
 		# Copy weights back to the mesh before we remove doubles.
 		if DO_WEIGHTS:
 			BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
@@ -524,17 +531,9 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 		doubles= me.remDoubles(0.0001) 
 		me= ob.getData(mesh=1)
 		current_face_count= len(me.faces)
-		#break
 		
-		if doubles==0: # should never happen.
+		if current_face_count <= target_face_count or not doubles: # not doubles shoule never happen.
 			break
-		
-		if current_face_count <= target_face_count:
-			ced.collapse_loc= None
-			break
-	
-	# Cleanup. BUGGY?
-	
 	
 	me.update()
 	Blender.Mesh.Mode(OLD_MESH_MODE)
@@ -546,7 +545,7 @@ def main():
 	scn= Blender.Scene.GetCurrent()
 	active_ob= scn.getActiveObject()
 	t= Blender.sys.time()
-	redux(active_ob, 0.4)
+	redux(active_ob, 0.5)
 	print '%.4f' % (Blender.sys.time()-t)
 
 if __name__=='__main__':
