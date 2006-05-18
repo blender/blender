@@ -1,7 +1,7 @@
 #!BPY
 """ Registration info for Blender menus:
 Name: 'VRML97 (.wrl)...'
-Blender: 235
+Blender: 241
 Group: 'Export'
 Submenu: 'All Objects...' all
 Submenu: 'All Objects compressed...' comp
@@ -22,12 +22,6 @@ Usage:
 
 Run this script from "File->Export" menu.  A pop-up will ask whether you
 want to export only selected or all relevant objects.
-
-Known issues:<br>
-    Doesn't handle multiple materials (don't use material indices);<br>
-    Doesn't handle multiple UV textures on a single mesh (create a mesh
-for each texture);<br>
-    Can't get the texture array associated with material * not the UV ones;
 """
 
 
@@ -60,7 +54,8 @@ for each texture);<br>
 ####################################
 
 import Blender
-from Blender import Object, Mesh, Lamp, Draw, BGL, Image, Text, sys, Mathutils
+from Blender import Object, Mesh, Lamp, Draw, BGL, \
+	 Image, Text, sys, Mathutils
 from Blender.Scene import Render
 
 import math
@@ -76,6 +71,20 @@ filename = Blender.Get('filename')
 _safeOverwrite = True
 extension = ''
 ARG=''
+
+# Blender is Z up, VRML is Y up, both are right hand coordinate
+# systems, so to go from Blender coords to VRML coords we rotate
+# by 90 degrees around the X axis. In matrix notation, we have a
+# matrix, and it's inverse, as:
+M_blen2vrml = Mathutils.Matrix([1,0,0,0], \
+							   [0,0,1,0], \
+							   [0,-1,0,0], \
+							   [0,0,0,1])
+M_vrml2blen = Mathutils.Matrix([1,0,0,0], \
+							   [0,0,-1,0], \
+							   [0,1,0,0], \
+							   [0,0,0,1])
+
 
 class DrawTypes:
 	"""Object DrawTypes enum values
@@ -103,46 +112,83 @@ class VRML2Export:
 		#--- public you can change these ---
 		self.wire = 0
 		self.proto = 1
-		self.matonly = 0
-		self.share = 0
+		self.facecolors = 0
+		self.vcolors = 0
 		self.billnode = 0
 		self.halonode = 0
 		self.collnode = 0
 		self.tilenode = 0
-		self.verbose=2     # level of verbosity in console 0-none, 1-some, 2-most
-		self.cp=3          # decimals for material color values     0.000 - 1.000
-		self.vp=3          # decimals for vertex coordinate values  0.000 - n.000
-		self.tp=3          # decimals for texture coordinate values 0.000 - 1.000
+		self.wire     = 0
+		self.twosided = 0
+
+		# level of verbosity in console 0-none, 1-some, 2-most
+		try:
+			rt = Blender.Get('rt')
+			if (rt == 42):
+				self.verbose = 1
+			elif (rt == 43):
+				self.verbose = 2
+			else:
+				self.verbose = 0
+		except:
+			self.verbose = 0
+			
+		# decimals for material color values     0.000 - 1.000
+		self.cp=3
+		# decimals for vertex coordinate values  0.000 - n.000
+		self.vp=3
+		# decimals for texture coordinate values 0.000 - 1.000
+		self.tp=3
+		
 		self.it=3
 		
 		#--- class private don't touch ---
 		self.texNames={}   # dictionary of textureNames
 		self.matNames={}   # dictionary of materialNames
 		self.meshNames={}   # dictionary of meshNames
+		self.coordNames={}   # dictionary of coordNames
 		self.indentLevel=0 # keeps track of current indenting
 		self.filename=filename
 		self.file = open(filename, "w")
 		self.bNav=0
 		self.nodeID=0
 		self.namesReserved=[ "Anchor", "Appearance", "AudioClip",
-							 "Background","Billboard", "Box", 
-							 "Collision", "Color", "ColorInterpolator", "Cone", "Coordinate", "CoordinateInterpolator", "Cylinder", "CylinderSensor",
-							 "DirectionalLight", 
-							 "ElevationGrid", "Extrustion", 
-							 "Fog", "FontStyle", "Group", 
-							 "ImageTexture", "IndexedFaceSet", "IndexedLineSet", "Inline", 
-							 "LOD", "Material", "MovieTexture", 
-							 "NavigationInfo", "Normal", "NormalInterpolator","OrientationInterpolator", 
-							 "PixelTexture", "PlaneSensor", "PointLight", "PointSet", "PositionInterpolator", "ProxmimitySensor", 
-							 "ScalarInterpolator", "Script", "Shape", "Sound", "Sphere", "SphereSensor", "SpotLight", "Switch",
-							 "Text", "TextureCoordinate", "TextureTransform", "TimeSensor", "TouchSensor", "Transform", 
+							 "Background","Billboard", "Box",
+							 "Collision", "Color", "ColorInterpolator",
+							 "Cone", "Coordinate",
+							 "CoordinateInterpolator", "Cylinder",
+							 "CylinderSensor",
+							 "DirectionalLight",
+							 "ElevationGrid", "Extrustion",
+							 "Fog", "FontStyle", "Group",
+							 "ImageTexture", "IndexedFaceSet",
+							 "IndexedLineSet", "Inline",
+							 "LOD", "Material", "MovieTexture",
+							 "NavigationInfo", "Normal",
+							 "NormalInterpolator",
+							 "OrientationInterpolator", "PixelTexture",
+							 "PlaneSensor", "PointLight", "PointSet",
+							 "PositionInterpolator", "ProxmimitySensor",
+							 "ScalarInterpolator", "Script", "Shape",
+							 "Sound", "Sphere", "SphereSensor",
+							 "SpotLight", "Switch", "Text",
+							 "TextureCoordinate", "TextureTransform",
+							 "TimeSensor", "TouchSensor", "Transform",
 							 "Viewpoint", "VisibilitySensor", "WorldInfo" ]
-		self.namesStandard=[ "Empty","Empty.000","Empty.001","Empty.002","Empty.003","Empty.004","Empty.005",
-							 "Empty.006","Empty.007","Empty.008","Empty.009","Empty.010","Empty.011","Empty.012",
-							 "Scene.001","Scene.002","Scene.003","Scene.004","Scene.005","Scene.06","Scene.013",
-							 "Scene.006","Scene.007","Scene.008","Scene.009","Scene.010","Scene.011","Scene.012",
-							 "World","World.000","World.001","World.002","World.003","World.004","World.005" ]
-		self.namesFog=[ "","LINEAR","EXPONENTIAL","" ]
+		self.namesStandard=[ "Empty", "Empty.000", "Empty.001",
+							 "Empty.002", "Empty.003", "Empty.004",
+							 "Empty.005", "Empty.006", "Empty.007",
+							 "Empty.008", "Empty.009", "Empty.010",
+							 "Empty.011", "Empty.012",
+							 "Scene.001", "Scene.002", "Scene.003",
+							 "Scene.004", "Scene.005", "Scene.06",
+							 "Scene.013", "Scene.006", "Scene.007",
+							 "Scene.008", "Scene.009", "Scene.010",
+							 "Scene.011","Scene.012",
+							 "World", "World.000", "World.001",
+							 "World.002", "World.003", "World.004",
+							 "World.005" ]
+		self.namesFog=[ "", "LINEAR"," EXPONENTIAL", "" ]
 
 ##########################################################
 # Writing nodes routines
@@ -151,10 +197,12 @@ class VRML2Export:
 	def writeHeader(self):
 		bfile = sys.expandpath(Blender.Get('filename'))
 		self.file.write("#VRML V2.0 utf8\n\n")
-		self.file.write("# This file was authored with Blender (http://www.blender.org/)\n")
+		self.file.write("# This file was authored with Blender " \
+						"(http://www.blender.org/)\n")
 		self.file.write("# Blender version %s\n" % Blender.Get('version'))
 		self.file.write("# Blender file %s\n" % sys.basename(bfile))
-		self.file.write("# Exported using VRML97 exporter v1.55 (2006/01/17)\n\n")
+		self.file.write("# Exported using VRML97 exporter " \
+						"v1.55 (2006/01/17)\n\n")
 
 	def writeInline(self):
 		inlines = Blender.Scene.Get()
@@ -165,7 +213,8 @@ class VRML2Export:
 			for i in range(allinlines):
 				nameinline=inlines[i].getName()
 				if (nameinline not in self.namesStandard) and (i > 0):
-					self.writeIndented("DEF %s Inline {\n" % (self.cleanStr(nameinline)), 1)
+					self.writeIndented("DEF %s Inline {\n" % \
+									   (self.cleanStr(nameinline)), 1)
 					nameinline = nameinline+".wrl"
 					self.writeIndented("url \"%s\" \n" % nameinline)
 					self.writeIndented("}\n", -1)
@@ -178,13 +227,15 @@ class VRML2Export:
 			nametext = textEditor[i].getName()
 			nlines = textEditor[i].getNLines()
 			if (self.proto == 1):
-				if (nametext == "proto" or nametext == "proto.js" or nametext == "proto.txt") and (nlines != None):
+				if (nametext == "proto" or nametext == "proto.js" or \
+					nametext == "proto.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
 					for j in range(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 			elif (self.proto == 0):
-				if (nametext == "route" or nametext == "route.js" or nametext == "route.txt") and (nlines != None):
+				if (nametext == "route" or nametext == "route.js" or \
+					nametext == "route.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
 					for j in range(nalllines):
@@ -192,23 +243,21 @@ class VRML2Export:
 		self.writeIndented("\n")
 
 	def writeViewpoint(self, thisObj):
+		# NOTE: The transform node above this will take care of
+		# the position and orientation of the camera
 		context = scene.getRenderingContext()
-		ratio = float(context.imageSizeY())/float(context.imageSizeX())
-		lens = (360* (math.atan(ratio *16 / thisObj.data.getLens()) / math.pi))*(math.pi/180)
+		ratio = float(context.imageSizeY()) / float(context.imageSizeX())
+		temp  = ratio * 16 / thisObj.data.getLens()
+		lens = 2 * math.atan(temp)
 		lens = min(lens, math.pi) 
-		# get the camera location, subtract 90 degress from X to orient like VRML does
-		loc = self.rotatePointForVRML(thisObj.loc)
-		rot = [thisObj.RotX - 1.57, thisObj.RotY, thisObj.RotZ]
-		nRot = self.rotatePointForVRML(rot)
-		# convert to Quaternion and to Angle Axis
-		Q  = self.eulerToQuaternions(nRot[0], nRot[1], nRot[2])
-		Q1 = self.multiplyQuaternions(Q[0], Q[1])
-		Qf = self.multiplyQuaternions(Q1, Q[2])
-		angleAxis = self.quaternionToAngleAxis(Qf)
-		self.writeIndented("DEF %s Viewpoint {\n" % (self.cleanStr(thisObj.name)), 1)
+
+		self.writeIndented("DEF %s Viewpoint {\n" % \
+						   (self.cleanStr(thisObj.name)), 1)
 		self.writeIndented('description "%s" \n' % thisObj.name)
-		self.writeIndented("position %3.2f %3.2f %3.2f\n" % (loc[0], loc[1], loc[2]))
-		self.writeIndented("orientation %3.2f %3.2f %3.2f %3.2f\n" % (angleAxis[0], angleAxis[1], -angleAxis[2], angleAxis[3]))
+		self.writeIndented("position 0.0 0.0 0.0\n")
+		# Need camera to point to -y in local space to accomodate
+		# the transforma node above
+		self.writeIndented("orientation 1.0 0.0 0.0 %f\n" % (-math.pi/2.0))
 		self.writeIndented("fieldOfView %.3f\n" % (lens))
 		self.writeIndented("}\n", -1)
 		self.writeIndented("\n")
@@ -223,9 +272,13 @@ class VRML2Export:
 			return
 		if (mtype == 1 or mtype == 2):
 			self.writeIndented("Fog {\n",1)
-			self.writeIndented('fogType "%s"\n' % self.namesFog[mtype])						
-			self.writeIndented("color %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
-			self.writeIndented("visibilityRange %s\n" % round(mparam[2],self.cp))  
+			self.writeIndented('fogType "%s"\n' % self.namesFog[mtype])
+			self.writeIndented("color %s %s %s\n" % \
+							   (round(grd0,self.cp), \
+								round(grd1,self.cp), \
+								round(grd2,self.cp)))
+			self.writeIndented("visibilityRange %s\n" % \
+							   round(mparam[2],self.cp))  
 			self.writeIndented("}\n",-1)
 			self.writeIndented("\n")   
 		else:
@@ -244,13 +297,16 @@ class VRML2Export:
 				headlight = "FALSE"
 		self.writeIndented("NavigationInfo {\n",1)
 		self.writeIndented("headlight %s\n" % headlight)
-		self.writeIndented("visibilityLimit %s\n" % (round(vislimit,self.cp)))
+		self.writeIndented("visibilityLimit %s\n" % \
+						   (round(vislimit,self.cp)))
 		self.writeIndented("type [\"EXAMINE\", \"ANY\"]\n")            
 		self.writeIndented("avatarSize [0.25, 1.75, 0.75]\n")
 		self.writeIndented("} \n",-1)
 		self.writeIndented(" \n")
 
 	def writeSpotLight(self, object, lamp):
+		# Note: location and orientation are handled by the
+		# transform node above this object
 		if world:
 			ambi = world.getAmb()
 			ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
@@ -263,27 +319,29 @@ class VRML2Export:
 		beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
 		cutOffAngle=beamWidth*1.3
 
-		(dx,dy,dz)=self.computeDirection(object)
-		# note -dx seems to equal om[3][0]
-		# note -dz seems to equal om[3][1]
-		# note  dy seems to equal om[3][2]
-		om = object.getMatrix()
-			
-		location=self.rotVertex(om, (0,0,0));
 		radius = lamp.dist*math.cos(beamWidth)
-		self.writeIndented("DEF %s SpotLight {\n" % self.cleanStr(object.name),1)
+		self.writeIndented("DEF %s SpotLight {\n" % \
+						   self.cleanStr(object.name),1)
 		self.writeIndented("radius %s\n" % (round(radius,self.cp)))
-		self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
+		self.writeIndented("ambientIntensity %s\n" % \
+						   (round(ambientIntensity,self.cp)))
 		self.writeIndented("intensity %s\n" % (round(intensity,self.cp)))
-		self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
+		self.writeIndented("color %s %s %s\n" % \
+						   (round(lamp.col[0],self.cp), \
+							round(lamp.col[1],self.cp), \
+							round(lamp.col[2],self.cp)))
 		self.writeIndented("beamWidth %s\n" % (round(beamWidth,self.cp)))
-		self.writeIndented("cutOffAngle %s\n" % (round(cutOffAngle,self.cp)))
-		self.writeIndented("direction %s %s %s\n" % (round(dx,3),round(dy,3),round(dz,3)))
-		self.writeIndented("location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
+		self.writeIndented("cutOffAngle %s\n" % \
+						   (round(cutOffAngle,self.cp)))
+		# Note: point down -Y axis, transform node above will rotate
+		self.writeIndented("direction 0.0 -1.0 0.0\n")
+		self.writeIndented("location 0.0 0.0 0.0\n")
 		self.writeIndented("}\n",-1)
 		self.writeIndented("\n")
 		
 	def writeDirectionalLight(self, object, lamp):
+		# Note: location and orientation are handled by the
+		# transform node above this object
 		if world:
 			ambi = world.getAmb()
 			ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
@@ -292,16 +350,24 @@ class VRML2Export:
 			ambientIntensity = 0
 
 		intensity=min(lamp.energy/1.75,1.0) 
-		(dx,dy,dz)=self.computeDirection(object)
-		self.writeIndented("DEF %s DirectionalLight {\n" % self.cleanStr(object.name),1)
-		self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
-		self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
-		self.writeIndented("intensity %s\n" % (round(intensity,self.cp)))
-		self.writeIndented("direction %s %s %s\n" % (round(dx,4),round(dy,4),round(dz,4)))
+		self.writeIndented("DEF %s DirectionalLight {\n" % \
+						   self.cleanStr(object.name),1)
+		self.writeIndented("ambientIntensity %s\n" % \
+						   (round(ambientIntensity,self.cp)))
+		self.writeIndented("color %s %s %s\n" % \
+						   (round(lamp.col[0],self.cp), \
+							round(lamp.col[1],self.cp), \
+							round(lamp.col[2],self.cp)))
+		self.writeIndented("intensity %s\n" % \
+						   (round(intensity,self.cp)))
+		# Note: point down -Y axis, transform node above will rotate
+		self.writeIndented("direction 0.0 -1.0 0.0\n")
 		self.writeIndented("}\n",-1)
 		self.writeIndented("\n")
 
 	def writePointLight(self, object, lamp):
+		# Note: location is at origin because parent transform node
+		# takes care of this
 		if world:
 			ambi = world.getAmb()
 			ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
@@ -309,29 +375,33 @@ class VRML2Export:
 			ambi = 0
 			ambientIntensity = 0
 		om = object.getMatrix()
-		location=self.rotVertex(om, (0,0,0));
 		intensity=min(lamp.energy/1.75,1.0) 
 		radius = lamp.dist
-		self.writeIndented("DEF %s PointLight {\n" % self.cleanStr(object.name),1)
-		self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
-		self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
+		self.writeIndented("DEF %s PointLight {\n" % \
+						   self.cleanStr(object.name),1)
+		self.writeIndented("ambientIntensity %s\n" % \
+						   (round(ambientIntensity,self.cp)))
+		self.writeIndented("color %s %s %s\n" % \
+						   (round(lamp.col[0],self.cp), \
+							round(lamp.col[1],self.cp), \
+							round(lamp.col[2],self.cp)))
 		self.writeIndented("intensity %s\n" % (round(intensity,self.cp)))
-		self.writeIndented("location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
+		self.writeIndented("location 0.0 0.0 0.0\n")
 		self.writeIndented("radius %s\n" % radius )
 		self.writeIndented("}\n",-1)
 		self.writeIndented("\n")
 
 	def writeNode(self, thisObj):
+		# Note: location and orientation are handled by the
+		# transform node above this object
 		objectname=str(thisObj.getName())
 		if objectname in self.namesStandard:
 			return
 		else:
-			(dx,dy,dz)=self.computeDirection(thisObj)
-			om = thisObj.getMatrix()
-			location=self.rotVertex(om, (0,0,0));
 			self.writeIndented("%s {\n" % objectname,1)
-			self.writeIndented("# direction %s %s %s\n" % (round(dx,3),round(dy,3),round(dz,3)))
-			self.writeIndented("# location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
+			# May need to check that the direction is done right
+			self.writeIndented("direction 0.0 -1.0 0.0\n")
+			self.writeIndented("location 0.0 0.0 0.0\n")
 			self.writeIndented("}\n",-1)
 			self.writeIndented("\n")
 
@@ -354,250 +424,323 @@ class VRML2Export:
 				newname = name
 				return "%s" % (newname)
 
-	def writeIndexedFaceSet(self, object, normals = 0):
+	def classifyMesh(self, me, ob):
+		self.halonode = 0
+		self.billnode = 0
+		self.facecolors = 0
+		self.vcolors = 0
+		self.tilenode = 0
+		self.colnode = 0
+		self.wire = 0
+		if me.faceUV:
+			for face in me.faces:
+				if (face.mode & Mesh.FaceModes['HALO']):
+					self.halonode = 1
+				if (face.mode & Mesh.FaceModes['BILLBOARD']):
+					self.billnode = 1
+				if (face.mode & Mesh.FaceModes['OBCOL']):
+					self.facecolors = 1
+				if (face.mode & Mesh.FaceModes['SHAREDCOL']):
+					self.vcolors = 1
+				if (face.mode & Mesh.FaceModes['TILES']):
+					self.tilenode = 1
+				if not (face.mode & Mesh.FaceModes['DYNAMIC']):
+					self.collnode = 1
+				if (face.mode & Mesh.FaceModes['TWOSIDE']):
+					self.twosided = 1
+
+		# Bit of a crufty trick, but if mesh has vertex colors
+		# (as a non-face property) and if first material has
+		# vcol paint set, we export the vertex colors
+		if (me.vertexColors):
+			if len(me.materials) > 0:
+				mat = me.materials[0]
+				if (mat.mode & Blender.Material.Modes['VCOL_PAINT']):
+					self.vcolors = 1
+			
+		# check if object is wireframe only
+		if ob.drawType == Blender.Object.DrawTypes.WIRE:
+			# user selected WIRE=2 on the Drawtype=Wire on (F9) Edit page
+			self.wire = 1
+
+	###
+	### The next few functions nest Collision/Billboard/Halo nodes.
+	### For real mesh data export, jump down to writeMeshData()
+	###
+	def writeMesh(self, ob, normals = 0):
+
 		imageMap={}   # set of used images
 		sided={}      # 'one':cnt , 'two':cnt
 		vColors={}    # 'multi':1
-		meshName = self.cleanStr(object.name)
-		mesh=object.getData()
-		meshME = self.cleanStr(mesh.name)
-		if len(mesh.faces) == 0:
-					return
-		for face in mesh.faces:
-			if (face.mode & Mesh.FaceModes['HALO']) and self.halonode == 0:
-				self.writeIndented("Billboard {\n",1)
-				self.writeIndented("axisOfRotation 0 0 0\n")
-				self.writeIndented("children [\n")
-				self.halonode = 1
-			elif (face.mode & Mesh.FaceModes['BILLBOARD']) and self.billnode == 0:
-				self.writeIndented("Billboard {\n",1)
-				self.writeIndented("axisOfRotation 0 1 0\n")
-				self.writeIndented("children [\n")
-				self.billnode = 1
-			elif (face.mode & Mesh.FaceModes['OBCOL']) and self.matonly == 0:
-				self.matonly = 1
-			elif (face.mode & Mesh.FaceModes['SHAREDCOL']) and self.share == 0:
-				self.share = 1
-			elif (face.mode & Mesh.FaceModes['TILES']) and self.tilenode == 0:
-				self.tilenode = 1
-			elif not (face.mode & Mesh.FaceModes['DYNAMIC']) and self.collnode == 0:
-				self.writeIndented("Collision {\n",1)
-				self.writeIndented("collide FALSE\n")
-				self.writeIndented("children [\n")
-				self.collnode = 1
 
-		nIFSCnt=self.countIFSSetsNeeded(mesh, imageMap, sided, vColors)
-		
-		if nIFSCnt > 1:
-			self.writeIndented("DEF %s%s Group {\n" % ("G_", meshName),1)
-			self.writeIndented("children [\n",1)
-		
-		if sided.has_key('two') and sided['two'] > 0:
-			bTwoSided=1
+		me = Mesh.New()
+		me.getFromObject(ob.name)
+		self.classifyMesh(me, ob)
+
+		if (self.collnode):
+			self.writeCollisionMesh(me, ob, normals)
+			return
 		else:
-			bTwoSided=0
-		om = object.getMatrix();
-		location=self.rotVertex(om, (0,0,0));
-		self.writeIndented("DEF %s Transform {\n" % meshName,1)
-		self.writeIndented("translation %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)),1)
+			self.writeRegularMesh(me, ob, normals)
+			return
+
+	def writeCollisionMesh(self, me, ob, normals = 0):
+		self.writeIndented("Collision {\n",1)
+		self.writeIndented("collide FALSE\n")
 		self.writeIndented("children [\n")
-		self.writeIndented("Shape {\n",1)
+
+		self.writeRegularMesh(me, ob, normals)
+
+		self.writeIndented("]\n", -1)
+		self.writeIndented("}\n", -1)
+		
+	def writeRegularMesh(self, me, ob, normals = 0):
+		if (self.billnode):
+			self.writeBillboardMesh(me, ob, normals)
+		elif (self.halonode):
+			self.writeHaloMesh(me, ob, normals)
+		else:
+			self.writeMeshData(me, ob, normals)
+
+	def writeBillboardMesh(self, me, ob, normals = 0):
+		self.writeIndented("Billboard {\n",1)
+		self.writeIndented("axisOfRotation 0 1 0\n")
+		self.writeIndented("children [\n")
+
+		self.writeMeshData(me, ob, normals)
+
+		self.writeIndented("]\n", -1)
+		self.writeIndented("}\n", -1)
+		
+	def writeHaloMesh(self, me, ob, normals = 0):
+		self.writeIndented("Billboard {\n",1)
+		self.writeIndented("axisOfRotation 0 0 0\n")
+		self.writeIndented("children [\n")
+
+		self.writeMeshData(me, ob, normals)
+
+		self.writeIndented("]\n", -1)
+		self.writeIndented("}\n", -1)
+
+	###
+	### Here is where real mesh data is written
+	### 
+	def writeMeshData(self, me, ob, normals = 0):
+		meshName = self.cleanStr(me.name)
+
+		if self.meshNames.has_key(meshName):
+			self.writeIndented("USE ME_%s\n" % meshName, 0)
+			self.meshNames[meshName]+=1
+			return
+		self.meshNames[meshName]=1
+
+		self.writeIndented("DEF ME_%s Group {\n" % meshName,1)
+		self.writeIndented("children [\n", 1)
 			
-		maters=mesh.materials
-		hasImageTexture=0
-		issmooth=0
+		hasImageTexture = 0
+		issmooth = 0
 
-		if len(maters) > 0 or mesh.hasFaceUV():
-			self.writeIndented("appearance Appearance {\n", 1)
-			# right now this script can only handle a single material per mesh.
-			if len(maters) >= 1:
-				mat=Blender.Material.Get(maters[0].name)
-				matFlags = mat.getMode()
-				if not matFlags & Blender.Material.Modes['TEXFACE']:
-					self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
-					if len(maters) > 1:
-						print "Warning: mesh named %s has multiple materials" % meshName
-						print "Warning: only one material per object handled"
+		maters = me.materials
 
-				#-- textures
-				if mesh.hasFaceUV():
-					for face in mesh.faces:
-						if (hasImageTexture == 0) and (face.image):
-							self.writeImageTexture(face.image.name, face.image.filename)
-							hasImageTexture=1  # keep track of face texture
-				if self.tilenode == 1:
-					self.writeIndented("textureTransform TextureTransform	{ scale %s %s }\n" % (face.image.xrep, face.image.yrep))
-					self.tilenode = 0
-			self.writeIndented("}\n", -1)
+		# Vertex and Face colors trump materials and image textures
+		if (self.facecolors or self.vcolors):
+			if len(maters) > 0:
+				self.writeShape(ob, me, 0, None)
+			else:
+				self.writeShape(ob, me, -1, None)
+		# Do meshes with materials, possible with image textures
+		elif len(maters) > 0:
+			for matnum in range(len(maters)):
+				images = []
+				if me.faceUV:
+					images = self.getImages(me, matnum)
+					if len(images) > 0:
+						for image in images:
+							self.writeShape(ob, me, matnum, image)
+					else:
+						self.writeShape(ob, me, matnum, None)
+				else:
+					self.writeShape(ob, me, matnum, None)
+		else:
+			if me.faceUV:
+				images = self.getImages(me, -1)
+				if len(images) > 0:
+					for image in images:
+						self.writeShape(ob, me, -1, image)
+				else:
+					self.writeShape(ob, me, -1, None)
+			else:
+				self.writeShape(ob, me, -1, None)
+
+			
+		self.writeIndented("]\n", -1)
+		self.writeIndented("}\n", -1)
+
+	def getImages(self, me, matnum):
+		imageNames = {}
+		images = []
+		for face in me.faces:
+			if (matnum == -1) or (face.mat == matnum):
+				if (face.image):
+					imName = self.cleanStr(face.image.name)
+					if not imageNames.has_key(imName):
+						images.append(face.image)
+						imageNames[imName]=1
+		return images
+
+	def writeCoordinates(self, me, meshName):
+		coordName = "coord_%s" % (meshName)
+		# look up coord name, use it if available
+		if self.coordNames.has_key(coordName):
+			self.writeIndented("coord USE %s\n" % coordName, 0)
+			self.coordNames[coordName]+=1
+			return;
+	
+		self.coordNames[coordName]=1
+
+		#-- vertices
+		self.writeIndented("coord DEF %s Coordinate {\n" % (coordName), 1)
+		self.writeIndented("point [\n", 1)
+		meshVertexList = me.verts
+
+		for vertex in meshVertexList:
+			blenvert = Mathutils.Vector(vertex.co)
+			vrmlvert = M_blen2vrml * blenvert
+			self.writeUnindented("%s %s %s\n " % \
+								 (vrmlvert[0], \
+								  vrmlvert[1], \
+								  vrmlvert[2]))
+		self.writeIndented("]\n", -1)
+		self.writeIndented("}\n", -1)
+		self.writeIndented("\n")
+
+	def writeShape(self, ob, me, matnum, image):
+		self.writeIndented("Shape {\n",1)
+
+		self.writeIndented("appearance Appearance {\n", 1)
+		if (matnum != -1):
+			mater = me.materials[matnum]
+			self.writeMaterial(mater, self.cleanStr(mater.name,''))
+		if image != None:
+			self.writeImageTexture(image.name)
+
+		self.writeIndented("}\n", -1)
+
+		self.writeGeometry(ob, me, matnum, image)
+
+		self.writeIndented("}\n", -1)
+
+	def writeGeometry(self, ob, me, matnum, image):
 
 		#-- IndexedFaceSet or IndexedLineSet
+		meshName = self.cleanStr(me.name)
 
 		# check if object is wireframe only
-		if object.drawType == Blender.Object.DrawTypes.WIRE:
-			# user selected WIRE=2 on the Drawtype=Wire on (F9) Edit page
+		if (self.wire):
 			ifStyle="IndexedLineSet"
-			self.wire = 1
 		else:
 			# user selected BOUNDS=1, SOLID=3, SHARED=4, or TEXTURE=5
 			ifStyle="IndexedFaceSet"
-		# look up mesh name, use it if available
-		if self.meshNames.has_key(meshME):
-			self.writeIndented("geometry USE ME_%s\n" % meshME)
-			self.meshNames[meshME]+=1
-		else:
-			if int(mesh.users) > 1:
-				self.writeIndented("geometry DEF ME_%s %s {\n" % (meshME, ifStyle), 1)
-				self.meshNames[meshME]=1
+
+		self.writeIndented("geometry %s {\n" % ifStyle, 1)
+		if not self.wire:
+			if self.twosided == 1:
+				self.writeIndented("solid FALSE\n")
 			else:
-				self.writeIndented("geometry %s {\n" % ifStyle, 1)
-			if object.drawType != Blender.Object.DrawTypes.WIRE:
-				if bTwoSided == 1:
-					self.writeIndented("solid FALSE\n")
-				else:
-					self.writeIndented("solid TRUE\n")
+				self.writeIndented("solid TRUE\n")
 
-			#--- output coordinates
-			self.writeCoordinates(object, mesh, meshName)
-		
-			if object.drawType != Blender.Object.DrawTypes.WIRE:
-				#--- output textureCoordinates if UV texture used
-				if mesh.hasFaceUV():
-					if hasImageTexture == 1:
-						self.writeTextureCoordinates(mesh)
-					elif self.matonly == 1 and self.share == 1:
-						self.writeFaceColors(mesh)
-
-			for face in mesh.faces:
-				if face.smooth:
-					 issmooth=1
-			if issmooth==1 and self.wire == 0:
-				creaseAngle=(mesh.getMaxSmoothAngle())*(math.pi/180.0)
-				self.writeIndented("creaseAngle %s\n" % (round(creaseAngle,self.cp)))
-
-			#--- output vertexColors
-			if self.share == 1 and self.matonly == 0:
-				self.writeVertexColors(mesh)
-			#--- output closing braces
-			self.writeIndented("}\n", -1)
-		self.writeIndented("}\n", -1)
-		self.writeIndented("]\n", -1)
-		self.matonly = 0
-		self.share = 0
-		self.wire = 0
+		self.writeCoordinates(me, meshName)
+		self.writeCoordIndex(me, meshName, matnum, image)
+		self.writeTextureCoordinates(me, meshName, matnum, image)
+		if self.facecolors:
+			self.writeFaceColors(me)
+		elif self.vcolors:
+			self.writeVertexColors(me)
 		self.writeIndented("}\n", -1)
 
-		if self.halonode == 1:
-			self.writeIndented("]\n", -1)
-			self.writeIndented("}\n", -1)
-			self.halonode = 0
-
-		if self.billnode == 1:
-			self.writeIndented("]\n", -1)
-			self.writeIndented("}\n", -1)
-			self.billnode = 0
-
-		if self.collnode == 1:
-			self.writeIndented("]\n", -1)
-			self.writeIndented("}\n", -1)
-			self.collnode = 0
-
-		if nIFSCnt > 1:
-			self.writeIndented("]\n", -1)
-			self.writeIndented("}\n", -1)
-
-		self.writeIndented("\n")
-
-	def writeCoordinates(self, object, mesh, meshName):
-		#-- vertices
-		self.writeIndented("coord DEF %s%s Coordinate {\n" % ("coord_",meshName), 1)
-		self.writeIndented("point [\n\t\t\t\t\t\t", 1)
-		meshVertexList = mesh.verts
-
-		# create vertex list and pre rotate -90 degrees X for VRML
-		mm=object.getMatrix()
-		location=self.rotVertex(mm, (0,0,0));
-		for vertex in meshVertexList:
-			v=self.rotVertex(mm, vertex);
-			self.file.write("%s %s %s, " % (round((v[0]-location[0]),self.vp), round((v[1]-location[1]),self.vp), round((v[2]-location[2]),self.vp) ))
-		self.writeIndented("\n", 0)
-		self.writeIndented("]\n", -1)
-		self.writeIndented("}\n", -1)
-
-		self.writeIndented("coordIndex [\n\t\t\t\t\t", 1)
+	def writeCoordIndex(self, me, meshName, matnum, image):
+		meshVertexList = me.verts
+		self.writeIndented("coordIndex [\n", 1)
 		coordIndexList=[]  
-		for face in mesh.faces:
-			cordStr=""
-			for i in range(len(face)):
-				indx=meshVertexList.index(face[i])
-				cordStr = cordStr + "%s " % indx
-			self.file.write(cordStr + "-1, ")
-		self.writeIndented("\n", 0)
+		for face in me.faces:
+			if (matnum == -1) or (face.mat == matnum):
+				if (image == None) or (face.image == image):
+					cordStr=""
+					for v in face.verts:
+						indx=v.index
+						cordStr = cordStr + "%s " % indx
+					self.writeUnindented(cordStr + "-1, \n")
 		self.writeIndented("]\n", -1)
 
-	def writeTextureCoordinates(self, mesh):
+	def writeTextureCoordinates(self, me, meshName, matnum, image):
+		if (image == None):
+			return
+		
 		texCoordList=[] 
 		texIndexList=[]
 		j=0
 
-		for face in mesh.faces:
-			for i in range(len(face)):
-				texIndexList.append(j)
-				texCoordList.append(face.uv[i])
-				j=j+1
-			texIndexList.append(-1)
+		for face in me.faces:
+			coordStr = ""
+			indexStr = ""
+			if (matnum == -1) or (face.mat == matnum):
+				if (face.image == image):
+					for i in range(len(face.verts)):
+						uv = face.uv[i]
+						indexStr += "%s " % (j)
+						coordStr += "%s %s, " % \
+									(round(uv[0], self.tp), \
+									 round(uv[1], self.tp))
+						j=j+1
+					indexStr += "-1"
+			texIndexList.append(indexStr)
+			texCoordList.append(coordStr)
 
 		self.writeIndented("texCoord TextureCoordinate {\n", 1)
-		self.writeIndented("point [\n\t\t\t\t\t\t", 1)
-		for i in range(len(texCoordList)):
-			self.file.write("%s %s, " % (round(texCoordList[i][0],self.tp), round(texCoordList[i][1],self.tp)))
-		self.writeIndented("\n", 0)
+		self.writeIndented("point [\n", 1)
+		for coord in texCoordList:
+			self.writeUnindented("%s\n" % (coord))
 		self.writeIndented("]\n", -1)
 		self.writeIndented("}\n", -1)
 
-		self.writeIndented("texCoordIndex [\n\t\t\t\t\t\t", 1)
-		texIndxStr=""
-		for i in range(len(texIndexList)):
-			texIndxStr = texIndxStr + "%d, " % texIndexList[i]
-			if texIndexList[i]==-1:
-				self.file.write(texIndxStr)
-				texIndxStr=""
-		self.writeIndented("\n", 0)
+		self.writeIndented("texCoordIndex [\n", 1)
+		for ind in texIndexList:
+			self.writeUnindented("%s\n" % (ind))
 		self.writeIndented("]\n", -1)
 
-	def writeFaceColors(self, mesh):
+	def writeFaceColors(self, me):
 		self.writeIndented("colorPerVertex FALSE\n")
 		self.writeIndented("color Color {\n",1)
-		self.writeIndented("color [\n\t\t\t\t\t\t", 1)
+		self.writeIndented("color [\n", 1)
 
-		for face in mesh.faces:
+		for face in me.faces:
 			if face.col:
 				c=face.col[0]
-				if self.verbose > 2:
+				if self.verbose >= 2:
 					print "Debug: face.col r=%d g=%d b=%d" % (c.r, c.g, c.b)
 
 				aColor = self.rgbToFS(c)
-				self.file.write("%s, " % aColor)
-		self.writeIndented("\n", 0)
+				self.writeUnindented("%s,\n" % aColor)
 		self.writeIndented("]\n",-1)
 		self.writeIndented("}\n",-1)
 
-	def writeVertexColors(self, mesh):
+	def writeVertexColors(self, me):
 		self.writeIndented("colorPerVertex TRUE\n")
 		self.writeIndented("color Color {\n",1)
 		self.writeIndented("color [\n\t\t\t\t\t\t", 1)
 
-		cols = [None] * len(mesh.verts)
+		cols = [None] * len(me.verts)
 
-		for face in mesh.faces:
+		for face in me.faces:
 			for vind in range(len(face.v)):
 				vertex = face.v[vind]
 				i = vertex.index
 				if cols[i] == None:
 					cols[i] = face.col[vind]
 					
-		for i in range(len(mesh.verts)):
+		for i in range(len(me.verts)):
 			aColor = self.rgbToFS(cols[i])
-			self.file.write("%s, " % aColor)
+			self.writeUnindented("%s\n, " % aColor)
 
 		self.writeIndented("\n", 0)
 		self.writeIndented("]\n",-1)
@@ -613,43 +756,60 @@ class VRML2Export:
 		self.matNames[matName]=1
 
 		ambient = mat.amb/3
-		diffuseR, diffuseG, diffuseB = mat.rgbCol[0], mat.rgbCol[1],mat.rgbCol[2]
+		diffuseR, diffuseG, diffuseB = \
+				  mat.rgbCol[0], mat.rgbCol[1],mat.rgbCol[2]
 		if world:
 			ambi = world.getAmb()
-			ambi0, ambi1, ambi2 = (ambi[0]*mat.amb)*2, (ambi[1]*mat.amb)*2, (ambi[2]*mat.amb)*2
+			ambi0, ambi1, ambi2 = (ambi[0]*mat.amb) * 2, \
+								  (ambi[1]*mat.amb) * 2, \
+								  (ambi[2]*mat.amb) * 2
 		else:
 			ambi0, ambi1, ambi2 = 0, 0, 0
-		emisR, emisG, emisB = (diffuseR*mat.emit+ambi0)/2, (diffuseG*mat.emit+ambi1)/2, (diffuseB*mat.emit+ambi2)/2
+		emisR, emisG, emisB = (diffuseR*mat.emit+ambi0) / 2, \
+							  (diffuseG*mat.emit+ambi1) / 2, \
+							  (diffuseB*mat.emit+ambi2) / 2
 
 		shininess = mat.hard/512.0
-		specR = (mat.specCol[0]+0.001)/(1.25/(mat.getSpec()+0.001))
-		specG = (mat.specCol[1]+0.001)/(1.25/(mat.getSpec()+0.001))
-		specB = (mat.specCol[2]+0.001)/(1.25/(mat.getSpec()+0.001))
-		transp = 1-mat.alpha
+		specR = (mat.specCol[0]+0.001) / (1.25/(mat.getSpec()+0.001))
+		specG = (mat.specCol[1]+0.001) / (1.25/(mat.getSpec()+0.001))
+		specB = (mat.specCol[2]+0.001) / (1.25/(mat.getSpec()+0.001))
+		transp = 1 - mat.alpha
 		matFlags = mat.getMode()
 		if matFlags & Blender.Material.Modes['SHADELESS']:
-		  ambient = 1
-		  shine = 1
-		  specR = emitR = diffuseR
-		  specG = emitG = diffuseG
-		  specB = emitB = diffuseB
+			ambient = 1
+			shine = 1
+			specR = emitR = diffuseR
+			specG = emitG = diffuseG
+			specB = emitB = diffuseB
 		self.writeIndented("material DEF MA_%s Material {\n" % matName, 1)
-		self.writeIndented("diffuseColor %s %s %s\n" % (round(diffuseR,self.cp), round(diffuseG,self.cp), round(diffuseB,self.cp)))
-		self.writeIndented("ambientIntensity %s\n" % (round(ambient,self.cp)))
-		self.writeIndented("specularColor %s %s %s\n" % (round(specR,self.cp), round(specG,self.cp), round(specB,self.cp)))
-		self.writeIndented("emissiveColor  %s %s %s\n" % (round(emisR,self.cp), round(emisG,self.cp), round(emisB,self.cp)))
+		self.writeIndented("diffuseColor %s %s %s\n" % \
+						   (round(diffuseR,self.cp), \
+							round(diffuseG,self.cp), \
+							round(diffuseB,self.cp)))
+		self.writeIndented("ambientIntensity %s\n" % \
+						   (round(ambient,self.cp)))
+		self.writeIndented("specularColor %s %s %s\n" % \
+						   (round(specR,self.cp), \
+							round(specG,self.cp), \
+							round(specB,self.cp)))
+		self.writeIndented("emissiveColor  %s %s %s\n" % \
+						   (round(emisR,self.cp), \
+							round(emisG,self.cp), \
+							round(emisB,self.cp)))
 		self.writeIndented("shininess %s\n" % (round(shininess,self.cp)))
 		self.writeIndented("transparency %s\n" % (round(transp,self.cp)))
 		self.writeIndented("}\n",-1)
 
-	def writeImageTexture(self, name, filename):
+	def writeImageTexture(self, name):
 		if self.texNames.has_key(name):
 			self.writeIndented("texture USE %s\n" % self.cleanStr(name))
 			self.texNames[name] += 1
 			return
 		else:
-			self.writeIndented("texture DEF %s ImageTexture {\n" % self.cleanStr(name), 1)
-			self.writeIndented('url "%s"\n' % name.split("\\")[-1].split("/")[-1])
+			self.writeIndented("texture DEF %s ImageTexture {\n" % \
+							   self.cleanStr(name), 1)
+			self.writeIndented('url "%s"\n' % \
+							   name.split("\\")[-1].split("/")[-1])
 			self.writeIndented("}\n",-1)
 			self.texNames[name] = 1
 
@@ -668,43 +828,98 @@ class VRML2Export:
 		if worldname in self.namesStandard:
 			self.writeIndented("Background {\n",1)
 		else:
-			self.writeIndented("DEF %s Background {\n" % self.secureName(worldname),1)
+			self.writeIndented("DEF %s Background {\n" % \
+							   self.secureName(worldname),1)
 		# No Skytype - just Hor color
 		if blending == 0:
-			self.writeIndented("groundColor %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
-			self.writeIndented("skyColor %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
+			self.writeIndented("groundColor %s %s %s\n" % \
+							   (round(grd0,self.cp), \
+								round(grd1,self.cp), \
+								round(grd2,self.cp)))
+			self.writeIndented("skyColor %s %s %s\n" % \
+							   (round(grd0,self.cp), \
+								round(grd1,self.cp), \
+								round(grd2,self.cp)))
 		# Blend Gradient
 		elif blending == 1:
-			self.writeIndented("groundColor [ %s %s %s, " % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
-			self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
+			self.writeIndented("groundColor [ %s %s %s, " % \
+							   (round(grd0,self.cp), \
+								round(grd1,self.cp), \
+								round(grd2,self.cp)))
+			self.writeIndented("%s %s %s ]\n" % \
+							   (round(mix0,self.cp), \
+								round(mix1,self.cp), \
+								round(mix2,self.cp)))
 			self.writeIndented("groundAngle [ 1.57, 1.57 ]\n")
-			self.writeIndented("skyColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
-			self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
+			self.writeIndented("skyColor [ %s %s %s, " % \
+							   (round(sky0,self.cp), \
+								round(sky1,self.cp), \
+								round(sky2,self.cp)))
+			self.writeIndented("%s %s %s ]\n" % \
+							   (round(mix0,self.cp), \
+								round(mix1,self.cp), \
+								round(mix2,self.cp)))
 			self.writeIndented("skyAngle [ 1.57, 1.57 ]\n")
 		# Blend+Real Gradient Inverse
 		elif blending == 3:
-			self.writeIndented("groundColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
-			self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
+			self.writeIndented("groundColor [ %s %s %s, " % \
+							   (round(sky0,self.cp), \
+								round(sky1,self.cp), \
+								round(sky2,self.cp)))
+			self.writeIndented("%s %s %s ]\n" % \
+							   (round(mix0,self.cp), \
+								round(mix1,self.cp), \
+								round(mix2,self.cp)))
 			self.writeIndented("groundAngle [ 1.57, 1.57 ]\n")
-			self.writeIndented("skyColor [ %s %s %s, " % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
-			self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
+			self.writeIndented("skyColor [ %s %s %s, " % \
+							   (round(grd0,self.cp), \
+								round(grd1,self.cp), \
+								round(grd2,self.cp)))
+			self.writeIndented("%s %s %s ]\n" % \
+							   (round(mix0,self.cp), \
+								round(mix1,self.cp), \
+								round(mix2,self.cp)))
 			self.writeIndented("skyAngle [ 1.57, 1.57 ]\n")
 		# Paper - just Zen Color
 		elif blending == 4:
-			self.writeIndented("groundColor %s %s %s\n" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
-			self.writeIndented("skyColor %s %s %s\n" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
+			self.writeIndented("groundColor %s %s %s\n" % \
+							   (round(sky0,self.cp), \
+								round(sky1,self.cp), \
+								round(sky2,self.cp)))
+			self.writeIndented("skyColor %s %s %s\n" % \
+							   (round(sky0,self.cp), \
+								round(sky1,self.cp), \
+								round(sky2,self.cp)))
 		# Blend+Real+Paper - komplex gradient
 		elif blending == 7:
-			self.writeIndented("groundColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
-			self.writeIndented("%s %s %s ]\n" %(round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
+			self.writeIndented("groundColor [ %s %s %s, " % \
+							   (round(sky0,self.cp), \
+								round(sky1,self.cp), \
+								round(sky2,self.cp)))
+			self.writeIndented("%s %s %s ]\n" % \
+							   (round(grd0,self.cp), \
+								round(grd1,self.cp), \
+								round(grd2,self.cp)))
 			self.writeIndented("groundAngle [ 1.57, 1.57 ]\n")
-			self.writeIndented("skyColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
-			self.writeIndented("%s %s %s ]\n" %(round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
+			self.writeIndented("skyColor [ %s %s %s, " % \
+							   (round(sky0,self.cp), \
+								round(sky1,self.cp), \
+								round(sky2,self.cp)))
+			self.writeIndented("%s %s %s ]\n" % \
+							   (round(grd0,self.cp),
+								round(grd1,self.cp),
+								round(grd2,self.cp)))
 			self.writeIndented("skyAngle [ 1.57, 1.57 ]\n")
 		# Any Other two colors
 		else:
-			self.writeIndented("groundColor %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
-			self.writeIndented("skyColor %s %s %s\n" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
+			self.writeIndented("groundColor %s %s %s\n" % \
+							   (round(grd0,self.cp), \
+								round(grd1,self.cp), \
+								round(grd2,self.cp)))
+			self.writeIndented("skyColor %s %s %s\n" % \
+							   (round(sky0,self.cp), \
+								round(sky1,self.cp), \
+								round(sky2,self.cp)))
 		alltexture = len(worldmat)
 		for i in range(alltexture):
 			namemat = worldmat[i].getName()
@@ -727,6 +942,110 @@ class VRML2Export:
 		self.writeIndented("}",-1)
 		self.writeIndented("\n\n")
 
+	def writeLamp(self, ob):
+		la = Lamp.Get(ob.data.getName())
+		laType = la.getType()
+
+		if laType == Lamp.Types.Lamp:
+			self.writePointLight(ob, la)
+		elif laType == Lamp.Types.Spot:
+			self.writeSpotLight(ob, la)
+		elif laType == Lamp.Types.Sun:
+			self.writeDirectionalLight(ob, la)
+		else:
+			self.writeDirectionalLight(ob, la)
+
+	def writeObject(self, ob):
+
+		obname = self.cleanStr(ob.name)
+
+		try:
+			obtype=ob.getType()
+		except AttributeError:
+			print "Error: Unable to get type info for %s" % obname
+			return
+
+		if self.verbose >= 1:
+			print "++ Writing %s object %s (Blender name: %s)\n" % \
+				  (obtype, obname, ob.name)
+
+		# Note: I am leaving empties out for now -- the original
+		# script does some really weird stuff with empties
+		if ( (obtype != "Camera") and \
+			 (obtype != "Mesh") and \
+			 (obtype != "Lamp") ):
+			print "Info: Ignoring [%s], object type [%s] " \
+				  "not handle yet" % (obname, obtype)
+			return
+
+		ob_matrix = Mathutils.Matrix(ob.getMatrix('worldspace'))
+		matrix = M_blen2vrml * ob_matrix * M_vrml2blen
+		e      = matrix.rotationPart().toEuler()
+
+		v = matrix.translationPart()
+		(axis, angle) = self.eulToVecRot(self.deg2rad(e.x), \
+										 self.deg2rad(e.y), \
+										 self.deg2rad(e.z))
+
+		mrot = e.toMatrix().resize4x4()
+		try:
+			mrot.invert()
+		except:
+			print "Warning: %s has degenerate transformation!" % (obname)
+			return
+		
+		diag = matrix * mrot
+		sizeX = diag[0][0]
+		sizeY = diag[1][1]
+		sizeZ = diag[2][2]
+
+		if self.verbose >= 1:
+			print "  Transformation:\n" \
+				  "    loc:  %f %f %f\n" \
+				  "    size: %f %f %f\n" \
+				  "    Rot:  (%f %f %f), %f\n" % \
+				  (v.x, v.y, v.z, \
+				   sizeX, sizeY, sizeZ, \
+				   axis[0], axis[1], axis[2], angle)
+
+		self.writeIndented("DEF OB_%s Transform {\n" % (obname), 1)
+		self.writeIndented("translation %s %s %s\n" % \
+						   (round(v.x,3), \
+							round(v.y,3), \
+							round(v.z,3)))
+
+		self.writeIndented("rotation %s %s %s %s\n" % \
+						   (round(axis[0],3), \
+							round(axis[1],3), \
+							round(axis[2],3), \
+							round(angle,3)))
+		
+		self.writeIndented("scale %s %s %s\n" % \
+						   (round(sizeX,3), \
+							round(sizeY,3), \
+							round(sizeZ,3)))
+
+		self.writeIndented("children [\n", 1)
+
+		self.writeObData(ob)
+
+		self.writeIndented("]\n", -1) # end object
+		self.writeIndented("}\n", -1) # end object
+
+	def writeObData(self, ob):
+
+		obtype = ob.getType()
+
+		if obtype == "Camera":
+			self.writeViewpoint(ob)
+		elif obtype == "Mesh":
+			self.writeMesh(ob)
+		elif obtype == "Lamp":
+			self.writeLamp(ob)
+		elif obtype == "Empty":
+			self.writeNode(ob)
+
+
 ##########################################################
 # export routine
 ##########################################################
@@ -745,37 +1064,14 @@ class VRML2Export:
 		else:
 			allObj = scene.getChildren()
 			self.writeInline()
+
 		for thisObj in allObj:
-			try:
-				objType=thisObj.getType()
-				objName=thisObj.getName()
-				self.matonly = 0
-				if objType == "Camera":
-					self.writeViewpoint(thisObj)
-				elif objType == "Mesh":
-					self.writeIndexedFaceSet(thisObj, normals = 0)
-				elif objType == "Lamp":
-					lmpName=Lamp.Get(thisObj.data.getName())
-					lmpType=lmpName.getType()
-					if lmpType == Lamp.Types.Lamp:
-						self.writePointLight(thisObj, lmpName)
-					elif lmpType == Lamp.Types.Spot:
-						self.writeSpotLight(thisObj, lmpName)
-					elif lmpType == Lamp.Types.Sun:
-						self.writeDirectionalLight(thisObj, lmpName)
-					else:
-						self.writeDirectionalLight(thisObj, lmpName)
-				elif objType == "Empty" and objName != "Empty":
-					self.writeNode(thisObj)
-				else:
-					#print "Info: Ignoring [%s], object type [%s] not handle yet" % (object.name,object.getType())
-					print ""
-			except AttributeError:
-				print "Error: Unable to get type info for %s" % thisObj.getName()
+			self.writeObject(thisObj)
+
 		if ARG != 'selected':
 			self.writeScript()
 		self.cleanup()
-		
+
 ##########################################################
 # Utility methods
 ##########################################################
@@ -788,7 +1084,8 @@ class VRML2Export:
 		print "Info: finished VRML97 export to %s\n" % self.filename
 
 	def cleanStr(self, name, prefix='rsvd_'):
-		"""cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""
+		"""cleanStr(name,prefix) - try to create a valid VRML DEF \
+		name from object name"""
 
 		newName=name[:]
 		if len(newName) == 0:
@@ -805,128 +1102,55 @@ class VRML2Export:
 			newName=newName.replace(bad,'_')
 		return newName
 
-	def countIFSSetsNeeded(self, mesh, imageMap, sided, vColors):
-		"""
-		countIFFSetsNeeded() - should look at a blender mesh to determine
-		how many VRML IndexFaceSets or IndexLineSets are needed.  A
-		new mesh created under the following conditions:
-		
-		 o - split by UV Textures / one per mesh
-		 o - split by face, one sided and two sided
-		 o - split by smooth and flat faces
-		 o - split when faces only have 2 vertices * needs to be an IndexLineSet
-		"""
-		
-		imageNameMap={}
-		faceMap={}
-		nFaceIndx=0
-		
-		for face in mesh.faces:
-			sidename='';
-			if (face.mode & Mesh.FaceModes['TWOSIDE']):
-				sidename='two'
-			else:
-				sidename='one'
-
-			if not vColors.has_key('multi'):
-				for face in mesh.faces:
-					if face.col:
-						c=face.col[0]
-						if c.r != 255 and c.g != 255 and c.b !=255:
-							vColors['multi']=1
-
-			try:
-				sided[sidename]+=1
-			except:
-				sided[sidename]=1
-
-			if face.image:
-				faceName="%s_%s" % (face.image.name, sidename);
-
-				try:
-					imageMap[faceName].append(face)
-				except:
-					imageMap[faceName]= [face.image.name,sidename,face]
-
-		if self.verbose > 2:
-			for faceName, ifs in imageMap.iteritems():
-				print "Debug: faceName=%s image=%s, solid=%s facecnt=%d" % \
-					  (faceName, ifs[0], ifs[1], len(ifs)-2)
-
-		return len(imageMap)
-	
-	def faceToString(self,face):
-
-		print "Debug: face.flag=0x%x (bitflags)" % face.flag
-		if (face.flag & Mesh.FaceFlags['SELECT']):
-			print "Debug: face.flag.SELECT=true"
-
-		print "Debug: face.mode=0x%x (bitflags)" % face.mode
-		if (face.mode & Mesh.FaceModes['TWOSIDE']):
-			print "Debug: face.mode twosided"
-
-		print "Debug: face.transp=0x%x (enum)" % face.transp
-		if (face.transp & Mesh.FaceTranspModes['SOLID']):
-			print "Debug: face.transp.SOLID"
-
-		if face.image:
-			print "Debug: face.image=%s" % face.image.name
-		print "Debug: face.materialIndex=%d" % face.materialIndex 
-
-	def meshToString(self,mesh):
-		print "Debug: mesh.hasVertexUV=%d" % mesh.hasVertexUV()
-		print "Debug: mesh.hasFaceUV=%d" % mesh.hasFaceUV()
-		print "Debug: mesh.hasVertexColours=%d" % mesh.hasVertexColours()
-		print "Debug: mesh.verts=%d" % len(mesh.verts)
-		print "Debug: mesh.faces=%d" % len(mesh.faces)
-		print "Debug: mesh.materials=%d" % len(mesh.materials)
-
 	def rgbToFS(self, c):
-		s="%s %s %s" % (round(c.r/255.0,self.cp), round(c.g/255.0,self.cp), round(c.b/255.0,self.cp))
+		s = "%s %s %s" % \
+			(round(c.r/255.0,self.cp), \
+			 round(c.g/255.0,self.cp), \
+			 round(c.b/255.0,self.cp))
 		return s
 
-	def computeDirection(self, object):
-		x,y,z=(0,-1.0,0) # point down
-		ax,ay,az = (object.RotX,object.RotZ,object.RotY)
+	def rad2deg(self, v):
+		return round(v*180.0/math.pi,4)
 
-		# rot X
-		x1=x
-		y1=y*math.cos(ax)-z*math.sin(ax)
-		z1=y*math.sin(ax)+z*math.cos(ax)
+	def deg2rad(self, v):
+		return (v*math.pi)/180.0;
 
-		# rot Y
-		x2=x1*math.cos(ay)+z1*math.sin(ay)
-		y2=y1
-		z2=z1*math.cos(ay)-x1*math.sin(ay)
-
-		# rot Z
-		x3=x2*math.cos(az)-y2*math.sin(az)
-		y3=x2*math.sin(az)+y2*math.cos(az)
-		z3=z2
-
-		return [x3,y3,z3]
+	def eulToVecRot(self, RotX, RotY, RotZ):
 		
+		ti = RotX*0.5
+		tj = RotY*0.5
+		th = RotZ*0.5
 
-	# swap Y and Z to handle axis difference between Blender and VRML
-	#------------------------------------------------------------------------
-	def rotatePointForVRML(self, v):
-		x = v[0]
-		y = v[2]
-		z = -v[1]
-		
-		vrmlPoint=[x, y, z]
-		return vrmlPoint
-	
-	def rotVertex(self, mm, v):
-		lx,ly,lz=v[0],v[1],v[2]
-		gx=(mm[0][0]*lx + mm[1][0]*ly + mm[2][0]*lz) + mm[3][0]
-		gy=((mm[0][2]*lx + mm[1][2]*ly+ mm[2][2]*lz) + mm[3][2])
-		gz=-((mm[0][1]*lx + mm[1][1]*ly + mm[2][1]*lz) + mm[3][1])
-		rotatedv=[gx,gy,gz]
-		return rotatedv
+		ci = math.cos(ti)
+		cj = math.cos(tj)
+		ch = math.cos(th)
+		si = math.sin(ti)
+		sj = math.sin(tj)
+		sh = math.sin(th)
+		cc = ci*ch
+		cs = ci*sh
+		sc = si*ch
+		ss = si*sh
+        
+		q0 = cj*cc + sj*ss
+		q1 = cj*sc - sj*cs
+		q2 = cj*ss + sj*cc
+		q3 = cj*cs - sj*sc
+
+		angle = 2 * math.acos(q0)
+		if (math.fabs(angle) < 0.000001):
+			axis = [1.0, 0.0, 0.0]
+		else:
+			sphi = 1.0/math.sqrt(1.0 - (q0*q0))
+			axis = [q1 * sphi, q2 * sphi, q3 * sphi]
+
+		a = Mathutils.Vector(axis)
+		a.normalize()
+		return ([a.x, a.y, a.z], angle)
+
 
 	# For writing well formed VRML code
-	#------------------------------------------------------------------------
+	#----------------------------------
 	def writeIndented(self, s, inc=0):
 		if inc < 1:
 			self.indentLevel = self.indentLevel + inc
@@ -936,45 +1160,11 @@ class VRML2Export:
 		if inc > 0:
 			self.indentLevel = self.indentLevel + inc
 
-	# Converts a Euler to three new Quaternions
-	# Angles of Euler are passed in as radians
-	#------------------------------------------------------------------------
-	def eulerToQuaternions(self, x, y, z):
-		Qx = [math.cos(x/2), math.sin(x/2), 0, 0]
-		Qy = [math.cos(y/2), 0, math.sin(y/2), 0]
-		Qz = [math.cos(z/2), 0, 0, math.sin(z/2)]
-		
-		quaternionVec=[Qx,Qy,Qz]
-		return quaternionVec
-	
-	# Multiply two Quaternions together to get a new Quaternion
-	#------------------------------------------------------------------------
-	def multiplyQuaternions(self, Q1, Q2):
-		result = [((Q1[0] * Q2[0]) - (Q1[1] * Q2[1]) - (Q1[2] * Q2[2]) - (Q1[3] * Q2[3])),
-				  ((Q1[0] * Q2[1]) + (Q1[1] * Q2[0]) + (Q1[2] * Q2[3]) - (Q1[3] * Q2[2])),
-				  ((Q1[0] * Q2[2]) + (Q1[2] * Q2[0]) + (Q1[3] * Q2[1]) - (Q1[1] * Q2[3])),
-				  ((Q1[0] * Q2[3]) + (Q1[3] * Q2[0]) + (Q1[1] * Q2[2]) - (Q1[2] * Q2[1]))]
-		
-		return result
-	
-	# Convert a Quaternion to an Angle Axis (ax, ay, az, angle)
-	# angle is in radians
-	#------------------------------------------------------------------------
-	def quaternionToAngleAxis(self, Qf):
-		scale = math.pow(Qf[1],2) + math.pow(Qf[2],2) + math.pow(Qf[3],2)
-		ax = Qf[1]
-		ay = Qf[2]
-		az = Qf[3]
-
-		if scale > .0001:
-			ax/=scale
-			ay/=scale
-			az/=scale
-		
-		angle = 2 * math.acos(Qf[0])
-		
-		result = [ax, ay, az, angle]
-		return result
+	# Sometimes better to not have too many
+	# tab characters in a long list, for file size
+	#----------------------------------
+	def writeUnindented(self, s):
+		self.file.write(s)
 
 ##########################################################
 # Callbacks, needed before Main
@@ -1013,5 +1203,6 @@ else:
 		from gzip import *
 	else:
 		extension=".wrl"
-	Blender.Window.FileSelector(select_file, "Export VRML97", sys.makename(ext=extension))
+	Blender.Window.FileSelector(select_file, "Export VRML97", \
+								sys.makename(ext=extension))
 
