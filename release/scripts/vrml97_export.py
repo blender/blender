@@ -473,7 +473,12 @@ class VRML2Export:
 		sided={}      # 'one':cnt , 'two':cnt
 		vColors={}    # 'multi':1
 
-		me = ob.getData(mesh = 1)
+		if (len(ob.modifiers) > 0):
+			me = Mesh.New()
+			me.getFromObject(ob.name)
+		else:
+			me = ob.getData(mesh = 1)
+
 		self.classifyMesh(me, ob)
 
 		if (self.collnode):
