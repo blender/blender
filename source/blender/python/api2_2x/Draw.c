@@ -59,6 +59,10 @@
 #include "Window.h"
 #include "../BPY_extern.h"
 
+/* used so we can get G.scene->r.cfra for getting the
+current image frame, some images change frame if they are a sequence */
+#include "DNA_scene_types.h"
+
 /* these delimit the free range for button events */
 #define EXPP_BUTTON_EVENTS_OFFSET 1001
 #define EXPP_BUTTON_EVENTS_MIN 0
@@ -1438,7 +1442,7 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 
 	/* load the image data if necessary */
 	if( !image->ibuf )      /* if no image data is available ... */
-		load_image( image, IB_rect, "", 0 );    /* ... load it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 	if( !image->ibuf )      /* if failed to load the image */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"couldn't load image data in Blender" );

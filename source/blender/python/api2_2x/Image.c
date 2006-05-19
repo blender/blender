@@ -48,6 +48,9 @@
 #include "BKE_icons.h"
 #include "IMB_imbuf.h"
 
+/* used so we can get G.scene->r.cfra for getting the
+current image frame, some images change frame if they are a sequence */
+#include "DNA_scene_types.h"
 
 /*****************************************************************************/
 /* Python BPy_Image defaults:																								 */
@@ -217,21 +220,21 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args)
 {
 	int width, height, depth;
 	char *name;
-	Image *img;
+	Image *image;
 	if( !PyArg_ParseTuple( args, "siii", &name, &width, &height, &depth ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected 1 string and 3 ints" ) );
 	if (width > 5000 || height > 5000 || width < 1 || height < 1)
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 					"Image width and height must be between 1 and 5000" ) );
-	img = new_image(width, height, name, 0);
-	if( !img )
+	image = new_image(width, height, name, 0);
+	if( !image )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );
 
 	/* reset usage count, since new_image() incremented it */
-	img->id.us--;
-	return Image_CreatePyObject( img );
+	image->id.us--;
+	return Image_CreatePyObject( image );
 }
 
 
@@ -332,15 +335,15 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 {
 	char *fname;
 	Image *img_ptr;
-	BPy_Image *img;
+	BPy_Image *image;
 
 	if( !PyArg_ParseTuple( args, "s", &fname ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
-	img = ( BPy_Image * ) PyObject_NEW( BPy_Image, &Image_Type );
+	image = ( BPy_Image * ) PyObject_NEW( BPy_Image, &Image_Type );
 
-	if( !img )
+	if( !image )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );
 
@@ -349,9 +352,9 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_IOError,
 						"couldn't load image" ) );
 
-	img->image = img_ptr;
+	image->image = img_ptr;
 
-	return ( PyObject * ) img;
+	return ( PyObject * ) image;
 }
 
 
@@ -378,7 +381,7 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 					      "expected 2 integers" );
 
 	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -438,7 +441,7 @@ static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 					      "expected 2 integers" );
 
 	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -494,7 +497,7 @@ static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 					      "expected 2 integers and an array of 4 floats" );
 
 	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -554,7 +557,7 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 					      "expected 2 integers and an list of 4 ints" );
 
 	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -602,7 +605,7 @@ static PyObject *Image_getMaxXY( BPy_Image * self )
 	PyObject *attr;
 
 	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -626,7 +629,7 @@ static PyObject *Image_getMinXY( BPy_Image * self )
 	PyObject *attr;
 
 	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -829,9 +832,10 @@ static PyObject *Image_getSize( BPy_Image * self )
 {
 	PyObject *attr;
 	Image *image = self->image;
-
-	if( !image->ibuf )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+	
+	
+	if( !image->ibuf ) /* if no image data available */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -852,7 +856,7 @@ static PyObject *Image_getDepth( BPy_Image * self )
 	Image *image = self->image;
 
 	if( !image->ibuf )	/* if no image data available */
-		load_image( image, IB_rect, "", 0 );	/* loading it */
+		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
 	if( !image->ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -936,61 +940,61 @@ static PyObject *Image_getBindCode( BPy_Image * self )
 
 static PyObject *Image_reload( BPy_Image * self )
 {
-	Image *img = self->image;
+	Image *image = self->image;
 
-	free_image_buffers( img );	/* force read again */
-	img->ok = 1;
+	free_image_buffers( image );	/* force read again */
+	image->ok = 1;
 	Py_RETURN_NONE;
 }
 
 static PyObject *Image_glFree( BPy_Image * self )
 {
-	Image *img = self->image;
+	Image *image = self->image;
 
-	free_realtime_image( img );
+	free_realtime_image( image );
 	/* remove the nocollect flag, image is available for garbage collection again */
-	img->flag &= ~IMA_NOCOLLECT;
+	image->flag &= ~IMA_NOCOLLECT;
 	Py_RETURN_NONE;
 }
 
 static PyObject *Image_glLoad( BPy_Image * self )
 {
-	Image *img = self->image;
-	unsigned int *bind = &img->bindcode;
+	Image *image = self->image;
+	unsigned int *bind = &image->bindcode;
 
 	if( *bind == 0 ) {
 
-		if( !img->ibuf )	/* if no image data is available */
-			load_image( img, IB_rect, "", 0 );	/* loading it */
+		if( !image->ibuf )	/* if no image data is available */
+			load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
 
-		if( !img->ibuf )	/* didn't work */
+		if( !image->ibuf )	/* didn't work */
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						      "couldn't load image data in Blender" );
 
 		glGenTextures( 1, ( GLuint * ) bind );
 		glBindTexture( GL_TEXTURE_2D, *bind );
 
-		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, img->ibuf->x,
-				   img->ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
-				   img->ibuf->rect );
+		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, image->ibuf->x,
+				   image->ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
+				   image->ibuf->rect );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 				 GL_LINEAR_MIPMAP_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 				 GL_LINEAR );
 		glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img->ibuf->x,
-			      img->ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-			      img->ibuf->rect );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, image->ibuf->x,
+			      image->ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+			      image->ibuf->rect );
 
 		/* raise the nocollect flag, 
 		   image is not available for garbage collection 
 		   (python GL might use it directly)
 		 */
-		img->flag |= IMA_NOCOLLECT;
+		image->flag |= IMA_NOCOLLECT;
 	}
 
-	return PyLong_FromUnsignedLong( img->bindcode );
+	return PyLong_FromUnsignedLong( image->bindcode );
 }
 
 static PyObject *Image_setName( BPy_Image * self, PyObject * args )
