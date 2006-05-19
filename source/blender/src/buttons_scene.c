@@ -1380,6 +1380,7 @@ static void render_panel_ffmpeg_video(void)
 		       break;
 	       }
 	       ffmpeg_preset_sel = 0;
+	       allqueue(REDRAWBUTSSCENE, 0);
        }
 
        xcol1 = 872;
@@ -1410,7 +1411,7 @@ static void render_panel_ffmpeg_video(void)
 		 0, 100000000, 0, 0, "Mux rate (bits/s(!))");
 
 
-       uiDefButI(block, MENU, B_DIFF, ffmpeg_preset_pup(), 
+       uiDefButI(block, MENU, B_REDR, ffmpeg_preset_pup(), 
 		 xcol2, yofs+66, 110, 20, &ffmpeg_preset_sel, 
 		 0,0,0,0, "Output file format preset selection");
        uiDefButI(block, NUM, B_DIFF, "GOP Size", 
