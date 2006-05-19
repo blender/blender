@@ -113,6 +113,9 @@ public:
 
 	///allows the user to get contact point callbacks 
 	virtual	void	ReleaseManifoldResult(ManifoldResult*);
+
+	virtual void ClearManifold(PersistentManifold* manifold);
+
 			
 	CollisionAlgorithm* FindAlgorithm(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1)
 	{

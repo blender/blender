@@ -18,7 +18,9 @@ subject to the following restrictions:
 #include "SimdTransform.h"
 #include <assert.h>
 
-float gContactBreakingTreshold = 0.02f;
+float						gContactBreakingTreshold = 0.02f;
+ContactDestroyedCallback	gContactCallback = 0;
+
 
 PersistentManifold::PersistentManifold()
 :m_body0(0),
@@ -31,9 +33,61 @@ m_index1(0)
 
 void	PersistentManifold::ClearManifold()
 {
+	int i;
+	for (i=0;i<m_cachedPoints;i++)
+	{
+		ClearUserCache(m_pointCache[i]);
+	}
 	m_cachedPoints = 0;
 }
 
+#ifdef DEBUG_PERSISTENCY
+#include <stdio.h>
+void	PersistentManifold::DebugPersistency()
+{
+	int i;
+	printf("DebugPersistency : numPoints %d\n",m_cachedPoints);
+	for (i=0;i<m_cachedPoints;i++)
+	{
+		printf("m_pointCache[%d].m_userPersistentData = %x\n",i,m_pointCache[i].m_userPersistentData);
+	}
+}
+#endif //DEBUG_PERSISTENCY
+
+void PersistentManifold::ClearUserCache(ManifoldPoint& pt)
+{
+
+	void* oldPtr = pt.m_userPersistentData;
+	if (oldPtr)
+	{
+#ifdef DEBUG_PERSISTENCY
+		int i;
+		int occurance = 0;
+		for (i=0;i<m_cachedPoints;i++)
+		{
+			if (m_pointCache[i].m_userPersistentData == oldPtr)
+			{
+				occurance++;
+				if (occurance>1)
+					printf("error in ClearUserCache\n");
+			}
+		}
+		assert(occurance<=0);
+#endif //DEBUG_PERSISTENCY
+
+		if (pt.m_userPersistentData && gContactCallback)
+		{
+			(*gContactCallback)(pt.m_userPersistentData);
+			pt.m_userPersistentData = 0;
+		}
+		
+#ifdef DEBUG_PERSISTENCY
+		DebugPersistency();
+#endif
+	}
+
+	
+}
 
 
 
@@ -114,9 +168,12 @@ void PersistentManifold::AddManifoldPoint(const ManifoldPoint& newPoint)
 		insertIndex = 0;
 #endif
 
+		
 	} else
 	{
 		m_cachedPoints++;
+
+		
 	}
 	ReplaceContactPoint(newPoint,insertIndex);
 }
@@ -163,6 +220,9 @@ void PersistentManifold::RefreshContactPoints(const SimdTransform& trA,const Sim
 			}
 		}
 	}
+#ifdef DEBUG_PERSISTENCY
+	DebugPersistency();
+#endif //
 }
 
 

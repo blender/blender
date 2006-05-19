@@ -47,7 +47,6 @@ int	m_triangleCount;
 
 	virtual void ProcessTriangle(SimdVector3* triangle);
 	
-	void ClearCache();
 
 	inline const SimdVector3& GetAabbMin() const
 	{

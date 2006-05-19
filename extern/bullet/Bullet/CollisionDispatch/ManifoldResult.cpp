@@ -25,6 +25,7 @@ ManifoldResult::ManifoldResult(CollisionObject* body0,CollisionObject* body1,Per
 	{
 	}
 
+
 void ManifoldResult::AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)
 {
 	if (depth > m_manifoldPtr->GetContactBreakingTreshold())
@@ -42,9 +43,13 @@ void ManifoldResult::AddContactPoint(const SimdVector3& normalOnBInWorld,const S
 	int insertIndex = m_manifoldPtr->GetCacheEntry(newPt);
 	if (insertIndex >= 0)
 	{
-		const ManifoldPoint& oldPoint = m_manifoldPtr->GetContactPoint(insertIndex);
-		newPt.CopyPersistentInformation(oldPoint);
-		m_manifoldPtr->ReplaceContactPoint(newPt,insertIndex);
+
+// This is not needed, just use the old info!
+//		const ManifoldPoint& oldPoint = m_manifoldPtr->GetContactPoint(insertIndex);
+//		newPt.CopyPersistentInformation(oldPoint);
+//		m_manifoldPtr->ReplaceContactPoint(newPt,insertIndex);
+
+
 	} else
 	{
 		m_manifoldPtr->AddManifoldPoint(newPt);

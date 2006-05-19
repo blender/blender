@@ -26,6 +26,12 @@ struct CollisionResult;
 ///contact breaking and merging treshold
 extern float gContactBreakingTreshold;
 
+typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
+
+extern ContactDestroyedCallback	gContactCallback;
+
+
+
 #define MANIFOLD_CACHE_SIZE 4
 
 ///PersistentManifold maintains contact points, and reduces them to 4
@@ -69,8 +75,12 @@ public:
 		m_body1 = body1;
 	}
 
-	
+	void ClearUserCache(ManifoldPoint& pt);
 
+#ifdef DEBUG_PERSISTENCY
+	void	DebugPersistency();
+#endif //
+	
 	inline int	GetNumContacts() const { return m_cachedPoints;}
 
 	inline const ManifoldPoint& GetContactPoint(int index) const
@@ -94,12 +104,20 @@ public:
 
 	void RemoveContactPoint (int index)
 	{
-		m_pointCache[index] = m_pointCache[GetNumContacts() - 1];
+		ClearUserCache(m_pointCache[index]);
+
+		int lastUsedIndex = GetNumContacts() - 1;
+		m_pointCache[index] = m_pointCache[lastUsedIndex];
+		//get rid of duplicated userPersistentData pointer
+		m_pointCache[lastUsedIndex].m_userPersistentData = 0;
 		m_cachedPoints--;
 	}
 	void ReplaceContactPoint(const ManifoldPoint& newPoint,int insertIndex)
 	{
 		assert(ValidContactDistance(newPoint));
+
+		ClearUserCache(m_pointCache[insertIndex]);
+		
 		m_pointCache[insertIndex] = newPoint;
 	}
 

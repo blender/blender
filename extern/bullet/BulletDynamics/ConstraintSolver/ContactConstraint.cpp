@@ -25,17 +25,12 @@ subject to the following restrictions:
 #define ASSERT2 assert
 
 //some values to find stable tresholds
-static SimdScalar ContactThreshold = -10.0f;  
+
 float useGlobalSettingContacts = false;//true;
 SimdScalar contactDamping = 0.2f;
 SimdScalar contactTau = .02f;//0.02f;//*0.02f;
 
 
-SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
-{
-	return 0.f;
-	//return restitution * GEN_min(1.0f, rel_vel / ContactThreshold);
-}
 
 
 SimdScalar	calculateCombinedFriction(RigidBody& body0,RigidBody& body1)
@@ -118,8 +113,7 @@ float resolveSingleCollision(
 
 	const SimdVector3& pos1 = contactPoint.GetPositionWorldOnA();
 	const SimdVector3& pos2 = contactPoint.GetPositionWorldOnB();
-    SimdScalar distance = contactPoint.GetDistance();
-
+    
 	
 //	printf("distance=%f\n",distance);
 
@@ -136,7 +130,7 @@ float resolveSingleCollision(
 	
 	float combinedRestitution = body1.getRestitution() * body2.getRestitution();
 
-	SimdScalar restitution = restitutionCurve(rel_vel, combinedRestitution);
+	
 
 	SimdScalar Kfps = 1.f / solverInfo.m_timeStep ;
 
@@ -153,24 +147,30 @@ float resolveSingleCollision(
 
 	//printf("dist=%f\n",distance);
 
+		ConstraintPersistentData* cpd = (ConstraintPersistentData*) contactPoint.m_userPersistentData;
+	assert(cpd);
+
+	SimdScalar distance = cpd->m_penetration;//contactPoint.GetDistance();
+	
 
 	//distance = 0.f;
 	SimdScalar positionalError = Kcor *-distance;
 	//jacDiagABInv;
-	SimdScalar velocityError = -(1.0f + restitution) * rel_vel;// * damping;
+	SimdScalar velocityError = cpd->m_restitution - rel_vel;// * damping;
 
-	SimdScalar penetrationImpulse = positionalError * contactPoint.m_jacDiagABInv;
+	
+	SimdScalar penetrationImpulse = positionalError * cpd->m_jacDiagABInv;
 
-	SimdScalar	velocityImpulse = velocityError * contactPoint.m_jacDiagABInv;
+	SimdScalar	velocityImpulse = velocityError * cpd->m_jacDiagABInv;
 
 	SimdScalar normalImpulse = penetrationImpulse+velocityImpulse;
 	
 	// See Erin Catto's GDC 2006 paper: Clamp the accumulated impulse
-	float oldNormalImpulse = contactPoint.m_appliedImpulse;
+	float oldNormalImpulse = cpd->m_appliedImpulse;
 	float sum = oldNormalImpulse + normalImpulse;
-	contactPoint.m_appliedImpulse = 0.f > sum ? 0.f: sum;
+	cpd->m_appliedImpulse = 0.f > sum ? 0.f: sum;
 
-	normalImpulse = contactPoint.m_appliedImpulse - oldNormalImpulse;
+	normalImpulse = cpd->m_appliedImpulse - oldNormalImpulse;
 
 	body1.applyImpulse(normal*(normalImpulse), rel_pos1);
 	body2.applyImpulse(-normal*(normalImpulse), rel_pos2);
@@ -194,8 +194,11 @@ float resolveSingleFriction(
 	SimdVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
 	SimdVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
 	float combinedFriction = calculateCombinedFriction(body1,body2);
-	
-	SimdScalar limit = contactPoint.m_appliedImpulse * combinedFriction;
+
+	ConstraintPersistentData* cpd = (ConstraintPersistentData*) contactPoint.m_userPersistentData;
+	assert(cpd);
+
+	SimdScalar limit = cpd->m_appliedImpulse * combinedFriction;
 	//if (contactPoint.m_appliedImpulse>0.f)
 	//friction
 	{
@@ -208,17 +211,17 @@ float resolveSingleFriction(
 			SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
 			SimdVector3 vel = vel1 - vel2;
 			
-			SimdScalar vrel = contactPoint.m_frictionWorldTangential0.dot(vel);
+			SimdScalar vrel = cpd->m_frictionWorldTangential0.dot(vel);
 
 			// calculate j that moves us to zero relative velocity
-			SimdScalar j = -vrel * contactPoint.m_jacDiagABInvTangent0;
-			float total = contactPoint.m_accumulatedTangentImpulse0 + j;
+			SimdScalar j = -vrel * cpd->m_jacDiagABInvTangent0;
+			float total = cpd->m_accumulatedTangentImpulse0 + j;
 			GEN_set_min(total, limit);
 			GEN_set_max(total, -limit);
-			j = total - contactPoint.m_accumulatedTangentImpulse0;
-			contactPoint.m_accumulatedTangentImpulse0 = total;
-			body1.applyImpulse(j * contactPoint.m_frictionWorldTangential0, rel_pos1);
-			body2.applyImpulse(j * -contactPoint.m_frictionWorldTangential0, rel_pos2);
+			j = total - cpd->m_accumulatedTangentImpulse0;
+			cpd->m_accumulatedTangentImpulse0 = total;
+			body1.applyImpulse(j * cpd->m_frictionWorldTangential0, rel_pos1);
+			body2.applyImpulse(j * -cpd->m_frictionWorldTangential0, rel_pos2);
 		}
 
 				
@@ -228,18 +231,18 @@ float resolveSingleFriction(
 			SimdVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
 			SimdVector3 vel = vel1 - vel2;
 
-			SimdScalar vrel = contactPoint.m_frictionWorldTangential1.dot(vel);
+			SimdScalar vrel = cpd->m_frictionWorldTangential1.dot(vel);
 			
 			// calculate j that moves us to zero relative velocity
-			SimdScalar j = -vrel * contactPoint.m_jacDiagABInvTangent1;
-			float total = contactPoint.m_accumulatedTangentImpulse1 + j;
+			SimdScalar j = -vrel * cpd->m_jacDiagABInvTangent1;
+			float total = cpd->m_accumulatedTangentImpulse1 + j;
 			GEN_set_min(total, limit);
 			GEN_set_max(total, -limit);
-			j = total - contactPoint.m_accumulatedTangentImpulse1;
-			contactPoint.m_accumulatedTangentImpulse1 = total;
-			body1.applyImpulse(j * contactPoint.m_frictionWorldTangential1, rel_pos1);
-			body2.applyImpulse(j * -contactPoint.m_frictionWorldTangential1, rel_pos2);
+			j = total - cpd->m_accumulatedTangentImpulse1;
+			cpd->m_accumulatedTangentImpulse1 = total;
+			body1.applyImpulse(j * cpd->m_frictionWorldTangential1, rel_pos1);
+			body2.applyImpulse(j * -cpd->m_frictionWorldTangential1, rel_pos2);
 		}
 	} 
-	return contactPoint.m_appliedImpulse;
+	return cpd->m_appliedImpulse;
 }

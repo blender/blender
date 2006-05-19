@@ -20,12 +20,16 @@ subject to the following restrictions:
 #include "SimdTransformUtil.h"
 
 
+
+
+
 /// ManifoldContactPoint collects and maintains persistent contactpoints.
 /// used to improve stability and performance of rigidbody dynamics response.
 class ManifoldPoint
 	{
 		public:
 			ManifoldPoint()
+				:m_userPersistentData(0)
 			{
 			}
 
@@ -36,16 +40,14 @@ class ManifoldPoint
 					m_localPointB( pointB ), 
 					m_normalWorldOnB( normal ), 
 					m_distance1( distance ),
-					m_appliedImpulse(0.f),
-					m_prevAppliedImpulse(0.f),
-					m_accumulatedTangentImpulse0(0.f),
-					m_accumulatedTangentImpulse1(0.f),
-					m_jacDiagABInv(0.f),
+					m_userPersistentData(0),					
 					m_lifeTime(0)
 			{
-				SimdPlaneSpace1(m_normalWorldOnB,m_frictionWorldTangential0,m_frictionWorldTangential1);
+				
 					
 			}
+
+			
 
 			SimdVector3 m_localPointA;			
 			SimdVector3 m_localPointB;			
@@ -53,34 +55,11 @@ class ManifoldPoint
 			///m_positionWorldOnA is redundant information, see GetPositionWorldOnA(), but for clarity
 			SimdVector3	m_positionWorldOnA;
 			SimdVector3 m_normalWorldOnB;
-			
-			SimdVector3	m_frictionWorldTangential0;
-			SimdVector3	m_frictionWorldTangential1;
-			
-			
-
-
+		
 			float	m_distance1;
-			/// total applied impulse during most recent frame
-			float	m_appliedImpulse;
-			float	m_prevAppliedImpulse;
-			float	m_accumulatedTangentImpulse0;
-			float	m_accumulatedTangentImpulse1;
-			
-			float	m_jacDiagABInv;
-			float	m_jacDiagABInvTangent0;
-			float	m_jacDiagABInvTangent1;
 
-
-			void	CopyPersistentInformation(const ManifoldPoint& otherPoint)
-			{
-				m_appliedImpulse = otherPoint.m_appliedImpulse;
-				m_accumulatedTangentImpulse0 = otherPoint.m_accumulatedTangentImpulse0;
-				m_accumulatedTangentImpulse1 = otherPoint.m_accumulatedTangentImpulse1;
-				m_prevAppliedImpulse = otherPoint.m_prevAppliedImpulse;
-				m_lifeTime = otherPoint.m_lifeTime;
-
-			}
+				
+			void*	m_userPersistentData;
 
 			int		m_lifeTime;//lifetime of the contactpoint in frames
 			

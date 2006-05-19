@@ -76,6 +76,8 @@ public:
 
 	virtual void ReleaseManifold(PersistentManifold* manifold)=0;
 
+	virtual void ClearManifold(PersistentManifold* manifold)=0;
+
 	virtual bool	NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1) = 0;
 
 	virtual	ManifoldResult* GetNewManifoldResult(CollisionObject* obj0,CollisionObject* obj1,PersistentManifold* manifold) =0;

@@ -27,6 +27,31 @@ subject to the following restrictions:
 
 #include <algorithm>
 
+CollisionWorld::~CollisionWorld()
+{
+	//clean up remaining objects
+	std::vector<CollisionObject*>::iterator i;
+
+	int index = 0;
+	for (i=m_collisionObjects.begin();
+	!(i==m_collisionObjects.end()); i++)
+
+	{
+		CollisionObject* collisionObject= (*i);
+		
+		BroadphaseProxy* bp = collisionObject->m_broadphaseHandle;
+		if (bp)
+		{
+			//
+			// only clear the cached algorithms
+			//
+			GetBroadphase()->CleanProxyFromPairs(bp);
+			GetBroadphase()->DestroyProxy(bp);
+		}
+	}
+
+}
+
 void	CollisionWorld::UpdateActivationState()
 {
 	m_dispatcher->InitUnionFind(m_collisionObjects.size());

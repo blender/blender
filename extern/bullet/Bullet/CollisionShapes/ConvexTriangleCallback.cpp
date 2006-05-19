@@ -41,11 +41,6 @@ ConvexTriangleCallback::~ConvexTriangleCallback()
 }
   
 
-void	ConvexTriangleCallback::ClearCache()
-{
-	m_manifoldPtr->ClearManifold();
-};
-
 
 
 void ConvexTriangleCallback::ProcessTriangle(SimdVector3* triangle)

@@ -31,6 +31,8 @@ class SimpleConstraintSolver : public ConstraintSolver
 
 public:
 
+	SimpleConstraintSolver();
+
 	virtual ~SimpleConstraintSolver() {}
 	
 	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info, IDebugDraw* debugDrawer=0);

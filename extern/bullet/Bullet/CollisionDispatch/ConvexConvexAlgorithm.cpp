@@ -282,7 +282,7 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 				Transform trB = GetTransformFromSimdTransform(col1->m_worldTransform);
 
 				//either use persistent manifold or clear it every time
-				m_manifoldPtr->ClearManifold();
+				m_dispatcher->ClearManifold(m_manifoldPtr);
 				ManifoldResult* resultOut = m_dispatcher->GetNewManifoldResult(col0,col1,m_manifoldPtr);
 
 				ManifoldResultCollector hullContactCollector(*resultOut);
@@ -338,6 +338,7 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 bool disableCcd = false;
 float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const DispatcherInfo& dispatchInfo)
 {
+
 
 	CheckPenetrationDepthSolver();
 

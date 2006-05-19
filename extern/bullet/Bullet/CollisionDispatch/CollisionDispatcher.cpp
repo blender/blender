@@ -25,6 +25,8 @@ subject to the following restrictions:
 #include "CollisionDispatch/CollisionObject.h"
 #include <algorithm>
 
+int gNumManifold = 0;
+
 void CollisionDispatcher::FindUnions()
 {
 	if (m_useIslands)
@@ -76,6 +78,8 @@ CollisionDispatcher::CollisionDispatcher ():
 	
 PersistentManifold*	CollisionDispatcher::GetNewManifold(void* b0,void* b1) 
 { 
+	gNumManifold++;
+	//printf("GetNewManifoldResult: gNumManifold %d\n",gNumManifold);
 
 	CollisionObject* body0 = (CollisionObject*)b0;
 	CollisionObject* body1 = (CollisionObject*)b1;
@@ -86,10 +90,20 @@ PersistentManifold*	CollisionDispatcher::GetNewManifold(void* b0,void* b1)
 	return manifold;
 }
 
+void CollisionDispatcher::ClearManifold(PersistentManifold* manifold)
+{
+	manifold->ClearManifold();
+}
+
 	
 void CollisionDispatcher::ReleaseManifold(PersistentManifold* manifold)
 {
-	manifold->ClearManifold();
+	
+	gNumManifold--;
+
+	//printf("ReleaseManifold: gNumManifold %d\n",gNumManifold);
+
+	ClearManifold(manifold);
 
 	std::vector<PersistentManifold*>::iterator i =
 		std::find(m_manifoldsPtr.begin(), m_manifoldsPtr.end(), manifold);
@@ -272,6 +286,8 @@ bool	CollisionDispatcher::NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy
 ///allows the user to get contact point callbacks 
 ManifoldResult*	CollisionDispatcher::GetNewManifoldResult(CollisionObject* obj0,CollisionObject* obj1,PersistentManifold* manifold)
 {
+
+
 	//in-place, this prevents parallel dispatching, but just adding a list would fix that.
 	ManifoldResult* manifoldResult = new (&m_defaultManifoldResult)	ManifoldResult(obj0,obj1,manifold);
 	return manifoldResult;

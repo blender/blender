@@ -24,6 +24,39 @@ class RigidBody;
 struct ContactSolverInfo;
 class ManifoldPoint;
 
+struct ConstraintPersistentData
+{
+	inline ConstraintPersistentData()
+	:m_appliedImpulse(0.f),
+	m_prevAppliedImpulse(0.f),
+	m_accumulatedTangentImpulse0(0.f),
+	m_accumulatedTangentImpulse1(0.f),
+	m_jacDiagABInv(0.f),
+	m_persistentLifeTime(0),
+	m_restitution(0.f),
+	m_penetration(0.f)
+	{
+	}
+	
+					
+				/// total applied impulse during most recent frame
+			float	m_appliedImpulse;
+			float	m_prevAppliedImpulse;
+			float	m_accumulatedTangentImpulse0;
+			float	m_accumulatedTangentImpulse1;
+			
+			float	m_jacDiagABInv;
+			float	m_jacDiagABInvTangent0;
+			float	m_jacDiagABInvTangent1;
+			int		m_persistentLifeTime;
+			float	m_restitution;
+			float	m_penetration;
+			SimdVector3	m_frictionWorldTangential0;
+			SimdVector3	m_frictionWorldTangential1;
+
+
+};
+
 ///bilateral constraint between two dynamic objects
 ///positive distance = separation, negative distance = penetration
 void resolveSingleBilateral(RigidBody& body1, const SimdVector3& pos1,

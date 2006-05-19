@@ -30,9 +30,31 @@ subject to the following restrictions:
 #include "quickprof.h"
 #endif //USE_PROFILE
 
+int totalCpd = 0;
+
+
+
+bool  MyContactDestroyedCallback(void* userPersistentData)
+{
+	assert (userPersistentData);
+	ConstraintPersistentData* cpd = (ConstraintPersistentData*)userPersistentData;
+	delete cpd;
+	totalCpd--;
+	//printf("totalCpd = %i. DELETED Ptr %x\n",totalCpd,userPersistentData);
+	return true;
+}
+
+
+SimpleConstraintSolver::SimpleConstraintSolver()
+{
+	gContactCallback = &MyContactDestroyedCallback;
+}
+
+
 /// SimpleConstraintSolver Sequentially applies impulses
 float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal,IDebugDraw* debugDrawer)
 {
+	
 	ContactSolverInfo info = infoGlobal;
 
 	int numiter = infoGlobal.m_numIterations;
@@ -82,6 +104,12 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 
 
 float penetrationResolveFactor = 0.9f;
+SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
+{
+	SimdScalar rest = restitution * -rel_vel;
+	return rest;
+}
+
 
 
 float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer)
@@ -111,48 +139,108 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 				SimdVector3 rel_pos1 = pos1 - body0->getCenterOfMassPosition(); 
 				SimdVector3 rel_pos2 = pos2 - body1->getCenterOfMassPosition();
 				
+
 				//this jacobian entry is re-used for all iterations
 				JacobianEntry jac(body0->getCenterOfMassTransform().getBasis().transpose(),
 					body1->getCenterOfMassTransform().getBasis().transpose(),
 					rel_pos1,rel_pos2,cp.m_normalWorldOnB,body0->getInvInertiaDiagLocal(),body0->getInvMass(),
 					body1->getInvInertiaDiagLocal(),body1->getInvMass());
 
-				SimdScalar jacDiagAB = jac.getDiagonal();
 				
-				cp.m_jacDiagABInv = 1.f / jacDiagAB;
+				SimdScalar jacDiagAB = jac.getDiagonal();
 
+				ConstraintPersistentData* cpd = (ConstraintPersistentData*) cp.m_userPersistentData;
+				if (cpd)
+				{
+					//might be invalid
+					cpd->m_persistentLifeTime++;
+					if (cpd->m_persistentLifeTime != cp.GetLifeTime())
+					{
+						//printf("Invalid: cpd->m_persistentLifeTime = %i cp.GetLifeTime() = %i\n",cpd->m_persistentLifeTime,cp.GetLifeTime());
+						new (cpd) ConstraintPersistentData;
+						cpd->m_persistentLifeTime = cp.GetLifeTime();
+
+					} else
+					{
+						//printf("Persistent: cpd->m_persistentLifeTime = %i cp.GetLifeTime() = %i\n",cpd->m_persistentLifeTime,cp.GetLifeTime());
+						
+					}
+				} else
+				{
+						
+					cpd = new ConstraintPersistentData();
+					totalCpd ++;
+					//printf("totalCpd = %i Created Ptr %x\n",totalCpd,cpd);
+					cp.m_userPersistentData = cpd;
+					cpd->m_persistentLifeTime = cp.GetLifeTime();
+					//printf("CREATED: %x . cpd->m_persistentLifeTime = %i cp.GetLifeTime() = %i\n",cpd,cpd->m_persistentLifeTime,cp.GetLifeTime());
+					
+				}
+				assert(cpd);
+
+				cpd->m_jacDiagABInv = 1.f / jacDiagAB;
+
+
+				SimdVector3 vel1 = body0->getVelocityInLocalPoint(rel_pos1);
+				SimdVector3 vel2 = body1->getVelocityInLocalPoint(rel_pos2);
+				SimdVector3 vel = vel1 - vel2;
+				SimdScalar rel_vel;
+				rel_vel = cp.m_normalWorldOnB.dot(vel);
+				
+				float combinedRestitution = body0->getRestitution() * body1->getRestitution();
+
+				cpd->m_penetration = cp.GetDistance();
+
+				cpd->m_restitution = restitutionCurve(rel_vel, combinedRestitution);
+				if (cpd->m_restitution <= 0.) //0.f)
+				{
+					cpd->m_restitution = 0.0f;
+
+				};
+				
+				//restitution and penetration work in same direction so
+				//rel_vel 
+				
+				SimdScalar penVel = -cpd->m_penetration/info.m_timeStep;
+
+				if (cpd->m_restitution >= penVel)
+				{
+					cpd->m_penetration = 0.f;
+				} 				
 				
 
 				float relaxation = info.m_damping;
-				cp.m_appliedImpulse *= relaxation;
+				cpd->m_appliedImpulse *= relaxation;
 				//for friction
-				cp.m_prevAppliedImpulse = cp.m_appliedImpulse;
+				cpd->m_prevAppliedImpulse = cpd->m_appliedImpulse;
 				
 				//re-calculate friction direction every frame, todo: check if this is really needed
-				SimdPlaneSpace1(cp.m_normalWorldOnB,cp.m_frictionWorldTangential0,cp.m_frictionWorldTangential1);
+				SimdPlaneSpace1(cp.m_normalWorldOnB,cpd->m_frictionWorldTangential0,cpd->m_frictionWorldTangential1);
+
+
 #define NO_FRICTION_WARMSTART 1
 
 	#ifdef NO_FRICTION_WARMSTART
-				cp.m_accumulatedTangentImpulse0 = 0.f;
-				cp.m_accumulatedTangentImpulse1 = 0.f;
+				cpd->m_accumulatedTangentImpulse0 = 0.f;
+				cpd->m_accumulatedTangentImpulse1 = 0.f;
 	#endif //NO_FRICTION_WARMSTART
-				float denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential0);
-				float denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential0);
+				float denom0 = body0->ComputeImpulseDenominator(pos1,cpd->m_frictionWorldTangential0);
+				float denom1 = body1->ComputeImpulseDenominator(pos2,cpd->m_frictionWorldTangential0);
 				float denom = relaxation/(denom0+denom1);
-				cp.m_jacDiagABInvTangent0 = denom;
+				cpd->m_jacDiagABInvTangent0 = denom;
 
 
-				denom0 = body0->ComputeImpulseDenominator(pos1,cp.m_frictionWorldTangential1);
-				denom1 = body1->ComputeImpulseDenominator(pos2,cp.m_frictionWorldTangential1);
+				denom0 = body0->ComputeImpulseDenominator(pos1,cpd->m_frictionWorldTangential1);
+				denom1 = body1->ComputeImpulseDenominator(pos2,cpd->m_frictionWorldTangential1);
 				denom = relaxation/(denom0+denom1);
-				cp.m_jacDiagABInvTangent1 = denom;
+				cpd->m_jacDiagABInvTangent1 = denom;
 
 				SimdVector3 totalImpulse = 
 	#ifndef NO_FRICTION_WARMSTART
 					cp.m_frictionWorldTangential0*cp.m_accumulatedTangentImpulse0+
 					cp.m_frictionWorldTangential1*cp.m_accumulatedTangentImpulse1+
 	#endif //NO_FRICTION_WARMSTART
-					cp.m_normalWorldOnB*cp.m_appliedImpulse;
+					cp.m_normalWorldOnB*cpd->m_appliedImpulse;
 
 				//apply previous frames impulse on both bodies
 				body0->applyImpulse(totalImpulse, rel_pos1);

@@ -62,8 +62,7 @@ BoxTriangleCallback::~BoxTriangleCallback()
 
 void	BoxTriangleCallback::ClearCache()
 {
-
-	m_manifoldPtr->ClearManifold();
+	m_dispatcher->ClearManifold(m_manifoldPtr);
 };
 
 
@@ -161,7 +160,7 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 					
 			m_boxTriangleCallback.SetTimeStepAndCounters(collisionMarginTriangle,dispatchInfo);
 #ifdef USE_BOX_TRIANGLE
-			m_boxTriangleCallback.m_manifoldPtr->ClearManifold();
+			m_dispatcher->ClearManifold(m_boxTriangleCallback.m_manifoldPtr);
 #endif
 			m_boxTriangleCallback.m_manifoldPtr->SetBodies(m_convex.m_clientObject,m_concave.m_clientObject);
 
