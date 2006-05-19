@@ -274,6 +274,11 @@ static void sound_hdaudio_extract_small_block(
 		
 		decode_pos -= bl_size;
 
+		memset(hdaudio->decode_cache + decode_pos, 0,
+		       (hdaudio->decode_cache_size - decode_pos) 
+		       * sizeof(short));
+		       
+
 		while(av_read_frame(hdaudio->pFormatCtx, &packet) >= 0) {
 			int data_size;
 			int len;
@@ -296,16 +301,17 @@ static void sound_hdaudio_extract_small_block(
 					&data_size, 
 					audio_pkt_data, 
 					audio_pkt_size);
-				if (data_size <= 0) {
-					continue;
-				}
-				if (len < 0) {
+				if (len <= 0) {
 					audio_pkt_size = 0;
 					break;
 				}
 				
 				audio_pkt_size -= len;
 				audio_pkt_data += len;
+
+				if (data_size <= 0) {
+					continue;
+				}
 				
 				decode_pos += data_size / sizeof(short);
 				if (decode_pos + data_size
@@ -342,6 +348,8 @@ static void sound_hdaudio_extract_small_block(
 		long long pos = (long long) frame_position * AV_TIME_BASE
 			* hdaudio->frame_duration / AV_TIME_BASE;
 
+		long long seek_pos;
+
 		hdaudio->frame_position = frame_position;
 
 		if (st_time == AV_NOPTS_VALUE) {
@@ -355,13 +363,20 @@ static void sound_hdaudio_extract_small_block(
 		   specified...)
 		*/
 
-		av_seek_frame(hdaudio->pFormatCtx, -1, 
-			      pos 
-			      - (AV_TIME_BASE
+		seek_pos = pos - (AV_TIME_BASE
 				 * hdaudio->frame_duration 
-				 / AV_TIME_BASE / 10), 
+				  / AV_TIME_BASE / 10);
+		if (seek_pos < 0) {
+			seek_pos = pos;
+		}
+
+		av_seek_frame(hdaudio->pFormatCtx, -1, 
+			      seek_pos, 
 			      AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
 		avcodec_flush_buffers(hdaudio->pCodecCtx);
+
+		memset(hdaudio->decode_cache, 0,
+		       hdaudio->decode_cache_size * sizeof(short));
 
 		hdaudio->decode_cache_zero = 0;
 
@@ -430,16 +445,17 @@ static void sound_hdaudio_extract_small_block(
 					&data_size, 
 					audio_pkt_data, 
 					audio_pkt_size);
-				if (data_size <= 0) {
-					continue;
-				}
-				if (len < 0) {
+				if (len <= 0) {
 					audio_pkt_size = 0;
 					break;
 				}
 				
 				audio_pkt_size -= len;
 				audio_pkt_data += len;
+
+				if (data_size <= 0) {
+					continue;
+				}
 				
 				decode_pos += data_size / sizeof(short);
 				if (decode_pos + data_size

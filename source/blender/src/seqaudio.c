@@ -87,10 +87,10 @@
 void audio_fill(void *mixdown, Uint8 *sstream, int len);
 /* ************ GLOBALS ************* */
 
-int audio_pos;
-SDL_AudioSpec wav_spec;
-int audio_scrub=0;
-int audio_playing=0;
+static int audio_pos;
+static SDL_AudioSpec wav_spec;
+static int audio_scrub=0;
+static int audio_playing=0;
 /////
 //
 /* local protos ------------------- */
