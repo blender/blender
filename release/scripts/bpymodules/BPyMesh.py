@@ -295,10 +295,12 @@ print len(indices)
 me.faces.extend([[me.verts[ii] for ii in i] for i in indices])
 '''
 
-def meshCalcNormals(me):
+def meshCalcNormals(me, vertNormals=None):
 	'''
 	takes a mesh and returns very high quality normals 1 normal per vertex.
 	The normals should be correct, indipendant of topology
+	
+	vertNormals - a list of vectors at least as long as the number of verts in the mesh
 	'''
 	Ang= Blender.Mathutils.AngleBetweenVecs
 	Vector= Blender.Mathutils.Vector
@@ -306,7 +308,12 @@ def meshCalcNormals(me):
 	# Weight the edge normals by total angle difference
 	# EDGE METHOD
 	
-	vertNormals= [ Vector() for v in xrange(len(me.verts)) ]
+	if not vertNormals:
+		vertNormals= [ Vector() for v in xrange(len(me.verts)) ]
+	else:
+		for v in vertNormals:
+			v.zero()
+		
 	edges={}
 	for f in me.faces:
 		for i in xrange(len(f.v)):
@@ -350,8 +357,8 @@ def meshCalcNormals(me):
 	for ed, v in edges.iteritems():
 		vertNormals[ed[0]]+= v[-1]
 		vertNormals[ed[1]]+= v[-1]
-	for i, v in enumerate(vertNormals):
-		me.verts[i].no= v
+	for i, v in enumerate(me.verts):
+		v.no= vertNormals[i]
 
 
 

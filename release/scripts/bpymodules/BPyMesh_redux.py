@@ -146,8 +146,11 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 	
 	collapse_edges= collapse_faces= None
 	
+	# So meshCalcNormals can avoid making a new list all the time.
+	reuse_vertNormals= [ Vector() for v in xrange(len(me.verts)) ]
+	
 	while target_face_count <= len(me.faces):
-		BPyMesh.meshCalcNormals(me)
+		BPyMesh.meshCalcNormals(me, reuse_vertNormals)
 		
 		if DO_WEIGHTS:
 			groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)
@@ -279,6 +282,10 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			v1no= ced.v1.co
 			v2no= ced.v2.co
 			
+			# Basic operation, works fine but not as good as predicting the best place.
+			#between= ((v1co*w1) + (v2co*w2))
+			#ced.collapse_loc= between
+			
 			# Use the vertex weights to bias the new location.
 			w1= vert_weights[ced.v1.index]
 			w2= vert_weights[ced.v2.index]
@@ -292,31 +299,31 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 				w2/=wscale
 			
 			length= ced.length
+			between= (v1co+v2co) * 0.5
 			
-			if 0:
-				between= ((v1co*w1) + (v2co*w2))
+			# Collapse
+			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
+			
+			# Make lines at right angles to the normals- these 2 lines will intersect and be
+			# the point of collapsing.
+			
+			# Enlarge so we know they intersect:  ced.length*2
+			cv1= CrossVecs(v1no, CrossVecs(v1no, v1co-v2co))
+			cv2= CrossVecs(v2no, CrossVecs(v2no, v2co-v1co))
+			
+			# Scale to be less then the edge lengths.
+			cv1.normalize()
+			cv2.normalize()
+			cv1 = cv1 * (length* 0.4)
+			cv2 = cv2 * (length* 0.4)
+			
+			smart_offset_loc= between + (cv1 + cv2)
+			
+			
+			if (smart_offset_loc-between).length > length/2:
+				# New collapse loc is way out, just use midpoint.
 				ced.collapse_loc= between
 			else:
-				between= (v1co+v2co) * 0.5
-				
-				# Collapse
-				# new_location = between # Replace tricky code below. this code predicts the best collapse location.
-				
-				# Make lines at right angles to the normals- these 2 lines will intersect and be
-				# the point of collapsing.
-				
-				# Enlarge so we know they intersect:  ced.length*2
-				cv1= CrossVecs(v1no, CrossVecs(v1no, v1co-v2co))
-				cv2= CrossVecs(v2no, CrossVecs(v2no, v2co-v1co))
-				
-				# Scale to be less then the edge lengths.
-				cv1.normalize()
-				cv2.normalize()
-				cv1 = cv1 * (length* 0.4)
-				cv2 = cv2 * (length* 0.4)
-				
-				smart_offset_loc= between + (cv1 + cv2)
-				
 				# Now we need to blend between smart_offset_loc and w1/w2
 				# you see were blending between a vert and the edges midpoint, so we cant use a normal weighted blend.
 				if w1 > 0.5: # between v1 and smart_offset_loc
