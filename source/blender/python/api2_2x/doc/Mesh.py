@@ -132,6 +132,8 @@ def New(name='Mesh'):
   @param name: The name of the mesh data object.
   @rtype: Mesh
   @return: a new Blender mesh.
+  @note: if the mesh is not linked to an object, its datablock will be deleted
+  when the object is deallocated.
   """
 
 def Mode(mode=0):

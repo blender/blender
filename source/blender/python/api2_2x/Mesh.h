@@ -115,6 +115,7 @@ typedef struct {
 	PyObject_HEAD		/* required python macro   */
 	Mesh *mesh;
 	Object *object;
+	char new;			/* was mesh created or already existed? */
 } BPy_Mesh;
 
 /* PROTOS */

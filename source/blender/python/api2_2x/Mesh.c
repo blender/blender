@@ -6907,6 +6907,12 @@ static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
 
 static void Mesh_dealloc( BPy_Mesh * self )
 {
+	Mesh *mesh = self->mesh;
+
+	/* if the mesh is new and has no users, delete it */
+	if( self->new && !mesh->id.us )
+	    free_libblock( &G.main->mesh, mesh );
+
 	PyObject_DEL( self );
 }
 
@@ -7149,6 +7155,7 @@ static PyObject *M_Mesh_New( PyObject * self_unused, PyObject * args )
 
 	obj->mesh = mesh;
 	obj->object = NULL;
+	obj->new = 1;
 	return (PyObject *)obj;
 }
 
@@ -7403,6 +7410,7 @@ PyObject *Mesh_CreatePyObject( Mesh * me, Object *obj )
 
 	nmesh->mesh = me;
 	nmesh->object = obj;
+	nmesh->new = 0;
 
 	return ( PyObject * ) nmesh;
 }
