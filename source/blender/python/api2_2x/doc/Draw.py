@@ -10,6 +10,7 @@ B{New}:
  - access to ASCII values in L{events<Register>} callbacks;
  - 'large' fonts for L{Text} and L{GetStringWidth}.
  - Pop-up blocks with L{PupBlock}
+ - Color Picker button with L{ColorPicker}
 
 This module provides access to a B{windowing interface} in Blender.  Its widgets
 include many kinds of buttons: push, toggle, menu, number, string, slider,
@@ -264,7 +265,7 @@ def Draw():
 def Create(value):
   """
   Create a default Button object.
-  @type value: int, float or string
+  @type value: int, float, string or 3 floats
   @param value: The value to store in the button.
   @rtype: Blender Button
   @return: The Button created.
@@ -580,6 +581,29 @@ def Slider(name, event, x, y, width, height, initial, min, max, realtime = 1,
 #  @return: The Button created.
 #  """
 
+def ColorPicker(event, x, y, width, height, initial, tooltip = None):
+  """
+  Create a new Color Picker Button object.
+  @type event: int
+  @param event: The event number to pass to the button event function when
+      activated.
+  @type x: int
+  @type y: int
+  @param x: The lower left x (horizontal) coordinate of the button.
+  @param y: The lower left y (vertical) coordinate of the button.
+  @type width: int
+  @type height: int
+  @param width: The button width.
+  @param height: The button height.
+  @type initial: 3-float tuple
+  @param initial:  The initial color value. All values must be between 0 and 1
+  @type tooltip: string
+  @param tooltip: The button's tooltip (the string that appears when the mouse
+      is kept over the button).
+  @rtype: Blender Button
+  @return: The Button created.
+  """
+
 def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
   """
   Create a new Number Button object.
@@ -734,6 +758,6 @@ class Button:
   The Button object
   =================
     This object represents a button in Blender's GUI.
-  @type val: int or float or string (depends on button type).
+  @type val: int or float, string or 3-float tuple (depends on button type).
   @ivar val: The button's value.
   """

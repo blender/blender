@@ -101,6 +101,7 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args );
 static PyObject *Method_Toggle( PyObject * self, PyObject * args );
 static PyObject *Method_Slider( PyObject * self, PyObject * args );
 static PyObject *Method_Scrollbar( PyObject * self, PyObject * args );
+static PyObject *Method_ColorPicker( PyObject * self, PyObject * args );
 static PyObject *Method_Number( PyObject * self, PyObject * args );
 static PyObject *Method_String( PyObject * self, PyObject * args );
 static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args );
@@ -208,6 +209,15 @@ new Scrollbar\n\n\
 (initial, min, max) Three values (int or float) specifying the initial and limit values.\n\
 [update=1] A value controlling whether the slider will emit events as it is edited.\n\
 	A non-zero value (default) enables the events. A zero value supresses them.\n\
+[tooltip=] The button's tooltip";
+
+static char Method_ColorPicker_doc[] = 
+	"(event, x, y, width, height, initial, [tooltip]) - Create a new Button \
+Color picker button\n\n\
+(event) The event number to pass to the button event function when the color changes\n\
+(x, y) The lower left coordinate of the button\n\
+(width, height) The button width and height\n\
+(initial) 3-Float tuple of the color (values between 0 and 1)\
 [tooltip=] The button's tooltip";
 
 static char Method_Number_doc[] =
@@ -322,6 +332,7 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( Menu ),
 	MethodDef( Slider ),
 	MethodDef( Scrollbar ),
+	MethodDef( ColorPicker ),
 	MethodDef( Number ),
 	MethodDef( String ),
 	MethodDef( GetStringWidth ),
@@ -370,7 +381,7 @@ static void Button_dealloc( PyObject * self )
 static PyObject *Button_getattr( PyObject * self, char *name )
 {
 	Button *but = ( Button * ) self;
-
+	
 	if( strcmp( name, "val" ) == 0 ) {
 		if( but->type == BINT_TYPE )
 			return Py_BuildValue( "i", but->val.asint );
@@ -378,6 +389,8 @@ static PyObject *Button_getattr( PyObject * self, char *name )
 			return Py_BuildValue( "f", but->val.asfloat );
 		else if( but->type == BSTRING_TYPE )
 			return Py_BuildValue( "s", but->val.asstr );
+		else if( but->type == BVECTOR_TYPE )
+			return Py_BuildValue( "fff", but->val.asvec[0], but->val.asvec[1], but->val.asvec[2] );
 	}
 
 	PyErr_SetString( PyExc_AttributeError, name );
@@ -389,35 +402,58 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 	Button *but = ( Button * ) self;
 
 	if( strcmp( name, "val" ) == 0 ) {
-		if( but->type == BINT_TYPE )
-			PyArg_Parse( v, "i", &but->val.asint );
-		else if( but->type == BFLOAT_TYPE )
-			PyArg_Parse( v, "f", &but->val.asfloat );
-		else if( but->type == BSTRING_TYPE ) {
+		if( but->type == BINT_TYPE && PyNumber_Check(v) ) {
+			PyObject *pyVal = PyNumber_Int( v );
+			if (pyVal) {
+				but->val.asint = (int)PyInt_AS_LONG( pyVal );
+				return 0;
+			}
+		}
+		else if( but->type == BFLOAT_TYPE && PyNumber_Check(v) ) {
+			PyObject *pyVal = PyNumber_Float( v );
+			if (pyVal) {
+				but->val.asfloat = (float)PyFloat_AS_DOUBLE( pyVal );
+				return 0;
+			}
+		}
+		else if( but->type == BVECTOR_TYPE ) {
+			if ( PyArg_ParseTuple( v, "fff", but->val.asvec, but->val.asvec+1, but->val.asvec+2 ) )
+				return 0;
+		}
+		else if( but->type == BSTRING_TYPE && PyString_Check(v) ) {
 			char *newstr;
-			PyArg_Parse( v, "s", &newstr );
+			unsigned int newlen;
+
+			PyString_AsStringAndSize( v, &newstr, &newlen );
 
 			/* if the length of the new string is the same as */
 			/* the old one, just copy, else delete and realloc. */
-			if( but->slen == strlen( newstr ) ) {
+			if( but->slen == newlen ) {
 				BLI_strncpy( but->val.asstr, newstr,
 					     but->slen + 1 );
 			} else {
 				MEM_freeN( but->val.asstr );
-				but->slen = strlen( newstr );
+				but->slen = newlen;
 				but->val.asstr =
 					MEM_mallocN( but->slen + 1,
 						     "button setattr" );
 				BLI_strncpy( but->val.asstr, newstr,
 					     but->slen + 1 );
+
+				return 0;
 			}
 		}
 	} else {
-		PyErr_SetString( PyExc_AttributeError, name );
-		return -1;
+		/*
+		 * Accessing the wrong attribute.
+		 */
+		return EXPP_ReturnIntError( PyExc_AttributeError, name );
 	}
 
-	return 0;
+	/*
+	 * Correct attribute but value is incompatible with current button value.
+	 */
+	return EXPP_ReturnIntError( PyExc_ValueError, "value incompatible with current button type" );
 }
 
 static PyObject *Button_repr( PyObject * self )
@@ -427,7 +463,9 @@ static PyObject *Button_repr( PyObject * self )
 
 static Button *newbutton( void )
 {
-	Button *but = ( Button * ) PyObject_NEW( Button, &Button_Type );
+	Button *but = NULL;
+	
+	but = ( Button * ) PyObject_NEW( Button, &Button_Type );
 
 	return but;
 }
@@ -720,31 +758,35 @@ static PyObject *Method_Draw( PyObject * self, PyObject * args )
 
 static PyObject *Method_Create( PyObject * self, PyObject * args )
 {
-	Button *but;
-	PyObject *in;
+	Button *but = NULL;
+	PyObject *val;
+	char *newstr;
 
-	if( !PyArg_ParseTuple( args, "O", &in ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected PyObject argument" );
+	but = newbutton();
 
-	but = newbutton(  );
-	if( PyFloat_Check( in ) ) {
+	if ( PyArg_ParseTuple( args, "fff", but->val.asvec, but->val.asvec+1, but->val.asvec+2 ) ) {
+		but->type = BVECTOR_TYPE;
+	}
+	else if ( PyArg_ParseTuple( args, "O!", &PyFloat_Type, &val ) ) {
+		but->val.asfloat = (float)PyFloat_AS_DOUBLE(val);
 		but->type = BFLOAT_TYPE;
-		but->val.asfloat = (float)PyFloat_AsDouble( in );
-	} else if( PyInt_Check( in ) ) {
+	}
+	else if ( PyArg_ParseTuple( args, "O!", &PyInt_Type, &val ) ) {
+		but->val.asint = (int)PyInt_AS_LONG(val);
 		but->type = BINT_TYPE;
-		but->val.asint = PyInt_AsLong( in );
-	} else if( PyString_Check( in ) ) {
-		char *newstr = PyString_AsString( in );
-
+	}
+	else if ( PyArg_ParseTuple( args, "s#", &newstr, &but->slen ) ) {
 		but->type = BSTRING_TYPE;
-		but->slen = strlen( newstr );
 		but->val.asstr = MEM_mallocN( but->slen + 1, "button string" );
-
-		strcpy( but->val.asstr, newstr );
+		BLI_strncpy( but->val.asstr, newstr, but->slen+1 );
+	}
+	else {
+		PyObject_DEL( (PyObject *) but );
+		but = NULL;
+		PyErr_SetString( PyExc_TypeError, "expected string, float, int or 3-float tuple argument" );
 	}
 
-	return ( PyObject * ) but;
+	return (PyObject*) but;
 }
 
 static uiBlock *Get_uiBlock( void )
@@ -1020,6 +1062,54 @@ another int and string as arguments" );
 
 	return ( PyObject * ) but;
 }
+
+static PyObject *Method_ColorPicker( PyObject * self, PyObject * args )
+{
+	char USAGE_ERROR[] = "expected a 3-float tuple of values between 0 and 1";
+	Button *but;
+	PyObject *inio;
+	uiBlock *block;
+	char *tip = NULL;
+	float col[3];
+	int event;
+	short x, y, w, h;
+	
+	if( !PyArg_ParseTuple( args, "ihhhhO!|s", &event,
+			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip ) )
+ 		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected five ints, one tuple and optionally a string as arguments." );
+ 
+ 	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+ 			"button event argument must be in the range [0, 16382]");
+ 
+	if ( !PyArg_ParseTuple( inio, "fff", col, col+1, col+2 ) )
+		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
+
+	if	(	col[0] < 0 || col[0] > 1
+		||	col[1] < 0 || col[1] > 1
+		||	col[2] < 0 || col[2] > 1 )
+		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
+
+	if ( EXPP_check_sequence_consistency( inio, &PyFloat_Type ) != 1 )
+		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
+ 
+	but = newbutton();
+ 
+	but->type = BVECTOR_TYPE;
+	but->val.asvec[0] = col[0];
+	but->val.asvec[1] = col[1];
+	but->val.asvec[2] = col[2];
+	
+	block = Get_uiBlock(  );
+	if( block ) {
+		uiBut *ubut;
+		ubut = uiDefButF( block, COL, event, "", x, y, w, h, but->val.asvec, 0, 0, 0, 0, tip);
+	}
+
+ 	return ( PyObject * ) but;
+}
+
 
 static PyObject *Method_Number( PyObject * self, PyObject * args )
 {

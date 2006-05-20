@@ -55,14 +55,15 @@ typedef struct _Button {
 		int asint;
 		float asfloat;
 		char *asstr;
+		float asvec[3];
 	} val;
 	char *tooltip;
 } Button;
 
 #define BINT_TYPE		1
 #define BFLOAT_TYPE		2
-#define BSTRING_TYPE	3
-
+#define BSTRING_TYPE		3
+#define BVECTOR_TYPE		4
 
 /* 
  * these are declared in ../BPY_extern.h 
