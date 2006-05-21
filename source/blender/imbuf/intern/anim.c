@@ -558,7 +558,6 @@ static int startffmpeg(struct anim * anim) {
         /* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return -1;
 	}
@@ -575,7 +574,6 @@ static int startffmpeg(struct anim * anim) {
 	pCodecCtx->error_concealment= 3;
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return -1;
 	}

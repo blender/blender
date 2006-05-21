@@ -537,7 +537,7 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 
 	of->preload = (int)(0.5*AV_TIME_BASE);
 	of->max_delay = (int)(0.7*AV_TIME_BASE);
-	
+
 	snprintf(of->filename, sizeof(of->filename), "%s", name);
 	/* set the codec to the user's selection */
 	switch(ffmpeg_type) {
