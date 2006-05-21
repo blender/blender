@@ -887,6 +887,9 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 20: /* region to loop */
 			region_to_loop();
 			break;
+		case 21: /* Select grouped */
+			select_mesh_group_menu();
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -933,6 +936,9 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Non-Triangles/Quads|Ctrl Alt Shift 5", 
 					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Group From Selection|Shift G", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

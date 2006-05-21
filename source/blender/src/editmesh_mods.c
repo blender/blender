@@ -744,6 +744,9 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 	return (*eve || *eed || *efa);
 }
 
+/* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes */
+#define SCALE_CMP(a,b) (a>0 && fabs(b/a-1)<=thresh)
+
 /* ****************  GROUP SELECTS ************** */
 /* selects new faces/edges/verts based on the
  existing selection
@@ -767,7 +770,7 @@ int facegroup_select(short mode)
 	unsigned int deselcount=0; 
 	
 	short ok=0;
-	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
+	float thresh=G.scene->toolsettings->select_thresh;
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if (!efa->h) {
@@ -824,7 +827,8 @@ int facegroup_select(short mode)
 			} else if (mode==3 || mode==4) { /* same area OR same perimeter, both use the same temp var */
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						if (fabs(efa->tmp.fp-base_efa->tmp.fp)<=thresh) {
+						if SCALE_CMP(base_efa->tmp.fp, efa->tmp.fp) {
+						
 							EM_select_face(efa, 1);
 							selcount++;
 							deselcount--;
@@ -838,7 +842,7 @@ int facegroup_select(short mode)
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
 						angle= VecAngle2(base_efa->n, efa->n);
-						if (angle<=thresh) {
+						if (angle/180.0<=thresh) {
 							EM_select_face(efa, 1);
 							selcount++;
 							deselcount--;
@@ -853,7 +857,7 @@ int facegroup_select(short mode)
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
 						angle= VecAngle2(base_efa->n, efa->n);
-						if (angle<=thresh) {
+						if (angle/180.0<=thresh) {
 							dot=Inpf(efa->cent, base_efa->n);
 							if (fabs(base_dot-dot) <= thresh) {
 								EM_select_face(efa, 1);
@@ -895,7 +899,7 @@ int edgegroup_select(short mode)
 	unsigned int deselcount=0;
 	
 	short ok=0;
-	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
+	float thresh=G.scene->toolsettings->select_thresh;
 	
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if (!eed->h) {
@@ -974,7 +978,7 @@ int edgegroup_select(short mode)
 					if (
 						!(eed->f & SELECT) &&
 						!eed->h &&
-						fabs(base_eed->tmp.fp - eed->tmp.fp) <= thresh
+						SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
@@ -994,7 +998,7 @@ int edgegroup_select(short mode)
 						if (angle>90) /* use the smallest angle between the edges */
 							angle= fabs(angle-180.0f);
 						
-						if (angle<=thresh) {
+						if (angle/90.0<=thresh) {
 							EM_select_edge(eed, 1);
 							selcount++;
 							deselcount--;
@@ -1023,7 +1027,7 @@ int edgegroup_select(short mode)
 						!(eed->f & SELECT) &&
 						!eed->h &&
 						eed->f2==2 &&
-						(fabs(base_eed->tmp.fp - eed->tmp.fp) <= thresh)
+						SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
@@ -1058,7 +1062,7 @@ int vertgroup_select(short mode)
 	unsigned int deselcount=0;
 	
 	short ok=0;
-	float thresh=G.scene->toolsettings->doublimit; /* todo. better var for this */
+	float thresh=G.scene->toolsettings->select_thresh;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if (!eve->h) {
@@ -1100,7 +1104,7 @@ int vertgroup_select(short mode)
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if (!(eve->f & SELECT) && !eve->h) {
 						angle= VecAngle2(base_eve->no, eve->no);
-						if (angle<=thresh) {
+						if (angle/180.0<=thresh) {
 							eve->f |= SELECT;
 							selcount++;
 							deselcount--;

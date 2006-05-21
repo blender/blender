@@ -307,10 +307,10 @@ typedef struct TimeMarker {
 } TimeMarker;
 
 typedef struct ToolSettings {
-	// Subdivide Settings
+	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;
-	// Extrude Tools
+	/* Extrude Tools */
 	short degr; 
 	short step;
 	short turn; 
@@ -320,15 +320,15 @@ typedef struct ToolSettings {
 	float extr_offs; 
 	float doublimit;
 	
-	// Primitive Settings
-	// UV Sphere
+	/* Primitive Settings */
+	/* UV Sphere */
 	short segments;
 	short rings;
 	
-	// Cylinder - Tube - Circle
+	/* Cylinder - Tube - Circle */
 	short vertices;
 
-	// UV Calculation
+	/* UV Calculation */
 	short unwrapper;
 	float uvcalc_radius;
 	float uvcalc_cubesize;
@@ -337,6 +337,10 @@ typedef struct ToolSettings {
 	short uvcalc_flag;
 
 	short pad2;
+	
+	/* Select Group Threshold */
+	float select_thresh;
+
 } ToolSettings;
 
 typedef struct Scene {
