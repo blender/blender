@@ -116,6 +116,13 @@ class Action:
     @rtype: PyIpo or None
     @return: the Ipo for the channel
     """
+
+  def getFrameNumbers():
+    """
+    Gets the frame numbers at which a key was inserted into this action
+    @rtype: PyList
+    @return: a list of ints
+    """
     
   def removeChannel(channel):
     """
