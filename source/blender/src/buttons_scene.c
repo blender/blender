@@ -1406,7 +1406,7 @@ static void render_panel_ffmpeg_video(void)
 		 1, 14000, 0, 0, "Rate control: max rate(kb/s)");
 
        uiDefButI(block, NUM, B_DIFF, "Mux Rate", 
-		 xcol1, yofs, 110, 20, 
+		 xcol1, yofs-22, 110, 20, 
 		 &G.scene->r.ffcodecdata.mux_rate, 
 		 0, 100000000, 0, 0, "Mux rate (bits/s(!))");
 
