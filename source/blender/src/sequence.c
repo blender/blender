@@ -45,22 +45,23 @@
 #include "DNA_sequence_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
-#include "BKE_texture.h"
 #include "BKE_image.h"
+#include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_ipo.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
+#include "BIF_editsound.h"
+#include "BIF_editseq.h"
 #include "BSE_filesel.h"
-#include "BIF_interface.h"
 #include "BSE_headerbuttons.h"
+#include "BIF_interface.h"
+#include "BIF_renderwin.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
-#include "BIF_editsound.h"
-#include "BIF_editseq.h"
 
 #include "BSE_sequence.h"
 #include "BSE_seqeffects.h"
@@ -886,73 +887,37 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				}
 			}
 			else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
-				printf("Sorry, sequence scene is not yet back...\n");
-#if 0
-				View3D *vd;
-				Scene *oldsce;
-				unsigned int *rectot;
-				int oldcfra, doseq;
-				int redisplay= (!G.background && !G.rendering);
-				
-				oldsce= G.scene;
-				if(seq->scene!=G.scene) set_scene_bg(seq->scene);
-				
-				/* prevent eternal loop */
-				doseq= G.scene->r.scemode & R_DOSEQ;
-				G.scene->r.scemode &= ~R_DOSEQ;
-				
-				/* store Current FRAme */
-				oldcfra= CFRA;
-				
-				CFRA= ( seq->sfra + se->nr );
+				Scene *sce= seq->scene, *oldsce= G.scene;
+				Render *re= RE_NewRender(sce->id.name);
+				RenderResult rres;
+				int doseq;
 				
 				waitcursor(1);
 				
-				rectot= R.rectot; R.rectot= NULL;
-				oldx= R.rectx; oldy= R.recty;
-				/* needed because current 3D window cannot define the layers, like in a background render */
-				vd= G.vd;
-				G.vd= NULL;
+				/* prevent eternal loop */
+				doseq= sce->r.scemode & R_DOSEQ;
+				sce->r.scemode &= ~R_DOSEQ;
 				
-				RE_initrender(NULL);
-				if (redisplay) {
-					mainwindow_make_active();
-					if(R.r.mode & R_FIELDS) update_for_newframe_muted();
-					R.flag= 0;
-					
-					free_filesel_spec(G.scene->r.pic);
+				/* hrms, set_scene still needed? work on that... */
+				set_scene_bg(sce);
+				RE_BlenderFrame(re, sce, seq->sfra + se->nr);
+				set_scene_bg(oldsce);
+				
+				RE_GetResultImage(re, &rres);
+				
+				if(rres.rectf) {
+					se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
+					memcpy(se->ibuf->rect_float, rres.rectf, 4*sizeof(float)*rres.rectx*rres.recty);
+					if(rres.rectz) {
+						/* not yet */
+					}
 				}
 				
-				se->ibuf= IMB_allocImBuf(R.rectx, R.recty, 32, IB_rect, 0);
-				if(R.rectot) memcpy(se->ibuf->rect, R.rectot, 4*R.rectx*R.recty);
-				if(R.rectz) {
-					se->ibuf->zbuf= (int *)R.rectz;
-					/* make sure ibuf frees it */
-					se->ibuf->mall |= IB_zbuf;
-					R.rectz= NULL;
-				}
+				/* restore */
+				sce->r.scemode |= doseq;
 				
-				/* and restore */
-				G.vd= vd;
-				
-				if((G.f & G_PLAYANIM)==0) waitcursor(0);
-				CFRA= oldcfra;
-				if(R.rectot) MEM_freeN(R.rectot);
-				R.rectot= rectot;
-				R.rectx=oldx; R.recty=oldy;
-				G.scene->r.scemode |= doseq;
-				if(seq->scene!=oldsce) set_scene_bg(oldsce);	/* set_scene does full dep updates */
-				
-				/* restore!! */
-				R.rectx= seqrectx;
-				R.recty= seqrecty;
-				
-				/* added because this flag is checked for
-				 * movie writing when rendering an anim.
-				 * very convoluted. fix. -zr
-				 */
-				R.r.imtype= G.scene->r.imtype;
-#endif
+				if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
+					waitcursor(0);
 			}
 			
 			/* size test */

@@ -1060,7 +1060,8 @@ static void do_render(int anim)
 	unsigned int lay= G.scene->lay;
 	int scemode= G.scene->r.scemode;
 	
-	/* we set this flag to prevent renderwindow queue to execute another render */
+	/* UGLY! we set this flag to prevent renderwindow queue to execute another render */
+	/* is reset in RE_BlenderFrame */
 	G.rendering= 1;
 	G.afbreek= 0;
 
@@ -1111,10 +1112,7 @@ static void do_render(int anim)
 //			BIF_preview_changed(ID_TE);
 //		}
 	allqueue(REDRAWBUTSSCENE, 0);	// visualize fbuf for example
-	
-	// before scene update!
-	G.rendering= 0;
-	
+		
 	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
 	
 	waitcursor(0);

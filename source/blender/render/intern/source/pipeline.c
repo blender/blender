@@ -693,13 +693,13 @@ Render *RE_NewRender(const char *name)
 	
 	/* only one render per name exists */
 	re= RE_GetRender(name);
-	if(re)
-		return re;
-	
-	/* new render data struct */
-	re= MEM_callocT(sizeof(Render), "new render");
-	BLI_addtail(&RenderList, re);
-	strncpy(re->name, name, RE_MAXNAME);
+	if(re==NULL) {
+		
+		/* new render data struct */
+		re= MEM_callocT(sizeof(Render), "new render");
+		BLI_addtail(&RenderList, re);
+		strncpy(re->name, name, RE_MAXNAME);
+	}
 	
 	/* set default empty callbacks */
 	re->display_init= result_nothing;
@@ -1507,10 +1507,14 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 	
+	scene->r.cfra= frame;
+	
 	if(render_initialize_from_scene(re, scene)) {
 		do_render_final(re);
-		
 	}
+	
+	/* UGLY WARNING */
+	G.rendering= 0;
 }
 
 static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
@@ -1627,6 +1631,9 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		mh->end_movie();
 
 	scene->r.cfra= cfrao;
+	
+	/* UGLY WARNING */
+	G.rendering= 0;
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
