@@ -2927,13 +2927,15 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 static void tekentextcurs(void)
 {
 	cpack(0);
-
+	
+	set_inverted_drawing(1);
 	glBegin(GL_QUADS);
 	glVertex2fv(G.textcurs[0]);
 	glVertex2fv(G.textcurs[1]);
 	glVertex2fv(G.textcurs[2]);
 	glVertex2fv(G.textcurs[3]);
 	glEnd();
+	set_inverted_drawing(0);
 }
 
 static void drawspiral(float *cent, float rad, float tmat[][4], int start)
@@ -3804,6 +3806,7 @@ void draw_object(Base *base, int flag)
 			}
 
 			if (cu->linewidth != 0.0) {
+				cpack(0xff44ff);
 				BIF_ThemeColor(TH_WIRE);
 				VECCOPY(vec1, ob->orig);
 				VECCOPY(vec2, ob->orig);
