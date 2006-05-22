@@ -80,7 +80,10 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 
 void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)
 {
-	touchman->GetPhysicsEnvironment()->addSensor(m_physCtrl);
+	if (m_physCtrl)
+	{
+		touchman->GetPhysicsEnvironment()->addSensor(m_physCtrl);
+	}
 }
 
 CValue* KX_NearSensor::GetReplica()
@@ -96,7 +99,18 @@ CValue* KX_NearSensor::GetReplica()
 	
 	replica->m_client_info = new KX_ClientObjectInfo(m_client_info->m_gameobject, KX_ClientObjectInfo::NEAR);
 	
-	replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+	if (replica->m_physCtrl)
+	{
+		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+		if (replica->m_physCtrl)
+		{
+			//static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->addSensor(replica->m_physCtrl);
+			replica->m_physCtrl->SetMargin(m_Margin);
+			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
+		}
+		
+	}
+	//static_cast<KX_TouchEventManager*>(m_eventmgr)->RegisterSensor(this);
 	//todo: make sure replication works fine
 	//>m_sumoObj = new SM_Object(DT_NewSphere(0.0),NULL,NULL,NULL);
 	//replica->m_sumoObj->setMargin(m_Margin);
@@ -111,11 +125,21 @@ CValue* KX_NearSensor::GetReplica()
 
 void KX_NearSensor::ReParent(SCA_IObject* parent)
 {
+
 	SCA_ISensor::ReParent(parent);
 	
 	m_client_info->m_gameobject = static_cast<KX_GameObject*>(parent); 
 	m_client_info->m_sensors.push_back(this);
 	
+
+/*	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
+	client_info->m_gameobject = gameobj;
+	client_info->m_auxilary_info = NULL;
+	
+	client_info->m_sensors.push_back(this);
+	SCA_ISensor::ReParent(parent);
+*/
+
 	SynchronizeTransform();
 }
 
@@ -127,10 +151,11 @@ KX_NearSensor::~KX_NearSensor()
 	// for touchsensor, it's the parent
 	if (m_physCtrl)
 	{
-		static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
+		//static_cast<KX_TouchEventManager*>(m_eventmgr)->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
 		delete m_physCtrl;
 		m_physCtrl = NULL;
 	}
+	
 		
 	if (m_client_info)
 		delete m_client_info;

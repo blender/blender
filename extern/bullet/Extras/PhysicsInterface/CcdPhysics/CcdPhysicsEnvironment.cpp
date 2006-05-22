@@ -29,6 +29,10 @@ subject to the following restrictions:
 #include "CollisionDispatch/CollisionWorld.h"
 
 #include "CollisionShapes/ConvexShape.h"
+#include "CollisionShapes/ConeShape.h"
+
+
+
 #include "BroadphaseCollision/Dispatcher.h"
 #include "NarrowPhaseCollision/PersistentManifold.h"
 #include "CollisionShapes/TriangleMeshShape.h"
@@ -321,6 +325,7 @@ static void DrawAabb(IDebugDraw* debugDrawer,const SimdVector3& from,const SimdV
 CcdPhysicsEnvironment::CcdPhysicsEnvironment(CollisionDispatcher* dispatcher,BroadphaseInterface* broadphase)
 :m_scalingPropagated(false),
 m_numIterations(10),
+m_numTimeSubSteps(1),
 m_ccdMode(0),
 m_solverType(-1),
 m_profileTimings(0),
@@ -342,9 +347,9 @@ m_enableSatCollisionDetection(false)
 		SimdVector3 worldMin(-10000,-10000,-10000);
 		SimdVector3 worldMax(10000,10000,10000);
 
-		//broadphase = new AxisSweep3(worldMin,worldMax);
+		broadphase = new AxisSweep3(worldMin,worldMax);
 
-		broadphase = new SimpleBroadphase();
+		//broadphase = new SimpleBroadphase();
 	}
 
 
@@ -498,6 +503,8 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
+	//printf("proceedDeltaTime\n");
+	
 
 #ifdef USE_QUICKPROF
 	//toggle Profiler
@@ -528,16 +535,38 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 	if (!SimdFuzzyZero(timeStep))
 	{
+		
+		{
+			//do the kinematic calculation here, over the full timestep
+			std::vector<CcdPhysicsController*>::iterator i;
+			for (i=m_controllers.begin();
+						!(i==m_controllers.end()); i++)
+			{
 
-		// define this in blender, the stepsize is 30 hertz, 60 hertz works much better 
-//#define SPLIT_TIMESTEP 1
+						CcdPhysicsController* ctrl = *i;
 
-#ifdef SPLIT_TIMESTEP
-		proceedDeltaTimeOneStep(0.5f*timeStep);
-		proceedDeltaTimeOneStep(0.5f*timeStep);
-#else		
-		proceedDeltaTimeOneStep(timeStep);
-#endif
+						SimdTransform predictedTrans;
+						RigidBody* body = ctrl->GetRigidBody();
+						if (body->GetActivationState() != ISLAND_SLEEPING)
+						{
+
+							if (body->IsStatic())
+							{
+								//to calculate velocities next frame
+								body->saveKinematicState(timeStep);
+							}
+						}
+			}
+		}
+
+
+		int i;
+		float subTimeStep = timeStep / float(m_numTimeSubSteps);
+
+		for (i=0;i<this->m_numTimeSubSteps;i++)
+		{
+			proceedDeltaTimeOneStep(subTimeStep);
+		}
 	} else
 	{
 		//todo: interpolate
@@ -563,7 +592,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 {
 
 
-	//	printf("CcdPhysicsEnvironment::proceedDeltaTime\n");
+	//printf("CcdPhysicsEnvironment::proceedDeltaTime\n");
 
 	if (SimdFuzzyZero(timeStep))
 		return true;
@@ -811,11 +840,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 					if (body->GetActivationState() != ISLAND_SLEEPING)
 					{
 
-						if (body->IsStatic())
-						{
-							//to calculate velocities next frame
-							body->saveKinematicState(timeStep);
-						} else
+						if (!body->IsStatic())
 						{
 							body->predictIntegratedTransform(timeStep*	toi, predictedTrans);
 							body->proceedToTransform( predictedTrans);
@@ -1392,10 +1417,34 @@ TypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 
 void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 {
+
+	CcdPhysicsController* ctrl1 = (CcdPhysicsController* )ctrl;
+	std::vector<CcdPhysicsController*>::iterator i =
+		std::find(m_controllers.begin(), m_controllers.end(), ctrl);
+	if ((i == m_controllers.end()))
+	{
+		addCcdPhysicsController(ctrl1);
+	}
+
+	requestCollisionCallback(ctrl);
 	//printf("addSensor\n");
 }
+
+void CcdPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
+{
+	std::vector<CcdPhysicsController*>::iterator i =
+		std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl);
+	if (!(i == m_triggerControllers.end()))
+	{
+		std::swap(*i, m_triggerControllers.back());
+		m_triggerControllers.pop_back();
+	}
+}
+
+
 void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
 {
+	removeCollisionCallback(ctrl);
 	//printf("removeSensor\n");
 }
 void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
@@ -1584,3 +1633,41 @@ void	CcdPhysicsEnvironment::UpdateAabbs(float	timeStep)
 				}
 			}
 }
+
+PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radius,const PHY__Vector3& position)
+{
+	
+	CcdConstructionInfo	cinfo;
+	cinfo.m_collisionShape = new SphereShape(radius);
+	cinfo.m_MotionState = 0;
+	cinfo.m_physicsEnv = this;
+	cinfo.m_collisionFlags |= CollisionObject::noContactResponse;
+	DefaultMotionState* motionState = new DefaultMotionState();
+	cinfo.m_MotionState = motionState;
+	motionState->m_worldTransform.setIdentity();
+	motionState->m_worldTransform.setOrigin(SimdVector3(position[0],position[1],position[2]));
+
+	CcdPhysicsController* sphereController = new CcdPhysicsController(cinfo);
+	
+
+	return sphereController;
+}
+
+
+PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float coneradius,float coneheight)
+{
+	CcdConstructionInfo	cinfo;
+	cinfo.m_collisionShape = new ConeShape(coneradius,coneheight);
+	cinfo.m_MotionState = 0;
+	cinfo.m_physicsEnv = this;
+	DefaultMotionState* motionState = new DefaultMotionState();
+	cinfo.m_MotionState = motionState;
+	motionState->m_worldTransform.setIdentity();
+//	motionState->m_worldTransform.setOrigin(SimdVector3(position[0],position[1],position[2]));
+
+	CcdPhysicsController* sphereController = new CcdPhysicsController(cinfo);
+
+
+	return sphereController;
+}
+	

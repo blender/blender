@@ -57,6 +57,8 @@ class PHY_IPhysicsEnvironment
 		virtual void		setDebugMode(int debugMode) {}
 		///setNumIterations set the number of iterations for iterative solvers
 		virtual void		setNumIterations(int numIter) {}
+		///setNumTimeSubSteps set the number of divisions of the timestep. Tradeoff quality versus performance.
+		virtual void		setNumTimeSubSteps(int numTimeSubSteps){}
 		///setDeactivationTime sets the minimum time that an objects has to stay within the velocity tresholds until it gets fully deactivated
 		virtual void		setDeactivationTime(float dTime) {}
 		///setDeactivationLinearTreshold sets the linear velocity treshold, see setDeactivationTime

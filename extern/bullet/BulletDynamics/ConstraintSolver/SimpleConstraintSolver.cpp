@@ -112,6 +112,7 @@ SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
 
 
 
+
 float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer)
 {
 
@@ -125,7 +126,7 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 	{
 		manifoldPtr->RefreshContactPoints(body0->getCenterOfMassTransform(),body1->getCenterOfMassTransform());
 		
-		const int numpoints = manifoldPtr->GetNumContacts();
+		int numpoints = manifoldPtr->GetNumContacts();
 
 		SimdVector3 color(0,1,0);
 		for (int i=0;i<numpoints ;i++)

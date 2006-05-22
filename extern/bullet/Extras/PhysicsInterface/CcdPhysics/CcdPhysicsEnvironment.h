@@ -48,7 +48,11 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 	SimdVector3 m_gravity;
 	
 	IDebugDraw*	m_debugDrawer;
+	//solver iterations
 	int	m_numIterations;
+	
+	//timestep subdivisions
+	int	m_numTimeSubSteps;
 	int	m_ccdMode;
 	int	m_solverType;
 	int	m_profileTimings;
@@ -74,6 +78,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		}
 
 		virtual void		setNumIterations(int numIter);
+		virtual void		setNumTimeSubSteps(int numTimeSubSteps)
+		{
+			m_numTimeSubSteps = numTimeSubSteps;
+		}
 		virtual void		setDeactivationTime(float dTime);
 		virtual	void		setDeactivationLinearTreshold(float linTresh) ;
 		virtual	void		setDeactivationAngularTreshold(float angTresh) ;
@@ -131,8 +139,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual void removeSensor(PHY_IPhysicsController* ctrl);
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
 		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
-		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;};
-		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight){ return 0;};
+		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl);
+
+		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
+		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
 	
 
 		virtual int	getNumContactPoints();

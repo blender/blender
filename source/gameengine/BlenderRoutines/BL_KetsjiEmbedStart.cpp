@@ -85,8 +85,24 @@
 
 static BlendFileData *load_game_data(char *filename) {
 	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_file(filename, &error);
-	
+	//this doesn't work anymore for relative paths, so use BLO_read_from_memory instead
+	//BlendFileData *bfd= BLO_read_from_file(filename, &error);
+	FILE* file = fopen(filename,"rb");
+	BlendFileData *bfd  = 0;
+	if (file)
+	{
+		fseek(file, 0L, SEEK_END);
+		int len= ftell(file);
+		fseek(file, 0L, SEEK_SET);	
+		char* filebuffer= new char[len];//MEM_mallocN(len, "text_buffer");
+		int sizeread = fread(filebuffer,len,1,file);
+		if (sizeread==1)
+		{
+			bfd = BLO_read_from_memory(filebuffer, len, &error);
+		}
+		fclose(file);
+	}
+
 	if (!bfd) {
 		printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
 	}
@@ -96,17 +112,17 @@ static BlendFileData *load_game_data(char *filename) {
 
 extern "C" void StartKetsjiShell(struct ScrArea *area,
 								 char* scenename,
-								 struct Main* maggie,
+								 struct Main* maggie1,
 								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
 	
-	Main* blenderdata = maggie;
+	Main* blenderdata = maggie1;
 
 	char* startscenename = scenename;
 	char pathname[160];
-	strcpy (pathname, maggie->name);
+	strcpy (pathname, blenderdata->name);
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
 
@@ -257,8 +273,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		Scene *blscene = NULL;
 		if (!bfd)
 		{
-			blscene = (Scene*) maggie->scene.first;
-			for (Scene *sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
+			blscene = (Scene*) blenderdata->scene.first;
+			for (Scene *sce= (Scene*) blenderdata->scene.first; sce; sce= (Scene*) sce->id.next)
 			{
 				if (startscenename == (sce->id.name+2))
 				{
@@ -292,7 +308,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			}
 			
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata,sipo, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			
 			if (always_use_expand_framing)

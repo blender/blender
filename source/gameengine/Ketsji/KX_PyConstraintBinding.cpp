@@ -53,6 +53,9 @@ static char gPySetGravity__doc__[] = "setGravity(float x,float y,float z)";
 static char gPySetDebugMode__doc__[] = "setDebugMode(int mode)";
 
 static char gPySetNumIterations__doc__[] = "setNumIterations(int numiter) This sets the number of iterations for an iterative constraint solver";
+static char gPySetNumTimeSubSteps__doc__[] = "setNumTimeSubSteps(int numsubstep) This sets the number of substeps for each physics proceed. Tradeoff quality for performance.";
+
+
 static char gPySetDeactivationTime__doc__[] = "setDeactivationTime(float time) This sets the time after which a resting rigidbody gets deactived";
 static char gPySetDeactivationLinearTreshold__doc__[] = "setDeactivationLinearTreshold(float linearTreshold)";
 static char gPySetDeactivationAngularTreshold__doc__[] = "setDeactivationAngularTreshold(float angularTreshold)";
@@ -105,6 +108,24 @@ static PyObject* gPySetDebugMode(PyObject* self,
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
+
+
+
+static PyObject* gPySetNumTimeSubSteps(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	int substep;
+	if (PyArg_ParseTuple(args,"i",&substep))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setNumTimeSubSteps(substep);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
 
 static PyObject* gPySetNumIterations(PyObject* self,
 										 PyObject* args, 
@@ -410,6 +431,9 @@ static struct PyMethodDef physicsconstraints_methods[] = {
    /// settings that influence quality of the rigidbody dynamics
   {"setNumIterations",(PyCFunction) gPySetNumIterations,
    METH_VARARGS, gPySetNumIterations__doc__},
+
+   {"setNumTimeSubSteps",(PyCFunction) gPySetNumTimeSubSteps,
+   METH_VARARGS, gPySetNumTimeSubSteps__doc__},
 
   {"setDeactivationTime",(PyCFunction) gPySetDeactivationTime,
    METH_VARARGS, gPySetDeactivationTime__doc__},

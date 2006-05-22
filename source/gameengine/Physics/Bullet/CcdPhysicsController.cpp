@@ -23,6 +23,9 @@ subject to the following restrictions:
 #include "CcdPhysicsEnvironment.h"
 #include "SimdTransformUtil.h"
 
+#include "CollisionShapes/SphereShape.h"
+#include "CollisionShapes/ConeShape.h"
+
 class BP_Proxy;
 
 ///todo: fill all the empty CcdPhysicsController methods, hook them up to the RigidBody class
@@ -484,5 +487,98 @@ bool CcdPhysicsController::wantsSleeping()
 		return true;
 	}
 	return false;
+}
+
+PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
+{
+	//very experimental, shape sharing is not implemented yet.
+	//just support SphereShape/ConeShape for now
+
+	CcdConstructionInfo cinfo = m_cci;
+	if (cinfo.m_collisionShape)
+	{
+		switch (cinfo.m_collisionShape->GetShapeType())
+		{
+		case SPHERE_SHAPE_PROXYTYPE:
+			{
+				SphereShape* orgShape = (SphereShape*)cinfo.m_collisionShape;
+				cinfo.m_collisionShape = new SphereShape(*orgShape);
+				break;
+			}
+
+			case CONE_SHAPE_PROXYTYPE:
+			{
+				ConeShape* orgShape = (ConeShape*)cinfo.m_collisionShape;
+				cinfo.m_collisionShape = new ConeShape(*orgShape);
+				break;
+			}
+
+
+		default:
+			{
+				return 0;
+			}
+		}
+	}
+
+	cinfo.m_MotionState = new DefaultMotionState();
+
+	CcdPhysicsController* replica = new CcdPhysicsController(cinfo);
+	return replica;
+}
+
+///////////////////////////////////////////////////////////
+///A small utility class, DefaultMotionState
+///
+///////////////////////////////////////////////////////////
+
+DefaultMotionState::DefaultMotionState()
+{
+	m_worldTransform.setIdentity();
+}
+
+
+DefaultMotionState::~DefaultMotionState()
+{
+
+}
+
+void	DefaultMotionState::getWorldPosition(float& posX,float& posY,float& posZ)
+{
+	posX = m_worldTransform.getOrigin().x();
+	posY = m_worldTransform.getOrigin().y();
+	posZ = m_worldTransform.getOrigin().z();
+}
+
+void	DefaultMotionState::getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
+{
+	scaleX = 1.;
+	scaleY = 1.;
+	scaleZ = 1.;
+}
+
+void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
+{
+	quatIma0 = m_worldTransform.getRotation().x();
+	quatIma1 = m_worldTransform.getRotation().y();
+	quatIma2 = m_worldTransform.getRotation().z();
+	quatReal = m_worldTransform.getRotation()[3];
+}
+		
+void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
+{
+	SimdPoint3 pos(posX,posY,posZ);
+	m_worldTransform.setOrigin( pos );
+}
+
+void	DefaultMotionState::setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
+{
+	SimdQuaternion orn(quatIma0,quatIma1,quatIma2,quatReal);
+	m_worldTransform.setRotation( orn );
+}
+		
+void	DefaultMotionState::calculateWorldTransformations()
+{
+
 }
 

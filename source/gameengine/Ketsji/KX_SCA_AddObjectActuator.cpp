@@ -318,7 +318,11 @@ void	KX_SCA_AddObjectActuator::InstantAddObject()
 
 		// keep a copy of the last object, to allow python scripters to change it
 		if (m_lastCreatedObject)
+		{
+			//careful with destruction, it might still have outstanding collision callbacks
+			m_scene->DelayedReleaseObject(m_lastCreatedObject);
 			m_lastCreatedObject->Release();
+		}
 		
 		m_lastCreatedObject = replica;
 		m_lastCreatedObject->AddRef();

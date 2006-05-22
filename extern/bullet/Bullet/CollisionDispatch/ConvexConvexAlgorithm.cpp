@@ -307,26 +307,14 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	
 	GjkPairDetector::ClosestPointInput input;
 
-	SphereShape	sphere(0.2f);
-	MinkowskiSumShape	expanded0(min0,&sphere);
-	MinkowskiSumShape	expanded1(min1,&sphere);
 
-	if (dispatchInfo.m_useContinuous)
-	{
-		m_gjkPairDetector.SetMinkowskiA(&expanded0);
-		m_gjkPairDetector.SetMinkowskiB(&expanded1);
-		input.m_maximumDistanceSquared = expanded0.GetMargin()+expanded1.GetMargin();
-		input.m_maximumDistanceSquared *= input.m_maximumDistanceSquared;
-	}
-	else
-	{
-		m_gjkPairDetector.SetMinkowskiA(min0);
-		m_gjkPairDetector.SetMinkowskiB(min1);
-		input.m_maximumDistanceSquared = min0->GetMargin() + min1->GetMargin() + m_manifoldPtr->GetContactBreakingTreshold();
-		input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
-	}
-
-	input.m_maximumDistanceSquared = 1e30f;//
+	//TODO: if (dispatchInfo.m_useContinuous)
+	m_gjkPairDetector.SetMinkowskiA(min0);
+	m_gjkPairDetector.SetMinkowskiB(min1);
+	input.m_maximumDistanceSquared = min0->GetMargin() + min1->GetMargin() + m_manifoldPtr->GetContactBreakingTreshold();
+	input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
+	
+	//input.m_maximumDistanceSquared = 1e30f;//
 	
 	input.m_transformA = col0->m_worldTransform;
 	input.m_transformB = col1->m_worldTransform;

@@ -27,6 +27,7 @@ subject to the following restrictions:
 #include "SimdTransform.h"
 #include "Dynamics/RigidBody.h"
 
+#include "PHY_IMotionState.h"
 
 #include "BroadphaseCollision/BroadphaseProxy.h" //for CollisionShape access
 class CollisionShape;
@@ -155,7 +156,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		// clientinfo for raycasts for example
 		virtual	void*				getNewClientInfo();
 		virtual	void				setNewClientInfo(void* clientinfo);
-		virtual PHY_IPhysicsController*	GetReplica() {return 0;}
+		virtual PHY_IPhysicsController*	GetReplica();
+		
 
 		virtual void	calcXform() {} ;
 		virtual void SetMargin(float margin) {};
@@ -183,5 +185,31 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 
 };
+
+
+
+
+///DefaultMotionState implements standard motionstate, using SimdTransform
+class	DefaultMotionState : public PHY_IMotionState
+
+{
+	public:
+		DefaultMotionState();
+
+		virtual ~DefaultMotionState();
+
+		virtual void	getWorldPosition(float& posX,float& posY,float& posZ);
+		virtual void	getWorldScaling(float& scaleX,float& scaleY,float& scaleZ);
+		virtual void	getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal);
+		
+		virtual void	setWorldPosition(float posX,float posY,float posZ);
+		virtual	void	setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal);
+		
+		virtual	void	calculateWorldTransformations();
+		
+		SimdTransform	m_worldTransform;
+
+};
+
 
 #endif //BULLET2_PHYSICSCONTROLLER_H

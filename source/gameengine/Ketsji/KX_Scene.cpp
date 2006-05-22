@@ -125,6 +125,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_parentlist = new CListValue();
 	m_lightlist= new CListValue();
 	m_euthanasyobjects = new CListValue();
+	m_delayReleaseObjects = new CListValue();
 
 	m_logicmgr = new SCA_LogicManager();
 	
@@ -193,6 +194,8 @@ KX_Scene::~KX_Scene()
 
 	if (m_euthanasyobjects)
 		m_euthanasyobjects->Release();
+	if (m_delayReleaseObjects)
+		m_delayReleaseObjects->Release();
 
 	if (m_logicmgr)
 		delete m_logicmgr;
@@ -654,8 +657,13 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 		// recursively destruct
 		node->Destruct();
 	}
+	newobj->SetSGNode(0);
 }
 
+void KX_Scene::DelayedReleaseObject(CValue* gameobj)
+{
+	m_delayReleaseObjects->Add(gameobj->AddRef());
+}
 
 
 void KX_Scene::DelayedRemoveObject(class CValue* gameobj)
@@ -1087,12 +1095,22 @@ void KX_Scene::LogicEndFrame()
 {
 	m_logicmgr->EndFrame();
 	int numobj = m_euthanasyobjects->GetCount();
-
-	for (int i = numobj - 1; i >= 0; i--)
+	int i;
+	for (i = numobj - 1; i >= 0; i--)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_euthanasyobjects->GetValue(i);
 		this->RemoveObject(gameobj);
 	}
+
+	numobj=	m_delayReleaseObjects->GetCount();
+	for (i = numobj-1;i>=0;i--)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*)m_delayReleaseObjects->GetValue(i);
+		m_delayReleaseObjects->RemoveValue(gameobj);	
+		
+	}
+	
+
 }
 
 
