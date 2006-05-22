@@ -33,7 +33,9 @@
 #include "NLA.h" /*This must come first*/
 
 #include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
 #include "BKE_action.h"
+#include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
@@ -41,6 +43,12 @@
 #include "Object.h"
 #include "Ipo.h"
 #include "gen_utils.h"
+#include "blendef.h"
+#include "MEM_guardedalloc.h"
+
+#define ACTSTRIP_STRIDEAXIS_X         0
+#define ACTSTRIP_STRIDEAXIS_Y         1
+#define ACTSTRIP_STRIDEAXIS_Z         2
 
 /*****************************************************************************/
 /* Python API function prototypes for the NLA module.			 */
@@ -146,7 +154,7 @@ PyTypeObject Action_Type = {
 };
 
 //-------------------------------------------------------------------------
-static PyObject *M_NLA_NewAction( PyObject * self, PyObject * args )
+static PyObject *M_NLA_NewAction( PyObject * self_unused, PyObject * args )
 {
 	char *name_str = "DefaultAction";
 	BPy_Action *py_action = NULL;	/* for Action Data object wrapper in Python */
@@ -185,7 +193,7 @@ static PyObject *M_NLA_NewAction( PyObject * self, PyObject * args )
 	return ( PyObject * ) py_action;
 }
 
-static PyObject *M_NLA_CopyAction( PyObject * self, PyObject * args )
+static PyObject *M_NLA_CopyAction( PyObject * self_unused, PyObject * args )
 {
 	BPy_Action *py_action = NULL;
 	bAction *copyAction = NULL;
@@ -199,7 +207,7 @@ static PyObject *M_NLA_CopyAction( PyObject * self, PyObject * args )
 	return Action_CreatePyObject( copyAction );
 }
 
-static PyObject *M_NLA_GetActions( PyObject * self )
+static PyObject *M_NLA_GetActions( PyObject * self_unused )
 {
 	PyObject *dict = PyDict_New(  );
 	bAction *action = NULL;
@@ -227,20 +235,6 @@ static PyObject *M_NLA_GetActions( PyObject * self )
 	return dict;
 }
 
-/*****************************************************************************/
-/* Function:	NLA_Init						 */
-/*****************************************************************************/
-PyObject *NLA_Init( void )
-{
-	PyObject *submodule;
-
-	Action_Type.ob_type = &PyType_Type;
-
-	submodule = Py_InitModule3( "Blender.Armature.NLA",
-				    M_NLA_methods, M_NLA_doc );
-
-	return ( submodule );
-}
 
 //----------------------------------------------------------------------
 static PyObject *Action_getName( BPy_Action * self )
@@ -543,4 +537,1013 @@ struct bAction *Action_FromPyObject( PyObject * py_obj )
 
 	blen_obj = ( BPy_Action * ) py_obj;
 	return ( blen_obj->action );
+}
+
+/*****************************************************************************/
+/* ActionStrip wrapper                                                       */
+/*****************************************************************************/
+
+/*****************************************************************************/
+/* Python BPy_ActionStrip attributes:                                        */
+/*****************************************************************************/
+
+/*
+ * return the action for the action strip
+ */
+
+static PyObject *ActionStrip_getAction( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return Action_CreatePyObject( self->strip->act );
+}
+
+/*
+ * return the start frame of the action strip
+ */
+
+static PyObject *ActionStrip_getStripStart( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( self->strip->start );
+}
+
+/*
+ * set the start frame of the action strip
+ */
+
+static int ActionStrip_setStripStart( BPy_ActionStrip * self, PyObject * value )
+{
+	int retval;
+
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	retval = EXPP_setFloatClamped( value, &self->strip->start,
+			-1000.0, self->strip->end-1 );
+	if( !retval ) {
+		float max = self->strip->end - self->strip->start;
+		if( self->strip->blendin > max )
+			self->strip->blendin = max;
+		if( self->strip->blendout > max )
+			self->strip->blendout = max;
+	}
+	return retval;
+}
+
+/*
+ * return the ending frame of the action strip
+ */
+
+static PyObject *ActionStrip_getStripEnd( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( self->strip->end );
+}
+
+/*
+ * set the ending frame of the action strip
+ */
+
+static int ActionStrip_setStripEnd( BPy_ActionStrip * self, PyObject * value )
+{
+	int retval;
+
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	retval = EXPP_setFloatClamped( value, &self->strip->end,
+			self->strip->start+1, MAXFRAMEF );
+	if( !retval ) {
+		float max = self->strip->end - self->strip->start;
+		if( self->strip->blendin > max )
+			self->strip->blendin = max;
+		if( self->strip->blendout > max )
+			self->strip->blendout = max;
+	}
+	return retval;
+}
+
+/*
+ * return the start frame of the action
+ */
+
+static PyObject *ActionStrip_getActionStart( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( self->strip->actstart );
+}
+
+/*
+ * set the start frame of the action
+ */
+
+static int ActionStrip_setActionStart( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setFloatClamped( value, &self->strip->actstart,
+			-1000.0, self->strip->actend-1 );
+}
+
+/*
+ * return the ending frame of the action
+ */
+
+static PyObject *ActionStrip_getActionEnd( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( self->strip->actend );
+}
+
+/*
+ * set the ending frame of the action
+ */
+
+static int ActionStrip_setActionEnd( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setFloatClamped( value, &self->strip->actend,
+			self->strip->actstart+1, MAXFRAMEF );
+}
+
+/*
+ * return the repeat value of the action strip
+ */
+
+static PyObject *ActionStrip_getRepeat( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( self->strip->repeat );
+}
+
+/*
+ * set the repeat value of the action strip
+ */
+
+static int ActionStrip_setRepeat( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setFloatClamped( value, &self->strip->repeat,
+			0.001, 1000.0f );
+}
+
+/*
+ * return the blend in of the action strip
+ */
+
+static PyObject *ActionStrip_getBlendIn( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( self->strip->blendin );
+}
+
+/*
+ * set the blend in value of the action strip
+ */
+
+static int ActionStrip_setBlendIn( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setFloatClamped( value, &self->strip->blendin,
+			0.0, self->strip->end - self->strip->start );
+}
+
+/*
+ * return the blend out of the action strip
+ */
+
+static PyObject *ActionStrip_getBlendOut( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( self->strip->blendout );
+}
+
+/*
+ * set the blend out value of the action strip
+ */
+
+static int ActionStrip_setBlendOut( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setFloatClamped( value, &self->strip->blendout,
+			0.0, self->strip->end - self->strip->start );
+}
+
+/*
+ * return the blend mode of the action strip
+ */
+
+static PyObject *ActionStrip_getBlendMode( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyInt_FromLong( (long)self->strip->mode ) ;
+}
+
+/*
+ * set the blend mode value of the action strip
+ */
+
+static int ActionStrip_setBlendMode( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setIValueRange( value, &self->strip->mode,
+				0, ACTSTRIPMODE_ADD, 'h' );
+}
+
+/*
+ * return the flag settings of the action strip
+ */
+
+#define ACTIONSTRIP_MASK (ACTSTRIP_SELECT | ACTSTRIP_USESTRIDE \
+		| ACTSTRIP_HOLDLASTFRAME | ACTSTRIP_ACTIVE | ACTSTRIP_LOCK_ACTION)
+
+static PyObject *ActionStrip_getFlag( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyInt_FromLong( (long)( self->strip->flag & ACTIONSTRIP_MASK ) ) ;
+}
+
+/*
+ * set the flag settings out value of the action strip
+ */
+
+static int ActionStrip_setFlag( BPy_ActionStrip * self, PyObject * arg )
+{
+	PyObject *num = PyNumber_Int( arg );
+	int value;
+
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	if( !num )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument" );
+	value = PyInt_AS_LONG( num );
+	Py_DECREF( num );
+
+	if( ( value & ACTIONSTRIP_MASK ) != value ) {
+		char errstr[128];
+		sprintf ( errstr , "expected int bitmask of 0x%04x", ACTIONSTRIP_MASK );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
+
+	self->strip->flag = (short)value;
+	return 0;
+}
+
+/*
+ * return the stride axis of the action strip
+ */
+
+static PyObject *ActionStrip_getStrideAxis( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyInt_FromLong( (long)self->strip->stride_axis ) ;
+}
+
+/*
+ * set the stride axis of the action strip
+ */
+
+static int ActionStrip_setStrideAxis( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setIValueRange( value, &self->strip->stride_axis,
+				ACTSTRIP_STRIDEAXIS_X, ACTSTRIP_STRIDEAXIS_Z, 'h' );
+}
+
+/*
+ * return the stride length of the action strip
+ */
+
+static PyObject *ActionStrip_getStrideLength( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyFloat_FromDouble( (double)self->strip->stridelen ) ;
+}
+
+/*
+ * set the stride length of the action strip
+ */
+
+static int ActionStrip_setStrideLength( BPy_ActionStrip * self, PyObject * value )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	return EXPP_setFloatClamped( value, &self->strip->stridelen,
+			0.0001, 1000.0 );
+}
+
+/*
+ * return the stride bone name
+ */
+
+static PyObject *ActionStrip_getStrideBone( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	return PyString_FromString( self->strip->stridechannel );
+}
+
+/*
+ * set the stride bone name
+ */
+
+static int ActionStrip_setStrideBone( BPy_ActionStrip * self, PyObject * attr )
+{
+	char *name = PyString_AsString( attr );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
+
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	BLI_strncpy( self->strip->stridechannel, name, 32 );
+
+	return 0;
+}
+
+/*****************************************************************************/
+/* Python BPy_Constraint attributes get/set structure:                       */
+/*****************************************************************************/
+static PyGetSetDef BPy_ActionStrip_getseters[] = {
+	{"action",
+	(getter)ActionStrip_getAction, (setter)NULL,
+	 "Action associated with the strip", NULL},
+	{"stripStart",
+	(getter)ActionStrip_getStripStart, (setter)ActionStrip_setStripStart,
+	 "Starting frame of the strip", NULL},
+	{"stripEnd",
+	(getter)ActionStrip_getStripEnd, (setter)ActionStrip_setStripEnd,
+	 "Ending frame of the strip", NULL},
+	{"actionStart",
+	(getter)ActionStrip_getActionStart, (setter)ActionStrip_setActionStart,
+	 "Starting frame of the action", NULL},
+	{"actionEnd",
+	(getter)ActionStrip_getActionEnd, (setter)ActionStrip_setActionEnd,
+	 "Ending frame of the action", NULL},
+	{"repeat",
+	(getter)ActionStrip_getRepeat, (setter)ActionStrip_setRepeat,
+	 "The number of times to repeat the action range", NULL},
+	{"blendIn",
+	(getter)ActionStrip_getBlendIn, (setter)ActionStrip_setBlendIn,
+	 "Number of frames of motion blending", NULL},
+	{"blendOut",
+	(getter)ActionStrip_getBlendOut, (setter)ActionStrip_setBlendOut,
+	 "Number of frames of ease-out", NULL},
+	{"mode",
+	(getter)ActionStrip_getBlendMode, (setter)ActionStrip_setBlendMode,
+	 "Setting of blending mode", NULL},
+	{"flag",
+	(getter)ActionStrip_getFlag, (setter)ActionStrip_setFlag,
+	 "Setting of blending flags", NULL},
+	{"strideAxis",
+	(getter)ActionStrip_getStrideAxis, (setter)ActionStrip_setStrideAxis,
+	 "Dominant axis for stride bone", NULL},
+	{"strideLength",
+	(getter)ActionStrip_getStrideLength, (setter)ActionStrip_setStrideLength,
+  	 "Distance covered by one complete cycle of the action", NULL},
+	{"strideBone",
+	(getter)ActionStrip_getStrideBone, (setter)ActionStrip_setStrideBone,
+  	 "Name of Bone used for stride", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+/*****************************************************************************/
+/* Python BPy_ActionStrip methods:                                           */
+/*****************************************************************************/
+
+/*
+ * restore the values of ActionStart and ActionEnd to their defaults
+ */
+
+static PyObject *ActionStrip_resetLimits( BPy_ActionStrip *self )
+{
+	bActionStrip *strip = self->strip;
+
+	if( !strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	calc_action_range( strip->act, &strip->actstart, &strip->actend, 1 );
+
+	Py_RETURN_NONE;
+}
+
+/*
+ * reset the strip size
+ */
+
+static PyObject *ActionStrip_resetStripSize( BPy_ActionStrip *self )
+{
+	float mapping;
+	bActionStrip *strip = self->strip;
+
+	if( !strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	mapping = (strip->actend - strip->actstart) / (strip->end - strip->start);
+	strip->end = strip->start + mapping*(strip->end - strip->start);
+
+	Py_RETURN_NONE;
+}
+
+/*
+ * snap to start and end to nearest frames
+ */
+
+static PyObject *ActionStrip_snapToFrame( BPy_ActionStrip *self )
+{
+	bActionStrip *strip = self->strip;
+
+	if( !strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+	
+	strip->start= floor(strip->start+0.5);
+	strip->end= floor(strip->end+0.5);
+
+	Py_RETURN_NONE;
+}
+
+/*****************************************************************************/
+/* Python BPy_ActionStrip methods table:                                    */
+/*****************************************************************************/
+static PyMethodDef BPy_ActionStrip_methods[] = {
+	/* name, method, flags, doc */
+	{"resetActionLimits", ( PyCFunction ) ActionStrip_resetLimits, METH_NOARGS,
+	 "Restores the values of ActionStart and ActionEnd to their defaults"},
+	{"resetStripSize", ( PyCFunction ) ActionStrip_resetStripSize, METH_NOARGS,
+	 "Resets the Action Strip size to its creation values"},
+	{"snapToFrame", ( PyCFunction ) ActionStrip_snapToFrame, METH_NOARGS,
+	 "Snaps the ends of the action strip to the nearest whole numbered frame"},
+	{NULL, NULL, 0, NULL}
+};
+
+/*****************************************************************************/
+/* Python ActionStrip_Type structure definition:                            */
+/*****************************************************************************/
+PyTypeObject ActionStrip_Type = {
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender.ActionStrip",     /* char *tp_name; */
+	sizeof( BPy_ActionStrip ), /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) Action_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	( reprfunc ) NULL,          /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                        /* getiterfunc tp_iter; */
+    NULL,                        /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_ActionStrip_methods,    /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_ActionStrip_getseters,  /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
+static PyObject *M_ActionStrip_FlagsDict( void )
+{
+	PyObject *S = PyConstant_New(  );
+	
+	if( S ) {
+		BPy_constant *d = ( BPy_constant * ) S;
+		PyConstant_Insert( d, "SELECT",
+				PyInt_FromLong( ACTSTRIP_SELECT ) );
+		PyConstant_Insert( d, "STRIDE_PATH",
+				PyInt_FromLong( ACTSTRIP_USESTRIDE ) );
+		PyConstant_Insert( d, "HOLD",
+				PyInt_FromLong( ACTSTRIP_HOLDLASTFRAME ) );
+		PyConstant_Insert( d, "ACTIVE",
+				PyInt_FromLong( ACTSTRIP_ACTIVE ) );
+		PyConstant_Insert( d, "LOCK_ACTION",
+				PyInt_FromLong( ACTSTRIP_LOCK_ACTION ) );
+	}
+	return S;
+}
+
+static PyObject *M_ActionStrip_AxisDict( void )
+{
+	PyObject *S = PyConstant_New(  );
+	
+	if( S ) {
+		BPy_constant *d = ( BPy_constant * ) S;
+		PyConstant_Insert( d, "STRIDEAXIS_X",
+				PyInt_FromLong( ACTSTRIP_STRIDEAXIS_X ) );
+		PyConstant_Insert( d, "STRIDEAXIS_Y",
+				PyInt_FromLong( ACTSTRIP_STRIDEAXIS_Y ) );
+		PyConstant_Insert( d, "STRIDEAXIS_Z",
+				PyInt_FromLong( ACTSTRIP_STRIDEAXIS_Z ) );
+	}
+	return S;
+}
+
+static PyObject *M_ActionStrip_ModeDict( void )
+{
+	PyObject *S = PyConstant_New(  );
+	
+	if( S ) {
+		BPy_constant *d = ( BPy_constant * ) S;
+		PyConstant_Insert( d, "MODE_ADD",
+				PyInt_FromLong( ACTSTRIPMODE_ADD ) );
+	}
+	return S;
+}
+
+PyObject *ActionStrip_CreatePyObject( struct bActionStrip *strip )
+{
+	BPy_ActionStrip *pyobj;
+	pyobj = ( BPy_ActionStrip * ) PyObject_NEW( BPy_ActionStrip,
+			&ActionStrip_Type );
+	if( !pyobj )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create BPy_ActionStrip object" );
+	pyobj->strip = strip;
+	return ( PyObject * ) pyobj;
+}
+
+/*****************************************************************************/
+/* ActionStrip Sequence wrapper                                              */
+/*****************************************************************************/
+
+/*
+ * Initialize the iterator
+ */
+
+static PyObject *ActionStrips_getIter( BPy_ActionStrips * self )
+{
+	self->iter = (bActionStrip *)self->ob->nlastrips.first;
+	return EXPP_incr_ret ( (PyObject *) self );
+}
+
+/*
+ * Get the next action strip
+ */
+
+static PyObject *ActionStrips_nextIter( BPy_ActionStrips * self )
+{
+	bActionStrip *strip = self->iter;
+	if( strip ) {
+		self->iter = strip->next;
+		return ActionStrip_CreatePyObject( strip );
+	}
+
+	return EXPP_ReturnPyObjError( PyExc_StopIteration,
+			"iterator at end" );
+}
+
+/* return the number of action strips */
+
+static int ActionStrips_length( BPy_ActionStrips * self )
+{
+	return BLI_countlist( &self->ob->nlastrips );
+}
+
+/* return an action strip */
+
+static PyObject *ActionStrips_item( BPy_ActionStrips * self, int i )
+{
+	bActionStrip *strip = NULL;
+
+	/* if index is negative, start counting from the end of the list */
+	if( i < 0 )
+		i += ActionStrips_length( self );
+
+	/* skip through the list until we get the strip or end of list */
+
+	strip = self->ob->nlastrips.first;
+
+	while( i && strip ) {
+		--i;
+		strip = strip->next;
+	}
+
+	if( strip )
+		return ActionStrip_CreatePyObject( strip );
+	else
+		return EXPP_ReturnPyObjError( PyExc_IndexError,
+				"array index out of range" );
+}
+
+/*****************************************************************************/
+/* Python BPy_ActionStrips sequence table:                                  */
+/*****************************************************************************/
+static PySequenceMethods ActionStrips_as_sequence = {
+	( inquiry ) ActionStrips_length,	/* sq_length */
+	( binaryfunc ) 0,	/* sq_concat */
+	( intargfunc ) 0,	/* sq_repeat */
+	( intargfunc ) ActionStrips_item,	/* sq_item */
+	( intintargfunc ) 0,	/* sq_slice */
+	( intobjargproc ) 0,	/* sq_ass_item */
+	( intintobjargproc ) 0,	/* sq_ass_slice */
+	( objobjproc ) 0,	/* sq_contains */
+	( binaryfunc ) 0,		/* sq_inplace_concat */
+	( intargfunc ) 0,		/* sq_inplace_repeat */
+};
+
+
+/*****************************************************************************/
+/* Python BPy_ActionStrip methods:                                           */
+/*****************************************************************************/
+
+/*
+ * helper function to check for a valid action strip argument
+ */
+
+static bActionStrip *locate_strip( BPy_ActionStrips *self, PyObject * args )
+{
+	BPy_ActionStrip *pyobj;
+	bActionStrip *strip = NULL;
+
+	/* check that argument is a constraint */
+	if( !PyArg_ParseTuple( args, "O!", &ActionStrip_Type, &pyobj ) ) {
+		EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected an action strip as an argument" );
+		return NULL;
+	}
+
+	if( !pyobj->strip ) {
+		EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+		return NULL;
+	}
+
+	/* find the action strip in the NLA */
+	for( strip = self->ob->nlastrips.first; strip; strip = strip->next )
+		if( strip == pyobj->strip )
+			return strip;
+
+	/* return exception if we can't find the strip */
+	EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"action strip does not belong to this object" );
+	return NULL;
+}
+
+/*
+ * remove an action strip from the NLA
+ */
+
+static PyObject *ActionStrips_remove( BPy_ActionStrips *self, PyObject * args )
+{
+	BPy_ActionStrip *pyobj;
+	bActionStrip *strip = locate_strip( self, args );
+
+	/* return exception if we can't find the strip */
+	if( !strip )
+		return (PyObject *)NULL;
+
+	/* do the actual removal */
+	free_actionstrip(strip);
+	BLI_remlink(&self->ob->nlastrips, strip);
+	MEM_freeN(strip);
+
+	pyobj->strip = NULL;
+	Py_RETURN_NONE;
+}
+
+/*
+ * move an action strip up in the strip list
+ */
+
+static PyObject *ActionStrips_moveUp( BPy_ActionStrips *self, PyObject * args )
+{
+	bActionStrip *strip = locate_strip( self, args );
+
+	/* return exception if we can't find the strip */
+	if( !strip )
+		return (PyObject *)NULL;
+
+	/* if strip is not already the first, move it up */
+	if( strip != self->ob->nlastrips.first ) {
+		BLI_remlink(&self->ob->nlastrips, strip);
+		BLI_insertlink(&self->ob->nlastrips, strip->prev->prev, strip);
+	}
+
+	Py_RETURN_NONE;
+}
+
+/*
+ * move an action strip down in the strip list
+ */
+
+static PyObject *ActionStrips_moveDown( BPy_ActionStrips *self, PyObject * args )
+{
+	bActionStrip *strip = locate_strip( self, args );
+
+	/* return exception if we can't find the strip */
+	if( !strip )
+		return (PyObject *)NULL;
+
+	/* if strip is not already the last, move it down */
+	if( strip != self->ob->nlastrips.last ) {
+		BLI_remlink(&self->ob->nlastrips, strip);
+		BLI_insertlink(&self->ob->nlastrips, strip->next, strip);
+	}
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *ActionStrips_append( BPy_ActionStrips *self, PyObject * args )
+{
+	BPy_Action *pyobj;
+	Object *ob;
+	bActionStrip *strip;
+	bAction *act;
+
+	/* check that argument is an action */
+	if( !PyArg_ParseTuple( args, "O!", &Action_Type, &pyobj ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected an action as an argument" );
+
+	ob = self->ob;
+	act = pyobj->action;
+
+	/* Initialize the new action block */
+	strip = MEM_callocN( sizeof(bActionStrip), "bActionStrip" );
+
+    strip->act = act;
+    calc_action_range( strip->act, &strip->actstart, &strip->actend, 1 );
+    strip->start = G.scene->r.cfra;
+    strip->end = strip->start + ( strip->actend - strip->actstart );
+        /* simple prevention of zero strips */
+    if( strip->start > strip->end-2 )
+        strip->end = strip->start+100;
+
+    strip->flag = ACTSTRIP_LOCK_ACTION;
+    find_stridechannel(ob, strip);
+
+    strip->repeat = 1.0;
+    act->id.us++;
+
+    BLI_addtail(&ob->nlastrips, strip);
+
+	Py_RETURN_NONE;
+}
+
+/*****************************************************************************/
+/* Python BPy_ActionStrips methods table:                                    */
+/*****************************************************************************/
+static PyMethodDef BPy_ActionStrips_methods[] = {
+	/* name, method, flags, doc */
+	{"append", ( PyCFunction ) ActionStrips_append, METH_VARARGS,
+	 "(action) - append a new actionstrip using existing action"},
+	{"remove", ( PyCFunction ) ActionStrips_remove, METH_VARARGS,
+	 "(strip) - remove an existing strip from this actionstrips"},
+	{"moveUp", ( PyCFunction ) ActionStrips_moveUp, METH_VARARGS,
+	 "(strip) - move an existing strip up in the actionstrips"},
+	{"moveDown", ( PyCFunction ) ActionStrips_moveDown, METH_VARARGS,
+	 "(strip) - move an existing strip down in the actionstrips"},
+	{NULL, NULL, 0, NULL}
+};
+
+/*****************************************************************************/
+/* Python ActionStrips_Type structure definition:                            */
+/*****************************************************************************/
+PyTypeObject ActionStrips_Type = {
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender.ActionStrips",     /* char *tp_name; */
+	sizeof( BPy_ActionStrips ), /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) Action_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	( reprfunc ) NULL,          /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	&ActionStrips_as_sequence,  /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	( getiterfunc )ActionStrips_getIter, /* getiterfunc tp_iter; */
+    ( iternextfunc )ActionStrips_nextIter, /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_ActionStrips_methods,   /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
+PyObject *ActionStrips_CreatePyObject( Object *ob )
+{
+	BPy_ActionStrips *pyseq;
+	pyseq = ( BPy_ActionStrips * ) PyObject_NEW( BPy_ActionStrips,
+			&ActionStrips_Type );
+	if( !pyseq )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create BPy_ActionStrips object" );
+	pyseq->ob = ob;
+	return ( PyObject * ) pyseq;
+}
+
+/*****************************************************************************/
+/* Function:    NLA_Init                                                     */
+/*****************************************************************************/
+PyObject *NLA_Init( void )
+{
+	PyObject *FlagsDict = M_ActionStrip_FlagsDict( );
+	PyObject *AxisDict = M_ActionStrip_AxisDict( );
+	PyObject *ModeDict = M_ActionStrip_ModeDict( );
+	PyObject *submodule;
+
+	if( PyType_Ready( &Action_Type ) < 0
+			|| PyType_Ready( &ActionStrip_Type ) < 0
+			|| PyType_Ready( &ActionStrips_Type ) < 0 )
+		return NULL;
+
+	submodule = Py_InitModule3( "Blender.Armature.NLA",
+				    M_NLA_methods, M_NLA_doc );
+
+	if( FlagsDict )
+		PyModule_AddObject( submodule, "Flags", FlagsDict );
+	if( AxisDict )
+		PyModule_AddObject( submodule, "StrideAxes", AxisDict );
+	if( ModeDict )
+		PyModule_AddObject( submodule, "Modes", ModeDict );
+
+	return submodule;
 }

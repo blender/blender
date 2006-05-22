@@ -336,6 +336,9 @@ class Object:
     @ivar rbFlags: Rigid body flags.
     @type rbShapeBoundType: int
     @ivar rbShapeBoundType: Rigid body shape bound type.
+    @type actionStrips: BPy_ActionStrips
+    @ivar actionStrips: a L{sequence<NLA.ActionStrips>} of
+    L{action strips<NLA.ActionStrip>} for the object.
   """
 
   def buildParts():

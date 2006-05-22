@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Joseph Gilbert
+ * Contributor(s): Joseph Gilbert, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -35,11 +35,16 @@
 
 #include <Python.h>
 #include "DNA_action_types.h"
+#include "DNA_nla_types.h"
+
+struct Object;
 
 /** NLA module initialization function. */
 PyObject *NLA_Init( void );
 
 extern PyTypeObject Action_Type;
+extern PyTypeObject ActionStrip_Type;
+extern PyTypeObject ActionStrips_Type;
 
 /** Python BPy_NLA structure definition. */
 typedef struct {
@@ -47,8 +52,27 @@ typedef struct {
 	bAction * action;
 } BPy_Action;
 
+typedef struct {
+	PyObject_HEAD 
+	bActionStrip * strip;
+} BPy_ActionStrip;
+
+typedef struct {
+	PyObject_HEAD 
+	struct Object * ob;
+	struct bActionStrip *iter;
+} BPy_ActionStrips;
+
+/* Type checking for EXPP PyTypes */
+#define BPy_Action_Check(v)       ((v)->ob_type == &Action_Type)
+#define BPy_ActionStrip_Check(v)  ((v)->ob_type == &ActionStrip_Type)
+#define BPy_ActionStrips_Check(v) ((v)->ob_type == &ActionStrips_Type)
+
 PyObject *Action_CreatePyObject( struct bAction *action );
 int Action_CheckPyObject( PyObject * py_obj );
 bAction *Action_FromPyObject( PyObject * py_obj );
+
+PyObject *ActionStrip_CreatePyObject( struct bActionStrip *strip );
+PyObject *ActionStrips_CreatePyObject( struct Object *ob );
 
 #endif

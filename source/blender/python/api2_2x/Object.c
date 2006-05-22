@@ -3642,6 +3642,8 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return ModSeq_CreatePyObject( object );
 	if( StringEqual( name, "constraints" ) )
 		return ObConstraintSeq_CreatePyObject( object );
+	if( StringEqual( name, "actionStrips" ) )
+		return ActionStrips_CreatePyObject( object );
 	if( StringEqual( name, "rbMass" ) )
 		return PyFloat_FromDouble( ( double ) object->mass );
 	if( StringEqual( name, "rbFlags" ) )

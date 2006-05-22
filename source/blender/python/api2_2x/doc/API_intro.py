@@ -15,6 +15,7 @@ The Blender Python API Reference
  -----------
   - L{Armature}
      - L{NLA}
+     - L{Action<NLA.Action>}
   - L{BezTriple} (*)
   - L{BGL}
   - L{Camera}
@@ -39,6 +40,7 @@ The Blender Python API Reference
   - L{Object} (*)
      - L{Pose}
      - L{Constraint} (*)
+     - L{ActionStrips<NLA>} (*)
   - L{Registry}
   - L{Scene}
      - L{Radio}
