@@ -785,6 +785,10 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 		but = NULL;
 		PyErr_SetString( PyExc_TypeError, "expected string, float, int or 3-float tuple argument" );
 	}
+	
+	if (but != NULL) {
+		PyErr_Clear();
+	}
 
 	return (PyObject*) but;
 }
