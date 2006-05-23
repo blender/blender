@@ -2642,6 +2642,7 @@ static void copymenu_modifiers(Object *ob)
 				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 
 				if (base->object->type==ob->type) {
+					/* copy all */
 					if (event==NUM_MODIFIER_TYPES) {
 						object_free_modifiers(base->object);
 
@@ -2653,17 +2654,27 @@ static void copymenu_modifiers(Object *ob)
 							}
 						}
 					} else {
-						ModifierData *md = modifiers_findByType(ob, event);
-
-						if (md) {
-							ModifierData *tmd = modifiers_findByType(base->object, event);
-
-							if (!tmd) {
-								tmd = modifier_new(event);
-								BLI_addtail(&base->object->modifiers, tmd);
+						/* copy specific types */
+						ModifierData *md, *mdn;
+						
+						/* remove all with type 'event' */
+						for (md=base->object->modifiers.first; md; md=mdn) {
+							mdn= md->next;
+							if(md->type==event) {
+								BLI_remlink(&base->object->modifiers, md);
+								modifier_free(md);
 							}
+						}
+						
+						/* copy all with type 'event' */
+						for (md=ob->modifiers.first; md; md=md->next) {
+							if (md->type==event) {
+								
+								mdn = modifier_new(event);
+								BLI_addtail(&base->object->modifiers, mdn);
 
-							modifier_copyData(md, tmd);
+								modifier_copyData(md, mdn);
+							}
 						}
 					}
 				}
