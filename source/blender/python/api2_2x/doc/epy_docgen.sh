@@ -4,6 +4,9 @@
 # run from the doc directory containing the .py files
 # usage:  sh epy_docgen.sh
 
+# set posix locale so regex works properly for [A-Z]*.py
+LC_ALL=POSIX
+
 epydoc -o BPY_API --url "http://www.blender.org" -t API_intro.py \
  -n "Blender" --no-private --no-frames \
 $( ls [A-Z]*.py )
