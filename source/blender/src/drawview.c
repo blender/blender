@@ -2460,6 +2460,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Object *ob;
 	Scene *sce;
 	
+	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
+	   no layer check here, gets correct flushed */
+	for(base= G.scene->base.first; base; base= base->next) {
+		object_handle_update(base->object);   // bke_object.h
+	}
+	
 	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
 
@@ -2560,31 +2566,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		/* Transp and X-ray afterdraw stuff */
 		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
 		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
-	}
-	
-	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, no layer check here, gets correct flushed */
-	for(base= G.scene->base.first; base; base= base->next) {
-		object_handle_update(base->object);   // bke_object.h
-#if 0		
-		if(v3d->lay & base->lay) {
-			if(base->object->dup_group) {
-				GroupObject *go;
-				for(go= base->object->dup_group->gobject.first; go; go= go->next) {
-					if(go->ob) {
-						if(go->ob->type==OB_MESH) {
-							int dummy;
-							mesh_get_derived_deform(go->ob, &dummy);
-							mesh_get_derived_final(go->ob, &dummy);
-						}
-						else if(go->ob->type==OB_CURVE) {
-							cu= ob->data;
-							if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
-						}
-					}
-				}
-			}
-		}
-#endif
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
