@@ -830,7 +830,7 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 }
 
 
-static int cubemap_glob(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_glob(VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
@@ -867,9 +867,10 @@ static int cubemap_glob(MTex *mtex, VlakRen *vlr, float x, float y, float z, flo
 
 /* ------------------------------------------------------------------------- */
 
+/* mtex argument only for projection switches */
 static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
 {
-	int proj[4], ret= 0;
+	int proj[4]={0, ME_PROJXY, ME_PROJXZ, ME_PROJYZ}, ret= 0;
 	
 	if(vlr) {
 		int index;
@@ -884,19 +885,21 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 				else if( fabs(nor[0])<fabs(nor[1]) && fabs(nor[2])<fabs(nor[1]) ) vlr->puno |= ME_PROJXZ;
 				else vlr->puno |= ME_PROJYZ;
 			}
-			else return cubemap_glob(mtex, vlr, x, y, z, adr1, adr2);
+			else return cubemap_glob(vlr, x, y, z, adr1, adr2);
 		}
 		
-		/* the mtex->proj{xyz} have type char. maybe this should be wider? */
-		/* casting to int ensures that the index type is right.            */
-		index = (int) mtex->projx;
-		proj[index]= ME_PROJXY;
+		if(mtex) {
+			/* the mtex->proj{xyz} have type char. maybe this should be wider? */
+			/* casting to int ensures that the index type is right.            */
+			index = (int) mtex->projx;
+			proj[index]= ME_PROJXY;
 
-		index = (int) mtex->projy;
-		proj[index]= ME_PROJXZ;
+			index = (int) mtex->projy;
+			proj[index]= ME_PROJXZ;
 
-		index = (int) mtex->projz;
-		proj[index]= ME_PROJYZ;
+			index = (int) mtex->projz;
+			proj[index]= ME_PROJYZ;
+		}
 		
 		if(vlr->puno & proj[1]) {
 			*adr1 = (x + 1.0) / 2.0;
@@ -914,7 +917,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 		}		
 	} 
 	else {
-		return cubemap_glob(mtex, vlr, x, y, z, adr1, adr2);
+		return cubemap_glob(vlr, x, y, z, adr1, adr2);
 	}
 	
 	return ret;
@@ -922,7 +925,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 
 /* ------------------------------------------------------------------------- */
 
-static int cubemap_ob(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_ob(Object *ob, VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
@@ -930,7 +933,7 @@ static int cubemap_ob(MTex *mtex, VlakRen *vlr, float x, float y, float z, float
 	if(vlr==NULL) return 0;
 	
 	VECCOPY(nor, vlr->n);
-	if(mtex->object) MTC_Mat4Mul3Vecfl(mtex->object->imat, nor);
+	if(ob) MTC_Mat4Mul3Vecfl(ob->imat, nor);
 	
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
@@ -959,11 +962,15 @@ static int cubemap_ob(MTex *mtex, VlakRen *vlr, float x, float y, float z, float
 static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float *dyt)
 {
 	Tex *tex;
+	Object *ob= NULL;
 	float fx, fy, fac1, area[8];
-	int ok, proj, areaflag= 0, wrap;
+	int ok, proj, areaflag= 0, wrap, texco;
 	
+	/* mtex variables localized, only cubemap doesn't cooperate yet... */
 	wrap= mtex->mapping;
 	tex= mtex->tex;
+	ob= mtex->object;
+	texco= mtex->texco;
 
 	if(R.osa==0) {
 		
@@ -974,8 +981,8 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		else if(wrap==MTEX_TUBE) tubemap(t[0], t[1], t[2], &fx, &fy);
 		else if(wrap==MTEX_SPHERE) spheremap(t[0], t[1], t[2], &fx, &fy);
 		else {
-			if(mtex->texco==TEXCO_OBJECT) cubemap_ob(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
-			else if(mtex->texco==TEXCO_GLOB) cubemap_glob(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
+			if(texco==TEXCO_OBJECT) cubemap_ob(ob, vlr, t[0], t[1], t[2], &fx, &fy);
+			else if(texco==TEXCO_GLOB) cubemap_glob(vlr, t[0], t[1], t[2], &fx, &fy);
 			else cubemap(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
 		}
 		
@@ -1051,8 +1058,8 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		}
 		else {
 
-			if(mtex->texco==TEXCO_OBJECT) proj = cubemap_ob(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
-			else if (mtex->texco==TEXCO_GLOB) proj = cubemap_glob(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
+			if(texco==TEXCO_OBJECT) proj = cubemap_ob(ob, vlr, t[0], t[1], t[2], &fx, &fy);
+			else if (texco==TEXCO_GLOB) proj = cubemap_glob(vlr, t[0], t[1], t[2], &fx, &fy);
 			else proj = cubemap(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
 
 			if(proj==1) {
@@ -1133,10 +1140,9 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 	}
 }
 
-
 /* ************************************** */
 
-int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
 
@@ -1228,6 +1234,33 @@ int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRes
 		}
 	}
 	return retval;
+}
+
+int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+{
+	
+	if(tex==NULL) return 0;
+	
+	/* Image requires 2d mapping conversion */
+	if(tex->type==TEX_IMAGE) {
+		MTex mtex;
+		float texvec_l[3], dxt_l[3], dyt_l[3];
+		
+		mtex.mapping= MTEX_FLAT;
+		mtex.tex= tex;
+		mtex.object= NULL;
+		mtex.texco= TEXCO_ORCO;
+		
+		VECCOPY(texvec_l, texvec);
+		VECCOPY(dxt_l, dxt);
+		VECCOPY(dyt_l, dyt);
+		
+		do_2d_mapping(&mtex, texvec_l, NULL, dxt_l, dyt_l);
+
+		return multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres);
+	}
+	else
+		return multitex(tex, texvec, dxt, dyt, osatex, texres);
 }
 
 /* ------------------------------------------------------------------------- */

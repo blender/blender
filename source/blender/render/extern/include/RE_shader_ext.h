@@ -109,8 +109,7 @@ typedef struct ShadeInput
 
 /* node shaders... */
 struct Tex;
-int	multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
-
+int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
 
 #endif /* RE_SHADER_EXT_H */
 

@@ -1011,7 +1011,7 @@ static void texture_procedural(CompBuf *cbuf, float *col, float xco, float yco)
 	vec[1]= size[1]*(yco + sock->ns.vec[1]);
 	vec[2]= size[2]*sock->ns.vec[2];
 	
-	retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+	retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 	
 	if(type==CB_VAL) {
 		if(texres.talpha)

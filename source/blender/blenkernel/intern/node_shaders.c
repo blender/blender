@@ -335,7 +335,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 			
 			if(in[0]->datatype==NS_OSA_VECTORS) {
 				float *fp= in[0]->data;
-				retval= multitex((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres);
+				retval= multitex_ext((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres);
 			}
 			else if(in[0]->datatype==NS_OSA_VALUES) {
 				float *fp= in[0]->data;
@@ -343,14 +343,14 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 				
 				dxt[0]= fp[0]; dxt[1]= dxt[2]= 0.0f;
 				dyt[0]= fp[1]; dyt[1]= dyt[2]= 0.0f;
-				retval= multitex((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres);
+				retval= multitex_ext((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres);
 			}
 			else
-				retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+				retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 		}
 		else {	/* only for previewrender, so we see stuff */
 			vec= shi->lo;
-			retval= multitex((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+			retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 		}
 		
 		/* stupid exception */
@@ -744,7 +744,8 @@ int ntreeShaderGetTexco(bNodeTree *ntree, int osa)
 		if(node->type==SH_NODE_TEXTURE) {
 			if(osa && node->id) {
 				Tex *tex= (Tex *)node->id;
-				if ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) texco |= TEXCO_OSA;
+				if ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) 
+					texco |= TEXCO_OSA|NEED_UV;
 			}
 		}
 		else if(node->type==SH_NODE_GEOMETRY) {
@@ -753,15 +754,15 @@ int ntreeShaderGetTexco(bNodeTree *ntree, int osa)
 				if(sock->flag & SOCK_IN_USE) {
 					switch(a) {
 						case GEOM_OUT_GLOB: 
-							texco |= TEXCO_GLOB; break;
+							texco |= TEXCO_GLOB|NEED_UV; break;
 						case GEOM_OUT_VIEW: 
-							texco |= TEXCO_VIEW; break;
+							texco |= TEXCO_VIEW|NEED_UV; break;
 						case GEOM_OUT_ORCO: 
-							texco |= TEXCO_ORCO; break;
+							texco |= TEXCO_ORCO|NEED_UV; break;
 						case GEOM_OUT_UV: 
-							texco |= TEXCO_UV; break;
+							texco |= TEXCO_UV|NEED_UV; break;
 						case GEOM_OUT_NORMAL: 
-							texco |= TEXCO_NORM; break;
+							texco |= TEXCO_NORM|NEED_UV; break;
 					}
 				}
 			}
