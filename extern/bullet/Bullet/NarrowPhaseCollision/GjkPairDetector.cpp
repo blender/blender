@@ -18,7 +18,7 @@ subject to the following restrictions:
 #include "NarrowPhaseCollision/SimplexSolverInterface.h"
 #include "NarrowPhaseCollision/ConvexPenetrationDepthSolver.h"
 
-static const SimdScalar rel_error = SimdScalar(1.0e-3);
+static const SimdScalar rel_error = SimdScalar(1.0e-5);
 SimdScalar rel_error2 = rel_error * rel_error;
 float maxdist2 = 1.e30f;
 
@@ -119,7 +119,8 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 				checkSimplex = true;
 				break;
 			}
-			bool check = (!m_simplexSolver->fullSimplex() && squaredDistance > SIMD_EPSILON * m_simplexSolver->maxVertex());
+			bool check = (!m_simplexSolver->fullSimplex());
+				//&& squaredDistance > SIMD_EPSILON * m_simplexSolver->maxVertex());
 
 			if (!check)
 			{
@@ -135,7 +136,7 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 			normalInB = pointOnA-pointOnB;
 			float lenSqr = m_cachedSeparatingAxis.length2();
 			//valid normal
-			if (lenSqr > SIMD_EPSILON)
+			if (lenSqr > (SIMD_EPSILON*SIMD_EPSILON))
 			{
 				float rlen = 1.f / SimdSqrt(lenSqr );
 				normalInB *= rlen; //normalize
@@ -151,10 +152,7 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 		if (checkPenetration && !isValid)
 		{
 			//penetration case
-			
-			//m_minkowskiA->SetMargin(marginA);
-			//m_minkowskiB->SetMargin(marginB);
-
+		
 			//if there is no way to handle penetrations, bail out
 			if (m_penetrationDepthSolver)
 			{
@@ -171,7 +169,7 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 				{
 					normalInB = pointOnB-pointOnA;
 					float lenSqr = normalInB.length2();
-					if (lenSqr > SIMD_EPSILON)
+					if (lenSqr > (SIMD_EPSILON*SIMD_EPSILON))
 					{
 						normalInB /= SimdSqrt(lenSqr);
 						distance = -(pointOnA-pointOnB).length();
