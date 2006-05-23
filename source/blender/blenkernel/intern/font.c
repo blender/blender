@@ -426,7 +426,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->knotsu = nu2->knotsv = 0;
 	nu2->flag= 0;
 	nu2->charidx = charidx+1000;
-	nu2->mat_nr= mat_nr;
+	if (mat_nr > 0) nu2->mat_nr= mat_nr-1;
 	nu2->pntsu = 4;
 	nu2->pntsv = 1;
 	nu2->orderu = 4;
