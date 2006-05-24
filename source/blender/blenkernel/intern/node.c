@@ -1477,9 +1477,9 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y)
 				float *tar= preview->rect+ 4*((preview->xsize*y) + x);
 				QUATCOPY(tar, col);
 			}
-			else printf("prv out bound x y %d %d\n", x, y);
+			//else printf("prv out bound x y %d %d\n", x, y);
 		}
-		else printf("prv out bound x y %d %d\n", x, y);
+		//else printf("prv out bound x y %d %d\n", x, y);
 	}
 }
 
