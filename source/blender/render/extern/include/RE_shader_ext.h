@@ -81,6 +81,9 @@ typedef struct ShadeInput
 	int har;
 	float layerfac;
 	
+	/* base material mode (OR-ed result of entire node tree) */
+	int mode;
+	
 	/* texture coordinates */
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
 	float vn[3], vno[3], facenor[3], view[3], refcol[4], displace[3];

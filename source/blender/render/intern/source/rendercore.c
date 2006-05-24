@@ -1070,10 +1070,8 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 		do_material_tex(shi);
 	}
 
-	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
-		if(ma->fresnel_tra!=0.0) 
-			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
-	}
+	if(ma->fresnel_tra!=0.0) 
+		shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 
 	shr->diff[0]= shi->r;
 	shr->diff[1]= shi->g;
@@ -1626,10 +1624,10 @@ static void shade_lamp_loop_pass(ShadeInput *shi, ShadeResult *shr, int passflag
 	
 	/* alpha in end, spec can influence it */
 	if(passflag & (SCE_PASS_COMBINED|SCE_PASS_RGBA)) {
-		if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
-			if(ma->fresnel_tra!=0.0) 
-				shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
+		if(ma->fresnel_tra!=0.0) 
+			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 			
+		if(shi->mode & (MA_ZTRA|MA_RAYTRANSP)) {
 			if(shi->spectra!=0.0) {
 				float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
 				t *= shi->spectra;
@@ -1863,10 +1861,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shade_one_light(lar, shi, shr, 0);
 	}
 
-	if(ma->mode & (MA_ZTRA|MA_RAYTRANSP)) {
-		if(ma->fresnel_tra!=0.0) 
-			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
+	if(ma->fresnel_tra!=0.0) 
+		shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 
+	if(shi->mode & (MA_ZTRA|MA_RAYTRANSP)) {
 		if(shi->spectra!=0.0) {
 			float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
 			t *= shi->spectra;
@@ -1905,8 +1903,8 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	VertRen *v1, *v2, *v3;
 	VlakRen *vlr= shi->vlr;
 	float l, dl;
+	int mode= shi->mode= shi->mat->mode_l;		/* or-ed result for all nodes */
 	short texco= shi->mat->texco;
-	int mode= shi->mat->mode_l;		/* or-ed result for all layers */
 	char p1, p2, p3;
 	
 	/* for rendering of quads, the following values are used to denote vertices:
