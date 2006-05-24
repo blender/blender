@@ -2355,12 +2355,12 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 	int x, y, *rza;
 	long *rd;
 	
-	/* now, in OSA the pixstructs contain all faces filled in */
-	if(R.osa) fillrect(arectz, pa->rectx, pa->recty, 0x7FFFFFFF);
-	else {
-		memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
-		return;
-	}
+	/* now, first copy existing zbuffer (has env z values too!
+	   in OSA the pixstructs contain all faces filled in */
+	
+	memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
+
+	if(R.osa==0) return;
 		
 	rza= arectz;
 	rd= pa->rectdaps;
