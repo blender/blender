@@ -2109,7 +2109,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		switch(event) {
 		case UI_BUT_EVENT:
 			/* note: bad bad code, will be cleaned! is because event queues are all shattered */
-			if(val>0 && val < 65) do_ipowin_buts(val-1);
+			if(val>0 && val < 256) do_ipowin_buts(val-1);
 			else do_ipobuts(val);
 			break;
 			
