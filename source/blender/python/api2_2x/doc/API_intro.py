@@ -33,6 +33,7 @@ The Blender Python API Reference
   - L{Material} (*)
   - L{Mathutils} (*)
   - L{Mesh} (*)
+    - L{MeshPrimitives} (*)
   - L{Metaball}
   - L{Modifier} (*)
   - L{NMesh} (*)
