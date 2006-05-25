@@ -61,6 +61,7 @@ struct View3D; /* keep me up here */
 #define PY_FULL	 2
 
 extern void waitcursor(int);
+extern void save_rendered_image_cb_real(char *name, int zbuf);
 
 //---------------------------------------Render prototypes-------------
 static PyObject *M_Render_CloseRenderWindow( PyObject * self );
@@ -906,48 +907,31 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 //This will save the rendered image to an output file path already defined
 PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 {
-	char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2], strn[256];
+	char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
 	char *name_str, filepath[FILE_MAXDIR+FILE_MAXFILE];
+	RenderResult *rr = NULL;
+	int zbuff = 0;
 
-	if( !PyArg_ParseTuple( args, "s", &name_str ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected a filename (string)" );
+	if( !PyArg_ParseTuple( args, "s|i", &name_str, &zbuff ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a filename (string) and optional int" );
 
-	if( strlen(self->renderContext->pic) + strlen(name_str) >
-			sizeof(filepath)-1 )
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
-						"full filename too long" );
+	if( strlen(self->renderContext->pic) + strlen(name_str) > sizeof(filepath)-1 )
+		return EXPP_ReturnPyObjError( PyExc_ValueError, "full filename too long" );
 
 	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
-	
-	//if(0) {//!R.rectot) {
-	//	return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-	//		"No image rendered");
-	//} else {
+
+	rr = RE_GetResult(RE_GetRender(G.scene->id.name));
+	if(!rr) {
+		return EXPP_ReturnPyObjError (PyExc_ValueError, "No image rendered");
+	} else {
 		if(G.ima[0]==0) {
 			strcpy(dir, G.sce);
 			BLI_splitdirstring(dir, str);
 			strcpy(G.ima, dir);
 		}
-		
-//		R.r.imtype= G.scene->r.imtype;
-//		R.r.quality= G.scene->r.quality;
-//		R.r.planes= G.scene->r.planes;
-	
-		strcpy(strn, filepath);
-		BLI_convertstringcode(strn, G.sce, G.scene->r.cfra);
-		if(BLI_testextensie(strn,".blend")) {
-			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
-				"Wrong filename");
-		}
-
-		waitcursor(1);
-//		schrijfplaatje(strn);
-		strcpy(G.ima, filepath);
-		waitcursor(0);
-	//}
-
+		save_rendered_image_cb_real(filepath, zbuff);
+	}
 	return EXPP_incr_ret(Py_None);
 }
 //------------------------------------RenderData.RenderAnim() -----------
