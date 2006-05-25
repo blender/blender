@@ -107,11 +107,13 @@ class RenderData:
     Render a series of frames to an output directory.
     """
 
-  def saveRenderedImage(filename):
+  def saveRenderedImage(filename, zbuffer=0):
     """
     Saves the image rendered using RenderData.render() to the filename and path
     given in the variable 'filename'
     @param filename: The path+filename for the rendered image.
+    @type zbuffer: int 
+    @param zbuffer: Whether or not to render the zbuffer along with the image.
     @type filename: string 
     @since: 2.40
     @requires: You must have an image currently rendered before calling this method

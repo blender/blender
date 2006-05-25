@@ -1070,7 +1070,7 @@ static void threaded_tile_processor(Render *re)
 	RenderPart *pa, *nextpa;
 	RenderResult *rr= re->result;
 	rctf viewplane= re->viewplane;
-	int maxthreads, rendering=1, counter= 1, drawtimer=0, hasdrawn, minx;
+	int maxthreads, rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
 	
 	if(rr==NULL)
 		return;
