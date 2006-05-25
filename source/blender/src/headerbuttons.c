@@ -183,45 +183,41 @@
 
 char *windowtype_pup(void)
 {
-	static char string[1024];
-	char *str = string;
+	return(
+	"Window type:%t" //14
+	"|3D View %x1" //30
 
-	str += sprintf(str, "%s", "Window type:%t"); //14
-	str += sprintf(str, "%s", "|3D View %x1"); //30
+	"|%l" // 33
 
-	str += sprintf(str, "%s", "|%l"); // 33
+	"|Ipo Curve Editor %x2" //54
+	"|Action Editor %x12" //73
+	"|NLA Editor %x13" //94
 
-	str += sprintf(str, "%s", "|Ipo Curve Editor %x2"); //54
-	str += sprintf(str, "%s", "|Action Editor %x12"); //73
-	str += sprintf(str, "%s", "|NLA Editor %x13"); //94
+	"|%l" //97
 
-	str += sprintf(str, "%s", "|%l"); //97
+	"|UV/Image Editor %x6" //117
 
-	str += sprintf(str, "%s", "|UV/Image Editor %x6"); //117
+	"|Video Sequence Editor %x8" //143
+	"|Timeline %x15" //163
+	"|Audio Window %x11" //163
+	"|Text Editor %x9" //179
 
-	str += sprintf(str, "%s", "|Video Sequence Editor %x8"); //143
-	str += sprintf(str, "%s", "|Timeline %x15"); //163
-	str += sprintf(str, "%s", "|Audio Window %x11"); //163
-	str += sprintf(str, "%s", "|Text Editor %x9"); //179
-
-	str += sprintf(str, "%s", "|%l"); //192
+	"|%l" //192
 
 
-	str += sprintf(str, "%s", "|User Preferences %x7"); //213
-	str += sprintf(str, "%s", "|Outliner %x3"); //232
-	str += sprintf(str, "%s", "|Buttons Window %x4"); //251
-	str += sprintf(str, "%s", "|Node Editor %x16");
+	"|User Preferences %x7" //213
+	"|Outliner %x3" //232
+	"|Buttons Window %x4" //251
+	"|Node Editor %x16"
+	"|%l" //254
 
-	str += sprintf(str, "%s", "|%l"); //254
+	"|Image Browser %x10" //273
+	"|File Browser %x5" //290
 
-	str += sprintf(str, "%s", "|Image Browser %x10"); //273
-	str += sprintf(str, "%s", "|File Browser %x5"); //290
+	"|%l" //293
 
-	str += sprintf(str, "%s", "|%l"); //293
-
-	str += sprintf(str, "%s", "|Scripts Window %x14"); //313
-
-	return (string);
+	"|Scripts Window %x14"//313
+	);
 }
 
 int GetButStringLength(char *str) {
