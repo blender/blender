@@ -230,6 +230,7 @@ void make_vertexcol()	/* single ob */
 	}
 	
 	ob= OBACT;
+	if(!ob || ob->id.lib) return;
 	me= get_mesh(ob);
 	if(me==0) return;
 
@@ -307,7 +308,7 @@ void clear_vpaint()
 
 	ob= OBACT;
 	me= get_mesh(ob);
-	if(ob->id.lib) return;
+	if(!ob || ob->id.lib) return;
 
 	if(me==0 || me->totface==0) return;
 
@@ -867,8 +868,7 @@ void wpaint_undo (void)
 	MDeformVert *swapbuf;
 
 	me = get_mesh(ob);
-	if (!me)
-		return;
+	if (!me) return;
 
 	if (!wpaintundobuf)
 		return;
@@ -993,6 +993,7 @@ static void sample_wpaint(int mode)
 {
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
+	if (!me) return;
 	int index;
 	short mval[2], sco[2];
 	
@@ -1171,7 +1172,7 @@ void weight_paint(void)
 	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
-	if(ob->id.lib) return;
+	if(!ob || ob->id.lib) return;
 
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return;
@@ -1443,7 +1444,7 @@ void vertex_paint()
 	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
-	if(ob->id.lib) return;
+	if(!ob || ob->id.lib) return;
 
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return;
@@ -1603,7 +1604,7 @@ void set_wpaint(void)		/* toggle */
 	
 	scrarea_queue_headredraw(curarea);
 	ob= OBACT;
-	if(ob->id.lib) return;
+	if(!ob || ob->id.lib) return;
 	me= get_mesh(ob);
 		
 	if(me && me->totface>=MAXINDEX) {
@@ -1662,7 +1663,7 @@ void set_vpaint(void)		/* toggle */
 	
 	scrarea_queue_headredraw(curarea);
 	ob= OBACT;
-	if(ob->id.lib) {
+	if(!ob || ob->id.lib) {
 		G.f &= ~G_VERTEXPAINT;
 		return;
 	}
