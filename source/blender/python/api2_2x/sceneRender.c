@@ -918,7 +918,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 	if( strlen(self->renderContext->pic) + strlen(name_str) > sizeof(filepath)-1 )
 		return EXPP_ReturnPyObjError( PyExc_ValueError, "full filename too long" );
 
-	if zbuff !=0	zbuff = 1; //required 1/0
+	if (zbuff !=0	) zbuff = 1; //required 1/0
 
 	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
