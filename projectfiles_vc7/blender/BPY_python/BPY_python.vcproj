@@ -282,6 +282,9 @@
 					RelativePath="..\..\..\source\blender\python\api2_2x\matrix.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\meshPrimitive.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\MTex.c">
 				</File>
 				<File
@@ -462,6 +465,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\matrix.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\meshPrimitive.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\modules.h">

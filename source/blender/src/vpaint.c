@@ -993,9 +993,10 @@ static void sample_wpaint(int mode)
 {
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
-	if (!me) return;
 	int index;
 	short mval[2], sco[2];
+
+	if (!me) return;
 	
 	getmouseco_areawin(mval);
 	index= sample_backbuf(mval[0], mval[1]);
