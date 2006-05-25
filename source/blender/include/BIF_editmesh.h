@@ -65,6 +65,9 @@ extern void separate_mesh(void);
 extern void separate_mesh_loose(void);
 
 /* ******************* editmesh_add.c */
+extern void make_prim(int type, float imat[3][3], short tot, short seg,
+		short subdiv, float dia, float d, short ext, short fill,
+        float cent[3]);
 extern void add_primitiveMesh(int type);
 extern void adduplicate_mesh(void);
 extern void add_click_mesh(void);

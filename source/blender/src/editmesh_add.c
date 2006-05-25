@@ -734,15 +734,293 @@ int confirm_objectExists( Mesh **me, float mat[][3] )
 	return newob;
 }
 
-void add_primitiveMesh(int type)
+void make_prim(int type, float imat[3][3], short tot, short seg,
+		short subdiv, float dia, float d, short ext, short fill,
+        float cent[3])
 {
 	EditMesh *em = G.editMesh;
-	Mesh *me;
 	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
-	float *curs, d, dia, phi, phid, cent[3], vec[3], imat[3][3], mat[3][3];
+	float phi, phid, vec[3];
 	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
+	short a, b;
+
+	phid= 2*M_PI/tot;
+	phi= .25*M_PI;
+
+	switch(type) {
+	case 10: /*  grid */
+		/* clear flags */
+		eve= em->verts.first;
+		while(eve) {
+			eve->f= 0;
+			eve= eve->next;
+		}
+		/* one segment first: the X axis */
+		phi= 1.0; 
+		phid= 2.0/((float)tot-1);
+		for(a=0;a<tot;a++) {
+			vec[0]= cent[0]+dia*phi;
+			vec[1]= cent[1]- dia;
+			vec[2]= cent[2];
+			Mat3MulVecfl(imat,vec);
+			eve= addvertlist(vec);
+			eve->f= 1+2+4;
+			if (a) {
+				addedgelist(eve->prev, eve, NULL);
+			}
+			phi-=phid;
+		}
+		/* extrude and translate */
+		vec[0]= vec[2]= 0.0;
+		vec[1]= dia*phid;
+		Mat3MulVecfl(imat, vec);
+		for(a=0;a<seg-1;a++) {
+			extrudeflag_vert(2, nor);	// nor unused
+			translateflag(2, vec);
+		}
+		break;
+	case 11: /*  UVsphere */
+		
+		/* clear all flags */
+		eve= em->verts.first;
+		while(eve) {
+			eve->f= 0;
+			eve= eve->next;
+		}
+		
+		/* one segment first */
+		phi= 0; 
+		phid/=2;
+		for(a=0; a<=tot; a++) {
+			vec[0]= dia*sin(phi);
+			vec[1]= 0.0;
+			vec[2]= dia*cos(phi);
+			eve= addvertlist(vec);
+			eve->f= 1+2+4;
+			if(a==0) v1= eve;
+			else addedgelist(eve->prev, eve, NULL);
+			phi+= phid;
+		}
+		
+		/* extrude and rotate */
+		phi= M_PI/seg;
+		q[0]= cos(phi);
+		q[3]= sin(phi);
+		q[1]=q[2]= 0;
+		QuatToMat3(q, cmat);
+		
+		for(a=0; a<seg; a++) {
+			extrudeflag_vert(2, nor); // nor unused
+			rotateflag(2, v1->co, cmat);
+		}
+
+		removedoublesflag(4, 0.0001);
+
+		/* and now do imat */
+		eve= em->verts.first;
+		while(eve) {
+			if(eve->f & SELECT) {
+				VecAddf(eve->co,eve->co,cent);
+				Mat3MulVecfl(imat,eve->co);
+			}
+			eve= eve->next;
+		}
+		break;
+	case 12: /* Icosphere */
+		{
+			EditVert *eva[12];
+			EditEdge *eed;
+			
+			/* clear all flags */
+			eve= em->verts.first;
+			while(eve) {
+				eve->f= 0;
+				eve= eve->next;
+			}
+			dia/=200;
+			for(a=0;a<12;a++) {
+				vec[0]= dia*icovert[a][0];
+				vec[1]= dia*icovert[a][1];
+				vec[2]= dia*icovert[a][2];
+				eva[a]= addvertlist(vec);
+				eva[a]->f= 1+2;
+			}
+			for(a=0;a<20;a++) {
+				EditFace *evtemp;
+				v1= eva[ icoface[a][0] ];
+				v2= eva[ icoface[a][1] ];
+				v3= eva[ icoface[a][2] ];
+				evtemp = addfacelist(v1, v2, v3, 0, NULL, NULL);
+				evtemp->e1->f = 1+2;
+				evtemp->e2->f = 1+2;
+				evtemp->e3->f = 1+2;
+			}
+
+			dia*=200;
+			for(a=1; a<subdiv; a++) esubdivideflag(2, dia, 0,1,0);
+			/* and now do imat */
+			eve= em->verts.first;
+			while(eve) {
+				if(eve->f & 2) {
+					VecAddf(eve->co,eve->co,cent);
+					Mat3MulVecfl(imat,eve->co);
+				}
+				eve= eve->next;
+			}
+			
+			// Clear the flag 2 from the edges
+			for(eed=em->edges.first;eed;eed=eed->next){
+				if(eed->f & 2){
+					   eed->f &= !2;
+				}   
+			}
+		}
+		break;
+	case 13: /* Monkey */
+		{
+			extern int monkeyo, monkeynv, monkeynf;
+			extern signed char monkeyf[][4];
+			extern signed char monkeyv[][3];
+			EditVert **tv= MEM_mallocN(sizeof(*tv)*monkeynv*2, "tv");
+			EditFace *efa;
+			int i;
+
+			for (i=0; i<monkeynv; i++) {
+				float v[3];
+				v[0]= (monkeyv[i][0]+127)/128.0, v[1]= monkeyv[i][1]/128.0, v[2]= monkeyv[i][2]/128.0;
+				tv[i]= addvertlist(v);
+				tv[i]->f |= SELECT;
+				tv[monkeynv+i]= (fabs(v[0]= -v[0])<0.001)?tv[i]:addvertlist(v);
+				tv[monkeynv+i]->f |= SELECT;
+			}
+			for (i=0; i<monkeynf; i++) {
+				efa= addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
+				efa= addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
+			}
+
+			MEM_freeN(tv);
+
+			/* and now do imat */
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->f & SELECT) {
+					VecAddf(eve->co,eve->co,cent);
+					Mat3MulVecfl(imat,eve->co);
+				}
+			}
+			recalc_editnormals();
+		}
+		break;
+	default: /* all types except grid, sphere... */
+		if(ext==0 && type!=7) d= 0;
+	
+		/* vertices */
+		vtop= vdown= v1= v2= 0;
+		for(b=0; b<=ext; b++) {
+			for(a=0; a<tot; a++) {
+				
+				vec[0]= cent[0]+dia*sin(phi);
+				vec[1]= cent[1]+dia*cos(phi);
+				vec[2]= cent[2]+d;
+				
+				Mat3MulVecfl(imat, vec);
+				eve= addvertlist(vec);
+				eve->f= SELECT;
+				if(a==0) {
+					if(b==0) v1= eve;
+					else v2= eve;
+				}
+				phi+=phid;
+			}
+			d= -d;
+		}
+		/* centre vertices */
+		if(fill && type>1) {
+			VECCOPY(vec,cent);
+			vec[2]-= -d;
+			Mat3MulVecfl(imat,vec);
+			vdown= addvertlist(vec);
+			if(ext || type==7) {
+				VECCOPY(vec,cent);
+				vec[2]-= d;
+				Mat3MulVecfl(imat,vec);
+				vtop= addvertlist(vec);
+			}
+		} else {
+			vdown= v1;
+			vtop= v2;
+		}
+		if(vtop) vtop->f= SELECT;
+		if(vdown) vdown->f= SELECT;
+	
+		/* top and bottom face */
+		if(fill) {
+			if(tot==4 && (type==0 || type==1)) {
+				v3= v1->next->next;
+				if(ext) v4= v2->next->next;
+				
+				addfacelist(v3, v1->next, v1, v3->next, NULL, NULL);
+				if(ext) addfacelist(v2, v2->next, v4, v4->next, NULL, NULL);
+				
+			}
+			else {
+				v3= v1;
+				v4= v2;
+				for(a=1; a<tot; a++) {
+					addfacelist(vdown, v3, v3->next, 0, NULL, NULL);
+					v3= v3->next;
+					if(ext) {
+						addfacelist(vtop, v4, v4->next, 0, NULL, NULL);
+						v4= v4->next;
+					}
+				}
+				if(type>1) {
+					addfacelist(vdown, v3, v1, 0, NULL, NULL);
+					if(ext) addfacelist(vtop, v4, v2, 0, NULL, NULL);
+				}
+			}
+		}
+		else if(type==4) {  /* we need edges for a circle */
+			v3= v1;
+			for(a=1;a<tot;a++) {
+				addedgelist(v3, v3->next, NULL);
+				v3= v3->next;
+			}
+			addedgelist(v3, v1, NULL);
+		}
+		/* side faces */
+		if(ext) {
+			v3= v1;
+			v4= v2;
+			for(a=1; a<tot; a++) {
+				addfacelist(v3, v3->next, v4->next, v4, NULL, NULL);
+				v3= v3->next;
+				v4= v4->next;
+			}
+			addfacelist(v3, v1, v2, v4, NULL, NULL);
+		}
+		else if(type==7) { /* cone */
+			v3= v1;
+			for(a=1; a<tot; a++) {
+				addfacelist(vtop, v3->next, v3, 0, NULL, NULL);
+				v3= v3->next;
+			}
+			addfacelist(vtop, v1, v3, 0, NULL, NULL);
+		}
+	}
+	/* simple selection flush OK, based on fact it's a single model */
+	EM_select_flush(); /* flushes vertex -> edge -> face selection */
+	
+	if(type!=0 && type!=13)
+		righthandfaces(1);	/* otherwise monkey has eyes in wrong direction */
+}
+
+void add_primitiveMesh(int type)
+{
+	Mesh *me;
+	float *curs, d, dia, phi, phid, cent[3], imat[3][3], mat[3][3];
+	float cmat[3][3];
 	static short tot=32, seg=32, subdiv=2;
-	short a, b, ext=0, fill=0, totoud, newob=0;
+	short ext=0, fill=0, totoud, newob=0;
 	char *undostr="Add Primitive";
 	char *name=NULL;
 	
@@ -864,272 +1142,21 @@ void add_primitiveMesh(int type)
 		Mat3Inv(imat, mat);
 	}
 	
-	dia= sqrt(2.0)*G.vd->grid;
+	dia= G.vd->grid;
+	if(type != 10)
+		dia *= sqrt(2.0);
+
 	d= -G.vd->grid;
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 
-	if(type<10) {	/* all types except grid, sphere... */
-		if(ext==0 && type!=7) d= 0;
-	
-		/* vertices */
-		vtop= vdown= v1= v2= 0;
-		for(b=0; b<=ext; b++) {
-			for(a=0; a<tot; a++) {
-				
-				vec[0]= cent[0]+dia*sin(phi);
-				vec[1]= cent[1]+dia*cos(phi);
-				vec[2]= cent[2]+d;
-				
-				Mat3MulVecfl(imat, vec);
-				eve= addvertlist(vec);
-				eve->f= SELECT;
-				if(a==0) {
-					if(b==0) v1= eve;
-					else v2= eve;
-				}
-				phi+=phid;
-			}
-			d= -d;
-		}
-		/* centre vertices */
-		if(fill && type>1) {
-			VECCOPY(vec,cent);
-			vec[2]-= -d;
-			Mat3MulVecfl(imat,vec);
-			vdown= addvertlist(vec);
-			if(ext || type==7) {
-				VECCOPY(vec,cent);
-				vec[2]-= d;
-				Mat3MulVecfl(imat,vec);
-				vtop= addvertlist(vec);
-			}
-		} else {
-			vdown= v1;
-			vtop= v2;
-		}
-		if(vtop) vtop->f= SELECT;
-		if(vdown) vdown->f= SELECT;
-	
-		/* top and bottom face */
-		if(fill) {
-			if(tot==4 && (type==0 || type==1)) {
-				v3= v1->next->next;
-				if(ext) v4= v2->next->next;
-				
-				addfacelist(v3, v1->next, v1, v3->next, NULL, NULL);
-				if(ext) addfacelist(v2, v2->next, v4, v4->next, NULL, NULL);
-				
-			}
-			else {
-				v3= v1;
-				v4= v2;
-				for(a=1; a<tot; a++) {
-					addfacelist(vdown, v3, v3->next, 0, NULL, NULL);
-					v3= v3->next;
-					if(ext) {
-						addfacelist(vtop, v4, v4->next, 0, NULL, NULL);
-						v4= v4->next;
-					}
-				}
-				if(type>1) {
-					addfacelist(vdown, v3, v1, 0, NULL, NULL);
-					if(ext) addfacelist(vtop, v4, v2, 0, NULL, NULL);
-				}
-			}
-		}
-		else if(type==4) {  /* we need edges for a circle */
-			v3= v1;
-			for(a=1;a<tot;a++) {
-				addedgelist(v3, v3->next, NULL);
-				v3= v3->next;
-			}
-			addedgelist(v3, v1, NULL);
-		}
-		/* side faces */
-		if(ext) {
-			v3= v1;
-			v4= v2;
-			for(a=1; a<tot; a++) {
-				addfacelist(v3, v3->next, v4->next, v4, NULL, NULL);
-				v3= v3->next;
-				v4= v4->next;
-			}
-			addfacelist(v3, v1, v2, v4, NULL, NULL);
-		}
-		else if(type==7) { /* cone */
-			v3= v1;
-			for(a=1; a<tot; a++) {
-				addfacelist(vtop, v3->next, v3, 0, NULL, NULL);
-				v3= v3->next;
-			}
-			addfacelist(vtop, v1, v3, 0, NULL, NULL);
-		}
-		
-		if(type<2) tot= totoud;
-		
-	}
-	else if(type==10) {	/*  grid */
-		/* clear flags */
-		eve= em->verts.first;
-		while(eve) {
-			eve->f= 0;
-			eve= eve->next;
-		}
-		dia= G.vd->grid;
-		/* one segment first: the X axis */
-		phi= 1.0; 
-		phid= 2.0/((float)tot-1);
-		for(a=0;a<tot;a++) {
-			vec[0]= cent[0]+dia*phi;
-			vec[1]= cent[1]- dia;
-			vec[2]= cent[2];
-			Mat3MulVecfl(imat,vec);
-			eve= addvertlist(vec);
-			eve->f= 1+2+4;
-			if (a) {
-				addedgelist(eve->prev, eve, NULL);
-			}
-			phi-=phid;
-		}
-		/* extrude and translate */
-		vec[0]= vec[2]= 0.0;
-		vec[1]= dia*phid;
-		Mat3MulVecfl(imat, vec);
-		for(a=0;a<seg-1;a++) {
-			extrudeflag_vert(2, nor);	// nor unused
-			translateflag(2, vec);
-		}
-	}
-	else if(type==11) {	/*  UVsphere */
-		
-		/* clear all flags */
-		eve= em->verts.first;
-		while(eve) {
-			eve->f= 0;
-			eve= eve->next;
-		}
-		
-		/* one segment first */
-		phi= 0; 
-		phid/=2;
-		for(a=0; a<=tot; a++) {
-			vec[0]= dia*sin(phi);
-			vec[1]= 0.0;
-			vec[2]= dia*cos(phi);
-			eve= addvertlist(vec);
-			eve->f= 1+2+4;
-			if(a==0) v1= eve;
-			else addedgelist(eve->prev, eve, NULL);
-			phi+= phid;
-		}
-		
-		/* extrude and rotate */
-		phi= M_PI/seg;
-		q[0]= cos(phi);
-		q[3]= sin(phi);
-		q[1]=q[2]= 0;
-		QuatToMat3(q, cmat);
-		
-		for(a=0; a<seg; a++) {
-			extrudeflag_vert(2, nor); // nor unused
-			rotateflag(2, v1->co, cmat);
-		}
+	make_prim(type, imat,
+        tot, seg, subdiv, dia, d,
+        ext, fill,
+        cent);
 
-		removedoublesflag(4, 0.0001);
+	if(type<2) tot = totoud;
 
-		/* and now do imat */
-		eve= em->verts.first;
-		while(eve) {
-			if(eve->f & SELECT) {
-				VecAddf(eve->co,eve->co,cent);
-				Mat3MulVecfl(imat,eve->co);
-			}
-			eve= eve->next;
-		}
-	}
-	else if(type==12) {	/* Icosphere */
-		EditVert *eva[12];
-        EditEdge *eed;
-        
-		/* clear all flags */
-		eve= em->verts.first;
-		while(eve) {
-			eve->f= 0;
-			eve= eve->next;
-		}
-		dia/=200;
-		for(a=0;a<12;a++) {
-			vec[0]= dia*icovert[a][0];
-			vec[1]= dia*icovert[a][1];
-			vec[2]= dia*icovert[a][2];
-			eva[a]= addvertlist(vec);
-			eva[a]->f= 1+2;
-		}
-		for(a=0;a<20;a++) {
-		    EditFace *evtemp;
-            v1= eva[ icoface[a][0] ];
-			v2= eva[ icoface[a][1] ];
-			v3= eva[ icoface[a][2] ];
-			evtemp = addfacelist(v1, v2, v3, 0, NULL, NULL);
-			evtemp->e1->f = 1+2;
-			evtemp->e2->f = 1+2;
-			evtemp->e3->f = 1+2;
-		}
-
-		dia*=200;
-		for(a=1; a<subdiv; a++) esubdivideflag(2, dia, 0,1,0);
-		/* and now do imat */
-		eve= em->verts.first;
-		while(eve) {
-			if(eve->f & 2) {
-				VecAddf(eve->co,eve->co,cent);
-				Mat3MulVecfl(imat,eve->co);
-			}
-			eve= eve->next;
-		}
-		
-		// Clear the flag 2 from the edges
-		for(eed=em->edges.first;eed;eed=eed->next){
-            if(eed->f & 2){
-                   eed->f &= !2;
-            }   
-        }
-		
-		
-	} else if (type==13) {	/* Monkey */
-		extern int monkeyo, monkeynv, monkeynf;
-		extern signed char monkeyf[][4];
-		extern signed char monkeyv[][3];
-		EditVert **tv= MEM_mallocN(sizeof(*tv)*monkeynv*2, "tv");
-		EditFace *efa;
-		int i;
-
-		for (i=0; i<monkeynv; i++) {
-			float v[3];
-			v[0]= (monkeyv[i][0]+127)/128.0, v[1]= monkeyv[i][1]/128.0, v[2]= monkeyv[i][2]/128.0;
-			tv[i]= addvertlist(v);
-			tv[i]->f |= SELECT;
-			tv[monkeynv+i]= (fabs(v[0]= -v[0])<0.001)?tv[i]:addvertlist(v);
-			tv[monkeynv+i]->f |= SELECT;
-		}
-		for (i=0; i<monkeynf; i++) {
-			efa= addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
-			efa= addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
-		}
-
-		MEM_freeN(tv);
-
-		/* and now do imat */
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->f & SELECT) {
-				VecAddf(eve->co,eve->co,cent);
-				Mat3MulVecfl(imat,eve->co);
-			}
-		}
-		recalc_editnormals();
-	}
-	
 	// simple selection flush OK, based on fact it's a single model
 	EM_select_flush(); // flushes vertex -> edge -> face selection
 	

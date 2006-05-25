@@ -80,6 +80,7 @@
 #include "Image.h"
 #include "Material.h"
 #include "Mathutils.h"
+#include "meshPrimitive.h"
 #include "constant.h"
 #include "gen_utils.h"
 
@@ -7378,6 +7379,9 @@ PyObject *Mesh_Init( void )
 
 	submodule =
 		Py_InitModule3( "Blender.Mesh", M_Mesh_methods, M_Mesh_doc );
+	PyDict_SetItemString( PyModule_GetDict( submodule ),
+			"Primitives", MeshPrimitives_Init( ) );
+
 	if( Modes )
 		PyModule_AddObject( submodule, "Modes", Modes );
 	if( FaceFlags )
