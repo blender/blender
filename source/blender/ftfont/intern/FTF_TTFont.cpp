@@ -259,7 +259,20 @@ void FTF_TTFont::SetLanguage(char* str)
 #else
 	char *locreturn = setlocale(LC_ALL, str);
 	if (locreturn == NULL) {
-		printf("could not change language to %s\n", str);
+		char *lang;
+
+		lang = (char*)malloc(sizeof(char)*(strlen(str)+7));
+
+		lang[0] = '\0';
+		strcat(lang, str);
+		strcat(lang, ".UTF-8");
+
+		locreturn = setlocale(LC_ALL, lang);
+		if (locreturn == NULL) {
+			printf("could not change language to %s nor %s\n", str, lang);
+		}
+
+		free(lang);
 	}
 	
 	setlocale(LC_NUMERIC, "C");
