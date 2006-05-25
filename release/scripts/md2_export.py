@@ -603,6 +603,9 @@ class md2_obj:
 ######################################################
 def validation(object):
 	global user_frame_list
+
+	#move the object to the origin if it's not already there
+	object.setLocation(0.0,0.0,0.0)
 	
 	#get access to the mesh data
 	mesh=object.getData(False, True) #get the object (not just name) and the Mesh, not NMesh
