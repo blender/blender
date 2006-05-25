@@ -233,3 +233,9 @@ struct RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name) {retur
 
 /* node_composite.c */
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) {}
+
+int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+{
+	return 1969;
+}
+
