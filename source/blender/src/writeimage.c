@@ -86,10 +86,10 @@ void BIF_save_envmap(EnvMap *env, char *str)
 #define FTOCHAR(val) val<=0.0f?255: 255-(val>=255.0f?255: (char)(val))
 
 /* callback for fileselect to save rendered image, renderresult was checked to exist */
-void save_rendered_image_cb_real(char *name, int zbuf)
+void save_rendered_image_cb_real(char *name, int zbuf, int confirm)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
-	int pixel, end;
+	int pixel, end, overwrite;
 	float *pixf = 0;
 	char *pixc = 0;
 	
@@ -105,8 +105,13 @@ void save_rendered_image_cb_real(char *name, int zbuf)
 
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+
+	if (confirm)
+		overwrite = saveover(str);
+	else
+		overwrite = 1;
 	
-	if(saveover(str)) {
+	if(overwrite) {
 		RenderResult rres;
 		ImBuf *ibuf;
 		
@@ -149,11 +154,11 @@ void save_rendered_image_cb_real(char *name, int zbuf)
 }
 
 static void save_rendered_image_cb(char *name) {
-	save_rendered_image_cb_real(name,0);
+	save_rendered_image_cb_real(name,0,1);
 }
 
 static void save_rendered_image_zbuf_cb(char *name) {
-	save_rendered_image_cb_real(name,1);
+	save_rendered_image_cb_real(name,1,1);
 }
 
 void save_image_filesel_str(char *str)

@@ -61,7 +61,7 @@ struct View3D; /* keep me up here */
 #define PY_FULL	 2
 
 extern void waitcursor(int);
-extern void save_rendered_image_cb_real(char *name, int zbuf);
+extern void save_rendered_image_cb_real(char *name, int zbuf, int confirm);
 
 //---------------------------------------Render prototypes-------------
 static PyObject *M_Render_CloseRenderWindow( PyObject * self );
@@ -932,7 +932,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 			BLI_splitdirstring(dir, str);
 			strcpy(G.ima, dir);
 		}
-		save_rendered_image_cb_real(filepath, zbuff);
+		save_rendered_image_cb_real(filepath, zbuff,0);
 	}
 	return EXPP_incr_ret(Py_None);
 }
