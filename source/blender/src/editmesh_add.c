@@ -1131,17 +1131,12 @@ void add_primitiveMesh(int type)
 	cent[0]-= G.obedit->obmat[3][0];
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
-	
-	/* 31 is a prime number */
-	if(type!= 31) {
-		Mat3CpyMat4(imat, G.vd->viewmat);
-		Mat3MulVecfl(imat, cent);
-		Mat3MulMat3(cmat, imat, mat);
-		Mat3Inv(imat,cmat);
-	} else {
-		Mat3Inv(imat, mat);
-	}
-	
+
+	Mat3CpyMat4(imat, G.vd->viewmat);
+	Mat3MulVecfl(imat, cent);
+	Mat3MulMat3(cmat, imat, mat);
+	Mat3Inv(imat,cmat);
+
 	dia= G.vd->grid;
 	if(type != 10)
 		dia *= sqrt(2.0);
