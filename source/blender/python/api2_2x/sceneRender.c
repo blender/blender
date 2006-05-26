@@ -903,7 +903,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 	return EXPP_incr_ret( Py_None );
 }
-//------------------------------------RenderData.Render() ---------------
+//------------------------------------RenderData.saveRenderedImage() ---------------
 //This will save the rendered image to an output file path already defined
 PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 {
