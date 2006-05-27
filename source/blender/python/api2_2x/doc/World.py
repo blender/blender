@@ -103,7 +103,7 @@ class World:
 
   def getName():
     """
-    Retrieves the name of an world object
+    Retrieves the name of a world object
     @rtype: string
     @return:  the name of the world object.
     """
@@ -158,7 +158,11 @@ class World:
   def getMode():
     """
     Retrieves the mode of a world object.
-    The mode is a combination of 3 bits : Bit 0 : Blend; Bit 1 : Real; Bit 2 : paper.
+    The mode is a combination of 5 bits:
+      - Bit 0 : mist simulation
+      - Bit 1 : starfield simulation
+      - Bit 2,3 : reserved
+      - Bit 4 : ambient occlusion
     @rtype: int
     @return:  the mode of the world object.
     """
