@@ -1,11 +1,6 @@
 import Blender
-import BPyMesh_redux
-reload(BPyMesh_redux)
+from BPyMesh_redux import redux # seperated because of its size.
 
-def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGULATE=True, DO_UV=True, DO_VCOL=True, DO_WEIGHTS=True):
-	if REDUX<0 or REDUX>1.0:
-		raise 'Error, factor must be between 0 and 1.0'
-	BPyMesh_redux.redux(ob, REDUX, BOUNDRY_WEIGHT, FACE_AREA_WEIGHT, FACE_TRIANGULATE, DO_UV, DO_VCOL, DO_WEIGHTS)
 	
 def meshWeight2Dict(me):
 	''' Takes a mesh and return its group names and a list of dicts, one dict per vertex.

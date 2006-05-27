@@ -49,11 +49,16 @@ def ed_key(ed):
 	if i1<i2: return i1,i2
 	return i2,i1
 
-def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGULATE=True, DO_UV=True, DO_VCOL=True, DO_WEIGHTS=True):
-	'''
+def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEIGHT=1.0, FACE_TRIANGULATE=True, DO_UV=True, DO_VCOL=True, DO_WEIGHTS=True):
+	"""
 	BOUNDRY_WEIGHT - 0 is no boundry weighting. 2.0 will make them twice as unlikely to collapse.
 	FACE_AREA_WEIGHT - 0 is no weight. 1 is normal, 2.0 is higher.
-	'''
+	"""
+	
+	if REDUX<0 or REDUX>1.0:
+		raise 'Error, factor must be between 0 and 1.0'
+	
+	BOUNDRY_WEIGHT= 1+BOUNDRY_WEIGHT
 	
 	""" # DEBUG!
 	if Blender.Get('rt') == 1000:
@@ -61,18 +66,32 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 	else:
 		DEBUG= False
 	"""
+	
 	me= ob.getData(mesh=1)
 	
-	if REDUX>1.0 or REDUX<0.0 or len(me.faces)<4:
+	if len(me.faces)<4:
+		print "\n\n\n\nHEERRRO\n\n\n\n"
 		return
 	
+	OLD_MESH_MODE= Blender.Mesh.Mode()
+	
 	if FACE_TRIANGULATE:
+		Blender.Mesh.Mode(Blender.Mesh.SelectModes.FACE)
+		for f in me.faces:
+			f.sel= True
 		me.quadToTriangle() 
+		me= ob.getData(mesh=1)
+	
+	if REMOVE_DOUBLES:
+		for v in me.verts:
+			v.sel= 1
+		me.remDoubles(0.0001)
+		me= ob.getData(mesh=1)
 	
 	if (not me.getVertGroupNames()) and DO_WEIGHTS:
 		DO_WEIGHTS= False
 	
-	OLD_MESH_MODE= Blender.Mesh.Mode()
+
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes.VERTEX)
 	
 	if (DO_UV or DO_VCOL) and not me.faceUV:
@@ -191,8 +210,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 		# Store verts edges.
 		vert_ed_users= [[] for i in xrange(len(verts))]
 		for ced in collapse_edges:
-			vert_ed_users[ced.v1.index].append(ced)
-			vert_ed_users[ced.v2.index].append(ced)
+			vert_ed_users[ced.key[0]].append(ced)
+			vert_ed_users[ced.key[1]].append(ced)
 		
 		# Store face users
 		vert_face_users= [[] for i in xrange(len(verts))]
@@ -254,15 +273,20 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			#for ed_idxs, faces_and_uvs in edge_faces_and_uvs.iteritems():
 			for ced in collapse_edges:
 				if len(ced.faces) < 2:
-					verts_boundry[ced.key[0]]= 2
-					verts_boundry[ced.key[1]]= 2
+					for key in ced.key: # only ever 2 key indicies.
+						verts_boundry[key]= 2
 			
 			for ced in collapse_edges:
-				if verts_boundry[ced.v1.index] != verts_boundry[ced.v2.index]:
+				b1= verts_boundry[ced.key[0]]
+				b2= verts_boundry[ced.key[1]]
+				if b1 != b2:
 					# Edge has 1 boundry and 1 non boundry vert. weight higher
 					ced.collapse_weight= BOUNDRY_WEIGHT
-			
+				#elif b1==b2==2: # if both are on a seam then weigh half as bad.
+				#	ced.collapse_weight= ((BOUNDRY_WEIGHT-1)/2) +1
 			# weight the verts by their boundry status
+			del b1
+			del b2
 			
 			for ii, boundry in enumerate(verts_boundry):
 				if boundry==2:
@@ -272,7 +296,6 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			del verts_boundry
 		else:
 			vert_collapsed= [1] * len(verts)
-		
 		
 		
 		
@@ -287,8 +310,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			#ced.collapse_loc= between
 			
 			# Use the vertex weights to bias the new location.
-			w1= vert_weights[ced.v1.index]
-			w2= vert_weights[ced.v2.index]
+			w1= vert_weights[ced.key[0]]
+			w2= vert_weights[ced.key[1]]
 			
 			# normalize the weights of each vert - se we can use them as scalers.
 			wscale= w1+w2
@@ -344,8 +367,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 		
 		# Best method, no quick hacks here, Correction. Should be the best but needs tweaks.
 		def ed_set_collapse_error(ced):
-			i1= ced.v1.index
-			i2= ced.v1.index
+			i1, i2= ced.key
 			
 			test_faces= set()
 			for i in (i1,i2): # faster then LC's
@@ -375,9 +397,9 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 				try:
 					# can use perim, but area looks better.
 					if FACE_AREA_WEIGHT:
-						angle_diff+= (Ang(cfa.normal, new_nos[ii])/180) * (1+(cfa.area * FACE_AREA_WEIGHT)) # 4 is how much to influence area
+						angle_diff+= ((1+(Ang(cfa.normal, new_nos[ii])/180)) * (1+(cfa.area * FACE_AREA_WEIGHT))) -1 # 4 is how much to influence area
 					else:
-						angle_diff+= (Ang(cfa.normal, new_nos[ii])/180)
+						angle_diff+= (Ang(cfa.normal), new_nos[ii])/180
 						
 				except:
 					pass
@@ -412,8 +434,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 		collapse_count=0
 		for ced in collapse_edges:
 			if ced.faces:
-				i1= ced.v1.index
-				i2= ced.v2.index
+				i1, i2= ced.key
 				# Use vert selections 
 				if vert_collapsed[i1] or vert_collapsed[i2]:
 					pass
@@ -453,8 +474,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			
 			# Interpolate the bone weights.
 			if DO_WEIGHTS:
-				i1= ced.v1.index
-				i2= ced.v2.index
+				i1, i2= ced.key
 				w1= vert_weights[i1]
 				w2= vert_weights[i2]
 				
@@ -477,8 +497,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=5.0, FACE_AREA_WEIGHT=1.0, FACE_TRIANGUL
 			if DO_UV or DO_VCOL:
 				# Handel UV's and vert Colors!
 				for v, my_weight, other_weight, edge_my_uvs, edge_other_uvs, edge_my_cols, edge_other_cols in (\
-				( ced.v1, vert_weights[ced.v1.index], vert_weights[ced.v2.index], ced.uv1, ced.uv2, ced.col1, ced.col2),\
-				( ced.v2, vert_weights[ced.v2.index], vert_weights[ced.v1.index], ced.uv2, ced.uv1, ced.col2, ced.col1)\
+				( ced.v1, vert_weights[ced.key[0]], vert_weights[ced.key[1]], ced.uv1, ced.uv2, ced.col1, ced.col2),\
+				( ced.v2, vert_weights[ced.key[1]], vert_weights[ced.key[0]], ced.uv2, ced.uv1, ced.col2, ced.col1)\
 				):
 					
 					# Normalize weights
