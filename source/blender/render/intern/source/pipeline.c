@@ -917,9 +917,11 @@ static void render_tile_processor(Render *re, int firsttile)
 	if(re->test_break())
 		return;
 
-	/* first step; the entire render result, no exr saving here */
-	free_render_result(re->result);
-	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+	/* hrmf... exception, this is used for preview render, re-entrant, so render result has to be re-used */
+	if(re->result==NULL || re->result->layers.first==NULL) {
+		if(re->result) free_render_result(re->result);
+		re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+	}
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
