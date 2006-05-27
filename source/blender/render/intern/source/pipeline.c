@@ -40,6 +40,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
 
@@ -286,8 +287,6 @@ static void render_unique_exr_name(Render *re, char *str)
 	else
 		BLI_make_file_string("/", str, U.tempdir, name);
 		
-	printf("exr file %s\n", str);
-	
 }
 
 static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
@@ -342,11 +341,12 @@ RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 	return NULL;
 }
 
+#define RR_USEMEM	0
 /* called by main render as well for parts */
 /* will read info from Render *re to define layers */
 /* called in threads */
 /* re->winx,winy is coordinate space of entire image, partrct the part within */
-static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
+static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int savebuffers)
 {
 	RenderResult *rr;
 	RenderLayer *rl;
@@ -371,8 +371,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 	rr->tilerect.ymin= partrct->ymin - re->disprect.ymin;
 	rr->tilerect.ymax= partrct->ymax - re->disprect.ymax;
 	
-	/* this flag needs cleared immediate after result was made */
-	if(re->flag & R_FILEBUFFER) {
+	if(savebuffers) {
 		rr->exrhandle= IMB_exr_get_handle();
 	}
 	
@@ -434,16 +433,20 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop)
 		re->r.actlay= 0;
 	}
 	
+	/* border render; calculate offset for use in compositor. compo is centralized coords */
+	rr->xof= re->disprect.xmin + (re->disprect.xmax - re->disprect.xmin)/2 - re->winx/2;
+	rr->yof= re->disprect.ymin + (re->disprect.ymax - re->disprect.ymin)/2 - re->winy/2;
+	
 	return rr;
 }
 
-static int render_result_needs_vector(Render *re)
+static int render_scene_needs_vector(Render *re)
 {
 	if(re->r.scemode & R_DOCOMP) {
-		RenderLayer *rl;
+		SceneRenderLayer *srl;
 	
-		for(rl= re->result->layers.first; rl; rl= rl->next)
-			if(rl->passflag & SCE_PASS_VECTOR)
+		for(srl= re->scene->r.layers.first; srl; srl= srl->next)
+			if(srl->passflag & SCE_PASS_VECTOR)
 				return 1;
 	}
 	return 0;
@@ -541,7 +544,6 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 
 	party= rrpart->tilerect.ymin + rrpart->crop;
 	partx= rrpart->tilerect.xmin + rrpart->crop;
-
 	IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
 
 	BLI_unlock_thread(LOCK_CUSTOM1);
@@ -557,7 +559,7 @@ static void read_render_result(Render *re)
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	
 	free_render_result(re->result);
-	re->result= new_render_result(re, &re->disprect, 0);
+	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 
 	render_unique_exr_name(re, str);
 	if(IMB_exr_begin_read(exrhandle, str, &rectx, &recty)==0) {
@@ -762,7 +764,7 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		re->recty= disprect->ymax-disprect->ymin;
 	}
 	else {
-		re->disprect.xmin= re->disprect.xmax= 0;
+		re->disprect.xmin= re->disprect.ymin= 0;
 		re->disprect.xmax= winx;
 		re->disprect.ymax= winy;
 		re->rectx= winx;
@@ -784,8 +786,11 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		/* always call, checks for gamma, gamma tables and jitter too */
 		make_sample_tables(re);	
 		
+		/* make empty render result, so display callbacks can initialize */
 		free_render_result(re->result);
-		re->result= new_render_result(re, &re->disprect, 0);
+		re->result= MEM_callocN(sizeof(RenderResult), "new render result");
+		re->result->rectx= re->rectx;
+		re->result->recty= re->recty;
 	}
 }
 
@@ -797,7 +802,7 @@ void RE_SetDispRect (struct Render *re, rcti *disprect)
 	
 	/* initialize render result */
 	free_render_result(re->result);
-	re->result= new_render_result(re, &re->disprect, 0);
+	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 }
 
 void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
@@ -885,7 +890,7 @@ static void *do_part_thread(void *pa_v)
 	/* need to return nicely all parts on esc */
 	if(R.test_break()==0) {
 		
-		pa->result= new_render_result(&R, &pa->disprect, pa->crop);
+		pa->result= new_render_result(&R, &pa->disprect, pa->crop, RR_USEMEM);
 		
 		if(R.osa)
 			zbufshadeDA_tile(pa);
@@ -904,13 +909,17 @@ static void *do_part_thread(void *pa_v)
 	return NULL;
 }
 
-/* returns with render result filled, not threaded */
+/* returns with render result filled, not threaded, used for preview now only */
 static void render_tile_processor(Render *re, int firsttile)
 {
 	RenderPart *pa;
 	
 	if(re->test_break())
 		return;
+
+	/* first step; the entire render result, no exr saving here */
+	free_render_result(re->result);
+	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
@@ -1068,9 +1077,13 @@ static void threaded_tile_processor(Render *re)
 {
 	ListBase threads;
 	RenderPart *pa, *nextpa;
-	RenderResult *rr= re->result;
+	RenderResult *rr;
 	rctf viewplane= re->viewplane;
 	int maxthreads, rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
+	
+	/* first step; the entire render result, or prepare exr buffer saving */
+	free_render_result(re->result);
+	rr= re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
 	
 	if(rr==NULL)
 		return;
@@ -1082,6 +1095,8 @@ static void threaded_tile_processor(Render *re)
 	if(rr->exrhandle) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
 		render_unique_exr_name(re, str);
+		printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
+		
 		IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
 	}
 	
@@ -1191,13 +1206,13 @@ void RE_TileProcessor(Render *re, int firsttile)
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
-void render_one_frame(Render *re)
+static void do_render_3d(Render *re)
 {
 	
 //	re->cfra= cfra;	/* <- unused! */
 	
 	/* make render verts/faces/halos/lamps */
-	if(render_result_needs_vector(re))
+	if(render_scene_needs_vector(re))
 		RE_Database_FromScene_Vectors(re, re->scene);
 	else
 	   RE_Database_FromScene(re, re->scene, 1);
@@ -1208,19 +1223,221 @@ void render_one_frame(Render *re)
 	RE_Database_Free(re);
 }
 
-#if 0
-/* accumulates osa frames */
-static void do_render_blurred(Render *re, float frame)
+/* called by blur loop, accumulate renderlayers */
+static void addblur_rect(RenderResult *rr, float *rectf, float *rectf1, float blurfac, int channels)
 {
+	float mfac= 1.0f - blurfac;
+	int a, b, stride= channels*rr->rectx;
+	int len= stride*sizeof(float);
 	
+	for(a=0; a<rr->recty; a++) {
+		if(blurfac==1.0f) {
+			memcpy(rectf, rectf1, len);
+		}
+		else {
+			float *rf= rectf, *rf1= rectf1;
+			
+			for( b= rr->rectx*channels; b>0; b--, rf++, rf1++) {
+				rf[0]= mfac*rf[0] + blurfac*rf1[0];
+			}
+		}
+		rectf+= stride;
+		rectf1+= stride;
+	}
 }
 
-/* interleaves 2 frames */
-static void do_render_fields(Render *re)
+/* called by blur loop, accumulate renderlayers */
+static void merge_renderresult_blur(RenderResult *rr, RenderResult *brr, float blurfac)
 {
+	RenderLayer *rl, *rl1;
+	RenderPass *rpass, *rpass1;
 	
+	rl1= brr->layers.first;
+	for(rl= rr->layers.first; rl && rl1; rl= rl->next, rl1= rl1->next) {
+		
+		/* combined */
+		if(rl->rectf && rl1->rectf)
+			addblur_rect(rr, rl->rectf, rl1->rectf, blurfac, 4);
+		
+		/* passes are allocated in sync */
+		rpass1= rl1->passes.first;
+		for(rpass= rl->passes.first; rpass && rpass1; rpass= rpass->next, rpass1= rpass1->next) {
+			addblur_rect(rr, rpass->rect, rpass1->rect, blurfac, rpass->channels);
+		}
+	}
 }
-#endif
+
+/* main blur loop, can be called by fields too */
+static void do_render_blur_3d(Render *re)
+{
+	RenderResult *rres;
+	float blurfac;
+	int blur= re->r.osa;
+	
+	/* create accumulation render result */
+	rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+	
+	/* do the blur steps */
+	while(blur--) {
+		set_mblur_offs( re->r.blurfac*((float)(re->r.osa-blur))/(float)re->r.osa );
+		
+		do_render_3d(re);
+		
+		blurfac= 1.0f/(float)(re->r.osa-blur);
+		
+		merge_renderresult_blur(rres, re->result, blurfac);
+		if(re->test_break()) break;
+	}
+	
+	/* swap results */
+	free_render_result(re->result);
+	re->result= rres;
+	
+	set_mblur_offs(0.0f);
+	
+	/* weak... the display callback wants an active renderlayer pointer... */
+	re->result->renlay= render_get_active_layer(re, re->result);
+	re->display_draw(re->result, NULL);	
+}
+
+
+/* function assumes rectf1 and rectf2 to be half size of rectf */
+static void interleave_rect(RenderResult *rr, float *rectf, float *rectf1, float *rectf2, int channels)
+{
+	int a, stride= channels*rr->rectx;
+	int len= stride*sizeof(float);
+	
+	for(a=0; a<rr->recty; a+=2) {
+		memcpy(rectf, rectf1, len);
+		rectf+= stride;
+		rectf1+= stride;
+		memcpy(rectf, rectf2, len);
+		rectf+= stride;
+		rectf2+= stride;
+	}
+}
+
+/* merge render results of 2 fields */
+static void merge_renderresult_fields(RenderResult *rr, RenderResult *rr1, RenderResult *rr2)
+{
+	RenderLayer *rl, *rl1, *rl2;
+	RenderPass *rpass, *rpass1, *rpass2;
+	
+	rl1= rr1->layers.first;
+	rl2= rr2->layers.first;
+	for(rl= rr->layers.first; rl && rl1 && rl2; rl= rl->next, rl1= rl1->next, rl2= rl2->next) {
+		
+		/* combined */
+		if(rl->rectf && rl1->rectf && rl2->rectf)
+			interleave_rect(rr, rl->rectf, rl1->rectf, rl2->rectf, 4);
+		
+		/* passes are allocated in sync */
+		rpass1= rl1->passes.first;
+		rpass2= rl2->passes.first;
+		for(rpass= rl->passes.first; rpass && rpass1 && rpass2; rpass= rpass->next, rpass1= rpass1->next, rpass2= rpass2->next) {
+			interleave_rect(rr, rpass->rect, rpass1->rect, rpass2->rect, rpass->channels);
+		}
+	}
+}
+
+
+/* interleaves 2 frames */
+static void do_render_fields_3d(Render *re)
+{
+	RenderResult *rr1, *rr2= NULL;
+	
+	/* no render result was created, we can safely halve render y */
+	re->winy /= 2;
+	re->recty /= 2;
+	re->disprect.ymin /= 2;
+	re->disprect.ymax /= 2;
+	
+	/* first field, we have to call camera routine for correct aspect and subpixel offset */
+	RE_SetCamera(re, re->scene->camera);
+	if(re->r.mode & R_MBLUR)
+		do_render_blur_3d(re);
+	else
+		do_render_3d(re);
+	rr1= re->result;
+	re->result= NULL;
+	
+	/* second field */
+	if(!re->test_break()) {
+		re->flag |= R_SEC_FIELD;
+		if((re->r.mode & R_FIELDSTILL)==0) 
+			set_field_offs(0.5f);
+		RE_SetCamera(re, re->scene->camera);
+		if(re->r.mode & R_MBLUR)
+			do_render_blur_3d(re);
+		else
+			do_render_3d(re);
+		re->flag &= ~R_SEC_FIELD;
+		set_field_offs(0.0f);
+		
+		rr2= re->result;
+	}
+	
+	/* allocate original height new buffers */
+	re->winy *= 2;
+	re->recty *= 2;
+	re->disprect.ymin *= 2;
+	re->disprect.ymax *= 2;
+	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+	
+	if(rr2) {
+		if(re->r.mode & R_ODDFIELD)
+			merge_renderresult_fields(re->result, rr2, rr1);
+		else
+			merge_renderresult_fields(re->result, rr1, rr2);
+		
+		free_render_result(rr2);
+	}
+	free_render_result(rr1);
+	
+	/* weak... the display callback wants an active renderlayer pointer... */
+	re->result->renlay= render_get_active_layer(re, re->result);
+	re->display_draw(re->result, NULL);
+}
+
+/* main render routine, no compositing */
+static void do_render_fields_blur_3d(Render *re)
+{
+	if(re->r.mode & R_FIELDS)
+		do_render_fields_3d(re);
+	else if(re->r.mode & R_MBLUR)
+		do_render_blur_3d(re);
+	else
+		do_render_3d(re);
+	
+	/* when border render, check if we have to insert it in black */
+	if(re->result) {
+		if(re->r.mode & R_BORDER) {
+			if((re->r.mode & R_CROP)==0) {
+				RenderResult *rres;
+				
+				/* sub-rect for merge call later on */
+				re->result->tilerect= re->disprect;
+				
+				/* this copying sequence could become function? */
+				re->disprect.xmin= re->disprect.ymin= 0;
+				re->disprect.xmax= re->winx;
+				re->disprect.ymax= re->winy;
+				re->rectx= re->winx;
+				re->recty= re->winy;
+				
+				rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+				
+				merge_render_result(rres, re->result);
+				free_render_result(re->result);
+				re->result= rres;
+				
+				re->display_init(re->result);
+				re->display_draw(re->result, NULL);
+			}
+		}
+	}
+}
+
 
 /* within context of current Render *re, render another scene.
    it uses current render image size and disprect, but doesn't execute composite
@@ -1230,13 +1447,9 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	Render *resc= RE_NewRender(sce->id.name);
 	
 	sce->r.cfra= cfra;
-	
-	if(re->scene->r.scemode & R_EXR_TILE_FILE)
-		resc->flag |= R_FILEBUFFER;
-	
-	/* makes render result etc */
+		
+	/* initial setup */
 	RE_InitState(resc, &sce->r, re->winx, re->winy, &re->disprect);
-	resc->flag &= ~R_FILEBUFFER;
 	
 	/* this to enable this scene to create speed vectors */
 	resc->r.scemode |= R_DOCOMP;
@@ -1256,13 +1469,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->test_break= re->test_break;
 	resc->stats_draw= re->stats_draw;
 	
-	if(resc->r.mode & R_FIELDS)
-		printf("No field render yet...\n"); //do_render_fields(resc);
-	else if(resc->r.mode & R_MBLUR)
-		printf("No mblur render yet...\n"); //do_render_blurred(resc, resc->r.cfra);
-	//else
-	render_one_frame(resc);
-
+	do_render_fields_blur_3d(resc);
 }
 
 static void ntree_render_scenes(Render *re)
@@ -1304,7 +1511,7 @@ static void ntree_render_scenes(Render *re)
 }
 
 /* helper call to detect if theres a composite with render-result node */
-int composite_needs_render(Scene *sce)
+static int composite_needs_render(Scene *sce)
 {
 	bNodeTree *ntree= sce->nodetree;
 	bNode *node;
@@ -1329,60 +1536,49 @@ static void render_composit_stats(char *str)
 	R.i.infostr= NULL;
 }
 
-static void do_render_final(Render *re)
+/* returns fully composited render-result on given time step (in RenderData) */
+static void do_render_composite_fields_blur_3d(Render *re)
 {
+	bNodeTree *ntree= re->scene->nodetree;
+	
 	/* we set start time here, for main Blender loops */
 	re->i.starttime= PIL_check_seconds_timer();
 
-	if(re->r.scemode & R_DOSEQ) {
-		if(!re->test_break()) 
-			do_render_seq(re->result, re->r.cfra);
+	if(composite_needs_render(re->scene)) {
+		/* save memory... free all cached images */
+		ntreeFreeCache(ntree);
+		
+		/* now use renderdata and camera to set viewplane */
+		RE_SetCamera(re, re->scene->camera);
+		
+		do_render_fields_blur_3d(re);
 	}
-	else {
-		bNodeTree *ntree= re->scene->nodetree;
+	
+	/* swap render result */
+	if(re->r.scemode & R_SINGLE_LAYER)
+		pop_render_result(re);
+	
+	if(!re->test_break() && ntree) {
+		ntreeCompositTagRender(ntree);
+		ntreeCompositTagAnimated(ntree);
 		
-		if(composite_needs_render(re->scene)) {
-			/* save memory... free all cached images */
-			ntreeFreeCache(ntree);
+		if(re->r.scemode & R_DOCOMP) {
+			/* checks if there are render-result nodes that need scene */
+			if((re->r.scemode & R_SINGLE_LAYER)==0)
+				ntree_render_scenes(re);
 			
-			/* now use renderdata and camera to set viewplane */
-			RE_SetCamera(re, re->scene->camera);
-			
-			if(re->r.mode & R_FIELDS)
-				printf("No field render yet...\n"); //do_render_fields(resc);
-			else if(re->r.mode & R_MBLUR)
-				printf("No mblur render yet...\n"); //do_render_blurred(resc, resc->r.cfra);
-													//else
-			render_one_frame(re);
-		}
-		
-		/* swap render result */
-		if(re->r.scemode & R_SINGLE_LAYER)
-			pop_render_result(re);
-		
-		if(!re->test_break() && ntree) {
-			ntreeCompositTagRender(ntree);
-			ntreeCompositTagAnimated(ntree);
-			
-			if(re->r.scemode & R_DOCOMP) {
-				/* checks if there are render-result nodes that need scene */
-				if((re->r.scemode & R_SINGLE_LAYER)==0)
-					ntree_render_scenes(re);
+			if(!re->test_break()) {
+				ntree->stats_draw= render_composit_stats;
+				ntree->test_break= re->test_break;
+				/* in case it was never initialized */
+				R.stats_draw= re->stats_draw;
 				
-				if(!re->test_break()) {
-					ntree->stats_draw= render_composit_stats;
-					ntree->test_break= re->test_break;
-					/* in case it was never initialized */
-					R.stats_draw= re->stats_draw;
-					
-					ntreeCompositExecTree(ntree, &re->r, G.background==0);
-					ntree->stats_draw= NULL;
-					ntree->test_break= NULL;
-				}
+				ntreeCompositExecTree(ntree, &re->r, G.background==0);
+				ntree->stats_draw= NULL;
+				ntree->test_break= NULL;
 			}
 		}
 	}
-	
 
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
@@ -1390,6 +1586,17 @@ static void do_render_final(Render *re)
 	re->display_draw(re->result, NULL);
 }
 
+/* main loop: doing sequence + fields + blur + 3d render + compositing */
+static void do_render_all_options(Render *re)
+{
+	if(re->r.scemode & R_DOSEQ) {
+		if(!re->test_break()) 
+			do_render_seq(re->result, re->r.cfra);
+	}
+	else {
+		do_render_composite_fields_blur_3d(re);
+	}
+}
 
 static int is_rendering_allowed(Render *re)
 {
@@ -1460,7 +1667,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	winx= (scene->r.size*scene->r.xsch)/100;
 	winy= (scene->r.size*scene->r.ysch)/100;
 	
-	/* only in movie case we render smaller part */
+	/* we always render smaller part, inserting it in larger image is compositor bizz, it uses disprect for it */
 	if(scene->r.mode & R_BORDER) {
 		disprect.xmin= scene->r.border.xmin*winx;
 		disprect.xmax= scene->r.border.xmax*winx;
@@ -1476,19 +1683,22 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	
 	if(scene->r.scemode & R_EXR_TILE_FILE) {
 		int partx= winx/scene->r.xparts, party= winy/scene->r.yparts;
+		
 		/* stupid exr tiles dont like different sizes */
 		if(winx != partx*scene->r.xparts || winy != party*scene->r.yparts) {
 			re->error("Sorry... exr tile saving only allowed with equally sized parts");
 			return 0;
 		}
-		re->flag |= R_FILEBUFFER;
+		if((scene->r.mode & R_FIELDS) && (party & 1)) {
+			re->error("Sorry... exr tile saving only allowed with equally sized parts");
+			return 0;
+		}
 	}
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
 	
 	RE_InitState(re, &scene->r, winx, winy, &disprect);
-	re->flag &= ~R_FILEBUFFER;
 	
 	re->scene= scene;
 	if(!is_rendering_allowed(re))
@@ -1510,7 +1720,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	scene->r.cfra= frame;
 	
 	if(render_initialize_from_scene(re, scene)) {
-		do_render_final(re);
+		do_render_all_options(re);
 	}
 	
 	/* UGLY WARNING */
@@ -1604,7 +1814,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				scene->r.cfra = nf;
 				re->r.cfra= scene->r.cfra; /* weak.... */
 		
-				do_render_final(re);
+				do_render_all_options(re);
 
 				if(re->test_break() == 0) {
 					do_write_image_or_movie(re, scene, mh);
@@ -1616,7 +1826,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		    scene->r.cfra<=efra; scene->r.cfra++) {
 			re->r.cfra= scene->r.cfra;	   /* weak.... */
 		
-			do_render_final(re);
+			do_render_all_options(re);
 
 			if(re->test_break() == 0) {
 				do_write_image_or_movie(re, scene, mh);

@@ -93,6 +93,8 @@ typedef struct RenderResult {
 	
 	/* coordinates within final image (after cropping) */
 	rcti tilerect;
+	/* offset to apply to get a border render in full image */
+	int xof, yof;
 	
 	/* the main buffers */
 	ListBase layers;

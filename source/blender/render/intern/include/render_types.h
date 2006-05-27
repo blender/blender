@@ -347,7 +347,6 @@ typedef struct LampRen
 #define R_HALO			2
 #define R_SEC_FIELD		4
 #define R_LAMPHALO		8
-#define R_FILEBUFFER	16
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1

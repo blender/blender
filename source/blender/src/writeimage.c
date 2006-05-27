@@ -218,9 +218,11 @@ void save_image_filesel_str(char *str)
 /* calls fileselect if zbuf is set we are rendering the zbuffer */
 void BIF_save_rendered_image_fs(int zbuf)
 {
-	RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
+	RenderResult rres;
 	
-	if(!rr) {
+	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+
+	if(!rres.rectf) {
 		error("No image rendered");
 	} else {
 		char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];

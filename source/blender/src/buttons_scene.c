@@ -1506,7 +1506,8 @@ static void render_panel_format(void)
 	uiDefButBitI(block, TOG, R_COSMO, 0,"Cosmo",	1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
 #endif
 
-	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,225,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
+	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,174,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
+	uiDefButBitI(block, TOG, R_CROP, B_DIFF, "Crop",        1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "When Border render, the resulting image gets cropped");
 
 	yofs -= 22;
 

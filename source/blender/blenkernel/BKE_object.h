@@ -74,6 +74,7 @@ struct Object *copy_object(struct Object *ob);
 void expand_local_object(struct Object *ob);
 void make_local_object(struct Object *ob);
 void set_mblur_offs(float blur);
+void set_field_offs(float field);
 void disable_speed_curve(int val);
 
 float bsystem_time(struct Object *ob, struct Object *par, float cfra, float ofs);

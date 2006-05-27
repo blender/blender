@@ -938,6 +938,9 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 					stackbuf->rect= rl->rectf;
 				}
 				
+				stackbuf->xof= rr->xof;
+				stackbuf->yof= rr->yof;
+				
 				/* put on stack */	
 				out[RRES_OUT_IMAGE]->data= stackbuf;
 				

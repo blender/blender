@@ -752,15 +752,11 @@ float get_action_frame_inv(Object *ob, float cframe)
 static float nla_time(float cfra, float unit)
 {
 	extern float bluroffs;	// bad construct, borrowed from object.c for now
+	extern float fieldoffs;
 	
-	/* 2nd field */
-//	if(R.flag & R_SEC_FIELD) {
-//		if(R.r.mode & R_FIELDSTILL); else cfra+= 0.5f*unit;
-//	}
+	/* motion blur & fields */
+	cfra+= unit*(bluroffs+fieldoffs);
 	
-	/* motion blur */
-	cfra+= unit*bluroffs;
-		
 	/* global time */
 	cfra*= G.scene->r.framelen;	
 

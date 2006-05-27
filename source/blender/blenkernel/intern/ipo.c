@@ -183,14 +183,12 @@ int fluidsim_ar[FLUIDSIM_TOTIPO]= {
 
 float frame_to_float(int cfra)		/* see also bsystem_time in object.c */
 {
-	extern float bluroffs;	/* object.c */
+	extern float bluroffs;	/* bad stuff borrowed from object.c */
+	extern float fieldoffs;
 	float ctime;
 	
 	ctime= (float)cfra;
-//	if(R.flag & R_SEC_FIELD) {
-//		if((R.r.mode & R_FIELDSTILL)==0) ctime+= 0.5;
-//	}
-	ctime+= bluroffs;
+	ctime+= bluroffs+fieldoffs;
 	ctime*= G.scene->r.framelen;
 	
 	return ctime;

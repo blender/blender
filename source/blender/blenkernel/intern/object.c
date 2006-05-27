@@ -997,15 +997,20 @@ void make_local_object(Object *ob)
 
 /* there is also a timing calculation in drawobject() */
 
-float bluroffs= 0.0;
+float bluroffs= 0.0f, fieldoffs= 0.0f;
 int no_speed_curve= 0;
 
-/* ugly call from render */
+/* ugly calls from render */
 void set_mblur_offs(float blur)
 {
 	bluroffs= blur;
 }
-	
+
+void set_field_offs(float field)
+{
+	fieldoffs= field;
+}
+
 void disable_speed_curve(int val)
 {
 	no_speed_curve= val;
@@ -1016,12 +1021,7 @@ float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
 {
 	/* returns float ( see frame_to_float in ipo.c) */
 
-	/* 2nd field */
-//	if(R.flag & R_SEC_FIELD) {
-//		if(R.r.mode & R_FIELDSTILL); else cfra+= .5;
-//	}
-
-	cfra+= bluroffs;
+	cfra+= bluroffs+fieldoffs;
 
 	/* global time */
 	cfra*= G.scene->r.framelen;	
