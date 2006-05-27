@@ -200,15 +200,15 @@ class MVert:
       for v in me.verts:
         v.no= no
   @type no: vector
-  @ivar uvco: (MVerts only). The vertex texture "sticky" coordinates (x, y),
-    if present. 
+  @ivar uvco: The vertex texture "sticky" coordinates (x, y),
+    if present. Available for MVerts only. 
     Use L{Mesh.vertexUV} to test for presence before trying to access;
     otherwise an exception will may be thrown.
     (Sticky coordinates can be set when the object is in the Edit mode;
     from the Editing Panel (F9), look under the "Mesh" properties for the 
     "Sticky" button).  
   @type uvco: vector (WRAPPED DATA)
-  @ivar index: (MVerts only). The vertex's index within the mesh.  Read-only.
+  @ivar index: The vertex's index within the mesh (MVerts only). Read-only.
   @type index: int
   @ivar sel: The vertex's selection state (selected=1).
    B{Note}: a Mesh will return the selection state of the mesh when EditMode 
