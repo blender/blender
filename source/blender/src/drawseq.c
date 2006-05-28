@@ -800,7 +800,6 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
 		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
 		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
