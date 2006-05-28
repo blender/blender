@@ -61,6 +61,9 @@
 
 #include "BSE_sequence.h"  /* <----------------- bad!!! */
 
+/* yafray: include for yafray export/render */
+#include "YafRay_Api.h"
+
 /* internal */
 #include "render_types.h"
 #include "renderpipeline.h"
@@ -70,6 +73,7 @@
 #include "initrender.h"
 #include "shadbuf.h"
 #include "zbuf.h"
+
 
 /* render flow
 
@@ -1588,6 +1592,37 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	re->display_draw(re->result, NULL);
 }
 
+/* yafray: main yafray render/export call */
+static void yafrayRender(Render *re)
+{
+
+	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+	
+	/* yafray uses this global still..., also for database stage? */
+	R= *re;
+	
+	// switch must be done before prepareScene()
+	if (!R.r.YFexportxml)
+		YAF_switchFile();
+	else
+		YAF_switchPlugin();
+	
+	printf("Starting scene conversion.\n");
+	RE_Database_FromScene(re, re->scene, 1);
+	printf("Scene conversion done.\n");
+	
+	/* yafray uses this global for exporting */
+	R= *re;
+	
+	YAF_exportScene();
+	RE_Database_Free(re);
+	
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
@@ -1596,7 +1631,10 @@ static void do_render_all_options(Render *re)
 			do_render_seq(re->result, re->r.cfra);
 	}
 	else {
-		do_render_composite_fields_blur_3d(re);
+		if(re->r.renderer==R_YAFRAY)
+			yafrayRender(re);
+		else
+			do_render_composite_fields_blur_3d(re);
 	}
 }
 

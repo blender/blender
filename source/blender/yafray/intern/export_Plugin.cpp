@@ -274,8 +274,6 @@ void yafrayPluginRender_t::displayImage()
 	// although it is possible to load the image using blender,
 	// maybe it is best to just do a read here, for now the yafray output is always a raw tga anyway
 
-	// rectot already freed in initrender
-//	R.rectot = (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
 
 	FILE* fp = fopen(imgout.c_str(), "rb");
 	if (fp==NULL) {
@@ -292,6 +290,14 @@ void yafrayPluginRender_t::displayImage()
 	unsigned int idlen = (unsigned int)header[0];
 	if (idlen) fseek(fp, idlen, SEEK_CUR);
 
+	/* XXX how to get the image from Blender and write to it. This call doesn't allow to change buffer rects */
+	RenderResult rres;
+	RE_GetResultImage(&R, &rres);
+	// rres.rectx, rres.recty is width/height
+	// rres.rectf is float buffer, scanlines starting in bottom
+	// rres.rectz is zbuffer, available when associated pass is set
+	
+	
 	// read data directly into buffer, picture is upside down
 	for (unsigned short y=0;y<height;y++) {
 		unsigned char* bpt = NULL;//(unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
@@ -1948,6 +1954,7 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	out++;
 	if (out==4096)
 	{
+		/* XXX second arg is rcti *rect, allows to indicate sub-rect in image to draw */
 		R.display_draw(R.result, NULL);
 		out = 0;
 	}

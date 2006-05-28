@@ -289,6 +289,13 @@ void yafrayFileRender_t::displayImage()
 	unsigned int idlen = (unsigned int)header[0];
 	if (idlen) fseek(fp, idlen, SEEK_CUR);
 
+	/* XXX how to get the image from Blender and write to it. This call doesn't allow to change buffer rects */
+	RenderResult rres;
+	RE_GetResultImage(&R, &rres);
+	// rres.rectx, rres.recty is width/height
+	// rres.rectf is float buffer, scanlines starting in bottom
+	// rres.rectz is zbuffer, available when associated pass is set
+	
 	// read data directly into buffer, picture is upside down
 	for (unsigned short y=0;y<height;y++) {
 		unsigned char* bpt = NULL; //(unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
