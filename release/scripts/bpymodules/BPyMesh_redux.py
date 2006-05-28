@@ -68,30 +68,25 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 	"""
 	
 	me= ob.getData(mesh=1)
-	
-	if len(me.faces)<4:
-		print "\n\n\n\nHEERRRO\n\n\n\n"
+	me.hide= False # unhide all data,.
+	if len(me.faces)<5:
 		return
 	
-	OLD_MESH_MODE= Blender.Mesh.Mode()
+	
+	
+	if FACE_TRIANGULATE or REMOVE_DOUBLES:
+		me.sel= True
 	
 	if FACE_TRIANGULATE:
-		Blender.Mesh.Mode(Blender.Mesh.SelectModes.FACE)
-		for f in me.faces:
-			f.sel= True
-		me.quadToTriangle() 
-		me= ob.getData(mesh=1)
+		me.quadToTriangle()
 	
 	if REMOVE_DOUBLES:
-		for v in me.verts:
-			v.sel= 1
 		me.remDoubles(0.0001)
-		me= ob.getData(mesh=1)
 	
 	if (not me.getVertGroupNames()) and DO_WEIGHTS:
 		DO_WEIGHTS= False
 	
-
+	OLD_MESH_MODE= Blender.Mesh.Mode()
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes.VERTEX)
 	
 	if (DO_UV or DO_VCOL) and not me.faceUV:
@@ -160,9 +155,6 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				self.orig_col= [col_key(col) for col in f.col]
 				self.col= f.col
 	
-	for v in me.verts:
-		v.hide=0
-	
 	collapse_edges= collapse_faces= None
 	
 	# So meshCalcNormals can avoid making a new list all the time.
@@ -174,20 +166,18 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 		if DO_WEIGHTS:
 			groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)
 		
-		# THIS CRASHES
-		#verts= list(me.verts)
-		#edges= list(me.edges)
-		#faces= list(me.faces)
+		# THIS CRASHES? Not anymore.
+		verts= list(me.verts)
+		edges= list(me.edges)
+		faces= list(me.faces)
 		
 		# THIS WORKS
-		verts= me.verts
-		edges= me.edges
-		faces= me.faces
+		#verts= me.verts
+		#edges= me.edges
+		#faces= me.faces
 		
 		# if DEBUG: DOUBLE_CHECK= [0]*len(verts)
-		
-		for v in verts:
-			v.sel= False
+		me.sel= False
 		
 		if not collapse_faces: # Initialize the list.
 			collapse_faces= [collapseFace(f) for f in faces]
@@ -296,7 +286,6 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			del verts_boundry
 		else:
 			vert_collapsed= [1] * len(verts)
-		
 		
 		
 		def ed_set_collapse_loc(ced):
@@ -556,7 +545,6 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
 		
 		doubles= me.remDoubles(0.0001) 
-		me= ob.getData(mesh=1)
 		current_face_count= len(me.faces)
 		
 		if current_face_count <= target_face_count or not doubles: # not doubles shoule never happen.
