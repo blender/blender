@@ -190,6 +190,54 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 	
 	return mesh
 
+
+
+#============================================================================#
+# Takes a face, and a pixel x/y on the image and returns a worldspace x/y/z  #
+# will return none if the pixel is not inside the faces UV                   #
+#============================================================================#
+def getUvPixelLoc(face, pxLoc, img_size = None, uvArea = None):
+	TriangleArea= Blender.Mathutils.TriangleArea
+	Vector= Blender.Mathutils.Vector
+	
+	if not img_size:
+		w,h = face.image.size
+	else:
+		w,h= img_size
+	
+	scaled_uvs= [Vector(uv.x*w, uv.y*h) for uv in f.uv]
+	
+	if len(scaled_uvs)==3:
+		indicies= ((0,1,2),)
+	else:
+		indicies= ((0,1,2), (0,2,3))
+	
+	for fidxs in indicies:
+		for i1,i2,i3 in fidxs:
+			# IS a point inside our triangle?
+			# UVArea could be cached?
+			uv_area = TriangleArea(scaled_uvs[i1], scaled_uvs[i2], scaled_uvs[i3])
+			area0 = TriangleArea(pxLoc, scaled_uvs[i2], scaled_uvs[i3])
+			area1 = TriangleArea(pxLoc, scaled_uvs[i1],	scaled_uvs[i3])
+			area2 = TriangleArea(pxLoc, scaled_uvs[i1], scaled_uvs[i2])
+			if area0 + area1 + area2 > uv_area + 1: # 1 px bleed/error margin.
+				pass # if were a quad the other side may contain the pixel so keep looking.
+			else:
+				# We know the point is in the tri
+				area0 /= uv_area
+				area1 /= uv_area
+				area2 /= uv_area
+				
+				# New location
+				return Vector(\
+					face.v[i1].co[0]*area0 + face.v[i2].co[0]*area1 + face.v[i3].co[0]*area2,\
+					face.v[i1].co[1]*area0 + face.v[i2].co[1]*area1 + face.v[i3].co[1]*area2,\
+					face.v[i1].co[2]*area0 + face.v[i2].co[2]*area1 + face.v[i3].co[2]*area2\
+				)
+				
+	return None
+
+
 type_tuple= type( (0,) )
 type_list= type( [] )
 def ngon(from_data, indices):
@@ -230,8 +278,7 @@ def ngon(from_data, indices):
 	
 	oldmode = Mesh.Mode()
 	Mesh.Mode(Mesh.SelectModes['VERTEX'])
-	for v in temp_mesh.verts:
-		v.sel= 1
+	temp_mesh.sel= True # Select all verst
 	
 	# Must link to scene
 	scn= Scene.GetCurrent()

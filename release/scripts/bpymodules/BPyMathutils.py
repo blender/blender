@@ -121,3 +121,148 @@ def genrand():
   return ( float(y) / 0xffffffffL ) # reals
 
 #------ Mersenne Twister -- end 
+
+
+
+
+""" 2d convexhull
+Based from Dinu C. Gherman's work,
+modified for Blender/Mathutils by Campell Barton
+"""
+######################################################################
+# Public interface
+######################################################################
+from Blender.Mathutils import DotVecs
+def convexHull(point_list_2d):
+	"""Calculate the convex hull of a set of vectors
+	The vectors can be 3 or 4d but only the Xand Y are used.
+	returns a list of convex hull indicies to the given point list
+	"""
+
+	######################################################################
+	# Helpers
+	######################################################################
+
+	def _myDet(p, q, r):
+		"""Calc. determinant of a special matrix with three 2D points.
+
+		The sign, "-" or "+", determines the side, right or left,
+		respectivly, on which the point r lies, when measured against
+		a directed vector from p to q.
+		"""
+		return (q.x*r.y + p.x*q.y + r.x*p.y)  -  (q.x*p.y + r.x*q.y + p.x*r.y)
+	
+	def _isRightTurn((p, q, r)):
+		"Do the vectors pq:qr form a right turn, or not?"
+		#assert p[0] != q[0] and q[0] != r[0] and p[0] != r[0]
+		if _myDet(p[0], q[0], r[0]) < 0:
+			return 1
+		else:
+			return 0
+
+	# Get a local list copy of the points and sort them lexically.
+	points = [(p, i) for i, p in enumerate(point_list_2d)]
+	points.sort(lambda a,b: cmp((a[0].x, a[0].y), (b[0].x, b[0].y)))
+
+	# Build upper half of the hull.
+	upper = [points[0], points[1]] # cant remove these.
+	for i in xrange(len(points)-2):
+		upper.append(points[i+2])
+		while len(upper) > 2 and not _isRightTurn(upper[-3:]):
+			del upper[-2]
+
+	# Build lower half of the hull.
+	points.reverse()
+	lower = [points.pop(0), points.pop(1)]
+	for p in points:
+		lower.append(p)
+		while len(lower) > 2 and not _isRightTurn(lower[-3:]):
+			del lower[-2]
+	
+	# Concatenate both halfs and return.
+	return [p[1] for ls in (upper, lower) for p in ls]
+
+
+def lineIntersect2D(v1a, v1b,  v2a, v2b):
+	'''
+	Do 2 lines intersect, if so where.
+	If there is an error, the retured X value will be None
+	the y will be an error code- usefull when debugging.
+	
+	the first line is (v1a, v1b)
+	the second is (v2a, v2b)
+	by Campbell Barton
+	This function accounts for all known cases of 2 lines ;)
+	'''
+	
+	x1,y1=		v1a.x, v1a.y
+	x2,y2=		v1b.x, v1b.y
+	_x1,_y1=	v2a.x, v2a.y
+	_x2,_y2=	v2b.x, v2b.y
+
+	# Bounding box intersection first.
+	if min(x1, x2) > max(_x1, _x2) or \
+	max(x1, x2) < min(_x1, _x2) or \
+	min(y1, y2) > max(_y1, _y2) or \
+	max(y1, y2) < min(_y1, _y2):
+		return None, 100 # Basic Bounds intersection TEST returns false.
+	
+	# are either of the segments points? Check Seg1
+	if abs(x1 - x2) + abs(y1 - y2) <= SMALL_NUM:
+		return None, 101
+	
+	# are either of the segments points? Check Seg2
+	if abs(_x1 - _x2) + abs(_y1 - _y2) <= SMALL_NUM:
+		return None, 102
+	
+	# Make sure the HOZ/Vert Line Comes first.
+	if abs(_x1 - _x2) < SMALL_NUM or abs(_y1 - _y2) < SMALL_NUM:
+		x1, x2, y1, y2, _x1, _x2, _y1, _y2 = _x1, _x2, _y1, _y2, x1, x2, y1, y2
+	
+	if abs(x2-x1) < SMALL_NUM: # VERTICLE LINE
+		if abs(_x2-_x1) < SMALL_NUM: # VERTICLE LINE SEG2
+			return None, 111 # 2 verticle lines dont intersect.
+		
+		elif abs(_y2-_y1) < SMALL_NUM:
+			return x1, _y1 # X of vert, Y of hoz. no calculation.		
+		
+		yi = ((_y1 / abs(_x1 - _x2)) * abs(_x2 - x1)) + ((_y2 / abs(_x1 - _x2)) * abs(_x1 - x1))
+		
+		if yi > max(y1, y2): # New point above seg1's vert line
+			return None, 112
+		elif yi < min(y1, y2): # New point below seg1's vert line
+			return None, 113
+			
+		return x1, yi # Intersecting.
+	
+	
+	if abs(y2-y1) < SMALL_NUM: # HOZ LINE
+		if abs(_y2-_y1) < SMALL_NUM: # HOZ LINE SEG2
+			return None, 121 # 2 hoz lines dont intersect.
+		
+		# Can skip vert line check for seg 2 since its covered above.	
+		xi = ((_x1 / abs(_y1 - _y2)) * abs(_y2 - y1)) + ((_x2 / abs(_y1 - _y2)) * abs(_y1 - y1))
+		if xi > max(x1, x2): # New point right of seg1's hoz line
+			return None, 112
+		elif xi < min(x1, x2): # New point left of seg1's hoz line
+			return None, 113
+		
+		return xi, y1 # Intersecting.
+	
+	# Accounted for hoz/vert lines. Go on with both anglular.
+	b1 = (y2-y1)/(x2-x1)
+	b2 = (_y2-_y1)/(_x2-_x1)
+	a1 = y1-b1*x1
+	a2 = _y1-b2*_x1
+	
+	if b1 - b2 == 0.0:
+		return None, 200	
+	
+	xi = - (a1-a2)/(b1-b2)
+	yi = a1+b1*xi
+	if (x1-xi)*(xi-x2) >= 0 and (_x1-xi)*(xi-_x2) >= 0 and (y1-yi)*(yi-y2) >= 0 and (_y1-yi)*(yi-_y2)>=0:
+		return xi, yi
+	else:
+		return None, 300
+
+
