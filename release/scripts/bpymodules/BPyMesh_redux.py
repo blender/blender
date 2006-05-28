@@ -386,6 +386,16 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				try:
 					# can use perim, but area looks better.
 					if FACE_AREA_WEIGHT:
+						# Psudo code for wrighting
+						# angle_diff= The before and after angle difference between the collapsed and un-collapsed face.
+						# ... devide by 180 so the value will be between 0 and 1.0
+						# ... add 1 so we can use it as a multiplyer and not make the area have no eefect (below)
+						# area_weight= The faces original area * the area weight
+						# ... add 1.0 so a small area face dosent make the angle_diff have no effect.
+						#
+						# Now multiply - (angle_diff * area_weight)
+						# ... The weight will be a minimum of 1.0 - we need to subtract this so more faces done give the collapse an uneven weighting.
+						
 						angle_diff+= ((1+(Ang(cfa.normal, new_nos[ii])/180)) * (1+(cfa.area * FACE_AREA_WEIGHT))) -1 # 4 is how much to influence area
 					else:
 						angle_diff+= (Ang(cfa.normal), new_nos[ii])/180

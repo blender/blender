@@ -159,24 +159,19 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	
 	
 	# Set the render context
-	render_context= render_scn.getRenderingContext()
-	render_context.currentFrame(1)
-	PREF_IMAGE_PATH_EXPAND= B.sys.expandpath(PREF_IMAGE_PATH + '#') + '.png'
+	
+	PREF_IMAGE_PATH_EXPAND= B.sys.expandpath(PREF_IMAGE_PATH) + '.png'
 	
 	# TEST THE FILE WRITING.
 	try:
 		# Can we write to this file???
 		f= open(PREF_IMAGE_PATH_EXPAND, 'w')
-		f.write('\n')
 		f.close()
 	except:
 		B.Draw.PupMenu('Error: Could not write to path|' + PREF_IMAGE_PATH_EXPAND)
-		scn.makeCurrent()
-		B.Scene.Unlink(render_scn)
 		return
-		
-	render_context.setRenderPath(PREF_IMAGE_PATH)
 	
+	render_context= render_scn.getRenderingContext()
 	render_context.imageSizeX(PREF_IMAGE_SIZE)
 	render_context.imageSizeY(PREF_IMAGE_SIZE)
 	render_context.startFrame(1) 
@@ -275,16 +270,15 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 		for c in target_face.col:
 			c.r= c.g= c.b= 255
 	
-	#render_context.render()
-	#render_context.saveRenderedImage('/test.png') # BROKEN.
-	render_context.renderAnim() 
+	render_context.render()
+	render_context.saveRenderedImage(PREF_IMAGE_PATH_EXPAND)
 	
 	#if not B.sys.exists(PREF_IMAGE_PATH):
 	#	raise 'Error!!!'
 	Render.CloseRenderWindow()
 	
 	# NOW APPLY THE SAVED IMAGE TO THE FACES!
-	print PREF_IMAGE_PATH_EXPAND
+	#print PREF_IMAGE_PATH_EXPAND
 	target_image= B.Image.Load(PREF_IMAGE_PATH_EXPAND)
 	
 	# Set to the 1 image.
