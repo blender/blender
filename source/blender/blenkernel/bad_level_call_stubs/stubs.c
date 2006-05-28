@@ -230,6 +230,12 @@ struct RenderResult *RE_GetResult(Render *re) {return (struct RenderResult *)NUL
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype) {return NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
 struct RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name) {return (struct RenderLayer *)NULL;}
+void RE_Database_Free (struct Render *re) {}
+void RE_FreeRender(Render *re) {}
+void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr) {}
+void RE_DataBase_GetView(Render *re, float mat[][4]) {}
+struct Render *RE_NewRender(const char *name) {return (struct Render *)NULL;}
+void RE_Database_Shaded(struct Render *re, struct Scene *scene) {};
 
 /* node_composite.c */
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) {}
