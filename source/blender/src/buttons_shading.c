@@ -727,8 +727,8 @@ static void texture_panel_clouds(Tex *tex)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard noise"); 
 	uiDefButS(block, ROW, B_TEXPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, 1.0, 0, 0, "Lets Noise return RGB value"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 18, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 18, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButS(block, NUM, B_TEXPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Sets the depth of the cloud calculation");
