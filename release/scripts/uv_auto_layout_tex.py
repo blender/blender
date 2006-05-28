@@ -43,19 +43,82 @@ This is usefull for game models where 1 image is faster then many, and saves the
 # Function to find all the images we use
 import Blender as B
 import boxpack2d
-from Blender.Mathutils import Vector
+from Blender.Mathutils import Vector, RotationMatrix
 from Blender.Scene import Render
+import BPyMathutils
+
+
+'''
+RotMatStepRotation = []
+rot_angle = 22.5
+while rot_angle > 0.1:
+	RotMatStepRotation.append([\
+	 (rot_angle, RotationMatrix( rot_angle, 2)),\
+	 (-rot_angle, RotationMatrix( -rot_angle, 2))])
+	rot_angle = rot_angle/2.0
+'''
+
+def pointBoundsArea(points):
+	x= [p.x for p in points] # Lazy use of LC's
+	y= [p.y for p in points]
+	return (max(x)-min(x)) * (max(y)-min(y))
+	
+
+def bestBoundsRotation(current_points):
+	current_area= pointBoundsArea(current_points)
+	
+	main_rot_angle= 0.0
+	rot_angle= 45.0
+	while rot_angle > 0.1:
+		mat_pos= RotationMatrix( rot_angle, 2)
+		mat_neg= RotationMatrix( -rot_angle, 2)
+		
+		new_points_pos= [v*mat_pos for v in current_points]
+		new_points_neg= [v*mat_neg for v in current_points]
+		area_pos= pointBoundsArea(new_points_pos)
+		area_neg= pointBoundsArea(new_points_neg)
+		
+		# Works!
+		#print 'Testing angle', rot_angle, current_area, area_pos, area_neg
+		
+		best_area= min(area_pos, area_neg, current_area)
+		if area_pos == best_area:
+			current_area= area_pos
+			current_points= new_points_pos
+			main_rot_angle+= rot_angle
+		elif area_neg == best_area:
+			current_area= area_neg
+			current_points= new_points_neg
+			main_rot_angle-= rot_angle
+		
+		rot_angle *= 0.5
+	
+	# Return the optimal rotation.
+	return main_rot_angle
 
 BIGNUM= 1<<30
 class faceGroup(object):
 	__slots__= 'xmax', 'ymax', 'xmin', 'ymin',\
-	'image', 'faces', 'box_pack', 'size'\
+	'image', 'faces', 'box_pack', 'size', 'ang', 'rot_mat', 'cent'\
 	
 	def __init__(self, mesh_list, image, size, PREF_IMAGE_MARGIN):
 		self.image= image
 		self.size= size
+		
+		# Find the best rotation.
+		all_points= [Vector(uv) for me in mesh_list for f in me.faces for uv in f.uv if f.image==image]
+		boundry_indicies= BPyMathutils.convexHull(all_points)
+		bountry_points= [all_points[i] for i in boundry_indicies]
+		
+		# Yay this works.
+		self.ang= bestBoundsRotation(bountry_points)
+		self.rot_mat= RotationMatrix(self.ang, 2), RotationMatrix(-self.ang, 2), 
+		
+		#print 'ANGLE', image.name, ang
+		
 		# Add to our face group and set bounds.
-		xmin=ymin= BIGNUM
+		# Find the centre
+		xmin=ymin=  BIGNUM
 		xmax=ymax= -BIGNUM
 		self.faces= []
 		for me in mesh_list:
@@ -63,15 +126,33 @@ class faceGroup(object):
 				if f.image==image:
 					self.faces.append(f)
 					for uv in f.uv:
+						#uv= uv * self.rot_mat
+						
 						xmax= max(xmax, uv.x)
 						xmin= min(xmin, uv.x)
 						ymax= max(ymax, uv.y)
 						ymin= min(ymin, uv.y)
-					
+		
+		self.cent= Vector((xmax-xmin)/2, (ymax+ymin)/2 )
+		
+		# now get the bounds after rotation about the cent.
+		xmin=ymin=  BIGNUM
+		xmax=ymax= -BIGNUM
+		for f in self.faces:
+			for uv in f.uv:
+				uv= ((uv-self.cent) * self.rot_mat[0]) + self.cent
+				xmax= max(xmax, uv.x)
+				xmin= min(xmin, uv.x)
+				ymax= max(ymax, uv.y)
+				ymin= min(ymin, uv.y)
+		
+		
 		# The box pack list is to be passed to the external function "boxpack2d"
 		# format is ID, w,h
 		
+		
 		# Store the bounds, impliment the margin.
+		# The bounds rect will need to be rotated to the rotation angle.
 		self.xmax= xmax + (PREF_IMAGE_MARGIN/size[0])
 		self.xmin= xmin - (PREF_IMAGE_MARGIN/size[0])
 		self.ymax= ymax + (PREF_IMAGE_MARGIN/size[1])
@@ -116,8 +197,9 @@ class faceGroup(object):
 		
 		for f in self.faces:
 			for uv in f.uv:
-				uv.x= offset_x+ (((uv.x-self.xmin) * self.size[0])/width)
-				uv.y= offset_y+ (((uv.y-self.ymin) * self.size[1])/height)
+				uv_rot= ((uv-self.cent) * self.rot_mat[0]) + self.cent
+				uv.x= offset_x+ (((uv_rot.x-self.xmin) * self.size[0])/width)
+				uv.y= offset_y+ (((uv_rot.y-self.ymin) * self.size[1])/height)
 
 def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN): #, PREF_SIZE_FROM_UV=True):
 	
@@ -156,13 +238,18 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	# RENDER THE FACES.
 	render_scn= B.Scene.New()
 	render_scn.makeCurrent()
-	
+	render_context= render_scn.getRenderingContext()
+	render_context.endFrame(1)
+	render_context.startFrame(1)
+	render_context.currentFrame(1)
+	render_context.setRenderPath(PREF_IMAGE_PATH)
 	
 	# Set the render context
+	PREF_IMAGE_PATH_EXPAND= B.sys.expandpath(PREF_IMAGE_PATH+'#') + '.png'
 	
-	PREF_IMAGE_PATH_EXPAND= B.sys.expandpath(PREF_IMAGE_PATH) + '.png'
 	
 	# TEST THE FILE WRITING.
+	'''
 	try:
 		# Can we write to this file???
 		f= open(PREF_IMAGE_PATH_EXPAND, 'w')
@@ -170,12 +257,10 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	except:
 		B.Draw.PupMenu('Error: Could not write to path|' + PREF_IMAGE_PATH_EXPAND)
 		return
+	'''
 	
-	render_context= render_scn.getRenderingContext()
 	render_context.imageSizeX(PREF_IMAGE_SIZE)
 	render_context.imageSizeY(PREF_IMAGE_SIZE)
-	render_context.startFrame(1) 
-	render_context.endFrame(1)
 	render_context.enableOversampling(True) 
 	render_context.setOversamplingLevel(16) 
 	render_context.setRenderWinSize(100)
@@ -184,7 +269,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	render_context.enableSky() # No alpha needed.
 	render_context.enableRGBColor()
 	
-	Render.EnableDispView() # Broken??
+	#Render.EnableDispView() # Broken??
 	
 	# New Mesh and Object
 	render_mat= B.Material.New()
@@ -193,7 +278,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	
 	
 	render_me= B.Mesh.New()
-	render_me.verts.extend([Vector(0,0,0)]) # Stupid, dummy vert, preverts errors.
+	render_me.verts.extend([Vector(0,0,0)]) # Stupid, dummy vert, preverts errors. when assigning UV's/
 	render_ob= B.Object.New('Mesh')
 	render_ob.link(render_me)
 	render_scn.link(render_ob)
@@ -265,17 +350,28 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 		target_face.uv[0].y= target_face.uv[3].y= fg.ymin
 		target_face.uv[1].y= target_face.uv[2].y= fg.ymax
 		
+		for uv in target_face.uv:
+			uv_rot= ((uv-fg.cent) * fg.rot_mat[1]) + fg.cent
+			uv.x= uv_rot.x
+			uv.y= uv_rot.y
+			
 		# VCOLS
 		# Set them white.
 		for c in target_face.col:
 			c.r= c.g= c.b= 255
 	
-	render_context.render()
-	render_context.saveRenderedImage(PREF_IMAGE_PATH_EXPAND)
+	#render_context.render()
+	
+	render_context.renderAnim()
+	Render.CloseRenderWindow()
+	
+	#print 'attempting to save an image', PREF_IMAGE_PATH_EXPAND
+	
+	#render_context.saveRenderedImage(PREF_IMAGE_PATH_EXPAND)
 	
 	#if not B.sys.exists(PREF_IMAGE_PATH):
 	#	raise 'Error!!!'
-	Render.CloseRenderWindow()
+	
 	
 	# NOW APPLY THE SAVED IMAGE TO THE FACES!
 	#print PREF_IMAGE_PATH_EXPAND
