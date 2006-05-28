@@ -182,5 +182,9 @@ float RE_filter_value(int type, float x);
 /* vector blur zbuffer method */
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
 
+/* shaded view options */
+void RE_Database_Shaded(struct Render *re, struct Scene *scene);
+void RE_DataBase_GetView(struct Render *re, float mat[][4]);
+
 #endif /* RE_PIPELINE_H */
 

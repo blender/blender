@@ -146,12 +146,14 @@ extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int f
 extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
 extern void makeDispListMBall(struct Object *ob);
 extern void shadeDispList(struct Base *base);
-void freefastshade(void);
+
 void imagestodisplist(void);
 void reshadeall_displist(void);
 void filldisplist(struct ListBase *dispbase, struct ListBase *to);
 
-void mesh_create_shadedColors(struct Object *ob, int onlyForMesh, unsigned int **col1_r, unsigned int **col2_r);
+void fastshade_free_render(void);
+
+
 void displistmesh_add_edges(DispListMesh *dlm);
 
 #endif

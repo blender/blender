@@ -1972,7 +1972,7 @@ static void area_lamp_vectors(LampRen *lar)
 }
 
 /* If lar takes more lamp data, the decoupling will be better. */
-static void add_render_lamp(Render *re, Object *ob, int actual_render)
+static void add_render_lamp(Render *re, Object *ob)
 {
 	Lamp *la= ob->data;
 	LampRen *lar;
@@ -1980,12 +1980,10 @@ static void add_render_lamp(Render *re, Object *ob, int actual_render)
 	float mat[4][4], hoek, xn, yn;
 	int c;
 
-	/* prevent only shadow from rendering light, but only return on render, not preview */
-	if(actual_render) {
-		if(la->mode & LA_ONLYSHADOW)
-			if((re->r.mode & R_SHADOW)==0)
-				return;
-	}
+	/* prevent only shadow from rendering light */
+	if(la->mode & LA_ONLYSHADOW)
+		if((re->r.mode & R_SHADOW)==0)
+			return;
 	
 	go= MEM_callocN(sizeof(GroupObject), "groupobject");
 	BLI_addtail(&re->lights, go);
@@ -2150,7 +2148,7 @@ static void add_render_lamp(Render *re, Object *ob, int actual_render)
 	}
 
 	/* yafray: shadowbuffers and jitter only needed for internal render */
-	if (actual_render && re->r.renderer==R_INTERN) {
+	if (re->r.renderer==R_INTERN) {
 		if(re->r.mode & R_SHADOW) {
 			if (la->type==LA_SPOT && (lar->mode & LA_SHAD) ) {
 				/* Per lamp, one shadow buffer is made. */
@@ -2670,7 +2668,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 	ob->flag |= OB_DONE;
 
 	if(ob->type==OB_LAMP)
-		add_render_lamp(re, ob, 1);
+		add_render_lamp(re, ob);
 	else if ELEM(ob->type, OB_FONT, OB_CURVE)
 		init_render_curve(re, ob, only_verts);
 	else if(ob->type==OB_SURF)
@@ -3585,6 +3583,132 @@ void RE_DataBase_ApplyWindow(Render *re)
 {
 	project_renderdata(re, projectverto, 0, 0);
 }
+
+/* setup for shaded view, so only lamps and materials are initialized */
+void RE_Database_Shaded(Render *re, Scene *scene)
+{
+	Base *base;
+	Object *ob;
+	Scene *sce;
+	float mat[4][4];
+	unsigned int lay;
+	
+	re->scene= scene;
+	
+	re->lights.first= re->lights.last= NULL;
+
+	/* in localview, lamps are using normal layers, objects only local bits */
+	if(re->scene->lay & 0xFF000000) lay= re->scene->lay & 0xFF000000;
+	else lay= re->scene->lay;
+	
+	/* if no camera, set unit */
+	if(re->scene->camera) {
+		Mat4Ortho(re->scene->camera->obmat);
+		Mat4Invert(mat, re->scene->camera->obmat);
+		RE_SetView(re, mat);
+	}
+	else {
+		Mat4One(mat);
+		RE_SetView(re, mat);
+	}
+	
+	/* initializes global */
+	set_node_shader_lamp_loop(shade_material_loop);
+
+	for(SETLOOPER(re->scene, base)) {
+		ob= base->object;
+		/* imat objects has to be done here, since displace can have texture using Object map-input */
+		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
+		MTC_Mat4Invert(ob->imat, mat);
+		/* each object should only be rendered once */
+		ob->flag &= ~OB_DONE;
+	}
+
+	/* MAKE RENDER DATA */
+	for(SETLOOPER(re->scene, base)) {
+		ob= base->object;
+		
+		/* OB_DONE means the object itself got duplicated, so was already converted */
+		if(ob->flag & OB_DONE);
+		else if(ob->type==OB_LAMP) {
+			if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
+				init_render_object(re, ob, NULL, 0, 0);
+			}
+		}
+	}
+	set_material_lightgroups(re);	
+}
+
+void RE_DataBase_GetView(Render *re, float mat[][4])
+{
+	Mat4CpyMat4(mat, re->viewmat);
+}
+
+
+
+
+/* **************************************************************** */
+/*                sticky texture coords                             */
+/* **************************************************************** */
+
+void RE_make_sticky(void)
+{
+	Object *ob;
+	Base *base;
+	MVert *mvert;
+	Mesh *me;
+	MSticky *ms;
+	Render *re;
+	float ho[4], mat[4][4];
+	int a;
+	
+	if(G.scene->camera==NULL) {
+		printf("Need camera to make sticky\n");
+		return;
+	}
+	if(G.obedit) {
+		printf("Unable to make sticky in Edit Mode\n");
+		return;
+	}
+	
+	re= RE_NewRender("_make sticky_");
+	RE_InitState(re, &G.scene->r, G.scene->r.xsch, G.scene->r.ysch, NULL);
+	
+	/* use renderdata and camera to set viewplane */
+	RE_SetCamera(re, G.scene->camera);
+
+	/* and set view matrix */
+	Mat4Ortho(G.scene->camera->obmat);
+	Mat4Invert(mat, G.scene->camera->obmat);
+	RE_SetView(re, mat);
+	
+	for(base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			if(base->object->type==OB_MESH) {
+				ob= base->object;
+				
+				me= ob->data;
+				mvert= me->mvert;
+				if(me->msticky) MEM_freeN(me->msticky);
+				me->msticky= MEM_mallocN(me->totvert*sizeof(MSticky), "sticky");
+				
+				where_is_object(ob);
+				Mat4MulMat4(mat, ob->obmat, re->viewmat);
+				
+				ms= me->msticky;
+				for(a=0; a<me->totvert; a++, ms++, mvert++) {
+					VECCOPY(ho, mvert->co);
+					Mat4MulVecfl(mat, ho);
+					projectverto(ho, re->winmat, ho);
+					ms->co[0]= ho[0]/ho[3];
+					ms->co[1]= ho[1]/ho[3];
+				}
+			}
+		}
+	}
+}
+
+
 
 /* **************************************************************** */
 /*                Displacement mapping                              */

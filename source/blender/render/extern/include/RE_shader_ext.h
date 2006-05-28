@@ -114,5 +114,10 @@ typedef struct ShadeInput
 struct Tex;
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
 
+/* shaded view */
+struct Render;
+void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr);
+
+
 #endif /* RE_SHADER_EXT_H */
 

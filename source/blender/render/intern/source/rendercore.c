@@ -2528,8 +2528,8 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 				float hox, hoy, l, dl, u, v;
 				float s00, s01, s10, s11, detsh;
 				
-				/* XXXX */
-				Zmulx= R.winx; Zmuly= R.winy;
+				/* old globals, localized now */
+				Zmulx=  ((float)R.winx)/2.0; Zmuly=  ((float)R.winy)/2.0;
 				
 				s00= v3->ho[0]/v3->ho[3] - v1->ho[0]/v1->ho[3];
 				s01= v3->ho[1]/v3->ho[3] - v1->ho[1]/v1->ho[3];
@@ -3471,10 +3471,34 @@ void add_halo_flare(void)
 	}
 
 	R.r.mode= mode;	
-
 }
 
-
-/* end of render.c */
+/* if *re, then initialize, otherwise execute */
+void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
+{
+	static VlakRen vlr;
+	
+	/* init */
+	if(re) {
+		R= *re;
+		
+		/* fake render face */
+		memset(&vlr, 0, sizeof(VlakRen));
+		vlr.lay= -1;
+		
+		return;
+	}
+	shi->vlr= &vlr;
+	
+	if(shi->mat->nodetree && shi->mat->use_nodes)
+		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
+	else {
+		/* copy all relevant material vars, note, keep this synced with render_types.h */
+		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
+		shi->har= shi->mat->har;
+		
+		shade_material_loop(shi, shr);
+	}
+}
 
 

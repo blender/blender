@@ -779,10 +779,10 @@ void exit_usiblender(void)
 	/* needed at least for a rare sigsegv that can happen in pydrivers */
 	BPY_end_python();
 
-	free_blender();	/* blender.c, does entire library */
+	fastshade_free_render();	/* shaded view */
+	free_blender();				/* blender.c, does entire library */
 	free_matcopybuf();
 	free_ipocopybuf();
-	freefastshade();
 	free_vertexpaint();
 	
 	/* editnurb can remain to exist outside editmode */

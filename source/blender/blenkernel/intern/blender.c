@@ -227,8 +227,8 @@ static void clear_global(void)
 	extern short winqueue_break;	/* screen.c */
 
 	freeAllRad();
-	free_main(G.main); /* free all lib data */
-	freefastshade();	/* othwerwise old lamp settings stay active */
+	fastshade_free_render();	/* lamps hang otherwise */
+	free_main(G.main);			/* free all lib data */
 
 	/* force all queues to be left */
 	winqueue_break= 1;

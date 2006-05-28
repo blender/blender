@@ -877,7 +877,8 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 		
 		/* Mesh vertices have such flags, for others we calculate it once based on orco */
 		if((vlr->puno & (ME_PROJXY|ME_PROJXZ|ME_PROJYZ))==0) {
-			if(vlr->v1->orco) {
+			/* test for v1, vlr can be faked for baking */
+			if(vlr->v1 && vlr->v1->orco) {
 				float nor[3];
 				CalcNormFloat(vlr->v1->orco, vlr->v2->orco, vlr->v3->orco, nor);
 				

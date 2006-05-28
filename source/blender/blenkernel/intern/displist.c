@@ -87,7 +87,8 @@
 #include "BKE_subsurf.h"
 #include "BKE_modifier.h"
 
-#include "nla.h" /* For __NLA: Please do not remove yet */
+#include "RE_pipeline.h"
+#include "RE_shader_ext.h"
 
 
 static void boundbox_displist(Object *ob);
@@ -265,20 +266,6 @@ void copy_displist(ListBase *lbn, ListBase *lb)
 	}
 }
 
-void initfastshade(void)
-{
-}
-
-
-void freefastshade()
-{
-}
-
-
-static void fastshade(float *co, float *nor, float *orco, Material *ma, char *col1, char *col2, char *vertcol)
-{
-}
-
 void addnormalsDispList(Object *ob, ListBase *lb)
 {
 	DispList *dl = NULL;
@@ -345,15 +332,191 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 	}
 }
 
-static void init_fastshade_for_ob(Object *ob, int *need_orco_r, float mat[4][4], float *imat)
+void count_displist(ListBase *lb, int *totvert, int *totface)
 {
-	int x;
-
-	for(x=0;x<9;x++) imat[x] = 0;
-	need_orco_r=0;
+	DispList *dl;
+	
+	dl= lb->first;
+	while(dl) {
+		
+		switch(dl->type) {
+			case DL_SURF:
+				*totvert+= dl->nr*dl->parts;
+				*totface+= (dl->nr-1)*(dl->parts-1);
+				break;
+			case DL_INDEX3:
+			case DL_INDEX4:
+				*totvert+= dl->nr;
+				*totface+= dl->parts;
+				break;
+			case DL_POLY:
+			case DL_SEGM:
+				*totvert+= dl->nr*dl->parts;
+		}
+		
+		dl= dl->next;
+	}
 }
 
-void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r, unsigned int **col2_r)
+
+/* ***************************** shade displist ******************** */
+
+/* create default shade input... save cpu cycles with ugly global */
+static ShadeInput shi;
+static void init_fastshade_shadeinput(void)
+{
+	
+	memset(&shi, 0, sizeof(ShadeInput));
+	shi.lay= G.scene->lay;
+	shi.view[2]= -1.0f;
+}
+
+static Render *fastshade_get_render(void)
+{
+	Render *re= RE_GetRender("_Shade View_");
+	if(re==NULL) {
+		re= RE_NewRender("_Shade View_");
+	
+		RE_Database_Shaded(re, G.scene);
+	}
+	return re;
+}
+
+/* called on file reading */
+void fastshade_free_render(void)
+{
+	Render *re= RE_GetRender("_Shade View_");
+	
+	if(re) {
+		RE_Database_Free(re);
+		RE_FreeRender(re);
+	}
+}
+
+static void fastshade(float *co, float *nor, float *orco, Material *ma, char *col1, char *col2, char *vertcol)
+{
+	ShadeResult shr;
+	int a;
+	
+	if(ma->mode & MA_VERTEXCOLP) {
+		if(vertcol) {
+			shi.r= vertcol[3]/255.0f;
+			shi.g= vertcol[2]/255.0f;
+			shi.b= vertcol[1]/255.0f;
+		}
+	}
+	
+	VECCOPY(shi.co, co);
+	shi.vn[0]= -nor[0];
+	shi.vn[1]= -nor[1];
+	shi.vn[2]= -nor[2];
+	VECCOPY(shi.vno, shi.vn);
+	
+	if(ma->texco) {
+		VECCOPY(shi.lo, orco);
+		
+		if(ma->texco & TEXCO_GLOB) {
+			VECCOPY(shi.gl, shi.lo);
+		}
+		if(ma->texco & TEXCO_WINDOW) {
+			VECCOPY(shi.winco, shi.lo);
+		}
+		if(ma->texco & TEXCO_STICKY) {
+			VECCOPY(shi.sticky, shi.lo);
+		}
+		if(ma->texco & TEXCO_UV) {
+			VECCOPY(shi.uv, shi.lo);
+		}
+		if(ma->texco & TEXCO_OBJECT) {
+			VECCOPY(shi.co, shi.lo);
+		}
+		if(ma->texco & TEXCO_NORM) {
+			VECCOPY(shi.orn, shi.vn);
+		}
+		if(ma->texco & TEXCO_REFL) {
+			float inp= 2.0*(shi.vn[2]);
+			shi.ref[0]= (inp*shi.vn[0]);
+			shi.ref[1]= (inp*shi.vn[1]);
+			shi.ref[2]= (-1.0+inp*shi.vn[2]);
+		}
+	}
+	
+	shi.mat= ma;	/* set each time... node shaders change it */
+	RE_shade_external(NULL, &shi, &shr);
+	
+	VECADD(shr.combined, shr.diff, shr.spec);
+	
+	a= 256.0f*(shr.combined[0]);
+	col1[3]= CLAMPIS(a, 0, 255);
+	a= 256.0f*(shr.combined[1]);
+	col1[2]= CLAMPIS(a, 0, 255);
+	a= 256.0f*(shr.combined[2]);
+	col1[1]= CLAMPIS(a, 0, 255);
+	
+	if(col2) {
+		shi.vn[0]= -shi.vn[0];
+		shi.vn[1]= -shi.vn[1];
+		shi.vn[2]= -shi.vn[2];
+		
+		shi.mat= ma;	/* set each time... node shaders change it */
+		RE_shade_external(NULL, &shi, &shr);
+		
+		VECADD(shr.combined, shr.diff, shr.spec);
+		
+		a= 256.0f*(shr.combined[0]);
+		col2[3]= CLAMPIS(a, 0, 255);
+		a= 256.0f*(shr.combined[1]);
+		col2[2]= CLAMPIS(a, 0, 255);
+		a= 256.0f*(shr.combined[2]);
+		col2[1]= CLAMPIS(a, 0, 255);
+	}
+}
+
+static void init_fastshade_for_ob(Render *re, Object *ob, int *need_orco_r, float mat[4][4], float imat[3][3])
+{
+	float tmat[4][4];
+	float amb[3]= {0.0f, 0.0f, 0.0f};
+	int a;
+	
+	/* initialize globals in render */
+	RE_shade_external(re, NULL, NULL);
+
+	/* initialize global here */
+	init_fastshade_shadeinput();
+	
+	RE_DataBase_GetView(re, tmat);
+	Mat4MulMat4(mat, ob->obmat, tmat);
+	
+	Mat4Invert(tmat, mat);
+	Mat3CpyMat4(imat, tmat);
+	if(ob->transflag & OB_NEG_SCALE) Mat3MulFloat((float *)imat, -1.0);
+	
+	if (need_orco_r) *need_orco_r= 0;
+	for(a=0; a<ob->totcol; a++) {
+		Material *ma= give_current_material(ob, a+1);
+		if(ma) {
+			init_render_material(ma, 0, amb);
+
+			if(ma->texco & TEXCO_ORCO) {
+				if (need_orco_r) *need_orco_r= 1;
+			}
+		}
+	}
+}
+
+static void end_fastshade_for_ob(Object *ob)
+{
+	int a;
+	
+	for(a=0; a<ob->totcol; a++) {
+		Material *ma= give_current_material(ob, a+1);
+		if(ma)
+			end_render_material(ma);
+	}
+}
+
+
+static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, unsigned int **col1_r, unsigned int **col2_r)
 {
 	Mesh *me= ob->data;
 	int dmNeedsFree;
@@ -363,7 +526,7 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 	float *orco, *vnors, imat[3][3], mat[4][4], vec[3];
 	int a, i, need_orco;
 
-	init_fastshade_for_ob(ob, &need_orco, mat, *imat);
+	init_fastshade_for_ob(re, ob, &need_orco, mat, imat);
 
 	if (need_orco) {
 		orco = mesh_create_orco(ob);
@@ -413,7 +576,7 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 		Material *ma= give_current_material(ob, mf->mat_nr+1);
 		float nor[3], n1[3];
 		
-		if(ma==0) ma= &defmaterial;
+		if(ma==NULL) ma= &defmaterial;
 		
 		if (dlm->tface) {
 			mcolbase = (unsigned char*) dlm->tface[i].col;
@@ -463,20 +626,25 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 
 	if (dmNeedsFree) dm->release(dm);
 
+	end_fastshade_for_ob(ob);
 }
 
 /* has base pointer, to check for layer */
+/* called from drawobject.c */
 void shadeDispList(Base *base)
 {
 	Object *ob= base->object;
 	DispList *dl, *dlob;
 	Material *ma = NULL;
 	Curve *cu;
+	Render *re;
 	float imat[3][3], mat[4][4], vec[3];
 	float *fp, *nor, n1[3];
 	unsigned int *col1;
 	int a, need_orco;
-
+	
+	re= fastshade_get_render();
+	
 	dl = find_displist(&ob->disp, DL_VERTCOL);
 	if (dl) {
 		BLI_remlink(&ob->disp, dl);
@@ -488,128 +656,131 @@ void shadeDispList(Base *base)
 		BLI_addtail(&ob->disp, dl);
 		dl->type= DL_VERTCOL;
 
-		mesh_create_shadedColors(ob, 0, &dl->col1, &dl->col2);
-
-		return;
+		mesh_create_shadedColors(re, ob, 0, &dl->col1, &dl->col2);
 	}
+	else {
 
-	init_fastshade_for_ob(ob, &need_orco, mat, *imat);
-	
-	if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
-	
-		/* now we need the normals */
-		cu= ob->data;
-		dl= cu->disp.first;
+		init_fastshade_for_ob(re, ob, &need_orco, mat, imat);
 		
-		while(dl) {
-			dlob= MEM_callocN(sizeof(DispList), "displistshade");
-			BLI_addtail(&ob->disp, dlob);
-			dlob->type= DL_VERTCOL;
-			dlob->parts= dl->parts;
-			dlob->nr= dl->nr;
-			
-			if(dl->type==DL_INDEX3) {
-				col1= dlob->col1= MEM_mallocN(sizeof(int)*dl->nr, "col1");
-			}
-			else {
-				col1= dlob->col1= MEM_mallocN(sizeof(int)*dl->parts*dl->nr, "col1");
-			}
-			
+		if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		
-			ma= give_current_material(ob, dl->col+1);
-			if(ma==0) ma= &defmaterial;
-
-			if(dl->type==DL_INDEX3) {
-				if(dl->nors) {
-					/* there's just one normal */
-					n1[0]= imat[0][0]*dl->nors[0]+imat[0][1]*dl->nors[1]+imat[0][2]*dl->nors[2];
-					n1[1]= imat[1][0]*dl->nors[0]+imat[1][1]*dl->nors[1]+imat[1][2]*dl->nors[2];
-					n1[2]= imat[2][0]*dl->nors[0]+imat[2][1]*dl->nors[1]+imat[2][2]*dl->nors[2];
-					Normalise(n1);
-					
-					fp= dl->verts;
-					
-					a= dl->nr;		
-					while(a--) {
-						VECCOPY(vec, fp);
-						Mat4MulVecfl(mat, vec);
-						
-						fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
-						
-						fp+= 3; col1++;
-					}
+			/* now we need the normals */
+			cu= ob->data;
+			dl= cu->disp.first;
+			
+			while(dl) {
+				dlob= MEM_callocN(sizeof(DispList), "displistshade");
+				BLI_addtail(&ob->disp, dlob);
+				dlob->type= DL_VERTCOL;
+				dlob->parts= dl->parts;
+				dlob->nr= dl->nr;
+				
+				if(dl->type==DL_INDEX3) {
+					col1= dlob->col1= MEM_mallocN(sizeof(int)*dl->nr, "col1");
 				}
-			}
-			else if(dl->type==DL_SURF) {
-				if(dl->nors) {
-					a= dl->nr*dl->parts;
-					fp= dl->verts;
-					nor= dl->nors;
-					
-					while(a--) {
-						VECCOPY(vec, fp);
-						Mat4MulVecfl(mat, vec);
-						
-						n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
-						n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
-						n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
+				else {
+					col1= dlob->col1= MEM_mallocN(sizeof(int)*dl->parts*dl->nr, "col1");
+				}
+				
+			
+				ma= give_current_material(ob, dl->col+1);
+				if(ma==NULL) ma= &defmaterial;
+				
+				if(dl->type==DL_INDEX3) {
+					if(dl->nors) {
+						/* there's just one normal */
+						n1[0]= imat[0][0]*dl->nors[0]+imat[0][1]*dl->nors[1]+imat[0][2]*dl->nors[2];
+						n1[1]= imat[1][0]*dl->nors[0]+imat[1][1]*dl->nors[1]+imat[1][2]*dl->nors[2];
+						n1[2]= imat[2][0]*dl->nors[0]+imat[2][1]*dl->nors[1]+imat[2][2]*dl->nors[2];
 						Normalise(n1);
-			
-						fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
 						
-						fp+= 3; nor+= 3; col1++;
+						fp= dl->verts;
+						
+						a= dl->nr;		
+						while(a--) {
+							VECCOPY(vec, fp);
+							Mat4MulVecfl(mat, vec);
+							
+							fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
+							
+							fp+= 3; col1++;
+						}
 					}
 				}
+				else if(dl->type==DL_SURF) {
+					if(dl->nors) {
+						a= dl->nr*dl->parts;
+						fp= dl->verts;
+						nor= dl->nors;
+						
+						while(a--) {
+							VECCOPY(vec, fp);
+							Mat4MulVecfl(mat, vec);
+							
+							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
+							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
+							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
+							Normalise(n1);
+				
+							fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
+							
+							fp+= 3; nor+= 3; col1++;
+						}
+					}
+				}
+				dl= dl->next;
 			}
-			dl= dl->next;
 		}
-	}
-	else if(ob->type==OB_MBALL) {
-		/* there are normals already */
-		dl= ob->disp.first;
+		else if(ob->type==OB_MBALL) {
+			/* there are normals already */
+			dl= ob->disp.first;
+			
+			while(dl) {
+				
+				if(dl->type==DL_INDEX4) {
+					if(dl->nors) {
+						
+						if(dl->col1) MEM_freeN(dl->col1);
+						col1= dl->col1= MEM_mallocN(sizeof(int)*dl->nr, "col1");
+				
+						ma= give_current_material(ob, dl->col+1);
+						if(ma==NULL) ma= &defmaterial;
+						
+						fp= dl->verts;
+						nor= dl->nors;
+						
+						a= dl->nr;		
+						while(a--) {
+							VECCOPY(vec, fp);
+							Mat4MulVecfl(mat, vec);
+							
+							/* transpose ! */
+							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
+							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
+							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
+							Normalise(n1);
+						
+							fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
+							
+							fp+= 3; col1++; nor+= 3;
+						}
+					}
+				}
+				dl= dl->next;
+			}
+		}
 		
-		while(dl) {
-			
-			if(dl->type==DL_INDEX4) {
-				if(dl->nors) {
-					
-					if(dl->col1) MEM_freeN(dl->col1);
-					col1= dl->col1= MEM_mallocN(sizeof(int)*dl->nr, "col1");
-			
-					ma= give_current_material(ob, dl->col+1);
-					if(ma==0) ma= &defmaterial;
-	
-					fp= dl->verts;
-					nor= dl->nors;
-					
-					a= dl->nr;		
-					while(a--) {
-						VECCOPY(vec, fp);
-						Mat4MulVecfl(mat, vec);
-						
-						/* transpose ! */
-						n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
-						n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
-						n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-						Normalise(n1);
-					
-						fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
-						
-						fp+= 3; col1++; nor+= 3;
-					}
-				}
-			}
-			dl= dl->next;
-		}
+		end_fastshade_for_ob(ob);
 	}
 }
 
+/* frees render and shade part of displists */
 void reshadeall_displist(void)
 {
 	Base *base;
 	Object *ob;
 	
-	freefastshade();
+	fastshade_free_render();
 	
 	for(base= G.scene->base.first; base; base= base->next) {
 		ob= base->object;
@@ -621,31 +792,7 @@ void reshadeall_displist(void)
 	}
 }
 
-void count_displist(ListBase *lb, int *totvert, int *totface)
-{
-	DispList *dl;
-	
-	dl= lb->first;
-	while(dl) {
-		
-		switch(dl->type) {
-		case DL_SURF:
-			*totvert+= dl->nr*dl->parts;
-			*totface+= (dl->nr-1)*(dl->parts-1);
-			break;
-		case DL_INDEX3:
-		case DL_INDEX4:
-			*totvert+= dl->nr;
-			*totface+= dl->parts;
-			break;
-		case DL_POLY:
-		case DL_SEGM:
-			*totvert+= dl->nr*dl->parts;
-		}
-		
-		dl= dl->next;
-	}
-}
+/* ****************** make displists ********************* */
 
 static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 {

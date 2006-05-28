@@ -1978,8 +1978,6 @@ void do_lampbuts(unsigned short event)
 		break;
 		
 	}
-	
-	if(event) freefastshade();
 }
 
 

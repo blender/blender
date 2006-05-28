@@ -235,7 +235,8 @@ void make_vertexcol()	/* single ob */
 	if(me==0) return;
 
 	if(me->mcol) MEM_freeN(me->mcol);
-	mesh_create_shadedColors(ob, 1, (unsigned int**) &me->mcol, NULL);
+	me->mcol = MEM_callocN(sizeof(int)*me->totface*4, "me->mcol");
+	// mesh_create_shadedColors(ob, 1, (unsigned int**) &me->mcol, NULL);
 
 	for (i=0; i<me->totface*4; i++) {
 		me->mcol[i].a = 255;
@@ -1648,7 +1649,6 @@ void set_wpaint(void)		/* toggle */
 		}
 	}
 	else {
-		freefastshade();	/* to be sure */
 		if(!(G.f & G_FACESELECT))
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 		
@@ -1700,7 +1700,6 @@ void set_vpaint(void)		/* toggle */
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);
 	}
 	else {
-		freefastshade();	/* to be sure */
 		if((G.f & G_FACESELECT)==0) setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	}
 }
