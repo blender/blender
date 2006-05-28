@@ -6900,6 +6900,60 @@ static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
 	return 0;
 }
 
+static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )
+{
+	int i;
+	Mesh *me = self->mesh;
+	MVert *mvert = me->mvert;
+	MEdge *medge = me->medge;
+	MFace *mface = me->mface;
+
+	if( PyObject_IsTrue( arg ) ) {
+		for( i = 0; i < me->totvert; ++mvert, ++i )
+			mvert->flag |= SELECT;
+		for( i = 0; i < me->totedge; ++medge, ++i )
+			medge->flag |= SELECT;
+		for( i = 0; i < me->totface; ++mface, ++i )
+			mface->flag |= ME_FACE_SEL;
+	} else {
+		for( i = 0; i < me->totvert; ++mvert, ++i )
+			mvert->flag &= ~SELECT;
+		for( i = 0; i < me->totedge; ++medge, ++i )
+			medge->flag &= ~SELECT;
+		for( i = 0; i < me->totface; ++mface, ++i )
+			mface->flag &= ~ME_FACE_SEL;
+	}
+
+	return 0;
+}
+
+static int Mesh_setHide( BPy_Mesh * self, PyObject * arg )
+{
+	int i;
+	Mesh *me = self->mesh;
+	MVert *mvert = me->mvert;
+	MEdge *medge = me->medge;
+	MFace *mface = me->mface;
+
+	if( PyObject_IsTrue( arg ) ) {
+		for( i = 0; i < me->totvert; ++mvert, ++i )
+			mvert->flag |= ME_HIDE;
+		for( i = 0; i < me->totedge; ++medge, ++i )
+			medge->flag |= ME_HIDE;
+		for( i = 0; i < me->totface; ++mface, ++i )
+			mface->flag |= ME_HIDE;
+	} else {
+		for( i = 0; i < me->totvert; ++mvert, ++i )
+			mvert->flag &= ~ME_HIDE;
+		for( i = 0; i < me->totedge; ++medge, ++i )
+			medge->flag &= ~ME_HIDE;
+		for( i = 0; i < me->totface; ++mface, ++i )
+			mface->flag &= ~ME_HIDE;
+	}
+
+	return 0;
+}
+
 /************************************************************************
  *
  * Python Mesh_Type standard operations
@@ -6986,6 +7040,14 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"activeGroup",
 	 (getter)Mesh_getActiveGroup, (setter)Mesh_setActiveGroup,
 	 "Active group for the mesh",
+	 NULL},
+	{"sel",
+	 (getter)NULL, (setter)Mesh_setSel,
+	 "Select/deselect all verts, edges, faces in the mesh",
+	 NULL},
+	{"hide",
+	 (getter)NULL, (setter)Mesh_setHide,
+	 "Hide/unhide all verts, edges, faces in the mesh",
 	 NULL},
 
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */

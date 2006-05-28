@@ -651,7 +651,12 @@ class Mesh:
     the future.
   @ivar mode: The mesh's mode bitfield.  See L{Modes}.
   @type mode: int
-
+  @ivar sel: Sets selection status for all vertices, edges and faces in the
+    mesh (write only).
+  @type mode: boolean
+  @ivar hide: Sets hidden status for all vertices, edges and faces in the
+    mesh (write only).
+  @type hide: boolean
   @ivar name: The Mesh name.  It's common to use this field to store extra
      data about the mesh (to be exported to another program, for example).
   @type name: str
