@@ -253,6 +253,18 @@ class RenderData:
   background with sky), 1 (multiply alpha in advance), or 2 (alpha and color
   values remain unchanged).
   @type alphaMode: int
+  @ivar gaussFilter: Gauss filter size.
+  Values are clamped to the range [0.5,1.5].
+  @type gaussFilter: float
+  @ivar mblurFactor: Motion blur factor.
+  Values are clamped to the range [0.01,5.0].
+  @type mblurFactor: float
+  @ivar mapOld: Number of frames the Map Old will last
+  Values are clamped to the range [1,900].
+  @type mapOld: int
+  @ivar mapNew: New mapping value (in frames).
+  Values are clamped to the range [1,900].
+  @type mapNew: int
   """
 
   def currentFrame(frame = None):
@@ -768,6 +780,15 @@ class RenderData:
     @param power: must be between 0.01 - 100.0
     @rtype: float (if prototype is empty)
     @return: Current yafray global illumination intensity for the scene.
+    """
+
+  def yafrayGIIndirPower(power = None):
+    """
+    Get/set GI indirect lighting intensity scale.
+    @type power: float (optional)
+    @param power: must be between 0.01 - 100.0
+    @rtype: float (if prototype is empty)
+    @return: Current yafray indirect illumination intensity for the scene.
     """
 
   def yafrayGIDepth(depth = None):

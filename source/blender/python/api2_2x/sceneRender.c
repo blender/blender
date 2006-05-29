@@ -72,6 +72,15 @@ enum rend_constants {
 	EXPP_RENDER_ATTR_FPS,
 	EXPP_RENDER_ATTR_SIZEX,
 	EXPP_RENDER_ATTR_SIZEY,
+	EXPP_RENDER_ATTR_GAUSSFILTER,
+	EXPP_RENDER_ATTR_MBLURFACTOR,
+#if 0
+	EXPP_RENDER_ATTR_POSTADD,
+	EXPP_RENDER_ATTR_POSTGAMMA,
+	EXPP_RENDER_ATTR_POSTMUL,
+	EXPP_RENDER_ATTR_POSTHUE,
+	EXPP_RENDER_ATTR_POSTSAT,
+#endif
 /* EXPP_RENDER_ATTR_, */
 };
 
@@ -1108,6 +1117,14 @@ PyObject *RenderData_YafrayGIPower( BPy_RenderData * self, PyObject * args )
 						"YafrayGIMethod must be set to 'SKYDOME' or 'FULL'" ) );
 }
 
+PyObject *RenderData_YafrayGIIndirPower( BPy_RenderData * self, PyObject * args )
+{
+	return M_Render_GetSetAttributeFloat( args,
+						  &self->renderContext->
+						  GIindirpower, 0.01f,
+						  100.00f );
+}
+
 PyObject *RenderData_YafrayGIDepth( BPy_RenderData * self, PyObject * args )
 {
 	if( self->renderContext->GImethod == 2 ) {
@@ -1454,18 +1471,18 @@ static PyObject *RenderData_getTimeCode( BPy_RenderData * self) {
  * get floating point attributes
  */
 
-#if 0
 static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 {
 	float param;
 
 	switch( (int)type ) {
-	case EXPP_RENDER_ATTR_GAUSS:
+	case EXPP_RENDER_ATTR_GAUSSFILTER:
 		param = self->renderContext->gauss;
 		break;
-	case EXPP_RENDER_ATTR_BLURFAC:
+	case EXPP_RENDER_ATTR_MBLURFACTOR:
 		param = self->renderContext->blurfac;
 		break;
+#if 0
 	case EXPP_RENDER_ATTR_POSTADD:
 		param = self->renderContext->postadd;
 		break;
@@ -1502,12 +1519,8 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_YF_RAYBIAS:
 		param = self->renderContext->YF_raybias;
 		break;
+#endif
 	default:
-		{
-			char errstr[1024];
-			sprintf (errstr, "undefined type in %s",__FUNCTION__);
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError, errstr );
-		}
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_getFloatAttr" );
 	}
@@ -1525,16 +1538,17 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 	float min, max;
 
 	switch( (int)type ) {
-	case EXPP_RENDER_ATTR_GAUSS:
+	case EXPP_RENDER_ATTR_GAUSSFILTER:
 		min = 0.5f;
 		max = 1.5f;
 		param = &self->renderContext->gauss;
 		break;
-	case EXPP_RENDER_ATTR_BLURFAC:
+	case EXPP_RENDER_ATTR_MBLURFACTOR:
 	    min = 0.01f;
 		max = 5.0f;
 		param = &self->renderContext->blurfac;
 		break;
+#if 0
 	case EXPP_RENDER_ATTR_POSTADD:
 		min = -1.0f;
 		max = 1.0f;
@@ -1596,12 +1610,12 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		param = &self->renderContext->YF_raybias;
 		break;
 	default:
+#endif
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setFloatAttrClamp" );
 	}
 	return EXPP_setFloatClamped( value, param, min, max );
 }
-#endif
 
 /*
  * get integer attributes
@@ -2150,23 +2164,41 @@ static int RenderData_setRenderWinSize( BPy_RenderData *self, PyObject *value )
 	return 0;
 }
 
+static PyObject *RenderData_getMapOld( BPy_RenderData *self )
+{
+	return PyInt_FromLong( (long)self->renderContext->framapto );
+}
+
+static int RenderData_setMapOld( BPy_RenderData *self, PyObject *value )
+{
+	int result = EXPP_setIValueClamped( value, &self->renderContext->framapto,
+			1, 900, 'h' );
+	self->renderContext->framelen =
+		(float)self->renderContext->framapto / self->renderContext->images;
+	return result;
+}
+
+static PyObject *RenderData_getMapNew( BPy_RenderData *self )
+{
+	return PyInt_FromLong( (long)self->renderContext->images );
+}
+
+static int RenderData_setMapNew( BPy_RenderData *self, PyObject *value )
+{
+	int result = EXPP_setIValueClamped( value, &self->renderContext->images,
+			1, 900, 'h' );
+	self->renderContext->framelen =
+		(float)self->renderContext->framapto / self->renderContext->images;
+	return result;
+}
+
+/* methods to be converted after API refactor */
+
 #if 0
-/* unedited methods :-( */
 edgeIntensity", ( PyCFunction ) RenderData_EdgeIntensity,
-gammaLevel", ( PyCFunction ) RenderData_GammaLevel, METH_VARARGS,
-gaussFilterSize", ( PyCFunction ) RenderData_GaussFilterSize,
-motionBlurLevel", ( PyCFunction ) RenderData_MotionBlurLevel,
-newMapValue", ( PyCFunction ) RenderData_NewMapValue, METH_VARARGS,
-oldMapValue", ( PyCFunction ) RenderData_OldMapValue, METH_VARARGS,
-postProcessAdd", ( PyCFunction ) RenderData_PostProcessAdd,
-postProcessGamma", ( PyCFunction ) RenderData_PostProcessGamma,
-postProcessMultiply", ( PyCFunction ) RenderData_PostProcessMultiply,
 quality", ( PyCFunction ) RenderData_Quality, METH_VARARGS,
 SGIMaxsize", ( PyCFunction ) RenderData_SGIMaxsize, METH_VARARGS,
 sizePreset", ( PyCFunction ) RenderData_SizePreset, METH_VARARGS,
-
-setYafrayGIQuality", ( PyCFunction ) RenderData_SetYafrayGIQuality,
-setYafrayGIMethod", ( PyCFunction ) RenderData_SetYafrayGIMethod,
 yafrayExposure", ( PyCFunction ) RenderData_YafrayExposure,
 yafrayGamma", ( PyCFunction ) RenderData_YafrayGamma, METH_VARARGS,
 yafrayGICDepth", ( PyCFunction ) RenderData_YafrayGICDepth,
@@ -2181,10 +2213,11 @@ yafrayGIShadowQuality",
 yafrayProcessorCount",
 yafrayRayBias", ( PyCFunction ) RenderData_YafrayRayBias,
 yafrayRayDepth", ( PyCFunction ) RenderData_YafrayRayDepth,
+setYafrayGIQuality", ( PyCFunction ) RenderData_SetYafrayGIQuality,
+setYafrayGIMethod", ( PyCFunction ) RenderData_SetYafrayGIMethod,
 enableYafrayGICache", ( PyCFunction ) RenderData_EnableYafrayGICache,
 enableYafrayGIPhotons",
 enableYafrayGITunePhotons",
-
 swapDispWinImagePrimary(image)" --> BIF_swap_render_rects()
 
 #endif
@@ -2388,6 +2421,45 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 "Image height (in pixels)",
 	 (void *)EXPP_RENDER_ATTR_SIZEY},
 
+	{"gaussFilter",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Gauss filter size",
+	 (void *)EXPP_RENDER_ATTR_GAUSSFILTER},
+	{"mblurFactor",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Motion blur factor",
+	 (void *)EXPP_RENDER_ATTR_MBLURFACTOR},
+	{"mapOld",
+	 (getter)RenderData_getMapOld, (setter)RenderData_setMapOld,
+	 "Number of frames the Map Old will last",
+	 NULL},
+	{"mapNew",
+	 (getter)RenderData_getMapNew, (setter)RenderData_setMapNew,
+	 "New mapping value (in frames)",
+	 NULL},
+#if 0
+	{"postprocessAdd",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Value to add to colors (unified renderer only)",
+	 (void *)EXPP_RENDER_ATTR_POSTADD},
+	{"postprocessGamma",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Gamma correction (unified renderer only)",
+	 (void *)EXPP_RENDER_ATTR_POSTGAMMA},
+	{"postprocessMul",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Value to multiply color by (unified renderer only)",
+	 (void *)EXPP_RENDER_ATTR_POSTMUL},
+	{"postprocessHue",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Hue value for postprocessing (unified renderer only)",
+	 (void *)EXPP_RENDER_ATTR_POSTHUE},
+	{"postprocessSat",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Saturation value for postprocessing (unified renderer only)",
+	 (void *)EXPP_RENDER_ATTR_POSTSAT},
+#endif
+
 	{NULL,NULL,NULL,NULL,NULL}
 };
 
@@ -2563,6 +2635,9 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"yafrayGIPower", ( PyCFunction ) RenderData_YafrayGIPower,
 	 METH_VARARGS,
 	 "(float) - get/set GI lighting intensity scale"},
+	{"yafrayGIIndirPower", ( PyCFunction ) RenderData_YafrayGIIndirPower,
+	 METH_VARARGS,
+	 "(float) - get/set GI indifect lighting intensity scale"},
 	{"yafrayGIDepth", ( PyCFunction ) RenderData_YafrayGIDepth,
 	 METH_VARARGS,
 	 "(int) - get/set number of bounces of the indirect light"},
