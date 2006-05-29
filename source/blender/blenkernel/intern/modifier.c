@@ -2121,7 +2121,7 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Armature) {
 			amd = (ArmatureModifierData*) md;
-			if (amd->object->flag & SELECT)
+			if (amd->object && (amd->object->flag & SELECT))
 				return amd->object;
 		}
 	}
