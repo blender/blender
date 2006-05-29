@@ -1831,9 +1831,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 	
-	if(!render_initialize_from_scene(re, scene))
-	   return;
-	
 	/* confusing... scene->r or re->r? make a decision once! */
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		mh->start_movie(&scene->r, re->rectx, re->recty);
@@ -1845,6 +1842,10 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				scene->r.cfra = nf;
 				re->r.cfra= scene->r.cfra; /* weak.... */
 		
+				/* on each frame initialize, this for py scripts that define renderdata settings */
+				if(!render_initialize_from_scene(re, scene))
+					break;
+				
 				do_render_all_options(re);
 
 				if(re->test_break() == 0) {
@@ -1857,6 +1858,10 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		    scene->r.cfra<=efra; scene->r.cfra++) {
 			re->r.cfra= scene->r.cfra;	   /* weak.... */
 		
+			/* on each frame initialize, this for py scripts that define renderdata settings */
+			if(!render_initialize_from_scene(re, scene))
+				break;
+			
 			do_render_all_options(re);
 
 			if(re->test_break() == 0) {
