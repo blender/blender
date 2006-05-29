@@ -183,23 +183,11 @@ bool yafrayPluginRender_t::initExport()
 			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(handle) << endl;
 			return false;
 		}
-		yafrayGate = constructor(R.r.YF_numprocs, YafrayPluginPath());
+		yafrayGate = constructor(re->r.YF_numprocs, YafrayPluginPath());
 		
 		cout << "YafRay plugin loaded" << endl;
 		plugin_loaded = true;
 	}
-	
-	// all buffers allocated in initrender.c
-//	unsigned int *bpt=R.rectot, count=R.rectx*R.recty;
-//	while (--count) bpt[count] = 0xff800000;
-//	cout << "Image initialized" << endl;
-
-//	int *zbuf=R.rectz;
-//	count = R.rectx*R.recty;
-//	while (--count) zbuf[count] = 0x7fffffff;
-//	cout << "Zbuffer initialized" << endl;
-
-	// no need to fill ftot
 	
 	return true;
 }
@@ -208,23 +196,23 @@ bool yafrayPluginRender_t::writeRender()
 {
 	yafray::paramMap_t params;
 	params["camera_name"]=yafray::parameter_t("MAINCAM");
-	params["raydepth"]=yafray::parameter_t((float)R.r.YF_raydepth);
-	params["gamma"]=yafray::parameter_t(R.r.YF_gamma);
-	params["exposure"]=yafray::parameter_t(R.r.YF_exposure);
-	if (R.r.YF_AA)
+	params["raydepth"]=yafray::parameter_t((float)re->r.YF_raydepth);
+	params["gamma"]=yafray::parameter_t(re->r.YF_gamma);
+	params["exposure"]=yafray::parameter_t(re->r.YF_exposure);
+	if (re->r.YF_AA)
 	{
-		params["AA_passes"] = yafray::parameter_t((int)R.r.YF_AApasses);
-		params["AA_minsamples"] = yafray::parameter_t(R.r.YF_AAsamples);
-		params["AA_pixelwidth"] = yafray::parameter_t(R.r.YF_AApixelsize);
-		params["AA_threshold"] = yafray::parameter_t(R.r.YF_AAthreshold);
+		params["AA_passes"] = yafray::parameter_t((int)re->r.YF_AApasses);
+		params["AA_minsamples"] = yafray::parameter_t(re->r.YF_AAsamples);
+		params["AA_pixelwidth"] = yafray::parameter_t(re->r.YF_AApixelsize);
+		params["AA_threshold"] = yafray::parameter_t(re->r.YF_AAthreshold);
 	}
 	else
 	{
 		// removed the default AA settings for midquality GI, better leave it to user
-		if ((R.r.mode & R_OSA) && (R.r.osa)) 
+		if ((re->r.mode & R_OSA) && (re->r.osa)) 
 		{
-			params["AA_passes"] = yafray::parameter_t((R.r.osa%4)==0 ? R.r.osa/4 : 1);
-			params["AA_minsamples"] = yafray::parameter_t((R.r.osa%4)==0 ? 4 : R.r.osa);
+			params["AA_passes"] = yafray::parameter_t((re->r.osa & 3)==0 ? (re->r.osa >> 2) : 1);
+			params["AA_minsamples"] = yafray::parameter_t((re->r.osa & 3)==0 ? 4 : re->r.osa);
 		}
 		else 
 		{
@@ -234,12 +222,12 @@ bool yafrayPluginRender_t::writeRender()
 		params["AA_pixelwidth"] = yafray::parameter_t(1.5);
 		params["AA_threshold"] = yafray::parameter_t(0.05f);
 	}
-	if(R.r.mode & R_BORDER) 
+	if (re->r.mode & R_BORDER) 
 	{
-		params["border_xmin"] = yafray::parameter_t( R.r.border.xmin*2.0-1.0 );
-		params["border_xmax"] = yafray::parameter_t( R.r.border.xmax*2.0-1.0 );
-		params["border_ymin"] = yafray::parameter_t( R.r.border.ymin*2.0-1.0 );
-		params["border_ymax"] = yafray::parameter_t( R.r.border.ymax*2.0-1.0 );
+		params["border_xmin"] = yafray::parameter_t( re->r.border.xmin*2.0-1.0 );
+		params["border_xmax"] = yafray::parameter_t( re->r.border.xmax*2.0-1.0 );
+		params["border_ymin"] = yafray::parameter_t( re->r.border.ymin*2.0-1.0 );
+		params["border_ymax"] = yafray::parameter_t( re->r.border.ymax*2.0-1.0 );
 	}
 	if (hasworld) {
 		World *world = G.scene->world;
@@ -252,71 +240,22 @@ bool yafrayPluginRender_t::writeRender()
 		}
 		params["background_name"] = yafray::parameter_t("world_background");
 	}
-	params["bias"]=yafray::parameter_t(R.r.YF_raybias);
-	params["clamp_rgb"] = yafray::parameter_t((R.r.YF_clamprgb==0) ? "on" : "off");
-	blenderYafrayOutput_t output;
-	yafrayGate->render(params,output);
-	cout<<"render finished"<<endl;
+	params["bias"] = yafray::parameter_t(re->r.YF_raybias);
+	params["clamp_rgb"] = yafray::parameter_t((re->r.YF_clamprgb==0) ? "on" : "off");
+	blenderYafrayOutput_t output(re);
+	yafrayGate->render(params, output);
+	cout << "render finished" << endl;
 	yafrayGate->clear();
 	return true;
 }
 
 bool yafrayPluginRender_t::finishExport()
 {
-	//displayImage();
 	return true;
 }
 
-// displays the image rendered with xml export
-// Now loads rendered image into blender renderbuf.
-void yafrayPluginRender_t::displayImage()
-{
-	// although it is possible to load the image using blender,
-	// maybe it is best to just do a read here, for now the yafray output is always a raw tga anyway
 
-
-	FILE* fp = fopen(imgout.c_str(), "rb");
-	if (fp==NULL) {
-		cout << "YAF_displayImage(): Could not open image file\n";
-		return;
-	}
-
-	unsigned char header[18];
-	fread(&header, 1, 18, fp);
-	unsigned short width = (unsigned short)(header[12] + (header[13]<<8));
-	unsigned short height = (unsigned short)(header[14] + (header[15]<<8));
-	unsigned char byte_per_pix = (unsigned char)(header[16]>>3);
-	// read past any id (none in this case though)
-	unsigned int idlen = (unsigned int)header[0];
-	if (idlen) fseek(fp, idlen, SEEK_CUR);
-
-	/* XXX how to get the image from Blender and write to it. This call doesn't allow to change buffer rects */
-	RenderResult rres;
-	RE_GetResultImage(&R, &rres);
-	// rres.rectx, rres.recty is width/height
-	// rres.rectf is float buffer, scanlines starting in bottom
-	// rres.rectz is zbuffer, available when associated pass is set
-	
-	
-	// read data directly into buffer, picture is upside down
-	for (unsigned short y=0;y<height;y++) {
-		unsigned char* bpt = NULL;//(unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
-		for (unsigned short x=0;x<width;x++) {
-			bpt[2] = (unsigned char)fgetc(fp);
-			bpt[1] = (unsigned char)fgetc(fp);
-			bpt[0] = (unsigned char)fgetc(fp);
-			if (byte_per_pix==4)
-				bpt[3] = (unsigned char)fgetc(fp);
-			else
-				bpt[3] = 255;
-			bpt += 4;
-		}
-	}
-
-	fclose(fp);
-	fp = NULL;
-}
-
+// displayImage() not for plugin, see putPixel() below
 
 #ifdef WIN32
 #define MAXPATHLEN MAX_PATH
@@ -673,7 +612,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 	params["alpha"] = yafray::parameter_t(matr->alpha);
 	
 	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
-	float bg_mult = (R.r.GImethod==0) ? 1 : R.r.GIpower;
+	float bg_mult = (re->r.GImethod==0) ? 1 : re->r.GIpower;
 	params["emit"]=yafray::parameter_t(matr->emit*bg_mult);
 
 	// reflection/refraction
@@ -1275,7 +1214,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 	// for deformed objects, object->imat is no longer valid,
 	// so have to create inverse render matrix ourselves here
 	float mat[4][4], imat[4][4];
-	MTC_Mat4MulMat4(mat, obj->obmat, R.viewmat);
+	MTC_Mat4MulMat4(mat, obj->obmat, re->viewmat);
 	MTC_Mat4Invert(imat, mat);
 
 	if (vert_idx.find(vlr->v1)==vert_idx.end()) 
@@ -1468,7 +1407,7 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][
 	
 	string md = "off";
 	// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
-	if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  power*=R.r.GIpower; }
+	if ((re->r.GImethod==2) && (re->r.GIphotons)) { md="on";  power*=re->r.GIpower; }
 	params["type"]=yafray::parameter_t("arealight");
 	char temp[16];
 	sprintf(temp,"LAMP%d",num+1);
@@ -1507,12 +1446,12 @@ void yafrayPluginRender_t::writeLamps()
 	
 	// inver viewmatrix needed for back2world transform
 	float iview[4][4];
-	// R.viewinv != inv.R.viewmat because of possible ortho mode (see convertBlenderScene.c)
+	// re->viewinv != inv.re->viewmat because of possible ortho mode (see convertBlenderScene.c)
 	// have to invert it here
-	MTC_Mat4Invert(iview, R.viewmat);
+	MTC_Mat4Invert(iview, re->viewmat);
 
 	// all lamps
-	for(go=(GroupObject *)R.lights.first; go; go= go->next, i++)
+	for(go=(GroupObject *)re->lights.first; go; go= go->next, i++)
 	{
 		LampRen* lamp = (LampRen *)go->lampren;
 		
@@ -1574,7 +1513,7 @@ void yafrayPluginRender_t::writeLamps()
 			// 'dummy' mode for spherelight when used with gpm
 			string md = "off";
 			// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
-			if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  pwr*=R.r.GIpower; }
+			if ((re->r.GImethod==2) && (re->r.GIphotons)) { md="on";  pwr*=re->r.GIpower; }
 			params["power"] = yafray::parameter_t(pwr);
 			params["dummy"] = yafray::parameter_t(md);
 		}
@@ -1587,7 +1526,7 @@ void yafrayPluginRender_t::writeLamps()
 			// Also blender hemilights exported as sunlights which might have shadow flag set
 			// should have cast_shadows set to off (reported by varuag)
 			if (lamp->type!=LA_HEMI) {
-				if (R.r.mode & R_SHADOW)
+				if (re->r.mode & R_SHADOW)
 					if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
 			}
 			params["cast_shadows"] = yafray::parameter_t(lpmode);
@@ -1677,23 +1616,23 @@ void yafrayPluginRender_t::writeCamera()
 {
 	yafray::paramMap_t params;
 	params["name"]=yafray::parameter_t("MAINCAM");
-	if (R.r.mode & R_ORTHO)
+	if (re->r.mode & R_ORTHO)
 		params["type"] = yafray::parameter_t("ortho");
 	else
 		params["type"] = yafray::parameter_t("perspective");
-	params["resx"]=yafray::parameter_t(R.r.xsch);
-	params["resy"]=yafray::parameter_t(R.r.ysch);
+	params["resx"]=yafray::parameter_t(re->r.xsch);
+	params["resy"]=yafray::parameter_t(re->r.ysch);
 
 	float f_aspect = 1;
-	if ((R.r.xsch*R.r.xasp)<=(R.r.ysch*R.r.yasp)) f_aspect = float(R.r.xsch*R.r.xasp)/float(R.r.ysch*R.r.yasp);
+	if ((re->r.xsch*re->r.xasp)<=(re->r.ysch*re->r.yasp)) f_aspect = float(re->r.xsch*re->r.xasp)/float(re->r.ysch*re->r.yasp);
 	params["focal"] = yafray::parameter_t(mainCamLens/(f_aspect*32.f));
-	params["aspect_ratio"] = yafray::parameter_t(R.ycor);
+	params["aspect_ratio"] = yafray::parameter_t(re->ycor);
 
 	// dof params, only valid for real camera
 	float fdist = 1;	// only changes for ortho
 	if (maincam_obj->type==OB_CAMERA) {
 		Camera* cam = (Camera*)maincam_obj->data;
-		if (R.r.mode & R_ORTHO) fdist = cam->ortho_scale*(mainCamLens/32.f);
+		if (re->r.mode & R_ORTHO) fdist = cam->ortho_scale*(mainCamLens/32.f);
 		params["dof_distance"] = yafray::parameter_t(cam->YF_dofdist);
 		params["aperture"] = yafray::parameter_t(cam->YF_aperture);
 		if (cam->flag & CAM_YF_NO_QMC)
@@ -1727,13 +1666,13 @@ void yafrayPluginRender_t::writeCamera()
 	params["from"]=yafray::parameter_t(
 			yafray::point3d_t(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]));
 	params["to"]=yafray::parameter_t(
-			yafray::point3d_t(maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2],
-												maincam_obj->obmat[3][1] - fdist * R.viewmat[1][2],
-												maincam_obj->obmat[3][2] - fdist * R.viewmat[2][2]));
+			yafray::point3d_t(maincam_obj->obmat[3][0] - fdist * re->viewmat[0][2],
+												maincam_obj->obmat[3][1] - fdist * re->viewmat[1][2],
+												maincam_obj->obmat[3][2] - fdist * re->viewmat[2][2]));
 	params["up"]=yafray::parameter_t(
-			yafray::point3d_t(maincam_obj->obmat[3][0] + R.viewmat[0][1],
-												maincam_obj->obmat[3][1] + R.viewmat[1][1],
-												maincam_obj->obmat[3][2] + R.viewmat[2][1]));
+			yafray::point3d_t(maincam_obj->obmat[3][0] + re->viewmat[0][1],
+												maincam_obj->obmat[3][1] + re->viewmat[1][1],
+												maincam_obj->obmat[3][2] + re->viewmat[2][1]));
 
 	yafrayGate->addCamera(params);
 }
@@ -1743,7 +1682,7 @@ void yafrayPluginRender_t::writeHemilight()
 	yafray::paramMap_t params;
 	World *world = G.scene->world;
 	bool fromAO = false;
-	if (R.r.GIquality==6){
+	if (re->r.GIquality==6){
 		// use Blender AO params is possible
 		if (world==NULL) return;
 		if ((world->mode & WO_AMB_OCC)==0) {
@@ -1752,19 +1691,19 @@ void yafrayPluginRender_t::writeHemilight()
 		}
 		else fromAO = true;
 	}
-	if (R.r.GIcache) {
+	if (re->r.GIcache) {
 		params["type"] = yafray::parameter_t("pathlight");
 		params["name"] = yafray::parameter_t("path_LT");
-		params["power"] = yafray::parameter_t(R.r.GIpower);
+		params["power"] = yafray::parameter_t(re->r.GIpower);
 		params["mode"] = yafray::parameter_t("occlusion");
-		params["ignore_bumpnormals"] = yafray::parameter_t(R.r.YF_nobump ? "on" : "off");
+		params["ignore_bumpnormals"] = yafray::parameter_t(re->r.YF_nobump ? "on" : "off");
 		if (fromAO) {
 			// for AO, with cache, using range of 32*1 to 32*16 seems good enough
 			params["samples"] = yafray::parameter_t(32*world->aosamp);
 			params["maxdistance"] = yafray::parameter_t(world->aodist);
 		}
 		else {
-			switch (R.r.GIquality)
+			switch (re->r.GIquality)
 			{
 				case 1 : params["samples"] = yafray::parameter_t(128);  break;
 				case 2 : params["samples"] = yafray::parameter_t(256);  break;
@@ -1776,16 +1715,16 @@ void yafrayPluginRender_t::writeHemilight()
 		}
 		params["cache"] = yafray::parameter_t("on");
 		params["use_QMC"] = yafray::parameter_t("on");
-		params["threshold"] = yafray::parameter_t(R.r.GIrefinement);
-		params["cache_size"] = yafray::parameter_t((2.0/float(R.r.xsch))*R.r.GIpixelspersample);
-		params["shadow_threshold"] = yafray::parameter_t(1.0 - R.r.GIshadowquality);
+		params["threshold"] = yafray::parameter_t(re->r.GIrefinement);
+		params["cache_size"] = yafray::parameter_t((2.0/float(re->r.xsch))*re->r.GIpixelspersample);
+		params["shadow_threshold"] = yafray::parameter_t(1.0 - re->r.GIshadowquality);
 		params["grid"] = yafray::parameter_t(82);
 		params["search"] = yafray::parameter_t(35);
 	}
 	else {
 		params["type"] = yafray::parameter_t("hemilight");
 		params["name"] = yafray::parameter_t("hemi_LT");
-		params["power"] = yafray::parameter_t(R.r.GIpower);
+		params["power"] = yafray::parameter_t(re->r.GIpower);
 		if (fromAO) {
 			// use minimum of 4 samples for lowest sample setting, single sample way too noisy
 			params["samples"] = yafray::parameter_t(3 + world->aosamp*world->aosamp);
@@ -1793,7 +1732,7 @@ void yafrayPluginRender_t::writeHemilight()
 			params["use_QMC"] = yafray::parameter_t((world->aomode & WO_AORNDSMP) ? "off" : "on");
 		}
 		else {
-			switch (R.r.GIquality)
+			switch (re->r.GIquality)
 			{
 				case 1 :
 				case 2 : params["samples"]=yafray::parameter_t(16);  break;
@@ -1809,28 +1748,28 @@ void yafrayPluginRender_t::writeHemilight()
 
 void yafrayPluginRender_t::writePathlight()
 {
-	if (R.r.GIphotons)
+	if (re->r.GIphotons)
 	{
 		yafray::paramMap_t params;
 		params["type"] = yafray::parameter_t("globalphotonlight");
 		params["name"] = yafray::parameter_t("gpm");
-		params["photons"] = yafray::parameter_t(R.r.GIphotoncount);
-		params["radius"] = yafray::parameter_t(R.r.GIphotonradius);
-		params["depth"] = yafray::parameter_t(((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1));
-		params["caus_depth"] = yafray::parameter_t(R.r.GIcausdepth);
-		params["search"] = yafray::parameter_t(R.r.GImixphotons);
+		params["photons"] = yafray::parameter_t(re->r.GIphotoncount);
+		params["radius"] = yafray::parameter_t(re->r.GIphotonradius);
+		params["depth"] = yafray::parameter_t(((re->r.GIdepth>2) ? (re->r.GIdepth-1) : 1));
+		params["caus_depth"] = yafray::parameter_t(re->r.GIcausdepth);
+		params["search"] = yafray::parameter_t(re->r.GImixphotons);
 		yafrayGate->addLight(params);
 	}
 	yafray::paramMap_t params;
 	params["type"] = yafray::parameter_t("pathlight");
 	params["name"] = yafray::parameter_t("path_LT");
-	params["power"] = yafray::parameter_t(R.r.GIindirpower);
-	params["depth"] = yafray::parameter_t(((R.r.GIphotons) ? 1 : R.r.GIdepth));
-	params["caus_depth"] = yafray::parameter_t(R.r.GIcausdepth);
-	if (R.r.GIdirect && R.r.GIphotons) params["direct"] = yafray::parameter_t("on");
-	if (R.r.GIcache && !(R.r.GIdirect && R.r.GIphotons))
+	params["power"] = yafray::parameter_t(re->r.GIindirpower);
+	params["depth"] = yafray::parameter_t(((re->r.GIphotons) ? 1 : re->r.GIdepth));
+	params["caus_depth"] = yafray::parameter_t(re->r.GIcausdepth);
+	if (re->r.GIdirect && re->r.GIphotons) params["direct"] = yafray::parameter_t("on");
+	if (re->r.GIcache && !(re->r.GIdirect && re->r.GIphotons))
 	{
-		switch (R.r.GIquality)
+		switch (re->r.GIquality)
 		{
 			case 1 : params["samples"] = yafray::parameter_t(128);  break;
 			case 2 : params["samples"] = yafray::parameter_t(256);  break;
@@ -1841,16 +1780,16 @@ void yafrayPluginRender_t::writePathlight()
 		}
 		params["cache"] = yafray::parameter_t("on");
 		params["use_QMC"] = yafray::parameter_t("on");
-		params["threshold"] = yafray::parameter_t(R.r.GIrefinement);
-		params["cache_size"] = yafray::parameter_t((2.0/float(R.r.xsch))*R.r.GIpixelspersample);
-		params["shadow_threshold"] = yafray::parameter_t(1.0 - R.r.GIshadowquality);
+		params["threshold"] = yafray::parameter_t(re->r.GIrefinement);
+		params["cache_size"] = yafray::parameter_t((2.0/float(re->r.xsch))*re->r.GIpixelspersample);
+		params["shadow_threshold"] = yafray::parameter_t(1.0 - re->r.GIshadowquality);
 		params["grid"] = yafray::parameter_t(82);
 		params["search"] = yafray::parameter_t(35);
-		params["ignore_bumpnormals"] = yafray::parameter_t(R.r.YF_nobump ? "on" : "off");
+		params["ignore_bumpnormals"] = yafray::parameter_t(re->r.YF_nobump ? "on" : "off");
 	}
 	else
 	{
-		switch (R.r.GIquality)
+		switch (re->r.GIquality)
 		{
 			case 1 : params["samples"] = yafray::parameter_t(16);  break;
 			case 2 : params["samples"] = yafray::parameter_t(36);  break;
@@ -1866,12 +1805,12 @@ void yafrayPluginRender_t::writePathlight()
 bool yafrayPluginRender_t::writeWorld()
 {
 	World *world = G.scene->world;
-	if (R.r.GIquality!=0) {
-		if (R.r.GImethod==1) {
+	if (re->r.GIquality!=0) {
+		if (re->r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";
 			writeHemilight();
 		}
-		else if (R.r.GImethod==2) writePathlight();
+		else if (re->r.GImethod==2) writePathlight();
 	}
 	if (world==NULL) return false;
 	
@@ -1907,7 +1846,7 @@ bool yafrayPluginRender_t::writeWorld()
 	params["name"] = yafray::parameter_t("world_background");
 	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
 	// (have to change method to init yafray vars in Blender)
-	float bg_mult = (R.r.GImethod==0) ? 1 : R.r.GIpower;
+	float bg_mult = (re->r.GImethod==0) ? 1 : re->r.GIpower;
 	params["color"]=yafray::parameter_t(yafray::color_t(world->horr * bg_mult,
 																											world->horg * bg_mult,
 																											world->horb * bg_mult));
@@ -1915,50 +1854,41 @@ bool yafrayPluginRender_t::writeWorld()
 	return true;
 }
 
-bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c, 
+// display_draw() needs render layer info
+extern "C" {
+#include "renderpipeline.h"
+}
+bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 		yafray::CFLOAT alpha, yafray::PFLOAT depth)
 {
-	unsigned int px = ((R.recty-1)-y)*R.rectx;
-	unsigned char* bpt = NULL; //(unsigned char*)R.rectot + (px<<2);
-	int x4 = x<<2;
-	int temp = (int)(c.R*255.f+0.5f);
-	if (temp>255) temp=255;
-	bpt[x4] = temp;
-	temp=(int)(c.G*255.f+0.5f);
-	if (temp>255) temp=255;
-	bpt[x4+1] = temp;
-	temp=(int)(c.B*255.f+0.5f);
-	if (temp>255) temp=255;
-	bpt[x4+2] = temp;
-	temp=(int)(alpha*255.f+0.5f);
-	if (temp>255) temp=255;
-	bpt[x4+3] = temp;
+	/* XXX how to get the image from Blender and write to it. This call doesn't allow to change buffer rects */
+	RenderResult rres;
+	RE_GetResultImage(re, &rres);
+	// rres.rectx, rres.recty is width/height
+	// rres.rectf is float buffer, scanlines starting in bottom
+	// rres.rectz is zbuffer, available when associated pass is set
 
-	// float buffer
-//	if ((R.r.mode & R_FBUF) && R.rectftot) {
-//		float* fpt = R.rectftot + (px<<2);
-//		fpt[x4] = c.R;
-//		fpt[x4+1] = c.G;
-//		fpt[x4+2] = c.B;
-//		fpt[x4+3] = alpha;
-//	}
+	const unsigned int yy = (rres.recty - 1) - y;
+	const unsigned int px = yy * rres.rectx;
+
+	// rgba
+	float* fpt = rres.rectf + ((px + x) << 2);
+	*fpt++ = c.R;
+	*fpt++ = c.G;
+	*fpt++ = c.B;
+	*fpt = alpha;
 
 	// depth values
-//	int* zbuf = R.rectz + px;
-//	depth -= R.clipsta;
-//	float mz = R.clipend - R.clipsta;
-//	if (depth<0) depth=0; else if (depth>mz) depth=mz;
-//	if (mz!=0.f) mz = 2147483647.f/mz;
-//	zbuf[x] = (int)(depth*mz);
+	float* zbuf = rres.rectz + px;
+	if (zbuf) zbuf[x] = depth;
 
-	out++;
-	if (out==4096)
-	{
+	out = (out+1) & 4095;
+	if (out==0) {
+		re->result->renlay = render_get_active_layer(re, re->result);
 		/* XXX second arg is rcti *rect, allows to indicate sub-rect in image to draw */
-		R.display_draw(R.result, NULL);
-		out = 0;
+		re->display_draw(re->result, NULL);
 	}
 
-	if (R.test_break()) return false;
+	if (re->test_break()) return false;
 	return true;
 }

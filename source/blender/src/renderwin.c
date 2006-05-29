@@ -858,6 +858,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	else 
 		glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
 					  GL_RGBA, GL_FLOAT, rectf);
+	
 	glPixelZoom(1.0, 1.0);
 	
 #ifdef __APPLE__

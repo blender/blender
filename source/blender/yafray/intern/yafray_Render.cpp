@@ -22,8 +22,9 @@ void yafrayRender_t::clearAll()
 	imgtex_shader.clear();
 }
 
-bool yafrayRender_t::exportScene()
+bool yafrayRender_t::exportScene(Render* re)
 {
+	this->re = re;
 
   // get camera first, no checking should be necessary, all done by Blender
 	maincam_obj = G.scene->camera;
@@ -85,9 +86,9 @@ bool yafrayRender_t::getAllMatTexObs()
 	// but on the other hand that could also hide the real problem of course...
 	map<string, Object*> renderobs;
 
-	for (int i=0;i<R.totvlak;i++) {
+	for (int i=0; i < re->totvlak; i++) {
 
-		if ((i & 255)==0) vlr=R.blovl[i>>8]; else vlr++;
+		if ((i & 255)==0) vlr = re->blovl[i>>8]; else vlr++;
 
 		// ---- The materials & textures
 		// in this case, probably every face has a material assigned, which can be the default material,

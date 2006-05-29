@@ -206,29 +206,29 @@ bool yafrayFileRender_t::writeRender()
 	// finally export render block
 	ostr.str("");
 	ostr << "<render camera_name=\"MAINCAM\"\n";
-	ostr << "\traydepth=\"" << R.r.YF_raydepth << "\" gamma=\"" << R.r.YF_gamma << "\" exposure=\"" << R.r.YF_exposure << "\"\n";
+	ostr << "\traydepth=\"" << re->r.YF_raydepth << "\" gamma=\"" << re->r.YF_gamma << "\" exposure=\"" << re->r.YF_exposure << "\"\n";
 
-	if(R.r.YF_AA) {
-		ostr << "\tAA_passes=\"" << R.r.YF_AApasses << "\" AA_minsamples=\"" << R.r.YF_AAsamples << "\"\n";
-		ostr << "\tAA_pixelwidth=\"" << R.r.YF_AApixelsize << "\" AA_threshold=\"" << R.r.YF_AAthreshold << "\"\n";
+	if(re->r.YF_AA) {
+		ostr << "\tAA_passes=\"" << re->r.YF_AApasses << "\" AA_minsamples=\"" << re->r.YF_AAsamples << "\"\n";
+		ostr << "\tAA_pixelwidth=\"" << re->r.YF_AApixelsize << "\" AA_threshold=\"" << re->r.YF_AAthreshold << "\"\n";
 	}
 	else {
 		// removed the default AA settings for midquality GI, better leave it to user
-		if ((R.r.mode & R_OSA) && (R.r.osa)) {
-			int passes=(R.r.osa%4)==0 ? R.r.osa/4 : 1;
-			int minsamples=(R.r.osa%4)==0 ? 4 : R.r.osa;
+		if ((re->r.mode & R_OSA) && (re->r.osa)) {
+			int passes = (re->r.osa & 3)==0 ? (re->r.osa >> 2) : 1;
+			int minsamples=(re->r.osa & 3)==0 ? 4 : re->r.osa;
 			ostr << "\tAA_passes=\"" << passes << "\" AA_minsamples=\"" << minsamples << "\"\n";
 		}
 		else ostr << "\tAA_passes=\"0\" AA_minsamples=\"1\"\n";
-		ostr << "\tAA_pixelwidth=\"1.5\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias
-				 << "\" clamp_rgb=\"" << ((R.r.YF_clamprgb==0) ? "on" : "off") << "\"\n";
+		ostr << "\tAA_pixelwidth=\"1.5\" AA_threshold=\"0.05\" bias=\"" << re->r.YF_raybias
+				 << "\" clamp_rgb=\"" << ((re->r.YF_clamprgb==0) ? "on" : "off") << "\"\n";
 	}
 
 	World *world = G.scene->world;
 	if (world) ostr << "\tbackground_name=\"world_background\"\n";
  
 	// alpha channel render when RGBA button enabled
-	if (R.r.planes==R_PLANES32) ostr << "\n\tsave_alpha=\"on\"";
+	if (re->r.planes==R_PLANES32) ostr << "\n\tsave_alpha=\"on\"";
 	ostr << " >\n";
 
 	// basic fog
@@ -279,7 +279,7 @@ void yafrayFileRender_t::displayImage()
 	unsigned short width = (unsigned short)(header[12] + (header[13]<<8));
 	unsigned short height = (unsigned short)(header[14] + (header[15]<<8));
 	// don't do anything if resolution doesn't match that of rectot
-	if ((width!=R.rectx) || (height!=R.recty)) {
+	if ((width!=re->rectx) || (height!=re->recty)) {
 		fclose(fp);
 		fp = NULL;
 		return;
@@ -291,22 +291,23 @@ void yafrayFileRender_t::displayImage()
 
 	/* XXX how to get the image from Blender and write to it. This call doesn't allow to change buffer rects */
 	RenderResult rres;
-	RE_GetResultImage(&R, &rres);
+	RE_GetResultImage(re, &rres);
 	// rres.rectx, rres.recty is width/height
 	// rres.rectf is float buffer, scanlines starting in bottom
 	// rres.rectz is zbuffer, available when associated pass is set
 	
 	// read data directly into buffer, picture is upside down
+	const float btf = 1.f/255.f;
 	for (unsigned short y=0;y<height;y++) {
-		unsigned char* bpt = NULL; //(unsigned char*)R.rectot + ((((height-1)-y)*width)<<2);
+		float* bpt = (float*)rres.rectf + ((((height-1)-y)*width)<<2);
 		for (unsigned short x=0;x<width;x++) {
-			bpt[2] = (unsigned char)fgetc(fp);
-			bpt[1] = (unsigned char)fgetc(fp);
-			bpt[0] = (unsigned char)fgetc(fp);
+			bpt[2] = ((float)fgetc(fp) * btf);
+			bpt[1] = ((float)fgetc(fp) * btf);
+			bpt[0] = ((float)fgetc(fp) * btf);
 			if (byte_per_pix==4)
-				bpt[3] = (unsigned char)fgetc(fp);
+				bpt[3] = ((float)fgetc(fp) * btf);
 			else
-				bpt[3] = 255;
+				bpt[3] = 1.f;
 			bpt += 4;
 		}
 	}
@@ -687,7 +688,7 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 	ostr << "\t\t<specular_amount value=\"" << matr->spec << "\" />\n";
 	ostr << "\t\t<alpha value=\"" << matr->alpha << "\" />\n";
 	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
-	float bg_mult = (R.r.GImethod==0) ? 1 : R.r.GIpower;
+	float bg_mult = (re->r.GImethod==0) ? 1 : re->r.GIpower;
 	ostr << "\t\t<emit value=\"" << (matr->emit * bg_mult) << "\" />\n";
 
 	// reflection/refraction
@@ -1253,7 +1254,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	// for deformed objects, object->imat is no longer valid,
 	// so have to create inverse render matrix ourselves here
 	float mat[4][4], imat[4][4];
-	MTC_Mat4MulMat4(mat, obj->obmat, R.viewmat);
+	MTC_Mat4MulMat4(mat, obj->obmat, re->viewmat);
 	MTC_Mat4Invert(imat, mat);
 
 	for (vector<VlakRen*>::const_iterator fci=VLR_list.begin();
@@ -1504,7 +1505,7 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4]
 	ostr.str("");
 	string md = "off";
 	// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
-	if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  power*=R.r.GIpower; }
+	if ((re->r.GImethod==2) && (re->r.GIphotons)) { md="on";  power*=re->r.GIpower; }
 	ostr << "<light type=\"arealight\" name=\"LAMP" << num+1 << "\" dummy=\""<< md << "\" power=\"" << power << "\" ";
 	// samples not used for GI with photons, can still be exported, is ignored
 	int psm=0, sm = lamp->ray_totsamp;
@@ -1539,12 +1540,12 @@ void yafrayFileRender_t::writeLamps()
 	
 	// inverse viewmatrix needed for back2world transform
 	float iview[4][4];
-	// R.viewinv != inv.R.viewmat because of possible ortho mode (see convertBlenderScene.c)
+	// re->viewinv != inv.re->viewmat because of possible ortho mode (see convertBlenderScene.c)
 	// have to invert it here
-	MTC_Mat4Invert(iview, R.viewmat);
+	MTC_Mat4Invert(iview, re->viewmat);
 	
 	// all lamps
-	for(go=(GroupObject *)R.lights.first; go; go= go->next, i++) {
+	for(go=(GroupObject *)re->lights.first; go; go= go->next, i++) {
 		LampRen* lamp = (LampRen *)go->lampren;
 
 		ostr.str("");
@@ -1601,7 +1602,7 @@ void yafrayFileRender_t::writeLamps()
 			// 'dummy' mode for spherelight when used with gpm
 			string md = "off";
 			// if no GI used, the GIphotons flag can still be set, so only use when 'full' selected
-			if ((R.r.GImethod==2) && (R.r.GIphotons)) { md="on";  pwr*=R.r.GIpower; }
+			if ((re->r.GImethod==2) && (re->r.GIphotons)) { md="on";  pwr*=re->r.GIpower; }
 			ostr << "\" power=\"" <<  pwr << "\" dummy=\"" << md << "\"";
 		}
 		else ostr << "\" power=\"" << pwr << "\"";
@@ -1613,7 +1614,7 @@ void yafrayFileRender_t::writeLamps()
 			// Also blender hemilights exported as sunlights which might have shadow flag set
 			// should have cast_shadows set to off (reported by varuag)
 			if (lamp->type!=LA_HEMI) {
-				if (R.r.mode & R_SHADOW)
+				if (re->r.mode & R_SHADOW)
 					if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
 			}
 			ostr << " cast_shadows=\"" << lpmode << "\"";
@@ -1703,24 +1704,24 @@ void yafrayFileRender_t::writeCamera()
 	// here Global used again
 	ostr.str("");
 	ostr << "<camera name=\"MAINCAM\" ";
-	if (R.r.mode & R_ORTHO)
+	if (re->r.mode & R_ORTHO)
 		ostr << "type=\"ortho\"";
 	else	
 		ostr << "type=\"perspective\"";
 
 	// render resolution including the percentage buttons (aleady calculated in initrender for R renderdata)
-	ostr << " resx=\"" << R.r.xsch << "\" resy=\"" << R.r.ysch << "\"";
+	ostr << " resx=\"" << re->r.xsch << "\" resy=\"" << re->r.ysch << "\"";
 
 	float f_aspect = 1;
-	if ((R.r.xsch*R.r.xasp)<=(R.r.ysch*R.r.yasp)) f_aspect = float(R.r.xsch*R.r.xasp)/float(R.r.ysch*R.r.yasp);
+	if ((re->r.xsch*re->r.xasp)<=(re->r.ysch*re->r.yasp)) f_aspect = float(re->r.xsch*re->r.xasp)/float(re->r.ysch*re->r.yasp);
 	ostr << "\n\tfocal=\"" << mainCamLens/(f_aspect*32.f);
-	ostr << "\" aspect_ratio=\"" << R.ycor << "\"";
+	ostr << "\" aspect_ratio=\"" << re->ycor << "\"";
 
 	// dof params, only valid for real camera
 	float fdist = 1;	// only changes for ortho
 	if (maincam_obj->type==OB_CAMERA) {
 		Camera* cam = (Camera*)maincam_obj->data;
-		if (R.r.mode & R_ORTHO) fdist = cam->ortho_scale*(mainCamLens/32.f);
+		if (re->r.mode & R_ORTHO) fdist = cam->ortho_scale*(mainCamLens/32.f);
 		ostr << "\n\tdof_distance=\"" << cam->YF_dofdist << "\"";
 		ostr << " aperture=\"" << cam->YF_aperture << "\"";
 		string st = "on";
@@ -1757,12 +1758,12 @@ void yafrayFileRender_t::writeCamera()
 	ostr << "\t<from x=\"" << maincam_obj->obmat[3][0] << "\""
 							<< " y=\"" << maincam_obj->obmat[3][1] << "\""
 							<< " z=\"" << maincam_obj->obmat[3][2] << "\" />\n";
-	ostr << "\t<to x=\"" << maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2]
-					<< "\" y=\"" << maincam_obj->obmat[3][1] - fdist * R.viewmat[1][2]
-					<< "\" z=\"" << maincam_obj->obmat[3][2] - fdist * R.viewmat[2][2] << "\" />\n";
-	ostr << "\t<up x=\"" << maincam_obj->obmat[3][0] + R.viewmat[0][1]
-					<< "\" y=\"" << maincam_obj->obmat[3][1] + R.viewmat[1][1]
-					<< "\" z=\"" << maincam_obj->obmat[3][2] + R.viewmat[2][1] << "\" />\n";
+	ostr << "\t<to x=\"" << maincam_obj->obmat[3][0] - fdist * re->viewmat[0][2]
+					<< "\" y=\"" << maincam_obj->obmat[3][1] - fdist * re->viewmat[1][2]
+					<< "\" z=\"" << maincam_obj->obmat[3][2] - fdist * re->viewmat[2][2] << "\" />\n";
+	ostr << "\t<up x=\"" << maincam_obj->obmat[3][0] + re->viewmat[0][1]
+					<< "\" y=\"" << maincam_obj->obmat[3][1] + re->viewmat[1][1]
+					<< "\" z=\"" << maincam_obj->obmat[3][2] + re->viewmat[2][1] << "\" />\n";
 	xmlfile << ostr.str();
 
 	xmlfile << "</camera>\n\n";
@@ -1772,7 +1773,7 @@ void yafrayFileRender_t::writeHemilight()
 {
 	World *world = G.scene->world;
 	bool fromAO = false;
-	if (R.r.GIquality==6){
+	if (re->r.GIquality==6){
 		// use Blender AO params is possible
 		if (world==NULL) return;
 		if ((world->mode & WO_AMB_OCC)==0) {
@@ -1782,18 +1783,18 @@ void yafrayFileRender_t::writeHemilight()
 		else fromAO = true;
 	}
 	ostr.str("");
-	if (R.r.GIcache) {
-		ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIpower << "\" mode=\"occlusion\"";
-		ostr << "\n\tcache=\"on\" use_QMC=\"on\" threshold=\"" << R.r.GIrefinement << "\" "
-				 << "cache_size=\"" << ((2.0/float(R.r.xsch))*R.r.GIpixelspersample) << "\"";
-		ostr << "\n\tshadow_threshold=\"" << (1.0-R.r.GIshadowquality) << "\" grid=\"82\" search=\"35\"";
-		ostr << "\n\tignore_bumpnormals=\"" << (R.r.YF_nobump ? "on" : "off") << "\"";
+	if (re->r.GIcache) {
+		ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << re->r.GIpower << "\" mode=\"occlusion\"";
+		ostr << "\n\tcache=\"on\" use_QMC=\"on\" threshold=\"" << re->r.GIrefinement << "\" "
+				 << "cache_size=\"" << ((2.0/float(re->r.xsch))*re->r.GIpixelspersample) << "\"";
+		ostr << "\n\tshadow_threshold=\"" << (1.0-re->r.GIshadowquality) << "\" grid=\"82\" search=\"35\"";
+		ostr << "\n\tignore_bumpnormals=\"" << (re->r.YF_nobump ? "on" : "off") << "\"";
 		if (fromAO) {
 			// for AO, with cache, using range of 32*1 to 32*16 seems good enough
 			ostr << "\n\tsamples=\"" << 32*world->aosamp << "\" maxdistance=\"" << world->aodist << "\" >\n";
 		}
 		else {
-			switch (R.r.GIquality)
+			switch (re->r.GIquality)
 			{
 				case 1 : ostr << " samples=\"128\" >\n";  break;
 				case 2 : ostr << " samples=\"256\" >\n";  break;
@@ -1805,7 +1806,7 @@ void yafrayFileRender_t::writeHemilight()
 		}
 	}
 	else {
-		ostr << "<light type=\"hemilight\" name=\"hemi_LT\" power=\"" << R.r.GIpower << "\"";
+		ostr << "<light type=\"hemilight\" name=\"hemi_LT\" power=\"" << re->r.GIpower << "\"";
 		if (fromAO) {
 			// use minimum of 4 samples for lowest sample setting, single sample way too noisy
 			ostr << "\n\tsamples=\"" << 3 + world->aosamp*world->aosamp
@@ -1813,7 +1814,7 @@ void yafrayFileRender_t::writeHemilight()
 					 << "\" use_QMC=\"" << ((world->aomode & WO_AORNDSMP) ? "off" : "on") << "\" >\n";
 		}
 		else {
-			switch (R.r.GIquality)
+			switch (re->r.GIquality)
 			{
 				case 1 :
 				case 2 : ostr << " samples=\"16\" >\n";  break;
@@ -1831,19 +1832,19 @@ void yafrayFileRender_t::writeHemilight()
 void yafrayFileRender_t::writePathlight()
 {
 	ostr.str("");
-	if (R.r.GIphotons)
+	if (re->r.GIphotons)
 	{
-		ostr << "<light type=\"globalphotonlight\" name=\"gpm\" photons=\"" << R.r.GIphotoncount << "\"" << endl;
-		ostr << "\tradius=\"" << R.r.GIphotonradius << "\" depth=\"" << ((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1)
-				 << "\" caus_depth=\"" << R.r.GIcausdepth << "\" search=\"" << R.r.GImixphotons << "\" >"<<endl;
+		ostr << "<light type=\"globalphotonlight\" name=\"gpm\" photons=\"" << re->r.GIphotoncount << "\"" << endl;
+		ostr << "\tradius=\"" << re->r.GIphotonradius << "\" depth=\"" << ((re->r.GIdepth>2) ? (re->r.GIdepth-1) : 1)
+				 << "\" caus_depth=\"" << re->r.GIcausdepth << "\" search=\"" << re->r.GImixphotons << "\" >"<<endl;
 		ostr << "</light>"<<endl;
 	}
-	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIindirpower << "\"";
-	ostr << " depth=\"" << ((R.r.GIphotons) ? 1 : R.r.GIdepth) << "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
-	if (R.r.GIdirect && R.r.GIphotons) ostr << "direct=\"on\"" << endl;
-	if (R.r.GIcache && !(R.r.GIdirect && R.r.GIphotons))
+	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << re->r.GIindirpower << "\"";
+	ostr << " depth=\"" << ((re->r.GIphotons) ? 1 : re->r.GIdepth) << "\" caus_depth=\"" << re->r.GIcausdepth <<"\"\n";
+	if (re->r.GIdirect && re->r.GIphotons) ostr << "direct=\"on\"" << endl;
+	if (re->r.GIcache && !(re->r.GIdirect && re->r.GIphotons))
 	{
-		switch (R.r.GIquality)
+		switch (re->r.GIquality)
 		{
 			case 1 : ostr << " samples=\"128\" \n";   break;
 			case 2 : ostr << " samples=\"256\" \n";   break;
@@ -1852,15 +1853,15 @@ void yafrayFileRender_t::writePathlight()
 			case 5 : ostr << " samples=\"2048\" \n";  break;
 			default: ostr << " samples=\"512\" \n";
 		}
-		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" << R.r.GIrefinement << "\"" << endl;
-		ostr << "\tignore_bumpnormals=\"" << (R.r.YF_nobump ? "on" : "off") << "\"\n";
-		float sbase = 2.0/float(R.r.xsch);
-		ostr << "\tcache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
-			1.0-R.r.GIshadowquality << "\" grid=\"82\" search=\"35\" >\n";
+		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" << re->r.GIrefinement << "\"" << endl;
+		ostr << "\tignore_bumpnormals=\"" << (re->r.YF_nobump ? "on" : "off") << "\"\n";
+		float sbase = 2.0/float(re->r.xsch);
+		ostr << "\tcache_size=\"" << sbase*re->r.GIpixelspersample << "\" shadow_threshold=\"" <<
+			1.0-re->r.GIshadowquality << "\" grid=\"82\" search=\"35\" >\n";
 	}
 	else
 	{
-		switch (R.r.GIquality)
+		switch (re->r.GIquality)
 		{
 			case 1 : ostr << " samples=\"16\" >\n";   break;
 			case 2 : ostr << " samples=\"36\" >\n";   break;
@@ -1877,12 +1878,12 @@ void yafrayFileRender_t::writePathlight()
 bool yafrayFileRender_t::writeWorld()
 {
 	World *world = G.scene->world;
-	if (R.r.GIquality!=0) {
-		if (R.r.GImethod==1) {
+	if (re->r.GIquality!=0) {
+		if (re->r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";
 			writeHemilight();
 		}
-		else if (R.r.GImethod==2) writePathlight();
+		else if (re->r.GImethod==2) writePathlight();
 	}
 
 	if (world==NULL) return false;
@@ -1918,7 +1919,7 @@ bool yafrayFileRender_t::writeWorld()
 	ostr << "<background type=\"constant\" name=\"world_background\" >\n";
 	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
 	// (have to change method to init yafray vars in Blender)
-	float bg_mult = (R.r.GImethod==0) ? 1 : R.r.GIpower;
+	float bg_mult = (re->r.GImethod==0) ? 1 : re->r.GIpower;
 	ostr << "\t<color r=\"" << (world->horr * bg_mult) << 
 								"\" g=\"" << (world->horg * bg_mult) << 
 								"\" b=\"" << (world->horb * bg_mult) << "\" />\n";
@@ -1931,7 +1932,7 @@ bool yafrayFileRender_t::writeWorld()
 bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 {
 	char yfr[8];
-	sprintf(yfr, "%d ", R.r.YF_numprocs);
+	sprintf(yfr, "%d ", re->r.YF_numprocs);
 	string command = command_path + "yafray -c " + yfr + "\"" + xmlpath + "\"";
 #ifndef WIN32
 	sigset_t yaf,old;

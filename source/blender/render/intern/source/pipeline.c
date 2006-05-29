@@ -1592,17 +1592,15 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	re->display_draw(re->result, NULL);
 }
 
+
 /* yafray: main yafray render/export call */
 static void yafrayRender(Render *re)
 {
-
+	free_render_result(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	
-	/* yafray uses this global still..., also for database stage? */
-	R= *re;
-	
 	// switch must be done before prepareScene()
-	if (!R.r.YFexportxml)
+	if (!re->r.YFexportxml)
 		YAF_switchFile();
 	else
 		YAF_switchPlugin();
@@ -1611,12 +1609,8 @@ static void yafrayRender(Render *re)
 	RE_Database_FromScene(re, re->scene, 1);
 	printf("Scene conversion done.\n");
 	
-	/* yafray uses this global for exporting */
-	R= *re;
-	
-	YAF_exportScene();
+	YAF_exportScene(re);
 	RE_Database_Free(re);
-	
 }
 
 
@@ -1921,6 +1915,3 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	
 	read_render_result(re);
 }
-
-
-

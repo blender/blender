@@ -25,8 +25,7 @@ extern "C" {
 #include "BKE_image.h"
 
 #include "render_types.h"
-extern struct Render R;		/* only to get it compile for now */
-	
+
 /* useful matrix & vector operations */
 #include "MTC_matrixops.h"
 #include "MTC_vectorops.h"
@@ -60,11 +59,12 @@ class yafrayRender_t
 		virtual ~yafrayRender_t() {}
 
 		// mtds
-		bool exportScene();
+		bool exportScene(Render* re);
 		void addDupliMtx(Object* obj);
 		bool objectKnownData(Object* obj);
 
 	protected:
+		Render* re;
 		Object* maincam_obj;
 		float mainCamLens;
 
@@ -95,9 +95,8 @@ class yafrayRender_t
 		virtual bool writeRender()=0;
 		virtual bool initExport()=0;
 		virtual bool finishExport()=0;
-		
-		void clearAll();
 
+		void clearAll();
 };
 
 #endif

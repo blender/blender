@@ -65,12 +65,13 @@ class yafrayPluginRender_t : public yafrayRender_t
 class blenderYafrayOutput_t : public yafray::colorOutput_t
 {
 	public:
-		blenderYafrayOutput_t() {out=0;};
-		virtual ~blenderYafrayOutput_t() {};
-		virtual bool putPixel(int x, int y,const yafray::color_t &c, 
-				yafray::CFLOAT alpha=0,yafray::PFLOAT depth=0);
-		virtual void flush() {};
+		blenderYafrayOutput_t(Render* re):out(0) { this->re = re; }
+		virtual ~blenderYafrayOutput_t() {}
+		virtual bool putPixel(int x, int y, const yafray::color_t &c,
+				yafray::CFLOAT alpha=0, yafray::PFLOAT depth=0);
+		virtual void flush() {}
 	protected:
+		Render* re;
 		int out;
 };
 
