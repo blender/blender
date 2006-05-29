@@ -17,23 +17,60 @@ Example::
   context = scn.getRenderingContext()
   
   Render.EnableDispWin()
-  context.enableExtensions(1)
-  context.setRenderPath("C:/myRenderdir/")
-  context.sizePreset(Scene.PC)
-  context.setImageType(Render.AVIRAW)
-  context.startFrame(2)
-  context.endFrame(10)
+  context.extensions = True
+  context.renderPath = "//myRenderdir/"
+  context.sizePreset(Render.PC)
+  context.imageType = Render.AVIRAW
+  context.sFrame = 2
+  context.eFrame = 10
   context.renderAnim()
-
-  context.setImageType(Render.TARGA)
-  context.framesPerSec(15)
-  context.startFrame(15)
-  context.endFrame(22)
+  
+  context.imageType = Render.TARGA
+  context.fps = 15
+  context.sFrame = 15
+  context.eFrame = 22
   context.renderAnim()
-
+  
   Render.CloseRenderWindow()
-  print context.framesPerSec()
-  print context.currentFrame()
+  print context.fps
+  print context.cFrame
+
+@type Modes: readonly dictionary
+@var Modes: Constant dict used for with L{RenderData.mode} bitfield attribute.  
+Values can be ORed together.  Individual bits can also be set/cleared with
+boolean attributes.
+  - OSA: Oversampling (anti-aliasing) enabled
+  - SHADOW: Shadow calculation enabled
+  - GAMMA: Gamma correction enabled
+  - ENVMAP: Environment map rendering enabled
+  - TOONSHADING: Toon edge shading enabled
+  - FIELDRENDER: Field rendering enabled
+  - FIELDTIME: Time difference in field calculations I{disabled}
+  - RADIOSITY: Radiosity rendering enabled
+  - BORDER_RENDER: Small cut-out rendering enabled
+  - PANORAMA: Panorama rendering enabled
+  - CROP: Crop image during border renders
+  - ODDFIELD: Odd field first rendering enabled
+  - MBLUR: Motion blur enabled
+  - UNIFIED: Unified Renderer enabled
+  - RAYTRACING: Ray tracing enabled
+  - THREADS: Render in two threads enabled
+
+@type SceModes: readonly dictionary
+@var SceModes: Constant dict used for with L{RenderData.sceneMode} bitfield attribute.  
+Values can be ORed together.  Individual bits can also be set/cleared with
+boolean attributes.
+  - SEQUENCER: Enables sequencer output rendering.
+  - EXTENSION: Adds extensions to the output when rendering animations.
+
+@type FramingModes: readonly dictionary
+@var FramingModes: Constant dict used for with L{RenderData.gameFrame}
+attribute.  One of the following modes can be active:
+  - BARS: Show the entire viewport in the display window, using bar
+    horizontally or vertically.
+  - EXTEND: Show the entire viewport in the display window, viewing more
+    horizontally or vertically
+  - SCALE: Stretch or squeeze the viewport to fill the display window.
 
 """
 
@@ -85,7 +122,137 @@ class RenderData:
   """
   The RenderData object
   =====================
-    This object gives access to Scene rendering contexts in Blender.
+  This object gives access to Scene rendering contexts in Blender.
+  @ivar unified: Unified Renderer enabled.  
+  Also see B{UNIFIED} in L{Modes} constant dict.
+  @type unified: boolean
+  @ivar renderwinSize: Size of the rendering window. Valid values are 25, 50,
+  75, or 100.
+  @type renderwinSize: int
+  @ivar xParts: Number of horizontal parts for image render.
+  Values are clamped to the range [2,512].
+  @type xParts: int
+  @ivar fieldRendering: Field rendering enabled. 
+  Also see B{FIELDRENDER} in L{Modes} constant dict.
+  @type fieldRendering: boolean
+  @ivar gammaCorrection: Gamma correction enabled. 
+  Also see B{GAMMA} in L{Modes} constant dict.
+  @type gammaCorrection: boolean
+  @ivar eFrame: Ending frame for rendering.
+  Values are clamped to the range [1,MAXFRAME].
+  @type eFrame: int
+  @ivar radiosityRender: Radiosity rendering enabled.
+  @type radiosityRender: boolean
+  @ivar sizeX: Image width (in pixels).
+  Values are clamped to the range [4,10000].
+  @type sizeX: int
+  @ivar shadow: Shadow calculation enabled. 
+  Also see B{SHADOW} in L{Modes} constant dict.
+  @type shadow: boolean
+  @ivar aspectX: Horizontal aspect ratio.
+  Values are clamped to the range [1,200].
+  @type aspectX: int
+  @ivar mode: Mode bitfield.  See L{Modes} constant dict for values.
+  @type mode: bitfield
+  @ivar fieldTimeDisable: Time difference in field calculations I{disabled}.
+  @type fieldTimeDisable: int
+  @ivar cFrame: The current frame for rendering.
+  Values are clamped to the range [1,MAXFRAME].
+  @type cFrame: int
+  @ivar crop: Crop image during border renders. 
+  Also see B{CROP} in L{Modes} constant dict.
+  @type crop: boolean
+  @ivar sFrame: Starting frame for rendering.
+  Values are clamped to the range [1,MAXFRAME].
+  @type sFrame: int
+  @ivar backbuf: Backbuffer image enabled.
+  @type backbuf: boolean
+  @ivar OSALevel: Oversampling (anti-aliasing) level.  Valid values are
+  5, 8, 11, or 16.
+  @type OSALevel: int
+  @ivar displayMode: Render output in separate window or 3D view.
+  Valid values are 0 (display in 3d view) or 1 (display in window).
+  @type displayMode: int
+  @ivar threads: Render in two threads enabled. 
+  Also see B{THREADS} in L{Modes} constant dict.
+  @type threads: boolean
+  @ivar backbufPath: Path to a background image (setting loads image).
+  @type backbufPath: string
+  @ivar toonShading: Toon edge shading enabled. 
+  Also see B{TOONSHADING} in L{Modes} constant dict.
+  @type toonShading: boolean
+  @ivar sceneMode: Scene mode bitfield.  See L{SceModes} constant dict for
+  values.
+  @type sceneMode: bitfield
+  @ivar gameFrameColor: RGB color triplet for bars.  
+  Values are clamped in the range [0.0,1.0].
+  @type gameFrameColor: list of RGB 3 floats
+  @ivar extensions: Add extensions to output (when rendering animations).
+  Also see B{EXTENSION} in L{SceModes} constant dict.
+  @type extensions: boolean
+  @ivar sizeY: Image height (in pixels).
+  Values are clamped to the range [4,10000].
+  @type sizeY: int
+  @ivar renderer: Rendering engine choice.  
+  Valid values are 0 (internal) or 1 (Yafray).
+  @type renderer: int
+  @ivar sequencer: Enables sequencer output rendering.
+  Also see B{SEQUENCER} in L{SceModes} constant dict.
+  @type sequencer: boolean
+  @ivar panorama: Panorama rendering enabled. 
+  Also see B{PANORAMA} in L{Modes} constant dict.
+  @type panorama: boolean
+  @ivar rayTracing: Ray tracing enabled. 
+  Also see B{RAYTRACING} in L{Modes} constant dict.
+  @type rayTracing: boolean
+  @ivar renderPath: The path to output the rendered images.
+  @type renderPath: string
+  @ivar gameFrame: Game framing type.  See L{FramingModes} constant dict.
+  @type gameFrame: int
+  @ivar aspectY: Vertical aspect ratio.
+  Values are clamped to the range [1,200].
+  @type aspectY: int
+  @ivar imageType: File format for saving images.  See the module's constants
+  for values.
+  @type imageType: int
+  @ivar ftypePath: The path to Ftype file.
+  @type ftypePath: string
+  @ivar border: The border for border rendering.  The format is
+  [xmin,ymin,xmax,ymax].  Values are clamped to [0.0,1.0].
+  @type border: list of 4 floats.
+  @ivar edgeColor: RGB color triplet for edges in Toon shading (unified
+  renderer).
+  Values are clamped in the range [0.0,1.0].
+  @type edgeColor: list of 3 RGB floats
+  @ivar yParts: Number of vertical parts for image render.  
+  Values are clamped to the range [2,512].
+  @type yParts: int
+  @ivar imagePlanes: Image depth in bits.  Valid values are 8, 24, or 32.
+  @type imagePlanes: int
+  @ivar borderRender: Small cut-out rendering enabled. 
+  Also see B{BORDER_RENDER} in L{Modes} constant dict.
+  @type borderRender: boolean
+  @ivar oversampling: Oversampling (anti-aliasing) enabled. 
+  Also see B{OSA} in L{Modes} constant dict.
+  @type oversampling: boolean
+  @ivar fps: Frames per second.
+  Values are clamped to the range [1,120].
+  @type fps: int
+  @ivar timeCode: Get the current frame in HH:MM:SS:FF format.  Read-only.
+  @type timeCode: string
+  @ivar environmentMap: Environment map rendering enabled. 
+  Also see B{ENVMAP} in L{Modes} constant dict.
+  @type environmentMap: boolean
+  @ivar motionBlur: Motion blur enabled. 
+  Also see B{MBLUR} in L{Modes} constant dict.
+  @type motionBlur: boolean
+  @ivar oddFieldFirst: Odd field first rendering enabled. 
+  Also see B{ODDFIELD} in L{Modes} constant dict.
+  @type oddFieldFirst: boolean
+  @ivar alphaMode: Setting for sky/background.  Valid values are 0 (fill
+  background with sky), 1 (multiply alpha in advance), or 2 (alpha and color
+  values remain unchanged).
+  @type alphaMode: int
   """
 
   def currentFrame(frame = None):
