@@ -1408,6 +1408,15 @@ static void do_render_fields_3d(Render *re)
 /* main render routine, no compositing */
 static void do_render_fields_blur_3d(Render *re)
 {
+	/* only check for camera here */
+	if(re->scene->camera==NULL) {
+		re->error("No camera");
+		return;
+	}
+	
+	/* now use renderdata and camera to set viewplane */
+	RE_SetCamera(re, re->scene->camera);
+	
 	if(re->r.mode & R_FIELDS)
 		do_render_fields_3d(re);
 	else if(re->r.mode & R_MBLUR)
@@ -1459,10 +1468,6 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	
 	/* this to enable this scene to create speed vectors */
 	resc->r.scemode |= R_DOCOMP;
-	
-	/* now use renderdata and camera to set viewplane */
-	if(sce->camera==NULL) return;
-	RE_SetCamera(resc, sce->camera);
 	
 	/* still unsure entity this... */
 	resc->scene= sce;
@@ -1553,9 +1558,6 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	if(composite_needs_render(re->scene)) {
 		/* save memory... free all cached images */
 		ntreeFreeCache(ntree);
-		
-		/* now use renderdata and camera to set viewplane */
-		RE_SetCamera(re, re->scene->camera);
 		
 		do_render_fields_blur_3d(re);
 	}
@@ -1676,14 +1678,9 @@ static int is_rendering_allowed(Render *re)
 		}
 	}
 	
- 	/* check valid camera */
+ 	/* check valid camera, without camera render is OK (compo, seq) */
 	if(re->scene->camera==NULL)
 		re->scene->camera= scene_find_camera(re->scene);
-	if(re->scene->camera==NULL) {
-		re->error("No camera");
-		return 0;
-	}
-	
 	
 	return 1;
 }
