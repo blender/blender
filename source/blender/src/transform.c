@@ -1318,11 +1318,11 @@ int Shear(TransInfo *t, short mval[2])
 
 void initResize(TransInfo *t) 
 {
-	t->fac = (float)sqrt( (float)
+	t->fac = (float)sqrt(
 		(
-			(t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
+			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
 		+
-			(t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
+			((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
 		) );
 
 	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
@@ -2412,11 +2412,11 @@ void initCrease(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = Crease;
-	t->fac = (float)sqrt( (float)
+	t->fac = (float)sqrt(
 		(
-			(t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
+			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
 		+
-			(t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
+			((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
 		) );
 
 	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
@@ -2699,11 +2699,11 @@ void initBoneSize(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = BoneSize;
-	t->fac = (float)sqrt( (float)(
-								  (t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
-								  +
-								  (t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
-								  ) );
+	t->fac = (float)sqrt( (
+					   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
+					   +
+					   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
+					   ) );
 	
 	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
@@ -2775,11 +2775,11 @@ void initBoneEnvelope(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = BoneEnvelope;
-	t->fac = (float)sqrt( (float)(
-								  (t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
-								  +
-								  (t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
-								  ) );
+	t->fac = (float)sqrt( (
+						   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
+						   +
+						   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
+						   ) );
 	
 	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
