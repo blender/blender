@@ -615,7 +615,6 @@ class MFaceSeq:
   def selected():
     """
     Get selected faces.
-    mode.
     @return: a list of the indices for all faces selected in edit mode.
     @rtype: list of ints
     """
@@ -653,7 +652,7 @@ class Mesh:
   @type mode: int
   @ivar sel: Sets selection status for all vertices, edges and faces in the
     mesh (write only).
-  @type mode: boolean
+  @type sel: boolean
   @ivar hide: Sets hidden status for all vertices, edges and faces in the
     mesh (write only).
   @type hide: boolean
