@@ -540,18 +540,37 @@ static void writeBlog(void)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	FILE *fp;
-	int i, num;
+	int i, last;
+	char refresh=0;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
 
 	fp= fopen(name, "w");
 	if (fp) {
-		for (i=0, num=0; (num<10) && (G.recent[i][0]); i++, num++) {
-			if (i==0) {
-				fprintf(fp, "%s\n", G.sce);
-				num++;
+		/* add new file to list of recent opened files */
+		if(strcmp(G.recent[0], G.sce)!=0) {
+			fprintf(fp, "%s\n", G.sce);
+			refresh=1;
+		}
+		/* refresh .Blog of recent opened files, when current file was changed */
+		if(refresh) {
+			for (i=0; (i<10) && (G.recent[i][0]); i++) {
+				/* this prevents to have duplicities in list */
+				if (strcmp(G.recent[i], G.sce)!=0) {
+					fprintf(fp, "%s\n", G.recent[i]);
+					last = i;
+				}
 			}
-			if (strcmp(G.recent[i], G.sce)) fprintf(fp, "%s\n", G.recent[i]);
+			/* refresh list of recent opened files in memory too */
+			for(i=last;i>0;i--) {
+				if (strcmp(G.recent[i-1], G.sce)!=0) {
+					G.recent[i][0]='\0';
+					strcat(G.recent[i], G.recent[i-1]);
+				}
+			}
+			/* add current file to the beginning of list */
+			G.recent[0][0]='\0';
+			strcat(G.recent[0], G.sce);
 		}
 		fclose(fp);
 	}

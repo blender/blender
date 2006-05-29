@@ -741,15 +741,6 @@ static void do_info_filemenu(void *arg, int event)
 	case 1: /* open */
 		activate_fileselect(FILE_BLENDER, "Open", G.sce, BIF_read_file);
 		break;
-	case 2: /* reopen last */
-		{
-			char *s= MEM_mallocN(strlen(G.sce) + 11 + 1, "okee_reload");
-			strcpy(s, "Open file: ");
-			strcat(s, G.sce);
-			if (okee(s)) BIF_read_file(G.sce);
-			MEM_freeN(s);
-		}
-		break;
 	case 3: /* append */
 		activate_fileselect(FILE_LOADLIB, "Load Library", G.lib, 0);
 		break;
@@ -830,6 +821,41 @@ static void do_info_filemenu(void *arg, int event)
 	allqueue(REDRAWINFO, 0);
 }
 
+static void do_info_operecentmenu(void *arg, int event)
+{
+	if(event==0 && G.sce[0]) {
+		BIF_read_file(G.sce);
+	}
+	else {
+		BIF_read_file(G.recent[event-1]);
+	}
+}
+
+static uiBlock *info_openrecentmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120, i;
+
+	block= uiNewBlock(&curarea->uiblocks, "info_openrecentmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_operecentmenu, NULL);
+
+	if (G.sce[0]) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, G.sce, 0, yco-=20,
+				menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	}
+
+	for (i=0; i<10 && (G.recent[i][0]); i++) {
+		if (strcmp(G.recent[i], G.sce)) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, G.recent[i], 0, yco-=20,
+					menuwidth, 19, NULL, 0.0, 0.0, 1, i+1, "");
+		}
+	}
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static uiBlock *info_filemenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -841,7 +867,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Ctrl X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|F1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen Last|Ctrl O",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBlockBut(block, info_openrecentmenu, NULL, ICON_RIGHTARROW_THIN, "Open recent",0, yco-=20, 120, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
