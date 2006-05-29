@@ -1565,13 +1565,13 @@ void mergemenu(void)
 	if(G.scene->selectmode & SCE_SELECT_VERTEX)
 		if(G.editMesh->selected.first && G.editMesh->selected.last && 
 			((EditSelection*)G.editMesh->selected.first)->type == EDITVERT && ((EditSelection*)G.editMesh->selected.last)->type == EDITVERT) 
-				event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4|Collapse Edges%x2|Collapse Faces%x5");
+				event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4|Collapse%x2");
 		else if (G.editMesh->selected.first && ((EditSelection*)G.editMesh->selected.first)->type == EDITVERT) 
-			event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4|Collapse Edges%x2|Collapse Faces%x5");
+			event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4|Collapse%x2");
 		else if (G.editMesh->selected.last && ((EditSelection*)G.editMesh->selected.last)->type == EDITVERT) 
-			event = pupmenu("Merge %t|At Last %x1|At Center%x3|At Cursor%x4|Collapse Edges%x2|Collapse Faces%x5");
-		else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse Edges%x2|Collapse Faces%x5");
-	else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse Edges%x2|Collapse Faces%x5");
+			event = pupmenu("Merge %t|At Last %x1|At Center%x3|At Cursor%x4|Collapse%x2");
+		else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse%x2");
+	else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse%x2");
 	switch (event)
 	{
 		case -1:
@@ -1597,15 +1597,8 @@ void mergemenu(void)
 			BIF_undo_push("Merge at first selected");
 			break;
 		case 2:
-			if(G.qual & LR_CTRLKEY) remCount = collapseEdges(1);
-			else remCount = collapseEdges(0);
-			
-			BIF_undo_push("Collapse Edges");
-			break;
-		case 5:
-			if(G.qual & LR_CTRLKEY) remCount = collapseFaces(1);
-			else remCount = collapseFaces(0);
-			BIF_undo_push("Collapse Faces");
+			remCount = collapseEdges();
+			BIF_undo_push("Collapse");
 			break;
 	}
 	notice("Removed %d Vertices", remCount);

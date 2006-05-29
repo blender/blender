@@ -5622,8 +5622,8 @@ void shape_copy_select_from()
 }
 
 /* Collection Routines|Currently used by the improved merge code*/
-/* both buildEdge_collection() and buildFace_collection() create a list of lists*/
-/* these lists are filled with edges or faces that are topologically connected.*/
+/* buildEdge_collection() creates a list of lists*/
+/* these lists are filled with edges that are topologically connected.*/
 
 typedef struct Collection{
 	struct Collection *next, *prev;
@@ -5635,11 +5635,6 @@ typedef struct CollectedEdge{
 	struct CollectedEdge *next, *prev;
 	EditEdge *eed;
 } CollectedEdge;
-
-typedef struct CollectedFace{
-	struct CollectedFace *next, *prev;
-	EditFace *efa;
-} CollectedFace;
 
 #define MERGELIMIT 0.001
 
@@ -5718,107 +5713,6 @@ static void build_edgecollection(ListBase *allcollections)
 	}
 }
 
-static void build_facecollection(ListBase *allcollections) /*Builds a collection of lists of connected faces from the currently selected set*/
-{
-	EditFace *efa;
-	Collection *facecollection, *newcollection;
-	CollectedFace *newface;
-	
-	int currtag, lowtag;
-	short collectionfound = 0;
-	int tagarray[3];	/*used to pull the tags out of faces vertices. an entry of -1 means no vertex exists....*/
-	currtag = 1;		/*don't start with zero since f1 is cleared to that in editvert and editface structs already*/
-
-	for (efa=G.editMesh->faces.first; efa; efa=efa->next){
-		efa->tmp.l = 0;
-		efa->v1->tmp.l = 0;
-		efa->v2->tmp.l = 0;
-		efa->v3->tmp.l = 0;
-		if(efa->v4) efa->v4->tmp.l = 0; 
-	}
-	
-	/*1st pass*/
-	for (efa=G.editMesh->faces.first; efa; efa=efa->next){
-		if(efa->f&SELECT){	/*face has no vertices that have been visited before since all the f1 tags are zero*/
-			if((efa->v1->tmp.l + efa->v2->tmp.l + efa->v3->tmp.l + ((efa->v4) ? efa->v4->tmp.l : 0)) == 0){ 
-				efa->v1->tmp.l = currtag;
-				efa->v2->tmp.l = currtag;
-				efa->v3->tmp.l = currtag;
-				if(efa->v4) efa->v4->tmp.l = currtag; 
-			}
-			else{	/*the face has some vert tagged allready as a result of another face that it shares verts with being already visited*/
-				lowtag = currtag+1; /* plus one? why? this makes little sense!*/
-				
-				/*test to find the lowest tag....*/
-				if(efa->v1->tmp.l < lowtag && efa->v1->tmp.l != 0 && efa->v1->tmp.l != -1) lowtag = efa->v1->tmp.l;
-				if(efa->v2->tmp.l < lowtag && efa->v2->tmp.l != 0 && efa->v2->tmp.l != -1) lowtag = efa->v2->tmp.l;
-				if(efa->v3->tmp.l < lowtag && efa->v3->tmp.l != 0 && efa->v3->tmp.l != -1) lowtag = efa->v3->tmp.l;
-				
-				if(efa->v4){
-					if(efa->v4->tmp.l < lowtag && efa->v4->tmp.l != 0 && efa->v4->tmp.l != -1) lowtag = efa->v4->tmp.l;
-				}
-				
-			/*set all vertices to lowest tag*/
-				efa->v1->tmp.l = lowtag;
-				efa->v2->tmp.l = lowtag;
-				efa->v3->tmp.l = lowtag;
-				if(efa->v4) efa->v4->tmp.l = lowtag;			
-			}
-			currtag += 1;
-		}
-	}
-	
-	/*2nd pass - Nessecary because of faces connected only by a single vertex*/
-	for (efa=G.editMesh->faces.first; efa; efa=efa->next){
-		lowtag = currtag+1; /*plus one? why? this makes little sense!*/
-		if(efa->f&SELECT){
-			tagarray[0] =  efa->v1->tmp.l;
-			tagarray[1] =  efa->v2->tmp.l;
-			tagarray[2] =  efa->v3->tmp.l;
-			tagarray[3] = (efa->v4) ? efa->v4->tmp.l : -1; /*could be a triangle, have to test*/
-			
-			if(efa->v1->tmp.l < lowtag && efa->v1->tmp.l != 0 && efa->v1->tmp.l != -1) lowtag = efa->v1->tmp.l;
-			if(efa->v2->tmp.l < lowtag && efa->v2->tmp.l != 0 && efa->v2->tmp.l != -1) lowtag = efa->v2->tmp.l;
-			if(efa->v3->tmp.l < lowtag && efa->v3->tmp.l != 0 && efa->v3->tmp.l != -1) lowtag = efa->v3->tmp.l;
-			if(efa->v4){
-				if(efa->v4->tmp.l < lowtag && efa->v4->tmp.l != 0 && efa->v4->tmp.l != -1) lowtag = efa->v4->tmp.l;
-			}
-			efa->tmp.l = lowtag; /*actually tag the face now with lowtag*/
-		}
-	}
-	
-	
-	for(efa=G.editMesh->faces.first; efa; efa=efa->next){
-		if(efa->f&SELECT){
-			if(allcollections->first){
-				for(facecollection = allcollections->first; facecollection; facecollection=facecollection->next){
-					if(facecollection->index == efa->tmp.l){
-						newface = MEM_mallocN(sizeof(CollectedFace), "collected face");
-						newface->efa = efa;
-						BLI_addtail(&(facecollection->collectionbase), newface);
-						collectionfound = 1;
-						break;
-					}
-					else collectionfound = 0;
-				}
-			}
-			if(allcollections->first == NULL || collectionfound == 0){
-				newcollection = MEM_mallocN(sizeof(Collection), "element collection");
-				newcollection->index = efa->tmp.l;
-				newcollection->collectionbase.first = 0;
-				newcollection->collectionbase.last = 0;
-					
-				newface = MEM_mallocN(sizeof(CollectedFace), "collected face");
-				newface->efa = efa;
-					
-				BLI_addtail(&(newcollection->collectionbase), newface);
-				BLI_addtail(allcollections, newcollection);
-			}
-		}
-		
-	}
-}
-
 static void freecollections(ListBase *allcollections)
 {
 	struct Collection *curcollection;
@@ -5827,6 +5721,257 @@ static void freecollections(ListBase *allcollections)
 		BLI_freelistN(&(curcollection->collectionbase));
 	BLI_freelistN(allcollections);
 }
+
+/*Begin UV Edge Collapse Code 
+	Like Edge subdivide, Edge Collapse should handle UV's intelligently, but since UV's are a per-face attribute, normal edge collapse will fail
+	in areas such as the boundries of 'UV islands'. So for each edge collection we need to build a set of 'welded' UV vertices and edges for it.
+	The welded UV edges can then be sorted and collapsed.
+*/
+typedef struct wUV{
+	struct wUV *next, *prev;
+	ListBase nodes;
+	float u, v; /*cached copy of UV coordinates pointed to by nodes*/
+	EditVert *eve;
+	int f;
+} wUV;
+
+typedef struct wUVNode{
+	struct wUVNode *next, *prev;
+	float *u; /*pointer to original tface data*/
+	float *v; /*pointer to original tface data*/
+} wUVNode;
+
+typedef struct wUVEdge{
+	struct wUVEdge *next, *prev;
+	float v1uv[2], v2uv[2]; /*nasty.*/
+	struct wUV *v1, *v2; /*oriented same as editedge*/
+	EditEdge *eed;
+	int f;
+} wUVEdge;
+
+typedef struct wUVEdgeCollect{ /*used for grouping*/
+	struct wUVEdgeCollect *next, *prev;
+	wUVEdge *uved;
+	int id; 
+} wUVEdgeCollect;
+
+static void append_weldedUV(EditFace *efa, EditVert *eve, int tfindex, ListBase *uvverts){
+	wUV *curwvert, *newwvert;
+	wUVNode *newnode;
+	int found;
+	
+	found = 0;
+	
+	for(curwvert=uvverts->first; curwvert; curwvert=curwvert->next){
+		if(curwvert->eve == eve && curwvert->u == efa->tf.uv[tfindex][0] && curwvert->v == efa->tf.uv[tfindex][1]){
+			newnode = MEM_callocN(sizeof(wUVNode), "Welded UV Vert Node");
+			newnode->u = &(efa->tf.uv[tfindex][0]);
+			newnode->v = &(efa->tf.uv[tfindex][1]);
+			BLI_addtail(&(curwvert->nodes), newnode);
+			found = 1;
+			break;
+		}
+	}
+	
+	if(!found){
+		newnode = MEM_callocN(sizeof(wUVNode), "Welded UV Vert Node");
+		newnode->u = &(efa->tf.uv[tfindex][0]);
+		newnode->v = &(efa->tf.uv[tfindex][1]);
+		
+		newwvert = MEM_callocN(sizeof(wUV), "Welded UV Vert");
+		newwvert->u = *(newnode->u);
+		newwvert->v = *(newnode->v);
+		newwvert->eve = eve;
+		
+		BLI_addtail(&(newwvert->nodes), newnode);
+		BLI_addtail(uvverts, newwvert);
+		
+	}
+}
+
+static void build_weldedUVs(ListBase *uvverts){
+	EditFace *efa;
+	for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+		if(efa->v1->f1) append_weldedUV(efa, efa->v1, 0, uvverts);
+		if(efa->v2->f1) append_weldedUV(efa, efa->v2, 1, uvverts);
+		if(efa->v3->f1) append_weldedUV(efa, efa->v3, 2, uvverts);
+		if(efa->v4 && efa->v4->f1) append_weldedUV(efa, efa->v4, 3, uvverts);
+	}
+}
+
+static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges){
+	wUVEdge *curwedge, *newwedge;
+	int v1tfindex, v2tfindex, found;
+	
+	found = 0;
+	
+	if(eed->v1 == efa->v1) v1tfindex = 0;
+	else if(eed->v1 == efa->v2) v1tfindex = 1;
+	else if(eed->v1 == efa->v3) v1tfindex = 2;
+	else if(eed->v1 == efa->v4) v1tfindex = 3;
+			
+	if(eed->v2 == efa->v1) v2tfindex = 0;
+	else if(eed->v2 == efa->v2) v2tfindex = 1;
+	else if(eed->v2 == efa->v3) v2tfindex = 2;
+	else if(eed->v2 == efa->v4) v2tfindex = 3;
+
+	for(curwedge=uvedges->first; curwedge; curwedge=curwedge->next){
+			if(curwedge->eed == eed && curwedge->v1uv[0] == efa->tf.uv[v1tfindex][0] && curwedge->v1uv[1] == efa->tf.uv[v1tfindex][1] && curwedge->v2uv[0] == efa->tf.uv[v2tfindex][0] && curwedge->v2uv[1] == efa->tf.uv[v2tfindex][1]){
+				found = 1;
+				break; //do nothing, we don't need another welded uv edge
+			}
+	}
+	
+	if(!found){
+		newwedge = MEM_callocN(sizeof(wUVEdge), "Welded UV Edge");
+		newwedge->v1uv[0] = efa->tf.uv[v1tfindex][0];
+		newwedge->v1uv[1] = efa->tf.uv[v1tfindex][1];
+		newwedge->v2uv[0] = efa->tf.uv[v2tfindex][0];
+		newwedge->v2uv[1] = efa->tf.uv[v2tfindex][1];
+		newwedge->eed = eed;
+		
+		BLI_addtail(uvedges, newwedge);
+	}
+}
+
+static void build_weldedUVEdges(ListBase *uvedges, ListBase *uvverts){
+	
+	wUV *curwvert;
+	wUVEdge *curwedge;
+	EditFace *efa;
+	
+	for(efa=G.editMesh->faces.first; efa; efa=efa->next){
+		if(efa->e1->f1) append_weldedUVEdge(efa, efa->e1, uvedges);
+		if(efa->e2->f1) append_weldedUVEdge(efa, efa->e2, uvedges);
+		if(efa->e3->f1) append_weldedUVEdge(efa, efa->e3, uvedges);
+		if(efa->e4 && efa->e4->f1) append_weldedUVEdge(efa, efa->e4, uvedges);
+	}
+	
+	
+	//link vertices: for each uvedge, search uvverts to populate v1 and v2 pointers
+	for(curwedge=uvedges->first; curwedge; curwedge=curwedge->next){
+		for(curwvert=uvverts->first; curwvert; curwvert=curwvert->next){
+			if(curwedge->eed->v1 == curwvert->eve && curwedge->v1uv[0] == curwvert->u && curwedge->v1uv[1] == curwvert->v){
+				curwedge->v1 = curwvert;
+				break;
+			}
+		}
+		for(curwvert=uvverts->first; curwvert; curwvert=curwvert->next){
+			if(curwedge->eed->v2 == curwvert->eve && curwedge->v2uv[0] == curwvert->u && curwedge->v2uv[1] == curwvert->v){
+				curwedge->v2 = curwvert;
+				break;
+			}
+		}
+	}
+}
+
+static void free_weldedUVs(ListBase *uvverts){
+	wUV *curwvert;
+	for(curwvert = uvverts->first; curwvert; curwvert=curwvert->next) BLI_freelistN(&(curwvert->nodes));
+	BLI_freelistN(uvverts);
+}
+
+static void collapse_edgeuvs(void){
+	EditEdge *eed;
+	ListBase uvedges, uvverts, allcollections;
+	wUVEdge *curwedge;
+	wUVNode *curwnode;
+	wUVEdgeCollect *collectedwuve, *newcollectedwuve;
+	Collection *wuvecollection, *newcollection;
+	int curtag, balanced, collectionfound, vcount;
+	float avg[2];
+	
+	uvverts.first = uvverts.last = uvedges.first = uvedges.last = allcollections.first = allcollections.last = NULL;
+	
+	build_weldedUVs(&uvverts);
+	build_weldedUVEdges(&uvedges, &uvverts);
+	
+	curtag = 0;
+	
+	for(curwedge=uvedges.first; curwedge; curwedge=curwedge->next){
+		curwedge->v1->f = curtag;
+		curwedge->v2->f = curtag;
+		curtag +=1;
+	}
+	
+	balanced = 0;
+	while(!balanced){
+		balanced = 1;
+		for(curwedge=uvedges.first; curwedge; curwedge=curwedge->next){
+			if(curwedge->v1->f != curwedge->v2->f){
+				if(curwedge->v1->f > curwedge->v2->f) curwedge->v1->f = curwedge->v2->f;
+				else curwedge->v2->f = curwedge->v1->f;
+				balanced = 0;
+			}
+		}
+	}
+	
+	for(curwedge=uvedges.first; curwedge; curwedge=curwedge->next) curwedge->f = curwedge->v1->f;
+	
+	
+	for(curwedge=uvedges.first; curwedge; curwedge=curwedge->next){
+		if(allcollections.first){
+			for(wuvecollection = allcollections.first; wuvecollection; wuvecollection=wuvecollection->next){
+				if(wuvecollection->index == curwedge->f){
+					newcollectedwuve = MEM_callocN(sizeof(wUVEdgeCollect), "Collected Welded UV Edge");
+					newcollectedwuve->uved = curwedge;
+					BLI_addtail(&(wuvecollection->collectionbase), newcollectedwuve);
+					collectionfound = 1;
+					break;
+				}
+				
+				else collectionfound = 0;
+			}
+		}
+		if(allcollections.first == NULL || collectionfound == 0){
+			newcollection = MEM_callocN(sizeof(Collection), "element collection");
+			newcollection->index = curwedge->f;
+			newcollection->collectionbase.first = 0;
+			newcollection->collectionbase.last = 0;
+				
+			newcollectedwuve = MEM_callocN(sizeof(wUVEdgeCollect), "Collected Welded UV Edge");
+			newcollectedwuve->uved = curwedge;
+					
+			BLI_addtail(&(newcollection->collectionbase), newcollectedwuve);
+			BLI_addtail(&allcollections, newcollection);
+		}
+	}
+		
+	for(wuvecollection=allcollections.first; wuvecollection; wuvecollection=wuvecollection->next){
+		
+		vcount = avg[0] = avg[1] = 0;
+		
+		for(collectedwuve= wuvecollection->collectionbase.first; collectedwuve; collectedwuve = collectedwuve->next){
+			avg[0] += collectedwuve->uved->v1uv[0];
+			avg[1] += collectedwuve->uved->v1uv[1];
+			
+			avg[0] += collectedwuve->uved->v2uv[0];
+			avg[1] += collectedwuve->uved->v2uv[1];
+			
+			vcount +=2;
+		
+		}
+		
+		avg[0] /= vcount; avg[1] /= vcount;
+		
+		for(collectedwuve= wuvecollection->collectionbase.first; collectedwuve; collectedwuve = collectedwuve->next){
+			for(curwnode=collectedwuve->uved->v1->nodes.first; curwnode; curwnode=curwnode->next){
+				*(curwnode->u) = avg[0];
+				*(curwnode->v) = avg[1];
+			}
+			for(curwnode=collectedwuve->uved->v2->nodes.first; curwnode; curwnode=curwnode->next){
+				*(curwnode->u) = avg[0];
+				*(curwnode->v) = avg[1];
+			}
+		}
+	}
+	
+	free_weldedUVs(&uvverts);
+	BLI_freelistN(&uvedges);
+	freecollections(&allcollections);
+}
+
+/*End UV Edge collapse code*/
 
 static void collapseuvs(void)
 {
@@ -5892,9 +6037,10 @@ static void collapseuvs(void)
 	}
 }
 
-int collapseEdges(int uvmerge)
+int collapseEdges(void)
 {
 	EditVert *eve;
+	EditEdge *eed;
 	
 	ListBase allcollections;
 	CollectedEdge *curredge;
@@ -5939,94 +6085,17 @@ int collapseEdges(int uvmerge)
 			VECCOPY(((EditEdge*)curredge->eed)->v1->co,avgcount);
 			VECCOPY(((EditEdge*)curredge->eed)->v2->co,avgcount);
 		}
-		if(uvmerge){
-			for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
-			for(curredge = edgecollection->collectionbase.first; curredge; curredge = curredge->next){
-				curredge->eed->v1->f1 = 1;
-				curredge->eed->v2->f1 = 1;
-			}
-			
-			collapseuvs();
+		
+		/*uv collapse*/
+		for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
+		for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
+		for(curredge = edgecollection->collectionbase.first; curredge; curredge = curredge->next){
+			curredge->eed->v1->f1 = 1;
+			curredge->eed->v2->f1 = 1;
+			curredge->eed->f1 = 1;
 		}
-	}
-	freecollections(&allcollections);
-	removedoublesflag(1, MERGELIMIT);
-	/*get rid of this!*/
-	countall();
-	return mergecount;
-}
-
-int collapseFaces(int uvmerge){
-	
-	EditVert *eve;
+		collapse_edgeuvs();
 		
-	ListBase allcollections;
-	CollectedFace *currface;
-	Collection *facecollection;
-	
-	int groupcount;
-	int vcount,totFaces,mergecount;
-	float avgcount[3];
-	
-	allcollections.first = 0;
-	allcollections.last = 0;
-	
-	mergecount = 0;
-	build_facecollection(&allcollections);
-	groupcount = BLI_countlist(&allcollections);
-
-	for(facecollection = allcollections.first; facecollection; facecollection = facecollection->next){
-		totFaces = BLI_countlist(&(facecollection->collectionbase));
-		mergecount += totFaces;
-		avgcount[0] = 0; avgcount[1] = 0; avgcount[2] = 0;
-		vcount = 0;
-		for(currface = facecollection->collectionbase.first; currface; currface = currface->next){
-			avgcount[0] += ((EditFace*)currface->efa)->v1->co[0];
-			avgcount[1] += ((EditFace*)currface->efa)->v1->co[1];
-			avgcount[2] += ((EditFace*)currface->efa)->v1->co[2];
-			
-			avgcount[0] += ((EditFace*)currface->efa)->v2->co[0];
-			avgcount[1] += ((EditFace*)currface->efa)->v2->co[1];
-			avgcount[2] += ((EditFace*)currface->efa)->v2->co[2];
-			
-			avgcount[0] += ((EditFace*)currface->efa)->v3->co[0];
-			avgcount[1] += ((EditFace*)currface->efa)->v3->co[1];
-			avgcount[2] += ((EditFace*)currface->efa)->v3->co[2];
-			
-			vcount+= 3;
-			
-			if(((EditFace*)currface->efa)->v4){
-				avgcount[0] += ((EditFace*)currface->efa)->v3->co[0];
-				avgcount[1] += ((EditFace*)currface->efa)->v3->co[1];
-				avgcount[2] += ((EditFace*)currface->efa)->v3->co[2];
-				vcount+=1;
-			}
-		}
-		
-		
-		avgcount[0] /= vcount; avgcount[1] /=vcount; avgcount[2] /= vcount;
-		
-		for(currface = facecollection->collectionbase.first; currface; currface = currface->next){
-			VECCOPY(((EditFace*)currface->efa)->v1->co,avgcount);
-			VECCOPY(((EditFace*)currface->efa)->v2->co,avgcount);
-			VECCOPY(((EditFace*)currface->efa)->v3->co,avgcount);
-			if(((EditFace*)currface->efa)->v4) VECCOPY(((EditFace*)currface->efa)->v4->co, avgcount);
-		}
-		
-		if(uvmerge){
-			for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
-			
-			for(currface = facecollection->collectionbase.first; currface; currface = currface->next){
-				currface->efa->v1->f1 = 1;
-				currface->efa->v2->f1 = 1;
-				currface->efa->v3->f1 = 1;
-				if(currface->efa->v4){ 
-					currface->efa->v4->f1 = 1;
-					
-				}
-			}
-			collapseuvs();
-		}
 	}
 	freecollections(&allcollections);
 	removedoublesflag(1, MERGELIMIT);

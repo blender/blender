@@ -940,7 +940,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 
 static TBitem tb_mesh_edit_edge[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
-{	0, "Collapse Edges|Alt M", 14,			NULL},
+{	0, "Collapse|Alt M", 14,			NULL},
 {	0, "SEPR",						0, NULL},
 {	0, "Bevel|W, Alt 2", 					6, 		NULL},
 {	0, "Loop Subdivide|Ctrl R", 		4, 		NULL},
@@ -966,7 +966,6 @@ static TBitem tb_mesh_edit_face[]= {
 {	0, "Make Edge/Face|F", 			5, 		NULL},
 {	0, "Fill|Shift F", 				0, 		NULL},
 {	0, "Beautify Fill|Alt F", 			1, 		NULL},
-{	0, "Collapse Faces|Alt M",		8,		NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Convert to Triangles|Ctrl T", 	2, 		NULL},
 {	0, "Convert to Quads|Alt J", 		3, 		NULL},

@@ -216,8 +216,7 @@ int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 void shape_copy_select_from(void);
 void shape_propagate(void);
 
-int collapseEdges(int uvmerge);
-int collapseFaces(int uvmerge);
+int collapseEdges(void);
 int merge_firstlast(int first, int uvmerge);
 int merge_target( int target, int uvmerge);
 
