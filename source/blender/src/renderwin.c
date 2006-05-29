@@ -596,8 +596,8 @@ static char *renderwin_get_title(int doswap)
 	swap+= doswap;
 	
 	if(swap & 1) {
-		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render (previous frame)";
-		else title = "Blender:Render (previous frame)";
+		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render (previous)";
+		else title = "Blender:Render (previous)";
 	}
 	else {
 		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render";
@@ -1203,7 +1203,8 @@ void BIF_do_render(int anim)
 		}
 	}
 	
-	renderwin_store_spare();
+	if(render_win && render_win->showspare)
+		renderwin_store_spare();
 
 	do_render(anim);
 
