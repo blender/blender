@@ -289,7 +289,12 @@ class RenderData:
   def saveRenderedImage(filename, zbuffer=0):
     """
     Saves the image rendered using RenderData.render() to the filename and path
-    given in the variable 'filename'
+    given in the variable 'filename'.
+    
+    Make sure the filename you provide makes a valid path when added to the "render path"
+    (setRenderPath/getRenderPath) to make up the absolute path.
+    If you want to render to a new absolute path just set the renderpath to an
+    empty string and use the absolute path as the filename.
     @param filename: The path+filename for the rendered image.
     @type zbuffer: int 
     @param zbuffer: Whether or not to render the zbuffer along with the image.
