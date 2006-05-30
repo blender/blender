@@ -823,11 +823,14 @@ static void do_info_filemenu(void *arg, int event)
 
 static void do_info_operecentmenu(void *arg, int event)
 {
+	struct RecentFile *recent;
+
 	if(event==0 && G.sce[0]) {
 		BIF_read_file(G.sce);
 	}
-	else {
-		BIF_read_file(G.recent[event-1]);
+	else {	/* Global */
+		recent = BLI_findlink(&(G.recent_files), event-1);
+		BIF_read_file(recent->filename);
 	}
 }
 
@@ -835,6 +838,7 @@ static uiBlock *info_openrecentmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120, i;
+	struct RecentFile *recent;
 
 	block= uiNewBlock(&curarea->uiblocks, "info_openrecentmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_operecentmenu, NULL);
@@ -844,9 +848,9 @@ static uiBlock *info_openrecentmenu(void *arg_unused)
 				menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	}
 
-	for (i=0; i<10 && (G.recent[i][0]); i++) {
-		if (strcmp(G.recent[i], G.sce)) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, G.recent[i], 0, yco-=20,
+	for (recent = G.recent_files.first, i=0; i<10 && recent; recent = recent->next, i++) {
+		if (strcmp(recent->filename, G.sce)!=0) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, recent->filename, 0, yco-=20,
 					menuwidth, 19, NULL, 0.0, 0.0, 1, i+1, "");
 		}
 	}

@@ -33,17 +33,22 @@
 #ifndef BIF_USIBLENDER_H
 #define BIF_USIBLENDER_H
 
+typedef struct RecentFile {
+	struct RecentFile *next, *prev;
+	char *filename;
+} RecentFile;
+
 void exit_usiblender(void);
 
-void	BIF_init(void);
+void BIF_init(void);
 
-void	BIF_read_file			(char *name);
-int		BIF_read_homefile		(void);
-void	BIF_read_autosavefile	(void);
+void BIF_read_file(char *name);
+int BIF_read_homefile(void);
+void BIF_read_autosavefile(void);
 
-void	BIF_write_file			(char *target);
-void	BIF_write_homefile		(void);
-void	BIF_write_autosave		(void);
+void BIF_write_file(char *target);
+void BIF_write_homefile(void);
+void BIF_write_autosave(void);
 
 #endif
 

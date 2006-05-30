@@ -455,25 +455,40 @@ void BIF_read_autosavefile(void)
 	strcpy(G.sce, scestr);
 }
 
-/***/
+/* free strings of open recent files */
+static void free_openrecent(void)
+{
+	struct RecentFile *recent;
+
+	for(recent = G.recent_files.first; recent; recent=recent->next)
+		MEM_freeN(recent->filename);
+
+	BLI_freelistN(&(G.recent_files));
+}
 
 static void readBlog(void)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE], filename[FILE_MAXFILE];
 	LinkNode *l, *lines;
+	struct RecentFile *recent;
 	char *line;
 	int num;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
 	lines= BLI_read_file_as_lines(name);
 
-	for (num= 0; num<10; num++) G.recent[num][0]= 0;
-	
+	G.recent_files.first = G.recent_files.last = NULL;
+
+	/* read list of recent opend files from .Blog to memory */
 	for (l= lines, num= 0; l && (num<10); l= l->next, num++) {
 		line = l->link;
 		if (!BLI_streq(line, "")) {
 			if (num==0) strcpy(G.sce, line);
-			strcpy(G.recent[num], line);
+			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
+			BLI_addtail(&(G.recent_files), recent);
+			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
+			recent->filename[0] = '\0';
+			strcpy(recent->filename, line);
 		}
 	}
 
@@ -538,37 +553,46 @@ static void readBlog(void)
 
 static void writeBlog(void)
 {
+	struct RecentFile *recent, *next_recent;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	FILE *fp;
-	int i, last= 0;
+	int i;
 	char refresh=0;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
 
 	fp= fopen(name, "w");
 	if (fp) {
+		recent = G.recent_files.first;
 		/* add new file to list of recent opened files */
-		if(strcmp(G.recent[0], G.sce)!=0) {
+		if(!(recent) || (strcmp(recent->filename, G.sce)!=0)) {
 			fprintf(fp, "%s\n", G.sce);
 			refresh=1;
 		}
 		/* refresh .Blog of recent opened files, when current file was changed */
 		if(refresh) {
-			for (i=0; (i<10) && (G.recent[i][0]); i++) {
+			recent = G.recent_files.first;
+			i=0;
+			while((i<10) && (recent)){
 				/* this prevents to have duplicities in list */
-				if (strcmp(G.recent[i], G.sce)!=0) {
-					fprintf(fp, "%s\n", G.recent[i]);
-					last = i;
+				if (strcmp(recent->filename, G.sce)!=0) {
+					fprintf(fp, "%s\n", recent->filename);
+					recent = recent->next;
 				}
+				else {
+					next_recent = recent->next;
+					MEM_freeN(recent->filename);
+					BLI_freelinkN(&(G.recent_files), recent);
+					recent = next_recent;
+				}
+				i++;
 			}
-			/* refresh list of recent opened files in memory too */
-			for(i=last;i>0;i--) {
-				if (strcmp(G.recent[i-1], G.sce)!=0)
-					strcpy(G.recent[i], G.recent[i-1]);
-			}
-			/* add current file to the beginning of list */
-			G.recent[0][0]='\0';
-			strcat(G.recent[0], G.sce);
+			/* add current file to the beginning of list (BLI_dynstr_append) */
+			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RcentFile");
+			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
+			recent->filename[0] = '\0';
+			strcpy(recent->filename, G.sce);
+			BLI_addhead(&(G.recent_files), recent);
 		}
 		fclose(fp);
 	}
@@ -773,6 +797,7 @@ void exit_usiblender(void)
 		tf= tf->next;
 	}
 	BLI_freelistN(&G.ttfdata);
+	free_openrecent();
 
 	freeAllRad();
 	BKE_freecubetable();

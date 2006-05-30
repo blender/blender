@@ -354,6 +354,7 @@ int untitled(char * name)
 
 char *recent_filelist(void)
 {
+	struct RecentFile *recent;
 	int event, i, ofs;
 	char pup[2048], *p;
 
@@ -363,17 +364,19 @@ char *recent_filelist(void)
 		p+= sprintf(p, "|%s %%x%d", G.sce, 1);
 		ofs = 1;
 	} else ofs = 0;
-	for (i=0; i<10 && (G.recent[i][0]); i++) {
-		if (strcmp(G.recent[i], G.sce)) {
-			p+= sprintf(p, "|%s %%x%d", G.recent[i], i+ofs+1);
+
+	for (recent = G.recent_files.first, i=0; (i<10) && (recent); recent = recent->next, i++) {
+		if (strcmp(recent->filename, G.sce)) {
+			p+= sprintf(p, "|%s %%x%d", recent->filename, i+ofs+1);
 		}
 	}
 	event= pupmenu(pup);
 	if(event>0) {
 		if (ofs && (event==1))
 			return(G.sce);
-		else 
-			return(G.recent[event-1-ofs]);
+		else
+			recent = BLI_findlink(&(G.recent_files), event-1-ofs);
+			if(recent) return(recent->filename);
 	}
 	else
 		return(NULL);
