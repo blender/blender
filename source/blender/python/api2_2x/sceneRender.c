@@ -74,14 +74,6 @@ enum rend_constants {
 	EXPP_RENDER_ATTR_SIZEY,
 	EXPP_RENDER_ATTR_GAUSSFILTER,
 	EXPP_RENDER_ATTR_MBLURFACTOR,
-#if 0
-	EXPP_RENDER_ATTR_POSTADD,
-	EXPP_RENDER_ATTR_POSTGAMMA,
-	EXPP_RENDER_ATTR_POSTMUL,
-	EXPP_RENDER_ATTR_POSTHUE,
-	EXPP_RENDER_ATTR_POSTSAT,
-#endif
-/* EXPP_RENDER_ATTR_, */
 };
 
 #define EXPP_RENDER_ATTR_CFRA                 2
@@ -1482,44 +1474,6 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_MBLURFACTOR:
 		param = self->renderContext->blurfac;
 		break;
-#if 0
-	case EXPP_RENDER_ATTR_POSTADD:
-		param = self->renderContext->postadd;
-		break;
-	case EXPP_RENDER_ATTR_POSTGAMMA:
-		param = self->renderContext->postgamma;
-		break;
-	case EXPP_RENDER_ATTR_POSTMUL:
-		param = self->renderContext->postmul;
-		break;
-	case EXPP_RENDER_ATTR_POSTHUE:
-		param = self->renderContext->posthue;
-		break;
-	case EXPP_RENDER_ATTR_POSTSAT:
-		param = self->renderContext->postsat;
-		break;
-	case EXPP_RENDER_ATTR_YF_EXPOSURE :
-		param = self->renderContext->YF_exposure;
-		break;
-	case EXPP_RENDER_ATTR_YF_GAMMA :
-		param = self->renderContext->YF_gamma;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPHOTONRADIUS :
-		param = self->renderContext->GIphotonradius;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPOWER:
-		param = self->renderContext->GIpower;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIREFINE:
-		param = self->renderContext->GIrefinement;
-		break;
-	case EXPP_RENDER_ATTR_YF_GISHADOWQUAL:
-		param = self->renderContext->GIshadowquality;
-		break;
-	case EXPP_RENDER_ATTR_YF_RAYBIAS:
-		param = self->renderContext->YF_raybias;
-		break;
-#endif
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_getFloatAttr" );
@@ -1548,69 +1502,6 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 5.0f;
 		param = &self->renderContext->blurfac;
 		break;
-#if 0
-	case EXPP_RENDER_ATTR_POSTADD:
-		min = -1.0f;
-		max = 1.0f;
-		param = &self->renderContext->postadd;
-		break;
-	case EXPP_RENDER_ATTR_POSTGAMMA:
-		min = 0.1f;
-		max = 4.0f;
-		param = &self->renderContext->postgamma;
-		break;
-	case EXPP_RENDER_ATTR_POSTMUL:
-		min = 0.01f;
-		max = 4.0f;
-		param = &self->renderContext->postmul;
-		break;
-	case EXPP_RENDER_ATTR_POSTHUE:
-		min = -0.5f;
-		max = 0.5f;
-		param = &self->renderContext->posthue;
-		break;
-	case EXPP_RENDER_ATTR_POSTSAT:
-		min = 0.0f;
-		max = 4.0f;
-		param = &self->renderContext->postsat;
-		break;
-	case EXPP_RENDER_ATTR_YF_EXPOSURE :
-		min = 0.0f;
-		max = 10.0f;
-		param = &self->renderContext->YF_exposure;
-		break;
-	case EXPP_RENDER_ATTR_YF_GAMMA :
-		min = 0.001f;
-		max = 5.0f;
-		param = &self->renderContext->YF_gamma;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPHOTONRADIUS :
-		min = 0.00001f;
-		max = 100.0f;
-		param = &self->renderContext->GIphotonradius;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPOWER:
-		min = 0.01f;
-		max = 100.0f;
-		param = &self->renderContext->GIpower;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIREFINE:
-		min = 0.001f;
-		max = 1.0f;
-		param = &self->renderContext->GIrefinement;
-		break;
-	case EXPP_RENDER_ATTR_YF_GISHADOWQUAL:
-		min = 0.01f;
-		max = 1.0f;
-		param = &self->renderContext->GIshadowquality;
-		break;
-	case EXPP_RENDER_ATTR_YF_RAYBIAS:
-		min = 0.0f;
-		max = 10.0f;
-		param = &self->renderContext->YF_raybias;
-		break;
-	default:
-#endif
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setFloatAttrClamp" );
 	}
@@ -1656,45 +1547,6 @@ static PyObject *RenderData_getIValueAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_SIZEY:
 		param = self->renderContext->ysch;
 		break;
-
-#if 0
-	case EXPP_RENDER_ATTR_ANTISHIFT:
-		param = self->renderContext->same_mat_redux;
-		break;
-	case EXPP_RENDER_ATTR_EDGEINT:
-		param = self->renderContext->edgeint;
-		break;
-	case EXPP_RENDER_ATTR_QUALITY:
-		param = self->renderContext->quality;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIDEPTH:
-		param = self->renderContext->GIdepth;
-		break;
-	case EXPP_RENDER_ATTR_YF_GICDEPTH:
-		param = self->renderContext->GIcausdepth;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPHOTONCOUNT:
-		param = self->renderContext->GIphotoncount;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPHOTONMIXCOUNT:
-		param = self->renderContext->GImixphotons;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPIXPERSAMPLE:
-		param = self->renderContext->GIpixelspersample;
-		break;
-	case EXPP_RENDER_ATTR_YF_PROCCOUNT:
-		param = self->renderContext->YF_numprocs;
-		break;
-	case EXPP_RENDER_ATTR_YF_RAYDEPTH:
-		param = self->renderContext->YF_raydepth;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIMETHOD:
-		param = self->renderContext->GImethod;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIQUALITY:
-		param = self->renderContext->GIquality;
-		break;
-#endif
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setIValueAttrClamp" );
@@ -1773,69 +1625,6 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 		size = 'h';
 		param = &self->renderContext->ysch;
 		break;
-
-#if 0
-	case EXPP_RENDER_ATTR_ANTISHIFT:
-		min = 0;
-		max = 255;
-	   	size = 'h';
-		param = &self->renderContext->same_mat_redux;
-		break;
-	case EXPP_RENDER_ATTR_EDGEINT:
-		min = 0;
-		max = 255;
-	   	size = 'h';
-		param = &self->renderContext->edgeint;
-		break;
-	case EXPP_RENDER_ATTR_QUALITY:
-		min = 10;
-		max = 100;
-		size = 'h';
-		param = &self->renderContext->quality;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIDEPTH:
-		min = 1;
-		max = 100;
-		size = 'i';
-		param = &self->renderContext->GIdepth;
-		break;
-	case EXPP_RENDER_ATTR_YF_GICDEPTH:
-		min = 1;
-		max = 100;
-		size = 'i';
-		param = &self->renderContext->GIcausdepth;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPHOTONCOUNT:
-		min = 0;
-		max = 10000000;
-		size = 'i';
-		param = &self->renderContext->GIphotoncount;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPHOTONMIXCOUNT:
-		min = 0;
-		max = 1000;
-		size = 'i';
-		param = &self->renderContext->GImixphotons;
-		break;
-	case EXPP_RENDER_ATTR_YF_GIPIXPERSAMPLE:
-		min = 1;
-		max = 50;
-		size = 'i';
-		param = &self->renderContext->GIpixelspersample;
-		break;
-	case EXPP_RENDER_ATTR_YF_PROCCOUNT:
-		min = 1;
-		max = 8;
-		size = 'i';
-		param = &self->renderContext->YF_numprocs;
-		break;
-	case EXPP_RENDER_ATTR_YF_RAYDEPTH:
-		min = 1;
-		max = 80;
-		size = 'i';
-		param = &self->renderContext->YF_raydepth;
-		break;
-#endif
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setIValueAttrClamp" );
@@ -2192,36 +1981,6 @@ static int RenderData_setMapNew( BPy_RenderData *self, PyObject *value )
 	return result;
 }
 
-/* methods to be converted after API refactor */
-
-#if 0
-edgeIntensity", ( PyCFunction ) RenderData_EdgeIntensity,
-quality", ( PyCFunction ) RenderData_Quality, METH_VARARGS,
-SGIMaxsize", ( PyCFunction ) RenderData_SGIMaxsize, METH_VARARGS,
-sizePreset", ( PyCFunction ) RenderData_SizePreset, METH_VARARGS,
-yafrayExposure", ( PyCFunction ) RenderData_YafrayExposure,
-yafrayGamma", ( PyCFunction ) RenderData_YafrayGamma, METH_VARARGS,
-yafrayGICDepth", ( PyCFunction ) RenderData_YafrayGICDepth,
-yafrayGIDepth", ( PyCFunction ) RenderData_YafrayGIDepth,
-yafrayGIPhotonCount", ( PyCFunction ) RenderData_YafrayGIPhotonCount,
-yafrayGIPhotonMixCount",
-yafrayGIPhotonRadius",
-yafrayGIPixelsPerSample",
-yafrayGIPower", ( PyCFunction ) RenderData_YafrayGIPower,
-yafrayGIRefinement", ( PyCFunction ) RenderData_YafrayGIRefinement,
-yafrayGIShadowQuality",
-yafrayProcessorCount",
-yafrayRayBias", ( PyCFunction ) RenderData_YafrayRayBias,
-yafrayRayDepth", ( PyCFunction ) RenderData_YafrayRayDepth,
-setYafrayGIQuality", ( PyCFunction ) RenderData_SetYafrayGIQuality,
-setYafrayGIMethod", ( PyCFunction ) RenderData_SetYafrayGIMethod,
-enableYafrayGICache", ( PyCFunction ) RenderData_EnableYafrayGICache,
-enableYafrayGIPhotons",
-enableYafrayGITunePhotons",
-swapDispWinImagePrimary(image)" --> BIF_swap_render_rects()
-
-#endif
-
 /***************************************************************************/
 /* BPy_RenderData attribute def                                            */
 /***************************************************************************/
@@ -2437,29 +2196,6 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getMapNew, (setter)RenderData_setMapNew,
 	 "New mapping value (in frames)",
 	 NULL},
-#if 0
-	{"postprocessAdd",
-	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
-	 "Value to add to colors (unified renderer only)",
-	 (void *)EXPP_RENDER_ATTR_POSTADD},
-	{"postprocessGamma",
-	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
-	 "Gamma correction (unified renderer only)",
-	 (void *)EXPP_RENDER_ATTR_POSTGAMMA},
-	{"postprocessMul",
-	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
-	 "Value to multiply color by (unified renderer only)",
-	 (void *)EXPP_RENDER_ATTR_POSTMUL},
-	{"postprocessHue",
-	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
-	 "Hue value for postprocessing (unified renderer only)",
-	 (void *)EXPP_RENDER_ATTR_POSTHUE},
-	{"postprocessSat",
-	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
-	 "Saturation value for postprocessing (unified renderer only)",
-	 (void *)EXPP_RENDER_ATTR_POSTSAT},
-#endif
-
 	{NULL,NULL,NULL,NULL,NULL}
 };
 
