@@ -122,6 +122,20 @@ static CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 	return dupbuf;
 }
 
+static CompBuf *pass_on_compbuf(CompBuf *cbuf)
+{
+	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0);
+	dupbuf->rect= cbuf->rect;
+	
+	/* this is hacky solution to make sure outputs get the real compbuf (so freeing goes OK) */
+	if(cbuf->malloc) {
+		cbuf->malloc= 0;
+		dupbuf->malloc= 1;
+	}
+	
+	return dupbuf;
+}
+
 void free_compbuf(CompBuf *cbuf)
 {
 	if(cbuf->malloc && cbuf->rect)
@@ -2308,7 +2322,6 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 	float *src, *dest, *wb;
 	
 	wbuf= alloc_compbuf(imgx, imgy, CB_VAL, 1);
-//	memset(wbuf->rect, sizeof(float)*imgx*imgy, 0);
 	
 	/* horizontal */
 	radx = (float)nbd->sizex;
@@ -2332,8 +2345,6 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 	/* vars to store before we go */
 //	refd= ref->rect;
 	src= img->rect;
-	
-//	memset(new->rect, 4*imgx*imgy, 0);
 	
 	radxf= (float)radx;
 	radyf= (float)rady;
@@ -2509,8 +2520,6 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 			gausstab[j]*= val;
 	}
 	else gausstab[4]= 1.0f;
-	
-//	memset(new->rect, 4*imgx*imgy, 0);
 	
 	for (y = -rady+1; y < imgy+rady-1; y++) {
 		
@@ -2699,8 +2708,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		
 		if(in[1]->vec[0]==0.0f) {
 			/* pass on image */
-			new= alloc_compbuf(img->x, img->y, img->type, 0);
-			new->rect= img->rect;
+			new= pass_on_compbuf(img);
 		}
 		else {
 			NodeBlurData *nbd= node->storage;
@@ -2820,7 +2828,7 @@ static void node_composit_exec_translate(void *data, bNode *node, bNodeStack **i
 {
 	if(in[0]->data) {
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0); // no alloc
+		CompBuf *stackbuf= pass_on_compbuf(cbuf); // no alloc
 	
 		stackbuf->xof= (int)floor(in[1]->vec[0]);
 		stackbuf->yof= (int)floor(in[2]->vec[0]);
