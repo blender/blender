@@ -1383,7 +1383,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case GKEY:
-				if(G.qual & LR_CTRLKEY) group_operation_with_menu();
+				if(G.qual == LR_CTRLKEY) 
+					group_operation_with_menu();
 				else if((G.qual==LR_SHIFTKEY))
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
