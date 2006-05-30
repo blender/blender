@@ -345,8 +345,9 @@ extern Object workob;
 /* ob->recalc (flag bits!) */
 #define OB_RECALC_OB		1
 #define OB_RECALC_DATA		2
-#define OB_RECALC			3
-
+		/* time flag is set when time changes need recalc, so baked systems can ignore it */
+#define OB_RECALC_TIME		4
+#define OB_RECALC			7
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1

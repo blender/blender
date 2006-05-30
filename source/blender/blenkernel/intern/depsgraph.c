@@ -1692,8 +1692,6 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->recalc |= OB_RECALC_DATA;
 					else if(paf && paf->keys==NULL)
 						ob->recalc |= OB_RECALC_DATA;
-					else if((paf->flag & PAF_STATIC)==0)
-						ob->recalc &= ~OB_RECALC;	/* NOTE! this is because particles are baked... depsgraph doesnt understand it */
 				}
 				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
 					// fluidsimSettings might not be initialized during load...
@@ -1765,6 +1763,13 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 	}
 	
 	DAG_scene_flush_update(sce, lay);
+	
+	/* test: set time flag, to disable baked systems to update */
+	for(base= sce->base.first; base; base= base->next) {
+		ob= base->object;
+		if(ob->recalc)
+			ob->recalc |= OB_RECALC_TIME;
+	}
 	
 	/* hrmf... an exception to look at once, for invisible camera object we do it over */
 	if(sce->camera)

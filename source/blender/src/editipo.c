@@ -2660,6 +2660,7 @@ void common_insertkey(void)
  						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Y, eul[1]*(5.72958));
  						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Z, eul[2]*(5.72958));
  					}
+					base->object->recalc |= OB_RECALC_OB;
 				}
 				base= base->next;
 			}
@@ -2673,7 +2674,9 @@ void common_insertkey(void)
 		else if(event==5) BIF_undo_push("Insert Layer Key");
 		else if(event==7) BIF_undo_push("Insert Vertex Key");
 		else if(event==9) BIF_undo_push("Insert Avail Key");
-
+		
+		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);

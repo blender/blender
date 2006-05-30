@@ -85,7 +85,7 @@
 #include "BKE_utildefines.h"
 
 #include "PIL_time.h"
-
+#include "elbeem.h"
 #include "RE_render_ext.h"
 
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
@@ -1523,10 +1523,12 @@ typedef struct pMatrixCache {
 	float imat[3][3];
 } pMatrixCache;
 
+
+/* WARN: this function stores data in ob->id.idnew! */
 static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 {
 	pMatrixCache *mcache, *mc;
-	Object ob_store;
+	Object *obcopy;
 	Base *base;
 	float framelenold, cfrao;
 	
@@ -1535,8 +1537,11 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	framelenold= G.scene->r.framelen;
 	G.scene->r.framelen= 1.0f;
 	cfrao= G.scene->r.cfra;
-	ob_store= *ob;	/* quick copy of all settings */
 	ob->sf= 0.0f;
+	
+	/* clear storage */
+	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next) 
+		obcopy->id.newid= NULL;
 	
 	/* all objects get tagged recalc that influence this object */
 	DAG_object_update_flags(G.scene, ob, G.scene->lay);
@@ -1544,6 +1549,9 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
 		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->object->recalc) {
+				if(base->object->id.newid==NULL)
+					base->object->id.newid= MEM_dupallocN(base->object);
+				
 				where_is_object(base->object);
 				
 				do_ob_key(base->object);
@@ -1554,34 +1562,26 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 			}
 		}
 		
-//		par= ob;
-//		while(par) {
-//			par->ctime= -1234567.0;		/* hrms? */
-//			do_ob_key(par);
-//			if(par->type==OB_ARMATURE) {
-//				do_all_pose_actions(par);	// only does this object actions
-//				where_is_pose(par);
-//			}
-//			par= par->parent;
-//		}
-		
-//		where_is_object(ob);
-		
 		Mat4CpyMat4(mc->obmat, ob->obmat);
 		Mat4Invert(ob->imat, ob->obmat);
 		Mat3CpyMat4(mc->imat, ob->imat);
 		Mat3Transp(mc->imat);
 	}
 	
-	
 	/* restore */
 	G.scene->r.cfra= cfrao;
 	G.scene->r.framelen= framelenold;
-	*ob= ob_store;
 
 	for(base= G.scene->base.first; base; base= base->next) {
-		where_is_object(base->object);
 		if(base->object->recalc) {
+			
+			if(base->object->id.newid) {
+				obcopy= (Object *)base->object->id.newid;
+				*(base->object) = *(obcopy); 
+				MEM_freeN(obcopy);
+				base->object->id.newid= NULL;
+			}
+			
 			do_ob_key(base->object);
 			if(base->object->type==OB_ARMATURE) {
 				do_all_pose_actions(base->object);	// only does this object actions
@@ -1589,20 +1589,6 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 			}
 		}
 	}
-	
-	
-	/* restore hierarchy, weak code destroying potential depgraph stuff... */
-//	par= ob;
-//	while(par) {
-		/* do not do ob->ipo: keep insertkey */
-//		do_ob_key(par);
-		
-//		if(par->type==OB_ARMATURE) {
-//			do_all_pose_actions(par);	// only does this object actions
-//			where_is_pose(par);
-//		}
-//		par= par->parent;
-//	}
 	
 	return mcache;
 }
@@ -1643,6 +1629,8 @@ void build_particle_system(Object *ob)
 	if(paf==NULL) return;
 	if(paf->keys) MEM_freeN(paf->keys);	/* free as early as possible, for returns */
 	paf->keys= NULL;
+	
+	printf("build particles\n");
 	
 	// FSPARTICLE all own created...
 	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 

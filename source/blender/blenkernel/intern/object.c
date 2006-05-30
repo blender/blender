@@ -1851,7 +1851,7 @@ void object_handle_update(Object *ob)
 				where_is_pose(ob);
 			}
 		}
-		
+	
 		ob->recalc &= ~OB_RECALC;
 	}
 }

@@ -1948,8 +1948,8 @@ void makeDispListMesh(Object *ob)
 		editmesh_build_data();
 	} else {
 		mesh_build_data(ob);
-
-		build_particle_system(ob);
+		if((ob->recalc & OB_RECALC_TIME)==0)
+			build_particle_system(ob);
 	}
 }
 
