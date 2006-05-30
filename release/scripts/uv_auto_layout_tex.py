@@ -35,7 +35,7 @@ This is usefull for game models where 1 image is faster then many, and saves the
 # You should have received a copy of the GNU General Public License 
 # along with this program; if not, write to the Free Software Foundation, 
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. 
-# 
+# f
 # ***** END GPL LICENCE BLOCK ***** 
 # -------------------------------------------------------------------------- 
 
@@ -46,37 +46,57 @@ import boxpack2d
 from Blender.Mathutils import Vector, RotationMatrix
 from Blender.Scene import Render
 import BPyMathutils
+BIGNUM= 1<<30
 
-
-'''
-RotMatStepRotation = []
-rot_angle = 22.5
-while rot_angle > 0.1:
-	RotMatStepRotation.append([\
-	 (rot_angle, RotationMatrix( rot_angle, 2)),\
-	 (-rot_angle, RotationMatrix( -rot_angle, 2))])
-	rot_angle = rot_angle/2.0
-'''
-
-def pointBoundsArea(points):
-	x= [p.x for p in points] # Lazy use of LC's
-	y= [p.y for p in points]
-	return (max(x)-min(x)) * (max(y)-min(y))
+def pointBounds(points):
+	'''
+	Takes a list of points and returns the
+	area, center, bounds
+	'''
+	ymax= xmax= -BIGNUM
+	ymin= xmin=  BIGNUM
+	
+	for p in points:
+		x= p.x
+		y= p.y
+		
+		if x>xmax: xmax=x
+		if y>ymax: ymax=y
+		
+		if x<xmin: xmin=x
+		if y<ymin: ymin=y
+	
+	# area and center	
+	return\
+	(xmax-xmin) * (ymax-ymin),\
+	Vector((xmin+xmax)/2, (ymin+ymax)/2),\
+	(xmin, ymin, xmax, ymax)
 	
 
 def bestBoundsRotation(current_points):
-	current_area= pointBoundsArea(current_points)
+	'''
+	Takes a list of points and returns the best rotation for those points
+	so they fit into the samllest bounding box
+	'''
 	
-	main_rot_angle= 0.0
-	rot_angle= 45.0
+	current_area, cent, bounds= pointBounds(current_points)
+	
+	total_rot_angle= 0.0
+	rot_angle= 45
 	while rot_angle > 0.1:
 		mat_pos= RotationMatrix( rot_angle, 2)
 		mat_neg= RotationMatrix( -rot_angle, 2)
 		
 		new_points_pos= [v*mat_pos for v in current_points]
-		new_points_neg= [v*mat_neg for v in current_points]
-		area_pos= pointBoundsArea(new_points_pos)
-		area_neg= pointBoundsArea(new_points_neg)
+		area_pos, cent_pos, bounds_pos= pointBounds(new_points_pos)
+		
+		# 45d rotations only need to be tested in 1 direction.
+		if rot_angle == 45: 
+			area_neg= area_pos
+		else:
+			new_points_neg= [v*mat_neg for v in current_points]
+			area_neg, cent_neg, bounds_neg= pointBounds(new_points_neg)
+		
 		
 		# Works!
 		#print 'Testing angle', rot_angle, current_area, area_pos, area_neg
@@ -84,74 +104,56 @@ def bestBoundsRotation(current_points):
 		best_area= min(area_pos, area_neg, current_area)
 		if area_pos == best_area:
 			current_area= area_pos
+			cent= cent_pos
+			bounds= bounds_pos
 			current_points= new_points_pos
-			main_rot_angle+= rot_angle
-		elif area_neg == best_area:
+			total_rot_angle+= rot_angle
+		elif rot_angle != 45 and area_neg == best_area:
 			current_area= area_neg
+			cent= cent_neg
+			bounds= bounds_neg
 			current_points= new_points_neg
-			main_rot_angle-= rot_angle
+			total_rot_angle-= rot_angle
 		
 		rot_angle *= 0.5
 	
 	# Return the optimal rotation.
-	return main_rot_angle
+	return total_rot_angle
 
-BIGNUM= 1<<30
+
 class faceGroup(object):
+	'''
+	A Group of faces that all use the same image, each group has its UVs packed into a square.
+	'''
 	__slots__= 'xmax', 'ymax', 'xmin', 'ymin',\
 	'image', 'faces', 'box_pack', 'size', 'ang', 'rot_mat', 'cent'\
 	
 	def __init__(self, mesh_list, image, size, PREF_IMAGE_MARGIN):
 		self.image= image
 		self.size= size
+		self.faces= [f for me in mesh_list for f in me.faces if f.image == image]
 		
 		# Find the best rotation.
-		all_points= [Vector(uv) for me in mesh_list for f in me.faces for uv in f.uv if f.image==image]
-		boundry_indicies= BPyMathutils.convexHull(all_points)
-		bountry_points= [all_points[i] for i in boundry_indicies]
+		all_points= [uv for f in self.faces for uv in f.uv]
+		bountry_indicies= BPyMathutils.convexHull(all_points)
+		bountry_points= [all_points[i] for i in bountry_indicies]
 		
-		# Yay this works.
+		# Pre Rotation bounds
+		self.cent= pointBounds(bountry_points)[1]
+		
+		# Get the optimal rotation angle
 		self.ang= bestBoundsRotation(bountry_points)
-		self.rot_mat= RotationMatrix(self.ang, 2), RotationMatrix(-self.ang, 2), 
+		self.rot_mat= RotationMatrix(self.ang, 2), RotationMatrix(-self.ang, 2)
 		
-		#print 'ANGLE', image.name, ang
+		# Post rotation bounds
+		bounds= pointBounds([\
+		((uv-self.cent) * self.rot_mat[0]) + self.cent\
+		for uv in bountry_points])[2]
 		
-		# Add to our face group and set bounds.
-		# Find the centre
-		xmin=ymin=  BIGNUM
-		xmax=ymax= -BIGNUM
-		self.faces= []
-		for me in mesh_list:
-			for f in me.faces:
-				if f.image==image:
-					self.faces.append(f)
-					for uv in f.uv:
-						#uv= uv * self.rot_mat
-						
-						xmax= max(xmax, uv.x)
-						xmin= min(xmin, uv.x)
-						ymax= max(ymax, uv.y)
-						ymin= min(ymin, uv.y)
+		# Break the bounds into useable values.
+		xmin, ymin, xmax, ymax= bounds
 		
-		self.cent= Vector((xmax-xmin)/2, (ymax+ymin)/2 )
-		
-		# now get the bounds after rotation about the cent.
-		xmin=ymin=  BIGNUM
-		xmax=ymax= -BIGNUM
-		for f in self.faces:
-			for uv in f.uv:
-				uv= ((uv-self.cent) * self.rot_mat[0]) + self.cent
-				xmax= max(xmax, uv.x)
-				xmin= min(xmin, uv.x)
-				ymax= max(ymax, uv.y)
-				ymin= min(ymin, uv.y)
-		
-		
-		# The box pack list is to be passed to the external function "boxpack2d"
-		# format is ID, w,h
-		
-		
-		# Store the bounds, impliment the margin.
+		# Store the bounds, include the margin.
 		# The bounds rect will need to be rotated to the rotation angle.
 		self.xmax= xmax + (PREF_IMAGE_MARGIN/size[0])
 		self.xmin= xmin - (PREF_IMAGE_MARGIN/size[0])
@@ -162,7 +164,6 @@ class faceGroup(object):
 		image.name,\
 		size[0]*(self.xmax - self.xmin),\
 		size[1]*(self.ymax - self.ymin)] 
-		
 		
 	'''
 		# default.
@@ -202,31 +203,30 @@ class faceGroup(object):
 				uv.y= offset_y+ (((uv_rot.y-self.ymin) * self.size[1])/height)
 
 def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN): #, PREF_SIZE_FROM_UV=True):
-	
-	# Get all images used by the mesh
+	'''Main packing function'''
 	face_groups= {}
 	
 	for me in mesh_list:
 		for f in me.faces:
-			if f.image:
+			image= f.image
+			if image:
 				try:
-					face_groups[f.image.name] # will fail if teh groups not added.
+					face_groups[image.name] # will fail if teh groups not added.
 				except:
-					image= f.image
 					try:
 						size= image.size
 					except:
 						B.Draw.PupMenu('Aborting: Image cold not be loaded|' + image.name)
 						return
 						
-					face_groups[f.image.name]= faceGroup(mesh_list, f.image, size, PREF_IMAGE_MARGIN)
+					face_groups[image.name]= faceGroup(mesh_list, image, size, PREF_IMAGE_MARGIN)
 	
 	if not face_groups:
 		B.Draw.PupMenu('No Images found in mesh. aborting.')
 		return
 	
-	if len(face_groups)==1:
-		B.Draw.PupMenu('Only 1 image found|use meshes using 2 or more images.')
+	if len(face_groups)<2:
+		B.Draw.PupMenu('Only 1 image found|Select a mesh using 2 or more images.')
 		return
 		
 	'''
@@ -239,17 +239,11 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	render_scn= B.Scene.New()
 	render_scn.makeCurrent()
 	render_context= render_scn.getRenderingContext()
-	render_context.endFrame(1)
-	render_context.startFrame(1)
-	render_context.currentFrame(1)
-	render_context.setRenderPath(PREF_IMAGE_PATH)
+	render_context.setRenderPath('') # so we can ignore any existing path and save to the abs path.
 	
-	# Set the render context
-	PREF_IMAGE_PATH_EXPAND= B.sys.expandpath(PREF_IMAGE_PATH+'#') + '.png'
-	
+	PREF_IMAGE_PATH_EXPAND= B.sys.expandpath(PREF_IMAGE_PATH) + '.png'
 	
 	# TEST THE FILE WRITING.
-	'''
 	try:
 		# Can we write to this file???
 		f= open(PREF_IMAGE_PATH_EXPAND, 'w')
@@ -257,7 +251,6 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	except:
 		B.Draw.PupMenu('Error: Could not write to path|' + PREF_IMAGE_PATH_EXPAND)
 		return
-	'''
 	
 	render_context.imageSizeX(PREF_IMAGE_SIZE)
 	render_context.imageSizeY(PREF_IMAGE_SIZE)
@@ -297,10 +290,9 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	
 	
 	# Position the camera
-	render_cam_ob.LocZ= 1.0 # set back 1
-	render_cam_ob.LocX= 0.5 # set back 1
-	render_cam_ob.LocY= 0.5 # set back 1
-	#render_cam_ob.RotY= 180 * 0.017453292519943295 # pi/180.0
+	render_cam_ob.LocZ= 1.0
+	render_cam_ob.LocX= 0.5
+	render_cam_ob.LocY= 0.5
 	
 	# List to send to to boxpack function.
 	boxes2Pack= [ fg.box_pack for fg in face_groups.itervalues()]
@@ -360,22 +352,21 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 		for c in target_face.col:
 			c.r= c.g= c.b= 255
 	
-	#render_context.render()
-	
-	render_context.renderAnim()
+	render_context.render()
 	Render.CloseRenderWindow()
+	render_context.saveRenderedImage(PREF_IMAGE_PATH_EXPAND)
 	
-	#print 'attempting to save an image', PREF_IMAGE_PATH_EXPAND
-	
-	#render_context.saveRenderedImage(PREF_IMAGE_PATH_EXPAND)
-	
-	#if not B.sys.exists(PREF_IMAGE_PATH):
+	#if not B.sys.exists(PREF_IMAGE_PATH_EXPAND):
 	#	raise 'Error!!!'
 	
 	
 	# NOW APPLY THE SAVED IMAGE TO THE FACES!
 	#print PREF_IMAGE_PATH_EXPAND
-	target_image= B.Image.Load(PREF_IMAGE_PATH_EXPAND)
+	try:
+		target_image= B.Image.Load(PREF_IMAGE_PATH_EXPAND)
+	except:
+		B.Draw.PupMenu('Error: Could not render or load the image at path|' + PREF_IMAGE_PATH_EXPAND)
+		return
 	
 	# Set to the 1 image.
 	for me in mesh_list:
@@ -388,6 +379,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 		
 	scn.makeCurrent()
 	B.Scene.Unlink(render_scn)
+	render_me.verts= None # free a tiny amount of memory.
 
 
 def main():
@@ -403,13 +395,13 @@ def main():
 	newpath= B.Get('filename').split('/')[-1].split('\\')[-1].replace('.blend', '')
 	
 	PREF_IMAGE_PATH = B.Draw.Create('//%s_grp' % newpath)
-	PREF_IMAGE_SIZE = B.Draw.Create(512)
+	PREF_IMAGE_SIZE = B.Draw.Create(1024)
 	PREF_IMAGE_MARGIN = B.Draw.Create(6)
-	PREF_KEEP_ASPECT = B.Draw.Create(1)
+	PREF_KEEP_ASPECT = B.Draw.Create(0)
 	PREF_ALL_SEL_OBS = B.Draw.Create(0)
 	
 	pup_block = [\
-	'image path: no ext',\
+	'Image Path: (no ext)',\
 	('', PREF_IMAGE_PATH, 3, 100, 'Path to new Image. "//" for curent blend dir.'),\
 	'Image Options',
 	('Pixel Size:', PREF_IMAGE_SIZE, 64, 4096, 'Image Width and Height.'),\
@@ -437,6 +429,7 @@ def main():
 		mesh_list= [ob.getData(mesh=1)]
 	
 	auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN)
-
+	B.Window.RedrawAll()
+	
 if __name__=='__main__':
 	main()
