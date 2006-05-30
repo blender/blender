@@ -540,7 +540,7 @@ static void writeBlog(void)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	FILE *fp;
-	int i, last;
+	int i, last= 0;
 	char refresh=0;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
@@ -563,10 +563,8 @@ static void writeBlog(void)
 			}
 			/* refresh list of recent opened files in memory too */
 			for(i=last;i>0;i--) {
-				if (strcmp(G.recent[i-1], G.sce)!=0) {
-					G.recent[i][0]='\0';
-					strcat(G.recent[i], G.recent[i-1]);
-				}
+				if (strcmp(G.recent[i-1], G.sce)!=0)
+					strcpy(G.recent[i], G.recent[i-1]);
 			}
 			/* add current file to the beginning of list */
 			G.recent[0][0]='\0';
