@@ -1488,6 +1488,7 @@ void loop_multiselect(int looptype)
 static void mouse_mesh_loop(void)
 {
 	EditEdge *eed;
+	int select;
 	short dist= 50;
 	
 	eed= findnearestedge(&dist);
@@ -1495,23 +1496,23 @@ static void mouse_mesh_loop(void)
 		
 		if((G.qual & LR_SHIFTKEY)==0) EM_clear_flag_all(SELECT);
 		
-		if((eed->f & SELECT)==0) EM_select_edge(eed, 1);
-		else if(G.qual & LR_SHIFTKEY) EM_select_edge(eed, 0);
+		if((eed->f & SELECT)==0) select=1;
+		else if(G.qual & LR_SHIFTKEY) select=0;
 
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
-			faceloop_select(eed, eed->f & SELECT);
+			faceloop_select(eed, select);
 		}
 		else if(G.scene->selectmode & SCE_SELECT_EDGE) {
             if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
-    			edgering_select(eed, eed->f & SELECT);
+    			edgering_select(eed, select);
             else if(G.qual & LR_ALTKEY)
-    			edgeloop_select(eed, eed->f & SELECT);
+    			edgeloop_select(eed, select);
 		}
         else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
             if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
-    			edgering_select(eed, eed->f & SELECT);
+    			edgering_select(eed, select);
             else if(G.qual & LR_ALTKEY)
-    			edgeloop_select(eed, eed->f & SELECT);
+    			edgeloop_select(eed, select);
 		}
 
 		/* frontbuffer draw of last selected only */
