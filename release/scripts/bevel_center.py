@@ -51,11 +51,14 @@ from Blender.Draw import *
 from Blender.Mathutils import *
 from Blender.BGL import *
 
+#PY23 NO SETS#
+'''
 try:
 	set()
 except:
 	from sets import set	
-	
+'''
+
 ######################################################################
 # Functions to handle the global structures of the script NF, NE and NC
 # which contain informations about faces and corners to be created
@@ -184,7 +187,7 @@ def make_faces():
 						NF.append(NMesh.Face([newV[ind2-2][0],newV[ind2-2][1],newV[ind2-1][0],newV[ind2-1][1]]))
 					
 					else:
-						ind2 = min(((newV[i][1].co-newV[i-1][0].co).length, i) for i in enumV)[1]
+						ind2 = min( [((newV[i][1].co-newV[i-1][0].co).length, i) for i in enumV] )
 						NF.append(NMesh.Face([newV[ind2-1][1],newV[ind2][0],newV[ind2][1],newV[ind2-2][0]]))
 						NF.append(NMesh.Face([newV[ind2-2][0],newV[ind2-2][1],newV[ind2-1][0],newV[ind2-1][1]]))
 				
@@ -218,7 +221,8 @@ def make_edges():
 			me.findEdge(*oldv).flag   |= E_selected
 			me.findEdge(*new[0]).flag |= E_selected
 
-			for v in oldv : NV_ext.add(v)
+			#PY23 NO SETS# for v in oldv : NV_ext.add(v)
+			for v in oldv : NV_ext[v]= None
 		
 		else:
 			make_sel_face(new[0] + new[1][::-1])
@@ -236,12 +240,15 @@ def make_corners():
 		if nV == 1:	 pass
 		
 		elif nV == 2 :
-			if v in NV_ext:
+			#PY23 NO SETS# if v in NV_ext:
+			if v in NV_ext.iterkeys():
 				make_sel_face(V+[v])
 				me.findEdge(*V).flag   |= E_selected
 				
 		else:
-			if nV == 3 and v not in NV_ext : make_sel_face(V)
+			#PY23 NO SETS# if nV == 3 and v not in NV_ext : make_sel_face(V)
+			if nV == 3 and v not in NV_ext.iterkeys() : make_sel_face(V)
+			
 			
 			else :
 				
@@ -307,7 +314,8 @@ def clear_old():
 	for f in old_faces: me.removeFace(f)
 	
 	for v in NV.iterkeys():
-		if v not in NV_ext :  me.verts.remove(v)
+		#PY23 NO SETS# if v not in NV_ext :  me.verts.remove(v)
+		if v not in NV_ext.iterkeys() :  me.verts.remove(v)
 
 	for e in me.edges:
 		if e.flag & E_selected :
@@ -380,7 +388,8 @@ def bevel():
 	me = ob.getData()
 
 	NV = {}
-	NV_ext = set()
+	#PY23 NO SETS# NV_ext = set()
+	NV_ext= {}
 	NE = {}
 	NC = {}
 	old_faces = []
