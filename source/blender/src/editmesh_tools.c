@@ -2436,7 +2436,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	EditEdge *eed, *cedge, *sort[4];
 	EditVert **templist;
 	struct GHash *gh;
-	float length[4];
+	float length[4], v1mat[3], v2mat[3], v3mat[3], v4mat[3];
 	int i, j, edgecount, facetype,hold;
 	
 	//Set faces f1 to 0 cause we need it later
@@ -2466,10 +2466,19 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 				continue;
 			}
 			if(ef->f & SELECT) {
-				length[0] = VecLenf(ef->e1->v1->co,ef->e1->v2->co);
-				length[1] = VecLenf(ef->e2->v1->co,ef->e2->v2->co);
-				length[2] = VecLenf(ef->e3->v1->co,ef->e3->v2->co);
-				length[3] = VecLenf(ef->e4->v1->co,ef->e4->v2->co);
+				VECCOPY(v1mat, ef->v1->co);
+				VECCOPY(v2mat, ef->v2->co);
+				VECCOPY(v3mat, ef->v3->co);
+				VECCOPY(v4mat, ef->v4->co);						
+				Mat4Mul3Vecfl(G.obedit->obmat, v1mat);
+				Mat4Mul3Vecfl(G.obedit->obmat, v2mat);											
+				Mat4Mul3Vecfl(G.obedit->obmat, v3mat);
+				Mat4Mul3Vecfl(G.obedit->obmat, v4mat);
+				
+				length[0] = VecLenf(v1mat, v2mat);
+				length[1] = VecLenf(v2mat, v3mat);
+				length[2] = VecLenf(v3mat, v4mat);
+				length[3] = VecLenf(v4mat, v1mat);
 				sort[0] = ef->e1;
 				sort[1] = ef->e2;
 				sort[2] = ef->e3;

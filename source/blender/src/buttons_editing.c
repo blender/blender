@@ -3326,7 +3326,7 @@ void do_meshbuts(unsigned short event)
 		break;
 	case B_SUBDIV:
 		waitcursor(1);
-		esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag & B_BEAUTY,1,0);
+		esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,1,0);
 		countall();
 		waitcursor(0);
 		allqueue(REDRAWVIEW3D, 0);
@@ -3337,7 +3337,7 @@ void do_meshbuts(unsigned short event)
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		waitcursor(1);
 		fac= -( (float)randfac )/100;
-		esubdivideflag(1, fac, G.scene->toolsettings->editbutflag & B_BEAUTY,1,0);
+		esubdivideflag(1, fac, G.scene->toolsettings->editbutflag,1,0);
 		countall();
 		waitcursor(0);
 		allqueue(REDRAWVIEW3D, 0);
