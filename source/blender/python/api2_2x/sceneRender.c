@@ -658,7 +658,7 @@ PyObject *RenderData_PartsX( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args,
 					      &self->renderContext->xparts, 1,
-					      64 );
+					      512 );
 }
 
 PyObject *RenderData_PartsY( BPy_RenderData * self, PyObject * args )
@@ -1566,14 +1566,14 @@ static int RenderData_setIValueAttrClamp( BPy_RenderData *self, PyObject *value,
 
 	switch( (int)type ) {
 	case EXPP_RENDER_ATTR_XPARTS:
-		min = 2;
+		min = 1;
 		max = 512;
 		size = 'h';
 		param = &self->renderContext->xparts;
 		break;
 	case EXPP_RENDER_ATTR_YPARTS:
-		min = 2;
-		max = 512;
+		min = 1;
+		max = 64;
 		size = 'h';
 		param = &self->renderContext->yparts;
 		break;

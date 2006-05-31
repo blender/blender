@@ -1250,8 +1250,8 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,2.0, 512.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
-	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,2.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
+	uiDefButS(block, NUM,B_DIFF,"Xparts:",		369,46,95,29,&G.scene->r.xparts,1.0, 512.0, 0, 0, "Sets the number of horizontal parts to render image in (For panorama sets number of camera slices)");
+	uiDefButS(block, NUM,B_DIFF,"Yparts:",		465,46,95,29,&G.scene->r.yparts,1.0, 64.0, 0, 0, "Sets the number of vertical parts to render image in");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
