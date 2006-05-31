@@ -286,6 +286,7 @@ static PyObject *Object_getPIDeflection( BPy_Object * self );
 static PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args );
 
 static int Object_setRBMass( BPy_Object * self, PyObject * args );
+static int Object_setRBRadius( BPy_Object * self, PyObject * args );
 static int Object_setRBFlags( BPy_Object * self, PyObject * args );
 static int Object_setRBShapeBoundType( BPy_Object * self, PyObject * args );
 
@@ -3650,6 +3651,19 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return PyInt_FromLong( ( long ) object->gameflag );
 	if( StringEqual( name, "rbShapeBoundType" ) )
 		return PyInt_FromLong( ( long ) object->boundtype );
+	if( StringEqual( name, "rbHalfExtents" ) )
+	{
+		float center[3];
+		float extents[3];
+		get_local_bounds(object,center,extents);
+		return (Py_BuildValue ("fff", extents[0],extents[1],extents[2]));
+	}
+	if( StringEqual( name, "rbRadius" ) )
+	{
+		//for historical reasons, inertia is used, instead of radius...
+		return PyFloat_FromDouble( ( double ) object->inertia);
+	}
+		
 
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
@@ -3893,6 +3907,8 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		return Object_setRBFlags( obj, value );
 	if( StringEqual( name, "rbShapeBoundType" ) )
 		return Object_setRBShapeBoundType( obj, value );
+	if( StringEqual( name, "rbRadius" ) )
+		return Object_setRBRadius( obj, value );
 
 	/* SECOND, handle all the attributes that passes the value as a tuple to another function */
 
@@ -4356,6 +4372,26 @@ static int Object_setRBMass( BPy_Object * self, PyObject * args )
 			"acceptable values are non-negative, 0.0 or more" );
 
 	self->object->mass = value;
+
+	return 0;
+}
+
+
+static int Object_setRBRadius( BPy_Object * self, PyObject * args )
+{
+    float value;
+	PyObject* flt = PyNumber_Float( args );
+
+	if( !flt )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected float argument" );
+	value = PyFloat_AS_DOUBLE( flt );
+
+	if( value < 0.0f )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+			"acceptable values are non-negative, 0.0 or more" );
+
+	self->object->inertia = value;
 
 	return 0;
 }
