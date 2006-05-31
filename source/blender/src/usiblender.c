@@ -557,22 +557,25 @@ static void writeBlog(void)
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	FILE *fp;
 	int i;
-	char refresh=0;
 
 	BLI_make_file_string("/", name, BLI_gethome(), ".Blog");
 
-	fp= fopen(name, "w");
-	if (fp) {
-		recent = G.recent_files.first;
-		/* add new file to list of recent opened files */
-		if(!(recent) || (strcmp(recent->filename, G.sce)!=0)) {
-			fprintf(fp, "%s\n", G.sce);
-			refresh=1;
-		}
-		/* refresh .Blog of recent opened files, when current file was changed */
-		if(refresh) {
-			recent = G.recent_files.first;
-			i=0;
+	recent = G.recent_files.first;
+	/* refresh .Blog of recent opened files, when current file was changed */
+	if(!(recent) || (strcmp(recent->filename, G.sce)!=0)) {
+		fp= fopen(name, "w");
+		if (fp) {
+			/* add current file to the beginning of list */
+			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
+			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
+			recent->filename[0] = '\0';
+			strcpy(recent->filename, G.sce);
+			BLI_addhead(&(G.recent_files), recent);
+			/* write current file to .Blog */
+			fprintf(fp, "%s\n", recent->filename);
+			recent = recent->next;
+			i=1;
+			/* write rest of recent opened files to .Blog */
 			while((i<10) && (recent)){
 				/* this prevents to have duplicities in list */
 				if (strcmp(recent->filename, G.sce)!=0) {
@@ -587,12 +590,6 @@ static void writeBlog(void)
 				}
 				i++;
 			}
-			/* add current file to the beginning of list (BLI_dynstr_append) */
-			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RcentFile");
-			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(G.sce)+1), "name of file");
-			recent->filename[0] = '\0';
-			strcpy(recent->filename, G.sce);
-			BLI_addhead(&(G.recent_files), recent);
 		}
 		fclose(fp);
 	}
