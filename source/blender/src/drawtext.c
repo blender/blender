@@ -1817,13 +1817,19 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case LEFTARROWKEY:
-			txt_move_left(text, G.qual & LR_SHIFTKEY);
+			if (G.qual & LR_COMMANDKEY)
+				txt_move_bol(text, G.qual & LR_SHIFTKEY);
+			else
+				txt_move_left(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case RIGHTARROWKEY:
-			txt_move_right(text, G.qual & LR_SHIFTKEY);
+			if (G.qual & LR_COMMANDKEY)
+				txt_move_eol(text, G.qual & LR_SHIFTKEY);
+			else
+				txt_move_right(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
