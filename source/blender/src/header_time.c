@@ -468,10 +468,6 @@ void time_buttons(ScrArea *sa)
 	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
 					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
 	
-	//jumpframe
-	xco+= XIC+16;
-	uiDefButS(block, NUM, REDRAWBUTSSCENE, "Steps:",xco, 0, 80, YIC,&(G.scene->jumpframe), 1, 100, 1, 100, "Set spacing between frames changes with up and down arrow keys");
-
 	/* always as last  */
 	sa->headbutlen= xco+XIC+80; // +80 because the last button is not an icon
 

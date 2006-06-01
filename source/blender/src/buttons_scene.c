@@ -1271,11 +1271,20 @@ static void render_panel_render(void)
 	uiDefButBitI(block, TOG, R_RADIO, 0,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	uiBlockEndAlign(block);
 	
-	uiBlockBeginAlign(block);
+/*	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_DIFF,"100%",			565,109,122,20,&G.scene->r.size,1.0,100.0, 0, 0, "Set render size to defined size");
 	uiDefButS(block, ROW,B_DIFF,"75%",			565,88,40,20,&G.scene->r.size,1.0,75.0, 0, 0, "Set render size to 3/4 of defined size");
 	uiDefButS(block, ROW,B_DIFF,"50%",			606,88,40,20,&G.scene->r.size,1.0,50.0, 0, 0, "Set render size to 1/2 of defined size");
 	uiDefButS(block, ROW,B_DIFF,"25%",			647,88,40,20,&G.scene->r.size,1.0,25.0, 0, 0, "Set render size to 1/4 of defined size");
+	uiBlockEndAlign(block);
+*/
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM,B_DIFF,"Size %:",
+			  565, 109, 102, 20, 
+			  &G.scene->r.size, 1.0, 400.0, 0, 0, "The image width in pixels");
+	uiDefButS(block, MENU,B_REDR,"400% %x400|200% %x200|150% %x150|100% %x100|75% %x75|50% %x50|25% %x25",
+			  667, 109, 20, 20, 
+			  &G.scene->r.size, 0, 0, 0, 0, "The image width in pixels");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -1902,7 +1911,7 @@ void anim_panels()
 	uiDefButI(block, NUM,REDRAWALL,"End:",	160,100,150,20,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUMSLI, REDRAWTIME, "Steps:",10, 70, 300, 20,&(G.scene->jumpframe), 1, 100, 1, 100, "Set spacing between frames changes with up and down arrow keys");
+	uiDefButS(block, NUM, REDRAWTIME, "Steps:",10, 70, 150, 20,&(G.scene->jumpframe), 1, 100, 1, 100, "Set spacing between frames changes with up and down arrow keys");
 
 
 }
