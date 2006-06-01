@@ -4136,7 +4136,24 @@ static void make_local_makelocalmaterial(Material *ma)
 	/* nodetree? XXX */
 }
 
-void make_local(void)
+void make_local_menu(void)
+{
+	int mode;
+	
+	/* If you modify this menu, please remember to update view3d_edit_object_makelocalmenu
+	* in header_view3d.c and the menu in toolbox.c
+	*/
+	
+	if(G.scene->id.lib) return;
+	
+	mode = pupmenu("Make Local%t|Selected Objects %x1|Selected Objects and Data %x2|All %x3");
+	
+	if (mode <= 0) return;
+	
+	make_local(mode);
+}
+
+void make_local(int mode)
 {
 	Base *base;
 	Object *ob;
@@ -4145,13 +4162,10 @@ void make_local(void)
 	Lamp *la;
 	Curve *cu;
 	ID *id;
-	int a, b, mode;
+	int a, b;
 	
 	/* WATCH: the function new_id(..) re-inserts the id block!!! */
-	
 	if(G.scene->id.lib) return;
-	
-	mode= pupmenu("Make Local%t|Selected Objects %x1|Selected Objects and Data %x2|All %x3");
 	
 	if(mode==3) {
 		all_local(NULL);	// NULL is all libs

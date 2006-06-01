@@ -1554,7 +1554,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else {
 						if((G.qual==0))
-							make_local();
+							make_local_menu();
 						else if((G.qual==LR_SHIFTKEY))
 							selectlinks_menu();
 						else if(G.qual==LR_CTRLKEY)

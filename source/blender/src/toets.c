@@ -358,7 +358,7 @@ char *recent_filelist(void)
 	int event, i, ofs;
 	char pup[2048], *p;
 
-	p= pup + sprintf(pup, "Open recent%%t");
+	p= pup + sprintf(pup, "Open Recent%%t");
 	
 	if (G.sce[0]) {
 		p+= sprintf(p, "|%s %%x%d", G.sce, 1);

@@ -1692,6 +1692,36 @@ static uiBlock *view3d_edit_object_transformmenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_edit_object_makelocalmenu(void *arg, int event)
+{
+	switch(event) {
+		case 1:
+		case 2:
+		case 3:
+			make_local(event);
+			break;
+	}
+}
+
+static uiBlock *view3d_edit_object_makelocalmenu(void *arg_unused)
+{
+	Object *ob=NULL;
+	
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_makelocalmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_object_makelocalmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selected Objects|L, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selected Objects and Data|L, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "All|L, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_view3d_edit_object_makelinksmenu(void *arg, int event)
 {
 	switch(event) {
@@ -2086,6 +2116,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	
 	uiDefIconTextBlockBut(block, view3d_edit_object_makelinksmenu, NULL, ICON_RIGHTARROW_THIN, "Make Links", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_singleusermenu, NULL, ICON_RIGHTARROW_THIN, "Make Single User", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_edit_object_makelocalmenu, NULL, ICON_RIGHTARROW_THIN, "Make Local", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_copyattrmenu, NULL, ICON_RIGHTARROW_THIN, "Copy Attributes", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
