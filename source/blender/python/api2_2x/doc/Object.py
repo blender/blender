@@ -275,9 +275,10 @@ class Object:
         The dupliGroup is None when this object does not have a dupliGroup.
         (Use with L{enableDupGroup<enableDupGroup>})
     @type DupGroup: Group or None
-    @ivar DupObjects: The Dupli object instances. Returns of list of tuples for object duplicated
+    @ivar DupObjects: The Dupli object instances.  Read-only.
+        Returns of list of tuples for object duplicated
         by dupliframe, dupliverts dupligroups and other animation properties.
-        The first item is the original object that is duplicated
+        The first tuple item is the original object that is duplicated,
         the second is the 4x4 worldspace dupli-matrix.
         Example::
          import Blender
@@ -292,8 +293,7 @@ class Object:
            scn.link(empty_ob)
            empty_ob.setMatrix(dupe_matrix)
          Blender.Redraw()
-        (Read-only)
-    @type DupObjects: list of tuples (object, matrix)
+    @type DupObjects: list of tuples containing (object, matrix)
     @ivar enableDupVerts: The DupliVerts status of the object.
         True/False - does not indicate that this object has any dupliVerts,
         (as returned by DupObjects) just that dupliVerts are enabled.
@@ -943,18 +943,23 @@ class Object:
     @return: The first property that matches name.
     """
 
-  def addProperty (name, data, type):
+  def addProperty (name_or_property, data, type):
     """
-    Add a property to object.
-    @type name: string
-    @param name: the property name.
+    Add or create a property for an object.  If called with only a
+    property object, the property is assigned to the object.  If called
+    with a property name string and data object, a new property is
+    created and added to the object.
+    @type name_or_property: string or Property object
+    @param name_or_property: the property name, or a property object.
     @type data: string, int or float
-    @param data: depends on what is passed in:
+    @param data: Only valid when I{name_or_property} is a string. 
+    Value depends on what is passed in:
       - string:  string type property
       - int:  integer type property
       - float:  float type property
     @type type: string (optional)
-    @param type: can be the following:
+    @param type: Only valid when I{name_or_property} is a string.
+    Can be the following:
       - 'BOOL'
       - 'INT'
       - 'FLOAT'
@@ -964,29 +969,15 @@ class Object:
     become string type, int data will become int type
     and float data will become float type. Override type
     to declare bool type, and time type.
-    """
-
-  def addProperty (property):
-    """
-    Add a property to object.
-    @type property: Property object
-    @param property: property object to add to object.
-    @warn:  A property object can be added only once to an object'
+    @warn:  A property object can be added only once to an object;
     you must remove the property from an object to add it elsewhere.
-    """
-
-  def removeProperty (name):
-    """
-    Remove a property from an object by name.
-    @type property: Property object
-    @param property: property to remove by name.
     """
 
   def removeProperty (property):
     """
     Remove a property from an object.
-    @type property: Property object
-    @param property: property object to remove.
+    @type property: Property object or string
+    @param property: Property object or property name to be removed.
     """
 
   def removeAllProperties():
