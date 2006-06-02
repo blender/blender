@@ -163,6 +163,12 @@ class Material:
   @ivar fresnelTransFac:  Blending factor for Fresnel transparency.
   Value is clamped to the range [1.0,5.0].
   @type fresnelTransFac:  float
+  @ivar rbFriction:  Rigid Body Friction coefficient.
+  Value is clamped to the range [0.0,100.0].
+  @type rbFriction:  float
+  @ivar rbRestitution:  Rigid Body Friction restitution.
+  Value is clamped to the range [0.0,1.0].
+  @type rbRestitution:  float
   @ivar haloSeed:  Randomizes halo ring dimension and line location.
   Value is clamped to the range [1,255].
   @type haloSeed:  int
