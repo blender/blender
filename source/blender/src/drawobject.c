@@ -2606,6 +2606,10 @@ static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
 	
 	if(paf->stype==PAF_VECT) {
 		if(dt>OB_WIRE) {
+			
+			/* shaded/texture mode: we still draw solid, so have to set materials */
+			if(dt>OB_SOLID) init_gl_materials(ob, 0);
+
 			glEnable(GL_LIGHTING);
 			set_gl_material(paf->omat);
 			use_norm= 1;
