@@ -378,8 +378,8 @@ char *recent_filelist(void)
 			recent = BLI_findlink(&(G.recent_files), event-1-ofs);
 			if(recent) return(recent->filename);
 	}
-	else
-		return(NULL);
+	
+	return(NULL);
 }
 
 int blenderqread(unsigned short event, short val)
