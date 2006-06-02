@@ -1594,7 +1594,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 {
 	static float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
 	float sharp[9]= {-1,-1,-1,-1,9,-1,-1,-1,-1};
-	float laplace[9]= {1/8.0f, -1/8.0f, 1/8.0f, -1/8.0f, 1.0f, -1/8.0f, 1/8.0f, -1/8.0f, 1/8.0f};
+	float laplace[9]= {-1/8.0f, -1/8.0f, -1/8.0f, -1/8.0f, 1.0f, -1/8.0f, -1/8.0f, -1/8.0f, -1/8.0f};
 	float sobel[9]= {1,2,1,0,0,0,-1,-2,-1};
 	float prewitt[9]= {1,1,1,0,0,0,-1,-1,-1};
 	float kirsch[9]= {5,5,5,-3,-3,-3,-2,-2,-2};
