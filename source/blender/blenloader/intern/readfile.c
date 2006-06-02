@@ -2442,6 +2442,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bActuator *act;
 	int a;
 	
+	/* weak weak... this was only meant as draw flag, now is used in give_base too */
+	ob->flag &= ~OB_FROMGROUP;
+
 	ob->disp.first=ob->disp.last= NULL;
 
 	ob->pose= newdataadr(fd, ob->pose);
@@ -3342,6 +3345,7 @@ static void lib_link_group(FileData *fd, Main *main)
 			while(go) {
 				go->ob= newlibadr(fd, group->id.lib, go->ob);
 				if(go->ob) {
+					go->ob->flag |= OB_FROMGROUP;
 					/* if group has an object, it increments user... */
 					add_us= 1;
 					if(go->ob->id.us==0) 
@@ -6108,6 +6112,15 @@ static void expand_main(FileData *fd, Main *mainvar)
 	}
 }
 
+static int object_in_any_scene(Object *ob)
+{
+	Scene *sce;
+	
+	for(sce= G.main->scene.first; sce; sce= sce->id.next)
+		if(object_in_scene(ob, sce))
+			return 1;
+	return 0;
+}
 
 static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib)
 {
@@ -6120,7 +6133,7 @@ static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib)
 
 		if( ob->id.flag & LIB_INDIRECT ) {
 			/* hrmf... groups give user counter, so we check in that case entire scene */
-			if(ob->id.us==0 || (ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_scene(ob, sce)==0) ) {
+			if(ob->id.us==0 || (ob->id.us==1 && ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0) ) {
 
 				base= MEM_callocN( sizeof(Base), "add_ext_base");
 				BLI_addtail(&(sce->base), base);
