@@ -68,6 +68,7 @@
 #include "DNA_vec_types.h"
 
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_writeavi.h"	/* movie handle */
@@ -93,6 +94,9 @@
 #include "BSE_headerbuttons.h"
 
 #include "RE_pipeline.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -345,7 +349,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		else
 			RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 		
-		if(rres.rectf) {
+		if(rres.rectf || rres.rect32) {
 			
 			glPixelZoom(rw->zoom, rw->zoom);
 			if(rw->flags & RW_FLAGS_ALPHA) {
@@ -1247,17 +1251,46 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		bMovieHandle *mh= BKE_get_movie_handle(G.scene->r.imtype);
 		int cfrao= CFRA;
 		
-		mh->start_movie(&G.scene->r, winx, winy);
+		if(BKE_imtype_is_movie(G.scene->r.imtype))
+			mh->start_movie(&G.scene->r, winx, winy);
 		
 		for(CFRA= SFRA; CFRA<=EFRA; CFRA++) {
 			drawview3d_render(v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
 			window_swap_buffers(render_win->win);
 			
-			mh->append_movie(CFRA, rr->rect32, winx, winy);
+			if(BKE_imtype_is_movie(G.scene->r.imtype)) {
+				mh->append_movie(CFRA, rr->rect32, winx, winy);
+				printf("Append frame %d", G.scene->r.cfra);
+			}
+			else {
+				ImBuf *ibuf= IMB_allocImBuf(winx, winy, G.scene->r.planes, 0, 0);
+				char name[FILE_MAXDIR+FILE_MAXFILE];
+				int ok;
+				
+				BKE_makepicstring(name, (G.scene->r.cfra));
+
+				ibuf->rect= rr->rect32;    
+				ok= BKE_write_ibuf(ibuf, name, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
+				
+				if(ok==0) {
+					printf("Write error: cannot save %s\n", name);
+					break;
+				}
+				else printf("Saved: %s", name);
+				
+                /* imbuf knows which rects are not part of ibuf */
+				IMB_freeImBuf(ibuf);	
+			}
+			/* movie stats prints have no line break */
+			printf("\n");
+			
 			if(test_break()) break;
 		}
-		mh->end_movie();
+		
+		if(BKE_imtype_is_movie(G.scene->r.imtype))
+			mh->end_movie();
+		
 		CFRA= cfrao;
 	}
 	else {
@@ -1266,6 +1299,8 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		window_swap_buffers(render_win->win);
 	}
 	
+	renderwin_draw(render_win, 0);
+
 	mainwindow_make_active();
 	
 	if(anim)
