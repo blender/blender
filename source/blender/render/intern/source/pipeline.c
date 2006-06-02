@@ -1655,6 +1655,10 @@ static int is_rendering_allowed(Render *re)
 			re->error("No border area selected.");
 			return 0;
 		}
+		if(re->r.scemode & R_EXR_TILE_FILE) {
+			re->error("Border render and Buffer-save not supported yet");
+			return 0;
+		}
 	}
 	
 	if(re->r.scemode & R_DOCOMP) {
