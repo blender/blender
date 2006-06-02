@@ -62,11 +62,9 @@ RemoveEdge(
 	if (result == m_edges.end()) {
 		return false;
 	}
-	LOD_EdgeInd last = m_edges.back();
-	m_edges.pop_back();
-	if (m_edges.empty()) return true;
 
-	*result = last;
+	std::swap(*result, m_edges.back());
+	m_edges.pop_back();
 	return true;	
 };	
 

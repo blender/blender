@@ -273,12 +273,13 @@ CollapseEdge(
 	vector<LOD_EdgeInd>::iterator edge_it = degenerate_edges.begin();
 	vector<LOD_EdgeInd>::const_iterator edge_end = degenerate_edges.end();
 
-	for (; edge_it != edge_end; ++edge_it) {
+	for (; !(edge_it == edge_end); ++edge_it) {
 			
-		LOD_Edge & edge = edges[*edge_it];
+		LOD_EdgeInd ed = (*edge_it);
+		LOD_Edge & edge = edges[ed];//*edge_it];
 	
-		verts[edge.m_verts[0]].RemoveEdge(*edge_it);
-		verts[edge.m_verts[1]].RemoveEdge(*edge_it);
+		verts[edge.m_verts[0]].RemoveEdge(ed);
+		verts[edge.m_verts[1]].RemoveEdge(ed);
 	}
 
 	// we postpone deletion of the internal edges untill the end
