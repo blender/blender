@@ -146,8 +146,9 @@ typedef struct RenderData {
 
 	int cfra, sfra, efra;	/* fames as in 'images' */
 
-	int images, framapto;
+	int images, framapto, pad3;
 	short flag, pad1;
+
 	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
 
@@ -260,7 +261,7 @@ typedef struct RenderData {
 	/* information on different layers to be rendered */
 	ListBase layers;
 	short actlay, pad;
-	int pad2,pad3;
+	int pad2;
 	
 	/**
 	 * The gamma for the normal rendering. Used when doing
