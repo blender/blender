@@ -25,6 +25,7 @@ def main():
 	# Defaults
 	PREF_REDUX= Draw.Create(0.5)
 	PREF_BOUNDRY_WEIGHT= Draw.Create(5.0)
+	PREF_REM_DOUBLES= Draw.Create(1)
 	PREF_FACE_AREA_WEIGHT= Draw.Create(1.0)
 	PREF_FACE_TRIANGULATE= Draw.Create(1)
 	PREF_DO_UV= Draw.Create(1)
@@ -39,6 +40,7 @@ def main():
 	('UV Coords', PREF_DO_UV, 'Interpolate UV Coords.'),\
 	('Vert Colors', PREF_DO_VCOL, 'Interpolate Vertex Colors'),\
 	('Vert Weights', PREF_DO_WEIGHTS, 'Interpolate Vertex Weights'),\
+	('Remove Doubles', PREF_REM_DOUBLES, 'Remove doubles before reducing to avoid boundry tearing.'),\
 	]
 	
 	if not Draw.PupBlock("X Mirror mesh tool", pup_block):
@@ -46,6 +48,7 @@ def main():
 	
 	PREF_REDUX= PREF_REDUX.val
 	PREF_BOUNDRY_WEIGHT= PREF_BOUNDRY_WEIGHT.val
+	PREF_REM_DOUBLES= PREF_REM_DOUBLES.val
 	PREF_FACE_AREA_WEIGHT= PREF_FACE_AREA_WEIGHT.val
 	PREF_FACE_TRIANGULATE= PREF_FACE_TRIANGULATE.val
 	PREF_DO_UV= PREF_DO_UV.val
@@ -58,7 +61,7 @@ def main():
 	if is_editmode: Window.EditMode(0)
 	Window.WaitCursor(1)	
 	
-	BPyMesh.redux(act_ob, PREF_REDUX, PREF_BOUNDRY_WEIGHT, PREF_FACE_AREA_WEIGHT, PREF_FACE_TRIANGULATE, PREF_DO_UV, PREF_DO_VCOL, PREF_DO_WEIGHTS)
+	BPyMesh.redux(act_ob, PREF_REDUX, PREF_BOUNDRY_WEIGHT, PREF_REM_DOUBLES, PREF_FACE_AREA_WEIGHT, PREF_FACE_TRIANGULATE, PREF_DO_UV, PREF_DO_VCOL, PREF_DO_WEIGHTS)
 	
 	if is_editmode: Window.EditMode(1)
 	Window.WaitCursor(0)
