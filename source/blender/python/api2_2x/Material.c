@@ -502,6 +502,9 @@ static int Material_setIOR( BPy_Material * self, PyObject * value );
 static int Material_setTransDepth( BPy_Material * self, PyObject * value );
 static int Material_setFresnelTrans( BPy_Material * self, PyObject * value );
 static int Material_setFresnelTransFac( BPy_Material * self, PyObject * value );
+static int Material_setRigidBodyFriction( BPy_Material * self, PyObject * value );
+static int Material_setRigidBodyRestitution( BPy_Material * self, PyObject * value );
+
 static int Material_setOopsLoc ( BPy_Material * self, PyObject * value );
 static int Material_setOopsSel ( BPy_Material * self, PyObject * value );
 static int Material_setSpecShader( BPy_Material * self, PyObject * value );
@@ -574,6 +577,10 @@ static PyObject *Material_getIOR( BPy_Material * self );
 static PyObject *Material_getTransDepth( BPy_Material * self );
 static PyObject *Material_getFresnelTrans( BPy_Material * self );
 static PyObject *Material_getFresnelTransFac( BPy_Material * self );
+static PyObject *Material_getRigidBodyFriction( BPy_Material * self );
+static PyObject *Material_getRigidBodyRestitution( BPy_Material * self );
+
+
 static PyObject *Material_getFilter( BPy_Material * self );
 static PyObject *Material_getTranslucency( BPy_Material * self );
 static PyObject *Material_getTextures( BPy_Material * self );
@@ -689,6 +696,11 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "() - Return fresnel power for refractions"},
 	{"getFresnelTransFac", ( PyCFunction ) Material_getFresnelTransFac, METH_NOARGS,
 	 "() - Return fresnel power for refractions factor"},
+	 {"getRbFriction", ( PyCFunction ) Material_getRigidBodyFriction, METH_NOARGS,
+	 "() - Return friction for Rigid Body dynamics"},
+	{"getRbRestitution", ( PyCFunction ) Material_getRigidBodyRestitution, METH_NOARGS,
+	 "() - Return restitution for Rigid Body dynamics"},
+
 	{"getTextures", ( PyCFunction ) Material_getTextures, METH_NOARGS,
 	 "() - Return Material's texture list as a tuple"},
 	{"setName", ( PyCFunction ) Matr_oldsetName, METH_VARARGS,
@@ -881,6 +893,15 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getFresnelTransFac, (setter)Material_setFresnelTransFac,
 	 "Blending factor for Fresnel transparency",
 	 NULL},
+	 {"rbFriction",
+	 (getter)Material_getRigidBodyFriction, (setter)Material_setRigidBodyFriction,
+	 "Rigid Body Friction coefficient",
+	 NULL},
+	 {"rbRestitution",
+	 (getter)Material_getRigidBodyRestitution, (setter)Material_setRigidBodyRestitution,
+	 "Rigid Body Restitution coefficient",
+	 NULL},
+
 	{"haloSeed",
 	 (getter)Material_getHaloSeed, (setter)Material_setHaloSeed,
 	 "Randomizes halo ring dimension and line location",
@@ -1743,6 +1764,32 @@ static PyObject *Material_getFresnelTransFac( BPy_Material * self )
 				      "couldn't get Material.fresnelTransFac attribute" );
 }
 
+static PyObject* Material_getRigidBodyFriction( BPy_Material * self )
+{
+	PyObject *attr =
+		PyFloat_FromDouble( ( double ) self->material->friction );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Material.friction" );
+}
+
+static PyObject* Material_getRigidBodyRestitution( BPy_Material * self )
+{
+	PyObject *attr =
+		PyFloat_FromDouble( ( double ) self->material->reflect );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Material.reflect" );
+}
+
+
+
 static PyObject *Material_getTextures( BPy_Material * self )
 {
 	int i;
@@ -2194,6 +2241,23 @@ static int Material_setFresnelTransFac( BPy_Material * self, PyObject * value )
 								EXPP_MAT_FRESNELTRANSFAC_MIN,
 								EXPP_MAT_FRESNELTRANSFAC_MAX );
 }
+
+static int Material_setRigidBodyFriction( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->friction,
+								0.f,
+								100.f );
+}
+
+static int Material_setRigidBodyRestitution( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->reflect,
+								0.f,
+								1.f );
+}
+
+
+
 
 static int Material_setSpecShader( BPy_Material * self, PyObject * value )
 {
