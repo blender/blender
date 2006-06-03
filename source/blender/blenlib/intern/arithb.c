@@ -2347,7 +2347,74 @@ void euler_rot(float *beul, float ang, char axis)
 	
 }
 
+/* exported to transform.c */
+void compatible_eul(float *eul, float *oldrot)
+{
+	float dx, dy, dz;
+	
+	/* correct differences of about 360 degrees first */
+	
+	dx= eul[0] - oldrot[0];
+	dy= eul[1] - oldrot[1];
+	dz= eul[2] - oldrot[2];
+	
+	while( fabs(dx) > 5.1) {
+		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
+		dx= eul[0] - oldrot[0];
+	}
+	while( fabs(dy) > 5.1) {
+		if(dy > 0.0) eul[1] -= 2.0*M_PI; else eul[1]+= 2.0*M_PI;
+		dy= eul[1] - oldrot[1];
+	}
+	while( fabs(dz) > 5.1 ) {
+		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
+		dz= eul[2] - oldrot[2];
+	}
+	
+	/* is 1 of the axis rotations larger than 180 degrees and the other small? NO ELSE IF!! */	
+	if( fabs(dx) > 3.2 && fabs(dy)<1.6 && fabs(dz)<1.6 ) {
+		if(dx > 0.0) eul[0] -= 2.0*M_PI; else eul[0]+= 2.0*M_PI;
+	}
+	if( fabs(dy) > 3.2 && fabs(dz)<1.6 && fabs(dx)<1.6 ) {
+		if(dy > 0.0) eul[1] -= 2.0*M_PI; else eul[1]+= 2.0*M_PI;
+	}
+	if( fabs(dz) > 3.2 && fabs(dx)<1.6 && fabs(dy)<1.6 ) {
+		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
+	}
+	
+	/* this return was there from ancient days... but why! probably because the code sucks :)
+		*/
+	return;
+	
+	/* calc again */
+	dx= eul[0] - oldrot[0];
+	dy= eul[1] - oldrot[1];
+	dz= eul[2] - oldrot[2];
+	
+	/* special case, tested for x-z  */
+	
+	if( (fabs(dx) > 3.1 && fabs(dz) > 1.5 ) || ( fabs(dx) > 1.5 && fabs(dz) > 3.1 ) ) {
+		if(dx > 0.0) eul[0] -= M_PI; else eul[0]+= M_PI;
+		if(eul[1] > 0.0) eul[1]= M_PI - eul[1]; else eul[1]= -M_PI - eul[1];
+		if(dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
+		
+	}
+	else if( (fabs(dx) > 3.1 && fabs(dy) > 1.5 ) || ( fabs(dx) > 1.5 && fabs(dy) > 3.1 ) ) {
+		if(dx > 0.0) eul[0] -= M_PI; else eul[0]+= M_PI;
+		if(dy > 0.0) eul[1] -= M_PI; else eul[1]+= M_PI;
+		if(eul[2] > 0.0) eul[2]= M_PI - eul[2]; else eul[2]= -M_PI - eul[2];
+	}
+	else if( (fabs(dy) > 3.1 && fabs(dz) > 1.5 ) || ( fabs(dy) > 1.5 && fabs(dz) > 3.1 ) ) {
+		if(eul[0] > 0.0) eul[0]= M_PI - eul[0]; else eul[0]= -M_PI - eul[0];
+		if(dy > 0.0) eul[1] -= M_PI; else eul[1]+= M_PI;
+		if(dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
+	}
+	
+}
 
+
+
+/* ******************************************** */
 
 void SizeToMat3( float *size, float mat[][3])
 {

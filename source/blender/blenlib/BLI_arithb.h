@@ -155,6 +155,8 @@ Mat3ToEul(
 	float *eul
 );
 
+void compatible_eul(float *eul, float *oldrot);
+
 /**
  * @section Quaternion arithmetic routines
  */

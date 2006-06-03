@@ -1447,14 +1447,16 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
 				if(pchant) {
 					if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
-						float eul[3], eult[3], fac= con->enforce;
+						float eul[3], eult[3], euln[3], fac= con->enforce;
 						
 						QuatToEul(pchan->quat, eul);
 						QuatToEul(pchant->quat, eult);
-						if(data->flag & ROTLIKE_X) eul[0]= fac*eult[0] + (1.0f-fac)*eul[0];
-						if(data->flag & ROTLIKE_Y) eul[1]= fac*eult[1] + (1.0f-fac)*eul[1];
-						if(data->flag & ROTLIKE_Z) eul[2]= fac*eult[2] + (1.0f-fac)*eul[2];
-						EulToQuat(eul, pchan->quat);
+						VECCOPY(euln, eul);
+						if(data->flag & ROTLIKE_X) euln[0]= fac*eult[0] + (1.0f-fac)*eul[0];
+						if(data->flag & ROTLIKE_Y) euln[1]= fac*eult[1] + (1.0f-fac)*eul[1];
+						if(data->flag & ROTLIKE_Z) euln[2]= fac*eult[2] + (1.0f-fac)*eul[2];
+						compatible_eul(eul, euln);
+						EulToQuat(euln, pchan->quat);
 					}
 					else {
 						QuatInterpol(pchan->quat, pchan->quat, pchant->quat, con->enforce);

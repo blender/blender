@@ -74,7 +74,6 @@ void apply_object(void);
 
 /* old transform */
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
-void compatible_eul(float *eul, float *oldrot);
 void headerprint(char *str);
 /* used for old game engine collision optimize */
 int cylinder_intersect_test(void);

@@ -1137,6 +1137,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				if(!(data->flag & ROTLIKE_X)) eul[0]= obeul[0];
 				if(!(data->flag & ROTLIKE_Y)) eul[1]= obeul[1];
 				if(!(data->flag & ROTLIKE_Z)) eul[2]= obeul[2];
+				compatible_eul(eul, obeul);
 				EulToMat3(eul, tmat);
 			}
 
