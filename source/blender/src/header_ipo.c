@@ -941,6 +941,9 @@ void do_ipo_buttons(short event)
 			if(ob->ipoflag & OB_ACTION_OB) {	/* check if channel exists, and flip ipo link */
 				bActionChannel *achan;
 				
+				if(has_ipo_code(ob->ipo, OB_LAY))
+					notice("Note: Layer Ipo doesn't work in Actions");
+				
 				if(ob->action==NULL) 
 					ob->action= add_empty_action(ID_OB);
 				achan= verify_action_channel(ob->action, "Object");

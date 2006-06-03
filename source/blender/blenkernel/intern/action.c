@@ -593,11 +593,13 @@ static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, 
 		calc_ipo(achan->ipo, ctime);
 		
 		for(icu= achan->ipo->curve.first; icu; icu= icu->next) {
-			
-			nic= MEM_callocN(sizeof(NlaIpoChannel), "NlaIpoChannel");
-			BLI_addtail(lb, nic);
-			nic->val= icu->curval;
-			nic->poin= get_ipo_poin(id, icu, &nic->type);
+			/* skip IPO_BITS, is for layers and cannot be blended */
+			if(icu->vartype != IPO_BITS) {
+				nic= MEM_callocN(sizeof(NlaIpoChannel), "NlaIpoChannel");
+				BLI_addtail(lb, nic);
+				nic->val= icu->curval;
+				nic->poin= get_ipo_poin(id, icu, &nic->type);
+			}
 		}
 	}
 	
