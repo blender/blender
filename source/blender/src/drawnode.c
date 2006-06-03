@@ -270,7 +270,7 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 		uiBut *bt;
 		
 		/* blend type */
-		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
+		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Lightness %x14|Saturation %x13|Hue %x12",
 					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
 					 &node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);

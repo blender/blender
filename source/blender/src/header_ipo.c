@@ -65,6 +65,7 @@
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -85,6 +86,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "nla.h"
 

@@ -200,6 +200,12 @@ typedef struct Material {
 #define MA_RAMP_DARK		7
 #define MA_RAMP_LIGHT		8
 #define MA_RAMP_OVERLAY		9
+#define MA_RAMP_DODGE		10
+#define MA_RAMP_BURN		11
+#define MA_RAMP_HUE			12
+#define MA_RAMP_SAT			13
+#define MA_RAMP_VAL			14
+#define MA_RAMP_COLOR		15
 
 /* texco */
 #define TEXCO_ORCO		1
