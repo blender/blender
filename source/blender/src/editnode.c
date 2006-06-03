@@ -441,6 +441,12 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 				node->flag |= NODE_DO_OUTPUT;
 				if(was_output==0) {
 					NodeTagChanged(snode->edittree, node);
+					
+					/* if inside group, tag entire group */
+					node= snode_get_editgroup(snode);
+					if(node)
+						NodeTagIDChanged(snode->nodetree, node->id);
+					
 					snode_handle_recalc(snode);
 				}
 				
@@ -1089,10 +1095,9 @@ static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
 		}
 		totr.xmin-=18.0f;
 	}
-	if(node->outputs.first) {
-		if(BLI_in_rctf(&totr, mx, my)) {
-			node_hide_unhide_sockets(snode, node);
-		}
+	/* hide unused sockets */
+	if(BLI_in_rctf(&totr, mx, my)) {
+		node_hide_unhide_sockets(snode, node);
 	}
 	
 	

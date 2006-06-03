@@ -507,7 +507,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		Image *ima= (Image *)node->id;
 		CompBuf *cbuf, *tbuf;
 		int rectx, recty;
-		
+
 		tbuf= in[0]->data?in[0]->data:(in[1]->data?in[1]->data:in[2]->data);
 		if(tbuf==NULL) {
 			rectx= 320; recty= 256;

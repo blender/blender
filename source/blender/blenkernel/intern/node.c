@@ -1182,6 +1182,17 @@ void ntreeMakeLocal(bNodeTree *ntree)
 
 #pragma mark /* ************ find stuff *************** */
 
+static int ntreeHasType(bNodeTree *ntree, int type)
+{
+	bNode *node;
+	
+	if(ntree)
+		for(node= ntree->nodes.first; node; node= node->next)
+			if(node->type == type)
+				return 1;
+	return 0;
+}
+
 bNodeLink *nodeFindLink(bNodeTree *ntree, bNodeSocket *from, bNodeSocket *to)
 {
 	bNodeLink *link;
@@ -1527,7 +1538,15 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->execfunc) {
 			group_node_get_stack(node, stack, nsin, nsout, in, out);
-			node->typeinfo->execfunc(data, node, nsin, nsout);
+			
+			/* for groups, only execute outputs for edited group */
+			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
+				if(gnode->flag & NODE_GROUP_EDIT)
+					if(node->flag & NODE_DO_OUTPUT)
+						node->typeinfo->execfunc(data, node, nsin, nsout);
+			}
+			else
+				node->typeinfo->execfunc(data, node, nsin, nsout);
 		}
 	}
 	
@@ -1824,15 +1843,22 @@ static void *exec_composite_node(void *node_v)
 }
 
 /* return total of executable nodes, for timecursor */
+/* only compositor uses it */
 static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 {
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
 	bNode *node;
 	bNodeSocket *sock;
-	int totnode= 0;
+	int totnode= 0, group_edit= 0;
 	
 	/* note; do not add a dependency sort here, the stack was created already */
+	
+	/* if we are in group edit, viewer nodes get skipped when group has viewer */
+	for(node= ntree->nodes.first; node; node= node->next)
+		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+			if(ntreeHasType((bNodeTree *)node->id, CMP_NODE_VIEWER))
+				group_edit= 1;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		int a;
@@ -1849,8 +1875,8 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 		
 		/* test the inputs */
 		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
-			/* skip viewer nodes in bg render */
-			if(node->type==CMP_NODE_VIEWER && G.background)
+			/* skip viewer nodes in bg render or group edit */
+			if(node->type==CMP_NODE_VIEWER && (G.background || group_edit))
 				node->need_exec= 0;
 			/* is sock in use? */
 			else if(sock->link) {
@@ -1879,7 +1905,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 				}
 			}
 			totnode++;
-//			printf("node needs exec %s\n", node->name);
+			// printf("node needs exec %s\n", node->name);
 			
 			/* tag for getExecutableNode() */
 			node->exec= 0;

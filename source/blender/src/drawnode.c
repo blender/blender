@@ -1493,9 +1493,9 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		BIF_icon_draw_blended(iconofs, rct->ymax-NODE_DY+2, ICON_BUTS, 0, -60);
 		glDisable(GL_BLEND);
 	}
-	if(node->outputs.first) {
+	{	/* always hide/reveil unused sockets */ 
 		int shade;
-		/* socket selector */
+
 		iconofs-= 18.0f;
 		if(node_has_hidden_sockets(node))
 			shade= -40;
