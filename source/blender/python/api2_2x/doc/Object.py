@@ -302,10 +302,11 @@ class Object:
         True/False - does not indicate that this object has any dupliFrames,
         (as returned by DupObjects) just that dupliFrames are enabled.
     @type enableDupFrames: bool (True/False)
-    @ivar enableDupGroup: The DupliFroup status of the object.
+    @ivar enableDupGroup: The DupliGroup status of the object.
         True/False - Set DupGroup to a group for this to take effect,
         Use DupObjects to get the object data from this instance. (Use with L{DupObjects<DupObjects>})
     @type enableDupGroup: bool (True/False)
+        Set True to make this object an instance of the objects DupGroup.
     @ivar enableDupRot: The DupliRot status of the object.
         True/False - Use with enableDupVerts to rotate each instance
         by the vertex normal. (Use with L{enableDupVerts<enableDupVerts>})

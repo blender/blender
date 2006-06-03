@@ -206,23 +206,23 @@ def load_mtl(dir, IMPORT_USE_EXISTING_MTL, mtl_file, meshDict, materialDict):
 		print '\tERROR: Unable to parse MTL file: "%s"' % mtl_file
 		return
 	print '\tUsing MTL: "%s"' % mtl_file
-#===========================================================================#
-# Returns unique name of object/mesh (preserve overwriting existing meshes) #
-#===========================================================================#
-def getUniqueName(name):
-	newName= name[:19] # 19 chars is the longest name.
-	uniqueInt= 0
-	while newName in getUniqueName.uniqueNames:
-		newName= '%s.%.3i' % (name[:15], uniqueInt)
-		uniqueInt +=1
-	getUniqueName.uniqueNames.append(newName)
-	return newName
-getUniqueName.uniqueNames= []
 
 #==================================================================================#
 # This loads data from .obj file                                                   #
 #==================================================================================#
-def load_obj(file, IMPORT_MTL=1, IMPORT_USE_EXISTING_MTL=0, IMPORT_CONSTRAIN_BOUNDS=0.0, IMPORT_ROTATE_X90=0, IMPORT_EDGES=1, IMPORT_SMOOTH_ALL=0, IMPORT_FGON=1, IMPORT_SMOOTH_GROUPS=0, IMPORT_MTL_SPLIT=0):
+def load_obj(\
+	file,\
+	IMPORT_MTL=1,\
+	IMPORT_USE_EXISTING_MTL=0,\
+	IMPORT_CONSTRAIN_BOUNDS=0.0,\
+	IMPORT_ROTATE_X90=0,\
+	IMPORT_EDGES=1,\
+	IMPORT_SMOOTH_ALL=0,\
+	IMPORT_FGON=1,\
+	IMPORT_SMOOTH_GROUPS=0,\
+	IMPORT_MTL_SPLIT=0,\
+	IMPORT_AS_INSTANCE=0):
+
 	global currentMesh,\
 	currentUsedVertList,\
 	currentUsedVertListSmoothGroup,\
@@ -233,9 +233,6 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_USE_EXISTING_MTL=0, IMPORT_CONSTRAIN_BOU
 	print '\nImporting OBJ file: "%s"' % file
 	
 	time1= sys.time()
-	
-	getUniqueName.uniqueNames.extend( [ob.name for ob in Object.Get()] )
-	getUniqueName.uniqueNames.extend( NMesh.GetNames() )
 	
 	# Deselect all objects in the scene.
 	# do this first so we dont have to bother, with objects we import
@@ -295,7 +292,6 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_USE_EXISTING_MTL=0, IMPORT_CONSTRAIN_BOU
 	print '\tfile length: %d' % len(fileLines)
 	# Ignore normals and comments.
 	fileLines= [lsplit for l in fileLines if not l.startswith('vn') if not l.startswith('#') for lsplit in (l.split(),) if lsplit]
-	
 	
 	
 	if IMPORT_CONSTRAIN_BOUNDS == 0.0:
@@ -818,23 +814,52 @@ def load_obj(file, IMPORT_MTL=1, IMPORT_USE_EXISTING_MTL=0, IMPORT_CONSTRAIN_BOU
 			SCALE/=10
 	
 	importedObjects= []
+	
+	scn= Scene.GetCurrent()
+	
+	# DeSelect all
+	for ob in scn.getChildren():
+		ob.sel=0
+	
+	# Create objects for each mesh.
 	for mk, me in meshDict.iteritems():
 		nme= me[0]
 		
 		# Ignore no vert meshes.
 		if not nme.verts: # == []
 			continue
-		name= getUniqueName(mk)
-		ob= NMesh.PutRaw(nme, name)
-		ob.name= name
-		importedObjects.append(ob)
 		
+		ob= Object.New('Mesh', fileName)
+		nme.name= mk
+		ob.link(nme)
 		ob.setSize(SCALE, SCALE, SCALE)
-		
+		importedObjects.append(ob)
 	
-	# Select all imported objects.
-	for ob in importedObjects:
-		ob.sel= 1
+	Layers= scn.Layers
+	if IMPORT_AS_INSTANCE:
+		# Create a group for this import.
+		group_scn= Scene.New(fileName)
+		for ob in importedObjects:
+			group_scn.link(ob) # dont worry about the layers
+		
+		grp= Group.New(fileName)
+		grp.objects= importedObjects
+		
+		grp_ob= Object.New('Empty', fileName)
+		grp_ob.enableDupGroup= True
+		grp_ob.DupGroup= grp
+		scn.link(grp_ob)
+		grp_ob.Layers= Layers
+		grp_ob.sel= 1
+		
+	else:
+		# Select all imported objects.
+		for ob in importedObjects:
+			scn.link(ob)
+			ob.Layers= Layers
+			ob.sel= 1
+	
+	
 	if badObjUvs > 0:
 		print '\tERROR: found %d faces with badly formatted UV coords. everything else went okay.' % badObjUvs
 	
@@ -861,11 +886,13 @@ def load_obj_ui(file):
 	IMPORT_FGON= Draw.Create(1)
 	IMPORT_SMOOTH_GROUPS= Draw.Create(0)
 	IMPORT_MTL_SPLIT= Draw.Create(0)
+	IMPORT_AS_INSTANCE= Draw.Create(0)
 	
 	# Get USER Options
 	pup_block= [\
 	('All *.obj\'s in dir', IMPORT_DIR, 'Import all obj files in this dir (avoid overlapping data with "Create scene")'),\
 	('Create Scene', IMPORT_NEW_SCENE, 'Imports each obj into its own scene, named from the file'),\
+	('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
 	'Materials...',\
 	('Import (*.mtl)', IMPORT_MTL, 'Imports material settings and images from the obj\'s .mtl file'),\
 	('Re-Use Existing', IMPORT_USE_EXISTING_MTL, 'Use materials from the current blend where names match.'),\
@@ -901,6 +928,7 @@ def load_obj_ui(file):
 	IMPORT_FGON= IMPORT_FGON.val
 	IMPORT_SMOOTH_GROUPS= IMPORT_SMOOTH_GROUPS.val
 	IMPORT_MTL_SPLIT= IMPORT_MTL_SPLIT.val
+	IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
 	orig_scene= Scene.GetCurrent()
 	
 	# Dont do material split if we dont import material
@@ -926,7 +954,7 @@ def load_obj_ui(file):
 				scn.makeCurrent()
 			
 			Window.DrawProgressBar((float(count)/obj_len) - 0.01, '%s: %i of %i' % (f, count, obj_len))
-			load_obj(d+f, IMPORT_MTL, IMPORT_USE_EXISTING_MTL, IMPORT_CONSTRAIN_BOUNDS, IMPORT_ROTATE_X90, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT)
+			load_obj(d+f, IMPORT_MTL, IMPORT_USE_EXISTING_MTL, IMPORT_CONSTRAIN_BOUNDS, IMPORT_ROTATE_X90, IMPORT_EDGES, IMPORT_SMOOTH_ALL, IMPORT_FGON, IMPORT_SMOOTH_GROUPS, IMPORT_MTL_SPLIT, IMPORT_AS_INSTANCE)
 			
 	
 	orig_scene.makeCurrent() # We can leave them in there new scene.
