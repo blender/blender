@@ -1843,9 +1843,9 @@ void execute_action_ipo(bActionChannel *achan, bPoseChannel *pchan)
 		for(icu= achan->ipo->curve.first; icu; icu= icu->next) {
 			void *poin= get_pchan_ipo_poin(pchan, icu->adrcode);
 			if(poin) {
-			  write_ipo_poin(poin, IPO_FLOAT, icu->curval);
-			  //printf("execute_action_ipo wrote_ipo_poin: %f\n", icu->curval);
-			  //printf("%s has poin %p value %f\n", achan->name, poin, icu->curval);
+				write_ipo_poin(poin, IPO_FLOAT, icu->curval);
+				//printf("execute_action_ipo wrote_ipo_poin: %f\n", icu->curval);
+				//printf("%s has poin %p value %f\n", achan->name, poin, icu->curval);
 			}
 		}
 	}

@@ -1370,6 +1370,7 @@ void chan_calc_mat(bPoseChannel *chan)
 	SizeToMat3(chan->size, smat);
 	
 	NormalQuat(chan->quat);
+
 	QuatToMat3(chan->quat, rmat);
 	
 	Mat3MulMat3(tmat, rmat, smat);
@@ -1472,7 +1473,8 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
 	float vec[3], quat[4];
-
+	int did_local= 0;	/* copying quaternion should be limited, chan_calc_mat() normalizes quat */
+	
 	/* set up variables for quicker access below */
 	bone= pchan->bone;
 	parbone= bone->parent;
@@ -1483,14 +1485,18 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	if(pchan->constraints.first) {
 		bConstraint *con;
 		for(con=pchan->constraints.first; con; con= con->next) {
-			if(con->flag & CONSTRAINT_LOCAL)
+			if(con->flag & CONSTRAINT_LOCAL) {
 				do_local_constraint(pchan, con);
+				did_local= 1;
+			}
 		}
 	}
 	
 	/* this gives a chan_mat with actions (ipos) results */
 	chan_calc_mat(pchan);
-	QUATCOPY(pchan->quat, quat);	/* local constraint hack. bad! */
+	
+	if(did_local) 
+		QUATCOPY(pchan->quat, quat);	/* local constraint hack. bad! */
 	
 	/* construct the posemat based on PoseChannels, that we do before applying constraints */
 	/* pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
