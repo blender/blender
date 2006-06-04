@@ -54,6 +54,7 @@
 
 #include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_interface.h"
@@ -693,12 +694,13 @@ void set_ipotype(void)
 	get_status_editipo();
 	
 	if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0) {
-		Key *key= (Key *)G.sipo->from;
+		Key *key= ob_get_key((Object *)G.sipo->from);
 		Object *ob= OBACT;
 		KeyBlock *kb;
 		
 		if(key==NULL) return;
 		kb= BLI_findlink(&key->block, ob->shapenr-1);
+		if(kb==NULL) return;
 		
 		event= pupmenu("Key Type %t|Linear %x1|Cardinal %x2|B Spline %x3");
 		if(event < 1) return;
