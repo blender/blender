@@ -37,6 +37,7 @@ Example::
   - 'Sphere'
   - 'Square'
   - 'NoDiffuse'
+  - 'NoSpecular'
   - 'RayShadow'
 
   Example::

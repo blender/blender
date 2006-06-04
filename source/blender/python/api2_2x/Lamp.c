@@ -782,6 +782,8 @@ static PyObject *Lamp_ModesDict( void )
 				 PyInt_FromLong( EXPP_LAMP_MODE_ONLYSHADOW ) );
 		PyConstant_Insert( c, "NoDiffuse",
 				 PyInt_FromLong( EXPP_LAMP_MODE_NODIFFUSE ) );
+		PyConstant_Insert( c, "NoSpecular",
+				 PyInt_FromLong( EXPP_LAMP_MODE_NOSPECULAR ) );
 		PyConstant_Insert( c, "RayShadow",
 				 PyInt_FromLong( EXPP_LAMP_MODE_SHAD_RAY ) );
 	}
