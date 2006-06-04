@@ -93,11 +93,18 @@ BF_FREETYPE_LIB = 'freetype'
 
 WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
 BF_QUICKTIME = '/usr/local'
-BF_QUICKTIME_INC = '${BF_QUICKTIME}/include' 
+BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
+
+# enable ffmpeg  support
+WITH_BF_FFMPEG = 'false'  # -DWITH_FFMPEG
+BF_FFMPEG = '/usr'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+BF_FFMPEG_LIBPATH='$(BF_FFMPEG)/lib'
+BF_FFMPEG_LIB = 'avcodec avformat avutil'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = 'false'
-BF_OPENGL = '/usr/lib'
+BF_OPENGL = '/usr'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIB = 'GL GLU X11 Xi'
 BF_OPENGL_LIBPATH = '/usr/X11R6/lib'
