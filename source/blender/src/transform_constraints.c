@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -173,7 +174,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
 	   constraint axis. Nice for camera grab + MMB */
-	if(1.0f - abs(Inpf(axis, t->viewinv[2])) < 0.000001f) {
+	if(1.0f - fabs(Inpf(axis, t->viewinv[2])) < 0.000001f) {
 		Projf(vec, in, t->viewinv[1]);
 		factor = Inpf(t->viewinv[1], vec) * 2.0f;
 		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
