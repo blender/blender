@@ -441,6 +441,7 @@ static View2D *spacelink_get_view2d(SpaceLink *sl)
 }
 
 /* copies changes in this view from or to all 2d views with lock option open */
+/* do not call this inside of drawing routines, to prevent eternal loops */
 void view2d_do_locks(ScrArea *cursa, int flag)
 {
 	ScrArea *sa;
@@ -468,8 +469,10 @@ void view2d_do_locks(ScrArea *cursa, int flag)
 							scrarea_queue_winredraw(sa);
 						}
 						
-						if(flag & V2D_LOCK_REDRAW)
-							scrarea_do_windraw(sa);
+						if(flag & V2D_LOCK_REDRAW) {
+							if(sl == sa->spacedata.first)
+								scrarea_do_windraw(sa);
+						}
 						else
 							scrarea_queue_winredraw(sa);
 					}
@@ -2194,7 +2197,7 @@ int view2dzoom(unsigned short event)
 	mval[1]= mvalo[1];
 	
 	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || is_wheel ) {
-	
+		
 		/* regular mousewheel:   zoom regular
 		* alt-shift mousewheel: zoom y only
 		* alt-ctrl mousewheel:  zoom x only
@@ -2275,6 +2278,7 @@ int view2dzoom(unsigned short event)
 				}
 			}
 		}
+
 		if (ELEM(event, WHEELUPMOUSE, WHEELDOWNMOUSE) || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
 			if(U.viewzoom!=USER_ZOOM_CONT) {
@@ -2311,13 +2315,13 @@ int view2dzoom(unsigned short event)
 				G.v2d->cur.ymin+= dy;
 				G.v2d->cur.ymax-= dy;
 			}
-		
+			
 			test_view2d(G.v2d, curarea->winx, curarea->winy);	/* cur min max rects */
 			
 			sa= curarea;	/* now when are you going to kill this one! */
 			view2d_do_locks(curarea, V2D_LOCK_COPY|V2D_LOCK_REDRAW);
-			mywinset(sa->win);
-			
+			areawinset(sa->win);
+
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		}

@@ -923,7 +923,8 @@ static void seq_blockhandlers(ScrArea *sa)
 
 void drawseqspace(ScrArea *sa, void *spacedata)
 {
-	SpaceSeq *sseq;
+	SpaceSeq *sseq= sa->spacedata.first;
+	View2D *v2d= &sseq->v2d;
 	Editing *ed;
 	Sequence *seq;
 	float col[3];
@@ -931,9 +932,8 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	ed= G.scene->ed;
 
-	sseq= curarea->spacedata.first;
 	if(sseq->mainb) {
-		draw_image_seq(curarea);
+		draw_image_seq(sa);
 		return;
 	}
 
@@ -946,22 +946,22 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
+	calc_scrollrcts(sa, v2d, sa->winx, sa->winy);
 
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-		if(G.v2d->scroll) {
-			ofsx= curarea->winrct.xmin;	/* because of mywin */
-			ofsy= curarea->winrct.ymin;
-			glViewport(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
-			glScissor(ofsx+G.v2d->mask.xmin,  ofsy+G.v2d->mask.ymin, ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
+	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
+		if(v2d->scroll) {
+			ofsx= sa->winrct.xmin;	/* because of mywin */
+			ofsy= sa->winrct.ymin;
+			glViewport(ofsx+v2d->mask.xmin,  ofsy+v2d->mask.ymin, ( ofsx+v2d->mask.xmax-1)-(ofsx+v2d->mask.xmin)+1, ( ofsy+v2d->mask.ymax-1)-( ofsy+v2d->mask.ymin)+1);
+			glScissor(ofsx+v2d->mask.xmin,  ofsy+v2d->mask.ymin, ( ofsx+v2d->mask.xmax-1)-(ofsx+v2d->mask.xmin)+1, ( ofsy+v2d->mask.ymax-1)-( ofsy+v2d->mask.ymin)+1);
 		}
 	}
 
 
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 
 	BIF_ThemeColorShade(TH_BACK, -20);
-	glRectf(G.v2d->cur.xmin,  0.0,  G.v2d->cur.xmax,  1.0);
+	glRectf(v2d->cur.xmin,  0.0,  v2d->cur.xmax,  1.0);
 
 	
 	boundbox_seq();
@@ -971,16 +971,16 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	/*Draw Track Gradients  Comment out for now do somthing more subtle
 	start drawing gradients at the bottom of the screen.*/
 	/*
-	i= MAX2(1, ((int)G.v2d->cur.ymin)-1); 
+	i= MAX2(1, ((int)v2d->cur.ymin)-1); 
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_QUADS);
-	while (i<G.v2d->cur.ymax) {
+	while (i<v2d->cur.ymax) {
 		BIF_ThemeColorShade(TH_BACK, 0);
-		glVertex2f(G.v2d->cur.xmax, i);
-		glVertex2f(G.v2d->cur.xmin, i);
+		glVertex2f(v2d->cur.xmax, i);
+		glVertex2f(v2d->cur.xmin, i);
 		BIF_ThemeColorShade(TH_BACK, 30);
-		glVertex2f(G.v2d->cur.xmin, i+1);
-		glVertex2f(G.v2d->cur.xmax, i+1);
+		glVertex2f(v2d->cur.xmin, i+1);
+		glVertex2f(v2d->cur.xmax, i+1);
 		i+=1.0;
 	}
 	glEnd();
@@ -989,18 +989,18 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	
 	
 	/* Quad Stripes ?*/
-	/*i= MAX2(1, ((int)G.v2d->cur.ymin)-1);
+	/*i= MAX2(1, ((int)v2d->cur.ymin)-1);
 	glBegin(GL_QUADS);
-	while (i<G.v2d->cur.ymax) {
+	while (i<v2d->cur.ymax) {
 		if (((int)i) & 1)
 			BIF_ThemeColorShade(TH_BACK, -15);
 		else
 			BIF_ThemeColorShade(TH_BACK, -25);
 		
-		glVertex2f(G.v2d->cur.xmax, i);
-		glVertex2f(G.v2d->cur.xmin, i);
-		glVertex2f(G.v2d->cur.xmin, i+1);
-		glVertex2f(G.v2d->cur.xmax, i+1);
+		glVertex2f(v2d->cur.xmax, i);
+		glVertex2f(v2d->cur.xmin, i);
+		glVertex2f(v2d->cur.xmin, i+1);
+		glVertex2f(v2d->cur.xmax, i+1);
 		i+=1.0;
 	}
 	glEnd();*/
@@ -1008,10 +1008,10 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	/* Force grid lines instead - Hangs on andys pc... will look at later */
 	/*
 	glBegin(GL_LINES);
-	while (i<G.v2d->cur.ymax) {
+	while (i<v2d->cur.ymax) {
 		BIF_ThemeColorShade(TH_BACK, -40);
-		glVertex2f(G.v2d->cur.xmax, i);
-		glVertex2f(G.v2d->cur.xmin, i);
+		glVertex2f(v2d->cur.xmax, i);
+		glVertex2f(v2d->cur.xmin, i);
 		i+=1.0;
 	}
 	glEnd();
@@ -1026,10 +1026,10 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 		seq= ed->seqbasep->first;
 		while(seq) { /* bound box test, dont draw outside the view */
 			if (seq->flag & SELECT ||
-					seq->start > G.v2d->cur.xmax ||
-					seq->start+seq->len < G.v2d->cur.xmin ||
-					seq->machine+1.0 < G.v2d->cur.ymin ||
-					seq->machine > G.v2d->cur.ymax)
+					seq->start > v2d->cur.xmax ||
+					seq->start+seq->len < v2d->cur.xmin ||
+					seq->machine+1.0 < v2d->cur.ymin ||
+					seq->machine > v2d->cur.ymax)
 			{
 				/* dont draw */
 			} else {
@@ -1043,10 +1043,10 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 		seq= ed->seqbasep->first;
 		while(seq) { /* bound box test, dont draw outside the view */
 			if (!(seq->flag & SELECT) ||
-					seq->start > G.v2d->cur.xmax ||
-					seq->start+seq->len < G.v2d->cur.xmin ||
-					seq->machine+1.0 < G.v2d->cur.ymin ||
-					seq->machine > G.v2d->cur.ymax)
+					seq->start > v2d->cur.xmax ||
+					seq->start+seq->len < v2d->cur.xmin ||
+					seq->machine+1.0 < v2d->cur.ymin ||
+					seq->machine > v2d->cur.ymax)
 			{
 				/* dont draw */
 			} else {
@@ -1059,13 +1059,13 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	draw_extra_seqinfo();
 
 	/* restore viewport */
-	mywinset(curarea->win);
+	mywinset(sa->win);
 
-	/* ortho at pixel level curarea */
-	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
+	/* ortho at pixel level sa */
+	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-		if(G.v2d->scroll) {
+	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
+		if(v2d->scroll) {
 			drawscroll(0);
 		}
 	}
@@ -1078,8 +1078,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 		seq_blockhandlers(sa);
 	}
 
-	view2d_do_locks(curarea, V2D_LOCK_COPY);
-	curarea->win_swap= WIN_BACK_OK;
+	sa->win_swap= WIN_BACK_OK;
 }
 
 

@@ -3675,7 +3675,8 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					dx= 0.1154f*(v2d->cur.xmax-v2d->cur.xmin);
 					v2d->cur.xmin+= dx;
 					v2d->cur.xmax-= dx;
-					test_view2d(G.v2d, curarea->winx, curarea->winy);
+					test_view2d(G.v2d, sa->winx, sa->winy);
+					view2d_do_locks(sa, V2D_LOCK_COPY);
 				}
 				else if((G.qual==LR_SHIFTKEY)) {
 					insert_gap(25, CFRA);
@@ -3704,7 +3705,8 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					dx= 0.15f*(v2d->cur.xmax-v2d->cur.xmin);
 					v2d->cur.xmin-= dx;
 					v2d->cur.xmax+= dx;
-					test_view2d(G.v2d, curarea->winx, curarea->winy);
+					test_view2d(G.v2d, sa->winx, sa->winy);
+					view2d_do_locks(sa, V2D_LOCK_COPY);
 				}
 			}
 			doredraw= 1;
