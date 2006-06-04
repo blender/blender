@@ -1620,11 +1620,12 @@ void yafrayPluginRender_t::writeCamera()
 		params["type"] = yafray::parameter_t("ortho");
 	else
 		params["type"] = yafray::parameter_t("perspective");
-	params["resx"]=yafray::parameter_t(re->r.xsch);
-	params["resy"]=yafray::parameter_t(re->r.ysch);
+	params["resx"] = yafray::parameter_t(re->rectx);
+	params["resy"] = yafray::parameter_t(re->recty);
 
 	float f_aspect = 1;
-	if ((re->r.xsch*re->r.xasp)<=(re->r.ysch*re->r.yasp)) f_aspect = float(re->r.xsch*re->r.xasp)/float(re->r.ysch*re->r.yasp);
+	if ((re->rectx * re->r.xasp) <= (re->recty * re->r.yasp))
+		f_aspect = float(re->rectx * re->r.xasp) / float(re->recty * re->r.yasp);
 	params["focal"] = yafray::parameter_t(mainCamLens/(f_aspect*32.f));
 	params["aspect_ratio"] = yafray::parameter_t(re->ycor);
 
@@ -1716,7 +1717,7 @@ void yafrayPluginRender_t::writeHemilight()
 		params["cache"] = yafray::parameter_t("on");
 		params["use_QMC"] = yafray::parameter_t("on");
 		params["threshold"] = yafray::parameter_t(re->r.GIrefinement);
-		params["cache_size"] = yafray::parameter_t((2.0/float(re->r.xsch))*re->r.GIpixelspersample);
+		params["cache_size"] = yafray::parameter_t((2.0/float(re->rectx))*re->r.GIpixelspersample);
 		params["shadow_threshold"] = yafray::parameter_t(1.0 - re->r.GIshadowquality);
 		params["grid"] = yafray::parameter_t(82);
 		params["search"] = yafray::parameter_t(35);
@@ -1781,7 +1782,7 @@ void yafrayPluginRender_t::writePathlight()
 		params["cache"] = yafray::parameter_t("on");
 		params["use_QMC"] = yafray::parameter_t("on");
 		params["threshold"] = yafray::parameter_t(re->r.GIrefinement);
-		params["cache_size"] = yafray::parameter_t((2.0/float(re->r.xsch))*re->r.GIpixelspersample);
+		params["cache_size"] = yafray::parameter_t((2.0/float(re->recty))*re->r.GIpixelspersample);
 		params["shadow_threshold"] = yafray::parameter_t(1.0 - re->r.GIshadowquality);
 		params["grid"] = yafray::parameter_t(82);
 		params["search"] = yafray::parameter_t(35);

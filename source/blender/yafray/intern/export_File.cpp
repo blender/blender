@@ -280,6 +280,8 @@ void yafrayFileRender_t::displayImage()
 	unsigned short height = (unsigned short)(header[14] + (header[15]<<8));
 	// don't do anything if resolution doesn't match that of rectot
 	if ((width!=re->rectx) || (height!=re->recty)) {
+		cout << "Wrong image width/height: " << width << "/" << height <<
+			" expected " << re->rectx << "/" << re->recty << endl;
 		fclose(fp);
 		fp = NULL;
 		return;
@@ -1709,11 +1711,12 @@ void yafrayFileRender_t::writeCamera()
 	else	
 		ostr << "type=\"perspective\"";
 
-	// render resolution including the percentage buttons (aleady calculated in initrender for R renderdata)
-	ostr << " resx=\"" << re->r.xsch << "\" resy=\"" << re->r.ysch << "\"";
+	// render resolution including the percentage buttons
+	ostr << " resx=\"" << re->rectx << "\" resy=\"" << re->recty << "\"";
 
 	float f_aspect = 1;
-	if ((re->r.xsch*re->r.xasp)<=(re->r.ysch*re->r.yasp)) f_aspect = float(re->r.xsch*re->r.xasp)/float(re->r.ysch*re->r.yasp);
+	if ((re->rectx * re->r.xasp) <= (re->recty * re->r.yasp))
+		f_aspect = float(re->rectx * re->r.xasp) / float(re->recty * re->r.yasp);
 	ostr << "\n\tfocal=\"" << mainCamLens/(f_aspect*32.f);
 	ostr << "\" aspect_ratio=\"" << re->ycor << "\"";
 
@@ -1786,7 +1789,7 @@ void yafrayFileRender_t::writeHemilight()
 	if (re->r.GIcache) {
 		ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << re->r.GIpower << "\" mode=\"occlusion\"";
 		ostr << "\n\tcache=\"on\" use_QMC=\"on\" threshold=\"" << re->r.GIrefinement << "\" "
-				 << "cache_size=\"" << ((2.0/float(re->r.xsch))*re->r.GIpixelspersample) << "\"";
+				 << "cache_size=\"" << ((2.0/float(re->rectx))*re->r.GIpixelspersample) << "\"";
 		ostr << "\n\tshadow_threshold=\"" << (1.0-re->r.GIshadowquality) << "\" grid=\"82\" search=\"35\"";
 		ostr << "\n\tignore_bumpnormals=\"" << (re->r.YF_nobump ? "on" : "off") << "\"";
 		if (fromAO) {
@@ -1855,7 +1858,7 @@ void yafrayFileRender_t::writePathlight()
 		}
 		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" << re->r.GIrefinement << "\"" << endl;
 		ostr << "\tignore_bumpnormals=\"" << (re->r.YF_nobump ? "on" : "off") << "\"\n";
-		float sbase = 2.0/float(re->r.xsch);
+		float sbase = 2.0/float(re->rectx);
 		ostr << "\tcache_size=\"" << sbase*re->r.GIpixelspersample << "\" shadow_threshold=\"" <<
 			1.0-re->r.GIshadowquality << "\" grid=\"82\" search=\"35\" >\n";
 	}
