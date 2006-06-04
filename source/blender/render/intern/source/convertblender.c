@@ -1619,9 +1619,11 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 		}
 	}
 	
-	/* check autosmooth, we then have to skip only-verts optimize */
+	/* check autosmooth and displacement, we then have to skip only-verts optimize */
 	do_autosmooth |= (me->flag & ME_AUTOSMOOTH);
 	if(do_autosmooth)
+		only_verts= 0;
+	if(test_for_displace(re, ob ) )
 		only_verts= 0;
 	
 	if(!only_verts)
