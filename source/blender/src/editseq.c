@@ -256,7 +256,7 @@ void update_seq_ipo_rect(Sequence * seq)
 	seq->ipo->cur.xmax= end;
 }
 
-void clear_last_seq(void)
+void clear_seq_belonging_to_ipo(struct Ipo * ipo)
 {
 	/* from (example) ipo: when it is changed, also do effects with same ipo */
 	Sequence *seq;
@@ -264,27 +264,24 @@ void clear_last_seq(void)
 	StripElem *se;
 	int a;
 
-	if(last_seq) {
+	ed= G.scene->ed;
+	if(ed==0) return;
 
-		ed= G.scene->ed;
-		if(ed==0) return;
-
-		WHILE_SEQ(&ed->seqbase) {
-			if(seq==last_seq || (last_seq->ipo && seq->ipo==last_seq->ipo)) {
-				a= seq->len;
-				se= seq->strip->stripdata;
-				if(se) {
-					while(a--) {
-						if(se->ibuf) IMB_freeImBuf(se->ibuf);
-						se->ibuf= 0;
-						se->ok= 1;
-						se++;
-					}
+	WHILE_SEQ(&ed->seqbase) {
+		if(seq->ipo == ipo) {
+			a= seq->len;
+			se= seq->strip->stripdata;
+			if(se) {
+				while(a--) {
+					if(se->ibuf && se->ok != 2) IMB_freeImBuf(se->ibuf);
+					se->ibuf= 0;
+					se->ok= 1;
+					se++;
 				}
 			}
 		}
-		END_SEQ
 	}
+	END_SEQ
 }
 
 static int test_overlap_seq(Sequence *test)

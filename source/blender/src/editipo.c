@@ -323,7 +323,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 		}
-		else if(si->blocktype==ID_SEQ) clear_last_seq();
+		else if(si->blocktype==ID_SEQ) clear_seq_belonging_to_ipo(si->ipo);
 		else if(si->blocktype==ID_PO) {
 			Object *ob= OBACT;
 			if(ob && ob->pose) {

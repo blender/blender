@@ -43,7 +43,7 @@ void				change_sequence(void);
 void                    update_seq_ipo_rect(struct Sequence * seq);
 struct Sequence*                get_last_seq();
 void                            set_last_seq_to_null();
-void				clear_last_seq(void);
+void				clear_seq_belonging_to_ipo(struct Ipo * ipo);
 void				clever_numbuts_seq(void);
 void				del_seq(void);
 void				enter_meta(void);
