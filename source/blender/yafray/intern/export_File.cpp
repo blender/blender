@@ -71,6 +71,8 @@ static int createDir(char* name)
 extern "C" { extern char bprogname[]; }
 
 // add drive character if not in path string, using blender executable location as reference
+// later added note: doesn't make much sense actually,
+// the intended file might not be located on the same drive as where blender is located...
 static void addDrive(string &path)
 {
 	int sp = path.find_first_of(":");
@@ -112,6 +114,24 @@ static string unixYafrayPath()
 
 #endif
 
+#ifdef WIN32
+#define MAXPATHLEN MAX_PATH
+#else
+#include <sys/param.h>
+#endif
+static void adjustPath(string &path)
+{
+	// if relative, expand to full path
+	char cpath[MAXPATHLEN];
+	strcpy(cpath, path.c_str());
+	BLI_convertstringcode(cpath, G.sce, 0);
+	path = cpath;
+#ifdef WIN32
+	// add drive char if not there
+	addDrive(path);
+#endif
+}
+
 bool yafrayFileRender_t::initExport()
 {
 	xmlpath = "";
@@ -128,22 +148,20 @@ bool yafrayFileRender_t::initExport()
 	}
 	else 
 	{
+		xmlpath = U.yfexportdir;
+		adjustPath(xmlpath);	// possibly relative
+		cout << "YFexport path is: " << xmlpath << endl;
 		// check if it exists
-		if (!BLI_exists(U.yfexportdir)) {
+		if (!BLI_exists(const_cast<char*>(xmlpath.c_str()))) {
 			cout << "YafRay temporary xml export directory:\n" << U.yfexportdir << "\ndoes not exist!\n";
 #ifdef WIN32
 			// try to create it
 			cout << "Trying to create...\n";
-			if (createDir(U.yfexportdir)==0) dir_failed=true; else dir_failed=false;
+			if (createDir(xmlpath.c_str())==0) dir_failed=true; else dir_failed=false;
 #else
 			dir_failed = true;
 #endif
 		}
-		xmlpath = U.yfexportdir;
-#ifdef WIN32
-		// have to add drive char here too, in case win user still wants to set path him/herself
-		addDrive(xmlpath);
-#endif
 	}
 
 #ifdef WIN32
@@ -317,26 +335,6 @@ void yafrayFileRender_t::displayImage()
 	fclose(fp);
 	fp = NULL;
 }
-
-
-#ifdef WIN32
-#define MAXPATHLEN MAX_PATH
-#else
-#include <sys/param.h>
-#endif
-static void adjustPath(string &path)
-{
-	// if relative, expand to full path
-	char cpath[MAXPATHLEN];
-	strcpy(cpath, path.c_str());
-	BLI_convertstringcode(cpath, G.sce, 0);
-	path = cpath;
-#ifdef WIN32
-	// add drive char if not there
-	addDrive(path);
-#endif
-}
-
 
 static string noise2string(short nbtype)
 {
