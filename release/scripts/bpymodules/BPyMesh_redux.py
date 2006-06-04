@@ -226,14 +226,14 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 					# if the edge is flipped from its order in the face then we need to flip the order indicies.
 					if cfa.verts[i]==ced.v1:	i1,i2 = i, i-1
 					else:						i1,i2 = i-1, i
-				
-				if DO_UV:
-					ced.uv1.append( cfa.orig_uv[i1] )
-					ced.uv2.append( cfa.orig_uv[i2] )
-				
-				if DO_VCOL:
-					ced.col1.append( cfa.orig_col[i1] )
-					ced.col2.append( cfa.orig_col[i2] )
+					
+					if DO_UV:
+						ced.uv1.append( cfa.orig_uv[i1] )
+						ced.uv2.append( cfa.orig_uv[i2] )
+					
+					if DO_VCOL:
+						ced.col1.append( cfa.orig_col[i1] )
+						ced.col2.append( cfa.orig_col[i2] )
 					
 				
 				# PERIMITER
@@ -291,8 +291,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 		def ed_set_collapse_loc(ced):
 			v1co= ced.v1.co
 			v2co= ced.v2.co
-			v1no= ced.v1.co
-			v2no= ced.v2.co
+			v1no= ced.v1.no
+			v2no= ced.v2.no
 			
 			# Basic operation, works fine but not as good as predicting the best place.
 			#between= ((v1co*w1) + (v2co*w2))
