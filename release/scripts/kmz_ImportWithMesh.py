@@ -1,10 +1,9 @@
 #!BPY
-
 """ Registration info for Blender menus: <- these words are ignored
-Name: 'KMZ/KML import''
+Name: 'Google Map Model (KMZ/KML)'
 Blender: 241
 Group: 'Import'
-Tip: 'Import geometry of short google earth 3D models'
+Tip: 'Import Google earth models'
 """
 
 __author__ = "Jean-Michel Soler (jms)"
@@ -36,33 +35,13 @@ __bpydoc__ = """\
 
 import Blender
 from Blender  import Window
-import sys
 from Blender import Mathutils
-BLversion=Blender.Get('version')
-SHIFT=Blender.Window.Qual.LSHIFT
-
-try:
-    import nt
-    os=nt
-    os.sep='\\'
-
-except: 
-    import posix
-    os=posix
-    os.sep='/'
-
-def isdir(path):
-    try:
-        st = os.stat(path)
-        return 1 
-    except:
-        return 0
 
 def split(pathname):
-         if pathname.find(os.sep)!=-1:
-             k0=pathname.split(os.sep)
+         if pathname.find(Blender.sys.sep)!=-1:
+             k0=pathname.split(Blender.sys.sep)
          else:
-            if os.sep=='/':
+            if Blender.sys.sep=='/':
                 k0=pathname.split('\\')
             else:
                 k0=pathname.split('/') 
@@ -72,11 +51,7 @@ def split(pathname):
          return directory, Name
 
 def join(l0,l1): 
-     return  l0+os.sep+l1
-
-os.isdir=isdir
-os.split=split
-os.join=join
+     return  l0+Blender.sys.sep+l1
 
 def fonctionSELECT(nom):
     scan_FILE(nom)
@@ -134,8 +109,7 @@ def cree_POLYGON(ME,TESSEL):
        if UPDATE_F==[]:
           POS=len(ME.verts)
 
-       for VE in TESSEL[0]:
-           UPDATE_V.append(VE)
+       UPDATE_V.extend(TESSEL[0])
 
        if len(TESSEL[0])==3:
           UPDATE_F.append([POS,POS+1,POS+2])
@@ -144,15 +118,15 @@ def cree_POLYGON(ME,TESSEL):
           UPDATE_F.append([POS,POS+1,POS+2,POS+3])
           POS+=4
    else :
-      if UPDATE_V!=[] : ME.verts.extend(UPDATE_V)
+      if UPDATE_V: ME.verts.extend(UPDATE_V)
       FACES=[]
-      if UPDATE_F!=[]:
+      if UPDATE_F:
         for FE in UPDATE_F:
            if len(FE)==3:
               FACES.append([ME.verts[FE[0]],ME.verts[FE[1]],ME.verts[FE[2]]]) 
            else :
               FACES.append([ME.verts[FE[0]],ME.verts[FE[1]],ME.verts[FE[2]],ME.verts[FE[3]]])
-      if FACES!=[]:
+      if FACES:
            ME.faces.extend(FACES)
            FACES=[]
 
@@ -163,7 +137,7 @@ def cree_POLYGON(ME,TESSEL):
 
       for T in TESSEL: 
          ME.verts.extend(T)
-         for t in range(len(T),1,-1):
+         for t in xrange(len(T),1,-1):
             ME.verts[-t].sel=1
             EDGES.append([ME.verts[-t],ME.verts[-t+1]])
          ME.verts[-1].sel=1
@@ -171,15 +145,10 @@ def cree_POLYGON(ME,TESSEL):
          ME.edges.extend(EDGES)
       ME.fill()
       if npoly %500 == 1 :
-        for v in ME.verts:
-          v.sel=1
+        ME.sel= True
         ME.remDoubles(0.0)
 
-      for v in ME.verts:
-          v.sel=0
-
-   TESSEL=[] 
-   return ME,TESSEL
+      ME.sel= False
 
 def cree_FORME(v,TESSEL):
     if 1 :
@@ -203,15 +172,14 @@ def active_FORME():
            else :
               FACES.append([ME.verts[FE[0]],ME.verts[FE[1]],ME.verts[FE[2]],ME.verts[FE[3]]])
            #if len(ME.faces)%200==1 : print len(ME.faces) 
-        if FACES!=[]:
+        if FACES:
               ME.faces.extend(FACES)
     UPDATE_V=[]
     UPDATE_F=[]
     POS=0
      
-    if len(ME.verts)>0:
-       for v in ME.verts:
-           v.sel=1
+    if ME.verts:
+       ME.sel= True
        ME.remDoubles(0.0)
      
 def wash_DATA(ndata):
@@ -224,8 +192,8 @@ def wash_DATA(ndata):
          ndata=ndata[1:]
        while ndata[-1]==' ': 
          ndata=ndata[:-1]	
-       if ndata[0]==',':ndata=ndata[1:]
-       if ndata[-1]==',':ndata=ndata[:-1]
+       if ndata[0]==',':ndata.pop(0)
+       if ndata[-1]==',':ndata.pop()
        ndata=ndata.replace(',,',',')    
        ndata=ndata.replace(' ',',')
        ndata=ndata.split(',')
@@ -256,11 +224,12 @@ def contruit_HIERARCHIE(t):
     global NUMBER, PLACEMARK
     vv=[]
     TESSEL=[]
+    # De select all
+    for O in SC.getChildren(): O.sel= False
     OB = Blender.Object.New('Mesh')  
     SC.link(OB)
     ME= OB.getData(mesh=1)
-    [O.select(0) for O in Blender.Object.Get()]	
-    OB.select(1)
+    OB.sel= True
 
     t=t.replace('\t',' ')
     while t.find('  ')!=-1:
@@ -307,8 +276,20 @@ def contruit_HIERARCHIE(t):
              if t[t0+2]=='-': 
                b=balisetype.index(t[t0+1])+1
              balise=BALISES[b]
-             if b==2 and t[t0:t1].find(STACK[-1])>-1:
-                 parent=STACK.pop(-1)
+             
+             
+             
+             # FIXME - JMS WHY IS STACK[-1] None Sometimes?
+             try:
+               if b==2 and t[t0:t1].find(STACK[-1])>-1:
+                   parent=STACK.pop()
+             except:
+               #print 'ERROR'
+               #print b
+               #print STACK
+               #raise "Error"
+               STACK.pop()  # Remove the None value
+               
           elif t[t1-1] in balisetype:
             balise=BALISES[balisetype.index(t[t1-1])+1]
           else:
@@ -326,11 +307,11 @@ def contruit_HIERARCHIE(t):
              if  balise=='O' and NOM in TAGS: 
                  STACK.append(NOM)
                  if not PLACEMARK :
-                    if NOM.find('Style')==0:
+                    if NOM.startswith('Style'):
                        proprietes=collecte_ATTRIBUTS(t[t0:t1+ouvrante])
-                    if NOM.find('PolyStyle')==0:	 
+                    elif NOM.startswith('PolyStyle'):
                        GETMAT=1
-                    if NOM.find('color')==0 and GETMAT:
+                    elif NOM.startswith('color') and GETMAT:
                        COLOR=t[t2+1:t.find('</color',t2)]
                        print COLOR
                        COLOR=[eval('0x'+COLOR[0:2]), eval('0x'+COLOR[2:4]), eval('0x'+COLOR[4:6]), eval('0x'+COLOR[6:])]
@@ -348,13 +329,13 @@ def contruit_HIERARCHIE(t):
                     PLACEMARK=1
                     if t[t2:t.find('</Placemark',t2)].find('Polygon')>-1 and len(ME.verts)>0:
                        active_FORME()
-                       OB.select(0)	                        
+                       OB.sel= False
                        #[O.select(0) for O in Blender.Object.Get()]
                        OB = Blender.Object.New('Mesh')  # link mesh to an object
                        SC = Blender.Scene.GetCurrent()          # link object to current scene
                        SC.link(OB)
                        ME=OB.getData(mesh=1)
-                       OB.select(1)	
+                       OB.sel= True
                  if NOM.find('styleUrl')>-1:
                         material= t[t2+2:t.find('</styleUrl',t2)]
                         if material in MATERIALS :
@@ -368,9 +349,12 @@ def contruit_HIERARCHIE(t):
                        TESSEL.append([])
                        VAL=wash_DATA(VAL) 
                        vv=[[float(VAL[a+ii]) for ii in xrange(3)] for a in xrange(0,len(VAL),3)]
-                       if vv!=[] : [cree_FORME(v,TESSEL[-1]) for v in vv]
+                       if vv: [cree_FORME(v,TESSEL[-1]) for v in vv]
                        del VAL
-                       if n==0: ME,TESSEL=cree_POLYGON(ME,TESSEL)
+                       if n==0:
+                         cree_POLYGON(ME,TESSEL)
+                         TESSEL= []
+             
              elif balise=='O' : 
                  STACK.append(None)
              D=[] 
@@ -411,5 +395,6 @@ def scan_FILE(nom):
       active_FORME()
   gt2=Blender.sys.time()-gt1
   print int(gt2/60),':',int(gt2%60) 
-	
-Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .KMZ FILE')
+
+if __name__ == '__main__':
+	Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .KMZ FILE')
