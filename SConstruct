@@ -40,6 +40,8 @@ import shutil
 import glob
 import re
 
+print sys.version_info
+
 import tools.Blender
 import tools.btools
 import tools.bcolors
@@ -165,6 +167,38 @@ if env.has_key('BF_DEBUG_LIBS'):
 	B.quickdebug += env['BF_DEBUG_LIBS']
 
 printdebug = B.arguments.get('BF_LISTDEBUG', 0)
+
+# see if this linux distro has libalut
+
+if env['OURPLATFORM'] == 'linux2' :
+    if env['WITH_BF_OPENAL']:
+        mylib_test_source_file = """
+        #include "AL/alut.h"
+        int main(int argc, char **argv)
+        {
+	        alutGetMajorVersion();
+	        return 0;
+        }
+        """
+
+        def CheckFreeAlut(context,env):
+            context.Message( B.bc.OKGREEN + "Linux platform detected:\n  checking for FreeAlut... " + B.bc.ENDC )
+            env['LIBS'] = 'alut'
+            result = context.TryLink(mylib_test_source_file, '.c')
+            context.Result(result)
+            return result
+
+        env2 = env.Copy( LIBPATH = env['BF_OPENAL'] ) 
+        conf = Configure( env2, {'CheckFreeAlut' : CheckFreeAlut}, '.sconf_temp', '/dev/null' )
+        if conf.CheckFreeAlut( env2 ):
+            env['BF_OPENAL_LIB'] += ' alut'
+        del env2
+        for root, dirs, files in os.walk('.sconf_temp', topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        os.rmdir(root)
 
 if len(B.quickdebug) > 0 and printdebug != 0:
 	print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC
