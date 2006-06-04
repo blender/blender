@@ -190,7 +190,10 @@ Sequence *find_nearest_seq(int *hand)
 	seq= ed->seqbasep->first;
 	while(seq) {
 		if(seq->machine == (int)y) {
-			if(seq->startdisp<=x && seq->enddisp>=x) {
+			/* check for both normal strips, and strips that have been flipped horizontally */
+			if( ((seq->startdisp < seq->enddisp) && (seq->startdisp<=x && seq->enddisp>=x)) ||
+				((seq->startdisp > seq->enddisp) && (seq->startdisp>=x && seq->enddisp<=x)) )
+			{
 
 				if(seq->type < SEQ_EFFECT) {
 					if( seq->handsize+seq->startdisp >=x ) {
