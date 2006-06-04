@@ -66,10 +66,10 @@ static int ffmpeg_multiplex_audio = 1;
 static int ffmpeg_autosplit = 0;
 static int ffmpeg_autosplit_count = 0;
 
-static AVFormatContext* outfile;
-static AVStream* video_stream;
-static AVStream* audio_stream;
-static AVFrame* current_frame;
+static AVFormatContext* outfile = 0;
+static AVStream* video_stream = 0;
+static AVStream* audio_stream = 0;
+static AVFrame* current_frame = 0;
 
 static uint8_t* video_buffer = 0;
 static int video_buffersize = 0;
@@ -663,6 +663,7 @@ void end_ffmpeg(void)
 	/* free the temp buffer */
 	if (current_frame) {
 		delete_picture(current_frame);
+		current_frame = 0;
 	}
 	if (outfile && outfile->oformat) {
 		if (!(outfile->oformat->flags & AVFMT_NOFILE)) {

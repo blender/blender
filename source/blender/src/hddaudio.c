@@ -170,7 +170,8 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 		* 2;
 
 	rval->decode_cache = (short*) MEM_mallocN(
-		rval->decode_cache_size * sizeof(short), 
+		rval->decode_cache_size * sizeof(short)
+		+ AVCODEC_MAX_AUDIO_FRAME_SIZE, 
 		"hdaudio decode cache");
 	rval->decode_pos = 0;
 	rval->target_channels = -1;
