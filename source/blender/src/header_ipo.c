@@ -1028,7 +1028,7 @@ void ipo_buttons(void)
 	uiBlock *block;
 	short xco,xmax;
 	char naam[20];
-	int icon=0;
+	int icon=0, allow_pin= B_IPOPIN;
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
@@ -1177,7 +1177,10 @@ void ipo_buttons(void)
 	
 	uiClearButLock();
 
-	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, ID_IP, G.sipo->blocktype, (ID*)G.sipo->ipo, G.sipo->from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
+	if(G.sipo->blocktype==ID_SEQ)
+		allow_pin= 0;
+	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, allow_pin, &G.sipo->pin, B_IPOBROWSE, ID_IP, 
+						G.sipo->blocktype, (ID*)G.sipo->ipo, G.sipo->from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
 
 	/* COPY PASTE */
 	xco-= XIC/2;
