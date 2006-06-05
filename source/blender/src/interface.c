@@ -1652,7 +1652,6 @@ static int ui_do_but_TEX(uiBut *but)
 
 		dodraw= 0;
 		dev = extern_qread_ext(&val, &ascii);
-		printf("dev: %d, val: %d, ascii: %c\n", dev, val, ascii);
 		
 		if(dev==INPUTCHANGE) break;
 		else if(get_mbut() & R_MOUSE) break;
