@@ -894,60 +894,88 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 					if(tmp > *b) *b= tmp; 
 				}
 					break;	
-		case MA_RAMP_DODGE:
-			tmp = 1.0 - fac*col[0];
-			if(tmp == 0.0)
-				*r = 1.0;
-			else if ((*r = (*r) / tmp)> 1.0)
-				*r = 1.0;
-			if(g) {
-				tmp = 1.0 - fac*col[1];
-				if(tmp == 0.0)
-					*g = 1.0;
-				else if ((*g = (*g) / tmp) > 1.0)
-					*g = 1.0;
+		case MA_RAMP_DODGE:			
+			
 				
-				tmp = 1.0 - fac*col[2];
-				if(tmp == 0.0)
-					*b = 1.0;
-				else if ((*b = (*b) / tmp) > 1.0)
-					*b = 1.0;
+			if(*r !=0.0){
+				tmp = 1.0 - fac*col[0];
+				if(tmp <= 0.0)
+					*r = 1.0;
+				else if ((tmp = (*r) / tmp)> 1.0)
+					*r = 1.0;
+				else 
+					*r = tmp;
+			}
+			if(g) {
+				if(*g !=0.0){
+					tmp = 1.0 - fac*col[1];
+					if(tmp <= 0.0 )
+						*g = 1.0;
+					else if ((tmp = (*g) / tmp) > 1.0 )
+						*g = 1.0;
+					else
+						*g = tmp;
+				}
+				if(*b !=0.0){
+					tmp = 1.0 - fac*col[2];
+					if(tmp <= 0.0)
+						*b = 1.0;
+					else if ((tmp = (*b) / tmp) > 1.0 )
+						*b = 1.0;
+					else
+						*b = tmp;
+				}
+
 			}
 				break;	
 		case MA_RAMP_BURN:
 			
 			tmp = facm + fac*col[0];
 			
-			if(tmp == 0.0)
+			if(tmp <= 0.0)
 				*r = 0.0;
-			else if (( (*r) = (1.0 - (1.0 - (*r)) / tmp )) < 0.0 )
+			else if (( tmp = (1.0 - (1.0 - (*r)) / tmp )) < 0.0)
 			        *r = 0.0;
+			else if (tmp > 1.0)
+				*r=1.0;
+			else 
+				*r = tmp; 
+
 			if(g) {
 				tmp = facm + fac*col[1];
-				if(tmp == 0.0)
+				if(tmp <= 0.0)
 					*g = 0.0;
-				else if (( (*g) = (1.0 - (1.0 - (*g)) / tmp )) < 0.0 )
+				else if (( tmp = (1.0 - (1.0 - (*g)) / tmp )) < 0.0 )
 			        	*g = 0.0;
+				else if(tmp >1.0)
+					*g=1.0;
+				else
+					*g = tmp;
 			        	
 			        tmp = facm + fac*col[2];
-			        if(tmp == 0.0)
+			        if(tmp <= 0.0)
 					*b = 0.0;
-				else if (( (*b) = (1.0 - (1.0 - (*b)) / tmp )) < 0.0 )
+				else if (( tmp = (1.0 - (1.0 - (*b)) / tmp )) < 0.0  )
 			        	*b = 0.0;
+				else if(tmp >1.0)
+					*b= 1.0;
+				else
+					*b = tmp;
 			}
 				break;
 		case MA_RAMP_HUE:		
 			if(g){
 				float rH,rS,rV;
-				float colH,colS,colV;
+				float colH,colS,colV; 
 				float tmpr,tmpg,tmpb;
-				rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
 				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
-				hsv_to_rgb( colH , rS, rV, &tmpr, &tmpg, &tmpb);
-				*r = facm*(*r) + fac*tmpr;
-				*g = facm*(*g) + fac*tmpg;
-				*b = facm*(*b) + fac*tmpb;
-				
+				if(colS!=0 ){
+					rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
+					hsv_to_rgb( colH , rS, rV, &tmpr, &tmpg, &tmpb);
+					*r = facm*(*r) + fac*tmpr;  
+					*g = facm*(*g) + fac*tmpg; 
+					*b = facm*(*b) + fac*tmpb;
+				}
 			}
 				break;
 		case MA_RAMP_SAT:		
@@ -955,8 +983,10 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 				float rH,rS,rV;
 				float colH,colS,colV;
 				rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
-				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
-				hsv_to_rgb( rH, (facm*rS +fac*colS), rV, r, g, b);
+				if(rS!=0){
+					rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
+					hsv_to_rgb( rH, (facm*rS +fac*colS), rV, r, g, b);
+				}
 			}
 				break;
 		case MA_RAMP_VAL:		
@@ -973,12 +1003,14 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 				float rH,rS,rV;
 				float colH,colS,colV;
 				float tmpr,tmpg,tmpb;
-				rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
 				rgb_to_hsv(col[0],col[1],col[2],&colH,&colS,&colV);
-				hsv_to_rgb( colH, colS, rV, &tmpr, &tmpg, &tmpb);
-				*r = facm*(*r) + fac*tmpr;
-				*g = facm*(*g) + fac*tmpg;
-				*b = facm*(*b) + fac*tmpb;
+				if(colS!=0){
+					rgb_to_hsv(*r,*g,*b,&rH,&rS,&rV);
+					hsv_to_rgb( colH, colS, rV, &tmpr, &tmpg, &tmpb);
+					*r = facm*(*r) + fac*tmpr;
+					*g = facm*(*g) + fac*tmpg;
+					*b = facm*(*b) + fac*tmpb;
+				}
 			}
 				break;
 	}
