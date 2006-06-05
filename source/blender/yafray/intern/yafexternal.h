@@ -17,6 +17,7 @@ class point3d_t
 {
 	public:
 		point3d_t() { x = y = z = 0; }
+		point3d_t(PFLOAT ix) { x = y = z = ix; }
 		point3d_t(PFLOAT ix, PFLOAT iy, PFLOAT iz=0) { x=ix;  y=iy;  z=iz; }
 		point3d_t(const point3d_t &s) { x=s.x;  y=s.y;  z=s.z; }
 		void set(PFLOAT ix, PFLOAT iy, PFLOAT iz=0) { x=ix;  y=iy;  z=iz; }

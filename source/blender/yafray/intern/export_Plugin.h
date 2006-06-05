@@ -53,13 +53,13 @@ class yafrayPluginRender_t : public yafrayRender_t
 		void genFace(std::vector<int> &faces,std::vector<std::string> &shaders,std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
 				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
-				bool has_orco,bool has_uv);
+				int has_orco,bool has_uv);
 		void genCompleFace(std::vector<int> &faces,/*std::vector<std::string> &shaders,*/std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,
 				std::map<VertRen*, int> &vert_idx,VlakRen *vlr,
-				bool has_orco,bool has_uv);
+				int has_orco,bool has_uv);
 		void genVertices(std::vector<yafray::point3d_t> &verts, int &vidx,
-										 std::map<VertRen*, int> &vert_idx, VlakRen* vlr, bool has_orco, Object* obj);
+										 std::map<VertRen*, int> &vert_idx, VlakRen* vlr, int has_orco, Object* obj);
 };
 
 class blenderYafrayOutput_t : public yafray::colorOutput_t

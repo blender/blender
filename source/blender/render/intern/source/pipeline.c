@@ -1601,6 +1601,9 @@ static void yafrayRender(Render *re)
 	free_render_result(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	
+	// need this too, for aspect/ortho/etc info
+	RE_SetCamera(re, re->scene->camera);
+
 	// switch must be done before prepareScene()
 	if (!re->r.YFexportxml)
 		YAF_switchFile();
@@ -1611,7 +1614,13 @@ static void yafrayRender(Render *re)
 	RE_Database_FromScene(re, re->scene, 1);
 	printf("Scene conversion done.\n");
 	
+	re->i.starttime = PIL_check_seconds_timer();
+	
 	YAF_exportScene(re);
+	
+	re->i.lastframetime = PIL_check_seconds_timer()- re->i.starttime;
+	re->stats_draw(&re->i);
+	
 	RE_Database_Free(re);
 }
 

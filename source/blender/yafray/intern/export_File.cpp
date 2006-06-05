@@ -157,7 +157,7 @@ bool yafrayFileRender_t::initExport()
 #ifdef WIN32
 			// try to create it
 			cout << "Trying to create...\n";
-			if (createDir(xmlpath.c_str())==0) dir_failed=true; else dir_failed=false;
+			if (createDir(const_cast<char*>(xmlpath.c_str()))==0) dir_failed=true; else dir_failed=false;
 #else
 			dir_failed = true;
 #endif
@@ -1048,7 +1048,8 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 				else if ((mtex->texco & TEXCO_GLOB) || (mtex->texco & TEXCO_OBJECT))
 					// object mode is also set as global, but the object matrix was specified above with <modulator..>
 					ostr << "\t\t<texco value=\"global\" />\n";
-				else if (mtex->texco & TEXCO_ORCO)
+				else if ((mtex->texco & TEXCO_ORCO) || (mtex->texco & TEXCO_STRAND))
+					// orco flag now used for 'strand'-mapping as well, see mesh code
 					ostr << "\t\t<texco value=\"orco\" />\n";
 				else if (mtex->texco & TEXCO_WINDOW)
 					ostr << "\t\t<texco value=\"window\" />\n";
@@ -1217,10 +1218,13 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	// Test the rendermaterial texco flag instead.
 	// update2: bug #3193 it seems it has changed again with the introduction of static 'hair' particles,
 	// now it uses the vert pointer again as an extra test to make sure there are orco coords available
-	bool EXPORT_ORCO = (((face0mat->texco & TEXCO_ORCO)!=0) && (face0->v1->orco!=NULL));
+	int has_orco = 0;
+	if (face0mat->texco & TEXCO_STRAND)
+		has_orco = 1;
+	else
+		has_orco = (((face0mat->texco & TEXCO_ORCO)!=0) && (face0->v1->orco!=NULL)) ? 2 : 0;
 
-	string has_orco = "off";
-	if (EXPORT_ORCO) has_orco = "on";
+	string has_orco_st = has_orco ? "on" : "off";
 
 	// smooth shading if enabled
 	bool no_auto = true;	//in case non-mesh, or mesh has no autosmooth
@@ -1229,7 +1233,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		if (mesh->flag & ME_AUTOSMOOTH) {
 			no_auto = false;
 			ostr.str("");
-			ostr << "\t<mesh autosmooth=\"" << mesh->smoothresh << "\" has_orco=\"" << has_orco << "\" >\n";
+			ostr << "\t<mesh autosmooth=\"" << mesh->smoothresh << "\" has_orco=\"" << has_orco_st << "\" >\n";
 			xmlfile << ostr.str();
 		}
 	}
@@ -1239,9 +1243,9 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		// or flat shaded, the smooth flag of the first face is used to determine
 		// the shading for the whole mesh
 		if (face0->flag & ME_SMOOTH)
-			xmlfile << "\t<mesh autosmooth=\"180\" has_orco=\"" << has_orco << "\" >\n";
+			xmlfile << "\t<mesh autosmooth=\"180\" has_orco=\"" << has_orco_st << "\" >\n";
 		else
-			xmlfile << "\t<mesh autosmooth=\"0.1\" has_orco=\"" << has_orco << "\" >\n";	//0 shows artefacts
+			xmlfile << "\t<mesh autosmooth=\"0.1\" has_orco=\"" << has_orco_st << "\" >\n";	//0 shows artefacts
 	}
 
 	// now all vertices
@@ -1271,13 +1275,19 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			MTC_cp3Float(ver->co, tvec);
 			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
-								 << "\" y=\"" << tvec[1]
-								 << "\" z=\"" << tvec[2] << "\" />\n";
-			if (EXPORT_ORCO) {
+			           << "\" y=\"" << tvec[1]
+			           << "\" z=\"" << tvec[2] << "\" />\n";
+			// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+			if (has_orco==1) {
+				ostr << "\t\t\t<p x=\"" << ver->accum
+				     << "\" y=\"" << ver->accum
+				     << "\" z=\"" << ver->accum << "\" />\n";
+			}
+			else if (has_orco==2) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
-									 << "\" y=\"" << orco[1]
-									 << "\" z=\"" << orco[2] << "\" />\n";
+				     << "\" y=\"" << orco[1]
+				     << "\" z=\"" << orco[2] << "\" />\n";
 			}
 		}
 		if (vert_idx.find(vlr->v2)==vert_idx.end()) {
@@ -1286,13 +1296,19 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			MTC_cp3Float(ver->co, tvec);
 			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
-								 << "\" y=\"" << tvec[1]
-								 << "\" z=\"" << tvec[2] << "\" />\n";
-			if (EXPORT_ORCO) {
+			           << "\" y=\"" << tvec[1]
+			           << "\" z=\"" << tvec[2] << "\" />\n";
+			// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+			if (has_orco==1) {
+				ostr << "\t\t\t<p x=\"" << ver->accum
+				     << "\" y=\"" << ver->accum
+				     << "\" z=\"" << ver->accum << "\" />\n";
+			}
+			else if (has_orco==2) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
-									 << "\" y=\"" << orco[1]
-									 << "\" z=\"" << orco[2] << "\" />\n";
+				     << "\" y=\"" << orco[1]
+				     << "\" z=\"" << orco[2] << "\" />\n";
 			}
 		}
 		if (vert_idx.find(vlr->v3)==vert_idx.end()) {
@@ -1301,13 +1317,19 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			MTC_cp3Float(ver->co, tvec);
 			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
-								 << "\" y=\"" << tvec[1]
-								 << "\" z=\"" << tvec[2] << "\" />\n";
-			if (EXPORT_ORCO) {
+			           << "\" y=\"" << tvec[1]
+			           << "\" z=\"" << tvec[2] << "\" />\n";
+			// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+			if (has_orco==1) {
+				ostr << "\t\t\t<p x=\"" << ver->accum
+				     << "\" y=\"" << ver->accum
+				     << "\" z=\"" << ver->accum << "\" />\n";
+			}
+			else if (has_orco==2) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
-									 << "\" y=\"" << orco[1]
-									 << "\" z=\"" << orco[2] << "\" />\n";
+				     << "\" y=\"" << orco[1]
+				     << "\" z=\"" << orco[2] << "\" />\n";
 			}
 		}
 		if ((vlr->v4) && (vert_idx.find(vlr->v4)==vert_idx.end())) {
@@ -1316,13 +1338,19 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			MTC_cp3Float(ver->co, tvec);
 			MTC_Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
-								 << "\" y=\"" << tvec[1]
-								 << "\" z=\"" << tvec[2] << "\" />\n";
-			if (EXPORT_ORCO) {
+			           << "\" y=\"" << tvec[1]
+			           << "\" z=\"" << tvec[2] << "\" />\n";
+			// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+			if (has_orco==1) {
+				ostr << "\t\t\t<p x=\"" << ver->accum
+				     << "\" y=\"" << ver->accum
+				     << "\" z=\"" << ver->accum << "\" />\n";
+			}
+			else if (has_orco==2) {
 				orco = ver->orco;
 				ostr << "\t\t\t<p x=\"" << orco[0]
-									 << "\" y=\"" << orco[1]
-									 << "\" z=\"" << orco[2] << "\" />\n";
+				     << "\" y=\"" << orco[1]
+				     << "\" z=\"" << orco[2] << "\" />\n";
 			}
 		}
 		xmlfile << ostr.str();
@@ -1352,7 +1380,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		int idx2 = vert_idx.find(vlr->v2)->second;
 		int idx3 = vert_idx.find(vlr->v3)->second;
 		// make sure the indices point to the vertices when orco coords exported
-		if (EXPORT_ORCO) { idx1*=2;  idx2*=2;  idx3*=2; }
+		if (has_orco) { idx1*=2;  idx2*=2;  idx3*=2; }
 
 		ostr.str("");
 		ostr << "\t\t\t<f a=\"" << idx1 << "\" b=\"" << idx2 << "\" c=\"" << idx3 << "\"";
@@ -1368,8 +1396,8 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 		if (uvc) {
 			ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
-					 << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
-					 << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
+			     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
+			     << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 		}
 
 		// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
@@ -1377,13 +1405,13 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			// vertex colors
 			unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
 			ostr << " vcol_a_r=\"" << (float)pt[3]/255.f << "\" vcol_a_g=\"" << (float)pt[2]/255.f
-					 << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
+			     << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
 			pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
 			ostr << " vcol_b_r=\"" << (float)pt[3]/255.f << "\" vcol_b_g=\"" << (float)pt[2]/255.f
-					 << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
+			     << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
 			pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
 			ostr << " vcol_c_r=\"" << (float)pt[3]/255.f << "\" vcol_c_g=\"" << (float)pt[2]/255.f
-					 << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
+			     << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
 		}
 		ostr << " shader_name=\"" << fmatname << "\" />\n";
 
@@ -1394,7 +1422,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			idx3 = vert_idx.find(vlr->v1)->second;
 
 			// make sure the indices point to the vertices when orco coords exported
-			if (EXPORT_ORCO) { idx1*=2;  idx2*=2;  idx3*=2; }
+			if (has_orco) { idx1*=2;  idx2*=2;  idx3*=2; }
 
 			ostr << "\t\t\t<f a=\"" << idx1 << "\" b=\"" << idx2 << "\" c=\"" << idx3 << "\"";
 
@@ -1405,20 +1433,20 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 
 			if (uvc) {
 				ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
-						 << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
-						 << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
+				     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
+				     << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 			}
 			if ((EXPORT_VCOL) && (vlr->vcol)) {
 				// vertex colors
 				unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
 				ostr << " vcol_a_r=\"" << (float)pt[3]/255.f << "\" vcol_a_g=\"" << (float)pt[2]/255.f
-						 << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
+				     << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
 				pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
 				ostr << " vcol_b_r=\"" << (float)pt[3]/255.f << "\" vcol_b_g=\"" << (float)pt[2]/255.f
-						 << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
+				     << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
 				pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
 				ostr << " vcol_c_r=\"" << (float)pt[3]/255.f << "\" vcol_c_g=\"" << (float)pt[2]/255.f
-						 << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
+				     << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
 			}
 			ostr << " shader_name=\"" << fmatname << "\" />\n";
 

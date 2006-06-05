@@ -3033,16 +3033,28 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		ob= base->object;
 		
 		/* OB_DONE means the object itself got duplicated, so was already converted */
-		if(ob->flag & OB_DONE);
+		if (ob->flag & OB_DONE) {
+			/* yafray: for some reason this part was removed, but yafray really needs it...
+			   Dupliverts objects are treated as instances of an original 'sourceobject',
+			   which needs to be included in the renderlist here.
+			   exception: lamps, lattices, armatures & camera's */
+			if ((re->r.renderer==R_YAFRAY) && ((ob->type!=OB_LATTICE) && (ob->type!=OB_ARMATURE) &&
+			    (ob->type!=OB_LAMP) && (ob->type!=OB_CAMERA)))
+			{
+				printf("Duplivert object %s, adding to renderlist\n", ob->id.name);
+				ob->flag &= ~OB_DONE;
+				init_render_object(re, ob, NULL, 0, 0);
+				ob->flag |= OB_DONE;
+			}
+		}
 		else if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
 			if(ob->transflag & OB_DUPLI) {
 				
 				/* exception: mballs! */
-				/* yafray: Include at least one copy of a dupliframe object for yafray in the renderlist.
-				   mballs comment above true as well for yafray, they are not included, only all other object types */
+				/* yafray: except for mballs, include at least one copy of a dupliframe object in the renderlist. */
 				if (re->r.renderer==R_YAFRAY) {
 					if ((ob->type!=OB_MBALL) && ((ob->transflag & OB_DUPLIFRAMES)!=0)) {
-						printf("Object %s has OB_DUPLIFRAMES set, adding to renderlist\n", ob->id.name);
+						printf("Dupliframe Object %s, adding to renderlist\n", ob->id.name);
 						init_render_object(re, ob, NULL, 0, 0);
 					}
 				}
@@ -3067,16 +3079,22 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
 						if(obd->type!=OB_MBALL) {
-							/* yafray: special handling of duplivert objects for yafray:
-							   only the matrix is stored, together with the source object name.
-								 Since the original object is needed as well, it is included in the renderlist (see above)
-								 NOT done for lamps, these need to be included as normal lamps separately
-								 correction: also ignore lattices, armatures and cameras (....) */
-							if ((obd->type!=OB_LATTICE) && (obd->type!=OB_ARMATURE) &&
-									(obd->type!=OB_LAMP) && (obd->type!=OB_CAMERA) && (re->r.renderer==R_YAFRAY))
-							{
-								printf("Adding dupli matrix for object %s\n", obd->id.name);
-								YAF_addDupliMtx(obd);
+							/* yafray: special case handling of duplivert/dupligroup objects.
+							   Only one copy included in renderlist(see above), all others treated as instance of that.
+							   So only need to store name and matrix. Exception are lamps. lattices, armatures and camera's */
+							if (re->r.renderer==R_YAFRAY) {
+								/* dupligroup obs are included directly */
+								if (obd->flag & OB_FROMGROUP) {
+									printf("Dupligroup object %s, adding to renderlist\n", obd->id.name);
+									init_render_object(re, obd, ob, dob->index, 0);
+								}
+								else if ((obd->type!=OB_LATTICE) && (obd->type!=OB_ARMATURE) &&
+								         (obd->type!=OB_LAMP) && (obd->type!=OB_CAMERA))
+								{
+									printf("Adding dupli matrix for object %s\n", obd->id.name);
+									YAF_addDupliMtx(obd);
+								}
+								else init_render_object(re, obd, ob, dob->index, 0);
 							}
 							else init_render_object(re, obd, ob, dob->index, 0);
 						}
@@ -3087,21 +3105,22 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				}
 			}
 			else {
-				/* yafray: if there are linked data objects (except lamps, empties or armatures),
-				   yafray only needs to know about one, the rest can be instanciated.
-				   The dupliMtx list is used for this purpose.
-				   Exception: objects which have object linked materials, these cannot be instanciated. */
+				/* yafray: linked data objects treated similarly to dupliverts,
+				   If object not known yet (not in renderlist), include in the renderlist,
+				   otherwise treat as instance of it, so only name and matrix are stored 
+				   Exception: objects which have materials linked to object instead of mesh */
 				if ((re->r.renderer==R_YAFRAY) && (ob->colbits==0))
 				{
 					/* Special case, parent object dupli's: ignore if object itself is lamp or parent is lattice or empty */
 					if (ob->parent) {
 						if ((ob->type!=OB_LAMP) && (ob->parent->type!=OB_EMPTY) &&
-								(ob->parent->type!=OB_LATTICE) && YAF_objectKnownData(ob))
+						    (ob->parent->type!=OB_LATTICE) && YAF_objectKnownData(ob))
 							printf("From parent: Added dupli matrix for linked data object %s\n", ob->id.name);
 						else
 							init_render_object(re, ob, NULL, 0, 0);
 					}
-					else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) && (ob->type!=OB_ARMATURE) && YAF_objectKnownData(ob))
+					else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) &&
+					         (ob->type!=OB_ARMATURE) && YAF_objectKnownData(ob))
 						printf("Added dupli matrix for linked data object %s\n", ob->id.name);
 					else
 						init_render_object(re, ob, NULL, 0, 0);

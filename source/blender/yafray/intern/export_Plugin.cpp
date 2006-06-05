@@ -966,7 +966,8 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 					// object mode is also set as global, but the object matrix 
 					// was specified above with <modulator..>
 					params["texco"] = yafray::parameter_t("global");
-				else if (mtex->texco & TEXCO_ORCO)
+				else if ((mtex->texco & TEXCO_ORCO) || (mtex->texco & TEXCO_STRAND))
+					// orco flag now used for 'strand'-mapping as well, see mesh code
 					params["texco"] = yafray::parameter_t("orco");
 				else if (mtex->texco & TEXCO_WINDOW)
 					params["texco"] = yafray::parameter_t("window");
@@ -1138,7 +1139,7 @@ void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, VlakRen *vlr, b
 void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,vector<int> &faceshader,
 														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
 														map<VertRen*, int> &vert_idx,VlakRen *vlr,
-														bool has_orco,bool has_uv)
+														int has_orco,bool has_uv)
 {
 	Material* fmat = vlr->mat;
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
@@ -1184,7 +1185,7 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &shaders,*/vector<int> &faceshader,
 														vector<yafray::GFLOAT> &uvcoords,vector<yafray::CFLOAT> &vcol,
 														map<VertRen*, int> &vert_idx,VlakRen *vlr,
-														bool has_orco,bool has_uv)
+														int has_orco,bool has_uv)
 {
 	Material* fmat = vlr->mat;
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
@@ -1206,7 +1207,7 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 }
 
 void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vidx,
-																			 map<VertRen*, int> &vert_idx, VlakRen* vlr, bool has_orco, Object* obj)
+																			 map<VertRen*, int> &vert_idx, VlakRen* vlr, int has_orco, Object* obj)
 {
 	VertRen* ver;
 	float tvec[3];	// for back2world transform
@@ -1224,7 +1225,11 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
+		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+		if (has_orco==1)
+			verts.push_back(yafray::point3d_t(ver->accum));
+		else if (has_orco==2)
+			verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 	if (vert_idx.find(vlr->v2)==vert_idx.end()) 
 	{
@@ -1233,7 +1238,11 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
+		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+		if (has_orco==1)
+			verts.push_back(yafray::point3d_t(ver->accum));
+		else if (has_orco==2)
+			verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 	if (vert_idx.find(vlr->v3)==vert_idx.end()) 
 	{
@@ -1242,7 +1251,11 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
+		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+		if (has_orco==1)
+			verts.push_back(yafray::point3d_t(ver->accum));
+		else if (has_orco==2)
+			verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 	if ((vlr->v4) && (vert_idx.find(vlr->v4)==vert_idx.end())) 
 	{
@@ -1251,7 +1264,11 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
+		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
+		if (has_orco==1)
+			verts.push_back(yafray::point3d_t(ver->accum));
+		else if (has_orco==2)
+			verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 }
 
@@ -1284,7 +1301,11 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	// Test the rendermaterial texco flag instead.
 	// update2: bug #3193 it seems it has changed again with the introduction of static 'hair' particles,
 	// now it uses the vert pointer again as an extra test to make sure there are orco coords available
-	bool has_orco = (((face0mat->texco & TEXCO_ORCO)!=0) && (face0->v1->orco!=NULL));
+	int has_orco = 0;
+	if (face0mat->texco & TEXCO_STRAND)
+		has_orco = 1;
+	else
+		has_orco = (((face0mat->texco & TEXCO_ORCO)!=0) && (face0->v1->orco!=NULL)) ? 2 : 0;
 
 	bool no_auto = true;	//in case non-mesh, or mesh has no autosmooth
 	float sm_angle = 0.1f;
@@ -1883,8 +1904,9 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	float* zbuf = rres.rectz + px;
 	if (zbuf) zbuf[x] = depth;
 
-	out = (out+1) & 4095;
-	if (out==0) {
+	out++;
+	// draw on completion of bucket & end of pass
+	if (((out & 4095)==0) || ((out % (re->rectx*re->recty))==0)) {
 		re->result->renlay = render_get_active_layer(re, re->result);
 		/* XXX second arg is rcti *rect, allows to indicate sub-rect in image to draw */
 		re->display_draw(re->result, NULL);
