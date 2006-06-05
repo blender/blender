@@ -22,6 +22,10 @@ elif window_system == 'darwin':
     for f in pf:
         sources.remove('intern' + os.sep + f + 'Win32.cpp')
         sources.remove('intern' + os.sep + f + 'X11.cpp')
+elif window_system == 'openbsd3':
+    for f in pf:
+        sources.remove('intern' + os.sep + f + 'Win32.cpp')
+        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
 else:
     print "Unknown window system specified."
     Exit()

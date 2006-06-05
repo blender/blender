@@ -12,7 +12,7 @@ if env['OURPLATFORM']=='win32-vc':
 elif env['OURPLATFORM']=='win32-mingw':
     defs += ' NDEBUG'
     cflags += ['-O2']
-elif sys.platform=='linux2' or sys.platform=='linux-i386' or sys.platform=='freebsd4' or sys.platform=='freebsd5':
+elif sys.platform=='linux2' or sys.platform=='linux-i386' or sys.platform=='freebsd4' or sys.platform=='freebsd5' or sys.platform=='openbsd3':
     defs += ' NDEBUG'
     cflags += ['-O2']
 elif sys.platform=='darwin' :

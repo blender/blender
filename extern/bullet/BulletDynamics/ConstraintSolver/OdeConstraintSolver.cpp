@@ -42,7 +42,7 @@ subject to the following restrictions:
 #if defined (WIN32)
 #include <malloc.h>
 #else
-#if defined (__FreeBSD__)
+#if defined (__FreeBSD__) || defined (__OpenBSD__)
 #include <stdlib.h>
 #else
 #include <alloca.h>
