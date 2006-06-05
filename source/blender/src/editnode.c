@@ -440,12 +440,14 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 				
 				node->flag |= NODE_DO_OUTPUT;
 				if(was_output==0) {
+					bNode *gnode;
+					
 					NodeTagChanged(snode->edittree, node);
 					
 					/* if inside group, tag entire group */
-					node= snode_get_editgroup(snode);
-					if(node)
-						NodeTagIDChanged(snode->nodetree, node->id);
+					gnode= snode_get_editgroup(snode);
+					if(gnode)
+						NodeTagIDChanged(snode->nodetree, gnode->id);
 					
 					snode_handle_recalc(snode);
 				}
