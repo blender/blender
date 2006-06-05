@@ -1174,8 +1174,8 @@ void ipo_buttons(void)
 	
 	uiClearButLock();
 
-	if(G.sipo->blocktype==ID_SEQ)
-		allow_pin= 0;
+	/* if(G.sipo->blocktype==ID_SEQ)
+	   allow_pin= 0; */
 	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, allow_pin, &G.sipo->pin, B_IPOBROWSE, ID_IP, 
 						G.sipo->blocktype, (ID*)G.sipo->ipo, G.sipo->from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
 

@@ -2127,7 +2127,7 @@ void insertkey_editipo(void)
 						else if(id && GS(id->name)==ID_SEQ) {
 							Sequence *last_seq = get_last_seq();	/* editsequence.c */
 							
-							if(last_seq) {
+							if(last_seq && (last_seq->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
 								cfra= (float)(100.0*(cfra-last_seq->startdisp)/((float)(last_seq->enddisp-last_seq->startdisp)));
 							}
 						}
@@ -3039,11 +3039,13 @@ void ipo_snap(short event)
 									Sequence *seq;
 							
 									seq= (Sequence *)G.sipo->from;
-									if(seq) {
+									if(seq && (seq->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
 										dx= (float)(CFRA-seq->startdisp);
 										dx= (float)(100.0*dx/((float)(seq->enddisp-seq->startdisp)));
 										
 										dx-= bezt->vec[1][0];
+									} else {
+										dx= G.scene->r.framelen*CFRA - bezt->vec[1][0];
 									}
 								}
 								else dx= G.scene->r.framelen*CFRA - bezt->vec[1][0];

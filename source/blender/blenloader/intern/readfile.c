@@ -2803,7 +2803,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			}
 		}
 		END_SEQ
-			
+		
 		/* link metastack, slight abuse of structs here, have to restore pointer to internal part in struct */
 		{
 			Sequence temp;
@@ -2855,6 +2855,67 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
 	
+}
+
+/* Nasty exception; IpoWindow stores a non-ID pointer in *from for sequence
+   strips... bad code warning! 
+
+   We work around it by retrieving the missing pointer from the corresponding
+   Sequence-structure. 
+
+   This is needed, to make Ipo-Pinning work for Sequence-Ipos...
+*/
+static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
+{
+	Editing *ed;
+	Sequence *seq;
+
+	Scene * sce= main->scene.first;
+	while(sce) {
+		if(sce->ed) {
+			int found = 0;
+
+			ed= sce->ed;
+
+			WHILE_SEQ(&ed->seqbase) {
+				if (seq->ipo == ipo) {
+					found = 1;
+					break;
+				}
+			} 
+			END_SEQ
+			if (found) {
+				break;
+			}
+			seq = NULL;
+		}
+		sce= sce->id.next;
+	}
+	return seq;
+}
+
+static void lib_link_screen_sequence_ipos(Main *main)
+{
+	bScreen *sc;
+	ScrArea *sa;
+
+	sc= main->screen.first;
+	while(sc) {
+		sa= sc->areabase.first;
+		while(sa) {
+			SpaceLink *sl;
+			for (sl= sa->spacedata.first; sl; sl= sl->next) {
+				if(sl->spacetype == SPACE_IPO) {
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+					if(sipo->blocktype==ID_SEQ) {
+						sipo->from = (ID*) find_sequence_from_ipo_helper(main, sipo->ipo);
+					}
+				}
+			}
+			sa= sa->next;
+		}
+		sc= sc->id.next;
+	}
 }
 
 /* ************ READ SCREEN ***************** */
@@ -5444,6 +5505,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_armature(fd, main);
 	lib_link_action(fd, main);
 	lib_link_vfont(fd, main);
+	lib_link_screen_sequence_ipos(main);
 	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
