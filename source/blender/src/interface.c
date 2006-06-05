@@ -120,6 +120,10 @@ static void *UIafterfunc_arg;
 static uiFont UIfont[UI_ARRAY];  // no init needed
 uiBut *UIbuttip;
 
+static char but_copypaste_str[256]="";
+static double but_copypaste_val=0.0;
+static float but_copypaste_rgb[3];
+
 /* ************* PROTOTYPES ***************** */
 
 static void ui_set_but_val(uiBut *but, double value);
@@ -453,9 +457,6 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 /* return 1 when something changed */
 static int ui_but_copy_paste(uiBut *but, char mode)
 {
-	static char str[256]="";
-	static double butval=0.0;
-	static float rgb[3];
 	void *poin;
 	
 	if(mode=='v' && but->lock) return 0;
@@ -465,10 +466,10 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	if ELEM3(but->type, NUM, NUMSLI, HSVSLI) {
 	
 		if(mode=='c') {
-			butval= ui_get_but_val(but);
+			but_copypaste_val= ui_get_but_val(but);
 		}
 		else {
-			ui_set_but_val(but, butval);
+			ui_set_but_val(but, but_copypaste_val);
 			ui_check_but(but);
 			return 1;
 		}
@@ -478,31 +479,31 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		if(mode=='c') {
 			if(but->pointype==FLO) {
 				float *fp= (float *) poin;
-				rgb[0]= fp[0];
-				rgb[1]= fp[1];
-				rgb[2]= fp[2];	
+				but_copypaste_rgb[0]= fp[0];
+				but_copypaste_rgb[1]= fp[1];
+				but_copypaste_rgb[2]= fp[2];	
 			}	
 			else if (but->pointype==CHA) {
 				char *cp= (char *) poin;
-				rgb[0]= (float)(cp[0]/255.0);
-				rgb[1]= (float)(cp[1]/255.0);
-				rgb[2]= (float)(cp[2]/255.0);
+				but_copypaste_rgb[0]= (float)(cp[0]/255.0);
+				but_copypaste_rgb[1]= (float)(cp[1]/255.0);
+				but_copypaste_rgb[2]= (float)(cp[2]/255.0);
 			}
 			
 		}
 		else {
 			if(but->pointype==FLO) {
 				float *fp= (float *) poin;
-				fp[0] = rgb[0];
-				fp[1] = rgb[1];
-				fp[2] = rgb[2];
+				fp[0] = but_copypaste_rgb[0];
+				fp[1] = but_copypaste_rgb[1];
+				fp[2] = but_copypaste_rgb[2];
 				return 1;
 			}
 			else if (but->pointype==CHA) {
 				char *cp= (char *) poin;
-				cp[0] = (char)(rgb[0]*255.0);
-				cp[1] = (char)(rgb[1]*255.0);
-				cp[2] = (char)(rgb[2]*255.0);
+				cp[0] = (char)(but_copypaste_rgb[0]*255.0);
+				cp[1] = (char)(but_copypaste_rgb[1]*255.0);
+				cp[2] = (char)(but_copypaste_rgb[2]*255.0);
 				
 				return 1;
 			}
@@ -512,7 +513,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	else if(but->type==TEX) {
 		
 		if(mode=='c') {
-			strncpy(str, but->poin, but->max);
+			strncpy(but_copypaste_str, but->poin, but->max);
 		}
 		else {
 			char backstr[UI_MAX_DRAW_STR];
@@ -522,7 +523,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 				strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
 				but->func_arg2= backstr;
 			}
-			strncpy(but->poin, str, but->max);
+			strncpy(but->poin, but_copypaste_str, but->max);
 			uibut_do_func(but);
 			ui_check_but(but);
 			return 1;
@@ -532,10 +533,10 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		
 		if(mode=='c') {
 			ID *id= *but->idpoin_idpp;
-			if(id) strncpy(str, id->name+2, 22);
+			if(id) strncpy(but_copypaste_str, id->name+2, 22);
 		}
 		else {
-			but->idpoin_func(str, but->idpoin_idpp);
+			but->idpoin_func(but_copypaste_str, but->idpoin_idpp);
 			ui_check_but(but);
 			return 1;
 		}
@@ -1618,7 +1619,7 @@ static short test_special_char(char ch)
 static int ui_do_but_TEX(uiBut *but)
 {
 	unsigned short dev;
-	short x, mval[2], len=0, dodraw, selextend=0;
+	short x, y, mval[2], len=0, dodraw, selextend=0;
 	char *str, backstr[UI_MAX_DRAW_STR];
 	short capturing, sx, sy, prevx;
 	
@@ -1651,7 +1652,8 @@ static int ui_do_but_TEX(uiBut *but)
 
 		dodraw= 0;
 		dev = extern_qread_ext(&val, &ascii);
-
+		printf("dev: %d, val: %d, ascii: %c\n", dev, val, ascii);
+		
 		if(dev==INPUTCHANGE) break;
 		else if(get_mbut() & R_MOUSE) break;
 		else if(get_mbut() & L_MOUSE) {
@@ -1690,17 +1692,65 @@ static int ui_do_but_TEX(uiBut *but)
 		else if(dev==ESCKEY) break;
 		else if(dev==MOUSEX) val= 0;
 		else if(dev==MOUSEY) val= 0;
-
-		if(ascii) {
+		
+		/* cut, copy, paste selected text */
+		/* mainqread discards ascii values < 32, so can't do this cleanly within the if(ascii) block*/
+		else if ( (val) && 
+			 ((G.qual & LR_COMMANDKEY) || (G.qual & LR_CTRLKEY)) && 
+			 ((dev==XKEY) || (dev==CKEY) || (dev==VKEY)) ) {
+				 
+			
+			/* paste */
+			if (dev==VKEY) {
+				/* paste over the current selection */
+				if (SELWIDTH > 0) {	
+					len -= ui_delete_selection_edittext(but);
+				}
+				
+				for (y=0; y<strlen(but_copypaste_str); y++)
+				{
+					/* add contents of buffer */
+					if(len < but->max) {
+						for(x= but->max; x>but->pos; x--)
+							str[x]= str[x-1];
+						str[but->pos]= but_copypaste_str[y];
+						but->pos++; 
+						len++;
+						str[len]= '\0';
+					}
+				}
+				if (strlen(but_copypaste_str) > 0) dodraw= 1;
+			}
+			/* cut & copy */
+			else if ( (dev==XKEY) || (dev==CKEY) ) {
+				/* copy the contents to the copypaste buffer */
+				for(x= but->selsta; x <= but->selend; x++) {
+					if (x==but->selend)
+						but_copypaste_str[x] = '\0';
+					else
+						but_copypaste_str[(x - but->selsta)] = str[x];
+				}
+				
+				/* for cut only, delete the selection afterwards */
+				if (dev==XKEY) {
+					if (SELWIDTH > 0) {	
+						len -= ui_delete_selection_edittext(but);
+						
+						if (len < 0) len = 0;
+						dodraw=1;
+					}
+				}
+			} 
+		}
+		else if((ascii)){
 			
 			if(len-SELWIDTH+1 <= but->max) {
-
+				
 				/* type over the current selection */
 				if (SELWIDTH > 0) {	
 					len -= ui_delete_selection_edittext(but);
 				}
-			
-				/* add ascii characters */
+
 				if(len < but->max) {
 					for(x= but->max; x>but->pos; x--)
 						str[x]= str[x-1];
