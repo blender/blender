@@ -671,7 +671,7 @@ static void icon_from_image(Image* img, RenderInfo* ri)
 	
 	if (!ri->rect) {
 		ri->rect= MEM_callocN(pr_size, "butsrect");
-		memset(ri->rect, 0xFF, pr_size);
+		memset(ri->rect, 0x00, pr_size);
 	}
 	
 	/* we only load image if there's no preview saved already ... 
