@@ -5542,7 +5542,7 @@ static void uiBlockEndAligno(uiBlock *block)
 #endif
 
 /*
-ui_def_but is teh function that draws many button types
+ui_def_but is the function that draws many button types
 
 for float buttons:
 	"a1" Click Step (how much to change the value each click)

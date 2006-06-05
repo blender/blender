@@ -614,7 +614,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	
 	if (!G.sipo->showkey){
 		uiDefIconTextBlockBut(block, ipo_editmenu_extendmenu, NULL, ICON_RIGHTARROW_THIN, "Extend Mode", 0, yco-=20, 120, 19, "");	
-		uiDefIconTextBlockBut(block, ipo_editmenu_intpolmenu, NULL, ICON_RIGHTARROW_THIN, "Interpolation Mode", 0, yco-=20, 120, 20, "");
+		uiDefIconTextBlockBut(block, ipo_editmenu_intpolmenu, NULL, ICON_RIGHTARROW_THIN, "Interpolation Mode|T   ", 0, yco-=20, 120, 20, "");
 		if(ei != NULL && (ei->flag & IPO_EDIT))
 			uiDefIconTextBlockBut(block, ipo_editmenu_handlemenu, NULL, ICON_RIGHTARROW_THIN, "Handle Type", 0, yco-=20, 120, 19, "");
 		if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0)
