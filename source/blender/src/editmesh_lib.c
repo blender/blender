@@ -645,14 +645,14 @@ void EM_selectmode_set(void)
 	EditFace *efa;
 	
 	EM_strip_selections(); /*strip EditSelections from em->selected that are not relevant to new mode*/
-	if(G.scene->selectmode == SCE_SELECT_VERTEX) {
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		/* vertices -> edges -> faces */
 		for (eed= em->edges.first; eed; eed= eed->next) eed->f &= ~SELECT;
 		for (efa= em->faces.first; efa; efa= efa->next) efa->f &= ~SELECT;
 		
 		EM_select_flush();
 	}
-	else if(G.scene->selectmode == SCE_SELECT_EDGE) {
+	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
 		/* deselect vertices, and select again based on edge select */
 		for(eve= em->verts.first; eve; eve= eve->next) eve->f &= ~SELECT;
 		for(eed= em->edges.first; eed; eed= eed->next) 
@@ -660,7 +660,7 @@ void EM_selectmode_set(void)
 		/* selects faces based on edge status */
 		EM_selectmode_flush();
 	}
-	else if(G.scene->selectmode == SCE_SELECT_FACE) {
+	else if(G.scene->selectmode & SCE_SELECT_FACE) {
 		/* deselect eges, and select again based on face select */
 		for(eed= em->edges.first; eed; eed= eed->next) EM_select_edge(eed, 0);
 		
@@ -1425,11 +1425,34 @@ void translateflag(short flag, float *vec)
 	}
 }
 
+/* helper call for below */
+static EditVert *adduplicate_vertex(EditVert *eve, int flag)
+{
+	EditVert *v1= addvertlist(eve->co);
+	
+	v1->f= eve->f;
+	eve->f-= flag;
+	eve->f|= 128;
+	
+	eve->tmp.v = v1;
+	
+	/* FIXME: Copy deformation weight ? */
+	v1->totweight = eve->totweight;
+	if (eve->totweight){
+		v1->dw = MEM_mallocN (eve->totweight * sizeof(MDeformWeight), "deformWeight");
+		memcpy (v1->dw, eve->dw, eve->totweight * sizeof(MDeformWeight));
+	}
+	else
+		v1->dw=NULL;
+	
+	return v1;
+}
+
+/* old selection has flag 128 set, and flag 'flag' cleared
+new selection has flag 'flag' set */
 void adduplicateflag(int flag)
 {
 	EditMesh *em = G.editMesh;
-	/* old selection has flag 128 set, and flag 'flag' cleared
-	   new selection has flag 'flag' set */
 	EditVert *eve, *v1, *v2, *v3, *v4;
 	EditEdge *eed, *newed;
 	EditFace *efa, *newfa;
@@ -1440,31 +1463,20 @@ void adduplicateflag(int flag)
 	/* vertices first */
 	for(eve= em->verts.last; eve; eve= eve->prev) {
 
-		if(eve->f & flag) {
-			v1= addvertlist(eve->co);
-			
-			v1->f= eve->f;
-			eve->f-= flag;
-			eve->f|= 128;
-			
-			eve->tmp.v = v1;
-
-			/* >>>>> FIXME: Copy deformation weight ? */
-			v1->totweight = eve->totweight;
-			if (eve->totweight){
-				v1->dw = MEM_mallocN (eve->totweight * sizeof(MDeformWeight), "deformWeight");
-				memcpy (v1->dw, eve->dw, eve->totweight * sizeof(MDeformWeight));
-			}
-			else
-				v1->dw=NULL;
-		}
+		if(eve->f & flag)
+			adduplicate_vertex(eve, flag);
+		else 
+			eve->tmp.v = NULL;
 	}
 	
-	/* copy edges */
+	/* copy edges, note that vertex selection can be independent of edge */
 	for(eed= em->edges.last; eed; eed= eed->prev) {
 		if( eed->f & flag ) {
 			v1 = eed->v1->tmp.v;
+			if(v1==NULL) v1= adduplicate_vertex(eed->v1, flag);
 			v2 = eed->v2->tmp.v;
+			if(v2==NULL) v2= adduplicate_vertex(eed->v2, flag);
+			
 			newed= addedgelist(v1, v2, eed);
 			
 			newed->f= eed->f;
@@ -1473,13 +1485,21 @@ void adduplicateflag(int flag)
 		}
 	}
 
-	/* then dupicate faces */
+	/* then duplicate faces, again create new vertices if needed */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & flag) {
 			v1 = efa->v1->tmp.v;
+			if(v1==NULL) v1= adduplicate_vertex(efa->v1, flag);
 			v2 = efa->v2->tmp.v;
+			if(v2==NULL) v2= adduplicate_vertex(efa->v2, flag);
 			v3 = efa->v3->tmp.v;
-			if(efa->v4) v4 = efa->v4->tmp.v; else v4= NULL;
+			if(v3==NULL) v3= adduplicate_vertex(efa->v3, flag);
+			if(efa->v4) {
+				v4 = efa->v4->tmp.v; 
+				if(v4==NULL) v4= adduplicate_vertex(efa->v4, flag);
+			}
+			else v4= NULL;
+			
 			newfa= addfacelist(v1, v2, v3, v4, efa, efa); 
 			
 			newfa->f= efa->f;
@@ -1487,7 +1507,7 @@ void adduplicateflag(int flag)
 			efa->f |= 128;
 		}
 	}
-
+	
 	EM_fgon_flags();	// redo flags and indices for fgons
 }
 
