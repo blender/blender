@@ -1137,19 +1137,28 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 	but = newbutton(  );
 
 	if( PyFloat_Check( inio ) ) {
-		float ini, min, max;
+		float ini, min, max, range, precission=0;
 
 		ini = (float)PyFloat_AsDouble( inio );
 		min = (float)PyFloat_AsDouble( mino );
 		max = (float)PyFloat_AsDouble( maxo );
-
+		
+		range= fabs(max-min); /* Click step will be a 10th of the range. */
+		if (!range) range= 1.0f; /* avoid any odd errors */
+		
+		/* set the precission to display*/
+		if      (range>=100.0f) precission=1.0f;
+		else if (range>=10.0f) precission=2.0f;
+		else if (range>1.0f) precission=3.0f;
+		else precission=4.0f;
+		
 		but->type = BFLOAT_TYPE;
 		but->val.asfloat = ini;
 
 		block = Get_uiBlock(  );
 		if( block )
 			uiDefButF( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
-				   &but->val.asfloat, min, max, 0, 0, tip );
+				   &but->val.asfloat, min, max, 10*range, precission, tip );
 	} else {
 		int ini, min, max;
 

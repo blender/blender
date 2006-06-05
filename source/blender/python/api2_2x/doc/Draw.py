@@ -631,6 +631,19 @@ def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
       is kept over the button).
   @rtype: Blender Button
   @return: The Button created.
+
+  I{B{Example:}}
+
+  This example draws a single floating point value::
+    from Blender import Draw
+    b= Draw.Create(0.0) # Data for floating point button
+    def bevent(evt):
+      print 'My Button event:', evt
+    def gui():
+      global b
+      b= Draw.Number('value: ', 1000, 0,0, 200, 20, b.val, 0,10, 'some text tip')
+
+    Draw.Register(gui, None, bevent) # we are not going to worry about keyboard and mouse events
   """
 
 

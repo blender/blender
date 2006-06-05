@@ -5541,6 +5541,15 @@ static void uiBlockEndAligno(uiBlock *block)
 }
 #endif
 
+/*
+ui_def_but is teh function that draws many button types
+
+for float buttons:
+	"a1" Click Step (how much to change the value each click)
+	"a2" Number of decimal point values to display. 0 defaults to 3 (0.000) 1,2,3, and a maximum of 4,
+       all greater values will be clamped to 4.
+
+*/
 static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {
 	uiBut *but;
