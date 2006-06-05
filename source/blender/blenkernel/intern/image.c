@@ -96,6 +96,14 @@ void free_image_buffers(Image *ima)
 	free_realtime_image(ima);
 }
 
+void free_image_preview(struct Image *ima)
+{
+	if (ima->preview) {
+		MEM_freeN(ima->preview->rect);
+		MEM_freeN(ima->preview);
+		ima->preview = 0;
+	}
+}
 
 void free_image(Image *ima)
 {
@@ -105,6 +113,7 @@ void free_image(Image *ima)
 		freePackedFile(ima->packedfile);
 		ima->packedfile = NULL;
 	}
+	free_image_preview(ima);
 	BKE_icon_delete(&ima->id);
 	ima->id.icon_id = 0;
 }

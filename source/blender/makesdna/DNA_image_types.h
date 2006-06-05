@@ -40,6 +40,12 @@ struct PackedFile;
 struct anim;
 struct ImBuf;
 
+typedef struct PreviewImage {
+	unsigned int w;
+	unsigned int h;
+	unsigned int * rect;
+} PreviewImage;
+
 typedef struct Image {
 	ID id;
 	
@@ -60,6 +66,7 @@ typedef struct Image {
 	unsigned int *repbind;	/* for repeat of parts of images */
 	
 	struct PackedFile * packedfile;
+	struct PreviewImage * preview;
 
 	float lastupdate;
 	int lastused;

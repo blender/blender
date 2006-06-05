@@ -1316,6 +1316,19 @@ static PackedFile *direct_link_packedfile(FileData *fd, PackedFile *oldpf)
 	return pf;
 }
 
+/* ************ READ IMAGE PREVIEW *************** */
+
+static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_prv)
+{
+	PreviewImage *prv= newdataadr(fd, old_prv);
+
+	if (prv) {
+		prv->rect = newdataadr(fd, prv->rect);
+	}
+
+	return prv;
+}
+
 /* ************ READ SCRIPTLINK *************** */
 
 static void lib_link_scriptlink(FileData *fd, ID *id, ScriptLink *slink)
@@ -1941,7 +1954,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 	ima->bindcode= 0;
 
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
-
+	ima->preview = direct_link_preview_image(fd, ima->preview);
 	ima->ok= 1;
 }
 

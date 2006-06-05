@@ -44,6 +44,7 @@ struct Tex;
 struct anim;
 
 void free_image(struct Image *me);
+void free_image_preview(struct Image *ima);
 void free_image_buffers(struct Image *ima);
 struct Image *add_image(char *name);
 void free_unused_animimages(void);

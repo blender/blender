@@ -68,6 +68,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_icons.h"
+#include "BKE_packedFile.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -615,67 +616,100 @@ void BIF_icons_init(int first_dyn_id)
 	init_internal_icons();
 }
 
-/* create single icon from jpg, png etc. */
-static void icon_from_image(Image* img, RenderInfo* ri, unsigned int w, unsigned int h)
+static void icon_copy_rect(ImBuf* ibuf, RenderInfo* ri)
 {
 	struct ImBuf *ima;
-	struct ImBuf *imb;
+	unsigned int *drect, *srect;
 	float scaledx, scaledy;
-	int pr_size = w*h*sizeof(unsigned int);
 	short ex, ey, dx, dy;
-	
-	if (!img)
-		return;
-	
-	if (!ri->rect) {
-		ri->rect= MEM_callocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "butsrect");
-		memset(ri->rect, 0xFF, w*h*sizeof(unsigned int));
-	}
-	
-	/* bail out now... loading and reducing images is too expensive */
-	if(img->ibuf==NULL || img->ibuf->rect==NULL) {
-		return;
-//		load_image(img, IB_rect, G.sce, G.scene->r.cfra);
-	}
-	
-	ima = IMB_dupImBuf(img->ibuf);
+
+	ima = IMB_dupImBuf(ibuf);
 	
 	if (!ima) 
 		return;
 	
 	if (ima->x > ima->y) {
-		scaledx = (float)w;
-		scaledy =  ( (float)ima->y/(float)ima->x )*(float)w;
+		scaledx = (float)ri->pr_rectx;
+		scaledy =  ( (float)ima->y/(float)ima->x )*(float)ri->pr_rectx;
 	}
 	else {			
-		scaledx =  ( (float)ima->x/(float)ima->y )*(float)h;
-		scaledy = (float)h;
+		scaledx =  ( (float)ima->x/(float)ima->y )*(float)ri->pr_recty;
+		scaledy = (float)ri->pr_recty;
 	}
 	
 	ex = (short)scaledx;
 	ey = (short)scaledy;
 	
-	dx = (w - ex) / 2;
-	dy = (h - ey) / 2;
+	dx = (ri->pr_rectx - ex) / 2;
+	dy = (ri->pr_recty - ey) / 2;
 	
 	IMB_scalefastImBuf(ima, ex, ey);
 
-	/* sigh, need to copy the float buffer too */
-	imb = IMB_allocImBuf(w, h, 32, IB_rect | IB_rectfloat, 0);
+	srect = ima->rect;
+	drect = ri->rect;
 
-	IMB_rectcpy(imb, ima, dx, dy, 0, 0, ex, ey);	
-
+	drect+= dy*ri->pr_rectx+dx;
+	for (;ey > 0; ey--){		
+		memcpy(drect,srect, ex * sizeof(int));
+		drect += ri->pr_rectx;
+		srect += ima->x;
+	}
 	IMB_freeImBuf(ima);
+}
 
-	memcpy(ri->rect, imb->rect,pr_size);
+/* create single icon from jpg, png etc. */
+static void icon_from_image(Image* img, RenderInfo* ri)
+{
+	struct ImBuf *ima;
+	struct ImBuf *imb;	
+	int pr_size = ri->pr_rectx*ri->pr_recty*sizeof(unsigned int);
+	unsigned int* rect=0;
+	short image_loaded=0;
 
-	IMB_freeImBuf(imb);
+	if (!img)
+		return;
+	
+	if (!ri->rect) {
+		ri->rect= MEM_callocN(pr_size, "butsrect");
+		memset(ri->rect, 0xFF, pr_size);
+	}
+	
+	/* we only load image if there's no preview saved already ... 
+		always loading and reducing images is too expensive */
+	if(!img->preview) {
+		if(img->ibuf==NULL || img->ibuf->rect==NULL) {				
+			load_image(img, IB_rect, G.sce, G.scene->r.cfra);	
+			image_loaded = 1;
+		}
+		icon_copy_rect(img->ibuf, ri);
+		
+		/* now copy the created preview to the DNA struct to be saved in file */
+		img->preview = MEM_callocN(sizeof(PreviewImage), "img_prv");
+		if (img->preview) {
+			img->preview->w = ri->pr_rectx;
+			img->preview->h = ri->pr_recty;
+			img->preview->rect = MEM_callocN(pr_size, "prv_rect");
+			memcpy(img->preview->rect, ri->rect, pr_size);
+		}
+
+		/* if we only loaded image for preview, we don't want to keep it in memory -
+		   important for huge image files */
+		if (image_loaded) free_image_buffers(img);
+	}
+	else {
+		unsigned int img_prv_size = img->preview->w*img->preview->h*sizeof(unsigned int);
+		if (!img->preview->rect || img_prv_size != pr_size) {
+			printf("Missing preview or wrong preview size!\n");
+			return;
+		}
+		memcpy(ri->rect, img->preview->rect, pr_size);
+	}
 }
 
 
 /* only called when icon has changed */
 /* only call with valid pointer from BIF_icon_draw */
-static void icon_set_image(ID* id, DrawInfo* di)
+static int icon_set_image(ID* id, DrawInfo* di)
 {
 	RenderInfo ri;	
 
@@ -693,24 +727,28 @@ static void icon_set_image(ID* id, DrawInfo* di)
 	/* no drawing (see last parameter doDraw, just calculate preview image 
 		- hopefully small enough to be fast */
 	if (GS(id->name) == ID_IM)
-		icon_from_image((struct Image*)id, &ri, ri.pr_rectx, ri.pr_recty);
+		icon_from_image((struct Image*)id, &ri);
 	else {
 		BIF_previewrender(id, &ri, NULL, PR_ICON_RENDER);
 	}
 
 	/* and copy the image into the icon */
-	memcpy(di->rect, ri.rect,di->rw*di->rh*sizeof(unsigned int));		
+	if (ri.rect) {
+		memcpy(di->rect, ri.rect,di->rw*di->rh*sizeof(unsigned int));		
 
-	/* and clean up */
-	MEM_freeN(ri.rect);
-	ri.rect = 0;
+		/* and clean up */
+		MEM_freeN(ri.rect);
+		ri.rect = 0;
+	}
 
+	return 1;
 }
 
 void BIF_icon_draw(float x, float y, int icon_id)
 {
 	Icon* icon = 0;
 	DrawInfo* di = 0;
+	short done = 0;
 
 	icon = BKE_icon_get(icon_id);
 	
@@ -738,8 +776,11 @@ void BIF_icon_draw(float x, float y, int icon_id)
 	else {
 		if (icon->changed) /* changed only ever set by dynamic icons */
 		{
-			icon_set_image((ID*)icon->obj, icon->drawinfo);	
-			icon->changed = 0;
+			waitcursor(1);
+			if (icon_set_image((ID*)icon->obj, icon->drawinfo))	{
+				icon->changed = 0;
+			}			
+			waitcursor(0);
 		}
 
 		if (!di->rect) return; /* something has gone wrong! */

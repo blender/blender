@@ -397,6 +397,9 @@ void do_texbuts(unsigned short event)
 					error("Image not available. Keeping packed image.");
 				}
 			}
+			if (tex->ima->preview) {
+				free_image_preview(tex->ima);
+			}
 
 			IMB_freeImBuf(tex->ima->ibuf);
 			tex->ima->ibuf= NULL;

@@ -745,6 +745,9 @@ static void do_image_imagemenu(void *arg, int event)
 				else
 					error("Image not available. Keeping packed image.");
 			}
+			if (ima->preview) {
+				free_image_preview(ima);
+			}
 			free_image_buffers(ima);	/* force read again */
 			ima->ok= 1;
 			image_changed(G.sima, 0);
