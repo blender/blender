@@ -638,7 +638,7 @@ static void drawfloor(void)
 {
 	View3D *vd;
 	float vert[3], grid;
-	int a, gridlines;
+	int a, gridlines, emphasise;
 	char col[3], col2[3];
 	short draw_line = 0;
 		
@@ -654,6 +654,13 @@ static void drawfloor(void)
 	grid= gridlines*vd->grid;
 	
 	BIF_GetThemeColor3ubv(TH_GRID, col);
+	BIF_GetThemeColor3ubv(TH_BACK, col);
+	
+	/* emphasise division lines lighter instead of darker, if background is darker than grid */
+	if ( (col[0]+col[1]+col[2])/3 > (col2[0]+col2[1]+col2[2])/3 )
+		emphasise = -10;
+	else
+		emphasise = 20;
 	
 	/* draw the Y axis and/or grid lines */
 	for(a= -gridlines;a<=gridlines;a++) {
@@ -665,7 +672,7 @@ static void drawfloor(void)
 				
 				draw_line = 1;
 			} else if (vd->gridflag & V3D_SHOW_FLOOR) {
-				BIF_ThemeColorShade(TH_GRID, -10);
+				BIF_ThemeColorShade(TH_GRID, emphasise);
 			} else {
 				draw_line = 0;
 			}
@@ -673,7 +680,7 @@ static void drawfloor(void)
 			/* check for the 'show grid floor' preference */
 			if (vd->gridflag & V3D_SHOW_FLOOR) {
 				if( (a % 10)==0) {
-					BIF_ThemeColorShade(TH_GRID, -10);
+					BIF_ThemeColorShade(TH_GRID, emphasise);
 				}
 				else BIF_ThemeColorShade(TH_GRID, 10);
 				
@@ -704,7 +711,7 @@ static void drawfloor(void)
 				
 				draw_line = 1;
 			} else if (vd->gridflag & V3D_SHOW_FLOOR) {
-				BIF_ThemeColorShade(TH_GRID, -10);
+				BIF_ThemeColorShade(TH_GRID, emphasise);
 			} else {
 				draw_line = 0;
 			}
@@ -712,7 +719,7 @@ static void drawfloor(void)
 			/* check for the 'show grid floor' preference */
 			if (vd->gridflag & V3D_SHOW_FLOOR) {
 				if( (a % 10)==0) {
-					BIF_ThemeColorShade(TH_GRID, -10);
+					BIF_ThemeColorShade(TH_GRID, emphasise);
 				}
 				else BIF_ThemeColorShade(TH_GRID, 10);
 				
