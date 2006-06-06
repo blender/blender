@@ -4409,6 +4409,24 @@ static long MFace_hash( BPy_MFace *self )
 	return (long)self->index;
 }
 
+static int MFace_len( BPy_MFace * self )
+{
+	if( self->index >= self->mesh->totface )
+		return 0;
+	return self->mesh->mface[self->index].v4 ? 4 : 3;
+}
+
+static PySequenceMethods MFace_as_sequence = {
+	( inquiry ) MFace_len,         /* sq_length */
+	( binaryfunc ) 0,	           /* sq_concat */
+	( intargfunc ) 0,	           /* sq_repeat */
+	( intargfunc ) 0,              /* sq_item */
+	( intintargfunc ) 0,           /* sq_slice */
+	( intobjargproc ) 0,           /* sq_ass_item */
+	( intintobjargproc ) 0,        /* sq_ass_slice */
+	0,0,0,
+};
+
 /************************************************************************
  *
  * Python MFace_Type structure definition
@@ -4435,7 +4453,7 @@ PyTypeObject MFace_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,	        			/* PySequenceMethods *tp_as_sequence; */
+	&MFace_as_sequence,         /* PySequenceMethods *tp_as_sequence; */
 	NULL,                       /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */

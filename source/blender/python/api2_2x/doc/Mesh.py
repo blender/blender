@@ -567,6 +567,12 @@ class MFace:
     @rtype: MVert
     """
 
+  def __len__():
+    """
+    len for MVert.  It returns the number of vertices in the face.
+    @rtype: int
+    """
+
 class MFaceSeq:
   """
   The MFaceSeq object
