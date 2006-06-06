@@ -393,6 +393,32 @@ void BOP_triangulateF(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face,
  */
 void BOP_addFace(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face, BOP_TAG tag)
 {
+	BOP_Index av1 = face->getVertex(0);
+	BOP_Index av2 = face->getVertex(1);
+	BOP_Index av3 = face->getVertex(2);
+
+	/*
+	 * Before adding a new face to the face list, be sure it's not
+	 * already there.  Duplicate faces have been found to cause at
+	 * least two instances of infinite loops.
+	 * When someone has more time to look into this issue, it's possible
+	 * this code may be removed again.
+	 */
+	for(unsigned int idxFace=0;idxFace<faces->size();idxFace++) {
+		BOP_Face *faceA = (*faces)[idxFace];
+		BOP_Index bv1 = faceA->getVertex(0);
+		BOP_Index bv2 = faceA->getVertex(1);
+		BOP_Index bv3 = faceA->getVertex(2);
+
+		if( ( av1==bv1 && av2==bv2 && av3==bv3 ) ||
+	        ( av1==bv1 && av2==bv3 && av3==bv2 ) ||
+	        ( av1==bv2 && av2==bv1 && av3==bv3 ) ||
+	        ( av1==bv2 && av2==bv3 && av3==bv1 ) ||
+	        ( av1==bv3 && av2==bv2 && av3==bv1 ) ||
+	        ( av1==bv3 && av2==bv1 && av3==bv3 ) )
+			return;
+	}
+
 	face->setTAG(tag);    
 	faces->push_back(face);
 	mesh->addFace(face);
