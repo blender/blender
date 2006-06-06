@@ -1177,7 +1177,11 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	xmlfile << ostr.str();
 
 	ostr.str("");
-	ostr << "<object name=\"" << obj->id.name << "\"";
+	// if objects are externally linked from a library, they could have a name that is already
+	// defined locally, so to prevent name clashes, prefix name with 'lib'
+	string obname(obj->id.name);
+	if (obj->id.flag & (LIB_EXTERN|LIB_INDIRECT))obname = "lib_" + obname;
+	ostr << "<object name=\"" << obname << "\"";
 	// Yafray still needs default shader name in object def.,
 	// since we write a shader with every face, simply use the material of the first face.
 	// If this is an empty string, assume default material.

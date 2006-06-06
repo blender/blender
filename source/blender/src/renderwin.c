@@ -797,7 +797,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	rcti win_rct;
 	float *rectf= NULL, fullrect[2][2];
 	unsigned int *rect32= NULL;
-	int ymin, ymax;
+	int ymin, ymax, xmin, xmax;
 	
 	/* if renrect argument, we only display scanlines */
 	if(renrect) {
@@ -805,15 +805,21 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 		if(rr->renlay==NULL || renrect->ymax>=rr->recty)
 			return;
 		
+		/* xmin here is first subrect x coord, xmax defines subrect width */
+		xmin = renrect->xmin;
+		xmax = renrect->xmax - xmin;
+		if (xmax<2) return;
+		
 		ymin= renrect->ymin;
-		ymax= renrect->ymax-ymin;
+		ymax= renrect->ymax - ymin;
 		if(ymax<2)
 			return;
 		renrect->ymin= renrect->ymax;
 	}
 	else {
-		ymin= 0;
-		ymax= rr->recty-2*rr->crop;
+		xmin = ymin = 0;
+		xmax = rr->rectx - 2*rr->crop;
+		ymax = rr->recty - 2*rr->crop;
 	}
 	
 	/* renderwindow cruft */
@@ -835,7 +841,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	}
 	if(rectf) {
 		/* if scanline updates... */
-		rectf+= 4*rr->rectx*ymin;
+		rectf+= 4*(rr->rectx*ymin + xmin);
 	
 		/* when rendering more pixels than needed, we crop away cruft */
 		if(rr->crop)
@@ -844,8 +850,8 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	
 	/* tilerect defines drawing offset from (0,0) */
 	/* however, tilerect (xmin, ymin) is first pixel */
-	fullrect[0][0] += (rr->tilerect.xmin+rr->crop)*rw->zoom;
-	fullrect[0][1] += (rr->tilerect.ymin+rr->crop + ymin)*rw->zoom;
+	fullrect[0][0] += (rr->tilerect.xmin + rr->crop + xmin)*rw->zoom;
+	fullrect[0][1] += (rr->tilerect.ymin + rr->crop + ymin)*rw->zoom;
 
 	glEnable(GL_SCISSOR_TEST);
 	glaDefine2DArea(&win_rct);
@@ -855,13 +861,11 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	glDrawBuffer(GL_FRONT);
 #endif
 	glPixelZoom(rw->zoom, rw->zoom);
-	
+
 	if(rect32)
-		glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
-							   GL_RGBA, GL_UNSIGNED_BYTE, rect32);
-	else 
-		glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], rr->rectx-2*rr->crop, ymax, rr->rectx, 
-					  GL_RGBA, GL_FLOAT, rectf);
+		glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], xmax, ymax, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
+	else
+		glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], xmax, ymax, rr->rectx, GL_RGBA, GL_FLOAT, rectf);
 	
 	glPixelZoom(1.0, 1.0);
 	

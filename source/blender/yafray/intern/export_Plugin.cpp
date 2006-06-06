@@ -242,6 +242,8 @@ bool yafrayPluginRender_t::writeRender()
 	}
 	params["bias"] = yafray::parameter_t(re->r.YF_raybias);
 	params["clamp_rgb"] = yafray::parameter_t((re->r.YF_clamprgb==0) ? "on" : "off");
+	// lynx request
+	params["threads"] = yafray::parameter_t((int)re->r.YF_numprocs);
 	blenderYafrayOutput_t output(re);
 	yafrayGate->render(params, output);
 	cout << "render finished" << endl;
@@ -1350,7 +1352,11 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 			genCompleFace(faces, faceshader, uvcoords, vcol, vert_idx, vlr, has_orco, has_uv);
 	}
 
-	yafrayGate->addObject_trimesh(string(obj->id.name), verts, faces, uvcoords, vcol,
+	// if objects are externally linked from a library, they could have a name that is already
+	// defined locally, so to prevent name clashes, prefix name with 'lib'
+	string obname(obj->id.name);
+	if (obj->id.flag & (LIB_EXTERN|LIB_INDIRECT))obname = "lib_" + obname;
+	yafrayGate->addObject_trimesh(obname, verts, faces, uvcoords, vcol,
 			shaders, faceshader, sm_angle, castShadows, true, true, caus, has_orco,
 			caus_rcolor, caus_tcolor, caus_IOR);
 	yafrayGate->transformPop();
@@ -1883,14 +1889,15 @@ extern "C" {
 bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 		yafray::CFLOAT alpha, yafray::PFLOAT depth)
 {
-	/* XXX how to get the image from Blender and write to it. This call doesn't allow to change buffer rects */
+	// XXX how to get the image from Blender and write to it. This call doesn't allow to change buffer rects
 	RenderResult rres;
 	RE_GetResultImage(re, &rres);
 	// rres.rectx, rres.recty is width/height
 	// rres.rectf is float buffer, scanlines starting in bottom
 	// rres.rectz is zbuffer, available when associated pass is set
 
-	const unsigned int yy = (rres.recty - 1) - y;
+	const unsigned int maxy = rres.recty-1;
+	const unsigned int yy = maxy - y;
 	const unsigned int px = yy * rres.rectx;
 
 	// rgba
@@ -1901,15 +1908,25 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	*fpt = alpha;
 
 	// depth values
-	float* zbuf = rres.rectz + px;
-	if (zbuf) zbuf[x] = depth;
-
-	out++;
-	// draw on completion of bucket & end of pass
-	if (((out & 4095)==0) || ((out % (re->rectx*re->recty))==0)) {
+	if (rres.rectz) rres.rectz[px + x] = depth;
+	
+	// attempt to optimize drawing, by only drawing the tile currently rendered by yafray,
+	// and not the entire display every time (blender has to to do float->char conversion),
+	// but since the tile is not actually known, it has to be calculated from the coords.
+	// not sure if it really makes all that much difference at all... unless rendering really large pictures
+	// (renderwin.c also had to be adapted for this)
+	// tile start & end coords
+	int txs = x & 0xffffffc0, tys = y & 0xffffffc0;
+	int txe = txs + 63, tye = tys + 63;
+	// tile border clip
+	if (txe >= rres.rectx) txe = rres.rectx-1;
+	if (tye >= rres.recty) tye = maxy;
+	// draw tile if last pixel reached
+	if ((y*rres.rectx + x) == (tye*rres.rectx + txe)) {
 		re->result->renlay = render_get_active_layer(re, re->result);
-		/* XXX second arg is rcti *rect, allows to indicate sub-rect in image to draw */
-		re->display_draw(re->result, NULL);
+		// note: ymin/ymax swapped here, img. upside down!
+		rcti rt = {txs, txe+1, maxy-tye, ((tys==0) ? maxy : ((maxy+1)-tys))}; // !!! tys can be zero
+		re->display_draw(re->result, &rt);
 	}
 
 	if (re->test_break()) return false;
