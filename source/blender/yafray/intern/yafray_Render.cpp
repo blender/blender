@@ -68,13 +68,11 @@ bool yafrayRender_t::exportScene(Render* re)
 	else return true;
 }
 
-
 // gets all unique face materials & textures,
 // and sorts the facelist rejecting anything that is not a quad or tri,
 // as well as associating them again with the original Object.
 bool yafrayRender_t::getAllMatTexObs()
 {
-
 	VlakRen* vlr;
 
 	// Blender does not include object which have total 0 alpha materials,
