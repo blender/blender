@@ -355,7 +355,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 					if img:
 						targetFace.image= img
 			
-			tempName= contextObName + '_' + matName
+			tempName= contextObName + '_' + str(matName) # str because we may be None
 			bmesh.name= tempName
 			ob = Object.New('Mesh', tempName)
 			ob.link(bmesh)
