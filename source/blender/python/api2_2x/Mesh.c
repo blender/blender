@@ -4135,8 +4135,9 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 	face = &self->mesh->tface[self->index];
 	mask = TF_SEL1;
 	for( i=0; i<length; ++i, mask <<= 1 ) {
-		PyObject *tmp = PySequence_GetItem( value, i );
+		PyObject *tmp = PySequence_GetItem( value, i ); /* adds a reference, remove below */
 		if( !PyInt_CheckExact( tmp ) ) {
+			Py_DECREF(tmp);
 			return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected a tuple of integers" );
 		}
@@ -4144,6 +4145,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 			face->flag |= mask;
 		else
 			face->flag &= ~mask;
+		Py_DECREF(tmp);
 	}
 	return 0;
 }
