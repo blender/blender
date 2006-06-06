@@ -277,7 +277,7 @@ def add_texture_to_material(image, texture, material, mapto):
 		if index>10:
 			print '/tError: Cannot add diffuse map.  Too many textures'
 
-def process_next_chunk(file, previous_chunk, scn):
+def process_next_chunk(file, previous_chunk, importedObjects):
 	#print previous_chunk.bytes_read, 'BYTES READ'
 	contextObName= None
 	contextLamp= [None, None] # object, Data
@@ -360,9 +360,10 @@ def process_next_chunk(file, previous_chunk, scn):
 			ob = Object.New('Mesh', tempName)
 			ob.link(bmesh)
 			ob.setMatrix(contextMatrix)
-			scn.link(ob)
-			ob.Layers= scn.Layers
-			ob.sel= 1
+			importedObjects.append(ob)
+			##scn.link(ob)
+			##ob.Layers= scn.Layers
+			##ob.sel= 1
 		
 		for matName, faces in myContextMeshMaterials.iteritems():
 			makeMeshMaterialCopy(matName, faces)
@@ -401,7 +402,7 @@ def process_next_chunk(file, previous_chunk, scn):
 		elif (new_chunk.ID==OBJECTINFO):
 			#print 'elif (new_chunk.ID==OBJECTINFO):'
 			# print 'found an OBJECTINFO chunk'
-			process_next_chunk(file, new_chunk, scn)
+			process_next_chunk(file, new_chunk, importedObjects)
 			
 			#keep track of how much we read in the main chunk
 			new_chunk.bytes_read+=temp_chunk.bytes_read
@@ -551,7 +552,8 @@ def process_next_chunk(file, previous_chunk, scn):
 			contextLamp[0]= Object.New('Lamp')
 			contextLamp[1]= Lamp.New()
 			contextLamp[0].link(contextLamp[1])
-			scn.link(contextLamp[0])
+			##scn.link(contextLamp[0])
+			importedObjects.append(contextLamp[0])
 			
 			
 			
@@ -731,9 +733,6 @@ def process_next_chunk(file, previous_chunk, scn):
 def load_3ds(filename):
 	print '\n\nImporting "%s" "%s"' % (filename, Blender.sys.expandpath(filename))
 	
-	scn= Scene.GetCurrent()
-	for ob in scn.getChildren():
-		ob.sel= 0
 	time1= Blender.sys.time()
 	
 	global FILENAME
@@ -749,8 +748,50 @@ def load_3ds(filename):
 		print '\tFatal Error:  Not a valid 3ds file: ', filename
 		file.close()
 		return
-
-	process_next_chunk(file, current_chunk, scn)
+	
+	
+	IMPORT_AS_INSTANCE= Blender.Draw.Create(0)
+	# Get USER Options
+	pup_block= [\
+	('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
+	]
+	
+	if not Blender.Draw.PupBlock('Import 3DS...', pup_block):
+		return
+	IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
+	
+	importedObjects= [] # Fill this list with objects
+	process_next_chunk(file, current_chunk, importedObjects)
+	
+	scn= Scene.GetCurrent()
+	for ob in scn.getChildren():
+		ob.sel= 0
+	
+	# Link the objects into this scene.
+	Layers= scn.Layers
+	if IMPORT_AS_INSTANCE:
+		name= filename.split('\\')[-1].split('/')[-1]
+		# Create a group for this import.
+		group_scn= Scene.New(name)
+		for ob in importedObjects:
+			group_scn.link(ob) # dont worry about the layers
+		
+		grp= Blender.Group.New(name)
+		grp.objects= importedObjects
+		
+		grp_ob= Object.New('Empty', name)
+		grp_ob.enableDupGroup= True
+		grp_ob.DupGroup= grp
+		scn.link(grp_ob)
+		grp_ob.Layers= Layers
+		grp_ob.sel= 1
+	else:
+		# Select all imported objects.
+		for ob in importedObjects:
+			scn.link(ob)
+			ob.Layers= Layers
+			ob.sel= 1
+	
 	
 	# Select all new objects.
 	print 'finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1))
