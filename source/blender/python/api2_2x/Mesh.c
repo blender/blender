@@ -4119,7 +4119,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 				"expected a tuple of integers" );
 
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
-	if( length != PyTuple_Size( value ) )
+	if( length != PySequence_Size( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					    "size of vertex and UV lists differ" );
 
@@ -4135,7 +4135,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 	face = &self->mesh->tface[self->index];
 	mask = TF_SEL1;
 	for( i=0; i<length; ++i, mask <<= 1 ) {
-		PyObject *tmp = PyTuple_GET_ITEM( value, i );
+		PyObject *tmp = PySequence_GetItem( value, i );
 		if( !PyInt_CheckExact( tmp ) ) {
 			return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected a tuple of integers" );
