@@ -448,30 +448,40 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 }
 
 void *AVI_read_frame (AviMovie *movie, AviFormat format, int frame, int stream) {
-	int cur_frame=-1, i=0, temp;
+	int cur_frame, temp, i, rewind=1;
 	void *buffer;
 
-	/* Retrieve the record number of the desired frame in the index */
+	/* Retrieve the record number of the desired frame in the index 
+		If a chunk has Size 0 we need to rewind to previous frame */
+	while(rewind && frame > -1) {
+		i=0;
+		cur_frame=-1;
+		rewind = 0;
 
-	while (cur_frame < frame && i < movie->index_entries) {
-		if (fcc_is_data (movie->entries[i].ChunkId) &&
-		    fcc_get_stream (movie->entries[i].ChunkId) == stream)
-			cur_frame++;
-
-		i++;
+		while (cur_frame < frame && i < movie->index_entries) {
+			if (fcc_is_data (movie->entries[i].ChunkId) &&
+				fcc_get_stream (movie->entries[i].ChunkId) == stream) {
+				if ((cur_frame == frame -1) && (movie->entries[i].Size == 0)) {
+					rewind = 1;
+					frame = frame -1;
+				} else {
+					cur_frame++;
+				}
+			}
+			i++;
+		}
 	}
 
 	if (cur_frame != frame) return NULL;
-	
+
+
 	fseek (movie->fp, movie->read_offset + movie->entries[i-1].Offset, SEEK_SET);
 
 	temp = GET_FCC(movie->fp);
 	buffer = MEM_mallocN (temp,"readbuffer");
-/*  	buffer = malloc(temp); */
 
 	if (fread (buffer, 1, temp, movie->fp) != temp) {
 		MEM_freeN(buffer);
-/*  		free(buffer); */
 
 		return NULL;
 	}
