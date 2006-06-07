@@ -3053,10 +3053,10 @@ static uiBlock *strand_menu(void *mat_v)
 	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 100, NULL,  0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,70,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
-	uiDefButF(block, NUMSLI, 0, "Start ",	10, 50, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
-	uiDefButF(block, NUMSLI, 0, "End ",		10, 30, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
-	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 10, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefButBitI(block, TOG, MA_TANGENT_STR, B_MATPRV,	"Use Tangent Shading",	10,70,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Start ",	10, 50, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
+	uiDefButF(block, NUMSLI, B_MATPRV, "End ",		10, 30, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Shape ",	10, 10, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
 
 	uiBlockSetDirection(block, UI_TOP);
 	
@@ -3286,11 +3286,12 @@ static void material_panel_preview(Material *ma)
 		uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 		uiBlockSetCol(block, TH_BUT_NEUTRAL);
 		uiBlockBeginAlign(block);
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, 2, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,158,25,22, &(ma->pr_type), 10, 0, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,136,25,22, &(ma->pr_type), 10, 1, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, MA_DARK,			210,114,25,22, &(ma->pr_type), 10, 3, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210, 92,25,22, &(ma->pr_type), 10, 4, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, MA_FLAT, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,158,25,22, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,136,25,22, &(ma->pr_type), 10, MA_CUBE, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, MA_DARK,			210,114,25,22, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210, 92,25,22, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210, 70,25,22, &(ma->pr_type), 10, MA_HAIR, 0, 0, "");
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);

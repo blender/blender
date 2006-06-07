@@ -253,6 +253,7 @@ typedef struct Material {
 #define MA_TEXTURE		5
 #define MA_LAMP			6
 #define MA_SKY			7
+#define MA_HAIR			10
 
 /* pr_back */
 #define MA_DARK			1
