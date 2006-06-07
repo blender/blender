@@ -654,7 +654,7 @@ static void drawfloor(void)
 	grid= gridlines*vd->grid;
 	
 	BIF_GetThemeColor3ubv(TH_GRID, col);
-	BIF_GetThemeColor3ubv(TH_BACK, col);
+	BIF_GetThemeColor3ubv(TH_BACK, col2);
 	
 	/* emphasise division lines lighter instead of darker, if background is darker than grid */
 	if ( (col[0]+col[1]+col[2])/3 > (col2[0]+col2[1]+col2[2])/3 )
