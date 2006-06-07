@@ -167,15 +167,6 @@ def pointInTri2D(v, v1, v2, v3):
 	uvw = (v - v1) * mtx
 	return 0 <= uvw[0] and 0 <= uvw[1] and uvw[0] + uvw[1] <= 1
 
-
-def faceArea(f):
-	if len(f.v) == 3:
-		return TriangleArea(f.v[0].co, f.v[1].co, f.v[2].co)
-	elif len(f.v) == 4:
-		return\
-		 TriangleArea(f.v[0].co, f.v[1].co, f.v[2].co) +\
-		 TriangleArea(f.v[0].co, f.v[2].co, f.v[3].co)
-
 	
 def boundsIsland(faces):
 	minx = maxx = faces[0].uv[0][0] # Set initial bounds.
@@ -214,11 +205,11 @@ def island2Edge(island):
 	edges = {}
 	
 	for f in island:
-		for vIdx in range(len(f.v)):
+		for vIdx in xrange(len(f)):
 			if f.v[vIdx].index > f.v[vIdx-1].index:
 				edges[((f.uv[vIdx-1][0], f.uv[vIdx-1][1]), (f.uv[vIdx][0], f.uv[vIdx][1]))] =\
 				(Vector([f.uv[vIdx-1][0], f.uv[vIdx-1][1]]) - Vector([f.uv[vIdx][0], f.uv[vIdx][1]])).length
-			else:
+			else: # 3
 				edges[((f.uv[vIdx][0], f.uv[vIdx][1]), (f.uv[vIdx-1][0], f.uv[vIdx-1][1]) )] =\
 				(Vector([f.uv[vIdx-1][0], f.uv[vIdx-1][1]]) - Vector([f.uv[vIdx][0], f.uv[vIdx][1]])).length
 	
@@ -279,7 +270,7 @@ def pointInIsland(pt, island):
 		if pointInTri2D(pt, vec1, vec2, vec3):
 			return True
 		
-		if len(f.v) == 4:
+		if len(f) == 4:
 			vec1.x, vec1.y = f.uv[0]
 			vec2.x, vec2.y = f.uv[2]
 			vec3.x, vec3.y = f.uv[3]			
@@ -436,15 +427,13 @@ def optiRotateUvIsland(faces):
 		# Rotate 90d
 		# Work directly on the list, no need to return a value.
 		testNewVecLs2DRotIsBetter(uvVecs, ROTMAT_2D_POS_90D)
-		
-	
 	
 	
 	# Now write the vectors back to the face UV's
 	i = 0 # count the serialized uv/vectors
 	for f in faces:
-		f.uv = [uv for uv in uvVecs[i:len(f.v)+i] ]
-		i += len(f.v)
+		f.uv = [uv for uv in uvVecs[i:len(f)+i] ]
+		i += len(f)
 
 
 # Takes an island list and tries to find concave, hollow areas to pack smaller islands into.
@@ -974,15 +963,15 @@ def main():
 		faceListProps = []		
 		
 		for f in meshFaces:
-			area = faceArea(f)
+			area = f.area
 			if area <= SMALL_NUM:
-				f.uv = [Vector(0.0, 0.0)] * len(f.v) # Assign dummy UV
+				for uv in f.uv: # Assign Dummy UVs
+					uv.x= uv.y= 0.0
 				print 'found zero area face, removing.'
 				
 			else:
 				# Store all here
-				n = f.no
-				faceListProps.append( [f, area, Vector(n)] )
+				faceListProps.append( [f, area, Vector(f.no)] )
 		
 		del meshFaces
 		

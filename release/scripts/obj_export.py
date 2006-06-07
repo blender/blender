@@ -253,8 +253,8 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			Mesh.Mode(Mesh.SelectModes['FACE'])
 			quadcount = 0
 			for f in m.faces:
-				if len(f.v) == 4:
-					f.sel = 1
+				if len(f) == 4:
+					f.sel = True
 					quadcount +=1
 			
 			if quadcount:
@@ -350,7 +350,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 		
 		uvIdx = 0
 		for f in faces:
-			
+			f_v= f.v
 			# MAKE KEY
 			if EXPORT_UV and m.faceUV and f.image: # Object is always true.
 				key = materialNames[min(f.mat,len(materialNames)-1)],  f.image.name
@@ -405,21 +405,21 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			if m.faceUV and EXPORT_UV:
 				if EXPORT_NORMALS:
 					if f.smooth: # Smoothed, use vertex normals
-						for vi, v in enumerate(f.v):
+						for vi, v in enumerate(f_v):
 							file.write( ' %d/%d/%d' % (\
 							  v.index+totverts,\
 							  globalUVCoords[ tuple(f.uv[vi]) ],\
 							  globalNormals[ tuple(v.no) ])) # vert, uv, normal
 					else: # No smoothing, face normals
 						no = globalNormals[ tuple(f.no) ]
-						for vi, v in enumerate(f.v):
+						for vi, v in enumerate(f_v):
 							file.write( ' %d/%d/%d' % (\
 							  v.index+totverts,\
 							  globalUVCoords[ tuple(f.uv[vi]) ],\
 							  no)) # vert, uv, normal
 				
 				else: # No Normals
-					for vi, v in enumerate(f.v):
+					for vi, v in enumerate(f_v):
 						file.write( ' %d/%d' % (\
 						  v.index+totverts,\
 						  globalUVCoords[ tuple(f.uv[vi])])) # vert, uv
@@ -428,18 +428,18 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			else: # No UV's
 				if EXPORT_NORMALS:
 					if f.smooth: # Smoothed, use vertex normals
-						for v in f.v:
+						for v in f_v:
 							file.write( ' %d//%d' % (\
 							  v.index+totverts,\
 							  globalNormals[ tuple(v.no) ]))
 					else: # No smoothing, face normals
 						no = globalNormals[ tuple(f.no) ]
-						for v in f.v:
+						for v in f_v:
 							file.write( ' %d//%d' % (\
 							  v.index+totverts,\
 							  no))
 				else: # No Normals
-					for v in f.v:
+					for v in f_v:
 						file.write( ' %d' % (\
 						  v.index+totverts))
 					
@@ -449,8 +449,8 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 		if EXPORT_EDGES:
 			edgeUsers = {}
 			for f in faces:
-				for i in xrange(len(f.v)):
-					faceEdgeVKey = sortPair(f.v[i].index, f.v[i-1].index)
+				for i in xrange(len(f_v)):
+					faceEdgeVKey = sortPair(f_v[i].index, f_v[i-1].index)
 					
 					# We dont realy need to keep count. Just that a face uses it 
 					# so dont export.

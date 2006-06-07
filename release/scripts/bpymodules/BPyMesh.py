@@ -358,7 +358,7 @@ def meshCalcNormals(me, vertNormals=None):
 		
 	edges={}
 	for f in me.faces:
-		for i in xrange(len(f.v)):
+		for i in xrange(len(f)):
 			i1, i2= f.v[i].index, f.v[i-1].index
 			if i1<i2:
 				i1,i2= i2,i1
@@ -427,7 +427,7 @@ def pointInsideMesh(ob, pt):
 		ymax= max(ymax, co.y)
 		ymin= min(ymin, co.y)
 		
-		if len(f.v)==4: 
+		if len(f)==4: 
 			co= f.v[3].co
 			xmax= max(xmax, co.x)
 			xmin= min(xmin, co.x)
@@ -447,7 +447,7 @@ def pointInsideMesh(ob, pt):
 	
 	def faceIntersect(f):
 		isect = Intersect(f.v[0].co, f.v[1].co, f.v[2].co, ray, obSpacePt, 1) # Clipped.
-		if not isect and len(f.v) == 4:
+		if not isect and len(f) == 4:
 			isect = Intersect(f.v[0].co, f.v[2].co, f.v[3].co, ray, obSpacePt, 1) # Clipped.
 				
 		if isect and isect.z > obSpacePt.z: # This is so the ray only counts if its above the point. 

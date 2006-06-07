@@ -42,8 +42,9 @@ def rem_free_edges(me, limit=None):
 	edgeDict= {} # will use a set when python 2.4 is standard.
 	
 	for f in me.faces:
-		for i in xrange(len(f.v)):
-			edgeDict[sortPair(f.v[i].index, f.v[i-1].index)]= None
+		v= f.v
+		for i in xrange(len(v)):
+			edgeDict[sortPair(v[i].index, v[i-1].index)]= None
 	
 	edges_free= []
 	for e in me.edges:
@@ -58,14 +59,7 @@ def rem_free_edges(me, limit=None):
 
 def rem_area_faces(me, limit=0.001):
 	''' Faces that have an area below the limit '''
-	def faceArea(f):
-		if len(f.v) == 3:
-			return TriangleArea(f.v[0].co, f.v[1].co, f.v[2].co)
-		elif len(f.v) == 4:
-			return\
-			 TriangleArea(f.v[0].co, f.v[1].co, f.v[2].co) +\
-			 TriangleArea(f.v[0].co, f.v[2].co, f.v[3].co)
-	rem_faces= [f for f in me.faces if faceArea(f) <= limit]
+	rem_faces= [f for f in me.faces if f.area <= limit]
 	if rem_faces:
 		me.faces.delete( 0, rem_faces )
 	return len(rem_faces)
@@ -73,17 +67,18 @@ def rem_area_faces(me, limit=0.001):
 def rem_perimeter_faces(me, limit=0.001):
 	''' Faces whos combine edge length is below the limit '''
 	def faceEdLen(f):
-		if len(f.v) == 3:
+		v= f.v
+		if len(v) == 3:
 			return\
-			(f.v[0].co-f.v[1].co).length +\
-			(f.v[1].co-f.v[2].co).length +\
-			(f.v[2].co-f.v[0].co).length
-		elif len(f.v) == 4:
+			(v[0].co-v[1].co).length +\
+			(v[1].co-v[2].co).length +\
+			(v[2].co-v[0].co).length
+		else: # 4
 			return\
-			(f.v[0].co-f.v[1].co).length +\
-			(f.v[1].co-f.v[2].co).length +\
-			(f.v[2].co-f.v[3].co).length +\
-			(f.v[3].co-f.v[0].co).length
+			(v[0].co-v[1].co).length +\
+			(v[1].co-v[2].co).length +\
+			(v[2].co-v[3].co).length +\
+			(v[3].co-v[0].co).length
 	rem_faces= [f for f in me.faces if faceEdLen(f) <= limit]
 	if rem_faces:
 		me.faces.delete( 0, rem_faces )
