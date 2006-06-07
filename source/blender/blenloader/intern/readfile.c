@@ -2868,7 +2868,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
 {
 	Editing *ed;
-	Sequence *seq;
+	Sequence *seq = NULL;
 
 	Scene * sce= main->scene.first;
 	while(sce) {
