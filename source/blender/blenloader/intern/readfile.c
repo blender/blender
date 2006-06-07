@@ -2891,7 +2891,10 @@ static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
 		}
 		sce= sce->id.next;
 	}
-	return seq;
+	if (seq)
+        return seq;
+	else
+		return NULL;
 }
 
 static void lib_link_screen_sequence_ipos(Main *main)
