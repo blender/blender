@@ -511,12 +511,20 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 
 	/* Determine the correct filename */
 	makeffmpegstring(name);
-	fprintf(stderr, "Starting output to %s(ffmpeg)...\n", name);
+	fprintf(stderr, "Starting output to %s(ffmpeg)...\n"
+		"  Using type=%d, codec=%d, audio_codec=%d,\n"
+		"  video_bitrate=%d, audio_bitrate=%d,\n"
+		"  gop_size=%d, multiplex=%d, autosplit=%d\n"
+		"  render width=%d, render height=%d\n", 
+		name, ffmpeg_type, ffmpeg_codec, ffmpeg_audio_codec,
+		ffmpeg_video_bitrate, ffmpeg_audio_bitrate,
+		ffmpeg_gop_size, ffmpeg_multiplex_audio,
+		ffmpeg_autosplit, rectx, recty);
 	
 	fmt = guess_format(NULL, name, NULL);
 	if (!fmt) {
 		G.afbreek = 1; /* Abort render */
-		error("No vaild formats found");
+		error("No valid formats found");
 		return;
 	}
 
@@ -559,10 +567,35 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 			fmt->video_codec = CODEC_ID_MPEG4;
 			break;
 	}
+	if (fmt->video_codec == CODEC_ID_DVVIDEO) {
+		if (rectx != 720) {
+			G.afbreek = 1;
+			error("Render width has to be 720 pixels for DV!");
+			return;
+		}
+		if (G.scene->r.frs_sec != 25 && recty != 480) {
+			G.afbreek = 1;
+			error("Render height has to be 480 pixels "
+			      "for DV-NTSC!");
+			return;
+			
+		}
+		if (G.scene->r.frs_sec == 25 && recty != 576) {
+			G.afbreek = 1;
+			error("Render height has to be 576 pixels "
+			      "for DV-PAL!");
+			return;
+		}
+	}
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
-	} else {
-		fmt->audio_codec = ffmpeg_audio_codec;
+		if (ffmpeg_multiplex_audio 
+		    && G.scene->audio.mixrate != 48000) {
+			G.afbreek = 1;
+			error("FFMPEG only supports 48khz / stereo "
+			      "audio for DV!");
+			return;
+		}
 	}
 	
 	video_stream = alloc_video_stream(fmt->video_codec, of, rectx, recty);
@@ -612,7 +645,9 @@ void end_ffmpeg(void);
 
 void append_ffmpeg(int frame, int *pixels, int rectx, int recty) 
 {
-	fprintf(stderr, "Writing frame %i\n", frame);
+	fprintf(stderr, "Writing frame %i, "
+		"render width=%d, render height=%d\n", frame,
+		rectx, recty);
 	while (ffmpeg_multiplex_audio && 
 	       (((double)audio_stream->pts.val 
 		 * audio_stream->time_base.num / audio_stream->time_base.den)
@@ -649,6 +684,7 @@ void end_ffmpeg(void)
 
 	if (video_stream && get_codec_from_stream(video_stream)) {
 		avcodec_close(get_codec_from_stream(video_stream));
+		video_stream = 0;
 	}
 
 	
