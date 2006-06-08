@@ -912,6 +912,52 @@ void view3d_set_1_to_1_viewborder(View3D *v3d)
 	v3d->camzoom= CLAMPIS(v3d->camzoom, -30, 300);
 }
 
+
+static void drawviewborder_flymode(void)	
+{
+	/* draws 4 edge brackets that frame the safe area where the
+	mouse can move during fly mode without spinning the view */
+	float x1, x2, y1, y2;
+	
+	x1= 0.45*(float)curarea->winx;
+	y1= 0.45*(float)curarea->winy;
+	x2= 0.55*(float)curarea->winx;
+	y2= 0.55*(float)curarea->winy;
+	cpack(0);
+	
+	
+	glBegin(GL_LINES);
+	/* bottom left */
+	glVertex2f(x1,y1); 
+	glVertex2f(x1,y1+5);
+	
+	glVertex2f(x1,y1); 
+	glVertex2f(x1+5,y1);
+
+	/* top right */
+	glVertex2f(x2,y2); 
+	glVertex2f(x2,y2-5);
+	
+	glVertex2f(x2,y2); 
+	glVertex2f(x2-5,y2);
+	
+	/* top left */
+	glVertex2f(x1,y2); 
+	glVertex2f(x1,y2-5);
+	
+	glVertex2f(x1,y2); 
+	glVertex2f(x1+5,y2);
+	
+	/* bottom right */
+	glVertex2f(x2,y1); 
+	glVertex2f(x2,y1+5);
+	
+	glVertex2f(x2,y1); 
+	glVertex2f(x2-5,y1);
+	glEnd();	
+}
+
+
 static void drawviewborder(void)
 {
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);          // interface_panel.c
@@ -2620,6 +2666,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	persp(PERSP_WIN);  // set ortho
 	
 	if(v3d->persp>1) drawviewborder();
+	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode();
 	if(!(G.f & G_PLAYANIM)) drawcursor(v3d);
 	if(U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis();

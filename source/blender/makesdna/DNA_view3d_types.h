@@ -155,6 +155,7 @@ typedef struct View3D {
 
 /* View3d->flag2 (short) */
 #define V3D_OPP_DIRECTION_NAME	1
+#define V3D_FLYMODE				2
 
 /* View3D->around */
 #define V3D_CENTRE		 0

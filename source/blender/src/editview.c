@@ -47,6 +47,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
@@ -97,11 +98,12 @@
 #include "BSE_editipo.h"
 #include "BSE_drawview.h"
 
-#include "editmesh.h"	// borderselect uses it...
+#include "editmesh.h"	/* borderselect uses it... */
 #include "blendef.h"
 #include "mydevice.h"
 
 #include "BIF_transform.h"
+#include "BIF_toets.h"                      /* persptoetsen                 */
 
 extern ListBase editNurb; /* originally from exports.h, memory from editcurve.c*/
 /* editmball.c */
@@ -194,16 +196,16 @@ static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 {
 	int d1, d2, d3, d4;
 	
-	// check points in rect
+	/* check points in rect */
 	if(edge_fully_inside_rect(rect, x1, y1, x2, y2)) return 1;
 	
-	// check points completely out rect
+	/* check points completely out rect */
 	if(x1<rect->xmin && x2<rect->xmin) return 0;
 	if(x1>rect->xmax && x2>rect->xmax) return 0;
 	if(y1<rect->ymin && y2<rect->ymin) return 0;
 	if(y1>rect->ymax && y2>rect->ymax) return 0;
 	
-	// simple check lines intersecting. 
+	/* simple check lines intersecting. */
 	d1= (y1-y2)*(x1- rect->xmin ) + (x2-x1)*(y1- rect->ymin );
 	d2= (y1-y2)*(x1- rect->xmin ) + (x2-x1)*(y1- rect->ymax );
 	d3= (y1-y2)*(x1- rect->xmax ) + (x2-x1)*(y1- rect->ymax );
@@ -272,7 +274,7 @@ static int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int
 	v1[0] = x0, v1[1] = y0;
 	v2[0] = x1, v2[1] = y1;
 
-	// check points in lasso
+	/* check points in lasso */
 	if(lasso_inside(mcords, moves, v1[0], v1[1])) return 1;
 	if(lasso_inside(mcords, moves, v2[0], v2[1])) return 1;
 	
@@ -514,7 +516,7 @@ static void do_lasso_select_armature(short mcords[][2], short moves, short selec
 			else ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 	}
-	countall();	// abused for flushing selection
+	countall();	/* abused for flushing selection */
 }
 
 static void do_lasso_select_facemode(short mcords[][2], short moves, short select)
@@ -526,7 +528,7 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 	if(me==NULL || me->tface==NULL) return;
 	if(me->totface==0) return;
 	
-	em_vertoffs= me->totface+1;	// max index array
+	em_vertoffs= me->totface+1;	/* max index array */
 	
 	lasso_select_boundbox(&rect, mcords, moves);
 	EM_mask_init_backbuf_border(mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -702,7 +704,7 @@ int gesture(void)
 {
 	unsigned short event=0;
 	int i= 1, end= 0, a;
-	short mcords[MOVES_LASSO][2]; // the larger size
+	short mcords[MOVES_LASSO][2]; /* the larger size */
 	short mval[2], val, timer=0, mousebut, lasso=0, maxmoves;
 	
 	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
@@ -1107,7 +1109,7 @@ static Base *mouse_select_menu(unsigned int *buffer, int hits, short *mval)
 	Base *baseList[SEL_MENU_SIZE]={NULL}; /*baseList is used to store all possible bases to bring up a menu */
 	Base *base;
 	short baseCount = 0;
-	char menuText[20 + SEL_MENU_SIZE*32] = "Select Object%t";	// max ob name = 22
+	char menuText[20 + SEL_MENU_SIZE*32] = "Select Object%t";	/* max ob name = 22 */
 	char str[32];
 	
 	for(base=FIRSTBASE; base; base= base->next) {
@@ -1134,7 +1136,7 @@ static Base *mouse_select_menu(unsigned int *buffer, int hits, short *mval)
 			if(baseList[baseCount]) {
 				if (baseCount < SEL_MENU_SIZE) {
 					baseList[baseCount] = base;
-					sprintf(str, "|%s %%x%d", base->object->id.name+2, baseCount+1);	// max ob name == 22
+					sprintf(str, "|%s %%x%d", base->object->id.name+2, baseCount+1);	/* max ob name == 22 */
 					strcat(menuText, str);
 					baseCount++;
 				}
@@ -1267,7 +1269,7 @@ void mouse_select(void)
 				if(G.vd->drawtype>OB_WIRE) {
 					donearest= 1;
 					if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
-						if(!has_bones)	// hrms, if theres bones we always do nearest
+						if(!has_bones)	/* hrms, if theres bones we always do nearest */
 							donearest= 0;
 					}
 				}
@@ -1338,7 +1340,7 @@ void mouse_select(void)
 			}
 			
 			if(has_bones && basact) {
-				if( do_pose_selectbuffer(basact, buffer, hits) ) {	// then bone is found
+				if( do_pose_selectbuffer(basact, buffer, hits) ) {	/* then bone is found */
 				
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
 					if(G.f & G_WEIGHTPAINT) {
@@ -1383,14 +1385,14 @@ void mouse_select(void)
 				else basact->flag |= SELECT;
 			}
 
-			// copy
+			/* copy */
 			basact->object->flag= basact->flag;
 			
 			if(oldbasact != basact) {
 				set_active_base(basact);
 			}
 
-			// for visual speed, only in wire mode
+			/* for visual speed, only in wire mode */
 			if(G.vd->drawtype==OB_WIRE) {
 				/* however, not for posemodes */
 				if(basact->object->flag & OB_POSEMODE);
@@ -1430,7 +1432,7 @@ void mouse_select(void)
 
 	countall();
 
-	rightmouse_transform();	// does undo push!
+	rightmouse_transform();	/* does undo push! */
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1440,11 +1442,11 @@ static int edge_inside_circle(short centx, short centy, short rad, short x1, sho
 	int radsq= rad*rad;
 	float v1[2], v2[2], v3[2];
 	
-	// check points in circle itself
+	/* check points in circle itself */
 	if( (x1-centx)*(x1-centx) + (y1-centy)*(y1-centy) <= radsq ) return 1;
 	if( (x2-centx)*(x2-centx) + (y2-centy)*(y2-centy) <= radsq ) return 1;
 	
-	// pointdistline
+	/* pointdistline */
 	v3[0]= centx;
 	v3[1]= centy;
 	v1[0]= x1;
@@ -1701,7 +1703,7 @@ void borderselect(void)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
-	else {	// no editmode, unified for bones and objects
+	else {	/* no editmode, unified for bones and objects */
 		Bone *bone;
 		unsigned int *vbuffer=NULL; /* selection buffer	*/
 		unsigned int *col;			/* color in buffer	*/
@@ -1731,9 +1733,9 @@ void borderselect(void)
 			while(base && hits) {
 				Base *next = base->next;
 				if(base->lay & G.vd->lay) {
-					while (base->selcol == (*col & 0xFFFF)) {	// we got an object
+					while (base->selcol == (*col & 0xFFFF)) {	/* we got an object */
 						
-						if(*col & 0xFFFF0000) {					// we got a bone
+						if(*col & 0xFFFF0000) {					/* we got a bone */
 							bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
 							if(bone) {
 								if(selecting) {
@@ -1833,7 +1835,7 @@ static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float 
 		Mesh *me = get_mesh(OBACT);
 
 		if (me) {
-			em_vertoffs= me->totface+1;	// max index array
+			em_vertoffs= me->totface+1;	/* max index array */
 
 			bbsel= EM_init_backbuf_circle(mval[0], mval[1], (short)(rad+1.0));
 			EM_backbuf_checkAndSelectTFaces(me, selecting==LEFTMOUSE);
@@ -1983,117 +1985,252 @@ void set_render_border(void)
 		CLAMP(G.scene->r.border.ymax, 0.0, 1.0);
 		
 		allqueue(REDRAWVIEWCAM, 1);
-		// if it was not set, we do this
+		/* if it was not set, we do this */
 		G.scene->r.mode |= R_BORDER;
 		allqueue(REDRAWBUTSSCENE, 1);
 	}
 }
 
 
-
 void fly(void)
 {
-	float speed=0.0, speedo=1.0, zspeed=0.0, dvec[3], *quat, mat[3][3];
-	float oldvec[3], oldrot[3];
-	int loop=1;
-	unsigned short toets;
-	short val, cent[2];
-	short mval[2];
-	
+	/* fly mode - Shift+F a fly loop where the user can move move the view as if they are flying */
+	float speed=0.0, dvec[3]={0,0,0}, mat[3][3], angle,
+	upvec[3]={0,0,0}, tmpvec[3], dist_backup, moffset[2],
+	lens_backup=1.0, camd_xy_backup[2]= {0.0, 0.0}, tmp_quat[4],
+	winxf, winyf;
+	/* x and y margin are define the safe area where the mouses movement wont rotate teh view*/
+	short val, cent[2], mval[2], loop=1, xmargin, ymargin; 
+	unsigned short toets, qual_backup, i;
+	unsigned char apply_rotation=1, correct_vroll=0, use_camera;
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
-	if(G.vd->camera == 0) return;
-	if(G.vd->persp<2) return;
+	if (G.vd->persp==1)
+		use_camera=0;
+	else if (G.vd->persp==2) {
+		use_camera=1;
+		lens_backup= G.vd->lens; /* so when we fly in normal view our lense matches the cameras */
+		if (G.vd->camera && G.vd->camera->type==OB_CAMERA) {
+			Camera *cam;
+			cam= G.vd->camera->data;
+			G.vd->lens= cam->lens;
+		}
+		camd_xy_backup[0]= G.vd->camdx; /* not ideal but ok for now, offset will jump on and off */
+		camd_xy_backup[1]= G.vd->camdy;
+		G.vd->camdx= G.vd->camdy= 0.0;
+		
+		G.vd->persp=1;
+		G.vd->viewbut=0;
+		G.vd->camera= NULL;
+		/*redraw with no camera*/
+		allqueue(REDRAWVIEW3D, 0);
+	} else {
+		G.vd->persp= 1; /*if ortho projection, make perspective */
+		use_camera= 0;
+	}
 	
-	VECCOPY(oldvec, G.vd->camera->loc);
-	VECCOPY(oldrot, G.vd->camera->rot);
+	/* the dist defines a vector that is infront of the offset
+	to rotate the view about.
+	this is no good for fly mode because we
+	want to rotate about the viewers centre.
+	but to correct the dist removal we must
+	alter offset so the view dosent jump. */
+	dist_backup= G.vd->dist;
+	G.vd->dist= 0.0;
+	upvec[2]=dist_backup; /*x and y are 0*/
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	Mat3MulVecfl(mat, upvec);
+	G.vd->ofs[0]-= upvec[0];
+	G.vd->ofs[1]-= upvec[1];
+	G.vd->ofs[2]-= upvec[2];
+	/*Done with correcting for the dist/*/
+	
+	xmargin= (short)((float)(curarea->winx)/20.0);
+	ymargin= (short)((float)(curarea->winy)/20.0);
 	
 	cent[0]= curarea->winrct.xmin+(curarea->winx)/2;
 	cent[1]= curarea->winrct.ymin+(curarea->winy)/2;
 	
 	warp_pointer(cent[0], cent[1]);
-	
+
 	/* we have to rely on events to give proper mousecoords after a warp_pointer */
 	mval[0]= cent[0]=  (curarea->winx)/2;
 	mval[1]= cent[1]=  (curarea->winy)/2;
+	/* window size minus margin - use this to get the mouse range for rotation */
+	winxf= (float)(curarea->winx)-(xmargin*2);
+	winyf= (float)(curarea->winy)-(ymargin*2); 
 	
-	headerprint("Fly");
+	
+	G.vd->flag2 |= V3D_FLYMODE;
+	scrarea_do_windraw(curarea);
+	screen_swapbuffers();
 	
 	while(loop) {
-		
-
 		while(qtest()) {
-			
 			toets= extern_qread(&val);
 			
 			if(val) {
 				if(toets==MOUSEY) getmouseco_areawin(mval);
-				else if(toets==ESCKEY) {
-					VECCOPY(G.vd->camera->loc, oldvec);
-					VECCOPY(G.vd->camera->rot, oldrot);
+				else if(toets==ESCKEY || toets==RIGHTMOUSE) {
+					if (use_camera) use_camera=2; /* dont apply view to camera */
 					loop= 0;
 					break;
-				}
-				else if(toets==SPACEKEY) {
+				} else if(toets==SPACEKEY || toets==LEFTMOUSE) {
 					loop= 0;
-					BIF_undo_push("Fly camera");
 					break;
-				}
-				else if(toets==LEFTMOUSE) {
-					speed+= G.vd->grid/75.0;
-					if(get_mbut()&M_MOUSE) speed= 0.0;
-				}
-				else if(toets==MIDDLEMOUSE) {
-					speed-= G.vd->grid/75.0;
-					if(get_mbut()&L_MOUSE) speed= 0.0;
+				} else if(toets==PADPLUSKEY || toets==EQUALKEY || toets==WHEELUPMOUSE) {
+					if (speed<0) speed=0;
+					else speed+= G.vd->grid;
+				} else if(toets==PADMINUS || toets==MINUSKEY || toets==WHEELDOWNMOUSE) {
+					if (speed>0) speed=0;
+					else speed-= G.vd->grid;
 				}
 			}
 		}
 		if(loop==0) break;
 		
-		/* define dvec */
-		val= mval[0]-cent[0];
-		if(val>20) val-= 20; else if(val< -20) val+= 20; else val= 0;
-		dvec[0]= 0.000001*val*val;
-		if(val>0) dvec[0]= -dvec[0];
+		/* make it so the camera direction dosent follow the view
+		good for flying backwards! */		
+		if (G.qual & LR_SHIFTKEY)	apply_rotation=0;
+		else						apply_rotation=1;
 		
-		val= mval[1]-cent[1];
-		if(val>20) val-= 20; else if(val< -20) val+= 20; else val= 0;
-		dvec[1]= 0.000001*val*val;
-		if(val>0) dvec[1]= -dvec[1];
+		/* correct the view rolling */
+		if (G.qual & LR_CTRLKEY)	correct_vroll=1;
+		else						correct_vroll=0;
 		
-		dvec[2]= 1.0;
 		
-		zspeed= 0.0;
-		if(get_qual()&LR_CTRLKEY) zspeed= -G.vd->grid/25.0;
-		if(get_qual()&LR_ALTKEY) zspeed= G.vd->grid/25.0;
+		moffset[0]= mval[0]-cent[0];
+		moffset[1]= mval[1]-cent[1];
 		
-		if(speedo!=0.0 || zspeed!=0.0 || dvec[0]!=0.0 || dvec[1]!=0.0) {
+		/* enforce a view margin */
+		if (moffset[0]>xmargin)		moffset[0]-=xmargin;
+		else if (moffset[0]<-xmargin)moffset[0]+=xmargin;
+		else					moffset[0]=0;
+
+		if (moffset[1]>ymargin)		moffset[1]-=ymargin;
+		else if (moffset[1]<-ymargin)moffset[1]+=ymargin;
+		else					moffset[1]=0;
 		
-			Normalise(dvec);
+		if (moffset[0]) {
+			moffset[0]= moffset[0]/winxf;
+			moffset[0]= moffset[0]*fabs(moffset[0]);
+		}
+		
+		if (moffset[1]) {
+			moffset[1]= moffset[1]/winxf;
+			moffset[1]= moffset[1]*fabs(moffset[1]);
+		}
 			
+		/* define dvec, view direction vector */
+		if (apply_rotation) {
+			dvec[0]= 0;
+			dvec[1]= 0;
+			dvec[2]= 1.0;
+		}
+		
+		if(speed!=0.0 || moffset[0] || moffset[1] || correct_vroll) {
+		
 			Mat3CpyMat4(mat, G.vd->viewinv);
-			Mat3MulVecfl(mat, dvec);
-			quat= vectoquat(dvec, 5, 1);	/* track and upflag, not from the base: camera view calculation does not use that */
+			if (apply_rotation) {
+				Normalise(dvec);
+				Mat3MulVecfl(mat, dvec);
+			}
+			/* rotate about the X axis- look up/down */
+			if (moffset[1]) {
+				upvec[0]=1;
+				upvec[1]=0;
+				upvec[2]=0;
+				Mat3MulVecfl(mat, upvec);
+				VecRotToQuat( upvec, (float)moffset[1]*-0.1, tmp_quat); /* Rotate about the relative up vec */
+				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+			}
 			
-			QuatToEul(quat, G.vd->camera->rot);
+			/* rotate about the Y axis- look left/right */
+			if (moffset[0]) {
+				upvec[0]=0;
+				upvec[1]=1;
+				upvec[2]=0;
+				Mat3MulVecfl(mat, upvec);
+				VecRotToQuat( upvec, (float)moffset[0]*0.1, tmp_quat); /* Rotate about the relative up vec */
+				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+			}
 			
-			compatible_eul(G.vd->camera->rot, oldrot);
+			if (correct_vroll) {
+				upvec[0]=1;
+				upvec[1]=0;
+				upvec[2]=0;
+				Mat3MulVecfl(mat, upvec);
+				
+				/*make sure we have some z rolling*/
+				if (fabs(upvec[2]) > 0.00001) {
+					tmpvec[0]= upvec[0];
+					upvec[1]= tmpvec[1]= 0;
+					tmpvec[2]= 0;
+					
+					/* angle between zroll vector and vec with zroll removed*/
+					angle= VecAngle2(tmpvec, upvec);
+					
+					/* we need to know which direction to rotate the camera */
+					if (upvec[2]<0) angle=-angle; 
+					
+					/* now correct the angle a slight ammount, holding Ctrl will fix over time */
+					upvec[0]=0;
+					upvec[1]=0;
+					upvec[2]=1;
+					Mat3MulVecfl(mat, upvec);
+					VecRotToQuat( upvec, angle*0.001, tmp_quat); /* Rotate about the relative up vec */
+					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+				}
+			}
 			
-			VecMulf(dvec, speed);
-			G.vd->camera->loc[0]-= dvec[0];
-			G.vd->camera->loc[1]-= dvec[1];
-			G.vd->camera->loc[2]-= (dvec[2]-zspeed);
+			if (apply_rotation)
+				VecMulf(dvec, speed*0.01);
 			
+			G.vd->ofs[0]+= dvec[0];
+			G.vd->ofs[1]+= dvec[1];
+			G.vd->ofs[2]+= dvec[2];
+			
+			headerprint("FlyModeKeys  Speed(+/- | MouseWheel),  MouseLook: Shift,  RollCorrect: Ctrl,  Exit:LMB");
+			/*scrarea_queue_headredraw(curarea); NOT NEDED */
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		}
-		speedo= speed;
 	}
+	
+	/*restore the dist*/
+	upvec[0]= upvec[1]= 0;
+	upvec[2]=dist_backup; /*x and y are 0*/
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	Mat3MulVecfl(mat, upvec);
+	G.vd->ofs[0]+= upvec[0];
+	G.vd->ofs[1]+= upvec[1];
+	G.vd->ofs[2]+= upvec[2];
+	G.vd->dist= dist_backup;
+	/*Done with correcting for the dist */
+	
+	if (use_camera) {
+		G.vd->lens= lens_backup; /* restore the views perspectiove lense angle */
+		G.vd->camdx= camd_xy_backup[0];
+		G.vd->camdy= camd_xy_backup[1];
+		
+		G.vd->persp=2;
+		G.vd->viewbut=1;
+		if (use_camera==2) { /* use_camera==2 means the user pressed Esc of RMB, and not to apply view to camera */
+			persptoetsen(PAD0);
+		} else {
+			G.vd->camzoom=0; /* so we dont get a zooming jump when the camera switches back. Warning this could be annoying. */
+			qual_backup= G.qual;
+			G.qual |= LR_CTRLKEY|LR_ALTKEY;
+			persptoetsen(PAD0);
+			G.qual= qual_backup;
+		}
+	}
+	
+	G.vd->flag2 &= ~V3D_FLYMODE;
 	
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_headredraw(curarea);
-	
 }
+
 
 void view3d_edit_clipping(View3D *v3d)
 {
