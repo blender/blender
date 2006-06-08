@@ -70,7 +70,9 @@ BSP_CSGMesh_VertexIt_Done(
 	BSP_CSGMesh_VertexIt * vertex_it = (BSP_CSGMesh_VertexIt *)it;
 
 	/* dereferencing iterator::end() is illegal, so we dereference 1 before it */
-	if (vertex_it->pos <= &(*(vertex_it->mesh->VertexSet().end() -1) )) return 0;
+	/* also check that vector is not empty */
+	if (vertex_it->mesh->VertexSet().size() && 
+			vertex_it->pos <= &(*(vertex_it->mesh->VertexSet().end() -1) )) return 0;
 	return 1;
 };
 
@@ -163,8 +165,11 @@ BSP_CSGMesh_FaceIt_Done(
 	BSP_CSGMesh_FaceIt * face_it = (BSP_CSGMesh_FaceIt *)it;
 
 	/* dereferencing iterator::end() is illegal, so we dereference 1 before it */
-	if (face_it->pos <= &(*(face_it->mesh->FaceSet().end() -1))) {
+	/* also check that vector is not empty */
+	if (face_it->mesh->FaceSet().size() && 
+			face_it->pos <= &(*(face_it->mesh->FaceSet().end() -1))) {
 		if (face_it->face_triangle + 3 <= face_it->pos->m_verts.size()) {
+
 			return 0;
 		}
 	}
@@ -256,7 +261,9 @@ BSP_CSGMesh_FaceIt_Step(
 	BSP_CSGMesh_FaceIt * face_it = (BSP_CSGMesh_FaceIt *)it;		
 
 	/* dereferencing iterator::end() is illegal, so we dereference 1 before it */
-	if (face_it->pos <= &(*(face_it->mesh->FaceSet().end() -1))) {
+	/* also check that vector is not empty */
+	if (face_it->mesh->FaceSet().size() && 
+			face_it->pos <= &(*(face_it->mesh->FaceSet().end() -1))) {
 
 		//if (face_it->face_triangle + 3 < face_it->pos->m_verts.size()) {
 		//	(face_it->face_triangle)++;
