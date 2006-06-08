@@ -148,7 +148,7 @@ static rcti scrollrct, textrct, bar;
 static int filebuty1, filebuty2, page_ofs, collumwidth, selecting=0;
 static int filetoname= 0;
 static float pixels_to_ofs;
-static char otherdir[FILE_MAXDIR];
+static char otherdir[FILE_MAXDIR+FILE_MAXFILE];
 static ScrArea *otherarea;
 
 /* FSMENU HANDLING */
@@ -598,7 +598,7 @@ void sort_filelist(SpaceFile *sfile)
 void read_dir(SpaceFile *sfile)
 {
 	int num, len;
-	char wdir[FILE_MAXDIR];
+	char wdir[FILE_MAXDIR+FILE_MAXFILE];
 
 	/* sfile->act is used for example in databrowse: double names of library objects */
 	sfile->act= -1;
@@ -659,7 +659,7 @@ void freefilelist(SpaceFile *sfile)
 
 static void split_sfile(SpaceFile *sfile, char *s1)
 {
-	char string[FILE_MAXDIR+FILE_MAXFILE], dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	char string[FILE_MAXDIR+FILE_MAXFILE], dir[FILE_MAXDIR+FILE_MAXFILE], file[FILE_MAXDIR+FILE_MAXFILE];
 
 	BLI_strncpy(string, s1, sizeof(string));
 
@@ -1226,7 +1226,7 @@ static void do_filescrollwheel(SpaceFile *sfile, int move)
 void activate_fileselect(int type, char *title, char *file, void (*func)(char *))
 {
 	SpaceFile *sfile;
-	char group[24], name[FILE_MAXDIR], temp[FILE_MAXDIR];
+	char group[24], name[FILE_MAXDIR+FILE_MAXFILE], temp[FILE_MAXDIR+FILE_MAXFILE];
 	
 	if(curarea==0) return;
 	if(curarea->win==0) return;
@@ -1298,7 +1298,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 void activate_imageselect(int type, char *title, char *file, void (*func)(char *))
 {
 	SpaceImaSel *simasel;
-	char dir[FILE_MAXDIR], name[FILE_MAXFILE];
+	char dir[FILE_MAXDIR+FILE_MAXFILE], name[FILE_MAXDIR+FILE_MAXFILE];
 	
 	if(curarea==0) return;
 	if(curarea->win==0) return;
@@ -1454,7 +1454,7 @@ void free_filesel_spec(char *dir)
 static void filesel_execute(SpaceFile *sfile)
 {
 	struct direntry *files;
-	char name[FILE_MAXDIR];
+	char name[FILE_MAXDIR+FILE_MAXFILE];
 	int a;
 	
 	filesel_prevspace();
@@ -1527,7 +1527,7 @@ static void filesel_execute(SpaceFile *sfile)
 
 static void do_filesel_buttons(short event, SpaceFile *sfile)
 {
-	char butname[FILE_MAXDIR];
+	char butname[FILE_MAXDIR+FILE_MAXFILE];
 	
 	if (event == 1) {
 		if (strchr(sfile->file, '*') || strchr(sfile->file, '?') || strchr(sfile->file, '[')) {
@@ -2254,7 +2254,7 @@ static void do_sync_pose(Library *lib)
 static void do_library_append(SpaceFile *sfile)
 {
 	Library *lib;
-	char dir[FILE_MAXDIR], group[32];
+	char dir[FILE_MAXDIR+FILE_MAXFILE], group[32];
 	
 	if ( is_a_library(sfile, dir, group)==0 ) {
 		error("Not a library");
@@ -2304,7 +2304,7 @@ static void library_to_filelist(SpaceFile *sfile)
 	LinkNode *l, *names;
 	int ok, i, nnames, idcode;
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
-	char dir[FILE_MAXDIR], group[24];
+	char dir[FILE_MAXDIR+FILE_MAXFILE], group[24];
 	
 	/* name test */
 	ok= is_a_library(sfile, dir, group);
