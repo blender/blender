@@ -179,12 +179,20 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		ELSEIF_TSP_RGBA( syntaxb )
 		ELSEIF_TSP_RGBA( syntaxv )
 		ELSEIF_TSP_RGBA( syntaxc )
+		ELSEIF_TSP_RGBA( movie )
+		ELSEIF_TSP_RGBA( image )
+		ELSEIF_TSP_RGBA( scene )
+		ELSEIF_TSP_RGBA( audio )
+		ELSEIF_TSP_RGBA( effect )
+		ELSEIF_TSP_RGBA( plugin )
+		ELSEIF_TSP_RGBA( transition )
+		ELSEIF_TSP_RGBA( meta )
 		else if( !strcmp( name, "vertex_size" ) )
 		attrib = Py_BuildValue( "i", tsp->vertex_size );
 		else if( !strcmp( name, "facedot_size" ) )
 		attrib = Py_BuildValue( "i", tsp->facedot_size );
 	else if( !strcmp( name, "__members__" ) )
-		attrib = Py_BuildValue("[sssssssssssssssssssssssssssssssssss]", "theme",
+		attrib = Py_BuildValue("[sssssssssssssssssssssssssssssssssssssssssss]", "theme",
 					"back", "text", "text_hi", "header",
 					"panel", "shade1", "shade2", "hilite",
 					"grid", "wire", "lamp", "select", "active",
@@ -194,6 +202,7 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 					"face_dot", "normal", "bone_solid", "bone_pose",
 					"strip", "strip_select",
 					"syntaxl", "syntaxn", "syntaxb", "syntaxv", "syntaxc",
+					"movie", "image", "scene", "audio", "effect", "plugin", "transition", "meta", 
 					"vertex_size", "facedot_size" );
 
 	if( attrib != Py_None )
@@ -244,6 +253,14 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( syntaxb )
 		ELSEIF_TSP_RGBA( syntaxv )
 		ELSEIF_TSP_RGBA( syntaxc )
+		ELSEIF_TSP_RGBA( movie )
+		ELSEIF_TSP_RGBA( image )
+		ELSEIF_TSP_RGBA( scene )
+		ELSEIF_TSP_RGBA( audio )
+		ELSEIF_TSP_RGBA( effect )
+		ELSEIF_TSP_RGBA( plugin )
+		ELSEIF_TSP_RGBA( transition )
+		ELSEIF_TSP_RGBA( meta )
 		else if( !strcmp( name, "vertex_size" ) ) {
 		int val;
 

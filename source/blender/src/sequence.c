@@ -887,6 +887,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				}
 			}
 			else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
+				int oldcfra = CFRA;
 				Scene *sce= seq->scene, *oldsce= G.scene;
 				Render *re= RE_NewRender(sce->id.name);
 				RenderResult rres;
@@ -918,6 +919,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				
 				if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
 					waitcursor(0);
+				CFRA = oldcfra;
 			}
 			
 			/* size test */

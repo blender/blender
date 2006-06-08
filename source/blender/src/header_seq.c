@@ -53,6 +53,7 @@
 #include "DNA_space_types.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BIF_drawseq.h"
 #include "BIF_interface.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -436,15 +437,20 @@ static uiBlock *seq_editmenu(void *arg_unused)
 void do_seq_buttons(short event)
 {
 	Editing *ed;
-
+	SpaceSeq *sseq= curarea->spacedata.first;
+	
 	ed= G.scene->ed;
 	if(ed==0) return;
-
+	
 	switch(event) {
 	case B_SEQHOME:
-		G.v2d->cur= G.v2d->tot;
-		test_view2d(G.v2d, curarea->winx, curarea->winy);
-		view2d_do_locks(curarea, V2D_LOCK_COPY);
+		if(sseq->mainb)
+			seq_reset_imageofs(sseq);
+		else {
+			G.v2d->cur= G.v2d->tot;
+			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			view2d_do_locks(curarea, V2D_LOCK_COPY);
+		}
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_SEQCLEAR:
@@ -514,15 +520,6 @@ void seq_buttons()
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 
-	/* CHANNEL shown in 3D preview */
-	uiDefButS(block, NUM, B_REDR, "C",
-		  xco += XIC, 0, 3.5 * XIC,YIC,
-		  &sseq->chanshown, 0, MAXSEQ, 0, 0,
-		  "Channel shown in 3D preview. Click to change.");
-
-	xco+= 8;
-	xco += 3.5*XIC;
-
 	/* IMAGE */
 	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SEQ_SEQUENCER, 
 			  "Image Preview: %t" 
@@ -533,11 +530,24 @@ void seq_buttons()
 			  xco,0,XIC+10,YIC, &sseq->mainb, 0.0, 3.0, 
 			  0, 0, 
 			  "Shows the sequence output image preview");
-	xco+=10;
+	
+	xco+= 8 + XIC+10;
+	
+	/* CHANNEL shown in 3D preview */
+	if(sseq->mainb) {
+		uiDefButS(block, NUM, B_REDR, "Chan:",
+		xco, 0, 3.5 * XIC,YIC,
+		&sseq->chanshown, 0, MAXSEQ, 0, 0,
+		"The channel number shown in the image preview. 0 is the result of all strips combined.");
+		
+		xco+= 8 + XIC*3.5;
+	}
+
+	
 	/* ZOOM and BORDER */
-	xco+= 16;
+	xco+= 8;
 	uiBlockBeginAlign(block);
-	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
+	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zooms view in and out (Ctrl MiddleMouse)");
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
 	uiBlockEndAlign(block);
 

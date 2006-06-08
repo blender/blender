@@ -466,6 +466,15 @@ enum {
 	TH_NODE_GENERATOR,
 	TH_NODE_GROUP,
 	
+	TH_SEQ_MOVIE,
+	TH_SEQ_IMAGE,
+	TH_SEQ_SCENE,
+	TH_SEQ_AUDIO,
+	TH_SEQ_EFFECT,
+	TH_SEQ_PLUGIN,
+	TH_SEQ_TRANSITION,
+	TH_SEQ_META,
+	
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
@@ -506,6 +515,12 @@ void 	BIF_GetThemeColor4ubv(int colorid, char *col);
 
 // get a theme color from specified space type
 void	BIF_GetThemeColorType4ubv(int colorid, int spacetype, char *col);
+
+// blends and shades between two color pointers
+void	BIF_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset);
+
+// get a 3 byte color, blended and shaded between two other char color pointers
+void	BIF_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, int offset);
 
 
 struct ScrArea;

@@ -193,6 +193,14 @@ class ThemeSpace:
   @ivar syntaxb: theme rgba var.
   @ivar syntaxv: theme rgba var.
   @ivar syntaxc: theme rgba var.
+  @ivar movie: theme rgba var.
+  @ivar image: theme rgba var.
+  @ivar scene: theme rgba var.
+  @ivar audio: theme rgba var.
+  @ivar effect: theme rgba var.
+  @ivar plugin: theme rgba var.
+  @ivar transition: theme rgba var.
+  @ivar meta: theme rgba var.
   @type vertex_size: int
   @ivar vertex_size: size of the vertices dots on screen in the range [1, 10].
   @type facedot_size: int

@@ -291,6 +291,16 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
 				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
 			}
+			if(btheme->tseq.movie[3]==0) {
+				SETCOL(btheme->tseq.movie, 	81, 105, 135, 255);
+				SETCOL(btheme->tseq.image, 	109, 88, 129, 255);
+				SETCOL(btheme->tseq.scene, 	78, 152, 62, 255);
+				SETCOL(btheme->tseq.audio, 	46, 143, 143, 255);
+				SETCOL(btheme->tseq.effect, 	169, 84, 124, 255);
+				SETCOL(btheme->tseq.plugin, 	126, 126, 80, 255);
+				SETCOL(btheme->tseq.transition, 162, 95, 111, 255);
+				SETCOL(btheme->tseq.meta, 	109, 145, 131, 255);
+			}
 		}
 		
 		/* set defaults for 3D View rotating axis indicator */ 

@@ -3656,8 +3656,8 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case MIDDLEMOUSE:
-			if(sseq->mainb) break;
-			view2dmove(event);	/* in drawipo.c */
+			if(sseq->mainb) seq_viewmove(sseq);
+			else view2dmove(event);	/* in drawipo.c */
 			break;
 		case RIGHTMOUSE:
 			if(sseq->mainb) break;

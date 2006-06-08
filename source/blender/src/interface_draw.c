@@ -188,10 +188,10 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 			xs= but->x1+1.0;
 		}
 		else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
-			xs= but->x1+4.0;
+			xs= but->x1+3.0;
 		}
 		else {
-			xs= but->x1+6.0;
+			xs= but->x1+4.0;
 		}
 		ys= (but->y1+but->y2- height)/2.0;
 	}

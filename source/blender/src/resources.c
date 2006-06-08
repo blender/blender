@@ -290,6 +290,23 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_NODE_GROUP:
 				cp= ts->syntaxc; break;
 				
+			case TH_SEQ_MOVIE:
+				cp= ts->movie; break;
+			case TH_SEQ_IMAGE:
+				cp= ts->image; break;
+			case TH_SEQ_SCENE:
+				cp= ts->scene; break;
+			case TH_SEQ_AUDIO:
+				cp= ts->audio; break;
+			case TH_SEQ_EFFECT:
+				cp= ts->effect; break;
+			case TH_SEQ_PLUGIN:
+				cp= ts->plugin; break;
+			case TH_SEQ_TRANSITION:
+				cp= ts->transition; break;
+			case TH_SEQ_META:
+				cp= ts->meta; break;
+				
 			}
 
 		}
@@ -437,7 +454,16 @@ void BIF_InitTheme(void)
 	
 	/* space seq */
 	btheme->tseq= btheme->tv3d;
-	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
+	SETCOL(btheme->tseq.back, 	116, 116, 116, 255);
+	SETCOL(btheme->tseq.movie, 	81, 105, 135, 255);
+	SETCOL(btheme->tseq.image, 	109, 88, 129, 255);
+	SETCOL(btheme->tseq.scene, 	78, 152, 62, 255);
+	SETCOL(btheme->tseq.audio, 	46, 143, 143, 255);
+	SETCOL(btheme->tseq.effect, 	169, 84, 124, 255);
+	SETCOL(btheme->tseq.plugin, 	126, 126, 80, 255);
+	SETCOL(btheme->tseq.transition, 162, 95, 111, 255);
+	SETCOL(btheme->tseq.meta, 	109, 145, 131, 255);
+	
 
 	/* space image */
 	btheme->tima= btheme->tv3d;
@@ -598,6 +624,15 @@ char *BIF_ThemeColorsPup(int spacetype)
 		case SPACE_SEQ:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
 			str += sprintf(str, "Window Sliders %%x%d|", TH_SHADE1);
+			str += sprintf(str, "%%l|");
+			str += sprintf(str, "Movie Strip %%x%d|", TH_SEQ_MOVIE);
+			str += sprintf(str, "Image Strip %%x%d|", TH_SEQ_IMAGE);
+			str += sprintf(str, "Scene Strip %%x%d|", TH_SEQ_SCENE);
+			str += sprintf(str, "Audio Strip %%x%d|", TH_SEQ_AUDIO);
+			str += sprintf(str, "Effect Strip %%x%d|", TH_SEQ_EFFECT);
+			str += sprintf(str, "Plugin Strip %%x%d|", TH_SEQ_PLUGIN);
+			str += sprintf(str, "Transition Strip %%x%d|", TH_SEQ_TRANSITION);
+			str += sprintf(str, "Meta Strip %%x%d|", TH_SEQ_META);
 			break;
 		case SPACE_SOUND:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
@@ -743,7 +778,6 @@ void BIF_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 	glColor3ub(r, g, b);
 }
 
-
 // get individual values, not scaled
 float BIF_GetThemeValuef(int colorid)
 {
@@ -808,4 +842,40 @@ void BIF_GetThemeColorType4ubv(int colorid, int spacetype, char *col)
 	col[1]= cp[1];
 	col[2]= cp[2];
 	col[3]= cp[3];
+}
+
+// blends and shades between two char color pointers
+void BIF_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset)
+{
+	int r, g, b;
+	
+	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
+	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
+	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
+	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
+	
+	r= r<0?0:(r>255?255:r);
+	g= g<0?0:(g>255?255:g);
+	b= b<0?0:(b>255?255:b);
+	
+	glColor3ub(r, g, b);
+}
+
+// get a 3 byte color, blended and shaded between two other char color pointers
+void BIF_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, int offset)
+{
+	int r, g, b;
+	
+	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
+	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
+	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
+	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
+	
+	r= r<0?0:(r>255?255:r);
+	g= g<0?0:(g>255?255:g);
+	b= b<0?0:(b>255?255:b);
+	
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
 }

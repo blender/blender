@@ -94,7 +94,10 @@ typedef struct ThemeSpace {
 	char bpad[2];
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
-	char syntaxv[4], syntaxc[4];             
+	char syntaxv[4], syntaxc[4];
+	
+	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
+	char effect[4], plugin[4], transition[4], meta[4];
 	
 } ThemeSpace;
 
