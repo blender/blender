@@ -398,12 +398,10 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	ShadeResult shr;
 	int a;
 	
-	if(ma->mode & MA_VERTEXCOLP) {
-		if(vertcol) {
-			shi.r= vertcol[3]/255.0f;
-			shi.g= vertcol[2]/255.0f;
-			shi.b= vertcol[1]/255.0f;
-		}
+	if(vertcol) {
+		shi.vcol[0]= ((float)vertcol[3])/255.0f;
+		shi.vcol[1]= ((float)vertcol[2])/255.0f;
+		shi.vcol[2]= ((float)vertcol[1])/255.0f;
 	}
 	
 	VECCOPY(shi.co, co);
