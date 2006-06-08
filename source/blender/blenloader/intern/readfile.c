@@ -5694,6 +5694,15 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 	}
 }
 
+static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
+{
+	IpoCurve *icu;
+	for(icu= ipo->curve.first; icu; icu= icu->next) {
+		if(icu->driver)
+			expand_doit(fd, mainvar, icu->driver->ob);
+	}
+}
+
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
 {
 	GroupObject *go;
@@ -6177,6 +6186,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_NT:
 						expand_nodetree(fd, mainvar, (bNodeTree *)id);
+						break;
+					case ID_IP:
+						expand_ipo(fd, mainvar, (Ipo *)id);
 						break;
 					}
 
