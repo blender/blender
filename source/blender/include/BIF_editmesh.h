@@ -182,6 +182,7 @@ extern short sharesFace(struct EditEdge* e1, struct EditEdge* e2);
 #define SUBDIV_SELECT_ORIG      0
 #define SUBDIV_SELECT_INNER     1
 #define SUBDIV_SELECT_INNER_SEL 2
+#define SUBDIV_SELECT_LOOPCUT 3
 
 extern void convert_to_triface(int direction);
 extern int removedoublesflag(short flag, float limit);

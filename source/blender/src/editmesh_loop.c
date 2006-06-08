@@ -126,7 +126,7 @@ static void edgering_sel(EditEdge *startedge, int select, int previewlines)
 		looking= 0;
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e4 && efa->f1==0) {	// not done quad
+			if(efa->e4 && efa->f1==0 && efa->h == 0) {	// not done quad
 				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { // valence ok
 
 					// if edge tagged, select opposing edge and mark face ok
@@ -166,36 +166,38 @@ static void edgering_sel(EditEdge *startedge, int select, int previewlines)
 			//glEnd();
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->v4 == NULL) {  continue; }
-				if(efa->e1->f2 == 1){
-					if(efa->e1->h == 1 || efa->e3->h == 1 )
-						continue;
-					
-					v[0][0] = efa->v1;
-					v[0][1] = efa->v2;
-					v[1][0] = efa->v4;
-					v[1][1] = efa->v3;
-				} else if(efa->e2->f2 == 1){
-					if(efa->e2->h == 1 || efa->e4->h == 1)
-						continue;
-					v[0][0] = efa->v2;
-					v[0][1] = efa->v3;
-					v[1][0] = efa->v1;
-					v[1][1] = efa->v4;					
-				} else { continue; }
-									  
-				for(i=1;i<=previewlines;i++){
-					co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
-					co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
-					co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
+				if(efa->h == 0){
+					if(efa->e1->f2 == 1){
+						if(efa->e1->h == 1 || efa->e3->h == 1 )
+							continue;
+						
+						v[0][0] = efa->v1;
+						v[0][1] = efa->v2;
+						v[1][0] = efa->v4;
+						v[1][1] = efa->v3;
+					} else if(efa->e2->f2 == 1){
+						if(efa->e2->h == 1 || efa->e4->h == 1)
+							continue;
+						v[0][0] = efa->v2;
+						v[0][1] = efa->v3;
+						v[1][0] = efa->v1;
+						v[1][1] = efa->v4;					
+					} else { continue; }
+										  
+					for(i=1;i<=previewlines;i++){
+						co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
+						co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
+						co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
 
-					co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
-					co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
-					co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
-					glColor3ub(255, 0, 255);
-					glBegin(GL_LINES);	
-					glVertex3f(co[0][0],co[0][1],co[0][2]);
-					glVertex3f(co[1][0],co[1][1],co[1][2]);
-					glEnd();
+						co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
+						co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
+						co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
+						glColor3ub(255, 0, 255);
+						glBegin(GL_LINES);	
+						glVertex3f(co[0][0],co[0][1],co[0][2]);
+						glVertex3f(co[1][0],co[1][1],co[1][2]);
+						glEnd();
+					}
 				}
 			}
 			glPopMatrix();   
@@ -373,23 +375,14 @@ void CutEdgeloop(int numcuts)
 	/* select edge ring */
 	edgering_sel(nearest, 1, 0);
 	
-	/* Deselect Hidden Edges */
-	for(eed=em->edges.first; eed; eed = eed->next){
-		if(eed->h == 1 || (eed->v1->h == 1 || eed->v2->h == 1)){
-			EM_select_edge(eed,0);	
-			hasHidden = 1;
-		}
-	}	
-	
-	
 	/* now cut the loops */
 	if(smooth){
 		fac= 1.0f;
 		if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
 		fac= 0.292f*fac;			
-		esubdivideflag(SELECT,fac,B_SMOOTH,numcuts,SUBDIV_SELECT_INNER_SEL);
+		esubdivideflag(SELECT,fac,B_SMOOTH,numcuts,SUBDIV_SELECT_LOOPCUT);
 	} else {
-		esubdivideflag(SELECT,0,0,numcuts,SUBDIV_SELECT_INNER_SEL);
+		esubdivideflag(SELECT,0,0,numcuts,SUBDIV_SELECT_LOOPCUT);
 	}
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1 && hasHidden == 0){

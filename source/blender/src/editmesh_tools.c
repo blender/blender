@@ -1190,6 +1190,9 @@ void fill_mesh(void)
 #define EDGEINNER  4
 #define EDGEOLD  8
 
+/*used by faceloop cut to select only edges valid for edge slide*/
+#define DOUBLEOPFILL 16
+
 /* Mostly mirrored from editdeform.c, here only used for the function below */
 /* Only to be used to add new weights in eve, the value of weight has been premultiplied with subdiv factor, so is added only */
 static void subdiv_add_defweight (EditVert *eve, int defgroup, float weight)
@@ -1718,6 +1721,7 @@ static void fill_quad_double_op(EditFace *efa, struct GHash *gh, int numcuts)
 		hold = addfacelist(verts[0][i],verts[0][i+1],verts[1][vertsize-2-i],verts[1][vertsize-1-i],NULL,NULL);  
 		if(i < vertsize-2) {
 			hold->e2->f2 |= EDGEINNER;
+			hold->e2->f2 |= DOUBLEOPFILL;
 		}
 		facecopy(efa,hold);
 	}	  
@@ -2656,6 +2660,16 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 				EM_select_edge(eed,0); 
 			}
 		}		  
+	} else if(seltype == SUBDIV_SELECT_LOOPCUT){
+		for(eed = em->edges.first;eed;eed = eed->next) {
+			if(eed->f2 & DOUBLEOPFILL){
+				eed->f |= flag;
+				EM_select_edge(eed,1);
+			}else{
+				eed->f &= !flag;
+				EM_select_edge(eed,0);
+			}
+		}
 	} 
 	 if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		 for(eed = em->edges.first;eed;eed = eed->next) {
