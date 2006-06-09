@@ -1487,8 +1487,8 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 					}
 				}
 
-				freedisplist(&dlbev);
 			}
+			freedisplist(&dlbev);
 		}
 
 		curve_to_filledpoly(cu, nubase, dispbase);
