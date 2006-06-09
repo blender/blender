@@ -78,6 +78,7 @@
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
 #include "BIF_previewrender.h"
+#include "BIF_screen.h"
 #include "BIF_resources.h" /* elubie: should be removed once the enum for the ICONS is in BIF_preview_icons.h */
 
 #include "interface.h"
@@ -138,7 +139,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 
 static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 {
-	Icon *new_icon = 0;
+	Icon *new_icon = NULL;
 	DrawInfo* di;
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
@@ -154,7 +155,7 @@ static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 	di->rw = ICON_DEFAULT_HEIGHT;
 	di->rh = ICON_DEFAULT_HEIGHT;
 	di->aspect = 1.0f;
-	di->rect = 0;
+	di->rect = NULL;
 	
 	new_icon->drawinfo_free = 0;
 	new_icon->drawinfo = di;
@@ -534,7 +535,7 @@ void BIF_icons_free()
 
 void BIF_icons_free_drawinfo(void *drawinfo)
 {
-	DrawInfo* di = drawinfo;
+	DrawInfo *di = drawinfo;
 
 	if (di)
 	{
@@ -545,7 +546,7 @@ void BIF_icons_free_drawinfo(void *drawinfo)
 
 static DrawInfo *icon_create_drawinfo()
 {
-	DrawInfo* di = 0;
+	DrawInfo *di = NULL;
 
 	di = MEM_callocN(sizeof(DrawInfo), "di_icon");
 	
@@ -562,8 +563,8 @@ static DrawInfo *icon_create_drawinfo()
 
 int BIF_icon_get_width(int icon_id)
 {
-	Icon* icon = 0;
-	DrawInfo* di = 0;
+	Icon *icon = NULL;
+	DrawInfo *di = NULL;
 
 	icon = BKE_icon_get(icon_id);
 	
@@ -586,8 +587,8 @@ int BIF_icon_get_width(int icon_id)
 
 int BIF_icon_get_height(int icon_id)
 {
-	Icon *icon = 0;
-	DrawInfo *di = 0;
+	Icon *icon = NULL;
+	DrawInfo *di = NULL;
 
 	icon = BKE_icon_get(icon_id);
 	
@@ -669,10 +670,7 @@ static void icon_copy_rect(ImBuf *ibuf, RenderInfo *ri)
 /* create single icon from jpg, png etc. */
 static void icon_from_image(Image *img, RenderInfo *ri)
 {
-	struct ImBuf *ima;
-	struct ImBuf *imb;	
-	int pr_size = ri->pr_rectx*ri->pr_recty*sizeof(unsigned int);
-	unsigned int *rect = NULL;
+	unsigned int pr_size = ri->pr_rectx*ri->pr_recty*sizeof(unsigned int);
 	short image_loaded = 0;
 
 	if (!img)
@@ -718,7 +716,7 @@ static void icon_from_image(Image *img, RenderInfo *ri)
 
 /* only called when icon has changed */
 /* only call with valid pointer from BIF_icon_draw */
-static int icon_set_image(ID *id, DrawInfo *di)
+static void icon_set_image(ID *id, DrawInfo *di)
 {
 	RenderInfo ri;	
 
@@ -749,15 +747,12 @@ static int icon_set_image(ID *id, DrawInfo *di)
 		MEM_freeN(ri.rect);
 		ri.rect = 0;
 	}
-
-	return 1;
 }
 
 void BIF_icon_draw(float x, float y, int icon_id)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
-	short done = 0;
 
 	icon = BKE_icon_get(icon_id);
 	
@@ -786,9 +781,8 @@ void BIF_icon_draw(float x, float y, int icon_id)
 		if (icon->changed) /* changed only ever set by dynamic icons */
 		{
 			waitcursor(1);
-			if (icon_set_image((ID*)icon->obj, icon->drawinfo))	{
-				icon->changed = 0;
-			}			
+			icon_set_image((ID*)icon->obj, icon->drawinfo);
+			icon->changed = 0;		
 			waitcursor(0);
 		}
 
@@ -826,7 +820,7 @@ void BIF_icon_draw_blended(float x, float y, int icon_id, int colorid, int shade
 {
 	
 	if(shade < 0) {
-		float r= (128+shade)/128.0;
+		float r= (128+shade)/128.0f;
 		glPixelTransferf(GL_ALPHA_SCALE, r);
 	}
 

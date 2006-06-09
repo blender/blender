@@ -66,6 +66,7 @@
 #include "BIF_drawimage.h"
 #include "BIF_editsima.h"
 #include "BIF_interface.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
