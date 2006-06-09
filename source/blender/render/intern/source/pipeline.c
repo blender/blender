@@ -1839,29 +1839,23 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
-	int movie_init= 0;
+	
+	/* on each frame initialize, this for py scripts that define renderdata settings */
+	if(!render_initialize_from_scene(re, scene))
+		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
-		movie_init= 1;
+		mh->start_movie(&re->r, re->rectx, re->recty);
 	
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {
 			int nf = mh->get_next_frame();
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = nf;
-		
-				/* on each frame initialize, this for py scripts that define renderdata settings */
-				if(!render_initialize_from_scene(re, scene))
-					break;
-				
-				if(movie_init) {	/* only now the rectx/recty is set */
-					mh->start_movie(&re->r, re->rectx, re->recty);
-					movie_init= 0;
-				}
 				
 				do_render_all_options(re);
 
@@ -1875,15 +1869,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		    scene->r.cfra<=efra; scene->r.cfra++) {
 			re->r.cfra= scene->r.cfra;	   /* weak.... */
 		
-			/* on each frame initialize, this for py scripts that define renderdata settings */
-			if(!render_initialize_from_scene(re, scene))
-				break;
-			
-			if(movie_init) {	/* only now the rectx/recty is set */
-				mh->start_movie(&re->r, re->rectx, re->recty);
-				movie_init= 0;
-			}
-			
 			do_render_all_options(re);
 
 			if(re->test_break() == 0) {
