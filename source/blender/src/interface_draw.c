@@ -2196,7 +2196,7 @@ static void ui_draw_but_CURVE(uiBut *but)
 		fy= but->y1 + zoomy*(cmp[a].y-offsy);
 		glVertex2f(fx, fy);
 	}
-	glVertex2f(but->x2, but->y1 + zoomy*(cmp[a-1].y-offsy));	/* last point */
+	glVertex2f(but->x2, but->y1 + zoomy*(cmp[CM_TABLE].y-offsy));	/* last point */
 	glEnd();
 
 	/* the points, use aspect to make them visible on edges */

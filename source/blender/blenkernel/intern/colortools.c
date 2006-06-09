@@ -386,7 +386,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 		while(curf >= fp[0] && fp!=lastpoint) {
 			fp+=2;
 		}
-		if(fp==lastpoint)
+		if(curf >= fp[0] && fp==lastpoint)
 			cmp[a].y= fp[1];
 		else {
 			float fac1= fp[0] - fp[-2];
