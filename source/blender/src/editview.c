@@ -2001,12 +2001,12 @@ void fly(void)
 	winxf, winyf;
 	/* x and y margin are define the safe area where the mouses movement wont rotate teh view*/
 	short val, cent[2], mval[2], loop=1, xmargin, ymargin; 
-	unsigned short toets, qual_backup, i;
+	unsigned short toets, qual_backup;
 	unsigned char apply_rotation=1, correct_vroll=0, use_camera;
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
-	if (G.vd->persp==1)
+	if (G.vd->persp==1) /* Prespective */
 		use_camera=0;
-	else if (G.vd->persp==2) {
+	else if (G.vd->persp==2) { /* Camera */
 		use_camera=1;
 		lens_backup= G.vd->lens; /* so when we fly in normal view our lense matches the cameras */
 		if (G.vd->camera && G.vd->camera->type==OB_CAMERA) {
@@ -2023,7 +2023,7 @@ void fly(void)
 		G.vd->camera= NULL;
 		/*redraw with no camera*/
 		allqueue(REDRAWVIEW3D, 0);
-	} else {
+	} else { /* Ortho */
 		G.vd->persp= 1; /*if ortho projection, make perspective */
 		use_camera= 0;
 	}
@@ -2101,6 +2101,7 @@ void fly(void)
 		else if (moffset[1]<-ymargin)moffset[1]+=ymargin;
 		else					moffset[1]=0;
 		
+		/* scale the mouse offset so the distance the mouse moves isnt linear */
 		if (moffset[0]) {
 			moffset[0]= moffset[0]/winxf;
 			moffset[0]= moffset[0]*fabs(moffset[0]);
@@ -2113,25 +2114,20 @@ void fly(void)
 		
 		/* make it so the camera direction dosent follow the view
 		good for flying backwards! */	
-		if ((moffset[0]!=0.0 || moffset[1]!=0.0) && (dvec[0]!=0.0 && dvec[1]!=0.0 && dvec[2]!=0.0)) {
+		if ((G.qual & LR_SHIFTKEY) && speed!=0.0 && (moffset[0]||moffset[1]))
 			/*(Above IF) We need to make sure we have some mouse offset
 			and are moving before we ignore the rotation code, otherwise the view spins out */
-			
-			if (G.qual & LR_SHIFTKEY)	apply_rotation=0;
-			else						apply_rotation=1;
+			apply_rotation=0;
+		else {
+			apply_rotation=1;
+			/* define dvec, view direction vector */
+			dvec[0]= dvec[1]= 0;
+			dvec[2]= 1.0;
 		}
 		
 		/* correct the view rolling */
 		if (G.qual & LR_CTRLKEY)	correct_vroll=1;
 		else						correct_vroll=0;
-		
-			
-		/* define dvec, view direction vector */
-		if (apply_rotation) {
-			dvec[0]= 0;
-			dvec[1]= 0;
-			dvec[2]= 1.0;
-		}
 		
 		if(speed!=0.0 || moffset[0] || moffset[1] || correct_vroll) {
 		
@@ -2182,6 +2178,7 @@ void fly(void)
 					upvec[0]=0;
 					upvec[1]=0;
 					upvec[2]=1;
+					
 					Mat3MulVecfl(mat, upvec);
 					VecRotToQuat( upvec, angle*0.001, tmp_quat); /* Rotate about the relative up vec */
 					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
