@@ -2116,6 +2116,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0;
 	float maxdist = R.wrld.aodist;
+	float dxyview[3];
 	int j= -1, tot, actual=0, skyadded=0;
 
 	isec.vlrorig= shi->vlr;
@@ -2140,6 +2141,12 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
 	tot= 2*R.wrld.aosamp*R.wrld.aosamp;
 
+	if(R.wrld.aocolor == WO_AOSKYTEX) {
+		dxyview[0]= 1.0f/(float)R.wrld.aosamp;
+		dxyview[1]= 1.0f/(float)R.wrld.aosamp;
+		dxyview[2]= 0.0f;
+	}
+	
 	while(tot--) {
 		
 		if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) > bias) {
@@ -2181,8 +2188,8 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 					shadfac[1]+= (1.0-fac)*R.wrld.horg + fac*R.wrld.zeng;
 					shadfac[2]+= (1.0-fac)*R.wrld.horb + fac*R.wrld.zenb;
 				}
-				else {
-					shadeSkyPixelFloat(skycol, isec.start, view, NULL);
+				else {	/* WO_AOSKYTEX */
+					shadeSkyPixelFloat(skycol, isec.start, view, dxyview);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];
