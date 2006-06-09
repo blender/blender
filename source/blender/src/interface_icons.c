@@ -100,13 +100,13 @@ typedef struct DrawInfo {
 	int rh;
 	VectorDrawFunc drawFunc; /* If drawFunc is defined then it is a vector icon, otherwise use rect */
 	float aspect;
-	unsigned int* rect; 
+	unsigned int *rect; 
 } DrawInfo;
 
 static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 {
-	Icon* new_icon = 0;
-	DrawInfo* di;
+	Icon *new_icon = NULL;
+	DrawInfo *di;
 	int y = 0;
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
@@ -138,7 +138,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 
 static void def_internal_vicon( int icon_id, VectorDrawFunc drawFunc)
 {
-	Icon* new_icon = 0;
+	Icon *new_icon = 0;
 	DrawInfo* di;
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
@@ -470,7 +470,7 @@ static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w,
 	}
 }
 
-static void prepare_internal_icons(ImBuf* bbuf)
+static void prepare_internal_icons(ImBuf *bbuf)
 {
 	int rowstride= bbuf->x*4;
 	char *back= (char *)bbuf->rect;
@@ -543,7 +543,7 @@ void BIF_icons_free_drawinfo(void *drawinfo)
 	}
 }
 
-static DrawInfo* icon_create_drawinfo()
+static DrawInfo *icon_create_drawinfo()
 {
 	DrawInfo* di = 0;
 
@@ -572,7 +572,7 @@ int BIF_icon_get_width(int icon_id)
 		return 0;
 	}
 	
-	di = (DrawInfo*)icon->drawinfo;
+	di = (DrawInfo *)icon->drawinfo;
 	if (!di) {
 		di = icon_create_drawinfo();
 		icon->drawinfo = di;
@@ -586,8 +586,8 @@ int BIF_icon_get_width(int icon_id)
 
 int BIF_icon_get_height(int icon_id)
 {
-	Icon* icon = 0;
-	DrawInfo* di = 0;
+	Icon *icon = 0;
+	DrawInfo *di = 0;
 
 	icon = BKE_icon_get(icon_id);
 	
@@ -616,13 +616,18 @@ void BIF_icons_init(int first_dyn_id)
 	init_internal_icons();
 }
 
-static void icon_copy_rect(ImBuf* ibuf, RenderInfo* ri)
+static void icon_copy_rect(ImBuf *ibuf, RenderInfo *ri)
 {
 	struct ImBuf *ima;
 	unsigned int *drect, *srect;
 	float scaledx, scaledy;
 	short ex, ey, dx, dy;
 
+	/* paranoia test */
+	if(ibuf->rect==NULL && ibuf->rect_float==NULL)
+		return;
+	
+	/* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
 	ima = IMB_dupImBuf(ibuf);
 	
 	if (!ima) 
@@ -644,6 +649,10 @@ static void icon_copy_rect(ImBuf* ibuf, RenderInfo* ri)
 	dy = (ri->pr_recty - ey) / 2;
 	
 	IMB_scalefastImBuf(ima, ex, ey);
+	
+	/* if needed, convert to 32 bits */
+	if(ima->rect==NULL)
+		IMB_rect_from_float(ima);
 
 	srect = ima->rect;
 	drect = ri->rect;
@@ -658,13 +667,13 @@ static void icon_copy_rect(ImBuf* ibuf, RenderInfo* ri)
 }
 
 /* create single icon from jpg, png etc. */
-static void icon_from_image(Image* img, RenderInfo* ri)
+static void icon_from_image(Image *img, RenderInfo *ri)
 {
 	struct ImBuf *ima;
 	struct ImBuf *imb;	
 	int pr_size = ri->pr_rectx*ri->pr_recty*sizeof(unsigned int);
-	unsigned int* rect=0;
-	short image_loaded=0;
+	unsigned int *rect = NULL;
+	short image_loaded = 0;
 
 	if (!img)
 		return;
@@ -709,7 +718,7 @@ static void icon_from_image(Image* img, RenderInfo* ri)
 
 /* only called when icon has changed */
 /* only call with valid pointer from BIF_icon_draw */
-static int icon_set_image(ID* id, DrawInfo* di)
+static int icon_set_image(ID *id, DrawInfo *di)
 {
 	RenderInfo ri;	
 
@@ -746,8 +755,8 @@ static int icon_set_image(ID* id, DrawInfo* di)
 
 void BIF_icon_draw(float x, float y, int icon_id)
 {
-	Icon* icon = 0;
-	DrawInfo* di = 0;
+	Icon *icon = NULL;
+	DrawInfo *di = NULL;
 	short done = 0;
 
 	icon = BKE_icon_get(icon_id);
@@ -828,8 +837,8 @@ void BIF_icon_draw_blended(float x, float y, int icon_id, int colorid, int shade
 
 void BIF_icon_set_aspect(int icon_id, float aspect) 
 {
-	Icon* icon = 0;
-	DrawInfo* di =  0;
+	Icon *icon = NULL;
+	DrawInfo *di = NULL;
 
 	icon = BKE_icon_get(icon_id);
 	
