@@ -2043,7 +2043,6 @@ static bNodeSocketType cmp_node_zcombine_in[]= {
 };
 static bNodeSocketType cmp_node_zcombine_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
