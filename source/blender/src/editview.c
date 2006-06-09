@@ -2088,15 +2088,6 @@ void fly(void)
 		}
 		if(loop==0) break;
 		
-		/* make it so the camera direction dosent follow the view
-		good for flying backwards! */		
-		if (G.qual & LR_SHIFTKEY)	apply_rotation=0;
-		else						apply_rotation=1;
-		
-		/* correct the view rolling */
-		if (G.qual & LR_CTRLKEY)	correct_vroll=1;
-		else						correct_vroll=0;
-		
 		
 		moffset[0]= mval[0]-cent[0];
 		moffset[1]= mval[1]-cent[1];
@@ -2119,6 +2110,21 @@ void fly(void)
 			moffset[1]= moffset[1]/winxf;
 			moffset[1]= moffset[1]*fabs(moffset[1]);
 		}
+		
+		/* make it so the camera direction dosent follow the view
+		good for flying backwards! */	
+		if ((moffset[0]!=0.0 || moffset[1]!=0.0) && (dvec[0]!=0.0 && dvec[1]!=0.0 && dvec[2]!=0.0)) {
+			/*(Above IF) We need to make sure we have some mouse offset
+			and are moving before we ignore the rotation code, otherwise the view spins out */
+			
+			if (G.qual & LR_SHIFTKEY)	apply_rotation=0;
+			else						apply_rotation=1;
+		}
+		
+		/* correct the view rolling */
+		if (G.qual & LR_CTRLKEY)	correct_vroll=1;
+		else						correct_vroll=0;
+		
 			
 		/* define dvec, view direction vector */
 		if (apply_rotation) {
@@ -2140,7 +2146,7 @@ void fly(void)
 				upvec[1]=0;
 				upvec[2]=0;
 				Mat3MulVecfl(mat, upvec);
-				VecRotToQuat( upvec, (float)moffset[1]*-0.1, tmp_quat); /* Rotate about the relative up vec */
+				VecRotToQuat( upvec, (float)moffset[1]*-0.2, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 			}
 			
@@ -2150,7 +2156,7 @@ void fly(void)
 				upvec[1]=1;
 				upvec[2]=0;
 				Mat3MulVecfl(mat, upvec);
-				VecRotToQuat( upvec, (float)moffset[0]*0.1, tmp_quat); /* Rotate about the relative up vec */
+				VecRotToQuat( upvec, (float)moffset[0]*0.2, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 			}
 			
