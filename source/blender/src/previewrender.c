@@ -269,9 +269,26 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 		if(id_type==ID_MA) {
 			Material *mat= (Material *)id;
 			
-			sce->r.mode |= R_SHADOW;
-			
 			if(id) {
+				/* turn on raytracing if needed */
+				if((mat->mode & MA_RAYTRANSP) || (mat->mode & MA_RAYMIRROR))
+					sce->r.mode |= R_RAYTRACE;
+				
+				/* turn off fake shadows if needed */
+				/* this only works in a specific case where the preview.blend contains
+				 * an object starting with 'c' which has a material linked to it (not the obdata)
+				 * and that material has a fake shadow texture in the active texture slot */
+				for(base= sce->base.first; base; base= base->next) {
+					if(base->object->id.name[2]=='c') {
+						Material *shadmat= give_current_material(base->object, base->object->actcol);
+						if(shadmat) {
+							if (mat->mode & MA_SHADBUF) shadmat->septex = 0;
+							else shadmat->septex |= 1;
+						}
+					}
+				}
+
+				
 				if(pr_method==PR_ICON_RENDER) {
 					sce->lay= 1<<MA_SPHERE_A;
 				}
