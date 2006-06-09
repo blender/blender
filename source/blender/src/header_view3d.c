@@ -1704,9 +1704,7 @@ static void do_view3d_edit_object_makelocalmenu(void *arg, int event)
 }
 
 static uiBlock *view3d_edit_object_makelocalmenu(void *arg_unused)
-{
-	Object *ob=NULL;
-	
+{	
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 	
