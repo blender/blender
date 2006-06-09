@@ -80,6 +80,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_cursors.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_keyval.h"
@@ -101,6 +102,7 @@
 #include "mydevice.h"
 #include "interface.h"
 #include "blendef.h"
+#include "winlay.h"
 
 /* naming conventions:
  * 
@@ -3040,8 +3042,77 @@ static void do_palette_hex_cb(void *bt1, void *hexcl)
 	
 	but= but1->block->buttons.first;
 	ui_block_flush_back(but->block);
-
 }
+
+
+/* used for both 3d view and image window */
+static void do_palette_sample_cb(void *bt1, void *col1)	/* frontbuf */
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiBut *but;
+	float *col= (float *)col1;
+	float tempcol;
+	int x=0, y=0;
+	short mval[2];
+	float hsv[3];
+	short capturing;
+	int oldcursor;
+	Window *win;
+	unsigned short dev;
+	
+	oldcursor=get_cursor();
+	win=winlay_get_active_window();
+	
+	while (get_mbut() & L_MOUSE) BIF_wait_for_statechange();
+	
+	SetBlenderCursor(BC_CROSSCURSOR);
+	
+	/* loop and wait for a mouse click */
+	capturing = TRUE;
+	while(capturing) {
+		char ascii;
+		short val;
+		
+		dev = extern_qread_ext(&val, &ascii);
+		
+		if(dev==INPUTCHANGE) break;
+		if(get_mbut() & R_MOUSE) break;
+		else if(get_mbut() & L_MOUSE) {
+			uiGetMouse(mywinget(), mval);
+			x= mval[0]; y= mval[1];
+			
+			capturing = FALSE;
+			break;
+		}
+		else if(dev==ESCKEY) break;
+	}
+	window_set_cursor(win, oldcursor);
+	
+	if(capturing) return;
+	
+	if(x<0 || y<0) return;
+	
+	/* if we've got a glick, use OpenGL to sample the colour under the mouse pointer */
+	glReadBuffer(GL_FRONT);
+	glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, &tempcol);
+	glReadBuffer(GL_BACK);
+	
+	col = (float *)&tempcol;
+	
+	/* and send that colour back to the picker */
+	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+	update_picker_buts_hsv(but1->block, hsv, but1->poin);
+	update_picker_hex(but1->block, col);
+	
+	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_check_but(but);
+		ui_draw_but(but);
+	}
+	
+	but= but1->block->buttons.first;
+	ui_block_flush_back(but->block);
+}
+
 
 /* color picker, Gimp version. mode: 'f' = floating panel, 'p' =  popup */
 /* col = read/write to, hsv/old/hexcol = memory for temporal use */
@@ -3050,7 +3121,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiBut *bt;
 	float h, offs;
 	int a;
-	
 
 	VECCOPY(old, col);	// old color stored there, for palette_cb to work
 	
@@ -3087,6 +3157,10 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	offs= FPICK+2*DPICK+BPICK;
 
+	bt= uiDefIconTextBut(block, BUT, UI_RETURN_OK, ICON_EYEDROPPER, "Sample", offs+55, 170, 85, 20, 0, 0, 0, 0, 0, "Sample the color underneath the following mouse click (ESC or RMB to cancel)");
+	uiButSetFunc(bt, do_palette_sample_cb, bt, col);
+	uiButSetFlag(bt, UI_TEXT_LEFT);
+	
 	bt= uiDefBut(block, TEX, retval, "Hex: ", offs, 140, 140, 20, hexcol, 0, 8, 0, 0, "Hex triplet for colour (#RRGGBB)");
 	uiButSetFunc(bt, do_palette_hex_cb, bt, hexcol);
 
@@ -3107,7 +3181,6 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiButSetFunc(bt, do_palette2_cb, bt, col);
 	uiBlockEndAlign(block);
 }
-
 
 static int ui_do_but_COL(uiBut *but)
 {
