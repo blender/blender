@@ -280,6 +280,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index)
 {
 	DupliObject *dob= MEM_mallocN(sizeof(DupliObject), "dupliobject");
+	
 	BLI_addtail(lb, dob);
 	dob->ob= ob;
 	Mat4CpyMat4(dob->mat, mat);
@@ -287,6 +288,15 @@ static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, 
 	dob->origlay= ob->lay;
 	dob->index= index;
 	ob->lay= lay;
+	
+	/* allowing duplicators for particle systems... a bit silly still */
+	{
+		PartEff *paf= give_parteff(ob);
+		if(paf) {
+			Mat4Invert(ob->imat, ob->obmat);
+			Mat4CpyMat4(paf->imat, ob->imat);
+		}
+	}
 }
 
 static void group_duplilist(ListBase *lb, Object *ob)
@@ -660,6 +670,7 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 			frames_duplilist(&duplilist, ob);
 		else if(ob->transflag & OB_DUPLIGROUP)
 			group_duplilist(&duplilist, ob);
+		
 	}
 	
 	return &duplilist;

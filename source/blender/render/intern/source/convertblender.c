@@ -843,7 +843,7 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 
 
 
-static void render_particle_system(Render *re, Object *ob, PartEff *paf)
+static void render_particle_system(Render *re, Object *ob, Object *par, PartEff *paf)
 {
 	Particle *pa=0;
 	HaloRen *har=0;
@@ -854,8 +854,6 @@ static void render_particle_system(Render *re, Object *ob, PartEff *paf)
 	int useFluidsimParticles = 0; // FSPARTICLE
 	float haloScale = 1.0;	//NT scale halos 
 	float iniAlpha = 0.0; // restore material alpha 
-
-
 
 	pa= paf->keys;
 	if(pa==NULL || paf->disp!=100) {
@@ -870,11 +868,20 @@ static void render_particle_system(Render *re, Object *ob, PartEff *paf)
 	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
 
 	/* enable duplicators to work */
-	Mat4MulMat4(tmat, paf->imat, ob->obmat);
-	MTC_Mat4MulMat4(mat, tmat, re->viewmat);
-	
-	MTC_Mat4Invert(tmat, mat);
-	MTC_Mat3CpyMat4(imat, tmat);
+	if(par) {
+		Mat4MulMat4(tmat, paf->imat, ob->obmat);
+		MTC_Mat4MulMat4(mat, tmat, re->viewmat);
+		
+		MTC_Mat4Invert(tmat, mat);
+		MTC_Mat3CpyMat4(imat, tmat);
+	}
+	else {
+		MTC_Mat4CpyMat4(mat, re->viewmat);
+		
+		MTC_Mat4Invert(tmat, re->viewmat);
+		MTC_Mat3CpyMat4(imat, tmat);
+		
+	}	
 
 	re->flag |= R_HALO;
 
@@ -1561,7 +1568,7 @@ static void use_mesh_edge_lookup(Render *re, Mesh *me, DispListMesh *dlm, MEdge 
 	}
 }
 
-static void init_render_mesh(Render *re, Object *ob, int only_verts)
+static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts)
 {
 	Mesh *me;
 	MVert *mvert = NULL;
@@ -1587,7 +1594,7 @@ static void init_render_mesh(Render *re, Object *ob, int only_verts)
 	if(paf) {
 		/* warning; build_particle_system does modifier calls itself */
 		if(paf->flag & PAF_STATIC) render_static_particle_system(re, ob, paf);
-		else render_particle_system(re, ob, paf);
+		else render_particle_system(re, ob, par, paf);
 		if((paf->flag & PAF_SHOWE)==0) return;
 	}
 
@@ -2676,7 +2683,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 	else if(ob->type==OB_SURF)
 		init_render_surf(re, ob);
 	else if(ob->type==OB_MESH)
-		init_render_mesh(re, ob, only_verts);
+		init_render_mesh(re, ob, par, only_verts);
 	else if(ob->type==OB_MBALL)
 		init_render_mball(re, ob);
 	else {

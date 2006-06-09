@@ -2526,8 +2526,9 @@ static int drawDispList(Base *base, int dt)
 /* ******************************** */
 
 
-static void draw_particle_system(Object *ob, PartEff *paf)
+static void draw_particle_system(Base *base, PartEff *paf)
 {
+	Object *ob= base->object;
 	Particle *pa;
 	float ptime, ctime, vec[3], vec1[3], mat[4][4];
 	int a, totpart;
@@ -2544,7 +2545,7 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 	
 	myloadmatrix(G.vd->viewmat);
 	/* flag abuse... but I need working code too now. This feature doesnt work for per frame animated objects */
-	if(ob->flag & OB_FROMGROUP) {
+	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
 		Mat4MulMat4(mat, paf->imat, ob->obmat);
 		mymultmatrix(mat);
 	}
@@ -3787,7 +3788,7 @@ void draw_object(Base *base, int flag)
 				if(paf) {
 					if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf, dt);
-					else if((flag & DRAW_PICKING) == 0) draw_particle_system(ob, paf);	// selection errors happen to easy
+					else if((flag & DRAW_PICKING) == 0) draw_particle_system(base, paf);	// selection errors happen to easy
 					if(col) cpack(col);
 				}
 			}
