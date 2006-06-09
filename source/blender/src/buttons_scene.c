@@ -518,6 +518,10 @@ void playback_anim(void)
 	}
 }
 
+#ifdef WITH_FFMPEG
+static void set_ffmpeg_preset(int preset);
+#endif
+
 void do_render_panels(unsigned short event)
 {
 	ScrArea *sa;
@@ -593,16 +597,21 @@ void do_render_panels(unsigned short event)
 		allqueue(REDRAWBUTSSCENE, 0);
 #ifdef WITH_FFMPEG
                 if (G.scene->r.imtype == R_FFMPEG) {
-                       if (G.scene->r.ffcodecdata.codec <= 0) 
-			       G.scene->r.ffcodecdata.codec = CODEC_ID_MPEG4;
-                       if (G.scene->r.ffcodecdata.audio_codec <= 0) 
-			       G.scene->r.ffcodecdata.audio_codec 
-				       = CODEC_ID_MP2;
-                       if (G.scene->r.ffcodecdata.video_bitrate <= 1) 
-			       G.scene->r.ffcodecdata.video_bitrate = 1152;
-                       if (G.scene->r.ffcodecdata.audio_bitrate <= 0) 
-			       G.scene->r.ffcodecdata.audio_bitrate = 128;
-                       break;
+			if (G.scene->r.ffcodecdata.type <= 0 ||
+			    G.scene->r.ffcodecdata.codec <= 0 ||
+			    G.scene->r.ffcodecdata.audio_codec <= 0 ||
+			    G.scene->r.ffcodecdata.video_bitrate <= 1) {
+				G.scene->r.ffcodecdata.codec 
+					= CODEC_ID_MPEG2VIDEO;
+				set_ffmpeg_preset(FFMPEG_PRESET_DVD);
+			}
+
+			if (G.scene->r.ffcodecdata.audio_codec <= 0) {
+				G.scene->r.ffcodecdata.audio_codec 
+					= CODEC_ID_MP2;
+				G.scene->r.ffcodecdata.audio_bitrate = 128;
+			}
+			break;
                 }
 #endif
 #if defined (_WIN32) || defined (__APPLE__)
@@ -981,14 +990,16 @@ static char* ffmpeg_format_pup(void)
        }
        return string;
 #endif
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG-1", FFMPEG_MPEG1,
                "MPEG-2", FFMPEG_MPEG2,
                "MPEG-4", FFMPEG_MPEG4,
                "AVI",    FFMPEG_AVI,
                "Quicktime", FFMPEG_MOV,
-               "DV", FFMPEG_DV);
+               "DV", FFMPEG_DV,
+	       "H264", FFMPEG_H264,
+	       "XVid", FFMPEG_XVID);
        return string;
 }
 
@@ -1011,13 +1022,15 @@ static char* ffmpeg_preset_pup(void)
 static char* ffmpeg_codec_pup(void) {
        static char string[2048];
        char formatstring[2048];
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG1", CODEC_ID_MPEG1VIDEO,
                "MPEG2", CODEC_ID_MPEG2VIDEO,
                "MPEG4(divx)", CODEC_ID_MPEG4,
                "HuffYUV", CODEC_ID_HUFFYUV,
-	       "DV", CODEC_ID_DVVIDEO);
+	       "DV", CODEC_ID_DVVIDEO,
+               "H264", CODEC_ID_H264,
+	       "XVid", CODEC_ID_XVID);
        return string;
 
 }
@@ -1321,6 +1334,56 @@ static void render_panel_anim(void)
 }
 
 #ifdef WITH_FFMPEG
+static void set_ffmpeg_preset(int preset)
+{
+	int isntsc = (G.scene->r.frs_sec != 25);
+	switch (preset) {
+	case FFMPEG_PRESET_VCD:
+		G.scene->r.ffcodecdata.type = FFMPEG_MPEG1;
+		G.scene->r.ffcodecdata.video_bitrate = 1150;
+		G.scene->r.xsch = 352;
+		G.scene->r.ysch = isntsc ? 240 : 288;
+		G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
+		G.scene->r.ffcodecdata.rc_max_rate = 1150;
+		G.scene->r.ffcodecdata.rc_min_rate = 1150;
+		G.scene->r.ffcodecdata.rc_buffer_size = 40*8;
+		G.scene->r.ffcodecdata.mux_packet_size = 2324;
+		G.scene->r.ffcodecdata.mux_rate = 2352 * 75 * 8;
+		break;
+	case FFMPEG_PRESET_SVCD:
+		G.scene->r.ffcodecdata.type = FFMPEG_MPEG2;
+		G.scene->r.ffcodecdata.video_bitrate = 2040;
+		G.scene->r.xsch = 480;
+		G.scene->r.ysch = isntsc ? 480 : 576;
+		G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
+		G.scene->r.ffcodecdata.rc_max_rate = 2516;
+		G.scene->r.ffcodecdata.rc_min_rate = 0;
+		G.scene->r.ffcodecdata.rc_buffer_size = 224*8;
+		G.scene->r.ffcodecdata.mux_packet_size = 2324;
+		G.scene->r.ffcodecdata.mux_rate = 0;
+		
+		break;
+	case FFMPEG_PRESET_DVD:
+		G.scene->r.ffcodecdata.type = FFMPEG_MPEG2;
+		G.scene->r.ffcodecdata.video_bitrate = 6000;
+		G.scene->r.xsch = 720;
+		G.scene->r.ysch = isntsc ? 480 : 576;
+		G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
+		G.scene->r.ffcodecdata.rc_max_rate = 9000;
+		G.scene->r.ffcodecdata.rc_min_rate = 0;
+		G.scene->r.ffcodecdata.rc_buffer_size = 224*8;
+		G.scene->r.ffcodecdata.mux_packet_size = 2048;
+		G.scene->r.ffcodecdata.mux_rate = 10080000;
+		
+		break;
+	case FFMPEG_PRESET_DV:
+		G.scene->r.ffcodecdata.type = FFMPEG_DV;
+		G.scene->r.xsch = 720;
+		G.scene->r.ysch = isntsc ? 480 : 576;
+		break;
+	}
+}
+
 static void render_panel_ffmpeg_video(void)
 {
        int yofs;
@@ -1333,52 +1396,7 @@ static void render_panel_ffmpeg_video(void)
 	   == 0) return;
 
        if (ffmpeg_preset_sel != 0) {
-	       int isntsc = (G.scene->r.frs_sec != 25);
-	       switch (ffmpeg_preset_sel) {
-	       case FFMPEG_PRESET_VCD:
-		       G.scene->r.ffcodecdata.type = FFMPEG_MPEG1;
-		       G.scene->r.ffcodecdata.video_bitrate = 1150;
-		       G.scene->r.xsch = 352;
-		       G.scene->r.ysch = isntsc ? 240 : 288;
-		       G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
-		       G.scene->r.ffcodecdata.rc_max_rate = 1150;
-		       G.scene->r.ffcodecdata.rc_min_rate = 1150;
-		       G.scene->r.ffcodecdata.rc_buffer_size = 40*8;
-		       G.scene->r.ffcodecdata.mux_packet_size = 2324;
-		       G.scene->r.ffcodecdata.mux_rate = 2352 * 75 * 8;
-		       break;
-	       case FFMPEG_PRESET_SVCD:
-		       G.scene->r.ffcodecdata.type = FFMPEG_MPEG2;
-		       G.scene->r.ffcodecdata.video_bitrate = 2040;
-		       G.scene->r.xsch = 480;
-		       G.scene->r.ysch = isntsc ? 480 : 576;
-		       G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
-		       G.scene->r.ffcodecdata.rc_max_rate = 2516;
-		       G.scene->r.ffcodecdata.rc_min_rate = 0;
-		       G.scene->r.ffcodecdata.rc_buffer_size = 224*8;
-		       G.scene->r.ffcodecdata.mux_packet_size = 2324;
-		       G.scene->r.ffcodecdata.mux_rate = 0;
-	       
-		       break;
-	       case FFMPEG_PRESET_DVD:
-		       G.scene->r.ffcodecdata.type = FFMPEG_MPEG2;
-		       G.scene->r.ffcodecdata.video_bitrate = 6000;
-		       G.scene->r.xsch = 720;
-		       G.scene->r.ysch = isntsc ? 480 : 576;
-		       G.scene->r.ffcodecdata.gop_size = isntsc ? 18 : 15;
-		       G.scene->r.ffcodecdata.rc_max_rate = 9000;
-		       G.scene->r.ffcodecdata.rc_min_rate = 0;
-		       G.scene->r.ffcodecdata.rc_buffer_size = 224*8;
-		       G.scene->r.ffcodecdata.mux_packet_size = 2048;
-		       G.scene->r.ffcodecdata.mux_rate = 10080000;
-	       
-		       break;
-	       case FFMPEG_PRESET_DV:
-		       G.scene->r.ffcodecdata.type = FFMPEG_DV;
-		       G.scene->r.xsch = 720;
-		       G.scene->r.ysch = isntsc ? 480 : 576;
-		       break;
-	       }
+	       set_ffmpeg_preset(ffmpeg_preset_sel);
 	       ffmpeg_preset_sel = 0;
 	       allqueue(REDRAWBUTSSCENE, 0);
        }

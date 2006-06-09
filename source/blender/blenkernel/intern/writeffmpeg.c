@@ -181,6 +181,14 @@ AVOutputFormat* ffmpeg_get_format(int format)
 		case FFMPEG_MOV:
 			f = guess_format("mov", NULL, NULL);
 			break;
+		case FFMPEG_H264:
+			/* FIXME: avi for now... */
+			f = guess_format("avi", NULL, NULL);
+			break;
+		case FFMPEG_XVID:
+			/* FIXME: avi for now... */
+			f = guess_format("avi", NULL, NULL);
+			break;
 		default:
 			f = NULL;
 	}
@@ -238,7 +246,9 @@ static void write_video_frame(AVFrame* frame) {
 	int outsize = 0;
 	int ret;
 	AVCodecContext* c = get_codec_from_stream(video_stream);
+#ifdef FFMPEG_CODEC_TIME_BASE
 	frame->pts = G.scene->r.cfra - G.scene->r.sfra;
+#endif
 
 	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
 				       frame);
@@ -400,6 +410,11 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 		/* makes HuffYUV happy ... */
 		c->pix_fmt = PIX_FMT_YUV422P;
 	}
+
+	if (codec_id == CODEC_ID_XVID) {
+		/* arghhhh ... */
+		c->pix_fmt = PIX_FMT_YUV420P;
+	}
 	
 	if (!strcmp(of->oformat->name, "mp4") || 
 	    !strcmp(of->oformat->name, "mov") ||
@@ -549,23 +564,29 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 	snprintf(of->filename, sizeof(of->filename), "%s", name);
 	/* set the codec to the user's selection */
 	switch(ffmpeg_type) {
-		case FFMPEG_AVI:
-		case FFMPEG_MOV:
-			fmt->video_codec = ffmpeg_codec;
-			break;
-		case FFMPEG_DV:
-			fmt->video_codec = CODEC_ID_DVVIDEO;
-			break;
-		case FFMPEG_MPEG1:
-			fmt->video_codec = CODEC_ID_MPEG1VIDEO;
-			break;
-		case FFMPEG_MPEG2:
-			fmt->video_codec = CODEC_ID_MPEG2VIDEO;
-			break;
-		case FFMPEG_MPEG4:
-		default:
-			fmt->video_codec = CODEC_ID_MPEG4;
-			break;
+	case FFMPEG_AVI:
+	case FFMPEG_MOV:
+		fmt->video_codec = ffmpeg_codec;
+		break;
+	case FFMPEG_DV:
+		fmt->video_codec = CODEC_ID_DVVIDEO;
+		break;
+	case FFMPEG_MPEG1:
+		fmt->video_codec = CODEC_ID_MPEG1VIDEO;
+		break;
+	case FFMPEG_MPEG2:
+		fmt->video_codec = CODEC_ID_MPEG2VIDEO;
+		break;
+	case FFMPEG_H264:
+		fmt->video_codec = CODEC_ID_H264;
+		break;
+	case FFMPEG_XVID:
+		fmt->video_codec = CODEC_ID_XVID;
+		break;
+	case FFMPEG_MPEG4:
+	default:
+		fmt->video_codec = CODEC_ID_MPEG4;
+		break;
 	}
 	if (fmt->video_codec == CODEC_ID_DVVIDEO) {
 		if (rectx != 720) {
