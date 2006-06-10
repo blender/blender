@@ -127,12 +127,15 @@ ifneq ($(NOPLUGINS),true)
 	@$(MAKE) -C $(DISTDIR)/plugins all  > /dev/null || exit 1;
 	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \
              $(DISTDIR)/plugins/*/*.o
-	@mkdir -p $(CONFDIR)/plugins/sequence
-	@mkdir -p $(CONFDIR)/plugins/texture
 
-	@mv $(DISTDIR)/plugins/sequence/*.so $(CONFDIR)/plugins/sequence
-	@mv $(DISTDIR)/plugins/texture/*.so $(CONFDIR)/plugins/texture
+#on OS X the plugins move to the installation directory
+        ifneq ($(OS),darwin)
+            @mkdir -p $(CONFDIR)/plugins/sequence
+            @mkdir -p $(CONFDIR)/plugins/texture
 
+            @mv $(DISTDIR)/plugins/sequence/*.so $(CONFDIR)/plugins/sequence
+            @mv $(DISTDIR)/plugins/texture/*.so $(CONFDIR)/plugins/texture
+     endif
 endif
 
 	@echo "----> Copy python infrastructure"

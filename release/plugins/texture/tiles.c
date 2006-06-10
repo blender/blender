@@ -143,11 +143,6 @@ float sample_wave(float freq, float coord, float pixsize)
 	return retval;
 }
 
-/* return 0: One channel texture
-   return 1: RGB texture
-   return 2: Normals texture */
-
-
 int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt)
 {
 	float xwave, ywave;
@@ -172,5 +167,5 @@ int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt
 		else result[0]= ywave-xwave;
 	}
 
-	return 0;
+	return TEX_INT;
 }

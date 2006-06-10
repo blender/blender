@@ -115,10 +115,6 @@ void plugin_getinfo(PluginInfo *info)
 /* ********************* the texture ******************** */
 
 
-/* return 0: One channel texture
-   return 1: RGB texture
-   return 2: Normals texture */
-
 int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt)
 {
 	float val = 0.0;
@@ -126,6 +122,7 @@ int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt
 	float p[3];
 	float tv[3];
 	int i;
+	int res = TEX_INT;
 
 	tv[0]=(texvec[0]+1.0)/2.0;
 	tv[1]=(texvec[1]+1.0)/2.0;
@@ -148,30 +145,28 @@ int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt
 	result[0] = CLAMP (val+cast->offset, 0.0, 1.0) * pow (fabs(sqrt(tv[0]*tv[0]+tv[1]*tv[1]+tv[2]*tv[2])), cast->falloff);
 	
 	if(stype==1) {
-		/* color? then return 1;
-		 * 
+		/*
 		 * this is r, g, b, a:
 		 */
 		result[1]= 0.5*result[0];
 		result[2]= 1.0-val;
 		result[3]= fsqrt(fabs(result[0]));
 		result[4]= 1.0;
-			
-		return 1;
+
+		res |= TEX_RGB;
 	}
 	if(stype==2) {
-		/* normal? then return 2
-		 * 
+		/*
 		 * This value is the displacement of the actual normal in 
 		 * the Material calculation. 
 		 */
 		result[5]+= val;
 		result[6]+= 1.0-val;
 		result[7]= 0.0;
-		
-		return 2;
+
+		res |= TEX_NOR;
 	}
 	
-	return 0;
+	return res;
 }
 	
