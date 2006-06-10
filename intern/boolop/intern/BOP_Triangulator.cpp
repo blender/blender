@@ -400,10 +400,14 @@ void BOP_addFace(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face, BOP_TAG tag)
 	/*
 	 * Before adding a new face to the face list, be sure it's not
 	 * already there.  Duplicate faces have been found to cause at
-	 * least two instances of infinite loops.
+	 * least two instances of infinite loops.  Also, some faces are
+	 * created which have the same vertex twice.  Don't add these either.
+	 *
 	 * When someone has more time to look into this issue, it's possible
 	 * this code may be removed again.
 	 */
+	if( av1==av2 || av2==av3  || av3==av1 ) return;
+
 	for(unsigned int idxFace=0;idxFace<faces->size();idxFace++) {
 		BOP_Face *faceA = (*faces)[idxFace];
 		BOP_Index bv1 = faceA->getVertex(0);
