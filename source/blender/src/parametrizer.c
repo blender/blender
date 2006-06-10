@@ -2661,7 +2661,7 @@ static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PV
 		}
 	}
 
-	if (!maxe1 || (maxlen < 0.5f*totlen))
+	if (!maxe1 || !maxe2 || (maxlen < 0.5f*totlen))
 		return P_FALSE;
 	
 	/* find pin1 in the split vertices */

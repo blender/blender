@@ -5424,6 +5424,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->toolsettings->uvcalc_mapdir = 1;
 			sce->toolsettings->uvcalc_mapalign = 1;
 			sce->toolsettings->uvcalc_flag = 1;
+			sce->toolsettings->unwrapper = 1;
 
 			/* enable uv editor local sticky by default */
 			for (sc= main->screen.first; sc; sc= sc->id.next) {
