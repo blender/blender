@@ -51,7 +51,7 @@ void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 
 	if (dbuf == NULL) return;
 	
-	if (sbuf->rect_float) do_float = 1;
+	if (sbuf && sbuf->rect_float && dbuf->rect_float) do_float = 1;
 
 	if (destx < 0){
 		srcx -= destx ;

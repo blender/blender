@@ -104,7 +104,8 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 
 		if (version != 0) {
 			pis->version= version();
-			if (pis->version==2 || pis->version==3) {
+			if (pis->version==2 || pis->version==3
+			    || pis->version==4) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");;
 
@@ -220,7 +221,11 @@ static void do_plugin_effect(Sequence * seq,int cfra,
 			     struct ImBuf *ibuf3, struct ImBuf *out)
 {
 	char *cp;
-	
+	int float_rendering;
+	int use_temp_bufs = 0; /* Are needed since blur.c (and maybe some other
+				  old plugins) do very bad stuff
+				  with imbuf-internals */
+
 	if(seq->plugin && seq->plugin->doit) {
 		if(seq->plugin->cfra) 
 			*(seq->plugin->cfra)= frame_to_float(cfra);
@@ -235,6 +240,34 @@ static void do_plugin_effect(Sequence * seq,int cfra,
 				= seq->plugin->instance_private_data;
 		}
 
+		float_rendering = (out->rect_float != NULL);
+
+		if (seq->plugin->version<=3 && float_rendering) {
+			use_temp_bufs = 1;
+
+			if (ibuf1) {
+				ibuf1 = IMB_dupImBuf(ibuf1);
+				IMB_rect_from_float(ibuf1);
+				imb_freerectfloatImBuf(ibuf1);
+				ibuf1->flags &= ~IB_rectfloat;
+			}
+			if (ibuf2) {
+				ibuf2 = IMB_dupImBuf(ibuf2);
+				IMB_rect_from_float(ibuf2);
+				imb_freerectfloatImBuf(ibuf2);
+				ibuf2->flags &= ~IB_rectfloat;
+			} 
+			if (ibuf3) {
+				ibuf3 = IMB_dupImBuf(ibuf3);
+				IMB_rect_from_float(ibuf3);
+				imb_freerectfloatImBuf(ibuf3);
+				ibuf3->flags &= ~IB_rectfloat;
+			} 
+			if (!out->rect) imb_addrectImBuf(out);
+			imb_freerectfloatImBuf(out);
+			out->flags &= ~IB_rectfloat;
+		}
+
 		if (seq->plugin->version<=2) {
 			if(ibuf1) IMB_convert_rgba_to_abgr(ibuf1);
 			if(ibuf2) IMB_convert_rgba_to_abgr(ibuf2);
@@ -246,10 +279,21 @@ static void do_plugin_effect(Sequence * seq,int cfra,
 			ibuf1, ibuf2, out, ibuf3);
 
 		if (seq->plugin->version<=2) {
-			if(ibuf1) IMB_convert_rgba_to_abgr(ibuf1);
-			if(ibuf2) IMB_convert_rgba_to_abgr(ibuf2);
-			if(ibuf3) IMB_convert_rgba_to_abgr(ibuf3);
+			if (!use_temp_bufs) {
+				if(ibuf1) IMB_convert_rgba_to_abgr(ibuf1);
+				if(ibuf2) IMB_convert_rgba_to_abgr(ibuf2);
+				if(ibuf3) IMB_convert_rgba_to_abgr(ibuf3);
+			}
 			IMB_convert_rgba_to_abgr(out);
+		}
+		if (seq->plugin->version<=3 && float_rendering) {
+			IMB_float_from_rect(out);
+		}
+
+		if (use_temp_bufs) {
+			if (ibuf1) IMB_freeImBuf(ibuf1);
+			if (ibuf2) IMB_freeImBuf(ibuf2);
+			if (ibuf3) IMB_freeImBuf(ibuf3);
 		}
 	}
 }

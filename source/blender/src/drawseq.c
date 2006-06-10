@@ -114,7 +114,8 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_WIPE) return "Wipe";
 	else if(seq->type==SEQ_GLOW) return "Glow";
 	else if(seq->type==SEQ_PLUGIN) {
-		if(seq->plugin && seq->plugin->doit) return seq->plugin->pname;
+		if(!(seq->flag & SEQ_EFFECT_NOT_LOADED) &&
+		   seq->plugin && seq->plugin->doit) return seq->plugin->pname;
 		return "Plugin";
 	}
 	else return "Effect";
@@ -556,10 +557,13 @@ static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
 			sprintf(str, "%d | %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
 		}
 		else if(seq->type & SEQ_EFFECT) {
+			int can_float = (seq->type != SEQ_PLUGIN)
+				|| (seq->plugin && seq->plugin->version >= 4);
+
 			if(seq->seq3!=seq->seq2 && seq->seq1!=seq->seq3)
-				sprintf(str, "%d | %s: %d>%d (use %d)", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine, seq->seq3->machine);
+				sprintf(str, "%d | %s: %d>%d (use %d)%s", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine, seq->seq3->machine, can_float ? "" : " No float, upgrade plugin!");
 			else
-				sprintf(str, "%d | %s: %d>%d", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine);
+				sprintf(str, "%d | %s: %d>%d%s", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine, can_float ? "" : " No float, upgrade plugin!");
 		}
 		else if (seq->type == SEQ_RAM_SOUND) {
 			sprintf(str, "%d | %s", seq->len, seq->strip->stripdata->name);

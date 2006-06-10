@@ -115,7 +115,7 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 		}
 		if(tbuf->x<4 || tbuf->y<4) break;
 	}
-	
+
 	/* enlarge */
 	for(i=0; i<nr; i++) {
 		ttbuf = double_x(tbuf);
@@ -137,6 +137,7 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 	
 	if(cast->gamma != 1.0) gamwarp(tbuf, 1.0 / cast->gamma);
 
+	/* Very bad code warning! This fails badly with float-buffers!!! */
 	freeN(ibuf->rect);
 	ibuf->rect= tbuf->rect;
 	freeN(tbuf);
