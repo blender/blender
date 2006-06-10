@@ -160,6 +160,8 @@ struct Render
 	struct VlakRen **blovl;
 	ListBase objecttable;
 	
+	struct Image *backbuf;
+	
 	struct GHash *orco_hash;
 
 	/* arena for allocating data for use during render, for

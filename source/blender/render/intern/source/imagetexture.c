@@ -589,6 +589,25 @@ static void makemipmap(Tex *tex, Image *ima)
 	}
 }
 
+void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *result)
+{
+	TexResult texres;
+	
+	if(ima==NULL || ima->ok== 0 || ima->ibuf==NULL) {
+		return;
+	}
+	
+	/* bad globals for boxsample */
+	imaprepeat= 0;
+	imapextend= 0;
+	
+	boxsample(ima->ibuf, fx, fy, fx+dx, fy+dy, &texres);
+	result[0]= texres.tr;
+	result[1]= texres.tg;
+	result[2]= texres.tb;
+	result[3]= texres.ta;
+
+}
 
 int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, TexResult *texres)
 {

@@ -67,6 +67,7 @@ void render_realtime_texture(struct ShadeInput *shi);
 
 int imagewraposa(struct Tex *tex, struct Image *ima, float *texvec, float *dxt, float *dyt, struct TexResult *texres);
 int imagewrap(struct Tex *tex, struct Image *ima, float *texvec, struct TexResult *texres);
+void image_sample(struct Image *ima, float fx, float fy, float dx, float dy, float *result);
 
 #endif /* TEXTURE_EXT_H */
 

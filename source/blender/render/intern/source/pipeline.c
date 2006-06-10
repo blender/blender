@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "DNA_group_types.h"
+#include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -1405,6 +1406,40 @@ static void do_render_fields_3d(Render *re)
 	re->display_draw(re->result, NULL);
 }
 
+static void load_backbuffer(Render *re)
+{
+	if(re->r.alphamode == R_ADDSKY) {
+		Image *bima;
+		char name[256];
+		
+		strcpy(name, re->r.backbuf);
+		BLI_convertstringcode(name, G.sce, re->r.cfra);
+		
+		if(re->backbuf) {
+			re->backbuf->id.us--;
+			bima= re->backbuf;
+		}
+		else bima= NULL;
+		
+		re->backbuf= add_image(name);
+		
+		if(bima && bima->id.us<1) {
+			free_image_buffers(bima);
+		}
+		
+		if(re->backbuf && re->backbuf->ibuf==NULL) {
+			re->backbuf->ibuf= IMB_loadiffname(re->backbuf->name, IB_rect);
+			if(re->backbuf->ibuf==NULL) re->backbuf->ok= 0;
+			else re->backbuf->ok= 1;
+		}
+		if(re->backbuf==NULL || re->backbuf->ok==0) {
+			// error() doesnt work with render window open
+			//error("No backbuf there!");
+			printf("Error: No backbuf %s\n", name);
+		}
+	}
+}
+
 /* main render routine, no compositing */
 static void do_render_fields_blur_3d(Render *re)
 {
@@ -1414,6 +1449,10 @@ static void do_render_fields_blur_3d(Render *re)
 		return;
 	}
 	
+	/* backbuffer initialize */
+	if(re->r.bufflag & 1)
+		load_backbuffer(re);
+
 	/* now use renderdata and camera to set viewplane */
 	RE_SetCamera(re, re->scene->camera);
 	

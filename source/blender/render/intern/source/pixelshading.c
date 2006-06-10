@@ -469,6 +469,16 @@ void renderSkyPixelFloat(float *collector, float x, float y, float *rco)
 	}
 }
 
+static void fillBackgroundImage(float *collector, float fx, float fy)
+{
+	if(R.backbuf) {
+		float dx= 1.0f/(float)R.winx;
+		float dy= 1.0f/(float)R.winy;
+		
+		image_sample(R.backbuf, fx/(float)R.winx, fy/(float)R.winy, dx, dy, collector);
+	}
+}
+
 /*
   Stuff the sky colour into the collector.
  */
@@ -486,7 +496,7 @@ void shadeSkyPixel(float *collector, float fx, float fy, float *rco)
 
 	/* 1. Do a backbuffer image: */ 
 	if(R.r.bufflag & 1) {
-//		fillBackgroundImage(collector, fx, fy);
+		fillBackgroundImage(collector, fx, fy);
 		return;
 	} else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/*
