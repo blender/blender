@@ -937,9 +937,12 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		
 		if(cucu->path==NULL) makeDispListCurveTypes(cu->textoncurve, 0);
 		if(cucu->path) {
-			
+			float imat[4][4], imat3[3][3];
+			Mat4Invert(imat, ob->obmat);
+			Mat3CpyMat4(imat3, imat);
 
 			Mat3CpyMat4(cmat, cu->textoncurve->obmat);
+			Mat3MulMat3(cmat, cmat, imat3);
 			sizefac= Normalise(cmat[0])/cu->fsize;
 			
 			minx=miny= 1.0e20f;
