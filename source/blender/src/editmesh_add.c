@@ -1138,17 +1138,15 @@ void add_primitiveMesh(int type)
 	Mat3Inv(imat,cmat);
 
 	dia= G.vd->grid;
-	if(type != 10)
+	if(type == 0 || type == 1) /* plane, cube (diameter of 1.41 makes it unit size) */
 		dia *= sqrt(2.0);
 
 	d= -G.vd->grid;
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 
-	make_prim(type, imat,
-        tot, seg, subdiv, dia, d,
-        ext, fill,
-        cent);
+	make_prim(type, imat, tot, seg, subdiv, dia, d,
+        ext, fill, cent);
 
 	if(type<2) tot = totoud;
 
