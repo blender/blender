@@ -65,6 +65,7 @@
 #include "BKE_colortools.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
@@ -151,13 +152,17 @@ static void setcloneimage()
 static int image_preview_active(ScrArea *sa, float *xim, float *yim)
 {
 	SpaceImage *sima= sa->spacedata.first;
-	short a;
 	
-	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		if(sima->blockhandler[a] == IMAGE_HANDLER_PREVIEW) {
-			if(xim) *xim= (G.scene->r.size*G.scene->r.xsch)/100;
-			if(yim) *yim= (G.scene->r.size*G.scene->r.ysch)/100;
-			return 1;
+	/* only when compositor shows, and image handler set */
+	if(sima->image == (Image *)find_id("IM", "Compositor")) {
+		short a;
+	
+		for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+			if(sima->blockhandler[a] == IMAGE_HANDLER_PREVIEW) {
+				if(xim) *xim= (G.scene->r.size*G.scene->r.xsch)/100;
+				if(yim) *yim= (G.scene->r.size*G.scene->r.ysch)/100;
+				return 1;
+			}
 		}
 	}
 	return 0;
