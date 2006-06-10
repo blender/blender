@@ -49,6 +49,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -941,6 +942,7 @@ static short extrudeflag_edge(short flag, float *nor)
 	EditEdge *eed, *nexted;
 	EditFace *efa, *nextfa;
 	short del_old= 0;
+	ModifierData *md= G.obedit->modifiers.first;
 	
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
 	
@@ -993,6 +995,40 @@ static short extrudeflag_edge(short flag, float *nor)
 		}
 	}
 	
+	/* If a mirror modifier with clipping is on, we need to adjust some 
+	 * of the cases above to handle edges on the line of symmetry.
+	 */
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				for (eed= em->edges.first; eed; eed= eed->next) {
+					if(eed->f2 == 1) {
+
+						switch(mmd->axis){
+							case 0:
+								if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
+									 (fabs(eed->v2->co[0]) < mmd->tolerance) )
+									++eed->f2;
+								break;
+							case 1:
+								if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
+									 (fabs(eed->v2->co[1]) < mmd->tolerance) )
+									++eed->f2;
+								break;
+							case 2:
+								if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
+									 (fabs(eed->v2->co[2]) < mmd->tolerance) )
+									++eed->f2;
+								break;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	set_edge_directions_f2(2);
 	
 	/* step 1.5: if *one* selected face has edge with unselected face; remove old selected faces */
@@ -1141,6 +1177,7 @@ short extrudeflag_vert(short flag, float *nor)
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditFace *efa, *efa2, *nextvl;
 	short sel=0, del_old= 0, is_face_sel=0;
+	ModifierData *md= G.obedit->modifiers.first;
 
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
 
@@ -1224,6 +1261,40 @@ short extrudeflag_vert(short flag, float *nor)
 					
 		efa->f1==1 : duplicate this face
 	*/
+
+	/* If a mirror modifier with clipping is on, we need to adjust some 
+	 * of the cases above to handle edges on the line of symmetry.
+	 */
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				for (eed= em->edges.first; eed; eed= eed->next) {
+					if(eed->f2 == 2) {
+
+						switch(mmd->axis){
+							case 0:
+								if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
+									 (fabs(eed->v2->co[0]) < mmd->tolerance) )
+									++eed->f2;
+								break;
+							case 1:
+								if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
+									 (fabs(eed->v2->co[1]) < mmd->tolerance) )
+									++eed->f2;
+								break;
+							case 2:
+								if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
+									 (fabs(eed->v2->co[2]) < mmd->tolerance) )
+									++eed->f2;
+								break;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	/* copy all selected vertices, */
 	/* write pointer to new vert in old struct at eve->tmp.v */
