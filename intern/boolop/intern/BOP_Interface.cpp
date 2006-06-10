@@ -121,6 +121,12 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	// Add B-mesh into C-mesh
 	BOP_addMesh(&meshC, &meshBFacesId, &materials, obBProps, obBFaces, obBVertices, invertMeshB);
 
+	// for now, allow operations on non-manifold (non-solid) meshes
+#if 0
+	if (!meshC.isClosedMesh())
+		return BOP_NO_SOLID;
+#endif
+
 	// Perform the intersection boolean operation.
 	BoolOpState result = BOP_intersectionBoolOp(&meshC, &meshAFacesId, &meshBFacesId, 
 												invertMeshA, invertMeshB);

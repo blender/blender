@@ -118,8 +118,6 @@ CSG_PerformBooleanOperation(
 	BSP_MeshInfo * mesh_info = static_cast<BSP_MeshInfo *>(operation->CSG_info);
 	if (mesh_info == NULL) return 0;
 
-	bool success = 1;
-
 	obAFaces.Reset(obAFaces.it);
 	obBFaces.Reset(obBFaces.it);
 	obAVertices.Reset(obAVertices.it);
@@ -139,8 +137,9 @@ CSG_PerformBooleanOperation(
 	  break;
 	}
 
+	BoolOpState boolOpResult;
 	try {
-	BOP_performBooleanOperation( boolType,
+	boolOpResult = BOP_performBooleanOperation( boolType,
 				     mesh_info->output_descriptor,
 				     (BSP_CSGMesh**) &(mesh_info->output_mesh),
 					 mesh_info->obB_descriptor,
@@ -155,7 +154,12 @@ CSG_PerformBooleanOperation(
 		return 0;
 	}
 
-	return success;
+	switch (boolOpResult) {
+	case BOP_OK: return 1;
+	case BOP_NO_SOLID: return -2;
+	case BOP_ERROR: return 0;
+	default: return 1;
+	}
 }
 
 	int
