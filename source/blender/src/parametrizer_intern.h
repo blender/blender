@@ -12,15 +12,15 @@
 #else
 	#define param_assert(condition) \
 		if (!(condition)) \
-			{ printf("Assertion %s:%d\n", __FILE__, __LINE__); abort(); }
+			{ /*printf("Assertion %s:%d\n", __FILE__, __LINE__); abort();*/ }
 	#define param_warning(message) \
-		{ printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message); }
+		{ /*printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);*/ }
 	#define param_test_equals_ptr(str, a, b) \
 		if (a != b) \
-			{ printf("Equals %s => %p != %p\n", str, a, b); };
+			{ /*printf("Equals %s => %p != %p\n", str, a, b);*/ };
 	#define param_test_equals_int(str, a, b) \
 		if (a != b) \
-			{ printf("Equals %s => %d != %d\n", str, a, b); };
+			{ /*printf("Equals %s => %d != %d\n", str, a, b);*/ };
 #endif
 
 typedef enum PBool {

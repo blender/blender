@@ -398,28 +398,6 @@ void minimize_stretch_tface_uv(void)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-void smooth_area_tface_uv(void)
-{
-	Mesh *me;
-	ParamHandle *handle;
-	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
-	
-	me = get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
-
-	handle = construct_param_handle(me, 1, fillholes, 1);
-	param_smooth_area(handle);
-	param_flush(handle);
-	param_delete(handle);
-
-	BIF_undo_push("UV smooth area");
-
-	object_uvs_changed(OBACT);
-
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
-}
-
 /* LSCM live mode */
 
 static ParamHandle *liveHandle = NULL;

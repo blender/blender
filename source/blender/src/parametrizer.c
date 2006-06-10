@@ -2522,13 +2522,6 @@ static PBool p_chart_abf_solve(PChart *chart)
 		for (i = 0; i < ABF_MAX_ITER; i++) {
 			float norm = p_abf_compute_gradient(&sys, chart);
 
-#if 0
-			if (norm > lastnorm)
-				printf("convergence error: %f => %f\n", lastnorm, norm);
-			else
-				printf("norm: %f\n", norm);
-#endif
-
 			lastnorm = norm;
 
 			if (norm < limit)
