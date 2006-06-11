@@ -367,6 +367,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 	rr= MEM_callocT(sizeof(RenderResult), "new render result");
 	rr->rectx= rectx;
 	rr->recty= recty;
+	rr->renrect.xmin= 0; rr->renrect.xmax= rectx;
 	/* crop is one or two extra pixels rendered for filtering, is used for merging and display too */
 	rr->crop= crop;
 	
