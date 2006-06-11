@@ -2773,9 +2773,10 @@ void RE_Database_Free(Render *re)
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
 	
-	if(re->scene->r.scemode & R_FREE_IMAGE)
-		if((re->r.scemode & R_PREVIEWBUTS)==0)
-			free_all_imagetextures();
+	if(re->scene)
+		if(re->scene->r.scemode & R_FREE_IMAGE)
+			if((re->r.scemode & R_PREVIEWBUTS)==0)
+				free_all_imagetextures();
 
 }
 
