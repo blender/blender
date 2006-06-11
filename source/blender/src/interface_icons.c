@@ -740,6 +740,17 @@ static void icon_set_image(ID *id, DrawInfo *di)
 		icon_from_image((struct Image*)id, &ri);
 	else {
 		BIF_previewrender(id, &ri, NULL, PR_ICON_RENDER);
+		/* world is rendered with alpha=0, so it wasn't displayed 
+		   this could be render option for sky to, for later */
+		if (GS(id->name) == ID_WO) { 
+			char* cp= (char *)(ri.rect);
+			int x,y;
+			for(y=0; y<ri.pr_recty; y++) {
+				for(x=0; x<ri.pr_rectx; x++, cp+=4) {
+					cp[3]= 255;
+				}
+			}
+		}
 	}
 
 	/* and copy the image into the icon */
