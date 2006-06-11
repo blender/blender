@@ -226,6 +226,7 @@ Scene *add_scene(char *name)
 	sce->toolsettings->unwrapper = 1;
 	
 	sce->jumpframe = 10;
+	sce->audio.mixrate = 44100;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);

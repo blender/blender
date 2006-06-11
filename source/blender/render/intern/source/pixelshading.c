@@ -475,7 +475,7 @@ static void fillBackgroundImage(float *collector, float fx, float fy)
 		float dx= 1.0f/(float)R.winx;
 		float dy= 1.0f/(float)R.winy;
 		
-		image_sample(R.backbuf, fx/(float)R.winx, fy/(float)R.winy, dx, dy, collector);
+		image_sample(R.backbuf, fx*dx, fy*dy, dx, dy, collector);
 	}
 }
 
