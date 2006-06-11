@@ -1010,6 +1010,17 @@ static void end_test_break_callback()
 #else
 /* all other OS's support signal(SIGVTALRM) */
 
+/* XXX The ESC problem: some unix users reported that ESC doesn't cancel
+ * renders anymore. Most complaints came from linux, but it's not
+ * general, not all linux users have the problem.
+ *
+ * From tests, the systems that do have it are not signalling SIGVTALRM
+ * interrupts (an issue with signals and threads). Using SIGALRM instead
+ * fixes the problem, at least while we investigate better.
+ *
+ * ITIMER_REAL (SIGALRM): timer that counts real system time
+ * ITIMER_VIRTUAL (SIGVTALRM): only counts time spent in its owner process */
+
 /* POSIX: this function goes in the signal() callback */
 static void interruptESC(int sig)
 {
@@ -1017,7 +1028,7 @@ static void interruptESC(int sig)
 	if(G.afbreek==0) G.afbreek= 2;	/* code for read queue */
 
 	/* call again, timer was reset */
-	signal(SIGVTALRM, interruptESC);
+	signal(SIGALRM, interruptESC);
 }
 
 /* POSIX: initialize timer and signal */
@@ -1032,9 +1043,8 @@ static void init_test_break_callback()
 	tmevalue.it_value.tv_sec = 0;
 	tmevalue.it_value.tv_usec = 10000;
 
-	signal(SIGVTALRM, interruptESC);
-	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
-
+	signal(SIGALRM, interruptESC);
+	setitimer(ITIMER_REAL, &tmevalue, 0);
 }
 
 /* POSIX: stop timer and callback */
@@ -1044,8 +1054,9 @@ static void end_test_break_callback()
 
 	tmevalue.it_value.tv_sec = 0;
 	tmevalue.it_value.tv_usec = 0;
-	setitimer(ITIMER_VIRTUAL, &tmevalue, 0);
-	signal(SIGVTALRM, SIG_IGN);
+
+	setitimer(ITIMER_REAL, &tmevalue, 0);
+	signal(SIGALRM, SIG_IGN);
 
 }
 
