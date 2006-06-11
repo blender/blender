@@ -462,11 +462,13 @@ void circle_selectCB(select_CBfunc callback)
 					firsttime= 1;
 					
 					break;
+				case PAGEUPKEY:
 				case WHEELDOWNMOUSE:
 				case PADPLUSKEY:
 				case EQUALKEY:
 					if(val) if(rad<200.0) rad*= 1.2;
 					break;
+				case PAGEDOWNKEY:
 				case WHEELUPMOUSE:
 				case PADMINUS:
 				case MINUSKEY:
