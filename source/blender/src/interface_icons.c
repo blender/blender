@@ -625,7 +625,7 @@ static void icon_copy_rect(ImBuf *ibuf, RenderInfo *ri)
 	short ex, ey, dx, dy;
 
 	/* paranoia test */
-	if(ibuf->rect==NULL && ibuf->rect_float==NULL)
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
 		return;
 	
 	/* waste of cpu cyles... but the imbuf API has no other way to scale fast (ton) */
@@ -673,7 +673,8 @@ static void icon_from_image(Image *img, RenderInfo *ri)
 	unsigned int pr_size = ri->pr_rectx*ri->pr_recty*sizeof(unsigned int);
 	short image_loaded = 0;
 
-	if (!img)
+	/* img->ok is zero when Image cannot load */
+	if (img==NULL || img->ok==0)
 		return;
 	
 	if (!ri->rect) {
@@ -685,7 +686,9 @@ static void icon_from_image(Image *img, RenderInfo *ri)
 		always loading and reducing images is too expensive */
 	if(!img->preview) {
 		if(img->ibuf==NULL || img->ibuf->rect==NULL) {				
-			load_image(img, IB_rect, G.sce, G.scene->r.cfra);	
+			load_image(img, IB_rect, G.sce, G.scene->r.cfra);
+			if(img->ok==0)
+				return;
 			image_loaded = 1;
 		}
 		icon_copy_rect(img->ibuf, ri);
