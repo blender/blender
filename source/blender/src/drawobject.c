@@ -3978,14 +3978,26 @@ void draw_object(Base *base, int flag)
 	
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
 	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
-		/* we don't draw centers for duplicators and sets */
-		if((flag & DRAW_CONSTCOLOR)==0) {
-			if((G.scene->basact)==base) 
-				drawcentercircle(ob->obmat[3], ACTIVE, ob->id.lib || ob->id.us>1);
-			else if(base->flag & SELECT) 
-				drawcentercircle(ob->obmat[3], SELECT, ob->id.lib || ob->id.us>1);
-			else if(empty_object || (G.vd->flag & V3D_DRAW_CENTERS)) 
-				drawcentercircle(ob->obmat[3], DESELECT, ob->id.lib || ob->id.us>1);
+		int do_draw_center= -1;	/* defines below are zero or positive... */
+		
+		if((G.scene->basact)==base) 
+			do_draw_center= ACTIVE;
+		else if(base->flag & SELECT) 
+			do_draw_center= SELECT;
+		else if(empty_object || (G.vd->flag & V3D_DRAW_CENTERS)) 
+			do_draw_center= DESELECT;
+		
+		if(do_draw_center != -1) {
+			if(flag & DRAW_PICKING) {
+				/* draw a single point for opengl selection */
+				glBegin(GL_POINTS);
+				glVertex3fv(ob->obmat[3]);
+				glEnd();
+			} 
+			else if((flag & DRAW_CONSTCOLOR)==0) {
+				/* we don't draw centers for duplicators and sets */
+				drawcentercircle(ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us>1);
+			}
 		}
 	}
 

@@ -1627,6 +1627,9 @@ void build_particle_system(Object *ob)
 
 	paf= give_parteff(ob);
 	if(paf==NULL) return;
+	
+	if(G.rendering==0 && paf->disp==0) return;
+	
 	if(paf->keys) MEM_freeN(paf->keys);	/* free as early as possible, for returns */
 	paf->keys= NULL;
 	
