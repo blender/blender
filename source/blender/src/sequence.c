@@ -1253,6 +1253,11 @@ void do_render_seq(RenderResult *rr, int cfra)
 		/* While render let's keep all memory available for render (ton) */
 		free_imbuf_seq_except(cfra);
 	}
+	else {
+		/* render result is delivered empty in most cases */
+		if (!rr->rect32)
+			rr->rect32= MEM_callocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
+	}
 	
 	G.f &= ~G_PLAYANIM;
 
