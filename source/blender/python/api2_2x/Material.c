@@ -696,10 +696,6 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "() - Return fresnel power for refractions"},
 	{"getFresnelTransFac", ( PyCFunction ) Material_getFresnelTransFac, METH_NOARGS,
 	 "() - Return fresnel power for refractions factor"},
-	 {"getRbFriction", ( PyCFunction ) Material_getRigidBodyFriction, METH_NOARGS,
-	 "() - Return friction for Rigid Body dynamics"},
-	{"getRbRestitution", ( PyCFunction ) Material_getRigidBodyRestitution, METH_NOARGS,
-	 "() - Return restitution for Rigid Body dynamics"},
 
 	{"getTextures", ( PyCFunction ) Material_getTextures, METH_NOARGS,
 	 "() - Return Material's texture list as a tuple"},
