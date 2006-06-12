@@ -331,6 +331,8 @@ public:
 		mGeos.push_back( geo ); 
 		geo->setObjectId(mGeos.size());
 	}
+	/*! Add a geo object to the scene, warning - only needed for hand init */
+	inline void addGeoObject(ntlGeometryObject *geo) { mObjects.push_back( geo ); }
 
 	/*! Acces a certain object */
 	inline ntlGeometryObject *getObject(int id) { 

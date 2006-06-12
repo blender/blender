@@ -44,8 +44,8 @@ class ntlGeometryObjModel : public ntlGeometryObject
 		/*! init triangle divisions */
 		virtual void calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntlTriangle> &tris, gfxReal fsTri);
 
-		/*! do ani mesh CPS */
-		void calculateCPS(string filename);
+		/*! calculate max extends of (ani) mesh */
+		void getExtends(ntlVec3Gfx &start, ntlVec3Gfx &end);
 
 	private:
 
@@ -71,12 +71,6 @@ class ntlGeometryObjModel : public ntlGeometryObject
 		/*! timing mapping & offset for config files */
 		double mAniTimeScale, mAniTimeOffset;
 
-		/*! ani mesh cps params */
-		ntlVec3Gfx mvCPSStart, mvCPSEnd;
-		string mCPSFilename;
-		gfxReal mCPSWidth, mCPSTimestep;
-
-
 	public:
 
 		/* Access methods */
@@ -86,6 +80,9 @@ class ntlGeometryObjModel : public ntlGeometryObject
 		/*! Access end vector */
 		inline ntlVec3Gfx getEnd( void ){ return mvEnd; }
 		inline void setEnd( const ntlVec3Gfx &set ){ mvEnd = set; }
+
+		inline bool getLoaded( void ){ return mLoaded; }
+		inline void setLoaded( bool set ){ mLoaded = set; }
 
 		/*! set data file name */
 		inline void setFilename(string set) { mFilename = set; }

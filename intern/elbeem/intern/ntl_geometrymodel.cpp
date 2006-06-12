@@ -28,9 +28,7 @@ ntlGeometryObjModel::ntlGeometryObjModel( void ) :
 	mLoaded( false ),
 	mTriangles(), mVertices(), mNormals(),
 	mcAniVerts(), mcAniNorms(), 
-	mcAniTimes(), mAniTimeScale(1.), mAniTimeOffset(0.),
-	mvCPSStart(-10000.), mvCPSEnd(10000.),
-	mCPSFilename(""), mCPSWidth(0.1), mCPSTimestep(1.)
+	mcAniTimes(), mAniTimeScale(1.), mAniTimeOffset(0.)
 {
 }
 
@@ -51,6 +49,39 @@ bool ntlGeometryObjModel::getMeshAnimated() {
 	//errMsg("getMeshAnimated","ret="<<ret<<", size="<<mcAniVerts.getSize() );
 	return ret;
 }
+
+/*! calculate max extends of (ani) mesh */
+void ntlGeometryObjModel::getExtends(ntlVec3Gfx &sstart, ntlVec3Gfx &send) {
+	bool ini=false;
+	ntlVec3Gfx start(0.),end(0.);
+	for(int s=0; s<=(int)mcAniVerts.accessValues().size(); s++) {
+		vector<ntlVec3f> *sverts;
+		if(mcAniVerts.accessValues().size()>0) {
+			if(s==(int)mcAniVerts.accessValues().size()) continue;
+			sverts	= &(mcAniVerts.accessValues()[s].mVerts);
+		} else sverts = &mVertices;
+
+		for(int i=0; i<(int)sverts->size(); i++) {
+
+			if(!ini) {
+				start=(*sverts)[i];
+				end=(*sverts)[i];
+				//errMsg("getExtends","ini "<<s<<","<<i<<" "<<start<<","<<end);
+				ini=true;
+			} else {
+				for(int j=0; j<3; j++) {
+					if(start[j] > (*sverts)[i][j]) { start[j]= (*sverts)[i][j]; }
+					if(end[j]   < (*sverts)[i][j]) { end[j]  = (*sverts)[i][j]; }
+				}
+				//errMsg("getExtends","check "<<s<<","<<i<<" "<<start<<","<<end<<" "<< (*sverts)[i]);
+			}
+
+		}
+	}
+	sstart=start;
+	send=end;
+}
+
 
 /*****************************************************************************/
 /* Init attributes etc. of this object */
@@ -89,11 +120,6 @@ void ntlGeometryObjModel::initialize(ntlRenderGlobals *glob)
 	}
 	mAniTimeScale = mpAttrs->readFloat("ani_timescale", mAniTimeScale,"ntlGeometryObjModel", "mAniTimeScale", false);
 	mAniTimeOffset = mpAttrs->readFloat("ani_timeoffset", mAniTimeOffset,"ntlGeometryObjModel", "mAniTimeOffset", false);
-
-	mCPSWidth = mpAttrs->readFloat("cps_width", mCPSWidth,"ntlGeometryObjModel", "mCPSWidth", false);
-	mCPSTimestep = mpAttrs->readFloat("cps_timestep", mCPSTimestep,"ntlGeometryObjModel", "mCPSTimestep", false);
-	mvCPSStart = vec2G( mpAttrs->readVec3d("cps_start", vec2D(mvCPSStart),"ntlGeometryObjModel", "mvCPSStart", false));
-	mvCPSEnd = vec2G( mpAttrs->readVec3d("cps_end", vec2D(mvCPSEnd),"ntlGeometryObjModel", "mvCPSEnd", false));
 
 	// continue with standard obj
 	if(loadBobjModel(mFilename)==0) mLoaded=1;
@@ -322,7 +348,7 @@ int ntlGeometryObjModel::loadBobjModel(string filename)
 		bytesRead += gzread(gzf, &frameTime, sizeof(frameTime) );
 		//if(bytesRead!=3*sizeof(float)) {
 		if(bytesRead!=sizeof(float)) {
-			debMsgStd("ntlGeometryObjModel::loadBobjModel",DM_MSG, "File '"<<filename<<"' no ani sets. ", 10 );
+			debMsgStd("ntlGeometryObjModel::loadBobjModel",DM_MSG, "File '"<<filename<<"' end of gzfile. ", 10 );
 			if(anitimes.size()>0) {
 				// finally init channels and stop reading file
 				mcAniVerts = AnimChannel<ntlSetVec3f>(aniverts,anitimes);
@@ -428,7 +454,7 @@ ntlGeometryObjModel::getTriangles(double t, vector<ntlTriangle> *triangles,
 		(*normals)[startvert+i] = mNormals[i];
 	}
 
-	triangles->reserve(triangles->size() + mTriangles.size() );
+	triangles->reserve(triangles->size() + mTriangles.size()/3 );
 	for(int i=0; i<(int)mTriangles.size(); i+=3) {
 		int trip[3];
 		trip[0] = startvert+mTriangles[i+0];

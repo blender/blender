@@ -106,10 +106,6 @@
 #endif
 #endif
 
-#if LBM_INCLUDE_TESTSOLVERS==1
-#include "solver_test.h"
-#endif // LBM_INCLUDE_TESTSOLVERS==1
-
 /*****************************************************************************/
 /*! cell access classes */
 class UniformFsgrCellIdentifier : 
@@ -467,20 +463,6 @@ class LbmFsgrSolver :
 #		endif // FSGR_STRICT_DEBUG==1
 
 		bool mUseTestdata;
-#if LBM_INCLUDE_TESTSOLVERS==1
-		// test functions
-		LbmTestdata *mpTest;
-		void initTestdata();
-		void destroyTestdata();
-		void handleTestdata();
-		void set3dHeight(int ,int );
-
-		void initCpdata();
-		void handleCpdata();
-	public:
-		// needed for testdata
-		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat *retux, LbmFloat *retuy, LbmFloat *retuz);
-#endif // LBM_INCLUDE_TESTSOLVERS==1
 
 	public: // former LbmModelLBGK  functions
 		// relaxation funtions - implemented together with relax macros

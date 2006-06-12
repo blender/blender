@@ -44,6 +44,7 @@ LbmSolverInterface::LbmSolverInterface() :
 	mName("lbm_default") ,
 	mpIso( NULL ), mIsoValue(0.499),
 	mSilent(false) , 
+	mLbmInitId(1) ,
 	mpGiTree( NULL ),
 	mpGiObjects( NULL ), mGiObjInside(), mpGlob( NULL ),
 	mRefinementDesired(0),
@@ -284,7 +285,7 @@ void LbmSolverInterface::initGeoTree() {
 	if(mpGiTree != NULL) delete mpGiTree;
 	char treeFlag = (1<<(this->mLbmInitId+4));
 	mpGiTree = new ntlTree( 
-			15, 8,  // warning - fixed values for depth & maxtriangles here...
+			15, 8,  // TREEwarning - fixed values for depth & maxtriangles here...
 			scene, treeFlag );
 }
 
@@ -299,6 +300,7 @@ void LbmSolverInterface::freeGeoTree() {
 
 
 int globGeoInitDebug = 0;
+int globGICPIProblems = 0;
 /*****************************************************************************/
 /*! check for a certain flag type at position org */
 bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance) {
@@ -371,7 +373,8 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 					if(giObjFirstHistSide[i] !=  1) mess=true;
 				}
 				if(mess) {
-					errMsg("IIIproblem","At "<<org<<" obj "<<i<<" inside:"<<mGiObjInside[i]<<" firstside:"<<giObjFirstHistSide[i] );
+					//errMsg("IIIproblem","At "<<org<<" obj "<<i<<" inside:"<<mGiObjInside[i]<<" firstside:"<<giObjFirstHistSide[i] );
+					globGICPIProblems++;
 					mGiObjInside[i]++; // believe first hit side...
 				}
 			}

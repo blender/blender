@@ -17,7 +17,6 @@
 
 
 
-#if LBM_INCLUDE_TESTSOLVERS!=1
 
 // off for non testing
 #define PRECOLLIDE_MODS(rho,ux,uy,uz, grav) \
@@ -25,11 +24,8 @@
 	uy += (grav)[1]; \
 	uz += (grav)[2]; \
 
-#else // LBM_INCLUDE_TESTSOLVERS!=1
+#define TEST_IF_CHECK 
 
-// defined in test.h
-
-#endif // LBM_INCLUDE_TESTSOLVERS!=1
 
 	
 /******************************************************************************
@@ -1125,7 +1121,7 @@ inline void LbmFsgrSolver::collideArrays(
 	for(l=0; l<this->cDfNum; l++) { 
 		df[l] = (1.0-omegaNew ) * df[l] + omegaNew * feq[l]; 
 	}  
-	if((i==16)&&(j==10)) DEBUG_CALCPRINTCELL( "2dcoll "<<PRINT_IJK, df);
+	//if((i==16)&&(j==10)) DEBUG_CALCPRINTCELL( "2dcoll "<<PRINT_IJK, df);
 
 	mux = ux;
 	muy = uy;

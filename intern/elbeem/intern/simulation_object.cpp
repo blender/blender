@@ -96,6 +96,7 @@ void SimulationObject::copyElbeemSettings(elbeemSimulationSettings *settings) {
 	*mpElbeemSettings = *settings;
 
 	mGeoInitId = settings->domainId+1;
+	debMsgStd("SimulationObject",DM_MSG,"mGeoInitId="<<mGeoInitId<<", domainId="<<settings->domainId, 8);
 }
 
 /******************************************************************************
@@ -115,7 +116,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 
 
-	this->mGeoInitId = mpAttrs->readInt("geoinitid", this->mGeoInitId,"LbmSolverInterface", "mGeoInitId", false);
+	mGeoInitId = mpAttrs->readInt("geoinitid", mGeoInitId,"LbmSolverInterface", "mGeoInitId", false);
 	//mDimension, mSolverType are deprecated
 	string mSolverType(""); 
 	mSolverType = mpAttrs->readString("solver", mSolverType, "SimulationObject","mSolverType", false ); 
@@ -297,6 +298,7 @@ void SimulationObject::step( void )
 		// dont advance for stopped time
 		mpLbm->step();
 		mTime += mpParam->getTimestep();
+//if(mTime>0.001) { errMsg("DEBUG!!!!!!!!","quit mlsu..."); exit(1); } // PROFILE DEBUG TEST!
 	}
 	if(mpLbm->getPanic()) mPanic = true;
 

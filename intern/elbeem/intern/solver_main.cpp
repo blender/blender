@@ -294,6 +294,8 @@ LbmFsgrSolver::mainLoop(int lev)
 	int kstart=getForZMin1(), kend=getForZMax1(mMaxRefine);
 	//{ errMsg("LbmFsgrSolver::mainLoop","Err MAINADVANCE0 ks:"<< kstart<<" ke:"<<kend<<" dim:"<<LBMDIMcDimension<<" mlsz:"<< mLevel[mMaxRefine].lSizez<<" zmax1:"<<getForZMax1(mMaxRefine) ); } // DEBUG
 #define PERFORM_USQRMAXCHECK USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
+#define LIST_EMPTY(x) mListEmpty.push_back( x );
+#define LIST_FULL(x)  mListFull.push_back( x );
 #endif // PARALLEL==1
 
 	// local to loop
@@ -360,22 +362,15 @@ LbmFsgrSolver::mainLoop(int lev)
 	} // COMPRT
 
 #if PARALLEL==0
-  const int id = 0, Nthrds = 1;
-#endif // PARALLEL==1
-  const int Nj = mLevel[mMaxRefine].lSizey;
-	int jstart = 0+( id * (Nj / Nthrds) );
-	int jend   = 0+( (id+1) * (Nj / Nthrds) );
-  if( ((Nj/Nthrds) *Nthrds) != Nj) {
-    errMsg("LbmFsgrSolver","Invalid domain size Nj="<<Nj<<" Nthrds="<<Nthrds);
-  }
-	// cutoff obstacle boundary
-	if(jstart<1) jstart = 1;
-	if(jend>mLevel[mMaxRefine].lSizey-1) jend = mLevel[mMaxRefine].lSizey-1;
-
-#if PARALLEL==1
+  //const int id = 0, Nthrds = 1;
+	const int jstart = 0;
+	const int jend   = mLevel[mMaxRefine].lSizey;
+//#endif // PARALLEL==1
+#else // PARALLEL==1
 	PARA_INITIALIZE();
-	//errMsg("LbmFsgrSolver::mainLoop","id="<<id<<" js="<<jstart<<" je="<<jend<<" jdir="<<(1) ); // debug
+	errMsg("LbmFsgrSolver::mainLoop","id="<<id<<" js="<<jstart<<" je="<<jend<<" jdir="<<(1) ); // debug
 #endif // PARALLEL==1
+
   for(int k=kstart;k!=kend;k+=kdir) {
 
 	//errMsg("LbmFsgrSolver::mainLoop","k="<<k<<" ks="<<kstart<<" ke="<<kend<<" kdir="<<kdir<<" x*y="<<mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum ); // debug
@@ -459,13 +454,14 @@ LbmFsgrSolver::mainLoop(int lev)
 				changeFlag(lev, i,j,k, TSET(lev), CFInter);
 
 				// same as ifemptied for if below
-				LbmPoint emptyp; emptyp.flag = 0;
-				emptyp.x = i; emptyp.y = j; emptyp.z = k;
+				LbmPoint oemptyp; oemptyp.flag = 0;
+				oemptyp.x = i; oemptyp.y = j; oemptyp.z = k;
 #if PARALLEL==1
-				calcListEmpty[id].push_back( emptyp );
+				//calcListEmpty[id].push_back( oemptyp );
 #else // PARALLEL==1
-				mListEmpty.push_back( emptyp );
+				//mListEmpty.push_back( oemptyp );
 #endif // PARALLEL==1
+				LIST_EMPTY(oemptyp);
 				calcCellsEmptied++;
 				continue;
 			}
@@ -601,6 +597,7 @@ LbmFsgrSolver::mainLoop(int lev)
 		// for fluid cells - just the f_i difference from streaming to empty cells  ----
 		numRecons = 0;
 		bool onlyBndnb = ((!(oldFlag&CFNoBndFluid))&&(oldFlag&CFNoNbFluid)&&(nbored&CFBndNoslip));
+	//onlyBndnb = false; // DEBUG test off
 
 		FORDF1 { // dfl loop
 			recons[l] = 0;
@@ -1008,6 +1005,7 @@ LbmFsgrSolver::mainLoop(int lev)
 
 		// looks much nicer... LISTTRICK
 #if FSGR_LISTTRICK==1
+		if((oldFlag&CFNoNbEmpty)&&(newFlag&CFNoNbEmpty)) { TEST_IF_CHECK; }
 		if(newFlag&CFNoBndFluid) { // test NEW TEST
 			if(!iffilled) {
 				// remove cells independent from amount of change...
@@ -1035,10 +1033,11 @@ LbmFsgrSolver::mainLoop(int lev)
 			if(!(newFlag&CFNoBndFluid)) filledp.flag |= 1;  // NEWSURFT
 			filledp.x = i; filledp.y = j; filledp.z = k;
 #if PARALLEL==1
-			calcListFull[id].push_back( filledp );
+			//calcListFull[id].push_back( filledp );
 #else // PARALLEL==1
-			mListFull.push_back( filledp );
+			//mListFull.push_back( filledp );
 #endif // PARALLEL==1
+			LIST_FULL(filledp);
 			//this->mNumFilledCells++; // DEBUG
 			calcCellsFilled++;
 		}
@@ -1047,10 +1046,11 @@ LbmFsgrSolver::mainLoop(int lev)
 			if(!(newFlag&CFNoBndFluid)) emptyp.flag |= 1; //  NEWSURFT
 			emptyp.x = i; emptyp.y = j; emptyp.z = k;
 #if PARALLEL==1
-			calcListEmpty[id].push_back( emptyp );
+			//calcListEmpty[id].push_back( emptyp );
 #else // PARALLEL==1
-			mListEmpty.push_back( emptyp );
+			//mListEmpty.push_back( emptyp );
 #endif // PARALLEL==1
+			LIST_EMPTY(emptyp);
 			//this->mNumEmptiedCells++; // DEBUG
 			calcCellsEmptied++;
 		} 

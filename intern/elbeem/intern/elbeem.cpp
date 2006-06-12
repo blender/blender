@@ -115,32 +115,45 @@ void elbeemGetErrorString(char *buffer) {
 extern "C" 
 void elbeemResetMesh(elbeemMesh *mesh) {
 	if(!mesh) return;
+	// init typedef struct elbeemMesh
   mesh->type = 0;
-  mesh->parentDomainId = 0;
+
+	mesh->parentDomainId = 0;
+
+	/* vertices */
   mesh->numVertices = 0;
 	mesh->vertices = NULL;
+
+	mesh->channelSizeVertices = 0;
+	mesh->channelVertices = NULL;
+
+	/* triangles */
 	mesh->numTriangles = 0;
   mesh->triangles = NULL;
 
+	/* animation channels */
 	mesh->channelSizeTranslation = 0;
 	mesh->channelTranslation = NULL;
 	mesh->channelSizeRotation = 0;
 	mesh->channelRotation = NULL;
 	mesh->channelSizeScale = 0;
 	mesh->channelScale = NULL;
+
+	/* active channel */
 	mesh->channelSizeActive = 0;
 	mesh->channelActive = NULL;
+
 	mesh->channelSizeInitialVel = 0;
 	mesh->channelInitialVel = NULL;
+
 	mesh->localInivelCoords = 0;
 
 	mesh->obstacleType= FLUIDSIM_OBSTACLE_NOSLIP;
-	mesh->volumeInitType= OB_VOLUMEINIT_VOLUME;
 	mesh->obstaclePartslip= 0.;
 
-	mesh->channelSizeVertices = 0;
-	mesh->channelVertices = NULL;
+	mesh->volumeInitType= OB_VOLUMEINIT_VOLUME;
 
+	/* name of the mesh, mostly for debugging */
 	mesh->name = "[unnamed]";
 }
 

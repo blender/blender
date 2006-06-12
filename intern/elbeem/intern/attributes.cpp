@@ -472,35 +472,45 @@ bool AttributeList::ignoreParameter(string name, string source) {
 		
 // read channels
 AnimChannel<int> AttributeList::readChannelInt(string name, int defaultValue, string source, string target, bool needed) {
-	if(!exists(name)) { return AnimChannel<int>(defaultValue); } 
+	if(!exists(name)) { 
+		if(needed) { errFatal("AttributeList::readChannelInt","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
+		return AnimChannel<int>(defaultValue); } 
 	AnimChannel<int> ret = find(name)->getChannelInt(); 
 	find(name)->setUsed(true);
 	channelSimplifyi(ret);
 	return ret;
 }
 AnimChannel<double> AttributeList::readChannelFloat(string name, double defaultValue, string source, string target, bool needed ) {
-	if(!exists(name)) { return AnimChannel<double>(defaultValue); } 
+	if(!exists(name)) {
+		if(needed) { errFatal("AttributeList::readChannelFloat","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
+	 	return AnimChannel<double>(defaultValue); } 
 	AnimChannel<double> ret = find(name)->getChannelFloat(); 
 	find(name)->setUsed(true);
 	channelSimplifyd(ret);
 	return ret;
 }
 AnimChannel<ntlVec3d> AttributeList::readChannelVec3d(string name, ntlVec3d defaultValue, string source, string target, bool needed ) {
-	if(!exists(name)) { return AnimChannel<ntlVec3d>(defaultValue); } 
+	if(!exists(name)) { 
+		if(needed) { errFatal("AttributeList::readChannelVec3d","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
+		return AnimChannel<ntlVec3d>(defaultValue); } 
 	AnimChannel<ntlVec3d> ret = find(name)->getChannelVec3d(); 
 	find(name)->setUsed(true);
 	channelSimplifyVd(ret);
 	return ret;
 }
 AnimChannel<ntlSetVec3f> AttributeList::readChannelSetVec3f(string name, ntlSetVec3f defaultValue, string source, string target, bool needed) {
-	if(!exists(name)) { return AnimChannel<ntlSetVec3f>(defaultValue); } 
+	if(!exists(name)) { 
+		if(needed) { errFatal("AttributeList::readChannelSetVec3f","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
+		return AnimChannel<ntlSetVec3f>(defaultValue); } 
 	AnimChannel<ntlSetVec3f> ret = find(name)->getChannelSetVec3f(); 
 	find(name)->setUsed(true);
 	//channelSimplifyVf(ret);
 	return ret;
 }
 AnimChannel<float> AttributeList::readChannelSinglePrecFloat(string name, float defaultValue, string source, string target, bool needed ) {
-	if(!exists(name)) { return AnimChannel<float>(defaultValue); } 
+	if(!exists(name)) { 
+		if(needed) { errFatal("AttributeList::readChannelSinglePrecFloat","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
+		return AnimChannel<float>(defaultValue); } 
 	AnimChannel<double> convert = find(name)->getChannelFloat(); 
 	find(name)->setUsed(true);
 	channelSimplifyd(convert);
@@ -514,7 +524,9 @@ AnimChannel<float> AttributeList::readChannelSinglePrecFloat(string name, float 
 	return ret;
 }
 AnimChannel<ntlVec3f> AttributeList::readChannelVec3f(string name, ntlVec3f defaultValue, string source, string target, bool needed) {
-	if(!exists(name)) { return AnimChannel<ntlVec3f>(defaultValue); } 
+	if(!exists(name)) { 
+		if(needed) { errFatal("AttributeList::readChannelVec3f","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
+		return AnimChannel<ntlVec3f>(defaultValue); } 
 
 	AnimChannel<ntlVec3d> convert = find(name)->getChannelVec3d(); 
 	// convert to float
@@ -734,6 +746,19 @@ string AnimChannel<Scalar>::printChannel() {
 template<class Scalar>
 void AnimChannel<Scalar>::debugPrintChannel() {
 	if(DEBUG_CHANNELS) { errMsg("channelCons"," : " << this->printChannel() ); }
+}
+
+
+// hack to force instantiation
+void __forceAnimChannelInstantiation() {
+	AnimChannel< float > tmp1;
+	AnimChannel< double > tmp2;
+	AnimChannel< string > tmp3;
+	AnimChannel< ntlVector3Dim<float> > tmp4;
+	tmp1.debugPrintChannel();
+	tmp2.debugPrintChannel();
+	tmp3.debugPrintChannel();
+	tmp4.debugPrintChannel();
 }
 
 

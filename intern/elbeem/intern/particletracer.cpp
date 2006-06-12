@@ -154,7 +154,7 @@ void ParticleTracer::cleanup() {
  *! dump particles if desired 
  *****************************************************************************/
 void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename, double simtime) {
-	debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"obj:"<<this->getName()<<" frame:"<<frameNrStr<<" dumpp"<<mDumpParts, 10); // DEBUG
+	debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"obj:"<<this->getName()<<" frame:"<<frameNrStr<<" dumpp"<<mDumpParts<<" t"<<simtime, 10); // DEBUG
 
 	if(
 			(dumptype==DUMP_FULLGEOMETRY)&&
@@ -305,7 +305,7 @@ void ParticleTracer::checkTrails(double time) {
 /******************************************************************************
  * Get triangles for rendering
  *****************************************************************************/
-void ParticleTracer::getTriangles(double t, vector<ntlTriangle> *triangles, 
+void ParticleTracer::getTriangles(double time, vector<ntlTriangle> *triangles, 
 													 vector<ntlVec3Gfx> *vertices, 
 													 vector<ntlVec3Gfx> *normals, int objectId )
 {
@@ -326,7 +326,7 @@ void ParticleTracer::getTriangles(double t, vector<ntlTriangle> *triangles,
 	int segments = mPartSegments;
 	ntlVec3Gfx scale = ntlVec3Gfx( (mEnd[0]-mStart[0])/(mSimEnd[0]-mSimStart[0]), (mEnd[1]-mStart[1])/(mSimEnd[1]-mSimStart[1]), (mEnd[2]-mStart[2])/(mSimEnd[2]-mSimStart[2]));
 	ntlVec3Gfx trans = mStart;
-	t = 0.; // doesnt matter
+	time = 0.; // doesnt matter
 
 	for(size_t t=0; t<mPrevs.size()+1; t++) {
 		vector<ParticleObject> *dparts;

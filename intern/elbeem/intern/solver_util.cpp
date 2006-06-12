@@ -53,33 +53,60 @@ void LbmFsgrSolver::prepareVisualization( void ) {
    for(int j=1;j<mLevel[lev].lSizey-1;j++) 
     for(int i=1;i<mLevel[lev].lSizex-1;i++) {
 			const CellFlagType cflag = RFLAG(lev, i,j,k,workSet);
-			//continue; // OFF DEBUG
-			if(cflag&(CFBnd|CFEmpty)) {
+			//if(cflag&(CFBnd|CFEmpty)) {
+			if(cflag&(CFBnd)) {
 				continue;
 
-			} else if( (cflag&CFInter) ) {
-				//} else if( (cflag&CFInter) && (!(cflag&CFNoBndFluid)) && (cflag&CFNoNbFluid) ) {
-				//} else if( (cflag&CFInter) && (!(cflag&CFNoBndFluid)) ) {
+			} else if( (cflag&CFEmpty) ) {
+				//continue; // OFF DEBUG
+				int noslipbnd = 0;
+				int intercnt = 0;
+				CellFlagType nbored;
+				FORDF1 { 
+					const CellFlagType nbflag = RFLAG_NB(lev, i,j,k, workSet,l);
+					if((nbflag&CFBnd)&&(nbflag&CFBnd)&&(nbflag&CFBndNoslip)){ noslipbnd=1; }
+					if(nbflag&CFInter){ intercnt++; }
+					nbored |= nbflag;
+				}
+				//? val = (QCELL(lev, i,j,k,workSet, dFfrac)); 
+				if((noslipbnd)&&(intercnt>6)) {
+					//if(val<minval) val = minval; 
+					//*this->mpIso->lbmGetData(i,j,ZKOFF) += minval-( val * mIsoWeight[13] ); 
+					*this->mpIso->lbmGetData(i,j,ZKOFF) += minval;
+				} else if((noslipbnd)&&(intercnt>0)) {
+					*this->mpIso->lbmGetData(i,j,ZKOFF) += this->mIsoValue*0.95;
+				} else {
+				}
+				continue;
+
+			//} else if( (cflag&CFInter) ) {
+
+			} else if( (cflag&CFFluid) && (cflag&CFNoBndFluid) ) {
+				// optimized fluid
+				val = 1.;
+
+			} else if( (cflag&(CFInter|CFFluid)) ) {
 				int noslipbnd = 0;
 				FORDF1 { 
 					const CellFlagType nbflag = RFLAG_NB(lev, i,j,k, workSet,l);
 					if((nbflag&CFBnd)&&(nbflag&CFBnd)&&(CFBndNoslip)){ noslipbnd=1; l=100; } 
 				}
+				// no empty nb interface cells are treated as full
+				if(cflag&(CFNoNbEmpty|CFFluid)) {
+					val=1.0;
+				}
 				val = (QCELL(lev, i,j,k,workSet, dFfrac)); 
+				
 				if(noslipbnd) {
 					//errMsg("NEWVAL", PRINT_IJK<<" val"<<val <<" f"<< convertCellFlagType2String(cflag)<<" "<<noslipbnd); //" nbfl"<<convertCellFlagType2String(nbored) );
 					if(val<minval) val = minval; 
-					*this->mpIso->lbmGetData( i   , j    ,ZKOFF  ) += minval-( val * mIsoWeight[13] ); 
+					*this->mpIso->lbmGetData(i,j,ZKOFF) += minval-( val * mIsoWeight[13] ); 
 				}
 				// */
-				
-				// no empty nb interface cells are treated as full
-				if(cflag&CFNoNbEmpty) {
-					val=1.0;
-				}
 
-			} else { // fluid?
-				val = 1.0; 
+			} else { // unused?
+				continue;
+				// old fluid val = 1.0; 
 			} // */
 
 			*this->mpIso->lbmGetData( i-1 , j-1 ,ZKOFF-ZKD1) += ( val * mIsoWeight[0] ); 
@@ -885,10 +912,11 @@ void LbmFsgrSolver::advanceParticles() {
 }
 
 void LbmFsgrSolver::notifySolverOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) {
+	int workSet = mLevel[mMaxRefine].setCurr;
+	std::ostringstream name;
+
 	// debug - raw dump of ffrac values
 	if(getenv("ELBEEM_RAWDEBUGDUMP")) {
-		int workSet = mLevel[mMaxRefine].setCurr;
-		std::ostringstream name;
 		//name <<"fill_" << this->mStepCnt <<".dump";
 		name << outfilename<< frameNrStr <<".dump";
 		FILE *file = fopen(name.str().c_str(),"w");
@@ -898,9 +926,12 @@ void LbmFsgrSolver::notifySolverOfDump(int dumptype, int frameNr,char *frameNrSt
 				for(int j=0;j<mLevel[mMaxRefine].lSizey-0;j++)  {
 					for(int i=0;i<mLevel[mMaxRefine].lSizex-0;i++) {
 						float val = 0.;
-						if(RFLAG(mMaxRefine, i,j,k, workSet) & CFInter) val = QCELL(mMaxRefine,i,j,k, mLevel[mMaxRefine].setCurr,dFfrac);
+						if(RFLAG(mMaxRefine, i,j,k, workSet) & CFInter) {
+							val = QCELL(mMaxRefine,i,j,k, mLevel[mMaxRefine].setCurr,dFfrac);
+							if(val<0.) val=0.;
+							if(val>1.) val=1.;
+						}
 						if(RFLAG(mMaxRefine, i,j,k, workSet) & CFFluid) val = 1.;
-						//fwrite( &val, sizeof(val), 1, file); // binary
 						fprintf(file, "%f ",val); // text
 						//errMsg("W", PRINT_IJK<<" val:"<<val);
 					}
@@ -912,6 +943,27 @@ void LbmFsgrSolver::notifySolverOfDump(int dumptype, int frameNr,char *frameNrSt
 
 		} // file
 	} // */
+	if(getenv("ELBEEM_BINDEBUGDUMP")) {
+		name << outfilename<< frameNrStr <<".bdump";
+		FILE *file = fopen(name.str().c_str(),"w");
+		if(file) {
+			for(int k= getForZMinBnd(); k< getForZMaxBnd(mMaxRefine); ++k)  {
+				for(int j=0;j<mLevel[mMaxRefine].lSizey-0;j++)  {
+					for(int i=0;i<mLevel[mMaxRefine].lSizex-0;i++) {
+						float val = 0.;
+						if(RFLAG(mMaxRefine, i,j,k, workSet) & CFInter) {
+							val = QCELL(mMaxRefine,i,j,k, mLevel[mMaxRefine].setCurr,dFfrac);
+							if(val<0.) val=0.;
+							if(val>1.) val=1.;
+						}
+						if(RFLAG(mMaxRefine, i,j,k, workSet) & CFFluid) val = 1.;
+						fwrite( &val, sizeof(val), 1, file); // binary
+					}
+				}
+			}
+			fclose(file);
+		} // file
+	}
 
 	dumptype = 0; frameNr = 0; // get rid of warning
 }

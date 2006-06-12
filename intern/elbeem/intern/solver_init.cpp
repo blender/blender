@@ -411,7 +411,7 @@ LbmFsgrSolver::~LbmFsgrSolver()
 {
   if(!this->mInitDone){ debugOut("LbmFsgrSolver::LbmFsgrSolver : not inited...",0); return; }
 #if COMPRESSGRIDS==1
-	delete mLevel[mMaxRefine].mprsCells[1];
+	delete [] mLevel[mMaxRefine].mprsCells[1];
 	mLevel[mMaxRefine].mprsCells[0] = mLevel[mMaxRefine].mprsCells[1] = NULL;
 #endif // COMPRESSGRIDS==1
 
@@ -469,6 +469,12 @@ void LbmFsgrSolver::parseAttrList()
 	// FIXME check needed?
 	mFVArea   = this->mpAttrs->readFloat("fvolarea", mFVArea, "LbmFsgrSolver","mFArea", false );
 
+	// debugging - skip some time...
+	double starttimeskip = 0.;
+	starttimeskip = this->mpAttrs->readFloat("forcestarttimeskip", starttimeskip, "LbmFsgrSolver","starttimeskip", false );
+	mSimulationTime += starttimeskip;
+	if(starttimeskip>0.) debMsgStd("LbmFsgrSolver::parseStdAttrList",DM_NOTIFY,"Used starttimeskip="<<starttimeskip<<", t="<<mSimulationTime, 1);
+
 #if LBM_INCLUDE_TESTSOLVERS==1
 	mUseTestdata = 0;
 	mUseTestdata = this->mpAttrs->readBool("use_testdata", mUseTestdata,"LbmFsgrSolver", "mUseTestdata", false);
@@ -483,7 +489,7 @@ void LbmFsgrSolver::parseAttrList()
 	mUseTestdata = 0;
 	if(mFarFieldSize>=2.) mUseTestdata=1; // equiv. to test solver check
 #endif // LBM_INCLUDE_TESTSOLVERS!=1
-	if(mUseTestdata) { mMaxRefine=0; } // force fsgr off
+  if(mUseTestdata) { mMaxRefine=0; } // force fsgr off
 
 	if(mMaxRefine==0) mInitialCsmago=0.02;
 	mInitialCsmago = this->mpAttrs->readFloat("csmago", mInitialCsmago, "SimulationLbm","mInitialCsmago", false );
@@ -1184,6 +1190,7 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 						if(obj->getGeoInitType()==FGI_BNDFREE) otype = ntype = CFBnd|CFBndFreeslip;
 					}
 					break; 
+					// off */
 					/*
 				case FGI_BNDPART: rhomass = BND_FILL;
 					otype = ntype = CFBnd|CFBndPartslip;
@@ -1191,7 +1198,7 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 				case FGI_BNDFREE: rhomass = BND_FILL;
 					otype = ntype = CFBnd|CFBndFreeslip;
 					break;
-				// */
+					// off */
 				case FGI_BNDNO:   rhomass = BND_FILL;
 					otype = ntype = CFBnd|CFBndNoslip;
 					break;
@@ -1876,7 +1883,6 @@ void LbmFsgrSolver::initFreeSurfaces() {
 		mLevel[lev].setCurr ^= 1;
 	}
 	// copy back...?
-
 }
 
 /*****************************************************************************/
