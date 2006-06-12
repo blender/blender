@@ -1774,7 +1774,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						}
 					}
 					
-					if(okee("Clear size")) {
+					if(okee("Clear scale")) {
 						clear_object('s');
 					}
 				}

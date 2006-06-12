@@ -401,9 +401,9 @@ extern Object workob;
 #define OB_LOCK_ROTX	8
 #define OB_LOCK_ROTY	16
 #define OB_LOCK_ROTZ	32
-#define OB_LOCK_SIZEX	64
-#define OB_LOCK_SIZEY	128
-#define OB_LOCK_SIZEZ	256
+#define OB_LOCK_SCALEX	64
+#define OB_LOCK_SCALEY	128
+#define OB_LOCK_SCALEZ	256
 
 /* ob->softflag in DNA_object_force.h */
 

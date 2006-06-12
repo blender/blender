@@ -148,11 +148,11 @@ static void protectflag_to_drawflags(short protectflag, short *drawflags)
 	if(protectflag & OB_LOCK_ROTZ)
 		*drawflags &= ~MAN_ROT_Z;
 
-	if(protectflag & OB_LOCK_SIZEX)
+	if(protectflag & OB_LOCK_SCALEX)
 		*drawflags &= ~MAN_SCALE_X;
-	if(protectflag & OB_LOCK_SIZEY)
+	if(protectflag & OB_LOCK_SCALEY)
 		*drawflags &= ~MAN_SCALE_Y;
-	if(protectflag & OB_LOCK_SIZEZ)
+	if(protectflag & OB_LOCK_SCALEZ)
 		*drawflags &= ~MAN_SCALE_Z;
 }
 

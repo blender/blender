@@ -1051,11 +1051,11 @@ static void protectedTransBits(short protectflag, float *vec)
 
 static void protectedSizeBits(short protectflag, float *size)
 {
-	if(protectflag & OB_LOCK_SIZEX)
+	if(protectflag & OB_LOCK_SCALEX)
 		size[0]= 1.0f;
-	if(protectflag & OB_LOCK_SIZEY)
+	if(protectflag & OB_LOCK_SCALEY)
 		size[1]= 1.0f;
-	if(protectflag & OB_LOCK_SIZEZ)
+	if(protectflag & OB_LOCK_SCALEZ)
 		size[2]= 1.0f;
 }
 

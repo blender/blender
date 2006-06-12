@@ -163,6 +163,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_OBJECTPANELPARENT 	1011
 #define B_OBJECTPANEL		1012
 #define B_ARMATUREPANEL3 	1013
+#define B_OBJECTPANELSCALE 	1014
+#define B_OBJECTPANELDIMS 	1015
 
 /* *********************** */
 #define B_LAMPBUTS		1200

@@ -1175,10 +1175,10 @@ static void tb_do_transform_clearapply(void *arg, int event)
 		case 1: /* clear rotation */
 			clear_object('r');
 			break;
-		case 2: /* clear size */
+		case 2: /* clear scale */
 			clear_object('s');
 			break;
-		case 3: /* apply size/rotation */
+		case 3: /* apply scale/rotation */
 			apply_object();
 			break;
 		case 4: /* apply deformation */
@@ -1194,9 +1194,9 @@ static void tb_do_transform_clearapply(void *arg, int event)
 static TBitem tb_transform_clearapply[]= {
 {	0, "Clear Location|Alt G", 		0, NULL},
 {	0, "Clear Rotation|Alt R", 		1, NULL},
-{	0, "Clear Size|Alt S", 			2, NULL},
+{	0, "Clear Scale|Alt S", 		2, NULL},
 {	0, "SEPR", 					0, NULL},
-{	0, "Apply Size/Rotation|Ctrl A", 3, NULL},
+{	0, "Apply Scale/Rotation|Ctrl A", 3, NULL},
 {	0, "Apply Deformation|Shift Ctrl A", 4, NULL},
 {	0, "Make Duplicates Real|Shift Ctrl A", 5, NULL},
 {  -1, "", 			0, tb_do_transform_clearapply}};

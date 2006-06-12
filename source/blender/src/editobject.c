@@ -941,7 +941,7 @@ void clear_object(char mode)
 	
 	if(mode=='r') str= "Clear rotation";
 	else if(mode=='g') str= "Clear location";
-	else if(mode=='s') str= "Clear size";
+	else if(mode=='s') str= "Clear scale";
 	else if(mode=='o') str= "Clear origin";
 	else return;
 	
@@ -3331,7 +3331,7 @@ void apply_object()
 		return;
 	}
 
-	if(okee("Apply size and rotation")==0) return;
+	if(okee("Apply scale and rotation")==0) return;
 
 	base= FIRSTBASE;
 	while(base) {

@@ -1646,7 +1646,7 @@ static void do_view3d_edit_object_transformmenu(void *arg, int event)
 	case 0: /*	clear origin */
 		clear_object('o');
 		break;
-	case 1: /* clear size */
+	case 1: /* clear scale */
 		clear_object('s');
 		break;
 	case 2: /* clear rotation */
@@ -1661,7 +1661,7 @@ static void do_view3d_edit_object_transformmenu(void *arg, int event)
 	case 5: /* make duplis real */
 		make_duplilist_real();
 		break;
-	case 6: /* apply size/rotation or deformation */
+	case 6: /* apply scale/rotation or deformation */
 		apply_object();
 		break;	
 	}
@@ -1676,7 +1676,7 @@ static uiBlock *view3d_edit_object_transformmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_transformmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Size/Rotation|Ctrl A",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotation|Ctrl A",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Deformation|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Duplicates Real|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
@@ -1684,7 +1684,7 @@ static uiBlock *view3d_edit_object_transformmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Location|Alt G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Rotation|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Size|Alt S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Scale|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Origin|Alt O",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -3346,7 +3346,7 @@ static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 	case 0: /*	clear origin */
 		clear_object('o');
 		break;
-	case 1: /* clear size */
+	case 1: /* clear scale */
 		clear_object('s');
 		break;
 	case 2: /* clear rotation */
@@ -3369,7 +3369,7 @@ static uiBlock *view3d_pose_armature_transformmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Location|Alt G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Rotation|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Size|Alt S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Scale|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Origin|Alt O",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
