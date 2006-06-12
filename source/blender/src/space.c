@@ -4041,13 +4041,13 @@ static void changeimagepace(ScrArea *sa, void *spacedata)
 
 static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	SpaceImage *sima= spacedata;
 	unsigned short event= evt->event, origevent= evt->event;
 	short val= evt->val;
-	SpaceImage *sima= curarea->spacedata.first;
 	
 	if(val==0) return;
 
-	if(uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+	if(uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
 	
 	if (U.flag & USER_LMOUSESELECT) {
 		if (event == LEFTMOUSE) {
@@ -4060,8 +4060,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (sima->flag & SI_DRAWTOOL) {
 		switch(event) {
 			case CKEY:
-			       	toggle_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
-				scrarea_queue_winredraw(curarea);
+			       	toggle_blockhandler(sa, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
+				scrarea_queue_winredraw(sa);
 				break;
 			case LEFTMOUSE:
 				imagepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);
@@ -4167,8 +4167,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else {
 					if(G.qual==LR_SHIFTKEY) {
-						toggle_blockhandler(curarea, IMAGE_HANDLER_PREVIEW, 0);
-						scrarea_queue_winredraw(curarea);
+						toggle_blockhandler(sa, IMAGE_HANDLER_PREVIEW, 0);
+						scrarea_queue_winredraw(sa);
 					}
 				}
 				break;
@@ -4220,19 +4220,43 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			image_viewmove(0);
 		break;
 	case WHEELUPMOUSE: case WHEELDOWNMOUSE: case PADPLUSKEY: case PADMINUS:
-		image_viewzoom(event, 0);
-		scrarea_queue_winredraw(curarea);
+	case PAD1: case PAD2: case PAD4: case PAD8:
+		image_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
+		scrarea_queue_winredraw(sa);
 		break;
 	case HOMEKEY:
 		if((G.qual==0))
 			image_home();
+			
 		break;
 	case NKEY:
 		if(G.qual==0) {
-			toggle_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
-			scrarea_queue_winredraw(curarea);
+			toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+			scrarea_queue_winredraw(sa);
 		}
 		break;
+	case ESCKEY:
+		if(sima->flag & SI_PREVSPACE) {
+			/* only allow ESC once */
+			sima->flag &= ~SI_PREVSPACE;
+			
+			sima= sa->spacedata.first;
+			if(sima->next) {
+				SpaceLink *sl;
+				
+				BLI_remlink(&sa->spacedata, sima);
+				BLI_addtail(&sa->spacedata, sima);
+				
+				sl= sa->spacedata.first;
+				
+				newspace(sa, sl->spacetype);
+			}
+		}
+		if(sima->flag & SI_FULLWINDOW) {
+			sima->flag &= ~SI_FULLWINDOW;
+			if(sa->full)
+				area_fullscreen();
+		}
 	}
 }
 
@@ -4869,6 +4893,8 @@ void freespacelist(ScrArea *sa)
 			SpaceImage *sima= (SpaceImage *)sl;
 			if(sima->cumap)
 				curvemapping_free(sima->cumap);
+			if(sima->info_str)
+				MEM_freeN(sima->info_str);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 /*			SpaceNode *snode= (SpaceNode *)sl; */
@@ -4940,6 +4966,8 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceImage *sima= (SpaceImage *)sl;
 			if(sima->cumap)
 				sima->cumap= curvemapping_copy(sima->cumap);
+			if(sima->info_str)
+				sima->info_str= MEM_dupallocN(sima->info_str);
 		}
 		sl= sl->next;
 	}

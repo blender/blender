@@ -73,6 +73,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_writeavi.h"	/* movie handle */
 
+#include "BIF_drawimage.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_graphics.h"
@@ -126,11 +127,6 @@
 /* forces draw of alpha */
 #define RW_FLAGS_ALPHA		(1<<4)
 
-/* space for info text */
-#define RW_HEADERY		18
-
-/* header print for window */
-#define RW_MAXTEXT		512
 
 typedef struct {
 	Window *win;
@@ -889,38 +885,66 @@ static void renderwin_progress_display_cb(RenderResult *rr, volatile rcti *rect)
 
 /* -------------- callbacks for render loop: interactivity ----------------------- */
 
-
-/* callback for print info in top header of renderwin */
-static void printrenderinfo_cb(RenderStats *rs)
+/* string is RW_MAXTEXT chars min */
+void make_renderinfo_string(RenderStats *rs, char *str)
 {
 	extern char info_time_str[32];	// header_info.c
 	extern unsigned long mem_in_use, mmap_in_use;
 	static float megs_used_memory, mmap_used_memory;
-	char *spos= render_win->render_text;
-		
+	char *spos= str;
+	
 	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
 	
-	if(render_win) {
-		if(G.scene->lay & 0xFF000000)
-			spos+= sprintf(spos, "Localview | ");
-		else if(G.scene->r.scemode & R_SINGLE_LAYER)
-			spos+= sprintf(spos, "Single Layer | ");
+	if(G.scene->lay & 0xFF000000)
+		spos+= sprintf(spos, "Localview | ");
+	else if(G.scene->r.scemode & R_SINGLE_LAYER)
+		spos+= sprintf(spos, "Single Layer | ");
+	
+	if(rs->tothalo)
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory, mmap_used_memory);
+	else 
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory, mmap_used_memory);
+	
+	BLI_timestr(rs->lastframetime, info_time_str);
+	spos+= sprintf(spos, " Time:%s ", info_time_str);
+	
+	if(rs->infostr)
+		spos+= sprintf(spos, " | %s", rs->infostr);
+	
+	/* very weak... but 512 characters is quite safe... we cannot malloc during thread render */
+	if(spos >= str+RW_MAXTEXT)
+		printf("WARNING! renderwin text beyond limit \n");
+	
+	/* temporal render debug printing, needed for testing orange renders atm... will be gone soon (or option) */
+	if(G.rt==7 && rs->convertdone) {
+		char str[256];
 		
-		if(rs->tothalo)
-			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory, mmap_used_memory);
-		else 
-			spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory, mmap_used_memory);
-
-		BLI_timestr(rs->lastframetime, info_time_str);
-		spos+= sprintf(spos, " Time:%s ", info_time_str);
+		spos= str;
+		spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM)", G.scene->r.cfra, megs_used_memory, mmap_used_memory);
 		
-		if(rs->infostr)
+		if(rs->infostr) {
 			spos+= sprintf(spos, " | %s", rs->infostr);
+		}
+		else {
+			if(rs->tothalo)
+				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+			else 
+				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
+		}
+		printf(str); printf("\n");
+	}	
+	
+	
+}
+
+/* callback for print info in top header of renderwin */
+static void renderwin_renderinfo_cb(RenderStats *rs)
+{
+	
+	if(render_win) {
 		
-		/* very weak... but 512 characters is quite safe... we cannot malloc during thread render */
-		if(spos >= render_win->render_text+RW_MAXTEXT)
-			printf("WARNING! renderwin text beyond limit \n");
+		make_renderinfo_string(rs, render_win->render_text);
 		
 #ifdef __APPLE__
 #else
@@ -937,24 +961,6 @@ static void printrenderinfo_cb(RenderStats *rs)
 #endif
 	}
 
-	/* temporal render debug printing, needed for testing orange renders atm... will be gone soon (or option) */
-	if(G.rt==7 && rs->convertdone) {
-		char str[256];
-		spos= str;
-		spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM)", G.scene->r.cfra, megs_used_memory, mmap_used_memory);
-		
-		if(rs->infostr) {
-			spos+= sprintf(spos, " | %s", rs->infostr);
-		}
-		else {
-			if(rs->tothalo)
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
-			else 
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
-		}
-		printf(str); printf("\n");
-	}	
-	
 }
 
 /* -------------- callback system to allow ESC from rendering ----------------------- */
@@ -1086,17 +1092,26 @@ static void do_render(int anim)
 	G.afbreek= 0;
 
 	/* set callbacks */
-	RE_display_init_cb(re, renderwin_init_display_cb);
-	RE_display_draw_cb(re, renderwin_progress_display_cb);
-	RE_display_clear_cb(re, renderwin_clear_display_cb);
+	if(G.displaymode!=R_DISPLAYWIN) {
+		if(render_win)
+			BIF_close_render_display();
+		imagewindow_render_callbacks(re);
+	}
+	else {
+		RE_display_init_cb(re, renderwin_init_display_cb);
+		RE_display_draw_cb(re, renderwin_progress_display_cb);
+		RE_display_clear_cb(re, renderwin_clear_display_cb);
+		RE_stats_draw_cb(re, renderwin_renderinfo_cb);
+	}
 	RE_error_cb(re, error_cb);
 	init_test_break_callback();
 	RE_test_break_cb(re, test_break);
 	RE_timecursor_cb(re, set_timecursor);
-	RE_stats_draw_cb(re, printrenderinfo_cb);
 	
-	if(render_win) window_set_cursor(render_win->win, CURSOR_WAIT);
-
+	waitcursor(1);
+	if(render_win) 
+		window_set_cursor(render_win->win, CURSOR_WAIT);
+	
 	if(G.obedit)
 		exit_editmode(0);	/* 0 = no free data */
 
@@ -1380,21 +1395,26 @@ void BIF_close_render_display(void)
 void BIF_toggle_render_display(void) 
 {
 	
-	if (render_win) {
-		if(render_win->active) {
-			mainwindow_raise();
-			mainwindow_make_active();
-			render_win->active= 0;
-		}
-		else {
-			window_raise(render_win->win);
-			window_make_active(render_win->win);
-			render_win->active= 1;
-		}
-	} 
+	if (G.displaymode!=R_DISPLAYWIN) {
+		imagewindow_toggle_render();
+	}
 	else {
-		RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
-		if(rr) renderwin_init_display_cb(rr);
+		if (render_win) {
+			if(render_win->active) {
+				mainwindow_raise();
+				mainwindow_make_active();
+				render_win->active= 0;
+			}
+			else {
+				window_raise(render_win->win);
+				window_make_active(render_win->win);
+				render_win->active= 1;
+			}
+		} 
+		else {
+			RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
+			if(rr) renderwin_init_display_cb(rr);
+		}
 	}
 }
 

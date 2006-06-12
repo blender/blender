@@ -31,6 +31,7 @@
  */
 
 struct ScrArea;
+struct RenderStats;
 
 void calc_renderwin_rectangle(int rectx, int recty, int posmask, int renderpos_r[2], int rendersize_r[2]);
 
@@ -49,4 +50,13 @@ void BIF_renderwin_set_custom_cursor(unsigned char mask[16][2], unsigned char bi
 void BIF_redraw_render_rect(void);
 void BIF_swap_render_rects(void);
 void BIF_toggle_render_display(void);
+
+/* should not be here, ~WIP~ */
+void make_renderinfo_string(struct RenderStats *rs, char *str);
+
+/* space for info text */
+#define RW_HEADERY		18
+
+/* header print for window */
+#define RW_MAXTEXT		512
 

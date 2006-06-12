@@ -180,8 +180,10 @@ static int choose_cursor(ScrArea *sa)
 void wich_cursor(ScrArea *sa)
 {
 	sa->cursor= choose_cursor(sa);
-
-	screen_set_cursor(G.curscreen);
+	
+	/* well... the waitcursor() is not a state, so this call will cancel it out */
+	if(get_cursor()!=CURSOR_WAIT)
+		screen_set_cursor(G.curscreen);
 }
 
 
@@ -2215,7 +2217,12 @@ void setscreen(bScreen *sc)
 	
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
 		SpaceLink *sl;
-
+		
+		/* there's also events in queue for this, but we call fullscreen for render output
+		   now, and that doesn't go back to queue. Bad code, but doesn't hurt... (ton) */
+		scrarea_do_headchange(sa);
+		scrarea_do_winchange(sa);
+		
 		for(sl= sa->spacedata.first; sl; sl= sl->next) {
 			sl->area= sa;
 
@@ -3673,7 +3680,7 @@ int get_cursor(void) {
 }
 
 void set_cursor(int curs) {
-	if (!(G.rendering) && G.background == 0) {
+	if (G.background == 0) {
 		if (curs!=curcursor) {
 			curcursor= curs;
 			window_set_cursor(mainwin, curs);

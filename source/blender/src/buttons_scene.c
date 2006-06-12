@@ -1216,10 +1216,8 @@ static void render_panel_output(void)
 
 	uiDefButBitS(block, TOG, R_EXR_TILE_FILE, B_NOP, "Save Buffers", 72, 31, 120, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Save the tiles for all RenderLayers and used SceneNodes to files, to save memory");
 	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a separate window");
-	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
-	uiBlockEndAlign(block);
+	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
+					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
 
 	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 

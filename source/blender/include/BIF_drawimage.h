@@ -35,6 +35,7 @@
 
 struct ScrArea;
 struct SpaceImage;
+struct Render;
 
 void do_imagebuts(unsigned short event);
 void calc_image_view(struct SpaceImage *sima, char mode);
@@ -49,6 +50,9 @@ void uvco_to_areaco(float *vec, short *mval);
 void uvco_to_areaco_noclip(float *vec, int *mval);
 void what_image(struct SpaceImage *sima);
 void image_preview_event(int event);
+
+void imagewindow_render_callbacks(struct Render *re);
+void imagewindow_toggle_render(void);
 
 #endif
 

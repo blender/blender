@@ -1947,8 +1947,8 @@ static void lib_link_image(FileData *fd, Main *main)
 
 static void direct_link_image(FileData *fd, Image *ima)
 {
-	ima->ibuf= 0;
-	ima->anim= 0;
+	ima->ibuf= NULL;
+	ima->anim= NULL;
 	memset(ima->mipmap, 0, sizeof(ima->mipmap));
 	ima->repbind= 0;
 	ima->bindcode= 0;
@@ -3303,6 +3303,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sima->cumap= newdataadr(fd, sima->cumap);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
+				sima->info_str= NULL;
 			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;

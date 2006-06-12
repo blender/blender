@@ -223,11 +223,17 @@ typedef struct SpaceImage {
 	
 	struct Image *image;
 	struct CurveMapping *cumap;
-	float zoom;
 	short mode, menunr;
 	short imanr, curtile;
-	float xof, yof;
-	short flag, lock;
+	int flag;
+	short pad1, lock;
+	
+	float zoom, pad2;
+	
+	float xof, yof;			/* user defined offset, image is centered */
+	
+	float centx, centy;		/* storage for offset while render drawing */
+	char *info_str;			/* info string for render */
 } SpaceImage;
 
 typedef struct SpaceNla{
@@ -469,10 +475,12 @@ typedef struct SpaceImaSel {
 #define SI_COORDFLOATS  512
 #define SI_PIXELSNAP	1024
 #define SI_LIVE_UNWRAP	2048
-#define SI_USE_ALPHA	4096
-#define SI_SHOW_ALPHA	8192
-#define SI_SHOW_ZBUF	16384
-
+#define SI_USE_ALPHA	0x1000
+#define SI_SHOW_ALPHA	0x2000
+#define SI_SHOW_ZBUF	0x4000
+		/* next two for render window dislay */
+#define SI_PREVSPACE	0x8000
+#define SI_FULLWINDOW	0x10000
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

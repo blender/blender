@@ -351,7 +351,7 @@ PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 
 PyObject *M_Render_EnableDispView( PyObject * self )
 {
-	G.displaymode = R_DISPLAYVIEW;
+	G.displaymode = R_DISPLAYIMAGE;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
@@ -1850,7 +1850,7 @@ static int RenderData_setDisplayMode( BPy_RenderData *self,
 		PyObject *value )
 {
 	return EXPP_setIValueRange( value, &G.displaymode,
-			R_DISPLAYVIEW, R_DISPLAYWIN, 'h' );
+			R_DISPLAYIMAGE, R_DISPLAYWIN, 'h' );
 }
 
 static PyObject *RenderData_getRenderPath( BPy_RenderData * self )

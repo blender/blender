@@ -87,6 +87,7 @@
 #include "BIF_interface_icons.h"
 #include "BIF_editsima.h"
 #include "BIF_glutil.h"
+#include "BIF_renderwin.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_transform.h"
@@ -95,6 +96,9 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
+
+#include "RE_pipeline.h"
+#include "BMF_Api.h"
 
 /* Modules used */
 #include "mydevice.h"
@@ -187,9 +191,16 @@ void calc_image_view(SpaceImage *sima, char mode)
 	float zoom;
 	
 	if(image_preview_active(curarea, &xim, &yim));
-	else if(sima->image && sima->image->ibuf) {
-		xim= sima->image->ibuf->x;
-		yim= sima->image->ibuf->y;
+	else if(sima->image) {
+		if(sima->image->ibuf) {
+			xim= sima->image->ibuf->x;
+			yim= sima->image->ibuf->y;
+		}
+		else if( strcmp(sima->image->name, "Render Result")==0 ) {
+			/* not very important, just nice */
+			xim= (G.scene->r.xsch*G.scene->r.size)/100;
+			yim= (G.scene->r.ysch*G.scene->r.size)/100;
+		}
 	}
 		
 	sima->v2d.tot.xmin= 0;
@@ -229,21 +240,23 @@ void calc_image_view(SpaceImage *sima, char mode)
 	}
 }
 
+/* check for facelesect, and set active image */
 void what_image(SpaceImage *sima)
 {
 	TFace *activetf;
 	Mesh *me;
 		
 	if(sima->mode==SI_TEXTURE) {
-		if(G.f & G_FACESELECT) {
-
+		
+		if((G.f & G_FACESELECT) && G.rendering==0) {
+			
 			sima->image= 0;
 			me= get_mesh(OBACT);
 			activetf = get_active_tface();
 			
 			if(me && me->tface && activetf && activetf->mode & TF_TEX) {
 				sima->image= activetf->tpage;
-					
+				
 				if(sima->flag & SI_EDITTILE);
 				else sima->curtile= activetf->tile;
 				
@@ -252,6 +265,24 @@ void what_image(SpaceImage *sima)
 						sima->image->tpageflag |= IMA_TILES;
 					else sima->image->tpageflag &= ~IMA_TILES;
 				}
+			}
+		}
+		else if(sima->image && strcmp(sima->image->name, "Render Result")==0) {
+			RenderResult rres;
+			/* make ibuf if needed, and initialize it */
+			
+			/* allocate for each redraw, we don't want render result pointers hanging around */
+			IMB_freeImBuf(sima->image->ibuf);
+			sima->image->ibuf= NULL;
+			
+			RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+			if(rres.rectf || rres.rect32) {
+				ImBuf *ibuf= sima->image->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+				
+				ibuf->x= rres.rectx;
+				ibuf->y= rres.recty;
+				ibuf->rect= rres.rect32;
+				ibuf->rect_float= rres.rectf;
 			}
 		}
 	}
@@ -1175,6 +1206,12 @@ static void imagespace_grid(SpaceImage *sima)
 	
 	gridsize= sima->zoom;
 	
+	calc_image_view(sima, 'f');
+	myortho2(sima->v2d.cur.xmin, sima->v2d.cur.xmax, sima->v2d.cur.ymin, sima->v2d.cur.ymax);
+	
+	BIF_ThemeColorShade(TH_BACK, 20);
+	glRectf(0.0, 0.0, 1.0, 1.0);
+	
 	if(gridsize<=0.0f) return;
 	
 	if(gridsize<1.0f) {
@@ -1349,14 +1386,38 @@ static void sima_draw_zbuffloat_pixels(float x1, float y1, int rectx, int recty,
 	MEM_freeN(rectf);
 }
 
+static void imagewindow_draw_renderinfo(ScrArea *sa)
+{
+	SpaceImage *sima= sa->spacedata.first;
+	rcti rect;
+	float colf[3];
+	
+	if(sima->info_str==NULL)
+		return;
+	
+	rect= sa->winrct;
+	rect.ymin= rect.ymax-RW_HEADERY;
+	
+	glaDefine2DArea(&rect);
+	
+	/* clear header rect */
+	BIF_GetThemeColor3fv(TH_BACK, colf);
+	glClearColor(colf[0], colf[1], colf[2], 1.0); 
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	BIF_ThemeColor(TH_TEXT_HI);
+	glRasterPos2i(12, 5);
+	BMF_DrawString(G.fonts, sima->info_str);
+}
+
 void drawimagespace(ScrArea *sa, void *spacedata)
 {
 	SpaceImage *sima= spacedata;
 	ImBuf *ibuf= NULL;
 	float col[3];
 	unsigned int *rect;
-	int x1, y1;
-	short sx, sy, dx, dy;
+	float x1, y1;
+	short sx, sy, dx, dy, show_render= 0;
 	
 		/* If derived data is used then make sure that object
 		 * is up-to-date... might not be the case because updates
@@ -1374,29 +1435,30 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	bwin_clear_viewmat(sa->win);	/* clear buttons view */
 	glLoadIdentity();
 	
+	if(sima->image && strcmp(sima->image->name, "Render Result")==0 )
+		show_render= 1;
+	
 	what_image(sima);
 	
 	if(sima->image) {
 		if(sima->image->ibuf==NULL) {
 			load_image(sima->image, IB_rect, G.sce, G.scene->r.cfra);
 			scrarea_queue_headredraw(sa);	/* update header for image options */
-		}	
+		}
+		
 		tag_image_time(sima->image);
 		ibuf= sima->image->ibuf;
 	}
 	
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
-		calc_image_view(sima, 'f');
-		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-		BIF_ThemeColorShade(TH_BACK, 20);
-		glRectf(0.0, 0.0, 1.0, 1.0);
 		imagespace_grid(sima);
-		draw_tfaces();
+		if(show_render==0)
+			draw_tfaces();
 	}
 	else {
 		float xim, yim, xoffs=0.0f, yoffs= 0.0f;
 		
-		if(image_preview_active(curarea, &xim, &yim)) {
+		if(image_preview_active(sa, &xim, &yim)) {
 			xoffs= G.scene->r.disprect.xmin;
 			yoffs= G.scene->r.disprect.ymin;
 			glColor3ub(0,0,0);
@@ -1410,14 +1472,23 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		}
 		
 		/* calc location */
-		x1= sima->zoom*xoffs + (curarea->winx-sima->zoom*xim)/2;
-		y1= sima->zoom*yoffs + (curarea->winy-sima->zoom*yim)/2;
+		x1= sima->zoom*xoffs + ((float)sa->winx - sima->zoom*(float)xim)/2.0f;
+		y1= sima->zoom*yoffs + ((float)sa->winy - sima->zoom*(float)yim)/2.0f;
 	
 		x1-= sima->zoom*sima->xof;
 		y1-= sima->zoom*sima->yof;
 		
 		/* needed for gla draw */
-		glaDefine2DArea(&curarea->winrct);
+		if(show_render) { 
+			rcti rct= sa->winrct; 
+			
+			imagewindow_draw_renderinfo(sa);	/* calls glaDefine2DArea too */
+			
+			rct.ymax-=RW_HEADERY; 
+			glaDefine2DArea(&rct);
+		}
+		else glaDefine2DArea(&sa->winrct);
+		
 		glPixelZoom((float)sima->zoom, (float)sima->zoom);
 				
 		if(sima->flag & SI_EDITTILE) {
@@ -1474,7 +1545,6 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			}
 			else {
 				/* this part is generic image display */
-				
 				if(sima->flag & SI_SHOW_ALPHA) {
 					if(ibuf->rect)
 						sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
@@ -1540,9 +1610,12 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			
 			glPixelZoom(1.0, 1.0);
 			
-			draw_tfaces();
+			if(show_render==0) 
+				draw_tfaces();
 		}
-	
+
+		glPixelZoom(1.0, 1.0);
+
 		calc_image_view(sima, 'f');	/* float */
 	}
 
@@ -1551,15 +1624,18 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	mywinset(sa->win);	/* restore scissor after gla call... */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
-	draw_image_view_tool();
-	draw_image_view_icon();
+	if(show_render==0) {
+		draw_image_view_tool();
+		draw_image_view_icon();
+	}
 	draw_area_emboss(sa);
 
 	/* it is important to end a view in a transform compatible with buttons */
 	bwin_scalematrix(sa->win, sima->blockscale, sima->blockscale, sima->blockscale);
-	image_blockhandlers(sa);
+	if(!(G.rendering && show_render))
+		image_blockhandlers(sa);
 
-	curarea->win_swap= WIN_BACK_OK;
+	sa->win_swap= WIN_BACK_OK;
 }
 
 static void image_zoom_power_of_two(void)
@@ -1673,6 +1749,10 @@ void image_viewzoom(unsigned short event, int invert)
 	else if(event==PAD8)
 		sima->zoom= (invert)? 8.0: 0.125;
 	
+	/* ensure pixel exact locations for draw */
+	sima->xof= (int)sima->xof;
+	sima->yof= (int)sima->yof;
+	
 	if(image_preview_active(curarea, NULL, NULL)) {
 		/* recalculates new preview rect */
 		scrarea_do_windraw(curarea);
@@ -1695,7 +1775,7 @@ void image_home(void)
 
 	if (curarea->spacetype != SPACE_IMAGE) return;
 
-	if ((G.sima->image == 0) || (G.sima->image->ibuf == 0)) {
+	if ((G.sima->image == NULL) || (G.sima->image->ibuf == NULL)) {
 		imgwidth = 256;
 		imgheight = 256;
 	}
@@ -1717,10 +1797,10 @@ void image_home(void)
 		image_zoom_power_of_two();
 	}
 	else {
-		G.sima->zoom= (float)1;
+		G.sima->zoom= 1.0f;
 	}
 
-	G.sima->xof= G.sima->yof= 0;
+	G.sima->xof= G.sima->yof= 0.0f;
 	
 	calc_image_view(G.sima, 'p');
 	
@@ -1740,8 +1820,8 @@ void image_viewcentre(void)
 		yim= G.sima->image->ibuf->y;
 	}
 
-	G.sima->xof= ((min[0] + max[0])*0.5f - 0.5f)*xim;
-	G.sima->yof= ((min[1] + max[1])*0.5f - 0.5f)*yim;
+	G.sima->xof= (int) (((min[0] + max[0])*0.5f - 0.5f)*xim);
+	G.sima->yof= (int) (((min[1] + max[1])*0.5f - 0.5f)*yim);
 
 	d[0] = max[0] - min[0];
 	d[1] = max[1] - min[1];
@@ -1754,5 +1834,262 @@ void image_viewcentre(void)
 	calc_image_view(G.sima, 'p');
 
 	scrarea_queue_winredraw(curarea);
+}
+
+
+/* *********************** render callbacks ***************** */
+
+/* set on initialize render, only one render output to imagewindow can exist, so the global isnt dangerous yet :) */
+static ScrArea *image_area= NULL;
+
+/* can get as well the full picture, as the parts while rendering */
+static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *renrect)
+{
+	SpaceImage *sima= sa->spacedata.first;
+	float x1, y1, *rectf= NULL;
+	unsigned int *rect32= NULL;
+	int ymin, ymax, xmin, xmax;
+	
+	/* if renrect argument, we only display scanlines */
+	if(renrect) {
+		/* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
+		if(rr->renlay==NULL || renrect->ymax>=rr->recty)
+			return;
+		
+		/* xmin here is first subrect x coord, xmax defines subrect width */
+		xmin = renrect->xmin;
+		xmax = renrect->xmax - xmin;
+		if (xmax<2) return;
+		
+		ymin= renrect->ymin;
+		ymax= renrect->ymax - ymin;
+		if(ymax<2)
+			return;
+		renrect->ymin= renrect->ymax;
+	}
+	else {
+		xmin = ymin = 0;
+		xmax = rr->rectx - 2*rr->crop;
+		ymax = rr->recty - 2*rr->crop;
+	}
+	
+	/* image window cruft */
+	
+	/* find current float rect for display, first case is after composit... still weak */
+	if(rr->rectf)
+		rectf= rr->rectf;
+	else {
+		if(rr->rect32)
+			rect32= rr->rect32;
+		else {
+			if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
+			rectf= rr->renlay->rectf;
+		}
+	}
+	if(rectf) {
+		/* if scanline updates... */
+		rectf+= 4*(rr->rectx*ymin + xmin);
+		
+		/* when rendering more pixels than needed, we crop away cruft */
+		if(rr->crop)
+			rectf+= 4*(rr->crop*rr->rectx + rr->crop);
+	}
+	
+	/* tilerect defines drawing offset from (0,0) */
+	/* however, tilerect (xmin, ymin) is first pixel */
+	x1 = sima->centx + (rr->tilerect.xmin + rr->crop + xmin)*sima->zoom;
+	y1 = sima->centy + (rr->tilerect.ymin + rr->crop + ymin)*sima->zoom;
+	
+	/* needed for gla draw */
+	{ rcti rct= sa->winrct; rct.ymax-= RW_HEADERY; glaDefine2DArea(&rct);}
+
+	glPixelZoom((float)sima->zoom, (float)sima->zoom);
+	
+	if(rect32)
+		glaDrawPixelsSafe(x1, y1, xmax, ymax, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
+	else
+		glaDrawPixelsSafe(x1, y1, xmax, ymax, rr->rectx, GL_RGBA, GL_FLOAT, rectf);
+	
+	glPixelZoom(1.0, 1.0);
+	
+}
+
+
+/* in render window; display a couple of scanlines of rendered image */
+static void imagewindow_progress_display_cb(RenderResult *rr, volatile rcti *rect)
+{
+	
+	if (image_area) {
+		imagewindow_progress(image_area, rr, rect);
+		image_area->win_swap= WIN_BACK_OK;
+		screen_swapbuffers();
+	}
+}
+
+/* unused, init_display_cb is called on each render */
+static void imagewindow_clear_display_cb(RenderResult *rr)
+{
+	if (image_area) {
+	}
+}
+
+static ScrArea *biggest_area(void)
+{
+	ScrArea *sa, *big= NULL;
+	int size, maxsize= 0;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		size= sa->winx*sa->winy;
+		if(size > maxsize) {
+			maxsize= size;
+			big= sa;
+		}
+	}
+	return big;
+}
+
+
+/* if R_DISPLAYIMAGE
+      use Image Window showing Render Result
+      or: use largest Image Window
+	  else: turn largest 3d view into Image Window
+   if R_DISPSCREEN
+      make a new temp fullscreen area with Image Window
+*/
+
+static ScrArea *imagewindow_set_render_display(void)
+{
+	ScrArea *sa;
+	SpaceImage *sima;
+	
+	/* find an imagewindow showing render result */
+	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
+			sima= sa->spacedata.first;
+			
+			if(sima->image && strcmp(sima->image->name, "Render Result")==0 )
+				break;
+		}
+	}
+	if(sa==NULL) {
+		/* find an open image window */
+		for(sa=G.curscreen->areabase.first; sa; sa= sa->next)
+			if(sa->spacetype==SPACE_IMAGE)
+				break;
+		
+		if(sa==NULL) {
+			
+			/* find largest open area */
+			sa= biggest_area();
+			newspace(sa, SPACE_IMAGE);
+			sima= sa->spacedata.first;
+			
+			/* makes ESC go back to prev space */
+			sima->flag |= SI_PREVSPACE;
+		}
+	}
+	
+	sima= sa->spacedata.first;
+	
+	/* get the correct image, and scale it */
+	sima->image = (Image *)find_id("IM", "Render Result");
+	
+	if(sima->image==NULL) {
+		Image *ima= alloc_libblock(&G.main->image, ID_IM, "Render Result");
+		strcpy(ima->name, "Render Result");
+		ima->ok= 1;
+		ima->xrep= ima->yrep= 1;
+		sima->image= ima;
+	}
+	
+	if(G.displaymode==R_DISPLAYSCREEN) {
+		if(sa->full==0) {
+			sima->flag |= SI_FULLWINDOW;
+			/* fullscreen works with lousy curarea */
+			curarea= sa;
+			area_fullscreen();
+			sa= curarea;
+		}
+	}
+	
+	return sa;
+}
+
+static void imagewindow_init_display_cb(RenderResult *rr)
+{
+	
+	image_area= imagewindow_set_render_display();
+	
+	if(image_area) {
+		SpaceImage *sima= image_area->spacedata.first;
+		
+		areawinset(image_area->win);
+		
+		/* calc location using original size (tiles don't tell) */
+		sima->centx= (image_area->winx - sima->zoom*(float)rr->rectx)/2.0f;
+		sima->centy= (image_area->winy - sima->zoom*(float)rr->recty)/2.0f;
+		
+		sima->centx-= sima->zoom*sima->xof;
+		sima->centy-= sima->zoom*sima->yof;
+		
+		drawimagespace(image_area, sima);
+		if(image_area->headertype) scrarea_do_headdraw(image_area);
+		screen_swapbuffers();
+		
+		allqueue(REDRAWIMAGE, 0);	/* redraw in end */
+	}
+}
+
+/* coming from BIF_toggle_render_display() */
+void imagewindow_toggle_render(void)
+{
+	ScrArea *sa;
+	
+	/* check if any imagewindow is showing temporal render output */
+	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
+			SpaceImage *sima= sa->spacedata.first;
+			
+			if(sima->image && strcmp(sima->image->name, "Render Result")==0 )
+				if(sima->flag & (SI_PREVSPACE|SI_FULLWINDOW))
+					break;
+		}
+	}
+	if(sa) {
+		addqueue(sa->win, ESCKEY, 1);	/* also returns from fullscreen */
+	}
+	else {
+		sa= imagewindow_set_render_display();
+		scrarea_queue_headredraw(sa);
+		scrarea_queue_winredraw(sa);
+	}
+}
+
+static void imagewindow_renderinfo_cb(RenderStats *rs)
+{
+	
+	if(image_area) {
+		SpaceImage *sima= image_area->spacedata.first;
+		
+		if(sima->info_str==NULL)
+			sima->info_str= MEM_callocN(RW_MAXTEXT, "info str imagewin");
+		
+		if(rs)
+			make_renderinfo_string(rs, sima->info_str);
+
+		imagewindow_draw_renderinfo(image_area);
+		
+		image_area->win_swap= WIN_BACK_OK;
+		screen_swapbuffers();
+	}
+}
+
+
+void imagewindow_render_callbacks(Render *re)
+{
+	RE_display_init_cb(re, imagewindow_init_display_cb);
+	RE_display_draw_cb(re, imagewindow_progress_display_cb);
+	RE_display_clear_cb(re, imagewindow_clear_display_cb);
+	RE_stats_draw_cb(re, imagewindow_renderinfo_cb);	
 }
 

@@ -404,9 +404,9 @@
 #define B_MESH_X_MIRROR	0x100
 
 /* DISPLAYMODE */
-#define R_DISPLAYVIEW	0
+#define R_DISPLAYIMAGE	0
 #define R_DISPLAYWIN	1
-#define R_DISPLAYAUTO	2
+#define R_DISPLAYSCREEN	2
 
 	/* Gvp.flag and Gwp.flag */
 #define VP_COLINDEX	1
