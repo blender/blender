@@ -60,6 +60,7 @@ void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
 struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e);
 void elbeemDebugOut(char *msg);
 void fluidsimSettingsFree(struct FluidsimSettings* sb);
+void fluidsimSettingsCopy(struct FluidsimSettings* sb);
 
 
 /* readfile.c */
@@ -224,6 +225,7 @@ struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_sele
 // bobj read/write debug messages
 void elbeemDebugOut(char *msg) {}
 void fluidsimSettingsFree(struct FluidsimSettings* sb) {}
+void fluidsimSettingsCopy(struct FluidsimSettings* sb) {}
 
 /*new render funcs */
 void     externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta) {}

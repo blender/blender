@@ -48,6 +48,9 @@ struct FluidsimSettings* fluidsimSettingsNew(struct Object *srcob);
 /* frees internal data itself */
 void fluidsimSettingsFree(struct FluidsimSettings* sb);
 
+/* duplicate internal data */
+struct FluidsimSettings* fluidsimSettingsCopy(struct FluidsimSettings* sb);
+
 /* export blender geometry to fluid solver */
 void fluidsimBake(struct Object* ob);
 

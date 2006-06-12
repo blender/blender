@@ -208,6 +208,37 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	return fss;
 }
 
+/* duplicate struct, analogous to free */
+FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss)
+{
+	FluidsimSettings *dupfss;
+	Mesh *dupFsMesh = NULL;
+
+	if(!fss) return NULL;
+	dupfss = MEM_dupallocN(fss);
+
+	dupFsMesh = fss->meshSurface;
+	if(dupFsMesh) {
+		dupfss->meshSurface = MEM_dupallocN(dupFsMesh);
+		if(dupFsMesh->mvert) dupfss->meshSurface->mvert = MEM_dupallocN(dupFsMesh->mvert);
+		if(dupFsMesh->medge) dupfss->meshSurface->medge = MEM_dupallocN(dupFsMesh->medge);
+		if(dupFsMesh->mface) dupfss->meshSurface->mface = MEM_dupallocN(dupFsMesh->mface);
+	}
+
+	dupFsMesh = fss->meshBB;
+	if(dupFsMesh) {
+		dupfss->meshBB = MEM_dupallocN(dupFsMesh);
+		if(dupFsMesh->mvert) dupfss->meshBB->mvert = MEM_dupallocN(dupFsMesh->mvert);
+		if(dupFsMesh->medge) dupfss->meshBB->medge = MEM_dupallocN(dupFsMesh->medge);
+		if(dupFsMesh->mface) dupfss->meshBB->mface = MEM_dupallocN(dupFsMesh->mface);
+	}
+
+	if(fss->meshSurfNormals) dupfss->meshSurfNormals = MEM_dupallocN(fss->meshSurfNormals);
+
+	return dupfss;
+}
+
+
 /* free struct */
 void fluidsimSettingsFree(FluidsimSettings *fss)
 {
