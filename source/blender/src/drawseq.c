@@ -258,7 +258,7 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	float fsofs, feofs_sofs, sound_width, wavemulti; /* for faster access in the loop */
 	
 	audio_makestream(seq->sound);
-	if(seq->sound->stream==NULL) return;	
+	if(seq->sound==NULL || seq->sound->stream==NULL) return;	
 	
 	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
 	
