@@ -89,7 +89,7 @@ static int imagepaint_init(IMG_BrushPtr **brush, IMG_CanvasPtr **canvas, IMG_Can
 	ImagePaintTool *tool= &Gip.tool[Gip.current];
 
 	/* verify that we can paint */
-	if(!G.sima->image || !G.sima->image->ibuf)
+	if(!G.sima->image || !G.sima->image->ibuf || !G.sima->image->ibuf->rect)
 		return 0;
 	else if(G.sima->image->packedfile) {
 		error("Painting in packed images not supported");
