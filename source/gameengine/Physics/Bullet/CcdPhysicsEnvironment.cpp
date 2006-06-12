@@ -503,6 +503,10 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
+	//don't simulate without timesubsteps
+	if (m_numTimeSubSteps<1)
+		return true;
+
 	//printf("proceedDeltaTime\n");
 	
 
