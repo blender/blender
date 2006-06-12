@@ -942,9 +942,11 @@ static short extrudeflag_edge(short flag, float *nor)
 	EditEdge *eed, *nexted;
 	EditFace *efa, *nextfa;
 	short del_old= 0;
-	ModifierData *md= G.obedit->modifiers.first;
+	ModifierData *md;
 	
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
+
+	md = G.obedit->modifiers.first;
 	
 	/* selected edges with 0 or 1 selected face become faces */
 	/* selected faces generate new faces */
@@ -1177,9 +1179,11 @@ short extrudeflag_vert(short flag, float *nor)
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditFace *efa, *efa2, *nextvl;
 	short sel=0, del_old= 0, is_face_sel=0;
-	ModifierData *md= G.obedit->modifiers.first;
+	ModifierData *md;
 
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
+
+	md = G.obedit->modifiers.first;
 
 	/* clear vert flag f1, we use this to detect a loose selected vertice */
 	eve= em->verts.first;
