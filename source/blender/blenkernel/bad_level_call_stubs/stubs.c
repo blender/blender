@@ -114,9 +114,12 @@ float BPY_pydriver_eval(struct IpoDriver *driver)
 {
 	return 0;
 }
-
 /* depsgraph.c: */
 struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver)
+{
+	return 0;
+}
+int BPY_button_eval(char *expr, double *value)
 {
 	return 0;
 }

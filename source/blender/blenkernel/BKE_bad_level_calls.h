@@ -71,6 +71,8 @@ void BPY_free_screen_spacehandlers (struct bScreen *sc);
 struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
 float BPY_pydriver_eval(struct IpoDriver *driver);
 void BPY_pydriver_update(void);
+/* button python evaluation */
+int BPY_button_eval(char *expr, double *value);
 
 /* writefile.c */
 struct Oops;

@@ -85,6 +85,8 @@ extern "C" {
 	float BPY_pydriver_eval(struct IpoDriver *driver);
 	struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
 
+	int BPY_button_eval(char *expr, double *value);
+
 /* format importer hook */
 	int BPY_call_importloader( char *name );
 

@@ -99,6 +99,8 @@
 
 #include "BSE_view.h"
 
+#include "BPY_extern.h" /* for BPY_button_eval */
+
 #include "mydevice.h"
 #include "interface.h"
 #include "blendef.h"
@@ -2007,7 +2009,7 @@ static int ui_act_as_text_but(uiBut *but)
 	min= but->min;
 	max= but->max;
 	but->min= 0.0;
-	but->max= 15.0;
+	but->max= UI_MAX_DRAW_STR - 1; /* for py strings evaluation */
 	temp= but->type;
 	but->type= TEX;
 	textleft= but->flag & UI_TEXT_LEFT;
@@ -2024,8 +2026,15 @@ static int ui_act_as_text_but(uiBut *but)
 	but->max= max;
 	if(textleft==0) but->flag &= ~UI_TEXT_LEFT;
 
-	if( but->pointype==FLO ) value= atof(str);
-	else value= atoi(str);
+	if(str[0] == '#') {
+		if(BPY_button_eval(str+1, &value)) { /* str+1 to skip the # sign */
+			error("Invalid Python expression, check console");
+			retval = 0; /* invalidate return value if eval failed */
+		}
+	}
+	else value = atof(str);
+
+	if(but->pointype!=FLO) value= (int)value;
 
 	if(value<min) value= min;
 	if(value>max) value= max;

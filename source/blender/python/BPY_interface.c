@@ -1144,6 +1144,74 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	return result;
 }
 
+/* Button Python Evaluation */
+
+/* Python evaluation for gui buttons:
+ *	users can write any valid Python expression (that evals to an int or float)
+ *	inside Blender's gui number buttons and have them evaluated to their
+ *	actual int or float value.
+ *
+ *	The global dict used for pydrivers is also used here, so all imported
+ *	modules for pydrivers (including the pydrivers.py Blender text) are
+ *	available for button py eval, too. */
+
+static int bpy_button_eval_error(char *expr) {
+
+	if (bpy_pydriver_oblist)
+		bpy_pydriver_freeList();
+
+	if (bpy_pydriver_Dict) { /* free the persistent global dict */
+		/* it's the same dict used by pydrivers */
+		PyDict_Clear(bpy_pydriver_Dict);
+		Py_DECREF(bpy_pydriver_Dict);
+		bpy_pydriver_Dict = NULL;
+	}
+
+	fprintf(stderr, "\nError in button evaluation:\nThis is the failed Python expression:\n'%s'\n\n", expr);
+
+	PyErr_Print();
+
+	return -1;
+}
+
+int BPY_button_eval(char *expr, double *value)
+{
+	PyObject *retval, *floatval;
+
+	if (!value || !expr || expr[0]=='\0') return -1;
+
+	*value = 0.0; /* default value */
+
+	if (!bpy_pydriver_Dict) {
+		if (bpy_pydriver_create_dict() != 0) {
+			fprintf(stderr,
+				"Button Python Eval error: couldn't create Python dictionary");
+			return -1;
+		}
+	}
+
+	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict,
+		bpy_pydriver_Dict);
+
+	if (retval == NULL) {
+		return bpy_button_eval_error(expr);
+	}
+	else {
+		floatval = PyNumber_Float(retval);
+		Py_DECREF(retval);
+	}
+
+	if (floatval == NULL) 
+		return bpy_button_eval_error(expr);
+	else {
+		*value = (float)PyFloat_AsDouble(floatval);
+		Py_DECREF(floatval);
+	}
+
+	return 0; /* successful exit */
+}
+
+
 /*****************************************************************************/
 /* ScriptLinks                                                        */
 /*****************************************************************************/
