@@ -268,21 +268,19 @@ void what_image(SpaceImage *sima)
 			}
 		}
 		else if(sima->image && strcmp(sima->image->name, "Render Result")==0) {
-			RenderResult rres;
-			/* make ibuf if needed, and initialize it */
-			
-			/* allocate for each redraw, we don't want render result pointers hanging around */
-			IMB_freeImBuf(sima->image->ibuf);
-			sima->image->ibuf= NULL;
-			
-			RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-			if(rres.rectf || rres.rect32) {
-				ImBuf *ibuf= sima->image->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+			if(sima->image->ibuf==NULL) {
+				RenderResult rres;
 				
-				ibuf->x= rres.rectx;
-				ibuf->y= rres.recty;
-				ibuf->rect= rres.rect32;
-				ibuf->rect_float= rres.rectf;
+				/* make ibuf if needed, and initialize it */
+				RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+				if(rres.rectf || rres.rect32) {
+					ImBuf *ibuf= sima->image->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+					
+					ibuf->x= rres.rectx;
+					ibuf->y= rres.recty;
+					ibuf->rect= rres.rect32;
+					ibuf->rect_float= rres.rectf;
+				}
 			}
 		}
 	}
@@ -1624,7 +1622,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	mywinset(sa->win);	/* restore scissor after gla call... */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
-	if(show_render==0) {
+	if(G.rendering==0) {
 		draw_image_view_tool();
 		draw_image_view_icon();
 	}
@@ -2001,6 +1999,9 @@ static ScrArea *imagewindow_set_render_display(void)
 		ima->xrep= ima->yrep= 1;
 		sima->image= ima;
 	}
+	
+	IMB_freeImBuf(sima->image->ibuf);
+	sima->image->ibuf= NULL;
 	
 	if(G.displaymode==R_DISPLAYSCREEN) {
 		if(sa->full==0) {
