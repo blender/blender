@@ -38,7 +38,11 @@
 #include <string.h>
 
 #ifdef WIN32
-#include <shlobj.h> /* SHGetSpecialFolderPath, has to be done before BLI_winstuff for some reasons... */
+#include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
+#endif
+#include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
 #include "BLI_winstuff.h"
 #include <process.h> /* getpid */
 #else
@@ -530,9 +534,10 @@ static void readBlog(void)
 
 		/* Adding Desktop and My Documents */
 		fsmenu_append_seperator();
-		SHGetFolderPath(0, CSIDL_PERSONAL,NULL, 0, folder);
+
+		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
 		fsmenu_insert_entry(folder, 0);
-		SHGetFolderPath(0, CSIDL_DESKTOPDIRECTORY,NULL, 0, folder);
+		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
 		fsmenu_insert_entry(folder, 0);
 
 		fsmenu_append_seperator();
