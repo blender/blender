@@ -40,8 +40,6 @@ import shutil
 import glob
 import re
 
-print sys.version_info
-
 import tools.Blender
 import tools.btools
 import tools.bcolors
