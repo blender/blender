@@ -96,13 +96,12 @@ install: package
 	@[ ! -d $(CONFIG_GUESS)/text ] || \
 	    cp -f $(CONFIG_GUESS)/text/*.txt $(DISTDIR)
 #on OS X the contents of the .blender dir is already inside the bundle
-ifneq ($(OS), darwin)
+    ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
 		cp -r $(OCGDIR)/bin/.blender $(DISTDIR)
 	cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(CONFDIR)
 	cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(CONFDIR)
-endif
-
+    endif
 	@echo "----> Copy blender$(EXT0) executable"
     ifeq ($(TYPE),-static)
 	@cp $(OCGDIR)/bin/blenderstatic$(EXT0) $(DISTDIR)/blender$(EXT0)
@@ -129,13 +128,12 @@ ifneq ($(NOPLUGINS),true)
              $(DISTDIR)/plugins/*/*.o
 
 #on OS X the plugins move to the installation directory
-        ifneq ($(OS),darwin)
-            @mkdir -p $(CONFDIR)/plugins/sequence
-            @mkdir -p $(CONFDIR)/plugins/texture
-
-            @mv $(DISTDIR)/plugins/sequence/*.so $(CONFDIR)/plugins/sequence
-            @mv $(DISTDIR)/plugins/texture/*.so $(CONFDIR)/plugins/texture
-     endif
+    ifneq ($(OS),darwin)
+	@mkdir -p $(CONFDIR)/plugins/sequence
+	@mkdir -p $(CONFDIR)/plugins/texture
+	@mv $(DISTDIR)/plugins/sequence/*.so $(CONFDIR)/plugins/sequence
+	@mv $(DISTDIR)/plugins/texture/*.so $(CONFDIR)/plugins/texture
+    endif
 endif
 
 	@echo "----> Copy python infrastructure"
