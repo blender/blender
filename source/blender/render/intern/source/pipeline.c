@@ -1208,7 +1208,8 @@ void RE_TileProcessor(Render *re, int firsttile)
 	//if(re->r.mode & R_THREADS) 
 	//	threaded_tile_processor(re);
 	//else
-		render_tile_processor(re, firsttile);	
+		render_tile_processor(re, firsttile);
+		
 }
 
 
@@ -1226,6 +1227,12 @@ static void do_render_3d(Render *re)
 	   RE_Database_FromScene(re, re->scene, 1);
 	
 	threaded_tile_processor(re);
+	
+	/* do left-over 3d post effects (flares) */
+	if(re->flag & R_HALO)
+		if(!re->test_break())
+			add_halo_flare(re);
+
 	
 	/* free all render verts etc */
 	RE_Database_Free(re);

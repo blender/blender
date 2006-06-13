@@ -3302,38 +3302,33 @@ void zbufshade_tile(RenderPart *pa)
 
 /* ------------------------------------------------------------------------ */
 
-static void renderhalo(HaloRen *har)	/* postprocess version */
+static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* postprocess version */
 {
-#if 0
 	float dist, xsq, ysq, xn, yn, colf[4], *rectft, *rtf;
-	int *rectt, *rt;
 	int minx, maxx, miny, maxy, x, y;
-	char col[4];
 
 	har->miny= miny= har->ys - har->rad/R.ycor;
 	har->maxy= maxy= har->ys + har->rad/R.ycor;
 
 	if(maxy<0);
-	else if(R.recty<miny);
+	else if(rr->recty<miny);
 	else {
 		minx= floor(har->xs-har->rad);
 		maxx= ceil(har->xs+har->rad);
 			
 		if(maxx<0);
-		else if(R.rectx<minx);
+		else if(rr->rectx<minx);
 		else {
 		
 			if(minx<0) minx= 0;
-			if(maxx>=R.rectx) maxx= R.rectx-1;
+			if(maxx>=rr->rectx) maxx= rr->rectx-1;
 			if(miny<0) miny= 0;
-			if(maxy>R.recty) maxy= R.recty;
+			if(maxy>rr->recty) maxy= rr->recty;
 	
-			rectt= R.rectot+ R.rectx*miny;
-			rectft= R.rectftot+ 4*R.rectx*miny;
+			rectft= rectf+ 4*rr->rectx*miny;
 
 			for(y=miny; y<maxy; y++) {
 	
-				rt= rectt+minx;
 				rtf= rectft+4*minx;
 				
 				yn= (y - har->ys)*R.ycor;
@@ -3346,28 +3341,21 @@ static void renderhalo(HaloRen *har)	/* postprocess version */
 					if(dist<har->radsq) {
 						
 						shadeHaloFloat(har, colf, 0x7FFFFF, dist, xn, yn, har->flarec);
-						if(R.rectftot) addalphaAddfacFloat(rtf, colf, har->add);
-						else {
-							std_floatcol_to_charcol(colf, col);
-							addalphaAddfac((char *)rt, col, har->add);
-						}
+						addalphaAddfacFloat(rtf, colf, har->add);
 					}
-					rt++;
 					rtf+=4;
 				}
 	
-				rectt+= R.rectx;
-				rectft+= 4*R.rectx;
+				rectft+= 4*rr->rectx;
 				
 				if(R.test_break()) break; 
 			}
 		}
 	}
-#endif
 } 
 /* ------------------------------------------------------------------------ */
 
-static void renderflare(HaloRen *har)
+static void renderflare(RenderResult *rr, float *rectf, HaloRen *har)
 {
 	extern float hashvectf[];
 	HaloRen fla;
@@ -3396,7 +3384,7 @@ static void renderflare(HaloRen *har)
 	
 	har->alfa= alfa*visifac;
 
-	renderhalo(har);
+	renderhalo_post(rr, rectf, har);
 	
 	/* next halo's: the flares */
 	rc= hashvectf + ma->seed2;
@@ -3434,31 +3422,36 @@ static void renderflare(HaloRen *har)
 		}
 		if(type & 1) fla.type= HA_FLARECIRC;
 		else fla.type= 0;
-		renderhalo(&fla);
+		renderhalo_post(rr, rectf, &fla);
 
 		fla.alfa*= 0.5;
 		if(type & 2) fla.type= HA_FLARECIRC;
 		else fla.type= 0;
-		renderhalo(&fla);
+		renderhalo_post(rr, rectf, &fla);
 		
 		rc+= 7;
 	}
 }
 
-/* needs recode... integrate this! */
-void add_halo_flare(void)
+/* needs recode... integrate this better! */
+void add_halo_flare(Render *re)
 {
+	RenderResult *rr= re->result;
+	RenderLayer *rl;
 	HaloRen *har = NULL;
-	int a, mode;
+	int a, mode, do_draw=0;
+	
+	/* for now, we get the first renderlayer in list with halos set */
+	for(rl= rr->layers.first; rl; rl= rl->next)
+		if(rl->layflag & SCE_LAY_HALO)
+			break;
+
+	if(rl==NULL || rl->rectf==NULL)
+		return;
 	
 	mode= R.r.mode;
 	R.r.mode &= ~R_PANORAMA;
-//	R.xstart= -R.afmx; 
-//	R.ystart= -R.afmy;
-//	R.xend= R.xstart+R.rectx-1;
-//	R.yend= R.ystart+R.recty-1;
-
-//	RE_setwindowclip(1,-1); /*  no jit:(-1) */
+	
 	project_renderdata(&R, projectverto, 0, 0);
 	
 	for(a=0; a<R.tothalo; a++) {
@@ -3466,10 +3459,17 @@ void add_halo_flare(void)
 		else har++;
 		
 		if(har->flarec) {
-			renderflare(har);
+			do_draw= 1;
+			renderflare(rr, rl->rectf, har);
 		}
 	}
 
+	if(do_draw) {
+		/* weak... the display callback wants an active renderlayer pointer... */
+		rr->renlay= rl;
+		re->display_draw(rr, NULL);
+	}
+	
 	R.r.mode= mode;	
 }
 

@@ -77,7 +77,7 @@ typedef struct PixStrMain
 void	calc_view_vector(float *view, float x, float y);
 float   mistfactor(float zcor, float *co);	/* dist and height, return alpha */
 
-void	add_halo_flare(void);
+void	add_halo_flare(Render *re);
 
 void	shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3);
 
