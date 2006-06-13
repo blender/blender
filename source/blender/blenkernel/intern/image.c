@@ -431,6 +431,7 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	else if ELEM(imtype, R_JPEG90, R_MOVIE) {
 		if(quality < 10) quality= 90;
 		ibuf->ftype= JPG|quality;
+		if(ibuf->depth==32) ibuf->depth= 24;	/* unsupported feature only confuses other s/w */
 	}
 	else ibuf->ftype= TGA;
 	
