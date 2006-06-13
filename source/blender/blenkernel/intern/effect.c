@@ -1869,11 +1869,11 @@ void build_particle_system(Object *ob)
 					foweights[curface] += remainder;
 					maxw= (paf->end-paf->sta)/foweights[curface];
 				}
-				
+
 				if(foweights[curface]==0.0f)
 					break;	/* WARN skips here out of particle generating */
 				else {
-					if(foweights[curface] > 1.0f)
+					if(foweights[curface] >= 1.0f)		/* note the >= here, this because of the < 1.0f above, it otherwise will stick to 1 face forever */
 						foweights[curface] -= 1.0f;
 					
 					curjit= (int) foweights[curface];
