@@ -2035,7 +2035,7 @@ void do_viewbuts(unsigned short event)
 		
 			if (ob->size[axis] != ob_scale[axis]) {
 				if (link_scale) {
-					if (ob->size[axis] > 0.0) {
+					if (fabs(ob->size[axis]) > FLT_EPSILON) {
 						ratio = ob_scale[axis] / ob->size[axis];
 						ob->size[0] *= ratio;
 						ob->size[1] *= ratio;
