@@ -196,7 +196,7 @@ void calc_image_view(SpaceImage *sima, char mode)
 			xim= sima->image->ibuf->x;
 			yim= sima->image->ibuf->y;
 		}
-		else if( strcmp(sima->image->name, "Render Result")==0 ) {
+		else if( BLI_streq(sima->image->name, "Render Result") ) {
 			/* not very important, just nice */
 			xim= (G.scene->r.xsch*G.scene->r.size)/100;
 			yim= (G.scene->r.ysch*G.scene->r.size)/100;
@@ -248,9 +248,25 @@ void what_image(SpaceImage *sima)
 		
 	if(sima->mode==SI_TEXTURE) {
 		
-		if((G.f & G_FACESELECT) && G.rendering==0) {
+		if(sima->image && BLI_streq(sima->image->name, "Render Result")) {
+			if(sima->image->ibuf==NULL) {
+				RenderResult rres;
+				
+				/* make ibuf if needed, and initialize it */
+				RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+				if(rres.rectf || rres.rect32) {
+					ImBuf *ibuf= sima->image->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+					
+					ibuf->x= rres.rectx;
+					ibuf->y= rres.recty;
+					ibuf->rect= rres.rect32;
+					ibuf->rect_float= rres.rectf;
+				}
+			}
+		}
+		else if((G.f & G_FACESELECT)) {
 			
-			sima->image= 0;
+			sima->image= NULL;
 			me= get_mesh(OBACT);
 			activetf = get_active_tface();
 			
@@ -267,22 +283,7 @@ void what_image(SpaceImage *sima)
 				}
 			}
 		}
-		else if(sima->image && strcmp(sima->image->name, "Render Result")==0) {
-			if(sima->image->ibuf==NULL) {
-				RenderResult rres;
-				
-				/* make ibuf if needed, and initialize it */
-				RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-				if(rres.rectf || rres.rect32) {
-					ImBuf *ibuf= sima->image->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
-					
-					ibuf->x= rres.rectx;
-					ibuf->y= rres.recty;
-					ibuf->rect= rres.rect32;
-					ibuf->rect_float= rres.rectf;
-				}
-			}
-		}
+		
 	}
 }
 
@@ -1400,7 +1401,7 @@ static void imagewindow_draw_renderinfo(ScrArea *sa)
 	
 	/* clear header rect */
 	BIF_GetThemeColor3fv(TH_BACK, colf);
-	glClearColor(colf[0], colf[1], colf[2], 1.0); 
+	glClearColor(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f, 1.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	BIF_ThemeColor(TH_TEXT_HI);
@@ -1433,7 +1434,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	bwin_clear_viewmat(sa->win);	/* clear buttons view */
 	glLoadIdentity();
 	
-	if(sima->image && strcmp(sima->image->name, "Render Result")==0 )
+	if(sima->image && BLI_streq(sima->image->name, "Render Result") )
 		show_render= 1;
 	
 	what_image(sima);
@@ -1931,6 +1932,23 @@ static void imagewindow_clear_display_cb(RenderResult *rr)
 	}
 }
 
+static ScrArea *biggest_non_image_area(void)
+{
+	ScrArea *sa, *big= NULL;
+	int size, maxsize= 0;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype!=SPACE_IMAGE) {
+			size= sa->winx*sa->winy;
+			if(sa->winx > 10 && sa->winy > 10 && size > maxsize) {
+				maxsize= size;
+				big= sa;
+			}
+		}
+	}
+	return big;
+}
+
 static ScrArea *biggest_area(void)
 {
 	ScrArea *sa, *big= NULL;
@@ -1949,8 +1967,8 @@ static ScrArea *biggest_area(void)
 
 /* if R_DISPLAYIMAGE
       use Image Window showing Render Result
-      or: use largest Image Window
-	  else: turn largest 3d view into Image Window
+	  else: turn largest non-image area into Image Window (not to frustrate texture or composite usage)
+	  else: then we use Image Window anyway...
    if R_DISPSCREEN
       make a new temp fullscreen area with Image Window
 */
@@ -1965,25 +1983,30 @@ static ScrArea *imagewindow_set_render_display(void)
 		if(sa->spacetype==SPACE_IMAGE) {
 			sima= sa->spacedata.first;
 			
-			if(sima->image && strcmp(sima->image->name, "Render Result")==0 )
+			if(sima->image && BLI_streq(sima->image->name, "Render Result") )
 				break;
 		}
 	}
 	if(sa==NULL) {
-		/* find an open image window */
-		for(sa=G.curscreen->areabase.first; sa; sa= sa->next)
-			if(sa->spacetype==SPACE_IMAGE)
-				break;
-		
-		if(sa==NULL) {
-			
-			/* find largest open area */
-			sa= biggest_area();
+		/* find largest open non-image area */
+		sa= biggest_non_image_area();
+		if(sa) {
 			newspace(sa, SPACE_IMAGE);
 			sima= sa->spacedata.first;
 			
 			/* makes ESC go back to prev space */
 			sima->flag |= SI_PREVSPACE;
+		}
+		else {
+			/* use any area of decent size */
+			sa= biggest_area();
+			if(sa->spacetype!=SPACE_IMAGE) {
+				newspace(sa, SPACE_IMAGE);
+				sima= sa->spacedata.first;
+				
+				/* makes ESC go back to prev space */
+				sima->flag |= SI_PREVSPACE;
+			}
 		}
 	}
 	
@@ -1999,6 +2022,8 @@ static ScrArea *imagewindow_set_render_display(void)
 		ima->xrep= ima->yrep= 1;
 		sima->image= ima;
 	}
+	else if(sima->image->id.us==0)	/* well... happens on reload, dunno yet what todo, imagewindow cannot be user when hidden*/
+		sima->image->id.us= 1;
 	
 	IMB_freeImBuf(sima->image->ibuf);
 	sima->image->ibuf= NULL;
@@ -2051,7 +2076,7 @@ void imagewindow_toggle_render(void)
 		if(sa->spacetype==SPACE_IMAGE) {
 			SpaceImage *sima= sa->spacedata.first;
 			
-			if(sima->image && strcmp(sima->image->name, "Render Result")==0 )
+			if(sima->image && BLI_streq(sima->image->name, "Render Result") )
 				if(sima->flag & (SI_PREVSPACE|SI_FULLWINDOW))
 					break;
 		}
