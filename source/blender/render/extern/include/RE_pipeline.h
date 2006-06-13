@@ -167,6 +167,10 @@ void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 
+/* ancient stars function... go away! */
+void RE_make_stars(struct Render *re, void (*initfunc)(void),
+				   void (*vertexfunc)(float*),  void (*termfunc)(void));
+
 /* display and event callbacks */
 void RE_display_init_cb	(struct Render *re, void (*f)(RenderResult *rr));
 void RE_display_clear_cb(struct Render *re, void (*f)(RenderResult *rr));

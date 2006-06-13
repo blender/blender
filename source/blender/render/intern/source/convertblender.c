@@ -116,6 +116,171 @@
 static short test_for_displace(Render *re, Object *ob);
 static void do_displacement(Render *re, Object *ob, int startface, int numface, int startvert, int numvert );
 
+
+
+/* ------------------------------------------------------------------------- */
+
+/* Stuff for stars. This sits here because it uses gl-things. Part of
+this code may move down to the converter.  */
+/* ------------------------------------------------------------------------- */
+/* this is a bad beast, since it is misused by the 3d view drawing as well. */
+
+static HaloRen *initstar(Render *re, float *vec, float hasize)
+{
+	HaloRen *har;
+	float hoco[4];
+	
+	projectverto(vec, re->winmat, hoco);
+	
+	har= RE_findOrAddHalo(re, re->tothalo++);
+	
+	/* projectvert is done in function zbufvlaggen again, because of parts */
+	VECCOPY(har->co, vec);
+	har->hasize= hasize;
+	
+	har->zd= 0.0;
+	
+	return har;
+}
+
+/* there must be a 'fixed' amount of stars generated between
+*         near and far
+* all stars must by preference lie on the far and solely
+*        differ in clarity/color
+*/
+
+void RE_make_stars(Render *re, void (*initfunc)(void),
+				   void (*vertexfunc)(float*),  void (*termfunc)(void))
+{
+	extern unsigned char hash[512];
+	World *wrld= NULL;
+	HaloRen *har;
+	Camera * camera;
+	double dblrand, hlfrand;
+	float vec[4], fx, fy, fz;
+	float fac, starmindist, clipend;
+	float mat[4][4], stargrid, maxrand, maxjit, force, alpha;
+	int x, y, z, sx, sy, sz, ex, ey, ez, done = 0;
+	
+	if(initfunc) wrld= G.scene->world;
+	else wrld= &(re->wrld);
+	
+	stargrid = wrld->stardist;			/* distance between stars */
+	maxrand = 2.0;						/* amount a star can be shifted (in grid units) */
+	maxjit = (wrld->starcolnoise);		/* amount a color is being shifted */
+	
+	/* size of stars */
+	force = ( wrld->starsize );
+	
+	/* minimal free space (starting at camera) */
+	starmindist= wrld->starmindist;
+	
+	if (stargrid <= 0.10) return;
+	
+	if (re) re->flag |= R_HALO;
+	else stargrid *= 1.0;				/* then it draws fewer */
+	
+	if(re) MTC_Mat4Invert(mat, re->viewmat);
+	
+	/* BOUNDING BOX CALCULATION
+		* bbox goes from z = loc_near_var | loc_far_var,
+		* x = -z | +z,
+		* y = -z | +z
+		*/
+	
+	camera = G.scene->camera->data;
+	clipend = camera->clipend;
+	
+	/* convert to grid coordinates */
+	
+	sx = ((mat[3][0] - clipend) / stargrid) - maxrand;
+	sy = ((mat[3][1] - clipend) / stargrid) - maxrand;
+	sz = ((mat[3][2] - clipend) / stargrid) - maxrand;
+	
+	ex = ((mat[3][0] + clipend) / stargrid) + maxrand;
+	ey = ((mat[3][1] + clipend) / stargrid) + maxrand;
+	ez = ((mat[3][2] + clipend) / stargrid) + maxrand;
+	
+	dblrand = maxrand * stargrid;
+	hlfrand = 2.0 * dblrand;
+	
+	if (initfunc) {
+		initfunc();	
+	}
+	
+	for (x = sx, fx = sx * stargrid; x <= ex; x++, fx += stargrid) {
+		for (y = sy, fy = sy * stargrid; y <= ey ; y++, fy += stargrid) {
+			for (z = sz, fz = sz * stargrid; z <= ez; z++, fz += stargrid) {
+				
+				BLI_srand((hash[z & 0xff] << 24) + (hash[y & 0xff] << 16) + (hash[x & 0xff] << 8));
+				vec[0] = fx + (hlfrand * BLI_drand()) - dblrand;
+				vec[1] = fy + (hlfrand * BLI_drand()) - dblrand;
+				vec[2] = fz + (hlfrand * BLI_drand()) - dblrand;
+				vec[3] = 1.0;
+				
+				if (vertexfunc) {
+					if(done & 1) vertexfunc(vec);
+					done++;
+				}
+				else {
+					MTC_Mat4MulVecfl(re->viewmat, vec);
+					
+					/* in vec are global coordinates
+					* calculate distance to camera
+					* and using that, define the alpha
+					*/
+					
+					{
+						float tx, ty, tz;
+						
+						tx = vec[0];
+						ty = vec[1];
+						tz = vec[2];
+						
+						alpha = sqrt(tx * tx + ty * ty + tz * tz);
+						
+						if (alpha >= clipend) alpha = 0.0;
+						else if (alpha <= starmindist) alpha = 0.0;
+						else if (alpha <= 2.0 * starmindist) {
+							alpha = (alpha - starmindist) / starmindist;
+						} else {
+							alpha -= 2.0 * starmindist;
+							alpha /= (clipend - 2.0 * starmindist);
+							alpha = 1.0 - alpha;
+						}
+					}
+					
+					
+					if (alpha != 0.0) {
+						fac = force * BLI_drand();
+						
+						har = initstar(re, vec, fac);
+						
+						if (har) {
+							har->alfa = sqrt(sqrt(alpha));
+							har->add= 255;
+							har->r = har->g = har->b = 1.0;
+							if (maxjit) {
+								har->r += ((maxjit * BLI_drand()) ) - maxjit;
+								har->g += ((maxjit * BLI_drand()) ) - maxjit;
+								har->b += ((maxjit * BLI_drand()) ) - maxjit;
+							}
+							har->hard = 32;
+							har->lay= -1;
+							har->type |= HA_ONLYSKY;
+							done++;
+						}
+					}
+				}
+			}
+			/* do not call blender_test_break() here, since it is used in UI as well, confusing the callback system */
+			/* main cause is G.afbreek of course, a global again... (ton) */
+		}
+	}
+	if (termfunc) termfunc();
+}
+
+
 /* ------------------------------------------------------------------------- */
 /* tool functions/defines for ad hoc simplification and possible future 
    cleanup      */
@@ -3159,6 +3324,10 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		set_fullsample_flag(re);
 		check_non_flat_quads(re);
 		set_normalflags(re);
+		
+		if(!re->test_break())
+			if(re->wrld.mode & WO_STARS) 
+				RE_make_stars(re, NULL, NULL, NULL);
 		
 		re->i.infostr= "Creating Shadowbuffers";
 		re->stats_draw(&re->i);

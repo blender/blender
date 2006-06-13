@@ -140,26 +140,23 @@
 
 /* locals */
 void drawname(Object *ob);
-void star_stuff_init_func(void);
-void star_stuff_vertex_func(float* i);
-void star_stuff_term_func(void);
 
-void star_stuff_init_func(void)
+static void star_stuff_init_func(void)
 {
 	cpack(-1);
 	glPointSize(1.0);
 	glBegin(GL_POINTS);
 }
-void star_stuff_vertex_func(float* i)
+static void star_stuff_vertex_func(float* i)
 {
 	glVertex3fv(i);
 }
-void star_stuff_term_func(void)
+static void star_stuff_term_func(void)
 {
 	glEnd();
 }
 
-void setalpha_bgpic(BGpic *bgpic)
+static void setalpha_bgpic(BGpic *bgpic)
 {
 	int x, y, alph;
 	char *rect;
@@ -2708,8 +2705,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		if(v3d->persp==2) {
 			if(G.scene->world) {
 				if(G.scene->world->mode & WO_STARS) {
-//					RE_make_stars(star_stuff_init_func, star_stuff_vertex_func,
-//								  star_stuff_term_func);
+					RE_make_stars(NULL, star_stuff_init_func, star_stuff_vertex_func,
+								  star_stuff_term_func);
 				}
 			}
 			if(v3d->flag & V3D_DISPBGPIC) draw_bgpic();

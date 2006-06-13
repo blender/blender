@@ -39,7 +39,6 @@ struct rcti;
 struct ScrArea;
 struct ImBuf;
 
-void setalpha_bgpic(struct BGpic *bgpic);
 void default_gl_light(void);
 void init_gl_stuff(void);
 void circf(float x, float y, float rad);
