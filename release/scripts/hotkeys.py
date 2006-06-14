@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "12/18/2005"
+__version__ = "28/05/2006"
 
 __bpydoc__ = """\
 This script is a reference about all hotkeys and mouse actions in Blender.
@@ -22,7 +22,7 @@ Open the script from the Help menu and select group of keys to browse.
 
 Notes:<br>
     Additional entries in the database (c) 2004 by Bart.
-    Additional entries in the database for blender 2.37 (c) 2005 by jms.
+    Additional entries in the database for blender 2.37 --> 2.42 (c) 2005/06 by jms.
     
 """
 
@@ -83,10 +83,14 @@ hotkeys={
 ['TAB', 'Edit Mode and Numerical Edit (see N key) : move to next input value'],
 ['TAB', 'Sequencer: Edit meta strip'],
 ['TAB', 'IPO: Edit selected'],
+['TAB', 'Text Editor : indent'],
+['Shift-TAB', 'Text Editor : unindent'],
 ['Ctrl-TAB', 'ARMATURE : Enter/exit Pose Mode'],
-['Shift-TAB', 'EDIT MODE : Enter Object Mode'],
+['Ctrl-TAB','MESH : all views, enter exit weight paint mode.'],
+['Shift-TAB', 'Edit Mode : Enter Object Mode'],
 ['Ctrl-Open menu /', ''],
-['Ctrl-Load Image', 'Opens a thumbnail browser instead of file browser for images']
+['Ctrl-Load Image', 'Opens a thumbnail browser instead of file browser for images'],
+['.', '...']
 ],
 
 'Mouse ':[
@@ -118,7 +122,8 @@ hotkeys={
 ['Drag+Shift', 'Fine adjustment (Transform Widget : first select the axe or axes with LBM alone)'],
 ['LMB', 'Confirm transformation'],
 ['MMB', 'Toggle optional transform feature'],
-['RMB', 'Abort transformation']
+['RMB', 'Abort transformation'],
+['.', '...']
 ],
 
 'F-Keys ':[
@@ -126,9 +131,9 @@ hotkeys={
 ['Shift-F1', 'Library Data Select'],
 ['F2', 'Save File'],
 ['Shift-F2', 'Export DXF'],
-['Ctrl-F2', 'Save/export in VRML 1.0 format' ],
+['Ctrl-F2', 'Save/export in vrml 1.0 format' ],
 ['F3', 'Save image'],
-['Ctrl-F3', 'Save image : dump 3D view'],
+['Ctrl-F3', 'Save image : dump 3d view'],
 ['Ctrl-Shift-F3', 'Save image : dump screen'],
 ['F4', 'Logic Window (may change)'],
 ['Shift-F4', 'Object manager Data Select '],
@@ -152,7 +157,8 @@ hotkeys={
 ['Ctrl-F12', 'Render animation'],
 ['Ctrl-Shift-F12', 'NLA Editor'],
 ['Shift-F12', 'Action Editor'],
-['Shift-F12', 'Action Editor']
+['Shift-F12', 'Action Editor'],
+['.', '...']
 ],
 
 'Numbers ':[
@@ -165,6 +171,7 @@ hotkeys={
 ['Crtl-Shift-ALT-3', 'Edit Mode & Face Mode : Triangle faces'],
 ['Crtl-Shift-ALT-4', 'Edit Mode & Face Mode : Quad faces'],
 ['Crtl-Shift-ALT-5', 'Edit Mode & Face Mode : Non quad or triangle faces'],
+['.', '...']
 ],
 
 'Numpad ':[
@@ -196,7 +203,8 @@ hotkeys={
 ['Numpad 6', 'Rotate view right'],
 ['ctrl-Shift-Numpad 6', 'Next Screen'],
 ['Numpad 8', 'Rotate view up'],
-['Numpad 2', 'Rotate view down']
+['Numpad 2', 'Rotate view down'],
+['.', '...']
 ],
 
 'Arrows ':[
@@ -222,10 +230,11 @@ hotkeys={
 ['Alt-Up', 'Blender in Fullscreen mode'],
 ['Ctrl-Left', 'Previous screen'],
 ['Ctrl-Right', 'Next screen'],
-['Ctrl-Alt-C', 'Object Mode : Add  Constraint'],	
+['Ctrl-Alt-C', 'Object Mode : Add  Constraint'],
 ['Ctrl-Down', 'Maximize window toggle'],
 ['Ctrl-Up', 'Maximize window toggle'],
-['Shift-Arrow', 'Toggle first frame/ last frame']
+['Shift-Arrow', 'Toggle first frame/ last frame'],
+['.', '...']
 ],
 
 'Letters ':[ 
@@ -239,14 +248,16 @@ hotkeys={
 ['Shift-A', '3D-View: Add menu'],
 ['Shift-ALT-A', 'Play animation in all windows'],
 ['Shift-CTRL-A', 'Apply lattice / Make dupliverts real'],
-['Shift-CTRL-A', 'Apply Deform ']
+['Shift-CTRL-A', 'Apply Deform '],
+['.', '...']
 ],
 
 "B":[ 
 ['B', 'Border select'],
 ['BB', 'Circle select'],
-['Alt+B', 'Object Mode: Select visible view section in 3D space'],
-['Shift-B', 'Set render border (in active camera view)']
+['Alt+B', 'Object Mode: Select visiblme view section in 3D space'],
+['Shift-B', 'Set render border (in active camera view)'],
+['.', '...']
 ],
 
 "C":[ 
@@ -256,18 +267,24 @@ hotkeys={
 ['C', 'IPO: Snap current frame to selected key'],
 ['C', 'TimeLine: Center View'],	
 ['Alt-C', 'Object Mode: Convert menu'],
-['Alt-C', 'Text Editor: Copy selection to clipboard'],
+['Alt-C', 'Text Editor: Copy '],
+['Ctrl-Shift-C', 'Text Editor: Copy selection to clipboard'],
 ['Ctrl-C', 'Copy menu (Copy properties of active to selected objects)'],
 ['Ctrl-C', 'UV Image Editor: Stick UVs to mesh vertex'],
+['Ctrl-C','ARMATURE : posemode, Copy pose attributes'],
+['Ctrl+Alt-C',' ARMATURE : posemode, add constraint to new empty object.'],
 ['Shift-C', 'Center and zoom view on selected objects'],
-['Shift-C', 'UV Image Editor: Stick local UVs to mesh vertex']
+['Shift-C', 'UV Image Editor: Stick local UVs to mesh vertex'],
+['.', '...']
 ],
 
 "D":[  
 ['D', 'Set 3d draw mode'],
 ['Alt-D', 'Object Mode: Create new instance of object'],
 ['Ctrl-D', 'Display alpha of image texture as wire'],
-['Shift-D', 'Create full copy of object']
+['Ctrl-D', 'Text Editor : uncomment'],
+['Shift-D', 'Create full copy of object'],
+['.', '...']
 ],
 
 "E":[ 
@@ -290,7 +307,8 @@ hotkeys={
 ['Ctrl-E', 'Edit Mode: Edge Specials menu, Rotate Edge CCW'],
 ['Ctrl-E', 'Edit Mode: Edge Specials menu, Loop Cut'],
 ['Ctrl-E', 'Edit Mode: Edge Specials menu, Edge Slide'],
-['Shift-E', 'Edit Mode: SubSurf Edge Sharpness']
+['Shift-E', 'Edit Mode: SubSurf Edge Sharpness'],
+['.', '...']
 ],
 
 "F":[ 
@@ -298,19 +316,30 @@ hotkeys={
 ['F', 'Sequencer: Set Filter Y'],
 ['F', 'Object Mode: UV/Face Select mode'],
 ['Alt-F', 'Edit Mode: Beautify fill'],
+['Alt-F,','Text editor : find again '],
+['Alt-Ctrl-F,','Text editor : find '],
 ['Ctrl-F', 'Object Mode: Sort faces in Z direction'],
 ['Ctrl-F', 'Edit Mode: Flip triangle edges'],
 ['Shift-F', 'Edit Mode: Fill with triangles'],
-['Shift-F', 'Object Mode: active camera in fly mode (use LMB, RMB, Alt, Ctrl and Space too)']
+['Shift-F', 'Object Mode: active camera in fly mode (use LMB, RMB, Alt, Ctrl and Space too)'],
+['.', '...']
 ],
 
 "G":[ 
 ['G', 'Grab (move)'],
-['Alt-G', 'Clear location'],
-['Shift-ALT-G', 'Remove selected objects from group'],
+['Alt-G', 'Clear location (this does only make sense in Object mode)'],
+['Shift-ALT-G', 'Object mode: Remove selected objects from group'],
 ['Ctrl-G', 'Add selected objects to group'],
 ['Ctrl-Alt-G', 'MANIPULATOR (transform widget): set in Grab Mode'],
-['Shift-G', 'Selected Group menu']
+['Shift-G', 'Object mode: Selected Group menu'],
+['Shift-G', 'Object mode: Selected Group menu 1, Children'],
+['Shift-G', 'Object mode: Selected Group menu 2, Immediate Children'],
+['Shift-G', 'Object mode: Selected Group menu 3, Parent'],
+['Shift-G', 'Object mode: Selected Group menu 4, Sibling'],
+['Shift-G', 'Object mode: Selected Group menu 5, Object of same type'],
+['Shift-G', 'Object mode: Selected Group menu 6, Object in same shared layers'],
+['Shift-G', 'Object mode: Selected Group menu 7, Objects in same group'],
+['.', '...']
 ],
 
 "H":[ 
@@ -322,20 +351,26 @@ hotkeys={
 ['Shift-H', 'Curves: Automatic handle calculation'],
 ['Shift-H', 'Action editor: Handle type auto'],	
 ['Shift-H', 'Edit Mode : Hide deselected  vertices/faces'],
-['Ctrl-H', 'Edit Mode : Add a hook on selected points or show the hook menu .']
+['Ctrl-H', 'Edit Mode : Add a hook on selected points or show the hook menu .'],
+['.', '...']
 ],
 
 "I":[ 
-['I', 'Keyframe menu']
+['I', 'Keyframe menu'],
+['Alt-I','ARMATURE : posemode, remove IK constraints.'],
+['Ctrl-I','ARMATURE : add IK constraint'],
+['.', '...']
 ],
 
 "J":[ 
 ['J', 'IPO: Join menu'],
-['J', 'Mesh: Join all adjacent triangles to quads'],	
+['J', 'Mesh: Join all adjacent triangles to quads'],  
 ['J', 'Render Window: Swap render buffer'],
+['Alt-J,','Text editor : Jump '],
 ['Ctrl-J', 'Join selected objects'],
 ['Ctrl-J', 'Nurbs: Add segment'],
 ['Ctrl-J', 'IPO: Join keyframes menu'],
+['.', '...']
 ],
 
 "K":[  
@@ -347,7 +382,8 @@ hotkeys={
 ['Shift-K', 'Show and select all keyframes for object'],
 ['Shift-K', 'Edit Mode: Knife Mode select'],
 ['Shift-K', 'UV Face Select: Clear vertex colours'],
-['Shift-K', 'Vertex Paint: Fill with vertex colours']
+['Shift-K', 'Vertex Paint: Fill with vertex colours'],
+['.', '...']
 ],
 
 "L":[ 
@@ -356,7 +392,8 @@ hotkeys={
 ['L', 'OOPS window: Select linked objects'],
 ['L', 'UV Face Select: Select linked faces'],
 ['Ctrl-L', 'Make links menu (for instance : to scene...)'],
-['Shift-L', 'Select links menu']
+['Shift-L', 'Select links menu'],
+['.', '...']
 ],
 
 "M":[ 
@@ -368,38 +405,50 @@ hotkeys={
 ['Alt-M', 'Edit Mode: Merge vertices menu'],
 ['Alt-M', 'Video Sequence Editor : Separate Meta strip...'],	
 ['Ctrl-M', 'Object Mode: Mirros Axis menu'],
-['Ctrl-M', 'TimeLine: Name marker']	
+['Ctrl-M', 'TimeLine: Name marker'],
+['.', '...']
 ],
 
 "N":[ 
 ['N', 'Transform Properties panel'] ,
 ['N', 'OOPS window: Rename object/linked objects'] ,
+['Alt-N', 'Text Editor : New text '],
 ['Ctrl-N', 'Armature: Recalculate bone roll angles'] ,
 ['Ctrl-N', 'Edit Mode: Recalculate normals to outside'] ,
-['Ctrl-Shift-N', 'Edit Mode: Recalculate normals to inside'] ],
+['Ctrl-Shift-N', 'Edit Mode: Recalculate normals to inside'],
+['.', '...']
+],
 
 "O":[ 
 ['O', 'Edit Mode/UV Image Editor: Toggle proportional vertex editing'],
 ['Alt-O', 'Clear object origin'],
+['Alt-O', 'Edit mode, 3dview with prop-edit-mode, enables/disables connected'],
+['Alt-O', 'Text Editor : Open file '],
 ['Ctrl-O', 'Revert current file to last saved'],
 ['Shift-O', 'Proportional vertex Edit Mode: Toggle smooth/steep falloff'],
 ['Shift-O', 'Object Mode: Add a subsurf modifier to the selected mesh'],
+['.', '...']
 ],
 
 "P":[ 
 ['P', 'Object Mode: Start realtime engine'],
 ['P', 'Edit mode: Seperate vertices to new object'],
 ['shift-P', 'Edit mode: Push-Pull'],
-['shift-P', 'Object mode: Add a preview window in the 3D window'],
+['shift-P', 'Object mode: Add a preview window in the D window'],
 ['P', 'UV Image Editor: Pin UVs'],
 ['Alt-P', 'Clear parent relationship'],
 ['Alt-P', 'UV Image Editor: Unpin UVs'],
+['Alt-P', 'Text Editor : Run current script '],
 ['Ctrl-P', 'Make active object parent of selected object'],
-['Ctrl-SHIFT-P', 'Make active object parent of selected object without inverse'],
-['Ctrl-P', 'Edit mode: Make active vertex parent of selected object']
+['Ctrl-Shift-P', 'Make active object parent of selected object without inverse'],
+['Ctrl-P', 'Edit mode: Make active vertex parent of selected object'],
+['Ctrl-P', 'ARMATURE : editmode, make bone parent.'],
+['.', '...']
 ],
 
-"Q":[['Q', 'Quit'] ],
+"Q":[['Q', 'Quit'],
+     ['.', '...']
+     ],
 
 "R":[ 
 ['R', 'Rotate'],
@@ -412,10 +461,13 @@ hotkeys={
 ['RZ', 'Rotate around Z axis'],
 ['RZZ', "Rotate around object's local Z axis"],
 ['Alt-R', 'Clear object rotation'],
+['Alt-R', 'Text editor : reopen text.'],
 ['Ctrl-R', 'Edit Mode: Knife, cut selected edges, accept left mouse/ cancel right mouse'],
 ['Ctrl-Alt-R', 'MANIPULATOR (transform widget): set in Rotate Mode'],
 ['Shift-R', 'Edit Mode: select Face Loop'],
-['Shift-R', 'Nurbs: Select row'] ],
+['Shift-R', 'Nurbs: Select row'],
+['.', '...']
+],
 
 "S":[ 
 ['S', 'Scale'] ,
@@ -427,12 +479,17 @@ hotkeys={
 ['SYY', 'Flip around Y axis and show axis'] ,
 ['SZZ', 'Flip around Z axis and show axis'] ,
 ['Alt-S', 'Edit mode: Shrink/fatten (Scale along vertex normals)'] ,
+['Alt-S', 'Text Editor : Save the current text to file '],
+['Alt-S',' ARMATURE : posemode editmode: Scale envalope.'],
 ['Ctrl-Shift-S', 'Edit mode: To Sphere'] ,
 ['Ctrl-Alt-Shift-S', 'Edit mode: Shear'] ,
 ['Alt-S', 'Clear object size'] ,
 ['Ctrl-S', 'Edit mode: Shear'] ,
+['Alt-Shift-S,','Text editor : Select the line '],
 ['Ctrl-Alt-G', 'MANIPULATOR (transform widget): set in Size Mode'],
-['Shift-S', 'Cursor/Grid snap menu'] ],
+['Shift-S', 'Cursor/Grid snap menu'],
+['.', '...']
+],
 
 "T":[ 
 ['T', 'Sequencer: Touch and print selected movies'] ,
@@ -443,7 +500,9 @@ hotkeys={
 ['Alt-T', 'Clear tracking of object'] ,
 ['Ctrl-T', 'Make selected object track active object'] ,
 ['Ctrl-T', 'Edit Mode: Convert to triangles'] ,
-['Ctrl-ALT-T', 'Benchmark'] ],
+['Ctrl-ALT-T', 'Benchmark'],
+['.', '...']
+],
 
 "U":[ 
 ['U', 'Make single user menu (for import completly linked object to another scene  for instance) '] ,
@@ -452,18 +511,28 @@ hotkeys={
 ['U', 'Vertex-/Weightpaint mode: Undo'] ,
 ['Ctrl-U', 'Save current state as user default'],
 ['Shift-U', 'Edit Mode: Redo Menu'],
-['Alt-U', 'Edit Mode & Object Mode: Undo Menu']],
+['Alt-U', 'Edit Mode & Object Mode: Undo Menu'],
+['.', '...']
+],
 
 "V":[ 
 ['V', 'Curves/Nurbs: Vector handle'],
 ['V', 'Edit Mode : Rip selected vertices'],
 ['V', 'Vertexpaint mode'],
 ['V', 'UV Image Editor: Stitch UVs'],
+['Ctrl-V',' UV Image Editor:  maximize stretch.'],
 ['V', 'Action editor: Vector'],
 ['Alt-V', "Scale object to match image texture's aspect ratio"],
+['Alt-V', 'Text Editor : Paste '],
+['Alt-Shift-V', 'Text Editor : View menu'],
+['Alt-Shift-V', 'Text Editor : View menu 1, Top of the file '],
+['Alt-Shift-V', 'Text Editor : View menu 2, Bottom of the file '],
+['Alt-Shift-V', 'Text Editor : View menu 3, PageUp'],
+['Alt-Shift-V', 'Text Editor : View menu 4, PageDown'],
+['Ctrl-Shift-V', 'Text Editor: Paste from clipboard'],
 ['Shift-V', 'Edit mode: Align view to selected vertices'],
 ['Shift-V', 'UV Image Editor: Limited Stitch UVs popup'],
-	
+['.', '...']  
 ],
 
 "W":[ 
@@ -499,28 +568,34 @@ hotkeys={
 ['WY', 'UV Image Editor: Weld/Align Y axis'],
 ['Ctrl-W', 'Save current file'] ,
 ['Shift-W', 'Warp/bend selected vertices around cursor'],
-['alt-W', 'Export in videoscape format']
+['alt-W', 'Export in videoscape format'],
+['.', '...']
  ],
 
 "X":[ 
 ['X', 'Delete menu'] ,
 ['X', 'TimeLine: Remove marker'],
-['Ctrl-X', 'Restore default state (Erase all)']
-	
+['Alt-X', 'Text Editor : Cut '],
+['Ctrl-X', 'Restore default state (Erase all)'],
+['.', '...']
  ],
 
 "Y":[ 
 ['Y', 'Edit Mode & Mesh : Split selected vertices/faces from the rest'],
 ['Ctrl-Y', 'Object Mode : Redo'],
+['.', '...']
 ],
 
 "Z":[ 
 ['Z', 'Render Window: 200% zoom from mouse position'],
 ['Z', 'Switch 3d draw type : solide/ wireframe (see also D)'],
 ['Alt-Z', 'Switch 3d draw type : solid / textured (see also D)'],
+['Alt-Z,','Text editor : undo '],
 ['Ctrl-Z', 'Object Mode : Undo'],
+['Ctrl-Z,','Text editor : undo '],
+['Ctrl-Shift-Z,','Text editor : Redo '],
 ['Shift-Z', 'Switch 3d draw type : shaded / wireframe (see also D)'],
-
+['.', '...']
 ]}]}
 
 up=128

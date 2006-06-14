@@ -781,6 +781,8 @@ int blenderqread(unsigned short event, short val)
 			int a;
 			double delta, stime;
 
+			if (event < 0) return 0; /* cancelled by user */
+
 			waitcursor(1);
 			
 			stime= PIL_check_seconds_timer();
