@@ -265,6 +265,8 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 		// sce->r.mode |= G.scene->r.mode & R_THREADS;
 		/* this flag tells render to not execute depsgraph or ipos etc */
 		sce->r.scemode |= R_PREVIEWBUTS;
+		/* set world always back, is used now */
+		sce->world= pr_main->world.first;
 		
 		if(id_type==ID_MA) {
 			Material *mat= (Material *)id;

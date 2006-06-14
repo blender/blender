@@ -245,9 +245,9 @@ typedef struct Material {
 #define MAP_LAYER		16384
 
 /* pr_type */
-#define MA_SPHERE		0
-#define MA_CUBE			1
-#define MA_FLAT			2
+#define MA_FLAT			0
+#define MA_SPHERE		1
+#define MA_CUBE			2
 #define MA_MONKEY		3
 #define MA_SPHERE_A		4
 #define MA_TEXTURE		5
