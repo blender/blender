@@ -217,6 +217,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Mesh.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\meshPrimitive.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Metaball.c
 # End Source File
 # Begin Source File
@@ -450,6 +454,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\matrix.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Mesh.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\meshPrimitive.h
 # End Source File
 # Begin Source File
 
