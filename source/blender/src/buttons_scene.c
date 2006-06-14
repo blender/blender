@@ -344,7 +344,7 @@ static void sound_panel_sequencer(void)
 	uiDefButBitS(block, TOG, AUDIO_MUTE, 0, "Mute",	xco,yco,235,24, &G.scene->audio.flag, 0, 0, 0, 0, "Mute audio from sequencer");		
 	
 	yco -= 35;
-	uiDefBut(block, BUT, B_SOUND_MIXDOWN, "MIXDOWN",	xco,yco,235,24, 0, 0, 0, 0, 0, "Create WAV file from sequenced audio");
+	uiDefBut(block, BUT, B_SOUND_MIXDOWN, "MIXDOWN",	xco,yco,235,24, 0, 0, 0, 0, 0, "Create WAV file from sequenced audio (output goes to render output dir)");
 	
 }
 

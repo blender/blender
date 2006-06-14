@@ -131,9 +131,9 @@ static void do_sound_ipos(Sequence * seq)
 
 void audio_mixdown()
 {
-	int file, c, totlen, totframe, i, oldcfra, cfra2=0;
+	int file, c, totlen, totframe, i, oldcfra;
 	char *buf;
-	Editing *ed;
+	Editing *ed= G.scene->ed;
 
 	buf = MEM_mallocN(65536, "audio_mixdown");
 	makewavstring(buf);
@@ -145,12 +145,20 @@ void audio_mixdown()
 		error("Can't open output file");
 		return;
 	}
+	
+	waitcursor(1);
+	
+	printf("Saving: %s ", buf);
 
 	strcpy(buf, "RIFFlengWAVEfmt fmln01ccRATEbsecBP16dataDLEN");
 	totframe = (EFRA - SFRA + 1);
 	totlen = (int) ( ((float)totframe / (float)G.scene->r.frs_sec) * (float)G.scene->audio.mixrate * 4.0);
-	printf("totlen %x\n", totlen);
+	printf(" totlen %d\n", totlen+36+8);
+	
+	totlen+= 36;	/* len is filesize-8 in WAV spec, total header is 44 bytes */
 	memcpy(buf+4, &totlen, 4);
+	totlen-= 36;
+	
 	buf[16] = 0x10; buf[17] = buf[18] = buf[19] = 0; buf[20] = 1; buf[21] = 0;
 	buf[22] = 2; buf[23]= 0;
 	memcpy(buf+24, &G.scene->audio.mixrate, 4);
@@ -165,7 +173,7 @@ void audio_mixdown()
 		
 		/* length */
 		SWITCH_INT(buf[4]);
-
+		
 		/* audio rate */
 		SWITCH_INT(buf[24]);
 
@@ -180,29 +188,34 @@ void audio_mixdown()
 	
 	oldcfra = CFRA;
 	audiostream_play(SFRA, 0, 1);
-	for (CFRA = SFRA, i = 0; (CFRA<=EFRA); 
-	     CFRA=(int) ( ((float)(audio_pos-64)
-			   /( G.scene->audio.mixrate*4 ))
-			  *(float)G.scene->r.frs_sec )) {
-		if (cfra2 != CFRA) {
-			cfra2 = CFRA;
-			set_timecursor(CFRA);
-		}
+	
+	i= 0;
+	while ( totlen > 0 ) {
+		totlen -= 64;
+		
 		memset(buf+i, 0, 64);
-		ed= G.scene->ed;
+		
 		if (ed) {
+			/* retrieve current frame for ipos */
+			CFRA=(int) ( ((float)(audio_pos-64)/( G.scene->audio.mixrate*4 ))*(float)G.scene->r.frs_sec );
+			
 			do_sound_ipos(ed->seqbasep->first);
-		}		
+		}
+		
 		audio_fill(buf+i, NULL, 64);
 		if (G.order == B_ENDIAN) {
-			swab(buf+i, buf+i, 64);
+			char tbuf[64];
+			memcpy(tbuf, buf+i, 64);
+			swab(tbuf, buf+i, 64);
 		}
 		if (i == (65536-64)) {
 			i=0;
 			write(file, buf, 65536);			
-		} else i+=64;
+		} 
+		else i+=64;
 	}
 	write(file, buf, i);
+	
 	waitcursor(0);
 	CFRA = oldcfra;
 	close(file);

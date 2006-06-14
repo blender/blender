@@ -163,6 +163,11 @@
     s_i=p_i[0]; p_i[0]=p_i[3]; p_i[3]=s_i; \
     s_i=p_i[1]; p_i[1]=p_i[2]; p_i[2]=s_i; }
 
+#define SWITCH_SHORT(a)	{ \
+    char s_i, *p_i; \
+		p_i= (char *)&(a); \
+			s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i; }
+
 
 /* Bit operations */
 #define BTST(a,b)     ( ( (a) & 1<<(b) )!=0 )   

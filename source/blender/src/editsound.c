@@ -314,12 +314,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 		readPackedFile(pf, &shortbuf, 2);
 		if(G.order==B_ENDIAN)
 		{
-			/* was SWITCH_SHORT before */
-			char s_i, *p_i;
-			p_i= (char *)&(shortbuf);
-			s_i= p_i[0];
-			p_i[0]= p_i[1];
-			p_i[1]= s_i;
+			SWITCH_SHORT(shortbuf);
 		}
 
 		/* read the number of channels */
@@ -327,12 +322,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 
 		if(G.order==B_ENDIAN)
 		{
-			/* was SWITCH_SHORT before */
-			char s_i, *p_i;
-			p_i= (char *)&(shortbuf);
-			s_i= p_i[0];
-			p_i[0]= p_i[1];
-			p_i[1]= s_i;
+			SWITCH_SHORT(shortbuf);
 		}
 
 		/* check the number of channels */
@@ -367,12 +357,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 		readPackedFile(pf, &shortbuf, 2);
 		if(G.order==B_ENDIAN)
 		{
-			/* was SWITCH_SHORT before */
-			char s_i, *p_i;
-			p_i= (char *)&(shortbuf);
-			s_i= p_i[0];
-			p_i[0]= p_i[1];
-			p_i[1]= s_i;
+			SWITCH_SHORT(shortbuf);
 		}
 		bits = shortbuf;
 		
