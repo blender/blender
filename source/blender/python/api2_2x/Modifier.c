@@ -34,6 +34,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_vec_types.h"
 
 #include "BKE_main.h"
@@ -111,9 +112,6 @@ static PyObject *Modifier_getName( BPy_Modifier * self );
 static int Modifier_setName( BPy_Modifier * self, PyObject *arg );
 static PyObject *Modifier_getType( BPy_Modifier * self );
 
-static PyObject *Modifier_moveUp( BPy_Modifier * self );
-static PyObject *Modifier_moveDown( BPy_Modifier * self );
-
 static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key );
 static int Modifier_setData( BPy_Modifier * self, PyObject * key, 
 		PyObject * value );
@@ -123,10 +121,6 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 /*****************************************************************************/
 static PyMethodDef BPy_Modifier_methods[] = {
 	/* name, method, flags, doc */
-	{"up", ( PyCFunction ) Modifier_moveUp, METH_NOARGS,
-	 "Move modifier up in stack"},
-	{"down", ( PyCFunction ) Modifier_moveDown, METH_NOARGS,
-	 "Move modifier down in stack"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -290,41 +284,6 @@ static PyObject *Modifier_getType( BPy_Modifier * self )
 				"This modifier has been removed!" );
 	
 	return PyInt_FromLong( self->md->type );
-}
-
-
-/*
- * move the modifier up in the stack
- */
-
-static PyObject *Modifier_moveUp( BPy_Modifier * self )
-{
-	if (self->md==NULL)
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"This modifier has been removed!" ));
-	
-	if( mod_moveUp( self->obj, self->md ) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"cannot move above a modifier requiring original data" );
-
-	Py_RETURN_NONE;
-}
-
-/*
- * move the modifier down in the stack
- */
-
-static PyObject *Modifier_moveDown( BPy_Modifier * self )
-{
-	if (self->md==NULL)
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"This modifier has been removed!" ));
-	
-	if( mod_moveDown( self->obj, self->md ) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"cannot move beyond a non-deforming modifier" );
-
-	Py_RETURN_NONE;
 }
 
 static PyObject *subsurf_getter( BPy_Modifier * self, int type )
@@ -860,7 +819,7 @@ ModifierData *Modifier_FromPyObject( PyObject * pyobj )
  * Initialize the interator
  */
 
-static PyObject *ModSeq_getIter( BPy_ModSeq * self )
+static PyObject *Modifiers_getIter( BPy_Modifiers * self )
 {
 	self->iter = (ModifierData *)self->obj->modifiers.first;
 	return EXPP_incr_ret ( (PyObject *) self );
@@ -870,7 +829,7 @@ static PyObject *ModSeq_getIter( BPy_ModSeq * self )
  * Get the next Modifier
  */
 
-static PyObject *ModSeq_nextIter( BPy_ModSeq * self )
+static PyObject *Modifiers_nextIter( BPy_Modifiers * self )
 {
 	ModifierData *this = self->iter;
 	if( this ) {
@@ -884,20 +843,20 @@ static PyObject *ModSeq_nextIter( BPy_ModSeq * self )
 
 /* return the number of modifiers */
 
-static int ModSeq_length( BPy_ModSeq * self )
+static int Modifiers_length( BPy_Modifiers * self )
 {
 	return BLI_countlist( &self->obj->modifiers );
 }
 
 /* return a modifier */
 
-static PyObject *ModSeq_item( BPy_ModSeq * self, int i )
+static PyObject *Modifiers_item( BPy_Modifiers * self, int i )
 {
 	ModifierData *md = NULL;
 
 	/* if index is negative, start counting from the end of the list */
 	if( i < 0 )
-		i += ModSeq_length( self );
+		i += Modifiers_length( self );
 
 	/* skip through the list until we get the modifier or end of list */
 
@@ -911,13 +870,13 @@ static PyObject *ModSeq_item( BPy_ModSeq * self, int i )
 }
 
 /*****************************************************************************/
-/* Python BPy_ModSeq sequence table:                                         */
+/* Python BPy_Modifiers sequence table:                                      */
 /*****************************************************************************/
-static PySequenceMethods ModSeq_as_sequence = {
-	( inquiry ) ModSeq_length,	/* sq_length */
+static PySequenceMethods Modifiers_as_sequence = {
+	( inquiry ) Modifiers_length,	/* sq_length */
 	( binaryfunc ) 0,	/* sq_concat */
 	( intargfunc ) 0,	/* sq_repeat */
-	( intargfunc ) ModSeq_item,	/* sq_item */
+	( intargfunc ) Modifiers_item,	/* sq_item */
 	( intintargfunc ) 0,	/* sq_slice */
 	( intobjargproc ) 0,	/* sq_ass_item */
 	( intintobjargproc ) 0,	/* sq_ass_slice */
@@ -926,16 +885,49 @@ static PySequenceMethods ModSeq_as_sequence = {
 	( intargfunc ) 0,		/* sq_inplace_repeat */
 };
 
+/*
+ * helper function to check for a valid modifier argument
+ */
+
+static ModifierData *locate_modifier( BPy_Modifiers *self, PyObject * args )
+{
+	BPy_Modifier *pyobj;
+	ModifierData *md;
+
+	/* check that argument is a modifier */
+	if( !PyArg_ParseTuple( args, "O!", &Modifier_Type, &pyobj ) )
+		return (ModifierData *)EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected an modifier as an argument" );
+
+	/* check whether modifier has been removed */
+	if( !pyobj->md )
+		return (ModifierData *)EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This modifier has been removed!" );
+
+	/* find the modifier in the object's list */
+	for( md = self->obj->modifiers.first; md; md = md->next )
+		if( md == pyobj->md )
+			return md;
+
+	/* return exception if we can't find the modifier */
+	return (ModifierData *)EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"This modifier is not in the object's stack" );
+}
+
 /* create a new modifier at the end of the list */
 
-static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
+static PyObject *Modifiers_append( BPy_Modifiers *self, PyObject *args )
 {
 	int type;
 
 	if( !PyArg_ParseTuple( args, "i", &type ) )
-		EXPP_ReturnPyObjError( PyExc_TypeError, "expected int argument" );
-	if (type<=0 || type >= NUM_MODIFIER_TYPES) /* type 0 is eModifierType_None, should we be able to add one of these? */
-		return EXPP_ReturnPyObjError( PyExc_TypeError, "int argument out of range, expected an int from Blender.Modifier.Type" );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected int argument" );
+
+	/* type 0 is eModifierType_None, should we be able to add one of these? */
+	if( type <= 0 || type >= NUM_MODIFIER_TYPES )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"int argument out of range, expected an int from Blender.Modifier.Type" );
 	
 	BLI_addtail( &self->obj->modifiers, modifier_new( type ) );
 	return Modifier_CreatePyObject( self->obj, self->obj->modifiers.last );
@@ -943,84 +935,101 @@ static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
 
 /* remove an existing modifier */
 
-static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
+static PyObject *Modifiers_remove( BPy_Modifiers *self, PyObject *args )
 {
-	PyObject *pyobj;
-	Object *obj;
-	ModifierData *md_v, *md;
+	ModifierData *md = locate_modifier( self, args );
+	BPy_Modifier *py_obj;
 
-	/* check that argument is a modifier */
-	if( !PyArg_ParseTuple( args, "O!", &Modifier_Type, &pyobj ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected a modifier as an argument" );
-
-	/* 
-	 * check that modseq and modifier refer to the same object (this is
-	 * more for user sanity than anything else)
-	 */
-
-	if( self->obj != ( ( BPy_Modifier * ) pyobj )->obj )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"modifier does not belong to this object" );
-
-	md_v = ( ( BPy_Modifier * ) pyobj )->md;
-
-	if (md_v==NULL)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"This modifier has already been removed!" );
-
-	/* verify the modifier is still in the object's modifier */
-	obj = self->obj;
-	for (md=obj->modifiers.first; md; md=md->next)
-		if (md==md_v)
-			break;
-	if (!md)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"This modifier is no longer in the object's stack" );
+	/* if we can't locate the modifier, return (exception already set) */
+	if( !md )
+		return (PyObject *)NULL;
 
 	/* do the actual removal */
-	BLI_remlink(&(obj->modifiers), md_v);
-	modifier_free(md_v);
-	( ( BPy_Modifier * ) pyobj )->md= NULL;
+	BLI_remlink( &self->obj->modifiers, md );
+	modifier_free( md );
+
+	/* erase the link to the modifier */
+	py_obj = ( BPy_Modifier * )PyTuple_GET_ITEM( args, 0 );
+	py_obj->md = NULL;
+
 	Py_RETURN_NONE;
 }
 
+/* move the modifier up in the stack */
+
+static PyObject *Modifiers_moveUp( BPy_Modifiers * self, PyObject * args )
+{
+	ModifierData *md = locate_modifier( self, args );
+
+	/* if we can't locate the modifier, return (exception already set) */
+	if( !md )
+		return (PyObject *)NULL;
+	
+	if( mod_moveUp( self->obj, md ) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"cannot move above a modifier requiring original data" );
+
+	Py_RETURN_NONE;
+}
+
+/* move the modifier down in the stack */
+
+static PyObject *Modifiers_moveDown( BPy_Modifiers * self, PyObject *args )
+{
+	ModifierData *md = locate_modifier( self, args );
+
+	/* if we can't locate the modifier, return (exception already set) */
+	if( !md )
+		return (PyObject *)NULL;
+	
+	if( mod_moveDown( self->obj, md ) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"cannot move beyond a non-deforming modifier" );
+
+	Py_RETURN_NONE;
+}
+
+
 /*****************************************************************************/
-/* Function:    ModSeq_dealloc                                               */
+/* Function:    Modifiers_dealloc                                            */
 /* Description: This is a callback function for the BPy_Modifier type. It    */
 /*              destroys data when the object is deleted.                    */
 /*****************************************************************************/
-static void ModSeq_dealloc( BPy_Modifier * self )
+static void Modifiers_dealloc( BPy_Modifier * self )
 {
 	PyObject_DEL( self );
 }
 
 /*****************************************************************************/
-/* Python BPy_ModSeq methods table:                                          */
+/* Python BPy_Modifiers methods table:                                       */
 /*****************************************************************************/
-static PyMethodDef BPy_ModSeq_methods[] = {
+static PyMethodDef BPy_Modifiers_methods[] = {
 	/* name, method, flags, doc */
-	{"append", ( PyCFunction ) ModSeq_append, METH_VARARGS,
+	{"append", ( PyCFunction ) Modifiers_append, METH_VARARGS,
 	 "(type) - add a new modifier, where type is the type of modifier"},
-	{"remove", ( PyCFunction ) ModSeq_remove, METH_VARARGS,
+	{"remove", ( PyCFunction ) Modifiers_remove, METH_VARARGS,
 	 "(modifier) - remove an existing modifier, where modifier is a modifier from this object."},
+	{"moveUp", ( PyCFunction ) Modifiers_moveUp, METH_VARARGS,
+	 "(modifier) - Move a modifier up in stack"},
+	{"moveDown", ( PyCFunction ) Modifiers_moveDown, METH_VARARGS,
+	 "(modifier) - Move a modifier down in stack"},
 	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
-/* Python ModSeq_Type structure definition:                                  */
+/* Python Modifiers_Type structure definition:                               */
 /*****************************************************************************/
-PyTypeObject ModSeq_Type = {
+PyTypeObject Modifiers_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
-	"Blender Modifier Sequence",/* char *tp_name; */
-	sizeof( BPy_ModSeq ),     /* int tp_basicsize; */
+	"Blender.Modifiers",        /* char *tp_name; */
+	sizeof( BPy_Modifiers ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) ModSeq_dealloc,/* destructor tp_dealloc; */
+	( destructor ) Modifiers_dealloc,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1030,7 +1039,7 @@ PyTypeObject ModSeq_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	&ModSeq_as_sequence,        /* PySequenceMethods *tp_as_sequence; */
+	&Modifiers_as_sequence,        /* PySequenceMethods *tp_as_sequence; */
 	NULL,                       /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
@@ -1064,11 +1073,11 @@ PyTypeObject ModSeq_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	( getiterfunc )ModSeq_getIter, /* getiterfunc tp_iter; */
-    ( iternextfunc )ModSeq_nextIter, /* iternextfunc tp_iternext; */
+	( getiterfunc )Modifiers_getIter, /* getiterfunc tp_iter; */
+    ( iternextfunc )Modifiers_nextIter, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_ModSeq_methods,         /* struct PyMethodDef *tp_methods; */
+	BPy_Modifiers_methods,         /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,                       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -1093,17 +1102,17 @@ PyTypeObject ModSeq_Type = {
 };
 
 /*****************************************************************************/
-/* Function:    ModSeq_CreatePyObject                                        */
-/* Description: This function will create a new BPy_ModSeq from an existing  */
-/*              ListBase structure.                                          */
+/* Function:    Modifiers_CreatePyObject                                     */
+/* Description: This function will create a new BPy_Modifiers from an        */
+/*              existing  ListBase structure.                                */
 /*****************************************************************************/
 PyObject *ModSeq_CreatePyObject( Object *obj )
 {
-	BPy_ModSeq *pymod;
-	pymod = ( BPy_ModSeq * ) PyObject_NEW( BPy_ModSeq, &ModSeq_Type );
+	BPy_Modifiers *pymod;
+	pymod = ( BPy_Modifiers * ) PyObject_NEW( BPy_Modifiers, &Modifiers_Type );
 	if( !pymod )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create BPy_ModSeq object" );
+				"couldn't create BPy_Modifiers object" );
 	pymod->obj = obj;
 	return ( PyObject * ) pymod;
 }
@@ -1248,10 +1257,12 @@ PyObject *Modifier_Init( void )
 	PyObject *TypeDict = M_Modifier_TypeDict( );
 	PyObject *SettingsDict = M_Modifier_SettingsDict( );
 
-	if( PyType_Ready( &ModSeq_Type ) < 0 || PyType_Ready( &Modifier_Type ) < 0 )
+	if( PyType_Ready( &Modifiers_Type ) < 0 ||
+			PyType_Ready( &Modifier_Type ) < 0 )
 		return NULL;
 
-	submodule = Py_InitModule3( "Blender.Modifier", NULL, "Modifer module for accessing and creating object modifier data" );
+	submodule = Py_InitModule3( "Blender.Modifier", NULL,
+			"Modifer module for accessing and creating object modifier data" );
 
 	if( TypeDict )
 		PyModule_AddObject( submodule, "Type", TypeDict );

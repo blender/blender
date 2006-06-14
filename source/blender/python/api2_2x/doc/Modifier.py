@@ -19,7 +19,8 @@ Example::
   mod[Modifier.Settings.LEVELS] = 3     # set subsurf subdivision levels to 3
   
 @type Type: readonly dictionary
-@var Type: Constant Modifier dict used for  L{ModSeq.append()} to a modifier sequence and comparing with L{Modifier.type}:
+@var Type: Constant Modifier dict used for  L{Modifiers.append()} to a
+  modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
     - BOOLEAN - type value for Boolean modifiers
     - BUILD - type value for Build modifiers
@@ -72,10 +73,10 @@ Example::
 	- OPERATION - Used for Wave only
 """
 
-class ModSeq:
+class Modifiers:
   """
-  The ModSeq object
-  =================
+  The Modifiers object
+  ====================
   This object provides access to list of L{modifiers<Modifier.Modifier>} for a particular object.
   Only accessed from L{Object.Object.modifiers}.
   """
@@ -111,11 +112,32 @@ class ModSeq:
     @note: Accessing attributes of the modifier after removing will raise an error.
     """
 
+  def moveUp(modifier):
+    """
+    Moves the modifier up in the object's modifier stack.
+    @type modifier: a modifier from this sequence to remove.
+    @rtype: PyNone
+    @raise RuntimeError: request to move above another modifier requiring
+    original data
+    @note: Accessing attributes of the modifier after removing will raise an error.
+    """
+
+  def moveDown(modifier):
+    """
+    Moves the modifier down in the object's modifier stack.
+    @type modifier: a modifier from this sequence to remove.
+    @rtype: PyNone
+    @raise RuntimeError: request to move modifier beyond a non-deforming
+    modifier
+    @note: Accessing attributes of the modifier after removing will raise an error.
+    """
+
 class Modifier:
   """
   The Modifier object
   ===================
-  This object provides access to a modifier for a particular object accessed from L{ModSeq}.
+  This object provides access to a modifier for a particular object accessed
+  from L{Modifiers}.
   @ivar name: The name of this modifier. 31 chars max.
   @type name: string
   @ivar type: The type of this modifier. Read-only.  The returned value
@@ -138,21 +160,4 @@ class Modifier:
     @type key: value from modifier's L{Modifier.Settings} constant
     @raise KeyError: the key does not exist for the modifier
     """
-
-  def up():
-    """
-    Moves the modifier up in the object's modifier stack.
-    @rtype: PyNone
-    @raise RuntimeError: request to move above another modifier requiring
-    original data
-    """
-
-  def down():
-    """
-    Moves the modifier down in the object's modifier stack.
-    @rtype: PyNone
-    @raise RuntimeError: request to move modifier beyond a non-deforming
-    modifier
-    """
-
 

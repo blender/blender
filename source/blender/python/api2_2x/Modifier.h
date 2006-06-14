@@ -66,7 +66,7 @@ typedef struct {
 	PyObject_HEAD		/* required macro */
 	Object *obj;
 	ModifierData *iter;
-} BPy_ModSeq;
+} BPy_Modifiers;
 
 PyObject *ModSeq_CreatePyObject( Object *obj );
 
