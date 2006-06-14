@@ -5,6 +5,8 @@
 #ifndef DNA_MODIFIER_TYPES_H
 #define DNA_MODIFIER_TYPES_H
 
+/* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
+
 typedef enum ModifierType {
 	eModifierType_None = 0,
 	eModifierType_Subsurf,
