@@ -28,7 +28,7 @@ Or to print all the constraints attached to each bone in a pose::
       print bone.name,'=>',const
 
 @type Type: readonly dictionary
-@var Type: Constant Constraint dict used by L{ConstraintSeq.append()} and 
+@var Type: Constant Constraint dict used by L{Constraints.append()} and 
   for comparison with L{Constraint.type}.  Values are
   TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
   LOCKTRACK, STRETCHTO, FLOOR, NULL
@@ -87,10 +87,10 @@ Or to print all the constraints attached to each bone in a pose::
 
 """
 
-class ConstraintSeq:
+class Constraints:
   """
-  The ConstraintSeq object
-  ========================
+  The Constraints object
+  ======================
   This object provides access to sequence of
   L{constraints<Constraint.Constraint>} for a particular object.
   They can be accessed from L{Object.constraints<Object.Object.constraints>}.
@@ -116,17 +116,35 @@ class ConstraintSeq:
   def append(type):
     """
     Appends a new constraint to the end of the constraint stack.
-    @type type: a constant specifying the type of constraint to create. as from L{Type}
+    @param type: a constant specifying the type of constraint to create. as from L{Type}
+    @type type: int constant
     @rtype: Constraint
     @return: the new Constraint
     """
 
-  def remove(constraint):
+  def remove(con):
     """
     Remove a constraint from this objects constraint sequence.
-    @type constraint: a constraint from this sequence to remove.
+    @param con: a constraint from this sequence to remove.
+    @type con: Constriant
     @note: Accessing attributes of the constraint after it is removed will 
     throw an exception.
+    """
+
+  def moveUp(con):
+    """
+    Moves the constraint up in the object's constraint stack.
+    @param con: a constraint from this sequence to remove.
+    @type con: Constriant
+    @rtype: PyNone
+    """
+
+  def moveDown(con):
+    """
+    Moves the constraint down in the object's constraint stack.
+    @param con: a constraint from this sequence to remove.
+    @type con: Constriant
+    @rtype: PyNone
     """
 
 class Constraint:
@@ -134,7 +152,7 @@ class Constraint:
   The Constraint object
   =====================
   This object provides access to a constraint for a particular object
-  accessed from L{ConstraintSeq}.
+  accessed from L{Constraints}.
   @ivar name: The name of this constraint. 29 chars max.
   @type name: string
   @ivar type: The type of this constraint. Read-only.  The returned value
@@ -148,7 +166,8 @@ class Constraint:
   def __getitem__(key):
     """
     This operator returns one of the constraint's data attributes.
-    @type key: value from constraint's L{Constraint.Settings} constant
+    @param key: value from constraint's L{Constraint.Settings} constant
+    @type key: int constant
     @return: the requested data
     @rtype: varies
     @raise KeyError: the key does not exist for the constraint
@@ -157,71 +176,15 @@ class Constraint:
   def __setitem__(key):
     """
     This operator changes one of the constraint's data attributes.
-    @type key: value from constraint's L{Constraint.Settings} constant
+    @param key: value from constraint's L{Constraint.Settings} constant
+    @type key: int constant
     @raise KeyError: the key does not exist for the constraint
-    """
-
-  def up():
-    """
-    Moves the constraint up in the object's constraint stack.
-    @rtype: PyNone
-    """
-
-  def down():
-    """
-    Moves the constraint down in the object's constraint stack.
-    @rtype: PyNone
     """
 
   def insertKey(frame):
     """
     Adds an influence keyframe for the constraint Ipo.  
     @rtype: PyNone
-    @type frame: float
     @param frame: the frame number at which to insert the key.
+    @type frame: float
     """
-
-
-
-class ConstraintSeq:
-  """
-  The ConstraintSeq object
-  ========================
-  This object provides access to sequence of
-  L{constraints<Constraint.Constraint>} for a particular object.
-  They can be accessed from L{Object.constraints<Object.Object.constraints>}.
-  or L{PoseBone.constraints<Pose.PoseBone.constraints>}.
-  """
-
-  def __getitem__(index):
-    """
-    This operator returns one of the constraints in the stack.
-    @type index: int
-    @return: an Constraint object
-    @rtype: Constraint
-    @raise KeyError: index was out of range
-    """
-
-  def __len__():
-    """
-    Returns the number of constraints in the constraint stack.
-    @return: number of Constraints
-    @rtype: int
-    """
-
-  def append(type):
-    """
-    Appends a new constraint to the end of the constraint stack.
-    @type type: a constant specifying the type of constraint to create. as from L{Type}
-    @rtype: Constraint
-    @return: the new Constraint
-    """
-
-  def remove(constraint):
-    """
-    Remove a constraint from this objects constraint sequence.
-    @type constraint: a constraint from this sequence to remove.
-    @note: Accessing attributes of the constraint after removing will 
-    throw an exception.
-    """
-

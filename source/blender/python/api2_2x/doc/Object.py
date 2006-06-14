@@ -326,10 +326,11 @@ class Object:
     @type DupOff: int
     @ivar drawSize: The drawsize for empty objects. 1.0. is default.
     @type drawSize: float
-    @ivar modifiers: The modifiers for this object.
-    @type modifiers: ModSeq L{Modifier.ModSeq}
-    @type constraints: BPy_ConstraintSeq
-    @ivar constraints: a L{sequence<Constraint.ConstraintSeq>} of
+    @type modifiers: BPy_Modifiers
+    @ivar modifiers: a L{sequence<Modifier.Modifiers>} of
+    L{modifiers<Modifier.Modifier>} for the object.
+    @type constraints: BPy_Constraints
+    @ivar constraints: a L{sequence<Constraint.Constraints>} of
     L{constraints<Constraint.Constraint>} for the object.
     @type rbMass: float
     @ivar rbMass: Rigid body mass.  Must be a positive value.
