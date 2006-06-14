@@ -351,7 +351,8 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 			if(rw->flags & RW_FLAGS_ALPHA) {
 				if(rres.rect32) {
 					/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-					glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+					if(G.order==B_ENDIAN)
+						glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
 					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_LUMINANCE, GL_UNSIGNED_INT, rres.rect32);
 					glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 				}

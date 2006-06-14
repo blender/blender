@@ -1302,7 +1302,8 @@ static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, uns
 {
 	
 	/* swap bytes, so alpha is most significant one, then just draw it as luminance int */
-	glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
+	if(G.order==B_ENDIAN)
+		glPixelStorei(GL_UNPACK_SWAP_BYTES, 1);
 	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_LUMINANCE, GL_UNSIGNED_INT, recti);
 	glPixelStorei(GL_UNPACK_SWAP_BYTES, 0);
 }
