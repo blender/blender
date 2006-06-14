@@ -300,6 +300,18 @@ static uiOverDraw *ui_begin_overdraw(int minx, int miny, int maxx, int maxy)
 	return od;
 }
 
+#ifdef __APPLE__
+static int is_a_really_crappy_intel_card(void) {
+	static int well_is_it= -1;
+
+		/* Do you understand the implication? Do you? */
+	if (well_is_it==-1)
+		well_is_it= (strcmp((char*) glGetString(GL_VENDOR), "Intel Inc.") == 0);
+
+	return well_is_it;
+}
+#endif
+
 static void ui_flush_overdraw(uiOverDraw *od)
 {
 
@@ -311,6 +323,10 @@ static void ui_flush_overdraw(uiOverDraw *od)
 	myglCopyPixels(od->x, od->y, od->sx, od->sy, GL_COLOR);
 	glEnable(GL_DITHER);
 	glFlush();
+#ifdef __APPLE__
+	if (is_a_really_crappy_intel_card())
+		myswapbuffers(); //hack to get mac intel graphics to show menus
+#endif
 	glDrawBuffer(GL_BACK);
 }
 
