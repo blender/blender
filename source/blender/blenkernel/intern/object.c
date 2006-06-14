@@ -1753,6 +1753,22 @@ void boundbox_set_from_min_max(BoundBox *bb, float min[3], float max[3])
 	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= max[2];
 }
 
+BoundBox *object_get_boundbox(Object *ob)
+{
+	BoundBox *bb= NULL;
+	
+	if(ob->type==OB_MESH) {
+		bb = mesh_get_bb(ob->data);
+	}
+	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
+		bb= ( (Curve *)ob->data )->bb;
+	}
+	else if(ob->type==OB_MBALL) {
+		bb= ob->bb;
+	}
+	return bb;
+}
+
 void minmax_object(Object *ob, float *min, float *max)
 {
 	BoundBox bb;
@@ -1768,7 +1784,7 @@ void minmax_object(Object *ob, float *min, float *max)
 	case OB_SURF:
 		cu= ob->data;
 		
-		if(cu->bb==0) tex_space_curve(cu);
+		if(cu->bb==NULL) tex_space_curve(cu);
 		bb= *(cu->bb);
 		
 		for(a=0; a<8; a++) {

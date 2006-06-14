@@ -3346,20 +3346,11 @@ static void draw_box(float vec[8][3])
 	glEnd();
 }
 
+/* uses boundbox, function used by Ketsji */
 void get_local_bounds(Object *ob, float *centre, float *size)
 {
-	BoundBox *bb= NULL;
-	/* uses boundbox, function used by Ketsji */
+	BoundBox *bb= object_get_boundbox(ob);
 	
-	if(ob->type==OB_MESH) {
-		bb = mesh_get_bb(ob->data);
-	}
-	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
-		bb= ( (Curve *)ob->data )->bb;
-	}
-	else if(ob->type==OB_MBALL) {
-		bb= ob->bb;
-	}
 	if(bb==NULL) {
 		centre[0]= centre[1]= centre[2]= 0.0;
 		VECCOPY(size, ob->size);

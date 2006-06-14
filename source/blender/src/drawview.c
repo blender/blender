@@ -135,6 +135,8 @@
 
 #include "BIF_transform.h"
 
+#include "RE_pipeline.h"	// make_stars
+
 /* Modules used */
 #include "radio.h"
 
@@ -1937,6 +1939,7 @@ static void v3d_editmetaball_buts(uiBlock *block, Object *ob, float lim)
 
 void do_viewbuts(unsigned short event)
 {
+	BoundBox *bb;
 	View3D *vd;
 	Object *ob= OBACT;
 	char *name;
@@ -2048,13 +2051,11 @@ void do_viewbuts(unsigned short event)
 		break;
 
 	case B_OBJECTPANELDIMS:
-		if(ob && (ob->type==OB_MESH)) {
-			BoundBox *bb;
-			float old_dims[3], scale[3], ratio, len[3], tmp, max = 0.0;
-			
+		bb= object_get_boundbox(ob);
+		if(bb) {
+			float old_dims[3], scale[3], ratio, len[3];
 			int axis;
 
-			bb    = mesh_get_bb(ob->data);
 			Mat4ToSize(ob->obmat, scale);
 
 			len[0] = bb->vec[4][0] - bb->vec[0][0];
@@ -2065,40 +2066,34 @@ void do_viewbuts(unsigned short event)
 			old_dims[1] = fabs(scale[1]) * len[1];
 			old_dims[2] = fabs(scale[2]) * len[2];
 
-			/* figure out which axis changed */
-			axis = 0;
-			max = fabs(ob_dims[0] - old_dims[0]);
-			tmp = fabs(ob_dims[1] - old_dims[1]);
-			if (tmp > max) {
-				axis = 1;
-				max = tmp;
-			}
-			tmp = fabs(ob_dims[2] - old_dims[2]);
-			if (tmp > max) {
-				axis = 2;
-				max = tmp;
-			}
-
-			if (old_dims[axis] != ob_dims[axis]) {
-				if (old_dims[axis] > 0.0) {
-					ratio = ob_dims[axis] / old_dims[axis]; 
-					if (link_scale) {
-						ob->size[0] *= ratio;
-						ob->size[1] *= ratio;
-						ob->size[2] *= ratio;
+			/* for each axis changed */
+			for (axis = 0; axis<3; axis++) {
+				if (old_dims[axis] != ob_dims[axis]) {
+					if (old_dims[axis] > 0.0) {
+						ratio = ob_dims[axis] / old_dims[axis]; 
+						if (link_scale) {
+							ob->size[0] *= ratio;
+							ob->size[1] *= ratio;
+							ob->size[2] *= ratio;
+							break;
+						}
+						else {
+							ob->size[axis] *= ratio;
+						}
 					}
 					else {
-						ob->size[axis] *= ratio;
+						if (len[axis] > 0) {
+							ob->size[axis] = ob_dims[axis] / len[axis];
+						}
 					}
 				}
-				else {
-					if (len[axis] > 0) {
-						ob->size[axis] = ob_dims[axis] / len[axis];
-					}
-				}
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-				allqueue(REDRAWVIEW3D, 1);
 			}
+			
+			/* prevent multiple B_OBJECTPANELDIMS events to keep scaling, cycling with TAB on buttons can cause that */
+			VECCOPY(ob_dims, old_dims);
+			
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
 	
@@ -2286,11 +2281,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		
 		uiDefButS(block, TOG, REDRAWVIEW3D, "Link Scale",		10, 10, 140, 19, &(link_scale), 0, 1, 0, 0, "Size values vary proportionally in all directions");
 
-		if(ob->type==OB_MESH)
-			bb = mesh_get_bb(ob->data);
-		else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)
-			bb= ( (Curve *)ob->data )->bb;
-		
+		bb= object_get_boundbox(ob);
 		if (bb) {
 			float scale[3];
 
