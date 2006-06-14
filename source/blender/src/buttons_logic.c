@@ -2405,9 +2405,9 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 			uiDefButF(block, NUM, B_DIFF, "Mass:", 110, 185, 80, 19, 
 					  &ob->mass, 0.01, 10000.0, 10, 0, 
 					  "The mass of the Object");
-			uiDefButF(block, NUM, REDRAWVIEW3D, "Size:", 190, 185, 80, 19, 
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 190, 185, 80, 19, 
 					  &ob->inertia, 0.01, 10.0, 10, 0, 
-					  "Bounding sphere size");
+					  "Bounding sphere radius");
 			uiDefButF(block, NUM, B_DIFF, "Form:", 270, 185, 80, 19, 
 					  &ob->formfactor, 0.01, 100.0, 10, 0, 
 					  "Form factor");
