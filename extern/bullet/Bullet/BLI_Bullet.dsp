@@ -159,11 +159,7 @@ SOURCE=.\NarrowPhaseCollision\BU_VertexPoly.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\NarrowPhaseCollision\CollisionObject.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\NarrowPhaseCollision\CollisionObject.h
+SOURCE=.\NarrowPhaseCollision\CollisionMargin.h
 # End Source File
 # Begin Source File
 
@@ -269,6 +265,14 @@ SOURCE=.\NarrowPhaseCollision\VoronoiSimplexSolver.h
 # Begin Group "BroadphaseCollision"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\BroadphaseCollision\AxisSweep3.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BroadphaseCollision\AxisSweep3.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\BroadphaseCollision\BroadPhaseInterface.h
@@ -491,6 +495,14 @@ SOURCE=.\CollisionDispatch\CollisionDispatcher.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CollisionDispatch\CollisionObject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\CollisionObject.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionDispatch\CollisionWorld.cpp
 # End Source File
 # Begin Source File
@@ -536,6 +548,50 @@ SOURCE=.\CollisionDispatch\UnionFind.cpp
 # Begin Source File
 
 SOURCE=.\CollisionDispatch\UnionFind.h
+# End Source File
+# End Group
+# Begin Group "Extras"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_DynamicTypes.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IMotionState.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IMotionState.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsController.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsController.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsEnvironment.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsEnvironment.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IVehicle.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_IVehicle.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Extras\PhysicsInterface\Common\PHY_Pro.h
 # End Source File
 # End Group
 # End Target

@@ -43,6 +43,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\rasterizer\openglrasterizer"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\kernel\gen_system" /I "../../../../../lib/windows/moto/include" /I "..\..\..\..\source\gameengine\Rasterizer" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -67,6 +68,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\rasterizer\openglrasterizer\debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GR /GX /Zi /Od /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\kernel\gen_system" /I "../../../../../lib/windows/moto/include" /I "..\..\..\..\source\gameengine\Rasterizer" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
 # SUBTRACT CPP /Fr
@@ -92,6 +94,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\rasterizer\openglrasterizer\mtdll_debug"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\..\source\kernel\gen_system" /I "../../../../../lib/windows/moto/include" /I "..\..\..\..\source\gameengine\Rasterizer" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
 # ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\kernel\gen_system" /I "../../../../../lib/windows/moto/include" /I "..\..\..\..\source\gameengine\Rasterizer" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -116,6 +119,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "..\..\..\..\obj\windows\gameengine\rasterizer\openglrasterizer\mtdll"
 # PROP Target_Dir ""
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\..\source\kernel\gen_system" /I ".../../../../../lib/windows/moto/include" /I "..\..\..\..\source\gameengine\Rasterizer" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD CPP /nologo /MD /GX /O2 /I "..\..\..\..\..\lib\windows\string\include" /I "..\..\..\..\source\kernel\gen_system" /I "../../../../../lib/windows/moto/include" /I "..\..\..\..\source\gameengine\Rasterizer" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -144,6 +148,10 @@ SOURCE=..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_GLExten
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_ListRasterizer.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_OpenGLRasterizer.cpp
 # End Source File
 # Begin Source File
@@ -157,6 +165,10 @@ SOURCE=..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_VAOpenG
 # Begin Source File
 
 SOURCE=..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_GLExtensionManager.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\..\source\gameengine\Rasterizer\RAS_OpenGLRasterizer\RAS_ListRasterizer.h
 # End Source File
 # Begin Source File
 
