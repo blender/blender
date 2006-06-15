@@ -716,6 +716,15 @@ static void icon_from_image(Image *img, RenderInfo *ri)
 	}
 }
 
+static void set_alpha(char* cp, int sizex, int sizey, char alpha) 
+{
+	int x,y;
+	for(y=0; y<sizey; y++) {
+		for(x=0; x<sizex; x++, cp+=4) {
+			cp[3]= alpha;
+		}
+	}
+}
 
 /* only called when icon has changed */
 /* only call with valid pointer from BIF_icon_draw */
@@ -743,13 +752,13 @@ static void icon_set_image(ID *id, DrawInfo *di)
 		/* world is rendered with alpha=0, so it wasn't displayed 
 		   this could be render option for sky to, for later */
 		if (GS(id->name) == ID_WO) { 
-			char* cp= (char *)(ri.rect);
-			int x,y;
-			for(y=0; y<ri.pr_recty; y++) {
-				for(x=0; x<ri.pr_rectx; x++, cp+=4) {
-					cp[3]= 255;
-				}
-			}
+			set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
+		} 
+		else if (GS(id->name) == ID_MA) {
+			Material* mat = (Material*)id;
+			if (mat->mode & MA_HALO) {
+				set_alpha( (char*) ri.rect, ri.pr_rectx, ri.pr_recty, 255);
+			} 
 		}
 	}
 

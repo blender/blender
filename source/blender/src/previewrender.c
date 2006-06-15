@@ -292,7 +292,12 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 
 				
 				if(pr_method==PR_ICON_RENDER) {
-					sce->lay= 1<<MA_SPHERE_A;
+					if (mat->mode & MA_HALO) {
+						sce->lay= 1<<MA_FLAT;
+					} 
+					else {
+						sce->lay= 1<<MA_SPHERE_A;
+					}
 				}
 				else {
 					sce->lay= 1<<mat->pr_type;
