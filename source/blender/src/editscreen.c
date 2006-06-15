@@ -860,7 +860,7 @@ void add_readfile_event(char *filename)
 	BLI_convertstringcode(ext_load_str, G.sce, G.scene->r.cfra);
 }
 
-static short ext_reshape= 0, ext_redraw=0, ext_inputchange=0, ext_mousemove=0;
+static short ext_reshape= 0, ext_redraw=0, ext_inputchange=0, ext_mousemove=0, ext_undopush=0;
 
 static void flush_extqd_events(void) {
 	if (ext_inputchange) {
@@ -869,6 +869,8 @@ static void flush_extqd_events(void) {
 		mainqenter(RESHAPE, ext_redraw);
 	} else if (ext_redraw) {
 		mainqenter(REDRAW, ext_redraw);
+	} else if (ext_undopush) {
+		mainqenter(UNDOPUSH, ext_undopush);
 	} else if (ext_mousemove) {
 		short mouse[2];
 		
@@ -878,7 +880,7 @@ static void flush_extqd_events(void) {
 		mainqenter(MOUSEY, mouse[1]);
 	}
 	
-	ext_inputchange= ext_reshape= ext_redraw= ext_mousemove= 0;
+	ext_inputchange= ext_reshape= ext_redraw= ext_mousemove= ext_undopush= 0;
 }
 
 int qtest(void)
@@ -948,6 +950,7 @@ unsigned short extern_qread_ext(short *val, char *ascii)
 	event= screen_qread(val, ascii);
 	if(event==RESHAPE) ext_reshape= *val;
 	else if(event==REDRAW) ext_redraw= *val;
+	else if(event==UNDOPUSH) ext_undopush= *val;
 	else if(event==INPUTCHANGE) ext_inputchange= *val;
 	else if(event==MOUSEY || event==MOUSEX) ext_mousemove= 1;
 	else if((G.qual & (LR_CTRLKEY|LR_ALTKEY)) && event==F3KEY) {
@@ -2231,11 +2234,6 @@ void setscreen(bScreen *sc)
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
 		SpaceLink *sl;
 		
-		/* there's also events in queue for this, but we call fullscreen for render output
-		   now, and that doesn't go back to queue. Bad code, but doesn't hurt... (ton) */
-		scrarea_do_headchange(sa);
-		scrarea_do_winchange(sa);
-		
 		for(sl= sa->spacedata.first; sl; sl= sl->next) {
 			sl->area= sa;
 
@@ -2276,7 +2274,7 @@ void area_fullscreen(void)	/* with curarea */
 {
 	/* this function toggles: if area is full then the parent will be restored */
 	bScreen *sc, *oldscreen;
-	ScrArea *newa, *old;
+	ScrArea *sa, *newa, *old;
 	short headertype, fulltype;
 	
 	if(curarea->full) {
@@ -2347,6 +2345,13 @@ void area_fullscreen(void)	/* with curarea */
 		setscreen(sc);
 		wich_cursor(newa);
 	}
+
+	/* there's also events in queue for this, but we call fullscreen for render output
+	now, and that doesn't go back to queue. Bad code, but doesn't hurt... (ton) */
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		scrarea_do_headchange(sa);
+		scrarea_do_winchange(sa);
+	}	
 }
 
 static void area_autoplayscreen(void)
