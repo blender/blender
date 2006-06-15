@@ -1349,20 +1349,20 @@ static void headerResize(TransInfo *t, float vec[3], char *str) {
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
 		case 0:
-			sprintf(str, "Size: %s%s %s", &tvec[0], t->con.text, t->proptext);
+			sprintf(str, "Scale: %s%s %s", &tvec[0], t->con.text, t->proptext);
 			break;
 		case 1:
-			sprintf(str, "Size: %s : %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			sprintf(str, "Scale: %s : %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
 			break;
 		case 2:
-			sprintf(str, "Size: %s : %s : %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+			sprintf(str, "Scale: %s : %s : %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
 		}
 	}
 	else {
 		if (t->flag & T_2D_EDIT)
-			sprintf(str, "Size X: %s   Y: %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
+			sprintf(str, "Scale X: %s   Y: %s%s %s", &tvec[0], &tvec[20], t->con.text, t->proptext);
 		else
-			sprintf(str, "Size X: %s   Y: %s  Z: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+			sprintf(str, "Scale X: %s   Y: %s  Z: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
 	}
 }
 

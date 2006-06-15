@@ -899,7 +899,7 @@ void transform_nlachannel_keys(int mode, int dummy)
 				}
 			
 				if (mode=='s'){
-					sprintf(str, "sizeX: %.3f", fac);
+					sprintf(str, "scaleX: %.3f", fac);
 					headerprint(str);
 				}
 				else if (mode=='g'){
@@ -1675,7 +1675,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case SKEY:
 				if(G.qual==LR_ALTKEY) {
-					val= pupmenu("Action Strip Scale%t|Clear Strip Size%x1|Remap Start/End%x2");
+					val= pupmenu("Action Strip Scale%t|Clear Strip Scale%x1|Remap Start/End%x2");
 					if(val==1)
 						reset_action_strips(1);
 					else if(val==2)

@@ -440,7 +440,7 @@ void pose_copy_menu(void)
 	if(pchan==NULL) return;
 	pchanact= pchan;
 	
-	nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints");
+	nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Scale%x3|Constraints");
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(arm->layer & pchan->bone->layer) {

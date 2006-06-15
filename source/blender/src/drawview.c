@@ -1864,11 +1864,11 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 	
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, REDRAWVIEW3D, ICON_UNLOCKED,	160,70,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	180, 70, 120, 19, pchan->size, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "ScaleX:",	180, 70, 120, 19, pchan->size, -lim, lim, 10, 3, "");
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, REDRAWVIEW3D, ICON_UNLOCKED,	160,50,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeY:",	180, 50, 120, 19, pchan->size+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "ScaleY:",	180, 50, 120, 19, pchan->size+1, -lim, lim, 10, 3, "");
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, REDRAWVIEW3D, ICON_UNLOCKED,	160,30,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	180, 30, 120, 19, pchan->size+2, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "ScaleZ:",	180, 30, 120, 19, pchan->size+2, -lim, lim, 10, 3, "");
 	uiBlockEndAlign(block);
 }
 
@@ -2279,7 +2279,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "ScaleZ:",		30, 40, 120, 19, &(ob_scale[2]), -lim, lim, 10, 3, "");
 		uiBlockEndAlign(block);
 		
-		uiDefButS(block, TOG, REDRAWVIEW3D, "Link Scale",		10, 10, 140, 19, &(link_scale), 0, 1, 0, 0, "Size values vary proportionally in all directions");
+		uiDefButS(block, TOG, REDRAWVIEW3D, "Link Scale",		10, 10, 140, 19, &(link_scale), 0, 1, 0, 0, "Scale values vary proportionally in all directions");
 
 		bb= object_get_boundbox(ob);
 		if (bb) {

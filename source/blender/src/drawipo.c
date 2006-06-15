@@ -1926,9 +1926,9 @@ static char *ipodriver_channelselect_pup(void)
 	tmp+= sprintf(tmp, "|Rot X %%x%d", OB_ROT_X);
 	tmp+= sprintf(tmp, "|Rot Y %%x%d", OB_ROT_Y);
 	tmp+= sprintf(tmp, "|Rot Z %%x%d", OB_ROT_Z);
-	tmp+= sprintf(tmp, "|Size X %%x%d", OB_SIZE_X);
-	tmp+= sprintf(tmp, "|Size Y %%x%d", OB_SIZE_Y);
-	tmp+= sprintf(tmp, "|Size Z %%x%d", OB_SIZE_Z);
+	tmp+= sprintf(tmp, "|Scale X %%x%d", OB_SIZE_X);
+	tmp+= sprintf(tmp, "|Scale Y %%x%d", OB_SIZE_Y);
+	tmp+= sprintf(tmp, "|Scale Z %%x%d", OB_SIZE_Z);
 	
 	return (string);
 }

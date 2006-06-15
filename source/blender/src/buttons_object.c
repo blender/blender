@@ -341,7 +341,7 @@ void get_constraint_typestring (char *str, void *con_v)
 		strcpy (str, "Copy Location");
 		return;
 	case CONSTRAINT_TYPE_SIZELIKE:
-		strcpy (str, "Copy Size");
+		strcpy (str, "Copy Scale");
 		return;
 	case CONSTRAINT_TYPE_ACTION:
 		strcpy (str, "Action");
@@ -1030,7 +1030,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIKE,"Copy Location",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIKE,"Copy Rotation",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SIZELIKE,"Copy Size",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SIZELIKE,"Copy Scale",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

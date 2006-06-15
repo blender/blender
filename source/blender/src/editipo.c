@@ -2507,7 +2507,7 @@ void common_insertkey(void)
 		ob= OBACT;
 
 		if (ob && (ob->flag & OB_POSEMODE)) {
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
 		else {
 			base= FIRSTBASE;
@@ -2516,7 +2516,7 @@ void common_insertkey(void)
 				base= base->next;
 			}
 			if(base==NULL) return;
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Layer%x5|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
 
 		if(ob) {
@@ -2668,9 +2668,9 @@ void common_insertkey(void)
 
 		if(event==0) BIF_undo_push("Insert Loc Key");
 		else if(event==1) BIF_undo_push("Insert Rot Key");
-		else if(event==2) BIF_undo_push("Insert Size Key");
+		else if(event==2) BIF_undo_push("Insert Scale Key");
 		else if(event==3) BIF_undo_push("Insert LocRot Key");
-		else if(event==4) BIF_undo_push("Insert LocRotSize Key");
+		else if(event==4) BIF_undo_push("Insert LocRotSca;e Key");
 		else if(event==5) BIF_undo_push("Insert Layer Key");
 		else if(event==7) BIF_undo_push("Insert Vertex Key");
 		else if(event==9) BIF_undo_push("Insert Avail Key");
@@ -4078,7 +4078,7 @@ void transform_ipo(int mode)
 					if(tv->flag==0) tv->loc[1]= size[1]*(tv->oldloc[1]-cent[1])+ cent[1];
 				}
 				
-				sprintf(str, "sizeX: %.3f   sizeY: %.3f  ", size[0], size[1]);
+				sprintf(str, "scaleX: %.3f   scaleY: %.3f  ", size[0], size[1]);
 				headerprint(str);
 				
 			}

@@ -1026,7 +1026,7 @@ void transform_actionchannel_keys(int mode, int dummy)
 				}
 	
 				if (mode=='s'){
-					sprintf(str, "sizeX: %.3f", fac);
+					sprintf(str, "scaleX: %.3f", fac);
 					headerprint(str);
 				}
 				else if (mode=='g'){
@@ -1228,7 +1228,7 @@ void transform_meshchannel_keys(char mode, Key *key)
 			 * the grab/scale we are performing
 			 */
             if (mode=='s'){
-                sprintf(str, "sizeX: %.3f", fac);
+                sprintf(str, "scaleX: %.3f", fac);
                 headerprint(str);
             }
             else if (mode=='g'){

@@ -50,7 +50,7 @@
 
 char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLocZ",
 	"RotX", "RotY", "RotZ", "dRotX", "dRotY", "dRotZ",
-	"SizeX", "SizeY", "SizeZ", "dSizeX", "dSizeY", "dSizeZ",
+	"ScaleX", "ScaleY", "ScaleZ", "dScaleX", "dScaleY", "dScaleZ",
 	"Layer", "Time", "ColR", "ColG", "ColB", "ColA",
 	"FStreng", "FFall", "RDamp", "Damping", "Perm" };
 
@@ -90,8 +90,8 @@ char *la_ic_names[LA_TOTNAM] = { "Energ", "R", "G", "B", "Dist", "SpoSi", "SpoBl
 /* yafray: two curve names added, 'Apert' for aperture, and 'FDist' for focal distance */
 char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd", "Apert", "FDist" };
 char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
-char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "SizeX", "SizeY",
-	"SizeZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
+char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
+	"ScaleZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
 char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
 
