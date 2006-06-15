@@ -56,8 +56,10 @@
 #include "BKE_plugin_types.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
-
+ 
+#include "BIF_cursors.h"
 #include "BIF_gl.h"
+#include "BIF_graphics.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_drawseq.h"
@@ -80,6 +82,7 @@
 #include "blendef.h"	/* CFRA */
 #include "mydevice.h"	/* REDRAWSEQ */
 #include "interface.h"
+#include "winlay.h"
 
 #define SEQ_LEFTHANDLE		1
 #define SEQ_RIGHTHANDLE	2
@@ -918,6 +921,8 @@ void seq_viewmove(SpaceSeq *sseq)
 	ScrArea *sa;
 	short mval[2], mvalo[2];
 	short rectx, recty, xmin, xmax, ymin, ymax, pad;
+	int oldcursor;
+	Window *win;
 	
 	sa = sseq->area;
 	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
@@ -931,6 +936,11 @@ void seq_viewmove(SpaceSeq *sseq)
 	
 	getmouseco_sc(mvalo);
 
+	oldcursor=get_cursor();
+	win=winlay_get_active_window();
+	
+	SetBlenderCursor(BC_NSEW_SCROLLCURSOR);
+	
 	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
 		
 		getmouseco_sc(mval);
@@ -952,6 +962,7 @@ void seq_viewmove(SpaceSeq *sseq)
 		}
 		else BIF_wait_for_statechange();
 	}
+	window_set_cursor(win, oldcursor);
 }
 
 #define SEQ_BUT_PLUGIN	1

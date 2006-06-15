@@ -3090,7 +3090,7 @@ static void do_palette_sample_cb(void *bt1, void *col1)	/* frontbuf */
 	
 	while (get_mbut() & L_MOUSE) BIF_wait_for_statechange();
 	
-	SetBlenderCursor(BC_CROSSCURSOR);
+	SetBlenderCursor(BC_EYEDROPPER_CURSOR);
 	
 	/* loop and wait for a mouse click */
 	capturing = TRUE;

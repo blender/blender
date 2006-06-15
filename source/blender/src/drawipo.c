@@ -68,7 +68,9 @@
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_cursors.h"
 #include "BIF_gl.h"
+#include "BIF_graphics.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_interface.h"
@@ -89,6 +91,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"	// shouldnt be...
+#include "winlay.h"
 
 /* local define... also used in editipo ... */
 #define ISPOIN(a, b, c)                       ( (a->b) && (a->c) )  
@@ -689,7 +692,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	}
 }
 
-#define IPOBUTX 65
+#define IPOBUTX 70
 static int calc_ipobuttonswidth(ScrArea *sa)
 {
 	SpaceIpo *sipo= sa->spacedata.first;
@@ -2357,6 +2360,8 @@ int view2dmove(unsigned short event)
 	float facx=0.0, facy=0.0, dx, dy, left=1.0, right=1.0;
 	short mval[2], mvalo[2], leftret=1, mousebut;
 	short is_wheel= (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE);
+	int oldcursor, cursor;
+	Window *win;
 	
 	/* when wheel is used, we only draw it once */
 	
@@ -2431,15 +2436,30 @@ int view2dmove(unsigned short event)
 		facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(curarea->winx);
 		facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(curarea->winy);		
 	}
-		
+	
+	cursor = BC_NSEW_SCROLLCURSOR;
+	
 	/* no x move in outliner */
-	if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) facx= 0.0;
+	if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) {
+		facx= 0.0;
+		cursor = BC_NS_SCROLLCURSOR;
+	}
 	
 	/* no y move in audio & time */
-	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) facy= 0.0;
+	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) {
+		facy= 0.0;
+		cursor = BC_EW_SCROLLCURSOR;
+	}
+	
+	/* store the old cursor to temporarily change it */
+	oldcursor=get_cursor();
+	win=winlay_get_active_window();
+
 	
 	if(get_mbut() & mousebut && leftret) return 0;
 	if(facx==0.0 && facy==0.0) return 1;
+	
+	if (!is_wheel) SetBlenderCursor(cursor);
 	
 	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || is_wheel) {
 
@@ -2449,6 +2469,7 @@ int view2dmove(unsigned short event)
        * and right.
        */
 		if (is_wheel) {
+			
 			if(event==WHEELDOWNMOUSE) {	
 				facx= -facx; facy= -facy;
 			}
@@ -2478,6 +2499,8 @@ int view2dmove(unsigned short event)
 			}
 		}
 		else {
+
+			
 			getmouseco_areawin(mval);
 			dx= facx*(mvalo[0]-mval[0]);
 			dy= facy*(mvalo[1]-mval[1]);
@@ -2509,6 +2532,7 @@ int view2dmove(unsigned short event)
 		if ( is_wheel ) return 1;
 	}
 
+	window_set_cursor(win, oldcursor);
     return 1;
 }
 

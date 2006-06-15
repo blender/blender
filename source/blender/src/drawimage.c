@@ -79,7 +79,9 @@
 #include "BDR_drawmesh.h"
 #include "BDR_imagepaint.h"
 
+#include "BIF_cursors.h"
 #include "BIF_gl.h"
+#include "BIF_graphics.h"
 #include "BIF_mywindow.h"
 #include "BIF_drawimage.h"
 #include "BIF_resources.h"
@@ -104,6 +106,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"  // event codes
+#include "winlay.h"
 
 #include "interface.h"	/* bad.... but preview code needs UI info. Will solve... (ton) */
 
@@ -1695,9 +1698,16 @@ static void image_zoom_set_factor(float zoomfac)
 void image_viewmove(int mode)
 {
 	short mval[2], mvalo[2], zoom0;
+	int oldcursor;
+	Window *win;
 	
 	getmouseco_sc(mvalo);
 	zoom0= G.sima->zoom;
+	
+	oldcursor=get_cursor();
+	win=winlay_get_active_window();
+	
+	SetBlenderCursor(BC_NSEW_SCROLLCURSOR);
 	
 	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
 
@@ -1724,6 +1734,7 @@ void image_viewmove(int mode)
 		}
 		else BIF_wait_for_statechange();
 	}
+	window_set_cursor(win, oldcursor);
 	
 	if(image_preview_active(curarea, NULL, NULL)) {
 		/* recalculates new preview rect */
