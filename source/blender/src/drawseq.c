@@ -249,16 +249,42 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 
 static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, int winx)
 {
-	float f, height, midy, clipxmin, clipxmax, sample_step;
-	int offset, offset_next, sofs, eofs, i=0;
+	/*
+	x1 is the starting x value to draw the wave,
+	x2 the end x value, same for y1 and y2
+	winx is the zoom level.
+	*/
+	
+	float
+	f, /* floating point value used to store the X draw location for the wave lines when openGL drawing*/
+	midy, /* fast access to the middle location (y1+y2)/2 */
+	clipxmin, /* the minimum X value, clip this with the window */
+	clipxmax, /* the maximum X value, clip this with the window */
+	sample_step, /* steps to move per sample, floating value must later translate into an int */
+	fsofs, /* steps to move per sample, floating value must later translate into an int */
+	feofs_sofs, /*  */
+	sound_width, /* convenience: x2-x1 */
+	wavemulti; /* scale the samples by this value when GL_LINE drawing so it renders the right height */
+	
+	int
+	offset, /* initial offset value for the wave drawing */
+	offset_next, /* when in the wave drawing loop this value is the samples intil the next vert */
+	sofs, /* Constrained offset value (~3) for the wave, start */
+	eofs, /* ditto, end */
+	wavesample, /* inner loop storage if the current wave sample value, used to make the 2 values below */
+	wavesamplemin, /* used for finding the min and max wave peaks */
+	wavesamplemax, /* ditto */
+	subsample_step=4; /* when the sample step is 4 every sample of
+	the wave is evaluated for min and max values used to draw the wave,
+	however this is slow ehrn zoomed out so when the sample step is above
+	1 (the larger the further out the zoom is) so not evaluate all samples, only some. */
+	
 	signed short* s;
 	bSound *sound;
-	int wavesample, wavesamplemin, wavesamplemax, subsample_step=4; /* used for finding the min and max wave peaks */
 	Uint8 *stream;
-	float fsofs, feofs_sofs, sound_width, wavemulti; /* for faster access in the loop */
 	
 	audio_makestream(seq->sound);
-	if(seq->sound==NULL || seq->sound->stream==NULL) return;	
+	if(seq->sound==NULL || seq->sound->stream==NULL) return;
 	
 	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
 	
@@ -266,24 +292,10 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	eofs = ((int)( (((float)(seq->enddisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
 	
 	/* clip the drawing area to the screen bounds to save time */
-	sample_step= (G.v2d->cur.xmax-G.v2d->cur.xmin)/winx;
+	sample_step= (G.v2d->cur.xmax - G.v2d->cur.xmin)/winx;
 	clipxmin= MAX2(x1, G.v2d->cur.xmin);
 	clipxmax= MIN2(x2, G.v2d->cur.xmax);
 	
-	/* Stops dithering on redraw when clipxmin is offset. */
-	if (clipxmin != x1) {
-		clipxmin = (float) ((int)((clipxmin*sample_step)+(i*sample_step))) / sample_step;
-		while (clipxmin < x1) {
-			clipxmin = (float) ((int)((clipxmin*sample_step)+(i*sample_step))) / sample_step;
-			i+=1;
-		}
-		clipxmin = (float)((int)clipxmin); /* snap to int */	
-	}
-	
-	/* when the sample step is 4 every sample of the wave is evaluated for min and max
-	values used to draw the wave, however this is slow ehrn zoomed out
-	so when the sample step is above 1 (the larger the further out the zoom is)
-	so not evaluate all samples, only some.*/
 	if (sample_step > 1)
 		subsample_step= ((int)(subsample_step*sample_step*8)) & (~3);
 	
@@ -292,44 +304,46 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	fsofs= (float)sofs;
 	feofs_sofs= (float)(eofs-sofs);
 	sound_width= x2-x1;
-	height= y2-y1;
 	sound = seq->sound;
 	stream = sound->stream;
-	wavemulti = height/196605;
+	wavemulti = (y2-y1)/196605; /*y2-y1 is the height*/
 	wavesample=0;
-	
 	
 	/* we need to get the starting offset value, excuse the duplicate code */
 	f=clipxmin;
-	offset = (int) (fsofs + ((f-x1)/sound_width) * feofs_sofs) & (~3);
+	offset= (int) (fsofs + ((f-x1)/sound_width) * feofs_sofs) & (~3);
 	
 	/* start the loop, draw a line per sample_step -sample_step is about 1 line drawn per pixel */
 	glBegin(GL_LINES);
-	for (f=clipxmin+sample_step; f<=clipxmax; f+=sample_step) {
+	for (f=x1+sample_step; f<=clipxmax; f+=sample_step) {
 		
 		offset_next = (int) (fsofs + ((f-x1)/sound_width) * feofs_sofs) & (~3);
-		
-		/* if this is close to the last sample just exit */
-		if (offset_next >= sound->streamlen) break;
-		
-		wavesamplemin = 131070;
-		wavesamplemax = -131070;
-		
-		/*find with high and low of the waveform for this draw,
-		evaluate small samples to find this range */
-		while (offset < offset_next) {
-			s = (signed short*)(stream+offset);
+		if (f > G.v2d->cur.xmin) {
+			/* if this is close to the last sample just exit */
+			if (offset_next >= sound->streamlen) break;
 			
-			wavesample = s[0]*2 + s[1];
-			if (wavesamplemin>wavesample)
-				wavesamplemin=wavesample;
-			if (wavesamplemax<wavesample)
-				wavesamplemax=wavesample;
-			offset+=subsample_step;
+			wavesamplemin = 131070;
+			wavesamplemax = -131070;
+			
+			/*find with high and low of the waveform for this draw,
+			evaluate small samples to find this range */
+			while (offset < offset_next) {
+				s = (signed short*)(stream+offset);
+				
+				wavesample = s[0]*2 + s[1];
+				if (wavesamplemin>wavesample)
+					wavesamplemin=wavesample;
+				if (wavesamplemax<wavesample)
+					wavesamplemax=wavesample;
+				offset+=subsample_step;
+			}
+			/* draw the wave line, looks good up close and zoomed out */
+			glVertex2f(f,  midy-(wavemulti*wavesamplemin) );
+			glVertex2f(f,  midy-(wavemulti*wavesamplemax) );
+		} else {
+			while (offset < offset_next) offset+=subsample_step;
 		}
-		/* draw the wave line, looks good up close and zoomed out */
-		glVertex2f(f,  midy-(wavemulti*wavesamplemin) );
-		glVertex2f(f,  midy-(wavemulti*wavesamplemax) );
+		
 		offset=offset_next;
 	}
 	glEnd();
