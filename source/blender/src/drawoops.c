@@ -329,7 +329,7 @@ void draw_oops(Oops *oops)
 	float v1[2], x1, y1, x2, y2, f1, f2;
 	unsigned int body, border;
 	short line= 0;
-	char str[32];
+	char str[FILE_MAXDIR+FILE_MAXFILE+5];
 
 	x1= oops->x; 
 	x2= oops->x+OOPSX;
