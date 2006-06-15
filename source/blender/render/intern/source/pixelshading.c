@@ -242,7 +242,7 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 					float dist, float xn,  float yn, short flarec)
 {
 	/* fill in col */
-	float t, zn, radist, ringf=0.0, linef=0.0, alpha, si, co;
+	float t, zn, radist, ringf=0.0f, linef=0.0f, alpha, si, co;
 	int a;
    
 	if(R.wrld.mode & WO_MIST) {
@@ -317,7 +317,10 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	}
 	else if(har->hard<20) dist*=dist;
 
-	dist=(1.0-dist);
+	if(dist < 1.0f)
+		dist= (1.0f-dist);
+	else
+		dist= 0.0f;
 	
 	if(har->linec) {
 		float *rc, fac;
@@ -332,13 +335,11 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 			
 			fac= fabs( (xn)*rc[0]+(yn)*rc[1]);
 			
-			if(fac< 1.0 ) {
-				linef+= (1.0-fac);
-			}
+			if(fac< 1.0f )
+				linef+= (1.0f-fac);
 		}
 		
 		linef*= dist;
-		
 	}
 
 	if(har->starpoints) {
@@ -366,18 +367,19 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 		alpha*= sqrt(sqrt(t));
 	}
 
-	dist*= alpha;
-	ringf*= dist;
-	linef*= alpha;
-	
-	if(dist<0.003) {
+	/* disputable optimize... (ton) */
+	if(dist<=0.00001) {
 		col[0] = 0.0;
 		col[1] = 0.0;
 		col[2] = 0.0;
 		col[3] = 0.0;
 		return;
 	}
-
+	
+	dist*= alpha;
+	ringf*= dist;
+	linef*= alpha;
+	
 	/* The colour is either the rgb spec-ed by the user, or extracted from   */
 	/* the texture                                                           */
 	if(har->tex) {
@@ -429,6 +431,10 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 			else col[3]+= ringf;
 		}
 	}
+	
+	/* alpha requires clip, gives black dots */
+	if(col[3] > 1.0f)
+		col[3]= 1.0f;
 }
 
 /* ------------------------------------------------------------------------- */
