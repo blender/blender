@@ -126,7 +126,9 @@ def ImportConfig():
 		bWrap.val = conf["WRAP"]
 		bAllFaces.val = conf["ALLFACES"]
 		bEdit.val = conf["EDIT"]
-		bEditPath.val = conf["EXTERNALEDITOR"]
+		editor = conf["EXTERNALEDITOR"]
+		if editor:
+			bEditPath.val = editor
 	except KeyError:
 		pass
 			
@@ -306,7 +308,7 @@ def SetEditorAndExport(f):
 	
 # ###################################### MAIN SCRIPT BODY ###############################
 
-bSize = Blender.Draw.Create(500)
+bSize = Blender.Draw.Create(512)
 bWSize = Blender.Draw.Create(1)
 bObFile = Blender.Draw.Create(1)
 bWrap = Blender.Draw.Create(1)
@@ -318,7 +320,7 @@ ImportConfig()
 
 Block = []
 
-Block.append(("Size: ", bSize, 100, 10000, "Size of the exported image"))
+Block.append(("Size: ", bSize, 64, 8192, "Size of the exported image"))
 Block.append(("Wire: ", bWSize, 1, 5, "Size of the wire of the faces"))
 Block.append(("Wrap", bWrap, "Wrap to image size, scale otherwise"))
 Block.append(("All Faces", bAllFaces, "Export all or only selected faces"))
