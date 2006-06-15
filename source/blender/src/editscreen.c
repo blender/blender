@@ -154,10 +154,12 @@ static void screen_set_cursor(bScreen *sc)
 
 void waitcursor(int val)
 {
-	if(val) {
-		set_cursor(CURSOR_WAIT);
-	} else {
-		screen_set_cursor(G.curscreen);
+	if(G.curscreen) {
+		if(val) {
+			set_cursor(CURSOR_WAIT);
+		} else {
+			screen_set_cursor(G.curscreen);
+		}
 	}
 }
 
@@ -1481,7 +1483,8 @@ void screenmain(void)
 
 #if 0
 //#ifdef _WIN32	// FULLSCREEN
-void mainwindow_toggle_fullscreen(int fullscreen){
+void mainwindow_toggle_fullscreen(int fullscreen)
+{
 	if (fullscreen) U.uiflag |= USER_FLIPFULLSCREEN;
 	else U.uiflag &= ~USER_FLIPFULLSCREEN;
 
@@ -1489,20 +1492,27 @@ void mainwindow_toggle_fullscreen(int fullscreen){
 }
 #endif
 
-void mainwindow_raise(void) {
-	window_raise(mainwin);
+void mainwindow_raise(void) 
+{
+	if(mainwin)
+		window_raise(mainwin);
 }
 
-void mainwindow_make_active(void) {
-	window_make_active(mainwin);
+void mainwindow_make_active(void) 
+{
+	if(mainwin)
+		window_make_active(mainwin);
 }
 
-void mainwindow_close(void) {
-	window_destroy(mainwin);
+void mainwindow_close(void) 
+{
+	if(mainwin)
+		window_destroy(mainwin);
 	mainwin= NULL;
 }
 
-void mainwindow_set_filename_to_title(char *filename) {
+void mainwindow_set_filename_to_title(char *filename)
+{
 	char str[FILE_MAXDIR + FILE_MAXFILE];
 	char dir[FILE_MAXDIR];
 	char file[FILE_MAXFILE];

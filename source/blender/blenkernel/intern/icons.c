@@ -50,7 +50,7 @@
 
 /* GLOBALS */
 
-static GHash* gIcons = 0;
+static GHash* gIcons = NULL;
 
 static int gNextIconId = 1;
 
@@ -106,8 +106,9 @@ void BKE_icons_init(int first_dyn_id)
 
 void BKE_icons_free()
 {
-	BLI_ghash_free(gIcons, 0, icon_free);
-	gIcons = 0;
+	if(gIcons)
+		BLI_ghash_free(gIcons, 0, icon_free);
+	gIcons = NULL;
 }
 
 
