@@ -2285,7 +2285,6 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		if (bb) {
 			float scale[3];
 
-			bb = mesh_get_bb(ob->data);
 			Mat4ToSize(ob->obmat, scale);
 
 			ob_dims[0] = fabs(scale[0]) * (bb->vec[4][0] - bb->vec[0][0]);
