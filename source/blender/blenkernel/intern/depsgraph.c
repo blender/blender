@@ -1466,7 +1466,7 @@ void DAG_scene_sort(struct Scene *sce)
 		}
 	}
 	/* temporal...? */
-	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
+	sce->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
 
 /* node was checked to have lasttime != curtime and is if type ID_OB */

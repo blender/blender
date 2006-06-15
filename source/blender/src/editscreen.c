@@ -84,6 +84,7 @@
 #include "BIF_interface_icons.h"
 #include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -1888,8 +1889,7 @@ static void testareas(void)
 	/* test for header, if removed, or moved */
 	/* test for window, if removed, or moved */
 	
-	sa= G.curscreen->areabase.first;
-	while(sa) {
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		rcti oldhr= sa->headrct;
 		rcti oldwr= sa->winrct;
 		
@@ -1925,9 +1925,12 @@ static void testareas(void)
 			if (!rcti_eq(&oldwr, &sa->winrct)) {
 				mywinposition(sa->win, sa->winrct.xmin, sa->winrct.xmax, sa->winrct.ymin, sa->winrct.ymax);
 				addqueue(sa->win, CHANGED, 1);
+				
+				/* exception handling... probably we need generic event */
+				if(sa->spacetype==SPACE_VIEW3D)
+					BIF_view3d_previewrender_free(sa->spacedata.first);
 			}
 		}
-		sa= next;
 	}
 	
 		/* remake global windowarray */

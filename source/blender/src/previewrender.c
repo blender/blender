@@ -574,7 +574,7 @@ void BIF_previewdraw(ScrArea *sa, uiBlock *block)
 /* *************************** Preview for 3d window *********************** */
 static void view3d_previewrender_stats(RenderStats *rs)
 {
-	printf("rendered %.3f\n", rs->lastframetime);
+//	printf("rendered %.3f\n", rs->lastframetime);
 }
 
 static void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
