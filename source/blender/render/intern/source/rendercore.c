@@ -2688,13 +2688,12 @@ static void edge_enhance_calc(RenderPart *pa, float *rectf)
 	int zval1, zval2, zval3;
 	float *rf;
 	
-	/* shift values in zbuffer 4 to the right, for filter we need multiplying with 12 max */
+	/* shift values in zbuffer 4 to the right (anti overflows), for filter we need multiplying with 12 max */
 	rz= pa->rectz;
 	if(rz==NULL) return;
 	
-	for(y=0; y<pa->recty; y++) {
+	for(y=0; y<pa->recty; y++)
 		for(x=0; x<pa->rectx; x++, rz++) (*rz)>>= 4;
-	}
 	
 	rz1= pa->rectz;
 	rz2= rz1+pa->rectx;
@@ -2733,6 +2732,12 @@ static void edge_enhance_calc(RenderPart *pa, float *rectf)
 		rz3+= 2;
 		rf+= 2;
 	}
+	
+	/* shift back zbuf values, we might need it still */
+	rz= pa->rectz;
+	for(y=0; y<pa->recty; y++)
+		for(x=0; x<pa->rectx; x++, rz++) (*rz)<<= 4;
+	
 }
 
 static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
