@@ -191,6 +191,236 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 	return mesh
 
 
+def faceRayIntersect(f, orig, dir):
+	'''
+	Returns face, side
+	Side is the side of a quad we intersect.
+		side 0 == 0,1,2
+		side 1 == 0,2,3
+	'''
+	f_v= f.v
+	isect= Blender.Mathutils.Intersect(f_v[0].co, f_v[1].co, f_v[2].co, dir, orig, 1) # 1==clip
+	
+	if isect:
+		return isect, 0
+	
+	if len(f_v)==4:
+		isect= Blender.Mathutils.Intersect(f_v[0].co, f_v[2].co, f_v[3].co, dir, orig, 1) # 1==clip
+		if isect:
+			return isect, 1
+	return False, 0
+
+
+def pickMeshRayFace(me, orig, dir):
+	best_dist= 1<<30
+	best_isect= best_side= best_face= None
+	for f in me.faces:
+		isect, side= faceRayIntersect(f, orig, dir)
+		if isect:
+			dist= (isect-orig).length
+			if dist<best_dist:
+				best_dist= dist
+				best_face= f
+				best_side= side
+				best_isect= isect
+	f= best_face
+	isect= best_isect
+	side= best_side
+	
+	if f==None:
+		return None, None, None, None, None
+	
+	f_v= [v.co for v in f.v]
+	if side==1: # we can leave side 0 without changes.
+		f_v = f_v[0], f_v[2], f_v[3]
+	
+	l0= (f_v[0]-isect).length
+	l1= (f_v[1]-isect).length
+	l2= (f_v[2]-isect).length
+	
+	w0 = (l1+l2)
+	w1 = (l0+l2)
+	w2 = (l1+l2)
+	
+	totw= w0 + w1 + w2
+	w0=w0/totw
+	w1=w1/totw
+	w2=w2/totw
+	
+	return f, side, w0, w1, w2
+
+
+
+def pickMeshGroupWeight(me, act_group, orig, dir):
+	f, side, w0, w1, w2= pickMeshRayFace(me, orig, dir)
+	
+	f_v= f.v
+	if side==0:
+		f_vi= (f_v[0].index, f_v[1].index, f_v[2].index)
+	else:
+		f_vi= (f_v[0].index, f_v[2].index, f_v[3].index)
+	
+	vws= [0.0,0.0,0.0]
+	for i in xrange(3):
+		try:		vws[i]= me.getVertsFromGroup(act_group, 1, [f_vi[i],])[0][1]
+		except:	pass
+	
+	return w0*vws[0] + w1*vws[1]  + w2*vws[2]
+
+def pickMeshGroupVCol(me, orig, dir):
+	Vector= Blender.Mathutils.Vector
+	f, side, w0, w1, w2= pickMeshRayFace(me, orig, dir)
+	
+	def col2vec(c):
+		return Vector(c.r, c.g, c.b)
+	
+	if side==0:
+		idxs= 0,1,2
+	else:
+		idxs= 0,2,3
+	f_c= f.col
+	f_colvecs= [col2vec(f_c[i]) for i in idxs]
+	return f_colvecs[0]*w0 + f_colvecs[1]*w1 + f_colvecs[2]*w2
+
+# reuse me more.
+def sorted_edge_indicies(ed):
+	i1= ed.v1.index
+	i2= ed.v2.index
+	if i1>i2:
+		i1,i2= i2,i1
+	return i1, i2
+
+def edge_face_users(me):
+	''' 
+	Takesa mesh and returns a list aligned with the meshes edges.
+	Each item is a list of the faces that use the edge
+	would be the equiv for having ed.face_users as a property
+	'''
+	
+	face_edges_dict= dict([(sorted_edge_indicies(ed), (ed.index, [])) for ed in me.edges])
+	for f in me.faces:
+		fvi= [v.index for v in f.v]# face vert idx's
+		for i in xrange(len(f)):
+			i1= fvi[i]
+			i2= fvi[i-1]
+			
+			if i1>i2:
+				i1,i2= i2,i1
+			
+			face_edges_dict[i1,i2][1].append(f)
+	
+	face_edges= [None] * len(me.edges)
+	for ed_index, ed_faces in face_edges_dict.itervalues():
+		face_edges[ed_index]= ed_faces
+	
+	return face_edges
+		
+		
+def face_edges(me):
+	'''
+	Returns a list alligned to the meshes faces.
+	each item is a list of lists: that is 
+	face_edges -> face indicies
+	face_edges[i] -> list referencs local faces v indicies 1,2,3 &| 4
+	face_edges[i][j] -> list of faces that this edge uses.
+	crap this is tricky to explain :/
+	'''
+	face_edges= [ [None] * len(f) for f in me.faces ]
+	
+	face_edges_dict= dict([(sorted_edge_indicies(ed), []) for ed in me.edges])
+	for fidx, f in enumerate(me.faces):
+		fvi= [v.index for v in f.v]# face vert idx's
+		for i in xrange(len(f)):
+			i1= fvi[i]
+			i2= fvi[i-1]
+			
+			if i1>i2:
+				i1,i2= i2,i1
+			
+			edge_face_users= face_edges_dict[i1,i2]
+			edge_face_users.append(f)
+			
+			face_edges[fidx][i]= edge_face_users
+			
+	return face_edges
+	
+
+def facePlanerIslands(me):
+	DotVecs= Blender.Mathutils.DotVecs
+	
+	def roundvec(v):
+		return round(v[0], 4), round(v[1], 4), round(v[2], 4)
+	
+	face_props= [(cent, no, roundvec(no), DotVecs(cent, no)) for f in me.faces    for no, cent in ((f.no, f.cent),)]
+	
+	face_edge_users= face_edges(me)
+	islands= []
+	
+	used_faces= [0] * len(me.faces)
+	while True:
+		new_island= False
+		for i, used_val in enumerate(used_faces):
+			if used_val==0:
+				island= set()
+				island.add(i)
+				new_island= True
+				used_faces[i]= 1
+				break
+		
+		if not new_island:
+			break
+		
+		island_growing= True
+		while island_growing:
+			island_growing= False
+			for fidx1 in list(island):
+				if used_faces[fidx1]==1:
+					used_faces[fidx1]= 2
+					face_prop1= face_props[fidx1]
+					for ed in face_edge_users[fidx1]:
+						for f2 in ed:
+							fidx2= f2.index
+							if fidx1 != fidx2 and used_faces[fidx2]==0:
+								island_growing= True
+								face_prop2= face_props[fidx2]
+								# normals are the same?
+								if face_prop1[2]==face_prop2[2]:
+									if abs(face_prop1[3] - DotVecs(face_prop1[1], face_prop2[0])) < 0.000001:
+										used_faces[fidx2]= 1
+										island.add(fidx2)
+		tmp= [me.faces[i] for i in island]
+		islands.append(tmp)
+	return islands
+	
+def edgeFaceUserCount(me, faces= None):
+	'''
+	Return an edge aligned list with the count for all the faces that use that edge. -
+	can spesify a subset of the faces, so only those will be counted.
+	'''
+	if faces==None:
+		faces= me.faces
+		max_vert= len(me.verts)
+	else:
+		# find the lighest vert index
+		pass
+	
+	edge_users= [0] * len(me.edges)
+	
+	edges_idx_dict= dict([(sorted_edge_indicies(ed), ed.index) for ed in me.edges])
+
+	for f in faces:
+		fvi= [v.index for v in f.v]# face vert idx's
+		for i in xrange(len(f)):
+			i1= fvi[i]
+			i2= fvi[i-1]
+			
+			if i1>i2:
+				i1,i2= i2,i1
+			
+			edge_users[edges_idx_dict[i1,i2]] += 1 
+			
+	return edge_users
+
 
 #============================================================================#
 # Takes a face, and a pixel x/y on the image and returns a worldspace x/y/z  #
