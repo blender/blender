@@ -873,6 +873,7 @@ int blenderqread(unsigned short event, short val)
 			}
 			else if(G.qual==LR_ALTKEY) {
 				write_videoscape_fs();
+				return 0;
 			}
 		}
 		break;
