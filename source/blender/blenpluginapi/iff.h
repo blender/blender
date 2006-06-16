@@ -33,6 +33,7 @@
 
 #include <sys/types.h>
 #include "util.h"
+#include "externdef.h"
 
 #define IB_rect			(1 << 0)
 #define IB_planes		(1 << 1)
@@ -159,58 +160,47 @@ typedef struct ImBuf{
         int refcounter;
 } ImBuf;
 
-extern struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);
-extern struct ImBuf *dupImBuf(struct ImBuf *);
-extern void freeImBuf(struct ImBuf*);
+LIBEXPORT struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);
+LIBEXPORT struct ImBuf *dupImBuf(struct ImBuf *);
+LIBEXPORT void freeImBuf(struct ImBuf*);
 
-extern short converttocmap(struct ImBuf* ibuf);
+LIBEXPORT short converttocmap(struct ImBuf* ibuf);
 
-extern short saveiff(struct ImBuf *,char *,int);
+LIBEXPORT short saveiff(struct ImBuf *,char *,int);
 
-extern struct ImBuf *loadiffmem(int *,int);
-extern struct ImBuf *loadifffile(int,int);
-extern struct ImBuf *loadiffname(char *,int);
-extern struct ImBuf *testiffname(char *,int);
+LIBEXPORT struct ImBuf *loadiffmem(int *,int);
+LIBEXPORT struct ImBuf *loadifffile(int,int);
+LIBEXPORT struct ImBuf *loadiffname(char *,int);
+LIBEXPORT struct ImBuf *testiffname(char *,int);
 
-extern struct ImBuf *onehalf(struct ImBuf *);
-extern struct ImBuf *onethird(struct ImBuf *);
-extern struct ImBuf *halflace(struct ImBuf *);
-extern struct ImBuf *half_x(struct ImBuf *);
-extern struct ImBuf *half_y(struct ImBuf *);
-extern struct ImBuf *double_x(struct ImBuf *);
-extern struct ImBuf *double_y(struct ImBuf *);
-extern struct ImBuf *double_fast_x(struct ImBuf *);
-extern struct ImBuf *double_fast_y(struct ImBuf *);
+LIBEXPORT struct ImBuf *onehalf(struct ImBuf *);
+LIBEXPORT struct ImBuf *onethird(struct ImBuf *);
+LIBEXPORT struct ImBuf *halflace(struct ImBuf *);
+LIBEXPORT struct ImBuf *half_x(struct ImBuf *);
+LIBEXPORT struct ImBuf *half_y(struct ImBuf *);
+LIBEXPORT struct ImBuf *double_x(struct ImBuf *);
+LIBEXPORT struct ImBuf *double_y(struct ImBuf *);
+LIBEXPORT struct ImBuf *double_fast_x(struct ImBuf *);
+LIBEXPORT struct ImBuf *double_fast_y(struct ImBuf *);
 
-extern int ispic(char *);
+LIBEXPORT int ispic(char *);
 
-extern void dit2(struct ImBuf *, short, short);
-extern void dit0(struct ImBuf *, short, short);
+LIBEXPORT void dit2(struct ImBuf *, short, short);
+LIBEXPORT void dit0(struct ImBuf *, short, short);
 
-extern struct ImBuf *scaleImBuf(struct ImBuf *, short, short);
-extern struct ImBuf *scalefastImBuf(struct ImBuf *, short, short);
-extern struct ImBuf *scalefieldImBuf(struct ImBuf *, short, short);
-extern struct ImBuf *scalefastfieldImBuf(struct ImBuf *, short, short);
+LIBEXPORT struct ImBuf *scaleImBuf(struct ImBuf *, short, short);
+LIBEXPORT struct ImBuf *scalefastImBuf(struct ImBuf *, short, short);
+LIBEXPORT struct ImBuf *scalefieldImBuf(struct ImBuf *, short, short);
+LIBEXPORT struct ImBuf *scalefastfieldImBuf(struct ImBuf *, short, short);
 
-/* Not sure if needed or not... was in the release version of this header.
-I think its old but figured I'd leave it for a bit just incase.
-mein@cs.umn.edu
-extern void floyd(struct ImBuf *, short, short);
-extern void dit3(struct ImBuf *, short, short);
-extern void dit4(struct ImBuf *, short, short);
-extern void (*ditherfunc)(struct ImBuf *, short, short);
-extern long getdither();
-*/
+LIBEXPORT void de_interlace(struct ImBuf *ib);
+LIBEXPORT void interlace(struct ImBuf *ib);
+LIBEXPORT void gamwarp(struct ImBuf *ibuf, double gamma);
 
-extern void de_interlace(struct ImBuf *ib);
-extern void interlace(struct ImBuf *ib);
-extern void gamwarp(struct ImBuf *ibuf, double gamma);
+LIBEXPORT void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, 
+	int destx, int desty, int srcx, int srcy, int width, int height);
 
-extern void rectop(struct ImBuf *dbuf, struct ImBuf *sbuf,
-		   int destx, int desty, int srcx,
-		   int srcy, int width, int height,
-		   void (*operation)(unsigned int *, unsigned int*, int, int),
-		   int value);
+LIBEXPORT void IMB_rectfill(struct ImBuf *drect, float col[4]);
 
 #endif /* IFF_H */
 

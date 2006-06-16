@@ -41,6 +41,9 @@
  * - util.h       : Useful defines, memory management.
  */
 
+#define PLUGIN_INTERN /* This tells the LIBEXPORT macro to compile with
+	dll export set on windows */
+
 #ifdef WIN32
 #include "blenpluginapi/util.h"
 #else
@@ -51,32 +54,50 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"  /* util and noise functions */
+#include "BLI_threads.h"  /* For threadsfe guardedalloc malloc/calloc/free */
 #include "IMB_imbuf.h"    /* image buffer stuff       */
 
 /* -------------------------------------------------------------------------- */
 /* stuff from util.h                                                          */ 
 /* -------------------------------------------------------------------------- */
 
-void *mallocN(int len, char *str)
+LIBEXPORT void *mallocN(int len, char *str)
 {
 	return MEM_mallocN(len, str);
 }
 
-void *callocN(int len, char *str)
+LIBEXPORT void *callocN(int len, char *str)
 {
 	return MEM_callocN(len, str);
 }
 
-short freeN(void *vmemh)
+LIBEXPORT short freeN(void *vmemh)
 {
 	return MEM_freeN(vmemh);
 }
+
+
+LIBEXPORT void *mallocT(int len, char *str)
+{
+	return MEM_mallocT(len, str);
+}
+
+LIBEXPORT void *callocT(int len, char *str)
+{
+	return MEM_callocT(len, str);
+}
+
+LIBEXPORT void freeT(void *vmemh)
+{
+	return MEM_freeT(vmemh);
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* stuff from iff.h                                                           */ 
 /* -------------------------------------------------------------------------- */
 
-struct ImBuf *allocImBuf(short x,
+LIBEXPORT struct ImBuf *allocImBuf(short x,
 						 short y,
 						 uchar d,
 						 uint flags,
@@ -86,109 +107,109 @@ struct ImBuf *allocImBuf(short x,
 }
 
 
-struct ImBuf *dupImBuf(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *dupImBuf(struct ImBuf *ib)
 {
 	return IMB_dupImBuf(ib);
 }
 	
-void freeImBuf(struct ImBuf* ib)
+LIBEXPORT void freeImBuf(struct ImBuf* ib)
 {
 	IMB_freeImBuf(ib);
 }
 
-short converttocmap(struct ImBuf* ibuf)
+LIBEXPORT short converttocmap(struct ImBuf* ibuf)
 {
 	return IMB_converttocmap(ibuf);
 }
 
-short saveiff(struct ImBuf *ib,
+LIBEXPORT short saveiff(struct ImBuf *ib,
 			  char *c,
 			  int i)
 {
 	return IMB_saveiff(ib, c, i);
 }
 
-struct ImBuf *loadiffmem(int *mem,int flags)
+LIBEXPORT struct ImBuf *loadiffmem(int *mem,int flags)
 {
 	return IMB_loadiffmem(mem, flags);
 }
 	
-struct ImBuf *loadifffile(int a,
+LIBEXPORT struct ImBuf *loadifffile(int a,
 						  int b)
 {
 	return IMB_loadifffile(a, b);
 }
 
-struct ImBuf *loadiffname(char *n,
+LIBEXPORT struct ImBuf *loadiffname(char *n,
 						  int flags)
 {
 	return IMB_loadiffname(n, flags);
 }
 	
-struct ImBuf *testiffname(char *n,
+LIBEXPORT struct ImBuf *testiffname(char *n,
 						  int flags)
 {
 	return IMB_testiffname(n, flags);
 }
 
-struct ImBuf *onehalf(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *onehalf(struct ImBuf *ib)
 {
 	return IMB_onehalf(ib);
 }
 
-struct ImBuf *onethird(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *onethird(struct ImBuf *ib)
 {
 	return IMB_onethird(ib);
 }
 
-struct ImBuf *halflace(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *halflace(struct ImBuf *ib)
 {
 	return IMB_halflace(ib);
 }
 
-struct ImBuf *half_x(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *half_x(struct ImBuf *ib)
 {
 	return IMB_half_x(ib);
 }
 
-struct ImBuf *half_y(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *half_y(struct ImBuf *ib)
 {
 	return IMB_half_y(ib);
 }
 
-struct ImBuf *double_x(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *double_x(struct ImBuf *ib)
 {
 	return IMB_double_x(ib);
 }
 
-struct ImBuf *double_y(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *double_y(struct ImBuf *ib)
 {
 	return IMB_double_y(ib);
 }
 
-struct ImBuf *double_fast_x(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *double_fast_x(struct ImBuf *ib)
 {
 	return IMB_double_fast_x(ib);
 }
 
-struct ImBuf *double_fast_y(struct ImBuf *ib)
+LIBEXPORT struct ImBuf *double_fast_y(struct ImBuf *ib)
 {
 	return IMB_double_fast_y(ib);
 }
 
-int ispic(char * name)
+LIBEXPORT int ispic(char * name)
 {
 	return IMB_ispic(name);
 }
 
-void dit2(struct ImBuf *ib,
+LIBEXPORT void dit2(struct ImBuf *ib,
 		   short a,
 		   short b)
 {
 	IMB_dit2(ib, a, b);
 }
 
-void dit0(struct ImBuf *ib,
+LIBEXPORT void dit0(struct ImBuf *ib,
 		   short a,
 		   short b)
 {
@@ -198,14 +219,14 @@ void dit0(struct ImBuf *ib,
 /* still the same name */
 /*  void (*ditherfunc)(struct ImBuf *, short, short){} */
 
-struct ImBuf *scaleImBuf(struct ImBuf *ib,
+LIBEXPORT struct ImBuf *scaleImBuf(struct ImBuf *ib,
 						 short nx,
 						 short ny)
 {
 	return IMB_scaleImBuf(ib, nx, ny);
 }
 
-struct ImBuf *scalefastImBuf(struct ImBuf *ib,
+LIBEXPORT struct ImBuf *scalefastImBuf(struct ImBuf *ib,
 							 short x,
 							 short y)
 {
@@ -213,14 +234,14 @@ struct ImBuf *scalefastImBuf(struct ImBuf *ib,
 }
 
 
-struct ImBuf *scalefieldImBuf(struct ImBuf *ib,
+LIBEXPORT struct ImBuf *scalefieldImBuf(struct ImBuf *ib,
 							  short x,
 							  short y)
 {
 	return IMB_scalefieldImBuf(ib, x, y);
 }
 
-struct ImBuf *scalefastfieldImBuf(struct ImBuf *ib,
+LIBEXPORT struct ImBuf *scalefastfieldImBuf(struct ImBuf *ib,
 								  short x,
 								  short y)
 {
@@ -231,17 +252,17 @@ struct ImBuf *scalefastfieldImBuf(struct ImBuf *ib,
 	 * even though they aren't in the header
 	 */
 
-void interlace(struct ImBuf *ibuf)
+LIBEXPORT void interlace(struct ImBuf *ibuf)
 {
 	IMB_interlace(ibuf);
 }
 
-void gamwarp(struct ImBuf *ibuf, double gamma)
+LIBEXPORT void gamwarp(struct ImBuf *ibuf, double gamma)
 {
 	IMB_gamwarp(ibuf,gamma);
 }
 	 
-void de_interlace(struct ImBuf *ib)
+LIBEXPORT void de_interlace(struct ImBuf *ib)
 {
 	IMB_de_interlace(ib);
 }
@@ -257,7 +278,7 @@ void de_interlace(struct ImBuf *ib)
 /*  int plugin_seq_getversion(void); */
 /*  void plugin_getinfo(PluginInfo *); */
 
-float hnoise(float noisesize,
+LIBEXPORT float hnoise(float noisesize,
 			 float x,
 			 float y,
 			 float z)
@@ -265,7 +286,7 @@ float hnoise(float noisesize,
 	return BLI_hnoise(noisesize, x, y, z);
 }
 
-float hnoisep(float noisesize,
+LIBEXPORT float hnoisep(float noisesize,
 			  float x,
 			  float y,
 			  float z)
@@ -273,7 +294,7 @@ float hnoisep(float noisesize,
 	return BLI_hnoisep(noisesize, x, y, z);
 }
 
-float turbulence(float noisesize,
+LIBEXPORT float turbulence(float noisesize,
 				 float x,
 				 float y,
 				 float z,
@@ -282,7 +303,7 @@ float turbulence(float noisesize,
 	return BLI_turbulence(noisesize, x, y, z, depth);
 }
 
-float turbulence1(float noisesize,
+LIBEXPORT float turbulence1(float noisesize,
 				  float x,
 				  float y,
 				  float z,
@@ -305,6 +326,9 @@ int pluginapi_force_ref(void)
 	return (int) mallocN +
 		(int) callocN +
 		(int) freeN +
+		(int) mallocT +
+		(int) callocT +
+		(int) freeT +
 		(int) allocImBuf +
 		(int) dupImBuf +
 		(int) freeImBuf +

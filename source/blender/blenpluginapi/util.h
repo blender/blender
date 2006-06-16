@@ -34,6 +34,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
+#include "externdef.h"
 
 #ifndef	NULL
 #define NULL			0
@@ -87,9 +88,13 @@
 #define PRINT3(d, e, f, var1, var2, var3)	printf(# var1 ":%" # d " " # var2 ":%" # e " " # var3 ":%" # f "\n", var1, var2, var3)
 #define PRINT4(d, e, f, g, var1, var2, var3, var4)	printf(# var1 ":%" # d " " # var2 ":%" # e " " # var3 ":%" # f " " # var4 ":%" # g "\n", var1, var2, var3, var4)
 
-extern          void *mallocN(int len, char *str);
-extern          void *callocN(int len, char *str);
-extern          short freeN(void *vmemh);   
+LIBEXPORT          void *mallocN(int len, char *str);
+LIBEXPORT          void *callocN(int len, char *str);
+LIBEXPORT          short freeN(void *vmemh);   
+
+LIBEXPORT          void *mallocT(int len, char *str);
+LIBEXPORT          void *callocT(int len, char *str);
+LIBEXPORT          void freeT(void *vmemh);   
 
 #endif /* UTIL_H */
 

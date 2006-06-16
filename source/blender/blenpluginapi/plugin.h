@@ -31,6 +31,7 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
 
+#include "externdef.h"
 #include "iff.h"
 #include "util.h"
 #include "floatpatch.h"
@@ -87,14 +88,14 @@ void plugin_getinfo(PluginInfo *);
 /* *************** API functions ******************** */
 
 	/* derived from the famous Perlin noise */
-extern float hnoise(float noisesize, float x, float y, float z);
+LIBEXPORT float hnoise(float noisesize, float x, float y, float z);
 	/* the original Perlin noise */
-extern float hnoisep(float noisesize, float x, float y, float z);
+LIBEXPORT float hnoisep(float noisesize, float x, float y, float z);
 
 	/* soft turbulence */
-extern float turbulence(float noisesize, float x, float y, float z, int depth);
+LIBEXPORT float turbulence(float noisesize, float x, float y, float z, int depth);
 	/* hard turbulence */
-extern float turbulence1(float noisesize, float x, float y, float z, int depth);
+LIBEXPORT float turbulence1(float noisesize, float x, float y, float z, int depth);
 
 #endif /* PLUGIN_H */
 
