@@ -1675,7 +1675,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 				
 				if((partclip & clipmask)==0) {
 					
-					if(env) zvlnr= 0;
+					if(env) zvlnr= -1;
 					else zvlnr= v+1;
 					
 					if(wire) zbufclipwire(&zspan, zvlnr, vlr);
@@ -1687,7 +1687,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 						else {
 							zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 							if(vlr->v4) {
-								if(zvlnr) zvlnr+= RE_QUAD_OFFS;
+								if(zvlnr>0) zvlnr+= RE_QUAD_OFFS;
 								zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 							}
 						}
@@ -2355,13 +2355,11 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 	int x, y, *rza;
 	long *rd;
 	
-	/* now, first copy existing zbuffer (has env z values too!
-	   in OSA the pixstructs contain all faces filled in */
+	if(R.osa==0) {
+		memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
+		return;
+	}
 	
-	memcpy(arectz, pa->rectz, 4*pa->rectx*pa->recty);
-
-	if(R.osa==0) return;
-		
 	rza= arectz;
 	rd= pa->rectdaps;
 
@@ -2370,16 +2368,14 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
 	for(y=0; y<pa->recty; y++) {
 		for(x=0; x<pa->rectx; x++) {
 			
+			*rza= 0x7FFFFFFF;
 			if(*rd) {	
-				ps= (PixStr *)(*rd);
-
-				while(ps) {
+				/* when there's a sky pixstruct, fill in sky-Z, otherwise solid Z */
+				for(ps= (PixStr *)(*rd); ps; ps= ps->next) {
 					if(sample & ps->mask) {
-						//printf("filled xy %d %d mask %d\n", x, y, sample);
 						*rza= ps->z;
 						break;
 					}
-					ps= ps->next;
 				}
 			}
 			
@@ -2595,7 +2591,9 @@ static void shadetrapixel(ShadePixelInfo *shpi, float x, float y, int z, int fac
 {
 	float rco[3];
 	
-	if( (facenr & RE_QUAD_MASK) > R.totvlak) {
+	if(facenr<0)
+		return;
+	else if( (facenr & RE_QUAD_MASK) > R.totvlak) {
 		printf("error in shadetrapixel nr: %d\n", (facenr & RE_QUAD_MASK));
 		return;
 	}

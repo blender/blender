@@ -2359,9 +2359,6 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 	ShadeInput shi;
 	VlakRen *vlr=NULL;
 	
-	if(facenr< 0) {	/* error */
-		return NULL;
-	}
 	/* currently in use for dithering (soft shadow) node preview */
 	shi.xs= (int)(x+0.5f);
 	shi.ys= (int)(y+0.5f);
@@ -2374,7 +2371,7 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 	shi.mask= mask;
 	shi.depth= 0;	// means first hit, not raytracing
 	
-	if(facenr==0) {	/* sky */
+	if(facenr<=0) {	/* sky or env */
 		memset(shr, 0, sizeof(ShadeResult));
 		rco[0]= rco[1]= rco[2]= 0.0f;
 	}
@@ -2639,7 +2636,7 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 	if(R.flag & R_LAMPHALO) {
 		if(shpi->layflag & SCE_LAY_HALO) {
 
-			if(facenr<=0) {	/* calc view vector and put shi.co at far */
+			if(facenr<=0) {	/* sky or env, calc view vector and put shi.co at far */
 				if(R.r.mode & R_ORTHO) {
 					/* x and y 3d coordinate can be derived from pixel coord and winmat */
 					float fx= 2.0/(R.rectx*R.winmat[0][0]);
@@ -2947,7 +2944,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 				}
 				
 				/* check osa level */
-				if(face==0) full_osa= 0;
+				if(face<=0) full_osa= 0;
 				else {
 					VlakRen *vlr= RE_findOrAddVlak(&R, (face-1) & RE_QUAD_MASK);
 					full_osa= (vlr->flag & R_FULL_OSA);

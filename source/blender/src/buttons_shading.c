@@ -3091,8 +3091,8 @@ static void material_panel_material(Material *ma)
 			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
 			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-			uiDefButBitI(block, TOG, MA_NOMIST, 0,	"No Mist",	8,146,146,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
-			uiDefButBitI(block, TOG, MA_ENV, 0,	"Env",			158,146,145,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
+			uiDefButBitI(block, TOG, MA_NOMIST, B_NOP,	"No Mist",	8,146,146,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
+			uiDefButBitI(block, TOG, MA_ENV, B_MATPRV,	"Env",			158,146,145,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
 		}
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);

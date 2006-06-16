@@ -65,7 +65,7 @@ typedef struct RenderPart
 	/* result of part rendering */
 	RenderResult *result;
 	
-	unsigned int *rectp;			/* polygon index table */
+	int *rectp;			/* polygon index table */
 	int *rectz;						/* zbuffer */
 	long *rectdaps;					/* delta acum buffer for pixel structs */
 	
