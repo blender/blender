@@ -290,6 +290,7 @@ void what_image(SpaceImage *sima)
 	}
 }
 
+/* called to assign images to UV faces */
 void image_changed(SpaceImage *sima, int dotile)
 {
 	TFace *tface;
@@ -299,8 +300,18 @@ void image_changed(SpaceImage *sima, int dotile)
 	if(sima->mode==SI_TEXTURE) {
 		
 		if(G.f & G_FACESELECT) {
+			
+			/* exception images, name rules are actually weak... */
+			if(sima->image) {
+				if(BLI_streq(sima->image->name, "Render Result"))
+					return;
+				if(BLI_streq(sima->image->name, "Composite"))
+					return;
+			}
+			
 			me= get_mesh(OBACT);
 			if(me && me->tface) {
+				
 				tface= me->tface;
 				a= me->totface;
 				while(a--) {
