@@ -186,7 +186,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "BulletDynamics"=..\..\extern\bullet\BulletDynamics\BulletDynamics.dsp - Package Owner=<4>
+Project: "BulletDynamics"=..\..\extern\bullet\BulletDynamics\BLI_BulletDynamics.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -712,9 +712,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name Bullet
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name BulletDynamics
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name KX_blenderhook
