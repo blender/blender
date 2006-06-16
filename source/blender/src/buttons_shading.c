@@ -2821,23 +2821,21 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUM, B_MATPRV, "Filt:",		10,110,150,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
 	uiDefButBitI(block, TOG, MA_RAYTRANSP, B_MATRAYTRANSP,"Ray Transp",160,110,150,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
 
-	uiBlockBeginAlign(block);
+	/* uiBlockBeginAlign(block); */
 	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",	10,90,200,20, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
 	uiDefButS(block, NUM, B_MATPRV, "Depth:",	210,90,100,20, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
 
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,70,160,20, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for transparency");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,70,140,20, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Limit ",	10,70,160,20, &(ma->tx_limit), 0.0, 100.0, 10, 2, "Depth limit for transmissivity (0.0 is disabled)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Falloff ",	170,70,140,20, &(ma->tx_falloff), 0.1, 10.0, 10, 2, "Falloff power for transmissivity (1.0 is linear)");
+
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,50,160,20, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for transparency");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,50,140,20, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,40,150,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,40,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
+	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,20,150,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,20,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Sets a glow factor for transparant materials");
 
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, MA_NOMIST, 0,	"No Mist",	10,10,150,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
-	uiDefButBitI(block, TOG, MA_ENV, 0,	"Env",			160,10,150,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
 	uiBlockEndAlign(block);
-
-
 }
 
 
@@ -3093,7 +3091,8 @@ static void material_panel_material(Material *ma)
 			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
 			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-
+			uiDefButBitI(block, TOG, MA_NOMIST, 0,	"No Mist",	8,146,146,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
+			uiDefButBitI(block, TOG, MA_ENV, 0,	"Env",			158,146,145,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
 		}
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);

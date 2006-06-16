@@ -67,7 +67,8 @@ typedef struct Material {
 	
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
-	float filter;		/* filter added, for raytrace transparency */
+	float filter;		/* filter added, for raytrace transparency and transmissivity */
+	float tx_limit, tx_falloff;
 	short ray_depth, ray_depth_tra;
 	short har;
 	char seed1, seed2;

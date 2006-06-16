@@ -1542,19 +1542,30 @@ static void color_combine(float *result, float fac1, float fac2, float *col1, fl
 
 static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
-	float dx, dy, dz, d;
+	float dx, dy, dz, d, p;
 
 	if (0 == (shi->mat->mode & (MA_RAYTRANSP|MA_ZTRA)))
 		return -1;
 	   
+	if (shi->mat->tx_limit <= 0.0) {
+		d= 0.0;
+	} else {
 	/* shi.co[] calculated by shade_ray() */
 	dx= shi->co[0] - is->start[0];
 	dy= shi->co[1] - is->start[1];
 	dz= shi->co[2] - is->start[2];
 	d= sqrt(dx*dx+dy*dy+dz*dz);
+		if (d > shi->mat->tx_limit)
+			d= shi->mat->tx_limit;
 
-	shr->alpha *= d;
-	if (shr->alpha > 1.0) shr->alpha= 1.0;
+		p = shi->mat->tx_falloff;
+		if(p < 0.0) p= 0.0;
+		else if (p > 10.0) p= 10.0;
+
+		shr->alpha *= pow(d, p);
+		if (shr->alpha > 1.0)
+			shr->alpha= 1.0;
+	}
 
 	return d;
 }
