@@ -5388,6 +5388,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		World *wo;
 		Lamp *la;
+		Material *ma;
 		bArmature *arm;
 		bNodeTree *ntree;
 		
@@ -5473,6 +5474,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ob->empty_drawsize==0.0f) {
 				ob->empty_drawtype = OB_ARROWS;
 				ob->empty_drawsize = 1.0;
+			}
+		}
+		
+		/* stucci returns intensity from now on */
+		for(ma= main->mat.first; ma; ma= ma->id.next) {
+			int a;
+			for(a=0; a<MAX_MTEX; a++) {
+				if(ma->mtex[a] && ma->mtex[a]->tex) {
+					Tex *tex= newlibadr(fd, lib, ma->mtex[a]->tex);
+					if(tex->type==TEX_STUCCI)
+						ma->mtex[a]->mapto &= ~(MAP_COL|MAP_SPEC|MAP_REF);
+				}
 			}
 		}
 		

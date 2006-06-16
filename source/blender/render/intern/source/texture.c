@@ -549,12 +549,10 @@ static int stucci(Tex *tex, float *texvec, TexResult *texres)
 {
 	float b2, ofs;
 
-	/* Special case: same value than TEX_INT but no same meaning because
-       when using colour band it uses tex_normal_derivate(). So it's
-       on purpose that texres->tin is only computed if textes->nor[] is too */
-	if(texres->nor == NULL) return 0;
-
 	texres->tin=b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	
+	if(texres->nor == NULL) return TEX_INT;
+	
 	ofs= tex->turbul/200.0;
 
 	if(tex->stype) ofs*=(b2*b2);
@@ -1171,8 +1169,6 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		break;
 	case TEX_STUCCI:
 		retval= stucci(tex, texvec, texres); 
-		if (tex->flag & TEX_COLORBAND);
-		else texres->tin= 0.0;	// stucci doesnt return Tin, for backwards compat...
 		break;
 	case TEX_NOISE:
 		retval= texnoise(tex, texres); 
