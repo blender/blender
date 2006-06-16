@@ -1253,8 +1253,14 @@ int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, Te
 		mtex.texco= TEXCO_ORCO;
 		
 		VECCOPY(texvec_l, texvec);
-		VECCOPY(dxt_l, dxt);
-		VECCOPY(dyt_l, dyt);
+		if(dxt && dyt) {
+			VECCOPY(dxt_l, dxt);
+			VECCOPY(dyt_l, dyt);
+		}
+		else {
+			dxt_l[0]= dxt_l[1]= dxt_l[2]= 0.0f;
+			dyt_l[0]= dyt_l[1]= dyt_l[2]= 0.0f;
+		}
 		
 		do_2d_mapping(&mtex, texvec_l, NULL, dxt_l, dyt_l);
 
