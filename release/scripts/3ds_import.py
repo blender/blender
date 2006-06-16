@@ -8,7 +8,7 @@ Tooltip: 'Import from 3DS file format (.3ds)'
 
 __author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton']
 __url__= ('blender', 'elysiun', 'http://www.gametutorials.com')
-__version__= '0.95'
+__version__= '0.96'
 __bpydoc__= '''\
 
 3ds Importer
@@ -16,6 +16,12 @@ __bpydoc__= '''\
 This script imports a 3ds file and the materials into Blender for editing.
 
 Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
+
+
+
+0.96 by Campbell Barton<br>
+- Added workaround for bug in setting UV's for Zero vert index UV faces.
+- Removed unique name function, let blender make the names unique.
 
 0.95 by Campbell Barton<br>
 - Removed workarounds for Blender 2.41
@@ -92,21 +98,6 @@ if ( (sys.version_info[0] <= 2) and (sys.version_info[1] < 4) ):
 #this script imports uvcoords as sticky vertex coords
 #this parameter enables copying these to face uv coords
 #which shold be more useful.
-
-
-#===========================================================================#
-# Returns unique name of object/mesh (stops overwriting existing meshes)    #
-#===========================================================================#
-def getUniqueName(name):
-	count= 0
-	newname= name[:19]
-	while newname in getUniqueName.uniqueObNames:
-		newname= '%s.%.3i' % (name[:15], count)
-		count+=1
-	# Dont use again.
-	getUniqueName.uniqueObNames.append(newname)
-	return newname
-getUniqueName.uniqueObNames= Blender.NMesh.GetNames() + [ob.name for ob in Object.Get()]
 
 def createBlenderTexture(material, name, image):
 	texture= Texture.New(name)
@@ -261,21 +252,16 @@ def add_texture_to_material(image, texture, material, mapto):
 	elif mapto=='BUMP':
 		map=Texture.MapTo.NOR
 	else:
-		raise '/tError:  Cannot map to ', mapto
-		return
-	
+		print '/tError:  Cannot map to "%s"\n\tassuming diffuse color. modify material "%s" later.' % (mapto, material.name)
+		map=Texture.MapTo.COL
 
-	texture.setImage(image)
-	texture_list=material.getTextures()
-	index=0
-	for tex in texture_list:
-		if tex==None:
-			material.setTexture(index,texture,Texture.TexCo.UV,map)
-			return
-		else:
-			index+=1
-		if index>10:
-			print '/tError: Cannot add diffuse map.  Too many textures'
+	if image: texture.setImage(image) # double check its an image.
+	free_tex_slots= [i for i, tex in enumerate( material.getTextures() ) if tex==None]
+	if not free_tex_slots:
+		print '/tError: Cannot add "%s" map. 10 Texture slots alredy used.' % mapto
+	else:
+		material.setTexture(free_tex_slots[0],texture,Texture.TexCo.UV,map)
+
 
 def process_next_chunk(file, previous_chunk, importedObjects):
 	#print previous_chunk.bytes_read, 'BYTES READ'
@@ -311,7 +297,10 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		# Now make copies with assigned materils.
 		
 		def makeMeshMaterialCopy(matName, faces):			
-			# Make a new mesh with only face the faces that use this material.
+			'''
+			Make a new mesh with only face the faces that use this material.
+			faces can be any iterable object - containing ints.
+			'''
 			faceVertUsers = [False] * len(myContextMesh.verts)
 			ok=0
 			for fIdx in faces:
@@ -342,15 +331,18 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			else:
 				img= None
 				
+			bmesh.verts.extend( [Vector()] )
 			bmesh.verts.extend( [myContextMesh.verts[i].co for i in vertsToUse] )
-			bmesh.faces.extend( [ [ bmesh.verts[ myVertMapping[v.index]] for v in myContextMesh.faces[fIdx].v] for fIdx in faces ] )
+			# +1 because of DUMMYVERT
+			bmesh.faces.extend( [ [ bmesh.verts[ myVertMapping[v.index]+1] for v in myContextMesh.faces[fIdx].v] for fIdx in faces ] )
 			
 			if contextMeshUV or img:
 				bmesh.faceUV= 1
 				for ii, i in enumerate(faces):
 					targetFace= bmesh.faces[ii]
 					if contextMeshUV:
-						targetFace.uv= [contextMeshUV[v.index] for v in myContextMesh.faces[i].v]
+						# v.index-1 because of the DUMMYVERT
+						targetFace.uv= [contextMeshUV[v.index-1] for v in myContextMesh.faces[i].v]
 						
 					if img:
 						targetFace.image= img
@@ -410,7 +402,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		#is it an object chunk?
 		elif (new_chunk.ID==OBJECT):
 			tempName= read_string(file)
-			contextObName= getUniqueName( tempName )
+			contextObName= tempName
 			new_chunk.bytes_read += len(tempName)+1
 		
 		#is it a material chunk?
@@ -590,6 +582,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				new_chunk.bytes_read += STRUCT_SIZE_3FLOAT #12: 3 floats x 4 bytes each
 				return Vector(unpack('3f', temp_data))
 			
+			contextMesh.verts.extend( [Vector(),] ) # DUMMYVERT! - remove when blenders internbals are fixed.
 			contextMesh.verts.extend( [getvert() for i in xrange(num_verts)] )
 			#print 'object verts: bytes read: ', new_chunk.bytes_read
 
@@ -607,7 +600,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				v1,v2,v3,dummy= unpack('4H', temp_data)
 				if v1==v2 or v1==v3 or v2==v3:
 					return None
-				return contextMesh.verts[v1], contextMesh.verts[v2], contextMesh.verts[v3]
+				# DUMMYVERT! - remove +1 when blenders internals are fixed,
+				return contextMesh.verts[v1+1], contextMesh.verts[v2+1], contextMesh.verts[v3+1]
 			
 			faces= [ getface() for i in xrange(num_faces) ]
 			facesExtend= [ f for f in faces if f ]
@@ -730,7 +724,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 	if contextMesh != None:
 		putContextMesh(contextMesh, contextMeshMaterials)
 
-def load_3ds(filename):
+def load_3ds(filename, PREF_UI= True):
 	print '\n\nImporting "%s" "%s"' % (filename, Blender.sys.expandpath(filename))
 	
 	time1= Blender.sys.time()
@@ -755,9 +749,9 @@ def load_3ds(filename):
 	pup_block= [\
 	('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
 	]
-	
-	if not Blender.Draw.PupBlock('Import 3DS...', pup_block):
-		return
+	if PREF_UI:
+		if not Blender.Draw.PupBlock('Import 3DS...', pup_block):
+			return
 	IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
 	
 	importedObjects= [] # Fill this list with objects
@@ -769,6 +763,15 @@ def load_3ds(filename):
 	
 	# Link the objects into this scene.
 	Layers= scn.Layers
+	
+	'''
+	# REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
+	for ob in importedObjects:
+		if ob.getType()=='Mesh':
+			me= ob.getData(mesh=1)
+			me.verts.delete([me.verts[0],])
+	'''
+	
 	if IMPORT_AS_INSTANCE:
 		name= filename.split('\\')[-1].split('/')[-1]
 		# Create a group for this import.
@@ -818,13 +821,13 @@ def between(v,a,b):
 	return False
 	
 for i, _3ds in enumerate(lines):
-	if between(i, 600, 700):
+	if between(i, 1, 200):
 		_3ds= _3ds[:-1]
 		print 'Importing', _3ds, '\nNUMBER', i, 'of', len(lines)
 		_3ds_file= _3ds.split('/')[-1].split('\\')[-1]
 		newScn= Scene.New(_3ds_file)
 		newScn.makeCurrent()
-		load_3ds(_3ds)
+		load_3ds(_3ds, False)
 
 print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
 '''
