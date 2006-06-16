@@ -1390,6 +1390,7 @@ static void render_panel_ffmpeg_video(void)
        uiBlock *block;
        block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_video", 
 			  UI_EMBOSS, UI_HELV, curarea->win);
+	   uiNewPanelTabbed("Format", "Render");
        if (uiNewPanel(curarea, block, "Video", "Render", 960, 0, 318, 204) 
 	   == 0) return;
 
@@ -1467,6 +1468,7 @@ static void render_panel_ffmpeg_audio(void)
        int xcol;
        uiBlock *block;
        block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_audio", UI_EMBOSS, UI_HELV, curarea->win);
+	   uiNewPanelTabbed("Format", "Render");
        if (uiNewPanel(curarea, block, "Audio", "Render", 960, 0, 318, 204) 
 	   == 0) return;
        yofs = 54;
@@ -1873,14 +1875,15 @@ void render_panels()
 	render_panel_layers();
 	render_panel_render();
 	render_panel_anim();
+
+	render_panel_format();
 #ifdef WITH_FFMPEG
        if (G.scene->r.imtype == R_FFMPEG) {
-               render_panel_ffmpeg_video();
+		   render_panel_ffmpeg_video();
 	       render_panel_ffmpeg_audio();
        }
 #endif
 
-	render_panel_format();
 	/* yafray: GI & Global panel, only available when yafray enabled for rendering */
 	if (G.scene->r.renderer==R_YAFRAY) {
 		if (G.scene->r.YF_gamma==0.0) G.scene->r.YF_gamma=1.0;
