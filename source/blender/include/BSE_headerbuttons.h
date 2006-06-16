@@ -131,6 +131,9 @@ void do_info_add_metamenu(void *arg, int event);
 void do_info_add_lampmenu(void *arg, int event);
 void do_info_addmenu(void *arg, int event);
 
+/* header_node.c */
+void do_node_addmenu(void *arg, int event);
+
 /* header_view3d.c */
 void do_view3d_select_objectmenu(void *arg, int event);
 void do_view3d_select_object_groupedmenu(void *arg, int event);

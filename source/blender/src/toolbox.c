@@ -1466,17 +1466,15 @@ static TBitem tb_render[]= {
 #define TB_SH_OP_COLOR		2
 #define TB_SH_OP_VECTOR		3
 #define TB_SH_CONVERTORS	4
-#define TB_SH_GENERATORS	5
-#define TB_SH_GROUPS		6
+#define TB_SH_GROUPS		5
 
 static TBitem tb_node_addsh[]= {
-	{	0, "Inputs",		1, NULL},
-	{	0, "Outputs",		2, NULL},
-	{	0, "Color Ops",		3, NULL},
-	{	0, "Vector Ops",	4, NULL},
+	{	0, "Input",		1, NULL},
+	{	0, "Output",		2, NULL},
+	{	0, "Color",		3, NULL},
+	{	0, "Vector",		4, NULL},
 	{	0, "Convertors",	5, NULL},
-	{	0, "Generators",	6, NULL},
-	{	0, "Groups",		7, NULL},
+	{	0, "Groups",		6, NULL},
 	{  -1, "", 			0, NULL}};
 
 
@@ -1486,35 +1484,19 @@ static TBitem tb_node_addsh[]= {
 #define TB_CMP_OP_VECTOR	3
 #define TB_CMP_OP_FILTER	4
 #define TB_CMP_CONVERTORS	5
-#define TB_CMP_GENERATORS	6
-#define TB_CMP_GROUPS		7
+#define TB_CMP_GROUPS		6
 
 static TBitem tb_node_addcomp[]= {
-	{	0, "Inputs",		1, NULL},
-	{	0, "Outputs",		2, NULL},
-	{	0, "Color Ops",		3, NULL},
-	{	0, "Vector Ops",	4, NULL},
+	{	0, "Input",		1, NULL},
+	{	0, "Output",		2, NULL},
+	{	0, "Color",		3, NULL},
+	{	0, "Vector",		4, NULL},
 	{	0, "Filters",		5, NULL},
 	{	0, "Convertors",	6, NULL},
-	{	0, "Generators",	7, NULL},
-	{	0, "Groups",		8, NULL},
+	{	0, "Groups",		7, NULL},
 	{  -1, "", 			0, NULL}};
 
-static void do_node_addmenu(void *arg, int event)
-{
-	SpaceNode *snode= curarea->spacedata.first;
-	float locx, locy;
-	short mval[2];
-	
-	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	node_add_node(snode, event, locx, locy);
-	
-	addqueue(curarea->win, B_NODE_TREE_EXEC, 1);
-	
-	BIF_undo_push("Add Node");
-	
-}
+/* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
 
 /* dynamic toolbox sublevel */
 static TBitem *node_add_sublevel(void **poin, bNodeTree *ntree, int nodeclass)
@@ -1575,17 +1557,18 @@ static TBitem *node_add_sublevel(void **poin, bNodeTree *ntree, int nodeclass)
 }
 
 
-static TBitem tb_node_edit[]= {
+static TBitem tb_node_node[]= {
 	{	0, "Duplicate|Shift D", TB_SHIFT|'d', 		NULL},
 	{	0, "Delete|X", 'x', 		NULL},
 	{	0, "SEPR", 		0, NULL},
 	{	0, "Make Group|Ctrl G", TB_CTRL|'g', 		NULL},
 	{	0, "Ungroup|Alt G", TB_ALT|'g', 		NULL},
-	{	0, "Edit Group", TB_TAB, NULL},
+	{	0, "Edit Group|Tab", TB_TAB, NULL},
 	{	0, "SEPR", 		0, NULL},
 	{	0, "Hide/Unhide|H", 'h', NULL},
 	{	0, "SEPR", 		0, NULL},
-	{	0, "Show Cyclic Dependencies", 'c', NULL},
+	{	0, "Read Saved Render Results|R", 'r', NULL},
+	{	0, "Show Cyclic Dependencies|C", 'c', NULL},
 	{  -1, "", 			0, tb_do_hotkey}};
 
 static TBitem tb_node_select[]= {
@@ -1598,9 +1581,9 @@ static TBitem tb_node_transform[]= {
 	{  -1, "", 			0, tb_do_hotkey}};
 
 static TBitem tb_node_view[]= {
-	{	0, "Zoom in|NumPad +",	TB_PAD|'+', NULL},
-	{	0, "Zoom out|NumPad -",	TB_PAD|'-', NULL},
-	{	0, "View all|Home",	TB_PAD|'h', NULL},
+	{	0, "Zoom In|NumPad +",	TB_PAD|'+', NULL},
+	{	0, "Zoom Out|NumPad -",	TB_PAD|'-', NULL},
+	{	0, "View All|Home",	TB_PAD|'h', NULL},
 	{  -1, "", 			0, tb_do_hotkey}};
 
 
@@ -1872,7 +1855,7 @@ void toolbox_n(void)
 		else
 			menu1= tb_node_addsh; 
 		str1= "Add";
-		menu2= tb_node_edit; str2= "Edit";
+		menu2= tb_node_node; str2= "Node";
 		menu3= tb_node_select; str3= "Select";
 		menu4= tb_node_transform; str4= "Transform";
 		menu5= tb_node_view; str5= "View";
@@ -1883,7 +1866,6 @@ void toolbox_n(void)
 			node_add_op_col= node_add_sublevel(&menu1[TB_SH_OP_COLOR].poin, snode->nodetree, NODE_CLASS_OP_COLOR);
 			node_add_op_vec= node_add_sublevel(&menu1[TB_SH_OP_VECTOR].poin, snode->nodetree, NODE_CLASS_OP_VECTOR);
 			node_add_con= node_add_sublevel(&menu1[TB_SH_CONVERTORS].poin, snode->nodetree, NODE_CLASS_CONVERTOR);
-			node_add_gen= node_add_sublevel(&menu1[TB_SH_GENERATORS].poin, snode->nodetree, NODE_CLASS_GENERATOR);
 			node_add_group= node_add_sublevel(&menu1[TB_SH_GROUPS].poin, snode->nodetree, NODE_CLASS_GROUP);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
@@ -1893,7 +1875,6 @@ void toolbox_n(void)
 			node_add_op_filt= node_add_sublevel(&menu1[TB_CMP_OP_FILTER].poin, snode->nodetree, NODE_CLASS_OP_FILTER);
 			node_add_op_vec= node_add_sublevel(&menu1[TB_CMP_OP_VECTOR].poin, snode->nodetree, NODE_CLASS_OP_VECTOR);
 			node_add_con= node_add_sublevel(&menu1[TB_CMP_CONVERTORS].poin, snode->nodetree, NODE_CLASS_CONVERTOR);
-			node_add_gen= node_add_sublevel(&menu1[TB_CMP_GENERATORS].poin, snode->nodetree, NODE_CLASS_GENERATOR);
 			node_add_group= node_add_sublevel(&menu1[TB_CMP_GROUPS].poin, snode->nodetree, NODE_CLASS_GROUP);
 		}
 		

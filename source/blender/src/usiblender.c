@@ -286,9 +286,9 @@ static void init_userdef_file(void)
 				btheme->tnode= btheme->tv3d;
 				SETCOL(btheme->tnode.edge_select, 255, 255, 255, 255);
 				SETCOL(btheme->tnode.syntaxl, 150, 150, 150, 255);	/* TH_NODE, backdrop */
-				SETCOL(btheme->tnode.syntaxn, 95, 110, 145, 255);	/* in/output */
-				SETCOL(btheme->tnode.syntaxb, 135, 125, 120, 255);	/* operator */
-				SETCOL(btheme->tnode.syntaxv, 120, 120, 120, 255);	/* generator */
+				SETCOL(btheme->tnode.syntaxn, 129, 131, 144, 255);	/* in/output */
+				SETCOL(btheme->tnode.syntaxb, 127,127,127, 255);	/* operator */
+				SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
 				SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 			}
 			if(btheme->tv3d.group[3]==0) {

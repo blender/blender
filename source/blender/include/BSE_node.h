@@ -56,7 +56,20 @@ void snode_tag_dirty(struct SpaceNode *snode);
 
 void snode_set_context(struct SpaceNode *snode);
 
+void snode_home(struct ScrArea *sa, struct SpaceNode *snode);
+void snode_zoom_in(struct ScrArea *sa);
+void snode_zoom_out(struct ScrArea *sa);
+
 void node_deselectall(struct SpaceNode *snode, int swap);
+void node_border_select(struct SpaceNode *snode);
+
+void node_delete(struct SpaceNode *snode);
+void node_make_group(struct SpaceNode *snode);
+void node_ungroup(struct SpaceNode *snode);
+void snode_make_group_editable(struct SpaceNode *snode, struct bNode *gnode);
+void node_hide(struct SpaceNode *snode);
+void node_read_renderresults(struct SpaceNode *snode);
+
 void node_transform_ext(int mode, int unused);
 void node_shader_default(struct Material *ma);
 void node_composit_default(struct Scene *scene);

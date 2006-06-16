@@ -54,7 +54,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 
+#include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 
@@ -93,12 +95,416 @@ void do_node_buttons(ScrArea *sa, unsigned short event)
 	}
 }
 
+static void do_node_viewmenu(void *arg, int event)
+{
+	SpaceNode *snode= curarea->spacedata.first; 
+	
+	switch(event) {
+		case 1: /* Zoom in */
+			snode_zoom_in(curarea);
+			break;
+		case 2: /* View all */
+			snode_zoom_out(curarea);
+			break;
+		case 3: /* View all */
+			snode_home(curarea, snode);
+			break;
+	}
+	allqueue(REDRAWNODE, 0);
+}
+
+static uiBlock *node_viewmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_viewmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_node_viewmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	
+	if (!curarea->full) 
+		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	else 
+		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
+
+static void do_node_selectmenu(void *arg, int event)
+{
+	SpaceNode *snode= curarea->spacedata.first; 
+	
+	switch(event) {
+		case 1: /* border select */
+			node_border_select(snode);
+			break;
+		case 2: /* select/deselect all */
+			node_deselectall(snode, 1);
+			break;
+	}
+	allqueue(REDRAWNODE, 0);
+}
+
+static uiBlock *node_selectmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_selectmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_node_selectmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
+
+void do_node_addmenu(void *arg, int event)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	float locx, locy;
+	short mval[2];
+	
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
+	node_add_node(snode, event, locx, locy);
+	
+	addqueue(curarea->win, B_NODE_TREE_EXEC, 1);
+	
+	BIF_undo_push("Add Node");
+	
+}
+
+static void node_make_addmenu(SpaceNode *snode, int nodeclass, uiBlock *block)
+{
+	bNodeTree *ntree;
+	bNodeType **typedefs;
+	int tot= 0, a;
+	short yco= 0, menuwidth=120;
+	
+	ntree = snode->nodetree;
+	if(ntree) {
+		/* mostly taken from toolbox.c, node_add_sublevel() */
+		if(ntree) {
+			if(nodeclass==NODE_CLASS_GROUP) {
+				bNodeTree *ngroup= G.main->nodetree.first;
+				for(; ngroup; ngroup= ngroup->id.next)
+					if(ngroup->type==ntree->type)
+						tot++;
+			}
+			else {
+				for(typedefs= ntree->alltypes; *typedefs; typedefs++)
+					if( (*typedefs)->nclass == nodeclass )
+						tot++;
+			}
+		}	
+		
+		if(tot==0) {
+			uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			return;
+		}
+		
+		if(nodeclass==NODE_CLASS_GROUP) {
+			bNodeTree *ngroup= G.main->nodetree.first;
+			for(tot=0, a=0; ngroup; ngroup= ngroup->id.next, tot++) {
+				if(ngroup->type==ntree->type) {
+					
+					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, (ngroup->id.name+2), 0, 
+						yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, NODE_GROUP_MENU+tot, "");
+					a++;
+				}
+			}
+		}
+		else {
+			for(a=0, typedefs= ntree->alltypes; *typedefs; typedefs++) {
+				if( (*typedefs)->nclass == nodeclass ) {
+					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, (*typedefs)->name, 0, 
+						yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, (*typedefs)->type, "");
+					a++;
+				}
+			}
+		}
+	} else {
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		return;
+	}
+}
+
+static uiBlock *node_add_inputmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "node_add_inputmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_INPUT, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_outputmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_outputmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_OUTPUT, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_colormenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_colormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_OP_COLOR, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_vectormenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_vectormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_OP_VECTOR, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_filtermenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_filtermenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_OP_FILTER, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_convertermenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_convertermenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_CONVERTOR, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_groupmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_groupmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_GROUP, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
+static uiBlock *node_addmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_addmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	if(snode->treetype==NTREE_SHADER) {
+		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_outputmenu, NULL, ICON_RIGHTARROW_THIN, "Output", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_colormenu, NULL, ICON_RIGHTARROW_THIN, "Color", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_vectormenu, NULL, ICON_RIGHTARROW_THIN, "Vector", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
+	}
+	else if(snode->treetype==NTREE_COMPOSIT) {
+		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_outputmenu, NULL, ICON_RIGHTARROW_THIN, "Output", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_colormenu, NULL, ICON_RIGHTARROW_THIN, "Color", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_vectormenu, NULL, ICON_RIGHTARROW_THIN, "Vector", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_filtermenu, NULL, ICON_RIGHTARROW_THIN, "Filter", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
+	} else
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
+
+static void do_node_nodemenu(void *arg, int event)
+{
+	SpaceNode *snode= curarea->spacedata.first; 
+	int fromlib=0;
+	
+	if(snode->nodetree==NULL) return;
+	fromlib= (snode->id && snode->id->lib);
+	
+	switch(event) {
+		case 1: /* grab/move */
+			node_transform_ext(0,0);
+			break;
+		case 2: /* duplicate */
+			if(fromlib) fromlib= -1;
+			else node_adduplicate(snode);
+			break;
+		case 3: /* delete */
+			if(fromlib) fromlib= -1;
+			else node_delete(snode);
+			break;
+		case 4: /* make group */
+			node_make_group(snode);
+			break;
+		case 5: /* ungroup */
+			node_ungroup(snode);
+			break;
+		case 6: /* edit group */
+			if(fromlib) fromlib= -1;
+			else snode_make_group_editable(snode, NULL);
+			break;
+		case 7: /* hide/unhide */
+			node_hide(snode);
+			break;
+		case 8: /* read saved render results */
+			node_read_renderresults(snode);
+			break;
+		case 9: /* show cyclic */
+			ntreeSolveOrder(snode->edittree);
+			break;
+	}
+	
+	if(fromlib==-1) error("Can't edit Library Data");
+	allqueue(REDRAWNODE, 0);
+}
+
+static uiBlock *node_nodemenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first; 
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_nodemenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_node_nodemenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Group|Ctrl G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Ungroup|Alt G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edit Group|Tab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide/Unhide|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	if(snode->treetype==NTREE_COMPOSIT)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Render Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Cyclic Dependencies|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
 
 void node_buttons(ScrArea *sa)
 {
 	SpaceNode *snode= sa->spacedata.first;
 	uiBlock *block;
-	short xco;
+	short xco, xmax;
 	char name[256];
 	
 	sprintf(name, "header %d", sa->headwin);
@@ -135,10 +541,25 @@ void node_buttons(ScrArea *sa)
 		/* pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
-//		xmax= GetButStringLength("View");
-//		uiDefPulldownBut(block, time_viewmenu, NULL, 
-//					  "View", xco, -2, xmax-3, 24, "");
-//		xco+= xmax;
+		xmax= GetButStringLength("View");
+		uiDefPulldownBut(block, node_viewmenu, NULL, 
+					  "View", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Select");
+		uiDefPulldownBut(block, node_selectmenu, NULL, 
+						 "Select", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Add");
+		uiDefPulldownBut(block, node_addmenu, NULL, 
+						 "Add", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Node");
+		uiDefPulldownBut(block, node_nodemenu, NULL, 
+						 "Node", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);

@@ -470,7 +470,7 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 	}
 }
 
-static void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
+void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 {
 	bNode *node;
 	
@@ -515,7 +515,7 @@ static void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	allqueue(REDRAWNODE, 0);
 }
 
-static void node_ungroup(SpaceNode *snode)
+void node_ungroup(SpaceNode *snode)
 {
 	bNode *gnode;
 
@@ -682,7 +682,7 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	return tnode;
 }
 
-static void snode_home(ScrArea *sa, SpaceNode *snode)
+void snode_home(ScrArea *sa, SpaceNode *snode)
 {
 	bNode *node;
 	int first= 1;
@@ -703,6 +703,32 @@ static void snode_home(ScrArea *sa, SpaceNode *snode)
 	snode->v2d.tot= snode->v2d.cur;
 	test_view2d(G.v2d, sa->winx, sa->winy);
 	
+}
+
+void snode_zoom_out(ScrArea *sa)
+{
+	float dx;
+	
+	dx= (float)(0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin));
+	G.v2d->cur.xmin-= dx;
+	G.v2d->cur.xmax+= dx;
+	dx= (float)(0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin));
+	G.v2d->cur.ymin-= dx;
+	G.v2d->cur.ymax+= dx;
+	test_view2d(G.v2d, sa->winx, sa->winy);
+}
+
+void snode_zoom_in(ScrArea *sa)
+{
+	float dx;
+	
+	dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
+	G.v2d->cur.xmin+= dx;
+	G.v2d->cur.xmax-= dx;
+	dx= (float)(0.1154*(G.v2d->cur.ymax-G.v2d->cur.ymin));
+	G.v2d->cur.ymin+= dx;
+	G.v2d->cur.ymax-= dx;
+	test_view2d(G.v2d, sa->winx, sa->winy);
 }
 
 /* checks mouse position, and returns found node/socket */
@@ -854,7 +880,7 @@ void node_transform_ext(int mode, int unused)
 {
 	SpaceNode *snode= curarea->spacedata.first;
 	
-	transform_nodes(snode->edittree, 'g', "Translate node");
+	transform_nodes(snode->edittree, 'g', "Move Node");
 }
 
 
@@ -1542,7 +1568,7 @@ static int node_add_link(SpaceNode *snode)
 	return 0;
 }
 
-static void node_delete(SpaceNode *snode)
+void node_delete(SpaceNode *snode)
 {
 	bNode *node, *next;
 	
@@ -1558,7 +1584,7 @@ static void node_delete(SpaceNode *snode)
 	allqueue(REDRAWNODE, 1);
 }
 
-static void node_hide(SpaceNode *snode)
+void node_hide(SpaceNode *snode)
 {
 	bNode *node;
 	int nothidden=0, ishidden=0;
@@ -1660,7 +1686,7 @@ static void node_border_link_delete(SpaceNode *snode)
 }
 
 /* goes over all scenes, reads render results */
-static void node_read_renderresults(SpaceNode *snode)
+void node_read_renderresults(SpaceNode *snode)
 {
 	Scene *scene;
 	bNode *node;
@@ -1683,6 +1709,7 @@ static void node_read_renderresults(SpaceNode *snode)
 	ntreeCompositTagRender(snode->edittree);
 	snode_handle_recalc(snode);
 }
+
 
 /* ********************** */
 
@@ -1825,23 +1852,11 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case PADPLUSKEY:
-			dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
-			G.v2d->cur.xmin+= dx;
-			G.v2d->cur.xmax-= dx;
-			dx= (float)(0.1154*(G.v2d->cur.ymax-G.v2d->cur.ymin));
-			G.v2d->cur.ymin+= dx;
-			G.v2d->cur.ymax-= dx;
-			test_view2d(G.v2d, sa->winx, sa->winy);
+			snode_zoom_in(sa);
 			doredraw= 1;
 			break;
 		case PADMINUS:
-			dx= (float)(0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin));
-			G.v2d->cur.xmin-= dx;
-			G.v2d->cur.xmax+= dx;
-			dx= (float)(0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin));
-			G.v2d->cur.ymin-= dx;
-			G.v2d->cur.ymax+= dx;
-			test_view2d(G.v2d, sa->winx, sa->winy);
+			snode_zoom_out(sa);
 			doredraw= 1;
 			break;
 		case HOMEKEY:
@@ -1892,7 +1907,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					node_addgroup(snode);
 				}
 				else
-					transform_nodes(snode->edittree, 'g', "Translate Node");
+					transform_nodes(snode->edittree, 'g', "Move Node");
 			}
 			break;
 		case HKEY:
