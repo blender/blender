@@ -2552,8 +2552,11 @@ void main_to_filelist(SpaceFile *sfile)
 					if(id->lib==NULL)
 						files->relname= BLI_strdup(id->name+2);
 					else {
-						files->relname= MEM_mallocN(FILE_MAXDIR+FILE_MAXFILE+32, "filename for lib");
-						sprintf(files->relname, "%s | %s", id->lib->name, id->name+2);
+						char tmp[FILE_MAXDIR+FILE_MAXFILE], fi[FILE_MAXFILE];
+						BLI_strncpy(tmp, id->lib->name, FILE_MAXDIR+FILE_MAXFILE);
+						BLI_splitdirstring(tmp, fi);
+						files->relname= MEM_mallocN(FILE_MAXFILE+32, "filename for lib");
+						sprintf(files->relname, "%s / %s", fi, id->name+2);
 					}
 					
 					if(sfile->returnfunc==0) { /* F4 DATA BROWSE */
