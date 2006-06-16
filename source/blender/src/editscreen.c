@@ -2351,7 +2351,9 @@ void area_fullscreen(void)	/* with curarea */
 	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		scrarea_do_headchange(sa);
 		scrarea_do_winchange(sa);
-	}	
+	}
+	/* bad code #2: setscreen() ends with first area active. fullscreen render assumes this too */
+	curarea= sc->areabase.first;
 }
 
 static void area_autoplayscreen(void)
