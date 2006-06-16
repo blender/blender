@@ -81,12 +81,14 @@ def CloseRenderWindow():
 
 def EnableDispView():
   """
-  Render in the 3d View area.
+  Render in the 3d View area.  B{Note} this method is deprecated; 
+  use the l{displayMode} attribute instead.
   """
 
 def EnableDispWin():
   """
   Render in Render window.
+  B{Note} this method is deprecated; use the l{displayMode} attribute instead.
   """
 
 def SetRenderWinPos(locationList):
@@ -171,7 +173,8 @@ class RenderData:
   5, 8, 11, or 16.
   @type OSALevel: int
   @ivar displayMode: Render output in separate window or 3D view.
-  Valid values are 0 (display in 3d view) or 1 (display in window).
+  Valid values are 0 (display in image editor view), 1 (display in render
+  window), or 2 (display full screen).
   @type displayMode: int
   @ivar threads: Render in two threads enabled. 
   Also see B{THREADS} in L{Modes} constant dict.

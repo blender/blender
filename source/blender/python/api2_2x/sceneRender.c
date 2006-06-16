@@ -1850,7 +1850,7 @@ static int RenderData_setDisplayMode( BPy_RenderData *self,
 		PyObject *value )
 {
 	return EXPP_setIValueRange( value, &G.displaymode,
-			R_DISPLAYIMAGE, R_DISPLAYWIN, 'h' );
+			R_DISPLAYIMAGE, R_DISPLAYSCREEN, 'h' );
 }
 
 static PyObject *RenderData_getRenderPath( BPy_RenderData * self )
