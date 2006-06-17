@@ -5491,7 +5491,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a] && ma->mtex[a]->tex) {
 					Tex *tex= newlibadr(fd, lib, ma->mtex[a]->tex);
-					if(tex->type==TEX_STUCCI)
+					if(tex && tex->type==TEX_STUCCI)
 						ma->mtex[a]->mapto &= ~(MAP_COL|MAP_SPEC|MAP_REF);
 				}
 			}
