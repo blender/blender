@@ -39,7 +39,6 @@ struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
 struct bNodeGroup;
-struct uiBlock;
 
 #define NODE_MAXSTR 32
 
@@ -113,7 +112,6 @@ typedef struct bNode {
 	ListBase inputs, outputs;
 	struct ID *id;			/* optional link to libdata */
 	void *storage;			/* custom data, must be struct, for storage in file */
-	struct uiBlock *block;	/* each node has own block */
 	
 	float locx, locy;		/* root offset for drawing */
 	float width, miniwidth;			

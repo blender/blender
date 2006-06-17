@@ -1751,11 +1751,13 @@ void node_make_group(SpaceNode *snode)
 
 /* special version to prevent overlapping buttons, has a bit of hack... */
 /* yes, check for example composit_node_event(), file window use... */
-static int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
+static int node_uiDoBlocks(ScrArea *sa, short event)
 {
+	SpaceNode *snode= sa->spacedata.first;
+	ListBase *lb= &sa->uiblocks;
+	ListBase listb= *lb;
 	bNode *node;
 	rctf rect;
-	ListBase listb= *lb;
 	void *prev;
 	int retval= UI_NOTHING;
 	short mval[2];
@@ -1774,15 +1776,22 @@ static int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 	rect.ymax = rect.ymin + 4.0f;
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->block) {
+		uiBlock *block;
+		char str[32];
+		
+		/* retreive unique block name, see also drawnode.c */
+		sprintf(str, "node buttons %p", node);
+		block= uiGetBlock(str, sa);
+		
+		if(block) {
 			if(node == visible_node(snode, &rect)) {
 				
 				/* when there's menus, the prev pointer becomes zero! */
-				prev= ((struct Link *)node->block)->prev;
+				prev= ((struct Link *)block)->prev;
 				
-				lb->first= lb->last= node->block;
+				lb->first= lb->last= block;
 				retval= uiDoBlocks(lb, event);
-				((struct Link *)node->block)->prev= prev;
+				((struct Link *)block)->prev= prev;
 
 				break;
 			}
@@ -1805,7 +1814,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(val) {
 
-		if( node_uiDoBlocks(snode, &sa->uiblocks, event)!=UI_NOTHING ) event= 0;	
+		if( node_uiDoBlocks(sa, event)!=UI_NOTHING ) event= 0;	
 
 		fromlib= (snode->id && snode->id->lib);
 		

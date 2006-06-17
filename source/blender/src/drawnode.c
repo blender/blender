@@ -1440,6 +1440,7 @@ static int node_get_colorid(bNode *node)
 static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
+	uiBlock *block= NULL;
 	uiBut *bt;
 	rctf *rct= &node->totr;
 	float slen, iconofs;
@@ -1547,17 +1548,20 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	/* we make buttons for input sockets, if... */
 	if(node->flag & NODE_OPTIONS) {
 		if(node->inputs.first || node->typeinfo->butfunc) {
-			uiBlock *block= uiNewBlock(NULL, "node buttons", UI_EMBOSS, UI_HELV, sa->win);
-			BLI_addtail(&sa->uiblocks, block);
+			char str[32];
+			
+			/* make unique block name, also used for handling blocks in editnode.c */
+			sprintf(str, "node buttons %p", node);
+			
+			block= uiNewBlock(&sa->uiblocks, str, UI_EMBOSS, UI_HELV, sa->win);
 			uiBlockSetFlag(block, UI_BLOCK_NO_HILITE);
 			if(snode->id)
 				uiSetButLock(snode->id->lib!=NULL, "Can't edit library data");
-			node->block= block;
 		}
 	}
 	
 	/* hurmf... another candidate for callback, have to see how this works first */
-	if(node->id && node->block && snode->treetype==NTREE_SHADER)
+	if(node->id && block && snode->treetype==NTREE_SHADER)
 		nodeShaderSynchronizeID(node, 0);
 	
 	/* socket inputs, buttons */
@@ -1565,31 +1569,31 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		if(!(sock->flag & SOCK_HIDDEN)) {
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 			
-			if(node->block && sock->link==NULL) {
+			if(block && sock->link==NULL) {
 				float *butpoin= sock->ns.vec;
 				
 				if(sock->type==SOCK_VALUE) {
-					bt= uiDefButF(node->block, NUM, B_NODE_EXEC+node->nr, sock->name, 
+					bt= uiDefButF(block, NUM, B_NODE_EXEC+node->nr, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)(sock->locy)-9, (short)node->width-NODE_DY, 17, 
 						  butpoin, sock->ns.min, sock->ns.max, 10, 2, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 				}
 				else if(sock->type==SOCK_VECTOR) {
-					uiDefBlockBut(node->block, socket_vector_menu, sock, sock->name, 
+					uiDefBlockBut(block, socket_vector_menu, sock, sock->name, 
 						  (short)sock->locx+NODE_DYS, (short)sock->locy-9, (short)node->width-NODE_DY, 17, 
 						  "");
 				}
-				else if(node->block && sock->type==SOCK_RGBA) {
+				else if(block && sock->type==SOCK_RGBA) {
 					short labelw= node->width-NODE_DY-40, width;
 					
 					if(labelw>0) width= 40; else width= node->width-NODE_DY;
 					
-					bt= uiDefButF(node->block, COL, B_NODE_EXEC+node->nr, "", 
+					bt= uiDefButF(block, COL, B_NODE_EXEC+node->nr, "", 
 						(short)(sock->locx+NODE_DYS), (short)sock->locy-8, width, 15, 
 						   butpoin, 0, 0, 0, 0, "");
 					uiButSetFunc(bt, node_sync_cb, snode, node);
 					
-					if(labelw>0) uiDefBut(node->block, LABEL, 0, sock->name, 
+					if(labelw>0) uiDefBut(block, LABEL, 0, sock->name, 
 										   (short)(sock->locx+NODE_DYS) + 40, (short)sock->locy-8, labelw, 15, 
 										   NULL, 0, 0, 0, 0, "");
 				}
@@ -1627,9 +1631,9 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	/* buttons */
 	if(node->flag & NODE_OPTIONS) {
 		if(node->typeinfo->butfunc) {
-			node->typeinfo->butfunc(node->block, snode->nodetree, node, &node->butr);
+			node->typeinfo->butfunc(block, snode->nodetree, node, &node->butr);
 		}
-		uiDrawBlock(node->block);
+		uiDrawBlock(block);
 	}
 
 }
@@ -1807,7 +1811,6 @@ static void node_draw_nodetree(ScrArea *sa, SpaceNode *snode, bNodeTree *ntree)
 	
 	/* not selected first */
 	for(a=0, node= ntree->nodes.first; node; node= node->next, a++) {
-		node->block= NULL;	/* were freed */
 		node->nr= a;		/* index of node in list, used for exec event code */
 		if(!(node->flag & SELECT)) {
 			if(node->flag & NODE_GROUP_EDIT);
