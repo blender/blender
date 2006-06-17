@@ -661,7 +661,10 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 			tmpface->v1 = vert_table[tmpface->v1];
 			tmpface->v2 = vert_table[tmpface->v2];
 			tmpface->v3 = vert_table[tmpface->v3];
-			tmpface->v4 = vert_table[tmpface->v4];
+			if(len4)
+				tmpface->v4 = vert_table[tmpface->v4];
+			else
+				tmpface->v4 = 0;
 
 			eeek_fix( tmpface, tmptface, len4 );
 
@@ -1979,7 +1982,7 @@ static PyObject *MVertSeq_delete( BPy_MVertSeq * self, PyObject *args )
 		if( vert_table[tmpface->v1] == UINT_MAX ||
 				vert_table[tmpface->v2] == UINT_MAX ||
 				vert_table[tmpface->v3] == UINT_MAX ||
-				vert_table[tmpface->v4] == UINT_MAX ) {
+				( tmpface->v4 && vert_table[tmpface->v4] == UINT_MAX ) ) {
 			tmpface->v1 = UINT_MAX;
 			++face_count;
 		}
