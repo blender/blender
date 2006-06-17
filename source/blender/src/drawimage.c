@@ -1930,7 +1930,7 @@ static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *r
 	if(rect32)
 		glaDrawPixelsSafe(x1, y1, xmax, ymax, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
 	else
-		glaDrawPixelsSafe(x1, y1, xmax, ymax, rr->rectx, GL_RGBA, GL_FLOAT, rectf);
+		glaDrawPixelsSafe_to32(x1, y1, xmax, ymax, rr->rectx, rectf);
 	
 	glPixelZoom(1.0, 1.0);
 	

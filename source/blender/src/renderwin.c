@@ -750,35 +750,6 @@ static void renderwin_clear_display_cb(RenderResult *rr)
 	}
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
-static void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, int format, int type, float *rectf)
-{
-	float *rf;
-	int x, y;
-	char *rect32, *rc;
-	
-	/* copy imgw-imgh to a temporal 32 bits rect */
-	if(img_w<1 || img_h<1) return;
-	
-	/* happens during threaded render... */
-	rc= rect32= MEM_mallocT(img_w*img_h*sizeof(int), "temp 32 bits");
-	
-	for(y=0; y<img_h; y++) {
-		rf= rectf;
-		for(x=0; x<img_w; x++, rf+=4, rc+=4) {
-			rc[0]= FTOCHAR(rf[0]);
-			rc[1]= FTOCHAR(rf[1]);
-			rc[2]= FTOCHAR(rf[2]);
-			rc[3]= FTOCHAR(rf[3]);
-		}
-		rectf+= 4*row_w;
-	}
-	
-	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
-		
-	MEM_freeT(rect32);
-}
-
 /* XXX, this is not good, we do this without any regard to state
 * ... better is to make this an optimization of a more clear
 * implementation. the bug shows up when you do something like
@@ -862,7 +833,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 	if(rect32)
 		glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], xmax, ymax, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
 	else
-		glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], xmax, ymax, rr->rectx, GL_RGBA, GL_FLOAT, rectf);
+		glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], xmax, ymax, rr->rectx, rectf);
 	
 	glPixelZoom(1.0, 1.0);
 	

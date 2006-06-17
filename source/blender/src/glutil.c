@@ -34,17 +34,16 @@
 
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_vec_types.h"
+#include "DNA_listBase.h"
 
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
+#include "BLI_threads.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -284,6 +283,35 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 
 	glBindTexture(GL_TEXTURE_2D, ltexid);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, lrowlength);
+}
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf)
+{
+	float *rf;
+	int x, y;
+	char *rect32, *rc;
+	
+	/* copy imgw-imgh to a temporal 32 bits rect */
+	if(img_w<1 || img_h<1) return;
+	
+	/* happens during threaded render... */
+	rc= rect32= MEM_mallocT(img_w*img_h*sizeof(int), "temp 32 bits");
+	
+	for(y=0; y<img_h; y++) {
+		rf= rectf;
+		for(x=0; x<img_w; x++, rf+=4, rc+=4) {
+			rc[0]= FTOCHAR(rf[0]);
+			rc[1]= FTOCHAR(rf[1]);
+			rc[2]= FTOCHAR(rf[2]);
+			rc[3]= FTOCHAR(rf[3]);
+		}
+		rectf+= 4*row_w;
+	}
+	
+	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
+	
+	MEM_freeT(rect32);
 }
 
 void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int format, int type, void *rect)
