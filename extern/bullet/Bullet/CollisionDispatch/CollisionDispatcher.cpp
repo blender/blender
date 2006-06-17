@@ -139,7 +139,7 @@ void CollisionDispatcher::BuildAndProcessIslands(CollisionObjectArray& collision
 		for (i=0;i<numBodies;i++)
 		{
 			CollisionObject* colObj0 = collisionObjects[i];
-			if (colObj0->m_islandTag1 = islandId)
+			if (colObj0->m_islandTag1 == islandId)
 			{
 				if (colObj0->GetActivationState()== ACTIVE_TAG)
 				{
@@ -177,7 +177,7 @@ void CollisionDispatcher::BuildAndProcessIslands(CollisionObjectArray& collision
 			for (i=0;i<numBodies;i++)
 			{
 				CollisionObject* colObj0 = collisionObjects[i];
-				if (colObj0->m_islandTag1 = islandId)
+				if (colObj0->m_islandTag1 == islandId)
 				{
 					colObj0->SetActivationState( ISLAND_SLEEPING );
 				}
@@ -191,7 +191,7 @@ void CollisionDispatcher::BuildAndProcessIslands(CollisionObjectArray& collision
 			for (i=0;i<numBodies;i++)
 			{
 				CollisionObject* colObj0 = collisionObjects[i];
-				if (colObj0->m_islandTag1 = islandId)
+				if (colObj0->m_islandTag1 == islandId)
 				{
 					if ( colObj0->GetActivationState() == ISLAND_SLEEPING)
 					{
