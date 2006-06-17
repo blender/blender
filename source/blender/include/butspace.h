@@ -294,11 +294,10 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PR_PAL		1608
 #define B_PR_FULL		1609
 #define B_PR_PRV		1610
-#define B_PR_CDI		1611
+#define B_PR_HD			1611
 #define B_PR_PAL169		1612
-#define B_PR_D2MAC		1613
-#define B_PR_MPEG		1614
-#define B_REDRAWDISP		1615
+
+#define B_REDRAWDISP	1615
 #define B_SETBROWSE		1616
 #define B_CLEARSET		1617
 #define B_PR_PRESET		1618

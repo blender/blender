@@ -2671,9 +2671,11 @@ static void shadepixel_sky(ShadePixelInfo *shpi, float x, float y, int z, int fa
 		if(vlr && (R.r.mode & R_RAYTRACE))
 			if(vlr->mat->mode & MA_RAYTRANSP) return;
 		
-		renderSkyPixelFloat(collector, x, y, vlr?rco:NULL);
-		addAlphaOverFloat(collector, shpi->shr.combined);
-		QUATCOPY(shpi->shr.combined, collector);
+		if(shpi->layflag & SCE_LAY_SKY) {
+			renderSkyPixelFloat(collector, x, y, vlr?rco:NULL);
+			addAlphaOverFloat(collector, shpi->shr.combined);
+			QUATCOPY(shpi->shr.combined, collector);
+		}
 	}
 }
 
@@ -2876,6 +2878,19 @@ static void add_passes(RenderLayer *rl, int offset, ShadeResult *shr)
 	}
 }
 
+/* only do sky, is default in the solid layer (shade_tile) btw */
+static void sky_tile(RenderPart *pa, float *pass)
+{
+	int x, y;
+	
+	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, pass+=4)
+			renderSkyPixelFloat(pass, x, y, NULL);
+		
+		if(y&1)
+			if(R.test_break()) break; 
+	}
+}
 
 static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 {
@@ -3124,13 +3139,18 @@ void zbufshadeDA_tile(RenderPart *pa)
 			zbuffer_solid(pa, rl->lay, rl->layflag);
 			make_pixelstructs(pa, &psmlist);
 			
-			if(R.r.mode & R_EDGE) edge_enhance_calc(pa, edgerect);
+			if(rl->layflag & SCE_LAY_EDGE) 
+				if(R.r.mode & R_EDGE) 
+					edge_enhance_calc(pa, edgerect);
+			
 			if(R.test_break()) break; 
 		}
 		
 		/* shades solid */
 		if(rl->layflag & SCE_LAY_SOLID) 
 			shadeDA_tile(pa, rl);
+		else if(rl->layflag & SCE_LAY_SKY)
+			sky_tile(pa, rl->rectf);
 		
 		/* lamphalo after solid, before ztra, looks nicest because ztra does own halo */
 		if(R.flag & R_LAMPHALO)
@@ -3167,8 +3187,9 @@ void zbufshadeDA_tile(RenderPart *pa)
 		}
 		
 		/* extra layers */
-		if(R.r.mode & R_EDGE) 
-			edge_enhance_add(pa, rl->rectf, edgerect);
+		if(rl->layflag & SCE_LAY_EDGE) 
+			if(R.r.mode & R_EDGE) 
+				edge_enhance_add(pa, rl->rectf, edgerect);
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
@@ -3198,6 +3219,7 @@ void zbufshade_tile(RenderPart *pa)
 	ShadePixelInfo shpi;
 	RenderResult *rr= pa->result;
 	RenderLayer *rl;
+	float *edgerect= NULL;
 	int addpassflag;
 	
 	set_part_zbuf_clipflag(pa);
@@ -3205,7 +3227,8 @@ void zbufshade_tile(RenderPart *pa)
 	/* zbuffer code clears/inits rects */
 	pa->rectp= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectp");
 	pa->rectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectz");
-	
+	if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
+
 	shpi.thread= pa->thread;
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
@@ -3222,13 +3245,18 @@ void zbufshade_tile(RenderPart *pa)
 		zbuffer_solid(pa, rl->lay, rl->layflag);
 		
 		if(!R.test_break()) {
+			/* edges only for solid part, ztransp doesn't support it yet anti-aliased */
+			if(rl->layflag & SCE_LAY_EDGE) 
+				if(R.r.mode & R_EDGE)
+					edge_enhance_calc(pa, edgerect);
+			
+			/* initialize scanline updates for main thread */
+			rr->renrect.ymin= 0;
+			rr->renlay= rl;
+			
 			if(rl->layflag & SCE_LAY_SOLID) {
 				float *fcol= rl->rectf;
 				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0;
-				
-				/* initialize scanline updates for main thread */
-				rr->renrect.ymin= 0;
-				rr->renlay= rl;
 				
 				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
 					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4, offs++) {
@@ -3242,10 +3270,13 @@ void zbufshade_tile(RenderPart *pa)
 					if(y&1)
 						if(R.test_break()) break; 
 				}
-				
-				/* disable scanline updating */
-				rr->renlay= NULL;
 			}
+			else if(rl->layflag & SCE_LAY_SKY) {
+				sky_tile(pa, rl->rectf);
+			}
+			
+			/* disable scanline updating */
+			rr->renlay= NULL;
 		}
 		
 		/* lamphalo after solid, before ztra, looks nicest because ztra does own halo */
@@ -3282,11 +3313,9 @@ void zbufshade_tile(RenderPart *pa)
 		}
 		
 		if(!R.test_break()) {
-			if(R.r.mode & R_EDGE) {
-				fillrect(pa->rectp, pa->rectx, pa->recty, 0);
-				edge_enhance_calc(pa, (float *)pa->rectp);
-				edge_enhance_add(pa, rl->rectf, (float *)pa->rectp);
-			}
+			if(rl->layflag & SCE_LAY_EDGE) 
+				if(R.r.mode & R_EDGE)
+					edge_enhance_add(pa, rl->rectf, edgerect);
 		}
 		
 		if(rl->passflag & SCE_PASS_Z)
@@ -3300,6 +3329,7 @@ void zbufshade_tile(RenderPart *pa)
 	
 	MEM_freeT(pa->rectp); pa->rectp= NULL;
 	MEM_freeT(pa->rectz); pa->rectz= NULL;
+	if(edgerect) MEM_freeT(edgerect);
 }
 
 /* ------------------------------------------------------------------------ */

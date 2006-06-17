@@ -537,7 +537,7 @@ void scene_add_render_layer(Scene *sce)
 
 	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */
 	srl->lay= (1<<20) -1;
-	srl->layflag= 0x7FFF;	/* solid ztra halo strand */
+	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
 }
 

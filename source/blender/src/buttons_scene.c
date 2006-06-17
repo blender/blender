@@ -640,6 +640,20 @@ void do_render_panels(unsigned short event)
 #endif /* _WIN32 || __APPLE__ */
 		break;
 
+	case B_PR_HD:
+		G.scene->r.xsch= 1920;
+		G.scene->r.ysch= 1080;
+		G.scene->r.xasp= 1;
+		G.scene->r.yasp= 1;
+		G.scene->r.size= 100;
+		G.scene->r.mode &= ~R_PANORAMA;
+		G.scene->r.xparts=  G.scene->r.yparts= 4;
+		
+		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
+		BIF_undo_push("Set FULL");
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWVIEWCAM, 0);
+		break;
 	case B_PR_FULL:
 		G.scene->r.xsch= 1280;
 		G.scene->r.ysch= 1024;
@@ -661,22 +675,9 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 1;
 		G.scene->r.size= 50;
 		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 4;
+		G.scene->r.xparts=  G.scene->r.yparts= 2;
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
-		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSSCENE, 0);
-		break;
-	case B_PR_CDI:
-		G.scene->r.xsch= 384;
-		G.scene->r.ysch= 280;
-		G.scene->r.xasp= 1;
-		G.scene->r.yasp= 1;
-		G.scene->r.size= 100;
-		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 4;
-
-		BLI_init_rctf(&G.scene->r.safety, 0.15, 0.85, 0.15, 0.85);
 		allqueue(REDRAWVIEWCAM, 0);
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
@@ -695,32 +696,6 @@ void do_render_panels(unsigned short event)
 
 		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		BIF_undo_push("Set PAL 16/9");
-		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSSCENE, 0);
-		break;
-	case B_PR_D2MAC:
-		G.scene->r.xsch= 1024;
-		G.scene->r.ysch= 576;
-		G.scene->r.xasp= 1;
-		G.scene->r.yasp= 1;
-		G.scene->r.size= 50;
-		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 4;
-
-		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
-		allqueue(REDRAWVIEWCAM, 0);
-		allqueue(REDRAWBUTSSCENE, 0);
-		break;
-	case B_PR_MPEG:
-		G.scene->r.xsch= 368;
-		G.scene->r.ysch= 272;
-		G.scene->r.xasp= 105;
-		G.scene->r.yasp= 100;
-		G.scene->r.size= 100;
-		G.scene->r.mode &= ~R_PANORAMA;
-		G.scene->r.xparts=  G.scene->r.yparts= 4;
-
-		BLI_init_rctf(&G.scene->r.safety, 0.1, 0.9, 0.1, 0.9);
 		allqueue(REDRAWVIEWCAM, 0);
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
@@ -1226,8 +1201,8 @@ static void render_panel_output(void)
 	
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display edge settings");
+	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon Edge-enhance");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display Edge settings");
 	uiBlockEndAlign(block);
 	
 	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 170, 68, 140, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
@@ -1596,7 +1571,7 @@ static void render_panel_format(void)
 	uiDefBut(block, BUT,B_PR_PAL169, "PAL 16:9",1146,70,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 64x45");
 	uiDefBut(block, BUT,B_PR_PANO, "PANO",		1146,50,100,18, 0, 0, 0, 0, 0, "Standard panorama settings");
 	uiDefBut(block, BUT,B_PR_FULL, "FULL",		1146,30,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1280x1024, Aspect ratio - 1x1");
-	uiDefButBitI(block, TOG, R_UNIFIED, B_REDR, "Unified Renderer", 1146,10,100,18,  &G.scene->r.mode, 0, 0, 0, 0, "Use the unified renderer.");
+	uiDefBut(block, BUT,B_PR_HD, "HD",		1146,10,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1920x1080, Aspect ratio - 1x1");
 	uiBlockEndAlign(block);
 }
 
@@ -1846,13 +1821,22 @@ static void render_panel_layers(void)
 	draw_3d_layer_buttons(block, &srl->lay,		130, 95, 35, 30, B_NOP);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	10, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	85, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	160, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_STRAND, B_NOP,"Strand",	235, 70, 75, 20, &srl->layflag, 0, 0, 0, 0, "Render Particle Strands in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",	10, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	115, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	180, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	245, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer");	
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 0, "Passes:",					10,30,150,20, NULL, 0, 0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	10, 10, 150, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
+	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			160, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_NOP,"Vec",	200, 10, 55, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Vector pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	255, 10, 55, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
+#if 0
+	/* bring back after release */
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	130, 30, 115, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
 	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			245, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
@@ -1865,6 +1849,7 @@ static void render_panel_layers(void)
 	uiDefButBitS(block, TOG, SCE_PASS_AO, B_NOP,"AO",		185, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
 	uiDefButBitS(block, TOG, SCE_PASS_RAY, B_NOP,"Ray",	225, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Mirror and Transparent pass");	
 	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
+#endif
 }	
 
 void render_panels()

@@ -125,7 +125,9 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_SOLID	1
 #define SCE_LAY_ZTRA	2
 #define SCE_LAY_HALO	4
-#define SCE_LAY_STRAND	8
+#define SCE_LAY_EDGE	8
+#define SCE_LAY_SKY		16
+#define SCE_LAY_STRAND	32
 
 /* srl->passflag */
 #define SCE_PASS_COMBINED	1

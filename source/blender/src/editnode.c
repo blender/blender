@@ -1797,7 +1797,6 @@ static int node_uiDoBlocks(SpaceNode *snode, ListBase *lb, short event)
 void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	SpaceNode *snode= spacedata;
-	float dx;
 	unsigned short event= evt->event;
 	short val= evt->val, doredraw=0, fromlib= 0;
 	

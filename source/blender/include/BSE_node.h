@@ -77,6 +77,7 @@ void node_composit_default(struct Scene *scene);
 int node_has_hidden_sockets(struct bNode *node);
 
 struct bNode *node_add_node(struct SpaceNode *snode, int type, float locx, float locy);
+void node_adduplicate(struct SpaceNode *snode);
 
 /* ************* drawnode.c *************** */
 struct SpaceNode;

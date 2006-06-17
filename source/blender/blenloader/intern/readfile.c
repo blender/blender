@@ -5415,6 +5415,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* adds default layer */
 			if(sce->r.layers.first==NULL)
 				scene_add_render_layer(sce);
+			else {
+				SceneRenderLayer *srl;
+				/* new layer flag for sky, was default for solid */
+				for(srl= sce->r.layers.first; srl; srl= srl->next)
+					if(srl->layflag & SCE_LAY_SOLID)
+						srl->layflag |= SCE_LAY_SKY;
+			}
+			
 			/* node version changes */
 			if(sce->nodetree)
 				ntree_version_241(sce->nodetree);
