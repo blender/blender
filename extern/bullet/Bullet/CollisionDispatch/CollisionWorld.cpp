@@ -76,6 +76,14 @@ void	CollisionWorld::UpdateActivationState()
 	
 	m_dispatcher->FindUnions();
 	
+
+	
+}
+
+
+
+void	CollisionWorld::StoreIslandActivationState()
+{
 	// put the islandId ('find' value) into m_tag	
 	{
 		UnionFind& unionFind = m_dispatcher->GetUnionFind();
@@ -98,7 +106,6 @@ void	CollisionWorld::UpdateActivationState()
 			index++;
 		}
 	}
-	
 }
 
 

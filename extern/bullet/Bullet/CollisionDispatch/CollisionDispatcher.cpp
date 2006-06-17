@@ -122,8 +122,10 @@ void CollisionDispatcher::ReleaseManifold(PersistentManifold* manifold)
 //
 // todo: this is random access, it can be walked 'cache friendly'!
 //
-void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* callback)
+void CollisionDispatcher::BuildAndProcessIslands(CollisionObjectArray& collisionObjects, IslandCallback* callback)
 {
+	int numBodies  = collisionObjects.size();
+
 	for (int islandId=0;islandId<numBodies;islandId++)
 	{
 
@@ -133,7 +135,25 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 
 		bool allSleeping = true;
 
-		for (int i=0;i<GetNumManifolds();i++)
+		int i;
+		for (i=0;i<numBodies;i++)
+		{
+			CollisionObject* colObj0 = collisionObjects[i];
+			if (colObj0->m_islandTag1 = islandId)
+			{
+				if (colObj0->GetActivationState()== ACTIVE_TAG)
+				{
+					allSleeping = false;
+				}
+				if (colObj0->GetActivationState()== DISABLE_DEACTIVATION)
+				{
+					allSleeping = false;
+				}
+			}
+		}
+
+		
+		for (i=0;i<GetNumManifolds();i++)
 		{
 			 PersistentManifold* manifold = this->GetManifoldByIndexInternal(i);
 			 
@@ -141,24 +161,10 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 
 			 CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
 			 CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
-
-
-			 
 			 {
 				if (((colObj0) && (colObj0)->m_islandTag1 == (islandId)) ||
 					((colObj1) && (colObj1)->m_islandTag1 == (islandId)))
 				{
-
-					if (((colObj0) && (colObj0)->GetActivationState()== ACTIVE_TAG) ||
-						((colObj1) && (colObj1)->GetActivationState() == ACTIVE_TAG))
-					{
-						allSleeping = false;
-					}
-					if (((colObj0) && (colObj0)->GetActivationState()== DISABLE_DEACTIVATION) ||
-						((colObj1) && (colObj1)->GetActivationState() == DISABLE_DEACTIVATION))
-					{
-						allSleeping = false;
-					}
 
 					if (NeedsResponse(*colObj0,*colObj1))
 						islandmanifold.push_back(manifold);
@@ -167,51 +173,34 @@ void CollisionDispatcher::BuildAndProcessIslands(int numBodies, IslandCallback* 
 		}
 		if (allSleeping)
 		{
-			//tag all as 'ISLAND_SLEEPING'
-			for (size_t i=0;i<islandmanifold.size();i++)
+			int i;
+			for (i=0;i<numBodies;i++)
 			{
-				PersistentManifold* manifold = islandmanifold[i];
-
-				CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
-				CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
-
-				if ((colObj0))	
+				CollisionObject* colObj0 = collisionObjects[i];
+				if (colObj0->m_islandTag1 = islandId)
 				{
-					(colObj0)->SetActivationState( ISLAND_SLEEPING );
+					colObj0->SetActivationState( ISLAND_SLEEPING );
 				}
-				if ((colObj1))	
-				{
-					(colObj1)->SetActivationState( ISLAND_SLEEPING);
-				}
-
 			}
+
+			
 		} else
 		{
 
-			//tag all as 'ISLAND_SLEEPING'
-			for (size_t i=0;i<islandmanifold.size();i++)
+			int i;
+			for (i=0;i<numBodies;i++)
 			{
-				 PersistentManifold* manifold = islandmanifold[i];
-				 CollisionObject* body0 = (CollisionObject*)manifold->GetBody0();
-				 CollisionObject* body1 = (CollisionObject*)manifold->GetBody1();
-
-				if (body0)	
+				CollisionObject* colObj0 = collisionObjects[i];
+				if (colObj0->m_islandTag1 = islandId)
 				{
-					if ( body0->GetActivationState() == ISLAND_SLEEPING)
+					if ( colObj0->GetActivationState() == ISLAND_SLEEPING)
 					{
-						body0->SetActivationState( WANTS_DEACTIVATION);
+						colObj0->SetActivationState( WANTS_DEACTIVATION);
 					}
 				}
-				if (body1)	
-				{
-					if ( body1->GetActivationState() == ISLAND_SLEEPING)
-					{
-						body1->SetActivationState(WANTS_DEACTIVATION);
-					}
-				}
-
 			}
 
+			/// Process the actual simulation, only if not sleeping/deactivated
 			if (islandmanifold.size())
 			{
 				callback->ProcessIsland(&islandmanifold[0],islandmanifold.size());

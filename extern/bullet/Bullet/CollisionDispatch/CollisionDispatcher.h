@@ -26,7 +26,7 @@ subject to the following restrictions:
 
 class IDebugDraw;
 
-
+typedef std::vector<struct CollisionObject*> CollisionObjectArray;
 
 
 struct CollisionAlgorithmCreateFunc
@@ -106,7 +106,7 @@ public:
 	virtual void ReleaseManifold(PersistentManifold* manifold);
 
 	
-	virtual void BuildAndProcessIslands(int numBodies, IslandCallback* callback);
+	virtual void BuildAndProcessIslands(CollisionObjectArray& collisionObjects, IslandCallback* callback);
 
 	///allows the user to get contact point callbacks 
 	virtual	ManifoldResult*	GetNewManifoldResult(CollisionObject* obj0,CollisionObject* obj1,PersistentManifold* manifold);
