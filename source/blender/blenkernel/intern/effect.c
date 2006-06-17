@@ -74,6 +74,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -81,6 +82,7 @@
 #include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -1528,9 +1530,14 @@ typedef struct pMatrixCache {
 static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 {
 	pMatrixCache *mcache, *mc;
+	Group *group= NULL;
 	Object *obcopy;
 	Base *base;
 	float framelenold, cfrao;
+	
+	/* object can be linked in group... stupid exception */
+	if(NULL==object_in_scene(ob, G.scene))
+		group= find_group(ob);
 	
 	mcache= mc= MEM_mallocN( (end-start+1)*sizeof(pMatrixCache), "ob matrix cache");
 	
@@ -1543,25 +1550,42 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next) 
 		obcopy->id.newid= NULL;
 	
-	/* all objects get tagged recalc that influence this object */
+	/* all objects get tagged recalc that influence this object (does group too) */
 	DAG_object_update_flags(G.scene, ob, G.scene->lay);
 	
 	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
-		for(base= G.scene->base.first; base; base= base->next) {
-			if(base->object->recalc) {
-				if(base->object->id.newid==NULL)
-					base->object->id.newid= MEM_dupallocN(base->object);
-				
-				where_is_object(base->object);
-				
-				do_ob_key(base->object);
-				if(base->object->type==OB_ARMATURE) {
-					do_all_pose_actions(base->object);	// only does this object actions
-					where_is_pose(base->object);
+		
+		if(group) {
+			GroupObject *go;
+
+			for(go= group->gobject.first; go; go= go->next) {
+				if(go->ob->recalc) {
+					where_is_object(go->ob);
+					
+					do_ob_key(go->ob);
+					if(go->ob->type==OB_ARMATURE) {
+						do_all_pose_actions(go->ob);	// only does this object actions
+						where_is_pose(go->ob);
+					}
 				}
 			}
 		}
-		
+		else {
+			for(base= G.scene->base.first; base; base= base->next) {
+				if(base->object->recalc) {
+					if(base->object->id.newid==NULL)
+						base->object->id.newid= MEM_dupallocN(base->object);
+					
+					where_is_object(base->object);
+					
+					do_ob_key(base->object);
+					if(base->object->type==OB_ARMATURE) {
+						do_all_pose_actions(base->object);	// only does this object actions
+						where_is_pose(base->object);
+					}
+				}
+			}
+		}		
 		Mat4CpyMat4(mc->obmat, ob->obmat);
 		Mat4Invert(ob->imat, ob->obmat);
 		Mat3CpyMat4(mc->imat, ob->imat);
@@ -1572,24 +1596,40 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	G.scene->r.cfra= cfrao;
 	G.scene->r.framelen= framelenold;
 
-	for(base= G.scene->base.first; base; base= base->next) {
-		if(base->object->recalc) {
-			
-			if(base->object->id.newid) {
-				obcopy= (Object *)base->object->id.newid;
-				*(base->object) = *(obcopy); 
-				MEM_freeN(obcopy);
-				base->object->id.newid= NULL;
-			}
-			
-			do_ob_key(base->object);
-			if(base->object->type==OB_ARMATURE) {
-				do_all_pose_actions(base->object);	// only does this object actions
-				where_is_pose(base->object);
+	if(group) {
+		GroupObject *go;
+		
+		for(go= group->gobject.first; go; go= go->next) {
+			if(go->ob->recalc) {
+				where_is_object(go->ob);
+				
+				do_ob_key(go->ob);
+				if(go->ob->type==OB_ARMATURE) {
+					do_all_pose_actions(go->ob);	// only does this object actions
+					where_is_pose(go->ob);
+				}
 			}
 		}
 	}
-	
+	else {
+		for(base= G.scene->base.first; base; base= base->next) {
+			if(base->object->recalc) {
+				
+				if(base->object->id.newid) {
+					obcopy= (Object *)base->object->id.newid;
+					*(base->object) = *(obcopy); 
+					MEM_freeN(obcopy);
+					base->object->id.newid= NULL;
+				}
+				
+				do_ob_key(base->object);
+				if(base->object->type==OB_ARMATURE) {
+					do_all_pose_actions(base->object);	// only does this object actions
+					where_is_pose(base->object);
+				}
+			}
+		}
+	}	
 	return mcache;
 }
 

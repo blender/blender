@@ -65,6 +65,7 @@
 #include "BKE_action.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -1209,7 +1210,7 @@ struct DagNodeQueue *get_all_childs(struct DagForest	*dag, void *ob)
 	
 	time = 1;
 	
-	node = dag_find_node(dag,ob);   // could be done in loop above (ton)
+	node = dag_find_node(dag, ob);   // could be done in loop above (ton)
 	if(node) { // can be null for newly added objects
 		
 		node->color = DAG_GRAY;
@@ -1253,7 +1254,7 @@ short	are_obs_related(struct DagForest	*dag, void *ob1, void *ob2) {
 	DagNode * node;
 	DagAdjList *itA;
 	
-	node = dag_find_node(dag,ob1);
+	node = dag_find_node(dag, ob1);
 	
 	itA = node->child;
 	while(itA != NULL) {
@@ -1881,24 +1882,38 @@ void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
 	for(node = sce->theDag->DagNode.first; node; node= node->next) 
 		node->color = DAG_WHITE;
 	
-	node = dag_get_node(sce->theDag, ob);
-	node->color = DAG_GRAY;
+	node= dag_find_node(sce->theDag, ob);
 	
-	sce->theDag->time++;
-	node= sce->theDag->DagNode.first;
-	for(itA = node->child; itA; itA= itA->next) {
-		if(itA->node->type==ID_OB && itA->node->lasttime!=sce->theDag->time)
-			itA->node->color= parent_check_node(itA->node, sce->theDag->time);
+	/* object not in scene? then handle group exception. needs to be dagged once too */
+	if(node==NULL) {
+		Group *group= find_group(ob);
+		if(group) {
+			GroupObject *go;
+			/* primitive; tag all... this call helps building groups for particles */
+			for(go= group->gobject.first; go; go= go->next)
+				go->ob->recalc= OB_RECALC;
+		}
 	}
-	
-	/* set recalcs and flushes */
-	DAG_scene_update_flags(sce, lay);
-	
-	/* now we clear recalcs, unless color is set */
-	for(node = sce->theDag->DagNode.first; node; node= node->next) {
-		if(node->type==ID_OB && node->color==DAG_WHITE) {
-			Object *ob= node->ob;
-			ob->recalc= 0;
+	else {
+		
+		node->color = DAG_GRAY;
+		
+		sce->theDag->time++;
+		node= sce->theDag->DagNode.first;
+		for(itA = node->child; itA; itA= itA->next) {
+			if(itA->node->type==ID_OB && itA->node->lasttime!=sce->theDag->time)
+				itA->node->color= parent_check_node(itA->node, sce->theDag->time);
+		}
+		
+		/* set recalcs and flushes */
+		DAG_scene_update_flags(sce, lay);
+		
+		/* now we clear recalcs, unless color is set */
+		for(node = sce->theDag->DagNode.first; node; node= node->next) {
+			if(node->type==ID_OB && node->color==DAG_WHITE) {
+				Object *ob= node->ob;
+				ob->recalc= 0;
+			}
 		}
 	}
 }
