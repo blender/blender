@@ -618,25 +618,36 @@ static void do_init_render_material(Material *ma, int osa, float *amb)
 	ma->mode_l= ma->mode;
 }
 
+static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int osa, float *amb)
+{
+	bNode *node;
+	
+	for(node=ntree->nodes.first; node; node= node->next) {
+		if(node->id) {
+			if(GS(node->id->name)==ID_MA) {
+				Material *ma= (Material *)node->id;
+				if(ma!=basemat) {
+					do_init_render_material(ma, osa, amb);
+					basemat->texco |= ma->texco;
+					basemat->mode_l |= ma->mode_l;
+				}
+			}
+			else if(node->type==NODE_GROUP)
+				init_render_nodetree((bNodeTree *)node->id, basemat, osa, amb);
+		}
+	}
+	/* parses the geom+tex nodes */
+	basemat->texco |= ntreeShaderGetTexco(ntree, osa);
+}
+
 void init_render_material(Material *mat, int osa, float *amb)
 {
+	
 	do_init_render_material(mat, osa, amb);
 	
 	if(mat->nodetree && mat->use_nodes) {
-		bNode *node;
+		init_render_nodetree(mat->nodetree, mat, osa, amb);
 		
-		for(node=mat->nodetree->nodes.first; node; node= node->next) {
-			if(node->id && GS(node->id->name)==ID_MA) {
-				Material *ma= (Material *)node->id;
-				if(ma!=mat) {
-					do_init_render_material(ma, osa, amb);
-					mat->texco |= ma->texco;
-					mat->mode_l |= ma->mode_l;
-				}
-			}
-		}
-		/* parses the geom nodes */
-		mat->texco |= ntreeShaderGetTexco(mat->nodetree, osa);
 		ntreeBeginExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
 	}
 }

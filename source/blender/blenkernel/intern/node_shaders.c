@@ -732,6 +732,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 }
 
 /* go over all used Geometry and Texture nodes, and return a texco flag */
+/* no group inside needed, this function is called for groups too */
 int ntreeShaderGetTexco(bNodeTree *ntree, int osa)
 {
 	bNode *node;
