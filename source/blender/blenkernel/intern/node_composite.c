@@ -54,6 +54,7 @@
 
 /* NOTE: no imbuf calls allowed in composit, we need threadsafe malloc! */
 #include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"		/* <- TexResult */
@@ -729,30 +730,56 @@ static void animated_image(bNode *node, int cfra)
 	Image *ima;
 	NodeImageAnim *nia;
 	int imanr;
-	unsigned short numlen;
-	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXDIR+FILE_MAXFILE];
 	
 	ima= (Image *)node->id;
 	nia= node->storage;
 	
-	if(nia && nia->frames && ima && ima->name) {	/* frames */
-		strcpy(name, ima->name);
+	if(nia && nia->frames && ima && ima->name) {	/* frames anim or movie */
 		
 		imanr= calcimanr(cfra, nia);
-		if(imanr!=ima->lastframe) {
-			ima->lastframe= imanr;
-			
-			BLI_stringdec(name, head, tail, &numlen);
-			BLI_stringenc(name, head, tail, numlen, imanr);
-			
-			ima= add_image(name);
-			
-			if(ima) {
-				ima->flag |= IMA_FROMANIM;
-				if(node->id) node->id->us--;
-				node->id= (ID *)ima;
+		
+		if(nia->movie) {
+			if(ima->anim==NULL) ima->anim = openanim(ima->name, IB_cmap | IB_rect);
+			if (ima->anim) {
+				int dur = IMB_anim_get_duration(ima->anim);
 				
-				ima->ok= 1;
+				if(imanr < 0) imanr = 0;
+				if(imanr > (dur-1)) imanr= dur-1;
+				
+				BLI_lock_thread(LOCK_MALLOC);
+				if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
+				ima->ibuf = IMB_anim_absolute(ima->anim, imanr);
+				BLI_unlock_thread(LOCK_MALLOC);
+				
+				/* patch for textbutton with name ima (B_NAMEIMA) */
+				if(ima->ibuf) {
+					strcpy(ima->ibuf->name, ima->name);
+					ima->ok= 1;
+				}
+			}
+		}
+		else {
+			
+			if(imanr!=ima->lastframe) {
+				unsigned short numlen;
+				char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXDIR+FILE_MAXFILE];
+				
+				strcpy(name, ima->name);
+				
+				ima->lastframe= imanr;
+				
+				BLI_stringdec(name, head, tail, &numlen);
+				BLI_stringenc(name, head, tail, numlen, imanr);
+				
+				ima= add_image(name);
+				
+				if(ima) {
+					ima->flag |= IMA_FROMANIM;
+					if(node->id) node->id->us--;
+					node->id= (ID *)ima;
+					
+					ima->ok= 1;
+				}
 			}
 		}
 	}

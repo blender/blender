@@ -713,8 +713,11 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 					  butr->xmin, dy, width, 19, 
 					  &nia->nr, 0.0, 10000.0, 0, 0, "Number in image name, used as first in animation");
 			uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Cycl",
-					  butr->xmin+width, dy, width, 19, 
+					  butr->xmin+width, dy, width-19, 19, 
 					  &nia->cyclic, 0.0, 0.0, 0, 0, "Make animation go cyclic");
+			bt= uiDefIconButC(block, TOG, B_NODE_EXEC+node->nr, ICON_SEQUENCE,
+					  butr->xmax-19, dy, 19, 19, 
+					  &nia->movie, 0.0, 19.0, 0, 0, "Enable/Disable reading Image from Movie file");
 			
 		}
 		
