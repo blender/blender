@@ -457,8 +457,9 @@ static void make_vertex_rad_values(Render *re)
 	/* make vertex colors */
 	for(a=0; a<re->totvert; a++) {
 		if((a & 255)==0) v1= RE_findOrAddVert(re, a); else v1++;
+		
 		col= RE_vertren_get_rad(re, v1, 0);
-		if(col[3]>0.0) {
+		if(col && col[3]>0.0) {
 			col[0]/= col[3];
 			col[1]/= col[3];
 			col[2]/= col[3];
