@@ -889,7 +889,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 			else if(seq->type==SEQ_SCENE && se->ibuf==NULL && seq->scene) {	// scene can be NULL after deletions
 				int oldcfra = CFRA;
 				Scene *sce= seq->scene, *oldsce= G.scene;
-				Render *re= RE_NewRender(sce->id.name);
+				Render *re= RE_NewRender(" do_build_seq_ibuf");		/* do not use Scene name, can be the same */
 				RenderResult rres;
 				int doseq;
 				
