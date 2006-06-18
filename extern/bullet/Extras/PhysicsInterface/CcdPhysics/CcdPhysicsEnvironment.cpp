@@ -687,6 +687,27 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 
 	m_collisionWorld->UpdateActivationState();
 
+	{
+		int i;
+		int numConstraints = m_constraints.size();
+		for (i=0;i< numConstraints ; i++ )
+		{
+			TypedConstraint* constraint = m_constraints[i];
+
+			const CollisionObject* colObj0 = &constraint->GetRigidBodyA();
+			const CollisionObject* colObj1 = &constraint->GetRigidBodyB();
+			
+			if (((colObj0) && ((colObj0)->mergesSimulationIslands())) &&
+						((colObj1) && ((colObj1)->mergesSimulationIslands())))
+			{
+				GetDispatcher()->GetUnionFind().unite((colObj0)->m_islandTag1,
+					(colObj1)->m_islandTag1);
+			}
+		}
+	}
+
+	m_collisionWorld->StoreIslandActivationState();
+
 
 
 	//contacts
@@ -779,7 +800,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 #endif //USE_QUICKPROF
 
 	/// solve all the contact points and contact friction
-	GetDispatcher()->BuildAndProcessIslands(numRigidBodies,&solverCallback);
+	GetDispatcher()->BuildAndProcessIslands(m_collisionWorld->GetCollisionObjectArray(),&solverCallback);
 
 #ifdef USE_QUICKPROF
 	Profiler::endBlock("BuildAndProcessIslands");
