@@ -1,6 +1,6 @@
 # -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.4.7
+SVG 2 OBJ translater, 0.4.8
 Copyright (c) jm soler juillet/novembre 2004-janvier 2006, 
 # ---------------------------------------------------------------
     released under GNU Licence 
@@ -169,10 +169,16 @@ Changelog:
 
       0.4.6 : - cyclic flag ...
 
-      0.4.7 : - Management of the svgz files . the complete python or the gzip.py 
-                file is needed .
-                Little improvement of the curve drawing using the createCURVES 
+      0.4.7 : - Management of the svgz files . the complete python or the 
+	              gzip.py file is needed .
+	              Little improvement of the curve drawing using the createCURVES 
                 function 
+
+      0.4.8 : - short modif for a fantasy font case in the OOo svg format 
+	              ('viewbox' is written 'viewBox', for instance) .
+	              Note that (at this time, 2006/05/01, 1OOo exports in svg 
+	              but does not read its own export 
+    
 ==================================================================================   
 =================================================================================="""
 
@@ -1152,7 +1158,12 @@ def get_BOUNDBOX(BOUNDINGBOX,SVG):
 
 # 0.4.1 : attributs ex : 'id=', 'transform=', 'd=' ...
 def collecte_ATTRIBUTS(data):
-    data=data.replace('  ',' ')
+    #----------------------------------------------
+    # 0.4.8 : short modif for a fantasy font case  
+    #         in the OOo svg format ('viewbox'  is 
+    #         written 'viewBox', for instance)
+    #----------------------------------------------
+    data=data.replace('  ',' ').lower()
     ELEM={'TYPE':data[1:data.find(' ')]}
     t1=len(data)
     t2=0
@@ -1248,6 +1259,7 @@ def contruit_HIERARCHIE(t):
                  if TRANSFORM>0 or 'transform' in proprietes.keys() :
                      courbe_TRANSFORM(courbes.ITEM,proprietes)
              elif proprietes['TYPE'] in ['svg'] :
+                   #print  'proprietes.keys()',proprietes.keys()
                    BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,proprietes)          
       else:
          #--------------------

@@ -10,7 +10,7 @@ Tip: 'Export selected meshes to AC3D (.ac) format'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.37a 2005-06-09"
+__version__ = "2.41a 2006-06-16"
 
 __bpydoc__ = """\
 This script exports selected Blender meshes to AC3D's .ac file format.
@@ -34,7 +34,7 @@ that this script copies to R, G, B, giving shades of gray.<br>
     - crease angle is exported, but in Blender it is limited to [1, 80], since there are other more powerful ways to control surface smoothing.  In AC3D 4.0 crease's range is [0.0, 180.0];
 
 Config Options:<br>
-    toggle:
+    toggle:<br>
     - AC3D 4 mode: unset it to export without the 'crease' tag that was
 introduced with AC3D 4.0 and with the old material handling;<br>
     - skip data: set it if you don't want mesh names (ME:, not OB: field)
@@ -47,9 +47,10 @@ left without mats -- it's better to always add your own materials;<br>
     - set texture dir: override the actual textures path with a given default
 path (or simply export the texture names, without dir info, if the path is
 empty);<br>
+    - per face 1 or 2 sided: override the "Double Sided" button that defines this behavior per whole mesh in favor of the UV Face Select mode "twosided" per face atribute;<br>
     - only selected: only consider selected objects when looking for meshes
 to export (read notes below about tokens, too);<br>
-    strings:
+    strings:<br>
     - export dir: default dir to export to;<br>
     - texture dir: override textures path with this path if 'set texture dir'
 toggle is "on".
@@ -66,7 +67,7 @@ information;<br>
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DExport version 2.36+
+# AC3DExport version 2.41
 # Program versions: Blender 2.36+ and AC3Db files (means version 0xb)
 # new: faster, supports multiple textures per object and parenting is
 # properly exported as group info, adapted to work with the Config Editor
@@ -122,6 +123,7 @@ AC3D_4 = True # export crease value, compatible with AC3D 4 loaders
 NO_SPLIT = False
 ONLY_SELECTED = True
 EXPORT_DIR = ''
+PER_FACE_1_OR_2_SIDED = True
 
 tooltips = {
 	'SKIP_DATA': "don't export mesh names as data fields",
@@ -133,7 +135,8 @@ tooltips = {
 	'TEX_DIR': "(see \"set tex dir\") dir to prepend to all exported texture names (leave empty for no dir)",
 	'AC3D_4': "compatibility mode, adds 'crease' tag and slightly better material support",
 	'NO_SPLIT': "don't split meshes with multiple textures (or both textured and non textured polygons)",
-	'ONLY_SELECTED': "export only selected objects"
+	'ONLY_SELECTED': "export only selected objects",
+	'PER_FACE_1_OR_2_SIDED': "override \"Double Sided\" button in favor of per face \"twosided\" attribute (UV Face Select mode)"
 }
 
 def update_RegistryInfo():
@@ -148,6 +151,7 @@ def update_RegistryInfo():
 	d['NO_SPLIT'] = NO_SPLIT
 	d['EXPORT_DIR'] = EXPORT_DIR
 	d['ONLY_SELECTED'] = ONLY_SELECTED
+	d['PER_FACE_1_OR_2_SIDED'] = PER_FACE_1_OR_2_SIDED
 	d['tooltips'] = tooltips
 	Blender.Registry.SetKey(REG_KEY, d, True)
 
@@ -166,6 +170,7 @@ if rd:
 		EXPORT_DIR = rd['EXPORT_DIR']
 		ONLY_SELECTED = rd['ONLY_SELECTED']
 		NO_SPLIT = rd['NO_SPLIT']
+		PER_FACE_1_OR_2_SIDED = rd['PER_FACE_1_OR_2_SIDED']
 	except KeyError: update_RegistryInfo()
 
 else:
@@ -587,7 +592,10 @@ class AC3DExport: # the ac3d exporter part
 				m_idx = 0
 			refs = len(f)
 			flaglow = (refs == 2) << 1
-			two_side = f.mode & Blender.NMesh.FaceModes['TWOSIDE']
+			if PER_FACE_1_OR_2_SIDED: # per face attribute
+				two_side = f.mode & Blender.NMesh.FaceModes['TWOSIDE']
+			else: # global, for the whole mesh
+				two_side = self.mesh.mode & Blender.NMesh.Modes['TWOSIDED']
 			two_side = (two_side > 0) << 1
 			flaghigh = f.smooth | two_side
 			surfstr = "SURF 0x%d%d\n" % (flaghigh, flaglow)

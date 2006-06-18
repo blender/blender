@@ -709,7 +709,10 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"can't create py dictionary!");
 
-	EXPP_dict_set_item_str(rkeyd, "script", script);
+	/* note: don't use EXPP_dict_set_item_str for 'script', which is an
+	 * argument to the function we're in and so shouldn't be decref'ed: */
+	PyDict_SetItemString(rkeyd, "script", script);
+
 	EXPP_dict_set_item_str(bpy_registryDict, "__help_browser", rkeyd);
 
 	arglist = Py_BuildValue("(s)", hspath);
