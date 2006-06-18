@@ -160,8 +160,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		
 
 		virtual void	calcXform() {} ;
-		virtual void SetMargin(float margin) {};
-		virtual float GetMargin() const {return 0.f;};
+		virtual void SetMargin(float margin);
+		virtual float GetMargin() const;
 
 
 		bool	wantsSleeping();

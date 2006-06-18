@@ -210,6 +210,28 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 
 }
 
+void CcdPhysicsController::SetMargin(float margin)
+{
+	if (m_body && m_body->GetCollisionShape())
+	{
+		m_body->GetCollisionShape()->SetMargin(margin);
+	}
+
+
+}
+
+float CcdPhysicsController::GetMargin() const
+{
+	if (m_body && m_body->GetCollisionShape())
+	{
+		return m_body->GetCollisionShape()->GetMargin();
+	}
+
+	return 0.f;
+
+}
+
+
 		// kinematic methods
 void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)
 {

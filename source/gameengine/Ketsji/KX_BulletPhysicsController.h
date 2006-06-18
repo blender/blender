@@ -19,7 +19,7 @@ public:
 
 	virtual void	applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse);
 	virtual void	SetObject (SG_IObject* object);
-
+	virtual void	SetMargin (float collisionMargin);
 	virtual void	RelativeTranslate(const MT_Vector3& dloc,bool local);
 	virtual void	RelativeRotate(const MT_Matrix3x3& drot,bool local);
 	virtual void	ApplyTorque(const MT_Vector3& torque,bool local);

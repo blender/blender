@@ -60,6 +60,7 @@ public:
 
 	virtual void	applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse)=0;
 	virtual void	SetObject (SG_IObject* object)=0;
+	virtual void	SetMargin (float collisionMargin)=0;
 
 	virtual void	RelativeTranslate(const MT_Vector3& dloc,bool local)=0;
 	virtual void	RelativeRotate(const MT_Matrix3x3& drot,bool local)=0;

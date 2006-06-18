@@ -164,6 +164,11 @@ gameobj->SetPhysicsController(this,gameobj->IsDynamic());
 GetSumoObject()->setClientObject(gameobj->getClientInfo());
 }
 
+void	KX_SumoPhysicsController::SetMargin(float collisionMargin)
+{
+	SumoPhysicsController::SetMargin(collisionMargin);
+}
+
 
 void KX_SumoPhysicsController::setOrientation(const MT_Quaternion& orn)
 {

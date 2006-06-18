@@ -15,6 +15,7 @@
 
 #include "PHY_IPhysicsEnvironment.h"
 
+
 KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna)
 : KX_IPhysicsController(dyna,(PHY_IPhysicsController*)this),
 CcdPhysicsController(ci)
@@ -58,6 +59,10 @@ void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 
 }
 
+void	KX_BulletPhysicsController::SetMargin (float collisionMargin)
+{
+	CcdPhysicsController::SetMargin(collisionMargin);
+}
 void	KX_BulletPhysicsController::RelativeTranslate(const MT_Vector3& dloc,bool local)
 {
 	CcdPhysicsController::RelativeTranslate(dloc[0],dloc[1],dloc[2],local);

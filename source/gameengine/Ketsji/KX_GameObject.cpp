@@ -627,6 +627,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_VARARGS},
 	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_VARARGS},
 	{"applyImpulse", (PyCFunction) KX_GameObject::sPyApplyImpulse, METH_VARARGS},
+	{"setCollisionMargin", (PyCFunction) KX_GameObject::sPySetCollisionMargin, METH_VARARGS},
 	{"suspendDynamics", (PyCFunction)KX_GameObject::sPySuspendDynamics,METH_VARARGS},
 	{"restoreDynamics", (PyCFunction)KX_GameObject::sPyRestoreDynamics,METH_VARARGS},
 	{"enableRigidBody", (PyCFunction)KX_GameObject::sPyEnableRigidBody,METH_VARARGS},
@@ -977,6 +978,29 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 	}
 	Py_Return;
 }
+
+
+
+
+
+PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, 
+										PyObject* args, 
+										PyObject* kwds)
+{
+	float collisionMargin;
+	if (PyArg_ParseTuple(args, "f", &collisionMargin))
+	{
+		if (m_pPhysicsController1)
+		{
+			m_pPhysicsController1->SetMargin(collisionMargin);
+			Py_Return;
+		}
+
+	}
+	
+	return NULL;
+}
+
 
 
 PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, 

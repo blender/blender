@@ -604,6 +604,7 @@ public:
 	KX_PYMETHOD(KX_GameObject,EnableRigidBody);
 	KX_PYMETHOD(KX_GameObject,DisableRigidBody);
 	KX_PYMETHOD(KX_GameObject,ApplyImpulse);
+	KX_PYMETHOD(KX_GameObject,SetCollisionMargin);
 	KX_PYMETHOD(KX_GameObject,GetMesh);
 	KX_PYMETHOD(KX_GameObject,GetParent);
 	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
