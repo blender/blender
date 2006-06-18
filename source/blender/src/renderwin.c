@@ -1050,7 +1050,6 @@ static void end_test_break_callback()
    - set callbacks
    - cleanup
 */
-static void error_cb(char *str){error(str);}
 
 static void do_render(int anim)
 {
@@ -1061,24 +1060,9 @@ static void do_render(int anim)
 	/* UGLY! we set this flag to prevent renderwindow queue to execute another render */
 	/* is reset in RE_BlenderFrame */
 	G.rendering= 1;
-	G.afbreek= 0;
 
-	/* set callbacks */
-	if(G.displaymode!=R_DISPLAYWIN) {
-		if(render_win)
-			BIF_close_render_display();
-		imagewindow_render_callbacks(re);
-	}
-	else {
-		RE_display_init_cb(re, renderwin_init_display_cb);
-		RE_display_draw_cb(re, renderwin_progress_display_cb);
-		RE_display_clear_cb(re, renderwin_clear_display_cb);
-		RE_stats_draw_cb(re, renderwin_renderinfo_cb);
-	}
-	RE_error_cb(re, error_cb);
-	init_test_break_callback();
-	RE_test_break_cb(re, test_break);
-	RE_timecursor_cb(re, set_timecursor);
+	/* set render callbacks, also starts ESC timer */
+	BIF_init_render_callbacks(re);
 	
 	waitcursor(1);
 	if(render_win) 
@@ -1110,46 +1094,17 @@ static void do_render(int anim)
 	free_filesel_spec(G.scene->r.pic);
 
 	G.afbreek= 0;
-	end_test_break_callback();
-	
-	mainwindow_make_active();
+	BIF_end_render_callbacks();
 	
 	/* after an envmap creation...  */
 //		if(R.flag & R_REDRAW_PRV) {
 //			BIF_preview_changed(ID_TE);
 //		}
-	allqueue(REDRAWBUTSSCENE, 0);	// visualize fbuf for example
 		
 	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
 	
 	waitcursor(0);
 }
-
-#if 0
-/* used for swapping with spare buffer, when images are different size */
-static void scalefastrect(unsigned int *recto, unsigned int *rectn, int oldx, int oldy, int newx, int newy)
-{
-	unsigned int *rect, *newrect;
-	int x, y;
-	int ofsx, ofsy, stepx, stepy;
-
-	stepx = (int)((65536.0 * (oldx - 1.0) / (newx - 1.0)) + 0.5);
-	stepy = (int)((65536.0 * (oldy - 1.0) / (newy - 1.0)) + 0.5);
-	ofsy = 32768;
-	newrect= rectn;
-	
-	for (y = newy; y > 0 ; y--){
-		rect = recto;
-		rect += (ofsy >> 16) * oldx;
-		ofsy += stepy;
-		ofsx = 32768;
-		for (x = newx ; x>0 ; x--){
-			*newrect++ = rect[ofsx >> 16];
-			ofsx += stepx;
-		}
-	}
-}
-#endif
 
 static void renderwin_store_spare(void)
 {
@@ -1183,18 +1138,51 @@ static void renderwin_store_spare(void)
 
 /* -------------- API: externally called --------------- */
 
-/* not used anywhere ??? */
-#if 0
-void BIF_renderwin_make_active(void)
+static void error_cb(char *str){error(str);}
+static int esc_timer_set= 0;
+
+/* set callbacks, exported to sequence render too. 
+   Only call in foreground (UI) renders. */
+
+void BIF_init_render_callbacks(Render *re)
 {
-	if(render_win) {
-		window_make_active(render_win->win);
-		mywinset(2);
+	
+	if(G.displaymode!=R_DISPLAYWIN) {
+		if(render_win)
+			BIF_close_render_display();
+		imagewindow_render_callbacks(re);
 	}
+	else {
+		RE_display_init_cb(re, renderwin_init_display_cb);
+		RE_display_draw_cb(re, renderwin_progress_display_cb);
+		RE_display_clear_cb(re, renderwin_clear_display_cb);
+		RE_stats_draw_cb(re, renderwin_renderinfo_cb);
+	}
+	
+	RE_error_cb(re, error_cb);
+	
+	G.afbreek= 0;
+	/* start esc timer. ensure it happens once only */
+	if(esc_timer_set==0)
+		init_test_break_callback();
+	esc_timer_set++;
+	
+	RE_test_break_cb(re, test_break);
+	RE_timecursor_cb(re, set_timecursor);
+	
 }
-#endif
 
+/* the init/end callbacks can be called multiple times (sequence render) */
+void BIF_end_render_callbacks(void)
+{
+	esc_timer_set--;
+	if(esc_timer_set==0)
+		end_test_break_callback();
+	
+	if(render_win)
+		mainwindow_make_active();
 
+}
 
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)

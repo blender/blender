@@ -747,6 +747,7 @@ static void draw_image_seq(ScrArea *sa)
 	struct ImBuf *ibuf;
 	int x1, y1, rectx, recty;
 	int free_ibuf = 0;
+	static int recursive= 0;
 	float zoom;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -758,9 +759,26 @@ static void draw_image_seq(ScrArea *sa)
 	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
 	recty= (G.scene->r.size*G.scene->r.ysch)/100;
 
-	ibuf= (ImBuf *)give_ibuf_seq(rectx, recty,
-				     (G.scene->r.cfra), sseq->chanshown);
-
+	/* BIG PROBLEM: the give_ibuf_seq() can call a rendering, which in turn calls redraws...
+	   this shouldn't belong in a window drawing....
+	   So: solve this once event based. 
+	   Now we check for recursion, space type and active area again (ton) */
+	
+	if(recursive)
+		return;
+	else {
+		recursive= 1;
+		ibuf= (ImBuf *)give_ibuf_seq(rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+		recursive= 0;
+		
+		/* HURMF! the give_ibuf_seq can call image display in this window */
+		if(sa->spacetype!=SPACE_SEQ)
+			return;
+		if(sa!=curarea) {
+			areawinset(sa->win);
+		}
+	}
+	
 	if(special_seq_update) {
 		se = special_seq_update->curelem;
 		if(se) {
@@ -801,7 +819,7 @@ static void draw_image_seq(ScrArea *sa)
 	/* needed for gla draw */
 	glaDefine2DArea(&curarea->winrct);
 	glPixelZoom(zoom, zoom);
-	
+
 	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	
 	glPixelZoom(1.0, 1.0);

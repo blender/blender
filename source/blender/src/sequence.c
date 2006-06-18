@@ -886,7 +886,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 					}
 				}
 			}
-			else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
+			else if(seq->type==SEQ_SCENE && se->ibuf==NULL && seq->scene) {	// scene can be NULL after deletions
 				int oldcfra = CFRA;
 				Scene *sce= seq->scene, *oldsce= G.scene;
 				Render *re= RE_NewRender(sce->id.name);
@@ -899,10 +899,12 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				doseq= sce->r.scemode & R_DOSEQ;
 				sce->r.scemode &= ~R_DOSEQ;
 				
+				BIF_init_render_callbacks(re);
+				
 				/* hrms, set_scene still needed? work on that... */
-				set_scene_bg(sce);
+				if(sce!=oldsce) set_scene_bg(sce);
 				RE_BlenderFrame(re, sce, seq->sfra + se->nr);
-				set_scene_bg(oldsce);
+				if(sce!=oldsce) set_scene_bg(oldsce);
 				
 				RE_GetResultImage(re, &rres);
 				
@@ -913,7 +915,9 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 						/* not yet */
 					}
 				}
-				
+					   
+				BIF_end_render_callbacks();
+
 				/* restore */
 				sce->r.scemode |= doseq;
 				
@@ -1100,7 +1104,6 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 		do_seq_unref_cfra(ed->seqbasep, cfra);
 		do_seq_test_unref_cfra(ed->seqbasep, cfra);
 	}
-
 
 	if(!seqfirst) return 0;
 	if(!seqfirst->curelem) return 0;

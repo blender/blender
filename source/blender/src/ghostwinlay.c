@@ -450,6 +450,7 @@ void window_set_custom_cursor_ex(Window *win, BCursor *cursor, int useBig) {
 
 void window_make_active(Window *win) {
 	if (win != active_gl_window) {
+		win->lmbut= 0;	/* keeps hanging when mousepressed while other window opened */
 		active_gl_window= win;
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 	}
