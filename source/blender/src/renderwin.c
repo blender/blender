@@ -1176,12 +1176,12 @@ void BIF_init_render_callbacks(Render *re)
 void BIF_end_render_callbacks(void)
 {
 	esc_timer_set--;
-	if(esc_timer_set==0)
+	if(esc_timer_set==0) {
 		end_test_break_callback();
-	
-	if(render_win)
-		mainwindow_make_active();
-
+		
+		if(render_win)
+			mainwindow_make_active();
+	}
 }
 
 /* set up display, render an image or scene */

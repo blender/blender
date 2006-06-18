@@ -1783,7 +1783,9 @@ static void openheadwin(ScrArea *sa)
 
 	glMatrixMode(GL_MODELVIEW);
 	
-	areawinar[sa->headwin]= sa;	/* oterwise addqueue does not work */
+	areawinar[sa->headwin]= sa;	/* otherwise addqueue does not work */
+	
+	scrarea_do_headchange(sa);	/* headchange is no callback, apply right away. this is for render-to-imagewindow... this can be called on startup by sequencer, which invokes redraw before all events are handled. bad stuff... */
 	addqueue(sa->headwin, CHANGED, 1);
 }
 

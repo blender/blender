@@ -1681,6 +1681,10 @@ static void do_render_all_options(Render *re)
 	if(re->r.scemode & R_DOSEQ) {
 		if(!re->test_break()) 
 			do_render_seq(re->result, re->r.cfra);
+		
+		re->stats_draw(&re->i);
+		re->display_draw(re->result, NULL);
+		
 	}
 	else {
 		if(re->r.renderer==R_YAFRAY)
