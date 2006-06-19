@@ -228,7 +228,9 @@ void set_interface_font(char *str)
 		} 
 		else {
 			U.fontname[0]= 0;
+			FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
 			G.ui_international = TRUE;	// this case will switch to standard font
+			okee("Invalid font selection - reverting to built-in font.");
 		}
 		allqueue(REDRAWALL, 0);
 	}
