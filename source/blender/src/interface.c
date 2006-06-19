@@ -964,7 +964,6 @@ void uiDrawBlock(uiBlock *block)
 	if((block->flag & UI_BLOCK_LOOP)==0) {
 		testmouse= 1;  
 		Mat4CpyMat4(UIwinmat, block->winmat);
-		uiGetMouse(block->win, mouse);
 	}
 	
 	uiPanelPush(block); // panel matrix
@@ -977,6 +976,9 @@ void uiDrawBlock(uiBlock *block)
 	}		
 
 	if(block->drawextra) block->drawextra(curarea, block);
+	
+	if(testmouse)	/* do it after panel push, otherwise coords are wrong */
+		uiGetMouse(block->win, mouse);
 
 	for (but= block->buttons.first; but; but= but->next) {
 		

@@ -1752,7 +1752,7 @@ static char *scene_layer_menu(void)
 	return str;
 }
 
-static void draw_3d_layer_buttons(uiBlock *block, unsigned int *poin, short xco, short yco, short dx, short dy, int event)
+static void draw_3d_layer_buttons(uiBlock *block, unsigned int *poin, short xco, short yco, short dx, short dy)
 {
 	uiBut *bt;
 	long a;
@@ -1800,7 +1800,7 @@ static void render_panel_layers(void)
 	/* first, as reminder, the scene layers */
 	uiDefBut(block, LABEL, 0, "Scene:",				10,170,100,20, NULL, 0, 0, 0, 0, "");
 	
-	draw_3d_layer_buttons(block, &G.scene->lay, 130, 170, 35, 30, B_LAY);
+	draw_3d_layer_buttons(block, &G.scene->lay, 130, 170, 35, 30);
 	
 	/* layer menu, name, delete button */
 	uiBlockBeginAlign(block);
@@ -1818,7 +1818,7 @@ static void render_panel_layers(void)
 
 	/* RenderLayer visible-layers */
 	uiDefBut(block, LABEL, 0, "Layer:",	10,95,100,20, NULL, 0, 0, 0, 0, "");
-	draw_3d_layer_buttons(block, &srl->lay,		130, 95, 35, 30, B_NOP);
+	draw_3d_layer_buttons(block, &srl->lay,		130, 95, 35, 30);
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",	10, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
