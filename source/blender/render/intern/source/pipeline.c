@@ -1102,9 +1102,10 @@ static void threaded_tile_processor(Render *re)
 	
 	if(rr->exrhandle) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
-		render_unique_exr_name(re, str);
-		printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 		
+		render_unique_exr_name(re, str);
+		
+		printf("write exr tmp file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 		IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
 	}
 	
@@ -1719,6 +1720,18 @@ static int is_rendering_allowed(Render *re)
 			re->error("Border render and Buffer-save not supported yet");
 			return 0;
 		}
+	}
+	
+	if(re->r.scemode & R_EXR_TILE_FILE) {
+		char str[FILE_MAXDIR+FILE_MAXFILE];
+		
+		render_unique_exr_name(re, str);
+		
+		if (BLI_is_writable(str)==0) {
+			re->error("Can not save render buffers, check the temp default path");
+			return 0;
+		}
+		
 	}
 	
 	if(re->r.scemode & R_DOCOMP) {

@@ -125,6 +125,21 @@ int BLI_gzip(char *from, char *to) {
 	return 0;
 }
 
+/* return 1 when file can be written */
+int BLI_is_writable(char *filename)
+{
+	int file;
+	
+	file = open(filename, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);
+	
+	if (file < 0)
+		return 0;
+	else {
+		close(file);
+		return 1;
+	}
+}
+
 #ifdef WIN32
 
 static char str[MAXPATHLEN+12];

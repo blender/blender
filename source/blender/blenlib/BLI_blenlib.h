@@ -256,7 +256,7 @@ int    BLI_exist(char *name);
 void  BLI_recurdir_fileops(char *dirname);
 int BLI_link(char *file, char *to);
 int BLI_backup(char *file, char *from, char *to);
-
+int BLI_is_writable(char *filename);
 
 /**
  * @attention Do not confuse with BLI_exist
