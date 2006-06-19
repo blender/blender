@@ -690,8 +690,14 @@ GHOST_TSuccess GHOST_WindowCarbon::setWindowCustomCursorShape(GHOST_TUns8 *bitma
 	if (!m_customCursor) return GHOST_kFailure;
 	
 	for (y=0; y<16; y++) {
+#if !defined(__LITTLE_ENDIAN__)
 		m_customCursor->data[y] = uns16ReverseBits((bitmap[2*y]<<0) | (bitmap[2*y+1]<<8));
 		m_customCursor->mask[y] = uns16ReverseBits((mask[2*y]<<0) | (mask[2*y+1]<<8));
+#else
+		m_customCursor->data[y] = uns16ReverseBits((bitmap[2*y+1]<<0) | (bitmap[2*y]<<8));
+		m_customCursor->mask[y] = uns16ReverseBits((mask[2*y+1]<<0) | (mask[2*y]<<8));
+#endif
+			
 	}
 	
 	m_customCursor->hotSpot.h = hotX;
