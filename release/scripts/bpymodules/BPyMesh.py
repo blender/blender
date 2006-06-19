@@ -212,7 +212,7 @@ def faceRayIntersect(f, orig, dir):
 
 
 def pickMeshRayFace(me, orig, dir):
-	best_dist= 1<<30
+	best_dist= 1000000
 	best_isect= best_side= best_face= None
 	for f in me.faces:
 		isect, side= faceRayIntersect(f, orig, dir)
@@ -280,7 +280,7 @@ def pickMeshGroupVCol(me, orig, dir):
 		idxs= 0,2,3
 	f_c= f.col
 	f_colvecs= [col2vec(f_c[i]) for i in idxs]
-	return f_colvecs[0]*w0 + f_colvecs[1]*w1 + f_colvecs[2]*w2
+	return f_colvecs[0]*w0 +  f_colvecs[1]*w1 + f_colvecs[2]*w2
 
 # reuse me more.
 def sorted_edge_indicies(ed):
@@ -292,7 +292,7 @@ def sorted_edge_indicies(ed):
 
 def edge_face_users(me):
 	''' 
-	Takesa mesh and returns a list aligned with the meshes edges.
+	Takes a mesh and returns a list aligned with the meshes edges.
 	Each item is a list of the faces that use the edge
 	would be the equiv for having ed.face_users as a property
 	'''
@@ -345,7 +345,7 @@ def face_edges(me):
 	return face_edges
 	
 
-def facePlanerIslands(me):
+def facesPlanerIslands(me):
 	DotVecs= Blender.Mathutils.DotVecs
 	
 	def roundvec(v):
@@ -361,8 +361,7 @@ def facePlanerIslands(me):
 		new_island= False
 		for i, used_val in enumerate(used_faces):
 			if used_val==0:
-				island= set()
-				island.add(i)
+				island= [i]
 				new_island= True
 				used_faces[i]= 1
 				break
@@ -373,7 +372,7 @@ def facePlanerIslands(me):
 		island_growing= True
 		while island_growing:
 			island_growing= False
-			for fidx1 in list(island):
+			for fidx1 in island[:]:
 				if used_faces[fidx1]==1:
 					used_faces[fidx1]= 2
 					face_prop1= face_props[fidx1]
@@ -387,11 +386,113 @@ def facePlanerIslands(me):
 								if face_prop1[2]==face_prop2[2]:
 									if abs(face_prop1[3] - DotVecs(face_prop1[1], face_prop2[0])) < 0.000001:
 										used_faces[fidx2]= 1
-										island.add(fidx2)
-		tmp= [me.faces[i] for i in island]
-		islands.append(tmp)
+										island.append(fidx2)
+		islands.append([me.faces[i] for i in island])
 	return islands
+
+
+
+def facesUvIslands(me, PREF_IMAGE_DELIMIT=True):
+	DotVecs= Blender.Mathutils.DotVecs
+	def roundvec(v):
+		return round(v[0], 4), round(v[1], 4)
 	
+	if not me.faceUV:
+		return [ list(me.faces), ]
+	
+	# make a list of uv dicts
+	face_uvs= [ [roundvec(uv) for uv in f.uv] for f in me.faces]
+	
+	# key - face uv || value - list of face idxs
+	uv_connect_dict= dict([ (uv, [] ) for f_uvs in face_uvs for uv in f_uvs])
+	
+	for i, f_uvs in enumerate(face_uvs):
+		for uv in f_uvs: # loops through rounded uv values
+			uv_connect_dict[uv].append(i)
+	islands= []
+	
+	used_faces= [0] * len(me.faces)
+	while True:
+		new_island= False
+		for i, used_val in enumerate(used_faces):
+			if used_val==0:
+				island= [i]
+				new_island= True
+				used_faces[i]= 1
+				break
+		
+		if not new_island:
+			break
+		
+		island_growing= True
+		while island_growing:
+			island_growing= False
+			for fidx1 in island[:]:
+				if used_faces[fidx1]==1:
+					used_faces[fidx1]= 2
+					for uv in face_uvs[fidx1]:
+						for fidx2 in uv_connect_dict[uv]:
+							if fidx1 != fidx2 and used_faces[fidx2]==0:
+								if not PREF_IMAGE_DELIMIT or me.faces[fidx1].image==me.faces[fidx2].image:
+									island_growing= True
+									used_faces[fidx2]= 1
+									island.append(fidx2)
+		
+		islands.append([me.faces[i] for i in island])
+	return islands
+
+#def faceUvBounds(me, faces= None):
+	
+
+def facesUvRotate(me, deg, faces= None, pivot= (0,0)):
+	'''
+	Faces can be None an all faces will be used
+	pivot is just the x/y well rotated about
+	
+	positive deg value for clockwise rotation
+	'''
+	if faces==None: faces= me.faces
+	pivot= Blender.Mathutils.Vector(pivot)
+	
+	rotmat= Blender.Mathutils.RotationMatrix(-deg, 2)
+	
+	for f in faces:
+		f.uv= [((uv-pivot)*rotmat)+pivot for uv in f.uv]
+
+def facesUvScale(me, sca, faces= None, pivot= (0,0)):
+	'''
+	Faces can be None an all faces will be used
+	pivot is just the x/y well rotated about
+	sca can be wither an int/float or a vector if you want to
+	  scale x/y seperately.
+	  a sca or (1.0, 1.0) will do nothing.
+	'''
+	def vecmulti(v1,v2):
+		'''V2 is unchanged'''
+		v1[:]= (v1.x*v2.x, v1.y*v2.y)
+		return v1
+	
+	sca= Blender.Mathutils.Vector(sca)
+	if faces==None: faces= me.faces
+	pivot= Blender.Mathutils.Vector(pivot)
+	
+	for f in faces:
+		f.uv= [vecmulti(uv-pivot, sca)+pivot for uv in f.uv]
+
+	
+def facesUvTranslate(me, tra, faces= None, pivot= (0,0)):
+	'''
+	Faces can be None an all faces will be used
+	pivot is just the x/y well rotated about
+	'''
+	if faces==None: faces= me.faces
+	tra= Blender.Mathutils.Vector(tra)
+	
+	for f in faces:
+		f.uv= [uv+tra for uv in f.uv]
+
+	
+
 def edgeFaceUserCount(me, faces= None):
 	'''
 	Return an edge aligned list with the count for all the faces that use that edge. -

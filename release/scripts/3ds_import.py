@@ -764,13 +764,12 @@ def load_3ds(filename, PREF_UI= True):
 	# Link the objects into this scene.
 	Layers= scn.Layers
 	
-	'''
 	# REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
 	for ob in importedObjects:
 		if ob.getType()=='Mesh':
 			me= ob.getData(mesh=1)
 			me.verts.delete([me.verts[0],])
-	'''
+	# Done DUMMYVERT
 	
 	if IMPORT_AS_INSTANCE:
 		name= filename.split('\\')[-1].split('/')[-1]
