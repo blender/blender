@@ -6242,19 +6242,25 @@ static int object_in_any_scene(Object *ob)
 	return 0;
 }
 
+/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib)
 {
 	Object *ob;
 	Base *base;
 
-	/* give all objects which are LIB_INDIRECT a base */
-	ob= lb->first;
-	while(ob) {
+	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
+	for(ob= lb->first; ob; ob= ob->id.next) {
 
 		if( ob->id.flag & LIB_INDIRECT ) {
-			/* hrmf... groups give user counter, so we check in that case entire scene */
-			if(ob->id.us==0 || (ob->id.us==1 && ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0) ) {
-
+			int do_it= 0;
+			
+			if(ob->id.us==0)
+				do_it= 1;
+			else if(ob->id.us==1 && lib)
+				if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0)
+					do_it= 1;
+					
+			if(do_it) {
 				base= MEM_callocN( sizeof(Base), "add_ext_base");
 				BLI_addtail(&(sce->base), base);
 				base->lay= ob->lay;
@@ -6267,7 +6273,6 @@ static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib)
 
 			}
 		}
-		ob= ob->id.next;
 	}
 }
 
@@ -6471,8 +6476,12 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	lib_link_all(fd, G.main);
 	lib_verify_nodetree(G.main);
 
-	/* give a base to loose objects */
-	give_base_to_objects(G.scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:mainl->curlib);
+	/* give a base to loose objects. If group append, do it for objects too */
+	if(idcode==ID_GR)
+		give_base_to_objects(G.scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:mainl->curlib);
+	else
+		give_base_to_objects(G.scene, &(G.main->object), NULL);
+	
 	/* has been removed... erm, why? (ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
 	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
