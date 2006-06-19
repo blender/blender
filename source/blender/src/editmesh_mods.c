@@ -745,7 +745,7 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 }
 
 /* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes */
-#define SCALE_CMP(a,b) (a>0 && fabs(b/a-1)<=thresh)
+#define SCALE_CMP(a,b) (fabs(a-b) <= thresh || (a>0 && fabs(b/a)<=thresh))
 
 /* ****************  GROUP SELECTS ************** */
 /* selects new faces/edges/verts based on the
@@ -827,7 +827,7 @@ int facegroup_select(short mode)
 			} else if (mode==3 || mode==4) { /* same area OR same perimeter, both use the same temp var */
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						if SCALE_CMP(base_efa->tmp.fp, efa->tmp.fp) {
+						if (SCALE_CMP(base_efa->tmp.fp, efa->tmp.fp)) {
 						
 							EM_select_face(efa, 1);
 							selcount++;
@@ -978,7 +978,7 @@ int edgegroup_select(short mode)
 					if (
 						!(eed->f & SELECT) &&
 						!eed->h &&
-						SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp)
+						(SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp))
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
@@ -1027,7 +1027,7 @@ int edgegroup_select(short mode)
 						!(eed->f & SELECT) &&
 						!eed->h &&
 						eed->f2==2 &&
-						SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp)
+						(SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp))
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
