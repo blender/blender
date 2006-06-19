@@ -333,7 +333,7 @@ void node_shader_default(Material *ma)
 /* called from shading buttons or header */
 void node_composit_default(Scene *sce)
 {
-	bNode *in, *out1, *out2;
+	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
 	
 	/* but lets check it anyway */
@@ -344,10 +344,8 @@ void node_composit_default(Scene *sce)
 	
 	sce->nodetree= ntreeAddTree(NTREE_COMPOSIT);
 	
-	out1= nodeAddNodeType(sce->nodetree, CMP_NODE_VIEWER, NULL);
-	out1->locx= 300.0f; out1->locy= 200.0f;
-	out2= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL);
-	out2->locx= 300.0f; out2->locy= 500.0f;
+	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL);
+	out->locx= 300.0f; out->locy= 400.0f;
 	
 	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL);
 	in->locx= 10.0f; in->locy= 400.0f;
@@ -355,21 +353,10 @@ void node_composit_default(Scene *sce)
 	
 	/* links from color to color */
 	fromsock= in->outputs.first;
-	tosock= out1->inputs.first;
-	nodeAddLink(sce->nodetree, in, fromsock, out1, tosock);
-	tosock= out2->inputs.first;
-	nodeAddLink(sce->nodetree, in, fromsock, out2, tosock);
+	tosock= out->inputs.first;
+	nodeAddLink(sce->nodetree, in, fromsock, out, tosock);
 	
 	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
-	
-	out1->id= find_id("IM", "Viewer Node");
-	if(out1->id==NULL) {
-		Image *ima= alloc_libblock(&G.main->image, ID_IM, "Viewer Node");
-		strcpy(ima->name, "Viewer Node");
-		ima->ok= 1;
-		ima->xrep= ima->yrep= 1;
-		out1->id= &ima->id;
-	}
 }
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
