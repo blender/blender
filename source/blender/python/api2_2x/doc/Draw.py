@@ -602,6 +602,7 @@ def ColorPicker(event, x, y, width, height, initial, tooltip = None):
       is kept over the button).
   @rtype: Blender Button
   @return: The Button created.
+  @note: The color picker will not work if the Register's event function is None.
   """
 
 def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
