@@ -1347,7 +1347,7 @@ void face_borderselect()
 #define UV_CYL_MAPPING 3
 #define UV_SPHERE_MAPPING 4
 #define UV_BOUNDS8_MAPPING 68
-#define UV_BOUNDS4_MAPPING 65
+#define UV_BOUNDS4_MAPPING` 65
 #define UV_BOUNDS2_MAPPING 66
 #define UV_BOUNDS1_MAPPING 67
 #define UV_STD8_MAPPING 131
@@ -1372,19 +1372,20 @@ void uv_autocalc_tface()
 {
 	short mode;
 	mode= pupmenu(MENUTITLE("UV Calculation")
-	              MENUSTRING("Cube",          UV_CUBE_MAPPING) "|"
-	              MENUSTRING("Cylinder",      UV_CYL_MAPPING) "|"
-	              MENUSTRING("Sphere",        UV_SPHERE_MAPPING) "|"
+	              MENUSTRING("Cube Projection",          UV_CUBE_MAPPING) "|"
+	              MENUSTRING("Cylinder from View",      UV_CYL_MAPPING) "|"
+	              MENUSTRING("Sphere from View",        UV_SPHERE_MAPPING) "|"
 	              MENUSTRING("Unwrap",          UV_UNWRAP_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/8", UV_BOUNDS8_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/4", UV_BOUNDS4_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/2", UV_BOUNDS2_MAPPING) "|"
-	              MENUSTRING("Bounds to 1/1", UV_BOUNDS1_MAPPING) "|"
-	              MENUSTRING("Standard 1/8",  UV_STD8_MAPPING) "|"
-	              MENUSTRING("Standard 1/4",  UV_STD4_MAPPING) "|"
-	              MENUSTRING("Standard 1/2",  UV_STD2_MAPPING) "|"
-	              MENUSTRING("Standard 1/1",  UV_STD1_MAPPING) "|"
-	              MENUSTRING("From Window",   UV_WINDOW_MAPPING) );
+	              MENUSTRING("Project From View",   UV_WINDOW_MAPPING) "|"
+	              MENUSTRING("Project from View 1/1", UV_BOUNDS1_MAPPING) "|"
+	              MENUSTRING("Project from View 1/2", UV_BOUNDS2_MAPPING) "|"
+	              MENUSTRING("Project from View 1/4", UV_BOUNDS4_MAPPING) "|"
+	              MENUSTRING("Project from View 1/8", UV_BOUNDS8_MAPPING) "|"
+	              MENUSTRING("Reset 1/1",  UV_STD1_MAPPING) "|"
+	              MENUSTRING("Reset 1/2",  UV_STD2_MAPPING) "|"
+	              MENUSTRING("Reset 1/4",  UV_STD4_MAPPING) "|"
+	              MENUSTRING("Reset 1/8",  UV_STD8_MAPPING) );
+	              
 	
 	
 	switch(mode) {
