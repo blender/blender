@@ -1707,7 +1707,7 @@ static void delete_scene_layer_func(void *srl_v, void *act_i)
 		if(G.scene->nodetree) {
 			bNode *node;
 			for(node= G.scene->nodetree->nodes.first; node; node= node->next) {
-				if(node->type==CMP_NODE_R_RESULT && node->id==NULL) {
+				if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
 					if(node->custom1==act)
 						node->custom1= 0;
 					else if(node->custom1>act)
@@ -1726,7 +1726,7 @@ static void rename_scene_layer_func(void *srl_v, void *unused_v)
 		SceneRenderLayer *srl= srl_v;
 		bNode *node;
 		for(node= G.scene->nodetree->nodes.first; node; node= node->next) {
-			if(node->type==CMP_NODE_R_RESULT && node->id==NULL) {
+			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
 				if(node->custom1==G.scene->r.actlay)
 					BLI_strncpy(node->name, srl->name, NODE_MAXSTR);
 			}

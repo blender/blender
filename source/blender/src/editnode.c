@@ -214,7 +214,7 @@ static bNode *snode_get_editgroup(SpaceNode *snode)
 	return gnode;
 }
 
-/* node has to be of type render result */
+/* node has to be of type 'render layers' */
 /* is a bit clumsy copying renderdata here... scene nodes use render size of current render */
 static void composite_node_render(SpaceNode *snode, bNode *node)
 {
@@ -285,7 +285,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 			if(node) {
 				NodeTagChanged(snode->edittree, node);
 				/* not the best implementation of the world... but we need it to work now :) */
-				if(node->type==CMP_NODE_R_RESULT && node->custom2)
+				if(node->type==CMP_NODE_R_LAYERS && node->custom2)
 					composite_node_render(snode, node);
 				else {
 					node= snode_get_editgroup(snode);
@@ -349,7 +349,7 @@ void node_composit_default(Scene *sce)
 	out2= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL);
 	out2->locx= 300.0f; out2->locy= 500.0f;
 	
-	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_RESULT, NULL);
+	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL);
 	in->locx= 10.0f; in->locy= 400.0f;
 	nodeSetActive(sce->nodetree, in);
 	
@@ -362,10 +362,10 @@ void node_composit_default(Scene *sce)
 	
 	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
 	
-	out1->id= find_id("IM", "Compositor");
+	out1->id= find_id("IM", "Viewer Node");
 	if(out1->id==NULL) {
-		Image *ima= alloc_libblock(&G.main->image, ID_IM, "Compositor");
-		strcpy(ima->name, "Compositor");
+		Image *ima= alloc_libblock(&G.main->image, ID_IM, "Viewer Node");
+		strcpy(ima->name, "Viewer Node");
 		ima->ok= 1;
 		ima->xrep= ima->yrep= 1;
 		out1->id= &ima->id;
@@ -454,10 +454,10 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 				
 				/* add node doesnt link this yet... */
 				if(node->id==NULL) {
-					node->id= find_id("IM", "Compositor");
+					node->id= find_id("IM", "Viewer Node");
 					if(node->id==NULL) {
-						Image *ima= alloc_libblock(&G.main->image, ID_IM, "Compositor");
-						strcpy(ima->name, "Compositor");
+						Image *ima= alloc_libblock(&G.main->image, ID_IM, "Viewer Node");
+						strcpy(ima->name, "Viewer Node");
 						ima->ok= 1;
 						ima->xrep= ima->yrep= 1;
 						node->id= &ima->id;
@@ -1685,8 +1685,8 @@ static void node_border_link_delete(SpaceNode *snode)
 	setcursor_space(SPACE_NODE, CURSOR_STD);
 }
 
-/* goes over all scenes, reads render results */
-void node_read_renderresults(SpaceNode *snode)
+/* goes over all scenes, reads render layerss */
+void node_read_renderlayers(SpaceNode *snode)
 {
 	Scene *scene;
 	bNode *node;
@@ -1696,7 +1696,7 @@ void node_read_renderresults(SpaceNode *snode)
 		scene->id.flag |= LIB_DOIT;
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_R_RESULT) {
+		if(node->type==CMP_NODE_R_LAYERS) {
 			ID *id= node->id;
 			if(id==NULL) id= (ID *)G.scene;
 			if(id->flag & LIB_DOIT) {
@@ -1726,11 +1726,11 @@ void node_make_group(SpaceNode *snode)
 	if(snode->treetype==NTREE_COMPOSIT) {
 		for(gnode=snode->nodetree->nodes.first; gnode; gnode= gnode->next) {
 			if(gnode->flag & SELECT)
-				if(gnode->type==CMP_NODE_R_RESULT)
+				if(gnode->type==CMP_NODE_R_LAYERS)
 					break;
 		}
 		if(gnode) {
-			error("Can not add RenderResult in a Group");
+			error("Can not add RenderLayer in a Group");
 			return;
 		}
 	}
@@ -1922,8 +1922,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			node_hide(snode);
 			break;
 		case RKEY:
-			if(okee("Read saved Render Results"))
-				node_read_renderresults(snode);
+			if(okee("Read saved Render Layers"))
+				node_read_renderlayers(snode);
 			break;
 		case DELKEY:
 		case XKEY:

@@ -728,8 +728,8 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 		return 19;
 }
 
-/* if we use render result from other scene, we make a nice title */
-static void set_render_result_title(void *node_v, void *unused)
+/* if we use render layers from other scene, we make a nice title */
+static void set_render_layers_title(void *node_v, void *unused)
 {
 	bNode *node= node_v;
 	Scene *sce;
@@ -789,7 +789,7 @@ static void node_browse_scene_cb(void *ntree_v, void *node_v)
 		id_us_plus(node->id);
 	}
 	
-	set_render_result_title(node, NULL);
+	set_render_layers_title(node, NULL);
 	nodeSetActive(ntree, node);
 
 	allqueue(REDRAWBUTSSHADING, 0);
@@ -800,7 +800,7 @@ static void node_browse_scene_cb(void *ntree_v, void *node_v)
 }
 
 
-static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		uiBut *bt;
@@ -826,7 +826,7 @@ static int node_composit_buts_renderresult(uiBlock *block, bNodeTree *ntree, bNo
 			bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
 				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
 				  &node->custom1, 0, 0, 0, 0, "Choose Render Layer");
-		uiButSetFunc(bt, set_render_result_title, node, NULL);
+		uiButSetFunc(bt, set_render_layers_title, node, NULL);
 		MEM_freeN(strp);
 		
 		/* re-render */
@@ -993,8 +993,8 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_IMAGE:
 			ntype->butfunc= node_composit_buts_image;
 			break;
-		case CMP_NODE_R_RESULT:
-			ntype->butfunc= node_composit_buts_renderresult;
+		case CMP_NODE_R_LAYERS:
+			ntype->butfunc= node_composit_buts_renderlayers;
 			break;
 		case CMP_NODE_NORMAL:
 			ntype->butfunc= node_buts_normal;

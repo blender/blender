@@ -442,8 +442,8 @@ static void do_node_nodemenu(void *arg, int event)
 		case 7: /* hide/unhide */
 			node_hide(snode);
 			break;
-		case 8: /* read saved render results */
-			node_read_renderresults(snode);
+		case 8: /* read saved render layers */
+			node_read_renderlayers(snode);
 			break;
 		case 9: /* show cyclic */
 			ntreeSolveOrder(snode->edittree);

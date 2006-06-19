@@ -1537,9 +1537,9 @@ static void ntree_render_scenes(Render *re)
 	
 	if(re->scene->nodetree==NULL) return;
 	
-	/* check for render-result nodes using other scenes, we tag them LIB_DOIT */
+	/* check for render-layers nodes using other scenes, we tag them LIB_DOIT */
 	for(node= re->scene->nodetree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_R_RESULT) {
+		if(node->type==CMP_NODE_R_LAYERS) {
 			if(node->id) {
 				if(node->id != (ID *)re->scene)
 					node->id->flag |= LIB_DOIT;
@@ -1552,7 +1552,7 @@ static void ntree_render_scenes(Render *re)
 	/* now foreach render-result node tagged we do a full render */
 	/* results are stored in a way compisitor will find it */
 	for(node= re->scene->nodetree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_R_RESULT) {
+		if(node->type==CMP_NODE_R_LAYERS) {
 			if(node->id && node->id != (ID *)re->scene) {
 				if(node->id->flag & LIB_DOIT) {
 					render_scene(re, (Scene *)node->id, cfra);
@@ -1579,7 +1579,7 @@ static int composite_needs_render(Scene *sce)
 	if((sce->r.scemode & R_DOCOMP)==0) return 1;
 		
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type==CMP_NODE_R_RESULT)
+		if(node->type==CMP_NODE_R_LAYERS)
 			if(node->id==NULL || node->id!=&sce->id)
 				return 1;
 	}

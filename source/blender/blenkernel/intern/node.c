@@ -1928,7 +1928,7 @@ static void freeExecutableNode(bNodeTree *ntree)
 	
 	/* set exec flag for finished nodes that might need freed */
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->type!=CMP_NODE_R_RESULT)
+		if(node->type!=CMP_NODE_R_LAYERS)
 			if(node->exec & NODE_FINISHED)
 				node->exec |= NODE_FREEBUFS;
 	}

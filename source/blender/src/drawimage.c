@@ -161,7 +161,7 @@ static int image_preview_active(ScrArea *sa, float *xim, float *yim)
 	SpaceImage *sima= sa->spacedata.first;
 	
 	/* only when compositor shows, and image handler set */
-	if(sima->image == (Image *)find_id("IM", "Compositor")) {
+	if(sima->image == (Image *)find_id("IM", "Viewer Node")) {
 		short a;
 	
 		for(a=0; a<SPACE_MAXHANDLER; a+=2) {

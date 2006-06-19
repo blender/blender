@@ -915,7 +915,7 @@ static bNodeType cmp_node_image= {
 #define RRES_OUT_AO		9
 #define RRES_OUT_RAY	10
 
-static bNodeSocketType cmp_node_rresult_out[]= {
+static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -956,7 +956,7 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 	return NULL;
 }
 
-static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	Scene *sce= node->id?(Scene *)node->id:G.scene;
 	RenderData *rd= data;
@@ -1015,15 +1015,15 @@ static void node_composit_exec_rresult(void *data, bNode *node, bNodeStack **in,
 
 /* custom1 = render layer in use */
 /* custom2 = re-render tag */
-static bNodeType cmp_node_rresult= {
-	/* type code   */	CMP_NODE_R_RESULT,
-	/* name        */	"Render Result",
+static bNodeType cmp_node_rlayers= {
+	/* type code   */	CMP_NODE_R_LAYERS,
+	/* name        */	"Render Layers",
 	/* width+range */	150, 100, 300,
 	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	NULL,
-	/* output sock */	cmp_node_rresult_out,
+	/* output sock */	cmp_node_rlayers_out,
 	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_rresult
+	/* execfunc    */	node_composit_exec_rlayers
 	
 };
 
@@ -2883,7 +2883,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_composite,
 	&cmp_node_viewer,
 	&cmp_node_output_file,
-	&cmp_node_rresult,
+	&cmp_node_rlayers,
 	&cmp_node_image,
 	&cmp_node_curve_rgb,
 	&cmp_node_mix_rgb,
@@ -2920,7 +2920,7 @@ void ntreeCompositTagRender(bNodeTree *ntree)
 	if(ntree==NULL) return;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if( ELEM(node->type, CMP_NODE_R_RESULT, CMP_NODE_COMPOSITE))
+		if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE))
 			NodeTagChanged(ntree, node);
 	}
 }
@@ -2952,7 +2952,7 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 	if(ntree==NULL) return;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
-		if( ELEM(node->type, CMP_NODE_R_RESULT, CMP_NODE_IMAGE))
+		if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
 			NodeTagChanged(ntree, node);
 	}
 }

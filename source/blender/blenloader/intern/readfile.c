@@ -5496,6 +5496,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
+		/* during 2.41 images with this name were used for viewer node output, lets fix that */
+		if(main->versionfile == 241) {
+			Image *ima;
+			for(ima= main->image.first; ima; ima= ima->id.next)
+				if(strcmp(ima->name, "Compositor")==0) {
+					strcpy(ima->id.name+2, "Viewer Node");
+					strcpy(ima->name, "Viewer Node");
+				}
+		}
 	}
 	
 	
@@ -5750,7 +5759,7 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 	bNode *node;
 	
 	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->id && node->type!=CMP_NODE_R_RESULT)
+		if(node->id && node->type!=CMP_NODE_R_LAYERS)
 			expand_doit(fd, mainvar, node->id);
 
 }
