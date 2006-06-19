@@ -93,6 +93,33 @@
 
 #include "BDR_unwrapper.h"
 
+/* Pupmenu codes: */
+#define UV_CUBE_MAPPING 2
+#define UV_CYL_MAPPING 3
+#define UV_SPHERE_MAPPING 4
+#define UV_BOUNDS8_MAPPING 68
+#define UV_BOUNDS4_MAPPING 65
+#define UV_BOUNDS2_MAPPING 66
+#define UV_BOUNDS1_MAPPING 67
+#define UV_STD8_MAPPING 131
+#define UV_STD4_MAPPING 130
+#define UV_STD2_MAPPING 129
+#define UV_STD1_MAPPING 128
+#define UV_WINDOW_MAPPING 5
+#define UV_UNWRAP_MAPPING 6
+#define UV_CYL_EX 32
+#define UV_SPHERE_EX 34
+
+/* Some macro tricks to make pupmenu construction look nicer :-)
+   Sorry, just did it for fun. */
+
+#define _STR(x) " " #x
+#define STRING(x) _STR(x)
+
+#define MENUSTRING(string, code) string " %x" STRING(code)
+#define MENUTITLE(string) string " %t|" 
+
+
 /* returns 0 if not found, otherwise 1 */
 static int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 {
@@ -1341,32 +1368,6 @@ void face_borderselect()
 	glReadBuffer(GL_BACK);
 #endif
 }
-
-/* Pupmenu codes: */
-#define UV_CUBE_MAPPING 2
-#define UV_CYL_MAPPING 3
-#define UV_SPHERE_MAPPING 4
-#define UV_BOUNDS8_MAPPING 68
-#define UV_BOUNDS4_MAPPING 65
-#define UV_BOUNDS2_MAPPING 66
-#define UV_BOUNDS1_MAPPING 67
-#define UV_STD8_MAPPING 131
-#define UV_STD4_MAPPING 130
-#define UV_STD2_MAPPING 129
-#define UV_STD1_MAPPING 128
-#define UV_WINDOW_MAPPING 5
-#define UV_UNWRAP_MAPPING 6
-#define UV_CYL_EX 32
-#define UV_SPHERE_EX 34
-
-/* Some macro tricks to make pupmenu construction look nicer :-)
-   Sorry, just did it for fun. */
-
-#define _STR(x) " " #x
-#define STRING(x) _STR(x)
-
-#define MENUSTRING(string, code) string " %x" STRING(code)
-#define MENUTITLE(string) string " %t|" 
 
 void uv_autocalc_tface()
 {
