@@ -110,9 +110,21 @@ void group_operation_with_menu(void)
 			break;
 	
 	if(group)
-		mode= pupmenu("Groups %t|Add to existing Group %x3|Add to New Group %x1|Remove from all Groups %x2");
+		mode= pupmenu("Groups %t|Add to Existing Group %x3|Add to New Group %x1|Remove from All Groups %x2");
 	else
-		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from all Groups %x2");
+		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from All Groups %x2");
+	
+	group_operation(mode);
+}
+
+void group_operation(int mode)
+{
+	Group *group= NULL;
+	
+	/* are there existing groups? */
+	for(group= G.main->group.first; group; group= group->id.next)
+		if(group->id.lib==NULL)
+			break;
 	
 	if(mode>0) {
 		if(group==NULL || mode==1) group= add_group();
@@ -136,4 +148,3 @@ void group_operation_with_menu(void)
 		else if(mode==2) rem_selected_from_group();
 	}
 }
-

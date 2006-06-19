@@ -89,6 +89,7 @@
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
+#include "BIF_editgroup.h"
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
 #include "BIF_editview.h"
@@ -487,6 +488,9 @@ static void do_view3d_viewmenu(void *arg, int event)
 	case 17: /* Set Clipping Border */
 		view3d_edit_clipping(v3d);
 		break;
+	case 18: /* render preview */
+		toggle_blockhandler(curarea, VIEW3D_HANDLER_PREVIEW, 0);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 1);
 }
@@ -500,6 +504,7 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Render Preview...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 16, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Background Image...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
 	
@@ -952,10 +957,13 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Vertices|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vertex Path|W Alt 7",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Loop|Ctrl E 6",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Ring|Ctrl E 7", 			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Path Select|W Alt 7",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Loop Select|Ctrl E 6",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Ring Select|Ctrl E 7", 			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Loop to Region|Ctrl E 8",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Region to Loop|Ctrl E 9",			0, yco-=20, menuwidth, 20, NULL, 0.0, 0.0, 1, 20, "");	
 	
@@ -1588,7 +1596,8 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Along Normals|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Sphere|Ctrl Shift S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl Shift Alt S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	if (G.obedit) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl Shift Alt S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Warp|Shift W",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Push/Pull|Shift P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	
@@ -1952,6 +1961,35 @@ static uiBlock *view3d_edit_object_parentmenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_edit_object_groupmenu(void *arg, int event)
+{
+	switch(event) {
+		case 1:
+		case 2:
+		case 3:
+			group_operation(event);
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_edit_object_groupmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_groupmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_object_groupmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add to Existing Group|Ctrl G, 1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add to New Group|Ctrl G, 2",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove from All Groups|Ctrl G, 3",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_view3d_edit_object_trackmenu(void *arg, int event)
 {
 	switch(event) {
@@ -2120,6 +2158,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, view3d_edit_object_parentmenu, NULL, ICON_RIGHTARROW_THIN, "Parent", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_edit_object_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_trackmenu, NULL, ICON_RIGHTARROW_THIN, "Track", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_constraintsmenu, NULL, ICON_RIGHTARROW_THIN, "Constraints", 0, yco-=20, 120, 19, "");
 	

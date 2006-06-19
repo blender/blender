@@ -483,7 +483,15 @@ static uiBlock *buts_view_alignmenu(void *arg_unused)
 
 static void do_buts_viewmenu(void *arg, int event)
 {	
+	SpaceButs *sbuts= curarea->spacedata.first;
+	
 	switch(event) {
+		case 1: /* zoom in */
+			view2d_zoom(&sbuts->v2d, 0.06f, curarea->winx, curarea->winy);
+			break;
+		case 2: /* zoom out */
+			view2d_zoom(&sbuts->v2d, -0.075f, curarea->winx, curarea->winy);
+			break;
 		case 3: /* View All */
 			do_buts_buttons(B_BUTSHOME);
 			break;
@@ -545,6 +553,11 @@ static uiBlock *buts_viewmenu(void *arg_unused)
 	
 	uiDefIconTextBlockBut(block, buts_view_alignmenu, NULL, ICON_RIGHTARROW_THIN, "Align", 0, yco-=20, 120, 19, "");
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");

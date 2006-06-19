@@ -864,9 +864,10 @@ static TBitem tb_mesh_select[]= {
 {	0, "Less|Ctrl NumPad -",            8, NULL},
 {	0, "SEPR",                          0, NULL},
 {	0, "Linked Vertices|Ctrl L",        4, NULL},
-{	0, "Path Select|W Alt 7",		16, NULL},
-{	0, "Edge Loop Select|Ctrl E 6",		17, NULL},
-{	0, "Edge Ring Select|Ctrl E 7",		18, NULL},
+{	0, "Vertex Path|W Alt 7",		16, NULL},
+{	0, "Edge Loop|Ctrl E 6",		17, NULL},
+{	0, "Edge Ring|Ctrl E 7",		18, NULL},
+{	0, "SEPR",                          0, NULL},
 {	0, "Loop to Region|Ctrl E 8",		19, NULL},
 {	0, "Region to Loop|Ctrl E 9",		20, NULL},
 {  -1, "", 			0, do_view3d_select_meshmenu}};
