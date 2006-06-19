@@ -1449,7 +1449,7 @@ static void nodeInitPreview(bNode *node, int xsize, int ysize)
 		return;
 	
 	/* sanity checks & initialize */
-	if(node->preview && node->preview->rect) {
+	if(node->preview->rect) {
 		if(node->preview->xsize!=xsize && node->preview->ysize!=ysize) {
 			MEM_freeN(node->preview->rect);
 			node->preview->rect= NULL;
@@ -1475,6 +1475,28 @@ void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
 			nodeInitPreview(node, xsize, ysize);
 		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
 			ntreeInitPreview((bNodeTree *)node->id, xsize, ysize);
+	}		
+}
+
+static void nodeClearPreview(bNode *node)
+{
+	if(node->preview && node->preview->rect)
+		memset(node->preview->rect, 0, MEM_allocN_len(node->preview->rect));
+}
+
+/* use it to enforce clear */
+void ntreeClearPreview(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL)
+		return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->typeinfo->flag & NODE_PREVIEW)
+			nodeClearPreview(node);
+		if(node->type==NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
+			ntreeClearPreview((bNodeTree *)node->id);
 	}		
 }
 

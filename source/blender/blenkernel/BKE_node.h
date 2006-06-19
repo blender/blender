@@ -111,6 +111,8 @@ void			ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int
 void			ntreeEndExecTree(struct bNodeTree *ntree);
 
 void			ntreeInitPreview(struct bNodeTree *, int xsize, int ysize);
+void			ntreeClearPreview(struct bNodeTree *ntree);
+
 void			ntreeFreeCache(struct bNodeTree *ntree);
 
 /* ************** GENERIC API, NODES *************** */

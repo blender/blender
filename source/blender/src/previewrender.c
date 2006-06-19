@@ -415,6 +415,8 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	
 	sprintf(name, "ButsPreview %d", area?area->win:0);
 	re= RE_GetRender(name);
+	
+	/* full refreshed render from first tile */
 	if(re==NULL || ri->curtile==0) {
 		
 		re= RE_NewRender(name);
@@ -435,6 +437,12 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 		
 		/* allocates render result */
 		RE_InitState(re, &sce->r, ri->pr_rectx, ri->pr_recty, NULL);
+		
+		/* enforce preview image clear */
+		if(GS(id->name)==ID_MA) {
+			Material *ma= (Material *)id;
+			ntreeClearPreview(ma->nodetree);
+		}
 	}
 	/* entire cycle for render engine */
 	RE_SetCamera(re, sce->camera);
