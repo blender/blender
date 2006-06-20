@@ -69,6 +69,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h" /* fly modes where_is_object */
 #include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
@@ -2004,16 +2005,25 @@ void fly(void)
 	unsigned short toets, qual_backup;
 	unsigned char apply_rotation=1, correct_vroll=0, use_camera;
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
-	if (G.vd->persp==1) /* Prespective */
-		use_camera=0;
-	else if (G.vd->persp==2) { /* Camera */
-		use_camera=1;
+		
+	
+	if (G.vd->persp==2) { /* Camera */
+		use_camera= 1;
 		lens_backup= G.vd->lens; /* so when we fly in normal view our lense matches the cameras */
-		if (G.vd->camera && G.vd->camera->type==OB_CAMERA) {
-			Camera *cam;
-			cam= G.vd->camera->data;
-			G.vd->lens= cam->lens;
+		if (G.vd->camera) {
+			if (G.vd->camera->type==OB_CAMERA) {
+				Camera *cam;
+				cam= G.vd->camera->data;
+				G.vd->lens= cam->lens;
+			}
+			
+			where_is_object(G.vd->camera);
+			VECCOPY(G.vd->ofs, G.vd->camera->obmat[3]);
+			VecMulf(G.vd->ofs, -1.0f); /*flip the vector*/
+			dist_backup= G.vd->dist;
+			G.vd->dist=0.0;
 		}
+		
 		camd_xy_backup[0]= G.vd->camdx; /* not ideal but ok for now, offset will jump on and off */
 		camd_xy_backup[1]= G.vd->camdy;
 		G.vd->camdx= G.vd->camdy= 0.0;
@@ -2023,9 +2033,20 @@ void fly(void)
 		G.vd->camera= NULL;
 		/*redraw with no camera*/
 		allqueue(REDRAWVIEW3D, 0);
-	} else { /* Ortho */
-		G.vd->persp= 1; /*if ortho projection, make perspective */
+		
+	} else {
+		/* perspective or ortho */
+		if (G.vd->persp==0)
+			G.vd->persp= 1; /*if ortho projection, make perspective */
 		use_camera= 0;
+		dist_backup= G.vd->dist;
+		G.vd->dist= 0.0;
+		
+		upvec[2]=dist_backup; /*x and y are 0*/
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecSubf(G.vd->ofs, G.vd->ofs, upvec);
+		/*Done with correcting for the dist*/	
 	}
 	
 	/* the dist defines a vector that is infront of the offset
@@ -2034,15 +2055,6 @@ void fly(void)
 	want to rotate about the viewers centre.
 	but to correct the dist removal we must
 	alter offset so the view dosent jump. */
-	dist_backup= G.vd->dist;
-	G.vd->dist= 0.0;
-	upvec[2]=dist_backup; /*x and y are 0*/
-	Mat3CpyMat4(mat, G.vd->viewinv);
-	Mat3MulVecfl(mat, upvec);
-	G.vd->ofs[0]-= upvec[0];
-	G.vd->ofs[1]-= upvec[1];
-	G.vd->ofs[2]-= upvec[2];
-	/*Done with correcting for the dist/*/
 	
 	xmargin= (short)((float)(curarea->winx)/20.0);
 	ymargin= (short)((float)(curarea->winy)/20.0);
@@ -2164,9 +2176,9 @@ void fly(void)
 				
 				/*make sure we have some z rolling*/
 				if (fabs(upvec[2]) > 0.00001) {
-					tmpvec[0]= upvec[0];
-					upvec[1]= tmpvec[1]= 0;
-					tmpvec[2]= 0;
+					tmpvec[0]=	upvec[0];
+					upvec[1]=	tmpvec[1]=	0;
+					tmpvec[2]=	0;
 					
 					/* angle between zroll vector and vec with zroll removed*/
 					angle= VecAngle2(tmpvec, upvec);
@@ -2188,9 +2200,7 @@ void fly(void)
 			if (apply_rotation)
 				VecMulf(dvec, speed*0.01);
 			
-			G.vd->ofs[0]+= dvec[0];
-			G.vd->ofs[1]+= dvec[1];
-			G.vd->ofs[2]+= dvec[2];
+			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
 			
 			headerprint("FlyModeKeys  Speed(+/- | MouseWheel),  MouseLook: Shift,  RollCorrect: Ctrl,  Exit:LMB");
 			/*scrarea_queue_headredraw(curarea); NOT NEDED */
