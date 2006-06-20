@@ -522,13 +522,14 @@ GHOST_TSuccess GHOST_SystemCarbon::getButtons(GHOST_Buttons& buttons) const
     return GHOST_kSuccess;
 }
 
+#define FIRSTFILEBUFLG 512
 static bool g_hasFirstFile = false;
 static char g_firstFileBuf[512];
 
-extern "C" int GHOST_HACK_getFirstFile(char buf[512]) { 
+extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG]) { 
 	if (g_hasFirstFile) {
-		strncpy(buf, g_firstFileBuf, sizeof(buf) - 1);
-		buf[sizeof(buf) - 1] = '\0';
+		strncpy(buf, g_firstFileBuf, FIRSTFILEBUFLG - 1);
+		buf[FIRSTFILEBUFLG - 1] = '\0';
 		return 1;
 	} else {
 		return 0; 
