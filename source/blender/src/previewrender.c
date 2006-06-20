@@ -304,7 +304,11 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 					if(mat->nodetree)
 						ntreeInitPreview(mat->nodetree, ri->pr_rectx, ri->pr_recty);
 				}
-			}			
+			}
+			else {
+				sce->r.mode &= ~(R_OSA|R_RAYTRACE);
+			}
+			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='p') {
 					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL))
@@ -385,6 +389,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	Render *re;
 	RenderStats *rstats;
 	Scene *sce;
+	SpaceButs *sbuts= NULL;
 	int oldx= ri->pr_rectx, oldy= ri->pr_recty;
 	char name [32];
 	
@@ -403,6 +408,8 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	
 	/* set drawing conditions OK */
 	if(area) {
+		sbuts= area->spacedata.first;	/* needed for flag */
+		
 		set_previewrect(ri, area->win); // uses UImat
 		
 		/* because preview render size can differs */
@@ -426,6 +433,8 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 			RE_display_draw_cb(re, previewrender_progress);
 			RE_test_break_cb(re, qtest);
 			sce->r.scemode |= R_NODE_PREVIEW;
+			if(sbuts->flag & SB_PRV_OSA)
+				sce->r.mode |= R_OSA;
 		}
 		else if(pr_method==PR_DO_RENDER) {
 			RE_test_break_cb(re, qtest);
@@ -479,7 +488,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 		ri->tottile= rstats->totpart;
 	}
 
-	/* unassign the pointer */
+	/* unassign the pointers, reset vars */
 	preview_prepare_scene(ri, GS(id->name), NULL, 0);
 	
 }

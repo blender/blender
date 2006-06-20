@@ -3282,14 +3282,15 @@ static void material_panel_preview(Material *ma)
 		uiDefBut(block, LABEL, 0, " ",	20,20,10,10, 0, 0, 0, 0, 0, "");
 		uiBlockSetCol(block, TH_BUT_NEUTRAL);
 		uiBlockBeginAlign(block);
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,		210,180,25,22, &(ma->pr_type), 10, MA_FLAT, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210,158,25,22, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,		210,136,25,22, &(ma->pr_type), 10, MA_CUBE, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,			210,114,25,22, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,		210, 92,25,22, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "");
-		uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,		210, 70,25,22, &(ma->pr_type), 10, MA_HAIR, 0, 0, "");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATPLANE,	210,180,25,22, &(ma->pr_type), 10, MA_FLAT, 0, 0, "Preview type: Flat XY plane");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,	210,158,25,22, &(ma->pr_type), 10, MA_SPHERE, 0, 0, "Preview type: Sphere");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,	210,136,25,22, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,	210,114,25,22, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,		210, 92,25,22, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
+		uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE,	210, 70,25,22, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
 		uiBlockEndAlign(block);
 
+		uiDefIconButBitC(block, TOG, SB_PRV_OSA, B_MATPRV, ICON_RING, 210, 10,25,22, &(G.buts->flag), 0, 0, 0, 0, "Preview uses OSA (oversampling)");
 	}
 }
 

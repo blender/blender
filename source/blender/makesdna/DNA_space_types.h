@@ -129,7 +129,7 @@ typedef struct SpaceButs {
 	short re_align;
 	
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
-	char use_nodes, pad;
+	char use_nodes, flag;
 	
 	char texact, tab[7];	/* storing tabs for each context */
 		
@@ -415,7 +415,10 @@ typedef struct SpaceImaSel {
 
 /* view3d  Now in DNA_view3d_types.h */
 
-/* buts defines in BIF_butspace.h */
+/* button defines in BIF_butspace.h */
+
+/* sbuts->flag */
+#define SB_PRV_OSA			1
 
 /* these values need to be hardcoded in blender.h SpaceFile: struct dna does not recognize defines */
 #define FILE_MAXDIR			160
