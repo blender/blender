@@ -620,7 +620,7 @@ static void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renre
 	
 	glDrawBuffer(GL_FRONT);
 	glaDefine2DArea(&curarea->winrct);
-	glaDrawPixelsSafe(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, GL_RGBA, GL_FLOAT, rl->rectf);
+	glaDrawPixelsSafe_to32(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, rl->rectf);
 	glFlush();
 	glDrawBuffer(GL_BACK);
 
