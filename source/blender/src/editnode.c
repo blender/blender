@@ -678,13 +678,15 @@ void snode_home(ScrArea *sa, SpaceNode *snode)
 	snode->v2d.cur.xmax= sa->winx;
 	snode->v2d.cur.xmax= sa->winy;
 	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(first) {
-			first= 0;
-			snode->v2d.cur= node->totr;
-		}
-		else {
-			BLI_union_rctf(&snode->v2d.cur, &node->totr);
+	if(snode->edittree) {
+		for(node= snode->edittree->nodes.first; node; node= node->next) {
+			if(first) {
+				first= 0;
+				snode->v2d.cur= node->totr;
+			}
+			else {
+				BLI_union_rctf(&snode->v2d.cur, &node->totr);
+			}
 		}
 	}
 	snode->v2d.tot= snode->v2d.cur;
