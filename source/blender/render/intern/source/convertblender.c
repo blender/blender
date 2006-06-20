@@ -2515,7 +2515,6 @@ static int dl_surf_to_renderdata(Render *re, Object *ob, DispList *dl, Material 
 
 static void init_render_surf(Render *re, Object *ob)
 {
-	extern Material defmaterial;	// initrender.c
 	Nurb *nu=0;
 	Curve *cu;
 	ListBase displist;
@@ -2533,7 +2532,7 @@ static void init_render_surf(Render *re, Object *ob)
 
 	/* material array */
 	memset(matar, 0, 4*32);
-	matar[0]= &defmaterial;
+	matar[0]= give_render_material(re, ob, 0);
 	for(a=0; a<ob->totcol; a++) {
 		matar[a]= give_render_material(re, ob, a+1);
 		if(matar[a] && matar[a]->texco & TEXCO_ORCO) {
@@ -2563,7 +2562,6 @@ static void init_render_surf(Render *re, Object *ob)
 
 static void init_render_curve(Render *re, Object *ob, int only_verts)
 {
-	extern Material defmaterial;	// initrender.c
 	Curve *cu;
 	VertRen *ver;
 	VlakRen *vlr;
@@ -2594,7 +2592,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 
 	/* material array */
 	memset(matar, 0, 4*32);
-	matar[0]= &defmaterial;
+	matar[0]= give_render_material(re, ob, 0);
 	for(a=0; a<ob->totcol; a++) {
 		matar[a]= give_render_material(re, ob, a+1);
 		if(matar[a]->texco & TEXCO_ORCO) {
@@ -2617,12 +2615,11 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 			n[2]= ob->imat[2][2];
 			Normalise(n);
 
-			/* copy first, rotate later for comparision trick */
 			for(a=0; a<dl->nr; a++, data+=3) {
 				ver= RE_findOrAddVert(re, re->totvert++);
 				VECCOPY(ver->co, data);
-				MTC_Mat4MulVecfl(mat, ver->co);
 
+				/* flip normal if face is backfacing, also used in face loop below */
 				if(ver->co[2] < 0.0) {
 					VECCOPY(ver->n, n);
 					ver->flag = 1;
@@ -2632,6 +2629,8 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 					ver->flag = 0;
 				}
 
+				MTC_Mat4MulVecfl(mat, ver->co);
+				
 				if (orco) {
 					ver->orco = orco;
 					orco += 3;
@@ -2755,7 +2754,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 					for(a=startvert; a<re->totvert; a++) {
 						ver= RE_findOrAddVert(re, a);
 						len= Normalise(ver->n);
-						if(len==0.0) ver->flag= 1;	/* flag use, its only used in zbuf now  */
+						if(len==0.0) ver->flag= 1;	/* flag abuse, its only used in zbuf now  */
 						else ver->flag= 0;
 					}
 					for(a= startvlak; a<re->totvlak; a++) {
@@ -3746,7 +3745,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 						ok= 1;
 				}
 				if(ok==0) {
-					// printf("speed table: missing object %s\n", obren->ob->id.name+2);
+					 printf("speed table: missing object %s\n", obren->ob->id.name+2);
 					continue;
 				}
 

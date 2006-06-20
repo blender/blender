@@ -393,11 +393,11 @@ Material *give_current_material(Object *ob, int act)
 {
 	Material ***matarar, *ma;
 	
-	if(ob==0) return 0;
-	if(ob->totcol==0) return 0;
+	if(ob==NULL) return 0;
+	if(ob->totcol==NULL) return 0;
 	
 	if(act>ob->totcol) act= ob->totcol;
-	else if(act==0) act= 1;
+	else if(act<=0) act= 1;
 
 	if( BTST(ob->colbits, act-1) ) {	/* in object */
 		ma= ob->mat[act-1];
