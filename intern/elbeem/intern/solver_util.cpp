@@ -64,7 +64,7 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 				CellFlagType nbored;
 				FORDF1 { 
 					const CellFlagType nbflag = RFLAG_NB(lev, i,j,k, workSet,l);
-					if((nbflag&CFBnd)&&(nbflag&CFBnd)&&(nbflag&CFBndNoslip)){ noslipbnd=1; }
+					if((l==6)&&(nbflag&CFBnd)){ noslipbnd=1; }
 					if(nbflag&CFInter){ intercnt++; }
 					nbored |= nbflag;
 				}
@@ -89,7 +89,7 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 				int noslipbnd = 0;
 				FORDF1 { 
 					const CellFlagType nbflag = RFLAG_NB(lev, i,j,k, workSet,l);
-					if((nbflag&CFBnd)&&(nbflag&CFBnd)&&(CFBndNoslip)){ noslipbnd=1; l=100; } 
+					if((l==6)&&(nbflag&CFBnd)){ noslipbnd=1; l=100; } 
 				}
 				// no empty nb interface cells are treated as full
 				if(cflag&(CFNoNbEmpty|CFFluid)) {

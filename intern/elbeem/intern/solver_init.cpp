@@ -1307,17 +1307,6 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 						RAC(dstCell,0) = 0.0;
 						if(ntype&CFBndMoving) {
 							OBJVEL_CALC;
-							//LbmVec objvel = vec2L((mMOIVertices[n]-mMOIVerticesOld[n]) /dvec); // * timeFac;
-							//const LbmFloat usqr = (objvel[0]*objvel[0]+objvel[1]*objvel[1]+objvel[2]*objvel[2])*1.5;
-							//USQRMAXCHECK(usqr, objvel[0],objvel[1],objvel[2], mMaxVlen, mMxvx,mMxvy,mMxvz);
-							//if(usqr>maxusqr) {
-								// cutoff at maxVelVal
-								//for(int jj=0; jj<3; jj++) {
-									//if(objvel[jj]>0.) objvel[jj] =  maxVelVal; 
-									//if(objvel[jj]<0.) objvel[jj] = -maxVelVal;
-								//}
-							//}
-							//objvel[0]=objvel[1]=objvel[2]=0.0; // DEBUG
 							
 							// compute fluid acceleration
 							FORDF1 {
@@ -1325,10 +1314,7 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 									const LbmFloat ux = this->dfDvecX[l]*objvel[0];
 									const LbmFloat uy = this->dfDvecY[l]*objvel[1];
 									const LbmFloat uz = this->dfDvecZ[l]*objvel[2];
-									LbmFloat factor = 1.2*this->dfLength[l]* 3.0 *(ux+uy+uz); // rhoTest, dont multiply by density...
-									//if(factor>0.) factor *= massCScalePos;
-									//else          factor *= massCScaleNeg;
-									//if(ntype&CFBndFreeslip) { factor=0.; } // FIXME!
+									LbmFloat factor = 2.0*this->dfLength[l]* 3.0 *(ux+uy+uz); // rhoTest, dont multiply by density...
 									RAC(dstCell,l) = factor;
 									massCheck += RAC(dstCell,l); 
 								} else {
@@ -1354,37 +1340,10 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 							//? unused ntlVec3Gfx objvel= (mMOIVertices[n]-mMOIVerticesOld[n]);
 							// from mainloop
 							nbored = 0;
-//#if OPT3D==0
 							FORDF1 {
 								rflagnb[l] = RFLAG_NB(level, i,j,k,workSet,l);
 								nbored |= rflagnb[l];
 							} 
-/*#else
-							const CellFlagType *pFlagCheck = &RFLAG(level, i,j,k,workSet); // omp
-							rflagnb[dSB] = *(pFlagCheck + (-mLevel[level].lOffsy+-mLevel[level].lOffsx)); nbored |= rflagnb[dSB];
-							rflagnb[dWB] = *(pFlagCheck + (-mLevel[level].lOffsy+-1)); nbored |= rflagnb[dWB];
-							rflagnb[ dB] = *(pFlagCheck + (-mLevel[level].lOffsy)); nbored |= rflagnb[dB];
-							rflagnb[dEB] = *(pFlagCheck + (-mLevel[level].lOffsy+ 1)); nbored |= rflagnb[dEB];
-							rflagnb[dNB] = *(pFlagCheck + (-mLevel[level].lOffsy+ mLevel[level].lOffsx)); nbored |= rflagnb[dNB];
-
-							rflagnb[dSW] = *(pFlagCheck + (-mLevel[level].lOffsx+-1)); nbored |= rflagnb[dSW];
-							rflagnb[ dS] = *(pFlagCheck + (-mLevel[level].lOffsx)); nbored |= rflagnb[dS];
-							rflagnb[dSE] = *(pFlagCheck + (-mLevel[level].lOffsx+ 1)); nbored |= rflagnb[dSE];
-
-							rflagnb[ dW] = *(pFlagCheck + (-1)); nbored |= rflagnb[dW];
-							rflagnb[ dE] = *(pFlagCheck + ( 1)); nbored |= rflagnb[dE];
-
-							rflagnb[dNW] = *(pFlagCheck + ( mLevel[level].lOffsx+-1)); nbored |= rflagnb[dNW];
-							rflagnb[ dN] = *(pFlagCheck + ( mLevel[level].lOffsx)); nbored |= rflagnb[dN];
-							rflagnb[dNE] = *(pFlagCheck + ( mLevel[level].lOffsx+ 1)); nbored |= rflagnb[dNE];
-
-							rflagnb[dST] = *(pFlagCheck + ( mLevel[level].lOffsy+-mLevel[level].lOffsx)); nbored |= rflagnb[dST];
-							rflagnb[dWT] = *(pFlagCheck + ( mLevel[level].lOffsy+-1)); nbored |= rflagnb[dWT];
-							rflagnb[ dT] = *(pFlagCheck + ( mLevel[level].lOffsy)); nbored |= rflagnb[dT];
-							rflagnb[dET] = *(pFlagCheck + ( mLevel[level].lOffsy+ 1)); nbored |= rflagnb[dET];
-							rflagnb[dNT] = *(pFlagCheck + ( mLevel[level].lOffsy+ mLevel[level].lOffsx)); nbored |= rflagnb[dNT];
-#endif
-							// */
 							CellFlagType settype = CFInvalid;
 							//LbmFloat avgrho=0.0, avgux=0.0, avguy=0.0, avguz=0.0; 
 							if(nbored&CFFluid) {
