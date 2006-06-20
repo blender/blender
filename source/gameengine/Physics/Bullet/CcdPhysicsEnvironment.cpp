@@ -1277,7 +1277,15 @@ void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 		TypedConstraint* constraint = (*i);
 		if (constraint->GetUserConstraintId() == constraintId)
 		{
+			//activate objects
+			if (constraint->GetRigidBodyA().mergesSimulationIslands())
+				constraint->GetRigidBodyA().activate();
+			if (constraint->GetRigidBodyB().mergesSimulationIslands())
+				constraint->GetRigidBodyB().activate();
+
 			std::swap(*i, m_constraints.back());
+
+			
 			m_constraints.pop_back();
 			break;
 		}

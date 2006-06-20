@@ -50,6 +50,15 @@ public:
 		return m_rbB;
 	}
 
+	RigidBody& GetRigidBodyA()
+	{
+		return m_rbA;
+	}
+	RigidBody& GetRigidBodyB()
+	{
+		return m_rbB;
+	}
+
 	int GetUserConstraintType() const
 	{
 		return m_userConstraintType ;
