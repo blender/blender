@@ -299,7 +299,7 @@ static void progressiverad_rr(Render *re)
 		
 		clear_backface_test_rr(re);
 		
-		if(blender_test_break()) break;
+		if(re->test_break()) break;
 		if(RG.maxiter && RG.maxiter<=it) break;
 		
 		shoot= findshoot_rr(re);
