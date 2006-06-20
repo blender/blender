@@ -375,17 +375,18 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 
 	G.f= bfd->globalf;
 
-	/* last stage of do_versions actually, update objects (like recalc poses) */
-	for(ob= G.main->object.first; ob; ob= ob->id.next) {
-		if(ob->recalc) object_handle_update(ob);
-	}
-	
 	if (!G.background) {
 		setscreen(G.curscreen);
 	}
 		/* baseflags */
 	set_scene_bg(G.scene);
 
+	/* last stage of do_versions actually, update objects (like recalc poses) */
+	for(ob= G.main->object.first; ob; ob= ob->id.next) {
+		if(ob->type==OB_ARMATURE)
+			if(ob->recalc) object_handle_update(ob);
+	}
+	
 	if (G.f & G_DOSCRIPTLINKS) {
 		/* there's an onload scriptlink to execute in screenmain */
 		mainqenter(ONLOAD_SCRIPT, 1);
