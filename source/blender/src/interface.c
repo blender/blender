@@ -3077,8 +3077,7 @@ static void do_palette_sample_cb(void *bt1, void *col1)	/* frontbuf */
 {
 	uiBut *but1= (uiBut *)bt1;
 	uiBut *but;
-	float *col= (float *)col1;
-	float tempcol;
+	float tempcol[4];
 	int x=0, y=0;
 	short mval[2];
 	float hsv[3];
@@ -3121,15 +3120,13 @@ static void do_palette_sample_cb(void *bt1, void *col1)	/* frontbuf */
 	
 	/* if we've got a glick, use OpenGL to sample the colour under the mouse pointer */
 	glReadBuffer(GL_FRONT);
-	glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, &tempcol);
+	glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, tempcol);
 	glReadBuffer(GL_BACK);
 	
-	col = (float *)&tempcol;
-	
 	/* and send that colour back to the picker */
-	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+	rgb_to_hsv(tempcol[0], tempcol[1], tempcol[2], hsv, hsv+1, hsv+2);
 	update_picker_buts_hsv(but1->block, hsv, but1->poin);
-	update_picker_hex(but1->block, col);
+	update_picker_hex(but1->block, tempcol);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_check_but(but);
