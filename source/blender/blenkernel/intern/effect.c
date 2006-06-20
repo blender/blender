@@ -1551,7 +1551,9 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 		obcopy->id.newid= NULL;
 	
 	/* all objects get tagged recalc that influence this object (does group too) */
-	DAG_object_update_flags(G.scene, ob, G.scene->lay);
+	/* another hack; while transform you cannot call this, it sets own recalc flags */
+	if(G.moving==0)
+		DAG_object_update_flags(G.scene, ob, G.scene->lay);
 	
 	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
 		
