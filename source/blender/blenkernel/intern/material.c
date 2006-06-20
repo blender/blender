@@ -610,10 +610,11 @@ static void do_init_render_material(Material *ma, int osa, float *amb)
 		if(osa) ma->texco |= TEXCO_OSA;
 	}
 
-	ma->ambr= ma->amb*amb[0];
-	ma->ambg= ma->amb*amb[1];
-	ma->ambb= ma->amb*amb[2];
-	
+	if(amb) {
+		ma->ambr= ma->amb*amb[0];
+		ma->ambg= ma->amb*amb[1];
+		ma->ambb= ma->amb*amb[2];
+	}	
 	/* will become or-ed result of all node modes */
 	ma->mode_l= ma->mode;
 }

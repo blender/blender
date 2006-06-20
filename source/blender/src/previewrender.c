@@ -272,8 +272,11 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 			Material *mat= (Material *)id;
 			
 			if(id) {
+				init_render_material(mat, 0, NULL);		/* call that retrieves mode_l */
+				end_render_material(mat);
+				
 				/* turn on raytracing if needed */
-				if((mat->mode & MA_RAYTRANSP) || (mat->mode & MA_RAYMIRROR))
+				if(mat->mode_l & (MA_RAYTRANSP|MA_RAYMIRROR))
 					sce->r.mode |= R_RAYTRACE;
 				
 				/* turn off fake shadows if needed */
