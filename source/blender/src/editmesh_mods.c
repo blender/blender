@@ -745,7 +745,7 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 }
 
 /* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes */
-#define SCALE_CMP(a,b) (fabs(a-b) <= thresh || (a>0 && fabs(b/a)<=thresh))
+#define SCALE_CMP(a,b) (fabs(a-b) <= thresh*a || (a>0 && fabs(b/a)<=thresh))
 
 /* ****************  GROUP SELECTS ************** */
 /* selects new faces/edges/verts based on the

@@ -1278,6 +1278,23 @@ def glRasterPos (x,y,z,w):
   @param x,y,z,w: Specify the x,y,z, and w object coordinates (if present) for the 
   raster position.  If function prototype ends in 'v' specifies a pointer to an array of two, 
   three, or four elements, specifying x, y, z, and w coordinates, respectively.
+  @note:
+    If you are drawing to the 3d view with a Scriptlink of a space handeler
+    the zoom level of the panels will scale the glRasterPos by the view matrix.
+    so a X of 10 will not always offset 10 pixels as youd expect.
+
+    To work around this get the scale value of the view matrix and use it to scale your pixel values.
+
+    Workaround::
+
+      import Blender
+      from Blender.BGL import *
+      xval, yval= 100, 40
+      # Get the scale of the view matrix
+      viewMatrix = Buffer(GL_FLOAT, 16)
+      glGetFloatv(GL_MODELVIEW_MATRIX, viewMatrix)
+      f = 1/viewMatrix[0]
+      glRasterPos2f(xval*f, yval*f) # Instead of the useual glRasterPos2i(xval, yval)
   """
 
 def glReadBuffer(mode):

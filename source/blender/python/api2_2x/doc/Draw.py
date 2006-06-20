@@ -603,6 +603,7 @@ def ColorPicker(event, x, y, width, height, initial, tooltip = None):
   @rtype: Blender Button
   @return: The Button created.
   @note: The color picker will not work if the Register's event function is None.
+  @note: Using the same button variable with more then 1 color picker at a time will corrupt memory.
   """
 
 def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
@@ -689,12 +690,19 @@ def GetStringWidth(string, fontsize = 'normal'):
 def Text(string, fontsize = 'normal'):
   """
   Draw a string on the screen.
+
+  Text location is set using the OpenGL raster location functions L{BGL.glRasterPos} before the text is drawn.
+  This sets the text location from the lower left corner of the current window.
+
+  Text color is set using the OpenGL color functions L{BGL.glColor} before the text is drawn.
+  
   @type string: string
   @param string: The text string to draw.
   @type fontsize: string
   @param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
   @rtype: int
   @return: The width of I{string} drawn with the chosen I{fontsize}.
+  @note: For drawing text in the 3d view see the workaround in L{BGL.glRasterPos}
   """
 
 def Image(image, x, y, zoomx=1.0, zoomy=1.0, clipx=0, clipy=0, clipw=-1, cliph=-1):
