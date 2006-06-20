@@ -269,6 +269,7 @@ def Create(value):
   @param value: The value to store in the button.
   @rtype: Blender Button
   @return: The Button created.
+  @note: String values must have less then 400 characters.
   """
 
 def PushButton(name, event, x, y, width, height, tooltip = None):

@@ -425,7 +425,10 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 			unsigned int newlen;
 
 			PyString_AsStringAndSize( v, &newstr, &newlen );
-
+			
+			if (newlen+1> UI_MAX_DRAW_STR)
+				return EXPP_ReturnIntError( PyExc_ValueError, "Error, the string assigned to this button has a length greator then 399");
+			
 			/* if the length of the new string is the same as */
 			/* the old one, just copy, else delete and realloc. */
 			if( but->slen == newlen ) {
@@ -776,9 +779,15 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 		but->type = BINT_TYPE;
 	}
 	else if ( PyArg_ParseTuple( args, "s#", &newstr, &but->slen ) ) {
-		but->type = BSTRING_TYPE;
-		but->val.asstr = MEM_mallocN( but->slen + 1, "button string" );
-		BLI_strncpy( but->val.asstr, newstr, but->slen+1 );
+		if (but->slen + 1 > UI_MAX_DRAW_STR) {
+			PyObject_DEL( (PyObject *) but );
+			but = NULL;
+			PyErr_SetString( PyExc_TypeError, "string is longer then 399 chars");
+		} else {
+			but->type = BSTRING_TYPE;
+			but->val.asstr = MEM_mallocN( but->slen + 1, "button string" );
+			BLI_strncpy( but->val.asstr, newstr, but->slen+1 );
+		}
 	}
 	else {
 		PyObject_DEL( (PyObject *) but );
@@ -1197,10 +1206,9 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"button event argument must be in the range [0, 16382]");
 
-	if (len > (UI_MAX_DRAW_STR - 1)) {
-		len = UI_MAX_DRAW_STR - 1;
-		newstr[len] = '\0';
-	}
+	if (len > (UI_MAX_DRAW_STR - 1))
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+			"The maximum length of a string is 399, your value is too high.");
 
 	real_len = strlen(newstr);
 	if (real_len > len) real_len = len;
@@ -1468,6 +1476,11 @@ static PyObject *Method_PupBlock( PyObject * self, PyObject * args )
 			max = (float)PyFloat_AS_DOUBLE(f2);
 			Py_DECREF( f1 );
 			Py_DECREF( f2 );
+			
+			if (max+1>UI_MAX_DRAW_STR) {
+				Py_DECREF( pyItem );
+				return EXPP_ReturnPyObjError( PyExc_ValueError, "The maximum length of a string button is 399" );
+			}
 
 			switch ( but->type ) {
 			case BINT_TYPE:
