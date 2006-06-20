@@ -818,6 +818,7 @@ void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->viewplane= *viewplane;
 	re->clipsta= clipsta;
 	re->clipend= clipend;
+	re->r.mode &= ~R_ORTHO;
 
 	i_window(re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend, re->winmat);
 }
