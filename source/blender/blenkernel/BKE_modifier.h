@@ -38,6 +38,7 @@ struct DagForest;
 struct DagNode;
 struct Object;
 struct ListBase;
+struct bArmature;
 
 typedef enum {
 		/* Should not be used, only for None modifier type */

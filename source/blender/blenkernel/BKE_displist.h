@@ -146,6 +146,7 @@ extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int f
 extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
 extern void makeDispListMBall(struct Object *ob);
 extern void shadeDispList(struct Base *base);
+extern void shadeMeshMCol(struct Object *ob, struct Mesh *me);
 
 void imagestodisplist(void);
 void reshadeall_displist(void);

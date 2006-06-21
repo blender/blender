@@ -217,7 +217,6 @@ void make_vertexcol()	/* single ob */
 {
 	Object *ob;
 	Mesh *me;
-	int i;
 
 	/*
 	 * Always copies from shadedisplist to mcol.
@@ -235,13 +234,8 @@ void make_vertexcol()	/* single ob */
 	if(me==0) return;
 
 	if(me->mcol) MEM_freeN(me->mcol);
-	me->mcol = MEM_callocN(sizeof(int)*me->totface*4, "me->mcol");
-	// mesh_create_shadedColors(ob, 1, (unsigned int**) &me->mcol, NULL);
-
-	for (i=0; i<me->totface*4; i++) {
-		me->mcol[i].a = 255;
-	}
-		
+	shadeMeshMCol(ob, me);
+	
 	if(me->tface) mcol_to_tface(me, 1);
 	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
@@ -249,7 +243,6 @@ void make_vertexcol()	/* single ob */
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
-
 
 
 void copy_vpaint_undo(unsigned int *mcol, int tot)
@@ -374,7 +367,7 @@ void clear_wpaint_selectedfaces()
 	Object *ob;
 	int index, vgroup;
 	MDeformWeight *dw, *uw;
-	unsigned int faceverts[5]={NULL,NULL,NULL,NULL,NULL};
+	unsigned int faceverts[5]={0,0,0,0,0};
 	unsigned char i;
 	int vgroup_mirror= -1;
 	

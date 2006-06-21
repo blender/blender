@@ -627,6 +627,12 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	end_fastshade_for_ob(ob);
 }
 
+void shadeMeshMCol(Object *ob, Mesh *me)
+{
+	Render *re= fastshade_get_render();
+	mesh_create_shadedColors(re, ob, 1, (unsigned int**)&me->mcol, NULL);
+}
+
 /* has base pointer, to check for layer */
 /* called from drawobject.c */
 void shadeDispList(Base *base)
