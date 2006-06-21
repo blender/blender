@@ -62,13 +62,15 @@
 
 #include "BMF_Api.h"
 
-#include "DNA_view3d_types.h"
+#include "DNA_image_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_vec_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_writeavi.h"	/* movie handle */
@@ -1305,6 +1307,14 @@ void BIF_redraw_render_rect(void)
 	/* redraw */
 	if (render_win) {
 		renderwin_queue_redraw(render_win);
+	}
+	else {
+		Image *ima = (Image *)find_id("IM", "Render Result");
+		if(ima && ima->ibuf) {
+			IMB_freeImBuf(ima->ibuf);
+			ima->ibuf= NULL;
+			allqueue(REDRAWIMAGE, 0);
+		}
 	}
 }	
 
