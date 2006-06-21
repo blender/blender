@@ -178,7 +178,7 @@ static PyObject *Noise_noise( PyObject * self, PyObject * args )
 {
 	float x, y, z;
 	int nb = 1;
-	if( !PyArg_ParseTuple( args, "(fff)|ii", &x, &y, &z, &nb ) )
+	if( !PyArg_ParseTuple( args, "(fff)|i", &x, &y, &z, &nb ) )
 		return NULL;
 	return Py_BuildValue( "f",
 			      2.0 * BLI_gNoise( 1.0, x, y, z, 0, nb ) - 1.0 );
