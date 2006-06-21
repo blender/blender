@@ -202,7 +202,7 @@ static PyObject *Noise_vNoise( PyObject * self, PyObject * args )
 {
 	float x, y, z, v[3];
 	int nb = 1;
-	if( !PyArg_ParseTuple( args, "(fff)", &x, &y, &z, &nb ) )
+	if( !PyArg_ParseTuple( args, "(fff)|i", &x, &y, &z, &nb ) )
 		return NULL;
 	vNoise( x, y, z, nb, v );
 	return Py_BuildValue( "[fff]", v[0], v[1], v[2] );
