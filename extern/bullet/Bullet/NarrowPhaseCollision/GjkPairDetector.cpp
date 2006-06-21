@@ -147,7 +147,7 @@ int curIter = 0;
 				{
 					gIrregularCatch = false;
 
-					printf("GjkPairDetector maxIter exceeded:%i\n",curIter);
+					printf("Problem with collision geometry\n");
 						printf("sepAxis=(%f,%f,%f), squaredDistance = %f, shapeTypeA=%i,shapeTypeB=%i\n",
 						m_cachedSeparatingAxis.getX(),
 						m_cachedSeparatingAxis.getY(),
