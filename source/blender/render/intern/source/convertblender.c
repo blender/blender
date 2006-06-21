@@ -2568,7 +2568,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 	DispList *dl;
 	ListBase olddl={NULL, NULL};
 	Material *matar[32];
-	float len, *data, *fp, *orco=NULL;
+	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
 	float n[3], mat[4][4];
 	int nr, startvert, startvlak, a, b;
 	int frontside, need_orco=0;
@@ -2600,7 +2600,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 		}
 	}
 
-	if(need_orco) orco= get_object_orco(re, ob);
+	if(need_orco) orcobase=orco= get_object_orco(re, ob);
 
 	dl= cu->disp.first;
 	while(dl) {
@@ -2668,6 +2668,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 		}
 		else if (dl->type==DL_SURF) {
 			
+			/* cyclic U means an extruded full circular curve, we skip bevel splitting then */
 			if (dl->flag & DL_CYCL_U) {
 				orco+= 3*dl_surf_to_renderdata(re, ob, dl, matar, orco, mat);
 			}

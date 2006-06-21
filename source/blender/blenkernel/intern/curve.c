@@ -1003,21 +1003,26 @@ float *make_orco_curve(Object *ob)
 		remakeDisp = 1;
 	}
 
-		/* Assumes displist has been built */
+	/* Assumes displist has been built */
 
 	numVerts = 0;
 	for (dl=cu->disp.first; dl; dl=dl->next) {
 		if (dl->type==DL_INDEX3) {
 			numVerts += dl->nr;
 		} else if (dl->type==DL_SURF) {
-			numVerts += dl->parts*dl->nr;
-			if (dl->flag & DL_CYCL_U)
-				numVerts+= dl->parts;
+			/* convertblender.c uses the Surface code for creating renderfaces when cyclic U only (closed circle beveling) */
+			if (dl->flag & DL_CYCL_U) {
+				if (dl->flag & DL_CYCL_V)
+					numVerts += (dl->parts+1)*(dl->nr+1);
+				else
+					numVerts += dl->parts*(dl->nr+1);
+			}
+			else
+				numVerts += dl->parts*dl->nr;
 		}
 	}
 
 	fp= orco= MEM_mallocN(3*sizeof(float)*numVerts, "cu_orco");
-
 	for (dl=cu->disp.first; dl; dl=dl->next) {
 		if (dl->type==DL_INDEX3) {
 			for (u=0; u<dl->nr; u++, fp+=3) {
@@ -1034,12 +1039,16 @@ float *make_orco_curve(Object *ob)
 				}
 			}
 		} else if (dl->type==DL_SURF) {
-			int sizeu= dl->nr;
+			int sizeu= dl->nr, sizev= dl->parts;
 			
-			if (dl->flag & DL_CYCL_U)
+			/* exception as handled in convertblender.c too */
+			if (dl->flag & DL_CYCL_U) {
 				sizeu++;
-				
-			for (u=0; u<dl->parts; u++) {
+				if (dl->flag & DL_CYCL_V)
+					sizev++;
+			}
+			
+			for (u=0; u<sizev; u++) {
 				for (v=0; v<sizeu; v++,fp+=3) {
 					if (cu->flag & CU_UV_ORCO) {
 						fp[0]= 2.0f*u/(dl->parts-1) - 1.0f;
