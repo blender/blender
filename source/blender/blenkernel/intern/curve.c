@@ -1858,7 +1858,7 @@ void makeBevelList(Object *ob)
 /* mode: is not zero when IpoCurve, is 2 when forced horizontal for autohandles */
 void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 {
-	float *p1,*p2,*p3,pt[3];
+	float *p1,*p2,*p3, pt[3];
 	float dx1,dy1,dz1,dx,dy,dz,vx,vy,vz,len,len1,len2;
 
 	if(bezt->h1==0 && bezt->h2==0) return;
@@ -1882,29 +1882,17 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 	}
 	else p3= next->vec[1];
 
-	if(mode && bezt->h1==HD_AUTO && prev) {
-		dx= p2[0] - (p1[0]+p1[3])/2.0f;
-		dy= p2[1] - (p1[1]+p1[4])/2.0f;
-		dz= p2[2] - (p1[2]+p1[5])/2.0f;
-	}
-	else {
-		dx= p2[0]- p1[0];
-		dy= p2[1]- p1[1];
-		dz= p2[2]- p1[2];
-	}
+	dx= p2[0]- p1[0];
+	dy= p2[1]- p1[1];
+	dz= p2[2]- p1[2];
+	
 	if(mode) len1= dx;
 	else len1= (float)sqrt(dx*dx+dy*dy+dz*dz);
 	
-	if(mode && bezt->h2==HD_AUTO && next) {
-		dx1= (p3[0]+p3[-3])/2.0f - p2[0];
-		dy1= (p3[1]+p3[-2])/2.0f - p2[1];
-		dz1= (p3[2]+p3[-1])/2.0f - p2[2];
-	}
-	else {
-		dx1= p3[0]- p2[0];
-		dy1= p3[1]- p2[1];
-		dz1= p3[2]- p2[2];
-	}
+	dx1= p3[0]- p2[0];
+	dy1= p3[1]- p2[1];
+	dz1= p3[2]- p2[2];
+	
 	if(mode) len2= dx1;
 	else len2= (float)sqrt(dx1*dx1+dy1*dy1+dz1*dz1);
 
