@@ -2986,7 +2986,7 @@ void inner_play_anim_loop(int init, int mode)
 
 	set_timecursor(CFRA);
 	
-	update_for_newframe_muted();
+	update_for_newframe_nodraw(1);	/* adds no events in UI */
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
