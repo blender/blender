@@ -102,6 +102,7 @@ void unlink_group(Group *group)
 			}
 		}
 	}
+	group->id.us= 0;
 }
 
 Group *add_group()
