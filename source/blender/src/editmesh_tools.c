@@ -5659,7 +5659,7 @@ typedef struct CollectedEdge{
 	EditEdge *eed;
 } CollectedEdge;
 
-#define MERGELIMIT 0.001
+#define MERGELIMIT 0.000001
 
 static void build_edgecollection(ListBase *allcollections)
 {
