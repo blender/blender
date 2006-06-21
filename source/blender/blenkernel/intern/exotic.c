@@ -2362,6 +2362,7 @@ int BKE_read_exotic(char *name)
 
 		if (NULL == gzfile ) {
 			error("Can't open file: %s", name);
+			retval= -1;
 		} else {
 			gzread(gzfile, str, 31);
 			gzclose(gzfile);
