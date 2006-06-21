@@ -84,6 +84,7 @@
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h" /* use only so fly mode can preview when its done */
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
@@ -2001,26 +2002,50 @@ void set_render_border(void)
 
 void fly(void)
 {
-	/* fly mode - Shift+F a fly loop where the user can move move the view as if they are flying */
-	float speed=0.0, dvec[3]={0,0,0}, mat[3][3], angle,
-	upvec[3]={0,0,0}, tmpvec[3], dist_backup, moffset[2],
-	lens_backup=1.0, camd_xy_backup[2]= {0.0, 0.0}, tmp_quat[4],
-	winxf, winyf;
-	/* x and y margin are define the safe area where the mouses movement wont rotate teh view*/
-	short val, cent[2], mval[2], loop=1, xmargin, ymargin; 
+	/* fly mode - Shift+F
+	a fly loop where the user can move move the view as if they are flying
+	*/
+	float speed=0.0, /* the speed the view is moving per redraw */
+	mat[3][3], /* 3x3 copy of the view matrix so we can move allong the view axis */
+	dvec[3]={0,0,0}, /* this is the direction thast added to the view offset per redraw */
+	
+	/* Camera Uprighting variables */
+	angle, /* the angle between the camera's up and the Z-up */
+	upvec[3]={0,0,0}, /* stores the view's up vector */
+	tmpvec[3], /* global up vector - compare with upvec for angle */
+	
+	dist_backup, /* backup the views distance since we use a zero dist for fly mode */
+	lens_backup=1.0, /* backup the views lense, adopt tha cameras lense during fly mode */
+	clip_backup[2], /* if using the camera- adopt its clip near/far */
+	moffset[2], /* mouse offset from the views center */
+	camd_xy_backup[2]= {0.0, 0.0}, /* camera offset backup */
+	tmp_quat[4], /* used for rotating the view */
+	winxf, winyf; /* scale the mouse movement by this value - scales mouse movement to the view size */
+	
+	
+	short val, /* used for toets to see if a buttons pressed */
+	cent[2], /* view center */
+	mval[2], /* mouse location */
+	loop=1, /* while true, stay in fly mode */
+	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
 	unsigned short toets, qual_backup;
 	unsigned char apply_rotation=1, correct_vroll=0, use_camera;
+	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
-		
 	
 	if (G.vd->persp==2) { /* Camera */
 		use_camera= 1;
 		lens_backup= G.vd->lens; /* so when we fly in normal view our lense matches the cameras */
+		clip_backup[0]= G.vd->near;
+		clip_backup[1]= G.vd->far;
+		
 		if (G.vd->camera) {
 			if (G.vd->camera->type==OB_CAMERA) {
 				Camera *cam;
 				cam= G.vd->camera->data;
 				G.vd->lens= cam->lens;
+				G.vd->near= cam->clipsta;
+				G.vd->far= cam->clipend;
 			}
 			
 			where_is_object(G.vd->camera);
@@ -2126,7 +2151,7 @@ void fly(void)
 		}
 		
 		if (moffset[1]) {
-			moffset[1]= moffset[1]/winxf;
+			moffset[1]= moffset[1]/winyf;
 			moffset[1]= moffset[1]*fabs(moffset[1]);
 		}
 		
@@ -2228,6 +2253,8 @@ void fly(void)
 	
 	if (use_camera) {
 		G.vd->lens= lens_backup; /* restore the views perspectiove lense angle */
+		G.vd->near= clip_backup[0];
+		G.vd->far= clip_backup[1];
 		G.vd->camdx= camd_xy_backup[0];
 		G.vd->camdy= camd_xy_backup[1];
 		
@@ -2247,6 +2274,7 @@ void fly(void)
 	G.vd->flag2 &= ~V3D_FLYMODE;
 	
 	allqueue(REDRAWVIEW3D, 0);
+	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 	scrarea_queue_headredraw(curarea);
 }
 
