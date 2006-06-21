@@ -1726,6 +1726,7 @@ void set_ipotype_actionchannels(int ipotype)
 
 	bAction *act; 
 	bActionChannel *chan;
+	bConstraintChannel *conchan;
 	short event;
 
 	/* Get the selected action, exit if none are selected 
@@ -1757,6 +1758,14 @@ void set_ipotype_actionchannels(int ipotype)
 				if (chan->ipo)
 					setipotype_ipo(chan->ipo, ipotype);
 			}
+			/* constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT) {
+					if (conchan->ipo)
+						setipotype_ipo(conchan->ipo, ipotype);
+				}
+			}
+			
 		}
 	}
 
@@ -1774,6 +1783,7 @@ void set_extendtype_actionchannels(int extendtype)
 {
 	bAction *act; 
 	bActionChannel *chan;
+	bConstraintChannel *conchan;
 	short event;
 
 	/* Get the selected action, exit if none are selected 
@@ -1820,6 +1830,27 @@ void set_extendtype_actionchannels(int extendtype)
 					}
 				}
 			}
+			/* constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT) {
+					if (conchan->ipo) {
+						switch (extendtype) {
+							case SET_EXTEND_CONSTANT:
+								setexprap_ipoloop(conchan->ipo, IPO_HORIZ);
+								break;
+							case SET_EXTEND_EXTRAPOLATION:
+								setexprap_ipoloop(conchan->ipo, IPO_DIR);
+								break;
+							case SET_EXTEND_CYCLIC:
+								setexprap_ipoloop(conchan->ipo, IPO_CYCL);
+								break;
+							case SET_EXTEND_CYCLICEXTRAPOLATION:
+								setexprap_ipoloop(conchan->ipo, IPO_CYCLX);
+								break;
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -1838,6 +1869,7 @@ void set_snap_actionchannels(void)
 	
 	bAction *act; 
 	bActionChannel *chan;
+	bConstraintChannel *conchan;
 	
 	/* Get the selected action, exit if none are selected 
 		*/
@@ -1851,6 +1883,12 @@ void set_snap_actionchannels(void)
 			if (chan->ipo) {
 				snap_ipo_keys(chan->ipo);
 			}
+			/* constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (conchan->ipo) {
+					snap_ipo_keys(conchan->ipo);
+				}
+			}						
 		}
 	}
 	

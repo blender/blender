@@ -346,16 +346,18 @@ static void init_userdef_file(void)
 void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
-
-	//here?
+	int retval;
+	
+	//NOT here!
 	//sound_end_all_sounds();
 
-	// first try to read exotic file formats...
-	if (BKE_read_exotic(name) == 0) { /* throws first error box */
-		/* we didn't succeed, now try to read Blender file
-		   calls readfile, calls toolbox, throws one more,
-		   on failure calls the stream, and that is stubbed.... */
-		int retval= BKE_read_file(name, NULL);
+	/* first try to read exotic file formats... */
+	/* it throws error box when file doesnt exist and returns -1 */
+	retval= BKE_read_exotic(name);
+	
+	if (retval== 0) {
+		/* we didn't succeed, now try to read Blender file */
+		retval= BKE_read_file(name, NULL);
 
 		mainwindow_set_filename_to_title(G.main->name);
 		countall();
@@ -370,7 +372,8 @@ void BIF_read_file(char *name)
 		BKE_write_undo("original");	/* save current state */
 		refresh_interface_font();
 	}
-	else BIF_undo_push("Import file");
+	else if(retval==1)
+		BIF_undo_push("Import file");
 }
 
 /* only here settings for fullscreen */
