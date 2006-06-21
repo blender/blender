@@ -229,6 +229,9 @@ static int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 	int a;
 	short *p1, *p2;
 	
+	if(sx==IS_CLIPPED)
+		return 0;
+	
 	p1= mcords[moves-1];
 	p2= mcords[0];
 	
@@ -272,6 +275,9 @@ static int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int
 	short v1[2], v2[2];
 	int a;
 
+	if(x0==IS_CLIPPED || x1==IS_CLIPPED)
+		return 0;
+	
 	v1[0] = x0, v1[1] = y0;
 	v2[0] = x1, v2[1] = y1;
 
