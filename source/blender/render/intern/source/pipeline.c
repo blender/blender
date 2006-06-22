@@ -1666,7 +1666,36 @@ static void yafrayRender(Render *re)
 	re->i.starttime = PIL_check_seconds_timer();
 	
 	YAF_exportScene(re);
-	
+
+	/* also needed for yafray border render, straight copy from do_render_fields_blur_3d() */
+	/* when border render, check if we have to insert it in black */
+	if(re->result) {
+		if(re->r.mode & R_BORDER) {
+			if((re->r.mode & R_CROP)==0) {
+				RenderResult *rres;
+				
+				/* sub-rect for merge call later on */
+				re->result->tilerect= re->disprect;
+				
+				/* this copying sequence could become function? */
+				re->disprect.xmin= re->disprect.ymin= 0;
+				re->disprect.xmax= re->winx;
+				re->disprect.ymax= re->winy;
+				re->rectx= re->winx;
+				re->recty= re->winy;
+				
+				rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+				
+				merge_render_result(rres, re->result);
+				free_render_result(re->result);
+				re->result= rres;
+				
+				re->display_init(re->result);
+				re->display_draw(re->result, NULL);
+			}
+		}
+	}
+
 	re->i.lastframetime = PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
 	

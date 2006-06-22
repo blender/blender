@@ -222,12 +222,12 @@ bool yafrayPluginRender_t::writeRender()
 		params["AA_pixelwidth"] = yafray::parameter_t(1.5);
 		params["AA_threshold"] = yafray::parameter_t(0.05f);
 	}
-	if (re->r.mode & R_BORDER) 
+	if (re->r.mode & R_BORDER)
 	{
-		params["border_xmin"] = yafray::parameter_t( re->r.border.xmin*2.0-1.0 );
-		params["border_xmax"] = yafray::parameter_t( re->r.border.xmax*2.0-1.0 );
-		params["border_ymin"] = yafray::parameter_t( re->r.border.ymin*2.0-1.0 );
-		params["border_ymax"] = yafray::parameter_t( re->r.border.ymax*2.0-1.0 );
+		params["border_xmin"] = yafray::parameter_t(2.f*re->r.border.xmin - 1.f);
+		params["border_xmax"] = yafray::parameter_t(2.f*re->r.border.xmax - 1.f);
+		params["border_ymin"] = yafray::parameter_t(2.f*re->r.border.ymin - 1.f);
+		params["border_ymax"] = yafray::parameter_t(2.f*re->r.border.ymax - 1.f);
 	}
 	if (hasworld) {
 		World *world = G.scene->world;
@@ -1562,12 +1562,14 @@ void yafrayPluginRender_t::writeLamps()
 		// cast_shadows flag not used with softlight, spherelight or photonlight
 		if ((!is_softL) && (!is_sphereL) && (lamp->type!=LA_YF_PHOTON)) {
 			string lpmode="off";
-			// Shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag.
-			// Also blender hemilights exported as sunlights which might have shadow flag set
+			// Blender hemilights exported as sunlights which might have shadow flag set
 			// should have cast_shadows set to off (reported by varuag)
 			if (lamp->type!=LA_HEMI) {
-				if (re->r.mode & R_SHADOW)
-					if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
+				if (re->r.mode & R_SHADOW) {
+					// old bug was here since the yafray lamp settings panel was added,
+					// blender spotlight shadbuf flag should be ignored, since it is not in the panel anymore
+					if (lamp->mode & LA_SHAD_RAY) lpmode="on";
+				}
 			}
 			params["cast_shadows"] = yafray::parameter_t(lpmode);
 		}
@@ -1660,12 +1662,13 @@ void yafrayPluginRender_t::writeCamera()
 		params["type"] = yafray::parameter_t("ortho");
 	else
 		params["type"] = yafray::parameter_t("perspective");
-	params["resx"] = yafray::parameter_t(re->rectx);
-	params["resy"] = yafray::parameter_t(re->recty);
+	
+	params["resx"] = yafray::parameter_t(re->winx);
+	params["resy"] = yafray::parameter_t(re->winy);
 
 	float f_aspect = 1;
-	if ((re->rectx * re->r.xasp) <= (re->recty * re->r.yasp))
-		f_aspect = float(re->rectx * re->r.xasp) / float(re->recty * re->r.yasp);
+	if ((re->winx * re->r.xasp) <= (re->winy * re->r.yasp))
+		f_aspect = float(re->winx * re->r.xasp) / float(re->winy * re->r.yasp);
 	params["focal"] = yafray::parameter_t(mainCamLens/(f_aspect*32.f));
 	params["aspect_ratio"] = yafray::parameter_t(re->ycor);
 
@@ -1757,7 +1760,7 @@ void yafrayPluginRender_t::writeHemilight()
 		params["cache"] = yafray::parameter_t("on");
 		params["use_QMC"] = yafray::parameter_t("on");
 		params["threshold"] = yafray::parameter_t(re->r.GIrefinement);
-		params["cache_size"] = yafray::parameter_t((2.0/float(re->rectx))*re->r.GIpixelspersample);
+		params["cache_size"] = yafray::parameter_t((2.0/float(re->winx))*re->r.GIpixelspersample);
 		params["shadow_threshold"] = yafray::parameter_t(1.0 - re->r.GIshadowquality);
 		params["grid"] = yafray::parameter_t(82);
 		params["search"] = yafray::parameter_t(35);
@@ -1910,8 +1913,36 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	// rres.rectz is zbuffer, available when associated pass is set
 
 	const unsigned int maxy = rres.recty-1;
-	const unsigned int yy = maxy - y;
-	const unsigned int px = yy * rres.rectx;
+
+	if (re->r.mode & R_BORDER) {
+		// border render, blender renderwin is size of border region,
+		// but yafray returns coords relative to full resolution
+		x -= int(re->r.border.xmin * re->winx);
+		y -= int((1.f-re->r.border.ymax) * re->winy);
+		if ((x >= 0) && (x < re->rectx) && (y >= 0) && (y < re->recty))
+		{
+			const unsigned int px = rres.rectx*(maxy - y);
+			// rgba
+			float* fpt = rres.rectf + ((px + x) << 2);
+			*fpt++ = c.R;
+			*fpt++ = c.G;
+			*fpt++ = c.B;
+			*fpt = alpha;
+			// depth values
+			if (rres.rectz) rres.rectz[px + x] = depth;
+			// to simplify things a bit, just do complete redraw here...
+			out++;
+			if ((out==4096) || ((x+y*re->rectx) == ((re->rectx-1)+(re->recty-1)*re->rectx))) {
+				re->result->renlay = render_get_active_layer(re, re->result);
+				re->display_draw(re->result, NULL);
+				out = 0;
+			}
+		}
+		if (re->test_break()) return false;
+		return true;
+	}
+
+	const unsigned int px = (maxy - y)*rres.rectx;
 
 	// rgba
 	float* fpt = rres.rectf + ((px + x) << 2);
@@ -1929,7 +1960,7 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	// not sure if it really makes all that much difference at all... unless rendering really large pictures
 	// (renderwin.c also had to be adapted for this)
 	// tile start & end coords
-	int txs = x & 0xffffffc0, tys = y & 0xffffffc0;
+	const int txs = x & 0xffffffc0, tys = y & 0xffffffc0;
 	int txe = txs + 63, tye = tys + 63;
 	// tile border clip
 	if (txe >= rres.rectx) txe = rres.rectx-1;
@@ -1938,7 +1969,7 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	if ((y*rres.rectx + x) == (tye*rres.rectx + txe)) {
 		re->result->renlay = render_get_active_layer(re, re->result);
 		// note: ymin/ymax swapped here, img. upside down!
-		rcti rt = {txs, txe+1, maxy-tye, ((tys==0) ? maxy : ((maxy+1)-tys))}; // !!! tys can be zero
+		rcti rt = {txs, txe+1, maxy-tye, ((tys==0) ? maxy : (rres.recty-tys))}; // !!! tys can be zero
 		re->display_draw(re->result, &rt);
 	}
 

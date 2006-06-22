@@ -297,9 +297,9 @@ void yafrayFileRender_t::displayImage()
 	unsigned short width = (unsigned short)(header[12] + (header[13]<<8));
 	unsigned short height = (unsigned short)(header[14] + (header[15]<<8));
 	// don't do anything if resolution doesn't match that of rectot
-	if ((width!=re->rectx) || (height!=re->recty)) {
+	if ((width!=re->winx) || (height!=re->winy)) {
 		cout << "Wrong image width/height: " << width << "/" << height <<
-			" expected " << re->rectx << "/" << re->recty << endl;
+			" expected " << re->winx << "/" << re->winy << endl;
 		fclose(fp);
 		fp = NULL;
 		return;
@@ -318,17 +318,38 @@ void yafrayFileRender_t::displayImage()
 	
 	// read data directly into buffer, picture is upside down
 	const float btf = 1.f/255.f;
-	for (unsigned short y=0;y<height;y++) {
-		float* bpt = (float*)rres.rectf + ((((height-1)-y)*width)<<2);
-		for (unsigned short x=0;x<width;x++) {
-			bpt[2] = ((float)fgetc(fp) * btf);
-			bpt[1] = ((float)fgetc(fp) * btf);
-			bpt[0] = ((float)fgetc(fp) * btf);
-			if (byte_per_pix==4)
-				bpt[3] = ((float)fgetc(fp) * btf);
-			else
-				bpt[3] = 1.f;
-			bpt += 4;
+	if (re->r.mode & R_BORDER) {
+		// border render, yafray is full size render, blender at this point only wants the region
+		unsigned int xs = (unsigned int)(re->r.border.xmin * re->winx),
+		             ys = (unsigned int)((1.f-re->r.border.ymax) * re->winy);
+		for (unsigned short y=0; y<height; y++) {
+			for (unsigned short x=0; x<width; x++) {
+				char r = fgetc(fp);
+				char g = fgetc(fp);
+				char b = fgetc(fp);
+				char a = (byte_per_pix==4) ? fgetc(fp) : 255;
+				int bx = x-xs, by = y-ys;
+				if ((bx >= 0) && (bx < (int)re->rectx) && (by >= 0) && (by < re->recty)) {
+					float* bpt = (float*)rres.rectf + (bx + (((re->recty-1) - by)*re->rectx) << 2);
+					bpt[2] = (float)r * btf;
+					bpt[1] = (float)g * btf;
+					bpt[0] = (float)b * btf;
+					bpt[3] = (float)a * btf;
+					bpt += 4;
+				}
+			}
+		}
+	}
+	else {
+		for (unsigned short y=0; y<height; y++) {
+			float* bpt = (float*)rres.rectf + ((((height-1)-y)*width) << 2);
+			for (unsigned short x=0; x<width; x++) {
+				bpt[2] = ((float)fgetc(fp) * btf);
+				bpt[1] = ((float)fgetc(fp) * btf);
+				bpt[0] = ((float)fgetc(fp) * btf);
+				bpt[3] = (byte_per_pix==4) ? ((float)fgetc(fp) * btf) : 1.f;
+				bpt += 4;
+			}
 		}
 	}
 
@@ -1656,12 +1677,14 @@ void yafrayFileRender_t::writeLamps()
 		// cast_shadows flag not used with softlight, spherelight or photonlight
 		if ((!is_softL) && (!is_sphereL) && (lamp->type!=LA_YF_PHOTON)) {
 			string lpmode="off";
-			// Shadows only when Blender has shadow button enabled, only spots use LA_SHAD flag.
-			// Also blender hemilights exported as sunlights which might have shadow flag set
+			// Blender hemilights exported as sunlights which might have shadow flag set
 			// should have cast_shadows set to off (reported by varuag)
 			if (lamp->type!=LA_HEMI) {
-				if (re->r.mode & R_SHADOW)
-					if (((lamp->type==LA_SPOT) && (lamp->mode & LA_SHAD)) || (lamp->mode & LA_SHAD_RAY)) lpmode="on";
+				if (re->r.mode & R_SHADOW) {
+					// old bug was here since the yafray lamp settings panel was added,
+					// blender spotlight shadbuf flag should be ignored, since it is not in the panel anymore
+					if (lamp->mode & LA_SHAD_RAY) lpmode="on";
+				}
 			}
 			ostr << " cast_shadows=\"" << lpmode << "\"";
 		}
@@ -1756,11 +1779,11 @@ void yafrayFileRender_t::writeCamera()
 		ostr << "type=\"perspective\"";
 
 	// render resolution including the percentage buttons
-	ostr << " resx=\"" << re->rectx << "\" resy=\"" << re->recty << "\"";
+	ostr << " resx=\"" << re->winx << "\" resy=\"" << re->winy << "\"";
 
 	float f_aspect = 1;
-	if ((re->rectx * re->r.xasp) <= (re->recty * re->r.yasp))
-		f_aspect = float(re->rectx * re->r.xasp) / float(re->recty * re->r.yasp);
+	if ((re->winx * re->r.xasp) <= (re->winy * re->r.yasp))
+		f_aspect = float(re->winx * re->r.xasp) / float(re->winy * re->r.yasp);
 	ostr << "\n\tfocal=\"" << mainCamLens/(f_aspect*32.f);
 	ostr << "\" aspect_ratio=\"" << re->ycor << "\"";
 
@@ -1833,7 +1856,7 @@ void yafrayFileRender_t::writeHemilight()
 	if (re->r.GIcache) {
 		ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << re->r.GIpower << "\" mode=\"occlusion\"";
 		ostr << "\n\tcache=\"on\" use_QMC=\"on\" threshold=\"" << re->r.GIrefinement << "\" "
-				 << "cache_size=\"" << ((2.0/float(re->rectx))*re->r.GIpixelspersample) << "\"";
+				 << "cache_size=\"" << ((2.0/float(re->winx))*re->r.GIpixelspersample) << "\"";
 		ostr << "\n\tshadow_threshold=\"" << (1.0-re->r.GIshadowquality) << "\" grid=\"82\" search=\"35\"";
 		ostr << "\n\tignore_bumpnormals=\"" << (re->r.YF_nobump ? "on" : "off") << "\"";
 		if (fromAO) {
@@ -1902,7 +1925,7 @@ void yafrayFileRender_t::writePathlight()
 		}
 		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" << re->r.GIrefinement << "\"" << endl;
 		ostr << "\tignore_bumpnormals=\"" << (re->r.YF_nobump ? "on" : "off") << "\"\n";
-		float sbase = 2.0/float(re->rectx);
+		float sbase = 2.0/float(re->winx);
 		ostr << "\tcache_size=\"" << sbase*re->r.GIpixelspersample << "\" shadow_threshold=\"" <<
 			1.0-re->r.GIshadowquality << "\" grid=\"82\" search=\"35\" >\n";
 	}
@@ -1978,9 +2001,20 @@ bool yafrayFileRender_t::writeWorld()
 
 bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 {
-	char yfr[8];
-	sprintf(yfr, "%d ", re->r.YF_numprocs);
-	string command = command_path + "yafray -c " + yfr + "\"" + xmlpath + "\"";
+	ostr.str("");
+	if (re->r.mode & R_BORDER) {
+		ostr << command_path << "yafray -c " << re->r.YF_numprocs
+		     << " -r " << (2.f*re->r.border.xmin - 1.f)
+		     << ":"    << (2.f*re->r.border.xmax - 1.f)
+		     << ":"    << (2.f*re->r.border.ymin - 1.f)
+		     << ":"    << (2.f*re->r.border.ymax - 1.f)
+		     << " \"" << xmlpath << "\"";
+	}
+	else
+		ostr << command_path << "yafray -c " << re->r.YF_numprocs << " \"" << xmlpath << "\"";
+	
+	string command = ostr.str();
+	cout << "COMMAND: " << command << endl;
 #ifndef WIN32
 	sigset_t yaf,old;
 	sigemptyset(&yaf);
