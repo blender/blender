@@ -264,6 +264,8 @@ void what_image(SpaceImage *sima)
 					ibuf->y= rres.recty;
 					ibuf->rect= rres.rect32;
 					ibuf->rect_float= rres.rectf;
+					
+					sima->image->ok= 1;
 				}
 			}
 		}
