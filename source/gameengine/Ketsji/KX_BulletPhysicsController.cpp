@@ -187,7 +187,7 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 	}
 
 	physicsreplica->PostProcessReplica(motionstate,parentctrl);
-
+	physicsreplica->m_userdata = (PHY_IPhysicsController*)physicsreplica;
 	return physicsreplica;
 	
 }
