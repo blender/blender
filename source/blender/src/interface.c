@@ -5541,8 +5541,9 @@ void uiBlockEndAlign(uiBlock *block)
 {
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
+	int theme= BIF_GetThemeValue(TH_BUT_DRAWTYPE);
 	
-	if ( !((BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 0) || (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 1) || (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == 2))) {
+	if ( !(theme==0 || theme==1 || theme==2) ) {
 		block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 		return;
 	}
@@ -5567,6 +5568,7 @@ void uiBlockEndAlign(uiBlock *block)
 	
 	/* rows==0: 1 row, cols==0: 1 collumn */
 	
+	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
 	prev= NULL;
 	while(but) {
 		next= but->next;
@@ -5620,9 +5622,13 @@ void uiBlockEndAlign(uiBlock *block)
 			}
 			else {	/* next button switches to new row */
 				if( (flag & UI_BUT_ALIGN_TOP)==0) {	/* stil top row */
-					flag= UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;
+					if(prev)
+						flag= UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT;
+					else 
+						flag |= UI_BUT_ALIGN_DOWN;
 				}
-				else flag |= UI_BUT_ALIGN_TOP;
+				else 
+					flag |= UI_BUT_ALIGN_TOP;
 			}
 		}
 		

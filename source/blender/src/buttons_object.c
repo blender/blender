@@ -2262,6 +2262,7 @@ static void object_panel_particles(Object *ob)
 	uiBut *but;
 	PartEff *paf= give_parteff(ob);
 	
+	/* the panelname "Particles " has a space to exclude previous saved panel "Particles" */
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Particles ", "Physics", 320, 0, 318, 204)==0) return;
 
