@@ -5778,7 +5778,8 @@ typedef struct wUVEdgeCollect{ /*used for grouping*/
 	int id; 
 } wUVEdgeCollect;
 
-static void append_weldedUV(EditFace *efa, EditVert *eve, int tfindex, ListBase *uvverts){
+static void append_weldedUV(EditFace *efa, EditVert *eve, int tfindex, ListBase *uvverts)
+{
 	wUV *curwvert, *newwvert;
 	wUVNode *newnode;
 	int found;
@@ -5812,7 +5813,8 @@ static void append_weldedUV(EditFace *efa, EditVert *eve, int tfindex, ListBase 
 	}
 }
 
-static void build_weldedUVs(ListBase *uvverts){
+static void build_weldedUVs(ListBase *uvverts)
+{
 	EditFace *efa;
 	for(efa=G.editMesh->faces.first; efa; efa=efa->next){
 		if(efa->v1->f1) append_weldedUV(efa, efa->v1, 0, uvverts);
@@ -5822,7 +5824,8 @@ static void build_weldedUVs(ListBase *uvverts){
 	}
 }
 
-static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges){
+static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges)
+{
 	wUVEdge *curwedge, *newwedge;
 	int v1tfindex, v2tfindex, found;
 	
@@ -5857,7 +5860,8 @@ static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges)
 	}
 }
 
-static void build_weldedUVEdges(ListBase *uvedges, ListBase *uvverts){
+static void build_weldedUVEdges(ListBase *uvedges, ListBase *uvverts)
+{
 	
 	wUV *curwvert;
 	wUVEdge *curwedge;
@@ -5888,14 +5892,15 @@ static void build_weldedUVEdges(ListBase *uvedges, ListBase *uvverts){
 	}
 }
 
-static void free_weldedUVs(ListBase *uvverts){
+static void free_weldedUVs(ListBase *uvverts)
+{
 	wUV *curwvert;
 	for(curwvert = uvverts->first; curwvert; curwvert=curwvert->next) BLI_freelistN(&(curwvert->nodes));
 	BLI_freelistN(uvverts);
 }
 
-static void collapse_edgeuvs(void){
-	EditEdge *eed;
+static void collapse_edgeuvs(void)
+{
 	ListBase uvedges, uvverts, allcollections;
 	wUVEdge *curwedge;
 	wUVNode *curwnode;
@@ -6442,6 +6447,9 @@ static int loop_bisect(Collection *edgecollection){
 			if(efa->e1 == sed || efa->e2 == sed || efa->e3 == sed || ( (efa->e4) ? efa->e4 == sed : 0) ) sf1 = efa;
 		}
 	}
+	
+	if(sf1==NULL || sf2==NULL)
+		return(-1);
 	
 	if(!(sf1->e1->f1)) sf1->e1->f2 = 1;
 	if(!(sf1->e2->f1)) sf1->e2->f2 = 1;
