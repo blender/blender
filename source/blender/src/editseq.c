@@ -176,53 +176,42 @@ Sequence *find_nearest_seq(int *hand)
 {
 	Sequence *seq;
 	Editing *ed;
-	float x, y, facx, facy;
+	float x, y;
 	short mval[2];
-
+	float pixelx;
+	float handsize;
+	float minhandle, maxhandle;
+	View2D *v2d = G.v2d;
 	*hand= 0;
 
 	ed= G.scene->ed;
 	if(ed==0) return 0;
+	
+	pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
 
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-
+	
 	seq= ed->seqbasep->first;
+	
 	while(seq) {
+		/* clamp handles to defined size in pixel space */
+		handsize = seq->handsize;
+		minhandle = 7;
+		maxhandle = 28;
+		CLAMP(handsize, minhandle*pixelx, maxhandle*pixelx);
+		
 		if(seq->machine == (int)y) {
 			/* check for both normal strips, and strips that have been flipped horizontally */
 			if( ((seq->startdisp < seq->enddisp) && (seq->startdisp<=x && seq->enddisp>=x)) ||
 				((seq->startdisp > seq->enddisp) && (seq->startdisp>=x && seq->enddisp<=x)) )
 			{
-
 				if(seq->type < SEQ_EFFECT) {
-					if( seq->handsize+seq->startdisp >=x ) {
-						/* within triangle? */
-						facx= (x-seq->startdisp)/seq->handsize;
-						if( (y - (int)y) <0.5) {
-							facy= (y - 0.2 - (int)y)/0.3;
-							if( facx < facy ) *hand= 1;
-						}
-						else {
-							facy= (y - 0.5 - (int)y)/0.3;
-							if( facx+facy < 1.0 ) *hand= 1;
-						}
-
-					}
-					else if( -seq->handsize+seq->enddisp <=x ) {
-						/* within triangle? */
-						facx= 1.0 - (seq->enddisp-x)/seq->handsize;
-						if( (y - (int)y) <0.5) {
-							facy= (y - 0.2 - (int)y)/0.3;
-							if( facx+facy > 1.0 ) *hand= 2;
-						}
-						else {
-							facy= (y - 0.5 - (int)y)/0.3;
-							if( facx > facy ) *hand= 2;
-						}
-					}
+					if( handsize+seq->startdisp >=x )
+						*hand= 1;
+					else if( -handsize+seq->enddisp <=x )
+						*hand= 2;
 				}
-
 				return seq;
 			}
 		}
