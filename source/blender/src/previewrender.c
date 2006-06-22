@@ -762,7 +762,8 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		rdata.mode &= ~(R_OSA|R_MBLUR);
 		rdata.scemode &= ~(R_DOSEQ|R_DOCOMP|R_FREE_IMAGE);
 		rdata.layers.first= rdata.layers.last= NULL;
-	
+		rdata.renderer= R_INTERN;
+		 
 		RE_InitState(re, &rdata, sa->winx, sa->winy, &ri->disprect);
 	
 		if(orth)
