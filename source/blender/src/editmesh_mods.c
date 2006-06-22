@@ -1853,26 +1853,25 @@ void select_faces_by_numverts(int numverts)
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 
-	/* Selects isolated verts, and edges that do not have 2 neighboring
+	/* Selects trias/qiads or isolated verts, and edges that do not have 2 neighboring
 	 * faces
 	 */
-	
-	if(G.scene->selectmode!=SCE_SELECT_FACE) {
+
+	/* for loose vertices/edges, we first select all, loop below will deselect */
+	if(numverts==5)
+		EM_set_flag_all(SELECT);
+	else if(G.scene->selectmode!=SCE_SELECT_FACE) {
 		error("Only works in face selection mode");
 		return;
 	}
-
-	efa= em->faces.first;
-	while(efa) {
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
 		if (efa->e4) {
 			EM_select_face(efa, (numverts==4) );
 		}
-		else if (efa->e3) {
+		else {
 			EM_select_face(efa, (numverts==3) );
 		}
-		else 
-			EM_select_face(efa, (numverts!=3) && (numverts!=4) );
-		efa= efa->next;
 	}
 
 	countall();
