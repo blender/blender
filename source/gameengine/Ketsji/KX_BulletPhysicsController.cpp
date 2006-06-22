@@ -149,7 +149,7 @@ void	KX_BulletPhysicsController::SuspendDynamics()
 }
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
-	GetRigidBody()->SetActivationState(ACTIVE_TAG);
+	GetRigidBody()->ForceActivationState(ACTIVE_TAG);
 }
 
 SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
