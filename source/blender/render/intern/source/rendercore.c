@@ -393,7 +393,8 @@ static void renderspothalo(ShadeInput *shi, float *col, float alpha)
 		lar= go->lampren;
 		
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
-	
+			if((lar->lay & shi->lay)==0) continue;
+
 			spothalo(lar, shi, &i);
 			if(i>0.0) {
 				col[3]+= i*alpha;			// all premul
@@ -555,6 +556,8 @@ static void lamphalo_tile(RenderPart *pa, float *pass, unsigned int lay)
 	float zco, fac;
 	long *rd= pa->rectdaps;
 	int x, y, *rz= pa->rectz;
+	
+	shi.lay= lay;
 	
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
 		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, pass+=4) {
