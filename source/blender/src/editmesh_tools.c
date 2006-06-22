@@ -4519,7 +4519,9 @@ void bevel_menu()
 	for (nr=0; nr<recurs-1; nr++) {
 		if (nr==0) fac += 1.0f/3.0f; else fac += 1.0f/(3 * nr * 2.0f);
 	}
-
+	
+	EM_set_flag_all(SELECT);
+		
 	SetBlenderCursor(SYSCURSOR);
 
 	while (Finished == 0)
