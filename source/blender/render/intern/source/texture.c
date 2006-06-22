@@ -547,28 +547,41 @@ static int magic(Tex *tex, float *texvec, TexResult *texres)
 /* newnoise: stucci also modified to use different noisebasis */
 static int stucci(Tex *tex, float *texvec, TexResult *texres)
 {
-	float b2, ofs;
-
-	texres->tin=b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	float nor[3], b2, ofs;
+	int retval= TEX_INT;
 	
-	if(texres->nor == NULL) return TEX_INT;
+	b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 	
 	ofs= tex->turbul/200.0;
 
 	if(tex->stype) ofs*=(b2*b2);
-	texres->nor[0] = BLI_gNoise(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-	texres->nor[1] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);	
-	texres->nor[2] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2]+ofs, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	nor[0] = BLI_gNoise(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
+	nor[1] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);	
+	nor[2] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2]+ofs, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 
-	tex_normal_derivate(tex, texres);
+	texres->tin= nor[2];
 	
-	if(tex->stype==2) {
-		texres->nor[0]= -texres->nor[0];
-		texres->nor[1]= -texres->nor[1];
-		texres->nor[2]= -texres->nor[2];
+	if(texres->nor) { 
+		
+		VECCOPY(texres->nor, nor);
+		tex_normal_derivate(tex, texres);
+		
+		if(tex->stype==2) {
+			texres->nor[0]= -texres->nor[0];
+			texres->nor[1]= -texres->nor[1];
+			texres->nor[2]= -texres->nor[2];
+		}
+		
+		retval |= TEX_NOR;
 	}
-
-	return TEX_NOR;
+	
+	if(tex->stype==2) 
+		texres->tin= 1.0f-texres->tin;
+	
+	if(texres->tin<0.0f)
+		texres->tin= 0.0f;
+	
+	return retval;
 }
 
 /* ------------------------------------------------------------------------- */
