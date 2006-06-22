@@ -29,7 +29,7 @@ CollisionObject::CollisionObject()
 
 void CollisionObject::SetActivationState(int newState) 
 { 
-	if (m_activationState1 != DISABLE_DEACTIVATION)
+	if ( (m_activationState1 != DISABLE_DEACTIVATION) && (m_activationState1 != DISABLE_SIMULATION))
 		m_activationState1 = newState;
 }
 

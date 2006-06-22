@@ -171,6 +171,7 @@ void	CollisionWorld::RemoveCollisionObject(CollisionObject* collisionObject)
 			//
 			GetBroadphase()->CleanProxyFromPairs(bp);
 			GetBroadphase()->DestroyProxy(bp);
+			collisionObject->m_broadphaseHandle = 0;
 		}
 	}
 

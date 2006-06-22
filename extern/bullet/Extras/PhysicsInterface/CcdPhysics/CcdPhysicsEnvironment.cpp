@@ -637,7 +637,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			CcdPhysicsController* ctrl = m_controllers[k];
 			//		SimdTransform predictedTrans;
 			RigidBody* body = ctrl->GetRigidBody();
-			if (body->GetActivationState() != ISLAND_SLEEPING)
+			if (body->IsActive())
 			{
 				if (!body->IsStatic())
 				{
@@ -694,14 +694,17 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 		{
 			TypedConstraint* constraint = m_constraints[i];
 
-			const CollisionObject* colObj0 = &constraint->GetRigidBodyA();
-			const CollisionObject* colObj1 = &constraint->GetRigidBodyB();
+			const RigidBody* colObj0 = &constraint->GetRigidBodyA();
+			const RigidBody* colObj1 = &constraint->GetRigidBodyB();
 			
 			if (((colObj0) && ((colObj0)->mergesSimulationIslands())) &&
 						((colObj1) && ((colObj1)->mergesSimulationIslands())))
 			{
-				GetDispatcher()->GetUnionFind().unite((colObj0)->m_islandTag1,
-					(colObj1)->m_islandTag1);
+				if (colObj0->IsActive() || colObj1->IsActive())
+				{
+					GetDispatcher()->GetUnionFind().unite((colObj0)->m_islandTag1,
+						(colObj1)->m_islandTag1);
+				}
 			}
 		}
 	}
@@ -862,7 +865,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 
 					SimdTransform predictedTrans;
 					RigidBody* body = ctrl->GetRigidBody();
-					if (body->GetActivationState() != ISLAND_SLEEPING)
+					
+					if (body->IsActive())
 					{
 
 						if (!body->IsStatic())
@@ -1659,9 +1663,27 @@ void	CcdPhysicsEnvironment::UpdateAabbs(float	timeStep)
 						}
 					}
 
-					scene->SetAabb(bp,minAabb,maxAabb);
+			
+					if ( (maxAabb-minAabb).length2() < 1e12f)
+					{
+						scene->SetAabb(bp,minAabb,maxAabb);
+					} else
+					{
+						//something went wrong, investigate
+						//removeCcdPhysicsController(ctrl);
+						body->SetActivationState(DISABLE_SIMULATION);
 
-
+						static bool reportMe = true;
+						if (reportMe)
+						{
+							reportMe = false;
+							printf("Overflow in AABB, object removed from simulation \n");
+							printf("If you can reproduce this, please email bugs@continuousphysics.com\n");
+							printf("Please include above information, your Platform, version of OS.\n");
+							printf("Thanks.\n");
+						}
+						
+					}
 
 				}
 			}

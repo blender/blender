@@ -23,6 +23,7 @@ subject to the following restrictions:
 #define ISLAND_SLEEPING 2
 #define WANTS_DEACTIVATION 3
 #define DISABLE_DEACTIVATION 4
+#define DISABLE_SIMULATION 5
 
 struct	BroadphaseProxy;
 class	CollisionShape;
@@ -85,6 +86,10 @@ struct	CollisionObject
 
 	void	activate();
 
+	inline bool IsActive() const
+	{
+		return ((GetActivationState() != ISLAND_SLEEPING) && (GetActivationState() != DISABLE_SIMULATION));
+	}
 
 
 };

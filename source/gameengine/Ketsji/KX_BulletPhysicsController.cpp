@@ -144,10 +144,12 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 
 void	KX_BulletPhysicsController::SuspendDynamics()
 {
+	GetRigidBody()->SetActivationState(DISABLE_SIMULATION);
 
 }
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
+	GetRigidBody()->SetActivationState(ACTIVE_TAG);
 }
 
 SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)

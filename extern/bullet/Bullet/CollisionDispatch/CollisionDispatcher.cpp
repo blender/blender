@@ -243,10 +243,14 @@ CollisionAlgorithm* CollisionDispatcher::InternalFindAlgorithm(BroadphaseProxy& 
 
 bool	CollisionDispatcher::NeedsResponse(const  CollisionObject& colObj0,const CollisionObject& colObj1)
 {
+
+	
 	//here you can do filtering
 	bool hasResponse = 
 		(!(colObj0.m_collisionFlags & CollisionObject::noContactResponse)) &&
 		(!(colObj1.m_collisionFlags & CollisionObject::noContactResponse));
+	hasResponse = hasResponse &&
+		(colObj0.IsActive() || colObj1.IsActive());
 	return hasResponse;
 }
 
@@ -264,8 +268,8 @@ bool	CollisionDispatcher::NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy
 	if ((body0->m_collisionFlags & CollisionObject::isStatic) && 
 		(body1->m_collisionFlags & CollisionObject::isStatic))
 		needsCollision = false;
-	
-	if ((body0->GetActivationState() == 2) &&(body1->GetActivationState() == 2))
+		
+	if ((!body0->IsActive()) && (!body1->IsActive()))
 		needsCollision = false;
 	
 	return needsCollision ;
