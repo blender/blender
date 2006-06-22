@@ -496,15 +496,13 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
-	int setcount=0;
 	
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
 	
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	
-	/* for time being; sets otherwise can be cyclic */
-	while(sce && setcount<2) {
+	while(sce) {
 		if(sce->theDag==NULL)
 			DAG_scene_sort(sce);
 		
@@ -521,7 +519,6 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 			}
 		}
 		sce= sce->set;
-		setcount++;
 	}
 }
 
