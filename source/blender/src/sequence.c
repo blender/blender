@@ -889,11 +889,21 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 			else if(seq->type==SEQ_SCENE && se->ibuf==NULL && seq->scene) {	// scene can be NULL after deletions
 				int oldcfra = CFRA;
 				Scene *sce= seq->scene, *oldsce= G.scene;
-				Render *re= RE_NewRender(" do_build_seq_ibuf");		/* do not use Scene name, can be the same */
+				Render *re;
 				RenderResult rres;
 				int doseq;
 				
 				waitcursor(1);
+				
+				/* This function can be called from do_render_seq(), in that case
+				   the seq->scene can already have a Render, so we use a default name.
+				   However, when called from within the UI (image preview in sequencer)
+				   we do want to use scene Render, that way the render result is defined
+				   for display in render/imagewindow */
+				if(G.rendering)
+					re= RE_NewRender(" do_build_seq_ibuf");	
+				else
+					re= RE_NewRender(seq->scene->id.name);
 				
 				/* prevent eternal loop */
 				doseq= sce->r.scemode & R_DOSEQ;
