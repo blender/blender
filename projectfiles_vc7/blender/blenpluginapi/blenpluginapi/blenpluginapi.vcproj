@@ -337,6 +337,9 @@
 				RelativePath="..\..\..\..\source\blender\blenpluginapi\documentation.h">
 			</File>
 			<File
+				RelativePath="..\..\..\..\source\blender\blenpluginapi\externdef.h">
+			</File>
+			<File
 				RelativePath="..\..\..\..\source\blender\blenpluginapi\floatpatch.h">
 			</File>
 			<File
@@ -349,6 +352,9 @@
 				RelativePath="..\..\..\..\source\blender\blenpluginapi\util.h">
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\..\..\..\source\blender\blenpluginapi\plugin.DEF">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

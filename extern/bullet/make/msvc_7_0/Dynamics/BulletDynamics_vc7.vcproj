@@ -54,7 +54,6 @@ XCOPY /Y ..\..\..\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\..\build\ms
 XCOPY /Y ..\..\..\BulletDynamics\Dynamics\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
 XCOPY /Y ..\..\..\BulletDynamics\Vehicle\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Vehicle
 
-
 ECHO Done
 "/>
 			<Tool
@@ -111,6 +110,8 @@ XCOPY /Y ..\..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\in
 XCOPY /Y ..\..\..\BulletDynamics\CollisionDispatch\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
 XCOPY /Y ..\..\..\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
 XCOPY /Y ..\..\..\BulletDynamics\Vehicle\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Vehicle
+XCOPY /Y ..\..\..\BulletDynamics\Dynamics\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
 ECHO Done
 "/>
 			<Tool
