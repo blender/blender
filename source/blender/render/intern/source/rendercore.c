@@ -3129,13 +3129,13 @@ void zbufshadeDA_tile(RenderPart *pa)
 				/* zbuffer inits these rects */
 	pa->rectp= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectp");
 	pa->rectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectz");
-	if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
 
-		/* initialize pixelstructs */
+		/* initialize pixelstructs and edge buffer */
 		addpsmain(&psmlist);
 		pa->rectdaps= MEM_callocT(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
+		if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 		
 		/* always fill visibility */
 		for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
@@ -3200,13 +3200,14 @@ void zbufshadeDA_tile(RenderPart *pa)
 		/* free stuff within loop! */
 		MEM_freeT(pa->rectdaps); pa->rectdaps= NULL;
 		freeps(&psmlist);
+		
+		if(edgerect) MEM_freeT(edgerect);
+		edgerect= NULL;
 	}
 	
 	/* free all */
 	MEM_freeT(pa->rectp); pa->rectp= NULL;
 	MEM_freeT(pa->rectz); pa->rectz= NULL;
-	
-	if(edgerect) MEM_freeT(edgerect);
 	
 	/* display active layer */
 	rr->renrect.ymin=rr->renrect.ymax= 0;
@@ -3230,11 +3231,12 @@ void zbufshade_tile(RenderPart *pa)
 	/* zbuffer code clears/inits rects */
 	pa->rectp= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectp");
 	pa->rectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectz");
-	if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 
 	shpi.thread= pa->thread;
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
+		
+		if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 		
 		/* fill shadepixel info struct */
 		shpi.lay= rl->lay;
@@ -3324,6 +3326,8 @@ void zbufshade_tile(RenderPart *pa)
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
 
+		if(edgerect) MEM_freeT(edgerect);
+		edgerect= NULL;
 	}
 
 	/* display active layer */
@@ -3332,7 +3336,6 @@ void zbufshade_tile(RenderPart *pa)
 	
 	MEM_freeT(pa->rectp); pa->rectp= NULL;
 	MEM_freeT(pa->rectz); pa->rectz= NULL;
-	if(edgerect) MEM_freeT(edgerect);
 }
 
 /* ------------------------------------------------------------------------ */
