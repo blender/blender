@@ -200,7 +200,7 @@ void do_node_addmenu(void *arg, int event)
 	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
 	node_add_node(snode, event, locx, locy);
 	
-	addqueue(curarea->win, B_NODE_TREE_EXEC, 1);
+	addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 	
 	BIF_undo_push("Add Node");
 	

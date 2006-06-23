@@ -830,6 +830,7 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 		MEM_freeN(strp);
 		
 		/* re-render */
+		/* uses custom2, not the best implementation of the world... but we need it to work now :) */
 		bt= uiDefIconButS(block, TOG, B_NODE_EXEC+node->nr, ICON_SCENE, 
 				  butr->xmax-20, butr->ymin, 20, 19, 
 				  &node->custom2, 0, 0, 0, 0, "Re-render this Layer");

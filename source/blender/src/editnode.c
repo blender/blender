@@ -284,15 +284,20 @@ static void composit_node_event(SpaceNode *snode, short event)
 			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
 			if(node) {
 				NodeTagChanged(snode->edittree, node);
+				
 				/* not the best implementation of the world... but we need it to work now :) */
-				if(node->type==CMP_NODE_R_LAYERS && node->custom2)
+				if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
 					composite_node_render(snode, node);
+					/* new event, a render can go fullscreen and open new window */
+					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+				}
 				else {
 					node= snode_get_editgroup(snode);
 					if(node)
 						NodeTagIDChanged(snode->nodetree, node->id);
+					
+					snode_handle_recalc(snode);
 				}
-				snode_handle_recalc(snode);
 			}
 		}			
 	}
