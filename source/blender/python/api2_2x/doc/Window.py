@@ -299,13 +299,15 @@ def GetViewOffset ():
   Get the current VIEW3D offset values.
   @rtype: list of floats
   @return: a list with three floats: [x,y,z].
+  @note: The 3 values returned are flipped in comparison object locations.
   """
 
 def SetViewOffset (ofs):
   """
-	Set the current VIEW3D offset values.
+  Set the current VIEW3D offset values.
   @type ofs: 3 floats or list of 3 floats
   @param ofs: the new view offset values.
+  @note: The value you give flipped in comparison object locations.
   """
 
 def CameraView (camtov3d = 0):

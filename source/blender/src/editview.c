@@ -69,7 +69,7 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h" /* fly modes where_is_object */
+#include "BKE_object.h" /* fly mode where_is_object to get camera location */
 #include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
@@ -2002,7 +2002,8 @@ void set_render_border(void)
 
 void fly(void)
 {
-	/* fly mode - Shift+F
+	/*
+	fly mode - Shift+F
 	a fly loop where the user can move move the view as if they are flying
 	*/
 	float speed=0.0, /* the speed the view is moving per redraw */
@@ -2020,16 +2021,23 @@ void fly(void)
 	moffset[2], /* mouse offset from the views center */
 	camd_xy_backup[2]= {0.0, 0.0}, /* camera offset backup */
 	tmp_quat[4], /* used for rotating the view */
-	winxf, winyf; /* scale the mouse movement by this value - scales mouse movement to the view size */
+	winxf, winyf, /* scale the mouse movement by this value - scales mouse movement to the view size */
+	time_redraw; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
 	
+	double time_current, time_lastdraw;
 	
 	short val, /* used for toets to see if a buttons pressed */
 	cent[2], /* view center */
 	mval[2], /* mouse location */
 	loop=1, /* while true, stay in fly mode */
 	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
-	unsigned short toets, qual_backup;
-	unsigned char apply_rotation=1, correct_vroll=0, use_camera;
+	unsigned short
+	toets, /* for reading teh event */
+	qual_backup; /*backup the Ctrl/Alt/Shift key values for setting the camera back */
+	unsigned char
+	apply_rotation=1, /* if the user presses shift they can look about without movinf the direction there looking*/
+	correct_vroll=0, /* pressuing CTRL uprights the camera off by default */
+	use_camera /* remember weather to go back to a camera or not */;
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
 	
@@ -2103,6 +2111,8 @@ void fly(void)
 	winyf= (float)(curarea->winy)-(ymargin*2); 
 	
 	
+	time_lastdraw= PIL_check_seconds_timer();
+	
 	G.vd->flag2 |= V3D_FLYMODE;
 	scrarea_do_windraw(curarea);
 	screen_swapbuffers();
@@ -2172,8 +2182,13 @@ void fly(void)
 		if (G.qual & LR_CTRLKEY)	correct_vroll=1;
 		else						correct_vroll=0;
 		
+		/* Should we redraw? */
 		if(speed!=0.0 || moffset[0] || moffset[1] || correct_vroll) {
-		
+			time_current= PIL_check_seconds_timer();
+			time_redraw= (float)(time_current-time_lastdraw);
+			time_lastdraw= time_current;
+			/*fprintf(stderr, "%f\n", time_redraw);*/ /* 0.002 is a small redraw 0.02 is larger */
+			
 			Mat3CpyMat4(mat, G.vd->viewinv);
 			if (apply_rotation) {
 				Normalise(dvec);
@@ -2185,7 +2200,7 @@ void fly(void)
 				upvec[1]=0;
 				upvec[2]=0;
 				Mat3MulVecfl(mat, upvec);
-				VecRotToQuat( upvec, (float)moffset[1]*-0.2, tmp_quat); /* Rotate about the relative up vec */
+				VecRotToQuat( upvec, (float)moffset[1]*-time_redraw*10, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 			}
 			
@@ -2195,7 +2210,7 @@ void fly(void)
 				upvec[1]=1;
 				upvec[2]=0;
 				Mat3MulVecfl(mat, upvec);
-				VecRotToQuat( upvec, (float)moffset[0]*0.2, tmp_quat); /* Rotate about the relative up vec */
+				VecRotToQuat( upvec, (float)moffset[0]*time_redraw*10, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 			}
 			
@@ -2229,7 +2244,7 @@ void fly(void)
 			}
 			
 			if (apply_rotation)
-				VecMulf(dvec, speed*0.01);
+				VecMulf(dvec, speed*time_redraw); /*time_redraw was 0.01*/
 			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
 			
@@ -2237,7 +2252,10 @@ void fly(void)
 			/*scrarea_queue_headredraw(curarea); NOT NEDED */
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
-		}
+		} else 
+			/*were not redrawing but we need to update the time else the view will jump */
+			time_lastdraw= PIL_check_seconds_timer();
+		/* end drawing */
 	}
 	
 	/*restore the dist*/

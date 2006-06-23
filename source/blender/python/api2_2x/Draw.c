@@ -1476,11 +1476,6 @@ static PyObject *Method_PupBlock( PyObject * self, PyObject * args )
 			max = (float)PyFloat_AS_DOUBLE(f2);
 			Py_DECREF( f1 );
 			Py_DECREF( f2 );
-			
-			if (max+1>UI_MAX_DRAW_STR) {
-				Py_DECREF( pyItem );
-				return EXPP_ReturnPyObjError( PyExc_ValueError, "The maximum length of a string button is 399" );
-			}
 
 			switch ( but->type ) {
 			case BINT_TYPE:
@@ -1490,6 +1485,10 @@ static PyObject *Method_PupBlock( PyObject * self, PyObject * args )
 				add_numbut(i, NUM|FLO, text, min, max, &but->val.asfloat, tip);
 				break;
 			case BSTRING_TYPE:
+				if (max+1>UI_MAX_DRAW_STR) {
+					Py_DECREF( pyItem );
+					return EXPP_ReturnPyObjError( PyExc_ValueError, "length of a string buttons must be less then 400" );
+				}
 				max = (float)floor(max);
 
 				if (max > but->slen) {
