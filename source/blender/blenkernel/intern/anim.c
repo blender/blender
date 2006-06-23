@@ -461,10 +461,10 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 	int lay, a, counter;	/* counter is used to find in render the indexed object */
 	
 	pa= paf->keys;
-	if(pa==0) {
+	if(pa==NULL || (G.rendering && paf->disp!=100)) {
 		build_particle_system(par);
 		pa= paf->keys;
-		if(pa==0) return;
+		if(pa==NULL) return;
 	}
 	
 	ctime= bsystem_time(par, 0, (float)G.scene->r.cfra, 0.0);
@@ -569,6 +569,13 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 			}
 		}
 	}
+	
+	if(G.rendering && paf->disp!=100) {
+		MEM_freeN(paf->keys);
+		paf->keys= NULL;
+	}
+	
+	
 }
 
 static Object *find_family_object(Object **obar, char *family, char ch)
