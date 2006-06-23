@@ -41,7 +41,7 @@ ifeq ($(WITH_FREETYPE2), true)
 endif
 
 ifneq ($(NAN_NO_KETSJI), true)
-    DIRS += bullet solid qhull/src
+    DIRS += qhull/src solid bullet
 endif
 
 TARGET =
