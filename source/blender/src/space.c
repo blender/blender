@@ -3600,7 +3600,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	View2D *v2d= &sseq->v2d;
 	Sequence *last_seq = get_last_seq();
 	float dx, dy;
-	int doredraw= 0, cfra, first;
+	int doredraw= 0, cfra=0, first;
 	short mval[2];
 	short nr;
 	short mousebut = L_MOUSE;
@@ -3652,7 +3652,8 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				set_special_seq_update(0);
 				
-				update_for_newframe();
+				if (cfra == 0)
+					update_for_newframe();
 			}
 			break;
 		case MIDDLEMOUSE:
