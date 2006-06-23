@@ -3891,7 +3891,7 @@ void transform_ipo(int mode)
 	int tot=0, a, b, firsttime=1, afbreek=0, midtog= 0, dosort, proj = 0;
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn, xc, yc;
-	char str[32];
+	char str[64];
 	
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
 	if(G.sipo->editipo==0) return;
