@@ -735,7 +735,7 @@ void berekenx(float *f, float *o, int b)
 }
 
 /* has to return a float value */
-static float eval_driver(IpoDriver *driver)
+static float eval_driver(IpoDriver *driver, float ipotime)
 {
 	
 	if(driver->type == IPO_DRIVER_TYPE_PYTHON) {
@@ -751,6 +751,12 @@ static float eval_driver(IpoDriver *driver)
 		Object *ob= driver->ob;
 
 		if(ob==NULL) return 0.0f;
+		
+		/* depsgraph failure; ob ipos are calculated in where_is_object, this might get called too late */
+		if(ob->ipo && ob->ctime!=ipotime) {
+			calc_ipo_spec(ob->ipo, driver->adrcode, &ipotime);
+			return ipotime;
+		}
 		
 		if(driver->blocktype==ID_OB) {
 			switch(driver->adrcode) {
@@ -837,7 +843,7 @@ float eval_icu(IpoCurve *icu, float ipotime)
 	
 	if(icu->driver) {
 		/* ipotime now serves as input for the curve */
-		ipotime= cvalue= eval_driver(icu->driver);
+		ipotime= cvalue= eval_driver(icu->driver, ipotime);
 	}
 	if(icu->bezt) {
 		prevbezt= icu->bezt;

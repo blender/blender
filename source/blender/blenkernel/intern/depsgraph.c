@@ -745,7 +745,7 @@ void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel
 		}
 		itA = itA->next;
 	}
-	/* create new relation and insert at head */
+	/* create new relation and insert at head. MALLOC alert! */
 	itA = MEM_mallocN(sizeof(DagAdjList),"DAG adj list");
 	itA->node = fob2;
 	itA->type = rel;
