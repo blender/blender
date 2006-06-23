@@ -199,7 +199,7 @@ void calc_image_view(SpaceImage *sima, char mode)
 			xim= sima->image->ibuf->x;
 			yim= sima->image->ibuf->y;
 		}
-		else if( BLI_streq(sima->image->name, "Render Result") ) {
+		else if( BLI_streq(sima->image->id.name+2, "Render Result") ) {
 			/* not very important, just nice */
 			xim= (G.scene->r.xsch*G.scene->r.size)/100;
 			yim= (G.scene->r.ysch*G.scene->r.size)/100;
@@ -251,7 +251,7 @@ void what_image(SpaceImage *sima)
 		
 	if(sima->mode==SI_TEXTURE) {
 		
-		if(sima->image && BLI_streq(sima->image->name, "Render Result")) {
+		if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result")) {
 			if(sima->image->ibuf==NULL) {
 				RenderResult rres;
 				
@@ -305,9 +305,9 @@ void image_changed(SpaceImage *sima, int dotile)
 			
 			/* exception images, name rules are actually weak... */
 			if(sima->image) {
-				if(BLI_streq(sima->image->name, "Render Result"))
+				if(BLI_streq(sima->image->id.name+2, "Render Result"))
 					return;
-				if(BLI_streq(sima->image->name, "Composite"))
+				if(BLI_streq(sima->image->id.name+2, "Composite"))
 					return;
 			}
 			
@@ -1451,13 +1451,13 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	bwin_clear_viewmat(sa->win);	/* clear buttons view */
 	glLoadIdentity();
 	
-	if(sima->image && BLI_streq(sima->image->name, "Render Result") )
+	if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result") )
 		show_render= 1;
 	
 	what_image(sima);
 	
 	if(sima->image) {
-		if(sima->image->ibuf==NULL) {
+		if(sima->image->ibuf==NULL && show_render==0) {
 			load_image(sima->image, IB_rect, G.sce, G.scene->r.cfra);
 			scrarea_queue_headredraw(sa);	/* update header for image options */
 		}
@@ -2008,7 +2008,7 @@ static ScrArea *imagewindow_set_render_display(void)
 		if(sa->spacetype==SPACE_IMAGE) {
 			sima= sa->spacedata.first;
 			
-			if(sima->image && BLI_streq(sima->image->name, "Render Result") )
+			if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result") )
 				break;
 		}
 	}
@@ -2101,7 +2101,7 @@ void imagewindow_toggle_render(void)
 		if(sa->spacetype==SPACE_IMAGE) {
 			SpaceImage *sima= sa->spacedata.first;
 			
-			if(sima->image && BLI_streq(sima->image->name, "Render Result") )
+			if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result") )
 				if(sima->flag & (SI_PREVSPACE|SI_FULLWINDOW))
 					break;
 		}
