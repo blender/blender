@@ -352,8 +352,11 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['#../lib/windows/gettext/lib/gnu_gettext.dll',
                         '#../lib/windows/png/lib/libpng.dll',
                         '#../lib/windows/python/lib/python24.dll',
+                        '#release/windows/extra/python24.zip',
+                        '#release/windows/extra/zlib.pyd',
                         '#../lib/windows/sdl/lib/SDL.dll',
-                        '#../lib/windows/zlib/lib/zlib.dll']
+                        '#../lib/windows/zlib/lib/zlib.dll',
+                        '#../lib/windows/tiff/lib/libtiff.dll']
     if env['OURPLATFORM'] == 'win32-mingw':
         dllsources += ['#../lib/windows/pthreads/lib/pthreadGC2.dll']
     else:
