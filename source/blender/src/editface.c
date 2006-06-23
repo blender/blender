@@ -1424,8 +1424,7 @@ void set_faceselect()	/* toggle */
 	Object *ob = OBACT;
 	Mesh *me = 0;
 	
-	scrarea_queue_headredraw(curarea);
-	if(ob==NULL) return;
+	if(ob==NULL || (ob->lay & G.vd->lay)==0) return;
 	if(ob->id.lib) {
 		error("Can't edit library data");
 		return;
@@ -1436,6 +1435,8 @@ void set_faceselect()	/* toggle */
 		error("Can't edit library data");
 		return;
 	}
+	
+	scrarea_queue_headredraw(curarea);
 	
 	if(me) /* make sure modifiers are updated for mapping requirements */
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
