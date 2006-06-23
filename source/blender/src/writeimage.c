@@ -222,7 +222,7 @@ void BIF_save_rendered_image_fs(int zbuf)
 	
 	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 
-	if(!rres.rectf) {
+	if(!rres.rectf && !rres.rect32) {
 		error("No image rendered");
 	} else {
 		char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
