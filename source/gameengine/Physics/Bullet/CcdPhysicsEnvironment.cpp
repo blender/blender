@@ -1337,6 +1337,13 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 	SimdVector3 rayFrom(fromX,fromY,fromZ);
 	SimdVector3 rayTo(toX,toY,toZ);
 
+	
+	if (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawAabb)	
+	{
+		SimdVector3 color (1,0,0);
+		m_debugDrawer->DrawLine(rayFrom,rayTo,color);
+	}
+
 	SimdVector3	hitPointWorld,normalWorld;
 
 	//Either Ray Cast with or without filtering
@@ -1354,10 +1361,26 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 		hitX = 	rayCallback.m_hitPointWorld.getX();
 		hitY = 	rayCallback.m_hitPointWorld.getY();
 		hitZ = 	rayCallback.m_hitPointWorld.getZ();
+		if (rayCallback.m_hitNormalWorld.length2() > SIMD_EPSILON)
+		{
+			rayCallback.m_hitNormalWorld.normalize();
+		}
 
 		normalX = rayCallback.m_hitNormalWorld.getX();
 		normalY = rayCallback.m_hitNormalWorld.getY();
 		normalZ = rayCallback.m_hitNormalWorld.getZ();
+		
+		if (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawAabb)	
+		{
+			SimdVector3 colorNormal(0,0,1);
+			m_debugDrawer->DrawLine(rayCallback.m_hitPointWorld,rayCallback.m_hitPointWorld+rayCallback.m_hitNormalWorld,colorNormal);
+		
+			SimdVector3 color (0,1,0);
+			m_debugDrawer->DrawLine(rayFrom,rayCallback.m_hitPointWorld,color);
+			
+		
+		}
+
 
 	}	
 
