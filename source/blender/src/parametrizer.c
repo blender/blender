@@ -2898,7 +2898,7 @@ static PBool p_chart_lscm_solve(PChart *chart)
 		}
 
 		/* angle based lscm formulation */
-		ratio = (sina3 == 0.0f)? 0.0f: sina2/sina3;
+		ratio = (sina3 == 0.0f)? 1.0f: sina2/sina3;
 		cosine = cos(a1)*ratio;
 		sine = sina1*ratio;
 
@@ -2926,6 +2926,12 @@ static PBool p_chart_lscm_solve(PChart *chart)
 	if (nlSolveAdvanced(NULL, NL_TRUE)) {
 		p_chart_lscm_load_solution(chart);
 		return P_TRUE;
+	}
+	else {
+		for (v=chart->verts; v; v=v->nextlink) {
+			v->uv[0] = 0.0f;
+			v->uv[1] = 0.0f;
+		}
 	}
 
 	return P_FALSE;
