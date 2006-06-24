@@ -2035,8 +2035,9 @@ void fly(void)
 	toets, /* for reading teh event */
 	qual_backup; /*backup the Ctrl/Alt/Shift key values for setting the camera back */
 	unsigned char
-	apply_rotation=1, /* if the user presses shift they can look about without movinf the direction there looking*/
-	correct_vroll=0, /* pressuing CTRL uprights the camera off by default */
+	apply_rotation= 1, /* if the user presses shift they can look about without movinf the direction there looking*/
+	correct_vroll= 0, /* pressuing CTRL uprights the camera off by default */
+	strafe= 0, /* if true move side to side rather then backwards and forward */
 	use_camera /* remember weather to go back to a camera or not */;
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
@@ -2136,7 +2137,27 @@ void fly(void)
 				} else if(toets==PADMINUS || toets==MINUSKEY || toets==WHEELDOWNMOUSE) {
 					if (speed>0) speed=0;
 					else speed-= G.vd->grid;
+				
+				/* impliment WASD keys */
+				} else if(toets==WKEY) {
+					if (speed<0) speed=-speed; /* flip speed rather then stopping, game like motion */
+					else speed+= G.vd->grid; /* increse like mousewheel if were alredy moving in that difection*/
+					strafe= 0;
+				} else if(toets==SKEY) { /*SAME as above but flipped */
+					if (speed>0) speed=-speed;
+					else speed-= G.vd->grid;
+					strafe= 0;
+				
+				} else if(toets==AKEY) {
+					if (speed<0) speed=-speed;
+					else speed+= G.vd->grid;
+					strafe= 1;
+				} else if(toets==DKEY) {
+					if (speed>0) speed=-speed;
+					else speed-= G.vd->grid;
+					strafe= 1;
 				}
+				
 			}
 		}
 		if(loop==0) break;
@@ -2173,9 +2194,15 @@ void fly(void)
 			apply_rotation=0;
 		else {
 			apply_rotation=1;
-			/* define dvec, view direction vector */
-			dvec[0]= dvec[1]= 0;
-			dvec[2]= 1.0;
+			if (strafe==0) {
+				/* define dvec, view direction vector */
+				dvec[0]= dvec[1]= 0;
+				dvec[2]= 1.0;
+			} else { /*strafe - sidestep */
+				/* define dvec, view sidewase vector */
+				dvec[2]= dvec[1]= 0;
+				dvec[0]= 1.0;
+			}
 		}
 		
 		/* correct the view rolling */
