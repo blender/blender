@@ -190,7 +190,7 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 		
 		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
 			EM_editselection_center(vec, ese->prev);
-			VecSubf(plane, eve->co, vec);
+			VecSubf(plane, vec, eve->co);
 		} else {
 			/* make a fake  plane thats at rightangles to the normal
 			we cant make a crossvec from a vec thats the same as the vec
