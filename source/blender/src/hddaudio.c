@@ -377,7 +377,7 @@ static void sound_hdaudio_extract_small_block(
 		memset(hdaudio->decode_cache, 0,
 		       hdaudio->decode_cache_size * sizeof(short));
 
-		hdaudio->decode_cache_zero = 0;
+		hdaudio->decode_cache_zero = hdaudio->decode_cache;
 
 		while(av_read_frame(hdaudio->pFormatCtx, &packet) >= 0) {
 			int data_size;

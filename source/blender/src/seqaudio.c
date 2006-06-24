@@ -512,7 +512,7 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 		sound_init_audio();
 	}
 
-   	if (!audio_initialised || !(duration + mixdown)) {
+   	if (!audio_initialised && !(duration + mixdown)) {
    		desired.freq=G.scene->audio.mixrate;
 		desired.format=AUDIO_S16SYS;
    		desired.channels=2;
