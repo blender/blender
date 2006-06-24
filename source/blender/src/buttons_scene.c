@@ -1823,9 +1823,9 @@ static void render_panel_layers(void)
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",	10, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
 	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	115, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	180, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	245, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	115, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
+	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	180, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
+	uiDefButBitS(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	245, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 0, "Passes:",					10,30,150,20, NULL, 0, 0, 0, 0, "");
