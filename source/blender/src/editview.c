@@ -2048,21 +2048,20 @@ void fly(void)
 		clip_backup[0]= G.vd->near;
 		clip_backup[1]= G.vd->far;
 		
-		if (G.vd->camera) {
-			if (G.vd->camera->type==OB_CAMERA) {
-				Camera *cam;
-				cam= G.vd->camera->data;
-				G.vd->lens= cam->lens;
-				G.vd->near= cam->clipsta;
-				G.vd->far= cam->clipend;
-			}
-			
-			where_is_object(G.vd->camera);
-			VECCOPY(G.vd->ofs, G.vd->camera->obmat[3]);
-			VecMulf(G.vd->ofs, -1.0f); /*flip the vector*/
-			dist_backup= G.vd->dist;
-			G.vd->dist=0.0;
+		
+		if (G.vd->camera->type==OB_CAMERA) {
+			Camera *cam;
+			cam= G.vd->camera->data;
+			G.vd->lens= cam->lens;
+			G.vd->near= cam->clipsta;
+			G.vd->far= cam->clipend;
 		}
+		
+		where_is_object(G.vd->camera);
+		VECCOPY(G.vd->ofs, G.vd->camera->obmat[3]);
+		VecMulf(G.vd->ofs, -1.0f); /*flip the vector*/
+		dist_backup= G.vd->dist;
+		G.vd->dist=0.0;
 		
 		camd_xy_backup[0]= G.vd->camdx; /* not ideal but ok for now, offset will jump on and off */
 		camd_xy_backup[1]= G.vd->camdy;
@@ -2070,7 +2069,6 @@ void fly(void)
 		
 		G.vd->persp=1;
 		G.vd->viewbut=0;
-		G.vd->camera= NULL;
 		/*redraw with no camera*/
 		allqueue(REDRAWVIEW3D, 0);
 		
@@ -2271,12 +2269,10 @@ void fly(void)
 			}
 			
 			if (apply_rotation)
-				VecMulf(dvec, speed*time_redraw); /*time_redraw was 0.01*/
+				VecMulf(dvec, speed*time_redraw);
 			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
-			
-			headerprint("FlyModeKeys  Speed(+/- | MouseWheel),  MouseLook: Shift,  RollCorrect: Ctrl,  Exit:LMB");
-			/*scrarea_queue_headredraw(curarea); NOT NEDED */
+			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Shift,  Upright:Ctrl,  Direction:WASD,  Exit:LMB");
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		} else 
@@ -2305,12 +2301,10 @@ void fly(void)
 		
 		G.vd->persp=2;
 		G.vd->viewbut=1;
-		if (use_camera==2) { /* use_camera==2 means the user pressed Esc of RMB, and not to apply view to camera */
-			persptoetsen(PAD0);
-		} else {
+		if (use_camera!=2) { /* use_camera==2 means the user pressed Esc of RMB, and not to apply view to camera */
 			G.vd->camzoom=0; /* so we dont get a zooming jump when the camera switches back. Warning this could be annoying. */
 			qual_backup= G.qual;
-			G.qual |= LR_CTRLKEY|LR_ALTKEY;
+			G.qual |= LR_CTRLKEY|LR_ALTKEY; /* move camera to view */
 			persptoetsen(PAD0);
 			G.qual= qual_backup;
 		}
@@ -2320,7 +2314,6 @@ void fly(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
-	scrarea_queue_headredraw(curarea);
 }
 
 
