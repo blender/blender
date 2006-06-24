@@ -1949,7 +1949,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 		while (!(G.afbreek == 1)) {
 			int nf = mh->get_next_frame();
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
-				scene->r.cfra = nf;
+				scene->r.cfra = re->r.cfra = nf;
 				
 				do_render_all_options(re);
 
