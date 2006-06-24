@@ -2068,7 +2068,7 @@ void do_viewbuts(unsigned short event)
 
 			/* for each axis changed */
 			for (axis = 0; axis<3; axis++) {
-				if (old_dims[axis] != ob_dims[axis]) {
+				if (fabs(old_dims[axis] - ob_dims[axis]) > 0.0001) {
 					if (old_dims[axis] > 0.0) {
 						ratio = ob_dims[axis] / old_dims[axis]; 
 						if (link_scale) {
