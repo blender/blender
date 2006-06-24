@@ -37,3 +37,4 @@ void add_selected_to_group(struct Group *group);
 void rem_selected_from_group(void);
 void group_operation_with_menu(void);
 void group_operation(int mode);
+
