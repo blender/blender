@@ -5427,12 +5427,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree_version_241(sce->nodetree);
 
 			/* uv calculation options moved to toolsettings */
-			sce->toolsettings->uvcalc_radius = 1.0f;
-			sce->toolsettings->uvcalc_cubesize = 1.0f;
-			sce->toolsettings->uvcalc_mapdir = 1;
-			sce->toolsettings->uvcalc_mapalign = 1;
-			sce->toolsettings->uvcalc_flag = 1;
-			sce->toolsettings->unwrapper = 1;
+			if (sce->toolsettings->uvcalc_radius == 0.0) {
+				sce->toolsettings->uvcalc_radius = 1.0f;
+				sce->toolsettings->uvcalc_cubesize = 1.0f;
+				sce->toolsettings->uvcalc_mapdir = 1;
+				sce->toolsettings->uvcalc_mapalign = 1;
+				sce->toolsettings->uvcalc_flag = 1;
+				sce->toolsettings->unwrapper = 1;
+			}
 
 			/* enable uv editor local sticky by default */
 			for (sc= main->screen.first; sc; sc= sc->id.next) {

@@ -3972,7 +3972,12 @@ static void editing_panel_mesh_texface(void)
 
 void do_uvcalculationbuts(unsigned short event)
 {
-	/* nothing to do here */
+	switch(event) {
+	case B_UVAUTO_DRAWFACES:
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+	}
 }
 
 static void editing_panel_mesh_uvautocalculation(void)
@@ -3987,7 +3992,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 		return;
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D, "Draw Faces",	100,row,200,butH, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButBitI(block, TOG, G_DRAWFACES, B_UVAUTO_DRAWFACES, "Draw Faces",	100,row,200,butH, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButBitI(block,TOG, G_DRAWEDGES, REDRAWVIEW3D,"Draw Edges",100,row-butHB,200,butH,&G.f, 2.0, 0, 0, 0,  "Displays edges of visible faces");
  	uiDefButBitI(block,TOG, G_HIDDENEDGES, REDRAWVIEW3D,"Draw Hidden Edges",100,row-2*butHB,200,butH,&G.f, 2.0, 1.0, 0, 0,  "Displays edges of hidden faces");
 	uiDefButBitI(block,TOG, G_DRAWSEAMS, REDRAWVIEW3D,"Draw Seams",100,row-3*butHB,200,butH,&G.f, 2.0, 2.0, 0, 0,  "Displays UV unwrapping seams");
