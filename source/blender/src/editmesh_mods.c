@@ -2375,7 +2375,7 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices/edges/
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	short randfac = 50;
+	static short randfac = 50;
 
 	if(G.obedit==NULL || (G.obedit->lay & G.vd->lay)==0) return;
 
