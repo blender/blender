@@ -883,7 +883,7 @@ void screw_mesh(int steps, int turns)
 		eve= eve->next;
 	}
 	if(v1==0 || v2==0) {
-		error("No curve is selected");
+		error("You have to select a string of connected vertices too");
 		return;
 	}
 
