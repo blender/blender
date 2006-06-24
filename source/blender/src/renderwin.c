@@ -373,7 +373,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 				if(rres.rect32)
 					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_UNSIGNED_BYTE, rres.rect32);
 				else if(rres.rectf)
-					glaDrawPixelsSafe(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
+					glaDrawPixelsSafe_to32(fullrect[0][0], fullrect[0][1], rres.rectx, rres.recty, rres.rectx, rres.rectf);
 			}
 			glPixelZoom(1.0, 1.0);
 		}
