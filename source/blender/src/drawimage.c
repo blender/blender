@@ -298,6 +298,9 @@ void image_changed(SpaceImage *sima, int dotile)
 	TFace *tface;
 	Mesh *me;
 	int a;
+
+	if(sima->image==NULL)
+		sima->flag &= ~SI_DRAWTOOL;
 	
 	if(sima->mode==SI_TEXTURE) {
 		
