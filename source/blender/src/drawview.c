@@ -2106,14 +2106,14 @@ void do_viewbuts(unsigned short event)
 		break;
 	case B_OBJECTPANELPARENT:
 		if(ob) {
-			if( test_parent_loop(ob->parent, ob) ) 
+			if(ob->id.lib || test_parent_loop(ob->parent, ob) ) 
 				ob->parent= NULL;
 			else {
 				DAG_scene_sort(G.scene);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-				allqueue(REDRAWVIEW3D, 1);
-				allqueue(REDRAWBUTSOBJECT, 0);
 			}
+			allqueue(REDRAWVIEW3D, 1);
+			allqueue(REDRAWBUTSOBJECT, 0);
 		}
 		break;
 		
