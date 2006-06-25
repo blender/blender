@@ -1793,10 +1793,10 @@ void do_material_tex(ShadeInput *shi)
 				}
 
 				if(mtex->maptoneg & MAP_DISPLACE) {
-					factt= (texres.tin-0.5f)*mtex->dispfac; facmm= 1.0f-factt;
+					factt= (texres.tin-0.5f)*mtex->dispfac*stencilTin; facmm= 1.0f-factt;
 				}
 				else {
-					factt= (0.5f-texres.tin)*mtex->dispfac; facmm= 1.0f-factt;
+					factt= (0.5f-texres.tin)*mtex->dispfac*stencilTin; facmm= 1.0f-factt;
 				}
 
 				if(mtex->blendtype==MTEX_BLEND) {
