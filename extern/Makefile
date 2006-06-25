@@ -40,6 +40,12 @@ ifeq ($(WITH_FREETYPE2), true)
     DIRS += bFTGL/src
 endif
 
+ifeq ($(WITH_FFMPEG), true)
+ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
+    DIRS += ffmpeg
+endif
+endif
+
 ifneq ($(NAN_NO_KETSJI), true)
     DIRS += qhull/src solid bullet
 endif
