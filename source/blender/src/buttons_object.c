@@ -1394,6 +1394,7 @@ void do_object_panels(unsigned short event)
 	case B_RELKEY:
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWIPO, 0);
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		break;

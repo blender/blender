@@ -696,12 +696,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Enter the name of a Meshblock");
 	
-	if(me->key) {
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_DIFF, "Slurph:",				175,95,95,19, &(me->key->slurph), -500.0, 500.0, 0, 0, "");
-		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",		175,75,95,19, &me->key->type, 0, 0, 0, 0, "");
-	}
-
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_SLOWERDRAW,"SlowerDraw",			175,30,95,19, 0, 0, 0, 0, 0, "Displays the active object with all possible edges shown");
 	uiDefBut(block, BUT, B_FASTERDRAW,"FasterDraw",			175,10,95,19, 0, 0, 0, 0, 0, "Displays the active object faster by omitting some edges when drawing");
@@ -1615,6 +1609,9 @@ static void editing_panel_shapes(Object *ob)
 	if(key->type && ob->shapenr!=1)
 		uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",	10, 90, 150,19, &kb->vgroup, 0.0, 31.0, 0, 0, "Vertex Weight Group name, to blend with Basis Shape");
 
+	if(key->type==0)
+		uiDefButS(block, NUM, B_DIFF, "Slurph:",			10, 60, 150, 19, &(key->slurph), -500.0, 500.0, 0, 0, "Creates a delay in amount of frames in applying keypositions, first vertex goes first");
+	
 }
 
 /* *************************** FONT ******************************** */
