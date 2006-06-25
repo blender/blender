@@ -380,7 +380,7 @@ static void previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 	ofsy= ri->disprect.ymin + rr->tilerect.ymin;
 	
 	glDrawBuffer(GL_FRONT);
-	glaDrawPixelsSafe(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, GL_RGBA, GL_FLOAT, rl->rectf);
+	glaDrawPixelsSafe_to32(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, rl->rectf);
 	glFlush();
 	glDrawBuffer(GL_BACK);
 }
