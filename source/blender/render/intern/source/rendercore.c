@@ -482,13 +482,21 @@ static void halo_pixelstruct(HaloRen *har, float *rb, float dist, float xn, floa
 static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 {
 	HaloRen *har = NULL;
-	rcti disprect= pa->disprect;
+	rcti disprect= pa->disprect, testrect= pa->disprect;
 	float dist, xsq, ysq, xn, yn, *rb;
 	float col[4];
 	long *rd= NULL;
 	int a, *rz, zz, y;
 	short minx, maxx, miny, maxy, x;
 
+	/* we don't render halos in the cropped area, gives errors in flare counter */
+	if(pa->crop) {
+		testrect.xmin+= pa->crop;
+		testrect.xmax-= pa->crop;
+		testrect.ymin+= pa->crop;
+		testrect.ymax-= pa->crop;
+	}
+	
 	for(a=0; a<R.tothalo; a++) {
 		if((a & 255)==0) {
 			if(R.test_break() ) break; 
@@ -498,22 +506,22 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 
 		/* layer test, clip halo with y */
 		if((har->lay & lay)==0);
-		else if(disprect.ymin > har->maxy);
-		else if(disprect.ymax < har->miny);
+		else if(testrect.ymin > har->maxy);
+		else if(testrect.ymax < har->miny);
 		else {
 			
 			minx= floor(har->xs-har->rad);
 			maxx= ceil(har->xs+har->rad);
 			
-			if(disprect.xmin > maxx);
-			else if(disprect.xmax < minx);
+			if(testrect.xmin > maxx);
+			else if(testrect.xmax < minx);
 			else {
 				
-				minx= MAX2(minx, disprect.xmin);
-				maxx= MIN2(maxx, disprect.xmax);
+				minx= MAX2(minx, testrect.xmin);
+				maxx= MIN2(maxx, testrect.xmax);
 			
-				miny= MAX2(har->miny, disprect.ymin);
-				maxy= MIN2(har->maxy, disprect.ymax);
+				miny= MAX2(har->miny, testrect.ymin);
+				maxy= MIN2(har->maxy, testrect.ymax);
 			
 				for(y=miny; y<maxy; y++) {
 					int rectofs= (y-disprect.ymin)*pa->rectx + (minx - disprect.xmin);
