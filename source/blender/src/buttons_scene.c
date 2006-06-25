@@ -816,31 +816,20 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "edge render", UI_EMBOSS, UI_HELV, curarea->win);
 		
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",  290, -15, 220, 115, NULL,  0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "",  0, 0, 220, 115, NULL,  0, 0, 0, 0, "");
 	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, 0,"Eint:",  	370,75,135,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
+	uiDefButS(block, NUM, 0,"Eint:",  	45,75,175,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
 		  "Sets edge intensity for Toon shading");
-	uiDefButS(block, NUM, 0,"AntiShift",370,55,135,19,  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
-		  "For unified renderer: reduce intensity on boundaries "
-		  "with identical materials with this number.");
 
-	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG, 0,"Shift", 	295,75,70,19,  &G.compat, 0, 0, 0, 0,
-		  "For unified renderer: use old offsets for edges");
-	uiDefButI(block, TOG, 0,"All",		295,55,70,19,  &G.notonlysolid, 0, 0, 0, 0,
-		  "For unified renderer: also consider transparent faces for toon shading");
-	uiBlockEndAlign(block);
-	
 	/* colour settings for the toon shading */
-	uiDefButF(block, COL, 0, "", 		295,-10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, B_EDGECOLSLI, "");
+	uiDefButF(block, COL, 0, "", 		10, 10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, B_EDGECOLSLI, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "R ",   330, 30, 175,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, 0, "R ",   45, 50, 175,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "G ",  	330, 10, 175,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, 0, "G ",  	45, 30, 175,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "B ",  	330, -10, 175,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, 0, "B ",  	45, 10, 175,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
 
 	
