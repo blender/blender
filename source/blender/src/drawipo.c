@@ -1049,7 +1049,7 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	if(ob && sipo->blocktype==ID_KE) {
 		int icon;
 		if(ob->shapeflag & OB_SHAPE_LOCK) icon= ICON_PIN_HLT; else icon= ICON_PIN_DEHLT;
-		uiDefIconButBitC(block, TOG, OB_SHAPE_LOCK, B_SETKEY, icon, 
+		uiDefIconButBitS(block, TOG, OB_SHAPE_LOCK, B_SETKEY, icon, 
 						 v2d->mask.xmax+18,y,25,20, &ob->shapeflag, 0, 0, 0, 0, "Always show the current Shape for this Object");
 		y-= IPOBUTY;
 	}

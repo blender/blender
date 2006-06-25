@@ -193,9 +193,11 @@ typedef struct Object {
 	struct Group *dup_group;	/* object duplicator for group */
 	
 	short fluidsimFlag;			/* NT toggle fluidsim participation on/off */
-	char shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
+	short pad3;
+	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
-
+	int pad4;
+	
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
   
 	struct DerivedMesh *derivedDeform, *derivedFinal;
