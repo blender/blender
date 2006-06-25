@@ -92,9 +92,11 @@ endif
       export NAN_FFMPEG ?= $(LCGDIR)/gcc/ffmpeg
       export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavutil -lavcodec
       export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
-
     else
       export NAN_FTGL ?= $(LCGDIR)/ftgl
+      export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
+      export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavutil -lavcodec
+      export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
     endif
 
     export WITH_OPENEXR ?= true
