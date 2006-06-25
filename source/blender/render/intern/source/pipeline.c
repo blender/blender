@@ -1582,7 +1582,7 @@ static int composite_needs_render(Scene *sce)
 		
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==CMP_NODE_R_LAYERS)
-			if(node->id==NULL || node->id!=&sce->id)
+			if(node->id==NULL || node->id==&sce->id)
 				return 1;
 	}
 	return 0;
