@@ -3157,9 +3157,11 @@ static void material_panel_nodes(Material *ma)
 	if(node==editnode_get_active_idnode(ma->nodetree, ID_MA)) return;
 	
 	if(node->typeinfo->butfunc) {
+		/* we use butfunc to retrieve height for the butrect, but node->width is 
+		   used to calculate that too. Could be done smarter once */
 		rctf rct;
 		rct.xmin= 10.0f;
-		rct.xmax= rct.xmin+node->typeinfo->width;
+		rct.xmax= rct.xmin+node->width-NODE_DY;
 		rct.ymax= 155.0;
 		rct.ymin= rct.ymax - (float)node->typeinfo->butfunc(NULL, NULL, node, NULL);
 		node->typeinfo->butfunc(block, ma->nodetree, node, &rct);
