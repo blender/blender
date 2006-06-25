@@ -1924,6 +1924,9 @@ void do_effects_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_RECALCAL:
+		if (G.vd==NULL)
+			break;
+		
 		base= FIRSTBASE;
 		while(base) {
 			if(base->lay & G.vd->lay) {

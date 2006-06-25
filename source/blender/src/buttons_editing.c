@@ -632,6 +632,9 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		
 		
 	default:
+		if (G.vd==NULL)
+			break;
+		
 		if(event>=B_OBLAY && event<=B_OBLAY+31) {
 			local= BASACT->lay & 0xFF000000;
 			BASACT->lay -= local;

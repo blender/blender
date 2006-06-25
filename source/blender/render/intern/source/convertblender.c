@@ -3860,6 +3860,11 @@ void RE_make_sticky(void)
 	float ho[4], mat[4][4];
 	int a;
 	
+	if(G.vd==NULL) {
+		printf("Need a 3d view to make sticky\n");
+		return;
+	}
+	
 	if(G.scene->camera==NULL) {
 		printf("Need camera to make sticky\n");
 		return;

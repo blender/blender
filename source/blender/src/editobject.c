@@ -1590,7 +1590,7 @@ void docentre(int centremode)
 	int a, total= 0;
 	MVert *mvert;
 
-	if(G.scene->id.lib) return;
+	if(G.scene->id.lib || G.vd==NULL) return;
 	
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
@@ -4820,7 +4820,7 @@ void auto_timeoffs(void)
 	int tot=0, a;
 	short offset=25;
 
-	if(BASACT==0) return;
+	if(BASACT==0 || G.vd==NULL) return;
 	if(button(&offset, 0, 1000,"Total time")==0) return;
 
 	/* make array of all bases, xco yco (screen) */

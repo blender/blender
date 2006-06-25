@@ -450,7 +450,7 @@ void fasterdraw(void)
 	Mesh *me;
 	int toggle, a;
 
-	if(G.obedit) return;
+	if(G.obedit || G.vd==NULL) return;
 
 	/* reset flags */
 	me= G.main->mesh.first;
@@ -494,7 +494,7 @@ void slowerdraw(void)		/* reset fasterdraw */
 	Mesh *me;
 	int a;
 
-	if(G.obedit) return;
+	if(G.obedit || G.vd==NULL) return;
 
 	base= FIRSTBASE;
 	while(base) {

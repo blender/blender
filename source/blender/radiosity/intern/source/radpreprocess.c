@@ -313,6 +313,11 @@ void rad_collect_meshes()
 	float *vd, *v1, *v2, *v3, *v4 = NULL;
 	int a, b, offs, index;
 	
+	if (G.vd==NULL) {
+		printf("Error, trying to collect radiosity meshes with no 3d view\n");
+		return;
+	}
+	
 	if(G.obedit) {
 		if (!during_script()) error("Unable to perform function in EditMode");
 		return;
