@@ -2016,6 +2016,8 @@ void fly(void)
 	tmpvec[3], /* global up vector - compare with upvec for angle */
 	
 	dist_backup, /* backup the views distance since we use a zero dist for fly mode */
+	quat_backup[4], /* backup the views quat incase the user cancels flying in non camera mode */
+	ofs_backup[3], /* backup the views offset incase the user cancels flying in non camera mode */
 	lens_backup=1.0, /* backup the views lense, adopt tha cameras lense during fly mode */
 	clip_backup[2], /* if using the camera- adopt its clip near/far */
 	moffset[2], /* mouse offset from the views center */
@@ -2029,18 +2031,21 @@ void fly(void)
 	short val, /* used for toets to see if a buttons pressed */
 	cent[2], /* view center */
 	mval[2], /* mouse location */
-	loop=1, /* while true, stay in fly mode */
+	action=0, /* while zero stay in fly mode and wait for action, also used to see if we accepted or canceled 1:ok 2:Cancel */
 	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
 	unsigned short
-	toets, /* for reading teh event */
+	toets, /* for reading the event */
 	qual_backup; /*backup the Ctrl/Alt/Shift key values for setting the camera back */
 	unsigned char
 	apply_rotation= 1, /* if the user presses shift they can look about without movinf the direction there looking*/
 	correct_vroll= 0, /* pressuing CTRL uprights the camera off by default */
-	strafe= 0, /* if true move side to side rather then backwards and forward */
-	use_camera /* remember weather to go back to a camera or not */;
+	axis= 2, /* Axis index to move allong by default Z to move allong the view */
+	use_camera, /* remember weather to go back to a camera or not */
+	persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
+	
+	persp_backup= G.vd->persp;
 	
 	if (G.vd->persp==2) { /* Camera */
 		use_camera= 1;
@@ -2078,6 +2083,8 @@ void fly(void)
 			G.vd->persp= 1; /*if ortho projection, make perspective */
 		use_camera= 0;
 		dist_backup= G.vd->dist;
+		QUATCOPY(quat_backup, G.vd->viewquat);
+		VECCOPY(ofs_backup, G.vd->ofs);
 		G.vd->dist= 0.0;
 		
 		upvec[2]=dist_backup; /*x and y are 0*/
@@ -2116,18 +2123,17 @@ void fly(void)
 	scrarea_do_windraw(curarea);
 	screen_swapbuffers();
 	
-	while(loop) {
+	while(action==0) { /* keep flying, no acton taken */
 		while(qtest()) {
 			toets= extern_qread(&val);
 			
 			if(val) {
 				if(toets==MOUSEY) getmouseco_areawin(mval);
 				else if(toets==ESCKEY || toets==RIGHTMOUSE) {
-					if (use_camera) use_camera=2; /* dont apply view to camera */
-					loop= 0;
+					action= 2; /* Canceled */
 					break;
 				} else if(toets==SPACEKEY || toets==LEFTMOUSE) {
-					loop= 0;
+					action= 1; /* Accepted */
 					break;
 				} else if(toets==PADPLUSKEY || toets==EQUALKEY || toets==WHEELUPMOUSE) {
 					if (speed<0) speed=0;
@@ -2140,25 +2146,33 @@ void fly(void)
 				} else if(toets==WKEY) {
 					if (speed<0) speed=-speed; /* flip speed rather then stopping, game like motion */
 					else speed+= G.vd->grid; /* increse like mousewheel if were alredy moving in that difection*/
-					strafe= 0;
+					axis= 2;
 				} else if(toets==SKEY) { /*SAME as above but flipped */
 					if (speed>0) speed=-speed;
 					else speed-= G.vd->grid;
-					strafe= 0;
+					axis= 2;
 				
 				} else if(toets==AKEY) {
 					if (speed<0) speed=-speed;
 					else speed+= G.vd->grid;
-					strafe= 1;
+					axis= 0;
 				} else if(toets==DKEY) {
 					if (speed>0) speed=-speed;
 					else speed-= G.vd->grid;
-					strafe= 1;
+					axis= 0;
+				} else if(toets==FKEY) {
+					if (speed<0) speed=-speed;
+					else speed+= G.vd->grid;
+					axis= 1;
+				} else if(toets==RKEY) {
+					if (speed>0) speed=-speed;
+					else speed-= G.vd->grid;
+					axis= 1;
 				}
 				
 			}
 		}
-		if(loop==0) break;
+		if(action!=0) break;
 		
 		
 		moffset[0]= mval[0]-cent[0];
@@ -2184,24 +2198,6 @@ void fly(void)
 			moffset[1]= moffset[1]*fabs(moffset[1]);
 		}
 		
-		/* make it so the camera direction dosent follow the view
-		good for flying backwards! */	
-		if ((G.qual & LR_SHIFTKEY) && speed!=0.0 && (moffset[0]||moffset[1]))
-			/*(Above IF) We need to make sure we have some mouse offset
-			and are moving before we ignore the rotation code, otherwise the view spins out */
-			apply_rotation=0;
-		else {
-			apply_rotation=1;
-			if (strafe==0) {
-				/* define dvec, view direction vector */
-				dvec[0]= dvec[1]= 0;
-				dvec[2]= 1.0;
-			} else { /*strafe - sidestep */
-				/* define dvec, view sidewase vector */
-				dvec[2]= dvec[1]= 0;
-				dvec[0]= 1.0;
-			}
-		}
 		
 		/* correct the view rolling */
 		if (G.qual & LR_CTRLKEY)	correct_vroll=1;
@@ -2209,10 +2205,33 @@ void fly(void)
 		
 		/* Should we redraw? */
 		if(speed!=0.0 || moffset[0] || moffset[1] || correct_vroll) {
+			
+			/* Set the view direction usine the current axis */
+			if ((G.qual & LR_ALTKEY) && speed!=0.0 && (moffset[0]||moffset[1]))
+				/* make it so the camera direction dosent follow the view
+				good for flying backwards! - Only when Alt is held */
+			
+				/*(Above IF) We need to make sure we have some mouse offset
+				and are moving before we ignore the rotation code, otherwise the view spins out */
+				apply_rotation=0;
+			else {
+				/* Normal operation */
+				apply_rotation=1;
+				/* define dvec, view direction vector */
+				dvec[0]= dvec[1]= dvec[2]= 0;
+				/* move along the current axis */
+				dvec[axis]= 1.0f;
+			}
+			
 			time_current= PIL_check_seconds_timer();
 			time_redraw= (float)(time_current-time_lastdraw);
 			time_lastdraw= time_current;
 			/*fprintf(stderr, "%f\n", time_redraw);*/ /* 0.002 is a small redraw 0.02 is larger */
+			
+			/* Scale the time to use shift to scale the speed down- just like
+			shift slows many other areas of blender down */
+			if (G.qual & LR_SHIFTKEY)
+				time_redraw= time_redraw*0.1;
 			
 			Mat3CpyMat4(mat, G.vd->viewinv);
 			if (apply_rotation) {
@@ -2272,7 +2291,7 @@ void fly(void)
 				VecMulf(dvec, speed*time_redraw);
 			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
-			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Shift,  Upright:Ctrl,  Direction:WASD,  Exit:LMB");
+			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Alt,  Upright:Ctrl,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Cancel:RMB");
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		} else 
@@ -2293,6 +2312,7 @@ void fly(void)
 	/*Done with correcting for the dist */
 	
 	if (use_camera) {
+		/* Camera, we need to set the camera to the current view */
 		G.vd->lens= lens_backup; /* restore the views perspectiove lense angle */
 		G.vd->near= clip_backup[0];
 		G.vd->far= clip_backup[1];
@@ -2301,13 +2321,19 @@ void fly(void)
 		
 		G.vd->persp=2;
 		G.vd->viewbut=1;
-		if (use_camera!=2) { /* use_camera==2 means the user pressed Esc of RMB, and not to apply view to camera */
+		if (action != 2) { /* use_camera==2 means the user pressed Esc of RMB, and not to apply view to camera */
 			G.vd->camzoom=0; /* so we dont get a zooming jump when the camera switches back. Warning this could be annoying. */
 			qual_backup= G.qual;
 			G.qual |= LR_CTRLKEY|LR_ALTKEY; /* move camera to view */
 			persptoetsen(PAD0);
 			G.qual= qual_backup;
 		}
+	} else if (action == 2) { /* user canceled from non camera mode, restoring the view from backup */
+		/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
+		QUATCOPY(G.vd->viewquat, quat_backup);
+		VECCOPY(G.vd->ofs, ofs_backup);
+		G.vd->persp= persp_backup; /* if we canceled from ortho mode then go back into it*/
+		
 	}
 	
 	G.vd->flag2 &= ~V3D_FLYMODE;
