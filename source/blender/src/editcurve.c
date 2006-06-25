@@ -2797,6 +2797,7 @@ void makecyclicNurb()
 						if(nu->flagu & 1) nu->flagu--;
 						else {
 							nu->flagu++;
+							nu->flagu &= ~2;	/* endpoint flag, fixme */
 							fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
 							b= (nu->orderu+nu->pntsu);
 							memcpy(fp, nu->knotsu, sizeof(float)*b);
