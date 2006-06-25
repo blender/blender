@@ -783,7 +783,7 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 	}
 	else {
 		/* check state variables, osa? */
-		if(re->r.mode & (R_OSA|R_MBLUR)) {
+		if(re->r.mode & (R_OSA)) {
 			re->osa= re->r.osa;
 			if(re->osa>16) re->osa= 16;
 		}
