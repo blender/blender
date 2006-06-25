@@ -657,10 +657,10 @@ static void drawfloor(void)
 	BIF_GetThemeColor3ubv(TH_BACK, col2);
 	
 	/* emphasise division lines lighter instead of darker, if background is darker than grid */
-	if ( (col[0]+col[1]+col[2])/3 > (col2[0]+col2[1]+col2[2])/3 )
-		emphasise = -10;
-	else
+	if ( ((col[0]+col[1]+col[2])/3+10) > (col2[0]+col2[1]+col2[2])/3 )
 		emphasise = 20;
+	else
+		emphasise = -10;
 	
 	/* draw the Y axis and/or grid lines */
 	for(a= -gridlines;a<=gridlines;a++) {
