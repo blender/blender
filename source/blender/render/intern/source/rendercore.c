@@ -1748,7 +1748,13 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 							
 							inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 							
-							if(lar->shb) i = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
+							if(lar->shb) {
+								/* lampbuffer returns 0.0 on backfacing normals now */
+								if(inp <= 0.0f) 
+									i= 1.0f;
+								else
+									i = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
+							}
 							else {
 								float shad[4];
 								ray_shadow(shi, lar, shad);
