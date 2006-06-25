@@ -1414,6 +1414,12 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 			if(sock->ns.data) {
 				free_compbuf(sock->ns.data);
 				sock->ns.data= NULL;
+				
+				if(node->preview && node->preview->rect) {
+					MEM_freeN(node->preview->rect);
+					node->preview->rect= NULL;
+				}
+					
 			}
 		}
 		node->need_exec= 1;

@@ -284,6 +284,7 @@ static void composit_node_event(SpaceNode *snode, short event)
 			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
 			if(node) {
 				NodeTagChanged(snode->edittree, node);
+				NodeTagIDChanged(snode->nodetree, node->id);	/* Scene-layer nodes, texture nodes, image nodes, all can be used many times */
 				
 				/* not the best implementation of the world... but we need it to work now :) */
 				if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
