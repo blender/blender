@@ -1456,6 +1456,7 @@ static void do_render_fields_blur_3d(Render *re)
 	/* only check for camera here */
 	if(re->scene->camera==NULL) {
 		re->error("No camera");
+		G.afbreek= 1;
 		return;
 	}
 	
