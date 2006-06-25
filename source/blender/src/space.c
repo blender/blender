@@ -1004,11 +1004,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case LEFTMOUSE: 
 				if ((G.obedit) || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
 					mouse_cursor();
-				} else if (G.f & G_VERTEXPAINT) {
-					vertex_paint();
 				}
 				else if (G.f & G_WEIGHTPAINT){
 					weight_paint();
+				}
+				else if (G.f & G_VERTEXPAINT) {
+					vertex_paint();
 				}
 				else if (G.f & G_TEXTUREPAINT) {
 					face_draw();
