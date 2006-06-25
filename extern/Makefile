@@ -1,5 +1,9 @@
 #
+<<<<<<< Makefile
 # $Id$
+=======
+# $Id$
+>>>>>>> 1.18
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -34,7 +38,7 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = 
+DIRS = qhull/src solid 
 
 ifeq ($(WITH_FREETYPE2), true)
     DIRS += bFTGL/src
@@ -44,13 +48,19 @@ ifeq ($(WITH_FFMPEG), true)
 ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
     DIRS += ffmpeg
 endif
+ifeq ($(NAN_FFMPEG), $(LCGDIR)/gcc/ffmpeg)
+    DIRS += ffmpeg
+endif
 endif
 
 ifneq ($(NAN_NO_KETSJI), true)
-    DIRS += qhull/src solid bullet
+    DIRS += bullet
 endif
 
 TARGET =
+ifneq ($(OS),irix)
+  TARGET=solid
+endif
 
 all::
 	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
