@@ -5486,8 +5486,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
-		/* stucci returns intensity from now on */
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
+			/* stucci returns intensity from now on */
 			int a;
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a] && ma->mtex[a]->tex) {
@@ -5496,6 +5496,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						ma->mtex[a]->mapto &= ~(MAP_COL|MAP_SPEC|MAP_REF);
 				}
 			}
+			/* transmissivity defaults */
+			if(ma->tx_falloff==0.0) ma->tx_falloff= 1.0;
 		}
 		
 		/* during 2.41 images with this name were used for viewer node output, lets fix that */

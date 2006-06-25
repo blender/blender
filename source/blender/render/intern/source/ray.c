@@ -1548,7 +1548,7 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		return -1;
 	   
 	if (shi->mat->tx_limit <= 0.0) {
-		d= 0.0;
+		d= 1.0;
 	} else {
 	/* shi.co[] calculated by shade_ray() */
 	dx= shi->co[0] - is->start[0];
