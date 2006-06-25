@@ -1,9 +1,4 @@
-#
-<<<<<<< Makefile
 # $Id$
-=======
-# $Id$
->>>>>>> 1.18
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
