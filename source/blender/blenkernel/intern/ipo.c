@@ -1512,7 +1512,7 @@ void set_icu_vars(IpoCurve *icu)
 			case MA_HASIZE:
 				icu->ymax= 10000.0; break;
 			case MA_HARD:
-				icu->ymax= 128.0; break;
+				icu->ymax= 511.0; break;
 			case MA_SPEC:
 				icu->ymax= 2.0; break;
 			case MA_MODE:
