@@ -752,13 +752,13 @@ static float eval_driver(IpoDriver *driver, float ipotime)
 
 		if(ob==NULL) return 0.0f;
 		
-		/* depsgraph failure; ob ipos are calculated in where_is_object, this might get called too late */
-		if(ob->ipo && ob->ctime!=ipotime) {
-			calc_ipo_spec(ob->ipo, driver->adrcode, &ipotime);
-			return ipotime;
-		}
-		
 		if(driver->blocktype==ID_OB) {
+			/* depsgraph failure; ob ipos are calculated in where_is_object, this might get called too late */
+			if(ob->ipo && ob->ctime!=ipotime) {
+				calc_ipo_spec(ob->ipo, driver->adrcode, &ipotime);
+				return ipotime;
+			}
+			
 			switch(driver->adrcode) {
 			case OB_LOC_X:
 				return ob->loc[0];
