@@ -84,7 +84,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_spacetypes.h"  // first, nasty dependency with typedef
+#include "BIF_spacetypes.h"  /* first, nasty dependency with typedef */
 
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
@@ -182,7 +182,7 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 	SpaceLink *sl= sa->spacedata.first;
 	short a;
 	
-	// find empty spot
+	/* find empty spot */
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		if( sl->blockhandler[a]==eventcode ) {
 			sl->blockhandler[a+1]= val;
@@ -219,7 +219,7 @@ void toggle_blockhandler(ScrArea *sa, short eventcode, short val)
 	SpaceLink *sl= sa->spacedata.first;
 	short a, addnew=1;
 	
-	// find if it exists
+	/* find if it exists */
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		if( sl->blockhandler[a]==eventcode ) {
 			sl->blockhandler[a]= 0;
@@ -428,8 +428,8 @@ static LinkNode *save_and_reset_all_scene_cfra(void)
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
 		BLI_linklist_prepend(&storelist, (void*) (long) sc->r.cfra);
 
-		//why is this reset to 1 ?
-		//sc->r.cfra= 1;
+		/* why is this reset to 1 ?*/
+		/* sc->r.cfra= 1;*/
 
 		set_scene_bg(sc);
 	}
@@ -833,7 +833,7 @@ void BIF_undo_menu(void)
 static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	View3D *v3d= sa->spacedata.first;
-	Object *ob= OBACT;	// do not change!
+	Object *ob= OBACT;	/* do not change! */
 	float *curs;
 	int doredraw= 0, pupval;
 	unsigned short event= evt->event;
@@ -847,7 +847,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		if(event==MOUSEY || event==MOUSEX) return;
 		
-		if(event==UI_BUT_EVENT) do_butspace(val); // temporal, view3d deserves own queue?
+		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
 		/* we consider manipulator a button, defaulting to leftmouse */
 		if(event==LEFTMOUSE) if(BIF_do_manipulator(sa)) return;
@@ -1048,17 +1048,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						mouse_armature();
 				}
 				else if((G.obedit && G.obedit->type==OB_MESH) && (G.qual == (LR_CTRLKEY|LR_ALTKEY)))
-					mouse_mesh();	// loop select for 1 mousebutton dudes
+					mouse_mesh();	/* loop select for 1 mousebutton dudes */
 				else if((G.obedit && G.obedit->type==OB_MESH) && (G.qual == (LR_CTRLKEY|LR_ALTKEY|LR_SHIFTKEY)))
-					mouse_mesh();	// loop select for 1 mousebutton dudes
+					mouse_mesh();	/* loop select for 1 mousebutton dudes */
 				else if(G.qual==LR_CTRLKEY)
-					mouse_select();	// also allow in editmode, for vertex parenting
+					mouse_select();	/* also allow in editmode, for vertex parenting */
 				else if(G.f & G_FACESELECT)
 					face_select();
 				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
 					sample_vpaint();
 				else
-					mouse_select();	// does poses too
+					mouse_select();	/* does poses too */
 				break;
 			case WHEELUPMOUSE:
 				/* Regular:   Zoom in */
@@ -1213,7 +1213,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case AKEY:
-				if(G.qual & LR_CTRLKEY) apply_object();	// also with shift!
+				if(G.qual & LR_CTRLKEY) apply_object();	/* also with shift! */
 				else if((G.qual==LR_SHIFTKEY)) {
 					toolbox_n_add();
 				}
@@ -1228,7 +1228,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.obedit->type==OB_LATTICE)
 							deselectall_Latt();
 						else if(G.obedit->type==OB_ARMATURE)
-							deselectall_armature(1);	// 1 == toggle
+							deselectall_armature(1);	/* 1 == toggle */
 					}
 					else if (ob && (ob->flag & OB_POSEMODE)){
 						deselectall_posearmature(ob, 1);
@@ -1255,7 +1255,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						extern void softbody_bake(Object *ob);
 						extern void fluidsimBake(Object *ob);
 						softbody_bake(NULL);
-						// also bake first domain of selected objects...
+						/* also bake first domain of selected objects... */
 						fluidsimBake(NULL);
 					}
 				}
@@ -1836,12 +1836,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else if((G.qual==0)) {
-					if (G.f & G_FACESELECT)
-						uv_autocalc_tface();
-					else if(G.f & G_WEIGHTPAINT)
+					if(G.f & G_WEIGHTPAINT)
 						wpaint_undo();
 					else if(G.f & G_VERTEXPAINT)
 						vpaint_undo();
+					else if (G.f & G_FACESELECT)
+						uv_autocalc_tface();
 					else {
 						single_user();
 					}
@@ -2082,7 +2082,7 @@ static void changeview2dspace(ScrArea *sa, void *spacedata)
 
 static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
-	extern void do_ipobuts(unsigned short event); 	// drawipo.c
+	extern void do_ipobuts(unsigned short event); 	/* drawipo.c */
 	unsigned short event= evt->event;
 	short val= evt->val;
 	SpaceIpo *sipo= curarea->spacedata.first;
@@ -2120,7 +2120,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_ipo_selectbuttons();
 				doredraw= 1;
 			}
-			else if(view2dmove(LEFTMOUSE));	// only checks for sliders
+			else if(view2dmove(LEFTMOUSE));	/* only checks for sliders */
 			else if(G.qual & LR_CTRLKEY) add_vert_ipo();
 			else {
 				do {
@@ -2313,7 +2313,7 @@ static void space_sound_button_function(int event)
 }
 #endif
 
-// needed for event; choose new 'curmain' resets it...
+/* needed for event; choose new 'curmain' resets it... */
 static short th_curcol= TH_BACK;
 static char *th_curcol_ptr= NULL;
 static char th_curcol_arr[4]={0, 0, 0, 255};
@@ -2326,7 +2326,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	short a, tot=0, isbuiltin= 0;
 	char string[21*32], *strp, *col;
 	
-	y3= y2+23;	// exception!
+	y3= y2+23;	/* exception! */
 	
 	/* count total, max 16! */
 	for(bt= U.themes.first; bt; bt= bt->next) tot++;
@@ -2390,12 +2390,12 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	else if(curmain==14) spacetype= SPACE_IMASEL;
 	else if(curmain==15) spacetype= SPACE_TIME;
 	else if(curmain==16) spacetype= SPACE_NODE;
-	else return; // only needed while coding... when adding themes for more windows
+	else return; /* only needed while coding... when adding themes for more windows */
 	
 	/* color choices pup */
 	if(curmain==1) {
 		strp= BIF_ThemeColorsPup(0);
-		if(th_curcol==TH_BACK) th_curcol= TH_BUT_OUTLINE;  // switching main choices...
+		if(th_curcol==TH_BACK) th_curcol= TH_BUT_OUTLINE;  /* switching main choices... */
 	}
 	else strp= BIF_ThemeColorsPup(spacetype);
 	
@@ -2834,12 +2834,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
 			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
 
-//		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
-//			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,
-//			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Action Ipo curve");
-//		uiDefButBitS(block, TOG, USER_KEYINSERTOBJ, 0, "Object",
-//			(xpos+edgsp+(2*mpref)+(3*midsp)+spref-edgsp),y2,(spref+edgsp),buth,
-//			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Object Ipo curve");
+/*		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
+			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,
+			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Action Ipo curve");
+		uiDefButBitS(block, TOG, USER_KEYINSERTOBJ, 0, "Object",
+			(xpos+edgsp+(2*mpref)+(3*midsp)+spref-edgsp),y2,(spref+edgsp),buth,
+			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Object Ipo curve"); */
 
 
 		uiDefBut(block, LABEL,0,"Duplicate with object:",
@@ -3269,7 +3269,7 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				bTheme *btheme= U.themes.first;
 				BLI_remlink(&U.themes, btheme);
 				MEM_freeN(btheme);
-				BIF_SetTheme(sa); // prevent usage of old theme in calls	
+				BIF_SetTheme(sa); /* prevent usage of old theme in calls */
 				addqueue(sa->win, REDRAW, 1);
 			}
 			else if(val==B_NAME_THEME) {
@@ -3283,7 +3283,7 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				allqueue(REDRAWALL, 0);
 			}
 			else if(val==B_CHANGE_THEME) {
-				th_curcol= TH_BACK;	// backdrop color is always there...
+				th_curcol= TH_BACK;	/* backdrop color is always there... */
 				addqueue(sa->win, REDRAW, 1);
 			}
 			else if(val==B_THEME_COPY) {
@@ -3883,7 +3883,7 @@ static void changeactionspace(ScrArea *sa, void *spacedata)
 	test_view2d(G.v2d, sa->winx, sa->winy);
 	
 	/* action space uses weird matrices... local calculated in a function */
-	// myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	/* myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax); */
 }
 
 
@@ -3977,7 +3977,7 @@ static void init_imaselspace(ScrArea *sa)
 	
 	clear_ima_dir(simasel);
 	
-	// simasel->cmap= IMB_loadiffmem((int*)datatoc_cmap_tga, IB_rect|IB_cmap);
+	/* simasel->cmap= IMB_loadiffmem((int*)datatoc_cmap_tga, IB_rect|IB_cmap); */
 	simasel->cmap= IMB_ibImageFromMemory((int *)datatoc_cmap_tga, datatoc_cmap_tga_size, IB_rect|IB_cmap);
 	if (!simasel->cmap) {
 		error("in console");
@@ -4213,7 +4213,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	/* Events handled always (whether the draw tool is active or not) */
 	switch (event) {
 	case UI_BUT_EVENT:
-		do_imagebuts(val);	// drawimage.c
+		do_imagebuts(val);	/* drawimage.c */
 		break;
 	case MIDDLEMOUSE:
 		if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
@@ -4727,7 +4727,7 @@ static void init_nodespace(ScrArea *sa)
 
 void newspace(ScrArea *sa, int type)
 {
-	int xtra= type & 256;	// hack to enforce outliner with hotkey from toets.c
+	int xtra= type & 256;	/* hack to enforce outliner with hotkey from toets.c */
 	
 	type &= ~256;
 	
@@ -5255,7 +5255,7 @@ void allspace(unsigned short event, short val)
 void force_draw(int header)
 {
 	/* draws all areas that show something identical to curarea */
-	extern int afterqtest(short win, unsigned short evt);	//editscreen.c
+	extern int afterqtest(short win, unsigned short evt);	/*editscreen.c*/
 	ScrArea *tempsa, *sa;
 
 	scrarea_do_windraw(curarea);
