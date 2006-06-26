@@ -102,7 +102,6 @@ void free_material(Material *ma)
 
 void init_material(Material *ma)
 {
-	ma->lay= 1;
 	ma->r= ma->g= ma->b= ma->ref= 0.8;
 	ma->specr= ma->specg= ma->specb= 1.0;
 	ma->mirr= ma->mirg= ma->mirb= 1.0;
@@ -658,9 +657,12 @@ void init_render_materials(int osa, float *amb)
 	Material *ma;
 	
 	/* two steps, first initialize, then or the flags for layers */
-	for(ma= G.main->mat.first; ma; ma= ma->id.next)
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		/* is_used flag comes back in convertblender.c */
+		ma->flag &= ~MA_IS_USED;
 		if(ma->id.us) 
 			init_render_material(ma, osa, amb);
+	}
 }
 
 /* only needed for nodes now */

@@ -2524,12 +2524,6 @@ void do_matbuts(unsigned short event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
-	case B_MATLAY:
-		if(ma && ma->lay==0) {
-			ma->lay= 1;
-			scrarea_queue_winredraw(curarea);
-		}
-		break;
 	case B_MATZTRANSP:
 		if(ma) {
 			ma->mode &= ~MA_RAYTRANSP;

@@ -54,7 +54,7 @@ struct bNodeTree;
 typedef struct Material {
 	ID id;
 	
-	short colormodel, lay;		/* lay: for dynamics (old engine, until 2.04) */
+	short colormodel, flag;	
 	/* note, keep this below synced with render_types.h */
 	float r, g, b;
 	float specr, specg, specb;
@@ -128,6 +128,10 @@ typedef struct Material {
 #define MA_CMYK			1
 #define MA_YUV			2
 #define MA_HSV			3
+
+/* flag */
+		/* for render */
+#define MA_IS_USED		1
 
 /* mode (is int) */
 #define MA_TRACEBLE		1

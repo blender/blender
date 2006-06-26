@@ -1007,6 +1007,9 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	
 	if(re->r.mode & R_SPEED) ma->texco |= NEED_UV;
 	
+	/* for light groups */
+	ma->flag |= MA_IS_USED;
+	
 	return ma;
 }
 
@@ -2150,7 +2153,7 @@ static void area_lamp_vectors(LampRen *lar)
 }
 
 /* If lar takes more lamp data, the decoupling will be better. */
-static void add_render_lamp(Render *re, Object *ob)
+static LampRen *add_render_lamp(Render *re, Object *ob)
 {
 	Lamp *la= ob->data;
 	LampRen *lar;
@@ -2161,7 +2164,7 @@ static void add_render_lamp(Render *re, Object *ob)
 	/* prevent only shadow from rendering light */
 	if(la->mode & LA_ONLYSHADOW)
 		if((re->r.mode & R_SHADOW)==0)
-			return;
+			return NULL;
 	
 	go= MEM_callocN(sizeof(GroupObject), "groupobject");
 	BLI_addtail(&re->lights, go);
@@ -2347,6 +2350,7 @@ static void add_render_lamp(Render *re, Object *ob)
 				lar->mode &= ~LA_SHAD_RAY;
 		}
 	}
+	return lar;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3092,11 +3096,15 @@ static void set_material_lightgroups(Render *re)
 		if(ma->group) {
 			for(go= ma->group->gobject.first; go; go= go->next) {
 				go->lampren= NULL;
-				for(gol= re->lights.first; gol; gol= gol->next) {
-					if(gol->ob==go->ob) {
-						go->lampren= gol->lampren;
-						break;
+				if(go->ob && go->ob->type==OB_LAMP) {
+					for(gol= re->lights.first; gol; gol= gol->next) {
+						if(gol->ob==go->ob) {
+							go->lampren= gol->lampren;
+							break;
+						}
 					}
+					if(go->lampren==NULL) 
+						go->lampren= add_render_lamp(re, go->ob);
 				}
 			}
 		}
