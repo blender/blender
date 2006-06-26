@@ -2292,7 +2292,7 @@ void fly(void)
 	
 	/* Revert to original view? */ 
 	if (action == 2) { /* action == 2 means the user pressed Esc of RMB, and not to apply view to camera */
-		if (persp_backup!=2) { /* not a camera view */
+		if (persp_backup==2) { /* not a camera view */
 			G.vd->viewbut=1;
 			VECCOPY(G.vd->camera->loc, ofs_backup);
 			VECCOPY(G.vd->camera->rot, rot_backup);
@@ -2301,7 +2301,6 @@ void fly(void)
 			/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
 			QUATCOPY(G.vd->viewquat, rot_backup);
 			VECCOPY(G.vd->ofs, ofs_backup);
-			G.vd->persp= persp_backup; /* if we canceled from ortho mode then go back into it*/
 		}
 	} else if (persp_backup!=2) { /* not camera */
 		/* Apply the fly mode view */
