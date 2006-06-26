@@ -91,9 +91,10 @@ done once.
 @var EdgeFlags: The available edge flags.
     - SELECT - selected (B{deprecated}).  Use edge.sel attribute instead.
     - EDGEDRAW - edge is drawn out of edition mode.
-#    - EDGERENDER - edge is drawn out of edition mode.
+    - EDGERENDER - edge is drawn out of edition mode.
     - SEAM - edge is a seam for UV unwrapping
     - FGON - edge is part of a F-Gon.
+    - LOOSE - Edge is not a part of a face (only set on leaving editmode)
 @type AssignModes: readonly dictionary.
 @var AssignModes: The available vertex group assignment modes, used by 
   L{mesh.assignVertsToGroup()<Mesh.Mesh.assignVertsToGroup>}.

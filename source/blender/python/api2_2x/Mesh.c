@@ -2216,9 +2216,13 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 	short param;
 	static short bitmask = SELECT
 				| ME_EDGEDRAW
-				| ME_EDGERENDER
 				| ME_SEAM
-				| ME_FGON;
+				| ME_FGON
+				| ME_HIDE
+				| ME_EDGERENDER
+				| ME_LOOSEEDGE
+				| ME_SEAM_LAST
+				| ME_EDGE_STEPINDEX;
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
@@ -7399,6 +7403,7 @@ static PyObject *M_Mesh_EdgeFlagsDict( void )
 		PyConstant_Insert(d, "EDGERENDER", PyInt_FromLong( ME_EDGERENDER ) );
 		PyConstant_Insert(d, "SEAM", PyInt_FromLong( ME_SEAM ) );
 		PyConstant_Insert(d, "FGON", PyInt_FromLong( ME_FGON ) );
+		PyConstant_Insert(d, "LOOSE", PyInt_FromLong( ME_LOOSEEDGE ) );
 	}
 
 	return EF;
