@@ -675,10 +675,13 @@ class Object:
     @note: Join will only work for object types Mesh, Armature, Curve and Surface,
         an error will be raised if the object is not of this type.
     @note: objects in the list will be ignored if they to not match the base object.
+    @note: objects must be in the current scene to be joined.
+    @note: this function will not work in background mode (no user interface)
     @note: An error in the join function input will raise a TypeError,
         otherwise an error in the data input will raise a RuntimeError,
         for situations where you don't have tight control on the data that is being joined,
         you should handel the RuntimeError error, litting the user know the data cant be joined.
+        This an happen if the data is too large or one of the objects data has a shape key.
     """
 
   def makeParentDeform(objects, noninverse = 0, fast = 0):

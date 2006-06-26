@@ -2024,7 +2024,11 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 	Base *temp_base;
 	short type;
 	int i, ok=0, ret_value=0, list_length=0;
-		
+	
+	if( G.background )
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"cannot join objects in background mode" ) );
+	
 	/* Check if the arguments passed to makeParent are valid. */
 	if( !PyArg_ParseTuple( args, "O", &list ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -2049,12 +2053,16 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"Base object is not a type blender can join" ) );
 	
+	if (object_in_scene( parent, G.scene )==NULL)
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"object must be in the current scene" ) );
+	
 	/* exit editmode so join can be done */
 	if( G.obedit )
 		exit_editmode( 1 );
 	
 	temp_scene = add_scene( "Scene" ); /* make the new scene */
-	temp_scene->lay= 2097151; /* all layers on */
+	temp_scene->lay= 1; /* all layers on */
 	
 	/* Check if the PyObject passed in list is a Blender object. */
 	for( i = 0; i < list_length; i++ ) {
@@ -2069,6 +2077,13 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 			/* List item is an object, is it the same type? */
 			child = ( Object * ) Object_FromPyObject( py_child );
 			if (parent->type == child->type) {
+				
+				if (object_in_scene( child, G.scene )==NULL) {
+					free_libblock( &G.main->scene, temp_scene );
+					return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"object must be in the current scene" ) );
+				}
+				
 				ok =1;
 				/* Add a new base, then link the base to the temp_scene */
 				temp_base = MEM_callocN( sizeof( Base ), "pynewbase" );
