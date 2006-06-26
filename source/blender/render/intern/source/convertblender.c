@@ -116,6 +116,9 @@
 static short test_for_displace(Render *re, Object *ob);
 static void do_displacement(Render *re, Object *ob, int startface, int numface, int startvert, int numvert );
 
+/* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp (for quad detection) */
+/* or for checking vertex normal flips */
+#define FLT_EPSILON10 1.19209290e-06F
 
 
 /* ------------------------------------------------------------------------- */
@@ -346,12 +349,12 @@ static void split_v_renderfaces(Render *re, int startvlak, int startvert, int us
 
 /* ------------------------------------------------------------------------- */
 
-static int contrpuntnormr(float *n, float *puno)
+static int check_vnormal(float *n, float *veno)
 {
 	float inp;
 
-	inp=n[0]*puno[0]+n[1]*puno[1]+n[2]*puno[2];
-	if(inp<0.0) return 1;
+	inp=n[0]*veno[0]+n[1]*veno[1]+n[2]*veno[2];
+	if(inp < -FLT_EPSILON10) return 1;
 	return 0;
 }
 
@@ -496,7 +499,7 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 		/* clear all vertex normals */
 	for(a=startvert; a<re->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(re, a);
-		ver->n[0]=ver->n[1]=ver->n[2]= 0.0;
+		ver->n[0]=ver->n[1]=ver->n[2]= 0.0f;
 	}
 
 		/* calculate cos of angles and point-masses, use as weight factor to
@@ -504,19 +507,19 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 	for(a=startvlak; a<re->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(re, a);
 		if(vlr->flag & ME_SMOOTH) {
-			VertRen *adrve1= vlr->v1;
-			VertRen *adrve2= vlr->v2;
-			VertRen *adrve3= vlr->v3;
-			VertRen *adrve4= vlr->v4;
+			VertRen *v1= vlr->v1;
+			VertRen *v2= vlr->v2;
+			VertRen *v3= vlr->v3;
+			VertRen *v4= vlr->v4;
 			float n1[3], n2[3], n3[3], n4[3];
 			float fac1, fac2, fac3, fac4=0.0f;
 
-			VecSubf(n1, adrve2->co, adrve1->co);
+			VecSubf(n1, v2->co, v1->co);
 			Normalise(n1);
-			VecSubf(n2, adrve3->co, adrve2->co);
+			VecSubf(n2, v3->co, v2->co);
 			Normalise(n2);
-			if(adrve4==NULL) {
-				VecSubf(n3, adrve1->co, adrve3->co);
+			if(v4==NULL) {
+				VecSubf(n3, v1->co, v3->co);
 				Normalise(n3);
 
 				fac1= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
@@ -524,9 +527,9 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
 			}
 			else {
-				VecSubf(n3, adrve4->co, adrve3->co);
+				VecSubf(n3, v4->co, v3->co);
 				Normalise(n3);
-				VecSubf(n4, adrve1->co, adrve4->co);
+				VecSubf(n4, v1->co, v4->co);
 				Normalise(n4);
 
 				fac1= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
@@ -535,31 +538,31 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 				fac4= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
 
 				if(!(vlr->flag & R_NOPUNOFLIP)) {
-					if( contrpuntnormr(vlr->n, adrve4->n) ) fac4= -fac4;
+					if( check_vnormal(vlr->n, v4->n) ) fac4= -fac4;
 				}
 
-				adrve4->n[0] +=fac4*vlr->n[0];
-				adrve4->n[1] +=fac4*vlr->n[1];
-				adrve4->n[2] +=fac4*vlr->n[2];
+				v4->n[0] +=fac4*vlr->n[0];
+				v4->n[1] +=fac4*vlr->n[1];
+				v4->n[2] +=fac4*vlr->n[2];
 			}
 
 			if(!(vlr->flag & R_NOPUNOFLIP)) {
-				if( contrpuntnormr(vlr->n, adrve1->n) ) fac1= -fac1;
-				if( contrpuntnormr(vlr->n, adrve2->n) ) fac2= -fac2;
-				if( contrpuntnormr(vlr->n, adrve3->n) ) fac3= -fac3;
+				if( check_vnormal(vlr->n, v1->n) ) fac1= -fac1;
+				if( check_vnormal(vlr->n, v2->n) ) fac2= -fac2;
+				if( check_vnormal(vlr->n, v3->n) ) fac3= -fac3;
 			}
 
-			adrve1->n[0] +=fac1*vlr->n[0];
-			adrve1->n[1] +=fac1*vlr->n[1];
-			adrve1->n[2] +=fac1*vlr->n[2];
+			v1->n[0] +=fac1*vlr->n[0];
+			v1->n[1] +=fac1*vlr->n[1];
+			v1->n[2] +=fac1*vlr->n[2];
 
-			adrve2->n[0] +=fac2*vlr->n[0];
-			adrve2->n[1] +=fac2*vlr->n[1];
-			adrve2->n[2] +=fac2*vlr->n[2];
+			v2->n[0] +=fac2*vlr->n[0];
+			v2->n[1] +=fac2*vlr->n[1];
+			v2->n[2] +=fac2*vlr->n[2];
 
-			adrve3->n[0] +=fac3*vlr->n[0];
-			adrve3->n[1] +=fac3*vlr->n[1];
-			adrve3->n[2] +=fac3*vlr->n[2];
+			v3->n[0] +=fac3*vlr->n[0];
+			v3->n[1] +=fac3*vlr->n[1];
+			v3->n[2] +=fac3*vlr->n[2];
 			
 			if(do_tangent)
 				calc_tangent_vector(re, vlr, fac1, fac2, fac3, fac4);
@@ -598,16 +601,17 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 		VlakRen *vlr= RE_findOrAddVlak(re, a);
 
 		if((vlr->flag & R_NOPUNOFLIP)==0) {
-			VertRen *adrve1= vlr->v1;
-			VertRen *adrve2= vlr->v2;
-			VertRen *adrve3= vlr->v3;
-			VertRen *adrve4= vlr->v4;
+			float *v1= vlr->v1->n;
+			float *v2= vlr->v2->n;
+			float *v3= vlr->v3->n;
+			float *v4= vlr->v4->n;
+			float *nor= vlr->n;
 			vlr->puno &= ~15;
-			if ((vlr->n[0]*adrve1->n[0]+vlr->n[1]*adrve1->n[1]+vlr->n[2]*adrve1->n[2])<0.0) vlr->puno= 1;
-			if ((vlr->n[0]*adrve2->n[0]+vlr->n[1]*adrve2->n[1]+vlr->n[2]*adrve2->n[2])<0.0) vlr->puno+= 2;
-			if ((vlr->n[0]*adrve3->n[0]+vlr->n[1]*adrve3->n[1]+vlr->n[2]*adrve3->n[2])<0.0) vlr->puno+= 4;
-			if(adrve4) {
-				if((vlr->n[0]*adrve4->n[0]+vlr->n[1]*adrve4->n[1]+vlr->n[2]*adrve4->n[2])<0.0) vlr->puno+= 8;
+			if ((nor[0]*v1[0] + nor[1]*v1[1] + nor[2]*v1[2]) < -FLT_EPSILON10) vlr->puno= 1;
+			if ((nor[0]*v2[0] + nor[1]*v2[1] + nor[2]*v2[2]) < -FLT_EPSILON10) vlr->puno+= 2;
+			if ((nor[0]*v3[0] + nor[1]*v3[1] + nor[2]*v3[2]) < -FLT_EPSILON10) vlr->puno+= 4;
+			if(v4) {
+				if((nor[0]*v4[0] + nor[1]*v4[1] + nor[2]*v4[2]) < -FLT_EPSILON10 ) vlr->puno+= 8;
 			}
 		}
 	}
@@ -626,28 +630,28 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 	for(a=startvlak; a<re->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(re, a);
 		if(vlr->flag & ME_SMOOTH) {
-			VertRen *adrve1= vlr->v1;
-			VertRen *adrve2= vlr->v2;
-			VertRen *adrve3= vlr->v3;
-			VertRen *adrve4= vlr->v4;
+			VertRen *v1= vlr->v1;
+			VertRen *v2= vlr->v2;
+			VertRen *v3= vlr->v3;
+			VertRen *v4= vlr->v4;
 			float n1[3], n2[3], n3[3], n4[3];
 			float fac1, fac2, fac3, fac4=0.0f;
 
-			VecSubf(n1, adrve2->co, adrve1->co);
+			VecSubf(n1, v2->co, v1->co);
 			Normalise(n1);
-			VecSubf(n2, adrve3->co, adrve2->co);
+			VecSubf(n2, v3->co, v2->co);
 			Normalise(n2);
-			if(adrve4==NULL) {
-				VecSubf(n3, adrve1->co, adrve3->co);
+			if(v4==NULL) {
+				VecSubf(n3, v1->co, v3->co);
 				Normalise(n3);
 				fac1= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
 				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
 				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
 			}
 			else {
-				VecSubf(n3, adrve4->co, adrve3->co);
+				VecSubf(n3, v4->co, v3->co);
 				Normalise(n3);
-				VecSubf(n4, adrve1->co, adrve4->co);
+				VecSubf(n4, v1->co, v4->co);
 				Normalise(n4);
 
 				fac1= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
@@ -656,7 +660,7 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 				fac4= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
 
 				if(!(vlr->flag & R_NOPUNOFLIP)) {
-					if( contrpuntnormr(vlr->n, adrve4->n) ) fac4= -fac4;
+					if( check_vnormal(vlr->n, v4->n) ) fac4= -fac4;
 				}
 			}
 
@@ -696,16 +700,16 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 	for(a=startvlak; a<re->totvlak; a++) {
 		VlakRen *vlr= RE_findOrAddVlak(re, a);
 		if((vlr->flag & R_NOPUNOFLIP)==0) {
-			VertRen *adrve1= vlr->v1;
-			VertRen *adrve2= vlr->v2;
-			VertRen *adrve3= vlr->v3;
-			VertRen *adrve4= vlr->v4;
+			VertRen *v1= vlr->v1;
+			VertRen *v2= vlr->v2;
+			VertRen *v3= vlr->v3;
+			VertRen *v4= vlr->v4;
 			vlr->puno &= ~15;
-			if ((vlr->n[0]*adrve1->n[0]+vlr->n[1]*adrve1->n[1]+vlr->n[2]*adrve1->n[2])<0.0) vlr->puno= 1;
-			if ((vlr->n[0]*adrve2->n[0]+vlr->n[1]*adrve2->n[1]+vlr->n[2]*adrve2->n[2])<0.0) vlr->puno+= 2;
-			if ((vlr->n[0]*adrve3->n[0]+vlr->n[1]*adrve3->n[1]+vlr->n[2]*adrve3->n[2])<0.0) vlr->puno+= 4;
-			if(adrve4) {
-				if((vlr->n[0]*adrve4->n[0]+vlr->n[1]*adrve4->n[1]+vlr->n[2]*adrve4->n[2])<0.0) vlr->puno+= 8;
+			if ((vlr->n[0]*v1->n[0]+vlr->n[1]*v1->n[1]+vlr->n[2]*v1->n[2])<0.0) vlr->puno= 1;
+			if ((vlr->n[0]*v2->n[0]+vlr->n[1]*v2->n[1]+vlr->n[2]*v2->n[2])<0.0) vlr->puno+= 2;
+			if ((vlr->n[0]*v3->n[0]+vlr->n[1]*v3->n[1]+vlr->n[2]*v3->n[2])<0.0) vlr->puno+= 4;
+			if(v4) {
+				if((vlr->n[0]*v4->n[0]+vlr->n[1]*v4->n[1]+vlr->n[2]*v4->n[2])<0.0) vlr->puno+= 8;
 			}
 		}
 	}
@@ -2966,13 +2970,6 @@ static void set_fullsample_flag(Render *re)
 	}
 }
 
-/* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp */
-#ifdef FLT_EPSILON
-#undef FLT_EPSILON
-#endif
-#define FLT_EPSILON 1.19209290e-06F
-
-
 static void check_non_flat_quads(Render *re)
 {
 	VlakRen *vlr, *vlr1;
@@ -2992,7 +2989,7 @@ static void check_non_flat_quads(Render *re)
 			v3= vlr->v3;
 			v4= vlr->v4;
 			VECSUB(nor, v1->co, v2->co);
-			if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+			if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 				vlr->v1= v2;
 				vlr->v2= v3;
 				vlr->v3= v4;
@@ -3000,19 +2997,19 @@ static void check_non_flat_quads(Render *re)
 			}
 			else {
 				VECSUB(nor, v2->co, v3->co);
-				if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+				if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 					vlr->v2= v3;
 					vlr->v3= v4;
 					vlr->v4= NULL;
 				}
 				else {
 					VECSUB(nor, v3->co, v4->co);
-					if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+					if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 						vlr->v4= NULL;
 					}
 					else {
 						VECSUB(nor, v4->co, v1->co);
-						if( ABS(nor[0])<FLT_EPSILON &&  ABS(nor[1])<FLT_EPSILON && ABS(nor[2])<FLT_EPSILON ) {
+						if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
 							vlr->v4= NULL;
 						}
 					}
