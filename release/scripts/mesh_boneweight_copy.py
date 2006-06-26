@@ -3,7 +3,7 @@
 Name: 'Bone Weight Copy'
 Blender: 241
 Group: 'Object'
-Tooltip: 'Copy Bone Weights from 1 weighted mesh, to other unweighted meshes.'
+Tooltip: 'Copy Bone Weights from 1 mesh, to all other selected meshes.'
 """
 
 import Blender
@@ -29,23 +29,7 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 		
 		upidx= len_vecs-1
 		loidx= 0
-		'''
-		# A lot faster bit can eternal loop
-		_range=upidx-loidx 
-		# Guess the right index, keep re-adjusting the high and the low.
-		while _range > 3:
-			half= _range/2
-			z= vecs[upidx-half][1].z
-			if z >= seek_vec_z:
-				upidx= upidx-half
-			elif z < seek_vec_z:
-				loidx= loidx+half
-			
-			_range=upidx-loidx 
 		
-		from_vec_idx= loidx
-		'''
-		# Seek the rest of the way. should only need to seek 2 or 3 items at the most.
 		while from_vec_idx < len_vecs and vecs[from_vec_idx][1].z < seek_vec_z:
 			from_vec_idx+=1
 		
@@ -186,9 +170,9 @@ def main():
 	PREF_SEL_ONLY= Blender.Draw.Create(0)
 	
 	pup_block = [\
-	('Quality:', PREF_QUALITY, 0, 4, 'Generate interpolated verts so closer vert weights can be copied.'),\
-	('No X Crossing', PREF_NO_XCROSS, 'Do not snap accross the zero X axis'),\
-	('Copy to Selected', PREF_SEL_ONLY, 'Over wright vertex weights to selected verts on the target mesh. (use active ob as source)'),\
+	('Quality:', PREF_QUALITY, 0, 4, 'Generate interpolated verts for a higher quality result.'),\
+	('No X Crossing', PREF_NO_XCROSS, 'Do not snap across the zero X axis'),\
+	('Copy to Selected', PREF_SEL_ONLY, 'Only copy new weights to selected verts on the target mesh. (use active object as source)'),\
 	]
 	
 	
@@ -203,12 +187,6 @@ def main():
 	if PREF_SEL_ONLY and act_ob==None:
 		Blender.Draw.PupMenu('Error%t|When dealing with 2 or more meshes with vgroups|There must be an active object|to be used as a source|aborting.')
 		return
-	
-	'''
-	quality= Blender.Draw.PupIntInput('Quality: ', 2, 0, 4)
-	if quality==None:
-		return
-	'''
 
 	sel=[]
 	from_data= None
@@ -253,7 +231,7 @@ def main():
 	
 	
 	# Now do the copy.
-	print '\tCopying from "%s" to %i other meshe(s).' % (from_data[0].name, len(sel))
+	print '\tCopying from "%s" to %i other mesh(es).' % (from_data[0].name, len(sel))
 	for data in sel:
 		copy_bone_influences(from_data, data, PREF_SEL_ONLY, PREF_NO_XCROSS)
 	
@@ -261,7 +239,7 @@ def main():
 	if quality:
 		from_data[1].verts= None
 	
-	print 'Copy Compleate in %.6f sec' % (Blender.sys.time()-t)
+	print 'Copy Complete in %.6f sec' % (Blender.sys.time()-t)
 	Window.DrawProgressBar(1.0, '')
 	Window.WaitCursor(0)
 
