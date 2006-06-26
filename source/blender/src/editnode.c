@@ -420,6 +420,7 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 				BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
 			
 			allqueue(REDRAWBUTSSHADING, 1);
+			allqueue(REDRAWIPO, 0);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			/* make active viewer, currently only 1 supported... */

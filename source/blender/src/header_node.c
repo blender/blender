@@ -80,6 +80,7 @@ void do_node_buttons(ScrArea *sa, unsigned short event)
 				BIF_preview_changed(ID_MA);
 				allqueue(REDRAWNODE, 0);
 				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWIPO, 0);
 			}		
 			break;
 			

@@ -108,6 +108,7 @@
 #include "BSE_edit.h"
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -1032,6 +1033,7 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 	else if(blocktype==ID_MA) {
 		if(ob) {
 			Material *ma= give_current_material(ob, ob->actcol);
+			ma= editnode_get_active_material(ma);
 			*from= (ID *)ma;
 			if(ma) *ipo= ma->ipo;
 		}
@@ -2196,8 +2198,10 @@ void common_insertkey(void)
 			int tab= G.buts->tab[CONTEXT_SHADING];
 
 			if(tab==TAB_SHADING_MAT) {
-				id= G.buts->lockpoin;
-				ma= G.buts->lockpoin;
+				ma = G.buts->lockpoin;
+				ma = editnode_get_active_material(ma);
+				id = (ID *)ma;
+				
 				if(id) {
 					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|All Mirror%x14|Ofs%x12|Size%x13|All Mapping%x11");
 					if(event== -1) return;
