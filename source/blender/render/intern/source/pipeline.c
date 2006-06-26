@@ -1096,8 +1096,9 @@ static void threaded_tile_processor(Render *re)
 	
 	if(rr==NULL)
 		return;
-	if(re->test_break())
-		return;
+	/* warning; no return here without closing exr file */
+//	if(re->re->test_break())
+//		return;
 	
 	initparts(re);
 	

@@ -909,7 +909,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				doseq= sce->r.scemode & R_DOSEQ;
 				sce->r.scemode &= ~R_DOSEQ;
 				
-				BIF_init_render_callbacks(re);
+				BIF_init_render_callbacks(re, 0);	/* 0= no display callbacks */
 				
 				/* hrms, set_scene still needed? work on that... */
 				if(sce!=oldsce) set_scene_bg(sce);

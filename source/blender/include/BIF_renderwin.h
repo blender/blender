@@ -52,7 +52,7 @@ void BIF_redraw_render_rect(void);
 void BIF_swap_render_rects(void);
 void BIF_toggle_render_display(void);
 
-void BIF_init_render_callbacks(struct Render *re);
+void BIF_init_render_callbacks(struct Render *re, int do_display);
 void BIF_end_render_callbacks(void);
 
 /* should not be here, ~WIP~ */

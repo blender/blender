@@ -1064,7 +1064,7 @@ static void do_render(int anim)
 	G.rendering= 1;
 
 	/* set render callbacks, also starts ESC timer */
-	BIF_init_render_callbacks(re);
+	BIF_init_render_callbacks(re, 1);
 	
 	waitcursor(1);
 	if(render_win) 
@@ -1146,19 +1146,20 @@ static int esc_timer_set= 0;
 /* set callbacks, exported to sequence render too. 
    Only call in foreground (UI) renders. */
 
-void BIF_init_render_callbacks(Render *re)
+void BIF_init_render_callbacks(Render *re, int do_display)
 {
-	
-	if(G.displaymode!=R_DISPLAYWIN) {
-		if(render_win)
-			BIF_close_render_display();
-		imagewindow_render_callbacks(re);
-	}
-	else {
-		RE_display_init_cb(re, renderwin_init_display_cb);
-		RE_display_draw_cb(re, renderwin_progress_display_cb);
-		RE_display_clear_cb(re, renderwin_clear_display_cb);
-		RE_stats_draw_cb(re, renderwin_renderinfo_cb);
+	if(do_display) {
+		if(G.displaymode!=R_DISPLAYWIN) {
+			if(render_win)
+				BIF_close_render_display();
+			imagewindow_render_callbacks(re);
+		}
+		else {
+			RE_display_init_cb(re, renderwin_init_display_cb);
+			RE_display_draw_cb(re, renderwin_progress_display_cb);
+			RE_display_clear_cb(re, renderwin_clear_display_cb);
+			RE_stats_draw_cb(re, renderwin_renderinfo_cb);
+		}
 	}
 	
 	RE_error_cb(re, error_cb);
