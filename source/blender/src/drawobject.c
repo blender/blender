@@ -1910,28 +1910,30 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 			dm->drawLooseEdges(dm);
 		}
 	}
-
+	
+	/* set default draw color back for wire or for draw-extra later on */
+	if (dt!=OB_WIRE) {
+		if(base->flag & SELECT) {
+			
+			if(ob==OBACT && ob->flag & OB_FROMGROUP) 
+				BIF_ThemeColor(TH_GROUP_ACTIVE);
+			else if(ob->flag & OB_FROMGROUP) 
+				BIF_ThemeColorShade(TH_GROUP_ACTIVE, -16);
+			else
+				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+		} else {
+			if (ob->flag & OB_FROMGROUP) 
+				BIF_ThemeColor(TH_GROUP);
+			else
+				BIF_ThemeColor(TH_WIRE);
+		}
+	}
 	if (draw_wire) {
 			/* If drawing wire and drawtype is not OB_WIRE then we are
 				* overlaying the wires.
 				*/
 
 		if (dt!=OB_WIRE) {
-			if(base->flag & SELECT) {
-
-				if(ob==OBACT && ob->flag & OB_FROMGROUP) 
-					BIF_ThemeColor(TH_GROUP_ACTIVE);
-				else if(ob->flag & OB_FROMGROUP) 
-					BIF_ThemeColorShade(TH_GROUP_ACTIVE, -16);
-				else
-					BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
-			} else {
-				if (ob->flag & OB_FROMGROUP) 
-					BIF_ThemeColor(TH_GROUP);
-				else
-					BIF_ThemeColor(TH_WIRE);
-			}
-
 			bglPolygonOffset(1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
