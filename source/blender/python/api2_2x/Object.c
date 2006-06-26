@@ -2025,7 +2025,7 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 	short type;
 	int i, ok=0, ret_value=0, list_length=0;
 	
-	if( G.background )
+	if( G.background==1 )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"cannot join objects in background mode" ) );
 	
