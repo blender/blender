@@ -1898,10 +1898,6 @@ bool yafrayPluginRender_t::writeWorld()
 	return true;
 }
 
-// display_draw() needs render layer info
-extern "C" {
-#include "renderpipeline.h"
-}
 bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 		yafray::CFLOAT alpha, yafray::PFLOAT depth)
 {

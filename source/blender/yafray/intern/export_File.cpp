@@ -355,6 +355,11 @@ void yafrayFileRender_t::displayImage()
 
 	fclose(fp);
 	fp = NULL;
+
+	// based on another assumption of ogl errors on my system, forgot to actually draw it...
+	re->result->renlay = render_get_active_layer(re, re->result);
+	re->display_draw(re->result, NULL);
+
 }
 
 static string noise2string(short nbtype)

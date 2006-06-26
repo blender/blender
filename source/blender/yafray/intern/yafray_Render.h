@@ -25,6 +25,8 @@ extern "C" {
 #include "BKE_image.h"
 
 #include "render_types.h"
+/* display_draw() needs render layer info */
+#include "renderpipeline.h"
 
 /* useful matrix & vector operations */
 #include "MTC_matrixops.h"
