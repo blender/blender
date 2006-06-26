@@ -604,7 +604,7 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 			float *v1= vlr->v1->n;
 			float *v2= vlr->v2->n;
 			float *v3= vlr->v3->n;
-			float *v4= vlr->v4->n;
+			float *v4= vlr->v4?vlr->v4->n:NULL;
 			float *nor= vlr->n;
 			vlr->puno &= ~15;
 			if ((nor[0]*v1[0] + nor[1]*v1[1] + nor[2]*v1[2]) < -FLT_EPSILON10) vlr->puno= 1;

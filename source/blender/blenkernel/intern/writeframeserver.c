@@ -28,6 +28,7 @@
 #else
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -90,12 +91,16 @@ static int closesocket(int fd) {
 void start_frameserver(RenderData *rd, int rectx, int recty)
 {
         struct sockaddr_in      addr;
+	int arg = 1;
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		G.afbreek = 1; /* Abort render */
 		error("Can't open socket");
 		return;
         }
+
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+                   (char*) &arg, sizeof(arg));
 
 	addr.sin_family = AF_INET;
         addr.sin_port = htons(U.frameserverport);
