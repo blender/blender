@@ -111,6 +111,9 @@ extern ListBase editNurb; /* originally from exports.h, memory from editcurve.c*
 /* editmball.c */
 extern ListBase editelems;
 
+/* fly mode ises this */
+extern void setcameratoview3d(void);
+
 /* local prototypes */
 
 void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
@@ -2016,15 +2019,13 @@ void fly(void)
 	tmpvec[3], /* global up vector - compare with upvec for angle */
 	
 	dist_backup, /* backup the views distance since we use a zero dist for fly mode */
-	quat_backup[4], /* backup the views quat incase the user cancels flying in non camera mode */
+	rot_backup[4], /* backup the views quat incase the user cancels flying in non camera mode */
 	ofs_backup[3], /* backup the views offset incase the user cancels flying in non camera mode */
-	lens_backup=1.0, /* backup the views lense, adopt tha cameras lense during fly mode */
-	clip_backup[2], /* if using the camera- adopt its clip near/far */
 	moffset[2], /* mouse offset from the views center */
-	camd_xy_backup[2]= {0.0, 0.0}, /* camera offset backup */
 	tmp_quat[4], /* used for rotating the view */
 	winxf, winyf, /* scale the mouse movement by this value - scales mouse movement to the view size */
 	time_redraw; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
+	
 	
 	double time_current, time_lastdraw;
 	
@@ -2034,56 +2035,33 @@ void fly(void)
 	action=0, /* while zero stay in fly mode and wait for action, also used to see if we accepted or canceled 1:ok 2:Cancel */
 	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
 	unsigned short
-	toets, /* for reading the event */
-	qual_backup; /*backup the Ctrl/Alt/Shift key values for setting the camera back */
+	toets; /* for reading the event */
 	unsigned char
 	apply_rotation= 1, /* if the user presses shift they can look about without movinf the direction there looking*/
 	correct_vroll= 0, /* pressuing CTRL uprights the camera off by default */
 	axis= 2, /* Axis index to move allong by default Z to move allong the view */
-	use_camera, /* remember weather to go back to a camera or not */
 	persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
 	
 	persp_backup= G.vd->persp;
-	
+	dist_backup= G.vd->dist;
 	if (G.vd->persp==2) { /* Camera */
-		use_camera= 1;
-		lens_backup= G.vd->lens; /* so when we fly in normal view our lense matches the cameras */
-		clip_backup[0]= G.vd->near;
-		clip_backup[1]= G.vd->far;
-		
-		
-		if (G.vd->camera->type==OB_CAMERA) {
-			Camera *cam;
-			cam= G.vd->camera->data;
-			G.vd->lens= cam->lens;
-			G.vd->near= cam->clipsta;
-			G.vd->far= cam->clipend;
-		}
+		/* store the origoinal camera loc and rot */
+		VECCOPY(ofs_backup, G.vd->camera->loc);
+		VECCOPY(rot_backup, G.vd->camera->rot);
 		
 		where_is_object(G.vd->camera);
 		VECCOPY(G.vd->ofs, G.vd->camera->obmat[3]);
 		VecMulf(G.vd->ofs, -1.0f); /*flip the vector*/
-		dist_backup= G.vd->dist;
+		
 		G.vd->dist=0.0;
-		
-		camd_xy_backup[0]= G.vd->camdx; /* not ideal but ok for now, offset will jump on and off */
-		camd_xy_backup[1]= G.vd->camdy;
-		G.vd->camdx= G.vd->camdy= 0.0;
-		
-		G.vd->persp=1;
 		G.vd->viewbut=0;
-		/*redraw with no camera*/
-		allqueue(REDRAWVIEW3D, 0);
-		
 	} else {
 		/* perspective or ortho */
 		if (G.vd->persp==0)
 			G.vd->persp= 1; /*if ortho projection, make perspective */
-		use_camera= 0;
-		dist_backup= G.vd->dist;
-		QUATCOPY(quat_backup, G.vd->viewquat);
+		QUATCOPY(rot_backup, G.vd->viewquat);
 		VECCOPY(ofs_backup, G.vd->ofs);
 		G.vd->dist= 0.0;
 		
@@ -2091,7 +2069,7 @@ void fly(void)
 		Mat3CpyMat4(mat, G.vd->viewinv);
 		Mat3MulVecfl(mat, upvec);
 		VecSubf(G.vd->ofs, G.vd->ofs, upvec);
-		/*Done with correcting for the dist*/	
+		/*Done with correcting for the dist*/
 	}
 	
 	/* the dist defines a vector that is infront of the offset
@@ -2172,7 +2150,7 @@ void fly(void)
 				
 			}
 		}
-		if(action!=0) break;
+		if(action != 0) break;
 		
 		
 		moffset[0]= mval[0]-cent[0];
@@ -2292,6 +2270,16 @@ void fly(void)
 			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
 			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Alt,  Upright:Ctrl,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Cancel:RMB");
+			
+			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to teh view */
+			if (G.vd->persp==2) {
+				G.vd->persp= 1; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
+				setviewmatrixview3d();
+				setcameratoview3d();
+				G.vd->persp= 2;
+				DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
+			}
+			
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		} else 
@@ -2300,44 +2288,33 @@ void fly(void)
 		/* end drawing */
 	}
 	
-	/*restore the dist*/
-	upvec[0]= upvec[1]= 0;
-	upvec[2]=dist_backup; /*x and y are 0*/
-	Mat3CpyMat4(mat, G.vd->viewinv);
-	Mat3MulVecfl(mat, upvec);
-	G.vd->ofs[0]+= upvec[0];
-	G.vd->ofs[1]+= upvec[1];
-	G.vd->ofs[2]+= upvec[2];
 	G.vd->dist= dist_backup;
-	/*Done with correcting for the dist */
 	
-	if (use_camera) {
-		/* Camera, we need to set the camera to the current view */
-		G.vd->lens= lens_backup; /* restore the views perspectiove lense angle */
-		G.vd->near= clip_backup[0];
-		G.vd->far= clip_backup[1];
-		G.vd->camdx= camd_xy_backup[0];
-		G.vd->camdy= camd_xy_backup[1];
-		
-		G.vd->persp=2;
-		G.vd->viewbut=1;
-		if (action != 2) { /* use_camera==2 means the user pressed Esc of RMB, and not to apply view to camera */
-			G.vd->camzoom=0; /* so we dont get a zooming jump when the camera switches back. Warning this could be annoying. */
-			qual_backup= G.qual;
-			G.qual |= LR_CTRLKEY|LR_ALTKEY; /* move camera to view */
-			persptoetsen(PAD0);
-			G.qual= qual_backup;
+	/* Revert to original view? */ 
+	if (action == 2) { /* action == 2 means the user pressed Esc of RMB, and not to apply view to camera */
+		if (persp_backup!=2) { /* not a camera view */
+			G.vd->viewbut=1;
+			VECCOPY(G.vd->camera->loc, ofs_backup);
+			VECCOPY(G.vd->camera->rot, rot_backup);
+			DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
+		} else {
+			/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
+			QUATCOPY(G.vd->viewquat, rot_backup);
+			VECCOPY(G.vd->ofs, ofs_backup);
+			G.vd->persp= persp_backup; /* if we canceled from ortho mode then go back into it*/
 		}
-	} else if (action == 2) { /* user canceled from non camera mode, restoring the view from backup */
-		/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
-		QUATCOPY(G.vd->viewquat, quat_backup);
-		VECCOPY(G.vd->ofs, ofs_backup);
-		G.vd->persp= persp_backup; /* if we canceled from ortho mode then go back into it*/
-		
+	} else if (persp_backup!=2) { /* not camera */
+		/* Apply the fly mode view */
+		/*restore the dist*/
+		upvec[0]= upvec[1]= 0;
+		upvec[2]=dist_backup; /*x and y are 0*/
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecAddf(G.vd->ofs, G.vd->ofs, upvec);
+		/*Done with correcting for the dist */
 	}
 	
 	G.vd->flag2 &= ~V3D_FLYMODE;
-	
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 }
