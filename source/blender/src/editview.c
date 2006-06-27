@@ -2014,9 +2014,8 @@ void fly(void)
 	dvec[3]={0,0,0}, /* this is the direction thast added to the view offset per redraw */
 	
 	/* Camera Uprighting variables */
-	angle, /* the angle between the camera's up and the Z-up */
+	roll, /* similar to the angle between the camera's up and the Z-up, but its very rough so just roll*/
 	upvec[3]={0,0,0}, /* stores the view's up vector */
-	tmpvec[3], /* global up vector - compare with upvec for angle */
 	
 	dist_backup, /* backup the views distance since we use a zero dist for fly mode */
 	rot_backup[4], /* backup the views quat incase the user cancels flying in non camera mode */
@@ -2024,7 +2023,7 @@ void fly(void)
 	moffset[2], /* mouse offset from the views center */
 	tmp_quat[4], /* used for rotating the view */
 	winxf, winyf, /* scale the mouse movement by this value - scales mouse movement to the view size */
-	time_redraw; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
+	time_redraw, time_redraw_clamped; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
 	
 	
 	double time_current, time_lastdraw;
@@ -2038,11 +2037,12 @@ void fly(void)
 	toets; /* for reading the event */
 	unsigned char
 	apply_rotation= 1, /* if the user presses shift they can look about without movinf the direction there looking*/
-	correct_vroll= 0, /* pressuing CTRL uprights the camera off by default */
 	axis= 2, /* Axis index to move allong by default Z to move allong the view */
 	persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
+	short xlock=0, zlock=0;
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
+	if(G.vd->persp==2 && G.vd->camera->id.lib) return;
 	
 	persp_backup= G.vd->persp;
 	dist_backup= G.vd->dist;
@@ -2146,12 +2146,17 @@ void fly(void)
 					if (speed>0) speed=-speed;
 					else speed-= G.vd->grid;
 					axis= 1;
+				
+				/* axis locking */
+				} else if(toets==XKEY) {
+					xlock= !xlock;
+				} else if(toets==ZKEY) {
+					zlock= !zlock;
 				}
 				
 			}
 		}
 		if(action != 0) break;
-		
 		
 		moffset[0]= mval[0]-cent[0];
 		moffset[1]= mval[1]-cent[1];
@@ -2176,13 +2181,8 @@ void fly(void)
 			moffset[1]= moffset[1]*fabs(moffset[1]);
 		}
 		
-		
-		/* correct the view rolling */
-		if (G.qual & LR_CTRLKEY)	correct_vroll=1;
-		else						correct_vroll=0;
-		
 		/* Should we redraw? */
-		if(speed!=0.0 || moffset[0] || moffset[1] || correct_vroll) {
+		if(speed!=0.0 || moffset[0] || moffset[1] || zlock || xlock ) {
 			
 			/* Set the view direction usine the current axis */
 			if ((G.qual & LR_ALTKEY) && speed!=0.0 && (moffset[0]||moffset[1]))
@@ -2203,6 +2203,7 @@ void fly(void)
 			
 			time_current= PIL_check_seconds_timer();
 			time_redraw= (float)(time_current-time_lastdraw);
+			time_redraw_clamped= MIN2(0.05, time_redraw); /* clamt the redraw time to avoid jitter in roll correction */
 			time_lastdraw= time_current;
 			/*fprintf(stderr, "%f\n", time_redraw);*/ /* 0.002 is a small redraw 0.02 is larger */
 			
@@ -2236,46 +2237,62 @@ void fly(void)
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 			}
 			
-			if (correct_vroll) {
+			if (zlock) {
 				upvec[0]=1;
 				upvec[1]=0;
 				upvec[2]=0;
 				Mat3MulVecfl(mat, upvec);
-				
+
 				/*make sure we have some z rolling*/
 				if (fabs(upvec[2]) > 0.00001) {
-					tmpvec[0]=	upvec[0];
-					upvec[1]=	tmpvec[1]=	0;
-					tmpvec[2]=	0;
-					
-					/* angle between zroll vector and vec with zroll removed*/
-					angle= VecAngle2(tmpvec, upvec);
-					
-					/* we need to know which direction to rotate the camera */
-					if (upvec[2]<0) angle=-angle; 
-					
-					/* now correct the angle a slight ammount, holding Ctrl will fix over time */
-					upvec[0]=0;
+					roll= upvec[2]*180;
+					upvec[0]=0; /*rotate the view about this axis*/
 					upvec[1]=0;
 					upvec[2]=1;
 					
 					/*clamp teh max roll speed - hides the fact that the roll calculation
 					only realy detects if we're rolling, but not by how much */
-					if (angle>4) angle= 4;
-					else if (angle<-4) angle= -4;
+					if (roll>4) roll= 4;
+					else if (roll<-4) roll= -4;
 					
 					Mat3MulVecfl(mat, upvec);
-					VecRotToQuat( upvec, angle*0.001, tmp_quat); /* Rotate about the relative up vec */
+					VecRotToQuat( upvec, roll*time_redraw_clamped*0.1, tmp_quat); /* Rotate about the relative up vec */
 					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 				}
 			}
 			
+			if (xlock && moffset[1]==0) { /*only apply xcorrect when mouse isnt applying x rot*/
+				upvec[0]=0;
+				upvec[1]=0;
+				upvec[2]=1;
+				Mat3MulVecfl(mat, upvec);
+				/*make sure we have some z rolling*/
+				if (fabs(upvec[2]) > 0.00001) {
+					roll= upvec[2]*-360;
+					
+					upvec[0]=1; /*rotate the view about this axis*/
+					upvec[1]=0;
+					upvec[2]=0;
+					
+					/*clamp teh max roll speed - hides the fact that the roll calculation
+					only realy detects if we're rolling, but not by how much */
+					if (roll>4) roll= 4;
+					else if (roll<-4) roll= -4;
+					
+					Mat3MulVecfl(mat, upvec);
+					
+					VecRotToQuat( upvec, roll*time_redraw_clamped*0.1, tmp_quat); /* Rotate about the relative up vec */
+					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+				}
+			}
+
+
 			if (apply_rotation)
 				VecMulf(dvec, speed*time_redraw);
-			
+
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
-			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Alt,  Upright:Ctrl,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Cancel:RMB");
-			
+			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Alt,  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Cancel:RMB");
+
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to teh view */
 			if (G.vd->persp==2) {
 				G.vd->persp= 1; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
@@ -2284,7 +2301,7 @@ void fly(void)
 				G.vd->persp= 2;
 				DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
 			}
-			
+
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		} else 
