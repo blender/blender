@@ -181,6 +181,9 @@ static void free_render_result(RenderResult *res)
 /* all layers except the active one get temporally pushed away */
 static void push_render_result(Render *re)
 {
+	/* officially pushed result should be NULL... error can happen with do_seq */
+	free_render_result(re->pushedresult);
+	
 	re->pushedresult= re->result;
 	re->result= NULL;
 }

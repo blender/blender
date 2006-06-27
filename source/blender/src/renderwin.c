@@ -733,7 +733,6 @@ static void renderwin_init_display_cb(RenderResult *rr)
 			}
 
 			renderwin_reset_view(render_win);
-			render_win->flags&= ~RW_FLAGS_ESCAPE;
 			render_win->active= 1;
 		}
 		/* make sure we are in normal draw again */
@@ -1165,6 +1164,9 @@ void BIF_init_render_callbacks(Render *re, int do_display)
 	RE_error_cb(re, error_cb);
 	
 	G.afbreek= 0;
+	if(render_win)
+		render_win->flags &= ~RW_FLAGS_ESCAPE;
+
 	/* start esc timer. ensure it happens once only */
 	if(esc_timer_set==0)
 		init_test_break_callback();

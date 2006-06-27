@@ -903,7 +903,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				if(G.rendering)
 					re= RE_NewRender(" do_build_seq_ibuf");	
 				else
-					re= RE_NewRender(seq->scene->id.name);
+					re= RE_NewRender(sce->id.name);
 				
 				/* prevent eternal loop */
 				doseq= sce->r.scemode & R_DOSEQ;
