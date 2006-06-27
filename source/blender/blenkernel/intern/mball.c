@@ -1617,9 +1617,9 @@ float init_meta(Object *ob)	/* return totsize */
 	totsize= 0.0;
 	for(a=0; a<totelem; a++) {
 		
-		vec[0]= mainb[a]->x + mainb[a]->rad;
-		vec[1]= mainb[a]->y + mainb[a]->rad;
-		vec[2]= mainb[a]->z + mainb[a]->rad;
+		vec[0]= mainb[a]->x + mainb[a]->rad + mainb[a]->expx;
+		vec[1]= mainb[a]->y + mainb[a]->rad + mainb[a]->expy;
+		vec[2]= mainb[a]->z + mainb[a]->rad + mainb[a]->expz;
 
 		calc_mballco(mainb[a], vec);
 	
