@@ -5417,9 +5417,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			else {
 				SceneRenderLayer *srl;
 				/* new layer flag for sky, was default for solid */
-				for(srl= sce->r.layers.first; srl; srl= srl->next)
+				for(srl= sce->r.layers.first; srl; srl= srl->next) {
 					if(srl->layflag & SCE_LAY_SOLID)
 						srl->layflag |= SCE_LAY_SKY;
+					srl->passflag &= (SCE_PASS_COMBINED|SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR);
+				}
 			}
 			
 			/* node version changes */
