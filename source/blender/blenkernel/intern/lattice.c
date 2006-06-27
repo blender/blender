@@ -519,9 +519,9 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 		cent[2]= 0.0;
 		index= 2;
 	}
-	/* to be sure */
+	/* to be sure, mostly after file load */
 	if(cu->path==NULL) {
-		calc_curvepath(par);
+		makeDispListCurveTypes(par, 0);
 		if(cu->path==NULL) return;	// happens on append...
 	}
 	/* options */
