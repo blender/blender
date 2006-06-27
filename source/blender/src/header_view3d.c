@@ -1209,10 +1209,8 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_select_faceselmenu(void *arg, int event)
+void do_view3d_select_faceselmenu(void *arg, int event)
 {
-//	extern void borderselect(void);
-
 	/* events >= 6 are registered bpython scripts */
 	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
 

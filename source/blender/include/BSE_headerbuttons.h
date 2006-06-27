@@ -140,6 +140,7 @@ void do_view3d_select_object_groupedmenu(void *arg, int event);
 void do_view3d_select_object_linkedmenu(void *arg, int event);
 void do_view3d_select_object_layermenu(void *arg, int event);
 void do_view3d_select_object_typemenu(void *arg, int event);
+void do_view3d_select_faceselmenu(void *arg, int event);
 void do_view3d_select_meshmenu(void *arg, int event);
 void do_view3d_select_curvemenu(void *arg, int event);
 void do_view3d_edit_snapmenu(void *arg, int event);

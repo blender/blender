@@ -845,6 +845,16 @@ static TBitem tb_object_select[]= {
 {	0, "Grouped", 	0, 	tb_object_select_grouped},
 {  -1, "", 			0, do_view3d_select_objectmenu}};
 
+static TBitem tb_face_select[]= {
+{	0, "Border Select|B", 		0, NULL},
+{	0, "SEPR",					0, NULL},
+{	0, "Select/Deselect All|A", 2, NULL},
+{	0, "Inverse",				3, NULL},
+{	0, "Same UV",				4, NULL},
+{	0, "SEPR",					0, NULL},
+{	0, "Linked Faces|Ctrl L", 	5, NULL},
+{  -1, "", 						0, do_view3d_select_faceselmenu}};
+
 static TBitem tb_mesh_select[]= {
 {	0, "Border Select|B",               0, NULL},
 {	0, "SEPR",                          0, NULL},
@@ -1845,7 +1855,8 @@ void toolbox_n(void)
 				}
 			}
 		}
-		else {
+		else if (G.f & G_FACESELECT) {
+			menu3 = tb_face_select;
 		}
 	}
 	else if(curarea->spacetype==SPACE_NODE) {
