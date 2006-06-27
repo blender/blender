@@ -113,8 +113,10 @@ static void snode_drawstring(SpaceNode *snode, char *str, int okwidth)
 
 static void socket_vector_menu_cb(void *node_v, void *ntree_v)
 {
-	NodeTagChanged(ntree_v, node_v); 
-	addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+((bNode *)node_v)->nr);
+	if(node_v && ntree_v) {
+		NodeTagChanged(ntree_v, node_v); 
+		addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+((bNode *)node_v)->nr);
+	}
 }
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
