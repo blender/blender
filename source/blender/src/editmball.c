@@ -74,6 +74,8 @@ extern short editbutflag;
 ListBase editelems= {0, 0};
 MetaElem *lastelem;
 
+/* this function is called, when MetaBall Object is
+ * switched from object mode to edit mode */
 void make_editMball()
 {
 	MetaBall *mb;
@@ -98,13 +100,16 @@ void make_editMball()
 	countall();
 }
 
+/* this function is called, when MetaBall Object switched from
+ * edit mode to object mode. List od MetaElements is copied
+ * from editelems to to object->data structure (mb->elems) */
 void load_editMball()
 {
 	/* load mball in object */
 	MetaBall *mb;
 	MetaElem *ml, *newml;
 
-	if(G.obedit==0) return;
+	if(G.obedit==NULL) return;
 	
 	mb= G.obedit->data;
 	BLI_freelistN(&(mb->elems));
@@ -119,6 +124,7 @@ void load_editMball()
 	}
 }
 
+/* add new MetaElement primitive */
 void add_primitiveMball(int dummy_argument)
 {
 	MetaElem *ml;
@@ -132,7 +138,7 @@ void add_primitiveMball(int dummy_argument)
 	check_editmode(OB_MBALL);
 
 	/* if no obedit: new object and enter editmode */
-	if(G.obedit==0) {
+	if(G.obedit==NULL) {
 		add_object_draw(OB_MBALL);
 		base_init_from_view3d(BASACT, G.vd);
 		G.obedit= BASACT->object;
@@ -210,11 +216,13 @@ void add_primitiveMball(int dummy_argument)
 	lastelem= ml;
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  // added ball can influence others
-		
+
+	countall();	
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Add MetaElem");
 }
 
+/* deselect all MetaElements */
 void deselectall_mball()
 {
 	MetaElem *ml;
@@ -234,11 +242,14 @@ void deselectall_mball()
 		else ml->flag |= SELECT;
 		ml= ml->next;
 	}
+
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
-//	BIF_undo_push("Deselect MetaElem");
+	BIF_undo_push("Deselect MetaElem");
 }
 
+/* select MetaElement with mouse click (user can select radius circle or
+ * stiffness circle) */
 void mouse_mball()
 {
 	static MetaElem *startelem=0;
@@ -254,7 +265,7 @@ void mouse_mball()
 		if(ml==startelem) break;
 		ml= ml->next;
 	}
-	if(ml==0) startelem= editelems.first;
+	if(ml==NULL) startelem= editelems.first;
 	
 	if(hits>0) {
 		ml= startelem;
@@ -276,7 +287,7 @@ void mouse_mball()
 			if(act) break;
 			
 			ml= ml->next;
-			if(ml==0) ml= editelems.first;
+			if(ml==NULL) ml= editelems.first;
 			if(ml==startelem) break;
 		}
 		if(act) {
@@ -296,10 +307,13 @@ void mouse_mball()
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
+
+	allqueue(REDRAWBUTSOBJECT, 0);
 	countall();
 	rightmouse_transform();
 }
 
+/* duplicate selected MetaElements */
 void adduplicate_mball()
 {
 	MetaElem *ml, *newml;
@@ -474,3 +488,4 @@ void reveal_mball(void)
 	countall();
 	BIF_undo_push("Unhide MetaElems");
 }
+
