@@ -406,6 +406,7 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 			PyObject *pyVal = PyNumber_Int( v );
 			if (pyVal) {
 				but->val.asint = (int)PyInt_AS_LONG( pyVal );
+				Py_DECREF(pyVal);
 				return 0;
 			}
 		}
@@ -413,6 +414,7 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 			PyObject *pyVal = PyNumber_Float( v );
 			if (pyVal) {
 				but->val.asfloat = (float)PyFloat_AS_DOUBLE( pyVal );
+				Py_DECREF(pyVal);
 				return 0;
 			}
 		}
@@ -427,13 +429,16 @@ static int Button_setattr( PyObject * self, char *name, PyObject * v )
 			PyString_AsStringAndSize( v, &newstr, &newlen );
 			
 			if (newlen+1> UI_MAX_DRAW_STR)
-				return EXPP_ReturnIntError( PyExc_ValueError, "Error, the string assigned to this button has a length greator then 399");
-			
+				return EXPP_ReturnIntError( PyExc_ValueError, "Error: button string length exceeded max limit (399 chars).");
+
 			/* if the length of the new string is the same as */
 			/* the old one, just copy, else delete and realloc. */
 			if( but->slen == newlen ) {
 				BLI_strncpy( but->val.asstr, newstr,
 					     but->slen + 1 );
+
+				return 0;
+
 			} else {
 				MEM_freeN( but->val.asstr );
 				but->slen = newlen;
