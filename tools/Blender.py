@@ -309,6 +309,8 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd) 
     cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
     commands.getoutput(cmd) 
+    cmd = 'cp %s/bin/.blender/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
+    commands.getoutput(cmd) 
     cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
     commands.getoutput(cmd)
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
