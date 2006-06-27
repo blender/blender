@@ -1754,7 +1754,7 @@ static int node_uiDoBlocks(ScrArea *sa, short event)
 	ListBase listb= *lb;
 	bNode *node;
 	rctf rect;
-	void *prev;
+	void *prev, *next;
 	int retval= UI_NOTHING;
 	short mval[2];
 	
@@ -1781,13 +1781,18 @@ static int node_uiDoBlocks(ScrArea *sa, short event)
 		
 		if(block) {
 			if(node == visible_node(snode, &rect)) {
-				
+
 				/* when there's menus, the prev pointer becomes zero! */
 				prev= ((struct Link *)block)->prev;
+				next= ((struct Link *)block)->next;
+				((struct Link *)block)->prev= NULL;
+				((struct Link *)block)->next= NULL;
 				
 				lb->first= lb->last= block;
 				retval= uiDoBlocks(lb, event);
+				
 				((struct Link *)block)->prev= prev;
+				((struct Link *)block)->next= next;
 
 				break;
 			}
