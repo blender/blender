@@ -2129,8 +2129,8 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 		for (x=0;x<halfWidth;x++){
 			index=(x+y*width)*4;
 			fx=0;
-			curColor[0]=curColor[1]=curColor[2]=0;
-			curColor2[0]=curColor2[1]=curColor2[2]=0;
+			curColor[0]=curColor[1]=curColor[2]=0.0f;
+			curColor2[0]=curColor2[1]=curColor2[2]=0.0f;
 
 			for (i=x-halfWidth;i<x+halfWidth;i++){
 			   if ((i>=0)&&(i<width)){
@@ -2304,7 +2304,7 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 }
 
 static void RVIsolateHighlights_float (float* in, float* out, 
-				      int width, int height, int threshold, 
+				      int width, int height, float threshold, 
 				      float boost, float clamp)
 {
 	int x,y,index;
@@ -2383,7 +2383,7 @@ static void do_glow_effect_float(Sequence *seq, float facf0, float facf1,
 	float *inbuf = rect1;
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 
-	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*765, glow->fBoost, glow->fClamp);
+	RVIsolateHighlights_float(inbuf, outbuf , x, y, glow->fMini*3.0f, glow->fBoost, glow->fClamp);
 	RVBlurBitmap2_float (outbuf, x, y, glow->dDist,glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_float (inbuf , outbuf, outbuf, x, y);
