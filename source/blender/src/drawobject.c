@@ -108,9 +108,10 @@
 #include "BDR_editobject.h"
 #include "BDR_vpaint.h"
 
-#include "BSE_view.h"
 #include "BSE_drawview.h"
+#include "BSE_node.h"
 #include "BSE_trans_types.h"
+#include "BSE_view.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -189,6 +190,7 @@ static int init_gl_materials(Object *ob, int check_alpha)
 	
 	for(a=1; a<=ob->totcol; a++) {
 		ma= give_current_material(ob, a);
+		ma= editnode_get_active_material(ma);
 		if(ma==NULL) ma= &defmaterial;
 		if(a<MAXMATBUF) {
 			matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
