@@ -1665,7 +1665,7 @@ static struct edgesort *make_mesh_edge_lookup(Mesh *me, DispListMesh *dlm, int *
 	}
 	if(totedge==0) return NULL;
 	
-	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
+	ed= edsort= MEM_callocN(totedge*sizeof(struct edgesort), "edgesort");
 	
 	for(a= me->totface, mf= mface; a>0; a--, mf++) {
 		if(mface->v4 || mface->v3) {
