@@ -200,6 +200,7 @@ void deselectall_Latt(void)
 		if(bp->hide==0) {
 			if(bp->f1) {
 				setflagsLatt(0);
+				countall();
 				BIF_undo_push("(De)select all");
 				return;
 			}
@@ -207,7 +208,7 @@ void deselectall_Latt(void)
 		bp++;
 	}
 	setflagsLatt(1);
-
+	countall();
 	BIF_undo_push("(De)select all");
 }
 

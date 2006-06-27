@@ -1935,7 +1935,8 @@ void deselectall_posearmature (Object *ob, int test)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWACTION, 0);
-
+	
+	countall();
 }
 
 

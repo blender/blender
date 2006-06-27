@@ -235,6 +235,7 @@ void deselectall_mball()
 		ml= ml->next;
 	}
 	allqueue(REDRAWVIEW3D, 0);
+	countall();
 //	BIF_undo_push("Deselect MetaElem");
 }
 
@@ -295,6 +296,7 @@ void mouse_mball()
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
+	countall();
 	rightmouse_transform();
 }
 
@@ -314,6 +316,7 @@ void adduplicate_mball()
 	}
 	
 	BIF_TransformSetUndo("Add Duplicate");
+	countall();
 	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 	Transform();
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -341,7 +344,7 @@ void delete_mball()
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-
+	countall();
 	BIF_undo_push("Delete MetaElem");
 }
 
@@ -389,6 +392,7 @@ static void undoMball_to_editMball(void *lbv)
 	for(nr=0, lastelem= editelems.first; lastelem; lastelem= lastelem->next, nr++)
 		if(nr==lastmlnr) break;
 	
+	countall();
 }
 
 static void *editMball_to_undoMball(void)
@@ -448,7 +452,7 @@ void hide_mball(char hide)
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-
+	countall();
 	BIF_undo_push("Hide MetaElems");
 }
 
@@ -467,6 +471,6 @@ void reveal_mball(void)
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-
+	countall();
 	BIF_undo_push("Unhide MetaElems");
 }
