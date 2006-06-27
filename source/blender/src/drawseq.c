@@ -545,7 +545,7 @@ static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
 {
 	float v1[2], v2[2];
 	int len, size;
-	char str[120], *strp;
+	char str[32 + FILE_MAXDIR+FILE_MAXFILE], *strp;
 	short mval[2];
 	
 	v1[1]= y1;
