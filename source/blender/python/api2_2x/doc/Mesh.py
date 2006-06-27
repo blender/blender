@@ -58,14 +58,13 @@ done once.
     - NOVNORMALSFLIP - no flipping of vertex normals during render.
     - TWOSIDED - double sided mesh.
     - AUTOSMOOTH - turn auto smoothing of faces "on".
-    - SUBSURF - turn Catmull-Clark subdivision of surfaces "on".
-    - OPTIMAL - optimal drawing of edges when "SubSurf" is "on".
+    - note: SUBSURF and OPTIMAL have been removed, use Modifiers to apply subsurf.
 @var FaceFlags: The available *texture face* (uv face select mode) selection
   flags.  Note: these refer to TexFace faces, available if mesh.faceUV()
   returns true.
     - SELECT - selected.
     - HIDE - hidden.
-    - ACTIVE - the active face.
+    - ACTIVE - the active face, read only - Use L{mesh.activeFace<Mesh.Mesh.activeFace>} to set.
 @var FaceModes: The available *texture face* modes. Note: these are only
   meaningful if mesh.faceUV() returns true, since in Blender this info is
   stored at the TexFace (TexFace button in Edit Mesh buttons) structure.

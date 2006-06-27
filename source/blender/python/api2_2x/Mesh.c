@@ -3844,7 +3844,14 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 {
 	int param;
-	static short bitmask = TF_SELECT | TF_HIDE;
+	static short bitmask =
+		TF_SELECT	|
+		TF_ACTIVE	|
+		TF_SEL1		|
+		TF_SEL2		|
+		TF_SEL3		|
+		TF_SEL4		|
+		TF_HIDE;	
 
 	if( !self->mesh->tface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -3861,10 +3868,8 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 	param = PyInt_AS_LONG ( value );
 
 	/* only one face can be active, so don't allow that here */
-
-	if( ( param & bitmask ) == TF_ACTIVE )
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"cannot make a face active; use 'activeFace' attribute" );
+	if( param & TF_ACTIVE )
+		param &= ~TF_ACTIVE;
 	
 	if( ( param & bitmask ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
