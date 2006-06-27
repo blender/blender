@@ -2259,6 +2259,11 @@ void fly(void)
 					upvec[1]=0;
 					upvec[2]=1;
 					
+					/*clamp teh max roll speed - hides the fact that the roll calculation
+					only realy detects if we're rolling, but not by how much */
+					if (angle>4) angle= 4;
+					else if (angle<-4) angle= -4;
+					
 					Mat3MulVecfl(mat, upvec);
 					VecRotToQuat( upvec, angle*0.001, tmp_quat); /* Rotate about the relative up vec */
 					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
