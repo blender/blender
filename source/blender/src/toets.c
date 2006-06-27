@@ -460,7 +460,7 @@ int blenderqread(unsigned short event, short val)
 			return 0;
 		}
 		else if(G.qual==0) {
-			extern_set_butspace(event);
+			extern_set_butspace(event, 1);
 		}
 		break;
 	case F5KEY:
@@ -469,7 +469,7 @@ int blenderqread(unsigned short event, short val)
 			return 0;
 		}
 		else if(G.qual==0) {
-			extern_set_butspace(event);
+			extern_set_butspace(event, 1);
 		}
 		break;
 	case F6KEY:
@@ -478,7 +478,7 @@ int blenderqread(unsigned short event, short val)
 			return 0;
 		}
 		else if(G.qual==0) {
-			extern_set_butspace(event);
+			extern_set_butspace(event, 1);
 		}
 		break;
 	case F7KEY:
@@ -487,7 +487,7 @@ int blenderqread(unsigned short event, short val)
 			return 0;
 		}
 		else if(G.qual==0) {
-			extern_set_butspace(event);
+			extern_set_butspace(event, 1);
 		}
 		break;
 	case F8KEY:
@@ -496,7 +496,7 @@ int blenderqread(unsigned short event, short val)
 			return 0;
 		}
 		else if(G.qual==0) {
-			extern_set_butspace(event);
+			extern_set_butspace(event, 1);
 		}
 		break;
 	case F9KEY:
@@ -509,7 +509,7 @@ int blenderqread(unsigned short event, short val)
 			return 0;
 		}
 		else if(G.qual==0) {
-			extern_set_butspace(event);
+			extern_set_butspace(event, 1);
 		}
 		break;
 	case F10KEY:
@@ -518,7 +518,7 @@ int blenderqread(unsigned short event, short val)
 			return 0;
 		}
 		else if(G.qual==0) {
-			extern_set_butspace(event);
+			extern_set_butspace(event, 1);
 		}
 		break;
 	case F11KEY:

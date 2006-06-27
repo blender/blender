@@ -1574,8 +1574,8 @@ static void do_info_rendermenu(void *arg, int event)
 
 		break;
 
-		case 7:
-		extern_set_butspace(F10KEY);
+	case 7:
+		extern_set_butspace(F10KEY, 1);
 		break;
 	}
 	allqueue(REDRAWINFO, 0);

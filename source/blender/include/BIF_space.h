@@ -104,7 +104,7 @@ extern       void copy_view3d_lock(short val);
 extern       void drawemptyspace(struct ScrArea *sa, void *spacedata);
 extern       void drawinfospace(struct ScrArea *sa, void *spacedata);
 extern       void duplicatespacelist(struct ScrArea *area, struct ListBase *lb1, struct ListBase *lb2);
-extern       void extern_set_butspace(int fkey);
+extern       void extern_set_butspace(int fkey, int do_cycle);
 extern       void force_draw(int header);
 extern		 void force_draw_all(int header);
 extern		 void force_draw_plus(int type, int header);

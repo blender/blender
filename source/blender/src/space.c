@@ -3487,7 +3487,7 @@ static void init_butspace(ScrArea *sa)
 	buts->ri = NULL;
 }
 
-void extern_set_butspace(int fkey)
+void extern_set_butspace(int fkey, int do_cycle)
 {
 	ScrArea *sa;
 	SpaceButs *sbuts;
@@ -3504,11 +3504,12 @@ void extern_set_butspace(int fkey)
 		}
 	}
 	
-	if(sa==0) return;
+	if(sa==NULL) return;
 	
 	if(sa!=curarea) areawinset(sa->win);
 	
 	sbuts= sa->spacedata.first;
+	if(!do_cycle) sbuts->oldkeypress= 0;
 	
 	if(fkey==F4KEY) {
 		sbuts->mainb= CONTEXT_LOGIC;

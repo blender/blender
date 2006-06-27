@@ -1032,7 +1032,7 @@ static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int s
 		}
 	}
 	if(set) {
-		extern_set_butspace(F5KEY);	// force shading buttons
+		extern_set_butspace(F5KEY, 0);	// force shading buttons
 		BIF_preview_changed(ID_MA);
 		allqueue(REDRAWBUTSSHADING, 1);
 		allqueue(REDRAWNODE, 0);
@@ -1074,7 +1074,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 				sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 1;
 			}
-			extern_set_butspace(F6KEY);	// force shading buttons texture
+			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			wrld->texact= te->index;
 		}
 		else if(tselemp->id == (ID *)(G.scene->world)) {
@@ -1088,7 +1088,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 				sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 2;
 			}
-			extern_set_butspace(F6KEY);	// force shading buttons texture
+			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			la->texact= te->index;
 		}
 		else {
@@ -1104,7 +1104,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 				//sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
 				sbuts->texfrom= 0;
 			}
-			extern_set_butspace(F6KEY);	// force shading buttons texture
+			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			ma->texact= te->index;
 			
 			/* also set active material */
@@ -1128,7 +1128,7 @@ static int tree_element_active_lamp(SpaceOops *soops, TreeElement *te, int set)
 	if(ob==NULL || ob!=OBACT) return 0;	// just paranoia
 	
 	if(set) {
-		extern_set_butspace(F5KEY);
+		extern_set_butspace(F5KEY, 0);
 		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 1);
 		allqueue(REDRAWOOPS, 0);
@@ -1160,7 +1160,7 @@ static int tree_element_active_world(SpaceOops *soops, TreeElement *te, int set)
 	
 	if(tep==NULL || tselem->id == (ID *)G.scene) {
 		if(set) {
-			extern_set_butspace(F8KEY);
+			extern_set_butspace(F8KEY, 0);
 		}
 		else {
 			return 1;
@@ -1356,7 +1356,7 @@ static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int
 static int tree_element_active_modifier(TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	if(set) {
-		extern_set_butspace(F9KEY);
+		extern_set_butspace(F9KEY, 0);
 	}
 	
 	return 0;
@@ -1506,7 +1506,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 						if(G.obedit) exit_editmode(2);
 						else {
 							enter_editmode();
-							extern_set_butspace(F9KEY);
+							extern_set_butspace(F9KEY, 0);
 						}
 					}
 					else {	// rest of types
