@@ -1734,7 +1734,11 @@ static void ui_panel_untab(uiBlock *block)
 static void panel_clicked_tabs(uiBlock *block,  int mousex)
 {
 	Panel *pa, *tabsel=NULL, *panel= block->panel;
-	int nr= 1, a, width;
+	int nr= 1, a, width, ofsx;
+	
+	ofsx= PNL_ICON;
+	if(block->panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
+	 
 	
 	/* count */
 	pa= curarea->panels.first;
@@ -1749,12 +1753,13 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 	
 	/* find clicked tab, mouse in panel coords */
 	a= 0;
-	width= (panel->sizex - 3- 2*PNL_ICON)/nr;
+	width= (int)((float)(panel->sizex - ofsx-10)/nr);
 	pa= curarea->panels.first;
 	while(pa) {
 		if(pa==panel || pa->paneltab==panel) {
-			if( (mousex > PNL_ICON+a*width) && (mousex < PNL_ICON+(a+1)*width) ) {
+			if( (mousex > ofsx+a*width) && (mousex < ofsx+(a+1)*width) ) {
 				tabsel= pa;
+				break;
 			}
 			a++;
 		}
