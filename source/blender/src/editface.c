@@ -1424,7 +1424,7 @@ void set_faceselect()	/* toggle */
 	Object *ob = OBACT;
 	Mesh *me = 0;
 	
-	if(ob==NULL || (ob->lay & G.vd->lay)==0) return;
+	if(ob==NULL) return;
 	if(ob->id.lib) {
 		error("Can't edit library data");
 		return;
@@ -1451,7 +1451,7 @@ void set_faceselect()	/* toggle */
 			BIF_undo_push("End UV Faceselect");
 		}
 	}
-	else if (me) {
+	else if (me && (ob->lay & G.vd->lay)) {
 		G.f |= G_FACESELECT;
 		if(me->tface==NULL)
 			make_tfaces(me);

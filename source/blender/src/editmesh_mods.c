@@ -1042,7 +1042,7 @@ int edgegroup_select(short mode)
 					if (
 						!(eed->f & SELECT) &&
 						!eed->h &&
-						(fabs(base_eed->crease-eed->crease) < thresh)
+						(fabs(base_eed->crease-eed->crease) <= thresh)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
