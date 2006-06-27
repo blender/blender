@@ -328,7 +328,7 @@ Block.append(("Ob", bObFile, "Use object name in filename"))
 
 if FullPython:
 	Block.append(("Edit", bEdit, "Edit resulting file in an external program"))
-	Block.append(("Editor: ", bEditPath, 0, 1024, "Path to external editor (leave blank to select a new one)"))
+	Block.append(("Editor: ", bEditPath, 0, 399, "Path to external editor (leave blank to select a new one)"))
 
 retval = Blender.Draw.PupBlock("UV Image Export", Block)
 
