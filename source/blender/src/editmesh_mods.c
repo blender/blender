@@ -882,6 +882,7 @@ EDGE GROUP
  mode 2: same direction
  mode 3: same number of face users
  mode 4: similar face angles.
+ mode 5: similar crease
 */
 
 /* this function is only used by edgegroup_select's edge angle */
@@ -1036,8 +1037,21 @@ int edgegroup_select(short mode)
 							return selcount;
 					}
 				}
+			} else if (mode==5) { /* edge crease */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						(fabs(base_eed->crease-eed->crease) < thresh)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
 			}
-			
 		}
 	} 
 	return selcount;
@@ -1179,7 +1193,7 @@ void select_mesh_group_menu()
 		}
 		
 	} else if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		ret= pupmenu("Select Grouped Edges%t|Similar Length %x1|Similar Direction %x2|Same Face Users%x3|Similar Adjacent Face Angle");
+		ret= pupmenu("Select Grouped Edges%t|Similar Length %x1|Similar Direction %x2|Same Face Users%x3|Similar Adjacent Face Angle%x4|Similar Crease%x5");
 		if (ret<1) return;
 		selcount= edgegroup_select(ret);
 		
