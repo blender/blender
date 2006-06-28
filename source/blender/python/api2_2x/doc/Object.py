@@ -105,7 +105,7 @@ def GetSelected ():
     objects = Blender.Object.GetSelected()
     print objects
   @note: The active object will always be the first object in the list (if selected).
-  @note: The user selection is made up of selected objects from Blenders current scene.
+  @note: The user selection is made up of selected objects from Blenders current scene only.
   @note: The user selection is limited to objects on visible layers,
       if the users last active 3d view is in localview then the selection will be limited to the objects in that localview.
   """
@@ -243,14 +243,14 @@ class Object:
         #n in the Object's material list is used. Otherwise, the Material #n
         of the Objects Data material list is displayed.
         Example::
-            object.colbits = 0x21 # use mesh materials 0 (0x01) and 5 (0x20)
+            object.colbits = (1<<0) + (1<<5) # use mesh materials 0 (1<<0) and 5 (1<<5)
                                   # use object materials for all others
     @ivar drawType: The object's drawing type used. 1 - Bounding box,
         2 - wire, 3 - Solid, 4- Shaded, 5 - Textured.
     @ivar drawMode: The object's drawing mode used. The value can be a sum
         of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
         32 - drawwire, 64 - xray.
-    @ivar name: The name of the object.
+    @ivar name: The name of the object, 21 chars max.
     @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected. (Selecting makes the object active)
     @ivar effects: The list of particle effects associated with the object.  (Read-only)
     @ivar parentbonename: The string name of the parent bone.
@@ -390,7 +390,8 @@ class Object:
   def getData(name_only=False, mesh=False):
     """
     Returns the Datablock object (Mesh, Lamp, Camera, etc.) linked to this 
-    Object.  If the keyword parameter 'name_only' is True, only the Datablock
+    Object.
+    If the keyword parameter 'name_only' is True, only the Datablock
     name is returned as a string.  It the object is of type Mesh, then the
     'mesh' keyword can also be used; the data return is a Mesh object if
     True, otherwise it is an NMesh object (the default).
@@ -402,6 +403,9 @@ class Object:
     a Mesh data object is returned.
     @rtype: specific Object type or string
     @return: Depends on the type of Datablock linked to the Object.  If name_only is True, it returns a string.
+    @note: For Mesh objects Mesh is faster then NMesh because Mesh is a thin wrapper.
+    @note: This function is different from L{NMesh.GetRaw} and L{Mesh.Get}
+    because it keeps a link to the original mesh which it needed if your dealing with Mesh weight groups.
     """
 
   def getParentBoneName():
@@ -795,6 +799,9 @@ class Object:
     list element is either a Material or None.  Also see L{colbits}.
     @type materials: Materials list
     @param materials: A list of Blender material objects.
+    @note: Blender materials are assigned to the objects data by default.
+    So unless you know the material is applied to the object or are changing the
+    objects colbits then you need to look at the object datas materials.
     """
 
   def setMatrix(matrix):
@@ -836,6 +843,8 @@ class Object:
     if self and the object specified are of the same type.
     @type object: Blender Object
     @param object: A Blender Object of the same type.
+    @note: This funtion is faster then using getData() and setData()
+    because it skips making a python object from the objects data.
     """
   
   def select(boolean):
@@ -867,12 +876,12 @@ class Object:
     the "SubSurf" mode for a mesh:
 
     Example::
-     object = Blender.Object.Get("Sphere")
-     nmesh = object.getData()
-     nmesh.setMode("SubSurf")
-     nmesh.update() # don't forget to update!
+     import Blender
+     scene= Blender.Scene.GetCurrent()
+     object= scene.getActiveObject()
+     object.modifiers.append(Blender.Modifier.Type.SUBSURF)
      object.makeDisplayList()
-     Blender.Window.Redraw()
+     Blender.Window.RedrawAll()
 
     If you try this example without the line to update the display list, the
     object will disappear from the screen until you press "SubSurf".
