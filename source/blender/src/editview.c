@@ -2210,7 +2210,7 @@ void fly(void)
 			/* Scale the time to use shift to scale the speed down- just like
 			shift slows many other areas of blender down */
 			if (G.qual & LR_SHIFTKEY)
-				time_redraw= time_redraw*0.1;
+				speed= speed * (1-time_redraw_clamped);
 			
 			Mat3CpyMat4(mat, G.vd->viewinv);
 			if (apply_rotation) {
