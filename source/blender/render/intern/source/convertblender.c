@@ -2944,7 +2944,7 @@ void RE_Database_Free(Render *re)
 	if(re->r.mode & R_RAYTRACE) freeoctree(re);
 	
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
-	re->i.convertdone= re->i.partsdone= 0;
+	re->i.convertdone= 0;
 	
 	if(re->scene)
 		if(re->scene->r.scemode & R_FREE_IMAGE)
@@ -3168,7 +3168,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	re->lights.first= re->lights.last= NULL;
 	
 	slurph_opt= 0;
-
+	re->i.partsdone= 0;	/* signal now in use for previewrender */
+	
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if(re->scene->lay & 0xFF000000) lay= re->scene->lay & 0xFF000000;
 	else lay= re->scene->lay;
