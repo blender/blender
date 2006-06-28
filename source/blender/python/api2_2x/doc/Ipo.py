@@ -310,6 +310,9 @@ class Ipo:
       9. Sequence Ipo: Fac.
       10. Constraint Ipo: Inf.
 
+    For Key IPOs, the name must be an existing KeyBlock name.  Use
+    L{curveConsts} to determine the set of valid names.
+
     @type curvename : string
     @rtype: IpoCurve object
     @return: the corresponding IpoCurve, or None.
