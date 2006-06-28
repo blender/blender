@@ -6131,6 +6131,8 @@ int collapseEdges(void)
 	removedoublesflag(1, MERGELIMIT);
 	/*get rid of this!*/
 	countall();
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
 	return mergecount;
 }
 
@@ -6185,6 +6187,8 @@ int merge_target(int target, int uvmerge)
 	}
 	
 	countall();
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
 	return removedoublesflag(1,MERGELIMIT);
 	
 }
@@ -6351,6 +6355,8 @@ void pathselect(void)
 			BLI_heap_free(heap, NULL);
 			EM_select_flush();
 			countall();
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 	else{
@@ -6386,6 +6392,8 @@ void region_to_loop(void)
 		G.scene->selectmode = SCE_SELECT_EDGE;
 		EM_selectmode_set();
 		countall();
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Face Region to Edge Loop");
 
 	}
@@ -6542,5 +6550,7 @@ void loop_to_region(void)
 	
 	countall();
 	freecollections(&allcollections);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Edge Loop to Face Region");
 }
