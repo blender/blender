@@ -1811,7 +1811,6 @@ static unsigned int dag_screen_view3d_layers(void)
    use DAG_scene_flush_update() in end */
 void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 {
-	Base *base;
 	
 	if(ob==NULL || sce->theDag==NULL) return;
 	ob->recalc |= flag;
@@ -1825,9 +1824,10 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 				/* except when there's a key and shapes are locked */
 				if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)));
 				else {
-					for (base= sce->base.first; base; base= base->next) {
-						if (ob->data==base->object->data) {
-							base->object->recalc |= OB_RECALC_DATA;
+					Object *obt;
+					for (obt=G.main->object.first; obt; obt= obt->id.next) {
+						if (obt->data==ob->data) {
+							obt->recalc |= OB_RECALC_DATA;
 						}
 					}
 				}
