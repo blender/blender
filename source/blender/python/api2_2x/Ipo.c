@@ -941,7 +941,14 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 	 * param = -1.
 	 */
 
-	param = lookup_curve_name( cur_name, ipo->blocktype, self->mtex );
+	if( ipo->blocktype != ID_KE ) {
+		param = lookup_curve_name( cur_name, ipo->blocktype, self->mtex );
+	} else {
+		param = lookup_curve_key( cur_name, ipo );
+		if( param == -2 )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
+					"unable to find matching key data for Ipo" );
+	}
 
 	if( param == -1 )
 		return EXPP_ReturnPyObjError( PyExc_NameError,
