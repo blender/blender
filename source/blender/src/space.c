@@ -3532,7 +3532,7 @@ void extern_set_butspace(int fkey, int do_cycle)
 		}
 		/* if we're coming in from texture buttons, 
 		or from outside the shading context, just go to the 'default' */
-		else if (ob && ((sbuts->mainb!= CONTEXT_SHADING) || (sbuts->oldkeypress == F6KEY)) ) {
+		else if (ob) {
 			sbuts->mainb= CONTEXT_SHADING;
 			
 			if(ob->type==OB_CAMERA) 
@@ -3568,6 +3568,7 @@ void extern_set_butspace(int fkey, int do_cycle)
 	else if(fkey==F8KEY) {
 		sbuts->mainb= CONTEXT_SHADING;
 		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
+		BIF_preview_changed(ID_TE);
 	}
 	else if(fkey==F9KEY) sbuts->mainb= CONTEXT_EDITING;
 	else if(fkey==F10KEY) {
