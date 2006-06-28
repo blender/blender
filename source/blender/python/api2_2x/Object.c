@@ -83,6 +83,7 @@ struct rctf;
 
 #include "BDR_editobject.h"
 #include "BDR_editcurve.h"
+#include "BDR_drawobject.h"
 
 #include "MEM_guardedalloc.h"
 

@@ -526,6 +526,7 @@ void quicktime_exit(void);
 #endif //WITH_QUICKTIME
 
 /* intern/dynlibtiff.c */
+void libtiff_init(void);
 void libtiff_exit(void);
 
 #endif

@@ -75,6 +75,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_transform.h"
+#include "BIF_editmesh.h"
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
