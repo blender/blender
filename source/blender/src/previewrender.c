@@ -599,7 +599,8 @@ void BIF_previewdraw(ScrArea *sa, uiBlock *block)
 /* *************************** Preview for 3d window *********************** */
 static void view3d_previewrender_stats(RenderStats *rs)
 {
-//	printf("rendered %.3f\n", rs->lastframetime);
+//	if(rs->convertdone) 
+//		printf("rendered %d %.3f\n", rs->partsdone, rs->lastframetime);
 }
 
 static void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
@@ -638,7 +639,7 @@ void BIF_view3d_previewrender_signal(ScrArea *sa, short signal)
 		RenderInfo *ri= v3d->ri;
 		ri->status &= ~signal;
 		ri->curtile= 0;
-		// printf("preview signal\n");
+		//printf("preview signal %d\n", signal);
 		if(ri->re && (signal & PR_DBASE))
 			RE_Database_Free(ri->re);
 
@@ -744,7 +745,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		addafterqueue(curarea->win, RENDERPREVIEW, 1);
 		return;
 	}
-	
+	//printf("Enter previewrender\n");
 	/* ok, are we rendering all over? */
 	if(ri->re==NULL) {
 		char name[32];
@@ -774,7 +775,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		/* until here are no escapes */
 		ri->status |= PR_DISPRECT;
 		ri->curtile= 0;
-		// printf("new render\n");
+		//printf("new render\n");
 	}
 
 	re= ri->re;
@@ -791,7 +792,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 				RE_SetWindow(ri->re, &viewplane, clipsta, clipend);
 			ri->status |= PR_DISPRECT;
 			ri->curtile= 0;
-			// printf("disprect update\n");
+			//printf("disprect update\n");
 		}
 		if((ri->status & PR_DBASE)==0) {
 			unsigned int lay= G.scene->lay;
@@ -810,7 +811,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 			if(rstats->convertdone) 
 				ri->status |= PR_DBASE|PR_PROJECTED|PR_ROTATED;
 			ri->curtile= 0;
-			// printf("dbase update\n");
+			//printf("dbase update\n");
 		}
 		if((ri->status & PR_PROJECTED)==0) {
 			if(ri->status & PR_DBASE) {
@@ -822,12 +823,12 @@ void BIF_view3d_previewrender(ScrArea *sa)
 				ri->status |= PR_PROJECTED;
 			}
 			ri->curtile= 0;
-			// printf("project update\n");
+			//printf("project update\n");
 		}
 	
 		/* OK, can we enter render code? */
 		if(ri->status==(PR_DISPRECT|PR_DBASE|PR_PROJECTED|PR_ROTATED)) {
-			// printf("curtile %d tottile %d\n", ri->curtile, ri->tottile);
+			//printf("curtile %d tottile %d\n", ri->curtile, ri->tottile);
 			RE_TileProcessor(ri->re, ri->curtile);
 	
 			if(ri->rect==NULL)
@@ -848,6 +849,8 @@ void BIF_view3d_previewrender(ScrArea *sa)
 	else {
 		addafterqueue(curarea->win, RENDERPREVIEW, 1);
 	}
+	
+	//printf("\n");
 }
 
 /* in panel space! */

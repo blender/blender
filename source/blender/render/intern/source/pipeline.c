@@ -958,6 +958,7 @@ static void render_tile_processor(Render *re, int firsttile)
 					re->display_draw(pa->result, NULL);
 					
 					re->i.partsdone++;
+					re->stats_draw(&re->i);
 				}
 				free_render_result(pa->result);
 				pa->result= NULL;

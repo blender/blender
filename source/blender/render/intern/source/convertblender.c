@@ -2944,7 +2944,7 @@ void RE_Database_Free(Render *re)
 	if(re->r.mode & R_RAYTRACE) freeoctree(re);
 	
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
-	re->i.convertdone= 0;
+	re->i.convertdone= re->i.partsdone= 0;
 	
 	if(re->scene)
 		if(re->scene->r.scemode & R_FREE_IMAGE)

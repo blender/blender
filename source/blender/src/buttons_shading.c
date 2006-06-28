@@ -2828,7 +2828,7 @@ static void material_panel_tramir(Material *ma)
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,20,150,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,20,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Uses additive blending for Z-transparant materials");
+//	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,20,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Uses additive blending for Z-transparant materials");
 
 	uiBlockEndAlign(block);
 }
