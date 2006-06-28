@@ -441,9 +441,11 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 	bNodePreview *preview= node->preview;
 	
 	if(preview && stackbuf) {
-		CompBuf *cbuf;
+		CompBuf *cbuf, *stackbuf_use;
 		
 		if(stackbuf->rect==NULL) return;
+		
+		stackbuf_use= typecheck_compbuf(stackbuf, CB_RGBA);
 		
 		if(stackbuf->x > stackbuf->y) {
 			preview->xsize= 140;
@@ -454,12 +456,15 @@ static void generate_preview(bNode *node, CompBuf *stackbuf)
 			preview->xsize= (140*stackbuf->x)/stackbuf->y;
 		}
 		
-		cbuf= scalefast_compbuf(stackbuf, preview->xsize, preview->ysize);
+		cbuf= scalefast_compbuf(stackbuf_use, preview->xsize, preview->ysize);
 		
 		/* this ensures free-compbuf does the right stuff */
 		SWAP(float *, cbuf->rect, node->preview->rect);
 		
 		free_compbuf(cbuf);
+		if(stackbuf_use!=stackbuf)
+			free_compbuf(stackbuf_use);
+
 	}
 }
 
