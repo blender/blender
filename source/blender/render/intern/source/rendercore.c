@@ -3044,8 +3044,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 			rectf[1] = invGammaCorrect(rectf[1]);
 			rectf[2] = invGammaCorrect(rectf[2]);
 		}
-	}			
-	
+	}
 }
 
 /* ************* pixel struct ******** */
@@ -3130,6 +3129,20 @@ static void make_pixelstructs(RenderPart *pa, ListBase *lb)
 	}
 }
 
+static void convert_to_key_alpha(RenderPart *pa, float *rectf)
+{
+	int y;
+	
+	for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
+		if(rectf[3] >= 1.0f);
+		else if(rectf[3] > 0.0f) {
+			rectf[0] /= rectf[3];
+			rectf[1] /= rectf[3];
+			rectf[2] /= rectf[3];
+		}
+	}
+}
+
 /* supposed to be fully threadable! */
 void zbufshadeDA_tile(RenderPart *pa)
 {
@@ -3211,6 +3224,10 @@ void zbufshadeDA_tile(RenderPart *pa)
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
+		
+		/* de-premul alpha */
+		if(R.r.alphamode & R_ALPHAKEY)
+			convert_to_key_alpha(pa, rl->rectf);
 		
 		/* free stuff within loop! */
 		MEM_freeT(pa->rectdaps); pa->rectdaps= NULL;
@@ -3340,7 +3357,11 @@ void zbufshade_tile(RenderPart *pa)
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
-
+		
+		/* de-premul alpha */
+		if(R.r.alphamode & R_ALPHAKEY)
+			convert_to_key_alpha(pa, rl->rectf);
+		
 		if(edgerect) MEM_freeT(edgerect);
 		edgerect= NULL;
 	}
