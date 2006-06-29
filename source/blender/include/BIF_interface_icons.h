@@ -48,9 +48,10 @@ struct Material;
 void BIF_icons_init(int first_dyn_id);
 int BIF_icon_get_width(int icon_id);
 int BIF_icon_get_height(int icon_id);
-void BIF_icon_set_aspect(int icon_id, float aspect);
+
 void BIF_icon_draw(float x, float y, int icon_id);
-void BIF_icon_draw_blended(float x, float y, int icon_id, int colorid, int shade);
+void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect);
+void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade);
 void BIF_icons_free();
 void BIF_icons_free_drawinfo(void *drawinfo);
 

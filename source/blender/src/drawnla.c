@@ -132,9 +132,9 @@ static void draw_nla_channels(void)
 			if(ob->nlastrips.first && ob->action) {
 				glEnable(GL_BLEND);
 				if(ob->nlaflag & OB_NLA_OVERRIDE)
-					BIF_icon_draw_blended(x+5, y-8, ICON_NLA, TH_HEADER, 0);
+					BIF_icon_draw(x+5, y-8, ICON_NLA);
 				else
-					BIF_icon_draw_blended(x+5, y-8, ICON_ACTION, TH_HEADER, 0);
+					BIF_icon_draw(x+5, y-8, ICON_ACTION);
 				glDisable(GL_BLEND);
 			}			
 			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
@@ -156,7 +156,7 @@ static void draw_nla_channels(void)
 					if(strip->flag & ACTSTRIP_ACTIVE) break;
 				if(strip==NULL) {
 					glEnable(GL_BLEND);
-					BIF_icon_draw_blended(x, y-8, ICON_DOT, TH_BACK, 0);
+					BIF_icon_draw(x, y-8, ICON_DOT);
 					glDisable(GL_BLEND);
 				}
 				
@@ -180,7 +180,7 @@ static void draw_nla_channels(void)
 					
 					if(strip->flag & ACTSTRIP_ACTIVE) {
 						glEnable(GL_BLEND);
-						BIF_icon_draw_blended(x+16, y-8, ICON_DOT, TH_BACK, 0);
+						BIF_icon_draw(x+16, y-8, ICON_DOT);
 						glDisable(GL_BLEND);
 					}
 				}

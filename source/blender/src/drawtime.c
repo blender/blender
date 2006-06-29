@@ -136,9 +136,9 @@ static void draw_marker(TimeMarker *marker)
 	
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
 	if(marker->flag & SELECT)
-		BIF_icon_draw_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER_HLT, TH_BACK, 0);
+		BIF_icon_draw(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER_HLT);
 	else
-		BIF_icon_draw_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER, TH_BACK, 0);
+		BIF_icon_draw(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);		

@@ -204,9 +204,6 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		ys= (but->y1+but->y2- height)/2.0;
 	}
 
-	/* aspect for the icon has to be stored */
-	BIF_icon_set_aspect(icon, aspect);
-
 	glEnable(GL_BLEND);
 
 	/* calculate blend color */
@@ -215,7 +212,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;
 	}
-	BIF_icon_draw_blended(xs, ys, icon, but->themecol, blend);
+	BIF_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
 	
 	glDisable(GL_BLEND);
 

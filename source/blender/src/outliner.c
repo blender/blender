@@ -637,6 +637,21 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				outliner_add_element(soops, &te->subtree, key->ipo, te, 0, 0);
 			}
 			break;
+		case ID_IP:
+			{
+				Ipo *ipo= (Ipo *)id;
+				IpoCurve *icu;
+				Object *lastadded= NULL;
+				
+				for(icu= ipo->curve.first; icu; icu= icu->next) {
+					if(icu->driver && icu->driver->ob) {
+						if(lastadded!=icu->driver->ob) {
+							outliner_add_element(soops, &te->subtree, icu->driver->ob, te, TSE_LINKED_OB, 0);
+							lastadded= icu->driver->ob;
+						}
+					}
+				}
+			}
 		case ID_AC:
 			{
 				bAction *act= (bAction *)id;

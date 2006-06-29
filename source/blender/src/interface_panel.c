@@ -1120,11 +1120,6 @@ void ui_draw_panel(uiBlock *block)
 	if(panel->control & UI_PNL_CLOSE) {
 	
 		ui_draw_x_icon(block->minx+2+ofsx, block->maxy+5);
-		/*
-		if(block->aspect>1.1) glPixelZoom(1.0/block->aspect, 1.0/block->aspect);
-		BIF_icon_draw(block->minx+4, block->maxy+3, ICON_PANEL_CLOSE);
-		if(block->aspect>1.1) glPixelZoom(1.0, 1.0);
-		*/
 		ofsx= 22;
 	}
 

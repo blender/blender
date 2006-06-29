@@ -3564,25 +3564,6 @@ void draw_area_emboss(ScrArea *sa)
 	sdrawline(0, 0, 0, sa->winy);
 
 	glDisable( GL_BLEND );
-	
-	
-	/* for test */
-	if(FALSE && sa->spacetype==SPACE_VIEW3D) {
-		cpack(0xA0A0A0);
-		uiSetRoundBox(31);
-		uiRoundBoxEmboss(5.0, 5.0, 25.0, 100.0, 8.0, 0);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
-		
-		BIF_icon_draw(8.0, 10.0, ICON_MATERIAL_HLT);
-		BIF_icon_draw(8.0, 30.0, ICON_IPO_HLT);
-		BIF_icon_draw(8.0, 50.0, ICON_HOME);
-		BIF_icon_draw(8.0, 70.0, ICON_BORDERMOVE);
-		
-		glBlendFunc(GL_ONE,  GL_ZERO); 
-		glDisable(GL_BLEND);
-	}
 }
 
 

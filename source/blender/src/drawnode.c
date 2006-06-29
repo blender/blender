@@ -1473,31 +1473,28 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 			icon_id= ICON_MATERIAL_DEHLT;
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
-		BIF_icon_set_aspect(icon_id, snode->aspect);
-		BIF_icon_draw_blended(iconofs, rct->ymax-NODE_DY+2, icon_id, 0, -60);
+		BIF_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, icon_id, snode->aspect, -60);
 		glDisable(GL_BLEND);
 	}
 	if(node->type == NODE_GROUP) {
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
-		BIF_icon_set_aspect(ICON_NODE, snode->aspect);
 		if(node->id->lib) {
 			glPixelTransferf(GL_GREEN_SCALE, 0.7f);
 			glPixelTransferf(GL_BLUE_SCALE, 0.3f);
-			BIF_icon_draw(iconofs, rct->ymax-NODE_DY+2, ICON_NODE);
+			BIF_icon_draw_aspect(iconofs, rct->ymax-NODE_DY+2, ICON_NODE, snode->aspect);
 			glPixelTransferf(GL_GREEN_SCALE, 1.0f);
 			glPixelTransferf(GL_BLUE_SCALE, 1.0f);
 		}
 		else {
-			BIF_icon_draw_blended(iconofs, rct->ymax-NODE_DY+2, ICON_NODE, 0, -60);
+			BIF_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, ICON_NODE, snode->aspect, -60);
 		}
 		glDisable(GL_BLEND);
 	}
 	if(node->typeinfo->flag & NODE_OPTIONS) {
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
-		BIF_icon_set_aspect(ICON_BUTS, snode->aspect);
-		BIF_icon_draw_blended(iconofs, rct->ymax-NODE_DY+2, ICON_BUTS, 0, -60);
+		BIF_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, ICON_BUTS, snode->aspect, -60);
 		glDisable(GL_BLEND);
 	}
 	{	/* always hide/reveil unused sockets */ 
@@ -1509,8 +1506,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		else
 			shade= -90;
 		glEnable(GL_BLEND);
-		BIF_icon_set_aspect(ICON_PLUS, snode->aspect);
-		BIF_icon_draw_blended(iconofs, rct->ymax-NODE_DY+2, ICON_PLUS, 0, shade);
+		BIF_icon_draw_aspect_blended(iconofs, rct->ymax-NODE_DY+2, ICON_PLUS, snode->aspect, shade);
 		glDisable(GL_BLEND);
 	}
 	

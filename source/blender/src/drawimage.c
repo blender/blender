@@ -674,16 +674,16 @@ static void draw_image_view_icon(void)
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
 	if(G.sima->flag & SI_STICKYUVS) {
-		BIF_icon_draw(xPos, 5.0, ICON_STICKY2_UVS);
+		BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY2_UVS, 1.0f);
 		xPos = 25.0;
 	}
 	else if(!(G.sima->flag & SI_LOCALSTICKY)) {
-		BIF_icon_draw(xPos, 5.0, ICON_STICKY_UVS);
+		BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY_UVS, 1.0f);
 		xPos = 25.0;
 	}
 
 	if(G.sima->flag & SI_SELACTFACE) {
-		BIF_icon_draw(xPos, 5.0, ICON_DRAW_UVFACES);
+		BIF_icon_draw_aspect(xPos, 5.0, ICON_DRAW_UVFACES, 1.0f);
 	}
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 

@@ -772,32 +772,36 @@ static void icon_set_image(ID *id, DrawInfo *di)
 	}
 }
 
-void BIF_icon_draw(float x, float y, int icon_id)
+void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
-
+	
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
-		printf("BIF_icon_draw: Internal error, no icon for icon ID: %d\n", icon_id);
+		printf("BIF_icon_set_aspect: Internal error, no icon for icon ID: %d\n", icon_id);
 		return;
 	}
-
+	
 	di = (DrawInfo*)icon->drawinfo;
-
+	
 	if (!di) {
-		
 		di = icon_create_drawinfo();
-				
+		
 		icon->changed = 1; 
 		icon->drawinfo = di;		
-		icon->drawinfo_free = BIF_icons_free_drawinfo;
+		icon->drawinfo_free = BIF_icons_free_drawinfo;		
 	}
-
+	
+	di->aspect = aspect;
+	/* scale width and height according to aspect */
+	di->w = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
+	di->h = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
+	
 	if (di->drawFunc) {
 		/* vector icons use the uiBlock transformation, they are not drawn
-		   with untransformed coordinates like the other icons */
+		with untransformed coordinates like the other icons */
 		di->drawFunc(x, y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	}
 	else {
@@ -808,7 +812,7 @@ void BIF_icon_draw(float x, float y, int icon_id)
 			icon->changed = 0;		
 			waitcursor(0);
 		}
-
+		
 		if (!di->rect) return; /* something has gone wrong! */
 		
 		ui_rasterpos_safe(x, y, di->aspect);
@@ -826,11 +830,11 @@ void BIF_icon_draw(float x, float y, int icon_id)
 			/* first allocate imbuf for scaling and copy preview into it */
 			ima = IMB_allocImBuf(di->rw, di->rh, 32, IB_rect, 0);
 			memcpy(ima->rect, di->rect, di->rw*di->rh*sizeof(unsigned int));	
-
+			
 			/* scale it */
 			IMB_scaleImBuf(ima, di->w, di->h);
 			glDrawPixels(di->w, di->h, GL_RGBA, GL_UNSIGNED_BYTE, ima->rect);
-
+			
 			IMB_freeImBuf(ima);
 		}
 		else
@@ -838,8 +842,13 @@ void BIF_icon_draw(float x, float y, int icon_id)
 	}
 }
 
+void BIF_icon_draw(float x, float y, int icon_id)
+{
+	BIF_icon_draw_aspect(x, y, icon_id, 1.0f);
+}
 
-void BIF_icon_draw_blended(float x, float y, int icon_id, int colorid, int shade)
+
+void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade)
 {
 	
 	if(shade < 0) {
@@ -847,36 +856,9 @@ void BIF_icon_draw_blended(float x, float y, int icon_id, int colorid, int shade
 		glPixelTransferf(GL_ALPHA_SCALE, r);
 	}
 
-	BIF_icon_draw(x, y, icon_id);
+	BIF_icon_draw_aspect(x, y, icon_id, aspect);
 
-	glPixelTransferf(GL_ALPHA_SCALE, 1.0);
-}
-
-void BIF_icon_set_aspect(int icon_id, float aspect) 
-{
-	Icon *icon = NULL;
-	DrawInfo *di = NULL;
-
-	icon = BKE_icon_get(icon_id);
-	
-	if (!icon) {
-		printf("BIF_icon_set_aspect: Internal error, no icon for icon ID: %d\n", icon_id);
-		return;
-	}
-
-	di = (DrawInfo*)icon->drawinfo;
-
-	if (!di) {
-		di = icon_create_drawinfo();
-				
-		icon->changed = 1; 
-		icon->drawinfo = di;		
-		icon->drawinfo_free = BIF_icons_free_drawinfo;		
-	} 
-	di->aspect = aspect;
-	/* scale width and height according to aspect */
-	di->w = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
-	di->h = (int)(ICON_DEFAULT_HEIGHT/di->aspect + 0.5f);
-	
+	if(shade < 0)
+		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 }
 
