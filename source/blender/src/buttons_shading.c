@@ -2726,7 +2726,8 @@ static void material_panel_texture(Material *ma)
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture", "Material", 960, 0, 318, 204)==0) return;
-
+	uiClearButLock();
+	
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	
@@ -2739,6 +2740,8 @@ static void material_panel_texture(Material *ma)
 		uiDefButC(block, ROW, B_MATPRV, str,	10, 180-18*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
+	
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
 	
 	/* SEPTEX */
 	uiBlockSetCol(block, TH_AUTO);
@@ -3186,6 +3189,9 @@ static void material_panel_links(Object *ob, Material *ma)
 				  
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 10, 160, 0, NULL, B_MATBROWSE, ID_MA, 0, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+	
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	
 	if(ma) cp= &ma->use_nodes; else cp= &G.buts->use_nodes;
 	uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, cp, 0.0f, 0.0f, 0, 0, "");
 	G.buts->use_nodes= *cp;
