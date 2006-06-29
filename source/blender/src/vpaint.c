@@ -830,8 +830,10 @@ static int calc_vp_alpha_dl(VPaint *vp, float *vert_nor, short *mval)
 		
 		fac= sqrt(dx*dx + dy*dy);
 		if(fac > vp->size) return 0;
-
-		alpha= 255.0*vp->a*(1.0-fac/vp->size);
+		if(vp->flag & VP_HARD)
+			alpha= 255;
+		else
+			alpha= 255.0*vp->a*(1.0-fac/vp->size);
 	}
 	else {
 		alpha= 255.0*vp->a;

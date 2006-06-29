@@ -3852,7 +3852,7 @@ static void editing_panel_mesh_paint(void)
 		uiDefBut(block, BUT, B_OPA3_4 , "3/4",		145,100,45,19, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT, B_OPA1_0 , "1",		190,100,45,19, 0, 0, 0, 0, 0, "");
 		
-		uiDefButF(block, NUMSLI, B_NOP, "Size ",		10,80,225,19, &Gwp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+		uiDefButF(block, NUMSLI, B_NOP, "Size ",	10,80,225,19, &Gwp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 
 		uiBlockBeginAlign(block);
 		uiDefButS(block, ROW, B_DIFF, "Mix",		250,160,60,17, &Gwp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colors");
@@ -3862,18 +3862,21 @@ static void editing_panel_mesh_paint(void)
 		uiDefButS(block, ROW, B_DIFF, "Filter",		250, 88,60,17, &Gwp.mode, 1.0, 4.0, 0, 0, "Mix the colors with an alpha factor");
 		uiDefButS(block, ROW, B_DIFF, "Lighter",	250, 70,60,17, &Gwp.mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
 		uiDefButS(block, ROW, B_DIFF, "Darker",		250, 52,60,17, &Gwp.mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
+		uiBlockEndAlign(block);
+		
+		uiDefButBitS(block, TOG, VP_SPRAY, 0, "Spray",	160,55,75,19, &Gwp.flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse");
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, VP_AREA, 0, "All Faces", 	10,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Paint on all faces inside brush");
-		uiDefButBitS(block, TOG, VP_SOFT, 0, "Vertex Dist", 85,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Use distances to vertices (instead of paint entire faces)");
-		uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	160,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Applies the vertex normal before painting");
-		uiDefButBitS(block, TOG, VP_SPRAY, 0, "Spray",		235,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse");
+		uiDefButBitS(block, TOG, VP_AREA, 0, "All Faces", 	10,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Paint on all faces inside brush (otherwise only on face under mouse cursor)");
+		uiDefButBitS(block, TOG, VP_SOFT, 0, "Vertex Dist", 85,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Use distances to vertices (instead of all vertices of face)");
+		uiDefButBitS(block, TOGN, VP_HARD, 0, "Soft",		160,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Use a soft brush");
+		uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	235,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Applies the vertex normal before painting");
 		
 		if(ob){
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, VP_MIRROR_X, REDRAWVIEW3D, "X-Mirror",	10,0,100,19, &Gwp.flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
-			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	110,0,100,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
-			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					210,0,100,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
+			uiDefButBitS(block, TOG, VP_MIRROR_X, REDRAWVIEW3D, "X-Mirror",	10,-10,100,19, &Gwp.flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
+			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	110,-10,100,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					210,-10,100,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
 			uiBlockEndAlign(block);
 		}
 	}
