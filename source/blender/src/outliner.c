@@ -2451,7 +2451,7 @@ static void outliner_draw_tree(SpaceOops *soops)
 #endif
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
-
+	
 	// selection first
 	BIF_GetThemeColor3ubv(TH_BACK, col);
 	glColor3ub(col[0]+15, col[1]+20, col[2]+25);
