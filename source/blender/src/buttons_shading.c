@@ -3190,7 +3190,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 10, 160, 0, NULL, B_MATBROWSE, ID_MA, 0, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 	
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	if(ma) uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
 	
 	if(ma) cp= &ma->use_nodes; else cp= &G.buts->use_nodes;
 	uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, cp, 0.0f, 0.0f, 0, 0, "");
