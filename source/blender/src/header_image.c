@@ -176,14 +176,18 @@ static void replace_space_image(char *str)		/* called from fileselect */
 
 static void save_paint(char *name)
 {
-	char str[FILE_MAXDIR+FILE_MAXFILE];
 	Image *ima = G.sima->image;
+	int len;
+	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima  && ima->ibuf) {
 		BLI_strncpy(str, name, sizeof(str));
 
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 		
+		if(G.scene->r.scemode & R_EXTENSION) 
+			BKE_add_image_extension(str, G.scene->r.imtype);
+
 		if (saveover(str)) {
 			waitcursor(1);
 			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
@@ -194,6 +198,12 @@ static void save_paint(char *name)
 			} else {
 				error("Couldn't write image: %s", str);
 			}
+			
+			/* name image as how we saved it */
+			len= strlen(str);
+			while (len > 0 && str[len - 1] != '/' && str[len - 1] != '\\') len--;
+			rename_id(&ima->id, str+len);
+
 			waitcursor(0);
 		}
 	}
@@ -334,6 +344,7 @@ void do_image_buttons(unsigned short event)
 				char str[64];
 				save_image_filesel_str(str);
 				
+				/* so it shows extension in file window */
 				if(G.scene->r.scemode & R_EXTENSION) 
 					BKE_add_image_extension(name, G.scene->r.imtype);
 				
@@ -726,6 +737,7 @@ static void do_image_imagemenu(void *arg, int event)
 				char str[64];
 				save_image_filesel_str(str);
 				
+				/* so it shows an extension in filewindow */
 				if(G.scene->r.scemode & R_EXTENSION) 
 					BKE_add_image_extension(name, G.scene->r.imtype);
 				
