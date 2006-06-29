@@ -75,11 +75,20 @@ def join (dir, file):
 
 def splitext (path):
   """
-  Split 'path' into (root, ext), where 'ext' is a file extension.
+  Split 'path' into (root, ext), where 'ext' is a file extension including the full stop.
+
+  Example::
+
+    import Blender
+    file, ext= Blender.sys.splitext('/tmp/foobar.blend')
+    print file, ext
+    # ('/tmp/foobar', '.blend')
+
   @type path: string
   @param path: a path name
-  @rtype: list with two strings
+  @rtype: tuple of two strings
   @return: (root, ext)
+  @note: This function will raise an error if the path is longer then 80 characters.
   """
 
 def makename (path = "Blender.Get('filename')", ext = "", strip = 0):
