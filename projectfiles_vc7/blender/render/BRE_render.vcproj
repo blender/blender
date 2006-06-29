@@ -125,9 +125,6 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\convertblender.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\render\intern\source\edgeRender.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\envmap.c">
 			</File>
 			<File

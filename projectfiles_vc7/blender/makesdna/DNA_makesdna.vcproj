@@ -107,7 +107,7 @@ DNA_makesdna.exe dna.c
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib"
 				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -241,7 +241,7 @@ DNA_makesdna.exe dna.c
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib"
 				OutputFile="..\..\..\source\blender\makesdna\intern\DNA_makesdna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
