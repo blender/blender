@@ -48,7 +48,7 @@ except:
 # === Append Faces To Face List ===
 # =================================
 def append_faces(mesh, faces, facesuv, uvcoords):
-	for i in range(len(faces)):
+	for i in xrange(len(faces)):
 		if not i%100 and show_progress: Blender.Window.DrawProgressBar(float(i)/len(faces), "Generating Faces")
 		numfaceverts=len(faces[i])
 		if numfaceverts == 2: #This is not a face is an edge
@@ -62,7 +62,7 @@ def append_faces(mesh, faces, facesuv, uvcoords):
 			ee.flag |= Blender.NMesh.EdgeFlags.EDGERENDER
 		elif numfaceverts in [3,4]:				# This face is a triangle or quad
 			face = Blender.NMesh.Face()
-			for j in range(numfaceverts):
+			for j in xrange(numfaceverts):
 				index = faces[i][j]
 				face.v.append(mesh.verts[index])
 				if len(uvcoords) > 1:
@@ -73,7 +73,7 @@ def append_faces(mesh, faces, facesuv, uvcoords):
 			mesh.faces.append(face)
 		else:								# Triangulate n-sided convex polygon.
 			a, b, c = 0, 1, 2				# Indices of first triangle.
-			for j in range(numfaceverts-2): # Number of triangles in polygon.
+			for j in xrange(numfaceverts-2): # Number of triangles in polygon.
 				face = Blender.NMesh.Face()
 				face.v.append(mesh.verts[faces[i][a]])
 				face.v.append(mesh.verts[faces[i][b]])
@@ -88,7 +88,7 @@ def append_faces(mesh, faces, facesuv, uvcoords):
 def append_verts(mesh, verts, normals):
 	#print "Number of normals:", len(normals)
 	#print "Number of verts  :", len(verts)
-	for i in range(len(verts)):
+	for i in xrange(len(verts)):
 		if not i%100 and show_progress: Blender.Window.DrawProgressBar(float(i)/len(verts), "Generating Verts")
 		x, y, z = verts[i]
 		mesh.verts.append(Blender.NMesh.Vert(x, y, z))
@@ -108,8 +108,8 @@ def create_mesh(verts, faces, objname, facesuv=[], uvcoords=[], normals=[]):
 	append_faces(mesh, faces, facesuv, uvcoords)
 	if not overwrite_mesh_name:
 		objname = versioned_name(objname)
-	Blender.NMesh.PutRaw(mesh, objname, normal_flag)	# Name the Mesh
-	Blender.Object.GetSelected()[0].name=objname		# Name the Object
+	ob= Blender.NMesh.PutRaw(mesh, objname, normal_flag)	# Name the Mesh
+	ob.name= objname		# Name the Object
 	Blender.Redraw()
 
 # ==============================
@@ -174,9 +174,9 @@ def mat2euler(mat):
 def transpose(A):
 	S = len(A)
 	T = len(A[0])
-	B = [[None]*S for i in range(T)]
-	for i in range(T):
-		for j in range(S):
+	B = [[None]*S for i in xrange(T)]
+	for i in xrange(T):
+		for j in xrange(S):
 			B[i][j] = A[j][i]
 	return B
 
@@ -215,7 +215,7 @@ def generate_edgetable(mesh):
 	edge_table = {}
 	numfaces = len(mesh.faces)
 
-	for i in range(numfaces):
+	for i in xrange(numfaces):
 		if not i%100 and show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Generating Edge Table")
 		if len(mesh.faces[i].v) == 4:	# Process Quadrilaterals

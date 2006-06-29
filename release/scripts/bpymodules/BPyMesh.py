@@ -913,3 +913,38 @@ class NMCol(object):
 		self.g= 255
 		self.b= 255
 		self.a= 255
+
+
+'''
+# 
+verts_split= [dict() for i in xrange(len(me.verts))]
+
+tot_verts= 0
+for f in me.faces:
+	f_uv= f.uv
+	for i, v in enumerate(f.v):
+		vert_index= v.index # mesh index
+		vert_dict= verts_split[vert_index] # get the dict for this vert
+		
+		uv= f_uv[i]
+		# now we have the vert and the face uv well make a unique dict.
+		
+		vert_key= v.x, v.y, v.x, uv.x, uv.y # ADD IMAGE NAME HETR IF YOU WANT TO SPLIT BY THAT TOO
+		value= vert_index, tot_verts # ADD WEIGHT HERE IF YOU NEED.
+		try:
+			vert_dict[vert_key] # if this is missing it will fail.
+		except:
+			# this stores a mapping between the split and orig vert indicies
+			vert_dict[vert_key]= value 
+			tot_verts+= 1
+
+# a flat list of split verts - can add custom weight data here too if you need
+split_verts= [None]*tot_verts
+
+for vert_split_dict in verts_split:
+	for key, value in vert_split_dict.iteritems():
+		local_index, split_index= value
+		split_verts[split_index]= key
+
+# split_verts - Now you have a list of verts split by their UV.
+'''
