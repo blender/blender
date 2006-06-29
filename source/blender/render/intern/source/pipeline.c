@@ -1458,9 +1458,9 @@ static void load_backbuffer(Render *re)
 /* main render routine, no compositing */
 static void do_render_fields_blur_3d(Render *re)
 {
-	/* only check for camera here */
+	/* also check for camera here */
 	if(re->scene->camera==NULL) {
-		re->error("No camera");
+		printf("ERROR: Cannot render, no camera\n");
 		G.afbreek= 1;
 		return;
 	}
@@ -1794,6 +1794,13 @@ static int is_rendering_allowed(Render *re)
  	/* check valid camera, without camera render is OK (compo, seq) */
 	if(re->scene->camera==NULL)
 		re->scene->camera= scene_find_camera(re->scene);
+	
+	if(!(re->r.scemode & (R_DOSEQ|R_DOCOMP))) {
+		if(re->scene->camera==NULL) {
+			re->error("No camera");
+			return 0;
+		}
+	}
 	
 	return 1;
 }
