@@ -1790,7 +1790,12 @@ void yafrayFileRender_t::writeCamera()
 	if ((re->winx * re->r.xasp) <= (re->winy * re->r.yasp))
 		f_aspect = float(re->winx * re->r.xasp) / float(re->winy * re->r.yasp);
 	ostr << "\n\tfocal=\"" << mainCamLens/(f_aspect*32.f);
-	ostr << "\" aspect_ratio=\"" << re->ycor << "\"";
+	// bug #4532, when field rendering is enabled, ycor is doubled
+	if (re->r.mode & R_FIELDS)
+		ostr << "\" aspect_ratio=\"" << (re->ycor * 0.5f) << "\"";
+	else
+		ostr << "\" aspect_ratio=\"" << re->ycor << "\"";
+
 
 	// dof params, only valid for real camera
 	float fdist = 1;	// only changes for ortho
