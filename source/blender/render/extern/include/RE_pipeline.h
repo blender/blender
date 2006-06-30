@@ -72,7 +72,8 @@ typedef struct RenderLayer {
 	unsigned int lay;			
 	int layflag, passflag;		
 	
-	float *rectf;	/* 4 float, standard rgba buffer */
+	float *rectf;		/* 4 float, standard rgba buffer */
+	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
 	
 	ListBase passes;
 	

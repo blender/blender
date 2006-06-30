@@ -3197,23 +3197,25 @@ void zbufshadeDA_tile(RenderPart *pa)
 		/* transp layer */
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
-				float *acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
-				float *fcol= rl->rectf, *acol= acolrect;
+				float *fcol, *acol;
 				int x;
+				
+				/* allocate, but not free here, for asynchronous display of this rect in main thread */
+				rl->acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				
 				if(rl->passflag & SCE_PASS_VECTOR)
 					if(rl->layflag & SCE_LAY_SOLID)
 						reset_sky_speedvectors(pa, rl);
 				
 				/* swap for live updates */
-				SWAP(float *, acolrect, rl->rectf);
+				SWAP(float *, rl->acolrect, rl->rectf);
 				zbuffer_transp_shade(pa, rl, rl->rectf);
-				SWAP(float *, acolrect, rl->rectf);
+				SWAP(float *, rl->acolrect, rl->rectf);
 				
+				fcol= rl->rectf; acol= rl->acolrect;
 				for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
 					addAlphaOverFloat(fcol, acol);
 				}
-				MEM_freeT(acolrect);
 			}
 		}
 		
@@ -3329,23 +3331,25 @@ void zbufshade_tile(RenderPart *pa)
 		
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
-				float *acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
-				float *fcol= rl->rectf, *acol= acolrect;
+				float *fcol, *acol;
 				int x;
+				
+				/* allocate, but not free here, for asynchronous display of this rect in main thread */
+				rl->acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				
 				if(addpassflag & SCE_PASS_VECTOR)
 					if(rl->layflag & SCE_LAY_SOLID)
 						reset_sky_speedvectors(pa, rl);
 				
 				/* swap for live updates */
-				SWAP(float *, acolrect, rl->rectf);
+				SWAP(float *, rl->acolrect, rl->rectf);
 				zbuffer_transp_shade(pa, rl, rl->rectf);
-				SWAP(float *, acolrect, rl->rectf);
+				SWAP(float *, rl->acolrect, rl->rectf);
 				
+				fcol= rl->rectf; acol= rl->acolrect;
 				for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4) {
 					addAlphaOverFloat(fcol, acol);
 				}
-				MEM_freeT(acolrect);
 			}
 		}
 		

@@ -158,6 +158,9 @@ static void free_render_result(RenderResult *res)
 		RenderLayer *rl= res->layers.first;
 		
 		if(rl->rectf) MEM_freeT(rl->rectf);
+		/* acolrect is optionally allocated in shade_tile, only free here since it can be used for drawing */
+		if(rl->acolrect) MEM_freeT(rl->acolrect);
+		
 		while(rl->passes.first) {
 			RenderPass *rpass= rl->passes.first;
 			if(rpass->rect) MEM_freeT(rpass->rect);
