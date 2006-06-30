@@ -1593,6 +1593,13 @@ void do_worldbuts(unsigned short event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
+	case B_AO_DISTANCES:
+		/* distances option only supports plain */
+		wrld= G.buts->lockpoin;
+		if(wrld)
+			wrld->aocolor= WO_AOPLAIN;
+		scrarea_queue_winredraw(curarea);
+		break;
 	}
 }
 
@@ -1808,7 +1815,7 @@ static void world_panel_amb_occ(World *wrld)
 		uiDefButF(block, NUM, B_REDR, "Dist:", 10, 95, 150, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
 
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, WO_AODIST, B_REDR, "Use Distances", 10, 70, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows");
+		uiDefButBitS(block, TOG, WO_AODIST, B_AO_DISTANCES, "Use Distances", 10, 70, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows. Only for Plain AO.");
 		/* distance attenuation factor */
 		if (wrld->aomode & WO_AODIST)
 			uiDefButF(block, NUM, B_REDR, "DistF:", 160, 70, 150, 19, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance factor, the higher, the 'shorter' the shadows");
