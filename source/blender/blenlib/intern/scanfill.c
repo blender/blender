@@ -547,7 +547,7 @@ static void scanfill(PolyFill *pf, int mat_nr)
 				}
 				else {
 					eed->v2->f= 255;
-					eed->v2->tmp.v = eed->v1;
+					eed->v2->tmp.v = eed->v1->tmp.v;
 				}
 			}
 		}
@@ -580,16 +580,18 @@ static void scanfill(PolyFill *pf, int mat_nr)
 		nexted= eed->next;
 		eed->f= 0;
 		BLI_remlink(&filledgebase,eed);
-		if(eed->v1->f==255) {
-			v1= eed->v1;
-			while((eed->v1->f == 255) && (eed->v1->tmp.v != v1)) 
-				eed->v1 = eed->v1->tmp.v;
-		}
-		if(eed->v2->f==255) {
-			v2= eed->v2;
-			while((eed->v2->f == 255) && (eed->v2->tmp.v != v2))
-				eed->v2 = eed->v2->tmp.v;
-		}
+/* commented all of this out, this I have no idea for what it is for, probably from ancient past */
+/* it does crash blender, since it uses mixed original and new vertices (ton) */
+//		if(eed->v1->f==255) {
+//			v1= eed->v1;
+//			while((eed->v1->f == 255) && (eed->v1->tmp.v != v1)) 
+//				eed->v1 = eed->v1->tmp.v;
+//		}
+//		if(eed->v2->f==255) {
+//			v2= eed->v2;
+//			while((eed->v2->f == 255) && (eed->v2->tmp.v != v2))
+//				eed->v2 = eed->v2->tmp.v;
+//		}
 		if(eed->v1!=eed->v2) addedgetoscanlist(eed,verts);
 
 		eed= nexted;
