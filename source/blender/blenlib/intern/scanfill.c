@@ -101,7 +101,7 @@ typedef struct ScFillVert {
 
 /* local funcs */
 
-#define COMPLIMIT	0.0003
+#define COMPLIMIT	0.00003
 
 static ScFillVert *scdata;
 
@@ -820,12 +820,12 @@ int BLI_edgefill(int mode, int mat_nr)
 	eve= fillvertbase.first;
 	while(eve) {
 		if(v2) {
-			if( FloatCompare(v2, eve->co,  0.0003)==0) {
+			if( FloatCompare(v2, eve->co, COMPLIMIT)==0) {
 				len= CalcNormFloat(v1, v2, eve->co, norm);
 				if(len != 0.0) break;
 			}
 		}
-		else if(FloatCompare(v1, eve->co,  0.0003)==0) {
+		else if(FloatCompare(v1, eve->co, COMPLIMIT)==0) {
 			v2= eve->co;
 		}
 		eve= eve->next;
