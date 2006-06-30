@@ -571,13 +571,15 @@ def getUvPixelLoc(face, pxLoc, img_size = None, uvArea = None):
 
 type_tuple= type( (0,) )
 type_list= type( [] )
-def ngon(from_data, indices):
+def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 	'''
 	takes a polyline of indices (fgon)
 	and returns a list of face indicie lists.
 	Designed to be used for importers that need indices for an fgon to create from existing verts.
 	
-	from_data is either a mesh, or a list/tuple of vectors.
+	from_data: either a mesh, or a list/tuple of vectors.
+	indices: a list of indicies to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
+	PREF_FIX_LOOPS: If this is enabled polylines that use loops to make ultiple polylines are delt with correctly.
 	'''
 	Mesh= Blender.Mesh
 	Window= Blender.Window
@@ -600,22 +602,128 @@ def ngon(from_data, indices):
 	if type(from_data) in (type_tuple, type_list):
 		# From a list/tuple of vectors
 		temp_mesh.verts.extend( [from_data[i] for i in indices] )
-		temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
+		#temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
+		edges= [(i, i-1) for i in xrange(len(temp_mesh.verts))]
 	else:
 		# From a mesh
 		temp_mesh.verts.extend( [from_data.verts[i].co for i in indices] )
-		temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
+		#temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
+		edges= [(i, i-1) for i in xrange(len(temp_mesh.verts))]
+	if edges:
+		edges[0]= (0,len(temp_mesh.verts)-1)
 	
+	def rvec(co): return round(co.x, 6), round(co.y, 6), round(co.z, 6)
+	def mlen(co): return co[0]+co[1]+co[2] # manhatten length of a vector
+	
+	if PREF_FIX_LOOPS:
+		edge_used_count= {}
+		
+		rounded_verts= [rvec(v.co) for v in temp_mesh.verts] # rounded verts we can use as dict keys.
+		
+		# We need to check if any edges are used twice location based.
+		for ed_idx, ed in enumerate(edges):
+			ed_v1= rounded_verts[ed[0]]
+			ed_v2= rounded_verts[ed[1]]
+			
+			if ed_v1==ed_v2: # Same locations, remove the edge.
+				edges[ed_idx]= None
+			else:
+				if mlen(ed_v1) < mlen(ed_v2):
+					edkey= ed_v1, ed_v2
+				else:
+					edkey= ed_v2, ed_v1
+				
+				try:
+					edge_user_list= edge_used_count[edkey]
+					edge_user_list.append(ed_idx)
+					
+					# remove edges if there are doubles.
+					if len(edge_user_list) > 1:
+						for edidx in edge_user_list:\
+							edges[edidx]= None
+				except:
+					edge_used_count[edkey]= [ed_idx]
+		
+		
+		# Now remove double verts
+		vert_doubles= {}
+		for edidx, ed in enumerate(edges):
+			if ed != None:
+				ed_v1= rounded_verts[ed[0]]
+				ed_v2= rounded_verts[ed[1]]
+				
+				if ed_v1==ed_v2:
+					edges[edidx]= None # will clear later, edge is zero length.
+					#print 'REMOVING DOUBLES'
+					
+				else:
+					# Try and replace with an existing vert or add teh one we use.
+					try:	edges[edidx]= vert_doubles[ed_v1], ed[1]
+					except:
+						vert_doubles[ed_v1]= ed[0]
+						#print 'REMOVING DOUBLES'
+						
+					try:	edges[edidx]= ed[0], vert_doubles[ed_v2]
+					except:
+						vert_doubles[ed_v2]= ed[1]
+						#print 'REMOVING DOUBLES'
+		
+		edges= [ed for ed in edges if ed != None] # != None
+		# Done removing double edges!
+		
+	# DONE DEALING WITH LOOP FIXING
+	
+	
+	
+	temp_mesh.edges.extend(edges)
+		
+	# Move verts to middle and normalize.
+	# For a good fill we need to normalize and scale the vert location.
+	
+	xmax=ymax=zmax= -1<<30
+	xmin=ymin=zmin= 1<<30
+	for v in temp_mesh.verts:
+		co= v.co
+		x= co.x
+		y= co.y
+		z= co.z
+		if x<xmin: xmin=x
+		if y<ymin: ymin=y
+		if z<zmin: zmin=z
+		if x>xmax: xmax=x
+		if y>ymax: ymax=y
+		if z>zmax: zmax=z
+	
+	# get the bounds on the largist axis
+	size= xmax-xmin
+	size= max(size, ymax-ymin)
+	size= max(size, zmax-zmin)
+	
+	xmid= (xmin+xmax)/2
+	ymid= (ymin+ymax)/2
+	zmid= (zmin+zmax)/2
+
+	x=x/len(temp_mesh.verts)
+	y=y/len(temp_mesh.verts)
+	z=z/len(temp_mesh.verts)
+	
+	for v in temp_mesh.verts:
+		co= v.co
+		co.x= (co.x-xmid)/size
+		co.y= (co.y-ymid)/size
+		co.z= (co.z-zmid)/size
+	# finished resizing the verts.
 	
 	oldmode = Mesh.Mode()
 	Mesh.Mode(Mesh.SelectModes['VERTEX'])
-	temp_mesh.sel= 1 # Select all verst
+	temp_mesh.sel= 1 # Select all verst	
 	
 	# Must link to scene
 	scn= Scene.GetCurrent()
 	temp_ob= Object.New('Mesh')
 	temp_ob.link(temp_mesh)
 	scn.link(temp_ob)
+	
 	temp_mesh.fill()
 	scn.unlink(temp_ob)
 	Mesh.Mode(oldmode)

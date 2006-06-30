@@ -208,9 +208,12 @@ def read(filename):
 	tobj.logcon (filename)
 	tobj.pprint ("#####################################################################")
 
+	for ob in Blender.Scene.GetCurrent().getChildren():
+		ob.sel= 0
+	
 	start = Blender.sys.time()
 	file = open(filename, "rb")
-
+	
 	editmode = Blender.Window.EditMode()    # are we in edit mode?  If so ...
 	if editmode: Blender.Window.EditMode(0) # leave edit mode before getting the mesh    # === LWO header ===
 
@@ -1107,172 +1110,10 @@ def reduce_face(verts, face):
 
 	else: # 5+
 		#print 'SCANFILL...', len(face)
-		ngons= BPyMesh.ngon(verts, face) #, PREF_LOOPBACK= True)
+		ngons= BPyMesh.ngon(verts, face, PREF_FIX_LOOPS= True)
 	return ngons
 	
-	
-#BPyMesh.ngon(currentMesh, currentMeshRelativeIdxs)
-"""
-# ====================
-# === Reduce Faces ===
-# ====================
-# http://www-cgrl.cs.mcgill.ca/~godfried/teaching/cg-projects/97/Ian/cutting_ears.html per l'import
 
-# BPyMeshes NGon replaces this
-
-# ===========================================================
-# === Generation Routines ===================================
-# ===========================================================
-# ==================================================
-# === Compute vector distance between two points ===
-# ==================================================
-def dist_vector (head, tail): #vector from head to tail
-	return Blender.Mathutils.Vector([head[0] - tail[0], head[1] - tail[1], head[2] - tail[2]])
-
-
-# ================
-# === Find Ear ===
-# ================
-def find_ear(normal, list_dict, verts, face):
-	nv = len(list_dict['MF'])
-	#looping through vertexes trying to find an ear
-	#most likely in case of panic
-	mlc = 0
-	mla = 1
-	mlb = 2
-
-	for c in xrange(nv):
-		a = (c+1) % nv; b = (a+1) % nv
-
-		if list_dict['P'][a] > 0.0: #we have to start from a convex vertex
-		#if (list_dict['P'][a] > 0.0) and (list_dict['P'][b] <= 0.0): #we have to start from a convex vertex
-			mlc = c
-			mla = a
-			mlb = b
-			#tobj.pprint ("## mmindex: %s, %s, %s  'P': %s, %s, %s" % (c, a, b, list_dict['P'][c],list_dict['P'][a],list_dict['P'][b]))
-			#tobj.pprint ("   ok, this one passed")
-			concave = 0
-			concave_inside = 0
-			for xx in xrange(nv): #looking for concave vertex
-				if (list_dict['P'][xx] <= 0.0) and (xx != b) and (xx != c): #cannot be a: it's convex
-					#ok, found concave vertex
-					concave = 1
-					#a, b, c, xx are all meta-meta vertex indexes
-					mva = list_dict['MF'][a] #meta-vertex-index
-					mvb = list_dict['MF'][b]
-					mvc = list_dict['MF'][c]
-					mvxx = list_dict['MF'][xx]
-					va = face[mva] #vertex
-					vb = face[mvb]
-					vc = face[mvc]
-					vxx = face[mvxx]
-
-					#Distances
-					d_ac_v = list_dict['D'][c]
-					d_ba_v = list_dict['D'][a]
-					d_cb_v = dist_vector(verts[vc], verts[vb])
-
-					#distance from triangle points
-					d_xxa_v = dist_vector(verts[vxx], verts[va])
-					d_xxb_v = dist_vector(verts[vxx], verts[vb])
-					d_xxc_v = dist_vector(verts[vxx], verts[vc])
-
-					#normals
-					n_xxa_v = Blender.Mathutils.CrossVecs(d_ba_v, d_xxa_v)
-					n_xxb_v = Blender.Mathutils.CrossVecs(d_cb_v, d_xxb_v)
-					n_xxc_v = Blender.Mathutils.CrossVecs(d_ac_v, d_xxc_v)
-
-					#how are oriented the normals?
-					p_xxa_v = Blender.Mathutils.DotVecs(normal, n_xxa_v)
-					p_xxb_v = Blender.Mathutils.DotVecs(normal, n_xxb_v)
-					p_xxc_v = Blender.Mathutils.DotVecs(normal, n_xxc_v)
-
-					#if normals are oriented all to same directions - so it is insida
-					if ((p_xxa_v > 0.0) and (p_xxb_v > 0.0) and (p_xxc_v > 0.0)) or ((p_xxa_v <= 0.0) and (p_xxb_v <= 0.0) and (p_xxc_v <= 0.0)):
-						#print "vertex %d: concave inside" % xx
-						concave_inside = 1
-						break
-				#endif found a concave vertex
-			#end loop looking for concave vertexes
-			if (concave == 0) or (concave_inside == 0):
-				#no concave vertexes in polygon (should not be): return immediately
-				#looped all concave vertexes and no one inside found
-				return [c, a, b]
-		#no convex vertex, try another one
-	#end loop to find a suitable base vertex for ear
-	#looped all candidate ears and find no-one suitable
-	tobj.pprint ("Reducing face: no valid ear found to reduce!")
-	return [mlc, mla, mlb] #uses most likely
-
-
-def reduce_face_old(verts, face):
-	nv = len (face)
-	if nv == 3: return [[0,1,2]] #trivial decomposition list
-	list_dict = {}
-	#meta-vertex indexes
-	list_dict['MF'] = range(nv) # these are meta-vertex-indexes
-	list_dict['D'] = [None] * nv
-	list_dict['X'] = [None] * nv
-	list_dict['P'] = [None] * nv
-	#list of distances
-	for mvi in list_dict['MF']:
-		#vector between two vertexes
-		mvi_hiend = (mvi+1) % nv      #last-to-first
-		vi_hiend = face[mvi_hiend] #vertex
-		vi = face[mvi]
-		list_dict['D'][mvi] = dist_vector(verts[vi_hiend], verts[vi])
-	#list of cross products - normals evaluated into vertexes
-	for vi in xrange(nv):
-		list_dict['X'][vi] = Blender.Mathutils.CrossVecs(list_dict['D'][vi], list_dict['D'][vi-1])
-	my_face_normal = Blender.Mathutils.Vector([list_dict['X'][0][0], list_dict['X'][0][1], list_dict['X'][0][2]])
-	#list of dot products
-	list_dict['P'][0] = 1.0
-	for vi in xrange(1, nv):
-		list_dict['P'][vi] = Blender.Mathutils.DotVecs(my_face_normal, list_dict['X'][vi])
-	#is there at least one concave vertex?
-	#one_concave = reduce(lambda x, y: (x) or (y<=0.0), list_dict['P'], 0)
-	one_concave = reduce(lambda x, y: (x) + (y<0.0), list_dict['P'], 0)
-	decomposition_list = []
-
-	while 1:
-		if nv == 3: break
-		if one_concave:
-			#look for triangle
-			ct = find_ear(my_face_normal, list_dict, verts, face)
-			mv0 = list_dict['MF'][ct[0]] #meta-vertex-index
-			mv1 = list_dict['MF'][ct[1]]
-			mv2 = list_dict['MF'][ct[2]]
-			#add the triangle to output list
-			decomposition_list.append([mv0, mv1, mv2])
-			#update data structures removing remove middle vertex from list
-			#distances
-			v0 = face[mv0] #vertex
-			v1 = face[mv1]
-			v2 = face[mv2]
-			list_dict['D'][ct[0]] = dist_vector(verts[v2], verts[v0])
-			#cross products
-			list_dict['X'][ct[0]] = Blender.Mathutils.CrossVecs(list_dict['D'][ct[0]], list_dict['D'][ct[0]-1])
-			list_dict['X'][ct[2]] = Blender.Mathutils.CrossVecs(list_dict['D'][ct[2]], list_dict['D'][ct[0]])
-			#list of dot products
-			list_dict['P'][ct[0]] = Blender.Mathutils.DotVecs(my_face_normal, list_dict['X'][ct[0]])
-			list_dict['P'][ct[2]] = Blender.Mathutils.DotVecs(my_face_normal, list_dict['X'][ct[2]])
-			#physical removal
-			list_dict['MF'].pop(ct[1])
-			list_dict['D'].pop(ct[1])
-			list_dict['X'].pop(ct[1])
-			list_dict['P'].pop(ct[1])
-			one_concave = reduce(lambda x, y: (x) or (y<0.0), list_dict['P'], 0)
-			nv -=1
-		else: #here if no more concave vertexes
-			if nv == 4: break  #quads only if no concave vertexes
-			decomposition_list.append([list_dict['MF'][0], list_dict['MF'][1], list_dict['MF'][2]])
-			#physical removal
-			del list_dict['MF'][1]
-			nv -=1
-	#end while there are more my_face to triangulate
-	decomposition_list.append(list_dict['MF'])
-	return decomposition_list
-"""
 
 # =========================
 # === Recalculate Faces ===
@@ -1366,7 +1207,8 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 
 	if uv_flag:        #assign uv-data; settings at mesh level
 		msh.hasFaceUV(1)
-	msh.update(1)
+	
+	msh.update(1) # CAN WE REMOVE THIS???- Cam
 
 	tobj.pprint ("\n#===================================================================#")
 	tobj.pprint("Processing Object: %s" % objname)
@@ -1423,7 +1265,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 			msh.faces.append(face)
 			# Associate face properties => from create materials
 			if mat != None: face.materialIndex = mat_index
-			face.smooth = 1 #smooth it anyway
+			#face.smooth = 1 #smooth it anyway
 
 			rev_face= [cur_face[2], cur_face[1], cur_face[0]]
 
@@ -1455,6 +1297,12 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 			#meta_faces= reduce_face_old(complete_vertlist, cur_face)        # Indices of triangles.
 			meta_faces= reduce_face(complete_vertlist, cur_face)        # Indices of triangles.
 			
+			if len(meta_faces) > 1:
+				USE_FGON= True
+				edge_face_count= {}
+			else:
+				USE_FGON= False
+			
 			for mf in meta_faces:
 				# print meta_faces
 				face= Face()
@@ -1462,12 +1310,25 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 
 				if len(mf) == 3: #triangle
 					rev_face= [cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
+					if USE_FGON:
+						for i in xrange(3):
+							v1= vertex_map[rev_face[i]]
+							v2= vertex_map[rev_face[i-1]]
+							if v1!=v2:
+								if v1>v2:
+									v2,v1= v1,v2
+								try:
+									edge_face_count[v1,v2]+=1
+								except:
+									edge_face_count[v1,v2]= 1
+						
+					
 				else:        #quads
 					rev_face= [cur_face[mf[3]], cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
 
 				# Associate face properties => from create materials
 				if mat != None: face.materialIndex = mat_index
-				face.smooth = 1 #smooth it anyway
+				#face.smooth = 1 #smooth it anyway
 
 				for vi in rev_face:
 					index = vertex_map[vi]
@@ -1490,12 +1351,24 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 					face.image = img
 					if surf.has_key('TRAN') or (mat and mat.getAlpha()<1.0): # incase mat is null
 						face.transp= FACE_ALPHA
+			
+			# Tag edges for FGONS
+			if USE_FGON:
+				for vert_key, count in edge_face_count.iteritems():
+					if count > 1: # we are used by more then 1 face
+						nm_edge= msh.addEdge( msh.verts[vert_key[0]], msh.verts[vert_key[1]] )
+						if nm_edge:
+							nm_edge.flag |=Blender.NMesh.EdgeFlags.FGON
 
 		jj += 1
 
 	if not(uv_flag):        #clear eventual UV data
 		msh.hasFaceUV(0)
 	msh.update(1,store_edge)
+	obj.sel= 1
+	# Cycle editmode to render a nice wire frame.
+	Blender.Window.EditMode(1)
+	Blender.Window.EditMode(0)
 	# Blender.Redraw()
 	return obj, not_used_faces              #return the created object
 
@@ -1949,8 +1822,8 @@ def fs_callback(filename):
 
 Blender.Window.FileSelector(fs_callback, "Import LWO")
 
-
-"""
+# Cams debugging lwo loader
+'''
 TIME= Blender.sys.time()
 import os
 print 'Searching for files'
@@ -1968,8 +1841,9 @@ def between(v,a,b):
 	return False
 	
 for i, _lwo in enumerate(lines):
-	if between(i, 100, 200):
-		#if i==425:	 # SCANFILL
+	#if i==425:	 # SCANFILL
+	#if i==520:	 # SCANFILL CRASH
+	if between(i, 0, 100):
 		_lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]
@@ -1978,4 +1852,4 @@ for i, _lwo in enumerate(lines):
 		read(_lwo)
 
 print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
-"""
+'''
