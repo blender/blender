@@ -437,7 +437,7 @@ static void constraint_moveDown(void *ob_v, void *con_v)
 	BIF_undo_push("Move constraint");
 }
 
-/* autocomplete callback for ID buttons */
+/* autocomplete callback for  buttons */
 void autocomplete_bone(char *str, void *arg_v)
 {
 	Object *ob= (Object *)arg_v;
@@ -445,7 +445,7 @@ void autocomplete_bone(char *str, void *arg_v)
 	
 	if(ob==NULL || ob->pose==NULL) return;
 	
-	/* search if str matches the beginning of an ID struct */
+	/* search if str matches the beginning of name */
 	if(str[0]) {
 		bPoseChannel *pchan;
 		
@@ -475,7 +475,7 @@ void autocomplete_bone(char *str, void *arg_v)
 	}
 }
 
-/* autocomplete callback for ID buttons */
+/* autocomplete callback for buttons */
 void autocomplete_vgroup(char *str, void *arg_v)
 {
 	Object *ob= (Object *)arg_v;
@@ -483,12 +483,13 @@ void autocomplete_vgroup(char *str, void *arg_v)
 	
 	if(ob==NULL) return;
 	
-	/* search if str matches the beginning of an ID struct */
+	/* search if str matches the beginning of a name */
 	if(str[0]) {
 		bDeformGroup *dg;
 		
 		for(dg= ob->defbase.first; dg; dg= dg->next) {
 			int a;
+			if(dg->name==str) continue;
 			
 			for(a=0; a<31; a++) {
 				if(str[a]==0 || str[a]!=dg->name[a])

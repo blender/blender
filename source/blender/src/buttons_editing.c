@@ -2942,6 +2942,44 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	
 }
 
+/* autocomplete callback for editbones */
+static void autocomplete_editbone(char *str, void *arg_v)
+{
+	char truncate[40]= {0};
+	
+	if(G.obedit==NULL) return;
+	
+	/* search if str matches the beginning of an ID struct */
+	if(str[0]) {
+		EditBone *ebone;
+		
+		for (ebone=G.edbo.first; ebone; ebone=ebone->next) {
+			int a;
+			if(ebone->name==str) continue;
+			
+			for(a=0; a<31; a++) {
+				if(str[a]==0 || str[a]!=ebone->name[a])
+					break;
+			}
+			/* found a match */
+			if(str[a]==0) {
+				/* first match */
+				if(truncate[0]==0)
+					BLI_strncpy(truncate, ebone->name, 32);
+				else {
+					/* remove from truncate what is not in bone->name */
+					for(a=0; a<31; a++) {
+						if(truncate[a] && truncate[a]!=ebone->name[a])
+							truncate[a]= 0;
+					}
+				}
+			}
+		}
+		if(truncate[0])
+			BLI_strncpy(str, truncate, 32);
+	}
+}
+
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
@@ -2967,9 +3005,9 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
 
 			/*	Bone naming button */
-			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", -10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
+			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", -10,by,117,18, curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
-			uiButSetCompleteFunc(but, autocomplete_bone, (void *)OBACT);
+			uiButSetCompleteFunc(but, autocomplete_editbone, (void *)OBACT);
 
 			uiDefBut(block, LABEL, 0, "child of", 107,by,73,18, NULL, 0.0, 0.0, 0.0, 0.0, "");
 
@@ -3054,7 +3092,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 
 			/*	Bone naming button */
 			uiBlockBeginAlign(block);
-			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:",		-10,by,117,19, &curBone->name, 0, 24, 0, 0, "Change the bone name");
+			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:",		-10,by,117,19, curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_posebonebutton_cb, curBone, NULL);
 			uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 			
