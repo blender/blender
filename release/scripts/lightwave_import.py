@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'LightWave (.lwo)...'
-Blender: 241
+Blender: 239
 Group: 'Import'
 Tooltip: 'Import LightWave Object File Format'
 """
@@ -10,10 +10,8 @@ __author__ = "Alessandro Pirovano, Anthony D'Agostino (Scorpius)"
 __url__ = ("blender", "elysiun",
 "Anthony's homepage, http://www.redrival.com/scorpius", "Alessandro's homepage, http://uaraus.altervista.org")
 
-importername = "lwo_import 0.2.2b"
+importername = "lwo_import 0.3.0a - devel"
 
-# $Id$
-#
 # +---------------------------------------------------------+
 # | Save your work before and after use.                    |
 # | Please report any useful comment to:                    |
@@ -52,10 +50,6 @@ importername = "lwo_import 0.2.2b"
 # +----------------------------------------------------------
 # +---------------------------------------------------------+
 # | Release log:                                            |
-# | 0.2.2 : Replaced internal image loader with the generic |
-# |         BPyImage one, removing an error with            |
-# |         sys.splitext() not accepting long names.        |
-# |                                                         |
 # | 0.2.1 : This code works with Blender 2.40 RC1           |
 # |         modified material mode assignment to deal with  |
 # |         Python API modification                         |
@@ -87,28 +81,22 @@ importername = "lwo_import 0.2.2b"
 
 #blender related import
 import Blender
-import BPyImage # use for comprehensiveImageLoad
 
-GLOBALS= {}
-
-#iosuite related import
-
-import meshtools
-reload(meshtools)
-my_meshtools= meshtools
+# use for comprehensiveImageLoad
+import BPyImage
 
 #python specific modules import
-import struct, chunk, os, cStringIO, time, operator, copy
+import struct, chunk, os, cStringIO
 
 # ===========================================================
 # === Utility Preamble ======================================
 # ===========================================================
 
-textname = "lwo_log"
+textname = None
 type_list = type(list())
 type_dict = type(dict())
-#uncomment the following line to disable logging facility
-#textname = None
+#uncomment the following line to enable logging facility to the named text object
+#textname = "lwo_log"
 
 # ===========================================================
 
@@ -117,7 +105,7 @@ type_dict = type(dict())
 # === Make sure it is a string ... deal with strange chars ==
 # ===========================================================
 def safestring(st):
-	myst = ''
+	myst = ""
 	for ll in xrange(len(st)):
 		if st[ll] < " ":
 			myst += "#"
@@ -137,7 +125,7 @@ class dotext:
 			print "*** not using text object to log script"
 			self.txtobj = None
 			return
-		tlist = Blender.Text.get()
+		tlist = Blender.Text.Get()
 		for i in xrange(len(tlist)):
 			if (tlist[i].getName()==tname):
 				tlist[i].clear()
@@ -203,6 +191,7 @@ tobj=dotext(textname)
 #uncomment the following line to log all messages on both console and logfile
 #tobj=dotext(textname,dotext.CON)
 
+
 # ===========================================================
 # === Main read functions ===================================
 # ===========================================================
@@ -211,7 +200,6 @@ tobj=dotext(textname)
 # === Read LightWave Format ===
 # =============================
 def read(filename):
-	GLOBALS['SCENE'] = Blender.Scene.GetCurrent()
 	global tobj
 
 	tobj.logcon ("#####################################################################")
@@ -220,7 +208,7 @@ def read(filename):
 	tobj.logcon (filename)
 	tobj.pprint ("#####################################################################")
 
-	start = time.clock()
+	start = Blender.sys.time()
 	file = open(filename, "rb")
 
 	editmode = Blender.Window.EditMode()    # are we in edit mode?  If so ...
@@ -235,18 +223,18 @@ def read(filename):
 		tobj.logcon ("Can't read a file with the form_type: %s" %form_type)
 		return
 
-	Blender.Window.DrawProgressBar(1.0, '')    # clear progressbar
+	Blender.Window.DrawProgressBar(1.0, "")    # clear progressbar
 	file.close()
-	end = time.clock()
+	end = Blender.sys.time()
 	seconds = " in %.2f %s" % (end-start, "seconds")
 	if form_type == "LWO2": fmt = " (v6.0 Format)"
 	if form_type == "LWOB": fmt = " (v5.5 Format)"
 	message = "Successfully imported " + os.path.basename(filename) + fmt + seconds
-	#my_meshtools.print_boxed(message)
 	tobj.pprint ("#####################################################################")
 	tobj.logcon (message)
 	tobj.logcon ("#####################################################################")
 	if editmode: Blender.Window.EditMode(1)  # optional, just being nice
+	Blender.Redraw()
 
 
 # enddef read
@@ -256,26 +244,102 @@ def read(filename):
 # === Read LightWave 5.5 format ===
 # =================================
 def read_lwob(file, filename):
+	#This function is directly derived from the LWO2 import routine
+	#dropping all the material analysis parts
 	global tobj
 
 	tobj.logcon("LightWave 5.5 format")
-	objname = os.path.splitext(os.path.basename(filename))[0]
 
+	dir_part = Blender.sys.dirname(filename)
+	fname_part = Blender.sys.basename(filename)
+	#ask_weird = 1
+
+	#first initialization of data structures
+	defaultname = os.path.splitext(fname_part)[0]
+	tag_list = []              #tag list: global for the whole file?
+	surf_list = []             #surf list: global for the whole file?
+	clip_list = []             #clip list: global for the whole file?
+	object_index = 0
+	object_list = None
+	objspec_list = None
+
+	#add default material for orphaned faces, if any
+	surf_list.append({'NAME': "_Orphans", 'g_MAT': Blender.Material.New("_Orphans")})
+
+	#pass 2: effectively generate objects
+	tobj.logcon ("#####################################################################")
+	tobj.logcon ("Pass 1: dry import")
+	tobj.logcon ("#####################################################################")
+	file.seek(0)
+	objspec_list = ["imported", {}, [], [], {}, {}, 0, {}, {}]
+	# === LWO header ===
+	form_id, form_size, form_type = struct.unpack(">4s1L4s",  file.read(12))
+	if (form_type != "LWOB"):
+		tobj.logcon ("??? Inconsistent file type: %s" %form_type)
+		return
 	while 1:
 		try:
 			lwochunk = chunk.Chunk(file)
 		except EOFError:
 			break
+		tobj.pprint(" ")
 		if lwochunk.chunkname == "LAYR":
+			tobj.pprint("---- LAYR")
 			objname = read_layr(lwochunk)
+			tobj.pprint(objname)
+			if objspec_list != None: #create the object
+				create_objects(clip_list, objspec_list, surf_list)
+				update_material(clip_list, objspec_list, surf_list) #give it all the object
+			objspec_list = [objname, {}, [], [], {}, {}, 0, {}, {}]
+			object_index += 1
 		elif lwochunk.chunkname == "PNTS":                         # Verts
+			tobj.pprint("---- PNTS")
 			verts = read_verts(lwochunk)
+			objspec_list[2] = verts
 		elif lwochunk.chunkname == "POLS": # Faces v5.5
+			tobj.pprint("-------- POLS(5.5)")
 			faces = read_faces_5(lwochunk)
-			my_meshtools.create_mesh(verts, faces, objname)
+			flag = 0
+			#flag is 0 for regular polygon, 1 for patches (= subsurf), 2 for anything else to be ignored
+			if flag<2:
+				if objspec_list[3] != []:
+					#create immediately the object
+					create_objects(clip_list, objspec_list, surf_list)
+					update_material(clip_list, objspec_list, surf_list) #give it all the object
+					#update with new data
+					objspec_list = [objspec_list[0],                  #update name
+									{},                               #init
+									objspec_list[2],                  #same vertexes
+									faces,                            #give it the new faces
+									{},                               #no need to copy - filled at runtime
+									{},                               #polygon tagging will follow
+									flag,                             #patch flag
+									objspec_list[7],                  #same uvcoords
+									{}]                               #no vmad mapping
+					object_index += 1
+				#end if already has a face list
+				objspec_list[3] = faces
+				objname = objspec_list[0]
+				if objname == None:
+					objname = defaultname
+			#end if processing a valid poly type
 		else:                                                       # Misc Chunks
+			tobj.pprint("---- %s: skipping (definitely!)" % lwochunk.chunkname)
 			lwochunk.skip()
-	return
+		#uncomment here to log data structure as it is built
+		#tobj.pprint(object_list)
+	#last object read
+	create_objects(clip_list, objspec_list, surf_list)
+	update_material(clip_list, objspec_list, surf_list) #give it all the object
+	objspec_list = None
+	surf_list = None
+	clip_list = None
+
+
+	tobj.pprint ("\n#####################################################################")
+	tobj.pprint("Found %d objects:" % object_index)
+	tobj.pprint ("#####################################################################")
+
 # enddef read_lwob
 
 
@@ -411,7 +475,7 @@ def read_lwo2(file, filename, typ="LWO2"):
 		elif lwochunk.chunkname == "PTAG":                         # PTags
 			tobj.pprint("---- PTAG")
 			polytag_dict = read_ptags(lwochunk, tag_list)
-			for kk, ii in polytag_dict.iteritems(): objspec_list[5][kk] = ii
+			for kk in polytag_dict.iterkeys(): objspec_list[5][kk] = polytag_dict[kk]
 		else:                                                       # Misc Chunks
 			tobj.pprint("---- %s: skipping (definitely!)" % lwochunk.chunkname)
 			lwochunk.skip()
@@ -453,7 +517,7 @@ def read_verts(lwochunk):
 # =================
 # modified to deal with odd lenght strings
 def read_name(file):
-	name = ''
+	name = ""
 	while 1:
 		char = file.read(1)
 		if char == "\0": break
@@ -486,9 +550,8 @@ def read_faces_5(lwochunk):
 	faces = []
 	i = 0
 	while i < lwochunk.chunksize:
-		if not i%1000 and my_meshtools.show_progress:
-		   Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
-
+		#if not i%1000 and my_meshtools.show_progress:
+		#   Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
 		'''
 		facev = []
 		numfaceverts, = struct.unpack(">H", data.read(2))
@@ -547,11 +610,11 @@ def read_vmap(uvcoords_dict, maxvertnum, lwochunk):
 		my_uv_dict = {}    #start a brand new: this could be made more smart
 	while (i < lwochunk.chunksize - 6):      #4+2 header bytes already read
 		vertnum, vnum_size = read_vx(data)
-		u, v = struct.unpack(">ff", data.read(8))
+		uv = struct.unpack(">ff", data.read(8))
 		if vertnum >= maxvertnum:
 			tobj.pprint ("Hem: more uvmap than vertexes? ignoring uv data for vertex %d" % vertnum)
 		else:
-			my_uv_dict[vertnum] = (u, v)
+			my_uv_dict[vertnum] = uv
 		i += 8 + vnum_size
 	#end loop on uv pairs
 	uvcoords_dict[name] = my_uv_dict
@@ -586,11 +649,11 @@ def read_vmad(uvcoords_dict, facesuv_dict, maxfacenum, maxvertnum, lwochunk):
 		i += vnum_size
 		polynum, vnum_size = read_vx(data)
 		i += vnum_size
-		u, v = struct.unpack(">ff", data.read(8))
+		uv = struct.unpack(">ff", data.read(8))
 		if polynum >= maxfacenum or vertnum >= maxvertnum:
 			tobj.pprint ("Hem: more uvmap than vertexes? ignorig uv data for vertex %d" % vertnum)
 		else:
-			my_uv_dict[newindex] = (u, v)
+			my_uv_dict[newindex] = uv
 			my_facesuv_list.append([polynum, vertnum, newindex])
 			newindex += 1
 		i += 8
@@ -607,14 +670,14 @@ def read_vmad(uvcoords_dict, facesuv_dict, maxfacenum, maxvertnum, lwochunk):
 def read_tags(lwochunk):
 	data = cStringIO.StringIO(lwochunk.read())
 	tag_list = []
-	current_tag = ''
+	current_tag = ""
 	i = 0
 	while i < lwochunk.chunksize:
 		char = data.read(1)
 		if char == "\0":
 			tag_list.append(current_tag)
 			if (len(current_tag) % 2 == 0): char = data.read(1)
-			current_tag = ''
+			current_tag = ""
 		else:
 			current_tag += char
 		i += 1
@@ -635,8 +698,8 @@ def read_ptags(lwochunk, tag_list):
 	ptag_dict = {}
 	i = 0
 	while(i < lwochunk.chunksize-4): #4 bytes polygon type already read
-		if not i%1000 and my_meshtools.show_progress:
-		   Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading PTAGS")
+		#if not i%1000 and my_meshtools.show_progress:
+		#   Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading PTAGS")
 		poln, poln_size = read_vx(data)
 		i += poln_size
 		tag_index, = struct.unpack(">H", data.read(2))
@@ -645,11 +708,11 @@ def read_ptags(lwochunk, tag_list):
 			return {}
 		i += 2
 		tag_key = tag_list[tag_index]
-		try: #if ptag_dict.has_key(tag_key):
+		try:
 			ptag_dict[tag_list[tag_index]].append(poln)
-		except: #else:
+		except: #if not(ptag_dict.has_key(tag_key)):
 			ptag_dict[tag_list[tag_index]] = [poln]
-			
+	
 	for i in ptag_dict.iterkeys():
 		tobj.pprint ("read %d polygons belonging to TAG %s" % (len(ptag_dict[i]), i))
 	return ptag_dict
@@ -680,7 +743,7 @@ def read_clip(lwochunk, dir_part):
 			if (no_sep in clip_name):
 				clip_name = clip_name.replace(no_sep, Blender.sys.sep)
 			short_name = Blender.sys.basename(clip_name)
-			if (clip_name == '') or (short_name == ''):
+			if (clip_name == "") or (short_name == ""):
 				tobj.pprint ("Reading CLIP: Empty clip name not allowed. Skipping")
 				discard = data.read(subchunklen-k)
 			clip_dict['NAME'] = clip_name
@@ -705,21 +768,29 @@ def read_clip(lwochunk, dir_part):
 		tobj.pprint("Cross-reference: no image pre-allocated.")
 		return clip_dict
 	#look for images
-	img = BPyImage.comprehensiveImageLoad('', clip_dict['NAME'])
-	if img == None:
-		tobj.pprint (  "***No image %s found: trying LWO file subdir" % clip_dict['NAME'])
-		img = BPyImage.comprehensiveImageLoad(dir_part,clip_dict['BASENAME'])
-	if img == None:
-		tobj.pprint (  "***No image %s found in directory %s: trying Images subdir" % (clip_dict['BASENAME'], dir_part))
-		img = BPyImage.comprehensiveImageLoad(dir_part+Blender.sys.sep+"Images",clip_dict['BASENAME'])
-	if img == None:
-		tobj.pprint (  "***No image %s found: trying alternate Images subdir" % clip_dict['BASENAME'])
-		img = BPyImage.comprehensiveImageLoad(dir_part+Blender.sys.sep+".."+Blender.sys.sep+"Images",clip_dict['BASENAME'])
-	if img == None:
-		tobj.pprint (  "***No image %s found: giving up" % clip_dict['BASENAME'])
+	#img = load_image("",clip_dict['NAME'])
+	NAME= BASENAME= None 
+	
+	try:
+		NAME= clip_dict['NAME']
+		BASENAME= clip_dict['BASENAME']
+	except:
+		clip_dict['g_IMG'] = None
+		return
+	
+	img = BPyImage.comprehensiveImageLoad('', NAME)
+	if not img:
+		tobj.pprint (  "***No image %s found: trying LWO file subdir" % NAME)
+		img = BPyImage.comprehensiveImageLoad(dir_part, BASENAME)
+	if not img:
+		tobj.pprint (  "***No image %s found: trying alternate Images subdir" % BASENAME)
+		img = BPyImage.comprehensiveImageLoad(dir_part+Blender.sys.sep+".."+Blender.sys.sep+"Images", BASENAME)
+	if not img:
+		tobj.pprint (  "***No image %s found: giving up" % BASENAME)
 	#lucky we are: we have an image
 	tobj.pprint ("Image pre-allocated.")
 	clip_dict['g_IMG'] = img
+	
 	return clip_dict
 
 
@@ -729,7 +800,7 @@ def read_clip(lwochunk, dir_part):
 def read_surfblok(subchunkdata):
 	lenght = len(subchunkdata)
 	my_dict = {}
-	my_uvname = ''
+	my_uvname = ""
 	data = cStringIO.StringIO(subchunkdata)
 	##############################################################
 	# blok header sub-chunk
@@ -739,7 +810,7 @@ def read_surfblok(subchunkdata):
 	accumulate_i = subchunklen + 6
 	if subchunkname != 'IMAP':
 		tobj.pprint("---------- SURF: BLOK: %s: block aborting" % subchunkname)
-		return {}, ''
+		return {}, ""
 	tobj.pprint ("---------- IMAP")
 	ordinal, i = read_name(data)
 	my_dict['ORD'] = ordinal
@@ -790,7 +861,7 @@ def read_surfblok(subchunkdata):
 	accumulate_i += subchunklen + 6
 	if subchunkname != 'TMAP':
 		tobj.pprint("---------- SURF: BLOK: %s: block aborting" % subchunkname)
-		return {}, ''
+		return {}, ""
 	tobj.pprint ("---------- TMAP")
 	i = 0
 	while(i < subchunklen): # -----------left 6----------------------- loop on header parameters
@@ -890,10 +961,10 @@ def read_surfs(lwochunk, surf_list, tag_list):
 	surf_name, i = read_name(data)
 	parent_name, j = read_name(data)
 	i += j
-	if (surf_name == '') or not(surf_name in tag_list):
+	if (surf_name == "") or not(surf_name in tag_list):
 		tobj.pprint ("Reading SURF: Actually empty surf name not allowed. Skipping")
 		return {}
-	if parent_name != '':
+	if (parent_name != ""):
 		parent_index = [x['NAME'] for x in surf_list].count(parent_name)
 		if parent_index >0:
 			my_dict = surf_list[parent_index-1]
@@ -978,13 +1049,13 @@ def read_surfs(lwochunk, surf_list, tag_list):
 			tobj.pprint("-------- BLOK")
 			rr, uvname = read_surfblok(data.read(subchunklen))
 			#paranoia setting: preventing adding an empty dict
-			if rr != {}:
+			if rr: # != {}
 				try:
 					my_dict['BLOK'].append(rr)
 				except:
 					my_dict['BLOK'] = [rr]
-
-			if uvname != '':
+					
+			if uvname: # != "":
 				my_dict['UVNAME'] = uvname                            #theoretically there could be a number of them: only one used per surf
 			if not(my_dict.has_key('g_IMAG')) and (rr.has_key('CHAN')) and (rr.has_key('OPAC')) and (rr.has_key('IMAG')):
 				if (rr['CHAN'] == 'COLR') and (rr['OPAC'] == 0):
@@ -995,15 +1066,59 @@ def read_surfs(lwochunk, surf_list, tag_list):
 		if  subchunklen > 0:
 			discard = data.read(subchunklen)
 	#end loop on surf chunks
-	try: #if my_dict.has_key('BLOK'):
+	try:#if my_dict.has_key('BLOK'):
 	   my_dict['BLOK'].reverse() #texture applied in reverse order with respect to reading from lwo
 	except:
-	   pass
+		pass
+	
 	#uncomment this if material pre-allocated by read_surf
 	my_dict['g_MAT'] = Blender.Material.New(my_dict['NAME'])
 	tobj.pprint("-> Material pre-allocated.")
 	return my_dict
 
+
+
+import BPyMesh
+reload(BPyMesh)
+def reduce_face(verts, face):
+	TriangleArea= Blender.Mathutils.TriangleArea
+	Vector= Blender.Mathutils.Vector
+	#print len(face), face
+	# wants indicies local to the face
+	len_face= len(face)
+	if len_face==3:
+		return [face]
+	elif len_face==4:
+		vecs= [Vector(verts[i]) for i in face]
+		# Get the convave quad area
+		a1= TriangleArea(vecs[0], vecs[1], vecs[2])
+		a2= TriangleArea(vecs[0], vecs[2], vecs[3])
+		
+		a3= TriangleArea(vecs[0], vecs[1], vecs[3])
+		a4= TriangleArea(vecs[1], vecs[2], vecs[3])
+		
+		if abs((a1+a2) - (a3+a4)) < (a1+a2+a3+a4)/100: # Not convace
+			#print 'planer'
+			return [[0,1,2,3]]
+		if a1+a2<a3+a4:
+			return [[0,1,2], [0,2,3]]
+		else:
+			return [[0,1,3], [1,2,3]]
+
+	else: # 5+
+		#print 'SCANFILL...', len(face)
+		ngons= BPyMesh.ngon(verts, face) #, PREF_LOOPBACK= True)
+	return ngons
+	
+	
+#BPyMesh.ngon(currentMesh, currentMeshRelativeIdxs)
+"""
+# ====================
+# === Reduce Faces ===
+# ====================
+# http://www-cgrl.cs.mcgill.ca/~godfried/teaching/cg-projects/97/Ian/cutting_ears.html per l'import
+
+# BPyMeshes NGon replaces this
 
 # ===========================================================
 # === Generation Routines ===================================
@@ -1090,13 +1205,7 @@ def find_ear(normal, list_dict, verts, face):
 	return [mlc, mla, mlb] #uses most likely
 
 
-
-
-# ====================
-# === Reduce Faces ===
-# ====================
-# http://www-cgrl.cs.mcgill.ca/~godfried/teaching/cg-projects/97/Ian/cutting_ears.html per l'import
-def reduce_face(verts, face):
+def reduce_face_old(verts, face):
 	nv = len (face)
 	if nv == 3: return [[0,1,2]] #trivial decomposition list
 	list_dict = {}
@@ -1158,12 +1267,12 @@ def reduce_face(verts, face):
 			if nv == 4: break  #quads only if no concave vertexes
 			decomposition_list.append([list_dict['MF'][0], list_dict['MF'][1], list_dict['MF'][2]])
 			#physical removal
-			list_dict['MF'].pop(1)
+			del list_dict['MF'][1]
 			nv -=1
 	#end while there are more my_face to triangulate
 	decomposition_list.append(list_dict['MF'])
 	return decomposition_list
-
+"""
 
 # =========================
 # === Recalculate Faces ===
@@ -1171,15 +1280,18 @@ def reduce_face(verts, face):
 
 def get_uvface(complete_list, facenum):
 	# extract from the complete list only vertexes of the desired polygon
+	'''
 	my_facelist = []
 	for elem in complete_list:
 		if elem[0] == facenum:
 			my_facelist.append(elem)
 	return my_facelist
+	'''
+	return [elem for elem in complete_list if elem[0] == facenum]
 
 def get_newindex(polygon_list, vertnum):
 	# extract from the polygon list the new index associated to a vertex
-	if polygon_list == []:
+	if not polygon_list: # == []
 		return -1
 	for elem in polygon_list:
 		if elem[1] == vertnum:
@@ -1189,10 +1301,11 @@ def get_newindex(polygon_list, vertnum):
 	return -1
 
 def get_surf(surf_list, cur_tag):
-	for elem in surf_list:
-		if elem['NAME'] == cur_tag:
+	for elem in surf_list: # elem can be None
+		if elem and elem['NAME'] == cur_tag:
 			return elem
 	return {}
+
 
 
 # ====================================
@@ -1214,52 +1327,39 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 			return None, not_used_faces              #return the created object
 		cur_face = complete_facelist[ff]
 		cur_ptag_faces_indexes.append(ff)
-		if not_used_faces != []: not_used_faces[ff] = -1
+		if not_used_faces: # != []
+			not_used_faces[ff] = -1
 		for vv in cur_face: vertex_map[vv] = 1
 	#end loop on faces
 	store_edge = 0
 	
-	scn= GLOBALS['SCENE']
+	scn= Blender.Scene.GetCurrent()
 	obj= Blender.Object.New('Mesh', objname)
 	scn.link(obj) # bad form but object data is created.
 	obj.sel= 1
 	obj.Layers= scn.Layers
-	'''
-	msh = Blender.NMesh.GetRaw()
-	# Name the Object
-	if not my_meshtools.overwrite_mesh_name:
-		objname = my_meshtools.versioned_name(objname)
-	Blender.NMesh.PutRaw(msh, objname)    # Name the Mesh
-	obj = Blender.Object.GetSelected()[0]
-	obj.name=objname
-	# Associate material and mesh properties => from create materials
-	'''
-	
 	msh = obj.getData()
 	mat_index = len(msh.getMaterials(1))
+	
 	mat = None
-	try: # g_MAT
-		mat = surf['g_MAT']
-		msh.addMaterial(mat)
+	try:
+		msh.addMaterial(surf['g_MAT'])
 	except:
 		pass
-	
+		
 	msh.mode |= Blender.NMesh.Modes.AUTOSMOOTH #smooth it anyway
-	try: # SMAN
+	if surf.has_key('SMAN'):
 		#not allowed mixed mode mesh (all the mesh is smoothed and all with the same angle)
 		#only one smoothing angle will be active! => take the max one
 		s = int(surf['SMAN']/3.1415926535897932384626433832795*180.0)     #lwo in radians - blender in degrees
 		if msh.getMaxSmoothAngle() < s: msh.setMaxSmoothAngle(s)
+	
+	try:
+		ima= lookup_imag(clip_list, surf['g_IMAG'])
+		img= ima['g_IMG'] # If its none then 
 	except:
-		pass
-
-	img = None
-	try: # g_IMAG
-		ima = lookup_imag(clip_list, surf['g_IMAG'])
-		if ima != None:
-			img = ima['g_IMG']
-	except:
-		pass
+		img= None
+	
 	
 	#uv_flag = ((surf.has_key('UVNAME')) and (uvcoords_dict.has_key(surf['UVNAME'])) and (img != None))
 	uv_flag = ((surf.has_key('UVNAME')) and (uvcoords_dict.has_key(surf['UVNAME'])))
@@ -1275,22 +1375,30 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 	jj = 0
 	vertlen = len(vertex_map)
 	maxvert = len(complete_vertlist)
+	Vert= Blender.NMesh.Vert
 	for i in vertex_map.iterkeys():
-		if not jj%1000 and my_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/vertlen, "Generating Verts")
+		#if not jj%1000 and my_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/vertlen, "Generating Verts")
 		if i >= maxvert:
 			tobj.logcon("Non existent vertex addressed: Giving up with this object")
 			return obj, not_used_faces              #return the created object
 		x, y, z = complete_vertlist[i]
-		msh.verts.append(Blender.NMesh.Vert(x, y, z))
+		msh.verts.append(Vert(x, y, z))
 		vertex_map[i] = jj
 		jj += 1
+	del Vert
 	#end sweep over vertexes
-	
-	ALPHA_FACE_MODE = (surf.has_key('TRAN') and mat.getAlpha()<1.0)
+
 	#append faces
+	FACE_TEX= Blender.NMesh.FaceModes['TEX']
+	FACE_ALPHA= Blender.NMesh.FaceTranspModes['ALPHA']
+	EDGE_DRAW_FLAG= 0
+	EDGE_DRAW_FLAG |= Blender.NMesh.EdgeFlags.EDGEDRAW
+	EDGE_DRAW_FLAG |= Blender.NMesh.EdgeFlags.EDGERENDER
+	
+	Face= Blender.NMesh.Face
 	jj = 0
 	for i in cur_ptag_faces_indexes:
-		if not jj%1000 and my_meshtools.show_progress: Blender.Window.DrawProgressBar(float(jj)/len(cur_ptag_faces_indexes), "Generating Faces")
+		#if not jj%1000 and my_meshtools.show_progress: Blender.Window.DrawProgressBar(float(jj)/len(cur_ptag_faces_indexes), "Generating Faces")
 		cur_face = complete_facelist[i]
 		numfaceverts = len(cur_face)
 		vmad_list = []    #empty VMAD in any case
@@ -1305,59 +1413,57 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 				msh.addEdgeData()
 			i1 = vertex_map[cur_face[1]]
 			i2 = vertex_map[cur_face[0]]
-			ee = msh.addEdge(msh.verts[i1],msh.verts[i2])
-			ee.flag |= Blender.NMesh.EdgeFlags.EDGEDRAW
-			ee.flag |= Blender.NMesh.EdgeFlags.EDGERENDER
+			if i1 != i2:
+				ee = msh.addEdge(msh.verts[i1],msh.verts[i2])
+				ee.flag |= EDGE_DRAW_FLAG
 
 		elif numfaceverts == 3:
 			#This face is a triangle skip face reduction
-			face = Blender.NMesh.Face()
+			face = Face()
 			msh.faces.append(face)
 			# Associate face properties => from create materials
 			if mat != None: face.materialIndex = mat_index
 			face.smooth = 1 #smooth it anyway
-			
-			rev_face = [cur_face[2], cur_face[1], cur_face[0]]
+
+			rev_face= [cur_face[2], cur_face[1], cur_face[0]]
 
 			for vi in rev_face:
-				index = vertex_map[vi]
+				index= vertex_map[vi]
 				face.v.append(msh.verts[index])
 
 				if uv_flag:
-					ni = get_newindex(vmad_list, vi)
+					ni= get_newindex(vmad_list, vi)
 					if ni > -1:
-						uv_index = ni
+						uv_index= ni
 					else: #VMAP - uses the same criteria as face
-						uv_index = vi
+						uv_index= vi
 					try: #if uvcoords_dict[surf['UVNAME']].has_key(uv_index):
-						uv_tuple = uvcoords_dict[surf['UVNAME']][uv_index]
-					except: #else:
-						uv_tuple = (0,0)
+						uv_tuple= uvcoords_dict[surf['UVNAME']][uv_index]
+					except: # else:
+						uv_tuple= (0,0)
 					face.uv.append(uv_tuple)
 
 			if uv_flag and img != None:
-				face.mode |= Blender.NMesh.FaceModes['TEX']
-				face.image = img
-				face.mode |= Blender.NMesh.FaceModes.TWOSIDE                  #set it anyway
-				face.transp = Blender.NMesh.FaceTranspModes['SOLID']
-				face.flag = Blender.NMesh.FaceTranspModes['SOLID']
-				#if surf.has_key('SIDE'):
-				#    msh.faces[f].mode |= Blender.NMesh.FaceModes.TWOSIDE             #set it anyway
-				if ALPHA_FACE_MODE:
-					face.transp = Blender.NMesh.FaceTranspModes['ALPHA']
+				face.mode |= FACE_TEX
+				face.image= img
+				if surf.has_key('TRAN') or (mat and mat.getAlpha()<1.0):
+					face.transp= FACE_ALPHA
 
 		elif numfaceverts > 3:
 			#Reduce all the faces with more than 3 vertexes (& test if the quad is concave .....)
-
-			meta_faces = reduce_face(complete_vertlist, cur_face)        # Indices of triangles.
+			
+			#meta_faces= reduce_face_old(complete_vertlist, cur_face)        # Indices of triangles.
+			meta_faces= reduce_face(complete_vertlist, cur_face)        # Indices of triangles.
+			
 			for mf in meta_faces:
-				face = Blender.NMesh.Face()
+				# print meta_faces
+				face= Face()
 				msh.faces.append(face)
 
 				if len(mf) == 3: #triangle
-					rev_face = [cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
+					rev_face= [cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
 				else:        #quads
-					rev_face = [cur_face[mf[3]], cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
+					rev_face= [cur_face[mf[3]], cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
 
 				# Associate face properties => from create materials
 				if mat != None: face.materialIndex = mat_index
@@ -1380,22 +1486,17 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 						face.uv.append(uv_tuple)
 
 				if uv_flag and img != None:
-					face.mode |= Blender.NMesh.FaceModes['TEX']
+					face.mode |= FACE_TEX
 					face.image = img
-					face.mode |= Blender.NMesh.FaceModes.TWOSIDE                  #set it anyway
-					face.transp = Blender.NMesh.FaceTranspModes['SOLID']
-					face.flag = Blender.NMesh.FaceTranspModes['SOLID']
-					#if surf.has_key('SIDE'):
-					#    msh.faces[f].mode |= Blender.NMesh.FaceModes.TWOSIDE             #set it anyway
-					if ALPHA_FACE_MODE:
-						face.transp = Blender.NMesh.FaceTranspModes['ALPHA']
+					if surf.has_key('TRAN') or (mat and mat.getAlpha()<1.0): # incase mat is null
+						face.transp= FACE_ALPHA
 
 		jj += 1
 
 	if not(uv_flag):        #clear eventual UV data
 		msh.hasFaceUV(0)
 	msh.update(1,store_edge)
-	Blender.Redraw()
+	# Blender.Redraw()
 	return obj, not_used_faces              #return the created object
 
 
@@ -1403,16 +1504,11 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 # === Set Subsurf attributes on given mesh ===
 # ============================================
 def set_subsurf(obj):
-	msh = obj.getData()
-	msh.setSubDivLevels([2, 2])
-	#does not work any more in 2.40 alpha 2
-	#msh.mode |= Blender.NMesh.Modes.SUBSURF
-	if msh.edges != None:
-		msh.update(1,1)
-	else:
-		msh.update(1)
+	mods = obj.modifiers                      # get the object's modifiers
+	mod = mods.append(Blender.Modifier.Type.SUBSURF)  # add a new subsurf modifier
+	mod[Blender.Modifier.Settings.LEVELS] = 2         # set subsurf subdivision levels to 2
+	mod[Blender.Modifier.Settings.RENDLEVELS] = 2     # set subsurf rendertime subdivision levels to 2
 	obj.makeDisplayList()
-	return
 
 
 # =================================
@@ -1438,17 +1534,17 @@ def create_objects(clip_list, objspec_list, surf_list):
 	obj_dim_dict = {}
 	obj_list = []  #have it handy for parent association
 	middlechar = "+"
-	endchar = ''
+	endchar = ""
 	if (objspec_list[6] == 1):
 		middlechar = endchar = "#"
 	for cur_tag in ptag_dict.iterkeys():
 		if ptag_dict[cur_tag] != []:
 			cur_surf = get_surf(surf_list, cur_tag)
 			cur_obj, not_used_faces=  my_create_mesh(clip_list, cur_surf, objspec_list, ptag_dict[cur_tag], objspec_list[0][:9]+middlechar+cur_tag[:9], not_used_faces)
-			#does not work any more in 2.40 alpha 2
-			#if objspec_list[6] == 1:
-			#    set_subsurf(cur_obj)
-			if cur_obj != None:
+			# Works now with new modifiers
+			if objspec_list[6] == 1:
+				set_subsurf(cur_obj)
+			if cur_obj: # != None
 				obj_dict[cur_tag] = cur_obj
 				obj_dim_dict[cur_tag] = obj_size_pos(cur_obj)
 				obj_list.append(cur_obj)
@@ -1459,63 +1555,65 @@ def create_objects(clip_list, objspec_list, surf_list):
 		if tt > -1: orphans.append(tt)
 	#end sweep on unused face list
 	not_used_faces = None
-	if orphans != []:
+	if orphans: # != []
 		cur_surf = get_surf(surf_list, "_Orphans")
 		cur_obj, not_used_faces = my_create_mesh(clip_list, cur_surf, objspec_list, orphans, objspec_list[0][:9]+middlechar+"Orphans", [])
-		if cur_obj != None:
+		if cur_obj: # != None
 			if objspec_list[6] == 1:
 				set_subsurf(cur_obj)
 			obj_dict["_Orphans"] = cur_obj
 			obj_dim_dict["_Orphans"] = obj_size_pos(cur_obj)
 			obj_list.append(cur_obj)
-	objspec_list[1] = obj_dict
-	objspec_list[4] = obj_dim_dict
-	scn= GLOBALS['SCENE']											# get the current scene
-	ob = Blender.Object.New ('Empty', objspec_list[0]+endchar)    # make empty object
-	scn.link(ob)                                       # link the object into the scene
-	ob.Layers= scn.Layers
-	ob.sel= 1
+	objspec_list[1]= obj_dict
+	objspec_list[4]= obj_dim_dict
+	"""
+	scene= Blender.Scene.GetCurrent ()                   # get the current scene
+	ob= Blender.Object.New ('Empty', objspec_list[0]+endchar)    # make empty object
+	scene.link(ob)                                       # link the object into the scene
 	ob.makeParent(obj_list, 1, 0)                         # set the root for created objects (no inverse, update scene hyerarchy (slow))
-	Blender.Redraw()
+	ob.Layers= scene.Layers
+	ob.sel= 1
+	#Blender.Redraw()
+	"""
 	return
 
 
-#~ # =====================
-#~ # === Load an image ===
-#~ # =====================
-#~ #extensively search for image name
-#~ def load_image(dir_part, name):
-	#~ img = None
-	#~ nname = Blender.sys.splitext(name)
-	#~ lname = [c.lower() for c in nname]
-	#~ ext_list = []
-	#~ if lname[1] != nname[1]:
-		#~ ext_list.append(lname[1])
-	#~ ext_list.extend(['.tga', '.png', '.jpg', '.gif', '.bmp'])  #order from best to worst (personal judgement) bmp last cause of nasty bug
-	#~ #first round: original "case"
-	#~ current = Blender.sys.join(dir_part, name)
-	#~ name_list = [current]
-	#~ name_list.extend([Blender.sys.makename(current, ext) for ext in ext_list])
-	#~ #second round: lower "case"
-	#~ if lname[0] != nname[0]:
-		#~ current = Blender.sys.join(dir_part, lname[0])
-		#~ name_list.extend([Blender.sys.makename(current, ext) for ext in ext_list])
-	#~ for nn in name_list:
-		#~ if Blender.sys.exists(nn) == 1:
-			#~ break
-	#~ try:
-		#~ img = Blender.Image.Load(nn)
-		#~ return img
-	#~ except IOError:
-		#~ return None
+# =====================
+# === Load an image ===
+# =====================
+#extensively search for image name
+"""
+def load_image(dir_part, name):
+	img = None
+	nname = os.path.splitext(name)
+	lname = [c.lower() for c in nname]
+	ext_list = [nname[1]]
+	if lname[1] != nname[1]:
+		ext_list.append(lname[1])
+	ext_list.extend(['.tga', '.png', '.jpg', '.gif', '.bmp'])  #order from best to worst (personal judgement) bmp last cause of nasty bug
+	#first round: original "case"
+	name_list = []
+	name_list.extend([os.path.join(dir_part, nname[0] + ext) for ext in ext_list])
+	#second round: lower "case"
+	if lname[0] != nname[0]:
+		name_list.extend([os.path.join(dir_part, lname[0] + ext) for ext in ext_list])
+	for nn in name_list:
+		if os.path.exists(nn) == 1:
+			break
+	try:
+		img = Blender.Image.Load(nn)
+		return img
+	except IOError:
+		return None
+"""
 
 
 # ===========================================
 # === Lookup for image index in clip_list ===
 # ===========================================
-def lookup_imag(clip_list,ima_id):
+def lookup_imag(clip_list, ima_id):
 	for ii in clip_list:
-		if ii['ID'] == ima_id:
+		if ii and ii['ID'] == ima_id:
 			if ii.has_key('XREF'):
 				#cross reference - recursively look for images
 				return lookup_imag(clip_list, ii['XREF'])
@@ -1531,58 +1629,83 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 
 	def output_size_ofs(size, pos, blok):
 		#just automate repetitive task
-		c_map = [0,1,2]
+		# 0 == X, 1 == Y, 2 == Z
+		size_default = [1.0] * 3
+		size2 = [1.0] * 3
+		ofs_default = [0.0] * 3
+		offset = [1.0] * 3
+		axis_default = [Blender.Texture.Proj.X, Blender.Texture.Proj.Y, Blender.Texture.Proj.Z]
+		axis = [1.0] * 3
 		c_map_txt = ["    X--", "    -Y-", "    --Z"]
+		c_map = [0,1,2]             # standard, good for Z axis projection
 		if blok['MAJAXIS'] == 0:
-			c_map = [1,2,0]
+			c_map = [1,2,0]         # X axis projection
 		if blok['MAJAXIS'] == 2:
-			c_map = [0,2,1]
-		tobj.pprint ("!!!axis mapping:")
-		for mp in c_map: tobj.pprint (c_map_txt[mp])
+			c_map = [0,2,1]         # Y axis projection
 
-		s = ["1.0 (Forced)"] * 3
-		o = ["0.0 (Forced)"] * 3
-		if blok['SIZE'][0] > 0.0:          #paranoia controls
-			s[0] = "%.5f" % (size[0]/blok['SIZE'][0])
-			o[0] = "%.5f" % ((blok['CNTR'][0]-pos[0])/blok['SIZE'][0])
-		if blok['SIZE'][1] > 0.0:
-			s[2] = "%.5f" % (size[2]/blok['SIZE'][1])
-			o[2] = "%.5f" % ((blok['CNTR'][1]-pos[2])/blok['SIZE'][1])
-		if blok['SIZE'][2] > 0.0:
-			s[1] = "%.5f" % (size[1]/blok['SIZE'][2])
-			o[1] = "%.5f" % ((blok['CNTR'][2]-pos[1])/blok['SIZE'][2])
+		tobj.pprint ("!!!axis mapping:")
+		#this is the smart way
+		for mp in c_map:
+			tobj.pprint (c_map_txt[mp])
+
+		if blok['SIZE'][0] != 0.0:          #paranoia controls
+			size_default[0] = (size[0]/blok['SIZE'][0])
+			ofs_default[0] = ((blok['CNTR'][0]-pos[0])/blok['SIZE'][0])
+		if blok['SIZE'][1] != 0.0:
+			size_default[2] = (size[2]/blok['SIZE'][1])
+			ofs_default[2] = ((blok['CNTR'][1]-pos[2])/blok['SIZE'][1])
+		if blok['SIZE'][2] != 0.0:
+			size_default[1] = (size[1]/blok['SIZE'][2])
+			ofs_default[1] = ((blok['CNTR'][2]-pos[1])/blok['SIZE'][2])
+
+		for mp in xrange(3):
+			axis[mp] = axis_default[c_map[mp]]
+			size2[mp] = size_default[c_map[mp]]
+			offset[mp] = ofs_default[c_map[mp]]
+			if offset[mp]>10.0: offset[mp]-10.0
+			if offset[mp]<-10.0: offset[mp]+10.0
+#        size = [size_default[mp] for mp in c_map]
+
 		tobj.pprint ("!!!texture size and offsets:")
-		tobj.pprint ("    sizeX = %s; sizeY = %s; sizeZ = %s" % (s[c_map[0]], s[c_map[1]], s[c_map[2]]))
-		tobj.pprint ("    ofsX = %s; ofsY = %s; ofsZ = %s" % (o[c_map[0]], o[c_map[1]], o[c_map[2]]))
-		return
+		tobj.pprint ("    sizeX = %.5f; sizeY = %.5f; sizeZ = %.5f" % (size[0],size[1],size[2]))
+		tobj.pprint ("    ofsX = %.5f; ofsY = %.5f; ofsZ = %.5f" % (offset[0],offset[1],offset[2]))
+		return axis, size2, offset
 
 	ti = 0
+	alphaflag = 0 #switched to 1 if some tex in this block is using alpha
+	lastimag = 0 #experimental ....
 	for blok in surf['BLOK']:
 		tobj.pprint ("#...................................................................#")
 		tobj.pprint ("# Processing texture block no.%s for surf %s" % (ti,surf['NAME']))
 		tobj.pprint ("#...................................................................#")
 		tobj.pdict (blok)
 		if ti > 9: break                                    #only 8 channels 0..7 allowed for texture mapping
-		if not blok['ENAB']:
-			tobj.pprint (  "***Image is not ENABled! Quitting this block")
-			break
+		#if not blok['ENAB']:
+		#    tobj.pprint (  "***Image is not ENABled! Quitting this block")
+		#    break
 		if not(blok.has_key('IMAG')):
-			tobj.pprint (  "***No IMAGe for this block? Quitting")
+			tobj.pprint (  "***No IMAGE for this block? Quitting")
 			break                 #extract out the image index within the clip_list
+		if blok['IMAG'] == 0: blok['IMAG'] = lastimag #experimental ....
 		tobj.pprint ("looking for image number %d" % blok['IMAG'])
 		ima = lookup_imag(clip_list, blok['IMAG'])
 		if ima == None:
 			tobj.pprint (  "***Block index image not within CLIP list? Quitting Block")
 			break                              #safety check (paranoia setting)
 		img = ima['g_IMG']
+		lastimag = blok['IMAG']  #experimental ....
 		if img == None:
 			tobj.pprint ("***Failed to pre-allocate image %s found: giving up" % ima['BASENAME'])
 			break
 		tname = str(ima['ID'])
+		if blok['ENAB']:
+			tname += "+"
+		else:
+			tname += "x" #let's signal when should not be enabled
 		if blok.has_key('CHAN'):
-			tname = tname + "+" + blok['CHAN']
+			tname += blok['CHAN']
 		newtex = Blender.Texture.New(tname)
-		newtex.setType('Image')                 # make it an image texture
+		newtex.setType('Image')                 # make it anu image texture
 		newtex.image = img
 		#how does it extends beyond borders
 		if blok.has_key('WRAP'):
@@ -1594,80 +1717,117 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 				newtex.setExtend('Clip')
 		tobj.pprint ("generated texture %s" % tname)
 
+		#MapTo is determined by CHAN parameter
+		#assign some defaults
+		colfac = 1.0
+		dvar = 1.0
+		norfac = 0.5
+		nega = False
+		mapflag = Blender.Texture.MapTo.COL  #default to color
+		maptype = Blender.Texture.Mappings.FLAT
+		if blok.has_key('CHAN'):
+			if blok['CHAN'] == 'COLR' and blok.has_key('OPACVAL'):
+				colfac = blok['OPACVAL']
+				# Blender needs this to be clamped
+				colfac = max(0.0, min(1.0, colfac))
+				tobj.pprint ("!!!Set Texture -> MapTo -> Col = %.3f" % colfac)
+			if blok['CHAN'] == 'BUMP':
+				mapflag = Blender.Texture.MapTo.NOR
+				if blok.has_key('OPACVAL'): norfac = blok['OPACVAL']
+				tobj.pprint ("!!!Set Texture -> MapTo -> Nor = %.3f" % norfac)
+			if blok['CHAN'] == 'LUMI':
+				mapflag = Blender.Texture.MapTo.EMIT
+				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % dvar)
+			if blok['CHAN'] == 'DIFF':
+				mapflag = Blender.Texture.MapTo.REF
+				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % dvar)
+			if blok['CHAN'] == 'SPEC':
+				mapflag = Blender.Texture.MapTo.SPEC
+				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % dvar)
+			if blok['CHAN'] == 'TRAN':
+				mapflag = Blender.Texture.MapTo.ALPHA
+				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % dvar)
+				alphaflag = 1
+				nega = True
+		if blok.has_key('NEGA'):
+			tobj.pprint ("!!!Watch-out: effect of this texture channel must be INVERTED!")
+			nega = not nega
+
 		blendmode_list = ['Mix',
 						 'Subtractive',
 						 'Difference',
 						 'Multiply',
 						 'Divide',
-						 'Mix (CalcAlpha already set; try setting Stencil!',
+						 'Mix with calculated alpha layer and stencil flag',
 						 'Texture Displacement',
 						 'Additive']
 		set_blendmode = 7 #default additive
-		try:	set_blendmode = blok['OPAC']
-		except:	pass
-		
+		if blok.has_key('OPAC'):
+			set_blendmode = blok['OPAC']
 		if set_blendmode == 5: #transparency
 			newtex.imageFlags |= Blender.Texture.ImageFlags.CALCALPHA
+			if nega: newtex.flags |= Blender.Texture.Flags.NEGALPHA
 		tobj.pprint ("!!!Set Texture -> MapTo -> Blending Mode = %s" % blendmode_list[set_blendmode])
 
-		set_dvar = 1.0
-		try:	set_dvar = blok['OPACVAL']
-		except:	pass
-		
-		#MapTo is determined by CHAN parameter
-		mapflag = Blender.Texture.MapTo.COL  #default to color
-		if blok.has_key('CHAN'):
-			if blok['CHAN'] == 'COLR':
-				tobj.pprint ("!!!Set Texture -> MapTo -> Col = %.3f" % set_dvar)
-			if blok['CHAN'] == 'BUMP':
-				mapflag = Blender.Texture.MapTo.NOR
-				tobj.pprint ("!!!Set Texture -> MapTo -> Nor = %.3f" % set_dvar)
-			if blok['CHAN'] == 'LUMI':
-				mapflag = Blender.Texture.MapTo.EMIT
-				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % set_dvar)
-			if blok['CHAN'] == 'DIFF':
-				mapflag = Blender.Texture.MapTo.REF
-				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % set_dvar)
-			if blok['CHAN'] == 'SPEC':
-				mapflag = Blender.Texture.MapTo.SPEC
-				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % set_dvar)
-			if blok['CHAN'] == 'TRAN':
-				mapflag = Blender.Texture.MapTo.ALPHA
-				tobj.pprint ("!!!Set Texture -> MapTo -> DVar = %.3f" % set_dvar)
-		if blok.has_key('NEGA'):
-			tobj.pprint ("!!!Watch-out: effect of this texture channel must be INVERTED!")
-
 		#the TexCo flag is determined by PROJ parameter
+		axis = [Blender.Texture.Proj.X, Blender.Texture.Proj.Y, Blender.Texture.Proj.Z]
+		size = [1.0] * 3
+		ofs = [0.0] * 3
 		if blok.has_key('PROJ'):
 			if blok['PROJ'] == 0: #0 - Planar
-			   tobj.pprint ("!!!Flat projection")
-			   coordflag = Blender.Texture.TexCo.ORCO
-			   output_size_ofs(obj_size, obj_pos, blok)
+				tobj.pprint ("!!!Flat projection")
+				coordflag = Blender.Texture.TexCo.ORCO
+				maptype = Blender.Texture.Mappings.FLAT
 			elif blok['PROJ'] == 1: #1 - Cylindrical
-			   tobj.pprint ("!!!Cylindrical projection")
-			   coordflag = Blender.Texture.TexCo.ORCO
-			   output_size_ofs(obj_size, obj_pos, blok)
+				tobj.pprint ("!!!Cylindrical projection")
+				coordflag = Blender.Texture.TexCo.ORCO
+				maptype = Blender.Texture.Mappings.TUBE
 			elif blok['PROJ'] == 2: #2 - Spherical
-			   tobj.pprint ("!!!Spherical projection")
-			   coordflag = Blender.Texture.TexCo.ORCO
-			   output_size_ofs(obj_size, obj_pos, blok)
+				tobj.pprint ("!!!Spherical projection")
+				coordflag = Blender.Texture.TexCo.ORCO
+				maptype = Blender.Texture.Mappings.SPHERE
 			elif blok['PROJ'] == 3: #3 - Cubic
-			   tobj.pprint ("!!!Cubic projection")
-			   coordflag = Blender.Texture.TexCo.ORCO
-			   output_size_ofs(obj_size, obj_pos, blok)
+				tobj.pprint ("!!!Cubic projection")
+				coordflag = Blender.Texture.TexCo.ORCO
+				maptype = Blender.Texture.Mappings.CUBE
 			elif blok['PROJ'] == 4: #4 - Front Projection
-			   tobj.pprint ("!!!Front projection")
-			   coordflag = Blender.Texture.TexCo.ORCO
-			   output_size_ofs(obj_size, obj_pos, blok)
+				tobj.pprint ("!!!Front projection")
+				coordflag = Blender.Texture.TexCo.ORCO
+				maptype = Blender.Texture.Mappings.FLAT # ??? could it be a FLAT with some other TexCo type?
 			elif blok['PROJ'] == 5: #5 - UV
-			   tobj.pprint ("UVMapped")
-			   coordflag = Blender.Texture.TexCo.UV
+				tobj.pprint ("UVMapped")
+				coordflag = Blender.Texture.TexCo.UV
+				maptype = Blender.Texture.Mappings.FLAT  #in case of UV default to FLAT mapping => effectively not used
+			if blok['PROJ'] != 5: #This holds for any projection map except UV
+				axis, size, ofs = output_size_ofs(obj_size, obj_pos, blok)
+				
+				# Clamp ofs and size else blender will raise an error
+				for ii in xrange(3):
+					ofs[ii]= min(10.0, max(-10, ofs[ii]))
+					size[ii]= min(100, max(-100, size[ii]))
+
 		mat.setTexture(ti, newtex, coordflag, mapflag)
+		current_mtex = mat.getTextures()[ti]
+		current_mtex.mapping = maptype
+		current_mtex.colfac = colfac
+		current_mtex.dvar = dvar
+		current_mtex.norfac = norfac
+		current_mtex.neg = nega
+		current_mtex.xproj = axis[0]
+		current_mtex.yproj = axis[1]
+		current_mtex.zproj = axis[2]
+		current_mtex.size = tuple(size)
+		current_mtex.ofs = tuple(ofs)
+		if (set_blendmode == 5): #transparency
+			current_mtex.stencil = not (nega)
+
 		ti += 1
 	#end loop over bloks
-	return
-
-
+	return alphaflag
 
 
 # ========================================
@@ -1688,7 +1848,7 @@ def update_material(clip_list, objspec, surf_list):
 	uvcoords_dict = objspec[7]
 	facesuv_dict = objspec[8]
 	for surf in surf_list:
-		if (surf['NAME'] in ptag_dict.iterkeys()):
+		if (surf and surf['NAME'] in ptag_dict.iterkeys()):
 			tobj.pprint ("#-------------------------------------------------------------------#")
 			tobj.pprint ("Processing surface (material): %s" % surf['NAME'])
 			tobj.pprint ("#-------------------------------------------------------------------#")
@@ -1716,42 +1876,34 @@ def update_material(clip_list, objspec, surf_list):
 				mat.setSpec(surf['SPEC'])                        #it should be * 2 but seems to be a bit higher lwo [0.0, 1.0] - blender [0.0, 2.0]
 			if surf.has_key('DIFF'):
 				mat.setRef(surf['DIFF'])                         #lwo [0.0, 1.0] - blender [0.0, 1.0]
-			if surf.has_key('REFL'):
-				mat.setRayMirr(surf['REFL'])                     #lwo [0.0, 1.0] - blender [0.0, 1.0]
-				#mat.setMode('RAYMIRROR') NO! this will reset all the other modes
-				#mat.mode |= Blender.Material.Modes.RAYMIRROR No more usable?
-				mm = mat.getMode()
-				mm |= Blender.Material.Modes.RAYMIRROR
-				mm &= 327679 #4FFFF this is implementation dependent
-				mat.setMode(mm)
-			#WARNING translucency not implemented yet check 2.36 API
-			#if surf.has_key('TRNL'):
-			#
 			if surf.has_key('GLOS'):                             #lwo [0.0, 1.0] - blender [0, 255]
 				glo = int(371.67 * surf['GLOS'] - 42.334)        #linear mapping - seems to work better than exp mapping
 				if glo <32:  glo = 32                            #clamped to 32-255
 				if glo >255: glo = 255
 				mat.setHardness(glo)
+			if surf.has_key('TRNL'):
+				mat.setTranslucency(surf['TRNL'])                #NOT SURE ABOUT THIS lwo [0.0, 1.0] - blender [0.0, 1.0]
+
+			mm = mat.getMode()
+			mm |= Blender.Material.Modes.TRANSPSHADOW
+			if surf.has_key('REFL'):
+				mat.setRayMirr(surf['REFL'])                     #lwo [0.0, 1.0] - blender [0.0, 1.0]
+				mm |= Blender.Material.Modes.RAYMIRROR
 			if surf.has_key('TRAN'):
 				mat.setAlpha(1.0-surf['TRAN'])                                        #lwo [0.0, 1.0] - blender [1.0, 0.0]
-				#mat.mode |= Blender.Material.Modes.RAYTRANSP
-				mm = mat.getMode()
 				mm |= Blender.Material.Modes.RAYTRANSP
-				mm &= 327679 #4FFFF this is implementation dependent
-				mat.setMode(mm)
 			if surf.has_key('RIND'):
 				s = surf['RIND']
 				if s < 1.0: s = 1.0
 				if s > 3.0: s = 3.0
 				mat.setIOR(s)                                                         #clipped to blender [1.0, 3.0]
-				#mat.mode |= Blender.Material.Modes.RAYTRANSP
-				mm = mat.getMode()
 				mm |= Blender.Material.Modes.RAYTRANSP
-				mm &= 327679 #4FFFF this is implementation dependent
-				mat.setMode(mm)
 			if surf.has_key('BLOK') and surf['BLOK'] != []:
 				#update the material according to texture.
-				create_blok(surf, mat, clip_list, obj_size, obj_pos)
+				alphaflag = create_blok(surf, mat, clip_list, obj_size, obj_pos)
+				if alphaflag:
+					mm |= Blender.Material.Modes.RAYTRANSP
+			mat.setMode(mm)
 			#finished setting up the material
 		#end if exist SURF
 	#end loop on materials (SURFs)
@@ -1768,12 +1920,12 @@ def read_faces_6(lwochunk):
 	subsurf = 0
 	if polygon_type != "FACE" and polygon_type != "PTCH":
 		tobj.pprint("No FACE/PATCH Were Found. Polygon Type: %s" % polygon_type)
-		return '', 2
+		return "", 2
 	if polygon_type == 'PTCH': subsurf = 1
 	i = 0
 	while(i < lwochunk.chunksize-4):
-		if not i%1000 and my_meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
+		#if not i%1000 and my_meshtools.show_progress:
+		#	Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
 		facev = []
 		numfaceverts, = struct.unpack(">H", data.read(2))
 		i += 2
@@ -1797,7 +1949,8 @@ def fs_callback(filename):
 
 Blender.Window.FileSelector(fs_callback, "Import LWO")
 
-'''
+
+"""
 TIME= Blender.sys.time()
 import os
 print 'Searching for files'
@@ -1811,11 +1964,12 @@ file.close()
 def between(v,a,b):
 	if v <= max(a,b) and v >= min(a,b):
 		return True
+		
 	return False
 	
 for i, _lwo in enumerate(lines):
-	#if between(i, 0, 200):
-	if 1:
+	if between(i, 100, 200):
+		#if i==425:	 # SCANFILL
 		_lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]
@@ -1824,4 +1978,4 @@ for i, _lwo in enumerate(lines):
 		read(_lwo)
 
 print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
-'''
+"""

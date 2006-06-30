@@ -609,7 +609,7 @@ def ngon(from_data, indices):
 	
 	oldmode = Mesh.Mode()
 	Mesh.Mode(Mesh.SelectModes['VERTEX'])
-	temp_mesh.sel= True # Select all verst
+	temp_mesh.sel= 1 # Select all verst
 	
 	# Must link to scene
 	scn= Scene.GetCurrent()
@@ -624,7 +624,7 @@ def ngon(from_data, indices):
 	
 	if not new_indices: # JUST DO A FAN, Cant Scanfill
 		print 'Warning Cannot scanfill!- Fallback on a triangle fan.'
-		new_indices = [ [indices[0], indices[i-1], indices[i]] for i in xrange(2, len(indices)) ]
+		new_indices = [ [0, i-1, i] for i in xrange(2, len(indices)) ]
 	else:
 		# Use real scanfill.
 		# See if its flipped the wrong way.
