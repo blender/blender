@@ -72,6 +72,7 @@ PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args );
+PyObject *M_Mathutils_PolyFill( PyObject * self, PyObject * args );
 PyObject *M_Mathutils_Point(PyObject * self, PyObject * args);
 //DEPRECATED	
 PyObject *M_Mathutils_CopyMat(PyObject * self, PyObject * args);
