@@ -199,8 +199,6 @@ SwapFace(
 	if (old_f == m_faces[1]) {
 		m_faces[1] = new_f;
 	} else {
-		MT_assert(false);
-
 		LOD_MeshException e(LOD_MeshException::e_search_error);
 		throw(e);	
 	}
