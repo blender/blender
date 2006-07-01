@@ -42,6 +42,42 @@ Example::
       print bone.children, bone.name
       print bone.options, bone.name
 
+
+Example::
+	# Adds emptys for every bone in the selected armature, an example of getting worldspace locations for bones.
+	from Blender import *
+	def test_arm():
+		scn= Scene.GetCurrent()
+		arm_ob= scn.getActiveObject()
+
+		if not arm_ob or arm_ob.getType() != 'Armature':
+			Draw.PupMenu('not an armature object')
+			return
+
+		# Deselect all
+		for ob in scn.getChildren():
+			ob.sel= 0
+
+		arm_mat= arm_ob.matrixWorld
+
+		arm_data= arm_ob.getData()
+
+		bones= arm_data.bones.values()
+		for bone in bones:
+			bone_mat= bone.matrix['ARMATURESPACE']
+			bone_mat_world= bone_mat*arm_mat
+
+			ob_empty= Object.New('Empty', bone.name)
+			scn.link(ob_empty)
+			ob_empty.setMatrix(bone_mat_world)
+			ob_empty.sel= 1
+
+		# Select then de-select keeps us active
+		arm_ob.sel= 1
+		arm_ob.sel= 0
+
+	test_arm()
+
 @var CONNECTED: Connect this bone to parent
 @type CONNECTED: Constant
 @var HINGE: Don't inherit rotation or scale from parent
