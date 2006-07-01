@@ -571,7 +571,107 @@ def getUvPixelLoc(face, pxLoc, img_size = None, uvArea = None):
 
 type_tuple= type( (0,) )
 type_list= type( [] )
+
+
+def draw_loops(loops):
+	
+	me= Blender.Mesh.New()
+	for l in loops:
+		
+		i= len(me.verts)
+		me.verts.extend([v[0] for v in l])
+		try:
+			me.verts[0].sel= 1
+		except:
+			pass
+		me.edges.extend([ (j-1, j) for j in xrange(i+1, len(me.verts)) ])
+		# Close the edge?
+		#me.edges.extend((i, len(me.verts)-1))
+		
+	# Fill
+	#fill= Blender.Mathutils.PolyFill(loops)
+	#me.faces.extend(fill)
+		
+	
+	ob= Blender.Object.New('Mesh')
+	ob.link(me)
+	scn= Blender.Scene.GetCurrent()
+	scn.link(ob)
+	ob.Layers= scn.Layers
+	ob.sel= 1
+
+"""
 def ngon(from_data, indices, PREF_FIX_LOOPS= True):
+	Vector= Blender.Mathutils.Vector
+	
+	def rvec(co): return round(co.x, 5), round(co.y, 5), round(co.z, 5)
+	def vert_treplet(v, i):
+		return v, rvec(v), i
+	
+	if type(from_data) in (type_tuple, type_list):
+		verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
+	else:
+		verts= [vert_treplet(from_data.verts[i].co, ii) for ii, i in enumerate(indices)]
+	
+	if PREF_FIX_LOOPS:
+		
+		
+		len_verts= len(verts)
+		loop_list= []
+		vert_dict= {}
+		i= 1
+		while i<len(verts):
+			
+			vertkey= verts[i][1]
+			
+			loop_idx= 0
+			try: # is this a loop back on one of the last edges?
+				loop_idx= vert_dict[vertkey]
+				
+			except:
+				vert_dict[vertkey]= i
+				
+			if loop_idx and abs(loop_idx-i)>2:
+					
+				# print 'Found loop', i-loop_idx
+				loop_list.append(verts[loop_idx:i])
+				#print loop_list
+				verts[loop_idx:i+1]= [] #verts[loop_idx:i+1]= []
+				i= loop_idx+1
+				
+				for v in loop_list[-1]:
+					try:
+						del vert_dict[v[1]]
+					except:
+						pass
+					
+				
+			i+=1
+		
+		loop_list.append(verts)
+	
+	
+	
+	
+	# vert mapping
+	vert_map= [None]*len(indices)
+	ii=0
+	for verts in loop_list:
+		for i, vert in enumerate(verts):
+			vert_map[i+ii]= vert[2]
+		
+		ii+=len(verts)
+	
+	fill= Blender.Mathutils.PolyFill([ [v[0] for v in loop] for loop in loop_list])
+	#draw_loops(loop_list)
+	#raise 'loopy'
+	# map to original indicies
+	
+	return [[vert_map[i] for i in reversed(f)] for f in fill]
+"""
+
+def ngon(from_data, indices, PREF_FIX_LOOPS= True):
+	# print 'NGON', len(indices)
 	'''
 	takes a polyline of indices (fgon)
 	and returns a list of face indicie lists.
