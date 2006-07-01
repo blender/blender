@@ -415,26 +415,31 @@ static PyObject *Text3dGetAttr( BPy_Text3d * self, char *name )
 	return Py_FindMethod( BPy_Text3d_methods, ( PyObject * ) self, name );
 }
 
-/*****************************************************************************/
-/* Function:    EffectSetAttr                                                */
-/* Description: This is a callback function for the BPy_Effect type. It   */
-/*              sets Effect Data attributes (member variables). */
-/*****************************************************************************/
+/*****************************************************************************
+ * Function:    Text3dSetAttr                                                
+ * Description: Callback function for the BPy_Effect type to  
+ *              sets Text3d Data attributes (member variables). 
+ * 
+ ****************************************************************************/
+
 static int Text3dSetAttr( BPy_Text3d * self, char *name, PyObject * value )
 {
 	return 0;		/* normal exit */
 }
 
-/*****************************************************************************/
-/* Function:    Text3dRepr                                                   */
-/* Description: This is a callback function for the BPy_Effect type. It      */
-/*              builds a meaninful string to represent effcte objects.       */
-/*****************************************************************************/
+
+/****************************************************************************
+ * Function:    Text3dRepr                                                   
+ * Description: Callback function for the BPy_Text3d type to It      
+ *               build a meaninful string to represent Text3d objects.      
+ *
+ ***************************************************************************/
 
 static PyObject *Text3dRepr( BPy_Text3d * self )
 {
-	char *str = "";
-	return PyString_FromString( str );
+	/* skip over CU in idname.  CUTEXT */
+	return PyString_FromFormat( "[Text3d \"%s\"]",
+								self->curve->id.name + 2 ); 
 }
 
 
