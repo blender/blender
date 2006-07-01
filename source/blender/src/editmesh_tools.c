@@ -1167,7 +1167,7 @@ void fill_mesh(void)
 			/* normals default pointing up */
 			efan= addfacelist(efa->v3->tmp.v, efa->v2->tmp.v, 
 							  efa->v1->tmp.v, 0, NULL, NULL);
-			EM_select_face(efan, 1);
+			if(efan) EM_select_face(efan, 1);
 			efa= efa->next;
 		}
 	}
