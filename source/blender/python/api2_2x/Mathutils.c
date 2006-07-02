@@ -1571,34 +1571,37 @@ PyObject *M_Mathutils_PolyFill( PyObject * self, PyObject * args )
 	for( i = 0; i < len_polylines; ++i ) {
 		polyLine= PySequence_GetItem( polyLineList, i );
 		
-		if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1)
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-			      "expected a list of poly lines" );
-		
 		len_polypoints= PySequence_Size( polyLine );
-		
-		dl= MEM_callocN(sizeof(DispList), "poly disp");
-		BLI_addtail(&dispbase, dl);
-		dl->type= DL_INDEX3;
-		dl->nr= len_polypoints;
-		dl->type= DL_POLY;
-		dl->parts= 1; /* no faces, 1 edge loop */
-		dl->col= 0; /* no material */
-		dl->verts= fp= MEM_callocN( sizeof(float)*3*len_polypoints, "dl verts");
-		dl->index= MEM_callocN(sizeof(int)*3*len_polypoints, "dl index");
-		
-		for( index = 0; index<len_polypoints; ++index, fp+=3) {
-			polyVec= PySequence_GetItem( polyLine, index );
+		if (len_polypoints>2) { /* dont bother adding edges as polylines */
+			if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1)
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+					  "expected a list of poly lines" );
 			
-			fp[0] = ((VectorObject *)polyVec)->vec[0];
-			fp[1] = ((VectorObject *)polyVec)->vec[1];
-			if( ((VectorObject *)polyVec)->size > 2 )
-				fp[2] = ((VectorObject *)polyVec)->vec[2];
-			else
-				fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
+			dl= MEM_callocN(sizeof(DispList), "poly disp");
+			BLI_addtail(&dispbase, dl);
+			dl->type= DL_INDEX3;
+			dl->nr= len_polypoints;
+			dl->type= DL_POLY;
+			dl->parts= 1; /* no faces, 1 edge loop */
+			dl->col= 0; /* no material */
+			dl->verts= fp= MEM_callocN( sizeof(float)*3*len_polypoints, "dl verts");
+			dl->index= MEM_callocN(sizeof(int)*3*len_polypoints, "dl index");
 			
-			totpoints++;
+			for( index = 0; index<len_polypoints; ++index, fp+=3) {
+				polyVec= PySequence_GetItem( polyLine, index );
+				
+				fp[0] = ((VectorObject *)polyVec)->vec[0];
+				fp[1] = ((VectorObject *)polyVec)->vec[1];
+				if( ((VectorObject *)polyVec)->size > 2 )
+					fp[2] = ((VectorObject *)polyVec)->vec[2];
+				else
+					fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
+				
+				totpoints++;
+				Py_DECREF(polyVec);
+			}
 		}
+		Py_DECREF(polyLine);
 	}
 	
 	if (totpoints) {

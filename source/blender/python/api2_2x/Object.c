@@ -2077,6 +2077,7 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 		} else {
 			/* List item is an object, is it the same type? */
 			child = ( Object * ) Object_FromPyObject( py_child );
+			Py_DECREF (py_child);
 			if (parent->type == child->type) {
 				
 				if (object_in_scene( child, G.scene )==NULL) {
