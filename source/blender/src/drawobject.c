@@ -1378,7 +1378,7 @@ static int draw_dm_creases__setDrawOptions(void *userData, int index)
 	EditEdge *eed = EM_get_edge_for_index(index);
 
 	if (eed->h==0 && eed->crease!=0.0) {
-		BIF_ThemeColorShade((eed->f&SELECT)?TH_EDGE_SELECT:TH_WIRE, 120*eed->crease);
+		BIF_ThemeColorBlend(TH_WIRE, TH_EDGE_SELECT, eed->crease);
 		return 1;
 	} else {
 		return 0;
@@ -1738,11 +1738,11 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		glLineWidth(1);
 	}
 
-	draw_em_fancy_edges(cageDM);
-
 	if(G.f & G_DRAWCREASES) {
 		draw_dm_creases(cageDM);
 	}
+
+	draw_em_fancy_edges(cageDM);
 
 	if(ob==G.obedit) {
 		draw_em_fancy_verts(em, cageDM);
