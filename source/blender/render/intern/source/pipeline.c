@@ -936,9 +936,7 @@ static void render_tile_processor(Render *re, int firsttile)
 		re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	}
 	
-	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
-	re->i.starttime= PIL_check_seconds_timer();
  
 	if(re->result==NULL)
 		return;
@@ -971,8 +969,6 @@ static void render_tile_processor(Render *re, int firsttile)
 		}
 	}
 	
-	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
-	re->stats_draw(&re->i);
 	freeparts(re);
 }
 
@@ -1214,12 +1210,16 @@ void RE_TileProcessor(Render *re, int firsttile)
 	/* the partsdone variable has to be reset to firsttile, to survive esc before it was set to zero */
 	
 	re->i.partsdone= firsttile;
-	
+
+	re->i.starttime= PIL_check_seconds_timer();
+
 	//if(re->r.mode & R_THREADS) 
 	//	threaded_tile_processor(re);
 	//else
 		render_tile_processor(re, firsttile);
 		
+	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	re->stats_draw(&re->i);
 }
 
 
@@ -1610,9 +1610,6 @@ static void do_render_composite_fields_blur_3d(Render *re)
 {
 	bNodeTree *ntree= re->scene->nodetree;
 	
-	/* we set start time here, for main Blender loops */
-	re->i.starttime= PIL_check_seconds_timer();
-
 	if(composite_needs_render(re->scene)) {
 		/* save memory... free all cached images */
 		ntreeFreeCache(ntree);
@@ -1646,9 +1643,6 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		}
 	}
 
-	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
-	re->stats_draw(&re->i);
-	
 	re->display_draw(re->result, NULL);
 }
 
@@ -1718,6 +1712,8 @@ static void yafrayRender(Render *re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
+	re->i.starttime= PIL_check_seconds_timer();
+
 	if(re->r.scemode & R_DOSEQ) {
 		if(!re->test_break()) 
 			do_render_seq(re->result, re->r.cfra);
@@ -1732,6 +1728,9 @@ static void do_render_all_options(Render *re)
 		else
 			do_render_composite_fields_blur_3d(re);
 	}
+	
+	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	re->stats_draw(&re->i);
 }
 
 static int is_rendering_allowed(Render *re)
@@ -1950,7 +1949,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
 	
-	/* on each frame initialize, this for py scripts that define renderdata settings */
+	/* do not call for each frame, it initializes & pops output window */
 	if(!render_initialize_from_scene(re, scene))
 		return;
 	
