@@ -1457,13 +1457,14 @@ static void waveModifier_deformVerts(ModifierData *md, Object *ob, void *derived
 			float *co = vertexCos[i];
 			float x= co[0]-wmd->startx;
 			float y= co[1]-wmd->starty;
-			float amplit;
+			float amplit= 0.0f;
 
 			if(wmd->flag & WAV_X) {
 				if(wmd->flag & WAV_Y) amplit= (float)sqrt( (x*x + y*y));
 				else amplit= x;
 			}
-			else amplit= y;
+			else if(wmd->flag & WAV_Y) 
+				amplit= y;
 			
 			/* this way it makes nice circles */
 			amplit-= (ctime-wmd->timeoffs)*wmd->speed;
