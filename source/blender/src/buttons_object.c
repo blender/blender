@@ -1656,7 +1656,7 @@ static void object_panel_anim(Object *ob)
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupEnd",		24,65,140,19, &ob->dupend, 1.0, 32767, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButI(block, NUM, REDRAWVIEW3D, "DupOff",		171,65,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "Specify recurring frames to exclude from the Dupliframes");
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,35,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
+	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,35,56,20, &ob->ipoflag, 0, 0, 0, 0, "Not functional at the moment!");
 	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,35,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
 	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,35,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
 	
