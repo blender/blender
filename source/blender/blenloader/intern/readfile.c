@@ -3066,6 +3066,7 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 
 /* called from kernel/blender.c */
 /* used to link a file (without UI) to the current UI */
+/* note that it assumes the old pointers in UI are still valid, so old Main is not freed */
 void lib_link_screen_restore(Main *newmain, Scene *curscene)
 {
 	bScreen *sc;
@@ -3094,7 +3095,9 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 					
-					v3d->camera= sc->scene->camera;
+					v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
+					if(v3d->camera==NULL)
+						v3d->camera= sc->scene->camera;
 					
 					if(v3d->bgpic) {
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
