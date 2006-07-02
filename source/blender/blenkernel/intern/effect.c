@@ -412,7 +412,10 @@ static void precalc_effectors(Object *ob, PartEff *paf, Particle *pa, ListBase *
 		
 		if(pd->forcefield==PFIELD_GUIDE && ec->ob->type==OB_CURVE) {
 			float vec[4], dir[3];
-				
+			
+			if(!(paf->flag & PAF_STATIC))
+				where_is_object_time(ec->ob, pa->time);
+			
 			/* scale corrects speed vector to curve size */
 			if(paf->totkey>1) ec->scale= (paf->totkey-1)/pa->lifetime;
 			else ec->scale= 1.0f;
