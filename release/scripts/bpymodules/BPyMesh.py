@@ -573,10 +573,14 @@ type_tuple= type( (0,) )
 type_list= type( [] )
 
 
+# Used for debugging ngon
+"""
 def draw_loops(loops):
 	
 	me= Blender.Mesh.New()
 	for l in loops:
+		#~ me= Blender.Mesh.New()
+		
 		
 		i= len(me.verts)
 		me.verts.extend([v[0] for v in l])
@@ -586,7 +590,17 @@ def draw_loops(loops):
 			pass
 		me.edges.extend([ (j-1, j) for j in xrange(i+1, len(me.verts)) ])
 		# Close the edge?
-		#me.edges.extend((i, len(me.verts)-1))
+		me.edges.extend((i, len(me.verts)-1))
+		
+		
+		#~ ob= Blender.Object.New('Mesh')
+		#~ ob.link(me)
+		#~ scn= Blender.Scene.GetCurrent()
+		#~ scn.link(ob)
+		#~ ob.Layers= scn.Layers
+		#~ ob.sel= 1
+		
+		
 		
 	# Fill
 	#fill= Blender.Mathutils.PolyFill(loops)
@@ -599,245 +613,175 @@ def draw_loops(loops):
 	scn.link(ob)
 	ob.Layers= scn.Layers
 	ob.sel= 1
-
-"""
-def ngon(from_data, indices, PREF_FIX_LOOPS= True):
-	Vector= Blender.Mathutils.Vector
-	
-	def rvec(co): return round(co.x, 5), round(co.y, 5), round(co.z, 5)
-	def vert_treplet(v, i):
-		return v, rvec(v), i
-	
-	if type(from_data) in (type_tuple, type_list):
-		verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
-	else:
-		verts= [vert_treplet(from_data.verts[i].co, ii) for ii, i in enumerate(indices)]
-	
-	if PREF_FIX_LOOPS:
-		
-		
-		len_verts= len(verts)
-		loop_list= []
-		vert_dict= {}
-		i= 1
-		while i<len(verts):
-			
-			vertkey= verts[i][1]
-			
-			loop_idx= 0
-			try: # is this a loop back on one of the last edges?
-				loop_idx= vert_dict[vertkey]
-				
-			except:
-				vert_dict[vertkey]= i
-				
-			if loop_idx and abs(loop_idx-i)>2:
-					
-				# print 'Found loop', i-loop_idx
-				loop_list.append(verts[loop_idx:i])
-				#print loop_list
-				verts[loop_idx:i+1]= [] #verts[loop_idx:i+1]= []
-				i= loop_idx+1
-				
-				for v in loop_list[-1]:
-					try:
-						del vert_dict[v[1]]
-					except:
-						pass
-					
-				
-			i+=1
-		
-		loop_list.append(verts)
-	
-	
-	
-	
-	# vert mapping
-	vert_map= [None]*len(indices)
-	ii=0
-	for verts in loop_list:
-		for i, vert in enumerate(verts):
-			vert_map[i+ii]= vert[2]
-		
-		ii+=len(verts)
-	
-	fill= Blender.Mathutils.PolyFill([ [v[0] for v in loop] for loop in loop_list])
-	#draw_loops(loop_list)
-	#raise 'loopy'
-	# map to original indicies
-	
-	return [[vert_map[i] for i in reversed(f)] for f in fill]
+	Blender.Window.RedrawAll()
 """
 
 def ngon(from_data, indices, PREF_FIX_LOOPS= True):
-	# print 'NGON', len(indices)
 	'''
-	takes a polyline of indices (fgon)
+	Takes a polyline of indices (fgon)
 	and returns a list of face indicie lists.
 	Designed to be used for importers that need indices for an fgon to create from existing verts.
 	
 	from_data: either a mesh, or a list/tuple of vectors.
 	indices: a list of indicies to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
-	PREF_FIX_LOOPS: If this is enabled polylines that use loops to make ultiple polylines are delt with correctly.
+	PREF_FIX_LOOPS: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
 	'''
-	Mesh= Blender.Mesh
-	Window= Blender.Window
-	Scene= Blender.Scene
-	Object= Blender.Object
+	Vector= Blender.Mathutils.Vector
+	if not indices:
+		return []
 	
-	if len(indices) < 4:
-		return [indices]
-	temp_mesh_name= '~NGON_TEMP~'
-	is_editmode= Window.EditMode()
-	if is_editmode:
-		Window.EditMode(0)
-	try:
-		temp_mesh = Mesh.Get(temp_mesh_name)
-		if temp_mesh.users!=0:
-			temp_mesh = Mesh.New(temp_mesh_name)
-	except:
-		temp_mesh = Mesh.New(temp_mesh_name)
-		
-	if type(from_data) in (type_tuple, type_list):
-		# From a list/tuple of vectors
-		temp_mesh.verts.extend( [from_data[i] for i in indices] )
-		#temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
-		edges= [(i, i-1) for i in xrange(len(temp_mesh.verts))]
-	else:
-		# From a mesh
-		temp_mesh.verts.extend( [from_data.verts[i].co for i in indices] )
-		#temp_mesh.edges.extend( [(temp_mesh.verts[i], temp_mesh.verts[i-1]) for i in xrange(len(temp_mesh.verts))] )
-		edges= [(i, i-1) for i in xrange(len(temp_mesh.verts))]
-	if edges:
-		edges[0]= (0,len(temp_mesh.verts)-1)
-	
+	#	return []
 	def rvec(co): return round(co.x, 6), round(co.y, 6), round(co.z, 6)
-	def mlen(co): return co[0]+co[1]+co[2] # manhatten length of a vector
+	def mlen(co): return abs(co[0])+abs(co[1])+abs(co[2]) # manhatten length of a vector, faster then length
 	
-	if PREF_FIX_LOOPS:
-		edge_used_count= {}
+	def vert_treplet(v, i):
+		return v, rvec(v), i, mlen(v)
+	
+	def ed_key_mlen(v1, v2):
+		if v1[3] > v2[3]:
+			return v2[1], v1[1]
+		else:
+			return v1[1], v2[1]
+	
+	
+	if not PREF_FIX_LOOPS:
+		'''
+		Normal single concave loop filling
+		'''
+		if type(from_data) in (type_tuple, type_list):
+			verts= [Vector(from_data[i]) for ii, i in enumerate(indices)]
+		else:
+			verts= [from_data.verts[i].co for ii, i in enumerate(indices)]
 		
-		rounded_verts= [rvec(v.co) for v in temp_mesh.verts] # rounded verts we can use as dict keys.
+		for i in reversed(xrange(1, len(verts))):
+			if verts[i][1]==verts[i-1][0]:
+				verts.pop(i-1)
 		
-		# We need to check if any edges are used twice location based.
-		for ed_idx, ed in enumerate(edges):
-			ed_v1= rounded_verts[ed[0]]
-			ed_v2= rounded_verts[ed[1]]
+		fill= Blender.Mathutils.PolyFill([verts])
+		
+	else:
+		'''
+		Seperate this loop into multiple loops be finding edges that are used twice
+		This is used by lightwave LWO files a lot
+		'''
+		
+		if type(from_data) in (type_tuple, type_list):
+			verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
+		else:
+			verts= [vert_treplet(from_data.verts[i].co, ii) for ii, i in enumerate(indices)]
 			
-			if ed_v1==ed_v2: # Same locations, remove the edge.
-				edges[ed_idx]= None
+		edges= [(i, i-1) for i in xrange(len(verts))]
+		if edges:
+			edges[0]= (0,len(verts)-1)
+		
+		if not verts:
+			return []
+		
+		
+		edge_used_count= {}
+		del_edges= {}
+		# We need to check if any edges are used twice location based.
+		for ed in edges:
+			edkey= ed_key_mlen(verts[ed[0]], verts[ed[1]])
+			try:
+				del_edges[edkey]= edge_used_count[edkey]
+			except:
+				edge_used_count[edkey]= True
+		
+		# Store a list of unconnected loop segments split by double edges.
+		# will join later
+		loop_segments= [] 
+		
+		v_prev= verts[0]
+		context_loop= [v_prev]
+		loop_segments= [context_loop]
+		
+		for v in verts:
+			if v!=v_prev:
+				# Arze we crossing an edge we removed?
+				#if del_edges.has_key(  ):
+				try:	eddata= del_edges[ed_key_mlen(v, v_prev)]
+				except:	eddata= None
+				
+				if eddata:
+					context_loop= [v]
+					loop_segments.append(context_loop)
+				else:
+					if context_loop and context_loop[-1][1]==v[1]:
+						#raise "as"
+						pass
+					else:
+						context_loop.append(v)
+				
+				v_prev= v
+		# Now join loop segments
+		
+		def join_seg(s1,s2):
+			if s2[-1][1]==s1[0][1]: # 
+				s1,s2= s2,s1
+			elif s1[-1][1]==s2[0][1]:
+				pass
 			else:
-				if mlen(ed_v1) < mlen(ed_v2):
-					edkey= ed_v1, ed_v2
-				else:
-					edkey= ed_v2, ed_v1
-				
-				try:
-					edge_user_list= edge_used_count[edkey]
-					edge_user_list.append(ed_idx)
-					
-					# remove edges if there are doubles.
-					if len(edge_user_list) > 1:
-						for edidx in edge_user_list:\
-							edges[edidx]= None
-				except:
-					edge_used_count[edkey]= [ed_idx]
+				return False
+			
+			# If were stuill here s1 and s2 are 2 segments in the same polyline
+			s1.pop() # remove the last vert from s1
+			s1.extend(s2) # add segment 2 to segment 1
+			
+			if s1[0][1]==s1[-1][1]: # remove endpoints double
+				s1.pop()
+			
+			s2[:]= [] # Empty this segment s2 so we dont use it again.
+			return True
 		
-		
-		# Now remove double verts
-		vert_doubles= {}
-		for edidx, ed in enumerate(edges):
-			if ed != None:
-				ed_v1= rounded_verts[ed[0]]
-				ed_v2= rounded_verts[ed[1]]
-				
-				if ed_v1==ed_v2:
-					edges[edidx]= None # will clear later, edge is zero length.
-					#print 'REMOVING DOUBLES'
-					
-				else:
-					# Try and replace with an existing vert or add teh one we use.
-					try:	edges[edidx]= vert_doubles[ed_v1], ed[1]
-					except:
-						vert_doubles[ed_v1]= ed[0]
-						#print 'REMOVING DOUBLES'
+		joining_segments= True
+		while joining_segments:
+			joining_segments= False
+			segcount= len(loop_segments)
+			
+			for j in reversed(xrange(segcount)):
+				seg_j= loop_segments[j]
+				if seg_j:
+					for k in reversed(xrange(j)):
+						if not seg_j:
+							break
+						seg_k= loop_segments[k]
 						
-					try:	edges[edidx]= ed[0], vert_doubles[ed_v2]
-					except:
-						vert_doubles[ed_v2]= ed[1]
-						#print 'REMOVING DOUBLES'
+						if seg_k and join_seg(seg_j, seg_k):
+							joining_segments= True
 		
-		edges= [ed for ed in edges if ed != None] # != None
-		# Done removing double edges!
+		loop_list= loop_segments
 		
-	# DONE DEALING WITH LOOP FIXING
-	
-	
-	
-	temp_mesh.edges.extend(edges)
+		for verts in loop_list:
+			while verts and verts[0][1]==verts[-1][1]:
+				verts.pop()
+		# DONE DEALING WITH LOOP FIXING
 		
-	# Move verts to middle and normalize.
-	# For a good fill we need to normalize and scale the vert location.
+		
+		# vert mapping
+		vert_map= [None]*len(indices)
+		ii=0
+		for verts in loop_list:
+			if len(verts)>2:
+				for i, vert in enumerate(verts):
+					vert_map[i+ii]= vert[2]
+				ii+=len(verts)
+		
+		fill= Blender.Mathutils.PolyFill([ [v[0] for v in loop] for loop in loop_list if len(loop) > 2 ])
+		#draw_loops(loop_list)
+		#raise 'done loop'
+		# map to original indicies
+		fill= [[vert_map[i] for i in reversed(f)] for f in fill]
 	
-	xmax=ymax=zmax= -1<<30
-	xmin=ymin=zmin= 1<<30
-	for v in temp_mesh.verts:
-		co= v.co
-		x= co.x
-		y= co.y
-		z= co.z
-		if x<xmin: xmin=x
-		if y<ymin: ymin=y
-		if z<zmin: zmin=z
-		if x>xmax: xmax=x
-		if y>ymax: ymax=y
-		if z>zmax: zmax=z
 	
-	# get the bounds on the largist axis
-	size= xmax-xmin
-	size= max(size, ymax-ymin)
-	size= max(size, zmax-zmin)
-	
-	xmid= (xmin+xmax)/2
-	ymid= (ymin+ymax)/2
-	zmid= (zmin+zmax)/2
-
-	x=x/len(temp_mesh.verts)
-	y=y/len(temp_mesh.verts)
-	z=z/len(temp_mesh.verts)
-	
-	for v in temp_mesh.verts:
-		co= v.co
-		co.x= (co.x-xmid)/size
-		co.y= (co.y-ymid)/size
-		co.z= (co.z-zmid)/size
-	# finished resizing the verts.
-	
-	oldmode = Mesh.Mode()
-	Mesh.Mode(Mesh.SelectModes['VERTEX'])
-	temp_mesh.sel= 1 # Select all verst	
-	
-	# Must link to scene
-	scn= Scene.GetCurrent()
-	temp_ob= Object.New('Mesh')
-	temp_ob.link(temp_mesh)
-	scn.link(temp_ob)
-	
-	temp_mesh.fill()
-	scn.unlink(temp_ob)
-	Mesh.Mode(oldmode)
-	
-	new_indices= [ [v.index for v in f.v]  for f in temp_mesh.faces ]
-	
-	if not new_indices: # JUST DO A FAN, Cant Scanfill
-		print 'Warning Cannot scanfill!- Fallback on a triangle fan.'
-		new_indices = [ [0, i-1, i] for i in xrange(2, len(indices)) ]
+	if not fill:
+		print 'Warning Cannot scanfill, fallback on a triangle fan.'
+		fill= [ [0, i-1, i] for i in xrange(2, len(indices)) ]
 	else:
 		# Use real scanfill.
 		# See if its flipped the wrong way.
 		flip= None
-		for fi in new_indices:
+		for fi in fill:
 			if flip != None:
 				break
 			for i, vi in enumerate(fi):
@@ -849,17 +793,13 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 					break
 		
 		if not flip:
-			for fi in new_indices:
-				fi.reverse()
-	
-	if is_editmode:
-		Window.EditMode(1)
+			for i, fi in enumerate(fill):
+				fill[i]= tuple([ii for ii in reversed(fi)])
 		
-	# Save some memory and forget about the verts.
-	# since we cant unlink the mesh.
-	temp_mesh.verts= None 
+		
+		
 	
-	return new_indices
+	return fill
 	
 
 

@@ -202,11 +202,9 @@ tobj=dotext(textname)
 def read(filename):
 	global tobj
 
-	tobj.logcon ("#####################################################################")
 	tobj.logcon ("This is: %s" % importername)
 	tobj.logcon ("Importing file:")
 	tobj.logcon (filename)
-	tobj.pprint ("#####################################################################")
 
 	for ob in Blender.Scene.GetCurrent().getChildren():
 		ob.sel= 0
@@ -233,9 +231,7 @@ def read(filename):
 	if form_type == "LWO2": fmt = " (v6.0 Format)"
 	if form_type == "LWOB": fmt = " (v5.5 Format)"
 	message = "Successfully imported " + os.path.basename(filename) + fmt + seconds
-	tobj.pprint ("#####################################################################")
 	tobj.logcon (message)
-	tobj.logcon ("#####################################################################")
 	if editmode: Blender.Window.EditMode(1)  # optional, just being nice
 	Blender.Redraw()
 
@@ -270,9 +266,7 @@ def read_lwob(file, filename):
 	surf_list.append({'NAME': "_Orphans", 'g_MAT': Blender.Material.New("_Orphans")})
 
 	#pass 2: effectively generate objects
-	tobj.logcon ("#####################################################################")
 	tobj.logcon ("Pass 1: dry import")
-	tobj.logcon ("#####################################################################")
 	file.seek(0)
 	objspec_list = ["imported", {}, [], [], {}, {}, 0, {}, {}]
 	# === LWO header ===
@@ -339,9 +333,7 @@ def read_lwob(file, filename):
 	clip_list = None
 
 
-	tobj.pprint ("\n#####################################################################")
-	tobj.pprint("Found %d objects:" % object_index)
-	tobj.pprint ("#####################################################################")
+	tobj.pprint("\nFound %d objects:" % object_index)
 
 # enddef read_lwob
 
@@ -378,9 +370,7 @@ def read_lwo2(file, filename, typ="LWO2"):
 	#8 - facesuv_dict = {name}      #vmad only coordinates associations poly & vertex -> uv tuples
 
 	#pass 1: look in advance for materials
-	tobj.logcon ("#####################################################################")
 	tobj.logcon ("Starting Pass 1: hold on tight")
-	tobj.logcon ("#####################################################################")
 	while 1:
 		try:
 			lwochunk = chunk.Chunk(file)
@@ -413,9 +403,7 @@ def read_lwo2(file, filename, typ="LWO2"):
 	surf_list.append({'NAME': "_Orphans", 'g_MAT': Blender.Material.New("_Orphans")})
 
 	#pass 2: effectively generate objects
-	tobj.logcon ("#####################################################################")
 	tobj.logcon ("Pass 2: now for the hard part")
-	tobj.logcon ("#####################################################################")
 	file.seek(0)
 	# === LWO header ===
 	form_id, form_size, form_type = struct.unpack(">4s1L4s",  file.read(12))
@@ -491,10 +479,7 @@ def read_lwo2(file, filename, typ="LWO2"):
 	surf_list = None
 	clip_list = None
 
-
-	tobj.pprint ("\n#####################################################################")
-	tobj.pprint("Found %d objects:" % object_index)
-	tobj.pprint ("#####################################################################")
+	tobj.pprint("\nFound %d objects:" % object_index)
 # enddef read_lwo2
 
 
@@ -555,13 +540,7 @@ def read_faces_5(lwochunk):
 	while i < lwochunk.chunksize:
 		#if not i%1000 and my_meshtools.show_progress:
 		#   Blender.Window.DrawProgressBar(float(i)/lwochunk.chunksize, "Reading Faces")
-		'''
-		facev = []
-		numfaceverts, = struct.unpack(">H", data.read(2))
-		for j in xrange(numfaceverts):
-			index, = struct.unpack(">H", data.read(2))
-			facev.append(index)
-		'''
+		
 		numfaceverts, = struct.unpack(">H", data.read(2))
 		facev = [struct.unpack(">H", data.read(2))[0] for j in xrange(numfaceverts)]
 		facev.reverse()
@@ -1233,9 +1212,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 	#append faces
 	FACE_TEX= Blender.NMesh.FaceModes['TEX']
 	FACE_ALPHA= Blender.NMesh.FaceTranspModes['ALPHA']
-	EDGE_DRAW_FLAG= 0
-	EDGE_DRAW_FLAG |= Blender.NMesh.EdgeFlags.EDGEDRAW
-	EDGE_DRAW_FLAG |= Blender.NMesh.EdgeFlags.EDGERENDER
+	EDGE_DRAW_FLAG= Blender.NMesh.EdgeFlags.EDGEDRAW | Blender.NMesh.EdgeFlags.EDGERENDER
 	
 	Face= Blender.NMesh.Face
 	jj = 0
@@ -1359,7 +1336,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 						nm_edge= msh.addEdge( msh.verts[vert_key[0]], msh.verts[vert_key[1]] )
 						if nm_edge:
 							nm_edge.flag |=Blender.NMesh.EdgeFlags.FGON
-
+			
 		jj += 1
 
 	if not(uv_flag):        #clear eventual UV data
@@ -1367,8 +1344,8 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 	msh.update(1,store_edge)
 	obj.sel= 1
 	# Cycle editmode to render a nice wire frame.
-	Blender.Window.EditMode(1)
-	Blender.Window.EditMode(0)
+	# Blender.Window.EditMode(1)
+	# Blender.Window.EditMode(0)
 	# Blender.Redraw()
 	return obj, not_used_faces              #return the created object
 
@@ -1823,7 +1800,7 @@ def fs_callback(filename):
 Blender.Window.FileSelector(fs_callback, "Import LWO")
 
 # Cams debugging lwo loader
-'''
+"""
 TIME= Blender.sys.time()
 import os
 print 'Searching for files'
@@ -1839,17 +1816,28 @@ def between(v,a,b):
 		return True
 		
 	return False
-	
+size= 0.0
 for i, _lwo in enumerate(lines):
-	#if i==425:	 # SCANFILL
-	#if i==520:	 # SCANFILL CRASH
-	if between(i, 0, 100):
+	if i==425:	 # SCANFILL
+		#if i==520:	 # SCANFILL CRASH
+		#if i==47:	 # SCANFILL CRASH
+		#if between(i, 0, 1800):
 		_lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]
 		newScn= Blender.Scene.New(_lwo_file)
 		newScn.makeCurrent()
+		size += ((os.path.getsize(_lwo)/1024.0))/ 1024.0
 		read(_lwo)
+		# Remove objects to save memory?
+		'''
+		for ob in newScn.getChildren():
+			if ob.getType()=='Mesh':
+				me= ob.getData(mesh=1)
+				me.verts= None
+			newScn.unlink(ob)
+		'''
+		print 'mb size so far', size
 
 print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
-'''
+"""
