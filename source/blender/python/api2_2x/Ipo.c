@@ -525,7 +525,7 @@ static short lookup_curve_name( char *str, int blocktype, int channel )
 		char *name = lookup_name ( *adrcodes );
 
 		/* if not a texture channel, just return the adrcode */
-		if( !strncmp( str, name, strlen( name ) ) ) {
+		if( !strcmp( str, name ) ) {
 			if( channel == -1 || *adrcodes < MA_MAP1 )
 				return (short)*adrcodes;
 
@@ -552,7 +552,7 @@ static short lookup_curve_key( char *str, Ipo *ipo )
 
 			/* look for a matching string, get the adrcode */
 			for( block = keyiter->block.first; block; block = block->next )
-				if( !strncmp( str, block->name, strlen( block->name) ) )
+				if( !strcmp( str, block->name ) )
 					return block->adrcode;
 
 			/* no match; no addr code */
