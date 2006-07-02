@@ -755,6 +755,8 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 		for verts in loop_list:
 			while verts and verts[0][1]==verts[-1][1]:
 				verts.pop()
+		
+		loop_list= [verts for verts in loop_list if len(verts)>2]
 		# DONE DEALING WITH LOOP FIXING
 		
 		
@@ -767,7 +769,7 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 					vert_map[i+ii]= vert[2]
 				ii+=len(verts)
 		
-		fill= Blender.Geometry.PolyFill([ [v[0] for v in loop] for loop in loop_list if len(loop) > 2 ])
+		fill= Blender.Geometry.PolyFill([ [v[0] for v in loop] for loop in loop_list ])
 		#draw_loops(loop_list)
 		#raise 'done loop'
 		# map to original indicies

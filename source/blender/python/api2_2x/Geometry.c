@@ -46,15 +46,15 @@
 #include "gen_utils.h"
 
 
-//-------------------------DOC STRINGS ---------------------------
+/*-------------------------DOC STRINGS ---------------------------*/
 static char M_Geometry_doc[] = "The Blender Geometry module\n\n";
 static char M_Geometry_PolyFill_doc[] = "(veclist_list) - takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles";
-//-----------------------METHOD DEFINITIONS ----------------------
+/*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef M_Geometry_methods[] = {
 	{"PolyFill", ( PyCFunction ) M_Geometry_PolyFill, METH_VARARGS, M_Geometry_PolyFill_doc},
 	{NULL, NULL, 0, NULL}
 };
-//----------------------------MODULE INIT-------------------------
+/*----------------------------MODULE INIT-------------------------*/
 PyObject *Geometry_Init(void)
 {
 	PyObject *submodule;
@@ -64,12 +64,12 @@ PyObject *Geometry_Init(void)
 	return (submodule);
 }
 
-//----------------------------------Geometry.PolyFill() -------------------
+/*----------------------------------Geometry.PolyFill() -------------------*/
 /* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
 PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 {
 	PyObject *tri_list; /*return this list of tri's */
-	PyObject *polyLineList, *polyLine, *polyVec;
+	PyObject *polyLineSeq, *polyLine, *polyVec;
 	int i, len_polylines, len_polypoints;
 	
 	/* display listbase */
@@ -82,27 +82,31 @@ PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 	dispbase.first= dispbase.last= NULL;
 	
 	
-	if( !PyArg_ParseTuple ( args, "O!", &PyList_Type, &polyLineList) ) {
-		freedisplist(&dispbase);
+	if(!PyArg_ParseTuple ( args, "O", &polyLineSeq) || !PySequence_Check(polyLineSeq)) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a list of poly lines" );
+					      "expected a sequence of poly lines" );
 	}
 	
-	
-	if (EXPP_check_sequence_consistency( polyLineList, &PyList_Type ) != 1)
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a list of lists of vectors" );
-	
-	len_polylines = PySequence_Size( polyLineList );
+	len_polylines = PySequence_Size( polyLineSeq );
 	
 	for( i = 0; i < len_polylines; ++i ) {
-		polyLine= PySequence_GetItem( polyLineList, i );
+		polyLine= PySequence_GetItem( polyLineSeq, i );
+		if (!PySequence_Check(polyLineSeq)) {
+			freedisplist(&dispbase);
+			Py_DECREF(polyLine);
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+				  "expected a sequence of poly lines" );
+		}
+		
 		
 		len_polypoints= PySequence_Size( polyLine );
-		if (len_polypoints>2) { /* dont bother adding edges as polylines */
-			if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1)
+		if (len_polypoints>0) { /* dont bother adding edges as polylines */
+			if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1) {
+				freedisplist(&dispbase);
+				Py_DECREF(polyLine);
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
-					  "expected a list of poly lines" );
+					  "expected a sequence of poly lines" );
+			}
 			
 			dl= MEM_callocN(sizeof(DispList), "poly disp");
 			BLI_addtail(&dispbase, dl);
@@ -135,14 +139,18 @@ PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 		/* now make the list to return */
 		filldisplist(&dispbase, &dispbase);
 		
-		
 		/* The faces are stored in a new DisplayList
 		thats added to the head of the listbase */
 		dl= dispbase.first; 
 		
 		tri_list= PyList_New(dl->parts);
-		index= 0;
+		if( !tri_list ) {
+			freedisplist(&dispbase);
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"PyList_New() failed" );
+		}
 		
+		index= 0;
 		dl_face= dl->index;
 		while(index < dl->parts) {
 			PyList_SetItem(tri_list, index, Py_BuildValue("iii", dl_face[0], dl_face[1], dl_face[2]) );
