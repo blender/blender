@@ -88,7 +88,7 @@ void file_buttons(void)
 	SpaceFile *sfile;
 	uiBlock *block;
 	float df, totlen, sellen;
-	short xco;
+	short xco, xcotitle;
 	int totfile, selfile;
 	char naam[256];
 
@@ -123,9 +123,8 @@ void file_buttons(void)
 
 	cpack(0x0);
 	xco+=XIC+10;
-	glRasterPos2f((float)xco, 5.0);
-	BIF_RasterPos((float)xco, 5.0);	// stupid texture fonts
-	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & USER_TR_BUTTONS));
+
+	xcotitle= xco;
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & USER_TR_BUTTONS));
 	
 	uiBlockBeginAlign(block);
@@ -157,6 +156,12 @@ void file_buttons(void)
 		xco+= 100;	// scroll
 	}
 
+	uiDrawBlock(block);
+	
+	glRasterPos2f((float)xcotitle, 5.0);
+	BIF_RasterPos((float)xcotitle, 5.0);	// stupid texture fonts
+	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & USER_TR_BUTTONS));
+	
 	if(sfile->type==FILE_UNIX) {
 		df= BLI_diskfree(sfile->dir)/(1048576.0);
 
@@ -170,8 +175,7 @@ void file_buttons(void)
 	
 		BIF_DrawString(G.font, naam, 0);
 	}
+	
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
-
-	uiDrawBlock(block);
 }
