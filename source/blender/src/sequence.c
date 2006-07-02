@@ -891,19 +891,23 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				Scene *sce= seq->scene, *oldsce= G.scene;
 				Render *re;
 				RenderResult rres;
-				int doseq;
+				int doseq, rendering= G.rendering;
+				char scenename[64];
 				
 				waitcursor(1);
 				
-				/* This function can be called from do_render_seq(), in that case
-				   the seq->scene can already have a Render, so we use a default name.
+				/* Hack! This function can be called from do_render_seq(), in that case
+				   the seq->scene can already have a Render initialized with same name, 
+				   so we have to use a default name. (compositor uses G.scene name to
+				   find render).
 				   However, when called from within the UI (image preview in sequencer)
 				   we do want to use scene Render, that way the render result is defined
 				   for display in render/imagewindow */
-				if(G.rendering)
-					re= RE_NewRender(" do_build_seq_ibuf");	
-				else
-					re= RE_NewRender(sce->id.name);
+				if(rendering) {
+					BLI_strncpy(scenename, sce->id.name+2, 64);
+					strcpy(sce->id.name+2, " do_build_seq_ibuf");
+				}
+				re= RE_NewRender(sce->id.name);
 				
 				/* prevent eternal loop */
 				doseq= sce->r.scemode & R_DOSEQ;
@@ -915,6 +919,11 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				if(sce!=oldsce) set_scene_bg(sce);
 				RE_BlenderFrame(re, sce, seq->sfra + se->nr);
 				if(sce!=oldsce) set_scene_bg(oldsce);
+				
+				/* UGLY WARNING, it is set to zero in  RE_BlenderFrame */
+				G.rendering= rendering;
+				if(rendering)
+					BLI_strncpy(sce->id.name+2, scenename, 64);
 				
 				RE_GetResultImage(re, &rres);
 				

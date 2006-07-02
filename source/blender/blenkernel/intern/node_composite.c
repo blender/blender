@@ -619,7 +619,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 	if(node->flag & NODE_DO_OUTPUT) {	/* only one works on out */
 		RenderData *rd= data;
 		if(rd->scemode & R_DOCOMP) {
-			RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
+			RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name)); /* G.scene is WEAK! */
 			if(rr) {
 				CompBuf *outbuf, *zbuf=NULL;
 				
@@ -963,7 +963,7 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	Scene *sce= node->id?(Scene *)node->id:G.scene;
+	Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
 	RenderData *rd= data;
 	RenderResult *rr;
 	
