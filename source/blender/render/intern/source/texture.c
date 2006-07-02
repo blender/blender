@@ -1707,7 +1707,7 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_COLMIR) {
 					// exception for envmap only
 					if(tex->type==TEX_ENVMAP && mtex->blendtype==MTEX_BLEND) {
-						fact= texres.tin*mtex->colfac;
+						fact= texres.tin*colfac;
 						facm= 1.0- fact;
 						shi->refcol[0]= fact + facm*shi->refcol[0];
 						shi->refcol[1]= fact*tcol[0] + facm*shi->refcol[1];
