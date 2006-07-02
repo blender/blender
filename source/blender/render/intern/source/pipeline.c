@@ -137,8 +137,13 @@ static void stats_background(RenderStats *rs)
 		
 		spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
 		
+		if(rs->curfield)
+			spos+= sprintf(spos, "Field %d ", rs->curfield);
+		if(rs->curblur)
+			spos+= sprintf(spos, "Blur %d ", rs->curblur);
+		
 		if(rs->infostr) {
-			spos+= sprintf(spos, " | %s", rs->infostr);
+			spos+= sprintf(spos, "| %s", rs->infostr);
 		}
 		else {
 			if(rs->tothalo)
@@ -1306,6 +1311,8 @@ static void do_render_blur_3d(Render *re)
 	while(blur--) {
 		set_mblur_offs( re->r.blurfac*((float)(re->r.osa-blur))/(float)re->r.osa );
 		
+		re->i.curblur= re->r.osa-blur;	/* stats */
+		
 		do_render_3d(re);
 		
 		blurfac= 1.0f/(float)(re->r.osa-blur);
@@ -1319,6 +1326,7 @@ static void do_render_blur_3d(Render *re)
 	re->result= rres;
 	
 	set_mblur_offs(0.0f);
+	re->i.curblur= 0;	/* stats */
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);
@@ -1377,6 +1385,8 @@ static void do_render_fields_3d(Render *re)
 	re->disprect.ymin /= 2;
 	re->disprect.ymax /= 2;
 	
+	re->i.curfield= 1;	/* stats */
+	
 	/* first field, we have to call camera routine for correct aspect and subpixel offset */
 	RE_SetCamera(re, re->scene->camera);
 	if(re->r.mode & R_MBLUR)
@@ -1388,6 +1398,9 @@ static void do_render_fields_3d(Render *re)
 	
 	/* second field */
 	if(!re->test_break()) {
+		
+		re->i.curfield= 2;	/* stats */
+		
 		re->flag |= R_SEC_FIELD;
 		if((re->r.mode & R_FIELDSTILL)==0) 
 			set_field_offs(0.5f);
@@ -1418,6 +1431,8 @@ static void do_render_fields_3d(Render *re)
 		free_render_result(rr2);
 	}
 	free_render_result(rr1);
+	
+	re->i.curfield= 0;	/* stats */
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay= render_get_active_layer(re, re->result);

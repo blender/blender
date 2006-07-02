@@ -875,39 +875,24 @@ void make_renderinfo_string(RenderStats *rs, char *str)
 		spos+= sprintf(spos, "Single Layer | ");
 	
 	if(rs->tothalo)
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory, mmap_used_memory);
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM (%.2fM) ", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory, mmap_used_memory);
 	else 
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM (%.2fM)", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory, mmap_used_memory);
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM (%.2fM) ", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory, mmap_used_memory);
+	
+	if(rs->curfield)
+		spos+= sprintf(spos, "Field %d ", rs->curfield);
+	if(rs->curblur)
+		spos+= sprintf(spos, "Blur %d ", rs->curblur);
 	
 	BLI_timestr(rs->lastframetime, info_time_str);
-	spos+= sprintf(spos, " Time:%s ", info_time_str);
+	spos+= sprintf(spos, "Time:%s ", info_time_str);
 	
 	if(rs->infostr)
-		spos+= sprintf(spos, " | %s", rs->infostr);
+		spos+= sprintf(spos, "| %s ", rs->infostr);
 	
 	/* very weak... but 512 characters is quite safe... we cannot malloc during thread render */
 	if(spos >= str+RW_MAXTEXT)
 		printf("WARNING! renderwin text beyond limit \n");
-	
-	/* temporal render debug printing, needed for testing orange renders atm... will be gone soon (or option) */
-	if(G.rt==7 && rs->convertdone) {
-		char str[256];
-		
-		spos= str;
-		spos+= sprintf(spos, "Fra:%d Mem:%.2fM (%.2fM)", G.scene->r.cfra, megs_used_memory, mmap_used_memory);
-		
-		if(rs->infostr) {
-			spos+= sprintf(spos, " | %s", rs->infostr);
-		}
-		else {
-			if(rs->tothalo)
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
-			else 
-				spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
-		}
-		printf(str); printf("\n");
-	}	
-	
 	
 }
 
