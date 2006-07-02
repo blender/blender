@@ -102,6 +102,9 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 	}
 	
 	if(ima->ibuf==NULL) {
+		/* hack for icon render */
+		if(R.r.scemode &R_NO_IMAGE_LOAD)
+			return 0;
 		BLI_lock_thread(LOCK_MALLOC);
 		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
 		BLI_unlock_thread(LOCK_MALLOC);

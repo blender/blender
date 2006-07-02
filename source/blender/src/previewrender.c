@@ -438,13 +438,16 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 			sce->r.scemode |= R_NODE_PREVIEW;
 			if(sbuts->flag & SB_PRV_OSA)
 				sce->r.mode |= R_OSA;
+			sce->r.scemode &= ~R_NO_IMAGE_LOAD;
 		}
 		else if(pr_method==PR_DO_RENDER) {
 			RE_test_break_cb(re, qtest);
 			sce->r.scemode |= R_NODE_PREVIEW;
+			sce->r.scemode &= ~R_NO_IMAGE_LOAD;
 		}
 		else {	/* PR_ICON_RENDER */
 			sce->r.scemode &= ~R_NODE_PREVIEW;
+			sce->r.scemode |= R_NO_IMAGE_LOAD;
 		}
 		
 		/* allocates render result */
