@@ -38,13 +38,12 @@
 */
 
 /* Used for PolyFill */
-#include "BKE_displist.h" rm 
+#include "BKE_displist.h"
 #include "MEM_guardedalloc.h" 
 #include "BLI_blenlib.h"
 
-/* - Not needed for now
+/* needed for EXPP_ReturnPyObjError and EXPP_check_sequence_consistency */
 #include "gen_utils.h"
-*/
 
 
 //-------------------------DOC STRINGS ---------------------------
