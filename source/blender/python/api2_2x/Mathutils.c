@@ -37,11 +37,6 @@
 #include "BLI_rand.h"
 #include "BKE_utildefines.h"
 
-/* Used for PolyFill */
-#include "BKE_displist.h" 
-#include "MEM_guardedalloc.h" 
-#include "BLI_blenlib.h"
-
 #include "gen_utils.h"
 
 //-------------------------DOC STRINGS ---------------------------
@@ -77,7 +72,6 @@ static char M_Mathutils_TriangleArea_doc[] = "(v1, v2, v3) - returns the area si
 static char M_Mathutils_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
 static char M_Mathutils_QuadNormal_doc[] = "(v1, v2, v3, v4) - returns the normal of the 3D quad defined";
 static char M_Mathutils_LineIntersect_doc[] = "(v1, v2, v3, v4) - returns a tuple with the points on each line respectively closest to the other";
-static char M_Mathutils_PolyFill_doc[] = "(veclist_list) - takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles";
 static char M_Mathutils_Point_doc[] = "Creates a 2d or 3d point object";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef M_Mathutils_methods[] = {
@@ -112,7 +106,6 @@ struct PyMethodDef M_Mathutils_methods[] = {
 	{"TriangleNormal", ( PyCFunction ) M_Mathutils_TriangleNormal, METH_VARARGS, M_Mathutils_TriangleNormal_doc},
 	{"QuadNormal", ( PyCFunction ) M_Mathutils_QuadNormal, METH_VARARGS, M_Mathutils_QuadNormal_doc},
 	{"LineIntersect", ( PyCFunction ) M_Mathutils_LineIntersect, METH_VARARGS, M_Mathutils_LineIntersect_doc},
-	{"PolyFill", ( PyCFunction ) M_Mathutils_PolyFill, METH_VARARGS, M_Mathutils_PolyFill_doc},
 	{"Point", (PyCFunction) M_Mathutils_Point, METH_VARARGS, M_Mathutils_Point_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -1536,100 +1529,6 @@ PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 	}
 }
 
-
-//----------------------------------Mathutils.PolyFill() -------------------
-/* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
-PyObject *M_Mathutils_PolyFill( PyObject * self, PyObject * args )
-{
-	PyObject *tri_list; /*return this list of tri's */
-	PyObject *polyLineList, *polyLine, *polyVec;
-	int i, len_polylines, len_polypoints;
-	
-	/* display listbase */
-	ListBase dispbase={NULL, NULL};
-	DispList *dl;
-	float *fp; /*pointer to the array of malloced dl->verts to set the points from the vectors */
-	int index, *dl_face, totpoints=0;
-	
-	
-	dispbase.first= dispbase.last= NULL;
-	
-	
-	if( !PyArg_ParseTuple ( args, "O!", &PyList_Type, &polyLineList) ) {
-		freedisplist(&dispbase);
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a list of poly lines" );
-	}
-	
-	
-	if (EXPP_check_sequence_consistency( polyLineList, &PyList_Type ) != 1)
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a list of lists of vectors" );
-	
-	len_polylines = PySequence_Size( polyLineList );
-	
-	for( i = 0; i < len_polylines; ++i ) {
-		polyLine= PySequence_GetItem( polyLineList, i );
-		
-		len_polypoints= PySequence_Size( polyLine );
-		if (len_polypoints>2) { /* dont bother adding edges as polylines */
-			if (EXPP_check_sequence_consistency( polyLine, &vector_Type ) != 1)
-				return EXPP_ReturnPyObjError( PyExc_TypeError,
-					  "expected a list of poly lines" );
-			
-			dl= MEM_callocN(sizeof(DispList), "poly disp");
-			BLI_addtail(&dispbase, dl);
-			dl->type= DL_INDEX3;
-			dl->nr= len_polypoints;
-			dl->type= DL_POLY;
-			dl->parts= 1; /* no faces, 1 edge loop */
-			dl->col= 0; /* no material */
-			dl->verts= fp= MEM_callocN( sizeof(float)*3*len_polypoints, "dl verts");
-			dl->index= MEM_callocN(sizeof(int)*3*len_polypoints, "dl index");
-			
-			for( index = 0; index<len_polypoints; ++index, fp+=3) {
-				polyVec= PySequence_GetItem( polyLine, index );
-				
-				fp[0] = ((VectorObject *)polyVec)->vec[0];
-				fp[1] = ((VectorObject *)polyVec)->vec[1];
-				if( ((VectorObject *)polyVec)->size > 2 )
-					fp[2] = ((VectorObject *)polyVec)->vec[2];
-				else
-					fp[2]= 0.0f; /* if its a 2d vector then set the z to be zero */
-				
-				totpoints++;
-				Py_DECREF(polyVec);
-			}
-		}
-		Py_DECREF(polyLine);
-	}
-	
-	if (totpoints) {
-		/* now make the list to return */
-		filldisplist(&dispbase, &dispbase);
-		
-		
-		/* The faces are stored in a new DisplayList
-		thats added to the head of the listbase */
-		dl= dispbase.first; 
-		
-		tri_list= PyList_New(dl->parts);
-		index= 0;
-		
-		dl_face= dl->index;
-		while(index < dl->parts) {
-			PyList_SetItem(tri_list, index, Py_BuildValue("iii", dl_face[0], dl_face[1], dl_face[2]) );
-			dl_face+= 3;
-			index++;
-		}
-		freedisplist(&dispbase);
-	} else {
-		/* no points, do this so scripts dont barf */
-		tri_list= PyList_New(0);
-	}
-	
-	return tri_list;
-}
 
 
 //---------------------------------NORMALS FUNCTIONS--------------------

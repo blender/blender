@@ -22,6 +22,7 @@ The Blender Python API Reference
   - L{Curve}
   - L{Draw}
   - L{Effect}
+  - L{Geometry} (*)
   - L{Group} (*)
   - L{Image}
   - L{Ipo} (*)
