@@ -153,6 +153,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Effect.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Geometry.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Group.c">
 			</File>
 			<File
