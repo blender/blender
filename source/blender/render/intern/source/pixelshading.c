@@ -551,16 +551,18 @@ void shadeSkyPixel(float *collector, float fx, float fy, float *rco)
 void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview)
 {
 	float lo[3], zen[3], hor[3], blend, blendm;
+	int skyflag;
 	
-	/* Why is this setting forced? Seems silly to me. It is tested in the texture unit. */
-	R.wrld.skytype |= WO_ZENUP;
+	/* flag indicating if we render the top hemisphere */
+	skyflag = WO_ZENUP;
 	
 	/* Some view vector stuff. */
 	if(R.wrld.skytype & WO_SKYREAL) {
 	
 		blend= view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2];
 
-		if(blend<0.0) R.wrld.skytype-= WO_ZENUP;
+		if(blend<0.0) skyflag= 0;
+		
 		blend= fabs(blend);
 	}
 	else if(R.wrld.skytype & WO_SKYPAPER) {
@@ -585,7 +587,7 @@ void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview)
 			SWAP(float, lo[1],  lo[2]);
 			
 		}
-		do_sky_tex(rco, lo, dxyview, hor, zen, &blend);
+		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag);
 	}
 
 	if(blend>1.0) blend= 1.0;

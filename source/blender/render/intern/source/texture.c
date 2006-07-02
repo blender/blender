@@ -2024,7 +2024,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 /* ------------------------------------------------------------------------- */
 
 /* hor and zen are RGB vectors, blend is 1 float, should all be initialized */
-void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend)
+void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag)
 {
 	MTex *mtex;
 	TexResult texres;
@@ -2068,7 +2068,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			
 			case TEXCO_H_SPHEREMAP:
 			case TEXCO_H_TUBEMAP:
-				if(R.wrld.skytype & WO_ZENUP) {
+				if(skyflag & WO_ZENUP) {
 					if(mtex->texco==TEXCO_H_TUBEMAP) tubemap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
 					else spheremap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
 					/* tube/spheremap maps for outside view, not inside */
@@ -2174,7 +2174,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 				if(mtex->mapto & (WOMAP_ZENUP+WOMAP_ZENDOWN)) {
 					ok= 0;
 					if(R.wrld.skytype & WO_SKYREAL) {
-						if((R.wrld.skytype & WO_ZENUP)) {
+						if((skyflag & WO_ZENUP)) {
 							if(mtex->mapto & WOMAP_ZENUP) ok= 1;
 						}
 						else if(mtex->mapto & WOMAP_ZENDOWN) ok= 1;
