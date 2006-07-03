@@ -1583,16 +1583,18 @@ static void node_group_execute(bNodeStack *stack, void *data, bNode *gnode, bNod
 	}
 	
 	/* free internal group output nodes */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->execfunc) {
-			bNodeSocket *sock;
-			
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(sock->intern) {
-					bNodeStack *ns= stack + sock->stack_index;
-					if(ns->data) {
-						free_compbuf(ns->data);
-						ns->data= NULL;
+	if(ntree->type==NTREE_COMPOSIT) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->typeinfo->execfunc) {
+				bNodeSocket *sock;
+				
+				for(sock= node->outputs.first; sock; sock= sock->next) {
+					if(sock->intern) {
+						bNodeStack *ns= stack + sock->stack_index;
+						if(ns->data) {
+							free_compbuf(ns->data);
+							ns->data= NULL;
+						}
 					}
 				}
 			}
