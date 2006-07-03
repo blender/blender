@@ -1818,8 +1818,8 @@ static void node_composit_exec_seprgba(void *data, bNode *node, bNodeStack **in,
 		out[3]->vec[0] = in[0]->vec[3];
 	}
 	else {
-		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
+		/* make sure we get right rgba buffer */
+		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 
 		/* don't do any pixel processing, just copy the stack directly (faster, I presume) */
 		if(out[0]->hasoutput)
@@ -1830,6 +1830,10 @@ static void node_composit_exec_seprgba(void *data, bNode *node, bNodeStack **in,
 			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
 		if(out[3]->hasoutput)
 			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
+		
+		if(cbuf!=in[0]->data) 
+			free_compbuf(cbuf);
+
 	}
 }
 
