@@ -1431,9 +1431,9 @@ static int node_get_colorid(bNode *node)
 		else
 			return TH_NODE;
 	}
-	if(node->typeinfo->nclass==NODE_CLASS_GENERATOR)
-		return TH_NODE_GENERATOR;
-	if(ELEM4(node->typeinfo->nclass, NODE_CLASS_OP_COLOR, NODE_CLASS_OP_VECTOR, NODE_CLASS_OP_FILTER, NODE_CLASS_CONVERTOR))
+	if(node->typeinfo->nclass==NODE_CLASS_CONVERTOR)
+		return TH_NODE_CONVERTOR;
+	if(ELEM3(node->typeinfo->nclass, NODE_CLASS_OP_COLOR, NODE_CLASS_OP_VECTOR, NODE_CLASS_OP_FILTER))
 		return TH_NODE_OPERATOR;
 	if(node->typeinfo->nclass==NODE_CLASS_GROUP)
 		return TH_NODE_GROUP;

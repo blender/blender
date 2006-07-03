@@ -285,7 +285,7 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->syntaxn; break;
 			case TH_NODE_OPERATOR:
 				cp= ts->syntaxb; break;
-			case TH_NODE_GENERATOR:
+			case TH_NODE_CONVERTOR:
 				cp= ts->syntaxv; break;
 			case TH_NODE_GROUP:
 				cp= ts->syntaxc; break;
@@ -664,7 +664,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "%%l|");
 			str += sprintf(str, "Node Backdrop %%x%d|", TH_NODE);
 			str += sprintf(str, "In/Out Node %%x%d|", TH_NODE_IN_OUT);
-			str += sprintf(str, "Generator Node %%x%d|", TH_NODE_GENERATOR);
+			str += sprintf(str, "Convertor Node %%x%d|", TH_NODE_CONVERTOR);
 			str += sprintf(str, "Operator Node %%x%d|", TH_NODE_OPERATOR);
 			str += sprintf(str, "Group Node %%x%d|", TH_NODE_GROUP);
 			break;

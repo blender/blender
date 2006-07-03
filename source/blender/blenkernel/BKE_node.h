@@ -82,7 +82,6 @@ typedef struct bNodeType {
 /* nodetype->nclass, for add-menu and themes */
 #define NODE_CLASS_INPUT		0
 #define NODE_CLASS_OUTPUT		1
-#define NODE_CLASS_GENERATOR	2
 #define NODE_CLASS_OP_COLOR		3
 #define NODE_CLASS_OP_VECTOR	4
 #define NODE_CLASS_OP_FILTER	5
