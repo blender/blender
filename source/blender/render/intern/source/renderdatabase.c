@@ -391,19 +391,19 @@ HaloRen *RE_inithalo(Render *re, Material *ma,   float *vec,   float *vec1,
 	VECCOPY(har->co, vec);
 	har->hasize= hasize;
 
-	/* actual projectvert is done in function transform_renderdata() because of parts/border/pano */
-
+	/* actual projectvert is done in function project_renderdata() because of parts/border/pano */
+	/* we do it here for sorting of halos */
+	zn= hoco[3];
+	har->xs= 0.5*re->winx*(hoco[0]/zn);
+	har->ys= 0.5*re->winy*(hoco[1]/zn);
+	har->zs= 0x7FFFFF*(hoco[2]/zn);
+	
+	har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
+	
 	/* halovect */
 	if(vec1) {
 
 		har->type |= HA_VECT;
-
-		zn= hoco[3];
-		har->xs= 0.5*re->winx*(hoco[0]/zn);
-		har->ys= 0.5*re->winy*(hoco[1]/zn);
-		har->zs= 0x7FFFFF*(hoco[2]/zn);
-
-		har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
 
 		xn=  har->xs - 0.5*re->winx*(hoco1[0]/hoco1[3]);
 		yn=  har->ys - 0.5*re->winy*(hoco1[1]/hoco1[3]);

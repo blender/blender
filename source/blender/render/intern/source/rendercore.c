@@ -498,10 +498,8 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 	}
 	
 	for(a=0; a<R.tothalo; a++) {
-		if((a & 255)==0) {
-			if(R.test_break() ) break; 
+		if((a & 255)==0)
 			har= R.bloha[a>>8];
-		}
 		else har++;
 
 		/* layer test, clip halo with y */
@@ -555,6 +553,7 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 				}
 			}
 		}
+		if(R.test_break() ) break; 
 	}
 }
 
