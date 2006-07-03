@@ -312,12 +312,14 @@ void nextprev_timeline_key(short dir)
 					for (achan=act->chanbase.first; achan; achan=achan->next){
 						/* convert the ipo to a list of 'current frame elements' */
 						
-						elems.first= elems.last= NULL;
-						make_cfra_list(achan->ipo, &elems);
-						
-						closest= find_closest_cfra_elem(elems, dir, closest);
-						
-						BLI_freelistN(&elems);
+						if(achan->ipo) {
+							elems.first= elems.last= NULL;
+							make_cfra_list(achan->ipo, &elems);
+							
+							closest= find_closest_cfra_elem(elems, dir, closest);
+							
+							BLI_freelistN(&elems);
+						}
 					}
 				}
 				
