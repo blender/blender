@@ -728,11 +728,12 @@ void calculateCenter(TransInfo *t)
 	case V3D_ACTIVE:
 		/* set median, and if if if... do object center */
 		
-		/* EDIT MODE ACTIVE FACE */
+		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
 		if (G.obedit && G.obedit->type == OB_MESH && G.editMesh->selected.last) {
 			EM_editselection_center(t->center, G.editMesh->selected.last);
+			calculateCenter2D(t);
 			break;
-		} /* END EDIT MODE ACTIVE FACE */
+		} /* END EDIT MODE ACTIVE ELEMENT */
 		
 		calculateCenterMedian(t);
 		if((t->flag & (T_EDIT|T_POSE))==0) {
