@@ -439,7 +439,7 @@ def createCURVES(courbes):
     elif scale_==3:
        SCALE=r[3]-r[1]
 
-    [o.select(0) for o in Object.Get()]
+    [o.select(0) for o in Scene.GetCurrent().getChildren()] #[o.select(0) for o in Object.Get()] - will not work
     for I in courbes.ITEM:
         c = Curve.New()
         # ----------

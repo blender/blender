@@ -280,7 +280,7 @@ def NEWMEcreation(obj):
 
          for ozero in OBJ:
             if ozero.getType()=='Mesh': 
-                namelist.append(ozero.getData().name)
+                namelist.append(ozero.getData(name_only=1))
 
          ozero=obj
          nomdelobjet=ozero.getName()

@@ -296,7 +296,7 @@ class xExport:
 	#***********************************************
 	def analyzeScene(self):
 			parent_list = []
-			for obj in Object.Get():
+			for obj in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
 				mesh = obj.getData()
 				if type(mesh) == Types.ArmatureType or type(mesh) == Types.NMeshType or obj.getType() == "Empty":
 					pare = obj.getParent()
@@ -307,14 +307,14 @@ class xExport:
 		
 	def getChildren(self,obj):	
 		children_list = []	
-		for object in Object.Get():
+		for object in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
 			pare = object.parent
 			if pare == obj :
 				children_list.append(object)
 		return children_list
 	
 	def getArmChildren(self,obj):		
-		for object in Object.Get():
+		for object in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
 			pare = object.parent
 			if pare == obj :	
 				return object
@@ -404,7 +404,7 @@ class xExport:
 		self.file.write("}  // End of the Root Frame\n")		
 		if anim :
 			self.file.write("AnimationSet {\n")
-			for obj in Object.Get():
+			for obj in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
 				
 					mesh = obj.getData()
 					if type(mesh) == Types.NMeshType or obj.getType() == "Empty":

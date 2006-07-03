@@ -1210,7 +1210,7 @@ def export_xsi(filename):
   #OBJ = Blender.Object.GetSelected()
   #if not OBJ:
   
-  OBJ = Blender.Object.Get()
+  OBJ = Blender.Scene.GetCurrent().getChildren() #Blender.Object.Get()
 
   # we need some objects, if none specified stop
   if not OBJ:
