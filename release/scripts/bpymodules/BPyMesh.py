@@ -198,7 +198,7 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 			tempob.link(mesh)
 			try:
 				# Copy the influences if possible.
-				groupNames, vWeightDict= meshWeight2Dict(tempMe)
+				groupNames, vWeightDict= meshWeight2Dict(ob.getData(mesh=1))
 				dict2MeshWeight(mesh, groupNames, vWeightDict)
 			except:
 				# if the modifier changes the vert count then it messes it up for us.
