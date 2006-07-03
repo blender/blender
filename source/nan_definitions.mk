@@ -112,9 +112,17 @@ endif
         export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/IlmImf -I$(NAN_OPENEXR)/include/Imath -I$(NAN_OPENEXR)/include/Iex
       endif
     else
-      export NAN_OPENEXR ?= /usr/local
+      export NAN_OPENEXR ?= $(LCGDIR)/openexr
       export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+	  ifeq ($(OS),darwin)
+	    ifeq ($(CPU),powerpc)
+	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+		else
+	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
+		endif
+	  else
+	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+	  endif
     endif
   # Platform Dependent settings go below:
 
@@ -199,9 +207,12 @@ endif
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa -framework IOKit
 
-    export NAN_NO_KETSJI=false
+    # export NAN_NO_KETSJI=true
 
-
+    ifeq ($(CPU), i386)
+	    export NAN_NO_OPENAL=true
+    endif
+	
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...

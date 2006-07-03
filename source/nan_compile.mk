@@ -80,8 +80,13 @@ endif
 ifeq ($(OS),darwin)
     CC	= gcc
     CCC	= g++
-    CFLAGS	+= -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5
-    CCFLAGS	+= -pipe -fPIC 
+	ifeq ($(CPU),powerpc)
+        CFLAGS	+= -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5
+        CCFLAGS	+= -pipe -fPIC 
+	else
+        CFLAGS	+= -pipe -fPIC -ffast-math -march=pentium-m
+        CCFLAGS	+= -pipe -fPIC 
+	endif
     REL_CFLAGS	+= -O2
     REL_CCFLAGS	+= -O2
     CPPFLAGS	+= -D_THREAD_SAFE

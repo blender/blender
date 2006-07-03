@@ -201,6 +201,9 @@ ifeq ($(INTERNATIONAL), true)
     endif
     ifeq ($(OS), darwin)
         COMLIB += $(NAN_GETTEXT)/lib/libintl.a
+        ifeq ($(CPU), i386)
+	    COMLIB += $(NAN_GETTEXT)/lib/libiconv.a
+        endif
     endif
     ifeq ($(OS), solaris)
         COMLIB += $(NAN_GETTEXT)/lib/libintl.a
