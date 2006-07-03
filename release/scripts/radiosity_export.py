@@ -69,33 +69,48 @@ specular highlights to the vertex colors.
 
 import Blender, meshtools
 #import time
+import BPyMesh
 
 try:
 	import struct
+	NULL_COLOR= struct.pack('<BBBB', 255,255,255,255)
 except:
-	msg = "Error: you need a full Python install to run this script."
-	meshtools.print_boxed(msg)
-	Blender.Draw.PupMenu("ERROR%t|"+msg)
+	struct= None
+
+
 
 # ================================
 # ====== Write Radio Format ======
 # ================================
 def write(filename):
-	#start = time.clock()
+	if not filename.lower().endswith('.radio'):
+		filename += '.radio'
+	
+	scn= Blender.Scene.GetCurrent()
+	object= scn.getActiveObject()
+	if not object:
+		Blender.Draw.PupMenu('Error%t|Select 1 active object')
+		return
+	objname= object.name
+	
+	file = open(filename, 'wb')
+	mesh = BPyMesh.getMeshFromObject(object, None, True, False, scn)
+	if not mesh:
+		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
+		return
+		
+	mesh.transform(object.matrixWorld)
+	
+	
+	
+	start = Blender.sys.time()
 	file = open(filename, "wb")
 
-	objects = Blender.Object.GetSelected()
-	objname = objects[0].name
-	meshname = objects[0].data.name
-	mesh = Blender.NMesh.GetRaw(meshname)
-	obj = Blender.Object.Get(objname)
-
-	if not meshtools.has_vertex_colors(mesh):
-		message = "Please assign vertex colors before exporting. \n"
-		message += objname + " object was not saved."
-		meshtools.print_boxed(message)
-		Blender.Draw.PupMenu("ERROR%t|"+message)
-		return
+	if not mesh.faceUV:
+		mesh.faceUV= 1
+		#message = 'Please assign vertex colors before exporting "%s"|object was not saved' % object.name
+		#Blender.Draw.PupMenu("ERROR%t|"+message)
+		#return
 
 	# === Object Name ===
 	file.write(struct.pack("<h", len(objname)))
@@ -103,38 +118,45 @@ def write(filename):
 
 	# === Vertex List ===
 	file.write(struct.pack("<l", len(mesh.verts)))
-	for i in range(len(mesh.verts)):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
-
-		x, y, z = mesh.verts[i].co
+	for v in mesh.verts:
+		#if not i%100 and meshtools.show_progress:
+		#	Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
+		x, y, z = tuple(v.co)
 		file.write(struct.pack("<fff", x, y, z))
 
 	# === Face List ===
-	file.write(struct.pack("<l", len(mesh.faces)))
-	for i in range(len(mesh.faces)):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
-
-		file.write(struct.pack("<b", len(mesh.faces[i].v)))
-		for j in range(len(mesh.faces[i].v)):
-			file.write(struct.pack("<h", mesh.faces[i].v[j].index))
-
-		for j in range(4): # .col always has a length of 4
-			file.write(struct.pack("<BBBB", mesh.faces[i].col[j].r,
-											mesh.faces[i].col[j].g,
-											mesh.faces[i].col[j].b,
-											mesh.faces[i].col[j].a))
-
+	file.write(struct.pack('<l', len(mesh.faces)))
+	#for i in range(len(mesh.faces)):
+	for f in mesh.faces:
+		#if not i%100 and meshtools.show_progress:
+		#	Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
+		
+		file.write(struct.pack('<b', len(f) ))
+		#for j in range(len(mesh.faces[i].v)):
+		for v in f.v:
+			file.write(struct.pack('<h', v.index))
+		
+		f_col= f.col
+		for c in f_col: # .col always has a length of 4
+			file.write(struct.pack('<BBBB', c.r, c.g, c.b, c.a))
+		
+		# Write the last values out again. always have 4 cols even for tris
+		if len(f_col) == 3:
+			file.write(NULL_COLOR)
+	
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
-	#end = time.clock()
-	#seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully exported " + Blender.sys.basename(filename)# + seconds
+	end = Blender.sys.time()
+	message = 'Successfully exported "%s" in %.2f seconds' % (Blender.sys.basename(filename), end-start)
 	meshtools.print_boxed(message)
 
-def fs_callback(filename):
-	if filename.find('.radio', -6) <= 0: filename += '.radio'
-	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Export Radio")
+def main():
+	if not struct:
+		Blender.Draw.PupMenu('ERROR%t|Error: you need a full Python install to run this script')
+		return
+	
+	Blender.Window.FileSelector(write, 'Export Radio', Blender.sys.makename(ext='.radio'))
+
+if __name__ == '__main__':
+	main()

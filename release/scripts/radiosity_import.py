@@ -53,76 +53,98 @@ file to open.
 # ***** END GPL LICENCE BLOCK *****
 
 import Blender, meshtools
-#import time
 
 try:
 	import struct
 except:
-	msg = "Error: you need a full Python install to run this script."
-	meshtools.print_boxed(msg)
-	Blender.Draw.PupMenu("ERROR%t|"+msg)
+	struct= None
 
 # ===============================
 # ====== Read Radio Format ======
 # ===============================
 def read(filename):
-	#start = time.clock()
+	start = Blender.sys.time()
 	file = open(filename, "rb")
 	mesh = Blender.NMesh.GetRaw()
 	#mesh.addMaterial(Blender.Material.New())
-
+	
+	NULL_UV3= [ (0,0), (0,1), (1,1) ]
+	NULL_UV4= [ (0,0), (0,1), (1,1), (1,0) ]
+	
+	
 	# === Object Name ===
 	namelen, = struct.unpack("<h",  file.read(2))
 	objname, = struct.unpack("<"+`namelen`+"s", file.read(namelen))
 
 	# === Vertex List ===
+	Vert= Blender.NMesh.Vert
 	numverts, = struct.unpack("<l", file.read(4))
-	for i in range(numverts):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
-		x, y, z = struct.unpack("<fff", file.read(12))
-		mesh.verts.append(Blender.NMesh.Vert(x, y, z))
-
+	
+	# Se we can run in a LC
+	def _vert_():
+		x,y,z= struct.unpack('<fff', file.read(12))
+		return Vert(x, y, z)
+	
+	mesh.verts= [_vert_() for i in xrange(numverts)]
+	del _vert_
+	
+	
 	# === Face List ===
+	Face= Blender.NMesh.Face
+	Col= Blender.NMesh.Col
 	numfaces, = struct.unpack("<l", file.read(4))
-	for i in range(numfaces):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
+	for i in xrange(numfaces):
+		#if not i%100 and meshtools.show_progress:
+		#	Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
 
-		face = Blender.NMesh.Face()
+		
 		numfaceverts, = struct.unpack("<b", file.read(1))
-
-		for j in range(numfaceverts):
-			index, = struct.unpack("<h", file.read(2))
-			face.v.append(mesh.verts[index])
-
-		for j in range(4):
-			r, g, b, a = struct.unpack("<BBBB", file.read(4))
-			vertexcolor = Blender.NMesh.Col(r, g, b, a)
-			face.col.append(vertexcolor)
-
-		if len(face.v) == 3:
-			face.uv = [ (0,0), (0,1), (1,1) ]
+		
+		
+		face = Face(\
+		 [\
+		 mesh.verts[\
+		  struct.unpack("<h", file.read(2))[0]] for j in xrange(numfaceverts)\
+		 ]
+		)
+		
+		face.col= [ Col(r, g, b, a) \
+		for j in xrange(4)\
+		for r,g,b,a in ( struct.unpack("<BBBB", file.read(4)), )]
+		
+		if len(face) == 3:
+			face.uv = NULL_UV3
 		else:
-			face.uv = [ (0,0), (0,1), (1,1), (1,0) ]
+			face.uv = NULL_UV4
 
+		
 		face.mode = 0
 		mesh.faces.append(face)
 
-	# ->tools.create_mesh(verts, faces, objname):
-	Blender.NMesh.PutRaw(mesh, objname)
-	object = Blender.Object.GetSelected()
-	object[0].name=objname
-	# ->tools.create_mesh(verts, faces, objname):
-
+	scn= Blender.Scene.GetCurrent()
+	for obj in scn.getChildren():
+		obj.sel= 0
+	
+	obj= Blender.Object.New('Mesh', objname)
+	mesh.name= objname
+	obj.link(mesh)
+	scn.link(obj)
+	obj.sel= 1
+	obj.Layers= scn.Layers
+	
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
-	#end = time.clock()
-	#seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully imported " + Blender.sys.basename(filename)# + seconds
+	end = Blender.sys.time()
+	message = 'Successfully imported "%s" in %.2f seconds' % (Blender.sys.basename(filename), end-start)
 	meshtools.print_boxed(message)
 
-def fs_callback(filename):
-	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Import Radio")
+def main():
+	if not struct:
+		Blender.Draw.PupMenu('ERROR%t|Error: you need a full Python install to run this script')
+		return
+	
+	Blender.Window.FileSelector(read, "Import Radio", Blender.sys.makename(ext='.radio'))
+
+if __name__ == '__main__':
+	main()
