@@ -189,6 +189,13 @@ static void save_paint(char *name)
 			BKE_add_image_extension(str, G.scene->r.imtype);
 
 		if (saveover(str)) {
+			
+			/* enforce user setting for RGB or RGBA, but skip BW */
+			if(G.scene->r.planes==32)
+				ima->ibuf->depth= 32;
+			else if(G.scene->r.planes==24)
+				ima->ibuf->depth= 24;
+			
 			waitcursor(1);
 			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
 				BLI_strncpy(ima->name, name, sizeof(ima->name));
@@ -812,7 +819,7 @@ static uiBlock *image_imagemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if (G.sima->image) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 

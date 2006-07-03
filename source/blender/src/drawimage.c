@@ -921,13 +921,24 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 		return;
 
 	if (G.sima->image && G.sima->image->ibuf) {
+		ImBuf *ibuf= G.sima->image->ibuf;
 		char str[64];
 
-		sprintf(str, "Image: size %d x %d", G.sima->image->ibuf->x, G.sima->image->ibuf->y);
-		if(G.sima->image->ibuf->rect_float)
-			strcat(str, " 4x32 bits");
-		else 
-			strcat(str, " 4x8 bits");
+		sprintf(str, "Image: size %d x %d", ibuf->x, ibuf->y);
+		if(ibuf->rect_float) {
+			if(ibuf->depth==32)
+				strcat(str, " RGBA float");
+			else
+				strcat(str, " RGB float");
+		}
+		else {
+			if(ibuf->depth==32)
+				strcat(str, " RGBA byte");
+			else
+				strcat(str, " RGB byte");
+		}
+		if(ibuf->zbuf || ibuf->zbuf_float)
+			strcat(str, " + Z");
 		
 		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
 
