@@ -70,17 +70,25 @@ edges during the course of modeling.
 # ***** END GPL LICENCE BLOCK *****
 
 import Blender, meshtools
-import struct, time, sys, os
+try:
+	import struct, os
+except:
+	struct= None
 
 # =============================
 # === Read Nendo 1.x Format ===
 # =============================
 def read(filename):
-	start = time.clock()
+	start = Blender.sys.time()
+	
+	scn= Blender.Scene.GetCurrent()
+	for obj in scn.getChildren():
+		obj.sel= 0
+		
 	file = open(filename, "rb")
 	version, numobjs = read_header(file)
 
-	for object in range(numobjs):
+	for object in xrange(numobjs):
 		good, = struct.unpack(">B",  file.read(1))
 		if not good: continue	# an empty object
 		objname = read_object_flags(file)
@@ -94,9 +102,9 @@ def read(filename):
 
 	Blender.Window.DrawProgressBar(1.0, "Done")    # clear progressbar
 	file.close()
-	end = time.clock()
+	end = Blender.sys.time()
 	seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully imported " + os.path.basename(filename) + seconds
+	message = "Successfully imported " + filename.split(Blender.sys.sep)[-1] + seconds
 	message += " (%s)" % version.title()
 	meshtools.print_boxed(message)
 
@@ -130,7 +138,7 @@ def read_object_flags(file):
 def read_edge_table(file, version):
 	numedges, = struct.unpack(">H", file.read(2))
 	edge_table = {}
-	for i in range(numedges):
+	for i in xrange(numedges):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numedges, "Reading Edge Table")
 		edge = struct.unpack(">8H", file.read(16))
@@ -146,7 +154,7 @@ def read_edge_table(file, version):
 def read_face_table(file):
 	numfaces, = struct.unpack(">H", file.read(2))
 	face_table = {}
-	for i in range(numfaces):
+	for i in xrange(numfaces):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Face Table")
 		face_table[i] = struct.unpack(">H", file.read(2))[0]
@@ -158,7 +166,7 @@ def read_face_table(file):
 def read_vert_table(file):
 	numverts, = struct.unpack(">H", file.read(2))
 	vert_table = []
-	for i in range(numverts):
+	for i in xrange(numverts):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Vertex Table")
 		w, x, y, z = struct.unpack(">H3f", file.read(14))
@@ -196,7 +204,7 @@ def make_verts(vert_table):
 	[0.0,-0.1, 0.0, 0.0],
 	[0.0, 0.0, 0.0, 1.0]]
 	verts = []
-	for i in range(len(vert_table)):
+	for i in xrange(len(vert_table)):
 		vertex = vert_table[i][1]
 		vertex = meshtools.apply_transform(vertex, matrix)
 		verts.append(vertex)
@@ -207,11 +215,10 @@ def make_verts(vert_table):
 # =======================
 def make_face_table(edge_table): # For Nendo
 	face_table = {}
-	for i in range(len(edge_table)):
+	for i in xrange(len(edge_table)):
 		Lf = edge_table[i][2]
 		Rf = edge_table[i][3]
-		face_table[Lf] = i
-		face_table[Rf] = i
+		face_table[Lf] = face_table[Rf] = i
 	return face_table
 
 # =======================
@@ -219,11 +226,10 @@ def make_face_table(edge_table): # For Nendo
 # =======================
 def make_vert_table(edge_table): # For Nendo
 	vert_table = {}
-	for i in range(len(edge_table)):
+	for i in xrange(len(edge_table)):
 		Sv = edge_table[i][1]
 		Ev = edge_table[i][0]
-		vert_table[Sv] = i
-		vert_table[Ev] = i
+		vert_table[Sv] = vert_table[Ev]= i
 	return vert_table
 
 # ==================
@@ -233,7 +239,7 @@ def make_faces(edge_table): # For Nendo
 	face_table = make_face_table(edge_table)
 	faces=[]
 	#for i in range(len(face_table)):
-	for i in face_table.keys(): # avoids a whole class of errors
+	for i in face_table.iterkeys(): # avoids a whole class of errors
 		face_verts = []
 		current_edge = face_table[i]
 		while(1):
@@ -250,7 +256,14 @@ def make_faces(edge_table): # For Nendo
 		faces.append(face_verts)
 	return faces
 
-def fs_callback(filename):
-	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Import Nendo")
+def main():
+	if not struct:
+		Blender.Draw.PupMenu('This importer requires a full python install')
+		return
+	
+	Blender.Window.FileSelector(read, 'Import Nendo', '*.ndo')
+
+if __name__=='__main__':
+	main()
+

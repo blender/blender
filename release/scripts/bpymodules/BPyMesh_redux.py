@@ -33,7 +33,10 @@ import BPyMesh
 try:
 	set
 except:
-	from sets import Set as set
+	try:
+		from sets import Set as set
+	except:
+		set= None
 
 def uv_key(uv):
 	return round(uv.x, 5), round(uv.y, 5)
@@ -63,6 +66,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 	
 	if REDUX<0 or REDUX>1.0:
 		raise 'Error, factor must be between 0 and 1.0'
+	elif not set:
+		raise 'Error, this function requires Python 2.4 or a full install of Python 2.3'
 	
 	BOUNDRY_WEIGHT= 1+BOUNDRY_WEIGHT
 	

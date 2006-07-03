@@ -49,14 +49,21 @@ def file_callback(filename):
 		return
 	
 	file = open(filename, 'wb')
+	
 	mesh = BPyMesh.getMeshFromObject(object, None, True, False, scn)
 	if not mesh:
 		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
 		return
 		
 	mesh.transform(object.matrixWorld)
-
-	have_uv = mesh.faceUV
+	
+	if mesh.vertexColors or mesh.faceUV:
+		mesh.faceUV= 1
+		have_uv= True
+	else:
+		have_uv= False
+	
+	
 	verts = [] # list of dictionaries
 	vdict = {} # (index, normal, uv) -> new index
 	for i, f in enumerate(mesh.faces):
@@ -130,4 +137,11 @@ def file_callback(filename):
 		file.write('\n')
 	file.close()
 
-Blender.Window.FileSelector(file_callback, 'PLY Export', Blender.sys.makename(ext='.ply'))
+
+
+def main():
+	Blender.Window.FileSelector(file_callback, 'PLY Export', Blender.sys.makename(ext='.ply'))
+
+
+if __name__=='__main__':
+	main()

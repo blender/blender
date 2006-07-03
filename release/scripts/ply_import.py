@@ -41,7 +41,10 @@ Run this script from "File->Import" and select the desired PLY file.
 # 2.32.
 
 import Blender, meshtools
-import re, struct, StringIO
+try:
+	import re, struct, StringIO
+except:
+	struct= None
 
 class element_spec:
 	name = ''
@@ -301,5 +304,19 @@ def filesel_callback(filename):
 	message = 'Successfully imported ' + Blender.sys.basename(filename) + ' ' + str(Blender.sys.time()-t)
 	meshtools.print_boxed(message)
 
-Blender.Window.FileSelector(filesel_callback, 'Import PLY', Blender.sys.makename(ext='.ply'))
+
+
+def main():
+	if not struct:
+		Blender.Draw.PupMenu('This importer requires a full python install')
+		return
+	
+	Blender.Window.FileSelector(filesel_callback, 'Import PLY', '*.ply')
+
+if __name__=='__main__':
+	main()
+
+
+
+
 

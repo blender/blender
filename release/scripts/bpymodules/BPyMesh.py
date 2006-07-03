@@ -1,8 +1,8 @@
 import Blender
-from BPyMesh_redux import redux # seperated because of its size.
-#import BPyMesh_redux 
-#reload(BPyMesh_redux)
-#redux= BPyMesh_redux.redux
+# from BPyMesh_redux import redux # seperated because of its size.
+import BPyMesh_redux 
+reload(BPyMesh_redux)
+redux= BPyMesh_redux.redux
 
 # python 2.3 has no reversed() iterator. this will only work on lists and tuples
 try:
@@ -15,7 +15,10 @@ except:
 try:
 	set
 except:
-	from sets import Set as set
+	try:
+		from sets import Set as set
+	except:
+		set= None
 
 	
 def meshWeight2Dict(me):
@@ -642,6 +645,10 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 	indices: a list of indicies to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
 	PREF_FIX_LOOPS: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
 	'''
+	
+	if not set: # Need sets for this, otherwise do a normal fill.
+		PREF_FIX_LOOPS= False 
+	
 	Vector= Blender.Mathutils.Vector
 	if not indices:
 		return []

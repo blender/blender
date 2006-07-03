@@ -50,6 +50,11 @@ importername = "lwo_import 0.3.0a - devel"
 # +----------------------------------------------------------
 # +---------------------------------------------------------+
 # | Release log:                                            |
+# | 0.2.2 : This code works with Blender 2.42 RC3           |
+# |         Added a new PolyFill function for BPYMesh's     |
+# |           ngon() to use, checked compatibility          |
+# |           lightwaves ngons are imported as fgons        |
+# |         Checked compatibility against 1711 lwo files    |
 # | 0.2.1 : This code works with Blender 2.40 RC1           |
 # |         modified material mode assignment to deal with  |
 # |         Python API modification                         |
@@ -85,8 +90,14 @@ import Blender
 # use for comprehensiveImageLoad
 import BPyImage
 
+# Use this ngon function
+import BPyMesh
+
 #python specific modules import
-import struct, chunk, os, cStringIO
+try:
+	import struct, chunk, os, cStringIO
+except:
+	struct= chunk= os= cStringIO= None
 
 # ===========================================================
 # === Utility Preamble ======================================
@@ -1060,8 +1071,6 @@ def read_surfs(lwochunk, surf_list, tag_list):
 
 
 
-import BPyMesh
-reload(BPyMesh)
 def reduce_face(verts, face):
 	TriangleArea= Blender.Mathutils.TriangleArea
 	Vector= Blender.Mathutils.Vector
@@ -1428,35 +1437,6 @@ def create_objects(clip_list, objspec_list, surf_list):
 	return
 
 
-# =====================
-# === Load an image ===
-# =====================
-#extensively search for image name
-"""
-def load_image(dir_part, name):
-	img = None
-	nname = os.path.splitext(name)
-	lname = [c.lower() for c in nname]
-	ext_list = [nname[1]]
-	if lname[1] != nname[1]:
-		ext_list.append(lname[1])
-	ext_list.extend(['.tga', '.png', '.jpg', '.gif', '.bmp'])  #order from best to worst (personal judgement) bmp last cause of nasty bug
-	#first round: original "case"
-	name_list = []
-	name_list.extend([os.path.join(dir_part, nname[0] + ext) for ext in ext_list])
-	#second round: lower "case"
-	if lname[0] != nname[0]:
-		name_list.extend([os.path.join(dir_part, lname[0] + ext) for ext in ext_list])
-	for nn in name_list:
-		if os.path.exists(nn) == 1:
-			break
-	try:
-		img = Blender.Image.Load(nn)
-		return img
-	except IOError:
-		return None
-"""
-
 
 # ===========================================
 # === Lookup for image index in clip_list ===
@@ -1788,16 +1768,15 @@ def read_faces_6(lwochunk):
 	tobj.pprint("read %s faces; type of block %d (0=FACE; 1=PATCH)" % (len(faces), subsurf))
 	return faces, subsurf
 
+def main():
+	if not struct:
+		Blender.Draw.PupMenu('This importer requires a full python install')
+		return
+	
+	Blender.Window.FileSelector(read, "Import LWO", '*.lwo')
 
-
-# ===========================================================
-# === Start the show and main callback ======================
-# ===========================================================
-
-def fs_callback(filename):
-	read(filename)
-
-Blender.Window.FileSelector(fs_callback, "Import LWO")
+if __name__=='__main__':
+	main()
 
 # Cams debugging lwo loader
 """
