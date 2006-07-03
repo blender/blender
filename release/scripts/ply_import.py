@@ -1,8 +1,8 @@
 #!BPY
 
 """
-Name: 'PLY...'
-Blender: 237
+Name: 'Stanford PLY (*.ply)...'
+Blender: 241
 Group: 'Import'
 Tip: 'Import a Stanford PLY file'
 """
@@ -202,6 +202,7 @@ def read(filename):
 	file.close()
 	return (obj_spec, obj);
 
+
 def add_face(vertices, varr, indices, uvindices, colindices):
 	face = Blender.NMesh.Face([varr[i] for i in indices])
 	for index in indices:
@@ -209,9 +210,11 @@ def add_face(vertices, varr, indices, uvindices, colindices):
 		
 		if uvindices:
 			face.uv.append((vertex[uvindices[0]], 1.0 - vertex[uvindices[1]]))
+			face.mode &= ~Blender.NMesh.FaceModes.TEX
 		if colindices:
 			if not uvindices: face.uv.append((0, 0)) # Force faceUV
 			face.col.append(Blender.NMesh.Col(vertex[colindices[0]], vertex[colindices[1]], vertex[colindices[2]], 255))
+			face.mode &= ~Blender.NMesh.FaceModes.TEX
 	return face
 
 def filesel_callback(filename):
@@ -273,20 +276,30 @@ def filesel_callback(filename):
 
 	
 	del obj # Reclaim memory
-
+	
+	'''
 	if noindices:
 		normals = 1
 	else:
 		normals = 0
+	'''
+	
 	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
-	if not meshtools.overwrite_mesh_name:
-		objname = meshtools.versioned_name(objname)
-	Blender.NMesh.PutRaw(mesh, objname, not normals)
-	Blender.Object.GetSelected()[0].name = objname
+	scn= Blender.Scene.GetCurrent()
+	for obj in scn.getChildren():
+		obj.sel= 0
+	
+	obj= Blender.Object.New('Mesh', objname)
+	mesh.name= objname
+	obj.link(mesh)
+	scn.link(obj)
+	obj.sel= 1
+	obj.Layers= scn.Layers
+	
 	Blender.Redraw()
 	Blender.Window.DrawProgressBar(1.0, '')
 	message = 'Successfully imported ' + Blender.sys.basename(filename) + ' ' + str(Blender.sys.time()-t)
 	meshtools.print_boxed(message)
 
-Blender.Window.FileSelector(filesel_callback, 'Import PLY')
+Blender.Window.FileSelector(filesel_callback, 'Import PLY', Blender.sys.makename(ext='.ply'))
 

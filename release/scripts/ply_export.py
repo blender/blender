@@ -1,15 +1,14 @@
 #!BPY
 
 """
-Name: 'PLY...'
-Blender: 237
+Name: 'Stanford PLY (*.ply)...'
+Blender: 241
 Group: 'Export'
-Tooltip: 'Export to Stanford PLY format'
+Tooltip: 'Export active object to Stanford PLY format'
 """
 
 import Blender
-import meshtools
-import math
+import BPyMesh
 
 __author__ = "Bruce Merry"
 __version__ = "0.9"
@@ -34,80 +33,101 @@ normals and per-face colours and texture coordinates.
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+# Vector rounding se we can use as keys
+def rvec3d(v):	return round(v.x, 6), round(v.y, 6), round(v.z, 6)
+def rvec2d(v):	return round(v.x, 6), round(v.y, 6)
+def rcol(c):	return c.r, c.g, c.b
+
 def file_callback(filename):
-        if filename.find('.ply', -4) < 0: filename += '.ply'
-        file = open(filename, "wb")
-        objects = Blender.Object.GetSelected()
-        obj = objects[0]
-        mesh = objects[0].data
+	if not filename.lower().endswith('.ply'):
+		filename += '.ply'
+	
+	scn= Blender.Scene.GetCurrent()
+	object= scn.getActiveObject()
+	if not object:
+		Blender.Draw.PupMenu('Error%t|Select 1 active object')
+		return
+	
+	file = open(filename, 'wb')
+	mesh = BPyMesh.getMeshFromObject(object, None, True, False, scn)
+	if not mesh:
+		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
+		return
+		
+	mesh.transform(object.matrixWorld)
 
-        have_uv = mesh.hasFaceUV()
-        have_col = meshtools.has_vertex_colors(mesh)
-        verts = [] # list of dictionaries
-        vdict = {} # (index, normal, uv) -> new index
-        for (i, f) in enumerate(mesh.faces):
-                for (j, v) in enumerate(f.v):
-                        index = v.index
-                        key = index, tuple(v.no)
-                        vdata = {'position': v.co, 'normal': v.no}
-                        if have_uv:
-                                vdata['uv'] = f.uv[j]
-                                key = key + (tuple(f.uv[j]), )
-                        if have_col:
-                                vdata['col'] = f.col[j]
-                                key = key + ((f.col[j].r, f.col[j].g, f.col[j].b, f.col[j].a), )
-                        if not vdict.has_key(key):
-                                vdict[key] = len(verts);
-                                verts.append(vdata)
-                if not i % 100 and meshtools.show_progress:
-                        Blender.Window.DrawProgressBar(float(i) / len(mesh.faces), "Organising vertices")
+	have_uv = mesh.faceUV
+	verts = [] # list of dictionaries
+	vdict = {} # (index, normal, uv) -> new index
+	for i, f in enumerate(mesh.faces):
+		f_col= f.col
+		f_uv= f.uv
+		for j, v in enumerate(f.v):
+			index = v.index
+			
+			if have_uv:
+				vdata = v.co, v.no
+				uv= f_uv[j]
+				col= f_col[j]
+				vdata = v.co, v.no, uv, col
+				key = index, rvec3d(v.no), rcol(col), rvec2d(uv)
+			else:
+				vdata = v.co, v.no
+				key = index, rvec3d(v.no)
+				
+			if not vdict.has_key(key):
+				vdict[key] = len(verts);
+				verts.append(vdata)
+	file.write('ply\n')
+	file.write('format ascii 1.0\n')
+	file.write('Created by Blender3D %s - www.blender.org, source file: %s\n' % (Blender.Get('version'), Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
+	
+	file.write('element vertex %d\n' % len(verts))
+	
+	file.write('property float32 x\n')
+	file.write('property float32 y\n')
+	file.write('property float32 z\n')
+	file.write('property float32 nx\n')
+	file.write('property float32 ny\n')
+	file.write('property float32 nz\n')
+	
+	if have_uv:
+		file.write('property float32 s\n')
+		file.write('property float32 t\n')
+		file.write('property uint8 red\n')
+		file.write('property uint8 green\n')
+		file.write('property uint8 blue\n')
+	
+	file.write('element face %d\n' % len(mesh.faces))
+	file.write('property list uint8 int32 vertex_indices\n')
+	file.write('end_header\n')
 
-        print >> file, "ply"
-        print >> file, "format ascii 1.0"
-        print >> file, "comment created by ply_export.py from Blender"
-        print >> file, "element vertex %d" % len(verts)
-        print >> file, "property float32 x"
-        print >> file, "property float32 y"
-        print >> file, "property float32 z"
-        print >> file, "property float32 nx"
-        print >> file, "property float32 ny"
-        print >> file, "property float32 nz"
-        if have_uv:
-                print >> file, "property float32 s"
-                print >> file, "property float32 t"
-        if have_col:
-                print >> file, "property uint8 red"
-                print >> file, "property uint8 green"
-                print >> file, "property uint8 blue"
-        print >> file, "element face %d" % len(mesh.faces)
-        print >> file, "property list uint8 int32 vertex_indices"
-        print >> file, "end_header"
-
-        for (i, v) in enumerate(verts):
-                print >> file, "%f %f %f %f %f %f" % (tuple(v['position']) + tuple(v['normal'])),
-                if have_uv: print >> file, "%f %f" % tuple(v['uv']),
-                if have_col: print >> file, "%u %u %u" % (v['col'].r, v['col'].g, v['col'].b),
-                print >> file
-                if not i % 100 and meshtools.show_progress:
-                        Blender.Window.DrawProgressBar(float(i) / len(verts), "Writing vertices")
-        for (i, f) in enumerate(mesh.faces):
-                print >> file, "%d" % len(f.v),
-                for j in range(len(f.v)):
-                        v = f.v[j]
-                        index = v.index
-                        key = index, tuple(v.no)
-                        if have_uv:
-                                key = key + (tuple(f.uv[j]), )
-                        if have_col:
-                                key = key + ((f.col[j].r, f.col[j].g, f.col[j].b, f.col[j].a), )
-                        print >> file, "%d" % vdict[key],
-                print >> file
-                if not i % 100 and meshtools.show_progress:
-                        Blender.Window.DrawProgressBar(float(i) / len(mesh.faces), "Writing faces")
-
-	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
+	for i, v in enumerate(verts):
+		file.write('%.6f %.6f %.6f ' % tuple(v[0])) # co
+		file.write('%.6f %.6f %.6f ' % tuple(v[1])) # no
+		
+		if have_uv:
+			file.write('%.6f %.6f %u %u %u' % (v[2].x, v[2].y, v[3].r, v[3].g, v[3].b)) # uv/col
+		file.write('\n')
+	
+	for (i, f) in enumerate(mesh.faces):
+		file.write('%d ' % len(f))
+		
+		f_col= f.col
+		f_uv= f.uv
+		
+		for j, v in enumerate(f.v):
+			index = v.index
+			
+			if have_uv:
+				uv= f_uv[j]
+				col= f_col[j]
+				key = index, rvec3d(v.no), rcol(col), rvec2d(uv)
+			else:
+				key = index, rvec3d(v.no)
+			
+			file.write('%d ' % vdict[key])
+		file.write('\n')
 	file.close()
-	message = "Successfully exported " + Blender.sys.basename(filename)
-	meshtools.print_boxed(message)
 
-Blender.Window.FileSelector(file_callback, "PLY Export")
+Blender.Window.FileSelector(file_callback, 'PLY Export', Blender.sys.makename(ext='.ply'))

@@ -1,9 +1,8 @@
 import Blender
-#from BPyMesh_redux import redux # seperated because of its size.
-#from BPyMesh_redux import redux # seperated because of its size.
-import BPyMesh_redux 
-reload(BPyMesh_redux)
-redux= BPyMesh_redux.redux
+from BPyMesh_redux import redux # seperated because of its size.
+#import BPyMesh_redux 
+#reload(BPyMesh_redux)
+#redux= BPyMesh_redux.redux
 
 # python 2.3 has no reversed() iterator. this will only work on lists and tuples
 try:
