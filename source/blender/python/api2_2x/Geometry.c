@@ -91,13 +91,12 @@ PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 	
 	for( i = 0; i < len_polylines; ++i ) {
 		polyLine= PySequence_GetItem( polyLineSeq, i );
-		if (!PySequence_Check(polyLineSeq)) {
+		if (!PySequence_Check(polyLine)) {
 			freedisplist(&dispbase);
-			Py_DECREF(polyLine);
+			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
-				  "expected a sequence of poly lines" );
+				  "One or more of the polylines is not a sequence of Mathutils.Vector's" );
 		}
-		
 		
 		len_polypoints= PySequence_Size( polyLine );
 		if (len_polypoints>0) { /* dont bother adding edges as polylines */
@@ -105,7 +104,7 @@ PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 				freedisplist(&dispbase);
 				Py_DECREF(polyLine);
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
-					  "expected a sequence of poly lines" );
+					  "A point in one of the polylines is not a Mathutils.Vector type" );
 			}
 			
 			dl= MEM_callocN(sizeof(DispList), "poly disp");
@@ -147,7 +146,7 @@ PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 		if( !tri_list ) {
 			freedisplist(&dispbase);
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"PyList_New() failed" );
+					"Geometry.PolyFill failed to make a new list" );
 		}
 		
 		index= 0;
