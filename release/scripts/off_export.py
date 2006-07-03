@@ -56,54 +56,53 @@ Notes:<br>
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import Blender, meshtools
+import Blender
 #import time
+
+# Python 2.3 has no reversed.
+try:
+	reversed
+except:
+	def reversed(l): return l[::-1]
 
 # ==============================
 # ====== Write OFF Format ======
 # ==============================
 def write(filename):
 	#start = time.clock()
-	file = open(filename, "wb")
-
-	objects = Blender.Object.GetSelected()
-	objname = objects[0].name
-	meshname = objects[0].data.name
-	mesh = Blender.NMesh.GetRaw(meshname)
-	#mesh = Blender.NMesh.GetRawFromObject(meshname)	# for SubSurf
-	obj = Blender.Object.Get(objname)
+	file = open(filename, 'wb')
+	scn= Blender.Scene.GetCurrent()
+	object= scn.getActiveObject()
+	if not object or object.getType()!='Mesh':
+		Blender.Draw.PupMenu('Error%t|Select 1 active mesh object')
+		return
+		
+	mesh = object.getData(mesh=1)
 
 	# === OFF Header ===
-	file.write("OFF\n")
-	file.write("%d %d %d\n" % (len(mesh.verts), len(mesh.faces), 0))
+	file.write('OFF\n')
+	file.write('%d %d %d\n' % (len(mesh.verts), len(mesh.faces), 0))
 
 	# === Vertex List ===
-	for i in range(len(mesh.verts)):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
-		x, y, z = mesh.verts[i].co
-		file.write("%f %f %f\n" % (x, y, z))
+	for i, v in enumerate(mesh.verts):
+		file.write('%f %f %f\n' % tuple(v.co))
 
 	# === Face List ===
-	for i in range(len(mesh.faces)):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
-		file.write(`len(mesh.faces[i].v)`+' ')
-		mesh.faces[i].v.reverse()
-		for j in range(len(mesh.faces[i].v)):
-			file.write(`mesh.faces[i].v[j].index`+' ')
-		file.write("\n")
+	for i, f in enumerate(mesh.faces):
+		file.write('%i ' % len(f))
+		for v in reversed(f.v):
+			file.write('%d ' % v.index)
+		file.write('\n')
 
 
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
 	#end = time.clock()
 	#seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully exported " + Blender.sys.basename(filename)# + seconds
-	meshtools.print_boxed(message)
+	message = 'Successfully exported "%s"' % Blender.sys.basename(filename)# + seconds
 
 def fs_callback(filename):
 	if filename.find('.off', -4) <= 0: filename += '.off'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Export OFF")
+Blender.Window.FileSelector(fs_callback, "Export OFF", Blender.sys.makename(ext='.off'))

@@ -28,6 +28,12 @@ LineIntersect= Blender.Mathutils.LineIntersect
 CrossVecs= Blender.Mathutils.CrossVecs
 import BPyMesh
 
+# If python version is less than 2.4, try to get set stuff from module
+
+try:
+	set
+except:
+	from sets import Set as set
 
 def uv_key(uv):
 	return round(uv.x, 5), round(uv.y, 5)
@@ -185,15 +191,16 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 		else:
 			for i, ed in enumerate(edges):
 				collapse_edges[i].init_from_edge(ed)
-			# Faster then slicing
-			for ii in xrange(len(collapse_edges)-(i+1)):
-				collapse_edges.pop()
+			
+			# Strip the unneeded end off the list
+			collapse_edges[i+1:]= []
 				
 			for i, f in enumerate(faces):
 				collapse_faces[i].init_from_face(f)
-			# Faster then slicing
-			for ii in xrange(len(collapse_faces)-(i+1)):
-				collapse_faces.pop()
+			
+			# Strip the unneeded end off the list
+			collapse_faces[i+1:]= []
+			
 			
 		collapse_edges_dict= dict( [(ced.key, ced) for ced in collapse_edges] )
 		

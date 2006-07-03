@@ -1,5 +1,22 @@
 import Blender
-from BPyMesh_redux import redux # seperated because of its size.
+#from BPyMesh_redux import redux # seperated because of its size.
+#from BPyMesh_redux import redux # seperated because of its size.
+import BPyMesh_redux 
+reload(BPyMesh_redux)
+redux= BPyMesh_redux.redux
+
+# python 2.3 has no reversed() iterator. this will only work on lists and tuples
+try:
+	reversed
+except:
+	def reversed(l): return l[::-1]
+
+
+# If python version is less than 2.4, try to get set stuff from module
+try:
+	set
+except:
+	from sets import Set as set
 
 	
 def meshWeight2Dict(me):
@@ -653,7 +670,7 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 		else:
 			verts= [from_data.verts[i].co for ii, i in enumerate(indices)]
 		
-		for i in reversed(xrange(1, len(verts))):
+		for i in xrange(len(verts)-1, 0, -1): # same as reversed(xrange(1, len(verts))):
 			if verts[i][1]==verts[i-1][0]:
 				verts.pop(i-1)
 		
@@ -678,15 +695,15 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 			return []
 		
 		
-		edge_used_count= {}
-		del_edges= {}
+		edges_used= set()
+		edges_doubles= set()
 		# We need to check if any edges are used twice location based.
 		for ed in edges:
 			edkey= ed_key_mlen(verts[ed[0]], verts[ed[1]])
-			try:
-				del_edges[edkey]= edge_used_count[edkey]
-			except:
-				edge_used_count[edkey]= True
+			if edkey in edges_used:
+				edges_doubles.add(edkey)
+			else:
+				edges_used.add(edkey)
 		
 		# Store a list of unconnected loop segments split by double edges.
 		# will join later
@@ -698,12 +715,8 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 		
 		for v in verts:
 			if v!=v_prev:
-				# Arze we crossing an edge we removed?
-				#if del_edges.has_key(  ):
-				try:	eddata= del_edges[ed_key_mlen(v, v_prev)]
-				except:	eddata= None
-				
-				if eddata:
+				# Are we crossing an edge we removed?
+				if ed_key_mlen(v, v_prev) in edges_doubles:
 					context_loop= [v]
 					loop_segments.append(context_loop)
 				else:
@@ -739,10 +752,10 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 			joining_segments= False
 			segcount= len(loop_segments)
 			
-			for j in reversed(xrange(segcount)):
+			for j in xrange(segcount-1, -1, -1): #reversed(xrange(segcount)):
 				seg_j= loop_segments[j]
 				if seg_j:
-					for k in reversed(xrange(j)):
+					for k in xrange(j-1, -1, -1): # reversed(xrange(j)):
 						if not seg_j:
 							break
 						seg_k= loop_segments[k]
@@ -855,8 +868,8 @@ def meshCalcNormals(me, vertNormals=None):
 		len_fnos= len(fnos)
 		if len_fnos>1:
 			totAngDiff=0
-			for j in reversed(xrange(len_fnos)):
-				for k in reversed(xrange(j)):
+			for j in xrange(len_fnos-1, -1, -1): # same as reversed(xrange(...))
+				for k in xrange(j-1, -1, -1): # same as reversed(xrange(...))
 					#print j,k
 					try:
 						totAngDiff+= (Ang(fnos[j], fnos[k])) # /180 isnt needed, just to keeop the vert small.
