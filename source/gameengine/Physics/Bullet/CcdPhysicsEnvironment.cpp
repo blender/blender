@@ -1271,6 +1271,21 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 }
 
+float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
+{
+	std::vector<TypedConstraint*>::iterator i;
+
+	for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
+	{
+		TypedConstraint* constraint = (*i);
+		if (constraint->GetUserConstraintId() == constraintid)
+		{
+			return constraint->GetAppliedImpulse();
+		}
+	}
+	return 0.f;
+}
 void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 {
 	std::vector<TypedConstraint*>::iterator i;

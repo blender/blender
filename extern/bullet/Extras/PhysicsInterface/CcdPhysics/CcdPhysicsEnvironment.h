@@ -113,6 +113,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
 	    virtual void		removeConstraint(int	constraintid);
+		virtual float		getAppliedImpulse(int	constraintid);
 
 
 		virtual void	CallbackTriggers();

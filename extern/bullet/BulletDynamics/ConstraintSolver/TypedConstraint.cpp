@@ -24,7 +24,8 @@ TypedConstraint::TypedConstraint()
 : m_userConstraintType(-1),
 m_userConstraintId(-1),
 m_rbA(s_fixed),
-m_rbB(s_fixed)
+m_rbB(s_fixed),
+m_appliedImpulse(0.f)
 {
 	s_fixed.setMassProps(0.f,SimdVector3(0.f,0.f,0.f));
 }
@@ -32,7 +33,8 @@ TypedConstraint::TypedConstraint(RigidBody& rbA)
 : m_userConstraintType(-1),
 m_userConstraintId(-1),
 m_rbA(rbA),
-m_rbB(s_fixed)
+m_rbB(s_fixed),
+m_appliedImpulse(0.f)
 {
 		s_fixed.setMassProps(0.f,SimdVector3(0.f,0.f,0.f));
 
@@ -43,7 +45,8 @@ TypedConstraint::TypedConstraint(RigidBody& rbA,RigidBody& rbB)
 : m_userConstraintType(-1),
 m_userConstraintId(-1),
 m_rbA(rbA),
-m_rbB(rbB)
+m_rbB(rbB),
+m_appliedImpulse(0.f)
 {
 		s_fixed.setMassProps(0.f,SimdVector3(0.f,0.f,0.f));
 

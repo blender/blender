@@ -73,6 +73,8 @@ static char gPySetSolverType__doc__[] = "setSolverType(int solverType) Very expe
 static char gPyCreateConstraint__doc__[] = "createConstraint(ob1,ob2,float restLength,float restitution,float damping)";
 static char gPyGetVehicleConstraint__doc__[] = "getVehicleConstraint(int constraintId)";
 static char gPyRemoveConstraint__doc__[] = "removeConstraint(int constraintId)";
+static char gPyGetAppliedImpulse__doc__[] = "getAppliedImpulse(int constraintId)";
+
 
 
 
@@ -401,6 +403,32 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 }
 
 
+
+
+static PyObject* gPyGetAppliedImpulse(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float	appliedImpulse = 0.f;
+
+#if defined(_WIN64)
+	__int64 constraintid;
+	if (PyArg_ParseTuple(args,"L",&constraintid))
+#else
+	long constraintid;
+	if (PyArg_ParseTuple(args,"l",&constraintid))
+#endif
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			appliedImpulse = PHY_GetActiveEnvironment()->getAppliedImpulse(constraintid);
+		}
+	}
+
+	return PyFloat_FromDouble(appliedImpulse);
+}
+
+
 static PyObject* gPyRemoveConstraint(PyObject* self,
 										 PyObject* args, 
 										 PyObject* kwds)
@@ -470,6 +498,9 @@ static struct PyMethodDef physicsconstraints_methods[] = {
 
   {"removeConstraint",(PyCFunction) gPyRemoveConstraint,
    METH_VARARGS, gPyRemoveConstraint__doc__},
+	{"getAppliedImpulse",(PyCFunction) gPyGetAppliedImpulse,
+   METH_VARARGS, gPyGetAppliedImpulse__doc__},
+
 
    //sentinel
   { NULL, (PyCFunction) NULL, 0, NULL }

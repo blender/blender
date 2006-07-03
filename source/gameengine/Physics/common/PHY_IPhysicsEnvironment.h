@@ -88,6 +88,7 @@ class PHY_IPhysicsEnvironment
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ)=0;
 		virtual void		removeConstraint(int	constraintid)=0;
+		virtual float		getAppliedImpulse(int	constraintid){ return 0.f;}
 
 		//complex constraint for vehicles
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId) =0;
