@@ -40,7 +40,6 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
-#include "BLI_rand.h"
 
 #include "MTC_matrixops.h"
 

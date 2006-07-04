@@ -49,6 +49,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_rand.h"
 #include "BLI_threads.h"
 
 #include "PIL_time.h"
@@ -1624,6 +1625,9 @@ static void render_composit_stats(char *str)
 static void do_render_composite_fields_blur_3d(Render *re)
 {
 	bNodeTree *ntree= re->scene->nodetree;
+	
+	/* INIT seeding, compositor can use random texture */
+	BLI_srand(re->r.cfra);
 	
 	if(composite_needs_render(re->scene)) {
 		/* save memory... free all cached images */
