@@ -2072,7 +2072,10 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		sprintf(&tvec[40], "%.4f", dvec[2]);
 	}
 
-	sprintf(distvec, "%.4f", dist);
+	if( dist > 1e10 || dist < -1e10 )	/* prevent string buffer overflow */
+		sprintf(distvec, "%.4e", dist);
+	else
+		sprintf(distvec, "%.4f", dist);
 
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
