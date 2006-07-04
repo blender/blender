@@ -117,6 +117,7 @@ try:
 except:
 	from sets import Set as set
 
+BOUNDS_3DS= []
 
 #this script imports uvcoords as sticky vertex coords
 #this parameter enables copying these to face uv coords
@@ -309,8 +310,6 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 	
 	
 	def putContextMesh(myContextMesh, myContextMeshMaterials):
-		
-		#print 'prtting myContextMesh', myContextMesh.name
 		INV_MAT= Blender.Mathutils.Matrix(contextMatrix)
 		
 		INV_MAT.invert()
@@ -366,7 +365,6 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 					if contextMeshUV:
 						# v.index-1 because of the DUMMYVERT
 						targetFace.uv= [contextMeshUV[v.index-1] for v in myContextMesh.faces[i].v]
-						
 					if img:
 						targetFace.image= img
 			
@@ -376,9 +374,6 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			ob.link(bmesh)
 			ob.setMatrix(contextMatrix)
 			importedObjects.append(ob)
-			##scn.link(ob)
-			##ob.Layers= scn.Layers
-			##ob.sel= 1
 		
 		for matName, faces in myContextMeshMaterials.iteritems():
 			makeMeshMaterialCopy(matName, faces)
@@ -440,7 +435,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			#plus one for the null character that ended the string
 			new_chunk.bytes_read+= len(material_name)+1
 			
-			contextMaterial.name= material_name
+			contextMaterial.name= material_name.rstrip() # remove trailing  whitespace
 			MATDICT[material_name]= (contextMaterial.name, contextMaterial)
 		
 		elif (new_chunk.ID==MAT_AMBIENT):
@@ -594,6 +589,9 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			contextMatrix= Blender.Mathutils.Matrix(); contextMatrix.identity()
 		
 		elif (new_chunk.ID==OBJECT_VERTICES):
+			'''
+			Worldspace vertex locations
+			'''
 			# print 'elif (new_chunk.ID==OBJECT_VERTICES):'
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 			num_verts,=unpack('H', temp_data)
@@ -601,11 +599,24 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			
 			# print 'number of verts: ', num_verts
 			def getvert():
-				temp_data=file.read(STRUCT_SIZE_3FLOAT)
+				temp_data= unpack('3f', file.read(STRUCT_SIZE_3FLOAT))
+				
+				# Set the bounds if user selected
+				if BOUNDS_3DS:
+					# xmin, ymin,zmin, xmax,ymax, zmax
+					if temp_data[0] < BOUNDS_3DS[0]: BOUNDS_3DS[0]= temp_data[0]
+					if temp_data[1] < BOUNDS_3DS[1]: BOUNDS_3DS[1]= temp_data[1]
+					if temp_data[2] < BOUNDS_3DS[2]: BOUNDS_3DS[2]= temp_data[2]
+					
+					if temp_data[0] > BOUNDS_3DS[3]: BOUNDS_3DS[3]= temp_data[0]
+					if temp_data[1] > BOUNDS_3DS[4]: BOUNDS_3DS[4]= temp_data[1]
+					if temp_data[2] > BOUNDS_3DS[5]: BOUNDS_3DS[5]= temp_data[2]
+					
+				
 				new_chunk.bytes_read += STRUCT_SIZE_3FLOAT #12: 3 floats x 4 bytes each
-				return Vector(unpack('3f', temp_data))
+				return Vector(temp_data)
 			
-			contextMesh.verts.extend( [Vector(),] ) # DUMMYVERT! - remove when blenders internbals are fixed.
+			contextMesh.verts.extend( [Vector(),] ) # DUMMYVERT! - remove when blenders internals are fixed.
 			contextMesh.verts.extend( [getvert() for i in xrange(num_verts)] )
 			#print 'object verts: bytes read: ', new_chunk.bytes_read
 
@@ -768,15 +779,26 @@ def load_3ds(filename, PREF_UI= True):
 	
 	
 	IMPORT_AS_INSTANCE= Blender.Draw.Create(0)
+	IMPORT_CONSTRAIN_BOUNDS= Blender.Draw.Create(10.0)
+	
 	# Get USER Options
 	pup_block= [\
+	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by 10 until it reacehs the size constraint. Zero Disables.'),\
 	('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
 	]
+	
 	if PREF_UI:
 		if not Blender.Draw.PupBlock('Import 3DS...', pup_block):
 			return
+	
+	IMPORT_CONSTRAIN_BOUNDS= IMPORT_CONSTRAIN_BOUNDS.val
 	IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
 	
+	if IMPORT_CONSTRAIN_BOUNDS:
+		BOUNDS_3DS[:]= [1<<30, 1<<30, 1<<30, -1<<30, -1<<30, -1<<30]
+	else:
+		BOUNDS_3DS[:]= []
+		
 	importedObjects= [] # Fill this list with objects
 	process_next_chunk(file, current_chunk, importedObjects)
 	
@@ -817,6 +839,25 @@ def load_3ds(filename, PREF_UI= True):
 			ob.Layers= Layers
 			ob.sel= 1
 	
+	if IMPORT_CONSTRAIN_BOUNDS!=0.0:
+		# Get the max axis x/y/z
+		max_axis= max(BOUNDS_3DS[3]-BOUNDS_3DS[0], BOUNDS_3DS[4]-BOUNDS_3DS[1], BOUNDS_3DS[5]-BOUNDS_3DS[2])
+		
+		if max_axis < 1<<30: # Should never be false but just make sure.
+			
+			# Get a new scale factor if set as an option
+			SCALE=1.0
+			while (max_axis*SCALE) > IMPORT_CONSTRAIN_BOUNDS:
+				SCALE/=10
+			
+			# SCALE Matrix
+			SCALE_MAT= Blender.Mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
+			
+			
+			for ob in importedObjects:
+				ob.setMatrix(ob.matrixWorld*SCALE_MAT)
+				
+		# Done constraining to bounds.
 	
 	# Select all new objects.
 	print 'finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1))

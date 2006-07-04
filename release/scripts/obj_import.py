@@ -897,7 +897,7 @@ def load_obj_ui(file):
 	('Import (*.mtl)', IMPORT_MTL, 'Imports material settings and images from the obj\'s .mtl file'),\
 	('Re-Use Existing', IMPORT_USE_EXISTING_MTL, 'Use materials from the current blend where names match.'),\
 	'Geometry...',\
-	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by factors of 10 until it reacehs the size constraint.'),\
+	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by 10 until it reacehs the size constraint. Zero Disables.'),\
 	('Rotate X90', IMPORT_ROTATE_X90, 'Rotate X-Up to Blenders Z-Up'),\
 	('Edges', IMPORT_EDGES, 'Import faces with 2 verts as in edge'),\
 	('Smooths all faces', IMPORT_SMOOTH_ALL, 'Smooth all faces even if they are not in a smoothing group'),\
