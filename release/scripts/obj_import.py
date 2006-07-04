@@ -8,7 +8,7 @@ Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 """
 
 __author__= "Campbell Barton"
-__url__= ["blender", "elysiun"]
+__url__= ["blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/"]
 __version__= "1.0"
 
 __bpydoc__= """\

@@ -18,6 +18,11 @@ This script imports a 3ds file and the materials into Blender for editing.
 Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 
 
+0.97 by Campbell Barton<br>
+- Strip material names of spaces
+- Added import as instance to import the 3ds into its own
+  scene and add a group instance to the current scene
+- New option to scale down imported objects so they are within a limited bounding area.
 
 0.96 by Campbell Barton<br>
 - Added workaround for bug in setting UV's for Zero vert index UV faces.
