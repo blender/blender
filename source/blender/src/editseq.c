@@ -2328,7 +2328,7 @@ void clever_numbuts_seq(void)
 	}
 }
 
-void seq_cut(short cutframe)
+void seq_cut(int cutframe)
 {
 	Editing *ed;
 	Sequence *seq;
