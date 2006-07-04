@@ -2664,6 +2664,9 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 			}
 			efa= efa->next;
 		}
+
+		if (startvl==NULL)
+			startvl= em->faces.first;
 		
 		/* set first face correct: calc normal */
 		
