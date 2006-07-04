@@ -4539,7 +4539,7 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 	}
 }
 
-static void init_oopsspace(ScrArea *sa, int oops)
+static void init_oopsspace(ScrArea *sa)
 {
 	SpaceOops *soops;
 	
@@ -4547,8 +4547,8 @@ static void init_oopsspace(ScrArea *sa, int oops)
 	BLI_addhead(&sa->spacedata, soops);
 
 	soops->visiflag= OOPS_OB+OOPS_MA+OOPS_ME+OOPS_TE+OOPS_CU+OOPS_IP;
-	if(oops) soops->type= SO_OOPS;
-	else soops->type= SO_OUTLINER;
+	/* new oops is default an outliner */
+	soops->type= SO_OUTLINER;
 		
 	soops->spacetype= SPACE_OOPS;
 	soops->blockscale= 0.7;
@@ -4778,7 +4778,7 @@ void newspace(ScrArea *sa, int type)
 				else if(type==SPACE_IMASEL)
 					init_imaselspace(sa);
 				else if(type==SPACE_OOPS)
-					init_oopsspace(sa, xtra);
+					init_oopsspace(sa);
 				else if(type==SPACE_ACTION)
 					init_actionspace(sa);
 				else if(type==SPACE_TEXT)

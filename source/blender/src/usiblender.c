@@ -69,6 +69,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -376,6 +377,24 @@ void BIF_read_file(char *name)
 		BIF_undo_push("Import file");
 }
 
+static void outliner_242_patch(void)
+{
+	ScrArea *sa;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceLink *sl= sa->spacedata.first;
+		for(; sl; sl= sl->next) {
+			if(sl->spacetype==SPACE_OOPS) {
+				SpaceOops *soops= (SpaceOops *)sl;
+				if(soops->type!=SO_OUTLINER) {
+					soops->type= SO_OUTLINER;
+					init_v2d_oops(sa, soops);
+				}
+			}
+		}
+	}
+}
+
 /* only here settings for fullscreen */
 int BIF_read_homefile(void)
 {
@@ -395,14 +414,7 @@ int BIF_read_homefile(void)
 		tf= tf->next;
 	}
 	BLI_freelistN(&G.ttfdata);
-	
-#if 0
-//#ifdef _WIN32	// FULLSCREEN
-	static int screenmode = -1;
-	
-	screenmode = U.uiflag & USER_FLIPFULLSCREEN;
-#endif
-	
+		
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
 	
@@ -413,30 +425,13 @@ int BIF_read_homefile(void)
 		success = BKE_read_file(tstr, NULL);
 	} else {
 		success = BKE_read_file_from_memory(datatoc_B_blend, datatoc_B_blend_size, NULL);
+		/* outliner patch for 2.42 .b.blend */
+		outliner_242_patch();
 	}
 
 	BLI_clean(scestr);
 	strcpy(G.sce, scestr);
-	
-#if 0
-//#ifdef _WIN32	// FULLSCREEN
-	/* choose window startmode */
-	switch (G.windowstate){
-		case G_WINDOWSTATE_USERDEF: /* use the usersetting */
-			break;
-		case G_WINDOWSTATE_FULLSCREEN: /* force fullscreen */
-			U.uiflag |= USER_FLIPFULLSCREEN;
-			break;
-		case G_WINDOWSTATE_BORDER: /* force with borders */
-			U.uiflag &= ~USER_FLIPFULLSCREEN;
-	}
-	
-	if(screenmode != (U.uiflag & USER_FLIPFULLSCREEN)) {
-		mainwindow_toggle_fullscreen ((U.uiflag & USER_FLIPFULLSCREEN));
-		screenmode = (U.uiflag & USER_FLIPFULLSCREEN);
-	}
-#endif
-	
+
 	space_set_commmandline_options();
 	
 	init_userdef_file();

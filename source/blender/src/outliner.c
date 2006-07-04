@@ -753,7 +753,8 @@ static void outliner_build_tree(SpaceOops *soops)
 	Object *ob;
 	TreeElement *te, *ten;
 	TreeStoreElem *tselem;
-	
+	int show_opened= soops->treestore==NULL; /* on first view, we open scenes */
+
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
 						   
@@ -765,7 +766,9 @@ static void outliner_build_tree(SpaceOops *soops)
 		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
 			te= outliner_add_element(soops, &soops->tree, sce, NULL, 0, 0);
 			tselem= TREESTORE(te);
-
+			if(sce==G.scene && show_opened) 
+				tselem->flag &= ~TSE_CLOSED;
+			
 			for(base= sce->base.first; base; base= base->next) {
 				ten= outliner_add_element(soops, &te->subtree, base->object, te, 0, 0);
 				ten->directdata= base;
