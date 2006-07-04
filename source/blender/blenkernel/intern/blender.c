@@ -63,15 +63,16 @@
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_library.h"
 #include "BKE_blender.h"
+#include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
+#include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_curve.h"
-#include "BKE_font.h"
 
 #include "BLI_editVert.h"
 
@@ -378,14 +379,18 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	if (!G.background) {
 		setscreen(G.curscreen);
 	}
-		/* baseflags */
+	
+	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(G.scene);
 
-	/* last stage of do_versions actually, update objects (like recalc poses) */
+	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->type==OB_ARMATURE)
 			if(ob->recalc) object_handle_update(ob);
 	}
+	
+	/* now tag update flags, to ensure deformers get calculated on redraw */
+	DAG_scene_update_flags(G.scene, G.scene->lay);
 	
 	if (G.f & G_DOSCRIPTLINKS) {
 		/* there's an onload scriptlink to execute in screenmain */

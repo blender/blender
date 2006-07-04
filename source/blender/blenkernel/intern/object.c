@@ -1363,7 +1363,7 @@ void where_is_object_time(Object *ob, float ctime)
 	}
 	else {
 		/* but, the drivers have to be done */
-		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo);
+		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo, stime);
 	}
 	
 	if(ob->parent) {

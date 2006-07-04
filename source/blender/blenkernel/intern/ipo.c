@@ -1982,7 +1982,7 @@ void do_ob_ipo(Object *ob)
 	}
 }
 
-void do_ob_ipodrivers(Object *ob, Ipo *ipo)
+void do_ob_ipodrivers(Object *ob, Ipo *ipo, float ctime)
 {
 	IpoCurve *icu;
 	void *poin;
@@ -1990,7 +1990,7 @@ void do_ob_ipodrivers(Object *ob, Ipo *ipo)
 	
 	for(icu= ipo->curve.first; icu; icu= icu->next) {
 		if(icu->driver) {
-			icu->curval= eval_icu(icu, 0.0f);
+			icu->curval= eval_icu(icu, ctime);
 			poin= get_ipo_poin((ID *)ob, icu, &type);
 			if(poin) write_ipo_poin(poin, type, icu->curval);
 		}
