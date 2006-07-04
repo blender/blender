@@ -268,6 +268,10 @@ class RenderData:
   @ivar mapNew: New mapping value (in frames).
   Values are clamped to the range [1,900].
   @type mapNew: int
+  @ivar set: The scene linked as a set to this scene.  Values are an existing
+  scene or None (setting to None clears the set).  The scene argument cannot
+  cause a circular link.
+  @type set: BPy_Scene or None
   """
 
   def currentFrame(frame = None):

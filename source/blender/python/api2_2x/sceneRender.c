@@ -38,6 +38,7 @@ struct View3D; /* keep me up here */
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 
 #include "BIF_drawscene.h"
 #include "BIF_renderwin.h"
@@ -50,6 +51,8 @@ struct View3D; /* keep me up here */
 #include "butspace.h"
 #include "blendef.h"
 #include "gen_utils.h"
+
+#include "Scene.h"
 
 /* local defines */
 #define PY_NONE		0
@@ -1502,6 +1505,7 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 		max = 5.0f;
 		param = &self->renderContext->blurfac;
 		break;
+	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setFloatAttrClamp" );
 	}
@@ -1981,6 +1985,47 @@ static int RenderData_setMapNew( BPy_RenderData *self, PyObject *value )
 	return result;
 }
 
+static PyObject *RenderData_getSet( BPy_RenderData *self )
+{
+	if( self->scene->set )
+		return Scene_CreatePyObject( self->scene->set );
+	Py_RETURN_NONE;
+}
+
+static int RenderData_setSet( BPy_RenderData *self, PyObject *value )
+{
+	BPy_Scene *sc;
+
+	/* if "None", delete the link to the scene */
+	if( value == Py_None ) {
+		self->scene->set = NULL;
+		return 0;
+	}
+
+	/* be sure argument is a Scene */
+	if( !BPy_Scene_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected Scene as argument" );
+
+	/* check for attempt to link to ourselves */
+	sc = (BPy_Scene *)value;
+	if( self->scene == sc->scene )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"cannot link a scene to itself" );
+
+	/*
+	 * Accept the set link, then check for a circular link.  If circular link
+	 * exists, scene_check_setscene() sets self->scene->set to NULL.
+	 */
+
+	self->scene->set = sc->scene;
+	if( !scene_check_setscene( self->scene ) )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"linking scene would create a cycle" );
+
+	return 0;
+}
+
 /***************************************************************************/
 /* BPy_RenderData attribute def                                            */
 /***************************************************************************/
@@ -2195,6 +2240,10 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	{"mapNew",
 	 (getter)RenderData_getMapNew, (setter)RenderData_setMapNew,
 	 "New mapping value (in frames)",
+	 NULL},
+	{"set",
+	 (getter)RenderData_getSet, (setter)RenderData_setSet,
+	 "Scene link 'set' value",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}
 };
