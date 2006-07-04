@@ -4709,7 +4709,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						SpaceButs *sbuts= (SpaceButs *) sl;
 
 						sbuts->v2d.maxzoom= 1.2f;
-
+						sbuts->align= 1;	/* horizontal default */
+							
 						if(sbuts->mainb==BUTS_LAMP) {
 							sbuts->mainb= CONTEXT_SHADING;
 							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
