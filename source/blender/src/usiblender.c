@@ -393,6 +393,7 @@ static void outliner_242_patch(void)
 			}
 		}
 	}
+	G.fileflags |= G_FILE_GAME_MAT;
 }
 
 /* only here settings for fullscreen */

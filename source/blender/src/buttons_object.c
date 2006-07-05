@@ -714,8 +714,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 				height = 66;
 			
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
