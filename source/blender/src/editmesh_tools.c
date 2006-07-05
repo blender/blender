@@ -6389,6 +6389,8 @@ void region_to_loop(void)
 			if(eed->f1 == 1) EM_select_edge(eed, 1);
 		}
 		
+		if(G.scene->selectmode != SCE_SELECT_EDGE)
+			notice("Select mode changed to Edge Select");
 		G.scene->selectmode = SCE_SELECT_EDGE;
 		EM_selectmode_set();
 		countall();
