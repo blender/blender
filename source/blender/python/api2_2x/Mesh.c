@@ -5605,6 +5605,21 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		ob = find_basis_mball( ob );
 		tmpmesh = add_mesh();
 		mball_to_mesh( &ob->disp, tmpmesh );
+
+		/*
+		 * mball_to_mesh doesn't create edges, which confuses Blender in
+		 * object mode.  So this hack is necessary to quickly calculate the
+		 * edges from the face list.
+		 */
+
+		dlm = MEM_callocN( sizeof(DispListMesh), "tmp displist");
+		dlm->totface = tmpmesh->totface;
+		dlm->mface = tmpmesh->mface;
+		displistmesh_add_edges( dlm );
+		tmpmesh->totedge = dlm->totedge;
+		tmpmesh->medge = dlm->medge;
+		MEM_freeN( dlm );
+
  		break;
  	case OB_MESH:
 		/* copies object and modifiers (but not the data) */
