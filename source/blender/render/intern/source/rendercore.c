@@ -1259,7 +1259,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	Material *ma= shi->mat;
 	VlakRen *vlr= shi->vlr;
 	float lv[3], lampdist, ld= 1.0f, lacol[3], shadfac[4];
-	float i, is, inp, i_noshad, *vn, *view, vnor[3], phongcorr;
+	float i, is, inp, i_noshad, *vn, *view, vnor[3], phongcorr=1.0f;
 	
 	vn= shi->vn;
 	view= shi->view;
@@ -1384,20 +1384,25 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
 	
 	/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
-	if((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
-		float thresh= vlr->ob->smoothresh;
-		if(inp>thresh)
-			phongcorr= (inp-thresh)/(inp*(1.0-thresh));
-		else
-			phongcorr= 0.0;
+	/* this complex construction screams for a nicer implementation! (ton) */
+	if(R.r.mode & R_SHADOW) {
+		if(ma->mode & MA_SHADOW) {
+			if(lar->type==LA_HEMI);
+			else if((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
+				float thresh= vlr->ob->smoothresh;
+				if(inp>thresh)
+					phongcorr= (inp-thresh)/(inp*(1.0-thresh));
+				else
+					phongcorr= 0.0;
+			}
+			else if(ma->sbias!=0.0f && ((lar->mode & LA_SHAD_RAY) || lar->shb)) {
+				if(inp>ma->sbias)
+					phongcorr= (inp-ma->sbias)/(inp*(1.0-ma->sbias));
+				else
+					phongcorr= 0.0;
+			}
+		}
 	}
-	else if(ma->sbias!=0.0f) {
-		if(inp>ma->sbias)
-			phongcorr= (inp-ma->sbias)/(inp*(1.0-ma->sbias));
-		else
-			phongcorr= 0.0;
-	}
-	else phongcorr= 1.0;
 	
 	/* diffuse shaders */
 	if(lar->mode & LA_NO_DIFF) {
