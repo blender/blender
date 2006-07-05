@@ -598,7 +598,7 @@ class Object:
   def getType():
     """
     Returns the type of the object in 'Armature', 'Camera', 'Curve', 'Lamp', 'Lattice',
-    'Mball', 'Mesh', 'Surf', 'Empty', 'Wave' (deprecated) or 'unknown' in exceptional cases.
+    'MBall', 'Mesh', 'Surf', 'Empty', 'Wave' (deprecated) or 'unknown' in exceptional cases.
     @return: The type of object.
 
     I{B{Example:}}
@@ -1311,21 +1311,11 @@ class Object:
     @param goal: the Object's SB New DefaultGoal.
     """   
 
-  def getSBEnable():
+  def isSB():
     """
     Get if the Object's SB is Enabled.
     @rtype: int
     """
-
-  def setSBEnable(switch):
-    """
-    Enable / Disable SoftBodies.
-    1: on
-    0: off
-    @rtype: PyNone
-    @type switch: int
-    @param switch: the Object's SB New Enable Value.
-    """  
 
   def getSBPostDef():
     """

@@ -101,7 +101,9 @@ def QuadNormal(vec1, vec2, vec3, vec4):
 
 def LineIntersect(vec1, vec2, vec3, vec4):
   """
-  Return a tuple with the points on each line respectively closest to the other (when both lines intersect, both vector hold the same value).
+  Return a tuple with the points on each line respectively closest to the other
+  (when both lines intersect, both vector hold the same value).
+  The lines are evaluated as infinite lines in space, the values returned may not be between the 2 points given for each line.
   @type vec1: Vector object.
   @param vec1: A 3d vector, one point on the first line.
   @type vec2: Vector object.
