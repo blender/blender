@@ -2305,7 +2305,9 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	}
 }
 
-/* Return the angle in degrees between vecs 1-2 and 2-3 in degrees */
+/* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
+   If v1 is a shoulder, v2 is the elbow and v3 is the hand,
+   this would return the angle at the elbow */
 float VecAngle3( float *v1, float *v2, float *v3)
 {
 	float vec1[3], vec2[3];
@@ -2317,7 +2319,7 @@ float VecAngle3( float *v1, float *v2, float *v3)
 	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 180.0/M_PI;
 }
 
-/* Return the angle in degrees between vecs 1-2 and 2-3 */
+/* Return the shortest angle in degrees between the 2 vectors */
 float VecAngle2( float *v1, float *v2)
 {
 	float vec1[3], vec2[3];
