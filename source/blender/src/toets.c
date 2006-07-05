@@ -285,6 +285,7 @@ void persptoetsen(unsigned short event)
 					void setcameratoview3d(void);	// view.c
 					setcameratoview3d();
 					DAG_object_flush_update(G.scene, G.scene->camera, OB_RECALC_OB);
+					BIF_undo_push("View to Camera position");
 					allqueue(REDRAWVIEW3D, 0);
 				}				
 			}

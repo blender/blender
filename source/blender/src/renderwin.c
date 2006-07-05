@@ -1223,6 +1223,9 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	
 	/* open window */
 	renderwin_init_display_cb(rr);
+	if(render_win)
+		render_win->flags &= ~RW_FLAGS_ESCAPE;
+
 	init_gl_stuff();
 	
 	waitcursor(1);
