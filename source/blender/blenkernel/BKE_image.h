@@ -59,7 +59,8 @@ struct anim *openanim(char * name, int flags);
 void ima_ibuf_is_nul(struct Tex *tex, struct Image *ima);
 void load_image(struct Image * ima, int flags, char *relabase, int framenum);
 void converttopremul(struct ImBuf *ibuf);
-
+void image_de_interlace(struct Image *ima, int odd);
+	
 void tag_image_time(struct Image *ima);
 void free_old_images(void);
 

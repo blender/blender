@@ -1463,8 +1463,14 @@ static void load_backbuffer(Render *re)
 		
 		if(re->backbuf && re->backbuf->ibuf==NULL) {
 			re->backbuf->ibuf= IMB_loadiffname(re->backbuf->name, IB_rect);
-			if(re->backbuf->ibuf==NULL) re->backbuf->ok= 0;
-			else re->backbuf->ok= 1;
+			if(re->backbuf->ibuf==NULL) 
+				re->backbuf->ok= 0;
+			else {
+				re->backbuf->ok= 1;
+				
+				if (re->r.mode & R_FIELDS)
+					image_de_interlace(re->backbuf, re->r.mode & R_ODDFIELD);
+			}
 		}
 		if(re->backbuf==NULL || re->backbuf->ok==0) {
 			// error() doesnt work with render window open

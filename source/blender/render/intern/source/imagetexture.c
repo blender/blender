@@ -597,12 +597,17 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *res
 		return;
 	}
 	
+	if( (R.flag & R_SEC_FIELD) && (ima->ibuf->flags & IB_fields) )
+		ima->ibuf->rect+= (ima->ibuf->x*ima->ibuf->y);
+	
 	boxsample(ima->ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 0);
 	result[0]= texres.tr;
 	result[1]= texres.tg;
 	result[2]= texres.tb;
 	result[3]= texres.ta;
 
+	if( (R.flag & R_SEC_FIELD) && (ima->ibuf->flags & IB_fields) )
+		ima->ibuf->rect-= (ima->ibuf->x*ima->ibuf->y);
 }
 
 int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, TexResult *texres)
