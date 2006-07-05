@@ -117,17 +117,9 @@ SCL_TRACK_TAG			= long("0xB022",16);
 # Strips the slashes from the back of a string #
 #==============================================#
 def stripPath(path):
-	"""Strips the slashes from the back of a string.
-	"""
+	'''Strips the slashes from the back of a string.
+	'''
 	return path.split('/')[-1].split('\\')[-1]
-
-#==================================================#
-# New name based on old with a different extension #
-#==================================================#
-def newFName(ext):
-	"""New name based on old with a different extension.
-	"""
-	return Blender.Get('filename')[: -len(Blender.Get('filename').split('.', -1)[-1]) ] + ext
 
 def uv_key(uv):
 	return round(uv.x, 6), round(uv.y, 6)
@@ -138,7 +130,8 @@ SZ_INT   = 4
 SZ_FLOAT = 4
 
 class _3ds_short:
-	"""Class representing a short (2-byte integer) for a 3ds file."""
+	'''Class representing a short (2-byte integer) for a 3ds file.
+	*** This looks like an unsigned short H is unsigned from the struct docs - Cam***'''
 	value=0
 	
 	def __init__(self, val=0):
@@ -155,7 +148,7 @@ class _3ds_short:
 		return str(self.value)
 
 class _3ds_int:
-	"""Class representing an int (4-byte integer) for a 3ds file."""
+	'''Class representing an int (4-byte integer) for a 3ds file.'''
 	value=0
 	
 	def __init__(self, val=0):
@@ -172,7 +165,7 @@ class _3ds_int:
 		return str(self.value)
 
 class _3ds_float:
-	"""Class representing a 4-byte IEEE floating point number for a 3ds file."""
+	'''Class representing a 4-byte IEEE floating point number for a 3ds file.'''
 	value=0.0
 	
 	def __init__(self, val=0.0):
@@ -191,7 +184,7 @@ class _3ds_float:
 
 
 class _3ds_string:
-	"""Class representing a zero-terminated string for a 3ds file."""
+	'''Class representing a zero-terminated string for a 3ds file.'''
 	value=""
 	
 	def __init__(self, val=""):
@@ -210,7 +203,7 @@ class _3ds_string:
 		return self.value
 
 class _3ds_point_3d:
-	"""Class representing a three-dimensional point for a 3ds file."""
+	'''Class representing a three-dimensional point for a 3ds file.'''
 	x=y=z=0.0
 	
 	def __init__(self, point=(0.0,0.0,0.0)):
@@ -220,14 +213,14 @@ class _3ds_point_3d:
 		return 3*SZ_FLOAT
 
 	def write(self,file):
-		data=struct.pack("<3f", self.x, self.y, self.z)
+		data=struct.pack('<3f', self.x, self.y, self.z)
 		file.write(data)
 	
 	def __str__(self):
 		return '(%f, %f, %f)' % (self.x, self.y, self.z)
 
 class _3ds_point_4d:
-	"""Class representing a four-dimensional point for a 3ds file, for instance a quaternion."""
+	'''Class representing a four-dimensional point for a 3ds file, for instance a quaternion.'''
 	x=y=z=w=0.0
 	
 	def __init__(self, point=(0.0,0.0,0.0,0.0)):
@@ -237,14 +230,14 @@ class _3ds_point_4d:
 		return 4*SZ_FLOAT
 
 	def write(self,file):
-		data=struct.pack("<4f", self.x, self.y, self.z, self.w)
+		data=struct.pack('<4f', self.x, self.y, self.z, self.w)
 		file.write(data)
 
 	def __str__(self):
 		return '(%f, %f, %f, %f)' % (self.x, self.y, self.z, self.w)
 	
 class _3ds_point_uv:
-	"""Class representing a UV-coordinate for a 3ds file."""
+	'''Class representing a UV-coordinate for a 3ds file.'''
 	uv=(0.0, 0.0)
 	
 	def __init__(self, point=(0.0,0.0)):
@@ -257,14 +250,14 @@ class _3ds_point_uv:
 		return 2*SZ_FLOAT
 	
 	def write(self,file):
-		data=struct.pack("<2f", self.uv[0], self.uv[1])
+		data=struct.pack('<2f', self.uv[0], self.uv[1])
 		file.write(data)
 	
 	def __str__(self):
 		return '(%g, %g)' % self.uv
 
 class _3ds_rgb_color:
-	"""Class representing a (24-bit) rgb color for a 3ds file."""
+	'''Class representing a (24-bit) rgb color for a 3ds file.'''
 	r=g=b=0
 	
 	def __init__(self, col=(0,0,0)):
@@ -274,15 +267,15 @@ class _3ds_rgb_color:
 		return 3
 	
 	def write(self,file):
-		file.write( struct.pack("<c", chr(int(255*self.r))) )
-		file.write( struct.pack("<c", chr(int(255*self.g))) )
-		file.write( struct.pack("<c", chr(int(255*self.b))) )
+		file.write( struct.pack('<c', chr(int(255*self.r))) )
+		file.write( struct.pack('<c', chr(int(255*self.g))) )
+		file.write( struct.pack('<c', chr(int(255*self.b))) )
 	
 	def __str__(self):
 		return '{%f, %f, %f}' % (self.r, self.g, self.b)
 
 class _3ds_face:
-	"""Class representing a face for a 3ds file."""
+	'''Class representing a face for a 3ds file.'''
 
 	# vertex index tuple:
 	vindex=(0,0,0)
@@ -302,10 +295,10 @@ class _3ds_face:
 		return '[%d %d %d]' % (self.vindex[0],self.vindex[1], self.vindex[2])
 
 class _3ds_array:
-	"""Class representing an array of variables for a 3ds file.
+	'''Class representing an array of variables for a 3ds file.
 
 	Consists of a _3ds_short to indicate the number of items, followed by the items themselves.
-	"""
+	'''
 	values=[]
 	size=0
 	
@@ -333,7 +326,7 @@ class _3ds_array:
 		return '(%d items)' % len(self.values)
 
 class _3ds_named_variable:
-	"""Convenience class for named variables."""
+	'''Convenience class for named variables.'''
 	
 	name=""
 	value=None
@@ -365,10 +358,10 @@ class _3ds_named_variable:
 
 #the chunk class
 class _3ds_chunk:
-	"""Class representing a chunk in a 3ds file.
+	'''Class representing a chunk in a 3ds file.
 
 	Chunks contain zero or more variables, followed by zero or more subchunks.
-	"""
+	'''
 
 	# The chunk ID:
 	ID=_3ds_short()
@@ -389,19 +382,19 @@ class _3ds_chunk:
 		self.ID=_3ds_short(id)
 	
 	def add_variable(self, name, var):
-		"""Add a named variable. 
+		'''Add a named variable. 
 		
-		The name is mostly for debugging purposes."""
+		The name is mostly for debugging purposes.'''
 		self.variables.append(_3ds_named_variable(name,var))
 	
 	def add_subchunk(self, chunk):
-		"""Add a subchunk."""
+		'''Add a subchunk.'''
 		self.subchunks.append(chunk)
 
 	def get_size(self):
-		"""Calculate the size of the chunk and return it.
+		'''Calculate the size of the chunk and return it.
 		
-		The sizes of the variables and subchunks are used to determine this chunk\'s size."""
+		The sizes of the variables and subchunks are used to determine this chunk\'s size.'''
 		tmpsize=self.ID.get_size()+self.size.get_size()
 		for variable in self.variables:
 			tmpsize+=variable.get_size()
@@ -411,9 +404,9 @@ class _3ds_chunk:
 		return self.size.value
 
 	def write(self, file):
-		"""Write the chunk to a file.
+		'''Write the chunk to a file.
 		
-		Uses the write function of the variables and the subchunks to do the actual work."""
+		Uses the write function of the variables and the subchunks to do the actual work.'''
 		#write header
 		self.ID.write(file)
 		self.size.write(file)
@@ -424,10 +417,10 @@ class _3ds_chunk:
 		
 		
 	def dump(self, indent=0):
-		"""Write the chunk to a file.
+		'''Write the chunk to a file.
 		
 		Dump is used for debugging purposes, to dump the contents of a chunk to the standard output. 
-		Uses the dump function of the named variables and the subchunks to do the actual work."""
+		Uses the dump function of the named variables and the subchunks to do the actual work.'''
 		spaces=""
 		for i in xrange(indent):
 			spaces+="  ";
@@ -444,9 +437,9 @@ class _3ds_chunk:
 ######################################################
 
 def make_material_subchunk(id, color):
-	"""Make a material subchunk.
+	'''Make a material subchunk.
 	
-	Used for color subchunks, such as diffuse color or ambient color subchunks."""
+	Used for color subchunks, such as diffuse color or ambient color subchunks.'''
 	mat_sub = _3ds_chunk(id)
 	col1 = _3ds_chunk(RGB1)
 	col1.add_variable("color1", _3ds_rgb_color(color));
@@ -459,23 +452,20 @@ def make_material_subchunk(id, color):
 
 
 def make_material_chunk(material):
-	"""Make a material chunk out of a blender material."""
+	'''Make a material chunk out of a blender material.'''
 	material_chunk = _3ds_chunk(MATERIAL)
 	name = _3ds_chunk(MATNAME)
 	name.add_variable("name", _3ds_string(material.name))
 	material_chunk.add_subchunk(name)
-	ambCol = material.rgbCol
-	for i in xrange(len(ambCol)):
-		ambCol[i]*=material.amb;
-	material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, ambCol))
+	material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.amb for a in material.rgbCol] ))
 	material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.rgbCol))
 	material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
 	return material_chunk
 
 class tri_wrapper:
-	"""Class representing a triangle.
+	'''Class representing a triangle.
 	
-	Used when converting faces to triangles"""
+	Used when converting faces to triangles'''
 	
 	# vertex indices:
 	vertex_index=(0,0,0)
@@ -491,7 +481,7 @@ class tri_wrapper:
 		self.offset= [0, 0, 0] # offset indicies
 
 def split_into_tri(face, do_uv=False):
-	"""Split a quad face into two triangles"""
+	'''Split a quad face into two triangles'''
 	first_tri = tri_wrapper((face.v[0].index, face.v[1].index, face.v[2].index), face.mat)
 	second_tri = tri_wrapper((face.v[0].index, face.v[2].index, face.v[3].index), face.mat)
 	if (do_uv):
@@ -501,14 +491,14 @@ def split_into_tri(face, do_uv=False):
 	
 	
 def extract_triangles(mesh):
-	"""Extract triangles from a mesh.
+	'''Extract triangles from a mesh.
 	
-	If the mesh contains quads, they will be split into triangles."""
+	If the mesh contains quads, they will be split into triangles.'''
 	tri_list = []
 	do_uv = mesh.faceUV
 	
 	for face in mesh.faces: 
-			num_fv = len(face.v)
+			num_fv = len(face)
 			if num_fv==3:
 				new_tri = tri_wrapper((face.v[0].index, face.v[1].index, face.v[2].index), face.mat)
 				if (do_uv):
@@ -522,11 +512,11 @@ def extract_triangles(mesh):
 	
 	
 def remove_face_uv(verts, tri_list):
-	"""Remove face UV coordinates from a list of triangles.
+	'''Remove face UV coordinates from a list of triangles.
 		
 	Since 3ds files only support one pair of uv coordinates for each vertex, face uv coordinates
 	need to be converted to vertex uv coordinates. That means that vertices need to be duplicated when
-	there are multiple uv coordinates per vertex."""
+	there are multiple uv coordinates per vertex.'''
 	
 	# initialize a list of UniqueLists, one per vertex:
 	#uv_list = [UniqueList() for i in xrange(len(verts))]
@@ -573,48 +563,52 @@ def remove_face_uv(verts, tri_list):
 	return vert_array, uv_array, tri_list
 
 def make_faces_chunk(tri_list, materials):
-	"""Make a chunk for the faces.
+	'''Make a chunk for the faces.
 	
-	Also adds subchunks assigning materials to all faces."""
+	Also adds subchunks assigning materials to all faces.'''
+	
 	face_chunk = _3ds_chunk(OBJECT_FACES)
 	face_list = _3ds_array()
 	
 	obj_material_faces=[]
 	obj_material_names=[]
 	for m in materials:
-		obj_material_names.append(_3ds_string(m.name))
-		obj_material_faces.append(_3ds_array())
+		if m:
+			obj_material_names.append(_3ds_string(m.name))
+			obj_material_faces.append(_3ds_array())
 	n_materials = len(obj_material_names)
 	
 	for i,tri in enumerate(tri_list):
 		face_list.add(_3ds_face(tri.vertex_index))
 		if (tri.mat < n_materials):
 			obj_material_faces[tri.mat].add(_3ds_short(i))
+			pass
+			
 	
 	face_chunk.add_variable("faces", face_list)
-
 	for i in xrange(n_materials):
 		obj_material_chunk=_3ds_chunk(OBJECT_MATERIAL)
 		obj_material_chunk.add_variable("name", obj_material_names[i])
 		obj_material_chunk.add_variable("face_list", obj_material_faces[i])
 		face_chunk.add_subchunk(obj_material_chunk)
-
+	
+	# asas
 	return face_chunk
 
 def make_vert_chunk(vert_array):
-	"""Make a vertex chunk out of an array of vertices."""
+	'''Make a vertex chunk out of an array of vertices.'''
 	vert_chunk = _3ds_chunk(OBJECT_VERTICES)
 	vert_chunk.add_variable("vertices",vert_array)
 	return vert_chunk
 
 def make_uv_chunk(uv_array):
-	"""Make a UV chunk out of an array of UVs."""
+	'''Make a UV chunk out of an array of UVs.'''
 	uv_chunk = _3ds_chunk(OBJECT_UV)
 	uv_chunk.add_variable("uv coords", uv_array)
 	return uv_chunk
 
 def make_mesh_chunk(mesh):
-	"""Make a chunk out of a Blender mesh."""
+	'''Make a chunk out of a Blender mesh.'''
 	
 	# Extract the triangles from the mesh:
 	tri_list = extract_triangles(mesh)
@@ -642,15 +636,18 @@ def make_mesh_chunk(mesh):
 	# add vertex chunk:
 	mesh_chunk.add_subchunk(make_vert_chunk(vert_array))
 	# add faces chunk:
+	
 	mesh_chunk.add_subchunk(make_faces_chunk(tri_list, mesh.materials))
+	
 	# if available, add uv chunk:
 	if uv_array:
 		mesh_chunk.add_subchunk(make_uv_chunk(uv_array))
 	
 	return mesh_chunk
 
+""" # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
 def make_kfdata(start=0, stop=0, curtime=0):
-	"""Make the basic keyframe data chunk"""
+	'''Make the basic keyframe data chunk'''
 	kfdata = _3ds_chunk(KFDATA)
 	
 	kfhdr = _3ds_chunk(KFDATA_KFHDR)
@@ -671,11 +668,12 @@ def make_kfdata(start=0, stop=0, curtime=0):
 	kfdata.add_subchunk(kfseg)
 	kfdata.add_subchunk(kfcurtime)
 	return kfdata
+"""
 
 def make_track_chunk(ID, obj):
-	"""Make a chunk for track data.
+	'''Make a chunk for track data.
 	
-	Depending on the ID, this will construct a position, rotation or scale track."""
+	Depending on the ID, this will construct a position, rotation or scale track.'''
 	track_chunk = _3ds_chunk(ID)
 	track_chunk.add_variable("track_flags", _3ds_short())
 	track_chunk.add_variable("unknown", _3ds_int())
@@ -711,10 +709,10 @@ def make_track_chunk(ID, obj):
 	return track_chunk
 
 def make_kf_obj_node(obj, name_to_id):
-	"""Make a node chunk for a Blender object.
+	'''Make a node chunk for a Blender object.
 	
 	Takes the Blender object as a parameter. Object id's are taken from the dictionary name_to_id.
-	Blender Empty objects are converted to dummy nodes."""
+	Blender Empty objects are converted to dummy nodes.'''
 	
 	name = obj.getName()
 	# main object node chunk:
@@ -772,7 +770,7 @@ def make_kf_obj_node(obj, name_to_id):
 
 
 def save_3ds(filename):
-	"""Save the Blender scene to a 3ds file."""
+	'''Save the Blender scene to a 3ds file.'''
 	# Time the export
 	time1= Blender.sys.time()
 	scn= Blender.Scene.GetCurrent()
@@ -787,13 +785,15 @@ def save_3ds(filename):
 	# init main object info chunk:
 	object_info = _3ds_chunk(OBJECTINFO)
 	
+	''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
 	# init main key frame data chunk:
 	kfdata = make_kfdata()
+	'''
 	
 	# Get all the supported objects selected in this scene:
 	ob_sel= Blender.Object.GetSelected()
-	#getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None):
-	mesh_objects = [ (ob, BPyMesh.getMeshFromObject(ob, None, True, False, scn)) for ob in ob_sel if ob.getType() == 'Mesh' ]
+	
+	mesh_objects = [ (ob, me) for ob in ob_sel   for me in (BPyMesh.getMeshFromObject(ob, None, True, False, scn),) if me ]
 	empty_objects = [ ob for ob in ob_sel if ob.getType() == 'Empty' ]
 	
 	# Make a list of all materials used in the selected meshes (use a dictionary,
@@ -801,10 +801,11 @@ def save_3ds(filename):
 	materials = {}
 	for ob, data in mesh_objects:
 		for m in data.materials:
-			try:
-				materials[m.name]
-			except:
-				materials[m.name]= m
+			if m: # material may be None so check its not.
+				try:
+					materials[m.name]
+				except:
+					materials[m.name]= m
 	
 	# Make material chunks for all materials used in the meshes:
 	for material in materials.itervalues():
@@ -832,18 +833,26 @@ def save_3ds(filename):
 		object_chunk.add_subchunk(make_mesh_chunk(blender_mesh))
 		object_info.add_subchunk(object_chunk)
 		
+		''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
 		# make a kf object node for the object:
 		kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
+		'''
 
 	# Create chunks for all empties:
+	''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
 	for ob in empty_objects:
 		# Empties only require a kf object node:
 		kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
+		pass
+	'''
 	
 	# Add main object info chunk to primary chunk:
 	primary.add_subchunk(object_info)
+	
+	''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
 	# Add main keyframe data chunk to primary chunk:
 	primary.add_subchunk(kfdata)
+	'''
 	
 	# At this point, the chunk hierarchy is completely built.
 	
@@ -869,5 +878,6 @@ def save_3ds(filename):
 	# Debugging only: dump the chunk hierarchy:
 	#primary.dump()
 	
-
-Blender.Window.FileSelector(save_3ds, "Export 3DS", newFName('3ds'))
+if __name__=='__main__':
+	Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))
+# save_3ds('/test_b.3ds')
