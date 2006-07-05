@@ -693,7 +693,7 @@ class Mesh:
   @type activeFace: int
   @ivar activeGroup: The mesh's active vertex group.  The mesh must be
     linked to an object (read the comment in L{addVertGroup} for more info).
-  @type activeGroup: string
+  @type activeGroup: string or None
   """
 
   def getFromObject(name,cage=0):

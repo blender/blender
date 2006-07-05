@@ -58,7 +58,7 @@ def ed_key(ed):
 	if i1<i2: return i1,i2
 	return i2,i1
 
-def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEIGHT=1.0, FACE_TRIANGULATE=True, DO_UV=True, DO_VCOL=True, DO_WEIGHTS=True):
+def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEIGHT=1.0, FACE_TRIANGULATE=True, DO_UV=True, DO_VCOL=True, DO_WEIGHTS=True, VGROUP_INF_REDUX= None, VGROUP_INF_WEIGHT=0.5):
 	"""
 	BOUNDRY_WEIGHT - 0 is no boundry weighting. 2.0 will make them twice as unlikely to collapse.
 	FACE_AREA_WEIGHT - 0 is no weight. 1 is normal, 2.0 is higher.
@@ -94,8 +94,15 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 	if REMOVE_DOUBLES:
 		me.remDoubles(0.0001)
 	
-	if (not me.getVertGroupNames()) and DO_WEIGHTS:
+	vgroups= me.getVertGroupNames()
+	
+	if not me.getVertGroupNames():
 		DO_WEIGHTS= False
+	
+	if (VGROUP_INF_REDUX!= None and VGROUP_INF_REDUX not in vgroups) or\
+	VGROUP_INF_WEIGHT==0.0:
+		VGROUP_INF_REDUX= None
+	del vgroups
 	
 	OLD_MESH_MODE= Blender.Mesh.Mode()
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes.VERTEX)
@@ -267,6 +274,13 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				
 				vert_weights[ii] += no_ang
 		
+		# Use a vertex group as a weighting.
+		if VGROUP_INF_REDUX!=None:
+			vert_weights_map= [1.0] * len(verts)
+			# Get Weights from a vgroup.
+			for i, wd in enumerate(vWeightDict):
+				try:	vert_weights_map[i]= 1+(wd[VGROUP_INF_REDUX] * VGROUP_INF_WEIGHT)
+				except:	pass
 		
 		# BOUNDRY CHECKING AND WEIGHT EDGES. CAN REMOVE
 		# Now we know how many faces link to an edge. lets get all the boundry verts
@@ -421,6 +435,13 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				
 			# do *= because we face the boundry weight to initialize the weight. 1.0 default.
 			ced.collapse_weight*=  ((no_ang * ced.length) * (1-(1/angle_diff)))# / max(len(test_faces), 1)
+			
+			
+			# are we using a weight map
+			if VGROUP_INF_REDUX:
+				v= vert_weights_map[i1]+vert_weights_map[i2]
+				ced.collapse_weight*= v
+				
 		
 		# We can calculate the weights on __init__ but this is higher qualuity.
 		for ced in collapse_edges:
@@ -496,14 +517,22 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				else:
 					w1/= wscale
 					w2/= wscale
-				wd= vWeightDict[i1] # v1 weight dict
-				for group_key, weight_value in wd.iteritems():
-					wd[group_key]= weight_value*w1
 				
-				wd= vWeightDict[i2] # v1 weight dict
-				for group_key, weight_value in wd.iteritems():
-					wd[group_key]= weight_value*w2
-			
+				
+				# add verts vgroups to eachother
+				wd1= vWeightDict[i1] # v1 weight dict
+				wd2= vWeightDict[i2] # v1 weight dict
+				
+				# Make sure vert groups on both verts exist.
+				for wd_from, wd_to in ((wd1, wd2), (wd2, wd1)):
+					for group_key, weight_value in wd_from.iteritems():
+						try: wd_to[group_key] # We have this weight?
+						except: wd_to[group_key]= 0.0 # Adding a zero weight.
+				
+				# Mix the weights for vert groups
+				for group_key in wd_from.iterkeys():
+					wd1[group_key]= wd2[group_key]= (wd1[group_key]*w1) + (wd2[group_key]*w2)
+				
 			
 			if DO_UV or DO_VCOL:
 				# Handel UV's and vert Colors!
