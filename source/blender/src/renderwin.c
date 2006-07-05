@@ -1235,6 +1235,9 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			mh->start_movie(&G.scene->r, winx, winy);
 		
 		for(CFRA= SFRA; CFRA<=EFRA; CFRA++) {
+			/* user event can close window */
+			if(render_win==NULL)
+				break;
 			drawview3d_render(v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
 			window_swap_buffers(render_win->win);
@@ -1279,7 +1282,8 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		window_swap_buffers(render_win->win);
 	}
 	
-	renderwin_draw(render_win, 0);
+	if(render_win)
+		renderwin_draw(render_win, 0);
 
 	mainwindow_make_active();
 	
