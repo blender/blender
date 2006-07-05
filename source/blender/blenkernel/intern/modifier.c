@@ -2140,7 +2140,7 @@ int modifiers_usesArmature(Object *ob, bArmature *arm)
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
-			if (amd->object->data==arm) 
+			if (amd->object && amd->object->data==arm) 
 				return 1;
 		}
 	}
