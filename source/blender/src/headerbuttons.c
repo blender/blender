@@ -576,10 +576,10 @@ void do_global_buttons(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		break;
 	case B_EDITBROWSE:
-		if(ob==0) return;
+		if(ob==NULL) return;
 		if(ob->id.lib) return;
 		id= ob->data;
-		if(id==0) return;
+		if(id==NULL) return;
 
 		if(G.buts->menunr== -2) {
 			activate_databrowse((ID *)G.buts->lockpoin, GS(id->name), 0, B_EDITBROWSE, &G.buts->menunr, do_global_buttons);
@@ -656,14 +656,30 @@ void do_global_buttons(unsigned short event)
 
 		break;
 	case B_MATBROWSE:
-		if(G.buts->menunr== -2) {
-			activate_databrowse((ID *)G.buts->lockpoin, ID_MA, 0, B_MATBROWSE, &G.buts->menunr, do_global_buttons);
+	{
+		void *lockpoin= NULL;
+		short *menunr= 0;
+		
+		/* this is called now from Node editor too, buttons might not exist */
+		if(curarea->spacetype==SPACE_NODE) {
+			SpaceNode *snode= curarea->spacedata.first;
+			menunr= &snode->menunr;
+			lockpoin= snode->id;
+		}
+		else if(G.buts) {
+			menunr= &G.buts->menunr;
+			lockpoin= G.buts->lockpoin;
+		}
+		else return;
+		
+		if(*menunr== -2) {
+			activate_databrowse((ID *)lockpoin, ID_MA, 0, B_MATBROWSE, menunr, do_global_buttons);
 			return;
 		}
 		
-		if(G.buts->menunr < 0) return;
+		if(*menunr < 0) return;
 		
-		if(G.buts->pin) {
+		if(0) {	/* future pin */
 			
 		}
 		else {
@@ -675,7 +691,7 @@ void do_global_buttons(unsigned short event)
 			
 			idtest= G.main->mat.first;
 			while(idtest) {
-				if(nr==G.buts->menunr) {
+				if(nr== *menunr) {
 					break;
 				}
 				nr++;
@@ -699,9 +715,10 @@ void do_global_buttons(unsigned short event)
 			}
 			
 		}
+	}
 		break;
 	case B_MATDELETE:
-		if(G.buts->pin) {
+		if(0) {	/* future pin */
 			
 		}
 		else {
@@ -1192,10 +1209,19 @@ void do_global_buttons(unsigned short event)
 		break;
 	
 	case B_AUTOMATNAME:
-		automatname(G.buts->lockpoin);
+		/* this is called now from Node editor too, buttons might not exist */
+		if(curarea->spacetype==SPACE_NODE) {
+			SpaceNode *snode= curarea->spacedata.first;
+			automatname((Material *)snode->id);
+		}
+		else if(G.buts) {
+			automatname(G.buts->lockpoin);
+		}
+		else return;
 
 		BIF_undo_push("Auto name");
 		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWNODE, 0);
 		allqueue(REDRAWOOPS, 0);
 		break;		
 	case B_AUTOTEXNAME:

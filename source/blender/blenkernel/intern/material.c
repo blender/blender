@@ -701,7 +701,7 @@ char colname_array[125][20]= {
 "LightBlue","Purple","MediumOrchid","Magenta","Magenta",
 "RoyalBlue","SlateBlue","MediumOrchid","Orchid","Magenta",
 "DeepSkyBlue","LightSteelBlue","LightSkyBlue","Violet","LightPink",
-"Cyaan","DarkTurquoise","SkyBlue","Grey","Snow",
+"Cyan","DarkTurquoise","SkyBlue","Grey","Snow",
 "Mint","Mint","Aquamarine","MintCream","Ivory",
 "Blue","Blue","DarkMagenta","DarkOrchid","Magenta",
 "SkyBlue","RoyalBlue","LightSlateBlue","MediumOrchid","Magenta",
