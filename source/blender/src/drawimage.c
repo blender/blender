@@ -1959,8 +1959,9 @@ static void imagewindow_progress_display_cb(RenderResult *rr, volatile rcti *rec
 	
 	if (image_area) {
 		imagewindow_progress(image_area, rr, rect);
-		image_area->win_swap= WIN_BACK_OK;
-		screen_swapbuffers();
+
+		/* no screen_swapbuffers, prevent any other window to draw */
+		myswapbuffers();
 	}
 }
 
@@ -2144,8 +2145,8 @@ static void imagewindow_renderinfo_cb(RenderStats *rs)
 
 		imagewindow_draw_renderinfo(image_area);
 		
-		image_area->win_swap= WIN_BACK_OK;
-		screen_swapbuffers();
+		/* no screen_swapbuffers, prevent any other window to draw */
+		myswapbuffers();
 	}
 }
 
