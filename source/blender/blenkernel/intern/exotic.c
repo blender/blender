@@ -1013,7 +1013,7 @@ static void read_videoscape(char *str)
 	int file, type;
 	unsigned int val;
 	unsigned short numlen;
-	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXFILE], tail[FILE_MAXFILE];
+	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXFILE];
 	
 	strcpy(name, str);
 
