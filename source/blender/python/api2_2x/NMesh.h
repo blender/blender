@@ -127,9 +127,9 @@ typedef struct {
 	short mode;		/* see the EXPP_NMESH_* defines in the beginning of this file */
 	char flags;
 
-#define NMESH_HASMCOL	1<<0
-#define NMESH_HASVERTUV	1<<1
-#define NMESH_HASFACEUV	1<<2
+#define NMESH_HASMCOL	(1<<0)
+#define NMESH_HASVERTUV	(1<<1)
+#define NMESH_HASFACEUV	(1<<2)
 
 } BPy_NMesh;
 
