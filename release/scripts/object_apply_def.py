@@ -2,30 +2,37 @@
 
 """
 Name: 'Apply Deformation'
-Blender: 241
+Blender: 242
 Group: 'Object'
 Tooltip: 'Make copys of all the selected objects with modifiers, softbodies and fluid baked into a mesh'
 """ 
 
-__author__ = "Martin 'theeth' Poirier, Campbell 'ideasman' Barton"
-__url__ = ("http://www.blender.org", "http://www.elysiun.com")
-__version__ = "1.5 09/21/04"
+__author__ = "Martin Poirier (theeth), Jean-Michel Soler (jms), Campbell Barton (ideasman)"
+# This script is the result of merging the functionalities of two other:
+# Martin Poirier's Apply_Def.py and
+# Jean-Michel Soler's Fix From Everything
+
+__url__ = ("http://www.blender.org", "http://blenderartists.org", "http://members.iinet.net.au/~cpbarton/ideasman/", "http://jmsoler.free.fr")
+__version__ = "1.6 07/07/2006"
 
 __bpydoc__ = """\
 This script creates "raw" copies of deformed meshes.
 
 Usage:
 
-Select the mesh(es) and run this script.  A fixed copy of each selected mesh
+Select any number of Objects and run this script.  A fixed copy of each selected object
 will be created, with the word "_def" appended to its name. If an object with
 the same name already exists, it appends a number at the end as Blender itself does.
 
-Meshes in Blender can be deformed by armatures, lattices, curve objects and subdivision, but this will only change its appearance on screen and rendered
+Objects in Blender can be deformed by armatures, lattices, curve objects and subdivision,
+but this will only change its appearance on screen and rendered
 images -- the actual mesh data is still simpler, with vertices in an original
 "rest" position and less vertices than the subdivided version.
 
 Use this script if you want a "real" version of the deformed mesh, so you can
 directly manipulate or export its data.
+
+This script will work with object types: Mesh, Metaballs, Text3d, Curves and Nurbs Surface.
 """
 
 
