@@ -643,18 +643,23 @@ bool GPG_Application::startEngine(void)
 			m_audiodevice,
 			startscenename);
 		
+		
 		// some python things
-		PyObject* m_dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest);
-		m_ketsjiengine->SetPythonDictionary(m_dictionaryobject);
+		PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
-		initGameLogic(startscene);
+		PyObject *gameLogic = initGameLogic(startscene);
 		initGameKeys();
 		initPythonConstraintBinding();
-		
+
+
+
+
+
 		m_sceneconverter->ConvertScene(
 			startscenename,
 			startscene,
-			m_dictionaryobject,
+			dictionaryobject,
 			m_keyboard,
 			m_rendertools,
 			m_canvas);

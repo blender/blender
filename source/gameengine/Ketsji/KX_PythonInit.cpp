@@ -830,7 +830,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
-	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") ||
+	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
 		!strcmp(name, "Rasterizer")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
