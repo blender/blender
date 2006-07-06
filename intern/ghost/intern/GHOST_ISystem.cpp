@@ -83,7 +83,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 
 GHOST_TSuccess GHOST_ISystem::disposeSystem()
 {
-	GHOST_TSuccess success;
+	GHOST_TSuccess success = GHOST_kSuccess;
 	if (m_system) {
 		delete m_system;
 		m_system = 0;
