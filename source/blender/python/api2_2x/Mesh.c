@@ -3813,14 +3813,15 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
     return 0;
 }
 
+#define MFACE_FLAG_BITMASK ( TF_SELECT | TF_ACTIVE | TF_SEL1 | \
+		TF_SEL2 | TF_SEL3 | TF_SEL4 | TF_HIDE )
+
 /*
- * get face's texture flag
- */
+* get face's texture flag
+*/
 
 static PyObject *MFace_getFlag( BPy_MFace *self )
 {
-	PyObject *attr;
-
 	if( !self->mesh->tface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
@@ -3828,13 +3829,8 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	attr = PyInt_FromLong( self->mesh->tface[self->index].flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( (long) ( self->mesh->tface[self->index].flag
+			& MFACE_FLAG_BITMASK ) );
 }
 
 /*
@@ -3844,14 +3840,6 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 {
 	int param;
-	static short bitmask =
-		TF_SELECT	|
-		TF_ACTIVE	|
-		TF_SEL1		|
-		TF_SEL2		|
-		TF_SEL3		|
-		TF_SEL4		|
-		TF_HIDE;	
 
 	if( !self->mesh->tface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -3862,7 +3850,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 
 	if( !PyInt_CheckExact ( value ) ) {
 		char errstr[128];
-		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
+		sprintf ( errstr , "expected int bitmask of 0x%04x", MFACE_FLAG_BITMASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 	param = PyInt_AS_LONG ( value );
@@ -3871,7 +3859,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 	if( param & TF_ACTIVE )
 		param &= ~TF_ACTIVE;
 	
-	if( ( param & bitmask ) != param )
+	if( ( param & MFACE_FLAG_BITMASK ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 						"invalid bit(s) set in mask" );
 
