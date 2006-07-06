@@ -90,17 +90,10 @@
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/rational.h>
 
-/* #define FFMPEG_SEEK_DEBUG 1 */
-
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
 #define FFMPEG_CODEC_IS_POINTER 1
-#define FFMPEG_HAVE_SKIP_OPTS   1
-#endif
-
-#ifndef FF_ER_CAREFUL 
-#define FF_ER_CAREFUL FF_ER_CAREFULL
 #endif
 
 #endif
@@ -563,15 +556,6 @@ static int startffmpeg(struct anim * anim) {
 	}
 
 	pCodecCtx->workaround_bugs = 1;
-	pCodecCtx->lowres = 0;
-	pCodecCtx->idct_algo= FF_IDCT_AUTO;
-#ifdef FFMPEG_HAVE_SKIP_OPTS
-	pCodecCtx->skip_frame= AVDISCARD_DEFAULT;
-	pCodecCtx->skip_idct= AVDISCARD_DEFAULT;
-	pCodecCtx->skip_loop_filter= AVDISCARD_DEFAULT;
-#endif
-	pCodecCtx->error_resilience= FF_ER_CAREFUL;
-	pCodecCtx->error_concealment= 3;
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
 		av_close_input_file(pFormatCtx);
@@ -621,7 +605,7 @@ static int startffmpeg(struct anim * anim) {
 	}
 
 	if (pCodecCtx->has_b_frames) {
-		anim->preseek = 18; /* FIXME: detect gopsize ... */
+		anim->preseek = 25; /* FIXME: detect gopsize ... */
 	} else {
 		anim->preseek = 0;
 	}
@@ -633,7 +617,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 	ImBuf * ibuf;
 	int frameFinished;
 	AVPacket packet;
-	offset_t pos_to_match = AV_NOPTS_VALUE;
+	int64_t pts_to_search = 0;
 	int pos_found = 1;
 
 	if (anim == 0) return (0);
@@ -668,7 +652,6 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 	}
 
 	if (position != anim->curposition + 1) { 
-		int keyframe_found = 0;
 #ifdef FFMPEG_OLD_FRAME_RATE
 		double frame_rate = 
 			(double) anim->pCodecCtx->frame_rate
@@ -681,71 +664,45 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		double time_base = 
 			av_q2d(anim->pFormatCtx->streams[anim->videoStream]
 			       ->time_base);
-		long long pos = (long long) position * AV_TIME_BASE 
-			/ frame_rate;
+		long long pos = (long long) (position - anim->preseek) 
+			* AV_TIME_BASE / frame_rate;
 		long long st_time = anim->pFormatCtx
 			->streams[anim->videoStream]->start_time;
+
+		if (pos < 0) {
+			pos = 0;
+		}
 
 		if (st_time != AV_NOPTS_VALUE) {
 			pos += st_time * AV_TIME_BASE * time_base;
 		}
 
 		av_seek_frame(anim->pFormatCtx, -1, 
-			      pos, AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD );
+			      pos, AVSEEK_FLAG_BACKWARD);
 
-		while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
-			if(packet.stream_index == anim->videoStream) {
-				pos_to_match 
-					= url_ftell(&anim->pFormatCtx->pb);
-				if ((packet.flags & PKT_FLAG_KEY) != 0) {
-					keyframe_found = 1;
-				}
-
-				av_free_packet(&packet);
-				break;
-			}
-			av_free_packet(&packet);
+		pts_to_search = (long long) 
+			(((double) position) / time_base / frame_rate);
+		if (st_time != AV_NOPTS_VALUE) {
+			pts_to_search += st_time;
 		}
-
-		if (!keyframe_found) {
-			int scan_pos = position - anim->preseek;
-			if (scan_pos < 0) {
-				scan_pos = 0;
-			}
-
-			pos = (long long) scan_pos * AV_TIME_BASE / frame_rate;
-			if (st_time != AV_NOPTS_VALUE) {
-				pos += st_time * AV_TIME_BASE * time_base;
-			}
-		}
-
-		av_seek_frame(anim->pFormatCtx, -1, 
-			      pos, AVSEEK_FLAG_ANY | AVSEEK_FLAG_BACKWARD);
 
 		pos_found = 0;
 		avcodec_flush_buffers(anim->pCodecCtx);
 	}
 
 	while(av_read_frame(anim->pFormatCtx, &packet)>=0) {
-		if (packet.stream_index == anim->videoStream 
-		    && !pos_found) {
-			if (url_ftell(&anim->pFormatCtx->pb) == pos_to_match) {
-				pos_found = 1;
-				if (anim->pCodecCtx->has_b_frames) {
-					pos_found++;
-					/* account for delay caused by
-					   decoding pipeline */
-				}
-			} 
-		}
 		if(packet.stream_index == anim->videoStream) {
 			avcodec_decode_video(anim->pCodecCtx, 
 					     anim->pFrame, &frameFinished, 
 					     packet.data, packet.size);
 
-			if (frameFinished && pos_found == 2) {
-				pos_found = 1;
-			} else if(frameFinished && pos_found == 1) {
+			if (frameFinished && !pos_found) {
+				if (packet.dts >= pts_to_search) {
+					pos_found = 1;
+				}
+			} 
+
+			if(frameFinished && pos_found == 1) {
 				unsigned char * p =(unsigned char*) ibuf->rect;
 				unsigned char * e = p + anim->x * anim->y * 4;
 
