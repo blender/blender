@@ -189,9 +189,15 @@ def copy_images(dest_dir):
 				copy_file(image_path, dest_image_path)
 				copyCount+=1
 	print '\tCopied %d images' % copyCount
-	
+
+def veckey3d(v):
+	return round(v.x, 6), round(v.y, 6), round(v.z, 6)
+
+def veckey2d(v):
+	return round(v.x, 6), round(v.y, 6)
+
 def write(filename, objects,\
-EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,\
+EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
 EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
 EXPORT_APPLY_MODIFIERS=True,  EXPORT_BLEN_OBS=True,\
 EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
@@ -277,6 +283,10 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 		
 		m.transform(ob.matrix)
 		
+		# High Quality Normals
+		if EXPORT_NORMALS and EXPORT_NORMALS_HQ:
+			BPyMesh.meshCalcNormals(m)
+		
 		# # Crash Blender
 		#materials = m.getMaterials(1) # 1 == will return None in the list.
 		materials = m.materials
@@ -323,7 +333,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 		if m.faceUV and EXPORT_UV:
 			for f in faces:
 				for uvKey in f.uv:
-					uvKey = tuple(uvKey)
+					uvKey = veckey2d(uvKey)
 					if not globalUVCoords.has_key(uvKey):
 						globalUVCoords[uvKey] = totuvco
 						totuvco +=1
@@ -334,14 +344,14 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			for f in faces:
 				if f.smooth:
 					for v in f.v:
-						noKey = tuple(v.no)
+						noKey = veckey3d(v.no)
 						if not globalNormals.has_key( noKey ):
 							globalNormals[noKey] = totno
 							totno +=1
 							file.write('vn %.6f %.6f %.6f\n' % noKey)
 				else:
 					# Hard, 1 normal from the face.
-					noKey = tuple(f.no)
+					noKey = veckey3d(f.no)
 					if not globalNormals.has_key( noKey ):
 						globalNormals[noKey] = totno
 						totno +=1
@@ -408,21 +418,21 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 						for vi, v in enumerate(f_v):
 							file.write( ' %d/%d/%d' % (\
 							  v.index+totverts,\
-							  globalUVCoords[ tuple(f.uv[vi]) ],\
-							  globalNormals[ tuple(v.no) ])) # vert, uv, normal
+							  globalUVCoords[ veckey2d(f.uv[vi]) ],\
+							  globalNormals[ veckey3d(v.no) ])) # vert, uv, normal
 					else: # No smoothing, face normals
-						no = globalNormals[ tuple(f.no) ]
+						no = globalNormals[ veckey3d(f.no) ]
 						for vi, v in enumerate(f_v):
 							file.write( ' %d/%d/%d' % (\
 							  v.index+totverts,\
-							  globalUVCoords[ tuple(f.uv[vi]) ],\
+							  globalUVCoords[ veckey2d(f.uv[vi]) ],\
 							  no)) # vert, uv, normal
 				
 				else: # No Normals
 					for vi, v in enumerate(f_v):
 						file.write( ' %d/%d' % (\
 						  v.index+totverts,\
-						  globalUVCoords[ tuple(f.uv[vi])])) # vert, uv
+						  globalUVCoords[ veckey2d(f.uv[vi])])) # vert, uv
 					
 					
 			else: # No UV's
@@ -431,9 +441,9 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 						for v in f_v:
 							file.write( ' %d//%d' % (\
 							  v.index+totverts,\
-							  globalNormals[ tuple(v.no) ]))
+							  globalNormals[ veckey3d(v.no) ]))
 					else: # No smoothing, face normals
-						no = globalNormals[ tuple(f.no) ]
+						no = globalNormals[ veckey3d(f.no) ]
 						for v in f_v:
 							file.write( ' %d//%d' % (\
 							  v.index+totverts,\
@@ -493,6 +503,7 @@ def write_ui(filename):
 	EXPORT_TRI = Draw.Create(0)
 	EXPORT_EDGES = Draw.Create(0)
 	EXPORT_NORMALS = Draw.Create(0)
+	EXPORT_NORMALS_HQ = Draw.Create(0)
 	EXPORT_UV = Draw.Create(1)
 	EXPORT_MTL = Draw.Create(1)
 	EXPORT_SEL_ONLY = Draw.Create(1)
@@ -511,6 +522,7 @@ def write_ui(filename):
 	('Triangulate', EXPORT_TRI, 'Triangulate quadsModifiers.'),\
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
+	('High Quality Normals', EXPORT_NORMALS_HQ, 'Calculate high quality normals for rendering.'),\
 	('UVs', EXPORT_UV, 'Export texface UV coords.'),\
 	('Materials', EXPORT_MTL, 'Write a separate MTL file with the OBJ.'),\
 	('Context...'),\
@@ -519,8 +531,8 @@ def write_ui(filename):
 	('Animation', EXPORT_ANIMATION, 'Each frame as a numbered OBJ file.'),\
 	('Copy Images', EXPORT_COPY_IMAGES, 'Copy image files to the export directory, never overwrite.'),\
 	('Grouping...'),\
-	('Objects', EXPORT_BLEN_OBS, 'Export blender objects as OBJ objects.'),\
-	('Object Groups', EXPORT_GROUP_BY_OB, 'Export blender objects as OBJ groups.'),\
+	('Objects', EXPORT_BLEN_OBS, 'Export blender objects as "OBJ objects".'),\
+	('Object Groups', EXPORT_GROUP_BY_OB, 'Export blender objects as "OBJ Groups".'),\
 	('Material Groups', EXPORT_GROUP_BY_MAT, 'Group by materials.'),\
 	]
 	
@@ -533,6 +545,7 @@ def write_ui(filename):
 	EXPORT_TRI = EXPORT_TRI.val
 	EXPORT_EDGES = EXPORT_EDGES.val
 	EXPORT_NORMALS = EXPORT_NORMALS.val
+	EXPORT_NORMALS_HQ = EXPORT_NORMALS_HQ.val
 	EXPORT_UV = EXPORT_UV.val
 	EXPORT_MTL = EXPORT_MTL.val
 	EXPORT_SEL_ONLY = EXPORT_SEL_ONLY.val
@@ -585,8 +598,8 @@ def write_ui(filename):
 			# EXPORT THE FILE.
 			write(''.join(context_name), export_objects,\
 			EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
-			EXPORT_UV, EXPORT_MTL, EXPORT_COPY_IMAGES,\
-			EXPORT_APPLY_MODIFIERS,\
+			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
+			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
 			EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT)
 		
 		Blender.Set('curframe', orig_frame)
