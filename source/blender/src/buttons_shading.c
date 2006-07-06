@@ -2744,7 +2744,7 @@ static void material_panel_texture(Material *ma)
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
 		str[10]= 0;
-		uiDefButC(block, ROW, B_MATPRV, str,	10, 180-18*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
+		uiDefButC(block, ROW, B_TEXCHANNEL, str,	10, 180-18*a, 70, 20, &(ma->texact), 3.0, (float)a, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 	
