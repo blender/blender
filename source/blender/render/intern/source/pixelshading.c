@@ -477,6 +477,11 @@ void renderSkyPixelFloat(float *collector, float x, float y, float *rco)
 
 static void fillBackgroundImage(float *collector, float fx, float fy)
 {
+	collector[0] = 0.0; 
+	collector[1] = 0.0; 
+	collector[2] = 0.0; 
+	collector[3] = 0.0; 
+	
 	if(R.backbuf) {
 		float dx= 1.0f/(float)R.winx;
 		float dy= 1.0f/(float)R.winy;
