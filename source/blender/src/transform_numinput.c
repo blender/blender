@@ -81,6 +81,7 @@ void outputNumInput(NumInput *n, char *str)
 			case 1000:
 			case -1000:
 				sprintf(&str[j*20], "%.2f%c", n->val[i], cur);
+				break;
 			case 10000:
 			case -10000:
 				sprintf(&str[j*20], "%.3f%c", n->val[i], cur);
