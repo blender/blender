@@ -48,5 +48,9 @@ install: all debug
 	@[ -d $(NAN_MEMUTIL)/lib/debug ] || mkdir $(NAN_MEMUTIL)/lib/debug
 	@../tools/cpifdiff.sh $(DIR)/libmemutil.a $(NAN_MEMUTIL)/lib/
 	@../tools/cpifdiff.sh $(DIR)/debug/libmemutil.a $(NAN_MEMUTIL)/lib/debug
+ifeq ($(OS),darwin)
+	ranlib $(NAN_MEMUTIL)/lib/libmemutil.a
+	ranlib $(NAN_MEMUTIL)/lib/debug/libmemutil.a
+endif
 	@../tools/cpifdiff.sh *.h $(NAN_MEMUTIL)/include/
 
