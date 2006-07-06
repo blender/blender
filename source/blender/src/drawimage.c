@@ -1954,6 +1954,7 @@ static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *r
 
 
 /* in render window; display a couple of scanlines of rendered image */
+/* NOTE: called while render, so no malloc allowed! */
 static void imagewindow_progress_display_cb(RenderResult *rr, volatile rcti *rect)
 {
 	
@@ -2091,6 +2092,9 @@ static void imagewindow_init_display_cb(RenderResult *rr)
 		
 		areawinset(image_area->win);
 		
+		if(sima->info_str==NULL)
+			sima->info_str= MEM_callocN(RW_MAXTEXT, "info str imagewin");
+		
 		/* calc location using original size (tiles don't tell) */
 		sima->centx= (image_area->winx - sima->zoom*(float)rr->rectx)/2.0f;
 		sima->centy= (image_area->winy - sima->zoom*(float)rr->recty)/2.0f;
@@ -2131,14 +2135,12 @@ void imagewindow_toggle_render(void)
 	}
 }
 
+/* NOTE: called while render, so no malloc allowed! */
 static void imagewindow_renderinfo_cb(RenderStats *rs)
 {
 	
 	if(image_area) {
 		SpaceImage *sima= image_area->spacedata.first;
-		
-		if(sima->info_str==NULL)
-			sima->info_str= MEM_callocN(RW_MAXTEXT, "info str imagewin");
 		
 		if(rs)
 			make_renderinfo_string(rs, sima->info_str);
