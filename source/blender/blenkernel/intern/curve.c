@@ -967,16 +967,31 @@ float *make_orco_surf(Object *ob)
 				}
 			}
 			else {
-				makeNurbfaces(nu, data, sizeof(*data)*sizev*3);
+				float *_tdata= MEM_callocN(nu->resolu*nu->resolv*3*sizeof(float), "temp data");
+				float *tdata= _tdata;
+				
+				makeNurbfaces(nu, tdata, 0);
 				
 				for(b=0; b<sizeu; b++) {
+					int use_b= b;
+					if (b==sizeu-1 && (nu->flagu & CU_CYCLIC))
+						use_b= 0;
+					
 					for(a=0; a<sizev; a++) {
-						data = orco + 3 * (b * sizev + a);
-						data[0]= (data[0]-cu->loc[0])/cu->size[0];
-						data[1]= (data[1]-cu->loc[1])/cu->size[1];
-						data[2]= (data[2]-cu->loc[2])/cu->size[2];
+						int use_a= a;
+						if (a==sizev-1 && (nu->flagv & CU_CYCLIC))
+							use_a= 0;
+						
+						tdata = _tdata + 3 * (use_b * nu->resolv + use_a);
+						
+						data[0]= (tdata[0]-cu->loc[0])/cu->size[0];
+						data[1]= (tdata[1]-cu->loc[1])/cu->size[1];
+						data[2]= (tdata[2]-cu->loc[2])/cu->size[2];
+						data+= 3;
 					}
 				}
+				
+				MEM_freeN(_tdata);
 			}
 		}
 		nu= nu->next;
