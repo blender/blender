@@ -361,7 +361,7 @@ class MEdge:
      from Blender import Scene, Mesh
      scn= Scene.GetCurrent() # Current scene, important to be scene aware
      ob= scn.getActiveObject() # last selected object
-     me= ob.getData(mesh=1) # thin wrapper dosent copy mesh data like nmesh
+     me= ob.getData(mesh=1) # thin wrapper doesn't copy mesh data like nmesh
      
      total_fgon_eds= total_nor_eds= 0
      
@@ -513,7 +513,7 @@ class MFace:
       from Blender import Scene, Mesh, Window
       scn= Scene.GetCurrent() # Current scene, important to be scene aware
       ob= scn.getActiveObject() # last selected object
-      me= ob.getData(mesh=1) # thin wrapper dosent copy mesh data like nmesh
+      me= ob.getData(mesh=1) # thin wrapper doesn't copy mesh data like nmesh
       me.faceUV=1				# Enable face, vertex colors
       for f in me.faces:
       	for i, v in enumerate(f.v):
