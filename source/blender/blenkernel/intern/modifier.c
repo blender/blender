@@ -640,13 +640,21 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldVert, int copy)
 	int newVert;
 
 	if(indexMap[oldVert].merge < 0) {
+		/* vert wasn't merged, so use copy of this vert */
 		newVert = indexMap[oldVert].new + copy + 1;
 	} else if(indexMap[oldVert].merge == oldVert) {
-		/* This vert was merged with itself */
+		/* vert was merged with itself */
 		newVert = indexMap[oldVert].new;
 	} else {
-		/* This vert wasn't merged with itself, so increment vert number. */
-		newVert = indexMap[indexMap[oldVert].merge].new + copy;
+		/* vert was merged with another vert */
+		int mergeVert = indexMap[oldVert].merge;
+
+		if (mergeVert == indexMap[mergeVert].merge)
+			/* vert merged with vert that was merged with itself */
+			newVert = indexMap[mergeVert].new;
+		else
+			/* use copy of the vert this vert was merged with */
+			newVert = indexMap[mergeVert].new + copy;
 	}
 
 	return newVert;
