@@ -65,6 +65,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
@@ -814,6 +815,11 @@ void BIF_view3d_previewrender(ScrArea *sa)
 			if(rstats->convertdone) 
 				ri->status |= PR_DBASE|PR_PROJECTED|PR_ROTATED;
 			ri->curtile= 0;
+			
+			/* database can have created render-resol data... */
+			if(rstats->convertdone) 
+				DAG_scene_update_flags(G.scene, screen_view3d_layers());
+			
 			//printf("dbase update\n");
 		}
 		if((ri->status & PR_PROJECTED)==0) {
