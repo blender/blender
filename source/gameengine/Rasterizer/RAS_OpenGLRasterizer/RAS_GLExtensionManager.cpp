@@ -177,19 +177,30 @@ typedef void (*(*PFNBGLXGETPROCADDRESSARBPROC)(const GLubyte *procname))();
 void *_getProcAddress(const GLubyte *procName) { return NULL; }
 PFNBGLXGETPROCADDRESSARBPROC bglGetProcAddress;
 
+
+//weird bug related to combination of pthreads,libGL and dlopen
+//cannot call dlclose in such environment, causes crashes
+//so try to keep a global handle to libGL
+void* libGL = 0;
+
 static void bglInitEntryPoints (void)
 {
 	Display *dpy = glXGetCurrentDisplay();
 	std::vector<STR_String> Xextensions = STR_String(glXQueryExtensionsString(dpy, DefaultScreen(dpy))).Explode(' ');
 	if (std::find(Xextensions.begin(), Xextensions.end(), "GLX_ARB_get_proc_address") != Xextensions.end()) 
 	{
-		void *libGL = dlopen("libGL.so", RTLD_LAZY);
-		if (libGL)
+		if (!libGL)
 		{
+			libGL = dlopen("libGL.so", RTLD_GLOBAL);
 			bglGetProcAddress = (PFNBGLXGETPROCADDRESSARBPROC) (dlsym(libGL, "glXGetProcAddressARB"));
-			dlclose(libGL);
+
+			// dlclose(libGL);
 			if (!bglGetProcAddress)
 				bglGetProcAddress = (PFNBGLXGETPROCADDRESSARBPROC) _getProcAddress;
+			
+			// --
+			if( !libGL && !bglGetProcAddress)
+				std::cout << "Error: " << dlerror() << std::endl;
 		}
 	}
 }
