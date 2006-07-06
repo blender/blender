@@ -507,6 +507,22 @@ class MFace:
      colors; use L{Mesh.faceUV} and L{Mesh.vertexColors} to test.  B{Note}:
      if a mesh has i{both} UV faces and vertex colors, the colors stored in
      the UV faces will be used here. 
+
+     Example::
+      # This example uses vertex normals to apply normal colors to each face.
+      from Blender import Scene, Mesh, Window
+      scn= Scene.GetCurrent() # Current scene, important to be scene aware
+      ob= scn.getActiveObject() # last selected object
+      me= ob.getData(mesh=1) # thin wrapper dosent copy mesh data like nmesh
+      me.faceUV=1				# Enable face, vertex colors
+      for f in me.faces:
+      	for i, v in enumerate(f.v):
+      		no= v.no
+      		col= f.col[i]
+      		col.r= int((no.x+1)*128)
+      		col.g= int((no.y+1)*128)
+      		col.b= int((no.z+1)*128)
+      Window.RedrawAll()
   @type col: sequence of MCols
   @ivar mat: The face's index into the mesh's materials
       list.  It is in the range [0,15].
