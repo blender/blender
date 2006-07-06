@@ -356,6 +356,23 @@ class MEdge:
   @ivar crease: The crease value of the edge. It is in the range [0,255].
   @type crease: int
   @ivar flag: The bitfield describing edge properties. See L{EdgeFlags}.
+    Example::
+     # This script counts fgon and non fgon edges
+     from Blender import Scene, Mesh
+     scn= Scene.GetCurrent() # Current scene, important to be scene aware
+     ob= scn.getActiveObject() # last selected object
+     me= ob.getData(mesh=1) # thin wrapper dosent copy mesh data like nmesh
+     
+     total_fgon_eds= total_nor_eds= 0
+     
+     # Look through the edges and find any fgon edges, then print the findings to the console
+     for ed in me.edges: # all meshes have edge data now
+     	if ed.flag & Mesh.EdgeFlags.FGON:
+     		total_fgon_eds+=1
+     	else:
+     		total_nor_eds+=1
+     
+     print 'Blender has', total_fgon_eds, 'fgon edges and', total_nor_eds, 'non fgon edges'
   @type flag: int
   @ivar index: The edge's index within the mesh.  Read-only.
   @type index: int
