@@ -146,9 +146,9 @@ AttributeError:
 static PyObject *EditBone_getRoll(BPy_EditBone *self, void *closure)
 {
 	if (self->editbone){
-		return Py_BuildValue("f", PyFloat_FromDouble((self->editbone->roll * (180/Py_PI))));
+		return PyFloat_FromDouble((self->editbone->roll * (180/Py_PI)));
 	}else{
-		return Py_BuildValue("f", PyFloat_FromDouble((self->roll * (180/Py_PI))));
+		return PyFloat_FromDouble((self->roll * (180/Py_PI)));
 	}
 }
 //------------------------EditBone.roll (set)
