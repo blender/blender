@@ -850,7 +850,7 @@ void transform_actionchannel_keys(int mode, int dummy)
 	bActionChannel	*chan;
 	float	deltax, startx;
 	float	minx, maxx, cenf[2];
-	float	sval[2], cval[2], lastcval[2];
+	float	sval[2], cval[2], lastcval[2]={0,0};
 	float	fac=0.0f;
 	int		loop=1;
 	int		tvtot=0;
@@ -1097,7 +1097,7 @@ void transform_meshchannel_keys(char mode, Key *key)
     TransVert *tv;
     int /*sel=0,*/  i;
     short	mvals[2], mvalc[2], cent[2];
-    float	sval[2], cval[2], lastcval[2];
+    float	sval[2], cval[2], lastcval[2]={0,0};
     short	cancel=0;
     float	fac=0.0F;
     int		loop=1;

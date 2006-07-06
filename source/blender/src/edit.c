@@ -1401,7 +1401,8 @@ void snap_to_center()
 	/*calculate the snaplocation (centerpoint) */
 	count= 0;
 	INIT_MINMAX(min, max);
-	centroid[0]= centroid[1]= centroid[2]= 0.0;
+	centroid[0]= centroid[1]= centroid[2]= 0.0f;
+	snaploc[0]= snaploc[1]= snaploc[2]= 0.0f;
 
 	if(G.obedit) {
 		tottrans= 0;
