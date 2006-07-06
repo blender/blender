@@ -4201,8 +4201,38 @@ static void ui_but_prev_edittext(uiBlock *block)
 	}
 }
 
+/* ******************************************************* */
 
+/* nasty but safe way to store screendump rect */
+static int scr_x=0, scr_y=0, scr_sizex=0, scr_sizey=0;
 
+static void ui_set_screendump_bbox(uiBlock *block)
+{
+	if(block) {
+		scr_x= block->minx;
+		scr_y= block->miny;
+		scr_sizex= block->maxx - block->minx;
+		scr_sizey= block->maxy - block->miny;
+	}
+	else {
+		scr_sizex= scr_sizey= 0;
+	}
+}
+
+/* used for making screenshots for menus, called in screendump.c */
+int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
+{
+	if(scr_sizex!=0 && scr_sizey!=0) {
+		*x= scr_x;
+		*y= scr_y;
+		*sizex= scr_sizex;
+		*sizey= scr_sizey;
+		return 1;
+	}
+	
+	return 0;
+}
+/* ******************************************************* */
 
 /* return: 
  * UI_NOTHING	pass event to other ui's
@@ -4232,6 +4262,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	}		
 
 	ui_set_ftf_font(block->aspect);	// sets just a pointer in ftf lib... the button dont have ftf handles
+	ui_set_screendump_bbox(block);
 	
 	// added this for panels in windows with buttons... 
 	// maybe speed optimize should require test
@@ -4962,6 +4993,9 @@ int uiDoBlocks(ListBase *lb, int event)
 		if(retval==UI_CONT || (retval & UI_RETURN_OK)) cont= 0;
 	}
 	
+	/* clears screendump boundbox, call before afterfunc! */
+	ui_set_screendump_bbox(NULL);
+	
 	/* afterfunc is used for fileloading too, so after this call, the blocks pointers are invalid */
 	if(retval & UI_RETURN_OK) {
 		if(UIafterfunc) {
@@ -4975,7 +5009,7 @@ int uiDoBlocks(ListBase *lb, int event)
 	if(retval==UI_NOTHING && (uevent.event==MOUSEX || uevent.event==MOUSEY)) {
 		if(U.flag & USER_TOOLTIPS) ui_do_but_tip(UIbuttip);
 	}
-
+	
 	return retval;
 }
 
@@ -5276,40 +5310,6 @@ uiBlock *uiGetBlock(char *name, ScrArea *sa)
 	
 	return NULL;
 }
-
-#if 0
-/* used for making screenshots for menus, called in screendump.c */
-static int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
-{
-	uiBlock *block= curarea->uiblocks.first;
-	int minx, miny, maxx, maxy;
-	
-	minx= 1<<30;
-	miny= 1<<30;
-	maxx= 0;
-	maxy= 0;
-	
-	while(block) {
-		if(block->flag & UI_BLOCK_LOOP) {
-			if(block->minx < minx) minx= (int)block->minx;
-			if(block->miny < miny) miny= (int)block->miny;
-			if(block->maxx > maxx) maxx= (int)block->maxx;
-			if(block->maxy > maxy) maxy= (int)block->maxy;
-		}
-		block= block->next;
-	}
-printf("%d %d %d %d\n", minx, miny, maxx, maxy);	
-	if(maxx!=0 && maxy!=0) {
-		*x= minx-10<0?0:minx;
-		*y= miny-10<0?0:miny;
-		*sizex= maxx-minx+10;
-		*sizey= maxy-miny+10;
-		return 1;
-	}
-	
-	return 0;
-}
-#endif
 
 void ui_check_but(uiBut *but)
 {

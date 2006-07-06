@@ -117,25 +117,27 @@ void write_screendump(char *name)
 /* get dump from frontbuffer */
 void BIF_screendump(int fscreen)
 {
-	extern uiBut *UIbuttip; // interface.c
+	extern int uiIsMenu(int *x, int *y, int *sizex, int *sizey);
+	int ismenu;
 	static int wasmenu= 0;
 	int x=0, y=0;
 	char imstr[64];
 
-	if(wasmenu && UIbuttip==NULL) {
+	/* this sets dumpsx/y to zero if ismenu==0 */
+	ismenu= uiIsMenu(&x, &y, &dumpsx, &dumpsy);
+	
+	if(wasmenu && !ismenu) {
 		save_image_filesel_str(imstr);
+		strcat(imstr, " (Menu)");
 		activate_fileselect(FILE_SPECIAL, imstr, G.ima, write_screendump);
 		wasmenu= 0;
 		return;
 	}
 	
-	dumpsx= 0;
-	dumpsy= 0;
-	
 	if(dumprect) MEM_freeN(dumprect);
 	dumprect= NULL;
 	
-	if(UIbuttip || (G.qual & LR_SHIFTKEY) || fscreen) {	/* full screen */
+	if((G.qual & LR_SHIFTKEY) || fscreen) {	/* full screen */
 		x= 0;
 		y= 0;
 		
@@ -144,7 +146,7 @@ void BIF_screendump(int fscreen)
 		
 	} 
 	else {
-		{	/* a window */
+		if(ismenu==0) {	/* a window */
 			//int win= mywinget();
 
 			//bwin_getsuborigin(win, &x, &y);
@@ -164,7 +166,7 @@ void BIF_screendump(int fscreen)
 		glFinish();
 		glReadBuffer(GL_BACK);
 		
-		if(UIbuttip==NULL) {
+		if(ismenu==0) {
 			wasmenu= 0;
 			save_image_filesel_str(imstr);
 			activate_fileselect(FILE_SPECIAL, imstr, G.ima, write_screendump);
