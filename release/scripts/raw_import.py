@@ -1,8 +1,8 @@
 #!BPY
 
 """
-Name: 'Raw Triangle (.raw)...'
-Blender: 232
+Name: 'Raw Faces (.raw)...'
+Blender: 242
 Group: 'Import'
 Tooltip: 'Import Raw Triangle File Format (.raw)'
 """
@@ -59,50 +59,67 @@ tolerance.
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import Blender, meshtools
-#import time
+import Blender
 
 # ================================
 # === Read RAW Triangle Format ===
 # ================================
 def read(filename):
-	#start = time.clock()
+	t = Blender.sys.time()
 	file = open(filename, "rb")
 
 	# Collect data from RAW format
-	faces = []
-	for line in file.readlines():
-		try:
-			f1, f2, f3, f4, f5, f6, f7, f8, f9 = map(float, line.split())
-			faces.append([(f1, f2, f3), (f4, f5, f6), (f7, f8, f9)])
-		except: # Quad
-			f1, f2, f3, f4, f5, f6, f7, f8, f9, A, B, C = map(float, line.split())
-			faces.append([(f1, f2, f3), (f4, f5, f6), (f7, f8, f9), (A, B, C)])
-
+	def line_to_face(line):
+		# Each triplet is an xyz float
+		line_split= map(float, line.split())
+		if len(line_split)==9: # Tri
+			f1, f2, f3, f4, f5, f6, f7, f8, f9 = line_split
+			return [(f1, f2, f3), (f4, f5, f6), (f7, f8, f9)]
+		if len(line_split)==12: # Quad
+			f1, f2, f3, f4, f5, f6, f7, f8, f9, A, B, C = line_split
+			return [(f1, f2, f3), (f4, f5, f6), (f7, f8, f9), (A, B, C)]
+	
+	faces = [ line_to_face(line) for line in file.readlines()]
+	file.close()
+	
 	# Generate verts and faces lists, without duplicates
 	verts = []
 	coords = {}
 	index = 0
-	for i in range(len(faces)):
-		for j in range(len(faces[i])):
-			vertex = faces[i][j]
-			if not coords.has_key(vertex):
-				coords[vertex] = index
-				index += 1
-				verts.append(vertex)
-			faces[i][j] = coords[vertex]
-
+	
+	for f in faces:
+		if f: # Line might be blank
+			for i, v in enumerate(f):
+				try:
+					f[i]= coords[v]
+				except:
+					f[i]= coords[v] = index
+					index += 1
+					verts.append(v)
+	
+	me= Blender.Mesh.New()
+	me.verts.extend(verts)
+	me.faces.extend(faces)
+	
+	
 	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
+	scn= Blender.Scene.GetCurrent()
+	for obj in scn.getChildren():
+		obj.sel= 0
+	
+	me.name= objname
+	ob= Blender.Object.New('Mesh', objname)
+	ob.link(me)
+	scn.link(ob)
+	ob.sel= 1
+	ob.Layers= scn.Layers
+	Blender.Redraw()
+	
+	print 'Successfully imported "%s" in %.4f seconds' % (Blender.sys.basename(filename), Blender.sys.time()-t)
 
-	meshtools.create_mesh(verts, faces, objname)
-	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
-	file.close()
-	#end = time.clock()
-	#seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully imported " + Blender.sys.basename(filename)# + seconds
-	meshtools.print_boxed(message)
 
-def fs_callback(filename):
-	read(filename)
+def main():
+	Blender.Window.FileSelector(read, 'RAW Import', Blender.sys.makename(ext='.raw'))
 
-Blender.Window.FileSelector(fs_callback, "Import Raw")
+if __name__=='__main__':
+	main()

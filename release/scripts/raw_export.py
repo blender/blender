@@ -1,8 +1,8 @@
 #!BPY
 
 """
-Name: 'Raw Triangle (.raw)...'
-Blender: 232
+Name: 'Raw Faces (.raw)...'
+Blender: 242
 Group: 'Export'
 Tooltip: 'Export selected mesh to Raw Triangle Format (.raw)'
 """
@@ -53,49 +53,48 @@ Usage:<br>
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import Blender, meshtools
-import sys
-#import time
+import Blender
+import BPyMesh
 
 # =================================
 # === Write RAW Triangle Format ===
 # =================================
 def write(filename):
-	#start = time.clock()
+	start = Blender.sys.time()
+	if not filename.lower().endswith('.raw'):
+		filename += '.raw'
+	
+	scn= Blender.Scene.GetCurrent()
+	object= scn.getActiveObject()
+	if not object:
+		Blender.Draw.PupMenu('Error%t|Select 1 active object')
+		return
+	
+	file = open(filename, 'wb')
+	
+	mesh = BPyMesh.getMeshFromObject(object, None, True, False, scn)
+	if not mesh:
+		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
+		return
+	
+	mesh.transform(object.matrixWorld)
+	
+	
 	file = open(filename, "wb")
-
-	objects = Blender.Object.GetSelected()
-	objname = objects[0].name
-	meshname = objects[0].data.name
-	mesh = Blender.NMesh.GetRaw(meshname)
-	obj = Blender.Object.Get(objname)
-
-
-	std=sys.stdout
-	sys.stdout=file
-	for face in mesh.faces:
-		if len(face.v) == 3:		# triangle
-			v1, v2, v3 = face.v
-			faceverts = tuple(v1.co) + tuple(v2.co) + tuple(v3.co)
-			print "% f % f % f % f % f % f % f % f % f" % faceverts
-		else:						# quadrilateral
-			v1, v2, v3, v4 = face.v
-			faceverts1 = tuple(v1.co) + tuple(v2.co) + tuple(v3.co)
-			faceverts2 = tuple(v3.co) + tuple(v4.co) + tuple(v1.co)
-			print "% f % f % f % f % f % f % f % f % f" % faceverts1
-			print "% f % f % f % f % f % f % f % f % f" % faceverts2
-	sys.stdout=std
-
-
-	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
+	for f in mesh.faces:
+		for v in f.v:
+			file.write('%.6f %.6f %.6f ' % tuple(v.co))
+		file.write('\n')
 	file.close()
-	#end = time.clock()
-	#seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully exported " + Blender.sys.basename(filename)# + seconds
-	meshtools.print_boxed(message)
+	
+	end = Blender.sys.time()
+	message = 'Successfully exported "%s" in %.4f seconds' % ( Blender.sys.basename(filename), end-start)
+	print message
 
-def fs_callback(filename):
-	if filename.find('.raw', -4) <= 0: filename += '.raw'
-	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Export Raw")
+def main():
+	Blender.Window.FileSelector(write, 'RAW Export', Blender.sys.makename(ext='.raw'))
+
+
+if __name__=='__main__':
+	main()
