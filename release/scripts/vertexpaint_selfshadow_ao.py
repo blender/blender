@@ -40,7 +40,6 @@ It removes very low weighted verts from the current group with a weight option.
 
 from Blender import *
 import BPyMesh
-# reload(BPyMesh)
 
 
 def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):

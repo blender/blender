@@ -1,21 +1,10 @@
-#!BPY
-"""
-Name: 'Weight Gradient...'
-Blender: 241
-Group: 'VertPaint'
-Tooltip: 'Grad.'
-"""
+# This is not to be used directly, vertexGradientPick can be used externaly
 
-__author__ = ["Campbell Barton"]
-__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
-__version__ = "0.1"
 import Blender
 import BPyMesh
 import BPyWindow
 
 
-reload(BPyWindow)
-reload(BPyMesh)
 mouseViewRay= BPyWindow.mouseViewRay
 from Blender import Mathutils, Window, Scene, Draw, sys
 from Blender.Mathutils import CrossVecs, Vector, Intersect, LineIntersect, AngleBetweenVecs

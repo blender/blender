@@ -10,8 +10,7 @@ __author__ = ["Campbell Barton"]
 __url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
 __version__ = "0.1"
 
-import __vertex_gradient__
-reload(__vertex_gradient__)
+import mesh_gradient
 import Blender
 
 def main():
@@ -22,7 +21,7 @@ def main():
 		Blender.Draw.PupMenu('Error, no active mesh object, aborting.')
 		return
 	
-	__vertex_gradient__.vertexGradientPick(ob, 1)
+	mesh_gradient.vertexGradientPick(ob, 1)
 	
 	
 if __name__ == '__main__':

@@ -102,7 +102,16 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 	if (VGROUP_INF_REDUX!= None and VGROUP_INF_REDUX not in vgroups) or\
 	VGROUP_INF_WEIGHT==0.0:
 		VGROUP_INF_REDUX= None
-	del vgroups
+	
+	try:
+		VGROUP_INF_REDUX_INDEX= vgroups.index(VGROUP_INF_REDUX)
+	except:
+		VGROUP_INF_REDUX_INDEX= -1
+	
+	# del vgroups
+	len_vgroups= len(vgroups)
+	
+	
 	
 	OLD_MESH_MODE= Blender.Mesh.Mode()
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes.VERTEX)
@@ -182,7 +191,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 		BPyMesh.meshCalcNormals(me, reuse_vertNormals)
 		
 		if DO_WEIGHTS:
-			groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)
+			#groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)
+			groupNames, vWeightList= BPyMesh.meshWeight2List(me)
 		
 		# THIS CRASHES? Not anymore.
 		verts= list(me.verts)
@@ -276,11 +286,16 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 		
 		# Use a vertex group as a weighting.
 		if VGROUP_INF_REDUX!=None:
-			vert_weights_map= [1.0] * len(verts)
+			
 			# Get Weights from a vgroup.
+			"""
+			vert_weights_map= [1.0] * len(verts)
 			for i, wd in enumerate(vWeightDict):
 				try:	vert_weights_map[i]= 1+(wd[VGROUP_INF_REDUX] * VGROUP_INF_WEIGHT)
 				except:	pass
+			"""
+			vert_weights_map= [1+(wl[VGROUP_INF_REDUX_INDEX]*VGROUP_INF_WEIGHT) for wl in vWeightList ]
+			
 		
 		# BOUNDRY CHECKING AND WEIGHT EDGES. CAN REMOVE
 		# Now we know how many faces link to an edge. lets get all the boundry verts
@@ -520,8 +535,9 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				
 				
 				# add verts vgroups to eachother
+				'''
 				wd1= vWeightDict[i1] # v1 weight dict
-				wd2= vWeightDict[i2] # v1 weight dict
+				wd2= vWeightDict[i2] # v2 weight dict
 				
 				# Make sure vert groups on both verts exist.
 				for wd_from, wd_to in ((wd1, wd2), (wd2, wd1)):
@@ -532,6 +548,12 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				# Mix the weights for vert groups
 				for group_key in wd_from.iterkeys():
 					wd1[group_key]= wd2[group_key]= (wd1[group_key]*w1) + (wd2[group_key]*w2)
+				'''
+				
+				wl1= vWeightList[i1] # v1 weight dict
+				wl2= vWeightList[i2] # v2 weight dict
+				for group_index in xrange(len_vgroups):
+					wl1[group_index]= wl2[group_index]= (wl1[group_index]*w1) + (wl2[group_index]*w2)
 				
 			
 			if DO_UV or DO_VCOL:
@@ -593,7 +615,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 		
 		# Copy weights back to the mesh before we remove doubles.
 		if DO_WEIGHTS:
-			BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
+			#BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
+			BPyMesh.list2MeshWeight(me, groupNames, vWeightList)
 		
 		doubles= me.remDoubles(0.0001) 
 		current_face_count= len(me.faces)

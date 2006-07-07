@@ -10,7 +10,6 @@ from Blender.Mathutils import TriangleArea
 
 import Blender
 import BPyMesh
-reload(BPyMesh)
 dict2MeshWeight= BPyMesh.dict2MeshWeight
 meshWeight2Dict= BPyMesh.meshWeight2Dict
 

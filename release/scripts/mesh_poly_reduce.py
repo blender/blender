@@ -8,7 +8,6 @@ Tooltip: 'Removed polygons from a mesh while maintaining the shape, textures and
 
 from Blender import Draw, Window, Scene, Mesh, Mathutils, sys, Object
 import BPyMesh
-reload(BPyMesh)
 
 
 def main():

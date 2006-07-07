@@ -20,8 +20,7 @@ Note:
 Holding Shift or clicking outside the mesh on the second click will blend the first colour to nothing.	
 '''
 
-import __vertex_gradient__
-reload(__vertex_gradient__)
+import mesh_gradient
 import Blender
 
 def main():
@@ -34,7 +33,7 @@ def main():
 	# MODE 0 == VCOL
 	# MODE 1 == WEIGHT
 	MODE= 0
-	__vertex_gradient__.vertexGradientPick(ob, MODE)
+	mesh_gradient.vertexGradientPick(ob, MODE)
 
 
 if __name__ == '__main__':

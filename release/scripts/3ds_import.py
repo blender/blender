@@ -109,7 +109,6 @@ import Blender
 from Blender import Mesh, Scene, Object, Material, Image, Texture, Lamp, Mathutils
 from Blender.Mathutils import Vector
 import BPyImage
-reload( BPyImage )
 
 import struct
 from struct import calcsize, unpack

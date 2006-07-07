@@ -1,8 +1,5 @@
 import Blender
-# from BPyMesh_redux import redux # seperated because of its size.
-import BPyMesh_redux 
-reload(BPyMesh_redux)
-redux= BPyMesh_redux.redux
+from BPyMesh_redux import redux # seperated because of its size.
 
 # python 2.3 has no reversed() iterator. this will only work on lists and tuples
 try:
@@ -20,7 +17,72 @@ except:
 	except:
 		set= None
 
+
+
+
+
+def meshWeight2List(me):
+	''' Takes a mesh and return its group names and a list of lists, one list per vertex.
+	aligning the each vert list with the group names, each list contains float value for the weight.
+	These 2 lists can be modified and then used with list2MeshWeight to apply the changes.
+	'''
 	
+	# Clear the vert group.
+	groupNames= me.getVertGroupNames()
+	len_groupNames= len(groupNames)
+	
+	if not len_groupNames:
+		# no verts? return a vert aligned empty list
+		return [[] for i in xrange(len(me.verts))]
+	
+	else:
+		vWeightList= [[0.0]*len_groupNames for i in xrange(len(me.verts))]
+	
+	for group_index, group in enumerate(groupNames):
+		for vert_index, weight in me.getVertsFromGroup(group, 1): # (i,w)  tuples.
+			vWeightList[vert_index][group_index]= weight
+	
+	# removed this because me may be copying teh vertex groups.
+	#for group in groupNames:
+	#	me.removeVertGroup(group)
+	
+	return groupNames, vWeightList
+
+
+def list2MeshWeight(me, groupNames, vWeightList):
+	''' Takes a list of groups and a list of vertex Weight lists as created by meshWeight2List
+	and applys it to the mesh.'''
+	
+	if len(vWeightList) != len(me.verts):
+		raise 'Error, Lists Differ in size, do not modify your mesh.verts before updating the weights'
+	
+	# Clear the vert group.
+	currentGroupNames= me.getVertGroupNames()
+	for group in currentGroupNames:
+		me.removeVertGroup(group) # messes up the active group.
+	
+	# Add clean unused vert groupNames back
+	currentGroupNames= me.getVertGroupNames()
+	for group in groupNames:
+		me.addVertGroup(group)
+	
+	add_ = Blender.Mesh.AssignModes.ADD
+	
+	vertList= [None]
+	for i, v in enumerate(me.verts):
+		vertList[0]= i
+		for group_index, weight in enumerate(vWeightList[i]):
+			if weight:
+				try:
+					me.assignVertsToGroup(groupNames[group_index], vertList, min(1, max(0, weight)), add_)
+				except:
+					pass # vert group is not used anymore.
+	
+	me.update()
+
+
+
+
 def meshWeight2Dict(me):
 	''' Takes a mesh and return its group names and a list of dicts, one dict per vertex.
 	using the group as a key and a float value for the weight.
@@ -33,8 +95,8 @@ def meshWeight2Dict(me):
 	groupNames= me.getVertGroupNames()
 	
 	for group in groupNames:
-		for index, weight in me.getVertsFromGroup(group, 1): # (i,w)  tuples.
-			vWeightDict[index][group]= weight
+		for vert_index, weight in me.getVertsFromGroup(group, 1): # (i,w)  tuples.
+			vWeightDict[vert_index][group]= weight
 	
 	# removed this because me may be copying teh vertex groups.
 	#for group in groupNames:
