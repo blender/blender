@@ -100,18 +100,33 @@ def apply_deform():
 	
 
 	ob_list = Blender.Object.GetSelected()
-	if not ob_list:
-		Blender.Draw.PupMenu('No objects selected, nothing to do.')
-		return
 	
-	# Deselect and test for softbody
+	# Assume no soft body
 	has_sb= False
-	for ob in ob_list:
-		ob.sel = 0
+	
+	# reverse loop so we can remove objects (metaballs in this case)
+	for ob_idx in xrange(len(ob_list)-1, -1, -1):
+		ob= ob_list[ob_idx]
+		
+		ob.sel = 0 # deselect while where checking the metaballs
 		
 		# Test for a softbody
 		if not has_sb and ob.isSB():
 			has_sb= True
+		
+		# Remove all numbered metaballs because their disp list is only on the main metaball (un numbered)
+		if ob.getType()=='MBall':
+			name= ob.name
+			# is this metaball numbered?
+			dot_idx= name.rfind('.') + 1
+			if name[dot_idx:].isdigit():
+				# Not the motherball, ignore it.
+				del ob_list[ob_idx]
+			
+	
+	if not ob_list:
+		Blender.Draw.PupMenu('No objects selected, nothing to do.')
+		return
 	
 	
 	if has_sb:
