@@ -2022,8 +2022,19 @@ void metaball_polygonize(Object *ob)
 	if((totelem > 1) && (totelem <= 64)) init_metaball_octal_tree(1);
 	if((totelem > 64) && (totelem <= 128)) init_metaball_octal_tree(2);
 	if((totelem > 128) && (totelem <= 512))	init_metaball_octal_tree(3);
-	if((totelem > 512) && (totelem <= 1024))init_metaball_octal_tree(4);
+	if((totelem > 512) && (totelem <= 1024)) init_metaball_octal_tree(4);
 	if(totelem > 1024) init_metaball_octal_tree(5);
+
+	/* don't polygonize metaballs with too high resolution (base mball to small) */
+	if(metaball_tree) {
+		if(ob->size[0]<=0.0001f*(metaball_tree->first->x_max - metaball_tree->first->x_min) ||
+		       ob->size[1]<=0.0001f*(metaball_tree->first->y_max - metaball_tree->first->y_min) ||
+		       ob->size[2]<=0.0001f*(metaball_tree->first->z_max - metaball_tree->first->z_min))
+		{
+			MEM_freeN(mainb);
+			return;
+		}
+	}
 
 	/* width is size per polygonize cube */
 	if(G.rendering) width= mb->rendersize;
