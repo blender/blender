@@ -2132,19 +2132,15 @@ void fly(void)
 				
 				} else if(toets==AKEY) {
 					if (speed<0) speed=-speed;
-					else speed+= G.vd->grid;
 					axis= 0;
 				} else if(toets==DKEY) {
 					if (speed>0) speed=-speed;
-					else speed-= G.vd->grid;
 					axis= 0;
 				} else if(toets==FKEY) {
 					if (speed<0) speed=-speed;
-					else speed+= G.vd->grid;
 					axis= 1;
 				} else if(toets==RKEY) {
 					if (speed>0) speed=-speed;
-					else speed-= G.vd->grid;
 					axis= 1;
 				
 				/* axis locking */
@@ -2223,7 +2219,7 @@ void fly(void)
 				upvec[1]=0;
 				upvec[2]=0;
 				Mat3MulVecfl(mat, upvec);
-				VecRotToQuat( upvec, (float)moffset[1]*-time_redraw*10, tmp_quat); /* Rotate about the relative up vec */
+				VecRotToQuat( upvec, (float)moffset[1]*-time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 			}
 			
@@ -2233,7 +2229,7 @@ void fly(void)
 				upvec[1]=1;
 				upvec[2]=0;
 				Mat3MulVecfl(mat, upvec);
-				VecRotToQuat( upvec, (float)moffset[0]*time_redraw*10, tmp_quat); /* Rotate about the relative up vec */
+				VecRotToQuat( upvec, (float)moffset[0]*time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 			}
 			
@@ -2288,7 +2284,7 @@ void fly(void)
 
 
 			if (apply_rotation)
-				VecMulf(dvec, speed*time_redraw);
+				VecMulf(dvec, speed*time_redraw*0.5);
 
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
 			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Alt,  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Cancel:RMB");
