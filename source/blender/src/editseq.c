@@ -1230,9 +1230,13 @@ void add_sequence(int type)
 		event= pupmenu("Add Sequence Strip%t"
 			       "|Images%x1"
 			       "|Movie%x102"
-			       "|Movie + Audio (HD)%x105"
+#ifdef WITH_FFMPEG
+				   "|Movie + Audio (HD)%x105"
 			       "|Audio (RAM)%x103"
 			       "|Audio (HD)%x104"
+#else
+				   "|Audio (Wav)%x103"
+#endif
 			       "|Scene%x101"
 			       "|Plugin%x10"
 			       "|Cross%x2"

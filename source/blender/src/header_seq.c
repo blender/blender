@@ -300,13 +300,19 @@ static uiBlock *seq_addmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
+#ifdef WITH_FFMPEG
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (RAM)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+#else
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (Wav)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+#endif
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+#ifdef WITH_FFMPEG
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie + Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-
+#endif
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
