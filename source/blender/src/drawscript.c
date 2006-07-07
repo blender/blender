@@ -91,19 +91,6 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 	glClear(GL_COLOR_BUFFER_BIT);
 	myortho2(-0.5, curarea->winrct.xmax-curarea->winrct.xmin-0.5, -0.5, curarea->winrct.ymax-curarea->winrct.ymin-0.5);
 
-	if (!sc->script) {
-		script = G.main->script.first;
-
-		while (script) {
-
-			if (script->py_draw || script->py_event || script->py_button) {
-				sc->script = script;
-				break;
-			}
-			else script = script->id.next;
-		}
-	}
-
 	if (!sc->script) return;
 
 	script = sc->script;

@@ -18,6 +18,8 @@
                       compatibility increased up to AI 10.0 plain text 
 # 0.1.7 : 2005/06/25, two more closepath improvements 
 #
+# 0.1.8 : 2006/07/03, two more closepath improvements 
+
 """
 SHARP_IMPORT=0
 SCALE=1
@@ -431,7 +433,17 @@ def scan_FILE(nom):
             
          t=create_GEOtext(courbes)
          save_GEOfile(dir,name[0],t)
+
+         # 0.1.8 ---------------------------------  
+         # [O.select(0) for O in Blender.Scene.getCurrent().getChildren()]
+         # 0.1.8 ---------------------------------
+
          Open_GEOfile(dir,name[0])
+
+         # 0.1.8 ---------------------------------
+         Blender.Object.Get()[-1].setName(name[0])
+         # 0.1.8 --------------------------------- 
+
       else:
           pass
 #=====================================================================

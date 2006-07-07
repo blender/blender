@@ -1,10 +1,10 @@
 # -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.4.8
-Copyright (c) jm soler juillet/novembre 2004-janvier 2006, 
+SVG 2 OBJ translater, 0.5.0
+Copyright (c) jm soler juillet/novembre 2004-juillet 2006, 
 # ---------------------------------------------------------------
     released under GNU Licence 
-    for the Blender 2.40 Python Scripts Bundle.
+    for the Blender 2.42 Python Scripts Bundle.
 Ce programme est libre, vous pouvez le redistribuer et/ou
 le modifier selon les termes de la Licence Publique Générale GNU
 publiée par la Free Software Foundation (version 2 ou bien toute
@@ -178,7 +178,22 @@ Changelog:
 	              ('viewbox' is written 'viewBox', for instance) .
 	              Note that (at this time, 2006/05/01, 1OOo exports in svg 
 	              but does not read its own export 
-    
+	
+	    0.4.9 : - skipped version : private test 
+	
+	    0.5.0 : - the script worked perfectly with Blender 2.41 but in Blender 
+		            2.42, use the original svg name file + 'OOO.obj' to
+		            write a videoscape file made blender crash under window XP when 
+		            the script loaded it . Curiously, use a more simple 
+		            name with a sole 'O' solved this problem .
+		
+              - script returned errors on open path : corrected 
+ 	 
+              - in b2.42, several successive	imports seem to be added to 
+                the same original curve . So now the script automaticaly 
+                renames the  last group of imported curve with the original 
+                name file . 
+
 ==================================================================================   
 =================================================================================="""
 
@@ -350,6 +365,7 @@ n0=0
 #=====================================================================
 CP=[0.0,0.0] #currentPoint
 
+
 #=====================================================================
 #===== to compare last position to the original move to displacement =
 #=====  needed for cyclic definition inAI, EPS forma  ================
@@ -363,8 +379,9 @@ def test_egalitedespositions(f1,f2):
 
 def Open_GEOfile(dir,nom):
     global SCALE,BOUNDINGBOX, scale_
+    #print 'test', dir+nom+'OOO.obj'
     if BLversion>=233:
-       Blender.Load(dir+nom+'OOO.obj', 1)
+       Blender.Load(dir+'O.obj', 1)
        BO=Blender.Object.Get()
 
        BO[-1].RotY=3.1416
@@ -407,27 +424,30 @@ def create_GEOtext(courbes):
         t.append("%s %s \n"%(courbes.ITEM[k].flagUV[0],courbes.ITEM[k].flagUV[1]))
 
         flag =0#courbes.ITEM[k].flagUV[0]
-
+        courbes.ITEM[k]
         for k2 in range(flag,len(courbes.ITEM[k].beziers_knot)):
            #k1 =courbes.ITEM[k].beziers_knot[k2]
            k1=ajustement(courbes.ITEM[k].beziers_knot[k2], SCALE)
            
-           t.append("%4f 0.0 %4f \n"%(k1[4],k1[5]))
-           t.append("%4f 0.0 %4f \n"%(k1[0],k1[1]))
-           t.append("%4f 0.0 %4f \n"%(k1[2],k1[3]))
+           t.append("%4f 0.0 %4f\n"%(k1[4],k1[5]))
+           t.append("%4f 0.0 %4f\n"%(k1[0],k1[1]))
+           t.append("%4f 0.0 %4f\n"%(k1[2],k1[3]))
            t.append(str(courbes.ITEM[k].beziers_knot[k2].ha[0])+' '+str(courbes.ITEM[k].beziers_knot[k2].ha[1])+'\n')
 
     return t
 
 def save_GEOfile(dir,nom,t):
-     f=open(dir+nom+'OOO.obj','w')
+#     f=open(dir+nom+'OOO.obj','w')
+     f=open(dir+'O.obj','w')
      f.writelines(t)
      f.close()
+    
+
 
 #--------------------
 # 0.4.5 : for blender cvs 2.38 ....
 #--------------------
-def createCURVES(courbes):
+def createCURVES(courbes, name):
     global SCALE, B, BOUNDINGBOX,scale_
     from Blender import Curve, Object, Scene, BezTriple
 
@@ -439,7 +459,9 @@ def createCURVES(courbes):
     elif scale_==3:
        SCALE=r[3]-r[1]
 
-    [o.select(0) for o in Scene.GetCurrent().getChildren()] #[o.select(0) for o in Object.Get()] - will not work
+    #[o.select(0) for o in Object.Get()]
+    OBJECT_LIST=[]
+
     for I in courbes.ITEM:
         c = Curve.New()
         # ----------
@@ -447,10 +469,12 @@ def createCURVES(courbes):
         # ----------
         c.setResolu(24)  
         scene = Scene.getCurrent()
-        ob = Object.New('Curve')
+        ob = Object.New('Curve',name+str(I))
         ob.link(c)
         scene.link(ob)
         ob.select(1)
+        OBJECT_LIST.append(ob)
+     
         bzn=0
         #for b in courbes.ITEM[I].beziers_knot:
         for k2 in range(0,len(courbes.ITEM[I].beziers_knot)):
@@ -466,13 +490,21 @@ def createCURVES(courbes):
               cp2 =  bz[4],bz[5],0.0 , bz[0],bz[1],0.0, bz[2],bz[3],0.0
               beztriple2 = BezTriple.New(cp2)
               bez.append(beztriple2)
-
+    
         if courbes.ITEM[I].flagUV[0]==1 :
           #--------------------
           # 0.4.6 : cyclic flag ...
           #--------------------
            bez.flagU += 1
-           
+    print 'done'
+    OB_JOIN=OBJECT_LIST.pop()
+    print 'done 2'
+    
+    OB_JOIN.join(OBJECT_LIST)
+    print 'done 3'
+    for OBJ_DEL in OBJECT_LIST:
+         scene.unlink(OBJ_DEL)
+     
 
 
 #=====================================================================
@@ -926,6 +958,7 @@ def ligne_tracee_h(c,D,n0,CP): #H,h
        l=[float(D[c[1]+1])+float(CP[0]),CP[1]]
     else:
        l=[float(D[c[1]+1]),CP[1]]
+
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
     B.ha=[0,0]
@@ -983,7 +1016,9 @@ TAGtransform=['M','L','C','S','H','V','T','Q']
 tagTRANSFORM=0
  
 def wash_DATA(ndata):
+	
    if ndata!='':
+       print ndata
        while ndata[0]==' ': 
            ndata=ndata[1:]
        while ndata[-1]==' ': 
@@ -1013,29 +1048,42 @@ def list_DATA(DATA):
     Par exemple :
     d="'M0,14.0 z" devient ['M','0.0','14.0','z'] 
     """
+    # ----------------------------------------
+    # 1 / reprer la position des differents tag 
+    # ----------------------------------------
     tagplace=[]
+
+    # ----------------------------------------
+    #     construire une liste avec chaque emplacement
+    # ----------------------------------------
     for d in Actions.keys():
         b1=0
         b2=len(DATA)
         while DATA.find(d,b1,b2)!=-1 :
             tagplace.append(DATA.find(d,b1,b2))
             b1=DATA.find(d,b1,b2)+1
+    # ----------------------------------------
+    #     remettre la liste dans l'ordre de presentation
+    #     des donnes 
+    # ----------------------------------------	
     tagplace.sort()
-    tpn=range(len(tagplace)-1)
+
+    tpn=range(len(tagplace))
     #--------------------
-    # 0.3.5 :: short data,only one tag
+    # 0.3.5 :: short data, only one tag
     #--------------------
     if len(tagplace)-1>0:
        DATA2=[]
-       for t in tpn: 
+       for t in tpn[:-1]: 
           DATA2.append(DATA[tagplace[t]:tagplace[t]+1])    
           ndata=DATA[tagplace[t]+1:tagplace[t+1]]
           if DATA2[-1] not in ['z','Z'] :
              ndata=wash_DATA(ndata)
              for n in ndata : DATA2.append(n)       
-       DATA2.append(DATA[tagplace[t+1]:tagplace[t+1]+1])   
+       DATA2.append(DATA[tagplace[t+1]:tagplace[t+1]+1])  
+	 
        if DATA2[-1] not in ['z','Z'] and len(DATA)-1>=tagplace[t+1]+1:
-          ndata=DATA[tagplace[t+1]+1:-1]
+          ndata=DATA[tagplace[t+1]+1:]
           ndata=wash_DATA(ndata)
           for n in ndata : DATA2.append(n)
     else:
@@ -1309,11 +1357,15 @@ def scan_FILE(nom):
      save_GEOfile(dir,name[0],t)
      Open_GEOfile(dir,name[0])
 
+     # 0.4.9  ----------------------
+     Blender.Object.Get()[-1].setName(name[0])
+     # 0.4.9  ----------------------
+
   elif courbes.number_of_items>0 and CVS==1 :
 	   #--------------------
-     # 0.4.5
+     # 0.4.5 and 0.4.9 
      #--------------------
-	   createCURVES(courbes)
+	   createCURVES(courbes, name[0])
 	
   else:
      pass      

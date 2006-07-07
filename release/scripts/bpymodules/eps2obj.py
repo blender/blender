@@ -1,6 +1,8 @@
 #----------------------------------------------
 # (c) jm soler juillet 2004-juin 2005 , released under Blender Artistic Licence 
 #    for the Blender 2.34-2.37 Python Scripts Bundle.
+# 
+# July, 3rd, 2006 , juillet 2006 
 #----------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_eps.htm
@@ -427,6 +429,11 @@ def scan_FILE(nom):
          t=create_GEOtext(courbes)
          save_GEOfile(dir,name[0],t)
          Open_GEOfile(dir,name[0])
+
+         # 03 juillet 2006  ----------------------
+         Blender.Object.Get()[-1].setName(name[0])
+         # 03 juillet 2006  ----------------------
+
       else:
           pass
 

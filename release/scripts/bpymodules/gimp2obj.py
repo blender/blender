@@ -2,6 +2,7 @@
 #----------------------------------------------
 # (c) jm soler juillet 2004, released under Blender Artistic Licence 
 #    for the Blender 2.34 Python Scripts Bundle.
+#    update : 04/07/2006
 #----------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_gimp.htm
@@ -303,6 +304,10 @@ def scan_FILE(nom):
        t=create_GEOtext(courbes)
        save_GEOfile(dir,name[0],t)
        Open_GEOfile(dir,name[0])
+       # 0.1.8 ---------------------------------
+       Blender.Object.Get()[-1].setName(name[0])
+       # 0.1.8 --------------------------------- 
+
      else:
         pass
 

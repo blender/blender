@@ -9,7 +9,7 @@ Tooltip: 'Cut selected mesh(es) along an active plane w/o creating doubles'
 
 __author__ = ["Stefano <S68> Selleri", "Wim Van Hoydonck"]
 __url__ = ("blender", "elysiun")
-__version__ = "0.0.8a 03/31/04"
+__version__ = "0.0.8b 05/13/06"
 
 __bpydoc__ = """\
 "Blender Knife Tool" uses the active mesh plane to cut all selected meshes.
@@ -33,26 +33,28 @@ new objects;<br>
 
 # $Id$
 #
-###################################################################
-#                                                                 #
-# Blender Knife Tool                                              #
-#                                                                 #
-# v. 0.0.0 - 0.0.6 (C) December 2002 Stefano <S68> Selleri        #
-# v. 0.0.7 (C) March 2004 Wim Van Hoydonck                        #
-# v. 0.0.8 (C) March 2004 Wim Van Hoydonck & Stefano <S68> Selleri#
-#                                                                 #
-# Released under the Blender Artistic Licence (BAL)               #
-# See www.blender.org                                             #
-#                                                                 #
-# Works in Blender 2.32 and higher                                #
-#                                                                 #
-# this script can be found online at:                             #
-# http://users.pandora.be/tuinbels/scripts/knife-0.0.8.py         #
-# http://www.selleri.org/Blender                                  #
-#                                                                 #
-# email: tuinbels@hotmail.com                                     #
-#        selleri@det.unifi.it                                     #
-###################################################################
+####################################################################
+#                                                                  #
+# Blender Knife Tool                                               #
+#                                                                  #
+# v. 0.0.0 - 0.0.6 (C) December 2002 Stefano <S68> Selleri         #
+# v. 0.0.7 (C) March 2004 Wim Van Hoydonck                         #
+# v. 0.0.8 (C) March 2004 Wim Van Hoydonck & Stefano <S68> Selleri #
+#              ( May 2006 jm soler( jms) for material  management )#
+#                                                                  #
+# Released under the Blender Artistic Licence (BAL)                #
+# See www.blender.org                                              #
+#                                                                  #
+# Works in Blender 2.32 and higher                                 #
+#                                                                  #
+# this script can be found online at:                              #
+# http://users.pandora.be/tuinbels/scripts/knife-0.0.8.py          #
+# http://www.selleri.org/Blender                                   #
+# http://cobalt3d.free.fr/didacticiel/blender/tutor/images/python/knife_in_color/knife_color.py
+#                                                                  #
+# email: tuinbels@hotmail.com                                      #
+#        selleri@det.unifi.it                                      #
+####################################################################
 # History                                                         #
 # V: 0.0.0 - 08-12-02 - The script starts to take shape, a        #
 #                       history is now deserved :)                #
@@ -91,6 +93,7 @@ new objects;<br>
 #    0.0.8a- 31-03-04 - Added some error messages                 #
 #                     - Cut multiple meshes at once               #
 #                                                                 #
+#    O.0.8b -13-05-06 - Added multi-material management   (jms)   #
 ###################################################################
 
 import Blender
@@ -117,6 +120,12 @@ VERSION = '0.0.8'
 BL_VERSION = Blender.Get('version')
 if (BL_VERSION<=223):
 	import Blender210
+
+lenface = []
+vertglob = []
+vertidx = []
+vertdist = []
+facemat = []
 
 #=================================#
 # Vector and matrix manipulations #
@@ -265,17 +274,19 @@ def FacePosition(dist):
 # Append existing faces / create new faces #
 #==========================================#
 
-def FaceAppend(me, fidx):
+def FaceAppend(me, fidx, fmat):
 	#
 	# append a face to a mesh based on a list of vertex-indices
 	#
 	nf = NMesh.Face()
-
+	nf.mat=fmat
+	
 	for i in fidx:
 		nf.v.append(me.verts[i])
+	
 	me.faces.append(nf)
 
-def FaceMake(me, vl):
+def FaceMake(me, vl, fmat):
 	#
 	# make one or two new faces based on a list of vertex-indices
 	#
@@ -283,11 +294,13 @@ def FaceMake(me, vl):
 
  	if len(vl) <= 4:
 		nf = NMesh.Face()
+		nf.mat=fmat
 		for i in range(len(vl)):
 			nf.v.append(me.verts[vl[i]])
 		me.faces.append(nf)
 	else:
 		nf = NMesh.Face()
+		nf.mat=fmat
 		nf.v.append(me.verts[vl[0]])
 		nf.v.append(me.verts[vl[1]])
 		nf.v.append(me.verts[vl[2]])
@@ -295,6 +308,7 @@ def FaceMake(me, vl):
 		me.faces.append(nf)
 
 		nf = NMesh.Face()
+		nf.mat=fmat
 		nf.v.append(me.verts[vl[3]])
 		nf.v.append(me.verts[vl[4]])
 		nf.v.append(me.verts[vl[0]])
@@ -419,6 +433,8 @@ def Split(Obj, MeshPos, MeshNeg, Vglob, Vidx, N, d0, newvidx, newvcoo, totverts,
 def CutMesh():
 	global msg
 	global RBmesh0,RBmesh1,RBmesh2
+	global lenface, vertglob, vertidx, vertdist, facemat
+	
 	#if timport == 1:
 	#	start = time.clock()
 	start = time()
@@ -454,32 +470,26 @@ def CutMesh():
 
 	# loop to cut multiple meshes at once
 	for o in range(1, total):
-		
 		Obj = selected_obs[o]
-
 		if (NoErrors == 0) :
-		
 			m = Obj.getData()
-
 			if RBmesh1.val == 1:
-
 				MeshNew = NMesh.GetRaw()
-
+				MeshNew.materials = m.materials[:]
 			if RBmesh2.val == 1:
-
 				MeshPos = NMesh.GetRaw()
+				MeshPos.materials = m.materials[:]
 				MeshNeg = NMesh.GetRaw()
-
+				MeshNeg.materials = m.materials[:]
 			# get the indices of the faces of the mesh
 			idx = []
 			for i in range(len(m.faces)):
 				idx.append(i)
-
 			# if idx is not reversed, this results in a list index out of range if
 			# the original mesh is used (RBmesh1 == 0)
 			idx.reverse()
 
-			lenface, vertglob, vertidx, vertdist = [], [], [], []
+			lenface, vertglob, vertidx, vertdist, facemat = [], [], [], [], []
 
 			# total number of vertices
 			totverts = len(m.verts)
@@ -491,6 +501,7 @@ def CutMesh():
 			for i in idx:
 				fvertidx, Ve, dist = [], [], []
 				fa = m.faces[i]
+				facemat.append(fa.mat)
 				lenface.append(len(fa))
 				for v in fa.v:
 					globpos = GlobalPosition(v.co, Obj)
@@ -531,24 +542,24 @@ def CutMesh():
 				# no intersection
 				if fp > 0:
 					if RBmesh0.val == 1:
-						FaceAppend(m, vertidx[i])
+						FaceAppend(m, vertidx[i], facemat[i])
 			
 					elif RBmesh1.val == 1:
-						FaceAppend(MeshNew, vertidx[i])
+						FaceAppend(MeshNew, vertidx[i], facemat[i])
 				
 					elif RBmesh2.val == 1:
-						FaceAppend(MeshPos, vertidx[i])
+						FaceAppend(MeshPos, vertidx[i], facemat[i])
 
 						if testidxpos == []:
 							testidxpos = vertidx[i]
 				elif fp < 0:
 					if RBmesh0.val == 1:
-						FaceAppend(m, vertidx[i])
+						FaceAppend(m, vertidx[i],facemat[i])
 					elif RBmesh1.val == 1:
-						FaceAppend(MeshNew, vertidx[i])
+						FaceAppend(MeshNew, vertidx[i],facemat[i])
 					
 					elif RBmesh2.val == 1:
-						FaceAppend(MeshNeg, vertidx[i])
+						FaceAppend(MeshNeg, vertidx[i],facemat[i])
 
 						if testidxneg == []:
 							testidxneg = vertidx[i]
@@ -560,15 +571,15 @@ def CutMesh():
 						vlp, vln, newvidx, newvcoo = Split(Obj, MeshNew, MeshNew, vertglob[i], vertidx[i], PNormal, POffset, newvidx, newvcoo, totverts, vertdist[i])
 
 						if vlp != 0 and vln != 0:
-							FaceMake(MeshNew, vlp)
-							FaceMake(MeshNew, vln)
+							FaceMake(MeshNew, vlp, facemat[i])
+							FaceMake(MeshNew, vln, facemat[i] )
 						# two new meshes
 					elif RBmesh2.val == 1:
 						vlp, vln, newvidx, newvcoo = Split(Obj, MeshPos, MeshNeg, vertglob[i], vertidx[i], PNormal, POffset, newvidx, newvcoo, totverts, vertdist[i])
 	
 						if vlp != 0 and vln != 0:
-							FaceMake(MeshPos, vlp)
-							FaceMake(MeshNeg, vln)
+							FaceMake(MeshPos, vlp,  facemat[i])
+							FaceMake(MeshNeg, vln,  facemat[i])
 
 					# use old mesh
 					elif RBmesh0.val == 1:
@@ -576,8 +587,8 @@ def CutMesh():
 						vlp, vln, newvidx, newvcoo = Split(Obj, m, m, vertglob[i], vertidx[i], PNormal, POffset, newvidx, newvcoo, totverts, vertdist[i])
 	
 						if vlp != 0 and vln != 0:
-							FaceMake(m, vlp)
-							FaceMake(m, vln)
+							FaceMake(m, vlp,  facemat[i])
+							FaceMake(m, vln,  facemat[i])
 
 			if RBmesh1.val == 1:
 
@@ -652,9 +663,9 @@ def draw():
 
 	BGL.glColor3f(1, 1, 1)
 	BGL.glRasterPos2d(8, 200)
-	Draw.Text("Blender Knife Tool -  V. 0.0.8a - 26 March 2004")
+	Draw.Text("Blender Knife Tool -  V. 0.0.8b - 13 May 2006")
 	BGL.glRasterPos2d(8, 185)
-	Draw.Text("by Wim <tuinbels> Van Hoydonck & Stefano <S68> Selleri")
+	Draw.Text("by Wim <tuinbels> Van Hoydonck & Stefano <S68> Selleri (+ <jms> ) ")
 	Draw.Button("Exit", 1, 430, 185, 40, 20)
 
 	RBmesh0 = Draw.Toggle("Edit Object",    10,10,157,153,18,RBmesh0.val, "The knife creates new vertices in the selected object.");
