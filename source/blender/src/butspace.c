@@ -42,6 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_color_types.h"
+#include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -76,6 +77,9 @@
 #include "BIF_glutil.h"
 #include "BIF_resources.h"
 
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+
 #include "mydevice.h"
 #include "butspace.h" // own module
 
@@ -93,10 +97,32 @@ char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
 					 "Voronoi", "DistNoise", "", "", "", "", "", ""};
 /*  ---------------------------------------------------------------------- */
 
-void test_idbutton_cb(void *namev, void *arg2_unused)
+void test_idbutton_cb(void *namev, void *arg2)
 {
 	char *name= namev;
 	test_idbutton(name+2);
+	
+	/* temporal! image rename for procedural Image has issues */
+	if(arg2 && GS(name)==ID_IM) {
+		/* when name changed */
+		if(strcmp(name+2, (char *)arg2)) {
+			ID *id= NULL;
+			if(strcmp((char *)arg2, "Render Result")==0)
+				id= find_id(name, name+2);
+			else if(strcmp((char *)arg2, "Compositor")==0)
+				id= find_id(name, name+2);
+			if(id) {
+				Image *ima= (Image *)id;
+				if(ima->ibuf) {
+					/* ibuf rect or rect_float is possibly not allocated but borrowed */
+					ImBuf *ibuf= IMB_dupImBuf(ima->ibuf);
+					IMB_freeImBuf(ima->ibuf);
+					ima->ibuf= ibuf;
+					printf("changed ima %s\n", name);
+				}
+			}
+		}
+	}
 }
 
 

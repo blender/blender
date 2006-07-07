@@ -523,7 +523,7 @@ void free_main(Main *mainvar)
 
 /* ***************** ID ************************ */
 
-// only used in exotic.c
+
 ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 {
 	ID *id;
