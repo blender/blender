@@ -159,7 +159,7 @@ void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
 
 	double memd = memCnt;
 	char *sizeStr = "";
-	const double sfac = 1000.0;
+	const double sfac = 1024.0;
 	if(memd>sfac){ memd /= sfac; sizeStr="KB"; }
 	if(memd>sfac){ memd /= sfac; sizeStr="MB"; }
 	if(memd>sfac){ memd /= sfac; sizeStr="GB"; }
