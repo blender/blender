@@ -8,7 +8,7 @@ Tooltip: 'Export to Quake file format (.md2).'
 """
 
 __author__ = 'Bob Holcomb'
-__version__ = '0.17.1'
+__version__ = '0.17.5'
 __url__ = ["Bob's site, http://bane.servebeer.com",
      "Support forum, http://scourage.servebeer.com/phpbb/", "blender", "elysiun"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
@@ -57,11 +57,13 @@ from types import *
 ######################################################
 
 # Export globals
-g_filename=Create("/home/bob/work/blender_scripts/md2/test-export.md2")
+g_filename=Create("tris.md2")
 g_frame_filename=Create("default")
 
-g_filename_search=Create("model")
+g_filename_search=Create("")
 g_frame_search=Create("default")
+
+g_texture_path=Create("")
 
 user_frame_list=[]
 
@@ -91,25 +93,33 @@ def draw_gui():
 	global g_filename
 	global g_frame_filename
 	global EVENT_NOEVENT,EVENT_SAVE_MD2,EVENT_CHOOSE_FILENAME,EVENT_CHOOSE_FRAME,EVENT_EXIT
+	global g_texture_path
 
 	########## Titles
 	glClear(GL_COLOR_BUFFER_BIT)
-	glRasterPos2d(8, 103)
+	glRasterPos2d(10, 120)
 	Text("MD2 Export")
 
 	######### Parameters GUI Buttons
-	g_filename = String("MD2 file to save: ", EVENT_NOEVENT, 10, 55, 210, 18,
+	######### MD2 Filename text entry
+	g_filename = String("MD2 file to save: ", EVENT_NOEVENT, 10, 75, 210, 18,
                             g_filename.val, 255, "MD2 file to save")
 	########## MD2 File Search Button
-	Button("Search",EVENT_CHOOSE_FILENAME,220,55,80,18)
+	Button("Search",EVENT_CHOOSE_FILENAME,220,75,80,18)
 
-	g_frame_filename = String("Frame List file to load: ", EVENT_NOEVENT, 10, 35, 210, 18,
+	##########  MD2 Frame List Text entry
+	g_frame_filename = String("Frame List file to load: ", EVENT_NOEVENT, 10, 55, 210, 18,
                                 g_frame_filename.val, 255, "Frame List to load-overrides MD2 defaults")
-	########## Texture Search Button
-	Button("Search",EVENT_CHOOSE_FRAME,220,35,80,18)
+	########## Frame List Search Button
+	Button("Search",EVENT_CHOOSE_FRAME,220,55,80,18)
+	
+	##########  Texture path to append
+	g_texture_path=String("Texture Path: ", EVENT_NOEVENT, 10,35,210,18,
+														g_texture_path.val,255, "Texture path to prepend")
+
 
 	########## Scale slider-default is 1/8 which is a good scale for md2->blender
-	g_scale= Slider("Scale Factor: ", EVENT_NOEVENT, 10, 75, 210, 18,
+	g_scale= Slider("Scale Factor: ", EVENT_NOEVENT, 10, 95, 210, 18,
                     1.0, 0.001, 10.0, 1, "Scale factor for obj Model");
 
 	######### Draw and Exit Buttons
@@ -605,7 +615,21 @@ def validation(object):
 	global user_frame_list
 
 	#move the object to the origin if it's not already there
-	object.setLocation(0.0,0.0,0.0)
+	if object.loc!=(0.0, 0.0, 0.0):
+		object.setLocation(0.0,0.0,0.0)
+		print "Model not centered at origin-Centering"
+		result=Blender.Draw.PupMenu("Model not centered at origin-Centering")
+
+	#resize the object in case it is not the right size
+	if object.size!=(1.0,1.0,1.0):
+		object.setSize(1.0,1.0,1.0)
+		print "Object is scaled-You should scale the mesh verts, not the object"
+		result=Blender.Draw.PupMenu("Object is scaled-You should scale the mesh verts, not the object")
+		
+	if object.rot!=(0.0,0.0,0.0):
+		object.rot=(0.0,0.0,0.0)
+		print "Object is rotated-You should rotate the mesh verts, not the object"
+		result=Blender.Draw.PupMenu("Object is rotated-You should rotate the mesh verts, not the object")
 	
 	#get access to the mesh data
 	mesh=object.getData(False, True) #get the object (not just name) and the Mesh, not NMesh
@@ -620,11 +644,14 @@ def validation(object):
 			  print "Model not made entirely of triangles"
 			  result=Blender.Draw.PupMenu("Model not made entirely out of Triangles-Convert?%t|YES|NO")
 	
-	print "result: ", result
 	#triangulate or quit
 	if result==1:
 		#selecting face mode
 		Blender.Mesh.Mode(3)
+		
+		editmode = Window.EditMode()    # are we in edit mode?  If so ...
+		if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
+			
 		mesh.quadToTriangle(0) #use closest verticies in breaking a quad
 	elif result==2:
 		return False #user will fix (I guess)
@@ -632,7 +659,7 @@ def validation(object):
 	#check it has UV coordinates
 	if mesh.vertexUV==True:
 		print "Vertex UV not supported"
-		result=Blender.Draw.PupMenu("Vertex UV not suppored-Use Sticky UV%t|OK")
+		result=Blender.Draw.PupMenu("Vertex UV not suppored-Use Sticky UV%t|Quit")
 		return False
 			
 	elif mesh.faceUV==True:
@@ -640,32 +667,33 @@ def validation(object):
 			if(len(face.uv)==3):
 				pass
 			else:
-				print "Models vertices do not all have UV"
-				result=Blender.Draw.PupMenu("Models vertices do not all have UV%t|OK")
+				print "Model's vertices do not all have UV"
+				result=Blender.Draw.PupMenu("Model's vertices do not all have UV%t|Quit")
 				return False
 	
 	else:
 		print "Model does not have UV (face or vertex)"
-		result=Blender.Draw.PupMenu("Model does not have UV (face or vertex)%t|OK")
+		result=Blender.Draw.PupMenu("Model does not have UV (face or vertex)%t|Quit")
 		return False
 
-	#check it has only 1 associated texture map
+	#check it has an associated texture map
 	last_face=""
 	last_face=mesh.faces[0].image
 	if last_face=="":
 		print "Model does not have a texture Map"
-		result=Blender.Draw.PupMenu("Model does not have a texture Map%t|OK")
+		result=Blender.Draw.PupMenu("Model does not have a texture Map%t|Quit")
 		return False
 
+	#check if each face uses the same texture map (only one allowed)
 	for face in mesh.faces:
 		mesh_image=face.image
 		if not mesh_image:
 			print "Model has a face without a texture Map"
-			result=Blender.Draw.PupMenu("Model has a face without a texture Map%t|OK")
+			result=Blender.Draw.PupMenu("Model has a face without a texture Map%t|Quit")
 			return False
 		if mesh_image!=last_face:
 			print "Model has more than 1 texture map assigned"
-			result=Blender.Draw.PupMenu("Model has more than 1 texture map assigned%t|OK")
+			result=Blender.Draw.PupMenu("Model has more than 1 texture map assigned%t|Quit")
 			return False
 		
 	size=mesh_image.getSize()
@@ -708,7 +736,12 @@ def validation(object):
 # Fill MD2 data structure
 ######################################################
 def fill_md2(md2, object):
+	#global defines
 	global user_frame_list
+	global g_texture_path
+	
+	Blender.Window.DrawProgressBar(0.25,"Filling MD2 Data")
+	
 	#get a Mesh, not NMesh
 	mesh=object.getData(False, True)	
 	
@@ -733,7 +766,11 @@ def fill_md2(md2, object):
 	md2.num_skins=1
 	#add a skin node to the md2 data structure
 	md2.skins.append(md2_skin())
-	md2.skins[0].name=Blender.sys.basename(mesh_image.getFilename())
+	md2.skins[0].name=g_texture_path.val+Blender.sys.basename(mesh_image.getFilename())
+	if len(md2.skins[0].name)>64:
+		print "Texture Path and name is more than 64 characters"
+		result=Blender.Draw.PupMenu("Texture path and name is more than 64 characters-Quitting")
+		return False
 
 	#put texture information in the md2 structure
 	#build UV coord dictionary (prevents double entries-saves space)
@@ -765,6 +802,8 @@ def fill_md2(md2, object):
 			tex_key=(uv_coord[0],uv_coord[1])
 			tex_index=tex_list[tex_key]
 			md2.faces[this_face].texture_index[i]=tex_index
+	
+	Blender.Window.DrawProgressBar(0.5, "Computing GL Commands")
 
 	#compute GL commands
 	md2.num_GL_commands=build_GL_commands(md2)
@@ -781,8 +820,16 @@ def fill_md2(md2, object):
 		temp=user_frame_list[len(user_frame_list)-1]  #last item
 		md2.num_frames=temp[2] #last frame number
 	
+
+	progress=0.5
+	progressIncrement=0.25/md2.num_frames
+
 	#fill in each frame with frame info and all the vertex data for that frame
 	for frame_counter in range(0,md2.num_frames):
+		
+		progress+=progressIncrement
+		Blender.Window.DrawProgressBar(progress, "Calculating Frame: "+str(frame_counter))
+			
 		#add a frame
 		md2.frames.append(md2_frame())
 		#update the mesh objects vertex positions for the animation
@@ -856,9 +903,12 @@ def fill_md2(md2, object):
 					maxdot = dot;
 					maxdotindex = j;
 			
-			md2.frames[frame_counter].vertices[vert_counter].lightnormalindex=maxdotindex	
+			md2.frames[frame_counter].vertices[vert_counter].lightnormalindex=maxdotindex
 			
-			
+			del maxdot, maxdotindex
+			del new_x, new_y, new_z
+		del frame_max_x, frame_max_y, frame_max_z, frame_min_x, frame_min_y, frame_min_z
+		del frame_scale_x, frame_scale_y, frame_scale_z, frame_trans_x, frame_trans_y, frame_trans_z			
 			
 			
 	#output all the frame names-user_frame_list is loaded during the validation
@@ -901,7 +951,7 @@ def get_frame_list():
 			file.close()
 
 			#check header (first line)
-			if lines[0]<>"# MD2 Frame Name List\n":
+			if lines[0]<>"# MD2 Frame Name List":
 				print "its not a valid file"
 				result=Blender.Draw.PupMenu("This is not a valid frame definition file-using default%t|OK")
 				return MD2_FRAME_NAME_LIST
@@ -924,250 +974,254 @@ def get_frame_list():
 			return MD2_FRAME_NAME_LIST
 
 ######################################################
+# Globals for GL command list calculations
+######################################################
+used_tris=[]
+strip_verts=[]
+strip_st=[]
+strip_tris=[]
+strip_count=0
+
+######################################################
 # Tri-Strip/Tri-Fan functions
 ######################################################
 def find_strip_length(md2, start_tri, start_vert):
-	#variables shared between fan and strip functions
+	print "Finding strip length"
+	
 	global used
-	global strip_vert
+	global strip_verts
 	global strip_st
 	global strip_tris
-	global strip_count
 
 	m1=m2=0
-	st1=st2=0
-	
+
 	used[start_tri]=2
+	
+	strip_verts=[0]*0
+	strip_tris=[0]*0
+	strip_st=[0]*0
+	
+	
+	strip_verts.append(md2.faces[start_tri].vertex_index[start_vert%3])
+	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+2)%3])
+	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+1)%3])
+	
+	strip_st.append(md2.faces[start_tri].texture_index[start_vert%3])
+	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+2)%3])
+	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+1)%3])
 
-	last=start_tri
-
-	strip_vert[0]=md2.faces[last].vertex_index[start_vert%3]
-	strip_vert[1]=md2.faces[last].vertex_index[(start_vert+1)%3]
-	strip_vert[2]=md2.faces[last].vertex_index[(start_vert+2)%3]
-
-	strip_st[0]=md2.faces[last].texture_index[start_vert%3]
-	strip_st[1]=md2.faces[last].texture_index[(start_vert+1)%3]
-	strip_st[2]=md2.faces[last].texture_index[(start_vert+2)%3]
-
-	strip_tris[0]=start_tri
 	strip_count=1
+	strip_tris.append(start_tri)
 
-	m1=md2.faces[last].vertex_index[(start_vert+2)%3]
-	st1=md2.faces[last].texture_index[(start_vert+2)%3]
-	m2=md2.faces[last].vertex_index[(start_vert+1)%3]
-	st2=md2.faces[last].texture_index[(start_vert+1)%3]
-	
-	#look for matching triangle
-	check=start_tri+1
-	
+	m1=md2.faces[start_tri].vertex_index[(start_vert+2)%3]
+	m2=md2.faces[start_tri].vertex_index[(start_vert+1)%3]
+
 	for tri_counter in range(start_tri+1, md2.num_faces):
-		
 		for k in range(0,3):
-			if md2.faces[check].vertex_index[k]!=m1:
-				continue
-			if md2.faces[check].texture_index[k]!=st1:
-				continue
-			if md2.faces[check].vertex_index[(k+1)%3]!=m2:
-				continue
-			if md2.faces[check].texture_index[(k+1)%3]!=st2:
-				continue
-			
-			#if we can't use this triangle, this tri_strip is done
-			if (used[tri_counter]!=0):
-				for clear_counter in range(start_tri+1, md2.num_faces):
-					if used[clear_counter]==2:
-						used[clear_counter]=0
-				return strip_count
-
-			#new edge
-			if (strip_count & 1):
-				m2=md2.faces[check].vertex_index[(k+2)%3]
-				st2=md2.faces[check].texture_index[(k+2)%3]
-			else:
-				m1=md2.faces[check].vertex_index[(k+2)%3]
-				st1=md2.faces[check].texture_index[(k+2)%3]
-			
-			strip_vert[strip_count+2]=md2.faces[tri_counter].vertex_index[(k+2)%3]
-			strip_st[strip_count+2]=md2.faces[tri_counter].texture_index[(k+2)%3]
-			strip_tris[strip_count]=tri_counter
-			strip_count+=1
+			if(md2.faces[tri_counter].vertex_index[k]!=m1) or (md2.faces[tri_counter].vertex_index[(k+1)%3]!=m2):
+				pass
+			else: 
+				#found a matching edge
+				print "Found a triangle with a matching edge: ", tri_counter
+				if(used[tri_counter]!=0):
+					print "Poop! I can't use it!"
+				else:
+					print "Yeah! I can use it"
+				
+					if(strip_count%2==1):  #is this an odd tri
+						print "odd triangle"
+						m2=md2.faces[tri_counter].vertex_index[(k+2)%3]
+					else:
+						print "even triangle"
+						m1=md2.faces[tri_counter].vertex_index[(k+2)%3]
 	
-			used[tri_counter]=2
-		check+=1
+					strip_verts.append(md2.faces[tri_counter].vertex_index[(k+2)%3])
+					strip_st.append(md2.faces[tri_counter].texture_index[(k+2)%3])
+					strip_count+=1
+					strip_tris.append(tri_counter)
+	
+					used[tri_counter]=2
+					tri_counter=start_tri+1 # restart looking
+
+	#clear used counter
+	for used_counter in range(0, md2.num_faces):
+		if used[used_counter]==2:
+			used[used_counter]=0
+
 	return strip_count
 
+#***********************************************
 def find_fan_length(md2, start_tri, start_vert):
-	#variables shared between fan and strip functions
+	print "Finding fan length"
+	
 	global used
-	global strip_vert
-	global strip_st
+	global strip_verts
 	global strip_tris
-	global strip_count
+	global strip_st
+	
+	strip_verts=[0]*0
+	strip_tris=[0]*0
+	strip_st=[0]*0
 
 	m1=m2=0
-	st1=st2=0
-	
+
 	used[start_tri]=2
-
-	last=start_tri
-
-	strip_vert[0]=md2.faces[last].vertex_index[start_vert%3]
-	strip_vert[1]=md2.faces[last].vertex_index[(start_vert+1)%3]
-	strip_vert[2]=md2.faces[last].vertex_index[(start_vert+2)%3]
 	
-	strip_st[0]=md2.faces[last].texture_index[start_vert%3]
-	strip_st[1]=md2.faces[last].texture_index[(start_vert+1)%3]
-	strip_st[2]=md2.faces[last].texture_index[(start_vert+2)%3]
+	strip_verts.append(md2.faces[start_tri].vertex_index[start_vert%3])
+	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+2)%3])
+	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+1)%3])
+	
+	strip_st.append(md2.faces[start_tri].texture_index[start_vert%3])
+	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+2)%3])
+	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+1)%3])
 
-	strip_tris[0]=start_tri
 	strip_count=1
+	strip_tris.append(start_tri)
 
-	m1=md2.faces[last].vertex_index[(start_vert+0)%3]
-	st1=md2.faces[last].texture_index[(start_vert+0)%3]
-	m2=md2.faces[last].vertex_index[(start_vert+2)%3]
-	st2=md2.faces[last].texture_index[(start_vert+2)%3]
+	m1=md2.faces[start_tri].vertex_index[(start_vert)]
+	m2=md2.faces[start_tri].vertex_index[(start_vert+1)%3]
 
-	#look for matching triangle	
-	check=start_tri+1
 	for tri_counter in range(start_tri+1, md2.num_faces):
 		for k in range(0,3):
-			if md2.faces[check].vertex_index[k]!=m1:
-				continue
-			if md2.faces[check].texture_index[k]!=st1:
-				continue
-			if md2.faces[check].vertex_index[(k+1)%3]!=m2:
-				continue
-			if md2.faces[check].texture_index[(k+1)%3]!=st2:
-				continue
-			
-			#if we can't use this triangle, this tri_strip is done
-			if (used[tri_counter]!=0):
-				for clear_counter in range(start_tri+1, md2.num_faces):
-					if used[clear_counter]==2:
-						used[clear_counter]=0
-				return strip_count
-
-			#new edge
-			m2=md2.faces[check].vertex_index[(k+2)%3]
-			st2=md2.faces[check].texture_index[(k+2)%3]
-			
-			strip_vert[strip_count+2]=m2
-			strip_st[strip_count+2]=st2
-			strip_tris[strip_count]=tri_counter
-			strip_count+=1
+			if (md2.faces[tri_counter].vertex_index[k]!=m1) or (md2.faces[tri_counter].vertex_index[(k+1)%3]!=m2):
+				pass
+			else:
+				#found a matching edge
+				print "Found a triangle with a matching edge: ", tri_counter
+				if(used[tri_counter]!=0):
+					print "Poop! I can't use it!"
+				else:
+					print "Yeah! I can use it"
+				
+					m2=md2.faces[tri_counter].vertex_index[(k+1)%3]
 	
-			used[tri_counter]=2
-		check+=1
+					strip_verts.append(md2.faces[tri_counter].vertex_index[(k+1)%3])
+					strip_st.append(md2.faces[tri_counter].texture_index[(k+1)%3])
+					
+					strip_count+=1
+					strip_tris.append(tri_counter)
+	
+					used[tri_counter]=2
+					tri_counter=start_tri+1 #restart looking
+				
+	#clear used counter
+	for used_counter in range(0, md2.num_faces):
+		if used[used_counter]==2:
+			used[used_counter]=0
+	
 	return strip_count
-
-
-######################################################
-# Globals for GL command list calculations
-######################################################
-used=[]
-strip_vert=0
-strip_st=0
-strip_tris=0
-strip_count=0
-
+	
 ######################################################
 # Build GL command List
 ######################################################
 def build_GL_commands(md2):
-	#variables shared between fan and strip functions
+	print "Building GL Commands"
+	
 	global used
-	used=[0]*md2.num_faces
-	global strip_vert
-	strip_vert=[0]*128
-	global strip_st
-	strip_st=[0]*128
+	global strip_verts
 	global strip_tris
-	strip_tris=[0]*128
-	global strip_count
-	strip_count=0
+	global strip_st
 	
-	#variables
+	#globals initialization
+	used=[0]*md2.num_faces
+	print "Used: ", used
 	num_commands=0
-	start_vert=0
-	fan_length=strip_length=0
-	length=best_length=0
-	best_type=0
-	best_vert=[0]*1024
-	best_st=[0]*1024
-	best_tris=[0]*1024
-	s=0.0
-	t=0.0
-	
-	for face_counter in range(0,md2.num_faces):
-		if used[face_counter]!=0: #don't evaluate a tri that's been used
-			#print "found a used triangle: ", face_counter
-			pass
+
+	for tri_counter in range(0,md2.num_faces):
+		if used[tri_counter]!=0: 
+			print "Found a used triangle: ", tri_counter
 		else:
-			best_length=0 #restart the counter
-			#for each vertex index in this face
+			print "Found an unused triangle: ", tri_counter
+
+			#intialization
+			best_length=0
+			best_type=0
+			best_verts=[0]*0
+			best_tris=[0]*0
+			best_st=[0]*0
+			
+
 			for start_vert in range(0,3):
-				fan_length=find_fan_length(md2, face_counter, start_vert)
+				fan_length=find_fan_length(md2, tri_counter, start_vert)
+				#fan_length=0
+				print "Triangle: ", tri_counter, " Vertex: ", start_vert, " Fan Length: ", fan_length
+
 				if (fan_length>best_length):
 					best_type=1
 					best_length=fan_length
-					for index in range (0, best_length+2):
-						best_st[index]=strip_st[index]
-						best_vert[index]=strip_vert[index]
-					for index in range(0, best_length):
-						best_tris[index]=strip_tris[index]
+					best_verts=strip_verts
+					best_tris=strip_tris
+					best_st=strip_st
 				
-				strip_length=find_strip_length(md2, face_counter, start_vert)
+				#strip_length=find_strip_length(md2, tri_counter, start_vert)
+				strip_length=0
+				print "Triangle: ", tri_counter, " Vertex: ", start_vert, " Strip Length: ", strip_length
+		
 				if (strip_length>best_length): 
 					best_type=0
 					best_length=strip_length
-					for index in range (0, best_length+2):
-						best_st[index]=strip_st[index]
-						best_vert[index]=strip_vert[index]
-					for index in range(0, best_length):
-						best_tris[index]=strip_tris[index]
-			
-			#mark the tris on the best strip/fan as used
-			for used_counter in range (0, best_length):
+					best_verts=strip_verts
+					best_tris=strip_tris
+					best_st=strip_st
+
+			print "Best length for this triangle is: ", best_length
+			print "Best type is: ", best_type
+			print "Best Tris are: ", best_tris
+			print "Best Verts are: ", best_verts
+			print "Best ST are: ", best_st
+
+
+			#mark tris as used
+			for used_counter in range(0,best_length):
 				used[best_tris[used_counter]]=1
-	
-			temp_cmdlist=md2_GL_cmd_list()
-			#push the number of commands into the command stream
-			if best_type==1:
-				temp_cmdlist.num=best_length+2
-				num_commands+=1
+
+			#create command list
+			cmd_list=md2_GL_cmd_list()
+			if best_type==0:
+				cmd_list.num=(-(best_length+2))
 			else:	
-				temp_cmdlist.num=(-(best_length+2))
-				num_commands+=1
-			for command_counter in range (0, best_length+2):
-				#emit a vertex into the reorder buffer
-				cmd=md2_GL_command()
-				index=best_st[command_counter]
-				#calc and put S/T coords in the structure
-				s=md2.tex_coords[index].u
-				t=md2.tex_coords[index].v
-				s=(s+0.5)/md2.skin_width
-				t=(t+0.5)/md2.skin_height
-				cmd.s=s
-				cmd.t=t
-				cmd.vert_index=best_vert[command_counter]
-				temp_cmdlist.cmd_list.append(cmd)
+				cmd_list.num=best_length+2
+
+			num_commands+=1
+			for command_counter in range(0,best_length+2):
+				cmd=md2_GL_command()										
+				s=md2.tex_coords[best_st[command_counter]].u
+				t=md2.tex_coords[best_st[command_counter]].v
+				cmd.s=s/md2.skin_width
+				cmd.t=t/md2.skin_height
+				cmd.vert_index=best_verts[command_counter]
 				num_commands+=3
-			md2.GL_commands.append(temp_cmdlist)
-	
-	#end of list
+				cmd_list.cmd_list.append(cmd)
+			cmd_list.dump()
+			md2.GL_commands.append(cmd_list)
+		
+		print "Used: ", used			
+
+	#add the null command at the end
 	temp_cmdlist=md2_GL_cmd_list()	
 	temp_cmdlist.num=0
 	md2.GL_commands.append(temp_cmdlist)  
-	num_commands+=1
-	
+	num_commands+=1		
+
 	#cleanup and return
 	used=best_vert=best_st=best_tris=strip_vert=strip_st=strip_tris=0
 	return num_commands
+		
+
+
 
 ######################################################
 # Save MD2 Format
 ######################################################
 def save_md2(filename):
+	print ""
+	print "***********************************"
+	print "MD2 Export"
+	print "***********************************"
+	print ""
+	
+	Blender.Window.DrawProgressBar(0.0,"Begining MD2 Export")
+	
 	md2=md2_obj()  #blank md2 object to save
 
 	#get the object
@@ -1195,6 +1249,8 @@ def save_md2(filename):
 	
 	fill_md2(md2, mesh_obj)
 	md2.dump()
+	
+	Blender.Window.DrawProgressBar(1.0, "Writing to Disk")
 	
 	#actually write it to disk
 	file=open(filename,"wb")
