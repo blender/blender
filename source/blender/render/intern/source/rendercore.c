@@ -1897,14 +1897,21 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 	shr->alpha= shi->alpha;
 
+	if(shr->spec[0]<0.0f) shr->spec[0]= 0.0f;	 
+	if(shr->spec[1]<0.0f) shr->spec[1]= 0.0f;	 
+	if(shr->spec[2]<0.0f) shr->spec[2]= 0.0f;
+	
 	shr->diff[0]+= shi->r*shi->amb*shi->rad[0];
 	shr->diff[0]+= shi->ambr;
+	if(shr->diff[0]<0.0f) shr->diff[0]= 0.0f;
 	
 	shr->diff[1]+= shi->g*shi->amb*shi->rad[1];
 	shr->diff[1]+= shi->ambg;
+	if(shr->diff[1]<0.0f) shr->diff[1]= 0.0f;
 	
 	shr->diff[2]+= shi->b*shi->amb*shi->rad[2];
 	shr->diff[2]+= shi->ambb;
+	if(shr->diff[2]<0.0f) shr->diff[2]= 0.0f;
 	
 	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->diff, shi);
 	if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(shr->spec, shr->spec+1, shr->spec+2, shi);
