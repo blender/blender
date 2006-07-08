@@ -147,7 +147,7 @@ void BPY_start_python( int argc, char **argv )
 	 * rest of our init msgs.
 	 */
 	// Py_GetVersion() returns a ptr to astatic string
-	printf( "Looking for installed Python version %.3s\n", Py_GetVersion() );
+	printf( "Compiled with Python version %.3s.\n", Py_GetVersion() );
 
 	//Initialize the TOP-LEVEL modules
 	PyImport_ExtendInittab(BPy_Inittab_Modules);
@@ -264,10 +264,11 @@ void init_syspath( int first_time )
 	   python install found.
 	*/
 
+	printf("Checking for installed Python... "); /* appears after msg "Compiled with Python 2.x"  */
 	mod = PyImport_ImportModule( "site" );	/* new ref */
 
 	if( mod ) {
-		printf("Got it!\n");  /* appears after msg Looking for Python...  */
+		printf("got it!\n");  
 		Py_DECREF( mod );
 	} else {		/* import 'site' failed */
 		PyErr_Clear(  );
