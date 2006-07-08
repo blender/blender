@@ -15,7 +15,7 @@ __version__ = "1.1 12/18/05"
 __bpydoc__ = """\
 This script projection unwraps the selected faces of a mesh.
 
-it operates on all selected mesh objects, and can be set to unwrap
+it operates on all selected mesh objects, and can be used unwrap
 selected faces, or all faces.
 """
 

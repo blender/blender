@@ -6,6 +6,49 @@ Group: 'Object'
 Tooltip: 'Copy Bone Weights from 1 mesh, to all other selected meshes.'
 """
 
+__author__ = ["Campbell Barton"]
+__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
+__version__ = "0.1"
+__bpydoc__ = """\
+
+Bone Weight Copy
+
+This script is used to copy bone weights from 1 mesh with weights (the source mesh) to many (the target meshes).
+Weights are copied from 1 mesh to another based on how close they are together.
+
+For normal operation, select 1 source mesh with vertex weights and any number of unweighted meshes that overlap the source mesh.
+Then run this script using default options and check the new weigh.
+
+
+A differnt way to use this script is to update the weights an an alredy weighted mesh.
+this is done using the "Copy to Selected" option enabled and works a bit differently,
+With the target mesh, select the verts you want to update.
+since all meshes have weights we cant just use the weighted mesh as the source,
+so the Active Object is used for the source mesh.
+Run the script and the selected verts on all non active meshes will be updated.
+"""
+
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Script copyright (C) Campbell J Barton
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+# --------------------------------------------------------------------------
+
 import Blender
 from Blender import Armature, Object, Mathutils, Window, Mesh
 Vector= Mathutils.Vector

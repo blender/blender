@@ -276,4 +276,5 @@ def main():
 	
 	Draw.PupMenu('renamed: %d objects.' % renameCount)
 
-main()
+if __name__=='__main__':
+	main()

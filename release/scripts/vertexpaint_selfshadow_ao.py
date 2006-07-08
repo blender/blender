@@ -11,10 +11,10 @@ __url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman
 __version__ = "0.1"
 __bpydoc__ = """\
 
-Clean Weight
+Self Shadow
 
-This Script is to be used only in weight paint mode,
-It removes very low weighted verts from the current group with a weight option.
+This usript uses the angles between faces to shade the mesh,
+and optionaly blur the shading to remove artifacts from spesific edges.
 """
 
 # ***** BEGIN GPL LICENSE BLOCK *****
@@ -149,10 +149,6 @@ def main():
 	
 	me= ob.getData(mesh=1)
 	
-	if not me.faceUV:
-		Draw.PupMenu('Error, The active mesh does not have texface/vertex colors. aborting')
-		return
-	
 	PREF_BLUR_ITERATIONS= Draw.Create(1)	
 	PREF_BLUR_RADIUS= Draw.Create(0.05)
 	PREF_MIN_EDLEN= Draw.Create(0.01)
@@ -182,6 +178,9 @@ def main():
 	PREF_CLAMP_CONVEX= PREF_CLAMP_CONVEX.val
 	PREF_SHADOW_ONLY= PREF_SHADOW_ONLY.val
 	PREF_SEL_ONLY= PREF_SEL_ONLY.val
+	
+	if not me.faceUV:
+		me.faceUV= 1
 	
 	#t= sys.time()
 	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
