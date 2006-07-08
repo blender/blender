@@ -30,11 +30,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <stdio.h>		/* for sprintf		*/
+#include <math.h>			/* fabs */
+#include <stdio.h>			/* for sprintf		*/
 
-#include "BKE_global.h" /* for G			*/
+#include "BKE_global.h"		/* for G			*/
+#include "BKE_utildefines.h"	/* ABS */
 
-#include "mydevice.h"	/* for KEY defines	*/
+#include "mydevice.h"		/* for KEY defines	*/
 
 #include "transform.h"
 
@@ -219,7 +221,8 @@ char handleNumInput(NumInput *n, unsigned short event)
 		if (!n->ctrl[idx])
 			n->ctrl[idx] = 1;
 
-		if (n->ctrl[idx] == 1) {
+		if (fabs(n->val[idx]) > 9999999.0f);
+		else if (n->ctrl[idx] == 1) {
 			n->val[idx] *= 10;
 			n->val[idx] += Val;
 		}
@@ -228,13 +231,19 @@ char handleNumInput(NumInput *n, unsigned short event)
 			n->val[idx] -= Val;
 		}
 		else {
-			n->val[idx] += Val / (float)n->ctrl[idx];
-			n->ctrl[idx] *= 10;
+			/* float resolution breaks when over six digits after comma */
+			if( ABS(n->ctrl[idx]) < 10000000) {
+				n->val[idx] += Val / (float)n->ctrl[idx];
+				n->ctrl[idx] *= 10;
+			}
 		}
 		break;
 	default:
 		return 0;
 	}
+	
+	printf("value %f cntrl %d\n", n->val[idx], n->ctrl[idx]);
+
 	/* REDRAW SINCE NUMBERS HAVE CHANGED */
 	return 1;
 }
