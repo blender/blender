@@ -1514,7 +1514,7 @@ int Resize(TransInfo *t, short mval[2])
 	float size[3], mat[3][3];
 	float ratio;
 	int i;
-	char str[50];
+	char str[200];
 
 	/* for manipulator, center handle, the scaling can't be done relative to center */
 	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {

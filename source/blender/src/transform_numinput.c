@@ -242,8 +242,6 @@ char handleNumInput(NumInput *n, unsigned short event)
 		return 0;
 	}
 	
-	printf("value %f cntrl %d\n", n->val[idx], n->ctrl[idx]);
-
 	/* REDRAW SINCE NUMBERS HAVE CHANGED */
 	return 1;
 }
