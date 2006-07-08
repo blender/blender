@@ -1442,9 +1442,10 @@ void do_global_buttons(unsigned short event)
 			 * can require it to be updated because its
 			 * basis might have changed... -zr
 			 */
-		if (ob && ob->type==OB_MBALL)
+		if (ob && ob->type==OB_MBALL) {
+			DAG_scene_sort(G.scene);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			
+		}
 		/* redraw because name has changed: new pup */
 		scrarea_queue_headredraw(curarea);
 		allqueue(REDRAWINFO, 1);
