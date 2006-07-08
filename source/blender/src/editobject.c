@@ -2808,6 +2808,10 @@ void copy_attr(short event)
 					
 					base->object->transflag &= ~OB_DUPLI;
 					base->object->transflag |= (ob->transflag & OB_DUPLI);
+
+					base->object->dup_group= ob->dup_group;
+					if(ob->dup_group)
+						id_us_plus((ID *)ob->dup_group);
 				}
 				else if(event==7) {	/* mass */
 					base->object->mass= ob->mass;
