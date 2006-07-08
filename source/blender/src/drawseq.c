@@ -913,6 +913,14 @@ static void draw_extra_seqinfo(void)
 		glRasterPos3f(xco,  0.3, 0.0);
 		BMF_DrawString(G.font, str);
 	}
+	else if(last_seq->type==SEQ_SCENE) {
+		se= (StripElem *)give_stripelem(last_seq,  (G.scene->r.cfra));
+		if(se && last_seq->scene) {
+			sprintf(str, "Cur: %d  First: %d  Last: %d", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
+			glRasterPos3f(xco,  0.3, 0.0);
+			BMF_DrawString(G.font, str);
+		}
+	}
 	else if(last_seq->type==SEQ_RAM_SOUND
 		|| last_seq->type == SEQ_HD_SOUND) {
 

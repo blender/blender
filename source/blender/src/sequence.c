@@ -1276,8 +1276,12 @@ void do_render_seq(RenderResult *rr, int cfra)
 		free_imbuf_seq_except(cfra);
 	}
 	else {
-		/* render result is delivered empty in most cases */
-		if (!rr->rect32)
+		/* render result is delivered empty in most cases, nevertheless we handle all cases */
+		if (rr->rectf)
+			memset(rr->rectf, 0, 4*sizeof(float)*rr->rectx*rr->recty);
+		else if (rr->rect32)
+			memset(rr->rect32, 0, 4*rr->rectx*rr->recty);
+		else
 			rr->rect32= MEM_callocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
 	}
 	
