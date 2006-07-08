@@ -200,17 +200,18 @@ void save_image_filesel_str(char *str)
 		case R_HAMX:
 			strcpy(str, "Save HAMX");
 			break;
+		case R_TARGA:
+			strcpy(str, "Save Targa");
+			break;
+			
+			/* default we save jpeg, also for all movie formats */
 		case R_JPEG90:
 		case R_MOVIE:
 		case R_AVICODEC:
 		case R_AVIRAW:
 		case R_AVIJPEG:
-			strcpy(str, "Save JPEG");
-			break;
-			
-		case R_TARGA:	/* default targa */
 		default:
-			strcpy(str, "Save Targa");
+			strcpy(str, "Save JPEG");
 			break;
 	}	
 }

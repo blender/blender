@@ -47,7 +47,7 @@ typedef struct NumInput {
     short  idx_max;
     short  flag;        /* Different flags to indicate different behaviors                                */
     float  val[3];       /* Direct value of the input                                                      */
-    short  ctrl[3];      /* Control to indicate what to do with the numbers that are typed                 */
+    int  ctrl[3];      /* Control to indicate what to do with the numbers that are typed                 */
 } NumInput ;
 
 /*
