@@ -237,7 +237,7 @@ class Object:
     @ivar ipo: The ipo data associated with the object. (Read-only)
     @ivar mat: alias for L{matrix<Object.Object.matrix>}: the matrix of the object in world space. (Read-only)
     @ivar matrix: The matrix of the object in world space, same as L{matrixWorld<Object.Object.matrixWorld>}. (Read-only)
-    @ivar matrixLocal: The matrix of the object relative to its parent. (Read-only)
+    @ivar matrixLocal: The matrix of the object relative to its parent (or L{matrixWorld<Object.Object.matrixWorld>} if there is no parent). (Read-only)
     @ivar matrixWorld: The matrix of the object in world space. (Read-only)
     @ivar colbits: The Material usage mask. A set bit #n means: the Material
         #n in the Object's material list is used. Otherwise, the Material #n
@@ -526,7 +526,8 @@ class Object:
     @param space: The desired matrix:
       - worldspace (default): absolute, taking vertex parents, tracking and
           Ipo's into account;
-      - localspace: relative to the object's parent;
+      - localspace: relative to the object's parent (returns worldspace
+          matrix if the object doesn't have a parent);
       - old_worldspace: old behavior, prior to Blender 2.34, where eventual
           changes made by the script itself were not taken into account until
           a redraw happened, either called by the script or upon its exit.

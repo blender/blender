@@ -1429,8 +1429,7 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 {
-	float matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-  	                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	Object *ob = self->object;
 	char *space = "worldspace";	/* default to world */
 
 	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
@@ -1438,20 +1437,39 @@ static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 						"expected a string or nothing" ) );
 	}
 
-	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
+	if( BLI_streq( space, "worldspace" ) ) { /* world space matrix */
 		disable_where_script( 1 );
 		where_is_object( self->object );
 		disable_where_script( 0 );
-	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
-		object_to_mat4( self->object, (float (*)[4])matrix );
-		return newMatrixObject(matrix,4,4,Py_NEW);
-	} else if( BLI_streq( space, "old_worldspace" ) ) {
-		/* old behavior, prior to 2.34, check this method's doc string: */
-	} else {
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"wrong parameter, expected nothing or either 'worldspace' (default),\n\
-'localspace' or 'old_worldspace'" ) );
 	}
+
+	else if( BLI_streq( space, "localspace" )) {/* return local space matrix */
+		if (ob->parent) {
+			float matrix[4][4]; /* for the result */
+			float invmat[4][4]; /* for inverse of parent's matrix */
+
+			Mat4Invert(invmat, self->object->parent->obmat );
+			Mat4MulMat4(matrix, invmat, self->object->obmat);
+			return newMatrixObject((float*)matrix,4,4,Py_NEW);
+		}
+		else { /* no parent, so return world space matrix */
+			disable_where_script( 1 );
+			where_is_object( self->object );
+			disable_where_script( 0 );
+		}
+	}
+
+	else if( BLI_streq( space, "old_worldspace" ) ) {
+		/* old behavior, prior to 2.34, check this method's doc string: */
+	}
+
+	else {
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"wrong parameter, expected nothing or either\n\
+			'worldspace' (default), 'localspace' or 'old_worldspace'" ) );
+	}
+
+	/* return world space matrix */
 	return newMatrixObject((float*)self->object->obmat,4,4,Py_WRAP);
 }
 
