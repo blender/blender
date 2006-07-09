@@ -1449,7 +1449,7 @@ static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 			float invmat[4][4]; /* for inverse of parent's matrix */
 
 			Mat4Invert(invmat, self->object->parent->obmat );
-			Mat4MulMat4(matrix, invmat, self->object->obmat);
+			Mat4MulMat4(matrix, self->object->obmat, invmat);
 			return newMatrixObject((float*)matrix,4,4,Py_NEW);
 		}
 		else { /* no parent, so return world space matrix */
