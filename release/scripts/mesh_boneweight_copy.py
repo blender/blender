@@ -195,8 +195,7 @@ def worldspace_verts(me, ob):
 def subdivMesh(me, subdivs):
 	oldmode = Mesh.Mode()
 	Mesh.Mode(Mesh.SelectModes['FACE'])
-	for f in me.faces: f.sel = 1
-	
+	me.sel= 1
 	for i in xrange(subdivs):
 		me.subdivide(0)
 	Mesh.Mode(oldmode)
@@ -206,7 +205,9 @@ def main():
 	print '\nStarting BoneWeight Copy...'
 	scn= Blender.Scene.GetCurrent()
 	contextSel= Object.GetSelected()
-	
+	if not contextSel:
+		Blender.Draw.PupMenu('Error%t|2 or more mesh objects need to be selected.|aborting.')
+		return
 	
 	PREF_QUALITY= Blender.Draw.Create(3)
 	PREF_NO_XCROSS= Blender.Draw.Create(0)
