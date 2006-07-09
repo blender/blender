@@ -232,7 +232,20 @@ void error(char *fmt, ...)
 
 int saveover(char *file)
 {
-	return (!BLI_exists(file) || confirm("Save over", file));
+	int len= strlen(file);
+	
+	if(len==0) 
+		return 0;
+	
+	if(BLI_exists(file)==0)
+		return 1;
+	
+	if( file[len-1]=='/' || file[len-1]=='\\' ) {
+		error("Cannot overwrite a directory");
+		return 0;
+	}
+		
+	return confirm("Save over", file);
 }
 
 /* ****************** EXTRA STUFF **************** */

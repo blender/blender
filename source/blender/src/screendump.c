@@ -46,6 +46,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_sca.h"
 
@@ -64,8 +65,6 @@
 static unsigned int *dumprect=0;
 static int dumpsx, dumpsy;
 
-void write_screendump(char *name);
-
 void write_screendump(char *name)
 {
 	ImBuf *ibuf;
@@ -75,42 +74,27 @@ void write_screendump(char *name)
 		strcpy(G.ima, name);
 		BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
 		
+		/* BKE_add_image_extension() checks for if extension was already set */
+		if(G.scene->r.scemode & R_EXTENSION) 
+			if(strlen(name)<FILE_MAXDIR+FILE_MAXFILE-5)
+				BKE_add_image_extension(name, G.scene->r.imtype);
+		
 		if(saveover(name)) {
 			waitcursor(1);
 			
 			ibuf= IMB_allocImBuf(dumpsx, dumpsy, 24, 0, 0);
 			ibuf->rect= dumprect;
 			
-			if(G.scene->r.imtype== R_IRIS) ibuf->ftype= IMAGIC;
-			else if(G.scene->r.imtype==R_IRIZ) ibuf->ftype= IMAGIC;
-			else if(G.scene->r.imtype==R_TARGA) ibuf->ftype= TGA;
-			else if(G.scene->r.imtype==R_RAWTGA) ibuf->ftype= RAWTGA;
-			else if(G.scene->r.imtype==R_PNG) ibuf->ftype= PNG;
-			else if((G.have_libtiff) && 
-				(G.scene->r.imtype==R_TIFF)) ibuf->ftype= TIF;
-#ifdef WITH_OPENEXR
-			else if(G.scene->r.imtype==R_OPENEXR) {
-				ibuf->ftype= OPENEXR;
-				if(G.scene->r.subimtype & R_OPENEXR_HALF)
-					ibuf->ftype |= OPENEXR_HALF;
-				ibuf->ftype |= (G.scene->r.quality & OPENEXR_COMPRESS);
-			}
-#endif
-			else if(G.scene->r.imtype==R_HAMX) ibuf->ftype= AN_hamx;
-			else if(ELEM5(G.scene->r.imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
-				ibuf->ftype= JPG|G.scene->r.quality;
-			}
-			else ibuf->ftype= TGA;	
-			
 			if(G.scene->r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
 			
-			IMB_saveiff(ibuf, name, IB_rect);
+			BKE_write_ibuf(ibuf, name, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
+
 			IMB_freeImBuf(ibuf);
 			
 			waitcursor(0);
 		}
 		MEM_freeN(dumprect);
-		dumprect= 0;
+		dumprect= NULL;
 	}
 }
 
