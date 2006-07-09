@@ -2109,6 +2109,9 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
 	}
 	
+	/* used in nodes */
+	VECCOPY(shi->vno, shi->vn);
+	
 	if(R.r.mode & R_SPEED) {
 		float *s1, *s2, *s3;
 		
@@ -2365,16 +2368,18 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		VecMulf(shi->facenor, -1.0);
 	}
 	
-	if(R.r.mode & R_RAYTRACE) {
-		if(shi->ray_mirror!=0.0 || ((shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0)) {
-			ray_trace(shi, shr);
+	/* depth >= 1 when ray-shading */
+	if(shi->depth==0) {
+		if(R.r.mode & R_RAYTRACE) {
+			if(shi->ray_mirror!=0.0 || ((shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0)) {
+				ray_trace(shi, shr);
+			}
 		}
-	}
-	else {
-		/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
-		if(shi->mat->mode & MA_RAYTRANSP) shr->alpha= 1.0;
-	}
-	
+		else {
+			/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
+			if(shi->mat->mode & MA_RAYTRANSP) shr->alpha= 1.0;
+		}
+	}	
 }
 
 /* x,y: window coordinate from 0 to rectx,y */
@@ -2594,7 +2599,6 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 		}
 		
 		/* ------  main shading loop -------- */
-		VECCOPY(shi.vno, shi.vn);
 		
 		if(shi.mat->nodetree && shi.mat->use_nodes) {
 			ntreeShaderExecTree(shi.mat->nodetree, &shi, shr);

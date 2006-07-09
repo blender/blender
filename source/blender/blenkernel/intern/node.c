@@ -1046,6 +1046,8 @@ void ntreeFreeTree(bNodeTree *ntree)
 	
 	if(ntree==NULL) return;
 	
+	ntreeEndExecTree(ntree);	/* checks for if it is still initialized */
+	
 	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
 	
 	for(node= ntree->nodes.first; node; node= next) {
@@ -1739,6 +1741,9 @@ static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack)
 
 void ntreeBeginExecTree(bNodeTree *ntree)
 {
+	/* let's make it sure */
+	if(ntree->init & NTREE_EXEC_INIT)
+		return;
 	
 	/* goes recursive over all groups */
 	ntree->stacksize= ntree_begin_exec_tree(ntree);

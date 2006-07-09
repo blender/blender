@@ -36,8 +36,9 @@
 #include "DNA_material_types.h"
 #include "DNA_lamp_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
+#include "BKE_node.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
@@ -1445,25 +1446,15 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		shade_input_set_coords(shi, is->u, is->v, 0, 1, 2);
 	}
 	
-	// SWAP(int, osatex, shi->osatex);  XXXXX!!!!
-
-	if(is->mode==DDA_SHADOW_TRA) shade_color(shi, shr);
-	else {
-
-		shade_lamp_loop(shi, shr);	
-
-		if(shi->translucency!=0.0) {
-			ShadeResult shr_t;
-			VecMulf(shi->vn, -1.0);
-			VecMulf(shi->facenor, -1.0);
-			shade_lamp_loop(shi, &shr_t);
-			shr->diff[0]+= shi->translucency*shr_t.diff[0];
-			shr->diff[1]+= shi->translucency*shr_t.diff[1];
-			shr->diff[2]+= shi->translucency*shr_t.diff[2];
-			VecMulf(shi->vn, -1.0);
-			VecMulf(shi->facenor, -1.0);
-		}
+	if(is->mode==DDA_SHADOW_TRA) 
+		shade_color(shi, shr);
+	else if(shi->mat->nodetree && shi->mat->use_nodes) {
+		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
+		shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 	}
+	else
+		shade_material_loop(shi, shr);
+	
 	
 	SWAP(int, osatex, shi->osatex);  // XXXXX!!!!
 
@@ -1549,12 +1540,13 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	   
 	if (shi->mat->tx_limit <= 0.0) {
 		d= 1.0;
-	} else {
-	/* shi.co[] calculated by shade_ray() */
-	dx= shi->co[0] - is->start[0];
-	dy= shi->co[1] - is->start[1];
-	dz= shi->co[2] - is->start[2];
-	d= sqrt(dx*dx+dy*dy+dz*dz);
+	} 
+	else {
+		/* shi.co[] calculated by shade_ray() */
+		dx= shi->co[0] - is->start[0];
+		dy= shi->co[1] - is->start[1];
+		dz= shi->co[2] - is->start[2];
+		d= sqrt(dx*dx+dy*dy+dz*dz);
 		if (d > shi->mat->tx_limit)
 			d= shi->mat->tx_limit;
 
@@ -1598,13 +1590,15 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		shi.lay= origshi->lay;
 		shi.do_preview= 0;
 		
+		memset(&shr, 0, sizeof(ShadeResult));
+		
 		shade_ray(&isec, &shi, &shr);
 		if (traflag & RAY_TRA)
 			d= shade_by_transmission(&isec, &shi, &shr);
 		
 		if(depth>0) {
 
-			if(shi.mat->mode & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha < 1.0) {
+			if(shi.mat->mode_l & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha < 1.0) {
 				float nf, f, f1, refract[3], tracol[4];
 				
 				tracol[0]= shi.r;
@@ -1650,7 +1644,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 			else 
 				col[3]= 1.0;
 
-			if(shi.mat->mode & MA_RAYMIRROR) {
+			if(shi.mat->mode_l & MA_RAYMIRROR) {
 				f= shi.ray_mirror;
 				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.mat->fresnel_mir_i, shi.mat->fresnel_mir);
 			}
@@ -1825,7 +1819,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	float i, f, f1, fr, fg, fb, vec[3], mircol[4], tracol[4];
 	int do_tra, do_mir;
 	
-	do_tra= ((shi->mat->mode & (MA_RAYTRANSP|MA_ZTRA)) && shr->alpha!=1.0);
+	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0);
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0);
 	vlr= shi->vlr;
 	
@@ -1834,12 +1828,8 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		
 		tracol[3]= shr->alpha;
 		
-		if(shi->mat->mode & MA_RAYTRANSP) {
-			refraction(refract, shi->vn, shi->view, shi->ang);
-			traceray(shi, shi->mat->ray_depth_tra, shi->co, refract, tracol, shi->vlr, RAY_TRA|RAY_TRAFLIP);
-		}
-		else
-			traceray(shi, shi->mat->ray_depth_tra, shi->co, shi->view, tracol, shi->vlr, 0);
+		refraction(refract, shi->vn, shi->view, shi->ang);
+		traceray(shi, shi->mat->ray_depth_tra, shi->co, refract, tracol, shi->vlr, RAY_TRA|RAY_TRAFLIP);
 		
 		f= shr->alpha; f1= 1.0-f;
 		fr= 1.0+ shi->mat->filter*(shi->r-1.0);

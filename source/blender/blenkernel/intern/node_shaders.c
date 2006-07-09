@@ -259,7 +259,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			VECCOPY(shi->vn, nor);
 		}
 		
-		node_shader_lamp_loop(shi, &shrnode);
+		node_shader_lamp_loop(shi, &shrnode);	/* clears shrnode */
 		
 		/* write to outputs */
 		if(node->custom1 & SH_NODE_MAT_DIFF) {
