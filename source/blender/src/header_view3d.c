@@ -160,7 +160,7 @@ void do_layer_buttons(short event)
 		scrarea_queue_winredraw(curarea);
 		
 		/* new layers might need unflushed events events */
-		DAG_scene_update_flags(G.scene, G.vd->lay);	// tags all that moves and flushes
+		DAG_scene_update_flags(G.scene, G.vd->lay);	/* tags all that moves and flushes */
 	}
 	else {
 		if(G.qual & LR_ALTKEY) {
@@ -706,7 +706,7 @@ static uiBlock *view3d_select_object_layermenu(void *arg_unused)
 	uiDefBut(block, BUTM, 1, "20",		xco+=(menuwidth+1), yco, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
-	//uiTextBoundsBlock(block, 100);
+	/*uiTextBoundsBlock(block, 100);*/
 	return block;
 }
 
@@ -832,7 +832,7 @@ static uiBlock *view3d_select_objectmenu(void *arg_unused)
 
 void do_view3d_select_meshmenu(void *arg, int event)
 {
-//	extern void borderselect(void);
+/*	extern void borderselect(void);*/
 
 	switch(event) {
 	
@@ -981,7 +981,7 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 
 void do_view3d_select_curvemenu(void *arg, int event)
 {
-//	extern void borderselect(void);
+/*	extern void borderselect(void);*/
 
 	switch(event) {
 		case 0: /* border select */
@@ -993,11 +993,12 @@ void do_view3d_select_curvemenu(void *arg, int event)
 		case 3: /* Inverse */
 			selectswapNurb();
 			break;
-		//case 4: /* select connected control points */
-			//G.qual |= LR_CTRLKEY;
-			//selectconnected_nurb();
-			//G.qual &= ~LR_CTRLKEY;
-			//break;
+		/* select connected control points */
+		/*case 4:
+			G.qual |= LR_CTRLKEY;
+			selectconnected_nurb();
+			G.qual &= ~LR_CTRLKEY;
+			break;*/
 		case 5: /* select row (nurb) */
 			selectrow_nurb();
 			break;
@@ -1027,7 +1028,7 @@ static uiBlock *view3d_select_curvemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Control Point Row|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	}
 	/* commented out because it seems to only like the LKEY method - based on mouse pointer position :( */
-	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connected Control Points|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	/*uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connected Control Points|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");*/
 		
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1084,7 +1085,7 @@ static uiBlock *view3d_select_metaballmenu(void *arg_unused)
 
 static void do_view3d_select_latticemenu(void *arg, int event)
 {
-//	extern void borderselect(void);
+/*	extern void borderselect(void);*/
 	
 	switch(event) {
 			case 0: /* border select */
@@ -1125,7 +1126,7 @@ static uiBlock *view3d_select_latticemenu(void *arg_unused)
 
 static void do_view3d_select_armaturemenu(void *arg, int event)
 {
-//	extern void borderselect(void);
+/*	extern void borderselect(void);*/
 
 	switch(event) {
 			case 0: /* border select */
@@ -1166,7 +1167,7 @@ static uiBlock *view3d_select_armaturemenu(void *arg_unused)
 
 static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 {
-//	extern void borderselect(void);
+/*	extern void borderselect(void);*/
 	
 	switch(event) {
 	case 0: /* border select */
@@ -1624,7 +1625,7 @@ void do_view3d_object_mirrormenu(void *arg, int event)
 		case 1:
 		case 2:
 		case 3:
-			Mirror(event + 3); // + 3 because the first three modes are global
+			Mirror(event + 3); /* + 3 because the first three modes are global*/
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -4152,7 +4153,7 @@ void do_view3d_buttons(short event)
 		else {
 			endlocalview(curarea);
 			/* new layers might need unflushed events events */
-			DAG_scene_update_flags(G.scene, G.vd->lay);	// tags all that moves and flushes
+			DAG_scene_update_flags(G.scene, G.vd->lay);	/* tags all that moves and flushes*/
 		}
 		scrarea_queue_headredraw(curarea);
 		break;
@@ -4216,7 +4217,7 @@ void do_view3d_buttons(short event)
 				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 					
 				enter_editmode();
-				BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
+				BIF_undo_push("Original");	/* here, because all over code enter_editmode is abused */
 			}
 		} 
 		else if (G.vd->modeselect == V3D_FACESELECTMODE_SEL) {
@@ -4279,7 +4280,7 @@ void do_view3d_buttons(short event)
 		break;
 		
 	case B_AROUND:
-		handle_view3d_around(); // copies to other 3d windows
+		handle_view3d_around(); /* copies to other 3d windows */
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 		
@@ -4367,7 +4368,7 @@ void do_view3d_buttons(short event)
 			countall();
 			
 			/* new layers might need unflushed events events */
-			DAG_scene_update_flags(G.scene, G.vd->lay);	// tags all that moves and flushes
+			DAG_scene_update_flags(G.scene, G.vd->lay);	/* tags all that moves and flushes */
 
 			allqueue(REDRAWOOPS, 0);
 		}
@@ -4459,7 +4460,11 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 			xco+= xmax;
 		}
 	}
-	
+	else if (G.f & G_WEIGHTPAINT) {
+		xmax= GetButStringLength("Paint");
+		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
+		xco+= xmax;
+	}
 	else if (G.f & G_VERTEXPAINT) {
 		xmax= GetButStringLength("Paint");
 		uiDefPulldownBut(block, view3d_vpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
@@ -4468,11 +4473,6 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 	else if (G.f & G_TEXTUREPAINT) {
 		xmax= GetButStringLength("Paint");
 		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
-		xco+= xmax;
-	}	
-	else if (G.f & G_WEIGHTPAINT) {
-		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
 		xco+= xmax;
 	}
 	else if (G.f & G_FACESELECT) {
