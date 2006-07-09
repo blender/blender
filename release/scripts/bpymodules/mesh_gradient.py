@@ -98,7 +98,6 @@ def vertexGradientPick(ob, MODE):
 		pickValB= 0.0
 		TOALPHA= True
 	
-	
 	# set up 2 lines so we can measure their distances and calc the gradient
 	
 	# make a line 90d to the grad in screenspace.

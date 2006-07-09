@@ -355,6 +355,9 @@ def pickMeshRayFace(me, orig, dir):
 def pickMeshGroupWeight(me, act_group, orig, dir):
 	f, side, w0, w1, w2= pickMeshRayFace(me, orig, dir)
 	
+	if f==None:
+		return None
+		
 	f_v= f.v
 	if side==0:
 		f_vi= (f_v[0].index, f_v[1].index, f_v[2].index)
@@ -371,6 +374,9 @@ def pickMeshGroupWeight(me, act_group, orig, dir):
 def pickMeshGroupVCol(me, orig, dir):
 	Vector= Blender.Mathutils.Vector
 	f, side, w0, w1, w2= pickMeshRayFace(me, orig, dir)
+	
+	if f==None:
+		return None
 	
 	def col2vec(c):
 		return Vector(c.r, c.g, c.b)
