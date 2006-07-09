@@ -53,8 +53,8 @@
 #include <config.h>
 #endif
 
-extern void makewavstring (char *string);
 extern void do_init_ffmpeg();
+void makeffmpegstring(char* string);
 
 static int ffmpeg_type = 0;
 static int ffmpeg_codec = CODEC_ID_MPEG4;
@@ -79,13 +79,13 @@ static int audio_input_frame_size = 0;
 static uint8_t* audio_output_buffer = 0;
 static int audio_outbuf_size = 0;
 
-static RenderData *ffmpeg_renderdata;
+static RenderData *ffmpeg_renderdata = 0;
 
 #define FFMPEG_AUTOSPLIT_SIZE 2000000000
 
 /* Delete a picture buffer */
 
-void delete_picture(AVFrame* f)
+static void delete_picture(AVFrame* f)
 {
 	if (f) {
 		if (f->data[0]) MEM_freeN(f->data[0]);
@@ -105,7 +105,8 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 }
 #endif
 
-int write_audio_frame(void) {
+static int write_audio_frame(void) 
+{
 	AVCodecContext* c = NULL;
 	AVPacket pkt;
 
@@ -127,6 +128,8 @@ int write_audio_frame(void) {
 #else
 	pkt.pts = c->coded_frame->pts;
 #endif
+	fprintf(stderr, "Audio Frame PTS: %lld\n", pkt.pts);
+
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
 	if (av_write_frame(outfile, &pkt) != 0) {
@@ -137,8 +140,7 @@ int write_audio_frame(void) {
 }
 
 /* Allocate a temporary frame */
-
-AVFrame* alloc_picture(int pix_fmt, int width, int height) 
+static AVFrame* alloc_picture(int pix_fmt, int width, int height) 
 {
 	AVFrame* f;
 	uint8_t* buf;
@@ -158,91 +160,55 @@ AVFrame* alloc_picture(int pix_fmt, int width, int height)
 	return f;
 }
 
-/* Get an output format based on the menu selection */
-AVOutputFormat* ffmpeg_get_format(int format) 
+/* Get the correct file extensions for the requested format,
+   first is always desired guess_format parameter */
+static const char** get_file_extensions(int format) 
 {
-	AVOutputFormat* f;
 	switch(format) {
-		case FFMPEG_DV:
-			f = guess_format("dv", NULL, NULL);
-			break;
-		case FFMPEG_MPEG1:
-			f = guess_format("mpeg", NULL, NULL);
-			break;
-		case FFMPEG_MPEG2:
-			f = guess_format("dvd", NULL, NULL);
-			break;
-		case FFMPEG_MPEG4:
-			f = guess_format("mp4", NULL, NULL);
-			break;
-		case FFMPEG_AVI:
-			f = guess_format("avi", NULL, NULL);
-			break;
-		case FFMPEG_MOV:
-			f = guess_format("mov", NULL, NULL);
-			break;
-		case FFMPEG_H264:
-			/* FIXME: avi for now... */
-			f = guess_format("avi", NULL, NULL);
-			break;
-		case FFMPEG_XVID:
-			/* FIXME: avi for now... */
-			f = guess_format("avi", NULL, NULL);
-			break;
-		default:
-			f = NULL;
+	case FFMPEG_DV: {
+		static const char * rv[] = { ".dv", NULL };
+		return rv;
 	}
-	return f;
-}
-
-/* Get the correct file extension for the requested format */
-void file_extension(int format, char* string) 
-{
-	unsigned int i;
-	AVOutputFormat* f;
-	const char* ext;
-	f= ffmpeg_get_format(format);
-	ext = f->extensions;
-	for (i = 0; ext[i] != ',' && i < strlen(ext); i++);
-	snprintf(string, i+2, ".%s", ext);
-}
-
-/* Get the output filename-- similar to the other output formats */
-void makeffmpegstring(char* string) {
-	
-	char txt[FILE_MAXDIR+FILE_MAXFILE];
-	char fe[FILE_MAXDIR+FILE_MAXFILE];
-	char autosplit[20];
-
-	file_extension(ffmpeg_type, fe);
-
-	if (!string) return;
-
-	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
-
-	BLI_make_existing_file(string);
-
-	autosplit[0] = 0;
-
-	if (ffmpeg_autosplit) {
-		sprintf(autosplit, "_%03d", ffmpeg_autosplit_count);
+	case FFMPEG_MPEG1: {
+		static const char * rv[] = { ".mpg", ".mpeg", NULL };
+		return rv;
+	}
+	case FFMPEG_MPEG2: {
+		static const char * rv[] = { ".dvd", ".vob", ".mpg", ".mpeg",
+					     NULL };
+		return rv;
+	}
+	case FFMPEG_MPEG4: {
+		static const char * rv[] = { ".mp4", ".mpg", ".mpeg", NULL };
+		return rv;
+	}
+	case FFMPEG_AVI: {
+		static const char * rv[] = { ".avi", NULL };
+		return rv;
+	}
+	case FFMPEG_MOV: {
+		static const char * rv[] = { ".mov", NULL };
+		return rv;
+	}
+	case FFMPEG_H264: {
+		/* FIXME: avi for now... */
+		static const char * rv[] = { ".avi", NULL };
+		return rv;
 	}
 
-	if (BLI_strcasecmp(string + strlen(string) - strlen(fe), fe)) {
-		strcat(string, autosplit);
-		sprintf(txt, "%04d_%04d%s", (G.scene->r.sfra), 
-			(G.scene->r.efra), fe);
-		strcat(string, txt);
-	} else {
-		*(string + strlen(string) - strlen(fe)) = 0;
-		strcat(string, autosplit);
-		strcat(string, fe);
+	case FFMPEG_XVID: {
+		/* FIXME: avi for now... */
+		static const char * rv[] = { ".avi", NULL };
+		return rv;
+	}
+	default:
+		return NULL;
 	}
 }
 
 /* Write a frame to the output file */
-static void write_video_frame(AVFrame* frame) {
+static void write_video_frame(AVFrame* frame) 
+{
 	int outsize = 0;
 	int ret;
 	AVCodecContext* c = get_codec_from_stream(video_stream);
@@ -263,6 +229,7 @@ static void write_video_frame(AVFrame* frame) {
 #else
 		packet.pts = c->coded_frame->pts;
 #endif
+		fprintf(stderr, "Video Frame PTS: %lld\n", packet.pts);
 		if (c->coded_frame->key_frame)
 			packet.flags |= PKT_FLAG_KEY;
 		packet.stream_index = video_stream->index;
@@ -447,7 +414,7 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 
 /* Prepare an audio stream for the output file */
 
-AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of) 
+static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of) 
 {
 	AVStream* st;
 	AVCodecContext* c;
@@ -504,12 +471,13 @@ AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 }
 /* essential functions -- start, append, end */
 
-void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
+static void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 {
 	/* Handle to the output file */
 	AVFormatContext* of;
 	AVOutputFormat* fmt;
 	char name[256];
+	const char ** exts;
 
 	ffmpeg_type = rd->ffcodecdata.type;
 	ffmpeg_codec = rd->ffcodecdata.codec;
@@ -536,7 +504,13 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 		ffmpeg_gop_size, ffmpeg_multiplex_audio,
 		ffmpeg_autosplit, rectx, recty);
 	
-	fmt = guess_format(NULL, name, NULL);
+	exts = get_file_extensions(ffmpeg_type);
+	if (!exts) {
+		G.afbreek = 1; /* Abort render */
+		error("No valid formats found");
+		return;
+	}
+	fmt = guess_format(NULL, exts[0], NULL);
 	if (!fmt) {
 		G.afbreek = 1; /* Abort render */
 		error("No valid formats found");
@@ -652,6 +626,53 @@ void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
 	outfile = of;
 	dump_format(of, 0, name, 1);
 }
+
+/* **********************************************************************
+   * public interface
+   ********************************************************************** */
+
+/* Get the output filename-- similar to the other output formats */
+void makeffmpegstring(char* string) {
+	
+	char txt[FILE_MAXDIR+FILE_MAXFILE];
+	char autosplit[20];
+
+	const char ** exts = get_file_extensions(G.scene->r.ffcodecdata.type);
+	const char ** fe = exts;
+
+	if (!string || !exts) return;
+
+	strcpy(string, G.scene->r.pic);
+	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+
+	BLI_make_existing_file(string);
+
+	autosplit[0] = 0;
+
+	if ((G.scene->r.ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT) != 0) {
+		sprintf(autosplit, "_%03d", ffmpeg_autosplit_count);
+	}
+
+	while (*fe) {
+		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), 
+				   *fe) == 0) {
+			break;
+		}
+		fe++;
+	}
+
+	if (!*fe) {
+		strcat(string, autosplit);
+		sprintf(txt, "%04d_%04d%s", (G.scene->r.sfra), 
+			(G.scene->r.efra), *exts);
+		strcat(string, txt);
+	} else {
+		*(string + strlen(string) - strlen(*fe)) = 0;
+		strcat(string, autosplit);
+		strcat(string, *fe);
+	}
+}
+
 
 void start_ffmpeg(RenderData *rd, int rectx, int recty)
 {
