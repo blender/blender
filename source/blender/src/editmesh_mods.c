@@ -965,7 +965,7 @@ int edgegroup_select(short mode)
 				else if (eed->f2==0) /* first access, assign the face */
 					eed->tmp.f= efa;
 				else if (eed->f2==1) /* second, we assign the angle*/
-					eed->tmp.fp= VecAngle2(eed->tmp.f->n, efa->n);
+					eed->tmp.fp= VecAngle2(eed->tmp.f->n, efa->n)/180;
 				eed->f2++; /* f2==0 no face assigned. f2==1 one face found. f2==2 angle calculated.*/
 				j++;
 			}
@@ -1028,7 +1028,7 @@ int edgegroup_select(short mode)
 						!(eed->f & SELECT) &&
 						!eed->h &&
 						eed->f2==2 &&
-						(SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp))
+						(fabs(base_eed->tmp.fp-eed->tmp.fp)<=thresh)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
