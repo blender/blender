@@ -90,7 +90,7 @@ class edgeLoop:
 			vIdx += 1
 		
 		# Assign linked list
-		for eIdx in range(len(self.edges)-1):
+		for eIdx in xrange(len(self.edges)-1):
 			self.edges[eIdx].next = self.edges[eIdx+1]
 			self.edges[eIdx].prev = self.edges[eIdx-1]
 		# Now last
@@ -157,8 +157,12 @@ class edgeLoop:
 			e.v1, e.v2 = e.v2, e.v1
 		self.normal = -self.normal
 	
-	# Removes N Smallest edges and backs up
 	def removeSmallest(self, cullNum, otherLoopLen):
+		'''
+		Removes N Smallest edges and backs up the loop,
+		this is so we can loop between 2 loops as if they are the same length,
+		backing up and restoring incase the loop needs to be skinned with another loop of a different length.
+		'''
 		global CULL_METHOD
 		if CULL_METHOD == 0: # Shortest edge
 			
@@ -184,7 +188,7 @@ class edgeLoop:
 					currentEdge = currentEdge.next
 				smallestEdge = currentEdge
 				
-				for i in range(step):
+				for i in xrange(step):
 					currentEdge = currentEdge.next
 					while currentEdge.removed == 1:
 						currentEdge = currentEdge.next
@@ -200,51 +204,53 @@ class edgeLoop:
 
 # Returns face edges.
 # face must have edge data.
-def faceEdges(me, f):
-	if len(f) == 3:
-		return [\
-		 me.findEdge(f[0], f[1]),\
-		 me.findEdge(f[1], f[2]),\
-		 me.findEdge(f[2], f[0])\
-		]
-	elif len(f) == 4:
-		return [\
-		 me.findEdge(f[0], f[1]),\
-		 me.findEdge(f[1], f[2]),\
-		 me.findEdge(f[2], f[3]),\
-		 me.findEdge(f[3], f[0])\
-		]
-
 
 def getSelectedEdges(me, ob):	
-	SEL_FLAG = NMesh.EdgeFlags['SELECT']
-	FGON_FLAG = NMesh.EdgeFlags['FGON']	
+	MESH_MODE= Blender.Mesh.Mode()
 	
-	edges = [e for e in me.edges if e.flag & SEL_FLAG if (e.flag & FGON_FLAG) == 0 ]
+	if MESH_MODE==Blender.Mesh.SelectModes.EDGE or MESH_MODE==Blender.Mesh.SelectModes.VERTEX:
+		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
+		edges= [ ed for ed in me.edges if ed.sel ]
+		Blender.Mesh.Mode(MESH_MODE)
+		return edges
 	
-	# Now remove edges that face 2 or more selected faces usoing them
-	edgeFromSelFaces = []
-	for f in me.faces:
-		if len(f) >2 and f.sel:
-			edgeFromSelFaces.extend(faceEdges(me, f))
+	elif MESH_MODE==Blender.Mesh.SelectModes.FACE:
+		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
+		
+		def ed_key(ed):
+			i1= ed.v1.index
+			i2= ed.v2.index
+			if i1 > i2:
+				return i2, i1
+			else:
+				return i1, i2
+		
+		# value is [edge, face_sel_user_in]
+		edge_dict=  dict((ed_key(ed), [ed, 0]) for ed in me.edges)
+		
+		for f in me.faces:
+			if f.sel:
+				fidx= [v.index for v in f.v]
+				for i in xrange(len(fidx)):
+					i1= fidx[i]
+					i2= fidx[i-1]
+					
+					if i1>i2:
+						i1,i2= i2,i1
+					
+					# ed_data is a list of 2 ed and face user
+					ed_data= edge_dict[i1,i2]
+					ed_data[1]+=1
+
+		
+		Blender.Mesh.Mode(MESH_MODE)
+		return [ ed_data[0] for ed_data in edge_dict.itervalues() if ed_data[1] == 1 ]
 	
-	# Remove all edges with 2 or more selected faces as uses.
-	for e in edgeFromSelFaces:
-		if edgeFromSelFaces.count(e) > 1:
-			me.removeEdge(e.v1, e.v2)
-	
-	# Remove selected faces?
-	fIdx = len(me.faces)
-	while fIdx:
-		fIdx-=1
-		if len(me.faces[fIdx]) > 2:
-			if me.faces[fIdx].sel:
-				me.faces.pop(fIdx)
-	return [e for e in edges if edgeFromSelFaces.count(e) < 2]
 	
 	
 # Like vert loops 
 def getVertLoops(selEdges):
+	
 	mainVertLoops = []
 	while selEdges:
 		e = selEdges.pop()
@@ -287,6 +293,9 @@ def getVertLoops(selEdges):
 
 
 def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
+	
+	new_faces= [] # 
+	
 	# Make sure e1 loops is bigger then e2
 	if len(eloop1.edges) != len(eloop2.edges):
 		if len(eloop1.edges) < len(eloop2.edges):
@@ -316,7 +325,7 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	bestOffset = 0
 	# Loop rotation offset to test.1
 	eLoopIdxs = range(len(eloop1.edges))
-	for offset in range(len(eloop1.edges)):
+	for offset in xrange(len(eloop1.edges)):
 		totEloopDist = 0 # Measure this total distance for thsi loop.
 		
 		offsetIndexLs = eLoopIdxs[offset:] + eLoopIdxs[:offset] # Make offset index list
@@ -340,18 +349,13 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	
 	
 	
-	for loopIdx in range(len(eloop2.edges)):
+	for loopIdx in xrange(len(eloop2.edges)):
 		e1 = eloop1.edges[loopIdx]
 		e2 = eloop2.edges[loopIdx]
 		
 		# Remember the pairs for fan filling culled edges.
 		e1.match = e2; e2.match = e1
-		
-		# need some smart face flipping code here.
-		f = NMesh.Face([e1.v1, e1.v2, e2.v2, e2.v1])
-		
-		f.sel = 1
-		me.faces.append(f)
+		new_faces.append([e1.v1, e1.v2, e2.v2, e2.v1])
 	
 	# FAN FILL MISSING FACES.
 	if CULL_FACES:
@@ -366,12 +370,7 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 			vertFanPivot = contextEdge.match.v2
 			
 			while contextEdge.next.removed == 1:
-				
-				f = NMesh.Face([contextEdge.next.v1, contextEdge.next.v2, vertFanPivot] )
-				
-				
-				f.sel = 1
-				me.faces.append(f)
+				new_faces.append([contextEdge.next.v1, contextEdge.next.v2, vertFanPivot])
 				
 				# Should we use another var?, this will work for now.
 				contextEdge.next.removed = 1
@@ -380,6 +379,9 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 				FAN_FILLED_FACES += 1
 		
 		eloop1.restore() # Add culled back into the list.
+	
+	me.faces.extend(new_faces)
+
 	#if angleBetweenLoopNormals > 90:
 	#	eloop2.reverse()
 
@@ -393,11 +395,13 @@ def main():
 	if ob == None or ob.getType() != 'Mesh':
 		return
 	
-	me = ob.getData()
+	me = ob.getData(mesh=1)
+	'''
 	if not me.edges:
 		Draw.PupMenu('Error, add edge data first')
 		if is_editmode: Window.EditMode(1)
 		return
+	'''
 	
 	# BAD BLENDER PYTHON API, NEED TO ENTER EXIT EDIT MODE FOR ADDING EDGE DATA.
 	# ADD EDGE DATA HERE, Python API CANT DO IT YET, LOOSES SELECTION
@@ -439,7 +443,7 @@ def main():
 		
 	
 	# VERT LOOP ORDERING CODE
-	# Build a worm list - grow from Both ends
+	# "Build a worm" list - grow from Both ends
 	edgeOrderedList = [edgeLoops.pop()]
 	
 	# Find the closest.
@@ -478,13 +482,20 @@ def main():
 		else: # Add closest First
 			edgeOrderedList.insert(0, edgeLoops.pop(bestIdxSoFar) )	 # First
 	
-	for i in range(len(edgeOrderedList)-1):
+	for i in xrange(len(edgeOrderedList)-1):
 		skin2EdgeLoops(edgeOrderedList[i], edgeOrderedList[i+1], me, ob, 0)	
 	if choice == 1 and len(edgeOrderedList) > 2: # Loop
 		skin2EdgeLoops(edgeOrderedList[0], edgeOrderedList[-1], me, ob, 0)	
 	
-	print '\nArray done in %.4f sec.' % (sys.time()-time1)
-	me.update(1, 1, 0)
+	print '\nSkin done in %.4f sec.' % (sys.time()-time1)
+	
+	# REMOVE SELECTED FACES.
+	faces= [ f for f in me.faces if f.sel ]
+	print faces
+	if faces:
+		print faces
+		me.faces.delete(1, faces)
+	
 	if is_editmode: Window.EditMode(1)
 
 if __name__ == '__main__':
