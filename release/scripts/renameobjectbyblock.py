@@ -46,38 +46,28 @@ from Blender.Draw import *
 from Blender.BGL import *
 
 
-O = Object.Get()
-taglist=[]
+
+O = Scene.GetCurrent().getChildren()
 stringlist=[[],[]]
 
 
-def renew(taglist):
+def renew():
      global O
-     MAJ='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-     O = Object.Get()
-     if CVS==0:
-        param= [ [p.getName(),O.index(p),str(p.getType())] for p in O ]
-     else:
-        param= [ [p.getName(),O.index(p),str(p.getType()),O[O.index(p)].isSelected()] for p in O ]
+     
+     #O = Object.Get()
+     O= Scene.GetCurrent().getChildren()
+     #param= [ [p.name, i, p.getType()] for i, p in enumerate(O) ]
+     
      PARAM={}
      evt=9
      stringlist=[[],[],[]]
-     for p in param:
-         if p[0] in taglist or len(p)>3:
-            if CVS==0:
-               PARAM[p[0]]=[Create(1),evt,p[1],p[2],Create(p[0]),evt+1]
-            elif p[3]==1:
-               PARAM[p[0]]=[Create(1),evt,p[1],p[2],Create(p[0]),evt+1]
-            elif p[3]==0:
-               PARAM[p[0]]=[Create(0),evt,p[1],p[2],Create(p[0]),evt+1]
-            stringlist[0].append(evt+1)
-            stringlist[1].append(p[0])
-            stringlist[2].append(evt)
-         else:   
-            PARAM[p[0]]=[Create(0),evt,p[1],p[2],Create(p[0]),evt+1]
-            stringlist[0].append(evt+1)
-            stringlist[1].append(p[0])
-            stringlist[2].append(evt) 
+     for i, ob in enumerate(O):
+         obname= ob.name
+         PARAM[obname] = [Create(ob.sel), evt, i, ob.getType(), Create(obname), evt+1, ob]
+         
+         stringlist[0].append(evt+1)
+         stringlist[1].append(obname)
+         stringlist[2].append(evt) 
          evt+=2
      return PARAM,stringlist
 
@@ -89,22 +79,19 @@ alignment={'BEGIN' : [Create(1),5],
            'FULL'  : [Create(0),8]}
 
 def rename():
-     global NEWNAME, alignment, O, taglist, PARAM, stringlist
-     taglist=[]
-     for p in PARAM.keys():
-        if PARAM[p][0].val==1:
+     global NEWNAME, alignment, O, PARAM, stringlist
+     newname= NEWNAME.val
+     for obname, value in PARAM.iteritems():
+        if value[0].val: # Selected
            if alignment['END'][0].val:  
-             O[PARAM[p][2]].setName(p+NEWNAME.val) 
-             taglist.append(p+NEWNAME.val)
+             value[6].setName(obname+newname) 
            elif alignment['BEGIN'][0].val:
-             O[PARAM[p][2]].setName(NEWNAME.val+p) 
-             taglist.append(NEWNAME.val+p)
+             value[6].setName(newname+obname) 
            elif alignment['FULL'][0].val:
-             O[PARAM[p][2]].setName(NEWNAME.val) 
-             taglist.append(O[PARAM[p][2]].getName())
-     PARAM, stringlist =renew(taglist)
+             value[6].setName(newname) 
+     PARAM, stringlist = renew()
     
-PARAM, stringlist = renew(taglist)
+PARAM, stringlist = renew()
 
 def EVENT(evt,val):
    pass
@@ -116,17 +103,17 @@ def BUTTON(evt):
    elif (evt==2):
          rename()
    elif (evt==3):
-         PARAM, stringlist = renew(taglist)
+         PARAM, stringlist = renew()
 
    elif (evt in [5,6,7,8]):    
-         for k in alignment.keys():
+         for k in alignment.iterkeys():
              if alignment[k][1]!=evt:
                 alignment[k][0].val=0
 
 
    elif (evt in stringlist[0]):
          O[PARAM[stringlist[1][(evt-9)/2]][2]].setName(PARAM[stringlist[1][(evt-9)/2]][4].val)
-         PARAM, stringlist = renew(taglist)
+         PARAM, stringlist = renew()
 
    elif (evt in stringlist[2]):
        try:
@@ -156,20 +143,20 @@ def DRAW():
 
   glRasterPos2f(20, ligne*2-10)
   Text("Object Name Editor")
-  NEWNAME=String('Add string : ', 4, 150, ligne*2-16, 150, 18, NEWNAME.val,120 )
+  NEWNAME=String('Add String: ', 4, 150, ligne*2-16, 150, 18, NEWNAME.val,120 )
 
-  key=alignment.keys()
+  key= alignment.keys()
   key.sort()
   n=150+150+4
   for k in key:
-      alignment[k][0]=Toggle(k,alignment[k][1],n,ligne*2-16, 40, 18, alignment[k][0].val)
+      alignment[k][0]= Toggle(k,alignment[k][1],n,ligne*2-16, 40, 18, alignment[k][0].val)
       n+=40+4
 
   max=size[3] / 22 -2
-  pos   = 1
+  pos   = 0
   decal = 20
 
-  keys=[[PARAM[k][1],k] for k in PARAM.keys()]
+  keys=[[PARAM[k][1],k] for k in PARAM.iterkeys()]
   keys.sort()
 
   
@@ -181,9 +168,11 @@ def DRAW():
      else:
          pos+=1       
      PARAM[p][0]=Toggle('S',PARAM[p][1],decal,pos*22+22,20,20, PARAM[p][0].val,"Select this one for a group renaming")
-     PARAM[p][4]=String('> ',PARAM[p][5],decal+20,pos*22+22,90,20, PARAM[p][4].val,200, "string button to rename immediately but only this object")
+     PARAM[p][4]=String('',PARAM[p][5],decal+20,pos*22+22,90,20, PARAM[p][4].val,200, "string button to rename immediately but only this object")
 
-     glRasterPos2f(decal+115,pos*22+22)
+     glRasterPos2f(decal+115,pos*22+24)
      Text(PARAM[p][3][:4])
-Register(DRAW,EVENT,BUTTON)
+
+if __name__=='__main__':
+	Register(DRAW,EVENT,BUTTON)
 

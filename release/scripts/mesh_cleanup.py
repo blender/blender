@@ -55,10 +55,7 @@ def rem_free_verts(me):
 		for v in e: # loop on edge verts
 			vert_users[v.index]+=1
 	
-	verts_free= []
-	for i, users in enumerate(vert_users):
-		if not users:
-			verts_free.append(i)
+	verts_free= [i for i, users in enumerate(vert_users) if not users]
 	
 	if verts_free:
 		pass
@@ -68,14 +65,17 @@ def rem_free_verts(me):
 def rem_free_edges(me, limit=None):
 	''' Only remove based on limit if a limit is set, else remove all '''
 	def sortPair(a,b):
-		return min(a,b), max(a,b)
+		if a>b:
+			return b,a
+		else:
+			return a,b
 	
 	edgeDict= {} # will use a set when python 2.4 is standard.
 	
 	for f in me.faces:
-		v= f.v
-		for i in xrange(len(v)):
-			edgeDict[sortPair(v[i].index, v[i-1].index)]= None
+		fidxs= [v.index for v in f.v]
+		for i in xrange(len(fidxs)):
+			edgeDict[sortPair(fidxs[i], fidxs[i-1])]= None
 	
 	edges_free= []
 	for e in me.edges:
