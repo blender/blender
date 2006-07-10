@@ -74,8 +74,11 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "BIF_screen.h"
 #include "BIF_mywindow.h"
+
+#include "BMF_Api.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -184,18 +187,27 @@ static int pupdate_time(void)
 	return (ptottime < 0);
 }
 
-static void toscreen(struct ImBuf *ibuf)
+static void toscreen(Pict *picture, struct ImBuf *ibuf)
 {
+	
 	if (ibuf == 0){
 		printf("no ibuf !\n");
 		return;
 	}
 
-	glRasterPos2f(-1, -1);
+	glRasterPos2f(0.0f, 0.0f);
 
 	glDrawPixels(ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	
 	pupdate_time();
+
+	if(picture && (qualN & LMOUSE)) {
+		char str[256];
+		cpack(-1);
+		glRasterPos2f(0.02f,  0.03f);
+		sprintf(str, "%s", picture->name);
+		BMF_DrawString(G.fonts, str);
+	}
 	
 	window_swap_buffers(g_window);
 }
@@ -216,7 +228,7 @@ static void build_pict_list(char * first)
 		if (anim) {
 			ibuf = IMB_anim_absolute(anim, 0);
 			if (ibuf) {
-				toscreen(ibuf);
+				toscreen(NULL, ibuf);
 				IMB_freeImBuf(ibuf);
 			}
 			
@@ -229,8 +241,10 @@ static void build_pict_list(char * first)
 				picture->name = strdup(str);
 				BLI_addtail(picsbase, picture);
 			}
-		} else printf("couldn't open anim %s\n", first);
-	} else {
+		} 
+		else printf("couldn't open anim %s\n", first);
+	} 
+	else {
 	
 		strcpy(name,first);
 	
@@ -290,15 +304,8 @@ static void build_pict_list(char * first)
 				if (picture->mem) ibuf = IMB_ibImageFromMemory((int *) picture->mem, picture->size, picture->IB_flags);
 				else ibuf = IMB_loadiffname(picture->name, picture->IB_flags);
 				if (ibuf) {
-					toscreen(ibuf);
+					toscreen(picture, ibuf);
 					IMB_freeImBuf(ibuf);
-					glDrawBuffer(GL_FRONT);
-
-					cpack(-1);
-					glRasterPos2i(10,  10);
-					sprintf(str, "%4d: %s", count, name);
-					glCallLists(strlen(str), GL_UNSIGNED_BYTE, str);
-					glDrawBuffer(GL_BACK);
 				}
 				pupdate_time();
 				ptottime = 0.0;
@@ -412,8 +419,15 @@ void playanim(int argc, char **argv)
 
 		g_window = window_open("Blender:Anim", start_x, start_y, ibuf->x, ibuf->y, 0);
 		window_set_handler(g_window, add_to_mainqueue, NULL);
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+		glMatrixMode(GL_MODELVIEW);
 	}
 
+	G.fonts= BMF_GetFont(BMF_kHelvetica10);
+	
 	ibufx = ibuf->x;
 	ibufy = ibuf->y;
 	
@@ -466,12 +480,12 @@ void playanim(int argc, char **argv)
 				strcpy(ibuf->name, picture->name);
 				
 #ifdef _WIN32	
-			window_set_title(g_window, picture->name);
+				window_set_title(g_window, picture->name);
 #endif
 
-			while (pupdate_time()) PIL_sleep_ms(1);
+				while (pupdate_time()) PIL_sleep_ms(1);
 				ptottime -= swaptime;
-				toscreen(ibuf);
+				toscreen(picture, ibuf);
 			} /* else deleten */
 			else {
 				printf("error: can't play this image type\n");
@@ -693,7 +707,7 @@ void playanim(int argc, char **argv)
 					glPixelZoom(zoomx, zoomy);
 					glEnable(GL_DITHER);
 					ptottime = 0.0;
-					toscreen(ibuf);
+					toscreen(picture, ibuf);
 					while (qtest()) qreadN(&val);
 					
 					break;
