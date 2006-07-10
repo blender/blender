@@ -4642,8 +4642,10 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					/* when mouse outside, don't do button */
 					if(inside || uevent->event!=LEFTMOUSE) {
 						
-						if ELEM(uevent->event, BUT_NEXT, BUT_PREV) 
+						if ELEM(uevent->event, BUT_NEXT, BUT_PREV) {
 							butevent= ui_act_as_text_but(but);
+							uibut_do_func(but);
+						}
 						else
 							butevent= ui_do_button(block, but, uevent);
 

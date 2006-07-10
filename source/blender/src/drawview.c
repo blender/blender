@@ -1166,7 +1166,7 @@ ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 	if(ymax>=curarea->winy) ymaxc= curarea->winy-1; else ymaxc= ymax;
 	if(yminc > ymaxc) return NULL;
 	
-	ibuf= IMB_allocImBuf((xmaxc-xminc+1),(ymaxc-yminc+1),32,IB_rect,0);
+	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect,0);
 
 	check_backbuf(); // actually not needed for apple
 	
@@ -1185,8 +1185,13 @@ ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 		dr++;
 	}
 	
+	ibuf->ftype= PNG;
+	IMB_saveiff(ibuf, "/tmp/rt.png", IB_rect);
+	
 	/* put clipped result back, if needed */
-	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) return ibuf;
+	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
+		return ibuf;
+	
 	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect,0);
 	rd= ibuf->rect;
 	dr= ibuf1->rect;
