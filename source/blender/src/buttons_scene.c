@@ -490,24 +490,27 @@ static void run_playanim(char *file)
 void playback_anim(void)
 {	
 	char file[FILE_MAXDIR+FILE_MAXFILE];
-	
-	switch (G.scene->r.imtype) {
+
+	if(BKE_imtype_is_movie(G.scene->r.imtype)) {
+		switch (G.scene->r.imtype) {
 #ifdef WITH_QUICKTIME
-	case R_QUICKTIME:
-		makeqtstring(file);
-		break;
+			case R_QUICKTIME:
+				makeqtstring(file);
+				break;
 #endif
 #ifdef WITH_FFMPEG
-	case R_FFMPEG:
-		makeffmpegstring(file);
-		break;
+		case R_FFMPEG:
+			makeffmpegstring(file);
+			break;
 #endif
-	default:
-		makeavistring(&G.scene->r, file);
-		break;
-	}
-	if(BLI_exist(file)) {
-		run_playanim(file);
+		default:
+			makeavistring(&G.scene->r, file);
+			break;
+		}
+		if(BLI_exist(file)) {
+			run_playanim(file);
+		}
+		else error("Can't find movie: %s", file);
 	}
 	else {
 		BKE_makepicstring(file, G.scene->r.sfra);
