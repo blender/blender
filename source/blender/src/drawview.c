@@ -2594,6 +2594,7 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	DupliObject *dob;
 	Base tbase;
 	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
+	short transflag;
 	char dt, dtx;
 	
 	/* debug */
@@ -2612,11 +2613,17 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 		dt= tbase.object->dt; tbase.object->dt= base->object->dt;
 		dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
 		
+		/* negative scale flag has to propagate */
+		transflag= tbase.object->transflag;
+		if(base->object->transflag & OB_NEG_SCALE)
+			tbase.object->transflag ^= OB_NEG_SCALE;
+		
 		BIF_ThemeColorBlend(color, TH_BACK, 0.5);
 		draw_object(&tbase, DRAW_CONSTCOLOR);
 		
 		tbase.object->dt= dt;
 		tbase.object->dtx= dtx;
+		tbase.object->transflag= transflag;
 	}
 	
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
