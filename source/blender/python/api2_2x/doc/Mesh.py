@@ -681,6 +681,9 @@ class Mesh:
     the object's materials.
     B{Note}: Making the material list shorter does not change the faces material indicies,
     take care when using the faces material indices to reference a material in the materials list.
+    B{Note}: The the list thats returned is not linked to the original mesh.
+    mesh.materials.append(material) wont do anything.
+    Use mesh.materials += [material] instead.
   @type materials: list of Materials
   @ivar degr: The max angle for auto smoothing in [1,80].  
   @type degr: int

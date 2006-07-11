@@ -393,8 +393,9 @@ class Object:
     Object.
     If the keyword parameter 'name_only' is True, only the Datablock
     name is returned as a string.  It the object is of type Mesh, then the
-    'mesh' keyword can also be used; the data return is a Mesh object if
-    True, otherwise it is an NMesh object (the default).
+    'mesh' keyword can also be used; if True the data return is a Mesh object,
+    otherwise it is an NMesh object (the default).
+    Using the mesh keyword is ignored for non mesh objects.
     @type name_only: bool
     @param name_only: This is a keyword parameter.  If True (or nonzero),
     only the name of the data object is returned. 
