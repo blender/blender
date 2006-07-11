@@ -246,7 +246,7 @@ def read_string(file):
 	#read in the characters till we get a null character
 	s=''
 	while not s.endswith('\x00'):
-		s+=unpack( 'c', file.read(1) )[0]
+		s+=unpack( '<c', file.read(1) )[0]
 		#print 'string: ',s
 	
 	#remove the null character from the string
@@ -406,7 +406,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			#read in the version of the file
 			#it's an unsigned short (H)
 			temp_data= file.read(calcsize('I'))
-			version,= unpack('I', temp_data)
+			version,= unpack('<I', temp_data)
 			new_chunk.bytes_read+= 4 #read the 4 bytes for the version number
 			#this loader works with version 3 and below, but may not with 4 and above
 			if (version>3):
@@ -447,7 +447,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			read_chunk(file, temp_chunk)
 			temp_data=file.read(calcsize('3B'))
 			temp_chunk.bytes_read+= 3
-			contextMaterial.mirCol= [float(col)/255 for col in unpack('3B', temp_data)] # data [0,1,2] == rgb
+			contextMaterial.mirCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
 			new_chunk.bytes_read+= temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_DIFFUSE):
@@ -455,7 +455,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			read_chunk(file, temp_chunk)
 			temp_data=file.read(calcsize('3B'))
 			temp_chunk.bytes_read+= 3
-			contextMaterial.rgbCol= [float(col)/255 for col in unpack('3B', temp_data)] # data [0,1,2] == rgb
+			contextMaterial.rgbCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
 			new_chunk.bytes_read+= temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_SPECULAR):
@@ -464,7 +464,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			temp_data= file.read(calcsize('3B'))
 			temp_chunk.bytes_read+= 3
 			
-			contextMaterial.specCol= [float(col)/255 for col in unpack('3B', temp_data)] # data [0,1,2] == rgb
+			contextMaterial.specCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
 			new_chunk.bytes_read+= temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_TEXTURE_MAP):
@@ -551,7 +551,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 			
 			temp_chunk.bytes_read+=2
-			contextMaterial.alpha= 1-(float(unpack('H', temp_data)[0])/100)
+			contextMaterial.alpha= 1-(float(unpack('<H', temp_data)[0])/100)
 			new_chunk.bytes_read+=temp_chunk.bytes_read
 
 
@@ -560,7 +560,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			#print 'LAMP!!!!!!!!!'
 			temp_data=file.read(STRUCT_SIZE_3FLOAT)
 			
-			x,y,z=unpack('3f', temp_data)
+			x,y,z=unpack('<3f', temp_data)
 			new_chunk.bytes_read+=STRUCT_SIZE_3FLOAT
 			
 			contextLamp[0]= Object.New('Lamp')
@@ -598,12 +598,12 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			'''
 			# print 'elif (new_chunk.ID==OBJECT_VERTICES):'
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_verts,=unpack('H', temp_data)
+			num_verts,=unpack('<H', temp_data)
 			new_chunk.bytes_read+=2
 			
 			# print 'number of verts: ', num_verts
 			def getvert():
-				temp_data= unpack('3f', file.read(STRUCT_SIZE_3FLOAT))
+				temp_data= unpack('<3f', file.read(STRUCT_SIZE_3FLOAT))
 				
 				# Set the bounds if user selected
 				if BOUNDS_3DS:
@@ -627,7 +627,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		elif (new_chunk.ID==OBJECT_FACES):
 			# print 'elif (new_chunk.ID==OBJECT_FACES):'
 			temp_data= file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_faces,= unpack('H', temp_data)
+			num_faces,= unpack('<H', temp_data)
 			new_chunk.bytes_read+= 2
 			#print 'number of faces: ', num_faces
 			
@@ -635,7 +635,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				# print '\ngetting a face'
 				temp_data= file.read(STRUCT_SIZE_4UNSIGNED_SHORT)
 				new_chunk.bytes_read+= STRUCT_SIZE_4UNSIGNED_SHORT #4 short ints x 2 bytes each
-				v1,v2,v3,dummy= unpack('4H', temp_data)
+				v1,v2,v3,dummy= unpack('<4H', temp_data)
 				if v1==v2 or v1==v3 or v2==v3:
 					return None
 				# DUMMYVERT! - remove +1 when blenders internals are fixed,
@@ -686,14 +686,14 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			tempMatFaceIndexList = contextMeshMaterials[material_name]= []
 			
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_faces_using_mat,= unpack('H', temp_data)
+			num_faces_using_mat,= unpack('<H', temp_data)
 			new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
 			
 			#list of faces using mat
 			for face_counter in xrange(num_faces_using_mat):
 				temp_data= file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 				new_chunk.bytes_read+= STRUCT_SIZE_UNSIGNED_SHORT
-				faceIndex,= unpack('H', temp_data)
+				faceIndex,= unpack('<H', temp_data)
 				
 				# We dont have to use context face mapping.
 				if contextFaceMapping:
@@ -711,20 +711,20 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		elif (new_chunk.ID==OBJECT_UV):
 			# print 'elif (new_chunk.ID==OBJECT_UV):'
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_uv,=unpack('H', temp_data)
+			num_uv,=unpack('<H', temp_data)
 			new_chunk.bytes_read+= 2
 			
 			def getuv():
 				temp_data=file.read(STRUCT_SIZE_2FLOAT)
 				new_chunk.bytes_read += STRUCT_SIZE_2FLOAT #2 float x 4 bytes each
-				return Vector( unpack('2f', temp_data) )
+				return Vector( unpack('<2f', temp_data) )
 				
 			contextMeshUV= [ getuv() for i in xrange(num_uv) ]
 		
 		elif (new_chunk.ID== OBJECT_TRANS_MATRIX):
 			# print 'elif (new_chunk.ID== OBJECT_TRANS_MATRIX):'
 			temp_data=file.read(STRUCT_SIZE_4x3MAT)
-			data= list( unpack('ffffffffffff', temp_data) )
+			data= list( unpack('<ffffffffffff', temp_data) )
 			new_chunk.bytes_read += STRUCT_SIZE_4x3MAT 
 			
 			contextMatrix= Blender.Mathutils.Matrix(\
