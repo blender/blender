@@ -268,7 +268,7 @@ def Sistema(MM,D):
 
 def GloVrt((x,y,z),M):	# Devuelve (vector) coords globs de v
 	v=Vector([x,y,z,1])
-	v=VecMultMat(v,M)
+	v*=M #v=VecMultMat(v,M)
 	v.resize3D()
 	return v
 
@@ -278,11 +278,11 @@ def Extremo(lista,M=MId):	# Devuelve extremos y pto medio de lista de vectores
 	for v in lista:
 		va=Vector(list(v))
 		va.resize4D()
-		va=VecMultMat(va,M)
-		for c in range(3):
+		va*=M #va=VecMultMat(va,M)
+		for c in xrange(3):
 			o1[c]=min(va[c],o1[c])
 			o2[c]=max(va[c],o2[c])
-	return [o1,(o1+o2)/2,o2]
+	return [o1,(o1+o2)*0.5,o2]
 
 def Media(lista):	#Media
 	ctr=Vector([0,0,0])
@@ -537,9 +537,11 @@ def bevent(evt):
 	global me
 	global BfL,BfR,BfS
 	#print "Event:",evt
+	
 	os=Blender.Object.GetSelected()
-	if os:
-		oa=os[0]
+	oa= Blender.Scene.GetCurrent().getActiveObject()
+	if not oa:
+		return
 
 	##########MENU BUFFER
 	if evt==80:
@@ -661,9 +663,11 @@ BfS[0],BfS[1],BfS[2]]
 				d=sqrt(DotVecs(v,v))
 				v1=v*numReal.val
 				if movekomo.val==1:
-					v1 = oaV+v1/d
+					if d:	v1 = oaV+v1*(1/d)
+					else:	v1 = oaV
 				elif movekomo.val==2:
-					v1 = oV+v1/d
+					if d:	v1 = oV+v1*(1/d)
+					else:	v1 = oV
 				elif movekomo.val==3:
 					v1 = oaV+v1
 				o.setLocation(v1)
@@ -696,6 +700,7 @@ aliZ.val * (2*n*random() - n)])
 			n[akeplanoXYZ.val-1]=1.
 			numObjs=-len(os)
 		elif akeplano.val==2: n=oa.matrix[akeplanoXYZ.val-1] #plano local
+		n= Vector(n) # copy
 		n.resize3D()
 
 		d=Vector([0.,0.,0.])
@@ -716,7 +721,7 @@ aliZ.val * (2*n*random() - n)])
 		NI=CopyMat(N)
 		NI.invert()
 
-		dN=VecMultMat(d,NI.rotationPart())
+		dN= d*NI.rotationPart() #VecMultMat(d,NI.rotationPart())
 		if dN[2]==0:
 			PupMenu('Error%t|Operacion no permitida: la direccion esta en el plano%x1|Illegal operation: plane contains direction%x2')
 			return
@@ -728,7 +733,7 @@ aliZ.val * (2*n*random() - n)])
 				v0=Vector([v[0],v[1],v[2]])
 				v0=GloVrt(v0,M)
 				v0.resize4D()
-				v0=VecMultMat(v0,NI)
+				v0*= NI #=VecMultMat(v0,NI)
 				v[0] = v0[0] - v0[2]/dN[2] * dN[0]
 				v[1] = v0[1] - v0[2]/dN[2] * dN[1]
 				v[2] = 0
@@ -857,28 +862,28 @@ aliZ.val * (2*n*random() - n)])
 			P=M*MI
 			maya=o.getData()
 			for v in maya.verts:
-				w=list(VecMultMat(Vector([v[0],v[1],v[2],1]),P))
-				for c in range(3):	v[c]=w[c]/o.size[c]
+				w=list(Vector([v[0],v[1],v[2],1]) * P)
+				for c in xrange(3):	v[c]=w[c]/o.size[c]
 
 			maya.update()
 			if other.val:
 				P.invert()
-				for oo in Blender.Object.Get():
-					if oo.data.name==maya.name and o!=oo:
+				for oo in Scene.GetCurrent().getChildren():
+					try: same= oo.getData(mesh=1).name==maya.name and o!=oo
+					except: same = False
+					
+					if same:
 						N=oo.getMatrix()
 						oo.setMatrix(P*N)
 						oo.setSize(oo.SizeX*nSizX.val,oo.SizeY*nSizY.val,oo.SizeZ*nSizZ.val)
 
-	if((evt==5 or evt==6) and len(os)):   #  ENCAJA-ABARCA
+	if(evt==5 or evt==6) and len(os) and oa.getType()=='Mesh':   #  ENCAJA-ABARCA
 		enc=[encX.val,encY.val,encZ.val]
 		en2=[en2X.val,en2Y.val,en2Z.val]
-		me=GetRaw(oa.data.name)
-		meVs=me.verts
-		for v in meVs:
-			w=GloVrt(v,oa.matrix)
-			for c in range(3):
-				v[c]=w[c]
-		for c in range(3):
+		me=oa.data
+		meVs= me.verts
+		me.transform(oa.matrix)
+		for c in xrange(3):
 			if en2[c] or enc[c]:
 				if (len(os)>1):
 					n1=Extremo(os[1].data.verts,os[1].matrix)[0][c]
@@ -898,11 +903,17 @@ aliZ.val * (2*n*random() - n)])
 				print coo[c],n0,m0,n1,m1,n2,m2
 			for v in meVs:
 				A , factor = 0. , 1.
+				pm2= None
 				if enc[c]:
-					if evt==5:	pm2=(n2+m1)/2
-					else:		pm2=(m2+n1)/2
+					if evt==5:	pm2=(n2+m1)*0.5
+					else:		pm2=(m2+n1)*0.5
 					v[c]+= pm2-pm
 				if en2[c] and ancho:
+					if pm2==None:
+						if evt==5:	pm2=(n2+m1)*0.5
+						else:		pm2=(m2+n1)*0.5
+						v[c]+= pm2-pm
+					
 					if evt==5:	factor=(n2-m1)/ancho
 					else:		factor=(m2-n1)/ancho
 					v[c]=pm2+(v[c]-pm2)*factor
