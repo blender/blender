@@ -504,7 +504,7 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Render Preview...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Render Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 16, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Background Image...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
 	

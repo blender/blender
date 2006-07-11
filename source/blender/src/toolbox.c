@@ -66,6 +66,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_camera_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1465,20 +1466,34 @@ static void tb_do_render(void *arg, int event){
 		case 3: /* render anim */
 			BIF_do_render(1);
 			break;
-		case 4: /* render anim */
-			if(G.scene->r.scemode & R_PASSEPARTOUT) G.scene->r.scemode &= ~R_PASSEPARTOUT;
-			else G.scene->r.scemode |= R_PASSEPARTOUT;
+		case 4: /* passepartout */
+			if(G.vd->camera==NULL) return;
+			
+			Camera *ca= NULL;
+			if(G.vd->camera->type==OB_CAMERA)
+				ca= G.vd->camera->data;
+			else return;
+				
+			if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT))
+				ca->flag &= ~CAM_SHOWPASSEPARTOUT;
+			else
+				ca->flag |= CAM_SHOWPASSEPARTOUT;
 			allqueue(REDRAWVIEW3D, 0);
+			break;
+		case 5: /*preview render */
+			toggle_blockhandler(curarea, VIEW3D_HANDLER_PREVIEW, 0);
+			scrarea_queue_winredraw(curarea);
 			break;
 	}
 }
 
 static TBitem tb_render[]= {
 	{       0, "Passepartout",                      4, NULL},
-	{       0, "Set Border",                        1, NULL},
-	{       0, "SEPR",              0, NULL},
+	{       0, "Set Border|Shift B",                1, NULL},
+	{       0, "SEPR",                              0, NULL},
 	{       0, "Render|F12",                        2, NULL},
-	{       0, "Anim",                                      3, NULL},
+	{       0, "Anim|Ctrl F12",                     3, NULL},
+	{       0, "Preview|Shift P",                   5, NULL},
 	{  -1, "",                      0, tb_do_render}};
 
 /* ************************* NODES *********************** */
