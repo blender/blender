@@ -72,7 +72,7 @@ Example::
     - TILES - uses tiled image.
     - TWOSIDE - two-sided face.
 @var FaceTranspModes: The available face transparency modes. Note: these are
-  enumerated values (enums), they can't be combined (and'ed, or'ed, etc) like a bit vector.
+  enumerated values (enums), they can't be combined (ANDed, ORed, etc) like a bit vector.
     - SOLID - draw solid.
     - ADD - add to background (halo).
     - ALPHA - draw with transparency.
@@ -433,7 +433,7 @@ class NMesh:
     Get this NMesh's list of materials.
     @type what: int
     @param what: determines the list's contents:
-        - -1: return the current nmesh's list;
+        - -1: return the current NMesh's list;
         -  0: retrieve a fresh list from the Blender mesh -- eventual
               modifications made by the script not included, unless
               L{update} is called before this method;
@@ -652,7 +652,7 @@ class NMesh:
     """
     Get this mesh's mode flags.
     @rtype: int
-    @return: Or'ed value.  See L{Modes}.
+    @return: ORed value.  See L{Modes}.
     """
 
   def setMode(m=None, m1=None, m2=None):
@@ -724,7 +724,7 @@ class NMesh:
     @type assignmode: string
     @param assignmode: Three choices:
         - 'add'
-        - 'substract'
+        - 'subtract'
         - 'replace'\n
 	
         'B{add}': if the vertex in the list is not assigned to the group

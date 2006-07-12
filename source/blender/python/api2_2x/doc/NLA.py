@@ -60,7 +60,7 @@ Example::
 @var Flags: Constant dict used by the L{ActionStrip.flag} attribute.
 It is a bitmask and settings are ORed together.
   - SELECT: action strip is selected in NLA window
-  - STRIDE_PATH: play action nased on path position and stride.
+  - STRIDE_PATH: play action based on path position and stride.
   - HOLD: continue displaying the last frame past the end of the strip
   - ACTIVE: action strip is active in NLA window
   - LOCK_ACTION: action start/end are automatically mapped to strip duration
@@ -182,7 +182,7 @@ class ActionStrips:
 
   def append(action):
     """
-    Appends a new action to the end of the actionstrip sequence.
+    Appends a new action to the end of the action strip sequence.
     @type action: L{Action<NLA.Action>}
     @param action: the action to use in the action strip
     @rtype: Constraint
@@ -252,14 +252,14 @@ class ActionStrip:
     Start/End". This method restores the values of ActionStart and
     ActionEnd to  their defaults, usually the first and last frames within
     an action  that contain keys.
-    @rtype: PyNone
+    @rtype: None
     """
 
   def resetStripSize():
     """
     Activates the functionality found in NLA Strip menu under "Reset  Strip
     Size".  This method resets the Action Strip size to its creation values.
-    @rtype: PyNone
+    @rtype: None
     """
 
   def snapToFrame():
@@ -267,5 +267,5 @@ class ActionStrip:
     Activates the functionality found in NLA Strip menu under "Snap to Frame".
     This function snaps the ends of the action strip to the nearest whole
     numbered frame.
-    @rtype: PyNone
+    @rtype: None
     """

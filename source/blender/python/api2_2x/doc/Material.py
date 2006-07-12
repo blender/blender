@@ -68,14 +68,14 @@ Example::
 @type Shaders: readonly dictionary
 @var Shaders: The available Material Shaders.
     - DIFFUSE_LAMBERT    - Make Material use the lambert diffuse shader.
-    - DIFFUSE_ORENNAYAR       - Make Material use the orennayar diffuse shader.
+    - DIFFUSE_ORENNAYAR       - Make Material use the Oren-Nayer diffuse shader.
     - DIFFUSE_TOON    - Make Material use the toon diffuse shader.
     - DIFFUSE_MINNAERT  - Make Material use the minnaert diffuse shader.
-    - SPEC_COOKTORR   - Make Material use the cooktorr specular shader.
-    - SPEC_PHONG   - Make Material use the phong specular shader.
-    - SPEC_BLINN         - Make Material use the blinn specular shader.
+    - SPEC_COOKTORR   - Make Material use the Cook-Torr specular shader.
+    - SPEC_PHONG   - Make Material use the Phong specular shader.
+    - SPEC_BLINN         - Make Material use the Blinn specular shader.
     - SPEC_TOON      - Make Material use the toon specular shader.
-    - SPEC_WARDISO      - Make Material use the wardiso specular shader.
+    - SPEC_WARDISO      - Make Material use the Ward-iso specular shader.
 """
 
 def New (name = 'Mat'):
@@ -209,7 +209,7 @@ class Material:
   @type nStars:  int
   @ivar name:  Material data name.
   @type name:  str
-  @ivar oopsLoc: Material OOPs location.  Returns None if materal not found in list.
+  @ivar oopsLoc: Material OOPs location.  Returns None if material not found in list.
   @type oopsLoc:  list of 2 floats
   @ivar oopsSel:  Material OOPs selection flag.
   Value must be in the range [0,1].
@@ -538,14 +538,14 @@ class Material:
 
   def setSpecSize(specSize):
     """
-    Set the material's size of speculara area (applies to the \"Toon\" Specular Shader only)
+    Set the material's size of specular area (applies to the \"Toon\" Specular Shader only)
     @type specSize: float
     @param specSize: The new value in [0.0, 1.53].
     """
 
   def getSpecSize():
     """
-    Get the material's size of speculara area (applies to the \"Toon\" Specular Shader only)
+    Get the material's size of specular area (applies to the \"Toon\" Specular Shader only)
     @rtype specSize: float
     """
 
@@ -934,9 +934,9 @@ class Material:
     @type texture: Blender Texture
     @param texture: a Blender Texture object.
     @type texco: int
-    @param texco: optional or'ed bitflag -- defaults to TexCo.ORCO.  See TexCo var in L{Texture}.
+    @param texco: optional ORed bitflag -- defaults to TexCo.ORCO.  See TexCo var in L{Texture}.
     @type mapto: int
-    @param mapto: optional or'ed bitflag -- defaults to MapTo.COL.  See MapTo var in L{Texture}.
+    @param mapto: optional ORed bitflag -- defaults to MapTo.COL.  See MapTo var in L{Texture}.
     """
 
   def clearTexture(index):

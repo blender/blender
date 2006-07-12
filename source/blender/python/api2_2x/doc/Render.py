@@ -439,7 +439,7 @@ class RenderData:
 
   def enableOversampling(toggle):
     """
-    Enable/disable oversampling (anit-aliasing).
+    Enable/disable oversampling (anti-aliasing).
     @type toggle: int
     @param toggle: pass 1 for on / 0 for off
     """
@@ -497,7 +497,7 @@ class RenderData:
 
   def enableKey():
     """
-    Enable alpha and colour values remain unchanged.
+    Enable alpha and color values remain unchanged.
     """
 
   def enableShadow(toggle):
@@ -572,7 +572,7 @@ class RenderData:
 
   def enableGaussFilter(toggle):
     """
-    Enable/disable Gauss sampling filter for antialiasing.
+    Enable/disable Gauss sampling filter for anti-aliasing.
     @type toggle: int
     @param toggle: pass 1 for on / 0 for off
     """
@@ -691,15 +691,15 @@ class RenderData:
     Set the type of image to output from the render.
     @type type: enum constant
     @param type: must be one of 13 constants:
-        - AVIRAW: Uncompressed AVI files. AVI is a commonly used format on Windows plattforms
-        - AVIJPEG: AVI movie w/ Jpeg images
+        - AVIRAW: Uncompressed AVI files. AVI is a commonly used format on Windows platforms
+        - AVIJPEG: AVI movie w/ JPEG images
         - AVICODEC: AVI using win32 codec
         - QUICKTIME: Quicktime movie (if enabled)
         - TARGA: Targa files
         - RAWTGA: Raw Targa files
         - PNG: Png files
         - BMP: Bitmap files
-        - JPEG90: Jpeg files
+        - JPEG90: JPEG files
         - HAMX: Hamx files
         - IRIS: Iris files
         - IRIZ: Iris + z-buffer files
@@ -708,7 +708,7 @@ class RenderData:
 
   def quality(qual = None):
     """
-    Get/set quality get/setting for JPEG images, AVI Jpeg and SGI movies.
+    Get/set quality get/setting for JPEG images, AVI JPEG and SGI movies.
     @type qual: int (optional)
     @param qual: must be between 10 - 100
     @rtype: int (if prototype is empty)
@@ -726,7 +726,7 @@ class RenderData:
 
   def enableGrayscale():
     """
-    Images are saved with BW (grayscale) data.
+    Images are saved with black and white (grayscale) data.
     """
 
   def enableRGBColor():
@@ -779,7 +779,7 @@ class RenderData:
     Set yafray global Illumination method.
     @type type: enum constant
     @param type: must be one of 3 constants:
-        - NONE: Dont use GI illumination
+        - NONE: Do not use GI illumination
         - SKYDOME: Use Skydome method
         - GIFULL: Use Full method
     """
@@ -873,7 +873,7 @@ class RenderData:
 
   def enableYafrayGITunePhotons(toggle):
     """
-    Enable/disable show the photonmap directly in the render for tuning.
+    Enable/disable show the photon map directly in the render for tuning.
     YafrayMethod must be GIFULL and Photons enabled.
     @type toggle: int
     @param toggle: pass 1 for on / 0 for off
@@ -964,7 +964,7 @@ class RenderData:
 
   def enableGameFrameStretch():
     """
-    Enble stretch or squeeze the viewport to fill the display window.
+    Enable stretch or squeeze the viewport to fill the display window.
     """
 
   def enableGameFrameExpose():

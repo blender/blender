@@ -62,7 +62,7 @@ class Text3d:
     Set the name of this Text3d object.
     @type name: string
     @param name: The new name.
-    @returns: PyNone
+    @returns: None
     """
 
   def getText():
@@ -76,7 +76,7 @@ class Text3d:
     Set the text string in this Text3d object
     @type name: string
     @param name:  The new text string for this object.
-    @returns: PyNone
+    @returns: None
     """
   
   def getDrawMode():
@@ -95,7 +95,7 @@ class Text3d:
         - DRAW3D
 	- DRAWFRONT
 	- DRAWBACK
-    @rtype: PyNone
+    @rtype: None
     @type val: single module constant or tuple of module constants
     @param val : The Text3d's modes.  See L{getDrawMode} for the meaning of
     the constants.
@@ -120,7 +120,7 @@ class Text3d:
   def setBevelAmount(bevelresol):
     """
     Set the Text3d's bevel resolution value.
-    @rtype: PyNone
+    @rtype: None
     @type bevelresol: float
     @param bevelresol: The new Curve's bevel resolution value.
     """
@@ -134,7 +134,7 @@ class Text3d:
   def setDefaultResolution(resolu):
     """
     Sets Default text Resolution.
-    @rtype: PyNone
+    @rtype: None
     @type resolu: float
     @param resolu: The new Curve's U-resolution value.
     """
@@ -148,7 +148,7 @@ class Text3d:
   def setWidth(width):
     """
     Set the Text3d's width value. 
-    @rtype: PyNone
+    @rtype: None
     @type width: float
     @param width: The new text3d's width value. 
     """
@@ -162,7 +162,7 @@ class Text3d:
   def setgetExtrudeDepth(ext1):
     """
     Set the text3d's ext1 value. 
-    @rtype: PyNone
+    @rtype: None
     @type ext1: float
     @param ext1: The new text3d's ext1 value. 
     """
@@ -176,7 +176,7 @@ class Text3d:
   def setExtrudeBevelDepth(ext2):
     """
     Set the text3d's ext2 value.
-    @rtype: PyNone 
+    @rtype: None 
     @type ext2: float
     @param ext2: The new text3d's ext2 value. 
     """
@@ -190,7 +190,7 @@ class Text3d:
   def setShear(shear):
     """
     Set the text3d's shear value.
-    @rtype: PyNone 
+    @rtype: None 
     @type shear: float
     @param shear: The new text3d's shear value. 
     """
@@ -204,7 +204,7 @@ class Text3d:
   def setSize(size):
     """
     Set the text3d's size value.
-    @rtype: PyNone 
+    @rtype: None 
     @type size: float
     @param size: The new text3d's size value. 
     """
@@ -218,7 +218,7 @@ class Text3d:
   def setLineSeparation(sep):
     """
     Set the text3d's ext2 value.
-    @rtype: PyNone 
+    @rtype: None 
     @type sep: float
     @param sep: The new text3d's separation value. 
     """
@@ -232,7 +232,7 @@ class Text3d:
   def setSpacing(spacing):
     """
     Set the text3d's spacing value.
-    @rtype: PyNone 
+    @rtype: None 
     @type spacing: float
     @param spacing: The new text3d's spacing value. 
     """
@@ -246,7 +246,7 @@ class Text3d:
   def setXoffset(xof):
     """
     Set the text3d's Xoffset value.
-    @rtype: PyNone 
+    @rtype: None 
     @type xof: float
     @param xof: The new text3d's Xoffset value. 
     """
@@ -260,7 +260,7 @@ class Text3d:
   def setYoffset(yof):
     """
     Set the text3d's Yoffset value.
-    @rtype: PyNone 
+    @rtype: None 
     @type yof: float
     @param yof: The new text3d's Yoffset value. 
     """
@@ -282,7 +282,7 @@ class Text3d:
         - RIGHT
         - MIDDLE
         - FLUSH
-    @rtype: PyNone 
+    @rtype: None 
     @type align: module constant
     @param align: The new text3d's Alignment value. 
     """

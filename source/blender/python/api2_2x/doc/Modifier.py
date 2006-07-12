@@ -116,7 +116,7 @@ class Modifiers:
     """
     Moves the modifier up in the object's modifier stack.
     @type modifier: a modifier from this sequence to remove.
-    @rtype: PyNone
+    @rtype: None
     @raise RuntimeError: request to move above another modifier requiring
     original data
     @note: Accessing attributes of the modifier after removing will raise an error.
@@ -126,7 +126,7 @@ class Modifiers:
     """
     Moves the modifier down in the object's modifier stack.
     @type modifier: a modifier from this sequence to remove.
-    @rtype: PyNone
+    @rtype: None
     @raise RuntimeError: request to move modifier beyond a non-deforming
     modifier
     @note: Accessing attributes of the modifier after removing will raise an error.

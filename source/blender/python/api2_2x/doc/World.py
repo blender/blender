@@ -21,7 +21,7 @@ Example::
   import Blender
   from Blender import *
 
-  AllWorlds = Blender.World.Get()  # returns a list of created world obejcts
+  AllWorlds = Blender.World.Get()  # returns a list of created world objects
   AvailWorlds = len(AllWorlds)	#	returns the number of available world objects
   PropWorld = dir(AllWorlds[0])	# returns the properties of the class world
   NameWorld = AllWorlds[0].getName() # get name of the first world object
@@ -32,8 +32,8 @@ Example::
   HorColor = AllWorlds[0].getHor()	# horizon color of the first world object
   HorColorR = HorColor[0]		# get the red channel (RGB) of the horizon color
 
-  ZenColor = AllWorlds[0].getZen()	# zenit color of the first world object
-  ZenColorB = ZenColor[2]		# get the blue channel (RGB) of the Zenit color
+  ZenColor = AllWorlds[0].getZen()	# zenith color of the first world object
+  ZenColorB = ZenColor[2]		# get the blue channel (RGB) of the Zenith color
 
   blending = AllWorlds[0].getSkytype() # get the blending modes (real, blend, paper) of the first world object	
 """
@@ -42,7 +42,7 @@ def New (name):
   """
   Creates a new World.
   @type name: string
-  @param name: World's name (optionnal).
+  @param name: World's name (optional).
   @rtype: Blender World
   @return: The created World. If the "name" parameter has not been provided, it will be automatically be set by blender.
   """
@@ -97,8 +97,8 @@ class World:
     Sets the range parameter of a world object.
     @type range: float
     @param range: the new range parameter
-    @rtype: PyNone
-    @return: PyNone
+    @rtype: None
+    @return: None
     """
 
   def getName():
@@ -113,8 +113,8 @@ class World:
     Sets the name of a world object.
     @type name: string
     @param name : the new name. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getIpo():
@@ -151,8 +151,8 @@ class World:
     See getSkytype for the semantics of the parameter.
     @type skytype: int
     @param skytype : the new skytype. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getMode():
@@ -173,8 +173,8 @@ class World:
     See getMode for the semantics of the parameter.
     @type mode: int
     @param mode : the new mode. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getMistype():
@@ -191,8 +191,8 @@ class World:
     See getMistype for the semantics of the parameter.
     @type mistype: int
     @param mistype : the new mist type. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getHor():
@@ -208,8 +208,8 @@ class World:
     Sets the horizon color of a world object.
     @type hor:  list of three floats
     @param hor : the new hor. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getZen():
@@ -225,8 +225,8 @@ class World:
     Sets the zenith color of a world object.
     @type zen:  list of three floats
     @param zen : the new zenith color. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getAmb():
@@ -242,8 +242,8 @@ class World:
     Sets the ambient color of a world object.
     @type amb:  list of three floats
     @param amb : the new ambient color. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getStar():
@@ -267,8 +267,8 @@ class World:
     See getStar for the semantics of the parameter.
     @type star:  list of 9 floats
     @param star : the new star parameters. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getMist():
@@ -289,8 +289,8 @@ class World:
     See getMist for the semantics of the parameter.
     @type mist:  list of 4 floats
     @param mist : the new mist parameters. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getScriptLinks (event):
@@ -323,8 +323,8 @@ class World:
   def setCurrent ():
     """
     Make this world active in the current scene.
-    @rtype: PyNone
-    @return:  PyNone    
+    @rtype: None
+    @return:  None    
     """	
     
   def insertIpoKey(keytype):
