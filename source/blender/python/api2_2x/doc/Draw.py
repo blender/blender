@@ -326,7 +326,7 @@ def PupIntInput(text, default, min, max):
   """
   Create an integer number input pop-up.
 
-  This allows python to use Blender's integer number popup input.
+  This allows python to use Blender's integer number pop-up input.
 
   Example::
     default = 50
@@ -341,13 +341,13 @@ def PupIntInput(text, default, min, max):
       print 'no user input'
     
   @type text: string
-  @param text: The text that is displayed in the popup.
+  @param text: The text that is displayed in the pop-up.
   @type default: int
-  @param default: The value that the popup is set to initially.
+  @param default: The value that the pop-up is set to initially.
   @type min: int
-  @param min: The lowest value the popup will allow.
+  @param min: The lowest value the pop-up will allow.
   @type max: int
-  @param max: The highest value the popup will allow.
+  @param max: The highest value the pop-up will allow.
   @rtype: int
   @return: the number chosen or None if none was chosen.
   """
@@ -356,7 +356,7 @@ def PupFloatInput(text, default, min, max, clickStep, floatLen):
   """
   Create a floating point number input pop-up.
   
-  This allows python to use Blender's floating point popup input.
+  This allows python to use Blender's floating point pop-up input.
 
   Example::
     default = 50
@@ -373,13 +373,13 @@ def PupFloatInput(text, default, min, max, clickStep, floatLen):
       print 'no user input'
     
   @type text: string
-  @param text: The text that is displayed in the popup.
+  @param text: The text that is displayed in the pop-up.
   @type default: float
-  @param default: The value that the popup is set to initially.
+  @param default: The value that the pop-up is set to initially.
   @type min: float
-  @param min: The lowest value the popup will allow.
+  @param min: The lowest value the pop-up will allow.
   @type max: float
-  @param max: The highest value the popup will allow.
+  @param max: The highest value the pop-up will allow.
   @type clickStep: int
   @param clickStep: How much is incremented per user click, 100 will increment 1.0, 10 will increment 0.1 etc.
   @type floatLen: int
@@ -392,18 +392,18 @@ def PupStrInput(text, default, max = 20):
   """
   Create a string input pop-up.
   
-  This allows python to use Blender's string popup input.
+  This allows python to use Blender's string pop-up input.
 
   Example::
     Blender.Draw.PupStrInput("Name:", "untitled", 25)
     
   @type text: string
-  @param text: The text that is displayed in the popup.
+  @param text: The text that is displayed in the pop-up.
   @type default: string
-  @param default: The value that the popup is set to initially.  If it's longer
+  @param default: The value that the pop-up is set to initially.  If it's longer
       then 'max', it's truncated.
   @type max: int
-  @param max: The most characters the popup input will allow.  If not given
+  @param max: The most characters the pop-up input will allow.  If not given
       it defaults to 20 chars.  It should be in the range [1, 100].
   @rtype: string
   @return: The text entered by the user or None if none was chosen.

@@ -51,7 +51,7 @@ class Camera:
     This object gives access to Camera-specific data in Blender.
   @ivar name: The Camera Data name.
   @ivar type: The Camera type: 'persp':0 or 'ortho':1.
-  @ivar mode: The mode flags: B{or'ed value}: 'showLimits':1, 'showMist':2.
+  @ivar mode: The mode flags: B{ORed value}: 'showLimits':1, 'showMist':2.
   @ivar lens: The lens value in [1.0, 250.0], only relevant to *persp*
       cameras.
   @ivar scale: The scale value in [0.01, 1000.00], only relevant to *ortho*
@@ -118,7 +118,7 @@ class Camera:
     Get this Camera's mode flags.
     @rtype: int
     @return: B{OR'ed value}: 'showLimits' is 1, 'showMist' is 2, or
-       resp. 01 and 10 in binary.
+       respectively, 01 and 10 in binary.
     """
 
   def setMode(mode1 = None, mode2 = None):

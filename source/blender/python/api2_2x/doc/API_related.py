@@ -103,7 +103,7 @@ Introduction:
   # an animation in the script body itself, naturally.
 
  The rendered pictures will be written to the default render folder, that can
- also be set via bpython (take a look at L{Render.RenderData}).  Their
+ also be set via BPython (take a look at L{Render.RenderData}).  Their
  names will be the equivalent frame number followed by the extension of the
  chosen image type: 0001.png, for example.  To rename them to something else,
  coders can use the C{rename} function in the standard 'os' Python module.
@@ -176,7 +176,7 @@ Introduction:
     # done rendering, clean up
     delete_my_very_detailed_mesh_data()
 
- As suggested by the example above, this is specially useful for script links
+ As suggested by the example above, this is especially useful for script links
  that need to generate data only useful while rendering, or in case they need
  to switch between two mesh data objects, one meant for realtime display and
  the other, more detailed, for renders.
@@ -261,7 +261,7 @@ Introduction:
   - DRAW handlers should leave the space in the same state it was before they
     were executed.  OpenGL attributes and the modelview and projection matrices
     are automatically saved (pushed) before a DRAW handler runs and restored
-    (poped) after it finishes, no need to worry about that.  Draw handlers
+    (popped) after it finishes, no need to worry about that.  Draw handlers
     should not grab events;
   - If script handlers need to pass information to each other (for example an
     EVENT handler passing info to a DRAW handler), use the L{Registry} module.
@@ -273,13 +273,13 @@ Introduction:
  ====================
 
  To be registered a script needs two things:
-   - to be either in the default scripts dir or in the user defined scripts
+   - to be either in the default scripts directory or in the user defined scripts
      path (see User Preferences window -> File Paths tab -> Python path);
    - to have a proper header.
 
- Try 'blender -d' to know where your default dir for scripts is, it will
- inform either the dir or the file with that info already parsed, which is
- in the same dir of the scripts folder.
+ Try 'blender -d' to know where your default directory for scripts is, it will
+ inform either the directory or the file with that info already parsed, which is
+ in the same directory of the scripts folder.
 
  The header should be like this one (all double and single apostrophes below
  are required)::
@@ -495,7 +495,7 @@ Introduction:
  This script should be available from the System menu in the Scripts window.
  It provides a GUI to view and edit saved configuration data, both from the
  Registry dictionary in memory and the scripts config data dir.  This is
- useful for all scripts with config vars, but specially for those without GUI's,
+ useful for all scripts with config vars, but especially for those without GUIs,
  like most importers and exporters, since this editor will provide one for them.
 
  The example above already gives a good idea of how the information can be

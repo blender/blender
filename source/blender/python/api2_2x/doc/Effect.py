@@ -3,7 +3,7 @@
 """
 The Blender.Effect submodule
 
-B{new}: now L{Get}('objname') (without specifying second paramenter: 'position') returns a list of all effects linked to object "objname".
+B{new}: now L{Get}('objname') (without specifying second parameter: 'position') returns a list of all effects linked to object "objname".
 
 Effect
 ======
@@ -182,8 +182,8 @@ class Effect:
     Deprecated, since only particle effects are supported.
     @type name: int
     @param name : the new type. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getFlag():
@@ -200,8 +200,8 @@ class Effect:
     Sets the flag of an effect object. See L{Flags} for values.
     @type newflag: int
     @param newflag: the new flag. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getStartTime():
@@ -216,8 +216,8 @@ class Effect:
     Sets the starting time of an particle effect object
     @type newstart: float
     @param newstart: the new starting time. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getEndTime():
@@ -233,8 +233,8 @@ class Effect:
     Sets the end time of an particle effect object
     @type newendrt: float
     @param newendrt: the new end time. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 		
   def getLifetime():
@@ -250,8 +250,8 @@ class Effect:
     Sets the lifetime of a particle effect object
     @type newlifetime: float
     @param newlifetime: the new lifetime. 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getNormfac():
@@ -267,8 +267,8 @@ class Effect:
     Sets the normal strength of the particles (relatively to mesh).
     @type newnormfac: float
     @param newnormfac: the normal strength of the particles (relatively to mesh). 
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 		
   def getObfac():
@@ -284,8 +284,8 @@ class Effect:
     Sets the initial strength of the particles relatively to objects.
     @type newobfac: float
     @param newobfac: the initial strength of the particles relatively to objects.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getRandfac():
@@ -301,8 +301,8 @@ class Effect:
     Sets the random  strength applied to the particles. 
     @type newrandfac: float
     @param newrandfac: the random  strength applied to the particles.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getTexfac():
@@ -318,8 +318,8 @@ class Effect:
     Sets the strength applied to the particles from the texture of the object. 
     @type newtexfac: float
     @param newtexfac: the strength applied to the particles from the texture of the object.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getRandlife():
@@ -335,8 +335,8 @@ class Effect:
     Sets the variability of the life of the particles.
     @type newrandlife: float
     @param newrandlife: the variability of the life of the particles.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getNabla():
@@ -352,8 +352,8 @@ class Effect:
     Sets the sensibility of the particles to the variations of the texture.
     @type newnabla: float
     @param newnabla: the sensibility of the particles to the variations of the texture.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getVectsize():
@@ -369,8 +369,8 @@ class Effect:
     Sets the size of the vector which is associated to the particles.
     @type newvectsize: float
     @param newvectsize: the size of the vector which is associated to the particles.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getTotpart():
@@ -386,8 +386,8 @@ class Effect:
     Sets the the total number of particles.
     @type newtotpart: int
     @param newtotpart: the the total number of particles.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getTotkey():
@@ -402,8 +402,8 @@ class Effect:
     Sets the number of keys associated to the particles.
     @type newtotkey: int
     @param newtotkey: number of keys associated to the particles.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getSeed():
@@ -418,8 +418,8 @@ class Effect:
     Sets the  random number generator seed.
     @type newseed: int
     @param newseed:  new seed value.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getForce():
@@ -434,8 +434,8 @@ class Effect:
     Sets the force applied to the particles.
     @type newforce: tuple of 3 floats
     @param newforce:  force applied to the particles.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getMult():
@@ -450,8 +450,8 @@ class Effect:
     Sets the probabilities of a particle having a child.
     @type newmult: tuple of 4 floats
     @param newmult:  probabilities of a particle having a child.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 		
   def getLife():
@@ -466,8 +466,8 @@ class Effect:
     Sets the average life of the particles (4 generations).
     @type newlife: tuple of 4 floats
     @param newlife:  average life of the particles (4 generations).
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 		
   def getChild():
@@ -482,8 +482,8 @@ class Effect:
     Sets the average number of children of the particles (4 generations).
     @type newchild: tuple of 4 ints
     @param newchild:  average number of children of the particles (4 generations).
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getMat():
@@ -498,8 +498,8 @@ class Effect:
     Sets the indexes of the materials associated to the particles (4 generations).
     @type newmat: tuple of 4 ints
     @param newmat:   the indexes of the materials associated to the particles (4 generations).
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getDefvec():
@@ -515,8 +515,8 @@ class Effect:
     @type newdefvec: tuple of 3 floats
     @param newdefvec:   the x, y and z components of the force defined by the
     texture.
-    @rtype: PyNone
-    @return:  PyNone
+    @rtype: None
+    @return:  None
     """
 
   def getParticlesLoc ( time ):

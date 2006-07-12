@@ -75,7 +75,7 @@ def Get (request):
       - 'endframe': the end frame of the animation.
       - 'rt': the value of the 'rt' button for general debugging
       - 'filename': the name of the last file read or written.
-      - 'homedir':  Blender's home dir.
+      - 'homedir':  Blender's home directory.
       - 'datadir' : the path to the dir where scripts should store and
             retrieve their data files, including saved configuration (can
             be None, if not found).
@@ -127,7 +127,7 @@ def Load (filename = None):
       .B.blend file is loaded.
 
   @warn: loading a new .blend file removes the current data in Blender.  For
-     safety, this function saves the current data as an autosave file in
+     safety, this function saves the current data as an auto-save file in
      the temporary dir used by Blender before loading a new Blender file.
   @warn: after a call to Load(blendfile), current data in Blender is lost,
      including the Python dictionaries.  Any posterior references in the
@@ -179,7 +179,7 @@ def Run (script):
 def ShowHelp (script):
   """
   Show help for the given script.  This is a time-saver ("code-saver") for
-  scripts that need to feature a 'help' button in their GUI's or a 'help'
+  scripts that need to feature a 'help' button in their GUIs or a 'help'
   submenu option.  With proper documentation strings, calling this function is
   enough to present a screen with help information plus link and email buttons.
   @type script: string

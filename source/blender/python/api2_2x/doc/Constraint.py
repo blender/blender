@@ -37,7 +37,7 @@ Or to print all the constraints attached to each bone in a pose::
 @var Settings: Constant dict used for changing constraint settings.
   - Used for all constraints
     - TARGET (Object)
-    - BONE (string): name of Bone subtarget (for armature targets) (Note: not
+    - BONE (string): name of Bone sub-target (for armature targets) (Note: not
       used by Stretch To (STRETCHTO))
   - Used by IK Solver (IKSOLVER) constraint:
     - TOLERANCE (float): clamped to [0.0001:1.0]
@@ -126,7 +126,7 @@ class Constraints:
     """
     Remove a constraint from this objects constraint sequence.
     @param con: a constraint from this sequence to remove.
-    @type con: Constriant
+    @type con: Constraint
     @note: Accessing attributes of the constraint after it is removed will 
     throw an exception.
     """
@@ -135,16 +135,16 @@ class Constraints:
     """
     Moves the constraint up in the object's constraint stack.
     @param con: a constraint from this sequence to remove.
-    @type con: Constriant
-    @rtype: PyNone
+    @type con: Constraint
+    @rtype: None
     """
 
   def moveDown(con):
     """
     Moves the constraint down in the object's constraint stack.
     @param con: a constraint from this sequence to remove.
-    @type con: Constriant
-    @rtype: PyNone
+    @type con: Constraint
+    @rtype: None
     """
 
 class Constraint:
@@ -184,7 +184,7 @@ class Constraint:
   def insertKey(frame):
     """
     Adds an influence keyframe for the constraint Ipo.  
-    @rtype: PyNone
+    @rtype: None
     @param frame: the frame number at which to insert the key.
     @type frame: float
     """

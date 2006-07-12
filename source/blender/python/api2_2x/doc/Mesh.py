@@ -82,7 +82,7 @@ done once.
     - TILES - uses tiled image.
     - TWOSIDE - two-sided face.
 @var FaceTranspModes: The available face transparency modes. Note: these are
-  enumerated values (enums), they can't be combined (and'ed, or'ed, etc) like a bit vector.
+  enumerated values (enums), they can't be combined (ANDed, ORed, etc) like a bit vector.
     - SOLID - draw solid.
     - ADD - add to background (halo).
     - ALPHA - draw with transparency.
@@ -122,7 +122,7 @@ def Get(name=None):
   @param name: The name of the mesh data object.
   @rtype: Mesh
   @return: If a name is given, it returns either the requested mesh or None.
-    If no parameter is given, it returns all the meshs in the current scene.
+    If no parameter is given, it returns all the meshes in the current scene.
   """
 
 def New(name='Mesh'):
@@ -186,7 +186,7 @@ class MVert:
   @ivar no: The vertex's unit normal vector (x, y, z).
     B{Note}: if vertex coordinates are changed, it may be necessary to use
     L{Mesh.calcNormals()} to update the vertex normals.
-    B{Note}: Vertex normals can be set, but arnt wrapped so modifying a normal
+    B{Note}: Vertex normals can be set, but are not wrapped so modifying a normal
     vector will not effect the verts normal. The result is only visible
     when faces have the smooth option enabled.
     Example::
@@ -562,7 +562,7 @@ class MFace:
       Getting this attribute throw an exception if the mesh does not have 
       UV faces; use L{Mesh.faceUV} to test.  
   @type uv: list of vectors (WRAPPED DATA)
-  @ivar uvSel: The face's UV coordinates seletion state; a 1 indicates the
+  @ivar uvSel: The face's UV coordinates selection state; a 1 indicates the
       vertex is selected.  Each vertex has its own UV coordinate select state
       (this is not the same as the vertex's edit mode selection state).
       Setting this attribute will create UV faces if they do not exist.
@@ -679,7 +679,7 @@ class Mesh:
     B{Note}: L{Object.colbits<Object.Object.colbits>} needs to be set correctly
     for each object in order for these materials to be used instead of
     the object's materials.
-    B{Note}: Making the material list shorter does not change the faces material indicies,
+    B{Note}: Making the material list shorter does not change the faces material indices,
     take care when using the faces material indices to reference a material in the materials list.
     B{Note}: The the list thats returned is not linked to the original mesh.
     mesh.materials.append(material) wont do anything.

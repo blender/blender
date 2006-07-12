@@ -12,7 +12,7 @@ CurNurb and IpoCurve objects.
 
 @type HandleTypes: readonly dictionary
 @var HandleTypes: The available BezTriple handle types.
-    - FREE - handle has no constrints
+    - FREE - handle has no constraints
     - AUTO - completely constrain handle based on knot position
     - VECT - constraint handle to line between current and neighboring knot
     - ALIGN - constrain handle to lie in a straight line with knot's other

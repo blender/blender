@@ -64,7 +64,7 @@ class Font:
     Set the name of this Text3d object.
     @type name: string
     @param name: The new name.
-    @returns: PyNone
+    @returns: None
     """
 
   def getText():
@@ -78,6 +78,6 @@ class Font:
     Set the text string in this Text3d object
     @type name: string
     @param name:  The new text string for this object.
-    @returns: PyNone
+    @returns: None
     """
 

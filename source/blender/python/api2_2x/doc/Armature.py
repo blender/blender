@@ -44,7 +44,7 @@ Example::
 
 
 Example::
-	# Adds emptys for every bone in the selected armature, an example of getting worldspace locations for bones.
+	# Adds empties for every bone in the selected armature, an example of getting worldspace locations for bones.
 	from Blender import *
 	def test_arm():
 		scn= Scene.GetCurrent()
@@ -131,7 +131,7 @@ class Armature:
   @type envelopes: Bool
   @ivar restPosition: Show rest position (no posing possible)
   @type restPosition: Bool
-  @ivar delayDeform: Dont deform children when manipulating bones
+  @ivar delayDeform: Don't deform children when manipulating bones
   @type delayDeform: Bool
   @ivar drawAxes: Draw bone axes
   @type drawAxes: Bool
@@ -199,21 +199,21 @@ class BonesDict:
 
   def items():
     """
-    Retun the key, value pairs in this dictionary
+    Return the key, value pairs in this dictionary
     @rtype: string, BPy_bone
     @return: All strings, and py_bones in the armature (in that order)
     """
 
   def keys():
     """
-    Retun the keys in this dictionary
+    Return the keys in this dictionary
     @rtype: string
     @return: All strings representing the bone names
     """
 
   def values():
     """
-    Retun the values in this dictionary
+    Return the values in this dictionary
     @rtype: BPy_bone
     @return: All BPy_bones in this dictionary
     """
@@ -255,7 +255,7 @@ class Bone:
   @ivar options: Various bone options which can be:
        - Armature.CONNECTED: IK to parent
        - Armature.HINGE: No parent rotation or scaling
-       - Armature.NO_DEFORM: The bone does not deform geometetry
+       - Armature.NO_DEFORM: The bone does not deform geometry
        - Armature.MULTIPLY: Multiply vgroups by envelope
        - Armature.HIDDEN_EDIT: Hide bones in editmode
        - Armature.ROOT_SELECTED: Selection of root ball of bone
@@ -312,7 +312,7 @@ class Editbone:
   @ivar options: Various bone options which can be:
        - Armature.CONNECTED: IK to parent
        - Armature.HINGE: No parent rotation or scaling
-       - Armature.NO_DEFORM: The bone does not deform geometetry
+       - Armature.NO_DEFORM: The bone does not deform geometry
        - Armature.MULTIPLY: Multiply vgroups by envelope
        - Armature.HIDDEN_EDIT: Hide bones in editmode
        - Armature.ROOT_SELECTED: Selection of root ball of bone

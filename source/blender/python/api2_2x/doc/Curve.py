@@ -88,7 +88,7 @@ class Curve:
   @ivar size: The Curve Data size(from the center).
   @type size: list of 3 floats
   @ivar bevob: The Curve Bevel Object
-  @type bevob: Blender L{Object<Object.Object>} or PyNone
+  @type bevob: Blender L{Object<Object.Object>} or None
   @ivar key: The Key object associated with this Curve, if any.
   @type key: Blender L{Key<Key.Key>}
   """
@@ -102,7 +102,7 @@ class Curve:
   def setName(name):
     """
     Set the name of this Curve Data object.
-    @rtype: PyNone
+    @rtype: None
     @type name: string
     @param name: The new name.
     """
@@ -117,7 +117,7 @@ class Curve:
   def setPathLen(len):
     """
     Set this Curve's path length.
-    @rtype: PyNone
+    @rtype: None
     @type len: int
     @param len: the new curve's length.
     """
@@ -132,7 +132,7 @@ class Curve:
   def setTotcol(totcol):
     """
     Set the number of materials linked to the Curve.
-    @rtype: PyNone
+    @rtype: None
     @type totcol: int
     @param totcol: number of materials linked.
     """
@@ -153,7 +153,7 @@ class Curve:
   def setFlag(val):
     """
     Set the Curve flag value.  The flag corresponds to the Blender settings for 3D, Front, Back, CurvePath and CurveFollow.  This parameter is a bitfield.
-    @rtype: PyNone
+    @rtype: None
     @type val: integer bitfield
     @param val : The Curve's flag bits.  See L{getFlag} for the meaning of the individual bits.
     """
@@ -167,7 +167,7 @@ class Curve:
   def setBevresol(bevelresol):
     """
     Set the Curve's bevel resolution value.
-    @rtype: PyNone
+    @rtype: None
     @type bevelresol: float
     @param bevelresol: The new Curve's bevel resolution value.
     """
@@ -181,7 +181,7 @@ class Curve:
   def setResolu(resolu):
     """
     Set the Curve's U-resolution value.
-    @rtype: PyNone
+    @rtype: None
     @type resolu: float
     @param resolu: The new Curve's U-resolution value.
     """
@@ -195,7 +195,7 @@ class Curve:
   def setResolv(resolv):
     """
     Set the Curve's V-resolution value.
-    @rtype: PyNone
+    @rtype: None
     @type resolv: float
     @param resolv: The new Curve's V-resolution value.
     """
@@ -209,7 +209,7 @@ class Curve:
   def setWidth(width):
     """
     Set the Curve's width value. 
-    @rtype: PyNone
+    @rtype: None
     @type width: float
     @param width: The new Curve's width value. 
     """
@@ -223,7 +223,7 @@ class Curve:
   def setExt1(ext1):
     """
     Set the Curve's ext1 value. 
-    @rtype: PyNone
+    @rtype: None
     @type ext1: float
     @param ext1: The new Curve's ext1 value. 
     """
@@ -237,7 +237,7 @@ class Curve:
   def setExt2(ext2):
     """
     Set the Curve's ext2 value.
-    @rtype: PyNone 
+    @rtype: None 
     @type ext2: float
     @param ext2: The new Curve's ext2 value. 
     """
@@ -265,7 +265,7 @@ class Curve:
   def setControlPoint( numcurve, numpoint, controlpoint):
     """
     Set the Curve's controlpoint value.   The numpoint arg is an index into the list of points and starts with 0.
-    @rtype: PyNone
+    @rtype: None
     @type numcurve: int
     @type numpoint: int
     @type controlpoint: list
@@ -279,13 +279,13 @@ class Curve:
     """
       Add a new control point to the indicated curve (B{deprecated}).
       New scripts should use L{CurNurb.append()}.
-      @rtype: PyNone
+      @rtype: None
       @type numcurve: int
       @type new_control_point: list of floats or BezTriple
       @param numcurve:  index for spline in Curve, starting from 0
       @param new_control_point: depends on curve's type.
         - type Bezier: a BezTriple 
-        - type Nurb: a list of four or five floats for the xyzwt values
+        - type Nurb: a list of four or five floats for the xyzw values
       @raise AttributeError:  throws exception if numcurve is out of range.
     """
 
@@ -307,7 +307,7 @@ class Curve:
   def setLoc(location):
     """
     Set the curve's location value.
-    @rtype: PyNone 
+    @rtype: None 
     @type location: list[3]
     @param location: The new Curve's location values. 
     """
@@ -321,7 +321,7 @@ class Curve:
   def setRot(rotation):
     """
     Set the Curve's rotation value. 
-    @rtype: PyNone
+    @rtype: None
     @type rotation: list[3]
     @param rotation: The new Curve's rotation values. 
     """
@@ -335,7 +335,7 @@ class Curve:
   def setSize(size):
     """
     Set the curve size value.
-    @rtype: PyNone 
+    @rtype: None 
     @type size: list[3]
     @param size: The new Curve's size values. 
     """
@@ -350,35 +350,35 @@ class Curve:
   def getBevOb():
     """
     Returns the Bevel Object (BevOb) assigned to the Curve.
-    @rtype: Blender Object or PyNone
+    @rtype: Blender Object or None
     @return: Bevel Object (BevOb) assigned to the Curve.
     """
 
   def setBevOb( object ):
     """
     Assign a Bevel Object (BevOb) to the Curve.  Passing None as the object parameter removes the bevel.
-    @rtype: PyNone
-    @return: PyNone
+    @rtype: None
+    @return: None
     @type object: Curve type Blender Object
     @param object: Blender Object to assign as Bevel Object (BevOb)
-    @raise TypeError: throws exception if the parameter is not a Curve type Blender Object or PyNone
+    @raise TypeError: throws exception if the parameter is not a Curve type Blender Object or None
     """
 
   def getTaperOb():
     """
     Returns the Taper Object (TaperOb) assigned to the Curve.
-    @rtype: Blender Object or PyNone
+    @rtype: Blender Object or None
     @return: Taper Object (TaperOb) assigned to the Curve.
     """
 
   def setTaperOb( object ):
     """
     Assign a Taper Object (TaperOb) to the Curve.  Passing None as the object parameter removes the taper.
-    @rtype: PyNone
-    @return: PyNone
+    @rtype: None
+    @return: None
     @type object: Curve type Blender Object
     @param object: Blender Object to assign as Taper Object (TaperOb)
-    @raise TypeError: throws exception if the parameter is not a Curve type Blender Object or PyNone
+    @raise TypeError: throws exception if the parameter is not a Curve type Blender Object or None
     """
 
   def update():
@@ -386,8 +386,8 @@ class Curve:
     Updates display list for a Curve.
     Used after making changes to control points.
     You B{must} use this if you want to see your changes!
-    @rtype: PyNone
-    @return: PyNone
+    @rtype: None
+    @return: None
     """
 
   def isNurb( curve_num ):
@@ -458,8 +458,8 @@ class CurNurb:
     def __setitem__( n, point ):
       """
 	  Replace the Nth point in the curve. The type of the argument must match the type of the curve. List of 4 floats (optional 5th float is the tilt value in radians) for Nurbs or BezTriple for Bezier.
-      @rtype: PyNone
-      @return: PyNone
+      @rtype: None
+      @return: None
       @type n: integer
       @param n: the index of the element to replace
       @type point: BezTriple or list of 4 floats (optional 5th float is the tilt value in radians)
@@ -478,8 +478,8 @@ class CurNurb:
     def append( new_point ):
       """
       Appends a new point to a curve.  This method appends points to both Bezier and Nurb curves. The type of the argument must match the type of the curve. List of 4 floats (optional 5th float is the tilt value in radians) for Nurbs or BezTriple for Bezier.
-      @rtype: PyNone
-      @return: PyNone
+      @rtype: None
+      @return: None
       @type new_point: BezTriple or list of 4 floats (optional 5th float is the tilt value in radians)
       @param new_point: the new point to be appended to the curve.  The new point can be either a BezTriple type or a list of 4 floats in x,y,z,w (optionally tilt in radians as 5th value) format for a Nurb curve.
       """
@@ -487,8 +487,8 @@ class CurNurb:
     def setMatIndex( index ):
       """
       Sets the Material index for this CurNurb.
-      @rtype: PyNone
-      @return: PyNone
+      @rtype: None
+      @return: None
       @type index:  integer
       @param index: the new value for the Material number of this CurNurb.  No range checking is done.
       """
@@ -531,8 +531,8 @@ class CurNurb:
       Bit 0 controls whether or not the curve is cyclic (1 = cyclic).
       @type flag: integer
       @param flag: CurNurb knot flag
-      @rtype: PyNone
-      @return: PyNone
+      @rtype: None
+      @return: None
       """
 
     def getFlagV():
@@ -547,8 +547,8 @@ class CurNurb:
       Set the CurNurb knot flag V (knots are recalculated automatically).
       @type value: integer
       @param value: See L{setFlagU} for description of return.
-      @rtype: PyNone
-      @return: PyNone
+      @rtype: None
+      @return: None
       """
 
     def getType():
@@ -563,6 +563,6 @@ class CurNurb:
       Set the type of the curve and converts the curve to its new type if needed
       @type value: integer
       @param value: CurNurb type flag (0 - Poly, 1 - Bezier, 4 - NURBS)
-      @rtype: PyNone
-      @return: PyNone
+      @rtype: None
+      @return: None
       """

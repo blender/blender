@@ -43,7 +43,7 @@ def New (type, name='type'):
   @type name: string
   @param name: The name of the object. By default, the name will be the same
       as the object type.
-      If the name is alredy in use, this new object will have a number at the end of the name.
+      If the name is already in use, this new object will have a number at the end of the name.
   @return: The created Object.
 
   I{B{Example:}}
@@ -170,7 +170,7 @@ class Object:
     When dealing with properties and functions such as LocX/RotY/getLocation(), getSize() and getEuler() 
     Keep in mind that these transformation properties are relative to the objects parent (if any).
 
-    To get these values in worldspace (taking into acount vertex parents, constraints etc)
+    To get these values in worldspace (taking into account vertex parents, constraints etc)
     pass the argument 'worldspace' to these functions.
 
     @ivar LocX: The X location coordinate of the object.
@@ -270,7 +270,7 @@ class Object:
     @type protectFlags: int
     @ivar DupGroup: The DupliGroup Animation Property.
         Assign a group to DupGroup to make this object an instance of that group.
-        This does not enable or disable the dupliGroup option, for that use
+        This does not enable or disable the DupliGroup option, for that use
         getDupliGroup and setDupliGroup.
         The dupliGroup is None when this object does not have a dupliGroup.
         (Use with L{enableDupGroup<enableDupGroup>})
@@ -319,7 +319,7 @@ class Object:
     @type DupSta: int
     @ivar DupEnd: The DupliFrame end frame. (Use with L{enableDupFrames<enableDupFrames>})
     @type DupEnd: int
-    @ivar DupOn: The DupliFrames in sucsession between DupOff frames.
+    @ivar DupOn: The DupliFrames in succession between DupOff frames.
         (Use with L{enableDupFrames<enableDupFrames>} and L{DupOff<DupOff>} > 0)
     @type DupOn: int
     @ivar DupOff: The DupliFrame removal of every Nth frame for this object. (Use with L{enableDupFrames<enableDupFrames>})
@@ -675,7 +675,7 @@ class Object:
     @type objects: Sequence of Blender Object
     @param objects: A list of objects matching the objects type.
     @note: Objects in the list will not be removed from the scene,
-        to avoid overlapping data you may want to remove them manualy after joining.
+        to avoid overlapping data you may want to remove them manually after joining.
     @note: Join modifies the base objects data in place so that
         other objects are joined into it. no new object or data is created.
     @note: Join will only work for object types Mesh, Armature, Curve and Surface,
@@ -686,7 +686,7 @@ class Object:
     @note: An error in the join function input will raise a TypeError,
         otherwise an error in the data input will raise a RuntimeError,
         for situations where you don't have tight control on the data that is being joined,
-        you should handel the RuntimeError error, litting the user know the data cant be joined.
+        you should handle the RuntimeError error, letting the user know the data cant be joined.
         This an happen if the data is too large or one of the objects data has a shape key.
     """
 
@@ -845,7 +845,7 @@ class Object:
     if self and the object specified are of the same type.
     @type object: Blender Object
     @param object: A Blender Object of the same type.
-    @note: This funtion is faster then using getData() and setData()
+    @note: This function is faster then using getData() and setData()
     because it skips making a python object from the objects data.
     """
   
@@ -1018,7 +1018,7 @@ class Object:
     """
     Set the the Object's Particle Interaction Strength.
     Values between -1000.0 to 1000.0
-    @rtype: PyNone
+    @rtype: None
     @type strength: float
     @param strength: the Object's Particle Interaction New Strength.
     """
@@ -1033,7 +1033,7 @@ class Object:
     """
     Set the the Object's Particle Interaction falloff.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type falloff: float
     @param falloff: the Object's Particle Interaction New falloff.
     """    
@@ -1048,7 +1048,7 @@ class Object:
     """
     Set the the Object's Particle Interaction MaxDist.
     Values between 0 to 1000.0
-    @rtype: PyNone
+    @rtype: None
     @type MaxDist: float
     @param MaxDist: the Object's Particle Interaction New MaxDist.
     """    
@@ -1068,7 +1068,7 @@ class Object:
       - FORCE
       - VORTEX
       - MAGNET
-    @rtype: PyNone
+    @rtype: None
     @type type: int
     @param type: the Object's Particle Interaction Type.
     """   
@@ -1083,7 +1083,7 @@ class Object:
     """
     Set the the Object's Particle Interaction MaxDist.
     0 = Off, 1 = on
-    @rtype: PyNone
+    @rtype: None
     @type status: int
     @param status: the new status
     """ 
@@ -1098,7 +1098,7 @@ class Object:
     """
     Set the the Object's Particle Interaction Deflection Setting.
     0 = Off, 1 = on
-    @rtype: PyNone
+    @rtype: None
     @type status: int
     @param status: the new status
     """ 
@@ -1113,7 +1113,7 @@ class Object:
     """
     Set the the Object's Particle Interaction Permeability.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type perm: float
     @param perm: the Object's Particle Interaction New Permeability.
     """    
@@ -1128,7 +1128,7 @@ class Object:
     """
     Set the the Object's Particle Interaction RandomDamp.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type damp: float
     @param damp: the Object's Particle Interaction New RandomDamp.
     """    
@@ -1143,179 +1143,179 @@ class Object:
     """
     Set the the Object's Particle Interaction SurfaceDamp.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type damp: float
     @param damp: the Object's Particle Interaction New SurfaceDamp.
     """    
 
   def getSBMass():
     """
-    Get the Object's SB Mass.
+    Get the Object's SoftBody Mass.
     @rtype: float
     """
 
   def setSBMass(mass):
     """
-    Set the the Object's SB Mass.
+    Set the the Object's SoftBody Mass.
     Values between 0 to 50.0
-    @rtype: PyNone
+    @rtype: None
     @type mass: float
-    @param mass: the Object's SB New mass.
+    @param mass: the Object's SoftBody New mass.
     """  
   
   def getSBGravity():
     """
-    Get the Object's SB Gravity.
+    Get the Object's SoftBody Gravity.
     @rtype: float
     """
 
   def setSBGravity(grav):
     """
-    Set the the Object's SB Gravity.
+    Set the the Object's SoftBody Gravity.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type grav: float
-    @param grav: the Object's SB New Gravity.
+    @param grav: the Object's SoftBody New Gravity.
     """ 
     
   def getSBFriction():
     """
-    Get the Object's SB Friction.
+    Get the Object's SoftBody Friction.
     @rtype: float
     """
 
   def setSBFriction(frict):
     """
-    Set the the Object's SB Friction.
+    Set the the Object's SoftBody Friction.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type frict: float
-    @param frict: the Object's SB New Friction.
+    @param frict: the Object's SoftBody New Friction.
     """ 
 
   def getSBErrorLimit():
     """
-    Get the Object's SB ErrorLimit.
+    Get the Object's SoftBody ErrorLimit.
     @rtype: float
     """
 
   def setSBErrorLimit(err):
     """
-    Set the the Object's SB ErrorLimit.
+    Set the the Object's SoftBody ErrorLimit.
     Values between 0 to 1.0
-    @rtype: PyNone
+    @rtype: None
     @type err: float
-    @param err: the Object's SB New ErrorLimit.
+    @param err: the Object's SoftBody New ErrorLimit.
     """ 
     
   def getSBGoalSpring():
     """
-    Get the Object's SB GoalSpring.
+    Get the Object's SoftBody GoalSpring.
     @rtype: float
     """
 
   def setSBGoalSpring(gs):
     """
-    Set the the Object's SB GoalSpring.
+    Set the the Object's SoftBody GoalSpring.
     Values between 0 to 0.999
-    @rtype: PyNone
+    @rtype: None
     @type gs: float
-    @param gs: the Object's SB New GoalSpring.
+    @param gs: the Object's SoftBody New GoalSpring.
     """ 
     
   def getSBGoalFriction():
     """
-    Get the Object's SB GoalFriction.
+    Get the Object's SoftBody GoalFriction.
     @rtype: float
     """
 
   def setSBGoalFriction(gf):
     """
-    Set the the Object's SB GoalFriction.
+    Set the the Object's SoftBody GoalFriction.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type gf: float
-    @param gf: the Object's SB New GoalFriction.
+    @param gf: the Object's SoftBody New GoalFriction.
     """ 
     
   def getSBMinGoal():
     """
-    Get the Object's SB MinGoal.
+    Get the Object's SoftBody MinGoal.
     @rtype: float
     """
 
   def setSBMinGoal(mg):
     """
-    Set the the Object's SB MinGoal.
+    Set the the Object's SoftBody MinGoal.
     Values between 0 to 1.0
-    @rtype: PyNone
+    @rtype: None
     @type mg: float
-    @param mg: the Object's SB New MinGoal.
+    @param mg: the Object's SoftBody New MinGoal.
     """ 
     
   def getSBMaxGoal():
     """
-    Get the Object's SB MaxGoal.
+    Get the Object's SoftBody MaxGoal.
     @rtype: float
     """
 
   def setSBMaxGoal(mg):
     """
-    Set the the Object's SB MaxGoal.
+    Set the the Object's SoftBody MaxGoal.
     Values between 0 to 1.0
-    @rtype: PyNone
+    @rtype: None
     @type mg: float
-    @param mg: the Object's SB New MaxGoal.
+    @param mg: the Object's SoftBody New MaxGoal.
     """ 
     
   def getSBInnerSpring():
     """
-    Get the Object's SB InnerSpring.
+    Get the Object's SoftBody InnerSpring.
     @rtype: float
     """
 
   def setSBInnerSpring(sprr):
     """
-    Set the the Object's SB InnerSpring.
+    Set the the Object's SoftBody InnerSpring.
     Values between 0 to 0.999
-    @rtype: PyNone
+    @rtype: None
     @type sprr: float
-    @param sprr: the Object's SB New InnerSpring.
+    @param sprr: the Object's SoftBody New InnerSpring.
     """ 
     
   def getSBInnerSpringFriction():
     """
-    Get the Object's SB InnerSpringFriction.
+    Get the Object's SoftBody InnerSpringFriction.
     @rtype: float
     """
 
   def setSBInnerSpringFriction(sprf):
     """
-    Set the the Object's SB InnerSpringFriction.
+    Set the the Object's SoftBody InnerSpringFriction.
     Values between 0 to 10.0
-    @rtype: PyNone
+    @rtype: None
     @type sprf: float
-    @param sprf: the Object's SB New InnerSpringFriction.
+    @param sprf: the Object's SoftBody New InnerSpringFriction.
     """ 
     
   def getSBDefaultGoal():
     """
-    Get the Object's SB DefaultGoal.
+    Get the Object's SoftBody DefaultGoal.
     @rtype: float
     """
 
   def setSBDefaultGoal(goal):
     """
-    Set the the Object's SB DefaultGoal.
+    Set the the Object's SoftBody DefaultGoal.
     Values between 0 to 1.0
-    @rtype: PyNone
+    @rtype: None
     @type goal: float
-    @param goal: the Object's SB New DefaultGoal.
+    @param goal: the Object's SoftBody New DefaultGoal.
     """   
 
   def isSB():
     """
-    Get if the Object's SB is Enabled.
+    Get if the Object's SoftBody is Enabled.
     @rtype: int
     """
 
@@ -1330,9 +1330,9 @@ class Object:
     Enable / Disable SoftBodies PostDef option
     1: on
     0: off
-    @rtype: PyNone
+    @rtype: None
     @type switch: int
-    @param switch: the Object's SB New PostDef Value.
+    @param switch: the Object's SoftBody New PostDef Value.
     """ 
 
   def getSBUseGoal():
@@ -1346,9 +1346,9 @@ class Object:
     Enable / Disable SoftBodies UseGoal option
     1: on
     0: off
-    @rtype: PyNone
+    @rtype: None
     @type switch: int
-    @param switch: the Object's SB New UseGoal Value.
+    @param switch: the Object's SoftBody New UseGoal Value.
     """ 
   def getSBUseEdges():
     """
@@ -1361,9 +1361,9 @@ class Object:
     Enable / Disable SoftBodies UseEdges option
     1: on
     0: off
-    @rtype: PyNone
+    @rtype: None
     @type switch: int
-    @param switch: the Object's SB New UseEdges Value.
+    @param switch: the Object's SoftBody New UseEdges Value.
     """ 
     
   def getSBStiffQuads():
@@ -1377,9 +1377,9 @@ class Object:
     Enable / Disable SoftBodies StiffQuads option
     1: on
     0: off
-    @rtype: PyNone
+    @rtype: None
     @type switch: int
-    @param switch: the Object's SB New StiffQuads Value.
+    @param switch: the Object's SoftBody New StiffQuads Value.
     """     
 
 

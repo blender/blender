@@ -180,7 +180,7 @@ The Game Engine API:
  engine lets programmers add scripts to improve game AI, control, etc, making
  more complex interaction and tricks possible.  The game engine API is
  separate from the Blender Python API this document references and you can
- find its own ref doc in the docs section of the main sites below.
+ find its own ref doc in the doc section of the main sites below.
 
 Blender Data Structures:
 ------------------------
