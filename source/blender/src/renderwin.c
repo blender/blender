@@ -863,7 +863,7 @@ void make_renderinfo_string(RenderStats *rs, char *str)
 {
 	extern char info_time_str[32];	// header_info.c
 	extern unsigned long mem_in_use, mmap_in_use;
-	static float megs_used_memory, mmap_used_memory;
+	float megs_used_memory, mmap_used_memory;
 	char *spos= str;
 	
 	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);

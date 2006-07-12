@@ -538,6 +538,7 @@ void makeoctree(Render *re)
 				sprintf(str, "Filling Octree: %d", v);
 				re->i.infostr= str;
 				re->stats_draw(&re->i);
+				re->i.infostr= NULL;
 				lasttime= time;
 			}
 		}
