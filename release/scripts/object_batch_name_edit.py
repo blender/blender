@@ -57,11 +57,8 @@ def setDataNameWrapper(ob, newname):
 	if ob.getData(name_only=1) == newname:
 		return False
 	type= ob.getType()
-	data= None
-	if type=='Mesh' or type=='Empty':
-		data= ob.getData(mesh=1)
-	else:
-		data= ob.getData()
+	
+	data= ob.getData(mesh=1)
 	
 	if data:
 		data.name= newname
@@ -75,19 +72,13 @@ def main():
 		
 		# Result 1, we want to rename data
 		for ob in Object.GetSelected():
-			if ob.name == ob.getData(1):
+			if ob.name == ob.getData(name_only=1):
 				return # Alredy the same name, dont bother.
 				
-			try:
-				if ob.getType() == 'Mesh': 
-					data = ob.getData(mesh=1) # use mesh so we dont have to update the nmesh.
-				else:
-					data = ob.getData()
+			
+			data = ob.getData(mesh=1) # use mesh so we dont have to update the nmesh.
+			if data:
 				data.name = ob.name
-			except:
-				# Maybe trying to renasme an empty, dont worry about this.
-				pass
-		
 	
 	
 	def new():
@@ -236,7 +227,7 @@ def main():
 		Window.WaitCursor(1)
 		
 		for ob in Object.GetSelected():
-			newname = ob.getData(1)
+			newname = ob.getData(name_only=1)
 			if newname != None and ob.name != newname:
 				ob.name = newname
 				renameCount+=1
