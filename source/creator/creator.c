@@ -275,7 +275,9 @@ int main(int argc, char **argv)
     #ifdef __alpha__
 	signal (SIGFPE, fpe_handler);
     #else
-    setenv("SDL_AUDIODRIVER", "dma", 1);
+	if ( getenv("SDL_AUDIODRIVER") == NULL) {
+		setenv("SDL_AUDIODRIVER", "dma", 1);
+	}
     #endif
 #endif
 #if defined(__sgi)
