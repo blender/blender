@@ -168,7 +168,7 @@ def main():
 	('Sel Faces Only', PREF_SEL_ONLY, 'Only apply to UV/Face selected faces (mix vpain/uvface select).'),\
 	]
 	
-	if not Draw.PupBlock('Clean Selected Meshes...', pup_block):
+	if not Draw.PupBlock('SelfShadow...', pup_block):
 		return
 	
 	PREF_BLUR_ITERATIONS= PREF_BLUR_ITERATIONS.val
