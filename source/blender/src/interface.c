@@ -2051,8 +2051,6 @@ static int ui_act_as_text_but(uiBut *but)
 		}
 	}
 	else value = atof(str);
-	/* NAN detection */
-	if(isnan(value)) value= 0.0;
 	
 	if(but->pointype!=FLO) value= (int)value;
 
