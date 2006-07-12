@@ -232,27 +232,27 @@ static int face_in_node(VlakRen *vlr, short x, short y, short z, float rtf[][3])
 	fy= y;
 	fz= z;
 	
-	if((x+0)*nor[0] + (y+0)*nor[1] + (z+0)*nor[2] + d > 0.0) {
-		if((x+1)*nor[0] + (y+0)*nor[1] + (z+0)*nor[2] + d < 0.0) return 1;
-		if((x+0)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d < 0.0) return 1;
-		if((x+1)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d < 0.0) return 1;
+	if((fx)*nor[0] + (fy)*nor[1] + (fz)*nor[2] + d > 0.0f) {
+		if((fx+1)*nor[0] + (fy  )*nor[1] + (fz  )*nor[2] + d < 0.0f) return 1;
+		if((fx  )*nor[0] + (fy+1)*nor[1] + (fz  )*nor[2] + d < 0.0f) return 1;
+		if((fx+1)*nor[0] + (fy+1)*nor[1] + (fz  )*nor[2] + d < 0.0f) return 1;
 	
-		if((x+0)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
-		if((x+1)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
-		if((x+0)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
-		if((x+1)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d < 0.0) return 1;
+		if((fx  )*nor[0] + (fy  )*nor[1] + (fz+1)*nor[2] + d < 0.0f) return 1;
+		if((fx+1)*nor[0] + (fy  )*nor[1] + (fz+1)*nor[2] + d < 0.0f) return 1;
+		if((fx  )*nor[0] + (fy+1)*nor[1] + (fz+1)*nor[2] + d < 0.0f) return 1;
+		if((fx+1)*nor[0] + (fy+1)*nor[1] + (fz+1)*nor[2] + d < 0.0f) return 1;
 	}
 	else {
-		if((x+1)*nor[0] + (y+0)*nor[1] + (z+0)*nor[2] + d > 0.0) return 1;
-		if((x+0)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d > 0.0) return 1;
-		if((x+1)*nor[0] + (y+1)*nor[1] + (z+0)*nor[2] + d > 0.0) return 1;
+		if((fx+1)*nor[0] + (fy  )*nor[1] + (fz  )*nor[2] + d > 0.0f) return 1;
+		if((fx  )*nor[0] + (fy+1)*nor[1] + (fz  )*nor[2] + d > 0.0f) return 1;
+		if((fx+1)*nor[0] + (fy+1)*nor[1] + (fz  )*nor[2] + d > 0.0f) return 1;
 	
-		if((x+0)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
-		if((x+1)*nor[0] + (y+0)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
-		if((x+0)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
-		if((x+1)*nor[0] + (y+1)*nor[1] + (z+1)*nor[2] + d > 0.0) return 1;
+		if((fx  )*nor[0] + (fy  )*nor[1] + (fz+1)*nor[2] + d > 0.0f) return 1;
+		if((fx+1)*nor[0] + (fy  )*nor[1] + (fz+1)*nor[2] + d > 0.0f) return 1;
+		if((fx  )*nor[0] + (fy+1)*nor[1] + (fz+1)*nor[2] + d > 0.0f) return 1;
+		if((fx+1)*nor[0] + (fy+1)*nor[1] + (fz+1)*nor[2] + d > 0.0f) return 1;
 	}
-
+	
 	return 0;
 }
 
