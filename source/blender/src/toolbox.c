@@ -1467,9 +1467,10 @@ static void tb_do_render(void *arg, int event){
 			BIF_do_render(1);
 			break;
 		case 4: /* passepartout */
+		{
+			Camera *ca= NULL;
 			if(G.vd->camera==NULL) return;
 			
-			Camera *ca= NULL;
 			if(G.vd->camera->type==OB_CAMERA)
 				ca= G.vd->camera->data;
 			else return;
@@ -1479,6 +1480,7 @@ static void tb_do_render(void *arg, int event){
 			else
 				ca->flag |= CAM_SHOWPASSEPARTOUT;
 			allqueue(REDRAWVIEW3D, 0);
+		}
 			break;
 		case 5: /*preview render */
 			toggle_blockhandler(curarea, VIEW3D_HANDLER_PREVIEW, 0);
