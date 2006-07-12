@@ -174,28 +174,32 @@ def boundsIsland(faces):
 	# print len(faces), minx, maxx, miny , maxy
 	for f in faces:
 		for uv in f.uv:
-			minx = min(minx, uv[0])
-			maxx = max(maxx, uv[0])
-			
-			miny = min(miny, uv[1])
-			maxy = max(maxy, uv[1])
+			x= uv.x
+			y= uv.y
+			if x<minx: minx= x
+			if y<miny: miny= y
+			if x>maxx: maxx= x
+			if y>maxy: maxy= y
 	
 	return minx, miny, maxx, maxy
 
+"""
 def boundsEdgeLoop(edges):
 	minx = maxx = edges[0][0] # Set initial bounds.
 	miny = maxy = edges[0][1]
 	# print len(faces), minx, maxx, miny , maxy
 	for ed in edges:
 		for pt in ed:
-			minx = min(minx, pt[0])
-			maxx = max(maxx, pt[0])
-			
-			miny = min(miny, pt[1])
-			maxy = max(maxy, pt[1])
+			print 'ass'
+			x= pt[0]
+			y= pt[1]
+			if x<minx: x= minx
+			if y<miny: y= miny
+			if x>maxx: x= maxx
+			if y>maxy: y= maxy
 	
 	return minx, miny, maxx, maxy
-
+"""
 
 # Turns the islands into a list of unpordered edges (Non internal)
 # Onlt for UV's
@@ -329,12 +333,12 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
 		# Do this allong the way
 		if mat != -1:
 			v = vecs[i] = v*mat
-		
-		minx = min(minx, v.x)
-		maxx = max(maxx, v.x)
-		
-		miny = min(miny, v.y)
-		maxy = max(maxy, v.y)
+			x= v.x
+			y= v.y
+			if x<minx: minx= x
+			if y<miny: miny= y
+			if x>maxx: maxx= x
+			if y>maxy: maxy= y
 		
 		# Spesific to this algo, bail out if we get bigger then the current area
 		if bestAreaSoFar != -1 and (maxx-minx) * (maxy-miny) > bestAreaSoFar:
@@ -457,12 +461,11 @@ def mergeUvIslands(islandList, islandListArea):
 		w, h = maxx-minx, maxy-miny
 		
 		totFaceArea = 0
-		fIdx = len(islandList[islandIdx])
-		while fIdx:
-			fIdx-=1
-			f = islandList[islandIdx][fIdx]
+		
+		for fIdx, f in enumerate(islandList[islandIdx]):
 			f.uv = [Vector(uv[0]-minx, uv[1]-miny) for uv in f.uv]
 			totFaceArea += islandListArea[islandIdx][fIdx] # Use Cached area. dont recalculate.
+		
 		islandBoundsArea = w*h
 		efficiency = abs(islandBoundsArea - totFaceArea)
 		
@@ -829,14 +832,12 @@ def packLinkedUvs(faceGroups, faceGroupsArea, me):
 			
 
 def VectoMat(vec):
-	
-	a3 = Vector(vec)
-	
+	a3 = Vector(vec) # copy the vector
 	a3.normalize()
 	
-	up = Vector([0,0,1])
+	up = Vector(0,0,1)
 	if abs(DotVecs(a3, up)) == 1.0:
-		up = Vector([0,1,0])
+		up = Vector(0,1,0)
 	
 	a1 = CrossVecs(a3, up)
 	a1.normalize()
@@ -931,15 +932,10 @@ def main():
 	SELECT_FLAG = Mesh.FaceFlags['SELECT']
 	time1 = sys.time()
 	for ob in obList:
-		
-		# Only meshes
-		if ob.getType() != 'Mesh':
-			continue
-		
 		me = ob.getData(mesh=1)
 		
 		if not me.faceUV: # Mesh has no UV Coords, dont bother.
-			continue
+			me.faceUV= True
 		
 		if USER_ONLY_SELECTED_FACES:
 			meshFaces = [f for f in me.faces if f.flag & SELECT_FLAG]
@@ -971,7 +967,7 @@ def main():
 				
 			else:
 				# Store all here
-				faceListProps.append( [f, area, Vector(f.no)] )
+				faceListProps.append( [f, area, f.no] )
 		
 		del meshFaces
 		
@@ -1037,7 +1033,7 @@ def main():
 			
 			# Now weight the vector to all its faces, will give a more direct projection
 			# if the face its self was not representive of the normal from surrounding faces.
-			averageVec = Vector([0,0,0])
+			averageVec = Vector(0,0,0)
 			for fprop in newProjectFacePropList:
 				averageVec += (fprop[2] * fprop[1]) # / len(newProjectFacePropList)
 			
