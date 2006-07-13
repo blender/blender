@@ -129,7 +129,7 @@ typedef struct SpaceButs {
 	short re_align;
 	
 	short oldkeypress;		/* for keeping track of the sub tab key cycling */
-	char use_nodes, flag;
+	char pad, flag;
 	
 	char texact, tab[7];	/* storing tabs for each context */
 		

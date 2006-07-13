@@ -3181,7 +3181,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	bNode *node=NULL;
 	float min;
 	short xco;
-	char str[30], *cp;
+	char str[30];
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
 	/* 310 makes sorting code to put it right after preview panel */
@@ -3199,9 +3199,8 @@ static void material_panel_links(Object *ob, Material *ma)
 	
 	if(ma) uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
 	
-	if(ma) cp= &ma->use_nodes; else cp= &G.buts->use_nodes;
-	uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, cp, 0.0f, 0.0f, 0, 0, "");
-	G.buts->use_nodes= *cp;
+	if(ma)
+		uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
 				  
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
