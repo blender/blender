@@ -1127,7 +1127,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 				else if(fy<0.0) fy+= 1-(int)(fy);
 			}
 			if(max!=1.0f) {
-				dxt[1]*= max;
+				dxt[2]*= max;
 				dyt[2]*= max;
 			}
 			
