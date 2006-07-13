@@ -1288,8 +1288,10 @@ void txt_paste_clipboard(Text *text) {
 	if ( OpenClipboard(NULL) ) {
 		HANDLE hData = GetClipboardData( CF_TEXT );
 		buffer = (char*)GlobalLock( hData );
-		buffer = unixNewLine(buffer);
-		txt_insert_buf(text, buffer);
+		if (buffer) {
+			buffer = unixNewLine(buffer);
+			if (buffer) txt_insert_buf(text, buffer);
+		}
 		GlobalUnlock( hData );
 		CloseClipboard();
 		MEM_freeN(buffer);
@@ -1304,17 +1306,19 @@ void txt_copy_clipboard(Text *text) {
 	if (OpenClipboard(NULL)) {
 		HLOCAL clipbuffer;
 		char* buffer;
+		
+		if (copybuffer) {
+			copybuffer = winNewLine(copybuffer);
 
-		copybuffer = winNewLine(copybuffer);
+			EmptyClipboard();
+			clipbuffer = LocalAlloc(LMEM_FIXED,((bufferlength+1)));
+			buffer = (char *) LocalLock(clipbuffer);
 
-		EmptyClipboard();
-		clipbuffer = LocalAlloc(LMEM_FIXED,((bufferlength+1)));
-		buffer = (char *) LocalLock(clipbuffer);
-
-		strncpy(buffer, copybuffer, bufferlength);
-		buffer[bufferlength] =  '\0';
-		LocalUnlock(clipbuffer);
-		SetClipboardData(CF_TEXT,clipbuffer);
+			strncpy(buffer, copybuffer, bufferlength);
+			buffer[bufferlength] =  '\0';
+			LocalUnlock(clipbuffer);
+			SetClipboardData(CF_TEXT,clipbuffer);
+		}
 		CloseClipboard();
 	}
 
