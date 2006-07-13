@@ -182,7 +182,7 @@ def convexHull(point_list_2d):
 	# Concatenate both halfs and return.
 	return [p[1] for ls in (upper, lower) for p in ls]
 
-
+SMALL_NUM = 0.000001
 def lineIntersect2D(v1a, v1b,  v2a, v2b):
 	'''
 	Do 2 lines intersect, if so where.
@@ -264,5 +264,4 @@ def lineIntersect2D(v1a, v1b,  v2a, v2b):
 		return xi, yi
 	else:
 		return None, 300
-
 
