@@ -90,12 +90,12 @@ static void init_render_jit(Render *re)
 	static float jit[32][2];	/* simple caching */
 	static int lastjit= 0;
 	
-	if(lastjit!=re->osa) {
+	if(lastjit!=re->r.osa) {
 		memset(jit, 0, sizeof(jit));
-		BLI_initjit(jit[0], re->osa);
+		BLI_initjit(jit[0], re->r.osa);
 	}
 	
-	lastjit= re->osa;
+	lastjit= re->r.osa;
 	memcpy(re->jit, jit, sizeof(jit));
 }
 
@@ -272,6 +272,8 @@ void make_sample_tables(Render *re)
 	
 	free_sample_tables(re);
 	
+	init_render_jit(re);	/* needed for mblur too */
+	
 	if(re->osa==0) {
 		/* just prevents cpu cycles for larger render and copying */
 		re->r.filtertype= 0;
@@ -284,8 +286,6 @@ void make_sample_tables(Render *re)
 			re->do_gamma= 1;
 	}
 	
-	init_render_jit(re);
-
 	st= re->samples= MEM_callocN(sizeof(SampleTables), "sample tables");
 	
 	for(a=0; a<9;a++) {

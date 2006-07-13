@@ -1632,6 +1632,10 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 		zspan.zofsx= -pa->disprect.xmin - R.jit[pa->sample][0];
 		zspan.zofsy= -pa->disprect.ymin - R.jit[pa->sample][1];
 	}
+	else if(R.i.curblur) {
+		zspan.zofsx= -pa->disprect.xmin - R.jit[R.i.curblur-1][0];
+		zspan.zofsy= -pa->disprect.ymin - R.jit[R.i.curblur-1][1];
+	}
 	else {
 		zspan.zofsx= -pa->disprect.xmin;
 		zspan.zofsy= -pa->disprect.ymin;
@@ -2428,6 +2432,10 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		if(R.osa) {
 			zspan.zofsx= -pa->disprect.xmin-R.jit[zsample][0];
 			zspan.zofsy= -pa->disprect.ymin-R.jit[zsample][1];
+		}
+		else if(R.i.curblur) {
+			zspan.zofsx= -pa->disprect.xmin - R.jit[R.i.curblur-1][0];
+			zspan.zofsy= -pa->disprect.ymin - R.jit[R.i.curblur-1][1];
 		}
 		
 		for(v=0; v<R.totvlak; v++) {
