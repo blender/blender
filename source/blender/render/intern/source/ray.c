@@ -76,7 +76,7 @@ extern struct Render R;
 typedef struct Isect {
 	float start[3], vec[3], end[3];		/* start+vec = end, in d3dda */
 	float labda, u, v;
-	struct VlakRen *vlr, *vlrcontr, *vlrorig;
+	struct VlakRen *vlr, *vlrcontr, *vlrorig;	/* vlr is where to intersect with */
 	short isect, mode;	/* isect: which half of quad, mode: DDA_SHADOW, DDA_MIRROR, DDA_SHADOW_TRA */
 	float ddalabda;
 	float col[4];		/* RGBA for shadow_tra */
@@ -1159,7 +1159,8 @@ static int d3dda(Isect *is)
 	if(R.oc.branchcount==0) return 0;
 	
 	/* do this before intersect calls */
-	is->vlrcontr= NULL;	/*  to check shared edge */
+	is->vlrcontr= NULL;				/* to check shared edge */
+	is->vlrisect= is->isect= 0;		/* shared edge, quad half flag */
 
 	/* only for shadow! */
 	if(is->mode==DDA_SHADOW) {
@@ -2230,8 +2231,10 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
 
 	/* only when not mir tracing, first hit optimm */
-	if(shi->depth==0) isec.vlr_last= lar->vlr_last;
-	else isec.vlr_last= NULL;
+	if(shi->depth==0) 
+		isec.vlr_last= lar->vlr_last[shi->thread & 1];
+	else 
+		isec.vlr_last= NULL;
 	
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
@@ -2341,7 +2344,8 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	}
 
 	/* for first hit optim, set last interesected shadow face */
-	if(shi->depth==0) lar->vlr_last= isec.vlr_last;
+	if(shi->depth==0) 
+		lar->vlr_last[shi->thread & 1]= isec.vlr_last;
 
 }
 

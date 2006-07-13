@@ -48,6 +48,8 @@ struct GHash;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
+		/* hardcoded maximum now, for optimize tables */
+#define MAX_THREADS		2
 
 typedef struct SampleTables
 {
@@ -335,7 +337,7 @@ typedef struct LampRen
 	short YF_glowtype;
 	
 	/* ray optim */
-	VlakRen *vlr_last;
+	VlakRen *vlr_last[MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
 } LampRen;
