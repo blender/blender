@@ -308,8 +308,10 @@ static void ocwrite(Octree *oc, VlakRen *vlr, short x, short y, short z, float r
 	
 	no->v[a]= vlr;
 	
-	calc_ocval_face(rtf[0], rtf[1], rtf[2], rtf[3], x>>2, y>>1, z, &no->ov[a]);
-
+	if(vlr->v4)
+		calc_ocval_face(rtf[0], rtf[1], rtf[2], rtf[3], x>>2, y>>1, z, &no->ov[a]);
+	else
+		calc_ocval_face(rtf[0], rtf[1], rtf[2], NULL, x>>2, y>>1, z, &no->ov[a]);
 }
 
 static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocface, short rts[][3], float rtf[][3])
