@@ -1016,8 +1016,7 @@ static void end_test_break_callback()
 {
 	struct itimerval tmevalue;
 
-	tmevalue.it_value.tv_sec = 0;
-	tmevalue.it_value.tv_usec = 0;
+	memset(&tmevalue, 0, sizeof(struct itimerval));
 
 	setitimer(ITIMER_REAL, &tmevalue, 0);
 	signal(SIGALRM, SIG_IGN);

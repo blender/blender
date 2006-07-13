@@ -5197,7 +5197,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		while(sce){
 			if(sce->toolsettings == NULL){
-				sce->toolsettings = MEM_mallocN(sizeof(struct ToolSettings),"Tool Settings Struct");	
+				sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");	
 				sce->toolsettings->cornertype=0;
 				sce->toolsettings->degr = 90; 
 				sce->toolsettings->step = 9;

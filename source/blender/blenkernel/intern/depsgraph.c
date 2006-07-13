@@ -666,18 +666,10 @@ DagNode * dag_add_node (DagForest *forest, void * fob)
 {
 	DagNode *node;
 		
-	node = MEM_mallocN(sizeof(DagNode),"DAG node");
+	node = MEM_callocN(sizeof(DagNode),"DAG node");
 	if (node) {
 		node->ob = fob;
 		node->color = DAG_WHITE;
-		node->BFS_dist = 0;		
-		node->DFS_dist = 0;		
-		node->DFS_dvtm = 0;		
-		node->DFS_fntm = 0;
-		node->child = NULL;
-		node->next = NULL;
-		node->first_ancestor = NULL;
-		node->ancestor_count = 0;
 
 		if(ugly_hack_sorry) node->type = GS(((ID *) fob)->name);	// sorry, done for pose sorting
 		if (forest->numNodes) {
