@@ -1996,6 +1996,8 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				if(re->test_break() == 0) {
 					do_write_image_or_movie(re, scene, mh);
 				}
+			} else {
+				re->test_break();
 			}
 		}
 	} else {
