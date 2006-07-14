@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #if defined(_WIN32)
+#include <winsock2.h>
 #include <windows.h>
 #include <winbase.h>
 #include <direct.h>
@@ -59,22 +60,6 @@
 #include <config.h>
 #endif
 
-/*
-  Big red FIXME:
-
-  You can't simply press escape to stop the frameserver, since somehow
-  the escape signal handling does not work, when you wait for a connection.
-
-  You have to point your favorite webbrowser to
-
-  blenderserver:port
-
-  and click on "Stop Rendering"
-
-  It does help, if you start blender using "-p 0 0 800 600" e.g...
-
-*/
-
 static int sock;
 static int connsock;
 static int write_ppm;
@@ -82,8 +67,38 @@ static int render_width;
 static int render_height;
 
 
-#if !defined(_WIN32)
-static int closesocket(int fd) {
+#if defined(_WIN32)
+static int startup_socket_system()
+{
+	WSADATA wsa;
+	return (WSAStartup(MAKEWORD(2,0),&wsa) == 0);
+}
+
+static void shutdown_socket_system()
+{
+	WSACleanup();
+}
+static int select_was_interrupted_by_signal()
+{
+	return (WSAGetLastError() == WSAEINTR);
+}
+#else
+static int startup_socket_system()
+{
+	return 1;
+}
+
+static void shutdown_socket_system()
+{
+}
+
+static int select_was_interrupted_by_signal()
+{
+	return (errno == EINTR);
+}
+
+static int closesocket(int fd) 
+{
 	return close(fd);
 }
 #endif
@@ -93,7 +108,14 @@ void start_frameserver(RenderData *rd, int rectx, int recty)
         struct sockaddr_in      addr;
 	int arg = 1;
 
+	if (!startup_socket_system()) {
+		G.afbreek = 1;
+		error("Can't startup socket system");
+		return;
+	}
+
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		shutdown_socket_system();
 		G.afbreek = 1; /* Abort render */
 		error("Can't open socket");
 		return;
@@ -107,12 +129,14 @@ void start_frameserver(RenderData *rd, int rectx, int recty)
         addr.sin_addr.s_addr = INADDR_ANY;
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		shutdown_socket_system();
 		G.afbreek = 1; /* Abort render */
 		error("Can't bind to socket");
 		return;
         }
 
         if (listen(sock, SOMAXCONN) < 0) {
+		shutdown_socket_system();
 		G.afbreek = 1; /* Abort render */
 		error("Can't establish listen backlog");
 		return;
@@ -230,9 +254,7 @@ static int handle_request(char * req)
 int frameserver_loop()
 {
 	fd_set readfds;
-#if !defined(_WIN32)
 	struct timeval tv;
-#endif
 	struct sockaddr_in      addr;
 	int len;
 	char buf[4096];
@@ -242,9 +264,6 @@ int frameserver_loop()
 		closesocket(connsock);
 		connsock = -1;
 	}
-
-#if !defined(_WIN32)
-	/* FIXME: Don't know, how to wait for socket on Windows ... */
 
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
@@ -260,16 +279,12 @@ int frameserver_loop()
 	if (rval == 0) { /* nothing to be done */
 		return -1;
 	}
-#endif
 
 	len = sizeof(addr);
 
 	if ((connsock = accept(sock, (struct sockaddr *)&addr, &len)) < 0) {
 		return -1;
 	}
-
-#if !defined(_WIN32)
-	/* FIXME: Don't know, how to wait for socket on Windows ... */
 
 	FD_ZERO(&readfds);
 	FD_SET(connsock, &readfds);
@@ -285,12 +300,11 @@ int frameserver_loop()
 		} else if (rval == 0) {
 			return -1;
 		} else if (rval < 0) {
-			if (errno != EINTR) {
+			if (!select_was_interrupted_by_signal()) {
 				return -1;
 			}
 		}
 	}
-#endif
 
 	len = recv(connsock, buf, 4095, 0);
 
@@ -362,5 +376,6 @@ void end_frameserver()
 		connsock = -1;
 	}
 	closesocket(sock);
+	shutdown_socket_system();
 }
 
