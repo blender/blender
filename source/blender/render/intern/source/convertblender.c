@@ -1021,21 +1021,25 @@ static void render_particle_system(Render *re, Object *ob, Object *par, PartEff 
 	HaloRen *har=0;
 	Material *ma=0;
 	float xn, yn, zn, imat[3][3], tmat[4][4], mat[4][4], hasize, stime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
-	int a, mat_nr=1, seed;
-
-	int useFluidsimParticles = 0; // FSPARTICLE
 	float haloScale = 1.0;	//NT scale halos 
 	float iniAlpha = 0.0; // restore material alpha 
+	int a, mat_nr=1, seed;
+	int useFluidsimParticles = 0; // FSPARTICLE
 
+	ma= give_render_material(re, ob, paf->omat);
+	
+	if( (ob->fluidsimSettings) && (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) {
+		useFluidsimParticles = 1;
+		iniAlpha = ma->alpha;
+	}
+	
 	pa= paf->keys;
-	if(pa==NULL || paf->disp!=100) {
+	if(pa==NULL || paf->disp!=100 || useFluidsimParticles) {
 		build_particle_system(ob);
 		pa= paf->keys;
 		if(pa==NULL) return;
 	}
 
-	ma= give_render_material(re, ob, paf->omat);
-	
 	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
 
@@ -1061,11 +1065,7 @@ static void render_particle_system(Render *re, Object *ob, Object *par, PartEff 
 	else ptime= 0.0;
 	ctime= bsystem_time(ob, 0, (float)re->scene->r.cfra, ptime);
 	seed= ma->seed1;
-	if( (ob->fluidsimSettings) && (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) {
-		useFluidsimParticles = 1;
-		iniAlpha = ma->alpha;
-	}
-
+	
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey, seed++) {
 
 		/* offset time for calculating normal */
