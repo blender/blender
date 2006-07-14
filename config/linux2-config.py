@@ -146,3 +146,9 @@ BF_DEBUG_FLAGS = ''
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'
+
+#Python linking
+PYTHON_LINKFLAGS = ['-Xlinker', '-export-dynamic']
+
+#Link against pthread
+PLATFORM_LINKFLAGS = ['-pthread']
