@@ -377,6 +377,9 @@ class BlenderEnvironment(SConsEnvironment):
         lenv = self.Copy()
         if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
             lenv.Append(LINKFLAGS = Split(lenv['PLATFORM_LINKFLAGS']))
+        if  lenv['OURPLATFORM']=='linux2':
+            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
+            lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
         if  lenv['OURPLATFORM']=='darwin':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
