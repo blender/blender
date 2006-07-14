@@ -170,25 +170,38 @@ static int BonesDict_InitEditBones(BPy_BonesDict *self)
 //This is the string representation of the object
 static PyObject *BonesDict_repr(BPy_BonesDict *self)
 {
-	char str[4096];
+	char str[2048];
 	PyObject *key, *value;
 	int pos = 0;
 	char *p = str;
+	char *keys, *vals;
 
 	p += sprintf(str, "[Bone Dict: {");
 
 	if (self->editmode_flag){
 		while (PyDict_Next(self->editbonesMap, &pos, &key, &value)) {
-			p += sprintf(p, "%s : %s, ", PyString_AsString(key), 
-				PyString_AsString(value->ob_type->tp_repr(value)));
+			keys = PyString_AsString(key);
+			vals = PyString_AsString(value->ob_type->tp_repr(value));
+			if( strlen(str) + strlen(keys) + strlen(vals) < sizeof(str)-20 )
+				p += sprintf(p, "%s : %s, ", keys, vals );
+			else {
+				p += sprintf(p, "...." );
+				break;
+			}
 		}
 	}else{
 		while (PyDict_Next(self->bonesMap, &pos, &key, &value)) {
-			p += sprintf(p, "%s : %s, ", PyString_AsString(key), 
-				PyString_AsString(value->ob_type->tp_repr(value)));
+			keys = PyString_AsString(key);
+			vals = PyString_AsString(value->ob_type->tp_repr(value));
+			if( strlen(str) + strlen(keys) + strlen(vals) < sizeof(str)-20 )
+				p += sprintf(p, "%s : %s, ", keys, vals );
+			else {
+				p += sprintf(p, "...." );
+				break;
+			}
 		}
 	}
-	p += sprintf(p, "}]\n");
+	sprintf(p, "}]");
 	return PyString_FromString(str);
 }
 
