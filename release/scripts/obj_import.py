@@ -705,9 +705,11 @@ def load_obj(\
 					
 					for edgeVerts, users in edgeUsers.iteritems():
 						if users:
-							ed= currentMesh.addEdge(\
-							 currentMesh.verts[edgeVerts[0]],\
-							 currentMesh.verts[edgeVerts[1]])
+							i1,i2= edgeVerts
+							if i1!=i2:
+								ed= currentMesh.addEdge(\
+								 currentMesh.verts[i1],\
+								 currentMesh.verts[i2])
 							
 							ed.flag|= EDGE_FGON_FLAG
 			
