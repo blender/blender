@@ -320,10 +320,9 @@ static PyObject *M_Image_GetCurrent( PyObject * self )
 	if (!G.sima || !G.sima->image) {
 		Py_RETURN_NONE;
 	}
+	what_image( G.sima );	/* make sure image data exists */
 	return Image_CreatePyObject( G.sima->image );
 }
-
-
 
 /*****************************************************************************/
 /* Function:	M_Image_Load		 */
@@ -696,8 +695,6 @@ static PyObject *Image_pack( BPy_Image * self )
 
 static PyObject *Image_save( BPy_Image * self )
 {
-	Py_INCREF( Py_None );
-
 	if( !IMB_saveiff
 	    ( self->image->ibuf, self->image->name,
 	      self->image->ibuf->flags ) )
