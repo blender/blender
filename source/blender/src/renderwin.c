@@ -841,8 +841,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 #ifdef __APPLE__
 	window_swap_buffers(render_win->win);
 #else
-	/* no glFlush(); here... threads render hates it! */
-	glFinish();
+	glFlush();
 	glDrawBuffer(GL_BACK);
 #endif	
 }
@@ -913,8 +912,7 @@ static void renderwin_renderinfo_cb(RenderStats *rs)
 #ifdef __APPLE__
 		window_swap_buffers(render_win->win);
 #else
-		/* no glFlush(); here... threads render hates it! */
-		glFinish();
+		glFlush();
 		glDrawBuffer(GL_BACK);
 #endif
 	}
