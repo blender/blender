@@ -65,8 +65,8 @@ class edge:
 		# uv1 uv2 vcol1 vcol2 # Add later
 		self.length = (v1.co - v2.co).length
 		
-		self.removed = 0 # Have we been culled from the eloop
-		self.match = None # The other edge were making a face with
+		self.removed = 0	# Have we been culled from the eloop
+		self.match = None	# The other edge were making a face with
 
 
 class edgeLoop:
@@ -74,13 +74,8 @@ class edgeLoop:
 		# Use next and prev, nextDist, prevDist
 		
 		# Get Loops centre.
-		self.centre = Mathutils.Vector()
-		f = 1.0/len(loop)
-		for v in loop:
-			self.centre += v.co * f
-		
-		
-		
+		fac= 1.0/len(loop)
+		self.centre= reduce(lambda a,b: a+b.co*fac, loop, Mathutils.Vector())
 		
 		# Convert Vert loop to Edges.
 		self.edges = []
@@ -226,11 +221,14 @@ def getSelectedEdges(me, ob):
 				return i1, i2
 		
 		# value is [edge, face_sel_user_in]
-		edge_dict=  dict((ed_key(ed), [ed, 0]) for ed in me.edges)
+		try: # Python 2.4 only
+			edge_dict=  dict((ed_key(ed), [ed, 0]) for ed in me.edges)
+		except:
+			edge_dict=  dict([(ed_key(ed), [ed, 0]) for ed in me.edges])
 		
 		for f in me.faces:
 			if f.sel:
-				fidx= [v.index for v in f.v]
+				fidx= [v.index for v in f]
 				for i in xrange(len(fidx)):
 					i1= fidx[i]
 					i2= fidx[i-1]
@@ -241,7 +239,6 @@ def getSelectedEdges(me, ob):
 					# ed_data is a list of 2 ed and face user
 					ed_data= edge_dict[i1,i2]
 					ed_data[1]+=1
-
 		
 		Blender.Mesh.Mode(MESH_MODE)
 		return [ ed_data[0] for ed_data in edge_dict.itervalues() if ed_data[1] == 1 ]
@@ -396,15 +393,6 @@ def main():
 		return
 	
 	me = ob.getData(mesh=1)
-	'''
-	if not me.edges:
-		Draw.PupMenu('Error, add edge data first')
-		if is_editmode: Window.EditMode(1)
-		return
-	'''
-	
-	# BAD BLENDER PYTHON API, NEED TO ENTER EXIT EDIT MODE FOR ADDING EDGE DATA.
-	# ADD EDGE DATA HERE, Python API CANT DO IT YET, LOOSES SELECTION
 	
 	selEdges = getSelectedEdges(me, ob)
 	vertLoops = getVertLoops(selEdges) # list of lists of edges.
@@ -491,9 +479,8 @@ def main():
 	
 	# REMOVE SELECTED FACES.
 	faces= [ f for f in me.faces if f.sel ]
-	print faces
+	
 	if faces:
-		print faces
 		me.faces.delete(1, faces)
 	
 	if is_editmode: Window.EditMode(1)
