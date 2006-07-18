@@ -2484,12 +2484,14 @@ void do_matbuts(unsigned short event)
 	case B_MATHALO:
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
 		/* same for 'xtreme alpha' which is 'only shadow' */
-		if((ma->mode & MA_HALO)==0) {
-			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV|MA_ENV);
+		if(ma) {
+			if((ma->mode & MA_HALO)==0) {
+				ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV|MA_ENV);
+			}
+			BIF_preview_changed(ID_MA);
+			allqueue(REDRAWBUTSSHADING, 0);
+			shade_buttons_change_3d();
 		}
-		BIF_preview_changed(ID_MA);
-		allqueue(REDRAWBUTSSHADING, 0);
-		shade_buttons_change_3d();
 		break;
 	case B_TEXCLEAR:
 		mtex= ma->mtex[(int) ma->texact ];
