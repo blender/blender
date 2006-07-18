@@ -1526,6 +1526,9 @@ static void do_render_fields_blur_3d(Render *re)
 				free_render_result(re->result);
 				re->result= rres;
 				
+				/* weak... the display callback wants an active renderlayer pointer... */
+				re->result->renlay= render_get_active_layer(re, re->result);
+				
 				re->display_init(re->result);
 				re->display_draw(re->result, NULL);
 			}
