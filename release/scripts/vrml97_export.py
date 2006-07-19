@@ -476,6 +476,10 @@ class VRML2Export:
 		if (len(ob.modifiers) > 0):
 			me = Mesh.New()
 			me.getFromObject(ob.name)
+			# Careful with the name, the temporary mesh may
+			# reuse the default name for other meshes. So we
+			# pick our own name.
+			me.name = "MOD_%s" % (ob.name)
 		else:
 			me = ob.getData(mesh = 1)
 
@@ -535,8 +539,16 @@ class VRML2Export:
 		if self.meshNames.has_key(meshName):
 			self.writeIndented("USE ME_%s\n" % meshName, 0)
 			self.meshNames[meshName]+=1
-			return
+			if (self.verbose == 1):
+				print "  Using Mesh %s (Blender mesh: %s)\n" % \
+					  (meshName, me.name)
+				return
 		self.meshNames[meshName]=1
+
+		if (self.verbose == 1):
+			print "  Writing Mesh %s (Blender mesh: %s)\n" % \
+				  (meshName, me.name)
+			return
 
 		self.writeIndented("DEF ME_%s Group {\n" % meshName,1)
 		self.writeIndented("children [\n", 1)
