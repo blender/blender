@@ -68,8 +68,6 @@
 #include "quicktime_export.h"
 #endif
 
-#include "SDL_thread.h"
-
 /* this module */
 #include "renderpipeline.h"
 #include "render_types.h"
