@@ -356,6 +356,7 @@ bool GPG_Application::startFullScreen(
 
 
 
+
 bool GPG_Application::StartGameEngine(int stereoMode)
 {
 	bool success = initEngine(m_mainWindow, stereoMode);
@@ -493,7 +494,9 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
 		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
-		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", 0) != 0);
+		bool fixedFr = (G.fileflags & G_FILE_ENABLE_ALL_FRAMES);
+
+		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useVertexArrays = SYS_GetCommandLineInt(syshandle,"vertexarrays",1) != 0;
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DIAPLAY_LISTS) != 0);
