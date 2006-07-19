@@ -220,6 +220,10 @@ static CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 		float *outrf= outbuf->rect;
 		int x= inbuf->x*inbuf->y;
 		
+		/* warning note: xof and yof are applied in pixelprocessor, but should be copied otherwise? */
+		outbuf->xof= inbuf->xof;
+		outbuf->yof= inbuf->yof;
+		
 		if(type==CB_VAL && inbuf->type==CB_VEC3) {
 			for(; x>0; x--, outrf+= 1, inrf+= 3)
 				*outrf= 0.333333f*(inrf[0]+inrf[1]+inrf[2]);
@@ -422,6 +426,10 @@ static CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 	CompBuf *valbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
 	float *valf, *rectf;
 	int tot;
+	
+	/* warning note: xof and yof are applied in pixelprocessor, but should be copied otherwise? */
+	valbuf->xof= cbuf->xof;
+	valbuf->yof= cbuf->yof;
 	
 	valf= valbuf->rect;
 	
@@ -1641,6 +1649,10 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 		/* make output size of first available input image */
 		CompBuf *cbuf= in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1); // allocs
+		
+		/* warning note: xof and yof are applied in pixelprocessor, but should be copied otherwise? */
+		stackbuf->xof= cbuf->xof;
+		stackbuf->yof= cbuf->yof;
 		
 		switch(node->custom1) {
 			case CMP_FILT_SOFT:
