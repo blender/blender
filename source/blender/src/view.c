@@ -138,17 +138,15 @@ void persp(int a)
 }
 
 
-float zfac=1.0;
-
 void initgrabz(float x, float y, float z)
 {
-	if(G.vd==0) return;
-	zfac= G.vd->persmat[0][3]*x+ G.vd->persmat[1][3]*y+ G.vd->persmat[2][3]*z+ G.vd->persmat[3][3];
+	if(G.vd==NULL) return;
+	G.vd->zfac= G.vd->persmat[0][3]*x+ G.vd->persmat[1][3]*y+ G.vd->persmat[2][3]*z+ G.vd->persmat[3][3];
 
 	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that 
 	 * (accounting for near zero values)
 	 * */
-	if (zfac < 1.e-6f && zfac > -1.e-6f) zfac = 1.0f;
+	if (G.vd->zfac < 1.e-6f && G.vd->zfac > -1.e-6f) G.vd->zfac = 1.0f;
 }
 
 void window_to_3d(float *vec, short mx, short my)
@@ -156,8 +154,8 @@ void window_to_3d(float *vec, short mx, short my)
 	/* always call initgrabz */
 	float dx, dy;
 	
-	dx= 2.0f*mx*zfac/curarea->winx;
-	dy= 2.0f*my*zfac/curarea->winy;
+	dx= 2.0f*mx*G.vd->zfac/curarea->winx;
+	dy= 2.0f*my*G.vd->zfac/curarea->winy;
 	
 	vec[0]= (G.vd->persinv[0][0]*dx + G.vd->persinv[1][0]*dy);
 	vec[1]= (G.vd->persinv[0][1]*dx + G.vd->persinv[1][1]*dy);

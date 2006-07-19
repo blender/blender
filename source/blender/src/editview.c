@@ -827,7 +827,6 @@ int gesture(void)
 
 void mouse_cursor(void)
 {
-	extern float zfac;	/* view.c */
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
 	short mval[2], mx, my, lr_click=0;
 	
@@ -855,11 +854,11 @@ void mouse_cursor(void)
 	}
 	else {
 
-		dx= ((float)(mx-(curarea->winx/2)))*zfac/(curarea->winx/2);
-		dy= ((float)(my-(curarea->winy/2)))*zfac/(curarea->winy/2);
+		dx= ((float)(mx-(curarea->winx/2)))*G.vd->zfac/(curarea->winx/2);
+		dy= ((float)(my-(curarea->winy/2)))*G.vd->zfac/(curarea->winy/2);
 		
 		fz= G.vd->persmat[0][3]*fp[0]+ G.vd->persmat[1][3]*fp[1]+ G.vd->persmat[2][3]*fp[2]+ G.vd->persmat[3][3];
-		fz= fz/zfac;
+		fz= fz/G.vd->zfac;
 		
 		fp[0]= (G.vd->persinv[0][0]*dx + G.vd->persinv[1][0]*dy+ G.vd->persinv[2][0]*fz)-G.vd->ofs[0];
 		fp[1]= (G.vd->persinv[0][1]*dx + G.vd->persinv[1][1]*dy+ G.vd->persinv[2][1]*fz)-G.vd->ofs[1];
