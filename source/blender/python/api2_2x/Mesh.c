@@ -4943,7 +4943,11 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 			!PyArg_ParseTuple( args, "iO", &edge_also, &args ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected and int and a sequence of ints or MFaces" );
-   
+
+	if( !PyList_Check( args ) && !PyTuple_Check( args ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected and int and a sequence of ints or MFaces" );
+
 	/* see how many args we need to parse */
 	len = PySequence_Size( args );
 	if( len < 1 )
