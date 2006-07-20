@@ -259,8 +259,9 @@ void persptoetsen(unsigned short event)
 				handle_view3d_lock();
 			}
 			else if(BASACT) {
+				/* check both G.vd as G.scene cameras */
 				if(G.qual==LR_CTRLKEY) {
-					if(G.vd->camera != OBACT) {
+					if(G.vd->camera != OBACT || G.scene->camera != OBACT) {
 						if(G.vd->camera && G.vd->camera->type==OB_CAMERA)
 							oldcamera= G.vd->camera;
 						
@@ -268,7 +269,7 @@ void persptoetsen(unsigned short event)
 						handle_view3d_lock();
 					}
 				}
-				else if(G.vd->camera==0 && OBACT->type==OB_CAMERA) {
+				else if((G.vd->camera==NULL || G.scene->camera==NULL) && OBACT->type==OB_CAMERA) {
 					G.vd->camera= OBACT;
 					handle_view3d_lock();
 				}
