@@ -83,7 +83,14 @@ class PoseBone:
   @type tail: Vector object
   @ivar localMatrix: The matrix combination of rot/quat/loc.
   @type localMatrix: Matrix object
-  @ivar poseMatrix: The total transformation of this PoseBone including constraints. (not settable)
+  @ivar poseMatrix: The total transformation of this PoseBone including constraints.
+
+  (not settable).
+
+  This matrix is in armature space, for the current worldspace location of this pose bone, multiply
+  it with its objects worldspace matrix
+
+  eg. pose_bone.poseMatrix * object.matrixWorld
   @type poseMatrix: Matrix object
   @type constraints: BPy_ConstraintSeq
   @ivar constraints: a sequence of constraints for the object
