@@ -1220,9 +1220,11 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	
 	glPixelZoom(scale, scale);
 	glEnable(GL_BLEND);
+	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
 	
 	glaDrawPixelsTex(prv->xmin, prv->ymin, preview->xsize, preview->ysize, GL_FLOAT, preview->rect);
 	
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glDisable(GL_BLEND);
 	glPixelZoom(1.0f, 1.0f);
 	
