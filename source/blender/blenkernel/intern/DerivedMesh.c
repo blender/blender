@@ -2496,9 +2496,9 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams)
 		Mesh *freeFsMesh = srcob->fluidsimSettings->meshSurface;
 
 		// similar to free_mesh(...) , but no things like unlink...
-		if(freeFsMesh->mvert) MEM_freeN(freeFsMesh->mvert);
-		if(freeFsMesh->medge) MEM_freeN(freeFsMesh->medge);
-		if(freeFsMesh->mface) MEM_freeN(freeFsMesh->mface);
+		if(freeFsMesh->mvert){ MEM_freeN(freeFsMesh->mvert); freeFsMesh->mvert=NULL; }
+		if(freeFsMesh->medge){ MEM_freeN(freeFsMesh->medge); freeFsMesh->medge=NULL; }
+		if(freeFsMesh->mface){ MEM_freeN(freeFsMesh->mface); freeFsMesh->mface=NULL; }
 		MEM_freeN(freeFsMesh);
 		
 		if(srcob->data == srcob->fluidsimSettings->meshSurface)

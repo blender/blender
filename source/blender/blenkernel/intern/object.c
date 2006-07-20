@@ -902,9 +902,10 @@ Object *copy_object(Object *ob)
 	obn->soft= copy_softbody(ob->soft);
 
 	/* NT copy fluid sim setting memory */
-	//if(obn->fluidsimSettings) obn->fluidsimSettings = MEM_dupallocN(ob->fluidsimSettings);
-	//else obn->fluidsimSettings = NULL;
-	obn->fluidsimSettings = fluidsimSettingsCopy(ob->fluidsimSettings);
+	if(obn->fluidsimSettings) {
+		obn->fluidsimSettings = fluidsimSettingsCopy(ob->fluidsimSettings);
+		obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
+	}
 	
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;

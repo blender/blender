@@ -163,7 +163,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->renderDisplayMode = 3; // render
 
 	fss->viscosityMode = 2; // default to water
-	fss->viscosityValue = 0.1;
+	fss->viscosityValue = 1.0;
 	fss->viscosityExponent = 6;
 	fss->gravx = 0.0;
 	fss->gravy = 0.0;
@@ -244,21 +244,23 @@ void fluidsimSettingsFree(FluidsimSettings *fss)
 {
 	Mesh *freeFsMesh = fss->meshSurface;
 	if(freeFsMesh) {
-		if(freeFsMesh->mvert) MEM_freeN(freeFsMesh->mvert);
-		if(freeFsMesh->medge) MEM_freeN(freeFsMesh->medge);
-		if(freeFsMesh->mface) MEM_freeN(freeFsMesh->mface);
+		if(freeFsMesh->mvert){ MEM_freeN(freeFsMesh->mvert); freeFsMesh->mvert=NULL; }
+		if(freeFsMesh->medge){ MEM_freeN(freeFsMesh->medge); freeFsMesh->medge=NULL; }
+		if(freeFsMesh->mface){ MEM_freeN(freeFsMesh->mface); freeFsMesh->mface=NULL; }
 		MEM_freeN(freeFsMesh);
+		fss->meshSurface = NULL;
 	}
 
 	freeFsMesh = fss->meshBB;
 	if(freeFsMesh) { // same as before...
-		if(freeFsMesh->mvert) MEM_freeN(freeFsMesh->mvert);
-		if(freeFsMesh->medge) MEM_freeN(freeFsMesh->medge);
-		if(freeFsMesh->mface) MEM_freeN(freeFsMesh->mface);
+		if(freeFsMesh->mvert){ MEM_freeN(freeFsMesh->mvert); freeFsMesh->mvert=NULL; }
+		if(freeFsMesh->medge){ MEM_freeN(freeFsMesh->medge); freeFsMesh->medge=NULL; }
+		if(freeFsMesh->mface){ MEM_freeN(freeFsMesh->mface); freeFsMesh->mface=NULL; }
 		MEM_freeN(freeFsMesh);
+		fss->meshBB = NULL;
 	}
 
-	if(fss->meshSurfNormals) MEM_freeN(fss->meshSurfNormals);
+	if(fss->meshSurfNormals){ MEM_freeN(fss->meshSurfNormals); fss->meshSurfNormals=NULL; } 
 
 	MEM_freeN(fss);
 }
@@ -688,8 +690,8 @@ void fluidsimBake(struct Object *ob)
 	// blender specific - scale according to map old/new settings in anim panel:
 	aniFrlen = G.scene->r.framelen;
 	if(domainSettings->viscosityMode==1) {
-		/* manual mode */
-		calcViscosity = (1.0/(domainSettings->viscosityExponent*10)) * domainSettings->viscosityValue;
+		/* manual mode, visc=value/(10^-vexp) */
+		calcViscosity = (1.0/pow(10.0,domainSettings->viscosityExponent)) * domainSettings->viscosityValue;
 	} else {
 		calcViscosity = fluidsimViscosityPreset[ domainSettings->viscosityMode ];
 	}
