@@ -99,10 +99,8 @@ static void make_gamma_table(float setup, float gain, float gamma,
 
 void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width, 
 	int height, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *out, ImBuf *use) {
-	char *dest, *src1, *src2;
+	unsigned char *dest, *src1, *src2;
 	int x, y, c;
-	float rgb[3];
-	float yuv[3];
 	unsigned char gamma_table_m[256];
 	unsigned char gamma_table_r[256];
 	unsigned char gamma_table_g[256];
@@ -110,8 +108,8 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 	
 	if (!ibuf1) return;
 
-	dest= (char *) out->rect;
-	src1= (char *) ibuf1->rect;
+	dest= (unsigned char *) out->rect;
+	src1= (unsigned char *) ibuf1->rect;
 
 	make_gamma_table(cast->setup_m, cast->gain_m, cast->gamma_m,
 			 gamma_table_m);
