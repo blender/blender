@@ -3423,7 +3423,7 @@ static void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				sa= curarea;
 				areawinset(sa3d->win);
 				
-				if(event==PKEY) start_game();
+				if(event==PKEY && G.qual==0) start_game();
 				else if(event==ZKEY) toggle_shading();
 				else persptoetsen(event);
 				

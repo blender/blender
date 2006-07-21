@@ -152,6 +152,10 @@ static void do_node_selectmenu(void *arg, int event)
 {
 	SpaceNode *snode= curarea->spacedata.first; 
 	
+	/* functions in editnode.c assume there's a tree */
+	if(snode->nodetree==NULL)
+		return;
+	
 	switch(event) {
 		case 1: /* border select */
 			node_border_select(snode);
@@ -415,7 +419,9 @@ static void do_node_nodemenu(void *arg, int event)
 	SpaceNode *snode= curarea->spacedata.first; 
 	int fromlib=0;
 	
-	if(snode->nodetree==NULL) return;
+	/* functions in editnode.c assume there's a tree */
+	if(snode->nodetree==NULL)
+		return;
 	fromlib= (snode->id && snode->id->lib);
 	
 	switch(event) {
