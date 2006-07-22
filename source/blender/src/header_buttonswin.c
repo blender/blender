@@ -108,8 +108,11 @@ void free_matcopybuf(void)
 	matcopybuf.ramp_col= NULL;
 	matcopybuf.ramp_spec= NULL;
 	
-	ntreeFreeTree(matcopybuf.nodetree);
-	
+	if(matcopybuf.nodetree) {
+		ntreeFreeTree(matcopybuf.nodetree);
+		MEM_freeN(matcopybuf.nodetree);
+		matcopybuf.nodetree= NULL;
+	}
 	default_mtex(&mtexcopybuf);
 }
 
@@ -166,7 +169,6 @@ void do_buts_buttons(short event)
 				}
 			}
 			matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
-			
 			matcopied= 1;
 		}
 		break;
@@ -182,9 +184,14 @@ void do_buts_buttons(short event)
 				if(mtex && mtex->tex) mtex->tex->id.us--;
 				if(mtex) MEM_freeN(mtex);
 			}
-
+			
+			if(ma->nodetree) {
+				ntreeFreeTree(ma->nodetree);
+				MEM_freeN(ma->nodetree);
+			}
+			
 			id= (ma->id);
-			memcpy(G.buts->lockpoin, &matcopybuf, sizeof(Material));
+			memcpy(ma, &matcopybuf, sizeof(Material));
 			(ma->id)= id;
 			
 			if(matcopybuf.ramp_col) ma->ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
@@ -197,7 +204,7 @@ void do_buts_buttons(short event)
 					if(mtex->tex) id_us_plus((ID *)mtex->tex);
 				}
 			}
-			ntreeFreeTree(ma->nodetree);
+			
 			ma->nodetree= ntreeCopyTree(matcopybuf.nodetree, 0);
 
 			BIF_preview_changed(ID_MA);
