@@ -153,7 +153,7 @@ PyTypeObject Action_Type = {
 	0,			/* tp_members */
 };
 
-//-------------------------------------------------------------------------
+/*-------------------------------------------------------------------------*/
 static PyObject *M_NLA_NewAction( PyObject * self_unused, PyObject * args )
 {
 	char *name_str = "DefaultAction";
@@ -165,12 +165,12 @@ static PyObject *M_NLA_NewAction( PyObject * self_unused, PyObject * args )
 				       "expected string or nothing" );
 		return NULL;
 	}
-	//Create new action globally
+	/* Create new action globally */
 	bl_action = alloc_libblock( &G.main->action, ID_AC, name_str );
-	bl_action->id.flag |= LIB_FAKEUSER;
-	bl_action->id.us++;
+	bl_action->id.flag |= LIB_FAKEUSER; /* no need to assign a user because alloc_libblock alredy assigns one */
+	
 
-	// now create the wrapper obj in Python
+	/* now create the wrapper obj in Python */
 	if( bl_action )
 		py_action =
 			( BPy_Action * ) PyObject_NEW( BPy_Action,
@@ -187,7 +187,7 @@ static PyObject *M_NLA_NewAction( PyObject * self_unused, PyObject * args )
 		return NULL;
 	}
 
-	py_action->action = bl_action;	// link Python action wrapper with Blender Action
+	py_action->action = bl_action;	/* link Python action wrapper with Blender Action */
 
 	Py_INCREF( py_action );
 	return ( PyObject * ) py_action;
@@ -215,7 +215,7 @@ static PyObject *M_NLA_GetActions( PyObject * self_unused )
 	for( action = G.main->action.first; action; action = action->id.next ) {
 		PyObject *py_action = Action_CreatePyObject( action );
 		if( py_action ) {
-			// Insert dict entry using the bone name as key
+			/* Insert dict entry using the bone name as key */
 			if( PyDict_SetItemString
 			    ( dict, action->id.name + 2, py_action ) != 0 ) {
 				Py_DECREF( py_action );
@@ -236,7 +236,7 @@ static PyObject *M_NLA_GetActions( PyObject * self_unused )
 }
 
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 static PyObject *Action_getName( BPy_Action * self )
 {
 	PyObject *attr = NULL;
@@ -254,7 +254,7 @@ static PyObject *Action_getName( BPy_Action * self )
 					"couldn't get Action.name attribute" ) );
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 static PyObject *Action_setName( BPy_Action * self, PyObject * args )
 {
 	char *name;
@@ -268,7 +268,7 @@ static PyObject *Action_setName( BPy_Action * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string argument" ) );
 
-	//change name
+	/*change name*/
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 	rename_id( &self->action->id, buf);
 
@@ -353,7 +353,7 @@ static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args )
 	return Ipo_CreatePyObject( chan->ipo );
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args )
 {
 	char *chanName;
@@ -391,11 +391,11 @@ static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args )
 				       "no channel with that name..." );
 		return NULL;
 	}
-	//release ipo
+	/*release ipo*/
 	if( chan->ipo )
 		chan->ipo->id.us--;
 
-	//remove channel
+	/*remove channel*/
 	BLI_freelinkN( &self->action->chanbase, chan );
 
 	Py_INCREF( Py_None );
@@ -416,7 +416,7 @@ static PyObject *Action_getAllChannelIpos( BPy_Action * self )
 			Py_INCREF( ipo_attr );
 		}
 		if( ipo_attr ) {
-			// Insert dict entry using the bone name as key
+			/* Insert dict entry using the bone name as key*/
 			if( PyDict_SetItemString( dict, chan->name, ipo_attr )
 			    != 0 ) {
 				Py_DECREF( ipo_attr );
@@ -436,13 +436,13 @@ static PyObject *Action_getAllChannelIpos( BPy_Action * self )
 	return dict;
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 static void Action_dealloc( BPy_Action * self )
 {
 	PyObject_DEL( self );
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 static PyObject *Action_getAttr( BPy_Action * self, char *name )
 {
 	PyObject *attr = Py_None;
@@ -464,7 +464,7 @@ static PyObject *Action_getAttr( BPy_Action * self, char *name )
 	return Py_FindMethod( BPy_Action_methods, ( PyObject * ) self, name );
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 static int Action_setAttr( BPy_Action * self, char *name, PyObject * value )
 {
 	PyObject *valtuple;
@@ -495,7 +495,7 @@ static int Action_setAttr( BPy_Action * self, char *name, PyObject * value )
 	return 0;		/* normal exit */
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 static PyObject *Action_repr( BPy_Action * self )
 {
 	if( self->action )
@@ -505,7 +505,7 @@ static PyObject *Action_repr( BPy_Action * self )
 		return PyString_FromString( "NULL" );
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 PyObject *Action_CreatePyObject( struct bAction * act )
 {
 	BPy_Action *blen_action;
@@ -524,13 +524,13 @@ PyObject *Action_CreatePyObject( struct bAction * act )
 	return ( ( PyObject * ) blen_action );
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 int Action_CheckPyObject( PyObject * py_obj )
 {
 	return ( py_obj->ob_type == &Action_Type );
 }
 
-//----------------------------------------------------------------------
+/*----------------------------------------------------------------------*/
 struct bAction *Action_FromPyObject( PyObject * py_obj )
 {
 	BPy_Action *blen_obj;
