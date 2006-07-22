@@ -188,9 +188,9 @@ void *MEM_dupallocN(void *vmemh)
 		memh--;
 		
 		if(memh->mmap)
-			newp= MEM_mapallocN(memh->len, "dupli_alloc");
+			newp= MEM_mapallocN(memh->len, "dupli_mapalloc");
 		else
-			newp= MEM_mallocN(memh->len, "dupli_mapalloc");
+			newp= MEM_mallocN(memh->len, "dupli_alloc");
 		memcpy(newp, vmemh, memh->len);
 	}
 
