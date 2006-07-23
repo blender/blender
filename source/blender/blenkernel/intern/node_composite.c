@@ -584,7 +584,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		free_compbuf(cbuf);
 
 	}	/* lets make only previews when not done yet, so activating doesnt update */
-	else if(in[0]->data && node->preview && node->preview->rect==NULL) {
+	else if(in[0] && in[0]->data && node->preview && node->preview->rect==NULL) {
 		CompBuf *cbuf, *inbuf= in[0]->data;
 		
 		if(inbuf->type!=CB_RGBA) {
