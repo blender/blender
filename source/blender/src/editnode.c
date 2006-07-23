@@ -1338,8 +1338,8 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 			node->locy -= gnode->locy;
 		}
 
-		node_set_active(snode, node);
 		snode_verify_groups(snode);
+		node_set_active(snode, node);
 		
 		if(node->id)
 			id_us_plus(node->id);
