@@ -624,19 +624,22 @@ class Object:
 
   def insertIpoKey(keytype):
     """
-    Inserts keytype values in object ipo at curframe. Uses module constants.
+    Inserts keytype values in object ipo at curframe.
+    Uses module constants such as Blender.Object.LOC
     @type keytype: Integer
     @param keytype:
-           -LOC
-           -ROT
-           -SIZE
-           -LOCROT
-           -LOCROTSIZE
-           -PI_STRENGTH
-           -PI_FALLOFF
-           -PI_PERM
-           -PI_SURFACEDAMP
-           -PI_RANDOMDAMP
+
+      - LOC
+      - ROT
+      - SIZE
+      - LOCROT
+      - LOCROTSIZE
+      - PI_STRENGTH
+      - PI_FALLOFF
+      - PI_PERM
+      - PI_SURFACEDAMP
+      - PI_RANDOMDAMP
+
     @return: py_none
     """
 
