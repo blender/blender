@@ -1906,16 +1906,20 @@ void do_effects_panels(unsigned short event)
 		}
 		break;
 	case B_FIELD_DEP:
-		DAG_scene_sort(G.scene);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+		/* do this before scene sort, that one checks for CU_PATH */
 		if(ob->type==OB_CURVE && ob->pd->forcefield==PFIELD_GUIDE) {
 			Curve *cu= ob->data;
 			
 			cu->flag |= (CU_PATH|CU_3D);
 			do_curvebuts(B_CU3D);	/* all curves too */
-			
-			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		}
+		DAG_scene_sort(G.scene);
+
+		if(ob->type==OB_CURVE && ob->pd->forcefield==PFIELD_GUIDE)
+			DAG_object_flush_update(G.scene, ob, OB_RECALC);
+		else
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
