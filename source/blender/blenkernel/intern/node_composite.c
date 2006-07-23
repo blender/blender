@@ -2837,12 +2837,18 @@ static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in,
 		return;
 	}
 	
+	/* allow the input image to be of another type */
+	img= typecheck_compbuf(in[0]->data, CB_RGBA);
+
 	new= dupalloc_compbuf(img);
 	
 	/* call special zbuffer version */
 	RE_zbuf_accumulate_vecblur(nbd, img->x, img->y, new->rect, img->rect, vecbuf->rect, zbuf->rect);
 	
 	out[0]->data= new;
+	
+	if(img!=in[0]->data)
+		free_compbuf(img);
 }
 
 /* custom1: itterations, custom2: maxspeed (0 = nolimit) */
