@@ -466,10 +466,10 @@ static PyObject *BezTriple_repr( BPy_BezTriple * self )
 {
 	char str[512];
 	sprintf( str,
-		"[BezTriple [%.2f, %.2f] [%.2f, %.2f] [%.2f, %.2f]\n",
-		 self->beztriple->vec[0][0], self->beztriple->vec[0][1],
-		 self->beztriple->vec[1][0], self->beztriple->vec[1][1],
-		 self->beztriple->vec[2][0], self->beztriple->vec[2][1]);
+		"[BezTriple [%.6f, %.6f, %.6f] [%.6f, %.6f, %.6f] [%.6f, %.6f, %.6f]\n",
+		 self->beztriple->vec[0][0], self->beztriple->vec[0][1], self->beztriple->vec[0][2],
+		 self->beztriple->vec[1][0], self->beztriple->vec[1][1], self->beztriple->vec[1][2],
+		 self->beztriple->vec[2][0], self->beztriple->vec[2][1], self->beztriple->vec[2][2]);
 	return PyString_FromString( str );
 }
 
