@@ -2,54 +2,24 @@
 
 """
 Name: 'Armature Symmetry'
-Blender: 234
+Blender: 242
 Group: 'Animation'
-Tooltip: 'Make an armature symetrical'
+Tooltip: 'Make an Armature symetrical'
 """
 
-__author__ = "Jonas Petersen"
-__url__ = ("blender", "elysiun", "Script's homepage, http://www.mindfloaters.de/blender/", "thread at blender.org, http://www.blender.org/modules.php?op=modload&name=phpBB2&file=viewtopic&t=4858")
-__version__ = "0.9 2004-11-10"
+__author__ = "Campbell Barton"
+__url__ = ("blender", "blenderartist")
+__version__ = "1.0 2006-7-26"
 
 __doc__ = """\
 This script creates perfectly symmetrical armatures.
-
-With default configuration it will:<br>
-  - Look for bones that have the reference suffix (".L") and
-adjust/create the according opposite bone (suffix ".R");<br>
-  - Center align all bones that _don't_ have the suffix ".X".
-
-Please check the script's homepage and the thread at blender.org (last link button above) for more info.
-
-For this version users need to edit the script code to change default options.
+based on the best fit when comparing the mirrored locations of 2 bones.
+Hidden bones are ignored, and you can optionaly only operate on selected bones
 """
 
-# --------------------------------------------------------------------------
-# "Armature Symmetry" by Jonas Petersen
-# Version 0.9 - 10th November 2004 - first public release
-# --------------------------------------------------------------------------
-#
-# A script for creating perfectly symmetrical armatures.
-#
-# It is available in Object Mode via the menu item:
-#
-#   Object -> Scripts -> Armature Symmetry
-#
-# With default configuration it will:
-#
-#   - Look for bones that have the reference suffix (".L") and
-#     adjust/create the according opposite bone (suffix ".R").
-#
-#   - Center align all bones that _don't_ have the suffix ".X"
-#
-# Find the latest version at: http://www.mindfloaters.de/blender/
-#
-# --------------------------------------------------------------------------
-# $Id$
-# --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2004: Jonas Petersen, jonas at mindfloaters dot de
+# Script copyright (C) Campbell J Barton 2006
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -66,132 +36,251 @@ For this version users need to edit the script code to change default options.
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
-# --------------------------------------------------------------------------
-# CONFIGURATION
-# --------------------------------------------------------------------------
-
-# Note: Theses values will later be editable via a gui interface
-# within Blender.
-
-# CENTER_SUFFIX is the suffix for bones that should (or shouldn't) get
-# center aligned. The default is '.X'.
-CENTER_SUFFIX = '.X'
-
-# CENTER_SUFFIX_MODE:
-#
-#   'include'  only bones with the CENTER_SUFFIX appended
-#              get center aligned.
-#
-#   'exclude'  (default)
-#              all bones except those with the CENTER_SUFFIX
-#              appended get center aligned.
-#
-#
-#   'off'      bones will not get center aligned at all.
-#
-CENTER_SUFFIX_MODE = 'exclude'
-
-# The suffix for the reference and opposite side of the
-# armature. Bone positions of the opposite side will be overwritten by
-# the mirrored values of the reference side.
-# The default is REF_SUFFIX = '.L' and OPP_SUFFIX = '.R'.
-REF_SUFFIX = '.L'
-OPP_SUFFIX = '.R'
-
-# MIRROR_AXIS defines the axis in which bones are mirrored/aligned.
-# Values:
-#   0 for X (default)
-#   1 for Y
-#   2 for Z
-MIRROR_AXIS = 0
-
-# --------------------------------------------------------------------------
-# END OF CONFIGURATION
 # --------------------------------------------------------------------------
 
 import Blender
+from Blender import Scene
+Vector= Blender.Mathutils.Vector
 
-def splitName(bone):
-	name = bone.getName()
-	base = name[0:len(name)-ref_suffix_len]
-	rsuff = name[-ref_suffix_len:len(name)]
-	csuff = name[-center_suffix_len:len(name)]
-	return name, base, rsuff, csuff
 
-ref_suffix_len = len(REF_SUFFIX);
-center_suffix_len = len(CENTER_SUFFIX);
-armature_selected = False
+def VecXFlip(vec):
+	x,y,z= vec
+	return Vector(-x,y,z)
 
-obj_list = Blender.Object.GetSelected()
-for obj in obj_list:
-    if obj.getType() == "Armature":
-		armature_selected = True
-		arm = obj.getData()
-		bones = arm.getBones()
-		bonehash = {}
+def editbone_mirror_diff(editbone1, editbone2):
+	'''
+	X Mirror bone compare
+	return a float representing the difference between the 2 bones
+	the smaller the better the match
+	'''
+	h1= editbone1.head
+	h2= editbone2.head
+	
+	t1= editbone1.tail
+	t2= editbone2.tail
+	
+	# Mirror bone 2's location
+	h2= VecXFlip(h2)
+	t2= VecXFlip(t2)
+	
+	#return (h1-h2).length + (t1-t2).length
+	
+	# For this function its easier to return the bones also
+	return ((h1-h2).length + (t1-t2).length)/2, editbone1, editbone2
 
-		for bone in bones:
-			bonehash[bone.getName()] = bone
+def editbone_mirror_merge(editbone1, editbone2, PREF_MODE_L2R, PREF_MODE_R2L):
+	'''
+	Merge these 2 bones mirror
+	'''
+	h1= editbone1.head
+	h2= editbone2.head
+	
+	t1= editbone1.tail
+	t2= editbone2.tail
+	
+	if PREF_MODE_L2R and PREF_MODE_R2L:
+		# Median, flip bone 2's locations and average, then apply to editbone1, flip and apply to editbone2
+		h2_f= VecXFlip(h2)
+		t2_f= VecXFlip(t2)
+		
+		h_med= (h1+h2_f)*0.5 # middle between t1 and flipped t2
+		t_med= (t1+t2_f)*0.5 # middle between h1 and flipped h2
+		
+		# Apply the median to editbone1
+		editbone1.head= h_med
+		editbone1.tail= t_med
+		
+		# Flip in place for editbone2
+		h_med.x= -h_med.x
+		t_med.x= -t_med.x
+		
+		# Apply the median to editbone2
+		editbone2.head= h_med
+		editbone2.tail= t_med
+		
+		# Average the roll, this might need some logical work, but looks good for now.
+		r1= editbone1.roll
+		r2= -editbone2.roll
+		# print 'rolls are', r1,r2
+		r_med= (r1+r2)/2
+		# print 'new roll is', r_med
+		editbone1.roll= r_med
+		editbone2.roll= -r_med # mirror roll
+	
+	else: # Copy from 1 side to another
+		
+		# Crafty function we can use so L>R and R>L can use the same code
+		def IS_XMIRROR_SOURCE(xval):
+			'''Source means is this the value we want to copy from'''
+			
+			if PREF_MODE_L2R:
+				if xval<0:	return True
+				else:		return False
+			else: # PREF_MODE_R2L
+				if xval<0:	return False
+				else:		return True
+		
+		if IS_XMIRROR_SOURCE( h1.x ):# head bone 1s negative, so copy it to h2
+			editbone2.head= VecXFlip(h1)
+		else: # assume h2.x<0 - not a big deal if were wrong, its unlikely to ever happen because the bones would both be on the same side.
+			# head bone 2s negative, so copy it to h1
+			editbone1.head= VecXFlip(h2)
+		
+		# Same as above for tail
+		if IS_XMIRROR_SOURCE(t1.x):
+			editbone2.tail= VecXFlip(t1)
+		else:
+			editbone1.tail= VecXFlip(t2)
+		
+		
+		
+		# Copy roll from 1 bone to another, use the head's location to deciede which side were on.
+		if IS_XMIRROR_SOURCE(editbone1.head):
+			editbone2.roll= -editbone1.roll
+		else:
+			editbone1.roll= -editbone2.roll
+		
 
-		for bone in bones:
-			name, base, rsuff, csuff = splitName(bone)
+def armature_symetry(arm_ob, PREF_MAX_DIST, PREF_XMID_SNAP, PREF_XZERO_THRESH, PREF_MODE_L2R, PREF_MODE_R2L, PREF_SEL_ONLY):
+	arm_data= arm_ob.data
+	arm_data.makeEditable()
+	
+	# Get the bones
+	bones= []
+	H= Blender.Armature.HIDDEN_EDIT
+	S= Blender.Armature.BONE_SELECTED
+	
+	if PREF_SEL_ONLY:
+		for eb in arm_data.bones.values():
+			options= eb.options
+			if H not in options and S in options:
+				bones.append(eb)
+	else:
+		# All non hidden bones
+		for eb in arm_data.bones.values():
+			options= eb.options
+			if H not in options:
+				bones.append(eb)
+	del H
+	del S
+	
+	
+	tot_editbones= len(bones)
+	tot_editbones_modified= 0
+	
+	if PREF_XMID_SNAP:
+		# Remove middle bones
+		# reverse loop so we can pop
+		for eb_idx in xrange(len(bones)-1, -1, -1):
+			edit_bone= bones[eb_idx]
+			#print edit_bone.options
+			if abs(edit_bone.head.x) + abs(edit_bone.tail.x) <= PREF_XZERO_THRESH/2:
+				# print 'Found Middle Bone'
+				# This is a center bone, clamp and remove
+				edit_bone.tail.x= edit_bone.head.x= 0
+				del bones[eb_idx]
+				
+				tot_editbones_modified+=1
+	
+	
+	bone_comparisons= []
+	
+	# Compare every bone with every other bone, shouldent be too slow, though we may want to cache head/tale values
+	# The 2 for's only compare once
+	for eb_idx_a in xrange(len(bones)-1, -1, -1):
+		edit_bone_a= bones[eb_idx_a]
+		for eb_idx_b in xrange(eb_idx_a-1, -1, -1):
+			edit_bone_b= bones[eb_idx_b]
+			# print 'Adding comparison', eb_idx_a, eb_idx_b
+			# Error float is first so we can sort it
+			bone_comparisons.append(editbone_mirror_diff(edit_bone_a, edit_bone_b))
+	
+	
+	bone_comparisons.sort() # best matches first
+	
+	# Make a dict of bone names that have been used so we dont mirror more then once
+	bone_mirrored= {}
+	
+	for error, editbone1, editbone2 in bone_comparisons:
+		# print 'Trying to merge at error %.3f' % error
+		if error > PREF_MAX_DIST:
+			# print 'breaking, max error limit reached PREF_MAX_DIST: %.3f' % PREF_MAX_DIST
+			break
+		
+		if not bone_mirrored.has_key(editbone1.name) and not bone_mirrored.has_key(editbone2.name):
+			# Were not used- execute the mirror
+			editbone_mirror_merge(editbone1, editbone2, PREF_MODE_L2R, PREF_MODE_R2L)
+			# print 'Merging bones'
+			# Add ourselves so we arnt touced again
+			bone_mirrored[editbone1.name] = None # dummy value
+			bone_mirrored[editbone2.name] = None # dummy value
+			
+			# If both are true then we changed 2 bones
+			tot_editbones_modified+= PREF_MODE_L2R + PREF_MODE_R2L
+			
+	arm_data.update() # out of editmode
+	
+	# Print results
+	if PREF_SEL_ONLY:
+		msg= 'moved %i bones of %i selected' % (tot_editbones_modified, tot_editbones)
+	else:
+		msg= 'moved %i bones of %i visible' % (tot_editbones_modified, tot_editbones)
+	
+	Blender.Draw.PupMenu(msg)
 
-			# reference bone?
-			if (rsuff == REF_SUFFIX):
-				oppname = base + OPP_SUFFIX
+	
+def main():
+	# Cant be in editmode for armature.makeEditable()
+	scn= Scene.GetCurrent()
+	arm_ob= scn.getActiveObject()
+	
+	if not arm_ob or arm_ob.getType()!='Armature':
+		Blender.Draw.PupMenu('No Armature object selected.')
+		return
+	
+	Blender.Window.EditMode(0)
+	Draw= Blender.Draw
+	# Defaults
+	PREF_XMID_SNAP= Draw.Create(1)
+	PREF_MAX_DIST= Draw.Create(0.4)
+	PREF_XZERO_THRESH= Draw.Create(0.02)
+	
+	#PREF_MODE= Draw.Create(0) # THIS IS TOOO CONFUSING, HAVE 2 BUTTONS AND MAKE THE MODE FROM THEM.
+	PREF_MODE_L2R= Draw.Create(1)
+	PREF_MODE_R2L= Draw.Create(0)
+	PREF_SEL_ONLY= Draw.Create(0)
+	
+	pup_block = [\
+	'Left (-), Right (+)',\
+	('Left > Right', PREF_MODE_L2R, 'Copy from the Left to Right of the mesh. Enable Both for a mid loc.'),\
+	('Right > Left', PREF_MODE_R2L, 'Copy from the Right to Left of the mesh. Enable Both for a mid loc.'),\
+	'',\
+	('MaxDist:', PREF_MAX_DIST, 0.0, 4.0, 'Maximum difference in mirror bones to match up pairs.'),\
+	('XZero limit:', PREF_XZERO_THRESH, 0.0, 2.0, 'Tolorence for locking bones into the middle (X/zero).'),\
+	('XMidSnap Bones', PREF_XMID_SNAP, 'Snap middle verts to X Zero (uses XZero limit)'),\
+	('Selected Only', PREF_SEL_ONLY, 'Only xmirror selected bones.'),\
+	]
+	
+	if not Draw.PupBlock("X Mirror mesh tool", pup_block):
+		return	
+	
+	
+	PREF_XMID_SNAP= PREF_XMID_SNAP.val
+	PREF_MAX_DIST= PREF_MAX_DIST.val
+	PREF_MODE_L2R= PREF_MODE_L2R.val
+	PREF_MODE_R2L= PREF_MODE_R2L.val
+	PREF_XZERO_THRESH= PREF_XZERO_THRESH.val
+	PREF_SEL_ONLY= PREF_SEL_ONLY.val
+	
+	# If both are off assume mid-point and enable both
+	if not PREF_MODE_R2L and not PREF_MODE_L2R:
+		PREF_MODE_R2L= PREF_MODE_L2R= True
+	
+	armature_symetry(arm_ob, PREF_MAX_DIST, PREF_XMID_SNAP, PREF_XZERO_THRESH, PREF_MODE_L2R, PREF_MODE_R2L, PREF_SEL_ONLY)
 
-				# create opposite bone if necessary
-				if not bonehash.has_key(oppname):
-					bonehash[oppname]=Blender.Armature.Bone.New(oppname)
-					parent = bone.getParent()
-					if parent:
-						pname, pbase, prsuff, pcsuff = splitName(parent)
-						if prsuff == REF_SUFFIX:
-							poppname = pbase + OPP_SUFFIX
-							if bonehash.has_key(poppname):
-								bonehash[oppname].setParent(bonehash[poppname])
-						else:
-							bonehash[oppname].setParent(parent)
-					arm.addBone(bonehash[oppname])
+if __name__=='__main__':
+	main()
 
-				# mirror bone coords
 
-				tail = bone.getTail()
-				tail[MIRROR_AXIS] *= -1;
-				bonehash[oppname].setTail(tail)
 
-				head = bone.getHead()
-				head[MIRROR_AXIS] *= -1;
-				bonehash[oppname].setHead(head)
-
-				roll = -bone.getRoll()
-				bonehash[oppname].setRoll(roll)
-
-				# Write access to ik flag not (yet?) supported in Blender (2.34)
-				#if bone.hasParent():
-				#	bonehash[oppname].setIK(not bone.getIK())
-
-			# center bone?
-			elif (rsuff != OPP_SUFFIX) and \
-			     (CENTER_SUFFIX_MODE != 'off') and \
-			     ((CENTER_SUFFIX_MODE == 'exclude' and csuff != CENTER_SUFFIX) or \
-			     (CENTER_SUFFIX_MODE == 'include' and csuff == CENTER_SUFFIX)):
-
-				# center bone coords
-
-				tail = bone.getTail()
-				tail[MIRROR_AXIS] = 0.0;
-				bone.setTail(tail)
-
-				head = bone.getHead()
-				head[MIRROR_AXIS] = 0.0;
-				bone.setHead(head)
-
-				# Setting set roll in python rotates all child bones.
-				# Not so if set via the Transform Properties in Blender.
-				# Bug?
-				bone.setRoll(0.0)
-
-if not armature_selected:
-	Blender.Draw.PupMenu("Armature Symmetry%t|Please select an Armature object!")
+	
