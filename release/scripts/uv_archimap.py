@@ -641,7 +641,7 @@ def mergeUvIslands(islandList, islandListArea):
 	
 	
 # Takes groups of faces. assumes face groups are UV groups.
-def packLinkedUvs(faceGroups, faceGroupsArea, me):
+def getUvIslands(faceGroups, faceGroupsArea, me):
 	islandList = []
 	islandListArea = []
 	
@@ -745,8 +745,10 @@ def packLinkedUvs(faceGroups, faceGroupsArea, me):
 	for island in islandList:
 		optiRotateUvIsland(island)
 	
+	return islandList, islandListArea
 	
-	
+
+def packIslands(islandList, islandListArea):
 	if USER_FILL_HOLES:
 		Window.DrawProgressBar(0.1, 'Merging Islands (Ctrl: skip merge)...')
 		mergeUvIslands(islandList, islandListArea) # Modify in place
@@ -874,6 +876,7 @@ def main():
 	# Create the variables.
 	USER_PROJECTION_LIMIT = Draw.Create(66)
 	USER_ONLY_SELECTED_FACES = Draw.Create(1)
+	USER_SHARE_SPACE = Draw.Create(1) # Only for hole filling.
 	USER_STRETCH_ASPECT = Draw.Create(1) # Only for hole filling.
 	USER_MARGIN = Draw.Create(0.0) # Only for hole filling.
 	USER_FILL_HOLES = Draw.Create(0)
@@ -885,6 +888,7 @@ def main():
 	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, 'lower for more projection groups, higher for less distortion.'),\
 	('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
 	'UV Layout',\
+	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
 	('Bleed Margin:', USER_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from texture tiling.'),\
 	'Fill in empty areas',\
@@ -911,6 +915,7 @@ def main():
 	# Convert from being button types
 	USER_PROJECTION_LIMIT = USER_PROJECTION_LIMIT.val
 	USER_ONLY_SELECTED_FACES = USER_ONLY_SELECTED_FACES.val
+	USER_SHARE_SPACE = USER_SHARE_SPACE.val
 	USER_STRETCH_ASPECT = USER_STRETCH_ASPECT.val
 	USER_MARGIN = USER_MARGIN.val
 	USER_FILL_HOLES = USER_FILL_HOLES.val
@@ -927,7 +932,14 @@ def main():
 		Window.EditMode(0)
 	# Assume face select mode! an annoying hack to toggle face select mode because Mesh dosent like faceSelectMode.
 	
+	if USER_SHARE_SPACE:
+		# Sort by data name so we get consistand results
+		obList.sort(lambda ob1, ob2: cmp( ob1.getData(name_only=1), ob2.getData(name_only=1) ))
 		
+		collected_islandList= []
+		collected_islandListArea= []
+	
+	
 	Window.WaitCursor(1)
 	SELECT_FLAG = Mesh.FaceFlags['SELECT']
 	time1 = sys.time()
@@ -1100,13 +1112,28 @@ def main():
 			for f in faceProjectionGroupList[i]:
 				f.uv = [MatProj * v.co for v in f.v]
 		
-		packLinkedUvs(faceProjectionGroupList, faceProjectionGroupListArea, me)
+		
+		if USER_SHARE_SPACE:
+			# Should we collect and pack later?
+			islandList, islandListArea = getUvIslands(faceProjectionGroupList, faceProjectionGroupListArea, me)
+			collected_islandList.extend(islandList)
+			collected_islandListArea.extend(islandListArea)
+			
+		else:
+			# Should we pack the islands for this 1 object?
+			islandList, islandListArea = getUvIslands(faceProjectionGroupList, faceProjectionGroupListArea, me)
+			packIslands(islandList, islandListArea)
+			
 		
 		print "ArchiMap time: %.2f" % (sys.time() - time1)
 		Window.DrawProgressBar(0.9, "ArchiMap Done, time: %.2f sec." % (sys.time() - time1))
 		
 		# Update and dont mess with edge data.
 		# OLD NMESH # me.update(0, (me.edges != []), 0)
+	
+	# We want to pack all in 1 go, so pack now
+	if USER_SHARE_SPACE:
+		packIslands(collected_islandList, collected_islandListArea)
 	
 	Window.DrawProgressBar(1.0, "")
 	Window.WaitCursor(0)
