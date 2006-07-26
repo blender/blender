@@ -132,8 +132,6 @@ def editbone_mirror_merge(editbone1, editbone2, PREF_MODE_L2R, PREF_MODE_R2L):
 		else:
 			editbone1.tail= VecXFlip(t2)
 		
-		
-		
 		# Copy roll from 1 bone to another, use the head's location to deciede which side were on.
 		if IS_XMIRROR_SOURCE(editbone1.head):
 			editbone2.roll= -editbone1.roll

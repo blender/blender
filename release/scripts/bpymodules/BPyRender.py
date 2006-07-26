@@ -71,9 +71,8 @@ def imageFromObjectsOrtho(objects, path, width, height, alpha= True):
 	render_cam_ob.LocY= 0.5
 	
 	render_context.render()
-	#Render.CloseRenderWindow()
 	render_context.saveRenderedImage(path)
-	
+	# Render.CloseRenderWindow()
 	#if not B.sys.exists(PREF_IMAGE_PATH_EXPAND):
 	#	raise 'Error!!!'
 	
@@ -86,5 +85,5 @@ def imageFromObjectsOrtho(objects, path, width, height, alpha= True):
 		raise 'Error: Could not render or load the image at path "%s"' % path_expand
 		return
 	
-	#scn.makeCurrent()
-	#Scene.Unlink(render_scn)
+	scn.makeCurrent()
+	Scene.Unlink(render_scn)

@@ -23,7 +23,7 @@ to automaticaly do this.
 
 import Blender
 import BPyRender
-reload(BPyRender)
+# reload(BPyRender)
 import BPyMesh
 Vector= Blender.Mathutils.Vector
 Create= Blender.Draw.Create
@@ -62,7 +62,7 @@ def vcol2image(me, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_USE_
 				
 		frnd.uv= f.uv
 		if PREF_USE_NORMAL:
-			for ii, v in enumerate(f.v):
+			for ii, v in enumerate(f):
 				no= v.no
 				c= frnd.col[ii]
 				c.r= int((no.x+1)*128)-1
@@ -91,8 +91,7 @@ def vcol2image(me, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_USE_
 				
 				obs.append(render_ob)
 				z_offset += 0.01
-				
-		
+	
 	
 	render_me.materials= [rnd_mat()]
 	
