@@ -3332,6 +3332,9 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 12: /* subdivide */
 		subdivide_armature();
 		break;
+	case 13: /* flip left and right names */
+		armature_flip_names();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3367,6 +3370,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip Left & Right Names|W, 2",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
