@@ -140,26 +140,6 @@ def PupMenuLess(menu, groupSize=35):
 				
 
 
-def unzip(list):
-
-	"""
-		unzip: inverse of zip - converts a list of tuples into a tuple of lists
-		
-		e.g.
-		 a,b = unzip(zip(a,b))
-	
-		* note: all tuples in list have to have the same length, if not,
-				this function will fail
-	"""
-	
-	if not list: return ()
-	l = []
-	for t in range(len(list[0])):
-		l.append(map( lambda x,t=t: x[t], list ))
-	return tuple(l)
-
-
-
 # Use newstyle classes, Im not bothering with inheretence
 # but slots are faster.
 class cmdLine(object):
@@ -363,14 +343,14 @@ def handle_event(evt, val):
 			# Ignore the last char since its padding.
 			whiteSpace = ''
 			#for i in range(len(cmdBuffer[-1].cmd)):
-			for i in range(len(string)-1):
+			for i in xrange(len(string)-1):
 				if cmdBuffer[-1].cmd[i] == ' ' or cmdBuffer[-1].cmd[i] == '\t':
 					whiteSpace += string[i]
 				else:
 					break
 			return whiteSpace
 		
-		# Are we in the moddle of a multiline part or not?
+		# Are we in the middle of a multiline part or not?
 		# try be smart about it
 		if cmdBuffer[-1].cmd.split('#')[0].rstrip().endswith(':'):
 			# : indicates an indent is needed

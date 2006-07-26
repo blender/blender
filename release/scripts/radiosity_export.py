@@ -121,7 +121,7 @@ def write(filename):
 	for v in mesh.verts:
 		#if not i%100 and meshtools.show_progress:
 		#	Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
-		x, y, z = tuple(v.co)
+		x, y, z = v.co
 		file.write(struct.pack("<fff", x, y, z))
 
 	# === Face List ===

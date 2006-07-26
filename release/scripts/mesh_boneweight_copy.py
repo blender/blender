@@ -64,7 +64,7 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 		'''
 		
 		# First seek the closest Z axis vert idx/v
-		seek_vec_x,seek_vec_y,seek_vec_z= tuple(seek_vec)
+		seek_vec_x,seek_vec_y,seek_vec_z= seek_vec
 		
 		from_vec_idx= 0
 		
