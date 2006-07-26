@@ -69,7 +69,6 @@ CPPFLAGS += -I../blenlib
 CPPFLAGS += -I../python
 CPPFLAGS += -I../makesdna
 CPPFLAGS += -I../imbuf
-CPPFLAGS += -I../img
 CPPFLAGS += -I../blenloader
 CPPFLAGS += -I..
 CPPFLAGS += -I../../kernel/gen_system

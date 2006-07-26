@@ -50,6 +50,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
@@ -62,6 +63,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -92,9 +94,11 @@
 #include "BIF_renderwin.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
+#include "BIF_toolbox.h"
 #include "BIF_transform.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
@@ -112,28 +116,30 @@
 
 static unsigned char *alloc_alpha_clone_image(int *width, int *height)
 {
+	Brush *brush = G.scene->toolsettings->imapaint.brush;
+	Image *image;
 	unsigned int size, alpha;
 	unsigned char *rect, *cp;
 
-	if(!Gip.clone.image)
+	if(!brush || !brush->clone.image)
+		return NULL;
+	
+	image= brush->clone.image;
+	if(!image->ibuf)
+		load_image(image, IB_rect, G.sce, G.scene->r.cfra);
+
+	if(!image->ibuf || !image->ibuf->rect)
 		return NULL;
 
-	if(!Gip.clone.image->ibuf)
-		load_image(Gip.clone.image, IB_rect, G.sce, G.scene->r.cfra);
-
-	if(!Gip.clone.image->ibuf || !Gip.clone.image->ibuf->rect)
-		return NULL;
-
-	rect= MEM_dupallocN(Gip.clone.image->ibuf->rect);
-
+	rect= MEM_dupallocN(image->ibuf->rect);
 	if(!rect)
 		return NULL;
 
-	*width= Gip.clone.image->ibuf->x;
-	*height= Gip.clone.image->ibuf->y;
+	*width= image->ibuf->x;
+	*height= image->ibuf->y;
 
 	size= (*width)*(*height);
-	alpha= (unsigned char)255*Gip.clone.alpha;
+	alpha= (unsigned char)255*brush->clone.alpha;
 	cp= rect;
 
 	while(size-- > 0) {
@@ -142,18 +148,6 @@ static unsigned char *alloc_alpha_clone_image(int *width, int *height)
 	}
 
 	return rect;
-}
-
-static void setcloneimage()
-{
-	if(G.sima->menunr > 0) {
-		Image *ima= (Image*)BLI_findlink(&G.main->image, G.sima->menunr-1);
-
-		if(ima) {
-			Gip.clone.image= ima;
-			Gip.clone.offset[0]= Gip.clone.offset[0]= 0.0;
-		}
-	}
 }
 
 static int image_preview_active(ScrArea *sa, float *xim, float *yim)
@@ -692,27 +686,30 @@ static void draw_image_view_icon(void)
 
 static void draw_image_view_tool(void)
 {
-	ImagePaintTool *tool = &Gip.tool[Gip.current];
+	ToolSettings *settings= G.scene->toolsettings;
+	Brush *brush= settings->imapaint.brush;
 	short mval[2];
 	float radius;
 	int draw= 0;
 
-	if(Gip.flag & IMAGEPAINT_DRAWING) {
-		if(Gip.flag & IMAGEPAINT_DRAW_TOOL_DRAWING)
+	if(brush) {
+		if(settings->imapaint.flag & IMAGEPAINT_DRAWING) {
+			if(settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL_DRAWING)
+				draw= 1;
+		}
+		else if(settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL)
 			draw= 1;
-	}
-	else if(Gip.flag & IMAGEPAINT_DRAW_TOOL)
-		draw= 1;
-	
-	if(draw) {
-		getmouseco_areawin(mval);
+		
+		if(draw) {
+			getmouseco_areawin(mval);
 
-		radius= tool->size*G.sima->zoom/2;
-		fdrawXORcirc(mval[0], mval[1], radius);
-
-		if (tool->innerradius != 1.0) {
-			radius *= tool->innerradius;
+			radius= brush->size*G.sima->zoom/2;
 			fdrawXORcirc(mval[0], mval[1], radius);
+
+			if (brush->innerradius != 1.0) {
+				radius *= brush->innerradius;
+				fdrawXORcirc(mval[0], mval[1], radius);
+			}
 		}
 	}
 }
@@ -845,6 +842,8 @@ static void image_editvertex_buts(uiBlock *block)
 
 void do_imagebuts(unsigned short event)
 {
+	ToolSettings *settings= G.scene->toolsettings;
+
 	switch(event) {
 	case B_TRANS_IMAGE:
 		image_editvertex_buts(NULL);
@@ -884,13 +883,15 @@ void do_imagebuts(unsigned short event)
 		break;
 
 	case B_SIMACLONEBROWSE:
-		setcloneimage();
-		allqueue(REDRAWIMAGE, 0);
+		if (settings->imapaint.brush)
+			if (brush_clone_image_set_nr(settings->imapaint.brush, G.sima->menunr))
+				allqueue(REDRAWIMAGE, 0);
 		break;
 		
 	case B_SIMACLONEDELETE:
-		Gip.clone.image= NULL;
-		allqueue(REDRAWIMAGE, 0);
+		if (settings->imapaint.brush)
+			if (brush_clone_image_delete(settings->imapaint.brush))
+				allqueue(REDRAWIMAGE, 0);
 		break;
 
 	case B_SIMABRUSHCHANGE:
@@ -906,6 +907,37 @@ void do_imagebuts(unsigned short event)
 		curvemapping_set_black_white(G.sima->cumap, NULL, NULL);
 		curvemapping_do_image(G.sima->cumap, G.sima->image);
 		allqueue(REDRAWIMAGE, 0);
+		break;
+	
+	case B_BRUSHBROWSE:
+		if(G.sima->menunr==-2) {
+			activate_databrowse((ID*)settings->imapaint.brush, ID_BR, 0, B_BRUSHBROWSE, &G.sima->menunr, do_global_buttons);
+			break;
+		}
+		else if(G.sima->menunr < 0) break;
+			
+		if(brush_set_nr(&settings->imapaint.brush, G.sima->menunr)) {
+			BIF_undo_push("Browse Brush");
+			allqueue(REDRAWIMAGE, 0);
+		}
+		break;
+	case B_BRUSHDELETE:
+		if(brush_delete(&settings->imapaint.brush)) {
+			BIF_undo_push("Unlink Brush");
+			allqueue(REDRAWIMAGE, 0);
+		}
+		break;
+	case B_KEEPDATA:
+		brush_toggle_fake_user(settings->imapaint.brush);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+	case B_BRUSHLOCAL:
+		if(settings->imapaint.brush && settings->imapaint.brush->id.lib) {
+			if(okee("Make local")) {
+				make_local_brush(settings->imapaint.brush);
+				allqueue(REDRAWIMAGE, 0);
+			}
+		}
 		break;
 	}
 }
@@ -964,9 +996,11 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	/* B_SIMABRUSHCHANGE only redraws and eats the mouse messages  */
 	/* so that LEFTMOUSE does not 'punch' through the floating panel */
 	/* B_SIMANOTHING */
-	ImagePaintTool *tool= &Gip.tool[Gip.current];
+	ToolSettings *settings= G.scene->toolsettings;
+	Brush *brush= settings->imapaint.brush;
 	uiBlock *block;
 	ID *id;
+	int yco, xco, butw;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_paint", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
@@ -974,39 +1008,63 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	if(uiNewPanel(curarea, block, "Image Paint", "Image", 10, 230, 318, 204)==0)
 		return;
 
-	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, B_VPCOLSLI, "",		979,160,230,19, tool->rgba, 0, 0, 0, 0, "");
-	uiDefButF(block, NUMSLI, B_SIMANOTHING , "Opacity ",		979,140,230,19, tool->rgba+3, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-	uiDefButI(block, NUMSLI, B_SIMANOTHING , "Size ",		979,120,230,19, &tool->size, 2, 64, 0, 0, "The size of the brush");
-	uiDefButF(block, NUMSLI, B_SIMANOTHING , "Fall ",		979,100,230,19, &tool->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-
-	if(Gip.current == IMAGEPAINT_BRUSH || Gip.current == IMAGEPAINT_SMEAR)
-		uiDefButF(block, NUMSLI, B_SIMANOTHING , "Stepsize ",979,80,230,19, &tool->timing, 1.0, 100.0, 0, 0, "Repeating Paint On %of Brush diameter");
-	else
-		uiDefButF(block, NUMSLI, B_SIMANOTHING , "Flow ",	979,80,230,19, &tool->timing, 1.0, 100.0, 0, 0, "Paint Flow for Air Brush");
-	uiBlockEndAlign(block);
+	yco= 160;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Brush",		890,160,80,19, &Gip.current, 7.0, IMAGEPAINT_BRUSH, 0, 0, "Brush");
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "AirBrush",		890,140,80,19, &Gip.current, 7.0, IMAGEPAINT_AIRBRUSH, 0, 0, "AirBrush");
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Soften",		890,120,80,19, &Gip.current, 7.0, IMAGEPAINT_SOFTEN, 0, 0, "Soften");
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Aux AB1",		890,100,80,19, &Gip.current, 7.0, IMAGEPAINT_AUX1, 0, 0, "Auxiliary Air Brush1");
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Aux AB2",		890,80,80,19, &Gip.current, 7.0, IMAGEPAINT_AUX2, 0, 0, "Auxiliary Air Brush2");	
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Smear",		890,60,80,19, &Gip.current, 7.0, IMAGEPAINT_SMEAR, 0, 0, "Smear");	
-	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Clone",		890,40,80,19, &Gip.current, 7.0, IMAGEPAINT_CLONE, 0, 0, "Clone Brush / use RMB to drag source image");	
+	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Draw",		0  ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
+	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Soften",		80 ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
+	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Smear",		160,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
+	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Clone",		240,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_CLONE, 0, 0, "Clone brush, use RMB to drag source image");	
 	uiBlockEndAlign(block);
+	yco -= 30;
 
-	uiBlockBeginAlign(block);	
-	id= (ID*)Gip.clone.image;
-	std_libbuttons(block, 979, 40, 0, NULL, B_SIMACLONEBROWSE, ID_IM, 0, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
-	uiDefButF(block, NUMSLI, B_SIMABRUSHCHANGE, "B ",979,20,230,19, &Gip.clone.alpha , 0.0, 1.0, 0, 0, "Blend clone image");
-	uiBlockEndAlign(block);
+	uiBlockSetCol(block, TH_BUT_SETTING2);
+	id= (ID*)settings->imapaint.brush;
+	xco= std_libbuttons(block, 0, yco, 0, NULL, B_BRUSHBROWSE, ID_BR, 0, id, NULL, &(G.sima->menunr), 0, B_BRUSHLOCAL, B_BRUSHDELETE, 0, B_KEEPDATA);
+	uiBlockSetCol(block, TH_AUTO);
+
+	if(brush && !brush->id.lib) {
+		butw= 320-(xco+10);
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, B_SIMABRUSHCHANGE, "Airbrush",	xco+10,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
+		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_TORUS, B_SIMABRUSHCHANGE, "Wrap",	xco+10,yco-20,butw,19, &settings->imapaint.flag, 0, 0, 0, 0, "Enables torus wrapping");
+		uiBlockEndAlign(block);
+
+		uiDefButS(block, MENU, B_SIMANOTHING, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5", xco+10,yco-45,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
+
+		yco -= 25;
+
+		uiBlockBeginAlign(block);
+		uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
+		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Opacity ",		0,yco-20,200,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+		uiDefButI(block, NUMSLI, B_SIMANOTHING, "Size ",		0,yco-40,200,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
+		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Falloff ",		0,yco-60,200,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
+
+		if(brush->flag & BRUSH_AIRBRUSH)
+			uiDefButF(block, NUMSLI, B_SIMANOTHING, "Flow ",	0,yco-80,200,19, &brush->timing, 1.0, 100.0, 0, 0, "Paint Flow for Air Brush");
+		else
+			uiDefButF(block, NUMSLI, B_SIMANOTHING, "Stepsize ",0,yco-80,200,19, &brush->timing, 1.0, 100.0, 0, 0, "Repeating Paint On %% of Brush diameter");
+		uiBlockEndAlign(block);
+
+		yco -= 110;
+
+		if(settings->imapaint.tool == PAINT_TOOL_CLONE) {
+			id= (ID*)brush->clone.image;
+			uiBlockSetCol(block, TH_BUT_SETTING2);
+			xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMACLONEBROWSE, ID_IM, 0, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
+			uiBlockSetCol(block, TH_AUTO);
+			if(id) {
+				butw= 320-(xco+5);
+				uiDefButF(block, NUMSLI, B_SIMABRUSHCHANGE, "B ",xco+5,yco,butw,19, &brush->clone.alpha , 0.0, 1.0, 0, 0, "Opacity of clone image display");
+			}
+		}
+	}
 
 #if 0
-	uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL_DRAWING, B_SIMABRUSHCHANGE, "TD", 890,1,50,19, &Gip.flag, 0, 0, 0, 0, "Enables tool shape while drawing");
-	uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL, B_SIMABRUSHCHANGE, "TP", 940,1,50,19, &Gip.flag, 0, 0, 0, 0, "Enables tool shape while not drawing");
+		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL_DRAWING, B_SIMABRUSHCHANGE, "TD", 0,1,50,19, &settings->imapaint.flag.flag, 0, 0, 0, 0, "Enables brush shape while drawing");
+		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL, B_SIMABRUSHCHANGE, "TP", 50,1,50,19, &settings->imapaint.flag.flag, 0, 0, 0, 0, "Enables brush shape while not drawing");
 #endif
-	uiDefButBitS(block, TOG|BIT, IMAGEPAINT_TORUS, B_SIMABRUSHCHANGE, "Wrap", 890,1,50,19, &Gip.flag, 0, 0, 0, 0, "Enables torus wrapping");
 }
 
 static void image_panel_curves_reset(void *cumap_v, void *unused)
@@ -1444,6 +1502,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 {
 	SpaceImage *sima= spacedata;
 	ImBuf *ibuf= NULL;
+	Brush *brush;
 	float col[3];
 	unsigned int *rect;
 	float x1, y1;
@@ -1617,7 +1676,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				}
 			}
 			
-			if(Gip.current == IMAGEPAINT_CLONE) {
+			brush= G.scene->toolsettings->imapaint.brush;
+			if(brush && (G.scene->toolsettings->imapaint.tool == PAINT_TOOL_CLONE)) {
 				int w, h;
 				unsigned char *clonerect;
 
@@ -1627,8 +1687,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 				if(clonerect) {
 					int offx, offy;
-					offx = sima->zoom*ibuf->x * + Gip.clone.offset[0];
-					offy = sima->zoom*ibuf->y * + Gip.clone.offset[1];
+					offx = sima->zoom*ibuf->x * + brush->clone.offset[0];
+					offy = sima->zoom*ibuf->y * + brush->clone.offset[1];
 
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

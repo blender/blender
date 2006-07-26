@@ -75,6 +75,7 @@ typedef struct Main {
 	ListBase armature;
 	ListBase action;
 	ListBase nodetree;
+	ListBase brush;
 } Main;
 
 

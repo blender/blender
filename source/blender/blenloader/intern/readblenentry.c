@@ -81,6 +81,7 @@ typedef struct {
 static IDType idtypes[]= {
 	{ ID_AC,		"Action",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_AR,		"Armature", IDTYPE_FLAGS_ISLINKABLE}, 
+	{ ID_BR,		"Brush",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CA,		"Camera",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_CU,		"Curve",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_GR,		"Group",	IDTYPE_FLAGS_ISLINKABLE}, 

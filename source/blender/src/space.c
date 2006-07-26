@@ -157,7 +157,6 @@
 #include "BKE_depsgraph.h"
 
 #include "BSE_trans_types.h"
-#include "IMG_Api.h"
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
@@ -1012,7 +1011,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					vertex_paint();
 				}
 				else if (G.f & G_TEXTUREPAINT) {
-					face_draw();
+					texturepaint_paint();
 				}
 				break;
 			case MIDDLEMOUSE:

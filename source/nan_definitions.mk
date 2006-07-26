@@ -80,7 +80,6 @@ endif
     export NAN_MEMUTIL ?= $(LCGDIR)/memutil
     export NAN_CONTAINER ?= $(LCGDIR)/container
     export NAN_ACTION ?= $(LCGDIR)/action
-    export NAN_IMG ?= $(LCGDIR)/img
     export NAN_GHOST ?= $(LCGDIR)/ghost
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_BMFONT ?= $(LCGDIR)/bmfont

@@ -54,6 +54,7 @@
 
 #include "BDR_drawmesh.h"
 #include "BDR_unwrapper.h"
+#include "BKE_brush.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -315,7 +316,9 @@ void do_image_buttons(unsigned short event)
 		break;
 
 	case B_SIMAGEPAINTTOOL:
-		// check for packed file here
+		if(G.sima->flag & SI_DRAWTOOL)
+			/* add new brush if none exists */
+			brush_check_exists(&G.scene->toolsettings->imapaint.brush);
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;

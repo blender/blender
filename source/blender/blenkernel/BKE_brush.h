@@ -28,16 +28,30 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * General operations for brushes.
  */
 
-#ifndef BDR_IMAGEPAINT_H
-#define BDR_IMAGEPAINT_H
+#ifndef BKE_BRUSH_H
+#define BKE_BRUSH_H
 
-void imagepaint_redraw_tool(void);
-void imagepaint_paint(short mousebutton);
-void imagepaint_pick(short mousebutton);
+struct ID;
+struct Brush;
 
-void texturepaint_paint();
+struct Brush *add_brush(char *name);
+struct Brush *copy_brush(struct Brush *brush);
+void make_local_brush(struct Brush *brush);
+void free_brush(struct Brush *brush);
 
-#endif /*  BDR_IMAGEPAINT_H */
+/* implementation of blending modes for use by different paint modes */
+void brush_blend_rgb(char *outcol, char *col1, char *col2, int fac, short mode);
+
+/* functions for brush datablock browsing used by different paint panels */
+int brush_set_nr(struct Brush **current_brush, int nr);
+int brush_delete(struct Brush **current_brush);
+void brush_toggle_fake_user(struct Brush *brush);
+int brush_clone_image_delete(struct Brush *brush);
+int brush_clone_image_set_nr(struct Brush *brush, int nr);
+void brush_check_exists(struct Brush **brush);
+
+#endif
 

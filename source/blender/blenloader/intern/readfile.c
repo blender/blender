@@ -58,6 +58,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_ID.h"
 #include "DNA_actuator_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_color_types.h"
 #include "DNA_controller_types.h"
@@ -1180,6 +1181,28 @@ static void test_pointer_array(FileData *fd, void **mat)
 			*mat= lmat;
 		}
 	}
+}
+
+/* ************ READ BRUSH *************** */
+
+/* library brush linking after fileread */
+static void lib_link_brush(FileData *fd, Main *main)
+{
+	Brush *brush;
+	
+	/* only link ID pointers */
+	for(brush= main->brush.first; brush; brush= brush->id.next) {
+		if(brush->id.flag & LIB_NEEDLINK) {
+			brush->id.flag -= LIB_NEEDLINK;
+			/* nothing to do yet - until brush gets textures */
+		}
+	}
+}
+
+/* brush itself has been read! */
+static void direct_link_brush(FileData *fd, Brush *brush)
+{
+	/* nothing to do yet - until brush gets textures */
 }
 
 /* ************ READ CurveMapping *************** */
@@ -2639,6 +2662,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
+			sce->toolsettings->imapaint.brush=
+				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 
 			base= sce->base.first;
 			while(base) {
@@ -3471,6 +3496,8 @@ static char *dataname(short id_code)
 		case ID_TXT	: return "Data from TXT";
 		case ID_SO: return "Data from SO";
 		case ID_SAMPLE: return "Data from SAMPLE";
+		case ID_NT: return "Data from NT";
+		case ID_BR: return "Data from BR";
 	}
 	return "Data from Lib Block";
 	
@@ -3603,6 +3630,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_NT:
 			direct_link_nodetree(fd, (bNodeTree*)id);
+			break;
+		case ID_BR:
+			direct_link_brush(fd, (Brush*)id);
 			break;
 	}
 
@@ -5555,6 +5585,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_vfont(fd, main);
 	lib_link_screen_sequence_ipos(main);
 	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
+	lib_link_brush(fd, main);
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 
@@ -5767,6 +5798,11 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 {
 	expand_doit(fd, mainvar, tex->ima);
 	expand_doit(fd, mainvar, tex->ipo);
+}
+
+static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
+{
+	/* nothing to do yet - until brush gets texture */
 }
 
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
@@ -6231,6 +6267,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_NT:
 						expand_nodetree(fd, mainvar, (bNodeTree *)id);
+						break;
+					case ID_BR:
+						expand_brush(fd, mainvar, (Brush *)id);
 						break;
 					case ID_IP:
 						expand_ipo(fd, mainvar, (Ipo *)id);

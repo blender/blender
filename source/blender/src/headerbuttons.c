@@ -251,7 +251,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	if(browse) {
 		char *extrastr= NULL;
 		
-		if(ELEM(id_code, ID_MA, ID_TE)) add_addbutton= 1;
+		if(ELEM3(id_code, ID_MA, ID_TE, ID_BR)) add_addbutton= 1;
 			
 		lb= wich_libbase(G.main, id_code);
 		
@@ -261,7 +261,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			uiBlockSetCol(block, TH_BUT_SETTING2);
 		}
 		
-		if ELEM7( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC) extrastr= "ADD NEW %x 32767";
+		if ELEM8( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) extrastr= "ADD NEW %x 32767";
 		else if (id_code==ID_TXT) extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
 		else if (id_code==ID_SO) extrastr= "OPEN NEW %x 32766";
 		

@@ -54,7 +54,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
@@ -88,7 +87,6 @@
 #include "blendef.h"
 #include "butspace.h"
 
-#include "../img/IMG_Api.h"
 #include "BSE_trans_types.h"
 
 #include "BDR_unwrapper.h"
@@ -121,7 +119,7 @@
 
 
 /* returns 0 if not found, otherwise 1 */
-static int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
+int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 {
 	if (!me->tface || me->totface==0)
 		return 0;
@@ -1506,7 +1504,7 @@ void set_texturepaint() /* toggle */
  * @param	org		origin of the view ray.
  * @param	dir		direction of the view ray.
  */
-static void get_pick_ray(short x, short y, float org[3], float dir[3])
+static void get_pick_ray(short *xy, float org[3], float dir[3])
 {
 	double mvmatrix[16];
 	double projmatrix[16];
@@ -1525,10 +1523,10 @@ static void get_pick_ray(short x, short y, float org[3], float dir[3])
 	/* printf("viewport = (%4d, %4d, %4d, %4d)\n", viewport[0], viewport[1], viewport[2], viewport[3]); */
 	/* printf("cursor = (%4d, %4d)\n", x, y); */
 
-	gluUnProject((GLdouble) x, (GLdouble) y, 0.0, mvmatrix, projmatrix, viewport, &px, &py, &pz);
+	gluUnProject((GLdouble) xy[0], (GLdouble) xy[1], 0.0, mvmatrix, projmatrix, viewport, &px, &py, &pz);
 	org[0] = (float)px; org[1] = (float)py; org[2] = (float)pz;
 	/* printf("world point at z=0.0 is (%f, %f, %f)\n", org[0], org[1], org[2]); */
-	gluUnProject((GLdouble) x, (GLdouble) y, 1.0, mvmatrix, projmatrix, viewport, &px, &py, &pz); 
+	gluUnProject((GLdouble) xy[0], (GLdouble) xy[1], 1.0, mvmatrix, projmatrix, viewport, &px, &py, &pz); 
 	/* printf("world point at z=1.0 is (%f, %f, %f)\n", px, py, pz); */
 	dir[0] = ((float)px) - org[0];
 	dir[1] = ((float)py) - org[1];
@@ -1668,7 +1666,7 @@ static int face_get_vertex_coordinates(Mesh* mesh, TFace* face, float v1[3], flo
  * @param	u		(u,v) coordinate.
  * @param	v		(u,v) coordinate.
  */
-static void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, float* u, float* v)
+static void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, float *uv)
 {
 	float uv01[2], uv21[2];
 
@@ -1692,8 +1690,8 @@ static void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, f
 	uv01[1] *= a;
 	uv21[0] *= b;
 	uv21[1] *= b;
-	*u = face->uv[v1][0] + (uv01[0] + uv21[0]);
-	*v = face->uv[v1][1] + (uv01[1] + uv21[1]);
+	uv[0] = face->uv[v1][0] + (uv01[0] + uv21[0]);
+	uv[1] = face->uv[v1][1] + (uv01[1] + uv21[1]);
 }
 
 /**
@@ -1711,7 +1709,7 @@ static void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, f
  *			0 == no intersection, (u,v) invalid
  *			1 == intersection, (u,v) valid
  */
-static int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short x, short y, float* u, float* v)
+int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short *xy, float *uv)
 {
 	float org[3], dir[3];
 	float ab[2];
@@ -1720,7 +1718,7 @@ static int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short x, short 
 	int num_verts;
 
 	/* Get a view ray to intersect with the face */
-	get_pick_ray(x, y, org, dir);
+	get_pick_ray(xy, org, dir);
 
 	/* Convert local vertex coordinates to world */
 	num_verts = face_get_vertex_coordinates(mesh, face, v1, v2, v3, v4);
@@ -1738,176 +1736,16 @@ static int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short x, short 
 	result = triangle_ray_intersect(v2, v1, v3, org, dir, ab);
 	if ( (num_verts == 3) || ((num_verts == 4) && (result > 1)) ) {
 		/* Face is a triangle or a quad with a hit on the first triangle */
-		face_get_uv(face, 1, 0, 2, ab[0], ab[1], u, v);
+		face_get_uv(face, 1, 0, 2, ab[0], ab[1], uv);
 		/* printf("triangle 1, texture (u,v)=(%f, %f)\n", *u, *v); */
 	}
 	else {
 		/* Face is a quad and no intersection with first triangle */
 		result = triangle_ray_intersect(v4, v3, v1, org, dir, ab);
-		face_get_uv(face, 3, 2, 0, ab[0], ab[1], u, v);
+		face_get_uv(face, 3, 2, 0, ab[0], ab[1], uv);
 		/* printf("triangle 2, texture (u,v)=(%f, %f)\n", *u, *v); */
 	}
 	return result > 0;
-}
-
-/**
- * First attempt at drawing in the texture of a face.
- * @author	Maarten Gribnau
- */
-void face_draw()
-{
-	Object *ob;
-	Mesh *me;
-	TFace *face, *face_old = 0;
-	short xy[2], xy_old[2];
-	//int a, index;
-	Image *img=NULL, *img_old = NULL;
-	IMG_BrushPtr brush;
-	IMG_CanvasPtr canvas = 0;
-	unsigned int rowBytes, face_index;
-	char *warn_packed_file = 0;
-	float uv[2], uv_old[2];
-	extern VPaint Gvp;
-	short mousebut;
-
-	ob = OBACT;
-	if (!ob) {
-		error("No active object"); return;
-	}
-	if (!(ob->lay & G.vd->lay)) {
-		error("The active object is not in this layer"); return;
-	}
-	me = get_mesh(ob);
-	if (!me) {
-		error("The active object does not have a mesh obData"); return;
-	}
-
-	brush = IMG_BrushCreate(Gvp.size, Gvp.size, &Gvp.r);
-	if (!brush) {
-		error("Can't create brush"); return;
-	}
-
-	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
-	else mousebut = L_MOUSE;
-
-	persp(PERSP_VIEW);
-
-	getmouseco_areawin(xy_old);
-	while (get_mbut() & mousebut) {
-		getmouseco_areawin(xy);
-		/* Check if cursor has moved */
-		if ((xy[0] != xy_old[0]) || (xy[1] != xy_old[1])) {
-
-			/* Get face to draw on */
-			if (!facesel_face_pick(me, xy, &face_index, 0)) face = NULL;
-			else face = (((TFace*)me->tface)+face_index);
-
-			/* Check if this is another face. */
-			if (face != face_old) {
-				/* The active face changed, check the texture */
-				if (face) {
-					img = face->tpage;
-				}
-				else {
-					img = 0;
-				}
-
-				if (img != img_old) {
-					/* Faces have different textures. Finish drawing in the old face. */
-					if (face_old && canvas) {
-						face_pick_uv(ob, me, face_old, xy[0], xy[1], &uv[0], &uv[1]);
-						IMG_CanvasDrawLineUV(canvas, brush, uv_old[0], uv_old[1], uv[0], uv[1]);
-						img_old->ibuf->userflags |= IB_BITMAPDIRTY;
-						/* Delete old canvas */
-						IMG_CanvasDispose(canvas);
-						canvas = 0;
-					}
-
-					/* Create new canvas and start drawing in the new face. */
-					if (img) {
-						if (img->ibuf && img->packedfile == 0) {
-							/* MAART: skipx is not set most of the times. Make a guess. */
-							rowBytes = img->ibuf->skipx ? img->ibuf->skipx : img->ibuf->x * 4;
-							canvas = IMG_CanvasCreateFromPtr(img->ibuf->rect, img->ibuf->x, img->ibuf->y, rowBytes);
-							if (canvas) {
-								face_pick_uv(ob, me, face, xy_old[0], xy_old[1], &uv_old[0], &uv_old[1]);
-								face_pick_uv(ob, me, face, xy[0], xy[1], &uv[0], &uv[1]);
-								IMG_CanvasDrawLineUV(canvas, brush, uv_old[0], uv_old[1], uv[0], uv[1]);
-								img->ibuf->userflags |= IB_BITMAPDIRTY;
-							}
-						}
-						else {
-							/* TODO: should issue warning that no texture is assigned */
-							if (img->packedfile) {
-								warn_packed_file = img->id.name + 2;
-								img = 0;
-							}
-						}
-					}
-				}
-				else {
-					/* Face changed and faces have the same texture. */
-					if (canvas) {
-						/* Finish drawing in the old face. */
-						if (face_old) {
-							face_pick_uv(ob, me, face_old, xy[0], xy[1], &uv[0], &uv[1]);
-							IMG_CanvasDrawLineUV(canvas, brush, uv_old[0], uv_old[1], uv[0], uv[1]);
-							img_old->ibuf->userflags |= IB_BITMAPDIRTY;
-						}
-
-						/* Start drawing in the new face. */
-						if (face) {
-							face_pick_uv(ob, me, face, xy_old[0], xy_old[1], &uv_old[0], &uv_old[1]);
-							face_pick_uv(ob, me, face, xy[0], xy[1], &uv[0], &uv[1]);
-							IMG_CanvasDrawLineUV(canvas, brush, uv_old[0], uv_old[1], uv[0], uv[1]);
-							img->ibuf->userflags |= IB_BITMAPDIRTY;
-						}
-					}
-				}
-			}
-			else {
-				/* Same face, continue drawing */
-				if (face && canvas) {
-					/* Get the new (u,v) coordinates */
-					face_pick_uv(ob, me, face, xy[0], xy[1], &uv[0], &uv[1]);
-					IMG_CanvasDrawLineUV(canvas, brush, uv_old[0], uv_old[1], uv[0], uv[1]);
-					img->ibuf->userflags |= IB_BITMAPDIRTY;
-				}
-			}
-
-			if (face && img) {
-				/* Make OpenGL aware of a change in the texture */
-				free_realtime_image(img);
-				/* Redraw the view */
-				scrarea_do_windraw(curarea);
-				screen_swapbuffers();
-			}
-
-			xy_old[0] = xy[0];
-			xy_old[1] = xy[1];
-			uv_old[0] = uv[0];
-			uv_old[1] = uv[1];
-			face_old = face;
-			img_old = img;
-		}
-	}
-
-	IMG_BrushDispose(brush);
-	if (canvas) {
-		IMG_CanvasDispose(canvas);
-		canvas = 0;
-	}
-
-	if (warn_packed_file) {
-		error("Painting in packed images is not supported: %s", warn_packed_file);
-	}
-
-	persp(PERSP_WIN);
-
-	BIF_undo_push("UV face draw");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWHEADERS, 0);
 }
 
  /* Selects all faces which have the same uv-texture as the active face 

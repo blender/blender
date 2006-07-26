@@ -2464,7 +2464,7 @@ void main_to_filelist(SpaceFile *sfile)
 	if( sfile->dir[0]==0) {
 		
 		/* make directories */
-		sfile->totfile= 23;
+		sfile->totfile= 24;
 		sfile->filelist= (struct direntry *)malloc(sfile->totfile * sizeof(struct direntry));
 		
 		for(a=0; a<sfile->totfile; a++) {
@@ -2495,6 +2495,7 @@ void main_to_filelist(SpaceFile *sfile)
 		sfile->filelist[20].relname= BLI_strdup("Armature");
 		sfile->filelist[21].relname= BLI_strdup("Action");
 		sfile->filelist[22].relname= BLI_strdup("NodeTree");
+		sfile->filelist[23].relname= BLI_strdup("Brush");
 		
 		qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_name);
 	}

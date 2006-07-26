@@ -105,6 +105,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h"
@@ -1592,6 +1593,15 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_brushes(WriteData *wd, ListBase *idbase)
+{
+	Brush *brush;
+	
+	for(brush=idbase->first; brush; brush= brush->id.next)
+		if (brush->id.us>0 || wd->current)
+			writestruct(wd, ID_BR, "Brush", 1, brush);
+}
+
 static void write_global(WriteData *wd)
 {
 	FileGlobal fg;
@@ -1650,6 +1660,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_textures (wd, &G.main->tex);
 	write_meshs    (wd, &G.main->mesh);
 	write_nodetrees(wd, &G.main->nodetree);
+	write_brushes  (wd, &G.main->brush);
 	write_libraries(wd,  G.main->next);
 
 	write_global(wd);

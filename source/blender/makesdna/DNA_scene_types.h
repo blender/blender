@@ -344,6 +344,12 @@ typedef struct ToolSettings {
 	/* Select Group Threshold */
 	float select_thresh;
 
+	/* Image Paint */
+	struct ImagePaintSettings {
+		struct Brush *brush;
+		short flag, tool;
+		int pad3;
+	} imapaint;
 } ToolSettings;
 
 typedef struct Scene {
@@ -536,6 +542,13 @@ typedef struct Scene {
 
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
+
+/* toolsettings->imagepaint_flag */
+#define IMAGEPAINT_TORUS				1
+#define IMAGEPAINT_DRAWING				2
+#define IMAGEPAINT_TIMED				4
+#define IMAGEPAINT_DRAW_TOOL			8
+#define IMAGEPAINT_DRAW_TOOL_DRAWING	16
 
 #ifdef __cplusplus
 }

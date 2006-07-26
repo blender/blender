@@ -77,6 +77,7 @@
 #include "DNA_node_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -108,6 +109,7 @@
 #include "BKE_action.h"
 #include "BKE_node.h"
 #include "BKE_effect.h"
+#include "BKE_brush.h"
 
 #include "BPI_script.h"
 
@@ -193,6 +195,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->action);
 		case ID_NT:
 			return &(mainlib->nodetree);
+		case ID_BR:
+			return &(mainlib->brush);
 	}
 	return 0;
 }
@@ -233,12 +237,13 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[21]= &(main->sound);
 	lb[22]= &(main->group);
 	lb[23]= &(main->nodetree);
+	lb[24]= &(main->brush);
 
-	lb[24]= samples;
-	lb[25]= &(main->script);
-	lb[26]= NULL;
+	lb[25]= samples;
+	lb[26]= &(main->script);
+	lb[27]= NULL;
 
-	return 26;
+	return 27;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -332,7 +337,10 @@ static ID *alloc_libblock_notest(short type)
 			id = MEM_callocN(sizeof(bAction), "action");
 			break;
 		case ID_NT:
-			id = MEM_callocN(sizeof(bNodeTree), "action");
+			id = MEM_callocN(sizeof(bNodeTree), "nodetree");
+			break;
+		case ID_BR:
+			id = MEM_callocN(sizeof(Brush), "brush");
 			break;
 	}
 	return id;
@@ -476,6 +484,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_NT:
 			ntreeFreeTree((bNodeTree *)id);
+			break;
+		case ID_BR:
+			free_brush((Brush *)id);
 			break;
 	}
 
