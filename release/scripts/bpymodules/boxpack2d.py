@@ -26,7 +26,13 @@ boxes2Pack.append([anyUniqueID, w,h])
 packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
 '''
 
-from Blender import NMesh, Window
+from Blender import NMesh, Window,   	Object, Scene
+
+def debug_(x,y,z):
+	ob = Object.New("Empty")
+	ob.loc= x,y,z
+	Scene.GetCurrent().link(ob)
+	
 
 # a box packing vert
 class vt:
@@ -140,71 +146,71 @@ class box:
 		''' Returns none, meaning it didnt overlap any new boxes '''
 		v= self.v
 		if v[BL].x < 0:
-			return None
+			return True
 		elif v[BL].y < 0:
-			return None			
+			return True
 		else:
 			bIdx = len(intersectCache)
 			while bIdx:
 				bIdx-=1
 				b = intersectCache[bIdx]
-				if not (self.v[TR].y <= b.v[BL].y or\
-								v[BL].y >= b.v[TR].y or\
-								v[BL].x >= b.v[TR].x or\
-								v[TR].x <= b.v[BL].x ):
+				if not (	v[TR].y <= b.v[BL].y or\
+							v[BL].y >= b.v[TR].y or\
+							v[BL].x >= b.v[TR].x or\
+							v[TR].x <= b.v[BL].x ):
 					
-					return None # Intersection with existing box
+					return True # Intersection with existing box
 			#return 0 # Must keep looking
-			
 			
 			for b in boxLs.boxes:
 				if not (v[TR].y <= b.v[BL].y or\
-				v[BL].y >= b.v[TR].y or\
-				v[BL].x >= b.v[TR].x or\
-				v[TR].x <= b.v[BL].x ):
-					
+						v[BL].y >= b.v[TR].y or\
+						v[BL].x >= b.v[TR].x or\
+						v[TR].x <= b.v[BL].x ):
+						
 					return b # Intersection with new box.
-			return 0
+			return False
 	
 	
 	
 	def place(self, vert, quad):
+		'''
+		Place the box on the free quadrent of the vert
+		'''
 		if quad == BLF:
-			self.setLeft(vert.x)
-			self.setBottom(vert.y)
+			self.setRight(vert.x)
+			self.setTop(vert.y)
 			
 		elif quad == TRF:
-			self.setRight(vert.x)
+			self.setLeft(vert.x)
 			self.setBottom(vert.y)
 		
 		elif quad == TLF:
-			self.setLeft(vert.x)
-			self.setTop(vert.y)
+			self.setRight(vert.x)
+			self.setBottom(vert.y)
 
 		elif quad == BRF:
-			self.setRight(vert.x)
+			self.setLeft(vert.x)
 			self.setTop(vert.y)
 	
 	# Trys to lock a box onto another box's verts
-	# cleans up double verts after 
+	# cleans up double verts after
 	def tryVert(self, boxes, baseVert):
-		flagIndex = -1
-		for freeQuad in quadFlagLs:
-			flagIndex +=1
+		for flagIndex, freeQuad in enumerate(quadFlagLs):
 			#print 'Testing ', self.width
 			if baseVert.free & freeQuad:
 				
 				self.place(baseVert, freeQuad)
 				overlapBox = self.overlapAll(boxes, baseVert.intersectCache[flagIndex])
-				if overlapBox is 0: # There is no overlap
+				if overlapBox is False: # There is no overlap
 					baseVert.free &= ~freeQuad # Removes quad
 					# Appends all verts but the one that matches. this removes the need for remove doubles
-					for vIdx in (0,1,2,3): # (BL,TR,TL,BR): # (BL,TR,TL,BR) / 0,1,2,3
+					for vIdx in (0,1,2,3): # (BL,TR,TL,BR) / 0,1,2,3
 						self_v= self.v[vIdx] # shortcut
 						if not (self_v.x == baseVert.x and self_v.y == baseVert.y):
 							boxList.packedVerts.verts.append(self_v)
 						else:
-							baseVert.free &= self_v.free # make sure the 
+							baseVert.free &= self_v.free # make sure the that any unfree areas are wiped.
 							
 							# Inherit used boxes from old verts
 							if self_v.blb: baseVert.blb = self_v.blb 
@@ -212,54 +218,71 @@ class box:
 							if self_v.tlb: baseVert.tlb = self_v.tlb #print 'inherit3'
 							if self_v.trb: baseVert.trb = self_v.trb #print 'inherit4'
 							self.v[vIdx] = baseVert
+
 					
 					
-					# ========================== WHY DOSENT THIS WORK???
-					#~ if baseVert.tlb and baseVert.trb:
-						#~ if self == baseVert.tlb or self == baseVert.trb:
-							
-							#~ if baseVert.tlb.height > baseVert.trb.height:
-								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-								#~ baseVert.trb.v[TL].free &= ~TLF
-								#~ baseVert.trb.v[TL].free &= ~BLF
-							
-							#~ elif baseVert.tlb.height < baseVert.trb.height:
-								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-								#~ baseVert.tlb.v[TR].free &= ~TRF
-								#~ baseVert.tlb.v[TR].free &= ~BRF
-							#~ else: # same
-								#~ baseVert.tlb.v[TR].free &= ~BLF
-								#~ baseVert.trb.v[TL].free &= ~BRF						
+					# Logical checking for used verts by compares box sized and works out verts that may be free.
+					# Verticle
+					
+					if baseVert.tlb and baseVert.trb and\
+					(self == baseVert.tlb or self == baseVert.trb):
+						if baseVert.tlb.height > baseVert.trb.height:
+							baseVert.trb.v[TL].free &= ~(TLF|BLF)
+						elif baseVert.tlb.height < baseVert.trb.height:
+							baseVert.tlb.v[TR].free &= ~(TRF|BRF)
+						else: # same
+							baseVert.tlb.v[TR].free &= ~BLF
+							baseVert.trb.v[TL].free &= ~BRF						
 								
 					
-					#~ if baseVert.blb and baseVert.brb:
-						#~ if self == baseVert.blb or self == baseVert.brb:
-							
-							#~ if baseVert.blb.height > baseVert.brb.height:
-								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-								#~ baseVert.brb.v[BL].free &= ~TLF
-								#~ baseVert.brb.v[BL].free &= ~BLF
-							
-							#~ elif baseVert.blb.height < baseVert.brb.height:
-								#~ #baseVert.trb.v[TL].free &= ~TLF & ~BLF
-								#~ baseVert.blb.v[BR].free &= ~TRF
-								#~ baseVert.blb.v[BR].free &= ~BRF
-							#~ else: # same
-								#~ baseVert.blb.v[BR].free &= ~TLF
-								#~ baseVert.brb.v[BL].free &= ~TRF		
-
-								#~ # print 'Hay', baseVert.tlb.height, baseVert.trb.height
-							
+					elif baseVert.blb and baseVert.brb and\
+					(self == baseVert.blb or self == baseVert.brb):
+						if baseVert.blb.height > baseVert.brb.height:
+							baseVert.brb.v[BL].free &= ~(TLF|BLF)
+						elif baseVert.blb.height < baseVert.brb.height:
+							baseVert.blb.v[BR].free &= ~(TRF|BRF)
+						else: # same
+							baseVert.blb.v[BR].free &= ~TRF
+							baseVert.brb.v[BL].free &= ~TLF
+					
+					# Horizontal
+					if baseVert.tlb and baseVert.blb and\
+					(self == baseVert.tlb or self == baseVert.blb):
+						if baseVert.tlb.width > baseVert.blb.width:
+							baseVert.blb.v[TL].free &= ~(TLF|TRF)
+						elif baseVert.tlb.width < baseVert.blb.width:
+							baseVert.tlb.v[BL].free &= ~(BLF|BRF)
+						else: # same
+							baseVert.blb.v[TL].free &= ~TRF
+							baseVert.tlb.v[BL].free &= ~BRF						
+								
+					
+					elif baseVert.trb and baseVert.brb and\
+					(self == baseVert.trb or self == baseVert.brb):
+						if baseVert.trb.width > baseVert.brb.width:
+							baseVert.brb.v[TR].free &= ~(TRF|TRF)
+						elif baseVert.trb.width < baseVert.brb.width:
+							baseVert.trb.v[BR].free &= ~(BLF|BRF)
+						else: # same
+							baseVert.brb.v[TR].free &= ~TLF
+							baseVert.trb.v[BR].free &= ~BLF	
+					# END LOGICAL VREE SIZE REMOVAL
+					
+					
 					
 					
 					return 1 # Working
-					
+				
 				# We have a box that intersects that quadrent.
-				elif overlapBox != None:  # None is used for a box thats alredt in the freq list.
-					
+				elif overlapBox is not False and overlapBox  is not True:  # True is used for a box thats alredt in the freq list or out of bounds error.
 					# There was an overlap, add this box to the verts list
 					#quadFlagLs = (BLF,BRF,TLF,TRF)
 					baseVert.intersectCache[flagIndex].append(overlapBox)
+					
+					# Limit the cache size
+					if len(baseVert.intersectCache[flagIndex]) > 8:
+						del baseVert.intersectCache[flagIndex][0]
+				
 		return 0
 
 
@@ -302,8 +325,7 @@ class boxList:
 		#~ quadFlagLs = (BLF,BRF,TLF,TRF)
 		
 		# Look through all the free vert quads and see if there are some we can remove
-		# buggy but dont know why???, dont use it unless you want to debug it..
-		'''
+		# 
 		for v in box.v:
 			
 			# Is my bottom being used.
@@ -313,8 +335,7 @@ class boxList:
 					if b.v[TR].y == v.y:
 						if b.v[TR].x > v.x:
 							if b.v[BL].x < v.x:
-								v.free &= ~BLF # Removes quad
-								v.free &= ~BRF # Removes quad
+								v.free &= ~(BLF|BRF) # Removes quad
 				
 				# Is my left being used.
 			if v.free & BLF and v.free & TLF:
@@ -322,8 +343,7 @@ class boxList:
 					if b.v[TR].x == v.x:
 						if b.v[TR].y > v.y:
 							if b.v[BL].y < v.y:
-								v.free &= ~BLF # Removes quad
-								v.free &= ~TLF # Removes quad
+								v.free &= ~(BLF|TLF) # Removes quad
 				
 			if v.free & TRF and v.free & TLF:
 				# Is my top being used.
@@ -331,8 +351,7 @@ class boxList:
 					if b.v[BL].y == v.y:
 						if b.v[TR].x > v.x:
 							if b.v[BL].x < v.x:
-								v.free &= ~TLF # Removes quad
-								v.free &= ~TRF # Removes quad
+								v.free &= ~(TLF|TRF) # Removes quad
 								
 				
 				# Is my right being used.
@@ -341,10 +360,9 @@ class boxList:
 					if b.v[BL].x == v.x:
 						if b.v[TR].y > v.y:
 							if b.v[BL].y < v.y:
-								v.free &= ~BRF # Removes quad
-								v.free &= ~TRF # Removes quad
+								v.free &= ~(BRF|TRF) # Removes quad
 								
-		'''
+		
 		self.boxes.append(box)
 		
 		
@@ -359,7 +377,6 @@ class boxList:
 		return self.width * self.height
 		
 	# Sort boxes by area
-	# TODO REPLACE WITH SORT(LAMBDA(CMP...))
 	def sortArea(self):
 		self.boxes.sort(lambda A, B: cmp(B.area, A.area) ) # Reverse area sort
 	
