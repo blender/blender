@@ -1046,10 +1046,7 @@ def pointInsideMesh(ob, pt):
 	
 	obImvMat = Blender.Mathutils.Matrix(ob.matrixWorld)
 	obImvMat.invert()
-	pt.resize4D()
-	obSpacePt = pt* obImvMat
-	pt.resize3D()
-	obSpacePt.resize3D()
+	obSpacePt = pt*obImvMat
 	ray = Vector(0,0,-1)
 	me= ob.getData(mesh=1)
 	

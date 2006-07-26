@@ -124,7 +124,7 @@ def main():
 	'Image Options',
 	('Pixel Size:', PREF_IMAGE_SIZE, 64, 4096, 'Image Width and Height.'),\
 	('Pixel Bleed:', PREF_IMAGE_BLEED, 0, 64, 'Image Bleed pixels.'),\
-	('Image Include', PREF_USE_IMAGE, 'Image Bleed pixels.'),\
+	('Image Include', PREF_USE_IMAGE, 'Render the faces image with vertex colors.'),\
 	'',\
 	('Normal Map', PREF_USE_NORMAL, 'Use Normals instead of VCols.'),\
 	]

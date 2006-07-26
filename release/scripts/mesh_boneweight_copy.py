@@ -143,7 +143,6 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 	else: # Add all groups.
 		for group in from_groups:
 			me_to.addVertGroup(group)
-		
 	
 	add_ = Mesh.AssignModes.ADD
 	
@@ -169,13 +168,7 @@ def copy_bone_influences(_from, _to, PREF_SEL_ONLY, PREF_NO_XCROSS):
 # ZSORT return (i/co) tuples, used for fast seeking of the snapvert.
 def worldspace_verts_idx(me, ob):
 	mat= ob.matrixWorld
-	def worldvert(v):
-		vec= Vector(v)
-		vec.resize4D()
-		vec= vec*mat
-		vec.resize3D()
-		return vec
-	verts_zsort= [ (i, worldvert(v.co)) for i, v in enumerate(me.verts) ]
+	verts_zsort= [ (i, v.co*mat) for i, v in enumerate(me.verts) ]
 	
 	# Sorts along the Z Axis so we can optimize the getsnap.
 	verts_zsort.sort(lambda a,b: cmp(a[1].z, b[1].z,))
@@ -184,13 +177,7 @@ def worldspace_verts_idx(me, ob):
 
 def worldspace_verts(me, ob):
 	mat= ob.matrixWorld
-	def worldvert(v):
-		vec= Vector(v)
-		vec.resize4D()
-		vec= vec*mat
-		vec.resize3D()
-		return vec
-	return [ worldvert(v.co) for v in me.verts ]
+	return [ v.co*mat for v in me.verts ]
 	
 def subdivMesh(me, subdivs):
 	oldmode = Mesh.Mode()
