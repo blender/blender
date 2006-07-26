@@ -138,9 +138,9 @@ PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
 	if(mat->rowSize != vec->size){
 		if(mat->rowSize == 4 && vec->size != 3){
 			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-				"matrix * vector: matrix row size and vector size must be the same\n");
+				"matrix * vector: matrix row size and vector size must be the same");
 		}else{
-			vecCopy[3] = 0.0f;
+			vecCopy[3] = 1.0f;
 		}
 	}
 
@@ -202,9 +202,9 @@ PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 	if(mat->colSize != vec->size){
 		if(mat->rowSize == 4 && vec->size != 3){
 			return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-				"vector * matrix: matrix column size and the vector size must be the same\n");
+				"vector * matrix: matrix column size and the vector size must be the same");
 		}else{
-			vecCopy[3] = 0.0f;
+			vecCopy[3] = 1.0f;
 		}
 	}
 	size = vec->size;
