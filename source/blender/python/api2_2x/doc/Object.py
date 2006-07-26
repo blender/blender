@@ -390,12 +390,11 @@ class Object:
   def getData(name_only=False, mesh=False):
     """
     Returns the Datablock object (Mesh, Lamp, Camera, etc.) linked to this Object.
-    If the keyword parameter 'name_only' is True, only the Datablock
+    If the keyword parameter B{name_only} is True, only the Datablock
     name is returned as a string.  It the object is of type Mesh, then the
-    'mesh' keyword can also be used; if True the data return is a Mesh object,
+    B{mesh} keyword can also be used; if True the data return is a Mesh object,
     otherwise it is an NMesh object (the default).
-    Using the mesh keyword is ignored for non mesh objects.
-    @note: Make sure the object your getting the data from isnt in EditMode before calling this function otherwise youll get the data before entering EditMode. see L{Window.EditMode}
+    Using the B{mesh} keyword is ignored for non-mesh objects.
     @type name_only: bool
     @param name_only: This is a keyword parameter.  If True (or nonzero),
     only the name of the data object is returned. 
@@ -403,10 +402,16 @@ class Object:
     @param mesh: This is a keyword parameter.  If True (or nonzero), 
     a Mesh data object is returned.
     @rtype: specific Object type or string
-    @return: Depends on the type of Datablock linked to the Object.  If name_only is True, it returns a string.
-    @note: For Mesh objects Mesh is faster then NMesh because Mesh is a thin wrapper.
+    @return: Depends on the type of Datablock linked to the Object.  If
+    B{name_only} is True, it returns a string.
+    @note: For Mesh objects Mesh is faster then NMesh because Mesh is a thin
+    wrapper.
     @note: This function is different from L{NMesh.GetRaw} and L{Mesh.Get}
-    because it keeps a link to the original mesh which it needed if your dealing with Mesh weight groups.
+    because it keeps a link to the original mesh, which is needed if you are
+    dealing with Mesh weight groups.
+    @note: Make sure the object you are getting the data from isn't in
+    EditMode before calling this function; otherwise you'll get the data
+    before entering EditMode. See L{Window.EditMode}.
     """
 
   def getParentBoneName():
