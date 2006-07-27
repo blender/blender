@@ -2,12 +2,12 @@
 
 """
 Name: 'DEC Object File Format (.off)...'
-Blender: 232
+Blender: 242
 Group: 'Import'
 Tooltip: 'Import DEC Object File Format (*.off)'
 """
 
-__author__ = "Anthony D'Agostino (Scorpius)"
+__author__ = "Anthony D'Agostino (Scorpius), Campbell Barton (Ideasman)"
 __url__ = ("blender", "elysiun",
 "Author's homepage, http://www.redrival.com/scorpius")
 __version__ = "Part of IOSuite 0.5"
@@ -26,7 +26,9 @@ Usage:<br>
 open.
 
 Notes:<br>
-	UV Coordinate support has been added.
+	UV Coordinate support has been added. - Scorpius
+	FGON support has been added. - Cam
+	New Mesh module now used. - Cam
 """
 
 # $Id:
@@ -57,65 +59,113 @@ Notes:<br>
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import Blender, meshtools
-#import time
+import Blender
+
 
 # =============================
 # ====== Read OFF Format ======
 # =============================
 def read(filename):
-	#start = time.clock()
+	start = Blender.sys.time()
 	file = open(filename, "rb")
 
-	verts = []
+	verts = [] # verts and uvs are aligned
+	uvs = []
+	
 	faces = []
-	uv = []
-
+	
 	# === OFF Header ===
-	offheader = file.readline()
-	numverts, numfaces, null = file.readline().split()
-	numverts = int(numverts)
-	numfaces = int(numfaces)
+	# Skip the comments
+	offheader= file.readline()
+	while offheader.startswith('#'):
+		offheader = file.readline()
+	
+	numverts, numfaces, numedges= map(int, offheader.split())
 	if offheader.find('ST') >= 0:
 		has_uv = True
+		Vector= Mathutils.Vector
 	else:
 		has_uv = False
 
 	# === Vertex List ===
-	for i in range(numverts):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
+	for i in xrange(numverts):
 		if has_uv:
 			x, y, z, u, v = map(float, file.readline().split())
-			uv.append((u, v))
+			uvs.append(Vector(u, v))
 		else:
 			x, y, z = map(float, file.readline().split())
 		verts.append((x, y, z))
 
 	# === Face List ===
-	for i in range(numfaces):
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
-		line = file.readline().split()
-		numfaceverts = len(line)-1
-		facev = []
-		for j in range(numfaceverts):
-			index = int(line[j+1])
-			facev.append(index)
-		facev.reverse()
-		faces.append(facev)
+	def fan_face(face):
+		# 'Elp, Only fan fill- if were keen we could use our trusty BPyMesh.ngon function
+		# So far I havnt seen any big ngons in on off file - Cam
+		return [ (face[0], face[i-1], face[i]) for i in xrange(2,len(face))]
+	
+	for i in xrange(numfaces):
+		line = file.readline().split() # ignore the first value, its just the face count but we can work that out anyway
+		
+		
+		# appends all the indicies in reverse order except 0
+		# xrange(len(line)-1, -1, -1) # normal reverse loop
+		# xrange(len(line)-1, 0, -1) # ignoring index 0 because its only a count
+		face= [int(line[j]) for j in xrange(len(line)-1, 0, -1)]
+		if len(face)>4:
+			faces.extend( fan_face(face) )
+		else:
+			faces.append(face)
+			
+	scn= Blender.Scene.GetCurrent()
+	name= filename.split('/')[-1].split('\\')[-1].split('.')[0]
+	me= Blender.Mesh.New(name)
+	me.verts.extend(verts)
+	me.faces.extend(faces)
+	
+	# Now edges if we have them, render fgon
+	if numedges:
+		FGON_FLAG= Blender.Mesh.EdgeFlags.FGON
+			
+		edge_dict= {}
+		# Set all edges to be fgons by default
+		for ed in me.edges:
+			ed.flag |= FGON_FLAG
+			i1= ed.v1.index
+			i2= ed.v2.index
+			if i1>i2:
+				i1,i2= i2,i1
+			
+			edge_dict[i1,i2]= ed
+		
+		# Now make known edges fisible
+		for i in xrange(numedges):
+			i1,i2= file.readline().split()
+			i1= int(i1)
+			i2= int(i2)		
+			if i1>i2:
+				i1,i2= i2,i1
+			
+			# We know this edge is seen so unset the fgon flag
+			edge_dict[i1,i2].flag &= ~FGON_FLAG
+	
+	
+	# Assign uvs from vert index
+	if has_uv:
+		for f in me.faces:
+			f_uv= f.uv
+			for i, v in enumerate(f): # same as f.v
+				f_uv[i]= uvs[v.index]
+	
+	for ob in scn.getChildren():
+		ob.sel=0
+	
+	ob= Blender.Object.New('Mesh', name)
+	ob.link(me)
+	scn.link(ob)
+	ob.Layers= scn.Layers
+	ob.sel= 1
+	Blender.Window.RedrawAll()
+	print 'Off "%s" imported in %.4f seconds.' % (name, Blender.sys.time()-start)
+	
 
-	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
-
-	meshtools.create_mesh(verts, faces, objname, faces, uv)
-	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
-	file.close()
-	#end = time.clock()
-	#seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully imported " + Blender.sys.basename(filename)# + seconds
-	meshtools.print_boxed(message)
-
-def fs_callback(filename):
-	read(filename)
-
-Blender.Window.FileSelector(fs_callback, "Import OFF")
+if __name__=='__main__':
+	Blender.Window.FileSelector(read, 'Import OFF', '*.off')
