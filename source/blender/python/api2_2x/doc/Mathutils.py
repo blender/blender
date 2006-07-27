@@ -479,7 +479,13 @@ class Vector:
     Normalize the vector, making the length of the vector always 1.0
     @note: Normalize works for vectors of all sizes, however 4D Vectors w axis is left untouched.
     @note: Normalizing a vector where all values are zero results in all axis having a nan value (not a number).
-    @return: a copy of itself
+    @return: None
+    """
+
+  def normalized():
+    """
+    Same as normalize except it returns a normalized copy of the vector, leaving the original intact.
+    @return: a normalized copy of the vector
     """
 
   def negate():
@@ -777,18 +783,30 @@ class Matrix:
     """
     Set the matrix to the identity matrix.
     An object with zero location and rotation, a scale of 1, will have an identity matrix.
+
+    See U{http://en.wikipedia.org/wiki/Identity_matrix}
     @return: a copy of itself
     """
 
   def transpose():
     """
     Set the matrix to its transpose.
-    @return: a copy of itself
+    
+    See U{http://en.wikipedia.org/wiki/Transpose}
+    @return: None
+    """
+
+  def transposed():
+    """
+    Same as transpose() except a transposed copy of the matrix is returned leaving the original intact.
+    @return: a transposed copy of the matrix
     """
 
   def determinant():
     """
     Return the determinant of a matrix.
+    
+    See U{http://en.wikipedia.org/wiki/Determinant}
     @rtype: float
     @return: Return a the determinant of a matrix.
     """
@@ -796,8 +814,16 @@ class Matrix:
   def invert():
     """
     Set the matrix to its inverse.
+    
+    See U{http://en.wikipedia.org/wiki/Inverse_matrix}
     @return: a copy of itself
     @raise ValueError: When matrix is singular.
+    """
+
+  def inverted():
+    """
+    Same as invert() except an inverted copy of the matrix is returned leaving the original intact.
+    @return: an inverted copy of the matrix
     """
 
   def rotationPart():
@@ -820,6 +846,7 @@ class Matrix:
   def scalePart():
     """
     Return a the scale part of a 3x3 or 4x4 matrix.
+    @note: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.
     @rtype: Vector object.
     @return: Return a the scale of a matrix.
     """
