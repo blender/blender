@@ -4400,8 +4400,10 @@ static int Object_setRBMass( BPy_Object * self, PyObject * args )
 	if( !flt )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected float argument" );
+	
 	value = PyFloat_AS_DOUBLE( flt );
-
+	Py_DECREF(flt);
+	
 	if( value < 0.0f )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 			"acceptable values are non-negative, 0.0 or more" );
@@ -4421,7 +4423,8 @@ static int Object_setRBRadius( BPy_Object * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected float argument" );
 	value = PyFloat_AS_DOUBLE( flt );
-
+	Py_DECREF(flt);
+	
 	if( value < 0.0f )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 			"acceptable values are non-negative, 0.0 or more" );

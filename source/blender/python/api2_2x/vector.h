@@ -62,7 +62,9 @@ blender (stored in blend_data). This is an either/or struct not both*/
 //prototypes
 PyObject *Vector_Zero( VectorObject * self );
 PyObject *Vector_Normalize( VectorObject * self );
+PyObject *Vector_Normalized( VectorObject * self );
 PyObject *Vector_Negate( VectorObject * self );
+PyObject *Vector_Negated( VectorObject * self );
 PyObject *Vector_Resize2D( VectorObject * self );
 PyObject *Vector_Resize3D( VectorObject * self );
 PyObject *Vector_Resize4D( VectorObject * self );

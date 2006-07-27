@@ -462,6 +462,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 			}
 
 			scalar = (float)PyFloat_AS_DOUBLE(f);
+			Py_DECREF(f);
 			for(x = 0; x < 4; x++) {
 				quat[x] = quat2->quat[x] * scalar;
 			}
@@ -478,6 +479,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 				}
 
 				scalar = (float)PyFloat_AS_DOUBLE(f);
+				Py_DECREF(f);
 				for(x = 0; x < 4; x++) {
 					quat[x] = quat1->quat[x] * scalar;
 				}

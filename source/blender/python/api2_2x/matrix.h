@@ -43,14 +43,14 @@ typedef float **ptRow;
 typedef struct _Matrix {
 	PyObject_VAR_HEAD 
 	struct{
-		float *py_data;		//python managed
-		float *blend_data;	//blender managed
+		float *py_data;		/*python managed*/
+		float *blend_data;	/*blender managed*/
 	}data;
-	ptRow matrix;			//ptr to the contigPtr (accessor)
-	float *contigPtr;		//1D array of data (alias)
+	ptRow matrix;			/*ptr to the contigPtr (accessor)*/
+	float *contigPtr;		/*1D array of data (alias)*/
 	int rowSize;
 	int colSize;
-	int wrapped;			//is wrapped data?
+	int wrapped;			/*is wrapped data?*/
 	PyObject *coerced_object;
 } MatrixObject;
 /*coerced_object is a pointer to the object that it was
@@ -62,12 +62,14 @@ object uses. It can use either PyMem allocated data (which will
 be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
-//prototypes
+/*prototypes*/
 PyObject *Matrix_Zero( MatrixObject * self );
 PyObject *Matrix_Identity( MatrixObject * self );
 PyObject *Matrix_Transpose( MatrixObject * self );
+PyObject *Matrix_Transposed( MatrixObject * self );
 PyObject *Matrix_Determinant( MatrixObject * self );
 PyObject *Matrix_Invert( MatrixObject * self );
+PyObject *Matrix_Inverted( MatrixObject * self );
 PyObject *Matrix_TranslationPart( MatrixObject * self );
 PyObject *Matrix_RotationPart( MatrixObject * self );
 PyObject *Matrix_scalePart( MatrixObject * self );

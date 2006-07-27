@@ -788,6 +788,7 @@ int EXPP_setModuleConstant ( BPy_constant *constant, void *param, char type )
 		return 0;
 	case 'f':
 		*(float *)param = (float)PyFloat_AS_DOUBLE( item );
+		Py_DECREF(item); /* line above increfs */
 		return 0;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
