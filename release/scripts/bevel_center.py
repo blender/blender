@@ -85,9 +85,9 @@ def add_to_NV(old,dir,new):
 
 def get_v(old, *neighbors):
 	# compute the direction of the new vert
-	if len(neighbors) == 1: dir = (neighbors[0].co - old.co).normalize()
+	if len(neighbors) == 1: dir = (neighbors[0].co - old.co).normalized()
 		#dir
-	else: dir = (neighbors[0].co - old.co).normalize() + (neighbors[1].co-old.co).normalize()
+	else: dir = (neighbors[0].co - old.co).normalized() + (neighbors[1].co-old.co).normalized()
 	 
 	# look in NV if this vert already exists
 	key = tuple(dir)

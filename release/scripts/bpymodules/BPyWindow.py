@@ -44,7 +44,7 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 			# sorry - i cannot explain here what they all do
 			# - if you're not familiar with all those matrices take a look at an introduction to OpenGL...
 			pm	= Window.GetPerspMatrix()   # the prespective matrix
-			pmi  = Matrix(pm); pmi.invert() # the inverted perspective matrix
+			pmi  = pm.inverted() # the inverted perspective matrix
 			
 			if (1.0 - epsilon < pmi[3][3] < 1.0 + epsilon):
 				# pmi[3][3] is 1.0 if the 3dwin is in ortho-projection mode (toggled with numpad 5)

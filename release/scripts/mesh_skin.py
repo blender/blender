@@ -74,8 +74,8 @@ class edgeLoop:
 		# Use next and prev, nextDist, prevDist
 		
 		# Get Loops centre.
-		fac= 1.0/len(loop)
-		self.centre= reduce(lambda a,b: a+b.co*fac, loop, Mathutils.Vector())
+		fac= len(loop)
+		self.centre= reduce(lambda a,b: a+b.co/fac, loop, Mathutils.Vector())
 		
 		# Convert Vert loop to Edges.
 		self.edges = []

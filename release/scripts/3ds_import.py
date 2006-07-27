@@ -314,10 +314,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 	
 	
 	def putContextMesh(myContextMesh, myContextMeshMaterials):
-		INV_MAT= Blender.Mathutils.Matrix(contextMatrix)
-		
-		INV_MAT.invert()
-		contextMesh.transform(INV_MAT)
+		contextMesh.transform(contextMatrix.inverted())
 		
 		materialFaces= set()
 		# Now make copies with assigned materils.
