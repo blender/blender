@@ -35,41 +35,50 @@ def rnd_mat():
 	render_mat.mode |= Blender.Material.Modes.TEXFACE
 	return render_mat
 
-def vcol2image(me, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_USE_IMAGE, PREF_USE_NORMAL):
+
+def vcol2image(me_s, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_USE_IMAGE, PREF_USE_NORMAL):
 	
 	BLEED_PIXEL= 1.0/PREF_IMAGE_SIZE
-	if PREF_USE_NORMAL:
-		BPyMesh.meshCalcNormals(me)
-	
 	render_me= Blender.Mesh.New()
-	render_me.verts.extend( [Vector(0,0,0),] )
+	render_me.verts.extend( [Vector(0,0,0),] ) # 0 vert uv bugm dummy vert
 	
-	render_me.verts.extend( [ Vector(uv.x-BLEED_PIXEL, uv.y-BLEED_PIXEL/2, 0) for f in me.faces for uv in f.uv ] )
-	i= 1
-	tmp_faces= []
-	for f in me.faces:
-		tmp_faces.append( [ii+i for ii in xrange(len(f))] )
-		i+= len(f)
 	
-	render_me.faces.extend(tmp_faces)
-	
-	for i, f in enumerate(me.faces):
-		frnd= render_me.faces[i]
-		if PREF_USE_IMAGE:
-			ima= f.image
-			if ima:
-				frnd.image= ima
-				
-		frnd.uv= f.uv
+	for me in me_s:
+		
+		# Multiple mesh support.
+			
 		if PREF_USE_NORMAL:
-			for ii, v in enumerate(f):
-				no= v.no
-				c= frnd.col[ii]
-				c.r= int((no.x+1)*128)-1
-				c.g= int((no.y+1)*128)-1
-				c.b= int((no.z+1)*128)-1
-		else:
-			frnd.col= f.col
+			BPyMesh.meshCalcNormals(me)
+		
+		vert_offset= len(render_me.verts)
+		render_me.verts.extend( [ Vector(uv.x-BLEED_PIXEL, uv.y-BLEED_PIXEL/2, 0) for f in me.faces for uv in f.uv ] )
+		
+		tmp_faces= []
+		for f in me.faces:
+			tmp_faces.append( [ii+vert_offset for ii in xrange(len(f))] )
+			vert_offset+= len(f)
+		
+		face_offset= len(render_me.faces)
+		render_me.faces.extend(tmp_faces)
+		
+		
+		for i, f in enumerate(me.faces):
+			frnd= render_me.faces[face_offset+i]
+			if PREF_USE_IMAGE:
+				ima= f.image
+				if ima:
+					frnd.image= ima
+					
+			frnd.uv= f.uv
+			if PREF_USE_NORMAL:
+				for ii, v in enumerate(f.v):
+					no= v.no
+					c= frnd.col[ii]
+					c.r= int((no.x+1)*128)-1
+					c.g= int((no.y+1)*128)-1
+					c.b= int((no.z+1)*128)-1
+			else:
+				frnd.col= f.col
 			
 	
 	render_ob= Blender.Object.New('Mesh')
@@ -105,6 +114,8 @@ def main():
 	# Filename without path or extension.
 	scn= Blender.Scene.GetCurrent()
 	act_ob= scn.getActiveObject()
+	obsel= [ob for ob in Blender.Object.GetSelected() if ob.getType()=='Mesh']
+	
 	if not act_ob or act_ob.getType() != 'Mesh':
 		Blender.Draw.PupMenu('Error, no active mesh selected.')
 		return
@@ -117,6 +128,7 @@ def main():
 	PREF_IMAGE_BLEED = Create(6)
 	PREF_USE_IMAGE = Create(0)
 	PREF_USE_NORMAL = Create(0)
+	if len(obsel)>1: PREF_USE_MULIOB = Create(0)
 	
 	pup_block = [\
 	'Image Path: (no ext)',\
@@ -129,10 +141,21 @@ def main():
 	('Normal Map', PREF_USE_NORMAL, 'Use Normals instead of VCols.'),\
 	]
 	
+	if len(obsel)>1:
+		pup_block.append('')
+		pup_block.append(('All Selected Meshes', PREF_USE_MULIOB, 'Use faces from all selcted meshes, assumes their faces dont overlap.'))
+		
+	
 	if not Blender.Draw.PupBlock('VCol to Image', pup_block):
 		return
 	
-	vcol2image(act_ob.getData(mesh=1), PREF_IMAGE_PATH.val, PREF_IMAGE_SIZE.val, PREF_IMAGE_BLEED.val, PREF_USE_IMAGE.val, PREF_USE_NORMAL.val)
+	if not PREF_USE_MULIOB.val:
+		vcol2image([act_ob.getData(mesh=1)], PREF_IMAGE_PATH.val, PREF_IMAGE_SIZE.val, PREF_IMAGE_BLEED.val, PREF_USE_IMAGE.val, PREF_USE_NORMAL.val)
+	else:
+		# Make double sure datas unique
+		me_s = dict([(ob.getData(name_only=1), ob.getData(mesh=1)) for ob in obsel]).values()
+		vcol2image(me_s, PREF_IMAGE_PATH.val, PREF_IMAGE_SIZE.val, PREF_IMAGE_BLEED.val, PREF_USE_IMAGE.val, PREF_USE_NORMAL.val)
+	
 	Blender.Window.RedrawAll()
 
 if __name__ == '__main__':
