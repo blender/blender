@@ -273,10 +273,11 @@ PyObject *Matrix_Invert(MatrixObject * self)
 /*---------------------------Matrix.inverted() ------------------*/
 PyObject *Matrix_Inverted(MatrixObject * self)
 {
-	MatrixObject *mat;
-	mat= (MatrixObject*)newMatrixObject(self->matrix, self->rowSize, self->colSize, Py_NEW);
-	Matrix_Invert(mat);
-	return (PyObject*)mat;
+	MatrixObject *pymat;	
+	/*copy the matrix*/
+	pymat= (MatrixObject*)newMatrixObject((float (*))*self->matrix, self->rowSize, self->colSize, Py_NEW);
+	Matrix_Invert(pymat);
+	return (PyObject*)pymat;
 }
 
 /*---------------------------Matrix.determinant() ----------------*/
@@ -331,10 +332,11 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 /*---------------------------Matrix.transposed() ------------------*/
 PyObject *Matrix_Transposed(MatrixObject * self)
 {
-	MatrixObject *mat;
-	mat= (MatrixObject*)newMatrixObject(self->matrix, self->rowSize, self->colSize, Py_NEW);
-	Matrix_Transpose(mat);
-	return (PyObject*)mat;
+	MatrixObject *pymat;
+	/*copy the matrix*/
+	pymat= (MatrixObject*)newMatrixObject((float (*))*self->matrix, self->rowSize, self->colSize, Py_NEW);
+	Matrix_Transpose(pymat);
+	return (PyObject*)pymat;
 }
 
 
@@ -726,6 +728,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 			}
 
 			scalar = (float)PyFloat_AS_DOUBLE(f);
+			Py_DECREF(f);
 			for(x = 0; x < mat2->rowSize; x++) {
 				for(y = 0; y < mat2->colSize; y++) {
 					mat[((x * mat2->colSize) + y)] = scalar * mat2->matrix[x][y];
@@ -750,6 +753,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 				}
 
 				scalar = (float)PyFloat_AS_DOUBLE(f);
+				Py_DECREF(f);
 				for(x = 0; x < mat1->rowSize; x++) {
 					for(y = 0; y < mat1->colSize; y++) {
 						mat[((x * mat1->colSize) + y)] = scalar * mat1->matrix[x][y];
