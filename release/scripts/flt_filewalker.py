@@ -22,6 +22,15 @@ from struct import *
 import re
 
 class FltIn:
+    def __init__(self, filename):
+        self.file = open(filename, 'rb')
+        self.position = 0
+        self.next_position = 100000
+        self.opcode = 0
+        self.length = 0
+        self.level = 0
+        self.repeat = False # Repeat the last record.
+
     def begin_record(self):
         if self.repeat == True:
             self.repeat = False
@@ -64,7 +73,7 @@ class FltIn:
         s = ''
         if self.file.tell() + length <= self.next_position:
             start = self.file.tell()
-            for i in range(length):
+            for i in xrange(length):
                 char = self.file.read(1)
                 if char == '\x00':
                     break
@@ -143,15 +152,6 @@ class FltIn:
 
     def close_file(self):
         self.file.close()
-
-    def __init__(self, filename):
-        self.file = open(filename, 'rb')
-        self.position = 0
-        self.next_position = 100000
-        self.opcode = 0
-        self.length = 0
-        self.level = 0
-        self.repeat = False # Repeat the last record.
         
 class FltOut:
     # Length includes terminating null
@@ -192,7 +192,7 @@ class FltOut:
         self.file.write( pack('>b', a) )
 
     def pad(self, reps):
-        for i in range(reps):
+        for i in xrange(reps):
             self.file.write('\x00')
 
     def close_file(self):
@@ -250,8 +250,8 @@ class FileFinder:
                 return t
 
         # Ask user where it is.
-        #self.user_input = Blender.Draw.PupStrInput(filename + "? ", '', 100)
-        self.user_input = None
+        self.user_input = Blender.Draw.PupStrInput(filename + "? ", '', 100)
+        #self.user_input = None
         if self.user_input != None:
             t = Blender.sys.join(self.user_input, filename)
             if Blender.sys.exists(t):
