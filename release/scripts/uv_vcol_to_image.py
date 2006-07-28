@@ -1,16 +1,16 @@
 #!BPY
 """
-Name: 'Color/Normals to Image'
+Name: 'Bake Image from UVs (vcol/img)'
 Blender: 241
 Group: 'UV'
-Tooltip: 'Save the active meshes vertex colors or normals to an image.'
+Tooltip: 'Save the active or selected meshes meshes images, vertex colors or normals to an image.'
 """
 __author__= ['Campbell Barton']
 __url__= ('blender', 'elysiun', 'http://www.gametutorials.com')
 __version__= '0.95'
 __bpydoc__= '''\
 
-Vert color to Image
+Bake from UVs to image
 
 This script makes an image from a meshes vertex colors, using the UV coordinates
 to draw the faces into the image.
@@ -23,20 +23,41 @@ to automaticaly do this.
 
 import Blender
 import BPyRender
-# reload(BPyRender)
 import BPyMesh
 Vector= Blender.Mathutils.Vector
 Create= Blender.Draw.Create
 
-def rnd_mat():
-	render_mat= Blender.Material.New()
-	render_mat.mode |= Blender.Material.Modes.VCOL_PAINT
-	render_mat.mode |= Blender.Material.Modes.SHADELESS
-	render_mat.mode |= Blender.Material.Modes.TEXFACE
-	return render_mat
 
-
-def vcol2image(me_s, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_USE_IMAGE, PREF_USE_NORMAL):
+def vcol2image(me_s,\
+	PREF_IMAGE_PATH,\
+	PREF_IMAGE_SIZE,\
+	PREF_IMAGE_BLEED,\
+	PREF_IMAGE_SMOOTH,\
+	PREF_IMAGE_WIRE,\
+	PREF_USE_IMAGE,\
+	PREF_USE_VCOL,\
+	PREF_USE_MATCOL,\
+	PREF_USE_NORMAL):
+	
+	
+	def rnd_mat():
+		render_mat= Blender.Material.New()
+		mode= render_mat.mode
+		
+		# Dont use lights ever
+		mode |= Blender.Material.Modes.SHADELESS
+		
+		if PREF_IMAGE_WIRE:
+			mode |= Blender.Material.Modes.WIRE
+		if PREF_USE_VCOL or PREF_USE_MATCOL: # both vcol and material color use vertex cols to avoid the 16 max limit in materials
+			mode |= Blender.Material.Modes.VCOL_PAINT
+		if PREF_USE_IMAGE:
+			mode |= Blender.Material.Modes.TEXFACE
+		
+		# Copy back the mode
+		render_mat.mode |= mode
+		return render_mat
+	
 	
 	BLEED_PIXEL= 1.0/PREF_IMAGE_SIZE
 	render_me= Blender.Mesh.New()
@@ -61,6 +82,16 @@ def vcol2image(me_s, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_US
 		face_offset= len(render_me.faces)
 		render_me.faces.extend(tmp_faces)
 		
+		if PREF_USE_MATCOL:
+			materials= []
+			for mat in me.materials:
+				if mat==None:
+					materials.append((1.0, 1.0, 1.0)) # white
+				else:
+					materials.append(mat.rgbCol)
+			
+			if not materials: # Well need a dummy material so the index works if we have no materials.
+				materials= [(1.0, 1.0, 1.0)]
 		
 		for i, f in enumerate(me.faces):
 			frnd= render_me.faces[face_offset+i]
@@ -70,23 +101,44 @@ def vcol2image(me_s, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_US
 					frnd.image= ima
 					
 			frnd.uv= f.uv
+			
+			# Use normals excludes other color operations
 			if PREF_USE_NORMAL:
 				for ii, v in enumerate(f.v):
-					no= v.no
+					nx, ny, nz= v.no
 					c= frnd.col[ii]
-					c.r= int((no.x+1)*128)-1
-					c.g= int((no.y+1)*128)-1
-					c.b= int((no.z+1)*128)-1
+					# Modified to adjust from the current color
+					c.r= int((nx+1)*128)-1
+					c.g= int((ny+1)*128)-1
+					c.b= int((nz+1)*128)-1
 			else:
-				frnd.col= f.col
-			
+				# Initialize color
+				if PREF_USE_VCOL:
+					frnd.col= f.col
+				
+					# Mix with vert color
+					if PREF_USE_MATCOL:
+						# Multiply with existing color
+						r,g,b= materials[f.mat]
+						for col in frnd.col:
+							col.r= int(col.r*r)
+							col.g= int(col.g*g)
+							col.b= int(col.b*b)
+							
+				elif PREF_USE_MATCOL: # Mat color only
+						# Multiply with existing color
+						r,g,b= materials[f.mat]
+						for col in frnd.col:
+							col.r= int(255*r)
+							col.g= int(255*g)
+							col.b= int(255*b)
 	
 	render_ob= Blender.Object.New('Mesh')
 	render_ob.link(render_me)
 	obs= [render_ob]
 	
 	# EVIL BLEEDING CODE!! - Just do copys of the mesh and place behind. Crufty but better then many other methods I have seen.
-	if PREF_IMAGE_BLEED:
+	if PREF_IMAGE_BLEED and not PREF_IMAGE_WIRE:
 		z_offset= 0.0
 		for i in xrange(PREF_IMAGE_BLEED):
 			for diag1, diag2 in ((-1,-1),(-1,1),(1,-1),(1,1), (1,0), (0,1), (-1,0), (0, -1)): # This line extends the object in 8 different directions, top avoid bleeding.
@@ -103,8 +155,10 @@ def vcol2image(me_s, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_BLEED, PREF_US
 	
 	
 	render_me.materials= [rnd_mat()]
+	im= BPyRender.imageFromObjectsOrtho(obs, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_SIZE, PREF_IMAGE_SMOOTH)
 	
-	im= BPyRender.imageFromObjectsOrtho(obs, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_SIZE)
+	# Clear from memory as best as we can
+	render_me.verts= None
 
 
 
@@ -126,7 +180,12 @@ def main():
 	PREF_IMAGE_PATH = Create('//%s_grp' % newpath)
 	PREF_IMAGE_SIZE = Create(1024)
 	PREF_IMAGE_BLEED = Create(6)
-	PREF_USE_IMAGE = Create(0)
+	PREF_IMAGE_SMOOTH= Create(1)
+	PREF_IMAGE_WIRE= Create(0)
+	
+	PREF_USE_IMAGE = Create(1)
+	PREF_USE_VCOL = Create(1)
+	PREF_USE_MATCOL = Create(0)
 	PREF_USE_NORMAL = Create(0)
 	if len(obsel)>1: PREF_USE_MULIOB = Create(0)
 	
@@ -135,26 +194,42 @@ def main():
 	('', PREF_IMAGE_PATH, 3, 100, 'Path to new Image. "//" for curent blend dir.'),\
 	'Image Options',
 	('Pixel Size:', PREF_IMAGE_SIZE, 64, 4096, 'Image Width and Height.'),\
-	('Pixel Bleed:', PREF_IMAGE_BLEED, 0, 64, 'Image Bleed pixels.'),\
-	('Image Include', PREF_USE_IMAGE, 'Render the faces image with vertex colors.'),\
-	'',\
+	('Pixel Bleed:', PREF_IMAGE_BLEED, 0, 64, 'Extend pixels from boundry edges to avoid mipmapping errors on rendering.'),\
+	('Smooth lines', PREF_IMAGE_SMOOTH, 'Render smooth lines.'),\
+	('Wire Only', PREF_IMAGE_WIRE, 'Renders a wireframe from the mesh, implys bleed is zero.'),\
+	
+	'Color Source',\
+	('Image Texface', PREF_USE_IMAGE, 'Render the faces image in the output.'),\
+	('Vertex Colors', PREF_USE_VCOL, 'Use Normals instead of VCols.'),\
+	('Material Color', PREF_USE_MATCOL, 'Use the materials color.'),\
 	('Normal Map', PREF_USE_NORMAL, 'Use Normals instead of VCols.'),\
 	]
 	
 	if len(obsel)>1:
 		pup_block.append('')
-		pup_block.append(('All Selected Meshes', PREF_USE_MULIOB, 'Use faces from all selcted meshes, assumes their faces dont overlap.'))
+		pup_block.append(('All Selected Meshes', PREF_USE_MULIOB, 'Use faces from all selcted meshes, Make sure UV coords dont overlap between objects.'))
 		
 	
 	if not Blender.Draw.PupBlock('VCol to Image', pup_block):
 		return
 	
 	if not PREF_USE_MULIOB.val:
-		vcol2image([act_ob.getData(mesh=1)], PREF_IMAGE_PATH.val, PREF_IMAGE_SIZE.val, PREF_IMAGE_BLEED.val, PREF_USE_IMAGE.val, PREF_USE_NORMAL.val)
+		me_s= [act_ob.getData(mesh=1)]
 	else:
 		# Make double sure datas unique
 		me_s = dict([(ob.getData(name_only=1), ob.getData(mesh=1)) for ob in obsel]).values()
-		vcol2image(me_s, PREF_IMAGE_PATH.val, PREF_IMAGE_SIZE.val, PREF_IMAGE_BLEED.val, PREF_USE_IMAGE.val, PREF_USE_NORMAL.val)
+	
+	
+	vcol2image(me_s,\
+	PREF_IMAGE_PATH.val,\
+	PREF_IMAGE_SIZE.val,\
+	PREF_IMAGE_BLEED.val,\
+	PREF_IMAGE_SMOOTH.val,\
+	PREF_IMAGE_WIRE.val,\
+	PREF_USE_IMAGE.val,\
+	PREF_USE_VCOL.val,\
+	PREF_USE_MATCOL.val,\
+	PREF_USE_NORMAL.val)
 	
 	Blender.Window.RedrawAll()
 

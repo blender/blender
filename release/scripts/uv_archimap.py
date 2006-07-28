@@ -1009,19 +1009,23 @@ def main():
 			mostUniqueIndex = 0 # fake
 			
 			fIdx = len(tempFaceListProps)
+			
 			while fIdx:
 				fIdx-=1
 				angleDifference = -1.0 # 180d difference.
 				
 				# Get the closest vec angle we are to.
 				for p in projectVecs:
-					angleDifference = max(angleDifference, DotVecs(p, tempFaceListProps[fIdx][2]))
+					temp_angle_diff= DotVecs(p, tempFaceListProps[fIdx][2])
+					
+					if angleDifference < temp_angle_diff:
+						angleDifference= temp_angle_diff
 				
 				if angleDifference < mostUniqueAngle:
 					# We have a new most different angle
 					mostUniqueIndex = fIdx
 					mostUniqueAngle = angleDifference
-			
+				
 			
 			if mostUniqueAngle < USER_PROJECTION_LIMIT_CONVERTED:
 				#print 'adding', mostUniqueAngle, USER_PROJECTION_LIMIT, len(newProjectFacePropList)
@@ -1133,6 +1137,7 @@ def main():
 	
 	# We want to pack all in 1 go, so pack now
 	if USER_SHARE_SPACE:
+		Window.DrawProgressBar(0.9, "Box Packing for all objects...")
 		packIslands(collected_islandList, collected_islandListArea)
 	
 	Window.DrawProgressBar(1.0, "")
@@ -1140,11 +1145,12 @@ def main():
 	Window.RedrawAll()
 
 if __name__ == '__main__':
-	try:
-		main()
-		
+	#try:
+	main()
+	'''	
 	except KeyboardInterrupt:
 		print '\nUser Canceled.'
 		Draw.PupMenu('user canceled execution, unwrap aborted.')
 		Window.DrawProgressBar(1.0, "")
 		Window.WaitCursor(0)
+	'''

@@ -1,7 +1,7 @@
 from Blender import Scene, sys, Camera, Object, Image
 from Blender.Scene import Render
 
-def imageFromObjectsOrtho(objects, path, width, height, alpha= True):
+def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True):
 	'''
 	Takes any number of objects and renders them on the z axis, between x:y-0 and x:y-1
 	Usefull for making images from a mesh without per pixel operations
@@ -39,14 +39,19 @@ def imageFromObjectsOrtho(objects, path, width, height, alpha= True):
 	
 	render_context.imageSizeX(width)
 	render_context.imageSizeY(height)
-	render_context.enableOversampling(True) 
-	render_context.setOversamplingLevel(16) 
+	
+	if smooth:
+		render_context.enableOversampling(True) 
+		render_context.setOversamplingLevel(16)
+	else:
+		render_context.enableOversampling(False) 
+	
 	render_context.setRenderWinSize(100)
 	render_context.setImageType(Render.PNG)
 	render_context.enableExtensions(True) 
 	#render_context.enableSky() # No alpha needed.
 	if alpha:
-		render_context.alphaMode= 2
+		render_context.alphaMode= 1
 		render_context.enableRGBAColor()
 	else:
 		render_context.alphaMode= 0
