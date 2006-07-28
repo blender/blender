@@ -4862,6 +4862,14 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			memcpy( tmptface, mesh->tface, mesh->totface*sizeof(TFace));
 			MEM_freeN( mesh->tface );
 			mesh->tface = tmptface;
+			
+			/* make new faces tex faces have default tex values */
+			tmptface= mesh->tface + mesh->totface;
+			for( i = good_faces; i-- ; ) {
+				default_tface(tmptface);
+				tmptface++;
+			}
+			
 		} else if( mesh->mcol ) {
 			MCol *tmpmcol;
 
