@@ -682,7 +682,10 @@ static void do_image_imagemenu(void *arg, int event)
 {
 	Image *ima;
 	char name[256];
-
+	
+	/* events >=20 are registered bpython scripts */
+	if (event >= 20) BPY_menu_do_python(PYMENU_IMAGE, event - 20);
+	
 	switch(event)
 	{
 	case 0: /* Open */
@@ -814,6 +817,8 @@ static uiBlock *image_imagemenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=150;
+	BPyMenu *pym;
+	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_imagemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_imagemenu, NULL);
@@ -846,6 +851,14 @@ static uiBlock *image_imagemenu(void *arg_unused)
 		
 		uiDefIconTextBlockBut(block, image_image_rtmappingmenu, NULL, ICON_RIGHTARROW_THIN, "Realtime Texture Mapping", 0, yco-=20, 120, 19, "");
 		// uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Realtime Texture Animation|",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	}
+	
+	/* note that we acount for the N previous entries with i+20: */
+	for (pym = BPyMenuTable[PYMENU_IMAGE]; pym; pym = pym->next, i++) {
+
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
+				 NULL, 0.0, 0.0, 1, i+20, 
+				 pym->tooltip?pym->tooltip:pym->filename);
 	}
 	
 	if(curarea->headertype==HEADERTOP) {
@@ -1127,7 +1140,7 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 	
-	/* note that we acount for the 3 previous entries with i+3: */
+	/* note that we acount for the N previous entries with i+20: */
 	for (pym = BPyMenuTable[PYMENU_UV]; pym; pym = pym->next, i++) {
 
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 

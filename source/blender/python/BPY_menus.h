@@ -90,6 +90,7 @@ typedef enum {
 	PYMENU_SYSTEM,
 	PYMENU_THEMES,
 	PYMENU_UV,/* UV editing tools, to go in UV/Image editor space, 'UV' menu */
+	PYMENU_IMAGE,/* Image editing tools, to go in UV/Image editor space, 'Image' menu */
 	PYMENU_WIZARDS,/* complex 'app' scripts */
 
 	/* entries put after Wizards don't appear at the Scripts win->Scripts menu;

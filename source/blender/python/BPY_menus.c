@@ -95,6 +95,8 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_MATERIALS;
 	else if( !strcmp( str, "UV" ) )
 		return PYMENU_UV;
+	else if( !strcmp( str, "Image" ) )
+		return PYMENU_IMAGE;
 	else if( !strcmp( str, "FaceSelect" ) )
 		return PYMENU_FACESELECT;
 	else if( !strcmp( str, "WeightPaint" ) )
@@ -153,6 +155,9 @@ char *BPyMenu_group_itoa( short menugroup )
 		break;
 	case PYMENU_UV:
 		return "UV";
+		break;
+	case PYMENU_IMAGE:
+		return "Image";
 		break;
 	case PYMENU_FACESELECT:
 		return "FaceSelect";
