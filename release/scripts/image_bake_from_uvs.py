@@ -170,7 +170,7 @@ def main():
 	act_ob= scn.getActiveObject()
 	obsel= [ob for ob in Blender.Object.GetSelected() if ob.getType()=='Mesh']
 	
-	if not act_ob or act_ob.getType() != 'Mesh':
+	if not act_ob or act_ob.getType() != 'Mesh' or not act_ob.getData(mesh=1).faceUV:
 		Blender.Draw.PupMenu('Error, no active mesh selected.')
 		return
 		
@@ -218,7 +218,7 @@ def main():
 	else:
 		# Make double sure datas unique
 		me_s = dict([(ob.getData(name_only=1), ob.getData(mesh=1)) for ob in obsel]).values()
-	
+		me_s = [me for me in me_s if me.faceUV]
 	
 	vcol2image(me_s,\
 	PREF_IMAGE_PATH.val,\

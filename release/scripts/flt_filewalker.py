@@ -250,7 +250,8 @@ class FileFinder:
                 return t
 
         # Ask user where it is.
-        self.user_input = Blender.Draw.PupStrInput(filename + "? ", '', 100)
+        #self.user_input = Blender.Draw.PupStrInput(filename + "? ", '', 100)
+        self.user_input = None
         if self.user_input != None:
             t = Blender.sys.join(self.user_input, filename)
             if Blender.sys.exists(t):
