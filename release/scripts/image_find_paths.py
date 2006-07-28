@@ -1,9 +1,9 @@
 #!BPY
 
 """
-Name: 'Find Image Target Paths'
-Blender: 241
-Group: 'UV'
+Name: 'Fix broken paths'
+Blender: 242
+Group: 'Image'
 Tooltip: 'Finds all image paths from this blend and references the new paths'
 """
 

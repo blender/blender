@@ -1,8 +1,8 @@
 #!BPY
 """
-Name: 'Bake Image from UVs (vcol/img)'
+Name: 'Bake Image from UVs (vcol/img/nor)'
 Blender: 241
-Group: 'UV'
+Group: 'Image'
 Tooltip: 'Save the active or selected meshes meshes images, vertex colors or normals to an image.'
 """
 __author__= ['Campbell Barton']

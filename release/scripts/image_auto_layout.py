@@ -3,7 +3,7 @@
 """
 Name: 'Auto Image Layout'
 Blender: 241
-Group: 'UV'
+Group: 'Image'
 Tooltip: 'Pack all texture images into 1 image and remap faces.'
 """
 

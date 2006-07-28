@@ -2,7 +2,7 @@
 """
 Name: 'Image Edit (External App)'
 Blender: 241
-Group: 'UV'
+Group: 'Image'
 Tooltip: 'Edits the image in another application. The Gimp for eg.'
 """
 
