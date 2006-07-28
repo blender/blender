@@ -55,13 +55,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_utildefines.h"
+#include "BKE_brush.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_texture.h"
 #include "BKE_object.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -1465,6 +1466,8 @@ void set_faceselect()	/* toggle */
 	allqueue(REDRAWIMAGE, 0);
 }
 
+/* Texture Paint */
+
 void set_texturepaint() /* toggle */
 {
 	Object *ob = OBACT;
@@ -1488,264 +1491,109 @@ void set_texturepaint() /* toggle */
 
 	if(G.f & G_TEXTUREPAINT)
 		G.f &= ~G_TEXTUREPAINT;
-	else if (me)
+	else if (me) {
 		G.f |= G_TEXTUREPAINT;
+		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
+	}
 
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-/**
- * Get the view ray through the screen point.
- * Uses the OpenGL settings of the active view port.
- * The coordinates should be given in viewport coordinates.
- * @author	Maarten Gribnau
- * @param	x		the x-coordinate of the screen point.
- * @param	y		the y-coordinate of the screen point.
- * @param	org		origin of the view ray.
- * @param	dir		direction of the view ray.
- */
-static void get_pick_ray(short *xy, float org[3], float dir[3])
+/* Get the barycentric coordinates of 2d point p in 2d triangle (v1, v2, v3) */
+static void texpaint_barycentric_2d(float *v1, float *v2, float *v3, float *p, float *w)
 {
-	double mvmatrix[16];
-	double projmatrix[16];
-	GLint viewport[4];
-	double px, py, pz;
-	float l;
+	float b[2], c[2], h[2], div;
 
-	/* Get the matrices needed for gluUnProject */
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+	Vec2Subf(b, v1, v3);
+	Vec2Subf(c, v2, v3);
+	Vec2Subf(h, p, v3);
 
-	/* Set up viewport so that gluUnProject will give correct values */
-	viewport[0] = 0;
-	viewport[1] = 0;
-	/* printf("viewport = (%4d, %4d, %4d, %4d)\n", viewport[0], viewport[1], viewport[2], viewport[3]); */
-	/* printf("cursor = (%4d, %4d)\n", x, y); */
+	div= b[0]*c[1] - b[1]*c[0];
 
-	gluUnProject((GLdouble) xy[0], (GLdouble) xy[1], 0.0, mvmatrix, projmatrix, viewport, &px, &py, &pz);
-	org[0] = (float)px; org[1] = (float)py; org[2] = (float)pz;
-	/* printf("world point at z=0.0 is (%f, %f, %f)\n", org[0], org[1], org[2]); */
-	gluUnProject((GLdouble) xy[0], (GLdouble) xy[1], 1.0, mvmatrix, projmatrix, viewport, &px, &py, &pz); 
-	/* printf("world point at z=1.0 is (%f, %f, %f)\n", px, py, pz); */
-	dir[0] = ((float)px) - org[0];
-	dir[1] = ((float)py) - org[1];
-	dir[2] = ((float)pz) - org[2];
-	l = (float)sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
-	if (!l) return;
-	l = 1. / l;
-	dir[0] *= l; dir[1] *= l; dir[2] *= l;
-	/* printf("ray org. is (%f, %f, %f)\n", org[0], org[1], org[2]); */
-	/* printf("ray dir. is (%f, %f, %f)\n", dir[0], dir[1], dir[2]); */
-}
-
-
-static int triangle_ray_intersect(float tv0[3], float tv1[3], float tv2[3], float org[3], float dir[3], float uv[2])
-{
-	float v1v0[3];
-	float v2v0[3];
-	float n[3], an[3];
-	float t, d, l;
-	float p[3];
-	double u0, v0, u1, v1, u2, v2, uvtemp;
-	unsigned int iu, iv;
-
-	/* Calculate normal of the plane (cross, normalize)
-	 * Could really use moto here...
-	 */
-	v1v0[0] = tv1[0] - tv0[0];
-	v1v0[1] = tv1[1] - tv0[1];
-	v1v0[2] = tv1[2] - tv0[2];
-	v2v0[0] = tv2[0] - tv0[0];
-	v2v0[1] = tv2[1] - tv0[1];
-	v2v0[2] = tv2[2] - tv0[2];
-	n[0] = (v1v0[1] * v2v0[2]) - (v1v0[2] * v2v0[1]);
-	n[1] = (v1v0[2] * v2v0[0]) - (v1v0[0] * v2v0[2]);
-	n[2] = (v1v0[0] * v2v0[1]) - (v1v0[1] * v2v0[0]);
-	l = sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
-	if (!l) return 0;
-	l = 1. / l;
-	n[0] *= l; n[1] *= l; n[2] *= l;
-
-	/* Calculate intersection point */
-	t = n[0]*dir[0] + n[1]*dir[1] + n[2]*dir[2];
-	if (fabs(t) < 1.0e-6) return 0;
-	d = -(n[0]*tv0[0] + n[1]*tv0[1] + n[2]*tv0[2]);
-	t = -(((n[0]*org[0] + n[1]*org[1] + n[2]*org[2]) + d) / t);
-	if (t < 0) return 0;
-	p[0] = org[0] + dir[0]*t;
-	p[1] = org[1] + dir[1]*t;
-	p[2] = org[2] + dir[2]*t;
-	/*printf("intersection at (%f, %f, %f)\n", p[0], p[1], p[2]);*/
-
-	/* Calculate the largest component of the normal */
-	an[0] = fabs(n[0]); an[1] = fabs(n[1]); an[2] = fabs(n[2]);
-	if ((an[0] > an[1]) && (an[0] > an[2])) {
-		iu = 1; iv = 2;
-	}
-	else if ((an[1] > an[0]) && (an[1] > an[2])) {
-		iu = 2; iv = 0;
+	if (div == 0.0) {
+		w[0]= w[1]= w[2]= 1.0f/3.0f;
 	}
 	else {
-		iu = 0; iv = 1;
+		div = 1.0/div;
+		w[0] = (h[0]*c[1] - h[1]*c[0])*div;
+		w[1] = (b[0]*h[1] - b[1]*h[0])*div;
+		w[2] = 1.0 - w[0] - w[1];
 	}
-	/* printf("iu, iv = (%d, %d)\n", iu, iv); */
+}
 
-	/* Calculate (u,v) */
-	u0 = p[iu] - tv0[iu];
-	v0 = p[iv] - tv0[iv];
-	u1 = tv1[iu] - tv0[iu];
-	v1 = tv1[iv] - tv0[iv];
-	u2 = tv2[iu] - tv0[iu];
-	v2 = tv2[iv] - tv0[iv];
-	/* printf("u0, v0, u1, v1, u2, v2 = (%f, %f, %f, %f, %f, %f)\n", u0, v0, u1, v1, u2, v2); */
+/* Get 2d vertex coordinates of tface projected onto screen */
+static void texpaint_project(Object *ob, double *model, double *proj, GLint *view, float *co, float *pco)
+{
+	float obco[3];
+	double winx, winy, winz;
 
-	/* These calculations should be in double precision.
-	 * On windows we get inpredictable results in single precision
-	 */
-	if (u1 == 0) {
-		uvtemp = u0/u2;
-		uv[1] = (float)uvtemp;
-		/* if ((uv[1] >= 0.) && (uv[1] <= 1.)) { */
-			uv[0] = (float)((v0 - uvtemp*v2) / v1);
-		/* } */
+	VecCopyf(obco, co);
+	Mat4MulVecfl(ob->obmat, obco);
+	gluProject(obco[0], obco[1], obco[2], model, proj, view, &winx, &winy, &winz);
+
+	pco[0]= (float)winx;
+	pco[1]= (float)winy;
+}
+
+static int texpaint_projected_verts(Object *ob, Mesh *mesh, TFace *tf, float *v1, float *v2, float *v3, float *v4)
+{
+	MFace *mf = mesh->mface + (tf - mesh->tface);
+	double model[16], proj[16];
+	GLint view[4];
+
+	persp(PERSP_VIEW);
+
+	/* get the need opengl matrices */
+	glGetIntegerv(GL_VIEWPORT, view);
+	glGetDoublev(GL_MODELVIEW_MATRIX, model);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	view[0] = view[1] = 0;
+
+	/* project the verts */
+	texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v1)->co, v1);
+	texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v2)->co, v2);
+	texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v3)->co, v3);
+	if(mf->v4)
+		texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v4)->co, v4);
+
+	return (mf->v4? 4: 3);
+}
+
+/* compute uv coordinates of mouse in face */
+void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *uv)
+{
+	float v1[2], v2[2], v3[2], v4[2], p[2], w[3];
+	int nvert;
+
+	/* compute barycentric coordinates of point in face and interpolate uv's.
+	   it's ok to compute the barycentric coords on the projected positions,
+	   because they are invariant under affine transform */
+	nvert= texpaint_projected_verts(ob, mesh, tf, v1, v2, v3, v4);
+
+	p[0]= xy[0];
+	p[1]= xy[1];
+
+	if (nvert == 4) {
+		texpaint_barycentric_2d(v1, v2, v4, p, w);
+
+		if(w[0] < 0.0f) {
+			/* if w[0] is negative, co is on the other side of the v1-v3 edge,
+			   so we interpolate using the other triangle */
+			texpaint_barycentric_2d(v2, v3, v4, p, w);
+
+			uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
+			uv[1]= tf->uv[1][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
+		}
+		else {
+			uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
+			uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[3][1]*w[2];
+		}
 	}
 	else {
-		uvtemp = (v0*u1 - u0*v1)/(v2*u1-u2*v1);
-		uv[1] = (float)uvtemp;
-		/* if ((uv[1] >= 0) && (uv[1] <= 1)) { */
-			uv[0] = (float)((u0 - uvtemp*u2) / u1);
-		/* } */
+		texpaint_barycentric_2d(v1, v2, v3, p, w);
+		uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
+		uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
 	}
-	/* printf("uv[0], uv[1] = (%f, %f)\n", uv[0], uv[1]); */
-	return ((uv[0] >= 0) && (uv[1] >= 0) && ((uv[0]+uv[1]) <= 1)) ? 2 : 1;
-}
-
-/**
- * Returns the vertex (local) coordinates of a face.
- * No bounds checking!
- * @author	Maarten Gribnau
- * @param	mesh	the mesh with the face.
- * @param	face	the face.
- * @param	v1		vertex 1 coordinates.
- * @param	v2		vertex 2 coordinates.
- * @param	v3		vertex 3 coordinates.
- * @param	v4		vertex 4 coordinates.
- * @return	number of vertices of this face
- */
-static int face_get_vertex_coordinates(Mesh* mesh, TFace* face, float v1[3], float v2[3], float v3[3], float v4[3])
-{
-	int num_vertices;
-	MVert *mv;
-	MFace *mf = (MFace *) (((MFace *)mesh->mface) + (face - (TFace *) mesh->tface));
-
-	num_vertices = mf->v4 == 0 ? 3 : 4;
-	mv = mesh->mvert + mf->v1;
-	v1[0] = mv->co[0]; v1[1] = mv->co[1]; v1[2] = mv->co[2];
-	mv = mesh->mvert + mf->v2;
-	v2[0] = mv->co[0]; v2[1] = mv->co[1]; v2[2] = mv->co[2];
-	mv = mesh->mvert + mf->v3;
-	v3[0] = mv->co[0]; v3[1] = mv->co[1]; v3[2] = mv->co[2];
-	if (num_vertices == 4) {
-		mv = mesh->mvert + mf->v4;
-		v4[0] = mv->co[0]; v4[1] = mv->co[1]; v4[2] = mv->co[2];
-	}
-
-	return num_vertices;
-}
-
-/**
- * Finds texture coordinates from face edge interpolation values.
- * @author	Maarten Gribnau
- * @param	face	the face.
- * @param	v1		vertex 1 index.
- * @param	v2		vertex 2 index.
- * @param	v3		vertex 3 index.
- * @param	a		interpolation value of edge v2-v1.
- * @param	b		interpolation value of edge v3-v1.
- * @param	u		(u,v) coordinate.
- * @param	v		(u,v) coordinate.
- */
-static void face_get_uv(TFace* face, int v1, int v2, int v3, float a, float b, float *uv)
-{
-	float uv01[2], uv21[2];
-
-	/* Pin a,b inside [0,1] range */
-#if 0
-	a = (float)fmod(a, 1.);
-	b = (float)fmod(b, 1.);
-#else
-	if (a < 0.f) a = 0.f;
-	else if (a > 1.f) a = 1.f;
-	if (b < 0.f) b = 0.f;
-	else if (b > 1.f) b = 1.f;
-#endif
-
-	/* Convert to texture coordinates */
-	uv01[0] = face->uv[v2][0] - face->uv[v1][0];
-	uv01[1] = face->uv[v2][1] - face->uv[v1][1];
-	uv21[0] = face->uv[v3][0] - face->uv[v1][0];
-	uv21[1] = face->uv[v3][1] - face->uv[v1][1];
-	uv01[0] *= a;
-	uv01[1] *= a;
-	uv21[0] *= b;
-	uv21[1] *= b;
-	uv[0] = face->uv[v1][0] + (uv01[0] + uv21[0]);
-	uv[1] = face->uv[v1][1] + (uv01[1] + uv21[1]);
-}
-
-/**
- * Get the (u,v) coordinates on a face from a point in screen coordinates.
- * The coordinates should be given in viewport coordinates.
- * @author	Maarten Gribnau
- * @param	object	the object with the mesh
- * @param	mesh	the mesh with the face to be picked.
- * @param	face	the face to be picked.
- * @param	x		the x-coordinate to pick at.
- * @param	y		the y-coordinate to pick at.
- * @param	u		the u-coordinate calculated.
- * @param	v		the v-coordinate calculated.
- * @return	intersection result:
- *			0 == no intersection, (u,v) invalid
- *			1 == intersection, (u,v) valid
- */
-int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short *xy, float *uv)
-{
-	float org[3], dir[3];
-	float ab[2];
-	float v1[3], v2[3], v3[3], v4[3];
-	int result;
-	int num_verts;
-
-	/* Get a view ray to intersect with the face */
-	get_pick_ray(xy, org, dir);
-
-	/* Convert local vertex coordinates to world */
-	num_verts = face_get_vertex_coordinates(mesh, face, v1, v2, v3, v4);
-	/* Convert local vertex coordinates to world */
-	Mat4MulVecfl(object->obmat, v1);
-	Mat4MulVecfl(object->obmat, v2);
-	Mat4MulVecfl(object->obmat, v3);
-	if (num_verts > 3) {
-		Mat4MulVecfl(object->obmat, v4);
-	}
-
-	/* Get (u,v) values (local face coordinates) of intersection point
-	 * If face is a quad, there are two triangles to check.
-	 */
-	result = triangle_ray_intersect(v2, v1, v3, org, dir, ab);
-	if ( (num_verts == 3) || ((num_verts == 4) && (result > 1)) ) {
-		/* Face is a triangle or a quad with a hit on the first triangle */
-		face_get_uv(face, 1, 0, 2, ab[0], ab[1], uv);
-		/* printf("triangle 1, texture (u,v)=(%f, %f)\n", *u, *v); */
-	}
-	else {
-		/* Face is a quad and no intersection with first triangle */
-		result = triangle_ray_intersect(v4, v3, v1, org, dir, ab);
-		face_get_uv(face, 3, 2, 0, ab[0], ab[1], uv);
-		/* printf("triangle 2, texture (u,v)=(%f, %f)\n", *u, *v); */
-	}
-	return result > 0;
 }
 
  /* Selects all faces which have the same uv-texture as the active face 

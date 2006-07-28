@@ -34,10 +34,10 @@
 #define BDR_IMAGEPAINT_H
 
 void imagepaint_redraw_tool(void);
-void imagepaint_paint(short mousebutton);
 void imagepaint_pick(short mousebutton);
 
-void texturepaint_paint();
+void imagepaint_paint(short mousebutton);
+void texturepaint_paint(short mousebutton);
 
 #endif /*  BDR_IMAGEPAINT_H */
 

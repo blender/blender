@@ -35,23 +35,25 @@
 typedef struct Brush {
 	ID id;
 	
-	short flag, blend;
-	int size;
-	float innerradius;
-	float timing;
+	short flag, blend;			/* general purpose flag, blend mode */
+	int size;					/* brush diameter */
+	float innerradius;			/* inner radius after which the falloff starts */
+	float spacing;				/* spacing of paint operations */
+	float rate;					/* paint operations / second (airbrush) */
 
-	float rgb[3];					/* color */
-	float alpha;					/* opacity */
+	float rgb[3];				/* color */
+	float alpha;				/* opacity */
 
 	struct Clone {
-		struct Image *image;		/* image for clone tool */
-		float offset[2];			/* offset of clone image from canvas */
-		float alpha;				/* transparency for drawing of clone image */
+		struct Image *image;	/* image for clone tool */
+		float offset[2];		/* offset of clone image from canvas */
+		float alpha;			/* transparency for drawing of clone image */
 	} clone;
 } Brush;
 
 /* Brush.flag */
 #define BRUSH_AIRBRUSH	1
+#define BRUSH_TORUS		2
 
 /* Brush.blend */
 #define BRUSH_BLEND_MIX 	0

@@ -50,6 +50,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -534,14 +535,20 @@ void sample_vpaint()	/* frontbuf */
 
 	cp = (char *)&col;
 	
-	Gvp.r= cp[0];
-	Gvp.r /= 255.0;
+	if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT)) {
+		Gvp.r= cp[0]/255.0f;
+		Gvp.g= cp[1]/255.0f;
+		Gvp.b= cp[2]/255.0f;
+	}
+	else {
+		Brush *brush= G.scene->toolsettings->imapaint.brush;
 
-	Gvp.g= cp[1];
-	Gvp.g /= 255.0;
-
-	Gvp.b= cp[2];
-	Gvp.b /= 255.0;
+		if(brush) {
+			brush->rgb[0]= cp[0]/255.0f;
+			brush->rgb[1]= cp[1]/255.0f;
+			brush->rgb[2]= cp[2]/255.0f;
+		}
+	}
 
 	allqueue(REDRAWBUTSEDIT, 0);
 	addqueue(curarea->win, REDRAW, 1); /* needed for when panel is open... */

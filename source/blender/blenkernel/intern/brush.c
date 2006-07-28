@@ -54,7 +54,8 @@ Brush *add_brush(char *name)
 	brush->rgb[2]= 1.0f;
 	brush->alpha= 0.2f;
 	brush->size= 25;
-	brush->timing= 100.0f;
+	brush->spacing= 10.0f;
+	brush->rate= 0.1f;
 	brush->innerradius= 0.5f;
 	brush->clone.alpha= 0.5;
 

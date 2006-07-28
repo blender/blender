@@ -896,6 +896,7 @@ void do_imagebuts(unsigned short event)
 
 	case B_SIMABRUSHCHANGE:
 		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 		
 	case B_SIMACURVES:
@@ -909,33 +910,37 @@ void do_imagebuts(unsigned short event)
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	
-	case B_BRUSHBROWSE:
+	case B_SIMABRUSHBROWSE:
 		if(G.sima->menunr==-2) {
-			activate_databrowse((ID*)settings->imapaint.brush, ID_BR, 0, B_BRUSHBROWSE, &G.sima->menunr, do_global_buttons);
+			activate_databrowse((ID*)settings->imapaint.brush, ID_BR, 0, B_SIMABRUSHBROWSE, &G.sima->menunr, do_global_buttons);
 			break;
 		}
 		else if(G.sima->menunr < 0) break;
 			
 		if(brush_set_nr(&settings->imapaint.brush, G.sima->menunr)) {
 			BIF_undo_push("Browse Brush");
+			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWIMAGE, 0);
 		}
 		break;
-	case B_BRUSHDELETE:
+	case B_SIMABRUSHDELETE:
 		if(brush_delete(&settings->imapaint.brush)) {
 			BIF_undo_push("Unlink Brush");
 			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		break;
 	case B_KEEPDATA:
 		brush_toggle_fake_user(settings->imapaint.brush);
 		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;
-	case B_BRUSHLOCAL:
+	case B_SIMABRUSHLOCAL:
 		if(settings->imapaint.brush && settings->imapaint.brush->id.lib) {
 			if(okee("Make local")) {
 				make_local_brush(settings->imapaint.brush);
 				allqueue(REDRAWIMAGE, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
 			}
 		}
 		break;
@@ -1020,18 +1025,20 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	id= (ID*)settings->imapaint.brush;
-	xco= std_libbuttons(block, 0, yco, 0, NULL, B_BRUSHBROWSE, ID_BR, 0, id, NULL, &(G.sima->menunr), 0, B_BRUSHLOCAL, B_BRUSHDELETE, 0, B_KEEPDATA);
+	xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMABRUSHBROWSE, ID_BR, 0, id, NULL, &(G.sima->menunr), 0, B_SIMABRUSHLOCAL, B_SIMABRUSHDELETE, 0, B_KEEPDATA);
 	uiBlockSetCol(block, TH_AUTO);
 
 	if(brush && !brush->id.lib) {
 		butw= 320-(xco+10);
 
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, B_SIMABRUSHCHANGE, "Airbrush",	xco+10,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
-		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_TORUS, B_SIMABRUSHCHANGE, "Wrap",	xco+10,yco-20,butw,19, &settings->imapaint.flag, 0, 0, 0, 0, "Enables torus wrapping");
-		uiBlockEndAlign(block);
+		uiDefButS(block, MENU, B_SIMANOTHING, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
 
-		uiDefButS(block, MENU, B_SIMANOTHING, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5", xco+10,yco-45,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
+		uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, B_SIMABRUSHCHANGE, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, B_SIMABRUSHCHANGE, "Airbrush",	xco+10,yco-50,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
+		uiDefButF(block, NUM, B_SIMANOTHING, "Rate ", xco+10,yco-70,butw,19, &brush->rate, 0.01, 1.0, 0, 0, "Number of paints per second for Airbrush");
+		uiBlockEndAlign(block);
 
 		yco -= 25;
 
@@ -1040,11 +1047,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Opacity ",		0,yco-20,200,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
 		uiDefButI(block, NUMSLI, B_SIMANOTHING, "Size ",		0,yco-40,200,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
 		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Falloff ",		0,yco-60,200,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-
-		if(brush->flag & BRUSH_AIRBRUSH)
-			uiDefButF(block, NUMSLI, B_SIMANOTHING, "Flow ",	0,yco-80,200,19, &brush->timing, 1.0, 100.0, 0, 0, "Paint Flow for Air Brush");
-		else
-			uiDefButF(block, NUMSLI, B_SIMANOTHING, "Stepsize ",0,yco-80,200,19, &brush->timing, 1.0, 100.0, 0, 0, "Repeating Paint On %% of Brush diameter");
+		uiDefButF(block, NUMSLI, B_SIMANOTHING, "Spacing ",0,yco-80,200,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
 		uiBlockEndAlign(block);
 
 		yco -= 110;

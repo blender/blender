@@ -835,7 +835,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	Object *ob= OBACT;	/* do not change! */
 	float *curs;
 	int doredraw= 0, pupval;
-	unsigned short event= evt->event;
+	unsigned short event= evt->event, origevent= evt->event;
 	short val= evt->val;
 	char ascii= evt->ascii;
 	
@@ -1011,7 +1011,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					vertex_paint();
 				}
 				else if (G.f & G_TEXTUREPAINT) {
-					texturepaint_paint();
+					texturepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);
 				}
 				break;
 			case MIDDLEMOUSE:

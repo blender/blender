@@ -544,11 +544,9 @@ typedef struct Scene {
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
 /* toolsettings->imagepaint_flag */
-#define IMAGEPAINT_TORUS				1
-#define IMAGEPAINT_DRAWING				2
-#define IMAGEPAINT_TIMED				4
-#define IMAGEPAINT_DRAW_TOOL			8
-#define IMAGEPAINT_DRAW_TOOL_DRAWING	16
+#define IMAGEPAINT_DRAWING				1
+#define IMAGEPAINT_DRAW_TOOL			2
+#define IMAGEPAINT_DRAW_TOOL_DRAWING	4
 
 #ifdef __cplusplus
 }

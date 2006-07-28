@@ -48,6 +48,7 @@
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
+#include "BLI_arithb.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -83,6 +84,37 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+/* Structs */
+
+typedef struct ImagePaintPixmap {
+	unsigned int width, height, rowbytes, shared;
+	char *rect;
+} ImagePaintPixmap;
+
+typedef struct ImagePaintBrush {
+	ImagePaintPixmap *pixmap;
+	float rgb[3], alpha;
+	unsigned int inner_radius, outer_radius;
+	short torus;
+} ImagePaintBrush;
+
+typedef struct ImagePaintState {
+	float mousepos[2];		/* current mouse position in image pixel coordinates */
+	float lastmousepos[2];	/* last mouse position in image pixel coordinates */
+
+	float accumdistance;	/* accumulated distance of brush since last paint op */
+	float lastpaintpos[2];	/* position of last paint op */
+
+	double accumtime;		/* accumulated time since last paint op (airbrush) */
+	double lasttime;		/* time of last update */
+
+	ImagePaintPixmap *canvas;
+	ImagePaintPixmap *clonecanvas;
+	ImagePaintBrush *brush;
+	ToolSettings *settings;
+	short firsttouch;
+} ImagePaintState;
+
 /* ImagePaintPixmap */
 
 #define IMAPAINT_FLOAT_TO_CHAR(f) ((char)(f*255))
@@ -105,11 +137,6 @@
 
 #define IMAPAINT_RGB_COPY(a, b) { a[0]=b[0]; a[1]=b[1]; a[2]=b[2]; }
 #define IMAPAINT_RGBA_COPY(a, b) { *((int*)a)=*((int*)b); }
-
-typedef struct ImagePaintPixmap {
-	unsigned int width, height, rowbytes, shared;
-	char *rect;
-} ImagePaintPixmap;
 
 static ImagePaintPixmap *imapaint_pixmap_new(unsigned int w, unsigned int h, char *rect)
 {
@@ -137,13 +164,6 @@ static void imapaint_pixmap_free(ImagePaintPixmap *pm)
 }
 
 /* ImagePaintBrush */
-
-typedef struct ImagePaintBrush {
-	ImagePaintPixmap *pixmap;
-	float rgb[3], alpha;
-	unsigned int inner_radius, outer_radius;
-	short torus, blend;
-} ImagePaintBrush;
 
 static void imapaint_brush_pixmap_refresh(ImagePaintBrush *brush)
 {
@@ -242,8 +262,8 @@ static char *imapaint_pixmap_get_rgba_torus(ImagePaintPixmap *pm, unsigned int x
 
 static void imapaint_pixmap_clip(ImagePaintPixmap *pm, ImagePaintPixmap *bpm, float *pos, unsigned int *off, unsigned int *boff, unsigned int *dim)
 {
-	int x = (int)(pos[0]*pm->width - bpm->width/2);
-	int y = (int)(pos[1]*pm->height - bpm->height/2);
+	int x = (int)(pos[0] - bpm->width/2);
+	int y = (int)(pos[1] - bpm->height/2);
 
 	dim[0] = bpm->width;
 	dim[1] = bpm->height;
@@ -305,8 +325,8 @@ static void imapaint_pixmap_blend_torus(ImagePaintPixmap *pm, ImagePaintPixmap *
 	unsigned int x, y, out_off[2], mx, my;
 	char *out, *in;
 
-	out_off[0] = (int)(pos[0]*pm->width - bpm->width/2);
-	out_off[1] = (int)(pos[1]*pm->height - bpm->height/2);
+	out_off[0] = (int)(pos[0] - bpm->width/2);
+	out_off[1] = (int)(pos[1] - bpm->height/2);
 
 	for (y=0; y < bpm->height; y++) {
 		in = imapaint_pixmap_get_rgba(bpm, 0, y);
@@ -348,8 +368,8 @@ static void imapaint_blend_line(ImagePaintPixmap *pm, ImagePaintBrush *brush, fl
 	float numsteps, t, pos[2];
 	int step, d[2];
 
-	d[0] = (int)((end[0] - start[0])*pm->width);
-	d[1] = (int)((end[1] - start[1])*pm->height);
+	d[0] = (int)(end[0] - start[0]);
+	d[1] = (int)(end[1] - start[1]);
 	numsteps = sqrt(d[0]*d[0] + d[1]*d[1])/(brush->pixmap->width/4.0f);
 
 	if(numsteps < 1.0)
@@ -357,30 +377,29 @@ static void imapaint_blend_line(ImagePaintPixmap *pm, ImagePaintBrush *brush, fl
 
 	for (step=0; step < numsteps; step++) {
 		t = (step+1)/numsteps;
-		pos[0] = start[0] + d[0]*t/pm->width;
-		pos[1] = start[1] + d[1]*t/pm->height;
+		pos[0] = start[0] + d[0]*t;
+		pos[1] = start[1] + d[1]*t;
 
 		if (brush->torus)
-			imapaint_pixmap_blend_torus(pm, brush->pixmap, pos, brush->blend);
+			imapaint_pixmap_blend_torus(pm, brush->pixmap, pos, BRUSH_BLEND_MIX);
 		else
-			imapaint_pixmap_blend(pm, brush->pixmap, pos, brush->blend);
+			imapaint_pixmap_blend(pm, brush->pixmap, pos, BRUSH_BLEND_MIX);
 	}
 }
 
-static void imapaint_soften_sharpen(ImagePaintPixmap *pm, ImagePaintBrush *brush, float *pos, short sharpen)
+static void imapaint_lift_soften(ImagePaintPixmap *pm, ImagePaintBrush *brush, float *pos, short torus)
 {
 	ImagePaintPixmap *bpm = brush->pixmap;
 	unsigned int x, y, count, xi, yi, xo, yo;
 	unsigned int out_off[2], in_off[2], dim[2];
-	float outrgb[3], finrgb[3];
-	short torus= brush->torus;
+	float outrgb[3];
 	char *inrgb, *out;
 
 	if (torus) {
 		dim[0] = bpm->width;
 		dim[1] = bpm->width;
-		in_off[0] = (int)(pos[0]*pm->width - bpm->width/2);
-		in_off[1] = (int)(pos[1]*pm->height - bpm->width/2);
+		in_off[0] = (int)(pos[0] - bpm->width/2);
+		in_off[1] = (int)(pos[1] - bpm->width/2);
 		out_off[0] = out_off[1] = 0;
 	}
 	else {
@@ -402,8 +421,10 @@ static void imapaint_soften_sharpen(ImagePaintPixmap *pm, ImagePaintBrush *brush
 			/* sum and average surrounding pixels */
 			count = 1;
 			IMAPAINT_CHAR_RGB_TO_FLOAT(outrgb, inrgb);
+#if 0
 			if (sharpen)
 				IMAPAINT_FLOAT_RGB_COPY(finrgb, outrgb);
+#endif
 
 			count += imapaint_pixmap_add_if(pm, xi-1, yi-1, outrgb, torus);
 			count += imapaint_pixmap_add_if(pm, xi-1, yi  , outrgb, torus);
@@ -420,6 +441,7 @@ static void imapaint_soften_sharpen(ImagePaintPixmap *pm, ImagePaintBrush *brush
 			outrgb[1] /= count;
 			outrgb[2] /= count;
 
+#if 0
 			if (sharpen) {
 				/* unsharp masking - creates ugly artifacts and is disabled
 				   for now, needs some sort of clamping to reduce artifacts */
@@ -431,6 +453,7 @@ static void imapaint_soften_sharpen(ImagePaintPixmap *pm, ImagePaintBrush *brush
 				outrgb[1] = IMAPAINT_FLOAT_CLAMP(outrgb[1]);
 				outrgb[2] = IMAPAINT_FLOAT_CLAMP(outrgb[2]);
 			}
+#endif
 
 			/* write into brush buffer */
 			xo = out_off[0] + x;
@@ -439,11 +462,6 @@ static void imapaint_soften_sharpen(ImagePaintPixmap *pm, ImagePaintBrush *brush
 			IMAPAINT_FLOAT_RGB_TO_CHAR(out, outrgb);
 		}
 	}
-
-	if (torus)
-		imapaint_pixmap_blend_torus(pm, bpm, pos, brush->blend);
-	else
-		imapaint_pixmap_blend(pm, bpm, pos, brush->blend);
 }
 
 static void imapaint_lift_smear(ImagePaintPixmap *pm, ImagePaintBrush *brush, float *pos)
@@ -452,8 +470,8 @@ static void imapaint_lift_smear(ImagePaintPixmap *pm, ImagePaintBrush *brush, fl
 	int in_off[2], x, y;
 	char *out, *in;
 
-	in_off[0] = (int)(pos[0]*pm->width - bpm->width/2);
-	in_off[1] = (int)(pos[1]*pm->height - bpm->height/2);
+	in_off[0] = (int)(pos[0] - bpm->width/2);
+	in_off[1] = (int)(pos[1] - bpm->height/2);
 
 	for (y=0; y < bpm->height; y++) {
 		out = imapaint_pixmap_get_rgba(bpm, 0, y);
@@ -462,17 +480,6 @@ static void imapaint_lift_smear(ImagePaintPixmap *pm, ImagePaintBrush *brush, fl
 			IMAPAINT_RGB_COPY(out, in);
 		}
 	}
-}
-
-static void imapaint_smear(ImagePaintPixmap *pm, ImagePaintBrush *brush, float *start, float *end)
-{
-	float pos[2];
-
-	pos[0]= 2*start[0] - end[0];
-	pos[1]= 2*start[1] - end[1];
-
-	imapaint_lift_smear(pm, brush, pos);
-	imapaint_blend_line(pm, brush, start, end);
 }
 
 static void imapaint_lift_clone(ImagePaintPixmap *pm, ImagePaintBrush *brush, float *pos)
@@ -484,8 +491,8 @@ static void imapaint_lift_clone(ImagePaintPixmap *pm, ImagePaintBrush *brush, fl
 	/* we overwrite alphas for pixels outside clone, so need to reload them */
 	imapaint_brush_pixmap_refresh(brush);
 
-	in_off[0] = (int)(pos[0]*pm->width - bpm->width/2);
-	in_off[1] = (int)(pos[1]*pm->height - bpm->height/2);
+	in_off[0] = (int)(pos[0] - bpm->width/2);
+	in_off[1] = (int)(pos[1] - bpm->height/2);
 
 	for (y=0; y < bpm->height; y++) {
 		out = imapaint_pixmap_get_rgba(bpm, 0, y);
@@ -504,96 +511,66 @@ static void imapaint_lift_clone(ImagePaintPixmap *pm, ImagePaintBrush *brush, fl
 	}
 }
 
-static void imapaint_clone(ImagePaintPixmap *pm, ImagePaintPixmap *cpm, ImagePaintBrush *brush, float *start, float *off)
-{
-	float pos[2];
-
-	pos[0]= start[0] - off[0];
-	pos[1]= start[1] - off[1];
-
-	imapaint_lift_clone(cpm, brush, pos);
-	imapaint_pixmap_blend(pm, brush->pixmap, start, brush->blend);
-}
-
 /* 2D image paint */
 
-#if 0
-struct ImagePaint Gip = {
-	{NULL, {0.0f, 0.0f}, 0.5f},
-	 {{{1.0f, 1.0f, 1.0f, 0.2f}, 25, 0.5f, 100.0f}, /* brush */
-	 {{1.0f, 1.0f, 1.0f, 0.1f}, 25, 0.1f, 100.0f},  /* airbrush */
-	 {{0.5f, 0.5f, 0.5f, 1.0f}, 25, 0.5f, 100.0f},  /* soften */
-	 {{1.0f, 1.0f, 1.0f, 0.1f}, 25, 0.1f, 100.0f},  /* aux1 */
-	 {{0.0f, 0.0f, 0.0f, 0.1f}, 25, 0.1f, 100.0f},  /* aux2 */
-	 {{1.0f, 1.0f, 1.0f, 0.5f}, 25, 0.1f,  20.0f},  /* smear */
-	 {{1.0f, 1.0f, 1.0f, 0.5f}, 25, 0.1f,  20.0f}}, /* clone */
-	 0, IMAGEPAINT_BRUSH
-};
-#endif
-
-static ImagePaintBrush *imapaint_init_brush()
+static int imapaint_state_init(ImagePaintState *state, ToolSettings *settings)
 {
-	ToolSettings *settings= G.scene->toolsettings;
 	Brush *brush= settings->imapaint.brush;
 
 	if (!brush)
-		return NULL;
+		return 0;
+
+	memset(state, 0, sizeof(*state));
+	state->firsttouch= 1;
+	state->lasttime= PIL_check_seconds_timer();
+	state->settings= settings;
 
 	/* initialize paint settings */
-	if(brush->flag & BRUSH_AIRBRUSH)
-		settings->imapaint.flag |= IMAGEPAINT_TIMED;
-	else
-		settings->imapaint.flag &= ~IMAGEPAINT_TIMED;
+	state->settings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
 	/* create brush */
-	return imapaint_brush_new(brush->size, brush->size, brush->rgb, brush->alpha, brush->innerradius);
+	state->brush= imapaint_brush_new(brush->size, brush->size, brush->rgb,
+	                                 brush->alpha, brush->innerradius);
+
+	return 1;
 }
 
-static void imapaint_free_brush(ImagePaintBrush *brush)
+static void imapaint_state_free(ImagePaintState *state)
 {
-	imapaint_brush_free(brush);
+	state->settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
+
+	if(state->brush) imapaint_brush_free(state->brush);
+	if(state->canvas) imapaint_pixmap_free(state->canvas);
+	if(state->clonecanvas) imapaint_pixmap_free(state->clonecanvas);
 }
 
-static ImagePaintPixmap *imapaint_init_canvas(ImagePaintPixmap **clonecanvas)
+static int imapaint_canvas_init(ImagePaintState *state)
 {
+	Brush *brush= state->settings->imapaint.brush;
 	ImBuf *ibuf= NULL, *cloneibuf= NULL;
-	ImagePaintPixmap *canvas;
-	ToolSettings *settings= G.scene->toolsettings;
-	Brush *brush= settings->imapaint.brush;
 
 	/* verify that we can paint and create canvas */
 	if(!G.sima->image || !G.sima->image->ibuf || !G.sima->image->ibuf->rect)
-		return NULL;
+		return 0;
 	else if(G.sima->image->packedfile)
-		return NULL;
+		return 0;
 
 	ibuf= G.sima->image->ibuf;
-	canvas= imapaint_pixmap_new(ibuf->x, ibuf->y, (char*)ibuf->rect);
+	state->canvas= imapaint_pixmap_new(ibuf->x, ibuf->y, (char*)ibuf->rect);
 
-	if (clonecanvas) {
-		/* create clone canvas */
-		if(brush && (settings->imapaint.tool == PAINT_TOOL_CLONE)) {
-			int w, h;
-			if(!brush->clone.image || !brush->clone.image->ibuf)
-				return 0;
+	/* create clone canvas */
+	if(brush && (state->settings->imapaint.tool == PAINT_TOOL_CLONE)) {
+		int w, h;
+		if(!brush->clone.image || !brush->clone.image->ibuf)
+			return 0;
 
-			cloneibuf= brush->clone.image->ibuf;
-			w = cloneibuf->x;
-			h = cloneibuf->y;
-			*clonecanvas= imapaint_pixmap_new(w, h, (char*)cloneibuf->rect);
-		}
-		else
-			*clonecanvas= NULL;
+		cloneibuf= brush->clone.image->ibuf;
+		w = cloneibuf->x;
+		h = cloneibuf->y;
+		state->clonecanvas= imapaint_pixmap_new(w, h, (char*)cloneibuf->rect);
 	}
 
-	return canvas;
-}
-
-static void imapaint_free_canvas(ImagePaintPixmap *canvas, ImagePaintPixmap *clonecanvas)
-{
-	imapaint_pixmap_free(canvas);
-	if(clonecanvas)
-		imapaint_pixmap_free(clonecanvas);
+	return 1;
 }
 
 void imapaint_redraw_tool(void)
@@ -628,157 +605,189 @@ static void imapaint_compute_uvco(short *mval, float *uv)
 	areamouseco_to_ipoco(G.v2d, mval, &uv[0], &uv[1]);
 }
 
-static void imapaint_paint_tool(ImagePaintBrush *brush, ImagePaintPixmap *canvas, ImagePaintPixmap *clonecanvas, float *prevuv, float *uv)
+static void imapaint_compute_imageco(ImagePaintPixmap *pm, short *mval, float *mousepos)
 {
-	ToolSettings *settings= G.scene->toolsettings;
-	Brush *curbrush= settings->imapaint.brush;
+	areamouseco_to_ipoco(G.v2d, mval, &mousepos[0], &mousepos[1]);
+	mousepos[0] *= pm->width;
+	mousepos[1] *= pm->height;
+}
 
-	brush->torus= (settings->imapaint.flag & IMAGEPAINT_TORUS)? 1: 0;
-	brush->blend= curbrush->blend;
+static void imapaint_paint_op(ImagePaintState *s, float *lastpos, float *pos)
+{
+	ImagePaintPixmap *canvas= s->canvas;
+	ImagePaintPixmap *clonecanvas= s->clonecanvas;
+	ImagePaintBrush *brush= s->brush;
+	short tool= s->settings->imapaint.tool;
+	short torus= s->settings->imapaint.brush->flag & BRUSH_TORUS;
+	short blend= s->settings->imapaint.brush->blend;
+	float *offset= s->settings->imapaint.brush->clone.offset;
+	float liftpos[2];
 
-	if(settings->imapaint.tool == PAINT_TOOL_SOFTEN)
-		imapaint_soften_sharpen(canvas, brush, prevuv, 0);
-	else if(settings->imapaint.tool == PAINT_TOOL_SMEAR)
-		imapaint_smear(canvas, brush, prevuv, uv);
-	else if(settings->imapaint.tool == PAINT_TOOL_CLONE)
-		imapaint_clone(canvas, clonecanvas, brush, prevuv, curbrush->clone.offset);
-	else if(curbrush->flag & BRUSH_AIRBRUSH)
-		imapaint_blend_line(canvas, brush, uv, uv);
+	/* lift from canvas */
+	if(tool == PAINT_TOOL_SOFTEN) {
+		imapaint_lift_soften(canvas, brush, pos, torus);
+	}
+	else if(tool == PAINT_TOOL_SMEAR) {
+		imapaint_lift_smear(canvas, brush, lastpos);
+	}
+	else if(tool == PAINT_TOOL_CLONE && clonecanvas) {
+		liftpos[0]= pos[0] - offset[0]*clonecanvas->width;
+		liftpos[1]= pos[1] - offset[1]*clonecanvas->height;
+
+		imapaint_lift_clone(clonecanvas, brush, liftpos);
+	}
+
+	/* blend into canvas */
+	if (torus)
+		imapaint_pixmap_blend_torus(canvas, brush->pixmap, pos, blend);
 	else
-		imapaint_blend_line(canvas, brush, prevuv, uv);
+		imapaint_pixmap_blend(canvas, brush->pixmap, pos, blend);
+}
+
+static void imapaint_state_do(ImagePaintState *s, short *painted)
+{
+	if (s->firsttouch) {
+		/* always paint exactly once on first touch */
+		if (s->settings->imapaint.tool != PAINT_TOOL_SMEAR)
+			imapaint_paint_op(s, s->mousepos, s->mousepos);
+
+		s->firsttouch= 0;
+		s->lastpaintpos[0]= s->mousepos[0];
+		s->lastpaintpos[1]= s->mousepos[1];
+		if (painted) *painted |= 1;
+	}
+	else {
+		Brush *brush= s->settings->imapaint.brush;
+		float startdistance, spacing, step, paintpos[2], dmousepos[2];
+		int totpaintops= 0;
+
+		/* compute brush spacing adapted to brush size */
+		spacing= brush->size*brush->spacing*0.01f;
+
+		/* setup starting distance, direction vector and accumulated distance */
+		startdistance= s->accumdistance;
+		Vec2Subf(dmousepos, s->mousepos, s->lastmousepos);
+		s->accumdistance += Normalise2(dmousepos);
+
+		/* do paint op over unpainted distance */
+		while (s->accumdistance >= spacing) {
+			step= spacing - startdistance;
+			paintpos[0]= s->lastmousepos[0] + dmousepos[0]*step;
+			paintpos[1]= s->lastmousepos[1] + dmousepos[1]*step;
+
+			imapaint_paint_op(s, s->lastpaintpos, paintpos);
+
+			s->lastpaintpos[0]= paintpos[0];
+			s->lastpaintpos[1]= paintpos[1];
+			s->accumdistance -= spacing;
+			startdistance -= spacing;
+			totpaintops++;
+
+			if (painted) *painted |= 1;
+		}
+
+		/* do airbrush paint ops, based on the number of paint ops left over
+		   from regular painting */
+		if (brush->flag & BRUSH_AIRBRUSH) {
+			double curtime= PIL_check_seconds_timer();
+			double painttime= brush->rate*totpaintops;
+
+			s->accumtime += curtime - s->lasttime;
+			if (s->accumtime <= painttime)
+				s->accumtime= 0.0;
+			else
+				s->accumtime -= painttime;
+
+			while (s->accumtime >= brush->rate) {
+				if (s->settings->imapaint.tool != PAINT_TOOL_SMEAR)
+					imapaint_paint_op(s, s->mousepos, s->mousepos);
+				s->accumtime -= brush->rate;
+
+				totpaintops++;
+			}
+
+			s->lasttime= curtime;
+		}
+
+		if ((totpaintops > 0) && painted) *painted |= 1;
+	}
 }
 
 void imagepaint_paint(short mousebutton)
 {
-	ImagePaintBrush *brush;
-	ImagePaintPixmap *canvas, *clonecanvas=NULL;
-	short prevmval[2], mval[2];
-	double prevtime, curtime;
-	float prevuv[2], uv[2];
-	int paint= 0, moved= 0, firsttouch=1 ;
-	ToolSettings *settings= G.scene->toolsettings;
-	Brush *curbrush= settings->imapaint.brush;
+	ImagePaintState state;
+	short prevmval[2], mval[2], painted, moved;
 
-	if (!(canvas = imapaint_init_canvas(&clonecanvas))) {
-		if(G.sima->image && G.sima->image->packedfile)
-			error("Painting in packed images not supported");
+	/* setup data structures */
+	if (!(imapaint_state_init(&state, G.scene->toolsettings))) {
 		return;
 	}
-	else if (!(brush = imapaint_init_brush())) {
-		imapaint_free_canvas(canvas, clonecanvas);
+	else if (!imapaint_canvas_init(&state)) {
+		if(G.sima->image && G.sima->image->packedfile)
+			error("Painting in packed images not supported");
+		imapaint_state_free(&state);
 		return;
 	}
 	
-	getmouseco_areawin(prevmval);
-	prevtime = PIL_check_seconds_timer();
+	/* initialize coordinates and time */
+	getmouseco_areawin(mval);
+	imapaint_compute_imageco(state.canvas, mval, state.mousepos);
 
-	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
+	prevmval[0]= mval[0];
+	prevmval[1]= mval[1];
+	state.lastmousepos[0]= state.mousepos[0];
+	state.lastmousepos[1]= state.mousepos[1];
+	state.lasttime= PIL_check_seconds_timer();
 
+	/* start by painting once */
+	imapaint_state_do(&state, NULL);
+	imapaint_redraw(0, 1);
+
+	/* paint loop */
 	while(get_mbut() & mousebutton) {
 		getmouseco_areawin(mval);
+		moved= painted= 0;
 
-		if(firsttouch)
-			moved= paint= 1;
-		else
-			moved= paint= (prevmval[0] != mval[0]) || (prevmval[1] != mval[1]);
-
-		if(settings->imapaint.flag & IMAGEPAINT_TIMED) {
-			/* see if need to draw because of timer */
-			curtime = PIL_check_seconds_timer();
-
-			if(((curtime - prevtime) > (5.0/curbrush->timing)) || firsttouch) {
-				prevtime= curtime;
-				paint= 1;
-			}
-			else paint= 0;
-		}
-		else if(paint && !firsttouch) {
-			/* check if we moved enough to draw */
-			float dmval[2], d, dlimit;
-
-			dmval[0]= prevmval[0] - mval[0];
-			dmval[1]= prevmval[1] - mval[1];
-
-			d= sqrt(dmval[0]*dmval[0] + dmval[1]*dmval[1]);
-			dlimit= curbrush->size*G.sima->zoom*curbrush->timing/200.0;
-
-			if (d < dlimit)
-				paint= 0;
-		}
-
-		if(paint) {
-			/* do the actual painting */
-			imapaint_compute_uvco(prevmval, prevuv);
-			imapaint_compute_uvco(mval, uv);
-
-			imapaint_paint_tool(brush, canvas, clonecanvas, prevuv, uv);
-
+		if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
 			prevmval[0]= mval[0];
 			prevmval[1]= mval[1];
+			imapaint_compute_imageco(state.canvas, mval, state.mousepos);
+			moved= 1;
 		}
-		firsttouch = 0;
+		else if (!(state.settings->imapaint.brush->flag & BRUSH_AIRBRUSH))
+			continue;
 
-		if(paint)
-			imapaint_redraw(0, paint);
-		else if(moved && (settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL))
-			imapaint_redraw(0, paint);
+		imapaint_state_do(&state, &painted);
+
+		state.lastmousepos[0]= state.mousepos[0];
+		state.lastmousepos[1]= state.mousepos[1];
+
+		if(painted) {
+			imapaint_redraw(0, painted);
+		}
+		else if(moved && (state.settings->imapaint.flag & IMAGEPAINT_DRAW_TOOL))
+			imapaint_redraw(0, painted);
 	}
 
-	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
+	/* clean up */
+	imapaint_state_free(&state);
 
-	imapaint_free_brush(brush);
-	imapaint_free_canvas(canvas, clonecanvas);
 	G.sima->image->ibuf->userflags |= IB_BITMAPDIRTY;
-
 	imapaint_redraw(1, 0);
-}
-
-void imagepaint_pick(short mousebutton)
-{
-	ToolSettings *settings= G.scene->toolsettings;
-	Brush *brush= settings->imapaint.brush;
-
-	if(brush && (settings->imapaint.tool == PAINT_TOOL_CLONE)) {
-		if(brush->clone.image && brush->clone.image->ibuf) {
-			short prevmval[2], mval[2];
-			float prevuv[2], uv[2];
-		
-			getmouseco_areawin(prevmval);
-
-			while(get_mbut() & mousebutton) {
-				getmouseco_areawin(mval);
-
-				if((prevmval[0] != mval[0]) || (prevmval[1] != mval[1]) ) {
-					/* mouse moved, so move the clone image */
-					imapaint_compute_uvco(prevmval, prevuv);
-					imapaint_compute_uvco(mval, uv);
-
-					brush->clone.offset[0] += uv[0] - prevuv[0];
-					brush->clone.offset[1] += uv[1] - prevuv[1];
-
-					force_draw(0);
-
-					prevmval[0]= mval[0];
-					prevmval[1]= mval[1];
-				}
-			}
-		}
-	}
-	else if(brush) {
-		extern VPaint Gvp;
-
-		sample_vpaint();
-		brush->rgb[0]= Gvp.r;
-		brush->rgb[1]= Gvp.g;
-		brush->rgb[2]= Gvp.b;
-	}
 }
 
 /* these will be moved */
 int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect);
-int face_pick_uv(Object* object, Mesh* mesh, TFace* face, short *xy, float *uv);
+void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *mousepos);
 
-void texturepaint_paint()
+static void texpaint_compute_imageco(ImagePaintPixmap *pm, Object *ob, Mesh *mesh, TFace *tf, short *xy, float *imageco)
+{
+	texpaint_pick_uv(ob, mesh, tf, xy, imageco);
+	imageco[0] *= pm->width;
+	imageco[1] *= pm->height;
+}
+
+void texturepaint_paint(short mousebutton)
 {
 	Object *ob;
 	Mesh *me;
@@ -788,33 +797,21 @@ void texturepaint_paint()
 	Image *img=NULL, *img_old = NULL;
 	ImagePaintBrush *brush;
 	ImagePaintPixmap *canvas = 0;
-	unsigned int face_index, mousebutton;
+	unsigned int face_index;
 	char *warn_packed_file = 0;
 	float uv[2], uv_old[2];
 	extern VPaint Gvp;
 	ImBuf *ibuf= NULL;
 
 	ob = OBACT;
-	if (!ob) {
-		error("No active object"); return;
-	}
-	if (!(ob->lay & G.vd->lay)) {
-		error("The active object is not in this layer"); return;
-	}
+	if (!ob || !(ob->lay & G.vd->lay)) return;
 	me = get_mesh(ob);
-	if (!me) {
-		error("The active object does not have a mesh obData"); return;
-	}
+	if (!me) return;
 
 	brush = imapaint_brush_new(Gvp.size, Gvp.size, &Gvp.r, Gvp.a, 0.5);
-	if (!brush) {
-		error("Can't create brush"); return;
-	}
+	if (!brush) return;
 
 	persp(PERSP_VIEW);
-
-	if (U.flag & USER_LMOUSESELECT) mousebutton = R_MOUSE;
-	else mousebutton = L_MOUSE;
 
 	getmouseco_areawin(xy_old);
 	while (get_mbut() & mousebutton) {
@@ -840,7 +837,7 @@ void texturepaint_paint()
 				if (img != img_old) {
 					/* Faces have different textures. Finish drawing in the old face. */
 					if (face_old && canvas) {
-						face_pick_uv(ob, me, face_old, xy, uv);
+						texpaint_compute_imageco(canvas, ob, me, face_old, xy, uv);
 						imapaint_blend_line(canvas, brush, uv_old, uv);
 						img_old->ibuf->userflags |= IB_BITMAPDIRTY;
 						/* Delete old canvas */
@@ -854,8 +851,8 @@ void texturepaint_paint()
 							/* MAART: skipx is not set most of the times. Make a guess. */
 							canvas = imapaint_pixmap_new(ibuf->x, ibuf->y, (char*)ibuf->rect);
 							if (canvas) {
-								face_pick_uv(ob, me, face, xy_old, uv_old);
-								face_pick_uv(ob, me, face, xy, uv);
+								texpaint_compute_imageco(canvas, ob, me, face, xy_old, uv_old);
+								texpaint_compute_imageco(canvas, ob, me, face, xy, uv);
 								imapaint_blend_line(canvas, brush, uv_old, uv);
 								ibuf->userflags |= IB_BITMAPDIRTY;
 							}
@@ -873,15 +870,15 @@ void texturepaint_paint()
 					if (canvas) {
 						/* Finish drawing in the old face. */
 						if (face_old) {
-							face_pick_uv(ob, me, face_old, xy, uv);
+							texpaint_compute_imageco(canvas, ob, me, face_old, xy, uv);
 							imapaint_blend_line(canvas, brush, uv_old, uv);
 							img_old->ibuf->userflags |= IB_BITMAPDIRTY;
 						}
 
 						/* Start drawing in the new face. */
 						if (face) {
-							face_pick_uv(ob, me, face, xy_old, uv_old);
-							face_pick_uv(ob, me, face, xy, uv);
+							texpaint_compute_imageco(canvas, ob, me, face, xy_old, uv_old);
+							texpaint_compute_imageco(canvas, ob, me, face, xy, uv);
 							imapaint_blend_line(canvas, brush, uv_old, uv);
 							ibuf->userflags |= IB_BITMAPDIRTY;
 						}
@@ -892,7 +889,7 @@ void texturepaint_paint()
 				/* Same face, continue drawing */
 				if (face && canvas) {
 					/* Get the new (u,v) coordinates */
-					face_pick_uv(ob, me, face, xy, uv);
+					texpaint_compute_imageco(canvas, ob, me, face, xy, uv);
 					imapaint_blend_line(canvas, brush, uv_old, uv);
 					ibuf->userflags |= IB_BITMAPDIRTY;
 				}
@@ -931,5 +928,40 @@ void texturepaint_paint()
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWHEADERS, 0);
+}
+
+void imagepaint_pick(short mousebutton)
+{
+	ToolSettings *settings= G.scene->toolsettings;
+	Brush *brush= settings->imapaint.brush;
+
+	if(brush && (settings->imapaint.tool == PAINT_TOOL_CLONE)) {
+		if(brush->clone.image && brush->clone.image->ibuf) {
+			short prevmval[2], mval[2];
+			float lastmousepos[2], mousepos[2];
+		
+			getmouseco_areawin(prevmval);
+
+			while(get_mbut() & mousebutton) {
+				getmouseco_areawin(mval);
+
+				if((prevmval[0] != mval[0]) || (prevmval[1] != mval[1]) ) {
+					/* mouse moved, so move the clone image */
+					imapaint_compute_uvco(prevmval, lastmousepos);
+					imapaint_compute_uvco(mval, mousepos);
+
+					brush->clone.offset[0] += mousepos[0] - lastmousepos[0];
+					brush->clone.offset[1] += mousepos[1] - lastmousepos[1];
+
+					force_draw(0);
+
+					prevmval[0]= mval[0];
+					prevmval[1]= mval[1];
+				}
+			}
+		}
+	}
+	else if(brush)
+		sample_vpaint();
 }
 
