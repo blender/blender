@@ -86,13 +86,8 @@ What's Not Handled:<br>
 import Blender
 import os
 import BPyMesh
-reload(BPyMesh)
 import BPyImage
-reload(BPyImage)
-
-#from flt_filewalker import FltIn, FileFinder
 import flt_filewalker 
-reload(flt_filewalker)
 
 def col_to_gray(c):
 	return 0.3*c[0] + 0.59*c[1] + 0.11*c[2]
@@ -960,7 +955,7 @@ class Face(Node):
 		
 		if material_index==-1:
 			material_index= len(mesh_materials)
-			if material_index==15:
+			if material_index==16:
 				material_index= 15
 				if global_prefs['verbose'] >= 1:
 					print 'Warning: Too many materials per mesh object. Only a maximum of 16 ' + \

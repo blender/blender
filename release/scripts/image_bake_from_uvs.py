@@ -37,7 +37,8 @@ def vcol2image(me_s,\
 	PREF_USE_IMAGE,\
 	PREF_USE_VCOL,\
 	PREF_USE_MATCOL,\
-	PREF_USE_NORMAL):
+	PREF_USE_NORMAL,\
+	PREF_SEL_FACES_ONLY):
 	
 	
 	def rnd_mat():
@@ -63,8 +64,14 @@ def vcol2image(me_s,\
 	render_me= Blender.Mesh.New()
 	render_me.verts.extend( [Vector(0,0,0),] ) # 0 vert uv bugm dummy vert
 	
+	FACE_SEL= Blender.Mesh.FaceFlags.SELECT
 	
 	for me in me_s:
+		
+		if PREF_SEL_FACES_ONLY:
+			me_faces= [f for f in me.faces if f.flag & FACE_SEL]
+		else:
+			me_faces= me.faces
 		
 		# Multiple mesh support.
 			
@@ -72,10 +79,10 @@ def vcol2image(me_s,\
 			BPyMesh.meshCalcNormals(me)
 		
 		vert_offset= len(render_me.verts)
-		render_me.verts.extend( [ Vector(uv.x-BLEED_PIXEL, uv.y-BLEED_PIXEL/2, 0) for f in me.faces for uv in f.uv ] )
+		render_me.verts.extend( [ Vector(uv.x-BLEED_PIXEL, uv.y-BLEED_PIXEL/2, 0) for f in me_faces for uv in f.uv ] )
 		
 		tmp_faces= []
-		for f in me.faces:
+		for f in me_faces:
 			tmp_faces.append( [ii+vert_offset for ii in xrange(len(f))] )
 			vert_offset+= len(f)
 		
@@ -93,7 +100,11 @@ def vcol2image(me_s,\
 			if not materials: # Well need a dummy material so the index works if we have no materials.
 				materials= [(1.0, 1.0, 1.0)]
 		
-		for i, f in enumerate(me.faces):
+		for i, f in enumerate(me_faces):
+			
+			if PREF_SEL_FACES_ONLY and not f.flag & FACE_SEL:
+				continue
+			
 			frnd= render_me.faces[face_offset+i]
 			if PREF_USE_IMAGE:
 				ima= f.image
@@ -187,7 +198,8 @@ def main():
 	PREF_USE_VCOL = Create(1)
 	PREF_USE_MATCOL = Create(0)
 	PREF_USE_NORMAL = Create(0)
-	if len(obsel)>1: PREF_USE_MULIOB = Create(0)
+	PREF_SEL_FACES_ONLY= Create(0)
+	PREF_USE_MULIOB = Create(0)
 	
 	pup_block = [\
 	'Image Path: (no ext)',\
@@ -197,16 +209,17 @@ def main():
 	('Pixel Bleed:', PREF_IMAGE_BLEED, 0, 64, 'Extend pixels from boundry edges to avoid mipmapping errors on rendering.'),\
 	('Smooth lines', PREF_IMAGE_SMOOTH, 'Render smooth lines.'),\
 	('Wire Only', PREF_IMAGE_WIRE, 'Renders a wireframe from the mesh, implys bleed is zero.'),\
-	
 	'Color Source',\
 	('Image Texface', PREF_USE_IMAGE, 'Render the faces image in the output.'),\
 	('Vertex Colors', PREF_USE_VCOL, 'Use Normals instead of VCols.'),\
 	('Material Color', PREF_USE_MATCOL, 'Use the materials color.'),\
 	('Normal Map', PREF_USE_NORMAL, 'Use Normals instead of VCols.'),\
+	'',\
+	('Selected Faces only', PREF_SEL_FACES_ONLY, 'Only bake from selected faces.'),\
 	]
 	
 	if len(obsel)>1:
-		pup_block.append('')
+		
 		pup_block.append(('All Selected Meshes', PREF_USE_MULIOB, 'Use faces from all selcted meshes, Make sure UV coords dont overlap between objects.'))
 		
 	
@@ -229,7 +242,8 @@ def main():
 	PREF_USE_IMAGE.val,\
 	PREF_USE_VCOL.val,\
 	PREF_USE_MATCOL.val,\
-	PREF_USE_NORMAL.val)
+	PREF_USE_NORMAL.val,\
+	PREF_SEL_FACES_ONLY.val)
 	
 	Blender.Window.RedrawAll()
 
