@@ -810,10 +810,10 @@ class InterNode(Node):
 		self.isMesh = False
 		self.matrix = None
 		
+EDGE_FGON= Blender.Mesh.EdgeFlags['FGON']
+FACE_TEX= Blender.Mesh.FaceModes['TEX']
 class Face(Node):
 	def blender_import_face(self, material_index, image):
-		FGON= Blender.Mesh.EdgeFlags['FGON']
-		
 		mesh = self.parent.mesh
 		mesh_vert_len_orig= len(mesh.verts)
 		mesh.verts.extend([ self.header.vert_pal.blender_verts[i] for i in self.indices])
@@ -847,7 +847,8 @@ class Face(Node):
 			f.mat = material_index
 			if image:
 				f.image = image
-		
+			else:
+				f.mode &= ~FACE_TEX
 		
 		# FGon
 		if face_len>4:
@@ -867,9 +868,7 @@ class Face(Node):
 					if i1>i2:
 						i1,i2= i2,i1
 					
-					try:
-						edge_dict[i1,i2] # if this works its an edge vert
-					except:
+					if not edge_dict.has_key( (i1,i2) ): # if this works its an edge vert
 						fgon_edges[i1,i2]= None
 			
 			
@@ -880,13 +879,11 @@ class Face(Node):
 				if i1>i2:
 					i1,i2= i2,i1
 				
-				try:
+				if fgon_edges.has_key( (i1,i2) ):
+					# This is an edge tagged for fgonning?
 					fgon_edges[i1, i2]
-					ed.flag |= FGON
+					ed.flag |= EDGE_FGON
 					del fgon_edges[i1, i2] # make later searches faster?
-				
-				except:
-					pass
 				
 				if not fgon_edges:
 					break
@@ -950,23 +947,28 @@ class Face(Node):
 		
 		# Add material to mesh.
 		mesh = self.parent.mesh
-		try:
-			mesh.materials= mesh.materials+[mat] # not exactly optmil
-			#material_index = len(mesh.materials)-1 # ??? best to a proper check
-		except AttributeError:
-			pass
-		except TypeError:
-			if global_prefs['verbose'] >= 1:
-				print 'Warning: Too many materials per mesh object. Only a maximum of 16 ' + \
-					  'allowed. Using 16th material instead.'
-			mat = mesh.materials[-1]
-
+		
 		# Return where it is in the mesh for faces.
 		#material_index = mesh.materials.index(mat)
-		for i,m in enumerate(mesh.materials):
+		mesh_materials= mesh.materials
+		
+		material_index= -1
+		for i,m in enumerate(mesh_materials):
 			if m.name==mat.name:
 				material_index= i
 				break
+		
+		if material_index==-1:
+			material_index= len(mesh_materials)
+			if material_index==15:
+				material_index= 15
+				if global_prefs['verbose'] >= 1:
+					print 'Warning: Too many materials per mesh object. Only a maximum of 16 ' + \
+						  'allowed. Using 16th material instead.'
+			
+			else:
+				mesh_materials.append(mat)
+				mesh.materials= mesh_materials
 		
 		return (material_index, image)
 	
@@ -979,15 +981,6 @@ class Face(Node):
 			return
 
 		material = self.create_blender_material()
-		'''
-		if vert_count > 4:
-			tri_lst = self.triangulate()
-		else:
-			tri_lst = [self.indices]
-		
-		for tri in tri_lst:
-			self.blender_import_face(tri, material[0], material[1])
-		'''
 		self.blender_import_face(material[0], material[1])
 		
 		# Store comment info in parent.
@@ -1093,6 +1086,8 @@ class Object(InterNode):
 
 		self.props['type'] = 'Object'
 		self.props['id'] = self.header.fw.read_string(8)
+
+
 
 class Group(InterNode):
 	def __init__(self, parent):
