@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "28/05/2006"
+__version__ = "18/07/2006"
 
 __bpydoc__ = """\
 This script is a reference about all hotkeys and mouse actions in Blender.
@@ -28,7 +28,7 @@ Notes:<br>
 
 #------------------------
 #  Hotkeys script
-#         jm soler (2003-->12/2005)
+#         jm soler (2003-->12/2006)
 # -----------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm
@@ -60,7 +60,7 @@ Notes:<br>
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# ***** END GPL LICENCE BLOCK *****
+# ***** END GPL LICENCE BLOCK *****  
 # --------------------------------------------------------------------------
 
 import Blender
@@ -73,12 +73,16 @@ hotkeys={
 [',', 'Set Bounding Box rotation scaling pivot'],
 ['Ctrl-,', 'Set Median Point rotation scaling pivot'],
 ['.', 'Set 3D cursor as rotation scaling pivot'],
+['.', 'Outliner : to get the current active data in center of view'],
 ['Ctrl-.', 'Set Individual Object Centers as rotation scaling pivot'],
 ['~', 'Display all layers (German keys: ö,french keyboard: ù)'],
 ['Shift-~', 'Display all/previous layers (German keys: Shift-ö, french keyboard: shift-ù)'],
-['Space', 'Popup menu'],
-['Space', '3D View: camera selected + fly mode, accept'],
-['Ctrl-Space', 'Manipulator (transform widget) Menu'],
+['ENTER', 'Outliner : to open a subtree, works on entire item line. '],	
+['HOME', 'Outliner :  to show the entire Object hierarchy. '],
+['SHIFT+BACKSPACE',' Text edit mode: Clear text '],
+['SPACE', 'Popup menu'],
+['SPACE', '3D View: camera selected + fly mode, accept'],
+['Ctrl-SPACE', 'Manipulator (transform widget) Menu'],
 ['TAB', 'Enter/exit Edit Mode'],
 ['TAB', 'Edit Mode and Numerical Edit (see N key) : move to next input value'],
 ['TAB', 'Sequencer: Edit meta strip'],
@@ -103,9 +107,16 @@ hotkeys={
 ['Ctrl-LMB', 'IPO: Add key'],
 ['Ctrl-LMB', '3D View: OBJECT or EDIT mode, select with the Lasso tool'],
 ['Ctrl-LMB', '3D View: ARMATURE EDIT mode, add a new bone to the selected end '],
-['Shift-LMB','MANIPULATOR (transform widget): select the axe to remove in the current transformation ( if there is a problem with small step adjustment, first select the axe or axes with LBM alone)'],
+['Shift-LMB','MANIPULATOR (transform widget): select the axe to remove in the current'],
+['Shift-LMB','MANIPULATOR      transformation ( if there is a problem with small step adjustment'], 
+['Shift-LMB','MANIPULATOR      first select the axe or axes with LBM alone)'],
+['Shift-LMB', 'Outliner : Hold Shift while clicking on a triangle arrow to open/close the subtree below'],
 ['MMB', 'Rotate'],
 ['Ctrl-MMB', 'Zoom view'],
+['Ctrl-LMB', 'Outliner : Hold CTRL while clicking on a name allows you to edit a name.'],
+['Ctrl-LMB', 'Outliner : 	 This works for all visualized data, including bones or vertex groups,'],
+['Ctrl-LMB', 'Outliner : 	 but not for \'nameless\' items that draw the links to Hooks, Deform '],
+['Ctrl-LMB', 'Outliner :   Groups or Constraints.'],
 ['Shift-MMB', 'Move view'],
 ['RMB', 'Select'],
 ['RMB drag', 'Border select circle: subtract from selection'],
@@ -179,11 +190,11 @@ hotkeys={
 ['Numpad /', 'Local view on object (hide others)'],
 ['Numpad *', 'Rotate view to objects local axes'],
 ['Numpad +', 'Zoom in (works everywhere)'],
-['Numpad +', 'In OutLiner window, Collapse one level of the  hierarchy'],
+['Numpad -', 'OutLiner window, Collapse one level of the  hierarchy'],
 ['Alt-Numpad +', 'Proportional vertex Edit Mode: Increase range of influence'],
 ['Ctrl-Numpad +', 'Edit Mode: Select More vertices'],
 ['Numpad -', 'Zoom out (works everywhere)'],
-['Numpad +', 'In OutLiner window, Expand one level of the  hierarchy'],
+['Numpad +', 'OutLiner window, Expand one level of the  hierarchy'],
 ['Alt-Numpad -', 'Proportional vertex Edit Mode: Decrease range of influence'],
 ['Ctrl-Numpad +', 'Edit Mode: Select Less vertices'],
 ['Numpad 0', 'Set Camera view'],
@@ -209,7 +220,7 @@ hotkeys={
 
 'Arrows ':[
 ['Home/Pos1', 'View all'],
-['Home', 'In OutLiner Windows, Show hierarchy'],
+['Home', 'OutLiner Windows, Show hierarchy'],
 ['PgUp', 'Edit Mode and Proportionnal Editing Tools, increase influence'],
 ['PgUp', 'Strip Editor, Move Down'],
 ['PgUn', 'TimeLine: Jump to next marker'],
@@ -241,6 +252,8 @@ hotkeys={
 {
 "A":[ 
 ['A', 'Select all/Deselect all'],
+['A', 'Outliner : Select all/Deselect all'],
+['A', 'Render window (F12) : Display alpha plane'],
 ['Alt-A', 'Play animation in current window'],
 ['Ctrl-A', 'Apply objects size/rotation to object data'],
 ['Ctrl-A', 'Text Editor: Select all'],
@@ -266,6 +279,7 @@ hotkeys={
 ['C', 'Sequencer: Change images'],
 ['C', 'IPO: Snap current frame to selected key'],
 ['C', 'TimeLine: Center View'],	
+['C', 'File Selector : Copy file'],		
 ['Alt-C', 'Object Mode: Convert menu'],
 ['Alt-C', 'Text Editor: Copy '],
 ['Ctrl-Shift-C', 'Text Editor: Copy selection to clipboard'],
@@ -382,7 +396,7 @@ hotkeys={
 ['Shift-K', 'Show and select all keyframes for object'],
 ['Shift-K', 'Edit Mode: Knife Mode select'],
 ['Shift-K', 'UV Face Select: Clear vertex colours'],
-['Shift-K', 'Vertex Paint: Fill with vertex colours'],
+['Shift-K', 'Vertex Paint: All vertex colours are erased; they are changed to the current drawing colour.'],
 ['.', '...']
 ],
 
@@ -400,8 +414,9 @@ hotkeys={
 ['M', 'Move object to different layer'],
 ['M', 'Sequencer: Make meta strip (group) from selected strips'],
 ['M', 'Edit Mode: Mirros Axis menu'],
+['M', 'File Selector: rename file'],
 ['M', 'Video Sequence Editor : Make Meta strip...'],		
-['M', 'TimeLine: Add marker'],
+['M', 'TimeLine: Add marker'],	
 ['Alt-M', 'Edit Mode: Merge vertices menu'],
 ['Alt-M', 'Video Sequence Editor : Separate Meta strip...'],	
 ['Ctrl-M', 'Object Mode: Mirros Axis menu'],
@@ -435,7 +450,7 @@ hotkeys={
 ['P', 'Edit mode: Seperate vertices to new object'],
 ['shift-P', 'Edit mode: Push-Pull'],
 ['shift-P', 'Object mode: Add a preview window in the D window'],
-['P', 'UV Image Editor: Pin UVs'],
+['P', 'UV Image Editor:  Pin selected vertices. Pinned vertices will stay in place on the UV editor when executing an LSCM unwrap.'],
 ['Alt-P', 'Clear parent relationship'],
 ['Alt-P', 'UV Image Editor: Unpin UVs'],
 ['Alt-P', 'Text Editor : Run current script '],
@@ -451,6 +466,7 @@ hotkeys={
      ],
 
 "R":[ 
+['R', 'FileSelector : remove file'],	
 ['R', 'Rotate'],
 ['R', 'IPO: Record mouse movement as IPO curve'],
 ['R', 'UV Face Select: Rotate menu uv coords or vertex colour'],

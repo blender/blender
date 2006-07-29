@@ -282,6 +282,7 @@ def load_obj(\
 	currentUnnamedObjectIdx= 1
 	
 	quadList= (0, 1, 2, 3)
+	triList= (0, 1, 2)
 	
 	faceQuadVList= [None, None, None, None]
 	faceTriVList= [None, None, None]
@@ -293,25 +294,25 @@ def load_obj(\
 	# Ignore normals and comments.
 	fileLines= [lsplit for l in fileLines if not l.startswith('vn') if not l.startswith('#') for lsplit in (l.split(),) if lsplit]
 	
-	
+	NMesh_Vert= NMesh.Vert
 	if IMPORT_CONSTRAIN_BOUNDS == 0.0:
 		if IMPORT_ROTATE_X90:
 			def Vert(x,y,z):
-				return NMesh.Vert(x,-z,y) # rotate 90 about the x axis.
+				return NMesh_Vert(x,-z,y) # rotate 90 about the x axis.
 		else:
-			Vert= NMesh.Vert
+			Vert= NMesh_Vert
 	else:
 		# Adding a vert also sets the bounds.
 		if IMPORT_ROTATE_X90:
 			def Vert(x,y,z):
 				global BOUNDS
 				BOUNDS= max(BOUNDS, x,y,z)
-				return NMesh.Vert(x,-z,y) # Rotate X90 Deg.
+				return NMesh_Vert(x,-z,y) # Rotate X90 Deg.
 		else:
 			def Vert(x,y,z):
 				global BOUNDS
 				BOUNDS= max(BOUNDS, x,y,z)
-				return NMesh.Vert(x,y,z)
+				return NMesh_Vert(x,y,z)
 	
 	try:
 		vertList= [Vert(float(l[1]), float(l[2]), float(l[3]) ) for l in fileLines if l[0] == 'v']
@@ -496,7 +497,7 @@ def load_obj(\
 		l= fileLines[lIdx]
 		#for l in fileLines:
 		if len(l) == 0:
-			continue
+			pass
 		# FACE
 		elif l[0] == 'v':
 			REL_VERT_COUNT+=1
@@ -533,8 +534,12 @@ def load_obj(\
 			# f 1 2 3 4 5 6
 			#
 			# later lines are not modified, just skepped by advancing "lIdx"
-			while l[-1] == '\\':
-				l.pop()
+			while l[-1][-1] == '\\':
+				if len(l)==1:
+					l.pop()
+				else:
+					l[-1]= l[-1][:-1] # remove the slash but keep the index
+				
 				lIdx+=1
 				l.extend(fileLines[lIdx])
 			# Done supporting crappy obj faces over multiple lines.
@@ -639,28 +644,28 @@ def load_obj(\
 					currentMesh.faces.append(f) # move the face onto the mesh
 			
 			elif face_vert_count == 3: # This handles tri's and fans, dont use fans anymore.
-				for i in range(face_vert_count-2):
-					if vIdxLs[0] == vIdxLs[i+1] or\
-					vIdxLs[0] == vIdxLs[i+2] or\
-					vIdxLs[i+1] == vIdxLs[i+2]:
-						badObjFaceVerts+=1
-					else:
-						for k, j in [(0,0), (1,i+1), (2,i+2)]:
-							faceTriVList[k]= currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[j]]]	
-						
-						f= NMesh.Face(faceTriVList)	
-						
-						# UV MAPPING
-						if fHasUV:
-							f.uv= [uvMapList[vtIdxLs[0]], uvMapList[vtIdxLs[i+1]], uvMapList[vtIdxLs[i+2]]]
-							if currentImg:
-								f.image= currentImg
-							else:
-								f.mode &= TEX_OFF_FLAG
-						if IMPORT_MTL:
-							f.mat= contextMeshMatIdx
-						f.smooth= currentSmooth
-						currentMesh.faces.append(f) # move the face onto the mesh
+			
+				if vIdxLs[0] == vIdxLs[1] or\
+				vIdxLs[0] == vIdxLs[2] or\
+				vIdxLs[1] == vIdxLs[2]:
+					badObjFaceVerts+=1
+				else:
+					for j in triList: # 0,1,2
+						faceTriVList[j]= currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[j]]]	
+					
+					f= NMesh.Face(faceTriVList)	
+					
+					# UV MAPPING
+					if fHasUV:
+						f.uv= [uvMapList[vtIdxLs[0]], uvMapList[vtIdxLs[1]], uvMapList[vtIdxLs[2]]]
+						if currentImg:
+							f.image= currentImg
+						else:
+							f.mode &= TEX_OFF_FLAG
+					if IMPORT_MTL:
+						f.mat= contextMeshMatIdx
+					f.smooth= currentSmooth
+					currentMesh.faces.append(f) # move the face onto the mesh
 			
 			elif face_vert_count > 4: # NGons.
 				# we need to map indices to uv coords.
@@ -802,6 +807,7 @@ def load_obj(\
 		# MATERIAL FILE
 		elif l[0] == 'mtllib' and IMPORT_MTL and len(l)>1:
 			mtl_fileName.append(' '.join(l[1:]) ) # Support for multiple MTL's
+		
 		lIdx+=1
 		
 	# Applies material properties to materials alredy on the mesh as well as Textures.
