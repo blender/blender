@@ -61,13 +61,17 @@ class edge:
 	def __init__(self, v1,v2):
 		self.v1 = v1
 		self.v2 = v2
+		co1, co2= v1.co, v2.co
+		self.co1= co1
+		self.co2= co2
 		
 		# uv1 uv2 vcol1 vcol2 # Add later
-		self.length = (v1.co - v2.co).length
-		
+		self.length = (co1 - co2).length
 		self.removed = 0	# Have we been culled from the eloop
 		self.match = None	# The other edge were making a face with
-
+		
+		self.cent= (co1+co2)*0.5
+		self.angle= 0.0
 
 class edgeLoop:
 	def __init__(self, loop): # Vert loop
@@ -97,28 +101,44 @@ class edgeLoop:
 		# GENERATE AN AVERAGE NORMAL FOR THE WHOLE LOOP.
 		self.normal = Mathutils.Vector()
 		for e in self.edges:
-			n = Mathutils.CrossVecs(self.centre-e.v1.co, self.centre-e.v2.co)
+			n = Mathutils.CrossVecs(self.centre-e.co1, self.centre-e.co2)
 			# Do we realy need tot normalize?
 			n.normalize()
 			self.normal += n
-		self.normal.normalize()
+			
+			# Generate the angle
+			va= e.cent - e.prev.cent
+			vb= e.cent - e.next.cent
+			
+			try:		e.angle= Mathutils.AngleBetweenVecs(va, vb)
+			except:		e.angle= 180
+			
 		
+		# Blur the angles
+		#for e in self.edges:
+		#	e.angle= (e.angle+e.next.angle)/2
+		
+		# Blur the angles
+		#for e in self.edges:
+		#	e.angle= (e.angle+e.prev.angle)/2
+			
+		self.normal.normalize()
 		
 		# Generate a normal for each edge.
 		for e in self.edges:
 			
-			n1 = e.v1.co
-			n2 = e.v2.co
-			n3 = e.prev.v1.co
+			n1 = e.co1
+			n2 = e.co2
+			n3 = e.prev.co1
 			
 			a = n1-n2
 			b = n1-n3
 			normal1 = Mathutils.CrossVecs(a,b)
 			normal1.normalize()
 			
-			n1 = e.v2.co
-			n3 = e.next.v2.co
-			n2 = e.v1.co
+			n1 = e.co2
+			n3 = e.next.co2
+			n2 = e.co1
 			
 			a = n1-n2
 			b = n1-n3
@@ -159,10 +179,10 @@ class edgeLoop:
 		backing up and restoring incase the loop needs to be skinned with another loop of a different length.
 		'''
 		global CULL_METHOD
-		if CULL_METHOD == 0: # Shortest edge
-			
+		if CULL_METHOD == 1: # Shortest edge
 			eloopCopy = self.edges[:]
-			eloopCopy.sort(lambda e1, e2: cmp(e1.length, e2.length )) # Length sort, smallest first
+			#eloopCopy.sort(lambda e1, e2: cmp(e1.length, e2.length )) # Length sort, smallest first
+			eloopCopy.sort(lambda e1, e2: cmp(e2.angle*e2.length, e1.angle*e1.length)) # Length sort, smallest first
 			eloopCopy = eloopCopy[:cullNum]
 			for e in eloopCopy:
 				e.removed = 1
@@ -172,27 +192,30 @@ class edgeLoop:
 				
 			culled = 0
 			
-			step = int(otherLoopLen / float(cullNum))
+			step = int(otherLoopLen / float(cullNum)) * 2
 			
 			currentEdge = self.edges[0]
 			while culled < cullNum:
 				
 				# Get the shortest face in the next STEP
-				while currentEdge.removed == 1:
-					# Bug here!
+				step_count= 0
+				bestAng= 360.0
+				smallestEdge= None
+				while step_count<=step or smallestEdge==None:
+					step_count+=1
+					if not currentEdge.removed:
+						if currentEdge.angle<bestAng:
+							smallestEdge= currentEdge
+							bestAng= currentEdge.angle
+					
 					currentEdge = currentEdge.next
-				smallestEdge = currentEdge
-				
-				for i in xrange(step):
-					currentEdge = currentEdge.next
-					while currentEdge.removed == 1:
-						currentEdge = currentEdge.next
-					if smallestEdge.length > currentEdge.length:
-						smallestEdge = currentEdge
 				
 				# In that stepping length we have the smallest edge.remove it
 				smallestEdge.removed = 1
 				self.edges.remove(smallestEdge)
+				
+				# Start scanning from the edge we found? - result is over fanning- no good.
+				#currentEdge= smallestEdge.next
 				
 				culled+=1
 	
@@ -330,8 +353,14 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 		# e1Idx is always from 0 to N, e2Idx is offset.
 		for e1Idx, e2Idx in enumerate(offsetIndexLs):
 			# Measure the vloop distance ===============
-			totEloopDist += ((eloop1.edges[e1Idx].v1.co - eloop2.edges[e2Idx].v1.co).length / loopDist) #/ nangle1
-			totEloopDist += ((eloop1.edges[e1Idx].v2.co - eloop2.edges[e2Idx].v2.co).length / loopDist) #/ nangle1
+			totEloopDist += ((eloop1.edges[e1Idx].co1 - eloop2.edges[e2Idx].co1).length / loopDist) #/ nangle1
+			totEloopDist += ((eloop1.edges[e1Idx].co2 - eloop2.edges[e2Idx].co2).length / loopDist) #/ nangle1
+			
+			#e1= eloop1.edges[e1Idx]
+			#e2= eloop2.edges[e2Idx]
+			
+			#totEloopDist += (((e1.co1 - e2.co1).length ) / loopDist) #/ nangle1
+			#totEloopDist += (((e1.co2 - e2.co2).length ) / loopDist) #/ nangle1
 			
 			# Premeture break if where no better off
 			if totEloopDist > bestEloopDist:
@@ -412,7 +441,7 @@ def main():
 	
 	# The line below checks if any of the vert loops are differenyt in length.
 	if False in [len(v) == len(vertLoops[0]) for v in vertLoops]:
-		CULL_METHOD = Draw.PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges edges')
+		CULL_METHOD = Draw.PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges')
 		if CULL_METHOD == -1:
 			if is_editmode: Window.EditMode(1)
 			return
