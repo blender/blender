@@ -27,12 +27,12 @@ packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
 '''
 
 from Blender import NMesh, Window,   	Object, Scene
-
+'''
 def debug_(x,y,z):
 	ob = Object.New("Empty")
 	ob.loc= x,y,z
 	Scene.GetCurrent().link(ob)
-	
+'''
 
 # a box packing vert
 class vt:
@@ -295,15 +295,14 @@ class boxList:
 		
 		# keep a running update of the width and height so we know the area
 		# initialize with first box, fixes but where we whwere only packing 1 box
-		self.width = 0
-		self.height = 0
+		# At the moment we only start with 1 box so the code below will loop over 1. but thats ok.
+		width = height = 0.0
 		if boxes:
 			for b in boxes:
-				self.width = max(self.width, b.width)
-				self.height = max(self.height, b.height)
-
-		
-		
+				if width  < b.width: width= b.width
+				if height < b.height: height= b.height
+		self.width= width
+		self.height= height
 		
 		# boxArea is the total area of all boxes in the list,
 		# can be used with packArea() to determine waistage.
@@ -326,6 +325,7 @@ class boxList:
 		
 		# Look through all the free vert quads and see if there are some we can remove
 		# 
+		
 		for v in box.v:
 			
 			# Is my bottom being used.
@@ -378,7 +378,7 @@ class boxList:
 		
 	# Sort boxes by area
 	def sortArea(self):
-		self.boxes.sort(lambda A, B: cmp(B.area, A.area) ) # Reverse area sort
+		self.boxes.sort(lambda A, B: cmp(A.area, B.area) ) # Reverse area sort
 	
 	# BLENDER only
 	def draw(self):
@@ -408,20 +408,21 @@ class boxList:
 		if not self.boxes:
 			return
 			
-		packedboxes = boxList([self.boxes[0]])
+		packedboxes = boxList([self.boxes[-1]])
 		
 		# Remove verts we KNOW cant be added to
 		
-		unpackedboxes = boxList(self.boxes[1:])
+		unpackedboxes = self.boxes[:-1]
 		
 		# Start with this box, the biggest box
 		boxList.packedVerts.verts.extend(packedboxes.boxes[0].v)
 		
-		while unpackedboxes.boxes: # != [] - while the list of unpacked boxes is not empty.
+		while unpackedboxes: # != [] - while the list of unpacked boxes is not empty.
 			
-			freeBoxIdx = 0
-			while freeBoxIdx < len(unpackedboxes.boxes):
-				freeBoxContext= unpackedboxes.boxes[freeBoxIdx]
+			freeBoxIdx = len(unpackedboxes)
+			while freeBoxIdx:
+				freeBoxIdx-=1
+				freeBoxContext= unpackedboxes[freeBoxIdx]
 				# Sort the verts with this boxes dimensions as a bias, so less poky out bits are made.
 				boxList.packedVerts.sortCorner(freeBoxContext.width, freeBoxContext.height)
 				
@@ -431,7 +432,7 @@ class boxList:
 					if baseVert.free: # != 0
 						# This will lock the box if its possibel
 						if freeBoxContext.tryVert(packedboxes, baseVert):
-							packedboxes.addBoxPack( unpackedboxes.boxes.pop(freeBoxIdx) ) # same as freeBoxContext. but may as well pop at the same time.
+							packedboxes.addBoxPack( unpackedboxes.pop(freeBoxIdx) ) # same as freeBoxContext. but may as well pop at the same time.
 							freeBoxIdx = -1
 							break
 				

@@ -57,7 +57,7 @@ USER_FILL_HOLES = None
 USER_FILL_HOLES_QUALITY = None
 
 import boxpack2d
-# reload(boxpack2d) # for developing.
+reload(boxpack2d) # for developing.
 
 
 # Do 2 lines intersect?
@@ -481,9 +481,9 @@ def mergeUvIslands(islandList, islandListArea):
 	# Sort by island bounding box area, smallest face area first.
 	# no.. chance that to most simple edge loop first.
 	decoratedIslandListAreaSort =decoratedIslandList[:]
-	decoratedIslandListAreaSort.sort(lambda A, B: cmp(A[1], B[1]))
+	decoratedIslandListAreaSort.sort(lambda A, B: cmp(A[3], B[3]))
 	
-	# sort by efficiency, Most Efficient first.
+	# sort by efficiency, Least Efficient first.
 	decoratedIslandListEfficSort = decoratedIslandList[:]
 	decoratedIslandListEfficSort.sort(lambda A, B: cmp(B[2], A[2]))
 	
@@ -495,7 +495,7 @@ def mergeUvIslands(islandList, islandListArea):
 	# If 100 will test as long as there is enough free space.
 	# this is rarely enough, and testing takes a while, so lower quality speeds this up.
 	
-	# 1 means they have the same quaklity 
+	# 1 means they have the same quality 
 	USER_FREE_SPACE_TO_TEST_QUALITY = 1 + (((100 - USER_FILL_HOLES_QUALITY)/100.0) *5)
 	
 	#print 'USER_STEP_QUALITY', USER_STEP_QUALITY
@@ -505,7 +505,8 @@ def mergeUvIslands(islandList, islandListArea):
 	
 	areaIslandIdx = 0
 	ctrl = Window.Qual.CTRL
-	while areaIslandIdx < len(decoratedIslandListAreaSort) and (not Window.GetKeyQualifiers() & ctrl):
+	BREAK= False
+	while areaIslandIdx < len(decoratedIslandListAreaSort) and not BREAK:
 		sourceIsland = decoratedIslandListAreaSort[areaIslandIdx]
 		
 		# Alredy packed?
@@ -513,7 +514,11 @@ def mergeUvIslands(islandList, islandListArea):
 			areaIslandIdx+=1
 		else:
 			efficIslandIdx = 0
-			while efficIslandIdx < len(decoratedIslandListEfficSort):
+			while efficIslandIdx < len(decoratedIslandListEfficSort) and not BREAK:
+				
+				if Window.GetKeyQualifiers() & ctrl:
+					BREAK= True
+					break
 				
 				# Now we have 2 islands, is the efficience of the islands lowers theres an
 				# increasing likely hood that we can fit merge into the bigger UV island.
@@ -525,110 +530,131 @@ def mergeUvIslands(islandList, islandListArea):
 				
 				
 				if sourceIsland[0] == targetIsland[0] or\
-				targetIsland[0] == [] or\
-				sourceIsland[0] == []:
-					efficIslandIdx+=1
-					continue
-				
-				
-				# ([island, totFaceArea, efficiency, islandArea, w,h])
-				# Waisted space on target is greater then UV bounding island area.
-				
-				
-				# if targetIsland[3] > (sourceIsland[2]) and\ #
-				
-				if targetIsland[3] > (sourceIsland[1] * USER_FREE_SPACE_TO_TEST_QUALITY) and\
-				targetIsland[4] > sourceIsland[4] and\
-				targetIsland[5] > sourceIsland[5]:
+				not targetIsland[0] or\
+				not sourceIsland[0]:
+					pass
+				else:
+					
+					# ([island, totFaceArea, efficiency, islandArea, w,h])
+					# Waisted space on target is greater then UV bounding island area.
 					
 					
-					# DEBUG # print '%.10f  %.10f' % (targetIsland[3], sourceIsland[1])
+					# if targetIsland[3] > (sourceIsland[2]) and\ #
 					
-					# These enough spare space lets move the box until it fits
-					
-					# How many times does the source fit into the target x/y
-					blockTestXUnit = targetIsland[4]/sourceIsland[4]
-					blockTestYUnit = targetIsland[5]/sourceIsland[5]
-					
-					boxLeft = 0
-					
-					# Distance we can move between whilst staying inside the targets bounds.
-					testWidth = targetIsland[4] - sourceIsland[4]
-					testHeight = targetIsland[5] - sourceIsland[5]
-					
-					# Increment we move each test. x/y
-					xIncrement = (testWidth / (blockTestXUnit * USER_STEP_QUALITY))
-					yIncrement = (testHeight / (blockTestYUnit * USER_STEP_QUALITY))
-					
-					boxLeft = 0 # Start 1 back so we can jump into the loop.
-					boxBottom= 0 #-yIncrement
-					
-					while boxLeft <= testWidth or boxBottom <= testHeight:
+					if targetIsland[3] > (sourceIsland[1] * USER_FREE_SPACE_TO_TEST_QUALITY) and\
+					targetIsland[4] > sourceIsland[4] and\
+					targetIsland[5] > sourceIsland[5]:
+						
+						# DEBUG # print '%.10f  %.10f' % (targetIsland[3], sourceIsland[1])
+						
+						# These enough spare space lets move the box until it fits
+						
+						# How many times does the source fit into the target x/y
+						blockTestXUnit = targetIsland[4]/sourceIsland[4]
+						blockTestYUnit = targetIsland[5]/sourceIsland[5]
+						
+						boxLeft = 0
+						
+						# Distllllance we can move between whilst staying inside the targets bounds.
+						testWidth = targetIsland[4] - sourceIsland[4]
+						testHeight = targetIsland[5] - sourceIsland[5]
+						
+						# Increment we move each test. x/y
+						xIncrement = (testWidth / (blockTestXUnit * USER_STEP_QUALITY))
+						yIncrement = (testHeight / (blockTestYUnit * USER_STEP_QUALITY))
+						xIncrement= testWidth/USER_STEP_QUALITY
+						yIncrement= testHeight/USER_STEP_QUALITY
+						
+						# Make sure were not moving less then a 3rg of our width/height
+						if xIncrement<sourceIsland[4]/3:
+							xIncrement= sourceIsland[4]
+						if yIncrement<sourceIsland[5]/3:
+							yIncrement= sourceIsland[5]
 						
 						
-						Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, boxLeft, boxBottom)
+						boxLeft = 0 # Start 1 back so we can jump into the loop.
+						boxBottom= 0 #-yIncrement
 						
-						if Intersect == 1:  # Line intersect, dont bother with this any more
-							pass
+						##testcount= 0
 						
-						if Intersect == 2:  # Source inside target
-							'''
-							We have an intersection, if we are inside the target 
-							then move us 1 whole width accross,
-							Its possible this is a bad idea since 2 skinny Angular faces
-							could join without 1 whole move, but its a lot more optimal to speed this up
-							since we have alredy tested for it.
+						while boxBottom <= testHeight:
+							# Should we use this? - not needed for now.
+							#if Window.GetKeyQualifiers() & ctrl:
+							#	BREAK= True
+							#	break
 							
-							It gives about 10% speedup with minimal errors.
-							'''
-							# Move the test allong its width + SMALL_NUM
-							boxLeft += sourceIsland[4] + SMALL_NUM
-						elif Intersect == 0: # No intersection?? Place it.
-							# Progress
-							removedCount +=1
-							Window.DrawProgressBar(0.0, 'Merged: %i islands, Ctrl to finish early.' % removedCount)
+							##testcount+=1
+							#print 'Testing intersect'
+							Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, boxLeft, boxBottom)
+							#print 'Done', Intersect
+							if Intersect == 1:  # Line intersect, dont bother with this any more
+								pass
 							
-							# Move faces into new island and offset
-							targetIsland[0].extend(sourceIsland[0])
-							while sourceIsland[0]:
-								f = sourceIsland[0].pop()
-								f.uv = [Vector(uv[0]+boxLeft, uv[1]+boxBottom) for uv in f.uv]
+							if Intersect == 2:  # Source inside target
+								'''
+								We have an intersection, if we are inside the target 
+								then move us 1 whole width accross,
+								Its possible this is a bad idea since 2 skinny Angular faces
+								could join without 1 whole move, but its a lot more optimal to speed this up
+								since we have alredy tested for it.
+								
+								It gives about 10% speedup with minimal errors.
+								'''
+								#print 'ass'
+								# Move the test allong its width + SMALL_NUM
+								#boxLeft += sourceIsland[4] + SMALL_NUM
+								boxLeft += sourceIsland[4]
+							elif Intersect == 0: # No intersection?? Place it.
+								# Progress
+								removedCount +=1
+								Window.DrawProgressBar(0.0, 'Merged: %i islands, Ctrl to finish early.' % removedCount)
+								
+								# Move faces into new island and offset
+								targetIsland[0].extend(sourceIsland[0])
+								
+								for f in sourceIsland[0]:
+									f.uv = [Vector(uv[0]+boxLeft, uv[1]+boxBottom) for uv in f.uv]
+								sourceIsland[0][:] = [] # Empty
+								
 
-							# Move edge loop into new and offset.
-							# targetIsland[6].extend(sourceIsland[6])
-							while sourceIsland[6]:
-								e = sourceIsland[6].pop()
-								targetIsland[6].append(\
-								 ((e[0][0]+boxLeft, e[0][1]+boxBottom),\
-								 (e[1][0]+boxLeft, e[1][1]+boxBottom), e[2])\
-								)
+								# Move edge loop into new and offset.
+								# targetIsland[6].extend(sourceIsland[6])
+								#while sourceIsland[6]:
+								targetIsland[6].extend( [ (\
+									 ((e[0][0]+boxLeft, e[0][1]+boxBottom),\
+									 (e[1][0]+boxLeft, e[1][1]+boxBottom), e[2])\
+								) for e in sourceIsland[6] ] )
+								
+								sourceIsland[6][:] = [] # Empty
+								
+								# Sort by edge length, reverse so biggest are first.
+								targetIsland[6].sort(lambda B,A: cmp(A[2], B[2] ))
+								
+								targetIsland[7].extend(sourceIsland[7])
+								for p in sourceIsland[7]:
+									p.x += boxLeft; p.y += boxBottom
+								
+								sourceIsland[7][:] = []
+								
+								
+								# Decrement the efficiency
+								targetIsland[1]+=sourceIsland[1] # Increment totFaceArea
+								targetIsland[2]-=sourceIsland[1] # Decrement efficiency
+								# IF we ever used these again, should set to 0, eg
+								sourceIsland[2] = 0 # No area is anyone wants to know
+								
+								break
 							
-							# Sort by edge length, reverse so biggest are first.
-							targetIsland[6].sort(lambda B,A: cmp(A[2], B[2] ))
-							
-							targetIsland[7].extend(sourceIsland[7])
-							while sourceIsland[7]:
-								p = sourceIsland[7].pop()
-								p.x += boxLeft; p.y += boxBottom
 							
 							
-							# Decrement the efficiency
-							targetIsland[1]+=sourceIsland[1] # Increment totFaceArea
-							targetIsland[2]-=sourceIsland[1] # Decrement efficiency
-							# IF we ever used these again, should set to 0, eg
-							sourceIsland[2] = 0 # No area is anyone wants to know
-							
-							break
-						
-						
-						# INCREMENR NEXT LOCATION
-						if boxLeft > testWidth:
-							boxBottom += yIncrement
-							boxLeft = 0.0
-						else:
-							boxLeft += xIncrement
-						
-							
+							# INCREMENR NEXT LOCATION
+							if boxLeft > testWidth:
+								boxBottom += yIncrement
+								boxLeft = 0.0
+							else:
+								boxLeft += xIncrement
+						##print testcount
+				
 				efficIslandIdx+=1
 		areaIslandIdx+=1
 	
@@ -1129,8 +1155,6 @@ def main():
 			packIslands(islandList, islandListArea)
 			
 		
-		print "ArchiMap time: %.2f" % (sys.time() - time1)
-		Window.DrawProgressBar(0.9, "ArchiMap Done, time: %.2f sec." % (sys.time() - time1))
 		
 		# Update and dont mess with edge data.
 		# OLD NMESH # me.update(0, (me.edges != []), 0)
@@ -1139,6 +1163,9 @@ def main():
 	if USER_SHARE_SPACE:
 		Window.DrawProgressBar(0.9, "Box Packing for all objects...")
 		packIslands(collected_islandList, collected_islandListArea)
+	
+	print "ArchiMap time: %.2f" % (sys.time() - time1)
+	Window.DrawProgressBar(0.9, "ArchiMap Done, time: %.2f sec." % (sys.time() - time1))
 	
 	Window.DrawProgressBar(1.0, "")
 	Window.WaitCursor(0)
