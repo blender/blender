@@ -54,7 +54,7 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 				# ortho mode: is a bit strange - actually there's no definite location of the camera ...
 				# but the camera could be displaced anywhere along the viewing direction.
 				
-				ortho_d.x, ortho_d.y, ortho_d.z = Window.GetViewVector()
+				ortho_d[:] = Window.GetViewVector()
 				ortho_d.w = 0
 				
 				# all rays are parallel in ortho mode - so the direction vector is simply the viewing direction
@@ -73,7 +73,7 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 			# is used in sculpt_mesh to initialize backface culling...)
 			else:
 				# PERSPECTIVE MODE: here everything is well defined - all rays converge at the camera's location
-				vmi  = Matrix(Window.GetViewMatrix()); vmi.invert() # the inverse viewing matrix
+				vmi  = Window.GetViewMatrix().inverted() # the inverse viewing matrix
 				fp = mouseViewRay.fp
 				
 				dx = pm[3][3] * (((screen_x-win_min_x)/win_size_x)-1.0) - pm[3][0]
@@ -104,13 +104,9 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 			# Do we want to return a direction in object's localspace?
 			
 			if localMatrix:
-				localInvMatrix = Matrix(localMatrix)
-				localInvMatrix.invert()
+				localInvMatrix = localMatrix.inverted()
 				p = p*localInvMatrix
-				d = d*localInvMatrix # normalize_v3
-				p.x += localInvMatrix[3][0]
-				p.y += localInvMatrix[3][1]
-				p.z += localInvMatrix[3][2]
+				d = d*localInvMatrix.rotationPart() # normalize_v3
 				
 			#else: # Worldspace, do nothing
 			
