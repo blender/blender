@@ -38,62 +38,49 @@ and optionaly blur the shading to remove artifacts from spesific edges.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-from Blender import *
+from Blender import Scene, Draw, sys, Window, Mathutils, Mesh
 import BPyMesh
 
 
 def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY):
 	Window.WaitCursor(1)
-	V=Mathutils.Vector
-	M=Mathutils.Matrix
+	DotVecs = Mathutils.DotVecs
 	Ang= Mathutils.AngleBetweenVecs
 	
 	BPyMesh.meshCalcNormals(me)
-		
 
 	vert_tone= [0.0] * len(me.verts)
 	vert_tone_count= [0] * len(me.verts)
-	
-	ed_face_users = [ [] for i in xrange(len(me.edges)) ]
-
-	fcent= [f.cent for f in me.faces]
 
 	min_tone=0
 	max_tone=0
 
 	for i, f in enumerate(me.faces):
-		c= fcent[i]
+		fc= f.cent
 		fno = f.no
+		
 		for v in f.v:
 			vno=v.no # get a scaled down normal.
 			
-			l1= (c-(v.co-vno)).length
-			l2= (c-(v.co+vno)).length
-			
+			dot= DotVecs(vno, v.co) - DotVecs(vno, fc)
 			vert_tone_count[v.index]+=1
-			if abs(l1-l2) < 0.0000001:
-				pass
+			try:
+				a= Ang(vno, fno)
+			except:
+				continue
+			
+			# Convex
+			if dot>0:
+				a= min(PREF_CLAMP_CONVEX, a)
+				if not PREF_SHADOW_ONLY:
+					vert_tone[v.index] += a
 			else:
-				try:
-					a= Ang(vno, fno)
-				except:
-					continue
-					
-				
-				# Convex
-				if l1<l2:
-					a= min(PREF_CLAMP_CONVEX, a)
-					if not PREF_SHADOW_ONLY:
-						vert_tone[v.index] += a
-				else:
-					a= min(PREF_CLAMP_CONCAVE, a)
-					vert_tone[v.index] -= a
-	
+				a= min(PREF_CLAMP_CONCAVE, a)
+				vert_tone[v.index] -= a
 	
 	# average vert_tone_list into vert_tonef
 	for i, tones in enumerate(vert_tone):
 		vert_tone[i] = vert_tone[i] / vert_tone_count[i]
-
 
 
 	# BLUR TONE
@@ -115,15 +102,18 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 					
 				if not len_vert_tone_list_i1: len_vert_tone_list_i1=1
 				if not len_vert_tone_list_i2: len_vert_tone_list_i2=1
-					
-				vert_tone[i1]+= (orig_vert_tone[i2]/len_vert_tone_list_i1)/ f
-				vert_tone[i2]+= (orig_vert_tone[i1]/len_vert_tone_list_i2)/ f
 				
+				val1= (orig_vert_tone[i2]/len_vert_tone_list_i1)/ f
+				val2= (orig_vert_tone[i1]/len_vert_tone_list_i2)/ f
+				
+				vert_tone[i1]+= val1
+				vert_tone[i2]+= val2
+	
 
 	min_tone= min(vert_tone)
 	max_tone= max(vert_tone)
 	
-	print min_tone, max_tone
+	#print min_tone, max_tone
 	
 	tone_range= max_tone-min_tone
 	if max_tone==min_tone:
@@ -131,11 +121,15 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 	SELFLAG= Mesh.FaceFlags.SELECT
 	for f in me.faces:
 		if not PREF_SEL_ONLY or f.flag & SELFLAG:
-			for i, v in enumerate(f.v):
+			f_col= f.col
+			for i, v in enumerate(f):
+				col= f_col[i]
 				tone= vert_tone[v.index]
-				tone= tone-min_tone
+				tone= (tone-min_tone)/tone_range
 				
-				f.col[i].r= f.col[i].g= f.col[i].b= int((tone/tone_range)*255)
+				col.r= int(tone*col.r)
+				col.g= int(tone*col.g)
+				col.b= int(tone*col.b)
 	
 	Window.WaitCursor(0)
 
@@ -152,8 +146,8 @@ def main():
 	PREF_BLUR_ITERATIONS= Draw.Create(1)	
 	PREF_BLUR_RADIUS= Draw.Create(0.05)
 	PREF_MIN_EDLEN= Draw.Create(0.01)
-	PREF_CLAMP_CONCAVE= Draw.Create(180)
-	PREF_CLAMP_CONVEX= Draw.Create(180)
+	PREF_CLAMP_CONCAVE= Draw.Create(90)
+	PREF_CLAMP_CONVEX= Draw.Create(20)
 	PREF_SHADOW_ONLY= Draw.Create(0)
 	PREF_SEL_ONLY= Draw.Create(0)	
 	pup_block= [\
@@ -182,9 +176,9 @@ def main():
 	if not me.faceUV:
 		me.faceUV= 1
 	
-	#t= sys.time()
+	t= sys.time()
 	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)
-	#print 'done in %.6f' % (sys.time()-t)
+	print 'done in %.6f' % (sys.time()-t)
 if __name__=='__main__':
 	main()
 
