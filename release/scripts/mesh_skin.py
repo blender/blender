@@ -57,6 +57,12 @@ BIG_NUM = 1<<30
 global CULL_METHOD
 CULL_METHOD = 0
 
+def AngleBetweenVecs(a1,a2):
+	try:
+		return Mathutils.AngleBetweenVecs(a1,a2)
+	except:
+		return 180.0
+
 class edge:
 	def __init__(self, v1,v2):
 		self.v1 = v1
@@ -108,11 +114,9 @@ class edgeLoop:
 			
 			# Generate the angle
 			va= e.cent - e.prev.cent
-			vb= e.cent - e.next.cent
+			vb= e.next.cent - e.cent
 			
-			try:		e.angle= Mathutils.AngleBetweenVecs(va, vb)
-			except:		e.angle= 180
-			
+			e.angle= AngleBetweenVecs(va, vb)
 		
 		# Blur the angles
 		#for e in self.edges:
@@ -152,7 +156,6 @@ class edgeLoop:
 			
 			e.normal = normal1
 			#print e.normal
-		
 
 
 		
@@ -181,8 +184,9 @@ class edgeLoop:
 		global CULL_METHOD
 		if CULL_METHOD == 1: # Shortest edge
 			eloopCopy = self.edges[:]
-			#eloopCopy.sort(lambda e1, e2: cmp(e1.length, e2.length )) # Length sort, smallest first
-			eloopCopy.sort(lambda e1, e2: cmp(e2.angle*e2.length, e1.angle*e1.length)) # Length sort, smallest first
+			eloopCopy.sort(lambda e1, e2: cmp(e1.length, e2.length )) # Length sort, smallest first
+			#eloopCopy.sort(lambda e1, e2: cmp(e1.angle*e1.length, e2.angle*e2.length)) # Length sort, smallest first
+			#eloopCopy.sort(lambda e1, e2: cmp(e1.angle, e2.angle)) # Length sort, smallest first
 			eloopCopy = eloopCopy[:cullNum]
 			for e in eloopCopy:
 				e.removed = 1
@@ -335,10 +339,12 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	
 	
 	# IS THE LOOP FLIPPED, IF SO FLIP BACK.
-	angleBetweenLoopNormals = Mathutils.AngleBetweenVecs(eloop1.normal, eloop2.normal)
+	angleBetweenLoopNormals = AngleBetweenVecs(eloop1.normal, eloop2.normal)
 	
 	if angleBetweenLoopNormals > 90:
 		eloop2.reverse()
+	
+	DIR= eloop1.centre - eloop2.centre
 	
 	
 	bestEloopDist = BIG_NUM
@@ -350,22 +356,32 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 		
 		offsetIndexLs = eLoopIdxs[offset:] + eLoopIdxs[:offset] # Make offset index list
 		
-		# e1Idx is always from 0 to N, e2Idx is offset.
-		for e1Idx, e2Idx in enumerate(offsetIndexLs):
-			# Measure the vloop distance ===============
-			totEloopDist += ((eloop1.edges[e1Idx].co1 - eloop2.edges[e2Idx].co1).length / loopDist) #/ nangle1
-			totEloopDist += ((eloop1.edges[e1Idx].co2 - eloop2.edges[e2Idx].co2).length / loopDist) #/ nangle1
-			
-			#e1= eloop1.edges[e1Idx]
-			#e2= eloop2.edges[e2Idx]
-			
-			#totEloopDist += (((e1.co1 - e2.co1).length ) / loopDist) #/ nangle1
-			#totEloopDist += (((e1.co2 - e2.co2).length ) / loopDist) #/ nangle1
-			
-			# Premeture break if where no better off
-			if totEloopDist > bestEloopDist:
-				break
 		
+		# e1Idx is always from 0uu to N, e2Idx is offset.
+		for e1Idx, e2Idx in enumerate(offsetIndexLs):
+			e1= eloop1.edges[e1Idx]
+			e2= eloop2.edges[e2Idx]
+			
+			
+			# Include fan connections in the measurement.
+			OK= True
+			while OK or e1.removed:
+				OK= False
+				
+				# Measure the vloop distance ===============
+				diff= ((e1.cent - e2.cent).length) #/ nangle1
+				
+				ed_dir= e1.cent-e2.cent
+				a_diff= AngleBetweenVecs(DIR, ed_dir)/18 # 0 t0 18
+				
+				totEloopDist += (diff * (1+a_diff)) / loopDist
+				
+				# Premeture break if where no better off
+				if totEloopDist > bestEloopDist:
+					break
+				
+				e1=e1.next
+				
 		if totEloopDist < bestEloopDist:
 			bestOffset = offset
 			bestEloopDist = totEloopDist
