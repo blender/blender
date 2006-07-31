@@ -64,6 +64,7 @@
 
 #include "BIF_editview.h"		/* arrows_move_cursor	*/
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -135,7 +136,7 @@ static void helpline(TransInfo *t, float *vec)
 		setlinestyle(0);
 		
 		persp(PERSP_VIEW);
-		glFlush(); // flush display for frontbuffer
+		bglFlush(); // flush display for frontbuffer
 		glDrawBuffer(GL_BACK);
 	}
 }

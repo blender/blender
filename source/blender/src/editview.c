@@ -766,7 +766,7 @@ int gesture(void)
 				if(i) {
 					if(lasso) draw_lasso_select(mcords, i, 0);
 					else sdrawXORline(mcords[i-1][0], mcords[i-1][1], mcords[i][0], mcords[i][1]);
-					glFlush();
+					bglFlush();
 				}
 				i++;
 			}
@@ -1777,7 +1777,7 @@ void borderselect(void)
 			}
 		}
 		/* frontbuffer flush */
-		glFlush();
+		bglFlush();
 
 		MEM_freeN(vbuffer);
 		

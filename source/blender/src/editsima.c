@@ -68,6 +68,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "BIF_interface.h"
 #include "BIF_screen.h"
 #include "BIF_drawimage.h"
@@ -911,6 +912,7 @@ void uvedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 		else { /* force_draw() is no good here... */
 			glDrawBuffer(GL_FRONT);
 			draw_tfaces();
+			bglFlush();
 			glDrawBuffer(GL_BACK);
 		}
 	}	

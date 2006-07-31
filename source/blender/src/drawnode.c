@@ -37,6 +37,7 @@
 #include "DNA_action_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_ID.h"
+#include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -76,6 +77,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RE_pipeline.h"
+#include "IMB_imbuf_types.h"
 
 #include "blendef.h"
 #include "butspace.h"
@@ -1117,6 +1119,33 @@ static void draw_nodespace_grid(SpaceNode *snode)
 	glEnd();
 }
 
+static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
+{
+	Image *ima;
+	
+	draw_nodespace_grid(snode);
+	
+	if(snode->flag & SNODE_BACKDRAW) {
+		ima= (Image *)find_id("IM", "Viewer Node");
+		if(ima && ima->ibuf) {
+			/* somehow the offset has to be calculated inverse */
+			
+			glaDefine2DArea(&sa->winrct);
+			/* ortho at pixel level curarea */
+			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+
+			if(ima->ibuf->rect)
+				glaDrawPixelsSafe((sa->winx-ima->ibuf->x)/2, (sa->winy-ima->ibuf->y)/2, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ima->ibuf->rect);
+			else
+				glaDrawPixelsSafe((sa->winx-ima->ibuf->x)/2, (sa->winy-ima->ibuf->y)/2, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_FLOAT, ima->ibuf->rect_float);
+			
+			/* sort this out, this should not be needed */
+			myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);
+			bwin_clear_viewmat(sa->win);	/* clear buttons view */
+			glLoadIdentity();
+		}
+	}
+}
 
 static void nodeshadow(rctf *rct, float radius, float aspect, int select)
 {
@@ -1545,9 +1574,11 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	snode_drawstring(snode, node->name, (int)(iconofs - rct->xmin-18.0f));
 					 
 	/* body */
-	BIF_ThemeColor(TH_NODE);	
+	BIF_ThemeColor4(TH_NODE);
+	glEnable(GL_BLEND);
 	uiSetRoundBox(8);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax-NODE_DY, BASIS_RAD);
+	glDisable(GL_BLEND);
 	
 	/* scaling indicator */
 	node_scaling_widget(TH_NODE, snode->aspect, rct->xmax-BASIS_RAD*snode->aspect, rct->ymin, rct->xmax, rct->ymin+BASIS_RAD*snode->aspect);
@@ -1958,7 +1989,7 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 	snode->curfont= uiSetCurFont_ext(snode->aspect);
 
 	/* backdrop */
-	draw_nodespace_grid(snode);
+	draw_nodespace_back(sa, snode);
 	
 	/* nodes */
 	snode_set_context(snode);

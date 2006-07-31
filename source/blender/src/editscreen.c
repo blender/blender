@@ -712,7 +712,7 @@ void splash(void *data, int datasize, char *string)
 			BMF_DrawString(font, string);
 		}
 
-		glFlush();
+		bglFlush();
 		glDrawBuffer(GL_BACK);
 		
 		IMB_freeImBuf(bbuf);
@@ -2750,7 +2750,7 @@ static void joinarea_interactive(ScrArea *area, ScrEdge *onedge)
 		scrarea_draw_shape_dark(scr,'d');
 	else if(scr==down)
 		scrarea_draw_shape_dark(scr,'u');
-	glFlush();
+	bglFlush();
 
 	/* "never ending loop" of interactive selection */
 	while(!ok) {
@@ -2793,7 +2793,7 @@ static void joinarea_interactive(ScrArea *area, ScrEdge *onedge)
 		/* cancel joining of joining */
 		if(val && (event==ESCKEY || event==RIGHTMOUSE)) ok= -1;
 
-		glFlush();
+		bglFlush();
 	}
 
 	glReadBuffer(GL_BACK);
@@ -3074,12 +3074,12 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 		if(val && (event==ESCKEY || event==RIGHTMOUSE)) {
 			ok= -1;
 		}
-		glFlush();
+		bglFlush();
 	}
 
 	if (!first) {
 		scrarea_draw_splitpoint(sa, dir, fac);
-		glFlush();
+		bglFlush();
 	}
 	glReadBuffer(GL_BACK);
 	glDrawBuffer(GL_BACK);
@@ -3390,7 +3390,7 @@ static void moveareas(ScrEdge *edge)
 			delta= (dir=='h')?(mval[1]-mvalo[1]):(mval[0]-mvalo[0]);
 			delta= CLAMPIS(delta, -smaller, bigger);
 			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
-			glFlush();
+			bglFlush();
 		} 
 		else if (event==LEFTMOUSE) {
 			doit= 1;
@@ -3405,7 +3405,7 @@ static void moveareas(ScrEdge *edge)
 		
 	}
 	draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
-	glFlush();
+	bglFlush();
 	glReadBuffer(GL_BACK);
 	glDrawBuffer(GL_BACK);
 
@@ -3636,47 +3636,6 @@ bScreen *default_twosplit()
 void initscreen(void)
 {
 	default_twosplit();
-}
-
-/***/
-
-void screen_draw_info_text(bScreen *sc, char *text) {
-	Window *oldactwin= winlay_get_active_window();
-	ScrArea *sa;
-	
-		/*
-		 * Because this is called from within rendering
-		 * internals it is possible our window is not
-		 * active.
-		 */
-	window_make_active(mainwin);
-	
-	for (sa= sc->areabase.first; sa; sa= sa->next) {
-		if (sa->spacetype==SPACE_INFO) {
-			int x= sa->headbutlen - 28;
-			int y= 6;
-			
-			areawinset(sa->headwin);
-			glDrawBuffer(GL_FRONT);
-
-			cpack(0xA08060);
-			glRecti(x-11,  y-6,  x+55,  y+13);
-			
-			cpack(0x909090);
-			glRecti(x+55,  y-6,  x+1280,  y+14);
-			
-			cpack(0x0);
-			glRasterPos2i(x,  y);
-			BMF_DrawString(G.fonts, text);
-			
-			glFlush();
-			glDrawBuffer(GL_BACK);
-			
-			sa->head_swap= WIN_FRONT_OK;
-		}
-	}
-	
-	if (oldactwin && oldactwin!=mainwin) window_make_active(oldactwin);
 }
 
 static int curcursor;

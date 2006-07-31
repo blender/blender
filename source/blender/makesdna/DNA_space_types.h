@@ -323,6 +323,7 @@ typedef struct SpaceNode {
 
 /* snode->flag */
 #define SNODE_DO_PREVIEW	1
+#define SNODE_BACKDRAW		2
 
 #
 #

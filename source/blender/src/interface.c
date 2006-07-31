@@ -300,18 +300,6 @@ static uiOverDraw *ui_begin_overdraw(int minx, int miny, int maxx, int maxy)
 	return od;
 }
 
-#ifdef __APPLE__
-static int is_a_really_crappy_intel_card(void) {
-	static int well_is_it= -1;
-
-		/* Do you understand the implication? Do you? */
-	if (well_is_it==-1)
-		well_is_it= (strcmp((char*) glGetString(GL_VENDOR), "Intel Inc.") == 0);
-
-	return well_is_it;
-}
-#endif
-
 static void ui_flush_overdraw(uiOverDraw *od)
 {
 
@@ -322,11 +310,7 @@ static void ui_flush_overdraw(uiOverDraw *od)
 	glRasterPos2s(od->x, od->y);
 	myglCopyPixels(od->x, od->y, od->sx, od->sy, GL_COLOR);
 	glEnable(GL_DITHER);
-	glFlush();
-#ifdef __APPLE__
-	if (is_a_really_crappy_intel_card())
-		myswapbuffers(); //hack to get mac intel graphics to show menus
-#endif
+	bglFlush();
 	glDrawBuffer(GL_BACK);
 }
 
@@ -371,7 +355,7 @@ static void ui_end_overdraw(uiOverDraw *od)
 	glRasterPos2s(od->x, od->y);
 	glDrawPixels(od->sx, od->sy, GL_RGBA, GL_UNSIGNED_BYTE, od->rect);
 
-	glFlush();
+	bglFlush();
 	glDrawBuffer(GL_BACK);
 	glEnable(GL_DITHER);
 	
@@ -394,7 +378,7 @@ void ui_block_flush_back(uiBlock *block)
 
 	/* exception, when we cannot use backbuffer for draw... */
 	if(block->flag & UI_BLOCK_FRONTBUFFER) {
-		glFlush();
+		bglFlush();
 		glDrawBuffer(GL_BACK);
 		block->needflush= 0;
 		return;
@@ -423,7 +407,7 @@ void ui_block_flush_back(uiBlock *block)
 		myglCopyPixels(minx, miny, sizex, sizey, GL_COLOR);
 #endif
 		glEnable(GL_DITHER);
-		glFlush();
+		bglFlush();
 		glDrawBuffer(GL_BACK);
 
 		mywinset(block->win);
@@ -4051,7 +4035,7 @@ static void ui_do_active_linklines(uiBlock *block, short *mval)
 			}
 			but= but->next;
 		}
-		glFlush();
+		bglFlush();
 		glDrawBuffer(GL_BACK);
 	}
 }

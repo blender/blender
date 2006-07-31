@@ -198,12 +198,14 @@ void gla2DGetMap(gla2DDrawInfo *di, struct rctf *rect);
 void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
 
 
-/* use this for platform hacks. for now glPointSize is solved here */
+/* use this for platform hacks. glPointSize is solved here */
 void bglBegin(int mode);
 void bglEnd(void);
 void bglVertex3fv(float *vec);
 void bglVertex3f(float x, float y, float z);
 void bglVertex2fv(float *vec);
+/* intel gfx cards frontbuffer problem */
+void bglFlush(void);
 
 void set_inverted_drawing(int enable);
 

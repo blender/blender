@@ -64,6 +64,7 @@
 #include "BKE_main.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "BIF_keyval.h"
 #include "BIF_interface.h"
 #include "BIF_drawtext.h"
@@ -820,6 +821,7 @@ static void do_textscroll(SpaceText *st, int mode)
 
 	glDrawBuffer(GL_FRONT);
 	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
+	bglFlush();
 	glDrawBuffer(GL_BACK);
 
 	getmouseco_areawin(mval);
@@ -857,6 +859,7 @@ static void do_textscroll(SpaceText *st, int mode)
 
 	glDrawBuffer(GL_FRONT);
 	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
+	bglFlush();
 	glDrawBuffer(GL_BACK);
 }
 

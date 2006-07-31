@@ -696,7 +696,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 	glPointSize(1.0);
 	glPopMatrix();
 
-	glFlush();
+	bglFlush();
 	glDrawBuffer(GL_BACK);
 
 	if(G.vd->flag & V3D_CLIPPING)

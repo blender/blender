@@ -75,6 +75,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BIF_cursors.h"
 #include "BIF_editmesh.h"
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
@@ -4583,7 +4584,7 @@ void bevel_menu()
 			setlinestyle(0);
 			
 			persp(PERSP_VIEW);
-			glFlush(); // flush display for frontbuffer
+			bglFlush(); // flush display for frontbuffer
 			glDrawBuffer(GL_BACK);
 		}
 		while(qtest()) {

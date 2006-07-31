@@ -32,6 +32,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -46,6 +47,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_mywindow.h"
 
 	/* Invert line handling */
 	
@@ -621,6 +623,24 @@ void bglPolygonOffset(float dist)
 	}
 }
 
+static int is_a_really_crappy_intel_card(void)
+{
+	static int well_is_it= -1;
 
+		/* Do you understand the implication? Do you? */
+	if (well_is_it==-1)
+		well_is_it= (strcmp((char*) glGetString(GL_VENDOR), "Intel Inc.") == 0);
+
+	return well_is_it;
+}
+
+void bglFlush(void) 
+{
+	glFlush();
+#ifdef __APPLE__
+	if(is_a_really_crappy_intel_card())
+		myswapbuffers(); //hack to get mac intel graphics to show frontbuffer
+#endif
+}
 
 

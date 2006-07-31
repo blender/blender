@@ -506,7 +506,7 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 		if( event==ESCKEY || event==RIGHTMOUSE ) {
 			if (curve) MEM_freeN(curve);
 			*len=0;
-			glFlush();
+			bglFlush();
 			glDrawBuffer(GL_BACK);
 			return(NULL);
 			break;
@@ -586,7 +586,7 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 		}
 	}
 
-	glFlush();
+	bglFlush();
 	glDrawBuffer(GL_BACK);
 	persp(PERSP_VIEW);
 

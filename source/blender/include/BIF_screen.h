@@ -125,12 +125,6 @@ int do_screenhandlers(struct bScreen *sc);
 int has_screenhandler(struct bScreen *sc, short eventcode);
 
 	/***/
-	
-/**
- * Draw @a text in the header of each info window
- * of the given screen.
- */
-void screen_draw_info_text(struct bScreen *sc, char *text);
 
 /* return all layers of all 3d windows in a screen */
 unsigned int screen_view3d_layers(void);

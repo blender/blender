@@ -4069,7 +4069,7 @@ void draw_object_ext(Base *base)
 	
 	G.f &= ~G_DRAW_EXT;
 
-	glFlush();		/* reveil frontbuffer drawing */
+	bglFlush();		/* reveil frontbuffer drawing */
 	glDrawBuffer(GL_BACK);
 	
 	if(G.vd->zbuf) {
