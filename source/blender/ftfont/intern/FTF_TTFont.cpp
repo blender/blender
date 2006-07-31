@@ -385,6 +385,8 @@ float FTF_TTFont::GetStringWidth(char* str, unsigned int flag)
 	wchar_t wstr[FTF_MAX_STR_SIZE-1]={'\0'};
 	int len=0;
 
+	if (strlen(str)==0) return 0.0;
+	
 	/* note; this utf8towchar() function I totally don't understand... without using translations it 
 		removes special characters completely. So, for now we just skip that then. (ton) */
 
