@@ -975,16 +975,28 @@ static int node_composit_buts_hue_sat(uiBlock *block, bNodeTree *ntree, bNode *n
 		NodeHueSat *nhs= node->storage;
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Hue ",
-				  butr->xmin, butr->ymin+19.0f, butr->xmax-butr->xmin, 19, 
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Hue: ",
+				  butr->xmin, butr->ymin+40.0f, butr->xmax-butr->xmin, 20, 
 				  &nhs->hue, 0.0f, 1.0f, 100, 0, "");
-		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Sat ",
-				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Sat: ",
+				  butr->xmin, butr->ymin+20.0f, butr->xmax-butr->xmin, 20, 
 				  &nhs->sat, 0.0f, 2.0f, 100, 0, "");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Val: ",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  &nhs->val, 0.0f, 2.0f, 100, 0, "");
 	}
-	return 38;
+	return 60;
 }
 
+static int node_composit_buts_dilateerode(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Distance:",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  &node->custom2, -100, 100, 0, 0, "Distance to grow/shrink (number of iterations)");
+	}
+	return 20;
+}
 
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
@@ -1043,6 +1055,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_TEXTURE:
 			ntype->butfunc= node_buts_texture;
+			break;
+		case CMP_NODE_DILATEERODE:
+			ntype->butfunc= node_composit_buts_dilateerode;
 			break;
 		default:
 			ntype->butfunc= NULL;

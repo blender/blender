@@ -1401,7 +1401,7 @@ static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 {
 	NodeHueSat *nhs= node->storage;
 	
-	if(*fac!=0.0f && (nhs->hue!=0.5f || nhs->sat!=1.0)) {
+	if(*fac!=0.0f && (nhs->hue!=0.5f || nhs->sat!=1.0 || nhs->val!=1.0)) {
 		float col[3], hsv[3], mfac= 1.0f - *fac;
 		
 		rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
@@ -1409,6 +1409,8 @@ static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
 		hsv[1]*= nhs->sat;
 		if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
+		hsv[2]*= nhs->val;
+		if(hsv[2]>1.0) hsv[2]= 1.0; else if(hsv[2]<0.0) hsv[2]= 0.0;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		
 		out[0]= mfac*in[0] + *fac*col[0];
@@ -1444,7 +1446,7 @@ static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in,
 
 static bNodeType cmp_node_hue_sat= {
 	/* type code   */	CMP_NODE_HUE_SAT,
-	/* name        */	"Hue Saturation",
+	/* name        */	"Hue Saturation Value",
 	/* width+range */	150, 80, 250,
 	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_hue_sat_in,
@@ -1934,6 +1936,72 @@ static bNodeType cmp_node_sephsva= {
 	/* output sock */	cmp_node_sephsva_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_sephsva
+	
+};
+
+/* **************** COMBINE RGBA ******************** */
+static bNodeSocketType cmp_node_combrgba_in[]= {
+	{	SOCK_VALUE, 1, "R",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "G",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "B",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "A",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_combrgba_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_combrgba(bNode *node, float *out, float *in1, float *in2, float *in3, float *in4)
+{
+	out[0] = in1[0];
+	out[1] = in2[0];
+	out[2] = in3[0];
+	out[3] = in4[0];
+}
+
+static void node_composit_exec_combrgba(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: 1 rgba channels */
+	/* stack order in: 4 value channels */
+	
+	/* input no image? then only color operation */
+	if((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
+		out[0]->vec[0] = in[0]->vec[0];
+		out[0]->vec[1] = in[1]->vec[0];
+		out[0]->vec[2] = in[2]->vec[0];
+		out[0]->vec[3] = in[3]->vec[0];
+	}
+	else {
+		/* make output size of first available input image */
+		CompBuf *cbuf;
+		CompBuf *stackbuf;
+
+		/* allocate a CompBuf the size of the first available input */
+		if (in[0]->data) cbuf = in[0]->data;
+		else if (in[1]->data) cbuf = in[1]->data;
+		else if (in[2]->data) cbuf = in[2]->data;
+		else cbuf = in[3]->data;
+		
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
+								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
+								  do_combrgba, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+		
+		out[0]->data= stackbuf;
+	}	
+}
+
+static bNodeType cmp_node_combrgba= {
+	/* type code   */	CMP_NODE_COMBRGBA,
+	/* name        */	"Combine RGBA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_combrgba_in,
+	/* output sock */	cmp_node_combrgba_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_combrgba
 	
 };
 
@@ -2902,6 +2970,131 @@ static bNodeType cmp_node_translate= {
 	/* execfunc    */	node_composit_exec_translate
 };
 
+/* **************** Dilate/Erode ******************** */
+
+static bNodeSocketType cmp_node_dilateerode_in[]= {
+	{	SOCK_VALUE, 1, "Mask",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_dilateerode_out[]= {
+	{	SOCK_VALUE, 0, "Mask",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void morpho_dilate(CompBuf *cbuf)
+{
+	int x, y;
+	float *p, *rectf = cbuf->rect;
+	
+	for (y=0; y < cbuf->y; y++) {
+		for (x=0; x < cbuf->x-1; x++) {
+			p = rectf + cbuf->x*y + x;
+			*p = MAX2(*p, *(p + 1));
+		}
+	}
+
+	for (y=0; y < cbuf->y; y++) {
+		for (x=cbuf->x-1; x >= 1; x--) {
+			p = rectf + cbuf->x*y + x;
+			*p = MAX2(*p, *(p - 1));
+		}
+	}
+
+	for (x=0; x < cbuf->x; x++) {
+		for (y=0; y < cbuf->y-1; y++) {
+			p = rectf + cbuf->x*y + x;
+			*p = MAX2(*p, *(p + cbuf->x));
+		}
+	}
+
+	for (x=0; x < cbuf->x; x++) {
+		for (y=cbuf->y-1; y >= 1; y--) {
+			p = rectf + cbuf->x*y + x;
+			*p = MAX2(*p, *(p - cbuf->x));
+		}
+	}
+}
+
+static void morpho_erode(CompBuf *cbuf)
+{
+	int x, y;
+	float *p, *rectf = cbuf->rect;
+	
+	for (y=0; y < cbuf->y; y++) {
+		for (x=0; x < cbuf->x-1; x++) {
+			p = rectf + cbuf->x*y + x;
+			*p = MIN2(*p, *(p + 1));
+		}
+	}
+
+	for (y=0; y < cbuf->y; y++) {
+		for (x=cbuf->x-1; x >= 1; x--) {
+			p = rectf + cbuf->x*y + x;
+			*p = MIN2(*p, *(p - 1));
+		}
+	}
+
+	for (x=0; x < cbuf->x; x++) {
+		for (y=0; y < cbuf->y-1; y++) {
+			p = rectf + cbuf->x*y + x;
+			*p = MIN2(*p, *(p + cbuf->x));
+		}
+	}
+
+	for (x=0; x < cbuf->x; x++) {
+		for (y=cbuf->y-1; y >= 1; y--) {
+			p = rectf + cbuf->x*y + x;
+			*p = MIN2(*p, *(p - cbuf->x));
+		}
+	}
+	
+}
+
+static void node_composit_exec_dilateerode(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order in: mask */
+	/* stack order out: mask */
+	if(out[0]->hasoutput==0) 
+		return;
+	
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		out[0]->vec[0] = out[0]->vec[1] = out[0]->vec[2] = 0.0f;
+		out[0]->vec[3] = 0.0f;
+	}
+	else {
+		/* make output size of input image */
+		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_VAL);
+		CompBuf *stackbuf= dupalloc_compbuf(cbuf);
+		short i;
+		
+		/* warning note: xof and yof are applied in pixelprocessor, but should be copied otherwise? */
+		stackbuf->xof= cbuf->xof;
+		stackbuf->yof= cbuf->yof;
+
+		if (node->custom2 > 0) { // positive, dilate
+			for (i = 0; i < node->custom2; i++)
+				morpho_dilate(stackbuf);
+		} else if (node->custom2 < 0) { // negative, erode
+			for (i = 0; i > node->custom2; i--)
+				morpho_erode(stackbuf);
+		}
+		
+		out[0]->data= stackbuf;
+	}
+}
+
+static bNodeType cmp_node_dilateerode= {
+	/* type code   */	CMP_NODE_DILATEERODE,
+	/* name        */	"Dilate/Erode",
+	/* width+range */	130, 100, 320,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
+	/* input sock  */	cmp_node_dilateerode_in,
+	/* output sock */	cmp_node_dilateerode_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_dilateerode
+};
+
 
 /* ****************** types array for all shaders ****************** */
 
@@ -2929,10 +3122,12 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_rgbtobw,
 	&cmp_node_seprgba,
 	&cmp_node_sephsva,
+	&cmp_node_combrgba,
 	&cmp_node_setalpha,
 	&cmp_node_texture,
 	&cmp_node_translate,
 	&cmp_node_zcombine,
+	&cmp_node_dilateerode,
 	NULL
 };
 

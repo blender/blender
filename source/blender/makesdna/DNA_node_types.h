@@ -193,7 +193,7 @@ typedef struct NodeBlurData {
 } NodeBlurData;
 
 typedef struct NodeHueSat {
-	float hue, sat;
+	float hue, sat, val;
 } NodeHueSat;
 
 #endif

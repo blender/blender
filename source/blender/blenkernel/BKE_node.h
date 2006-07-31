@@ -177,6 +177,7 @@ struct ShadeResult;
 #define SH_NODE_MAPPING		109
 #define SH_NODE_CURVE_VEC	110
 #define SH_NODE_CURVE_RGB	111
+#define SH_NODE_TIME	112
 
 /* custom defines: options for Material node */
 #define SH_NODE_MAT_DIFF	1
@@ -224,6 +225,8 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_TEXTURE		224
 #define CMP_NODE_TRANSLATE		225
 #define CMP_NODE_ZCOMBINE		226
+#define CMP_NODE_COMBRGBA		227
+#define CMP_NODE_DILATEERODE	228
 
 
 /* filter types */

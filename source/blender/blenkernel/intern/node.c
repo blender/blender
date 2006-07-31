@@ -795,6 +795,7 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= nhs;
 			nhs->hue= 0.5f;
 			nhs->sat= 1.0f;
+			nhs->val= 1.0f;
 		}
 	}
 	
