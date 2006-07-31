@@ -1596,10 +1596,16 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 static void write_brushes(WriteData *wd, ListBase *idbase)
 {
 	Brush *brush;
+	int a;
 	
-	for(brush=idbase->first; brush; brush= brush->id.next)
-		if (brush->id.us>0 || wd->current)
+	for(brush=idbase->first; brush; brush= brush->id.next) {
+		if(brush->id.us>0 || wd->current) {
 			writestruct(wd, ID_BR, "Brush", 1, brush);
+			for(a=0; a<MAX_MTEX; a++)
+				if(brush->mtex[a])
+					writestruct(wd, DATA, "MTex", 1, brush->mtex[a]);
+		}
+	}
 }
 
 static void write_global(WriteData *wd)

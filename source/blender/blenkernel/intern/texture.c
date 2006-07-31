@@ -58,6 +58,7 @@
 #include "DNA_material_types.h"
 #include "DNA_image_types.h"
 #include "DNA_world_types.h"
+#include "DNA_brush_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -77,6 +78,7 @@
 #include "BKE_key.h"
 #include "BKE_icons.h"
 #include "BKE_ipo.h"
+#include "BKE_brush.h"
 
 
 /* ------------------------------------------------------------------------- */
@@ -545,6 +547,7 @@ void make_local_texture(Tex *tex)
 	Material *ma;
 	World *wrld;
 	Lamp *la;
+	Brush *br;
 	int a, local=0, lib=0;
 
 	/* - only lib users: do nothing
@@ -599,6 +602,16 @@ void make_local_texture(Tex *tex)
 		}
 		wrld= wrld->id.next;
 	}
+	br= G.main->brush.first;
+	while(br) {
+		for(a=0; a<MAX_MTEX; a++) {
+			if(br->mtex[a] && br->mtex[a]->tex==tex) {
+				if(br->id.lib) lib= 1;
+				else local= 1;
+			}
+		}
+		br= br->id.next;
+	}
 	
 	if(local && lib==0) {
 		tex->id.lib= 0;
@@ -648,7 +661,19 @@ void make_local_texture(Tex *tex)
 			}
 			wrld= wrld->id.next;
 		}
-
+		br= G.main->brush.first;
+		while(br) {
+			for(a=0; a<MAX_MTEX; a++) {
+				if(br->mtex[a] && br->mtex[a]->tex==tex) {
+					if(br->id.lib==0) {
+						br->mtex[a]->tex= texn;
+						texn->id.us++;
+						tex->id.us--;
+					}
+				}
+			}
+			br= br->id.next;
+		}
 	}
 }
 

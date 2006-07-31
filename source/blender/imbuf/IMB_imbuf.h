@@ -219,8 +219,33 @@ void IMB_freecmapImBuf(struct ImBuf * ibuf);
  *
  * @attention Defined in rectop.c
  */
+
+typedef enum IMB_BlendMode {
+	IMB_BLEND_MIX = 0,
+	IMB_BLEND_ADD = 1,
+	IMB_BLEND_SUB = 2,
+	IMB_BLEND_MUL = 3,
+	IMB_BLEND_LIGHTEN = 4,
+	IMB_BLEND_DARKEN = 5,
+
+	IMB_BLEND_COPY = 1000,
+	IMB_BLEND_COPY_RGB = 1001,
+	IMB_BLEND_COPY_ALPHA = 1002
+} IMB_BlendMode;
+
+unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac,
+	IMB_BlendMode mode);
+void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac,
+	IMB_BlendMode mode);
+
+void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx, 
+	int *desty, int *srcx, int *srcy, int *width, int *height);
 void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
+void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
+	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
+void IMB_rectblend_torus(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
+	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
 
 /**
  * Return the length (in frames) of the given @a anim.

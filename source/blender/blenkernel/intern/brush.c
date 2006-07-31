@@ -30,18 +30,31 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_image_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_brush.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
+#include "RE_render_ext.h" /* externtex */
+
+/* Datablock add/copy/free/make_local */
 
 Brush *add_brush(char *name)
 {
@@ -68,8 +81,18 @@ Brush *add_brush(char *name)
 Brush *copy_brush(Brush *brush)
 {
 	Brush *brushn;
+	MTex *mtex;
+	int a;
 	
 	brushn= copy_libblock(brush);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		mtex= brush->mtex[a];
+		if(mtex) {
+			brushn->mtex[a]= MEM_dupallocN(mtex);
+			if(mtex->tex) id_us_plus((ID*)mtex->tex);
+		}
+	}
 
 	/* enable fake user by default */
 	if (!(brushn->id.flag & LIB_FAKEUSER))
@@ -81,16 +104,24 @@ Brush *copy_brush(Brush *brush)
 /* not brush itself */
 void free_brush(Brush *brush)
 {
+	MTex *mtex;
+	int a;
+
+	for(a=0; a<MAX_MTEX; a++) {
+		mtex= brush->mtex[a];
+		if(mtex) {
+			if(mtex->tex) mtex->tex->id.us--;
+			MEM_freeN(mtex);
+		}
+	}
 }
 
 void make_local_brush(Brush *brush)
 {
-	/* don't forget: add stuff texture make local once texture bruses are added*/
-
 	/* - only lib users: do nothing
-	    * - only local users: set flag
-	    * - mixed: make copy
-	    */
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
 	
 	Brush *brushn;
 	Scene *scene;
@@ -99,11 +130,11 @@ void make_local_brush(Brush *brush)
 	if(brush->id.lib==0) return;
 
 	if(brush->clone.image) {
-    	/* special case: ima always local immediately */
+		/* special case: ima always local immediately */
 		brush->clone.image->id.lib= 0;
 		brush->clone.image->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)brush->clone.image, 0);
-    }
+	}
 
 	for(scene= G.main->scene.first; scene; scene=scene->id.next)
 		if(scene->toolsettings->imapaint.brush==brush) {
@@ -135,103 +166,7 @@ void make_local_brush(Brush *brush)
 	}
 }
 
-static void brush_blend_mix(char *cp, char *cp1, char *cp2, int fac)
-{
-	/* this and other blending modes previously used >>8 instead of /255. both
-	   are not equivalent (>>8 is /256), and the former results in rounding
-	   errors that can turn colors black fast */
-	int mfac= 255-fac;
-	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
-}
-
-static void brush_blend_add(char *cp, char *cp1, char *cp2, int fac)
-{
-	int temp;
-
-	temp= cp1[0] + ((fac*cp2[0])/255);
-	if(temp>254) cp[0]= 255; else cp[0]= temp;
-	temp= cp1[1] + ((fac*cp2[1])/255);
-	if(temp>254) cp[1]= 255; else cp[1]= temp;
-	temp= cp1[2] + ((fac*cp2[2])/255);
-	if(temp>254) cp[2]= 255; else cp[2]= temp;
-}
-
-static void brush_blend_sub(char *cp, char *cp1, char *cp2, int fac)
-{
-	int temp;
-
-	temp= cp1[0] - ((fac*cp2[0])/255);
-	if(temp<0) cp[0]= 0; else cp[0]= temp;
-	temp= cp1[1] - ((fac*cp2[1])/255);
-	if(temp<0) cp[1]= 0; else cp[1]= temp;
-	temp= cp1[2] - ((fac*cp2[2])/255);
-	if(temp<0) cp[2]= 0; else cp[2]= temp;
-}
-
-static void brush_blend_mul(char *cp, char *cp1, char *cp2, int fac)
-{
-	int mfac= 255-fac;
-	
-	/* first mul, then blend the fac */
-	cp[0]= (mfac*cp1[0] + fac*((cp2[0]*cp1[0])/255))/255;
-	cp[1]= (mfac*cp1[1] + fac*((cp2[1]*cp1[1])/255))/255;
-	cp[2]= (mfac*cp1[2] + fac*((cp2[2]*cp1[2])/255))/255;
-}
-
-static void brush_blend_lighten(char *cp, char *cp1, char *cp2, int fac)
-{
-	/* See if are lighter, if so mix, else dont do anything.
-	if the paint col is darker then the original, then ignore */
-	if (cp1[0]+cp1[1]+cp1[2] > cp2[0]+cp2[1]+cp2[2]) {
-		cp[0]= cp1[0];
-		cp[1]= cp1[1];
-		cp[2]= cp1[2];
-	}
-	else
-		brush_blend_mix(cp, cp1, cp2, fac);
-}
-
-static void brush_blend_darken(char *cp, char *cp1, char *cp2, int fac)
-{
-	/* See if were darker, if so mix, else dont do anything.
-	if the paint col is brighter then the original, then ignore */
-	if (cp1[0]+cp1[1]+cp1[2] < cp2[0]+cp2[1]+cp2[2]) {
-		cp[0]= cp1[0];
-		cp[1]= cp1[1];
-		cp[2]= cp1[2];
-	}
-	else
-		brush_blend_mix(cp, cp1, cp2, fac);
-}
-
-void brush_blend_rgb(char *outcol, char *col1, char *col2, int fac, short mode)
-{
-	if (fac==0) {
-		outcol[0]= col1[0];
-		outcol[1]= col1[1];
-		outcol[2]= col1[2];
-	}
-	else {
-		switch (mode) {
-			case BRUSH_BLEND_MIX:
-				brush_blend_mix(outcol, col1, col2, fac); break;
-			case BRUSH_BLEND_ADD:
-				brush_blend_add(outcol, col1, col2, fac); break;
-			case BRUSH_BLEND_SUB:
-				brush_blend_sub(outcol, col1, col2, fac); break;
-			case BRUSH_BLEND_MUL:
-				brush_blend_mul(outcol, col1, col2, fac); break;
-			case BRUSH_BLEND_LIGHTEN:
-				brush_blend_lighten(outcol, col1, col2, fac); break;
-			case BRUSH_BLEND_DARKEN:
-				brush_blend_darken(outcol, col1, col2, fac); break;
-			default:
-				brush_blend_mix(outcol, col1, col2, fac); break;
-		}
-	}
-}
+/* Library Operations */
 
 int brush_set_nr(Brush **current_brush, int nr)
 {
@@ -261,6 +196,7 @@ int brush_delete(Brush **current_brush)
 	if (*current_brush) {
 		(*current_brush)->id.us--;
 		*current_brush= NULL;
+
 		return 1;
 	}
 
@@ -279,6 +215,51 @@ void brush_toggle_fake_user(Brush *brush)
 			id_us_plus(id);
 		}
 	}
+}
+
+int brush_texture_set_nr(Brush *brush, int nr)
+{
+	ID *idtest, *id=NULL;
+
+	if(brush->mtex[brush->texact])
+		id= (ID *)brush->mtex[brush->texact]->tex;
+
+	idtest= (ID*)BLI_findlink(&G.main->tex, nr-1);
+	if(idtest==0) { /* new tex */
+		if(id) idtest= (ID *)copy_texture((Tex *)id);
+		else idtest= (ID *)add_texture("Tex");
+		idtest->us--;
+	}
+	if(idtest!=id) {
+		brush_texture_delete(brush);
+
+		if(brush->mtex[brush->texact]==NULL) {
+			brush->mtex[brush->texact]= add_mtex();
+			brush->mtex[brush->texact]->r = 1.0f;
+			brush->mtex[brush->texact]->g = 1.0f;
+			brush->mtex[brush->texact]->b = 1.0f;
+		}
+		brush->mtex[brush->texact]->tex= (Tex*)idtest;
+		id_us_plus(idtest);
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int brush_texture_delete(Brush *brush)
+{
+	if(brush->mtex[brush->texact]) {
+		if(brush->mtex[brush->texact]->tex)
+			brush->mtex[brush->texact]->tex->id.us--;
+		MEM_freeN(brush->mtex[brush->texact]);
+		brush->mtex[brush->texact]= NULL;
+
+		return 1;
+	}
+
+	return 0;
 }
 
 int brush_clone_image_set_nr(Brush *brush, int nr)
@@ -315,4 +296,293 @@ void brush_check_exists(Brush **brush)
 	if(*brush==NULL)
 		brush_set_nr(brush, 1);
 }
+
+/* Brush Sampling */
+
+static float brush_sample_falloff(Brush *brush, float dist)
+{
+	float a, outer, inner;
+
+	outer = brush->size >> 1;
+	inner = outer*brush->innerradius;
+
+	if (dist <= inner) {
+		return brush->alpha;
+	}
+	else if ((dist < outer) && (inner < outer)) {
+		/* formula used by sculpt:
+		   0.5f * (cos(3*(dist - inner)/(outer - inner)) + 1); */
+		a = sqrt((dist - inner)/(outer - inner));
+		return (1 - a)*brush->alpha;
+	}
+	else 
+		return 0.0f;
+}
+
+void brush_sample(Brush *brush, float *xy, float dist, float *rgb, float *alpha, short texonly)
+{
+	if (alpha) {
+		if (texonly) *alpha= 1.0;
+		else *alpha= brush_sample_falloff(brush, dist);
+	}
+	
+	if (xy && brush->mtex[0] && brush->mtex[0]->tex) {
+		float co[3], tin, tr, tg, tb, ta;
+		int hasrgb;
+		
+		co[0]= xy[0]/(brush->size >> 1);
+		co[1]= xy[1]/(brush->size >> 1);
+		co[2]= 0.0f;
+
+		hasrgb= externtex(brush->mtex[0], co, &tin, &tr, &tg, &tb, &ta);
+
+		if (rgb) {
+			if (hasrgb) {
+				rgb[0]= tr*brush->rgb[0];
+				rgb[1]= tg*brush->rgb[1];
+				rgb[2]= tb*brush->rgb[2];
+			}
+			else {
+				rgb[0]= tin*brush->rgb[0];
+				rgb[1]= tin*brush->rgb[1];
+				rgb[2]= tin*brush->rgb[2];
+			}
+		}
+		if (alpha && hasrgb)
+			*alpha *= ta;
+	}
+	else if (rgb)
+		VECCOPY(rgb, brush->rgb)
+}
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+
+ImBuf *brush_imbuf_new(Brush *brush, short flt, short texonly, int size)
+{
+	ImBuf *ibuf;
+	float w_2, h_2, xy[2], dist, rgba[3], *dstf;
+	unsigned int x, y, rowbytes;
+	char *dst;
+
+	if (texonly && !(brush->mtex[0] && brush->mtex[0]->tex))
+		return NULL;
+
+	w_2 = size/2.0f;
+	h_2 = size/2.0f;
+	rowbytes= size*4;
+
+	if (flt) {
+		ibuf= IMB_allocImBuf(size, size, 32, IB_rectfloat, 0);
+
+		for (y=0; y < ibuf->y; y++) {
+			dstf = ibuf->rect_float + y*rowbytes;
+
+			for (x=0; x < ibuf->x; x++, dstf+=4) {
+				xy[0] = x + 0.5f - w_2;
+				xy[1] = y + 0.5f - h_2;
+				dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
+
+				brush_sample(brush, xy, dist, dstf, dstf+3, texonly);
+			}
+		}
+	}
+	else {
+		ibuf= IMB_allocImBuf(size, size, 32, IB_rect, 0);
+
+		for (y=0; y < ibuf->y; y++) {
+			dst = (char*)ibuf->rect + y*rowbytes;
+
+			for (x=0; x < ibuf->x; x++, dst+=4) {
+				xy[0] = x + 0.5f - w_2;
+				xy[1] = y + 0.5f - h_2;
+				dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
+
+				brush_sample(brush, xy, dist, rgba, rgba+3, texonly);
+				dst[0]= FTOCHAR(rgba[0]);
+				dst[1]= FTOCHAR(rgba[1]);
+				dst[2]= FTOCHAR(rgba[2]);
+				dst[3]= FTOCHAR(rgba[3]);
+			}
+		}
+	}
+
+	return ibuf;
+}
+
+/* Brush Painting */
+
+struct BrushPainter {
+	Brush *brush;
+
+	float lastmousepos[2];	/* mouse position of last paint call */
+
+	float accumdistance;	/* accumulated distance of brush since last paint op */
+	float lastpaintpos[2];	/* position of last paint op */
+
+	double accumtime;		/* accumulated time since last paint op (airbrush) */
+	double lasttime;		/* time of last update */
+
+	short firsttouch;		/* first paint op */
+
+	struct BrushPainterImbufCache {
+		int size;			/* size override, if 0 uses brush->size */
+		short flt;			/* need float imbuf? */
+		short texonly;		/* no alpha, color or fallof, only texture in imbuf */
+		short enabled;
+
+		int lastsize;
+		float lastalpha;
+		float lastinnerradius;
+
+		ImBuf *ibuf;
+	} cache;
+};
+
+BrushPainter *brush_painter_new(Brush *brush)
+{
+	BrushPainter *painter= MEM_callocN(sizeof(BrushPainter), "BrushPainter");
+
+	painter->brush= brush;
+	painter->firsttouch= 1;
+
+	return painter;
+}
+
+void brush_painter_require_imbuf(BrushPainter *painter, short flt, short texonly, int size)
+{
+	painter->cache.size = size;
+	painter->cache.flt = flt;
+	painter->cache.texonly = texonly;
+	painter->cache.enabled = 1;
+}
+
+void brush_painter_free(BrushPainter *painter)
+{
+	if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
+	MEM_freeN(painter);
+}
+
+static void brush_painter_refresh_cache(BrushPainter *painter)
+{
+	Brush *brush= painter->brush;
+
+	if ((brush->size != painter->cache.lastsize)
+	    || (brush->alpha != painter->cache.lastalpha)
+	    || (brush->innerradius != painter->cache.lastinnerradius)) {
+
+		if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
+
+		painter->cache.ibuf= brush_imbuf_new(brush,
+			painter->cache.flt, painter->cache.texonly,
+			painter->cache.size? painter->cache.size: brush->size);
+
+		painter->cache.lastsize= brush->size;
+		painter->cache.lastalpha= brush->alpha;
+		painter->cache.lastinnerradius= brush->innerradius;
+	}
+}
+
+int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, void *user)
+{
+	Brush *brush= painter->brush;
+	int totpaintops= 0;
+
+	if (painter->firsttouch) {
+		/* paint exactly once on first touch */
+		if (painter->cache.enabled) brush_painter_refresh_cache(painter);
+		totpaintops += func(user, painter->cache.ibuf, pos, pos);
+		
+		painter->lastpaintpos[0]= pos[0];
+		painter->lastpaintpos[1]= pos[1];
+		painter->lasttime= time;
+
+		painter->firsttouch= 0;
+	}
+#if 0
+	else if (painter->brush->flag & BRUSH_AIRBRUSH) {
+		float spacing, step, paintpos[2], dmousepos[2], len;
+		double starttime, curtime= time;
+
+		/* compute brush spacing adapted to brush size */
+		spacing= brush->rate; //brush->size*brush->spacing*0.01f;
+
+		/* setup starting time, direction vector and accumulated time */
+		starttime= painter->accumtime;
+		Vec2Subf(dmousepos, pos, painter->lastmousepos);
+		len= Normalise2(dmousepos);
+		painter->accumtime += curtime - painter->lasttime;
+
+		/* do paint op over unpainted time distance */
+		while (painter->accumtime >= spacing) {
+			step= (spacing - starttime)*len;
+			paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
+			paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
+
+			if (painter->cache.enabled) brush_painter_refresh_cache(painter);
+			totpaintops += func(user, painter->cache.ibuf, painter->lastpaintpos, paintpos);
+
+			painter->lastpaintpos[0]= paintpos[0];
+			painter->lastpaintpos[1]= paintpos[1];
+			painter->accumtime -= spacing;
+			starttime -= spacing;
+		}
+		
+		painter->lasttime= curtime;
+	}
+#endif
+	else {
+		float startdistance, spacing, step, paintpos[2], dmousepos[2];
+
+		/* compute brush spacing adapted to brush size */
+		spacing= brush->size*brush->spacing*0.01f;
+
+		/* setup starting distance, direction vector and accumulated distance */
+		startdistance= painter->accumdistance;
+		Vec2Subf(dmousepos, pos, painter->lastmousepos);
+		painter->accumdistance += Normalise2(dmousepos);
+
+		/* do paint op over unpainted distance */
+		while (painter->accumdistance >= spacing) {
+			step= spacing - startdistance;
+			paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
+			paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
+
+			if (painter->cache.enabled) brush_painter_refresh_cache(painter);
+			totpaintops += func(user, painter->cache.ibuf, painter->lastpaintpos, paintpos);
+
+			painter->lastpaintpos[0]= paintpos[0];
+			painter->lastpaintpos[1]= paintpos[1];
+			painter->accumdistance -= spacing;
+			startdistance -= spacing;
+		}
+
+		/* do airbrush paint ops, based on the number of paint ops left over
+		   from regular painting. this is a temporary solution until we have
+		   accurate time stamps for mouse move events */
+		if (brush->flag & BRUSH_AIRBRUSH) {
+			double curtime= time;
+			double painttime= brush->rate*totpaintops;
+
+			painter->accumtime += curtime - painter->lasttime;
+			if (painter->accumtime <= painttime)
+				painter->accumtime= 0.0;
+			else
+				painter->accumtime -= painttime;
+
+			while (painter->accumtime >= brush->rate) {
+				if (painter->cache.enabled) brush_painter_refresh_cache(painter);
+				totpaintops += func(user, painter->cache.ibuf, painter->lastmousepos, pos);
+				painter->accumtime -= brush->rate;
+			}
+
+			painter->lasttime= curtime;
+		}
+	}
+
+	painter->lastmousepos[0]= pos[0];
+	painter->lastmousepos[1]= pos[1];
+
+	return totpaintops;
+}
+
 

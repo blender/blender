@@ -1183,26 +1183,36 @@ static void test_pointer_array(FileData *fd, void **mat)
 	}
 }
 
-/* ************ READ BRUSH *************** */
+/* ************ READ Brush *************** */
 
 /* library brush linking after fileread */
 static void lib_link_brush(FileData *fd, Main *main)
 {
 	Brush *brush;
+	MTex *mtex;
+	int a;
 	
 	/* only link ID pointers */
 	for(brush= main->brush.first; brush; brush= brush->id.next) {
 		if(brush->id.flag & LIB_NEEDLINK) {
 			brush->id.flag -= LIB_NEEDLINK;
-			/* nothing to do yet - until brush gets textures */
+
+			for(a=0; a<MAX_MTEX; a++) {
+				mtex= brush->mtex[a];
+				if(mtex)
+					mtex->tex= newlibadr_us(fd, brush->id.lib, mtex->tex);
+			}
 		}
 	}
 }
 
-/* brush itself has been read! */
 static void direct_link_brush(FileData *fd, Brush *brush)
 {
-	/* nothing to do yet - until brush gets textures */
+	/* brush itself has been read */
+	int a;
+
+	for(a=0; a<MAX_MTEX; a++)
+		brush->mtex[a]= newdataadr(fd, brush->mtex[a]);
 }
 
 /* ************ READ CurveMapping *************** */
@@ -5802,7 +5812,12 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 
 static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
 {
-	/* nothing to do yet - until brush gets texture */
+	int a;
+
+	for(a=0; a<MAX_MTEX; a++)
+		if(brush->mtex[a])
+			expand_doit(fd, mainvar, brush->mtex[a]->tex);
+	expand_doit(fd, mainvar, brush->clone.image);
 }
 
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)

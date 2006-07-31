@@ -58,6 +58,7 @@
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -87,10 +88,11 @@
 
 #include "BKE_utildefines.h"
 
-#include "BKE_constraint.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
+#include "BKE_brush.h"
+#include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_exotic.h"
@@ -550,6 +552,7 @@ void do_global_buttons(unsigned short event)
 	bAction *act;
 	ID *id, *idtest, *from=NULL;
 	ScrArea *sa;
+	Brush *br;
 	int nr= 1;
 	char buf[FILE_MAXDIR+FILE_MAXFILE];
 
@@ -767,7 +770,7 @@ void do_global_buttons(unsigned short event)
 					}
 				}
 			}
-			else {	/* from lamp */
+			else if(G.buts->texfrom==2) {	/* from lamp */
 				la= ob->data;
 				if(la && ob->type==OB_LAMP) { /* to be sure */
 					mtex= la->mtex[ la->texact ];
@@ -778,6 +781,21 @@ void do_global_buttons(unsigned short event)
 						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
 						BIF_preview_changed(ID_LA);
+					}
+				}
+			}
+			else {	/* from brush */
+				br= G.scene->toolsettings->imapaint.brush;
+				if(br) {
+					mtex= br->mtex[ br->texact ];
+					if(mtex) {
+						if(mtex->tex) mtex->tex->id.us--;
+						MEM_freeN(mtex);
+						br->mtex[ br->texact ]= NULL;
+						allqueue(REDRAWBUTSSHADING, 0);
+						allqueue(REDRAWIMAGE, 0);
+						allqueue(REDRAWIPO, 0);
+						/*BIF_preview_changed(ID_BR);*/
 					}
 				}
 			}
@@ -1200,7 +1218,7 @@ void do_global_buttons(unsigned short event)
 			}
 		}
 		break;
-	
+
 	case B_IMAGEDELETE:
 		G.sima->image= NULL;
 		image_changed(G.sima, 0);
@@ -1244,6 +1262,7 @@ void do_global_buttons(unsigned short event)
 			BIF_undo_push("Auto name");
 			allqueue(REDRAWBUTSSHADING, 0);
 			allqueue(REDRAWOOPS, 0);
+			allqueue(REDRAWIMAGE, 0);
 		}
 		break;
 
@@ -1501,6 +1520,7 @@ void do_global_buttons2(short event)
 	World *wrld;
 	ID *idfrom; 
 	bAction *act;
+	Brush *br;
 
 	/* general:  Single User is allowed when from==LOCAL 
 	 *			 Make Local is allowed when (from==LOCAL && id==LIB)
@@ -1772,6 +1792,20 @@ void do_global_buttons2(short event)
 				}
 			}
 		}
+		else if(G.buts->texfrom==3) { /* from brush */
+			br= G.scene->toolsettings->imapaint.brush;
+			if(br==0) return;
+			if(br->id.lib==0) {
+				mtex= br->mtex[ br->texact ];
+				if(mtex->tex && mtex->tex->id.us>1) {
+					if(okee("Single user")) {
+						mtex->tex->id.us--;
+						mtex->tex= copy_texture(mtex->tex);
+						allqueue(REDRAWIMAGE, 0);
+					}
+				}
+			}
+		}
 		break;
 	case B_TEXLOCAL:
 		if(G.buts->texfrom==0) {	/* from mat */
@@ -1806,6 +1840,19 @@ void do_global_buttons2(short event)
 				if(mtex->tex && mtex->tex->id.lib) {
 					if(okee("Make local")) {
 						make_local_texture(mtex->tex);
+					}
+				}
+			}
+		}
+		else if(G.buts->texfrom==3) { /* from brush */
+			br= G.scene->toolsettings->imapaint.brush;
+			if(br==0) return;
+			if(br->id.lib==0) {
+				mtex= br->mtex[ br->texact ];
+				if(mtex->tex && mtex->tex->id.lib) {
+					if(okee("Make local")) {
+						make_local_texture(mtex->tex);
+						allqueue(REDRAWIMAGE, 0);
 					}
 				}
 			}

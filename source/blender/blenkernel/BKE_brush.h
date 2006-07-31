@@ -36,22 +36,37 @@
 
 struct ID;
 struct Brush;
+struct ImBuf;
 
+/* datablock functions */
 struct Brush *add_brush(char *name);
 struct Brush *copy_brush(struct Brush *brush);
 void make_local_brush(struct Brush *brush);
 void free_brush(struct Brush *brush);
 
-/* implementation of blending modes for use by different paint modes */
-void brush_blend_rgb(char *outcol, char *col1, char *col2, int fac, short mode);
-
-/* functions for brush datablock browsing used by different paint panels */
+/* brush library operations used by different paint panels */
 int brush_set_nr(struct Brush **current_brush, int nr);
 int brush_delete(struct Brush **current_brush);
-void brush_toggle_fake_user(struct Brush *brush);
-int brush_clone_image_delete(struct Brush *brush);
-int brush_clone_image_set_nr(struct Brush *brush, int nr);
 void brush_check_exists(struct Brush **brush);
+void brush_toggle_fake_user(struct Brush *brush);
+int brush_texture_set_nr(struct Brush *brush, int nr);
+int brush_texture_delete(struct Brush *brush);
+int brush_clone_image_set_nr(struct Brush *brush, int nr);
+int brush_clone_image_delete(struct Brush *brush);
+
+/* sampling */
+void brush_sample(struct Brush *brush, float *xy, float dist, float *rgb, float *alpha, short texonly);
+struct ImBuf *brush_imbuf_new(struct Brush *brush, short flt, short texonly, int size);
+
+/* painting */
+struct BrushPainter;
+typedef struct BrushPainter BrushPainter;
+typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, float *lastpos, float *pos);
+
+BrushPainter *brush_painter_new(struct Brush *brush);
+void brush_painter_require_imbuf(BrushPainter *painter, short flt, short texonly, int size);
+int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, void *user);
+void brush_painter_free(BrushPainter *painter);
 
 #endif
 

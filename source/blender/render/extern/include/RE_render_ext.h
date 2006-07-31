@@ -44,8 +44,8 @@ struct Render;
 struct MTex;
 void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_totelem, struct Render *re);
 
-/* effect.c and editmesh_modes. */
-void	externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta);
+/* effect.c, editmesh_modes.c and brush.c, returns 1 if rgb, 0 otherwise */
+int	externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta);
 
 #endif /* RE_RENDER_EXT_H */
 

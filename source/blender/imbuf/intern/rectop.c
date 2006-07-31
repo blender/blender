@@ -41,104 +41,433 @@
 
 #include "IMB_allocimbuf.h"
 
-void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
-	int desty, int srcx, int srcy, int width, int height)
+/* blend modes */
+
+static void blend_color_mix(char *cp, char *cp1, char *cp2, int fac)
 {
-	unsigned int *drect, *srect;
-	float *drectf = NULL;
-	float *srectf = NULL;
-	int tmp, do_float = 0;
+	/* this and other blending modes previously used >>8 instead of /255. both
+	   are not equivalent (>>8 is /256), and the former results in rounding
+	   errors that can turn colors black fast after repeated blending */
+	int mfac= 255-fac;
+	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+}
+
+static void blend_color_add(char *cp, char *cp1, char *cp2, int fac)
+{
+	int temp;
+
+	temp= cp1[0] + ((fac*cp2[0])/255);
+	if(temp>254) cp[0]= 255; else cp[0]= temp;
+	temp= cp1[1] + ((fac*cp2[1])/255);
+	if(temp>254) cp[1]= 255; else cp[1]= temp;
+	temp= cp1[2] + ((fac*cp2[2])/255);
+	if(temp>254) cp[2]= 255; else cp[2]= temp;
+}
+
+static void blend_color_sub(char *cp, char *cp1, char *cp2, int fac)
+{
+	int temp;
+
+	temp= cp1[0] - ((fac*cp2[0])/255);
+	if(temp<0) cp[0]= 0; else cp[0]= temp;
+	temp= cp1[1] - ((fac*cp2[1])/255);
+	if(temp<0) cp[1]= 0; else cp[1]= temp;
+	temp= cp1[2] - ((fac*cp2[2])/255);
+	if(temp<0) cp[2]= 0; else cp[2]= temp;
+}
+
+static void blend_color_mul(char *cp, char *cp1, char *cp2, int fac)
+{
+	int mfac= 255-fac;
+	
+	/* first mul, then blend the fac */
+	cp[0]= (mfac*cp1[0] + fac*((cp1[0]*cp2[0])/255))/255;
+	cp[1]= (mfac*cp1[1] + fac*((cp1[1]*cp2[1])/255))/255;
+	cp[2]= (mfac*cp1[2] + fac*((cp1[2]*cp2[2])/255))/255;
+}
+
+static void blend_color_lighten(char *cp, char *cp1, char *cp2, int fac)
+{
+	/* See if are lighter, if so mix, else dont do anything.
+	if the paint col is darker then the original, then ignore */
+	if (cp1[0]+cp1[1]+cp1[2] > cp2[0]+cp2[1]+cp2[2]) {
+		cp[0]= cp1[0];
+		cp[1]= cp1[1];
+		cp[2]= cp1[2];
+	}
+	else
+		blend_color_mix(cp, cp1, cp2, fac);
+}
+
+static void blend_color_darken(char *cp, char *cp1, char *cp2, int fac)
+{
+	/* See if were darker, if so mix, else dont do anything.
+	if the paint col is brighter then the original, then ignore */
+	if (cp1[0]+cp1[1]+cp1[2] < cp2[0]+cp2[1]+cp2[2]) {
+		cp[0]= cp1[0];
+		cp[1]= cp1[1];
+		cp[2]= cp1[2];
+	}
+	else
+		blend_color_mix(cp, cp1, cp2, fac);
+}
+
+unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_BlendMode mode)
+{
+	unsigned int dst;
+	char *cp, *cp1, *cp2;
+
+	if (fac==0)
+		return src1;
+
+	cp = (char*)&dst;
+	cp1 = (char*)&src1;
+	cp2 = (char*)&src2;
+
+	switch (mode) {
+		case IMB_BLEND_MIX:
+			blend_color_mix(cp, cp1, cp2, fac); break;
+		case IMB_BLEND_ADD:
+			blend_color_add(cp, cp1, cp2, fac); break;
+		case IMB_BLEND_SUB:
+			blend_color_sub(cp, cp1, cp2, fac); break;
+		case IMB_BLEND_MUL:
+			blend_color_mul(cp, cp1, cp2, fac); break;
+		case IMB_BLEND_LIGHTEN:
+			blend_color_lighten(cp, cp1, cp2, fac); break;
+		case IMB_BLEND_DARKEN:
+			blend_color_darken(cp, cp1, cp2, fac); break;
+		default:
+			return src1;
+	}
+
+	return dst;
+}
+
+static void blend_color_mix_float(float *cp, float *cp1, float *cp2, float fac)
+{
+	float mfac= 1.0-fac;
+	cp[0]= mfac*cp1[0] + fac*cp2[0];
+	cp[1]= mfac*cp1[1] + fac*cp2[1];
+	cp[2]= mfac*cp1[2] + fac*cp2[2];
+}
+
+static void blend_color_add_float(float *cp, float *cp1, float *cp2, float fac)
+{
+	cp[0] = cp1[0] + fac*cp2[0];
+	cp[1] = cp1[1] + fac*cp2[1];
+	cp[2] = cp1[2] + fac*cp2[2];
+
+	if (cp[0] > 1.0f) cp[0]= 1.0f;
+	if (cp[1] > 1.0f) cp[1]= 1.0f;
+	if (cp[2] > 1.0f) cp[2]= 1.0f;
+}
+
+static void blend_color_sub_float(float *cp, float *cp1, float *cp2, float fac)
+{
+	cp[0] = cp1[0] - fac*cp2[0];
+	cp[1] = cp1[1] - fac*cp2[1];
+	cp[2] = cp1[2] - fac*cp2[2];
+
+	if (cp[0] < 0.0f) cp[0]= 0.0f;
+	if (cp[1] < 0.0f) cp[1]= 0.0f;
+	if (cp[2] < 0.0f) cp[2]= 0.0f;
+}
+
+static void blend_color_mul_float(float *cp, float *cp1, float *cp2, float fac)
+{
+	float mfac= 1.0-fac;
+	
+	cp[0]= mfac*cp1[0] + fac*(cp1[0]*cp2[0]);
+	cp[1]= mfac*cp1[1] + fac*(cp1[1]*cp2[1]);
+	cp[2]= mfac*cp1[2] + fac*(cp1[2]*cp2[2]);
+}
+
+static void blend_color_lighten_float(float *cp, float *cp1, float *cp2, float fac)
+{
+	/* See if are lighter, if so mix, else dont do anything.
+	if the pafloat col is darker then the original, then ignore */
+	if (cp1[0]+cp1[1]+cp1[2] > cp2[0]+cp2[1]+cp2[2]) {
+		cp[0]= cp1[0];
+		cp[1]= cp1[1];
+		cp[2]= cp1[2];
+	}
+	else
+		blend_color_mix_float(cp, cp1, cp2, fac);
+}
+
+static void blend_color_darken_float(float *cp, float *cp1, float *cp2, float fac)
+{
+	/* See if were darker, if so mix, else dont do anything.
+	if the pafloat col is brighter then the original, then ignore */
+	if (cp1[0]+cp1[1]+cp1[2] < cp2[0]+cp2[1]+cp2[2]) {
+		cp[0]= cp1[0];
+		cp[1]= cp1[1];
+		cp[2]= cp1[2];
+	}
+	else
+		blend_color_mix_float(cp, cp1, cp2, fac);
+}
+
+void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac, IMB_BlendMode mode)
+{
+	if (fac==0) {
+		dst[0]= src1[0];
+		dst[1]= src1[1];
+		dst[2]= src1[2];
+		return;
+	}
+
+	switch (mode) {
+		case IMB_BLEND_MIX:
+			blend_color_mix_float(dst, src1, src2, fac); break;
+		case IMB_BLEND_ADD:
+			blend_color_add_float(dst, src1, src2, fac); break;
+		case IMB_BLEND_SUB:
+			blend_color_sub_float(dst, src1, src2, fac); break;
+		case IMB_BLEND_MUL:
+			blend_color_mul_float(dst, src1, src2, fac); break;
+		case IMB_BLEND_LIGHTEN:
+			blend_color_lighten_float(dst, src1, src2, fac); break;
+		case IMB_BLEND_DARKEN:
+			blend_color_darken_float(dst, src1, src2, fac); break;
+		default:
+			dst[0]= src1[0];
+			dst[1]= src1[1];
+			dst[2]= src1[2];
+	}
+}
+
+/* clipping */
+
+void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx, 
+	int *desty, int *srcx, int *srcy, int *width, int *height)
+{
+	int tmp;
 
 	if (dbuf == NULL) return;
 	
-	if (sbuf && sbuf->rect_float && dbuf->rect_float) do_float = 1;
-
-	if (destx < 0){
-		srcx -= destx ;
-		width += destx ;
-		destx = 0;
+	if (*destx < 0) {
+		*srcx -= *destx ;
+		*width += *destx ;
+		*destx = 0;
 	}
-	if (srcx < 0){
-		destx -= srcx ;
-		width += destx ;
-		srcx = 0;
+	if (*srcx < 0) {
+		*destx -= *srcx ;
+		*width += *destx ;
+		*srcx = 0;
 	}
-	if (desty < 0){
-		srcy -= desty ;
-		height += desty ;
-		desty = 0;
+	if (*desty < 0) {
+		*srcy -= *desty ;
+		*height += *desty ;
+		*desty = 0;
 	}
-	if (srcy < 0){
-		desty -= srcy ;
-		height += desty ;
-		srcy = 0;
+	if (*srcy < 0) {
+		*desty -= *srcy ;
+		*height += *desty ;
+		*srcy = 0;
 	}
 
-	tmp = dbuf->x - destx;
-	if (width > tmp) width = tmp;
-	tmp = dbuf->y  - desty;
-	if (height > tmp) height = tmp;
+	tmp = dbuf->x - *destx;
+	if (*width > tmp) *width = tmp;
+	tmp = dbuf->y - *desty;
+	if (*height > tmp) *height = tmp;
 
-	drect = dbuf->rect + desty * dbuf->x + destx;
-	if (do_float) drectf = dbuf->rect_float + desty * dbuf->x + destx;
-	destx = dbuf->x;
-
-	if (sbuf){
-		tmp = sbuf->x - srcx;
-		if (width > tmp) width = tmp;
-		tmp = sbuf->y - srcy;
-		if (height > tmp) height = tmp;
-
-		if (width <= 0) return;
-		if (height <= 0) return;
-
-		srect = sbuf->rect;
-		srect += srcy * sbuf->x;
-		srect += srcx;
-		if (do_float) {
-			srectf = sbuf->rect_float;
-			srectf += srcy * sbuf->x;
-			srectf += srcx;
-		}
-		srcx = sbuf->x;
-	} else{
-		if (width <= 0) return;
-		if (height <= 0) return;
-
-		srect = drect;
-		srectf = drectf;
-		srcx = destx;
-	}
-
-	for (;height > 0; height--){
-
-		memcpy(drect,srect, width * sizeof(int));
-		drect += destx;
-		srect += srcx;
-
-		if (do_float) {
-			memcpy(drectf,srectf, width * sizeof(float) * 4);
-			drectf += destx;
-			srectf += srcx;
-		}		
+	if (sbuf) {
+		tmp = sbuf->x - *srcx;
+		if (*width > tmp) *width = tmp;
+		tmp = sbuf->y - *srcy;
+		if (*height > tmp) *height = tmp;
 	}
 }
+
+/* copy and blend */
+
+void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
+	int desty, int srcx, int srcy, int width, int height)
+{
+	IMB_rectblend(dbuf, sbuf, destx, desty, srcx, srcy, width, height,
+		IMB_BLEND_COPY);
+}
+
+void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
+	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode)
+{
+	unsigned int *drect = NULL, *srect = NULL, *dr, *sr;
+	float *drectf = NULL, *srectf = NULL, *drf, *srf;
+	int do_float, do_char, srcskip, destskip, x;
+
+	if (dbuf == NULL) return;
+
+	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &width, &height);
+
+	if (width == 0 || height == 0) return;
+	
+	do_char = (sbuf && sbuf->rect && dbuf->rect);
+	do_float = (sbuf && sbuf->rect_float && dbuf->rect_float);
+
+	if (do_char) drect = dbuf->rect + desty * dbuf->x + destx;
+	if (do_float) drectf = dbuf->rect_float + (desty * dbuf->x + destx)*4;
+
+	destskip = dbuf->x;
+
+	if (sbuf) {
+		if (do_char) srect = sbuf->rect + srcy * sbuf->x + srcx;
+		if (do_float) srectf = sbuf->rect_float + (srcy * sbuf->x + srcx)*4;
+		srcskip = sbuf->x;
+	} else {
+		srect = drect;
+		srectf = drectf;
+		srcskip = destskip;
+	}
+
+	if (mode == IMB_BLEND_COPY) {
+		/* copy */
+		for (;height > 0; height--) {
+			if (do_char) {
+				memcpy(drect,srect, width * sizeof(int));
+				drect += destskip;
+				srect += srcskip;
+			}
+
+			if (do_float) {
+				memcpy(drectf,srectf, width * sizeof(float) * 4);
+				drectf += destskip*4;
+				srectf += srcskip*4;
+			}
+		}
+	}
+	else if (mode == IMB_BLEND_COPY_RGB) {
+		/* copy rgb only */
+		for (;height > 0; height--) {
+			if (do_char) {
+				dr = drect;
+				sr = srect;
+				for (x=width; x > 0; x--, dr++, sr++) {
+					((char*)dr)[0]= ((char*)sr)[0];
+					((char*)dr)[1]= ((char*)sr)[1];
+					((char*)dr)[2]= ((char*)sr)[2];
+				}
+				drect += destskip;
+				srect += srcskip;
+			}
+
+			if (do_float) {
+				drf = drectf;
+				srf = srectf;
+				for (x=width; x > 0; x--, drf+=4, srf+=4) {
+					drf[0]= srf[0];
+					drf[1]= srf[1];
+					drf[2]= srf[2];
+				}
+				drectf += destskip*4;
+				srectf += srcskip*4;
+			}
+		}
+	}
+	else if (mode == IMB_BLEND_COPY_ALPHA) {
+		/* copy alpha only */
+		for (;height > 0; height--) {
+			if (do_char) {
+				dr = drect;
+				sr = srect;
+				for (x=width; x > 0; x--, dr++, sr++)
+					((char*)dr)[3]= ((char*)sr)[3];
+				drect += destskip;
+				srect += srcskip;
+			}
+
+			if (do_float) {
+				drf = drectf;
+				srf = srectf;
+				for (x=width; x > 0; x--, drf+=4, srf+=4)
+					drf[3]= srf[3];
+				drectf += destskip*4;
+				srectf += srcskip*4;
+			}
+		}
+	}
+	else {
+		/* blend */
+		for (;height > 0; height--) {
+			if (do_char) {
+				dr = drect;
+				sr = srect;
+				for (x=width; x > 0; x--, dr++, sr++)
+					*dr = IMB_blend_color(*dr, *sr, ((char*)sr)[3], mode);
+
+				drect += destskip;
+				srect += srcskip;
+			}
+
+			if (do_float) {
+				drf = drectf;
+				srf = srectf;
+				for (x=width; x > 0; x--, drf+=4, srf+=4)
+					IMB_blend_color_float(drf, drf, srf, srf[3], mode);
+
+				drectf += destskip*4;
+				srectf += srcskip*4;
+			}		
+		}
+	}
+}
+
+void IMB_rectblend_torus(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
+	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode)
+{
+	int origw, origh, w, h;
+
+	/* convert destination and source coordinates too be withing image */
+	destx = destx % dbuf->x;
+	if (destx < 0) destx += dbuf->x;
+	desty = desty % dbuf->y;
+	if (desty < 0) desty += dbuf->y;
+	srcx = srcx % sbuf->x;
+	if (srcx < 0) srcx += sbuf->x;
+	srcy = srcy % sbuf->y;
+	if (srcy < 0) srcy += sbuf->y;
+
+	/* clip width of blending area to destination imbuf, to avoid writing the
+	   same pixel twice */
+	origw = w = (width > dbuf->x)? dbuf->x: width;
+	origh = h = (height > dbuf->y)? dbuf->y: height;
+
+	/* clip and blend */
+	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &w, &h);
+	IMB_rectblend(dbuf, sbuf, destx, desty, srcx, srcy, w, h, mode);
+
+	/* do 3 other rects if needed */
+	if (w < origw)
+		IMB_rectblend(dbuf, sbuf, (destx+w)%dbuf->x, desty, (srcx+w)%sbuf->x, srcy,
+			origw-w, h, mode);
+	if (h < origh)
+		IMB_rectblend(dbuf, sbuf, destx, (desty+h)%dbuf->y, srcx, (srcy+h)%sbuf->y,
+			w, origh-h, mode);
+	if ((w < origw) && (h < origh))
+		IMB_rectblend(dbuf, sbuf, (destx+w)%dbuf->x, (desty+h)%dbuf->y,
+			(srcx+w)%sbuf->x, (srcy+h)%sbuf->y, origw-w, origh-h, mode);
+}
+
+/* fill */
 
 void IMB_rectfill(struct ImBuf *drect, float col[4])
 {
 	int num;
 	unsigned int *rrect = drect->rect;
-	unsigned char *spot;
+	char ccol[4];
+
+	ccol[0]= (int)(col[0]*255);
+	ccol[1]= (int)(col[1]*255);
+	ccol[2]= (int)(col[2]*255);
+	ccol[3]= (int)(col[3]*255);
 
 	num = drect->x * drect->y;
-	for (;num > 0; num--) {
-		spot = (unsigned char *)rrect;
-		spot[0] = (int)(col[0]*255);
-		spot[1] = (int)(col[1]*255);
-		spot[2] = (int)(col[2]*255);
-		spot[3] = (int)(col[3]*255);
-		*rrect++;
-	}
+	for (;num > 0; num--)
+		*rrect++ = *((unsigned int*)ccol);
+
 	if(drect->rect_float) {
 		float *rrectf = drect->rect_float;
 		

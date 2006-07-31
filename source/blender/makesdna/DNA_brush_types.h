@@ -32,6 +32,13 @@
 
 #include "DNA_ID.h"
 
+#ifndef MAX_MTEX
+#define MAX_MTEX	10
+#endif
+
+struct MTex;
+struct Image;
+
 typedef struct Brush {
 	ID id;
 	
@@ -43,6 +50,9 @@ typedef struct Brush {
 
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
+
+	short texact, pad;
+	struct MTex *mtex[10];
 
 	struct Clone {
 		struct Image *image;	/* image for clone tool */

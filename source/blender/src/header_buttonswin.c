@@ -44,6 +44,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -319,6 +320,13 @@ void buttons_active_id(ID **id, ID **idfrom)
 					*idfrom= (ID *)la;
 					mtex= la->mtex[ la->texact];
 					if(mtex) *id= (ID *)mtex->tex;
+				}
+			}
+			else if(G.buts->texfrom==3) {
+				Brush *brush= G.scene->toolsettings->imapaint.brush;
+				if (brush) {
+					mtex= brush->mtex[brush->texact];
+					if(mtex) *id= (ID*)mtex->tex;
 				}
 			}
 		}

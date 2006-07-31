@@ -61,6 +61,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_brush.h"
@@ -944,6 +945,36 @@ void do_imagebuts(unsigned short event)
 			}
 		}
 		break;
+	case B_SIMABTEXBROWSE:
+		if(settings->imapaint.brush) {
+			Brush *brush= settings->imapaint.brush;
+
+			if(G.sima->menunr==-2) {
+				MTex *mtex= brush->mtex[brush->texact];
+				ID *id= (ID*)((mtex)? mtex->tex: NULL);
+				activate_databrowse(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_global_buttons);
+				break;
+			}
+			else if(G.sima->menunr < 0) break;
+				
+			if(brush_texture_set_nr(brush, G.sima->menunr)) {
+				BIF_undo_push("Browse Brush Texture");
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWIMAGE, 0);
+			}
+		}
+		break;
+	case B_SIMABTEXDELETE:
+		if(settings->imapaint.brush) {
+			if (brush_texture_delete(settings->imapaint.brush)) {
+				BIF_undo_push("Unlink Brush Texture");
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWIMAGE, 0);
+			}
+		}
+		break;
 	}
 }
 
@@ -1061,6 +1092,12 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 				butw= 320-(xco+5);
 				uiDefButF(block, NUMSLI, B_SIMABRUSHCHANGE, "B ",xco+5,yco,butw,19, &brush->clone.alpha , 0.0, 1.0, 0, 0, "Opacity of clone image display");
 			}
+		}
+		else {
+			uiBlockSetCol(block, TH_BUT_SETTING2);
+			id= (brush->mtex[0])? (ID*)brush->mtex[0]->tex: NULL;
+			xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMABTEXBROWSE, ID_TE, 0, id, NULL, &(G.sima->menunr), 0, 0, B_SIMABTEXDELETE, 0, 0);
+			uiBlockSetCol(block, TH_AUTO);
 		}
 	}
 

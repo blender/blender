@@ -3889,6 +3889,23 @@ void do_fpaintbuts(unsigned short event)
 			}
 		}
 		break;
+	case B_BTEXBROWSE:
+		if(G.scene->toolsettings->imapaint.brush==0) return;
+		if(G.buts->menunr==-2) {
+			MTex *mtex= G.scene->toolsettings->imapaint.brush->mtex[0];
+			ID *id= (ID*)((mtex)? mtex->tex: NULL);
+			activate_databrowse(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_global_buttons);
+			break;
+		}
+		else if(G.buts->menunr < 0) break;
+			
+		if(brush_texture_set_nr(G.scene->toolsettings->imapaint.brush, G.buts->menunr)) {
+			BIF_undo_push("Browse Brush Texture");
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWIMAGE, 0);
+		}
+		break;
 	}
 }
 

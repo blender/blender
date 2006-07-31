@@ -41,6 +41,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
@@ -1215,7 +1216,7 @@ static void texture_panel_colors(Tex *tex)
 }
 
 
-static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la, bNode *node)
+static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la, bNode *node, Brush *br)
 {
 	MTex *mt=NULL;
 	uiBlock *block;
@@ -1236,6 +1237,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	if(ma) idfrom= &ma->id;
 	else if(wrld) idfrom= &wrld->id;
 	else if(la) idfrom= &la->id;
+	else if(br) idfrom= &br->id;
 	else idfrom= NULL;
 	
 	uiBlockSetCol(block, TH_BUT_SETTING2);
@@ -1248,8 +1250,11 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	else if(la) {
 		std_libbuttons(block, 10, 180, 0, NULL, B_LTEXBROWSE, ID_TE, 0, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 	}
+	else if(br) {
+		std_libbuttons(block, 10, 180, 0, NULL, B_BTEXBROWSE, ID_TE, 0, id, idfrom, &(G.buts->texnr), B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+	}
 	else if(node) {
-		
+
 	}
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 
@@ -1262,8 +1267,9 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 		for(a= 0; a<MAX_MTEX; a++) {
 			
 			if(ma) mt= ma->mtex[a];
-			else if(wrld)  mt= wrld->mtex[a];
-			else if(la)  mt= la->mtex[a];
+			else if(wrld) mt= wrld->mtex[a];
+			else if(la) mt= la->mtex[a];
+			else if(br) mt= br->mtex[a];
 			
 			if(mt && mt->tex) splitIDname(mt->tex->id.name+2, str, &loos);
 			else strcpy(str, "");
@@ -1279,6 +1285,10 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 			}
 			else if(la) {
 				uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(la->texact), 0.0, (float)a, 0, 0, "");
+				yco-= 20;
+			}
+			else if(br) {
+				uiDefButS(block, ROW, B_TEXCHANNEL, str,	10,yco,140,19, &(br->texact), 0.0, (float)a, 0, 0, "");
 				yco-= 20;
 			}
 		}
@@ -1323,6 +1333,7 @@ static void texture_panel_preview(MTex *mtex, int preview)
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Mat",		200,175,80,25, &G.buts->texfrom, 3.0, 0.0, 0, 0, "Displays the textures of the active material");
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "World",	200,150,80,25, &G.buts->texfrom, 3.0, 1.0, 0, 0, "Displays the textures of the world block");
 	uiDefButC(block, ROW, B_TEXREDR_PRV, "Lamp",	200,125,80,25, &G.buts->texfrom, 3.0, 2.0, 0, 0, "Displays the textures of the selected lamp");
+	uiDefButC(block, ROW, B_TEXREDR_PRV, "Brush",	200,100,80,25, &G.buts->texfrom, 3.0, 3.0, 0, 0, "Displays the textures of the selected lamp");
 	uiBlockEndAlign(block);
 	
 	if(mtex && mtex->tex)
@@ -3399,6 +3410,7 @@ void world_panels()
 void texture_panels()
 {
 	Material *ma=NULL;
+	Brush *br=NULL;
 	Lamp *la=NULL;
 	World *wrld=NULL;
 	bNode *node=NULL;
@@ -3431,13 +3443,17 @@ void texture_panels()
 			mtex= la->mtex[ la->texact ];
 		}
 	}
+	else if(G.buts->texfrom==3) {
+		br= G.scene->toolsettings->imapaint.brush;
+		if(br) mtex= br->mtex[br->texact];
+	}
 	
-	texture_panel_preview(mtex, ma || wrld || la || node);	// for 'from' buttons
+	texture_panel_preview(mtex, ma || wrld || la || br || node);	// for 'from' buttons
 	
-	if(ma || wrld || la || node) {
+	if(ma || wrld || la || br || node) {
 		Tex *tex= NULL;
 		
-		texture_panel_texture(mtex, ma, wrld, la, node);
+		texture_panel_texture(mtex, ma, wrld, la, node, br);
 		
 		if(mtex) tex= mtex->tex;
 		else if(node) tex= (Tex *)node->id;

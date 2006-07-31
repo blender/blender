@@ -2362,7 +2362,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf)
 
 /* ------------------------------------------------------------------------- */
 
-void externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta)
+int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta)
 {
 	Tex *tex;
 	TexResult texr;
@@ -2404,6 +2404,8 @@ void externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *
 	*tg= texr.tg;
 	*tb= texr.tb;
 	*ta= texr.ta;
+
+	return (rgb != 0);
 }
 
 
