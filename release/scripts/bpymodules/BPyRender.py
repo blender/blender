@@ -113,7 +113,7 @@ def mesh2uv(me_s, PREF_SEL_FACES_ONLY=False):
 	"mesh" is the new mesh and...
 	"face_list" is the faces that were used to make the mesh,
 	"material_list" is a list of materials used by each face
-	These are in sync with the meshes faces, so you can easerly copy data between them
+	These are in alligned with the meshes faces, so you can easerly copy data between them
 	
 	'''
 	render_me= Blender.Mesh.New()
@@ -128,7 +128,6 @@ def mesh2uv(me_s, PREF_SEL_FACES_ONLY=False):
 		else:
 			me_faces= me.faces
 		
-		# Keep in sync with render_me.faces
 		face_list.extend(me_faces)
 		
 		# Dittro
@@ -221,6 +220,7 @@ def vcol2image(me_s,\
 	PREF_USE_VCOL,\
 	PREF_USE_MATCOL,\
 	PREF_USE_NORMAL,\
+	PREF_USE_TEXTURE,\
 	PREF_SEL_FACES_ONLY):
 	
 	
@@ -264,13 +264,79 @@ def vcol2image(me_s,\
 		
 		elif PREF_USE_MATCOL:
 			uvmesh_apply_matcol(render_me, material_list)
-	
+		
+		elif PREF_USE_TEXTURE:
+			# if we have more then 16 materials across all the mesh objects were stuffed :/
+			# get unique materials
+			tex_unique_materials= dict([(mat.name, mat) for mat in material_list]).values()[:16] # just incase we have more then 16 
+			tex_me= Blender.Mesh.New()
+			
+			# Backup the original shadless setting
+			tex_unique_materials_shadeless= [ mat.mode & Blender.Material.Modes.SHADELESS for mat in tex_unique_materials ]
+			
+			# Turn shadeless on
+			for mat in tex_unique_materials:
+				mat.mode |= Blender.Material.Modes.SHADELESS
+			
+			# Assign materials
+			render_me.materials= tex_unique_materials
+			
+			
+			
+			tex_material_indicies= dict([(mat.name, i) for i, mat in enumerate(tex_unique_materials)])
+			
+			tex_me.verts.extend([Vector(0,0,0),]) # dummy
+			tex_me.verts.extend( [ Vector(v.co) for f in face_list for v in f ] )
+			
+			# Now add the faces
+			tmp_faces= []
+			vert_offset= 1
+			for f in face_list:
+				tmp_faces.append( [ii+vert_offset for ii in xrange(len(f))] )
+				vert_offset+= len(f)
+			
+			tex_me.faces.extend(tmp_faces)
+			
+			# Now we have the faces, put materials and normal, uvs into the mesh
+			if len(tex_me.faces) != len(face_list):
+				# Should never happen
+				raise "Error face length mismatch"
+			
+			# Copy data to the mesh that could be used as texture coords
+			for i, tex_face in enumerate(tex_me.faces):
+				orig_face= face_list[i]
+				
+				# Set the material index
+				try:
+					render_face.mat= tex_material_indicies[ material_list[i].name ]
+				except:
+					# more then 16 materials
+					pass
+				
+				
+				# set the uvs on the texmesh mesh
+				tex_face.uv= orig_face.uv
+				
+				orig_face_v= orig_face.v
+				# Set the normals
+				for j, v in enumerate(tex_face):
+					v.no= orig_face_v[j].no
+			
+			# Set the texmesh
+			render_me.texMesh= tex_me
+		# END TEXMESH
+			
+			
 	# Handel adding objects
 	render_ob= Blender.Object.New('Mesh')
-	render_me.materials= [rnd_mat()]
-	
 	render_ob.link(render_me)
+	
+	if not PREF_USE_TEXTURE: # textures use the original materials
+		render_me.materials= [rnd_mat()]
+	
+	
 	obs= [render_ob]
+	
 	
 	if PREF_IMAGE_WIRE_UNDERLAY:
 		# Make another mesh with the material colors
@@ -320,3 +386,12 @@ def vcol2image(me_s,\
 	
 	if PREF_IMAGE_WIRE_UNDERLAY:
 		render_me_under.verts= None
+	
+	if PREF_USE_TEXTURE:
+		tex_me.verts= None
+		# Restire Shadeless setting
+		for i, mat in enumerate(tex_unique_materials):
+			# we know there all on so turn it off of its not set
+			if not tex_unique_materials_shadeless[i]:
+				mat.mode &= ~Blender.Material.Modes.SHADELESS
+	

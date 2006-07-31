@@ -9,12 +9,13 @@ __author__= ['Campbell Barton']
 __url__= ('blender', 'elysiun', 'http://www.gametutorials.com')
 __version__= '0.1'
 __bpydoc__= '''\
-Bake Vertex Colors to an image
+Bake Texface Images to 1 image
 
-This script makes an image from a meshes vertex colors, using the UV coordinates
+This script makes an image from a meshes texface images, using the UV coordinates
 to draw the faces into the image.
 
-This makes it possible to bake radiosity into a texture.
+This makes it possible to bake many images into 1 texture.
+
 Make sure your UV Coordinates do not overlap.
 LSCM Unwrapper or archimap unwrapper work well to automaticaly do this.
 '''
@@ -40,18 +41,16 @@ def main():
 		BPyMessages.Error_NoMeshUvSelected()
 		return
 		
-	newpath= Blender.Get('filename').split('/')[-1].split('\\')[-1].replace('.blend', '')
-	PREF_IMAGE_PATH = Create('//%s_img' % newpath)
+	newpath= Blender.Get('filename').split('/')[-1].split('\\')[-1].replace('.blend', '_img.png')
+	###PREF_IMAGE_PATH = Create('//%s_img' % newpath)
 	PREF_IMAGE_SIZE = Create(512)
 	PREF_IMAGE_BLEED = Create(4)
-	PREF_IMAGE_SMOOTH= Create(1)
+	PREF_IMAGE_SMOOTH= Create(0)
 	
 	PREF_SEL_FACES_ONLY= Create(0)
 	
 	pup_block = [\
-	'Image Path: (no ext)',\
-	('', PREF_IMAGE_PATH, 3, 100, 'Path to new Image. "//" for curent blend dir.'),\
-	'Image Options',
+	###('', PREF_IMAGE_PATH, 3, 100, 'Path to new Image. "//" for curent blend dir.'),\
 	('Pixel Size:', PREF_IMAGE_SIZE, 64, 4096, 'Image Width and Height.'),\
 	('Pixel Bleed:', PREF_IMAGE_BLEED, 0, 64, 'Extend pixels from boundry edges to avoid mipmapping errors on rendering.'),\
 	('Smooth lines', PREF_IMAGE_SMOOTH, 'Render smooth lines.'),\
@@ -73,22 +72,27 @@ def main():
 	PREF_USE_VCOL= False
 	PREF_USE_MATCOL= False
 	PREF_USE_NORMAL= False
+	PREF_USE_TEXTURE= False
 	
-	BPyRender.vcol2image(me_s,\
-	PREF_IMAGE_PATH.val,\
-	PREF_IMAGE_SIZE.val,\
-	PREF_IMAGE_BLEED.val,\
-	PREF_IMAGE_SMOOTH.val,\
-	PREF_IMAGE_WIRE,\
-	PREF_IMAGE_WIRE_INVERT,\
-	PREF_IMAGE_WIRE_UNDERLAY,\
-	PREF_USE_IMAGE,\
-	PREF_USE_VCOL,\
-	PREF_USE_MATCOL,\
-	PREF_USE_NORMAL,\
-	PREF_SEL_FACES_ONLY.val)
+	def file_sel(PREF_IMAGE_PATH):
+		BPyRender.vcol2image(me_s,\
+		PREF_IMAGE_PATH,\
+		PREF_IMAGE_SIZE.val,\
+		PREF_IMAGE_BLEED.val,\
+		PREF_IMAGE_SMOOTH.val,\
+		PREF_IMAGE_WIRE,\
+		PREF_IMAGE_WIRE_INVERT,\
+		PREF_IMAGE_WIRE_UNDERLAY,\
+		PREF_USE_IMAGE,\
+		PREF_USE_VCOL,\
+		PREF_USE_MATCOL,\
+		PREF_USE_NORMAL,\
+		PREF_USE_TEXTURE,\
+		PREF_SEL_FACES_ONLY.val)
+		
+		Blender.Window.RedrawAll()
 	
-	Blender.Window.RedrawAll()
+	Blender.Window.FileSelector(file_sel, 'SAVE PNG', newpath)
 
 if __name__ == '__main__':
 	main()

@@ -40,18 +40,16 @@ def main():
 		BPyMessages.Error_NoMeshUvSelected()
 		return
 		
-	newpath= Blender.Get('filename').split('/')[-1].split('\\')[-1].replace('.blend', '')
-	PREF_IMAGE_PATH = Create('//%s_vcol' % newpath)
+	newpath= Blender.Get('filename').split('/')[-1].split('\\')[-1].replace('.blend', '_vcol.png')
+	#PREF_IMAGE_PATH = Create('//%s_vcol' % newpath)
 	PREF_IMAGE_SIZE = Create(512)
 	PREF_IMAGE_BLEED = Create(4)
-	PREF_IMAGE_SMOOTH= Create(1)
+	PREF_IMAGE_SMOOTH= Create(0)
 	
 	PREF_SEL_FACES_ONLY= Create(0)
 	
 	pup_block = [\
-	'Image Path: (no ext)',\
-	('', PREF_IMAGE_PATH, 3, 100, 'Path to new Image. "//" for curent blend dir.'),\
-	'Image Options',
+	###('', PREF_IMAGE_PATH, 3, 100, 'Path to new Image. "//" for curent blend dir.'),\
 	('Pixel Size:', PREF_IMAGE_SIZE, 64, 4096, 'Image Width and Height.'),\
 	('Pixel Bleed:', PREF_IMAGE_BLEED, 0, 64, 'Extend pixels from boundry edges to avoid mipmapping errors on rendering.'),\
 	('Smooth lines', PREF_IMAGE_SMOOTH, 'Render smooth lines.'),\
@@ -61,7 +59,6 @@ def main():
 	
 	if not Blender.Draw.PupBlock('VCol to Image', pup_block):
 		return
-	
 	
 	# Defaults for VCol, user cant change
 	PREF_IMAGE_WIRE= False
@@ -73,22 +70,26 @@ def main():
 	
 	PREF_USE_MATCOL= False
 	PREF_USE_NORMAL= False
+	PREF_USE_TEXTURE= False
 	
-	BPyRender.vcol2image(me_s,\
-	PREF_IMAGE_PATH.val,\
-	PREF_IMAGE_SIZE.val,\
-	PREF_IMAGE_BLEED.val,\
-	PREF_IMAGE_SMOOTH.val,\
-	PREF_IMAGE_WIRE,\
-	PREF_IMAGE_WIRE_INVERT,\
-	PREF_IMAGE_WIRE_UNDERLAY,\
-	PREF_USE_IMAGE,\
-	PREF_USE_VCOL,\
-	PREF_USE_MATCOL,\
-	PREF_USE_NORMAL,\
-	PREF_SEL_FACES_ONLY.val)
+	def file_sel(PREF_IMAGE_PATH):
+		BPyRender.vcol2image(me_s,\
+		PREF_IMAGE_PATH,\
+		PREF_IMAGE_SIZE.val,\
+		PREF_IMAGE_BLEED.val,\
+		PREF_IMAGE_SMOOTH.val,\
+		PREF_IMAGE_WIRE,\
+		PREF_IMAGE_WIRE_INVERT,\
+		PREF_IMAGE_WIRE_UNDERLAY,\
+		PREF_USE_IMAGE,\
+		PREF_USE_VCOL,\
+		PREF_USE_MATCOL,\
+		PREF_USE_NORMAL,\
+		PREF_USE_TEXTURE,\
+		PREF_SEL_FACES_ONLY.val)
+		
+		Blender.Window.RedrawAll()
 	
-	Blender.Window.RedrawAll()
-
+	Blender.Window.FileSelector(file_sel, 'SAVE PNG', newpath)
 if __name__ == '__main__':
 	main()
