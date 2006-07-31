@@ -6947,6 +6947,41 @@ static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
 	return 0;
 }
 
+
+static PyObject *Mesh_getTexMesh( BPy_Mesh * self )
+{
+	Mesh *texme= self->mesh->texcomesh;
+	
+	if (texme)
+		return Mesh_CreatePyObject( texme, NULL );
+	else
+		Py_RETURN_NONE;
+}
+
+static int Mesh_setTexMesh( BPy_Mesh * self, PyObject * arg )
+{
+	
+	/*None or Mesh*/
+	if ( !(arg == Py_None) && !Mesh_CheckPyObject(arg) )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"texmesh must be a Mesh or None type" );
+	
+	/*remove existing texmesh*/
+	if (self->mesh->texcomesh) {
+		self->mesh->texcomesh->id.us--;
+		self->mesh->texcomesh= NULL;
+	}
+	
+	if (arg != Py_None) { /* its a mesh */
+		BPy_Mesh *blen_obj = ( BPy_Mesh * ) arg;
+		/*This is a mesh so it needs to be added */
+		self->mesh->texcomesh= blen_obj->mesh;
+		self->mesh->texcomesh->id.us++;
+		blen_obj->new==0;
+	}
+	return 0;
+}
+
 static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )
 {
 	int i;
@@ -7087,6 +7122,10 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"activeGroup",
 	 (getter)Mesh_getActiveGroup, (setter)Mesh_setActiveGroup,
 	 "Active group for the mesh",
+	 NULL},
+	{"texMesh",
+	 (getter)Mesh_getTexMesh, (setter)Mesh_setTexMesh,
+	 "The meshes tex mesh proxy texture coord mesh",
 	 NULL},
 	{"sel",
 	 (getter)NULL, (setter)Mesh_setSel,

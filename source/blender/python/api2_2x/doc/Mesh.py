@@ -730,6 +730,9 @@ class Mesh:
   @ivar activeGroup: The mesh's active vertex group.  The mesh must be
     linked to an object (read the comment in L{addVertGroup} for more info).
   @type activeGroup: string or None
+  @ivar texMesh: The mesh's texMesh setting, used so coordinates from another
+    mesh can be used for rendering textures.
+  @type texMesh: Mesh or None
   """
 
   def getFromObject(name,cage=0):
