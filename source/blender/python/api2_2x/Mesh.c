@@ -6947,7 +6947,6 @@ static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
 	return 0;
 }
 
-
 static PyObject *Mesh_getTexMesh( BPy_Mesh * self )
 {
 	Mesh *texme= self->mesh->texcomesh;
@@ -6962,7 +6961,7 @@ static int Mesh_setTexMesh( BPy_Mesh * self, PyObject * arg )
 {
 	
 	/*None or Mesh*/
-	if ( !(arg == Py_None) && !Mesh_CheckPyObject(arg) )
+	if ( arg != Py_None && !Mesh_CheckPyObject(arg) )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			"texmesh must be a Mesh or None type" );
 	
