@@ -697,7 +697,9 @@ void BIF_drawPropCircle()
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
 
- 		drawcircball(GL_LINE_LOOP, t->center, t->propsize, imat);
+		set_inverted_drawing(1);
+		drawcircball(GL_LINE_LOOP, t->center, t->propsize, imat);
+		set_inverted_drawing(0);
 		
 		/* if editmode we restore */
 		if(G.obedit) myloadmatrix(G.vd->viewmat);
@@ -714,7 +716,7 @@ void BIF_getPropCenter(float *center)
 	else
 		center[0] = center[1] = center[2] = 0.0f;
 }
-
+rgb_to_yuv(
 static void drawObjectConstraint(TransInfo *t) {
 	int i;
 	TransData * td = t->data;
