@@ -8,8 +8,8 @@ Tip: 'Import a (.bvh) motion capture file'
 """
 
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
-__version__ = "1.0.4 05/12/04"
+__url__ = ("blender.org", "blenderartists.org")
+__version__ = "1.90 06/08/01"
 
 __bpydoc__ = """\
 This script imports BVH motion capture data to Blender.
@@ -46,27 +46,36 @@ RotationMatrix = Blender.Mathutils.RotationMatrix
 TranslationMatrix= Blender.Mathutils.TranslationMatrix
 
 DEG2RAD = 0.017453292519943295
+
 class bvh_node_class(object):
 	__slots__=(\
 	'name',# bvh joint name
 	'parent',# bvh_node_class type or None for no parent
-	'children',# ffd
-	'rest_loc_world',# worldspace rest location for the head of this node
-	'rest_loc_local',# localspace rest location for the head of this node
+	'children',# a list of children of this type
+	'rest_head_world',# worldspace rest location for the head of this node
+	'rest_head_local',# localspace rest location for the head of this node
 	'rest_tail_world',# # worldspace rest location for the tail of this node
 	'rest_tail_local',# # worldspace rest location for the tail of this node
-	'channels',# list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines
+	'channels',# list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, lock triple then rot triple
 	'anim_data',# a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz)
+	'has_loc',# Conveinience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 channels[2]!=-1)
+	'has_rot',# Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
 	'temp')# use this for whatever you want
 	
-	def __init__(self, name, rest_loc_world, rest_loc_local, parent, channels):
+	def __init__(self, name, rest_head_world, rest_head_local, parent, channels):
 		self.name= name
-		self.rest_loc_world= rest_loc_world
-		self.rest_loc_local= rest_loc_local
+		self.rest_head_world= rest_head_world
+		self.rest_head_local= rest_head_local
 		self.rest_tail_world= None
 		self.rest_tail_local= None
 		self.parent= parent
 		self.channels= channels
+		
+		# convenience functions
+		self.has_loc= channels[0] != -1 or channels[1] != -1 or channels[2] != -1
+		self.has_rot= channels[3] != -1 or channels[4] != -1 or channels[5] != -1
+		
+		
 		self.children= []
 		
 		# list of 6 length tuples: (lx,ly,lz, rx,ry,rz)
@@ -78,9 +87,11 @@ class bvh_node_class(object):
 	def __repr__(self):
 		return 'BVH name:"%s", rest_loc:(%.3f,%.3f,%.3f), rest_tail:(%.3f,%.3f,%.3f)' %\
 		(self.name,\
-		self.rest_loc_world.x, self.rest_loc_world.y, self.rest_loc_world.z,\
-		self.rest_loc_world.x, self.rest_loc_world.y, self.rest_loc_world.z)
+		self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z,\
+		self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z)
 	
+
+
 # Change the order rotation is applied.
 MATRIX_IDENTITY_3x3 = Matrix([1,0,0],[0,1,0],[0,0,1])
 MATRIX_IDENTITY_4x4 = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
@@ -140,7 +151,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 			#print '%snode: %s, parent: %s' % (len(bvh_nodes_serial) * '  ', name,  bvh_nodes_serial[-1])
 			
 			lineIdx += 2 # Incriment to the next line (Offset)
-			rest_loc_local = Vector( GLOBAL_SCALE*float(file_lines[lineIdx][1]), GLOBAL_SCALE*float(file_lines[lineIdx][2]), GLOBAL_SCALE*float(file_lines[lineIdx][3]) )
+			rest_head_local = Vector( GLOBAL_SCALE*float(file_lines[lineIdx][1]), GLOBAL_SCALE*float(file_lines[lineIdx][2]), GLOBAL_SCALE*float(file_lines[lineIdx][3]) )
 			lineIdx += 1 # Incriment to the next line (Channels)
 			
 			# newChannel[Xposition, Yposition, Zposition, Xrotation, Yrotation, Zrotation]
@@ -165,11 +176,11 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 			
 			# Apply the parents offset accumletivly
 			if my_parent==None:
-				rest_loc_world= Vector(rest_loc_local)
+				rest_head_world= Vector(rest_head_local)
 			else:
-				rest_loc_world= my_parent.rest_loc_world + rest_loc_local
+				rest_head_world= my_parent.rest_head_world + rest_head_local
 			
-			bvh_node= bvh_nodes[name]= bvh_node_class(name, rest_loc_world, rest_loc_local, my_parent, my_channel)
+			bvh_node= bvh_nodes[name]= bvh_node_class(name, rest_head_world, rest_head_local, my_parent, my_channel)
 			
 			# If we have another child then we can call ourselves a parent, else 
 			bvh_nodes_serial.append(bvh_node)
@@ -179,7 +190,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 			lineIdx += 2 # Incriment to the next line (Offset)
 			rest_tail = Vector( GLOBAL_SCALE*float(file_lines[lineIdx][1]), GLOBAL_SCALE*float(file_lines[lineIdx][2]), GLOBAL_SCALE*float(file_lines[lineIdx][3]) )
 			
-			bvh_nodes_serial[-1].rest_tail_world= bvh_nodes_serial[-1].rest_loc_world + rest_tail
+			bvh_nodes_serial[-1].rest_tail_world= bvh_nodes_serial[-1].rest_head_world + rest_tail
 			bvh_nodes_serial[-1].rest_tail_local= rest_tail
 			
 			
@@ -252,8 +263,8 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 		
 		if not bvh_node.rest_tail_world:
 			if len(bvh_node.children)==1:
-				bvh_node.rest_tail_world= Vector(bvh_node.children[0].rest_loc_world)
-				bvh_node.rest_tail_local= Vector(bvh_node.children[0].rest_loc_local)
+				bvh_node.rest_tail_world= Vector(bvh_node.children[0].rest_head_world)
+				bvh_node.rest_tail_local= Vector(bvh_node.children[0].rest_head_local)
 			else:
 				if not bvh_node.children:
 					raise 'error, bvh node has no end and no children. bad file'
@@ -262,33 +273,14 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 				rest_tail_world= Vector(0,0,0)
 				rest_tail_local= Vector(0,0,0)
 				for bvh_node_child in bvh_node.children:
-					rest_tail_world += bvh_node_child.rest_loc_world
-					rest_tail_local += bvh_node_child.rest_loc_local
+					rest_tail_world += bvh_node_child.rest_head_world
+					rest_tail_local += bvh_node_child.rest_head_local
 				
 				bvh_node.rest_tail_world= rest_tail_world * (1.0/len(bvh_node.children))
 				bvh_node.rest_tail_local= rest_tail_local * (1.0/len(bvh_node.children))
-				
-				# Zero area fix
-				if (bvh_node.rest_tail_world-bvh_node.rest_tail_local).length < 0.0001:
-				
-					# New operation for temp fix of location setting.
-					# Get the average length from my head to choldrens heads and make a
-					# Z up bone from that length
-					length= 0.0
-					for bvh_node_child in bvh_node.children:
-						length+= (bvh_node.rest_loc_world - bvh_node_child.rest_loc_world).length
-					length= length/len(bvh_node.children)
-					
-					
-					bvh_node.rest_tail_local= Vector(bvh_node.rest_loc_local)
-					bvh_node.rest_tail_world= Vector(bvh_node.rest_loc_world)
-					bvh_node.rest_tail_world.y = bvh_node.rest_tail_world.y + length
-					bvh_node.rest_tail_local.y = bvh_node.rest_tail_local.y + length
-					# END TEMP REPLACE
-					
 
 		# Make sure tail isnt the same location as the head.
-		if (bvh_node.rest_tail_local-bvh_node.rest_loc_local).length <= 0.001*GLOBAL_SCALE:
+		if (bvh_node.rest_tail_local-bvh_node.rest_head_local).length <= 0.001*GLOBAL_SCALE:
 			
 			bvh_node.rest_tail_local.y= bvh_node.rest_tail_local.y + GLOBAL_SCALE/10
 			bvh_node.rest_tail_world.y= bvh_node.rest_tail_world.y + GLOBAL_SCALE/10
@@ -329,7 +321,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1):
 	# Offset
 	for bvh_node in bvh_nodes.itervalues():
 		# Make relative to parents offset
-		bvh_node.temp.loc= bvh_node.rest_loc_local
+		bvh_node.temp.loc= bvh_node.rest_head_local
 	
 	# Add tail objects
 	for name, bvh_node in bvh_nodes.iteritems():
@@ -346,8 +338,8 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1):
 		for bvh_node in bvh_nodes.itervalues():
 			lx,ly,lz,rx,ry,rz= bvh_node.anim_data[current_frame]
 			
-			rest_loc_local= bvh_node.rest_loc_local
-			bvh_node.temp.loc= rest_loc_local.x+lx, rest_loc_local.y+ly, rest_loc_local.z+lz
+			rest_head_local= bvh_node.rest_head_local
+			bvh_node.temp.loc= rest_head_local.x+lx, rest_head_local.y+ly, rest_head_local.z+lz
 			
 			bvh_node.temp.rot= rx*DEG2RAD,ry*DEG2RAD,rz*DEG2RAD
 			
@@ -370,30 +362,75 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 	arm_data= Blender.Armature.Armature('myArmature')
 	arm_ob.link(arm_data)
 	
+	
 	# Put us into editmode
 	arm_data.makeEditable()
 	
+	# Get the average bone length for zero length bones, we may not use this.
+	average_bone_length= 0.0
+	nonzero_count= 0
+	for bvh_node in bvh_nodes.itervalues():
+		l= (bvh_node.rest_head_local-bvh_node.rest_tail_local).length
+		if l:
+			average_bone_length+= l
+			nonzero_count+=1
 	
+	# Very rare cases all bones couldbe zero length???
+	if not average_bone_length:
+		average_bone_length = 0.1
+	else:
+		# Normal operation
+		average_bone_length = average_bone_length/nonzero_count
+	
+	
+	
+	ZERO_AREA_BONES= []
 	for name, bvh_node in bvh_nodes.iteritems():
+		# New editbone
 		bone= bvh_node.temp= Blender.Armature.Editbone()
+		
 		bone.name= name
 		arm_data.bones[name]= bone
 		
-		bone.head= bvh_node.rest_loc_world
+		bone.head= bvh_node.rest_head_world
 		bone.tail= bvh_node.rest_tail_world
+		
+		# ZERO AREA BONES.
+		if (bone.head-bone.tail).length < 0.001:
+			if bvh_node.parent:
+				ofs= bvh_node.parent.rest_head_local- bvh_node.parent.rest_tail_local
+				if ofs.length: # is our parent zero length also?? unlikely
+					bone.tail= bone.tail+ofs
+				else:
+					bone.tail.y= bone.tail.y+average_bone_length
+			else:
+				bone.tail.y= bone.tail.y+average_bone_length
+			
+			ZERO_AREA_BONES.append(bone.name)
+		
 	
 	for bvh_node in bvh_nodes.itervalues():
 		if bvh_node.parent:
+			# bvh_node.temp is the Editbone
+			
 			# Set the bone parent
 			bvh_node.temp.parent= bvh_node.parent.temp
-	
+			
+			# Set the connection state
+			if not bvh_node.has_loc and\
+			bvh_node.parent and\
+			bvh_node.parent.temp.name not in ZERO_AREA_BONES and\
+			bvh_node.parent.rest_tail_local == bvh_node.rest_head_local:
+				bvh_node.temp.options= [Blender.Armature.CONNECTED]
 	
 	# Replace the editbone with the editbone name,
 	# to avoid memory errors accessing the editbone outside editmode
 	for bvh_node in bvh_nodes.itervalues():
 		bvh_node.temp= bvh_node.temp.name
-		
+	
 	arm_data.update()
+	
+	
 	
 	scn= Blender.Scene.GetCurrent()
 	
@@ -414,7 +451,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 	
 	action = Blender.Armature.NLA.NewAction("Action") 
 	action.setActive(arm_ob)
-	xformConstants= [ Blender.Object.Pose.LOC, Blender.Object.Pose.ROT ]
+	#xformConstants= [ Blender.Object.Pose.LOC, Blender.Object.Pose.ROT ]
 	
 	# Replace the bvh_node.temp (currently an editbone)
 	# With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)
@@ -430,30 +467,178 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 		bone_rest_matrix_inv.resize4x4()
 		bone_rest_matrix.resize4x4()
 		bvh_node.temp= (pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv)
+		
+	
+	# Make a dict for fast access without rebuilding a list all the time.
+	xformConstants_dict={
+	(True,True):	[Blender.Object.Pose.LOC, Blender.Object.Pose.ROT],\
+	(False,True):	[Blender.Object.Pose.ROT],\
+	(True,False):	[Blender.Object.Pose.LOC],\
+	(False,False):	[],\
+	}
 	
 	
+	# KEYFRAME METHOD, SLOW, USE IPOS DIRECT
+	'''
 	# Animate the data, the last used bvh_node will do since they all have the same number of frames
 	for current_frame in xrange(len(bvh_node.anim_data)):
+		
+		if current_frame==40:
+			break
 		
 		# Dont neet to set the current frame
 		for bvh_node in bvh_nodes.itervalues():
 			pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv= bvh_node.temp
 			lx,ly,lz,rx,ry,rz= bvh_node.anim_data[current_frame]
 			
-			# Set the rotation, not so simple			
-			bone_rotation_matrix= Euler(rx,ry,rz).toMatrix()
-			bone_rotation_matrix.resize4x4()
-			pose_bone.quat= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()
+			if bvh_node.has_rot:
+				# Set the rotation, not so simple			
+				bone_rotation_matrix= Euler(rx,ry,rz).toMatrix()
+				bone_rotation_matrix.resize4x4()
+				pose_bone.quat= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()
 			
-			# Set the Location, simple too
-			pose_bone.loc= (\
-			TranslationMatrix(Vector(lx*10, ly*10, lz*10)) *\
-			bone_rest_matrix_inv).translationPart() # WHY * 10? - just how pose works
+			if bvh_node.has_loc:
+				# Set the Location, simple too
+				pose_bone.loc= (\
+				TranslationMatrix(Vector(lx*10, ly*10, lz*10)) *\
+				bone_rest_matrix_inv).translationPart() # WHY * 10? - just how pose works
 			
+			# Get the transform 
+			xformConstants= xformConstants_dict[bvh_node.has_loc, bvh_node.has_rot]
+			
+			
+			if xformConstants:
+				# Insert the keyframe from the loc/quat
+				pose_bone.insertKey(arm_ob, current_frame+IMPORT_START_FRAME, xformConstants)
+	# END KEYFRAME METHOD
+	'''
+	
+	
+	# IPO KEYFRAME SETTING
+	# Add in the IPOs by adding keyframes, AFAIK theres no way to add IPOs to an action so I do this :/
+	for bvh_node in bvh_nodes.itervalues():
+		pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv= bvh_node.temp
+		
+		# Get the transform 
+		xformConstants= xformConstants_dict[bvh_node.has_loc, bvh_node.has_rot]
+		if xformConstants:
+			pose_bone.loc[:]= 0,0,0
+			pose_bone.quat[:]= 0,0,1,0
 			# Insert the keyframe from the loc/quat
-			pose_bone.insertKey(arm_ob, current_frame+IMPORT_START_FRAME, xformConstants)
+			pose_bone.insertKey(arm_ob, IMPORT_START_FRAME, xformConstants)
+
+	
+	action_ipos= action.getAllChannelIpos()
+	
+	
+	for bvh_node in bvh_nodes.itervalues():
+		has_loc= bvh_node.has_loc
+		has_rot= bvh_node.has_rot
+		
+		if not has_rot and not has_loc:
+			# No animation data
+			continue
+		
+		ipo= action_ipos[bvh_node.temp[0].name] # posebones name as key
+		
+		if has_loc:
+			curve_xloc= ipo[Blender.Ipo.PO_LOCX]
+			curve_yloc= ipo[Blender.Ipo.PO_LOCY]
+			curve_zloc= ipo[Blender.Ipo.PO_LOCZ]
 			
+			curve_xloc.interpolation= \
+			curve_yloc.interpolation= \
+			curve_zloc.interpolation= \
+			Blender.IpoCurve.InterpTypes.LINEAR
 			
+		
+		if has_rot:
+			curve_wquat= ipo[Blender.Ipo.PO_QUATW]
+			curve_xquat= ipo[Blender.Ipo.PO_QUATX]
+			curve_yquat= ipo[Blender.Ipo.PO_QUATY]
+			curve_zquat= ipo[Blender.Ipo.PO_QUATZ]
+			
+			curve_wquat.interpolation= \
+			curve_xquat.interpolation= \
+			curve_yquat.interpolation= \
+			curve_zquat.interpolation= \
+			Blender.IpoCurve.InterpTypes.LINEAR
+		
+		# Get the bone 
+		pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv= bvh_node.temp
+		
+		
+		def pose_rot(anim_data):
+			bone_rotation_matrix= Euler(anim_data[3], anim_data[4], anim_data[5]).toMatrix()
+			bone_rotation_matrix.resize4x4()
+			return tuple((bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()) # qw,qx,qy,qz
+		
+		def pose_loc(anim_data):
+			return tuple((TranslationMatrix(Vector(anim_data[0]*10, anim_data[1]*10, anim_data[2]*10)) * bone_rest_matrix_inv).translationPart())
+		
+		
+		last_frame= len(bvh_node.anim_data)+IMPORT_START_FRAME-1
+		
+		if has_loc:
+			pose_locations= [pose_loc(anim_key) for anim_key in bvh_node.anim_data]
+			
+			# Add the start at the end, we know the start is just 0,0,0 anyway
+			curve_xloc.append((last_frame, pose_locations[-1][0]))
+			curve_yloc.append((last_frame, pose_locations[-1][1]))
+			curve_zloc.append((last_frame, pose_locations[-1][2]))
+			
+			ox,oy,oz= pose_locations[0]
+			x,y,z= pose_locations[1]
+			
+			for i in xrange(1, len(pose_locations)-1): # from second frame to second last frame
+				
+				nx,ny,nz= pose_locations[i+1]
+				xset= yset= zset= True # we set all these by default
+				if abs((ox+nx)/2 - x) < 0.00001:	xset= False
+				if abs((oy+ny)/2 - y) < 0.00001:	yset= False
+				if abs((oz+nz)/2 - z) < 0.00001:	zset= False
+				
+				if xset: curve_xloc.append((i+IMPORT_START_FRAME, x))
+				if yset: curve_yloc.append((i+IMPORT_START_FRAME, y))
+				if zset: curve_zloc.append((i+IMPORT_START_FRAME, z))
+				
+				# Set the old and use the new
+				ox,oy,oz=	x,y,z
+				x,y,z=		nx,ny,nz
+		
+		
+		if has_rot:
+			pose_rotations= [pose_rot(anim_key) for anim_key in bvh_node.anim_data]
+			
+			# Add the start at the end, we know the start is just 0,0,0 anyway
+			curve_wquat.append((last_frame, pose_rotations[-1][0]))
+			curve_xquat.append((last_frame, pose_rotations[-1][1]))
+			curve_yquat.append((last_frame, pose_rotations[-1][2]))
+			curve_zquat.append((last_frame, pose_rotations[-1][3]))
+			
+			ow,ox,oy,oz= pose_rotations[0]
+			w,x,y,z= pose_rotations[1]
+			
+			for i in xrange(1, len(pose_rotations)-1): # from second frame to second last frame
+				
+				nw, nx,ny,nz= pose_rotations[i+1]
+				wset= xset= yset= zset= True # we set all these by default
+				if abs((ow+nw)/2 - w) < 0.00001:	wset= False
+				if abs((ox+nx)/2 - x) < 0.00001:	xset= False
+				if abs((oy+ny)/2 - y) < 0.00001:	yset= False
+				if abs((oz+nz)/2 - z) < 0.00001:	zset= False
+				
+				if wset: curve_wquat.append((i+IMPORT_START_FRAME, w))
+				if xset: curve_xquat.append((i+IMPORT_START_FRAME, x))
+				if yset: curve_yquat.append((i+IMPORT_START_FRAME, y))
+				if zset: curve_zquat.append((i+IMPORT_START_FRAME, z))
+				
+				# Set the old and use the new
+				ow,ox,oy,oz=	w,x,y,z
+				w,x,y,z=		nw,nx,ny,nz
+
+	# IPO KEYFRAME SETTING
+	
 	pose.update()
 	return arm_ob
 
@@ -469,8 +654,8 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 """
 import os
 DIR = '/metavr/mocap/bvh/'
-#for f in os.listdir(DIR)[5:6]:
-for f in os.listdir(DIR):
+for f in os.listdir(DIR)[5:6]:
+	#for f in os.listdir(DIR):
 	if f.endswith('.bvh'):
 		s = Blender.Scene.New(f)
 		s.makeCurrent()
@@ -478,7 +663,7 @@ for f in os.listdir(DIR):
 		print f
 		bvh_nodes= read_bvh(file, 1.0)
 		bvh_node_dict2armature(bvh_nodes, 1)
-		bvh_node_dict2objects(bvh_nodes,  1)
+		#bvh_node_dict2objects(bvh_nodes,  1)
 """
 
 def load_bvh_ui(file):
