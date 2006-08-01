@@ -84,7 +84,7 @@ typedef struct bNodeType {
 #define NODE_CLASS_OUTPUT		1
 #define NODE_CLASS_OP_COLOR		3
 #define NODE_CLASS_OP_VECTOR	4
-#define NODE_CLASS_OP_FILTER	5
+#define NODE_CLASS_OP_FILTER		5
 #define NODE_CLASS_GROUP		6
 #define NODE_CLASS_FILE			7
 #define NODE_CLASS_CONVERTOR	8
@@ -177,7 +177,9 @@ struct ShadeResult;
 #define SH_NODE_MAPPING		109
 #define SH_NODE_CURVE_VEC	110
 #define SH_NODE_CURVE_RGB	111
-#define SH_NODE_TIME	112
+#define SH_NODE_CAMERA	114
+#define SH_NODE_MATH		115
+#define SH_NODE_VECT_MATH	116
 
 /* custom defines: options for Material node */
 #define SH_NODE_MAT_DIFF	1

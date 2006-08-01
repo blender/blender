@@ -29,6 +29,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "DNA_ID.h"
 #include "DNA_material_types.h"
@@ -180,7 +181,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 static bNodeType sh_node_geom= {
 	/* type code   */	SH_NODE_GEOMETRY,
 	/* name        */	"Geometry",
-	/* width+range */	60, 40, 100,
+	/* width+range */	90, 40, 100,
 	/* class+opts  */	NODE_CLASS_INPUT, 0,
 	/* input sock  */	NULL,
 	/* output sock */	sh_node_geom_out,
@@ -444,6 +445,270 @@ static bNodeType sh_node_mapping= {
 	
 };
 
+/* **************** CAMERA INFO  ******************** */
+static bNodeSocketType sh_node_camera_out[]= {
+	{	SOCK_VECTOR, 0, "View Vector",			1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},		/* None of these actually */
+	{	SOCK_VALUE, 0, "View Z Depth",			0.f, 0.0f, 0.0f, 0.0f, 0.0f, 99999999999.0f},	/* have any limits on their */
+	{	SOCK_VALUE, 0, "View Distance",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 99999999999.0f},	/* values. */
+	{	-1, 0, ""	}
+};
+
+
+static void node_shader_exec_camera(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data) {
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;  /* Data we need for shading. */
+		
+		VECCOPY(out[0]->vec, shi->co);		/* get view vector */
+		out[1]->vec[0]= fabs(shi->co[2]);		/* get view z-depth */
+		out[2]->vec[0]= Normalise(out[0]->vec);	/* get view distance */
+		}
+	}
+
+static bNodeType sh_node_camera= {
+	/* type code   */	SH_NODE_CAMERA,
+	/* name        */	"Camera Data",
+	/* width+range */	95, 95, 120,
+	/* class+opts  */	NODE_CLASS_INPUT, 0,
+	/* input sock  */	NULL,
+	/* output sock */	sh_node_camera_out,
+	/* storage     */	"node_camera",
+	/* execfunc    */	node_shader_exec_camera	
+};
+
+/* **************** SCALAR MATH ******************** */ 
+static bNodeSocketType sh_node_math_in[]= { 
+	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f}, 
+	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f}, 
+	{ -1, 0, "" } 
+};
+
+static bNodeSocketType sh_node_math_out[]= { 
+	{ SOCK_VALUE, 0, "Value", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, 
+	{ -1, 0, "" } 
+};
+
+static void node_shader_exec_math(void *data, bNode *node, bNodeStack **in, 
+bNodeStack **out) 
+{
+	switch(node->custom1){ 
+	
+	case 0: /* Add */
+		out[0]->vec[0]= in[0]->vec[0] + in[1]->vec[0]; 
+		break; 
+	case 1: /* Subtract */
+		out[0]->vec[0]= in[0]->vec[0] - in[1]->vec[0];
+		break; 
+	case 2: /* Multiply */
+		out[0]->vec[0]= in[0]->vec[0] * in[1]->vec[0]; 
+		break; 
+	case 3: /* Divide */
+		{
+			if(in[1]->vec[0]==0)	/* We don't want to divide by zero. */
+				out[0]->vec[0]= 0.0;
+			else
+				out[0]->vec[0]= in[0]->vec[0] / in[1]->vec[0];
+			}
+		break;
+	case 4: /* Sine */
+		{
+			if(in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
+				out[0]->vec[0]= sin(in[0]->vec[0]);
+			else
+				out[0]->vec[0]= sin(in[1]->vec[0]);
+		}
+		break;
+	case 5: /* Cosine */
+		{
+			if(in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */	
+				out[0]->vec[0]= cos(in[0]->vec[0]);
+			else
+				out[0]->vec[0]= cos(in[1]->vec[0]);
+		}
+		break;
+	case 6: /* Tangent */
+		{
+			if(in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */	
+				out[0]->vec[0]= tan(in[0]->vec[0]);
+			else
+				out[0]->vec[0]= tan(in[1]->vec[0]);
+		}
+		break;
+	case 7: /* Arc-Sine */
+		{
+			if(in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
+				/* Can't do the impossible... */
+				if( in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1 )
+					out[0]->vec[0]= asin(in[0]->vec[0]);
+				else
+					out[0]->vec[0]= 0.0;
+			}
+			else {
+				/* Can't do the impossible... */
+				if( in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1 )
+					out[0]->vec[0]= asin(in[1]->vec[0]);
+				else
+					out[0]->vec[0]= 0.0;
+			}
+		}
+		break;
+	case 8: /* Arc-Cosine */
+		{
+			if(in[0]->hasinput || !in[1]->hasinput) { /* This one only takes one input, so we've got to choose. */
+				/* Can't do the impossible... */
+				if( in[0]->vec[0] <= 1 && in[0]->vec[0] >= -1 )
+					out[0]->vec[0]= acos(in[0]->vec[0]);
+				else
+					out[0]->vec[0]= 0.0;
+			}
+			else {
+				/* Can't do the impossible... */
+				if( in[1]->vec[0] <= 1 && in[1]->vec[0] >= -1 )
+					out[0]->vec[0]= acos(in[1]->vec[0]);
+				else
+					out[0]->vec[0]= 0.0;
+			}
+		}
+		break;
+	case 9: /* Arc-Tangent */
+		{
+			if(in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
+				out[0]->vec[0]= atan(in[0]->vec[0]);
+			else
+				out[0]->vec[0]= atan(in[1]->vec[0]);
+		}
+		break;
+	case 10: /* Power */
+		{
+			/* Don't want any imaginary numbers... */
+			if( in[0]->vec[0] >= 0 )
+				out[0]->vec[0]= pow(in[0]->vec[0], in[1]->vec[0]);
+			else
+				out[0]->vec[0]= 0.0;
+		}
+		break;
+	case 11: /* Logarithm */
+		{
+			/* Don't want any imaginary numbers... */
+			if( in[0]->vec[0] > 0  && in[1]->vec[0] > 0 )
+				out[0]->vec[0]= log(in[0]->vec[0]) / log(in[1]->vec[0]);
+			else
+				out[0]->vec[0]= 0.0;
+		}
+		break;
+	case 12: /* Minimum */
+		{
+			if( in[0]->vec[0] < in[1]->vec[0] )
+				out[0]->vec[0]= in[1]->vec[0];
+			else
+				out[0]->vec[0]= in[0]->vec[0];
+		}
+		break;
+	case 13: /* Maximum */
+		{
+			if( in[0]->vec[0] > in[1]->vec[0] )
+				out[0]->vec[0]= in[1]->vec[0];
+			else
+				out[0]->vec[0]= in[0]->vec[0];
+		}
+		break;
+	case 14: /* Round */
+		{
+			if(in[0]->hasinput || !in[1]->hasinput) /* This one only takes one input, so we've got to choose. */
+				out[0]->vec[0]= round(in[0]->vec[0]);
+			else
+				out[0]->vec[0]= round(in[1]->vec[0]);
+		}
+		break; 
+	} 
+}
+
+static bNodeType sh_node_math= { 
+	/* type code   */ SH_NODE_MATH, 
+	/* name        */ "Math", 
+	/* width+range */ 120, 110, 160, 
+	/* class+opts  */ NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
+	/* input sock  */ sh_node_math_in, 
+	/* output sock */ sh_node_math_out, 
+	/* storage     */ "node_math", 
+	/* execfunc    */ node_shader_exec_math 
+};
+
+
+/* **************** VECTOR MATH ******************** */ 
+static bNodeSocketType sh_node_vect_math_in[]= { 
+	{ SOCK_VECTOR, 1, "Vector", 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f}, 
+	{ SOCK_VECTOR, 1, "Vector", 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f}, 
+	{ -1, 0, "" } 
+};
+
+static bNodeSocketType sh_node_vect_math_out[]= {
+	{ SOCK_VECTOR, 0, "Vector", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, 
+	{ SOCK_VALUE, 0, "Value", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{ -1, 0, "" } 
+};
+
+static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in, bNodeStack **out) 
+{ 
+	if(node->custom1 == 0) {	/* Add */
+		out[0]->vec[0]= in[0]->vec[0] + in[1]->vec[0];
+		out[0]->vec[1]= in[0]->vec[1] + in[1]->vec[1];
+		out[0]->vec[2]= in[0]->vec[2] + in[1]->vec[2];
+		
+		out[1]->vec[0]= (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
+	}
+	else if(node->custom1 == 1) {	/* Subtract */
+		out[0]->vec[0]= in[0]->vec[0] - in[1]->vec[0];
+		out[0]->vec[1]= in[0]->vec[1] - in[1]->vec[1];
+		out[0]->vec[2]= in[0]->vec[2] - in[1]->vec[2];
+		
+		out[1]->vec[0]= (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
+	}
+	else if(node->custom1 == 2) {	/* Average */
+		out[0]->vec[0]= in[0]->vec[0] + in[1]->vec[0];
+		out[0]->vec[1]= in[0]->vec[1] + in[1]->vec[1];
+		out[0]->vec[2]= in[0]->vec[2] + in[1]->vec[2];
+		
+		out[1]->vec[0] = Normalise( out[0]->vec );
+	}
+	else if(node->custom1 == 3) {	/* Dot product */
+		out[1]->vec[0]= (in[0]->vec[0] * in[1]->vec[0]) + (in[0]->vec[1] * in[1]->vec[1]) + (in[0]->vec[2] * in[1]->vec[2]);
+	}
+	else if(node->custom1 == 4) {	/* Cross product */
+		out[0]->vec[0]= (in[0]->vec[1] * in[1]->vec[2]) - (in[0]->vec[2] * in[1]->vec[1]);
+		out[0]->vec[1]= (in[0]->vec[2] * in[1]->vec[0]) - (in[0]->vec[0] * in[1]->vec[2]);
+		out[0]->vec[2]= (in[0]->vec[0] * in[1]->vec[1]) - (in[0]->vec[1] * in[1]->vec[0]);
+		
+		out[1]->vec[0] = Normalise( out[0]->vec );
+	}
+	else if(node->custom1 == 5) {	/* Normalize */
+		if(in[0]->hasinput || !in[1]->hasinput) {	/* This one only takes one input, so we've got to choose. */
+			out[0]->vec[0]= in[0]->vec[0];
+			out[0]->vec[1]= in[0]->vec[1];
+			out[0]->vec[2]= in[0]->vec[2];
+		}
+		else {
+			out[0]->vec[0]= in[1]->vec[0];
+			out[0]->vec[1]= in[1]->vec[1];
+			out[0]->vec[2]= in[1]->vec[2];
+		}
+		
+		out[1]->vec[0] = Normalise( out[0]->vec );
+	}
+	
+}
+
+static bNodeType sh_node_vect_math= { 
+	/* type code   */ SH_NODE_VECT_MATH, 
+	/* name        */ "Vector Math", 
+	/* width+range */ 80, 75, 140, 
+	/* class+opts  */ NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
+	/* input sock  */ sh_node_vect_math_in, 
+	/* output sock */ sh_node_vect_math_out, 
+	/* storage     */ "node_vect_math", 
+	/* execfunc    */ node_shader_exec_vect_math 
+};
+
 /* **************** NORMAL  ******************** */
 static bNodeSocketType sh_node_normal_in[]= {
 	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
@@ -544,7 +809,7 @@ static bNodeType sh_node_curve_rgb= {
 
 /* **************** VALUE ******************** */
 static bNodeSocketType sh_node_value_out[]= {
-	{	SOCK_VALUE, 0, "Value",		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Value",		0.5f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
 	{	-1, 0, ""	}
 };
 
@@ -558,7 +823,7 @@ static void node_shader_exec_value(void *data, bNode *node, bNodeStack **in, bNo
 static bNodeType sh_node_value= {
 	/* type code   */	SH_NODE_VALUE,
 	/* name        */	"Value",
-	/* width+range */	80, 40, 120,
+	/* width+range */	80, 50, 120,
 	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	sh_node_value_out,
@@ -621,7 +886,7 @@ static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, b
 static bNodeType sh_node_mix_rgb= {
 	/* type code   */	SH_NODE_MIX_RGB,
 	/* name        */	"Mix",
-	/* width+range */	80, 40, 120,
+	/* width+range */	100, 60, 150,
 	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	sh_node_mix_rgb_in,
 	/* output sock */	sh_node_mix_rgb_out,
@@ -704,6 +969,7 @@ bNodeType *node_all_shaders[]= {
 	&node_group_typeinfo,
 	&sh_node_output,
 	&sh_node_material,
+	&sh_node_camera,
 	&sh_node_value,
 	&sh_node_rgb,
 	&sh_node_mix_rgb,
@@ -715,6 +981,8 @@ bNodeType *node_all_shaders[]= {
 	&sh_node_mapping,
 	&sh_node_curve_vec,
 	&sh_node_curve_rgb,
+	&sh_node_math,
+	&sh_node_vect_math,
 	NULL
 };
 
