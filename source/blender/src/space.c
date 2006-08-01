@@ -1288,13 +1288,18 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if((G.qual==0)){
-					curs= give_cursor();
-					G.vd->ofs[0]= -curs[0];
-					G.vd->ofs[1]= -curs[1];
-					G.vd->ofs[2]= -curs[2];
+					if (G.vd->persp==2)
+						/* center the camera offset */
+						G.vd->camdx= G.vd->camdy= 0.0;
+					else {
+						/*non camera center*/
+						curs= give_cursor();
+						G.vd->ofs[0]= -curs[0];
+						G.vd->ofs[1]= -curs[1];
+						G.vd->ofs[2]= -curs[2];
+					}
 					scrarea_queue_winredraw(curarea);
 				}
-			
 				break;
 			case DKEY:
 				if((G.qual==LR_SHIFTKEY)) {
