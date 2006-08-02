@@ -100,17 +100,26 @@ def loadMaterialImage(mat, img_fileName, type, meshDict, dir):
 	# adds textures to faces (Textured/Alt-Z mode)
 	# Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
 	if image and type == 'Kd':
+		mat_name= mat.name
 		for meshPair in meshDict.itervalues():
-			for f in meshPair[0].faces:
+			def matname(m):
+				if m: return m.name
+				else: return m
+			
+			mesh= meshPair[0]
+			mesh_materials= [matname(m) for m in mesh.materials]
+			for f in mesh.faces:
 				#print meshPair[0].materials[f.mat].name, mat.name
-				if meshPair[0].materials[f.mat].name == mat.name:
+				if mesh_materials[f.mat] == mat_name:
 					# the inline usemat command overides the material Image
 					if not f.image:
 						f.mode |= TEX_ON_FLAG
 						f.image= image
+		del mat_name
+		# mat.mode |= Blender.Material.Modes.TEXFACE
 	
 	# adds textures for materials (rendering)
-	elif type == 'Ka':
+	if type == 'Ka':
 		mat.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 	elif type == 'Kd':
 		mat.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.COL)
@@ -908,7 +917,7 @@ def load_obj_ui(file):
 	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by 10 until it reacehs the size constraint. Zero Disables.'),\
 	('Rotate X90', IMPORT_ROTATE_X90, 'Rotate X-Up to Blenders Z-Up'),\
 	('Edges', IMPORT_EDGES, 'Import faces with 2 verts as in edge'),\
-	('Smooths all faces', IMPORT_SMOOTH_ALL, 'Smooth all faces even if they are not in a smoothing group'),\
+	#('Smooths all faces', IMPORT_SMOOTH_ALL, 'Smooth all faces even if they are not in a smoothing group'),\
 	('Create FGons', IMPORT_FGON, 'Import faces with more then 4 verts as fgons.'),\
 	('Smooth Groups', IMPORT_SMOOTH_GROUPS, 'Only Share verts within smooth groups. (Warning, Hogs Memory)'),\
 	('Split by Material', IMPORT_MTL_SPLIT, 'Import each material into a seperate mesh (Avoids >16 meterials per mesh problem)'),\
