@@ -165,6 +165,68 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			# Basic weighting.
 			#self.collapse_weight= self.length *  (1+ ((ed.v1.no-ed.v2.no).length**2))
 			self.collapse_weight= 1.0
+		
+		def collapse_locations(self, w1, w2):
+			'''
+			Generate a smart location for this edge to collapse to
+			w1 and w2 are vertex location bias
+			'''
+			
+			v1co= self.v1.co
+			v2co= self.v2.co
+			v1no= self.v1.no
+			v2no= self.v2.no
+			
+			# Basic operation, works fine but not as good as predicting the best place.
+			#between= ((v1co*w1) + (v2co*w2))
+			#self.collapse_loc= between
+			
+			# normalize the weights of each vert - se we can use them as scalers.
+			wscale= w1+w2
+			if not wscale: # no scale?
+				w1=w2= 0.5
+			else:
+				w1/=wscale
+				w2/=wscale
+			
+			length= self.length
+			between= (v1co+v2co) * 0.5
+			
+			# Collapse
+			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
+			
+			# Make lines at right angles to the normals- these 2 lines will intersect and be
+			# the point of collapsing.
+			
+			# Enlarge so we know they intersect:  self.length*2
+			cv1= CrossVecs(v1no, CrossVecs(v1no, v1co-v2co))
+			cv2= CrossVecs(v2no, CrossVecs(v2no, v2co-v1co))
+			
+			# Scale to be less then the edge lengths.
+			cv1.normalize()
+			cv2.normalize()
+			cv1 = cv1 * (length* 0.4)
+			cv2 = cv2 * (length* 0.4)
+			
+			smart_offset_loc= between + (cv1 + cv2)
+			
+			# Now we need to blend between smart_offset_loc and w1/w2
+			# you see were blending between a vert and the edges midpoint, so we cant use a normal weighted blend.
+			if w1 > 0.5: # between v1 and smart_offset_loc
+				#self.collapse_loc= v1co*(w2+0.5) + smart_offset_loc*(w1-0.5)
+				w2*=2
+				w1= 1-w2
+				new_loc_smart= v1co*w1 + smart_offset_loc*w2
+			else: # w between v2 and smart_offset_loc
+				w1*=2
+				w2= 1-w1
+				new_loc_smart= v2co*w2 + smart_offset_loc*w1
+				
+			if new_loc_smart.x != new_loc_smart.x: # NAN LOCATION, revert to between
+				new_loc_smart= None
+			
+			return new_loc_smart, between, v1co*0.99999 + v2co*0.00001, v1co*0.00001 + v2co*0.99999
+		
 
 	class collapseFace(object):
 		__slots__ = 'verts', 'normal', 'area', 'index', 'orig_uv', 'orig_col', 'uv', 'col' # , 'collapse_edge_count'
@@ -329,144 +391,106 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			vert_collapsed= [1] * len(verts)
 		
 		
-		def ed_set_collapse_loc(ced):
-			v1co= ced.v1.co
-			v2co= ced.v2.co
-			v1no= ced.v1.no
-			v2no= ced.v2.no
-			
-			# Basic operation, works fine but not as good as predicting the best place.
-			#between= ((v1co*w1) + (v2co*w2))
-			#ced.collapse_loc= between
-			
-			# Use the vertex weights to bias the new location.
-			w1= vert_weights[ced.key[0]]
-			w2= vert_weights[ced.key[1]]
-			
-			# normalize the weights of each vert - se we can use them as scalers.
-			wscale= w1+w2
-			if not wscale: # no scale?
-				w1=w2= 0.5
-			else:
-				w1/=wscale
-				w2/=wscale
-			
-			length= ced.length
-			between= (v1co+v2co) * 0.5
-			
-			# Collapse
-			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
-			
-			# Make lines at right angles to the normals- these 2 lines will intersect and be
-			# the point of collapsing.
-			
-			# Enlarge so we know they intersect:  ced.length*2
-			cv1= CrossVecs(v1no, CrossVecs(v1no, v1co-v2co))
-			cv2= CrossVecs(v2no, CrossVecs(v2no, v2co-v1co))
-			
-			# Scale to be less then the edge lengths.
-			cv1.normalize()
-			cv2.normalize()
-			cv1 = cv1 * (length* 0.4)
-			cv2 = cv2 * (length* 0.4)
-			
-			smart_offset_loc= between + (cv1 + cv2)
-			
-			
-			if (smart_offset_loc-between).length > length/2:
-				# New collapse loc is way out, just use midpoint.
-				ced.collapse_loc= between
-			else:
-				# Now we need to blend between smart_offset_loc and w1/w2
-				# you see were blending between a vert and the edges midpoint, so we cant use a normal weighted blend.
-				if w1 > 0.5: # between v1 and smart_offset_loc
-					#ced.collapse_loc= v1co*(w2+0.5) + smart_offset_loc*(w1-0.5)
-					w2*=2
-					w1= 1-w2
-					
-					
-					ced.collapse_loc= v1co*w1 + smart_offset_loc*w2
-				else: # w between v2 and smart_offset_loc
-					w1*=2
-					w2= 1-w1
-					ced.collapse_loc= v2co*w2 + smart_offset_loc*w1
-					
-				if ced.collapse_loc.x != ced.collapse_loc.x: # NAN LOCATION, revert to between
-					ced.collapse_loc= between
 				
 		
 		# Best method, no quick hacks here, Correction. Should be the best but needs tweaks.
 		def ed_set_collapse_error(ced):
-			i1, i2= ced.key
+			# Use the vertex weights to bias the new location.
+			new_locs= ced.collapse_locations(vert_weights[ced.key[0]], vert_weights[ced.key[1]])
 			
+			
+			# Find the connecting faces of the 2 verts.
+			i1, i2= ced.key
 			test_faces= set()
 			for i in (i1,i2): # faster then LC's
 				for f in vert_face_users[i]:
 					test_faces.add(f[1].index)
-			
 			for f in ced.faces:
 				test_faces.remove(f.index)
 			
-			# test_faces= tuple(test_faces) # keep order
 			
 			v1_orig= Vector(ced.v1.co)
 			v2_orig= Vector(ced.v2.co)
 			
-			ced.v1.co= ced.v2.co= ced.collapse_loc
-			
-			new_nos= [faces[i].no for i in test_faces]
-			
-			ced.v1.co= v1_orig
-			ced.v2.co= v2_orig
-			
-			# now see how bad the normals are effected
-			angle_diff= 1.0
-			
-			for ii, i in enumerate(test_faces): # local face index, global face index
-				cfa= collapse_faces[i] # this collapse face
-				try:
-					# can use perim, but area looks better.
-					if FACE_AREA_WEIGHT:
-						# Psudo code for wrighting
-						# angle_diff= The before and after angle difference between the collapsed and un-collapsed face.
-						# ... devide by 180 so the value will be between 0 and 1.0
-						# ... add 1 so we can use it as a multiplyer and not make the area have no eefect (below)
-						# area_weight= The faces original area * the area weight
-						# ... add 1.0 so a small area face dosent make the angle_diff have no effect.
-						#
-						# Now multiply - (angle_diff * area_weight)
-						# ... The weight will be a minimum of 1.0 - we need to subtract this so more faces done give the collapse an uneven weighting.
-						
-						angle_diff+= ((1+(Ang(cfa.normal, new_nos[ii])/180)) * (1+(cfa.area * FACE_AREA_WEIGHT))) -1 # 4 is how much to influence area
-					else:
-						angle_diff+= (Ang(cfa.normal), new_nos[ii])/180
-						
-				except:
-					pass
-			
-			# This is very arbirary, feel free to modify
-			try:		no_ang= (Ang(ced.v1.no, ced.v2.no)/180) + 1
-			except:		no_ang= 2.0
+			def test_loc(new_loc):
+				'''
+				Takes a location and tests the error without changing anything
+				'''
+				new_weight= ced.collapse_weight
+				ced.v1.co= ced.v2.co= new_loc
 				
-			# do *= because we face the boundry weight to initialize the weight. 1.0 default.
-			ced.collapse_weight*=  ((no_ang * ced.length) * (1-(1/angle_diff)))# / max(len(test_faces), 1)
+				new_nos= [faces[i].no for i in test_faces]
+				
+				# So we can compare the befire and after normals
+				ced.v1.co= v1_orig
+				ced.v2.co= v2_orig
+				
+				# now see how bad the normals are effected
+				angle_diff= 1.0
+				
+				for ii, i in enumerate(test_faces): # local face index, global face index
+					cfa= collapse_faces[i] # this collapse face
+					try:
+						# can use perim, but area looks better.
+						if FACE_AREA_WEIGHT:
+							# Psudo code for wrighting
+							# angle_diff= The before and after angle difference between the collapsed and un-collapsed face.
+							# ... devide by 180 so the value will be between 0 and 1.0
+							# ... add 1 so we can use it as a multiplyer and not make the area have no eefect (below)
+							# area_weight= The faces original area * the area weight
+							# ... add 1.0 so a small area face dosent make the angle_diff have no effect.
+							#
+							# Now multiply - (angle_diff * area_weight)
+							# ... The weight will be a minimum of 1.0 - we need to subtract this so more faces done give the collapse an uneven weighting.
+							
+							angle_diff+= ((1+(Ang(cfa.normal, new_nos[ii])/180)) * (1+(cfa.area * FACE_AREA_WEIGHT))) -1 # 4 is how much to influence area
+						else:
+							angle_diff+= (Ang(cfa.normal), new_nos[ii])/180
+							
+					except:
+						pass
+								
+				
+				# This is very arbirary, feel free to modify
+				try:		no_ang= (Ang(ced.v1.no, ced.v2.no)/180) + 1
+				except:		no_ang= 2.0
+				
+				# do *= because we face the boundry weight to initialize the weight. 1.0 default.
+				new_weight *=  ((no_ang * ced.length) * (1-(1/angle_diff)))# / max(len(test_faces), 1)
+				return new_weight
+			# End testloc
+			
+			
+			# Test the collapse locatons
+			collapse_loc_best= None
+			collapse_weight_best= 1000000000
+			ii= 0
+			for collapse_loc in new_locs:
+				if collapse_loc: # will only ever fail if smart loc is NAN
+					test_weight= test_loc(collapse_loc)
+					if test_weight < collapse_weight_best:
+						iii= ii
+						collapse_weight_best = test_weight
+						collapse_loc_best= collapse_loc
+					ii+=1
+			
+			ced.collapse_loc= collapse_loc_best
+			ced.collapse_weight= collapse_weight_best
 			
 			
 			# are we using a weight map
 			if VGROUP_INF_REDUX:
 				v= vert_weights_map[i1]+vert_weights_map[i2]
 				ced.collapse_weight*= v
-				
+		# End collapse Error
 		
 		# We can calculate the weights on __init__ but this is higher qualuity.
 		for ced in collapse_edges:
 			if ced.faces: # dont collapse faceless edges.
-				ed_set_collapse_loc(ced)
 				ed_set_collapse_error(ced)
 		
 		# Wont use the function again.
 		del ed_set_collapse_error
-		del ed_set_collapse_loc
 		# END BOUNDRY. Can remove
 		
 		# sort by collapse weight
