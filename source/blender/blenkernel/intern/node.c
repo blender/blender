@@ -664,7 +664,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	
 	/* clear new pointers, set in copytree */
 	for(node= ntree->nodes.first; node; node= node->next)
-		node->new= NULL;
+		node->new_node= NULL;
 
 	wgroup= ntreeCopyTree(ngroup, 0);
 	
@@ -690,9 +690,9 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 			/* link->tosock->tosock is on the node we look for */
 			find_node_with_socket(ngroup, link->tosock->tosock, &nextn, &index);
 			if(nextn==NULL) printf("wrong stuff!\n");
-			else if(nextn->new==NULL) printf("wrong stuff too!\n");
+			else if(nextn->new_node==NULL) printf("wrong stuff too!\n");
 			else {
-				link->tonode= nextn->new;
+				link->tonode= nextn->new_node;
 				link->tosock= BLI_findlink(&link->tonode->inputs, index);
 			}
 		}
@@ -700,9 +700,9 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 			/* link->fromsock->tosock is on the node we look for */
 			find_node_with_socket(ngroup, link->fromsock->tosock, &nextn, &index);
 			if(nextn==NULL) printf("1 wrong stuff!\n");
-			else if(nextn->new==NULL) printf("1 wrong stuff too!\n");
+			else if(nextn->new_node==NULL) printf("1 wrong stuff too!\n");
 			else {
-				link->fromnode= nextn->new;
+				link->fromnode= nextn->new_node;
 				link->fromsock= BLI_findlink(&link->fromnode->outputs, index);
 			}
 		}
@@ -844,8 +844,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 			nnode->storage= MEM_dupallocN(nnode->storage);
 	}
 	
-	node->new= nnode;
-	nnode->new= NULL;
+	node->new_node= nnode;
+	nnode->new_node= NULL;
 	nnode->preview= NULL;
 
 	return nnode;
@@ -909,7 +909,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	last= ntree->nodes.last;
 	for(node= ntree->nodes.first; node; node= node->next) {
 		
-		node->new= NULL;
+		node->new_node= NULL;
 		if(internal_select==0 || (node->flag & NODE_SELECT)) {
 			nnode= nodeCopyNode(newtree, node);	/* sets node->new */
 			if(internal_select) {
@@ -923,20 +923,20 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	
 	/* check for copying links */
 	for(link= ntree->links.first; link; link= link->next) {
-		if(link->fromnode->new && link->tonode->new) {
-			nlink= nodeAddLink(newtree, link->fromnode->new, NULL, link->tonode->new, NULL);
+		if(link->fromnode->new_node && link->tonode->new_node) {
+			nlink= nodeAddLink(newtree, link->fromnode->new_node, NULL, link->tonode->new_node, NULL);
 			/* sockets were copied in order */
 			for(a=0, sock= link->fromnode->outputs.first; sock; sock= sock->next, a++) {
 				if(sock==link->fromsock)
 					break;
 			}
-			nlink->fromsock= BLI_findlink(&link->fromnode->new->outputs, a);
+			nlink->fromsock= BLI_findlink(&link->fromnode->new_node->outputs, a);
 			
 			for(a=0, sock= link->tonode->inputs.first; sock; sock= sock->next, a++) {
 				if(sock==link->tosock)
 					break;
 			}
-			nlink->tosock= BLI_findlink(&link->tonode->new->inputs, a);
+			nlink->tosock= BLI_findlink(&link->tonode->new_node->inputs, a);
 		}
 	}
 	
@@ -1867,7 +1867,7 @@ static void *exec_composite_node(void *node_v)
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
 	bNode *node= node_v;
-	ThreadData *thd= (ThreadData *)node->new;
+	ThreadData *thd= (ThreadData *)node->new_node;
 	
 	node_get_stack(node, thd->stack, nsin, nsout);
 	
@@ -2066,7 +2066,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 				}
 				totnode--;
 				
-				node->new = (bNode *)&thdata;
+				node->new_node = (bNode *)&thdata;
 				node->exec= NODE_PROCESSING;
 				BLI_insert_thread(&threads, node);
 			}

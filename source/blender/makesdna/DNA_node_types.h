@@ -100,7 +100,7 @@ typedef struct bNodePreview {
 
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
-	struct bNode *next, *prev, *new;
+	struct bNode *next, *prev, *new_node;
 	
 	char name[32];
 	short type, flag;
