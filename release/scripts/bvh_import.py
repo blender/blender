@@ -95,16 +95,33 @@ class bvh_node_class(object):
 # Change the order rotation is applied.
 MATRIX_IDENTITY_3x3 = Matrix([1,0,0],[0,1,0],[0,0,1])
 MATRIX_IDENTITY_4x4 = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
-def eulerRotate(x,y,z): 
-	x,y,z = x%360,y%360,z%360 # Clamp all values between 0 and 360, values outside this raise an error.
-	xmat = RotationMatrix(x,3,'x')
-	ymat = RotationMatrix(y,3,'y')
-	zmat = RotationMatrix(z,3,'z')
-	# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
-	return (ymat*(xmat * (zmat * MATRIX_IDENTITY_3x3))).toEuler()
 
-
-def read_bvh(file_path, GLOBAL_SCALE=1.0):
+def read_bvh(file_path, GLOBAL_SCALE=1.0, ROT_ORDER= 0):
+	
+	if ROT_ORDER==0:
+		def eulerRotate(x,y,z): 
+			x,y,z = x%360,y%360,z%360 # Clamp all values between 0 and 360, values outside this raise an error.
+			xmat = RotationMatrix(x,3,'x')
+			ymat = RotationMatrix(y,3,'y')
+			zmat = RotationMatrix(z,3,'z')
+			# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
+			return (ymat*(xmat * (zmat * MATRIX_IDENTITY_3x3))).toEuler()
+	
+	elif ROT_ORDER==1: # Alternitive order
+		def eulerRotate(x,y,z): 
+			x,y,z = x%360,y%360,z%360 # Clamp all values between 0 and 360, values outside this raise an error.
+			xmat = RotationMatrix(x,3,'x')
+			ymat = RotationMatrix(y,3,'y')
+			zmat = RotationMatrix(z,3,'z')
+			# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
+			return (zmat*(ymat * (xmat * MATRIX_IDENTITY_3x3))).toEuler()
+	
+	
+	
+	
+	
+	
+	
 	# File loading stuff
 	# Open the file for importing
 	file = open(file_path, 'r')	
@@ -648,23 +665,26 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 #=============#
 
 #('/metavr/mocap/bvh/boxer.bvh')
+#('/d/staggered_walk.bvh')
 #('/metavr/mocap/bvh/dg-306-g.bvh') # Incompleate EOF
 #('/metavr/mocap/bvh/wa8lk.bvh') # duplicate joint names, \r line endings.
 #('/metavr/mocap/bvh/walk4.bvh') # 0 channels
-"""
+
+'''
 import os
 DIR = '/metavr/mocap/bvh/'
-for f in os.listdir(DIR)[5:6]:
+for f in ('/d/staggered_walk.bvh',):
+	#for f in os.listdir(DIR)[5:6]:
 	#for f in os.listdir(DIR):
 	if f.endswith('.bvh'):
 		s = Blender.Scene.New(f)
 		s.makeCurrent()
-		file= DIR + f
+		#file= DIR + f
+		file= f
 		print f
 		bvh_nodes= read_bvh(file, 1.0)
 		bvh_node_dict2armature(bvh_nodes, 1)
-		#bvh_node_dict2objects(bvh_nodes,  1)
-"""
+'''
 
 def load_bvh_ui(file):
 	Draw= Blender.Draw
@@ -673,6 +693,7 @@ def load_bvh_ui(file):
 	IMPORT_START_FRAME = Draw.Create(1)
 	IMPORT_AS_ARMATURE = Draw.Create(1)
 	IMPORT_AS_EMPTIES = Draw.Create(0)
+	IMPORT_ALTERNATE_ROTATION = Draw.Create(0)
 	
 	
 	# Get USER Options
@@ -681,6 +702,7 @@ def load_bvh_ui(file):
 	('As Empties', IMPORT_AS_EMPTIES, 'Imports the BVH as empties'),\
 	('Scale: ', IMPORT_SCALE, 0.001, 100.0, 'Scale the BVH, Use 0.01 when 1.0 is 1 metre'),\
 	('Start Frame: ', IMPORT_START_FRAME, 1, 30000, 'Frame to start BVH motion'),\
+	('Alt Rot Order', IMPORT_ALTERNATE_ROTATION, 'Enable if incorrect rotations appier.'),\
 	]
 	
 	if not Draw.PupBlock('BVH Import...', pup_block):
@@ -692,13 +714,14 @@ def load_bvh_ui(file):
 	IMPORT_START_FRAME = IMPORT_START_FRAME.val
 	IMPORT_AS_ARMATURE = IMPORT_AS_ARMATURE.val
 	IMPORT_AS_EMPTIES = IMPORT_AS_EMPTIES.val
+	IMPORT_ALTERNATE_ROTATION = IMPORT_ALTERNATE_ROTATION.val
 	
 	if not IMPORT_AS_ARMATURE and not IMPORT_AS_EMPTIES:
 		Blender.Draw.PupMenu('No import option selected')
 		return
 	Blender.Window.WaitCursor(1)
 	# Get the BVH data and act on it.
-	bvh_nodes= read_bvh(file, IMPORT_SCALE)
+	bvh_nodes= read_bvh(file, IMPORT_SCALE, IMPORT_ALTERNATE_ROTATION)
 	if IMPORT_AS_ARMATURE:	bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME)
 	if IMPORT_AS_EMPTIES:	bvh_node_dict2objects(bvh_nodes,  IMPORT_START_FRAME)
 	Blender.Window.WaitCursor(0)
@@ -709,3 +732,4 @@ def main():
 	
 if __name__ == '__main__':
 	main()
+
