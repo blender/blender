@@ -230,6 +230,11 @@ void GHOST_WindowX11::initXInputDevices()
 						if(ici->c_class==ValuatorClass) {
 							XValuatorInfo* xvi = (XValuatorInfo*)ici;
 							m_xtablet.PressureLevels = xvi->axes[2].max_value;
+							
+							/* this is assuming that the tablet has the same tilt resolution in both
+							 * positive and negative directions. It would be rather weird if it didn't.. */
+							m_xtablet.XtiltLevels = xvi->axes[3].max_value;
+							m_xtablet.YtiltLevels = xvi->axes[4].max_value;
 							break;
 						}
 						

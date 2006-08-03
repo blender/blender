@@ -205,6 +205,7 @@ public:
 		int ProxOutEvent;
 
 		int PressureLevels;
+		int XtiltLevels, YtiltLevels;
 	};
 
 	XTablet& GetXTablet()
@@ -331,4 +332,3 @@ private :
 
 
 #endif // _GHOST_WINDOWX11_H_
-
