@@ -634,6 +634,37 @@ static bNodeType sh_node_math= {
 	/* execfunc    */ node_shader_exec_math 
 };
 
+/* **************** VALUE SQUEEZE ******************** */ 
+static bNodeSocketType sh_node_squeeze_in[]= { 
+	{ SOCK_VALUE, 1, "Value", 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f}, 
+	{ SOCK_VALUE, 1, "Width", 1.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f}, 
+	{ SOCK_VALUE, 1, "Center", 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f}, 
+	{ -1, 0, "" } 
+};
+
+static bNodeSocketType sh_node_squeeze_out[]= { 
+	{ SOCK_VALUE, 0, "Value", 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, 
+	{ -1, 0, "" } 
+};
+
+static void node_shader_exec_squeeze(void *data, bNode *node, bNodeStack **in, 
+bNodeStack **out) 
+{
+    out[0]->vec[0] = 1 / (1 + pow(2.71828183,-((in[0]->vec[0]-in[2]->vec[0])*in[1]->vec[0]))) ;
+}
+
+static bNodeType sh_node_squeeze= { 
+	/* type code   */ SH_NODE_SQUEEZE, 
+	/* name        */ "Squeeze Value", 
+	/* width+range */ 120, 110, 160, 
+	/* class+opts  */ NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
+	/* input sock  */ sh_node_squeeze_in, 
+	/* output sock */ sh_node_squeeze_out, 
+	/* storage     */ "node_squeeze", 
+	/* execfunc    */ node_shader_exec_squeeze 
+};
+
+
 
 /* **************** VECTOR MATH ******************** */ 
 static bNodeSocketType sh_node_vect_math_in[]= { 
@@ -983,6 +1014,7 @@ bNodeType *node_all_shaders[]= {
 	&sh_node_curve_rgb,
 	&sh_node_math,
 	&sh_node_vect_math,
+	&sh_node_squeeze,
 	NULL
 };
 
