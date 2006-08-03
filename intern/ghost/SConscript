@@ -26,6 +26,10 @@ elif window_system == 'openbsd3':
     for f in pf:
         sources.remove('intern' + os.sep + f + 'Win32.cpp')
         sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+elif window_system == 'sunos5':
+    for f in pf:
+        sources.remove('intern' + os.sep + f + 'Win32.cpp')
+        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
 else:
     print "Unknown window system specified."
     Exit()

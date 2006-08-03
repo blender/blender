@@ -11,8 +11,8 @@ elif env['OURPLATFORM']=='win32-vc':
    cflags += ['/O2']
 elif env['OURPLATFORM']=='win32-mingw':
    cflags += ['-O2']
-elif sys.platform=='sunos':
-   cflags += ['Xc', '-v', '-fast']
+elif sys.platform=='sunos5':
+   cflags += ['-O2', '-ansi']
 elif sys.platform=='darwin':
    cflags += ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-mtune=G4']
 
