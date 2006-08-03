@@ -45,30 +45,30 @@ all:
     endif
     ifeq ($(OS),freebsd)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
     endif
     ifeq ($(OS),irix)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
     endif
     ifeq ($(OS),linux)
       ifeq ($(CPU),alpha)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
       else
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
 	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
       endif
     endif
     ifeq ($(OS),openbsd)
 	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
     endif
     ifeq ($(OS),solaris)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="compress" EXT2=".Z"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
     endif
     ifeq ($(OS),windows)
 	@$(MAKE) pkg TYPE="" TAR="zip -r9" EXT0=".exe" EXT1=".zip" \
@@ -76,7 +76,7 @@ all:
     endif
     ifeq ($(OS),darwin)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT0"=.app" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
+	    COMPRESS="bzip2 -f" EXT2=".bz2"
     endif
 
 # OS independent targets below:
