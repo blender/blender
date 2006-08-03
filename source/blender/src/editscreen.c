@@ -44,6 +44,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "GHOST_Types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
@@ -2077,6 +2079,11 @@ short get_mbut(void)
 	winlay_process_events(0);
 	return window_get_mbut(mainwin);
 }
+const GHOST_TabletData* get_tablet_data()
+{
+	winlay_process_events(0);
+	return window_get_tablet_data(mainwin);
+}
 
 void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii)
 {
@@ -3548,22 +3555,22 @@ void draw_area_emboss(ScrArea *sa)
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 	/* right  */
-	glColor4ub(0,0,0, 80);
+	glColor4ub(0,0,0, 50);
 	sdrawline(sa->winx-1, 0, sa->winx-1, sa->winy-1);
 	
 	/* bottom  */
 	if(sa->headertype!=HEADERDOWN) {
-		glColor4ub(0,0,0, 128);
+		glColor4ub(0,0,0, 80);
 		sdrawline(0, 0, sa->winx-1, 0);
 	}
 	
 	/* top  */
 	if(sa->headertype!=HEADERTOP) {
-		glColor4ub(255,255,255, 96);
+		glColor4ub(255,255,255, 60);
 		sdrawline(0, sa->winy-1, sa->winx-1, sa->winy-1);
 	}
 	/* left  */
-	glColor4ub(255,255,255, 80);
+	glColor4ub(255,255,255, 50);
 	sdrawline(0, 0, 0, sa->winy);
 
 	glDisable( GL_BLEND );

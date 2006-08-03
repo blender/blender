@@ -714,6 +714,11 @@ void window_get_position(Window *win, int *posx_r, int *posy_r) {
 	*posy_r= win->position[1];
 }
 
+const GHOST_TabletData* window_get_tablet_data(Window *win)
+{
+	return GHOST_GetTabletData(win->ghostwin);
+}
+
 void window_get_size(Window *win, int *width_r, int *height_r) {
 	*width_r= win->size[0];
 	*height_r= win->size[1];
