@@ -182,6 +182,13 @@ protected:
 	 */
 	virtual GHOST_TSuccess exit();
 
+	
+    /**
+     * Handles a tablet event.
+     * @param event	A Mac event.
+     * @return Indication whether the event was handled. 
+     */
+    OSStatus handleTabletEvent(EventRef event);
     /**
      * Handles a mouse event.
      * @param event	A Mac event.

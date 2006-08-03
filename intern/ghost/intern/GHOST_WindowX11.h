@@ -39,6 +39,8 @@
 #include "GHOST_Window.h"
 #include <X11/Xlib.h>
 #include <GL/glx.h>
+// For tablets
+#include <X11/extensions/XInput.h>
 
 #include <map>
 
@@ -188,6 +190,28 @@ public:
 	getXWindow(
 	);	
 
+	class XTablet
+	{
+	public:
+		GHOST_TabletData CommonData;
+
+		XDevice* StylusDevice;
+		XDevice* EraserDevice;
+
+		XID StylusID, EraserID;
+
+		int MotionEvent;
+		int ProxInEvent;
+		int ProxOutEvent;
+
+		int PressureLevels;
+	};
+
+	XTablet& GetXTablet()
+	{ return m_xtablet; }
+
+	const GHOST_TabletData* GetTabletData()
+	{ return &m_xtablet.CommonData; }
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -272,6 +296,8 @@ private :
 		Cursor 
 	getEmptyCursor(
 	);
+
+	void initXInputDevices();
 	
 	GLXContext 	m_context;
 	Window 	m_window;
@@ -298,6 +324,9 @@ private :
 	
 	/** Cache of XC_* ID's to XCursor structures */
 	std::map<unsigned int, Cursor> m_standard_cursors;
+
+	/* Tablet devices */
+	XTablet m_xtablet;
 };
 
 

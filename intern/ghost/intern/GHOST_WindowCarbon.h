@@ -213,6 +213,11 @@ public:
 	virtual short getMac_windowState();
 
 
+	const GHOST_TabletData* GetTabletData()
+	{ return &m_tablet; }
+
+	GHOST_TabletData& GetCarbonTabletData()
+	{ return m_tablet; }
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -276,6 +281,8 @@ protected:
 	static AGLContext s_firstaglCtx;
 		
 	Cursor*	m_customCursor;
+
+	GHOST_TabletData m_tablet;
     
     /** When running in full-screen this tells whether to refresh the window. */
     bool m_fullScreenDirty;

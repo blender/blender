@@ -193,7 +193,9 @@ GHOST_WindowX11(
 	XFree(xclasshint);
 
 	setTitle(title);
-	
+
+	initXInputDevices();
+
 	// now set up the rendering context.
 	if (installDrawingContext(type) == GHOST_kSuccess) {
 		m_valid_setup = true;
@@ -205,6 +207,67 @@ GHOST_WindowX11(
 
 	XFlush(m_display);
 }
+
+void GHOST_WindowX11::initXInputDevices()
+{
+	XExtensionVersion *version = XGetExtensionVersion(m_display, INAME);
+	if(version && (version != (XExtensionVersion*)NoSuchExtension)) {
+		if(version->present) {
+			int device_count;
+			XDeviceInfo* device_info = XListInputDevices(m_display, &device_count);
+			m_xtablet.StylusDevice = 0;
+			m_xtablet.EraserDevice = 0;
+			m_xtablet.CommonData.Active= 0;
+
+			for(int i=0; i<device_count; ++i) {
+				if(!strcmp(device_info[i].name, "stylus")) {
+					m_xtablet.StylusID= device_info[i].id;
+					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
+
+					/* Find how many pressure levels tablet has */
+					XAnyClassPtr ici = device_info[i].inputclassinfo;
+					for(int j=0; j<m_xtablet.StylusDevice->num_classes; ++j) {
+						if(ici->c_class==ValuatorClass) {
+							XValuatorInfo* xvi = (XValuatorInfo*)ici;
+							m_xtablet.PressureLevels = xvi->axes[2].max_value;
+							break;
+						}
+						
+						ici = (XAnyClassPtr)(((char *)ici) + ici->length);
+					}
+				}
+				if(!strcmp(device_info[i].name, "eraser")) {
+					m_xtablet.EraserID= device_info[i].id;
+					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
+				}
+			}
+			XFreeDeviceList(device_info);
+
+			XEventClass xevents[10], ev;
+			int dcount = 0;
+			if(m_xtablet.StylusDevice) {
+				DeviceMotionNotify(m_xtablet.StylusDevice, m_xtablet.MotionEvent, ev);
+				if(ev) xevents[dcount++] = ev;
+				ProximityIn(m_xtablet.StylusDevice, m_xtablet.ProxInEvent, ev);
+				if(ev) xevents[dcount++] = ev;
+				ProximityOut(m_xtablet.StylusDevice, m_xtablet.ProxOutEvent, ev);
+				if(ev) xevents[dcount++] = ev;
+			}
+			if(m_xtablet.EraserDevice) {
+				DeviceMotionNotify(m_xtablet.EraserDevice, m_xtablet.MotionEvent, ev);
+				if(ev) xevents[dcount++] = ev;
+				ProximityIn(m_xtablet.EraserDevice, m_xtablet.ProxInEvent, ev);
+				if(ev) xevents[dcount++] = ev;
+				ProximityOut(m_xtablet.EraserDevice, m_xtablet.ProxOutEvent, ev);
+				if(ev) xevents[dcount++] = ev;
+			}
+
+			XSelectExtensionEvent(m_display, m_window, xevents, dcount);
+		}
+		XFree(version);
+	}
+}	
+
 
 	Window 
 GHOST_WindowX11::

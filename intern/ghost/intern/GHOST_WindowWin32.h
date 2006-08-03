@@ -216,7 +216,8 @@ public:
 	 */
 	void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
-
+	const GHOST_TabletData* GetTabletData()
+	{ return NULL; }
 protected:
 	/**
 	 * Tries to install a rendering context in this window.

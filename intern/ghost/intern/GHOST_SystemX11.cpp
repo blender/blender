@@ -338,7 +338,7 @@ processEvent(
 	if (!window) {
 		return;
 	}
-		
+
 	switch (xe->type) {
 		case Expose:
 		{
@@ -357,6 +357,7 @@ processEvent(
 			}
 			break;
 		}
+
 		case MotionNotify:
 		{
 			XMotionEvent &xme = xe->xmotion;
@@ -506,8 +507,23 @@ processEvent(
 		case ReparentNotify:
 			break;
 
-		default:
+      	        default: {
+			if(xe->type == window->GetXTablet().MotionEvent) {
+				XDeviceMotionEvent* data = (XDeviceMotionEvent*)xe;
+				window->GetXTablet().CommonData.Pressure= data->axis_data[2]/((float)window->GetXTablet().PressureLevels);
+			}
+			else if(xe->type == window->GetXTablet().ProxInEvent) {
+				XProximityNotifyEvent* data = (XProximityNotifyEvent*)xe;
+				if(data->deviceid == window->GetXTablet().StylusID)
+					window->GetXTablet().CommonData.Active= 1;
+				else if(data->deviceid == window->GetXTablet().EraserID)
+					window->GetXTablet().CommonData.Active= 2;
+			}
+			else if(xe->type == window->GetXTablet().ProxOutEvent)
+				window->GetXTablet().CommonData.Active= 0;
+
 			break;
+		}
 	}
 
 	if (g_event) {

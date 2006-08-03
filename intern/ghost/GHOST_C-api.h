@@ -608,6 +608,13 @@ extern GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle wind
 extern GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle);
 
 /**
+ * Returns the status of the tablet
+ * @param windowhandle The handle to the window
+ * @return Status of tablet
+ */
+extern const GHOST_TabletData *GHOST_GetTabletData(GHOST_WindowHandle windowhandle);
+
+/**
  * Access to rectangle width.
  * @param rectanglehandle The handle to the rectangle
  * @return	width of the rectangle
@@ -751,7 +758,6 @@ extern void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
  */
 extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 										  GHOST_RectangleHandle anotherrectanglehandle);
-
 #ifdef __cplusplus
 }
 #endif

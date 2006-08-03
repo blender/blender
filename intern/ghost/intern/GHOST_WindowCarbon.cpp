@@ -185,6 +185,8 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
         setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);;installDrawingContext(GHOST_kDrawingContextTypeOpenGL);
         updateDrawingContext();
         activateDrawingContext();        
+
+	m_tablet.Active = 0;
     }
 }
 

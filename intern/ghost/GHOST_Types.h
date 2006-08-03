@@ -55,6 +55,13 @@ typedef enum
 	GHOST_kSuccess
 } GHOST_TSuccess;
 
+typedef struct GHOST_TabletData {
+	char Active; /* 0=None, 1=Stylus, 2=Eraser */
+	float Pressure;
+	float Xtilt;
+	float Ytilt;
+} GHOST_TabletData;
+
 
 typedef enum {
 	GHOST_kNotVisible = 0,

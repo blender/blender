@@ -201,6 +201,12 @@ public:
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
 	
+	/**
+	 * Returns the tablet data (pressure etc).
+	 * @return The tablet data (pressure etc).
+	 */
+	virtual const GHOST_TabletData* GetTabletData() = 0;
+	
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/

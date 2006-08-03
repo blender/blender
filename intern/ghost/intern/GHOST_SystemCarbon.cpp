@@ -688,6 +688,79 @@ OSStatus GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 	return err;
 }
 
+OSStatus GHOST_SystemCarbon::handleTabletEvent(EventRef event)
+{
+	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	TabletPointRec tabletPointRecord;
+	TabletProximityRec	tabletProximityRecord;
+	UInt32 anInt32;
+	GHOST_TabletData& ct=((GHOST_WindowCarbon*)window)->GetCarbonTabletData();
+	OSStatus err = eventNotHandledErr;
+	
+	ct.Pressure = 0;
+	ct.Xtilt = 0;
+	ct.Ytilt = 0;
+	
+	// is there an embedded tablet event inside this mouse event? 
+	if(noErr == GetEventParameter(event, kEventParamTabletEventType, typeUInt32, NULL, sizeof(UInt32), NULL, (void *)&anInt32))
+	{
+		// yes there is one!
+		// Embedded tablet events can either be a proximity or pointer event.
+		if(anInt32 == kEventTabletPoint)
+		{
+			//GHOST_PRINT("Embedded pointer event!\n");
+			
+			// Extract the tablet Pointer Event. If there is no Tablet Pointer data
+			// in this event, then this call will return an error. Just ignore the
+			// error and go on. This can occur when a proximity event is embedded in
+			// a mouse event and you did not check the mouse event to see which type
+			// of tablet event was embedded.
+			if(noErr == GetEventParameter(event, kEventParamTabletPointRec,
+										  typeTabletPointRec, NULL,
+										  sizeof(TabletPointRec),
+										  NULL, (void *)&tabletPointRecord))
+			{
+				ct.Pressure = tabletPointRecord.pressure / 65535.0f;
+				ct.Xtilt = tabletPointRecord.tiltX / 32767.0f; /* can be positive or negative */
+				ct.Ytilt = tabletPointRecord.tiltY / 32767.0f; /* can be positive or negative */
+			}
+		} else {
+			//GHOST_PRINT("Embedded proximity event\n");
+			
+			// Extract the Tablet Proximity record from the event.
+			if(noErr == GetEventParameter(event, kEventParamTabletProximityRec,
+										  typeTabletProximityRec, NULL,
+										  sizeof(TabletProximityRec),
+										  NULL, (void *)&tabletProximityRecord))
+			{
+				if (tabletProximityRecord.enterProximity) {
+					//pointer is entering tablet area proximity
+					
+					switch(tabletProximityRecord.pointerType)
+					{
+						case 1: /* stylus */
+							ct.Active = 1;
+							break;
+						case 2: /* puck, not supported so far */
+							ct.Active = 0;
+							break;
+						case 3: /* eraser */
+							ct.Active = 2;
+							break;
+						default:
+							ct.Active = 0;
+							break;
+					}
+				} else {
+					// pointer is leaving - return to mouse
+					ct.Active = 0;
+				}
+			}
+		}
+	err = noErr;
+	}
+}
+
 OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 {
     OSStatus err = eventNotHandledErr;
@@ -708,6 +781,9 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 				
 				/* Window still gets mouse up after command-H */
 				if (m_windowManager->getActiveWindow()) {
+					// handle any tablet events that may have come with the mouse event (optional)
+					handleTabletEvent(event);
+					
 					::GetEventParameter(event, kEventParamMouseButton, typeMouseButton, NULL, sizeof(button), NULL, &button);
 					pushEvent(new GHOST_EventButton(getMilliSeconds(), type, window, convertButton(button)));
 					err = noErr;
@@ -716,15 +792,19 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
             break;
 			
 		case kEventMouseMoved:
-        case kEventMouseDragged:
-			Point mousePos;
+		case kEventMouseDragged: {
+ 			Point mousePos;
+
 			if (window) {
+				//handle any tablet events that may have come with the mouse event (optional)
+				handleTabletEvent(event);
+
 				::GetEventParameter(event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &mousePos);
 				pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, mousePos.h, mousePos.v));
 				err = noErr;
-			}
-            break;
-
+ 			}
+			break;
+		}
 		case kEventMouseWheelMoved:
 			{
 				OSStatus status;

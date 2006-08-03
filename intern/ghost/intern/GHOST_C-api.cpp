@@ -649,6 +649,11 @@ GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle)
 }
 
 
+extern const GHOST_TabletData* GHOST_GetTabletData(GHOST_WindowHandle windowhandle)
+{
+	return ((GHOST_IWindow*)windowhandle)->GetTabletData();
+}
+
 
 GHOST_TInt32 GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle)
 {
@@ -795,6 +800,3 @@ GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 
 	return result;
 }
-
-
-
