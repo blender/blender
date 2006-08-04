@@ -29,10 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "GHOST_WindowX11.h"
 #include "GHOST_SystemX11.h"
 #include "STR_String.h"
@@ -45,10 +41,10 @@
 // lifted verbatim from blut.
 
 typedef struct {
-  long flags;
-  long functions;
-  long decorations;
-  long input_mode;
+	long flags;
+	long functions;
+	long decorations;
+	long input_mode;
 } MotifWmHints;
 
 #define MWM_HINTS_DECORATIONS         (1L << 1)
@@ -208,9 +204,25 @@ GHOST_WindowX11(
 	XFlush(m_display);
 }
 
+/* 
+	Dummy function to get around IO Handler exiting if device invalid
+	Basically it will not crash blender now if you have a X device that 
+	is configured but not plugged in.
+
+*/
+static int ApplicationErrorHandler(Display *display, XErrorEvent *theEvent) {
+	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
+		theEvent->error_code, theEvent->request_code) ;
+
+	/* No exit! - but keep lint happy */
+	return 0 ;
+}
+
 void GHOST_WindowX11::initXInputDevices()
 {
+	static XErrorHandler old_handler = (XErrorHandler) 0 ;
 	XExtensionVersion *version = XGetExtensionVersion(m_display, INAME);
+
 	if(version && (version != (XExtensionVersion*)NoSuchExtension)) {
 		if(version->present) {
 			int device_count;
@@ -219,37 +231,51 @@ void GHOST_WindowX11::initXInputDevices()
 			m_xtablet.EraserDevice = 0;
 			m_xtablet.CommonData.Active= 0;
 
+			/* Install our error handler to override Xlib's termination behavior */
+			old_handler = XSetErrorHandler(ApplicationErrorHandler) ;
+
 			for(int i=0; i<device_count; ++i) {
 				if(!strcmp(device_info[i].name, "stylus")) {
 					m_xtablet.StylusID= device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
 
-					/* Find how many pressure levels tablet has */
-					XAnyClassPtr ici = device_info[i].inputclassinfo;
-					for(int j=0; j<m_xtablet.StylusDevice->num_classes; ++j) {
-						if(ici->c_class==ValuatorClass) {
-							XValuatorInfo* xvi = (XValuatorInfo*)ici;
-							m_xtablet.PressureLevels = xvi->axes[2].max_value;
+					if (m_xtablet.StylusDevice != NULL) {
+						/* Find how many pressure levels tablet has */
+						XAnyClassPtr ici = device_info[i].inputclassinfo;
+						for(int j=0; j<m_xtablet.StylusDevice->num_classes; ++j) {
+							if(ici->c_class==ValuatorClass) {
+								XValuatorInfo* xvi = (XValuatorInfo*)ici;
+								m_xtablet.PressureLevels = xvi->axes[2].max_value;
 							
-							/* this is assuming that the tablet has the same tilt resolution in both
-							 * positive and negative directions. It would be rather weird if it didn't.. */
-							m_xtablet.XtiltLevels = xvi->axes[3].max_value;
-							m_xtablet.YtiltLevels = xvi->axes[4].max_value;
-							break;
-						}
+								/* this is assuming that the tablet has the same tilt resolution in both
+								 * positive and negative directions. It would be rather weird if it didn't.. */
+								m_xtablet.XtiltLevels = xvi->axes[3].max_value;
+								m_xtablet.YtiltLevels = xvi->axes[4].max_value;
+								break;
+							}
 						
-						ici = (XAnyClassPtr)(((char *)ici) + ici->length);
+							ici = (XAnyClassPtr)(((char *)ici) + ici->length);
+						}
+					} else {
+ 						m_xtablet.StylusID= 0;
 					}
 				}
 				if(!strcmp(device_info[i].name, "eraser")) {
 					m_xtablet.EraserID= device_info[i].id;
 					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
+					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID= 0;
 				}
 			}
+
+			/* Restore handler */
+			(void) XSetErrorHandler(old_handler) ;
+
 			XFreeDeviceList(device_info);
+
 
 			XEventClass xevents[10], ev;
 			int dcount = 0;
+
 			if(m_xtablet.StylusDevice) {
 				DeviceMotionNotify(m_xtablet.StylusDevice, m_xtablet.MotionEvent, ev);
 				if(ev) xevents[dcount++] = ev;
@@ -506,7 +532,7 @@ setOrder(
 
 		/* iconized windows give bad match error */
 		if (attr.map_state == IsViewable)
-		  XSetInputFocus(m_display, m_window, RevertToPointerRoot,
+			XSetInputFocus(m_display, m_window, RevertToPointerRoot,
 						 CurrentTime);
 		XFlush(m_display);
 	} else if (order == GHOST_kWindowOrderBottom) {
@@ -742,7 +768,7 @@ getEmptyCursor(
 		m_empty_cursor = XCreatePixmapCursor(m_display, blank, blank, &dummy, &dummy, 0, 0);
 		XFreePixmap(m_display, blank);
 	}
-    
+
 	return m_empty_cursor;
 }
 
@@ -816,7 +842,7 @@ setWindowCustomCursorShape(
 		XFreeCursor(m_display, m_custom_cursor);
 	}
 
-	bitmap_pix = XCreateBitmapFromData(m_display,  m_window, (char*) bitmap, sizex, sizey);
+	bitmap_pix = XCreateBitmapFromData(m_display, m_window, (char*) bitmap, sizex, sizey);
 	mask_pix = XCreateBitmapFromData(m_display, m_window, (char*) mask, sizex, sizey);
 		
 	m_custom_cursor = XCreatePixmapCursor(m_display, bitmap_pix, mask_pix, &fg, &bg, hotX, hotY);
@@ -843,7 +869,7 @@ void glutCustomCursor(char *data1, char *data2, int size)
 		"Red", &bg, &bg) == 0) return;
 
 
-	source= XCreateBitmapFromData(__glutDisplay,  xdraw, data2, size, size);
+	source= XCreateBitmapFromData(__glutDisplay, xdraw, data2, size, size);
 	mask= XCreateBitmapFromData(__glutDisplay, xdraw, data1, size, size);
 		
 	cursor= XCreatePixmapCursor(__glutDisplay, source, mask, &fg, &bg, 7, 7);
