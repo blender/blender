@@ -51,18 +51,19 @@ class bvh_node_class(object):
 	__slots__=(\
 	'name',# bvh joint name
 	'parent',# bvh_node_class type or None for no parent
-	'children',# a list of children of this type
+	'children',# a list of children of this type.
 	'rest_head_world',# worldspace rest location for the head of this node
 	'rest_head_local',# localspace rest location for the head of this node
 	'rest_tail_world',# # worldspace rest location for the tail of this node
 	'rest_tail_local',# # worldspace rest location for the tail of this node
 	'channels',# list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, lock triple then rot triple
+	'rot_order',# a triple of indicies as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
 	'anim_data',# a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz)
 	'has_loc',# Conveinience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 channels[2]!=-1)
 	'has_rot',# Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
 	'temp')# use this for whatever you want
 	
-	def __init__(self, name, rest_head_world, rest_head_local, parent, channels):
+	def __init__(self, name, rest_head_world, rest_head_local, parent, channels, rot_order):
 		self.name= name
 		self.rest_head_world= rest_head_world
 		self.rest_head_local= rest_head_local
@@ -70,6 +71,7 @@ class bvh_node_class(object):
 		self.rest_tail_local= None
 		self.parent= parent
 		self.channels= channels
+		self.rot_order= rot_order
 		
 		# convenience functions
 		self.has_loc= channels[0] != -1 or channels[1] != -1 or channels[2] != -1
@@ -96,32 +98,14 @@ class bvh_node_class(object):
 MATRIX_IDENTITY_3x3 = Matrix([1,0,0],[0,1,0],[0,0,1])
 MATRIX_IDENTITY_4x4 = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
 
-def read_bvh(file_path, GLOBAL_SCALE=1.0, ROT_ORDER= 0):
-	
-	if ROT_ORDER==0:
-		def eulerRotate(x,y,z): 
-			x,y,z = x%360,y%360,z%360 # Clamp all values between 0 and 360, values outside this raise an error.
-			xmat = RotationMatrix(x,3,'x')
-			ymat = RotationMatrix(y,3,'y')
-			zmat = RotationMatrix(z,3,'z')
-			# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
-			return (ymat*(xmat * (zmat * MATRIX_IDENTITY_3x3))).toEuler()
-	
-	elif ROT_ORDER==1: # Alternitive order
-		def eulerRotate(x,y,z): 
-			x,y,z = x%360,y%360,z%360 # Clamp all values between 0 and 360, values outside this raise an error.
-			xmat = RotationMatrix(x,3,'x')
-			ymat = RotationMatrix(y,3,'y')
-			zmat = RotationMatrix(z,3,'z')
-			# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
-			return (zmat*(ymat * (xmat * MATRIX_IDENTITY_3x3))).toEuler()
-	
-	
-	
-	
-	
-	
-	
+def eulerRotate(x,y,z, rot_order): 
+	# Clamp all values between 0 and 360, values outside this raise an error.
+	mats=[RotationMatrix(x%360,3,'x'), RotationMatrix(y%360,3,'y'), RotationMatrix(z%360,3,'z')]
+	# print rot_order
+	# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
+	return (mats[rot_order[2]]*(mats[rot_order[1]]* (mats[rot_order[0]]* MATRIX_IDENTITY_3x3))).toEuler()
+
+def read_bvh(file_path, GLOBAL_SCALE=1.0):
 	# File loading stuff
 	# Open the file for importing
 	file = open(file_path, 'r')	
@@ -176,15 +160,27 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0, ROT_ORDER= 0):
 			# if not assigned then -1 refers to the last value that will be added on loading at a value of zero, this is appended 
 			# We'll add a zero value onto the end of the MotionDATA so this is always refers to a value.
 			my_channel = [-1, -1, -1, -1, -1, -1] 
+			my_rot_order= [None, None, None]
+			rot_count= 0
 			for channel in file_lines[lineIdx][2:]:
 				channel= channel.lower()
 				channelIndex += 1 # So the index points to the right channel
 				if   channel == 'xposition':	my_channel[0] = channelIndex
 				elif channel == 'yposition':	my_channel[1] = channelIndex
 				elif channel == 'zposition':	my_channel[2] = channelIndex
-				elif channel == 'xrotation':	my_channel[3] = channelIndex
-				elif channel == 'yrotation':	my_channel[4] = channelIndex
-				elif channel == 'zrotation':	my_channel[5] = channelIndex
+				
+				elif channel == 'xrotation':
+					my_channel[3] = channelIndex
+					my_rot_order[rot_count]= 0
+					rot_count+=1
+				elif channel == 'yrotation':
+					my_channel[4] = channelIndex
+					my_rot_order[rot_count]= 1
+					rot_count+=1
+				elif channel == 'zrotation':
+					my_channel[5] = channelIndex
+					my_rot_order[rot_count]= 2
+					rot_count+=1
 			
 			channels = file_lines[lineIdx][2:]
 			
@@ -197,7 +193,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0, ROT_ORDER= 0):
 			else:
 				rest_head_world= my_parent.rest_head_world + rest_head_local
 			
-			bvh_node= bvh_nodes[name]= bvh_node_class(name, rest_head_world, rest_head_local, my_parent, my_channel)
+			bvh_node= bvh_nodes[name]= bvh_node_class(name, rest_head_world, rest_head_local, my_parent, my_channel, my_rot_order)
 			
 			# If we have another child then we can call ourselves a parent, else 
 			bvh_nodes_serial.append(bvh_node)
@@ -250,7 +246,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0, ROT_ORDER= 0):
 				lz= GLOBAL_SCALE * float(  line[channels[2]] )
 			
 			if channels[3] != -1 or channels[4] != -1 or channels[5] != -1:						
-				rx, ry, rz = eulerRotate(float( line[channels[3]] ), float( line[channels[4]] ), float( line[channels[5]] ))
+				rx, ry, rz = eulerRotate(float( line[channels[3]] ), float( line[channels[4]] ), float( line[channels[5]] ), bvh_node.rot_order)
 				#x,y,z = x/10.0, y/10.0, z/10.0 # For IPO's 36 is 360d
 				
 				# Make interpolation not cross between 180d, thjis fixes sub frame interpolation and time scaling.
@@ -693,8 +689,6 @@ def load_bvh_ui(file):
 	IMPORT_START_FRAME = Draw.Create(1)
 	IMPORT_AS_ARMATURE = Draw.Create(1)
 	IMPORT_AS_EMPTIES = Draw.Create(0)
-	IMPORT_ALTERNATE_ROTATION = Draw.Create(0)
-	
 	
 	# Get USER Options
 	pup_block = [\
@@ -702,7 +696,6 @@ def load_bvh_ui(file):
 	('As Empties', IMPORT_AS_EMPTIES, 'Imports the BVH as empties'),\
 	('Scale: ', IMPORT_SCALE, 0.001, 100.0, 'Scale the BVH, Use 0.01 when 1.0 is 1 metre'),\
 	('Start Frame: ', IMPORT_START_FRAME, 1, 30000, 'Frame to start BVH motion'),\
-	('Alt Rot Order', IMPORT_ALTERNATE_ROTATION, 'Enable if incorrect rotations appier.'),\
 	]
 	
 	if not Draw.PupBlock('BVH Import...', pup_block):
@@ -714,14 +707,13 @@ def load_bvh_ui(file):
 	IMPORT_START_FRAME = IMPORT_START_FRAME.val
 	IMPORT_AS_ARMATURE = IMPORT_AS_ARMATURE.val
 	IMPORT_AS_EMPTIES = IMPORT_AS_EMPTIES.val
-	IMPORT_ALTERNATE_ROTATION = IMPORT_ALTERNATE_ROTATION.val
 	
 	if not IMPORT_AS_ARMATURE and not IMPORT_AS_EMPTIES:
 		Blender.Draw.PupMenu('No import option selected')
 		return
 	Blender.Window.WaitCursor(1)
 	# Get the BVH data and act on it.
-	bvh_nodes= read_bvh(file, IMPORT_SCALE, IMPORT_ALTERNATE_ROTATION)
+	bvh_nodes= read_bvh(file, IMPORT_SCALE)
 	if IMPORT_AS_ARMATURE:	bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME)
 	if IMPORT_AS_EMPTIES:	bvh_node_dict2objects(bvh_nodes,  IMPORT_START_FRAME)
 	Blender.Window.WaitCursor(0)
